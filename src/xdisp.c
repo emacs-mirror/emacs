@@ -516,6 +516,12 @@ static int last_max_ascent, last_height;
 
 int help_echo_showing_p;
 
+/* If >= 0, computed, exact values of mode-line and header-line height
+   to use in the macros CURRENT_MODE_LINE_HEIGHT and
+   CURRENT_HEADER_LINE_HEIGHT.  */
+
+int current_mode_line_height, current_header_line_height;
+
 /* The maximum distance to look ahead for text properties.  Values
    that are too small let us call compute_char_face and similar 
    functions too often which is expensive.  Values that are too large
@@ -700,8 +706,7 @@ static int try_window_reusing_current_matrix P_ ((struct window *));
 static int try_window_id P_ ((struct window *));
 static int display_line P_ ((struct it *));
 static int display_mode_lines P_ ((struct window *));
-static void display_mode_line P_ ((struct window *, enum face_id,
-				   Lisp_Object));
+static int display_mode_line P_ ((struct window *, enum face_id, Lisp_Object));
 static int display_mode_element P_ ((struct it *, int, int, int, Lisp_Object));
 static char *decode_mode_spec P_ ((struct window *, int, int, int));
 static void display_menu_bar P_ ((struct window *));
@@ -942,9 +947,9 @@ window_box_edges (w, area, top_left_x, top_left_y,
    POS is fully visible.  */
 
 int
-pos_visible_p (w, charpos, fully)
+pos_visible_p (w, charpos, fully, exact_mode_line_heights_p)
      struct window *w;
-     int charpos, *fully;
+     int charpos, *fully, exact_mode_line_heights_p;
 {
   struct it it;
   struct text_pos top;
@@ -959,8 +964,22 @@ pos_visible_p (w, charpos, fully)
 
   *fully = visible_p = 0;
   SET_TEXT_POS_FROM_MARKER (top, w->start);
-  start_display (&it, w, top);
+  
+  /* Compute exact mode line heights, if requested.  */
+  if (exact_mode_line_heights_p)
+    {
+      if (WINDOW_WANTS_MODELINE_P (w))
+	current_mode_line_height
+	  = display_mode_line (w, MODE_LINE_FACE_ID,
+			       current_buffer->mode_line_format);
+  
+      if (WINDOW_WANTS_HEADER_LINE_P (w))
+	current_header_line_height
+	  = display_mode_line (w, HEADER_LINE_FACE_ID,
+			       current_buffer->header_line_format);
+    }
 
+  start_display (&it, w, top);
   move_it_to (&it, charpos, 0, it.last_visible_y, -1,
 	      MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
   
@@ -1005,7 +1024,8 @@ pos_visible_p (w, charpos, fully)
 
   if (old_buffer)
     set_buffer_internal_1 (old_buffer);
-  
+
+  current_header_line_height = current_mode_line_height = -1;
   return visible_p;
 }
 
@@ -12430,9 +12450,10 @@ display_mode_lines (w)
 
 /* Display mode or top line of window W.  FACE_ID specifies which line
    to display; it is either MODE_LINE_FACE_ID or HEADER_LINE_FACE_ID.
-   FORMAT is the mode line format to display.  */
+   FORMAT is the mode line format to display.  Value is the pixel
+   height of the mode line displayed.  */
 
-static void
+static int
 display_mode_line (w, face_id, format)
      struct window *w;
      enum face_id face_id;
@@ -12471,6 +12492,8 @@ display_mode_line (w, face_id, format)
 			    + it.glyph_row->used[TEXT_AREA] - 1);
       last->right_box_line_p = 1;
     }
+
+  return it.glyph_row->height;
 }
 
 
@@ -13923,6 +13946,8 @@ init_xdisp ()
 {
   Lisp_Object root_window;
   struct window *mini_w;
+
+  current_header_line_height = current_mode_line_height = -1;
 
   CHARPOS (this_line_start_pos) = 0;
 
