@@ -29,6 +29,9 @@ support 64-bit executables.  See etc/MACHINES for instructions.
 
 * Changes in Emacs 21.1
 
+* When an error is signaled during the loading of the user's init
+file, Emacs now pops up the *Messages* buffer.
+
 ** Polish and German translations of Emacs' reference card have been
 added.  They are named `refcard-pl.tex' and `refcard-de.tex'.
 Postscript files are included.
