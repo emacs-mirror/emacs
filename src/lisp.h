@@ -687,7 +687,10 @@ extern int string_bytes P_ ((struct Lisp_String *));
 #define STRING_SET_UNIBYTE(STR)      (XSTRING (STR)->size_byte = -1)
 
 /* Get text properties.  */
-#define STRING_INTERVALS(STR)  (XSTRING (STR)->intervals)
+#define STRING_INTERVALS(STR)  (XSTRING (STR)->intervals + 0)
+
+/* Set text properties.  */
+#define STRING_SET_INTERVALS(STR, INT) (XSTRING (STR)->intervals = (INT))
 
 /* In a string or vector, the sign bit of the `size' is the gc mark bit */
 
