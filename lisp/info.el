@@ -188,7 +188,7 @@ file, so be prepared for a few surprises if you enable this feature."
   :type 'boolean
   :group 'info)
 
-(defcustom Info-search-whitespace-regexp "\\(?:\\s-+\\)"
+(defcustom Info-search-whitespace-regexp "\\s-+"
   "*If non-nil, regular expression to match a sequence of whitespace chars.
 This applies to Info search for regular expressions.
 You might want to use something like \"[ \\t\\r\\n]+\" instead.
@@ -1486,14 +1486,14 @@ If DIRECTION is `backward', search in the reverse direction."
 				(isearch-range-invisible found beg-found)
 			      (isearch-range-invisible beg-found found))
 			    ;; Skip node header line
-			    (save-excursion (forward-line -1)
-					    (looking-at "\^_"))
+			    (and (save-excursion (forward-line -1)
+						 (looking-at "\^_"))
+				 (forward-line 1))
 			    ;; Skip Tag Table node
 			    (save-excursion
 			      (and (search-backward "\^_" nil t)
 				   (looking-at "\^_\nTag Table"))))))
-	    (let ((search-spaces-regexp
-		   Info-search-whitespace-regexp))
+	    (let ((search-spaces-regexp Info-search-whitespace-regexp))
 	      (if (if backward
 		      (re-search-backward regexp bound t)
 		    (re-search-forward regexp bound t))
@@ -1503,9 +1503,10 @@ If DIRECTION is `backward', search in the reverse direction."
       ;; If no subfiles, give error now.
       (if give-up
 	  (if (null Info-current-subfile)
-	      (if backward
-                  (re-search-backward regexp)
-                (re-search-forward regexp))
+	      (let ((search-spaces-regexp Info-search-whitespace-regexp))
+		(if backward
+		    (re-search-backward regexp)
+		  (re-search-forward regexp)))
 	    (setq found nil)))
 
       (unless (or found bound)
@@ -1561,18 +1562,20 @@ If DIRECTION is `backward', search in the reverse direction."
 				      (isearch-range-invisible found beg-found)
 				    (isearch-range-invisible beg-found found))
 				  ;; Skip node header line
-				  (save-excursion (forward-line -1)
-						  (looking-at "\^_"))
+				  (and (save-excursion (forward-line -1)
+						       (looking-at "\^_"))
+				       (forward-line 1))
 				  ;; Skip Tag Table node
 				  (save-excursion
 				    (and (search-backward "\^_" nil t)
 					 (looking-at "\^_\nTag Table"))))))
-		  (if (if backward
-                          (re-search-backward regexp nil t)
-                        (re-search-forward regexp nil t))
-		      (setq found (point) beg-found (if backward (match-end 0)
-                                                      (match-beginning 0)))
-		    (setq give-up t)))
+		  (let ((search-spaces-regexp Info-search-whitespace-regexp))
+		    (if (if backward
+			    (re-search-backward regexp nil t)
+			  (re-search-forward regexp nil t))
+			(setq found (point) beg-found (if backward (match-end 0)
+							(match-beginning 0)))
+		      (setq give-up t))))
 		(if give-up
 		    (setq found nil))
 		(if found
