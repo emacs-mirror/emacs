@@ -1434,7 +1434,7 @@ term_init (terminal_type)
   int status;
 
 #ifdef WINDOWSNT
-  initialize_win_nt_display ();
+  initialize_w32_display ();
 
   Wcm_clear ();
 
