@@ -369,7 +369,6 @@ make_terminal_frame ()
   f->visible = 1;		/* FRAME_SET_VISIBLE wd set frame_garbaged. */
   f->async_visible = 1;		/* Don't let visible be cleared later. */
   f->display.nothing = 1;	/* Nonzero means frame isn't deleted.  */
-  XSETFRAME (Vterminal_frame, f);
   return f;
 }
 
@@ -472,6 +471,7 @@ do_switch_frame (frame, no_enter, track)
 	 switching means we must redisplay the whole thing.  */
       windows_or_buffers_changed++;
       SET_FRAME_GARBAGED (XFRAME (frame));
+      XSETFRAME (Vterminal_frame, frame);
     }
 
   selected_frame = XFRAME (frame);
