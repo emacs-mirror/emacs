@@ -71,7 +71,9 @@ This is local in each buffer, once it is used.")
 (if view-mode-map
     nil
   (setq view-mode-map (make-keymap))
-  (suppress-keymap view-mode-map)
+  ;; We used to call suppress-keymap here, but that isn't good in a minor mode.
+  ;; Self-inserting characters will beep anyway, since the buffer is read-only,
+  ;; and we should not interfere with letters that serve as useful commands.
   (define-key view-mode-map "q" 'view-exit)
   (define-key view-mode-map "<" 'beginning-of-buffer)
   (define-key view-mode-map ">" 'end-of-buffer)
