@@ -563,7 +563,7 @@ current file, and the FILENAME of the file being checked."
 (defcustom speedbar-obj-do-check t
   "*Non-nil check all files in speedbar to see if they have an object file.
 Any file checked out is marked with `speedbar-obj-indicator', and the
-marking is based on  `speedbar-obj-alist'."
+marking is based on `speedbar-obj-alist'."
   :group 'speedbar-vc
   :type 'boolean)
 
