@@ -1419,7 +1419,18 @@ See also the function `substitute-in-file-name'.")
     {
 #ifndef VMS
       if (nm[0] == 0 || IS_DIRECTORY_SEP (nm[0]))
-	strcpy (target, newdir);
+	{
+#ifdef WINDOWSNT
+	  /* If newdir is effectively "C:/", then the drive letter will have
+	     been stripped and newdir will be "/".  Concatenating with an
+	     absolute directory in nm produces "//", which will then be
+	     incorrectly treated as a network share.  Ignore newdir in
+	     this case (keeping the drive letter).  */
+	  if (!(drive && nm[0] && IS_DIRECTORY_SEP (newdir[0]) 
+		&& newdir[1] == '\0'))
+#endif
+	    strcpy (target, newdir);
+	}
       else
 #endif
 	file_name_as_directory (target, newdir);
