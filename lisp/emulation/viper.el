@@ -8,7 +8,7 @@
 
 ;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
-(defconst viper-version "2.95 of July 9, 1997"
+(defconst viper-version "2.95 of July 23, 1997"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -363,6 +363,15 @@ DO NOT set this variable interactively."
   :tag "Set Viper Mode on Loading"
   :group 'viper)
 
+(defcustom viper-non-vi-major-modes nil
+  "*A list of major modes that should never come up in vi command mode.
+Viper automatically augments this list with some obvious modes, such as
+`dired-mode', `tar-mode', etc. So, don't put modes on this list, unless 
+it comes up in a wrong Viper state."
+  :type 'list
+  :group 'viper)
+
+
 
 ;; The following are provided for compatibility with older VIP's
 
@@ -454,7 +463,9 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 		    (sit-for 4)
 		    ))
 	      (viper-set-expert-level 'dont-change-unless)))
-	(vip-change-state-to-vi))))
+
+	(or (memq major-mode viper-non-vi-major-modes) ; don't switch to Vi
+	    (vip-change-state-to-vi)))))
    
 
 ;; This hook designed to enable Vi-style editing in comint-based modes."
@@ -744,10 +755,14 @@ remains buffer-local."
   (vip-modify-major-mode 'dired-mode 'emacs-state vip-dired-modifier-map)
   (vip-set-emacs-state-searchstyle-macros nil 'dired-mode)
   (add-hook 'dired-mode-hook 'vip-change-state-to-emacs)
+  (setq viper-non-vi-major-modes
+	(append '(dired-mode efs-mode internal-ange-ftp-mode)
+		viper-non-vi-major-modes))
 
   ;; Tar
   (vip-modify-major-mode 'tar-mode 'emacs-state vip-slash-and-colon-map)
   (vip-set-emacs-state-searchstyle-macros nil 'tar-mode)
+  (setq viper-non-vi-major-modes (cons 'tar-mode viper-non-vi-major-modes))
 
   ;; MH-E
   (vip-modify-major-mode 'mh-folder-mode 'emacs-state vip-slash-and-colon-map)
@@ -755,6 +770,8 @@ remains buffer-local."
   ;; changing state to emacs is needed so the preceding will take hold
   (add-hook 'mh-folder-mode-hook 'vip-change-state-to-emacs)
   (add-hook 'mh-show-mode-hook 'viper-mode)
+  (setq viper-non-vi-major-modes
+	(cons 'mh-folder-mode viper-non-vi-major-modes))
 
   ;; Gnus
   (vip-modify-major-mode 'gnus-group-mode 'emacs-state vip-slash-and-colon-map)
@@ -766,6 +783,9 @@ remains buffer-local."
   (add-hook 'gnus-group-mode-hook 'vip-change-state-to-emacs)
   (add-hook 'gnus-summary-mode-hook 'vip-change-state-to-emacs)
   (add-hook 'gnus-article-mode-hook 'viper-mode)
+  (setq viper-non-vi-major-modes
+	(append '(gnus-group-mode gnus-summary-mode)
+		viper-non-vi-major-modes))
 
   ;; Info
   (vip-modify-major-mode 'Info-mode 'emacs-state vip-slash-and-colon-map)
@@ -774,6 +794,7 @@ remains buffer-local."
   (defadvice Info-mode (after vip-Info-ad activate)
     "Switch to emacs mode."
     (vip-change-state-to-emacs))
+  (setq viper-non-vi-major-modes (cons 'Info-mode viper-non-vi-major-modes))
 
   ;; Buffer menu
   (vip-modify-major-mode 
@@ -783,12 +804,15 @@ remains buffer-local."
   (defadvice Buffer-menu-mode (after vip-Buffer-menu-ad activate)
     "Switch to emacs mode."
     (vip-change-state-to-emacs))
+  (setq viper-non-vi-major-modes
+	(cons 'Buffer-menu-mode viper-non-vi-major-modes))
 
   ;; View mode
   (defvar view-mode-hook)
   (defvar view-hook)
   (add-hook 'view-hook 'vip-change-state-to-emacs)
   (add-hook 'view-mode-hook 'vip-change-state-to-emacs)
+  (setq viper-non-vi-major-modes (cons 'view-mode viper-non-vi-major-modes))
   
   ;; For VM users.
   ;; Put summary and other VM buffers in Emacs state.
@@ -796,6 +820,8 @@ remains buffer-local."
   (defvar vm-summary-mode-hooks)
   (add-hook 'vm-mode-hooks   'vip-change-state-to-emacs)
   (add-hook 'vm-summary-mode-hooks   'vip-change-state-to-emacs)
+  (setq viper-non-vi-major-modes
+	(append '(vm-mode vm-summary-mode) viper-non-vi-major-modes))
   
   ;; For RMAIL users.
   ;; Put buf in Emacs state after edit.

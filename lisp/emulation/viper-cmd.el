@@ -959,7 +959,8 @@ as a Meta key and any number of multiple escapes is allowed."
 ;; Vi operator as prefix argument."
 (defun vip-prefix-arg-com (char value com)
   (let ((cont t)
-	cmd-info mv-or-digit-cmd)
+	cmd-info 
+	cmd-to-exec-at-end)
     (while (and cont
 		(memq char
 		      (list ?c ?d ?y ?! ?< ?> ?= ?# ?r ?R ?\"
@@ -1009,8 +1010,9 @@ as a Meta key and any number of multiple escapes is allowed."
 	(or (vip-movement-command-p char)
 	    (vip-digit-command-p char)
 	    (vip-regsuffix-command-p char)
+	    (= char ?!) ; bang command
 	    (error ""))
-	(setq mv-or-digit-cmd
+	(setq cmd-to-exec-at-end
 	      (vip-exec-form-in-vi 
 	       (` (key-binding (char-to-string (, char)))))))
     
@@ -1036,14 +1038,14 @@ as a Meta key and any number of multiple escapes is allowed."
 	    ((equal com '(?= . ?=)) (vip-line (cons value ?=)))
 	    (t (error "")))))
   
-  (if mv-or-digit-cmd
+  (if cmd-to-exec-at-end
       (progn
 	(setq last-command-char char)
 	(setq last-command-event 
 	      (vip-copy-event
 	       (if vip-xemacs-p (character-to-event char) char)))
 	(condition-case nil
-	    (funcall mv-or-digit-cmd cmd-info)
+	    (funcall cmd-to-exec-at-end cmd-info)
 	  (error
 	   (error "")))))
   ))
@@ -1242,6 +1244,7 @@ as a Meta key and any number of multiple escapes is allowed."
   (save-excursion
     (set-mark vip-com-point)
     (vip-enlarge-region (mark t) (point))
+    (exchange-point-and-mark)
     (shell-command-on-region
      (mark t) (point)
      (if (= com ?!)
