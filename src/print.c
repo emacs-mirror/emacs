@@ -1383,11 +1383,13 @@ print_prune_string_charset (string)
 	{
 	  if (NILP (print_prune_charset_plist))
 	    print_prune_charset_plist = Fcons (Qcharset, Qnil);
-	  Fremove_text_properties (0, SCHARS (string),
+	  Fremove_text_properties (make_number (0),
+				   make_number (SCHARS (string)),
 				   print_prune_charset_plist, string);
 	}
       else
-	Fset_text_properties (0, SCHARS (string), Qnil, string);
+	Fset_text_properties (make_number (0), make_number (SCHARS (string)),
+			      Qnil, string);
     }
   return string;
 }
