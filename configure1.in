@@ -963,6 +963,10 @@ case "${canonical}" in
 		opsys=sol2-3
 		NON_GNU_CPP=/usr/ccs/lib/cpp
 		;;
+      *-sunos5.4* | *-solaris2.4* )
+		opsys=sol2-4
+		NON_GNU_CPP=/usr/ccs/lib/cpp
+		;;
       *-sunos5* | *-solaris* )
 		opsys=sol2
 		NON_GNU_CPP=/usr/ccs/lib/cpp
