@@ -1,3 +1,9 @@
+2001-06-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* faces.el (region): Change the background color for the
+	light-background color display to lightgoldenrod2, to make it
+	visible on some laptops.
+
 2001-06-28  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-reformat-message): Bind inhibit-read-only to t.
