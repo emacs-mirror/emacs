@@ -208,7 +208,8 @@ DEFUN ("update-display", Fupdate_display, Supdate_display, 0, 0, 0,
 DEFUN ("sun-change-cursor-icon",
        Fsun_change_cursor_icon,
        Ssun_change_cursor_icon, 1, 1, 0,
-       doc: /* Change the Sun mouse cursor icon.  ICON is a lisp vector whose 1st element
+       doc: /* Change the Sun mouse cursor icon.
+ICON is a lisp vector whose 1st element
 is the X offset of the cursor hot-point, whose 2nd element is the Y offset
 of the cursor hot-point and whose 3rd element is the cursor pixel data
 expressed as a string.  If ICON is nil then the original arrow cursor is used.  */)
