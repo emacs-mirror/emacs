@@ -10,8 +10,14 @@
 
 2003-03-10  John Paul Wallington  <jpw@gnu.org>
 
+	* subr.el (posn-col-row): Take into account `line-spacing'.
+
 	* ebuff-menu.el (electric-buffer-update-highlight): Do nothing
 	if major mode isn't `Electric-buffer-menu-mode'.
+
+	* term/x-win.el (vendor-specific-keysyms)
+	(x-last-selected-text-primary): Doc fixes.
+	(x-win-suspend-error): Use proper noun in error message.
 
 2003-03-09  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
