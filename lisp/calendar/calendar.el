@@ -188,48 +188,53 @@ The marking symbol is specified by the variable `diary-entry-marker'."
   :type 'boolean
   :group 'diary)
 
+(when window-system
+  (add-to-list 'facemenu-unlisted-faces 'diary-face)
+  (defface diary-face
+    '(((:class color) :foreground "red")
+      (t (:bold t)))
+    "Face for highlighting diary entries."
+    :group 'diary)
+
+  (add-to-list 'facemenu-unlisted-faces 'calendar-today-face)
+  (defface calendar-today-face
+    '((t (:underline t)))
+    "Face for indicating today's date."
+    :group 'diary)
+
+  (add-to-list 'facemenu-unlisted-faces 'holiday-face)
+  (defface holiday-face
+    '(((:class color) :background "pink")
+      (t (:inverse-video t)))
+    "Face for indicating dates that have holidays."
+    :group 'diary))
+
 (defcustom diary-entry-marker
   (if (not window-system)
       "+"
-    (require 'faces)
-    (add-to-list 'facemenu-unlisted-faces 'diary-face)
-    (make-face 'diary-face)
-    (cond ((face-differs-from-default-p 'diary-face))
-          ((x-display-color-p) (set-face-foreground 'diary-face "red"))
-          (t (copy-face 'bold 'diary-face)))
     'diary-face)
-  "*Used to mark dates that have diary entries.
-Can be either a single-character string or a face."
+  "*How to mark dates that have diary entries.
+The value can be either a single-character string or a face."
   :type '(choice string face)
   :group 'diary)
 
 (defcustom calendar-today-marker
   (if (not window-system)
       "="
-    (require 'faces)
-    (add-to-list 'facemenu-unlisted-faces 'calendar-today-face)
-    (make-face 'calendar-today-face)
-    (if (not (face-differs-from-default-p 'calendar-today-face))
-        (set-face-underline-p 'calendar-today-face t))
     'calendar-today-face)
-  "*Used to mark today's date.
-Can be either a single-character string or a face."
+  "*How to mark today's date in the calendar.
+The value can be either a single-character string or a face.
+Marking today's date is done only if you set up `today-visible-calendar-hook'
+to request that."
   :type '(choice string face)
   :group 'calendar)
 
 (defcustom calendar-holiday-marker
   (if (not window-system)
       "*"
-    (require 'faces)
-    (add-to-list 'facemenu-unlisted-faces 'holiday-face)
-    (make-face 'holiday-face)
-    (cond ((face-differs-from-default-p 'holiday-face))
-          ((x-display-color-p) (set-face-background 'holiday-face "pink"))
-          (t (set-face-background 'holiday-face "black")
-             (set-face-foreground 'holiday-face "white")))
     'holiday-face)
-  "*Used to mark notable dates in the calendar.
-Can be either a single-character string or a face."
+  "*How to mark notable dates in the calendar.
+The value can be either a single-character string or a face."
   :type '(choice string face)
   :group 'calendar)
 
