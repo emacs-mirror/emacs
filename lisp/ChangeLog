@@ -1,3 +1,11 @@
+2000-01-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* net/eudc-bob.el (eudc-bob-play-sound-at-point): Play sounds
+	for Emacs.
+	(eudc-bob-can-display-inline-images): Extend for Emacs.
+	(eudc-bob-toggle-inline-display): Ditto.
+	(eudc-bob-display-jpeg): Ditto.
+
 2000-01-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* net/eudc-bob.el, net/eudc-export.el, net/eudc-hotlist.el,
