@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-/* This derived from work by Lucid (some parts very loosely so).  */
+/* This is derived from work by Lucid (some parts very loosely so).  */
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -29,6 +29,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #include "dispextern.h"
 #include "frame.h"
+#include "blockinput.h"
 /* #include "window.h" */
 
 /* Display Context for the icons */ 
@@ -45,7 +46,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    The faces in these vectors are called "frame faces".
 
    Faces number 0 and 1 have graphics contexts.
-   They can be user in the redisplay code directly.
+   They can be used in the redisplay code directly.
    Higher numbered frame faces do not have graphics contexts.
 
    There are also "cached faces".  They have graphics contexts.
@@ -66,8 +67,6 @@ int nfaces_allocated;
 int next_face_id;
 
 #define FACE_DEFAULT (~0)
-
-#define xfree free
 
 Lisp_Object Qface, Qwindow, Qpriority;
 
