@@ -489,6 +489,8 @@ struct x_output
   char asked_for_visible;
 
 #ifdef HAVE_X_I18N
+  /* Input method. */
+  XIM xim;
   /* Input context (currently, this means Compose key handler setup).  */
   XIC xic;
 #endif
@@ -530,6 +532,7 @@ struct x_output
 
 #define FRAME_DESIRED_CURSOR(f) ((f)->output_data.x->desired_cursor)
 
+#define FRAME_XIM(f) ((f)->output_data.x->xim)
 #define FRAME_XIC(f) ((f)->output_data.x->xic)
 
 /* X-specific scroll bar stuff.  */
