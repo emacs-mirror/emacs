@@ -259,7 +259,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
   (if filename
       (let (temp temp-downcase found)
 	(setq filename (substitute-in-file-name filename))
-	(if (string= (downcase (file-name-nondirectory filename)) "dir")
+	(if (string= (downcase filename) "dir")
 	    (setq found t)
 	  (let ((dirs (if (string-match "^\\./" filename)
 			  ;; If specified name starts with `./'
