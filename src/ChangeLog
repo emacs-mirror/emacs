@@ -20,7 +20,7 @@
 	Add dummy uses of gcproN variables.
 
 	* category.c (describe_category, describe_category_1)
-	(Fdescribe_categories): Remove.
+	(Fdescribe_categories): Remove.  (Moved to lisp/help-fns.el.)
 	(syms_of_category): Don't defsubr Sdescribe_categories.
 
 2001-11-28  Richard M. Stallman  <rms@gnu.org>
