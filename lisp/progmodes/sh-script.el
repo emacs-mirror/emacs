@@ -936,7 +936,7 @@ be indented (i.e. a <<- was used rather than just <<)."
 
 (defun sh-font-lock-syntactic-face-function (state)
   (if (nth 3 state)
-      (if (char-valid-p (nth 3 state))
+      (if (characterp (nth 3 state))
 	  font-lock-string-face
 	sh-heredoc-face)
     font-lock-comment-face))
