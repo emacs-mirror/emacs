@@ -26,7 +26,7 @@
 
 #define exactRootsCOUNT  49
 #define ambigRootsCOUNT  49
-#define OBJECTS          4000
+#define OBJECTS          200000
 #define patternFREQ      100
 
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
@@ -275,6 +275,9 @@ static void *test(void *arg, size_t s)
   mps_chain_t chain;
   mps_root_t exactRoot, ambigRoot, singleRoot, fmtRoot;
   unsigned long i;
+  /* Leave arena clamped until we have allocated this many objects.
+     is 0 when arena has not been clamped. */
+  unsigned long clamp_until = 0;
   size_t j;
   mps_word_t collections;
   mps_pool_t mv;
@@ -301,10 +304,12 @@ static void *test(void *arg, size_t s)
 
   die(mps_ap_create(&ap, amcpool), "ap_create");
 
-  for(j = 0; j < exactRootsCOUNT; ++j)
+  for(j = 0; j < exactRootsCOUNT; ++j) {
     exactRoots[j] = objNULL;
-  for(j = 0; j < ambigRootsCOUNT; ++j)
+  }
+  for(j = 0; j < ambigRootsCOUNT; ++j) {
     ambigRoots[j] = (mps_addr_t)rnd();
+  }
 
   die(mps_root_create_table_masked(&exactRoot, arena,
                                    MPS_RANK_EXACT, (mps_rm_t)0,
@@ -353,40 +358,63 @@ static void *test(void *arg, size_t s)
 
     c = mps_collections(arena);
 
-    if (collections != c) {
+    if(collections != c) {
       collections = c;
       printf("\nCollection %u, %lu objects.\n", c, i);
-      for(r = 0; r < exactRootsCOUNT; ++r)
+      for(r = 0; r < exactRootsCOUNT; ++r) {
         cdie(exactRoots[r] == objNULL || dylan_check(exactRoots[r]),
              "all roots check");
+      }
+      if(collections == 1) {
+	mps_arena_clamp(arena);
+	clamp_until = i + 10000;
+      }
+      if(collections % 3 == 0) {
+	mps_arena_expose(arena);
+	mps_arena_release(arena);
+      }
+      if(collections % 3 == 2) {
+	mps_arena_park(arena);
+	mps_arena_release(arena);
+      }
     }
 
-    if (rnd() % patternFREQ == 0)
+    if(clamp_until && i >= clamp_until) {
+      mps_arena_release(arena);
+      clamp_until = 0;
+    }
+
+    if (rnd() % patternFREQ == 0) {
       switch(rnd() % 4) {
-      case 0: case 1: {
+      case 0: case 1:
         die(mps_ap_alloc_pattern_begin(ap, ramp), "alloc_pattern_begin");
         ++rampCount;
-        } break;
-      case 2: {
+        break;
+      case 2:
         res = mps_ap_alloc_pattern_end(ap, ramp);
         cdie(rampCount > 0 ? res == MPS_RES_OK : res == MPS_RES_FAIL,
              "alloc_pattern_end");
-        if (rampCount > 0) --rampCount;
-        } break;
-      case 3: {
+        if (rampCount > 0) {
+	  --rampCount;
+	}
+        break;
+      case 3:
         die(mps_ap_alloc_pattern_reset(ap), "alloc_pattern_reset");
         rampCount = 0;
-        } break;
+        break;
       }
+    }
 
-    if (rnd() & 1)
+    if (rnd() & 1) {
       exactRoots[rnd() % exactRootsCOUNT] = make();
-    else
+    } else {
       ambigRoots[rnd() % ambigRootsCOUNT] = make();
+    }
 
     r = rnd() % exactRootsCOUNT;
-    if (exactRoots[r] != objNULL)
+    if (exactRoots[r] != objNULL)  {
       cdie(dylan_check(exactRoots[r]), "random root check");
+    }
   }
 
   arena_commit_test(arena);
