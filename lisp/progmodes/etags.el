@@ -1454,14 +1454,18 @@ evaluate to operate on an interesting file.  If the latter evaluates to
 nil, we exit; otherwise we scan the next file."
   (interactive)
   (let (new
+	;; Non-nil means we have finished one file
+	;; and should not scan it again.
+	file-finished
 	(messaged nil))
     (while
 	(progn
 	  ;; Scan files quickly for the first or next interesting one.
-	  (while (or first-time
+	  (while (or first-time file-finished
 		     (save-restriction
 		       (widen)
 		       (not (eval tags-loop-scan))))
+	    (setq file-finished nil)
 	    (setq new (next-file first-time t))
 	    ;; If NEW is non-nil, we got a temp buffer,
 	    ;; and NEW is the file name.
@@ -1486,7 +1490,8 @@ nil, we exit; otherwise we scan the next file."
 
 	  ;; Now operate on the file.
 	  ;; If value is non-nil, continue to scan the next file.
-	  (eval tags-loop-operate)))
+	  (eval tags-loop-operate))
+      (setq file-finished t))
     (and messaged
 	 (null tags-loop-operate)
 	 (message "Scanning file %s...found" buffer-file-name))))
