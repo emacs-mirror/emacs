@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992, 1994, 1996 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@cnuce.cnr.it>
-;; Version: $Id: cmacexp.el,v 1.23 1996/03/02 06:11:56 rms Exp kwzh $
+;; Version: $Id: cmacexp.el,v 1.24 1996/05/21 14:51:17 kwzh Exp kwzh $
 ;; Adapted-By: ESR
 ;; Keywords: c
 
@@ -202,7 +202,7 @@ For use inside Lisp programs, see also `c-macro-expansion'."
 	    (setq minheight (if alreadythere
 				(window-height)
 			      window-min-height))
-	    (setq maxheight (/ (screen-height) 2))
+	    (setq maxheight (/ (frame-height) 2))
 	    (enlarge-window (- (min maxheight
 				    (max minheight
 					 (+ 2 (vertical-motion (point-max)))))
@@ -240,7 +240,7 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 		       c-macro-preprocessor
 		       (if (string= "" c-macro-cppflags) "" " ")
 		       c-macro-cppflags))
-	(uniquestring "???!!!???!!! start of c-macro expansion ???!!!???!!!")
+	(uniquestring "??? !!! ??? start of c-macro expansion ??? !!! ???")
 	(startlinenum 0)
 	(linenum 0)
 	(startstat ())
@@ -254,16 +254,17 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 	(save-excursion
 	  (save-restriction
 	    (widen)
-	    (set-buffer outbuf)
-	    (setq buffer-read-only nil)
-	    (erase-buffer)
-	    (set-syntax-table c-mode-syntax-table)
+            (let ((in-syntax-table (syntax-table)))
+              (set-buffer outbuf)
+              (setq buffer-read-only nil)
+              (erase-buffer)
+              (set-syntax-table in-syntax-table))
 	    (insert-buffer-substring inbuf 1 end))
 
 	  ;; We have copied inbuf to outbuf.  Point is at end of
-	  ;; outbuf.  Insert a space at the end, so cpp can correctly
-	  ;; parse a token ending at END. 
-	  (insert " ")
+	  ;; outbuf.  Inset a newline at the end, so cpp can correctly
+	  ;; parse a token ending at END.
+          (insert "\n")
 
 	  ;; Save sexp status and line number at START.
 	  (setq startstat (parse-partial-sexp 1 start))
