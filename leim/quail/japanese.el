@@ -36,7 +36,10 @@
 	((null control-flag)
 	 (if (/= (aref quail-current-key 0) ?q)
 	     (insert (or quail-current-str quail-current-key))))
-	(t				; i.e. (numberp control-flag)
+	((= control-flag 0)
+	 (insert (aref quail-current-key 0))
+	 (quail-terminate-translation))
+	(t
 	 (cond ((= (aref quail-current-key 0) ?n)
 		(insert ?ん))
 	       ((= (aref quail-current-key 0) (aref quail-current-key 1))
@@ -54,6 +57,7 @@
 ;; Convert Hiragana <-> Katakana in the current translation region.
 (defun quail-japanese-toggle-kana ()
   (interactive)
+  (setq quail-translating nil)
   (let ((start (overlay-start quail-conv-overlay))
 	(end (overlay-end quail-conv-overlay)))
     (setq quail-japanese-kana-state
@@ -61,8 +65,7 @@
 	      (not quail-japanese-kana-state)))
     (if quail-japanese-kana-state
 	(japanese-hiragana-region start end)
-      (japanese-katakana-region start end))
-    (goto-char (overlay-end quail-conv-overlay))))
+      (japanese-katakana-region start end))))
 
 ;; Convert Hiragana in the current translation region to Kanji by KKC
 ;; (Kana Kanji Converter) utility.
