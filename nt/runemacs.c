@@ -34,6 +34,7 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
   SECURITY_DESCRIPTOR sec_desc;
   PROCESS_INFORMATION child;
   int wait_for_child = FALSE;
+  DWORD priority_class = NORMAL_PRIORITY_CLASS;
   DWORD ret_code = 0;
   char *new_cmdline;
   char *p;
@@ -82,12 +83,27 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
   strcat (new_cmdline, "\\emacs.exe ");
 #endif
 
-  /* Append original arguments if any; first look for -wait as first
-     argument, and apply that ourselves.  */
-  if (strncmp (cmdline, "-wait", 5) == 0)
+  /* Append original arguments if any; first look for arguments we
+     recognise (-wait, -high, and -low), and apply them ourselves.  */
+  while (cmdline[0] == '-' || cmdline[0] == '/')
     {
+      if (strncmp (cmdline+1, "wait", 4) == 0)
+	{
       wait_for_child = TRUE;
       cmdline += 5;
+    }
+      else if (strncmp (cmdline+1, "high", 4) == 0)
+	{
+	  priority_class = HIGH_PRIORITY_CLASS;
+	  cmdline += 5;
+	}
+      else if (strncmp (cmdline+1, "low", 3) == 0)
+	{
+	  priority_class = IDLE_PRIORITY_CLASS;
+	  cmdline += 4;
+	}
+      else
+	break;
     }
   strcat (new_cmdline, cmdline);
 
@@ -109,7 +125,7 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
   sec_attrs.lpSecurityDescriptor = NULL;
   sec_attrs.bInheritHandle = FALSE;
 
-  if (CreateProcess (NULL, new_cmdline, &sec_attrs, NULL, TRUE, 0,
+  if (CreateProcess (NULL, new_cmdline, &sec_attrs, NULL, TRUE, priority_class,
 		     NULL, NULL, &start, &child))
     {
       if (wait_for_child)
