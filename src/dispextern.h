@@ -2216,10 +2216,10 @@ void clear_desired_matrices P_ ((struct frame *));
 void shift_glyph_matrix P_ ((struct window *, struct glyph_matrix *,
 			     int, int, int));
 void rotate_matrix P_ ((struct glyph_matrix *, int, int, int));
-void increment_glyph_matrix_buffer_positions P_ ((struct glyph_matrix *,
-						  int, int, int, int));
+void increment_matrix_positions P_ ((struct glyph_matrix *,
+				     int, int, int, int));
 void blank_row P_ ((struct window *, struct glyph_row *, int));
-void increment_glyph_row_buffer_positions P_ ((struct glyph_row *, int, int));
+void increment_row_positions P_ ((struct glyph_row *, int, int));
 void enable_glyph_matrix_rows P_ ((struct glyph_matrix *, int, int, int));
 void clear_glyph_row P_ ((struct glyph_row *));
 void prepare_desired_row P_ ((struct glyph_row *));
