@@ -100,6 +100,8 @@ Lisp_Object Vprint_gensym_alist;
 
 extern int noninteractive_need_newline;
 
+extern int minibuffer_auto_raise;
+
 #ifdef MAX_PRINT_CHARS
 static int print_chars;
 static int max_print;
@@ -305,6 +307,17 @@ printchar (ch, fun)
 	  printbufidx = 0;
 	  echo_area_glyphs_length = 0;
 	  message_buf_print = 1;
+
+	  if (minibuffer_auto_raise)
+	    {
+	      Lisp_Object mini_window;
+
+	      /* Get the frame containing the minibuffer
+		 that the selected frame is using.  */
+	      mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
+
+	      Fraise_frame  (WINDOW_FRAME (XWINDOW (mini_window)));
+	    }
 	}
 
       message_dolog (str, len, 0);
@@ -377,6 +390,17 @@ strout (ptr, size, printcharfun)
 	  printbufidx = 0;
 	  echo_area_glyphs_length = 0;
 	  message_buf_print = 1;
+
+	  if (minibuffer_auto_raise)
+	    {
+	      Lisp_Object mini_window;
+
+	      /* Get the frame containing the minibuffer
+		 that the selected frame is using.  */
+	      mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
+
+	      Fraise_frame  (WINDOW_FRAME (XWINDOW (mini_window)));
+	    }
 	}
 
       message_dolog (ptr, size, 0);
