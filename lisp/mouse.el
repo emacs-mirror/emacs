@@ -162,23 +162,30 @@ Setting this to zero causes Emacs to scroll as fast as it can.")
 If OVERLAY is an overlay, let it stretch from START to the far edge of
 the newly visible text.
 Upon exit, point is at the far edge of the newly visible text."
-  (while (progn
-	   (goto-char (window-start window))
-	   (if (not (zerop (vertical-motion jump window)))
-	       (progn
-		 (set-window-start window (point))
-		 (if (natnump jump)
-		     (progn
-		       (goto-char (window-end window))
-		       ;; window-end doesn't reflect the window's new
-		       ;; start position until the next redisplay.  Hurrah.
-		       (vertical-motion (1- jump) window))
-		   (goto-char (window-start window)))
-		 (if overlay
-		     (move-overlay overlay start (point)))
-		 (if (not (eobp))
-		     (sit-for mouse-scroll-delay))))))
-  (point))
+  (let ((opoint (point)))
+    (while (progn
+	     (goto-char (window-start window))
+	     (if (not (zerop (vertical-motion jump window)))
+		 (progn
+		   (set-window-start window (point))
+		   (if (natnump jump)
+		       (progn
+			 (goto-char (window-end window))
+			 ;; window-end doesn't reflect the window's new
+			 ;; start position until the next redisplay.  Hurrah.
+			 (vertical-motion (1- jump) window))
+		     (goto-char (window-start window)))
+		   (if overlay
+		       (move-overlay overlay start (point)))
+		   ;; Now that we have scrolled WINDOW properly,
+		   ;; put point back where it was for the redisplay
+		   ;; so that we don't mess up the selected window.
+		   (or (eq window (selected-window))
+		       (goto-char opoint))
+		   (if (not (eobp))
+		       (sit-for mouse-scroll-delay))))))
+    (or (eq window (selected-window))
+	(goto-char opoint))))
 
 (defvar mouse-drag-overlay (make-overlay 1 1))
 (overlay-put mouse-drag-overlay 'face 'region)
@@ -244,22 +251,21 @@ release the mouse button.  Otherwise, it does not."
 		       (>= mouse-row bottom))
 		  (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
 				     mouse-drag-overlay start-point)))))))))
-
-      (if (and (eq (get (event-basic-type event) 'event-kind) 'mouse-click)
-	       (eq (posn-window (event-end event)) start-window)
-	       (numberp (posn-point (event-end event))))
+      (if (consp event)
+;;; When we scroll into the mode line or menu bar, or out of the window,
+;;; we get events that don't fit these criteria.
+;;;	       (eq (get (event-basic-type event) 'event-kind) 'mouse-click)
+;;;	       (eq (posn-window (event-end event)) start-window)
+;;;	       (numberp (posn-point (event-end event)))
 	  (let ((fun (key-binding (vector (car event)))))
-	    (if (memq fun '(mouse-set-region mouse-set-point))
-		(if (not (= (overlay-start mouse-drag-overlay)
-			    (overlay-end mouse-drag-overlay)))
-		    (let (last-command)
-		      (push-mark (overlay-start mouse-drag-overlay) t t)
-		      (goto-char (overlay-end mouse-drag-overlay))
-		      (copy-region-as-kill (point) (mark t)))
+	    (if (not (= (overlay-start mouse-drag-overlay)
+			(overlay-end mouse-drag-overlay)))
+		(let (last-command)
+		  (push-mark (overlay-start mouse-drag-overlay) t t)
 		  (goto-char (overlay-end mouse-drag-overlay))
-		  (setq this-command 'mouse-set-point))
-	      (if (fboundp fun)
-		  (funcall fun event)))))
+		  (copy-region-as-kill (point) (mark t)))
+	      (goto-char (overlay-end mouse-drag-overlay))
+	      (setq this-command 'mouse-set-point))))
       (delete-overlay mouse-drag-overlay))))
 
 ;; Commands to handle xterm-style multiple clicks.
@@ -642,9 +648,10 @@ This must be bound to a button-down mouse event."
                     (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
                                        mouse-secondary-overlay start-point)))))))))
 
-	(if (and (eq (get (event-basic-type event) 'event-kind) 'mouse-click)
-		 (eq (posn-window (event-end event)) start-window)
-		 (numberp (posn-point (event-end event))))
+	(if (consp event)
+;;;		 (eq (get (event-basic-type event) 'event-kind) 'mouse-click)
+;;;		 (eq (posn-window (event-end event)) start-window)
+;;;		 (numberp (posn-point (event-end event)))
 	    (if (marker-position mouse-secondary-start)
 		(save-window-excursion
 		  (delete-overlay mouse-secondary-overlay)
