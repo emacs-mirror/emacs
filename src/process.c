@@ -1428,7 +1428,7 @@ create_process (process, new_argv, current_dir)
 #ifdef SIGCHLD
   sigaddset (&blocked, SIGCHLD);
 #endif
-#ifdef HAVE_VFORK
+#ifdef HAVE_WORKING_VFORK
   /* On many hosts (e.g. Solaris 2.4), if a vforked child calls `signal',
      this sets the parent's signal handlers as well as the child's.
      So delay all interrupts whose handlers the child might munge,
@@ -1438,7 +1438,7 @@ create_process (process, new_argv, current_dir)
 #ifdef AIX
   sigaddset (&blocked, SIGHUP );  sigaction (SIGHUP , 0, &sighup_action );
 #endif
-#endif /* HAVE_VFORK */
+#endif /* HAVE_WORKING_VFORK */
   sigprocmask (SIG_BLOCK, &blocked, &procmask);
 #else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
@@ -1696,14 +1696,14 @@ create_process (process, new_argv, current_dir)
   /* Restore the signal state whether vfork succeeded or not.
      (We will signal an error, below, if it failed.)  */
 #ifdef POSIX_SIGNALS
-#ifdef HAVE_VFORK
+#ifdef HAVE_WORKING_VFORK
   /* Restore the parent's signal handlers.  */
   sigaction (SIGINT, &sigint_action, 0);
   sigaction (SIGQUIT, &sigquit_action, 0);
 #ifdef AIX
   sigaction (SIGHUP, &sighup_action, 0);
 #endif
-#endif /* HAVE_VFORK */
+#endif /* HAVE_WORKING_VFORK */
   /* Stop blocking signals in the parent.  */
   sigprocmask (SIG_SETMASK, &procmask, 0);
 #else /* !POSIX_SIGNALS */
