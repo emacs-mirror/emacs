@@ -5660,14 +5660,17 @@ is a member of the list.  */);
   Vinhibit_read_only = Qnil;
 
   DEFVAR_PER_BUFFER ("cursor-type", &current_buffer->cursor_type, Qnil,
-		     doc: /* Cursor to use in window displaying this buffer.
+     doc: /* Cursor to use when this buffer is in the selected window.
 Values are interpreted as follows:
 
-  t 		use the cursor specified for the frame
-  nil		don't display a cursor
-  `bar'		display a bar cursor with default width
-  (bar . WIDTH)	display a bar cursor with width WIDTH
-  others	display a box cursor.  */);
+  t 		 use the cursor specified for the frame
+  nil		 don't display a cursor
+  bar		 display a bar cursor with default width
+  (bar . WIDTH)	 display a bar cursor with width WIDTH
+  ANYTHING ELSE	 display a box cursor.
+
+When the buffer is displayed in a nonselected window,
+this variable has no effect; the cursor appears as a hollow box.  */);
 
   DEFVAR_PER_BUFFER ("line-spacing",
 		     &current_buffer->extra_line_spacing, Qnil,
