@@ -617,11 +617,12 @@ Prompts for a URL, defaulting to the URL at or before point.  Variable
 `browse-url-browser-function' says which browser to use."
   (interactive (browse-url-interactive-arg "URL: "))
   (let ((bf browse-url-browser-function) re)
-    (while (consp bf)
-      (setq re (car (car bf))
-	    bf (if (string-match re url)
-		   (cdr (car bf))	; The function
-		 (cdr bf))))		; More pairs
+    (unless (functionp bf)
+      (while (consp bf)
+	(setq re (car (car bf))
+	      bf (if (string-match re url)
+		     (cdr (car bf))	; The function
+		   (cdr bf)))))		; More pairs
     (or bf (error "No browser in browse-url-browser-function matching URL %s"
                   url))
     (apply bf url args)))
