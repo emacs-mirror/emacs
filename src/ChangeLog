@@ -1,5 +1,16 @@
 2000-09-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* ralloc.c (mmap_fd): Remove initializer which can make it
+	read-only in a dumped Emacs.
+	(mmap_fd_1): New variable.
+	(mmap_set_vars): Remove local `fd'.  Save mmap_fd in mmap_fd_1,
+	restore it from there.
+	(r_alloc, r_re_alloc, r_alloc_free): Call r_alloc_init
+	unconditionally so that mmap_fd can be initialized there.
+	(r_alloc_init_fd): Open-coded in r_alloc_init; function removed.
+	(r_alloc_init) [REL_ALLOC_MMAP && !MAP_ANON]: Open /dev/zero.
+	(r_alloc_init) [REL_ALLOC_MMAP && MAP_ANON]: Set mmap_fd to -1.
+
 	* xfaces.c (Finternal_merge_in_global_face): Return a Lisp object.
 
 	* xdisp.c (dump_glyph_row): Fix printf format string.
