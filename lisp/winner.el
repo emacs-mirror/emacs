@@ -84,12 +84,11 @@ In the default case (CTRL-SPACE) the mark will be set.")
     ".newsrc-dribble",
     "*Completions*",
     "*Buffer list*")
-  "Exclude these buffer names
-from any \(Winner mode\) list of buffers.")
+  "Exclude these buffer names from any \(Winner mode\) list of buffers.")
 
 (defvar winner-skip-regexps '("^ ")
-  "Exclude buffers with names matching any of these regexps.
-..from any \(Winner mode\) list of buffers.
+  "Winner excludes buffers with names matching any of these regexps.
+They are not included in any Winner mode list of buffers.
 
 By default `winner-skip-regexps' is set to \(\"^ \"\),
 which excludes \"invisible buffers\".")
@@ -192,9 +191,6 @@ With arg, turn Winner mode on if and only if arg is positive."
 		winner-stacks)
 	  (list config))))))
 
-
-
-
 ;; Push this window configuration on the right stack,
 ;; but make sure the stack doesn't get too large etc...
 (defun winner-push (config frame)
@@ -208,16 +204,8 @@ With arg, turn Winner mode on if and only if arg is positive."
 	(setf   (winner-stack-place this)
 	        (winner-stack-data  this))
 	(setf   (winner-stack-count this) 1)))))
-
-
-
-
-
-
-
-
+
 ;;;; Selecting a window configuration
-
 
 ;; Return list of names of other buffers, excluding the current buffer
 ;; and buffers specified by the user.
@@ -231,10 +219,7 @@ With arg, turn Winner mode on if and only if arg is positive."
 			 finally return nil))
 	collect name))
 
-
-
 (defun winner-select (&optional arg)
-
   "Change to previous or new window configuration.
 With arg start at position 1 if arg is positive, and
 at -1 if arg is negative;  else start at position 0.
@@ -249,7 +234,7 @@ Winner mode must be turned on.\)"
 	 ((< (prefix-numeric-value arg) 0) winner-prev-event)
 	 (t nil)))
   (if arg (push arg unread-command-events))
-
+
   (let ((stack (winner-stack (selected-frame)))
 	(store nil)
 	(buffers (winner-other-buffers))
@@ -309,10 +294,6 @@ Winner mode must be turned on.\)"
       ;; Else update the buffer list and make sure that the displayed
       ;; buffer is the same as the current buffer.
       (switch-to-buffer (window-buffer)))))
-					   
-					   
-
-
 
 (defun winner-previous ()
   "Change to previous window configuration."
@@ -323,10 +304,7 @@ Winner mode must be turned on.\)"
   "Change to new window configuration."
   (interactive)
   (winner-select 1))
-
-
-
-
+
 ;;;; To be evaluated when the package is loaded:
 
 (unless winner-mode-map
