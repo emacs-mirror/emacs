@@ -4,6 +4,10 @@
 
 2000-09-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.el (frame-notice-user-settings): Don't add a
+	tool-bar-lines frame parameter to default-frame-alist in batch
+	mode.
+	
 	* frame.el (frame-notice-user-settings): Make tool-bar-mode and
 	default-frame-alist consistent.
 
