@@ -554,18 +554,37 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 
 ;;;###autoload
 (defun ibuffer-pop-filter-group ()
-  "Remove the first filtering group."
+  "Remove the first filter group."
   (interactive)
   (when (null ibuffer-filter-groups)
-    (error "No filtering groups active"))
+    (error "No filter groups active"))
   (setq ibuffer-hidden-filter-groups
 	(delete (pop ibuffer-filter-groups)
 		ibuffer-hidden-filter-groups))
   (ibuffer-update nil t))
 
+(defun ibuffer-read-filter-group-name (msg &optional nodefault noerror)
+  (when (and (not noerror) (null ibuffer-filter-groups))
+    (error "No filter groups active"))
+  (let ((groups (mapcar #'car ibuffer-filter-groups)))
+    (completing-read msg (if nodefault
+			     groups
+			   (cons "Default" groups))
+		     nil t)))
+
+;;;###autoload
+(defun ibuffer-decompose-filter-group (group)
+  "Decompose the filter group GROUP into active filters."
+  (interactive (list (ibuffer-read-filter-group-name "Decompose filter group: " t)))
+  (let ((data (cdr (assoc group ibuffer-filter-groups))))
+    (setq ibuffer-filter-groups (ibuffer-delete-alist
+				 group ibuffer-filter-groups)
+	  ibuffer-filtering-qualifiers data))
+  (ibuffer-update nil t))
+
 ;;;###autoload
 (defun ibuffer-clear-filter-groups ()
-  "Remove all filtering groups."
+  "Remove all filter groups."
   (interactive)
   (setq ibuffer-filter-groups nil
 	ibuffer-hidden-filter-groups nil)
@@ -590,24 +609,18 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 ;;;###autoload
 (defun ibuffer-jump-to-filter-group (name)
   "Move point to the filter group whose name is NAME."
-  (interactive (list nil))
-  (let ((table (ibuffer-current-filter-groups-with-position)))
-    (when (interactive-p)
-      (setq name (completing-read "Jump to filter group: " table nil t)))
-    (ibuffer-aif (assoc name table)
-	(goto-char (cdr it))
-      (error "No filter group with name %s" name))))
+  (interactive (list (ibuffer-read-filter-group-name "Jump to filter group: ")))
+  (ibuffer-aif (assoc name (ibuffer-current-filter-groups-with-position))
+      (goto-char (cdr it))
+    (error "No filter group with name %s" name)))
 
 ;;;###autoload
 (defun ibuffer-kill-filter-group (name)
-  "Kill the filtering group named NAME.
+  "Kill the filter group named NAME.
 The group will be added to `ibuffer-filter-group-kill-ring'."
-  (interactive (list nil))
-  (when (interactive-p)
-    (setq name (completing-read "Kill filter group: "
-				ibuffer-filter-groups nil t)))
+  (interactive (list (ibuffer-read-filter-group-name "Kill filter group: " t)))
   (when (equal name "Default")
-    (error "Can't kill default filtering group"))
+    (error "Can't kill default filter group"))
   (ibuffer-aif (assoc name ibuffer-filter-groups)
       (progn
 	(push (copy-tree it) ibuffer-filter-group-kill-ring)
@@ -620,7 +633,7 @@ The group will be added to `ibuffer-filter-group-kill-ring'."
 
 ;;;###autoload
 (defun ibuffer-kill-line (&optional arg)
-  "Kill the filtering group at point.
+  "Kill the filter group at point.
 See also `ibuffer-kill-filter-group'."
   (interactive "P")
   (ibuffer-aif (save-excursion
@@ -656,12 +669,11 @@ See also `ibuffer-kill-filter-group'."
 ;;;###autoload
 (defun ibuffer-yank-filter-group (name)
   "Yank the last killed filter group before group named NAME."
-  (interactive (list nil))
-  (unless ibuffer-filter-group-kill-ring
-    (error "ibuffer-filter-group-kill-ring is empty"))
-  (when (and (not name) (interactive-p))
-    (setq name (completing-read "Yank filter group before group: "
-				ibuffer-filter-groups nil t)))
+  (interactive (list (progn
+		       (unless ibuffer-filter-group-kill-ring
+			 (error "ibuffer-filter-group-kill-ring is empty"))
+		       (ibuffer-read-filter-group-name
+			"Yank filter group before group: "))))
   (save-excursion
     (ibuffer-forward-line 0)
     (ibuffer-insert-filter-group-before (pop ibuffer-filter-group-kill-ring)
