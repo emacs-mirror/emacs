@@ -500,7 +500,7 @@ in this order:
   (4) value of `default-sendmail-coding-system'
 If the found coding system can't encode the current buffer,
 or none of them are bound to a coding system,
-it asks a user to select a proper coding system."
+it asks the user to select a proper coding system."
   (let ((coding (or (and (local-variable-p 'buffer-file-coding-system)
 			 buffer-file-coding-system)
 		    sendmail-coding-system
