@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.317 2001/10/29 12:26:15 spiegel Exp $
+;; $Id: vc.el,v 1.318 2001/11/09 14:55:52 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -90,7 +90,7 @@
 ;; return it; it should not look it up in the property, and it needn't
 ;; store it there either.  However, if a backend-specific function does
 ;; store a value in a property, that value takes precedence over any
-;; value that the generic code might want to set (check for uses of 
+;; value that the generic code might want to set (check for uses of
 ;; the macro `with-vc-properties' in vc.el).
 ;;
 ;; In the list of functions below, each identifier needs to be prepended
@@ -103,7 +103,7 @@
 ;;
 ;;   Return non-nil if FILE is registered in this backend.
 ;;
-;; * state (file) 
+;; * state (file)
 ;;
 ;;   Return the current version control state of FILE.  For a list of
 ;;   possible values, see `vc-state'.  This function should do a full and
@@ -296,10 +296,10 @@
 ;;   found), or 1 (either non-empty diff or the diff is run
 ;;   asynchronously).
 ;;
-;; - diff-tree (dir &optional rev1 rev2) 
+;; - diff-tree (dir &optional rev1 rev2)
 ;;
 ;;   Insert the diff for all files at and below DIR into the *vc-diff*
-;;   buffer.  The meaning of REV1 and REV2 is the same as for 
+;;   buffer.  The meaning of REV1 and REV2 is the same as for
 ;;   vc-BACKEND-diff.  The default implementation does an explicit tree
 ;;   walk, calling vc-BACKEND-diff for each individual file.
 ;;
@@ -564,7 +564,7 @@ version control backend imposes itself."
     (300. . "#00EEFF")
     (320. . "#00B6FF")
     (340. . "#007EFF"))
-  "*ASSOCIATION list of age versus color, for \\[vc-annotate].  
+  "*ASSOCIATION list of age versus color, for \\[vc-annotate].
 Ages are given in units of fractional days.  Default is eighteen steps
 using a twenty day increment."
   :type 'alist
@@ -1061,7 +1061,7 @@ NOT-URGENT means it is ok to continue if the user says not to save."
   (zerop (vc-call diff file (vc-workfile-version file))))
 
 (defun vc-default-latest-on-branch-p (backend file)
-  "Default check whether the current workfile version of FILE is the 
+  "Default check whether the current workfile version of FILE is the
 latest on its branch."
   t)
 
@@ -1832,20 +1832,20 @@ actually call the backend, but performs a local diff."
       (vc-call diff file rel1 rel2))))
 
 (defmacro vc-diff-switches-list (backend)
-  "Make a list of `diff-switches', `vc-diff-switches', 
+  "Make a list of `diff-switches', `vc-diff-switches',
 and `vc-BACKEND-diff-switches'."
-  `(append 
+  `(append
     (if (listp diff-switches) diff-switches (list diff-switches))
     (if (listp vc-diff-switches) vc-diff-switches (list vc-diff-switches))
-    (let ((backend-switches 
-           (eval (intern (concat "vc-" (symbol-name ',backend) 
+    (let ((backend-switches
+           (eval (intern (concat "vc-" (symbol-name ',backend)
                                  "-diff-switches")))))
       (if (listp backend-switches) backend-switches (list backend-switches)))))
 
 (defun vc-default-diff-tree (backend dir rel1 rel2)
   "Default implementation for diffing an entire tree at and below DIR.
 The meaning of REL1 and REL2 is the same as for `vc-version-diff'."
-  ;; This implementation does an explicit tree walk, and calls 
+  ;; This implementation does an explicit tree walk, and calls
   ;; vc-BACKEND-diff directly for each file.  An optimization
   ;; would be to use `vc-diff-internal', so that diffs can be local,
   ;; and to call it only for files that are actually changed.
@@ -1856,15 +1856,15 @@ The meaning of REL1 and REL2 is the same as for `vc-version-diff'."
    default-directory
    (lambda (f)
      (vc-exec-after
-      `(let ((coding-system-for-read (vc-coding-system-for-diff ',f))) 
+      `(let ((coding-system-for-read (vc-coding-system-for-diff ',f)))
          (message "Looking at %s" ',f)
-         (vc-call-backend ',(vc-backend f) 
+         (vc-call-backend ',(vc-backend f)
                           'diff ',f ',rel1 ',rel2))))))
 
 (defun vc-coding-system-for-diff (file)
   "Return the coding system for reading diff output for FILE."
   (or coding-system-for-read
-      ;; if we already have this file open, 
+      ;; if we already have this file open,
       ;; use the buffer's coding system
       (let ((buf (find-buffer-visiting file)))
         (if buf (with-current-buffer buf
@@ -2438,7 +2438,7 @@ allowed and simply skipped)."
     (pop-to-buffer (current-buffer))
     (if (fboundp 'log-view-mode) (log-view-mode))
     (vc-exec-after
-     `(progn
+     `(let ((inhibit-read-only t))
 	(goto-char (point-max)) (forward-line -1)
 	(while (looking-at "=*\n")
 	  (delete-char (- (match-end 0) (match-beginning 0)))
@@ -2453,7 +2453,8 @@ allowed and simply skipped)."
 	  (if (vc-find-backend-function ',(vc-backend file) 'show-log-entry)
 	      (vc-call-backend ',(vc-backend file)
 			       'show-log-entry
-			       ',(vc-workfile-version file))))))))
+			       ',(vc-workfile-version file))))
+        (set-buffer-modified-p nil)))))
 
 (defun vc-default-comment-history (backend file)
   "Return a string with all log entries that were made under BACKEND for FILE."
@@ -2883,7 +2884,7 @@ menu items."
 colormap by RATIO, if present.  Use the current time as offset."
   (interactive "e")
   (message "Redisplaying annotation...")
-  (vc-annotate-display 
+  (vc-annotate-display
    (if ratio (vc-annotate-time-span vc-annotate-color-map ratio)))
   (message "Redisplaying annotation...done"))
 
@@ -2908,12 +2909,12 @@ cover the full time range, from oldest to newest."
     (vc-annotate-display
      (vc-annotate-time-span		;return the scaled colormap.
       vc-annotate-color-map
-      (/ (-  (if full newest current) oldest) 
+      (/ (-  (if full newest current) oldest)
 	 (vc-annotate-car-last-cons vc-annotate-color-map)))
      (if full newest))
-    (message "Redisplaying annotation...done \(%s\)" 
-	     (if full 
-		 (format "Spanned from %.1f to %.1f days old" 
+    (message "Redisplaying annotation...done \(%s\)"
+	     (if full
+		 (format "Spanned from %.1f to %.1f days old"
 			 (- current oldest)
 			 (- current newest))
 	       (format "Spanned to %.1f days old" (- current oldest))))))
@@ -2933,39 +2934,39 @@ cover the full time range, from oldest to newest."
       (let* ((element (car menu-elements))
 	     (days (* element oldest-in-map)))
 	(setq menu-elements (cdr menu-elements))
-	(setq menu-def 
-	      (append menu-def 
+	(setq menu-def
+	      (append menu-def
 		      `([,(format "Span %.1f days" days)
 			 (unless (and (numberp vc-annotate-display-mode)
 				      (= vc-annotate-display-mode ,days))
 			   (vc-annotate-display-select nil ,days))
-			 :style toggle :selected 
+			 :style toggle :selected
 			 (and (numberp vc-annotate-display-mode)
 			      (= vc-annotate-display-mode ,days)) ])))))
-    (setq menu-def 
-	  (append menu-def 
+    (setq menu-def
+	  (append menu-def
 		  (list
 		   ["Span ..."
-		    (let ((days 
+		    (let ((days
 			   (float (string-to-number
 				   (read-string "Span how many days? ")))))
 		      (vc-annotate-display-select nil days)) t])
 		  (list "--")
-		  (list 
-		   ["Span to Oldest" 
+		  (list
+		   ["Span to Oldest"
 		    (unless (eq vc-annotate-display-mode 'scale)
 		      (vc-annotate-display-select nil 'scale))
-		    :style toggle :selected 
+		    :style toggle :selected
 		    (eq vc-annotate-display-mode 'scale)])
-		  (list 
-		   ["Span Oldest->Newest" 
+		  (list
+		   ["Span Oldest->Newest"
 		    (unless (eq vc-annotate-display-mode 'fullscale)
 		      (vc-annotate-display-select nil 'fullscale))
-		    :style toggle :selected 
+		    :style toggle :selected
 		    (eq vc-annotate-display-mode 'fullscale)])))
     ;; Define the menu
     (if (or (featurep 'easymenu) (load "easymenu" t))
-	(easy-menu-define vc-annotate-mode-menu vc-annotate-mode-map 
+	(easy-menu-define vc-annotate-mode-menu vc-annotate-mode-map
 			  "VC Annotate Display Menu" menu-def))))
 
 (defun vc-annotate-display-select (&optional buffer mode)
@@ -2978,18 +2979,18 @@ customizable variable `vc-annotate-display-mode'."
     (display-buffer buffer))
   (if (not vc-annotate-mode)		; Turn on vc-annotate-mode if not done
       (vc-annotate-mode))
-  (cond ((null vc-annotate-display-mode) (vc-annotate-display-default 
+  (cond ((null vc-annotate-display-mode) (vc-annotate-display-default
 					  vc-annotate-ratio))
 	((symbolp vc-annotate-display-mode) ; One of the auto-scaling modes
 	 (cond ((eq vc-annotate-display-mode 'scale)
 		(vc-annotate-display-autoscale))
-	       ((eq vc-annotate-display-mode 'fullscale) 
+	       ((eq vc-annotate-display-mode 'fullscale)
 		(vc-annotate-display-autoscale t))
-	       (t (error "No such display mode: %s" 
+	       (t (error "No such display mode: %s"
 			 vc-annotate-display-mode))))
 	((numberp vc-annotate-display-mode) ; A fixed number of days lookback
 	 (vc-annotate-display-default
-	  (/ vc-annotate-display-mode (vc-annotate-car-last-cons 
+	  (/ vc-annotate-display-mode (vc-annotate-car-last-cons
 				       vc-annotate-color-map))))
 	(t (error "Error in display mode select"))))
 
@@ -3028,15 +3029,15 @@ colors. `vc-annotate-background' specifies the background color."
   (let* ((temp-buffer-name (concat "*Annotate " (buffer-name) "*"))
          (temp-buffer-show-function 'vc-annotate-display-select)
          (rev (vc-workfile-version (buffer-file-name)))
-         (vc-annotate-version 
-          (if prefix (read-string 
-                      (format "Annotate from version: (default %s) " rev) 
+         (vc-annotate-version
+          (if prefix (read-string
+                      (format "Annotate from version: (default %s) " rev)
                       nil nil rev)
             rev)))
-    (if prefix 
+    (if prefix
         (setq vc-annotate-display-mode
               (float (string-to-number
-                      (read-string "Annotate span days: (default 20) " 
+                      (read-string "Annotate span days: (default 20) "
                                    nil nil "20")))))
     (setq vc-annotate-backend (vc-backend (buffer-file-name)))
     (message "Annotating...")
@@ -3098,14 +3099,14 @@ time returned from the backend function annotate-time.  If OFFSET is
 set, use it as the time base instead of the current time."
    (let ((next-time (vc-call-backend vc-annotate-backend 'annotate-time)))
      (if next-time
-	 (- (or offset 
+	 (- (or offset
 		(vc-call-backend vc-annotate-backend 'annotate-current-time))
 	    next-time))))
 
 (defun vc-default-annotate-current-time (backend)
   "Return the current time, encoded as fractional days."
   (vc-annotate-convert-time (current-time)))
-  
+
 (defun vc-annotate-display (&optional color-map offset)
   "Do the VC-Annotate display in BUFFER using COLOR-MAP, and time
 offset OFFSET (defaults to the present time).  You probably want
@@ -3133,7 +3134,7 @@ offset OFFSET (defaults to the present time).  You probably want
 		     (let ((tmp-face (make-face (intern face-name))))
 		       (set-face-foreground tmp-face (cdr color))
 		       (if vc-annotate-background
-			     (set-face-background tmp-face 
+			     (set-face-background tmp-face
 						  vc-annotate-background))
 		       tmp-face)))	; Return the face
 	   (point (point))

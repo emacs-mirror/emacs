@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: rcs sccs cvs log version-control
-;; Revision: $Id: log-view.el,v 1.7 2001/10/29 15:46:46 kai Exp $
+;; Revision: $Id: log-view.el,v 1.8 2001/11/12 20:34:45 sds Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -35,7 +35,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'pcvs-util)
-
+(autoload 'vc-version-diff "vc")
 
 (defgroup log-view nil
   "Major mode for browsing log output of RCS/CVS/SCCS."
@@ -43,7 +43,11 @@
   :prefix "log-view-")
 
 (easy-mmode-defmap log-view-mode-map
-  '(("n" . log-view-msg-next)
+  '(("q" . quit-window)
+    ("z" . kill-this-buffer)
+    ("m" . set-mark-command)
+    ("d" . log-view-diff)
+    ("n" . log-view-msg-next)
     ("p" . log-view-msg-prev)
     ("N" . log-view-file-next)
     ("P" . log-view-file-prev)
@@ -97,6 +101,8 @@
 ;;;###autoload
 (define-derived-mode log-view-mode fundamental-mode "Log-View"
   "Major mode for browsing CVS log output."
+  (set-buffer-modified-p nil)
+  (setq buffer-read-only t)
   (set (make-local-variable 'font-lock-defaults) log-view-font-lock-defaults)
   (set (make-local-variable 'cvs-minor-wrap-function) 'log-view-minor-wrap))
 
@@ -135,11 +141,12 @@
 	   (dir ""))
       (let ((default-directory ""))
 	(when pcldir (setq dir (expand-file-name pcldir dir)))
-	(when cvsdir (setq dir (expand-file-name cvsdir dir)))
-	(expand-file-name file dir)))))
+	(when cvsdir (setq dir (expand-file-name cvsdir dir))))
+      (expand-file-name file dir))))
 
-(defun log-view-current-tag ()
+(defun log-view-current-tag (&optional where)
   (save-excursion
+    (when where (goto-char where))
     (forward-line 1)
     (let ((pt (point)))
       (when (re-search-backward log-view-message-re nil t)
@@ -167,10 +174,32 @@
 	  (cvs-force-command "/F"))
       (funcall f))))
 
+;;;
+;;; diff
+;;;
+
+(defun log-view-diff (beg end)
+  "Get the diff for several revisions.
+If the point is the same as the mark, get the diff for this revision.
+Otherwise, get the diff between the revisions
+ were the region starts and ends."
+  (interactive "r")
+  (let ((fr (log-view-current-tag beg))
+        (to (log-view-current-tag end)))
+    (when (string-equal fr to)
+      (save-excursion
+        (goto-char end)
+        (log-view-msg-next)
+        (setq to (log-view-current-tag))))
+    (vc-version-diff (log-view-current-file) to fr)))
+
 (provide 'log-view)
 
 ;;; Change Log:
 ;; $Log: log-view.el,v $
+;; Revision 1.8  2001/11/12 20:34:45  sds
+;; updated (C)
+;;
 ;; Revision 1.7  2001/10/29 15:46:46  kai
 ;; (log-view-mode-map): Bind `M-n' and `M-p', not `M n'
 ;; and `M p'.
