@@ -105,7 +105,7 @@ matcher_overflow ()
    POSIX is nonzero if we want full backtracking (POSIX style)
    for this pattern.  0 means backtrack only enough to get a valid match.
    MULTIBYTE is nonzero if we want to handle multibyte characters in
-   PATTERN.  0 means all multibyte characters are recognized just as
+   the target.  0 means all multibyte characters are recognized just as
    sequences of binary data.  */
 
 static void
@@ -191,7 +191,7 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
 	  && !NILP (Fstring_equal (cp->regexp, pattern))
 	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
 	  && cp->posix == posix
-	  && cp->buf.multibyte == multibyte)
+	  && cp->buf.target_multibyte == multibyte)
 	break;
 
       /* If we're at the end of the cache, compile into the nil cell
