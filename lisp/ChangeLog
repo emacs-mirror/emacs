@@ -1,16 +1,16 @@
 2002-10-12  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* ediff-init.el (ediff-frame-char-height): use frame-selected-window.
-	
-	* ediff-util.el (ediff-file-checked-in-p): changed progn with and
-	
-	* ediff-wind.el (ediff-skip-unsuitable-frames): distinguish selected
-	frame from frame of selected window
-	(ediff-frame-has-dedicated-windows): don't select any frames to avoid
-	changing selected windows
-	(ediff-setup-control-frame): make sure auto-rase is properly set for
-	the control frame
-	
+
+	* ediff-init.el (ediff-frame-char-height): Use frame-selected-window.
+
+	* ediff-util.el (ediff-file-checked-in-p): Changed progn with and.
+
+	* ediff-wind.el (ediff-skip-unsuitable-frames): Distinguish selected
+	frame from frame of selected window.
+	(ediff-frame-has-dedicated-windows): Don't select any frames to avoid
+	changing selected windows.
+	(ediff-setup-control-frame): Make sure auto-rase is properly set for
+	the control frame.
+
 2002-10-10  Simon Josefsson  <jas@extundo.com>
 
 	* browse-url.el (browse-url-mozilla): Doc fix.
@@ -45,9 +45,35 @@
 
 2002-10-10  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* textmodes/paragraphs.el (forward-paragraph): Keep track of
+	remaining paragraphs to skip more carefully.
+
+	* add-log.el (add-change-log-entry): Don't call find-file at all
+	if we're already in the proper buffer.
+	(change-log-resolve-conflict): New fun.
+	(change-log-mode): Use it and use define-derived-mode.
+	(change-log-merge): Allow other-log to be a buffer.
+	Don't add a \n if there are already enough \n's.
+
 	* finder-inf.el, subdirs.el, cus-load.el: Remove.
 
 	* finder.el ("finder-inf"): Don't fail if the file is absent.
+
+	* cus-dep.el (custom-make-dependencies): Don't use find-file.
+	Use feature names rather than file names if applicable.
+
+	* cus-edit.el (customize-mode): New command.
+
+	* custom.el (custom-group-of-mode): New fun.
+	(custom-load-symbol): Don't use preloaded-file-list now that
+	load-history is always complete.  Don't look up the expanded file
+	name in load-history (looked like an XEmacsism).
+
+	* smerge-mode.el (smerge-ediff): Autoload.
+	(smerge-match-conflict): Don't assume as much about smerge-begin-re.
+	(smerge-resolve-function): New var.
+	(smerge-resolve): New command.
+	(smerge-basic-map): Bind it.
 
 2002-10-10  Andre Spiegel  <spiegel@gnu.org>
 
@@ -69,9 +95,8 @@
 	instead of require to avoid loops when loaddefs.el is loaded after
 	vc-cvs.el.
 
-	* cus-edit.el (Custom-reset-current):  Don't test for
-	default-boundp.
-	(Custom-reset-saved):  Don't test for saved-value.
+	* cus-edit.el (Custom-reset-current): Don't test for default-boundp.
+	(Custom-reset-saved): Don't test for saved-value.
 
 2002-10-08  Stefan Monnier  <monnier@cs.yale.edu>
 
