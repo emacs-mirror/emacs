@@ -3876,7 +3876,7 @@ FRAME 0 means change the face on all frames, and change the default\n\
       else if (NILP (value))
 	valid_p = 1;
       else if (INTEGERP (value))
-	valid_p = XINT (value) > 0;
+	valid_p = XINT (value) != 0;
       else if (STRINGP (value))
 	valid_p = XSTRING (value)->size > 0;
       else if (CONSP (value))
@@ -3897,7 +3897,7 @@ FRAME 0 means change the face on all frames, and change the default\n\
 
 	      if (EQ (k, QCline_width))
 		{
-		  if (!INTEGERP (v) || XINT (v) <= 0)
+		  if (!INTEGERP (v) || XINT (v) == 0)
 		    break;
 		}
 	      else if (EQ (k, QCcolor))
@@ -6418,9 +6418,9 @@ realize_x_face (cache, attrs, c, base_face)
     {
       /* Simple box of specified line width in foreground color of the
          face.  */
-      xassert (XINT (box) > 0);
+      xassert (XINT (box) != 0);
       face->box = FACE_SIMPLE_BOX;
-      face->box_line_width = XFASTINT (box);
+      face->box_line_width = XINT (box);
       face->box_color = face->foreground;
       face->box_color_defaulted_p = 1;
     }
@@ -6447,8 +6447,8 @@ realize_x_face (cache, attrs, c, base_face)
 
 	  if (EQ (keyword, QCline_width))
 	    {
-	      if (INTEGERP (value) && XINT (value) > 0)
-		face->box_line_width = XFASTINT (value);
+	      if (INTEGERP (value) && XINT (value) != 0)
+		face->box_line_width = XINT (value);
 	    }
 	  else if (EQ (keyword, QCcolor))
 	    {
