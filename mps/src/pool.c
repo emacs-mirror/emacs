@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.40) $
+ * $HopeName: MMsrc!pool.c(trunk.41) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.40) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.41) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -338,17 +338,17 @@ Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO)
 
 void PoolReclaim(Pool pool, Trace trace, Seg seg)
 {
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  AVER(pool->arena == trace->arena);
-  AVER(SegPool(seg) == pool);
+  AVERT_CRITICAL(Pool, pool);
+  AVERT_CRITICAL(Trace, trace);
+  AVERT_CRITICAL(Seg, seg);
+  AVER_CRITICAL(pool->arena == trace->arena);
+  AVER_CRITICAL(SegPool(seg) == pool);
 
   /* There shouldn't be any grey things left for this trace. */
-  AVER(!TraceSetIsMember(SegGrey(seg), trace->ti));
+  AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace->ti));
 
   /* Should only be reclaiming segments which are still white. */
-  AVER(TraceSetIsMember(SegWhite(seg), trace->ti));
+  AVER_CRITICAL(TraceSetIsMember(SegWhite(seg), trace->ti));
 
   (*pool->class->reclaim)(pool, trace, seg);
 }

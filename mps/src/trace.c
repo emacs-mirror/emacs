@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.59) $
+ * $HopeName: MMsrc!trace.c(trunk.60) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .sources: design.mps.tracer.
@@ -8,7 +8,7 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.59) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.60) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -597,10 +597,10 @@ static void TraceReclaim(Trace trace)
       base = SegBase(seg);
 
       /* There shouldn't be any grey stuff left for this trace. */
-      AVER(!TraceSetIsMember(SegGrey(seg), trace->ti));
+      AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace->ti));
 
       if(TraceSetIsMember(SegWhite(seg), trace->ti)) {
-        AVER((SegPool(seg)->class->attr & AttrGC) != 0);
+        AVER_CRITICAL((SegPool(seg)->class->attr & AttrGC) != 0);
 
         PoolReclaim(SegPool(seg), trace, seg);
 
@@ -613,8 +613,8 @@ static void TraceReclaim(Trace trace)
 	/* unwhiten the segment could in fact be moved here.   */
         {
           Seg nonWhiteSeg = NULL;	/* prevents compiler warning */
-	  AVER(!(SegOfAddr(&nonWhiteSeg, arena, base) &&
-		 TraceSetIsMember(SegWhite(nonWhiteSeg), trace->ti)));
+	  AVER_CRITICAL(!(SegOfAddr(&nonWhiteSeg, arena, base) &&
+		        TraceSetIsMember(SegWhite(nonWhiteSeg), trace->ti)));
         }
       }
     } while(SegNext(&seg, arena, base));
