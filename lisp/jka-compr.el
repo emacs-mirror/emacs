@@ -704,9 +704,14 @@ There should be no more than seven characters after the final `/'."
 
 	  (let ((load-force-doc-strings t))
 	    (load load-file noerror t t))
-
 	  (or nomessage
-	      (message "Loading %s...done." file)))
+	      (message "Loading %s...done." file))
+	  ;; Fix up the load history to point at the right library.
+	  (let ((l (assoc load-file load-history)))
+	    ;; Remove .gz and .elc?.
+	    (while (file-name-extension file)
+	      (setq file (file-name-sans-extension file)))
+	    (setcar l file)))
 
       (jka-compr-delete-temp-file local-copy))
 
