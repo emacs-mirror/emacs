@@ -1046,14 +1046,14 @@ and source-file directory for your debugger."
     ;; Make dbx give out the source location info that we need.
     (process-send-string (get-buffer-process gud-comint-buffer)
 			 "printf \"\032\032%1d:\",(int)$curline;file\n"))
-   (gud-dbx-use-stopformat-p
-    (process-send-string (get-buffer-process gud-comint-buffer)
-			 "set $stopformat=1\n"))
    (t
     (gud-def gud-up     "up %p"         "<" "Up (numeric arg) stack frames.")
     (gud-def gud-down   "down %p" ">" "Down (numeric arg) stack frames.")
     (gud-def gud-break "file \"%d%f\"\nstop at %l"
-				  "\C-b" "Set breakpoint at current line.")))
+				  "\C-b" "Set breakpoint at current line.")
+    (if gud-dbx-use-stopformat-p
+	(process-send-string (get-buffer-process gud-comint-buffer)
+			     "set $stopformat=1\n"))))
 
   (gud-def gud-remove "clear %l"  "\C-d" "Remove breakpoint at current line")
   (gud-def gud-step   "step %p"	  "\C-s" "Step one line with display.")
