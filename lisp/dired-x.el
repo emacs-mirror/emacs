@@ -1366,18 +1366,20 @@ See also variable `dired-vm-read-only-folders'."
 ;;; REDEFINE.
 ;;; Redefines dired.el's version of `dired-find-buffer-nocreate'
 (defun dired-find-buffer-nocreate (dirname)
-  (if dired-find-subdir
+  (if (and dired-find-subdir
+	   ;; don't try to find a wildcard as a subdirectory
+	   (string-equal dirname (file-name-directory dirname)))
       (let* ((cur-buf (current-buffer))
-             (buffers (nreverse
+	     (buffers (nreverse
 		       (dired-buffers-for-dir (expand-file-name dirname))))
-             (cur-buf-matches (and (memq cur-buf buffers)
-                                   ;; wildcards must match, too:
-                                   (equal dired-directory dirname))))
-        ;; We don't want to switch to the same buffer---
-        (setq buffers (delq cur-buf buffers));;need setq with delq
-        (or (car (sort buffers (function dired-buffer-more-recently-used-p)))
-            ;; ---unless it's the only possibility:
-            (and cur-buf-matches cur-buf)))
+	     (cur-buf-matches (and (memq cur-buf buffers)
+				   ;; wildcards must match, too:
+				   (equal dired-directory dirname))))
+	;; We don't want to switch to the same buffer---
+	(setq buffers (delq cur-buf buffers));;need setq with delq
+	(or (car (sort buffers (function dired-buffer-more-recently-used-p)))
+	    ;; ---unless it's the only possibility:
+	    (and cur-buf-matches cur-buf)))
     (dired-old-find-buffer-nocreate dirname)))
 
 ;; This should be a builtin
