@@ -139,4 +139,5 @@ various structure fields. Lookup `defstruct' for more details."
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;; arch-tag: b383b49a-494f-4ed0-a30a-cb6d5d2da4ff
 ;;; mh-acros.el ends here

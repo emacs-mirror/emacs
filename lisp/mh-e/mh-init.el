@@ -304,4 +304,5 @@ by the variable `mh-variants'."
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;; arch-tag: e8372aeb-d803-42b1-9c95-3c93ad22f63c
 ;;; mh-init.el ends here
