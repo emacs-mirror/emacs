@@ -1862,7 +1862,9 @@ This option allows you to specify environment variables for inferior
 compilation processes without affecting the environment that all
 subprocesses inherit.
 
-*** `next-error' now temporarily highlights the corresponding source line.
+*** New options `next-error-highlight' and `next-error-highlight-no-select'
+specify the method of highlighting of the corresponding source line
+in new face `next-error'.
 
 ** Grep has been decoupled from compilation mode setup.
 
