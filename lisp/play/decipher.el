@@ -311,7 +311,6 @@ The most useful commands are:
   (set (make-local-variable 'font-lock-defaults)
        '(decipher-font-lock-keywords t))
   ;; Make the buffer writable when we exit Decipher mode:
-  (make-local-hook 'change-major-mode-hook)
   (add-hook 'change-major-mode-hook
             (lambda () (setq buffer-read-only nil
                              buffer-undo-list nil))
