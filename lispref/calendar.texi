@@ -666,7 +666,7 @@ time of day.  Here's how
 
 @findex sort-diary-entries
 @example
-(add-hook 'list-diary-entries-hook 'sort-diary-entries)
+(add-hook 'list-diary-entries-hook 'sort-diary-entries t)
 @end example
 
 @noindent
