@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.12 2001/07/16 12:22:59 pj Exp $
+;; $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -226,7 +226,9 @@ locked.  REV is the revision to check out into WORKFILE."
 	  ;; the file in the right place.
 	  (setq default-directory (file-name-directory filename))
 
-	  (and rev (string= rev "") (setq rev nil))
+	  (and rev (or (string= rev "") 
+                       (not (stringp rev)))
+               (setq rev nil))
 	  (if workfile
 	      ;; Some SCCS implementations allow checking out directly to a
 	      ;; file using the -G option, but then some don't so use the
