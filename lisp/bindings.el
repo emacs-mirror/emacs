@@ -642,7 +642,7 @@ for \\[find-tag] (which see)."
 (define-key esc-map "'" 'abbrev-prefix-mark)
 (define-key ctl-x-map "'" 'expand-abbrev)
 
-(define-key ctl-x-map "z" 'vi-dot)
+(define-key ctl-x-map "z" 'repeat)
 
 ;;; Don't compile this file; it contains no large function definitions.
 ;;; Don't look for autoload cookies in this file.
