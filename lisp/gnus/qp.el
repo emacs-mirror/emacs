@@ -36,7 +36,9 @@
   "Decode quoted-printable in the region between FROM and TO, per RFC 2045.
 If CODING-SYSTEM is non-nil, decode bytes into characters with that
 coding-system."
-  (interactive "r")
+  (interactive
+   ;; Let the user determine the coding system with "C-x RET c".
+   (list (region-beginning) (region-end) coding-system-for-read))
   (unless (mm-coding-system-p coding-system) ; e.g. `ascii' from Gnus
     (setq coding-system nil))
   (save-excursion
