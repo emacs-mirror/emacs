@@ -3447,7 +3447,10 @@ to the new custom file.  This will preserve your existing customizations."
 
 (defun custom-file ()
   "Return the file name for saving customizations."
-  (if (null user-init-file)
+  (if (and (null user-init-file)
+	   (or (file-exists-p "~/.emacs")
+	       (and (memq system-type '(ms-dos windows-nt))
+		    (file-exists-p "~/_emacs"))))
       ;; Started with -q, i.e. the file containing Custom settings
       ;; hasn't been read.  Saving settings there would overwrite
       ;; other settings.
