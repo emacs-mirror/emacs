@@ -54,10 +54,11 @@ otherwise a string <2> or <3> or ... is appended to get an unused name."
 
 (defun make-auto-save-file-name ()
   "Return file name to use for auto-saves of current buffer.
-Does not consider auto-save-visited-file-name; that is checked
-before calling this function.
-This is a separate function so your .emacs file or site-init.el can redefine it.
-See also auto-save-file-name-p."
+This function does not consider `auto-save-visited-file-name';
+the caller should check that before calling this function.
+This is a separate function so that your `.emacs' file or the site's
+`site-init.el' can redefine it.
+See also `auto-save-file-name-p'."
   (if buffer-file-name
       (concat (file-name-directory buffer-file-name)
 	      "_$"
@@ -66,9 +67,10 @@ See also auto-save-file-name-p."
     (expand-file-name (concat "_$_" (make-legal-file-name (buffer-name)) "$"))))
 
 (defun auto-save-file-name-p (filename)
-  "Return t if FILENAME can be yielded by make-auto-save-file-name.
+  "Return t if FILENAME can be yielded by `make-auto-save-file-name'.
 FILENAME should lack slashes.
-This is a separate function so your .emacs file or site-init.el can redefine it."
+This is a separate function so that your `.emacs' file or the site's
+`site-init.el' can redefine it."
   (string-match "^_\\$.*\\$" filename))
 
 ;;;
