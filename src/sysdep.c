@@ -1591,6 +1591,7 @@ wait_for_kbd_input ()
 	  if (dsp)
 	    {
 	      update_mode_lines++;
+	      prepare_menu_bars ();
 	      redisplay_preserve_echo_area ();
 	    }
 	}
