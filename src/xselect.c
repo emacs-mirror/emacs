@@ -357,13 +357,12 @@ x_get_local_selection (selection_symbol, target_type)
 
       CHECK_SYMBOL (target_type, 0);
       handler_fn = Fcdr (Fassq (target_type, Vselection_converter_alist));
-      if (NILP (handler_fn))
-	Fsignal (Qerror,
-		 Fcons (build_string ("missing selection-conversion function"),
-			Fcons (target_type, Fcons (value, Qnil))));
-      value = call3 (handler_fn,
-		     selection_symbol, target_type,
-		     XCONS (XCONS (local_value)->cdr)->car);
+      if (!NILP (handler_fn))
+	value = call3 (handler_fn,
+		       selection_symbol, target_type,
+		       XCONS (XCONS (local_value)->cdr)->car);
+      else
+	value = Qnil;
       unbind_to (count, Qnil);
     }
 
