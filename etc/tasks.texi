@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 24 April 1997
+@set lastupdate 28 April 1997
 @c %**end of header
 
 @setchapternewpage off
@@ -316,9 +316,6 @@ An imitation of Page Maker or Ventura Publisher.
 
 @item
 An imitation of @code{dbase2} or @code{dbase3} (How dbased!)
-
-@item
-A program to reformat Fortran programs in a way that is pretty.
 
 @item
 A bulletin board system.  There are a few free ones, but they don't have
