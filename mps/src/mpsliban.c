@@ -1,9 +1,7 @@
 /* impl.c.mpsliban: HARLEQUIN MEMORY POOL SYSTEM LIBRARY INTERFACE (ANSI)
  *
- * $HopeName: MMsrc!mpsliban.c(trunk.9) $
- * Copyright (C) 1996, 1998 Harlequin Group plc.  All rights reserved.
- *
- * PURPOSE
+ * $HopeName: MMsrc!mpsliban.c(trunk.10) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: The purpose of this code is
  *   1. to connect the MPS Library Interface to the ANSI C libraries,
@@ -11,19 +9,11 @@
  *   2. to provide an example of how to implement the MPS Library
  *      Interface.
  *
- * .readership: MPS client application developers, MPS developers.
+ * .readership: For MPS client application developers, MPS developers.
  * .sources: design.mps.lib
  *
- * .doc: Full documentation is not yet available (see issue.lib.doc),
- *   but see design.mps.lib and design.mps.exec-env in the Memory Management
- *   Information System.
  *
  * TRANSGRESSIONS (rule.impl.trans)
- *
- * .sunos.warn: The MPM core header, ossu.h, is included so that this
- * file will compile without warnings under SunOS 4.1.  In order to
- * test whether to include it mpstd.h is included.  This hack must be
- * removed before the code is shipped.
  *
  * .trans.file: The ANSI standard says (in section 7.9.1) that FILE is an
  * object type, and hence the casts between FILE and mps_lib_FILE (an 
@@ -42,7 +32,13 @@ struct itimerspec; /* stop complaints from time.h */
 #include <time.h>
 
 #ifdef MPS_OS_SU
-#include "ossu.h"
+extern int fputc (int c, FILE *stream);
+extern int fputs (const char *s, FILE *stream);
+extern clock_t clock(void);
+extern long strtol(const char *, char **, int);
+/* @@@@ This doesn't do quite the right thing, but will get by. */
+#define strtoul(a,b,c) (unsigned long)strtol((a), (b), (c))
+extern void *memset(void *, int, size_t);
 #endif
 
 
