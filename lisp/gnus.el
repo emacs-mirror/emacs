@@ -15941,6 +15941,7 @@ newsgroup."
 ;; We want to inline a function from gnus-cache, so we cheat here:
 (eval-when-compile
   (provide 'gnus)
+  (setq gnus-directory (or (getenv "SAVEDIR") "~/News/"))
   (require 'gnus-cache))
 
 (defun gnus-get-unread-articles-in-group (info active &optional update)
