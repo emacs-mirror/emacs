@@ -1,10 +1,10 @@
 ;;; lazy-lock.el --- Lazy demand-driven fontification for fast Font Lock mode.
 
-;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Keywords: faces files
-;; Version: 2.10
+;; Version: 2.11
 
 ;;; This file is part of GNU Emacs.
 
@@ -257,10 +257,12 @@
 ;; - Made `lazy-lock-fontify-after-idle' wrap `minibuffer-auto-raise'
 ;; - Made `lazy-lock-fontify-after-defer' paranoid about deferred buffers
 ;; 2.09--2.10:
-;; - Use `window-end' UPDATE arg for Emacs 20.3 and later.
+;; - Use `window-end' UPDATE arg for Emacs 20.4 and later.
 ;; - Made deferral `widen' before unfontifying (Dan Nicolaescu report)
 ;; - Use `lazy-lock-fontify-after-visage' for hideshow.el (Dan Nicolaescu hint)
 ;; - Use `other' widget where possible (Andreas Schwab fix)
+;; 2.10--2.11:
+;; - Used `with-temp-message' where possible to make messages temporary.
 
 ;;; Code:
 
@@ -309,6 +311,14 @@ The value returned is the value of the last form in BODY."
   (put 'with-current-buffer 'lisp-indent-function 1)
   ;;
   ;; We use this for compatibility with a future Emacs.
+  (or (fboundp 'with-temp-message)
+      (defmacro with-temp-message (message &rest body)
+	(` (let ((current-message (current-message)))
+	     (unwind-protect
+		 (progn (message (, message)) (,@ body))
+	       (message current-message))))))
+  ;;
+  ;; We use this for compatibility with a future Emacs.
   (or (fboundp 'defcustom)
       (defmacro defcustom (symbol value doc &rest args) 
 	(` (defvar (, symbol) (, value) (, doc))))))
@@ -317,7 +327,7 @@ The value returned is the value of the last form in BODY."
 ;  "Submit via mail a bug report on lazy-lock.el."
 ;  (interactive)
 ;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.10"
+;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.11"
 ;     '(lazy-lock-minimum-size lazy-lock-defer-on-the-fly
 ;       lazy-lock-defer-on-scrolling lazy-lock-defer-contextually
 ;       lazy-lock-defer-time lazy-lock-stealth-time
@@ -338,7 +348,7 @@ The value returned is the value of the last form in BODY."
 
 ;; User Variables:
 
-(defcustom lazy-lock-minimum-size (* 25 1024)
+(defcustom lazy-lock-minimum-size 25600
   "*Minimum size of a buffer for demand-driven fontification.
 On-demand fontification occurs if the buffer size is greater than this value.
 If nil, means demand-driven fontification is never performed.
@@ -669,13 +679,14 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
       (let ((verbose (if (numberp font-lock-verbose)
 			 (> (buffer-size) font-lock-verbose)
 		       font-lock-verbose)))
-	(if verbose (message "Fontifying %s..." (buffer-name)))
-	;; Make sure we fontify etc. in the whole buffer.
-	(save-restriction
-	  (widen)
-	  (lazy-lock-fontify-region (point-min) (point-max)))
-	(if verbose (message "Fontifying %s...%s" (buffer-name)
-			     (if (lazy-lock-unfontified-p) "quit" "done")))))
+	(with-temp-message
+	    (if verbose
+		(format "Fontifying %s..." (buffer-name))
+	      (current-message))
+	  ;; Make sure we fontify etc. in the whole buffer.
+	  (save-restriction
+	    (widen)
+	    (lazy-lock-fontify-region (point-min) (point-max))))))
     (add-hook 'after-change-functions 'font-lock-after-change-function nil t))
   ;;
   ;; Remove the text properties.
@@ -863,27 +874,29 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 	  (if (not (and lazy-lock-mode (lazy-lock-unfontified-p)))
 	      (setq continue (not (input-pending-p)))
 	    ;; Fontify regions in this buffer while there is no input.
-	    (do-while (and (lazy-lock-unfontified-p) continue)
-	      (if (and lazy-lock-stealth-load
-		       (> (car (load-average)) lazy-lock-stealth-load))
-		  ;; Wait a while before continuing with the loop.
-		  (progn
-		    (when message
-		      (message "Fontifying stealthily...suspended")
-		      (setq message nil))
-		    (setq continue (sit-for (or lazy-lock-stealth-time 30))))
-		;; Fontify a chunk.
-		(when lazy-lock-stealth-verbose
-		  (if message
-		      (message "Fontifying stealthily... %2d%% of %s"
-			       (lazy-lock-percent-fontified) (buffer-name))
-		    (message "Fontifying stealthily...")
-		    (setq message t)))
-		(lazy-lock-fontify-chunk)
-		(setq continue (sit-for (or lazy-lock-stealth-nice 0))))))
-	  (setq buffers (cdr buffers))))
-      (when message
-	(message "Fontifying stealthily...%s" (if continue "done" "quit"))))))
+	    (with-temp-message
+		(if lazy-lock-stealth-verbose
+		    "Fontifying stealthily..."
+		  (current-message))
+	      (do-while (and (lazy-lock-unfontified-p) continue)
+		(if (and lazy-lock-stealth-load
+			 (> (car (load-average)) lazy-lock-stealth-load))
+		    ;; Wait a while before continuing with the loop.
+		    (progn
+		      (when message
+			(message "Fontifying stealthily...suspended")
+			(setq message nil))
+		      (setq continue (sit-for (or lazy-lock-stealth-time 30))))
+		  ;; Fontify a chunk.
+		  (when lazy-lock-stealth-verbose
+		    (if message
+			(message "Fontifying stealthily... %2d%% of %s"
+				 (lazy-lock-percent-fontified) (buffer-name))
+		      (message "Fontifying stealthily...")
+		      (setq message t)))
+		  (lazy-lock-fontify-chunk)
+		  (setq continue (sit-for (or lazy-lock-stealth-nice 0)))))))
+	  (setq buffers (cdr buffers)))))))
 
 ;; 4.  Special circumstances.
 
@@ -1049,7 +1062,7 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 
 (when (if (save-match-data (string-match "Lucid\\|XEmacs" (emacs-version)))
 	  nil
-	(or (and (= emacs-major-version 20) (< emacs-minor-version 3))
+	(or (and (= emacs-major-version 20) (< emacs-minor-version 4))
 	    (= emacs-major-version 19)))
   ;;
   ;; We use `vertical-motion' rather than `window-end' UPDATE arg.
@@ -1080,8 +1093,10 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
     (princ "The value of the variable `lazy-lock-defer-time' was\n ")
     (princ lazy-lock-defer-time)
     (princ "\n")
-    (princ "This variable cannot now be a list of modes and time, ")
-    (princ "so instead use the forms:\n")
+    (princ "This variable cannot now be a list of modes and time,\n")
+    (princ "so instead use ")
+    (princ (substitute-command-keys "\\[customize-option]"))
+    (princ " to modify the variables, or put the forms:\n")
     (princ " (setq lazy-lock-defer-time ")
     (princ (cdr lazy-lock-defer-time))
     (princ ")\n")
@@ -1090,7 +1105,9 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
     (princ ")\n")
     (princ "in your ~/.emacs.  ")
     (princ "The above forms have been evaluated for this editor session,\n")
-    (princ "but you should change your ~/.emacs now."))
+    (princ "but you should use ")
+    (princ (substitute-command-keys "\\[customize-option]"))
+    (princ " or change your ~/.emacs now."))
   (setq lazy-lock-defer-on-the-fly (car lazy-lock-defer-time)
 	lazy-lock-defer-time (cdr lazy-lock-defer-time)))
 
@@ -1106,7 +1123,9 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
       (princ "'"))
     (princ ".\n")
     (princ "This variable is now called `lazy-lock-defer-on-scrolling',\n")
-    (princ "so instead use the form:\n")
+    (princ "so instead use ")
+    (princ (substitute-command-keys "\\[customize-option]"))
+    (princ " to modify the variable, or put the form:\n")
     (princ " (setq lazy-lock-defer-on-scrolling ")
     (unless (memq lazy-lock-defer-driven '(nil t))
       (princ "'"))
@@ -1114,7 +1133,9 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
     (princ ")\n")
     (princ "in your ~/.emacs.  ")
     (princ "The above form has been evaluated for this editor session,\n")
-    (princ "but you should change your ~/.emacs now."))
+    (princ "but you should use ")
+    (princ (substitute-command-keys "\\[customize-option]"))
+    (princ " or change your ~/.emacs now."))
   (setq lazy-lock-defer-on-scrolling lazy-lock-defer-driven))
 
 ;; Possibly absent.
@@ -1147,6 +1168,10 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 				  (push window windows))))
 		    minibuf frame)
       windows)))
+
+(unless (fboundp 'current-message)
+  (defun current-message ()
+    ""))
 
 ;; Install ourselves:
 
