@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.120) $
+ * $HopeName: MMsrc!mpm.h(trunk.121) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -489,6 +489,14 @@ extern TraceSet (TraceSetDel)(TraceSet ts, TraceId id);
 extern TraceSet (TraceSetUnion)(TraceSet ts1, TraceSet ts2);
 extern Bool (TraceSetIsMember)(TraceSet ts, TraceId id);
 
+#define TRACE_SET_ITER(ti, trace, ts, arena) \
+  for(ti = 0, trace = ArenaTrace(arena, ti); ti < TRACE_MAX; \
+      ++ti, trace = ArenaTrace(arena, ti)) BEGIN \
+    if(TraceSetIsMember(ts, ti)) {
+
+#define TRACE_SET_ITER_END(ti, trace, ts, arena) } END
+
+
 extern void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
                           Rank rank, RefSet white);
 extern void ScanStateFinish(ScanState ss);
@@ -976,6 +984,43 @@ extern Size VMMapped(VM vm);
 
 /* Stack Probe */
 extern void StackProbe(Word depth);
+
+
+/* STATISTIC -- gather diagnostics (in some varieties)
+ *
+ * The argument of STATISTIC is an expression; the expansion followed by
+ * a semicolon is syntactically a statement.
+ *
+ * The argument of STATISTIC_STAT is a statement; the expansion followed by
+ * a semicolon is syntactically a statement.
+ *
+ * STATISTIC_WRITE is inserted in WriteF arguments to output the values
+ * of diagnostic fields.
+ *
+ * .statistic.whitehot: The implementation of STATISTIC for 
+ * non-statistical varieties passes the parameter to DISCARD to ensure
+ * the parameter is syntactically an expression.  The parameter is 
+ * passed as part of a comma-expression so that its type is not
+ * important.  This permits an expression of type void.
+ */
+
+#if defined(DIAGNOSTICS)
+
+#define STATISTIC(gather) BEGIN (gather); END
+#define STATISTIC_STAT(gather) BEGIN gather; END
+#define STATISTIC_WRITE(format, arg) (format), (arg),
+
+#elif defined(DIAGNOSTICS_NONE)
+
+#define STATISTIC(gather) DISCARD(((gather), 0))
+#define STATISTIC_STAT(gather) DISCARD_STAT(gather)
+#define STATISTIC_WRITE(format, arg)
+
+#else
+
+#error "No diagnostics configured."
+
+#endif
 
 
 #endif /* mpm_h */
