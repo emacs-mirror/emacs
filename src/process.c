@@ -2839,7 +2839,9 @@ read_process_output (proc, channel)
 	return 0;
       chars = (char *) XSTRING (p->decoding_buf)->data;
       nbytes = coding->produced;
-      nchars = coding->produced_char;
+      nchars = (coding->fake_multibyte
+		? multibyte_chars_in_text (chars, nbytes)
+		: coding->produced_char);
       chars_in_decoding_buf = 1;
     }
 #ifdef VMS
@@ -2848,11 +2850,12 @@ read_process_output (proc, channel)
       /* Although we don't have to decode the received data, we must
          move it to an area which we don't have to free.  */
       if (! STRINGP (p->decoding_buf)
-	  || XSTRING (p->decoding_buf)->size < nbytes)
+	  || STRING_BYTES (XSTRING (p->decoding_buf)) < nbytes)
 	p->decoding_buf = make_uninit_string (nbytes);
       bcopy (chars, XSTRING (p->decoding_buf)->data, nbytes);
       free (chars);
       chars = XSTRING (p->decoding_buf)->data;
+      nchars = multibyte_chars_in_text (chars, nbytes);
       chars_in_decoding_buf = 1;
       carryover = 0;
     }
@@ -2976,8 +2979,15 @@ read_process_output (proc, channel)
       /* Insert before markers in case we are inserting where
 	 the buffer's mark is, and the user's next command is Meta-y.  */
       if (chars_in_decoding_buf)
-	insert_from_string_before_markers (p->decoding_buf, 0, 0,
-					   nchars, nbytes, 0);
+	{
+	  /* Since multibyteness of p->docoding_buf is corrupted, we
+             can't use insert_from_string_before_markers.  */
+	  char *temp_buf;
+
+	  temp_buf = (char *) alloca (nbytes);
+	  bcopy (XSTRING (p->decoding_buf)->data, temp_buf, nbytes);
+	  insert_before_markers (temp_buf, nbytes);
+	}
       else
 	insert_1_both (chars, nchars, nbytes, 0, 1, 1);
       set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
