@@ -197,6 +197,11 @@ after Emacs has finished dumping itself.  This causes the subsequent
 commands which invoke the dumped Emacs excutable to fail with the
 above message.
 
+In some of these cases, a time skew between the NFS server and the
+machine where Emacs is built is detected and reported by GNU Make
+(it says that some of the files have modification time in the future).
+This might be a symptom of NFS-related problems.
+
 If the NFS server runs on Solaris, apply the Solaris patch 105379-05
 (Sunos 5.6: /kernel/misc/nfssrv patch).  If that doesn't work, or if
 you have a different version of the OS or the NFS server, you can
