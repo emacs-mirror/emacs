@@ -1302,6 +1302,7 @@ regex_compile (pattern, size, syntax, bufp)
                    the `*'.  Do we have to do something analogous here
                    for null bytes, because of RE_DOT_NOT_NULL?  */
                 if (TRANSLATE (*(p - 2)) == TRANSLATE ('.')
+		    && zero_times_ok
                     && p < pend && TRANSLATE (*p) == TRANSLATE ('\n')
                     && !(syntax & RE_DOT_NEWLINE))
                   { /* We have .*\n.  */
@@ -1612,6 +1613,10 @@ regex_compile (pattern, size, syntax, bufp)
               fixup_alt_jump = 0;
               laststart = 0;
               begalt = b;
+	      /* If we've reached MAX_REGNUM groups, then this open
+		 won't actually generate any code, so we'll have to
+		 clear pending_exact explicitly.  */
+	      pending_exact = 0;
               break;
 
 
@@ -1661,6 +1666,10 @@ regex_compile (pattern, size, syntax, bufp)
                     : 0;
                 laststart = bufp->buffer + COMPILE_STACK_TOP.laststart_offset;
                 this_group_regnum = COMPILE_STACK_TOP.regnum;
+		/* If we've reached MAX_REGNUM groups, then this open
+		   won't actually generate any code, so we'll have to
+		   clear pending_exact explicitly.  */
+		pending_exact = 0;
 
                 /* We're at the end of the group, so now we know how many
                    groups were inside this one.  */
@@ -4880,6 +4889,13 @@ regerror (errcode, preg, errbuf, errbuf_size)
        code generates an invalid error code, then the program has a bug.
        Dump core so we can fix it.  */
     abort ();
+
+  msg = re_error_msg[errcode];
+
+  /* POSIX doesn't require that we do anything in this case, but why
+     not be nice.  */
+  if (! msg)
+    msg = "Success";
 
   msg_size = strlen (msg) + 1; /* Includes the null.  */
   
