@@ -178,7 +178,7 @@ and DATA is a string, containing the raw bits of the bitmap.
 
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
-  (interactive (internal-face-interactive "stipple"))
+  (interactive (internal-face-interactive-stipple "stipple"))
   (internal-set-face-1 face 'background-pixmap pixmap 6 frame))
 
 (defalias 'set-face-background-pixmap 'set-face-stipple)
@@ -237,7 +237,8 @@ If called interactively, prompts for a face name and face attributes."
 	  (old-stipple-string
 	   (if (stringp (face-stipple (intern face)))
 	       (face-stipple (intern face))
-	     (prin1-to-string (face-stipple (intern face)))))
+	     (if (face-stipple (intern face))
+		 (prin1-to-string (face-stipple (intern face))))))
 	  (new-stipple-string
 	   (modify-face-read-string
 	    face old-stipple-string
@@ -247,12 +248,13 @@ If called interactively, prompts for a face name and face attributes."
 	  ;; This makes the assumption that a pixmap file name
 	  ;; won't start with an open-paren.
 	  (stipple
-	   (if (string-match "^(" new-stipple-string)
-	       (read new-stipple-string)
-	     new-stipple-string))
-	  (bold-p	(y-or-n-p (concat "Set face " face " bold ")))
-	  (italic-p	(y-or-n-p (concat "Set face " face " italic ")))
-	  (underline-p	(y-or-n-p (concat "Set face " face " underline ")))
+	   (and new-stipple-string
+		(if (string-match "^(" new-stipple-string)
+		    (read new-stipple-string)
+		  new-stipple-string)))
+	  (bold-p	(y-or-n-p (concat "Should face " face " be bold ")))
+	  (italic-p	(y-or-n-p (concat "Should face " face " be italic ")))
+	  (underline-p	(y-or-n-p (concat "Should face " face " be underlined ")))
 	  (all-frames-p	(y-or-n-p (concat "Modify face " face " in all frames "))))
      (message "Face %s: %s" face
       (mapconcat 'identity
@@ -357,7 +359,34 @@ If NAME is already a face, it is simply returned."
 			       default))))
     (list face (if (equal value "") nil value))))
 
-
+(defun internal-face-interactive-stipple (what)
+  (let* ((fn (intern (concat "face-" what)))
+	 (prompt (concat "Set " what " of face"))
+	 (face (read-face-name (concat prompt ": ")))
+	 (default (if (fboundp fn)
+		      (or (funcall fn face (selected-frame))
+			  (funcall fn 'default (selected-frame)))))
+	 ;; If the stipple value is a list (WIDTH HEIGHT DATA),
+	 ;; represent that as a string by printing it out.
+	 (old-stipple-string
+	  (if (stringp (face-stipple face))
+	      (face-stipple face)
+	    (if (null (face-stipple face))
+		nil
+	      (prin1-to-string (face-stipple face)))))
+	 (new-stipple-string
+	  (read-string
+	   (concat prompt " " (symbol-name face) " to: ")
+	   old-stipple-string))
+	 ;; Convert the stipple value text we read
+	 ;; back to a list if it looks like one.
+	 ;; This makes the assumption that a pixmap file name
+	 ;; won't start with an open-paren.
+	 (stipple
+	  (if (string-match "^(" new-stipple-string)
+	      (read new-stipple-string)
+	    new-stipple-string)))
+    (list face (if (equal stipple "") nil stipple))))
 
 (defun make-face (name)
   "Define a new FACE on all frames.  
