@@ -688,7 +688,9 @@ Do the same for the keys of the same name."
   '(menu-item "Send Mail" compose-mail
 	      :help "Send a mail message"))
 (define-key menu-bar-tools-menu [rmail]
-  '(menu-item "Read Mail" read-mail-command
+  '(menu-item "Read Mail" (lambda ()
+			    (interactive)
+			    (call-interactively read-mail-command))
 	      :help "Read your mail and reply to it"))
 (define-key menu-bar-tools-menu [gnus]
   '(menu-item "Read Net News" gnus
