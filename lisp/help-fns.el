@@ -1,4 +1,4 @@
-;;; help-funs.el --- Complex help functions
+;;; help-fns.el --- Complex help functions
 
 ;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001
 ;;   Free Software Foundation, Inc.
@@ -452,6 +452,6 @@ BUFFER defaults to the current buffer."
 	  (insert "\nThe parent syntax table is:")
 	  (describe-vector table 'internal-describe-syntax-value))))))
 
-(provide 'help-funs)
+(provide 'help-fns)
 
-;;; help-funs.el ends here
+;;; help-fns.el ends here
