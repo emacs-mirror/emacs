@@ -1,6 +1,6 @@
 /* impl.h.poolams: AUTOMATIC MARK & SWEEP POOL CLASS INTERFACE
  *
- * $HopeName: MMsrc!poolams.h(trunk.13) $
+ * $HopeName: MMsrc!poolams.h(trunk.14) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .purpose: Internal interface to AMS functionality.
@@ -69,6 +69,7 @@ typedef struct AMSSegStruct {
   RingStruct segRing;    /* ring that this seg belongs to */
   Count grains;          /* number of grains */
   Count free;            /* number of free grains */
+  Count newAlloc;        /* number of grains allocated since last GC */
   Bool allocTableInUse;  /* whether we use allocTable */
   Index firstFree;       /* 1st free grain, if allocTable is not used */
   BT allocTable;         /* set if grain is allocated */
@@ -96,6 +97,8 @@ typedef struct AMSSegStruct {
 
 /* only use when size is a multiple of the grain size */
 #define AMSGrains(ams, size) ((size) >> (ams)->grainShift)
+
+#define AMSGrains2Size(ams, grains) ((grains) << (ams)->grainShift)
 
 #define AMSSegShift(seg) (SegAMSSeg(seg)->ams->grainShift)
 
