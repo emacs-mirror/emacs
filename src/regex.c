@@ -2703,6 +2703,7 @@ compile_range (p_ptr, pend, translate, syntax, b)
 
      We also want to fetch the endpoints without translating them; the 
      appropriate translation is done in the bit-setting loop below.  */
+  /* The SVR4 compiler on the 3B2 had trouble with unsigned const char *.  */
   range_start = ((const unsigned char *) p)[-2];
   range_end   = ((const unsigned char *) p)[0];
 
