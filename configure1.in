@@ -484,13 +484,13 @@ case "${canonical}" in
   *-*-netbsd* )
     opsys=netbsd
     case "${canonical}" in
-      sparc-*-netbsd*)	machine=sparc ;;
       i[345]86-*-netbsd*) machine=intel386 ;;
-      hp300-*-netbsd* | amiga-*-netbsd* | sun3-*-netbsd* | mac68k-*-netbsd* | da30-*-netbsd*)
-			# Yes, this is somewhat bogus.
+      m68k-*-netbsd*)
+			# This is somewhat bogus.
 			machine=hp9000s300 ;;
-      pc532-*-netbsd*)	machine=ns32000 ;;
-      pmax-*-netbsd*)	machine=pmax ;;
+      mips-*-netbsd*)	machine=pmax ;;
+      ns32k-*-netbsd*)	machine=ns32000 ;;
+      sparc-*-netbsd*)	machine=sparc ;;
     esac
   ;;
 
