@@ -1627,6 +1627,13 @@ Selects a window with point at SOURCE, with another window displaying ERROR."
       (progn
 	(widen)
 	(goto-char (cdr next-error))))
+  ;; If hideshow got in the way of
+  ;; seeing the right place, open permanently.
+  (mapcar (function (lambda (ov)
+		      (when (eq 'hs (overlay-get ov 'invisible))
+			(delete-overlay ov)
+			(goto-char (cdr next-error)))))
+	  (overlays-at (point)))
 
   ;; Show compilation buffer in other window, scrolled to this error.
   (let* ((pop-up-windows t)
@@ -1646,49 +1653,57 @@ current directory, which is passed in DIR.
 If FILENAME is not found at all, ask the user where to find it.
 Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
   (or formats (setq formats '("%s")))
-  (let ((dirs compilation-search-path)
-	buffer thisdir fmts name)
-    (if (file-name-absolute-p filename)
+  (save-excursion
+    (let ((dirs compilation-search-path)
+	  buffer thisdir fmts name)
+      (if (file-name-absolute-p filename)
 	;; The file name is absolute.  Use its explicit directory as
 	;; the first in the search path, and strip it from FILENAME.
 	(setq filename (abbreviate-file-name (expand-file-name filename))
 	      dirs (cons (file-name-directory filename) dirs)
 	      filename (file-name-nondirectory filename)))
-    ;; Now search the path.
-    (while (and dirs (null buffer))
-      (setq thisdir (or (car dirs) dir)
-	    fmts formats)
-      ;; For each directory, try each format string.
-      (while (and fmts (null buffer))
-	(setq name (expand-file-name (format (car fmts) filename) thisdir)
-	      buffer (and (file-exists-p name)
-			  (find-file-noselect name))
-	      fmts (cdr fmts)))
-      (setq dirs (cdr dirs)))
-    (or buffer
-	;; The file doesn't exist.
-	;; Ask the user where to find it.
-	;; If he hits C-g, then the next time he does
-	;; next-error, he'll skip past it.
-	(let* ((pop-up-windows t)
-	       (w (display-buffer (marker-buffer marker))))
-	  (set-window-point w marker)
-	  (set-window-start w marker)
-	  (let ((name (expand-file-name
-		       (read-file-name
-			(format "Find this error in: (default %s) "
-				filename)
-			dir filename t))))
-	    (if (file-directory-p name)
-		(setq name (expand-file-name filename name)))
-	    (and (file-exists-p name)
-		 (find-file-noselect name)))))))
+      ;; Now search the path.
+      (while (and dirs (null buffer))
+	(setq thisdir (or (car dirs) dir)
+	      fmts formats)
+	;; For each directory, try each format string.
+	(while (and fmts (null buffer))
+	  (setq name (expand-file-name (format (car fmts) filename) thisdir)
+		buffer (and (file-exists-p name)
+			    (find-file name))
+		fmts (cdr fmts)))
+	(setq dirs (cdr dirs)))
+      (or buffer
+	  ;; The file doesn't exist.
+	  ;; Ask the user where to find it.
+	  ;; If he hits C-g, then the next time he does
+	  ;; next-error, he'll skip past it.
+	  (let* ((pop-up-windows t)
+		 (w (display-buffer (marker-buffer marker))))
+	    (set-window-point w marker)
+	    (set-window-start w marker)
+	    (let ((name (expand-file-name
+			 (read-file-name
+			  (format "Find this error in: (default %s) "
+				  filename)
+			  dir filename t))))
+	      (if (file-directory-p name)
+		  (setq name (expand-file-name filename name)))
+	      (setq buffer (and (file-exists-p name)
+				(find-file name))))))
+      ;; Make intangible overlays tangible.
+      (mapcar (function (lambda (ov)
+			  (when (overlay-get ov 'intangible)
+			    (overlay-put ov 'intangible nil))))
+	      (overlays-in (point-min) (point-max)))
+      buffer)))
+
 
 ;; Set compilation-error-list to nil, and unchain the markers that point to the
 ;; error messages and their text, so that they no longer slow down gap motion.
 ;; This would happen anyway at the next garbage collection, but it is better to
 ;; do it right away.
-(defun compilation-forget-errors ()
+  (defun compilation-forget-errors ()
   (while compilation-old-error-list
     (let ((next-error (car compilation-old-error-list)))
       (set-marker (car next-error) nil)
@@ -1860,7 +1875,7 @@ An error message with no file name and no file name has been seen earlier"))
 			    ;; descriptor or nil (meaning no position).
 			    (save-excursion
 			      (funcall linenum filename column))))
-			
+
 		    ;; We have an error position descriptor.
 		    ;; If we have found as many new errors as the user
 		    ;; wants, or if we are past the buffer position he
