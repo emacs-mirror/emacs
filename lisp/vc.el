@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.314 2001/10/22 07:54:03 spiegel Exp $
+;; $Id: vc.el,v 1.315 2001/10/22 12:13:29 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -167,6 +167,8 @@
 ;;
 ;;   Register FILE in this backend.  Optionally, an initial revision REV
 ;;   and an initial description of the file, COMMENT, may be specified.
+;;   The implementation should pass the value of vc-register-switches
+;;   to the backend command.
 ;;
 ;; - responsible-p (file)
 ;;
@@ -198,7 +200,8 @@
 ;;
 ;;   Commit changes in FILE to this backend.  If REV is non-nil, that
 ;;   should become the new revision number.  COMMENT is used as a
-;;   check-in comment.
+;;   check-in comment.  The implementation should pass the value of
+;;   vc-checkin-switches to the backend command.
 ;;
 ;; * checkout (file &optional editable rev destfile)
 ;;
@@ -208,7 +211,8 @@
 ;;   is the revision to check out (default is current workfile version);
 ;;   if REV is the empty string, that means to check out the head of the
 ;;   trunk.  If optional arg DESTFILE is given, it is an alternate
-;;   filename to write the contents to.
+;;   filename to write the contents to.  The implementation should
+;;   pass the value of vc-checkout-switches to the backend command.
 ;;
 ;; * revert (file &optional contents-done)
 ;;
@@ -3005,11 +3009,10 @@ With a prefix argument, this command asks two questions in the
 minibuffer.  First, you may enter a version number; then the buffer
 displays and annotates that version instead of the current version
 \(type RET in the minibuffer to leave that default unchanged).  Then,
-you are prompted for a stretch factor for the time scale.  This makes
-the color range cover a time span longer or shorter than the default
-of one year.  For example, a factor of 0.1 means that the range from
-red to blue stands for the past 36 days only, and everything that is
-older than that is shown in blue.
+you are prompted for the time span in days which the color range
+should cover.  For example, a time span of 20 days means that changes
+over the past 20 days are shown in red to blue, according to their
+age, and everything that is older than that is shown in blue.
 
 Customization variables:
 
