@@ -1,6 +1,10 @@
 2001-12-18  Dave Love  <fx@gnu.org>
 
 	* simple.el (newline): Doc fix.
+	(eval-expression-print-level, eval-expression-print-length): Doc
+	fix.  Amend :type.
+	(next-line, previous-line): Make arg optional.
+	(newline): Doc fix.
 
 	* Makefile.in (DONTCOMPILE): Add various language files.
 
