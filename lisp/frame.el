@@ -712,7 +712,7 @@ should use `set-frame-width instead'."
 Optional second arg non-nil means that redisplay should use LINES lines\n\
 but that the idea of the actual height of the screen should not be changed.\n\
 This function is provided only for compatibility with Emacs 18; new code\n\
-should use `set-frame-width' instead."
+should use `set-frame-height' instead."
   (set-frame-height (selected-frame) lines pretend))
 
 (make-obsolete 'screen-height 'frame-height)
