@@ -85,44 +85,45 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
   (let ((sym (gud-symbol sym t minor-mode)))
     (if (boundp sym) (symbol-value sym))))
 
-(defvar gdb-running nil "Used by gdba only. Non-nil if debuggee is running
-so that the relevant toolbar icons are greyed out.")
+(defvar gud-running nil
+  "Non-nil if debuggee is running.
+Used to grey out relevant toolbar icons.")
 
 (easy-mmode-defmap gud-menu-map
   '(([refresh]	"Refresh" . gud-refresh)
     ([run]	menu-item "Run" gud-run
-                     :enable (and (not gdb-running)
+                     :enable (and (not gud-running)
 				  (memq gud-minor-mode '(gdba gdb))))
     ([goto]	menu-item "Continue to selection" gud-goto
-                     :enable (and (not gdb-running)
+                     :enable (and (not gud-running)
 				  (memq gud-minor-mode '(gdba gdb))))
     ([remove]	menu-item "Remove Breakpoint" gud-remove
-                     :enable (not gdb-running))
+                     :enable (not gud-running))
     ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
 		     :enable (memq gud-minor-mode '(gdba gdb sdb xdb)))
     ([break]	menu-item "Set Breakpoint" gud-break
-                     :enable (not gdb-running))
+                     :enable (not gud-running))
     ([up]	menu-item "Up Stack" gud-up
-		     :enable (and (not gdb-running)
+		     :enable (and (not gud-running)
 				  (memq gud-minor-mode '(gdba gdb dbx xdb jdb))))
     ([down]	menu-item "Down Stack" gud-down
-		     :enable (and (not gdb-running)
+		     :enable (and (not gud-running)
 		     (memq gud-minor-mode '(gdba gdb dbx xdb jdb))))
     ([print]	menu-item "Print Expression" gud-print
-                     :enable (not gdb-running))
+                     :enable (not gud-running))
     ([display]	menu-item "Display Expression" gud-display
-		     :enable (and (not gdb-running)
+		     :enable (and (not gud-running)
 				  (eq gud-minor-mode 'gdba)))
     ([finish]	menu-item "Finish Function" gud-finish
-			:enable  (and (not gdb-running)
+			:enable  (and (not gud-running)
 			(memq gud-minor-mode '(gdba gdb xdb jdb))))
     ([stepi]	"Step Instruction" . gud-stepi)
     ([step]	menu-item "Step Line" gud-step
-                     :enable (not gdb-running))
+                     :enable (not gud-running))
     ([next]	menu-item "Next Line" gud-next
-                     :enable (not gdb-running))
+                     :enable (not gud-running))
     ([cont]	menu-item "Continue" gud-cont
-                     :enable (not gdb-running)))
+                     :enable (not gud-running)))
   "Menu for `gud-mode'."
   :name "Gud")
 
@@ -141,28 +142,45 @@ so that the relevant toolbar icons are greyed out.")
 
 (defvar gud-tool-bar-map
   (if (display-graphic-p)
-      (let ((tool-bar-map (make-sparse-keymap)))
-        (tool-bar-add-item-from-menu 'gud-break "gud-break" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-remove "gud-remove" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-print "gud-print" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-display "gud-display" 
-				     gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-run "gud-run" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-goto "gud-goto" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-cont "gud-cont" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-step "gud-step" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-next "gud-next" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-finish "gud-finish" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-up "gud-up" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-down "gud-down" gud-minor-mode-map)
-        tool-bar-map)))
+      (let ((map (make-sparse-keymap)))
+	(dolist (x '((gud-break . "gud-break")
+		     (gud-remove . "gud-remove")
+		     (gud-print . "gud-print")
+		     (gud-display . "gud-display")
+		     (gud-run . "gud-run")
+		     (gud-goto . "gud-goto")
+		     (gud-cont . "gud-cont")
+		     (gud-step . "gud-step")
+		     (gud-next . "gud-next")
+		     (gud-finish . "gud-finish")
+		     (gud-up . "gud-up")
+		     (gud-down . "gud-down"))
+		   map)
+	  (tool-bar-local-item-from-menu
+	   (car x) (cdr x) map gud-minor-mode-map)))))
+
+(defun gud-file-name (f)
+  "Transform a relative file name to an absolute file name.
+Uses `gud-<MINOR-MODE>-directories' to find the source files."
+  (if (file-exists-p f) (expand-file-name f)
+    (let ((directories (gud-val 'directories))
+	  (result nil))
+      (while directories
+	(let ((path (expand-file-name f (car directories))))
+	  (if (file-exists-p path)
+	      (setq result path
+		    directories nil)))
+	(setq directories (cdr directories)))
+      result)))
 
 (defun gud-find-file (file)
   ;; Don't get confused by double slashes in the name that comes from GDB.
   (while (string-match "//+" file)
     (setq file (replace-match "/" t t file)))
   (let ((minor-mode gud-minor-mode)
-	(buf (funcall gud-find-file file)))
+	(buf (funcall (or gud-find-file 'gud-file-name) file)))
+    (when (stringp buf)
+      (setq buf (and (file-readable-p buf) (find-file-noselect buf 'nowarn))))
     (when buf
       ;; Copy `gud-minor-mode' to the found buffer to turn on the menu.
       (with-current-buffer buf
@@ -295,12 +313,10 @@ off the specialized speedbar mode."
 	   (equal gud-last-last-frame gud-last-speedbar-stackframe))
       nil
     (setq gud-last-speedbar-buffer buffer)
-    (let* ((ff (save-excursion (set-buffer buffer) gud-find-file))
-	   ;;(lf (save-excursion (set-buffer buffer) gud-last-last-frame))
+    (let* ((minor-mode (with-current-buffer buffer gud-minor-mode))
 	   (frames
-	    (cond ((eq ff 'gud-gdb-find-file)
-		   (gud-gdb-get-stackframe buffer)
-		   )
+	    (cond ((memq minor-mode '(gdba gdb))
+		   (gud-gdb-get-stackframe buffer))
 		  ;; Add more debuggers here!
 		  (t
 		   (speedbar-remove-localized-speedbar-support buffer)
@@ -327,7 +343,7 @@ off the specialized speedbar mode."
 	  (speedbar-insert-button (car (car frames))
 				  'speedbar-file-face
 				  'speedbar-highlight-face
-				  (cond ((eq ff 'gud-gdb-find-file)
+				  (cond ((memq minor-mode '(gdba gdb))
 					 'gud-gdb-goto-stackframe)
 					(t (error "Should never be here")))
 				  (car frames) t))
@@ -410,9 +426,6 @@ off the specialized speedbar mode."
 
     output))
 
-(defun gud-gdb-find-file (f)
-  (find-file-noselect f 'nowarn))
-
 (easy-mmode-defmap gud-minibuffer-local-map
   '(("\C-i" . comint-dynamic-complete-filename))
   "Keymap for minibuffer prompting of gud startup command."
@@ -426,7 +439,7 @@ off the specialized speedbar mode."
      (format "Run %s (like this): " minor-mode)
      (or (car-safe (symbol-value hist-sym))
 	 (concat (or cmd-name (symbol-name minor-mode))
-		 " " default-directory
+		 " "
 		 (or init
 		     (let ((file nil))
 		       (dolist (f (directory-files default-directory) file)
@@ -445,8 +458,7 @@ The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
   (interactive (list (gud-query-cmdline 'gdb)))
 
-  (gud-common-init command-line nil
-		   'gud-gdb-marker-filter 'gud-gdb-find-file)
+  (gud-common-init command-line nil 'gud-gdb-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'gdb)
 
   (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
@@ -749,8 +761,7 @@ and source-file directory for your debugger."
 		     (file-exists-p tags-file-name))))
       (error "The sdb support requires a valid tags table to work"))
 
-  (gud-common-init command-line nil
-		   'gud-sdb-marker-filter 'gud-sdb-find-file)
+  (gud-common-init command-line nil 'gud-sdb-marker-filter 'gud-sdb-find-file)
   (set (make-local-variable 'gud-minor-mode) 'sdb)
 
   (gud-def gud-break  "%l b" "\C-b"   "Set breakpoint at current line.")
@@ -796,20 +807,6 @@ containing the executable being debugged."
 	   (nreverse result))
 	 args))
 
-(defun gud-dbx-file-name (f)
-  "Transform a relative file name to an absolute file name, for dbx."
-  (let ((result nil))
-    (if (file-exists-p f)
-	(setq result (expand-file-name f))
-      (let ((directories gud-dbx-directories))
-	(while directories
-	  (let ((path (concat (car directories) "/" f)))
-	    (if (file-exists-p path)
-		(setq result (expand-file-name path)
-		      directories nil)))
-	  (setq directories (cdr directories)))))
-    result))
-
 (defun gud-dbx-marker-filter (string)
   (setq gud-marker-acc (if gud-marker-acc (concat gud-marker-acc string) string))
 
@@ -852,8 +849,8 @@ containing the executable being debugged."
       (string-match "^alpha[^-]*-[^-]*-osf" system-configuration))
   "Non-nil to assume the MIPS/OSF dbx conventions (argument `-emacs').")
 
-(defun gud-mipsdbx-massage-args (file args)
-  (cons "-emacs" args))
+(defvar gud-dbx-command-name
+  (concat "dbx" (if gud-mips-p " -emacs")))
 
 ;; This is just like the gdb one except for the regexps since we need to cope
 ;; with an optional breakpoint number in [] before the ^Z^Z
@@ -991,15 +988,13 @@ a better solution in 6.1 upwards.")
 	  result)
 	 ((string-match			; kluged-up marker as above
 	   "\032\032\\([0-9]*\\):\\(.*\\)\n" result)
-	  (let ((file (gud-dbx-file-name
-		       (substring result (match-beginning 2) (match-end 2)))))
+	  (let ((file (gud-file-name (match-string 2 result))))
 	    (if (and file (file-exists-p file))
 		(setq gud-last-frame
 		      (cons
 		       file
 		       (string-to-int
-			(substring
-			 result (match-beginning 1) (match-end 1)))))))
+			(match-string 1 result))))))
 	  (setq result (substring result 0 (match-beginning 0))))))
     (or result "")))
 
@@ -1054,12 +1049,6 @@ This was tested using R4.11.")
 	    nil)))
   string)
 
-(defun gud-dbx-find-file (f)
-  (save-excursion
-    (let ((realf (gud-dbx-file-name f)))
-      (if realf
-	  (find-file-noselect realf)))))
-
 ;;;###autoload
 (defun dbx (command-line)
   "Run dbx on program FILE in buffer *gud-FILE*.
@@ -1069,17 +1058,16 @@ and source-file directory for your debugger."
 
   (cond
    (gud-mips-p
-    (gud-common-init command-line 'gud-mipsdbx-massage-args
-		     'gud-mipsdbx-marker-filter 'gud-dbx-find-file))
+    (gud-common-init command-line nil 'gud-mipsdbx-marker-filter))
    (gud-irix-p
     (gud-common-init command-line 'gud-dbx-massage-args
-		     'gud-irixdbx-marker-filter 'gud-dbx-find-file))
+		     'gud-irixdbx-marker-filter))
    (gud-dgux-p
     (gud-common-init command-line 'gud-dbx-massage-args
-		     'gud-dguxdbx-marker-filter 'gud-dbx-find-file))
+		     'gud-dguxdbx-marker-filter))
    (t
     (gud-common-init command-line 'gud-dbx-massage-args
-		     'gud-dbx-marker-filter 'gud-dbx-find-file)))
+		     'gud-dbx-marker-filter)))
 
   (set (make-local-variable 'gud-minor-mode) 'dbx)
 
@@ -1151,20 +1139,6 @@ containing the executable being debugged."
 	   (nreverse result))
 	 args))
 
-(defun gud-xdb-file-name (f)
-  "Transform a relative pathname to a full pathname in xdb mode"
-  (let ((result nil))
-    (if (file-exists-p f)
-	(setq result (expand-file-name f))
-      (let ((directories gud-xdb-directories))
-	(while directories
-	  (let ((path (concat (car directories) "/" f)))
-	    (if (file-exists-p path)
-		(setq result (expand-file-name path)
-		      directories nil)))
-	  (setq directories (cdr directories)))))
-    result))
-
 ;; xdb does not print the lines all at once, so we have to accumulate them
 (defun gud-xdb-marker-filter (string)
   (let (result)
@@ -1176,19 +1150,13 @@ containing the executable being debugged."
     (if result
 	(if (or (string-match "\\([^\n \t:]+\\): [^:]+: \\([0-9]+\\)[: ]"
 			      result)
-		(string-match "[^: \t]+:[ \t]+\\([^:]+\\): [^:]+: \\([0-9]+\\):"
-			      result))
-	    (let ((line (string-to-int (match-string 2 result)))
-		  (file (gud-xdb-file-name (match-string 1 result))))
-	      (if file
-		  (setq gud-last-frame (cons file line))))))
+                (string-match "[^: \t]+:[ \t]+\\([^:]+\\): [^:]+: \\([0-9]+\\):"
+                              result))
+            (let ((line (string-to-int (match-string 2 result)))
+                  (file (gud-file-name (match-string 1 result))))
+              (if file
+                  (setq gud-last-frame (cons file line))))))
     (or result "")))
-
-(defun gud-xdb-find-file (f)
-  (save-excursion
-    (let ((realf (gud-xdb-file-name f)))
-      (if realf
-	  (find-file-noselect realf)))))
 
 ;;;###autoload
 (defun xdb (command-line)
@@ -1201,7 +1169,7 @@ directories if your program contains sources from more than one directory."
   (interactive (list (gud-query-cmdline 'xdb)))
 
   (gud-common-init command-line 'gud-xdb-massage-args
-		   'gud-xdb-marker-filter 'gud-xdb-find-file)
+		   'gud-xdb-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'xdb)
 
   (gud-def gud-break  "b %f:%l"    "\C-b" "Set breakpoint at current line.")
@@ -1322,9 +1290,6 @@ into one that invokes an Emacs-enabled debugging session.
 
     output))
 
-(defun gud-perldb-find-file (f)
-  (find-file-noselect f))
-
 (defcustom gud-perldb-command-name "perl -d"
   "Default command to execute a Perl script under debugger."
   :type 'string
@@ -1340,7 +1305,7 @@ and source-file directory for your debugger."
 			    (concat (or (buffer-file-name) "-e 0") " "))))
 
   (gud-common-init command-line 'gud-perldb-massage-args
-		   'gud-perldb-marker-filter 'gud-perldb-find-file)
+		   'gud-perldb-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'perldb)
 
   (gud-def gud-break  "b %l"         "\C-b" "Set breakpoint at current line.")
@@ -1428,9 +1393,6 @@ and source-file directory for your debugger."
 
     output))
 
-(defun gud-pdb-find-file (f)
-  (find-file-noselect f))
-
 (defcustom gud-pdb-command-name "pdb"
   "File name for executing the Python debugger.
 This should be an executable on your path, or an absolute file name."
@@ -1445,8 +1407,7 @@ and source-file directory for your debugger."
   (interactive
    (list (gud-query-cmdline 'pdb)))
 
-  (gud-common-init command-line nil
-		   'gud-pdb-marker-filter 'gud-pdb-find-file)
+  (gud-common-init command-line nil 'gud-pdb-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'pdb)
 
   (gud-def gud-break  "break %l"     "\C-b" "Set breakpoint at current line.")
@@ -2066,9 +2027,7 @@ nil)
   ;; We don't filter any debugger output so just return what we were given.
   string)
 
-(defun gud-jdb-find-file (f)
-  (and (file-readable-p f)
-       (find-file-noselect f)))
+(defvar gud-jdb-command-name "jdb" "Command that executes the Java debugger.")
 
 ;;;###autoload
 (defun jdb (command-line)
@@ -2098,7 +2057,7 @@ gud, see `gud-mode'."
   (setq gud-jdb-classpath-string nil)	; prepare for next
 
   (gud-common-init command-line 'gud-jdb-massage-args
-		   'gud-jdb-marker-filter 'gud-jdb-find-file)
+		   'gud-jdb-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'jdb)
 
   ;; If a -classpath option was provided, set gud-jdb-classpath
@@ -2273,9 +2232,11 @@ comint mode, which see."
 ;; which starts with the program to debug.
 ;; The other three args specify the values to use
 ;; for local variables in the debugger buffer.
-(defun gud-common-init (command-line massage-args marker-filter &optional find-file)
+(defun gud-common-init (command-line massage-args marker-filter
+				     &optional find-file)
   (let* ((words (split-string command-line))
 	 (program (car words))
+	 (dir default-directory)
 	 ;; Extract the file name from WORDS
 	 ;; and put t in its place.
 	 ;; Later on we will put the modified file name arg back there.
@@ -2299,6 +2260,8 @@ comint mode, which see."
 		      file-subst)))
 	 (filepart (and file-word (concat "-" (file-name-nondirectory file)))))
     (pop-to-buffer (concat "*gud" filepart "*"))
+    ;; Set the dir, in case the buffer already existed with a different dir.
+    (setq default-directory dir)
     ;; Set default-directory to the file's directory.
     (and file-word
 	 gud-chdir-before-run
