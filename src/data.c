@@ -1955,7 +1955,7 @@ IDX starts at 0.  */)
 	args_out_of_range (array, idx);
       CHECK_NUMBER (newelt);
 
-      if (XINT (newelt) < 0 || SINGLE_BYTE_CHAR_P (XINT (newelt)))
+      if (XINT (newelt) < 0 || ASCII_CHAR_P (XINT (newelt)))
 	XSTRING (array)->data[idxval] = XINT (newelt);
       else
 	{
