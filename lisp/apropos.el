@@ -138,20 +138,25 @@ This looks good, but slows down the commands several times."
   (setq major-mode 'apropos-mode
 	mode-name "Apropos"))
 
+;;;###autoload
+(defun apropos-variable (regexp)
+  (interactive (list (read-string "Apropos variable (regexp): ")))
+  (apropos-command regexp nil t))
 
 ;; For auld lang syne:
 ;;;###autoload
 (fset 'command-apropos 'apropos-command)
 ;;;###autoload
-(defun apropos-command (apropos-regexp &optional do-all)
+(defun apropos-command (apropos-regexp &optional do-all just-vars)
   "Show commands (interactively callable functions) that match REGEXP.
 With optional prefix ARG, or if `apropos-do-all' is non-nil, also show
-variables."
-  (interactive (list (read-string (concat "Apropos command "
-					  (if (or current-prefix-arg
-						  apropos-do-all)
-					      "or variable ")
-					  "(regexp): "))
+variables.  If JUST-VARS is non-nil, show only variables."
+  (interactive (list (read-string (concat
+				   "Apropos command "
+				   (if (or current-prefix-arg
+					   apropos-do-all)
+				       "or variable ")
+				   "(regexp): "))
 		     current-prefix-arg))
   (let ((message
 	 (let ((standard-output (get-buffer-create "*Apropos*")))
@@ -162,7 +167,8 @@ variables."
 			    (if do-all
 				(lambda (symbol) (or (commandp symbol)
 						     (user-variable-p symbol)))
-			      'commandp)))
+			      (if just-vars 'user-variable-p
+				'commandp))))
     (if (apropos-print
 	 t
 	 (lambda (p)
@@ -170,10 +176,11 @@ variables."
 	     (while p
 	       (setcar p (list
 			  (setq symbol (car p))
-			  (if (commandp symbol)
-			      (if (setq doc (documentation symbol t))
-				  (substring doc 0 (string-match "\n" doc))
-				"(not documented)"))
+			  (if (or do-all (not just-vars))
+			      (if (commandp symbol)
+				  (if (setq doc (documentation symbol t))
+				      (substring doc 0 (string-match "\n" doc))
+				    "(not documented)")))
 			  (and do-all
 			       (user-variable-p symbol)
 			       (if (setq doc (documentation-property
