@@ -1,3 +1,7 @@
+2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
+
+	* files.el (kill-some-buffers): Doc fix.
+
 2003-12-29  David Herring <sdh6@ra.msstate.edu>  (tiny change)
 
 	* comint.el (comint-watch-for-password-prompt): Pass `string' as
