@@ -62,10 +62,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef BROKEN_TIOCGWINSZ
 #define NEED_PTEM_H
 
-/* SCO has rename, but some people say it is broken.  Try this for
-   now.  */
-#define HAVE_RENAME
-
 /* We need to link with crt1.o and crtn.o.  */
 #define START_FILES pre-crt0.o /lib/crt1.o
 #define LIB_STANDARD -lc /lib/crtn.o

@@ -23,7 +23,6 @@
 #define NO_FCHMOD
 
 #define HAVE_PTYS
-#define HAVE_RENAME
 #define HAVE_CLOSEDIR
 #define MAXNAMLEN 512
 #define O_NDELAY O_NONBLOCK

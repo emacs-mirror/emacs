@@ -85,7 +85,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* libc has this stuff, but not utimes. */
 
-#define HAVE_RENAME
 #define HAVE_SELECT
 #define HAVE_TIMEVAL
 #define HAVE_CLOSEDIR

@@ -93,7 +93,6 @@ and this notice must be preserved on all copies.  */
 #define HAVE_SELECT
 #define HAVE_PTYS
 #define HAVE_SOCKETS
-#define HAVE_RENAME
 
 /* SX/A use SystemV style getdents/readdir. */
 #define HAVE_CLOSEDIR

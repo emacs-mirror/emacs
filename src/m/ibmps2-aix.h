@@ -222,7 +222,6 @@ so disable it for them.  */
 #ifdef USG5_3
 #define XICCC
 #define HAVE_GETWD
-#define HAVE_RENAME
 #undef LD_SWITCH_MACHINE
 #define LD_SWITCH_MACHINE -T0x0 -K -e start
 

@@ -228,7 +228,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define HAVE_VFORK
 #define HAVE_PERROR  /* Delete this line for version 6.  */
-#define HAVE_RENAME
 
 /* The following maps shared exec file to demand loaded exec.
    Don't do this as demand loaded exec is broken in hpux.  */
