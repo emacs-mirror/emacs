@@ -193,6 +193,21 @@ You should set this to t when using a non-system shell.\n\n"))))
 
 (add-hook 'before-init-hook 'w32-init-info)
 
+;;; The variable source-directory is used to initialize Info-directory-list.
+;;; However, the common case is that Emacs is being used from a binary
+;;; distribution, and the value of source-directory is meaningless in that
+;;; case.  Even worse, source-directory can refer to a directory on a drive
+;;; on the build machine that happens to be a removable drive on the user's
+;;; machine.  When this happens, Emacs tries to access the removable drive
+;;; and produces the abort/retry/ignore dialog.  Since we do not use
+;;; source-directory, set it to something that is a reasonable approximation
+;;; on the user's machine.
+
+(add-hook 'before-init-hook 
+	  '(lambda ()
+	     (setq source-directory (file-name-as-directory 
+				     (expand-file-name ".." exec-directory)))))
+
 ;; Avoid creating auto-save file names containing invalid characters.
 (fset 'original-make-auto-save-file-name
       (symbol-function 'make-auto-save-file-name))
