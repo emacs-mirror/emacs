@@ -1,5 +1,5 @@
 /* Updating of data structures for redisplay.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 97, 98, 1999, 2000, 2001
+   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 97, 98, 1999, 2000, 2001, 2002
        Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3672,14 +3672,7 @@ direct_output_for_insert (g)
   fflush (stdout);
 
   TRACE ((stderr, "direct output for insert\n"));
-
-  UNCHANGED_MODIFIED = MODIFF;
-  BEG_UNCHANGED = GPT - BEG;
-  XSETFASTINT (w->last_point, PT);
-  w->last_cursor = w->cursor;
-  XSETFASTINT (w->last_modified, MODIFF);
-  XSETFASTINT (w->last_overlay_modified, OVERLAY_MODIFF);
-
+  mark_window_display_accurate (it.window, 1);
   redisplay_performed_directly_p = 1;
   return 1;
 }

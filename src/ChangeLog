@@ -1,3 +1,8 @@
+2002-03-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (direct_output_for_insert): Call
+	mark_window_display_accurate.
+
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Version 21.2 released.
