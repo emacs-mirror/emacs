@@ -20,7 +20,7 @@ Published by the Free Software Foundation
 59 Temple Place, Suite 330
 Boston, MA  02111-1307 USA
 
-Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998
+Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999
    Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of
@@ -76,12 +76,12 @@ original English.
 @center Richard Stallman
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998
+Copyright @copyright{} 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999
    Free Software Foundation, Inc.
 @sp 2
 Thirteenth Edition @*
 Updated for Emacs Version 20.4, @*
-August 1998
+February 1999
 
 ISBN 1-882114-06-X
 @sp 1
@@ -197,7 +197,7 @@ Major Structures of Emacs
 * Buffers::	        Multiple buffers; editing several files at once.
 * Windows::	        Viewing two pieces of text at once.
 * Frames::	        Running the same Emacs session in multiple X windows.
-* International::       Using non-ASCII character sets.
+* International::       Using non-ASCII character sets (the MULE features).
 
 Advanced Features
 * Major Modes::	        Text mode vs. Lisp mode vs. C mode ...
@@ -503,7 +503,7 @@ Editing Programs
 * Tags::	        Go directly to any function in your program in one
 			  command.  Tags remembers which file it is in.
 * Emerge::	        A convenient way of merging two versions of a program.
-* C/Java Modes::        Special commands of C, C++, Objective-C and Java modes.
+* C Modes::             Special commands of C, C++, Objective-C and Java modes.
 * Fortran::	        Fortran mode and its special features.
 * Asm Mode::	        Asm mode and its special features.
 
