@@ -1,3 +1,8 @@
+2000-10-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* files.el (after-find-file): Don't print any warnings if 
+	WARN is nil.
+
 2000-10-24  Dave Love  <fx@gnu.org>
 
 	* log-edit.el (log-edit): Add :version and a :group for vc.
