@@ -1,6 +1,6 @@
 /* impl.c.global: ARENA-GLOBAL INTERFACES
  *
- * $HopeName$
+ * $HopeName: MMsrc!global.c(trunk.2) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .sources: See design.mps.arena.  design.mps.thread-safety is relevant
@@ -28,7 +28,7 @@
 #include "mpm.h"
 
 
-SRCID(global, "$HopeName$");
+SRCID(global, "$HopeName: MMsrc!global.c(trunk.2) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -77,7 +77,7 @@ Bool ArenaCheck(Arena arena)
 
   CHECKL(MPSVersion() == arena->mpsVersionString);
 
-  CHECKL(LockCheck(arena->lock));
+  CHECKD_NOSIG(Lock, arena->lock);
 
   /* no check possible on arena->pollThreshold */
   CHECKL(BoolCheck(arena->insidePoll));
@@ -110,7 +110,7 @@ Bool ArenaCheck(Arena arena)
   for (i=0; i < arena->shCacheLimit; ++i) {
     Seg seg = arena->shCache[i];
     if (seg != (Seg)0) {
-      CHECKL(SegCheck(seg));
+      CHECKD(Seg, seg);
       depth += SegDepth(seg);
     }
   }
@@ -124,7 +124,7 @@ Bool ArenaCheck(Arena arena)
     /* design.mps.arena.trace */
     if (TraceSetIsMember(arena->busyTraces, ti)) {
       Trace trace = ArenaTrace(arena, ti);
-      CHECKD(Trace,trace);
+      CHECKD(Trace, trace);
     } else {
       /* design.mps.arena.trace.invalid */
       CHECKL(ArenaTrace(arena,ti)->sig == SigInvalid);
@@ -459,6 +459,8 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
 
   arenaClaimRingLock();    /* design.mps.arena.lock.ring */
   mps_exception_info = context;
+  AVER(RingCheck(&arenaRing));
+
   RING_FOR(node, &arenaRing, nextNode) {
     Arena arena = RING_ELT(Arena, globalRing, node);
     Root root;
