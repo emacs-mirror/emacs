@@ -1,6 +1,6 @@
 ;;; elp.el --- Emacs Lisp Profiler
 
-;; Copyright (C) 1994,1995,1997,1998 Free Software Foundation, Inc.
+;; Copyright (C) 1994,1995,1997,1998, 2001 Free Software Foundation, Inc.
 
 ;; Author:        1994-1998 Barry A. Warsaw
 ;; Maintainer:    FSF
@@ -266,15 +266,22 @@ FUNSYM must be a symbol of a defined function."
     ;; put the info vector on the property list
     (put funsym elp-timer-info-property infovec)
 
-    ;; set the symbol's new profiling function definition to run
-    ;; elp-wrapper
-    (fset funsym newguts)
+    ;; Set the symbol's new profiling function definition to run
+    ;; elp-wrapper.
+    (let ((advice-info (get funsym 'ad-advice-info)))
+      (if advice-info
+	  (progn
+	    ;; If function is advised, don't let Advice change
+	    ;; its definition from under us during the `fset'.
+	    (put funsym 'ad-advice-info nil)
+	    (fset funsym newguts)
+	    (put funsym 'ad-advice-info advice-info))
+	(fset funsym newguts)))
 
     ;; add this function to the instrumentation list
     (or (memq funsym elp-all-instrumented-list)
 	(setq elp-all-instrumented-list
-	      (cons funsym elp-all-instrumented-list)))
-    ))
+	      (cons funsym elp-all-instrumented-list)))))
 
 (defun elp-restore-function (funsym)
   "Restore an instrumented function to its original definition.
