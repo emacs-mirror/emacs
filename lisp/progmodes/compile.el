@@ -1473,17 +1473,19 @@ region and the first line of the next region."
     loc))
 
 (defcustom compilation-context-lines 0
-  "*Display this many lines of leading context before message."
-  :type 'integer
+  "*Display this many lines of leading context before message.
+If nil, don't scroll the compilation output window."
+  :type '(choice integer (const :tag "No window scrolling" nil))
   :group 'compilation
   :version "21.4")
 
 (defsubst compilation-set-window (w mk)
   "Align the compilation output window W with marker MK near top."
-  (set-window-start w (save-excursion
-			(goto-char mk)
-			(beginning-of-line (- 1 compilation-context-lines))
-			(point)))
+  (if (integerp compilation-context-lines)
+      (set-window-start w (save-excursion
+                            (goto-char mk)
+                            (beginning-of-line (- 1 compilation-context-lines))
+                            (point))))
   (set-window-point w mk))
 
 (defun compilation-goto-locus (msg mk end-mk)
