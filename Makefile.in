@@ -305,7 +305,7 @@ install-arch-indep: mkdir
 	   (cd etc; tar -cf - DOC*)|(cd ${docdir}; umask 0; tar -xvf - ); \
 	else true; fi
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
-	then
+	then \
 	  (cd ${srcdir}/info ; \
 	   if [ ! -f ${infodir}/dir ] && [ -f dir ]; then \
 	     (cd this_dir; ${INSTALL_DATA} ${srcdir}/info/dir ${infodir}/dir); \
