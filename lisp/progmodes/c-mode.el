@@ -244,7 +244,7 @@ preserving the comment indentation or line-starting decorations."
 	  ;; Check for obvious entry to comment.
 	  (save-excursion
 	    (beginning-of-line)
-	    (skip-chars-forward " \t")
+	    (skip-chars-forward " \t\n")
 	    (and (looking-at comment-start-skip)
 		 (setq comment-start-place (point))))))
     (if (or first-line
@@ -252,13 +252,14 @@ preserving the comment indentation or line-starting decorations."
 	    (eq (calculate-c-indent) t)
 	    ;; t if this line contains a comment starter.
 	    (setq first-line
-		  (save-excursion (beginning-of-line)
-				  (prog1
-				      (re-search-forward comment-start-skip
-							 (save-excursion (end-of-line)
-									 (point))
-							 t)
-				    (setq comment-start-place (point))))))
+		  (save-excursion
+		    (beginning-of-line)
+		    (prog1
+			(re-search-forward comment-start-skip
+					   (save-excursion (end-of-line)
+							   (point))
+					   t)
+		      (setq comment-start-place (point))))))
 	;; Inside a comment: fill one comment paragraph.
 	(let ((fill-prefix
 	       ;; The prefix for each line of this paragraph
@@ -270,12 +271,49 @@ preserving the comment indentation or line-starting decorations."
 		     (progn (re-search-forward comment-start-skip)
 			    (make-string (current-column) ?\ ))
 		   (if first-line (forward-line 1))
-		   (buffer-substring (point)
-				     (progn
-				       (move-to-column
-					(calculate-c-indent-within-comment t)
-					t)
-				       (point))))))
+
+		   (let ((line-width (progn (end-of-line) (current-column))))
+		     (beginning-of-line)
+		     (prog1
+			 (buffer-substring
+			  (point)
+
+			  ;; How shall we decide where the end of the
+			  ;; fill-prefix is?
+			  ;; calculate-c-indent-within-comment bases its value
+			  ;; on the indentation of previous lines; if they're
+			  ;; indented specially, it could return a column
+			  ;; that's well into the current line's text.  So
+			  ;; we'll take at most that many space, tab, or *
+			  ;; characters, and use that as our fill prefix.
+			  (let ((max-prefix-end
+				 (progn
+				   (move-to-column
+				    (calculate-c-indent-within-comment t)
+				    t)
+				   (point))))
+			    (beginning-of-line)
+			    (skip-chars-forward " \t*" max-prefix-end)
+			    (point)))
+
+		       ;; If the comment is only one line followed by a blank
+		       ;; line, calling move-to-column above may have added
+		       ;; some spaces and tabs to the end of the line; the
+		       ;; fill-paragraph function will then delete it and the
+		       ;; newline following it, so we'll lose a blank line
+		       ;; when we shouldn't.  So delete anything
+		       ;; move-to-column added to the end of the line.  We
+		       ;; record the line width instead of the position of the
+		       ;; old line end because move-to-column might break a
+		       ;; tab into spaces, and the new characters introduced
+		       ;; there shouldn't be deleted.
+
+		       ;; If you can see a better way to do this, please make
+		       ;; the change.  This seems very messy to me.
+		       (delete-region (progn (move-to-column line-width)
+					     (point))
+				      (progn (end-of-line) (point))))))))
+
 	      (paragraph-start
 	       ;; Lines containing just a comment start or just an end
 	       ;; should not be filled into paragraphs they are next to.
