@@ -557,8 +557,8 @@ directory or directories specified."
 ;;;###autoload
 (defun batch-update-autoloads ()
   "Update loaddefs.el autoloads in batch mode.
-Calls `update-autoloads-from-directories' on the command line arguments."
-  (apply 'update-autoloads-from-directories command-line-args-left)
+Calls `update-directory-autoloads' on the command line arguments."
+  (apply 'update-directory-autoloads command-line-args-left)
   (setq command-line-args-left nil))
 
 (provide 'autoload)
