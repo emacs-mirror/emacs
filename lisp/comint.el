@@ -1517,8 +1517,13 @@ This variable is permanent-local.")
 	    ;; Fixup markers and overlays that got screwed up because we
 	    ;; used `insert-before-markers'.
 	    (let ((old-point (- (point) (length string))))
-	      ;; comint-last-output-start marker
+	      ;; comint-last-output-start
 	      (set-marker comint-last-output-start old-point)
+	      ;; comint-last-input-end
+	      (when (and comint-last-input-end
+			 (equal (marker-position comint-last-input-end)
+				(point)))
+		(set-marker comint-last-input-end old-point))
 	      ;; No overlays we create are set to advance upon insertion
 	      ;; (at the start/end), so we assume that any overlay which
 	      ;; is at the current point was incorrectly advanced by
@@ -1578,8 +1583,6 @@ This variable is permanent-local.")
 		      (overlay-put over 'front-sticky t)
 		      (overlay-put over 'rear-nonsticky t)
 		      (setq comint-last-prompt-overlay over))))))
-
-	    ;;(force-mode-line-update)
 
 	    (goto-char saved-point)
 
@@ -1875,7 +1878,7 @@ Does not delete the prompt."
 	(replacement nil))
     (save-excursion
       (let ((pmark (progn (goto-char (process-mark proc))
-			  (beginning-of-line nil)
+			  (forward-line 0)
 			  (point-marker))))
 	(delete-region comint-last-input-end pmark)
 	(goto-char (process-mark proc))
