@@ -24,8 +24,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define DISP_CONTINUE_GLYPH(dp) ((dp)->contents[257])
 #define DISP_ESCAPE_GLYPH(dp) ((dp)->contents[258])
 #define DISP_CTRL_GLYPH(dp) ((dp)->contents[259])
-#define DISP_INVIS_ROPE(dp) ((dp)->contents[260])
-#define DISP_CHAR_ROPE(dp, c) ((dp)->contents[c])
+#define DISP_INVIS_VECTOR(dp) ((dp)->contents[260])
+#define DISP_CHAR_VECTOR(dp, c) ((dp)->contents[c])
 
 extern struct Lisp_Vector *window_display_table ();
 
