@@ -1,5 +1,5 @@
 /* Code for doing intervals.
-   Copyright (C) 1993, 1994, 1995, 1997, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1997, 1998, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1883,6 +1883,52 @@ set_point (buffer, charpos)
   set_point_both (buffer, charpos, buf_charpos_to_bytepos (buffer, charpos));
 }
 
+/* If there's an invisible character at position POS + TEST_OFFS in the
+   current buffer, and the invisible property has a `stickiness' such that
+   inserting a character at position POS would inherit the property it,
+   return POS + ADJ, otherwise return POS.  If TEST_INTANG is non-zero,
+   then intangibility is required as well as invisibleness.
+
+   TEST_OFFS should be either 0 or -1, and ADJ should be either 1 or -1.
+
+   Note that `stickiness' is determined by overlay marker insertion types,
+   if the invisible property comes from an overlay.  */   
+
+static int
+adjust_for_invis_intang (pos, test_offs, adj, test_intang)
+     int pos, test_offs, adj, test_intang;
+{
+  Lisp_Object invis_propval, invis_overlay;
+  Lisp_Object test_pos;
+
+  if ((adj < 0 && pos + adj < BEGV) || (adj > 0 && pos + adj > ZV))
+    /* POS + ADJ would be beyond the buffer bounds, so do no adjustment.  */
+    return pos;
+
+  test_pos = make_number (pos + test_offs);
+
+  invis_propval
+    = get_char_property_and_overlay (test_pos, Qinvisible, Qnil,
+				     &invis_overlay);
+
+  if ((!test_intang
+       || ! NILP (Fget_char_property (test_pos, Qintangible, Qnil)))
+      && TEXT_PROP_MEANS_INVISIBLE (invis_propval)
+      /* This next test is true if the invisible property has a stickiness
+	 such that an insertion at POS would inherit it.  */
+      && (NILP (invis_overlay)
+	  /* Invisible property is from a text-property.  */
+	  ? (text_property_stickiness (Qinvisible, make_number (pos))
+	     == (test_offs == 0 ? 1 : -1))
+	  /* Invisible property is from an overlay.  */
+	  : (test_offs == 0
+	     ? XMARKER (OVERLAY_START (invis_overlay))->insertion_type == 0
+	     : XMARKER (OVERLAY_END (invis_overlay))->insertion_type == 1)))
+    pos += adj;
+
+  return pos;
+}
+
 /* Set point in BUFFER to CHARPOS, which corresponds to byte
    position BYTEPOS.  If the target position is 
    before an intangible character, move to an ok place.  */
@@ -1975,26 +2021,19 @@ set_point_both (buffer, charpos, bytepos)
 	 or end of the buffer, so don't bother checking in that case.  */
       && charpos != BEGV && charpos != ZV)
     {
-      Lisp_Object intangible_propval, invisible_propval;
       Lisp_Object pos;
-      int invis_p;
-
-      XSETINT (pos, charpos);
+      Lisp_Object intangible_propval;
 
       if (backwards)
 	{
-	  /* If the preceding char is both invisible and intangible,
-	     start backing up from just before that one.  */
+	  /* If the preceeding character is both intangible and invisible,
+	     and the invisible property is `rear-sticky', perturb it so
+	     that the search starts one character earlier -- this ensures
+	     that point can never move to the end of an invisible/
+	     intangible/rear-sticky region.  */
+	  charpos = adjust_for_invis_intang (charpos, -1, -1, 1);
 
-	  intangible_propval
-	    = Fget_char_property (make_number (charpos - 1),
-				  Qintangible, Qnil);
-	  invisible_propval
-	    = Fget_char_property (make_number (charpos - 1), Qinvisible, Qnil);
-	  invis_p = TEXT_PROP_MEANS_INVISIBLE (invisible_propval);
-
-	  if (! NILP (intangible_propval) && invis_p)
-	    XSETINT (pos, --charpos);
+	  XSETINT (pos, charpos);
 
 	  /* If following char is intangible,
 	     skip back over all chars with matching intangible property.  */
@@ -2008,10 +2047,26 @@ set_point_both (buffer, charpos, bytepos)
 						Qintangible, Qnil),
 			    intangible_propval))
 		pos = Fprevious_char_property_change (pos, Qnil);
+
+	      /* Set CHARPOS from POS, and if the final intangible character
+		 that we skipped over is also invisible, and the invisible
+		 property is `front-sticky', perturb it to be one character
+		 earlier -- this ensures that point can never move to the
+		 beginning of an invisible/intangible/front-sticky region.  */
+	      charpos = adjust_for_invis_intang (XINT (pos), 0, -1, 0);
 	    }
 	}
       else
 	{
+	  /* If the following character is both intangible and invisible,
+	     and the invisible property is `front-sticky', perturb it so
+	     that the search starts one character later -- this ensures
+	     that point can never move to the beginning of an
+	     invisible/intangible/front-sticky region.  */
+	  charpos = adjust_for_invis_intang (charpos, 0, 1, 1);
+
+	  XSETINT (pos, charpos);
+
 	  /* If preceding char is intangible,
 	     skip forward over all chars with matching intangible property.  */
 
@@ -2025,22 +2080,15 @@ set_point_both (buffer, charpos, bytepos)
 			    intangible_propval))
 		pos = Fnext_char_property_change (pos, Qnil);
 
-	      /* Is the last one invisible as well as intangible?  */
-
-	      invisible_propval
-		= Fget_char_property (make_number (XINT (pos) - 1),
-				      Qinvisible, Qnil);
-	      invis_p = TEXT_PROP_MEANS_INVISIBLE (invisible_propval);
-
-	      /* If so, advance one character more:
-		 don't stop after an invisible, intangible character.  */
-
-	      if (invis_p && XINT (pos) < BUF_ZV (buffer))
-		XSETINT (pos, XINT (pos) + 1);
+	      /* Set CHARPOS from POS, and if the final intangible character
+		 that we skipped over is also invisible, and the invisible
+		 property is `rear-sticky', perturb it to be one character
+		 later -- this ensures that point can never move to the
+		 end of an invisible/intangible/rear-sticky region.  */
+	      charpos = adjust_for_invis_intang (XINT (pos), -1, 1, 0);
 	    }
 	}
 
-      charpos = XINT (pos);
       bytepos = buf_charpos_to_bytepos (buffer, charpos);
     }
 
