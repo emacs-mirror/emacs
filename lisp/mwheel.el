@@ -169,9 +169,9 @@ Returns non-nil if the new state is enabled."
     (condition-case ()
 	(dolist (key keys)
 	  (cond (mouse-wheel-mode
-		 (define-key (current-global-map) key 'mwheel-scroll))
+		 (global-set-key key 'mwheel-scroll))
 		((eq (lookup-key (current-global-map) key) 'mwheel-scroll)
-		 (define-key (current-global-map) key nil))))
+		 (global-unset-key key))))
       (error nil))))
 
 ;;; Compatibility entry point
