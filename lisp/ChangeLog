@@ -1,3 +1,26 @@
+2005-01-15  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* mail/rmail.el: Updated to work with movemail from GNU Mailutils
+	(rmail-pop-password, rmail-pop-password-required): Moved to
+	rmail-obsolete group.
+	(rmail-set-pop-password): Renamed to rmail-set-remote-password.
+	All callers updated.
+	(rmail-get-pop-password): Renamed to rmail-get-remote-password.
+	Take an argument specifying whether it is POP or IMAP mailbox we
+	are using.  All callers updated.
+	(rmail-pop-password-error): Renamed to
+	rmail-remote-password-error.  Added mailutils-specific error
+	message.
+	(rmail-movemail-search-path)
+	(rmail-movemail-variant-in-use): New variables.
+	(rmail-remote-password, rmail-remote-password-required): New
+	customization variables.
+	(rmail-probe,rmail-autodetect, rmail-movemail-variant-p): New
+	functions.
+	(rmail-parse-url): New function.
+	(rmail-get-new-mail, rmail-insert-inbox-text): Updated for use
+	with GNU mailutils movemail.
+
 2005-01-15  Kevin Ryde  <user42@zip.com.au>
 
 	* info-look.el (c-mode/symbol): Add ^` to prefix, and change

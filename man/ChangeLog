@@ -1,3 +1,7 @@
+2005-01-15  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* man/rmail.texi: Document support for GNU mailutils in rmail.el.
+
 2005-01-13  Richard M. Stallman  <rms@gnu.org>
 
 	* commands.texi (Commands): Clarification.
