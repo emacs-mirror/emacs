@@ -1339,7 +1339,12 @@ for mouse highlighting.
 START-BUFFER is the buffer where we started buffer selection.
 ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
   (let ((name (copy-sequence (buffer-name))))
-    (put-text-property 0 (length name) 'mouse-face 'highlight name)
+    (add-text-properties
+     0 (length name)
+     '(mouse-face highlight
+       help-echo
+       "mouse-2: select this buffer, mouse-3: select in other frame")
+     name)
     (if (< (length name) bs--name-entry-length)
 	(concat name
 		(make-string (- bs--name-entry-length (length name)) ? ))
@@ -1362,7 +1367,11 @@ ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
 					   '(shell-mode dired-mode))
 				   default-directory
 				 (or buffer-file-name "")))))
-    (put-text-property 0 (length string) 'mouse-face 'highlight string)
+    (add-text-properties
+     0 (length string)
+     '(mouse-face highlight
+       help-echo "mouse-2: select this buffer, mouse-3: select in other frame")
+     string)
     string))
 
 (defun bs--insert-one-entry (buffer)
