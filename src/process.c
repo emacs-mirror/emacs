@@ -104,9 +104,9 @@ Boston, MA 02111-1307, USA.  */
 #include "termhooks.h"
 #include "termopts.h"
 #include "commands.h"
+#include "keyboard.h"
 #include "frame.h"
 #include "blockinput.h"
-#include "keyboard.h"
 #include "dispextern.h"
 #include "composite.h"
 #include "atimer.h"
@@ -147,7 +147,9 @@ Lisp_Object Qlast_nonmenu_event;
 
 extern void set_waiting_for_input P_ ((EMACS_TIME *));
 
+#ifndef USE_CRT_DLL
 extern int errno;
+#endif
 #ifdef VMS
 extern char *sys_errlist[];
 #endif
@@ -1301,7 +1303,9 @@ create_process (process, new_argv, current_dir)
   /* Use volatile to protect variables from being clobbered by longjmp.  */
   volatile int forkin, forkout;
   volatile int pty_flag = 0;
+#ifndef USE_CRT_DLL
   extern char **environ;
+#endif
   Lisp_Object buffer = XPROCESS (process)->buffer;
 
   inchannel = outchannel = -1;
