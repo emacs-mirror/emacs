@@ -1,5 +1,7 @@
 2000-09-20  Miles Bader  <miles@lsi.nec.co.jp>
 
+	* jka-compr.el (with-auto-compression-mode): New macro.
+
 	* cus-edit.el (custom-face-tag-face, custom-group-tag-face-1)
 	(custom-group-tag-face, custom-variable-tag-face): Use relative
 	:height and inherit from `variable-pitch' face instead of
