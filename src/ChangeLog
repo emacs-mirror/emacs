@@ -1,5 +1,21 @@
 2002-04-01  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* region-cache.c (new_region_cache): Use BEG.
+
+	* marker.c (buf_charpos_to_bytepos, buf_bytepos_to_charpos):
+	Use BEG and BEG_BYTE.
+
+	* doc.c (get_doc_string): Return nil of the location is wrong.
+	(reread_doc_file): New fun.
+	(Fdocumentation, Fdocumentation_property):
+	Call it if get_doc_string fails.
+	(Fsnarf_documentation): Make it work for a dumped Emacs.
+
+	* charset.h (DEC_POS, BUF_DEC_POS): Use BEG_BYTE.
+	Bound the search with MAX_MULTIBYTE_LENGTH to avoid pathological case.
+
+	* charset.c (Fstring): Allow 0 arguments.
+
 	* xterm.c (XTread_socket): Fix int/Lisp_Object confusion.
 
 	* process.c (DATAGRAM_CONN_P, list_processes_1)

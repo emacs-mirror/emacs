@@ -1,3 +1,27 @@
+2002-04-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/sgml-mode.el (sgml-at-indentation-p, sgml-tag)
+	(sgml-parse-tag-name, sgml-looking-back-at, sgml-parse-tag-backward)
+	(sgml-inside-tag-p, sgml-get-context, sgml-show-context)
+	(sgml-insert-end-tag): New funs taken from xml-lite.el.
+	(sgml-calculate-indent): Use them.
+	(sgml-slash-matching): Rename from sgml-slash.
+	(sgml-slash): Copied from xml-lite and changed to use
+	sgml-slash-matching and sgml-quick-keys.
+
+	* international/mule-cmds.el (standard-keyboard-coding-systems):
+	Add koi8-u and koi8-r.
+
+	* eshell/.cvsignore: New file.
+
+	* eshell/esh-groups.el: Remove.
+
+	* progmodes/tcl.el: Change maintainer.
+	(tcl-electric-hash-style): Change default to nil.
+	(tcl-imenu-generic-expression): Use tcl-proc-regexp.
+	(tcl-do-auto-fill): Remove.
+	(tcl-auto-fill-mode): Rewrite using comment-auto-fill-only-comments.
+
 2002-04-01  Ville Skytt,Ad(B  <ville.skytta@xemacs.org>
 
 	* tcl.el (tcl-imenu-generic-expression): New value.
@@ -7,7 +31,7 @@
 	tcl-imenu-create-index-function.
 	(inferior-tcl-mode): Doc fix.
 	Change not legally significant.
-	
+
 2002-04-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* cus-start.el: Rename `x-autoselect-window' to `autoselect-window'.
