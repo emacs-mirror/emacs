@@ -118,6 +118,8 @@
 
 2000-08-18  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* progmodes/sh-script.el: Big bag of typos.
+
 	* textmodes/ispell.el (ispell-menu-map-needed): Put back the boundp
 	check since ispell-process is not bound when ispell is not yet loaded.
 
