@@ -84,6 +84,8 @@
 (require 'fontset)
 (require 'x-dnd)
 
+(eval-when-compile (require 'server))
+
 (defvar x-invocation-args)
 
 (defvar x-command-line-resources nil)
@@ -2365,7 +2367,7 @@ order until succeed.")
 	  (aset x-resource-name i ?-))))
 
   (x-open-connection (or x-display-name
-			 (setq x-display-name (getenv "DISPLAY")))
+			 (setq x-display-name (server-getenv "DISPLAY")))
 		     x-command-line-resources
 		     ;; Exit Emacs with fatal error if this fails and we
 		     ;; are the initial display.

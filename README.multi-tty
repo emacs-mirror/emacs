@@ -65,12 +65,17 @@ development infrastructure for the multi-tty branch.)
 STATUS
 ------
 
-The branch is now very stable and almost full-featured. I hope the
-major problems were fixed.  (It still needs testing on other
-architectures, though.)  Both multiple tty device support and
-simultaneous X and tty frame support works fine.  Emacsclient has been
-extended to support opening new tty and X frames.  It has been changed
-open new Emacs frames by default.
+The branch is now very stable and almost full-featured.  All of the
+major problems have been fixed, only a few minor issues remain.  (It
+still needs to be ported to Windows/Mac/DOS, though.)  Both multiple
+tty device support and simultaneous X and tty frame support works
+fine.  Emacsclient has been extended to support opening new tty and X
+frames.  It has been changed open new Emacs frames by default.
+
+The multi-tty branch has been scheduled for inclusion in the next
+major release of Emacs (version 22).  I expect the merge into the
+development trunk to occur sometime during next year (2005), after the
+merge of the Unicode branch.
 
 Please let me know if you find any bugs in this branch.
 
@@ -132,7 +137,7 @@ Problems:
 NEWS
 ----
 
-For the NEWS file:
+For the NEWS file:  (Needs work)
 
 ** Support for multiple terminal devices has been added.
 
@@ -196,9 +201,6 @@ See arch logs.
 THINGS TO DO
 ------------
 
-** frame-creation-function was removed, which might be a bad idea.
-   Think up a compatible solution.
-
 ** make-frame does not correctly handle extra parameters in its
    argument:
 
@@ -222,12 +224,6 @@ THINGS TO DO
    is still required to prevent interference.  (Reported by Dan
    Nicolaescu.)  (Update: selecting a region with the mouse enables
    single_kboard under X.  This is very confusing.)
-
-** Change Lisp code not to (getenv "TERM"); use the `tty-type' frame
-   parameter or the frame-tty-type function instead.  (M-x tags-search
-   "TERM" helps with this.)  Update: Actually, all getenv invocations
-   should be checked for multi-tty compatibility, and an interface
-   must be implemented to get the remote client's environment.
 
 ** The terminal customization files in term/*.el tend to change global
    parameters, which may confuse Emacs with multiple displays.  Change
@@ -273,6 +269,9 @@ THINGS TO DO
 
    See next issue why this is necessary.
 
+   (Update: The consensus on emacs-devel seems to be to do this via
+   integer identifiers.  That's fine by me.)
+
 ** The following needs to be supported:
 
 	$ emacsclient -t
@@ -285,10 +284,6 @@ THINGS TO DO
    its own display.  As displays are currently identified by their
    device names, this is not possible until struct display becomes
    accessible as a Lisp-level object.
-
-** Add an elaborate mechanism for display-local variables.  (There are
-   already a few of these; search for `terminal-local' in the Elisp
-   manual.)
 
 ** Very strange bug: visible-bell does not work on secondary
    terminals in xterm and konsole.  The screen does flicker a bit,
@@ -303,20 +298,20 @@ THINGS TO DO
    an initial frame.  (The user would connect to it and open frames
    later, with emacsclient.)
 
-** Fix Mac support (I can't do this myself).  Note that the current
-   state of Mac-specific source files in the multi-tty tree are not
-   useful; before starting work on Mac support, revert to pristine,
-   pre-multi-tty versions.
+** Fix Mac support (I can't do this entirely myself).  Note that the
+   current state of Mac-specific source files in the multi-tty tree
+   are not useful; before starting work on Mac support, revert to
+   pristine, pre-multi-tty versions.
 
-** Fix W32 support (I can't do this myself).  Note that the current
-   state of W32-specific source files in the multi-tty tree are not
-   useful; before starting work on W32 support, revert to pristine,
-   pre-multi-tty versions.
+** Fix W32 support (I can't do this entirely myself).  Note that the
+   current state of W32-specific source files in the multi-tty tree
+   are not useful; before starting work on W32 support, revert to
+   pristine, pre-multi-tty versions.
 
-** Fix DOS support (I can't do this myself).  Note that the current
-   state of DOS-specific source files in the multi-tty tree are not
-   useful; before starting work on DOS support, revert to pristine,
-   pre-multi-tty versions.
+** Fix DOS support (I can't do this entirely myself).  Note that the
+   current state of DOS-specific source files in the multi-tty tree
+   are not useful; before starting work on DOS support, revert to
+   pristine, pre-multi-tty versions.
 
 ** Do a grep on XXX and ?? for more issues.
 
@@ -776,6 +771,26 @@ DIARY OF CHANGES
    but delays caused by single_kboard --> perhaps MULTI_KBOARD should
    be removed.)
 
+-- frame-creation-function was removed, which might be a bad idea.
+   Think up a compatible solution.
+
+   (It was an internal interface that may be changed when necessary.)
+
+-- Change Lisp code not to (getenv "TERM"); use the `tty-type' frame
+   parameter or the frame-tty-type function instead.  (M-x tags-search
+   "TERM" helps with this.)  Update: Actually, all getenv invocations
+   should be checked for multi-tty compatibility, and an interface
+   must be implemented to get the remote client's environment.
+
+   (Done.  Only getenv calls in lisp/term/*.el were changed; other
+   calls should be mostly left as they are.)
+
+-- Add an elaborate mechanism for display-local variables.  (There are
+   already a few of these; search for `terminal-local' in the Elisp
+   manual.)
+
+   (Not needed.  Display-local variables could be emulated by
+   frame-local variables.)
 
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

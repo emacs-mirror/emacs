@@ -26,6 +26,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'server))
+
 ;; Set up function-key-map entries that termcap and terminfo don't know.
 (let ((map (make-sparse-keymap)))
   (define-key map "\e[A" [up])
@@ -148,7 +150,7 @@ for the currently selected frame."
 ;; intelligent way than the default guesswork in startup.el.
 (defun rxvt-set-background-mode ()
   "Set background mode as appropriate for the default rxvt colors."
-  (let ((fgbg (getenv "COLORFGBG"))
+  (let ((fgbg (server-getenv "COLORFGBG"))
 	bg rgb)
     (setq frame-background-mode 'light)	; default
     (when (and fgbg

@@ -26,6 +26,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'server))
+
 (let ((map (make-sparse-keymap)))
   (define-key map "\e[A" [up])
   (define-key map "\e[B" [down])
@@ -208,7 +210,7 @@ versions of xterm."
 ;; intelligent way than the default guesswork in startup.el.
 (defun xterm-rxvt-set-background-mode ()
   "Set background mode as appropriate for the default rxvt colors."
-  (let ((fgbg (getenv "COLORFGBG"))
+  (let ((fgbg (server-getenv "COLORFGBG"))
 	bg rgb)
     (setq frame-background-mode 'light)	; default
     (when (and fgbg
@@ -230,8 +232,8 @@ versions of xterm."
 (xterm-register-default-colors)
 ;; If this xterm is actually a disguised rxvt, be more intelligent about
 ;; determining the background mode.
-(and (getenv "COLORTERM")
-     (string-match "\\`rxvt" (getenv "COLORTERM"))
+(and (server-getenv "COLORTERM")
+     (string-match "\\`rxvt" (server-getenv "COLORTERM"))
      (xterm-rxvt-set-background-mode))
 ;; This recomputes all the default faces given the colors we've just set up.
 (tty-set-up-initial-frame-faces)

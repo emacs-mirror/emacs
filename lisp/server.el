@@ -872,6 +872,25 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 
 (global-set-key "\C-x#" 'server-edit)
 
+(defsubst server-getenv (variable &optional frame)
+  "Get the value of VARIABLE in the client environment of frame FRAME.
+VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
+the environment.  Otherwise, value is a string.
+
+If FRAME is an emacsclient frame, then the variable is looked up
+in the environment of the emacsclient process; otherwise the
+function consults the environment of the Emacs process.
+
+If FRAME is nil or missing, then the selected frame is used."
+  (when (not frame) (setq frame (selected-frame)))
+  (let ((clients (server-clients-with 'frame frame)) env)
+    (if (null clients)
+	(getenv variable)
+      (setq env (server-client-get (car clients) 'environment))
+      (if (null env)
+	  (getenv variable)
+	(assq variable env)))))
+
 (defun server-unload-hook ()
   (server-start t)
   (remove-hook 'delete-tty-after-functions 'server-handle-delete-tty)
