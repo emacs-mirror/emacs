@@ -1,3 +1,11 @@
+2002-04-19  Glenn Morris <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el: Update maintainer.
+	(f90-line-continued): Recognize blank/comment lines embedded in
+	continuation lines.
+	(f90-looking-at-program-block-start): No extra indentation after
+	function or subroutine keyword appears in single quotes.
+
 2002-04-19  Miles Bader  <miles@gnu.org>
 
 	* custom.el (customize-mark-to-save, customize-mark-as-set)

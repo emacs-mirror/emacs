@@ -1,3 +1,10 @@
+2002-04-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (Qhbar): New variable.
+	(syms_of_msdos): intern and staticpro it.
+	(IT_set_cursor_type, IT_set_frame_parameters): Handle the `hbar'
+	cursor type.
+
 2002-04-19  Dave Lambert <dlambert@acm.org>
 
 	Theses change implement an underscore-like (`hbar') cursor.
