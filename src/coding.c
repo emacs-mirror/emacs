@@ -235,7 +235,7 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
     else							\
       c = *src, bytes = 1;					\
     if (!NILP (translation_table))				\
-      c = translate_char (translation_table, c, 0, 0, 0);	\
+      c = translate_char (translation_table, c, -1, 0, 0);	\
     src += bytes;						\
   } while (0)
 
@@ -2549,9 +2549,9 @@ encode_coding_sjis_big5 (coding, source, destination,
     translation_table = Qnil;
   else
     {
-      translation_table = coding->translation_table_for_decode;
+      translation_table = coding->translation_table_for_encode;
       if (NILP (translation_table))
-	translation_table = Vstandard_translation_table_for_decode;
+	translation_table = Vstandard_translation_table_for_encode;
     }
 
   while (1)
@@ -2596,8 +2596,8 @@ encode_coding_sjis_big5 (coding, source, destination,
 		  ENCODE_SJIS (c1, c2, c1, c2);
 		  EMIT_TWO_BYTES (c1, c2);
 		}
-	      else if (charset == charset_latin_jisx0201)
-		EMIT_ONE_BYTE (c1);
+	      else if (charset == charset_katakana_jisx0201)
+		EMIT_ONE_BYTE (c1 | 0x80);
 	      else
 		/* There's no way other than producing the internal
 		   codes as is.  */
