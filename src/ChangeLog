@@ -1,3 +1,8 @@
+2002-11-08  Kenichi Handa  <handa@m17n.org>
+
+	* s/sol2-5.h (BROKEN_SIGIO): Turn off the #undef (back-porting of
+	the 2002-11-05 change in HEAD).
+
 2002-10-30  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* xdisp.c (message_with_string): Error if STRING is not a string.
