@@ -1028,8 +1028,10 @@ If MODE is 2 then do the same for lines."
   (let ((inhibit-quit t)
 	(echo-keystrokes 0)
 	event events key ignore
-	(x-lost-selection-hooks (copy-sequence x-lost-selection-hooks)))
-    (add-hook 'x-lost-selection-hooks
+	(x-lost-selection-functions
+	 (if (boundp 'x-lost-selection-functions)
+	     (copy-sequence x-lost-selection-functions))))
+    (add-hook 'x-lost-selection-hook
 	      (lambda (seltype)
 		(if (eq seltype 'PRIMARY)
 		    (progn (setq ignore t)
