@@ -1,3 +1,8 @@
+2001-12-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/mule.el (set-auto-coding): Don't search for
+	"unibyte:" or "coding:" if set-auto-mode-1 returns nil.
+
 2001-12-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* mail/mailabbrev.el (mail-abbrevs-setup): Do not use make-local-hook.
