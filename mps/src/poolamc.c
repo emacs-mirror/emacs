@@ -1,16 +1,15 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.16) $
+ * $HopeName: MMsrc!poolamc.c(trunk.17) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
  */
 
-#include "amc.h"
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.16) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.17) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -19,9 +18,14 @@ unsigned long AMCTopGen = 2;
 /* PType enumeration -- distinguishes AMCGen and AMCNailBoard */
 enum {AMCPTypeGen = 1, AMCPTypeNailBoard};
 
+/* AMC typedef */
+typedef struct AMCStruct *AMC;
+
 /* forward declarations */
 
-extern PoolClass PoolClassAMCZ(void);
+static Bool AMCCheck(AMC amc);
+static PoolClassStruct PoolClassAMCStruct;
+static PoolClassStruct PoolClassAMCZStruct;
 
 
 /* AMCGenStruct -- pool AMC generation descriptor */
@@ -127,13 +131,10 @@ typedef struct AMCStruct {      /* design.mps.poolamc.struct */
   AMCGen nursery;               /* the default mutator generation */
   AMCGen rampGen;               /* the ramp generation */
   AMCGen afterRampGen;          /* the generation after rampGen */
-  unsigned rampCount;           /* see .ramp.hack */
-  int rampMode;                 /* see .ramp.hack */
-  Sig sig;                      /* impl.h.misc.sig */
+  unsigned rampCount;           /* see .ramp.hack [doesn't exist!] */
+  int rampMode;                 /* see .ramp.hack [doesn't exist!] */
+  Sig sig;                      /* design.mps.pool:outer-structure.sig */
 } AMCStruct;
-
-
-static Bool AMCCheck(AMC amc);
 
 
 /* PoolPoolAMC -- convert generic Pool to AMC */
@@ -452,9 +453,11 @@ static Res AMCInitComm(Pool pool, RankSet rankSet, va_list arg)
   /* nursery gets created later in this function. */
   amc->nursery = NULL;
   /* The other generations get created when only needed. */
-  amc->rampGen = NULL; amc->afterRampGen = NULL;
+  amc->rampGen = NULL;
+  amc->afterRampGen = NULL;
 
-  amc->rampCount = 0; amc->rampMode = outsideRamp;
+  amc->rampCount = 0;
+  amc->rampMode = outsideRamp;
 
   amc->sig = AMCSig;
   AVERT(AMC, amc);
@@ -611,7 +614,9 @@ static Res AMCBufferFill(Seg *segReturn,
   ++gen->segs;
   gen->size += alignedSize;
   /* If the generation was empty, restart the collection clock. */
-  if(gen->segs == 1) gen->collected = ArenaMutatorAllocSize(arena);
+  if(gen->segs == 1) {
+    gen->collected = ArenaMutatorAllocSize(arena);
+  }
 
   /* Give the buffer the entire segment to allocate in. */
   *segReturn = seg;
@@ -776,11 +781,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
       if(BufferScanLimit(buffer) == SegBase(seg)) {
         /* There's nothing but the buffer, don't condemn. */
         return ResOK;
-      } else /* if(BufferScanLimit(buffer) == BufferLimit(buffer)) { */
-        /* The buffer is full, so it won't be used by the mutator. */
-        /* @@@@ We should detach it, but can't for technical reasons. */
-        /* BufferDetach(buffer, pool); */
-      /* } else */ {
+      } else {
         /* There is an active buffer, make sure it's nailed. */
         if(!AMCSegHasNailBoard(seg)) {
           if(SegNailed(seg) == TraceSetEMPTY) {
@@ -807,6 +808,9 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
         }
         /* We didn't condemn the buffer, subtract it from the count. */
         /* @@@@ We could subtract all the nailed grains. */
+	/* Relies on unsigned arithmetic wrapping round */
+	/* on under- and overflow (which it does) and on */
+	/* trace->condemned being unsigned. */
         trace->condemned -= AddrOffset(BufferScanLimit(buffer),
                                        BufferLimit(buffer));
       }
@@ -1278,7 +1282,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* If segment is nailed then may have grey and white */
     /* objects on same segment, hence segment may be protected */
     /* hence we need to expose it to examine the broken heart. */
-    /* @@@@ This assumes an particular style of barrier. */
+    /* @@@@ This assumes a particular style of barrier. */
     ShieldExpose(arena, seg);
   } else {
     AVER_CRITICAL((SegPM(seg) & AccessREAD) == AccessSetEMPTY);
@@ -1613,8 +1617,8 @@ static void AMCWalkAll(Pool pool,
   AVERT(Pool, pool);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures, hence can't be checked */
-  AVER(pool->class == PoolClassAMC() ||
-       pool->class == PoolClassAMCZ());
+  AVER(pool->class == &PoolClassAMCStruct ||
+       pool->class == &PoolClassAMCZStruct);
 
   arena = PoolArena(pool);
 
@@ -1758,21 +1762,6 @@ static PoolClassStruct PoolClassAMCZStruct = {
   PoolNoDebugMixin,
   PoolClassSig                          /* impl.h.mpm.class.end-sig */
 };
-
-
-/* PoolClassAMC -- return the pool class descriptor */
-/* Surely this function isn't used externally?  And is only used */
-/* internally for dubious reasons?  @@@@ We should get rid of it */
-
-PoolClass PoolClassAMC(void)
-{
-  return &PoolClassAMCStruct;
-}
-
-PoolClass PoolClassAMCZ(void)
-{
-  return &PoolClassAMCZStruct;
-}
 
 
 /* mps_class_amc -- return the pool class descriptor to the client */
