@@ -9,7 +9,7 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#include "../src/paths.h"      /* For PATH_EXEC.  */
+#include "../src/paths.h"      /* For PATH_DATA.  */
 
 #define BUFSIZE  80
 #define SEP      '\0'
@@ -30,9 +30,9 @@ main (argc, argv)
     strcpy (file, argv[2]);
   else
 #ifdef vms
-    sprintf (file, "%s%s", PATH_EXEC, YOW_FILE);
+    sprintf (file, "%s%s", PATH_DATA, YOW_FILE);
 #else
-    sprintf (file, "%s/%s", PATH_EXEC, YOW_FILE);
+    sprintf (file, "%s/%s", PATH_DATA, YOW_FILE);
 #endif
 
   if ((fp = fopen(file, "r")) == NULL) {
