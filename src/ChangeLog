@@ -1,5 +1,8 @@
 2001-12-07  Andreas Schwab  <schwab@suse.de>
 
+	* alloc.c (inhibit_garbage_collection): Don't exceed value an int
+	can hold.
+
 	* data.c (Vmost_positive_fixnum, Vmost_negative_fixnum): Renamed
 	from most_positive_fixnum and most_negative_fixnum, resp., and
 	type changed to Lisp_Object.

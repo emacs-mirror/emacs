@@ -1,3 +1,8 @@
+2001-12-07  Andreas Schwab  <schwab@suse.de>
+
+	* maintaining.texi (Emerge): Don't omit first argument of @ref.
+	* emacs.texi (Top): Likewise.
+
 2001-12-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* calc.texi: Add @direntry.
