@@ -1,27 +1,20 @@
 2004-11-12  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-graph.el (calc-dumb-map):  Declared it.
+	* calc/calc-graph.el (calc-dumb-map):  Declare it.
 	(calc-graph-show-dumb):  Check if calc-dumb-map is non-nil rather
-	than unbound. 
-
+	than unbound.
 	(calc-graph-name):  Made `end' a local variable.
 	(calc-graph-lookup):  Made `varname' a local variable.
-
-	(var-DUMMY, var-DUMMY2, var-PlotRejects, calc-gnuplot-trail-mark): 
-	Declared them. 
-
+	(var-DUMMY, var-DUMMY2, var-PlotRejects, calc-gnuplot-trail-mark):
+	Declare them.
 	(calc-graph-format-data):  Don't check if var-PlotRejects is
-	bound. 
-
-	(calc-graph-plot, calc-graph-compute-3d):  Removed references to
+	bound.
+	(calc-graph-plot, calc-graph-compute-3d):  Remove references to
 	the unused variable y3vec.
-
-	(calc-graph-show-dumb):  Removed reference to unused variable
-	found-pt. 
-
-	(calc-graph-kill-hook, calc-graph-plot):  Removed reference to
-	calc-graph-prev-kill-hook. 
-
+	(calc-graph-show-dumb):  Remove reference to unused variable
+	found-pt.
+	(calc-graph-kill-hook, calc-graph-plot):  Remove reference to
+	calc-graph-prev-kill-hook.
 	(calc-graph-yvalue, calc-graph-yvec, calc-graph-numsteps)
 	(calc-graph-numsteps3, calc-graph-xvalue, calc-graph-xvec)
 	(calc-graph-xname, calc-graph-yname, calc-graph-xstep)
@@ -33,11 +26,11 @@
 	(calc-graph-y3step, calc-graph-y3step, calc-graph-zval)
 	(calc-graph-stepcount, calc-graph-is-splot)
 	(calc-graph-surprise-splot, calc-graph-blank)
-	(calc-graph-non-blank, calc-graph-curve-num):  New variables. 
+	(calc-graph-non-blank, calc-graph-curve-num):  New variables.
 	(calc-graph-plot, calc-graph-compute-2d, calc-graph-refine-2d)
 	(calc-graph-recompute-2d, calc-graph-compute-3d)
-	(calc-graph-format-data): Replaced undeclared variables with the
-	above newly declared variables. 
+	(calc-graph-format-data): Replace undeclared variables with the
+	above newly declared variables.
 
 2004-11-12  Diane Murray  <dsm@muenster.de>  (tiny change)
 
@@ -160,12 +153,12 @@
 	(math-read-exprs, math-read-token, math-read-expr-level)
 	(calc-check-user-syntax, calc-match-user-syntax)
 	(match-factor-after, math-read-factor):  Use declared variable
-	math-exp-token. 
+	math-exp-token.
 	(math-read-exprs, math-read-expr-list, math-read-token)
 	(math-read-factor):  Use declared variable math-exp-keep-spaces.
 	(math-read-exprs, math-read-token):  Use declared variable
 	math-exp-str.
-	(calc-match-user-syntax):  Made m a local variable.
+	(calc-match-user-syntax):  Make m a local variable.
 
 	* calc/calc-ext.el (math-read-expr):  Use declared variables
 	math-exp-pos, math-exp-old-pos, math-exp-str, math-exp-token,
@@ -175,7 +168,7 @@
 	variables math-exp-pos, math-exp-str.
 
 	* calc/calc-lang.el (math-parse-tex-sum):  Use declared variable
-	math-exp-old-pos. 
+	math-exp-old-pos.
 	(math-parse-fortran-vector, math-parse-fortran-vector-end)
 	(math-parse-eqn-prime):  Use declared variable math-exp-token.
 
