@@ -1,6 +1,8 @@
 2000-11-27  Miles Bader  <miles@gnu.org>
 
 	* help.el (help-manyarg-func-alist): Correct entry for `vconcat'.
+	(help-make-xrefs): Delete extraneous newlines at the end of the
+	docstring.
 
 2000-11-25  Jason Rumney  <jasonr@gnu.org>
 
@@ -18,7 +20,7 @@
 	* cus-face.el (custom-face-attributes): Add "None" choice to :stipple.
 
 	* wid-edit.el (widget-field-value-delete): Don't try to delete
-	overlay when it's the `psuedo-overlay' that exists at some points.
+	overlay when it's the `pseudo-overlay' that exists at some points.
 
 2000-11-24  Jason Rumney  <jasonr@gnu.org>
 
