@@ -3049,7 +3049,7 @@ make_lispy_event (event)
 	      return Qnil;
 
 	    pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
-				   &column, &row, 0, 1);
+				   &column, &row, NULL, 1);
 
 #ifndef USE_X_TOOLKIT
 	    /* In the non-toolkit version, clicks on the menu bar
@@ -3318,7 +3318,8 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
 #endif
 	{
 	  /* It's in a frame; which window on that frame?  */
-	  pixel_to_glyph_coords (frame, XINT (x), XINT (y), &column, &row, 0, 1);
+	  pixel_to_glyph_coords (frame, XINT (x), XINT (y), &column, &row,
+				 NULL, 1);
 	  window = window_from_coordinates (frame, column, row, &area);
 	}
       else
