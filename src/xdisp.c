@@ -6237,7 +6237,7 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4)
 
   /* Don't get confused by reusing the buffer used for echoing
      for a different purpose.  */
-  if (!echoing && EQ (buffer, echo_message_buffer))
+  if (echo_kboard == NULL && EQ (buffer, echo_message_buffer))
     cancel_echoing ();
 
   record_unwind_protect (unwind_with_echo_area_buffer,
