@@ -1,3 +1,20 @@
+2002-01-16  Richard M. Stallman  <rms@gnu.org>
+
+	* ibuf-ext.el: Delete the autoloads for functions defined with
+	ibuffer-specific commands.
+
+	* help.el (describe-distribution): Really call view-file.
+
+	* net/ange-ftp.el (ange-ftp-passive-mode): New arg PROC.
+	(ange-ftp-get-process): Pass that arg.
+
+	* comint.el (comint-simple-send): Fix previous change.
+
+	* net/telnet.el (telnet-simple-send): Fix previous change.
+
+	* progmodes/sql.el (sql-escape-newlines-and-send) 
+	(sql-query-placeholders-and-send): Fix previous change.
+
 2002-01-16  Colin Walters  <walters@verbum.org>
 
 	* ibuf-ext.el, ibuf-macs.el, ibuffer.el (toplevel): Remove X-RCS,
