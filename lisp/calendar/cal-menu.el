@@ -193,8 +193,11 @@
                                    t)
                            l)))
             (setq l (cons ["Mark Holidays" mark-calendar-holidays t]
-                          (cons ["Unmark Calendar" calendar-unmark t] l)))
+                          (cons ["Unmark Calendar" calendar-unmark t]
+                                (cons ["--" '("--") separator-1] l))))
             (easy-menu-change nil "Holidays" (nreverse l))
+            (define-key calendar-mode-map [menu-bar Holidays separator-2]
+              '("--"))
             (define-key calendar-mode-map [menu-bar Holidays today]
                 `(,(format "For Today (%s)"
                            (calendar-date-string (calendar-current-date) t t))
