@@ -1817,7 +1817,7 @@ defalias (sname, string)
 
 /* Define an "integer variable"; a symbol whose value is forwarded
    to a C variable of type int.  Sample call: */
-  /* DEFVARINT ("indent-tabs-mode", &indent_tabs_mode, "Documentation");  */
+  /* DEFVAR_INT ("indent-tabs-mode", &indent_tabs_mode, "Documentation");  */
 void
 defvar_int (namestring, address)
      char *namestring;
@@ -1906,6 +1906,22 @@ defvar_per_buffer (namestring, address, type, doc)
 }
 
 #endif /* standalone */
+
+/* Similar but define a variable whose value is the Lisp Object stored
+   at a particular offset in the current perdisplay object.  */
+
+void
+defvar_display (namestring, offset)
+     char *namestring;
+     int offset;
+{
+  Lisp_Object sym, val;
+  sym = intern (namestring);
+  val = allocate_misc ();
+  XMISC (val)->type = Lisp_Misc_Display_Objfwd;
+  XDISPLAY_OBJFWD (val)->offset = offset;
+  XSYMBOL (sym)->value = val;
+}
 
 init_lread ()
 {
