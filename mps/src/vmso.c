@@ -1,22 +1,20 @@
 /* impl.c.vmso: VIRTUAL MEMORY MAPPING FOR SOLARIS 2.x
  *
- * $HopeName: MMsrc!vmso.c(trunk.9) $
+ * $HopeName: MMsrc!vmso.c(trunk.10) $
  * Copyright (C) 1995. Harlequin Group plc. All rights reserved.
  *
- * Design: design.mps.vm
+ * DESIGN
  *
- * This is the implementation of the virtual memory mapping interface
- * (vm.h) for Solaris 2.x
+ * .design: design.mps.vm (pretty skeletal).  design.mps.vmso (exists).
  *
- * mmap(2) is used to reserve address space by creating a mapping to
- * /etc/passwd with page access none.  mmap(2) is used to map pages
- * onto store by creating a copy-on-write mapping to /dev/zero.
+ * PURPOSE
  *
- * Experiments have shown that attempting to reserve address space
- * by mapping /dev/zero results in swap being reserved.  This
- * appears to be a bug, so we work round it by using /etc/passwd,
- * the only file we can think of which is pretty much guaranteed
- * to be around.
+ * .purpose: This is the implementation of the virtual memory mapping
+ * interface (vm.h) for Solaris 2.x.  It allows arenas (typically
+ * arenavm is the only client of the interface) to reserve virtual
+ * address space and to map ranges with RAM and unmap memory.
+ *
+ * ASSUMPTIONS
  *
  * .assume.not-last: The implementation of VMCreate assumes that
  *   mmap() will not choose a region which contains the last page
@@ -32,7 +30,8 @@
  * .fildes.name: VMStruct has two fields whose names violate our
  * naming conventions.  They are called none_fd and zero_fd to
  * emphasize that they are file descriptors and this fact is not
- * reflected in their type.
+ * reflected in their type (we can't change their type as that is
+ * restricted by the interface provided by Solaris).
  */
 
 #include "mpm.h"
@@ -52,7 +51,7 @@
 /* unistd for _SC_PAGESIZE */
 #include <unistd.h>
 
-SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.9) $");
+SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.10) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -112,6 +111,7 @@ Res VMCreate(VM *vmReturn, Size size)
 
   AVER(vmReturn != NULL);
 
+  /* Find out the page size from the OS */
   align = (Align)sysconf(_SC_PAGESIZE);
   AVER(SizeIsP2(align));
   size = SizeAlignUp(size, align);
@@ -131,7 +131,7 @@ Res VMCreate(VM *vmReturn, Size size)
   addr = mmap((caddr_t)0, (size_t)SizeAlignUp(sizeof(VMStruct), align),
               PROT_READ | PROT_WRITE, MAP_PRIVATE,
               zero_fd, (off_t)0);
-  if(addr == (caddr_t)-1) {
+  if(addr == MAP_FAILED) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
     close(none_fd);
@@ -150,7 +150,7 @@ Res VMCreate(VM *vmReturn, Size size)
   /* .map.reserve: See .assume.not-last. */
   addr = mmap((caddr_t)0, (size_t)size, PROT_NONE, MAP_SHARED,
               none_fd, (off_t)0);
-  if(addr == (caddr_t)-1) {
+  if(addr == MAP_FAILED) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
     close(none_fd);
@@ -190,8 +190,10 @@ void VMDestroy(VM vm)
   /* discovered if sigs were being checked. */
   vm->sig = SigInvalid;
 
-  close(vm->zero_fd);
-  close(vm->none_fd);
+  /* We ignore failure from close() as there's very little we can do */
+  /* anyway. */
+  (void)close(vm->zero_fd);
+  (void)close(vm->none_fd);
   r = munmap((caddr_t)vm->base, (size_t)AddrOffset(vm->base, vm->limit));
   AVER(r == 0);
   r = munmap((caddr_t)vm,
@@ -251,7 +253,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
               PROT_READ | PROT_WRITE | PROT_EXEC,
               MAP_PRIVATE | MAP_FIXED,
               vm->zero_fd, (off_t)0);
-  if (addr == (caddr_t)-1) {
+  if(addr == MAP_FAILED) {
     AVER(errno == ENOMEM); /* .assume.mmap.err */
     return ResMEMORY;
   }
