@@ -631,7 +631,7 @@ to an optional list of FLAGS."
 	      (progn (vc-backend-steal file)
 		     (vc-mode-line file))
 	    (if (not (yes-or-no-p "Revert to checked-in version, instead? "))
-		(error "Checkout aborted.")
+		(error "Checkout aborted")
 	      (vc-revert-buffer1 t t)
 	      (vc-checkout-writable-buffer file))
 	    )
@@ -639,7 +639,7 @@ to an optional list of FLAGS."
 	    (if (not (eq vc-type 'SCCS))
 		(vc-checkout file nil 
 		   (read-string "Branch or version to move to: "))
-	      (error "Sorry, this is not implemented for SCCS."))
+	      (error "Sorry, this is not implemented for SCCS"))
 	  (if (vc-latest-on-branch-p file)
 	      (vc-checkout-writable-buffer file)
 	    (if (yes-or-no-p 
@@ -659,7 +659,7 @@ to an optional list of FLAGS."
 	  (error "Sorry, you can't steal the lock on %s this way" file))
       (and (eq vc-type 'RCS)
 	   (not (vc-backend-release-p 'RCS "5.6.2"))
-	   (error "File is locked by %s." owner))
+	   (error "File is locked by %s" owner))
       (vc-steal-lock
        file
        (if verbose (read-string "Version to steal: ")
@@ -1612,9 +1612,9 @@ A prefix argument means do not revert the buffer afterwards."
    ((eq (vc-backend (buffer-file-name)) 'CVS)
     (error "Unchecking files under CVS is dangerous and not supported in VC"))
    ((vc-locking-user (buffer-file-name))
-    (error "This version is locked.  Use vc-revert-buffer to discard changes."))
+    (error "This version is locked; use vc-revert-buffer to discard changes"))
    ((not (vc-latest-on-branch-p (buffer-file-name)))
-    (error "This is not the latest version.  VC cannot cancel it.")))
+    (error "This is not the latest version--VC cannot cancel it")))
   (let ((target (vc-workfile-version (buffer-file-name))))
     (if (null (yes-or-no-p "Remove this version from master? "))
 	nil
@@ -1645,7 +1645,7 @@ A prefix argument means do not revert the buffer afterwards."
   ;; implemented things might change for the better.  This is unlikely to occur
   ;; until CVS 2.0 is released.  --ceder 1994-01-23 21:27:51
   (if (eq (vc-backend old) 'CVS)
-      (error "Renaming files under CVS is dangerous and not supported in VC."))
+      (error "Renaming files under CVS is dangerous and not supported in VC"))
   (let ((oldbuf (get-file-buffer old)))
     (if (and oldbuf (buffer-modified-p oldbuf))
 	(error "Please save files before moving them"))
@@ -1804,11 +1804,15 @@ From a program, any arguments are passed to the `rcs2log' script."
   ;; Retrieve a copy of a saved version into a workfile
   (let ((filename (or workfile file))
 	(file-buffer (get-file-buffer file))
-	(old-default-dir default-directory))
+	(old-default-dir default-directory)
+	switches)
     (message "Checking out %s..." filename)
     (save-excursion
-      ;; Change buffers to get local value of vc-checkin-switches.
+      ;; Change buffers to get local value of vc-checkout-switches.
       (if file-buffer (set-buffer file-buffer))
+      (setq switches (if (stringp vc-checkout-switches)
+			 (list vc-checkout-switches)
+		       vc-checkout-switches))
       ;; Adjust the default-directory so that the check-out creates 
       ;; the file in the right place. The old value is restored below.
       (setq default-directory (file-name-directory filename))
@@ -1839,13 +1843,13 @@ From a program, any arguments are passed to the `rcs2log' script."
 			   (if writable "-e")
 			   "-p" (and rev
 				     (concat "-r" (vc-lookup-triple file rev)))
-			   vc-checkout-switches)
+			   switches)
 		    (setq failed nil))
 		(and failed (file-exists-p filename) (delete-file filename))))
 	  (apply 'vc-do-command nil 0 "get" file 'MASTER   ;; SCCS
 		 (if writable "-e")
 		 (and rev (concat "-r" (vc-lookup-triple file rev)))
-		 vc-checkout-switches)
+		 switches)
 	  (vc-file-setprop file 'vc-workfile-version nil))
 	(if workfile  ;; RCS
 	    ;; RCS doesn't let us check out into arbitrary file names directly.
@@ -1868,7 +1872,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 			   filename
 			   (if writable "-l")
 			   (concat "-p" rev)
-			   vc-checkout-switches)
+			   switches)
 		    (setq failed nil))
 		(and failed (file-exists-p filename) (delete-file filename))))
        (let (new-version)
@@ -1889,7 +1893,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 		  (let ((workrev (vc-workfile-version file)))
 		    (if workrev (concat "-r" workrev)
 		      nil)))
-		vc-checkout-switches)
+		switches)
 	 ;; determine the new workfile version
 	 (save-excursion
 	   (set-buffer "*vc*")
@@ -1917,7 +1921,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 			   workfile
 			   (concat "-r" rev)
 			   "-p"
-			   vc-checkout-switches)
+			   switches)
 		    (setq failed nil))
 		(and failed (file-exists-p filename) (delete-file filename))))
 	  ;; default for verbose checkout: clear the sticky tag
@@ -1931,7 +1935,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 		     "update"
 		     (and rev (not (string= rev ""))
 			  (concat "-r" rev))
-		     vc-checkout-switches)
+		     switches)
 	    ;; If no revision was specified, simply make the file writable.
 	    (and writable 
 		 (or (eq (vc-checkout-model file) 'manual)
@@ -1975,93 +1979,97 @@ From a program, any arguments are passed to the `rcs2log' script."
   (save-excursion
     ;; Change buffers to get local value of vc-checkin-switches.
     (set-buffer (or (get-file-buffer file) (current-buffer)))
-    ;; Clear the master-properties.  Do that here, not at the
-    ;; end, because if the check-in fails we want them to get
-    ;; re-computed before the next try.
-    (vc-file-clear-masterprops file)
-    (vc-backend-dispatch file
-      ;; SCCS
-      (progn
-	(apply 'vc-do-command nil 0 "delta" file 'MASTER
-	       (if rev (concat "-r" rev))
-	       (concat "-y" comment)
-	       vc-checkin-switches)
-	(vc-file-setprop file 'vc-locking-user 'none)
-	(vc-file-setprop file 'vc-workfile-version nil)
-	(if vc-keep-workfiles
-	    (vc-do-command nil 0 "get" file 'MASTER))
-	)
-      ;; RCS
-      (let ((old-version (vc-workfile-version file)) new-version)
-	(apply 'vc-do-command nil 0 "ci" file 'MASTER
-	       ;; if available, use the secure check-in option
-	       (and (vc-backend-release-p 'RCS "5.6.4") "-j")
-	       (concat (if vc-keep-workfiles "-u" "-r") rev)
-	       (concat "-m" comment)
-	       vc-checkin-switches)
-	(vc-file-setprop file 'vc-locking-user 'none)
-	(vc-file-setprop file 'vc-workfile-version nil)
+    (let ((switches
+	   (if (stringp vc-checkout-switches)
+	       (list vc-checkout-switches)
+	     vc-checkout-switches)))
+      ;; Clear the master-properties.  Do that here, not at the
+      ;; end, because if the check-in fails we want them to get
+      ;; re-computed before the next try.
+      (vc-file-clear-masterprops file)
+      (vc-backend-dispatch file
+	;; SCCS
+	(progn
+	  (apply 'vc-do-command nil 0 "delta" file 'MASTER
+		 (if rev (concat "-r" rev))
+		 (concat "-y" comment)
+		 switches)
+	  (vc-file-setprop file 'vc-locking-user 'none)
+	  (vc-file-setprop file 'vc-workfile-version nil)
+	  (if vc-keep-workfiles
+	      (vc-do-command nil 0 "get" file 'MASTER))
+	  )
+	;; RCS
+	(let ((old-version (vc-workfile-version file)) new-version)
+	  (apply 'vc-do-command nil 0 "ci" file 'MASTER
+		 ;; if available, use the secure check-in option
+		 (and (vc-backend-release-p 'RCS "5.6.4") "-j")
+		 (concat (if vc-keep-workfiles "-u" "-r") rev)
+		 (concat "-m" comment)
+		 switches)
+	  (vc-file-setprop file 'vc-locking-user 'none)
+	  (vc-file-setprop file 'vc-workfile-version nil)
 
-	;; determine the new workfile version
-	(set-buffer "*vc*")
-	(goto-char (point-min))
-	(if (or (re-search-forward 
-		 "new revision: \\([0-9.]+\\);" nil t)
-		(re-search-forward 
-		 "reverting to previous revision \\([0-9.]+\\)" nil t))
-	    (progn (setq new-version (buffer-substring (match-beginning 1)
-						       (match-end 1)))
-		   (vc-file-setprop file 'vc-workfile-version new-version)))
+	  ;; determine the new workfile version
+	  (set-buffer "*vc*")
+	  (goto-char (point-min))
+	  (if (or (re-search-forward 
+		   "new revision: \\([0-9.]+\\);" nil t)
+		  (re-search-forward 
+		   "reverting to previous revision \\([0-9.]+\\)" nil t))
+	      (progn (setq new-version (buffer-substring (match-beginning 1)
+							 (match-end 1)))
+		     (vc-file-setprop file 'vc-workfile-version new-version)))
 
-	;; if we got to a different branch, adjust the default
-	;; branch accordingly
-	(cond 
-	 ((and old-version new-version
-	       (not (string= (vc-branch-part old-version)
-			     (vc-branch-part new-version))))
-	  (vc-do-command nil 0 "rcs" file 'MASTER 
-			 (if (vc-trunk-p new-version) "-b"
-			   (concat "-b" (vc-branch-part new-version))))
-	  ;; If this is an old RCS release, we might have 
-	  ;; to remove a remaining lock.
-	  (if (not (vc-backend-release-p 'RCS "5.6.2"))
-	      ;; exit status of 1 is also accepted.
-	      ;; It means that the lock was removed before.
-	      (vc-do-command nil 1 "rcs" file 'MASTER 
-			     (concat "-u" old-version))))))
-      ;; CVS
-      (progn
-	;; explicit check-in to the trunk requires a 
-        ;; double check-in (first unexplicit) (CVS-1.3)
-	(condition-case nil
-	    (progn
-	      (if (and rev (vc-trunk-p rev))
-		  (apply 'vc-do-command nil 0 "cvs" file 'WORKFILE 
-			 "ci" "-m" "intermediate"
-			 vc-checkin-switches))
-	      (apply 'vc-do-command nil 0 "cvs" file 'WORKFILE 
-		     "ci" (if rev (concat "-r" rev))
-		     (concat "-m" comment)
-		     vc-checkin-switches))
-	  (error (if (eq (vc-cvs-status file) 'needs-merge)
-		     ;; The CVS output will be on top of this message.
-		     (error "Type C-x 0 C-x C-q to merge in changes.")
-		   (error "Check in FAILED."))))
-	;; determine and store the new workfile version
-	(set-buffer "*vc*")
-	(goto-char (point-min))
-	(if (re-search-forward 
-	     "^\\(new\\|initial\\) revision: \\([0-9.]+\\)" nil t)
-	    (vc-file-setprop file 'vc-workfile-version 
-			     (buffer-substring (match-beginning 2)
-					       (match-end 2)))
-	  (vc-file-setprop file 'vc-workfile-version nil))
-	;; if this was an explicit check-in, remove the sticky tag
-	(if rev
-	    (vc-do-command nil 0 "cvs" file 'WORKFILE "update" "-A"))
-	(vc-file-setprop file 'vc-locking-user 'none)
-	(vc-file-setprop file 'vc-checkout-time 
-			 (nth 5 (file-attributes file))))))
+	  ;; if we got to a different branch, adjust the default
+	  ;; branch accordingly
+	  (cond 
+	   ((and old-version new-version
+		 (not (string= (vc-branch-part old-version)
+			       (vc-branch-part new-version))))
+	    (vc-do-command nil 0 "rcs" file 'MASTER 
+			   (if (vc-trunk-p new-version) "-b"
+			     (concat "-b" (vc-branch-part new-version))))
+	    ;; If this is an old RCS release, we might have 
+	    ;; to remove a remaining lock.
+	    (if (not (vc-backend-release-p 'RCS "5.6.2"))
+		;; exit status of 1 is also accepted.
+		;; It means that the lock was removed before.
+		(vc-do-command nil 1 "rcs" file 'MASTER 
+			       (concat "-u" old-version))))))
+	;; CVS
+	(progn
+	  ;; explicit check-in to the trunk requires a 
+	  ;; double check-in (first unexplicit) (CVS-1.3)
+	  (condition-case nil
+	      (progn
+		(if (and rev (vc-trunk-p rev))
+		    (apply 'vc-do-command nil 0 "cvs" file 'WORKFILE 
+			   "ci" "-m" "intermediate"
+			   switches))
+		(apply 'vc-do-command nil 0 "cvs" file 'WORKFILE 
+		       "ci" (if rev (concat "-r" rev))
+		       (concat "-m" comment)
+		       switches))
+	    (error (if (eq (vc-cvs-status file) 'needs-merge)
+		       ;; The CVS output will be on top of this message.
+		       (error "Type C-x 0 C-x C-q to merge in changes")
+		     (error "Check-in failed"))))
+	  ;; determine and store the new workfile version
+	  (set-buffer "*vc*")
+	  (goto-char (point-min))
+	  (if (re-search-forward 
+	       "^\\(new\\|initial\\) revision: \\([0-9.]+\\)" nil t)
+	      (vc-file-setprop file 'vc-workfile-version 
+			       (buffer-substring (match-beginning 2)
+						 (match-end 2)))
+	    (vc-file-setprop file 'vc-workfile-version nil))
+	  ;; if this was an explicit check-in, remove the sticky tag
+	  (if rev
+	      (vc-do-command nil 0 "cvs" file 'WORKFILE "update" "-A"))
+	  (vc-file-setprop file 'vc-locking-user 'none)
+	  (vc-file-setprop file 'vc-checkout-time 
+			   (nth 5 (file-attributes file)))))))
   (message "Checking in %s...done" file))
 
 (defun vc-backend-revert (file)
@@ -2097,7 +2105,7 @@ From a program, any arguments are passed to the `rcs2log' script."
      )
    (vc-do-command nil 0 "rcs" file 'MASTER	;RCS
 		  "-M" (concat "-u" rev) (concat "-l" rev))
-   (error "You cannot steal a CVS lock; there are no CVS locks to steal.") ;CVS
+   (error "You cannot steal a CVS lock; there are no CVS locks to steal") ;CVS
    )
   (vc-file-setprop file 'vc-locking-user (user-login-name))
   (message "Stealing lock on %s...done" file)
