@@ -4,6 +4,10 @@
 	[!F_OK]: Provide default definitions only after including both
 	fcntl.h and unistd.h.
 
+2000-08-29  Dave Love  <fx@gnu.org>
+
+	* movemail.c: Revert previous change.
+
 2000-08-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (profile, make-docfile, hexl): Depend on config.h.
