@@ -1,3 +1,15 @@
+2002-06-15  Dave Love  <fx@gnu.org>
+
+	* language/cyrillic.el ("Belarusian"): Doc fix.
+	(Cp1125, koi8-t): Doc fix.
+
+	* international/mule-cmds.el (find-multibyte-characters): Doc fix.
+	(find-multibyte-characters): Don't test for charset `unknown'.
+	(locale-language-names): Change or add: be, bs, cy, mk, ru.koi8,
+	ru, sr_YU, tg, wa, zh.gbk.
+	(locale-language-names): Change sp to Cyrillic.
+	(locale-charset-language-names): Match @euro after utf-8.
+
 2002-06-13  Dave Love  <fx@gnu.org>
 
 	* language/chinese.el (chinese-gbk, gbk, cp936, windows-936): New
