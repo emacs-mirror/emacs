@@ -151,6 +151,8 @@ and this notice must be preserved on all copies.  */
    Otherwise you must have the variable `char *sys_errlist[]'.  */
 #undef HAVE_STRERROR
 
+#undef HAVE_UTIMES
+
 /* Define if `sys_siglist' is declared by <signal.h>.  */
 #undef SYS_SIGLIST_DECLARED
 
