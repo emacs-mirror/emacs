@@ -61,8 +61,6 @@
  ("*" ?8)
  ("(" ?9)
  (")" ?0)
- ("q" ?`)
- ("Q" ?`)
  ("-" ?=)
  ("_" ?%)
  ("=" ?')
@@ -136,10 +134,6 @@
  ("+=U" ?,B\(B)
  ("=Z" ?,B](B)
  ("+Y" ?,B.(B)
- ("=q" ?q)
- ("+q" ?q)
- ("=Q" ?Q)
- ("+Q" ?Q)
  ("=2" ?@)
  ("=3" ?#)
  ("=4" ?$)
@@ -180,7 +174,7 @@ All digits except of `1' are replaced by Slovak characters as on the standard
 Slovak keyboard.
 Dead keys are on `[', `[[', and `[[['.
 All other keys are the same as on standard US keyboard."
- nil t nil nil nil nil nil nil nil nil t)
+ nil t nil nil t nil nil nil nil nil t)
 
 (quail-define-rules
  ("[[[[" ?\[)
@@ -274,7 +268,7 @@ All digits except of `1' are replaced by Slovak characters as on the standard
 Slovak keyboard.
 Dead keys are on `=' and `+'.
 All other keys are the same as on standard US keyboard."
- nil t nil nil nil nil nil nil nil nil t)
+ nil t nil nil t nil nil nil nil nil t)
 
 (quail-define-rules
  ("2" ?,B5(B)
@@ -374,7 +368,7 @@ All other keys are the same as on standard US keyboard."
 
 Dead keys are on `[', `[[', `[[[', and `]'.
 All other keys are the same as on standard US keyboard."
- nil t nil nil nil nil nil nil nil nil t)
+ nil t nil nil t nil nil nil nil nil t)
 
 (quail-define-rules
  ("[[[[" ?\[)
