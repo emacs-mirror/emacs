@@ -1150,6 +1150,24 @@ r_alloc_init ()
   virtual_break_value = break_value = first_heap->bloc_start = first_heap->end;
   use_relocatable_buffers = 1;
 }
+
+#if defined (emacs) && defined (DOUG_LEA_MALLOC)
+
+/* Reinitialize the morecore hook variables after restarting a dumped
+   Emacs.  This is needed when using Doug Lea's malloc from GNU libc.  */
+void
+r_alloc_reinit ()
+{
+  /* Only do this if the hook has been reset, so that we don't get an
+     infinite loop, in case Emacs was linked statically.  */
+  if (__morecore != r_alloc_sbrk)
+    {
+      real_morecore = __morecore;
+      __morecore = r_alloc_sbrk;
+    }
+}
+#endif
+
 #ifdef DEBUG
 #include <assert.h>
 
