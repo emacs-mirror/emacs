@@ -505,7 +505,8 @@ characters which may be a part of the name of a mail alias.")
 		(if (not (vectorp mail-abbrevs)) (mail-abbrevs-setup))
 		(list (completing-read "Expand alias: " mail-abbrevs nil t))))
   (if (not (vectorp mail-abbrevs)) (mail-abbrevs-setup))
-  (insert (or (and alias (symbol-value (intern-soft alias mail-abbrevs))) "")))
+  (insert (or (and alias (symbol-value (intern-soft alias mail-abbrevs))) ""))
+  (mail-abbrev-expand-hook))
 
 (defun mail-abbrev-next-line (&optional arg)
   "Expand any mail abbrev, then move cursor vertically down ARG lines.
