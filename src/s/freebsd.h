@@ -142,3 +142,8 @@
    for X functions taking float or double parameters.  */
 
 #define NARROWPROTO 1
+
+/* The following is needed to make `configure' find Xpm and Xaw3d
+   headers, which are checked for with AC_CHECK_HEADER.  */
+
+#define C_SWITCH_SYSTEM -I /usr/X11R6/include
