@@ -92,6 +92,9 @@ int n_cmpchars;
 unsigned char *_fetch_multibyte_char_p;
 int _fetch_multibyte_char_len;
 
+#define min(X, Y) ((X) < (Y) ? (X) : (Y))
+#define max(X, Y) ((X) > (Y) ? (X) : (Y))
+
 /* Set STR a pointer to the multi-byte form of the character C.  If C
    is not a composite character, the multi-byte form is set in WORKBUF
    and STR points WORKBUF.  The caller should allocate at least 4-byte
@@ -831,9 +834,9 @@ strwidth (str, len)
 DEFUN ("string-width", Fstring_width, Sstring_width, 1, 1, 0,
   "Return width of STRING when displayed in the current buffer.\n\
 Width is measured by how many columns it occupies on the screen.\n\
-When calculating width of a multi-byte character in STRING,\n\
- only the base leading-code is considered and the validity of\n\
- the following bytes are not checked.")
+When calculating width of a multibyte character in STRING,\n\
+only the base leading-code is considered; the validity of\n\
+the following bytes is not checked.")
   (str)
      Lisp_Object str;
 {
@@ -860,7 +863,11 @@ The returned value is 0 for left-to-right and 1 for right-to-left.")
 }
 
 DEFUN ("chars-in-string", Fchars_in_string, Schars_in_string, 1, 1, 0,
-  "Return number of characters in STRING.")
+  "Return number of characters in STRING.\n\
+When using multibyte characters, this is not the necessarily same as\n\
+the length of STRING; the length counts a multibyte characters as\n\
+several bytes, but this function counts a multibyte character as one\n\
+character.")
   (str)
      Lisp_Object str;
 {
@@ -888,14 +895,65 @@ DEFUN ("chars-in-string", Fchars_in_string, Schars_in_string, 1, 1, 0,
   return val;
 }
 
+DEFUN ("count-chars-region", Fcount_chars_region, Scount_chars_region, 2, 2, 0,
+  "Return number of characters between BEG and END.\n\
+When using multibyte characters, this is not the necessarily same as\n\
+(- END BEG); that subtraction gives you the number of bytes, which\n\
+may be more than the number of characters.")
+  (beg, end)
+     Lisp_Object beg, end;
+{
+  int from, to, stop;
+  Lisp_Object val;
+  int chars = 0;
+  unsigned char *p, *endp;
+
+  validate_region (&beg, &end);
+
+  from = min (XFASTINT (beg), XFASTINT (end));
+  stop = to = max (XFASTINT (beg), XFASTINT (end));
+  p = POS_ADDR (from);
+  endp = POS_ADDR (stop);
+
+  if (from < GPT && GPT < to)
+    stop = GPT;
+
+  while (1)
+    {
+      if (p == endp)
+	{
+	  if (stop == GPT)
+	    {
+	      p = POS_ADDR (stop);
+	      stop = to;
+	      endp = POS_ADDR (stop);
+	    }
+	  else
+	    break;
+	}
+
+      if (*p == LEADING_CODE_COMPOSITION)
+	{
+	  p++;
+	  while (p < endp && ! CHAR_HEAD_P (p)) p++;
+	}
+      else
+	p += BYTES_BY_CHAR_HEAD (*p);
+
+      chars++;
+    }
+
+  return make_number (chars);
+}
+
 DEFUN ("char-boundary-p", Fchar_boundary_p, Schar_boundary_p, 1, 1, 0,
   "Return non-nil value if POS is at character boundary of multibyte form.\n\
-The return value is:\n\
+When the value is non-nil, it contains some additional information:\n\
  0 if POS is at an ASCII character or at the end of range,\n\
- 1 if POS is at a head of 2-byte length multi-byte form,\n\
- 2 if POS is at a head of 3-byte length multi-byte form,\n\
- 3 if POS is at a head of 4-byte length multi-byte form,\n\
- 4 if POS is at a head of multi-byte form of a composite character.\n\
+ 1 if POS is before a 2-byte length multi-byte form,\n\
+ 2 if POS is before a 3-byte length multi-byte form,\n\
+ 3 if POS is before a 4-byte length multi-byte form,\n\
+ 4 if POS is before a composite character.\n\
 If POS is out of range or not at character boundary, return NIL.")
   (pos)
      Lisp_Object pos;
@@ -1496,6 +1554,7 @@ syms_of_charset ()
   defsubr (&Sstring_width);
   defsubr (&Schar_direction);
   defsubr (&Schars_in_string);
+  defsubr (&Scount_chars_region);
   defsubr (&Schar_boundary_p);
   defsubr (&Sconcat_chars);
   defsubr (&Scmpcharp);
