@@ -422,7 +422,8 @@
 (define-charset 'katakana-sjis
   "Katakana part of Shift-JIS"
   :dimension 1
-  :superset '((katakana-jisx0201 . 128))
+  :code-space [#xA1 #xDF]
+  :subset '(jisx0201 #xA1 #xDF 0)
   :supplementary-p t)
 
 (define-charset 'cp932-2-byte
