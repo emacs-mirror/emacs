@@ -3586,6 +3586,7 @@ direct_output_for_insert (g)
      implemented for X frames.  The implementation uses updated_window
      and updated_row.  */
   updated_row = glyph_row;
+  updated_area = TEXT_AREA;
   update_begin (f);
   if (rif)
     {
