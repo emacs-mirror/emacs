@@ -1,3 +1,8 @@
+2000-05-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_produce_glyphs) <composite chars>: Handle case
+	that x_per_char_metric returns null.
+
 2000-05-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.h (struct face): Add forward declaration.
