@@ -1991,6 +1991,7 @@ If FRAME is omitted, return information on the currently selected frame.")
   Lisp_Object alist;
   FRAME_PTR f;
   int height, width;
+  struct gcpro gcpro1;
 
   if (EQ (frame, Qnil))
     frame = selected_frame;
@@ -2002,6 +2003,8 @@ If FRAME is omitted, return information on the currently selected frame.")
     return Qnil;
 
   alist = Fcopy_alist (f->param_alist);
+  GCPRO1 (alist);
+  
   if (!FRAME_WINDOW_P (f))
     {
       int fg = FRAME_FOREGROUND_PIXEL (f);
@@ -2042,6 +2045,8 @@ If FRAME is omitted, return information on the currently selected frame.")
       XSETFASTINT (lines, FRAME_MENU_BAR_LINES (f));
       store_in_alist (&alist, Qmenu_bar_lines, lines);
     }
+
+  UNGCPRO;
   return alist;
 }
 
