@@ -152,6 +152,8 @@ init_eval_once ()
   specpdl = (struct specbinding *) xmalloc (specpdl_size * sizeof (struct specbinding));
   max_specpdl_size = 600;
   max_lisp_eval_depth = 200;
+
+  Vrun_hooks = Qnil;
 }
 
 init_eval ()
@@ -2579,7 +2581,6 @@ If due to `eval' entry, one arg, t.");
   DEFVAR_LISP ("run-hooks", &Vrun_hooks,
     "Set to the function `run-hooks', if that function has been defined.\n\
 Otherwise, nil (in a bare Emacs without preloaded Lisp code).");
-  Vrun_hooks = Qnil;
 
   staticpro (&Vautoload_queue);
   Vautoload_queue = Qnil;
