@@ -1886,14 +1886,26 @@ If this is nil, extra highlighting can be \"manually\" removed with
   :group 'isearch)
 
 (defface isearch
-  '((t (:inherit region)))
-  "Face for highlighting matches."
+  '((((type tty pc) (class color))
+     (:background "magenta4" :foreground "cyan1"))
+    (((class color) (background light))
+     (:background "magenta4" :foreground "lightskyblue1"))
+    (((class color) (background dark))
+     (:background "palevioletred2" :foreground "brown4"))
+    (t (:inverse-video t)))
+  "Face for highlighting Isearch matches."
   :group 'isearch-faces)
 (defvar isearch 'isearch)
 
 (defface isearch-lazy-highlight-face
-  '((t (:inherit secondary-selection)))
-  "Face for lazy highlighting of matches."
+  '((((type tty pc) (class color))
+     (:background "turquoise3"))
+    (((class color) (background light))
+     (:background "paleturquoise"))
+    (((class color) (background dark))
+     (:background "paleturquoise4"))
+    (t (:underline t)))
+  "Face for lazy highlighting of Isearch matches other than the current one."
   :group 'isearch-faces)
 (defvar isearch-lazy-highlight-face 'isearch-lazy-highlight-face)
 
