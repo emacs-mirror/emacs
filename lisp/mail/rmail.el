@@ -50,6 +50,9 @@
 ;  (expand-file-name "~/RMAIL")
 ;  "")
 
+(defvar rmail-movemail-program nil
+  "If non-nil, name of program for fetching new mail.")
+
 ;;;###autoload
 (defvar rmail-dont-reply-to-names nil "\
 *A regexp specifying names to prune of reply to messages.
@@ -856,8 +859,9 @@ argument causes us to read a file name and use that file as the inbox."
 		     (setq errors (generate-new-buffer " *rmail loss*"))
 		     (buffer-disable-undo errors)
 		     (call-process
-		       (expand-file-name "movemail" exec-directory)
-		       nil errors nil file tofile)
+		      (or rmail-movemail-program
+			  (expand-file-name "movemail" exec-directory))
+		      nil errors nil file tofile)
 		     (if (not (buffer-modified-p errors))
 			 ;; No output => movemail won
 			 nil
