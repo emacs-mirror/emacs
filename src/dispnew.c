@@ -1,5 +1,5 @@
 /* Updating of data structures for redisplay.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 88, 93, 94 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -235,14 +235,15 @@ make_frame_glyphs (frame, empty)
   register int i;
   register width = FRAME_WIDTH (frame);
   register height = FRAME_HEIGHT (frame);
-  register struct frame_glyphs *new =
-    (struct frame_glyphs *) xmalloc (sizeof (struct frame_glyphs));
+  register struct frame_glyphs *new
+    = (struct frame_glyphs *) xmalloc (sizeof (struct frame_glyphs));
 
   SET_GLYPHS_FRAME (new, frame);
   new->height = height;
   new->width = width;
   new->used = (int *) xmalloc (height * sizeof (int));
   new->glyphs = (GLYPH **) xmalloc (height * sizeof (GLYPH *));
+  new->charstarts = (int **) xmalloc (height * sizeof (int *));
   new->highlight = (char *) xmalloc (height * sizeof (char));
   new->enable = (char *) xmalloc (height * sizeof (char));
   bzero (new->enable, height * sizeof (char));
@@ -276,6 +277,25 @@ make_frame_glyphs (frame, empty)
       bzero (new->total_contents, total_glyphs);
       for (i = 0; i < height; i++)
 	new->glyphs[i] = new->total_contents + i * (width + 2) + 1;
+
+      if (!FRAME_TERMCAP_P (frame))
+	{
+	  unsigned int total_charstarts = height * (width + 2) * sizeof (int);
+
+	  new->total_charstarts = (int *) xmalloc (total_charstarts);
+	  bzero (new->total_charstarts, total_charstarts);
+	  for (i = 0; i < height; i++)
+	    new->charstarts[i] = new->total_charstarts + i * (width + 2) + 1;
+	}
+      else
+	{
+	  /* Without a window system, we don't really need charstarts.
+	     So use a small amount of space to make enough data structure
+	     to prevent crashes in display_text_line.  */
+	  new->total_charstarts = (int *) xmalloc ((width + 2) * sizeof (int));
+	  for (i = 0; i < height; i++)
+	    new->charstarts[i] = new->total_charstarts;
+	}
     }
 
   return new;
@@ -288,12 +308,16 @@ free_frame_glyphs (frame, glyphs)
 {
   if (glyphs->total_contents)
     xfree (glyphs->total_contents);
+  if (glyphs->total_charstarts)
+    xfree (glyphs->total_charstarts);
 
   xfree (glyphs->used);
   xfree (glyphs->glyphs);
   xfree (glyphs->highlight);
   xfree (glyphs->enable);
   xfree (glyphs->bufp);
+  if (glyphs->charstarts)
+    xfree (glyphs->charstarts);
 
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (frame))
@@ -571,9 +595,9 @@ rotate_vector (vector, size, distance)
    Returns nonzero if done, zero if terminal cannot scroll them.  */
 
 int
-scroll_frame_lines (frame, from, end, amount)
+scroll_frame_lines (frame, from, end, amount, pos_adjust)
      register FRAME_PTR frame;
-     int from, end, amount;
+     int from, end, amount, pos_adjust;
 {
   register int i;
   register struct frame_glyphs *current_frame
@@ -598,6 +622,28 @@ scroll_frame_lines (frame, from, end, amount)
 		     sizeof (GLYPH *) * (end + amount - from),
 		     amount * sizeof (GLYPH *));
 
+      rotate_vector (current_frame->charstarts + from,
+		     sizeof (GLYPH *) * (end + amount - from),
+		     amount * sizeof (GLYPH *));
+
+      /* Offset each char position in the charstarts lines we moved
+	 by pos_adjust.  */
+      for (i = from + amount; i < end; i++)
+	{
+	  int *line = current_frame->charstarts[from];
+	  int col;
+	  for (col = 0; col < current_frame->used[from]; col++)
+	    line[col] += pos_adjust;
+	}
+      for (i = from; i <= from + amount; i++)
+	{
+	  int *line = current_frame->charstarts[from];
+	  int col;
+	  line[0] = -1;
+	  for (col = 0; col < current_frame->used[from]; col++)
+	    line[col] = 0;
+	}
+
       safe_bcopy (current_frame->used + from,
 		  current_frame->used + from + amount,
 		  (end - from) * sizeof current_frame->used[0]);
@@ -619,6 +665,7 @@ scroll_frame_lines (frame, from, end, amount)
       for (i = from; i < from + amount; i++)
 	{
 	  current_frame->glyphs[i][0] = '\0';
+	  current_frame->charstarts[i][0] = -1;
 	  current_frame->enable[i] = 1;
 	}
 
@@ -666,6 +713,28 @@ scroll_frame_lines (frame, from, end, amount)
 		     sizeof (GLYPH *) * (end - from - amount),
 		     amount * sizeof (GLYPH *));
 
+      rotate_vector (current_frame->charstarts + from + amount,
+		     sizeof (GLYPH *) * (end - from - amount),
+		     amount * sizeof (GLYPH *));
+
+      /* Offset each char position in the charstarts lines we moved
+	 by pos_adjust.  */
+      for (i = from + amount; i < end + amount; i++)
+	{
+	  int *line = current_frame->charstarts[from];
+	  int col;
+	  for (col = 0; col < current_frame->used[from]; col++)
+	    line[col] += pos_adjust;
+	}
+      for (i = end + amount; i <= end; i++)
+	{
+	  int *line = current_frame->charstarts[from];
+	  int col;
+	  line[0] = -1;
+	  for (col = 0; col < current_frame->used[from]; col++)
+	    line[col] = 0;
+	}
+
       safe_bcopy (current_frame->used + from,
 		  current_frame->used + from + amount,
 		  (end - from) * sizeof current_frame->used[0]);
@@ -687,6 +756,7 @@ scroll_frame_lines (frame, from, end, amount)
       for (i = end + amount; i < end; i++)
 	{
 	  current_frame->glyphs[i][0] = '\0';
+	  current_frame->charstarts[i][0] = 0;
 	  current_frame->enable[i] = 1;
 	}
 
@@ -753,6 +823,9 @@ preserve_other_columns (w)
 	      bcopy (current_frame->glyphs[vpos],
 		     desired_frame->glyphs[vpos],
 		     start * sizeof (current_frame->glyphs[vpos]));
+	      bcopy (current_frame->charstarts[vpos],
+		     desired_frame->charstarts[vpos],
+		     start * sizeof (current_frame->charstarts[vpos]));
 	      len = min (start, current_frame->used[vpos]);
 	      if (desired_frame->used[vpos] < len)
 		desired_frame->used[vpos] = len;
@@ -761,12 +834,19 @@ preserve_other_columns (w)
 	      && desired_frame->used[vpos] < current_frame->used[vpos])
 	    {
 	      while (desired_frame->used[vpos] < end)
-		desired_frame->glyphs[vpos][desired_frame->used[vpos]++]
-		  = SPACEGLYPH;
+		{
+		  int used = desired_frame->used[vpos]++;
+		  desired_frame->glyphs[vpos][used] = SPACEGLYPH;
+		  desired_frame->glyphs[vpos][used] = 0;
+		}
 	      bcopy (current_frame->glyphs[vpos] + end,
 		     desired_frame->glyphs[vpos] + end,
 		     ((current_frame->used[vpos] - end)
 		      * sizeof (current_frame->glyphs[vpos])));
+	      bcopy (current_frame->charstarts[vpos] + end,
+		     desired_frame->charstarts[vpos] + end,
+		     ((current_frame->used[vpos] - end)
+		      * sizeof (current_frame->charstarts[vpos])));
 	      desired_frame->used[vpos] = current_frame->used[vpos];
 	    }
 	}
@@ -820,8 +900,8 @@ cancel_my_columns (w)
      struct window *w;
 {
   register int vpos;
-  register struct frame_glyphs *desired_glyphs =
-    FRAME_DESIRED_GLYPHS (XFRAME (w->frame));
+  register struct frame_glyphs *desired_glyphs
+    = FRAME_DESIRED_GLYPHS (XFRAME (w->frame));
   register int start = XFASTINT (w->left);
   register int bot = XFASTINT (w->top) + XFASTINT (w->height);
 
@@ -898,6 +978,7 @@ direct_output_for_insert (g)
     int face = compute_char_face (frame, w, point - 1, -1, -1, &dummy, point);
 #endif
     current_frame->glyphs[vpos][hpos] = MAKE_GLYPH (frame, g, face);
+    current_frame->charstarts[vpos][hpos] = point;
   }
   unchanged_modified = MODIFF;
   beg_unchanged = GPT - BEG;
@@ -1321,6 +1402,7 @@ update_line (frame, vpos)
      int vpos;
 {
   register GLYPH *obody, *nbody, *op1, *op2, *np1, *temp;
+  int *temp1;
   int tem;
   int osp, nsp, begmatch, endmatch, olen, nlen;
   int save;
@@ -1463,6 +1545,11 @@ update_line (frame, vpos)
       desired_frame->glyphs[vpos] = current_frame->glyphs[vpos];
       current_frame->glyphs[vpos] = temp;
 
+      /* Exchange charstarts between current_frame and new_frame.  */
+      temp1 = desired_frame->charstarts[vpos];
+      desired_frame->charstarts[vpos] = current_frame->charstarts[vpos];
+      current_frame->charstarts[vpos] = temp1;
+
       return;
     }
 
@@ -1480,6 +1567,11 @@ update_line (frame, vpos)
       temp = desired_frame->glyphs[vpos];
       desired_frame->glyphs[vpos] = current_frame->glyphs[vpos];
       current_frame->glyphs[vpos] = temp;
+
+      /* Exchange charstarts between current_frame and new_frame.  */
+      temp1 = desired_frame->charstarts[vpos];
+      desired_frame->charstarts[vpos] = current_frame->charstarts[vpos];
+      current_frame->charstarts[vpos] = temp1;
 
       return;
     }
@@ -1641,6 +1733,11 @@ update_line (frame, vpos)
   temp = desired_frame->glyphs[vpos];
   desired_frame->glyphs[vpos] = current_frame->glyphs[vpos];
   current_frame->glyphs[vpos] = temp;
+
+  /* Exchange charstarts between current_frame and new_frame.  */
+  temp1 = desired_frame->charstarts[vpos];
+  desired_frame->charstarts[vpos] = current_frame->charstarts[vpos];
+  current_frame->charstarts[vpos] = temp1;
 }
 
 DEFUN ("open-termscript", Fopen_termscript, Sopen_termscript,
