@@ -1,3 +1,10 @@
+1999-11-15  Dave Love  <fx@gnu.org>
+
+	* cus-edit.el (customize-face, customize-face-other-window):
+	Require match from completing-read.
+	(custom-buffer-done-function): Default to custom-bury-buffer, not
+	bury-buffer.
+
 1999-11-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* hippie-exp.el: Use new backquote syntax.
