@@ -56,6 +56,7 @@ You may also type up to 3 octal digits, to insert a character with that code"
 
 (defun delete-indentation (&optional arg)
   "Join this line to previous and fix up whitespace at join.
+If there is a fill prefix, delete it from the beginning of this line.
 With argument, join this line to following line."
   (interactive "*P")
   (beginning-of-line)
@@ -63,6 +64,13 @@ With argument, join this line to following line."
   (if (eq (preceding-char) ?\n)
       (progn
 	(delete-region (point) (1- (point)))
+	;; If the second line started with the fill prefix,
+	;; delete the prefix.
+	(if (and fill-prefix
+		 (string= fill-prefix
+			  (buffer-substring (point)
+					    (+ (point) (length fill-prefix)))))
+	    (delete-region (point) (+ (point) (length fill-prefix))))
 	(fixup-whitespace))))
 
 (defun fixup-whitespace ()
@@ -422,14 +430,15 @@ to get different commands to edit and resubmit."
 (defun previous-matching-history-element (regexp n)
   (interactive "sPrevious element matching (regexp): \np")
   (let ((history (symbol-value minibuffer-history-variable))
+	prevpos
 	(pos minibuffer-history-position))
     (while (/= n 0)
       (setq prevpos pos)
       (setq pos (min (max 1 (+ pos (if (< n 0) -1 1))) (length history)))
       (if (= pos prevpos)
 	  (error (if (= pos 1)
-		     "No following item in minibuffer history"
-		   "No preceding item in minibuffer history")))
+		     "No later matching history item"
+		   "No earlier matching history item")))
       (if (string-match regexp
 			(if minibuffer-history-sexp-flag
 			    (prin1-to-string (nth (1- pos) history))
@@ -455,8 +464,8 @@ to get different commands to edit and resubmit."
 		   (length (symbol-value minibuffer-history-variable)))))
     (if (= minibuffer-history-position narg)
 	(error (if (= minibuffer-history-position 1)
-		   "No following item in minibuffer history"
-		 "No preceding item in minibuffer history"))
+		   "End of history; no next item"
+		 "Beginning of history; no preceding item"))
       (erase-buffer)
       (setq minibuffer-history-position narg)
       (let ((elt (nth (1- minibuffer-history-position)
