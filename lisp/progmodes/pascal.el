@@ -176,8 +176,8 @@
   "*Indentation for case statements.")
 
 (defvar pascal-auto-newline nil
-  "*Non-nil means automatically newline after simcolons and the punctation mark
-after an end.")
+  "*Non-nil means automatically newline after semicolons and the punctuation
+mark after an end.")
 
 (defvar pascal-tab-always-indent t
   "*Non-nil means TAB in Pascal mode should always reindent the current line,
@@ -290,8 +290,8 @@ Variables controlling indentation/edit style:
  pascal-case-indent       (default 2)
     Indentation for case statements.
  pascal-auto-newline      (default nil)
-    Non-nil means automatically newline after simcolons and the punctation mark
-    after an end.
+    Non-nil means automatically newline after semicolons and the punctuation
+    mark after an end.
  pascal-tab-always-indent (default t)
     Non-nil means TAB in Pascal mode should always reindent the current line,
     regardless of where in the line point is when the TAB command is used.
@@ -406,7 +406,7 @@ no args, if that value is non-nil."
 	(pascal-indent-command))))
 
 (defun electric-pascal-hash ()
-  "Insert `#', and indent to coulmn 0 if this is a CPP directive."
+  "Insert `#', and indent to column 0 if this is a CPP directive."
   (interactive)
   (insert last-command-char)
   (if (save-excursion (beginning-of-line) (looking-at "^[ \t]*#"))
@@ -1083,7 +1083,7 @@ indent of the current line in parameterlist."
 
 (defun pascal-get-completion-decl ()
   ;; Macro for searching through current declaration (var, type or const)
-  ;; for matches of `str' and adding the occurence tp `all'
+  ;; for matches of `str' and adding the occurrence tp `all'
   (let ((end (save-excursion (pascal-declaration-end)
 			     (point)))
 	match)
@@ -1133,7 +1133,7 @@ indent of the current line in parameterlist."
       (save-excursion
 	(if (> start (prog1 (save-excursion (pascal-end-of-defun)
 					    (point))))
-	    () ; Declarations not reacable
+	    () ; Declarations not reachable
 	  (if (search-forward "(" (pascal-get-end-of-line) t)
 	      ;; Check parameterlist
 		(pascal-get-completion-decl))
@@ -1172,7 +1172,7 @@ indent of the current line in parameterlist."
   (save-excursion
     (let ((pascal-all nil))
       ;; Set buffer to use for searching labels. This should be set
-      ;; within functins which use pascal-completions
+      ;; within functions which use pascal-completions
       (set-buffer pascal-buffer-to-use)
 
       ;; Determine what should be completed
@@ -1282,7 +1282,7 @@ indent of the current line in parameterlist."
 	      (insert "" pascal-last-word-shown)
 	    (insert "" pascal-str)
 	    (message "(No match)")))
-      ;; The other form of completion does not necessarly do that.
+      ;; The other form of completion does not necessarily do that.
 
       ;; Insert match if found, or the original string if no match
       (if (or (null match) (equal match 't))
@@ -1358,7 +1358,7 @@ With optional second arg non-nil, STR is the complete name of the instruction."
 	  match)
 
       ;; Set buffer to use for searching labels. This should be set
-      ;; within functins which use pascal-completions
+      ;; within functions which use pascal-completions
       (set-buffer pascal-buffer-to-use)
 
       (let ((pascal-str pascal-str))
