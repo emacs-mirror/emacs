@@ -1,3 +1,8 @@
+2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* callint.c (prefix-arg, current-prefix-arg): Fix typo in a doc
+	string.
+
 2001-10-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* indent.c (skip_invisible): Use new retval of TEXT_PROP_MEANS_INVISIBLE.
