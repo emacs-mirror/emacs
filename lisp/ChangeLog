@@ -1,3 +1,19 @@
+2004-10-26  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* files.el (auto-mode-alist): Add pod, js, xbm and xpm and group
+	trivial variants to shorten the list.
+	(xml-based-modes): New var.
+	(set-auto-mode): Give interpreter-mode-alist or <?xml or <!DOCTYPE
+	declaration higher priority than auto-mode-alist.
+
+	* find-file.el (cc-other-file-alist): Bring it in line with
+	cc-mode's auto-mode-alist entries and use \' instead of $.
+
+	* textmodes/sgml-mode.el (sgml-mode): Fix imenu-generic-expression
+	and add "Id" and "Name" submenus to it.
+
+	* imenu.el (imenu--generic-function): Skip matches in comments.
+
 2004-10-26  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc,full-calc, calc-quit, calc-keypad)
@@ -5,10 +21,10 @@
 	instead of `interactive-p'.
 
 	* calc/calc-misc.el (calc-other-window): Use an extra argument
-	instead of `interactive-p'. 
+	instead of `interactive-p'.
 
-	* calc/calc-rewr.el (calc-match): Use an extra argument instead of 
-	`interactive-p'. 
+	* calc/calc-rewr.el (calc-match): Use an extra argument instead of
+	`interactive-p'.
 
 2004-10-26  Kim F. Storm  <storm@cua.dk>
 
