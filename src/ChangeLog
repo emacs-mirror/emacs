@@ -1,5 +1,9 @@
 2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* process.c (process-inherit-coding-system-flag,
+	get-buffer-process): Do not confuse make-docfile with doc strings
+	in comment.
+
 	* editfns.c (Fchar_to_string): Make doc string consistent with arguments.
 
 	* abbrev.c, minibuf.c: Put doc strings in comments.
