@@ -1,3 +1,11 @@
+2001-12-11  Richard M. Stallman  <rms@gnu.org>
+
+	* international/mule.el (set-auto-coding): Use set-auto-mode-1.
+
+	* files.el (set-auto-mode-1): New subroutine, broken out of
+	set-auto-mode.
+	(set-auto-mode, hack-local-variables-prop-line): Use that.
+
 2001-12-11  Dave Love  <fx@gnu.org>
 
 	* language/thai-util.el, language/thai.el: Add Unicode
@@ -13,6 +21,8 @@
 	* net/zone-mode.el (zone-mode): Don't use make-local-hook.
 
 2001-12-11  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases): Delete "Richard Stallmao".
 
 	* textmodes/ispell.el (ispell-buffer-local-parsing):
 	Match xml like sgml.
