@@ -298,7 +298,6 @@ option is not the default."
 		  (r2 = r1)
 		  (r0 &= #x1f)
 		  (r0 <<= 6)
-		  (r2 = r1)	   ; save in case of overlong sequence
 		  (r1 &= #x3f)
 		  (r1 += r0)
 		  ;; Now r1 holds scalar value
