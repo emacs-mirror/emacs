@@ -38,6 +38,7 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #ifdef MSDOS
 #include "msdos.h"
+#include "dosfns.h"
 #endif
 
 /* Evaluate this expression to rebuild the section of syms_of_frame
@@ -538,10 +539,12 @@ make_terminal_frame ()
 #ifdef MSDOS
   f->output_data.x = &the_only_x_display;
   f->output_method = output_msdos_raw;
+  if (!noninteractive)
+    init_frame_faces (f);
 #else /* not MSDOS */
   f->output_data.nothing = 1;	/* Nonzero means frame isn't deleted.  */
-#endif
   init_frame_faces (f);
+#endif
   return f;
 }
 
@@ -1948,18 +1951,15 @@ If FRAME is omitted, return information on the currently selected frame.")
 #ifdef MSDOS
   if (FRAME_MSDOS_P (f))
     {
-      static char *colornames[16] = 
-	{
-	  "black", "blue", "green", "cyan", "red", "magenta", "brown",
-	  "lightgray", "darkgray", "lightblue", "lightgreen", "lightcyan",
-	  "lightred", "lightmagenta", "yellow", "white"
-	};
+      int fg = FRAME_FOREGROUND_PIXEL (f);
+      int bg = FRAME_BACKGROUND_PIXEL (f);
+
       store_in_alist (&alist, intern ("foreground-color"),
-		      build_string (colornames[FRAME_FOREGROUND_PIXEL (f)]));
+		      build_string (msdos_stdcolor_name (fg)));
       store_in_alist (&alist, intern ("background-color"),
-		      build_string (colornames[FRAME_BACKGROUND_PIXEL (f)]));
+		      build_string (msdos_stdcolor_name (bg)));
     }
-  store_in_alist (&alist, intern ("font"), build_string ("default"));
+  store_in_alist (&alist, intern ("font"), build_string ("ms-dos"));
 #endif
   store_in_alist (&alist, Qname, f->name);
   height = (FRAME_NEW_HEIGHT (f) ? FRAME_NEW_HEIGHT (f) : FRAME_HEIGHT (f));
