@@ -197,6 +197,15 @@ and this notice must be preserved on all copies.  */
 #define volatile
 #endif
 
+/* Define this if you're using XFree386.  joe@zircon.uucp says that in
+   order to use XFree386, you have to link against -lXbsd, which
+   insists on defining the random function.  */
+/* #define HAVE_XFREE386 */
+#ifdef HAVE_XFREE386
+#define LIBX11_SYSTEM -lXbsd
+#define HAVE_RANDOM
+#endif
+
 #ifndef THIS_IS_YMAKEFILE
 /* Some of the files of Emacs which are intended for use with other
    programs assume that if you have a config.h file, you must declare
