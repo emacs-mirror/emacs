@@ -25,6 +25,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "buffer.h"
 #include "character.h"
+#include "charset.h"
 #include "keyboard.h"
 #include "frame.h"
 #include "window.h"
@@ -1306,6 +1307,90 @@ print_preprocess_string (interval, arg)
   print_preprocess (interval->plist);
 }
 
+/* A flag to control printing of `charset' text property.
+   The default value is Qdefault. */
+Lisp_Object Vprint_charset_text_property;
+extern Lisp_Object Qdefault;
+
+static void print_check_string_charset_prop ();
+
+#define PRINT_STRING_NON_CHARSET_FOUND 1
+#define PRINT_STRING_UNSAFE_CHARSET_FOUND 2
+
+/* Bitwize or of the abobe macros. */
+static int print_check_string_result;
+
+static void
+print_check_string_charset_prop (interval, string)
+     INTERVAL interval;
+     Lisp_Object string;
+{
+  Lisp_Object val;
+
+  if (NILP (interval->plist)
+      || (print_check_string_result == (PRINT_STRING_NON_CHARSET_FOUND
+					| PRINT_STRING_UNSAFE_CHARSET_FOUND)))
+    return;
+  for (val = interval->plist; CONSP (val) && ! EQ (XCAR (val), Qcharset);
+       val = XCDR (XCDR (val)));
+  if (! CONSP (val))
+    {
+      print_check_string_result |= PRINT_STRING_NON_CHARSET_FOUND;
+      return;
+    }
+  if (! (print_check_string_result & PRINT_STRING_NON_CHARSET_FOUND))
+    {
+      if (! EQ (val, interval->plist)
+	  || CONSP (XCDR (XCDR (val))))
+	print_check_string_result |= PRINT_STRING_NON_CHARSET_FOUND;
+    }
+  if (NILP (Vprint_charset_text_property)
+      || ! (print_check_string_result & PRINT_STRING_UNSAFE_CHARSET_FOUND))
+    {
+      int i, c;
+      int charpos = interval->position;
+      int bytepos = string_char_to_byte (string, charpos);
+      Lisp_Object charset;
+
+      charset = XCAR (XCDR (val));
+      for (i = 0; i < LENGTH (interval); i++)
+	{
+	  FETCH_STRING_CHAR_ADVANCE (c, string, charpos, bytepos);
+	  if (! EQ (CHARSET_NAME (CHAR_CHARSET (c)), charset))
+	    {
+	      print_check_string_result |= PRINT_STRING_UNSAFE_CHARSET_FOUND;
+	      break;
+	    }
+	}
+    }
+}
+
+/* The value is (charset . nil).  */
+static Lisp_Object print_prune_charset_plist;
+
+static Lisp_Object
+print_prune_string_charset (string)
+     Lisp_Object string;
+{
+  print_check_string_result = 0;
+  traverse_intervals (STRING_INTERVALS (string), 0,
+		      print_check_string_charset_prop, string);
+  if (! (print_check_string_result & PRINT_STRING_UNSAFE_CHARSET_FOUND))
+    {
+      string = Fcopy_sequence (string);
+      if (print_check_string_result & PRINT_STRING_NON_CHARSET_FOUND)
+	{
+	  if (NILP (print_prune_charset_plist))
+	    print_prune_charset_plist = Fcons (Qcharset, Qnil);
+	  Fremove_text_properties (0, SCHARS (string),
+				   print_prune_charset_plist, string);
+	}
+      else
+	Fset_text_properties (0, SCHARS (string), Qnil, string);
+    }
+  return string;
+}
+
 static void
 print_object (obj, printcharfun, escapeflag)
      Lisp_Object obj;
@@ -1412,6 +1497,9 @@ print_object (obj, printcharfun, escapeflag)
 	  int multibyte = STRING_MULTIBYTE (obj);
 
 	  GCPRO1 (obj);
+
+	  if (! EQ (Vprint_charset_text_property, Qt))
+	    obj = print_prune_string_charset (obj);
 
 	  if (!NULL_INTERVAL_P (STRING_INTERVALS (obj)))
 	    {
@@ -2034,6 +2122,8 @@ print_interval (interval, printcharfun)
      INTERVAL interval;
      Lisp_Object printcharfun;
 {
+  if (NILP (interval->plist))
+    return;
   PRINTCHAR (' ');
   print_object (make_number (interval->position), printcharfun, 1);
   PRINTCHAR (' ');
@@ -2156,6 +2246,19 @@ the printing done so far has not found any shared structure or objects
 that need to be recorded in the table.  */);
   Vprint_number_table = Qnil;
 
+  DEFVAR_LISP ("print-charset-text-property", &Vprint_charset_text_property,
+	       doc: /* A flag to control printing of `charset' text property on printing a string.
+The value must be nil, t, or `default'.
+
+If the value is nil, don't print the text property `charset'.
+
+If the value is t, always print the text property `charset'.
+
+If the value is `default', print the text property `charset' only when
+the value is different from what is guessed in the current charset
+ priorities.  */);
+  Vprint_charset_text_property = Qdefault;
+
   /* prin1_to_string_buffer initialized in init_buffer_once in buffer.c */
   staticpro (&Vprin1_to_string_buffer);
 
@@ -2179,6 +2282,9 @@ that need to be recorded in the table.  */);
 
   Qprint_escape_nonascii = intern ("print-escape-nonascii");
   staticpro (&Qprint_escape_nonascii);
+
+  print_prune_charset_plist = Qnil;
+  staticpro (&print_prune_charset_plist);
 
   defsubr (&Swith_output_to_temp_buffer);
 }
