@@ -1650,12 +1650,10 @@ set_point (position, buffer)
       return;
     }
 
-  /* If the new position is before an invisible character
-     that has an `invisible' property of value `hidden',
+  /* If the new position is before an intangible character,
      move forward over all such.  */
   while (! NULL_INTERVAL_P (to)
-	 && EQ (textget (to->plist, Qinvisible), Qhidden)
-	 && ! DISPLAY_INVISIBLE_GLYPH (to))
+	 && ! NILP (textget (to->plist, Qintangible)))
     {
       toprev = to;
       to = next_interval (to);
