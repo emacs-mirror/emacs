@@ -1,3 +1,8 @@
+2004-03-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.texi (Completion Commands): Add xref to Emacs manual
+	for Partial Completion mode.
+
 2004-03-07  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* customize.texi: Fix typo. Remove eol whitespace.
