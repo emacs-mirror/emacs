@@ -414,32 +414,64 @@ date.  If date is nil, or if the date is not visible, there is no holiday."
       (if (calendar-date-is-visible-p advent)
           (list (list advent string))))))
 
-(defun holiday-easter-etc (n string)
-  "Date of Nth day after Easter (named STRING), if visible in calendar window."
-  (let* ((century (1+ (/ displayed-year 100)))
-         (shifted-epact        ;; Age of moon for April 5...
-          (% (+ 14 (* 11 (% displayed-year 19));;     ...by Nicaean rule
-                (-           ;; ...corrected for the Gregorian century rule
-                 (/ (* 3 century) 4))
-                (/    ;; ...corrected for Metonic cycle inaccuracy.
-                 (+ 5 (* 8 century)) 25)
-                (* 30 century));;              Keeps value positive.
-             30))
-         (adjusted-epact       ;;  Adjust for 29.5 day month.
-          (if (or (= shifted-epact 0)
-                  (and (= shifted-epact 1) (< 10 (% displayed-year 19))))
-              (1+ shifted-epact)
-            shifted-epact))
-         (paschal-moon       ;; Day after the full moon on or after March 21.
-          (- (calendar-absolute-from-gregorian (list 4 19 displayed-year))
-             adjusted-epact))
-         (abs-easter (calendar-dayname-on-or-before 0 (+ paschal-moon 7)))
-         (mandatory
-           (list
-            (list (calendar-gregorian-from-absolute (+ abs-easter n))
-                  string)))
-         (output-list (filter-visible-calendar-holidays mandatory)))
-    output-list))
+(defun holiday-easter-etc (&optional n string)
+  "Date of Nth day after Easter (named STRING), if visible in calendar window.
+Negative values of N are interpreted as days before Easter.
+STRING is used purely for display purposes.  The return value has
+the form ((MONTH DAY YEAR) STRING), where the date is that of the
+Nth day before or after Easter.
+
+For backwards compatability, if this function is called with no
+arguments, then it returns a list of \"standard\" Easter-related
+holidays (with more entries if `all-christian-calendar-holidays'
+is non-nil)."
+  ;; Backwards compatability layer.
+  (if (not n)
+      (let (res-list res)
+        (dolist (elem (append
+                       (if all-christian-calendar-holidays
+                           '((-63 . "Septuagesima Sunday")
+                             (-56 . "Sexagesima Sunday")
+                             (-49 . "Shrove Sunday")
+                             (-48 . "Shrove Monday")
+                             (-47 . "Shrove Tuesday")
+                             (-14 . "Passion Sunday")
+                             (-7 . "Palm Sunday")
+                             (-3 . "Maundy Thursday")
+                             (35 . "Rogation Sunday")
+                             (39 . "Ascension Day")
+                             (49 . "Pentecost (Whitsunday)")
+                             (50 . "Whitmonday")
+                             (56 . "Trinity Sunday")
+                             (60 . "Corpus Christi")))
+                       '((0 . "Easter Sunday")
+                         (-2 . "Good Friday")
+                         (-46 . "Ash Wednesday")))
+                      res-list)
+          ;; Filter out nil (not visible) values.
+          (if (setq res (holiday-easter-etc (car elem) (cdr elem)))
+              (setq res-list (append res res-list)))))
+    (let* ((century (1+ (/ displayed-year 100)))
+           (shifted-epact ;; Age of moon for April 5...
+            (% (+ 14 (* 11 (% displayed-year 19)) ;;     ...by Nicaean rule
+                  (- ;; ...corrected for the Gregorian century rule
+                   (/ (* 3 century) 4))
+                  (/ ;; ...corrected for Metonic cycle inaccuracy.
+                   (+ 5 (* 8 century)) 25)
+                  (* 30 century)) ;;              Keeps value positive.
+               30))
+           (adjusted-epact ;;  Adjust for 29.5 day month.
+            (if (or (zerop shifted-epact)
+                    (and (= shifted-epact 1) (< 10 (% displayed-year 19))))
+                (1+ shifted-epact)
+              shifted-epact))
+           (paschal-moon ;; Day after the full moon on or after March 21.
+            (- (calendar-absolute-from-gregorian (list 4 19 displayed-year))
+               adjusted-epact))
+           (abs-easter (calendar-dayname-on-or-before 0 (+ paschal-moon 7))))
+      (filter-visible-calendar-holidays
+       (list (list (calendar-gregorian-from-absolute (+ abs-easter n))
+                   string))))))
 
 (defun holiday-greek-orthodox-easter ()
   "Date of Easter according to the rule of the Council of Nicaea."
