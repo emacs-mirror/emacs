@@ -5263,7 +5263,8 @@ For a symbol, its value is used (but it is ignored if t or nil).
  properties in any strings, as well as all :eval and :propertize forms 
  in the value of that symbol will be ignored.
 For a list of the form `(:eval FORM)', FORM is evaluated and the result
- is used as a mode line element.
+ is used as a mode line element.  Be careful--FORM should not load any files,
+ because that can cause an infinite recursion.
 For a list of the form `(:propertize ELT PROPS...)', ELT is displayed
  with the specified properties PROPS applied.
 For a list whose car is a symbol, the symbol's value is taken,
