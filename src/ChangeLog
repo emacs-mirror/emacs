@@ -1,3 +1,11 @@
+2000-12-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* window.c (struct saved_window): Add members orig_top and
+	orig_height.
+	(SAVED_WINDOW_VECTOR_SIZE): Increment to 16.
+	(save_window_save, Fset_window_configuration): Save/restore
+	window's orig_top and orig_height.
+
 2000-12-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (x_set_cursor_color): Fix last change.
