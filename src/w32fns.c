@@ -135,6 +135,9 @@ Lisp_Object Vx_bitmap_file_path;
 /* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
 Lisp_Object Vx_pixel_size_width_font_regexp;
 
+/* Alist of bdf fonts and the files that define them.  */
+Lisp_Object Vw32_bdf_filename_alist;
+
 /* A flag to control how to display unibyte 8-bit character.  */
 int unibyte_display_via_language_environment;
 
@@ -525,7 +528,7 @@ x_create_bitmap_from_file (f, file)
 
 /* Remove reference to bitmap with id number ID.  */
 
-int
+void
 x_destroy_bitmap (f, id)
      FRAME_PTR f;
      int id;
@@ -1948,6 +1951,23 @@ x_set_cursor_color (f, arg, oldval)
     }
 }
 
+/* Set the border-color of frame F to pixel value PIX.
+   Note that this does not fully take effect if done before
+   F has an window.  */
+void
+x_set_border_pixel (f, pix)
+     struct frame *f;
+     int pix;
+{
+  f->output_data.w32->border_pixel = pix;
+
+  if (FRAME_W32_WINDOW (f) != 0 && f->output_data.w32->border_width > 0)
+    {
+      if (FRAME_VISIBLE_P (f))
+        redraw_frame (f);
+    }
+}
+
 /* Set the border-color of frame F to value described by ARG.
    ARG can be a string naming a color.
    The border-color is used for the border that is drawn by the server.
@@ -1968,23 +1988,6 @@ x_set_border_color (f, arg, oldval)
   pix = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
 
   x_set_border_pixel (f, pix);
-}
-
-/* Set the border-color of frame F to pixel value PIX.
-   Note that this does not fully take effect if done before
-   F has an window.  */
-
-x_set_border_pixel (f, pix)
-     struct frame *f;
-     int pix;
-{
-  f->output_data.w32->border_pixel = pix;
-
-  if (FRAME_W32_WINDOW (f) != 0 && f->output_data.w32->border_width > 0)
-    {
-      if (FRAME_VISIBLE_P (f))
-        redraw_frame (f);
-    }
 }
 
 void
@@ -4918,21 +4921,17 @@ DEFUN ("w32-focus-frame", Fw32_focus_frame, Sw32_focus_frame, 1, 1, 0,
 }
 
 
-/* Load font named FONTNAME of size SIZE for frame F, and return a
-   pointer to the structure font_info while allocating it dynamically.
-   If loading fails, return NULL. */
+struct font_info *w32_load_bdf_font (struct frame *f, char *fontname,
+                                     int size, char* filename);
+
 struct font_info *
-w32_load_font (f,fontname,size)
+w32_load_system_font (f,fontname,size)
 struct frame *f;
 char * fontname;
 int size;
 {
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
   Lisp_Object font_names;
-
-#if 0   /* x_load_font attempts to get a list of fonts - presumably to
-           allow a fuzzier fontname to be specified. w32_list_fonts
-           appears to be a bit too fuzzy for this purpose. */
 
   /* Get a list of all the fonts that match this name.  Once we
      have a list of matching fonts, we compare them against the fonts
@@ -4943,7 +4942,6 @@ int size;
   {
       Lisp_Object tail;
       int i;
-
 #if 0 /* This code has nasty side effects that cause Emacs to crash.  */
 
       /* First check if any are already loaded, as that is cheaper
@@ -4956,16 +4954,21 @@ int size;
 			  XSTRING (XCONS (tail)->car)->data))
 	    return (dpyinfo->font_table + i);
 #endif
-
       fontname = (char *) XSTRING (XCONS (font_names)->car)->data;
     }
+  /* Because we need to support NT 3.x, we can't use EnumFontFamiliesEx
+     so if fonts of the same name are available with several
+     alternative character sets, the w32_list_fonts can fail to find a
+     match even if the font exists. Try loading it anyway.
+  */
+#if 0
   else
     return NULL;
 #endif
 
   /* Load the font and add it to the table. */
   {
-    char *full_name;
+    char *full_name, *encoding;
     XFontStruct *font;
     struct font_info *fontp;
     LOGFONT lf;
@@ -4984,7 +4987,8 @@ int size;
 
     font = (XFontStruct *) xmalloc (sizeof (XFontStruct));
 
-    if (!font) return (NULL);
+    /* Set bdf to NULL to indicate that this is a Windows font.  */
+    font->bdf = NULL;
 
     BLOCK_INPUT;
 
@@ -5065,13 +5069,20 @@ int size;
        uses this font.  So, we set informatoin in fontp->encoding[1]
        which is never used by any charset.  If mapping can't be
        decided, set FONT_ENCODING_NOT_DECIDED.  */
+
+    /* SJIS fonts need to be set to type 4, all others seem to work as
+       type FONT_ENCODING_NOT_DECIDED.  */
+    encoding = strrchr (fontp->name, '-');
+    if (encoding && stricmp (encoding+1, "sjis") == 0)
+        fontp->encoding[1] = 4;
+    else
     fontp->encoding[1] = FONT_ENCODING_NOT_DECIDED;
 
     /* The following three values are set to 0 under W32, which is
        what they get set to if XGetFontProperty fails under X.  */
     fontp->baseline_offset = 0;
     fontp->relative_compose = 0;
-    fontp->default_ascent = FONT_BASE (font);
+    fontp->default_ascent = 0;
 
     UNBLOCK_INPUT;
     dpyinfo->n_fonts++;
@@ -5080,6 +5091,41 @@ int size;
   }
 }
 
+/* Load font named FONTNAME of size SIZE for frame F, and return a
+   pointer to the structure font_info while allocating it dynamically.
+   If loading fails, return NULL. */
+struct font_info *
+w32_load_font (f,fontname,size)
+struct frame *f;
+char * fontname;
+int size;
+{
+  Lisp_Object bdf_fonts;
+  struct font_info *retval = NULL;
+
+  bdf_fonts = w32_list_bdf_fonts (build_string (fontname));
+
+  while (!retval && CONSP (bdf_fonts))
+    {
+      char *bdf_name, *bdf_file;
+      Lisp_Object bdf_pair;
+
+      bdf_name = XSTRING (XCONS (bdf_fonts)->car)->data;
+      bdf_pair = Fassoc (XCONS (bdf_fonts)->car, Vw32_bdf_filename_alist);
+      bdf_file = XSTRING (XCONS (bdf_pair)->cdr)->data;
+
+      retval = w32_load_bdf_font (f, bdf_name, size, bdf_file);
+
+      bdf_fonts = XCONS (bdf_fonts)->cdr;
+    }
+
+  if (retval)
+    return retval;
+
+  return w32_load_system_font(f, fontname, size);
+}
+
+
 void 
 w32_unload_font (dpyinfo, font)
      struct w32_display_info *dpyinfo;
@@ -5087,6 +5133,8 @@ w32_unload_font (dpyinfo, font)
 {
   if (font) 
     {
+      if (font->bdf) w32_free_bdf_font (font->bdf);
+
       if (font->hfont) DeleteObject(font->hfont);
       xfree (font);
     }
@@ -5212,12 +5260,12 @@ x_to_w32_charset (lpcs)
 
   if (stricmp (lpcs,"ansi") == 0)                return ANSI_CHARSET;
   else if (stricmp (lpcs,"iso8859-1") == 0)      return ANSI_CHARSET;
-  else if (stricmp (lpcs, "symbol") == 0)        return SYMBOL_CHARSET;
+  else if (stricmp (lpcs, "ms-symbol") == 0)     return SYMBOL_CHARSET;
   else if (stricmp (lpcs, "jis") == 0)           return SHIFTJIS_CHARSET;
-  else if (stricmp (lpcs, "ksc5601") == 0)       return HANGEUL_CHARSET;
+  else if (stricmp (lpcs, "ksc5601.1987") == 0)  return HANGEUL_CHARSET;
   else if (stricmp (lpcs, "gb2312") == 0)        return GB2312_CHARSET;
   else if (stricmp (lpcs, "big5") == 0)          return CHINESEBIG5_CHARSET;
-  else if (stricmp (lpcs, "oem") == 0)	         return OEM_CHARSET;
+  else if (stricmp (lpcs, "ms-oem") == 0)	 return OEM_CHARSET;
 
 #ifdef EASTEUROPE_CHARSET
   else if (stricmp (lpcs, "iso8859-2") == 0)     return EASTEUROPE_CHARSET;
@@ -5233,6 +5281,10 @@ x_to_w32_charset (lpcs)
   else if (stricmp (lpcs, "vscii") == 0)         return VIETNAMESE_CHARSET;
   else if (stricmp (lpcs, "tis620") == 0)        return THAI_CHARSET;
   else if (stricmp (lpcs, "mac") == 0)           return MAC_CHARSET;
+  else if (stricmp (lpcs, "ksc5601.1992") == 0)  return JOHAB_CHARSET;
+  /* For backwards compatibility with previous 20.4 pretests.  */
+  else if (stricmp (lpcs, "ksc5601") == 0)       return HANGEUL_CHARSET;
+  else if (stricmp (lpcs, "johab") == 0)         return JOHAB_CHARSET;
 #endif
 
 #ifdef UNICODE_CHARSET
@@ -5255,12 +5307,12 @@ w32_to_x_charset (fncharset)
       /* ansi is considered iso8859-1, as most modern ansi fonts are.  */
     case ANSI_CHARSET:        return "iso8859-1";
     case DEFAULT_CHARSET:     return "ascii-*";
-    case SYMBOL_CHARSET:      return "*-symbol";
+    case SYMBOL_CHARSET:      return "ms-symbol";
     case SHIFTJIS_CHARSET:    return "jisx0208-sjis";
-    case HANGEUL_CHARSET:     return "ksc5601-*";
+    case HANGEUL_CHARSET:     return "ksc5601.1987-*";
     case GB2312_CHARSET:      return "gb2312-*";
     case CHINESEBIG5_CHARSET: return "big5-*";
-    case OEM_CHARSET:         return "*-oem";
+    case OEM_CHARSET:         return "ms-oem";
 
       /* More recent versions of Windows (95 and NT4.0) define more
          character sets.  */
@@ -5268,15 +5320,21 @@ w32_to_x_charset (fncharset)
     case EASTEUROPE_CHARSET: return "iso8859-2";
     case TURKISH_CHARSET:    return "iso8859-9";
     case BALTIC_CHARSET:     return "iso8859-4";
-    case RUSSIAN_CHARSET:    return "koi8-r";
+
+      /* W95 with international support but not IE4 often has the
+         KOI8-R codepage but not ISO8859-5.  */
+    case RUSSIAN_CHARSET:
+      if (!IsValidCodePage(28595) && IsValidCodePage(20886))
+        return "koi8-r";
+      else
+        return "iso8859-5";
     case ARABIC_CHARSET:     return "iso8859-6";
     case GREEK_CHARSET:      return "iso8859-7";
     case HEBREW_CHARSET:     return "iso8859-8";
     case VIETNAMESE_CHARSET: return "viscii1.1-*";
     case THAI_CHARSET:       return "tis620-*";
-    case MAC_CHARSET:        return "*-mac";
-      /* Johab is Korean, but Hangeul is the standard - what is this? */
-    case JOHAB_CHARSET:      return "*-johab";
+    case MAC_CHARSET:        return "mac-*";
+    case JOHAB_CHARSET:      return "ksc5601.1992-*";
 
 #endif
 
@@ -5300,6 +5358,8 @@ w32_to_x_font (lplogfont, lpxstr, len)
   char height_dpi[8];
   char width_pixels[8];
   char *fontname_dash;
+  int display_resy = one_w32_display_info.height_in;
+  int display_resx = one_w32_display_info.width_in;
 
   if (!lpxstr) abort ();
 
@@ -5319,7 +5379,7 @@ w32_to_x_font (lplogfont, lpxstr, len)
     {
       sprintf (height_pixels, "%u", abs (lplogfont->lfHeight));
       sprintf (height_dpi, "%u",
-	       (abs (lplogfont->lfHeight) * 720) / one_w32_display_info.height_in);
+	       abs (lplogfont->lfHeight) * 720 / display_resy);
     }
   else
     {
@@ -5332,7 +5392,7 @@ w32_to_x_font (lplogfont, lpxstr, len)
     strcpy (width_pixels, "*");
 
   _snprintf (lpxstr, len - 1,
-	     "-*-%s-%s-%c-*-*-%s-%s-*-*-%c-%s-%s",
+	     "-*-%s-%s-%c-*-*-%s-%s-%d-%d-%c-%s-%s",
                                                      /* foundry */
 	     fontname,                               /* family */
 	     w32_to_x_weight (lplogfont->lfWeight),  /* weight */
@@ -5341,8 +5401,8 @@ w32_to_x_font (lplogfont, lpxstr, len)
                                                      /* add style name */
 	     height_pixels,                          /* pixel size */
 	     height_dpi,                             /* point size */
-                                                     /* resx */
-                                                     /* resy */
+             display_resx,                           /* resx */
+             display_resy,                           /* resy */
 	     ((lplogfont->lfPitchAndFamily & 0x3) == VARIABLE_PITCH)
              ? 'p' : 'c',                            /* spacing */
 	     width_pixels,                           /* avg width */
@@ -5390,14 +5450,15 @@ x_to_w32_font (lpxstr, lplogfont)
   
   if (*lpxstr == '-')
     {
-      int fields;
-      char name[50], weight[20], slant, pitch, pixels[10], height[10], width[10], remainder[20];
+      int fields, tem;
+      char name[50], weight[20], slant, pitch, pixels[10], height[10],
+        width[10], resy[10], remainder[20];
       char * encoding;
+      int dpi = one_w32_display_info.height_in;
 
       fields = sscanf (lpxstr,
-		       "-%*[^-]-%49[^-]-%19[^-]-%c-%*[^-]-%*[^-]-%9[^-]-%9[^-]-%*[^-]-%*[^-]-%c-%9[^-]-%19s",
-		       name, weight, &slant, pixels, height, &pitch, width, remainder);
-
+		       "-%*[^-]-%49[^-]-%19[^-]-%c-%*[^-]-%*[^-]-%9[^-]-%9[^-]-%*[^-]-%9[^-]-%c-%9[^-]-%19s",
+		       name, weight, &slant, pixels, height, resy, &pitch, width, remainder);
       if (fields == EOF) return (FALSE);
 
       if (fields > 0 && name[0] != '*')
@@ -5425,13 +5486,17 @@ x_to_w32_font (lpxstr, lplogfont)
 	lplogfont->lfHeight = atoi (pixels);
 
       fields--;
-
-      if (fields > 0 && lplogfont->lfHeight == 0 && height[0] != '*')
-	lplogfont->lfHeight = (atoi (height)
-			       * one_w32_display_info.height_in) / 720;
-
       fields--;
+      if (fields > 0 && resy[0] != '*')
+        {
+          tem = atoi (pixels);
+          if (tem > 0) dpi = tem;
+        }
 
+      if (fields > -1 && lplogfont->lfHeight == 0 && height[0] != '*')
+	lplogfont->lfHeight = atoi (height) * dpi / 720;
+
+      if (fields > 0)
       lplogfont->lfPitchAndFamily =
 	(fields > 0 && pitch == 'p') ? VARIABLE_PITCH : FIXED_PITCH;
 
@@ -5501,8 +5566,8 @@ w32_font_match (lpszfont1, lpszfont2)
     char * lpszfont1;
     char * lpszfont2;
 {
-  char * s1 = lpszfont1, *e1;
-  char * s2 = lpszfont2, *e2;
+  char * s1 = lpszfont1, *e1, *w1;
+  char * s2 = lpszfont2, *e2, *w2;
   
   if (s1 == NULL || s2 == NULL) return (FALSE);
   
@@ -5511,19 +5576,37 @@ w32_font_match (lpszfont1, lpszfont2)
   
   while (1) 
     {
-      int len1, len2;
+      int len1, len2, len3=0;
 
       e1 = strchr (s1, '-');
       e2 = strchr (s2, '-');
+      w1 = strchr (s1, '*');
+      w2 = strchr (s2, '*');
 
-      if (e1 == NULL || e2 == NULL) return (TRUE);
-
+      if (e1 == NULL)
+        len1 = strlen (s1);
+      else
       len1 = e1 - s1;
+      if (e2 == NULL)
+        len2 = strlen (s1);
+      else
       len2 = e2 - s2;
 
-      if (*s1 != '*' && *s2 != '*'
-	  && (len1 != len2 || strnicmp (s1, s2, len1) != 0))
+      if (w1 && w1 < e1)
+        len3 = w1 - s1;
+      if (w2 && w2 < e2 && ( len3 == 0 || (w2 - s2) < len3))
+        len3 = w2 - s2;
+
+      /* Whole field is not a wildcard, and ...*/
+      if (*s1 != '*' && *s2 != '*' && *s1 != '-' && *s2 != '-'
+          /* Lengths are different and there are no wildcards, or ... */
+	  && ((len1 != len2 && len3 == 0) ||
+              /* strings don't match up until first wildcard or end.  */
+              strnicmp (s1, s2, len3 > 0 ? len3 : len1) != 0))
 	return (FALSE);
+
+      if (e1 == NULL || e2 == NULL)
+        return (TRUE);
 
       s1 = e1 + 1;
       s2 = e2 + 1;
@@ -5537,7 +5620,6 @@ typedef struct enumfont_t
   LOGFONT logfont;
   XFontStruct *size_ref;
   Lisp_Object *pattern;
-  Lisp_Object *head;
   Lisp_Object *tail;
 } enumfont_t;
 
@@ -5573,9 +5655,11 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
     if (FontType == RASTER_FONTTYPE)
         width = make_number (lptm->tmMaxCharWidth);
 
-    if (!w32_to_x_font (lplf, buf, 100)) return (0);
+    if (!w32_to_x_font (&(lplf->elfLogFont), buf, 100))
+      return (0);
 
-    if (NILP (*(lpef->pattern)) || w32_font_match (buf, XSTRING (*(lpef->pattern))->data))
+    if (NILP (*(lpef->pattern)) ||
+        w32_font_match (buf, XSTRING (*(lpef->pattern))->data))
       {
 	*lpef->tail = Fcons (Fcons (build_string (buf), width), Qnil);
 	lpef->tail = &(XCONS (*lpef->tail)->cdr);
@@ -5603,6 +5687,31 @@ enum_font_cb1 (lplf, lptm, FontType, lpef)
 /* Interface to fontset handler. (adapted from mw32font.c in Meadow
    and xterm.c in Emacs 20.3) */
 
+Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern)
+{
+  char *fontname, *ptnstr;
+  Lisp_Object list, tem, newlist = Qnil;
+
+  list = Vw32_bdf_filename_alist;
+  ptnstr = XSTRING (pattern)->data;
+
+  for ( ; CONSP (list); list = XCONS (list)->cdr)
+    {
+      tem = XCONS (list)->car;
+      if (CONSP (tem))
+        fontname = XSTRING (XCONS (tem)->car)->data;
+      else if (STRINGP (tem))
+        fontname = XSTRING (tem)->data;
+      else
+        continue;
+
+      if (w32_font_match (fontname, ptnstr))
+        newlist = Fcons (XCONS (tem)->car, newlist);
+    }
+
+  return newlist;
+}
+
 /* Return a list of names of available fonts matching PATTERN on frame
    F.  If SIZE is not 0, it is the size (maximum bound width) of fonts
    to be listed.  Frame F NULL means we have not yet created any
@@ -5613,26 +5722,9 @@ enum_font_cb1 (lplf, lptm, FontType, lpef)
 Lisp_Object
 w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
 {
-  Lisp_Object patterns, key, tem;
+  Lisp_Object patterns, key, tem, tpat;
   Lisp_Object list = Qnil, newlist = Qnil, second_best = Qnil;
-
-  /* If we don't have a frame, we can't use the Windows API to list
-     fonts, as it requires a device context for the Window.  This will
-     only happen during startup if the user specifies a font on the
-     command line.  Print a message on stderr and return nil.  */
-  if (!f)
-    {
-      char buffer[256];
-
-      sprintf (buffer, 
-	       "Emacs cannot get a list of fonts before the initial frame "
-	       "is created.\nThe font specified on the command line may not "
-	       "be found.\n");
-      MessageBox (NULL, buffer, "Emacs Warning Dialog",
-		  MB_OK | MB_ICONEXCLAMATION | MB_TASKMODAL);
-      return Qnil;
-    }
-
+  struct w32_display_info *dpyinfo = &one_w32_display_info;
 
   patterns = Fassoc (pattern, Valternate_fontname_alist);
   if (NILP (patterns))
@@ -5642,15 +5734,14 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
     {
       enumfont_t ef;
 
-      pattern = XCONS (patterns)->car;
+      tpat = XCONS (patterns)->car;
 
       /* See if we cached the result for this particular query.
          The cache is an alist of the form:
            ((PATTERN (FONTNAME . WIDTH) ...) ...)
       */
-      if ( f &&
-           (tem = XCONS (FRAME_W32_DISPLAY_INFO (f)->name_list_element)->cdr,
-            !NILP (list = Fassoc (pattern, tem))))
+      if (tem = XCONS (dpyinfo->name_list_element)->cdr,
+          !NILP (list = Fassoc (tpat, tem)))
         {
           list = Fcdr_safe (list);
           /* We have a cached list. Don't have to get the list again.  */
@@ -5660,28 +5751,28 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
       BLOCK_INPUT;
       /* At first, put PATTERN in the cache.  */
       list = Qnil;
-      ef.pattern = &pattern;
-      ef.tail = ef.head = &list;
+      ef.pattern = &tpat;
+      ef.tail = &list;
       ef.numFonts = 0;
-      x_to_w32_font (STRINGP (pattern) ? XSTRING (pattern)->data :
+
+      x_to_w32_font (STRINGP (tpat) ? XSTRING (tpat)->data :
                      NULL, &ef.logfont);
       {
-        ef.hdc = GetDC (FRAME_W32_WINDOW (f));
+        ef.hdc = GetDC (dpyinfo->root_window);
 
         EnumFontFamilies (ef.hdc, NULL, (FONTENUMPROC) enum_font_cb1,
                           (LPARAM)&ef);
 
-        ReleaseDC (FRAME_W32_WINDOW (f), ef.hdc);
+        ReleaseDC (dpyinfo->root_window, ef.hdc);
       }
 
       UNBLOCK_INPUT;
 
       /* Make a list of the fonts we got back.
          Store that in the font cache for the display. */
-      if (f != NULL)
-        XCONS (FRAME_W32_DISPLAY_INFO (f)->name_list_element)->cdr
-          = Fcons (Fcons (pattern, list),
-                   XCONS (FRAME_W32_DISPLAY_INFO (f)->name_list_element)->cdr);
+      XCONS (dpyinfo->name_list_element)->cdr
+        = Fcons (Fcons (tpat, list),
+                 XCONS (dpyinfo->name_list_element)->cdr);
 
     label_cached:
       if (NILP (list)) continue; /* Try the remaining alternatives.  */
@@ -5707,8 +5798,6 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
             {
               /* Since we don't yet know the size of the font, we must
                  load it and try GetTextMetrics.  */
-              struct w32_display_info *dpyinfo
-                = FRAME_W32_DISPLAY_INFO (f);
               W32FontStruct thisinfo;
               LOGFONT lf;
               HDC hdc;
@@ -5718,6 +5807,7 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
                 continue;
 
               BLOCK_INPUT;
+              thisinfo.bdf = NULL;
               thisinfo.hfont = CreateFontIndirect (&lf);
               if (thisinfo.hfont == NULL)
                 continue;
@@ -5767,6 +5857,14 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
           break;
         }
     }
+
+  /* Include any bdf fonts.  */
+  {
+    Lisp_Object combined[2];
+    combined[0] = w32_list_bdf_fonts (pattern);
+    combined[1] = newlist;
+    newlist = Fnconc(2, combined);
+  }
 
   return newlist;
 }
@@ -5947,7 +6045,7 @@ fonts to match.  The first MAXIMUM fonts are reported.")
 
   namelist = Qnil;
   ef.pattern = &pattern;
-  ef.tail = ef.head = &namelist;
+  ef.tail &namelist;
   ef.numFonts = 0;
   x_to_w32_font (STRINGP (pattern) ? XSTRING (pattern)->data : NULL, &ef.logfont);
 
@@ -6008,6 +6106,56 @@ fonts to match.  The first MAXIMUM fonts are reported.")
   return list;
 }
 #endif
+
+DEFUN ("w32-find-bdf-fonts", Fw32_find_bdf_fonts, Sw32_find_bdf_fonts,
+       1, 1, 0,
+       "Return a list of BDF fonts in DIR, suitable for appending to\n\
+w32-bdf-filename-alist.  Fonts which do not contain an xfld description\n\
+will not be included in the list. DIR may be a list of directories.")
+     (directory)
+     Lisp_Object directory;
+{
+  Lisp_Object list = Qnil;
+  struct gcpro gcpro1, gcpro2;
+
+  if (!CONSP (directory))
+    return w32_find_bdf_fonts_in_dir (directory);
+
+  for ( ; CONSP (directory); directory = XCONS (directory)->cdr)
+    {
+      Lisp_Object pair[2];
+      pair[0] = list;
+      pair[1] = Qnil;
+      GCPRO2 (directory, list);
+      pair[1] = w32_find_bdf_fonts_in_dir( XCONS (directory)->car );
+      list = Fnconc( 2, pair );
+      UNGCPRO;
+    }
+  return list;
+}
+
+/* Find BDF files in a specified directory.  (use GCPRO when calling,
+   as this calls lisp to get a directory listing).  */
+Lisp_Object w32_find_bdf_fonts_in_dir( Lisp_Object directory )
+{
+  Lisp_Object filelist, list = Qnil;
+  char fontname[100];
+
+  if (!STRINGP(directory))
+    return Qnil;
+
+  filelist = Fdirectory_files (directory, Qt,
+                              build_string (".*\\.[bB][dD][fF]"), Qt);
+
+  for ( ; CONSP(filelist); filelist = XCONS (filelist)->cdr)
+    {
+      Lisp_Object filename = XCONS (filelist)->car;
+      if (w32_BDF_to_x_font (XSTRING (filename)->data, fontname, 100))
+          store_in_alist (&list, build_string (fontname), filename);
+    }
+  return list;
+}
+
 
 DEFUN ("x-color-defined-p", Fx_color_defined_p, Sx_color_defined_p, 1, 2, 0,
        "Return non-nil if color COLOR is supported on frame FRAME.\n\
@@ -7063,6 +7211,11 @@ according to the current language environment.  As a result, they are\n\
 displayed according to the current fontset.");
   unibyte_display_via_language_environment = 0;
 
+  DEFVAR_LISP ("w32-bdf-filename-alist",
+               &Vw32_bdf_filename_alist,
+               "List of bdf fonts and their corresponding filenames.");
+  Vw32_bdf_filename_alist = Qnil;
+
   defsubr (&Sx_get_resource);
   defsubr (&Sx_list_fonts);
   defsubr (&Sx_display_color_p);
@@ -7102,6 +7255,7 @@ displayed according to the current fontset.");
   defsubr (&Sw32_registered_hot_keys);
   defsubr (&Sw32_reconstruct_hot_key);
   defsubr (&Sw32_toggle_lock_key);
+  defsubr (&Sw32_find_bdf_fonts);
 
   /* Setting callback functions for fontset handler.  */
   get_font_info_func = w32_get_font_info;
