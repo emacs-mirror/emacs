@@ -1,3 +1,7 @@
+2001-11-15  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el: Documentation fixes.
+
 2001-11-14  Colin Walters  <walters@verbum.org>
 
 	* calc/calc-alg.el (calcFunc-esimplify, calcFunc-simplify)
@@ -1089,7 +1093,7 @@
 2001-10-22  Andre Spiegel  <spiegel@gnu.org>
 
 	Add autoscaling support for vc-annotate.
-	From J.D. Smith <jdsmith@astro.cornell.edu>.
+	From J.D. Smith <jdsmith@alum.mit.edu>.
 
 	* vc.el (vc-annotate-display-default): Accept colormap scaling
 	ratio (now deprecated).
