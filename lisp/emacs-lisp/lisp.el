@@ -97,8 +97,7 @@ Negative arg -N means move forward across N groups of parentheses."
 (defun down-list (&optional arg)
   "Move forward down one level of parentheses.
 With ARG, do this that many times.
-A negative argument means move backward but still go down a level.
-In Lisp programs, an argument is required."
+A negative argument means move backward but still go down a level."
   (interactive "p")
   (or arg (setq arg 1))
   (let ((inc (if (> arg 0) 1 -1)))
@@ -109,16 +108,14 @@ In Lisp programs, an argument is required."
 (defun backward-up-list (&optional arg)
   "Move backward out of one level of parentheses.
 With ARG, do this that many times.
-A negative argument means move forward but still to a less deep spot.
-In Lisp programs, an argument is required."
+A negative argument means move forward but still to a less deep spot."
   (interactive "p")
   (up-list (- (or arg 1))))
 
 (defun up-list (&optional arg)
   "Move forward out of one level of parentheses.
 With ARG, do this that many times.
-A negative argument means move backward but still to a less deep spot.
-In Lisp programs, an argument is required."
+A negative argument means move backward but still to a less deep spot."
   (interactive "p")
   (or arg (setq arg 1))
   (let ((inc (if (> arg 0) 1 -1)))
