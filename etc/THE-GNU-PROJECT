@@ -1,14 +1,3 @@
-Copyright (C) 1998 Richard Stallman
-
-   Permission is granted to anyone to make or distribute verbatim copies
-of this document, in any medium, provided that the copyright notice and
-permission notice are preserved, and that the distributor grants the
-recipient permission for further redistribution as permitted by this
-notice.
-
-   Modified versions may not be made.
-
-
   The GNU Project
 
    by Richard Stallman
@@ -907,3 +896,8 @@ notice.
    and now Microsoft has explicitly targeted our community.  We can't take
    the future of freedom for granted.  Don't take it for granted! If you
    want to keep your freedom, you must be prepared to defend it.
+
+  Copyright (C) 1998 Richard Stallman
+
+  Verbatim copying and distribution of this entire article is permitted
+  in any medium, provided this notice is preserved.
