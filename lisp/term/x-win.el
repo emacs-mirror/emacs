@@ -473,7 +473,6 @@ turn off scroll bars; otherwise, turn on scroll bars."
 ;;; Also, set the value of X cut buffer 0, for backward compatibility
 ;;; with older X application.
 (defun x-select-text (text)
-  (x-own-selection text 'cut-buffer0)
   (x-own-selection text 'clipboard)
   (x-own-selection text)
   (setq x-last-selected-text text))
@@ -482,9 +481,9 @@ turn off scroll bars; otherwise, turn on scroll bars."
 ;;; with older X applications, this checks cut buffer 0 before
 ;;; retrieving the value of the primary selection.
 (defun x-cut-buffer-or-selection-value ()
-  (let ((text (or (x-selection-value 'cut-buffer0)
-		  (x-selection-value))))
-    (if (string= text x-last-selected-text)
+  (let ((text (or (x-selection-value))))
+    (if (or (string= text x-last-selected-text)
+	    (string= ""))
 	nil
       (setq x-last-selected-text nil)
       text)))
