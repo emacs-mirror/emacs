@@ -65,20 +65,29 @@
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defvar imenu-use-markers t
+  "*Non-nil means use markers instead of integers for Imenu buffer positions.
+Setting this to nil makes Imenu work faster.
+
+This might not yet be honored by all index-building functions.")
+
+(defvar imenu-max-item-length 60
+  "*If a number, truncate Imenu entries to that length.")
+
 (defvar imenu-auto-rescan nil
   "*Non-nil means Imenu should always rescan the buffers.")
 
 (defvar imenu-auto-rescan-maxout 60000 
-  "* auto-rescan is disabled in buffers larger than this.
+  "*Imenu auto-rescan is disabled in buffers larger than this size.
 This variable is buffer-local.")
 
 (defvar imenu-always-use-completion-buffer-p nil
   "*Set this to non-nil for displaying the index in a completion buffer.
 
-Non-nil means always display the index in a completion buffer.
-Nil means display the index as a mouse menu when the mouse was
-used to invoke `imenu'.
-`never' means never automatically display a listing of any kind.")
+`never' means never automatically display a listing of any kind.
+A value of nil (the default) means display the index as a mouse menu
+if the mouse was used to invoke `imenu'.
+Another non-nil value means always display the index in a completion buffer.")
 
 (defvar imenu-sort-function nil
   "*The function to use for sorting the index mouse-menu.
@@ -96,7 +105,7 @@ element should come before the second.  The arguments are cons cells;
 \(NAME . POSITION).  Look at `imenu--sort-by-name' for an example.")
 
 (defvar imenu-max-items 25
-  "*Maximum number of elements in an mouse menu for Imenu.")
+  "*Maximum number of elements in a mouse menu for Imenu.")
 
 (defvar imenu-scanning-message "Scanning buffer for index (%3d%%)"
   "*Progress message during the index scanning of the buffer.
@@ -232,12 +241,11 @@ The function in this variable is called when selecting a normal index-item.")
 (defun imenu-example--name-and-position ()
   (save-excursion
     (forward-sexp -1)
-    (let ((beg (point))
-	  (end (progn (forward-sexp) (point)))
-	  (marker (make-marker)))
-      (set-marker marker beg)
+    ;; [ydi] modified for imenu-use-markers
+    (let ((beg (if imenu-use-markers (point-marker) (point)))
+	  (end (progn (forward-sexp) (point))))
       (cons (buffer-substring beg end)
-	    marker))))
+	    beg))))
 
 ;;;
 ;;; Lisp
@@ -453,6 +461,21 @@ The function in this variable is called when selecting a normal index-item.")
 			elt)))
 	  alist))
 
+;;; Truncate all strings in MENULIST to imenu-max-item-length
+(defun imenu--truncate-items (menulist)
+  (mapcar (function
+	   (lambda (item)
+	     (cond
+	      ((consp (cdr item))
+	       (imenu--truncate-items (cdr item)))
+	      (t
+	       ;; truncate if necessary
+	       (if (and (numberp imenu-max-item-length)
+			(> (length (car item)) imenu-max-item-length))
+		   (setcar item (substring (car item) 0 imenu-max-item-length)))))))
+	  menulist))
+
+
 (defun imenu--make-index-alist (&optional noerror)
   "Create an index-alist for the definitions in the current buffer.
 
@@ -468,12 +491,14 @@ as a way for the user to ask to recalculate the buffer's index alist."
 	   (or (not imenu-auto-rescan)
 	       (and imenu-auto-rescan
 		    (> (buffer-size)  imenu-auto-rescan-maxout))))
-      ;; Get the index
-      (setq imenu--index-alist
-	    (save-excursion
-	      (save-restriction
-		(widen)
-		(funcall imenu-create-index-function)))))
+      ;; Get the index; truncate if necessary
+      (progn
+	(setq imenu--index-alist
+	      (save-excursion
+		(save-restriction
+		  (widen)
+		  (funcall imenu-create-index-function))))
+	(imenu--truncate-items imenu--index-alist)))
   (or imenu--index-alist noerror
       (error "No items suitable for an index found in this buffer"))
   (or imenu--index-alist
@@ -577,14 +602,16 @@ Their results are gathered into an index alist."
 	     (save-excursion
 	       (setq name (funcall imenu-extract-index-name-function)))
 	     (and (stringp name)
-		  (push (cons name (point)) index-alist)))
+ 		  ;; [ydi] updated for imenu-use-markers
+		  (push (cons name (if imenu-use-markers (point-marker) (point)))
+			index-alist)))
 	   (imenu-progress-message prev-pos 100 t)
 	   index-alist))
 	;; Use generic expression if possible.
 	((and imenu-generic-expression)
 	 (imenu--generic-function imenu-generic-expression)) 
 	(t
-	 (error "The mode `%s' does not support Imenu" mode-name))))
+	 (error "This buffer cannot use `imenu-default-create-index-function'"))))
 
 (defun imenu--replace-spaces (name replacement)
   ;; Replace all spaces in NAME with REPLACEMENT.
@@ -683,13 +710,15 @@ pattern.
 		    (rest (cddddr pat)))
 		(if (and (not found) ; Only allow one entry;
 			 (looking-at regexp))
-		    (let ((beg (make-marker))
+		    (let ((beg (match-beginning index))
 			  (end (match-end index)))
-		      (set-marker beg (match-beginning index))
 		      (setq found t)
 		      (push 
 		       (let ((name
 			      (buffer-substring-no-properties beg end)))
+			 ;; [ydi] updated for imenu-use-markers
+			 (if imenu-use-markers
+			     (setq beg (set-marker (make-marker) beg)))
 			 (if function
 			     (nconc (list name beg function)
 				    rest)
@@ -890,30 +919,15 @@ See the command `imenu' for more information."
     (imenu item)))
 
 (defun imenu-default-goto-function (name position &optional rest)
-"This function is used for moving the point at POSITION. 
+  "This function is used for moving the point to POSITION. 
 The NAME and REST parameters are not used, they are here just to make
 this function have the same interface as a function placed in a special 
-index-item"
-  (cond 
-   ((markerp position)
-    (if (or (< (marker-position position) (point-min))
-	    (> (marker-position position) (point-max)))
+index-item."
+  (if (or (< position (point-min))
+	  (> position (point-max)))
       ;; widen if outside narrowing
       (widen))
-    (goto-char (marker-position position)))
-;;;   ;this never happens!
-;;;   ((imenu--subalist-p index-item)
-;;;    (if (or (< (cdr index-item) (point-min))
-;;;	    (> (cdr index-item) (point-max)))
-;;;	;; widen if outside narrowing
-;;;	(widen))
-;;;    (goto-char (cdr index-item)))
-   (t 
-    (if (or (< (cdr index-item) (point-min))
-	    (> (cdr index-item) (point-max)))
-	;; widen if outside narrowing
-	(widen))
-    (goto-char (cdr index-item)))))
+  (goto-char position))
 
 ;;;###autoload
 (defun imenu (index-item)
