@@ -70,7 +70,7 @@ DEFUN ("marker-position", Fmarker_position, Smarker_position, 1, 1, 0,
     }
   return Qnil;
 }
-
+
 DEFUN ("set-marker", Fset_marker, Sset_marker, 2, 3, 0,
   "Position MARKER before character number NUMBER in BUFFER.\n\
 BUFFER defaults to the current buffer.\n\
@@ -263,28 +263,54 @@ marker_position (marker)
 
   return i;
 }
-
-DEFUN ("copy-marker", Fcopy_marker, Scopy_marker, 1, 1, 0,
+
+DEFUN ("copy-marker", Fcopy_marker, Scopy_marker, 1, 2, 0,
   "Return a new marker pointing at the same place as MARKER.\n\
 If argument is a number, makes a new marker pointing\n\
-at that position in the current buffer.")
-  (marker)
-     register Lisp_Object marker;
+at that position in the current buffer.\n\
+The optional argument TYPE specifies the insertion type of the new marker;\n\
+see `marker-insertion-type'.")
+  (marker, type)
+     register Lisp_Object marker, type;
 {
   register Lisp_Object new;
 
-  while (1)
+  if (INTEGERP (marker) || MARKERP (marker))
     {
-      if (INTEGERP (marker) || MARKERP (marker))
-	{
-	  new = Fmake_marker ();
-	  Fset_marker (new, marker,
-		       (MARKERP (marker) ? Fmarker_buffer (marker) : Qnil));
-	  return new;
-	}
-      else
-	marker = wrong_type_argument (Qinteger_or_marker_p, marker);
+      new = Fmake_marker ();
+      Fset_marker (new, marker,
+		   (MARKERP (marker) ? Fmarker_buffer (marker) : Qnil));
+      XMARKER (new)->insertion_type = !NILP (type);
+      return new;
     }
+  else
+    marker = wrong_type_argument (Qinteger_or_marker_p, marker);
+}
+
+DEFUN ("marker-insertion-type", Fmarker_insertion_type,
+       Smarker_insertion_type, 1, 1, 0,
+  "Return insertion type of MARKER: t if it stays after inserted text.\n\
+nil means the marker stays before text inserted there.")
+  (marker)
+     register Lisp_Object marker;
+{
+  register Lisp_Object buf;
+  CHECK_MARKER (marker, 0);
+  return XMARKER (marker)->insertion_type ? Qt : Qnil;
+}
+
+DEFUN ("set-marker-insertion-type", Fset_marker_insertion_type,
+       Sset_marker_insertion_type, 2, 2, 0,
+  "Set the insertion-type of MARKER to TYPE.\n\
+If TYPE is t, it means the marker advances when you insert text at it.\n\
+If TYPE is t, it means the marker stays behind when you insert text at it.")
+  (marker, type)
+     Lisp_Object marker, type;
+{
+  CHECK_MARKER (marker, 0);
+
+  XMARKER (marker)->insertion_type = ! NILP (type);
+  return type;
 }
 
 syms_of_marker ()
@@ -293,4 +319,6 @@ syms_of_marker ()
   defsubr (&Smarker_buffer);
   defsubr (&Sset_marker);
   defsubr (&Scopy_marker);
+  defsubr (&Smarker_insertion_type);
+  defsubr (&Sset_marker_insertion_type);
 }
