@@ -209,7 +209,7 @@ http://strw.leidenuniv.nl/~dominik/Tools"
   "*String displayed on the modeline when flyspell is active.
 Set this to nil if you don't want a modeline indicator."
   :group 'flyspell
-  :type 'string)
+  :type '(choice string (const :tag "None" nil)))
 
 (defcustom flyspell-large-region 1000
   "*The threshold that determines if a region is small.
