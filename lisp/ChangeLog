@@ -1,3 +1,7 @@
+2003-06-06  Andreas Schwab  <schwab@suse.de>
+
+	* info.el (Info-select-node): Doc fix.
+
 2003-06-06  Miles Bader  <miles@gnu.org>
 
 	* frame.el (set-frame-font): Default to frame's current default font.
