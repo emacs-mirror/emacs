@@ -46,6 +46,9 @@ extern unsigned char *gray_bitmap_bits;
 
 /* Defined in xterm.c.  */
 extern int x_alloc_nearest_color_for_widget __P ((Widget, Colormap, XColor*));
+extern int x_alloc_lighter_color_for_widget __P ((Widget, Display*, Colormap,
+						  unsigned long *,
+						  double, int));
 extern int x_catch_errors __P ((Display*));
 extern int x_uncatch_errors __P ((Display*, int));
 extern int x_had_errors_p __P ((Display*));
@@ -1476,14 +1479,16 @@ make_shadow_gcs (mw)
       mw->menu.top_shadow_color == mw->menu.foreground)
     {
       topc.pixel = mw->core.background_pixel;
+#ifdef emacs
+      if (x_alloc_lighter_color_for_widget ((Widget) mw, dpy, cmap,
+					    &topc.pixel,
+					    1.2, 0x8000))
+#else
       XQueryColor (dpy, cmap, &topc);
       /* don't overflow/wrap! */
       topc.red   = MINL (65535, topc.red   * 1.2);
       topc.green = MINL (65535, topc.green * 1.2);
       topc.blue  = MINL (65535, topc.blue  * 1.2);
-#ifdef emacs
-      if (x_alloc_nearest_color_for_widget ((Widget) mw, cmap, &topc))
-#else
       if (XAllocColor (dpy, cmap, &topc))
 #endif
 	{
@@ -1496,13 +1501,15 @@ make_shadow_gcs (mw)
       mw->menu.bottom_shadow_color == mw->core.background_pixel)
     {
       botc.pixel = mw->core.background_pixel;
+#ifdef emacs
+      if (x_alloc_lighter_color_for_widget ((Widget) mw, dpy, cmap,
+					    &botc.pixel,
+					    0.6, 0x4000))
+#else
       XQueryColor (dpy, cmap, &botc);
       botc.red   *= 0.6;
       botc.green *= 0.6;
       botc.blue  *= 0.6;
-#ifdef emacs
-      if (x_alloc_nearest_color_for_widget ((Widget) mw, cmap, &botc))
-#else
       if (XAllocColor (dpy, cmap, &botc))
 #endif
 	{
@@ -1514,15 +1521,7 @@ make_shadow_gcs (mw)
 
   if (top_frobbed && bottom_frobbed)
     {
-      int top_avg = ((topc.red / 3) + (topc.green / 3) + (topc.blue / 3));
-      int bot_avg = ((botc.red / 3) + (botc.green / 3) + (botc.blue / 3));
-      if (bot_avg > top_avg)
-	{
-	  Pixel tmp = mw->menu.top_shadow_color;
-	  mw->menu.top_shadow_color = mw->menu.bottom_shadow_color;
-	  mw->menu.bottom_shadow_color = tmp;
-	}
-      else if (topc.pixel == botc.pixel)
+      if (topc.pixel == botc.pixel)
 	{
 	  if (botc.pixel == mw->menu.foreground)
 	    {
