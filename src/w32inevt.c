@@ -92,7 +92,7 @@ get_frame (void)
 
 /* Translate console modifiers to emacs modifiers.  
    German keyboard support (Kai Morgan Zeise 2/18/95).  */
-static int 
+int 
 win32_kbd_mods_to_emacs (DWORD mods)
 {
   int retval = 0;
@@ -121,7 +121,7 @@ win32_kbd_mods_to_emacs (DWORD mods)
 }
 
 /* The return code indicates key code size. */
-static int
+int
 win32_kbd_patch_key (KEY_EVENT_RECORD *event)
 {
   unsigned int key_code = event->wVirtualKeyCode;
@@ -138,11 +138,20 @@ win32_kbd_patch_key (KEY_EVENT_RECORD *event)
     }
   if (event->uChar.AsciiChar != 0) 
     return 1;
+
   memset (keystate, 0, sizeof (keystate));
   if (mods & SHIFT_PRESSED) 
     keystate[VK_SHIFT] = 0x80;
   if (mods & CAPSLOCK_ON) 
     keystate[VK_CAPITAL] = 1;
+  if ((mods & LEFT_CTRL_PRESSED) && (mods & RIGHT_ALT_PRESSED))
+    {
+      keystate[VK_CONTROL] = 0x80;
+      keystate[VK_LCONTROL] = 0x80;
+      keystate[VK_MENU] = 0x80;
+      keystate[VK_RMENU] = 0x80;
+    }
+
   isdead = ToAscii (event->wVirtualKeyCode, event->wVirtualScanCode,
 		    keystate, (LPWORD) ansi_code, 0);
   if (isdead == 0) 
@@ -275,7 +284,7 @@ static int map_virt_key[256] =
 
 /* return code -1 means that event_queue_ptr won't be incremented. 
    In other word, this event makes two key codes.   (by himi)       */
-static int 
+int 
 key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
 {
   int map;
@@ -349,7 +358,9 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
        * make_lispy_event () now requires non-ascii codes to have
        * the full X keysym values (2nd byte is 0xff).  add it on.
        */
+#ifndef HAVE_NTGUI
       map |= 0xff00;
+#endif
       XSETINT (emacs_ev->code, map);
     }
 /* for Mule 2.2 (Based on Emacs 19.28) */
