@@ -1310,6 +1310,7 @@ Emacs FAQ		Frequently asked questions and answers
 \(Non)Warranty		GNU Emacs comes with ABSOLUTELY NO WARRANTY
 Copying Conditions	Conditions for redistributing and changing Emacs.
 Getting New Versions	How to obtain the latest version of Emacs.
+Ordering Manuals	How to order manuals from the FSF.
 ")
 			       (insert "\n\n" (emacs-version)
 				       "
@@ -1326,14 +1327,16 @@ Copyright (C) 2000 Free Software Foundation, Inc.")))
 			     (insert "
 Get help	   C-h  (Hold down CTRL and press h)
 Undo changes	   C-x u       Exit Emacs		C-x C-c
-Get a tutorial	   C-h t       Use Info to read docs	C-h i")
+Get a tutorial	   C-h t       Use Info to read docs	C-h i
+Ordering manuals   C-h RET")
 			   (insert (substitute-command-keys
 				    (format "\n
 Get help	   %s
 Undo changes	   \\[advertised-undo]
 Exit Emacs	   \\[save-buffers-kill-emacs]
 Get a tutorial	   \\[help-with-tutorial]
-Use Info to read docs	\\[info]"
+Use Info to read docs	\\[info]
+Ordering manuals   \\[view-order-manuals]"
 					    (let ((where (where-is-internal
 							  'help-command nil t)))
 					      (if where
