@@ -5094,7 +5094,7 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
 	}
 
       x += FRAME_INTERNAL_BORDER_WIDTH (f);
-      last_x -= FRAME_INTERNAL_BORDER_WIDTH (f);
+      last_x += FRAME_INTERNAL_BORDER_WIDTH (f);
     }
   else
     {
