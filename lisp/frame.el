@@ -1099,7 +1099,7 @@ itself as a pre-command hook."
 (defcustom busy-cursor-delay-seconds 1
   "*Seconds to wait before displaying a busy-cursor."
   :tag "Busy-cursor delay"
-  :type 'integer
+  :type 'number
   :group 'cursor
   :get #'(lambda (symbol) busy-cursor-delay)
   :set #'(lambda (symbol value)
