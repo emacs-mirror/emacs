@@ -797,7 +797,10 @@ With argument, show all text."
       (if arg
 	  (subst-char-in-region (point) (point-max) ?\r ?\n t)
 	(while (save-excursion (re-search-forward "\n[^@]" (point-max) t))
-	  (save-excursion (replace-regexp "\n\\([^@]\\)" "\r\\1"))))
+	  ;; (save-excursion (replace-regexp "\n\\([^@]\\)" "\r\\1"))
+	  (save-excursion
+	    (while (re-search-forward "\n\\([^@]\\)" nil t)
+	      (replace-match "\r\\1" nil nil)))))
       (setq selective-display (not arg))
       (set-buffer-modified-p modifiedp))))
 
