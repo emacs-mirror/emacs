@@ -1822,6 +1822,15 @@ redisplay_window (window, just_this_one, preserve_echo_area)
   if (scroll_conservatively && !current_buffer->clip_changed
       && startp >= BEGV && startp <= ZV)
     {
+      int this_scroll_margin = scroll_margin;
+
+      /* Don't use a scroll margin that is negative or too large.  */
+      if (this_scroll_margin < 0)
+	this_scroll_margin = 0;
+
+      if (XINT (w->height) < 4 * scroll_margin)
+	this_scroll_margin = XINT (w->height) / 4;
+
       if (PT >= Z - XFASTINT (w->window_end_pos))
 	{
 	  struct position pos;
@@ -1832,7 +1841,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	  if (pos.vpos > scroll_conservatively)
 	    goto scroll_fail_1;
 
-	  pos = *vmotion (startp, pos.vpos + 1, w);
+	  pos = *vmotion (startp, pos.vpos + 1 + this_scroll_margin, w);
 
 	  if (! NILP (Vwindow_scroll_functions))
 	    {
@@ -1863,7 +1872,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	  if (pos.vpos >= scroll_conservatively)
 	    goto scroll_fail_1;
 
-	  pos = *vmotion (startp, - pos.vpos, w);
+	  pos = *vmotion (startp, - pos.vpos - this_scroll_margin, w);
 
 	  if (! NILP (Vwindow_scroll_functions))
 	    {
