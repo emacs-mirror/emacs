@@ -229,7 +229,7 @@ recognized according to the current value of the variable `glasses-separator'."
 	    (goto-char (match-end n))))
 	(when glasses-separate-parentheses-p
 	  (goto-char (point-min))
-	  (while (re-search-forward "[a-zA-Z]\\( \\)\(" nil t)
+	  (while (re-search-forward "[a-zA-Z]_*\\( \\)\(" nil t)
 	    (replace-match "" t nil nil 1))))))
   ;; nil must be returned to allow use in write file hooks
   nil)
