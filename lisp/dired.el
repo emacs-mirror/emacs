@@ -735,11 +735,13 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (while (< (point) end)
       (condition-case nil
 	  (if (dired-move-to-filename)
-	      (put-text-property (point)
-				 (save-excursion
-				   (dired-move-to-end-of-filename)
-				   (point))
-				 'mouse-face 'highlight))
+	      (add-text-properties
+	       (point)
+	       (save-excursion
+		 (dired-move-to-end-of-filename)
+		 (point))
+	       '(mouse-face 'highlight
+		 help-echo "mouse-2: visit this file in other window")))
 	(error nil))
       (forward-line 1))))
 
@@ -2161,7 +2163,7 @@ FILES is the list of marked files."
     (with-current-buffer (get-buffer-create bufname)
       (erase-buffer)
       (dired-format-columns-of-files files)
-      (remove-text-properties (point-min) (point-max) '(mouse-face)))
+      (remove-text-properties (point-min) (point-max) '(mouse-face help-echo)))
     (save-window-excursion
       (dired-pop-to-buffer bufname)
       (apply function args))))
