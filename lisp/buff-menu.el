@@ -77,6 +77,7 @@
   (define-key Buffer-menu-mode-map "m" 'Buffer-menu-mark)
   (define-key Buffer-menu-mode-map "t" 'Buffer-menu-visit-tags-table)
   (define-key Buffer-menu-mode-map "%" 'Buffer-menu-toggle-read-only)
+  (define-key Buffer-menu-mode-map [mouse-2] 'Buffer-menu-mouse-select)
 )
 
 ;; Buffer Menu mode is suitable only for specially formatted data.
@@ -87,16 +88,17 @@
 Each line describes one of the buffers in Emacs.
 Letters do not insert themselves; instead, they are commands.
 \\<Buffer-menu-mode-map>
-\\[Buffer-menu-mark] -- mark buffer to be displayed.
-\\[Buffer-menu-select] -- select buffer of line point is on.
-  Also show buffers marked with m in other windows.
+\\[Buffer-menu-mouse-select] -- select buffer you click on, in place of the buffer menu.
+\\[Buffer-menu-this-window] -- select current line's buffer in place of the buffer menu.
+\\[Buffer-menu-other-window] -- select that buffer in another window,
+  so the buffer menu buffer remains visible in its window.
+\\[Buffer-menu-switch-other-window] -- make another window display that buffer.
+\\[Buffer-menu-mark] -- mark current line's buffer to be displayed.
+\\[Buffer-menu-select] -- select current line's buffer.
+  Also show buffers marked with m, in other windows.
 \\[Buffer-menu-1-window] -- select that buffer in full-frame window.
 \\[Buffer-menu-2-window] -- select that buffer in one window,
   together with buffer selected before this one in another window.
-\\[Buffer-menu-this-window] -- select that buffer in place of the buffer menu buffer.
-\\[Buffer-menu-other-window] -- select that buffer in another window,
-  so the buffer menu buffer remains visible in its window.
-\\[Buffer-menu-switch-other-window] -- switch the other window to this buffer.
 \\[Buffer-menu-visit-tags-table] -- visit-tags-table this buffer.
 \\[Buffer-menu-not-modified] -- clear modified-flag on that buffer.
 \\[Buffer-menu-save] -- mark that buffer to be saved, and move down.
@@ -330,6 +332,18 @@ You can mark buffers with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] comma
   (switch-to-buffer (Buffer-menu-buffer t))
   (bury-buffer (other-buffer))
   (delete-other-windows))
+
+(defun Buffer-menu-mouse-select (event)
+  "Select the buffer whose line you click on."
+  (interactive "e")
+  (let (buffer)
+    (save-excursion
+      (set-buffer (window-buffer (posn-window (event-end event))))
+      (save-excursion
+	(goto-char (posn-point (event-end event)))
+	(setq buffer (Buffer-menu-buffer t))))
+    (select-window (posn-window (event-end event)))
+    (switch-to-buffer buffer)))
 
 (defun Buffer-menu-this-window ()
   "Select this line's buffer in this window."
