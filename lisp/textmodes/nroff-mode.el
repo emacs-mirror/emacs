@@ -61,6 +61,7 @@ closing requests for requests that are used in matched pairs."
   (set-syntax-table text-mode-syntax-table)
   (setq local-abbrev-table nroff-mode-abbrev-table)
   (make-local-variable 'nroff-electric-mode)
+  (setq nroff-electric-mode nil)
   ;; now define a bunch of variables for use by commands in this mode
   (make-local-variable 'page-delimiter)
   (setq page-delimiter "^\\.\\(bp\\|SK\\|OP\\)")
