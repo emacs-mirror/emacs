@@ -1,3 +1,21 @@
+2000-06-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/bytecomp.el:
+	* frame.el:
+	* international/mule-cmds.el:
+	* international/mule-util.el:
+	* international/mule.el:
+	* mouse.el:
+	* subr.el:
+	* faces.el: Update calls to make-obsolete with a WHEN argument.
+
+	* byte-run.el (make-obsolete, make-obsolete-variable):
+	Add an optional WHEN argument and change the format of the
+	symbol-property information. 
+	* emacs-lisp/bytecomp.el (byte-compile-log): Don't quote lambda.
+	(byte-compile-obsolete, byte-compile-variable-ref): Understand the
+	new obsolete-symbol-property format and print WHEN if it is provided.
+
 2000-05-31  Dave Love  <fx@gnu.org>
 
 	* loadhist.el (loadhist-hook-functions): Remove
