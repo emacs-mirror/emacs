@@ -100,7 +100,7 @@
 }ifelse
 %%EndProcSet
 
-gs_languagelevel 1 eq{ % operators for language level 2 only
+languagelevel 1 eq{ % operators for language level 2 only
  /<<{mark}bind def
  />>{counttomark 2 idiv dup dict begin{def}repeat pop currentdict end}bind def
  /setpagedevice{pop}bind def
@@ -109,10 +109,11 @@ gs_languagelevel 1 eq{ % operators for language level 2 only
 
 % device dependent operators
 
-/setduplexmode where{pop}
-{/setduplexmode /duplexmode where{pop/duplexmode}{/pop}ifelse load def}ifelse
+/DefOp{
+ dup where{pop pop pop}
+ {exch dup where{pop}{pop/pop}ifelse load def}ifelse}def
 
-/settumble where{pop}
-{/settumble /tumble where{pop/tumble}{/pop}ifelse load def}ifelse
+/duplexmode /setduplexmode DefOp
+/tumble /settumble DefOp
 
 % === END ps-print prologue 0
