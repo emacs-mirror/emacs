@@ -261,7 +261,7 @@ init_cmdargs (argc, argv, skip_args)
 	  tem = Ffile_symlink_p (name);
 	  if (!NILP (tem))
 	    {
-	      name = tem;
+	      name = Fexpand_file_name (tem, dir);
 	      dir = Ffile_name_directory (name);
 	    }
 	  else
