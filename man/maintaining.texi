@@ -141,7 +141,7 @@ source files under that directory for information about authors of
 individual packages and people who made changes in source files, and
 puts the information it gleans into a buffer named @samp{*Authors*}.
 You can then edit the contents of that buffer and merge it with the
-exisiting @file{AUTHORS} file.
+existing @file{AUTHORS} file.
 
   Do not assume that this command finds all the contributors; don't
 assume that a person not listed in the output was not a contributor.
