@@ -87,9 +87,7 @@ If scan reaches end of buffer, stop there without error."
   (interactive "P")
   (if arg (forward-line (1- (prefix-numeric-value arg))))
   (beginning-of-line)
-  (setq picture-desired-column 0)
-  ;; This call will go away when Emacs gets real horizontal autoscrolling
-  (hscroll-point-visible))
+  (setq picture-desired-column 0))
 
 (defun picture-end-of-line (&optional arg)
   "Position point after last non-blank character on current line.
@@ -99,9 +97,7 @@ If scan reaches end of buffer, stop there without error."
   (if arg (forward-line (1- (prefix-numeric-value arg))))
   (beginning-of-line)
   (skip-chars-backward " \t" (prog1 (point) (end-of-line)))
-  (setq picture-desired-column (current-column))
-  ;; This call will go away when Emacs gets real horizontal autoscrolling
-  (hscroll-point-visible))
+  (setq picture-desired-column (current-column)))
 
 (defun picture-forward-column (arg)
   "Move cursor right, making whitespace if necessary.
@@ -306,9 +302,7 @@ always moves to the beginning of a line."
     (while (> arg 0)
       (end-of-line)
       (if (eobp) (newline) (forward-char 1))
-      (setq arg (1- arg))))
-  ;; This call will go away when Emacs gets real horizontal autoscrolling
-  (hscroll-point-visible))
+      (setq arg (1- arg)))))
 
 (defun picture-open-line (arg)
   "Insert an empty line after the current line.
@@ -316,9 +310,7 @@ With positive argument insert that many lines."
   (interactive "p")
   (save-excursion
    (end-of-line)
-   (open-line arg))
-  ;; This call will go away when Emacs gets real horizontal autoscrolling
-  (hscroll-point-visible))
+   (open-line arg)))
 
 (defun picture-duplicate-line ()
   "Insert a duplicate of the current line, below it."
