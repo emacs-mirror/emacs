@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.323 2001/11/26 16:17:17 pj Exp $
+;; $Id: vc.el,v 1.324 2001/12/20 18:47:19 pj Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -365,6 +365,10 @@
 ;;   `revert' operations itself, without calling the backend system.  The
 ;;   default implementation always returns nil.
 ;;
+;; - previous-version (file rev)
+;;
+;;   Return the version number that precedes REV for FILE.
+;;
 ;; - check-headers ()
 ;;
 ;;   Return non-nil if the current buffer contains any version headers.
@@ -689,27 +693,32 @@ The keys are \(BUFFER . BACKEND\).  See also `vc-annotate-get-backend'.")
 
 (defun vc-branch-part (rev)
   "Return the branch part of a revision number REV."
-  (substring rev 0 (string-match "\\.[0-9]+\\'" rev)))
+  (let ((index (string-match "\\.[0-9]+\\'" rev)))
+    (if index
+        (substring rev 0 index))))
 
 (defun vc-minor-part (rev)
   "Return the minor version number of a revision number REV."
   (string-match "[0-9]+\\'" rev)
   (substring rev (match-beginning 0) (match-end 0)))
 
-(defun vc-previous-version (rev)
-  "Guess the version number immediately preceding REV."
+(defun vc-default-previous-version (backend file rev)
+  "Guess the version number immediately preceding REV for FILE.
+This default implementation works for <major>.<minor>-style version numbers
+as used by RCS and CVS."  
   (let ((branch (vc-branch-part rev))
         (minor-num (string-to-number (vc-minor-part rev))))
-    (if (> minor-num 1)
-        ;; version does probably not start a branch or release
-        (concat branch "." (number-to-string (1- minor-num)))
-      (if (vc-trunk-p rev)
-          ;; we are at the beginning of the trunk --
-          ;; don't know anything to return here
-          ""
-        ;; we are at the beginning of a branch --
-        ;; return version of starting point
-        (vc-branch-part branch)))))
+    (when branch
+      (if (> minor-num 1)
+          ;; version does probably not start a branch or release
+          (concat branch "." (number-to-string (1- minor-num)))
+        (if (vc-trunk-p rev)
+            ;; we are at the beginning of the trunk --
+            ;; don't know anything to return here
+            nil
+          ;; we are at the beginning of a branch --
+          ;; return version of starting point
+          (vc-branch-part branch))))))
 
 ;; File property caching
 
@@ -1510,9 +1519,16 @@ After check-out, runs the normal hook `vc-checkout-hook'."
     (if (not (yes-or-no-p (format "Steal the lock on %s from %s? "
 				  file-description owner)))
 	(error "Steal canceled"))
-    (compose-mail owner (format "Stolen lock on %s" file-description)
-		  nil nil nil nil
-		  (list (list 'vc-finish-steal file rev)))
+    (message "Stealing lock on %s..." file)
+    (with-vc-properties
+     file
+     (vc-call steal-lock file rev)
+     `((vc-state . edited)))
+    (vc-resynch-buffer file t t)
+    (message "Stealing lock on %s...done" file)
+    ;; Write mail after actually stealing, because if the stealing
+    ;; goes wrong, we don't want to send any mail.
+    (compose-mail owner (format "Stolen lock on %s" file-description))
     (setq default-directory (expand-file-name "~/"))
     (goto-char (point-max))
     (insert
@@ -1520,16 +1536,6 @@ After check-out, runs the normal hook `vc-checkout-hook'."
      (current-time-string)
      ".\n")
     (message "Please explain why you stole the lock.  Type C-c C-c when done.")))
-
-(defun vc-finish-steal (file version)
-  ;; This is called when the notification has been sent.
-  (message "Stealing lock on %s..." file)
-  (with-vc-properties
-   file
-   (vc-call steal-lock file version)
-   `((vc-state . edited)))
-  (vc-resynch-buffer file t t)
-  (message "Stealing lock on %s...done" file))
 
 (defun vc-checkin (file &optional rev comment initial-contents)
   "Check in FILE.
@@ -1771,7 +1777,8 @@ versions of all registered files in or below it."
        (setq rel1-default (vc-workfile-version file)))
       ;; if the file is not locked, use last and previous version as default
       (t
-       (setq rel1-default (vc-previous-version (vc-workfile-version file)))
+       (setq rel1-default (vc-call previous-version file 
+                                   (vc-workfile-version file)))
        (if (string= rel1-default "") (setq rel1-default nil))
        (setq rel2-default (vc-workfile-version file))))
      ;; construct argument list
