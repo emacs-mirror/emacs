@@ -195,13 +195,19 @@ a symbol as a valid THING."
 
 ;;  Filenames and URLs  www.com/foo%32bar
 
-(defvar thing-at-point-file-name-chars "~/A-Za-z0-9---_.${}#%,:"
+(defvar thing-at-point-file-name-chars "-~/[:alnum:]_.${}#%,:"
   "Characters allowable in filenames.")
 
 (put 'filename 'end-op    
-     (lambda () (skip-chars-forward thing-at-point-file-name-chars)))
+     (lambda ()
+       (re-search-forward (concat "\\=[" thing-at-point-file-name-chars "]*")
+			  nil t)))
 (put 'filename 'beginning-op
-     (lambda () (skip-chars-backward thing-at-point-file-name-chars)))
+     (lambda ()
+       (if (re-search-backward (concat "[^" thing-at-point-file-name-chars "]")
+			       nil t)
+	   (forward-char)
+	 (goto-char (point-min)))))
 
 (defvar thing-at-point-url-path-regexp
   "[^]\t\n \"'()<>[^`{}]*[^]\t\n \"'()<>[^`{}.,;]+"
