@@ -30,11 +30,10 @@
 	* progmodes/sh-script.el (sh-mode-map): Likewise.
 	* textmodes/picture.el (picture-substitute): Likewise.
 
-	* ielm.el (inferior-emacs-lisp-mode): Bind
-	comint-dynamic-complete-functions locally.
+	* ielm.el (inferior-emacs-lisp-mode):
+	Bind comint-dynamic-complete-functions locally.
 
-	* buff-menu.el (Buffer-menu-select): Fix for effect of header
-	line.
+	* buff-menu.el (Buffer-menu-select): Fix for effect of header line.
 
 2003-01-11  Andreas Schwab  <schwab@suse.de>
 
@@ -57,8 +56,7 @@
 
 2003-01-10  Dave Love  <fx@gnu.org>
 
-	* international/code-pages.el (cp-make-coding-system): Fix last
-	change.
+	* international/code-pages.el (cp-make-coding-system): Fix last change.
 
 2003-01-10  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
@@ -126,23 +124,22 @@
 
 2003-01-08  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* mail/undigest.el (unforward-rmail-message): Simplified.  No
-	functional change.
+	* mail/undigest.el (unforward-rmail-message): Simplified.
+	No functional change.
 
 2003-01-07  Markus Rost  <rost@math.ohio-state.edu>
 
 	* custom.el (custom-autoload, custom-variable-p): New functions.
 
-	* emacs-lisp/autoload.el (make-autoload): Generate
-	custom-autoload for autoloaded defcustoms.
+	* emacs-lisp/autoload.el (make-autoload):
+	Generate custom-autoload for autoloaded defcustoms.
 
 	* help-fns.el (describe-variable): Use custom-variable-p.
 
-	* simple.el (set-variable): Load deps of custom variables without
-	type.
+	* simple.el (set-variable): Load deps of custom variables without type.
 
-	* cus-edit.el (custom-variable-prompt): Doc change. Use
-	custom-variable-p.
+	* cus-edit.el (custom-variable-prompt): Doc change.
+	Use custom-variable-p.
 	(customize-option): Remove search in loaddefs.el.
 	(customize-apropos):  Use custom-variable-p.
 	(custom-save-variables): Use custom-variable-p to detect
@@ -188,13 +185,15 @@
 
 	* simple.el (split-line): Clean up implementation.
 
-	* mail/rmail.el (rmail-font-lock-keywords): Discard code to match both cases.
+	* mail/rmail.el (rmail-font-lock-keywords): Discard code to match
+	both cases.
 	(rmail-variables): Specify case-insensitive matching for font-lock.
 
 2003-01-05  Alexander Pohoyda  <alexander.pohoyda@gmx.net>  (tiny change)
 
-	* mail/sendmail.el (mail-font-lock-keywords): Match multiline In-Reply-To and X-*.
-	* mail/rmail.el (rmail-font-lock-keywords): Match multiline In-Reply-To and X-*.
+	* mail/sendmail.el (mail-font-lock-keywords):
+	* mail/rmail.el (rmail-font-lock-keywords): Match multiline
+	In-Reply-To and X-*.
 
 2003-01-05  Mark A. Hershberger  <mah@everybody.org>
 
@@ -202,34 +201,32 @@
 
 2003-01-05  Dave Love  <fx@gnu.org>
 
-	* buff-menu.el (Buffer-menu-execute): Fix for effect of header
-	line.
+	* buff-menu.el (Buffer-menu-execute): Fix for effect of header line.
 
 2003-01-05  Dave Love  <fx@gnu.org>
 
-	* international/mule-diag.el (non-iso-charset-alist): Add
-	vietnamese-tcvn.
+	* international/mule-diag.el (non-iso-charset-alist):
+	Add vietnamese-tcvn.
 
-	* international/mule-cmds.el (locale-language-names): Use
-	Croatian, Swedish.
+	* international/mule-cmds.el (locale-language-names):
+	Use Croatian, Swedish.
 
 2003-01-05  Andreas Schwab  <schwab@suse.de>
 
-	* buff-menu.el (Buffer-menu-buffer+size): Don't clobber buffer
-	name.
+	* buff-menu.el (Buffer-menu-buffer+size): Don't clobber buffer name.
 
 2003-01-05  Dave Love  <fx@gnu.org>
 
 	* language/european.el ("Latin-6", "Croatian"): New.
 	("Latin-7"): Fix nonascii-translation.  Add input method.
 	("Lithuanian", "Latvian"): Add nonascii-translation.
-	("German", "Spanish", "Dutch", "Welsh", "Swedish"): Fix
-	nonascii-translation.
+	("German", "Spanish", "Dutch", "Welsh", "Swedish"):
+	Fix nonascii-translation.
 
 	* language/georgian.el ("Georgian"): Fix nonascii-translation.
 
-	* international/mule-cmds.el (set-locale-environment): Ignore
-	empty values of environment variables.
+	* international/mule-cmds.el (set-locale-environment):
+	Ignore empty values of environment variables.
 
 	* emacs-lisp/byte-opt.el (byte-optimize-nth)
 	(byte-optimize-nthcdr): Fix for case of wrong-length forms.
@@ -243,8 +240,7 @@
 	full expression name for header-line in display frame.
 	(gdb-info-breakpoints-custom): Highlight breakpoints since
 	they may be clicked on with mouse-2.
-	(gdb-quit): Delete frames of displayed expressions when
-	quitting.
+	(gdb-quit): Delete frames of displayed expressions when quitting.
 	(gdb-delete-frames): New function.
 	(gdb-source-info): Don't create stack buffer automatically.
 
@@ -260,18 +256,18 @@
 	Inspired by Ehud Karni <ehud@unix.mvs.co.il>.
 
 	* mail/sendmail.el (mail-split-line): New function.
-	(mail-mode-map): remap split-line to mail-split-line.
+	(mail-mode-map): Remap split-line to mail-split-line.
 
 2003-01-03  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/find-func.el (find-variable-noselect): Make it work
 	with new load-history format.
 
-	* international/mule-cmds.el (sort-coding-systems): Adjust
-	priority of utf-16 and x-ctext.
+	* international/mule-cmds.el (sort-coding-systems):
+	Adjust priority of utf-16 and x-ctext.
 
-	* international/utf-8.el (utf-translate-cjk): Call
-	optimize-char-coding-system-table.
+	* international/utf-8.el (utf-translate-cjk):
+	Call optimize-char-coding-system-table.
 
 	* international/ucs-tables.el (ucs-unify-8859, ucs-fragment-8859):
 	Call optimize-char-coding-system-table.
@@ -293,8 +289,8 @@
 
 2003-01-03  Kim F. Storm  <storm@cua.dk>
 
-	* emulation/cua-base.el (cua--pre-command-handler): Corrected
-	handling of delete-selection properties.
+	* emulation/cua-base.el (cua--pre-command-handler):
+	Corrected handling of delete-selection properties.
 
 2003-01-03  John Paul Wallington  <jpw@shootybangbang.com>
 
@@ -303,8 +299,8 @@
 
 2003-01-02  Steven Tamm  <steventamm@mac.com>
 
-	* scroll-bar.el (toggle-scroll-bar, scroll-bar-mode): Have
-	scroll bars correctly default to being on the right for Mac
+	* scroll-bar.el (toggle-scroll-bar, scroll-bar-mode):
+	Have scroll bars correctly default to being on the right for Mac
 	Carbon port by testing "mac-carbon" feature, not window-system.
 
 2003-01-02  Markus Rost  <rost@math.ohio-state.edu>
@@ -326,8 +322,8 @@
 
 2002-12-30  Steven Tamm  <steventamm@mac.com>
 
-	* scroll-bar.el (toggle-scroll-bar, scroll-bar-mode): Have
-	scroll bars correctly default to being on the right for Mac
+	* scroll-bar.el (toggle-scroll-bar, scroll-bar-mode):
+	Have scroll bars correctly default to being on the right for Mac
 	Carbon port
 
 2002-12-29  Nick Roberts  <nick@nick.uklinux.net>
@@ -369,7 +365,7 @@
 
 	* info-look.el (info-lookup): Fix error message typo.
 
-	* comint.el (comint-mode): Localy set scroll-conservatively.
+	* comint.el (comint-mode): Locally set scroll-conservatively.
 	(comint-postoutput-scroll-to-bottom): comint-scroll-show-maximum-output
 	is active only when point is at end.
 
@@ -408,14 +404,13 @@
 
 2002-12-26  Andreas Schwab  <schwab@suse.de>
 
-	* international/mule-cmds.el (select-safe-coding-system): Fix
-	typo.
+	* international/mule-cmds.el (select-safe-coding-system): Fix typo.
 
 2002-12-26  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-next-action-on-file): Use t argument to vc-checkout in
-	order to get the latest version on the current branch.  Update
-	documentation of vc-BACKEND-checkout to explain this.
+	order to get the latest version on the current branch.
+	Update documentation of vc-BACKEND-checkout to explain this.
 
 	* vc-rcs.el (vc-rcs-checkout): Handle t argument for REV.
 	(vc-rcs-checkin): By default, specify the current workfile
@@ -470,7 +465,7 @@
 
 2002-12-23  Alex Schroeder  <alex@emacswiki.org>
 
-        Merging Dave Love <fx@gnu.org>'s custom_themes branch containing
+	Merging Dave Love <fx@gnu.org>'s custom_themes branch containing
 	Alex Schroeder's adaptation of Jan Vroonhof
 	<vroonhof@math.ethz.ch>'s code.  Doc strings corrected by RMS.
 
@@ -622,23 +617,20 @@
 	* international/utf-8-subst.el: Deleted.
 
 	* international/ucs-tables.el (ucs-fragment-8859): Don't modify
-	char-coding-system-table elements destructively.  Use
-	optimize-char-coding-system-table.
+	char-coding-system-table elements destructively.
+	Use optimize-char-coding-system-table.
 
 	* international/mule.el (optimize-char-coding-system-table): New.
 	(register-char-codings): Use it.
 
 	* international/utf-8.el (ucs-mule-cjk-to-unicode)
 	(ucs-unicode-to-mule-cjk): Revert last change.
-	(utf-subst-table-for-encode): Initially use
-	ucs-mule-cjk-to-unicode.
-	(utf-subst-table-for-decode): Initially use
-	ucs-unicode-to-mule-cjk.
+	(utf-subst-table-for-encode): Initially use ucs-mule-cjk-to-unicode.
+	(utf-subst-table-for-decode): Initially use ucs-unicode-to-mule-cjk.
 	(utf-fragment-on-decoding, utf-translate-cjk): Don't modify
 	char-coding-system-table elements destructively.
 	(utf-translate-cjk): Set ucs-mule-cjk-to-unicode,
-	ucs-unicode-to-mule-cjk to new hash tables with realistic
-	parameters.
+	ucs-unicode-to-mule-cjk to new hash tables with realistic parameters.
 
 2002-12-18  John Paul Wallington  <jpw@shootybangbang.com>
 
@@ -649,8 +641,7 @@
 
 	* gdb-ui.el (gdba-marker-filter, gdb-output-burst): Merge and
 	rename gud-gdba-marker-filter.
-	(gdb-append-to-inferior-io): Only pop up IO buffer if there is
-	output.
+	(gdb-append-to-inferior-io): Only pop up IO buffer if there is output.
 	(gdb-make-instance): Remove (put into gdba).
 	Use gdb-instance-enqueue-input instead of
 	gdb-instance-enqueue-idle-input for user functions.
@@ -660,8 +651,7 @@
 
 2002-12-17  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule.el (set-file-name-coding-system): New
-	function.
+	* international/mule.el (set-file-name-coding-system): New function.
 
 	* international/mule-cmds.el (mule-keymap, set-coding-system-map):
 	Add bindings for set-file-name-coding-system.
@@ -704,24 +694,26 @@
 
 	* filesets.el (filesets-build-menu-now): Don't clear messages.
 
-	* allout.el: Avoid name conflicts with outline.el.  Replace
-	globally string "outline-" with string "allout-".  Replaced 1446
-	occurrences; there was no string "allout-" before the change and
-	there seems to be no dependency on outline.el.
+	* allout.el: Avoid name conflicts with outline.el.
+	Replace globally string "outline-" with string "allout-".
+	Replaced 1446 occurrences; there was no string "allout-" before the
+	change and there seems to be no dependency on outline.el.
 	Put `quotes' around many function and variable names.
-	Doc changes to adjust to the change to prefix "allout-".  Don't
-	provide 'outline.  Use " Allout" as mode line string, not " Outl".
-	Put group 'allout in group 'editing.  Update Copyright notice.
-	Autoload `allout-init'.
-	(allout-init): Give report also in case auto-activation was
-	inhibited.
-	(my-mark-marker): Test for feature 'xemacs instead of a string
-	parse.
+	Doc changes to adjust to the change to prefix "allout-".
+	Don't provide `outline'.  Use " Allout" as mode line string,
+	not " Outl".  Put group `allout' in group `editing'.
+	Update Copyright notice.  Autoload `allout-init'.
+	(allout-init): Give report also in case auto-activation was inhibited.
+	(my-mark-marker): Test for feature `xemacs' instead of a string parse.
+
+2002-12-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xml.el (xml-parse-tag): Allow spaces between / and >.
 
 2002-12-15  David Kastrup  <David.Kastrup@t-online.de>
 
-	* emacs-lisp/autoload.el (autoload-ensure-default-file): Insert
-	missing space in file end comment.
+	* emacs-lisp/autoload.el (autoload-ensure-default-file):
+	Insert missing space in file end comment.
 
 2002-12-15  Simon Josefsson  <jas@extundo.com>
 
@@ -737,8 +729,8 @@
 	* international/utf-8.el (ucs-mule-cjk-to-unicode)
 	(utf-subst-table-for-encode, ucs-unicode-to-mule-cjk)
 	(utf-subst-table-for-decode): Specify :size, :rehash-size.
-	(utf-translate-cjk): :set rewritten to load subst-... files.  Add
-	:set-after.
+	(utf-translate-cjk): :set rewritten to load subst-... files.
+	Add :set-after.
 	(ccl-decode-mule-utf-8): Consider CJK translation for r3<#x3400.
 
 2002-12-15  Gustav H,Ae(Bllberg  <gustav@virtutech.se>  (tiny change)
