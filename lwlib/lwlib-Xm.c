@@ -401,7 +401,7 @@ make_menu_in_widget (instance, widget, val)
 	}
       else
 	{
-	  menu = XmCreatePulldownMenu (widget, "pulldown", NULL, 0);
+	  menu = XmCreatePulldownMenu (widget, cur->name, NULL, 0);
 	  make_menu_in_widget (instance, menu, cur->contents);
 	  XtSetArg (al [ac], XmNsubMenuId, menu); ac++;
 	  button = XmCreateCascadeButton (widget, cur->name, al, ac);
@@ -467,7 +467,7 @@ update_one_menu_entry (instance, widget, val, deep_p)
     {
       if (contents)
 	{
-	  menu = XmCreatePulldownMenu (XtParent (widget), "pulldown", NULL, 0);
+	  menu = XmCreatePulldownMenu (XtParent (widget), XtName (widget), NULL, 0);
 	  make_menu_in_widget (instance, menu, contents);
 	  ac = 0;
 	  XtSetArg (al [ac], XmNsubMenuId, menu); ac++;
