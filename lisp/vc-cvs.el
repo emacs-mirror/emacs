@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.44 2002/10/08 15:38:28 monnier Exp $
+;; $Id: vc-cvs.el,v 1.45 2002/10/08 20:25:21 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -158,7 +158,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
 ;;;###autoload (defun vc-cvs-registered (f)
 ;;;###autoload   (when (file-readable-p (expand-file-name
 ;;;###autoload 			  "CVS/Entries" (file-name-directory f)))
-;;;###autoload       (require 'vc-cvs)
+;;;###autoload       (load "vc-cvs")
 ;;;###autoload       (vc-cvs-registered f)))
 
 (defun vc-cvs-registered (file)
