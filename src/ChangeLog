@@ -1,3 +1,8 @@
+2001-02-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (update_frame_line): Rename parameter FRAME to F.
+	Avoid some unnecessary cursor positioning.
+
 2001-02-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (split_font_name): Compute numeric value of
