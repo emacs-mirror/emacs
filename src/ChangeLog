@@ -1,3 +1,10 @@
+2001-03-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xterm.c (note_mouse_highlight): Dec the int, not the Lisp_Object.
+
+	* xdisp.c (init_iterator): Check WINDOWP before using XWINDOW.
+	(string_buffer_position): Use `make_number'.
+
 2001-03-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (x_update_menu_appearance): Renamed from
@@ -9,17 +16,16 @@
 	* xfaces.c (x_set_menu_resources_from_menu_face) [USE_X_TOOLKIT]:
 	Removed, together with subroutines.
 	(x_set_menu_face_resources) [USE_X_TOOLKIT]: New function.
-	(realize_basic_faces) [USE_X_TOOLKIT]: Call
-	x_set_menu_face_resources.
+	(realize_basic_faces) [USE_X_TOOLKIT]: Call x_set_menu_face_resources.
 
-	* dispextern.h (x_set_menu_resources_from_menu_face): Remove
-	prototype.
+	* dispextern.h (x_set_menu_resources_from_menu_face):
+	Remove prototype.
 
-	* xmenu.c (update_frame_menubar, set_frame_menubar, xmenu_show): 
+	* xmenu.c (update_frame_menubar, set_frame_menubar, xmenu_show):
 	Remove calls to x_set_menu_resources_from_menu_face.
 
-	* xfaces.c (xm_set_menu_resources_from_menu_face): Remove
-	#ifndef LESSTIF_VERSION.
+	* xfaces.c (xm_set_menu_resources_from_menu_face):
+	Remove #ifndef LESSTIF_VERSION.
 
 	* xmenu.c: Include widget.h.
 	(single_submenu): Return int.  Some cleanup.
