@@ -1,0 +1,35 @@
+-*- Text -*-
+This is the file .../info/dir, which contains the topmost node of the
+Info hierarchy.  The first time you invoke Info you start off
+looking at that node, which is (dir)Top.
+
+File: dir	Node: Top	This is the top of the INFO tree
+  This (the Directory node) gives a menu of major topics. 
+  Typing "d" returns here, "q" exits, "?" lists all INFO commands, "h" 
+  gives a primer for first-timers, "mEmacs<Return>" visits the Emacs topic,
+  etc.
+  In Emacs, you can click mouse button 2 on a menu item or cross reference
+  to select it.
+  --- PLEASE ADD DOCUMENTATION TO THIS TREE. (See INFO topic first.) ---
+
+* Menu: The list of major topics begins on the next line.
+
+* Info: (info).		Documentation browsing system.
+* Emacs: (emacs).	The extensible self-documenting text editor.
+* VIPER: (viper).       The newest Emacs VI-emulation mode.
+* VIP: (vip).		An older VI-emulation for Emacs.
+* Forms: (forms).	Emacs package for editing data bases
+			  by filling in forms.
+* Gnus: (gnus).		The news reader Gnus.
+* Message: (message).	Mail and news composition mode that goes with Gnus.
+* MH-E: (mh-e).		Emacs interface to the MH mail system.
+* CL: (cl).		Partial Common Lisp support for Emacs Lisp.
+* SC: (sc).		Supercite lets you cite parts of messages you're 
+			  replying to, in flexible ways.
+* Dired-X: (dired-x).   Dired Extra Features.
+* Ediff: (ediff).	A comprehensive visual interface to diff & patch.
+* CC mode: (ccmode).	The GNU Emacs mode for editing C, C++, Objective-C
+			  and Java code.
+
+Editors
+* Emacs FAQ: (emacs-faq).	Frequently Asked Questions about Emacs.
