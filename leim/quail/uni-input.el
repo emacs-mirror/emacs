@@ -33,6 +33,9 @@
 ;; You can get a similar effect by using C-q with
 ;; `read-quoted-char-radix' set to 16.
 
+;; Note that this only allows you to enter BMP values unless someone
+;; extends it to use variable numbers of digits.
+
 ;;; Code:
 
 (require 'quail)
