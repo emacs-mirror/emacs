@@ -159,7 +159,7 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
 						  display-time-mail-face
 						  :background)))
 		 'help-echo "mouse-2: Read mail"
-		 'local-map (make-mode-line-mouse-map 'mouse-2 
+		 'local-map (make-mode-line-mouse-map 'mouse-2
 						      read-mail-command)))
       ""))
   "*A list of expressions governing display of the time in the mode line.
@@ -232,7 +232,7 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
                      (let ((str (format " %03d" (nth display-time-load-average (load-average)))))
 		       (propertize
 			(concat (substring str 0 -2) "." (substring str -2))
-			'local-map (make-mode-line-mouse-map 'mouse-2 
+			'local-map (make-mode-line-mouse-map 'mouse-2
 							     'display-time-next-load-average)
 			'help-echo (concat "System load average for past "
 					   (if (= 0 display-time-load-average)
