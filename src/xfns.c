@@ -239,6 +239,7 @@ extern Lisp_Object Qdisplay;
 Lisp_Object Qscroll_bar_foreground, Qscroll_bar_background;
 Lisp_Object Qscreen_gamma, Qline_spacing, Qcenter;
 Lisp_Object Qcompound_text;
+extern Lisp_Object Qbackground_tile;
 
 /* The below are defined in frame.c.  */
 
@@ -750,6 +751,7 @@ static void x_create_im P_ ((struct frame *));
 void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 static void x_set_line_spacing P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_background_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_background_tile P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_mouse_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_cursor_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_border_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
@@ -796,6 +798,7 @@ static struct x_frame_parm_table x_frame_parms[] =
   "auto-raise",			x_set_autoraise,
   "auto-lower",			x_set_autolower,
   "background-color",		x_set_background_color,
+  "background-tile",		x_set_background_tile,
   "border-color",		x_set_border_color,
   "border-width",		x_set_border_width,
   "cursor-color",		x_set_cursor_color,
@@ -1418,6 +1421,42 @@ x_set_background_color (f, arg, oldval)
       UNBLOCK_INPUT;
 
       update_face_from_frame_parameter (f, Qbackground_color, arg);
+
+      if (FRAME_VISIBLE_P (f))
+        redraw_frame (f);
+    }
+}
+
+void
+x_set_background_tile (f, arg, oldval)
+     struct frame *f;
+     Lisp_Object arg, oldval;
+{
+  int tile_id = lookup_image (f, arg, 0);
+  struct image *tile_image = IMAGE_FROM_ID (f, tile_id);
+  Pixmap tile_pixmap = tile_image ? tile_image->pixmap : 0;
+
+  f->output_data.x->background_tile = tile_pixmap;
+
+  if (FRAME_X_WINDOW (f) != 0 && tile_pixmap)
+    {
+      BLOCK_INPUT;
+      /* The main frame area.  */
+      XSetTile (FRAME_X_DISPLAY (f), f->output_data.x->normal_gc,
+		f->output_data.x->background_tile);
+      XSetWindowBackgroundPixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				  f->output_data.x->background_tile);
+      {
+	Lisp_Object bar;
+	for (bar = FRAME_SCROLL_BARS (f); !NILP (bar);
+	     bar = XSCROLL_BAR (bar)->next)
+	  XSetWindowBackgroundPixmap (FRAME_X_DISPLAY (f),
+				      SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)),
+				      f->output_data.x->background_tile);
+      }
+      UNBLOCK_INPUT;
+
+      update_face_from_frame_parameter (f, Qbackground_tile, arg);
 
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
@@ -5385,7 +5424,7 @@ or omitted means use the selected frame.")
   if (valid_image_p (spec))
     {
       struct frame *f = check_x_frame (frame);
-      int id = lookup_image (f, spec);
+      int id = lookup_image (f, spec, 0);
       struct image *img = IMAGE_FROM_ID (f, id);
       int width = img->width + 2 * img->margin;
       int height = img->height + 2 * img->margin;
@@ -5416,7 +5455,7 @@ or omitted means use the selected frame.")
   if (valid_image_p (spec))
     {
       struct frame *f = check_x_frame (frame);
-      int id = lookup_image (f, spec);
+      int id = lookup_image (f, spec, 0);
       struct image *img = IMAGE_FROM_ID (f, id);
       if (img->mask)
 	mask = Qt;
@@ -5699,7 +5738,7 @@ clear_image_cache (f, force_p)
 {
   struct image_cache *c = FRAME_X_IMAGE_CACHE (f);
 
-  if (c && INTEGERP (Vimage_cache_eviction_delay))
+  if (c && (c->refcount <= 1) && INTEGERP (Vimage_cache_eviction_delay))
     {
       EMACS_TIME t;
       unsigned long old;
@@ -5736,7 +5775,10 @@ clear_image_cache (f, force_p)
 	      struct frame *f = XFRAME (frame);
 	      if (FRAME_X_P (f)
 		  && FRAME_X_IMAGE_CACHE (f) == c)
-		clear_current_matrices (f);
+		{
+		  clear_current_matrices (f);
+		  free_all_realized_faces (frame);
+		}
 	    }
 
 	  ++windows_or_buffers_changed;
@@ -5771,12 +5813,15 @@ FRAME t means clear the image caches of all frames.")
 
 
 /* Return the id of image with Lisp specification SPEC on frame F.
-   SPEC must be a valid Lisp image specification (see valid_image_p).  */
+   SPEC must be a valid Lisp image specification (see valid_image_p).
+   If DELAY_LOAD is true, then the image isn't actually loaded yet (it
+   will be loaded when prepare_image_for_display is called).  */
 
 int
-lookup_image (f, spec)
+lookup_image (f, spec, delay_load)
      struct frame *f;
      Lisp_Object spec;
+     int delay_load;
 {
   struct image_cache *c = FRAME_X_IMAGE_CACHE (f);
   struct image *img;
@@ -5806,12 +5851,14 @@ lookup_image (f, spec)
       BLOCK_INPUT;
       img = make_image (spec, hash);
       cache_image (f, img);
-      img->load_failed_p = img->type->load (f, img) == 0;
+      if (! delay_load)
+	img->load_failed_p = img->type->load (f, img) == 0;
+      xassert (!interrupt_input_blocked);
 
       /* If we can't load the image, and we don't have a width and
 	 height, use some arbitrary width and height so that we can
 	 draw a rectangle for it.  */
-      if (img->load_failed_p)
+      if (img->pixmap == 0)
 	{
 	  Lisp_Object value;
 
@@ -7002,8 +7049,13 @@ xpm_lookup_color (f, color_name, color)
      char *color_name;
      XColor *color;
 {
+  char *s;
   struct xpm_cached_color *p;
-  int h = xpm_color_bucket (color_name);
+  unsigned h = xpm_color_bucket (color_name);
+
+  for (s = color_name; *s; ++s)
+    h = (h << 2) ^ *s;
+  h %= XPM_COLOR_CACHE_BUCKETS;
 
   for (p = xpm_color_cache[h]; p; p = p->next)
     if (strcmp (p->name, color_name) == 0)
