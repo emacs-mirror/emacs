@@ -84,6 +84,8 @@ extern long timezone;
 
 #ifdef HAVE_TIMEVAL
 
+#define EMACS_HAS_USECS
+
 #define EMACS_TIME struct timeval
 #define EMACS_SECS(time)		    ((time).tv_sec  + 0)
 #define EMACS_USECS(time)		    ((time).tv_usec + 0)
