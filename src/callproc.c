@@ -95,6 +95,13 @@ int synch_process_retcode;
 
 extern Lisp_Object Vdoc_file_name;
 
+/* Clean up when exiting Fcall_process.
+   On MSDOS, delete the temporary file on any kind of termination.
+   On Unix, kill the process and any children on termination by signal.  */
+
+/* Nonzero if this is termination due to exit.  */
+static int call_process_exited;
+
 #ifndef VMS  /* VMS version is in vmsproc.c.  */
 
 static Lisp_Object
@@ -119,6 +126,9 @@ call_process_cleanup (fdpid)
     unlink (XSTRING (file)->data);
 #else /* not MSDOS */
   register int pid = XFASTINT (Fcdr (fdpid));
+
+  if (call_process_exited)
+    return Qnil;
 
   if (EMACS_KILLPG (pid, SIGINT) == 0)
     {
@@ -373,6 +383,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       return Qnil;
     }
 
+  call_process_exited = 0;
+
 #ifdef MSDOS
   /* MSDOS needs different cleanup information.  */
   record_unwind_protect (call_process_cleanup,
@@ -416,6 +428,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   immediate_quit = 0;
 
   set_buffer_internal (old);
+
+  /* Don't kill any children that the subprocess may have left behind
+     when exiting.  */
+  call_process_exited = 1;
 
   unbind_to (count, Qnil);
 
