@@ -1316,3 +1316,5 @@ w32_reset_fringes ()
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
+/* arch-tag: 04596920-43eb-473d-b319-82712338162d
+   (do not change this comment) */
