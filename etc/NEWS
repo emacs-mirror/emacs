@@ -522,6 +522,8 @@ appropriate for C-style escape sequences in strings.
 
 ** SGML mode's default `sgml-validate-command' is now `nsgmls'.
 
+** A new command `view-emacs-problems' (C-h P) displays the PROBLEMS file.
+
 ** New modes and packages
 
 *** 5x5.el is a simple puzzle game.
