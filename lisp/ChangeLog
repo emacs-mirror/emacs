@@ -1,3 +1,7 @@
+2001-01-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-search): Print the default as part of the prompt.
+
 2001-01-08  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-default-latest-on-branch-p): New function, replaces 

@@ -1,3 +1,7 @@
+2001-01-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* config.bat: Run the preprocessor with -traditional.
+
 2001-01-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* INSTALL: Move copying conditions to end of file.
