@@ -1,4 +1,4 @@
-;;; autoload.el --- maintain autoloads in loaddefs.el
+;; autoload.el --- maintain autoloads in loaddefs.el
 
 ;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2001
 ;;   Free Software Foundation, Inc.
@@ -475,10 +475,16 @@ Autoload section for %s is up to date."
   (delete-region begin (point)))
 
 ;;;###autoload
-(defun update-autoloads-from-directories (&rest dirs)
+(defun update-directory-autoloads (&rest dirs)
   "\
 Update loaddefs.el with all the current autoloads from DIRS, and no old ones.
-This uses `update-file-autoloads' (which see) do its work."
+This uses `update-file-autoloads' (which see) do its work.
+In an interactive call, you must give one argument, the name
+of a single directory.  In a call from Lisp, you can supply multiple
+directories as separate arguments, but this usage is discouraged.
+
+The function does NOT recursively descend into subdirectories of the
+directory or directories specified."
   (interactive "DUpdate autoloads from directory: ")
   (let* ((files-re (let ((tmp nil))
 		     (dolist (suf load-suffixes
