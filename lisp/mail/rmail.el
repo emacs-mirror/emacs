@@ -286,9 +286,9 @@ that file, but does not copy any new mail into the file."
 	  ;; If file needs conversion, convert it all,
 	  ;; except for the BABYL header.
 	  ;; (rmail-convert-to-babyl-format would delete the header.)
-;;;	  (narrow-to-region (point) (point-max))
 	  (goto-char (point-min))
 	  (search-forward "\n\^_" nil t)
+	  (narrow-to-region (point) (point-max))
 	  (rmail-convert-to-babyl-format)
 	  (message "Converting to Babyl format...done")))))
 
