@@ -1854,8 +1854,6 @@ window_loop (type, obj, mini, frames)
 		       display there.  */
 		    Lisp_Object buffer;
 		    buffer = Fother_buffer (obj, Qnil, w->frame);
-		    if (NILP (buffer))
-		      buffer = Fget_buffer_create (build_string ("*scratch*"));
 		    Fset_window_buffer (window, buffer);
 		    if (EQ (window, selected_window))
 		      Fset_buffer (w->buffer);
@@ -1891,8 +1889,6 @@ window_loop (type, obj, mini, frames)
 		
 		/* Find another buffer to show in this window.  */
 		buffer = Fother_buffer (obj, Qnil, w->frame);
-		if (NILP (buffer))
-		  buffer = Fget_buffer_create (build_string ("*scratch*"));
 		
 		/* If this window is dedicated, and in a frame of its own,
 		   kill the frame.  */
