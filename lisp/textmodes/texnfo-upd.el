@@ -197,7 +197,11 @@ are inserted as descriptions."
 at the level specified by LEVEL.  Point is left at the end of menu."
   (let*
       ((case-fold-search t)
-       (beginning (texinfo-update-menu-region-beginning level))
+       (beginning
+	(save-excursion
+	  (goto-char (texinfo-update-menu-region-beginning level))
+	  (end-of-line)
+	  (point)))
        (end (texinfo-update-menu-region-end level))
        (first (texinfo-menu-first-node beginning end))
        (node-name (progn
@@ -589,7 +593,7 @@ title of the section containing the menu."
   (goto-char (point-min))
 
   ;; Move point to location after `top'.
-  (if (not (re-search-forward "^@node [ \t]*top" nil t))
+  (if (not (re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)" nil t))
       (error "This buffer needs a Top node!"))
 
   (let ((first-chapter                  
@@ -784,7 +788,11 @@ section whose type will be found.  Does not move point.  Signal an
 error if the node is not the top node and a section is not found."
   (save-excursion
     (cond
-     ((re-search-forward "^@node [ \t]*top" nil t)
+     ((re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)"
+			 (save-excursion
+			   (end-of-line)
+			   (point))
+			 t)
       "top")
      ((re-search-forward texinfo-section-types-regexp nil t)
       (buffer-substring (progn (beginning-of-line) ; copy its name
@@ -812,16 +820,12 @@ Thus, if this level is subsection, searches backwards for section node.
 Only argument is a string of the general type of section."
   
   (cond
-   ((string-equal "top" level)
+   ((or (string-equal "top" level)
+	(string-equal "chapter" level))
     (save-excursion
-      (re-search-forward "^@node [ \t]*top" nil t) (point)))
-   ((string-equal "chapter" level)
-    (save-excursion
-      (re-search-backward "^@node [ \t]*top" nil t)
-      ;; Leave point at end of line so texinfo-menu-locate-entry-p does not
-      ;; accidentally copy an info-only title for the top node into
-      ;; the main or master menu
-      (end-of-line)
+      (goto-char (point-min))
+      (re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)" nil t)
+      (beginning-of-line)
       (point)))
    (t
     (save-excursion
@@ -940,7 +944,7 @@ document; the values are regular expressions.")
 
 (defvar texinfo-update-menu-higher-regexps
   '(("top" . "^@node [ \t]*DIR") 
-    ("chapter" . "^@node [ \t]*top")
+    ("chapter" . "^@node [ \t]*top[ \t]*\\(,\\|$\\)")
     ("section" .
      (concat 
       "\\(^@\\("
@@ -1527,7 +1531,7 @@ However, there does not need to be a title field."
     ;; Go to outer file
     (switch-to-buffer (find-file-noselect (car files)))
     (goto-char (point-min))
-    (if (not (re-search-forward "^@node [ \t]*top" nil t))
+    (if (not (re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)" nil t))
         (error "This buffer needs a Top node!"))
     (beginning-of-line)
     (texinfo-delete-existing-pointers)
