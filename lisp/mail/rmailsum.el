@@ -548,34 +548,36 @@ Commands for sorting the summary:
 ;; but only if the Rmail buffer is already visible.
 ;; This is a post-command-hook in summary buffers.
 (defun rmail-summary-rmail-update ()
-  (if (get-buffer-window rmail-buffer)
-      (let (buffer-read-only)
-	(save-excursion
-	  ;; If at end of buffer, pretend we are on the last text line.
-	  (if (eobp)
-	      (forward-line -1))
-	  (beginning-of-line)
-	  (skip-chars-forward " ")
-	  (let ((beg (point))
-		msg-num
-		(buf rmail-buffer))
-	    (skip-chars-forward "0-9")
-	    (setq msg-num (string-to-int (buffer-substring beg (point))))
-	    (or (eq rmail-current-message msg-num)
-		(let (go-where window (owin (selected-window)))
-		  (setq rmail-current-message msg-num)
-		  (if (= (following-char) ?-)
-		      (progn
-			(delete-char 1)
-			(insert " ")))
-		  (setq window (display-buffer rmail-buffer))
-		  ;; Using save-window-excursion caused the new value
+  (let (buffer-read-only)
+    (save-excursion
+      ;; If at end of buffer, pretend we are on the last text line.
+      (if (eobp)
+	  (forward-line -1))
+      (beginning-of-line)
+      (skip-chars-forward " ")
+      (let ((msg-num (string-to-int (buffer-substring
+				     (point)
+				     (progn (skip-chars-forward "0-9")
+					    (point))))))
+	(or (eq rmail-current-message msg-num)
+	    (let ((window (get-buffer-window rmail-buffer))
+		  (owin (selected-window)))
+	      (setq rmail-current-message msg-num)
+	      (if (= (following-char) ?-)
+		  (progn
+		    (delete-char 1)
+		    (insert " ")))
+	      (if window
+		  ;; Using save-window-excursion would cause the new value
 		  ;; of point to get lost.
 		  (unwind-protect
 		      (progn
 			(select-window window)
 			(rmail-show-message msg-num))
-		    (select-window owin)))))))))
+		    (select-window owin))
+		(save-excursion
+		  (set-buffer rmail-buffer)
+		  (rmail-show-message msg-num)))))))))
 
 (defvar rmail-summary-mode-map nil)
 
