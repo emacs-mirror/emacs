@@ -2968,6 +2968,12 @@ decode_mode_spec (w, c, maxwidth)
 	return "%";
       return "-";
 
+    case '&':
+      /* This differs from %* in ignoring read-only-ness.  */
+      if (MODIFF > current_buffer->save_modified)
+	return "*";
+      return "-";
+
     case 's':
       /* status of process */
       obj = Fget_buffer_process (Fcurrent_buffer ());
