@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.19 2001/11/16 23:58:48 monnier Exp $
+;; $Id: eldoc.el,v 1.20 2002/01/08 23:57:30 rms Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -46,6 +46,8 @@
 ;;      (add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
 
 ;;; Code:
+
+(require 'help-fns)		       ;For fundoc-usage handling functions.
 
 ;; Use idle timers if available in the version of emacs running.
 ;; Please don't change this to use `require'; this package works
@@ -283,16 +285,21 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
 
 
 (defun eldoc-print-current-symbol-info ()
-  (and (eldoc-display-message-p)
-       (let* ((current-symbol (eldoc-current-symbol))
-              (current-fnsym  (eldoc-fnsym-in-current-sexp))
-              (doc (cond ((eq current-symbol current-fnsym)
-                          (or (eldoc-get-fnsym-args-string current-fnsym)
-                              (eldoc-get-var-docstring current-symbol)))
-                         (t
-                          (or (eldoc-get-var-docstring current-symbol)
-                              (eldoc-get-fnsym-args-string current-fnsym))))))
-         (eldoc-message doc))))
+  (condition-case err
+      (and (eldoc-display-message-p)
+	   (let* ((current-symbol (eldoc-current-symbol))
+		  (current-fnsym  (eldoc-fnsym-in-current-sexp))
+		  (doc (cond
+			((eq current-symbol current-fnsym)
+			 (or (eldoc-get-fnsym-args-string current-fnsym)
+			     (eldoc-get-var-docstring current-symbol)))
+			(t
+			 (or (eldoc-get-var-docstring current-symbol)
+			     (eldoc-get-fnsym-args-string current-fnsym))))))
+	     (eldoc-message doc)))
+    ;; This is run from post-command-hook or some idle timer thing,
+    ;; so we need to be careful that errors aren't ignored.
+    (error (message "eldoc error: %s" err))))
 
 ;; Return a string containing the function parameter list, or 1-line
 ;; docstring if function is a subr and no arglist is obtainable from the
@@ -306,9 +313,10 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
           ((and (eq sym (aref eldoc-last-data 0))
                 (eq 'function (aref eldoc-last-data 2)))
            (setq doc (aref eldoc-last-data 1)))
-          ((subrp (eldoc-symbol-function sym))
-           (setq args (or (eldoc-function-argstring-from-docstring sym)
-                          (eldoc-docstring-first-line (documentation sym t)))))
+	  ((setq doc (help-split-fundoc (documentation sym t) sym))
+	   (setq args (car doc))
+	   (string-match "\\`[^ )]* ?" args)
+	   (setq args (concat "(" (substring args (match-end 0)))))
           (t
            (setq args (eldoc-function-argstring sym))))
     (cond (args
@@ -391,7 +399,7 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
     (condition-case err
         (while (progn
                  (forward-sexp -1)
-                 (or (= (or (char-after (1- (point)))) ?\")
+                 (or (= (char-before) ?\")
                      (> (point) (point-min)))))
       (error nil))))
 
@@ -412,24 +420,8 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
            (error (setq defn nil))))
     defn))
 
-(defun eldoc-function-arglist (fn)
-  (let* ((prelim-def (eldoc-symbol-function fn))
-         (def (if (eq (car-safe prelim-def) 'macro)
-                  (cdr prelim-def)
-                prelim-def))
-         (arglist (cond ((null def) nil)
-                        ((byte-code-function-p def)
-                         (cond ((fboundp 'compiled-function-arglist)
-                                (funcall 'compiled-function-arglist def))
-                               (t
-                                (aref def 0))))
-                        ((eq (car-safe def) 'lambda)
-                         (nth 1 def))
-                        (t t))))
-    arglist))
-
 (defun eldoc-function-argstring (fn)
-  (eldoc-function-argstring-format (eldoc-function-arglist fn)))
+  (eldoc-function-argstring-format (help-function-arglist fn)))
 
 (defun eldoc-function-argstring-format (arglist)
   (cond ((not (listp arglist))
@@ -450,137 +442,6 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
                                      (funcall eldoc-argument-case s))))
                        arglist))))
   (concat "(" (mapconcat 'identity arglist " ") ")"))
-
-
-;; Alist of predicate/action pairs.
-;; Each member of the list is a sublist consisting of a predicate function
-;; used to determine if the arglist for a function can be found using a
-;; certain pattern, and a function which returns the actual arglist from
-;; that docstring.
-;;
-;; The order in this table is significant, since later predicates may be
-;; more general than earlier ones.
-;;
-;; Compiler note for Emacs/XEmacs versions which support dynamic loading:
-;; these functions will be compiled to bytecode, but can't be lazy-loaded
-;; even if you set byte-compile-dynamic; to do that would require making
-;; them named top-level defuns, which is not particularly desirable either.
-(defvar eldoc-function-argstring-from-docstring-method-table
-  (list
-   ;; Try first searching for args starting with symbol name.
-   ;; This is to avoid matching parenthetical remarks in e.g. sit-for.
-   (list (function (lambda (doc fn)
-                     (string-match (format "^(%s[^\n)]*)$" fn) doc)))
-         (function (lambda (doc)
-                     ;; end does not include trailing ")" sequence.
-                     (let ((end (- (match-end 0) 1)))
-                       (if (string-match " +" doc (match-beginning 0))
-                           (substring doc (match-end 0) end)
-                         "")))))
-
-   ;; Try again not requiring this symbol name in the docstring.
-   ;; This will be the case when looking up aliases.
-   (list (function (lambda (doc fn)
-                     ;; save-restriction has a pathological docstring in
-                     ;; Emacs/XEmacs 19.
-                     (and (not (eq fn 'save-restriction))
-                          (string-match "^([^\n)]+)$" doc))))
-         (function (lambda (doc)
-                     ;; end does not include trailing ")" sequence.
-                     (let ((end (- (match-end 0) 1)))
-                       (and (string-match " +" doc (match-beginning 0))
-                            (substring doc (match-end 0) end))))))
-
-   ;; Emacs subr docstring style:
-   ;;   (fn arg1 arg2 ...): description...
-   (list (function (lambda (doc fn)
-                     (string-match "^([^\n)]+):" doc)))
-         (function (lambda (doc)
-                     ;; end does not include trailing "):" sequence.
-                     (let ((end (- (match-end 0) 2)))
-                       (and (string-match " +" doc (match-beginning 0))
-                            (substring doc (match-end 0) end))))))
-
-   ;; XEmacs subr docstring style:
-   ;;   "arguments: (arg1 arg2 ...)
-   (list (function (lambda (doc fn)
-                     (string-match "^arguments: (\\([^\n)]+\\))" doc)))
-         (function (lambda (doc)
-                     ;; also skip leading paren, but the first word is
-                     ;; actually an argument, not the function name.
-                     (substring doc (match-beginning 1) (match-end 1)))))
-
-   ;; This finds the argstring for `condition-case'.  Any others?
-   (list (function (lambda (doc fn)
-                     (string-match
-                      (format "^Usage looks like \\((%s[^\n)]*)\\)\\.$" fn)
-                      doc)))
-         (function (lambda (doc)
-                     ;; end does not include trailing ")" sequence.
-                     (let ((end (- (match-end 1) 1)))
-                       (and (string-match " +" doc (match-beginning 1))
-                            (substring doc (match-end 0) end))))))
-
-   ;; This finds the argstring for `setq-default'.  Any others?
-   (list (function (lambda (doc fn)
-                     (string-match (format "^[ \t]+\\((%s[^\n)]*)\\)$" fn)
-                                   doc)))
-         (function (lambda (doc)
-                     ;; end does not include trailing ")" sequence.
-                     (let ((end (- (match-end 1) 1)))
-                       (and (string-match " +" doc (match-beginning 1))
-                            (substring doc (match-end 0) end))))))
-
-   ;; This finds the argstring for `start-process'.  Any others?
-   (list (function (lambda (doc fn)
-                     (string-match "^Args are +\\([^\n]+\\)$" doc)))
-         (function (lambda (doc)
-                     (substring doc (match-beginning 1) (match-end 1)))))
-
-   ;; These common subrs don't have arglists in their docstrings.  So cheat.
-   (list (function (lambda (doc fn)
-                     (memq fn '(and or list + -))))
-         (function (lambda (doc)
-                     ;; The value nil is a placeholder; otherwise, the
-                     ;; following string may be compiled as a docstring,
-                     ;; and not a return value for the function.
-                     ;; In interpreted lisp form they are
-                     ;; indistinguishable; it only matters for compiled
-                     ;; forms.
-                     nil
-                     "&rest args")))
-   ))
-
-(defun eldoc-function-argstring-from-docstring (fn)
-  (let ((docstring (documentation fn 'raw))
-        (table eldoc-function-argstring-from-docstring-method-table)
-        (doc nil)
-        (doclist nil))
-    (save-match-data
-      (while table
-        (cond ((funcall (car (car table)) docstring fn)
-               (setq doc (funcall (car (cdr (car table))) docstring))
-               (setq table nil))
-              (t
-               (setq table (cdr table)))))
-
-      (cond ((not (stringp doc))
-             nil)
-            ((string-match "&" doc)
-             (let ((p 0)
-                   (l (length doc)))
-               (while (< p l)
-                 (cond ((string-match "[ \t\n]+" doc p)
-                        (setq doclist
-                              (cons (substring doc p (match-beginning 0))
-                                    doclist))
-                        (setq p (match-end 0)))
-                       (t
-                        (setq doclist (cons (substring doc p) doclist))
-                        (setq p l))))
-               (eldoc-function-argstring-format (nreverse doclist))))
-            (t
-             (concat "(" (funcall eldoc-argument-case doc) ")"))))))
 
 
 ;; When point is in a sexp, the function args are not reprinted in the echo
