@@ -1,5 +1,4 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
-
 ;;; Copyright 1989, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
