@@ -2542,6 +2542,70 @@ Typically this will be the header file corresponding to a C/C++ source
 file, or vice versa.  The patterns describing the corresponding files
 are customizable via @code{ff-other-file-alist}.
 
+@findex ffap
+@findex find-file-at-point
+@cindex finding file at point
+The command @kbd{M-x find-file-at-point} (or @kbd{M-x ffap}) can be used
+as a replacement for @kbd{M-x find-file}.  With a prefix argument it
+behaves as @kbd{M-x find-file}.  Otherwise it tries to guess a default
+file or URL from the text around point.  This is useful for following
+references in mail or news buffers, @file{README}s, @file{MANIFEST}s,
+and so on.  @kbd{M-x ffap-bindings} makes these global key bindings:
+
+@table @kbd
+@item C-x C-f
+@kbd{find-file-at-point};
+@item C-x 4 f
+@kbd{ffap-other-window}, analagous to @kbd{find-file-other-window};
+@item C-x 5 f
+@kbd{ffap-other-frame}, analagous to @kbd{find-file-other-frame};
+@item S-mouse-3
+@kbd{ffap-at-mouse} finds the file guessed from text around the position
+of a mouse click;
+@item C-S-mouse-3
+@kbd{ffap-menu} puts up a selectable menu of files and URLs mentioned in
+the current buffer.
+@end table
+
+Partial Completion mode offers other features extending @kbd{M-x
+find-file} which can be used with @code{ffap}.  @xref{Completion
+Options}.
+
+@cindex filename caching
+@cindex cache of file names
+@pindex find
+@pindex locate
+@vindex file-cache-delete-regexps
+The Filecache package attempts to make it easy to locate files by name
+without having to remember exactly where they are.  When typing a
+filename in the minibuffer you can use @kbd{C-tab} to complete it using
+the filename cache and to cycle through possible completions.  (The
+@kbd{C-tab} binding assumes a window system; otherwise you can make
+another binding for @code{file-cache-minibuffer-complete}.)  @kbd{M-x
+file-cache-add-directory} adds the files in a directory to the cache and
+@kbd{file-cache-add-directory-list} acts on a list of directories like
+@kbd{load-path} or @kbd{exec-path}.
+@kbd{file-cache-add-directory-using-find} uses the @code{find} program
+to add a directory tree to the cache and
+@kbd{file-cache-add-directory-using-locate} uses the @kbd{locate}
+program to add files matching a pattern.  Use @kbd{M-x
+file-cache-clear-cache} to remove all items from the cache and @kbd{M-x
+file-cache-delete-regexps} and similar functions to remove items from it
+selectively.
+
+@pindex locate
+@findex locate
+@findex locate-with-filter
+@cindex file database (locate)
+@vindex locate-command
+@kbd{M-x locate} runs an interface to the @code{locate} program for
+searching a pre-built database of file names; most Dired commands are
+avilable for use on the result.  @xref{Top, , Overview, find, GNU
+Findutils}.  @kbd{M-x locate-with-filter} is similar, but keeps only
+lines matching a regular expression.  Customize the option
+@code{locate-command} to use another program than the default, GNU
+@code{locate}.
+
 @c The Shadowfile package provides automatic file copying, allowing you to
 @c keep identical copies of files in more than one place---possibly on
 @c different machines.  When you save a file, it checks whether it is on
