@@ -218,6 +218,11 @@ init_cmdargs (argc, argv, skip_args)
 	Vinvocation_directory = Ffile_name_directory (found);
     }
 
+  if (!NILP (Vinvocation_directory)
+      && NILP (Ffile_name_absolute_p (Vinvocation_directory)))
+    /* Emacs was started with relative path, like ./emacs  */
+    Vinvocation_directory = Fexpand_file_name (Vinvocation_directory, Qnil);
+
   Vinstallation_directory = Qnil;
 
   if (!NILP (Vinvocation_directory))
