@@ -17,8 +17,7 @@
 
 2001-12-13  David Ponce  <david@dponce.com>
 
-	* ruler-mode.el: Version 1.4.
-	(ruler-mode-left-fringe-cols): Variable removed.
+	* ruler-mode.el	(ruler-mode-left-fringe-cols): Variable removed.
 	(ruler-mode-left-fringe-cols): Function replaced by more efficient
 	implementation `ruler-mode-extra-left-cols'.
 	(ruler-mode-ruler): Use above new function.  Take into account
