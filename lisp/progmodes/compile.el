@@ -381,42 +381,28 @@ Otherwise, it saves all modified buffers without asking."
 ;;;	     1)
 ;;;      "zgrep"
 ;;;    "grep")
-  "The default grep program for `grep-command' and `grep-find-command'.")
+  "The default grep program for `grep-command' and `grep-find-command'.
+This variable's value takes effect when `grep-compute-defaults' is called.")
 
 ;; Use -e if grep supports it,
 ;; because that avoids lossage if the pattern starts with `-'.
-(defvar grep-command
-  (if (equal (condition-case nil	; in case "grep" isn't in exec-path
-		 (call-process grep-program nil nil nil
-			       "-e" "foo" null-device)
-	       (error nil))
-	     1)
-      (format "%s -n -e " grep-program)
-    (format "%s -n " grep-program))
-  "The default grep command for \\[grep].")
+(defvar grep-command nil
+  "The default grep command for \\[grep].
+The real default value of this variable is set up by `grep-compute-defaults';
+call that function before using this variable.")
 
-(defvar grep-find-use-xargs
-  (if (equal (call-process "find" nil nil nil
-			   null-device "-print0")
-	     0)
-      'gnu)
+(defvar grep-find-use-xargs nil
   "Whether \\[grep-find] uses the `xargs' utility by default.
 
 If nil, it uses `grep -exec'; if `gnu', it uses `find -print0' and `xargs -0';
 if not nil and not `gnu', it uses `find -print' and `xargs'.
 
-This variable's value takes effect when `compile.el' is loaded
-by influencing the default value for the variable `grep-find-command'.")
+This variable's value takes effect when `grep-compute-defaults' is called.")
 
-(defvar grep-find-command
-  (cond ((eq grep-find-use-xargs 'gnu)
-	 (format "find . -type f -print0 | xargs -0 -e %s" grep-command))
-	(grep-find-use-xargs
-	 (format "find . -type f -print | xargs %s" grep-command))
-	(t (cons (format "find . -type f -exec %s {} /dev/null \\;"
-			 grep-command)
-		 (+ 22 (length grep-command)))))
-  "The default find command for \\[grep-find].")
+(defvar grep-find-command nil
+  "The default find command for \\[grep-find].
+The default value of this variable is set up by `grep-compute-defaults';
+call that function before using this variable.")
 
 ;;;###autoload
 (defcustom compilation-search-path '(nil)
@@ -543,6 +529,31 @@ to a function that generates a unique name."
 		    (cons msg code)))
 	   (cons msg code)))))
 
+(defun grep-compute-defaults ()
+  (setq grep-command
+	(if (equal (condition-case nil	; in case "grep" isn't in exec-path
+		       (call-process grep-program nil nil nil
+				     "-e" "foo" null-device)
+		     (error nil))
+		   1)
+	    (format "%s -n -e " grep-program)
+	  (format "%s -n " grep-program)))
+  (unless grep-find-use-xargs
+    (setq grep-find-use-xargs
+	  (if (equal (call-process "find" nil nil nil
+				   null-device "-print0")
+		     0)
+	      'gnu)))
+  (setq grep-find-command
+	(cond ((eq grep-find-use-xargs 'gnu)
+	       (format "find . -type f -print0 | xargs -0 -e %s"
+		       grep-command))
+	      (grep-find-use-xargs
+	       (format "find . -type f -print | xargs %s" grep-command))
+	      (t (cons (format "find . -type f -exec %s {} /dev/null \\;"
+			       grep-command)
+		       (+ 22 (length grep-command)))))))
+
 ;;;###autoload
 (defun grep (command-args)
   "Run grep, with user-specified args, and collect output in a buffer.
@@ -558,6 +569,8 @@ in the grep command history (or into `grep-command'
 if that history list is empty)."
   (interactive
    (let (grep-default (arg current-prefix-arg))
+     (unless grep-command
+       (grep-compute-defaults))
      (when arg
        (let* ((tag-default
 	       (funcall (or find-tag-default-function
@@ -611,8 +624,12 @@ to find the text that grep hits refer to.
 This command uses a special history list for its arguments, so you can
 easily repeat a find command."
   (interactive
-   (list (read-from-minibuffer "Run find (like this): "
-			       grep-find-command nil nil 'grep-find-history)))
+   (progn
+     (unless grep-find-command
+       (grep-compute-defaults))
+     (list (read-from-minibuffer "Run find (like this): "
+				 grep-find-command nil nil
+				 'grep-find-history))))
   (let ((null-device nil))		; see grep
     (grep command-args)))
 
