@@ -642,11 +642,6 @@ Buffer-local in Ebrowse member buffers.")
 Buffer-local in Ebrowse member buffers.")
 
 
-(defvar ebrowse--mode-strings nil
-  "Strings displayed in the mode line.
-Buffer-local in Ebrowse tree buffers.")
-
-
 (defvar ebrowse--frame-configuration nil
   "Frame configuration saved when viewing a class/member in another frame.
 Buffer-local in Ebrowse buffers.")
@@ -661,11 +656,6 @@ Buffer-local in Ebrowse buffers.")
 (defvar ebrowse--tree nil
   "Class tree.
 Buffer-local in Ebrowse buffers.")
-
-
-(defvar ebrowse--mode-line-props nil
-  "Text properties of mode line strings in member buffers.
-Buffer-local in Ebrowse member buffers.")
 
 
 ;;; Temporaries used to communicate with `ebrowse-find-pattern'.
@@ -1128,10 +1118,7 @@ E.g.\\[save-buffer] writes the tree to the file it was loaded from.
 Tree mode key bindings:
 \\{ebrowse-tree-mode-map}"
   (interactive)
-  (let* ((props (text-properties-at
-		 0
-		 (car (default-value 'mode-line-buffer-identification))))
-	 (ident (apply #'propertize "C++ Tree" props))
+  (let* ((ident (propertized-buffer-identification "C++ Tree"))
 	 header tree buffer-read-only)
     
     (kill-all-local-variables)
@@ -1153,7 +1140,6 @@ Tree mode key bindings:
 	      ebrowse--show-file-names-flag
 	      ebrowse--frozen-flag
 	      ebrowse--tree-obarray
-	      ebrowse--mode-strings
 	      revert-buffer-function))
     
     (setf ebrowse--show-file-names-flag nil
@@ -1161,7 +1147,7 @@ Tree mode key bindings:
 	  ebrowse--frozen-flag nil
 	  major-mode 'ebrowse-tree-mode
 	  mode-name "Ebrowse-Tree"
-	  mode-line-buffer-identification (list ident)
+	  mode-line-buffer-identification ident
 	  buffer-read-only t
 	  selective-display t
 	  selective-display-ellipses t
@@ -1183,10 +1169,6 @@ Tree mode key bindings:
 
 (defun ebrowse-update-tree-buffer-mode-line ()
   "Update the tree buffer mode line."
-  (setf ebrowse--mode-strings
-	(concat (if ebrowse--frozen-flag (or buffer-file-name
-					     ebrowse--tags-file-name))
-		(if (buffer-modified-p) "-**")))
   (ebrowse-rename-buffer (if ebrowse--frozen-flag
 			     (ebrowse-frozen-tree-buffer-name
 			      ebrowse--tags-file-name)
@@ -2279,13 +2261,10 @@ See 'Electric-command-loop' for a description of STATE and CONDITION."
 	    ebrowse--inline-display-flag
 	    ebrowse--const-display-flag
 	    ebrowse--pure-display-flag
-	    ebrowse--mode-line-props
 	    ebrowse--frozen-flag))	;buffer not automagically reused
-  (setq ebrowse--mode-line-props (text-properties-at
-				  0 (car (default-value
-					  'mode-line-buffer-identification)))
-	mode-name "Ebrowse-Members"
-	mode-line-buffer-identification 'ebrowse--member-mode-strings
+  (setq mode-name "Ebrowse-Members"
+	mode-line-buffer-identification
+	(propertized-buffer-identification "C++ Members")
 	buffer-read-only t
 	ebrowse--long-display-flag nil
 	ebrowse--attributes-flag t
@@ -2323,8 +2302,8 @@ See 'Electric-command-loop' for a description of STATE and CONDITION."
 		 (concat (ebrowse-class-name-displayed-in-member-buffer)
 			 " ")))
 	 (ident (concat name (ebrowse-member-list-name))))
-    (setq ebrowse--member-mode-strings
-	  (apply #'propertize ident ebrowse--mode-line-props))
+    (setq mode-line-buffer-identification
+	  (propertized-buffer-identification ident))
     (ebrowse-rename-buffer (if name ident ebrowse-member-buffer-name))
     (force-mode-line-update)))
 
