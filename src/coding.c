@@ -899,18 +899,12 @@ coding_set_source (coding)
 {
   if (BUFFERP (coding->src_object))
     {
-      if (coding->src_pos < 0)
-	coding->source = GAP_END_ADDR + coding->src_pos_byte;
-      else
-	{
-	  struct buffer *buf = XBUFFER (coding->src_object);
-	  EMACS_INT gpt_byte = BUF_GPT_BYTE (buf);
-	  unsigned char *beg_addr = BUF_BEG_ADDR (buf);
+      struct buffer *buf = XBUFFER (coding->src_object);
 
-	  coding->source = beg_addr + coding->src_pos_byte - 1;
-	  if (coding->src_pos_byte >= gpt_byte)
-	    coding->source += BUF_GAP_SIZE (buf);
-	}
+      if (coding->src_pos < 0)
+	coding->source = BUF_GAP_END_ADDR (buf) + coding->src_pos_byte;
+      else
+	coding->source = BUF_BYTE_ADDRESS (buf, coding->src_pos_byte);
     }
   else if (STRINGP (coding->src_object))
     {
@@ -6231,7 +6225,7 @@ encode_coding_gap (coding, chars, bytes)
    set in CODING->dst_object.
 
    If it is Qnil, the decoded text is stored at CODING->destination.
-   The called must allocate CODING->dst_bytes bytes at
+   The caller must allocate CODING->dst_bytes bytes at
    CODING->destination by xmalloc.  If the decoded text is longer than
    CODING->dst_bytes, CODING->destination is relocated by xrealloc.
  */
@@ -6293,8 +6287,9 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
     detect_coding (coding);
   attrs = CODING_ID_ATTRS (coding->id);
 
-  if (! NILP (CODING_ATTR_POST_READ (attrs))
-      || EQ (dst_object, Qt))
+  if (EQ (dst_object, Qt)
+      || (! NILP (CODING_ATTR_POST_READ (attrs))
+	  && NILP (dst_object)))
     {
       coding->dst_object = make_conversion_work_buffer (1);
       coding->dst_pos = BEG;
