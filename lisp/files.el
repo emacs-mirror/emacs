@@ -4230,7 +4230,7 @@ This works by running a directory listing program
 whose name is in the variable `insert-directory-program'.
 If WILDCARD, it also runs the shell specified by `shell-file-name'.
 
-When SWITCHES contains the long `--dired' option,this function
+When SWITCHES contains the long `--dired' option, this function
 treats it specially, for the sake of dired.  However, the
 normally equivalent short `-D' option is just passed on to
 `insert-directory-program', as any other option."
