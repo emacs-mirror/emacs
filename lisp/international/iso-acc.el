@@ -64,6 +64,9 @@
 
 (provide 'iso-acc)
 
+(defvar iso-accents-insert-offset quoted-insert-character-offset
+  "*Offset added by ISO Accents mode to character codes 0200 and above.")
+
 (defvar iso-languages
   '(("catalan"
      ;; Note this includes some extra characters used in Spanish,
@@ -126,7 +129,7 @@
      (?\/ (?A . ?\305) (?E . ?\306) (?O . ?\330) (?a . ?\345) (?e . ?\346)
 	  (?o . ?\370) (?\/ . ?\260) (?\  . ?\/)))
 
-    ("latin-2"
+    ("latin-2" latin-iso8859-2
      (?' (?A . ?\301) (?C . ?\306) (?D . ?\320) (?E . ?\311) (?I . ?\315)
 	 (?L . ?\305) (?N . ?\321) (?O . ?\323) (?R . ?\300) (?S . ?\246)
 	 (?U . ?\332) (?Y . ?\335) (?Z . ?\254) (?a . ?\341) (?c . ?\346)
@@ -153,7 +156,7 @@
 	  (?\. . ?\270)			; cedilla accent
 	  (?\  . ?\~)))
 
-    ("latin-3"
+    ("latin-3" latin-iso8859-3
      (?' (?A . ?\301) (?E . ?\311) (?I . ?\315) (?O . ?\323) (?U . ?\332)
 	 (?a . ?\341) (?e . ?\351) (?i . ?\355) (?o . ?\363) (?u . ?\372)
 	 (?' . ?\264) (?\  . ?'))      
@@ -198,12 +201,15 @@
 
 Each element of the list is of the form
 
-    (LANGUAGE
+    (LANGUAGE [CHARSET]
      (PSEUDO-ACCENT MAPPINGS)
      (PSEUDO-ACCENT MAPPINGS)
      ...)
 
 LANGUAGE is a string naming the language.
+CHARSET (which may be omitted) is the symbol name
+ of the character set used in this language.
+ If CHARSET is omitted, latin-iso8859-1 is the default.
 PSEUDO-ACCENT is a char specifying an accent key.
 MAPPINGS are cons cells of the form (CHAR . ISO-CHAR).
 
@@ -263,7 +269,13 @@ the language you choose).")
 	 (entry (cdr (assq second-char list))))
     (if entry
 	;; Found it: return the mapped char
-	(vector entry)
+	(if (and enable-multibyte-characters
+		 (>= entry ?\200))
+	    (let ((char (+ iso-accents-insert-offset entry)))
+	      (setq unread-command-events
+		    (cons (list char) unread-command-events))
+	      (vector ?\C-q))
+	  (vector entry))
       ;; Otherwise, advance and schedule the second key for execution.
       (setq unread-command-events
 	    (cons (list second-char) unread-command-events))
@@ -318,12 +330,18 @@ and a negative argument disables it."
 It selects the customization based on the specifications in the
 `iso-languages' variable."
   (interactive (list (completing-read "Language: " iso-languages nil t)))
-  (let ((table (assoc language iso-languages))
+  (let ((table (cdr (assoc language iso-languages)))
 	all-accents tail)
     (if (not table)
-	(error "Unknown language '%s'" language)
+	(error "Unknown language `%s'" language)
+      (setq iso-accents-insert-offset (- (make-char (if (symbolp (car table))
+							(car table)
+						      'latin-iso8859-1))
+					 128))
+      (if (symbolp (car table))
+	  (setq table (cdr table)))
       (setq iso-language language
-	    iso-accents-list (cdr table))
+	    iso-accents-list table)
       (if key-translation-map
 	  (substitute-key-definition
 	   'iso-accents-accent-key nil key-translation-map)
