@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: !mpmtypes.h(trunk.80) $
+ * $HopeName: MMsrc!mpmtypes.h(MMconfigura_eval_fast.1) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.type
@@ -150,7 +150,6 @@ typedef void (*SegSetWhiteMethod)(Seg seg, TraceSet white);
 typedef void (*SegSetRankSetMethod)(Seg seg, RankSet rankSet);
 typedef void (*SegSetRankSummaryMethod)(Seg seg, RankSet rankSet, 
                                         RefSet summary);
-typedef RefSet (*SegSummaryMethod)(Seg seg);
 typedef void (*SegSetSummaryMethod)(Seg seg, RefSet summary);
 typedef Buffer (*SegBufferMethod)(Seg seg);
 typedef void (*SegSetBufferMethod)(Seg seg, Buffer buffer);
