@@ -50,6 +50,8 @@ Set `rmail-default-rmail-file' to this name as well as returning it."
 	    ;; Suggest a file based on a pattern match.
 	    (while (and tail (not answer))
 	      (save-excursion
+		(if (eq major-mode 'rmail-summary-mode)
+		    (set-buffer rmail-buffer)) 
 		(goto-char (point-min))
 		(if (re-search-forward (car (car tail)) nil t)
 		    (setq answer (eval (cdr (car tail)))))
