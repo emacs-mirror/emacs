@@ -1174,10 +1174,12 @@ function `unibyte-charset'.  */)
       || cs->dimension != 1)
     error ("Inappropriate unibyte charset: %s", SDATA (SYMBOL_NAME (charset)));
   charset_unibyte = cs->id;
+  memset (unibyte_has_multibyte_table, 1, 128);
   for (i = 128; i < 256; i++)
     {
       c = DECODE_CHAR (cs, i);
       unibyte_to_multibyte_table[i] = (c < 0 ? BYTE8_TO_CHAR (i) : c);
+      unibyte_has_multibyte_table[i] = c >= 0;
     }
 
   return Qnil;
