@@ -1504,8 +1504,8 @@ x_produce_image_glyph (it)
   prepare_image_for_display (it->f, img);
 
   it->ascent = it->phys_ascent = image_ascent (img, face);
-  it->descent = it->phys_descent = img->height + 2 * img->margin - it->ascent;
-  it->pixel_width = img->width + 2 * img->margin;
+  it->descent = it->phys_descent = img->height + 2 * img->vmargin - it->ascent;
+  it->pixel_width = img->width + 2 * img->hmargin;
 
   it->nglyphs = 1;
   
@@ -3844,11 +3844,8 @@ x_draw_image_foreground (s)
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  if (s->img->margin)
-    {
-      x += s->img->margin;
-      y += s->img->margin;
-    }
+  x += s->img->hmargin;
+  y += s->img->vmargin;
 
   if (s->img->pixmap)
     {
@@ -3933,11 +3930,8 @@ x_draw_image_relief (s)
   
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  if (s->img->margin)
-    {
-      x += s->img->margin;
-      y += s->img->margin;
-    }
+  x += s->img->hmargin;
+  y += s->img->vmargin;
   
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
@@ -3982,11 +3976,8 @@ x_draw_image_foreground_1 (s, pixmap)
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  if (s->img->margin)
-    {
-      x += s->img->margin;
-      y += s->img->margin;
-    }
+  x += s->img->hmargin;
+  y += s->img->vmargin;
 
   if (s->img->pixmap)
     {
@@ -4074,7 +4065,6 @@ x_draw_image_glyph_string (s)
 {
   int x, y;
   int box_line_width = s->face->box_line_width;
-  int margin = s->img->margin;
   int height;
   Pixmap pixmap = None;
 
@@ -4085,7 +4075,8 @@ x_draw_image_glyph_string (s)
      flickering.  */
   s->stippled_p = s->face->stipple != 0;
   if (height > s->img->height
-      || margin
+      || s->img->hmargin
+      || s->img->vmargin
       || s->img->mask
       || s->img->pixmap == 0
       || s->width != s->background_width)
