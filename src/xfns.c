@@ -623,6 +623,7 @@ x_create_bitmap_from_data (f, bits, width, height)
 
   id = x_allocate_bitmap_record (f);
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
+  dpyinfo->bitmaps[id - 1].have_mask = 0;
   dpyinfo->bitmaps[id - 1].file = NULL;
   dpyinfo->bitmaps[id - 1].refcount = 1;
   dpyinfo->bitmaps[id - 1].depth = 1;
@@ -674,6 +675,7 @@ x_create_bitmap_from_file (f, file)
 
   id = x_allocate_bitmap_record (f);
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
+  dpyinfo->bitmaps[id - 1].have_mask = 0;
   dpyinfo->bitmaps[id - 1].refcount = 1;
   dpyinfo->bitmaps[id - 1].file
     = (char *) xmalloc (SBYTES (file) + 1);
@@ -701,7 +703,8 @@ x_destroy_bitmap (f, id)
 	{
 	  BLOCK_INPUT;
 	  XFreePixmap (FRAME_X_DISPLAY (f), dpyinfo->bitmaps[id - 1].pixmap);
-	  XFreePixmap (FRAME_X_DISPLAY (f), dpyinfo->bitmaps[id - 1].mask);
+	  if (dpyinfo->bitmaps[id - 1].have_mask)
+	    XFreePixmap (FRAME_X_DISPLAY (f), dpyinfo->bitmaps[id - 1].mask);
 	  if (dpyinfo->bitmaps[id - 1].file)
 	    {
 	      xfree (dpyinfo->bitmaps[id - 1].file);
@@ -723,7 +726,8 @@ x_destroy_all_bitmaps (dpyinfo)
     if (dpyinfo->bitmaps[i].refcount > 0)
       {
 	XFreePixmap (dpyinfo->display, dpyinfo->bitmaps[i].pixmap);
-	XFreePixmap (dpyinfo->display, dpyinfo->bitmaps[i].mask);
+	if (dpyinfo->bitmaps[i].have_mask)
+	  XFreePixmap (dpyinfo->display, dpyinfo->bitmaps[i].mask);
 	if (dpyinfo->bitmaps[i].file)
 	  xfree (dpyinfo->bitmaps[i].file);
       }
@@ -822,6 +826,7 @@ x_create_bitmap_mask(f, id)
 	     width, height);
   XFreeGC (FRAME_X_DISPLAY (f), gc);
 
+  dpyinfo->bitmaps[id - 1].have_mask = 1;
   dpyinfo->bitmaps[id - 1].mask = mask;
 
   XDestroyImage (ximg);
