@@ -507,15 +507,29 @@ Meaningful values for KEY include
 			environment, in order of decreasing priority.
 			This is used to set up the coding system priority
 			list when you switch to this language environment.
-
-  nonascii-translation-table
+  nonascii-translation
 		     value is a translation table to be set to the
 			variable `nonascii-translation-table' in this
 			language environment.
-
   charset-origin-alist
 		     value is an alist to be set to the variable
-			`charset-origin-alist' in this language environment.")
+			`charset-origin-alist' in this language environment.
+  input-method       value is a default input method for this language
+			environment.
+
+The following keys take effect only when multibyte characters are
+globally disabled, i.e. the value of `default-enable-multibyte-characters'
+is nil.
+
+  unibyte-syntax     value is a library name to load to set
+			unibyte 8-bit charcater syntaxes for this
+			language environment.
+
+  unibyte-display    value is a coding system to encode characters
+			for the terminal.  Characters in the range
+			of 160 to 255 display not as octal escapes,
+			but as non-ASCII characters in this language
+			environment.")
 
 (defun get-language-info (lang-env key)
   "Return information listed under KEY for language environment LANG-ENV.
@@ -608,15 +622,18 @@ in the European submenu in each of those two menus."
 
 (defun read-language-name (key prompt &optional default)
   "Read a language environment name which has information for KEY.
+If KEY is nil, read any language environment.
 Prompt with PROMPT.  DEFAULT is the default choice of language environment.
 This returns a language environment name as a string."
   (let* ((completion-ignore-case t)
 	 (name (completing-read prompt
 				language-info-alist
-				(function (lambda (elm) (assq key elm)))
+				(and key
+				     (function (lambda (elm) (assq key elm))))
 				t nil nil default)))
     (if (and (> (length name) 0)
-	     (get-language-info name key))
+	     (or (not key)
+		 (get-language-info name key)))
 	name)))
 
 ;;; Multilingual input methods.
@@ -984,6 +1001,74 @@ This hook is mainly used for cancelling the effect of
   :group 'mule
   :type 'string)
 
+(defun reset-language-environment ()
+  "Reset multilingual environment of Emacs to the default status.
+
+The default status is as follows:
+
+  The default value of buffer-file-coding-system is nil.
+  The default coding system for process I/O is nil.
+  The default value for the command `set-terminal-coding-system' is nil.
+  The default value for the command `set-keyboard-coding-system' is nil.
+
+  The order of priorities of coding categories and the coding system
+  bound to each category are as follows
+	coding category			coding system
+	--------------------------------------------------
+	coding-category-iso-8-2		iso-latin-1
+	coding-category-iso-8-1		iso-latin-1
+	coding-category-iso-7-tight	iso-2022-jp
+	coding-category-iso-7		iso-2022-7bit
+	coding-category-iso-7-else	iso-2022-7bit-lock
+	coding-category-iso-8-else	iso-2022-8bit-ss2
+	coding-category-emacs-mule 	emacs-mule
+	coding-category-raw-text	raw-text
+	coding-category-sjis		japanese-shift-jis
+	coding-category-big5		chinese-big5
+	coding-category-ccl		nil
+	coding-category-binarry		no-conversion
+"
+  (interactive)
+  ;; This function formerly set default-enable-multibyte-characters to t,
+  ;; but that is incorrect.  It should not alter the unibyte/multibyte choice.
+
+  (setq coding-category-iso-7-tight	'iso-2022-jp
+	coding-category-iso-7		'iso-2022-7bit
+	coding-category-iso-8-1		'iso-latin-1
+	coding-category-iso-8-2		'iso-latin-1
+	coding-category-iso-7-else	'iso-2022-7bit-lock
+	coding-category-iso-8-else	'iso-2022-8bit-ss2
+	coding-category-emacs-mule	'emacs-mule
+	coding-category-raw-text	'raw-text
+	coding-category-sjis		'japanese-shift-jis
+	coding-category-big5		'chinese-big5
+	coding-category-ccl		nil
+	coding-category-binary		'no-conversion)
+
+  (set-coding-priority
+   '(coding-category-iso-8-1
+     coding-category-iso-8-2
+     coding-category-iso-7-tight
+     coding-category-iso-7
+     coding-category-iso-7-else
+     coding-category-iso-8-else
+     coding-category-emacs-mule 
+     coding-category-raw-text
+     coding-category-sjis
+     coding-category-big5
+     coding-category-ccl
+     coding-category-binary))
+
+  (set-default-coding-systems nil)
+  ;; Don't alter the terminal and keyboard coding systems here.
+  ;; The terminal still supports the same coding system
+  ;; that it supported a minute ago.
+;;;  (set-terminal-coding-system-internal nil)
+;;;  (set-keyboard-coding-system-internal nil)
+
+  (setq nonascii-translation-table nil
+	nonascii-insert-offset 0))
+
 (defun set-language-environment (language-name)
   "Set up multi-lingual environment for using LANGUAGE-NAME.
 This sets the coding system priority and the default input method
@@ -991,29 +1076,67 @@ and sometimes other things.  LANGUAGE-NAME should be a string
 which is the name of a language environment.  For example, \"Latin-1\"
 specifies the character set for the major languages of Western Europe."
   (interactive (list (read-language-name
-		      'setup-function
+		      nil
 		      "Set language environment (default, English): ")))
   (if language-name
       (if (symbolp language-name)
 	  (setq language-name (symbol-name language-name)))
     (setq language-name "English"))
-  (if (null (get-language-info language-name 'setup-function))
+  (or (assoc-ignore-case language-name language-info-alist)
       (error "Language environment not defined: %S" language-name))
   (if current-language-environment
       (let ((func (get-language-info current-language-environment
 				     'exit-function)))
 	(run-hooks 'exit-language-environment-hook)
 	(if (fboundp func) (funcall func))))
-  (when (and (not default-enable-multibyte-characters)
-	     (get-language-info language-name 'unibyte-syntax))
-    (set-terminal-coding-system (intern (downcase language-name)))
-    (standard-display-european-internal))
+  (reset-language-environment)
+
   (setq current-language-environment language-name)
-  (setq nonascii-translation-table
-	(get-language-info language-name 'nonascii-translation-table))
+  (set-language-environment-coding-systems language-name)
+  (let ((input-method (get-language-info language-name 'input-method)))
+    (when input-method
+      (setq default-input-method input-method)
+      (if input-method-history
+	  (setq input-method-history
+		(cons input-method
+		      (delete input-method input-method-history))))))
+  (let ((nonascii (get-language-info language-name 'nonascii-translation)))
+    (if (char-table-p nonascii)
+	(setq nonascii-translation-table nonascii)	
+      (if (charsetp nonascii)
+	  (setq nonascii-insert-offset (- (make-char nonascii) 128)))))
+
   (setq charset-origin-alist
 	(get-language-info language-name 'charset-origin-alist))
-  (funcall (get-language-info language-name 'setup-function))
+
+  (unless default-enable-multibyte-characters
+    ;; Unibyte setups.
+    (let ((syntax (get-language-info language-name 'unibyte-syntax)))
+      (if syntax
+	  (let ((set-case-syntax-set-multibyte nil))
+	    (load syntax nil t)
+	    (set-standard-case-table (standard-case-table))
+	    (let ((list (buffer-list)))
+	      (while list
+		(with-current-buffer (car list)
+		  (set-case-table (standard-case-table)))
+		(setq list (cdr list)))))))
+    (let ((coding (get-language-info language-name 'unibyte-display)))
+      (if coding
+	  (progn
+	    (standard-display-european-internal)
+	    (set-terminal-coding-system coding))
+	(standard-display-default 160 255)
+	(aset standard-display-table 146 nil)
+	(set-terminal-coding-system nil))))
+
+  (let ((required-features (get-language-info language-name 'features)))
+    (while required-features
+      (require (car required-features))
+      (setq required-features (cdr required-features))))
+  (let ((func (get-language-info language-name 'setup-function)))
+    (if (fboundp func)
+	(funcall func)))
   (run-hooks 'set-language-environment-hook)
   (force-mode-line-update t))
 
@@ -1086,8 +1209,14 @@ specifies the character set for the major languages of Western Europe."
 	      (princ "Sample text:\n")
 	      (princ-list "  " str)
 	      (terpri))))
-      (princ "Input methods:\n")
-      (let ((l input-method-alist))
+      (let ((input-method (get-language-info language-name 'input-method))
+	    (l input-method-alist))
+	(princ "Input methods")
+	(when input-method
+	  (princ (format " (default, %s)" input-method))
+	  (setq input-method (assoc input-method input-method-alist))
+	  (setq l (cons input-method (delete input-method l))))
+	(princ ":\n")
 	(while l
 	  (if (string= language-name (nth 1 (car l)))
 	      (princ-list "  " (car (car l))
