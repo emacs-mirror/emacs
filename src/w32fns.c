@@ -41,6 +41,7 @@ Boston, MA 02111-1307, USA.  */
 #include "w32heap.h"
 #include "termhooks.h"
 #include "coding.h"
+#include "ccl.h"
 
 #include <commdlg.h>
 #include <shellapi.h>
@@ -6197,10 +6198,7 @@ void
 w32_find_ccl_program (fontp)
      struct font_info *fontp;
 {
-  extern Lisp_Object Vfont_ccl_encoder_alist, Vccl_program_table;
-  extern Lisp_Object Qccl_program_idx;
-  extern Lisp_Object resolve_symbol_ccl_program ();
-  Lisp_Object list, elt, ccl_prog, ccl_id;
+  Lisp_Object list, elt;
 
   for (list = Vfont_ccl_encoder_alist; CONSP (list); list = XCONS (list)->cdr)
     {
@@ -6209,26 +6207,16 @@ w32_find_ccl_program (fontp)
 	  && STRINGP (XCONS (elt)->car)
 	  && (fast_c_string_match_ignore_case (XCONS (elt)->car, fontp->name)
 	      >= 0))
-	{
-	  if (SYMBOLP (XCONS (elt)->cdr) &&
-	      (!NILP (ccl_id = Fget (XCONS (elt)->cdr, Qccl_program_idx))))
-	    {
-	      ccl_prog = XVECTOR (Vccl_program_table)->contents[XUINT (ccl_id)];
-	      if (!CONSP (ccl_prog)) continue;
-	      ccl_prog = XCONS (ccl_prog)->cdr;
-	    }
-	  else
-	    {
-	      ccl_prog = XCONS (elt)->cdr;
-	      if (!VECTORP (ccl_prog)) continue;
-	    }
-	    
-	  fontp->font_encoder
-	    = (struct ccl_program *) xmalloc (sizeof (struct ccl_program));
-	  setup_ccl_program (fontp->font_encoder,
-			     resolve_symbol_ccl_program (ccl_prog));
-	  break;
-	}
+	break;
+    }
+  if (! NILP (list))
+    {
+      struct ccl_program *ccl = xmalloc (sizeof (struct ccl_program));
+
+      if (setup_ccl_program (ccl, XCONS (elt)->cdr) < 0)
+	xfree (ccl);
+      else
+	fontp->font_encoder = ccl;
     }
 }
 
