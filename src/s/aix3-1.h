@@ -51,7 +51,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
 
-#define SYSTEM_TYPE "aix-v3"
+#define SYSTEM_TYPE "aix"
 
 
 /* nomultiplejobs should be defined if your system's shell
