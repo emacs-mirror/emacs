@@ -1,5 +1,8 @@
 1999-11-19  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* scroll-bar.el (scroll-bar-toolkit-scroll): add handling of the `ratio'
+	event for Xaw and Xaw3d(without arrows) scrollbars.
+
 	* files.el (auto-mode-alist): add patterns for diff-mode.
 
 	* complete.el (PC-do-complete-and-exit): use minibuffer-prompt-end to

@@ -316,6 +316,13 @@ EVENT should be a scroll bar click."
 		    (scroll-up '-))
 		   ((eq part 'below-handle)
 		    (scroll-up nil))
+		   ((eq part 'ratio)
+		    (let* ((portion-whole (nth 2 end-position))
+			   (lines (scroll-bar-scale portion-whole
+						    (1- (window-height)))))
+		      (scroll-up (cond ((not (zerop lines)) lines)
+				       ((< (car portion-whole) 0) -1)
+				       (t 1)))))
 		   ((eq part 'up)
 		    (scroll-up -1))
 		   ((eq part 'down)
@@ -330,7 +337,7 @@ EVENT should be a scroll bar click."
 	   (sit-for 0)
 	   (unless scroll-bar-timer
 	     (setq scroll-bar-timer
-		   (run-with-timer 0.1 0.1 'xt-process-timeouts)))
+	   	   (run-with-timer 0.1 0.1 'xt-process-timeouts)))
 	   (with-current-buffer (window-buffer window)
 	     (setq point-before-scroll before-scroll))))))
 
