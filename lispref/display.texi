@@ -212,6 +212,9 @@ Minibuffer depth is 0.
 ---------- Echo Area ----------
 @end group
 @end example
+
+To automatically display a message in the echo area or in a pop-buffer,
+depending on its size, use @code{display-message-or-buffer}.
 @end defun
 
 @tindex with-temp-message
@@ -242,6 +245,26 @@ box (or a pop-up menu) whenever that is possible.  If it is impossible
 to use a dialog box or pop-up menu, because the terminal does not
 support them, then @code{message-box} uses the echo area, like
 @code{message}.
+@end defun
+
+@defun display-message-or-buffer message &optional buffer-name not-this-window frame
+This function displays the message @var{message}, which may be either a
+string or a buffer.  If it is shorter than the maximum height of the
+echo area, as defined by @code{max-mini-window-height}, it is displayed
+in the echo area, using @code{message}.  Otherwise,
+@code{display-buffer} is used to show it in a pop-up buffer.
+
+Returns either the string shown in the echo area, or when a pop-up
+buffer is used, the window used to display it.
+
+If @var{message} is a string, then the optional argument
+@var{buffer-name} is the name of the buffer used to display it when a
+pop-up buffer is used, defaulting to @samp{*Message*}.  In the case
+where @var{message} is a string and displayed in the echo area, it is
+not specified whether the contents are inserted into the buffer anyway.
+
+The optional arguments @var{not-this-window} and @var{frame} are as for
+@code{display-buffer}, and only used if a buffer is displayed.
 @end defun
 
 @defun current-message
