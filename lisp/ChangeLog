@@ -1,3 +1,8 @@
+2004-11-11  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-ext.el (math-defcache):  Use defvar for the new
+	variables it creates. 
+
 2004-11-11  Lars Hansen  <larsh@math.ku.dk>
 
 	* desktop.el (desktop-buffer-mode-handlers, desktop-after-read-hook,
