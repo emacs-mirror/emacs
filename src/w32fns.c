@@ -5398,19 +5398,17 @@ x_to_w32_font (lpxstr, lplogfont)
 
       if (fields > 0 && name[0] != '*')
         {
+	  Lisp_Object string = build_string (name);
           setup_coding_system
             (Fcheck_coding_system (Vlocale_coding_system), &coding);
-	  coding.src_multibyte = 1;
-	  coding.dst_multibyte = 1;
-	  coding.dst_bytes = strlen (name) * 2;
-	  coding.destination = (unsigned char *) xmalloc (coding.dst_bytes);
+          coding.mode |= (CODING_MODE_SAFE_ENCODING | CODING_MODE_LAST_BLOCK);
 	  /* Disable composition/charset annotation.   */
 	  coding.common_flags &= ~CODING_ANNOTATION_MASK;
-	  if (coding.type == coding_type_iso2022)
-	    coding.flags |= CODING_FLAG_ISO_SAFE;
-          coding.mode |= CODING_MODE_LAST_BLOCK;
-          encode_coding_object (&coding, build_string (name), 0, 0,
-				strlen (name), coding.dst_bytes, Qnil);
+	  coding.dst_bytes = SCHARS (string) * 2;
+
+	  coding.destination = (unsigned char *) xmalloc (coding.dst_bytes);
+          encode_coding_object (&coding, string, 0, 0,
+				SCHARS (string), SBYTES (string), Qnil);
 	  if (coding.produced >= LF_FACESIZE)
 	    coding.produced = LF_FACESIZE - 1;
 
