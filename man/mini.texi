@@ -139,18 +139,27 @@ minibuffer window, and then yank the text to use it in the argument.
 @cindex size of minibuffer
 @cindex growing minibuffer
 @cindex resizing minibuffer
-@vindex max-mini-window-height
   There are some restrictions on the use of the minibuffer window,
 however.  You cannot switch buffers in it---the minibuffer and its
 window are permanently attached.  Also, you cannot split or kill the
 minibuffer window.  But you can make it taller in the normal fashion
-with @kbd{C-x ^}.  The minibuffer window expands vertically as necessary
-to hold the text that you put in the minibuffer.  Customize the variable
-@code{max-mini-window-height} to control the maximum height for resizing
-the minibuffer window: if a floating-point number, it specifies a
-fraction of the frame's height; if an integer, it specifies the maximum
-number of lines; if nil, the minibuffer window is not resized.  The
-default value is 0.25.
+with @kbd{C-x ^}.
+
+@vindex resize-mini-windows
+  The minibuffer window expands vertically as necessary to hold the text
+that you put in the minibuffer if @code{resize-mini-windows} is
+non-@code{nil}.  If @code{resize-mini-windows} is @code{t}, the window
+is always resized to fit the size of the text it displays.  If
+@code{resize-mini-windows} is the symbol @code{grow-only}, the window
+is enlarged only, until it becomes empty again, at which point it
+shrinks to its normal size again.
+
+@vindex max-mini-window-height
+  Customize the variable @code{max-mini-window-height} to control the
+maximum height for resizing the minibuffer window: if a floating-point
+number, it specifies a fraction of the frame's height; if an integer,
+it specifies the maximum number of lines; if nil, the minibuffer
+window is not resized.  The default value is 0.25.
 
 @vindex minibuffer-scroll-overlap
   Scrolling works specially in the minibuffer window.  When the
