@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
-;; Author: Jan Schormann <Jan.Schormann@informatik.uni-oldenburg.de>
+;; Author: Jan Schormann <Jan.Schormann@rechen-gilde.de>
 ;; Created: Fri afternoon, Jun  3,  1994
 ;; Keywords: games
 
