@@ -215,7 +215,7 @@ Normally input is edited in Emacs and sent a line at a time."
   (interactive "sOpen rsh connection to host: ")
   (require 'shell)
   (let ((name (concat host "-rsh" )))
-    (switch-to-buffer (make-comint name "rsh"))
+    (switch-to-buffer (make-comint name "rsh" nil host))
     (set-process-filter (get-process name) 'telnet-initial-filter)
     (telnet-mode)
     (setq telnet-count -16)))
