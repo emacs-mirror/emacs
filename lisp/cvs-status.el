@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs status tree
 ;; Version: $Name:  $
-;; Revision: $Id: cvs-status.el,v 1.14 2000/03/05 21:32:21 monnier Exp $
+;; Revision: $Id: cvs-status.el,v 1.1 2000/03/11 03:42:28 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -45,11 +45,11 @@
 
 (easy-mmode-defmap cvs-status-mode-map
   '(("n"	. next-line)
-    ("N"	. cvs-status-next-entry)
-    ("\M-n"	. cvs-status-next-entry)
     ("p"	. previous-line)
-    ("P"	. cvs-status-prev-entry)
-    ("\M-p"	. cvs-status-prev-entry)
+    ("N"	. cvs-status-next)
+    ("P"	. cvs-status-prev)
+    ("\M-n"	. cvs-status-next)
+    ("\M-p"	. cvs-status-prev)
     ("t"	. cvs-status-cvstrees)
     ("T"	. cvs-status-trees))
   "CVS-Status' keymap."
@@ -99,22 +99,8 @@
   (set (make-local-variable 'font-lock-defaults) cvs-status-font-lock-defaults)
   (set (make-local-variable 'cvs-minor-wrap-function) 'cvs-status-minor-wrap))
 
-
-(defun cvs-status-next-entry (n)
-  "Go to the N'th next cvs status entry."
-  (interactive "p")
-  (if (< n 0) (cvs-status-prev-entry (- n))
-    (forward-line 1)
-    (re-search-forward cvs-status-entry-leader-re nil t n)
-    (beginning-of-line)))
-
-(defun cvs-status-prev-entry (n)
-  "Go to the N'th previous cvs status entry."
-  (interactive "p")
-  (if (< n 0) (cvs-status-next-entry (- n))
-    (forward-line -1)
-    (re-search-backward cvs-status-entry-leader-re nil t n)
-    (beginning-of-line)))
+;; Define cvs-status-next and cvs-status-prev
+(easy-mmode-define-navigation cvs-status cvs-status-entry-leader-re "entry")
 
 (defun cvs-status-current-file ()
   (save-excursion
@@ -400,7 +386,7 @@ the list is a three-string list TAG, KIND, REV."
 ;;;; 
 
 ;; chars sets.  Ripped from cvstree
-(defvar cvstree-dstr-2byte-ready
+(defvar cvs-tree-dstr-2byte-ready
   (when (featurep 'mule)
       (if (boundp 'current-language-environment)
 	  (string= current-language-environment "Japanese")
@@ -410,23 +396,23 @@ If non-nil, 2byte (Japanese?) characters set is used.
 If nil, 1byte characters set is used.
 2byte characters might be available with Mule or Emacs with Mule extension.")
 
-(defconst cvstree-dstr-char-space
-  (if cvstree-dstr-2byte-ready "　" " "))
-(defconst cvstree-dstr-char-hbar
-  (if cvstree-dstr-2byte-ready "━" "-"))
-(defconst cvstree-dstr-char-vbar
-  (if cvstree-dstr-2byte-ready "┃" "|"))
-(defconst cvstree-dstr-char-branch
-  (if cvstree-dstr-2byte-ready "┣" "+"))
-(defconst cvstree-dstr-char-eob		;end of branch
-  (if cvstree-dstr-2byte-ready "┗" "`"))
-(defconst cvstree-dstr-char-bob		;beginning of branch
-  (if cvstree-dstr-2byte-ready "┳" "+"))
+(defconst cvs-tree-dstr-char-space
+  (if cvs-tree-dstr-2byte-ready "　" "  "))
+(defconst cvs-tree-dstr-char-hbar
+  (if cvs-tree-dstr-2byte-ready "━" "--"))
+(defconst cvs-tree-dstr-char-vbar
+  (if cvs-tree-dstr-2byte-ready "┃" "| "))
+(defconst cvs-tree-dstr-char-branch
+  (if cvs-tree-dstr-2byte-ready "┣" "+-"))
+(defconst cvs-tree-dstr-char-eob		;end of branch
+  (if cvs-tree-dstr-2byte-ready "┗" "`-"))
+(defconst cvs-tree-dstr-char-bob		;beginning of branch
+  (if cvs-tree-dstr-2byte-ready "┳" "+-"))
 
 (defun cvs-tag-lessp (tag1 tag2)
   (eq (cvs-tag-compare tag1 tag2) 'more2))
 
-(defvar cvs-tree-nomerge t)
+(defvar cvs-tree-nomerge nil)
 
 (defun cvs-status-cvstrees (&optional arg)
   "Look for a list of tags, and replace it with a tree.
@@ -479,16 +465,16 @@ Optional prefix ARG chooses between two representations."
 	  (let* ((na+char
 		  (if (car as)
 		      (if eq
-			  (if next-eq (cons t cvstree-dstr-char-vbar)
-			    (cons t cvstree-dstr-char-branch))
-			(cons nil cvstree-dstr-char-bob))
+			  (if next-eq (cons t cvs-tree-dstr-char-vbar)
+			    (cons t cvs-tree-dstr-char-branch))
+			(cons nil cvs-tree-dstr-char-bob))
 		    (if eq
-			(if next-eq (cons nil cvstree-dstr-char-space)
-			  (cons t cvstree-dstr-char-eob))
+			(if next-eq (cons nil cvs-tree-dstr-char-space)
+			  (cons t cvs-tree-dstr-char-eob))
 		      (cons nil (if (and (eq (cvs-tag->type tag) 'branch)
 					 (cvs-every 'null as))
-				    cvstree-dstr-char-space
-				  cvstree-dstr-char-hbar))))))
+				    cvs-tree-dstr-char-space
+				  cvs-tree-dstr-char-hbar))))))
 	    (insert (cdr na+char))
 	    (push (car na+char) nas))
 	  (setq pe eq)))
@@ -519,5 +505,8 @@ Optional prefix ARG chooses between two representations."
       
 
 (provide 'cvs-status)
+
+;;; Change Log:
+;; $Log$
 
 ;;; cvs-status.el ends here
