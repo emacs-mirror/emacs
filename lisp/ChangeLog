@@ -1,3 +1,17 @@
+2005-03-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler, gdb-get-location):
+	Use message-box.
+
+	* tooltip.el (tooltip-mode): Use define-minor-mode and simplify.
+	(tooltip-activate-mouse-motions-if-enabled): Use dolist.
+	(tooltip-gud-tips): Simplify.
+	(tooltip-gud-tips-p): Remove superflouous :set.
+	(tooltip-gud-modes): Add fortran-mode.
+	(gdb-tooltip-print): Remove newline for tooltip-use-echo-area.
+
+	* bindings.el (mode-line-mode-menu): Add tooltip-mode to mode-line.
+	
 2005-03-09  Kim F. Storm  <storm@cua.dk>
 
 	* play/animate.el (animate-place-char): Use forward-line instead
