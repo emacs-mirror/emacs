@@ -2045,6 +2045,21 @@ x_set_tool_bar_lines (f, value, oldval)
       clear_current_matrices (f);
       updating_frame = NULL;
     }
+
+  /* If the tool bar gets smaller, the internal border below it
+     has to be cleared.  It was formerly part of the display
+     of the larger tool bar, and updating windows won't clear it.  */
+  if (delta < 0)
+    {
+      int height = FRAME_INTERNAL_BORDER_WIDTH (f);
+      int width = PIXEL_WIDTH (f);
+      int y = nlines * CANON_Y_UNIT (f);
+
+      BLOCK_INPUT;
+      XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		  0, y, width, height, False);
+      UNBLOCK_INPUT;
+    }
 }
 
 
