@@ -1,12 +1,12 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(MMdevel_restr.2) $
+ * $HopeName: MMsrc!mpm.c(MMdevel_restr2.3) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(MMdevel_restr.2) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(MMdevel_restr2.3) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -103,7 +103,17 @@ Shift SizeLog2(Size size)
 Addr (AddrAdd)(Addr addr, Size size)
 {
   Addr next = (Addr)((Word)addr + size);
-  AVER(next >= addr);	/* overflow check */
+  AVER(next >= addr);   /* overflow check */
+  return next;
+}
+
+
+/* AddrSub -- subtract a size from an address */
+
+Addr (AddrSub)(Addr addr, Size size)
+{
+  Addr next = (Addr)((Word)addr - size);
+  AVER(next <= addr);   /* overflow check */
   return next;
 }
 

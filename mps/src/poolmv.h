@@ -1,6 +1,6 @@
 /*  ==== MANUAL VARIABLE POOLS ====
  *
- *  $HopeName: MMsrc!poolmv.h(MMdevel_restr.2) $
+ *  $HopeName: MMsrc!poolmv.h(MMdevel_restr2.2) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -50,12 +50,6 @@ typedef struct MVStruct *MV;
 
 extern PoolClass PoolClassMV(void);
 
-extern Res MVCreate(MV *mvReturn, Space space,
-                    Size extendBy, Size avgSize, Size maxSize);
-extern void MVDestroy(MV mv);
-extern Res MVInit(MV mv, Space space,
-                  Size extendBy, Size avgSize, Size maxSize);
-extern void MVFinish(MV mv);
 extern Bool MVCheck(MV mv);
 extern Pool (MVPool)(MV mv);
 

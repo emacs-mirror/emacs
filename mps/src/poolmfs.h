@@ -2,7 +2,7 @@
  *
  *                    MANUAL FIXED SMALL UNIT POOL
  *
- *  $HopeName: MMsrc!poolmfs.h(MMdevel_restr.2) $
+ *  $HopeName: MMsrc!poolmfs.h(MMdevel_restr2.2) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -36,10 +36,6 @@ typedef struct MFSStruct *MFS;
 
 extern PoolClass PoolClassMFS(void);
 
-extern Res MFSCreate(MFS *mfsReturn, Space space, Size extendBy, Size unitSize);
-extern void MFSDestroy(MFS mfs);
-extern Res MFSInit(MFS mfs, Space space, Size extendBy, Size unitSize);
-extern void MFSFinish(MFS mfs);
 extern Bool MFSCheck(MFS mfs);
 extern Pool (MFSPool)(MFS mfs);
 

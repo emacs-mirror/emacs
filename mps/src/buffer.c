@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(MMdevel_restr.5) $
+ * $HopeName: MMsrc!buffer.c(MMdevel_restr2.4) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
  * This is the interface to allocation buffers.
@@ -115,7 +115,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(MMdevel_restr.5) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(MMdevel_restr2.4) $");
 
 
 Ring BufferPoolRing(Buffer buffer)
@@ -133,17 +133,68 @@ Pool (BufferPool)(Buffer buffer)
 
 /* BufferCreate -- create an allocation buffer in a pool
  *
+ * The buffer structure is allocated from the space control pool,
+ * and initialized with generic valid contents.  If the pool
+ * provides a bufferInit method then it is called and may perform
+ * additional initialization, otherwise the base, init,
+ * alloc, and limit fields are set to zero, so that the fill method
+ * will get called the first time a reserve operation is attempted.
+ *
  * Iff successful, *bufferReturn is updated with a pointer to the
  * buffer descriptor, and ResOK is returned.
  */
 
 Res BufferCreate(Buffer *bufferReturn, Pool pool)
 {
+  Res res;
+  Buffer buffer;
+  Space space;
+
   AVER(bufferReturn != NULL);
   AVERT(Pool, pool);
-  AVER(pool->class->bufferCreate != NULL);
+  AVER((pool->class->attr & AttrBUF) != 0);
+  
+  space = PoolSpace(pool);
 
-  return (*pool->class->bufferCreate)(bufferReturn, pool);
+  /* Allocate the buffer structure. */  
+  res = SpaceAlloc((Addr *)&buffer, space, sizeof(BufferStruct));
+  if(res != ResOK) return res;
+
+  /* Initialize the generic fields of the buffer. */
+  buffer->base = 0;
+  buffer->pool = pool;
+  buffer->space = space;
+  buffer->ap.init = 0;
+  buffer->ap.alloc = 0;
+  buffer->ap.limit = 0;
+  buffer->alignment = pool->alignment;
+  buffer->exposed = FALSE;
+  buffer->seg = NULL;
+  buffer->shieldMode = AccessSetEMPTY;
+  buffer->grey = TraceSetEMPTY;
+  buffer->p = NULL;
+  buffer->i = 0;
+  RingInit(&buffer->poolRing);
+
+  /* Dispatch to the pool class method to perform any extra */
+  /* initialization of the buffer. */
+  res = (*pool->class->bufferInit)(pool, buffer);
+  if(res != ResOK) {
+    SpaceFree(space, (Addr)buffer, sizeof(BufferStruct));
+    return res;
+  }
+
+  /* Now that it's initialized, sign the buffer and check it. */
+  buffer->sig = BufferSig;
+  buffer->serial = pool->bufferSerial;
+  ++pool->bufferSerial;
+  AVERT(Buffer, buffer);
+
+  /* Attach the initialized buffer to the pool. */
+  RingAppend(&pool->bufferRing, &buffer->poolRing);
+
+  *bufferReturn = buffer;
+  return ResOK;
 }
 
 
@@ -152,22 +203,44 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool)
  * Destroy frees a buffer descriptor.  The buffer must be in the
  * "ready" state, i.e. not between a Reserve and Commit.  Allocation
  * in the area of memory to which the descriptor refers must cease
- * after Destroy is called.  This does not affect objects that have
- * been allocated in the buffer.
+ * after Destroy is called.
+ *
+ * Destroying an allocation buffer does not affect objects which have
+ * been allocated, it just frees resources associated with the buffer
+ * itself.
+ *
+ * The pool class's bufferDestroy method is called and then the
+ * buffer structure is uninitialized and freed.
  */
 
 void BufferDestroy(Buffer buffer)
 {
+  Space space;
   Pool pool;
 
   AVERT(Buffer, buffer);
 
-  pool = BufferPool(buffer);
+  /* Make a copy of the space before the buffer gets finished. */
+  space = buffer->space;
+  pool = buffer->pool;
 
-  AVER(pool->class->bufferDestroy != NULL);
-  AVER(buffer->ap.init == buffer->ap.alloc);
+  AVER((pool->class->attr & AttrBUF) != 0);
+  AVER(BufferIsReady(buffer));
+  AVER(buffer->exposed == FALSE);
 
-  (*pool->class->bufferDestroy)(pool, buffer);
+  /* Detach the buffer from its owning pool. */
+  RingRemove(&buffer->poolRing);
+  
+  /* Dispatch to the pool class method to finish the buffer. */
+  (*pool->class->bufferFinish)(pool, buffer);
+
+  /* Unsign the finished buffer. */
+  buffer->sig = SigInvalid;
+  
+  /* Finish off the generic buffer fields and deallocate the */
+  /* buffer structure. */
+  RingFinish(&buffer->poolRing);
+  SpaceFree(space, (Addr)buffer, sizeof(BufferStruct));
 }
 
 
@@ -292,58 +365,6 @@ Buffer BufferOfAP(AP ap)
 Space BufferSpace(Buffer buffer)
 {
   return buffer->space;
-}
-
-
-/* BufferInit/Finish -- initialize/finish a buffer descriptor
- *
- * Init is used by pool classes to initialize a buffer descriptor
- * before it is passed to the client.  The descriptor is initialized
- * with the fill and trip methods, and is attached to the pool
- * buffer ring.  The base, init, alloc, and limit fields are set to
- * zero, so that the fill method will get called the first time a
- * reserve operation is attempted.
- */
-
-void BufferInit(Buffer buffer, Pool pool)
-{
-  AVERT(Pool, pool);
-  AVER(buffer != NULL);
-
-  buffer->base = 0;
-  buffer->pool = pool;
-  buffer->space = PoolSpace(pool);
-  buffer->ap.init = 0;
-  buffer->ap.alloc = 0;
-  buffer->ap.limit = 0;
-  buffer->alignment = pool->alignment;
-  buffer->exposed = FALSE;
-  buffer->seg = NULL;
-  buffer->p = NULL;
-  buffer->i = 0;
-  buffer->shieldMode = AccessSetEMPTY;
-  buffer->grey = TraceSetEMPTY;
-
-  RingInit(&buffer->poolRing);
-  RingAppend(&pool->bufferRing, &buffer->poolRing);
-
-  buffer->sig = BufferSig;
-  buffer->serial = pool->bufferSerial;
-  ++pool->bufferSerial;
-
-  AVERT(Buffer, buffer);
-}
-
-
-void BufferFinish(Buffer buffer)
-{
-  AVERT(Buffer, buffer);
-  AVER(BufferIsReset(buffer));
-  AVER(buffer->exposed == FALSE);
-
-  RingRemove(&buffer->poolRing);
-
-  buffer->sig = SigInvalid;
 }
 
 
@@ -509,7 +530,6 @@ void BufferExpose(Buffer buffer)
   Pool pool;
 
   AVERT(Buffer, buffer);
-  AVER(BufferPool(buffer)->class->bufferExpose != NULL);
 
   buffer->exposed = TRUE;
   pool = BufferPool(buffer);
@@ -521,7 +541,6 @@ void BufferCover(Buffer buffer)
   Pool pool;
 
   AVERT(Buffer, buffer);
-  AVER(BufferPool(buffer)->class->bufferCover != NULL);
 
   buffer->exposed = FALSE;
   pool = BufferPool(buffer);

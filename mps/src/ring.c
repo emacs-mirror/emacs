@@ -1,6 +1,6 @@
 /* impl.c.ring: RING IMPLEMENTATION
  *
- * $HopeName: MMsrc!ring.c(MMdevel_restr.1) $
+ * $HopeName: MMsrc!ring.c(MMdevel_restr2.2) $
  * Copyright (C) 1995 Harlequin Group, all rights reserved.
  *
  * .def: Rings are circular doubly-linked lists of ring "nodes".  The nodes
@@ -8,10 +8,10 @@
  *
  * .ex: For example:
  *
- *   typedef struct FooStruct *Foo;	the element type
- *   typedef struct FooStruct {		the element structure
+ *   typedef struct FooStruct *Foo;     the element type
+ *   typedef struct FooStruct {         the element structure
  *     int baz, bim;
- *     RingStruct ring;			the ring node
+ *     RingStruct ring;                 the ring node
  *     float bip, bop;
  *   } FooStruct;
  *
@@ -30,7 +30,7 @@
 
 #include "mpm.h"
 
-SRCID(ring, "$HopeName: MMsrc!ring.c(MMdevel_restr.1) $");
+SRCID(ring, "$HopeName: MMsrc!ring.c(MMdevel_restr2.2) $");
 
 
 /* RingCheck, RingCheckSingle -- check the validity of a ring node
@@ -66,7 +66,7 @@ Bool RingCheckSingle(Ring ring)
 
 void (RingInit)(Ring ring)
 {
-  RingInit(ring);			/* impl.h.mpm.init */
+  RingInit(ring);                       /* impl.h.mpm.init */
 }
 
 
@@ -77,7 +77,7 @@ void (RingInit)(Ring ring)
  
 void (RingFinish)(Ring ring)
 {
-  RingFinish(ring);			/* impl.h.mpm.finish */
+  RingFinish(ring);                     /* impl.h.mpm.finish */
 }
 
 
@@ -90,7 +90,7 @@ void (RingFinish)(Ring ring)
 
 void (RingAppend)(Ring ring, Ring new)
 {
-  RingAppend(ring, new);		/* impl.h.mpm.append */
+  RingAppend(ring, new);                /* impl.h.mpm.append */
 }
 
 
@@ -103,7 +103,7 @@ void (RingAppend)(Ring ring, Ring new)
 
 void (RingRemove)(Ring old)
 {
-  RingRemove(old);			/* impl.h.mpm.remove */
+  RingRemove(old);                      /* impl.h.mpm.remove */
 }
 
 
@@ -111,7 +111,7 @@ void (RingRemove)(Ring old)
 
 Ring (RingNext)(Ring ring)
 {
-  return RingNext(ring);		/* impl.h.mpm.next */
+  return RingNext(ring);                /* impl.h.mpm.next */
 }
 
 
