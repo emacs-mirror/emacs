@@ -1,3 +1,15 @@
+2003-01-25  Richard M. Stallman  <rms@gnu.org>
+
+	* lisp.h: Declare format2 instead of format1.
+
+	* fileio.c (barf_or_query_if_file_exists):
+	Call format2 instead of format1.
+
+	* editfns.c (format2): New function, replaces format1
+	but takes exactly two Lisp Objects as format args.
+
+	* buffer.c (Fkill_buffer): Call format2 instead of format1.
+
 2003-01-25  Jan D.  <jan.h.d@swipnet.se>
 
 	* xterm.h: Change to return value of x_dispatch_event to int.

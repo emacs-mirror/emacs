@@ -1,3 +1,7 @@
+2003-01-25  Richard M. Stallman  <rms@gnu.org>
+
+	* keymaps.texi: Document that a symbol can act as a keymap.
+
 2003-01-13  Richard M. Stallman  <rms@gnu.org>
 
 	* text.texi (Changing Properties): Say string indices are origin-0.

@@ -1,3 +1,20 @@
+2003-01-25  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-custom-declare-variable): 
+	Compile any lambda-expressions among the args.
+
+	* view.el (view-mode): Doc fix.
+
+	* ido.el: Many doc fixes.
+	(ido-complete): Fix message.
+
+2003-01-25  Taro Kawagishi <tarok@transpulse.org>
+
+	* arc-mode.el (archive-unixdate): Corrected the date field string.
+	(archive-lzh-summarize): Extended it to allow the LZH level 2 header
+	type (which is most prevalent now), in addition to the already
+	supported level 0 and 1 header types.
+
 2003-01-25  Markus Rost  <rost@math.ohio-state.edu>
 
 	* international/mule-cmds.el (set-language-info)
