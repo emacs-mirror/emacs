@@ -2299,7 +2299,17 @@ Use %% to put a single % into the output.")
 	    if (*format == 'e' || *format == 'f' || *format == 'g')
 	      args[n] = Ffloat (args[n]);
 #endif
-	    thissize = 30;
+	    thissize = 30;	
+	    if (*format == 'c' && ! SINGLE_BYTE_CHAR_P (XINT (args[n])))
+	      {
+		if (! multibyte)
+		  {
+		    multibyte = 1;
+		    goto retry;
+		  }
+		args[n] = Fchar_to_string (args[n]);
+		thissize = XSTRING (args[n])->size_byte;
+	      }
 	  }
 #ifdef LISP_FLOAT_TYPE
 	else if (FLOATP (args[n]) && *format != 's')
@@ -2376,16 +2386,17 @@ Use %% to put a single % into the output.")
 
 	  if (STRINGP (args[n]))
 	    {
-	      int padding, nbytes;
+	      int padding, nbytes, width;
 
 	      nbytes = copy_text (XSTRING (args[n])->data, p,
 				  XSTRING (args[n])->size_byte,
 				  STRING_MULTIBYTE (args[n]), multibyte);
+	      width = strwidth (p, nbytes);
 	      p += nbytes;
 	      nchars += XSTRING (args[n])->size;
 
 	      /* If spec requires it, pad on right with spaces.  */
-	      padding = minlen - XSTRING (args[n])->size;
+	      padding = minlen - width;
 	      while (padding-- > 0)
 		{
 		  *p++ = ' ';
