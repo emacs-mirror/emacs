@@ -5152,10 +5152,6 @@ mode_line_string (w, x, y, mode_line_p, charpos)
   int x0;
   Lisp_Object string = Qnil;
 
-  /* Only do this for frames under a window system and MS-DOS frames.  */
-  if (!FRAME_WINDOW_P (f) && !FRAME_MSDOS_P (f))
-    return Qnil;
-
   if (mode_line_p)
     row = MATRIX_MODE_LINE_ROW (w->current_matrix);
   else
