@@ -1,3 +1,11 @@
+2003-12-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help-mode.el (help-xref-info-regexp): Make hyperlinks to Info
+	documentation if the anchor (or node) name is preceded by `info
+	anchor' or `Info anchor' in addition to earlier `info node' and
+	`Info node'.
+	(help-make-xrefs): Adapt to new value of `help-xref-info-regexp'.
+
 2003-12-30  Eli Zaretskii  <eliz@elta.co.il>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Fix off-by-one
