@@ -143,7 +143,7 @@ With a prefix argument, format the macro in a more concise way."
 	(insert ";; Original keys: " fmt "\n")
 	(unless store-hook
 	  (insert "\nCommand: " (if cmd (symbol-name cmd) "none") "\n")
-	  (let ((keys (where-is-internal (or cmd mac) nil)))
+	  (let ((keys (where-is-internal (or cmd mac) '(keymap))))
 	    (if keys
 		(while keys
 		  (insert "Key: " (edmacro-format-keys (pop keys) 1) "\n"))
@@ -278,7 +278,7 @@ or nil, use a compact 80-column format."
 		(fset cmd mac)))
 	    (if no-keys
 		(when cmd
-		  (loop for key in (where-is-internal cmd nil) do
+		  (loop for key in (where-is-internal cmd '(keymap)) do
 			(global-unset-key key)))
 	      (when keys
 		(if (= (length mac) 0)
@@ -682,7 +682,7 @@ use this command, and then save the file."
     (prin1 definition (current-buffer))
     (insert "))\n")
     (if keys
-	(let ((keys (where-is-internal macroname nil)))
+	(let ((keys (where-is-internal macroname '(keymap))))
 	  (while keys
 	    (insert (format "(global-set-key %S '%s)\n" (car keys) macroname))
 	    (setq keys (cdr keys)))))))
