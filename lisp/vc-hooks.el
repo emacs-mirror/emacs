@@ -308,7 +308,8 @@ value of this flag.")
 	      ((string-match "Needs Merge" status)
 	       (vc-file-setprop file 'vc-cvs-status 'needs-merge))
 	      (t (vc-file-setprop file 'vc-cvs-status nil))))))
-    (kill-buffer (current-buffer))))
+    (if (get-buffer "*vc-info*")
+	(kill-buffer (get-buffer "*vc-info*")))))
 
 ;;; Functions that determine property values, by examining the 
 ;;; working file, the master file, or log program output
