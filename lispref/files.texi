@@ -416,11 +416,12 @@ Even though this is not a normal hook, you can use @code{add-hook} and
 @c Emacs 19 feature
 @defvar write-contents-functions
 This works just like @code{write-file-functions}, but it is intended for
-hooks that pertain to the contents of the file, as opposed to hooks that
-pertain to where the file came from.  Such hooks are usually set up by
+hooks that pertain to the contents of the buffer, as opposed to hooks that
+pertain to the file the buffers visits.  Such hooks are usually set up by
 major modes, as buffer-local bindings for this variable.  If any of the
-functions in this hook returns non-@code{nil}, @code{write-file-functions}
-is not run.
+functions in this hook returns non-@code{nil}, the file is considered
+already written and the rest are not called and neither are the functions
+in @code{write-file-functions}.
 
 This variable automatically becomes buffer-local whenever it is set;
 switching to a new major mode always resets this variable, but
