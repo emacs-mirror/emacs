@@ -30,6 +30,7 @@
 /^C_SWITCH_SYSTEM *=/s!=.*$!=-DMSDOS!
 /^LOADLIBES *=/s!=.*$!=!
 /^ALLOCA *=/s!@ALLOCA@!!
+/^EXEEXT *=/s!@EXEEXT@!!
 /^INSTALLABLES/s/emacsclient *//
 s!^	\./!	!
 /^UTILITIES=/s/ wakeup//
