@@ -923,6 +923,9 @@ extern Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
 extern Lisp_Object Qend_of_file, Qarith_error;
 extern Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
 
+Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
+Lisp_Object Qoverflow_error, Qunderflow_error;
+
 extern Lisp_Object Qintegerp, Qnumberp, Qnatnump, Qsymbolp, Qlistp, Qconsp;
 extern Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 extern Lisp_Object Qchar_or_string_p, Qmarkerp, Qvectorp;
