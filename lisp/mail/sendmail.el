@@ -506,7 +506,6 @@ the user from the mailer."
 	  t)
       (or soft
 	  (progn (goto-char end)
-		 (skip-chars-backward "\n")
 		 (insert field ": \n")
 		 (skip-chars-backward "\n")))
       nil)))
