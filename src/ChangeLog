@@ -1,3 +1,9 @@
+2001-12-06  Kim F. Storm  <storm@cua.dk>
+
+	* xfns.c (x_report_frame_params): Return actual fringe widths.
+
+	* w32fns.c (x_report_frame_params): Return actual fringe widths.
+
 2001-12-05  Andrew Innes  <andrewi@gnu.org>
 
 	* alloc.c (Fgarbage_collect): Shrink buffer gaps that are

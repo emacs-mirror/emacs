@@ -1,3 +1,7 @@
+2001-12-06  Kim F. Storm  <storm@cua.dk>
+
+	* src/macfns.c (x_report_frame_params): Return actual fringe widths.
+
 2001-12-01  Kim F. Storm  <storm@cua.dk>
 
 	The following changes add left-fringe and right-fringe
