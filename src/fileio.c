@@ -2681,8 +2681,7 @@ and (2) it puts less data in the undo list.")
       /* Arrange to read only the nonmatching middle part of the file.  */
       XFASTINT (beg) = same_at_start - BEGV;
       XFASTINT (end) = st.st_size - (ZV - same_at_end);
-      /* Delete the nonmatching middle part of the buffer.  */
-      Fdelete_region (make_number (same_at_start), make_number (same_at_end));
+      del_range_1 (same_at_start, same_at_end - same_at_start, 0);
       /* Insert from the file at the proper position.  */
       SET_PT (same_at_start);
     }
@@ -2784,7 +2783,8 @@ and (2) it puts less data in the undo list.")
 
   if (!NILP (visit))
     {
-      current_buffer->undo_list = Qnil;
+      if (!EQ (current_buffer->undo_list, Qt))
+	current_buffer->undo_list = Qnil;
 #ifdef APOLLO
       stat (XSTRING (filename)->data, &st);
 #endif
