@@ -1,3 +1,49 @@
+2002-12-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* calendar/calendar.el (facemenu-unlisted-faces): Only update
+	after facemenu is loaded.
+	(calendar-font-lock-keywords): Accept non-ASCII month names.
+	Use regexp-opt.
+
+	* gdb-ui.el (gud-gdb-complete-string, gud-gdb-complete-break)
+	(gud-gdb-complete-list, gud-gdb-complete-in-progress): Remove.
+	(gdba): Call `gdb' and then make modifications.
+	Always call gdb-clear-inferior-io rather than just "the first time".
+	(gud-break, gud-remove): Definitions moved to inside gdba.
+	(gdb-target-name): Remove.  Use gud-target-name instead.
+	(gdba-complete-filter, gdba-common-init): Remove.
+	The changes were integrated into the generic code.
+
+	* gud.el: Use match-string.
+	(gud-menu-map): Re-fix gdb-running to gud-running.
+	Activate up/down and finish for pdb.
+	(gud-def): Use backquotes.
+	(gdb, sdb, dbx, xdb, pdb, jdb, bashdb): Remove redundant menu bindings.
+	(gud-gdb-complete-in-progress, gud-gdb-complete-string)
+	(gud-gdb-complete-break, gud-gdb-complete-list):
+	Rename to gud-gdb-fetch-lines-in-progress, gud-gdb-fetch-lines-string,
+	gud-gdb-fetch-lines-break and gud-gdb-fetched-lines.
+	(gud-gdb-fetch-lines-filter): Rename from gud-gdb-complete-filter.
+	Add a `filter' argument and run it on `string'.
+	(gud-gdb-run-command-fetch-lines): Use it instead of
+	gud-gdb-speedbar-stack-filter.  Add a `skip' arg.
+	Return the fetched lines.
+	(gud-gdb-complete-command): Use it instead of cooking up
+	something by hand using gud-gdb-complete-filter.
+	(gud-gdb-get-stackframe): Use the new calling convention of
+	gud-gdb-run-command-fetch-lines.
+	(gud-gdb-fetched-stack-frame-list): Remove.
+	(gud-gdb-speedbar-stack-filter): Remove.
+	(gud-jdb-marker-filter): Change RE for easier extraction of submatches.
+	(gud-bashdb-command-name): Add "--debugger" argument here.
+	(bashdb): Use default gud-find-file and don't bother with
+	a massage-args function now that --debugger is make explicit.
+	(gud-bashdb-massage-args, gud-bashdb-find-file): Remove.
+	(bashdb): Don't provide.
+	(gud-target-name): New var.
+	(gud-common-init): Set it.
+	Also reset gud-running and gud-last-last-frame.
+
 2002-12-05  Dave Love  <fx@gnu.org>
 
 	* international/utf-8-subst.el: Update safe-chars of mule-utf-8,
