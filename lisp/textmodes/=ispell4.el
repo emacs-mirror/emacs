@@ -213,6 +213,24 @@ that have not already been dumped will be lost."
 (defun ispell-tex-buffer-p ()
   (memq major-mode '(plain-TeX-mode LaTeX-mode)))
 
+(defvar ispell-menu-map (make-sparse-keymap "Spell"))
+(defalias ispell-menu-map ispell-menu-map)
+
+(define-key ispell-menu-map [reload-ispell]
+  '("Reload Dictionary" . reload-ispell))
+
+(define-key ispell-menu-map [ispell-next]
+  '("Continue Check" . ispell-next))
+
+(define-key ispell-menu-map [ispell-region]
+  '("Check Region" . ispell-region))
+
+(define-key ispell-menu-map [ispell-buffer]
+  '("Check Buffer" . ispell))
+
+(define-key ispell-menu-map [ispell-word]
+  '("Check Word" . ispell-word))
+
 ;;;###autoload
 (defun ispell (&optional buf start end)
   "Run Ispell over current buffer's visited file.
