@@ -1,5 +1,8 @@
 2002-02-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* textmodes/bibtex.el (bibtex-parse-keys): Put save-match-data
+	around function body.
+
 	* net/browse-url.el (browse-url-maybe-new-window): Reverse the
 	sense of the comparison, to match the doc strings of functions
 	that use this macro.
