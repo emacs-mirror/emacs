@@ -1,5 +1,15 @@
 2002-06-10  Miles Bader  <miles@gnu.org>
 
+	Make comint use text properties for highlighting instead of overlays:
+	* comint.el (comint-last-output-overlay): Variable removed.
+	(comint-send-input, comint-output-filter): Use text properties
+	instead of overlays.
+	(comint-insert-clicked-input): Rewrite to work with text
+	properties as well as overlays
+	(comint-snapshot-last-prompt): Snapshot using text properties.
+	(comint-get-old-input-default, comint-extract-string): Don't copy
+	text properties. 
+
 	* simple.el (line-move-finish): Inhibit field motion when
 	computing `line-end'.
 
