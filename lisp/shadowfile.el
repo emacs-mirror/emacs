@@ -1,6 +1,6 @@
 ;;; shadowfile.el -- automatic file copying for Emacs 19
 
-;;; Author: Boris Goldowsky <boris@cs.rochester.edu>
+;;; Author: Boris Goldowsky <boris@gnu.ai.mit.edu>
 ;;; Keywords: comm
 
 ;;; Copyright (c) 1993, 1994 Free Software Foundation
@@ -20,9 +20,9 @@
 ;;; Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; LCD Archive Entry:
-;;; shadowfile|Boris Goldowsky|boris@cs.rochester.edu|
+;;; shadowfile|Boris Goldowsky|boris@gnu.ai.mit.edu|
 ;;; Helps you keep identical copies of files in multiple places.|
-;;; $Date: 1993/12/23 03:45:09 $ |$Revision: 1.2 $|~/misc/shadowfile.el.Z|
+;;; $Date: 1994/05/03 22:57:18 $ |$Revision: 1.3 $|~/misc/shadowfile.el.Z|
 
 ;;; Commentary:
 ;;;
@@ -70,7 +70,7 @@
 ;;;  - It will not make directories for you, it just fails to copy files
 ;;;  that belong in non-existent directories.
 ;;;
-;;;  Please report any bugs to me (boris@cs.rochester.edu).  Also let me know
+;;;  Please report any bugs to me (boris@gnu.ai.mit.edu).  Also let me know
 ;;;  if you have suggestions or would like to be informed of updates.
 
 ;;; Code:
