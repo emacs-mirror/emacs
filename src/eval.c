@@ -90,6 +90,9 @@ Lisp_Object Qmocklisp_arguments, Vmocklisp_arguments, Qmocklisp;
 Lisp_Object Qand_rest, Qand_optional;
 Lisp_Object Qdebug_on_error;
 
+/* This holds either the symbol `run-hooks' or nil.
+   It is nil at an early stage of startup, and when Emacs
+   is shutting down.  */
 Lisp_Object Vrun_hooks;
 
 /* Non-nil means record all fset's and provide's, to be undone
@@ -2926,9 +2929,8 @@ If due to `eval' entry, one arg, t.");
     "While in a mocklisp function, the list of its unevaluated args.");
   Vmocklisp_arguments = Qt;
 
-  DEFVAR_LISP ("run-hooks", &Vrun_hooks,
-    "Set to the function `run-hooks', if that function has been defined.\n\
-Otherwise, nil (in a bare Emacs without preloaded Lisp code).");
+  Vrun_hooks = intern ("run-hooks");
+  staticpro (&Vrun_hooks);
 
   staticpro (&Vautoload_queue);
   Vautoload_queue = Qnil;
