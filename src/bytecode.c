@@ -5,7 +5,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -17,14 +17,12 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-hacked on by jwz 17-jun-91
+hacked on by jwz@lucid.com 17-jun-91
   o  added a compile-time switch to turn on simple sanity checking;
   o  put back the obsolete byte-codes for error-detection;
-  o  put back fset, symbol-function, and read-char because I don't
-     see any reason for them to have been removed;
   o  added a new instruction, unbind_all, which I will use for 
      tail-recursion elimination;
-  o  made temp_output_buffer_show() be called with the right number
+  o  made temp_output_buffer_show be called with the right number
      of args;
   o  made the new bytecodes be called with args in the right order;
   o  added metering support.
@@ -34,48 +32,49 @@ by Hallvard:
   o  all conditionals now only do QUIT if they jump.
  */
 
-
 #include "config.h"
 #include "lisp.h"
 #include "buffer.h"
 #include "syntax.h"
 
-/* Define this to enable some minor sanity checking
-   (useful for debugging the byte compiler...)
+/*
+ * define BYTE_CODE_SAFE to enable some minor sanity checking (useful for 
+ * debugging the byte compiler...)
+ *
+ * define BYTE_CODE_METER to enable generation of a byte-op usage histogram. 
  */
-#define BYTE_CODE_SAFE
-
-/* Define this to enable generation of a histogram of byte-op usage.
- */
-#define BYTE_CODE_METER
+/* #define BYTE_CODE_SAFE */
+/* #define BYTE_CODE_METER */
 
 
 #ifdef BYTE_CODE_METER
 
-Lisp_Object Vbyte_code_meter;
+Lisp_Object Vbyte_code_meter, Qbyte_code_meter;
 int byte_metering_on;
 
-# define METER_2(code1,code2) \
+#define METER_2(code1, code2) \
   XFASTINT (XVECTOR (XVECTOR (Vbyte_code_meter)->contents[(code1)]) \
 	    ->contents[(code2)])
 
-# define METER_1(code) METER_2 (0,(code))
+#define METER_1(code) METER_2 (0, (code))
 
-# define METER_CODE(last_code, this_code) {			\
-  if (byte_metering_on) {					\
-     if (METER_1 (this_code) != ((1<<VALBITS)-1))		\
-        METER_1 (this_code) ++;					\
-     if (last_code &&						\
-        METER_2 (last_code,this_code) != ((1<<VALBITS)-1))	\
-        METER_2 (last_code,this_code) ++;			\
-  }								\
- }
+#define METER_CODE(last_code, this_code)			\
+{								\
+  if (byte_metering_on)						\
+    {								\
+      if (METER_1 (this_code) != ((1<<VALBITS)-1))		\
+        METER_1 (this_code)++;					\
+      if (last_code						\
+	  && METER_2 (last_code, this_code) != ((1<<VALBITS)-1))\
+        METER_2 (last_code, this_code)++;			\
+    }								\
+}
 
-#else /* ! BYTE_CODE_METER */
+#else /* no BYTE_CODE_METER */
 
-# define meter_code(last_code, this_code)
+#define METER_CODE(last_code, this_code)
 
-#endif
+#endif /* no BYTE_CODE_METER */
 
 
 Lisp_Object Qbytecode;
@@ -107,9 +106,9 @@ Lisp_Object Qbytecode;
 #define Baref 0110
 #define Baset 0111
 #define Bsymbol_value 0112
-#define Bsymbol_function 0113 /* no longer generated as of v19 */
+#define Bsymbol_function 0113
 #define Bset 0114
-#define Bfset 0115 /* no longer generated as of v19 */
+#define Bfset 0115
 #define Bget 0116
 #define Bsubstring 0117
 #define Bconcat2 0120
@@ -147,7 +146,7 @@ Lisp_Object Qbytecode;
 #define Bbobp 0157
 #define Bcurrent_buffer 0160
 #define Bset_buffer 0161
-#define Bread_char 0162
+#define Bread_char 0162 /* No longer generated as of v19 */
 #define Bset_mark 0163 /* this loser is no longer generated as of v18 */
 #define Binteractive_p 0164 /* Needed since interactive-p takes unevalled args */
 
@@ -161,6 +160,7 @@ Lisp_Object Qbytecode;
 #define Bdelete_region 0174
 #define Bnarrow_to_region 0175
 #define Bwiden 0176
+#define Bend_of_line 0177
 
 #define Bconstant2 0201
 #define Bgoto 0202
@@ -184,6 +184,12 @@ Lisp_Object Qbytecode;
 
 #define Bunbind_all 0222
 
+#define Bset_marker 0223
+#define Bmatch_beginning 0224
+#define Bmatch_end 0225
+#define Bupcase 0226
+#define Bdowncase 0227
+
 #define Bstringeqlsign 0230
 #define Bstringlss 0231
 #define Bequal 0232
@@ -201,6 +207,16 @@ Lisp_Object Qbytecode;
 #define Brem 0246
 #define Bnumberp 0247
 #define Bintegerp 0250
+
+#define BRgoto 0252
+#define BRgotoifnil 0253
+#define BRgotoifnonnil 0254
+#define BRgotoifnilelsepop 0255
+#define BRgotoifnonnilelsepop 0256
+
+#define BlistN 0257
+#define BconcatN 0260
+#define BinsertN 0261
 
 #define Bconstant 0300
 #define CONSTANTLIM 0100
@@ -285,11 +301,10 @@ If the third argument is incorrect, Emacs may crash.")
     {
 #ifdef BYTE_CODE_SAFE
       if (stackp > stacke)
-	error (
-     "Stack overflow in byte code (byte compiler bug), pc = %d, depth = %d",
+	error ("Byte code stack overflow (byte compiler bug), pc %d, depth %d",
 	       pc - XSTRING (string_saved)->data, stacke - stackp);
       if (stackp < stack)
-	error ("Stack underflow in byte code (byte compiler bug), pc = %d",
+	error ("Byte code stack underflow (byte compiler bug), pc %d",
 	       pc - XSTRING (string_saved)->data);
 #endif
 
@@ -390,7 +405,20 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bcall+4: case Bcall+5:
 	  op -= Bcall;
 	docall:
-	  DISCARD(op);
+	  DISCARD (op);
+#ifdef BYTE_CODE_METER
+	  if (byte_metering_on && XTYPE (TOP) == Lisp_Symbol)
+	    {
+	      v1 = TOP;
+	      v2 = Fget (v1, Qbyte_code_meter);
+	      if (XTYPE (v2) == Lisp_Int
+		  && XINT (v2) != ((1<<VALBITS)-1))
+		{
+		  XSETINT (v2, XINT (v2) + 1);
+		  Fput (v1, Qbyte_code_meter, v2);
+		}
+	    }
+#endif
 	  TOP = Ffuncall (op + 1, &TOP);
 	  break;
 
@@ -411,8 +439,7 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Bunbind_all:
 	  /* To unbind back to the beginning of this frame.  Not used yet,
-	     but wil be needed for tail-recursion elimination.
-	   */
+	     but will be needed for tail-recursion elimination.  */
 	  unbind_to (count, Qnil);
 	  break;
 
@@ -447,7 +474,7 @@ If the third argument is incorrect, Emacs may crash.")
 	      QUIT;
 	      pc = XSTRING (string_saved)->data + op;
 	    }
-	  else DISCARD(1);
+	  else DISCARD (1);
 	  break;
 
 	case Bgotoifnonnilelsepop:
@@ -457,7 +484,50 @@ If the third argument is incorrect, Emacs may crash.")
 	      QUIT;
 	      pc = XSTRING (string_saved)->data + op;
 	    }
-	  else DISCARD(1);
+	  else DISCARD (1);
+	  break;
+
+	case BRgoto:
+	  QUIT;
+	  pc += *pc - 127;
+	  break;
+
+	case BRgotoifnil:
+	  if (NILP (POP))
+	    {
+	      QUIT;
+	      pc += *pc - 128;
+	    }
+	  pc++;
+	  break;
+
+	case BRgotoifnonnil:
+	  if (!NILP (POP))
+	    {
+	      QUIT;
+	      pc += *pc - 128;
+	    }
+	  pc++;
+	  break;
+
+	case BRgotoifnilelsepop:
+	  op = *pc++;
+	  if (NILP (TOP))
+	    {
+	      QUIT;
+	      pc += op - 128;
+	    }
+	  else DISCARD (1);
+	  break;
+
+	case BRgotoifnonnilelsepop:
+	  op = *pc++;
+	  if (!NILP (TOP))
+	    {
+	      QUIT;
+	      pc += op - 128;
+	    }
+	  else DISCARD (1);
 	  break;
 
 	case Breturn:
@@ -465,7 +535,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  goto exit;
 
 	case Bdiscard:
-	  DISCARD(1);
+	  DISCARD (1);
 	  break;
 
 	case Bdup:
@@ -600,13 +670,19 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Blist3:
-	  DISCARD(2);
+	  DISCARD (2);
 	  TOP = Flist (3, &TOP);
 	  break;
 
 	case Blist4:
-	  DISCARD(3);
+	  DISCARD (3);
 	  TOP = Flist (4, &TOP);
+	  break;
+
+	case BlistN:
+	  op = FETCH;
+	  DISCARD (op - 1);
+	  TOP = Flist (op, &TOP);
 	  break;
 
 	case Blength:
@@ -652,18 +728,24 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bconcat2:
-	  DISCARD(1);
+	  DISCARD (1);
 	  TOP = Fconcat (2, &TOP);
 	  break;
 
 	case Bconcat3:
-	  DISCARD(2);
+	  DISCARD (2);
 	  TOP = Fconcat (3, &TOP);
 	  break;
 
 	case Bconcat4:
-	  DISCARD(3);
+	  DISCARD (3);
 	  TOP = Fconcat (4, &TOP);
+	  break;
+
+	case BconcatN:
+	  op = FETCH;
+	  DISCARD (op - 1);
+	  TOP = Fconcat (op, &TOP);
 	  break;
 
 	case Bsub1:
@@ -716,7 +798,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bdiff:
-	  DISCARD(1);
+	  DISCARD (1);
 	  TOP = Fminus (2, &TOP);
 	  break;
 
@@ -732,33 +814,32 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bplus:
-	  DISCARD(1);
+	  DISCARD (1);
 	  TOP = Fplus (2, &TOP);
 	  break;
 
 	case Bmax:
-	  DISCARD(1);
+	  DISCARD (1);
 	  TOP = Fmax (2, &TOP);
 	  break;
 
 	case Bmin:
-	  DISCARD(1);
+	  DISCARD (1);
 	  TOP = Fmin (2, &TOP);
 	  break;
 
 	case Bmult:
-	  DISCARD(1);
+	  DISCARD (1);
 	  TOP = Ftimes (2, &TOP);
 	  break;
 
 	case Bquo:
-	  DISCARD(1);
+	  DISCARD (1);
 	  TOP = Fquo (2, &TOP);
 	  break;
 
 	case Brem:
 	  v1 = POP;
-	  /* This had args in the wrong order.  -- jwz */
 	  TOP = Frem (TOP, v1);
 	  break;
 
@@ -773,6 +854,12 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Binsert:
 	  TOP = Finsert (1, &TOP);
+	  break;
+
+	case BinsertN:
+	  op = FETCH;
+	  DISCARD (op - 1);
+	  TOP = Finsert (op, &TOP);
 	  break;
 
 	case Bpoint_max:
@@ -842,29 +929,24 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bforward_char:
-	  /* This was wrong!  --jwz */
 	  TOP = Fforward_char (TOP);
 	  break;
 
 	case Bforward_word:
-	  /* This was wrong!  --jwz */
 	  TOP = Fforward_word (TOP);
 	  break;
 
 	case Bskip_chars_forward:
-	  /* This was wrong!  --jwz */
 	  v1 = POP;
 	  TOP = Fskip_chars_forward (TOP, v1);
 	  break;
 
 	case Bskip_chars_backward:
-	  /* This was wrong!  --jwz */
 	  v1 = POP;
 	  TOP = Fskip_chars_backward (TOP, v1);
 	  break;
 
 	case Bforward_line:
-	  /* This was wrong!  --jwz */
 	  TOP = Fforward_line (TOP);
 	  break;
 
@@ -880,13 +962,11 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Bdelete_region:
 	  v1 = POP;
-	  /* This had args in the wrong order.  -- jwz */
 	  TOP = Fdelete_region (TOP, v1);
 	  break;
 
 	case Bnarrow_to_region:
 	  v1 = POP;
-	  /* This had args in the wrong order.  -- jwz */
 	  TOP = Fnarrow_to_region (TOP, v1);
 	  break;
 
@@ -894,27 +974,49 @@ If the third argument is incorrect, Emacs may crash.")
 	  PUSH (Fwiden ());
 	  break;
 
+	case Bend_of_line:
+	  TOP = Fend_of_line (TOP);
+	  break;
+
+	case Bset_marker:
+	  v1 = POP;
+	  v2 = POP;
+	  TOP = Fset_marker (TOP, v2, v1);
+	  break;
+
+	case Bmatch_beginning:
+	  TOP = Fmatch_beginning (TOP);
+	  break;
+
+	case Bmatch_end:
+	  TOP = Fmatch_end (TOP);
+	  break;
+
+	case Bupcase:
+	  TOP = Fupcase (TOP);
+	  break;
+
+	case Bdowncase:
+	  TOP = Fdowncase (TOP);
+	break;
+
 	case Bstringeqlsign:
 	  v1 = POP;
-	  /* This had args in the wrong order.  -- jwz */
 	  TOP = Fstring_equal (TOP, v1);
 	  break;
 
 	case Bstringlss:
 	  v1 = POP;
-	  /* This had args in the wrong order.  -- jwz */
 	  TOP = Fstring_lessp (TOP, v1);
 	  break;
 
 	case Bequal:
 	  v1 = POP;
-	  /* This had args in the wrong order.  -- jwz */
 	  TOP = Fequal (TOP, v1);
 	  break;
 
 	case Bnthcdr:
 	  v1 = POP;
-	  /* This had args in the wrong order.  -- jwz */
 	  TOP = Fnthcdr (TOP, v1);
 	  break;
 
@@ -932,13 +1034,11 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Bmember:
 	  v1 = POP;
-	  /* This had args in the wrong order.  -- jwz */
 	  TOP = Fmember (TOP, v1);
 	  break;
 
 	case Bassq:
 	  v1 = POP;
-	  /* This had args in the wrong order.  -- jwz */
 	  TOP = Fassq (TOP, v1);
 	  break;
 
@@ -948,13 +1048,11 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Bsetcar:
 	  v1 = POP;
-	  /* This had args in the wrong order.  -- jwz */
 	  TOP = Fsetcar (TOP, v1);
 	  break;
 
 	case Bsetcdr:
 	  v1 = POP;
-	  /* This had args in the wrong order.  -- jwz */
 	  TOP = Fsetcdr (TOP, v1);
 	  break;
 
@@ -975,13 +1073,12 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bnconc:
-	  DISCARD(1);
+	  DISCARD (1);
 	  TOP = Fnconc (2, &TOP);
 	  break;
 
 	case Bnumberp:
-	  TOP = (XTYPE (TOP) == Lisp_Int || XTYPE (TOP) == Lisp_Float
-		 ? Qt : Qnil);
+	  TOP = (NUMBERP (TOP) ? Qt : Qnil);
 	  break;
 
 	case Bintegerp:
@@ -996,7 +1093,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  error ("scan-buffer is an obsolete bytecode");
 	  break;
 	case Bmark:
-	  error("mark is an obsolete bytecode");
+	  error ("mark is an obsolete bytecode");
 	  break;
 #endif
 
@@ -1035,17 +1132,27 @@ syms_of_bytecode ()
 #ifdef BYTE_CODE_METER
 
   DEFVAR_LISP ("byte-code-meter", &Vbyte_code_meter,
-   "a vector of vectors which holds a histogram of byte-code usage.");
-  DEFVAR_BOOL ("byte-metering-on", &byte_metering_on, "");
+   "A vector of vectors which holds a histogram of byte-code usage.\n\
+(aref (aref byte-code-meter 0) CODE) indicates how many times the byte\n\
+opcode CODE has been executed.\n\
+(aref (aref byte-code-meter CODE1) CODE2), where CODE1 is not 0,\n\
+indicates how many times the byte opcodes CODE1 and CODE2 have been\n\
+executed in succession.");
+  DEFVAR_BOOL ("byte-metering-on", &byte_metering_on,
+   "If non-nil, keep profiling information on byte code usage.\n\
+The variable byte-code-meter indicates how often each byte opcode is used.\n\
+If a symbol has a property named `byte-code-meter' whose value is an\n\
+integer, it is incremented each time that symbol's function is called.");
 
   byte_metering_on = 0;
-  Vbyte_code_meter = Fmake_vector(make_number(256), make_number(0));
-
+  Vbyte_code_meter = Fmake_vector (make_number (256), make_number (0));
+  Qbyte_code_meter = intern ("byte-code-meter");
+  staticpro (&Qbyte_code_meter);
   {
     int i = 256;
     while (i--)
-      XVECTOR(Vbyte_code_meter)->contents[i] =
-	Fmake_vector(make_number(256), make_number(0));
+      XVECTOR (Vbyte_code_meter)->contents[i] =
+	Fmake_vector (make_number (256), make_number (0));
   }
 #endif
 }
