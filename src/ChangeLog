@@ -1,7 +1,7 @@
 2005-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xfns.c (Fx_create_frame): Removed setting of Vx_resource_name so
-	that it doesn't	become "tooltip".  The specbind is enough.
+	* xfns.c (x_create_tip_frame): Removed setting of Vx_resource_name so
+	that it doesn't become "tooltip".  The specbind is enough.
 
 	* xrdb.c (x_load_resources): Use different char *helv when I18N
 	is present.
