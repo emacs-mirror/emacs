@@ -3,10 +3,8 @@
 ;; Copyright (C) 1993,1994,1995,1996,1997,1998 Free Software Foundation, Inc.
 
 ;; Author:          1993-1998 Barry A. Warsaw
-;; Maintainer:      tools-help@python.org
+;; Maintainer:      FSF
 ;; Created:         19-Apr-1993
-;; Version:         3.34
-;; Last Modified:   1998/03/19 17:21:16
 ;; Keywords: maint mail tools
 
 ;; This file is part of GNU Emacs.
@@ -64,15 +62,6 @@
 ;;         ;; ...
 ;;         'mypkg-variable-last)))
 
-;; Reporter Users
-;; ==============
-;; Packages that currently use reporter are: CC Mode, supercite, elp,
-;; tcl, ediff, crypt++ (crypt), dired-x, rmailgen, mode-line, vm,
-;; mh-e, edebug, archie, viper, w3-mode, framepop, hl319, hilit19,
-;; pgp, eos, hm--html, efs, webster19.
-;;
-;; If you know of others, please email me!
-
 ;;; Code:
 
 
@@ -86,7 +75,7 @@ brief summary of the problem, and puts this summary on the Subject:
 line.  If this variable is a string, that string is used as the prompt
 string.
 
-Default behavior is to not prompt (i.e. nil). If you want reporter to
+Default behavior is to not prompt (i.e. nil).  If you want reporter to
 prompt, you should `let' bind this variable before calling
 `reporter-submit-bug-report'.  Note that this variable is not
 buffer-local so you should never just `setq' it.")
@@ -114,9 +103,6 @@ This is necessary to properly support the printing of buffer-local
 variables.  Current buffer will always be the mail buffer being
 composed.")
 
-(defconst reporter-version "3.34"
-  "Reporter version number.")
-
 (defvar reporter-initial-text nil
   "The automatically created initial text of a bug report.")
 (make-variable-buffer-local 'reporter-initial-text)
@@ -128,7 +114,7 @@ composed.")
 (defvar reporter-status-count nil)
 
 (defun reporter-update-status ()
-  ;; periodically output a status message
+  "Periodically output a status message."
   (if (zerop (% reporter-status-count 10))
       (progn
 	(message reporter-status-message)
@@ -138,7 +124,7 @@ composed.")
 
 ;; dumping/pretty printing of values
 (defun reporter-beautify-list (maxwidth compact-p)
-  ;; pretty print a list
+  "Pretty print a list."
   (reporter-update-status)
   (let ((move t)
 	linebreak indent-enclosing-p indent-p here)
@@ -176,14 +162,14 @@ composed.")
       (error indent-enclosing-p))))
 
 (defun reporter-lisp-indent (indent-point state)
-  ;; a better lisp indentation style for bug reporting
+  "A better lisp indentation style for bug reporting."
   (save-excursion
     (goto-char (1+ (nth 1 state)))
     (current-column)))
 
 (defun reporter-dump-variable (varsym mailbuf)
-  ;; Pretty-print the value of the variable in symbol VARSYM.  MAILBUF
-  ;; is the mail buffer being composed
+  "Pretty-print the value of the variable in symbol VARSYM.
+MAILBUF is the mail buffer being composed."
   (reporter-update-status)
   (condition-case nil
       (let ((val (save-excursion
@@ -222,29 +208,29 @@ composed.")
      (error ""))))
 
 (defun reporter-dump-state (pkgname varlist pre-hooks post-hooks)
-  ;; Dump the state of the mode specific variables.
-  ;; PKGNAME contains the name of the mode as it will appear in the bug
-  ;; report (you must explicitly concat any version numbers).
+  "Dump the state of the mode specific variables.
+PKGNAME contains the name of the mode as it will appear in the bug
+report (you must explicitly concat any version numbers).
 
-  ;; VARLIST is the list of variables to dump.  Each element in
-  ;; VARLIST can be a variable symbol, or a cons cell.  If a symbol,
-  ;; this will be passed to `reporter-dump-variable' for insertion
-  ;; into the mail buffer.  If a cons cell, the car must be a variable
-  ;; symbol and the cdr must be a function which will be `funcall'd
-  ;; with arguments the symbol and the mail buffer being composed. Use
-  ;; this to write your own custom variable value printers for
-  ;; specific variables.
+VARLIST is the list of variables to dump.  Each element in
+VARLIST can be a variable symbol, or a cons cell.  If a symbol,
+this will be passed to `reporter-dump-variable' for insertion
+into the mail buffer.  If a cons cell, the car must be a variable
+symbol and the cdr must be a function which will be `funcall'd
+with arguments the symbol and the mail buffer being composed.  Use
+this to write your own custom variable value printers for
+specific variables.
 
-  ;; Note that the global variable `reporter-eval-buffer' will be bound to
-  ;; the buffer in which `reporter-submit-bug-report' was invoked.  If you
-  ;; want to print the value of a buffer local variable, you should wrap
-  ;; the `eval' call in your custom printer inside a `set-buffer' (and
-  ;; probably a `save-excursion'). `reporter-dump-variable' handles this
-  ;; properly.
+Note that the global variable `reporter-eval-buffer' will be bound to
+the buffer in which `reporter-submit-bug-report' was invoked.  If you
+want to print the value of a buffer local variable, you should wrap
+the `eval' call in your custom printer inside a `set-buffer' (and
+probably a `save-excursion').  `reporter-dump-variable' handles this
+properly.
 
-  ;; PRE-HOOKS is run after the emacs-version and PKGNAME are inserted, but
-  ;; before the VARLIST is dumped.  POST-HOOKS is run after the VARLIST is
-  ;; dumped.
+PRE-HOOKS is run after the Emacs version and PKGNAME are inserted, but
+before the VARLIST is dumped.  POST-HOOKS is run after the VARLIST is
+dumped."
   (let ((buffer (current-buffer)))
     (set-buffer buffer)
     (insert "Emacs  : " (emacs-version) "\n")
@@ -287,9 +273,10 @@ composed.")
 
 
 (defun reporter-compose-outgoing ()
-  ;; compose the outgoing mail buffer, and return the selected
-  ;; paradigm, with the current-buffer tacked onto the beginning of
-  ;; the list.
+  "Compose the outgoing mail buffer.
+
+Return the selected paradigm, with the current buffer tacked onto the
+beginning of the list."
   (let* ((agent mail-user-agent)
 	 (compose (get mail-user-agent 'composefunc)))
     ;; Sanity check.  If this fails then we'll try to use the SENDMAIL
@@ -316,6 +303,9 @@ composed.")
 ADDRESS is the email address for the package's maintainer.  PKGNAME is
 the name of the package (if you want to include version numbers,
 you must put them into PKGNAME before calling this function).
+Optional PRE-HOOKS and POST-HOOKS are passed to `reporter-dump-state'.
+Optional SALUTATION is inserted at the top of the mail buffer,
+and point is left after the salutation.
 
 VARLIST is the list of variables to dump (see `reporter-dump-state'
 for details).  The optional argument PRE-HOOKS and POST-HOOKS are
@@ -401,7 +391,7 @@ mail-sending package is used for editing and sending the message."
     ))
 
 (defun reporter-bug-hook ()
-  ;; prohibit sending mail if empty bug report
+  "Prohibit sending mail if empty bug report."
   (let ((after-sep-pos
 	 (save-excursion
 	   (rfc822-goto-eoh)
