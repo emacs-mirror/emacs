@@ -137,14 +137,16 @@ $(SUBDIRS):
 $(TIT):
 #	if not exist quail $(MAKE) quail
 	set emacs_dir=$(INSTALL_DIR)
-	$(RUN_EMACS) -l $(buildlisppath)/international/titdic-cnv \
+	set EMACSLOADPATH=$(buildlisppath)
+	$(SETLOADPATH) $(RUN_EMACS) -l $(buildlisppath)/international/titdic-cnv \
 	    --eval $(ARGQUOTE)(batch-titdic-convert t)$(ARGQUOTE) -dir quail $(srcdir)/CXTERM-DIC
-	$(RUN_EMACS)  -l $(buildlisppath)/international/quail \
+	$(SETLOADPATH) $(RUN_EMACS)  -l $(buildlisppath)/international/quail \
 	    -f batch-byte-compile $(TIT)
 
 leim-list.el: $(SUBDIRS) $(WORLD)
 	set emacs_dir=$(INSTALL_DIR)
-	$(RUN_EMACS) -l $(buildlisppath)/international/quail \
+	set EMACSLOADPATH=$(buildlisppath)
+	$(SETLOADPATH) $(RUN_EMACS) -l $(buildlisppath)/international/quail \
 	    --eval $(ARGQUOTE)(update-leim-list-file $(DQUOTE).$(DQUOTE))$(ARGQUOTE)
 
 install: all

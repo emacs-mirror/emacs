@@ -143,12 +143,14 @@ $(SUBDIRS):
 # Rule to generate quail/*.el from CXTERM-DIC/*.tit.
 $(TIT):
 	if not exist quail $(MAKE) -f makefile.nt quail
+	set EMACSLOADPATH=$(buildlisppath)
 	$(RUN_EMACS) -l $(buildlisppath)/international/titdic-cnv \
 	    --eval "(batch-titdic-convert t)" -dir quail $(srcdir)/CXTERM-DIC
 	$(RUN_EMACS)  -l $(buildlisppath)/international/quail \
 	    -f batch-byte-compile $(TIT)
 
 leim-list.el: $(SUBDIRS) $(WORLD)
+	set EMACSLOADPATH=$(buildlisppath)
 	$(RUN_EMACS) -l $(buildlisppath)/international/quail \
 	    --eval "(update-leim-list-file \".\")"
 
