@@ -2607,12 +2607,10 @@ x_fullscreen_move (f, new_top, new_left)
       int move_x = new_left;
       int move_y = new_top;
 
-#ifdef HAVE_X_WINDOWS
-      move_x += FRAME_X_OUTPUT (f)->x_pixels_outer_diff;
-      move_y += FRAME_X_OUTPUT (f)->y_pixels_outer_diff;
+#ifndef HAVE_X_WINDOWS
+      f->want_fullscreen |= FULLSCREEN_MOVE_WAIT;
 #endif
 
-      f->want_fullscreen |= FULLSCREEN_MOVE_WAIT;
       x_set_offset (f, move_x, move_y, 1);
     }
 }

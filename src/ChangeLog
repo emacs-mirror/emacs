@@ -1,3 +1,23 @@
+2003-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct x_display_info): New member, wm_type.
+	(struct x_output): New members, expected_top/left and
+	check_expected_move.
+
+	* xterm.c (handle_one_xevent): Reset wm_type when ReparentNotify
+	is received.
+	(handle_one_xevent): x_check_expected_move renamed from
+	x_check_fullscreen_move
+	(x_set_offset): Only add WM decoration sizes to	modified_top/left
+	for X_WMTYPE_A.  Set check_expected_move when WM type is unknown.
+	(x_check_expected_move): Renamed from x_check_fullscreen_move.
+	Removed fullscreen specific code.  Use check_expected_move,
+	expected_left/top instead.  Also, set wm_type.
+	(x_term_init): Initialize wm_type to unknown.
+
+	* frame.c (x_fullscreen_move): Remove addition of WM decoration
+	sizes to move_x/y.
+
 2003-10-03  Kenichi Handa  <handa@m17n.org>
 
 	* macterm.c (x_load_font): Clear all members of FONTP before start

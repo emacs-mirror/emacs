@@ -362,7 +362,7 @@ static void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
 					    Lisp_Object *, Lisp_Object *,
 					    unsigned long *));
 static void x_check_fullscreen P_ ((struct frame *));
-static void x_check_fullscreen_move P_ ((struct frame *));
+static void x_check_expected_move P_ ((struct frame *));
 static int handle_one_xevent P_ ((struct x_display_info *,
                                   XEvent *,
                                   struct input_event **,
@@ -5990,6 +5990,9 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
           x_real_positions (f, &x, &y);
           f->left_pos = x;
           f->top_pos = y;
+
+          /* Perhaps reparented due to a WM restart.  Reset this.  */
+          FRAME_X_DISPLAY_INFO (f)->wm_type = X_WMTYPE_UNKNOWN;
         }
       goto OTHER;
       break;
@@ -6767,7 +6770,7 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
 		 Convert that to the position of the window manager window.  */
 	      x_real_positions (f, &f->left_pos, &f->top_pos);
 
-	      x_check_fullscreen_move (f);
+	      x_check_expected_move (f);
 	      if (f->want_fullscreen & FULLSCREEN_WAIT)
 		f->want_fullscreen &= ~(FULLSCREEN_WAIT|FULLSCREEN_BOTH);
             }
@@ -8320,8 +8323,6 @@ x_set_offset (f, xoff, yoff, change_gravity)
 
   modified_left = f->left_pos;
   modified_top = f->top_pos;
-  modified_left += FRAME_X_OUTPUT (f)->x_pixels_outer_diff;
-  modified_top += FRAME_X_OUTPUT (f)->y_pixels_outer_diff;
 
 #if 0 /* Running on psilocin (Debian), and displaying on the NCD X-terminal,
 	 this seems to be unnecessary and incorrect.  rms, 4/17/97.  */
@@ -8334,8 +8335,23 @@ x_set_offset (f, xoff, yoff, change_gravity)
     }
 #endif
 
+  if (FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_A)
+    {
+      modified_left += FRAME_X_OUTPUT (f)->x_pixels_outer_diff;
+      modified_top += FRAME_X_OUTPUT (f)->y_pixels_outer_diff;
+    }
+
   XMoveWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
                modified_left, modified_top);
+
+  if (FRAME_VISIBLE_P (f)
+      && FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_UNKNOWN)
+    {
+      FRAME_X_OUTPUT (f)->check_expected_move = 1;
+      FRAME_X_OUTPUT (f)->expected_top = f->top_pos;
+      FRAME_X_OUTPUT (f)->expected_left = f->left_pos;
+    }
+
   UNBLOCK_INPUT;
 }
 
@@ -8356,7 +8372,7 @@ x_check_fullscreen (f)
       /* We do not need to move the window, it shall be taken care of
          when setting WM manager hints.
          If the frame is visible already, the position is checked by
-         x_check_fullscreen_move. */
+         x_check_expected_move. */
       if (FRAME_COLS (f) != width || FRAME_LINES (f) != height)
         {
           change_frame_size (f, height, width, 0, 1, 0);
@@ -8370,30 +8386,31 @@ x_check_fullscreen (f)
 }
 
 /* If frame parameters are set after the frame is mapped, we need to move
-   the window.  This is done in xfns.c.
+   the window.
    Some window managers moves the window to the right position, some
    moves the outer window manager window to the specified position.
    Here we check that we are in the right spot.  If not, make a second
    move, assuming we are dealing with the second kind of window manager. */
 static void
-x_check_fullscreen_move (f)
+x_check_expected_move (f)
      struct frame *f;
 {
-  if (f->want_fullscreen & FULLSCREEN_MOVE_WAIT)
+  if (FRAME_X_OUTPUT (f)->check_expected_move)
   {
-    int expect_top = f->top_pos;
-    int expect_left = f->left_pos;
-
-    if (f->want_fullscreen & FULLSCREEN_HEIGHT)
-      expect_top = 0;
-    if (f->want_fullscreen & FULLSCREEN_WIDTH)
-      expect_left = 0;
-
+    int expect_top = FRAME_X_OUTPUT (f)->expected_top;
+    int expect_left = FRAME_X_OUTPUT (f)->expected_left;
+    
     if (expect_top != f->top_pos || expect_left != f->left_pos)
-      x_set_offset (f, expect_left, expect_top, 1);
+      {
+        if (FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_UNKNOWN)
+          FRAME_X_DISPLAY_INFO (f)->wm_type = X_WMTYPE_A;
+        x_set_offset (f, expect_left, expect_top, 1);
+      }
+    else if (FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_UNKNOWN)
+      FRAME_X_DISPLAY_INFO (f)->wm_type = X_WMTYPE_B;
 
     /* Just do this once */
-    f->want_fullscreen &= ~FULLSCREEN_MOVE_WAIT;
+    FRAME_X_OUTPUT (f)->check_expected_move = 0;
   }
 }
 
@@ -10398,6 +10415,7 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->x_focus_event_frame = 0;
   dpyinfo->x_highlight_frame = 0;
   dpyinfo->image_cache = make_image_cache ();
+  dpyinfo->wm_type = X_WMTYPE_UNKNOWN;
 
   /* See if we can construct pixel values from RGB values.  */
   dpyinfo->red_bits = dpyinfo->blue_bits = dpyinfo->green_bits = 0;

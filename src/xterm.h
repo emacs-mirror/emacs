@@ -361,10 +361,22 @@ struct x_display_info
   XColor *color_cells;
   int ncolor_cells;
 
-  /* Bits and shifts to use to compose pixel values on Direct and TrueColor
-     visuals.  */
+  /* Bits and shifts to use to compose pixel values on TrueColor visuals.  */
   int red_bits, blue_bits, green_bits;
   int red_offset, blue_offset, green_offset;
+
+  /* The type of window manager we have.  If we move FRAME_OUTER_WINDOW
+     to x/y 0/0, some window managers (type A) puts the window manager
+     decorations outside the screen and FRAME_OUTER_WINDOW exactly at 0/0.
+     Other window managers (type B) puts the window including decorations
+     at 0/0, so FRAME_OUTER_WINDOW is a bit below 0/0.
+     Record the type of WM in use so we can compensate for type A WMs.  */
+  enum
+    {
+      X_WMTYPE_UNKNOWN,
+      X_WMTYPE_A,
+      X_WMTYPE_B
+    } wm_type;
 };
 
 #ifdef HAVE_X_I18N
@@ -611,6 +623,15 @@ struct x_output
      frame, or IMPLICIT if we received an EnterNotify.
      FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
   int focus_state;
+
+  /* The latest move we made to FRAME_OUTER_WINDOW.  Saved so we can
+     compensate for type A WMs (see wm_type in dpyinfo above.  */
+  int expected_top;
+  int expected_left;
+
+  /* Nonzero if we have made a move and needs to check if the WM placed us
+     at the right position.  */
+  int check_expected_move;
 };
 
 #define No_Cursor (None)
