@@ -769,12 +769,14 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 		;; not found
 		(throw 'not-found "Subdir not found")))
 	    ;; found and point is at The Right Place:
-	    (let (buffer-read-only)
+	    (let (buffer-read-only (opoint (point)))
 	      (beginning-of-line)
 	      (dired-add-entry-do-indentation marker-char)
 	      ;; don't expand `.' !
-	      (insert-directory (dired-make-absolute filename directory)
-				(concat dired-actual-switches "d"))
+	      (let ((default-directory directory))
+		(insert-directory filename
+				  (concat dired-actual-switches "d")))
+	      (dired-insert-set-properties opoint (point))
 	      (forward-line -1)
 	      ;; We want to have the non-directory part, only:
 	      (let* ((beg (dired-move-to-filename t)) ; error for strange output
@@ -1592,7 +1594,9 @@ This function takes some pains to conform to `ls -lR' output."
       (if (equal dirname (car (car (reverse dired-subdir-alist))))
 	  ;; top level directory may contain wildcards:
 	  (dired-readin-insert dired-directory)
-	(insert-directory dirname dired-actual-switches nil t)))
+	(let ((opoint (point)))
+	  (insert-directory dirname dired-actual-switches nil t)
+	  (dired-insert-set-properties opoint (point)))))
     (message "Reading directory %s...done" dirname)
     (setq end (point-marker))
     (indent-rigidly begin end 2)
