@@ -312,9 +312,23 @@ EVENT should be a scroll bar click."
 				       ((< (car portion-whole) 0) -1)
 				       (t 1)))))
 		   ((eq part 'up)
-		    (scroll-up -1))
+		    ;; Avoid ringing the bell when at beginning of
+		    ;; buffer, since that causes redisplay to bitch
+		    ;; endlessly when visible-bell is in effect and
+		    ;; the toolkit sends us many scroll-bar clicks one
+		    ;; after the other.
+		    (if (= 0 (save-excursion
+			       (goto-char (window-start))
+			       (forward-line -1)))
+			(scroll-up -1)
+		      (message "Beginning of buffer")))
 		   ((eq part 'down)
-		    (scroll-up 1))
+		    ;; Avoid ringing the bell if already at end of
+		    ;; buffer; see the commentary above for the
+		    ;; reasons.
+		    (if (= 0 (save-excursion (forward-line 2)))
+			(scroll-up 1)
+		      (message "End of buffer")))
 		   ((eq part 'top)
 		    (set-window-start window (point-min)))
 		   ((eq part 'bottom)
