@@ -1650,12 +1650,27 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
     {
       XEvent event;
       int queue_and_exit = 0;
+      int in_this_menu;
+      Widget widget;
 
       XtAppNextEvent (Xt_app_con, &event);
+
+      /* Check whether the event happened in the menu
+	 or any child of it.  */
+      widget = XtWindowToWidget (XDISPLAY event.xany.window);
+      in_this_menu = 0;
+      while (widget)
+	{
+	  if (widget == menu)
+	    {
+	      in_this_menu = 1;
+	      break;
+	    }
+	  widget = XtParent (widget);
+	}
+
       if (event.type == ButtonRelease)
 	{
-	  XtDispatchEvent (&event);
-
 	  /* Do the work of construct_mouse_click since it can't
 	     be called. Initially, the popup menu has been called
 	     from a ButtonPress in the edit_widget. Then the mouse
@@ -1667,29 +1682,17 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	  /* If we release the button soon without selecting anything,
 	     stay in the loop--that is, leave the menu posted.
 	     Otherwise, exit this loop and thus pop down the menu.  */
-	  if (! (menu_item_selection == 0
-		 && !next_release_must_exit
-		 && (((XButtonEvent *) (&event))->time - last_event_timestamp
-		     < XINT (Vdouble_click_time))))
+	  if (! in_this_menu
+	      && (next_release_must_exit
+		  || !(((XButtonEvent *) (&event))->time - last_event_timestamp
+		       < XINT (Vdouble_click_time))))
 	    break;
-	  /* Don't call XtDispatchEvent again for the same event!  */
-	  continue;
 	}
+      /* A button press outside the menu => pop it down.  */
+      else if (event.type == ButtonPress && !in_this_menu)
+	break;
       else if (event.type == ButtonPress)
-	{
-	  next_release_must_exit = 1;
-#if 0
-	  XtDispatchEvent (&event);
-	  /* Any mouse button activity that doesn't select in the menu
-	     should unpost the menu.  */
-	  if (menu_item_selection == 0)
-	    break;
-#endif
-	  /* Don't call XtDispatchEvent for the down event.
-	     Doing so seems to give strange results
-	     when you click on the menu bar while a menu is posted.  */
-	  continue;
-	}
+	next_release_must_exit = 1;
       else if (event.type == KeyPress)
 	{
 	  /* Exit the loop, but first queue this event for reuse.  */
@@ -1738,8 +1741,8 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	}
 
       XtDispatchEvent (&event);
-      if (queue_and_exit
-	  || XtWindowToWidget (XDISPLAY event.xany.window) != menu)
+
+      if (queue_and_exit || !in_this_menu)
 	{
 	  queue_tmp
 	    = (struct event_queue *) malloc (sizeof (struct event_queue));
