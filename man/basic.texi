@@ -473,6 +473,7 @@ a line gets too long.  Continuation on the screen does not do that.  Use
 Auto Fill mode (@pxref{Filling}) if that's what you want.
 
 @vindex truncate-lines
+@findex toggle-truncate-lines
 @cindex truncation
   As an alternative to continuation, Emacs can display long lines by
 @dfn{truncation}.  This means that all the characters that do not fit in
@@ -488,6 +489,9 @@ buffer.  (@xref{Variables}.)  Altering the value of
 @code{truncate-lines} makes it local to the current buffer; until that
 time, the default value is in effect.  The default is initially
 @code{nil}.  @xref{Locals}.
+
+  The command @kbd{M-x toggle-truncate-lines} toggles the display
+between continuation and truncation.
 
   @xref{Display Vars}, for additional variables that affect how text is
 displayed.
