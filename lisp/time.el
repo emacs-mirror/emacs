@@ -29,7 +29,8 @@
 
 (defvar display-time-mail-file nil
   "*File name of mail inbox file, for indicating existence of new mail.
-Default is system-dependent, and is the same as used by Rmail.")
+Non-nil and not a string means don't check for mail.  nil means use
+default, which is system-dependent, and is the same as used by Rmail.")
 
 ;;;###autoload
 (defvar display-time-day-and-date nil "\
@@ -127,7 +128,8 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'.")
                               (getenv "MAIL")
                               (concat rmail-spool-directory
                                       (user-login-name))))
-	 (mail (and (or (null display-time-server-down-time)
+	 (mail (and (stringp mail-spool-file)
+		    (or (null display-time-server-down-time)
 			;; If have been down for 20 min, try again.
 			(> (- (nth 1 (current-time))
 			      display-time-server-down-time)
