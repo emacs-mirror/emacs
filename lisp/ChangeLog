@@ -1,3 +1,8 @@
+2001-10-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* help-mode.el (help-buffer): Remove debugging code.
+	From Stefan Monnier <monnier@cs.yale.edu>.
+
 2001-10-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (file-name-sans-extension, file-name-extension): Don't
