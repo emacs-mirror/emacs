@@ -1,3 +1,8 @@
+2000-11-09  Dave Love  <fx@gnu.org>
+
+	* pcvs.el (uniquify-buffer-file-name): Wrap advice in
+	eval-after-load.
+
 2000-11-09  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Patch for variable initialization when spooling.  Doc
