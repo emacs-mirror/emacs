@@ -57,6 +57,7 @@ main (argc, argv)
 {
   int i;
   int err_count = 0;
+  int first_infile;
 
 #ifdef MSDOS
   _fmode = O_BINARY;	/* all of files are treated as binary files */
@@ -83,12 +84,21 @@ main (argc, argv)
       i += 2;
     }
 
+  first_infile = i;
   for (; i < argc; i++)
-    err_count += scan_file (argv[i]);	/* err_count seems to be {mis,un}used */
+    {
+      int j;
+      /* Don't process one file twice.  */
+      for (j = first_infile; j < i; j++)
+	if (! strcmp (argv[i], argv[j]))
+	  break;
+      if (j == i)
+	err_count += scan_file (argv[i]);
+    }
 #ifndef VMS
-  exit (err_count);			/* see below - shane */
+  exit (err_count > 0);
 #endif /* VMS */
-  return err_count;
+  return err_count > 0;
 }
 
 /* Read file FILENAME and output its doc strings to outfile.  */
