@@ -71,7 +71,7 @@ When t this still needs to be initialized.")
 The expression may reference the variable `pattern'
 which will hold the string being completed.
 If not on matching header, `mail-complete-function' gets called instead."
-  :type 'sexp
+  :type 'alist
   :group 'mailalias)
 (put 'mail-complete-alist 'risky-local-variable t)
 
