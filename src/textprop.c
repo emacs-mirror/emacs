@@ -209,8 +209,7 @@ interval_has_all_properties (plist, i)
 	  {
 	    /* Found the same property on both lists.  If the
 	       values are unequal, return zero. */
-	    if (! EQ (Fequal (Fcar (Fcdr (tail1)), Fcar (Fcdr (tail2))),
-		      Qt))
+	    if (! EQ (Fcar (Fcdr (tail1)), Fcar (Fcdr (tail2))))
 	      return 0;
 
 	    /* Property has same value on both lists;  go to next one. */
@@ -343,7 +342,7 @@ add_properties (plist, i, object)
 
 	    /* The properties have the same value on both lists.
 	       Continue to the next property. */
-	    if (!NILP (Fequal (val1, Fcar (this_cdr))))
+	    if (EQ (val1, Fcar (this_cdr)))
 	      break;
 
 	    /* Record this change in the buffer, for undo purposes.  */
