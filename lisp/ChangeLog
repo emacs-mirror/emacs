@@ -1,3 +1,7 @@
+2002-02-07  Markus Rost  <rost@math.ohio-state.edu>
+
+	* ffap.el (ffap-newsgroup-p): Test for non-nil symbol-value of htb.
+
 2002-02-07  Richard M. Stallman  <rms@gnu.org>
 
 	* terminal.el (terminal-map): Define [menu-bar] so global def is seen.
