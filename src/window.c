@@ -52,7 +52,6 @@ Boston, MA 02111-1307, USA.  */
 Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
 Lisp_Object Qwindow_size_fixed;
 extern Lisp_Object Qleft_margin, Qright_margin;
-extern Lisp_Object Qheight, Qwidth;
 
 static int displayed_window_lines P_ ((struct window *));
 static struct window *decode_window P_ ((Lisp_Object));
@@ -2637,6 +2636,35 @@ set_window_width (window, width, nodelete)
      int nodelete;
 {
   size_window (window, width, 1, nodelete);
+}
+
+/* Change window heights in windows rooted in WINDOW by N lines.  */
+
+void
+change_window_heights (window, n)
+     Lisp_Object window;
+     int n;
+{
+  struct window *w = XWINDOW (window);
+
+  XSETFASTINT (w->top, XFASTINT (w->top) + n);
+  XSETFASTINT (w->height, XFASTINT (w->height) - n);
+
+  if (INTEGERP (w->orig_top))
+    XSETFASTINT (w->orig_top, XFASTINT (w->orig_top) + n);
+  if (INTEGERP (w->orig_height))
+    XSETFASTINT (w->orig_height, XFASTINT (w->orig_height) - n);
+
+  /* Handle just the top child in a vertical split.  */
+  if (!NILP (w->vchild))
+    change_window_heights (w->vchild, n);
+
+  /* Adjust all children in a horizontal split.  */
+  for (window = w->hchild; !NILP (window); window = w->next)
+    {
+      w = XWINDOW (window);
+      change_window_heights (window, n);
+    }
 }
 
 
