@@ -149,7 +149,7 @@
 	   :iso-final-char ,iso-final
 	   :emacs-mule-id ,emacs-mule-id
 	   :code-space [32 127]
-	   :parents (list (cons ,symbol 128))))))
+	   :subset (list ,symbol 160 255 -128)))))
 
 (define-iso-single-byte-charset 'iso-8859-2 'latin-iso8859-2
   "ISO/IEC 8859/2" "Latin-2" 101 ?B 130 "8859-2")
@@ -216,7 +216,7 @@
   :short-name "TIS620.2533"
   :ascii-compatible-p t
   :code-space [0 255]
-  :parents '(ascii eight-bit-control (thai-tis620 . -128)))
+  :superset '(ascii eight-bit-control (thai-tis620 . 128)))
 
 (define-charset 'jisx0201
   "JISX0201"
@@ -231,7 +231,7 @@
   :iso-final-char ?J
   :emacs-mule-id  138
   :code-space [33 126]
-  :parents '(jisx0201))
+  :subset '(jisx0201 33 126 0))
 
 (define-charset 'katakana-jisx0201
   "Katakana Part of JISX0201.1976"
@@ -240,7 +240,7 @@
   :iso-final-char ?I
   :emacs-mule-id  137
   :code-space [33 126]
-  :parents '((jisx0201 . #x80)))
+  :subset '(jisx0201 161 254 -128))
 
 (define-charset 'chinese-gb2312
   "GB2312 Chinese simplified: ISO-IR-58"
@@ -773,7 +773,7 @@
   "Lao characters (ISO10646 0E81..0EDF)"
   :short-name "Lao"
   :code-space [0 255]
-  :parents '(ascii eight-bit-control (lao . -128)))
+  :superset '(ascii eight-bit-control (lao . 128)))
 
 
 ;; Indian scripts.  Symbolic charset for data exchange.  Glyphs are
@@ -816,7 +816,7 @@
   :iso-final-char ?5
   :emacs-mule-id  251
   :code-space [33 126 33 126]
-  :parents '(indian-1-column))
+  :superset '(indian-1-column))
 
 (define-charset 'tibetan
   "Tibetan characters"
@@ -836,7 +836,7 @@
   :iso-final-char ?8
   :emacs-mule-id 241
   :code-space [33 126 33 37]
-  :parents '(tibetan))
+  :superset '(tibetan))
 
 ;; Subsets of Unicode.
 (define-charset 'mule-unicode-2500-33ff
@@ -971,9 +971,9 @@
   :code-space [#x00 #xFF #x00 #xFE #x00 #xFE #x00 #xFE]
   :min-code 0
   :max-code '(#xFE39 . #xFE39)
-  :parents '(ascii gb18030-2-byte
-		   gb18030-4-byte-bmp gb18030-4-byte-smp
-		   gb18030-4-byte-ext-1 gb18030-4-byte-ext-2))
+  :superset '(ascii gb18030-2-byte
+		    gb18030-4-byte-bmp gb18030-4-byte-smp
+		    gb18030-4-byte-ext-1 gb18030-4-byte-ext-2))
 
 (unify-charset 'chinese-gb2312)
 (unify-charset 'chinese-gbk)
