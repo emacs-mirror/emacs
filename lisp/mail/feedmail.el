@@ -93,19 +93,19 @@
 ;;    --- you can get one last look at the prepped outbound message and
 ;;        be prompted for confirmation
 ;;
-;;    --- removes BCC:/RESENT-BCC: headers after getting address info
+;;    --- removes Bcc:/Resent-Bcc: headers after getting address info
 ;;
 ;;    --- does smart filling of address headers
 ;;
-;;    --- calls a routine to process FCC: lines and removes them
+;;    --- calls a routine to process Fcc: lines and removes them
 ;;
 ;;    --- empty headers are removed
 ;;
-;;    --- can force FROM: or SENDER: line
+;;    --- can force From: or Sender: line
 ;;
-;;    --- can generate a MESSAGE-ID: line
+;;    --- can generate a Message-Id: line
 ;;
-;;    --- can generate a DATE: line; the date can be the time the
+;;    --- can generate a Date: line; the date can be the time the
 ;;        message was written or the time it is being sent
 ;;
 ;;    --- strips comments from address info (both "()" and "<>" are
@@ -124,7 +124,7 @@
 ;;    --- you can specify something other than /bin/mail for the
 ;;        subprocess
 ;;
-;;    --- you can generate/modify an X-MAILER: message header
+;;    --- you can generate/modify an X-Mailer: message header
 ;;
 ;; After a long list of options below, you will find the function
 ;; feedmail-send-it. Hers's the best way to use the stuff in this
@@ -193,18 +193,18 @@
 ;; patchlevel 6, not issued as far as I know
 ;; patchlevel 7,  20 May 1997
 ;;         abandon futile support of Emacs 18 (sorry if that hurts you)
-;;         provide a DATE: header by default
-;;         provide a default for generating MESSAGE-ID: header contents
+;;         provide a Date: header by default
+;;         provide a default for generating Message-Id: header contents
 ;;            and use it by default (slightly changed API)
 ;;         return value from feedmail-run-the-queue
 ;;         new wrapper function feedmail-run-the-queue-no-prompts
-;;         user-mail-address as default for FROM:
-;;         properly deal with RESENT-{TO,CC,BCC}
-;;         BCC and RESENT-* now included in smart filling
+;;         user-mail-address as default for From:
+;;         properly deal with Resent-{To,Cc,Bcc}
+;;         Bcc and Resent-* now included in smart filling
 ;;         limited support for a "drafts" directory
 ;;         user-configurable default message action
 ;;         allow timeout for confirmation prompt (where available)
-;;         move FCC handling to as late as possible to get max
+;;         move Fcc handling to as late as possible to get max
 ;;            header munging in the saved file
 ;;         work around sendmail.el's prompts when working from queue
 ;;         more reliably detect voluntary user bailouts
@@ -240,8 +240,8 @@
 ;;         option to control writing in text vs binary mode
 ;; patchlevel 8, 15 June 1998
 ;;         reliable re-editing of text-mode (vs binary) queued messages
-;;         user option to keep BCC: in FCC: copy (keep by default)
-;;         user option to delete body from FCC: copy (keep by default)
+;;         user option to keep Bcc: in Fcc: copy (keep by default)
+;;         user option to delete body from Fcc: copy (keep by default)
 ;;         feedmail-deduce-bcc-where for envelope (API change for
 ;;           feedmail-deduce-address list)
 ;;         feedmail-queue-alternative-mail-header-separator
@@ -263,7 +263,7 @@
 ;;           burge@newvision.com (Shane Burgess); bumped up the default value of
 ;;           feedmail-queue-chatty-sit-for since info is more complex sometimes
 ;;         feedmail-enable-spray (individual transmissions, crude mailmerge)
-;;         blank SUBJECT: no longer a special case; see feedmail-nuke-empty-headers
+;;         blank Subject: no longer a special case; see feedmail-nuke-empty-headers
 ;;         fiddle-plexes data structure used lots of places; see feedmail-fiddle-plex-blurb
 ;;         feedmail-fiddle-plex-user-list
 ;;         feedmail-is-a-resend
@@ -345,8 +345,8 @@ version of Emacs doesn't include the function y-or-n-p-with-timeout
 
 
 (defcustom feedmail-nuke-bcc t
-  "*If non-nil remove BCC: lines from the message headers.
-In any case, the BCC: lines do participate in the composed address
+  "*If non-nil remove Bcc: lines from the message headers.
+In any case, the Bcc: lines do participate in the composed address
 list.  You may want to leave them in if you're using sendmail
 \(see feedmail-buffer-eating-function\)."
   :group 'feedmail-headers
@@ -355,8 +355,8 @@ list.  You may want to leave them in if you're using sendmail
 
 
 (defcustom feedmail-nuke-resent-bcc t
-  "*If non-nil remove RESENT-BCC: lines from the message headers.
-In any case, the RESENT-BCC: lines do participate in the composed
+  "*If non-nil remove Resent-Bcc: lines from the message headers.
+In any case, the Resent-Bcc: lines do participate in the composed
 address list.  You may want to leave them in if you're using sendmail
 \(see feedmail-buffer-eating-function\)."
   :group 'feedmail-headers
@@ -377,8 +377,8 @@ at the end of the list.
 
 Why should you care?  Well, maybe you don't, and certainly the same
 things could be accomplished by affecting the order of message headers
-in the outgoing message.  Some people use BCC: as a way of getting
-their own \"come back\" copy of each message they send.  If BCC:
+in the outgoing message.  Some people use Bcc: as a way of getting
+their own \"come back\" copy of each message they send.  If Bcc:
 addresses are not handled first, there can be substantial delays in
 seeing the message again.  Some configurations of sendmail, for example,
 seem to try to deliver to each addressee at least once, immediately
@@ -394,8 +394,8 @@ delivery agent that processes the addresses backwards."
   "*If non-nil do smart filling of addressee header lines.
 Smart filling means breaking long lines at appropriate points and
 making continuation lines.  Despite the function name, it includes
-TO:, CC:, BCC: (and their RESENT-* forms), as well as FROM: and
-REPLY-TO: (though they seldom need it).  If nil, the lines are left
+To:, Cc:, Bcc: (and their Resent-* forms), as well as From: and
+Reply-To: (though they seldom need it).  If nil, the lines are left
 as-is.  The filling is done after mail address alias expansion."
   :group 'feedmail-headers
   :type 'boolean
@@ -410,19 +410,19 @@ as-is.  The filling is done after mail address alias expansion."
 
 
 (defcustom feedmail-nuke-bcc-in-fcc nil
-  "*If non-nil remove [RESENT-]BCC: lines in message copies saved via FCC:.
-This is independent of whether the BCC: header lines are actually sent
+  "*If non-nil remove [Resent-]Bcc: lines in message copies saved via Fcc:.
+This is independent of whether the Bcc: header lines are actually sent
 with the message (see feedmail-nuke-bcc).  Though not implied in the name,
-the same FCC: treatment applies to both BCC: and RESENT-BCC: lines."
+the same Fcc: treatment applies to both Bcc: and Resent-Bcc: lines."
   :group 'feedmail-headers
   :type 'boolean
   )
 
 
 (defcustom feedmail-nuke-body-in-fcc nil
-  "*If non-nil remove body of message in copies saved via FCC:.
+  "*If non-nil remove body of message in copies saved via Fcc:.
 If an positive integer value, leave (up to) that many lines of the
-beginning of the body intact.  The result is that the FCC: copy will
+beginning of the body intact.  The result is that the Fcc: copy will
 consist only of the message headers, serving as a sort of an outgoing
 message log."
   :group 'feedmail-headers
@@ -445,7 +445,7 @@ out."
 
 (defcustom feedmail-nuke-empty-headers t
   "*If non-nil, remove header lines which have no contents.
-A completely empty SUBJECT: header is always removed, regardless of
+A completely empty Subject: header is always removed, regardless of
 the setting of this variable.  The only time you would want them left
 in would be if you used some headers whose presence indicated
 something rather than their contents.  This is rare in Internet email
@@ -454,7 +454,7 @@ but common in some proprietary systems."
   :type 'boolean
   )
 
-;; wjc sez:  I think the use of the SENDER: line is pretty pointless,
+;; wjc sez:  I think the use of the Sender: line is pretty pointless,
 ;; but I left it in to be compatible with sendmail.el and because
 ;; maybe some distant mail system needs it.  Really, though, if you
 ;; want a sender line in your mail, just put one in there and don't
@@ -462,12 +462,12 @@ but common in some proprietary systems."
 ;; RFC-822 and RFC-1123, but are you *really* one of those cases
 ;; they're talking about?  I doubt it.)
 (defcustom feedmail-sender-line nil
-  "*If non-nil and the email has no SENDER: header, use this value.
+  "*If non-nil and the email has no Sender: header, use this value.
 May be nil, in which case nothing in particular is done with respect
-to SENDER: lines.  By design, will not replace an existing SENDER:
+to Sender: lines.  By design, will not replace an existing Sender:
 line, but you can achieve that with a fiddle-plex 'replace action.
 NB: it makes no sense to use the value t since there is no sensible
-default for SENDER:.
+default for Sender:.
 
 If not nil, it may be a string, a fiddle-plex, or a function which
 returns either nil, t, a string, or a fiddle-plex (or, in fact,
@@ -481,15 +481,15 @@ by feedmail to either \"X-Sender\" or \"X-Resent-Sender\".
 
 You can probably leave this nil, but if you feel like using it, a good
 value would be a string of a fully-qualified domain name form of your
-address.  For example, \"bill@bubblegum.net (WJCarpenter)\".  The SENDER:
-header is fiddled after the FROM: header is fiddled."
+address.  For example, \"bill@bubblegum.net (WJCarpenter)\".  The Sender:
+header is fiddled after the From: header is fiddled."
   :group 'feedmail-headers
   :type '(choice (const nil) string)
   )
 
 
 (defcustom feedmail-force-binary-write t
-  "*If non-nil, force writing file as binary (this applies to queues and FCC:).
+  "*If non-nil, force writing file as binary (this applies to queues and Fcc:).
 On systems where there is a difference between binary and text files,
 feedmail will temporarily manipulate the values of `buffer-file-type'
 and/or default-buffer-file-type to make the writing as binary.  If
@@ -502,11 +502,11 @@ means, this option has no effect."
 
 
 (defcustom feedmail-from-line t
-  "*If non-nil and the email has no FROM: header, use this value.
+  "*If non-nil and the email has no From: header, use this value.
 May be t, in which case a default is computed (and you probably won't
 be happy with it).  May be nil, in which case nothing in particular is
-done with respect to FROM: lines.  By design, will not replace an
-existing FROM: line, but you can achieve that with a fiddle-plex 'replace
+done with respect to From: lines.  By design, will not replace an
+existing From: line, but you can achieve that with a fiddle-plex 'replace
 action.
 
 If neither nil nor t, it may be a string, a fiddle-plex, or a function
@@ -525,23 +525,23 @@ default value of this variable uses the standard elisp variable
 `user-mail-address' which should be set on every system but has a decent
 chance of being wrong.  It also honors `mail-from-style'.  Better to set
 this variable explicitly to the string you want or find some other way
-to arrange for the message to get a FROM: line."
+to arrange for the message to get a From: line."
   :group 'feedmail-headers
   :type '(choice (const nil) string)
   )
 
 
 (defcustom feedmail-deduce-envelope-from t
-  "*If non-nil, deduce message envelope \"from\" from header FROM: or SENDER:.
-In other words, if there is a SENDER: header in the message, temporarily
+  "*If non-nil, deduce message envelope \"from\" from header From: or Sender:.
+In other words, if there is a Sender: header in the message, temporarily
 change the value of `user-mail-address' to be the same while the message
-is being sent.  If there is no SENDER: header, use the FROM: header,
+is being sent.  If there is no Sender: header, use the From: header,
 if any.  Address values are taken from the actual message just before
 it is sent, and the process is independent of the values of
 feedmail-from-line and/or feedmail-sender-line.
 
 There are many and good reasons for having the message header
-FROM:/SENDER: be different from the message envelope \"from\"
+From:/Sender: be different from the message envelope \"from\"
 information.  However, for most people and for most circumstances, it
 is usual for them to be the same (this is probably especially true for
 the case where the user doesn't understand the difference between the
@@ -549,7 +549,7 @@ two in the first place).
 
 The idea behind this feature is that you can have everything set up
 some normal way for yourself.  If for some reason you want to send a
-message with another FROM: line, you can just type it at the top of
+message with another From: line, you can just type it at the top of
 the message, and feedmail will take care of \"fixing up\" the envelope
 \"from\".  This only works for mail senders which make use of
 `user-mail-address' as the envelope \"from\" value.  For some mail
@@ -568,16 +568,16 @@ influence what they will use as the envelope."
 
 
 (defcustom feedmail-x-mailer-line t
-  "*Control the form of an X-MAILER: header in an outgoing message.
+  "*Control the form of an X-Mailer: header in an outgoing message.
 Moderately useful for debugging, keeping track of your correspondents'
 mailer preferences, or just wearing your MUA on your sleeve.  You
 should probably know that some people are fairly emotional about the
-presence of X-MAILER: lines in email.
+presence of X-Mailer: lines in email.
 
-If nil, nothing is done about X-MAILER:.
+If nil, nothing is done about X-Mailer:.
 
-If t, an X-MAILER: header of a predetermined format is produced,
-combining its efforts with any existing X-MAILER: header.  If you want
+If t, an X-Mailer: header of a predetermined format is produced,
+combining its efforts with any existing X-Mailer: header.  If you want
 to take the default construct and just add a little blob of your own
 at the end, define the variable feedmail-x-mailer-line-user-appendage
 as that blob string.  A value of t is equivalent to using the function
@@ -598,12 +598,12 @@ by feedmail to either \"X-Mailer\" or \"X-Resent-Mailer\"."
 
 
 (defcustom feedmail-message-id-generator t
-  "*Specifies the creation of a MESSAGE-ID: header field.
+  "*Specifies the creation of a Message-Id: header field.
 
-If nil, nothing is done about MESSAGE-ID:.
+If nil, nothing is done about Message-Id:.
 
-If t, a MESSAGE-ID: header of a predetermined format is produced, but
-only if there is not already a MESSAGE-ID: in the message.  A value of
+If t, a Message-Id: header of a predetermined format is produced, but
+only if there is not already a Message-Id: in the message.  A value of
 t is equivalent to using the function feedmail-default-message-id-generator.
 
 If neither nil nor t, it may be a string, a fiddle-plex, or a function
@@ -615,13 +615,13 @@ with one argument: the possibly-nil name of the file associated with
 the message buffer.  For an explanation of fiddle-plexes, see the
 documentation for the variable feedmail-fiddle-plex-blurb.  In all
 cases the name element of the fiddle-plex is ignored and is hardwired
-by feedmail to either \"Message-ID\" or \"Resent-Message-ID\".
+by feedmail to either \"Message-Id\" or \"Resent-Message-Id\".
 
-You should let feedmail generate a MESSAGE-ID: for you unless you are sure
+You should let feedmail generate a Message-Id: for you unless you are sure
 that whatever you give your messages to will do it for you (e.g., most
 configurations of sendmail).  Even if the latter case is true, it
 probably won't hurt you to generate your own, and it will then show up
-in the saved message if you use FCC:."
+in the saved message if you use Fcc:."
   :group 'feedmail-headers
   :type '(choice (const nil) function)
   )
@@ -643,12 +643,12 @@ automatically."
 ;; this was suggested in various forms by several people; first was
 ;; Tony DeSimone in Oct 1992; sorry to be so tardy
 (defcustom feedmail-date-generator t
-  "*Specifies the creation of a DATE: header field.
+  "*Specifies the creation of a Date: header field.
 
-If nil, nothing is done about DATE:.
+If nil, nothing is done about Date:.
 
-If t, a DATE: header of a predetermined format is produced, but only
-if there is not already a DATE: in the message.  A value of t is
+If t, a Date: header of a predetermined format is produced, but only
+if there is not already a Date: in the message.  A value of t is
 equivalent to using the function feedmail-default-date-generator.
 
 If neither nil nor t, it may be a string, a fiddle-plex, or a function
@@ -666,11 +666,11 @@ If you decide to format your own date field, do us all a favor and know
 what you're doing.  Study the relevant parts of RFC-822 and RFC-1123.
 Don't make me come up there!
 
-You should let feedmail generate a DATE: for you unless you are sure
+You should let feedmail generate a Date: for you unless you are sure
 that whatever you give your messages to will do it for you (e.g., most
 configurations of sendmail).  Even if the latter case is true, it
 probably won't hurt you to generate your own, and it will then show up
-in the saved message if you use FCC:."
+in the saved message if you use Fcc:."
   :group 'feedmail-headers
   :type '(choice (const nil) function)
   )
@@ -718,7 +718,7 @@ message headers except as noted.
 Spray mode is usually pointless, and if you can't think of a good reason for
 it, you should avoid it since it is inherently less efficient than normal
 multiple delivery.  One reason to use it is to overcome mis-featured mail
-transports which betray your trust by revealing BCC: addressees in the
+transports which betray your trust by revealing Bcc: addressees in the
 headers of a message.  Another use is to do a crude form of mailmerge, for
 which see feedmail-spray-address-fiddle-plex-list.
 
@@ -742,7 +742,7 @@ fiddles message headers according to this variable.  See the documentation for
 May be nil, in which case nothing in particular is done about message
 headers for specific addresses.
 
-May be t, in which case a \"TO:\" header is added to the message with
+May be t, in which case a \"To:\" header is added to the message with
 the stripped address as the header contents.  The fiddle-plex operator
 is 'supplement.
 
@@ -770,7 +770,7 @@ stripped envelope email address (no comments or angle brackets).  The
 function should return an embellished form of the address.
 
 The recipe for sending form letters is:  (1) create a message with all
-addressees on BCC: headers; (2) tell feedmail to remove BCC: headers
+addressees on Bcc: headers; (2) tell feedmail to remove Bcc: headers
 before sending the message; (3) create a function which will embellish
 stripped addresses, if desired; (4) define feedmail-spray-address-fiddle-plex-list
 appropriately; (5) send the message with feedmail-enable-spray set
@@ -838,7 +838,7 @@ doesn't end with a slash.  Default, except on VMS, is \"$HOME/mail/q\"."
   (if (memq system-type '(axp-vms vax-vms))
       (expand-file-name (concat (getenv "HOME") "[.MAIL.DRAFT]"))
     (concat (getenv "HOME") "/mail/draft"))
-  "*Name of an directory where DRAFT messages will be queued.
+  "*Name of an directory where draft messages will be queued.
 Directory will be created if necessary.  Should be a string that
 doesn't end with a slash.  Default, except on VMS, is \"$HOME/mail/draft\"."
   :group 'feedmail-queue
@@ -990,11 +990,11 @@ they were placed in the queue."
 
 
 (defcustom feedmail-queue-use-send-time-for-date nil
-  "*If non-nil, use send time for the DATE: header value.
+  "*If non-nil, use send time for the Date: header value.
 This variable is used by the default date generating function,
 feedmail-default-date-generator.  If nil, the default, the
 last-modified timestamp of the queue file is used to create the
-message DATE: header; if there is no queue file, the current time is
+message Date: header; if there is no queue file, the current time is
 used."
   :group 'feedmail-queue
   :type 'boolean
@@ -1002,11 +1002,11 @@ used."
 
 
 (defcustom feedmail-queue-use-send-time-for-message-id nil
-  "*If non-nil, use send time for the MESSAGE-ID: header value.
-This variable is used by the default MESSAGE-ID: generating function,
+  "*If non-nil, use send time for the Message-Id: header value.
+This variable is used by the default Message-Id: generating function,
 feedmail-default-message-id-generator.  If nil, the default, the
 last-modified timestamp of the queue file is used to create the
-message MESSAGE-ID: header; if there is no queue file, the current time is
+message Message-Id: header; if there is no queue file, the current time is
 used."
   :group 'feedmail-queue
   :type 'boolean
@@ -1171,10 +1171,10 @@ reused and things will get confused."
 
 
 (defcustom feedmail-before-fcc-hook nil
-  "*User's last opportunity to modify the message before FCC action.
+  "*User's last opportunity to modify the message before Fcc action.
 It has already had all the header prepping from the standard package.
 The next step after running the hook will be to save the message via
-FCC: processing. The hook might be interested in these: (1)
+Fcc: processing. The hook might be interested in these: (1)
 feedmail-prepped-text-buffer contains the header and body of the
 message, ready to go; (2) feedmail-address-list contains a list of
 simplified recipients of addressees to whom the message was sent (3)
@@ -1265,7 +1265,7 @@ variable, but may depend on its value as described here.")
 
 
 (defvar feedmail-is-a-resend nil
-  "*Non-nil means the the message is a RESEND (in the RFC-822 sense).
+  "*Non-nil means the the message is a Resend (in the RFC-822 sense).
 This affects the composition of certain headers.  feedmail sets this
 variable as soon as it starts prepping the message text buffer, so any
 user-supplied functions can rely on it.  Users shouldn't set or change this
@@ -1291,7 +1291,7 @@ feedmail-binmail-template."
 (defcustom feedmail-binmail-template (if mail-interactive "/bin/mail %s" "/bin/rmail %s")
   "*Command template for the subprocess which will get rid of the mail.
 It can result in any command understandable by /bin/sh.  Might not
-work at all in non-UNIX environments.  The single '%s', if present,
+work at all in non-Unix environments.  The single '%s', if present,
 gets replaced by the space-separated, simplified list of addressees.
 Used in feedmail-buffer-to-binmail to form the shell command which
 will receive the contents of the prepped buffer as stdin.  If you'd
@@ -1322,7 +1322,7 @@ Feeds the buffer to it."
 
 (defun feedmail-buffer-to-sendmail (prepped errors-to addr-listoid)
   "Function which actually calls sendmail as a subprocess.
-Feeds the buffer to it.  Probably has some flaws for RESENT-* and other
+Feeds the buffer to it.  Probably has some flaws for Resent-* and other
 complicated cases."
   (set-buffer prepped)
   (apply 'call-process-region
@@ -1851,7 +1851,7 @@ the counts."
 (defun feedmail-queue-subject-slug-maker (&optional queue-directory)
   "Create a name for storing the message in the queue.
 Optional argument QUEUE-DIRECTORY specifies into which directory the
-file will be placed.  The name is based on the SUBJECT: header (if
+file will be placed.  The name is based on the Subject: header (if
 there is one).  If there is no subject,
 feedmail-queue-default-file-slug is consulted Special characters are
 mapped to mostly alphanumerics for safety."
@@ -1859,7 +1859,7 @@ mapped to mostly alphanumerics for safety."
     (setq eoh-marker (feedmail-find-eoh))
     (goto-char (point-min))
     ;; get raw subject value (first line, anyhow)
-    (if (re-search-forward "^SUBJECT:" eoh-marker t)
+    (if (re-search-forward "^Subject:" eoh-marker t)
 	(progn (setq s-point (point))
 	       (end-of-line)
 	       (setq subject (buffer-substring s-point (point)))))
@@ -1964,12 +1964,12 @@ mapped to mostly alphanumerics for safety."
 	 (eoh-marker)
 	 (bcc-holder)
 	 (resent-bcc-holder)
-	 (a-re-rtcb  "^RESENT-\\(TO\\|CC\\|BCC\\):")
-	 (a-re-rtc   "^RESENT-\\(TO\\|CC\\):")
-	 (a-re-rb    "^RESENT-BCC:")
-	 (a-re-dtcb  "^\\(TO\\|CC\\|BCC\\):")
-	 (a-re-dtc   "^\\(TO\\|CC\\):")
-	 (a-re-db    "^BCC:")
+	 (a-re-rtcb  "^Resent-\\(To\\|Cc\\|Bcc\\):")
+	 (a-re-rtc   "^Resent-\\(To\\|Cc\\):")
+	 (a-re-rb    "^Resent-Bcc:")
+	 (a-re-dtcb  "^\\(To\\|Cc\\|Bcc\\):")
+	 (a-re-dtc   "^\\(To\\|Cc\\):")
+	 (a-re-db    "^Bcc:")
 	 ;; to get a temporary changable copy
 	 (mail-header-separator mail-header-separator)
 	 )
@@ -2014,31 +2014,31 @@ mapped to mostly alphanumerics for safety."
 		  (re-search-forward
 		   ;; header name, followed by optional whitespace, followed by
 		   ;; non-whitespace, followed by anything, followed by newline;
-		   ;; the idea is empty RESENT-* headers are ignored
-		   "^\\(RESENT-TO:\\|RESENT-CC:\\|RESENT-BCC:\\)\\s-*\\S-+.*$"
+		   ;; the idea is empty Resent-* headers are ignored
+		   "^\\(Resent-To:\\|Resent-Cc:\\|Resent-Bcc:\\)\\s-*\\S-+.*$"
 		   eoh-marker t))
-	    ;; if we say so, gather the BCC stuff before the main course
+	    ;; if we say so, gather the Bcc stuff before the main course
 	    (if (eq feedmail-deduce-bcc-where 'first)
 		(progn (if feedmail-is-a-resend (setq addr-regexp a-re-rb) (setq addr-regexp a-re-db))
 		       (setq feedmail-address-list (feedmail-deduce-address-list feedmail-prepped-text-buffer (point-min) eoh-marker addr-regexp feedmail-address-list))))
 	    ;; the main course
 	    (if (or (eq feedmail-deduce-bcc-where 'first) (eq feedmail-deduce-bcc-where 'last))
-		;; handled by first or last cases, so don't get BCC stuff
+		;; handled by first or last cases, so don't get Bcc stuff
 		(progn (if feedmail-is-a-resend (setq addr-regexp a-re-rtc) (setq addr-regexp a-re-dtc))
 		       (setq feedmail-address-list (feedmail-deduce-address-list feedmail-prepped-text-buffer (point-min) eoh-marker addr-regexp feedmail-address-list)))
-	      ;; not handled by first or last cases, so also get BCC stuff
+	      ;; not handled by first or last cases, so also get Bcc stuff
 	      (progn (if feedmail-is-a-resend (setq addr-regexp a-re-rtcb) (setq addr-regexp a-re-dtcb))
 		     (setq feedmail-address-list (feedmail-deduce-address-list feedmail-prepped-text-buffer (point-min) eoh-marker addr-regexp feedmail-address-list))))
-	    ;; if we say so, gather the BCC stuff after the main course
+	    ;; if we say so, gather the Bcc stuff after the main course
 	    (if (eq feedmail-deduce-bcc-where 'last)
 		(progn (if feedmail-is-a-resend (setq addr-regexp a-re-rb) (setq addr-regexp a-re-db))
 		       (setq feedmail-address-list (feedmail-deduce-address-list feedmail-prepped-text-buffer (point-min) eoh-marker addr-regexp feedmail-address-list))))
 	    (if (not feedmail-address-list) (error "FQM: Sending...abandoned, no addressees"))
 	    ;; not needed, but meets user expectations
 	    (setq feedmail-address-list (nreverse feedmail-address-list))
-	    ;; Find and handle any BCC fields.
-	    (setq bcc-holder (feedmail-accume-n-nuke-header eoh-marker "^BCC:"))
-	    (setq resent-bcc-holder (feedmail-accume-n-nuke-header eoh-marker "^RESENT-BCC:"))
+	    ;; Find and handle any Bcc fields.
+	    (setq bcc-holder (feedmail-accume-n-nuke-header eoh-marker "^Bcc:"))
+	    (setq resent-bcc-holder (feedmail-accume-n-nuke-header eoh-marker "^Resent-Bcc:"))
 	    (if (and bcc-holder (not feedmail-nuke-bcc))
 		(progn (goto-char (point-min))
 		       (insert bcc-holder)))
@@ -2066,7 +2066,7 @@ mapped to mostly alphanumerics for safety."
 
 	  (run-hooks 'feedmail-last-chance-hook)
 
-	  (let ((fcc (feedmail-accume-n-nuke-header eoh-marker "^FCC:"))
+	  (let ((fcc (feedmail-accume-n-nuke-header eoh-marker "^Fcc:"))
 		(also-file)
 		(confirm (cond
 			  ((eq feedmail-confirm-outgoing 'immediate)
@@ -2092,7 +2092,7 @@ mapped to mostly alphanumerics for safety."
 			      )
 			  )))
 		  (goto-char (point-min))
-		  ;; re-insert and handle any FCC fields (and, optionally, any BCC).
+		  ;; re-insert and handle any Fcc fields (and, optionally, any Bcc).
 		  (if fcc (let ((default-buffer-file-type feedmail-force-binary-write))
 			    (insert fcc)
 			    (if (not feedmail-nuke-bcc-in-fcc)
@@ -2207,9 +2207,9 @@ feedmail-fiddle-plex-blurb."
 		;; an every-5-minutes event either
 		(insert-buffer feedmail-prepped-text-buffer)
 		;; There's a good case to me made that each separate transmission of
-		;; a message in the spray should have a distinct MESSAGE-ID:.  There
+		;; a message in the spray should have a distinct Message-Id:.  There
 		;; is also a less compelling argument in the other direction.  I think
-		;; they technically should have distinct MESSAGE-ID:s, but I doubt that
+		;; they technically should have distinct Message-Id:s, but I doubt that
 		;; anyone cares, practically.  If someone complains about it, I'll add
 		;; it.
 		(feedmail-fiddle-list-of-spray-fiddle-plexes feedmail-spray-address-fiddle-plex-list)
@@ -2232,25 +2232,25 @@ feedmail-fiddle-plex-blurb."
 
 (defun feedmail-envelope-deducer (eoh-marker)
   "If feedmail-deduce-envelope-from is false, simply return `user-mail-address'.
-Else, look for SENDER: or FROM: (or RESENT-*) and
+Else, look for Sender: or From: (or Resent-*) and
 return that value."
   (if (not feedmail-deduce-envelope-from)
       user-mail-address
     (let ((from-list))
       (setq from-list
 	    (feedmail-deduce-address-list
-	     (current-buffer) (point-min) eoh-marker (if feedmail-is-a-resend "^RESENT-SENDER:" "^SENDER:")
+	     (current-buffer) (point-min) eoh-marker (if feedmail-is-a-resend "^Resent-Sender:" "^Sender:")
 	     from-list))
       (if (not from-list)
 	  (setq from-list
 		(feedmail-deduce-address-list
-		 (current-buffer) (point-min) eoh-marker (if feedmail-is-a-resend "^RESENT-FROM:" "^FROM:")
+		 (current-buffer) (point-min) eoh-marker (if feedmail-is-a-resend "^Resent-From:" "^From:")
 		 from-list)))
       (if (and from-list (car from-list)) (car from-list) user-mail-address))))
 
 
 (defun feedmail-fiddle-from ()
-  "Fiddle FROM:."
+  "Fiddle From:."
   ;; default is to fall off the end of the list and do nothing
   (cond
    ;; nil means do nothing
@@ -2290,7 +2290,7 @@ return that value."
 
 
 (defun feedmail-fiddle-sender ()
-  "Fiddle SENDER:."
+  "Fiddle Sender:."
   ;; default is to fall off the end of the list and do nothing
   (cond
    ;; nil means do nothing
@@ -2318,7 +2318,7 @@ return that value."
 
 
 (defun feedmail-default-date-generator (maybe-file)
-  "Default function for generating DATE: header contents."
+  "Default function for generating Date: header contents."
   (let ((date-time))
     (if (and (not feedmail-queue-use-send-time-for-date) maybe-file)
 	(setq date-time (nth 5 (file-attributes maybe-file))))
@@ -2327,7 +2327,7 @@ return that value."
 
 
 (defun feedmail-fiddle-date (maybe-file)
-  "Fiddle DATE:.  See documentation of feedmail-date-generator."
+  "Fiddle Date:.  See documentation of feedmail-date-generator."
   ;; default is to fall off the end of the list and do nothing
   (cond
    ;; nil means do nothing
@@ -2357,7 +2357,7 @@ return that value."
 
 
 (defun feedmail-default-message-id-generator (maybe-file)
-  "Default function for generating MESSAGE-ID: header contents.
+  "Default function for generating Message-Id: header contents.
 Based on a date and a sort of random number for tie breaking.  Unless
 feedmail-message-id-suffix is defined, uses `user-mail-address', so be
 sure it's set."
@@ -2377,7 +2377,7 @@ sure it's set."
   )
 
 (defun feedmail-fiddle-message-id (maybe-file)
-  "Fiddle MESSAGE-ID:.  See documentation of feedmail-message-id-generator."
+  "Fiddle Message-Id:.  See documentation of feedmail-message-id-generator."
   ;; default is to fall off the end of the list and do nothing
   (cond
    ;; nil means do nothing
@@ -2400,14 +2400,14 @@ sure it's set."
    ;; if it's a list, it must be a fiddle-plex -- so fiddle, man, fiddle
    ((listp feedmail-message-id-generator)
     (feedmail-fiddle-header
-     (if feedmail-is-a-resend "Resent-Message-ID" "Message-ID")
+     (if feedmail-is-a-resend "Resent-Message-Id" "Message-Id")
      (nth 1 feedmail-message-id-generator) ; value
      (nth 2 feedmail-message-id-generator) ; action
      (nth 3 feedmail-message-id-generator))))) ; folding
 
 
 (defun feedmail-default-x-mailer-generator ()
-  "Default function for generating X-MAILER: header contents."
+  "Default function for generating X-Mailer: header contents."
   (concat
    (let ((case-fold-search t)) (if (string-match "emacs" emacs-version) "" "emacs "))
    emacs-version " (via feedmail " feedmail-patch-level
@@ -2418,7 +2418,7 @@ sure it's set."
 
 
 (defun feedmail-fiddle-x-mailer ()
-  "Fiddle X-MAILER:.  See documentation of feedmail-x-mailer-line."
+  "Fiddle X-Mailer:.  See documentation of feedmail-x-mailer-line."
   ;; default is to fall off the end of the list and do nothing
   (cond
    ;; t is the same a using the function feedmail-default-x-mailer-generator, so let it and recurse
@@ -2451,13 +2451,13 @@ sure it's set."
   (cond
    ;; nil means do nothing
    ((eq nil addy-plex) nil)
-   ;; t means the same as using "TO: and unembellished addy
+   ;; t means the same as using "To:" and unembellished addy
    ((eq t addy-plex)
     (let ((addy-plex (list "To" feedmail-spray-this-address)))
       (feedmail-fiddle-spray-address addy-plex)))
 
    ;; if it's a string, simply make a fiddle-plex out of it and recurse, assuming
-   ;; the string names a header field (e.g., "TO")
+   ;; the string names a header field (e.g., "To")
    ((stringp addy-plex)
     (let ((addy-plex (list addy-plex feedmail-spray-this-address)))
       (feedmail-fiddle-spray-address addy-plex)))
@@ -2534,17 +2534,17 @@ headers, including the intervening newlines."
   "Smart filling of address headers (don't be fooled by the name).
 The filling tries to avoid splitting lines except at commas.  This
 avoids, in particular, splitting within parenthesized comments in
-addresses.  Headers filled include FROM:, REPLY-TO:, TO:, CC:, BCC:,
-RESENT-TO:, RESENT-CC:, and RESENT-BCC:."
+addresses.  Headers filled include From:, Reply-To:, To:, Cc:, Bcc:,
+Resent-To:, Resent-Cc:, and Resent-Bcc:."
   (let ((case-fold-search t)
 	this-line
 	this-line-end)
     (save-excursion
       (goto-char (point-min))
-      ;; iterate over all TO:/CC:, etc, lines
+      ;; iterate over all To:/Cc:, etc, lines
       (while
 	  (re-search-forward
-	   "^\\(FROM:\\|REPLY-TO:\\|TO:\\|CC:\\|BCC:\\|RESENT-TO:\\|RESENT-CC:\\|RESENT-BCC:\\)"
+	   "^\\(From:\\|Reply-To:\\|To:\\|Cc:\\|Bcc:\\|Resent-To:\\|Resent-Cc:\\|Resent-Bcc:\\)"
 	   header-end t)
 	(setq this-line (match-beginning 0))
 	;; replace 0 or more leading spaces with a single space
