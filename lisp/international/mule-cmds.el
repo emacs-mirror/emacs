@@ -892,6 +892,8 @@ The return value is a string."
 	 (input-method (completing-read prompt input-method-alist
 					nil t nil 'input-method-history
 					default)))
+    (if (and input-method (symbolp input-method))
+	(setq input-method (symbol-name input-method)))
     (if (> (length input-method) 0)
 	input-method
       (if inhibit-null
