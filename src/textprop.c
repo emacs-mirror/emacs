@@ -44,6 +44,8 @@ Lisp_Object Qmouse_entered;
 Lisp_Object Qpoint_left;
 Lisp_Object Qpoint_entered;
 Lisp_Object Qmodification_hooks;
+Lisp_Object Qinsert_in_front_hooks;
+Lisp_Object Qinsert_behind_hooks;
 Lisp_Object Qcategory;
 Lisp_Object Qlocal_map;
 
@@ -276,9 +278,14 @@ set_properties (properties, interval, object)
 	   sym = XCONS (value)->cdr)
 	if (! EQ (property_value (properties, XCONS (sym)->car),
 		  XCONS (value)->car))
-	  record_property_change (interval->position, LENGTH (interval),
-				  XCONS (sym)->car, XCONS (value)->car,
-				  object);
+	  {
+	    modify_region (XBUFFER (object),
+			   make_number (interval->position),
+			   make_number (interval->position + LENGTH (interval)));
+	    record_property_change (interval->position, LENGTH (interval),
+				    XCONS (sym)->car, XCONS (value)->car,
+				    object);
+	  }
 
       /* For each new property that has no value at all in the old plist,
 	 make an undo record binding it to nil, so it will be removed.  */
@@ -286,9 +293,14 @@ set_properties (properties, interval, object)
 	   PLIST_ELT_P (sym, value);
 	   sym = XCONS (value)->cdr)
 	if (EQ (property_value (interval->plist, XCONS (sym)->car), Qunbound))
-	  record_property_change (interval->position, LENGTH (interval),
-				  XCONS (sym)->car, Qnil,
-				  object);
+	  {
+	    modify_region (XBUFFER (object),
+			   make_number (interval->position),
+			   make_number (interval->position + LENGTH (interval)));
+	    record_property_change (interval->position, LENGTH (interval),
+				    XCONS (sym)->car, Qnil,
+				    object);
+	  }
     }
 
   /* Store new properties.  */
@@ -338,11 +350,11 @@ add_properties (plist, i, object)
 	    /* Record this change in the buffer, for undo purposes.  */
 	    if (XTYPE (object) == Lisp_Buffer)
 	      {
-		record_property_change (i->position, LENGTH (i),
-					sym1, Fcar (this_cdr), object);
 		modify_region (XBUFFER (object),
 			       make_number (i->position),
 			       make_number (i->position + LENGTH (i)));
+		record_property_change (i->position, LENGTH (i),
+					sym1, Fcar (this_cdr), object);
 	      }
 
 	    /* I's property has a different value -- change it */
@@ -356,11 +368,11 @@ add_properties (plist, i, object)
 	  /* Record this change in the buffer, for undo purposes.  */
 	  if (XTYPE (object) == Lisp_Buffer)
 	    {
-	      record_property_change (i->position, LENGTH (i),
-				      sym1, Qnil, object);
 	      modify_region (XBUFFER (object),
 			     make_number (i->position),
 			     make_number (i->position + LENGTH (i)));
+	      record_property_change (i->position, LENGTH (i),
+				      sym1, Qnil, object);
 	    }
 	  i->plist = Fcons (sym1, Fcons (val1, i->plist));
 	  changed++;
@@ -394,12 +406,12 @@ remove_properties (plist, i, object)
 	{
 	  if (XTYPE (object) == Lisp_Buffer)
 	    {
-	      record_property_change (i->position, LENGTH (i),
-				      sym, Fcar (Fcdr (current_plist)),
-				      object);
 	      modify_region (XBUFFER (object),
 			     make_number (i->position),
 			     make_number (i->position + LENGTH (i)));
+	      record_property_change (i->position, LENGTH (i),
+				      sym, Fcar (Fcdr (current_plist)),
+				      object);
 	    }
 
 	  current_plist = Fcdr (Fcdr (current_plist));
@@ -415,11 +427,11 @@ remove_properties (plist, i, object)
 	    {
 	      if (XTYPE (object) == Lisp_Buffer)
 		{
-		  record_property_change (i->position, LENGTH (i),
-					  sym, Fcar (Fcdr (this)), object);
 		  modify_region (XBUFFER (object),
 				 make_number (i->position),
 				 make_number (i->position + LENGTH (i)));
+		  record_property_change (i->position, LENGTH (i),
+					  sym, Fcar (Fcdr (this)), object);
 		}
 
 	      Fsetcdr (Fcdr (tail2), Fcdr (Fcdr (this)));
@@ -1132,6 +1144,10 @@ percentage by which the left interval tree should not differ from the right.");
   Qpoint_entered = intern ("point-entered");
   staticpro (&Qmodification_hooks);
   Qmodification_hooks = intern ("modification-hooks");
+  staticpro (&Qinsert_in_front_hooks);
+  Qinsert_in_front_hooks = intern ("insert-in-front-hooks");
+  staticpro (&Qinsert_behind_hooks);
+  Qinsert_behind_hooks = intern ("insert-behind-hooks");
 
   defsubr (&Stext_properties_at);
   defsubr (&Sget_text_property);
