@@ -1,3 +1,12 @@
+2002-05-20  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (encode_coding_iso_2022): If coding requires safe
+	encoding, produce a character specified by
+	CODING_INHIBIT_CHARACTER_SUBSTITUTION.
+	(encode_coding_sjis): Likewise.
+	(encode_coding_big5): Likewise.
+	(encode_coding_charset): Likewise.
+
 2002-05-17  Dave Love  <fx@gnu.org>
 
 	* xterm.c (XSetIMValues): Declare.
