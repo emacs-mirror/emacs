@@ -1700,6 +1700,12 @@ value is @code{(help)}; thus, the @samp{Help} menu item normally appears
 at the end of the menu bar, following local menu items.
 @end defvar
 
+@defvar menu-bar-update-hook
+This normal hook is run whenever the user clicks on the menu bar, before
+displaying a submenu.  You can use it to update submenus whose contents
+should vary.
+@end defvar
+
 @node Modifying Menus
 @subsection Modifying Menus
 
