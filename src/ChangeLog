@@ -1,5 +1,7 @@
 2001-09-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* macros.c (store_kbd_macro_char): Fix computation of kbd_macro_end.
+
 	* xdisp.c (string_buffer_position): Use *single_char_property*
 	functions instead of the *single_property* functions.
 	
