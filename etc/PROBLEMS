@@ -502,6 +502,10 @@ introduced with Emacs 21.1, could significantly slow down scrolling
 through the buffer, especially scrolling backwards, and also jumping
 to the end of a very large buffer.
 
+Beginning with version 21.3, a parenthesis or a brace in column zero
+is highlighted in bold-red face, to indicate that it could interfere
+with Font Lock and should be moved or escaped with a backslash.
+
 If you don't use large buffers, or have a very fast machine which
 makes the delays insignificant, you can avoid the incorrect
 fontification by setting the variable
