@@ -1,3 +1,14 @@
+2001-01-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* INSTALL: Copy the table of tested combinations of development
+	tools from confuigure.bat.  Add suggestion to install Bash on
+	Windows 9X.
+
+	* configure.bat: Don't copy lisp/Makefile, it doesn't exist; copy
+	lisp/Makefile.in instead.  Use "rm -f" where more than one file
+	needs to be deleted, since command.com in Windows 9X doesn't grok
+	more than one argument.
+
 2001-01-24  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (cleanall-other-dirs-nmake): 
