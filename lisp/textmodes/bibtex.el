@@ -1,6 +1,6 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs
 
-;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Stefan Schoef <schoef@informatik.uni-oldenburg.de>
 ;;      Bengt Martensson <ubrinf!mond!bengt>
@@ -54,10 +54,14 @@
 ;;; USER OPTIONS:
 
 (defvar bibtex-field-left-delimiter "{"
-  "*Set this to { or \" according to your personal preferences.")
+  "*Set this to { or \" according to your personal preferences.
+This variable is buffer local.")
+(make-variable-buffer-local 'bibtex-field-left-delimiter)
 
 (defvar bibtex-field-right-delimiter "}"
-  "*Set this to } or \" according to your personal preferences.")
+  "*Set this to } or \" according to your personal preferences.
+This variable is buffer local.")
+(make-variable-buffer-local 'bibtex-field-right-delimiter)
 
 (defvar bibtex-include-OPTcrossref '("InProceedings" "InCollection")
   "*All entries listed here will have an OPTcrossref field.")
@@ -1390,22 +1394,18 @@ non-nil."
 If inside an entry, move to the beginning of it, otherwise move to the
 beginning of the previous entry."
   (interactive)
+  (if (looking-at "^@")
+      (forward-char))
   (re-search-backward "^@" nil 'move))
 
 (defun bibtex-end-of-entry ()
   "Move to end of BibTeX entry.
 If inside an entry, move to the end of it, otherwise move to the end
-of the next entry."
+of the previous entry."
   (interactive)
-  ;; if point was previously at the end of an entry, this puts us
-  ;; inside the next entry, otherwise we remain in the current one.
-  (progn
-    (skip-whitespace-and-comments)
-    (end-of-line))
   (bibtex-beginning-of-entry)
   (let ((parse-sexp-ignore-comments t))
-    (forward-sexp) ; skip entry type
-    (forward-sexp) ; skip entry body
+    (forward-sexp 2) ;; skip entry type and body
     ))
   
 (defun bibtex-ispell-entry ()
@@ -1469,7 +1469,6 @@ Bugs:
      (point)
      (save-excursion
        (goto-char (point-max))
-       (bibtex-beginning-of-entry)
        (bibtex-end-of-entry)
        (point)))
     (sort-subr
@@ -1608,10 +1607,12 @@ you can put comments here)."
   (if arg
       (progn
 	(goto-char (match-beginning bibtex-text-in-field))
-	(if (looking-at bibtex-field-left-delimiter)
+	(if (looking-at "[{\"]")
 	    (forward-char 1)))
     (goto-char (match-end bibtex-text-in-field))
-    (if (= (preceding-char) (aref bibtex-field-right-delimiter 0))
+    (if (or
+         (= (preceding-char) ?})
+         (= (preceding-char) ?\"))
 	(forward-char -1)))
   (if bibtex-help-message
       (bibtex-print-help-message)))
@@ -1642,10 +1643,10 @@ you can put comments here)."
 	  (stop (match-end  bibtex-text-in-field)))
       (goto-char stop)
       (forward-char -1)
-      (if (looking-at bibtex-field-right-delimiter)
+      (if (looking-at "[}\"]")
 	  (delete-char 1))
       (goto-char start)
-      (if (looking-at bibtex-field-left-delimiter)
+      (if (looking-at "[{\"]")
 	  (delete-char 1)))))
 
 (defun bibtex-kill-optional-field ()
@@ -1950,10 +1951,8 @@ given, calculate a new entry label."
       (forward-line -1)
       (end-of-line)
       (if (eq (preceding-char) ?,)
- 	  (backward-delete-char 1)))
-    (skip-whitespace-and-comments))
+ 	  (backward-delete-char 1))))
   (let* ((eob (progn
-                (bibtex-beginning-of-entry)
                 (bibtex-end-of-entry)
                 (point)))
          (key (progn
