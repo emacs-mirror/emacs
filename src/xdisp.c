@@ -51,6 +51,8 @@ extern int command_loop_level;
 
 extern int minibuffer_auto_raise;
 
+extern int nonascii_insert_offset;
+
 extern Lisp_Object Qface;
 
 extern Lisp_Object Voverriding_local_map;
