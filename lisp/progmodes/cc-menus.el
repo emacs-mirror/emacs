@@ -1,6 +1,6 @@
 ;;; cc-menus.el --- imenu support for CC Mode
 
-;; Copyright (C) 1985,87,92,93,94,95,96,97,98,99,2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2001 Free Software Foundation, Inc.
 
 ;; Authors:    2000- Martin Stjernholm
 ;;	       1998-1999 Barry A. Warsaw and Martin Stjernholm
@@ -25,31 +25,27 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; along with this program; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
 (eval-when-compile
   (let ((load-path
-	 (if (and (boundp 'byte-compile-current-file)
-		  (stringp byte-compile-current-file))
-	     (cons (file-name-directory byte-compile-current-file)
-		   load-path)
+	 (if (and (boundp 'byte-compile-dest-file)
+		  (stringp byte-compile-dest-file))
+	     (cons (file-name-directory byte-compile-dest-file) load-path)
 	   load-path)))
-    (load "cc-defs" nil t)))
+    (require 'cc-bytecomp)))
 
-;; Dummy definitions to shut up the compiler in case imenu doesn't exist.
-(eval-when-compile
-  (defvar imenu-generic-expression)
-  (defvar imenu-case-fold-search))
-(or (fboundp 'imenu-progress-message)
-    (defun imenu-progress-message (&rest args) nil))
+;; Try to pull in imenu if it exists.
+(condition-case nil
+    (require 'imenu)
+  (error nil))
 
-;; Try to pull in imenu.
-(eval-and-compile
-  (condition-case nil
-      (require 'imenu)
-    (error nil)))
+;; The things referenced in imenu, which we don't require.
+(cc-bytecomp-defvar imenu-case-fold-search)
+(cc-bytecomp-defvar imenu-generic-expression)
+(cc-bytecomp-defun imenu-progress-message)
 
 
 ;; imenu integration
@@ -134,13 +130,13 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
      ,(concat
          "^"                                  ; beginning of line is required
          "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a `template <...>'
-         "class[ \t]+"
+         "\\(class\\|struct\\)[ \t]+"
          "\\("                                ; the string we want to get
          "[a-zA-Z0-9_]+"                      ; class name
-         "\\(<[^>]+>\\)?"                     ; possibly explicitely specialized
+         "\\(<[^>]+>\\)?"                     ; possibly explicitly specialized
          "\\)"
          "[ \t\n]*[:{]"
-         ) 2))
+         ) 3))
   "Imenu generic expression for C++ mode.  See `imenu-generic-expression'.")
  
 (defvar cc-imenu-c-generic-expression
@@ -414,5 +410,5 @@ Example:
 	imenu-case-fold-search nil))
 
 
-(provide 'cc-menus)
+(cc-provide 'cc-menus)
 ;;; cc-menus.el ends here

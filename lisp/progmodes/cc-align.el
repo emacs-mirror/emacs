@@ -1,6 +1,6 @@
 ;;; cc-align.el --- custom indentation functions for CC Mode
 
-;; Copyright (C) 1985,87,92,93,94,95,96,97,98,99,2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2001 Free Software Foundation, Inc.
 
 ;; Authors:    2000- Martin Stjernholm
 ;;	       1998-1999 Barry A. Warsaw and Martin Stjernholm
@@ -25,19 +25,22 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; along with this program; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
 (eval-when-compile
   (let ((load-path
-	 (if (and (boundp 'byte-compile-current-file)
-		  (stringp byte-compile-current-file))
-	     (cons (file-name-directory byte-compile-current-file)
-		   load-path)
+	 (if (and (boundp 'byte-compile-dest-file)
+		  (stringp byte-compile-dest-file))
+	     (cons (file-name-directory byte-compile-dest-file) load-path)
 	   load-path)))
-    (load "cc-defs" nil t)))
-(require 'cc-engine)
+    (require 'cc-bytecomp)))
+
+(cc-require 'cc-defs)
+(cc-require 'cc-vars)
+(cc-require 'cc-langs)
+(cc-require 'cc-engine)
 
 
 ;; Standard indentation line-ups
@@ -254,9 +257,9 @@ if (n > 0)                 if (n > 0)
 <--> c-basic-offset            m+=n; n=0;
                            }
 
-The block may be surrounded by any kind of parenthesis characters.
-nil is returned if the line doesn't start with a one line block, which
-makes the function usable in list expressions.
+The block may use any kind of parenthesis character.  nil is returned
+if the line doesn't start with a one line block, which makes the
+function usable in list expressions.
 
 Work with: Almost all syntactic symbols, but most useful on *-open."
   (save-excursion
@@ -279,9 +282,9 @@ int *foo[] = {           int *foo[] = {
                                  }
                              <--> c-basic-offset
 
-The block may be surrounded by any kind of parenthesis characters.
-nil is returned if the line doesn't start with a multi line block,
-which makes the function usable in list expressions.
+The block may use any kind of parenthesis character.  nil is returned
+if the line doesn't start with a multi line block, which makes the
+function usable in list expressions.
 
 Work with: Almost all syntactic symbols, but most useful on *-open."
   (save-excursion
@@ -295,7 +298,7 @@ Work with: Almost all syntactic symbols, but most useful on *-open."
 
 (defun c-lineup-C-comments (langelem)
   "Line up C block comment continuation lines.
-Various heuristics are used to handle most of the common comment
+Various heuristics are used to handle many of the common comment
 styles.  Some examples:
 
 /*          /**         /*         /* text      /*          /**
@@ -322,7 +325,7 @@ Works with: The `c' syntactic symbol."
   (save-excursion
     (let* ((here (point))
 	   (prefixlen (progn (back-to-indentation)
-			     (if (looking-at c-comment-prefix-regexp)
+			     (if (looking-at c-current-comment-prefix)
 				 (- (match-end 0) (point))
 			       0)))
 	   (starterlen (save-excursion
@@ -369,11 +372,11 @@ Works with: The `c' syntactic symbol."
 	  ;; line has a nonempty comment prefix, align with it.
 	  ;; Otherwise, align with the previous nonempty line, but
 	  ;; align the comment ender with the starter.
-	  (when (or (not (looking-at c-comment-prefix-regexp))
+	  (when (or (not (looking-at c-current-comment-prefix))
 		    (eq (match-beginning 0) (match-end 0)))
 	    (goto-char here)
 	    (back-to-indentation)
-	    (if (looking-at (concat "\\(" c-comment-prefix-regexp "\\)\\*/"))
+	    (if (looking-at (concat "\\(" c-current-comment-prefix "\\)\\*/"))
 		(goto-char (cdr langelem))
 	      (while (and (zerop (forward-line -1))
 			  (looking-at "^[ \t]*$")))
@@ -392,19 +395,13 @@ line, that alignment is preserved.
 Works with: comment-intro."
   (save-excursion
     (back-to-indentation)
-    ;; this highly kludgiforous flag prevents the mapcar over
-    ;; c-syntactic-context from entering an infinite loop
-    (let ((recurse-prevention-flag (boundp 'recurse-prevention-flag))
-	  (col (current-column)))
+    (let ((col (current-column)))
       (cond
-       (recurse-prevention-flag 0)
        ;; CASE 1: preserve aligned comments
        ((save-excursion
 	  (and (c-forward-comment -1)
 	       (= col (current-column))))
-	;; we have to subtract out all other indentation
-	(- col (apply '+ (mapcar 'c-get-offset
-				 c-syntactic-context))))
+	(vector col))			; Return an absolute column.
        ;; indent as specified by c-comment-only-line-offset
        ((not (bolp))
 	(or (car-safe c-comment-only-line-offset)
@@ -446,7 +443,10 @@ Works with: statement-cont."
   (save-excursion
     (let ((equalp (save-excursion
 		    (goto-char (c-point 'boi))
-		    (skip-chars-forward "^=" (c-point 'eol))
+		    (let ((eol (c-point 'eol)))
+		      (c-forward-token-1 0 t eol)
+		      (while (and (not (eq (char-after) ?=))
+				  (= (c-forward-token-1 1 t eol) 0))))
 		    (and (eq (char-after) ?=)
 			 (- (point) (c-point 'boi)))))
 	  (langelem-col (c-langelem-col langelem))
@@ -616,7 +616,7 @@ inextern-lang, innamespace."
 Works with: Any syntactic symbol."
   (save-excursion
     (back-to-indentation)
-    (- (current-column) (c-langelem-col langelem))))
+    (vector (current-column))))
 
 
 (defun c-snug-do-while (syntax pos)
@@ -718,5 +718,5 @@ For other semicolon contexts, no determination is made."
       nil)))
 
 
-(provide 'cc-align)
+(cc-provide 'cc-align)
 ;;; cc-align.el ends here

@@ -1,6 +1,6 @@
 ;;; cc-vars.el --- user customization variables for CC Mode
 
-;; Copyright (C) 1985,87,92,93,94,95,96,97,98,99,2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2001 Free Software Foundation, Inc.
 
 ;; Authors:    2000- Martin Stjernholm
 ;;	       1998-1999 Barry A. Warsaw and Martin Stjernholm
@@ -25,20 +25,44 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; along with this program; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
 (eval-when-compile
   (let ((load-path
-	 (if (and (boundp 'byte-compile-current-file)
-		  (stringp byte-compile-current-file))
-	     (cons (file-name-directory byte-compile-current-file)
-		   load-path)
+	 (if (and (boundp 'byte-compile-dest-file)
+		  (stringp byte-compile-dest-file))
+	     (cons (file-name-directory byte-compile-dest-file) load-path)
 	   load-path)))
-    (load "cc-defs" nil t)))
-(require 'custom)
+    (require 'cc-bytecomp)))
 
+(cc-require 'cc-defs)
+
+;; Silence the compiler.
+(cc-bytecomp-defun get-char-table)	; XEmacs 20+
+(cc-bytecomp-defun char-table-range)	; Emacs 19+
+(cc-bytecomp-defun char-table-p)	; Emacs 19+, XEmacs 20+
+
+;; Pull in custom if it exists and is recent enough (the one in Emacs
+;; 19.34 isn't).
+(eval
+ (cc-eval-when-compile
+   (condition-case nil
+       (progn
+	 (require 'custom)
+	 (or (fboundp 'defcustom) (error ""))
+	 (require 'wid-edit)
+	 '(progn			; Compile in the require's.
+	    (require 'custom)
+	    (require 'wid-edit)))
+     (error
+      (message "Warning: Compiling without Customize support \
+since a (good enough) custom library wasn't found")
+      (cc-bytecomp-defmacro define-widget (name class doc &rest args))
+      (cc-bytecomp-defmacro defcustom (symbol value doc &rest args)
+	`(defvar ,symbol ,value ,doc))
+      nil))))
 
 
 ;;; Helpers
@@ -84,11 +108,8 @@ Useful as last item in a `choice' widget."
 
 (defmacro defcustom-c-stylevar (name val doc &rest args)
   "Defines a style variable."
-  (setq val (if (eq (car-safe val) 'quote)
-		(nth 1 val)
-	      (eval val)))
   `(progn
-     (put ',name 'c-stylevar-fallback ',val)
+     (put ',name 'c-stylevar-fallback ,val)
      (defcustom ,name 'set-from-style
        ,(concat doc "
 
@@ -124,6 +145,7 @@ See `c-offsets-alist'."
       (eq offset '*)
       (eq offset '/)
       (integerp offset)
+      (vectorp offset)
       (functionp offset)
       (and (symbolp offset)
 	   (or (boundp offset)
@@ -195,7 +217,7 @@ should be inserted.  Value must be a function taking no arguments."
   :group 'c)
 
 (defcustom c-syntactic-indentation t
-  "*Whether the identation should be controlled by the syntactic context.
+  "*Whether the indentation should be controlled by the syntactic context.
 
 If t, the indentation functions indents according to the syntactic
 context, using the style settings specified by `c-offsets-alist'.
@@ -240,6 +262,15 @@ comment-only lines."
   :type 'boolean
   :group 'c)
 
+(make-obsolete-variable 'c-comment-continuation-stars
+			'c-block-comment-prefix)
+
+;; Although c-comment-continuation-stars is obsolete, we look at it in
+;; some places in CC Mode anyway, so make the compiler ignore it
+;; during our compilation.
+(cc-bytecomp-obsolete-var c-comment-continuation-stars)
+(cc-bytecomp-defvar c-comment-continuation-stars)
+
 (defcustom-c-stylevar c-block-comment-prefix
   (if (boundp 'c-comment-continuation-stars)
       c-comment-continuation-stars
@@ -259,25 +290,50 @@ style comments."
   :type 'string
   :group 'c)
 
-(make-obsolete-variable 'c-comment-continuation-stars
-			'c-block-comment-prefix)
-
-(defcustom-c-stylevar c-comment-prefix-regexp "//+\\|\\**"
+(defcustom-c-stylevar c-comment-prefix-regexp
+  '((pike-mode . "//+!?\\|\\**")
+    (other . "//+\\|\\**"))
   "*Regexp to match the line prefix inside comments.
 This regexp is used to recognize the fill prefix inside comments for
 correct paragraph filling and other things.
 
-It should match the prefix used in both C++ style line comments and C
-style block comments, but it does not need to match a block comment
-starter.  In other words, it should at least match \"//\" for line
-comments and the string in `c-block-comment-prefix', which is
-sometimes inserted by CC Mode inside block comments.  It should not
-match any surrounding whitespace.
+If this variable is a string, it will be used in all CC Mode major
+modes.  It can also be an association list, to associate specific
+regexps to specific major modes.  The symbol for the major mode is
+looked up in the association list, and its value is used as the line
+prefix regexp.  If it's not found, then the symbol `other' is looked
+up and its value is used instead.
+
+The regexp should match the prefix used in both C++ style line
+comments and C style block comments, but it does not need to match a
+block comment starter.  In other words, it should at least match
+\"//\" for line comments and the string in `c-block-comment-prefix',
+which is sometimes inserted by CC Mode inside block comments.  It
+should not match any surrounding whitespace.
 
 Note that CC Mode modifies other variables from this one at mode
-initialization, so you might need to do \\[c-mode] (or whatever mode
+initialization, so you will need to do \\[c-mode] (or whatever mode
 you're currently using) if you change it in a CC Mode buffer."
-  :type 'regexp
+  :type '(radio
+	  (regexp :tag "Regexp for all modes")
+	  (list
+	   :tag "Mode-specific regexps"
+	   (set
+	    :inline t :format "%v"
+	    (cons :format "%v"
+		  (const :format "C     " c-mode) (regexp :format "%v"))
+	    (cons :format "%v"
+		  (const :format "C++   " c++-mode) (regexp :format "%v"))
+	    (cons :format "%v"
+		  (const :format "ObjC  " objc-mode) (regexp :format "%v"))
+	    (cons :format "%v"
+		  (const :format "Java  " java-mode) (regexp :format "%v"))
+	    (cons :format "%v"
+		  (const :format "IDL   " idl-mode) (regexp :format "%v"))
+	    (cons :format "%v"
+		  (const :format "Pike  " pike-mode) (regexp :format "%v")))
+	   (cons :format "    %v"
+		 (const :format "Other " other) (regexp :format "%v"))))
   :group 'c)
 
 (defcustom c-ignore-auto-fill '(string cpp code)
@@ -303,47 +359,74 @@ contexts are:
 
 (defcustom-c-stylevar c-cleanup-list '(scope-operator)
   "*List of various C/C++/ObjC constructs to \"clean up\".
-These clean ups only take place when the auto-newline feature is
-turned on, as evidenced by the `/a' or `/ah' appearing next to the
-mode name.  Valid symbols are:
+The following clean ups only take place when the auto-newline feature
+is turned on, as evidenced by the `/a' or `/ah' appearing next to the
+mode name:
 
- brace-else-brace    -- cleans up `} else {' constructs by placing entire
-                        construct on a single line.  This clean up
-                        only takes place when there is nothing but
+ brace-else-brace    -- Clean up \"} else {\" constructs by placing
+                        entire construct on a single line.  This clean
+                        up only takes place when there is nothing but
                         white space between the braces and the `else'.
                         Clean up occurs when the open brace after the
                         `else' is typed.
- brace-elseif-brace  -- similar to brace-else-brace, but cleans up
-                        `} else if (...) {' constructs.  Clean up occurs
-                        after the open parenthesis and the open brace.
- brace-catch-brace   -- similar to brace-elseif-brace, but cleans up
-                        `} catch (...) {' constructs.
- empty-defun-braces  -- cleans up empty defun braces by placing the
+ brace-elseif-brace  -- Similar to brace-else-brace, but clean up
+                        \"} else if (...) {\" constructs.  Clean up
+                        occurs after the open parenthesis and the open
+                        brace.
+ brace-catch-brace   -- Similar to brace-elseif-brace, but clean up
+                        \"} catch (...) {\" constructs.
+ empty-defun-braces  -- Clean up empty defun braces by placing the
                         braces on the same line.  Clean up occurs when
 			the defun closing brace is typed.
- defun-close-semi    -- cleans up the terminating semi-colon on defuns
+ defun-close-semi    -- Clean up the terminating semi-colon on defuns
 			by placing the semi-colon on the same line as
 			the closing brace.  Clean up occurs when the
 			semi-colon is typed.
- list-close-comma    -- cleans up commas following braces in array
+ list-close-comma    -- Clean up commas following braces in array
                         and aggregate initializers.  Clean up occurs
 			when the comma is typed.
- scope-operator      -- cleans up double colons which may designate
+ scope-operator      -- Clean up double colons which may designate
 			a C++ scope operator split across multiple
-			lines. Note that certain C++ constructs can
+			lines.  Note that certain C++ constructs can
 			generate ambiguous situations.  This clean up
 			only takes place when there is nothing but
-			whitespace between colons. Clean up occurs
-			when the second colon is typed."
+			whitespace between colons.  Clean up occurs
+			when the second colon is typed.
+
+The following clean ups always take place when they are on this list,
+regardless of the auto-newline feature, since they typically don't
+involve auto-newline inserted newlines:
+
+ space-before-funcall -- Insert exactly one space before the opening
+                        parenthesis of a function call.  Clean up
+                        occurs when the opening parenthesis is typed.
+ compact-empty-funcall -- Clean up any space before the function call
+			opening parenthesis if and only if the
+                        argument list is empty.  This is typically
+                        useful together with `space-before-funcall' to
+                        get the style \"foo (bar)\" and \"foo()\".
+                        Clean up occurs when the closing parenthesis
+                        is typed."
   :type '(set
 	  :extra-offset 8
-	  (const :tag "Put `} else {' on one line" brace-else-brace)
-	  (const :tag "Put `} else if (...) {' on one line" brace-elseif-brace)
-	  (const :tag "Put `} catch (...) {' on one line" brace-catch-brace)
-	  (const :tag "Put empty defun braces on one line" empty-defun-braces)
-	  (const :tag "Put `};' ending defuns on one line" defun-close-semi)
-	  (const :tag "Put `},' in aggregates on one line" list-close-comma)
-	  (const :tag "Put C++ style `::' on one line" scope-operator))
+	  (const :tag "Put \"} else {\" on one line"
+		 brace-else-brace)
+	  (const :tag "Put \"} else if (...) {\" on one line"
+		 brace-elseif-brace)
+	  (const :tag "Put \"} catch (...) {\" on one line"
+		 brace-catch-brace)
+	  (const :tag "Put empty defun braces on one line"
+		 empty-defun-braces)
+	  (const :tag "Put \"};\" ending defuns on one line"
+		 defun-close-semi)
+	  (const :tag "Put \"},\" in aggregates on one line"
+		 list-close-comma)
+	  (const :tag "Put C++ style \"::\" on one line"
+		 scope-operator)
+	  (const :tag "Put a space before funcall parens, e.g. \"foo (bar)\""
+		 space-before-funcall)
+	  (const :tag "Remove space before empty funcalls, e.g. \"foo()\""
+		 compact-empty-funcall))
   :group 'c)
 
 (defcustom-c-stylevar c-hanging-braces-alist '((brace-list-open)
@@ -500,7 +583,7 @@ this variable to nil."
   :type 'integer
   :group 'c)
 
-(defcustom c-default-style "gnu"
+(defcustom c-default-style '((java-mode . "java") (other . "gnu"))
   "*Style which gets installed by default when a file is visited.
 
 The value of this variable can be any style defined in
@@ -508,8 +591,7 @@ The value of this variable can be any style defined in
 association list of major mode symbols to style names.
 
 When the value is a string, all CC Mode major modes will install this
-style by default, except `java-mode', which always installs the
-\"java\" style (this is for backwards compatibility).
+style by default.
 
 When the value is an alist, the major mode symbol is looked up in it
 and the associated style is installed.  If the major mode is not
@@ -519,22 +601,24 @@ the alist, then \"gnu\" style is used.
 
 The default style gets installed before your mode hooks run, so you
 can always override the use of `c-default-style' by making calls to
-`c-set-style' in the appropriate mode hook.
-
-Tip: If you use different styles in different languages, you probably
-want to set `c-style-variables-are-local-p'."
+`c-set-style' in the appropriate mode hook."
   :type '(radio
-	  (string :tag "Style in all modes (except Java)")
-	  (repeat :tag "Mode-specific styles"
-		  :value ((other . "gnu"))
-		  (cons :format "%v"
-			(choice :tag "Mode"
-				(const c-mode) (const c++-mode)
-				(const objc-mode) (const java-mode)
-				(const idl-mode) (const pike-mode)
-				(const other))
-			(string :tag "Style")
-			)))
+	  (string :tag "Style in all modes")
+	  (set :tag "Mode-specific styles"
+	    (cons :format "%v"
+		  (const :format "C     " c-mode) (string :format "%v"))
+	    (cons :format "%v"
+		  (const :format "C++   " c++-mode) (string :format "%v"))
+	    (cons :format "%v"
+		  (const :format "ObjC  " objc-mode) (string :format "%v"))
+	    (cons :format "%v"
+		  (const :format "Java  " java-mode) (string :format "%v"))
+	    (cons :format "%v"
+		  (const :format "IDL   " idl-mode) (string :format "%v"))
+	    (cons :format "%v"
+		  (const :format "Pike  " pike-mode) (string :format "%v"))
+	    (cons :format "%v"
+		  (const :format "Other " other) (string :format "%v"))))
   :group 'c)
 
 (put 'c-offsets-alist 'c-stylevar-fallback
@@ -660,13 +744,13 @@ want to set `c-style-variables-are-local-p'."
        (inclass               . +)
        ;; Relpos: At the class open brace if it's at boi, otherwise
        ;; boi at the class decl start.
-       (cpp-macro             . -1000)
+       (cpp-macro             . [0])
        ;; Relpos: None.
        (cpp-macro-cont        . c-lineup-dont-change)
        ;; Relpos: At the macro start (always at boi).
        (friend                . 0)
        ;; Relpos: None.
-       (objc-method-intro     . -1000)
+       (objc-method-intro     . [0])
        ;; Relpos: Boi.
        (objc-method-args-cont . c-lineup-ObjC-method-args)
        ;; Relpos: At the method start (always at boi).
@@ -722,23 +806,33 @@ The sum of this calculation for each element in the syntactic list is
 the absolute offset for line being indented.
 
 If the syntactic element does not match any in the `c-offsets-alist',
-an error is generated if `c-strict-syntax-p' is non-nil, otherwise the
-element is ignored.
+the element is ignored.
 
-Actually, OFFSET can be an integer, a function, a variable, or one of
-the following symbols: `+', `-', `++', `--', `*', or `/'.  These
-latter designate positive or negative multiples of `c-basic-offset',
-respectively: 1, -1, 2, -2, 0.5, and -0.5.  If OFFSET is a function,
-it is called with a single argument containing the cons of the
-syntactic element symbol and the relative indent point.  The function
-should return an integer offset or nil if it can't decide.
+If OFFSET is nil, the syntactic element is ignored in the offset
+calculation.
 
-OFFSET can also be a list, in which case it is recursively evaluated
-using the semantics described above.  The first element of the list to 
-return a non-nil value succeeds.  If none of the elements returns a
-non-nil value, then what happends depends on the value of
-`c-strict-syntax-p'.  When `c-strict-syntax-p' is nil, then an offset
-of zero is used, otherwise an error is generated.
+If OFFSET is an integer, it's added to the relative indent.
+
+If OFFSET is one of the symbols `+', `-', `++', `--', `*', or `/', a
+positive or negative multiple of `c-basic-offset' is added; 1, -1, 2,
+-2, 0.5, and -0.5, respectively.
+
+If OFFSET is a vector, it's first element, which must be an integer,
+is used as an absolute indentation column.  This overrides all
+relative offsets.  If there are several syntactic elements which
+evaluates to absolute indentation columns, the first one takes
+precedence.  You can see in which order CC Mode combines the syntactic
+elements in a certain context by using \\[c-show-syntactic-information] on the line.
+
+If OFFSET is a function, it's called with a single argument
+containing the cons of the syntactic element symbol and the relative
+indent point.  The return value from the function is then
+reinterpreted as an OFFSET value.
+
+If OFFSET is a list, it's recursively evaluated using the semantics
+described above.  The first element of the list to return a non-nil
+value succeeds.  If none of the elements returns a non-nil value, the
+syntactic element is ignored.
 
 `c-offsets-alist' is a style variable.  This means that the offsets on
 this variable are normally taken from the style system in CC Mode
@@ -962,11 +1056,18 @@ as designated in the variable `c-file-style'.")
 (make-variable-buffer-local 'c-file-offsets)
 
 (defvar c-syntactic-context nil
-  "Variable containing syntactic analysis list during indentation.")
+  "Variable containing syntactic analysis list during indentation.
+This is always bound dynamically.  It should never be set statically
+(e.g. with `setq').")
 
 (defvar c-indentation-style nil
-  "Name of the currently installed style.")
+  "Name of the currently installed style.
+Don't change this directly; call `c-set-style' instead.")
 
+(defvar c-current-comment-prefix nil
+  "The current comment prefix regexp.
+Set from `c-comment-prefix-regexp' at mode initialization.")
+(make-variable-buffer-local 'c-current-comment-prefix)
 
 
 ;; Figure out what features this Emacs has
@@ -1011,7 +1112,6 @@ supported list, along with the values for this variable:
 Infodock (based on XEmacs) has an additional symbol on this list:
 `infodock'.")
 
-
 
-(provide 'cc-vars)
+(cc-provide 'cc-vars)
 ;;; cc-vars.el ends here

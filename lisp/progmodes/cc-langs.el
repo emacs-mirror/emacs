@@ -1,7 +1,6 @@
-;;; cc-langs.el --- specific language support for CC Mode
+;;; cc-langs.el --- language specific settings for CC Mode
 
-;; Copyright (C) 1985,1987,1992,1993,1994,1995,1996,1997,1998,2000
-;;	Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2001 Free Software Foundation, Inc.
 
 ;; Authors:    2000- Martin Stjernholm
 ;;	       1998-1999 Barry A. Warsaw and Martin Stjernholm
@@ -26,30 +25,20 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; along with this program; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
 (eval-when-compile
   (let ((load-path
-	 (if (and (boundp 'byte-compile-current-file)
-		  (stringp byte-compile-current-file))
-	     (cons (file-name-directory byte-compile-current-file)
-		   load-path)
+	 (if (and (boundp 'byte-compile-dest-file)
+		  (stringp byte-compile-dest-file))
+	     (cons (file-name-directory byte-compile-dest-file) load-path)
 	   load-path)))
-    (load "cc-defs" nil t)))
-(require 'cc-styles)
+    (require 'cc-bytecomp)))
 
-;; Pull in some other packages.
-(eval-when-compile
-  (condition-case nil
-      ;; Not required and only needed during compilation to shut up
-      ;; the compiler.
-      (require 'outline)
-    (error nil)))
-;; menu support for both XEmacs and Emacs.  If you don't have easymenu
-;; with your version of Emacs, you are incompatible!
-(require 'easymenu)
+(cc-require 'cc-defs)
+(cc-require 'cc-vars)
 
 
 (defvar c-buffer-is-cc-mode nil
@@ -65,9 +54,6 @@ Otherwise, this variable is nil. I.e. this variable is non-nil for
 ;; Regular expressions and other values which must be parameterized on
 ;; a per-language basis.
 
-;; Keywords defining protection levels
-(defconst c-protection-key "\\<\\(public\\|protected\\|private\\)\\>")
-
 ;; Regex describing a `symbol' in all languages.  We cannot use just
 ;; `word' syntax class since `_' cannot be in word class.  Putting
 ;; underscore in word class breaks forward word movement behavior that
@@ -78,39 +64,218 @@ Otherwise, this variable is nil. I.e. this variable is non-nil for
 ;; definition of a symbol as being Unicode.  I know so little about
 ;; I18N (except how to sound cool and say I18N :-) that I'm willing to
 ;; punt on this for now.
-
 (defconst c-symbol-key "[_a-zA-Z]\\(\\w\\|\\s_\\)*")
 
-
-;; keywords introducing class definitions.  language specific
-(defconst c-C-class-key "\\(struct\\|union\\)")
-(defconst c-C++-class-key "\\(class\\|struct\\|union\\)")
-(defconst c-IDL-class-key "\\(interface\\|struct\\|union\\|valuetype\\)")
-(defconst c-C-extra-toplevel-key "\\(extern\\)")
-(defconst c-C++-extra-toplevel-key "\\(extern\\|namespace\\)")
-(defconst c-IDL-extra-toplevel-key "\\(module\\)")
+;; HELPME: Many of the following keyword lists are more or less bogus
+;; for some languages (notably ObjC and IDL).  The effects of the
+;; erroneous values in the language handling is miniscule since these
+;; constants are not used very much (yet, anyway) in the actual syntax
+;; detection code, but I'd still appreciate help to get them correct.
 
+;; Primitive type keywords.
+(defconst c-C-primitive-type-kwds
+  "char\\|double\\|float\\|int\\|long\\|short\\|signed\\|unsigned\\|void")
+(defconst c-C++-primitive-type-kwds c-C-primitive-type-kwds)
+(defconst c-ObjC-primitive-type-kwds c-C-primitive-type-kwds)
+(defconst c-Java-primitive-type-kwds
+  "boolean\\|byte\\|char\\|double\\|float\\|int\\|long\\|short\\|void")
+(defconst c-IDL-primitive-type-kwds c-C-primitive-type-kwds)
+(defconst c-Pike-primitive-type-kwds
+  (concat "constant\\|float\\|int\\|mapping\\|multiset\\|object\\|"
+	  "program\\|string\\|void"))
+
+;; Declaration specifier keywords.
+(defconst c-C-specifier-kwds
+  "auto\\|const\\|extern\\|register\\|static\\|volatile")
+(defconst c-C++-specifier-kwds
+  (concat c-C-specifier-kwds "\\|friend\\|inline\\|virtual"))
+(defconst c-ObjC-specifier-kwds c-C++-specifier-kwds)
+(defconst c-Java-specifier-kwds
+  ;; Note: `const' is not used, but it's still a reserved keyword.
+  (concat "abstract\\|const\\|final\\|native\\|private\\|protected\\|"
+	  "public\\|static\\|synchronized\\|transient\\|volatile"))
+(defconst c-IDL-specifier-kwds c-C++-specifier-kwds)
+(defconst c-Pike-specifier-kwds
+  (concat "final\\|inline\\|local\\|nomask\\|optional\\|private\\|"
+	  "protected\\|static\\|variant"))
+
+;; Class/struct declaration keywords.
+(defconst c-C-class-kwds "struct\\|union")
+(defconst c-C++-class-kwds (concat c-C-class-kwds "\\|class"))
+(defconst c-ObjC-class-kwds "interface\\|implementation")
+(defconst c-Java-class-kwds "class\\|interface")
+(defconst c-IDL-class-kwds
+  (concat c-C++-class-kwds "\\|interface\\|valuetype"))
+(defconst c-Pike-class-kwds "class")
+
+;; Keywords introducing other declaration-level blocks.
+(defconst c-C-extra-toplevel-kwds "extern")
+(defconst c-C++-extra-toplevel-kwds
+  (concat c-C-extra-toplevel-kwds "\\|namespace"))
+;;(defconst c-ObjC-extra-toplevel-kwds nil)
+;;(defconst c-Java-extra-toplevel-kwds nil)
+(defconst c-IDL-extra-toplevel-kwds "module")
+;;(defconst c-Pike-extra-toplevel-kwds nil)
+
+;; Keywords introducing other declaration-level constructs.
+(defconst c-C-other-decl-kwds "enum\\|typedef")
+(defconst c-C++-other-decl-kwds (concat c-C-other-decl-kwds "\\|template"))
+;;(defconst c-ObjC-other-decl-kwds nil)
+(defconst c-Java-other-decl-kwds "import\\|package")
+;;(defconst c-IDL-other-decl-kwds nil)
+(defconst c-Pike-other-decl-kwds "import\\|inherit")
+
+;; Keywords that occur in declaration-level constructs.
+;;(defconst c-C-decl-level-kwds nil)
+;;(defconst c-C++-decl-level-kwds nil)
+;;(defconst c-ObjC-decl-level-kwds nil)
+(defconst c-Java-decl-level-kwds "extends\\|implements\\|throws")
+;;(defconst c-IDL-decl-level-kwds nil)
+;;(defconst c-Pike-decl-level-kwds nil)
+
+;; Protection label keywords in classes.
+;;(defconst c-C-protection-kwds nil)
+(defconst c-C++-protection-kwds "private\\|protected\\|public")
+(defconst c-ObjC-protection-kwds c-C++-protection-kwds)
+;;(defconst c-Java-protection-kwds nil)
+;;(defconst c-IDL-protection-kwds nil)
+;;(defconst c-Pike-protection-kwds nil)
+
+;; Statement keywords followed directly by a block.
+(defconst c-C-block-stmt-1-kwds "do\\|else")
+(defconst c-C++-block-stmt-1-kwds
+  (concat c-C-block-stmt-1-kwds "\\|asm\\|try"))
+(defconst c-ObjC-block-stmt-1-kwds c-C++-block-stmt-1-kwds)
+(defconst c-Java-block-stmt-1-kwds
+  (concat c-C-block-stmt-1-kwds "\\|finally\\|try"))
+;;(defconst c-IDL-block-stmt-1-kwds nil)
+(defconst c-Pike-block-stmt-1-kwds c-C-block-stmt-1-kwds)
+
+;; Statement keywords followed by a paren sexp and then by a block.
+(defconst c-C-block-stmt-2-kwds "for\\|if\\|switch\\|while")
+(defconst c-C++-block-stmt-2-kwds (concat c-C-block-stmt-2-kwds "\\|catch"))
+(defconst c-ObjC-block-stmt-2-kwds c-C++-block-stmt-2-kwds)
+(defconst c-Java-block-stmt-2-kwds
+  (concat c-C++-block-stmt-2-kwds "\\|synchronized"))
+;;(defconst c-IDL-block-stmt-2-kwds nil)
+(defconst c-Pike-block-stmt-2-kwds c-C-block-stmt-2-kwds)
+
+;; Statement keywords followed by an expression or nothing.
+(defconst c-C-simple-stmt-kwds "break\\|continue\\|goto\\|return")
+(defconst c-C++-simple-stmt-kwds c-C-simple-stmt-kwds)
+(defconst c-ObjC-simple-stmt-kwds c-C-simple-stmt-kwds)
+(defconst c-Java-simple-stmt-kwds
+  ;; Note: `goto' is not a valid statement, but the keyword is still reserved.
+  (concat c-C-simple-stmt-kwds "\\|throw"))
+;;(defconst c-IDL-simple-stmt-kwds nil)
+(defconst c-Pike-simple-stmt-kwds "break\\|continue\\|return")
+
+;; Keywords introducing labels in blocks.
+(defconst c-C-label-kwds "case\\|default")
+(defconst c-C++-label-kwds c-C-label-kwds)
+(defconst c-ObjC-label-kwds c-C-label-kwds)
+(defconst c-Java-label-kwds c-C-label-kwds)
+;;(defconst c-IDL-label-kwds nil)
+(defconst c-Pike-label-kwds c-C-label-kwds)
+
+;; Keywords that can occur anywhere in expressions.
+(defconst c-C-expr-kwds "sizeof")
+(defconst c-C++-expr-kwds
+  (concat c-C-expr-kwds "\\|delete\\|new\\|operator\\|this\\|throw"))
+(defconst c-ObjC-expr-kwds c-C-expr-kwds)
+(defconst c-Java-expr-kwds "instanceof\\|new\\|super\\|this")
+;;(defconst c-IDL-expr-kwds nil)
+(defconst c-Pike-expr-kwds
+  (concat c-C-expr-kwds "\\|catch\\|class\\|gauge\\|lambda\\|predef"))
+
+;; All keywords.
+(defconst c-C-keywords
+  (concat c-C-primitive-type-kwds "\\|" c-C-specifier-kwds
+	  "\\|" c-C-class-kwds "\\|" c-C-extra-toplevel-kwds
+	  "\\|" c-C-other-decl-kwds
+	  ;; "\\|" c-C-decl-level-kwds "\\|" c-C-protection-kwds
+	  "\\|" c-C-block-stmt-1-kwds "\\|" c-C-block-stmt-2-kwds
+	  "\\|" c-C-simple-stmt-kwds "\\|" c-C-label-kwds
+	  "\\|" c-C-expr-kwds))
+(defconst c-C++-keywords
+  (concat c-C++-primitive-type-kwds "\\|" c-C++-specifier-kwds
+	  "\\|" c-C++-class-kwds "\\|" c-C++-extra-toplevel-kwds
+	  "\\|" c-C++-other-decl-kwds
+	  ;; "\\|" c-C++-decl-level-kwds
+	  "\\|" c-C++-protection-kwds
+	  "\\|" c-C++-block-stmt-1-kwds "\\|" c-C++-block-stmt-2-kwds
+	  "\\|" c-C++-simple-stmt-kwds "\\|" c-C++-label-kwds
+	  "\\|" c-C++-expr-kwds))
+(defconst c-ObjC-keywords
+  (concat c-ObjC-primitive-type-kwds "\\|" c-ObjC-specifier-kwds
+	  "\\|" c-ObjC-class-kwds
+	  ;; "\\|" c-ObjC-extra-toplevel-kwds
+	  ;; "\\|" c-ObjC-other-decl-kwds "\\|" c-ObjC-decl-level-kwds
+	  "\\|" c-ObjC-protection-kwds
+	  "\\|" c-ObjC-block-stmt-1-kwds "\\|" c-ObjC-block-stmt-2-kwds
+	  "\\|" c-ObjC-simple-stmt-kwds "\\|" c-ObjC-label-kwds
+	  "\\|" c-ObjC-expr-kwds))
+(defconst c-Java-keywords
+  (concat c-Java-primitive-type-kwds "\\|" c-Java-specifier-kwds
+	  "\\|" c-Java-class-kwds
+	  ;; "\\|" c-Java-extra-toplevel-kwds
+	  "\\|" c-Java-other-decl-kwds "\\|" c-Java-decl-level-kwds
+	  ;; "\\|" c-Java-protection-kwds
+	  "\\|" c-Java-block-stmt-1-kwds "\\|" c-Java-block-stmt-2-kwds
+	  "\\|" c-Java-simple-stmt-kwds "\\|" c-Java-label-kwds
+	  "\\|" c-Java-expr-kwds))
+(defconst c-IDL-keywords
+  (concat c-IDL-primitive-type-kwds "\\|" c-IDL-specifier-kwds
+	  "\\|" c-IDL-class-kwds "\\|" c-IDL-extra-toplevel-kwds
+	  ;; "\\|" c-IDL-other-decl-kwds "\\|" c-IDL-decl-level-kwds
+	  ;; "\\|" c-IDL-protection-kwds
+	  ;; "\\|" c-IDL-block-stmt-1-kwds "\\|" c-IDL-block-stmt-2-kwds
+	  ;; "\\|" c-IDL-simple-stmt-kwds "\\|" c-IDL-label-kwds
+	  ;; "\\|" c-IDL-expr-kwds)
+	  ))
+(defconst c-Pike-keywords
+  (concat c-Pike-primitive-type-kwds "\\|" c-Pike-specifier-kwds
+	  "\\|" c-Pike-class-kwds
+	  ;; "\\|" c-Pike-extra-toplevel-kwds
+	  "\\|" c-Pike-other-decl-kwds
+	  ;; "\\|" c-Pike-decl-level-kwds "\\|" c-Pike-protection-kwds
+	  "\\|" c-Pike-block-stmt-1-kwds "\\|" c-Pike-block-stmt-2-kwds
+	  "\\|" c-Pike-simple-stmt-kwds "\\|" c-Pike-label-kwds
+	  "\\|" c-Pike-expr-kwds))
+
+(defvar c-keywords nil)
+(make-variable-buffer-local 'c-keywords)
+
+;; Keywords defining protection levels
+(defconst c-protection-key "\\<\\(public\\|protected\\|private\\)\\>")
+
+;; Regexps introducing class definitions.
+(defconst c-C-class-key (c-paren-re c-C-class-kwds))
+(defconst c-C++-class-key (c-paren-re c-C++-class-kwds))
+(defconst c-IDL-class-key (c-paren-re c-IDL-class-kwds))
 (defconst c-ObjC-class-key
   (concat
-   "@\\(interface\\|implementation\\)\\s +"
+   "@\\(" c-ObjC-class-kwds "\\)\\s +"
    c-symbol-key				;name of the class
    "\\(\\s *:\\s *" c-symbol-key "\\)?"	;maybe followed by the superclass
    "\\(\\s *<[^>]+>\\)?"		;and maybe the adopted protocols list
    ))
-
 (defconst c-Java-class-key
   (concat
    "\\(" c-protection-key "\\s +\\)?"
-   "\\(interface\\|class\\)\\s +"
+   "\\(" c-Java-class-kwds "\\)\\s +"
    c-symbol-key				      ;name of the class
    "\\(\\s *extends\\s *" c-symbol-key "\\)?" ;maybe followed by superclass
    ;;"\\(\\s *implements *[^{]+{\\)?"	      ;maybe the adopted protocols list
    ))
-
-(defconst c-Pike-class-key "class")
+(defconst c-Pike-class-key (c-paren-re c-Pike-class-kwds))
 
 (defvar c-class-key c-C-class-key)
 (make-variable-buffer-local 'c-class-key)
+
+(defconst c-C-extra-toplevel-key (c-paren-re c-C-extra-toplevel-kwds))
+(defconst c-C++-extra-toplevel-key (c-paren-re c-C++-extra-toplevel-kwds))
+(defconst c-IDL-extra-toplevel-key (c-paren-re c-IDL-extra-toplevel-kwds))
 
 (defvar c-extra-toplevel-key c-C-extra-toplevel-key)
 (make-variable-buffer-local 'c-extra-toplevel-key)
@@ -121,17 +286,16 @@ Otherwise, this variable is nil. I.e. this variable is non-nil for
 (defvar c-bitfield-key nil)
 (make-variable-buffer-local 'c-bitfield-key)
 
-
 ;; regexp describing access protection clauses.  language specific
 (defvar c-access-key nil)
 (make-variable-buffer-local 'c-access-key)
-(defconst c-C++-access-key (concat c-protection-key "[ \t]*:"))
-(defconst c-IDL-access-key nil)
+(defconst c-C++-access-key
+  (concat "\\<\\(" c-C++-protection-kwds "\\)\\>[ \t]*:"))
+;;(defconst c-IDL-access-key nil)
 (defconst c-ObjC-access-key (concat "@" c-protection-key))
-(defconst c-Java-access-key nil)
-(defconst c-Pike-access-key nil)
+;;(defconst c-Java-access-key nil)
+;;(defconst c-Pike-access-key nil)
 
-
 ;; keywords introducing conditional blocks
 (defconst c-C-conditional-key nil)
 (defconst c-C++-conditional-key nil)
@@ -143,8 +307,8 @@ Otherwise, this variable is nil. I.e. this variable is non-nil for
 (let ((all-kws "for\\|if\\|do\\|else\\|while\\|switch")
       (exc-kws "\\|try\\|catch")
       (thr-kws "\\|finally\\|synchronized")
-      (front   "\\b\\(")
-      (back    "\\)\\b[^_]"))
+      (front   "\\<\\(")
+      (back    "\\)\\>[^_]"))
   (setq c-C-conditional-key (concat front all-kws back)
 	c-C++-conditional-key (concat front all-kws exc-kws back)
 	;; c-IDL-conditional-key is nil.
@@ -155,7 +319,6 @@ Otherwise, this variable is nil. I.e. this variable is non-nil for
 (defvar c-conditional-key c-C-conditional-key)
 (make-variable-buffer-local 'c-conditional-key)
 
-
 ;; keywords describing method definition introductions
 (defvar c-method-key nil)
 (make-variable-buffer-local 'c-method-key)
@@ -168,8 +331,6 @@ Otherwise, this variable is nil. I.e. this variable is non-nil for
    ;; since it is considered the end of //-comments.
    "[ \t\n]*" c-symbol-key))
 
-
-
 ;; comment starter definitions for various languages.  language specific
 (defconst c-C++-comment-start-regexp "/[/*]")
 (defconst c-C-comment-start-regexp c-C++-comment-start-regexp)
@@ -182,8 +343,6 @@ Otherwise, this variable is nil. I.e. this variable is non-nil for
 (defvar c-comment-start-regexp c-C++-comment-start-regexp)
 (make-variable-buffer-local 'c-comment-start-regexp)
 
-
-
 ;; Regexp describing a switch's case or default label for all languages
 (defconst c-switch-label-key "\\(\\(case[( \t]+\\S .*\\)\\|default[ \t]*\\):")
 ;; Regexp describing any label.
@@ -215,15 +374,18 @@ Otherwise, this variable is nil. I.e. this variable is non-nil for
 (defconst c-Java-defun-prompt-regexp
   "^[ \t]*\\(\\(\\(public\\|protected\\|private\\|const\\|abstract\\|synchronized\\|final\\|static\\|threadsafe\\|transient\\|native\\|volatile\\)\\s-+\\)*\\(\\(\\([[a-zA-Z][][_$.a-zA-Z0-9]*[][_$.a-zA-Z0-9]+\\|[[a-zA-Z]\\)\\s-*\\)\\s-+\\)\\)?\\(\\([[a-zA-Z][][_$.a-zA-Z0-9]*\\s-+\\)\\s-*\\)?\\([_a-zA-Z][^][ \t:;.,{}()=]*\\|\\([_$a-zA-Z][_$.a-zA-Z0-9]*\\)\\)\\s-*\\(([^);{}]*)\\)?\\([] \t]*\\)\\(\\s-*\\<throws\\>\\s-*\\(\\([_$a-zA-Z][_$.a-zA-Z0-9]*\\)[, \t\n\r\f]*\\)+\\)?\\s-*")
 
-;; Regexp describing regexp to append to paragraph-start
+;; Regexp to append to paragraph-start.
 (defvar c-append-paragraph-start "$")
 (make-variable-buffer-local 'c-append-paragraph-start)
 (defconst c-Java-javadoc-paragraph-start
-  (concat "\\("
-	  "@\\(author\\|deprecated\\|exception\\|param\\|return\\|"
-	  "s\\(e\\(e\\|rial\\(\\|Data\\|Field\\)\\)\\|ince\\)\\|"
-	  "throws\\|version\\)"
-	  "\\|$\\)"))
+  "\\(@[a-zA-Z]+\\>\\|$\\)")
+(defconst c-Pike-pikedoc-paragraph-start
+  "\\(@[a-zA-Z]+\\>\\([^{]\\|$\\)\\|$\\)")
+
+;; Regexp to append to paragraph-separate.
+(defvar c-append-paragraph-separate "$")
+(make-variable-buffer-local 'c-append-paragraph-separate)
+(defconst c-Pike-pikedoc-paragraph-separate c-Pike-pikedoc-paragraph-start)
 
 ;; Regexp that starts lambda constructs.
 (defvar c-lambda-key nil)
@@ -250,175 +412,8 @@ Otherwise, this variable is nil. I.e. this variable is non-nil for
 				       (?\[ . ?\])
 				       (?< . ?>)))
 
-
 
-;; internal state variables
-
-;; Internal state of hungry delete key feature
-(defvar c-hungry-delete-key nil)
-(make-variable-buffer-local 'c-hungry-delete-key)
-
-;; Internal state of auto newline feature.
-(defvar c-auto-newline nil)
-(make-variable-buffer-local 'c-auto-newline)
-
-;; Internal auto-newline/hungry-delete designation string for mode line.
-(defvar c-auto-hungry-string nil)
-(make-variable-buffer-local 'c-auto-hungry-string)
-
-;; Non-nil means K&R style argument declarations are valid.
-(defvar c-recognize-knr-p t)
-(make-variable-buffer-local 'c-recognize-knr-p)
-
-
-
-(defun c-common-init ()
-  ;; Common initializations for all modes.
-  ;; these variables should always be buffer local; they do not affect
-  ;; indentation style.
-  (make-local-variable 'require-final-newline)
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (make-local-variable 'indent-line-function)
-  (make-local-variable 'indent-region-function)
-  (make-local-variable 'outline-regexp)
-  (make-local-variable 'outline-level)
-  (make-local-variable 'normal-auto-fill-function)
-  (make-local-variable 'comment-start)
-  (make-local-variable 'comment-end)
-  (make-local-variable 'comment-column)
-  (make-local-variable 'comment-start-skip)
-  (make-local-variable 'comment-multi-line)
-  (make-local-variable 'paragraph-start)
-  (make-local-variable 'paragraph-separate)
-  (make-local-variable 'paragraph-ignore-fill-prefix)
-  (make-local-variable 'adaptive-fill-mode)
-  (make-local-variable 'adaptive-fill-regexp)
-  (make-local-variable 'imenu-generic-expression) ;set in the mode functions
-  ;; X/Emacs 20 only
-  (and (boundp 'comment-line-break-function)
-       (progn
-	 (make-local-variable 'comment-line-break-function)
-	 (setq comment-line-break-function
-	       'c-indent-new-comment-line)))
-  ;; now set their values
-  (setq require-final-newline t
-	parse-sexp-ignore-comments t
-	indent-line-function 'c-indent-line
-	indent-region-function 'c-indent-region
-	outline-regexp "[^#\n\^M]"
-	outline-level 'c-outline-level
-	normal-auto-fill-function 'c-do-auto-fill
-	comment-column 32
-	comment-start-skip "/\\*+ *\\|//+ *"
-	comment-multi-line t)
-  ;; now set the mode style based on c-default-style
-  (let ((style (if (stringp c-default-style)
-		   (if (c-major-mode-is 'java-mode)
-		       "java"
-		     c-default-style)
-		 (or (cdr (assq major-mode c-default-style))
-		     (cdr (assq 'other c-default-style))
-		     "gnu"))))
-    ;; Override style variables if `c-old-style-variable-behavior' is
-    ;; set.  Also override if we are using global style variables,
-    ;; have already initialized a style once, and are switching to a
-    ;; different style.  (It's doubtful whether this is desirable, but
-    ;; the whole situation with nonlocal style variables is a bit
-    ;; awkward.  It's at least the most compatible way with the old
-    ;; style init procedure.)
-    (c-set-style style (not (or c-old-style-variable-behavior
-				(and (not c-style-variables-are-local-p)
-				     c-indentation-style
-				     (not (string-equal c-indentation-style
-							style)))))))
-  ;; Fix things up for paragraph recognition and filling inside
-  ;; comments by using c-comment-prefix-regexp in the relevant places.
-  ;; We use adaptive filling for this to make it possible to use
-  ;; filladapt or some other fancy package.
-  (let ((comment-line-prefix
-	 (concat "[ \t]*\\(" c-comment-prefix-regexp "\\)?[ \t]*")))
-    (setq paragraph-start (concat comment-line-prefix
-				  c-append-paragraph-start
-				  "\\|"
-				  page-delimiter)
-	  paragraph-separate (concat comment-line-prefix "$"
-				     "\\|"
-				     page-delimiter)
-	  paragraph-ignore-fill-prefix t
-	  adaptive-fill-mode t
-	  adaptive-fill-regexp
-	  (concat comment-line-prefix
-		  (if adaptive-fill-regexp
-		      (concat "\\(" adaptive-fill-regexp "\\)")
-		    "")))
-    (when (boundp 'adaptive-fill-first-line-regexp)
-      ;; XEmacs (20.x) adaptive fill mode doesn't have this.
-      (make-local-variable 'adaptive-fill-first-line-regexp)
-      (setq adaptive-fill-first-line-regexp
-	    (concat "\\`" comment-line-prefix
-		    ;; Maybe we should incorporate the old value here,
-		    ;; but then we have to do all sorts of kludges to
-		    ;; deal with the \` and \' it probably contains.
-		    "\\'"))))
-  ;; we have to do something special for c-offsets-alist so that the
-  ;; buffer local value has its own alist structure.
-  (setq c-offsets-alist (copy-alist c-offsets-alist))
-  ;; setup the comment indent variable in a Emacs version portable way
-  ;; ignore any byte compiler warnings you might get here
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'c-comment-indent)
-  ;; add menus to menubar
-  (easy-menu-add (c-mode-menu mode-name))
-  ;; put auto-hungry designators onto minor-mode-alist, but only once
-  (or (assq 'c-auto-hungry-string minor-mode-alist)
-      (setq minor-mode-alist
-	    (cons '(c-auto-hungry-string c-auto-hungry-string)
-		  minor-mode-alist)))
-  )
-
-
-(defun c-postprocess-file-styles ()
-  "Function that post processes relevant file local variables.
-Currently, this function simply applies any style and offset settings
-found in the file's Local Variable list.  It first applies any style
-setting found in `c-file-style', then it applies any offset settings
-it finds in `c-file-offsets'.
-
-Note that the style variables are always made local to the buffer."
-  ;; apply file styles and offsets
-  (if (or c-file-style c-file-offsets)
-      (c-make-styles-buffer-local t))
-  (and c-file-style
-       (c-set-style c-file-style))
-  (and c-file-offsets
-       (mapcar
-	(function
-	 (lambda (langentry)
-	   (let ((langelem (car langentry))
-		 (offset (cdr langentry)))
-	     (c-set-offset langelem offset)
-	     )))
-	c-file-offsets)))
-
-(add-hook 'hack-local-variables-hook 'c-postprocess-file-styles)
-
-
-(defvar c-mode-base-map ()
-  "Keymap shared by all CC Mode related modes.")
-
-;; Common routines
-(defun c-make-inherited-keymap ()
-  (let ((map (make-sparse-keymap)))
-    (cond
-     ;; XEmacs 19 & 20
-     ((fboundp 'set-keymap-parents)
-      (set-keymap-parents map c-mode-base-map))
-     ;; Emacs 19
-     ((fboundp 'set-keymap-parent)
-      (set-keymap-parent map c-mode-base-map))
-     ;; incompatible
-     (t (error "CC Mode is incompatible with this version of Emacs")))
-    map))
+;; Syntax tables.
 
 (defun c-populate-syntax-table (table)
   ;; Populate the syntax TABLE
@@ -453,132 +448,6 @@ Note that the style variables are always made local to the buffer."
   ;; Give CR the same syntax as newline, for selective-display
   (modify-syntax-entry ?\^m "> b" table))
 
-
-(if c-mode-base-map
-    nil
-  ;; TBD: should we even worry about naming this keymap. My vote: no,
-  ;; because Emacs and XEmacs do it differently.
-  (setq c-mode-base-map (make-sparse-keymap))
-  ;; put standard keybindings into MAP
-  ;; the following mappings correspond more or less directly to BOCM
-  (define-key c-mode-base-map "{"         'c-electric-brace)
-  (define-key c-mode-base-map "}"         'c-electric-brace)
-  (define-key c-mode-base-map ";"         'c-electric-semi&comma)
-  (define-key c-mode-base-map "#"         'c-electric-pound)
-  (define-key c-mode-base-map ":"         'c-electric-colon)
-  (define-key c-mode-base-map "("         'c-electric-paren)
-  (define-key c-mode-base-map ")"         'c-electric-paren)
-  ;; Separate M-BS from C-M-h.  The former should remain
-  ;; backward-kill-word.
-  (define-key c-mode-base-map [(control meta h)] 'c-mark-function)
-  (define-key c-mode-base-map "\e\C-q"    'c-indent-exp)
-  (substitute-key-definition 'backward-sentence
-			     'c-beginning-of-statement
-			     c-mode-base-map global-map)
-  (substitute-key-definition 'forward-sentence
-			     'c-end-of-statement
-			     c-mode-base-map global-map)
-  (substitute-key-definition 'indent-new-comment-line
-			     'c-indent-new-comment-line
-			     c-mode-base-map global-map)
-  ;; RMS says don't make these the default.
-;;  (define-key c-mode-base-map "\e\C-a"    'c-beginning-of-defun)
-;;  (define-key c-mode-base-map "\e\C-e"    'c-end-of-defun)
-  (define-key c-mode-base-map "\C-c\C-n"  'c-forward-conditional)
-  (define-key c-mode-base-map "\C-c\C-p"  'c-backward-conditional)
-  (define-key c-mode-base-map "\C-c\C-u"  'c-up-conditional)
-  (substitute-key-definition 'indent-for-tab-command
-			     'c-indent-command
-			     c-mode-base-map global-map)
-  ;; It doesn't suffice to put c-fill-paragraph on
-  ;; fill-paragraph-function due to the way it works.
-  (substitute-key-definition 'fill-paragraph 'c-fill-paragraph
-			     c-mode-base-map global-map)
-  ;; In XEmacs the default fill function is called
-  ;; fill-paragraph-or-region.
-  (substitute-key-definition 'fill-paragraph-or-region 'c-fill-paragraph
-			     c-mode-base-map global-map)
-  ;; Caution!  Enter here at your own risk.  We are trying to support
-  ;; several behaviors and it gets disgusting. :-(
-  ;;
-  (if (boundp 'delete-key-deletes-forward)
-      (progn
-	;; In XEmacs 20 it is possible to sanely define both backward
-	;; and forward deletion behavior under X separately (TTYs are
-	;; forever beyond hope, but who cares?  XEmacs 20 does the
-	;; right thing with these too).
-	(define-key c-mode-base-map [delete]    'c-electric-delete)
-	(define-key c-mode-base-map [backspace] 'c-electric-backspace))
-    ;; In XEmacs 19, Emacs 19, and Emacs 20, we use this to bind
-    ;; backwards deletion behavior to DEL, which both Delete and
-    ;; Backspace get translated to.  There's no way to separate this
-    ;; behavior in a clean way, so deal with it!  Besides, it's been
-    ;; this way since the dawn of BOCM.
-    (define-key c-mode-base-map "\177" 'c-electric-backspace))
-  ;; these are new keybindings, with no counterpart to BOCM
-  (define-key c-mode-base-map ","         'c-electric-semi&comma)
-  (define-key c-mode-base-map "*"         'c-electric-star)
-  (define-key c-mode-base-map "/"         'c-electric-slash)
-  (define-key c-mode-base-map "\C-c\C-q"  'c-indent-defun)
-  (define-key c-mode-base-map "\C-c\C-\\" 'c-backslash-region)
-  ;; TBD: where if anywhere, to put c-backward|forward-into-nomenclature
-  (define-key c-mode-base-map "\C-c\C-a"  'c-toggle-auto-state)
-  (define-key c-mode-base-map "\C-c\C-b"  'c-submit-bug-report)
-  (define-key c-mode-base-map "\C-c\C-c"  'comment-region)
-  (define-key c-mode-base-map "\C-c\C-d"  'c-toggle-hungry-state)
-  (define-key c-mode-base-map "\C-c\C-o"  'c-set-offset)
-  (define-key c-mode-base-map "\C-c\C-s"  'c-show-syntactic-information)
-  (define-key c-mode-base-map "\C-c\C-t"  'c-toggle-auto-hungry-state)
-  (define-key c-mode-base-map "\C-c."     'c-set-style)
-  ;; conflicts with OOBR
-  ;;(define-key c-mode-base-map "\C-c\C-v"  'c-version)
-  )
-
-(defvar c-c-menu nil)
-(defvar c-c++-menu nil)
-(defvar c-objc-menu nil)
-(defvar c-java-menu nil)
-(defvar c-pike-menu nil)
-
-(defun c-mode-menu (modestr)
-  (let ((m
-	 '(["Comment Out Region"     comment-region (c-region-is-active-p)]
-	   ["Uncomment Region"
-	    (comment-region (region-beginning) (region-end) '(4))
-	    (c-region-is-active-p)]
-	   ["Fill Comment Paragraph" c-fill-paragraph t]
-	   "---"
-	   ["Indent Expression"      c-indent-exp
-	    (memq (char-after) '(?\( ?\[ ?\{))]
-	   ["Indent Line or Region"  c-indent-line-or-region t]
-	   ["Up Conditional"         c-up-conditional t]
-	   ["Backward Conditional"   c-backward-conditional t]
-	   ["Forward Conditional"    c-forward-conditional t]
-	   ["Backward Statement"     c-beginning-of-statement t]
-	   ["Forward Statement"      c-end-of-statement t]
-	   "---"
-	   ["Macro Expand Region"    c-macro-expand (c-region-is-active-p)]
-	   ["Backslashify"           c-backslash-region (c-region-is-active-p)]
-	   )))
-    (cons modestr m)))
-
-
-
-;; Support for C
-
-(defvar c-mode-abbrev-table nil
-  "Abbreviation table used in c-mode buffers.")
-(define-abbrev-table 'c-mode-abbrev-table ())
-
-(defvar c-mode-map ()
-  "Keymap used in c-mode buffers.")
-(if c-mode-map
-    nil
-  (setq c-mode-map (c-make-inherited-keymap))
-  ;; add bindings which are only useful for C
-  (define-key c-mode-map "\C-c\C-e"  'c-macro-expand)
-  )
-
 ;;;###autoload
 (defvar c-mode-syntax-table nil
   "Syntax table used in c-mode buffers.")
@@ -586,27 +455,6 @@ Note that the style variables are always made local to the buffer."
     ()
   (setq c-mode-syntax-table (make-syntax-table))
   (c-populate-syntax-table c-mode-syntax-table))
-
-(easy-menu-define c-c-menu c-mode-map "C Mode Commands"
-		  (c-mode-menu "C"))
-
-
-;; Support for C++
-
-(defvar c++-mode-abbrev-table nil
-  "Abbreviation table used in c++-mode buffers.")
-(define-abbrev-table 'c++-mode-abbrev-table ())
-
-(defvar c++-mode-map ()
-  "Keymap used in c++-mode buffers.")
-(if c++-mode-map
-    nil
-  (setq c++-mode-map (c-make-inherited-keymap))
-  ;; add bindings which are only useful for C++
-  (define-key c++-mode-map "\C-c\C-e" 'c-macro-expand)
-  (define-key c++-mode-map "\C-c:"    'c-scope-operator)
-  (define-key c++-mode-map "<"        'c-electric-lt-gt)
-  (define-key c++-mode-map ">"        'c-electric-lt-gt))
 
 ;;;###autoload
 (defvar c++-mode-syntax-table nil
@@ -635,24 +483,6 @@ are parsed.")
   (modify-syntax-entry ?< "(>" c++-template-syntax-table)
   (modify-syntax-entry ?> ")<" c++-template-syntax-table))
 
-(easy-menu-define c-c++-menu c++-mode-map "C++ Mode Commands"
-		  (c-mode-menu "C++"))
-
-
-;; Support for Objective-C
-
-(defvar objc-mode-abbrev-table nil
-  "Abbreviation table used in objc-mode buffers.")
-(define-abbrev-table 'objc-mode-abbrev-table ())
-
-(defvar objc-mode-map ()
-  "Keymap used in objc-mode buffers.")
-(if objc-mode-map
-    nil
-  (setq objc-mode-map (c-make-inherited-keymap))
-  ;; add bindings which are only useful for Objective-C
-  (define-key objc-mode-map "\C-c\C-e" 'c-macro-expand))
-
 ;;;###autoload
 (defvar objc-mode-syntax-table nil
   "Syntax table used in objc-mode buffers.")
@@ -663,24 +493,6 @@ are parsed.")
   ;; add extra Objective-C only syntax
   (modify-syntax-entry ?@ "_" objc-mode-syntax-table))
 
-(easy-menu-define c-objc-menu objc-mode-map "ObjC Mode Commands"
-		  (c-mode-menu "ObjC"))
-
-
-;; Support for Java
-
-(defvar java-mode-abbrev-table nil
-  "Abbreviation table used in java-mode buffers.")
-(define-abbrev-table 'java-mode-abbrev-table ())
-
-(defvar java-mode-map ()
-  "Keymap used in java-mode buffers.")
-(if java-mode-map
-    nil
-  (setq java-mode-map (c-make-inherited-keymap))
-  ;; add bindings which are only useful for Java
-  )
-
 ;;;###autoload
 (defvar java-mode-syntax-table nil
   "Syntax table used in java-mode buffers.")
@@ -689,24 +501,6 @@ are parsed.")
   (setq java-mode-syntax-table (make-syntax-table))
   (c-populate-syntax-table java-mode-syntax-table))
 
-(easy-menu-define c-java-menu java-mode-map "Java Mode Commands"
-		  (c-mode-menu "Java"))
-
-
-;; Support for CORBA's IDL language
-
-(defvar idl-mode-abbrev-table nil
-  "Abbreviation table used in idl-mode buffers.")
-(define-abbrev-table 'idl-mode-abbrev-table ())
-
-(defvar idl-mode-map ()
-  "Keymap used in idl-mode buffers.")
-(if idl-mode-map
-    nil
-  (setq idl-mode-map (c-make-inherited-keymap))
-  ;; add bindings which are only useful for IDL
-  )
-
 ;;;###autoload
 (defvar idl-mode-syntax-table nil
   "Syntax table used in idl-mode buffers.")
@@ -714,24 +508,6 @@ are parsed.")
     nil
   (setq idl-mode-syntax-table (make-syntax-table))
   (c-populate-syntax-table idl-mode-syntax-table))
-
-(easy-menu-define c-idl-menu idl-mode-map "IDL Mode Commands"
-		  (c-mode-menu "IDL"))
-
-
-;; Support for Pike
-
-(defvar pike-mode-abbrev-table nil
-  "Abbreviation table used in pike-mode buffers.")
-(define-abbrev-table 'pike-mode-abbrev-table ())
-
-(defvar pike-mode-map ()
-  "Keymap used in pike-mode buffers.")
-(if pike-mode-map
-    nil
-  (setq pike-mode-map (c-make-inherited-keymap))
-  ;; additional bindings
-  (define-key pike-mode-map "\C-c\C-e" 'c-macro-expand))
 
 ;;;###autoload
 (defvar pike-mode-syntax-table nil
@@ -742,10 +518,25 @@ are parsed.")
   (c-populate-syntax-table pike-mode-syntax-table)
   (modify-syntax-entry ?@ "." pike-mode-syntax-table))
 
-(easy-menu-define c-pike-menu pike-mode-map "Pike Mode Commands"
-		  (c-mode-menu "Pike"))
+
+;; internal state variables
 
+;; Internal state of hungry delete key feature
+(defvar c-hungry-delete-key nil)
+(make-variable-buffer-local 'c-hungry-delete-key)
+
+;; Internal state of auto newline feature.
+(defvar c-auto-newline nil)
+(make-variable-buffer-local 'c-auto-newline)
+
+;; Internal auto-newline/hungry-delete designation string for mode line.
+(defvar c-auto-hungry-string nil)
+(make-variable-buffer-local 'c-auto-hungry-string)
+
+;; Non-nil means K&R style argument declarations are valid.
+(defvar c-recognize-knr-p t)
+(make-variable-buffer-local 'c-recognize-knr-p)
 
 
-(provide 'cc-langs)
+(cc-provide 'cc-langs)
 ;;; cc-langs.el ends here

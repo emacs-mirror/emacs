@@ -1,6 +1,6 @@
 ;;; cc-compat.el --- cc-mode compatibility with c-mode.el confusion
 
-;; Copyright (C) 1985,87,92,93,94,95,96,97,98,99,2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2001 Free Software Foundation, Inc.
 
 ;; Authors:    2000- Martin Stjernholm
 ;;	       1998-1999 Barry A. Warsaw and Martin Stjernholm
@@ -23,8 +23,8 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; along with this program; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
@@ -38,19 +38,25 @@
 ;;
 ;; (require 'cc-compat)
 ;; (c-set-style "BOCM")
+;;
+;; This file is completely unsupported!  Although it has been patched
+;; superficially to keep pace with the rest of CC Mode, it hasn't been
+;; tested for a long time.
 
 ;;; Code:
 
 (eval-when-compile
   (let ((load-path
-	 (if (and (boundp 'byte-compile-current-file)
-		  (stringp byte-compile-current-file))
-	     (cons (file-name-directory byte-compile-current-file)
-		   load-path)
+	 (if (and (boundp 'byte-compile-dest-file)
+		  (stringp byte-compile-dest-file))
+	     (cons (file-name-directory byte-compile-dest-file) load-path)
 	   load-path)))
-    (load "cc-defs" nil t)))
-(require 'cc-styles)
-(require 'cc-engine)
+    (require 'cc-bytecomp)))
+
+(cc-require 'cc-defs)
+(cc-require 'cc-vars)
+(cc-require 'cc-styles)
+(cc-require 'cc-engine)
 
 
 ;; In case c-mode.el isn't loaded
@@ -154,5 +160,5 @@ This is in addition to c-continued-statement-offset.")
   (+ c-continued-statement-offset c-continued-brace-offset))
 
 
-(provide 'cc-compat)
+(cc-provide 'cc-compat)
 ;;; cc-compat.el ends here

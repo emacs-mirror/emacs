@@ -1,6 +1,6 @@
 ;;; cc-styles.el --- support for styles in CC Mode
 
-;; Copyright (C) 1985,87,92,93,94,95,96,97,98,99,2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2001 Free Software Foundation, Inc.
 
 ;; Authors:    2000- Martin Stjernholm
 ;;	       1998-1999 Barry A. Warsaw and Martin Stjernholm
@@ -25,20 +25,20 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; along with this program; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
 (eval-when-compile
   (let ((load-path
-	 (if (and (boundp 'byte-compile-current-file)
-		  (stringp byte-compile-current-file))
-	     (cons (file-name-directory byte-compile-current-file)
-		   load-path)
+	 (if (and (boundp 'byte-compile-dest-file)
+		  (stringp byte-compile-dest-file))
+	     (cons (file-name-directory byte-compile-dest-file) load-path)
 	   load-path)))
-    (load "cc-defs" nil t)))
-(require 'cc-vars)
+    (require 'cc-bytecomp)))
 
+(cc-require 'cc-defs)
+(cc-require 'cc-vars)
 
 
 ;; Warning: don't eval-defun this constant or you'll break style inheritance.
@@ -340,61 +340,6 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
 
 
 
-(defun c-evaluate-offset (offset langelem symbol)
-  ;; offset can be a number, a function, a variable, a list, or one of
-  ;; the symbols + or -
-  (cond
-   ((eq offset '+)         (setq offset c-basic-offset))
-   ((eq offset '-)         (setq offset (- c-basic-offset)))
-   ((eq offset '++)        (setq offset (* 2 c-basic-offset)))
-   ((eq offset '--)        (setq offset (* 2 (- c-basic-offset))))
-   ((eq offset '*)         (setq offset (/ c-basic-offset 2)))
-   ((eq offset '/)         (setq offset (/ (- c-basic-offset) 2)))
-   ((functionp offset)     (setq offset (funcall offset langelem)))
-   ((listp offset)
-    (setq offset
-	  (let (done)
-	    (while (and (not done) offset)
-	      (setq done (c-evaluate-offset (car offset) langelem symbol)
-		    offset (cdr offset)))
-	    (if (not done)
-		(if c-strict-syntax-p
-		    (error "No offset found for syntactic symbol %s" symbol)
-		  0)
-	      done))))
-   ((not (numberp offset)) (setq offset (symbol-value offset)))
-   )
-  offset)
-
-(defun c-get-offset (langelem)
-  ;; Get offset from LANGELEM which is a cons cell of the form:
-  ;; (SYMBOL . RELPOS).  The symbol is matched against
-  ;; c-offsets-alist and the offset found there is either returned,
-  ;; or added to the indentation at RELPOS.  If RELPOS is nil, then
-  ;; the offset is simply returned.
-  (let* ((symbol (car langelem))
-	 (relpos (cdr langelem))
-	 (match  (assq symbol c-offsets-alist))
-	 (offset (cdr-safe match)))
-    (if (not match)
-	(if c-strict-syntax-p
-	    (error "No offset found for syntactic symbol %s" symbol)
-	  (setq offset 0
-		relpos 0))
-      (setq offset (c-evaluate-offset offset langelem symbol)))
-    (+ (if (and relpos
-		(< relpos (c-point 'bol)))
-	   (save-excursion
-	     (goto-char relpos)
-	     (current-column))
-	 0)
-       (or (and (numberp offset) offset)
-	   (and (symbolp offset) (symbol-value offset))
-	   0))
-    ))
-
-
-
 (defvar c-read-offset-history nil)
 
 (defun c-read-offset (langelem)
@@ -405,7 +350,7 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
 						    'c-stylevar-fallback)))))
 	 (symname (symbol-name langelem))
 	 (defstr  (format "(default %s): " oldoff))
-	 (errmsg  (concat "Offset must be int, func, var, list, "
+	 (errmsg  (concat "Offset must be int, func, var, vector, list, "
 			  "or [+,-,++,--,*,/] "
 			  defstr))
 	 (prompt (concat symname " offset " defstr))
@@ -425,11 +370,14 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
 			 ;; a symbol with a function binding
 			 ((fboundp (setq interned (intern input)))
 			  interned)
-			 ;; a lambda function
-			 ((c-safe (functionp (setq raw (read input))))
-			  raw)
 			 ;; a symbol with variable binding
 			 ((boundp interned) interned)
+			 ;; a lambda function or a vector
+			 ((progn
+			    (c-safe (setq raw (read input)))
+			    (or (functionp raw)
+				(vectorp raw)))
+			  raw)
 			 ;; error, but don't signal one, keep trying
 			 ;; to read an input value
 			 (t (ding)
@@ -466,7 +414,8 @@ and exists only for compatibility reasons."
      (list langelem offset current-prefix-arg)))
   ;; sanity check offset
   (unless (c-valid-offset offset)
-    (error "Offset must be int, func, var, list, or in [+,-,++,--,*,/]: %s"
+    (error (concat "Offset must be int, func, var, vector, list, "
+		   "or in [+,-,++,--,*,/]: %s")
 	   offset))
   (let ((entry (assq symbol c-offsets-alist)))
     (if entry
@@ -485,7 +434,7 @@ and exists only for compatibility reasons."
   ;; style.  Only do this once!
   (unless (get 'c-initialize-builtin-style 'is-run)
     (put 'c-initialize-builtin-style 'is-run t)
-    (c-initialize-cc-mode)
+    ;;(c-initialize-cc-mode)
     (or (assoc "cc-mode" c-style-alist)
 	(assoc "user" c-style-alist)
 	(progn
@@ -550,5 +499,5 @@ instead of `make-variable-buffer-local'."
 
 
 
-(provide 'cc-styles)
+(cc-provide 'cc-styles)
 ;;; cc-styles.el ends here
