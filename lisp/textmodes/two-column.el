@@ -128,7 +128,7 @@
 ;; An^stata^u tri `autoload' kaj tri  |  Instead  of  three  `autoload' and
 ;; `global-set-key'  vi povas uzi la  |  three `global-set-key' you can use
 ;; jenon en via dataro ~/.emacs, por  |  the    following   in  your   file
-;; memstare ^car^gi la modalon:	      |  ~/.emacs,  to  automatically  load
+;; memstare ^sar^gi la modalon:	      |  ~/.emacs,  to  automatically  load
 ;;				      |  the mode:
 
 ;;	(global-set-key "\C-x6"
