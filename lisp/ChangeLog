@@ -1,3 +1,14 @@
+2005-03-18  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (lazy-highlight-cleanup) <command>: Rename from
+	`isearch-lazy-highlight-cleanup', add alias to old name and
+	declare obsolete.  Add release numbers to other obsolete vars.
+	(isearch-done, isearch-lazy-highlight-new-loop): Rename
+	`isearch-lazy-highlight-cleanup' to `lazy-highlight-cleanup'.
+	(lazy-highlight-cleanup) <variable>: Doc fix.
+	(isearch-lazy-highlight-update): Rename obsolete
+	`isearch-lazy-highlight-face' to `lazy-highlight-face'.
+
 2005-03-18  handa  <handa@m17n.org>
 
 	* language/thai-util.el: Fix categorization of Thai characters in
