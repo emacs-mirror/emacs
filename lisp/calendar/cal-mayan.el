@@ -1,6 +1,6 @@
 ;;; cal-mayan.el --- calendar functions for the Mayan calendars.
 
-;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1995 Free Software Foundation, Inc.
 
 ;; Author: Stewart M. Clamen <clamen@cs.cmu.edu>
 ;;	Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -51,10 +51,6 @@
 ;;; Code:
 
 (require 'calendar)
-
-(defun mayan-adjusted-mod (m n)
-  "Non-negative remainder of M/N with N instead of 0."
-  (1+ (mod (1- m) n)))
 
 (defconst calendar-mayan-days-before-absolute-zero 1137140
   "Number of days of the Mayan calendar epoch before absolute day 0.
@@ -175,10 +171,10 @@ Echo Mayan date if NOECHO is t."
 (defun calendar-mayan-tzolkin-from-absolute (date)
   "Convert absolute DATE into a Mayan tzolkin date (a pair)."
   (let* ((long-count (+ date calendar-mayan-days-before-absolute-zero))
-         (day (mayan-adjusted-mod
+         (day (calendar-mod
                (+ long-count (car calendar-mayan-tzolkin-at-epoch))
                13))
-         (name (mayan-adjusted-mod
+         (name (calendar-mod
                 (+ long-count (cdr calendar-mayan-tzolkin-at-epoch))
                 20)))
     (cons day name)))

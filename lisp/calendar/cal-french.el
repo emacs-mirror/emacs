@@ -1,6 +1,6 @@
 ;;; cal-french.el --- calendar functions for the French Revolutionary calendar.
 
-;; Copyright (C) 1988, 1989, 1992, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1989, 1992, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
@@ -43,6 +43,9 @@
 
 (require 'calendar)
 
+(defconst french-calendar-epoch (calendar-absolute-from-gregorian '(9 22 1792))
+  "Absolute date of start of French Revolutionary calendar = September 22, 1792.")
+
 (defconst french-calendar-month-name-array
   ["Vende'miaire" "Brumaire" "Frimaire" "Nivo^se" "Pluvio^se" "Vento^se"
    "Germinal" "Flore'al" "Prairial" "Messidor" "Thermidor" "Fructidor"])
@@ -52,8 +55,8 @@
    "Octidi" "Nonidi" "Decadi"])
 
 (defconst french-calendar-special-days-array
-  ["de la Vertu" "du Genie" "du Labour" "de la Raison" "de la Recompense"
-   "de la Revolution"])
+  ["de la Vertu" "du Genie" "du Labour" "de la Raison" "de la Re'compense"
+   "de la Re'volution"])
 
 (defun french-calendar-leap-year-p (year)
   "True if YEAR is a leap year on the French Revolutionary calendar.
@@ -98,16 +101,17 @@ Gregorian date Sunday, December 31, 1 BC."
             (- (/ (1- year) 4000))))
        (* 30 (1- month));; Days in prior months this year
        day;; Days so far this month
-       654414)));; Days before start of calendar (September 22, 1792).
+       (1- french-calendar-epoch))));; Days before start of calendar
 
 (defun calendar-french-from-absolute (date)
   "Compute the French Revolutionary equivalent for absolute date DATE.
 The result is a list of the form (MONTH DAY YEAR).
 The absolute date is the number of days elapsed since the
 \(imaginary) Gregorian date Sunday, December 31, 1 BC."
-  (if (< date 654415)
+  (if (< date french-calendar-epoch)
       (list 0 0 0);; pre-French Revolutionary date
-    (let* ((approx (/ (- date 654414) 366));; Approximation from below.
+    (let* ((approx              ;; Approximation from below.
+            (/ (- date french-calendar-epoch) 366))
            (year                ;; Search forward from the approximation.
             (+ approx
                (calendar-sum y approx
@@ -138,10 +142,10 @@ Defaults to today's date if DATE is not given."
          (d (extract-calendar-day french-date)))
     (cond
      ((< y 1) "")
-     ((= m 13) (format "Jour %s de l'Anne'e %d de la Revolution"
+     ((= m 13) (format "Jour %s de l'Anne'e %d de la Re'volution"
                        (aref french-calendar-special-days-array (1- d))
                        y))
-     (t (format "Decade %s, %s de %s de l'Anne'e %d de la Revolution"
+     (t (format "De'cade %s, %s de %s de l'Anne'e %d de la Re'volution"
                 (make-string (1+ (/ (1- d) 10)) ?I)
                 (aref french-calendar-day-name-array (% (1- d) 10))
                 (aref french-calendar-month-name-array (1- m))
@@ -160,7 +164,7 @@ Defaults to today's date if DATE is not given."
 Echo French Revolutionary date unless NOECHO is t."
   (interactive
    (let* ((year (calendar-read
-                 "Anne'e de la Revolution (>0): "
+                 "Anne'e de la Re'volution (>0): "
                  '(lambda (x) (> x 0))
                  (int-to-string
                   (extract-calendar-year
@@ -174,9 +178,9 @@ Echo French Revolutionary date unless NOECHO is t."
                                (mapcar
                                 '(lambda (x) (concat "Jour " x))
                                 french-calendar-special-days-array)
-                             (nreverse
+                             (reverse
                               (cdr;; we don't want rev. day in a non-leap yr.
-                               (nreverse
+                               (reverse
                                 (mapcar
                                  '(lambda (x) (concat "Jour " x))
                                  french-calendar-special-days-array))))))))
