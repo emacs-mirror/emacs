@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/03/21 05:50:17 $|$Revision: 1.27 $
+;; |$Date: 1993/03/30 19:38:34 $|$Revision: 1.28 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -92,8 +92,11 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch.el,v 1.27 1993/03/21 05:50:17 jimb Exp rms $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch.el,v 1.28 1993/03/30 19:38:34 rms Exp rms $
 ;;; $Log: isearch.el,v $
+; Revision 1.28  1993/03/30  19:38:34  rms
+; (isearch-mode-map): Delete the binding for C-h.
+;
 ; Revision 1.27  1993/03/21  05:50:17  jimb
 ; 	* isearch.el (isearch-switch-frame-handler): Call
 ; 	handle-switch-frame instead of select-frame; it has been renamed.
@@ -660,7 +663,10 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
     ;; If there was movement, mark the starting position.
     ;; Maybe should test difference between and set mark iff > threshold.
     (if (/= (point) isearch-opoint)
-	(push-mark isearch-opoint)
+	(progn
+	  (push-mark isearch-opoint t)
+	  (or executing-macro (> (minibuffer-depth) 0)
+	      (message "Mark saved where search started")))
       ;; (message "") why is this needed?
       )
     (if isearch-small-window
