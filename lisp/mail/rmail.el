@@ -139,9 +139,9 @@ plus whatever is specified by `rmail-default-dont-reply-to-names'."
   :group 'rmail-reply)
 
 ;;;###autoload
-(defvar rmail-default-dont-reply-to-names "info-" "\
-A regular expression specifying part of the value of the default value of
-the variable `rmail-dont-reply-to-names', for when the user does not set
+(defvar rmail-default-dont-reply-to-names "\\`info-" "\
+A regular expression specifying part of the default value of the
+variable `rmail-dont-reply-to-names', for when the user does not set
 `rmail-dont-reply-to-names' explicitly.  (The other part of the default
 value is the user's email address and name.)
 It is useful to set this variable in the site customization file.")
