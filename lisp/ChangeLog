@@ -1,11 +1,22 @@
+2001-07-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/tcl.el (tcl-fill-mode-map): Use tcl-indent-exp.
+	(tcl-mode): Use tcl-add-log-defun.
+	(tcl-indent-line): Use tcl-calculate-indent.
+	(tcl-calculate-indent): Renamed from calculate-tcl-indent.
+	(tcl-indent-exp): Renamed from indent-tcl-exp.
+	(tcl-add-log-defun): Renamed from add-log-tcl-defun.
+	(tcl-indent-for-comment): Call comment-indent-function properly
+	and handle the case where it returns nil.
+
 2001-07-16  Gerd Moellmann  <gerd@gnu.org>
 
-	* calendar/cal-islam.el (calendar-goto-islamic-date): Remove
-	autoload cookie.
+	* calendar/cal-islam.el (calendar-goto-islamic-date):
+	Remove autoload cookie.
 
-	* calendar/calendar.el (calendar-goto-islamic-date): Add
-	call to autoload.
-	
+	* calendar/calendar.el (calendar-goto-islamic-date):
+	Add call to autoload.
+
 2001-07-16  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/ada-mode.el (ada-mode): Avoid unneeded version checks.
