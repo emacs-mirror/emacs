@@ -138,7 +138,10 @@
 	    (:constructor ewoc--node-create (start-marker data)))
   left right data start-marker)
 
-(defalias 'ewoc--node-branch 'aref)
+(defalias 'ewoc--node-branch 'aref
+  "Get the left (CHILD=0) or right (CHILD=1) child of the NODE.
+
+\(fn NODE CHILD)")
 
 (defun ewoc--dll-create ()
   "Create an empty doubly linked list."
