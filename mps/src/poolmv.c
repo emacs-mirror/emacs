@@ -1,13 +1,13 @@
 /*  ==== MANUAL VARIABLE POOL ====
  *
- *  $HopeName$
+ *  $HopeName: MMsrc/!poolmv.c(trunk.1)$
  *
  *  Copyright (C) 1994, 1995 Harlequin Group, all rights reserved
  *
  *  **** RESTRICTION: This pool may not allocate from the arena control
- *                    pool, since it is used to implement that pool.  It may
- *                    call PoolCreate, which allocates from the poolPool, or
- *                    SegCreate, which allocates from the segPool.
+ *                    pool, since it is used to implement that pool.
+ *                    It may call PoolCreate, which allocates from the
+ *                    poolPool.
  *
  *  An observation: Freeing memory introduces more information
  *  into the system than allocating it.  This causes the problem described
@@ -35,7 +35,7 @@
  
 #include "std.h"
 #include "lib.h"
-#include "arena.h"
+#include "poolar.h"
 #include "pool.h"
 #include "poolst.h"
 #include "poolmv.h"
@@ -73,9 +73,10 @@ PoolClass PoolClassMV(void)
 
 /*  == Block descriptor ==
  *
- *  The pool maintains a descriptor structure for each contiguous allocated
- *  block of memory it manages.  The descriptor is on a simple linked-list
- *  of such descriptors, which is in ascending order of address.
+ *  The pool maintains a descriptor structure for each contiguous
+ *  allocated block of memory it manages.  The descriptor is on a simple
+ *  linked-list of such descriptors, which is in ascending order of
+ *  address.
  */
 
 typedef struct BlockStruct
@@ -102,17 +103,17 @@ static Bool BlockIsValid(Block block, ValidationType validParam)
 
 /*  == Span descriptor ==
  *
- *  The pool maintains a wrapper for each allocated segment which contains a
- *  chain of descriptors for the allocated memory in that segment.  It also
- *  contains sentinel block descriptors which mark the start and end of the
- *  span.  These blocks considerably simplify allocation, and may be
- *  zero-sized.
+ *  The pool maintains a wrapper for each allocated segment which
+ *  contains a chain of descriptors for the allocated memory in that
+ *  segment.  It also contains sentinel block descriptors which mark the
+ *  start and end of the span.  These blocks considerably simplify
+ *  allocation, and may be zero-sized.
  */
 
 typedef struct SpanStruct
 {
   struct SpanStruct *next;
-  SegStruct segStruct;		/* segment underlying the span */
+  Addr seg;		        /* segment underlying the span */
   BlockStruct base;		/* sentinel at base of span */
   BlockStruct limit;		/* sentinel at limit of span */
   Block blocks;			/* allocated blocks */
@@ -126,7 +127,7 @@ typedef struct SpanStruct
 static Bool SpanIsValid(Span span, ValidationType validParam)
 {
   AVER(span != NULL);
-  AVER(ISVALIDNESTED(Seg, &span->segStruct));
+  /* seg */
   AVER(ISVALIDNESTED(Block, &span->base));
   AVER(ISVALIDNESTED(Block, &span->limit));
 
@@ -140,8 +141,13 @@ static Bool SpanIsValid(Span span, ValidationType validParam)
   /* This is just defined this way.  It shouldn't change. */
   AVER(span->limit.next == NULL);
   /* The sentinels should mark the ends of the segment. */
-  AVER(span->base.base == SegBase(&span->segStruct));
-  AVER(span->limit.limit == SegLimit(&span->segStruct));
+  AVER(span->base.base == span->seg);
+  /* we used to be able to find out where the end of a seg was.
+   * Now we need the arena as well, and we can't get that from
+   * the span */
+/*
+  AVER(span->limit.limit == span->seg + ArenaSegSize(arena, span->seg));
+*/
   /* The sentinels mustn't overlap. */
   AVER(span->base.limit <= span->limit.base);
   /* The remaining space can't be more than the gap between the sentinels. */
@@ -181,7 +187,8 @@ Pool PoolMVPool(PoolMV poolMV)
 }
 
 
-Error PoolMVCreate(PoolMV *poolMVReturn, Space space, size_t extendBy, size_t avgSize, size_t maxSize)
+Error PoolMVCreate(PoolMV *poolMVReturn, Space space,
+                   size_t extendBy, size_t avgSize, size_t maxSize)
 {
   Error e;
   PoolMV poolMV;
@@ -240,7 +247,8 @@ static void destroy(Pool pool)
 }
 
 
-Error PoolMVInit(PoolMV poolMV, Space space, size_t extendBy, size_t avgSize, size_t maxSize)
+Error PoolMVInit(PoolMV poolMV, Space space, size_t extendBy,
+                 size_t avgSize, size_t maxSize)
 {
   Error e;
   size_t blockExtendBy, spanExtendBy;
@@ -283,23 +291,23 @@ Error PoolMVInit(PoolMV poolMV, Space space, size_t extendBy, size_t avgSize, si
 
 void PoolMVFinish(PoolMV poolMV)
 {
-  DequeNode node;
+  Span span;
+  Pool arpool;
 
   AVER(ISVALID(PoolMV, poolMV));
+
+  arpool = PoolArenaPool(SpaceArena(PoolSpace(PoolMVPool(poolMV))));
 
   /* Destroy all the segments attached to the pool. */
   /* ***** Isn't this the wrong thing to do? */
 
-  node = DequeFirst(PoolSegDeque(PoolMVPool(poolMV)));
-  while(node != DequeSentinel(PoolSegDeque(PoolMVPool(poolMV))))
-  {
-    DequeNode next = DequeNodeNext(node);
-    Seg seg = DEQUENODEELEMENT(Seg, poolDeque, node);
+  span = poolMV->spans;
+  while(span != NULL) {
 
-    DequeNodeRemove(node);
-    SegFinish(seg);
-
-    node = next;
+    AVER(ISVALID(Span, span));
+    PoolFreeP(arpool, (void *)span->seg,
+              (size_t)(span->limit.limit - span->base.base));
+    span = span->next;
   }
 
   PoolFinish(&poolMV->poolStruct);
@@ -315,7 +323,8 @@ void PoolMVFinish(PoolMV poolMV)
  *  to it, and returns TRUE.
  */
 
-static Bool SpanAlloc(Addr *addrReturn, Span span, Addr size, Pool blockPool)
+static Bool SpanAlloc(Addr *addrReturn, Span span, Addr size,
+                      Pool blockPool)
 {
   Addr gap;
   Block block;
@@ -471,9 +480,10 @@ static Error SpanFree(Span span, Addr base, Addr limit, Pool blockPool)
 static Error allocP(void **pReturn, Pool pool, size_t size)
 {
   Error e;
-  size_t segSize;
+  Arena arena;
   Span span;
   PoolMV poolMV;
+  size_t segSize;
 
   AVER(pReturn != NULL);
   AVER(ISVALID(Pool, pool));
@@ -507,10 +517,11 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
     }
   }
 
-  /* There is no block large enough in any of the spans, so extend the pool */
-  /* with a new segment which will hold the requested allocation. */
-  /* Allocate a new span descriptor and initialize it to point at the */
-  /* segment. */
+/*  There is no block large enough in any of the spans, so extend the
+ *  pool with a new segment which will hold the requested allocation.
+ *  Allocate a new span descriptor and initialize it to point at the
+ *  segment.
+ */
 
   e = PoolAllocP((void **)&span, SPANPOOL(poolMV), sizeof(SpanStruct));
   if(e != ErrSUCCESS) return(e);
@@ -520,26 +531,22 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
   else
     segSize = size;
 
-  e = SegInit(&span->segStruct, SpaceArena(PoolSpace(pool)), segSize);
+  arena = SpaceArena(PoolSpace(pool));
+  segSize = AlignUp(ArenaGrain(arena), segSize);
+
+  e = PoolSegCreate(&span->seg, pool, segSize);
   if(e != ErrSUCCESS)
   {
     PoolFreeP(SPANPOOL(poolMV), span, sizeof(SpanStruct));
     return(e);
   }
+  ArenaPut(arena, span->seg, 1, (void *)span);
 
-  e = SegExtend(&span->segStruct, segSize);
-  if(e != ErrSUCCESS)
-  {
-    SegFinish(&span->segStruct);
-    PoolFreeP(SPANPOOL(poolMV), span, sizeof(SpanStruct));
-    return(e);
-  }
-
-  DequeAppend(&pool->segDeque, &span->segStruct.poolDeque);
 
   span->next = poolMV->spans;
-  span->base.base = span->base.limit = SegBase(&span->segStruct);
-  span->limit.base = span->limit.limit = SegLimit(&span->segStruct);
+  span->base.base = span->base.limit = span->seg;
+  span->limit.base =
+    span->limit.limit = span->seg + ArenaSegSize(arena, span->seg);
   span->space = span->limit.base - span->base.limit;
   span->limit.next = NULL;
   span->base.next = &span->limit;
@@ -562,16 +569,19 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
 static void freeP(Pool pool, void *old, size_t size)
 {
   Addr base, limit;
+  Arena arena;
   Span span;
   PoolMV poolMV;
   Bool b;
   Error e;
-  Seg seg;
+  Addr seg;
 
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassMVStruct);
   AVER(old != NULL);
   AVER(size > 0);
+
+  arena = SpaceArena(PoolSpace(pool));
 
   poolMV = PARENT(PoolMVStruct, poolStruct, pool);
   size = AlignUp(pool->alignment, size);
@@ -581,10 +591,10 @@ static void freeP(Pool pool, void *old, size_t size)
   /* Map the pointer onto the segment which contains it, and thence */
   /* onto the span. */
 
-  b = SegOfAddr(&seg, SpaceArena(PoolSpace(pool)), base);
+  b = ArenaSegBase(&seg, SpaceArena(PoolSpace(pool)), base);
   AVER(b == TRUE);
-  AVER(PoolOfSeg(seg) == pool);
-  span = PARENT(SpanStruct, segStruct, seg);
+  AVER(PoolOfSeg(arena, seg) == pool);
+  span = ArenaGet(arena, seg, 1);
   AVER(ISVALID(Span, span));
   
   /* the to be freed area should be within the span just found */
@@ -636,7 +646,7 @@ static Error describe(Pool pool, LibStream stream)
 
     LibFormat(stream, "  %8lX %8lX %8lX %d\n",
       (unsigned long)span,
-      (unsigned long)&span->segStruct,
+      (unsigned long)span->seg,
       span->space, span->blockCount);
 
     span = span->next;
