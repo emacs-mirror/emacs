@@ -406,6 +406,12 @@ Point is moved to just past the fill prefix on the first line."
 	(goto-char (match-end 0)))
     (setq from (point))))
 
+;; The `fill-space' property carries the string with which a newline
+;; should be replaced when unbreaking a line (in fill-delete-newlines).
+;; It is added to newline characters by fill-newline when the default
+;; behavior of fill-delete-newlines is not what we want.
+(add-to-list 'text-property-default-nonsticky '(fill-space . t))
+
 (defun fill-delete-newlines (from to justify nosqueeze squeeze-after)
   (goto-char from)
   ;; Make sure sentences ending at end of line get an extra space.
@@ -434,15 +440,17 @@ Point is moved to just past the fill prefix on the first line."
       ;; character preceding a newline has text property
       ;; `nospace-between-words'.
       (while (search-forward "\n" to t)
-	(let ((prev (char-before (match-beginning 0)))
-	      (next (following-char)))
-	  (if (and (or (aref (char-category-set next) ?|)
-		       (aref (char-category-set prev) ?|))
-		   (or (get-charset-property (char-charset prev)
-					     'nospace-between-words)
-		       (get-text-property (1- (match-beginning 0))
-					  'nospace-between-words)))
-	      (delete-char -1)))))
+	(if (get-text-property (match-beginning 0) 'fill-space)
+	    (replace-match (get-text-property (match-beginning 0) 'fill-space))
+	  (let ((prev (char-before (match-beginning 0)))
+		(next (following-char)))
+	    (if (and (or (aref (char-category-set next) ?|)
+			 (aref (char-category-set prev) ?|))
+		     (or (get-charset-property (char-charset prev)
+					       'nospace-between-words)
+			 (get-text-property (1- (match-beginning 0))
+					    'nospace-between-words)))
+		(delete-char -1))))))
 
   (goto-char from)
   (skip-chars-forward " \t")
@@ -520,19 +528,17 @@ The break position will be always after LINEBEG and generally before point."
   ;; Replace whitespace here with one newline, then
   ;; indent to left margin.
   (skip-chars-backward " \t")
-  (if (and (= (following-char) ?\ )
-	   (or (aref (char-category-set (preceding-char)) ?|)
-	       (looking-at "[ \t]+\\c|")))
-      ;; We need one space at end of line so that
-      ;; further filling won't delete it.  NOTE: We
-      ;; intentionally leave this one space to
-      ;; distinguish the case that user wants to put
-      ;; space between \c| characters.
-      (forward-char 1))
   (insert ?\n)
   ;; Give newline the properties of the space(s) it replaces
   (set-text-properties (1- (point)) (point)
 		       (text-properties-at (point)))
+  (and (looking-at "\\( [ \t]*\\)\\(\\c|\\)?")
+       (or (aref (char-category-set (or (char-before (1- (point))) ?\000)) ?|)
+	   (match-end 2))
+       ;; When refilling later on, this newline would normally not be replaced
+       ;; by a space, so we need to mark it specially to re-install the space
+       ;; when we unfill.
+       (put-text-property (1- (point)) (point) 'fill-space (match-string 1)))
   ;; If we don't want breaks in invisible text, don't insert
   ;; an invisible newline.
   (if fill-nobreak-invisible
