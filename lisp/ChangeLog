@@ -1,8 +1,12 @@
+2001-11-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* font-lock.el (font-lock-match-c-style-declaration-item-and-skip-to-next):
+	Also work when LIMIT is further than the end of line.
+
 2001-11-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/quail.el (quail-update-leim-list-file): Print the
-	offending file name if some of its quail-define-package forms is
-	broken.
+	offending file name if some of its quail-define-package forms is broken.
 
 2001-11-05  Richard M. Stallman  <rms@gnu.org>
 
@@ -18,8 +22,8 @@
 
 2001-11-05  Andrew Innes  <andrewi@gnu.org>
 
-	* makefile.w32-in (bootstrap-clean-CMD, bootstrap-clean-SH): Don't
-	attempt to remake autoloads before nuking .elc files.
+	* makefile.w32-in (bootstrap-clean-CMD, bootstrap-clean-SH):
+	Don't attempt to remake autoloads before nuking .elc files.
 
 2001-11-04  Richard M. Stallman  <rms@gnu.org>
 
@@ -27,7 +31,7 @@
 	previous-single-property-change or next-single-char-property-change
 	returns nil.
 
-	* international/mule-cmds.el (set-locale-environment): 
+	* international/mule-cmds.el (set-locale-environment):
 	Make it interactive; make arg optional.
 
 	* international/mule-diag.el (help-funs): Require help-funs.
@@ -39,8 +43,7 @@
 2001-11-04  Miles Bader  <miles@gnu.org>
 
 	* startup.el (fancy-splash-head): Reapply Gerd's hack to make the
-	shadow of the splash image grey on a dark background instead of
-	black.
+	shadow of the splash image grey on a dark background instead of black.
 
 2001-11-03  Stefan Monnier  <monnier@cs.yale.edu>
 
