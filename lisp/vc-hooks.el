@@ -137,7 +137,8 @@ visiting FILE."
 (defun vc-find-file-hook ()
   ;; Recompute whether file is version controlled,
   ;; if user has killed the buffer and revisited.
-  (vc-file-setprop buffer-file-name 'vc-backend nil)
+  (if buffer-file-name
+      (vc-file-setprop buffer-file-name 'vc-backend nil))
   (if (and (vc-mode-line buffer-file-name) (not vc-make-backup-files))
       (progn
 	(make-local-variable 'make-backup-files)
