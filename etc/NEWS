@@ -82,6 +82,9 @@ SQL buffer.
 
 * Lisp Changes in Emacs 21.2
 
+** The variable `compilation-parse-errors-filename-function' can
+be used to transform filenames found in compilation output.
+
 +++
 ** Functions `file-name-sans-extension' and `file-name-extension' now
 ignore the leading dots in file names, so that file names such as
