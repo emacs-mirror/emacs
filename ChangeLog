@@ -1,3 +1,9 @@
+2001-03-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (.PHONY): Add for bootstrap targets.
+	(bootstrap-clean): New target.
+	(bootstrap): Use it instead of `clean'.
+
 2001-03-29  Eli Zaretskii  <a34785@is.elta.co.il>
 
 	* Makefile.in (SUBDIR): Remove leim.

@@ -1,3 +1,7 @@
+2001-03-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* gnus.el (gnus-interactive): Fix parenthesis errors.
+
 2001-03-17  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* message.el (rmail-output): It is in rmailout.el not rmail.el.

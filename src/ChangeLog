@@ -1,5 +1,7 @@
 2001-03-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (reseat_to_string): Undo last change.
+
 	* dispnew.c (adjust_glyph_matrix): Don't try to reuse the current
 	matrix of a window when the header line changes, when
 	new rows are allocated, or when the width changes.
