@@ -518,6 +518,7 @@ and use this command with a prefix argument (the value does not matter)."
     ;; For .z, try gunzip.  It might be an old gzip file,
     ;; or it might be from compact? pack? (which?) but gunzip handles both.
     ("\\.z\\'" "" "gunzip")
+    ("\\.bz2\\'" "" "bunzip2")
     ;; This item controls naming for compression.
     ("\\.tar\\'" ".tgz" nil))
   "Control changes in file name suffixes for compression and uncompression.
