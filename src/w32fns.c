@@ -2153,35 +2153,41 @@ x_set_mouse_color (f, arg, oldval)
 #endif /* TODO */
 }
 
+/* Defined in w32term.c. */
+void x_update_cursor (struct frame *f, int on_p);
+
 void
 x_set_cursor_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  unsigned long fore_pixel;
+  unsigned long fore_pixel, pixel;
 
   if (!NILP (Vx_cursor_fore_pixel))
     fore_pixel = x_decode_color (f, Vx_cursor_fore_pixel,
-				 WHITE_PIX_DEFAULT (f));
+                                 WHITE_PIX_DEFAULT (f));
   else
     fore_pixel = FRAME_BACKGROUND_PIXEL (f);
-  f->output_data.w32->cursor_pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+
+  pixel = x_decode_color (f, arg, BLACK_PIXEL_DEFAULT (f));
   
   /* Make sure that the cursor color differs from the background color.  */
-  if (f->output_data.w32->cursor_pixel == FRAME_BACKGROUND_PIXEL (f))
+  if (pixel == FRAME_BACKGROUND_PIXEL (f))
     {
-      f->output_data.w32->cursor_pixel = f->output_data.w32->mouse_pixel;
-      if (f->output_data.w32->cursor_pixel == fore_pixel)
+      pixel = f->output_data.w32->mouse_pixel;
+      if (pixel == fore_pixel)
 	fore_pixel = FRAME_BACKGROUND_PIXEL (f);
     }
+
   FRAME_FOREGROUND_PIXEL (f) = fore_pixel;
+  f->output_data.w32->cursor_pixel = pixel;
 
   if (FRAME_W32_WINDOW (f) != 0)
     {
       if (FRAME_VISIBLE_P (f))
 	{
-	  x_display_cursor (f, 0);
-	  x_display_cursor (f, 1);
+	  x_update_cursor (f, 0);
+	  x_update_cursor (f, 1);
 	}
     }
 
