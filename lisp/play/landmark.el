@@ -1610,8 +1610,11 @@ If the game is finished, this command requests for another game."
 
 ;;;_ + lm-test-run ()
 
+;;;###autoload
+(defalias 'landmark-repeat 'lm-test-run)
+;;;###autoload
 (defun lm-test-run ()
-
+  "Run 100 Lm games, each time saving the weights from the previous game."
   (interactive)
 
   (lm 1)
@@ -1623,8 +1626,11 @@ If the game is finished, this command requests for another game."
 
 ;;;_ + lm: The function you invoke to play
 
+;;;###autoload
+(defalias 'landmark 'lm)
+;;;###autoload
 (defun lm (parg)
-  "Start an Lm game.
+  "Start or resume an Lm game.
 If a game is in progress, this command allows you to resume it.
 Here is the relation between prefix args and game options:
 
@@ -1635,7 +1641,8 @@ none / 1   | yes                   | no
        3   | no                    | yes
        4   | no                    | no
 
-You start by moving to a square and typing \\[lm-start-robot]
+You start by moving to a square and typing \\[lm-start-robot],
+if you did not use a prefix arg to ask for automatic start.
 Use \\[describe-mode] for more info."
   (interactive "p")
 
