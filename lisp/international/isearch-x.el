@@ -50,61 +50,85 @@
   (isearch-update))
 
 (defvar isearch-minibuffer-local-map
-  (let ((map (make-keymap)))
-    (define-key map [t] 'isearch-minibuffer-non-self-insert)
-    (let ((i ?\ ))
-      (while (< i 256)
-	(define-key map (vector i) 'isearch-minibuffer-self-insert)
-	(setq i (1+ i))))
-    (let ((l (generic-character-list))
-	  (table (nth 1 map)))
-      (while l
-	(set-char-table-default table (car l) 'isearch-minibuffer-self-insert)
-	(setq l (cdr l))))
-    (define-key map "\C-m" 'exit-minibuffer)
-    (define-key map [return] 'exit-minibuffer)
-    (define-key map "\C-g" 'exit-minibuffer)
+  (let ((map (copy-keymap minibuffer-local-map)))
+    (define-key map [with-keyboard-coding] 'isearch-with-keyboard-coding)
+    (define-key map [with-input-method] 'isearch-with-input-method)
     map)
-  "Keymap of minibuffer to input multibyte characters while isearching.")
+  "Keymap to use in minibuffer for multibyte character inputting in isearch.")
 
-(defun isearch-minibuffer-non-self-insert ()
+
+;; These two variables are used to refer to the values of
+;; `current-input-method' and `input-method-function' of the original
+;; buffer in the function isearch-with-input-method which runs in a
+;; minibuffer.
+
+(defvar isearch-minibuffer-input-method nil)
+(defvar isearch-minibuffer-input-method-function nil)
+
+;; Exit from recursive edit safely.  Set in `after-change-functions'
+;; by isearch-with-keyboard-coding.
+(defun isearch-exit-recursive-edit ()
   (interactive)
-  (setq unread-command-events (cons last-command-event unread-command-events))
+  (throw 'exit nil))
+
+;; Simulate character decoding by the keyboard coding system in the
+;; current buffer (minibuffer).  As soon as a character is inserted,
+;; it exits from minibuffer.
+
+(defun isearch-with-keyboard-coding ()
+  (interactive)
+  (let ((after-change-functions '(isearch-exit-recursive-edit)))
+    (recursive-edit))
   (exit-minibuffer))
 
-(defun isearch-minibuffer-self-insert ()
+;; Simulate the work of the current input method in the current buffer
+;; (minibuffer).
+
+(defun isearch-with-input-method ()
   (interactive)
-  (let ((events (cons last-command-event unread-post-input-method-events)))
-    (catch 'isearch-tag
-      (while events
-	(let* ((event (car events))
-	       (cmd (key-binding (vector event))))
-	  (cond ((or (eq cmd 'isearch-printing-char)
-		     (eq cmd 'isearch-minibuffer-self-insert))
-		 (insert event)
-		 (setq events (cdr events)))
-		((eq cmd 'exit-minibuffer)
-		 (setq events (cdr events))
-		 (throw 'isearch-tag nil))
-		(t
-		 (throw 'isearch-tag nil))))))
-    (setq unread-post-input-method-events events)
+  (let* ((current-input-method isearch-minibuffer-input-method)
+	 (events (funcall isearch-minibuffer-input-method-function nil)))
+    ;; EVENTS is a list of events the input method has generated.  It
+    ;; contains a character event and/or the special event
+    ;; `compose-last-chars'.  We extract only character events and
+    ;; insert the corresponding characters.
+    (while events
+      (if (integerp (car events)) (insert (car events)))
+      (setq events (cdr events)))
     (exit-minibuffer)))
 
 ;;;###autoload
 (defun isearch-process-search-multibyte-characters (last-char)
   (if (eq this-command 'isearch-printing-char)
       (let ((overriding-terminal-local-map nil)
-	    ;; Let input method work rather tersely.
-	    (input-method-verbose-flag nil)
+	    (prompt (concat (isearch-message-prefix) isearch-message))
 	    (minibuffer-local-map isearch-minibuffer-local-map)
 	    str)
-	(setq unread-command-events
-	      (cons last-char unread-command-events))
-	(setq str (read-multilingual-string
-		   (concat (isearch-message-prefix) isearch-message)
-		   nil
-		   current-input-method))
+	(if isearch-input-method-function
+	    (let (;; Let input method work rather tersely.
+		  (input-method-verbose-flag nil)
+		  (isearch-minibuffer-input-method current-input-method)
+		  (isearch-minibuffer-input-method-function
+		   isearch-input-method-function))
+	      (setq unread-command-events
+		    (cons 'with-input-method
+			  (cons last-char unread-command-events))
+		    str (read-string prompt))
+	      (if (not str)
+		  ;; All inputs were deleted while the input method
+		  ;; was working.
+		  (setq str "")
+		(if (and (= (length str) 1)
+			 (= (aref str 0) last-char))
+		    ;; The input method couldn't handle LAST-CHAR.
+		    (setq str nil)))))
+
+	(if (and (not str) (keyboard-coding-system))
+	    (setq unread-command-events
+		  (cons 'with-keyboard-coding
+			(cons last-char unread-command-events))
+		  str (read-string prompt)))
+
 	(if (and str (> (length str) 0))
 	    (let ((unread-command-events nil))
 	      (isearch-process-search-string str str))
