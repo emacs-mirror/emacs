@@ -65,6 +65,10 @@ extern double logb ();
 # endif
 #endif
 
+#ifndef NO_MATHERR
+#undef HAVE_MATHERR
+#endif
+
 #ifdef HAVE_MATHERR
 # ifdef FLOAT_CHECK_ERRNO
 #  undef FLOAT_CHECK_ERRNO
