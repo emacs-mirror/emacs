@@ -942,16 +942,18 @@ direct_output_forward_char (n)
   /* Don't use direct output next to an invisible character
      since we might need to do something special.  */
 
-  XFASTINT (position) = point + n;
-  if (! NILP (Fget_text_property (position,
-				  Qinvisible,
-				  Fcurrent_buffer ())))
+  XFASTINT (position) = point;
+  if (XFASTINT (position) < ZV
+      && ! NILP (Fget_text_property (position,
+				     Qinvisible,
+				     Fcurrent_buffer ())))
     return;
 
-  XFASTINT (position) = point + n - 1;
-  if (! NILP (Fget_text_property (position,
-				  Qinvisible,
-				  Fcurrent_buffer ())))
+  XFASTINT (position) = point - 1;
+  if (XFASTINT (position) >= BEGV
+      && ! NILP (Fget_text_property (position,
+				     Qinvisible,
+				     Fcurrent_buffer ())))
     return;
 #endif
 
