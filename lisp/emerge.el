@@ -107,11 +107,11 @@ Its arguments are the ancestor file and the two variant files.")
 				 (concat "^" x "\\([acd]\\)" x "$"))
   "*Pattern to match lines produced by diff that describe differences.
 This is as opposed to lines from the source files.")
-(defvar emerge-diff-ok-lines
+(defvar emerge-diff-ok-lines-regexp
   "^\\([0-9,]+[acd][0-9,]+$\\|[<>] \\|---\\)"
   "*Regexp that matches normal output lines from `emerge-diff-program'.
 Lines that do not match are assumed to be error messages.")
-(defvar emerge-diff3-ok-lines
+(defvar emerge-diff3-ok-lines-regexp
   "^\\([1-3]:\\|====\\|  \\)"
   "*Regexp that matches normal output lines from `emerge-diff3-program'.
 Lines that do not match are assumed to be error messages.")
@@ -232,7 +232,7 @@ The template is inserted as a string, with the following interpolations:
 	%%	the character `%'
 Don't forget to end the template with a newline.
 Note that this variable can be made local to a particular merge buffer by
-giving a prefix argument to  emerge-set-combine-versions-template .")
+giving a prefix argument to `emerge-set-combine-versions-template'.")
 
 ;; Build keymaps
 
@@ -261,6 +261,7 @@ Must be set before Emerge is loaded.")
   (define-key emerge-basic-keymap "a" 'emerge-select-A)
   (define-key emerge-basic-keymap "b" 'emerge-select-B)
   (define-key emerge-basic-keymap "j" 'emerge-jump-to-difference)
+  (define-key emerge-basic-keymap "." 'emerge-find-difference)
   (define-key emerge-basic-keymap "q" 'emerge-quit)
   (define-key emerge-basic-keymap "\C-]" 'emerge-abort)
   (define-key emerge-basic-keymap "f" 'emerge-fast-mode)
@@ -286,11 +287,8 @@ Must be set before Emerge is loaded.")
   (define-key emerge-basic-keymap "|" 'emerge-scroll-reset)
   (define-key emerge-basic-keymap "x" nil)
   (define-key emerge-basic-keymap "x1" 'emerge-one-line-window)
-  (define-key emerge-basic-keymap "xa" 'emerge-find-difference-A)
-  (define-key emerge-basic-keymap "xb" 'emerge-find-difference-B)
   (define-key emerge-basic-keymap "xc" 'emerge-combine-versions)
   (define-key emerge-basic-keymap "xC" 'emerge-combine-versions-register)
-  (define-key emerge-basic-keymap "xd" 'emerge-find-difference)
   (define-key emerge-basic-keymap "xf" 'emerge-file-names)
   (define-key emerge-basic-keymap "xj" 'emerge-join-differences)
   (define-key emerge-basic-keymap "xl" 'emerge-line-numbers)
@@ -487,7 +485,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 	    (emerge-protect-metachars file-A)
 	    (emerge-protect-metachars file-B))
     t))
-  (emerge-prepare-error-list emerge-diff-ok-lines)
+  (emerge-prepare-error-list emerge-diff-ok-lines-regexp)
   (emerge-convert-diffs-to-markers
    emerge-A-buffer emerge-B-buffer emerge-merge-buffer
    (emerge-extract-diffs emerge-diff-buffer)))
@@ -659,7 +657,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 	    (emerge-protect-metachars file-A)
 	    (emerge-protect-metachars file-B))
     t))
-  (emerge-prepare-error-list emerge-diff3-ok-lines)
+  (emerge-prepare-error-list emerge-diff3-ok-lines-regexp)
   (emerge-convert-diffs-to-markers
    emerge-A-buffer emerge-B-buffer emerge-merge-buffer
    (emerge-extract-diffs3 emerge-diff-buffer)))
@@ -2217,13 +2215,24 @@ ancestor version does not share.)"
 If there is no containing difference and the prefix argument is positive,
 it finds the nearest following difference.  A negative prefix argument finds
 the nearest previous difference."
+  (cond ((eq (current-buffer) emerge-A-buffer)
+	 (emerge-find-difference-A arg))
+	((eq (current-buffer) emerge-B-buffer)
+	 (emerge-find-difference-B arg))
+	(t (emerge-find-difference-merge arg))))
+
+(defun emerge-find-difference-merge (arg)
+  "Find the difference containing point, in the merge buffer.
+If there is no containing difference and the prefix argument is positive,
+it finds the nearest following difference.  A negative prefix argument finds
+the nearest previous difference."
   (interactive "P")
   ;; search for the point in the merge buffer, using the markers
   ;; for the beginning and end of the differences in the merge buffer
   (emerge-find-difference1 arg (point) 4 5))
 
 (defun emerge-find-difference-A (arg)
-  "Find the difference containing the position of the point in the A buffer.
+  "Find the difference containing point, in the A buffer.
 This command must be executed in the merge buffer.
 If there is no containing difference and the prefix argument is positive,
 it finds the nearest following difference.  A negative prefix argument finds
@@ -2236,7 +2245,7 @@ the nearest previous difference."
 			   0 1))
 
 (defun emerge-find-difference-B (arg)
-  "Find the difference containing the position of the point in the B buffer.
+  "Find the difference containing point, in the B buffer.
 This command must be executed in the merge buffer.
 If there is no containing difference and the prefix argument is positive,
 it finds the nearest following difference.  A negative prefix argument finds
@@ -2319,7 +2328,7 @@ merge buffers."
 (defun emerge-set-combine-versions-template (start end &optional localize)
   "Copy region into `emerge-combine-versions-template'.
 This controls how `emerge-combine-versions' will combine the two versions.
-With prefix argument, `emerge-combine-versions'  is made local to this
+With prefix argument, `emerge-combine-versions' is made local to this
 merge buffer.  Localization is permanent for any particular merge buffer."
   (interactive "r\nP")
   (if localize
