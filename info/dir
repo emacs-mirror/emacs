@@ -23,6 +23,7 @@ File: dir	Node: Top	This is the top of the INFO tree
 * Gnus: (gnus).		The news reader Gnus.
 * Message: (message).	Mail and news composition mode that goes with Gnus.
 * MH-E: (mh-e).		Emacs interface to the MH mail system.
+* MIME: (emacs-mime).   The MIME de/composition library.
 * CL: (cl).		Partial Common Lisp support for Emacs Lisp.
 * SC: (sc).		Supercite lets you cite parts of messages you're 
 			  replying to, in flexible ways.
