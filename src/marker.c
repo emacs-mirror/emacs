@@ -199,9 +199,10 @@ buf_charpos_to_bytepos (b, charpos)
 	 It will last until the next GC.  */
       if (record)
 	{
-	  Lisp_Object marker;
+	  Lisp_Object marker, buffer;
 	  marker = Fmake_marker ();
-	  set_marker_both (marker, Qnil, best_below, best_below_byte);
+	  XSETBUFFER (buffer, b);
+	  set_marker_both (marker, buffer, best_below, best_below_byte);
 	}
 
       if (byte_debug_flag)
@@ -229,9 +230,10 @@ buf_charpos_to_bytepos (b, charpos)
 	 It will last until the next GC.  */
       if (record)
 	{
-	  Lisp_Object marker;
+	  Lisp_Object marker, buffer;
 	  marker = Fmake_marker ();
-	  set_marker_both (marker, Qnil, best_above, best_above_byte);
+	  XSETBUFFER (buffer, b);
+	  set_marker_both (marker, buffer, best_above, best_above_byte);
 	}
 
       if (byte_debug_flag)
@@ -365,9 +367,10 @@ buf_bytepos_to_charpos (b, bytepos)
 	 It will last until the next GC.  */
       if (record)
 	{
-	  Lisp_Object marker;
+	  Lisp_Object marker, buffer;
 	  marker = Fmake_marker ();
-	  set_marker_both (marker, Qnil, best_below, best_below_byte);
+	  XSETBUFFER (buffer, b);
+	  set_marker_both (marker, buffer, best_below, best_below_byte);
 	}
 
       if (byte_debug_flag)
@@ -395,9 +398,10 @@ buf_bytepos_to_charpos (b, bytepos)
 	 It will last until the next GC.  */
       if (record)
 	{
-	  Lisp_Object marker;
+	  Lisp_Object marker, buffer;
 	  marker = Fmake_marker ();
-	  set_marker_both (marker, Qnil, best_above, best_above_byte);
+	  XSETBUFFER (buffer, b);
+	  set_marker_both (marker, buffer, best_above, best_above_byte);
 	}
 
       if (byte_debug_flag)
