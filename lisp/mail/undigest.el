@@ -92,7 +92,7 @@ Leaves original message, deleted, before the undigestified messages."
 			(forward-line -1)
 			(if (looking-at (car regexps))
 			    (setq found t))
-			(setq regexps (cdr regexps)))
+			(setq regexps (cdr regexps))))
 		    (unless found
 		      (error "Message is not a digest--no end line"))))
 		(re-search-forward (concat "^" (make-string 55 ?-) "-*\n*"))
