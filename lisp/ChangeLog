@@ -1,3 +1,36 @@
+2002-09-25  Oliver Scholz  <alkibiades@gmx.de>
+
+	* gamegrid.el (gamegrid-face): new variable to emulate a
+	buffer-local default face.
+	(gamegrid-xbm): new variable; XBM image as a replacement for
+	`gamegrid-xpm' on Emacsen compiled without XPM-support.
+	(gamegrid-colorize-glyph): Ported XEmacs-code for the generation
+	of images to Emacs.
+	(gamegrid-match-spec): Call `gamegrid-make-image-from-vector' to
+	convert XEmacs-type image descriptors.
+	(gamegrid-color-display-p): Removed. (Use `display-colors-p'
+	instead.)
+	(gamegrid-make-image-from-vector): New function. Convert XEmacs'
+	image descriptors.
+	(gamegrid-display-type): Use Emacs' standard `display-.*-p'
+	functions to check for display capabilities. Fix the recognition
+	of image-support in Emacs 21 by this way.
+	(gamegrid-hide-cursor): Removed.
+	(gamegrid-setup-default-font): Ported the code from XEmacs to
+	Emacs: create a new face and assign the variable `gamegrid-face'
+	to it. Make sure that the face is not higher than the smallest
+	image used by the game.
+	(gamegrid-initialize-display): Use `(setq cursor-type nil)'
+	instead of `gamegrid-hide-cursor'.
+	(gamegrid-set-face): If `gamegrid-display-mode' is 'glyph, put an
+	image in the buffer, instead of applying a face. [This is because
+	Emacs display-tables are not as capable as the display-tables in
+	XEmacs. Maybe this function should be renamed to reflect the
+	change?]
+	(gamegrid-init-buffer): If `gamegrid-display-mode' is 'glyph, put
+	the face held by `gamegrid-face' in an overlay over the whole
+	buffer to emulate a buffer-local default-face.
+
 2002-09-25  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-diag.el (list-character-sets): Use the buffer
