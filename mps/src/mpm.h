@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.91) $
+ * $HopeName: MMsrc!mpm.h(trunk.92) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -338,7 +338,9 @@ extern void PoolNoReclaim(Pool pool, Trace trace, Seg seg);
 extern double PoolNoBenefit(Pool pool, Action action);
 extern Res PoolNoAct(Pool pool, Action action);
 extern void PoolNoRampBegin(Pool pool, Buffer buf);
+extern void PoolTrivRampBegin(Pool pool, Buffer buf);
 extern void PoolNoRampEnd(Pool pool, Buffer buf);
+extern void PoolTrivRampEnd(Pool pool, Buffer buf);
 extern void PoolNoWalk(Pool pool, Seg seg,
                        FormattedObjectsStepMethod,
 		       void *, unsigned long);
