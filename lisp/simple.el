@@ -710,7 +710,8 @@ This cannot be done asynchronously."
 ;; We have a sentinel to prevent insertion of a termination message
 ;; in the buffer itself.
 (defun shell-command-sentinel (process signal)
-  (if (memq (process-status process) '(exit signal))
+  (if (and (memq (process-status process) '(exit signal))
+	   (buffer-name (process-buffer process)))
       (progn
 	(message "%s: %s." 
 		 (car (cdr (cdr (process-command process))))
