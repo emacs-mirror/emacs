@@ -1,3 +1,9 @@
+2000-06-16  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/quail.el (quail-show-guidance-buf): To find the
+	bottom window (but minibuffer), pay attention to the height of
+	minibuffer.
+
 2000-06-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* arc-mode.el (archive-mode-map): Use the new menu-item format for
