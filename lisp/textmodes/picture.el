@@ -159,9 +159,7 @@ The mode line is updated to reflect the current direction."
 	(format "Picture:%s"
 		(car (nthcdr (+ 1 (% horiz 2) (* 3 (1+ (% vert 2))))
 			     '(nw up ne left none right sw down se)))))
-  ;; Kludge - force the mode line to be updated.  Is there a better
-  ;; way to this?
-  (set-buffer-modified-p (buffer-modified-p))
+  (force-mode-line-update)
   (message ""))
 
 (defun picture-move ()
@@ -630,9 +628,7 @@ With no argument strips whitespace from end of every line in Picture buffer
     (setq major-mode picture-mode-old-major-mode)
     (kill-local-variable 'tab-stop-list)
     (setq truncate-lines picture-mode-old-truncate-lines)
-    ;; Kludge - force the mode line to be updated.  Is there a better
-    ;; way to do this?
-    (set-buffer-modified-p (buffer-modified-p))))
+    (force-mode-line-update)))
 
 (defun picture-clean ()
   "Eliminate whitespace at ends of lines."
