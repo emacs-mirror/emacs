@@ -630,7 +630,7 @@ to run it every morning at 1am."
 	(setq ndays diary-mail-days))
     (calendar)
     (view-diary-entries ndays)
-    (set-buffer "*Fancy Diary Entries*")
+    (set-buffer fancy-diary-buffer)
     (setq text (buffer-substring (point-min) (point-max)))
 
     ;; Now send text as a mail message.
