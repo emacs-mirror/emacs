@@ -125,6 +125,7 @@
 ;;  comint-get-old-input		function Hooks for specific 
 ;;  comint-input-filter-functions	hook	process-in-a-buffer
 ;;  comint-output-filter-functions	hook	function modes.
+;;  comint-preoutput-filter-functions   hook
 ;;  comint-input-filter			function ...
 ;;  comint-input-sender			function ...
 ;;  comint-eol-on-send			boolean	...
@@ -312,6 +313,8 @@ inserted.  Note that this might not be the same as the buffer contents between
 `comint-last-output-start' and the buffer's `process-mark', if other filter
 functions have already modified the buffer.
 
+See also `comint-preoutput-filter-functions'.
+
 This variable is buffer-local.")
 
 (defvar comint-input-sender (function comint-simple-send)
@@ -363,6 +366,7 @@ This is to work around a bug in Emacs process signaling.")
 (put 'comint-input-autoexpand 'permanent-local t)
 (put 'comint-input-filter-functions 'permanent-local t)
 (put 'comint-output-filter-functions 'permanent-local t)
+(put 'comint-preoutput-filter-functions 'permanent-local t)
 (put 'comint-scroll-to-bottom-on-input 'permanent-local t)
 (put 'comint-scroll-to-bottom-on-output 'permanent-local t)
 (put 'comint-scroll-show-maximum-output 'permanent-local t)
@@ -397,7 +401,8 @@ Commands with no default key bindings include `send-invisible',
 
 Input to, and output from, the subprocess can cause the window to scroll to
 the end of the buffer.  See variables `comint-output-filter-functions',
-`comint-scroll-to-bottom-on-input', and `comint-scroll-to-bottom-on-output'.
+`comint-preoutput-filter-functions', `comint-scroll-to-bottom-on-input',
+and `comint-scroll-to-bottom-on-output'.
 
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it.
@@ -1247,13 +1252,24 @@ Similarly for Soar, Scheme, etc."
 	  ;; but that scrolled the buffer in undesirable ways.
 	  (run-hook-with-args 'comint-output-filter-functions "")))))
 
+(defvar comint-preoutput-filter-functions nil 
+  "Functions to call after output is inserted into the buffer.
+These functions get one argument, a string containing the text to be
+inserted.  They return the string as it should be inserted.
+
+This variable is buffer-local.")
+
 ;; The purpose of using this filter for comint processes
 ;; is to keep comint-last-input-end from moving forward
 ;; when output is inserted.
 (defun comint-output-filter (process string)
   ;; First check for killed buffer
   (let ((oprocbuf (process-buffer process)))
-    (if (and oprocbuf (buffer-name oprocbuf))
+    (let ((functions comint-preoutput-filter-functions))
+      (while (and functions string)
+	(setq string (funcall (car functions) string))
+	(setq functions (cdr functions))))
+    (if (and string oprocbuf (buffer-name oprocbuf))
 	(let ((obuf (current-buffer))
 	      (opoint nil) (obeg nil) (oend nil))
 	  (set-buffer oprocbuf)
