@@ -72,39 +72,46 @@ If provided LIGHTER will be used to help choose capitalization."
 (defmacro define-minor-mode (mode doc &optional init-value lighter keymap &rest body)
   "Define a new minor mode MODE.
 This function defines the associated control variable MODE, keymap MODE-map,
-toggle command MODE, and hook MODE-hook.  If MODE is buffer-local, then
-turn-on-MODE and turn-off-MODE commands are also generated for use in hooks,
-and an optional global-MODE mode may also be generated.
+toggle command MODE, and hook MODE-hook.
 
 DOC is the documentation for the mode toggle command.
 Optional INIT-VALUE is the initial value of the mode's variable.
 Optional LIGHTER is displayed in the modeline when the mode is on.
 Optional KEYMAP is the default (defvar) keymap bound to the mode keymap.
   If it is a list, it is passed to `easy-mmode-define-keymap'
-  in order to build a valid keymap.
+  in order to build a valid keymap.  It's generally better to use
+  a separate MODE-map variable than to use this argument.
+The above three arguments can be skipped if keyword arguments are
+used (see below).
+
 BODY contains code that will be executed each time the mode is (dis)activated.
   It will be executed after any toggling but before running the hooks.
   BODY can start with a list of CL-style keys specifying additional arguments.
-  Currently three such keyword arguments are supported:
-    :group, followed by the group name to use for any generated `defcustom'.
-    :global, followed by a value, which --
-      If `t' specifies that the minor mode is not meant to be
-	buffer-local (by default, the variable is made buffer-local).
-      If non-nil, but not `t' (for instance, `:global optionally'), then
-	specifies that the minor mode should be buffer-local, but that a
-	corresponding `global-MODE' function should also be added, which can
-	be used to turn on MODE in every buffer.
-    :conditional-turn-on, followed by a function-name which turns on MODE
-	only when applicable to the current buffer.  This is used in
-	conjunction with any `global-MODE' function (see :global above) when
-	turning on the buffer-local minor mode.  By default, any generated
-	`global-MODE' function unconditionally turns on the minor mode in
-	every new buffer."
+  The following keyword arguments are supported:
+:group   Followed by the group name to use for any generated `defcustom'.
+:global  If non-nil specifies that the minor mode is not meant to be
+         buffer-local.  By default, the variable is made buffer-local.
+:toggle  If non-nil means the minor-mode function, when called with a nil
+         argument, will toggle the mode rather than turn it on unconditionally.
+         This doesn't impact the interactive behavior which is always
+         toggling (modulo prefix arg).
+         The default is (for historical reasons) to toggle, but might
+         be changed in the future.
+:init-value  Same as the INIT-VALUE argument.
+:lighter  Same as the LIGHTER argument."
+  ;; Allow skipping the first three args.
+  (cond
+   ((keywordp init-value)
+    (setq body (list* init-value lighter keymap body)
+	  init-value nil lighter nil keymap nil))
+   ((keywordp lighter)
+    (setq body (list* lighter keymap body) lighter nil keymap nil))
+   ((keywordp keymap) (push keymap body) (setq keymap nil)))
+
   (let* ((mode-name (symbol-name mode))
 	 (pretty-name (easy-mmode-pretty-mode-name mode lighter))
 	 (globalp nil)
-	 (define-global-mode-p nil)
-	 (conditional-turn-on nil)
+	 (togglep t)			;why would you ever want to toggle?
 	 ;; We might as well provide a best-guess default group.
 	 (group
 	  (list 'quote
@@ -115,21 +122,15 @@ BODY contains code that will be executed each time the mode is (dis)activated.
 	 (hook-on (intern (concat mode-name "-on-hook")))
 	 (hook-off (intern (concat mode-name "-off-hook"))))
 
-    ;; FIXME: compatibility that should be removed.
-    (when (and (consp init-value) (eq (car init-value) 'global))
-      (setq init-value (cdr init-value) globalp t))
-
     ;; Check keys.
     (while (keywordp (car body))
       (case (pop body)
+	(:init-value (setq init-value (pop body)))
+	(:lighter (setq lighter (pop body)))
 	(:global (setq globalp (pop body)))
+	(:toggle (setq togglep (pop body)))
 	(:group (setq group (pop body)))
-	(:conditional-turn-on (setq conditional-turn-on (pop body)))
-	(t (setq body (cdr body)))))
-
-    (when (and globalp (not (eq globalp t)))
-      (setq globalp nil)
-      (setq define-global-mode-p t))
+	(t (pop body))))
 
     ;; Add default properties to LIGHTER.
     (unless (or (not (stringp lighter)) (get-text-property 0 'local-map lighter)
@@ -153,10 +154,11 @@ Use the function `%s' to change this variable." pretty-name mode))
 				  byte-compile-current-file)
 			     load-file-name)))
 	    `(defcustom ,mode ,init-value
-	       ,(format "Toggle %s.
+	       ,(format "Toggle %s on or off.
+See the command `%s' for a description of this minor-mode.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `%s'."
-			pretty-name mode)
+			pretty-name mode mode)
 	       :set (lambda (symbol value) (funcall symbol (or value 0)))
 	       :initialize 'custom-initialize-default
 	       :group ,group
@@ -178,15 +180,16 @@ use either \\[customize] or the function `%s'."
        ;; The actual function.
        (defun ,mode (&optional arg)
 	 ,(or doc
-	      (format "With no argument, toggle %s.
-With universal prefix ARG turn mode on.
+	      (format (concat "Toggle %s on or off.
+Interactively, with no prefix argument, toggle the mode.
+With universal prefix ARG " (unless togglep "(or if ARG is nil) ") "turn mode on.
 With zero or negative ARG turn mode off.
-\\{%s}" pretty-name keymap-sym))
-	 (interactive "P")
+\\{%s}") pretty-name keymap-sym))
+	 (interactive (list (or current-prefix-arg (if ,mode 0 1))))
 	 (setq ,mode
 	       (if arg
 		   (> (prefix-numeric-value arg) 0)
-		 (not ,mode)))
+		 ,(if togglep `(not ,mode) t)))
 	 ,@body
 	 ;; The on/off hooks are here for backward compatibility only.
 	 (run-hooks ',hook (if ,mode ',hook-on ',hook-off))
@@ -194,31 +197,8 @@ With zero or negative ARG turn mode off.
 	 (if (interactive-p)
 	     (message ,(format "%s %%sabled" pretty-name)
 		      (if ,mode "en" "dis")))
+	 (force-mode-line-update)
 	 ,mode)
-
-       ,(unless globalp
-	  (let ((turn-on (intern (concat "turn-on-" mode-name)))
-		(turn-off (intern (concat "turn-off-" mode-name))))
-	    `(progn
-	       (defun ,turn-on ()
-		 ,(format "Turn on %s.
-
-This function is designed to be added to hooks, for example:
-  (add-hook 'text-mode-hook '%s)"
-			  pretty-name
-			  turn-on)
-		 (interactive)
-		 (,mode t))
-	       (defun ,turn-off ()
-		 ,(format "Turn off %s." pretty-name)
-		 (interactive)
-		 (,mode -1))
-	       ,(when define-global-mode-p
-		  `(easy-mmode-define-global-mode
-		    ,(intern (concat "global-" mode-name))
-		    ,mode
-		    ,(or conditional-turn-on turn-on)
-		    :group ,group)))))
 
        ;; Autoloading an easy-mmode-define-minor-mode autoloads
        ;; everything up-to-here.
@@ -237,7 +217,7 @@ This function is designed to be added to hooks, for example:
 		       ,(if keymap keymap-sym
 			  `(if (boundp ',keymap-sym)
 			       (symbol-value ',keymap-sym))))
-
+       
        ;; If the mode is global, call the function according to the default.
        ,(if globalp `(if ,mode (,mode 1))))))
 
@@ -248,7 +228,7 @@ This function is designed to be added to hooks, for example:
 ;;;###autoload
 (defmacro easy-mmode-define-global-mode (global-mode mode turn-on
 						     &rest keys)
-  "Make GLOBAL-MODE out of the MODE buffer-local minor mode.
+  "Make GLOBAL-MODE out of the buffer-local minor MODE.
 TURN-ON is a function that will be called with no args in every buffer
   and that should try to turn MODE on if applicable for that buffer.
 KEYS is a list of CL-style keyword arguments:
