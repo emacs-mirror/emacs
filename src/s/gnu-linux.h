@@ -222,7 +222,7 @@ Boston, MA 02111-1307, USA.  */
 /* Paul Abrahams <abrahams@equinox.shaysnet.com> says this is needed.  */
 #define LIB_MOTIF -lXm -lXpm
 
-#ifdef HAVE_NCURSES
+#ifdef HAVE_LIBNCURSES
 #define TERMINFO
 #define LIBS_TERMCAP -lncurses
 #endif
