@@ -1,3 +1,8 @@
+2004-05-24  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el (gdb-breakpoints-mode, gdb-frames-mode) 
+	(gdb-locals-mode): Check gud-minor-mode in gud-comint-buffer.
+
 2004-05-24  Yoichi NAKAYAMA  <yoichi@geiin.org>  (tiny change)
 
 	* net/browse-url.el (browse-url-interactive-arg): Enable user to
