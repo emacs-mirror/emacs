@@ -475,8 +475,7 @@ MODE is the major mode."
   (interactive "DDirectory to save desktop file in: ")
   (run-hooks 'desktop-save-hook)
   (save-excursion
-    (let ((filename (expand-file-name
-		     (concat dirname desktop-basefilename)))
+    (let ((filename (expand-file-name desktop-basefilename dirname))
 	  (info (nreverse
 		 (mapcar
 		  (function
