@@ -10,13 +10,16 @@
 
 1;
 
+%plat_link = ();
+$plat_link{"sol2.4_sparc"} = "-lm";
+
 sub compiler_settings {
  $cc_command = "gcc";
  $cc_opts = "-ansi -pedantic -Wall -Wstrict-prototypes \\
   -Winline -Waggregate-return -Wnested-externs -Wcast-qual \\
   -Wshadow -Wmissing-prototypes -Wredundant-decls -Wcast-align \\
   -O -g -ggdb3 -D$MMQA_VERSION";
- $cc_link = "$obj_dir/platform.o";
+ $cc_link = "$obj_dir/platform.o $plat_link{$platform_class}";
  $cc_include = "-I$testlib_dir -I$MPS_INCLUDE_DIR";
 }
 
