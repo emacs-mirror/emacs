@@ -1,7 +1,7 @@
 /* impl.h.splay: SPLAY TREE HEADER
  *
- * $HopeName: MMsrc!splay.h(MMdevel_color_pool.1) $
- * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!splay.h(trunk.2) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .source: design.mps.splay
  */
@@ -25,7 +25,7 @@ typedef void (*SplayUpdateNodeMethod)(SplayTree tree, SplayNode node,
                                       SplayNode rightChild);
 typedef Res (*SplayNodeDescribeMethod)(SplayNode node, mps_lib_FILE *stream);
 enum {
-  CompareLESS,
+  CompareLESS = 1,
   CompareEQUAL,
   CompareGREATER
 };
