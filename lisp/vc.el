@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.307 2001/09/04 12:52:10 gerd Exp $
+;; $Id: vc.el,v 1.308 2001/09/10 17:51:04 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2876,18 +2876,20 @@ mode-specific menu. `vc-annotate-color-map' and
 colors. `vc-annotate-background' specifies the background color."
   (interactive "P")
   (vc-ensure-vc-buffer)
-  (let ((temp-buffer-name (concat "*Annotate " (buffer-name) "*"))
-        (temp-buffer-show-function 'vc-annotate-display)
-        (vc-annotate-version 
-         (if prefix (read-string 
-                     (format "Annotate from version: (default %s) "
-                             (vc-workfile-version (buffer-file-name)))
-                     nil nil (vc-workfile-version (buffer-file-name)))))
-        (vc-annotate-ratio 
-         (if prefix (string-to-number
-                     (read-string "Annotate ratio: (default 1.0) " 
-                                  nil nil "1.0"))))
-        (vc-annotate-backend (vc-backend (buffer-file-name))))
+  (let* ((temp-buffer-name (concat "*Annotate " (buffer-name) "*"))
+         (temp-buffer-show-function 'vc-annotate-display)
+         (rev (vc-workfile-version (buffer-file-name)))
+         (vc-annotate-version 
+          (if prefix (read-string 
+                      (format "Annotate from version: (default %s) " rev) 
+                      nil nil rev)
+            rev))
+         (vc-annotate-ratio 
+          (if prefix (string-to-number
+                      (read-string "Annotate ratio: (default 1.0) " 
+                                   nil nil "1.0"))
+            1.0))
+         (vc-annotate-backend (vc-backend (buffer-file-name))))
     (message "Annotating...")
     (if (not (vc-find-backend-function vc-annotate-backend 'annotate-command))
 	(error "Sorry, annotating is not implemented for %s"
@@ -2901,8 +2903,8 @@ colors. `vc-annotate-background' specifies the background color."
     ;; (only after `with-output-to-temp-buffer'.)
     (setq vc-annotate-buffers
 	  (append vc-annotate-buffers
-		  (list (cons (get-buffer temp-buffer-name) vc-annotate-backend)))))
-  (message "Annotating... done"))
+		  (list (cons (get-buffer temp-buffer-name) vc-annotate-backend))))
+  (message "Annotating... done")))
 
 
 (defun vc-annotate-car-last-cons (a-list)
