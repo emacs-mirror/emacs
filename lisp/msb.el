@@ -469,14 +469,13 @@ If the argument is left out or nil, then the current buffer is considered."
 	 (sort (mapcan
 		(function
 		 (lambda (buffer)
-		   (let ((file-name (expand-file-name (buffer-file-name buffer))))	=
-;LGL 971218
+		   (let ((file-name (expand-file-name (buffer-file-name buffer))))
 		     (when file-name
 		       (list (cons (msb--strip-dir file-name) buffer))))))
 		list)
 	       (function (lambda (item1 item2)
 			   (string< (car item1) (car item2)))))))
-    ;; Now clump buffers togehter that have the same path
+    ;; Now clump buffers together that have the same path
     ;; Make alist that looks like
     ;; ((PATH1 . (BUFFER-1 BUFFER-2 ...)) (PATH2 . (BUFFER-K)) ...)
     (let ((path nil)
@@ -513,9 +512,13 @@ If the argument is left out or nil, then the current buffer is considered."
     (format (if top-found-p "%s... (%d)" "%s (%d)")
 	    new-path number-of-items)))
 
+;; Variables for debugging.
+(defvar msb--choose-file-menu-list)
+(defvar msb--choose-file-menu-arg-list)
 
 ;; Choose file-menu with respect to directory for every buffer in LIST.
 (defun msb--choose-file-menu (list)
+  (setq msb--choose-file-menu-arg-list list)
   (let ((buffer-alist (msb--init-file-alist list))
 	(final-list nil)
 	(max-clumped-together (if (numberp msb-max-file-menu-items)
@@ -529,6 +532,7 @@ If the argument is left out or nil, then the current buffer is considered."
 	  rest (cdr buffer-alist)
 	  path (car first)
 	  buffers (cdr first))
+    (setq msb--choose-file-menu-list (copy-list rest))
     ;; This big loop tries to clump buffers together that have a
     ;; similar name. Remember that buffer-alist is sorted based on the
     ;; path for the buffers.
@@ -853,7 +857,9 @@ If the argument is left out or nil, then the current buffer is considered."
 (defun msb--toggle-menu-type ()
   (interactive)
   (setq msb-files-by-directory (not msb-files-by-directory))
-  (menu-bar-update-buffers))
+  ;; This gets a warning, but it is correct,
+  ;; because this file redefines menu-bar-update-buffers.
+  (menu-bar-update-buffers t))
 
 (defun mouse-select-buffer (event)
   "Pop up several menus of buffers, for selection with the mouse.
