@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.8) $
+# $HopeName: MMsrc!comm.gmk(trunk.9) $
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -161,7 +161,15 @@ MRGDEP = $(MRG:%.c=$(PFM)/$(VARIETY)/%.d)
 DWOBJ = $(DW:%.c=$(PFM)/$(VARIETY)/%.o)
 DWDEP = $(DW:%.c=$(PFM)/$(VARIETY)/%.d)
 SWOBJ = $(SW:%.c=$(PFM)/$(VARIETY)/%.o)
+# The following hack for SWDEP only creates those dependencies when
+# mmsw.a is being built.
+ifdef TARGET
+ifeq ($(TARGET),mmsw.a)
 SWDEP = $(SW:%.c=$(PFM)/$(VARIETY)/%.d)
+else
+SWDEP =
+endif
+endif
 TESTLIBOBJ = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.o)
 TESTLIBDEP = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.d)
 endif
@@ -193,9 +201,11 @@ endif
 
 # "all" builds all varieties of all targets
 # %%TARGET: Add the target to the all dependencies.
+# Not all targets need be specified in the "all" target.  It is
+# just a convenient set of targets to build.
 
 all: mpmss amcss dwstress mpsicv lockcov poolncv mps.a \
-     lo.a mrg.a locv qs weakcv mpmconft finalcv mmsw.a
+     lo.a mrg.a locv qs weakcv mpmconft finalcv
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in all varieties.
