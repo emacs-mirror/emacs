@@ -1037,7 +1037,7 @@ This hook is mainly used for cancelling the effect of
 
 (defcustom current-language-environment "English"
   "The last language environment specified with `set-language-environment'."
-  :set 'set-language-environment
+  :set (lambda (symbol value) (set-language-environment value))
   :initialize 'custom-initialize-default
   :group 'mule
   :type 'string)
