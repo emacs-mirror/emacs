@@ -6565,16 +6565,10 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   if (!NILP (Vsuggest_key_bindings)
       && SYMBOLP (function))
     {
-      Lisp_Object *maps, bindings;
-      int nmaps, i;
+      Lisp_Object bindings;
 
-      bindings = Qnil;
-      nmaps = current_active_maps (&maps);
-
-      for (i = 0; i < nmaps && NILP (bindings); i++)
-	bindings = Fwhere_is_internal (function, maps[i], Qt, Qnil);
-
-      free (maps);
+      bindings = Fwhere_is_internal (function, Voverriding_local_map,
+				     Qt, Qnil);
 
       if (!NILP (bindings))
 	{
