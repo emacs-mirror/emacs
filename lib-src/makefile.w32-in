@@ -126,7 +126,7 @@ $(BLD)/ctags.$(O): ctags.c
 #
 # From ..\src\makefile.nt.
 #
-obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefiddle.c casetab.c category.c ccl.c charset.c cm.c cmds.c coding.c data.c dired.c dispnew.c doc.c doprnt.c editfns.c emacs.c eval.c fileio.c filelock.c filemode.c floatfns.c fns.c fontset.c frame.c gmalloc.c indent.c insdel.c intervals.c keyboard.c keymap.c lastfile.c lread.c macros.c marker.c minibuf.c print.c process.c ralloc.c regex.c region-cache.c scroll.c search.c sound.c strftime.c syntax.c sysdep.c term.c termcap.c textprop.c tparam.c undo.c unexw32.c vm-limit.c w32.c w32console.c w32fns.c w32heap.c w32inevt.c w32menu.c w32proc.c w32reg.c w32select.c w32term.c w32xfns.c window.c xdisp.c xfaces.c xfaces.c
+obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefiddle.c casetab.c category.c ccl.c charset.c cm.c cmds.c coding.c data.c dired.c dispnew.c doc.c doprnt.c editfns.c emacs.c eval.c fileio.c filelock.c filemode.c floatfns.c fns.c fontset.c frame.c fringe.c gmalloc.c indent.c insdel.c intervals.c keyboard.c keymap.c lastfile.c lread.c macros.c marker.c minibuf.c print.c process.c ralloc.c regex.c region-cache.c scroll.c search.c sound.c strftime.c syntax.c sysdep.c term.c termcap.c textprop.c tparam.c undo.c unexw32.c vm-limit.c w32.c w32console.c w32fns.c w32heap.c w32inevt.c w32menu.c w32proc.c w32reg.c w32select.c w32term.c w32xfns.c window.c xdisp.c xfaces.c xfaces.c
 #
 # These are the lisp files that are loaded up in loadup.el
 #
