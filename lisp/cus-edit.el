@@ -992,14 +992,15 @@ on an active field to invoke its action.  Invoke ")
   (widget-insert "Operate on everything in this buffer:\n ")
   (widget-create 'push-button
 		 :tag "Set"
-		 :help-echo "Set all modifications for this session."
+		 :help-echo "\
+Make your editing in this buffer take effect for this session."
 		 :action (lambda (widget &optional event)
 			   (Custom-set)))
   (widget-insert " ")
   (widget-create 'push-button
 		 :tag "Save"
 		 :help-echo "\
-Make the modifications default for future sessions."
+Make your editing in this buffer take effect for future Emacs sessions."
 		 :action (lambda (widget &optional event)
 			   (Custom-save)))
   (widget-insert " ")
@@ -1013,19 +1014,19 @@ Make the modifications default for future sessions."
     (widget-create 'push-button
 		   :tag "Reset"
 		   :help-echo "\
-Reset all visible items in this buffer to their current settings."
+Reset all edited text in this buffer to reflect current values."
 		   :action 'Custom-reset-current)
     (widget-insert " ")
     (widget-create 'push-button
 		   :tag "Reset to Saved"
 		   :help-echo "\
-Reset all visible items in this buffer to their saved settings."
+Reset all values in this buffer to their saved settings."
 		   :action 'Custom-reset-saved)
     (widget-insert " ")
     (widget-create 'push-button
 		   :tag "Reset to Standard"
 		   :help-echo "\
-Reset all visible items in this buffer to their standard settings."
+Reset all values in this buffer to their standard settings."
 		   :action 'Custom-reset-standard))
   (widget-insert "   ")
   (widget-create 'push-button
@@ -1270,22 +1271,22 @@ The list should be sorted most significant first.")
 
 (defcustom custom-magic-show 'long
   "If non-nil, show textual description of the state.
-If non-nil and not the symbol `long', only show first word."
+If `long', show a full-line description, not just one word."
   :type '(choice (const :tag "no" nil)
 		 (const short)
 		 (const long))
   :group 'custom-buffer)
 
 (defcustom custom-magic-show-hidden '(option face)
-  "Control whether the state button is shown for hidden items.
-The value should be a list with the custom categories where the state
+  "Control whether the State button is shown for hidden items.
+The value should be a list with the custom categories where the State
 button should be visible.  Possible categories are `group', `option',
 and `face'."
   :type '(set (const group) (const option) (const face))
   :group 'custom-buffer)
 
 (defcustom custom-magic-show-button nil
-  "Show a magic button indicating the state of each customization option."
+  "Show a \"magic\" button indicating the state of each customization option."
   :type 'boolean
   :group 'custom-buffer)
 
@@ -1341,11 +1342,13 @@ and `face'."
 	     :tag "State")
 	    children)
       (insert ": ")
-      (if (eq custom-magic-show 'long)
-	  (insert text)
-	(insert (symbol-name state)))
-      (when lisp 
-	(insert " (lisp)"))
+      (let ((start (point)))
+	(if (eq custom-magic-show 'long)
+	    (insert text)
+	  (insert (symbol-name state)))
+	(when lisp 
+	  (insert " (lisp)"))
+	(put-text-property start (point) 'face 'custom-state-face))
       (insert "\n"))
     (when (and (eq category 'group)
 	       (not (and (eq custom-buffer-style 'links)
@@ -1379,6 +1382,24 @@ and `face'."
 
 ;;; The `custom' Widget.
 
+(defface custom-button-face nil
+  "Face used for buttons in customization buffers."
+  :group 'custom-faces)
+
+(defface custom-documentation-face nil
+  "Face used for documentation strings in customization buffers."
+  :group 'custom-faces)
+
+(defface custom-state-face '((((class color)
+			       (background dark))
+			      (:foreground "lime green"))
+			     (((class color)
+			       (background light))
+			      (:foreground "dark green"))
+			     (t nil))
+  "Face used for State descriptions in the customize buffer."
+  :group 'custom-faces)
+
 (define-widget 'custom 'default
   "Customize a user option."
   :format "%v"
@@ -1392,6 +1413,7 @@ and `face'."
   :value-delete 'widget-children-value-delete
   :value-get 'widget-value-value-get
   :validate 'widget-children-validate
+  :button-face 'custom-button-face
   :match (lambda (widget value) (symbolp value)))
 
 (defun custom-convert-widget (widget)
@@ -1500,7 +1522,7 @@ and `face'."
     (widget-setup)))
 
 (defun custom-toggle-parent (widget &rest ignore)
-  "Toggle visibility of parent to WIDGET."
+  "Toggle visibility of parent of WIDGET."
   (custom-toggle-hide (widget-get widget :parent)))
 
 (defun custom-add-see-also (widget &optional prefix)
@@ -1560,7 +1582,13 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 
 ;;; The `custom-variable' Widget.
 
-(defface custom-variable-sample-face '((t (:underline t)))
+(defface custom-variable-tag-face '((((class color)
+				      (background dark))
+				     (:foreground "light blue" :underline t))
+				    (((class color)
+				      (background light))
+				     (:foreground "blue" :underline t))
+				    (t (:underline t)))
   "Face used for unpushable variable tags."
   :group 'custom-faces)
 
@@ -1642,7 +1670,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 	   (push (widget-create-child-and-convert 
 		  widget 'item
 		  :format "%{%t%}: "
-		  :sample-face 'custom-variable-sample-face
+		  :sample-face 'custom-variable-tag-face
 		  :tag tag
 		  :parent widget)
 		 buttons)
@@ -1693,7 +1721,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 		    :help-echo "Change value of this option."
 		    :mouse-down-action 'custom-tag-mouse-down-action
 		    :button-face 'custom-variable-button-face
-		    :sample-face 'custom-variable-sample-face
+		    :sample-face 'custom-variable-tag-face
 		    tag)
 		   buttons)
 	     (insert " ")
@@ -2343,7 +2371,7 @@ Optional EVENT is the location for the menu."
 
 (define-widget 'custom-group-link 'link
   "Show parent in other window when activated."
-  :help-echo "Create customize buffer for this group group."
+  :help-echo "Create customization buffer for this group."
   :action 'custom-group-link-action)
 
 (defun custom-group-link-action (widget &rest ignore)
@@ -2351,7 +2379,7 @@ Optional EVENT is the location for the menu."
 
 ;;; The `custom-group' Widget.
 
-(defcustom custom-group-tag-faces '(custom-group-tag-face-1)
+(defcustom custom-group-tag-faces nil
   ;; In XEmacs, this ought to play games with font size.
   "Face used for group tags.
 The first member is used for level 1 groups, the second for level 2,
@@ -2500,7 +2528,7 @@ and so forth.  The remaining group tags are shown with
 	   (if (eq custom-buffer-style 'links)
 	       (push (widget-create-child-and-convert
 		      widget 'custom-group-link 
-		      :tag "Show"
+		      :tag "Go to Group"
 		      symbol)
 		     buttons)
 	     (push (widget-create-child-and-convert 
@@ -2966,12 +2994,15 @@ The format is suitable for use with `easy-menu-define'."
 
 (defvar custom-mode-map nil
   "Keymap for `custom-mode'.")
-  
+
 (unless custom-mode-map
   (setq custom-mode-map (make-sparse-keymap))
   (set-keymap-parent custom-mode-map widget-keymap)
   (suppress-keymap custom-mode-map)
-  (define-key custom-mode-map "q" 'bury-buffer))
+  (define-key custom-mode-map " " 'scroll-up)
+  (define-key custom-mode-map "\177" 'scroll-down)
+  (define-key custom-mode-map "q" 'bury-buffer)
+  (define-key custom-mode-map "u" 'Custom-goto-parent))
 
 (easy-menu-define Custom-mode-menu 
     custom-mode-map
@@ -2985,13 +3016,25 @@ The format is suitable for use with `easy-menu-define'."
     ["Reset to Standard Settings" Custom-reset-standard t]
     ["Info" (Info-goto-node "(custom)The Customization Buffer") t]))
 
+(defun Custom-goto-parent ()
+  "Go to the parent group listed at the top of this buffer.
+If several parents are listed, go to the first of them."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (if (search-forward "\nGo to parent group: " nil t)
+	(let* ((button (get-char-property (point) 'button))
+	       (parent (downcase (widget-get  button :tag))))
+	  (customize-group parent)))))
+
 (defcustom custom-mode-hook nil
   "Hook called when entering custom-mode."
   :type 'hook
   :group 'custom-buffer )
 
-(defun custom-state-buffer-message ()
-  (message "To set the value, invoke [State] and choose the Set operation"))
+(defun custom-state-buffer-message (widget)
+  (if (eq (widget-get (widget-get widget :parent) :custom-state) 'modified)
+      (message "To install your edits, invoke [State] and choose the Set operation")))
 
 (defun custom-mode ()
   "Major mode for editing customization buffers.
@@ -3016,8 +3059,10 @@ if that value is non-nil."
   (use-local-map custom-mode-map)
   (easy-menu-add Custom-mode-menu)
   (make-local-variable 'custom-options)
-  (make-local-hook 'widget-edit-hook)
-  (add-hook 'widget-edit-hook 'custom-state-buffer-message nil t)
+  (make-local-variable 'widget-documentation-face)
+  (setq widget-documentation-face 'custom-documentation-face)
+  (make-local-hook 'widget-edit-functions)
+  (add-hook 'widget-edit-functions 'custom-state-buffer-message nil t)
   (run-hooks 'custom-mode-hook))
 
 ;;; The End.
