@@ -14,6 +14,9 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 21.4
 
+---
+** A Bulgarian translation of the Emacs Tutorial is available.
+
 ** You can build Emacs with Gtk+ widgets by specifying `--with-x-toolkit=gtk'
 when you run configure.  This requires Gtk+ 2.0 or newer.  This port
 provides a way to display multilingual text in menus (with some caveats).
@@ -73,9 +76,6 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 ---
 ** Support for GNU/Linux systems on X86-64 machines was added.
-
----
-** A Bulgarian translation of the Emacs Tutorial is available.
 
 ---
 ** A French translation of the `Emacs Survival Guide' is available.
