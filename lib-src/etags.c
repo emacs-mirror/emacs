@@ -1473,7 +1473,7 @@ total_size_of_entries (node)
 enum sym_type
 {
   st_none, st_C_objprot, st_C_objimpl, st_C_objend, st_C_gnumacro,
-  st_C_struct, st_C_enum, st_C_define, st_C_typedef, st_C_typespec,
+  st_C_struct, st_C_enum, st_C_define, st_C_typedef, st_C_typespec
 };
 
 /* Feed stuff between (but not including) %[ and %] lines to:
@@ -1720,7 +1720,7 @@ enum
   omethodtag,			/* after method name */
   omethodcolon,			/* after method colon */
   omethodparm,			/* after method parameter */
-  oignore,			/* wait for @end */
+  oignore			/* wait for @end */
 } objdef;
 
 /*
