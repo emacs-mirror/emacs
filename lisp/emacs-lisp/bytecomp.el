@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.84 $")
+(defconst byte-compile-version "$Revision: 2.85 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -161,16 +161,16 @@
     ;; This really ought to be loaded already!
     (load-library "byte-run"))
 
-;;; The feature of compiling in a specific target Emacs version
-;;; has been turned off because compile time options are a bad idea.
+;; The feature of compiling in a specific target Emacs version
+;; has been turned off because compile time options are a bad idea.
 (defmacro byte-compile-single-version () nil)
 (defmacro byte-compile-version-cond (cond) cond)
 
-;;; The crud you see scattered through this file of the form
-;;;   (or (and (boundp 'epoch::version) epoch::version)
-;;;	  (string-lessp emacs-version "19"))
-;;; is because the Epoch folks couldn't be bothered to follow the
-;;; normal emacs version numbering convention.
+;; The crud you see scattered through this file of the form
+;;   (or (and (boundp 'epoch::version) epoch::version)
+;;	  (string-lessp emacs-version "19"))
+;; is because the Epoch folks couldn't be bothered to follow the
+;; normal emacs version numbering convention.
 
 ;; (if (byte-compile-version-cond
 ;;      (or (and (boundp 'epoch::version) epoch::version)
@@ -663,35 +663,35 @@ otherwise pop it")
 (byte-extrude-byte-code-vectors)
 
 ;;; lapcode generator
-;;;
-;;; the byte-compiler now does source -> lapcode -> bytecode instead of
-;;; source -> bytecode, because it's a lot easier to make optimizations
-;;; on lapcode than on bytecode.
-;;;
-;;; Elements of the lapcode list are of the form (<instruction> . <parameter>)
-;;; where instruction is a symbol naming a byte-code instruction,
-;;; and parameter is an argument to that instruction, if any.
-;;;
-;;; The instruction can be the pseudo-op TAG, which means that this position
-;;; in the instruction stream is a target of a goto.  (car PARAMETER) will be
-;;; the PC for this location, and the whole instruction "(TAG pc)" will be the
-;;; parameter for some goto op.
-;;;
-;;; If the operation is varbind, varref, varset or push-constant, then the
-;;; parameter is (variable/constant . index_in_constant_vector).
-;;;
-;;; First, the source code is macroexpanded and optimized in various ways.
-;;; Then the resultant code is compiled into lapcode.  Another set of
-;;; optimizations are then run over the lapcode.  Then the variables and
-;;; constants referenced by the lapcode are collected and placed in the
-;;; constants-vector.  (This happens now so that variables referenced by dead
-;;; code don't consume space.)  And finally, the lapcode is transformed into
-;;; compacted byte-code.
-;;;
-;;; A distinction is made between variables and constants because the variable-
-;;; referencing instructions are more sensitive to the variables being near the
-;;; front of the constants-vector than the constant-referencing instructions.
-;;; Also, this lets us notice references to free variables.
+;;
+;; the byte-compiler now does source -> lapcode -> bytecode instead of
+;; source -> bytecode, because it's a lot easier to make optimizations
+;; on lapcode than on bytecode.
+;;
+;; Elements of the lapcode list are of the form (<instruction> . <parameter>)
+;; where instruction is a symbol naming a byte-code instruction,
+;; and parameter is an argument to that instruction, if any.
+;;
+;; The instruction can be the pseudo-op TAG, which means that this position
+;; in the instruction stream is a target of a goto.  (car PARAMETER) will be
+;; the PC for this location, and the whole instruction "(TAG pc)" will be the
+;; parameter for some goto op.
+;;
+;; If the operation is varbind, varref, varset or push-constant, then the
+;; parameter is (variable/constant . index_in_constant_vector).
+;;
+;; First, the source code is macroexpanded and optimized in various ways.
+;; Then the resultant code is compiled into lapcode.  Another set of
+;; optimizations are then run over the lapcode.  Then the variables and
+;; constants referenced by the lapcode are collected and placed in the
+;; constants-vector.  (This happens now so that variables referenced by dead
+;; code don't consume space.)  And finally, the lapcode is transformed into
+;; compacted byte-code.
+;;
+;; A distinction is made between variables and constants because the variable-
+;; referencing instructions are more sensitive to the variables being near the
+;; front of the constants-vector than the constant-referencing instructions.
+;; Also, this lets us notice references to free variables.
 
 (defun byte-compile-lapcode (lap)
   "Turns lapcode into bytecode.  The lapcode is destroyed."
@@ -842,23 +842,23 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 		      (and byte-compile-last-warned-form
 			   (not (eq byte-compile-current-form
 				    byte-compile-last-warned-form))))
-;;; This is redundant, since it is given at the start of the file,
-;;; and the extra clutter gets in the way -- rms.
-;;; 		  (if (and byte-compile-current-file
-;;; 			   (not (equal byte-compile-current-file
-;;; 				       byte-compile-last-logged-file)))
-;;; 		      (insert "\n\^L\n" (current-time-string) "\n"))
+		  ;; This is redundant, since it is given at the start of the
+		  ;; file, and the extra clutter gets in the way -- rms.
+		  ;; (if (and byte-compile-current-file
+		  ;; 	   (not (equal byte-compile-current-file
+		  ;; 		       byte-compile-last-logged-file)))
+		  ;;     (insert "\n\^L\n" (current-time-string) "\n"))
 		  (insert "\nWhile compiling "
 			  (if byte-compile-current-form
 			      (format "%s" byte-compile-current-form)
 			    "toplevel forms"))
-;;; This is redundant, since it is given at the start of the file,
-;;; and the extra clutter gets in the way -- rms.
-;;; 		  (if byte-compile-current-file
-;;; 		      (if (stringp byte-compile-current-file)
-;;; 			  (insert " in file " byte-compile-current-file)
-;;; 			(insert " in buffer "
-;;; 				(buffer-name byte-compile-current-file))))
+		  ;; This is redundant, since it is given at the start of the file,
+		  ;; and the extra clutter gets in the way -- rms.
+		  ;; (if byte-compile-current-file
+		  ;;     (if (stringp byte-compile-current-file)
+		  ;; 	  (insert " in file " byte-compile-current-file)
+		  ;; 	(insert " in buffer "
+		  ;; 		(buffer-name byte-compile-current-file))))
 		  (insert ":\n")))
 	   (insert "  " string "\n")
 	   (if (and fill (not (string-match "\n" string)))
@@ -890,10 +890,10 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
   (if byte-compile-error-on-warn
       (error "%s" format)		; byte-compile-file catches and logs it
     (byte-compile-log-1 (concat "** " format) t)
-;;; It is useless to flash warnings too fast to be read.
-;;; Besides, they will all be shown at the end.
-;;;    (or noninteractive  ; already written on stdout.
-;;;	(message "Warning: %s" format))
+    ;; It is useless to flash warnings too fast to be read.
+    ;; Besides, they will all be shown at the end.
+    ;; (or noninteractive  ; already written on stdout.
+    ;;	   (message "Warning: %s" format))
     ))
 
 ;;; This function should be used to report errors that have halted
@@ -1295,6 +1295,7 @@ recompile every `.el' file that already has a `.elc' file."
 		       (nconc directories (list source))))
 	     ;; It is an ordinary file.  Decide whether to compile it.
 	     (if (and (string-match emacs-lisp-file-regexp source)
+		      (file-readable-p source)
 		      (not (auto-save-file-name-p source))
 		      (setq dest (byte-compile-dest-file source))
 		      (if (file-exists-p dest)
@@ -1324,7 +1325,7 @@ recompile every `.el' file that already has a `.elc' file."
 (defun byte-compile-file (filename &optional load)
   "Compile a file of Lisp code named FILENAME into a file of byte code.
 The output file's name is made by appending `c' to the end of FILENAME.
-With prefix arg (noninteractively: 2nd arg), load the file after compiling.
+With prefix arg (noninteractively: 2nd arg), LOAD the file after compiling.
 The value is t if there were no errors, nil if errors."
 ;;  (interactive "fByte compile file: \nP")
   (interactive
@@ -1352,8 +1353,6 @@ The value is t if there were no errors, nil if errors."
 		 (y-or-n-p (format "Save buffer %s first? " (buffer-name b))))
 	    (save-excursion (set-buffer b) (save-buffer)))))
 
-  (if byte-compile-verbose
-      (message "Compiling %s..." filename))
   (let ((byte-compile-current-file filename)
 	(byte-compile-last-logged-file nil)
 	(set-auto-coding-for-load t)
@@ -1386,6 +1385,18 @@ The value is t if there were no errors, nil if errors."
         (setq filename buffer-file-name))
       ;; Set the default directory, in case an eval-when-compile uses it.
       (setq default-directory (file-name-directory filename)))
+    ;; Check if the file's local variables explicitly specify not to
+    ;; compile this file.
+    (if (with-current-buffer input-buffer
+	  (and (boundp 'no-byte-compile) no-byte-compile))
+	(progn
+	  (message "%s not compiled because of `no-byte-compile: %s'"
+		   (file-relative-name filename)
+		   (with-current-buffer input-buffer no-byte-compile))
+	  (if (file-exists-p target-file)
+	      (condition-case nil (delete-file target-file) (error nil))))
+    (if byte-compile-verbose
+	(message "Compiling %s..." filename))
     (setq byte-compiler-error-flag nil)
     ;; It is important that input-buffer not be current at this call,
     ;; so that the value of point set in input-buffer
@@ -1430,7 +1441,7 @@ The value is t if there were no errors, nil if errors."
 	    (display-call-tree filename)))
       (if load
 	  (load target-file))
-      t)))
+      t))))
 
 ;;(defun byte-compile-and-load-file (&optional filename)
 ;;  "Compile a file of Lisp code named FILENAME into a file of byte code,
@@ -3249,7 +3260,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
      (list
       ;; Put the defined variable in this library's load-history entry
       ;; just as a real defvar would, but only in top-level forms.
-      (when (null byte-compile-current-form)
+      (when (and (cddr form) (null byte-compile-current-form))
 	`(push ',var current-load-list))
       (when (> (length form) 3)
 	(when (and string (not (stringp string)))
@@ -3566,7 +3577,7 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
   (or command-line-args-left
       (setq command-line-args-left '(".")))
   (while command-line-args-left
-    (byte-recompile-directory (car command-line-args-left))
+    (byte-recompile-directory (car command-line-args-left) 0)
     (setq command-line-args-left (cdr command-line-args-left)))
   (kill-emacs 0))
 

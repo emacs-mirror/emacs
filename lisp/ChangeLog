@@ -1,5 +1,11 @@
 2001-10-04  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* emacs-lisp/bytecomp.el (byte-recompile-directory):
+	Make sure the file is readable.
+	(byte-compile-file): Don't compile if `no-byte-compile' is set.
+	(byte-compile-defvar): Update to reflect the change in Fdefvar.
+	(batch-byte-recompile-directory): Pass arg=0.
+
 	* progmodes/perl-mode.el (perl-indent-continued-arguments): New var.
 	(perl-calculate-indent): Use it.
 	(perl-backward-to-noncomment): Use forward-comment.
