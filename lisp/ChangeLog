@@ -1,3 +1,8 @@
+2004-07-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired-aux.el (dired-do-kill-lines): Expand docstring.
+	Delete irrelevant code.
+
 2004-07-17  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
 	* net/tramp.el (tramp-handle-verify-visited-file-modtime): New

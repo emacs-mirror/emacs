@@ -1,5 +1,8 @@
 2004-07-18  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* dired.texi (Dired Updating): `k' only deletes inserted
+	subdirectories from the Dired buffer if a prefix argument was given.
+
 	* search.texi (Regexps): Delete redundant definition of `symbol' in
 	description of `\_>'.  It already occurs in the description of `\_<'.
 
