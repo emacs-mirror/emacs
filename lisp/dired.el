@@ -2845,18 +2845,33 @@ If no files are marked or a specific numeric prefix arg is given,
 the next ARG files are used.  Just \\[universal-argument] means the current file.
 The prompt mentions the file(s) or the marker, as appropriate.
 
-If there is output, it goes to a separate buffer.
+If there is a `*' in COMMAND, surrounded by whitespace, this runs
+COMMAND just once with the entire file list substituted there.
 
-Normally the command is run on each file individually.
-However, if there is a `*' in the command then it is run
-just once with the entire file list substituted there.
+If there is no `*', but there is a `?' in COMMAND, surrounded by
+whitespace, this runs COMMAND on each file individually with the
+file name substituted for `?'.
 
-No automatic redisplay of dired buffers is attempted, as there's no
-telling what files the command may have changed.  Type
-\\[dired-do-redisplay] to redisplay the marked files.
+Otherwise, this runs COMMAND on each file individually with the
+file name added at the end of COMMAND (separated by a space).
 
-The shell command has the top level directory as working directory, so
-output files usually are created there instead of in a subdir."
+`*' and `?' when not surrounded by whitespace have no special
+significance for `dired-do-shell-command', and are passed through
+normally to the shell, but you must confirm first.  To pass `*' by
+itself to the shell as a wildcard, type `*\"\"'.
+
+If COMMAND produces output, it goes to a separate buffer.
+
+This feature does not try to redisplay Dired buffers afterward, as
+there's no telling what files COMMAND may have changed.
+Type \\[dired-do-redisplay] to redisplay the marked files.
+
+When COMMAND runs, its working directory is the top-level directory of
+the Dired buffer, so output files usually are created there instead of
+in a subdir.
+
+In a noninteractive call (from Lisp code), you must specify
+the list of file names explicitly with the FILE-LIST argument."
   t)
 
 (autoload 'dired-do-kill-lines "dired-aux"
