@@ -138,14 +138,14 @@ lock_file_1 (lfname, force)
   char *lock_info_str;
 
   if (STRINGP (Fuser_login_name (Qnil)))
-    user_name = XSTRING (Fuser_login_name (Qnil))->data;
+    user_name = (char *)XSTRING (Fuser_login_name (Qnil))->data;
   else
     user_name = "";
   if (STRINGP (Fsystem_name ()))
-    host_name = XSTRING (Fsystem_name ())->data;
+    host_name = (char *)XSTRING (Fsystem_name ())->data;
   else
     host_name = "";
-  lock_info_str = alloca (strlen (user_name) + strlen (host_name)
+  lock_info_str = (char *)alloca (strlen (user_name) + strlen (host_name)
 			  + LOCK_PID_MAX + 5);
 
   sprintf (lock_info_str, "%s@%s.%lu", user_name, host_name,
@@ -345,8 +345,8 @@ lock_file (fn)
     return;
 
   /* Else consider breaking the lock */
-  locker = alloca (strlen (lock_info.user) + strlen (lock_info.host)
-                   + LOCK_PID_MAX + 9);
+  locker = (char *) alloca (strlen (lock_info.user) + strlen (lock_info.host)
+			    + LOCK_PID_MAX + 9);
   sprintf (locker, "%s@%s (pid %d)", lock_info.user, lock_info.host,
            lock_info.pid);
   FREE_LOCK_INFO (lock_info);
