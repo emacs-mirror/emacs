@@ -1806,6 +1806,7 @@ void hash_put P_ ((struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 void hash_remove P_ ((struct Lisp_Hash_Table *, Lisp_Object));
 void hash_clear P_ ((struct Lisp_Hash_Table *));
 void remove_hash_entry P_ ((struct Lisp_Hash_Table *, int));
+extern void init_fns P_ ((void));
 EXFUN (Fsxhash, 1);
 EXFUN (Fmake_hash_table, MANY);
 EXFUN (Fcopy_hash_table, 1);
@@ -1944,6 +1945,7 @@ extern Lisp_Object Qinhibit_redisplay;
 extern Lisp_Object Vmessage_log_max;
 extern int message_enable_multibyte;
 extern Lisp_Object echo_area_buffer[2];
+extern void check_message_stack P_ ((void));
 extern void setup_echo_area_for_printing P_ ((int));
 extern int push_message P_ ((void));
 extern void pop_message P_ ((void));
@@ -1972,7 +1974,15 @@ extern void prepare_menu_bars P_ ((void));
 extern void syms_of_xdisp P_ ((void));
 extern void init_xdisp P_ ((void));
 
+/* Defined in vm-limit.c.  */
+#ifdef __STDC__
+extern void memory_warnings P_ ((void *, void (*warnfun) ()));
+#else
+extern void memory_warnings P_ ((char *, void (*warnfun) ()));
+#endif
+				
 /* Defined in alloc.c */
+extern void uninterrupt_malloc P_ ((void));
 extern void malloc_warning P_ ((char *));
 extern void memory_full P_ ((void));
 extern void buffer_memory_full P_ ((void));
@@ -2282,6 +2292,7 @@ extern Lisp_Object close_file_unwind P_ ((Lisp_Object));
 extern void report_file_error P_ ((char *, Lisp_Object));
 extern int internal_delete_file P_ ((Lisp_Object));
 extern void syms_of_fileio P_ ((void));
+extern void init_fileio_once P_ ((void));
 
 /* Defined in abbrev.c */
 
@@ -2612,6 +2623,11 @@ extern void lock_file P_ ((Lisp_Object));
 extern void unlock_file P_ ((Lisp_Object));
 extern void unlock_buffer P_ ((struct buffer *));
 extern void syms_of_filelock P_ ((void));
+extern void init_filelock P_ ((void));
+
+/* Defined in sound.c */
+extern void syms_of_sound P_ ((void));
+extern void init_sound P_ ((void));
 
 /* Defined in category.c */
 extern void init_category_once P_ ((void));
@@ -2646,6 +2662,7 @@ extern int getloadavg P_ ((double *, int));
 /* Defined in xfns.c */
 extern void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void syms_of_xfns P_ ((void));
+extern void init_xfns P_ ((void));
 #endif
 
 /* Defined in xselect.c */
