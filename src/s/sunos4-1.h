@@ -13,3 +13,7 @@
 
 /* Cause the compilation of oldxmenu to use the right -I option.  */
 #define OLDXMENU_OPTIONS CFLAGS=C_SWITCH_SYSTEM
+
+/* Ethan Bradford <ethanb@kepler.astro.washington.edu> says this allows
+   open-network-stream to find remote hosts.  */
+#define LIBS_SYSTEM -lresolv
