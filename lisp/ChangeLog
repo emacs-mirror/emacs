@@ -1,3 +1,20 @@
+1999-12-31  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* echistory.el (electric-command-history): Call Command-history-setup
+	and command-history-mode using their new conventions.
+
+	* chistory.el (Command-history-setup): Don't switch buffers.  Take
+	no args, and do not set major-mode, mode-name or the local map.
+	(command-history-mode): New function, does some of those things
+	Command-history-setup used to do.
+	(list-command-history): Call command-history-mode, not
+	Command-history-setup.
+	(command-history): Renamed from command-history-mode.
+
+1999-12-31  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* arc-mode.el (archive-mode-map): Bind q to quit-window.
+
 1999-12-31  William M. Perry  <wmperry@aventail.com>
 
 	* image.el (defimage): Images with the `:data' keyword should be
