@@ -68,7 +68,7 @@ extern int errno;
 Lisp_Object Qread_char, Qget_file_char, Qstandard_input, Qcurrent_load_list;
 Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist;
 Lisp_Object Qascii_character, Qload, Qload_file_name;
-Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot;
+Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 
 extern Lisp_Object Qevent_symbol_element_mask;
 
@@ -1317,6 +1317,9 @@ read1 (readcharfun, pch, first_in_list)
 	}
       if (c == '$')
 	return Vload_file_name;
+      if (c == '\'')
+	return Fcons (Qfunction, Fcons (read0 (readcharfun), Qnil));
+
 
       UNREAD (c);
       Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#", 1), Qnil));
@@ -2433,6 +2436,9 @@ This is useful when the file being loaded is a temporary copy.");
 
   Qascii_character = intern ("ascii-character");
   staticpro (&Qascii_character);
+
+  Qfunction = intern ("function");
+  staticpro (&Qfunction);
 
   Qload = intern ("load");
   staticpro (&Qload);
