@@ -3766,7 +3766,7 @@ actually used.")
 
       if (lseek (fd, XINT (beg), 0) < 0)
 	{
-	  free (conversion_buffer);
+	  xfree (conversion_buffer);
 	  report_file_error ("Setting file position",
 			     Fcons (orig_filename, Qnil));
 	}
