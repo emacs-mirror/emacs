@@ -34,6 +34,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include <Xm/BulletinB.h>
 #include <Xm/CascadeB.h>
+#include <Xm/CascadeBG.h>
 #include <Xm/DrawingA.h>
 #include <Xm/FileSB.h>
 #include <Xm/Label.h>
@@ -168,7 +169,20 @@ destroy_all_children (widget, first_child_to_destroy)
       /* Unmanage all children and destroy them.  They will only be 
 	 really destroyed when we get out of DispatchEvent.  */
       for (i = first_child_to_destroy; i < number; i++)
-	XtDestroyWidget (children[i]);
+	{
+	  Arg al[2];
+	  Widget submenu = 0;
+	  /* Cascade buttons have submenus,and these submenus
+	     need to be freed.  But they are not included in
+	     XtCompositeChildren.  So get it out of the cascade button
+	     and free it.  If this child is not a cascade button,
+	     then submenu should remain unchanged.  */
+	  XtSetArg (al[0], XmNsubMenuId, &submenu); 
+  	  XtGetValues (children[i], al, 1);
+	  if (submenu)
+	    XtDestroyWidget (submenu);
+	  XtDestroyWidget (children[i]);
+	}
 
       XtFree ((char *) children);
     }
@@ -427,7 +441,7 @@ make_menu_in_widget (instance, widget, val, keep_first_children)
 	  menu = XmCreatePulldownMenu (widget, cur->name, NULL, 0);
 	  make_menu_in_widget (instance, menu, cur->contents, 0);
 	  XtSetArg (al [ac], XmNsubMenuId, menu); ac++;
-	  button = XmCreateCascadeButton (widget, cur->name, al, ac);
+	  button = XmCreateCascadeButtonGadget (widget, cur->name, al, ac);
 
 	  xm_update_label (instance, button, cur);
 
