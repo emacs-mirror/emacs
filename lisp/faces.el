@@ -1352,7 +1352,7 @@ created."
   :group 'basic-faces)
 
 
-(defface modeline
+(defface mode-line
   '((((type x) (class color))
      (:box (:line-width 2 :style released-button) :background "grey75"))
     (t
@@ -1360,6 +1360,8 @@ created."
   "Basic mode line face."
   :group 'basic-faces)
 
+;; Make `modeline' an alias for `mode-line', for compatibility.
+(put 'modeline 'face-alias 'mode-line)
 
 (defface header-line
   '((((type x) (class color))
