@@ -1,4 +1,4 @@
-;; reftex.el --- Minor mode for doing \label{} \ref{} and \cite{} in LaTeX
+;; reftex.el --- Minor mode for doing \label, \ref and \cite in LaTeX
 ;; Copyright (c) 1997 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
@@ -25,8 +25,8 @@
 ;;
 ;;; Commentary:
 ;;
-;; RefTeX is a minor mode with distinct support for \ref{}, \label{} and
-;; \cite{} commands in (multi-file) LaTeX documents.
+;; RefTeX is a minor mode with distinct support for \ref, \label and
+;; \cite commands in (multi-file) LaTeX documents.
 ;; Labels are created semi-automatically.  Definition context of labels is
 ;; provided when creating a reference.  Citations are simplified with
 ;; efficient database lookup.
@@ -46,7 +46,7 @@
 ;;
 ;; OVERVIEW
 ;; 
-;; 1. USING \label{} AND \ref{}. Labels and references are one of the
+;; 1. USING \label AND \ref. Labels and references are one of the
 ;;    strong points of LaTeX. But, in documents with hundreds of
 ;;    equations, figures, tables etc. it becomes quickly impossible to
 ;;    find good label names and to actually remember them. Then, also
@@ -71,7 +71,7 @@
 ;;      In order to make a reference, type `C-c )' (reftex-reference).
 ;;      This shows an outline of the documents with all labels of a
 ;;      certain type (figure, equation,...) and context of the label
-;;      definition.  Selecting one of the labels inserts a \ref{} macro
+;;      definition.  Selecting one of the labels inserts a \ref macro
 ;;      into the original buffer. Online help during the selection is
 ;;      available with `?'.
 ;; 
@@ -143,7 +143,7 @@
 ;; documentation string. Look it up for more information!
 ;;
 ;;   ;; Configuration Variables and User Options for RefTeX ------------------
-;;   ;; Support for \label{} and \ref{} --------------------------------------
+;;   ;; Support for \label and \ref ------------------------------------------
 ;;        (setq reftex-label-alist nil)
 ;;        (setq reftex-default-label-alist-entries '(Sideways LaTeX))
 ;;        (setq reftex-use-text-after-label-as-context nil)
@@ -221,7 +221,7 @@
 ;; format as other figure labels. 
 ;; The next item indicates how to grab context of the label definition. 
 ;; - t means to get it from a default location (from the beginning of a \macro
-;;   or after the \begin{} statement). t is *not* a good choice for eqnarray
+;;   or after the \begin statement). t is *not* a good choice for eqnarray
 ;;   and similar environments.
 ;; - nil means to use the text right after the label definition.
 ;; - For more complex ways of getting context, see the docstring of
@@ -508,7 +508,7 @@
       (customize-group 'reftex)
     (customize 'reftex)))
 
-;; Support for \label{} and \ref{} --------------------------------------
+;; Support for \label and \ref --------------------------------------
 
 (defgroup reftex-label-support nil
   "Support for creation, insertion and referencing of labels in LaTeX"
@@ -520,7 +520,7 @@
 
 
 (defcustom reftex-label-alist nil
-  "AList with information on environments for \\label{}-\\ref{} use.
+  "Alist with information on environments for \\label-\\ref use.
 See the definition of reftex-label-alist-builtin for examples. This variable
 should define additions and changes to the default.  The only things you MUST
 NOT change is that '?s' is the type indicator for section labels and SPACE is
@@ -567,7 +567,7 @@ label. The elements of each list entry are:
       or table environment. \"\\\\\\\\begin{eqnarray}\\\\|\\\\\\\\\\\\\\\\\"
       works for eqnarrays.
     - If a function, call this function with the name of the environment/macro
-      as argument. On call, point will be just after the \\label{} macro. The
+      as argument. On call, point will be just after the \\label macro. The
       function is expected to return a suitable context string. It should
       throw an exception (error) when failing to find context.
       Consider the following example, which would return the 10 characters
@@ -979,17 +979,16 @@ remains shown after command completion."
 
 ;;;###autoload
 (defun reftex-mode (&optional arg)
-  "Minor mode with distinct support for \\label{}, \\ref{} and \\cite{}
-in LaTeX documents.
+  "Minor mode with distinct support for \\label, \\ref and \\cite in LaTeX.
 
 Labels can be created with `\\[reftex-label]' and referenced with `\\[reftex-reference]'.
 When referencing, you get a menu with all labels of a given type and
 context of the label definition. The selected label is inserted as a
-\\ref{} macro.
+\\ref macro.
 
 Citations can be made with `\\[reftex-citation]' which will use a regular expression 
 to pull out a *formatted* list of articles from your BibTeX
-database. The selected citation is inserted as a \\cite{} macro.
+database. The selected citation is inserted as a \\cite macro.
 
 A Table of Contents of the entire (multifile) document with browsing
 capabilities is available with `\\[reftex-toc]'.
@@ -1437,7 +1436,7 @@ This works also without an active TAGS table."
 			      'reftex-master-include-list))))
 
 (defun reftex-change-label (&optional from to)
-  "Query replace FROM with TO in all \\label{} and \\ref{} commands.
+  "Query replace FROM with TO in all \\label and \\ref commands.
 Works on the entire multifile document.
 If you exit (\\[keyboard-quit] or ESC), you can resume the query replace
 with the command \\[tags-loop-continue].
@@ -1786,7 +1785,7 @@ necessary if you have recently entered labels yourself without using
 reftex-label. Rescanning of the buffer can also be requested from the
 label selection menu.
 The function returns the selected label or nil.
-If NO-INSERT is non-nil, do not insert \\ref{} command, just return label.
+If NO-INSERT is non-nil, do not insert \\ref command, just return label.
 When called with 2 C-u prefix args, disable magic word recognition."
 
   (interactive)
@@ -2783,7 +2782,7 @@ Uses the list-of-cons-cells version of reftex-cite-format.")
     (set bib-list-symbol
          (if file-list
              (reftex-find-files-on-path file-list dir-list 
-                                       "While parsing \\bibliography{}:")
+                                       "While parsing \\bibliography:")
            nil))))
 
 (defun reftex-find-files-on-path (file-list path-list &optional error-string)
@@ -3122,10 +3121,10 @@ to reftex-cite-format and inserted into the buffer.
 If NO-INSERT is non-nil, nothing is inserted, only the selected key returned.
 The regular expression uses an expanded syntax: && is interpreted as 'and'.
 Thus, aaaa&&bbb matches entries which contain both aaaa and bbb.
-When this function is called with point inside the braces of a \\cite{}
+When this function is called with point inside the braces of a \\cite
 command, it will add another key, ignoring the value of reftex-cite-format.
 When called with a numeric prefix, that many citations will be made and all
-put into the same \\cite{} command.
+put into the same \\cite command.
 When called with just C-u as prefix, enforces rescan of buffer for
 bibliography statement (e.g. if it was changed)."
 
@@ -3497,9 +3496,9 @@ bibliography statement (e.g. if it was changed)."
 ;;; View cross references
 
 (defun reftex-view-crossref (&optional arg)
-  "View cross reference of \\ref{} or \\cite{} macro at point.
-If the macro at point is a \\ref{}, show the corresponding label definition.
-If it is a \\cite{}, show the BibTeX database entry.
+  "View cross reference of \\ref or \\cite macro at point.
+If the macro at point is a \\ref, show the corresponding label definition.
+If it is a \\cite, show the BibTeX database entry.
 If there is no such macro at point, search forward to find one.
 When you call this function several times in direct successtion, point will
 move to view subsequent cross references further down in the buffer.
@@ -3562,12 +3561,10 @@ With argument, actually select the window showing the cross reference."
     (and arg (select-window pop-window))))
 
 (defun reftex-mouse-view-crossref (ev)
-  "View cross reference of \\ref{} or \\cite{} macro where you click.
-If the macro at point is a \\ref{}, show the corresponding label definition.
-If it is a \\cite{}, show the BibTeX database entry.
+  "View cross reference of \\ref or \\cite macro where you click.
+If the macro at point is a \\ref, show the corresponding label definition.
+If it is a \\cite, show the BibTeX database entry.
 If there is no such macro at point, search forward to find one.
-When you call this function several times in direct successtion, point will
-move to view subsequent cross references further down in the buffer.
 With argument, actually select the window showing the cross reference."
   (interactive "e")
   (mouse-set-point ev)
@@ -4055,9 +4052,9 @@ This enforces rescanning the buffer on next use."
  '("Ref"
    ["Table of Contents"      reftex-toc t]
    "----"
-   ["\\label{}"              reftex-label t]
-   ["\\ref{}"                reftex-reference t]
-   ["\\cite{}"               reftex-citation t]
+   ["\\label"              reftex-label t]
+   ["\\ref"                reftex-reference t]
+   ["\\cite"               reftex-citation t]
    ["View crossref"          reftex-view-crossref t]
    "----"
    ("Search and Replace"
