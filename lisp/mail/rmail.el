@@ -647,7 +647,10 @@ Instead, these commands are available:
 (defun rmail-variables ()
   (make-local-variable 'revert-buffer-function)
   (setq revert-buffer-function 'rmail-revert)
-  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults
+   '(rmail-font-lock-keywords t nil nil nil
+     (rmail-fontify-buffer-function rmail-unfontify-buffer-function nil nil
+      (fast-lock-mode))))
   (setq font-lock-defaults '(rmail-font-lock-keywords t))
   (make-local-variable 'rmail-last-label)
   (make-local-variable 'rmail-last-regexp)
@@ -2524,6 +2527,34 @@ This has an effect only if a summary buffer exists.")
 	       (enlarge-window (- rmail-summary-window-size
 				  (window-height))))
 	   (select-window selected)))))
+
+;;;; *** Rmail Local Fontification ***
+
+(defun rmail-fontify-buffer-function ()
+  ;; This function's symbol is bound to font-lock-fontify-buffer-function.
+  (if (and (boundp 'lazy-lock-mode) lazy-lock-mode)
+      (setq font-lock-fontify-buffer-function
+	    'font-lock-default-fontify-buffer)
+    (make-local-hook 'rmail-show-message-hook)
+    (add-hook 'rmail-show-message-hook 'rmail-fontify-message nil t)
+    (rmail-fontify-message)))
+
+(defun rmail-unfontify-buffer-function ()
+  ;; This function's symbol is bound to font-lock-fontify-unbuffer-function.
+  (remove-hook 'rmail-show-message-hook 'rmail-fontify-message t)
+  (font-lock-default-unfontify-buffer))
+
+(defun rmail-fontify-message ()
+  ;; Fontify the current message if it is not already fontified.
+  (if (text-property-any (point-min) (point-max) 'rmail-fontified nil)
+      (let ((modified (buffer-modified-p))
+	    (buffer-undo-list t) (inhibit-read-only t)
+	    before-change-functions after-change-functions
+	    buffer-file-name buffer-file-truename)
+	(save-excursion
+	  (save-match-data
+	    (add-text-properties (point-min) (point-max) '(rmail-fontified t))
+	    (font-lock-fontify-region (point-min) (point-max)))))))
 
 ;;;; *** Rmail Specify Inbox Files ***
 

@@ -589,17 +589,18 @@ turned on in a buffer if its major mode is one of `font-lock-global-modes'."
 	    (save-match-data
 	      (setq font-lock-fontified nil)
 	      (font-lock-fontify-region (point-min) (point-max) verbose)
+	      (font-lock-after-fontify-buffer)
 	      (setq font-lock-fontified t)))
 	;; We don't restore the old fontification, so it's best to unfontify.
 	(quit (font-lock-unfontify-region (point-min) (point-max))))
       (if verbose (message "Fontifying %s... %s." (buffer-name)
-			   (if font-lock-fontified "done" "aborted")))
-      (font-lock-after-fontify-buffer))))
+			   (if font-lock-fontified "done" "aborted"))))))
 
 (defun font-lock-default-unfontify-buffer ()
   (save-restriction
     (widen)
     (font-lock-unfontify-region (point-min) (point-max))
+    (font-lock-after-unfontify-buffer)
     (setq font-lock-fontified nil)))
 
 ;; We use this wrapper.  However, `font-lock-fontify-region' used to be the
@@ -941,12 +942,19 @@ START should be at the beginning of a line."
 	((and (boundp 'lazy-lock-mode) lazy-lock-mode)
 	 (lazy-lock-mode -1))))
 
-;; Do something special for these packages after fontifying.  I prefer a hook.
+;; Do something special for these packages after fontifying; I prefer a hook.
 (defun font-lock-after-fontify-buffer ()
   (cond ((and (boundp 'fast-lock-mode) fast-lock-mode)
 	 (fast-lock-after-fontify-buffer))
 	((and (boundp 'lazy-lock-mode) lazy-lock-mode)
 	 (lazy-lock-after-fontify-buffer))))
+
+;; Do something special for these packages after unfontifying; I prefer a hook.
+(defun font-lock-after-unfontify-buffer ()
+  (cond ((and (boundp 'fast-lock-mode) fast-lock-mode)
+	 (fast-lock-after-unfontify-buffer))
+	((and (boundp 'lazy-lock-mode) lazy-lock-mode)
+	 (lazy-lock-after-unfontify-buffer))))
 
 ;; If the buffer is about to be reverted, it won't be fontified afterward.
 (defun font-lock-revert-setup ()
