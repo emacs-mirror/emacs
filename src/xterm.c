@@ -782,6 +782,8 @@ XTclear_end_of_line (first_unused)
 
   BLOCK_INPUT;
 
+  do_line_dance ();
+
   /* Notice if the cursor will be cleared by this operation.  */
   if (curs_y == f->phys_cursor_y
       && curs_x <= f->phys_cursor_x
