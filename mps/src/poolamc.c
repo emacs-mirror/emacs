@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.47) $
+ * $HopeName: MMsrc!poolamc.c(trunk.48) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.47) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.48) $");
 
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailBoard */
@@ -1072,7 +1072,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
       if (BufferScanLimit(buffer) == SegBase(seg))
         /* There's nothing but the buffer, don't condemn. */
         return ResOK;
-      else /* if(BufferScanLimit(buffer) == BufferLimit(buffer)) { */
+      else /* if (BufferScanLimit(buffer) == BufferLimit(buffer)) { */
         /* The buffer is full, so it won't be used by the mutator. */
         /* @@@@ We should detach it, but can't for technical reasons. */
         /* BufferDetach(buffer, pool); */
@@ -1684,13 +1684,12 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       /* union the greyness and the summaries together. */
       grey = TraceSetUnion(ss->traces, SegGrey(seg));
       toGrey = SegGrey(toSeg);
-      if (TraceSetDiff(grey, toGrey) != TraceSetEMPTY) {
-        AVER_CRITICAL(SegRankSet(seg) != RankSetEMPTY);
+      if (TraceSetDiff(grey, toGrey) != TraceSetEMPTY
+          && SegRankSet(seg) != RankSetEMPTY)
         SegSetGrey(toSeg, TraceSetUnion(toGrey, grey));
-      }
       summary = SegSummary(seg);
       toSummary = SegSummary(toSeg);
-      if(RefSetDiff(summary, toSummary) != RefSetEMPTY)
+      if (RefSetDiff(summary, toSummary) != RefSetEMPTY)
         SegSetSummary(toSeg, RefSetUnion(toSummary, summary));
 
       /* design.mps.trace.fix.copy */
@@ -1846,13 +1845,12 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       /* union the greyness and the summaries together. */
       grey = TraceSetUnion(ss->traces, SegGrey(seg));
       toGrey = SegGrey(toSeg);
-      if (TraceSetDiff(grey, toGrey) != TraceSetEMPTY) {
-        AVER_CRITICAL(SegRankSet(seg) != RankSetEMPTY);
+      if (TraceSetDiff(grey, toGrey) != TraceSetEMPTY
+          && SegRankSet(seg) != RankSetEMPTY)
         SegSetGrey(toSeg, TraceSetUnion(toGrey, grey));
-      }
       summary = SegSummary(seg);
       toSummary = SegSummary(toSeg);
-      if(RefSetDiff(summary, toSummary) != RefSetEMPTY)
+      if (RefSetDiff(summary, toSummary) != RefSetEMPTY)
         SegSetSummary(toSeg, RefSetUnion(toSummary, summary));
 
       /* design.mps.trace.fix.copy */
@@ -2047,18 +2045,17 @@ static Res AMCSegDescribe(AMC amc, Seg seg, mps_lib_FILE *stream)
     /* @@@@ This needs to describe nailboards as well */
     /* @@@@ This misses a header-sized pad at the end. */
     for(j = i; j < AddrAdd(i, row); j = AddrAdd(j, step)) {
-      if(j >= limit)
+      if (j >= limit)
         c = ' ';
-      else if(j >= init)
+      else if (j >= init)
         c = '.';
-      else if(j == p) {
+      else if (j == p) {
         c = '*';
         p = (AMCPool(amc)->format->skip)(p);
       } else
         c = '=';
       res = WriteF(stream, "$C", c, NULL);
-      if(res != ResOK)
-        return res;
+      if (res != ResOK) return res;
     }
 
     res = WriteF(stream, "\n", NULL);
