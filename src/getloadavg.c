@@ -1,5 +1,5 @@
 /* Get the system load averages.
-   Copyright (C) 1985, 86, 87, 88, 89, 91, 92, 93, 1994, 1995
+   Copyright (C) 1985, 86, 87, 88, 89, 91, 92, 93, 1994, 1995, 1997
    	Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
@@ -435,6 +435,12 @@ extern int errno;
 #  endif /* !LDAV_CVT */
 
 # endif /* LOAD_AVE_TYPE */
+
+# ifdef __GNU__
+/* GNU hurd systems act sort of like NeXT ones, for load average purposes.  */
+#  define NeXT
+#  define host_self mach_host_self
+# endif
 
 # ifdef NeXT
 #  ifdef HAVE_MACH_MACH_H
