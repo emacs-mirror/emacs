@@ -454,7 +454,7 @@ install-arch-indep: mkdir info
 	-chmod -R a+r ${datadir}/emacs ${COPYDESTS} ${infodir}
 	thisdir=`/bin/pwd`; \
 	cd ${srcdir}/etc; \
-	for page in emacs emacsclient etags ctags gfdl ; do \
+	for page in emacs emacsclient etags ctags ; do \
 	  (cd $${thisdir}; \
 	   ${INSTALL_DATA} ${srcdir}/etc/$${page}.1 ${man1dir}/$${page}${manext}; \
 	   chmod a+r ${man1dir}/$${page}${manext}); \
@@ -513,7 +513,7 @@ uninstall:
 	(cd ${archlibdir} && rm -f fns-*)
 	-rm -rf ${libexecdir}/emacs/${version}
 	(cd ${infodir} && rm -f cl* ada-mode* autotype* calc* ccmode* ebrowse* efaq* elisp* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* widget* woman* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip*)
-	(cd ${man1dir}  && rm -f emacs${manext} emacsclient${manext} etags${manext} ctags${manext} gfdl${manext})
+	(cd ${man1dir}  && rm -f emacs${manext} emacsclient${manext} etags${manext} ctags${manext})
 	(cd ${bindir}  && rm -f $(EMACSFULL) $(EMACS))
 
 
