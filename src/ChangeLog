@@ -1,5 +1,15 @@
 2000-09-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* lisp.h (XINT) [EXPLICIT_SIGN_EXTEND]: Use BITS_PER_EMACS_INT
+	instead of BITS_PER_INT.
+	(XINT, XUINT) [NO_UNION_TYPE]: Cast result to EMACS_INT and
+	EMACS_UINT, respectively.
+	(NO_UNION_TYPE) [USE_LISP_UNION_TYPE]: Undefine.
+
+	* m/sparc.h (BITS_PER_EMACS_INT) [__arch64__]: Don't define.
+
+	* unexelf.c (ELFSIZE) [__NetBSD__ && __sparc_v9__]: Define to 64.
+
 	* window.c (freeze_window_starts): Construct last argument for
 	foreach_window differently.
 
