@@ -41,9 +41,6 @@
 ;;;   Steps toward composition of Devanagari Characters.
 ;;;
 
-;;; Intersection Function will be used.
-(require 'cl)
-
 ;;;###autoload
 (defun setup-devanagari-environment ()
   "Setup multilingual environment (MULE) for languages using Devanagari."
@@ -100,12 +97,13 @@
 ;;;###autoload
 (defun indian-to-devanagari-string (str)
   "Convert Indian String to Devanagari Basic Character String."
-  (let ((pos 0) (dst "") (src str) char)
-    (while (not (equal src ""))
-      (setq char (string-to-char src))
-      (setq src (substring src (char-bytes char)))
-      (setq dst (concat dst (char-to-string (indian-to-devanagari char)))))
-    dst))
+  (let* ((len (length str))
+	 (i 0)
+	 (vec (make-vector len 0)))
+    (while (< i len)
+      (aset vec i (indian-to-devanagari (aref str i)))
+      (setq i (1+ i)))
+    (concat vec)))
 
 ;; Phase 0 - Determine whether the characters can be composed.
 ;;
@@ -262,8 +260,8 @@ of '$(5!*!&!'(B' and nukta sign.")
 ;;
 ;; Compose the glyph.
 ;;
-;; => 2$(6!X@![1(B/2$(6!D@"FP!\1(B
-;; => 2$(6!X@![12!D@"FP!\1(B
+;; => 2$(6!X@![(B1/2$(6!D@"FP!\(B1
+;; => 2$(6!X@![(B12$(6!D@"FP!\(B1
 ;;
 
 ;;
@@ -562,9 +560,9 @@ of '$(5!*!&!'(B' and nukta sign.")
 ;;
 
 (defun max-match-len (regexp-str)
-  "This returns the possible length of matched string of given regexp.
-   Only [...] pattern of regexp is recognized.  The last character of
-   inside of [....] is used for its length."
+  "Return the possible length of matched string of given regexp.
+Only [...] pattern of regexp is recognized.
+The last character of inside of [....] is used for its length."
   (let ((dest-str regexp-str))
     (while (string-match "\\[\\([^\]]\\)+\\]" dest-str)
       (setq dest-str 
@@ -573,8 +571,17 @@ of '$(5!*!&!'(B' and nukta sign.")
 		    (substring dest-str (match-end 0)))))
     (length dest-str)))
 
+;; Return t iff LIST1 and LIST2 has a same member.
+(defun rule-intersection (list1 list2)
+  (let ((found nil))
+    (while (and list1 (not found))
+      (if (memq (car list1) list2)
+	  (setq found t)
+	(setq list1 (cdr list1))))
+    found))
+
 (defun string-conversion-by-rule (src-str symbol &rest specs)
-  " This function converts the SRC-STR to the new string according to
+  "Convert string SRC-STR to a new string according to
 the rules described in the each character's SYMBOL property.  The
 rules are described in the forms of '((regexp str <specs>) ...), and
 the character sequence in the string which matches to 'regexp' are
@@ -602,7 +609,7 @@ subject of the match."
 		 (rule-specs (cdr (cdr rule)))
 		 search-pos)
 	    (if (not (or (null rule-specs)
-			 (intersection specs rule-specs)))
+			 (rule-intersection specs rule-specs)))
 		(setq rules (cdr rules))
 	      (if (null (string-match "\\\\(.+\\\\)" regexp))
 		  (progn
@@ -625,10 +632,8 @@ subject of the match."
 		(setq rules (cdr rules))))))
 	;; proceed to next position
 	(if (not found)
-	    (let ((nextchar (string-to-char (substring src-str pos))))
-	      (setq pos (+ pos 
-			   (char-bytes (string-to-char (substring src-str pos)))))
-	      (setq dst-str (concat dst-str (char-to-string nextchar)))))))
+	    (setq dst-str (concat dst-str (substring src-str pos (1+ pos)))
+		  pos (1+ pos)))))
     dst-str))
 
 
@@ -1050,7 +1055,7 @@ Ligatures and special rules are processed."
 	      (append ordered-glyphs (list (assq glyph devanagari-composition-rules))))))
     (sort ordered-glyphs '(lambda (x y) (< (car (cdr x)) (car (cdr y)))))))
 
-;;(devanagari-compose-to-one-glyph "$(5"5!X![(B") => "2$(6!XP"5@![1(B"
+;;(devanagari-compose-to-one-glyph "$(5"5!X![(B") => "2$(6!XP"5@![(B1"
 
 (defun devanagari-compose-to-one-glyph (devanagari-string)
   (let* ((o-glyph-list (devanagari-reorder-glyphs-for-composition
@@ -1190,15 +1195,13 @@ Ligatures and special rules are processed."
 
 ;;;###autoload
 (defun devanagari-decompose-string (str)
-  "This function Decomposes Devanagari glyph string to 
-basic Devanagari character string."
-  (let ((src str) (dst ""))
-    (while (not (equal src ""))
-      (let* ((char (string-to-char src))
-	     (clen (char-bytes char)))
-	(setq src (substring src clen))
-	(setq dst (concat dst
-			  (devanagari-decompose-char char)))))
+  "Decompose Devanagari glyph string STR to basic Devanagari character string."
+  (let ((len (length str))
+	(i 0)
+	(dst ""))
+    (while (< i len)
+      (setq dst (concat dst (devanagari-decompose-char (aref str i)))
+	    i (1+ i)))
     dst))
 
 ;;;###autoload
