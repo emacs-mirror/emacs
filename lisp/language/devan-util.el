@@ -89,7 +89,7 @@ positions (integers or markers) specifying the region."
       (let ((char (following-char)))
 	(if (eq (char-charset char) 'indian-2-column)
 	    (progn
-	      (delete-char -1)
+	      (delete-char 1)
 	      (insert (devanagari-to-indian char)))
 	  (forward-char 1))))))
 
