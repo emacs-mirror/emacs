@@ -226,29 +226,23 @@ Usenet paths ending in an element that matches are removed also."
 		             ;; Include the human name that precedes <foo@bar>.
 			     "\\([^\,.<\"]\\|\"[^\"]*\"\\)*"
 			     "<\\(" rmail-dont-reply-to-names "\\)"
-		       "\\)"))
+		       "\\)[^,]*"))
 	(case-fold-search t)
 	pos epos)
     (while (setq pos (string-match match userids pos))
-      (if (> pos 0) (setq pos (match-beginning 2)))
-      (setq epos
-	    ;; Delete thru the next comma, plus whitespace after.
-	    (if (string-match ",[ \t\n]*" userids (match-end 0))
-		(match-end 0)
-	      (length userids)))
-      ;; Count the double-quotes since the beginning of the list.
-      ;; Reject this match if it is inside a pair of doublequotes.
-      (let (quote-pos inside-quotes)
-	(while (and (setq quote-pos (string-match "\"" userids quote-pos))
-		    (< quote-pos pos))
-	  (setq quote-pos (1+ quote-pos))
-	  (setq inside-quotes (not inside-quotes)))
+      ;; If there's a match, it starts at the beginning of the string,
+      ;; or with `,'.  We must delete from that position to the
+      ;; end of the user-id which starts at match-beginning 2.
+      (let (inside-quotes quote-pos)
+	(save-match-data
+	  (while (and (setq quote-pos (string-match "\"" userids quote-pos))
+		      (< quote-pos pos))
+	    (setq quote-pos (1+ quote-pos))
+	    (setq inside-quotes (not inside-quotes))))
 	(if inside-quotes
 	    ;; Advance to next even-parity quote, and scan from there.
 	    (setq pos (string-match "\"" userids pos))
-	  (setq userids
-		(mail-string-delete
-		 userids pos epos)))))
+	  (setq userids (replace-match "" nil nil userids)))))
     ;; get rid of any trailing commas
     (if (setq pos (string-match "[ ,\t\n]*\\'" userids))
 	(setq userids (substring userids 0 pos)))
@@ -256,6 +250,7 @@ Usenet paths ending in an element that matches are removed also."
     (if (string-match "\\s *" userids)
 	(substring userids (match-end 0))
       userids)))
+
 
 ;;;###autoload
 (defun mail-fetch-field (field-name &optional last all list)
