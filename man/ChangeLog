@@ -1,3 +1,8 @@
+2004-08-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Drag and drop): Add documentation about
+	x-dnd-test-function and x-dnd-known-types.
+
 2004-08-30  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* indent.texi: Various minor changes in addition to:

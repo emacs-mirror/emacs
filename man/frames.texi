@@ -809,6 +809,17 @@ As a special case, if a file is dropped on a dired buffer the file is
 copied or moved (depends on exactly how it is dragged and the application
 it was dragged from) to the directory the dired buffer is displaying.
 
+@vindex x-dnd-test-function
+@vindex x-dnd-known-types
+  When a user drags something from another application over Emacs, that other
+application expects Emacs to tell it if Emacs can handle the data that is
+dragged.  The variable @code{x-dnd-test-function} is used by Emacs to determine
+what to reply.  The default value is @code{x-dnd-default-test-function}
+which accepts drops if the type of the data to be dropped is present in
+@code{x-dnd-known-types}.  You can customize @code{x-dnd-test-function} and/or
+@code{x-dnd-known-types} if you want Emacs to accept or reject drops based
+on some other criteria.
+
 @vindex x-dnd-open-file-other-window
   A file is normally opened in the window it is dropped on, but if you
 prefer the file to be opened in a new window you can customize the variable
