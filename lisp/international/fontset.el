@@ -679,7 +679,7 @@ Return FONTSET if it is created successfully, else return nil."
 ;; specified here because FAMILY of those fonts are not "fixed" in
 ;; many cases.
 (defvar standard-fontset-spec
-  "-*-fixed-medium-r-normal-*-16-*-*-*-*-*-fontset-standard,
+  (purecopy "-*-fixed-medium-r-normal-*-16-*-*-*-*-*-fontset-standard,
 	chinese-gb2312:-*-medium-r-normal-*-16-*-gb2312*-*,
 	korean-ksc5601:-*-medium-r-normal-*-16-*-ksc5601*-*,
 	chinese-cns11643-1:-*-medium-r-normal-*-16-*-cns11643*-1,
@@ -688,7 +688,7 @@ Return FONTSET if it is created successfully, else return nil."
 	chinese-cns11643-4:-*-medium-r-normal-*-16-*-cns11643*-4,
 	chinese-cns11643-5:-*-medium-r-normal-*-16-*-cns11643*-5,
 	chinese-cns11643-6:-*-medium-r-normal-*-16-*-cns11643*-6,
-	chinese-cns11643-7:-*-medium-r-normal-*-16-*-cns11643*-7"
+	chinese-cns11643-7:-*-medium-r-normal-*-16-*-cns11643*-7")
   "String of fontset spec of the standard fontset.
 You have the biggest chance to display international characters
 with correct glyphs by using the standard fontset.
@@ -702,8 +702,8 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (defun create-fontset-from-x-resource ()
   (let ((idx 0)
 	fontset-spec)
-    (while (setq fontset-spec (x-get-resource (concat "fontset-" idx)
-					      (concat "Fontset-" idx)))
+    (while (setq fontset-spec (x-get-resource (format "fontset-%d" idx)
+					      (format "Fontset-%d" idx)))
       (create-fontset-from-fontset-spec fontset-spec t 'noerror)
       (setq idx (1+ idx)))))
 
