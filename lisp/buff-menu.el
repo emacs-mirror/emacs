@@ -198,11 +198,15 @@ Letters do not insert themselves; instead, they are commands.
   (revert-buffer))
 
 (defun Buffer-menu-revert-function (ignore1 ignore2)
+  (or (eq buffer-undo-list t)
+      (setq buffer-undo-list nil))
   ;; We can not use save-excursion here.  The buffer gets erased.
   (let ((ocol (current-column))
 	(oline (progn (move-to-column 4)
 		      (get-text-property (point) 'buffer)))
-	(prop (point-min)))
+	(prop (point-min))
+	;; do not make undo records for the reversion.
+	(buffer-undo-list t))
     (list-buffers-noselect Buffer-menu-files-only)
     (while (setq prop (next-single-property-change prop 'buffer))
       (when (eq (get-text-property prop 'buffer) oline)
