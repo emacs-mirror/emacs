@@ -1,3 +1,7 @@
+2000-01-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* sound.c (Fplay_sound): Improve doc string.
+
 2000-01-11  Richard M. Stallman  <rms@gnu.org>
 
 	* lisp.h (set_internal): Enter the new arg.

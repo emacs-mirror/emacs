@@ -32,6 +32,7 @@ File: dir	Node: Top	This is the top of the INFO tree
 			  and Java code.
 * Ada mode: (ada-mode). The GNU Emacs mode editing Ada.
 * IDLWAVE: (idlwave).	Major mode and shell for IDL and WAVE/CL files.
+* EUDC: (eudc).		Emacs Unified Directory Client.
 
 Editors
 * Autotype: (autotype). Convenient features for text that you enter frequently
