@@ -1,3 +1,8 @@
+2003-12-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* termcap.c (tgetst1): Scan for "%pN"; if all
+	N are continuous in [1,9], remove all "%pN".
+
 2003-12-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_frame_set_char_size): Call x_wm_set_size_hint.
