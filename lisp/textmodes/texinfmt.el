@@ -868,7 +868,23 @@ lower types.")
          ;; Otherwise: the other characters are simply quoted.  Delete the @.
          (t
          (delete-char -1)
-         (forward-char 1)))
+	 ;; Be compatible with makeinfo: if @' and its ild are
+	 ;; followed by a @ without a brace, barf.
+	 (if (looking-at "[\"'^`~=]")
+	     (progn
+	       (if (= (char-after (1+ (point))) ?@)
+		   (error "Use braces to give a command as an argument to @%c"
+			  (following-char)))
+	       (forward-char 1)
+	       ;; @' etc. can optionally accept their argument in
+	       ;; braces (makeinfo supports that).
+	       (when (looking-at "{")
+		 (let ((start (point)))
+		   (forward-list 1)
+		   (delete-char -1)
+		   (goto-char start)
+		   (delete-char 1))))
+	   (forward-char 1))))
       ;; @ is followed by a command-word; find the end of the word.
       (setq texinfo-command-start (1- (point)))
       (if (= (char-syntax (following-char)) ?w)
