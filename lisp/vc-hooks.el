@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.127 2000/11/04 18:24:50 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.128 2000/11/06 13:19:38 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -365,13 +365,25 @@ It simply calls the real state computation function `vc-BACKEND-state'
 and does not employ any heuristic at all."
    (vc-call-backend backend 'state file))
 
+(defun vc-workfile-unchanged-p (file)
+  "Has FILE changed since last checkout?"
+  (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
+        (lastmod (nth 5 (file-attributes file))))
+    (if checkout-time
+        (equal checkout-time lastmod)
+      (let ((unchanged (vc-call workfile-unchanged-p file)))
+        (vc-file-setprop file 'vc-checkout-time (if unchanged lastmod 0))
+        unchanged))))
+
+(defun vc-default-workfile-unchanged-p (file)
+  "Default check whether FILE is unchanged: diff against master version."
+  (zerop (vc-call diff file (vc-workfile-version file))))
+
 (defun vc-workfile-version (file)
   "Return version level of the current workfile FILE."
   (or (vc-file-getprop file 'vc-workfile-version)
       (vc-file-setprop file 'vc-workfile-version
                        (vc-call workfile-version file))))
-
-;;; actual version-control code starts here
 
 (defun vc-default-registered (backend file)
   "Check if FILE is registered in BACKEND using vc-BACKEND-master-templates."
