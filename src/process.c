@@ -224,6 +224,10 @@ static SELECT_TYPE input_wait_mask;
 
 static SELECT_TYPE non_keyboard_wait_mask;
 
+/* Mask that excludes process input descriptor (s).  */
+
+static SELECT_TYPE non_process_wait_mask;
+
 /* The largest descriptor currently in use for a process object.  */
 static int max_process_desc;
 
@@ -2294,7 +2298,9 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* Wait till there is something to do */
 
-      if (! XINT (read_kbd) && wait_for_cell == 0)
+      if (wait_for_cell)
+	Available = non_process_wait_mask;
+      else if (! XINT (read_kbd))
 	Available = non_keyboard_wait_mask;
       else
 	Available = input_wait_mask;
@@ -4041,6 +4047,7 @@ add_keyboard_wait_descriptor (desc)
     FD_CLR (0, &input_wait_mask);
   add_keyboard_wait_descriptor_called_flag = 1;
   FD_SET (desc, &input_wait_mask);
+  FD_SET (desc, &non_process_wait_mask);
   if (desc > max_keyboard_desc)
     max_keyboard_desc = desc;
 }
@@ -4055,6 +4062,7 @@ delete_keyboard_wait_descriptor (desc)
   int lim = max_keyboard_desc;
 
   FD_CLR (desc, &input_wait_mask);
+  FD_CLR (desc, &non_process_wait_mask);
 
   if (desc == max_keyboard_desc)
     for (fd = 0; fd < lim; fd++)
@@ -4093,6 +4101,7 @@ init_process ()
 
   FD_ZERO (&input_wait_mask);
   FD_ZERO (&non_keyboard_wait_mask);
+  FD_ZERO (&non_process_wait_mask);
   max_process_desc = 0;
 
   FD_SET (0, &input_wait_mask);
