@@ -1,5 +1,8 @@
 2000-12-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (echo_area_display): Bind redisplay-dont-pause to t
+	around the call to redisplay_internal.
+
 	* xfns.c: Use #if GLYPH_DEBUG instead of #ifdef GLYPH_DEBUG.
 
 	* dispnew.c: Use #if GLYPH_DEBUG instead of #ifdef GLYPH_DEBUG.
