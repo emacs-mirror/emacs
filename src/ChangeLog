@@ -1,5 +1,9 @@
 2002-10-28  Dave Love  <fx@gnu.org>
 
+	* keyboard.c (lispy_accent_codes, lispy_accent_keys): Extend.
+	(lispy_kana_keys): Comment out.
+	(make_lispy_event) [XK_kana_A]: Comment out.
+
 	* xterm.c (xaw_scroll_callback): Cast call_data.
 	(XTread_socket): Deal with ASCII keysyms.
 	(syms_of_xterm) <Vx_keysym_table>: Fix args of make_hash_table.
