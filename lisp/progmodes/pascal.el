@@ -196,10 +196,10 @@ instance will do lineup in case-statements and parameterlist, while '(all)
 will do all lineups.")
 
 (defvar pascal-toggle-completions nil
-  "*Non-nil means that \\<pascal-mode-map>\\[pascal-complete-label] should \
-not display a completion buffer when
-the label couldn't be completed, but instead toggle the possible completions
-with repeated \\[pascal-complete-label]'s.")
+  "*Non-nil means \\<pascal-mode-map>\\[pascal-complete-word] should try all possible completions one by one.
+Repeated use of \\[pascal-complete-word] will show you all of them.
+Normally, when there is more than one possible completion,
+it displays a list of all possible completions.")
 
 (defvar pascal-type-keywords
   '("array" "file" "packed" "char" "integer" "real" "string" "record")
@@ -320,6 +320,8 @@ no args, if that value is non-nil."
   (setq parse-sexp-ignore-comments nil)
   (make-local-variable 'case-fold-search)
   (setq case-fold-search t)
+  (make-local-variable 'comment-start)
+  (setq comment-start "{")
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip "(\\*+ *\\|{ *")
   (make-local-variable 'comment-end)
