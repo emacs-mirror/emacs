@@ -109,7 +109,7 @@ If FRAME is omitted or nil, use the selected frame."
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "font"))
-  (if (stringp font) (setq font (x-resolve-font-name font face frame)))
+  (if (stringp font) (setq font (x-resolve-font-name font 'default frame)))
   (internal-set-face-1 face 'font font 3 frame))
 
 (defun set-face-foreground (face color &optional frame)
@@ -520,8 +520,8 @@ set its foreground and background to the default background and foreground."
 All wildcards in PATTERN become substantiated.
 If PATTERN is nil, return the name of the frame's base font, which never
 contains wildcards.
-Given optional arguments FACE and FRAME, try to return a font which is
-also the same size as FACE on FRAME."
+Given optional arguments FACE and FRAME, return a font which is
+also the same size as FACE on FRAME, or fail."
   (or (symbolp face)
       (setq face (face-name face)))
   (and (eq frame t)
@@ -532,7 +532,9 @@ also the same size as FACE on FRAME."
 	(or fonts
 	    (if face
 		(error "No fonts matching pattern are the same size as `%s'"
-		       face)
+		       (if (null (face-font face))
+			   (cdr (assq 'font (frame-parameters frame)))
+			 face))
 	      (error "No fonts match `%s'" pattern)))
 	(car fonts))
     (cdr (assq 'font (frame-parameters (selected-frame))))))
@@ -867,7 +869,7 @@ selected frame."
 
   (let ((frames (frame-list)))
     (while frames
-      (if (framep (car frames))
+      (if (not (memq (framep (car frames)) '(t nil)))
 	  (let ((frame (car frames))
 		(rest global-face-data))
 	    (while rest
