@@ -237,6 +237,7 @@ do_scrolling (screen, matrix, window_size, unchanged_at_top)
   register struct matrix_elt *p;
   register int i, j;
   register struct screen_glyphs *current_screen;
+  /* temp_screen->enable[i] means line i has been moved to current_screen.  */
   register struct screen_glyphs *temp_screen;
   struct queue { int count, pos; } *queue;
   int offset = unchanged_at_top;
@@ -487,11 +488,11 @@ line_ins_del (screen, ov1, pf1, ovn, pfn, ov, mf)
   register int insert_overhead = ov1 * 10;
   register int next_insert_cost = ovn * 10;
 
-  for (i = 0; i < screen_height; i++)
+  for (i = screen_height-1; i >= 0; i--)
     {
-      mf[screen_height - i] = next_insert_cost / 10;
+      mf[i] = next_insert_cost / 10;
       next_insert_cost += pfn;
-      ov[screen_height - i] = (insert_overhead + next_insert_cost) / 10;
+      ov[i] = (insert_overhead + next_insert_cost) / 10;
       insert_overhead += pf1;
     }
 }
@@ -568,29 +569,29 @@ do_line_insertion_deletion_costs (screen,
 {
   if (SCREEN_INSERT_COST (screen) != 0)
     {
-      SCREEN_INSERT_COST (screen)
-	= (int *) xrealloc (SCREEN_INSERT_COST (screen),
-			    SCREEN_HEIGHT (screen) * sizeof (int));
-      SCREEN_DELETEN_COST (screen)
-	= (int *) xrealloc (SCREEN_DELETEN_COST (screen),
-			    SCREEN_HEIGHT (screen) * sizeof (int));
-      SCREEN_INSERTN_COST (screen)
-	= (int *) xrealloc (SCREEN_INSERTN_COST (screen),
-			    SCREEN_HEIGHT (screen) * sizeof (int));
-      SCREEN_DELETE_COST (screen)
-	= (int *) xrealloc (SCREEN_DELETE_COST (screen),
-			    SCREEN_HEIGHT (screen) * sizeof (int));
+      SCREEN_INSERT_COST (screen) =
+	(int *) xrealloc (SCREEN_INSERT_COST (screen),
+			  SCREEN_HEIGHT (screen) * sizeof (int));
+      SCREEN_DELETEN_COST (screen) =
+	(int *) xrealloc (SCREEN_DELETEN_COST (screen),
+			  SCREEN_HEIGHT (screen) * sizeof (int));
+      SCREEN_INSERTN_COST (screen) =
+	(int *) xrealloc (SCREEN_INSERTN_COST (screen),
+			  SCREEN_HEIGHT (screen) * sizeof (int));
+      SCREEN_DELETE_COST (screen) =
+	(int *) xrealloc (SCREEN_DELETE_COST (screen),
+			  SCREEN_HEIGHT (screen) * sizeof (int));
     }
   else
     {
-      SCREEN_INSERT_COST (screen)
-	= (int *) xmalloc (SCREEN_HEIGHT (screen) * sizeof (int));
-      SCREEN_DELETEN_COST (screen)
-	= (int *) xmalloc (SCREEN_HEIGHT (screen) * sizeof (int));
-      SCREEN_INSERTN_COST (screen)
-	= (int *) xmalloc (SCREEN_HEIGHT (screen) * sizeof (int));
-      SCREEN_DELETE_COST (screen)
-	= (int *) xmalloc (SCREEN_HEIGHT (screen) * sizeof (int));
+      SCREEN_INSERT_COST (screen) =
+	(int *) xmalloc (SCREEN_HEIGHT (screen) * sizeof (int));
+      SCREEN_DELETEN_COST (screen) =
+	(int *) xmalloc (SCREEN_HEIGHT (screen) * sizeof (int));
+      SCREEN_INSERTN_COST (screen) =
+	(int *) xmalloc (SCREEN_HEIGHT (screen) * sizeof (int));
+      SCREEN_DELETE_COST (screen) = 
+	(int *) xmalloc (SCREEN_HEIGHT (screen) * sizeof (int));
     }
 
   ins_del_costs (screen,
