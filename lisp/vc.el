@@ -711,7 +711,8 @@ to an optional list of FLAGS."
 	(dired-buffer (current-buffer))
 	(dired-dir default-directory))
     (dired-map-over-marks
-     (let ((file (dired-get-filename)) p)
+     (let ((file (dired-get-filename)) p
+	   (default-directory default-directory))
        (message "Processing %s..." file)
        ;; Adjust the default directory so that checkouts
        ;; go to the right place.
@@ -1851,7 +1852,6 @@ From a program, any arguments are passed to the `rcs2log' script."
   ;; Retrieve a copy of a saved version into a workfile
   (let ((filename (or workfile file))
 	(file-buffer (get-file-buffer file))
-	(old-default-dir default-directory)
 	switches)
     (message "Checking out %s..." filename)
     (save-excursion
@@ -1860,148 +1860,152 @@ From a program, any arguments are passed to the `rcs2log' script."
       (setq switches (if (stringp vc-checkout-switches)
 			 (list vc-checkout-switches)
 		       vc-checkout-switches))
-      ;; Adjust the default-directory so that the check-out creates 
-      ;; the file in the right place. The old value is restored below.
-      (setq default-directory (file-name-directory filename))
-      (vc-backend-dispatch file
-        (progn  ;; SCCS
-          (and rev (string= rev "") (setq rev nil))
-          (if workfile  
-              ;; Some SCCS implementations allow checking out directly to a
-              ;; file using the -G option, but then some don't so use the
-              ;; least common denominator approach and use the -p option
-              ;; ala RCS.
-              (let ((vc-modes (logior (file-modes (vc-name file))
-                                      (if writable 128 0)))
-                    (failed t))
-                (unwind-protect
-                    (progn
-                      (apply 'vc-do-command
-                             nil 0 "/bin/sh" file 'MASTER "-c"
-                             ;; Some shells make the "" dummy argument into $0
-                             ;; while others use the shell's name as $0 and
-                             ;; use the "" as $1.  The if-statement
-                             ;; converts the latter case to the former.
-                             (format "if [ x\"$1\" = x ]; then shift; fi; \
+      ;; Save this buffer's default-directory
+      ;; and use save-excursion to make sure it is restored
+      ;; in the same buffer it was saved in.
+      (let ((default-directory default-directory))
+	(save-excursion
+	  ;; Adjust the default-directory so that the check-out creates 
+	  ;; the file in the right place.
+	  (setq default-directory (file-name-directory filename))
+	  (vc-backend-dispatch file
+	    (progn  ;; SCCS
+	      (and rev (string= rev "") (setq rev nil))
+	      (if workfile  
+		  ;; Some SCCS implementations allow checking out directly to a
+		  ;; file using the -G option, but then some don't so use the
+		  ;; least common denominator approach and use the -p option
+		  ;; ala RCS.
+		  (let ((vc-modes (logior (file-modes (vc-name file))
+					  (if writable 128 0)))
+			(failed t))
+		    (unwind-protect
+			(progn
+			  (apply 'vc-do-command
+				 nil 0 "/bin/sh" file 'MASTER "-c"
+				 ;; Some shells make the "" dummy argument into $0
+				 ;; while others use the shell's name as $0 and
+				 ;; use the "" as $1.  The if-statement
+				 ;; converts the latter case to the former.
+				 (format "if [ x\"$1\" = x ]; then shift; fi; \
 			       umask %o; exec >\"$1\" || exit; \
 			       shift; umask %o; exec get \"$@\""
-				   (logand 511 (lognot vc-modes))
-				   (logand 511 (lognot (default-file-modes))))
-                             ""		; dummy argument for shell's $0
-                             filename 
-                             (if writable "-e")
-                             "-p" 
-                             (and rev
-                                  (concat "-r" (vc-lookup-triple file rev)))
-                             switches)
-                      (setq failed nil))
-                  (and failed (file-exists-p filename) 
-                       (delete-file filename))))
-            (apply 'vc-do-command nil 0 "get" file 'MASTER   ;; SCCS
-                   (if writable "-e")
-                   (and rev (concat "-r" (vc-lookup-triple file rev)))
-                   switches)
-            (vc-file-setprop file 'vc-workfile-version nil)))
-        (if workfile  ;; RCS
-	    ;; RCS doesn't let us check out into arbitrary file names directly.
-	    ;; Use `co -p' and make stdout point to the correct file.
-	    (let ((vc-modes (logior (file-modes (vc-name file))
-				    (if writable 128 0)))
-		  (failed t))
-	      (unwind-protect
-		  (progn
-		    (apply 'vc-do-command
-			   nil 0 "/bin/sh" file 'MASTER "-c"
-			   ;; See the SCCS case, above, regarding the
-			   ;; if-statement.
-			   (format "if [ x\"$1\" = x ]; then shift; fi; \
+				       (logand 511 (lognot vc-modes))
+				       (logand 511 (lognot (default-file-modes))))
+				 ""		; dummy argument for shell's $0
+				 filename 
+				 (if writable "-e")
+				 "-p" 
+				 (and rev
+				      (concat "-r" (vc-lookup-triple file rev)))
+				 switches)
+			  (setq failed nil))
+		      (and failed (file-exists-p filename) 
+			   (delete-file filename))))
+		(apply 'vc-do-command nil 0 "get" file 'MASTER   ;; SCCS
+		       (if writable "-e")
+		       (and rev (concat "-r" (vc-lookup-triple file rev)))
+		       switches)
+		(vc-file-setprop file 'vc-workfile-version nil)))
+	    (if workfile  ;; RCS
+		;; RCS doesn't let us check out into arbitrary file names directly.
+		;; Use `co -p' and make stdout point to the correct file.
+		(let ((vc-modes (logior (file-modes (vc-name file))
+					(if writable 128 0)))
+		      (failed t))
+		  (unwind-protect
+		      (progn
+			(apply 'vc-do-command
+			       nil 0 "/bin/sh" file 'MASTER "-c"
+			       ;; See the SCCS case, above, regarding the
+			       ;; if-statement.
+			       (format "if [ x\"$1\" = x ]; then shift; fi; \
 			       umask %o; exec >\"$1\" || exit; \
 			       shift; umask %o; exec co \"$@\""
-				   (logand 511 (lognot vc-modes))
-				   (logand 511 (lognot (default-file-modes))))
-			   ""		; dummy argument for shell's $0
-			   filename
-			   (if writable "-l")
-			   (concat "-p" rev)
-			   switches)
-		    (setq failed nil))
-		(and failed (file-exists-p filename) (delete-file filename))))
-	  (let (new-version)
-	    ;; if we should go to the head of the trunk, 
-	    ;; clear the default branch first
-	    (and rev (string= rev "") 
-		 (vc-do-command nil 0 "rcs" file 'MASTER "-b"))
-	    ;; now do the checkout
-	    (apply 'vc-do-command
-		   nil 0 "co" file 'MASTER
-		   ;; If locking is not strict, force to overwrite
-		   ;; the writable workfile.
-		   (if (eq (vc-checkout-model file) 'implicit) "-f")
-		   (if writable "-l")
-		   (if rev (concat "-r" rev)
-		     ;; if no explicit revision was specified,
-		     ;; check out that of the working file
-		     (let ((workrev (vc-workfile-version file)))
-		       (if workrev (concat "-r" workrev)
-			 nil)))
-		   switches)
-	    ;; determine the new workfile version
-	    (save-excursion
-	      (set-buffer "*vc*")
-	      (goto-char (point-min))
-	      (setq new-version 
-		    (if (re-search-forward "^revision \\([0-9.]+\\).*\n" nil t)
-			(buffer-substring (match-beginning 1) (match-end 1)))))
-	    (vc-file-setprop file 'vc-workfile-version new-version)
-	    ;; if necessary, adjust the default branch
-	    (and rev (not (string= rev ""))
-		 (vc-do-command nil 0 "rcs" file 'MASTER 
-		    (concat "-b" (if (vc-latest-on-branch-p file)
-				     (if (vc-trunk-p new-version) nil
-				       (vc-branch-part new-version))
-				   new-version))))))
-	(if workfile  ;; CVS
-	    ;; CVS is much like RCS
-	    (let ((failed t))
-	      (unwind-protect
-		  (progn
-		    (apply 'vc-do-command
-			   nil 0 "/bin/sh" file 'WORKFILE "-c"
-			   "exec >\"$1\" || exit; shift; exec cvs update \"$@\""
-			   ""		; dummy argument for shell's $0
-			   workfile
-			   (concat "-r" rev)
-			   "-p"
-			   switches)
-		    (setq failed nil))
-		(and failed (file-exists-p filename) (delete-file filename))))
-	  ;; default for verbose checkout: clear the sticky tag
-	  ;; so that the actual update will get the head of the trunk
-	  (and rev (string= rev "")
-	       (vc-do-command nil 0 "cvs" file 'WORKFILE "update" "-A"))
-	  ;; If a revision was specified, check that out.
-	  (if rev
-	      (apply 'vc-do-command nil 0 "cvs" file 'WORKFILE 
-		     (and writable (eq (vc-checkout-model file) 'manual) "-w")
-		     "update"
-		     (and rev (not (string= rev ""))
-			  (concat "-r" rev))
-		     switches)
-	    ;; If no revision was specified, simply make the file writable.
-	    (and writable 
-		 (or (eq (vc-checkout-model file) 'manual)
-		     (zerop (logand 128 (file-modes file))))
-		 (set-file-modes file (logior 128 (file-modes file)))))
-	  (if rev (vc-file-setprop file 'vc-workfile-version nil))))
-    (setq default-directory old-default-dir)
-    (cond 
-     ((not workfile)
-      (vc-file-clear-masterprops file)
-      (if writable 
-	  (vc-file-setprop file 'vc-locking-user (user-login-name)))
-      (vc-file-setprop file
-		       'vc-checkout-time (nth 5 (file-attributes file)))))
-    (message "Checking out %s...done" filename))))
+				       (logand 511 (lognot vc-modes))
+				       (logand 511 (lognot (default-file-modes))))
+			       ""		; dummy argument for shell's $0
+			       filename
+			       (if writable "-l")
+			       (concat "-p" rev)
+			       switches)
+			(setq failed nil))
+		    (and failed (file-exists-p filename) (delete-file filename))))
+	      (let (new-version)
+		;; if we should go to the head of the trunk, 
+		;; clear the default branch first
+		(and rev (string= rev "") 
+		     (vc-do-command nil 0 "rcs" file 'MASTER "-b"))
+		;; now do the checkout
+		(apply 'vc-do-command
+		       nil 0 "co" file 'MASTER
+		       ;; If locking is not strict, force to overwrite
+		       ;; the writable workfile.
+		       (if (eq (vc-checkout-model file) 'implicit) "-f")
+		       (if writable "-l")
+		       (if rev (concat "-r" rev)
+			 ;; if no explicit revision was specified,
+			 ;; check out that of the working file
+			 (let ((workrev (vc-workfile-version file)))
+			   (if workrev (concat "-r" workrev)
+			     nil)))
+		       switches)
+		;; determine the new workfile version
+		(save-excursion
+		  (set-buffer "*vc*")
+		  (goto-char (point-min))
+		  (setq new-version 
+			(if (re-search-forward "^revision \\([0-9.]+\\).*\n" nil t)
+			    (buffer-substring (match-beginning 1) (match-end 1)))))
+		(vc-file-setprop file 'vc-workfile-version new-version)
+		;; if necessary, adjust the default branch
+		(and rev (not (string= rev ""))
+		     (vc-do-command nil 0 "rcs" file 'MASTER 
+			(concat "-b" (if (vc-latest-on-branch-p file)
+					 (if (vc-trunk-p new-version) nil
+					   (vc-branch-part new-version))
+				       new-version))))))
+	    (if workfile  ;; CVS
+		;; CVS is much like RCS
+		(let ((failed t))
+		  (unwind-protect
+		      (progn
+			(apply 'vc-do-command
+			       nil 0 "/bin/sh" file 'WORKFILE "-c"
+			       "exec >\"$1\" || exit; shift; exec cvs update \"$@\""
+			       ""		; dummy argument for shell's $0
+			       workfile
+			       (concat "-r" rev)
+			       "-p"
+			       switches)
+			(setq failed nil))
+		    (and failed (file-exists-p filename) (delete-file filename))))
+	      ;; default for verbose checkout: clear the sticky tag
+	      ;; so that the actual update will get the head of the trunk
+	      (and rev (string= rev "")
+		   (vc-do-command nil 0 "cvs" file 'WORKFILE "update" "-A"))
+	      ;; If a revision was specified, check that out.
+	      (if rev
+		  (apply 'vc-do-command nil 0 "cvs" file 'WORKFILE 
+			 (and writable (eq (vc-checkout-model file) 'manual) "-w")
+			 "update"
+			 (and rev (not (string= rev ""))
+			      (concat "-r" rev))
+			 switches)
+		;; If no revision was specified, simply make the file writable.
+		(and writable 
+		     (or (eq (vc-checkout-model file) 'manual)
+			 (zerop (logand 128 (file-modes file))))
+		     (set-file-modes file (logior 128 (file-modes file)))))
+	      (if rev (vc-file-setprop file 'vc-workfile-version nil))))
+	  (cond 
+	   ((not workfile)
+	    (vc-file-clear-masterprops file)
+	    (if writable 
+		(vc-file-setprop file 'vc-locking-user (user-login-name)))
+	    (vc-file-setprop file
+			     'vc-checkout-time (nth 5 (file-attributes file)))))
+	  (message "Checking out %s...done" filename))))))
 
 (defun vc-backend-logentry-check (file)
   (vc-backend-dispatch file
