@@ -114,9 +114,12 @@ or nil if current info file is not split into subfiles.")
 (defvar Info-current-node nil
   "Name of node that Info is now looking at, or nil.")
 
-(defvar Info-tag-table-marker (make-marker)
+(defvar Info-tag-table-marker nil
   "Marker pointing at beginning of current Info file's tag table.
 Marker points nowhere if file has no tag table.")
+
+(defvar Info-tag-table-buffer nil
+  "Buffer used for indirect tag tables.")
 
 (defvar Info-current-file-completions nil
   "Cached completion list for current Info file.")
@@ -301,7 +304,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	    (cons (list Info-current-file Info-current-node (point))
 		  Info-history)))
   ;; Go into info buffer.
-  (pop-to-buffer "*info*")
+  (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
   (buffer-disable-undo (current-buffer))
   (or (eq major-mode 'Info-mode)
       (Info-mode))
@@ -324,12 +327,12 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 		(setq default-directory (file-name-directory filename)))
 	      (set-buffer-modified-p nil)
 	      ;; See whether file has a tag table.  Record the location if yes.
-	      (set-marker Info-tag-table-marker nil)
 	      (goto-char (point-max))
 	      (forward-line -8)
 	      ;; Use string-equal, not equal, to ignore text props.
-	      (or (string-equal nodename "*")
-		  (not (search-forward "\^_\nEnd tag table\n" nil t))
+	      (if (not (or (string-equal nodename "*")
+			   (not
+			    (search-forward "\^_\nEnd tag table\n" nil t))))
 		  (let (pos)
 		    ;; We have a tag table.  Find its beginning.
 		    ;; Is this an indirect file?
@@ -340,16 +343,21 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 			  (looking-at "(Indirect)\n"))
 			;; It is indirect.  Copy it to another buffer
 			;; and record that the tag table is in that buffer.
-			(save-excursion
-			  (let ((buf (current-buffer)))
-			    (set-buffer (get-buffer-create " *info tag table*"))
+			(let ((buf (current-buffer))
+			      (tagbuf
+			       (or Info-tag-table-buffer
+				   (generate-new-buffer " *info tag table*"))))
+			  (setq Info-tag-table-buffer tagbuf)
+			  (save-excursion
+			    (set-buffer tagbuf)
                             (buffer-disable-undo (current-buffer))
 			    (setq case-fold-search t)
 			    (erase-buffer)
-			    (insert-buffer-substring buf)
-			    (set-marker Info-tag-table-marker
-					(match-end 0))))
-		      (set-marker Info-tag-table-marker pos))))
+			    (insert-buffer-substring buf))
+			  (set-marker Info-tag-table-marker
+				      (match-end 0) tagbuf))
+		      (set-marker Info-tag-table-marker pos)))
+		(set-marker Info-tag-table-marker nil))
 	      (setq Info-current-file
 		    (if (eq filename t) "dir" filename))))
 	;; Use string-equal, not equal, to ignore text props.
@@ -364,18 +372,28 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	    ;; read the proper subfile into this buffer.
 	    (if (marker-position Info-tag-table-marker)
 		(save-excursion
-		  (set-buffer (marker-buffer Info-tag-table-marker))
-		  (goto-char Info-tag-table-marker)
-		  (if (re-search-forward regexp nil t)
-		      (progn
-			(setq guesspos (read (current-buffer)))
-			;; If this is an indirect file,
-			;; determine which file really holds this node
-			;; and read it in.
-			(if (not (eq (current-buffer) (get-buffer "*info*")))
-			    (setq guesspos
-				  (Info-read-subfile guesspos))))
-		    (error "No such node: %s" nodename))))
+		  (let ((m Info-tag-table-marker)
+			found found-mode)
+		    (save-excursion
+		      (set-buffer (marker-buffer m))
+		      (goto-char m)
+		      (beginning-of-line) ;so re-search will work.
+		      (setq found (re-search-forward regexp nil t))
+		      (if found
+			  (setq guesspos (read (current-buffer))))
+		      (setq found-mode major-mode))
+		    (if found
+			(progn
+			  ;; If this is an indirect file, determine
+			  ;; which file really holds this node and
+			  ;; read it in.
+			  (if (not (eq found-mode 'Info-mode))
+			      ;; Note that the current buffer must be
+			      ;; the *info* buffer on entry to
+			      ;; Info-read-subfile.  Thus the hackery
+			      ;; above.
+			      (setq guesspos (Info-read-subfile guesspos))))
+		      (error "No such node: %s" nodename)))))
 	    (goto-char (max (point-min) (- guesspos 1000)))
 	    ;; Now search from our advised position (or from beg of buffer)
 	    ;; to find the actual node.
@@ -548,6 +566,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
     (setq Info-dir-contents (buffer-string)))
   (setq default-directory Info-dir-contents-directory))
 
+;; Note that on entry to this function the current-buffer must be the
+;; *info* buffer; not the info tags buffer.
 (defun Info-read-subfile (nodepos)
   ;; NODEPOS is either a position (in the Info file as a whole,
   ;; not relative to a subfile) or the name of a subfile.
@@ -577,7 +597,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 		(forward-line 1)))))
       (setq lastfilename nodepos)
       (setq lastfilepos 0))
-    (set-buffer (get-buffer "*info*"))
+    ;; Assume previous buffer is in Info-mode.
+    ;; (set-buffer (get-buffer "*info*"))
     (or (equal Info-current-subfile lastfilename)
 	(let ((buffer-read-only nil))
 	  (setq buffer-file-name nil)
@@ -686,10 +707,10 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	(save-excursion
 	  (save-restriction
 	    (if (marker-buffer Info-tag-table-marker)
-		(progn
-		  (set-buffer (marker-buffer Info-tag-table-marker))
+		(let ((marker Info-tag-table-marker))
+		  (set-buffer (marker-buffer marker))
 		  (widen)
-		  (goto-char Info-tag-table-marker)
+		  (goto-char marker)
 		  (while (re-search-forward "\nNode: \\(.*\\)\177" nil t)
 		    (setq compl
 			  (cons (list (buffer-substring (match-beginning 1)
@@ -747,27 +768,28 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
     (if (not found) ;can only happen in subfile case -- else would have erred
 	(unwind-protect
 	    (let ((list ()))
-	      (set-buffer (marker-buffer Info-tag-table-marker))
-	      (goto-char (point-min))
-	      (search-forward "\n\^_\nIndirect:")
-	      (save-restriction
-		(narrow-to-region (point)
-				  (progn (search-forward "\n\^_")
-					 (1- (point))))
+	      (save-excursion
+		(set-buffer (marker-buffer Info-tag-table-marker))
 		(goto-char (point-min))
-		(search-forward (concat "\n" osubfile ": "))
-		(beginning-of-line)
-		(while (not (eobp))
-		  (re-search-forward "\\(^.*\\): [0-9]+$")
-		  (goto-char (+ (match-end 1) 2))
-		  (setq list (cons (cons (read (current-buffer))
-					 (buffer-substring (match-beginning 1)
-							   (match-end 1)))
-				   list))
-		  (goto-char (1+ (match-end 0))))
-		(setq list (nreverse list)
-		      current (car (car list))
-		      list (cdr list)))
+		(search-forward "\n\^_\nIndirect:")
+		(save-restriction
+		  (narrow-to-region (point)
+				    (progn (search-forward "\n\^_")
+					   (1- (point))))
+		  (goto-char (point-min))
+		  (search-forward (concat "\n" osubfile ": "))
+		  (beginning-of-line)
+		  (while (not (eobp))
+		    (re-search-forward "\\(^.*\\): [0-9]+$")
+		    (goto-char (+ (match-end 1) 2))
+		    (setq list (cons (cons (read (current-buffer))
+					   (buffer-substring
+					    (match-beginning 1) (match-end 1)))
+				     list))
+		    (goto-char (1+ (match-end 0))))
+		  (setq list (nreverse list)
+			current (car (car list))
+			list (cdr list))))
 	      (while list
 		(message "Searching subfile %s..." (cdr (car list)))
 		(Info-read-subfile (car (car list)))
@@ -809,7 +831,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 
 ;; Return the node name in the buffer following point.
 ;; ALLOWEDCHARS, if non-nil, goes within [...] to make a regexp
-;; saying which chas may appear in the node name.
+;; saying which chars may appear in the node name.
 (defun Info-following-node-name (&optional allowedchars)
   (skip-chars-forward " \t")
   (buffer-substring-no-properties
@@ -1735,6 +1757,9 @@ Advanced commands:
   (make-local-variable 'Info-current-subfile)
   (make-local-variable 'Info-current-node)
   (make-local-variable 'Info-tag-table-marker)
+  (setq Info-tag-table-marker (make-marker))
+  (make-local-variable 'Info-tag-table-buffer)
+  (setq Info-tag-table-buffer nil)
   (make-local-variable 'Info-history)
   (make-local-variable 'Info-index-alternatives)
   (if (memq (framep (selected-frame)) '(x pc w32))
@@ -1874,6 +1899,8 @@ the variable `Info-file-list-for-emacs'."
 	  ;; Get Info running, and pop to it in another window.
 	  (save-window-excursion
 	    (info))
+	  ;; FIXME It would be cool if this could use a buffer other
+	  ;; than *info*.
 	  (pop-to-buffer "*info*")
 	  (Info-find-node (car (car where))
 			  (car (cdr (car where))))
@@ -1962,6 +1989,17 @@ The alist key is the character the title is underlined with (?*, ?= or ?-).")
 	      (put-text-property (match-beginning 1) (match-end 1)
 				 'mouse-face 'highlight))))
       (set-buffer-modified-p nil))))
+
+
+;; When an Info buffer is killed, make sure the associated tags buffer
+;; is killed too.
+(defun Info-kill-buffer ()
+  (and (eq major-mode 'Info-mode)
+       Info-tag-table-buffer
+       (kill-buffer Info-tag-table-buffer)))
+
+(add-hook 'kill-buffer-hook 'Info-kill-buffer)
+  
 
 (provide 'info)
 
