@@ -41,7 +41,7 @@
 
 (defgroup mime-display ()
   "Display of MIME in mail and news articles."
-  :link '(custom-manual "(emacs-mime)Customization")
+  :link '(custom-manual "(emacs-mime)Display Customization")
   :version "21.1"
   :group 'mail
   :group 'news
@@ -49,7 +49,7 @@
 
 (defgroup mime-security ()
   "MIME security in mail and news articles."
-  :link '(custom-manual "(emacs-mime)Customization")
+  :link '(custom-manual "(emacs-mime)Display Customization")
   :group 'mail
   :group 'news
   :group 'multimedia)
