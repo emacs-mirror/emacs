@@ -1201,8 +1201,9 @@ struct face
      font may still be used somewhere else.  */
   XFontStruct *font;
 
-  /* Background stipple or bitmap used for this face.  */
-  Pixmap stipple;
+  /* Background stipple or bitmap used for this face.  This is
+     an id as returned from load_pixmap.  */
+  int stipple;
 
 #else /* not HAVE_WINDOW_SYSTEM */
 
