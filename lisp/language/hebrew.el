@@ -45,8 +45,7 @@ But, please note that right-to-left writing is not yet supported."
   (set-language-environment "Hebrew"))
 
 (set-language-info-alist
- "Hebrew" '((describe-function . describe-hebrew-support)
-	    (charset . (hebrew-iso8859-8))
+ "Hebrew" '((charset . (hebrew-iso8859-8))
 	    (coding-priority hebrew-iso-8bit)
 	    (coding-system . (hebrew-iso-8bit))
 	    (nonascii-translation . hebrew-iso8859-8)
