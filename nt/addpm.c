@@ -23,7 +23,7 @@
  * Program: addpm	(adds emacs to the Windows program manager)
  *
  * Usage:
- *   	argv[1] = full path to program to execute
+ *   	argv[1] = install path for emacs
  *	argv[2] = full path to icon for emacs (optional)
  */
 
@@ -32,17 +32,76 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-HDDEDATA CALLBACK DdeCallback (UINT uType, UINT uFmt, HCONV hconv,
-			       HSZ hsz1, HSZ hsz2, HDDEDATA hdata,
-			       DWORD dwData1, DWORD dwData2)
+HDDEDATA CALLBACK 
+DdeCallback (UINT uType, UINT uFmt, HCONV hconv,
+	     HSZ hsz1, HSZ hsz2, HDDEDATA hdata,
+	     DWORD dwData1, DWORD dwData2)
 {
-  return ((HDDEDATA)NULL);
+  return ((HDDEDATA) NULL);
 }
 
 #define DdeCommand(str) 	\
-	DdeClientTransaction (str, strlen(str)+1, HConversation, (HSZ)NULL, \
+	DdeClientTransaction (str, strlen (str)+1, HConversation, (HSZ)NULL, \
 		              CF_TEXT, XTYP_EXECUTE, 30000, NULL)
 
+#define REG_ROOT "SOFTWARE\\GNU\\Emacs\\"
+
+static struct entry
+{
+  char *name;
+  char *value;
+} 
+env_vars[] = 
+{
+  {"emacs_path", NULL},
+  {"EMACSLOADPATH", "%emacs_path%\\lisp"},
+  {"SHELL", "cmd"},
+  {"EMACSDATA", "%emacs_path%\\etc"},
+  {"EMACSPATH", "%emacs_path%\\bin"},
+  {"EMACSLOCKDIR", "%emacs_path%\\lock"},
+  {"INFOPATH", "%emacs_path%\\info"},
+  {"EMACSDOC", "%emacs_path%\\etc"},
+  {"TERM", "cmd"}
+};
+
+BOOL 
+add_registry (path)
+     char *path;
+{
+  HKEY hrootkey = NULL;
+  DWORD dwDisp;
+  int i;
+  BOOL ok = TRUE;
+  
+  /* Check both the current user and the local machine to see if we 
+     have any resources.  */
+  
+  if (RegCreateKeyEx (HKEY_LOCAL_MACHINE, REG_ROOT,
+		      0, "", REG_OPTION_NON_VOLATILE,
+		      KEY_WRITE, NULL, &hrootkey, &dwDisp) != ERROR_SUCCESS 
+      && RegCreateKeyEx (HKEY_CURRENT_USER, REG_ROOT,
+			 0, "", REG_OPTION_NON_VOLATILE,
+			 KEY_WRITE, NULL, &hrootkey, &dwDisp) != ERROR_SUCCESS)
+    {
+      return FALSE;
+    }
+  
+  for (i = 0; i < (sizeof (env_vars) / sizeof (env_vars[0])); i++) 
+    {
+      char * value = env_vars[i].value ? env_vars[i].value : path;
+	
+      if (RegSetValueEx (hrootkey, env_vars[i].name,
+			 0, REG_EXPAND_SZ,
+			 value, lstrlen (value) + 1) != ERROR_SUCCESS)
+	ok = FALSE;
+    }			      
+  
+  RegCloseKey (hrootkey);
+  
+  return (ok);
+}
+
+int
 main (argc, argv)
      int argc;
      char *argv[];			
@@ -51,12 +110,15 @@ main (argc, argv)
   HCONV HConversation;
   HSZ ProgMan;
   char additem[MAX_PATH*2 + 100];
+  char *lpext;
 
   if (argc < 2 || argc > 3)
     {
-      fprintf(stderr, "usage: addpm exe_path [icon_path]\n");
-      exit(1);
+      fprintf (stderr, "usage: addpm emacs_path [icon_path]\n");
+      exit (1);
     }
+
+  lpext = add_registry (argv[1]) ? "exe" : "bat";
 
   DdeInitialize (&idDde, (PFNCALLBACK)DdeCallback, APPCMD_CLIENTONLY, 0);
 
@@ -64,10 +126,10 @@ main (argc, argv)
 
   if (HConversation = DdeConnect (idDde, ProgMan, ProgMan, NULL))
     {
-      DdeCommand ("[CreateGroup(Gnu Emacs)]");
-      DdeCommand ("[ReplaceItem(Emacs)]");
-      sprintf (additem, "[AddItem(%s,Emacs%c%s)]",
-	       argv[1], (argc>2 ? ',' : ' '),
+      DdeCommand ("[CreateGroup (Gnu Emacs)]");
+      DdeCommand ("[ReplaceItem (Emacs)]");
+      sprintf (additem, "[AddItem (%s\\bin\\emacs.%s, Emacs%c%s)]",
+	       argv[1], lpext, (argc>2 ? ',' : ' '),
 	       (argc>2 ? argv[2] : ""));
       DdeCommand (additem);
 
