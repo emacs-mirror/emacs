@@ -9,8 +9,8 @@ Works only when an inferior emacs is executing.
 end
 
 define xtype
-print (enum Lisp_Type) (($ >> 24) & 0x7f)
-p $$
+output (enum Lisp_Type) (($ >> 24) & 0x7f)
+echo \n
 end
 document xtype
 Print the type of $, assuming it is an Elisp value.
@@ -32,12 +32,11 @@ end
 
 define xwindow
 print (struct window *) ($ & 0x00ffffff)
-print ($->left)@4
-print $$
+printf "%dx%d+%d+%d\n", $->width, $->height, $->left, $->top
 end
 document xwindow
 Print $ as a window pointer, assuming it is an Elisp window value.
-Print the window's position as { left, top, height, width }.
+Print the window's position as "WIDTHxHEIGHT+LEFT+TOP".
 end
 
 define xmarker
@@ -49,8 +48,8 @@ end
 
 define xbuffer
 print (struct buffer *) ($ & 0x00ffffff)
-print &((struct Lisp_String *) (($->name) & 0x00ffffff))->data
-print $$
+output &((struct Lisp_String *) (($->name) & 0x00ffffff))->data
+echo \n
 end
 document xbuffer
 Set $ as a buffer pointer, assuming it is an Elisp buffer value.
@@ -59,8 +58,8 @@ end
 
 define xsymbol
 print (struct Lisp_Symbol *) ($ & 0x00ffffff)
-print &$->name->data
-print $$
+output &$->name->data
+echo \n
 end
 document xsymbol
 Print the name and address of the symbol $.
@@ -69,8 +68,8 @@ end
 
 define xstring
 print (struct Lisp_String *) ($ & 0x00ffffff)
-print ($->size > 10000) ? "big string" : ($->data[0])@($->size)
-print $$
+output ($->size > 10000) ? "big string" : ($->data[0])@($->size)
+echo \n
 end
 document xstring
 Print the contents and address of the string $.
@@ -78,9 +77,9 @@ This command assumes that $ is an Elisp string value.
 end
 
 define xvector
-set $temp = (struct Lisp_Vector *) ($ & 0x00ffffff)
-print ($temp->size > 10000) ? "big vector" : ($temp->contents[0])@($temp->size)
-print $temp
+print (struct Lisp_Vector *) ($ & 0x00ffffff)
+output ($->size > 1000) ? "big vector" : ($->contents[0])@($->size)
+echo \n
 end
 document xvector
 Print the contents and address of the vector $.
@@ -96,8 +95,8 @@ end
 
 define xcons
 print (struct Lisp_Cons *) ($ & 0x00ffffff)
-print *$
-print $$
+output *(struct Lisp_Cons *) ($ & 0x00ffffff)
+echo \n
 end
 document xcons
 Print the contents of $, assuming it is an Elisp cons.
@@ -121,6 +120,7 @@ set print pretty on
 
 unset environment TERMCAP
 unset environment TERM
+echo TERMCAP and TERM environment variables unset.\n
 show environment DISPLAY
 set args -q
 

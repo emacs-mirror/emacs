@@ -40,6 +40,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define MAXHEIGHT 80
 
 #ifdef HAVE_X11
+
+/* It turns out that we can auto-detect whether we're being compiled
+   with X11R3 or X11R4 by looking for the flag macros for R4 structure
+   members that R3 doesn't have.  */
+#ifdef PBaseSize
+#define HAVE_X11R4
+#endif
+
 #define PIX_TYPE unsigned long
 #define XDISPLAY x_current_display,
 #define XFlushQueue() XFlush(x_current_display)
@@ -311,6 +319,19 @@ struct x_display
   /* What kind of text cursor is drawn in this window right now?  (If
      there is no cursor (phys_cursor_x < 0), then this means nothing.  */
   enum text_cursor_kinds text_cursor_kind;
+
+  /* These are the current window manager hints.  It seems that
+     XSetWMHints, when presented with an unset bit in the `flags'
+     member of the hints structure, does not leave the corresponding
+     attribute unchanged; rather, it resets that attribute to its
+     default value.  For example, unless you set the `icon_pixmap'
+     field and the `IconPixmapHint' bit, XSetWMHints will forget what
+     your icon pixmap was.  This is rather troublesome, since some of
+     the members (for example, `input' and `icon_pixmap') want to stay
+     the same throughout the execution of Emacs.  So, we keep this
+     structure around, just leaving values in it and adding new bits
+     to the mask as we go.  */
+  XWMHints wm_hints;
 };
 
 /* When X windows are used, a glyf may be a 16 bit unsigned datum.

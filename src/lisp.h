@@ -667,8 +667,8 @@ extern void defvar_int ();
 #define DEFVAR_LISP_NOPRO(lname, vname, doc) defvar_lisp_nopro (lname, vname)
 #define DEFVAR_BOOL(lname, vname, doc) defvar_bool (lname, vname)
 #define DEFVAR_INT(lname, vname, doc) defvar_int (lname, vname)
-#define DEFVAR_PER_BUFFER(lname, vname, doc)  \
- defvar_per_buffer (lname, vname)
+#define DEFVAR_PER_BUFFER(lname, vname, type, doc)  \
+ defvar_per_buffer (lname, vname, type, 0)
 
 /* Structure for recording Lisp call stack for backtrace purposes */
 

@@ -63,9 +63,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  
 /*
  *	Define HAVE_SELECT if the system supports the `select' system call.
+ *	SVr3.2 X ports include an emulation.
  */
 
-/* #define HAVE_SELECT */
+#ifdef HAVE_X_WINDOWS
+#define HAVE_SELECT
+#endif /* HAVE_X_WINDOWS */
 
 /*
  *	Define HAVE_PTYS if the system supports pty devices.
@@ -192,23 +195,38 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define ADDR_CORRECT(x) (x)
 
-/* Prevent -lg from being used for debugging.  Not implemented?  */
-
-#define LIBS_DEBUG
-
 /* Use terminfo instead of termcap.  */
 
 #define TERMINFO
 
+/* AT&T SVr3 X wants to be linked with shared libraries */
+
+#define LIB_X11_LIB -lX11_s
+
 /* X needs to talk on the network, so search the network library.  */
 
 #define LIBX10_SYSTEM -lnsl_s
-#define LIBX11_SYSTEM -lnsl_s
+#define LIBX11_SYSTEM -lnls -lnsl_s -lpt -lc_s
 
 /* Some variants have TIOCGETC, but the structures to go with it
    are not declared.  */
 
 #define BROKEN_TIOCGETC
+
+/* Some variants have TIOCGWINSZ, but the structures to go with it
+   are not declared.  */
+
+#define BROKEN_TIOCGWINSZ
+
+/* SVr3 does not have utimes(2) */
+
+#define USE_UTIME
+
+/* If we're using the System V X port, BSD bstring functions will be handy */
+
+#ifdef HAVE_X_WINDOWS
+#define BSTRING
+#endif /* HAVE_X_WINDOWS */
 
 /* Enable support for shared libraries in unexec.  */
 
@@ -217,4 +235,3 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* On USG systems signal handlers return void */
 
 #define SIGTYPE void
-

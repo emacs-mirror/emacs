@@ -36,8 +36,8 @@ while [ $# -gt 0 ]; do
     # remove all files newer than the given timestamp file.  This is useful
     # for creating incremental or patch distributions
     "--newer")
-      newer=$2
-      new=.new
+      newer="$2"
+      new_extension=".new"
       shift
     ;;
     * )
@@ -77,7 +77,7 @@ fi
 
 echo "Creating staging directory: \`${tempparent}'"
 mkdir ${tempparent}
-emacsname="emacs-${version}${new}"
+emacsname="emacs-${version}${new_extension}"
 tempdir="${tempparent}/${emacsname}"
 
 # This trap ensures that the staging directory will be cleaned up even
@@ -105,7 +105,7 @@ for subdir in lisp lisp/term local-lisp external-lisp \
 done
 
 echo "Making links to \`lisp'."
-# Don't distribute =*.el files, site-init.el, or site-load.el.
+# Don't distribute =*.el files, site-init.el, site-load.el, or default.el.
 (cd lisp
  ln [a-zA-Z]*.el ../${tempdir}/lisp
  ln [a-zA-Z]*.elc ../${tempdir}/lisp
@@ -114,7 +114,8 @@ echo "Making links to \`lisp'."
  ln ChangeLog README ../${tempdir}/lisp
  cd ../${tempdir}/lisp
  rm -f site-init site-init.el site-init.elc
- rm -f site-load site-load.el site-load.elc)
+ rm -f site-load site-load.el site-load.elc
+ rm -f default default.el default.elc)
 
 echo "Making links to \`lisp/term'."
 # Don't distribute =*.el files.
@@ -142,7 +143,10 @@ echo "Making links to \`src'."
  ln .gdbinit .dbxinit ../${tempdir}/src
  ln *.com *.opt vms-pp.trans vmsbuild ../${tempdir}/src
  cd ../${tempdir}/src
- rm -f config.h paths.h Makefile)
+ rm -f config.h paths.h Makefile
+ if [ -z "${newer}" ]; then
+   etags *.h *.c ../lisp/*.el
+ fi)
 
 echo "Making links to \`src/m'."
 (cd src/m
@@ -165,7 +169,7 @@ echo "Making links to \`oldXMenu'."
  ln README Makefile Imakefile ChangeLog ../${tempdir}/oldXMenu)
 
 echo "Making links to \`etc'."
-# Don't distribute TAGS, DOC files, backups, autosaves, or tex litter.
+# Don't distribute DOC files, backups, autosaves, or tex litter.
 (cd etc
  ln [0-9a-zA-Z]* ../${tempdir}/etc
  cd ../${tempdir}/etc
@@ -173,7 +177,7 @@ echo "Making links to \`etc'."
  for dummy in DOC-dummy dummy~ \#dummy\# dummy.dvi dummy.log; do
    ln MACHINES ${dummy}
  done
- rm -f TAGS DOC* *~ \#*\# *.dvi *.log core)
+ rm -f DOC* *~ \#*\# *.dvi *.log core)
 
 # For now, we comment these out, since I'm not changing them any.
 #!! echo "Making links to \`cpp'."

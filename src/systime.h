@@ -102,7 +102,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define EMACS_TIME int
 #define EMACS_SECS(time)		    (time)
+#define EMACS_USECS(time)		    0
 #define EMACS_SET_SECS(time, seconds)	    ((time) = (seconds))
+#define EMACS_SET_USECS(time, usecs)	    0
 
 #define EMACS_GET_TIME(t) ((t) = time ((long *) 0))
 #define EMACS_ADD_TIME(dest, src1, src2) ((dest) = (src1) + (src2))
@@ -118,7 +120,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define EMACS_SET_UTIMES(path, atime, mtime)			\
   {								\
-    struct time_t tv[2];					\
+    time_t tv[2];						\
     tv[0] = EMACS_SECS (atime);					\
     tv[1] = EMACS_SECS (mtime);					\
     utime ((path), tv);						\

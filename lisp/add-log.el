@@ -341,7 +341,8 @@ Has a preference of looking backwards."
 		   (buffer-substring (match-beginning 1)
 				     (match-end 1)))))))))
 
-
+
+
 (provide 'add-log)
 
 ;;; add-log.el ends here

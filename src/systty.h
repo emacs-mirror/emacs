@@ -169,6 +169,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Just ignore this for now and hope for the best */
 #define EMACS_GET_TTY_PGRP(fd, pgid) 0
+#define EMACS_SET_TTY_PGRP(fd, pgif) 0
 
 #endif
 

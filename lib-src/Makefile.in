@@ -135,7 +135,7 @@ digest-doc: digest-doc.c
 sorted-doc: sorted-doc.c
 	$(CC) ${CFLAGS} sorted-doc.c $(LOADLIBES) -o sorted-doc
 
-b2m: b2m.c
+b2m: b2m.c ../src/config.h
 	$(CC) ${CFLAGS} b2m.c $(LOADLIBES) -o b2m 
 
 movemail: movemail.c ../src/config.h

@@ -68,7 +68,7 @@ and this notice must be preserved on all copies.  */
 #undef SIGIO
 #endif
 
-/* libc has this stuff, but not utimes. */
+/* libc has this stuff, but still not utimes. */
 
 #define HAVE_RENAME
 #define HAVE_SELECT
@@ -76,8 +76,6 @@ and this notice must be preserved on all copies.  */
 #define HAVE_CLOSEDIR
 #define HAVE_GETTIMEOFDAY
 #define HAVE_DUP2
-
-#define USE_UTIME
 
 /* <sys/stat.h> *defines* stat(2) as a static function.  If "static"
  * is blank, then many files will have a public definition for stat(2).
