@@ -2907,9 +2907,7 @@ keymap.  Leaves merge in fast mode."
 ;; Make a temporary file that only we have access to.
 ;; PREFIX is appended to emerge-temp-file-prefix to make the filename prefix.
 (defun emerge-make-temp-file (prefix)
-  (let ((f (make-temp-name (concat emerge-temp-file-prefix prefix))))
-    ;; create the file
-    (write-region (point-min) (point-min) f nil 'no-message)
+  (let ((f (make-temp-file (concat emerge-temp-file-prefix prefix))))
     (set-file-modes f emerge-temp-file-mode)
     f))
 

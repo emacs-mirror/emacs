@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.255 1999/09/22 12:58:49 spiegel Exp $
+;; $Id: vc.el,v 1.256 1999/10/02 10:53:18 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -755,6 +755,8 @@ before the filename."
          (let ((new-mark (vc-find-position-by-context mark-context)))
            (if new-mark (set-mark new-mark))))))
 
+;; Maybe this "smart mark preservation" could be added directly
+;; to revert-buffer since it can be generally useful.  -sm
 (defun vc-revert-buffer1 (&optional arg no-confirm)
   ;; Revert buffer, try to keep point and mark where user expects them in spite
   ;; of changes because of expanded version-control key words.
@@ -2261,7 +2263,7 @@ default directory."
   (let ((odefault default-directory)
 	(changelog (find-change-log))
 	;; Presumably not portable to non-Unixy systems, along with rcs2log:
-	(tempfile (make-temp-name
+	(tempfile (make-temp-file
 		   (expand-file-name "vc"
 				     (or small-temporary-file-directory
 					 temporary-file-directory))))

@@ -356,49 +356,11 @@ There should be no more than seven characters after the final `/'."
   :type 'string
   :group 'jka-compr)
 
-(defvar jka-compr-temp-name-table (make-vector 31 nil))
-
 (defun jka-compr-make-temp-name (&optional local-copy)
   "This routine will return the name of a new file."
-  (let* ((lastchar ?a)
-	 (prevchar ?a)
-	 (template (concat jka-compr-temp-name-template "aa"))
-	 (lastpos (1- (length template)))
-	 (not-done t)
-	 file
-	 entry)
+  (make-temp-file jka-compr-temp-name-template))
 
-    (while not-done
-      (aset template lastpos lastchar)
-      (setq file (concat (make-temp-name template) "#"))
-      (setq entry (intern file jka-compr-temp-name-table))
-      (if (or (get entry 'active)
-	      (file-exists-p file))
-
-	  (progn
-	    (setq lastchar (1+ lastchar))
-	    (if (> lastchar ?z)
-		(progn
-		  (setq prevchar (1+ prevchar))
-		  (setq lastchar ?a)
-		  (if (> prevchar ?z)
-		      (error "Can't allocate temp file.")
-		    (aset template (1- lastpos) prevchar)))))
-
-	(put entry 'active (not local-copy))
-	(setq not-done nil)))
-
-    file))
-
-
-(defun jka-compr-delete-temp-file (temp)
-
-  (put (intern temp jka-compr-temp-name-table)
-       'active nil)
-
-  (condition-case ()
-      (delete-file temp)
-    (error nil)))
+(defalias 'jka-compr-delete-temp-file 'delete-file)
 
 
 (defun jka-compr-write-region (start end file &optional append visit)

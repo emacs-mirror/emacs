@@ -306,7 +306,7 @@
 
 (defun ediff-pcl-cvs-view-revision (file rev)
 ;; if rev = "", get the latest revision
-  (let ((temp-name (make-temp-name
+  (let ((temp-name (make-temp-file
 		    (concat ediff-temp-file-prefix
 			    "ediff_" rev))))
     (cvs-kill-buffer-visiting temp-name)

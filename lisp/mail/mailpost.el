@@ -28,7 +28,7 @@ site-init."
   (let ((errbuf (if mail-interactive
 		    (generate-new-buffer " post-mail errors")
 		  0))
-	(temfile (expand-file-name ",rpost" temporary-file-directory))
+	(temfile (make-temp-file ",rpost"))
 	(tembuf (generate-new-buffer " post-mail temp"))
 	(case-fold-search nil)
 	delimline
@@ -74,8 +74,8 @@ site-init."
 		(save-excursion
 		  (set-buffer errbuf)
 		  (erase-buffer))))
-	  (write-file (setq temfile (make-temp-name temfile)))
 	  (set-file-modes temfile 384)
+	  (write-file temfile)
 	  (apply 'call-process
 		 (append (list (if (boundp 'post-mail-program)
 				   post-mail-program

@@ -219,7 +219,7 @@ Note that this variable can be used in conjunction with the
 
 (defcustom gnus-uu-tmp-dir temporary-file-directory
   "*Variable saying where gnus-uu is to do its work.
-Default is \"/tmp/\"."
+Defaults to `temporary-file-directory'."
   :group 'gnus-extract
   :type 'directory)
 
@@ -450,7 +450,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 			  gnus-uu-default-dir
 			  gnus-uu-default-dir))))
   (setq gnus-uu-binhex-article-name
-	(make-temp-name (concat gnus-uu-work-dir "binhex")))
+	(make-temp-file (concat gnus-uu-work-dir "binhex")))
   (gnus-uu-decode-with-method 'gnus-uu-binhex-article n dir))
 
 (defun gnus-uu-decode-uu-view (&optional n)
@@ -503,7 +503,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 	 (read-file-name "Unbinhex, view and save in dir: "
 			 gnus-uu-default-dir gnus-uu-default-dir)))
   (setq gnus-uu-binhex-article-name
-	(make-temp-name (concat gnus-uu-work-dir "binhex")))
+	(make-temp-file (concat gnus-uu-work-dir "binhex")))
   (let ((gnus-view-pseudos (or gnus-view-pseudos 'automatic)))
     (gnus-uu-decode-binhex n file)))
 
@@ -514,7 +514,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
   "Digests and forwards all articles in this series."
   (interactive "P")
   (let ((gnus-uu-save-in-digest t)
-	(file (make-temp-name (nnheader-concat gnus-uu-tmp-dir "forward")))
+	(file (make-temp-file (nnheader-concat gnus-uu-tmp-dir "forward")))
 	buf subject from)
     (gnus-setup-message 'forward
       (setq gnus-uu-digest-from-subject nil)
@@ -1678,8 +1678,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 		 gnus-uu-tmp-dir)))
 
       (setq gnus-uu-work-dir
-	    (make-temp-name (concat gnus-uu-tmp-dir "gnus")))
-      (gnus-make-directory gnus-uu-work-dir)
+	    (make-temp-file (concat gnus-uu-tmp-dir "gnus") t))
       (set-file-modes gnus-uu-work-dir 448)
       (setq gnus-uu-work-dir (file-name-as-directory gnus-uu-work-dir))
       (push (cons gnus-newsgroup-name gnus-uu-work-dir)

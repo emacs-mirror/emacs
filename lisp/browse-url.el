@@ -469,8 +469,6 @@ down (this *won't* always work)."
 (defcustom browse-url-lynx-input-delay 0.2
   "How many seconds to wait for lynx between moves down from an input field.")
 
-(defvar browse-url-temp-file-list '())
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL input
 
@@ -559,35 +557,20 @@ narrowed."
 	    (or browse-url-temp-file-name
 		(setq browse-url-temp-file-name
 		      (convert-standard-filename
-		       (make-temp-name
+		       (make-temp-file
 			(expand-file-name "burl" browse-url-temp-dir)))))
 	    (setq file-name browse-url-temp-file-name)
 	    (write-region (point-min) (point-max) file-name nil 'no-message)))
       (browse-url-of-file file-name))))
 
 (defun browse-url-delete-temp-file (&optional temp-file-name)
-  ;; Delete browse-url-temp-file-name from the file system and from
-  ;; browse-url-temp-file-list.  If optional arg TEMP-FILE-NAME is
-  ;; non-nil, delete it instead, but only from the file system --
-  ;; browse-url-temp-file-list is not affected.
+  ;; Delete browse-url-temp-file-name from the file system
+  ;; If optional arg TEMP-FILE-NAME is non-nil, delete it instead
   (let ((file-name (or temp-file-name browse-url-temp-file-name)))
     (if (and file-name (file-exists-p file-name))
-	(progn
-	  (delete-file file-name)
-	  (if (null temp-file-name)
-	      (setq browse-url-temp-file-list
-		    (delete browse-url-temp-file-name
-			    browse-url-temp-file-list)))))))
-
-(defun browse-url-delete-temp-file-list ()
-  ;; Delete all elements of browse-url-temp-file-list.
-  (while browse-url-temp-file-list
-    (browse-url-delete-temp-file (car browse-url-temp-file-list))
-    (setq browse-url-temp-file-list
-	  (cdr browse-url-temp-file-list))))
+	(delete-file file-name))))
 
 (add-hook 'kill-buffer-hook 'browse-url-delete-temp-file)
-(add-hook 'kill-emacs-hook 'browse-url-delete-temp-file-list)
 
 ;;;###autoload
 (defun browse-url-of-dired-file ()

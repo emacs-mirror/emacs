@@ -1,3 +1,18 @@
+1999-10-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* ange-ftp.el (ange-ftp-make-tmp-name, ange-ftp-del-tmp-name):
+	* browse-url.el (browse-url-of-buffer, browse-url-delete-temp-file),
+	(browse-url-temp-file-list, browse-url-delete-temp-file-list):
+	* ediff-util.el (ediff-make-temp-file):
+	* ediff-vers.el (ediff-pcl-cvs-view-revision):
+	* emerge.el (emerge-make-temp-file):
+	* jka-compr.el (jka-compr-make-temp-name, jka-compr-delete-temp-file):
+	* vc.el (vc-update-change-log):
+	* mail/mailpost.el (post-mail-send-it):
+	* mail/metamail.el (metamail-region):
+	* progmodes/cmacexp.el (c-macro-expansion):
+	* textmodes/makeinfo.el (makeinfo-region): Use make-temp-file.
+
 1999-10-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* smtpmail.el (smtpmail-via-smtp): Add support for

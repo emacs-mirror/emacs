@@ -1691,43 +1691,13 @@ good, skip, fatal, or unknown."
 ;;; Temporary file location and deletion...
 ;;; ------------------------------------------------------------
 
-(defvar ange-ftp-tmp-name-files ())
-(defvar ange-ftp-tmp-name-hashtable (ange-ftp-make-hashtable 10))
-(defvar ange-ftp-pid nil)
-
-(defun ange-ftp-get-pid ()
-  "Half-hearted attempt to get the current process's id."
-  (setq ange-ftp-pid (substring (make-temp-name "") 1)))
-
 (defun ange-ftp-make-tmp-name (host)
   "This routine will return the name of a new file."
-  (let* ((template (if (ange-ftp-use-gateway-p host)
+  (make-temp-file (if (ange-ftp-use-gateway-p host)
 		       ange-ftp-gateway-tmp-name-template
-		     ange-ftp-tmp-name-template))
-	 (pid (or ange-ftp-pid (ange-ftp-get-pid)))
-	 (start ?a)
-	 file entry)
-    (while 
-	(progn
-	  (setq file (format "%s%c%s" template start pid))
-	  (setq entry (intern file ange-ftp-tmp-name-hashtable))
-	  (or (memq entry ange-ftp-tmp-name-files)
-	      (ange-ftp-real-file-exists-p file)))
-      (if (> (setq start (1+ start)) ?z)
-	  (progn
-	    (setq template (concat template "X"))
-	    (setq start ?a))))
-    (setq ange-ftp-tmp-name-files
-	  (cons entry ange-ftp-tmp-name-files))
-    file))
+		     ange-ftp-tmp-name-template)))
 
-(defun ange-ftp-del-tmp-name (temp)
-  (setq ange-ftp-tmp-name-files
-	(delq (intern temp ange-ftp-tmp-name-hashtable)
-	      ange-ftp-tmp-name-files))
-  (condition-case ()
-      (ange-ftp-real-delete-file temp)
-    (error nil)))
+(defalias 'ange-ftp-del-tmp-name 'delete-file)
 
 ;;;; ------------------------------------------------------------
 ;;;; Interactive gateway program support.

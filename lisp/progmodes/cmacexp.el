@@ -265,7 +265,7 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 	(startstat ())
 	(startmarker "")
 	(exit-status 0)
-	(tempname (make-temp-name
+	(tempname (make-temp-file
 		   (expand-file-name "cmacexp"
 				     (or small-temporary-file-directory
 					 temporary-file-directory)))))

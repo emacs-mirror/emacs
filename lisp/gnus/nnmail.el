@@ -1238,13 +1238,6 @@ Return the number of characters in the body."
 
 ;;; Utility functions
 
-(defun nnmail-make-complex-temp-name (prefix)
-  (let ((newname (make-temp-name prefix))
-	(newprefix prefix))
-    (while (file-exists-p newname)
-      (setq newprefix (concat newprefix "x"))
-      (setq newname (make-temp-name newprefix)))
-    newname))
 
 ;; Written by Per Abrahamsen <amanda@iesd.auc.dk>.
 
@@ -1623,8 +1616,7 @@ See the documentation for the variable `nnmail-split-fancy' for documentation."
 	     nnmail-crash-box (intern (format "%s-save-mail" method))
 	     spool-func group (intern (format "%s-active-number" method)))
 	    ;; Check whether the inbox is to be moved to the special tmp dir.
-	    (setq incoming
-		  (nnmail-make-complex-temp-name
+	    (let ((prefix
 		   (expand-file-name
 		    (if nnmail-tmp-directory
 			(concat
@@ -1632,8 +1624,9 @@ See the documentation for the variable `nnmail-split-fancy' for documentation."
 			 (file-name-nondirectory
 			  (concat (file-name-as-directory temp) "Incoming")))
 		      (concat (file-name-as-directory temp) "Incoming")))))
-	    (unless (file-exists-p (file-name-directory incoming))
-	      (make-directory (file-name-directory incoming) t))
+	      (unless (file-exists-p (file-name-directory prefix))
+		(make-directory (file-name-directory prefix) t))
+	      (setq incoming (make-temp-file prefix)))
 	    (rename-file nnmail-crash-box incoming t)
 	    (push incoming incomings))))
       ;; If we did indeed read any incoming spools, we save all info.

@@ -1,3 +1,12 @@
+1999-10-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* gnus-start.el (gnus-slave-save-newsrc):
+	* gnus-uu.el (gnus-uu-tmp-dir, gnus-uu-decode-binhex)
+	  (gnus-uu-decode-binhex-view, gnus-uu-digest-mail-forward)
+	  (gnus-uu-initialize):
+	* nnmail.el (nnmail-make-complex-temp-name, nnmail-get-new-mail):
+	  Use make-temp-file.
+
 1999-09-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* nnsoup.el (nnsoup-tmp-directory): Use temporary-file-directory.

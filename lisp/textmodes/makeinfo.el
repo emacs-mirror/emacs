@@ -97,7 +97,7 @@ command to gain use of `next-error'."
 
     (setq makeinfo-temp-file
           (concat
-           (make-temp-name
+           (make-temp-file
             (substring (buffer-file-name)
                        0 
                        (or (string-match "\\.tex" (buffer-file-name)) 

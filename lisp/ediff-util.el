@@ -2922,14 +2922,14 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 		   ;; name ends with .Z or .gz
 		   ;; This is needed so that patches produced by ediff will
 		   ;; have more meaningful names
-		   (make-temp-name short-f))
+		   (make-temp-file short-f))
 		  ;; Prefix is most often the same as the file name for the
 		  ;; variant. Here we are trying to use the original file name
 		  ;; but in the temp directory.
 		  ((and prefix (not (file-exists-p f))) f)
 		  ;; If a file with the orig name exists, add some random stuff
 		  ;; to it.
-		  (t (make-temp-name short-f))))
+		  (t (make-temp-file short-f))))
     
     ;; create the file
     (ediff-with-current-buffer buff
