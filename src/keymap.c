@@ -1838,13 +1838,11 @@ push_key_description (c, p)
     }
   else
     {
-      *p++ = '\\';
-      *p++ = (7 & (c >> 15)) + '0';
-      *p++ = (7 & (c >> 12)) + '0';
-      *p++ = (7 & (c >> 9)) + '0';
-      *p++ = (7 & (c >> 6)) + '0';
-      *p++ = (7 & (c >> 3)) + '0';
-      *p++ = (7 & (c >> 0)) + '0';
+      unsigned char work[4], *str;
+      int i = CHAR_STRING (c, work, str);
+
+      bcopy (str, p, i);
+      p += i;
     }
 
   return p;  
