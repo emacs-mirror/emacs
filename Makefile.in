@@ -312,6 +312,7 @@ install-arch-dep: mkdir
 # These lines appeared after the second -set, but should be unnecessary.
 #	 mkdir ${COPYDESTS} ; \
 #	 chmod ugo+rx ${COPYDESTS} ; \
+# The backslash above continues the comment onto this line.  It ends here.
 install-arch-indep: mkdir
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
