@@ -31,14 +31,11 @@
 ;;; the MAILRC environment variable) if it exists.  Your mail aliases will
 ;;; expand any time you type a word-delimiter at the end of an abbreviation.
 ;;;
-;;; What you see is what you get: no abbreviations will be expanded after you
-;;; have sent the mail, unlike the old system.  This means you don't suffer
-;;; the annoyance of having the system do things behind your back -- if an
-;;; address you typed is going to be rewritten, you know it immediately,
-;;; instead of after the mail has been sent and it's too late to do anything
-;;; about it.  You will never again be screwed because you forgot to delete an
-;;; old alias from your .mailrc when a new local user arrives and is given a
-;;; userid which conflicts with one of your aliases, for example.
+;;; What you see is what you get: if mailabbrev is in use when you type
+;;; a name, and the name does not expand, you know it is not an abbreviation.
+;;; However, if you yank abbreviations into the headers
+;;; in a way that bypasses the check for abbreviations,
+;;; they are expanded (but not visibly) when you send the message.
 ;;;
 ;;; Your mail alias abbrevs will be in effect only when the point is in an
 ;;; appropriate header field.  When in the body of the message, or other
@@ -109,8 +106,13 @@
 ;;; move out of the mail-header into the message body (instead of having to
 ;;; type SPC at the end of the abbrev before moving away) then you can do
 ;;;
-;;;	(define-key mail-mode-map "\C-n" 'mail-abbrev-next-line)
-;;;	(define-key mail-mode-map "\M->" 'mail-abbrev-end-of-buffer)
+;;;  (add-hook
+;;;   'mail-setup-hook
+;;;   '(lambda ()
+;;;      (substitute-key-definition 'next-line 'mail-abbrev-next-line
+;;;				 mail-mode-map global-map)
+;;;      (substitute-key-definition 'end-of-buffer 'mail-abbrev-end-of-buffer
+;;;				 mail-mode-map global-map)))
 ;;;
 ;;; If you want multiple addresses separated by a string other than ", " then
 ;;; you can set the variable mail-alias-separator-string to it.  This has to
