@@ -118,11 +118,21 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* If your system uses COFF (Common Object File Format) then define the
    preprocessor symbol "COFF".
 
-   DGUX can use either COFF or ELF.  To use ELF format, define ELF.  */
+   DGUX can use either COFF or ELF; the default is ELF.
+   To compile for COFF (or BCS) use the TARGET_BINARY_INTERFACE
+   environment variable.   */
 
-#ifndef ELF
+#if defined(_DGUXCOFF_TARGET) || defined(_DGUXBCS_TARGET)
+#undef ELF
+#ifndef COFF
 #define COFF
-#endif
+#endif  /* COFF */
+#else   /* defined(_DGUXCOFF_TARGET) || defined(_DGUXBCS_TARGET) */
+#undef COFF
+#ifndef ELF
+#define ELF
+#endif  /* ELF */
+#endif  /* defined(_DGUXCOFF_TARGET) || defined(_DGUXBCS_TARGET) */
 
 #ifndef COFF /* People will probably find this apparently unreliable
 		till the NFS dumping bug is fixed.  */
