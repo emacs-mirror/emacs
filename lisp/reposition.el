@@ -17,16 +17,13 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Written by Michael D. Ernst, mernst@theory.lcs.mit.edu, 1/26/91
+;;; Written by Michael D. Ernst, mernst@theory.lcs.mit.edu, Jan 1991.
 
 ;;; Reposition-window makes an entire function definition or comment visible,
 ;;; or, if it is already visible, places it at the top of the window;
 ;;; additional invocations toggle the visibility of comments preceding the
 ;;; code.  For the gory details, see the documentation for reposition-window;
 ;;; rather than reading that, you may just want to play with it.
-
-;;; The recommended binding for this function is M-C-r:
-;;;  (global-set-key "\e\C-r" 'reposition-window)
 
 ;;; This tries pretty hard to do the recentering correctly; the precise
 ;;; action depends on what the buffer looks like.  If you find a situation
