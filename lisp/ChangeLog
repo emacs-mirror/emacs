@@ -1,3 +1,22 @@
+2004-04-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/fortran.el (fortran-fill): Use local var `bol' rather
+	than duplicate call to `line-beginning-position'.
+
+	* progmodes/f90.el (f90-get-present-comment-type): Return
+	whitespace, as well as comment chars, for consistent filling
+	of comment blocks.  Use `match-string-no-properties'.
+	(f90-break-line): Do not leave trailing whitespace when filling
+	comments.
+
+2004-04-30  Dave Love  <fx@gnu.org>
+
+	* calendar/diary-lib.el (diary-outlook-formats): New variable.
+	(diary-from-outlook-internal, diary-from-outlook)
+	(diary-from-outlook-gnus, diary-from-outlook-rmail): New
+	functions to import diary entries from Outlook-format
+	appointments in mail messages.
+
 2004-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (python-send-command): New fun.

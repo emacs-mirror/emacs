@@ -1151,6 +1151,13 @@ the new function `appt-activate'. The new variable
 `appt-display-format' controls how reminders are displayed, replacing
 appt-issue-message, appt-visible, and appt-msg-window.
 
+** The new functions `diary-from-outlook', `diary-from-outlook-gnus',
+and `diary-from-outlook-rmail' can be used to import diary entries
+from Outlook-format appointments in mail messages.  The variable
+`diary-outlook-formats' can be customized to recognize additional
+formats.
+
+
 ** VC Changes
 
 *** The key C-x C-q no longer checks files in or out, it only changes
