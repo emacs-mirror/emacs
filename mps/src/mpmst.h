@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.81) $
+ * $HopeName: MMsrc!mpmst.h(trunk.82) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -33,11 +33,6 @@
 #include "mpmtypes.h"
 
 #include "protocol.h"
-
-#if defined(MPS_OS_W3)
-/* windows.h included for CRITICAL_SECTION only, see .lock.win32 */
-#include "mpswin.h"
-#endif /* MPS_OS_W3 */
 
 
 /* RingStruct -- double-ended queue structure
@@ -398,59 +393,6 @@ typedef struct LDStruct {
 } LDStruct;
 
 
-/* LockStruct and ThreadStruct -- locking and thread structures
- *
- * See design.mps.lock, design.mps.thread-manager.
- *
- * There are no standard interfaces to locks and threads, typically
- * the implementations of these modules (and hence the structures used
- * by them) will depend on an OS interface.
- */
-
-#define LockSig         ((Sig)0x51970CC9) /* SIGnature LOCK */ 
-#define ThreadSig       ((Sig)0x519286ED) /* SIGnature THREaD */
-
-#if defined(MPS_OS_W3)
-
-/* .lock.win32: Win32 lock structure; uses CRITICAL_SECTION */
-typedef struct LockStruct {
-  Sig sig;                      /* design.mps.sig */
-  unsigned long claims;         /* # claims held by the owning thread */
-  CRITICAL_SECTION cs;          /* Win32's recursive lock thing */
-} LockStruct;
-
-typedef struct ThreadStruct {   /* Win32 thread structure */
-  Sig sig;                      /* design.mps.sig */
-  Serial serial;                /* from arena->threadSerial */
-  Arena arena;                  /* owning arena */
-  RingStruct arenaRing;         /* threads attached to arena */
-  HANDLE handle;                /* Handle of thread, see
-                                 * impl.c.thnti3.thread.handle */
-  DWORD id;                     /* Thread id of thread */
-} ThreadStruct;
-
-#elif defined(MPS_OS_SU) || defined(MPS_OS_SO) || defined(MPS_OS_O1)\
-      || defined(MPS_OS_S7) || defined(MPS_OS_I4) || defined(MPS_OS_I5)\
-      || defined(MPS_OS_IA) || defined(MPS_OS_LI)
-/* All these platforms use the trivial ANSI locks, since nothing better */
-
-typedef struct LockStruct {     /* ANSI fake lock structure */
-  Sig sig;                      /* design.mps.sig */
-  unsigned long claims;         /* # claims held by owner */
-} LockStruct;
-
-typedef struct ThreadStruct {   /* ANSI fake thread structure */
-  Sig sig;                      /* design.mps.sig */
-  Serial serial;                /* from arena->threadSerial */
-  Arena arena;                  /* owning arena */
-  RingStruct arenaRing;         /* attaches to arena */
-} ThreadStruct;
-
-#else
-#error "No definition of LockStruct or ThreadStruct for this OS."
-#endif
-
-
 /* RootStruct -- tracing root structure
  *
  * See impl.c.root.
@@ -660,7 +602,7 @@ typedef struct ArenaStruct {
   NSEGStruct reservoirStruct;   /* design.mps.reservoir */
   Size reservoirLimit;          /* desired reservoir size */
   Size reservoirSize;           /* actual reservoir size */
-  LockStruct lockStruct;        /* arena's lock */
+  Lock lock;                    /* arena's lock */
   double pollThreshold;         /* design.mps.arena.poll */
   Bool insidePoll;
   Bool clamped;                 /* prevent background activity */

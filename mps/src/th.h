@@ -1,6 +1,6 @@
 /*  impl.h.th: THREAD MANAGER
  *
- *  $HopeName: MMsrc!th.h(MMdevel_config_thread.2) $
+ *  $HopeName: MMsrc!th.h(trunk.7) $
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
  * .readership: MM developers.
@@ -15,11 +15,23 @@
 
 #include "mpm.h"
 
+#define ThreadSig       ((Sig)0x519286ED) /* SIGnature THREaD */
+
 extern Bool ThreadCheck(Thread thread);
+
+
+/*  ThreadCheckSimple
+ *
+ *  Simple thread-safe check of a thread object.
+ */
+
+extern Bool ThreadCheckSimple(Thread thread);
+
+
 extern Res ThreadDescribe(Thread thread, mps_lib_FILE *stream);
 
 
-/*  == Register/Deregister ==
+/*  Register/Deregister
  *
  *  Explicitly register/deregister a thread on the arena threadRing.
  *  Register returns a "Thread" value which needs to be used
@@ -33,7 +45,7 @@ extern Res ThreadRegister(Thread *threadReturn, Arena arena);
 extern void ThreadDeregister(Thread thread, Arena arena);
 
 
-/*  == ThreadRingSuspend/Resume ==
+/*  ThreadRingSuspend/Resume
  *
  *  These functions suspend/resume the threads on the ring.
  *  If the current thread is among them, it is not suspended,
@@ -42,6 +54,15 @@ extern void ThreadDeregister(Thread thread, Arena arena);
 
 extern void ThreadRingSuspend(Ring threadRing);
 extern void ThreadRingResume(Ring threadRing);
+
+
+/*  ThreadRingThread 
+ *
+ *  Return the thread from an element of the Arena's
+ *  thread ring.
+ */
+
+extern Thread ThreadRingThread(Ring threadRing);
 
 
 extern Arena ThreadArena(Thread thread);

@@ -1,6 +1,6 @@
 /* impl.c.thw3i3: WIN32 THREAD MANAGER
  *
- * $HopeName: MMsrc!thw3i3.c() $
+ * $HopeName: MMsrc!thw3i3.c(trunk.23) $
  * Copyright (C) 1995,1998.  Harlequin Group plc.  All rights reserved.
  *
  * Implements thread registration, suspension, and stack
@@ -80,7 +80,18 @@
 
 #include "mpswin.h"
 
-SRCID(thw3i3, "$HopeName: MMsrc!thw3i3.c() $");
+SRCID(thw3i3, "$HopeName: MMsrc!thw3i3.c(trunk.23) $");
+
+
+typedef struct ThreadStruct {   /* Win32 thread structure */
+  Sig sig;                      /* design.mps.sig */
+  Serial serial;                /* from arena->threadSerial */
+  Arena arena;                  /* owning arena */
+  RingStruct arenaRing;         /* threads attached to arena */
+  HANDLE handle;                /* Handle of thread, see
+                                 * impl.c.thnti3.thread.handle */
+  DWORD id;                     /* Thread id of thread */
+} ThreadStruct;
 
 
 Bool ThreadCheck(Thread thread)
@@ -89,6 +100,13 @@ Bool ThreadCheck(Thread thread)
   CHECKU(Arena, thread->arena);
   CHECKL(thread->serial < thread->arena->threadSerial);
   CHECKL(RingCheck(&thread->arenaRing));
+  return TRUE;
+}
+
+
+Bool ThreadCheckSimple(Thread thread)
+{
+  CHECKS(Thread, thread);
   return TRUE;
 }
 
@@ -213,6 +231,17 @@ void ThreadRingResume(Ring ring)
 {
   mapThreadRing(ring, resume);
 }
+
+
+Thread ThreadRingThread(Ring threadRing)
+{
+  Thread thread;
+  AVERT(Ring, threadRing);
+  thread = RING_ELT(Thread, arenaRing, threadRing);
+  AVERT(Thread, thread);
+  return thread;
+}
+
 
 Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 {
