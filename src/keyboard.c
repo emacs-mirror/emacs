@@ -4998,7 +4998,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
    If KEY has no bindings in any of the CURRENT maps, NEXT is left
    unmodified.
 
-   NEXT may == CURRENT.  */
+   NEXT may be the same array as CURRENT.  */
 
 static int
 follow_key (key, nmaps, current, defs, next)
@@ -5007,26 +5007,30 @@ follow_key (key, nmaps, current, defs, next)
      int nmaps;
 {
   int i, first_binding;
+  int did_meta = 0;
 
   /* If KEY is a meta ASCII character, treat it like meta-prefix-char
-     followed by the corresponding non-meta character.  */
+     followed by the corresponding non-meta character.
+     Put the results into DEFS, since we are going to alter that anyway.
+     Do not alter CURRENT or NEXT.  */
   if (INTEGERP (key) && (XINT (key) & CHAR_META))
     {
       for (i = 0; i < nmaps; i++)
 	if (! NILP (current[i]))
 	  {
-	    next[i] =
-	      get_keyelt (access_keymap (current[i], meta_prefix_char, 1, 0));
+	    Lisp_Object def;
+	    def = get_keyelt (access_keymap (current[i],
+					     meta_prefix_char, 1, 0));
 
 	    /* Note that since we pass the resulting bindings through
 	       get_keymap_1, non-prefix bindings for meta-prefix-char
 	       disappear.  */
-	    next[i] = get_keymap_1 (next[i], 0, 1);
+	    defs[i] = get_keymap_1 (def, 0, 1);
 	  }
 	else
-	  next[i] = Qnil;
+	  defs[i] = Qnil;
 
-      current = next;
+      did_meta = 1;
       XSETINT (key, XFASTINT (key) & ~CHAR_META);
     }
 
@@ -5035,7 +5039,13 @@ follow_key (key, nmaps, current, defs, next)
     {
       if (! NILP (current[i]))
 	{
-	  defs[i] = get_keyelt (access_keymap (current[i], key, 1, 0));
+	  Lisp_Object map;
+	  if (did_meta)
+	    map = defs[i];
+	  else
+	    map = current[i];
+
+	  defs[i] = get_keyelt (access_keymap (map, key, 1, 0));
 	  if (! NILP (defs[i]))
 	    first_binding = i;
 	}
@@ -5956,18 +5966,35 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	       && UPPERCASEP (XINT (key) & 0x3ffff))
 	      || (XINT (key) & shift_modifier)))
 	{
+	  Lisp_Object new_key;
+	  int new_first_binding;
+
 	  original_uppercase = key;
 	  original_uppercase_position = t - 1;
 
-	  if (XINT (key) & shift_modifier)
-	    XSETINT (key, XINT (key) & ~shift_modifier);
+	  if (XINT (new_key) & shift_modifier)
+	    XSETINT (new_key, XINT (key) & ~shift_modifier);
 	  else
-	    XSETINT (key, (DOWNCASE (XINT (key) & 0x3ffff)
-			   | (XINT (key) & ~0x3ffff)));
+	    XSETINT (new_key, (DOWNCASE (XINT (key) & 0x3ffff)
+			       | (XINT (key) & ~0x3ffff)));
 
-	  keybuf[t - 1] = key;
-	  mock_input = t;
-	  goto replay_sequence;
+	  /* See if new_key has a binding.
+	     If it does not have one, this does not alter SUBMAPS.  */
+	  new_first_binding
+	    = (follow_key (new_key,
+			   nmaps   - local_first_binding,
+			   submaps + local_first_binding,
+			   defs    + local_first_binding,
+			   submaps + local_first_binding)
+	       + local_first_binding);
+
+	  /* If that lower-case char is bound, use it instead.  */
+	  if (new_first_binding < nmaps)
+	    {
+	      keybuf[t - 1] = new_key;
+	      mock_input = t;
+	      goto replay_sequence;
+	    }
 	}
       /* If KEY is not defined in any of the keymaps,
 	 and cannot be part of a function key or translation,
@@ -5987,13 +6014,30 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  modifiers = XINT (XCONS (XCONS (breakdown)->cdr)->car);
 	  if (modifiers & shift_modifier)
 	    {
-	      modifiers &= ~shift_modifier;
-	      key = apply_modifiers (modifiers,
-				     XCONS (breakdown)->car);
+	      Lisp_Object new_key;
+	      int new_first_binding;
 
-	      keybuf[t - 1] = key;
-	      mock_input = t;
-	      goto replay_sequence;
+	      modifiers &= ~shift_modifier;
+	      new_key = apply_modifiers (modifiers,
+					 XCONS (breakdown)->car);
+
+	      /* See if new_key has a binding.
+		 If it does not have one, this does not alter SUBMAPS.  */
+	      new_first_binding
+		= (follow_key (new_key,
+			       nmaps   - local_first_binding,
+			       submaps + local_first_binding,
+			       defs    + local_first_binding,
+			       submaps + local_first_binding)
+		   + local_first_binding);
+
+	      /* If that unshifted key is bound, use it instead.  */
+	      if (new_first_binding < nmaps)
+		{
+		  keybuf[t - 1] = new_key;
+		  mock_input = t;
+		  goto replay_sequence;
+		}
 	    }
 	}
     }
