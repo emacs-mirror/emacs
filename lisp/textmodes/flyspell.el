@@ -42,7 +42,6 @@
 ;;    (add-hook 'mail-send-hook 'flyspell-mode-off)
 
 ;;; Code:
-(require 'font-lock)
 (require 'ispell)
 
 ;*---------------------------------------------------------------------*/
