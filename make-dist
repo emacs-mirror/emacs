@@ -33,6 +33,9 @@ progname="$0"
 ### Print out each line we read, for debugging's sake.
 ### set -v
 
+## Don't protect any files.
+umask 0
+
 update=yes
 clean_up=no
 make_tar=no
@@ -172,7 +175,7 @@ then
 
   echo "Updating finder-inf.el"
 
-  (cd lisp; make finder-inf.el))
+  (cd lisp; make finder-inf.el)
 
   echo "Recompiling Lisp files"
 
@@ -229,14 +232,14 @@ echo "Updating version number in README"
 
 
 echo "Creating subdirectories"
-for subdir in lisp lisp/term lisp/language site-lisp \
+for subdir in lisp site-lisp \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet \
 	      etc etc/e lock cpp info man msdos vms; do
   mkdir ${tempdir}/${subdir}
 done
 
-echo "Making links to \`lisp'"
+echo "Making links to \`lisp' and its subdirectories"
 ### Don't distribute TAGS, =*.el files, site-init.el, site-load.el, or default.el.
 (cd lisp
  ln [a-zA-Z]*.el ../${tempdir}/lisp
@@ -245,38 +248,37 @@ echo "Making links to \`lisp'"
  ## simula.el doesn't keep abbreviations in simula.defns any more.
  ## ln [a-zA-Z]*.defns ../${tempdir}/lisp
  ln ChangeLog Makefile makefile.nt ChangeLog.? README ../${tempdir}/lisp
- cd ../${tempdir}/lisp
- rm -f TAGS =*
- rm -f subdirs.el
- rm -f site-init site-init.el site-init.elc
- rm -f site-load site-load.el site-load.elc
- rm -f site-start site-start.el site-start.elc
- rm -f default default.el default.elc)
+ (cd ../${tempdir}/lisp
+  rm -f TAGS =*
+  rm -f site-init site-init.el site-init.elc
+  rm -f site-load site-load.el site-load.elc
+  rm -f site-start site-start.el site-start.elc
+  rm -f default default.el default.elc
+  )
 
-#echo "Making links to \`lisp/calc-2.02'"
-#### Don't distribute =*.el files, TAGS or backups.
-#(cd lisp/calc-2.02
-# ln [a-zA-Z]*.el ../../${tempdir}/lisp/calc-2.02
-# ln [a-zA-Z]*.elc ../../${tempdir}/lisp/calc-2.02
-# ln calc.info* calc.texinfo calc-refcard.* ../../${tempdir}/lisp/calc-2.02
-# ln INSTALL Makefile README README.prev ../../${tempdir}/lisp/calc-2.02
-# cd ../../${tempdir}/lisp/calc-2.02
-# rm -f *~ TAGS)
+ ## Find all subdirs of lisp dir
+ for file in `find . -type d -print`; do
+   case $file in
+     . | .. | */Old | */RCS)
+       ;;	
+     *)
+       if [ -d $file ]; then
+	 subdirs="$file $subdirs"
+       fi
+       ;;
+   esac
+ done
 
-echo "Making links to \`lisp/term'"
-### Don't distribute =*.el files or TAGS.
-(cd lisp/term
- ln [a-zA-Z]*.el ../../${tempdir}/lisp/term
- ln [a-zA-Z]*.elc ../../${tempdir}/lisp/term
- ln README ../../${tempdir}/lisp/term
- rm -f =* TAGS)
-
-echo "Making links to \`lisp/term'"
-### Don't distribute =*.el files or TAGS.
-(cd lisp/language
- ln [a-zA-Z]*.el ../../${tempdir}/lisp/language
- ln [a-zA-Z]*.elc ../../${tempdir}/lisp/language
- rm -f =* TAGS)
+ for file in $subdirs; do
+   echo "  lisp/$file"
+   mkdir ../${tempdir}/lisp/$file
+   ln $file/[a-zA-Z]*.el ../${tempdir}/lisp/$file
+   ln $file/[a-zA-Z]*.elc ../${tempdir}/lisp/$file
+   if [ -f $file/README ]; then
+     ln $file/README ../${tempdir}/lisp/$file
+   fi
+   rm -f $file/=* $file/TAGS
+ done )
 
 echo "Making links to \`src'"
 ### Don't distribute =*.[ch] files, or the configured versions of
