@@ -1760,6 +1760,13 @@ search for the image in `data-directory'.  Some image types support
 building images from data.  When this is done, no `:file' property
 may be present in the image specification.
 
+`:data DATA'
+
+Get image data from DATA.  (As of this writing, this is not yet
+supported for image type `postscript').  Either :file or :data may be
+present in an image specification, but not both.  All image types
+support strings as DATA, some types allow additional types of DATA.
+
 *** Supported image types
 
 **** XBM, image type `xbm'.
@@ -1819,11 +1826,6 @@ name.
 XPM images can be built from memory instead of files.  In that case,
 add a `:data' property instead of a `:file' property.
 
-`:data DATA'
-
-DATA must be a string containing an XPM image.  The contents of the
-string are of the same format as that of XPM files.
-
 The XPM library uses libz in its implementation so that it is able
 to display compressed images.
 
@@ -1838,11 +1840,6 @@ defined.
 Support for JPEG images requires the external library `libjpeg',
 package `jpegsrc.v6a.tar.gz', or later.  Additional image properties
 are:
-
-`:data DATA'
-
-DATA must be a string containing a JPEG image.  The contents of the
-string are of the same format as that of JPEG files.
 
 **** TIFF, image type `tiff'
 
@@ -1874,7 +1871,7 @@ every 0.1 seconds.
 (defun display-anim (buffer file idx max first-time)
   (when (= idx max)
     (setq idx 0))
-  (let ((img (create-image file nil :index idx)))
+  (let ((img (create-image file nil nil :index idx)))
     (save-excursion
       (set-buffer buffer)
       (goto-char (point-min))
