@@ -1,6 +1,6 @@
 ;;; loadhist.el --- lisp functions for working with feature groups
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 1.0
@@ -26,7 +26,8 @@
 ;;; Commentary:
 
 ;; These functions exploit the load-history system variable.
-;; Entry points include `unload-feature', `symbol-file', and `feature-file'.
+;; Entry points include `unload-feature', `symbol-file', and
+;; `feature-file', documented in the Emacs Lisp manual.
 
 ;;; Code:
 
@@ -102,14 +103,30 @@ This can include FILE itself."
     ))
 
 (defun read-feature (prompt)
-  "Read a feature name \(string\) from the minibuffer,
-prompting with PROMPT and completing from `features', and
+  "Read a feature name \(string\) from the minibuffer.
+Prompt with PROMPT and completing from `features', and
 return the feature \(symbol\)."
   (intern (completing-read prompt
 			   (mapcar (function (lambda (feature)
 					       (list (symbol-name feature))))
 				   features)
 			   nil t)))
+
+(defvar loadhist-hook-functions
+  '(after-change-function after-change-functions
+after-insert-file-functions auto-fill-function before-change-function
+before-change-functions blink-paren-function
+buffer-access-fontify-functions command-line-functions
+comment-indent-function kill-buffer-query-functions
+kill-emacs-query-functions lisp-indent-function
+redisplay-end-trigger-functions temp-buffer-show-function
+window-scroll-functions window-size-change-functions
+write-region-annotate-functions)
+  "A list of special hooks from the `Standard Hooks' node of the Lisp manual.
+
+These are symbols with hook-type values whose names don't end in
+`-hook' or `-hooks', from which `unload-feature' tries to remove
+pertinent symbols.")
 
 ;;;###autoload
 (defun unload-feature (feature &optional force)
@@ -124,21 +141,46 @@ is nil, raise an error."
 	     (dependents (delete file (copy-sequence (file-dependents file)))))
 	(if dependents
 	    (error "Loaded libraries %s depend on %s"
-		   (prin1-to-string dependents) file)
-	    )))
-  (let* ((flist (feature-symbols feature)) (file (car flist)))
+		   (prin1-to-string dependents) file))))
+  (let* ((flist (feature-symbols feature))
+         (file (car flist))
+         (unload-hook (intern-soft (concat (symbol-name feature)
+                                           "-unload-hook"))))
+    ;; Try to avoid losing badly when hooks installed in critical
+    ;; places go away.  (Some packages install things on
+    ;; `kill-buffer-hook', `activate-menubar-hook' and the like.)
+    ;; First off, provide a clean way for package `foo' to arrange
+    ;; this by defining `foo-unload-hook'.
+    (if unload-hook
+        (run-hooks unload-hook)
+      ;; Otherwise, do our best.  Look through the obarray for symbols
+      ;; which seem to be hook variables or special hook functions and
+      ;; remove anything from them which matches the feature-symbols
+      ;; about to get zapped.  Obviously this won't get anonymous
+      ;; functions which the package might just have installed, and
+      ;; there might be other important state, but this tactic
+      ;; normally works.
+      (mapatoms
+       (lambda (x)
+         (if (or (and (boundp x)        ; Random hooks.
+                      (consp (symbol-value x))
+                      (string-match "-hooks?\\'" (symbol-name x)))
+                 (and (fboundp x)       ; Known abnormal hooks etc.
+                      (memq x loadhist-hook-functions)))
+             (mapcar (lambda (y) (remove-hook x y))
+                     (cdr flist))))))
     (mapcar
-     (function (lambda (x) 
-		 (cond ((stringp x) nil)
-		       ((consp x)
-			;; Remove any feature names that this file provided.
-			(if (eq (car x) 'provide)
-			    (setq features (delq (cdr x) features))))
-		       ((boundp x) (makunbound x))
-		       ((fboundp x)
-			(fmakunbound x)
-			(let ((aload (get x 'autoload)))
-			  (if aload (fset x (cons 'autoload aload))))))))
+     (lambda (x) 
+       (cond ((stringp x) nil)
+             ((consp x)
+              ;; Remove any feature names that this file provided.
+              (if (eq (car x) 'provide)
+                  (setq features (delq (cdr x) features))))
+             ((boundp x) (makunbound x))
+             ((fboundp x)
+              (fmakunbound x)
+              (let ((aload (get x 'autoload)))
+                (if aload (fset x (cons 'autoload aload)))))))
      (cdr flist))
     ;; Delete the load-history element for this file.
     (let ((elt (assoc file load-history)))
