@@ -1,6 +1,8 @@
-/* test create and destroy lots of pools (interleaved)
-   language c
-   link testlib.o newfmt.o
+/* TEST_HEADER
+ summary = create and destroy lots of pools (interleaved)
+ language = c
+ link = testlib.o newfmt.o
+END_HEADER
 */
 
 #include "testlib.h"

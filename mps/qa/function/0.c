@@ -1,6 +1,8 @@
-/* test test that the mps header file is accepted by the compiler
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = test that the mps header file is accepted by the compiler
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "mps.h"

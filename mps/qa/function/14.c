@@ -1,6 +1,8 @@
-/* test regression test for bug when commit fails
-   language c
-   link testlib.o newfmt.o
+/* TEST_HEADER
+ summary = regression test for bug when commit fails
+ language = c
+ link = testlib.o newfmt.o
+END_HEADER
 */
 
 /*

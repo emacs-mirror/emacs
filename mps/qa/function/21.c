@@ -1,6 +1,8 @@
-/* test allocate large promise, make it small, repeat
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = allocate large promise, make it small, repeat
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

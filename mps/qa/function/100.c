@@ -1,6 +1,8 @@
-/* test MFS functional test  allocate and free in manual fixed small pool
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = MFS functional test  allocate and free in manual fixed small pool
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include <time.h>

@@ -1,6 +1,8 @@
-/* test ensure allocation in MV pool causes collection
-   language c
-   link newfmt.o testlib.o
+/* TEST_HEADER
+ summary = ensure allocation in MV pool causes collection
+ language = c
+ link = newfmt.o testlib.o
+END_HEADER
 */
 
 /* this is same as test 3.c, with input of 0x4000

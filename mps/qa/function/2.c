@@ -1,6 +1,8 @@
-/* test test my format for format_a
-   language c
-   link myfmt.o testlib.o
+/* TEST_HEADER
+ summary = test my format for format_a
+ language = c
+ link = myfmt.o testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

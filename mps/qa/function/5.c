@@ -1,6 +1,8 @@
-/* test (regression test) have an ambiguous reference to a reserved but not committed object, and then allocate lots more with another AP, to make it collect
-   language c
-   link testlib.o newfmt.o
+/* TEST_HEADER
+ summary = (regression test) have an ambiguous reference to a reserved but not committed object, and then allocate lots more with another AP, to make it collect
+ language = c
+ link = testlib.o newfmt.o
+END_HEADER
 */
 
 #include "testlib.h"
