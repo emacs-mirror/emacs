@@ -788,10 +788,10 @@ automatically when it is selected."
      . gnus-summary-normal-read-face))
   "*Controls the highlighting of summary buffer lines.
 
-A list of (FORM . FACE) pairs.  When deciding how a a particular
-summary line should be displayed, each form is evaluated.  The content
-of the face field after the first true form is used.  You can change
-how those summary lines are displayed, by editing the face field.
+A list of (FORM . FACE) pairs.  When deciding how a particular summary
+line should be displayed, each form is evaluated.  The content of the
+face field after the first true form is used.  You can change how those
+summary lines are displayed, by editing the face field.
 
 You can use the following variables in the FORM field.
 
