@@ -33,6 +33,9 @@ SUBSYSTEM=console
 # the emacs source tree.
 #
 LOCAL_FLAGS     = -Demacs=1 -DWINDOWSNT -DDOS_NT -DHAVE_CONFIG_H -I..\nt\inc
+!ifdef NTGUI
+LOCAL_FLAGS     = $(LOCAL_FLAGS) -DHAVE_NTGUI=1
+!endif
 
 EMACS           = $(BLD)\emacs.exe
 TEMACS          = $(BLD)\temacs.exe
@@ -55,7 +58,7 @@ TLASTLIB	= $(BLD)\lastfile.lib
 # see comments in allocate_heap in w32heap.c before changing any of the
 # -stack, -heap, or -base settings.
 !if "$(BUILD_TYPE)" == "spd"
-LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -pdb:$(BLD)\temacs.pdb -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map
+LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -pdb:$(BLD)\temacs.pdb -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map
 !else
 LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -pdb:$(BLD)\temacs.pdb -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map
 !endif
