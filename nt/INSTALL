@@ -20,6 +20,10 @@ Configuring:
   simply change to the nt subdirectory and run `configure' with no
   options.  To see what options are available, run `configure --help'.
 
+  N.B.  It is normal to see a few error messages output while configure
+  is running, when gcc support is being tested.  These cannot be
+  surpressed because of limitations in the Windows 9x command.com shell.
+
 Building:
 
   After running configure, simply run the appropriate `make' program for
