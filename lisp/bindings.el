@@ -50,18 +50,20 @@
 (defconst mode-line-mule-info
   (purecopy '(enable-multibyte-characters
 	      ((current-input-method ("[" current-input-method-title "]"))
-	       "%z:")))
+	       "%z")))
   "Mode-line control for displaying information of multilingual environment.")
 
 (make-variable-buffer-local 'mode-line-mule-info)
 
-(defvar mode-line-buffer-identification (purecopy '("%F: %12b"))
+(defvar mode-line-buffer-identification (purecopy '("%12b"))
   "Mode-line control for identifying the buffer being displayed.
-Its default value is (\"%F: %12b\").  Under X, `%F' is replaced with `Emacs'.
+Its default value is (\"%12b\").
 Major modes that edit things other than ordinary files may change this
 \(e.g. Info, Dired,...)")
 
 (make-variable-buffer-local 'mode-line-buffer-identification)
+
+(defvar mode-line-frame-identification '("-%F  "))
 
 (defvar mode-line-process nil
   "Mode-line control for displaying info on process status.
@@ -69,15 +71,16 @@ Normally nil in most modes, since there is no process to display.")
 
 (make-variable-buffer-local 'mode-line-process)
 
-(defvar mode-line-modified (purecopy '("--%1*%1+-"))
+(defvar mode-line-modified (purecopy '("--%1*%1+"))
   "Mode-line control for displaying whether current buffer is modified.")
 
 (make-variable-buffer-local 'mode-line-modified)
 
 (setq-default mode-line-format
-  (list (purecopy "")
+  (list (purecopy "-")
    'mode-line-mule-info
    'mode-line-modified
+   'mode-line-frame-identification
    'mode-line-buffer-identification
    (purecopy "   ")
    'global-mode-string
