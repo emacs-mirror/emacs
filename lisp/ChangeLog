@@ -1,3 +1,8 @@
+2003-07-11  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-bdf.el: Fix copyright line.
+	(bdf-directory-list): Fix initialization code.
+
 2003-07-11  John Paul Wallington  <jpw@gnu.org>
 
 	* emacs-lisp/ring.el (ring-empty-p): Use `zerop'.
