@@ -55,10 +55,17 @@ stored.  The first byte of a multibyte character is always in the range
 character are always in the range 160 through 255 (octal 0240 through
 0377); these values are @dfn{trailing codes}.
 
+  Some sequences of bytes do not form meaningful multibyte characters:
+for example, a single isolated byte in the range 128 through 255 is
+never meaningful.  Such byte sequences are not entirely valid, and never
+appear in proper multibyte text (since that consists of a sequence of
+@emph{characters}); but they can appear as part of ``raw bytes''
+(@pxref{Explicit Encoding}).
+
   In a buffer, the buffer-local value of the variable
 @code{enable-multibyte-characters} specifies the representation used.
-The representation for a string is determined based on the string
-contents when the string is constructed.
+The representation for a string is determined when the string is
+constructed and recorded in the string.
 
 @defvar enable-multibyte-characters
 @tindex enable-multibyte-characters
@@ -83,9 +90,21 @@ The @samp{--unibyte} command line option does its job by setting the
 default value to @code{nil} early in startup.
 @end defvar
 
+@defun position-bytes position
+@tindex position-bytes
+Return the byte-position corresponding to buffer position @var{position}
+in the current buffer.
+@end defun
+
+@defun byte-to-position byte-position
+@tindex byte-to-position
+Return the buffer position corresponding to byte-position
+@var{byte-position} in the current buffer.
+@end defun
+
 @defun multibyte-string-p string
 @tindex multibyte-string-p
-Return @code{t} if @var{string} contains multibyte characters.
+Return @code{t} if @var{string} is a multibyte string.
 @end defun
 
 @node Converting Representations
@@ -190,6 +209,10 @@ This function sets @code{enable-multibyte-characters} to record which
 representation is in use.  It also adjusts various data in the buffer
 (including overlays, text properties and markers) so that they cover the
 same text as they did before.
+
+You cannot use @code{set-buffer-multibyte} on an indirect buffer,
+because indirect buffers always inherit the representation of the
+base buffer.
 @end defun
 
 @defun string-as-unibyte string
@@ -198,8 +221,8 @@ This function returns a string with the same bytes as @var{string} but
 treating each byte as a character.  This means that the value may have
 more characters than @var{string} has.
 
-If @var{string} is unibyte already, then the value is @var{string}
-itself.
+If @var{string} is already a unibyte string, then the value is
+@var{string} itself.
 @end defun
 
 @defun string-as-multibyte string
@@ -208,8 +231,8 @@ This function returns a string with the same bytes as @var{string} but
 treating each multibyte sequence as one character.  This means that the
 value may have fewer characters than @var{string} has.
 
-If @var{string} is multibyte already, then the value is @var{string}
-itself.
+If @var{string} is already a multibyte string, then the value is
+@var{string} itself.
 @end defun
 
 @node Character Codes
@@ -269,8 +292,8 @@ This function returns a list of all defined character set names.
 
 @defun char-charset character
 @tindex char-charset
-This function returns the name of the character
-set that @var{character} belongs to.
+This function returns the name of the character set that @var{character}
+belongs to.
 @end defun
 
 @node Chars and Bytes
@@ -291,15 +314,21 @@ bytes is called the @dfn{dimension} of the character set.
 
 @defun charset-dimension charset
 @tindex charset-dimension
-This function returns the dimension of @var{charset};
-at present, the dimension is always 1 or 2.
+This function returns the dimension of @var{charset}; at present, the
+dimension is always 1 or 2.
+@end defun
+
+@defun charset-bytes charset
+@tindex charset-bytes
+This function returns the number of bytes used to represent a character
+in character set @var{charset}.
 @end defun
 
   This is the simplest way to determine the byte length of a character
 set's introduction sequence:
 
 @example
-(- (char-bytes (make-char @var{charset}))
+(- (charset-bytes @var{charset})
    (charset-dimension @var{charset}))
 @end example
 
@@ -310,28 +339,6 @@ set's introduction sequence:
 values used to represent them.  For most purposes, there is no need to
 be concerned with the sequence of bytes used to represent a character,
 because Emacs translates automatically when necessary.
-
-@defun char-bytes character
-@tindex char-bytes
-This function returns the number of bytes used to represent the
-character @var{character}.  This depends only on the character set that
-@var{character} belongs to; it equals the dimension of that character
-set (@pxref{Character Sets}), plus the length of its introduction
-sequence.
-
-@example
-(char-bytes 2248)
-     @result{} 2
-(char-bytes 65)
-     @result{} 1
-(char-bytes 192)
-     @result{} 1
-@end example
-
-The reason this function can give correct results for both multibyte and
-unibyte representations is that the non-@sc{ASCII} character codes used
-in those two representations do not overlap.
-@end defun
 
 @defun split-char character
 @tindex split-char
@@ -406,15 +413,25 @@ be used in scanning the text (@pxref{Translation of Characters}).  If it
 is non-@code{nil}, then each character in the region is translated
 through this table, and the value returned describes the translated
 characters instead of the characters actually in the buffer.
+
+In two peculiar cases, the value includes the symbol @code{unknown}:
+
+@itemize @bullet
+@item
+When a unibyte buffer contains non-@sc{ASCII} characters.
+
+@item
+When a multibyte buffer contains invalid byte-sequences (raw bytes).
+@xref{Explicit Encoding}.
+@end itemize
 @end defun
 
 @defun find-charset-string string &optional translation
 @tindex find-charset-string
-This function returns a list of the character sets
-that appear in the string @var{string}.
-
-The optional argument @var{translation} specifies a
-translation table; see @code{find-charset-region}, above.
+This function returns a list of the character sets that appear in the
+string @var{string}.  It is just like @code{find-charset-region}, except
+that it applies to the contents of @var{string} instead of part of the
+current buffer.
 @end defun
 
 @node Translation of Characters
@@ -477,6 +494,8 @@ coding systems that don't specify any other translation table.
 subprocess or receives text from a subprocess, it normally performs
 character code conversion and end-of-line conversion as specified
 by a particular @dfn{coding system}.
+
+  How to define a coding system is an arcane matter, not yet documented.
 
 @menu
 * Coding System Basics::
@@ -583,6 +602,9 @@ of the buffer with @code{write-region}.  When those operations ask the
 user to specify a different coding system,
 @code{buffer-file-coding-system} is updated to the coding system
 specified.
+
+However, @code{buffer-file-coding-system} does not affect sending text
+to a subprocess.
 @end defvar
 
 @defvar save-buffer-coding-system
@@ -897,7 +919,7 @@ input, including @code{file-coding-system-alist},
 @tindex coding-system-for-write
 This works much like @code{coding-system-for-read}, except that it
 applies to output rather than input.  It affects writing to files,
-subprocesses, and net connections.
+as well as sending output to subprocesses and net connections.
 
 When a single operation does both input and output, as do
 @code{call-process-region} and @code{start-process}, both
@@ -944,14 +966,43 @@ write them with @code{write-region} (@pxref{Writing to Files}), and
 suppress encoding for that @code{write-region} call by binding
 @code{coding-system-for-write} to @code{no-conversion}.
 
+  Raw bytes typically contain stray individual bytes with values in the
+range 128 through 255, that are legitimate only as part of multibyte
+sequences.  Even if the buffer is multibyte, Emacs treats each such
+individual byte as a character and uses the byte value as its character
+code.  In this way, character codes 128 through 255 can be found in a
+multibyte buffer, even though they are not legitimate multibyte
+character codes.
+
   Raw bytes sometimes contain overlong byte-sequences that look like a
-proper multibyte character plus extra bytes containing trailing codes.
-For most purposes, Emacs treats such a sequence in a buffer or string as
-a single character, and if you look at its character code, you get the
-value that corresponds to the multibyte character sequence---the extra
-bytes are disregarded.  This behavior is not quite clean, but raw bytes
-are used only in limited places in Emacs, so as a practical matter
-problems can be avoided.
+proper multibyte character plus extra superfluous trailing codes.  For
+most purposes, Emacs treats such a sequence in a buffer or string as a
+single character, and if you look at its character code, you get the
+value that corresponds to the multibyte character
+sequence---disregarding the extra trailing codes.  This is not quite
+clean, but raw bytes are used only in limited ways, so as a practical
+matter it is not worth the trouble to treat this case differently.
+
+  When a multibyte buffer contains illegitimate byte sequences,
+sometimes insertion or deleteion can cause them to coalesce into a
+legitimate multibyte character.  For example, suppose the buffer
+contains the sequence 129 68 192, 68 being the character @samp{D}.  If
+you delete the @samp{D}, the bytes 129 and 192 become adjacent, and thus
+become one multibyte character (Latin-1 A with grave accent).  Point
+moves to one side or the other of the character, since it cannot be
+within a character.  Don't be alarmed by this.
+
+  Some really peculiar situations prevent proper coalescence.  For
+example, if you narrow the buffer so that the accessible portion begins
+just before the @samp{D}, then delete the @samp{D}, the two surrounding
+bytes cannot coalesce because one of them is outside the accessible
+portion of the buffer.  In this case, the deletion cannot be done, so
+@code{delete-region} signals an error.
+
+  Here are the functions to perform explicit encoding or decoding.  The
+decoding functions produce ``raw bytes''; the encoding functions are
+meant to operate on ``raw bytes''.  All of these functions discard text
+properties.
 
 @defun encode-coding-region start end coding-system
 @tindex encode-coding-region

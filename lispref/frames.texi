@@ -364,7 +364,11 @@ The width of the frame contents, in characters.  (To get the height in
 pixels, call @code{frame-pixel-width}; see @ref{Size and Position}.)
 
 @item window-id
-The number of the window-system window used by the frame.
+The number of the window-system window used by the frame
+to contain the actual Emacs windows.
+
+@item outer-window-id
+The number of the outermost window-system window used for the whole frame.
 
 @item minibuffer
 Whether this frame has its own minibuffer.  The value @code{t} means

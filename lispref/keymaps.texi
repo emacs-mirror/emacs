@@ -461,18 +461,20 @@ active keymap.
 @end group
 @end example
 
-@defun define-prefix-command symbol
+@defun define-prefix-command symbol &optional mapvar prompt
 @cindex prefix command
 This function prepares @var{symbol} for use as a prefix key's binding:
 it creates a full keymap and stores it as @var{symbol}'s function
 definition.  Subsequently binding a key sequence to @var{symbol} will
-make that key sequence into a prefix key.
+make that key sequence into a prefix key.  The return value is @code{symbol}.
 
 This function also sets @var{symbol} as a variable, with the keymap as
-its value.  It returns @var{symbol}.
+its value.  But if @var{mapvar} is non-@code{nil}, it sets @var{mapvar}
+as a variable instead.
 
-@c  In Emacs version 18, only the function definition of @var{symbol} was
-@c set, not the value as a variable.
+If @var{prompt} is non-@code{nil}, that becomes the overall prompt
+string for the keymap.  The prompt string is useful for menu keymaps
+(@pxref{Menu Keymaps}).
 @end defun
 
 @node Active Keymaps

@@ -640,7 +640,7 @@ error in the evaluating its contents, any function definitions or
 @xref{Autoload}.
 @end defun
 
-@defun require feature &optional filename
+@defun require feature &optional filename noerror
 This function checks whether @var{feature} is present in the current
 Emacs session (using @code{(featurep @var{feature})}; see below).  The
 argument @var{feature} must be a symbol.
@@ -654,7 +654,7 @@ used.
 
 If loading the file fails to provide @var{feature}, @code{require}
 signals an error, @samp{Required feature @var{feature} was not
-provided}.
+provided}, unless @var{noerror} is non-@code{nil}.
 @end defun
 
 @defun featurep feature

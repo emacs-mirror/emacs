@@ -232,6 +232,8 @@ Control, Meta and Shift.
 @cindex read syntax for characters
 @cindex printed representation for characters
 @cindex syntax for characters
+@cindex @samp{?} in character constant
+@cindex question mark in character constant
   Since characters are really integers, the printed representation of a
 character is a decimal number.  This is also a possible read syntax for
 a character, but writing characters that way in Lisp programs is a very
@@ -389,7 +391,9 @@ $2^{25}$
 bit to indicate that the shift key was used in typing a control
 character.  This distinction is possible only when you use X terminals
 or other special terminals; ordinary terminals do not report the
-distinction to the computer in any way.
+distinction to the computer in any way.  The Lisp syntax for
+the shift bit is @samp{\S-}; thus, @samp{?\C-\S-o} or @samp{?\C-\S-O} 
+represents the shifted-control-o character.
 
 @cindex hyper characters
 @cindex super characters
@@ -408,8 +412,6 @@ Numerically, the
 bit values are 2**22 for alt, 2**23 for super and 2**24 for hyper.
 @end ifinfo
 
-@cindex @samp{?} in character constant
-@cindex question mark in character constant
 @cindex @samp{\} in character constant
 @cindex backslash in character constant
 @cindex octal character code
@@ -555,11 +557,17 @@ same object, @code{nil}.
 @cindex decrement field of register
 @cindex pointers
 
-  A @dfn{cons cell} is an object that consists of two pointers or slots,
-called the @sc{car} slot and the @sc{cdr} slot.  Each slot can
-@dfn{point to} or hold to any Lisp object.  We also say that the ``the
-@sc{car} of this cons cell is'' whatever object its @sc{car} slot
-currently points to, and likewise for the @sc{cdr}.
+  A @dfn{cons cell} is an object that consists of two slots, called the
+@sc{car} slot and the @sc{cdr} slot.  Each slot can @dfn{hold} or
+@dfn{refer to} any Lisp object.  We also say that the ``the @sc{car} of
+this cons cell is'' whatever object its @sc{car} slot currently holds,
+and likewise for the @sc{cdr}.
+
+@quotation
+A note to C programmers: in Lisp, we do not distinguish between
+``holding'' a value and ``pointing to'' the value, because pointers in
+Lisp are implicit.
+@end quotation
 
   A @dfn{list} is a series of cons cells, linked together so that the
 @sc{cdr} slot of each cons cell holds either the next cons cell or the
@@ -573,7 +581,7 @@ divided words into two parts, called the ``address'' part and the
 ``decrement''; @sc{car} was an instruction to extract the contents of
 the address part of a register, and @sc{cdr} an instruction to extract
 the contents of the decrement.  By contrast, ``cons cells'' are named
-for the function @code{cons} that creates them, which in turn is named
+for the function @code{cons} that creates them, which in turn was named
 for its purpose, the construction of cells.
 
 @cindex atom
@@ -588,10 +596,10 @@ right parenthesis.
 
    Upon reading, each object inside the parentheses becomes an element
 of the list.  That is, a cons cell is made for each element.  The
-@sc{car} slot of the cons cell points to the element, and its @sc{cdr}
-slot points to the next cons cell of the list, which holds the next
+@sc{car} slot of the cons cell holds the element, and its @sc{cdr}
+slot refers to the next cons cell of the list, which holds the next
 element in the list.  The @sc{cdr} slot of the last cons cell is set to
-point to @code{nil}.
+hold @code{nil}.
 
 @cindex box diagrams, for lists
 @cindex diagrams, boxed, for lists
@@ -613,13 +621,14 @@ list @code{(rose violet buttercup)}:
 @end group
 @end example
 
-  In this diagram, each box represents a slot that can point to any Lisp
-object.  Each pair of boxes represents a cons cell.  Each arrow is a
-pointer to a Lisp object, either an atom or another cons cell.
+  In this diagram, each box represents a slot that can hold or refer to
+any Lisp object.  Each pair of boxes represents a cons cell.  Each arrow
+represents a reference to a Lisp object, either an atom or another cons
+cell.
 
   In this example, the first box, which holds the @sc{car} of the first
-cons cell, points to or ``contains'' @code{rose} (a symbol).  The second
-box, holding the @sc{cdr} of the first cons cell, points to the next
+cons cell, refers to or ``holds'' @code{rose} (a symbol).  The second
+box, holding the @sc{cdr} of the first cons cell, refers to the next
 pair of boxes, the second cons cell.  The @sc{car} of the second cons
 cell is @code{violet}, and its @sc{cdr} is the third cons cell.  The
 @sc{cdr} of the third (and last) cons cell is @code{nil}.
@@ -791,7 +800,7 @@ functions that work on alists.
 @subsection Array Type
 
   An @dfn{array} is composed of an arbitrary number of slots for
-pointing to other Lisp objects, arranged in a contiguous block of
+holding or referring to other Lisp objects, arranged in a contiguous block of
 memory.  Accessing any element of an array takes approximately the same
 amount of time.  In contrast, accessing an element of a list requires
 time proportional to the position of the element in the list.  (Elements
@@ -885,18 +894,16 @@ makes the string multibyte.  If the string constant is read from a
 unibyte source, then the character is read as unibyte and that makes the
 string unibyte.
 
-@c ??? Change this?
   You can also represent a multibyte non-@sc{ASCII} character with its
 character code, using a hex escape, @samp{\x@var{nnnnnnn}}, with as many
 digits as necessary.  (Multibyte non-@sc{ASCII} character codes are all
 greater than 256.)  Any character which is not a valid hex digit
-terminates this construct.  If the character that would follow is a hex
-digit, write @w{@samp{\ }} (backslash and space)
-to terminate the hex escape---for example,
-@w{@samp{\x8e0\ }} represents one character, @samp{a} with grave accent.
-@w{@samp{\ }} in a string constant is just like backslash-newline; it does
-not contribute any character to the string, but it does terminate the
-preceding hex escape.
+terminates this construct.  If the next character in the string could be
+interpreted as a hex digit, write @w{@samp{\ }} (backslash and space) to
+terminate the hex escape---for example, @w{@samp{\x8e0\ }} represents
+one character, @samp{a} with grave accent.  @w{@samp{\ }} in a string
+constant is just like backslash-newline; it does not contribute any
+character to the string, but it does terminate the preceding hex escape.
 
   Using a multibyte hex escape forces the string to multibyte.  You can
 represent a unibyte non-@sc{ASCII} character with its character code,

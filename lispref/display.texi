@@ -179,6 +179,14 @@ Minibuffer depth is 0.
 @end example
 @end defun
 
+@tindex with-temp-message
+@defmac with-temp-message message &rest body
+This construct displays a message in the echo area temporarily, during
+the execution of @var{body}.  It displays @var{message}, executes
+@var{body}, then returns the value of the last body form while restoring
+the previous echo area contents.
+@end defmac
+
 @defun message-or-box string &rest arguments
 This function displays a message like @code{message}, but may display it
 in a dialog box instead of the echo area.  If this function is called in
@@ -520,9 +528,16 @@ buffer and then present it to the user for perusal rather than for
 editing.  Many help commands use this feature.
 
 @defspec with-output-to-temp-buffer buffer-name forms@dots{}
-This function executes @var{forms} while arranging to insert any
-output they print into the buffer named @var{buffer-name}.  The buffer
-is then shown in some window for viewing, displayed but not selected.
+This function executes @var{forms} while arranging to insert any output
+they print into the buffer named @var{buffer-name}, which is first
+created if necessary, and put into Help mode.  Finally, the buffer is
+displayed in some window, but not selected.
+
+If the @var{forms} do not change the major mode in the output buffer, so
+that it is still Help mode at the end of their execution, then
+@code{with-output-to-temp-buffer} makes this buffer read-only at the
+end, and also scans it for function and variable names to make them into
+clickable cross-references.
 
 The string @var{buffer-name} specifies the temporary buffer, which
 need not already exist.  The argument must be a string, not a buffer.
@@ -535,6 +550,9 @@ using the Lisp output functions within @var{forms} goes by default to
 that buffer (but screen display and messages in the echo area, although
 they are ``output'' in the general sense of the word, are not affected).
 @xref{Output Functions}.
+
+Several hooks are available for customizing the behavior
+of this construct; they are listed below.
 
 The value of the last form in @var{forms} is returned.
 
@@ -568,14 +586,25 @@ function gets one argument, which is the buffer it should display.
 
 It is a good idea for this function to run @code{temp-buffer-show-hook}
 just as @code{with-output-to-temp-buffer} normally would, inside of
-@code{save-window-excursion} and with the chosen window and buffer
+@code{save-selected-window} and with the chosen window and buffer
 selected.
+@end defvar
+
+@defvar temp-buffer-setup-hook
+@tindex temp-buffer-setup-hook
+This normal hook is run by @code{with-output-to-temp-buffer} before
+evaluating @var{body}.  When the hook runs, the help buffer is current.
+This hook is normally set up with a function to put the buffer in Help
+mode.
 @end defvar
 
 @defvar temp-buffer-show-hook
 This normal hook is run by @code{with-output-to-temp-buffer} after
 displaying the help buffer.  When the hook runs, the help buffer is
-current, and the window it was displayed in is selected.
+current, and the window it was displayed in is selected.  This hook is
+normally set up with a function to make the buffer read only, and find
+function names and variable names in it, provided the major mode is
+still Help mode.
 @end defvar
 
 @defun momentary-string-display string position &optional char message
@@ -1442,6 +1471,11 @@ character.
 table, for any character whose entry in the active display table is
 @code{nil}.  Thus, when you set up a display table, you need only
 specify the characters for which you want special behavior.
+
+  These display rules apply to carriage return (character code 13), when
+it appears in the buffer.  But that character may not appear in the
+buffer where you expect it, if it was eliminated as part of end-of-line
+conversion (@xref{Coding System Basics}).
 
   These variables affect the way certain characters are displayed on the
 screen.  Since they change the number of columns the characters occupy,

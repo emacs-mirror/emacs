@@ -29,6 +29,7 @@ not be displayed in any windows.
 * Creating Buffers::    Functions that create buffers.
 * Killing Buffers::     Buffers exist until explicitly killed.
 * Indirect Buffers::    An indirect buffer shares text with some other buffer.
+* Buffer Gap::          The gap in the buffer.
 @end menu
 
 @node Buffer Basics
@@ -980,3 +981,26 @@ is not indirect, the value is @code{nil}.  Otherwise, the value is
 another buffer, which is never an indirect buffer.
 @end defun
 
+@node Buffer Gap
+@section The Buffer Gap
+
+  Emacs buffers are implemented using an invisible @dfn{gap} to make
+insertion and deletion faster.  Insertion works by filling in part of
+the gap, and deletion adds to the gap.  Of course, this means that the
+gap must first be moved to the locus of the insertion or deletion.
+Emacs moves the gap only when you try to insert or delete.  This is why
+your first editing command in one part of a large buffer, after
+previously editing in another far-away part, sometimes involves a
+noticeable delay.
+
+  This mechanism works invisibly, and Lisp code should never be affected
+by the gap's current location, but these functions are available for
+getting information about the gap status.
+
+@defun gap-position
+This function returns the current gap position in the current buffer.
+@end defun
+
+@defun gap-size
+This function returns the current gap size of the current buffer.
+@end defun

@@ -183,12 +183,12 @@ values are legitimate, and how to display the value.
 
 @item :options @var{list}
 Specify @var{list} as the list of reasonable values for use in this
-option.
+option.  The user is not restricted to using only these values, but they
+are offered as convenient alternatives.
 
-Currently this is meaningful only when the type is @code{hook}.  In that
-case, the elements of @var{list} should be functions that are useful as
-elements of the hook value.  The user is not restricted to using only
-these functions, but they are offered as convenient alternatives.
+This is meaningful only for certain types, currently including
+@code{hook}, @code{plist} and @code{alist}.  See the definition of the
+individual types for a description of how to use @code{:options}.
 
 @item :version @var{version}
 This option specifies that the variable was first introduced, or its
@@ -267,17 +267,25 @@ Keywords}.  Here is an example, from the library @file{paren.el}:
   :require 'paren)
 @end example
 
-@ignore
-Use @code{custom-add-option} to specify that a specific function is
-useful as an member of a hook.
+If a customization item has a type such as @code{hook} or @code{alist},
+which supports @code{:options}, you can add additional options to the
+item, outside the @code{defcustom} declaration, by calling
+@code{custom-add-option}.  For example, if you define a function
+@code{my-lisp-mode-initialization} intended to be called from
+@code{emacs-lisp-mode-hook}, you might want to add that to the list of
+options for @code{emacs-lisp-mode-hook}, but not by editing its
+definition.   You can do it thus:
+
+@example
+(custom-add-option 'emacs-lisp-mode-hook 'my-lisp-mode-initialization)
+@end example
 
 @defun custom-add-option symbol option
-To the variable @var{symbol} add @var{option}.
+To the customization @var{symbol}, add @var{option}.
 
-If @var{symbol} is a hook variable, @var{option} should be a hook
-member.  For other types variables, the effect is undefined."
+The precise effect of adding @var{option} depends on the customization
+type of @var{symbol}.
 @end defun
-@end ignore
 
 Internally, @code{defcustom} uses the symbol property
 @code{standard-value} to record the expression for the default value,
@@ -375,6 +383,125 @@ obsolete usage).  This customization type is used for hook variables.
 You can use the @code{:options} keyword in a hook variable's
 @code{defcustom} to specify a list of functions recommended for use in
 the hook; see @ref{Variable Definitions}.
+
+@item alist
+The value must be a list of cons-cells, the car of each cell
+representing a key, and the cdr of the same cell representing and
+associated value.  The use can add and a delete key/value pairs, and
+edit both the key and the value of each pair.
+
+You can specify the key and value types like this:
+
+@example
+(alist :key-type @var{key-type}
+       :value-type @var{value-type})
+@end example
+
+@noindent
+where @var{key-type} and @var{value-type} are customization type
+specifications.  The default key type is @code{sexp}, and the default
+value type is @code{sexp}.
+
+The user can add any key matching the specified key type, but you can
+give some keys a preferential treatment by specifying them with the
+@code{:options} (see @ref{Variable Definitions}).  The specified keys
+will always be shown in the customize buffer (together with a suitable
+value), with a checkbox to include or exclude or disable the key/value
+pair from the alist.  The user will not be able to edit the keys
+specified by the @code{:options} keyword argument.
+
+The argument to the @code{:options} keywords should be a list of option
+specifications.  Ordinarily, the options are simply atoms, which are the
+specified keys.  For example:
+
+@example
+:options '("foo" "bar" "baz")
+@end example
+
+@noindent
+specifies that there are three ``known'' keys, namely @code{"foo"},
+@code{"bar"} and @code{"baz"}, which will always be shown first.
+
+You may want to restrict the value type for specific keys, for example,
+the value associated with the @code{"bar"} key can only be an integer.
+You can specify this by using a list instead of an atom in the option
+specification.  The first element will specify the key, like before,
+while the second element will specify the value type.
+
+@example
+:options '("foo" ("bar" integer) "baz")
+@end example
+
+Finally, you may want to change how the key is presented.  By default,
+the key is simply shown as a @code{const}, since the user cannot change
+the special keys specified with the @code{:options} keyword.  However,
+you may want to use a more specialized type for presenting the key, like
+@code{function-item} if you know it is a symbol with a function binding.
+This is done by using a customization type specification instead of a
+symbol for the key.
+
+@example
+:options '("foo" ((function-item some-function) integer) "baz")
+@end example
+
+Many alist uses lists with two elements, instead of cons cells.  For
+example,
+
+@example
+(defcustom list-alist '(("foo" 1) ("bar" 2) ("baz" 3))
+  "Each element is a list of the form (KEY VALUE).")
+@end example
+
+@noindent
+instead of 
+
+@example
+(defcustom cons-alist '(("foo" . 1) ("bar" . 2) ("baz" . 3))
+  "Each element is a cons-cell (KEY . VALUE).")
+@end example
+
+Because of the way lists are implemented on top of cons cells, you can
+treat @code{list-alist} in the example above as a cons cell alist, where
+the value type is a list with a single element containing the real
+value.
+
+@example
+(defcustom list-alist '(("foo" 1) ("bar" 2) ("baz" 3))
+  "Each element is a list of the form (KEY VALUE)."
+  :type '(alist :value-type (group integer)))
+@end example
+
+The @code{group} widget is used here instead of @code{list} only because
+the formatting is better suited for the purpose.
+
+Similarily, you can have alists with more values associated with each
+key, using variations of this trick:
+
+@example
+(defcustom person-data '(("brian"  50 t) 
+                         ("dorith" 55 nil)
+                         ("ken"    52 t))
+  "Alist of people, each element has the form (NAME AGE MALE)."
+  :type '(alist :value-type (group age boolean)))
+
+(defcustom pets '(("brian") 
+                  ("dorith" "dog" "guppy")
+                  ("ken" "cat"))
+  "Alist where the KEY is a person, and the VALUE is a list of pets."
+  :type '(alist :value-type (repeat string)))
+@end example
+
+@item plist
+The @code{plist} custom type is similar to the @code{alist} (see above),
+except that the information is stored as a property list, i.e. a list of
+this form:
+
+@example
+(@var{key} @var{value} @var{key} @var{value} @var{key} @var{value} @dots{})
+@end example
+
+The default @code{:key-type} for @code{plist} is @code{symbol},
+rather than @code{sexp}.
 
 @item symbol
 The value must be a symbol.  It appears in the customization buffer as

@@ -83,7 +83,7 @@ not alter it, the fastest way is to use @code{insert-file-contents} in a
 temporary buffer.  Visiting the file is not necessary and takes longer.
 @xref{Reading from Files}.
 
-@deffn Command find-file filename
+@deffn Command find-file filename &optional wildcards
 This command selects a buffer visiting the file @var{filename},
 using an existing buffer if there is one, and otherwise creating a 
 new buffer and reading the file into it.  It also returns that buffer.
@@ -98,16 +98,24 @@ like this:
 @noindent
 (See @code{switch-to-buffer} in @ref{Displaying Buffers}.)
 
+If @var{wildcards} is non-@code{nil}, which is always true in an
+interactive call, then @code{find-file} expands wildcard characters in
+@var{filename} and visits all the matching files.
+
 When @code{find-file} is called interactively, it prompts for
 @var{filename} in the minibuffer.
 @end deffn
 
-@defun find-file-noselect filename &optional nowarn rawfile
+@defun find-file-noselect filename &optional nowarn rawfile wildcards
 This function is the guts of all the file-visiting functions.  It finds
 or creates a buffer visiting the file @var{filename}, and returns it.
 It uses an existing buffer if there is one, and otherwise creates a new
 buffer and reads the file into it.  You may make the buffer current or
 display it in a window if you wish, but this function does not do so.
+
+If @var{wildcards} is non-@code{nil}, which is always true in an
+interactive call, then @code{find-file-noselect} expands wildcard
+characters in @var{filename} and visits all the matching files.
 
 When @code{find-file-noselect} uses an existing buffer, it first
 verifies that the file has not changed since it was last visited or
@@ -146,7 +154,7 @@ visiting the file @var{filename}.
 @end example
 @end defun
 
-@deffn Command find-file-other-window filename
+@deffn Command find-file-other-window filename &optional wildcards
 This command selects a buffer visiting the file @var{filename}, but
 does so in a window other than the selected window.  It may use another
 existing window or split a window; see @ref{Displaying Buffers}.
@@ -155,7 +163,7 @@ When this command is called interactively, it prompts for
 @var{filename}.
 @end deffn
 
-@deffn Command find-file-read-only filename
+@deffn Command find-file-read-only filename &optional wildcards
 This command selects a buffer visiting the file @var{filename}, like
 @code{find-file}, but it marks the buffer as read-only.  @xref{Read Only
 Buffers}, for related functions and variables.
@@ -174,6 +182,14 @@ modify the text.  Entering View mode runs the normal hook
 When @code{view-file} is called interactively, it prompts for
 @var{filename}.
 @end deffn
+
+@tindex find-file-wildcards
+@defvar find-file-wildcards
+If this variable is non-@code{nil}, then the various @code{find-file}
+commands check for wildcard characters and visit all the files that
+match them.  If this is @code{nil}, then wildcard characters are
+not treated specially.
+@end defvar
 
 @defvar find-file-hooks
 The value of this variable is a list of functions to be called after a
@@ -560,13 +576,16 @@ interfere with each other.  Emacs tries to prevent this situation from
 arising by recording a @dfn{file lock} when a file is being modified.
 Emacs can then detect the first attempt to modify a buffer visiting a
 file that is locked by another Emacs job, and ask the user what to do.
+The file lock is really a file, a symbolic link with a special name,
+stored in the same directory as the file you are editing.
 
-  File locks are not completely reliable when multiple machines can
-share file systems.  When file locks do not work, it is possible for two
-users to make changes simultaneously, but Emacs can still warn the user
-who saves second.  Also, the detection of modification of a buffer
-visiting a file changed on disk catches some cases of simultaneous
-editing; see @ref{Modification Time}.
+  When you access files using NFS, there may be a small probability that
+you and another user will both lock the same file ``simultaneously''.
+If this happens, it is possible for the two users to make changes
+simultaneously, but Emacs will still warn the user who saves second.
+Also, the detection of modification of a buffer visiting a file changed
+on disk catches some cases of simultaneous editing; see
+@ref{Modification Time}.
 
 @defun file-locked-p filename
 This function returns @code{nil} if the file @var{filename} is not
@@ -583,7 +602,7 @@ some other job.
 @end defun
 
 @defun lock-buffer &optional filename
-  This function locks the file @var{filename}, if the current buffer is
+This function locks the file @var{filename}, if the current buffer is
 modified.  The argument @var{filename} defaults to the current buffer's
 visited file.  Nothing is done if the current buffer is not visiting a
 file, or is not modified.
@@ -861,7 +880,7 @@ existing directory, @code{nil} otherwise.
 
 @defun file-regular-p filename
 This function returns @code{t} if the file @var{filename} exists and is
-a regular file (not a directory, symbolic link, named pipe, terminal, or
+a regular file (not a directory, named pipe, terminal, or
 other I/O device).
 @end defun
 
@@ -997,7 +1016,8 @@ The time of last modification as a list of two integers (as above).
 The time of last status change as a list of two integers (as above).
 
 @item
-The size of the file in bytes.
+The size of the file in bytes.  If the size is too large to fit in a
+Lisp integer, this is a floating point number.
 
 @item
 The file's modes, as a string of ten letters or dashes,
@@ -1900,6 +1920,20 @@ that can be read.
 @defun file-name-all-versions file dirname
 This function returns a list of all versions of the file named
 @var{file} in directory @var{dirname}.
+@end defun
+
+@tindex file-expand-wildcards
+@defun file-expand-wildcards pattern &optional full
+This function expands the wildcard pattern @var{pattern}, returning
+alist of file names that match it.
+
+If @var{pattern} is written as an absolute relative file name,
+the values are absolute also.
+
+If @var{pattern} is written as a relative file name, it is interpreted
+relative to the current default directory.  The file names returned are
+normally also relative to the current default directory.  However, if
+@var{full} is non-@code{nil}, they are absolute.
 @end defun
 
 @defun insert-directory file switches &optional wildcard full-directory-p

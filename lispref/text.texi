@@ -9,9 +9,9 @@
 
   This chapter describes the functions that deal with the text in a
 buffer.  Most examine, insert, or delete text in the current buffer,
-often in the vicinity of point.  Many are interactive.  All the
-functions that change the text provide for undoing the changes
-(@pxref{Undo}).
+often operating at point or on text adjacent to point.  Many are
+interactive.  All the functions that change the text provide for undoing
+the changes (@pxref{Undo}).
 
   Many text-related functions operate on a region of text defined by two
 buffer positions passed in arguments named @var{start} and @var{end}.
@@ -26,7 +26,9 @@ interactive call, point and the mark are used for these arguments.
 
 @cindex buffer contents
   Throughout this chapter, ``text'' refers to the characters in the
-buffer, together with their properties (when relevant).
+buffer, together with their properties (when relevant).  Keep in mind
+that point is always between two characters, and the cursor appears on
+the character after point.
 
 @menu
 * Near Point::       Examining text in the vicinity of point.
@@ -53,6 +55,7 @@ buffer, together with their properties (when relevant).
 * Transposition::    Swapping two portions of a buffer.
 * Registers::        How registers are implemented.  Accessing the text or
                        position stored in a register.
+* Base 64::          Conversion to or from base 64 encoding.
 * Change Hooks::     Supplying functions to be run when text is changed.
 @end menu
 
@@ -3221,6 +3224,54 @@ portions moves along with that portion, thus remaining between the same
 two characters in their new position.  However, if @var{leave-markers}
 is non-@code{nil}, @code{transpose-regions} does not do this---it leaves
 all markers unrelocated.
+@end defun
+
+@node Base 64
+@section Base 64 Encoding
+@cindex base 64 encoding
+
+  Base 64 code is used in email to encode a sequence of 8-bit bytes as a
+longer sequence of @sc{ASCII} graphic characters.  This section
+describes the functions for converting to and from this code.
+
+@defun base64-encode-region beg end &optional no-line-break
+@tindex base64-encode-region
+This function converts the region from @var{beg} to @var{end}
+into base 64 code.  It returns the length of the encoded text.
+
+Normally, this function inserts newline characters into the encoded
+text, to avoid overlong lines.  However, if the optional argument
+@var{no-line-break} is non-@code{nil}, these newlines are not added, so
+the output is just one long line.
+@end defun
+
+@defun base64-encode-string string &optional no-line-break
+@tindex base64-encode-string
+This function converts the string @var{string} into base 64 code.  It
+returns a string containing the encoded text.
+
+Normally, this function inserts newline characters into the encoded
+text, to avoid overlong lines.  However, if the optional argument
+@var{no-line-break} is non-@code{nil}, these newlines are not added, so
+the result string is just one long line.
+@end defun
+
+@defun base64-decode-region beg end
+@tindex base64-decode-region
+This function converts the region from @var{beg} to @var{end} from base
+64 code into the corresponding decoded text.  It returns the length of
+the decoded text.
+
+The decoding functions ignore newline characters in the encoded text.
+@end defun
+
+@defun base64-decode-string string
+@tindex base64-decode-string
+This function converts the string @var{string} from base 64 code into
+the corresponding decoded text.  It returns a string containing the
+decoded text.
+
+The decoding functions ignore newline characters in the encoded text.
 @end defun
 
 @node Change Hooks

@@ -12,8 +12,8 @@
 @smallbook
 
 @ifinfo
-This version is the edition 2.5 of the GNU Emacs Lisp
-Reference Manual.  It corresponds to Emacs Version 20.3
+This Info file contains edition 2.5.1 of the GNU Emacs Lisp
+Reference Manual, corresponding to Emacs version 20.4.
 @c Please REMEMBER to update edition number in *four* places in this file
 @c                 and also in *one* place in intro.texi
 
@@ -21,7 +21,8 @@ Published by the Free Software Foundation
 59 Temple Place, Suite 330
 Boston, MA  02111-1307  USA
 
-Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998 Free Software Foundation, Inc. 
+Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998, 1999
+ Free Software Foundation, Inc. 
 
 Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -71,21 +72,22 @@ instead of in the original English.
 
 @titlepage
 @title GNU Emacs Lisp Reference Manual
-@subtitle For Emacs Version 20.3
+@subtitle For Emacs Version 20.4
 @c The edition number appears in several places in this file
 @c and also in the file intro.texi.
-@subtitle Revision 2.5, May 1998
+@subtitle Revision 2.5.1, January 1999
 
 @author by Bil Lewis, Dan LaLiberte, Richard Stallman
 @author and the GNU Manual Group
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998 Free Software Foundation, Inc. 
+Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998, 1999
+Free Software Foundation, Inc. 
 
 @sp 2
-Edition 2.5 @*
-Revised for Emacs Version 20.3,@*
-May 1998.@*
+Edition 2.5.1 @*
+Revised for Emacs Version 20.4,@*
+January 1999.@*
 @sp 2
 ISBN 1-882114-72-8
 
@@ -118,8 +120,8 @@ Cover art by Etienne Suvasa.
 @node Top, Copying, (dir), (dir)
 
 @ifinfo
-This Info file contains edition 2.5 of the GNU Emacs Lisp
-Reference Manual, corresponding to GNU Emacs version 20.3.
+This Info file contains edition 2.5.1 of the GNU Emacs Lisp
+Reference Manual, corresponding to GNU Emacs version 20.4.
 @end ifinfo
 
 @menu

@@ -693,6 +693,13 @@ subprocess receives it, much like text written into a file.  You can use
 @code{coding-system-for-write}, if that is non-@code{nil}; or else from
 the defaulting mechanism (@pxref{Default Coding Systems}).
 
+  Sometimes the system is unable to accept input for that process,
+because the input buffer is full.  When this happens, the send functions
+wait a short while, accepting output from subprocesses, and then try
+again.  This gives the subprocess a chance to read more of its pending
+input and make space in the buffer.  It also allows filters, sentinels
+and timers to run---so take account of that in writing your code.
+
 @defun process-send-string process-name string
 This function sends @var{process-name} the contents of @var{string} as
 standard input.  The argument @var{process-name} must be a process or
@@ -747,6 +754,14 @@ error is signaled if the current buffer has no process.
      @result{} "shell"
 @end group
 @end smallexample
+@end defun
+
+@defun process-running-child-p process
+@tindex process-running-child-p process
+This function will tell you whether a subprocess has given control of
+its terminal to its own child process.  The value is @code{t} if this is
+true, or if Emacs cannot tell; it is @code{nil} if Emacs can be certain
+that this is not so.
 @end defun
 
 @node Signals to Processes
