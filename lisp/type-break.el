@@ -8,7 +8,7 @@
 ;; Status: Works in GNU Emacs 19.25 or later, some versions of XEmacs
 ;; Created: 1994-07-13
 
-;; $Id: type-break.el,v 1.26 2003/04/11 13:06:22 jpw Exp $
+;; $Id: type-break.el,v 1.27 2003/05/06 17:50:17 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -981,11 +981,12 @@ With optional non-nil ALL, force redisplay of all mode-lines."
                   (funcall 'delete-timer (car list)))
              (setq list (cdr list)))))
         ((memq type-break-emacs-variant '(xemacs lucid))
-         (let ((list itimer-list))
-           (while list
-             (and (eq (funcall 'itimer-function (car list)) function)
-                  (funcall 'delete-itimer (car list)))
-             (setq list (cdr list)))))))
+	 (with-no-warnings
+	  (let ((list itimer-list))
+	    (while list
+	      (and (eq (funcall 'itimer-function (car list)) function)
+		   (funcall 'delete-itimer (car list)))
+	      (setq list (cdr list))))))))
 
 
 ;;; Demo wrappers
