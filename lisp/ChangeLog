@@ -1,3 +1,19 @@
+2004-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (help-C-file-name): Use new subr-name.
+	Prepend `src/' to the file name.
+	(help-C-source-directory, help-subr-name, help-find-C-source): Remove.
+	(describe-function-1, describe-variable): Only find a C source file name
+	if DOC is already loaded.
+
+	* help-mode.el (help-function-def, help-variable-def):
+	Use the new find-function-search-for-symbol functionality.
+	Allow FILE to be `C-source'.
+
+	* emacs-lisp/find-func.el (find-function-C-source-directory): New var.
+	(find-function-C-source): New fun.
+	(find-function-search-for-symbol): Use it.
+
 2004-04-29  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-mode-map): Bind \C-w to isearch-yank-word
@@ -12,8 +28,8 @@
 	to disable compilation output window scrolling.
 	(compilation-set-window): Use it.
 
-	* outline.el (outline-next-preface, outline-show-heading): Don't
-	leave unhidden blank line before heading.
+	* outline.el (outline-next-preface, outline-show-heading):
+	Don't leave unhidden blank line before heading.
 	(outline-end-of-subtree): Include last newline into subtree.
 	(hide-entry): Leave point at beginning of heading instead of end.
 	(outline-up-heading): Push mark for the first call of successive
@@ -43,10 +59,9 @@
 2004-04-28  Nick Roberts  <nickrob@gnu.org>
 
 	* progmodes/gdb-ui.el (gdb-frame-breakpoints-buffer)
-	(gdb-frame-stack-buffer, gdb-frame-threads-buffer)
+	(gdb-frame-assembler-buffer, gdb-frame-threads-buffer)
 	(gdb-frame-registers-buffer, gdb-frame-locals-buffer)
-	(gdb-frame-gdb-buffer, gdb-frame-assembler-buffer): Use
-	selected-window.
+	(gdb-frame-gdb-buffer, gdb-frame-stack-buffer): Use selected-window.
 
 	* progmodes/gud.el (gud-common-init): Throw an error if program is
 	already running under gdb.
