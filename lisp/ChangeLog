@@ -1,3 +1,8 @@
+2001-09-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* font-lock.el (toplevel): Require `jit-lock' only if
+	font-lock-support-mode is set to jit-lock-mode.
+
 2001-09-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/quail.el (quail-use-package, quail-inactivate)
