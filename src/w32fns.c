@@ -52,8 +52,6 @@ Boston, MA 02111-1307, USA.  */
 #include <shellapi.h>
 #include <ctype.h>
 
-#define max(a, b) ((a) > (b) ? (a) : (b))
-
 extern void free_frame_menubar ();
 extern double atof ();
 extern int w32_console_toggle_lock_key (int vk_code, Lisp_Object new_state);
@@ -1068,10 +1066,12 @@ x_report_frame_params (f, alistptr)
 }
 
 
-DEFUN ("w32-define-rgb-color", Fw32_define_rgb_color, Sw32_define_rgb_color, 4, 4, 0,
-  "Convert RGB numbers to a windows color reference and associate with NAME (a string).\n\
-This adds or updates a named color to w32-color-map, making it available for use.\n\
-The original entry's RGB ref is returned, or nil if the entry is new.")
+DEFUN ("w32-define-rgb-color", Fw32_define_rgb_color,
+       Sw32_define_rgb_color, 4, 4, 0,
+       doc: /* Convert RGB numbers to a windows color reference and associate with NAME.
+This adds or updates a named color to w32-color-map, making it
+available for use.  The original entry's RGB ref is returned, or nil
+if the entry is new.  */)
     (red, green, blue, name)
     Lisp_Object red, green, blue, name;
 {
@@ -1106,13 +1106,14 @@ The original entry's RGB ref is returned, or nil if the entry is new.")
   return (oldrgb);
 }
 
-DEFUN ("w32-load-color-file", Fw32_load_color_file, Sw32_load_color_file, 1, 1, 0,
-  "Create an alist of color entries from an external file (ie. rgb.txt).\n\
-Assign this value to w32-color-map to replace the existing color map.\n\
-\
-The file should define one named RGB color per line like so:\
-  R G B   name\n\
-where R,G,B are numbers between 0 and 255 and name is an arbitrary string.")
+DEFUN ("w32-load-color-file", Fw32_load_color_file,
+       Sw32_load_color_file, 1, 1, 0,
+       doc: /* Create an alist of color entries from an external file.
+Assign this value to w32-color-map to replace the existing color map.
+
+The file should define one named RGB color per line like so:
+  R G B   name
+where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
     (filename)
     Lisp_Object filename;
 {
@@ -1404,7 +1405,7 @@ colormap_t w32_color_map[] =
 };
 
 DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
-       0, 0, 0, "Return the default color map.")
+       0, 0, 0, doc: /* Return the default color map.  */)
      ()
 {
   int i;
@@ -2915,15 +2916,15 @@ validate_x_resource_name ()
 extern char *x_get_string_resource ();
 
 DEFUN ("x-get-resource", Fx_get_resource, Sx_get_resource, 2, 4, 0,
-  "Return the value of ATTRIBUTE, of class CLASS, from the X defaults database.\n\
-This uses `INSTANCE.ATTRIBUTE' as the key and `Emacs.CLASS' as the\n\
-class, where INSTANCE is the name under which Emacs was invoked, or\n\
-the name specified by the `-name' or `-rn' command-line arguments.\n\
-\n\
-The optional arguments COMPONENT and SUBCLASS add to the key and the\n\
-class, respectively.  You must specify both of them or neither.\n\
-If you specify them, the key is `INSTANCE.COMPONENT.ATTRIBUTE'\n\
-and the class is `Emacs.CLASS.SUBCLASS'.")
+       doc: /* Return the value of ATTRIBUTE, of class CLASS, from the X defaults database.
+This uses `INSTANCE.ATTRIBUTE' as the key and `Emacs.CLASS' as the
+class, where INSTANCE is the name under which Emacs was invoked, or
+the name specified by the `-name' or `-rn' command-line arguments.
+
+The optional arguments COMPONENT and SUBCLASS add to the key and the
+class, respectively.  You must specify both of them or neither.
+If you specify them, the key is `INSTANCE.COMPONENT.ATTRIBUTE'
+and the class is `Emacs.CLASS.SUBCLASS'.  */)
   (attribute, class, component, subclass)
      Lisp_Object attribute, class, component, subclass;
 {
@@ -3127,12 +3128,12 @@ x_default_parameter (f, alist, prop, deflt, xprop, xclass, type)
 }
 
 DEFUN ("x-parse-geometry", Fx_parse_geometry, Sx_parse_geometry, 1, 1, 0,
-       "Parse an X-style geometry string STRING.\n\
-Returns an alist of the form ((top . TOP), (left . LEFT) ... ).\n\
-The properties returned may include `top', `left', `height', and `width'.\n\
-The value of `left' or `top' may be an integer,\n\
-or a list (+ N) meaning N pixels relative to top/left corner,\n\
-or a list (- N) meaning -N pixels relative to bottom/right corner.")
+       doc: /* Parse an X-style geometry string STRING.
+Returns an alist of the form ((top . TOP), (left . LEFT) ... ).
+The properties returned may include `top', `left', `height', and `width'.
+The value of `left' or `top' may be an integer,
+or a list (+ N) meaning N pixels relative to top/left corner,
+or a list (- N) meaning -N pixels relative to bottom/right corner.  */)
      (string)
      Lisp_Object string;
 {
@@ -5184,15 +5185,15 @@ unwind_create_frame (frame)
 
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
-  "Make a new window, which is called a \"frame\" in Emacs terms.\n\
-Returns an Emacs frame object.\n\
-ALIST is an alist of frame parameters.\n\
-If the parameters specify that the frame should not have a minibuffer,\n\
-and do not specify a specific minibuffer window to use,\n\
-then `default-minibuffer-frame' must be a frame whose minibuffer can\n\
-be shared by the new frame.\n\
-\n\
-This function is an internal primitive--use `make-frame' instead.")
+       doc: /* Make a new window, which is called a \"frame\" in Emacs terms.
+Returns an Emacs frame object.
+ALIST is an alist of frame parameters.
+If the parameters specify that the frame should not have a minibuffer,
+and do not specify a specific minibuffer window to use,
+then `default-minibuffer-frame' must be a frame whose minibuffer can
+be shared by the new frame.
+
+This function is an internal primitive--use `make-frame' instead.  */)
   (parms)
      Lisp_Object parms;
 {
@@ -5545,7 +5546,7 @@ x_get_focus_frame (frame)
 }
 
 DEFUN ("w32-focus-frame", Fw32_focus_frame, Sw32_focus_frame, 1, 1, 0,
-  "Give FRAME input focus, raising to foreground if necessary.")
+       doc: /* Give FRAME input focus, raising to foreground if necessary.  */)
   (frame)
      Lisp_Object frame;
 {
@@ -7180,9 +7181,9 @@ w32_find_bdf_fonts_in_dir (Lisp_Object directory)
 
 DEFUN ("w32-find-bdf-fonts", Fw32_find_bdf_fonts, Sw32_find_bdf_fonts,
        1, 1, 0,
-       "Return a list of BDF fonts in DIR, suitable for appending to\n\
-w32-bdf-filename-alist.  Fonts which do not contain an xlfd description\n\
-will not be included in the list. DIR may be a list of directories.")
+       doc: /* Return a list of BDF fonts in DIR, suitable for appending to
+w32-bdf-filename-alist.  Fonts which do not contain an xlfd description
+will not be included in the list. DIR may be a list of directories.  */)
      (directory)
      Lisp_Object directory;
 {
@@ -7207,7 +7208,7 @@ will not be included in the list. DIR may be a list of directories.")
 
 
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
-  "Internal function called by `color-defined-p', which see.")
+       doc: /* Internal function called by `color-defined-p', which see.  */)
   (color, frame)
      Lisp_Object color, frame;
 {
@@ -7223,7 +7224,7 @@ DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
 }
 
 DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
-  "Internal function called by `color-values', which see.")
+       doc: /* Internal function called by `color-values', which see.  */)
   (color, frame)
      Lisp_Object color, frame;
 {
@@ -7249,7 +7250,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
 }
 
 DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
-  "Internal function called by `display-color-p', which see.")
+       doc: /* Internal function called by `display-color-p', which see.  */)
   (display)
      Lisp_Object display;
 {
@@ -7261,13 +7262,13 @@ DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
   return Qt;
 }
 
-DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
-  0, 1, 0,
-  "Return t if the X display supports shades of gray.\n\
-Note that color displays do support shades of gray.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p,
+       Sx_display_grayscale_p, 0, 1, 0,
+       doc: /* Return t if the X display supports shades of gray.
+Note that color displays do support shades of gray.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
   (display)
      Lisp_Object display;
 {
@@ -7279,12 +7280,12 @@ If omitted or nil, that stands for the selected frame's display.")
   return Qt;
 }
 
-DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
-  0, 1, 0,
-  "Returns the width in pixels of the X display DISPLAY.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+DEFUN ("x-display-pixel-width", Fx_display_pixel_width,
+       Sx_display_pixel_width, 0, 1, 0,
+       doc: /* Returns the width in pixels of DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
   (display)
      Lisp_Object display;
 {
@@ -7294,11 +7295,11 @@ If omitted or nil, that stands for the selected frame's display.")
 }
 
 DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
-  Sx_display_pixel_height, 0, 1, 0,
-  "Returns the height in pixels of the X display DISPLAY.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+       Sx_display_pixel_height, 0, 1, 0,
+       doc: /* Returns the height in pixels of DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
   (display)
      Lisp_Object display;
 {
@@ -7308,11 +7309,11 @@ If omitted or nil, that stands for the selected frame's display.")
 }
 
 DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
-  0, 1, 0,
-  "Returns the number of bitplanes of the display DISPLAY.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+       0, 1, 0,
+       doc: /* Returns the number of bitplanes of DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
   (display)
      Lisp_Object display;
 {
@@ -7322,11 +7323,11 @@ If omitted or nil, that stands for the selected frame's display.")
 }
 
 DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
-  0, 1, 0,
-  "Returns the number of color cells of the display DISPLAY.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+       0, 1, 0,
+       doc: /* Returns the number of color cells of DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
   (display)
      Lisp_Object display;
 {
@@ -7350,11 +7351,11 @@ If omitted or nil, that stands for the selected frame's display.")
 
 DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
        Sx_server_max_request_size,
-  0, 1, 0,
-  "Returns the maximum request size of the server of display DISPLAY.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+       0, 1, 0,
+       doc: /* Returns the maximum request size of the server of DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
   (display)
      Lisp_Object display;
 {
@@ -7364,10 +7365,10 @@ If omitted or nil, that stands for the selected frame's display.")
 }
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
-  "Returns the vendor ID string of the W32 system (Microsoft).\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+       doc: /* Returns the vendor ID string of the W32 system (Microsoft).
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
   (display)
      Lisp_Object display;
 {
@@ -7375,13 +7376,14 @@ If omitted or nil, that stands for the selected frame's display.")
 }
 
 DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
-  "Returns the version numbers of the server of display DISPLAY.\n\
-The value is a list of three integers: the major and minor\n\
-version numbers, and the vendor-specific release\n\
-number.  See also the function `x-server-vendor'.\n\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+       doc: /* Returns the version numbers of the server of DISPLAY.
+The value is a list of three integers: the major and minor
+version numbers, and the vendor-specific release
+number.  See also the function `x-server-vendor'.
+
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
   (display)
      Lisp_Object display;
 {
@@ -7391,21 +7393,22 @@ If omitted or nil, that stands for the selected frame's display.")
 }
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
-  "Returns the number of screens on the server of display DISPLAY.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+       doc: /* Returns the number of screens on the server of DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
   (display)
      Lisp_Object display;
 {
   return make_number (1);
 }
 
-DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 0,
-  "Returns the height in millimeters of the X display DISPLAY.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+DEFUN ("x-display-mm-height", Fx_display_mm_height,
+       Sx_display_mm_height, 0, 1, 0,
+       doc: /* Returns the height in millimeters of DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
   (display)
      Lisp_Object display;
 {
@@ -7423,10 +7426,10 @@ If omitted or nil, that stands for the selected frame's display.")
 }
 
 DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
-  "Returns the width in millimeters of the X display DISPLAY.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+       doc: /* Returns the width in millimeters of DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
   (display)
      Lisp_Object display;
 {
@@ -7445,12 +7448,12 @@ If omitted or nil, that stands for the selected frame's display.")
 }
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
-  Sx_display_backing_store, 0, 1, 0,
-  "Returns an indication of whether display DISPLAY does backing store.\n\
-The value may be `always', `when-mapped', or `not-useful'.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+       Sx_display_backing_store, 0, 1, 0,
+       doc: /* Returns an indication of whether DISPLAY does backing store.
+The value may be `always', `when-mapped', or `not-useful'.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
   (display)
      Lisp_Object display;
 {
@@ -7458,13 +7461,14 @@ If omitted or nil, that stands for the selected frame's display.")
 }
 
 DEFUN ("x-display-visual-class", Fx_display_visual_class,
-  Sx_display_visual_class, 0, 1, 0,
-  "Returns the visual class of the display DISPLAY.\n\
-The value is one of the symbols `static-gray', `gray-scale',\n\
-`static-color', `pseudo-color', `true-color', or `direct-color'.\n\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+       Sx_display_visual_class, 0, 1, 0,
+       doc: /* Returns the visual class of DISPLAY.
+The value is one of the symbols `static-gray', `gray-scale',
+`static-color', `pseudo-color', `true-color', or `direct-color'.
+
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
 	(display)
      Lisp_Object display;
 {
@@ -7484,11 +7488,11 @@ If omitted or nil, that stands for the selected frame's display.")
 }
 
 DEFUN ("x-display-save-under", Fx_display_save_under,
-  Sx_display_save_under, 0, 1, 0,
-  "Returns t if the display DISPLAY supports the save-under feature.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+       Sx_display_save_under, 0, 1, 0,
+       doc: /* Returns t if DISPLAY supports the save-under feature.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
   (display)
      Lisp_Object display;
 {
@@ -7570,16 +7574,21 @@ x_display_info_for_name (name)
 }
 
 DEFUN ("x-open-connection", Fx_open_connection, Sx_open_connection,
-       1, 3, 0, "Open a connection to a server.\n\
-DISPLAY is the name of the display to connect to.\n\
-Optional second arg XRM-STRING is a string of resources in xrdb format.\n\
-If the optional third arg MUST-SUCCEED is non-nil,\n\
-terminate Emacs if we can't open the connection.")
+       1, 3, 0, doc: /* Open a connection to a server.
+DISPLAY is the name of the display to connect to.
+Optional second arg XRM-STRING is a string of resources in xrdb format.
+If the optional third arg MUST-SUCCEED is non-nil,
+terminate Emacs if we can't open the connection.  */)
   (display, xrm_string, must_succeed)
      Lisp_Object display, xrm_string, must_succeed;
 {
   unsigned char *xrm_option;
   struct w32_display_info *dpyinfo;
+
+  /* If initialization has already been done, return now to avoid
+     overwriting critical parts of one_w32_display_info.  */
+  if (w32_in_use)
+    return Qnil;
 
   CHECK_STRING (display);
   if (! NILP (xrm_string))
@@ -7651,9 +7660,9 @@ terminate Emacs if we can't open the connection.")
 
 DEFUN ("x-close-connection", Fx_close_connection,
        Sx_close_connection, 1, 1, 0,
-   "Close the connection to DISPLAY's server.\n\
-For DISPLAY, specify either a frame or a display name (a string).\n\
-If DISPLAY is nil, that stands for the selected frame's display.")
+       doc: /* Close the connection to DISPLAY's server.
+For DISPLAY, specify either a frame or a display name (a string).
+If DISPLAY is nil, that stands for the selected frame's display.  */)
   (display)
   Lisp_Object display;
 {
@@ -7682,7 +7691,7 @@ If DISPLAY is nil, that stands for the selected frame's display.")
 }
 
 DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
-  "Return the list of display names that Emacs has connections to.")
+       doc: /* Return the list of display names that Emacs has connections to.  */)
   ()
 {
   Lisp_Object tail, result;
@@ -7695,12 +7704,7 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
 }
 
 DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize, 1, 2, 0,
-   "If ON is non-nil, report errors as soon as the erring request is made.\n\
-If ON is nil, allow buffering of requests.\n\
-This is a noop on W32 systems.\n\
-The optional second argument DISPLAY specifies which display to act on.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If DISPLAY is omitted or nil, that stands for the selected frame's display.")
+       doc: /* This is a noop on W32 systems. */)
   (on, display)
     Lisp_Object display, on;
 {
@@ -8367,9 +8371,9 @@ clear_image_cache (f, force_p)
 
 DEFUN ("clear-image-cache", Fclear_image_cache, Sclear_image_cache,
        0, 1, 0,
-  "Clear the image cache of FRAME.\n\
-FRAME nil or omitted means use the selected frame.\n\
-FRAME t means clear the image caches of all frames.")
+       doc: /* Clear the image cache of FRAME.
+FRAME nil or omitted means use the selected frame.
+FRAME t means clear the image caches of all frames.  */)
   (frame)
      Lisp_Object frame;
 {
@@ -12461,9 +12465,9 @@ x_kill_gs_process (pixmap, f)
 
 DEFUN ("x-change-window-property", Fx_change_window_property,
        Sx_change_window_property, 2, 3, 0,
-  "Change window property PROP to VALUE on the X window of FRAME.\n\
-PROP and VALUE must be strings.  FRAME nil or omitted means use the\n\
-selected frame.  Value is VALUE.")
+       doc: /* Change window property PROP to VALUE on the X window of FRAME.
+PROP and VALUE must be strings.  FRAME nil or omitted means use the
+selected frame.  Value is VALUE.  */)
   (prop, value, frame)
      Lisp_Object frame, prop, value;
 {
@@ -12492,8 +12496,8 @@ selected frame.  Value is VALUE.")
 
 DEFUN ("x-delete-window-property", Fx_delete_window_property,
        Sx_delete_window_property, 1, 2, 0,
-  "Remove window property PROP from X window of FRAME.\n\
-FRAME nil or omitted means use the selected frame.  Value is PROP.")
+       doc: /* Remove window property PROP from X window of FRAME.
+FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
   (prop, frame)
      Lisp_Object prop, frame;
 {
@@ -12518,10 +12522,10 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.")
 
 DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
        1, 2, 0,
-  "Value is the value of window property PROP on FRAME.\n\
-If FRAME is nil or omitted, use the selected frame.  Value is nil\n\
-if FRAME hasn't a property with name PROP or if PROP has no string\n\
-value.")
+       doc: /* Value is the value of window property PROP on FRAME.
+If FRAME is nil or omitted, use the selected frame.  Value is nil
+if FRAME hasn't a property with name PROP or if PROP has no string
+value.  */)
   (prop, frame)
      Lisp_Object prop, frame;
 {
@@ -13144,27 +13148,27 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
 
 #ifdef TODO /* Tooltip support not complete.  */
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
-  "Show STRING in a \"tooltip\" window on frame FRAME.\n\
-A tooltip window is a small window displaying a string.\n\
-\n\
-FRAME nil or omitted means use the selected frame.\n\
-\n\
-PARMS is an optional list of frame parameters which can be\n\
-used to change the tooltip's appearance.\n\
-\n\
-Automatically hide the tooltip after TIMEOUT seconds.\n\
-TIMEOUT nil means use the default timeout of 5 seconds.\n\
-\n\
-If the list of frame parameters PARAMS contains a `left' parameters,\n\
-the tooltip is displayed at that x-position.  Otherwise it is\n\
-displayed at the mouse position, with offset DX added (default is 5 if\n\
-DX isn't specified).  Likewise for the y-position; if a `top' frame\n\
-parameter is specified, it determines the y-position of the tooltip\n\
-window, otherwise it is displayed at the mouse position, with offset\n\
-DY added (default is -10).\n\
-\n\
-A tooltip's maximum size is specified by `x-max-tooltip-size'.\n\
-Text larger than the specified size is clipped.")
+       doc: /* Show STRING in a \"tooltip\" window on frame FRAME.
+A tooltip window is a small window displaying a string.
+
+FRAME nil or omitted means use the selected frame.
+
+PARMS is an optional list of frame parameters which can be
+used to change the tooltip's appearance.
+
+Automatically hide the tooltip after TIMEOUT seconds.
+TIMEOUT nil means use the default timeout of 5 seconds.
+
+If the list of frame parameters PARAMS contains a `left' parameters,
+the tooltip is displayed at that x-position.  Otherwise it is
+displayed at the mouse position, with offset DX added (default is 5 if
+DX isn't specified).  Likewise for the y-position; if a `top' frame
+parameter is specified, it determines the y-position of the tooltip
+window, otherwise it is displayed at the mouse position, with offset
+DY added (default is -10).
+
+A tooltip's maximum size is specified by `x-max-tooltip-size'.
+Text larger than the specified size is clipped.  */)
   (string, frame, parms, timeout, dx, dy)
      Lisp_Object string, frame, parms, timeout, dx, dy;
 {
@@ -13352,8 +13356,8 @@ Text larger than the specified size is clipped.")
 
 
 DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
-  "Hide the current tooltip window, if there is any.\n\
-Value is t if tooltip was open, nil otherwise.")
+       doc: /* Hide the current tooltip window, if there is any.
+Value is t if tooltip was open, nil otherwise.  */)
   ()
 {
   int count;
@@ -13396,10 +13400,10 @@ Value is t if tooltip was open, nil otherwise.")
 extern Lisp_Object Qfile_name_history;
 
 DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 4, 0,
-  "Read file name, prompting with PROMPT in directory DIR.\n\
-Use a file selection dialog.\n\
-Select DEFAULT-FILENAME in the dialog's file selection box, if\n\
-specified.  Ensure that file exists if MUSTMATCH is non-nil.")
+       doc: /* Read file name, prompting with PROMPT in directory DIR.
+Use a file selection dialog.
+Select DEFAULT-FILENAME in the dialog's file selection box, if
+specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
   (prompt, dir, default_filename, mustmatch)
      Lisp_Object prompt, dir, default_filename, mustmatch;
 {
@@ -13502,43 +13506,12 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.")
 
 
 /***********************************************************************
-				Tests
- ***********************************************************************/
-
-#if GLYPH_DEBUG
-
-DEFUN ("imagep", Fimagep, Simagep, 1, 1, 0,
-  "Value is non-nil if SPEC is a valid image specification.")
-  (spec)
-     Lisp_Object spec;
-{
-  return valid_image_p (spec) ? Qt : Qnil;
-}
-
-
-DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
-  (spec)
-     Lisp_Object spec;
-{
-  int id = -1;
-  
-  if (valid_image_p (spec))
-    id = lookup_image (SELECTED_FRAME (), spec);
-
-  debug_print (spec);
-  return make_number (id);
-}
-
-#endif /* GLYPH_DEBUG != 0 */
-
-
-
-/***********************************************************************
                          w32 specialized functions
  ***********************************************************************/
 
 DEFUN ("w32-select-font", Fw32_select_font, Sw32_select_font, 0, 1, 0,
-   "This will display the W32 font dialog and return an X font string corresponding to the selection.")
+       doc: /* Select a font using the W32 font dialog.
+Returns an X font string corresponding to the selection.  */)
   (frame)
      Lisp_Object frame;
 {
@@ -13582,14 +13555,15 @@ DEFUN ("w32-select-font", Fw32_select_font, Sw32_select_font, 0, 1, 0,
   return build_string (buf);
 }
 
-DEFUN ("w32-send-sys-command", Fw32_send_sys_command, Sw32_send_sys_command, 1, 2, 0,
-   "Send frame a Windows WM_SYSCOMMAND message of type COMMAND.\n\
-Some useful values for command are 0xf030 to maximise frame (0xf020\n\
-to minimize), 0xf120 to restore frame to original size, and 0xf100\n\
-to activate the menubar for keyboard access.  0xf140 activates the\n\
-screen saver if defined.\n\
-\n\
-If optional parameter FRAME is not specified, use selected frame.")
+DEFUN ("w32-send-sys-command", Fw32_send_sys_command,
+       Sw32_send_sys_command, 1, 2, 0,
+       doc: /* Send frame a Windows WM_SYSCOMMAND message of type COMMAND.
+Some useful values for command are 0xf030 to maximise frame (0xf020
+to minimize), 0xf120 to restore frame to original size, and 0xf100
+to activate the menubar for keyboard access.  0xf140 activates the
+screen saver if defined.
+
+If optional parameter FRAME is not specified, use selected frame.  */)
   (command, frame)
      Lisp_Object command, frame;
 {
@@ -13603,25 +13577,25 @@ If optional parameter FRAME is not specified, use selected frame.")
 }
 
 DEFUN ("w32-shell-execute", Fw32_shell_execute, Sw32_shell_execute, 2, 4, 0,
-  "Get Windows to perform OPERATION on DOCUMENT.\n\
-This is a wrapper around the ShellExecute system function, which\n\
-invokes the application registered to handle OPERATION for DOCUMENT.\n\
-OPERATION is typically \"open\", \"print\" or \"explore\" (but can be\n\
-nil for the default action), and DOCUMENT is typically the name of a\n\
-document file or URL, but can also be a program executable to run or\n\
-a directory to open in the Windows Explorer.\n\
-\n\
-If DOCUMENT is a program executable, PARAMETERS can be a string\n\
-containing command line parameters, but otherwise should be nil.\n\
-\n\
-SHOW-FLAG can be used to control whether the invoked application is hidden\n\
-or minimized.  If SHOW-FLAG is nil, the application is displayed normally,\n\
-otherwise it is an integer representing a ShowWindow flag:\n\
-\n\
-  0 - start hidden\n\
-  1 - start normally\n\
-  3 - start maximized\n\
-  6 - start minimized")
+       doc: /* Get Windows to perform OPERATION on DOCUMENT.
+This is a wrapper around the ShellExecute system function, which
+invokes the application registered to handle OPERATION for DOCUMENT.
+OPERATION is typically \"open\", \"print\" or \"explore\" (but can be
+nil for the default action), and DOCUMENT is typically the name of a
+document file or URL, but can also be a program executable to run or
+a directory to open in the Windows Explorer.
+
+If DOCUMENT is a program executable, PARAMETERS can be a string
+containing command line parameters, but otherwise should be nil.
+
+SHOW-FLAG can be used to control whether the invoked application is hidden
+or minimized.  If SHOW-FLAG is nil, the application is displayed normally,
+otherwise it is an integer representing a ShowWindow flag:
+
+  0 - start hidden
+  1 - start normally
+  3 - start maximized
+  6 - start minimized  */)
   (operation, document, parameters, show_flag)
      Lisp_Object operation, document, parameters, show_flag;
 {
@@ -13733,19 +13707,20 @@ w32_parse_hot_key (key)
   return HOTKEY (vk_code, w32_modifiers);
 }
 
-DEFUN ("w32-register-hot-key", Fw32_register_hot_key, Sw32_register_hot_key, 1, 1, 0,
-   "Register KEY as a hot-key combination.\n\
-Certain key combinations like Alt-Tab are reserved for system use on\n\
-Windows, and therefore are normally intercepted by the system.  However,\n\
-most of these key combinations can be received by registering them as\n\
-hot-keys, overriding their special meaning.\n\
-\n\
-KEY must be a one element key definition in vector form that would be\n\
-acceptable to `define-key' (e.g. [A-tab] for Alt-Tab).  The meta\n\
-modifier is interpreted as Alt if `w32-alt-is-meta' is t, and hyper\n\
-is always interpreted as the Windows modifier keys.\n\
-\n\
-The return value is the hotkey-id if registered, otherwise nil.")
+DEFUN ("w32-register-hot-key", Fw32_register_hot_key,
+       Sw32_register_hot_key, 1, 1, 0,
+       doc: /* Register KEY as a hot-key combination.
+Certain key combinations like Alt-Tab are reserved for system use on
+Windows, and therefore are normally intercepted by the system.  However,
+most of these key combinations can be received by registering them as
+hot-keys, overriding their special meaning.
+
+KEY must be a one element key definition in vector form that would be
+acceptable to `define-key' (e.g. [A-tab] for Alt-Tab).  The meta
+modifier is interpreted as Alt if `w32-alt-is-meta' is t, and hyper
+is always interpreted as the Windows modifier keys.
+
+The return value is the hotkey-id if registered, otherwise nil.  */)
   (key)
      Lisp_Object key;
 {
@@ -13771,8 +13746,9 @@ The return value is the hotkey-id if registered, otherwise nil.")
   return key;
 }
 
-DEFUN ("w32-unregister-hot-key", Fw32_unregister_hot_key, Sw32_unregister_hot_key, 1, 1, 0,
-   "Unregister HOTKEY as a hot-key combination.")
+DEFUN ("w32-unregister-hot-key", Fw32_unregister_hot_key,
+       Sw32_unregister_hot_key, 1, 1, 0,
+       doc: /* Unregister HOTKEY as a hot-key combination.  */)
   (key)
      Lisp_Object key;
 {
@@ -13798,15 +13774,17 @@ DEFUN ("w32-unregister-hot-key", Fw32_unregister_hot_key, Sw32_unregister_hot_ke
   return Qnil;
 }
 
-DEFUN ("w32-registered-hot-keys", Fw32_registered_hot_keys, Sw32_registered_hot_keys, 0, 0, 0,
-   "Return list of registered hot-key IDs.")
+DEFUN ("w32-registered-hot-keys", Fw32_registered_hot_keys,
+       Sw32_registered_hot_keys, 0, 0, 0,
+       doc: /* Return list of registered hot-key IDs.  */)
   ()
 {
   return Fcopy_sequence (w32_grabbed_keys);
 }
 
-DEFUN ("w32-reconstruct-hot-key", Fw32_reconstruct_hot_key, Sw32_reconstruct_hot_key, 1, 1, 0,
-   "Convert hot-key ID to a lisp key combination.")
+DEFUN ("w32-reconstruct-hot-key", Fw32_reconstruct_hot_key,
+       Sw32_reconstruct_hot_key, 1, 1, 0,
+       doc: /* Convert hot-key ID to a lisp key combination.  */)
   (hotkeyid)
      Lisp_Object hotkeyid;
 {
@@ -13836,11 +13814,12 @@ DEFUN ("w32-reconstruct-hot-key", Fw32_reconstruct_hot_key, Sw32_reconstruct_hot
   return key;
 }
 
-DEFUN ("w32-toggle-lock-key", Fw32_toggle_lock_key, Sw32_toggle_lock_key, 1, 2, 0,
-   "Toggle the state of the lock key KEY.\n\
-KEY can be `capslock', `kp-numlock', or `scroll'.\n\
-If the optional parameter NEW-STATE is a number, then the state of KEY\n\
-is set to off if the low bit of NEW-STATE is zero, otherwise on.")
+DEFUN ("w32-toggle-lock-key", Fw32_toggle_lock_key,
+       Sw32_toggle_lock_key, 1, 2, 0,
+       doc: /* Toggle the state of the lock key KEY.
+KEY can be `capslock', `kp-numlock', or `scroll'.
+If the optional parameter NEW-STATE is a number, then the state of KEY
+is set to off if the low bit of NEW-STATE is zero, otherwise on.  */)
   (key, new_state)
      Lisp_Object key, new_state;
 {
@@ -13869,11 +13848,11 @@ is set to off if the low bit of NEW-STATE is zero, otherwise on.")
 }
 
 DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
-  "Return storage information about the file system FILENAME is on.\n\
-Value is a list of floats (TOTAL FREE AVAIL), where TOTAL is the total\n\
-storage of the file system, FREE is the free storage, and AVAIL is the\n\
-storage available to a non-superuser.  All 3 numbers are in bytes.\n\
-If the underlying system call fails, value is nil.")
+       doc: /* Return storage information about the file system FILENAME is on.
+Value is a list of floats (TOTAL FREE AVAIL), where TOTAL is the total
+storage of the file system, FREE is the free storage, and AVAIL is the
+storage available to a non-superuser.  All 3 numbers are in bytes.
+If the underlying system call fails, value is nil.  */)
   (filename)
   Lisp_Object filename;
 {
@@ -14086,136 +14065,136 @@ syms_of_w32fns ()
   w32_grabbed_keys = Qnil;
 
   DEFVAR_LISP ("w32-color-map", &Vw32_color_map,
-	       "An array of color name mappings for windows.");
+	       doc: /* An array of color name mappings for windows.  */);
   Vw32_color_map = Qnil;
 
   DEFVAR_LISP ("w32-pass-alt-to-system", &Vw32_pass_alt_to_system,
-	       "Non-nil if alt key presses are passed on to Windows.\n\
-When non-nil, for example, alt pressed and released and then space will\n\
-open the System menu.  When nil, Emacs silently swallows alt key events.");
+	       doc: /* Non-nil if alt key presses are passed on to Windows.
+When non-nil, for example, alt pressed and released and then space will
+open the System menu.  When nil, Emacs silently swallows alt key events.  */);
   Vw32_pass_alt_to_system = Qnil;
 
   DEFVAR_LISP ("w32-alt-is-meta", &Vw32_alt_is_meta,
-	       "Non-nil if the alt key is to be considered the same as the meta key.\n\
-When nil, Emacs will translate the alt key to the Alt modifier, and not Meta.");
+	       doc: /* Non-nil if the alt key is to be considered the same as the meta key.
+When nil, Emacs will translate the alt key to the Alt modifier, and not Meta.  */);
   Vw32_alt_is_meta = Qt;
 
   DEFVAR_INT ("w32-quit-key", &Vw32_quit_key,
-	       "If non-zero, the virtual key code for an alternative quit key.");
+	      doc: /* If non-zero, the virtual key code for an alternative quit key.  */);
   XSETINT (Vw32_quit_key, 0);
 
   DEFVAR_LISP ("w32-pass-lwindow-to-system", 
 	       &Vw32_pass_lwindow_to_system,
-	       "Non-nil if the left \"Windows\" key is passed on to Windows.\n\
-When non-nil, the Start menu is opened by tapping the key.");
+	       doc: /* Non-nil if the left \"Windows\" key is passed on to Windows.
+When non-nil, the Start menu is opened by tapping the key.  */);
   Vw32_pass_lwindow_to_system = Qt;
 
   DEFVAR_LISP ("w32-pass-rwindow-to-system", 
 	       &Vw32_pass_rwindow_to_system,
-	       "Non-nil if the right \"Windows\" key is passed on to Windows.\n\
-When non-nil, the Start menu is opened by tapping the key.");
+	       doc: /* Non-nil if the right \"Windows\" key is passed on to Windows.
+When non-nil, the Start menu is opened by tapping the key.  */);
   Vw32_pass_rwindow_to_system = Qt;
 
   DEFVAR_INT ("w32-phantom-key-code",
 	       &Vw32_phantom_key_code,
-	       "Virtual key code used to generate \"phantom\" key presses.\n\
-Value is a number between 0 and 255.\n\
-\n\
-Phantom key presses are generated in order to stop the system from\n\
-acting on \"Windows\" key events when `w32-pass-lwindow-to-system' or\n\
-`w32-pass-rwindow-to-system' is nil.");
+	      doc: /* Virtual key code used to generate \"phantom\" key presses.
+Value is a number between 0 and 255.
+
+Phantom key presses are generated in order to stop the system from
+acting on \"Windows\" key events when `w32-pass-lwindow-to-system' or
+`w32-pass-rwindow-to-system' is nil.  */);
   /* Although 255 is technically not a valid key code, it works and
      means that this hack won't interfere with any real key code.  */
   Vw32_phantom_key_code = 255;
 
   DEFVAR_LISP ("w32-enable-num-lock", 
 	       &Vw32_enable_num_lock,
-	       "Non-nil if Num Lock should act normally.\n\
-Set to nil to see Num Lock as the key `kp-numlock'.");
+	       doc: /* Non-nil if Num Lock should act normally.
+Set to nil to see Num Lock as the key `kp-numlock'.  */);
   Vw32_enable_num_lock = Qt;
 
   DEFVAR_LISP ("w32-enable-caps-lock", 
 	       &Vw32_enable_caps_lock,
-	       "Non-nil if Caps Lock should act normally.\n\
-Set to nil to see Caps Lock as the key `capslock'.");
+	       doc: /* Non-nil if Caps Lock should act normally.
+Set to nil to see Caps Lock as the key `capslock'.  */);
   Vw32_enable_caps_lock = Qt;
 
   DEFVAR_LISP ("w32-scroll-lock-modifier",
 	       &Vw32_scroll_lock_modifier,
-	       "Modifier to use for the Scroll Lock on state.\n\
-The value can be hyper, super, meta, alt, control or shift for the\n\
-respective modifier, or nil to see Scroll Lock as the key `scroll'.\n\
-Any other value will cause the key to be ignored.");
+	       doc: /* Modifier to use for the Scroll Lock on state.
+The value can be hyper, super, meta, alt, control or shift for the
+respective modifier, or nil to see Scroll Lock as the key `scroll'.
+Any other value will cause the key to be ignored.  */);
   Vw32_scroll_lock_modifier = Qt;
 
   DEFVAR_LISP ("w32-lwindow-modifier",
 	       &Vw32_lwindow_modifier,
-	       "Modifier to use for the left \"Windows\" key.\n\
-The value can be hyper, super, meta, alt, control or shift for the\n\
-respective modifier, or nil to appear as the key `lwindow'.\n\
-Any other value will cause the key to be ignored.");
+	       doc: /* Modifier to use for the left \"Windows\" key.
+The value can be hyper, super, meta, alt, control or shift for the
+respective modifier, or nil to appear as the key `lwindow'.
+Any other value will cause the key to be ignored.  */);
   Vw32_lwindow_modifier = Qnil;
 
   DEFVAR_LISP ("w32-rwindow-modifier",
 	       &Vw32_rwindow_modifier,
-	       "Modifier to use for the right \"Windows\" key.\n\
-The value can be hyper, super, meta, alt, control or shift for the\n\
-respective modifier, or nil to appear as the key `rwindow'.\n\
-Any other value will cause the key to be ignored.");
+	       doc: /* Modifier to use for the right \"Windows\" key.
+The value can be hyper, super, meta, alt, control or shift for the
+respective modifier, or nil to appear as the key `rwindow'.
+Any other value will cause the key to be ignored.  */);
   Vw32_rwindow_modifier = Qnil;
 
   DEFVAR_LISP ("w32-apps-modifier",
 	       &Vw32_apps_modifier,
-	       "Modifier to use for the \"Apps\" key.\n\
-The value can be hyper, super, meta, alt, control or shift for the\n\
-respective modifier, or nil to appear as the key `apps'.\n\
-Any other value will cause the key to be ignored.");
+	       doc: /* Modifier to use for the \"Apps\" key.
+The value can be hyper, super, meta, alt, control or shift for the
+respective modifier, or nil to appear as the key `apps'.
+Any other value will cause the key to be ignored.  */);
   Vw32_apps_modifier = Qnil;
 
   DEFVAR_LISP ("w32-enable-synthesized-fonts", &Vw32_enable_synthesized_fonts,
-    "Non-nil enables selection of artificially italicized and bold fonts.");
+	       doc: /* Non-nil enables selection of artificially italicized and bold fonts.  */);
   Vw32_enable_synthesized_fonts = Qnil;
 
   DEFVAR_LISP ("w32-enable-palette", &Vw32_enable_palette,
-    "Non-nil enables Windows palette management to map colors exactly.");
+	       doc: /* Non-nil enables Windows palette management to map colors exactly.  */);
   Vw32_enable_palette = Qt;
 
   DEFVAR_INT ("w32-mouse-button-tolerance",
 	      &Vw32_mouse_button_tolerance,
-    "Analogue of double click interval for faking middle mouse events.\n\
-The value is the minimum time in milliseconds that must elapse between\n\
-left/right button down events before they are considered distinct events.\n\
-If both mouse buttons are depressed within this interval, a middle mouse\n\
-button down event is generated instead.");
+	      doc: /* Analogue of double click interval for faking middle mouse events.
+The value is the minimum time in milliseconds that must elapse between
+left/right button down events before they are considered distinct events.
+If both mouse buttons are depressed within this interval, a middle mouse
+button down event is generated instead.  */);
   XSETINT (Vw32_mouse_button_tolerance, GetDoubleClickTime () / 2);
 
   DEFVAR_INT ("w32-mouse-move-interval",
 	      &Vw32_mouse_move_interval,
-	      "Minimum interval between mouse move events.\n\
-The value is the minimum time in milliseconds that must elapse between\n\
-successive mouse move (or scroll bar drag) events before they are\n\
-reported as lisp events.");
+	      doc: /* Minimum interval between mouse move events.
+The value is the minimum time in milliseconds that must elapse between
+successive mouse move (or scroll bar drag) events before they are
+reported as lisp events.  */);
   XSETINT (Vw32_mouse_move_interval, 0);
 
   init_x_parm_symbols ();
 
   DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
-    "List of directories to search for bitmap files for w32.");
+	       doc: /* List of directories to search for bitmap files for w32.  */);
   Vx_bitmap_file_path = decode_env_path ((char *) 0, "PATH");
 
   DEFVAR_LISP ("x-pointer-shape", &Vx_pointer_shape,
-    "The shape of the pointer when over text.\n\
-Changing the value does not affect existing frames\n\
-unless you set the mouse color.");
+	       doc: /* The shape of the pointer when over text.
+Changing the value does not affect existing frames
+unless you set the mouse color.  */);
   Vx_pointer_shape = Qnil;
 
   DEFVAR_LISP ("x-resource-name", &Vx_resource_name,
-    "The name Emacs uses to look up resources; for internal use only.\n\
-`x-get-resource' uses this as the first component of the instance name\n\
-when requesting resource values.\n\
-Emacs initially sets `x-resource-name' to the name under which Emacs\n\
-was invoked, or to the value specified with the `-name' or `-rn'\n\
-switches, if present.");
+	       doc: /* The name Emacs uses to look up resources; for internal use only.
+`x-get-resource' uses this as the first component of the instance name
+when requesting resource values.
+Emacs initially sets `x-resource-name' to the name under which Emacs
+was invoked, or to the value specified with the `-name' or `-rn'
+switches, if present.  */);
   Vx_resource_name = Qnil;
 
   Vx_nontext_pointer_shape = Qnil;
@@ -14223,121 +14202,121 @@ switches, if present.");
   Vx_mode_pointer_shape = Qnil;
 
   DEFVAR_LISP ("x-hourglass-pointer-shape", &Vx_hourglass_pointer_shape,
-    "The shape of the pointer when Emacs is busy.\n\
-This variable takes effect when you create a new frame\n\
-or when you set the mouse color.");
+	       doc: /* The shape of the pointer when Emacs is busy.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
   Vx_hourglass_pointer_shape = Qnil;
 
   DEFVAR_BOOL ("display-hourglass", &display_hourglass_p,
-    "Non-zero means Emacs displays an hourglass pointer on window systems.");
+	       doc: /* Non-zero means Emacs displays an hourglass pointer on window systems.  */);
   display_hourglass_p = 1;
   
   DEFVAR_LISP ("hourglass-delay", &Vhourglass_delay,
-     "*Seconds to wait before displaying an hourglass pointer.\n\
-Value must be an integer or float.");
+	       doc: /* *Seconds to wait before displaying an hourglass pointer.
+Value must be an integer or float.  */);
   Vhourglass_delay = make_number (DEFAULT_HOURGLASS_DELAY);
 
   DEFVAR_LISP ("x-sensitive-text-pointer-shape",
 	      &Vx_sensitive_text_pointer_shape,
-	      "The shape of the pointer when over mouse-sensitive text.\n\
-This variable takes effect when you create a new frame\n\
-or when you set the mouse color.");
+	       doc: /* The shape of the pointer when over mouse-sensitive text.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
   Vx_sensitive_text_pointer_shape = Qnil;
 
   DEFVAR_LISP ("x-window-horizontal-drag-cursor",
 	      &Vx_window_horizontal_drag_shape,
-  "Pointer shape to use for indicating a window can be dragged horizontally.\n\
-This variable takes effect when you create a new frame\n\
-or when you set the mouse color.");
+	       doc: /* Pointer shape to use for indicating a window can be dragged horizontally.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
   Vx_window_horizontal_drag_shape = Qnil;
 
   DEFVAR_LISP ("x-cursor-fore-pixel", &Vx_cursor_fore_pixel,
-	       "A string indicating the foreground color of the cursor box.");
+	       doc: /* A string indicating the foreground color of the cursor box.  */);
   Vx_cursor_fore_pixel = Qnil;
 
   DEFVAR_LISP ("x-max-tooltip-size", &Vx_max_tooltip_size,
-   "Maximum size for tooltips.  Value is a pair (COLUMNS . ROWS).\n\
-Text larger than this is clipped.");
+	       doc: /* Maximum size for tooltips.  Value is a pair (COLUMNS . ROWS).
+Text larger than this is clipped.  */);
   Vx_max_tooltip_size = Fcons (make_number (80), make_number (40));
   
   DEFVAR_LISP ("x-no-window-manager", &Vx_no_window_manager,
-	       "Non-nil if no window manager is in use.\n\
-Emacs doesn't try to figure this out; this is always nil\n\
-unless you set it to something else.");
+	       doc: /* Non-nil if no window manager is in use.
+Emacs doesn't try to figure this out; this is always nil
+unless you set it to something else.  */);
   /* We don't have any way to find this out, so set it to nil
      and maybe the user would like to set it to t.  */
   Vx_no_window_manager = Qnil;
 
   DEFVAR_LISP ("x-pixel-size-width-font-regexp",
 	       &Vx_pixel_size_width_font_regexp,
-     "Regexp matching a font name whose width is the same as `PIXEL_SIZE'.\n\
-\n\
-Since Emacs gets width of a font matching with this regexp from\n\
-PIXEL_SIZE field of the name, font finding mechanism gets faster for\n\
-such a font.  This is especially effective for such large fonts as\n\
-Chinese, Japanese, and Korean.");
+	       doc: /* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.
+
+Since Emacs gets width of a font matching with this regexp from
+PIXEL_SIZE field of the name, font finding mechanism gets faster for
+such a font.  This is especially effective for such large fonts as
+Chinese, Japanese, and Korean.  */);
   Vx_pixel_size_width_font_regexp = Qnil;
 
   DEFVAR_LISP ("image-cache-eviction-delay", &Vimage_cache_eviction_delay,
-     "Time after which cached images are removed from the cache.\n\
-When an image has not been displayed this many seconds, remove it\n\
-from the image cache.  Value must be an integer or nil with nil\n\
-meaning don't clear the cache.");
+	       doc: /* Time after which cached images are removed from the cache.
+When an image has not been displayed this many seconds, remove it
+from the image cache.  Value must be an integer or nil with nil
+meaning don't clear the cache.  */);
   Vimage_cache_eviction_delay = make_number (30 * 60);
 
   DEFVAR_LISP ("w32-bdf-filename-alist",
                &Vw32_bdf_filename_alist,
-               "List of bdf fonts and their corresponding filenames.");
+               doc: /* List of bdf fonts and their corresponding filenames.  */);
   Vw32_bdf_filename_alist = Qnil;
 
   DEFVAR_BOOL ("w32-strict-fontnames",
                &w32_strict_fontnames,
-  "Non-nil means only use fonts that are exact matches for those requested.\n\
-Default is nil, which allows old fontnames that are not XLFD compliant,\n\
-and allows third-party CJK display to work by specifying false charset\n\
-fields to trick Emacs into translating to Big5, SJIS etc.\n\
-Setting this to t will prevent wrong fonts being selected when\n\
-fontsets are automatically created.");
+	       doc: /* Non-nil means only use fonts that are exact matches for those requested.
+Default is nil, which allows old fontnames that are not XLFD compliant,
+and allows third-party CJK display to work by specifying false charset
+fields to trick Emacs into translating to Big5, SJIS etc.
+Setting this to t will prevent wrong fonts being selected when
+fontsets are automatically created.  */);
   w32_strict_fontnames = 0;
 
   DEFVAR_BOOL ("w32-strict-painting",
                &w32_strict_painting,
-  "Non-nil means use strict rules for repainting frames.\n\
-Set this to nil to get the old behaviour for repainting; this should\n\
-only be necessary if the default setting causes problems.");
+	       doc: /* Non-nil means use strict rules for repainting frames.
+Set this to nil to get the old behaviour for repainting; this should
+only be necessary if the default setting causes problems.  */);
   w32_strict_painting = 1;
 
   DEFVAR_LISP ("w32-system-coding-system",
                &Vw32_system_coding_system,
-  "Coding system used by Windows system functions, such as for font names.");
+	       doc: /* Coding system used by Windows system functions, such as for font names.  */);
   Vw32_system_coding_system = Qnil;
 
   DEFVAR_LISP ("w32-charset-info-alist",
                &Vw32_charset_info_alist,
-               "Alist linking Emacs character sets to Windows fonts\n\
-and codepages. Each entry should be of the form:\n\
-\n\
-   (CHARSET_NAME . (WINDOWS_CHARSET . CODEPAGE))\n\
-\n\
-where CHARSET_NAME is a string used in font names to identify the charset,\n\
-WINDOWS_CHARSET is a symbol that can be one of:\n\
-w32-charset-ansi, w32-charset-default, w32-charset-symbol,\n\
-w32-charset-shiftjis, w32-charset-hangeul, w32-charset-gb2312,\n\
-w32-charset-chinesebig5, "
+               doc: /* Alist linking Emacs character sets to Windows fonts
+and codepages. Each entry should be of the form:
+
+   (CHARSET_NAME . (WINDOWS_CHARSET . CODEPAGE))
+
+where CHARSET_NAME is a string used in font names to identify the charset,
+WINDOWS_CHARSET is a symbol that can be one of:
+w32-charset-ansi, w32-charset-default, w32-charset-symbol,
+w32-charset-shiftjis, w32-charset-hangeul, w32-charset-gb2312,
+w32-charset-chinesebig5,
 #ifdef JOHAB_CHARSET
-"w32-charset-johab, w32-charset-hebrew,\n\
-w32-charset-arabic, w32-charset-greek, w32-charset-turkish,\n\
-w32-charset-vietnamese, w32-charset-thai, w32-charset-easteurope,\n\
-w32-charset-russian, w32-charset-mac, w32-charset-baltic,\n"
+w32-charset-johab, w32-charset-hebrew,
+w32-charset-arabic, w32-charset-greek, w32-charset-turkish,
+w32-charset-vietnamese, w32-charset-thai, w32-charset-easteurope,
+w32-charset-russian, w32-charset-mac, w32-charset-baltic,
 #endif
 #ifdef UNICODE_CHARSET
-"w32-charset-unicode, "
+w32-charset-unicode,
 #endif
-"or w32-charset-oem.\n\
-CODEPAGE should be an integer specifying the codepage that should be used\n\
-to display the character set, t to do no translation and output as Unicode,\n\
-or nil to do no translation and output as 8 bit (or multibyte on far-east\n\
-versions of Windows) characters.");
+or w32-charset-oem.
+CODEPAGE should be an integer specifying the codepage that should be used
+to display the character set, t to do no translation and output as Unicode,
+or nil to do no translation and output as 8 bit (or multibyte on far-east
+versions of Windows) characters.  */);
     Vw32_charset_info_alist = Qnil;
 
   staticpro (&Qw32_charset_ansi);
@@ -14358,7 +14337,8 @@ versions of Windows) characters.");
 #ifdef JOHAB_CHARSET
   {
     static int w32_extra_charsets_defined = 1;
-    DEFVAR_BOOL ("w32-extra-charsets-defined", &w32_extra_charsets_defined, "");
+    DEFVAR_BOOL ("w32-extra-charsets-defined", &w32_extra_charsets_defined,
+		 doc: /* Internal variable.  */);
 
     staticpro (&Qw32_charset_johab);
     Qw32_charset_johab = intern ("w32-charset-johab");
@@ -14389,7 +14369,8 @@ versions of Windows) characters.");
   {
     static int w32_unicode_charset_defined = 1;
     DEFVAR_BOOL ("w32-unicode-charset-defined",
-                 &w32_unicode_charset_defined, "");
+                 &w32_unicode_charset_defined,
+		 doc: /* Internal variable.  */);
 
     staticpro (&Qw32_charset_unicode);
     Qw32_charset_unicode = intern ("w32-charset-unicode");
