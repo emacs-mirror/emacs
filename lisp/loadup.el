@@ -48,9 +48,14 @@
 (load "custom")
 (load "cus-start")
 (garbage-collect)
-(load "bindings")
-(garbage-collect)
 (load "loaddefs.el")  ;Don't get confused if someone compiled this by mistake.
+(garbage-collect)
+(load "mule")
+(garbage-collect)
+(load "mule-conf.el") ;Don't get confused if someone compiled this by mistake.
+(garbage-collect)
+(load "bindings")
+(setq load-source-file-function 'load-with-code-conversion)
 (garbage-collect)
 (load "simple")
 (garbage-collect)
@@ -59,11 +64,6 @@
 (load "files")
 (garbage-collect)
 (load "format")
-(garbage-collect)
-(load "mule")
-(garbage-collect)
-(load "mule-conf.el") ;Don't get confused if someone compiled this by mistake.
-(setq load-source-file-function 'load-with-code-conversion)
 ;; Any Emacs Lisp source file (*.el) loaded here after can contain
 ;; multilingual text.
 (garbage-collect)
