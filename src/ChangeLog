@@ -1,3 +1,14 @@
+2002-03-26  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (update_menu_bar): Test only update_mode_lines;
+	don't test or alter w->update_mode_line.
+
+	* window.c (Fdisplay_buffer): Doc fix.
+
+2002-03-24  Richard M. Stallman  <rms@gnu.org>
+
+	* regex.c (GET_UNSIGNED_NUMBER): Give proper error for spaces.
+
 2002-03-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* eval.c (Qdeclare, Vmacro_declaration_function): New variables.
