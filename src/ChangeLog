@@ -1,5 +1,15 @@
 2002-11-27  Dave Love  <fx@gnu.org>
 
+	* s/irix6-0.h (GC_SETJMP_WORKS, GC_MARK_STACK): Define.
+
+	* systty.h: Don't conditionally define GETPGRP_NO_ARG.  Test
+	GETPGRP_VOID instead.
+	[BSD_TERMIOS]: Remove definitions (never used).
+
+	* s/osf5-0.h (WAIT_USE_INT, SYS_SIGLIST_DECLARED, sys_siglist):
+	Don't define.
+	(GC_SETJMP_WORKS, GC_MARK_STACK): Define.
+
 	* m/mips.h (WORDS_BIG_ENDIAN): Define conditionally.
 
 2002-11-25  Jason Rumney  <jasonr@gnu.org>

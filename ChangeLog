@@ -1,3 +1,9 @@
+2002-11-27  Dave Love  <fx@gnu.org>
+
+	* configure.in: Use AC_CHECK_DECLS, not AC_DECL_SYS_SIGLIST.
+	Check for __sys_siglist too.  Check for memset.  Use
+	AC_FUNC_GETPGRP.  Add mipsel-*-linux-gnu* target.
+
 2002-11-22  Juanma Barranquero  <lektu@terra.es>
 
 	* config.guess, config.sub: Updated from master source.

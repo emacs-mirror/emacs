@@ -31,3 +31,7 @@
 #endif
 
 #undef TIOCSIGSEND
+
+/* Tested on Irix 6.5.  SCM worked on earlier versions.  */
+#define GC_SETJMP_WORKS 1
+#define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
