@@ -748,8 +748,8 @@ syms_of_win16select ()
 	       doc: /* Coding system for communicating with other X clients.
 When sending or receiving text via cut_buffer, selection, and clipboard,
 the text is encoded or decoded by this coding system.
-A default value is `iso-latin-1-dos'.  */);
-  Vselection_coding_system=intern ("iso-latin-1-dos");
+The default value is `iso-latin-1-dos'.  */);
+  Vselection_coding_system = intern ("iso-latin-1-dos");
 
   DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
 	       doc: /* Coding system for the next communication with other X clients.
