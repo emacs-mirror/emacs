@@ -1111,6 +1111,22 @@ readevalloop_1 (old)
   return Qnil;
 }
 
+/* Signal an `end-of-file' error, if possible with file name
+   information.  */
+
+static void
+end_of_file_error ()
+{
+  Lisp_Object data;
+
+  if (STRINGP (Vload_file_name))
+    data = Fcons (Vload_file_name, Qnil);
+  else
+    data = Qnil;
+
+  Fsignal (Qend_of_file, data);
+}
+
 /* UNIBYTE specifies how to set load_convert_to_unibyte
    for this invocation.
    READFUN, if non-nil, is used instead of `read'.  */
@@ -1691,7 +1707,8 @@ read1 (readcharfun, pch, first_in_list)
  retry:
 
   c = READCHAR;
-  if (c < 0) return Fsignal (Qend_of_file, Qnil);
+  if (c < 0)
+    end_of_file_error ();
 
   switch (c)
     {
@@ -2009,7 +2026,8 @@ read1 (readcharfun, pch, first_in_list)
     case '?':
       {
 	c = READCHAR;
-	if (c < 0) return Fsignal (Qend_of_file, Qnil);
+	if (c < 0)
+	  end_of_file_error ();
 
 	if (c == '\\')
 	  c = read_escape (readcharfun, 0);
@@ -2097,7 +2115,7 @@ read1 (readcharfun, pch, first_in_list)
 	      }
 	  }
 	if (c < 0)
-	  return Fsignal (Qend_of_file, Qnil);
+	  end_of_file_error ();
 
 	/* If purifying, and string starts with \ newline,
 	   return zero instead.  This is for doc strings
