@@ -24,6 +24,11 @@
 
 	* international/fontset.el: Require `ind-util' when compiling.
 
+2001-12-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* language/ethio-util.el (ethio-modify-vowel): Use char-to-string
+	instead of decompose-composite-char.
+
 2001-12-18  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (eval-expression-print-level)
@@ -46,11 +51,11 @@
 
 2001-12-18  Werner Lemberg  <wl@gnu.org>
 
-	* language/chinese.el, language/cyrillic.el,
-	language/czech.el, language/european.el, language/greek.el,
-	language/hebrew.el, language/indian.el, language/japanese.el,
-	language/korean.el, language/lao.el, language/slovak.el,
-	language/thai.el, language/tibetan.el, language/vietnamese.el:
+	* language/chinese.el, language/cyrillic.el:
+	* language/czech.el, language/european.el, language/greek.el:
+	* language/hebrew.el, language/indian.el, language/japanese.el:
+	* language/korean.el, language/lao.el, language/slovak.el:
+	* language/thai.el, language/tibetan.el, language/vietnamese.el:
 	Improve documentation strings of coding systems and language infos.
 
 2001-12-18  Werner LEMBERG  <wl@gnu.org>
