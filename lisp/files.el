@@ -32,11 +32,11 @@
 
 (defgroup backup nil
   "Backups of edited data files."
-  :group 'data)
+  :group 'files)
 
 (defgroup find-file nil
-  "Finding and editing files."
-  :group 'data)
+  "Finding files."
+  :group 'files)
 
 
 (defcustom delete-auto-save-files t
@@ -335,6 +335,9 @@ and ignores this variable."
 (or (fboundp 'file-locked-p)
     (defalias 'file-locked-p 'ignore))
 
+(defvar view-read-only nil
+  "*Non-nil means buffers visiting files read-only, do it in view mode.")
+
 ;; This hook function provides support for ange-ftp host name
 ;; completion.  It runs the usual ange-ftp hook, but only for
 ;; completion operations.  Having this here avoids the need
@@ -600,7 +603,7 @@ Like \\[find-file] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive "fFind file read-only: ")
   (find-file filename)
-  (setq buffer-read-only t)
+  (toggle-read-only 1)
   (current-buffer))
 
 (defun find-file-read-only-other-window (filename)
@@ -609,7 +612,7 @@ Like \\[find-file-other-window] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive "fFind file read-only other window: ")
   (find-file-other-window filename)
-  (setq buffer-read-only t)
+  (toggle-read-only 1)
   (current-buffer))
 
 (defun find-file-read-only-other-frame (filename)
@@ -618,7 +621,7 @@ Like \\[find-file-other-frame] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive "fFind file read-only other frame: ")
   (find-file-other-frame filename)
-  (setq buffer-read-only t)
+  (toggle-read-only 1)
   (current-buffer))
 
 (defun find-alternate-file-other-window (filename)
@@ -993,6 +996,9 @@ unless NOMODES is non-nil."
   (if nomodes
       nil
     (normal-mode t)
+    (if (and buffer-read-only view-read-only
+	     (not (eq (get major-mode 'mode-class) 'special)))
+	(view-mode-enter))
     (run-hooks 'find-file-hooks)))
 
 (defun normal-mode (&optional find-file)
@@ -2196,10 +2202,10 @@ Optional second argument EXITING means ask about certain non-file buffers
 	     (buffer-list)
 	     '("buffer" "buffers" "save")
 	     (list (list ?\C-r (lambda (buf)
-				 (view-buffer buf)
-				 (setq view-exit-action
-				       '(lambda (ignore)
-					  (exit-recursive-edit)))
+				 (view-buffer buf
+					      (function
+					       (lambda (ignore)
+						 (exit-recursive-edit))))
 				 (recursive-edit)
 				 ;; Return nil to ask about BUF again.
 				 nil)
@@ -2230,13 +2236,21 @@ prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
 
 (defun toggle-read-only (&optional arg)
   "Change whether this buffer is visiting its file read-only.
-With arg, set read-only iff arg is positive."
+With arg, set read-only iff arg is positive.
+If visiting file read-only and `view-read-only' is non-nil, enter view mode."
   (interactive "P")
-  (setq buffer-read-only
-	(if (null arg)
-            (not buffer-read-only)
-            (> (prefix-numeric-value arg) 0)))
-  (force-mode-line-update))
+  (cond
+   ((and arg (if (> (prefix-numeric-value arg) 0) buffer-read-only
+	       (not buffer-read-only)))	; If buffer-read-only is set correctly,
+    nil)				; do nothing.
+   ;; Toggle.
+   ((and buffer-read-only view-mode)
+    (View-exit-and-edit))		; Must leave view mode.
+   ((and (not buffer-read-only) view-read-only
+	 (not (eq (get major-mode 'mode-class) 'special)))
+    (view-mode-enter))
+   (t (setq buffer-read-only (not buffer-read-only))
+      (force-mode-line-update))))
 
 (defun insert-file (filename)
   "Insert contents of file FILENAME into buffer after point.
