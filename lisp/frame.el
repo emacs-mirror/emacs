@@ -497,8 +497,10 @@ the user during startup."
   (cdr param-list))
 
 
-(defvar focus-follows-mouse t
-  "*Non-nil if window system changes focus when you move the mouse.")
+(defcustom focus-follows-mouse t
+  "*Non-nil if window system changes focus when you move the mouse."
+  :type 'boolean
+  :group 'frames)
 
 (defun other-frame (arg)
   "Select the ARG'th different visible frame, and raise it.
