@@ -36,17 +36,17 @@
 ;; M-x hide-ifdefs  or C-c @ h
 ;;
 ;; Hide-ifdef suppresses the display of code that the preprocessor wouldn't
-;; pass through.  The support of constant expressions in #if lines is 
+;; pass through.  The support of constant expressions in #if lines is
 ;; limited to identifiers, parens, and the operators: &&, ||, !, and
 ;; "defined".  Please extend this.
 ;;
 ;; The hidden code is marked by ellipses (...).  Be
 ;; cautious when editing near ellipses, since the hidden text is
 ;; still in the buffer, and you can move the point into it and modify
-;; text unawares.  If you don't want to see the ellipses, set 
+;; text unawares.  If you don't want to see the ellipses, set
 ;; selective-display-ellipses to nil.  But this can be dangerous.
 ;; You can make your buffer read-only while hide-ifdef-hiding by setting
-;; hide-ifdef-read-only to a non-nil value.  You can toggle this 
+;; hide-ifdef-read-only to a non-nil value.  You can toggle this
 ;; variable with hide-ifdef-toggle-read-only (C-c @ C-q).
 ;;
 ;; You can undo the effect of hide-ifdefs by typing
@@ -59,7 +59,7 @@
 ;; If you define or undefine a symbol while hide-ifdef-mode is in effect,
 ;; the display will be updated.  Only the define list for the current
 ;; buffer will be affected.  You can save changes to the local define
-;; list with hide-ifdef-set-define-alist.  This adds entries 
+;; list with hide-ifdef-set-define-alist.  This adds entries
 ;; to hide-ifdef-define-alist.
 ;;
 ;; If you have defined a hide-ifdef-mode-hook, you can set
@@ -207,7 +207,7 @@ hide-ifdef-env
 	is used.
 
 hide-ifdef-define-alist
-	An association list of defined symbol lists.  
+	An association list of defined symbol lists.
         Use `hide-ifdef-set-define-alist' to save the current `hide-ifdef-env'
         and `hide-ifdef-use-define-alist' to set the current `hide-ifdef-env'
         from one of the lists in `hide-ifdef-define-alist'.
@@ -232,7 +232,7 @@ hide-ifdef-read-only
 	(if (null arg)
 	    (not hide-ifdef-mode)
 	  (> (prefix-numeric-value arg) 0)))
-  
+
   (force-mode-line-update)
 
   (if hide-ifdef-mode
@@ -259,7 +259,7 @@ hide-ifdef-read-only
 	(show-ifdefs))
     (message "Exit Hide-Ifdef mode")
     ))
-  
+
 
 ;; from outline.el with docstring fixed.
 (defun hif-outline-flag-region (from to flag)
@@ -288,7 +288,7 @@ If FLAG is \\n (newline character) then text is shown, while if FLAG is \\^M
 (add-hook 'after-revert-hook 'hif-before-revert-function)
 
 (defun hide-ifdef-region (start end)
-  "START is the start of a #if or #else form.  END is the ending part.
+  "START is the start of an #if or #else form.  END is the ending part.
 Everything including these lines is made invisible."
   (hif-outline-flag-region start end ?\^M)
   )
@@ -377,7 +377,7 @@ that form should be displayed.")
     (unwind-protect
 	(progn
 	  (set-syntax-table hide-ifdef-syntax-table)
-	  (while (< expr-start expr-length) 
+	  (while (< expr-start expr-length)
 ;	    (message "expr-start = %d" expr-start) (sit-for 1)
 	    (cond
 	     ((string-match "^[ \t]+" expr-string expr-start)
@@ -485,7 +485,7 @@ that form should be displayed.")
       (hif-nexttoken)
       (setq result (list math-op result (hif-factor))))
   result))
-  
+
 (defun hif-factor ()
   "Parse a factor: '!' factor | '(' expr ')' | 'defined(' id ')' | id."
   (cond
@@ -774,7 +774,7 @@ Point is left unchanged."
       (while (hif-looking-at-ifX)		; Skip nested ifdef
 	(hif-ifdef-to-endif)
 	(hif-find-next-relevant))
-      ;; Found either a #else or an #endif.
+      ;; Found either an #else or an #endif.
       (cond ((hif-looking-at-else)
 	     (setq else-p t)
 	     (setq else (point)))
@@ -794,7 +794,7 @@ Point is left unchanged."
 	    ))
       (hif-make-range else-p start end else))))
 
-	  
+
 ;;; A bit slimy.
 ;;; NOTE:  If there's an #ifdef at the beginning of the file, we can't
 ;;; hide it.  There's no previous newline to replace.  If we added
@@ -814,13 +814,13 @@ Point is left unchanged."
 	    (set-buffer-modified-p modp))
 	  ))
     ))
-		  
+
 
 ;;;  Hif-Possibly-Hide
 ;;;  There are four cases.  The #ifX expression is "taken" if it
 ;;;  the hide-ifdef-evaluator returns T.  Presumably, this means the code
 ;;;  inside the #ifdef would be included when the program was
-;;;  compiled.  
+;;;  compiled.
 ;;;
 ;;;  Case 1:  #ifX taken, and there's an #else.
 ;;;	The #else part must be hidden.  The #if (then) part must be
@@ -855,12 +855,12 @@ It uses the judgement of `hide-ifdef-evaluator'."
     (let ((test (hif-canonicalize))
 	  (range (hif-find-range)))
 ;      (message "test = %s" test) (sit-for 1)
-      
+
       (hif-hide-line (hif-range-end range))
       (if (funcall hide-ifdef-evaluator test)
 	  (cond ((hif-range-else-p range) ; case 1
 		 (hif-hide-line (hif-range-else range))
-		 (hide-ifdef-region (hif-range-else range) 
+		 (hide-ifdef-region (hif-range-else range)
 				    (1- (hif-range-end range)))
 		 (hif-recurse-on (hif-range-start range)
 				 (hif-range-else range)))
@@ -938,7 +938,7 @@ It does not do the work that's pointless to redo on a recursive entry."
 	)
   (force-mode-line-update))
 
-      
+
 (defun hide-ifdef-define (var)
   "Define a VAR so that #ifdef VAR would be included."
   (interactive "SDefine what? ")
@@ -953,8 +953,8 @@ It does not do the work that's pointless to redo on a recursive entry."
 
 
 (defun hide-ifdefs (&optional nomsg)
-  "Hide the contents of some #ifdefs.  
-Assume that defined symbols have been added to `hide-ifdef-env'.  
+  "Hide the contents of some #ifdefs.
+Assume that defined symbols have been added to `hide-ifdef-env'.
 The text hidden is the text that would not be included by the C
 preprocessor if it were given the file with those symbols defined.
 
