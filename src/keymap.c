@@ -578,15 +578,30 @@ get_keyelt (object, autoload)
 
       /* If the keymap contents looks like (menu-item name . DEFN)
 	 or (menu-item name DEFN ...) then use DEFN.
-	 This is a new format menu item.
-      */
+	 This is a new format menu item.  */
       else if (EQ (XCAR (object), Qmenu_item))
 	{
 	  if (CONSP (XCDR (object)))
 	    {
+	      Lisp_Object tem;
+
 	      object = XCDR (XCDR (object));
+	      tem = object;
 	      if (CONSP (object))
 		object = XCAR (object);
+
+	      /* If there's a `:filter FILTER', apply FILTER to the
+		 menu-item's definition to get the real definition to
+		 use.  */
+	      for (; CONSP (tem) && CONSP (XCDR (tem)); tem = XCDR (tem))
+		if (EQ (XCAR (tem), QCfilter))
+		  {
+		    Lisp_Object filter;
+		    filter = XCAR (XCDR (tem));
+		    filter = list2 (filter, list2 (Qquote, object));
+		    object = menu_item_eval_property (filter);
+		    break;
+		  }
 	    }
 	  else
 	    /* Invalid keymap */
