@@ -63,8 +63,7 @@
 ;;; specially.  The variable `ange-ftp-generate-anonymous-password'
 ;;; controls what happens: if the value of this variable is a string,
 ;;; then this is used as the password; if non-nil (the default), then
-;;; a password is created from the name of the user and the hostname
-;;; of the machine on which GNU Emacs is running; if nil then the user
+;;; the value of `user-mail-address' is used; if nil then the user
 ;;; is prompted for a password as normal.
 
 ;;; "Dumb" UNIX hosts:
@@ -1324,10 +1323,7 @@ Optional DEFAULT is password to start with."
   "Set correct modes for the current buffer if visiting a remote file."
   (if (and (stringp buffer-file-name)
 	   (ange-ftp-ftp-name buffer-file-name))
-      (progn
-	(make-local-variable 'make-backup-files)
-	(setq make-backup-files ange-ftp-make-backup-files)
-	(auto-save-mode ange-ftp-auto-save))))
+      (auto-save-mode ange-ftp-auto-save)))
 
 (defun ange-ftp-kill-ftp-process (buffer)
   "Kill the FTP process associated with BUFFER.
@@ -3802,6 +3798,12 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 		(ange-ftp-copy-file-internal tmp2 nfile t nil msg2))))
       (ange-ftp-del-tmp-name tmp1)
       (ange-ftp-del-tmp-name tmp2))))
+
+(defun ange-ftp-find-backup-file-name (fn)
+  ;; Either return the ordinary backup name, etc.,
+  ;; or return nil meaning don't make a backup.
+  (if ange-ftp-make-backup-files
+      (ange-ftp-real-find-backup-file-name fn)))
 
 ;;; Define the handler for special file names
 ;;; that causes ange-ftp to be invoked.
@@ -3873,6 +3875,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (put 'dired-uncache 'ange-ftp 'ange-ftp-dired-uncache)
 (put 'dired-compress-file 'ange-ftp 'ange-ftp-dired-compress-file)
 (put 'load 'ange-ftp 'ange-ftp-load)
+(put 'find-backup-file-name 'ange-ftp 'ange-ftp-find-backup-file-name)
 
 ;; Turn off truename processing to save time.
 ;; Treat each name as its own truename.
@@ -3952,6 +3955,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
   (ange-ftp-run-real-handler 'shell-command args))
 (defun ange-ftp-real-load (&rest args)
   (ange-ftp-run-real-handler 'load args))
+(defun ange-ftp-real-find-backup-file-name (&rest args)
+  (ange-ftp-run-real-handler 'find-backup-file-name args))
 
 ;; Here we support using dired on remote hosts.
 ;; I have turned off the support for using dired on foreign directory formats.
