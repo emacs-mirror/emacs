@@ -12,6 +12,8 @@
 	(font-lock-set-defaults): Partially taken from font-lock.el.  Only
 	load font-lock.el when necessary.
 
+	* loadup.el: Add font-core.el.
+
 	* replace.el (occur-mode-hook): New variable.
 	(occur-fontify-region-function): Deleted.
 	(occur-mode): Don't use it.  Set up `font-lock-category-alist'
@@ -41,6 +43,9 @@
 	* replace.el (occur-engine): Increment globalcount all at once
 	after searching a buffer.
 	(occur-mode-map): Don't escape plain "o".
+
+	* ibuf-macs.el (define-ibuffer-column): Add third argument
+	`ibuffer-buf'.
 	
 	* ibuffer.el (toplevel): Require font-lock, to get the face
 	definitions.
@@ -53,7 +58,7 @@
 	(ibuffer-do-save, ibuffer-do-toggle-modified)
 	(ibuffer-do-toggle-read-only, ibuffer-do-delete)
 	(ibuffer-do-kill-on-deletion-marks): Include name in definition.
-	(ibuffer): New optional argument `formats'.
+	(ibuffer): New optional argument `formats'.  
 
 2002-05-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
