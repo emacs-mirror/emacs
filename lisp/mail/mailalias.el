@@ -379,7 +379,7 @@ current header, calls `mail-complete-function' and passes prefix arg if any."
 	(if (file-exists-p mail-personal-alias-file)
 	    (build-mail-aliases))))
   (let ((list mail-complete-alist))
-    (if (and (> 0 (mail-header-end))
+    (if (and (< 0 (mail-header-end))
 	     (save-excursion
 	       (if (re-search-backward "^[^\t]" nil t)
 		   (while list
