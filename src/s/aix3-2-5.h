@@ -5,12 +5,13 @@
 /* For AIX, it turns out compiling emacs under AIX 3.2.4 REQUIRES "cc -g"
    because "cc -O" crashes. Under AIX 3.2.5, "cc -O" is required because
    "cc -g" crashes. Go figure.  --floppy@merlin.mit.edu */
-#ifndef __GNUC__
+/* The above isn't generally true.  If it occurs with some compiler
+   release, seek a fixed version, be it XLC or GCC.  The XLC version
+   isn't tied to the OS version on AIX any more than elsewhere.  XLC
+   (the IBM compiler) can use -g with -O.  (-O3 is also a possibility
+   for the optimization level.)  -- fx, after David Edelsohn.  */
 #undef C_DEBUG_SWITCH
-#undef C_OPTIMIZE_SWITCH
-#define C_DEBUG_SWITCH -O
-#define C_OPTIMIZE_SWITCH -O
-#endif
+#define C_DEBUG_SWITCH -g -O
 
 /* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
 #define SIGNALS_VIA_CHARACTERS

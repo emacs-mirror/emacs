@@ -17,10 +17,14 @@
 /* David Edelsohn <dje@watson.ibm.com> says that this actually depends
    on the version of XLC, which can't be predicted from the system version.
    What a mess!  */
+/* No more of a mess than other systems, GNU+GCC included.  See
+   comments in aix3-2-5.h.  -- fx */
+#if 0
 #ifndef __GNUC__
 #undef C_DEBUG_SWITCH
 #undef C_OPTIMIZE_SWITCH
 #define C_DEBUG_SWITCH -g
+#endif
 #endif
 
 /* The X internationalization stuff is still broken in AIX 4.1, so
