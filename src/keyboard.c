@@ -235,6 +235,9 @@ Lisp_Object this_command;
 /* The value of point when the last command was executed.  */
 int last_point_position;
 
+/* The buffer that was current when the last command was started.  */
+Lisp_Object last_point_position_buffer;
+
 #ifdef MULTI_FRAME
 /* The frame in which the last input event occurred, or Qmacro if the
    last event came from a macro.  We use this to determine when to
@@ -1048,6 +1051,7 @@ command_loop_1 ()
       prev_buffer = current_buffer;
       prev_modiff = MODIFF;
       last_point_position = PT;
+      XSET (last_point_position_buffer, Lisp_Buffer, prev_buffer);
 
       /* Execute the command.  */
 
@@ -2767,10 +2771,12 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
       Lisp_Object posn;
       int column, row;
 
-      pixel_to_glyph_coords (frame, XINT (x), XINT (y), &column, &row, 0, 1);
-
       if (frame)
-	window = window_from_coordinates (frame, column, row, &area);
+	{
+	  /* It's in a frame; which window on that frame?  */
+	  pixel_to_glyph_coords (frame, XINT (x), XINT (y), &column, &row, 0, 1);
+	  window = window_from_coordinates (frame, column, row, &area);
+	}
       else
 	window = Qnil;
 
