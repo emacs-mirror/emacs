@@ -1216,6 +1216,7 @@ and on @code{xterm} with @kbd{emacs -nw}.
 * Documentation for etags::     
 * Disabling backups::           
 * Disabling auto-save-mode::    
+* Going to a line by number::   
 * Modifying pull-down menus::   
 * Deleting menus and menu options::  
 * Turning on syntax highlighting::  
@@ -2220,7 +2221,7 @@ should have their backups put in certain directories.  A typical use is
 to add the element @code{("." . @var{dir})} to force Emacs to put
 @strong{all} backup files in the directory @file{dir}.
 
-@node Disabling auto-save-mode, Modifying pull-down menus, Disabling backups, Common requests
+@node Disabling auto-save-mode, Going to a line by number, Disabling backups, Common requests
 @section How do I disable @code{auto-save-mode}?
 @cindex Disabling @code{auto-save-mode}
 @cindex Auto-saving
@@ -2244,7 +2245,43 @@ such as @file{/tmp}.
 To disable or change how @code{auto-save-mode} works, @inforef{Auto
 Save, , emacs}.
 
-@node Modifying pull-down menus, Deleting menus and menu options, Disabling auto-save-mode, Common requests
+@node Going to a line by number, Modifying pull-down menus, Disabling auto-save-mode, Common requests
+@section How can I go to a certain line given its number?
+@cindex Going to a line by number
+@cindex Compilation error messages
+@cindex Recompilation
+
+Are you sure you indeed need to go to a line by its number?  Perhaps all
+you want is to display a line in your source file for which a compiler
+printed an error message?  If so, compiling from within Emacs using the
+@kbd{M-x compile} and @kbd{M-x recompile} commands is a much more
+effective way of doing that.  Emacs automatically intercepts the compile
+error messages, inserts them into a special buffer called
+@code{*compilation*}, and lets you visit the locus of each message in
+the source.  Type @kbd{C-x `} to step through the offending lines one by
+one.  Click @kbd{Mouse-2} or press @key{RET} on a message text in the
+@code{*compilation*} buffer to go to the line whose number is mentioned
+in that message.
+
+But if you indeed need to go to a certain text line, type @kbd{M-x
+goto-line @key{RET}}.  Emacs will prompt you for the number of the line
+and go to that line.
+
+You can do this faster by invoking @code{goto-line} with a numeric
+argument that is the line's number.  For example, @kbd{C-u 286 M-x
+goto-line @key{RET}} will jump to line number 286 in the current
+buffer.
+
+If you need to use this command frequently, you might consider binding
+it to a key.  The following snippet, if added to your @file{~/.emacs}
+file, will bind the sequence @kbd{C-x g} to @code{goto-line}:
+
+@lisp
+ (global-set-key "\C-xg" 'goto-line)
+@end lisp
+
+
+@node Modifying pull-down menus, Deleting menus and menu options, Going to a line by number, Common requests
 @section How can I create or modify new pull-down menu options?
 @cindex Pull-down menus, creating or modifying
 @cindex Menus, creating or modifying
@@ -2577,6 +2614,7 @@ later), which converts these ANSI escape sequences into colors.
 * Problems talking to certain hosts::  
 * Errors with init files::      
 * Emacs ignores X resources::   
+* Emacs ignores frame parameters::  
 * Emacs takes a long time to visit files::  
 * Editing files with $ in the name::  
 * Shell mode loses the current directory::  
@@ -2830,7 +2868,7 @@ hook that will be evaluated after the package is loaded.  A common case
 of this is explained in @ref{Terminal setup code works after Emacs has
 begun}.
 
-@node Emacs ignores X resources, Emacs takes a long time to visit files, Errors with init files, Bugs and problems
+@node Emacs ignores X resources, Emacs ignores frame parameters, Errors with init files, Bugs and problems
 @section Why does Emacs ignore my X resources (my .Xdefaults file)?
 @cindex X resources being ignored
 @cindex Ignored X resources
@@ -2909,7 +2947,23 @@ then in the files listed in  @code{XFILESEARCHPATH}.
 
 @end enumerate
 
-@node Emacs takes a long time to visit files, Editing files with $ in the name, Emacs ignores X resources, Bugs and problems
+@node Emacs ignores frame parameters, Emacs takes a long time to visit files, Emacs ignores X resources, Bugs and problems
+@section Why don't my customizations of the frame parameters work?
+@cindex Frame parameters
+
+This probably happens because you have set the frame parameters in the
+variable @code{initial-frame-alist}.  That variable holds parameters
+used only for the first frame created when Emacs starts.  To customize
+the parameters of all frames, change the variable
+@code{default-frame-alist} instead.
+
+These two variables exist because many users customize the initial frame
+in a special way.  For example, you could determine the position and
+size of the initial frame, but would like to control the geometry of the
+other frames by individually positioning each one of them.
+
+
+@node Emacs takes a long time to visit files, Editing files with $ in the name, Emacs ignores frame parameters, Bugs and problems
 @section Why does Emacs take 20 seconds to visit a file?
 @cindex Visiting files takes a long time
 @cindex Delay when visiting files
