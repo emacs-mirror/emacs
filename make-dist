@@ -105,7 +105,7 @@ if [ "x`ls -t configure configure.in | head -1`" != "xconfigure" ]; then
 fi
 
 ### Update getdate.c.
-(cd lib-src; make -f Makefile.in getdate.c)
+(cd lib-src; make -f Makefile.in getdate.c YACC="bison -y")
 
 echo "Creating staging directory: \`${tempparent}'"
 mkdir ${tempparent}
