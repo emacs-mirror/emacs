@@ -180,29 +180,31 @@ If `uniquify-min-dir-content' > 0, always pulls that many
 file name elements.
 Arguments NEWBUFFILE and NEWBUF cause only a subset of buffers to be renamed."
   (interactive)
-  (setq newbuffile (expand-file-name (directory-file-name newbuffile)))
-  (let ((fix-list nil)
-	(base (file-name-nondirectory newbuffile)))
-    (dolist (buffer (buffer-list))
-      (let ((bufname (buffer-name buffer))
-	    bfn)
-	(when (and (not (and uniquify-ignore-buffers-re
-			     (string-match uniquify-ignore-buffers-re
-					   bufname)))
-		   ;; Only try to rename buffers we actually manage.
-		   (or (buffer-local-value 'uniquify-managed buffer)
-		       (eq buffer newbuf))
-		   (setq bfn (if (eq buffer newbuf) newbuffile
-			       (uniquify-buffer-file-name buffer)))
-		   (equal (file-name-nondirectory bfn) base))
-	  (when (setq bfn (file-name-directory bfn)) ;Strip off the `base'.
-	    (setq bfn (directory-file-name bfn)))    ;Strip trailing slash.
-	  (push (uniquify-make-item base bfn buffer
-				    (uniquify-get-proposed-name base bfn))
-		fix-list))))
-    ;; selects buffers whose names may need changing, and others that
-    ;; may conflict, then bring conflicting names together
-    (uniquify-rationalize fix-list)))
+  (if (null newbuffile)
+      (with-current-buffer newbuf (setq uniquify-managed nil))
+    (setq newbuffile (expand-file-name (directory-file-name newbuffile)))
+    (let ((fix-list nil)
+	  (base (file-name-nondirectory newbuffile)))
+      (dolist (buffer (buffer-list))
+	(let ((bufname (buffer-name buffer))
+	      bfn)
+	  (when (and (not (and uniquify-ignore-buffers-re
+			       (string-match uniquify-ignore-buffers-re
+					     bufname)))
+		     ;; Only try to rename buffers we actually manage.
+		     (or (buffer-local-value 'uniquify-managed buffer)
+			 (eq buffer newbuf))
+		     (setq bfn (if (eq buffer newbuf) newbuffile
+				 (uniquify-buffer-file-name buffer)))
+		     (equal (file-name-nondirectory bfn) base))
+	    (when (setq bfn (file-name-directory bfn)) ;Strip off the `base'.
+	      (setq bfn (directory-file-name bfn)))    ;Strip trailing slash.
+	    (push (uniquify-make-item base bfn buffer
+				      (uniquify-get-proposed-name base bfn))
+		  fix-list))))
+      ;; selects buffers whose names may need changing, and others that
+      ;; may conflict, then bring conflicting names together
+      (uniquify-rationalize fix-list))))
 
 ;; uniquify's version of buffer-file-name; result never contains trailing slash
 (defun uniquify-buffer-file-name (buffer)
