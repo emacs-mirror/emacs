@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.57) $
+ * $HopeName: MMsrc!mpsi.c(trunk.58) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.57) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.58) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -1299,7 +1299,7 @@ void mps_message_finalization_ref(mps_addr_t *mps_addr_return,
 
 /* MPS_MESSAGE_TYPE_COLLECTION_STATS */
 
-size_t mps_message_collection_stats_live_size(mps_arena_t mps_arena,
+size_t mps_message_collection_stats_live_size(mps_arena_t mps_arena, 
                                               mps_message_t mps_message)
 {
   Arena arena = (Arena)mps_arena;
@@ -1309,7 +1309,7 @@ size_t mps_message_collection_stats_live_size(mps_arena_t mps_arena,
   ArenaEnter(arena);
 
   AVERT(Arena, arena);
-  size = MessageCollectionStatsLiveSize(arena, message);
+  size = MessageCollectionStatsLiveSize(message);
 
   ArenaLeave(arena);
 
@@ -1326,7 +1326,7 @@ size_t mps_message_collection_stats_condemned_size(mps_arena_t mps_arena,
   ArenaEnter(arena);
 
   AVERT(Arena, arena);
-  size = MessageCollectionStatsCondemnedSize(arena, message);
+  size = MessageCollectionStatsCondemnedSize(message);
 
   ArenaLeave(arena);
 
@@ -1343,7 +1343,7 @@ size_t mps_message_collection_stats_not_condemned_size(mps_arena_t mps_arena,
   ArenaEnter(arena);
 
   AVERT(Arena, arena);
-  size = MessageCollectionStatsNotCondemnedSize(arena, message);
+  size = MessageCollectionStatsNotCondemnedSize(message);
 
   ArenaLeave(arena);
 
