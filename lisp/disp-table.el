@@ -178,6 +178,10 @@ X frame."
 ;;;###autoload
 (defun standard-display-european (arg &optional auto)
   "Toggle display of European characters encoded with ISO 8859.
+This function is semi-obsolete; it is better to use
+`set-language-environment' and `set-terminal-coding-system',
+coupled with the `--unibyte' option if you prefer to use unibyte characters.
+
 When enabled, characters in the range of 160 to 255 display not
 as octal escapes, but as accented characters.  Codes 146 and 160
 display as apostrophe and space, even though they are not the ASCII
