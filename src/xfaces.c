@@ -4197,24 +4197,28 @@ set_font_frame_param (frame, lface)
      Lisp_Object frame, lface;
 {
   struct frame *f = XFRAME (frame);
-  Lisp_Object font_name;
-  char *font;
 
-  if (STRINGP (LFACE_FONT (lface)))
-    font_name = LFACE_FONT (lface);
-  else
+  if (FRAME_WINDOW_P (f))
     {
-      /* Choose a font name that reflects LFACE's attributes and has
-	 the registry and encoding pattern specified in the default
-	 fontset (3rd arg: -1) for ASCII characters (4th arg: 0).  */
-      font = choose_face_font (f, XVECTOR (lface)->contents, -1, 0);
-      if (!font)
-	error ("No font matches the specified attribute");
-      font_name = build_string (font);
-      xfree (font);
-    }
+      Lisp_Object font_name;
+      char *font;
+      
+      if (STRINGP (LFACE_FONT (lface)))
+	font_name = LFACE_FONT (lface);
+      else
+	{
+	  /* Choose a font name that reflects LFACE's attributes and has
+	     the registry and encoding pattern specified in the default
+	     fontset (3rd arg: -1) for ASCII characters (4th arg: 0).  */
+	  font = choose_face_font (f, XVECTOR (lface)->contents, -1, 0);
+	  if (!font)
+	    error ("No font matches the specified attribute");
+	  font_name = build_string (font);
+	  xfree (font);
+	}
   
-  Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, font_name), Qnil));
+      Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, font_name), Qnil));
+    }
 }
 
 
