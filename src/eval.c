@@ -1618,6 +1618,7 @@ un_autoload (oldqueue)
    FUNNAME is the symbol which is the function's name.
    FUNDEF is the autoload definition (a list).  */
 
+void
 do_autoload (fundef, funname)
      Lisp_Object fundef, funname;
 {
