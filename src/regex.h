@@ -289,6 +289,7 @@ typedef enum
 
 #ifndef RE_TRANSLATE_TYPE 
 #define RE_TRANSLATE_TYPE char *
+#define RE_TRANSLATE(TBL, C) ((TBL)[C])
 #endif
 
 struct re_pattern_buffer
