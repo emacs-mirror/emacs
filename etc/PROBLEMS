@@ -582,6 +582,13 @@ is to use the default compiler `cc'.
 `before-change-function' and `after-change-function', which are no
 longer used by Emacs.  Please use PSGML 1.2.3 or later.
 
+* The LDAP support rely on ldapsearch program from OpenLDAP version 2.
+
+It can fail to work with ldapsearch program from OpenLDAP version 1.
+Version 1 of OpenLDAP is now deprecated.  If you are still using it,
+please upgrade to version 2.  As a temporary workaround, remove
+argument "-x" from the variable `ldap-ldapsearch-args'.
+
 * Unicode characters are not unified with other Mule charsets.
 
 As of v21.1, Emacs charsets are still not unified.  This means that
