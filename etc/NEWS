@@ -242,10 +242,46 @@ that configure outputs and -o options so you see at a glance where you are.
 
 The new file etc/compilation.txt gives examples of each type of message.
 
-** M-x grep has been adapted to new compile
+** Compilation mode enhancements:
+
+*** New user option `compilation-environment'.
+This option allows you to specify environment variables for inferior
+compilation processes without affecting the environment that all
+subprocesses inherit.
+
+** Grep has been decoupled from compilation mode setup.
+
+*** There's a new separate package grep.el.
+
+*** M-x grep has been adapted to new compile
 
 Hits are fontified in green, and hits in binary files in orange.  Grep buffers
 can be saved and automatically revisited with the new Grep mode.
+
+*** Grep commands now have their own submenu and customization group.
+
+*** The new variables `grep-window-height', `grep-auto-highlight', and
+`grep-scroll-output' can be used to override the corresponding
+compilation mode settings for grep commands.
+
+*** New option `grep-highlight-matches' highlightes matches in *grep*
+buffer.  It uses a special feature of some grep programs which accept
+--color option to output markers around matches.  When going to the next
+match with `next-error' the exact match is highlighted in the source
+buffer.  Otherwise, if `grep-highlight-matches' is nil, the whole
+source line is highlighted.
+
+*** New key bindings in grep output window:
+SPC and DEL scrolls window up and down.  C-n and C-p moves to next and
+previous match in the grep window.  RET jumps to the source line of
+the current match.  `n' and `p' shows next and previous match in
+other window, but does not switch buffer.  `{' and `}' jumps to the
+previous or next file in the grep output.  TAB also jumps to the next
+file.
+
+** New options `next-error-highlight' and `next-error-highlight-no-select'
+specify the method of highlighting of the corresponding source line
+in new face `next-error'.
 
 ** A new minor mode `next-error-follow-minor-mode' can be used in
 compilation-mode, grep-mode, occur-mode, and diff-mode (i.e. all the
@@ -1136,6 +1172,16 @@ and to type `C-f' at the end of the search string in the minibuffer.
 search string used as the string to replace.
 
 +++
+** New user option `isearch-resume-enabled'.
+This option can be disabled, to avoid the normal behavior of isearch
+which puts calls to `isearch-resume' in the command history.
+
++++
+** New user option `history-delete-duplicates'.
+If set to t when adding a new history element, all previous identical
+elements are deleted.
+
++++
 ** Yanking text now discards certain text properties that can
 be inconvenient when you did not expect them.  The variable
 `yank-excluded-properties' specifies which ones.  Insertion
@@ -1803,11 +1849,6 @@ from the file name or buffer contents.
 +++
 ** `xml-mode' is now an alias for `sgml-mode', which has XML support.
 
-+++
-** New user option `isearch-resume-enabled'.
-This option can be disabled, to avoid the normal behavior of isearch
-which puts calls to `isearch-resume' in the command history.
-
 ---
 ** Lisp mode now uses font-lock-doc-face for the docstrings.
 
@@ -1872,42 +1913,6 @@ parts is, by contrast, slightly highlighted.
 ** New user option `inhibit-startup-buffer-menu'.
 When loading many files, for instance with `emacs *', Emacs normally
 displays a buffer menu.  This option turns the buffer menu off.
-
-** Compilation mode enhancements:
-
-*** New user option `compilation-environment'.
-This option allows you to specify environment variables for inferior
-compilation processes without affecting the environment that all
-subprocesses inherit.
-
-*** New options `next-error-highlight' and `next-error-highlight-no-select'
-specify the method of highlighting of the corresponding source line
-in new face `next-error'.
-
-** Grep has been decoupled from compilation mode setup.
-
-*** There's a new separate package grep.el.
-
-*** Grep commands now have their own submenu and customization group.
-
-*** The new variables `grep-window-height', `grep-auto-highlight', and
-`grep-scroll-output' can be used to override the corresponding
-compilation mode settings for grep commands.
-
-*** New option `grep-highlight-matches' highlightes matches in *grep*
-buffer.  It uses a special feature of some grep programs which accept
---color option to output markers around matches.  When going to the next
-match with `next-error' the exact match is highlighted in the source
-buffer.  Otherwise, if `grep-highlight-matches' is nil, the whole
-source line is highlighted.
-
-*** New key bindings in grep output window:
-SPC and DEL scrolls window up and down.  C-n and C-p moves to next and
-previous match in the grep window.  RET jumps to the source line of
-the current match.  `n' and `p' shows next and previous match in
-other window, but does not switch buffer.  `{' and `}' jumps to the
-previous or next file in the grep output.  TAB also jumps to the next
-file.
 
 ---
 ** Rmail now displays 5-digit message ids in its summary buffer.
