@@ -125,7 +125,7 @@ If PARSE-DTD is non-nil, the DTD is parsed rather than skipped."
 	  (set-buffer (get-file-buffer file))
 	  (setq keep (point)))
       (find-file file))
-    
+
     (let ((xml (xml-parse-region (point-min)
 				 (point-max)
 				 (current-buffer)
@@ -247,7 +247,7 @@ Returns one of:
 		  (forward-char -1)
 		  (let ((string (buffer-substring-no-properties pos (point)))
 			(pos 0))
-		    
+
 		    ;; Clean up the string (no newline characters)
 		    ;; Not done, since as per XML specifications, the XML processor
 		    ;; should always pass the whole string to the application.
@@ -295,7 +295,7 @@ Leaves the point on the first non-blank character after the tag."
       ;; Each attribute must be unique within a given element
       (if (assoc name attlist)
 	  (error "XML: each attribute must be unique within an element"))
-      
+
       (push (cons name (match-string-no-properties 1)) attlist)
       (goto-char (match-end 0))
       (skip-chars-forward " \t\n")
@@ -336,7 +336,7 @@ The DTD must end before the position END in the current buffer."
   (skip-chars-forward " \t\n")
   (if (looking-at ">")
       (error "XML: invalid DTD (excepting name of the document)"))
-  
+
   ;;  Get the name of the document
   (looking-at "\\sw+")
   (let ((dtd (list (match-string-no-properties 0) 'dtd))
@@ -348,7 +348,7 @@ The DTD must end before the position END in the current buffer."
     ;;  External DTDs => don't know how to handle them yet
     (if (looking-at "SYSTEM")
 	(error "XML: Don't know how to handle external DTDs"))
-    
+
     (if (not (= (char-after) ?\[))
 	(error "XML: Unknown declaration in the DTD"))
 
@@ -365,7 +365,7 @@ The DTD must end before the position END in the current buffer."
 	(setq element (intern (match-string-no-properties 1))
 	      type    (match-string-no-properties 2))
 	(setq end-pos (match-end 0))
-	
+
 	;;  Translation of rule [46] of XML specifications
 	(cond
 	 ((string-match "^EMPTY[ \t\n]*$" type)     ;; empty declaration
@@ -383,7 +383,7 @@ The DTD must end before the position END in the current buffer."
 	(if (assoc element dtd)
 	    (error "XML: elements declaration must be unique in a DTD (<%s>)"
 		   (symbol-name element)))
-	
+
 	;;  Store the element in the DTD
 	(push (list element type) dtd)
 	(goto-char end-pos))
@@ -422,7 +422,7 @@ The DTD must end before the position END in the current buffer."
 
     (if (and (stringp elem) (string= elem "#PCDATA"))
 	(setq elem 'pcdata))
-    
+
     (cond
      ((string= modifier "+")
       (list '+ elem))
@@ -442,8 +442,6 @@ The DTD must end before the position END in the current buffer."
 
 (defun xml-substitute-special (string)
   "Return STRING, after subsituting special XML sequences."
-  (while (string-match "&amp;" string)
-    (setq string (replace-match "&"  t nil string)))
   (while (string-match "&lt;" string)
     (setq string (replace-match "<"  t nil string)))
   (while (string-match "&gt;" string)
@@ -452,6 +450,9 @@ The DTD must end before the position END in the current buffer."
     (setq string (replace-match "'"  t nil string)))
   (while (string-match "&quot;" string)
     (setq string (replace-match "\"" t nil string)))
+  ;; do this last to avoid aliasing errors
+  (while (string-match "&amp;" string)
+    (setq string (replace-match "&"  t nil string)))
   string)
 
 ;;*******************************************************************
@@ -471,16 +472,16 @@ The first line indented with INDENT-STRING."
   (let ((tree xml)
 	attlist)
     (insert indent-string "<" (symbol-name (xml-node-name tree)))
-    
+
     ;;  output the attribute list
     (setq attlist (xml-node-attributes tree))
     (while attlist
       (insert " ")
       (insert (symbol-name (caar attlist)) "=\"" (cdar attlist) "\"")
       (setq attlist (cdr attlist)))
-    
+
     (insert ">")
-    
+
     (setq tree (xml-node-children tree))
 
     ;;  output the children
