@@ -579,12 +579,19 @@ main (argc, argv, envp)
 #endif /* VMS */
 
 #if defined (HAVE_SETRLIMIT) && defined (RLIMIT_STACK)
-  /* Extend the stack space available.  */
-  if (!getrlimit (RLIMIT_STACK, &rlim))
+  /* Extend the stack space available.
+     Don't do that if dumping, since some systems (e.g. DJGPP)
+     might define a smaller stack limit at that time.  */
+  if (1
+#ifndef CANNOT_DUMP
+      && (!noninteractive || initialized)
+#endif
+      && !getrlimit (RLIMIT_STACK, &rlim))
     {
       long newlim;
+      extern int re_max_failures;
       /* Approximate the amount regex.c needs, plus some more.  */
-      newlim = 800000 * sizeof (char *);
+      newlim = re_max_failures * 2 * 20 * sizeof (char *);
 #ifdef __NetBSD__
       /* NetBSD (at least NetBSD 1.2G and former) has a bug in its
        stack allocation routine for new process that the allocation
@@ -593,7 +600,11 @@ main (argc, argv, envp)
       newlim = (newlim + getpagesize () - 1) / getpagesize () * getpagesize();
 #endif
       if (newlim > rlim.rlim_max)
-	newlim = rlim.rlim_max;
+	{
+	  newlim = rlim.rlim_max;
+	  /* Don't let regex.c overflow the stack.  */
+	  re_max_failures = newlim / (2 * 20 * sizeof (char *));
+	}
       if (rlim.rlim_cur < newlim)
 	rlim.rlim_cur = newlim;
 
