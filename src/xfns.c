@@ -1960,6 +1960,7 @@ xic_create_xfontset (f, base_fontname)
       struct frame *cf = XFRAME (frame);
       if (cf != f && FRAME_LIVE_P (f) && FRAME_X_P (cf)
           && FRAME_X_DISPLAY_INFO (cf) == FRAME_X_DISPLAY_INFO (f)
+          && FRAME_XIC_BASE_FONTNAME (cf)
           && !strcmp (FRAME_XIC_BASE_FONTNAME (cf), base_fontname))
         {
           xfs = FRAME_XIC_FONTSET (cf);
