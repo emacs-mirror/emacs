@@ -3749,6 +3749,9 @@ build_annotations (start, end)
   Lisp_Object annotations;
   Lisp_Object p, res;
   struct gcpro gcpro1, gcpro2;
+  Lisp_Object original_buffer;
+
+  XSETBUFFER (original_buffer, current_buffer);
 
   annotations = Qnil;
   p = Vwrite_region_annotate_functions;
@@ -3783,7 +3786,8 @@ build_annotations (start, end)
     {
       struct buffer *given_buffer = current_buffer;
       Vwrite_region_annotations_so_far = annotations;
-      res = call3 (Qformat_annotate_function, Fcar (p), start, end);
+      res = call4 (Qformat_annotate_function, Fcar (p), start, end,
+		   original_buffer);
       if (current_buffer != given_buffer)
 	{
 	  start = BEGV;
