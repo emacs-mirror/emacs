@@ -89,14 +89,22 @@
 
 ;;;###autoload
 (defun standard-display-ascii (c s)
-  "Display character C using string S."
+  "Display character C using string S.
+S is usually a terminal-dependent escape sequence.
+This function is meaningless for an X frame."
+  (if window-system
+      (error "Cannot use string glyphs in a windowing system"))
   (or standard-display-table
       (setq standard-display-table (make-vector 261 nil)))
   (aset standard-display-table c (apply 'vector (append s nil))))
 
 ;;;###autoload
 (defun standard-display-g1 (c sc)
-  "Display character C as character SC in the g1 character set."
+  "Display character C as character SC in the g1 character set.
+This function assumes that your terminal uses the SO/SI characters;
+it is meaningless for an X frame."
+  (if window-system
+      (error "Cannot use string glyphs in a windowing system"))
   (or standard-display-table
       (setq standard-display-table (make-vector 261 nil)))
   (aset standard-display-table c
@@ -104,7 +112,11 @@
 
 ;;;###autoload
 (defun standard-display-graphic (c gc)
-  "Display character C as character GC in graphics character set."
+  "Display character C as character GC in graphics character set.
+This function assumes VT100-compatible escapes; it is meaningless for an
+X frame."
+  (if window-system
+      (error "Cannot use string glyphs in a windowing system"))
   (or standard-display-table
       (setq standard-display-table (make-vector 261 nil)))
   (aset standard-display-table c
@@ -113,10 +125,14 @@
 ;;;###autoload
 (defun standard-display-underline (c uc)
   "Display character C as character UC plus underlining."
+  (if window-system (require 'faces))
   (or standard-display-table
       (setq standard-display-table (make-vector 261 nil)))
   (aset standard-display-table c
-	(vector (create-glyph (concat "\e[4m" (char-to-string uc) "\e[m")))))
+	(vector 
+	 (if window-system
+	     (logior uc (lsh (face-id (internal-find-face 'underline)) 8))
+	   (create-glyph (concat "\e[4m" (char-to-string uc) "\e[m"))))))
 
 ;; Allocate a glyph code to display by sending STRING to the terminal.
 ;;;###autoload
