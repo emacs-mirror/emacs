@@ -291,6 +291,12 @@ XTupdate_begin (f)
     {
       /* Don't do highlighting for mouse motion during the update.  */
       FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 1;
+
+      /* If the frame needs to be redrawn,
+	 simply forget about any prior mouse highlighting.  */
+      if (! FRAME_GARBAGED_P (f))
+	FRAME_X_DISPLAY_INFO (f)->mouse_face_window = Qnil;
+
       if (!NILP (FRAME_X_DISPLAY_INFO (f)->mouse_face_window))
 	{
 	  int firstline, lastline, i;
@@ -311,10 +317,12 @@ XTupdate_begin (f)
 	    }
 
 	  /* Can we tell that this update does not affect the window
-	     where the mouse highlight is?  If so, no need to turn off.  */
+	     where the mouse highlight is?  If so, no need to turn off.
+	     Likewise, don't do anything if the frame is garbaged;
+	     in that case, the FRAME_CURRENT_GLYPHS that we would use
+	     are all wrong, and we will redisplay that line anyway.  */
 	  if (! (firstline > (XFASTINT (w->top) + window_internal_height (w))
 		 || lastline < XFASTINT (w->top)))
-	    /* Otherwise turn off the mouse highlight now.  */
 	    clear_mouse_face (FRAME_X_DISPLAY_INFO (f));
 	}
     }
@@ -1449,6 +1457,16 @@ x_new_focus_frame (frame)
   XTframe_rehighlight ();
 }
 
+/* Handle an event saying the mouse has moved out of an Emacs frame.  */
+
+void
+x_mouse_leave ()
+{
+  if (! x_focus_event_frame)
+    x_new_focus_frame (NULL);
+  else
+    x_new_focus_frame (x_focus_event_frame);  /* Was f, but that seems wrong.  */
+}
 
 /* The focus has changed, or we have redirected a frame's focus to
    another frame (this happens when a frame uses a surrogate
@@ -3689,12 +3707,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    clear_mouse_face (dpyinfo);
 
 		  if (event.xcrossing.focus)
-		    {
-		      if (! x_focus_event_frame)
-			x_new_focus_frame (0);
-		      else
-			x_new_focus_frame (f);
-		    }
+		    x_mouse_leave ();
 		  else
 		    {
 		      if (f == x_focus_event_frame)
