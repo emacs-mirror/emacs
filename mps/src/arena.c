@@ -1,16 +1,15 @@
 /* impl.c.arena: ARENA ALLOCATION FEATURES
  *
- * $HopeName: MMsrc!arena.c(trunk.78) $
+ * $HopeName: MMsrc!arena.c(trunk.79) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  * 
- * .sources: design.mps.arena is the main design document.
- */
+ * .sources: design.mps.arena is the main design document.  */
 
 #include "tract.h"
 #include "poolmv.h"
 #include "mpm.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.78) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.79) $");
 
 
 /* ArenaControlPool -- get the control pool */
@@ -32,9 +31,8 @@ static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
 
 /* AbstractArenaClass  -- The abstact arena class definition
  *
- * .null: Most abstract class methods are set to NULL.
- * See design.mps.arena.class.abstract.null.
- */
+ * .null: Most abstract class methods are set to NULL.  See
+ * design.mps.arena.class.abstract.null.  */
 
 typedef ArenaClassStruct AbstractArenaClassStruct;
 
@@ -100,13 +98,6 @@ Bool ArenaCheck(Arena arena)
   /* Can't check that limit>=size because we may call ArenaCheck */
   /* while the size is being adjusted. */
 
-  CHECKL(arena->fillMutatorSize >= 0.0);
-  CHECKL(arena->emptyMutatorSize >= 0.0);
-  CHECKL(arena->allocMutatorSize >= 0.0);
-  CHECKL(arena->fillMutatorSize - arena->emptyMutatorSize >=
-         arena->allocMutatorSize);
-  CHECKL(arena->fillInternalSize >= 0.0);
-  CHECKL(arena->emptyInternalSize >= 0.0);
   CHECKL(arena->committed <= arena->commitLimit);
   CHECKL(arena->spareCommitted <= arena->committed);
   CHECKL(arena->spareCommitted <= arena->spareCommitLimit);
@@ -141,8 +132,8 @@ Bool ArenaCheck(Arena arena)
  *
  * .init.caller: Unlike PoolInit, this is called by the class init
  * methods, not the generic Create.  This is because the class is
- * responsible for allocating the descriptor.
- */
+ * responsible for allocating the descriptor.  */
+
 Res ArenaInit(Arena arena, ArenaClass class)
 {
   Res res;
@@ -153,11 +144,6 @@ Res ArenaInit(Arena arena, ArenaClass class)
 
   arena->class = class;
 
-  arena->fillMutatorSize = 0.0;
-  arena->emptyMutatorSize = 0.0;
-  arena->allocMutatorSize = 0.0;
-  arena->fillInternalSize = 0.0;
-  arena->emptyInternalSize = 0.0;
   arena->committed = (Size)0;
   /* commitLimit may be overridden by init (but probably not */
   /* as there's not much point) */
@@ -250,8 +236,8 @@ failInit:
  *
  * .finish.caller: Unlike PoolFinish, this is called by the class finish
  * methods, not the generic Destroy.  This is because the class is
- * responsible for deallocating the descriptor.
- */
+ * responsible for deallocating the descriptor.  */
+
 void ArenaFinish(Arena arena)
 {
   ReservoirFinish(ArenaReservoir(arena));
@@ -334,16 +320,6 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
   }
 
   res = WriteF(stream,
-               "  fillMutatorSize $U kB\n",
-                 (WriteFU)(arena->fillMutatorSize / 1024),
-               "  emptyMutatorSize $U kB\n",
-                 (WriteFU)(arena->emptyMutatorSize / 1024),
-               "  allocMutatorSize $U kB\n",
-                 (WriteFU)(arena->allocMutatorSize / 1024),
-               "  fillInternalSize $U kB\n",
-                 (WriteFU)(arena->fillInternalSize / 1024),
-               "  emptyInternalSize $U kB\n",
-                 (WriteFU)(arena->emptyInternalSize / 1024),
                "  commitLimit $W\n", (WriteFW)arena->commitLimit,
 	       "  spareCommitted $W\n", (WriteFW)arena->spareCommitted,
 	       "  spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
@@ -418,8 +394,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
  *
  * .controlalloc.addr: In implementations where Addr is not compatible
  * with void* (design.mps.type.addr.use), ControlAlloc must take care of
- * allocating so that the block can be addressed with a void*.
- */
+ * allocating so that the block can be addressed with a void*.  */
 
 Res ControlAlloc(void **baseReturn, Arena arena, size_t size, 
                  Bool withReservoirPermit)
@@ -626,15 +601,6 @@ Res ArenaSetCommitLimit(Arena arena, Size limit)
   }
   EVENT_PWU(CommitLimitSet, arena, limit, (res == ResOK));
   return res;
-}
-
-
-/* ArenaMutatorAllocSize -- total amount allocated by the mutator */
-
-double ArenaMutatorAllocSize(Arena arena)
-{
-  AVERT(Arena, arena);
-  return arena->fillMutatorSize - arena->emptyMutatorSize;
 }
 
 
