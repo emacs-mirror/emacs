@@ -1,5 +1,7 @@
 2001-02-17  Richard M. Stallman  <rms@gnu.org>
 
+	* progmodes/fortran.el (fortran-strip-sqeuence-nos): Doc fix.
+
 	* uniquify.el (uniquify-buffer-name-style): Doc fix.
 
 2001-02-16  Gerd Moellmann  <gerd@gnu.org>
