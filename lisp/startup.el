@@ -911,7 +911,9 @@ Type \\[describe-distribution] for information on getting the latest version."))
 
 (defun command-line-normalize-file-name (file)
   "Collapse multiple slashes to one, to handle non-Emacs file names."
-  (while (string-match "//+" file)
+  ;; Use arg 1 so that we don't collapse // at the start of the file name.
+  ;; That is significant on some systems.
+  (while (string-match "//+" file 1)
     (setq file (replace-match "/" t t file)))
   file)
 
