@@ -2417,6 +2417,7 @@ will be inserted before the group at point."
   (ibuffer-update-format)
   (when ibuffer-default-directory
     (setq default-directory ibuffer-default-directory))
+  (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (run-hooks 'ibuffer-mode-hooks)
   ;; called after mode hooks to allow the user to add filters
   (ibuffer-update-mode-name))
