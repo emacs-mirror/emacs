@@ -172,7 +172,11 @@
       (not (memq nil (mapcar 'vip-color-defined-p colors)))
     ))
 
-;; currently doesn't work for XEmacs
+(defun vip-hide-face (face)
+  (if (and (vip-window-display-p) vip-emacs-p)
+      (add-to-list 'facemenu-unlisted-faces face)))
+
+;; cursor colors
 (defun vip-change-cursor-color (new-color)
   (if (and (vip-window-display-p)  (vip-color-display-p)
 	   (stringp new-color) (vip-color-defined-p new-color)
@@ -563,14 +567,6 @@
   (if (vip-overlay-p vip-replace-overlay)
       (vip-move-replace-overlay beg end)
     (setq vip-replace-overlay (vip-make-overlay beg end (current-buffer)))
-    (vip-overlay-put vip-replace-overlay
-		     'vip-start 
-		     (move-marker (make-marker)
-				  (vip-overlay-start vip-replace-overlay)))
-    (vip-overlay-put vip-replace-overlay
-		     'vip-end 
-		     (move-marker (make-marker)
-				  (vip-overlay-end vip-replace-overlay)))
     (vip-overlay-put 
      vip-replace-overlay 'priority vip-replace-overlay-priority)) 
   (if (vip-window-display-p)
@@ -579,7 +575,6 @@
   (vip-change-cursor-color vip-replace-overlay-cursor-color)
   )
   
-
   
 (defsubst vip-hide-replace-overlay ()
   (vip-set-replace-overlay-glyphs nil nil)
@@ -589,7 +584,7 @@
       
 (defsubst vip-set-replace-overlay-glyphs (before-glyph after-glyph)
   (if (or (not (vip-window-display-p))
-	   vip-use-replace-region-delimiters)
+	  vip-use-replace-region-delimiters)
       (let ((before-name (if vip-xemacs-p 'begin-glyph 'before-string))
 	    (after-name (if vip-xemacs-p 'end-glyph 'after-string)))
 	(vip-overlay-put vip-replace-overlay before-name before-glyph)
@@ -597,47 +592,43 @@
 
     
 (defsubst vip-replace-start ()
-  (vip-overlay-get vip-replace-overlay 'vip-start))
+  (vip-overlay-start vip-replace-overlay))
 (defsubst vip-replace-end ()
-  (vip-overlay-get vip-replace-overlay 'vip-end))
+  (vip-overlay-end vip-replace-overlay))
   
 (defsubst vip-move-replace-overlay (beg end)
   (vip-move-overlay vip-replace-overlay beg end)
-  (move-marker (vip-replace-start) (vip-overlay-start vip-replace-overlay))
-  (move-marker (vip-replace-end) (vip-overlay-end vip-replace-overlay)))
+  )
  
 
 ;; Minibuffer
 
 (defun vip-set-minibuffer-overlay ()
   (vip-check-minibuffer-overlay)
-  ;; We always move the minibuffer overlay, since in XEmacs
-  ;; this overlay may get detached. Moving will reattach it.
-  ;; This overlay is also moved via the vip-post-command-hook,
-  ;; to insure that it covers the whole minibuffer.
-  (vip-move-minibuffer-overlay)
   (if (vip-window-display-p)
       (progn
 	(vip-overlay-put
 	 vip-minibuffer-overlay 'face vip-minibuffer-current-face)
 	(vip-overlay-put 
-	 vip-minibuffer-overlay 'priority vip-minibuffer-overlay-priority))
-	 ))
+	 vip-minibuffer-overlay 'priority vip-minibuffer-overlay-priority)
+	;; prevent detachment and make vip-minibuffer-overlay open-ended
+	;; In emacs, it is made open ended at creation time
+	(if vip-emacs-p
+	    (vip-overlay-put vip-minibuffer-overlay 'evaporate nil)
+	  (vip-overlay-put vip-minibuffer-overlay 'detachable nil)
+	  (vip-overlay-put vip-minibuffer-overlay 'start-open nil) 
+	  (vip-overlay-put vip-minibuffer-overlay 'end-open nil))
+	)))
        
 (defun vip-check-minibuffer-overlay ()
-  (if (vip-overlay-p vip-minibuffer-overlay)
-      ()
-    (setq vip-minibuffer-overlay
-	  (vip-make-overlay 1 (1+ (buffer-size)) (current-buffer)))))
+  (or (vip-overlay-p vip-minibuffer-overlay)
+      (setq vip-minibuffer-overlay
+	    (if vip-xemacs-p
+		(vip-make-overlay 1 (1+ (buffer-size)) (current-buffer))
+	      ;; don't move front, move rear
+	      (vip-make-overlay 1 (1+ (buffer-size)) (current-buffer) nil t)))
+      ))
 
-;; arguments to this function are dummies. they are needed just because
-;; it is used as a insert-in-front-hook to vip-minibuffer-overlay, and such
-;; hooks require 3 arguments.
-(defun vip-move-minibuffer-overlay (&optional overl beg end)
-  (if (vip-is-in-minibuffer)
-      (progn
-	(vip-check-minibuffer-overlay)
-	(vip-move-overlay vip-minibuffer-overlay 1 (1+ (buffer-size))))))
 
 (defsubst vip-is-in-minibuffer ()
   (string-match "\*Minibuf-" (buffer-name)))
@@ -768,7 +759,7 @@
 
 
 ;; Emacs has a bug in eventp, which causes (eventp nil) to return (nil)
-;; instead of nil, if '(nil) was previously inadvertently assigned to
+;; instead of nil, if '(nil) was previously inadvertantly assigned to
 ;; unread-command-events
 (defun vip-event-key (event)
   (or (and event (eventp event))

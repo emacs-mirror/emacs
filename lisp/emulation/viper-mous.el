@@ -402,13 +402,13 @@ bindings in viper.el and in the Viper manual."
 
 (cond ((vip-window-display-p)
        (let* ((search-key (if vip-xemacs-p
-			      [(meta shift button1up)] [S-mouse-1]))
+			      [(meta shift button1up)] [M-S-mouse-1]))
 	      (search-key-catch (if vip-xemacs-p
-				    [(meta shift button1)] [S-down-mouse-1]))
+				    [(meta shift button1)] [M-S-down-mouse-1]))
 	      (insert-key (if vip-xemacs-p
-			      [(meta shift button2up)] [S-mouse-2]))
+			      [(meta shift button2up)] [M-S-mouse-2]))
 	      (insert-key-catch (if vip-xemacs-p
-				    [(meta shift button2)] [S-down-mouse-2]))
+				    [(meta shift button2)] [M-S-down-mouse-2]))
 	      (search-key-unbound (and (not (key-binding search-key))
 				       (not (key-binding search-key-catch))))
 	      (insert-key-unbound (and (not (key-binding insert-key))

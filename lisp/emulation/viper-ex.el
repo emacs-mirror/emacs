@@ -45,13 +45,15 @@
 ;; A-list of Ex variables that can be set using the :set command.
 (defconst ex-variable-alist 
   '(("wrapscan") ("ws") ("wrapmargin") ("wm")
-    ("tab-stop-local") ("tsl") ("tabstop") ("ts")
+    ("global-tabstop") ("gts") ("tabstop") ("ts")
     ("showmatch") ("sm") ("shiftwidth") ("sw") ("shell") ("sh")
     ("readonly") ("ro") 
     ("nowrapscan") ("nows") ("noshowmatch") ("nosm")
     ("noreadonly") ("noro") ("nomagic") ("noma")
-    ("noignorecase") ("noic") ("noautoindent") ("noai")
-    ("magic") ("ma") ("ignorecase") ("ic") ("autoindent") ("ai")
+    ("noignorecase") ("noic")
+    ("global-noautoindent") ("gnoai") ("noautoindent") ("noai")
+    ("magic") ("ma") ("ignorecase") ("ic")
+    ("global-autoindent") ("gai") ("autoindent") ("ai")
     ))
 
   
@@ -345,9 +347,11 @@ reversed.")
   (interactive)
   (setq vip-incomplete-ex-cmd t)
   (let ((quit-regex1 (concat
-		      "\\("
-		      "set[ \t]*" "\\|" "edit[ \t]*" "\\|" "[nN]ext[ \t]*"
-		      "\\|" "unm[ \t]*" "\\|" "^[ \t]*rep"
+		      "\\(" "set[ \t]*"
+		      "\\|" "edit[ \t]*"
+		      "\\|" "[nN]ext[ \t]*"
+		      "\\|" "unm[ \t]*"
+		      "\\|" "^[ \t]*rep"
 		      "\\)"))
 	(quit-regex2 (concat
 		      "[a-zA-Z][ \t]*"
@@ -356,13 +360,22 @@ reversed.")
 		      "\\)"
 		      "*[ \t]*$"))
 	(stay-regex (concat
-		     "\\("
-		     "^[ \t]*$" "\\|" "[ktgjmsz][ \t]*$" "\\|" "^[ \t]*ab.*"
-		     "\\|" "tr[ansfer \t]*" "\\|" "sr[ \t]*"
-		     "\\|" "mo.*" "\\|" "^[ \t]*k?ma[^p]*"
-		     "\\|" "^[ \t]*fi.*" "\\|" "v?gl.*" "\\|" "[vg][ \t]*$"
-		     "\\|" "jo.*" "\\|" "^[ \t]*ta.*" "\\|" "^[ \t]*una.*"
-		     "\\|" "^[ \t]*su.*" "\\|['`][a-z][ \t]*"
+		     "\\(" "^[ \t]*$"
+		     "\\|" "[?/].*[?/].*"
+		     "\\|" "[ktgjmsz][ \t]*$"
+		     "\\|" "^[ \t]*ab.*"
+		     "\\|" "tr[ansfer \t]*"
+		     "\\|" "sr[ \t]*"
+		     "\\|" "mo.*"
+		     "\\|" "^[ \t]*k?ma[^p]*"
+		     "\\|" "^[ \t]*fi.*"
+		     "\\|" "v?gl.*"
+		     "\\|" "[vg][ \t]*$"
+		     "\\|" "jo.*"
+		     "\\|" "^[ \t]*ta.*"
+		     "\\|" "^[ \t]*una.*"
+		     "\\|" "^[ \t]*su.*"
+		     "\\|['`][a-z][ \t]*"
 		     "\\|" "![ \t]*[a-zA-Z].*"
 		     "\\)"
 		     "!*")))
@@ -1356,8 +1369,9 @@ reversed.")
     (if (equal buf (current-buffer))
 	(or no-recursion
 	    ;; try again
-	    (setq skip-rest t)
-	    (ex-next-related-buffer direction 'norecursion)))
+	    (progn
+	      (setq skip-rest t)
+	      (ex-next-related-buffer direction 'norecursion))))
 	
     (if skip-rest
 	()
@@ -1497,9 +1511,22 @@ reversed.")
     (setq orig-var var)
     (cond ((member var '("ai" "autoindent"))
 	   (setq var "vip-auto-indent"
+		 set-cmd "setq"
+		 ask-if-save nil
+		 val "t"))
+	  ((member var '("gai" "global-autoindent"))
+	   (kill-local-variable 'vip-auto-indent)
+	   (setq var "vip-auto-indent"
+		 set-cmd "setq-default"
 		 val "t"))
 	  ((member var '("noai" "noautoindent"))
 	   (setq var "vip-auto-indent"
+		 ask-if-save nil
+		 val "nil"))
+	  ((member var '("gnoai" "global-noautoindent"))
+	   (kill-local-variable 'vip-auto-indent)
+	   (setq var "vip-auto-indent"
+		 set-cmd "setq-default"
 		 val "nil"))
 	  ((member var '("ic" "ignorecase"))
 	   (setq var "vip-case-fold-search"
@@ -1541,7 +1568,10 @@ reversed.")
 	  
 	  ;; check numerical values
 	  (if (member var
-		      '("sw" "shiftwidth" "ts" "tabstop" "wm" "wrapmargin"))
+		      '("sw" "shiftwidth"
+			"ts" "tabstop"
+			"gts" "global-tabstop"
+			"wm" "wrapmargin")) 
 	      (condition-case nil
 		  (or (numberp (setq val2 (car (read-from-string val))))
 		      (error "%s: Invalid value, numberp, %S" var val))
@@ -1553,13 +1583,13 @@ reversed.")
 	    (setq var "vip-shift-width"))
 	   ((member var '("ts" "tabstop"))
 	    ;; make it take effect in curr buff and new bufs
-	    (kill-local-variable 'tab-width)
-	    (setq var "tab-width"
-		  set-cmd "setq-default"))
-	   ((member var '("tsl" "tab-stop-local"))
 	    (setq var "tab-width"
 		  set-cmd "setq"
 		  ask-if-save nil))
+	   ((member var '("gts" "global-tabstop"))
+	    (kill-local-variable 'tab-width)
+	    (setq var "tab-width"
+		  set-cmd "setq-default"))
 	   ((member var '("wm" "wrapmargin"))
 	    ;; make it take effect in curr buff and new bufs
 	    (kill-local-variable 'fill-column) 
@@ -1728,7 +1758,7 @@ Please contact your system administrator. "
 			  (setq matched-pos (point))
 			  (if (not (stringp repl))
 			      (error "Can't perform Ex substitution: No previous replacement pattern"))
-			  (replace-match repl t t))))
+			  (replace-match repl t))))
 		  (end-of-line)
 		  (vip-forward-char-carefully))
 	      (if (null pat)
@@ -1740,7 +1770,7 @@ Please contact your system administrator. "
 		    (setq matched-pos (point))
 		    (if (not (stringp repl))
 			(error "Can't perform Ex substitution: No previous replacement pattern"))
-		    (replace-match repl t t)))
+		    (replace-match repl t)))
 	      (end-of-line)
 	      (vip-forward-char-carefully))))))
     (if matched-pos (goto-char matched-pos))
@@ -1915,12 +1945,17 @@ Please contact your system administrator. "
 ;; Give information on the file visited by the current buffer
 (defun vip-info-on-file ()
   (interactive)
-  (let (file info)
-    (setq file (if (buffer-file-name)
+  (let ((pos1 (vip-line-pos 'start))
+	(pos2 (vip-line-pos 'end))
+	lines file info)
+    (setq lines (count-lines (point-min) (vip-line-pos 'end))
+	  file (if (buffer-file-name)
 		   (concat (abbreviate-file-name (buffer-file-name)) ":")
 		 (concat (buffer-name) " [Not visiting any file]:"))
 	  info (format "line=%d/%d pos=%d/%d col=%d %s"
-		       (count-lines (point-min) (vip-line-pos 'end))
+		       (if (= pos1 pos2)
+			   (1+ lines)
+			 lines)
 		       (count-lines (point-min) (point-max))
 		       (point) (1- (point-max))
 		       (1+ (current-column))
@@ -1933,7 +1968,8 @@ Please contact your system administrator. "
 	  (princ (concat "\n"
 			 file "\n\n\t" info
 			 "\n\n\nPress any key to continue...\n\n")))
-	(vip-read-event)))
+	(vip-read-event)
+	(kill-buffer " *vip-info*")))
     ))
 
 
