@@ -424,10 +424,10 @@ Do the same for the keys of the same name."
   '("Describe Key..." . describe-key))
 (define-key menu-bar-describe-menu [list-keybindings]
   '("List Key Bindings" . describe-bindings))
-(define-key menu-bar-describe-menu [command-apropos]
+(define-key menu-bar-describe-menu [apropos-variables]
   '("Apropos Variables..." . apropos-variable))
-(define-key menu-bar-describe-menu [command-apropos]
-  '("Apropos Commands..." . command-apropos))
+(define-key menu-bar-describe-menu [apropos-commands]
+  '("Apropos Commands..." . apropos-command))
 (define-key menu-bar-describe-menu [describe-mode]
   '("Describe Buffer Modes" . describe-mode))
 
