@@ -1,5 +1,7 @@
 2000-06-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* configure.in: Generate lisp/Makefile.
+	
 	* configure.in: Add support for `*-lynxos*'.
 	Use `cpp' as NON_GNU_CPP for `alpha*-dec-osf[5-9]*', as
 	recommended by <Karen.Dorhamer@compaq.com> to fix problems

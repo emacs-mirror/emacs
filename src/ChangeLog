@@ -1,5 +1,7 @@
 2000-06-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* Makefile.in (bootstrap-temacs): Add `-I../src'.
+
 	* unexec.c (toplevel) [COFF]: Include coff.h.
 
 	* s/lynxos.h: New file.

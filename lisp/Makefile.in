@@ -2,6 +2,9 @@
 # Maintenance productions for the Lisp directory
 #
 
+lisp=@srcdir@
+VPATH=@srcdir@
+
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
 
@@ -13,29 +16,49 @@ EMACS = ../src/emacs
 EMACSOPT = -batch --no-site-file --multibyte
 
 SOURCES = *.el COPYING Makefile
-lisptagsfiles1 = [a-zA-Z]*.el
-lisptagsfiles2 = [a-zA-Z]*/[a-zA-Z]*.el
+lisptagsfiles1 = $(lisp)/[a-zA-Z]*.el
+lisptagsfiles2 = $(lisp)/[a-zA-Z]*/[a-zA-Z]*.el
 ETAGS = ../lib-src/etags
 
-# Files which should not be compiled.  All file names must be relative
-# to the `lisp' directory.
+# Files which should not be compiled.
 # - emacs-lisp/cl-specs.el:  only contains `def-edebug-spec's so there's
 #   no point compiling it, although it doesn't hurt.
 
-DONTCOMPILE = bindings.el mail/blessmail.el play/bruce.el cus-load.el \
-	cus-start.el forms-d2.el forms-pass.el \
-	international/latin-1.el international/latin-2.el \
-	international/latin-3.el international/latin-4.el \
-	international/latin-5.el \
-	loaddefs.el loadup.el international/mule-conf.el patcomp.el \
-	paths.el mail/sc.el subdirs.el version.el \
-	generic-x.el international/latin-8.el international/latin-9.el \
-	emacs-lisp/cl-specs.el finder-inf.el term/internal.el
+DONTCOMPILE = \
+	$(lisp)/bindings.el \
+	$(lisp)/cus-load.el \
+	$(lisp)/cus-start.el \
+	$(lisp)/emacs-lisp/cl-specs.el \
+	$(lisp)/finder-inf.el \
+	$(lisp)/forms-d2.el \
+	$(lisp)/forms-pass.el \
+	$(lisp)/generic-x.el \
+	$(lisp)/international/latin-1.el \
+	$(lisp)/international/latin-2.el \
+	$(lisp)/international/latin-3.el \
+	$(lisp)/international/latin-4.el \
+	$(lisp)/international/latin-5.el \
+	$(lisp)/international/latin-8.el \
+	$(lisp)/international/latin-9.el \
+	$(lisp)/international/mule-conf.el \
+	$(lisp)/loaddefs.el \
+	$(lisp)/loadup.el \
+	$(lisp)/mail/blessmail.el \
+	$(lisp)/mail/sc.el \
+	$(lisp)/patcomp.el \
+	$(lisp)/paths.el \
+	$(lisp)/play/bruce.el \
+	$(lisp)/subdirs.el \
+	$(lisp)/term/internal.el \
+	$(lisp)/version.el
 
 # Files to compile before others during a bootstrap.  This is done
 # to speed up the bootstrap process.
 
-COMPILE_FIRST = emacs-lisp/bytecomp.el emacs-lisp/byte-opt.el subr.el
+COMPILE_FIRST = \
+	$(lisp)/emacs-lisp/byte-opt.el \
+	$(lisp)/emacs-lisp/bytecomp.el \
+	$(lisp)/subr.el
 
 # The actual Emacs command run in the targets below.
 
@@ -55,14 +78,14 @@ doit:
 cus-load.el:
 	touch $@
 custom-deps: cus-load.el doit
-	wd=.; $(setwins); \
+	wd=$(lisp); $(setwins); \
 	echo Directories: $$wins; \
 	$(emacs) -l cus-dep -f custom-make-dependencies $$wins
 
 finder-inf.el:
 	echo "(provide 'finder-inf)" >> $@
 finder-data: finder-inf.el doit
-	wd=.; $(setwins); \
+	wd=$(lisp); $(setwins); \
 	echo Directories: $$wins; \
 	$(emacs) -l finder -f finder-compile-keywords-make-dist $$wins
 
@@ -77,16 +100,16 @@ loaddefs.el:
 	echo ";;; End:" >> $@
 	echo ";;; loaddefs.el ends here" >> $@
 autoloads: loaddefs.el doit
-	wd=.; $(setwins); \
+	wd=$(lisp); $(setwins); \
 	echo Directories: $$wins; \
-	$(emacs) -l autoload --eval '(setq generated-autoload-file "'`pwd`'/loaddefs.el")' -f batch-update-autoloads $$wins
+	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
 
 subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
 update-subdirs: doit
-	wd=.; $(setwins); \
+	wd=$(lisp); $(setwins); \
 	for file in $$wins; do \
-	   ../update-subdirs $$file; \
+	   $(srcdir)/update-subdirs $$file; \
 	done;
 
 updates: update-subdirs autoloads finder-data custom-deps
@@ -99,7 +122,7 @@ TAGS-LISP: $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
 	  $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
 
 .el.elc: subdirs.el
-	-EMACSLOADPATH=`pwd` $(emacs) -f batch-byte-compile $<
+	-EMACSLOADPATH=$(lisp) $(emacs) -f batch-byte-compile $<
 
 $(DONTCOMPILE:.el=.elc):
 	-rm -f $@
@@ -114,23 +137,23 @@ $(DONTCOMPILE:.el=.elc):
 # load's in the files being compiled find the right files.
 
 compile-files: subdirs.el doit
-	find . -name "*.elc" -print | xargs chmod +w;		\
-	wd=.; $(setwins);					\
-	elpat=`echo $$wins | tr ' 	' '\012\012' | 	\
+	find $(lisp) -name "*.elc" -print | xargs chmod +w; \
+	wd=$(lisp); $(setwins);	\
+	elpat=`echo $$wins | tr ' 	' '\012\012' | \
 		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
 	els=`echo $$elpat $(DONTCOMPILE) $(COMPILE_FIRST) | \
 		tr '	 ' '\012\012' | sort | uniq -u`; \
 	for el in $(COMPILE_FIRST) $$els; do \
 	  echo Compiling $$el; \
-	  EMACSLOADPATH=`pwd` $(emacs) -f batch-byte-compile $$el ;\
+	  EMACSLOADPATH=$(lisp) $(emacs) -f batch-byte-compile $$el; \
 	done
 
 # Backup compiled Lisp files in elc.tar.gz.  If that file already
 # exists, make a backup of it.
 
 backup-compiled-files:
-	-mv elc.tar.gz elc.tar.gz~
-	-tar czf elc.tar.gz *.elc */*.elc
+	-mv $(lisp)/elc.tar.gz $(lisp)/elc.tar.gz~
+	-tar czf $(lisp)/elc.tar.gz $(lisp)/*.elc $(lisp)/*/*.elc
 
 # Compile Lisp files, but save old compiled files first.
 
@@ -141,7 +164,7 @@ compile: backup-compiled-files compile-files
 # .elc is present.
 
 recompile: doit
-	$(emacs) -f batch-byte-recompile-directory .
+	$(emacs) -f batch-byte-recompile-directory $(lisp)
 
 # Prepare a bootstrap in the lisp subdirectory.  Build loaddefs.el,
 # because it's not sure it's up-to-date, and if it's not, that might
@@ -150,8 +173,8 @@ recompile: doit
 # bootstrap-emacs will be built from sources only.
 
 bootstrap-clean:
-	if test -f $(emacs); then $(MAKE) $(MFLAGS) autoloads; fi
-	-rm -f *.elc */*.elc
+	if test -f $(EMACS); then $(MAKE) $(MFLAGS) autoloads; fi
+	-rm -f $(lisp)/*.elc $(lisp)/*/*.elc
 
 # Generate/update files for the bootstrap process.
 
