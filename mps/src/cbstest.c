@@ -1,6 +1,6 @@
 /*  impl.c.cbstest: COALESCING BLOCK STRUCTURE TEST
  *
- *  $HopeName: MMsrc!cbstest.c(trunk.4) $
+ *  $HopeName: MMsrc!cbstest.c(trunk.5) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  */
 
@@ -15,7 +15,7 @@
 #include "mpsaan.h" /* ANSI arena for BTCreate and BTDestroy */
 #include "testlib.h"
 
-SRCID(cbstest, "$HopeName: MMsrc!cbstest.c(trunk.4) $");
+SRCID(cbstest, "$HopeName: MMsrc!cbstest.c(trunk.5) $");
 
 #define ArraySize ((Size)123456)
 #define NOperations ((Size)125000)
@@ -454,32 +454,70 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
   }
 }
 
-static void find(CBS cbs, void *block, BT alloc, Size size, Bool high) 
+static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
+                 CBSFindDelete findDelete) 
 {
   Bool expected, found;
   Index expectedBase, expectedLimit;
-  Addr foundBase, foundLimit;
+  Addr foundBase, foundLimit, remainderBase, remainderLimit;
+  Size oldSize, newSize;
 
-  if(high) {
-    expected = BTFindLongResRangeHigh(&expectedBase, &expectedLimit, 
-                                      alloc, 
-                                      (Index)0, (Index)ArraySize,
-                                      (unsigned long)size);
+  checkExpectations();
 
-    found = CBSFindLast(&foundBase, &foundLimit, cbs, size * Alignment);
-  } else {
-    expected = BTFindLongResRange(&expectedBase, &expectedLimit, 
-                                  alloc, 
-                                  (Index)0, (Index)ArraySize,
-                                  (unsigned long)size);
+  expected = (high ? BTFindLongResRangeHigh : BTFindLongResRange)
+      (&expectedBase, &expectedLimit, alloc, 
+       (Index)0, (Index)ArraySize, (unsigned long)size);
 
-    found = CBSFindFirst(&foundBase, &foundLimit, cbs, size * Alignment);
+  if(expected) {
+    oldSize = (expectedLimit - expectedBase) * Alignment;
+    remainderBase = AddrOfIndex(block, expectedBase);
+    remainderLimit = AddrOfIndex(block, expectedLimit);
+
+    switch(findDelete) {
+    case CBSFindDeleteNONE: {
+      /* do nothing */
+    } break;
+    case CBSFindDeleteENTIRE: {
+      remainderBase = remainderLimit;
+    } break;
+    case CBSFindDeleteLOW: {
+      expectedLimit = expectedBase + size;
+      remainderBase = AddrOfIndex(block, expectedLimit);
+    } break;
+    case CBSFindDeleteHIGH: {
+      expectedBase = expectedLimit - size;
+      remainderLimit = AddrOfIndex(block, expectedBase);
+    } break;
+    }
+
+    if(findDelete != CBSFindDeleteNONE) {
+      newSize = AddrOffset(remainderBase, remainderLimit);
+
+      if(oldSize >= MinSize) {
+        if(newSize == 0)
+          expectCallback(&CallbackDelete, oldSize, (Addr)0, (Addr)0);
+        else if(newSize < MinSize)
+          expectCallback(&CallbackDelete, oldSize, 
+                         remainderBase, remainderLimit);
+        else 
+          expectCallback(&CallbackShrink, oldSize,
+                         remainderBase, remainderLimit);
+      }
+    }
   }
 
+  found = (high ? CBSFindLast : CBSFindFirst)
+    (&foundBase, &foundLimit, cbs, size * Alignment, findDelete);
+
   AVER(found == expected);
+
   if(found) {
     AVER(expectedBase == IndexOfAddr(block, foundBase));
     AVER(expectedLimit == IndexOfAddr(block, foundLimit));
+    checkExpectations();
+
+    if(findDelete != CBSFindDeleteNONE)
+      BTSetRange(alloc, expectedBase, expectedLimit);
   }
 
   return;
@@ -498,6 +536,7 @@ extern int main(int argc, char *argv[])
   BT allocTable;
   Size size;
   Bool high;
+  CBSFindDelete findDelete = CBSFindDeleteNONE;
 
   testlib_unused(argc); 
   testlib_unused(argv);
@@ -548,7 +587,15 @@ extern int main(int argc, char *argv[])
       case 2: {
         size = random(ArraySize / 10) + 1;
         high = random(2) ? TRUE : FALSE;
-        find(cbs, dummyBlock, allocTable, size, high);
+        switch(random(6)) {
+        case 0:
+        case 1:
+        case 2: findDelete = CBSFindDeleteNONE; break;
+        case 3: findDelete = CBSFindDeleteLOW; break;
+        case 4: findDelete = CBSFindDeleteHIGH; break;
+        case 5: findDelete = CBSFindDeleteENTIRE; break;
+        }
+        find(cbs, dummyBlock, allocTable, size, high, findDelete);
       } break;
     }
     if(i % 5000 == 0)
