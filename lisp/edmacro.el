@@ -1,10 +1,10 @@
 ;;; edmacro.el --- keyboard macro editor
 
-;; Copyright (C) 1990 Free Software Foundation, Inc.
+;; Copyright (C) 1993 Free Software Foundation, Inc.
 
-;; Author: Dave Gillespie <daveg@csvax.caltech.edu>
-;; Maintainer: FSF
-;; Version: 1.02
+;; Author: Dave Gillespie <daveg@synaptics.com>
+;; Maintainer: Dave Gillespie <daveg@synaptics.com>
+;; Version: 2.01
 ;; Keywords: abbrev
 
 ;; This file is part of GNU Emacs.
@@ -25,629 +25,670 @@
 
 ;;; Commentary:
 
-;; To use, type `M-x edit-last-kbd-macro' to edit the most recently
-;; defined keyboard macro.  If you have used `M-x name-last-kbd-macro'
-;; to give a keyboard macro a name, type `M-x edit-kbd-macro' to edit
-;; the macro by name.  When you are done editing, type `C-c C-c' to
-;; record your changes back into the original keyboard macro.
+;;; Usage:
+;;
+;; The `C-x C-k' (`edit-kbd-macro') command edits a keyboard macro
+;; in a special buffer.  It prompts you to type a key sequence,
+;; which should be one of:
+;;
+;;  * RET or `C-x e' (call-last-kbd-macro), to edit the most 
+;;    recently defined keyboard macro.
+;;
+;;  * `M-x' followed by a command name, to edit a named command
+;;    whose definition is a keyboard macro.
+;;
+;;  * `C-h l' (view-lossage), to edit the 100 most recent keystrokes
+;;    and install them as the "current" macro.
+;;
+;;  * any key sequence whose definition is a keyboard macro.
+;;
+;; This file includes a version of `insert-kbd-macro' that uses the
+;; more readable format defined by these routines.
+;;
+;; Also, the `read-kbd-macro' command parses the region as
+;; a keyboard macro, and installs it as the "current" macro.
+;; This and `format-kbd-macro' can also be called directly as
+;; Lisp functions.
+
+;; Type `C-h m', or see the documentation for `edmacro-mode' below,
+;; for information about the format of written keyboard macros.
+
+;; `edit-kbd-macro' formats the macro with one command per line,
+;; including the command names as comments on the right.  If the
+;; formatter gets confused about which keymap was used for the
+;; characters, the command-name comments will be wrong but that
+;; won't hurt anything.
+
+;; With a prefix argument, `edit-kbd-macro' will format the
+;; macro in a more concise way that omits the comments.
+
+;; This package requires GNU Emacs 19 or later, and daveg's CL
+;; package 2.02 or later.  (CL 2.02 comes standard starting with
+;; Emacs 19.18.)  This package does not work with Emacs 18 or
+;; Lucid Emacs.
 
 ;;; Code:
 
+(require 'cl)
+
 ;;; The user-level commands for editing macros.
 
+;;;###autoload (define-key ctl-x-map "\C-k" 'edit-kbd-macro)
+(define-key ctl-x-map "\C-k" 'edit-kbd-macro)
+
 ;;;###autoload
-(defun edit-last-kbd-macro (&optional prefix buffer hook)
+(defvar edmacro-eight-bits nil
+  "*Non-nil if edit-kbd-macro should leave 8-bit characters intact.
+Default nil means to write characters above \\177 in octal notation.")
+
+(defvar edmacro-mode-map nil)
+(unless edmacro-mode-map
+  (setq edmacro-mode-map (make-sparse-keymap))
+  (define-key edmacro-mode-map "\C-c\C-c" 'edmacro-finish-edit)
+  (define-key edmacro-mode-map "\C-c\C-q" 'edmacro-insert-key))
+
+;;;###autoload
+(defun edit-kbd-macro (keys &optional prefix finish-hook store-hook)
+  "Edit a keyboard macro.
+At the prompt, type any key sequence which is bound to a keyboard macro.
+Or, type `C-x e' or RET to edit the last keyboard macro, `C-h l' to edit
+the last 100 keystrokes as a keyboard macro, or `M-x' to edit a macro by
+its command name.
+With a prefix argument, format the macro in a more concise way."
+  (interactive "kKeyboard macro to edit (C-x e, M-x, C-h l, or keys): \nP")
+  (when keys
+    (let ((cmd (if (arrayp keys) (key-binding keys) keys))
+	  (mac nil))
+      (cond (store-hook
+	     (setq mac keys)
+	     (setq cmd nil))
+	    ((or (eq cmd 'call-last-kbd-macro)
+		 (member keys '("\r" [return])))
+	     (or last-kbd-macro
+		 (y-or-n-p "No keyboard macro defined.  Create one? ")
+		 (keyboard-quit))
+	     (setq mac (or last-kbd-macro ""))
+	     (setq cmd 'last-kbd-macro))
+	    ((eq cmd 'execute-extended-command)
+	     (setq cmd (read-command "Name of keyboard macro to edit: "))
+	     (setq mac (symbol-function cmd)))
+	    ((eq cmd 'view-lossage)
+	     (setq mac (recent-keys))
+	     (setq cmd 'last-kbd-macro))
+	    ((symbolp cmd)
+	     (setq mac (symbol-function cmd)))
+	    (t
+	     (setq mac cmd)
+	     (setq cmd nil)))
+      (unless (arrayp mac)
+	(error "Not a keyboard macro: %s" cmd))
+      (message "Formatting keyboard macro...")
+      (let* ((oldbuf (current-buffer))
+	     (mmac (edmacro-fix-menu-commands mac))
+	     (fmt (edmacro-format-keys mmac 1))
+	     (fmtv (edmacro-format-keys mmac (not prefix)))
+	     (buf (get-buffer-create "*Edit Macro*")))
+	(message "Formatting keyboard macro...done")
+	(switch-to-buffer buf)
+	(kill-all-local-variables)
+	(use-local-map edmacro-mode-map)
+	(setq buffer-read-only nil)
+	(setq major-mode 'edmacro-mode)
+	(setq mode-name "Edit Macro")
+	(set (make-local-variable 'edmacro-original-buffer) oldbuf)
+	(set (make-local-variable 'edmacro-finish-hook) finish-hook)
+	(set (make-local-variable 'edmacro-store-hook) store-hook)
+	(erase-buffer)
+	(insert ";; Keyboard Macro Editor.  Press C-c C-c to finish; "
+		"press C-x k RET to cancel.\n")
+	(insert ";; Original keys: " fmt "\n")
+	(unless store-hook
+	  (insert "\nCommand: " (if cmd (symbol-name cmd) "none") "\n")
+	  (let ((keys (where-is-internal (or cmd mac) nil)))
+	    (if keys
+		(while keys
+		  (insert "Key: " (edmacro-format-keys (pop keys) 1) "\n"))
+	      (insert "Key: none\n"))))
+	(insert "\nMacro:\n\n")
+	(save-excursion
+	  (insert fmtv "\n"))
+	(recenter '(4))
+	(when (eq mac mmac)
+	  (set-buffer-modified-p nil))
+	(run-hooks 'edmacro-format-hook)))))
+
+;;; The next two commands are provided for convenience and backward
+;;; compatibility.
+
+;;;###autoload
+(defun edit-last-kbd-macro (&optional prefix)
   "Edit the most recently defined keyboard macro."
   (interactive "P")
-  (edmacro-edit-macro last-kbd-macro
-		      (function (lambda (x arg) (setq last-kbd-macro x)))
-		      prefix buffer hook))
+  (edit-kbd-macro 'call-last-kbd-macro prefix))
 
 ;;;###autoload
-(defun edit-kbd-macro (cmd &optional prefix buffer hook in-hook out-hook)
-  "Edit a keyboard macro which has been given a name by `name-last-kbd-macro'.
-\(See also `edit-last-kbd-macro'.)"
-  (interactive "CCommand name: \nP")
-  (and cmd
-       (edmacro-edit-macro (if in-hook
-			       (funcall in-hook cmd)
-			     (symbol-function cmd))
-			   (or out-hook
-			       (list 'lambda '(x arg)
-				     (list 'fset
-					   (list 'quote cmd)
-					   'x)))
-			   prefix buffer hook cmd)))
+(defun edit-named-kbd-macro (&optional prefix)
+  "Edit a keyboard macro which has been given a name by `name-last-kbd-macro'."
+  (interactive "P")
+  (edit-kbd-macro 'execute-extended-command prefix))
 
 ;;;###autoload
-(defun read-kbd-macro (start end)
+(defun read-kbd-macro (start &optional end)
   "Read the region as a keyboard macro definition.
 The region is interpreted as spelled-out keystrokes, e.g., \"M-x abc RET\".
+See documentation for `edmacro-mode' for details.
+Leading/trailing \"C-x (\" and \"C-x )\" in the text are allowed and ignored.
 The resulting macro is installed as the \"current\" keyboard macro.
 
-Symbols:  RET, SPC, TAB, DEL, LFD, NUL; C-key; M-key.  (Must be uppercase.)
-          REM marks the rest of a line as a comment.
-          Whitespace is ignored; other characters are copied into the macro."
+In Lisp, may also be called with a single STRING argument in which case
+the result is returned rather than being installed as the current macro.
+The result will be a string if possible, otherwise an event vector.
+Second argument NEED-VECTOR means to return an event vector always."
   (interactive "r")
-  (setq last-kbd-macro (edmacro-parse-keys (buffer-substring start end)))
-  (if (and (string-match "\\`\C-x(" last-kbd-macro)
-	   (string-match "\C-x)\\'" last-kbd-macro))
-      (setq last-kbd-macro (substring last-kbd-macro 2 -2))))
+  (if (stringp start)
+      (edmacro-parse-keys start end)
+    (setq last-kbd-macro (edmacro-parse-keys (buffer-substring start end)))))
+
+;;;###autoload
+(defun format-kbd-macro (&optional macro verbose)
+  "Return the keyboard macro MACRO as a human-readable string.
+This string is suitable for passing to `read-kbd-macro'.
+Second argument VERBOSE means to put one command per line with comments.
+If VERBOSE is `1', put everything on one line.  If VERBOSE is omitted
+or nil, use a compact 80-column format."
+  (and macro (symbolp macro) (setq macro (symbol-function macro)))
+  (edmacro-format-keys (or macro last-kbd-macro) verbose))
 
-;;; Formatting a keyboard macro as human-readable text.
-
-(defun edmacro-print-macro (macro-str local-map)
-  (let ((save-map (current-local-map))
-	(print-escape-newlines t)
-	key-symbol key-str key-last prefix-arg this-prefix)
-    (unwind-protect
-	(progn
-	  (use-local-map local-map)
-	  (while (edmacro-peek-char)
-	    (edmacro-read-key)
-	    (setq this-prefix prefix-arg)
-	    (or (memq key-symbol '(digit-argument
-				   negative-argument
-				   universal-argument))
-		(null prefix-arg)
-		(progn
-		  (cond ((consp prefix-arg)
-			 (insert (format "prefix-arg (%d)\n"
-					 (car prefix-arg))))
-			((eq prefix-arg '-)
-			 (insert "prefix-arg -\n"))
-			((numberp prefix-arg)
-			 (insert (format "prefix-arg %d\n" prefix-arg))))
-		  (setq prefix-arg nil)))
-	    (cond ((null key-symbol)
-		   (insert "type \"")
-		   (edmacro-insert-string macro-str)
-		   (insert "\"\n")
-		   (setq macro-str ""))
-		  ((eq key-symbol 'digit-argument)
-		   (edmacro-prefix-arg key-last nil prefix-arg))
-		  ((eq key-symbol 'negative-argument)
-		   (edmacro-prefix-arg ?- nil prefix-arg))
-		  ((eq key-symbol 'universal-argument)
-		   (let* ((c-u 4) (argstartchar key-last)
-			  (char (edmacro-read-char)))
-		     (while (= char argstartchar)
-		       (setq c-u (* 4 c-u)
-			     char (edmacro-read-char)))
-		     (edmacro-prefix-arg char c-u nil)))
-		  ((eq key-symbol 'self-insert-command)
-		   (insert "insert ")
-		   (if (and (>= key-last 32) (<= key-last 126))
-		       (let ((str ""))
-			 (while (or (and (eq key-symbol
-					     'self-insert-command)
-					 (< (length str) 60)
-					 (>= key-last 32)
-					 (<= key-last 126))
-				    (and (memq key-symbol
-					       '(backward-delete-char
-						 delete-backward-char
-						 backward-delete-char-untabify))
-					 (> (length str) 0)))
-			   (if (eq key-symbol 'self-insert-command)
-			       (setq str (concat str
-						 (char-to-string key-last)))
-			     (setq str (substring str 0 -1)))
-			   (edmacro-read-key))
-			 (insert "\"" str "\"\n")
-			 (edmacro-unread-chars key-str))
-		     (insert "\"")
-		     (edmacro-insert-string (char-to-string key-last))
-		     (insert "\"\n")))
-		  ((and (eq key-symbol 'quoted-insert)
-			(edmacro-peek-char))
-		   (insert "quoted-insert\n")
-		   (let ((ch (edmacro-read-char))
-			 ch2)
-		     (if (and (>= ch ?0) (<= ch ?7))
-			 (progn
-			   (setq ch (- ch ?0)
-				 ch2 (edmacro-read-char))
-			   (if ch2
-			       (if (and (>= ch2 ?0) (<= ch2 ?7))
-				   (progn
-				     (setq ch (+ (* ch 8) (- ch2 ?0))
-					   ch2 (edmacro-read-char))
-				     (if ch2
-					 (if (and (>= ch2 ?0) (<= ch2 ?7))
-					     (setq ch (+ (* ch 8) (- ch2 ?0)))
-					   (edmacro-unread-chars ch2))))
-				 (edmacro-unread-chars ch2)))))
-		     (if (or (and (>= ch ?0) (<= ch ?7))
-			     (< ch 32) (> ch 126))
-			 (insert (format "type \"\\%03o\"\n" ch))
-		       (insert "type \"" (char-to-string ch) "\"\n"))))
-		  ((memq key-symbol '(isearch-forward
-				      isearch-backward
-				      isearch-forward-regexp
-				      isearch-backward-regexp))
-		   (insert (symbol-name key-symbol) "\n")
-		   (edmacro-isearch-argument))
-		  ((eq key-symbol 'execute-extended-command)
-		   (edmacro-read-argument obarray 'commandp))
-		  (t
-		   (let ((cust (get key-symbol 'edmacro-print)))
-		     (if cust
-			 (funcall cust)
-		       (insert (symbol-name key-symbol))
-		       (indent-to 30)
-		       (insert " # ")
-		       (edmacro-insert-string key-str)
-		       (insert "\n")
-		       (let ((int (edmacro-get-interactive key-symbol)))
-			 (if (string-match "\\`\\*" int)
-			     (setq int (substring int 1)))
-			 (while (> (length int) 0)
-			   (cond ((= (aref int 0) ?a)
-				  (edmacro-read-argument
-				   obarray nil))
-				 ((memq (aref int 0) '(?b ?B ?D ?f ?F ?n
-							  ?s ?S ?x ?X))
-				  (edmacro-read-argument))
-				 ((and (= (aref int 0) ?c)
-				       (edmacro-peek-char))
-				  (insert "type \"")
-				  (edmacro-insert-string
-				   (char-to-string
-				    (edmacro-read-char)))
-				  (insert "\"\n"))
-				 ((= (aref int 0) ?C)
-				  (edmacro-read-argument
-				   obarray 'commandp))
-				 ((= (aref int 0) ?k)
-				  (edmacro-read-key)
-				  (if key-symbol
-				      (progn
-					(insert "type \"")
-					(edmacro-insert-string key-str)
-					(insert "\"\n"))
-				    (edmacro-unread-chars key-str)))
-				 ((= (aref int 0) ?N)
-				  (or this-prefix
-				      (edmacro-read-argument)))
-				 ((= (aref int 0) ?v)
-				  (edmacro-read-argument
-				   obarray 'user-variable-p)))
-			   (let ((nl (string-match "\n" int)))
-			     (setq int (if nl
-					   (substring int (1+ nl))
-					 "")))))))))))
-      (use-local-map save-map))))
-
-(defun edmacro-prefix-arg (char c-u value)
-  (let ((sign 1))
-    (if (and (numberp value) (< value 0))
-	(setq sign -1 value (- value)))
-    (if (eq value '-)
-	(setq sign -1 value nil))
-    (while (and char (= ?- char))
-      (setq sign (- sign) c-u nil)
-      (setq char (edmacro-read-char)))
-    (while (and char (>= char ?0) (<= char ?9))
-      (setq value (+ (* (if (numberp value) value 0) 10) (- char ?0)) c-u nil)
-      (setq char (edmacro-read-char)))
-    (setq prefix-arg
-	  (cond (c-u (list c-u))
-		((numberp value) (* value sign))
-		((= sign -1) '-)))
-    (edmacro-unread-chars char)))
-
-(defun edmacro-insert-string (str)
-  (let ((i 0) j ch)
-    (while (< i (length str))
-      (if (and (> (setq ch (aref str i)) 127)
-	       (< ch 160))
-	  (progn
-	    (setq ch (- ch 128))
-	    (insert "\\M-")))
-      (if (< ch 32)
-	  (cond ((= ch 8)  (insret "\\b"))
-		((= ch 9)  (insert "\\t"))
-		((= ch 10) (insert "\\n"))
-		((= ch 13) (insert "\\r"))
-		((= ch 27) (insert "\\e"))
-		(t (insert "\\C-" (char-to-string (downcase (+ ch 64))))))
-	(if (< ch 127)
-	    (if (or (= ch 34) (= ch 92))
-		(insert "\\" (char-to-string ch))
-	      (setq j i)
-	      (while (and (< (setq i (1+ i)) (length str))
-			  (>= (setq ch (aref str i)) 32)
-			  (/= ch 34) (/= ch 92)
-			  (< ch 127)))
-	      (insert (substring str j i))
-	      (setq i (1- i)))
-	  (if (memq ch '(127 255))
-	      (insert (format "\\%03o" ch))
-	    (insert "\\M-" (char-to-string (- ch 128))))))
-      (setq i (1+ i)))))
-
-(defun edmacro-lookup-key (map)
-  (let ((loc (and map (lookup-key map macro-str)))
-	(glob (lookup-key (current-global-map) macro-str))
-	(loc-str macro-str)
-	(glob-str macro-str))
-    (and (integerp loc)
-	 (setq loc-str (substring macro-str 0 loc)
-	       loc (lookup-key map loc-str)))
-    (and (consp loc)
-	 (setq loc nil))
-    (or loc
-	(setq loc-str ""))
-    (and (integerp glob)
-	 (setq glob-str (substring macro-str 0 glob)
-	       glob (lookup-key (current-global-map) glob-str)))
-    (and (consp glob)
-	 (setq glob nil))
-    (or glob
-	(setq glob-str ""))
-    (if (> (length glob-str) (length loc-str))
-	(setq key-symbol glob
-	      key-str glob-str)
-      (setq key-symbol loc
-	    key-str loc-str))
-    (setq key-last (and (> (length key-str) 0)
-			(logand (aref key-str (1- (length key-str))) 127)))
-    key-symbol))
-
-(defun edmacro-read-argument (&optional obarray pred)   ;; currently ignored
-  (let ((str "")
-	(min-bsp 0)
-	(exec (eq key-symbol 'execute-extended-command))
-	str-base)
-    (while (progn
-	     (edmacro-lookup-key (current-global-map))
-	     (or (and (eq key-symbol 'self-insert-command)
-		      (< (length str) 60))
-		 (memq key-symbol
-			    '(backward-delete-char
-			      delete-backward-char
-			      backward-delete-char-untabify))
-		 (eq key-last 9)))
-      (setq macro-str (substring macro-str (length key-str)))
-      (or (and (eq key-last 9)
-	       obarray
-	       (let ((comp (try-completion str obarray pred)))
-		 (and (stringp comp)
-		      (> (length comp) (length str))
-		      (setq str comp))))
-	  (if (or (eq key-symbol 'self-insert-command)
-		  (and (or (eq key-last 9)
-			   (<= (length str) min-bsp))
-		       (setq min-bsp (+ (length str) (length key-str)))))
-	      (setq str (concat str key-str))
-	    (setq str (substring str 0 -1)))))
-    (setq str-base str
-	  str (concat str key-str)
-	  macro-str (substring macro-str (length key-str)))
-    (if exec
-	(let ((comp (try-completion str-base obarray pred)))
-	  (if (if (stringp comp)
-		  (and (commandp (intern comp))
-		       (setq str-base comp))
-		(commandp (intern str-base)))
-	      (insert str-base "\n")
-	    (insert "execute-extended-command\n")
-	    (insert "type \"")
-	    (edmacro-insert-string str)
-	    (insert "\"\n")))
-      (if (> (length str) 0)
-	  (progn
-	    (insert "type \"")
-	    (edmacro-insert-string str)
-	    (insert "\"\n"))))))
-
-(defun edmacro-isearch-argument ()
-  (let ((str "")
-	(min-bsp 0)
-	ch)
-    (while (and (setq ch (edmacro-read-char))
-		(or (<= ch 127) (not search-exit-option))
-		(not (eq ch search-exit-char))
-		(or (eq ch search-repeat-char)
-		    (eq ch search-reverse-char)
-		    (eq ch search-delete-char)
-		    (eq ch search-yank-word-char)
-		    (eq ch search-yank-line-char)
-		    (eq ch search-quote-char)
-		    (eq ch ?\r)
-		    (eq ch ?\t)
-		    (not search-exit-option)
-		    (and (/= ch 127) (>= ch 32))))
-      (if (and (eq ch search-quote-char)
-	       (edmacro-peek-char))
-	  (setq str (concat str (char-to-string ch)
-			    (char-to-string (edmacro-read-char)))
-		min-bsp (length str))
-	(if (or (and (< ch 127) (>= ch 32))
-		(eq ch search-yank-word-char)
-		(eq ch search-yank-line-char)
-		(and (or (not (eq ch search-delete-char))
-			 (<= (length str) min-bsp))
-		     (setq min-bsp (1+ (length str)))))
-	    (setq str (concat str (char-to-string ch)))
-	  (setq str (substring str 0 -1)))))
-    (if (eq ch search-exit-char)
-	(if (= (length str) 0)  ;; non-incremental search
-	    (progn
-	      (setq str (concat str (char-to-string ch)))
-	      (and (eq (edmacro-peek-char) ?\C-w)
-		   (progn
-		     (setq str (concat str "\C-w"))
-		     (edmacro-read-char)))
-	      (if (> (length str) 0)
-		  (progn
-		    (insert "type \"")
-		    (edmacro-insert-string str)
-		    (insert "\"\n")))
-	      (edmacro-read-argument)
-	      (setq str "")))
-      (edmacro-unread-chars ch))
-    (if (> (length str) 0)
-	(progn
-	  (insert "type \"")
-	  (edmacro-insert-string str)
-	  (insert "\\e\"\n")))))
-
-;;; Get the next keystroke-sequence from the input stream.
-;;; Sets key-symbol, key-str, and key-last as a side effect.
-(defun edmacro-read-key ()
-  (edmacro-lookup-key (current-local-map))
-  (and key-symbol
-       (setq macro-str (substring macro-str (length key-str)))))
-
-(defun edmacro-peek-char ()
-  (and (> (length macro-str) 0)
-       (aref macro-str 0)))
-
-(defun edmacro-read-char ()
-  (and (> (length macro-str) 0)
-       (prog1
-	   (aref macro-str 0)
-	 (setq macro-str (substring macro-str 1)))))
-
-(defun edmacro-unread-chars (chars)
-  (and (integerp chars)
-       (setq chars (char-to-string chars)))
-  (and chars
-       (setq macro-str (concat chars macro-str))))
-
-(defun edmacro-dump (mac)
-  (set-mark-command nil)
-  (insert "\n\n")
-  (edmacro-print-macro mac (current-local-map)))
-
-;;; Parse a string of spelled-out keystrokes, as produced by key-description.
-
-(defun edmacro-parse-keys (str)
-  (let ((pos 0)
-	(mac "")
-	part)
-    (while (and (< pos (length str))
-		(string-match "[^ \t\n]+" str pos))
-      (setq pos (match-end 0)
-	    part (substring str (match-beginning 0) (match-end 0))
-	    mac (concat mac
-			(if (and (> (length part) 2)
-				 (= (aref part 1) ?-)
-				 (= (aref part 0) ?M))
-			    (progn
-			      (setq part (substring part 2))
-			      "\e")
-			  (if (and (> (length part) 4)
-				   (= (aref part 0) ?C)
-				   (= (aref part 1) ?-)
-				   (= (aref part 2) ?M)
-				   (= (aref part 3) ?-))
-			      (progn
-				(setq part (concat "C-" (substring part 4)))
-				"\e")
-			    ""))
-			(or (cdr (assoc part '( ( "NUL" . "\0" )
-						( "RET" . "\r" )
-						( "LFD" . "\n" )
-						( "TAB" . "\t" )
-						( "ESC" . "\e" )
-						( "SPC" . " " )
-						( "DEL" . "\177" )
-						( "C-?" . "\177" )
-						( "C-2" . "\0" )
-						( "C-SPC" . "\0") )))
-			    (and (equal part "REM")
-				 (setq pos (or (string-match "\n" str pos)
-					       (length str)))
-				 "")
-			    (and (= (length part) 3)
-				 (= (aref part 0) ?C)
-				 (= (aref part 1) ?-)
-				 (char-to-string (logand (aref part 2) 31)))
-			    part))))
-    mac))
-
-;;; Parse a keyboard macro description in edmacro-print-macro's format.
-
-(defun edmacro-read-macro (&optional map)
-  (or map (setq map (current-local-map)))
-  (let ((macro-str ""))
-    (while (not (progn
-		  (skip-chars-forward " \t\n")
-		  (eobp)))
-      (cond ((looking-at "#"))   ;; comment
-	    ((looking-at "prefix-arg[ \t]*-[ \t]*\n")
-	     (edmacro-append-chars "\C-u-"))
-	    ((looking-at "prefix-arg[ \t]*\\(-?[0-9]+\\)[ \t]*\n")
-	     (edmacro-append-chars (concat "\C-u" (edmacro-match-string 1))))
-	    ((looking-at "prefix-arg[ \t]*(\\([0-9]+\\))[ \t]*\n")
-	     (let ((val (string-to-int (edmacro-match-string 1))))
-	       (while (> val 1)
-		 (or (= (% val 4) 0)
-		     (error "Bad prefix argument value"))
-		 (edmacro-append-chars "\C-u")
-		 (setq val (/ val 4)))))
-	    ((looking-at "prefix-arg")
-	     (error "Bad prefix argument syntax"))
-	    ((looking-at "insert ")
-	     (forward-char 7)
-	     (edmacro-append-chars (read (current-buffer)))
-	     (if (< (current-column) 7)
-		 (forward-line -1)))
-	    ((looking-at "type ")
-	     (forward-char 5)
-	     (edmacro-append-chars (read (current-buffer)))
-	     (if (< (current-column) 5)
-		 (forward-line -1)))
-	    ((looking-at "keys \\(.*\\)\n")
-	     (goto-char (1- (match-end 0)))
-	     (edmacro-append-chars (edmacro-parse-keys
-				    (buffer-substring (match-beginning 1)
-						      (match-end 1)))))
-	    ((looking-at "\\([-a-zA-z0-9_]+\\)[ \t]*\\(.*\\)\n")
-	     (let* ((func (intern (edmacro-match-string 1)))
-		    (arg (edmacro-match-string 2))
-		    (cust (get func 'edmacro-read)))
-	       (if cust
-		   (funcall cust arg)
-		 (or (commandp func)
-		     (error "Not an Emacs command"))
-		 (or (equal arg "")
-		     (string-match "\\`#" arg)
-		     (error "Unexpected argument to command"))
-		 (let ((keys
-			(or (where-is-internal func map t)
-			    (where-is-internal func (current-global-map) t))))
-		   (if keys
-		       (edmacro-append-chars keys)
-		     (edmacro-append-chars (concat "\ex"
-						   (symbol-name func)
-						   "\n")))))))
-	    (t (error "Syntax error")))
-      (forward-line 1))
-    macro-str))
-
-(defun edmacro-append-chars (chars)
-  (setq macro-str (concat macro-str chars)))
-
-(defun edmacro-match-string (n)
-  (if (match-beginning n)
-      (buffer-substring (match-beginning n) (match-end n))
-    ""))
-
-(defun edmacro-get-interactive (func)
-  (if (symbolp func)
-      (let ((cust (get func 'edmacro-interactive)))
-	(if cust
-	    cust
-	  (edmacro-get-interactive (symbol-function func))))
-    (or (and (eq (car-safe func) 'lambda)
-	     (let ((int (if (consp (nth 2 func))
-			    (nth 2 func)
-			  (nth 3 func))))
-	       (and (eq (car-safe int) 'interactive)
-		    (stringp (nth 1 int))
-		    (nth 1 int))))
-	"")))
-
-(put 'search-forward           'edmacro-interactive "s")
-(put 'search-backward          'edmacro-interactive "s")
-(put 'word-search-forward      'edmacro-interactive "s")
-(put 'word-search-backward     'edmacro-interactive "s")
-(put 're-search-forward        'edmacro-interactive "s")
-(put 're-search-backward       'edmacro-interactive "s")
-(put 'switch-to-buffer         'edmacro-interactive "B")
-(put 'kill-buffer              'edmacro-interactive "B")
-(put 'rename-buffer            'edmacro-interactive "B\nB")
-(put 'goto-char                'edmacro-interactive "N")
-(put 'global-set-key           'edmacro-interactive "k\nC")
-(put 'global-unset-key         'edmacro-interactive "k")
-(put 'local-set-key            'edmacro-interactive "k\nC")
-(put 'local-unset-key          'edmacro-interactive "k")
-
-;;; Think about kbd-macro-query
-
-;;; Edit a keyboard macro in another buffer.
-;;; (Prefix argument is currently ignored.)
-
-(defun edmacro-edit-macro (mac repl &optional prefix buffer hook arg)
-  (or (stringp mac)
-      (error "Not a keyboard macro"))
-  (let ((oldbuf (current-buffer))
-	(local (current-local-map))
-	(buf (get-buffer-create (or buffer "*Edit Macro*"))))
-    (set-buffer buf)
-    (kill-all-local-variables)
-    (use-local-map edmacro-mode-map)
-    (setq buffer-read-only nil
-	  major-mode 'edmacro-mode
-	  mode-name "Edit Macro")
-    (set (make-local-variable 'edmacro-original-buffer) oldbuf)
-    (set (make-local-variable 'edmacro-replace-function) repl)
-    (set (make-local-variable 'edmacro-replace-argument) arg)
-    (set (make-local-variable 'edmacro-finish-hook) hook)
-    (erase-buffer)
-    (insert "# Keyboard Macro Editor.  Press C-c C-c to finish; press C-x k RET to cancel.\n")
-    (insert "# Original keys: " (key-description mac) "\n\n")
-    (message "Formatting keyboard macro...")
-    (edmacro-print-macro mac local)
-    (switch-to-buffer buf)
-    (goto-char (point-min))
-    (forward-line 3)
-    (recenter '(4))
-    (set-buffer-modified-p nil)
-    (message "Formatting keyboard macro...done")
-    (run-hooks 'edmacro-format-hook)))
+;;; Commands for *Edit Macro* buffer.
 
 (defun edmacro-finish-edit ()
   (interactive)
-  (or (and (boundp 'edmacro-original-buffer)
-	   (boundp 'edmacro-replace-function)
-	   (boundp 'edmacro-replace-argument)
-	   (boundp 'edmacro-finish-hook)
-	   (eq major-mode 'edmacro-mode))
-      (error "This command is valid only in buffers created by `edit-kbd-macro'."))
-  (let ((buf (current-buffer))
-	(str (buffer-string))
-	(func edmacro-replace-function)
-	(arg edmacro-replace-argument)
-	(hook edmacro-finish-hook))
-    (goto-char (point-min))
-    (run-hooks 'edmacro-compile-hook)
-    (and (buffer-modified-p)
-	 func
-	 (progn
-	   (message "Compiling keyboard macro...")
-	   (let ((mac (edmacro-read-macro
-		       (and (buffer-name edmacro-original-buffer)
-			    (save-excursion
-			      (set-buffer edmacro-original-buffer)
-			      (current-local-map))))))
-	     (and (buffer-name edmacro-original-buffer)
-		  (switch-to-buffer edmacro-original-buffer))
-	     (funcall func mac arg))
-	   (message "Compiling keyboard macro...done")))
-    (kill-buffer buf)
-    (if hook
-	(funcall hook arg))))
+  (unless (eq major-mode 'edmacro-mode)
+    (error
+     "This command is valid only in buffers created by `edit-kbd-macro'"))
+  (run-hooks 'edmacro-finish-hook)
+  (let ((cmd nil) (keys nil) (no-keys nil)
+	(top (point-min)))
+    (goto-char top)
+    (let ((case-fold-search nil))
+      (while (cond ((looking-at "[ \t]*\\($\\|;;\\|REM[ \t\n]\\)")
+		    t)
+		   ((looking-at "Command:[ \t]*\\([^ \t\n]*\\)[ \t]*$")
+		    (when edmacro-store-hook
+		      (error "\"Command\" line not allowed in this context"))
+		    (let ((str (buffer-substring (match-beginning 1)
+						 (match-end 1))))
+		      (unless (equal str "")
+			(setq cmd (and (not (equalp str "none"))
+				       (intern str)))
+			(and (fboundp cmd) (not (arrayp (symbol-function cmd)))
+			     (not (y-or-n-p
+				   (format "Command %s is already defined; %s"
+					   cmd "proceed? ")))
+			     (keyboard-quit))))
+		    t)
+		   ((looking-at "Key:\\(.*\\)$")
+		    (when edmacro-store-hook
+		      (error "\"Key\" line not allowed in this context"))
+		    (let ((key (edmacro-parse-keys
+				(buffer-substring (match-beginning 1)
+						  (match-end 1)))))
+		      (unless (equal key "")
+			(if (equalp key "none")
+			    (setq no-keys t)
+			  (push key keys)
+			  (let ((b (key-binding key)))
+			    (and b (commandp b) (not (arrayp b))
+				 (or (not (fboundp b))
+				     (not (arrayp (symbol-function b))))
+				 (not (y-or-n-p
+				       (format "Key %s is already defined; %s"
+					       (edmacro-format-keys key 1)
+					       "proceed? ")))
+				 (keyboard-quit))))))
+		    t)
+		   ((looking-at "Macro:[ \t\n]*")
+		    (goto-char (match-end 0))
+		    nil)
+		   ((eobp) nil)
+		   (t (error "Expected a `Macro:' line")))
+	(forward-line 1))
+      (setq top (point)))
+    (let* ((buf (current-buffer))
+	   (str (buffer-substring top (point-max)))
+	   (modp (buffer-modified-p))
+	   (obuf edmacro-original-buffer)
+	   (store-hook edmacro-store-hook)
+	   (finish-hook edmacro-finish-hook))
+      (unless (or cmd keys store-hook (equal str ""))
+	(error "No command name or keys specified"))
+      (when modp
+	(when (buffer-name obuf)
+	  (set-buffer obuf))
+	(message "Compiling keyboard macro...")
+	(let ((mac (edmacro-parse-keys str)))
+	  (message "Compiling keyboard macro...done")
+	  (if store-hook
+	      (funcall store-hook mac)
+	    (when (eq cmd 'last-kbd-macro)
+	      (setq last-kbd-macro (and (> (length mac) 0) mac))
+	      (setq cmd nil))
+	    (when cmd
+	      (if (= (length mac) 0)
+		  (fmakunbound cmd)
+		(fset cmd mac)))
+	    (if no-keys
+		(when cmd
+		  (loop for key in (where-is-internal cmd nil) do
+			(global-unset-key key)))
+	      (when keys
+		(if (= (length mac) 0)
+		    (loop for key in keys do (global-unset-key key))
+		  (loop for key in keys do
+			(global-set-key key (or cmd mac)))))))))
+      (kill-buffer buf)
+      (when (buffer-name obuf)
+	(switch-to-buffer obuf))
+      (when finish-hook
+	(funcall finish-hook)))))
+
+(defun edmacro-insert-key (key)
+  "Insert the written name of a key in the buffer."
+  (interactive "kKey to insert: ")
+  (if (bolp)
+      (insert (edmacro-format-keys key t) "\n")
+    (insert (edmacro-format-keys key) " ")))
 
 (defun edmacro-mode ()
-  "\\<edmacro-mode-map>Keyboard Macro Editing mode.  Press \\[edmacro-finish-edit] to save and exit.
+  "\\<edmacro-mode-map>Keyboard Macro Editing mode.  Press
+\\[edmacro-finish-edit] to save and exit.
 To abort the edit, just kill this buffer with \\[kill-buffer] RET.
 
-The keyboard macro is represented as a series of M-x style command names.
-Keystrokes which do not correspond to simple M-x commands are written as
-\"type\" commands.  When you press \\[edmacro-finish-edit], edmacro converts each command
-back into a suitable keystroke sequence; \"type\" commands are converted
-directly back into keystrokes."
-  (interactive)
-  (error "This mode can be enabled only by `edit-kbd-macro' or `edit-last-kbd-macro'."))
-(put 'edmacro-mode 'mode-class 'special)
+Press \\[edmacro-insert-key] to insert the name of any key by typing the key.
 
-(if (boundp 'edmacro-mode-map) ()
-  (setq edmacro-mode-map (make-sparse-keymap))
-  (define-key edmacro-mode-map "\C-c\C-c" 'edmacro-finish-edit))
+The editing buffer contains a \"Command:\" line and any number of
+\"Key:\" lines at the top.  These are followed by a \"Macro:\" line
+and the macro itself as spelled-out keystrokes: `C-x C-f foo RET'.
+
+The \"Command:\" line specifies the command name to which the macro
+is bound, or \"none\" for no command name.  Write \"last-kbd-macro\"
+to refer to the current keyboard macro (as used by \\[call-last-kbd-macro]).
+
+The \"Key:\" lines specify key sequences to which the macro is bound,
+or \"none\" for no key bindings.
+
+You can edit these lines to change the places where the new macro
+is stored.
+
+
+Format of keyboard macros during editing:
+
+Text is divided into \"words\" separated by whitespace.  Except for
+the words described below, the characters of each word go directly
+as characters of the macro.  The whitespace that separates words
+is ignored.  Whitespace in the macro must be written explicitly,
+as in \"foo SPC bar RET\".
+
+ * The special words RET, SPC, TAB, DEL, LFD, ESC, and NUL represent
+   special control characters.  The words must be written in uppercase.
+
+ * A word in angle brackets, e.g., <return>, <down>, or <f1>, represents
+   a function key.  (Note that in the standard configuration, the
+   function key <return> and the control key RET are synonymous.)
+   You can use angle brackets on the words RET, SPC, etc., but they
+   are not required there.
+
+ * Keys can be written by their ASCII code, using a backslash followed
+   by up to six octal digits.  This is the only way to represent keys
+   with codes above \\377.
+
+ * One or more prefixes M- (meta), C- (control), S- (shift), A- (alt),
+   H- (hyper), and s- (super) may precede a character or key notation.
+   For function keys, the prefixes may go inside or outside of the
+   brackets:  C-<down> = <C-down>.  The prefixes may be written in
+   any order:  M-C-x = C-M-x.
+
+   Prefixes are not allowed on multi-key words, e.g., C-abc, except
+   that the Meta prefix is allowed on a sequence of digits and optional
+   minus sign:  M--123 = M-- M-1 M-2 M-3.
+
+ * The `^' notation for control characters also works:  ^M = C-m.
+
+ * Double angle brackets enclose command names:  <<next-line>> is
+   shorthand for M-x next-line RET.
+
+ * Finally, REM or ;; causes the rest of the line to be ignored as a
+   comment.
+
+Any word may be prefixed by a multiplier in the form of a decimal
+number and `*':  3*<right> = <right> <right> <right>, and
+10*foo = foofoofoofoofoofoofoofoofoofoo.
+
+Multiple text keys can normally be strung together to form a word,
+but you may need to add whitespace if the word would look like one
+of the above notations:  `; ; ;' is a keyboard macro with three
+semicolons, but `;;;' is a comment.  Likewise, `\\ 1 2 3' is four
+keys but `\\123' is a single key written in octal, and `< right >'
+is seven keys but `<right>' is a single function key.  When in
+doubt, use whitespace."
+  (interactive)
+  (error "This mode can be enabled only by `edit-kbd-macro'"))
+(put 'edmacro-mode 'mode-class 'special)
+
+;;; Formatting a keyboard macro as human-readable text.
+
+(defun edmacro-format-keys (macro &optional verbose)
+  (setq macro (edmacro-fix-menu-commands macro))
+  (let* ((maps (append (current-minor-mode-maps)
+		       (list (current-local-map) (current-global-map))))
+	 (pkeys '(end-macro ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?- ?\C-u
+		  ?\M-- ?\M-0 ?\M-1 ?\M-2 ?\M-3 ?\M-4 ?\M-5 ?\M-6
+		  ?\M-7 ?\M-8 ?\M-9))
+	 (mdigs (nthcdr 13 pkeys))
+	 (maxkey (if edmacro-eight-bits 255 127))
+	 (case-fold-search nil)
+	 (res-words '("NUL" "TAB" "LFD" "RET" "ESC" "SPC" "DEL" "REM"))
+	 (rest-mac (vconcat macro [end-macro]))
+	 (res "")
+	 (len 0)
+	 (one-line (eq verbose 1)))
+    (if one-line (setq verbose nil))
+    (when (stringp macro)
+      (loop for i below (length macro) do
+	    (when (>= (aref rest-mac i) 128)
+	      (incf (aref rest-mac i) (- (lsh 1 23) 128)))))
+    (while (not (eq (aref rest-mac 0) 'end-macro))
+      (let* ((prefix
+	      (or (and (integerp (aref rest-mac 0))
+		       (memq (aref rest-mac 0) mdigs)
+		       (memq (key-binding (subseq rest-mac 0 1))
+			     '(digit-argument negative-argument))
+		       (let ((i 1))
+			 (while (memq (aref rest-mac i) (cdr mdigs))
+			   (incf i))
+			 (and (not (memq (aref rest-mac i) pkeys))
+			      (prog1 (concat "M-" (subseq rest-mac 0 i) " ")
+				(callf subseq rest-mac i)))))
+		  (and (eq (aref rest-mac 0) ?\C-u)
+		       (eq (key-binding [?\C-u]) 'universal-argument)
+		       (let ((i 1))
+			 (while (eq (aref rest-mac i) ?\C-u)
+			   (incf i))
+			 (and (not (memq (aref rest-mac i) pkeys))
+			      (prog1 (loop repeat i concat "C-u ")
+				(callf subseq rest-mac i)))))
+		  (and (eq (aref rest-mac 0) ?\C-u)
+		       (eq (key-binding [?\C-u]) 'universal-argument)
+		       (let ((i 1))
+			 (when (eq (aref rest-mac i) ?-)
+			   (incf i))
+			 (while (memq (aref rest-mac i)
+				      '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
+			   (incf i))
+			 (and (not (memq (aref rest-mac i) pkeys))
+			      (prog1 (concat "C-u " (subseq rest-mac 1 i) " ")
+				(callf subseq rest-mac i)))))))
+	     (bind-len (apply 'max 1
+			      (loop for map in maps
+				    for b = (lookup-key map rest-mac)
+				    when b collect b)))
+	     (key (subseq rest-mac 0 bind-len))
+	     (fkey nil) tlen tkey
+	     (bind (or (loop for map in maps for b = (lookup-key map key)
+			     thereis (and (not (integerp b)) b))
+		       (and (setq fkey (lookup-key function-key-map rest-mac))
+			    (setq tlen fkey tkey (subseq rest-mac 0 tlen)
+				  fkey (lookup-key function-key-map tkey))
+			    (loop for map in maps
+				  for b = (lookup-key map fkey)
+				  when (and (not (integerp b)) b)
+				  do (setq bind-len tlen key tkey)
+				  and return b
+				  finally do (setq fkey nil)))))
+	     (first (aref key 0))
+	     (text (loop for i from bind-len below (length rest-mac)
+			 for ch = (aref rest-mac i)
+			 while (and (integerp ch)
+				    (> ch 32) (< ch maxkey) (/= ch 92)
+				    (eq (key-binding (char-to-string ch))
+					'self-insert-command)
+				    (or (> i (- (length rest-mac) 2))
+					(not (eq ch (aref rest-mac (+ i 1))))
+					(not (eq ch (aref rest-mac (+ i 2))))))
+			 finally return i))
+	     desc)
+	(if (stringp bind) (setq bind nil))
+	(cond ((and (eq bind 'self-insert-command) (not prefix)
+		    (> text 1) (integerp first)
+		    (> first 32) (<= first maxkey) (/= first 92)
+		    (progn
+		      (if (> text 30) (setq text 30))
+		      (setq desc (concat (subseq rest-mac 0 text)))
+		      (when (string-match "^[ACHMsS]-." desc)
+			(setq text 2)
+			(callf substring desc 0 2))
+		      (not (string-match
+			    "^;;\\|^<.*>$\\|^\\\\[0-9]+$\\|^[0-9]+\\*."
+			    desc))))
+	       (when (or (string-match "^\\^.$" desc)
+			 (member desc res-words))
+		 (setq desc (mapconcat 'char-to-string desc " ")))
+	       (when verbose
+		 (setq bind (format "%s * %d" bind text)))
+	       (setq bind-len text))
+	      ((and (eq bind 'execute-extended-command)
+		    (> text bind-len)
+		    (memq (aref rest-mac text) '(return 13))
+		    (progn
+		      (setq desc (concat (subseq rest-mac bind-len text)))
+		      (commandp (intern-soft desc))))
+	       (if (commandp (intern-soft desc)) (setq bind desc))
+	       (setq desc (format "<<%s>>" desc))
+	       (setq bind-len (1+ text)))
+	      (t
+	       (setq desc (mapconcat
+			   (function
+			    (lambda (ch)
+			      (cond
+			       ((integerp ch)
+				(concat
+				 (loop for pf across "ACHMsS"
+				       for bit in '(18 22 20 23 19 21)
+				       when (/= (logand ch (lsh 1 bit)) 0)
+				       concat (format "%c-" pf))
+				 (let ((ch2 (logand ch (1- (lsh 1 18)))))
+				   (cond ((<= ch2 32)
+					  (case ch2
+					    (0 "NUL") (9 "TAB") (10 "LFD")
+					    (13 "RET") (27 "ESC") (32 "SPC")
+					    (t
+					     (format "C-%c"
+						     (+ (if (<= ch2 26) 96 64)
+							ch2)))))
+					 ((= ch2 127) "DEL")
+					 ((<= ch2 maxkey) (char-to-string ch2))
+					 (t (format "\\%o" ch2))))))
+			       ((symbolp ch)
+				(format "<%s>" ch))
+			       (t
+				(error "Unrecognized item in macro: %s" ch)))))
+			   (or fkey key) " "))))
+	(if prefix (setq desc (concat prefix desc)))
+	(unless (string-match " " desc)
+	  (let ((times 1) (pos bind-len))
+	    (while (not (mismatch rest-mac rest-mac
+				  :end1 bind-len :start2 pos
+				  :end2 (+ bind-len pos)))
+	      (incf times)
+	      (incf pos bind-len))
+	    (when (> times 1)
+	      (setq desc (format "%d*%s" times desc))
+	      (setq bind-len (* bind-len times)))))
+	(setq rest-mac (subseq rest-mac bind-len))
+	(if verbose
+	    (progn
+	      (unless (equal res "") (callf concat res "\n"))
+	      (callf concat res desc)
+	      (when (and bind (or (stringp bind) (symbolp bind)))
+		(callf concat res
+		  (make-string (max (- 3 (/ (length desc) 8)) 1) 9)
+		  ";; " (if (stringp bind) bind (symbol-name bind))))
+	      (setq len 0))
+	  (if (and (> (+ len (length desc) 2) 72) (not one-line))
+	      (progn
+		(callf concat res "\n ")
+		(setq len 1))
+	    (unless (equal res "")
+	      (callf concat res " ")
+	      (incf len)))
+	  (callf concat res desc)
+	  (incf len (length desc)))))
+    res))
+
+(defun edmacro-fix-menu-commands (macro)
+  (when (vectorp macro)
+    (let ((i 0) ev)
+      (while (< i (length macro))
+	(when (consp (setq ev (aref macro i)))
+	  (cond ((equal (cadadr ev) '(menu-bar))
+		 (setq macro (vconcat (subseq macro 0 i)
+				      (vector 'menu-bar (car ev))
+				      (subseq macro (1+ i))))
+		 (incf i))
+		;; It would be nice to do pop-up menus, too, but not enough
+		;; info is recorded in macros to make this possible.
+		(t
+		 (error "Macros with mouse clicks are not %s"
+			"supported by this command"))))
+	(incf i))))
+  macro)
+
+;;; Parsing a human-readable keyboard macro.
+
+(defun edmacro-parse-keys (string &optional need-vector)
+  (let ((case-fold-search nil)
+	(pos 0)
+	(res []))
+    (while (and (< pos (length string))
+		(string-match "[^ \t\n\f]+" string pos))
+      (let ((word (substring string (match-beginning 0) (match-end 0)))
+	    (key nil)
+	    (times 1))
+	(setq pos (match-end 0))
+	(when (string-match "\\([0-9]+\\)\\*." word)
+	  (setq times (string-to-int (substring word 0 (match-end 1))))
+	  (setq word (substring word (1+ (match-end 1)))))
+	(cond ((string-match "^<<.+>>$" word)
+	       (setq key (vconcat (if (eq (key-binding [?\M-x])
+					  'execute-extended-command)
+				      [?\M-x]
+				    (or (car (where-is-internal
+					      'execute-extended-command))
+					[?\M-x]))
+				  (substring word 2 -2) "\r")))
+	      ((and (string-match "^\\(\\([ACHMsS]-\\)*\\)<\\(.+\\)>$" word)
+		    (progn
+		      (setq word (concat (substring word (match-beginning 1)
+						    (match-end 1))
+					 (substring word (match-beginning 3)
+						    (match-end 3))))
+		      (not (string-match
+			    "\\<\\(NUL\\|RET\\|LFD\\|ESC\\|SPC\\|DEL\\)$"
+			    word))))
+	       (setq key (list (intern word))))
+	      ((or (equal word "REM") (string-match "^;;" word))
+	       (setq pos (string-match "$" string pos)))
+	      (t
+	       (let ((orig-word word) (prefix 0) (bits 0))
+		 (while (string-match "^[ACHMsS]-." word)
+		   (incf bits (lsh 1 (cdr (assq (aref word 0)
+						'((?A . 18) (?C . 22)
+						  (?H . 20) (?M . 23)
+						  (?s . 19) (?S . 21))))))
+		   (incf prefix 2)
+		   (callf substring word 2))
+		 (when (string-match "^\\^.$" word)
+		   (incf bits (lsh 1 22))
+		   (incf prefix)
+		   (callf substring word 1))
+		 (let ((found (assoc word '(("NUL" . "\0") ("RET" . "\r")
+					    ("LFD" . "\n") ("TAB" . "\t")
+					    ("ESC" . "\e") ("SPC" . " ")
+					    ("DEL" . "\177")))))
+		   (when found (setq word (cdr found))))
+		 (when (string-match "^\\\\[0-7]+$" word)
+		   (loop for ch across word
+			 for n = 0 then (+ (* n 8) ch -48)
+			 finally do (setq word (vector n))))
+		 (cond ((= bits 0)
+			(setq key word))
+		       ((and (= bits (lsh 1 23)) (stringp word)
+			     (string-match "^-?[0-9]+$" word))
+			(setq key (loop for x across word collect (+ x bits))))
+		       ((/= (length word) 1)
+			(error "%s must prefix a single character, not %s"
+			       (substring orig-word 0 prefix) word))
+		       ((and (/= (logand bits (lsh 1 22)) 0) (stringp word)
+			     (string-match "[@-_.a-z?]" word))
+			(setq key (list (+ bits (- (lsh 1 22))
+					   (if (equal word "?") 127
+					     (logand (aref word 0) 31))))))
+		       (t
+			(setq key (list (+ bits (aref word 0)))))))))
+	(when key
+	  (loop repeat times do (callf vconcat res key)))))
+    (when (and (>= (length res) 4)
+	       (eq (aref res 0) ?\C-x)
+	       (eq (aref res 1) ?\()
+	       (eq (aref res (- (length res) 2)) ?\C-x)
+	       (eq (aref res (- (length res) 1)) ?\)))
+      (setq res (subseq res 2 -2)))
+    (if (and (not need-vector)
+	     (loop for ch across res
+		   always (and (integerp ch)
+			       (let ((ch2 (logand ch (lognot (lsh 1 23)))))
+				 (and (>= ch2 0) (<= ch2 127))))))
+	(concat (loop for ch across res
+		      collect (if (= (logand ch (lsh 1 23)) 0)
+				  ch (+ ch 128))))
+      res)))
+
+;;; The following probably ought to go in macros.el:
+
+;;;###autoload
+(defun insert-kbd-macro (macroname &optional keys)
+  "Insert in buffer the definition of kbd macro NAME, as Lisp code.
+Optional second arg KEYS means also record the keys it is on
+\(this is the prefix argument, when calling interactively).
+
+This Lisp code will, when executed, define the kbd macro with the same
+definition it has now.  If you say to record the keys, the Lisp code
+will also rebind those keys to the macro.  Only global key bindings
+are recorded since executing this Lisp code always makes global
+bindings.
+
+To save a kbd macro, visit a file of Lisp code such as your `~/.emacs',
+use this command, and then save the file."
+  (interactive "CInsert kbd macro (name): \nP")
+  (let (definition)
+    (if (string= (symbol-name macroname) "")
+	(progn
+	  (setq definition (format-kbd-macro))
+	  (insert "(setq last-kbd-macro"))
+      (setq definition (format-kbd-macro macroname))
+      (insert (format "(defalias '%s" macroname)))
+    (if (> (length definition) 50)
+	(insert " (read-kbd-macro\n")
+      (insert "\n  (read-kbd-macro "))
+    (prin1 definition (current-buffer))
+    (insert "))\n")
+    (if keys
+	(let ((keys (where-is-internal macroname nil)))
+	  (while keys
+	    (insert (format "(global-set-key %S '%s)\n" (car keys) macroname))
+	    (setq keys (cdr keys)))))))
+
+(provide 'edmacro)
 
 ;;; edmacro.el ends here
+
