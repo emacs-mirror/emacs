@@ -279,13 +279,25 @@ to read a file name from the minibuffer."
 ;; of the merged dir text.
 (defvar Info-dir-contents-directory nil)
 
+;; Record the file attributes of all the files from which we
+;; constructed Info-dir-contents.
+(defvar Info-dir-file-attributes nil)
+
 ;; Construct the Info directory node by merging the files named `dir'
 ;; from various directories.  Set the *info* buffer's
 ;; default-directory to the first directory we actually get any text
 ;; from.
 (defun Info-insert-dir ()
-  (if Info-dir-contents
+  (if (and Info-dir-contents Info-dir-file-attributes
+	   ;; Verify that none of the files we used has changed
+	   ;; since we used it.
+	   (eval (cons 'and
+		       (mapcar '(lambda (elt)
+				  (equal (cdr elt)
+					 (file-attributes (car elt))))
+			       Info-dir-file-attributes))))
       (insert Info-dir-contents)
+    (recursive-edit)
     (let ((dirs Info-directory-list)
 	  buffers buffer others nodes dirs-done)
 
@@ -316,7 +328,11 @@ to read a file name from the minibuffer."
 			  (cons (directory-file-name
 				 (file-truename (expand-file-name (car dirs))))
 				dirs-done)))
-	      (if buffer (setq buffers (cons buffer buffers)))))
+	      (if buffer (setq buffers (cons buffer buffers)
+			       Info-dir-file-attributes
+			       (cons (cons (buffer-file-name buffer)
+					   (file-attributes (buffer-file-name buffer)))
+				     Info-dir-file-attributes)))))
 	(setq dirs (cdr dirs)))
 
       ;; Distinguish the dir file that comes with Emacs from all the
