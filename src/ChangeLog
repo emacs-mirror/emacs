@@ -1,3 +1,8 @@
+2002-02-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* term.c (term_get_fkeys_1): If `k0' and `k;' are both specified and
+	with the same sequence, map that sequence to f10 rather than f0.
+
 2002-02-03  Andreas Schwab  <schwab@suse.de>
 
 	* s/gnu-linux.h: Check for __mc68000__ instead of __m68k__, the
@@ -11,8 +16,8 @@
 
 2002-02-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* keyboard.c (command_loop_1) [HAVE_X_WINDOWS]: Call
-	cancel_hourglass unconditionally.
+	* keyboard.c (command_loop_1) [HAVE_X_WINDOWS]:
+	Call cancel_hourglass unconditionally.
 
 	* eval.c (Fsignal): Remove duplicated declaration of
 	the variable `display_hourglass_p'.
@@ -34,8 +39,8 @@
 2002-01-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* minibuf.c (Fread_from_minibuffer, Fread_command, Fread_function)
-	(Fread_variable, Fread_buffer, minibuffer-completion-confirm): Fix
-	doc-strings.
+	(Fread_variable, Fread_buffer, minibuffer-completion-confirm):
+	Fix doc-strings.
 
 2002-01-26  Richard M. Stallman  <rms@gnu.org>
 
@@ -132,8 +137,8 @@
 	the user requests it.  Use system default width when creating.
 	<WM_EMACS_HIDE_CARET, WM_EMACS_SHOW_CARET>: Handle new messages.
 
-	* w32term.h (WM_EMACS_SHOW_CARET, WM_EMACS_HIDE_CARET): New
-	window messages.
+	* w32term.h (WM_EMACS_SHOW_CARET, WM_EMACS_HIDE_CARET):
+	New window messages.
 
 2002-01-20  Richard M. Stallman  <rms@gnu.org>
 
@@ -177,7 +182,7 @@
 
 2002-01-18  Richard M. Stallman  <rms@gnu.org>
 
-	* dispextern.h (WINDOW_WANTS_MODELINE_P): Check window height > 1. 
+	* dispextern.h (WINDOW_WANTS_MODELINE_P): Check window height > 1.
 	(WINDOW_WANTS_HEADER_LINE_P): Check window height provides room.
 
 2002-01-17  Richard M. Stallman  <rms@gnu.org>
@@ -199,7 +204,7 @@
 	is invisible.  This can happen if cursor is on top line of a
 	window, and we switch to a buffer with a header line.
 
-	* w32term.c (x_erase_phys_cursor): ditto.
+	* w32term.c (x_erase_phys_cursor): Ditto.
 
 2002-01-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -223,8 +228,7 @@
 	* lisp.h (adjust_after_replace_noundo)
 	(Fupdate_coding_systems_internal): Add prototypes.
 
-	* sound.c (Fplay_sound): Initialize header_size also for :data
-        case.
+	* sound.c (Fplay_sound): Initialize header_size also for :data case.
 
 2002-01-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -260,8 +264,8 @@
 	* emacs.c (USAGE2): Add the new full-screen arguments.
 	(standard_args): Ditto.
 
-	* xfns.c (Qfullscreen, Qfullwidth, Qfullheight, Qfullboth): New
-	variables.
+	* xfns.c (Qfullscreen, Qfullwidth, Qfullheight, Qfullboth):
+	New variables.
 	(syms_of_xfns): Intern and staticpro them.
 	(x_frame_parms) <"fullscreen">: New parameter.
 	(x_fullscreen_move, x_set_fullscreen): New functions.
@@ -272,8 +276,8 @@
 
 	* xterm.c (x_check_fullscreen, x_fullscreen_adjust): New functions.
 	(XTread_socket) <Expose>: Call x_check_fullscreen.
-	<ConfigureNotify>: Don't resize to fullscreen.  Call
-	x_check_fullscreen_move, and set the want_fullscreen member of
+	<ConfigureNotify>: Don't resize to fullscreen.
+	Call x_check_fullscreen_move, and set the want_fullscreen member of
 	output_data.x.
 
 2002-01-13  Jason Rumney  <jasonr@gnu.org>
@@ -290,8 +294,7 @@
 
 2002-01-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* keyboard.c (read_key_sequence): Remove unused variable
-	`extra_maps'.
+	* keyboard.c (read_key_sequence): Remove unused variable `extra_maps'.
 
 2002-01-13  Andreas Schwab  <schwab@suse.de>
 
