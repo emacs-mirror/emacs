@@ -1956,8 +1956,13 @@ Please contact your system administrator. "
 		(progn
 		  (while (and (not (eolp))
 			      (re-search-forward pat eol-mark t))
-		    (if (or (not opt-c) (y-or-n-p "Replace? "))
+		    (if (or (not opt-c)
+			    (progn
+			      (viper-put-on-search-overlay (match-beginning 0)
+							   (match-end 0))
+			      (y-or-n-p "Replace? ")))
 			(progn
+			  (viper-hide-search-overlay)
 			  (setq matched-pos (point))
 			  (if (not (stringp repl))
 			      (error "Can't perform Ex substitution: No previous replacement pattern"))
@@ -1968,8 +1973,13 @@ Please contact your system administrator. "
 		  (error
 		   "Can't repeat Ex substitution: No previous regular expression"))
 	      (if (and (re-search-forward pat eol-mark t)
-		       (or (not opt-c) (y-or-n-p "Replace? ")))
+		       (or (not opt-c)
+			   (progn
+			     (viper-put-on-search-overlay (match-beginning 0)
+							  (match-end 0))
+			     (y-or-n-p "Replace? "))))
 		  (progn
+		    (viper-hide-search-overlay)
 		    (setq matched-pos (point))
 		    (if (not (stringp repl))
 			(error "Can't perform Ex substitution: No previous replacement pattern"))

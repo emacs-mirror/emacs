@@ -1,3 +1,10 @@
+2000-04-07  Mikio Nakajima  <minakaji@osaka.email.ne.jp>
+
+	* viper-util.el (viper-put-on-search-overlay): New subroutine.
+	(viper-flash-search-pattern): No operation when using Emacs
+	doesn't support face. 
+	Use `viper-put-on-search-overlay'.
+	
 2000-04-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* isearch.el (isearch-mode-map): Define M-C-s like C-s and M-C-r

@@ -680,25 +680,31 @@
     
 
 ;;; Overlays
+(defun viper-put-on-search-overlay (beg end)
+  (if (viper-overlay-p viper-search-overlay)
+      (viper-move-overlay viper-search-overlay beg end)
+    (setq viper-search-overlay (viper-make-overlay beg end (current-buffer)))
+    (viper-overlay-put
+     viper-search-overlay 'priority viper-search-overlay-priority))
+  (viper-overlay-put viper-search-overlay 'face viper-search-face))
 
 ;; Search
 
 (defun viper-flash-search-pattern ()
-  (if (viper-overlay-p viper-search-overlay)
-      (viper-move-overlay
-       viper-search-overlay (match-beginning 0) (match-end 0))
-    (setq viper-search-overlay
-	  (viper-make-overlay
-	   (match-beginning 0) (match-end 0) (current-buffer))))
-  
-  (viper-overlay-put
-   viper-search-overlay 'priority viper-search-overlay-priority)
-  (if (viper-has-face-support-p)
-      (progn
-	(viper-overlay-put viper-search-overlay 'face viper-search-face)
-	(sit-for 2)
-	(viper-overlay-put viper-search-overlay 'face nil))))
+  (if (not (viper-has-face-support-p))
+      nil
+    (viper-put-on-search-overlay (match-beginning 0) (match-end 0))
+    (sit-for 2)
+    (viper-overlay-put viper-search-overlay 'face nil)))
 
+(defun viper-hide-search-overlay ()
+  (if (not (viper-overlay-p viper-search-overlay))
+      (progn
+	(setq viper-search-overlay
+	      (viper-make-overlay beg end (current-buffer)))
+	(viper-overlay-put
+	 viper-search-overlay 'priority viper-search-overlay-priority)))
+  (viper-overlay-put viper-search-overlay 'face nil))
 
 ;; Replace state
 
