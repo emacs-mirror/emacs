@@ -109,6 +109,8 @@
 
 ;;; Code:
 
+(require 'cc-mode)
+
 (defvar hide-ifdef-mode-submap nil
   "Keymap used with Hide-Ifdef mode.")
 
@@ -1033,6 +1035,8 @@ Set top and bottom of ifdef block."
 		      (cdr define-list)))
       (error "No define list for %s" name))
     (if hide-ifdef-hiding (hide-ifdefs))))
+
+(provide 'hideif)
 
 ;;; hideif.el ends here
 
