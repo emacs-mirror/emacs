@@ -1,3 +1,8 @@
+2000-05-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* config.bat: Identify the beginning of the cpp stuff in
+	src/Makefile.in and lib-src/Makefile.in more accurately.
+
 2000-04-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in: Add support for `powerpc*-*-linux-gnu*'.

@@ -1,3 +1,7 @@
+2000-05-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mainmake.v2 (install): Install ebrowse.exe.
+
 2000-04-14  Dave Love  <fx@gnu.org>
 
 	* sed1v2.inp, sed1.inp: Add LIBS, LIBOBJS.
