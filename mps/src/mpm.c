@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.5) $
+ * $HopeName: MMsrc!mpm.c(trunk.6) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -13,7 +13,7 @@
 
 #include "mpm.h"
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.5) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.6) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -48,6 +48,35 @@ Bool MPMCheck(void)
   CHECKL(SizeLog2(131072L) == 17);
 
   return TRUE;  
+}
+
+
+/* BoolCheck -- check that a boolean is valid */
+
+Bool BoolCheck(Bool b)
+{
+  AVER(b == TRUE || b == FALSE);
+  return TRUE;
+}
+
+
+/* FunCheck -- check that a function pointer is valid */
+
+Bool FunCheck(Fun f)
+{
+  AVER(f != NULL);
+  /* Could assert various platform-specific things here. */
+  return TRUE;
+}
+
+
+/* AttrCheck -- check that a set of pool attributes are valid */
+
+Bool AttrCheck(Attr attr)
+{
+  AVER(((attr) & ~AttrMASK) == 0);
+  /* Could check for legal combinations of attributes. */
+  return TRUE;
 }
 
 

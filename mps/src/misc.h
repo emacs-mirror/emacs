@@ -1,6 +1,6 @@
 /* impl.h.misc: MISCELLANEOUS DEFINITIONS
  *
- * $HopeName: MMsrc!misc.h(trunk.5) $
+ * $HopeName: MMsrc!misc.h(trunk.6) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * Small general things which are useful for C but aren't part of the
@@ -52,22 +52,6 @@ typedef const struct SrcIdStruct {
 #define END             } while(0)
 
 
-/* Bool -- boolean type
- *
- * Using a boolean type in C is a tricky thing.  Non-zero values are
- * "true" but are not all equal to TRUE.  The Bool type is therefore
- * mostly defined so that the intention of the code is clearer.
- * Use with care.
- */
-
-typedef int Bool;               /* boolean type */
-enum
-{
-  FALSE = 0,
-  TRUE = 1
-};
-#define BoolCheck(b)            ((b) == TRUE || (b) == FALSE)
-
 /* NOOP -- null statement
  *
  * Do not be tempted to use NULL, or just semicolon as the null
@@ -103,42 +87,5 @@ enum
 #define PARENT(type, field, p) \
   ((type *)((char *)(p) - offsetof(type, field)))
 
-
-/* Object Signatures
- *
- * .sig: Signatures are magic numbers which are written into structures
- * when they are created and invalidated (by overwriting with
- * SigInvalid) when they are destroyed.  They provide a limited form
- * of run-time type checking and dynamic scope checking.
- *
- * .sig.form: The first three hex digits of signatures should be 519
- * (which resembles "SIG"), and should be chosen to be mnemonic when
- * viewed in hex, so that structures can be recognized visually when
- * debugging and dumping memory.
- */
-
-typedef unsigned long Sig;
-#define SigInvalid      ((Sig)0x51915BAD)
-
-
-/* Res -- Result Code
- *
- * .res: See also impl.h.mps.res, impl.c.mpsi.check.res.
- */
-
-typedef int Res;                /* result code type */
-enum {
-  ResOK = 0,                    /* success */
-  ResFAIL,                      /* unspecified failure */
-  ResRESOURCE,                  /* unable to obtain resources */
-  ResMEMORY,                    /* unable to obtain memory */
-  ResLIMIT,                     /* internal limitation reached */
-  ResUNIMPL,                    /* unimplemented facility */
-  ResIO                         /* system I/O error */
-};
-
-
-/* Functions - no type */
-#define FunctionCheck(fun)      ((fun) != NULL) /* Could do more ? */
 
 #endif /* misc_h */
