@@ -101,6 +101,8 @@ int vms_stmlf_recfm;
 
 Lisp_Object Qfile_error, Qfile_already_exists;
 
+Lisp_Object Qfile_name_history;
+
 report_file_error (string, data)
      char *string;
      Lisp_Object data;
@@ -2941,7 +2943,7 @@ DIR defaults to current buffer's directory default.")
   (prompt, dir, defalt, mustmatch, initial)
      Lisp_Object prompt, dir, defalt, mustmatch, initial;
 {
-  Lisp_Object val, insdef, tem, backup_n;
+  Lisp_Object val, insdef, tem;
   struct gcpro gcpro1, gcpro2;
   register char *homedir;
   int count;
@@ -2968,21 +2970,17 @@ DIR defaults to current buffer's directory default.")
       insdef = dir;
       if (!NILP (initial))
 	{
-	  Lisp_Object args[2];
+	  Lisp_Object args[2], pos;
 
 	  args[0] = insdef;
 	  args[1] = initial;
 	  insdef = Fconcat (2, args);
-	  backup_n = make_number (- (XSTRING (initial)->size));
+	  pos = make_number (XSTRING (dir)->size);
+	  insdef = Fcons (insdef, pos);
 	}
-      else
-	backup_n = Qnil;
     }
   else
-    {
-      insdef = build_string ("");
-      backup_n = Qnil;
-    }
+    insdef = build_string ("");
 
 #ifdef VMS
   count = specpdl_ptr - specpdl;
@@ -2992,7 +2990,8 @@ DIR defaults to current buffer's directory default.")
   GCPRO2 (insdef, defalt);
   val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
 			  dir, mustmatch,
-			  insert_default_directory ? insdef : Qnil, backup_n);
+			  insert_default_directory ? insdef : Qnil,
+			  Qfile_name_history);
 
 #ifdef VMS
   unbind_to (count, Qnil);
@@ -3057,7 +3056,8 @@ DIR defaults to current buffer's directory default.")
   GCPRO2 (insdef, defalt);
   val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
 			  dir, mustmatch,
-			  insert_default_directory ? insdef : Qnil, Qnil);
+			  insert_default_directory ? insdef : Qnil,
+			  Qfile_name_history);
 
 #ifdef VMS
   unbind_to (count, Qnil);
@@ -3095,6 +3095,31 @@ syms_of_fileio ()
   Qinsert_file_contents = intern ("insert-file-contents");
   Qwrite_region = intern ("write-region");
   Qverify_visited_file_modtime = intern ("verify-visited-file-modtime");
+
+  Qfile_name_history = intern ("file-name-history");
+  Fset (Qfile_name_history, Qnil);
+
+  staticpro (&Qcopy_file);
+  staticpro (&Qmake_directory);
+  staticpro (&Qdelete_directory);
+  staticpro (&Qdelete_file);
+  staticpro (&Qrename_file);
+  staticpro (&Qadd_name_to_file);
+  staticpro (&Qmake_symbolic_link);
+  staticpro (&Qfile_exists_p);
+  staticpro (&Qfile_executable_p);
+  staticpro (&Qfile_readable_p);
+  staticpro (&Qfile_symlink_p);
+  staticpro (&Qfile_writable_p);
+  staticpro (&Qfile_directory_p);
+  staticpro (&Qfile_accessible_directory_p);
+  staticpro (&Qfile_modes);
+  staticpro (&Qset_file_modes);
+  staticpro (&Qfile_newer_than_file_p);
+  staticpro (&Qinsert_file_contents);
+  staticpro (&Qwrite_region);
+  staticpro (&Qverify_visited_file_modtime);
+  staticpro (&Qfile_name_history);
 
   Qfile_error = intern ("file-error");
   staticpro (&Qfile_error);

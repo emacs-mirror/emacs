@@ -1515,6 +1515,11 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	  val = (*XSUBR (fun)->function) (argvals[0], argvals[1], argvals[2],
 					  argvals[3], argvals[4], argvals[5]);
 	  goto done;
+	case 7:
+	  val = (*XSUBR (fun)->function) (argvals[0], argvals[1], argvals[2],
+					  argvals[3], argvals[4], argvals[5],
+					  argvals[6]);
+	  goto done;
 
 	default:
 	  /* Someone has created a subr that takes more arguments than
@@ -1845,6 +1850,12 @@ Thus, (funcall 'cons 'x 'y) returns (x . y).")
 	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1],
 					  internal_args[2], internal_args[3],
 					  internal_args[4], internal_args[5]);
+	  goto done;
+	case 7:
+	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1],
+					  internal_args[2], internal_args[3],
+					  internal_args[4], internal_args[5],
+					  internal_args[6]);
 	  goto done;
 
 	default:
