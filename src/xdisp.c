@@ -2976,7 +2976,6 @@ back_to_previous_visible_line_start (it)
 	  && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
 				it->selective))
 	visible_p = 0;
-#ifdef USE_TEXT_PROPERTIES
       else 
 	{
 	  Lisp_Object prop;
@@ -2985,7 +2984,6 @@ back_to_previous_visible_line_start (it)
 	  if (TEXT_PROP_MEANS_INVISIBLE (prop))
 	    visible_p = 0;
 	}
-#endif /* USE_TEXT_PROPERTIES  */
 
       /* Back one more newline if the current one is invisible.  */
       if (!visible_p)
@@ -4404,7 +4402,6 @@ invisible_text_between_p (it, start_charpos, end_charpos)
      struct it *it;
      int start_charpos, end_charpos;
 {
-#ifdef USE_TEXT_PROPERTIES
   Lisp_Object prop, limit;
   int invisible_found_p;
   
@@ -4424,10 +4421,6 @@ invisible_text_between_p (it, start_charpos, end_charpos)
     }
 
   return invisible_found_p;
-  
-#else /* not USE_TEXT_PROPERTIES */
-  return 0;
-#endif /* not USE_TEXT_PROPERTIES */
 }
 
 
@@ -5518,10 +5511,13 @@ resize_mini_window (w, exact_p)
       max_height = min (total_height, max_height);
       
       /* Find out the height of the text in the window.  */
+      last_height = 0;
       move_it_to (&it, ZV, -1, -1, -1, MOVE_TO_POS);
-      height = ((unit - 1 + it.current_y + it.max_ascent + it.max_descent)
-		/ unit);
-      height = max (1, height);
+      if (it.max_ascent == 0 && it.max_descent == 0)
+	height = it.current_y + last_height;
+      else
+	height = it.current_y + it.max_ascent + it.max_descent;
+      height = (height + unit - 1) / unit;
       
       /* Compute a suitable window start.  */
       if (height > max_height)
