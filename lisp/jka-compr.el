@@ -206,20 +206,19 @@ based on the filename itself and `jka-compr-compression-info-list'."
 
   (let ((errbuf (get-buffer-create " *jka-compr-error*"))
 	(curbuf (current-buffer)))
-    (set-buffer errbuf)
-    (widen) (erase-buffer)
-    (insert (format "Error while executing \"%s %s < %s\"\n\n"
-		     prog
-		     (mapconcat 'identity args " ")
-		     infile))
+    (with-current-buffer errbuf
+      (widen) (erase-buffer)
+      (insert (format "Error while executing \"%s %s < %s\"\n\n"
+		      prog
+		      (mapconcat 'identity args " ")
+		      infile))
 
-     (and errfile
-	  (insert-file-contents errfile))
-
-     (set-buffer curbuf)
+      (and errfile
+	   (insert-file-contents errfile)))
      (display-buffer errbuf))
 
-  (signal 'compression-error (list "Opening input file" (format "error %s" message) infile)))
+  (signal 'compression-error
+	  (list "Opening input file" (format "error %s" message) infile)))
 			
    
 (defvar jka-compr-dd-program
@@ -305,11 +304,9 @@ to keep: LEN chars starting BEG chars from the beginning."
 	(jka-compr-error prog args infile message))
 
     (and (stringp output)
-	 (let ((cbuf (current-buffer)))
-	   (set-buffer temp)
+	 (with-current-buffer temp
 	   (write-region (point-min) (point-max) output)
-	   (erase-buffer)
-	   (set-buffer cbuf)))))
+	   (erase-buffer)))))
 
 
 ;;; Support for temp files.  Much of this was inspired if not lifted
@@ -381,13 +378,11 @@ There should be no more than seven characters after the final `/'")
 		(compress-args (jka-compr-info-compress-args info))
 		(uncompress-args (jka-compr-info-uncompress-args info))
 		(base-name (file-name-nondirectory visit-file))
-		temp-file cbuf temp-buffer)
+		temp-file temp-buffer)
 
-	    (setq cbuf (current-buffer)
-		  temp-buffer (get-buffer-create " *jka-compr-wr-temp*"))
-	    (set-buffer temp-buffer)
-	    (widen) (erase-buffer)
-	    (set-buffer cbuf)
+	    (setq temp-buffer (get-buffer-create " *jka-compr-wr-temp*"))
+	    (with-current-buffer temp-buffer
+	      (widen) (erase-buffer))
 
 	    (if (and append
 		     (not can-append)
@@ -415,13 +410,12 @@ There should be no more than seven characters after the final `/'")
 				    nil
 				    compress-args)
 
-	    (set-buffer temp-buffer)
-	    (jka-compr-run-real-handler 'write-region
-					(list (point-min) (point-max)
-					      filename
-					      (and append can-append) 'dont))
-	    (erase-buffer)
-	    (set-buffer cbuf)
+	    (with-current-buffer temp-buffer
+	      (jka-compr-run-real-handler 'write-region
+					  (list (point-min) (point-max)
+						filename
+						(and append can-append) 'dont))
+	      (erase-buffer))
 
 	    (jka-compr-delete-temp-file temp-file)
 
@@ -586,20 +580,17 @@ There should be no more than seven characters after the final `/'")
 	      (temp-file (jka-compr-make-temp-name t))
 	      (temp-buffer (get-buffer-create " *jka-compr-flc-temp*"))
 	      (notfound nil)
-	      (cbuf (current-buffer))
 	      local-file)
 
 	  (setq local-file (or local-copy filename))
 
 	  (unwind-protect
 
-	      (progn
+	      (with-current-buffer temp-buffer
 		  
 		(and
 		 uncompress-message
 		 (message "%s %s..." uncompress-message base-name))
-
-		(set-buffer temp-buffer)
 		  
 		(jka-compr-call-process uncompress-program
 					(concat uncompress-message
@@ -621,7 +612,6 @@ There should be no more than seven characters after the final `/'")
 	     (file-exists-p local-copy)
 	     (delete-file local-copy))
 
-	    (set-buffer cbuf)
 	    (kill-buffer temp-buffer))
 
 	  temp-file)
