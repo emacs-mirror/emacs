@@ -724,7 +724,10 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag)
 	  continue;
 	}
       if (c < 0) break;
-      if (c == ' ' || c == '\t' || c == '\n' || c == '\f') continue;
+
+      /* Ignore whitespace here, so we can detect eof.  */
+      if (c == ' ' || c == '\t' || c == '\n' || c == '\f' || c == '\r')
+	continue;
 
       if (!NILP (Vpurify_flag) && c == '(')
 	{
