@@ -234,9 +234,6 @@ NOTE-END
 
 #define XPNTR(a) XUINT (a)
 
-/* Declare malloc and realloc in a way that is clean.
-   But not in makefiles!  */
-
 #ifndef NOT_C_CODE
 /* We need these because pointers are larger than the default ints.  */
 #if !defined(__NetBSD__) && !defined(__OpenBSD__)
@@ -255,20 +252,6 @@ NOTE-END
 #undef bcopy
 #undef bzero
 #undef bcmp
-
-/* We need to prototype these for the lib-src programs even if we don't
-   use the system malloc for the Emacs proper.  */
-#ifdef _MALLOC_INTERNAL
-/* These declarations are designed to match the ones in gmalloc.c.  */
-#if defined (__STDC__) && __STDC__
-extern void *malloc (), *realloc (), *calloc ();
-#else
-extern char *malloc (), *realloc (), *calloc ();
-#endif
-#else /* not _MALLOC_INTERNAL */
-extern void *malloc (), *realloc (), *calloc ();
-#endif /* not _MALLOC_INTERNAL */
-
 
 extern long *xmalloc (), *xrealloc ();
 
