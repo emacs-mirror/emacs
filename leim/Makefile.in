@@ -37,12 +37,12 @@ dot = .
 
 # Which Emacs to use to convert TIT files to Emacs Lisp files,
 # byte-compile Emacs Lisp files, and generate the file leim-list.el.
-EMACS = ${dot}${dot}/src/emacs
+BUILT-EMACS = ${dot}${dot}/src/emacs
 
 buildlisppath=${srcdir}/${dot}${dot}/lisp
 
 # How to run Emacs.
-RUN-EMACS = ${EMACS} -batch --no-init-file --no-site-file
+RUN-EMACS = ${BUILT-EMACS} -batch --no-init-file --no-site-file
 
 # Subdirectories to be made if ${srcdir} is different from the current
 # directory.
@@ -122,7 +122,7 @@ WORLD=${ASIA} ${EUROPEAN} ${MISC}
 TIT=${CHINESE-TIT}
 NON-TIT=${CHINESE-NON-TIT} ${JAPANESE} ${KOREAN} ${EUROPEAN} ${MISC}
 
-all: ${EMACS} ${SUBDIRS} ${TIT} leim-list.el
+all: ${BUILT-EMACS} ${SUBDIRS} ${TIT} leim-list.el
 
 # To ensure that we can run Emacs.  This target is ignored (never
 # being hit) if a user changes default value of EMACS.
