@@ -929,6 +929,52 @@ window_box_edges (w, area, top_left_x, top_left_y,
 			      Utilities
  ***********************************************************************/
 
+/* Return 1 if position CHARPOS is visible in window W.
+   Set *FULLY to 1 if POS is visible and the line containing
+   POS is fully visible.  */
+
+int
+pos_visible_p (w, charpos, fully)
+     struct window *w;
+     int charpos, *fully;
+{
+  struct it it;
+  struct text_pos top;
+  int visible_p, bottom_y;
+
+  *fully = visible_p = 0;
+  SET_TEXT_POS_FROM_MARKER (top, w->start);
+  start_display (&it, w, top);
+
+  move_it_to (&it, charpos, 0, it.last_visible_y, -1,
+	      MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
+  
+  if (IT_CHARPOS (it) == charpos)
+    {
+      int line_height;
+
+      if (it.max_ascent == 0 && it.max_descent == 0)
+	line_height = it.current_y + last_height;
+      else
+	line_height = it.current_y + it.max_ascent + it.max_descent;
+      
+      *fully = it.current_y + line_height <= it.last_visible_y;
+      visible_p = 1;
+    }
+  else if (it.current_y + it.max_ascent + it.max_descent > it.last_visible_y)
+    {
+      move_it_by_lines (&it, 1, 0);
+      if (charpos < IT_CHARPOS (it))
+	{
+	  visible_p = 1;
+	  *fully  = 0;
+	}
+    }
+  
+  return visible_p;
+}
+
+
 /* Return the next character from STR which is MAXLEN bytes long.
    Return in *LEN the length of the character.  This is like
    STRING_CHAR_AND_LENGTH but never returns an invalid character.  If
