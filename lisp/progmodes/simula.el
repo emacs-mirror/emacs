@@ -1,11 +1,9 @@
 ;;; simula.el --- SIMULA 87 code editing commands for Emacs
 
-;; Copyright (C) 1994 Hans Henrik Eriksen
-;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996 Free Software Foundation, Inc.
 
 ;; Author: Hans Henrik Eriksen <hhe@ifi.uio.no>
 ;; Maintainer: simula-mode@ifi.uio.no
-;; Version: 0.994
 ;; Adapted-By: ESR
 ;; Keywords: languages
 
@@ -1637,16 +1635,8 @@ If not nil and not t, move to limit of search and return nil."
 
 ;; defuns for submitting bug reports
 
-(defconst simula-version "0.994"
-  "simula-mode version number.")
 (defconst simula-mode-help-address "simula-mode@ifi.uio.no"
   "Address accepting submission of simula-mode bug reports.")
-
-(defun simula-version ()
-  "Echo the current version of simula-mode in the minibuffer."
-  (interactive)
-  (message "Using simula-mode version %s" simula-version)
-  (simula-keep-region-active))
 
 ;; get reporter-submit-bug-report when byte-compiling
 (and (fboundp 'eval-when-compile)
@@ -1661,7 +1651,7 @@ If not nil and not t, move to limit of search and return nil."
    (require 'reporter)
    (reporter-submit-bug-report
     simula-mode-help-address
-    (concat "simula-mode " simula-version)
+    (concat "simula-mode from Emacs " emacs-version)
     (list
      ;; report only the vars that affect indentation
      'simula-emacs-features
