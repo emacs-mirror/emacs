@@ -12231,6 +12231,8 @@ redisplay_window (window, just_this_one_p)
       /* If centering point failed to make the whole line visible,
 	 put point at the top instead.  That has to make the whole line
 	 visible, if it can be done.  */
+      if (centering_position == 0)
+	goto done;
       clear_glyph_matrix (w->desired_matrix);
       centering_position = 0;
       goto point_at_top;
