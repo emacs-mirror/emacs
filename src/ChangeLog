@@ -1,7 +1,33 @@
+2000-07-05  Andrew Innes  <andrewi@gnu.org>
+
+	* vm-limit.c (check_memory_limits) [REL_ALLOC]: Use real_morecore
+	when non-NULL instead of __morecore, to take account of buffer
+	memory.  This also solves a problem with spurious memory warnings
+	on Windows.
+
+	* ralloc.c: Make real_morecore non-static.
+
+	* eval.c (internal_condition_case): Comment out abort if
+	interrupt_input_blocked is not zero.
+
+	* makefile.nt: Add support for `bootstrap' and related targets.
+	Include minimal debug info in emacs.exe in release build.
+	Remove all dependencies on lisp.h, and fixup some others.
+
+	* w32.c (init_environment): Install code from 20.7 for providing
+	default values for environment variables, based on the
+	executable's own location.
+	(map_w32_filename): Handle filenames that are longer than
+	MAX_PATH.
+	(sys_socket): Install socket inheritance bug fix from 20.7.
+
+	* alloca.c [emacs]: Include lisp.h (needed by atimer.h included
+	here via blockinput.h).
+
 2000-07-05  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* w32menu.c (w32_menu_display_help):
-	* xmenu.c (menu_help_callback): Use show_help_echo.
+	* w32menu.c (w32_menu_display_help): * xmenu.c
+	(menu_help_callback): Use show_help_echo.
 
 	* keyboard.h (show_help_echo): Declare.
 
@@ -43,11 +69,6 @@
 	in canonical order, and so that frames appear in the list in
 	the order given by Vframe_list.
 	(next_window): Reverse the handling of NEXT_P.
-
-2000-07-04  Andrew Innes  <andrewi@gnu.org>
-
-	* alloca.c [emacs]: Include lisp.h (needed by atimer.h included
-	here via blockinput.h).
 
 2000-07-04  Gerd Moellmann  <gerd@gnu.org>
 

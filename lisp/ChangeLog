@@ -1,3 +1,7 @@
+2000-07-05  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt: Add support for `bootstrap' and related targets.
+
 2000-07-05  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/easymenu.el (easy-menu-define): Docstring fix.
