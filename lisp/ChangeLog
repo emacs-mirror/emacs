@@ -1,5 +1,9 @@
 2000-06-14  Kenichi Handa  <handa@etl.go.jp>
 
+	* mail/sendmail.el (sendmail-send-it): Inherit
+	buffer-file-coding-system of the current buffer to the temporary
+	buffer that this funciton uses for work.
+
 	* tar-mode.el (tar-extract): For goto-char, use (point-min), not
 	0.  Give correct argument to set-auto-coding-function.
 	(tar-expunge): For goto-char, use (point-min), not 0.
