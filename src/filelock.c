@@ -203,9 +203,15 @@ get_boot_time ()
 	  if (! NILP (Ffile_exists_p (tempname)))
 	    {
 	      Lisp_Object args[6];
-	      tempname = Fexpand_file_name (build_string ("wtmp"),
+
+	      /* The utmp functions on mescaline.gnu.org accept only
+		 file names up to 8 characters long.  Choose a 2
+		 character long prefix, and call make_temp_file with
+		 second arg non-zero, so that it will add not more
+		 than 6 characters to the prefix.  */
+	      tempname = Fexpand_file_name (build_string ("wt"),
 					    Vtemporary_file_directory);
-	      tempname = Fmake_temp_name (tempname);
+	      tempname = make_temp_name (tempname, 1);
 	      args[0] = Vshell_file_name;
 	      args[1] = Qnil;
 	      args[2] = Qnil;
