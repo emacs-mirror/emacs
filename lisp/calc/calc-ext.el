@@ -3280,5 +3280,3 @@ A key may contain additional specs for Inverse, Hyperbolic, and Inv+Hyp.")
 (run-hooks 'calc-ext-load-hook)
 
 ;;; calc-ext.el ends here
-
-

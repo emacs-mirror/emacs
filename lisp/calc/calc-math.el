@@ -1676,5 +1676,3 @@
 (put 'calcFunc-deg 'math-expandable t)
 
 ;;; calc-math.el ends here
-
-

@@ -2043,5 +2043,3 @@
 			      (cdr rules)))))))
 
 ;;; calc-rewr.el ends here
-
-
