@@ -2387,11 +2387,9 @@ the variable `Info-file-list-for-emacs'."
 
 (defface info-menu-header
   '((((type tty pc))
-     :underline t
-     :weight bold)
+     (:underline t :weight bold))
     (t
-     :inherit variable-pitch
-     :weight bold))
+     (:inherit variable-pitch :weight bold)))
   "Face for headers in Info menus."
   :group 'info)
 
