@@ -1,3 +1,7 @@
+2001-02-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (update_text_area): Undo change of 2001-01-12.
+
 2001-02-14  Dave Love  <fx@gnu.org>
 
 	* coding.c: Doc and message fixes.
