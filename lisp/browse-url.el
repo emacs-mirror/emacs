@@ -653,7 +653,7 @@ used instead of `browse-url-new-window-p'."
  			(concat "netscape " url) nil
  			browse-url-netscape-program
  			(append browse-url-netscape-arguments
-				(if (string-equal "win32" window-system)
+				(if (eq window-system 'w32)
 				    (list url)
 				  (if new-window '("-noraise"))
 				  (list "-remote" 
