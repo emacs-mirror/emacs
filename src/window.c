@@ -4741,6 +4741,8 @@ delete_all_subwindows (w)
   w->buffer = Qnil;
   w->vchild = Qnil;
   w->hchild = Qnil;
+
+  Vwindow_list = Qnil;
 }
 
 static int
