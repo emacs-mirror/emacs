@@ -67,7 +67,7 @@ extern int errno;
 
 Lisp_Object Qread_char, Qget_file_char, Qstandard_input, Qcurrent_load_list;
 Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist;
-Lisp_Object Qascii_character, Qload;
+Lisp_Object Qascii_character, Qload, Qload_file_name;
 
 extern Lisp_Object Qevent_symbol_element_mask;
 
@@ -81,8 +81,11 @@ Lisp_Object Vload_path;
    lists of defs in their load files. */
 Lisp_Object Vload_history;
 
-/* This is useud to build the load history. */
+/* This is used to build the load history. */
 Lisp_Object Vcurrent_load_list;
+
+/* Name of file actually being read by `load'.  */
+Lisp_Object Vload_file_name;
 
 /* List of descriptors now open for Fload.  */
 static Lisp_Object load_descriptor_list;
@@ -436,6 +439,7 @@ Return t if file exists.")
   XSETFASTINT (XCONS (lispstream)->cdr, (EMACS_UINT)stream & 0xffff);
   record_unwind_protect (load_unwind, lispstream);
   record_unwind_protect (load_descriptor_unwind, load_descriptor_list);
+  specbind (Qload_file_name, found);
   load_descriptor_list
     = Fcons (make_number (fileno (stream)), load_descriptor_list);
   load_in_progress++;
@@ -1183,6 +1187,31 @@ read1 (readcharfun, pch)
 	  return tmp;
 	}
 #endif
+      /* #@NUMBER is used to skip NUMBER following characters.
+	 That's used in .elc files to skip over doc strings
+	 and function definitions.  */
+      if (c == '@')
+	{
+	  int i, nskip = 0;
+
+	  /* Read a decimal integer.  */
+	  while ((c = READCHAR) >= 0
+		 && c >= '0' && c <= '9')
+	    {
+	      nskip *= 10;
+	      nskip += c - '0';
+	    }
+	  if (c >= 0)
+	    UNREAD (c);
+	  
+	  /* Skip that many characters.  */
+	  for (i = 0; i < nskip && c >= 0; i++)
+	    c = READCHAR;
+	  goto retry;
+	}
+      if (c == '$')
+	return Vload_file_name;
+
       UNREAD (c);
       Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#", 1), Qnil));
 
@@ -1471,6 +1500,7 @@ read_list (flag, readcharfun)
   Lisp_Object val, tail;
   register Lisp_Object elt, tem;
   struct gcpro gcpro1, gcpro2;
+  int cancel = 0;
 
   val = Qnil;
   tail = Qnil;
@@ -1481,6 +1511,15 @@ read_list (flag, readcharfun)
       GCPRO2 (val, tail);
       elt = read1 (readcharfun, &ch);
       UNGCPRO;
+
+	/* If purifying, and the list starts with #$,
+	   return 0 instead.  This is a doc string reference
+	   and it will be replaced anyway by Snarf-documentation,
+	   so don't waste pure space with it.  */
+      if (EQ (elt, Vload_file_name)
+	  && !NILP (Vpurify_flag) && NILP (Vdoc_file_name))
+	cancel = 1;
+
       if (ch)
 	{
 	  if (flag > 0)
@@ -1501,7 +1540,7 @@ read_list (flag, readcharfun)
 	      read1 (readcharfun, &ch);
 	      UNGCPRO;
 	      if (ch == ')')
-		return val;
+		return (cancel ? make_number (0) : val);
 	      return Fsignal (Qinvalid_read_syntax, Fcons (make_string (". in wrong context", 18), Qnil));
 	    }
 	  return Fsignal (Qinvalid_read_syntax, Fcons (make_string ("] in a list", 11), Qnil));
@@ -2020,6 +2059,10 @@ The remaining elements of each list are symbols defined as functions\n\
 or variables, and cons cells `(provide . FEATURE)' and `(require . FEATURE)'.");
   Vload_history = Qnil;
 
+  DEFVAR_LISP ("load-file-name", &Vload_file_name,
+    "Full name of file being loaded by `load'.");
+  Vload_file_name = Qnil;
+
   DEFVAR_LISP ("current-load-list", &Vcurrent_load_list,
     "Used for internal purposes by `load'.");
   Vcurrent_load_list = Qnil;
@@ -2044,4 +2087,7 @@ or variables, and cons cells `(provide . FEATURE)' and `(require . FEATURE)'.");
 
   Qload = intern ("load");
   staticpro (&Qload);
+
+  Qload_file_name = intern ("load-file-name");
+  staticpro (&Qload_file_name);
 }
