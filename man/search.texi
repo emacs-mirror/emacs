@@ -59,7 +59,7 @@ cursor is after the first @samp{FOO} after the place where you started the
 search.  At each step, the buffer text that matches the search string is
 highlighted, if the terminal can do that; at each step, the current search
 string is updated in the echo area.  Multilingual text can be input by
-toggling input methods with @kbd{C-\} or @kbd{C-^}.
+toggling input methods with @kbd{C-\} or @kbd{C-^}, see below.
 
   If you make a mistake in typing the search string, you can cancel
 characters with @key{DEL}.  Each @key{DEL} cancels the last character of
@@ -111,6 +111,28 @@ entirely, returning point to where it was when the search started.
   An upper-case letter in the search string makes the search
 case-sensitive.  If you delete the upper-case character from the search
 string, it ceases to have this effect.  @xref{Search Case}.
+
+@cindex searching for non-ASCII characters
+@cindex input method, during incremental search
+  If an input method (@pxref{Input Methods}) is turned on in the
+current buffer when you start the search, that input method is used to
+read the characters while you type the search string.  Emacs indicates
+that by including the input method mnemonic in its prompt, like this:
+
+@example
+ I-search [@var{im}]:
+@end example
+
+@noindent
+@findex isearch-toggle-input-method
+@findex isearch-toggle-specified-input-method
+where @var{im} is the mnemonic of the active input method.  You can
+toggle (enable or disable) the input method while you type the search
+string with @kbd{C-\} (@code{isearch-toggle-input-method}).  You can
+turn on a certain (non-default) input method with @kbd{C-^}
+(@code{isearch-toggle-specified-input-method}), which prompts for the
+name of the input method.  Note that the input method you turn on
+during incremental search is turned on in the current buffer as well.
 
   If a search is failing and you ask to repeat it by typing another
 @kbd{C-s}, it starts again from the beginning of the buffer.  Repeating
@@ -654,6 +676,19 @@ either @samp{-} or a space character.
 
 @item \S@var{c}
 matches any character whose syntax is not @var{c}.
+
+@cindex categories of characters
+@cindex characters which belong to a specific language
+@findex describe-categories
+@item \c@var{c}
+matches any character that belongs to the category @var{c}.  For
+example, @samp{\cc} matches Chinese characters, @samp{\cg} matches
+Greek characters, etc.  For the description of the known categories,
+type @kbd{M-x describe-categories @key{RET}}.
+
+@item \C@var{c}
+matches any character that does @emph{not} belong to category
+@var{c}.
 @end table
 
   The constructs that pertain to words and syntax are controlled by the
