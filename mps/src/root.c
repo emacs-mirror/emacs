@@ -1,6 +1,6 @@
 /* impl.c.root: ROOT IMPLEMENTATION
  *
- * $HopeName: MMsrc!root.c(trunk.26) $
+ * $HopeName: MMsrc!root.c(trunk.27) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .scope: This is the implementation of the root datatype.
@@ -10,7 +10,7 @@
 
 #include "mpm.h"
 
-SRCID(root, "$HopeName: MMsrc!root.c(trunk.26) $");
+SRCID(root, "$HopeName: MMsrc!root.c(trunk.27) $");
 
 
 /* RootVarCheck -- check a Root union discriminator
@@ -381,6 +381,8 @@ Res RootScan(ScanState ss, Root root)
   switch(root->var) {
     case RootTABLE:
     res = TraceScanArea(ss, root->the.table.base, root->the.table.limit);
+    ss->scannedSize += AddrOffset(root->the.table.base,
+                                  root->the.table.limit);
     if(res != ResOK)
       goto failScan;
     break;
@@ -390,6 +392,8 @@ Res RootScan(ScanState ss, Root root)
                               root->the.tableMasked.base,
                               root->the.tableMasked.limit,
                               root->the.tableMasked.mask);
+    ss->scannedSize += AddrOffset(root->the.table.base,
+                                  root->the.table.limit);
     if(res != ResOK)
       goto failScan;
     break;
@@ -410,6 +414,8 @@ Res RootScan(ScanState ss, Root root)
     case RootFMT:
     res = (*root->the.fmt.scan)(ss, root->the.fmt.base,
                                 root->the.fmt.limit);
+    ss->scannedSize += AddrOffset(root->the.fmt.base,
+                                  root->the.fmt.limit);
     if(res != ResOK)
       goto failScan;
     break;
