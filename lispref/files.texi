@@ -2493,7 +2493,7 @@ Here are the operations that a magic file name handler gets to handle:
 @code{file-attributes},
 @code{file-directory-p},
 @code{file-executable-p}, @code{file-exists-p},
-@code{file-local-copy},
+@code{file-local-copy}, @code{file-remote-p},
 @code{file-modes}, @code{file-name-all-completions},
 @code{file-name-as-directory},
 @code{file-name-completion},
@@ -2537,7 +2537,7 @@ Here are the operations that a magic file name handler gets to handle:
 @code{file-attributes},
 @code{file-direct@discretionary{}{}{}ory-p},
 @code{file-executable-p}, @code{file-exists-p},
-@code{file-local-copy},
+@code{file-local-copy}, @code{file-remote-p},
 @code{file-modes}, @code{file-name-all-completions},
 @code{file-name-as-directory},
 @code{file-name-completion},
@@ -2645,8 +2645,7 @@ of the local copy file.
 @end defun
 
 @defun file-remote-p filename
-This function returns @code{t} if @var{filename} is a remote file---that is,
-a magic file name that handles @code{file-local-copy}.
+This function returns @code{t} if @var{filename} is a remote file.
 @end defun
 
 @defun unhandled-file-name-directory filename
