@@ -592,20 +592,20 @@ This is in addition to the primary selection.")
     (condition-case c
 	(setq text (x-get-selection 'PRIMARY 'COMPOUND_TEXT))
       (error nil))
+    (if (null text) 
+	(condition-case c
+	    (setq text (x-get-selection 'PRIMARY 'STRING))
+	  (error nil)))
     (if (string= text "") (setq text nil))
-    (condition-case c
-	(setq text (x-get-selection 'PRIMARY 'STRING))
-      (error nil))
-    (if (string= text "") (setq text nil))
-
     (when x-select-enable-clipboard
-      (condition-case c
-	  (setq text (x-get-selection 'CLIPBOARD 'COMPOUND_TEXT))
-	(error nil))
-      (if (string= text "") (setq text nil))
-      (condition-case c
-	  (setq text (x-get-selection 'CLIPBOARD 'STRING))
-	(error nil))
+      (if (null text) 
+	  (condition-case c
+	      (setq text (x-get-selection 'CLIPBOARD 'COMPOUND_TEXT))
+	    (error nil)))
+      (if (null text) 
+	  (condition-case c
+	      (setq text (x-get-selection 'CLIPBOARD 'STRING))
+	    (error nil)))
       (if (string= text "") (setq text nil)))
 
     (or text (setq text (x-get-cut-buffer 0)))
