@@ -2196,8 +2196,12 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  /* Draw the face of the newline character as extending all the 
 	     way to the end of the frame line.  */
 	  if (current_face)
-	    while (p1 < endp)
-	      *p1++ = FAST_MAKE_GLYPH (' ', current_face);
+	    {
+	      if (p1 < leftmargin)
+		p1 = leftmargin;
+	      while (p1 < endp)
+		*p1++ = FAST_MAKE_GLYPH (' ', current_face);
+	    }
 #endif
 	  break;
 	}
@@ -2229,8 +2233,12 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  /* Draw the face of the newline character as extending all the 
 	     way to the end of the frame line.  */
 	  if (current_face)
-	    while (p1 < endp)
-	      *p1++ = FAST_MAKE_GLYPH (' ', current_face);
+	    {
+	      if (p1 < leftmargin)
+		p1 = leftmargin;
+	      while (p1 < endp)
+		*p1++ = FAST_MAKE_GLYPH (' ', current_face);
+	    }
 #endif
 	  break;
 	}
