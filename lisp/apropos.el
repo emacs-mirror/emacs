@@ -99,7 +99,7 @@ This looks good, but slows down the commands several times.")
   "Regexp used in current apropos run.")
 
 (defvar apropos-files-scanned ()
-  "List of elc files already scanned in current run of `apropos-documentaion'.")
+  "List of elc files already scanned in current run of `apropos-documentation'.")
 
 (defvar apropos-accumulator ()
   "Alist of symbols already found in current apropos run.")
