@@ -612,10 +612,10 @@ style "scroll"
 widget "*verticalScrollBar*" style "scroll"
 @end smallexample
 
-  There are also parameters that affect GTK as a whole.  For example, the property
-@c @code{gtk-font-name} sets the default font for GTK.  You must use
-@c Pango font names (@pxref{GTK styles}).  A GTK resources file that
-@c just sets a default font looks like this:
+  There are also parameters that affect GTK as a whole.  For example,
+the property @code{gtk-font-name} sets the default font for GTK.  You
+must use Pango font names (@pxref{GTK styles}).  A GTK resources file
+that just sets a default font looks like this:
 
 @smallexample
 gtk-font-name = "courier 12"
