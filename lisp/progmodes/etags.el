@@ -613,17 +613,17 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 (defun tags-reset-tags-tables ()
   "Reset tags state to cancel effect of any previous \\[visit-tags-table] or \\[find-tag]."
   (interactive)
+  ;; Clear out the markers we are throwing away.
+  (let ((i 0))
+    (while (< i find-tag-marker-ring-length)
+      (if (aref (cddr tags-location-ring) i)
+	  (set-marker (aref (cddr tags-location-ring) i) nil))
+      (if (aref (cddr find-tag-marker-ring) i)
+	  (set-marker (aref (cddr find-tag-marker-ring) i) nil))
+      (setq i (1+ i))))
   (setq tags-file-name nil
-	tags-location-ring (progn
-			     (mapcar (lambda (m)
-				       (set-marker m nil))
-				     tags-location-ring)
-			     (make-ring find-tag-marker-ring-length))
-	find-tag-marker-ring (progn
-			       (mapcar (lambda (m)
-					 (set-marker m nil))
-				       find-tag-marker-ring)
-			       (make-ring find-tag-marker-ring-length))
+	tags-location-ring (make-ring find-tag-marker-ring-length)
+	find-tag-marker-ring (make-ring find-tag-marker-ring-length)
 	tags-table-list nil
 	tags-table-computed-list nil
 	tags-table-computed-list-for nil
