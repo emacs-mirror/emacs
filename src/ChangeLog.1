@@ -1,4 +1,3 @@
-
 1986-05-18  Richard M. Stallman  (rms at prep)
 
 	* alloc.c (malloc_warning_1): Add some advice on
@@ -3488,32 +3487,40 @@
 	Fsignal clears immediate_quit.
 
 1985-05-12  Richard M. Stallman  (rms at mit-prep)
-	cmds.c: modified `newline' to insert before an existing
-		newline before dot.  This produces better redisplay.
-	xdisp.c: fixed bug that modifying buffer displayed in two windows
-		failed to redisplay both mode lines with stars.
-	xdisp.c: try_window_id: if scrolling upward and changed text is empty
-		scroll up all the lines that fit below bp.
-	xdisp.c: introduce num_contin, to display tabs right in contin. lines
-	doc.c: define substitute-command-keys, using crl@purdue's code.
-		Make `documentation' call it.
-	eval.c, fns.c, bytecode.c: put in register decls for Lisp_Objects.
-		saved 2500 bytes of object code.
+
+	* cmds.c: modified `newline' to insert before an existing
+	newline before dot.  This produces better redisplay.
+	
+	* xdisp.c: fixed bug that modifying buffer displayed in two windows
+	failed to redisplay both mode lines with stars.
+
+	* xdisp.c: try_window_id: if scrolling upward and changed text is empty
+	scroll up all the lines that fit below bp.
+
+	* xdisp.c: introduce num_contin, to display tabs right in contin. lines
+
+	* doc.c: define substitute-command-keys, using crl@purdue's code.
+	Make `documentation' call it.
+
+	* eval.c, fns.c, bytecode.c: put in register decls for Lisp_Objects.
+	Saved 2500 bytes of object code.
 
 1985-05-11  Richard M. Stallman  (rms at mit-prep)
-	editfns.c: Put in code for & in fullname,
-		under AMPERSAND_FULL_NAME flag.
-	lisp.h: Install NO_UNION_TYPE flag in lisp.h.
-		This means XMARKBIT can no longer be on left side of =.
-		New macros XMARK and XUNMARK and XSETMARKBIT are used
-		instead.
-	alloc.c, marker.c: use XMARK, XUNMARK, XSETMARKBIT where needed.
-	TrmTERM.c: Ignore `xs' termcap flag.
-		Always use the SEstr on sg >= 0 terminals.
-	minibuf.c: Don't allow entry to minibuffer
-		while minibuffer is selected.
 
+	* editfns.c: Put in code for & in fullname,
+	under AMPERSAND_FULL_NAME flag.
 
+	* lisp.h: Install NO_UNION_TYPE flag in lisp.h.
+	This means XMARKBIT can no longer be on left side of =.
+	New macros XMARK and XUNMARK and XSETMARKBIT are used instead.
+
+	* alloc.c, marker.c: use XMARK, XUNMARK, XSETMARKBIT where needed.
+
+	* TrmTERM.c: Ignore `xs' termcap flag.
+	Always use the SEstr on sg >= 0 terminals.
+
+	* minibuf.c: Don't allow entry to minibuffer
+	while minibuffer is selected.
 
 Local Variables:
 mode: indented-text
