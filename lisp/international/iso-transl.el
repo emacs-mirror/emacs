@@ -176,6 +176,21 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
       (define-key key-translation-map string (cdr (car table))))
     (setq table (cdr table)))
 
+  ;; Enter the individual sequences, this time with
+  ;; certain special function keys replacing the punctuation characters.
+  (setq table iso-transl-char-map)
+  (while table
+    (let ((mapping
+	   (assq (aref (car (car table)) 0) '((?\' . mute-acute)
+					      (?\` . mute-grave)
+					      (?\" . mute-diaeresis)
+					      (?\^ . mute-asciicircum)
+					      (?\~ . mute-asciitilde)))))
+      (if mapping
+	  (let ((string (vector (cdr mapping) (aref (car (car table)) 1))))
+	    (define-key key-translation-map string (cdr (car table))))))
+    (setq table (cdr table)))
+
   (define-key isearch-mode-map "\C-x" nil)
   (define-key isearch-mode-map [?\C-x t] 'isearch-other-control-char)
   (define-key isearch-mode-map "\C-x8" nil))
