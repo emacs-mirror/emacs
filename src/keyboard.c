@@ -37,24 +37,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <setjmp.h>
 #include <errno.h>
 
-#include "emacssignal.h"
-
-extern int errno;
-
-/* Get FIONREAD, if it is available.  */
-#ifdef USG
-#include <termio.h>
-#include <fcntl.h>
-#else /* not USG */
 #ifndef VMS
 #include <sys/ioctl.h>
-#endif /* not VMS */
-#endif /* not USG */
-
-/* UNIPLUS systems may have FIONREAD.  */
-#ifdef UNIPLUS
-#include <sys.ioctl.h>
 #endif
+
+#include "syssignal.h"
+#include "systerm.h"
+
+extern int errno;
 
 #ifdef HAVE_X_WINDOWS
 extern Lisp_Object Vmouse_grabbed;
@@ -333,22 +323,6 @@ int interrupts_deferred;
 
 /* nonzero means use ^S/^Q for flow control.  */
 int flow_control;
-
-#ifndef BSD4_1
-#define sigfree() sigsetmask (SIGEMPTYMASK)
-#define sigholdx(sig) sigsetmask (sigmask (sig))
-#define sigblockx(sig) sigblock (sigmask (sig))
-#define sigunblockx(sig) sigblock (SIGEMPTYMASK)
-#define sigpausex(sig) sigpause (0)
-#endif /* not BSD4_1 */
-
-#ifdef BSD4_1
-#define SIGIO SIGTINT
-/* sigfree and sigholdx are in sysdep.c */
-#define sigblockx(sig) sighold (sig)
-#define sigunblockx(sig) sigrelse (sig)
-#define sigpausex(sig) sigpause (sig)
-#endif /* BSD4_1 */
 
 /* Allow m- file to inhibit use of FIONREAD.  */
 #ifdef BROKEN_FIONREAD
@@ -1182,12 +1156,6 @@ read_char (commandflag)
   if (_setjmp (getcjmp))
     {
       XSET (c, Lisp_Int, quit_char);
-
-      /* Returning quit_char from this function represents a
-	 resolution to the quit request, so clear the quit flag.
-	 This prevents us from returning quit_char many times
-	 for the same quit request.  */
-      Vquit_flag = Qnil;
 
       waiting_for_input = 0;
       input_available_clear_word = 0;
