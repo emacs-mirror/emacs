@@ -237,10 +237,14 @@ The following key sequence may cause multilingual text insertion."
 (defun encoded-kbd-self-insert-ccl ()
   (interactive)
   (let ((str (char-to-string last-command-char))
-	(coding (keyboard-coding-system)))
-    (setq str (decode-coding-string str coding))
+	(ccl (car (aref (coding-system-spec (keyboard-coding-system)) 4)))
+	(vec (make-vector 9 nil))
+	result)
+    (while (= (length (setq result (ccl-execute-on-string ccl vec str t))) 0)
+      (setq str (format "%s%c" str (read-char-exclusive))
+	    vec (make-vector 9 nil)))
     (setq unread-command-events
-	  (append (string-to-list str) unread-command-events))))
+	  (append (string-to-list result) unread-command-events))))
 
 (defun encoded-kbd-setup-keymap (coding)
   ;; At first, reset the keymap.
@@ -277,7 +281,7 @@ The following key sequence may cause multilingual text insertion."
 
    ((eq encoded-kbd-coding 'ccl)
     (let ((valid-codes (or (coding-system-get coding 'valid-codes)
-			   '((128 255))))
+			   '((128 . 255))))
 	  elt from to)
       (while valid-codes
 	(setq elt (car valid-codes) valid-codes (cdr valid-codes))
