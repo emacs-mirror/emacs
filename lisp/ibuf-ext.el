@@ -1018,7 +1018,8 @@ currently used by buffers."
   (ibuffer-awhen (with-current-buffer buf
 		   (or buffer-file-name
 		       (and (boundp 'dired-directory)
-			    dired-directory)))
+			    dired-directory
+			    (expand-file-name dired-directory))))
     (string-match qualifier it)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-size-gt  "ibuf-ext.el")
