@@ -1,12 +1,11 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!131.c(trunk.3) $
+ id = $HopeName: MMQA_test_function!167.c(trunk.1) $
  summary = simple spare_commit_limit test
  language = c
  link = testlib.o rankfmt.o
  harness = 2.0
- parameters = EXTEND=65536 AVGSIZE=32 ALIGN=4 \
-              BIGSIZE=(5*1024*1024);
+ parameters = EXTEND=65536 AVGSIZE=32 ALIGN=4 BIGSIZE=5000000;
 OUTPUT_SPEC
  reduce1 <= 0
  completed = yes
