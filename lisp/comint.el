@@ -88,7 +88,6 @@
 ;; comint-run				Run a program under comint-mode
 ;; send-invisible			Read a line w/o echo, and send to proc
 ;; comint-dynamic-complete-filename	Complete filename at point.
-;; comint-dynamic-complete-variable    Complete variable name at point.
 ;; comint-dynamic-list-filename-completions List completions in help buffer.
 ;; comint-replace-by-expanded-filename	Expand and complete filename at point;
 ;;					replace with expanded/completed name.
