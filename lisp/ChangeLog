@@ -5,6 +5,15 @@
 
 2001-01-10  Dave Love  <fx@gnu.org>
 
+	* progmodes/etags.el (tags-apropos-additional-actions): Fix :type.
+
+	* progmodes/sh-script.el (sh-imenu-generic-expression): Fix doc,
+	:type.
+
+	* hi-lock.el (hi-lock-exclude-modes): Fix :type.
+
+	* calculator.el (calculator-number-digits): Fix :type.
+
 	* vc-cvs.el (vc-cvs-header): Fix :type.
 	* vc-rcs.el (vc-rcs-header): Fix :type.
 	* vc-sccs.el (vc-sccs-header): Fix :type.
