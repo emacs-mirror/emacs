@@ -232,7 +232,9 @@
 
 ;;;###autoload
 (defcustom browse-url-browser-function
-  'browse-url-netscape
+  (if (eq system-type 'windows-nt)
+      'browse-url-default-windows-browser
+    'browse-url-netscape)
   "*Function to display the current buffer in a WWW browser.
 This is used by the `browse-url-at-point', `browse-url-at-mouse', and
 `browse-url-of-file' commands.
@@ -258,6 +260,8 @@ regexp should probably be \".\" to specify a default browser."
            (function-item :tag "MMM" :value  browse-url-mmm)
            (function-item :tag "Specified by `Browse Url Generic Program'"
                           :value browse-url-generic)
+           (function-item :tag "Default Windows browser"
+                          :value  browse-url-default-windows-browser)
            (function :tag "Your own function"))
   :group 'browse-url)
 
@@ -653,6 +657,12 @@ to use."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Browser-specific commands
+
+;; --- Default MS-Windows browser ---
+
+(defun browse-url-default-windows-browser (url &optional new-window)
+  (interactive (browse-url-interactive-arg "URL: "))
+  (w32-shell-execute "open" url))
 
 ;; --- Netscape ---
 
