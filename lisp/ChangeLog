@@ -1,6 +1,6 @@
 2002-02-15  Per Abrahamsen  <abraham@dina.kvl.dk>
 
-	* wid-edit.el (widgetp): Made it more robuts.
+	* wid-edit.el (widgetp): Made it more robust.
 
 2002-02-14  Per Abrahamsen  <abraham@dina.kvl.dk>
 
