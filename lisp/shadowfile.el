@@ -22,7 +22,7 @@
 ;;; LCD Archive Entry:
 ;;; shadowfile|Boris Goldowsky|boris@cs.rochester.edu|
 ;;; Helps you keep identical copies of files in multiple places.|
-;;; $Date: 93/11/17 08:46:07 $ |$Revision: 2.8 $|~/misc/shadowfile.el.Z|
+;;; $Date: 1993/11/23 06:17:27 $ |$Revision: 1.1 $|~/misc/shadowfile.el.Z|
 
 ;;; Commentary:
 ;;;
@@ -85,7 +85,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar shadow-noquery nil
-  "*If nonnil, always copy shadow files without asking.")
+  "*If t, always copy shadow files without asking.
+If nil \(the default), always ask.  If not nil and not t, ask only if there
+is no buffer currently visiting the file.")
 
 (defvar shadow-inhibit-message nil
   "*If nonnil, do not display a message when a file needs copying.")
@@ -510,7 +512,7 @@ call it manually."
     (save-excursion
       (map-y-or-n-p (function
 		     (lambda (pair)
-		       (or arg 
+		       (or arg shadow-noquery
 			   (format "Copy shadow file %s? " (cdr pair)))))
 		    (function shadow-copy-file)
 		    shadow-files-to-copy
@@ -552,16 +554,18 @@ site."
 (defun shadow-copy-file (s)
   "Copy one shadow file."
   (let* ((buffer 
-	  (cond ((get-file-buffer (car s)))
+	  (cond ((get-file-buffer 
+		  (abbreviate-file-name (shadow-expand-file-name (car s)))))
 		((not (file-readable-p (car s)))
 		 (if (y-or-n-p
 		      (format "Cannot find file %s--cancel copy request?"
 			      (car s)))
 		     (shadow-remove-from-todo s))
 		 nil)
-		((y-or-n-p 
-		  (format "No buffer for %s -- update shadow anyway?"
-			  (car s)))
+		((or (eq t shadow-noquery)
+		     (y-or-n-p 
+		      (format "No buffer for %s -- update shadow anyway?"
+			      (car s))))
 		 (find-file-noselect (car s)))))
 	 (to (shadow-expand-cluster-in-file-name (cdr s))))
     (shadow-when buffer
@@ -642,8 +646,9 @@ PAIR must be (eq to) one of the elements of that list."
 thus restoring shadowfile's state from your last emacs session.
 Returns t unless files were locked; then returns nil."
   (interactive)
-  (if (or (stringp (file-locked-p shadow-info-file))
-	  (stringp (file-locked-p shadow-todo-file)))
+  (if (and (fboundp 'file-locked-p)
+	   (or (stringp (file-locked-p shadow-info-file))
+	       (stringp (file-locked-p shadow-todo-file))))
       (progn
 	(message "Shadowfile is running in another emacs; can't have two.")
 	(beep)
@@ -772,20 +777,22 @@ look for files that have been changed and need to be copied to other systems."
        (kill-emacs)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Lucid Emacs compatibility (may not be complete)
+;;; Lucid Emacs compatibility 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(shadow-when (not (fboundp 'file-truename))
-  (require 'symlink-fix)
-  (defun shadow-expand-file-name (file &optional default)
-    (symlink-expand-file-name file default)))
+;; This is on hold until someone tells me about a working version of
+;; map-ynp for Lucid Emacs.
 
-(shadow-when (not (fboundp 'ange-ftp-ftp-name))
-  (require 'ange-ftp)
-  (defun shadow-parse-fullpath (fullpath)
-    (if (listp fullpath)
-	fullpath
-      (ange-ftp-ftp-path fullpath))))
+;(shadow-when (string-match "Lucid" emacs-version)
+;  (require 'symlink-fix)
+;  (require 'ange-ftp)
+;  (require 'map-ynp)
+;  (if (not (fboundp 'file-truename))
+;      (fset 'shadow-expand-file-name 
+;	    (symbol-function 'symlink-expand-file-name)))
+;  (if (not (fboundp 'ange-ftp-ftp-name))
+;      (fset 'ange-ftp-ftp-name
+;	    (symbol-function 'ange-ftp-ftp-path))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Hook us up
