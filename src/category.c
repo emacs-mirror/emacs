@@ -187,7 +187,7 @@ This is the one used for new buffers.")
 /* Return a copy of category table TABLE.  We can't simply use the
    function copy-sequence because no contents should be shared between
    the original and the copy.  This function is called recursively by
-   biding TABLE to a sub char table.  */
+   binding TABLE to a sub char table.  */
 
 Lisp_Object
 copy_category_table (table)
@@ -207,6 +207,12 @@ copy_category_table (table)
 	if (!NILP (tmp = XCHAR_TABLE (table)->contents[i]))
 	  XCHAR_TABLE (table)->contents[i] = Fcopy_sequence (tmp);
       to = CHAR_TABLE_ORDINARY_SLOTS;
+
+      /* Also copy the first (and sole) extra slot.  It is a vector
+         containing docstring of each category.  */
+      Fset_char_table_extra_slot
+	(table, make_number (0),
+	 Fcopy_sequence (Fchar_table_extra_slot (table, make_number (0))));
     }
   else
     {
@@ -241,7 +247,7 @@ It is a copy of the TABLE, which defaults to the standard category table.")
   else
     table = Vstandard_category_table;
 
-  return copy_category_table (table, 1);
+  return copy_category_table (table);
 }
 
 DEFUN ("set-category-table", Fset_category_table, Sset_category_table, 1, 1, 0,
@@ -606,7 +612,7 @@ init_category_once ()
   Vstandard_category_table = Fmake_char_table (Qcategory_table, Qnil);
   /* Set a category set which contains nothing to the default.  */ 
   XCHAR_TABLE (Vstandard_category_table)->defalt = MAKE_CATEGORY_SET;
-  Fset_char_table_extra_slot (Vstandard_category_table, 0,
+  Fset_char_table_extra_slot (Vstandard_category_table, make_number (0),
 			      Fmake_vector (make_number (95), Qnil));
 }
 
