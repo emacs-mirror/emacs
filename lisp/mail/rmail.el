@@ -139,7 +139,13 @@ It is useful to set this variable in the site customization file.")
 
 ;;;###autoload
 (defcustom rmail-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^references:\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:\\|^\\(resent-\\|\\)message-id:\\|^summary-line:\\|^resent-date:\\|^nntp-posting-host:\\|^path:\\|^x-char.*:\\|^x-face:\\|^x-mailer:\\|^delivered-to:\\|^lines:\\|^mime-version:\\|^content-transfer-encoding:\\|^x-coding-system:\\|^return-path:\\|^errors-to:\\|^return-receipt-to:\\|^x-attribution:\\|^x-disclaimer:"
-  "*Regexp to match header fields that Rmail should normally hide."
+  "*Regexp to match header fields that Rmail should normally hide.
+This variable is used for reformatting the message header,
+which normally happens once for each message,
+when you view the message for the first time in Rmail.
+To make a change in this variable take effect
+for a message that you have already viewed,
+go to that message and type \\[rmail-toggle-header] twice."
   :type 'regexp
   :group 'rmail-headers)
 
