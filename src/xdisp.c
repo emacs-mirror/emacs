@@ -399,7 +399,7 @@ echo_area_display ()
       display_string (XWINDOW (minibuf_window), vpos,
 		      echo_area_glyphs ? echo_area_glyphs : "",
 		      echo_area_glyphs ? echo_area_glyphs_length : -1,
-		      0, 0, 0, FRAME_WIDTH (f));
+		      0, 0, 0, 0, FRAME_WIDTH (f));
 
       /* If desired cursor location is on this line, put it at end of text */
       if (FRAME_CURSOR_Y (f) == vpos)
@@ -414,7 +414,7 @@ echo_area_display ()
 	  {
 	    get_display_line (f, i, 0);
 	    display_string (XWINDOW (minibuf_window), vpos,
-			    "", 0, 0, 0, 0, FRAME_WIDTH (f));
+			    "", 0, 0, 0, 0, 0, FRAME_WIDTH (f));
 	  }
       }
     }
@@ -1046,7 +1046,7 @@ redisplay_window (window, just_this_one)
 	  for (i = 0; i < height; i++)
 	    {
 	      get_display_line (f, vpos + i, 0);
-	      display_string (w, vpos + i, "", 0, 0, 0, 0, width);
+	      display_string (w, vpos + i, "", 0, 0, 0, 1, 0, width);
 	    }
 	  
 	  goto finish_scroll_bars;
@@ -1823,60 +1823,64 @@ redisplay_region (buf, start, end)
 }
 
 
-/* Copy glyphs from the vector FROM to the rope T.
+/* Copy LEN glyphs starting address FROM to the rope TO.
    But don't actually copy the parts that would come in before S.
-   Value is T, advanced past the copied data.  */
+   Value is TO, advanced past the copied data.
+   F is the frame we are displaying in.  */
 
-GLYPH *
-copy_rope (t, s, from, face)
-     register GLYPH *t; /* Copy to here. */
-     register GLYPH *s; /* Starting point. */
-     Lisp_Object from;  /* Data to copy; known to be a vector.  */
-     int face;		/* Face to apply to glyphs which don't specify one. */
-{
-  register int n = XVECTOR (from)->size;
-  register Lisp_Object *f = XVECTOR (from)->contents;
-
-  while (n--)
-    {
-      int glyph = XFASTINT (*f);
-
-      if (t >= s) *t = MAKE_GLYPH (GLYPH_CHAR (glyph),
-				   (GLYPH_FACE (glyph)
-				    ? GLYPH_FACE (glyph)
-				    : face));
-      ++t;
-      ++f;
-    }
-  return t;
-}
-
-/* Copy exactly LEN glyphs from FROM into data at T.
-   But don't alter words before S.  */
-
-GLYPH *
-copy_part_of_rope (t, s, from, len, face)
-     register GLYPH *t; /* Copy to here. */
+static GLYPH *
+copy_part_of_rope (f, to, s, from, len, face)
+     FRAME_PTR f;
+     register GLYPH *to; /* Copy to here. */
      register GLYPH *s; /* Starting point. */
      Lisp_Object *from;  /* Data to copy. */
      int len;
      int face;		/* Face to apply to glyphs which don't specify one. */
 {
   int n = len;
-  register Lisp_Object *f = from;
+  register Lisp_Object *fp = from;
+  /* These cache the results of the last call to compute_glyph_face.  */
+  int last_code = -1;
+  int last_merged = 0;
 
   while (n--)
     {
-      int glyph = XFASTINT (*f);
+      int glyph = XFASTINT (*fp);
+      int facecode;
 
-      if (t >= s) *t = MAKE_GLYPH (GLYPH_CHAR (glyph),
-				   (GLYPH_FACE (glyph)
-				    ? GLYPH_FACE (glyph)
-				    : face));
-      ++t;
-      ++f;
+      if (GLYPH_FACE (glyph) == 0)
+	/* If GLYPH has no face code, use FACE.  */
+	facecode = face;
+      else if (GLYPH_FACE (glyph) == last_code)
+	/* If it's same as previous glyph, use same result.  */
+	facecode = last_merged;
+      else
+	{
+	  /* Merge this glyph's face and remember the result.  */
+	  last_code = GLYPH_FACE (glyph);
+	  last_merged = facecode = compute_glyph_face (f, last_code, face);
+	}
+
+      if (to >= s) *to = MAKE_GLYPH (GLYPH_CHAR (glyph), facecode);
+      ++to;
+      ++fp;
     }
-  return t;
+  return to;
+}
+
+/* Correct a glyph by replacing its specified user-level face code
+   with a displayable computed face code.  */
+
+static GLYPH
+fix_glyph (f, glyph, current_face)
+     FRAME_PTR f;
+     GLYPH glyph;
+     int current_face;
+{
+  if (GLYPH_FACE (glyph) == 0)
+    return glyph;
+  return MAKE_GLYPH (GLYPH_CHAR (glyph),
+		     compute_glyph_face (f, GLYPH_FACE (glyph), current_face));
 }
 
 /* Display one line of window w, starting at position START in W's buffer.
@@ -1953,9 +1957,9 @@ display_text_line (w, start, vpos, hpos, taboffset)
        : default_invis_vector);
 
   GLYPH truncator = (dp == 0 || XTYPE (DISP_TRUNC_GLYPH (dp)) != Lisp_Int
-		    ? '$' : XINT (DISP_TRUNC_GLYPH (dp)));
+		     ? '$' : XINT (DISP_TRUNC_GLYPH (dp)));
   GLYPH continuer = (dp == 0 || XTYPE (DISP_CONTINUE_GLYPH (dp)) != Lisp_Int
-		    ? '\\' : XINT (DISP_CONTINUE_GLYPH (dp)));
+		     ? '\\' : XINT (DISP_CONTINUE_GLYPH (dp)));
 
   /* The next buffer location at which the face should change, due
      to overlays or text property changes.  */
@@ -2001,7 +2005,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
       if (minibuf_prompt)
 	hpos = display_string (w, vpos, minibuf_prompt, -1, hpos,
 			       (!truncate ? continuer : truncator),
-			       -1, -1);
+			       1, -1, -1);
       minibuf_prompt_width = hpos;
     }
 
@@ -2130,7 +2134,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      p1 += selective_rlen;
 	      if (p1 - startp > width)
 		p1 = endp;
-	      copy_part_of_rope (p1prev, p1prev, invis_vector_contents,
+	      copy_part_of_rope (f, p1prev, p1prev, invis_vector_contents,
 				 (p1 - p1prev), current_face);
 	    }
 #if 1
@@ -2163,7 +2167,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      p1 += selective_rlen;
 	      if (p1 - startp > width)
 		p1 = endp;
-	      copy_part_of_rope (p1prev, p1prev, invis_vector_contents,
+	      copy_part_of_rope (f, p1prev, p1prev, invis_vector_contents,
 				 (p1 - p1prev), current_face);
 	    }
 #if 1
@@ -2177,14 +2181,17 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	}
       else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
 	{
-	  p1 = copy_rope (p1, startp, DISP_CHAR_VECTOR (dp, c), current_face);
+	  p1 = copy_part_of_rope (f, p1, startp,
+				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->contents,
+				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->size,
+				  current_face);
 	}
       else if (c < 0200 && ctl_arrow)
 	{
 	  if (p1 >= startp)
-	    *p1 = MAKE_GLYPH ((dp && XTYPE (DISP_CTRL_GLYPH (dp)) == Lisp_Int
-			       ? XINT (DISP_CTRL_GLYPH (dp)) : '^'),
-			      current_face);
+	    *p1 = fix_glyph (f, (dp && XTYPE (DISP_CTRL_GLYPH (dp)) == Lisp_Int
+				 ? XINT (DISP_CTRL_GLYPH (dp)) : '^'),
+			     current_face);
 	  p1++;
 	  if (p1 >= startp && p1 < endp)
 	    *p1 = MAKE_GLYPH (c ^ 0100, current_face);
@@ -2193,9 +2200,9 @@ display_text_line (w, start, vpos, hpos, taboffset)
       else
 	{
 	  if (p1 >= startp)
-	    *p1 = MAKE_GLYPH ((dp && XTYPE (DISP_ESCAPE_GLYPH (dp)) == Lisp_Int
-			       ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
-			      current_face);
+	    *p1 = fix_glyph (f, (dp && XTYPE (DISP_ESCAPE_GLYPH (dp)) == Lisp_Int
+				 ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
+			     current_face);
 	  p1++;
 	  if (p1 >= startp && p1 < endp)
 	    *p1 = MAKE_GLYPH ((c >> 6) + '0', current_face);
@@ -2252,7 +2259,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	{
 	  if (truncate)
 	    {
-	      *p1++ = truncator;
+	      *p1++ = fix_glyph (f, truncator, 0);
 	      /* Truncating => start next line after next newline,
 		 and point is on this line if it is before the newline,
 		 and skip none of first char of next line */
@@ -2263,7 +2270,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	    }
 	  else
 	    {
-	      *p1++ = continuer;
+	      *p1++ = fix_glyph (f, continuer, 0);
 	      val.vpos = 0;
 	      lastpos--;
 	    }
@@ -2312,7 +2319,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
   /* If hscroll and line not empty, insert truncation-at-left marker */
   if (hscroll && lastpos != start)
     {
-      *startp = truncator;
+      *startp = fix_glyph (f, truncator, 0);
       if (p1 <= startp)
 	p1 = startp + 1;
     }
@@ -2397,12 +2404,12 @@ display_menu_bar (w)
 	hpos = display_string (XWINDOW (FRAME_ROOT_WINDOW (f)), vpos,
 			       XSTRING (string)->data,
 			       XSTRING (string)->size,
-			       hpos, 0, hpos, maxendcol);
+			       hpos, 0, 0, hpos, maxendcol);
       /* Put a gap of 3 spaces between items.  */
       if (hpos < maxendcol)
 	{
 	  int hpos1 = hpos + 3;
-	  hpos = display_string (w, vpos, "", 0, hpos, 0,
+	  hpos = display_string (w, vpos, "", 0, hpos, 0, 0,
 				 min (hpos1, maxendcol), maxendcol);
 	}
     }
@@ -2412,7 +2419,7 @@ display_menu_bar (w)
 
   /* Fill out the line with spaces.  */
   if (maxendcol > hpos)
-    hpos = display_string (w, vpos, "", 0, hpos, 0, maxendcol, -1);
+    hpos = display_string (w, vpos, "", 0, hpos, 0, 0, maxendcol, maxendcol);
 
   /* Clear the rest of the lines allocated to the menu bar.  */
   vpos++;
@@ -2529,8 +2536,8 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 	    if (this - 1 != last)
 	      {
 		register int lim = --this - last + hpos;
-		hpos = display_string (w, vpos, last, -1, hpos, 0, hpos,
-				       min (lim, maxendcol));
+		hpos = display_string (w, vpos, last, -1, hpos, 0, 1,
+				       hpos, min (lim, maxendcol));
 	      }
 	    else /* c == '%' */
 	      {
@@ -2559,7 +2566,7 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 					 decode_mode_spec (w, c,
 							   maxendcol - hpos),
 					 -1,
-					 hpos, 0, spec_width, maxendcol);
+					 hpos, 0, 1, spec_width, maxendcol);
 	      }
 	  }
       }
@@ -2581,7 +2588,7 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 	    if (XTYPE (tem) == Lisp_String)
 	      hpos = display_string (w, vpos, XSTRING (tem)->data,
 				     XSTRING (tem)->size,
-				     hpos, 0, minendcol, maxendcol);
+				     hpos, 0, 1, minendcol, maxendcol);
 	    /* Give up right away for nil or t.  */
 	    else if (!EQ (tem, elt))
 	      { elt = tem; goto tail_recurse; }
@@ -2670,13 +2677,13 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 
     default:
     invalid:
-      return (display_string (w, vpos, "*invalid*", -1, hpos, 0,
+      return (display_string (w, vpos, "*invalid*", -1, hpos, 0, 1,
 			      minendcol, maxendcol));
     }
 
  end:
   if (minendcol > hpos)
-    hpos = display_string (w, vpos, "", 0, hpos, 0, minendcol, -1);
+    hpos = display_string (w, vpos, "", 0, hpos, 0, 1, minendcol, maxendcol);
   return hpos;
 }
 
@@ -2950,7 +2957,7 @@ display_count_lines (from, limit, n, pos_ptr)
   else
     ZV = limit;
 
-  *pos_ptr = scan_buffer ('\n', from, n, &shortage);
+  *pos_ptr = scan_buffer ('\n', from, n, &shortage, 0);
 
   ZV = oldzv;
   BEGV = oldbegv;
@@ -2976,15 +2983,22 @@ display_count_lines (from, limit, n, pos_ptr)
   The right edge of W is an implicit maximum.
   If TRUNCATE is nonzero, the implicit maximum is one column before the edge.
 
-  Returns ending hpos */
+  OBEY_WINDOW_WIDTH says to put spaces or vertical bars
+  at the place where the current window ends in this line
+  and not display anything beyond there.  Otherwise, only MAXCOL
+  controls where to stop output.
+
+  Returns ending hpos.  */
 
 static int
-display_string (w, vpos, string, length, hpos, truncate, mincol, maxcol)
+display_string (w, vpos, string, length, hpos, truncate,
+		obey_window_width, mincol, maxcol)
      struct window *w;
      unsigned char *string;
      int length;
      int vpos, hpos;
      GLYPH truncate;
+     int obey_window_width;
      int mincol, maxcol;
 {
   register int c;
@@ -3010,23 +3024,29 @@ display_string (w, vpos, string, length, hpos, truncate, mincol, maxcol)
 
   p1 = p1start;
   start = desired_glyphs->glyphs[vpos] + XFASTINT (w->left);
-  end = start + window_width - (truncate != 0);
 
-  if ((window_width + XFASTINT (w->left)) != FRAME_WIDTH (f))
+  if (obey_window_width)
     {
-      if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
-	{
-	  int i;
+      end = start + window_width - (truncate != 0);
 
-	  for (i = 0; i < VERTICAL_SCROLL_BAR_WIDTH; i++)
-	    *end-- = ' ';
+      if ((window_width + XFASTINT (w->left)) != FRAME_WIDTH (f))
+	{
+	  if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
+	    {
+	      int i;
+
+	      for (i = 0; i < VERTICAL_SCROLL_BAR_WIDTH; i++)
+		*end-- = ' ';
+	    }
+	  else
+	    *end-- = '|';
 	}
-      else
-	*end-- = '|';
     }
 
-  if (maxcol >= 0 && end - desired_glyphs->glyphs[vpos] > maxcol)
+  if (! obey_window_width
+      || (maxcol >= 0 && end - desired_glyphs->glyphs[vpos] > maxcol))
     end = desired_glyphs->glyphs[vpos] + maxcol;
+
   if (maxcol >= 0 && mincol > maxcol)
     mincol = maxcol;
 
@@ -3060,12 +3080,18 @@ display_string (w, vpos, string, length, hpos, truncate, mincol, maxcol)
 	  while ((p1 - start + hscroll - (hscroll > 0)) % tab_width);
 	}
       else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
-        p1 = copy_rope (p1, start, DISP_CHAR_VECTOR (dp, c), 0);
+	{
+	  p1 = copy_part_of_rope (f, p1, start,
+				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->contents,
+				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->size,
+				  0);
+	}
       else if (c < 0200 && ! NILP (buffer_defaults.ctl_arrow))
 	{
 	  if (p1 >= start)
-	    *p1 = (dp && XTYPE (DISP_CTRL_GLYPH (dp)) == Lisp_Int
-		   ? XINT (DISP_CTRL_GLYPH (dp)) : '^');
+	    *p1 = fix_glyph (f, (dp && XTYPE (DISP_CTRL_GLYPH (dp)) == Lisp_Int
+				 ? XINT (DISP_CTRL_GLYPH (dp)) : '^'),
+			     0);
 	  p1++;
 	  if (p1 >= start && p1 < end)
 	    *p1 = c ^ 0100;
@@ -3074,8 +3100,9 @@ display_string (w, vpos, string, length, hpos, truncate, mincol, maxcol)
       else
 	{
 	  if (p1 >= start)
-	    *p1 = (dp && XTYPE (DISP_ESCAPE_GLYPH (dp)) == Lisp_Int
-		   ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\');
+	    *p1 = fix_glyph (f, (dp && XTYPE (DISP_ESCAPE_GLYPH (dp)) == Lisp_Int
+				 ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
+			     0);
 	  p1++;
 	  if (p1 >= start && p1 < end)
 	    *p1 = (c >> 6) + '0';
@@ -3092,7 +3119,7 @@ display_string (w, vpos, string, length, hpos, truncate, mincol, maxcol)
   if (c && length > 0)
     {
       p1 = end;
-      if (truncate) *p1++ = truncate;
+      if (truncate) *p1++ = fix_glyph (f, truncate, 0);
     }
   else if (mincol >= 0)
     {
