@@ -367,38 +367,57 @@ available with older versions of GDB."
   (cons file args))
 
 (defun gud-sdb-marker-filter (string)
-  (cond 
-   ;; System V Release 3.2 uses this format
-   ((string-match "\\(^0x\\w* in \\|^\\|\n\\)\\([^:\n]*\\):\\([0-9]*\\):.*\n"
-		    string)
-    (setq gud-last-frame
-	  (cons
-	   (substring string (match-beginning 2) (match-end 2))
-	   (string-to-int 
-	    (substring string (match-beginning 3) (match-end 3))))))
-   ;; System V Release 4.0 quite often clumps two lines together
-   ((string-match "^\\(BREAKPOINT\\|STEPPED\\) process [0-9]+ function [^ ]+ in \\(.+\\)\n\\([0-9]+\\):" 
-		  string)
-    (setq gud-sdb-lastfile
-	  (substring string (match-beginning 2) (match-end 2)))
-    (setq gud-last-frame
-	  (cons
-	   gud-sdb-lastfile
-	   (string-to-int 
-	    (substring string (match-beginning 3) (match-end 3))))))
-   ;; System V Release 4.0 
-   ((string-match "^\\(BREAKPOINT\\|STEPPED\\) process [0-9]+ function [^ ]+ in \\(.+\\)\n"
-		       string)
-    (setq gud-sdb-lastfile
-	  (substring string (match-beginning 2) (match-end 2))))
-   ((and gud-sdb-lastfile (string-match "^\\([0-9]+\\):" string))
-	 (setq gud-last-frame
-	       (cons
-		gud-sdb-lastfile
-		(string-to-int 
-		 (substring string (match-beginning 1) (match-end 1))))))
-   (t 
-    (setq gud-sdb-lastfile nil)))
+  (setq gud-marker-acc
+	(if gud-marker-acc (concat gud-marker-acc string) string))
+  (let (start)
+    ;; Process all complete markers in this chunk
+    (while 
+	(cond 
+	 ;; System V Release 3.2 uses this format
+	 ((string-match "\\(^0x\\w* in \\|^\\|\n\\)\\([^:\n]*\\):\\([0-9]*\\):.*\n"
+			gud-marker-acc start)
+	  (setq gud-last-frame
+		(cons
+		 (substring gud-marker-acc (match-beginning 2) (match-end 2))
+		 (string-to-int 
+		  (substring gud-marker-acc (match-beginning 3) (match-end 3))))))
+	 ;; System V Release 4.0 quite often clumps two lines together
+	 ((string-match "^\\(BREAKPOINT\\|STEPPED\\) process [0-9]+ function [^ ]+ in \\(.+\\)\n\\([0-9]+\\):" 
+			gud-marker-acc start)
+	  (setq gud-sdb-lastfile
+		(substring gud-marker-acc (match-beginning 2) (match-end 2)))
+	  (setq gud-last-frame
+		(cons
+		 gud-sdb-lastfile
+		 (string-to-int 
+		  (substring gud-marker-acc (match-beginning 3) (match-end 3))))))
+	 ;; System V Release 4.0 
+	 ((string-match "^\\(BREAKPOINT\\|STEPPED\\) process [0-9]+ function [^ ]+ in \\(.+\\)\n"
+			gud-marker-acc start)
+	  (setq gud-sdb-lastfile
+		(substring gud-marker-acc (match-beginning 2) (match-end 2))))
+	 ((and gud-sdb-lastfile (string-match "^\\([0-9]+\\):"
+					      gud-marker-acc start))
+	       (setq gud-last-frame
+		     (cons
+		      gud-sdb-lastfile
+		      (string-to-int 
+		       (substring gud-marker-acc (match-beginning 1) (match-end 1))))))
+	 (t 
+	  (setq gud-sdb-lastfile nil)))
+      (setq start (match-end 0)))
+
+    ;; Search for the last incomplete line in this chunk
+    (while (string-match "\n" gud-marker-acc start)
+      (setq start (match-end 0)))
+
+    ;; If we have an incomplete line, store it in gud-marker-acc.
+    ;; Otherwise clear gud-marker-acc. to avoid an
+    ;; unnecessary concat when this function runs next.
+    (setq gud-marker-acc 
+	  (if (= start (length gud-marker-acc))
+	      (substring gud-marker-acc start)
+	    nil)))
   string)
 
 (defun gud-sdb-find-file (f)
@@ -453,17 +472,34 @@ and source-file directory for your debugger."
   (cons file args))
 
 (defun gud-dbx-marker-filter (string)
-  (if (or (string-match
-         "stopped in .* at line \\([0-9]*\\) in file \"\\([^\"]*\\)\""
-         string)
-        (string-match
-         "signal .* in .* at line \\([0-9]*\\) in file \"\\([^\"]*\\)\""
-         string))
+  (setq gud-marker-acc (if gud-marker-acc (concat gud-marker-acc string) string))
+
+  (let (start)
+    ;; Process all complete markers in this chunk.
+    (while (or (string-match
+		"stopped in .* at line \\([0-9]*\\) in file \"\\([^\"]*\\)\""
+		gud-marker-acc start)
+	       (string-match
+		"signal .* in .* at line \\([0-9]*\\) in file \"\\([^\"]*\\)\""
+		gud-marker-acc start))
       (setq gud-last-frame
 	    (cons
-	     (substring string (match-beginning 2) (match-end 2))
+	     (substring gud-marker-acc (match-beginning 2) (match-end 2))
 	     (string-to-int 
-	      (substring string (match-beginning 1) (match-end 1))))))
+	      (substring gud-marker-acc (match-beginning 1) (match-end 1))))
+	    start (match-end 0)))
+
+    ;; Search for the last incomplete line in this chunk
+    (while (string-match "\n" gud-marker-acc start)
+      (setq start (match-end 0)))
+
+    ;; If the incomplete line APPEARS to begin with another marker, keep it
+    ;; in the accumulator.  Otherwise, clear the accumulator to avoid an
+    ;; unnecessary concat during the next call.
+    (setq gud-marker-acc 
+	  (if (string-match "\\(stopped\\|signal\\)" gud-marker-acc start)
+	      (substring gud-marker-acc (match-beginning 0))
+	    nil)))
   string)
 
 ;; Functions for Mips-style dbx.  Given the option `-emacs', documented in
