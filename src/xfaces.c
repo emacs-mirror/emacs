@@ -701,11 +701,11 @@ x_free_colors (f, pixels, npixels)
      necessary and some servers don't allow it.  So don't do it.  */
   if (class != StaticColor && class != StaticGray && class != TrueColor)
     {
-      XFreeColors (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
-		   pixels, npixels, 0);
 #ifdef DEBUG_X_COLORS
       unregister_colors (pixels, npixels);
 #endif
+      XFreeColors (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
+		   pixels, npixels, 0);
     }
 }
 
@@ -729,10 +729,10 @@ x_free_dpy_colors (dpy, screen, cmap, pixels, npixels)
      necessary and some servers don't allow it.  So don't do it.  */
   if (class != StaticColor && class != StaticGray && class != TrueColor)
     {
-      XFreeColors (dpy, cmap, pixels, npixels, 0);
 #ifdef DEBUG_X_COLORS
       unregister_colors (pixels, npixels);
 #endif
+      XFreeColors (dpy, cmap, pixels, npixels, 0);
     }
 }
 
