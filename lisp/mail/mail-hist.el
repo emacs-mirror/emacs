@@ -172,7 +172,7 @@ colon, or just after the colon if it is not followed by whitespace."
     (mail-hist-beginning-of-header)
     (let ((start (point)))
       (or (mail-hist-forward-header 1)
-          (goto-char (mail-text-start)))
+          (goto-char (mail-header-end)))
       (beginning-of-line)
       (buffer-substring start (1- (point))))))
 
