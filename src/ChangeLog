@@ -1,5 +1,8 @@
 2001-11-26  Richard M. Stallman  <rms@gnu.org>
 
+	* textprop.c (set_text_properties_1): Allow START, END in either order.
+	Do nothing if range is empty.
+
 	* Makefile.in (mallocobj): Simplify logic using auxiliary vars.
 
 	* Makefile.in (mostlyclean): Delete bootstrap-emacs here.
