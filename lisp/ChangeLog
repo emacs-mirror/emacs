@@ -1,3 +1,8 @@
+2005-02-07  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-make-version-backup): Ignore file-errors such
+	as directory not writable.
+
 2005-02-07  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-max-undo, cua-undo): Remove.
