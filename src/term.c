@@ -1254,7 +1254,6 @@ term_get_fkeys (address)
      refusing to run at all on such a terminal.  */
 
   extern Lisp_Object Fidentity ();
-  static Lisp_Object term_get_fkeys_1 ();
   term_get_fkeys_arg = address;
   internal_condition_case (term_get_fkeys_1, Qerror, Fidentity);
 }
