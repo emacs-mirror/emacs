@@ -5,7 +5,7 @@
 ;; Author: Karl Fogel <kfogel@cs.oberlin.edu>
 ;; Maintainer: FSF
 ;; Created: July, 1993
-;; Version: 1.1
+;; Version: 1.2
 ;; Keywords: bookmarks, placeholders
 
 ;; This file is part of GNU Emacs.
@@ -32,9 +32,6 @@
 ;;
 ;; Thanks to Stefan Schoef, who sent a patch with the
 ;; `save-place-version-control' stuff in it.
-;;
-;; Don't autoload this, rather, load it, since it modifies
-;; find-file-hooks and other hooks.
 
 ;; this is what I was using during testing:
 ;; (define-key ctl-x-map "p" 'toggle-save-place)
@@ -175,29 +172,27 @@ To save places automatically in all files, put this in your `.emacs' file:
 	;; overhead of function call by checking here too.
 	(and buffer-file-name (save-place-to-alist))
 	(setq buf-list (cdr buf-list))))))
-    
-(add-hook 
- 'find-file-hooks
- (function
-  (lambda ()
-    (or save-place-loaded (load-save-place-alist-from-file))
-    (let ((cell (assoc buffer-file-name save-place-alist)))
-      (if cell
-	  (progn
-	    (goto-char (cdr cell))
-	    ;; and make sure it will be saved again for later.
-	    (setq save-place t))))))
- t)
 
-(add-hook 'kill-emacs-hook
-	  (function
-	   (lambda ()
-	     (progn
-	       (save-places-to-alist)
-	       (save-place-alist-to-file)))))
+(defun save-place-find-file-hook ()
+  (or save-place-loaded (load-save-place-alist-from-file))
+  (let ((cell (assoc buffer-file-name save-place-alist)))
+    (if cell
+        (progn
+          (goto-char (cdr cell))
+          ;; and make sure it will be saved again for later
+          (setq save-place t)))))
+
+(defun save-place-kill-emacs-hook
+  (save-places-to-alist)
+  (save-place-alist-to-file))
+
+(add-hook 'find-file-hooks 'save-place-find-file-hook t)
+
+(add-hook 'kill-emacs-hook 'save-place-kill-emacs-hook)
 
 (add-hook 'kill-buffer-hook 'save-place-to-alist)
 
 (provide 'saveplace) ; why not...
 
 ;;; saveplace.el ends here
+
