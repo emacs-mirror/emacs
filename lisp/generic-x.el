@@ -1419,24 +1419,21 @@ you must reload generic-x to enable the specified modes."
      (1 font-lock-keyword-face)
      (2 font-lock-constant-face nil t))
    ;; system variables
-   (eval-when-compile
-     (generic-make-keywords-list
-      installshield-system-variables-list
-      'font-lock-variable-name-face "[^_]" "[^_]"))
+   (generic-make-keywords-list
+    installshield-system-variables-list
+    'font-lock-variable-name-face "[^_]" "[^_]")
    ;; system functions
    (generic-make-keywords-list
     installshield-system-functions-list
     'font-lock-function-name-face "[^_]" "[^_]")
    ;; type keywords
-   (eval-when-compile
-     (generic-make-keywords-list
-      installshield-types-list
-      'font-lock-type-face "[^_]" "[^_]"))
+   (generic-make-keywords-list
+    installshield-types-list
+    'font-lock-type-face "[^_]" "[^_]")
    ;; function argument constants
-   (eval-when-compile
-     (generic-make-keywords-list
-      installshield-funarg-constants-list
-      'font-lock-variable-name-face "[^_]" "[^_]")) ; is this face the best choice?
+   (generic-make-keywords-list
+    installshield-funarg-constants-list
+    'font-lock-variable-name-face "[^_]" "[^_]") ; is this face the best choice?
    )
   (list "\\.[rR][uU][lL]$")
   (list
