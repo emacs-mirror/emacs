@@ -4724,7 +4724,13 @@ update_frame_1 (f, force_p, inhibit_id_p)
 	  /* We have only one cursor on terminal frames.  Use it to
 	     display the cursor of the selected window.  */
 	  struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
-	  if (w->cursor.vpos >= 0)
+	  if (w->cursor.vpos >= 0
+	      /* The cursor vpos may be temporarily out of bounds
+	         in the following situation:  There is one window,
+		 with the cursor in the lower half of it.  The window
+		 is split, and a message causes a redisplay before
+	         a new cursor position has been computed.  */
+	      && w->cursor.vpos < XFASTINT (w->height))
 	    {
 	      int x = WINDOW_TO_FRAME_HPOS (w, w->cursor.hpos);
 	      int y = WINDOW_TO_FRAME_VPOS (w, w->cursor.vpos);
