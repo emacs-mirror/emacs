@@ -36,7 +36,7 @@
 ;; Upper vowels and tone-marks are put on the letter.
 ;; Semi-vowel-sign-lo and lower vowels are put under the letter.
 (defconst lrt-single-consonant-table
-  '(("k" . ?(1!(B)
+  `(("k" . ?(1!(B)
     ("kh" . ?(1"(B)
     ("qh" . ?(1$(B)
     ("ng" . ?(1'(B)
@@ -66,7 +66,7 @@
     ("h" . ?(1N(B)
     ("nh" . ?(1|(B)
     ("mh" . ?(1}(B)
-    ("lh" . ?0(1K\1(B)
+    ("lh" . "0(1K\1(B")
     ))
 
 ;; Semi-vowel-sign-lo is put under the first letter.
@@ -104,16 +104,16 @@
     ("or" "(1m(B" (0 ?(1m(B) (0 ?(1M(B))
     ("er" "(1`(B (1T(B" (?(1`(B 0 ?(1T(B))
     ("ir" "(1`(B (1U(B" (?(1`(B 0 ?(1U(B))
-    ("oua" "(1[GP(B" (0 ?(1[(B ?(1G(B ?(1P(B) (0 ?(1Q(B ?(1G(B))
-    ("ua" "(1[G(B" (0 ?(1[(B ?(1G(B) (0 ?(1G(B))
+    ("ua" "(1[GP(B" (0 ?(1[(B ?(1G(B ?(1P(B) (0 ?(1Q(B ?(1G(B))
+    ("uaa" "(1[G(B" (0 ?(1[(B ?(1G(B) (0 ?(1G(B))
     ("ie" "(1`Q]P(B" (?(1`(B 0 ?(1Q(B ?(1](B ?(1P(B) (0 ?(1Q(B ?(1](B))
     ("ia" "(1`Q](B" (?(1`(B 0 ?(1Q(B ?(1](B) (0 ?(1](B))
-    ("eua" "(1`VM(B" (?(1`(B 0 ?(1V(B ?(1M(B))
-    ("ea" "(1`WM(B" (?(1`(B 0 ?(1W(B ?(1M(B))
+    ("ea" "(1`VM(B" (?(1`(B 0 ?(1V(B ?(1M(B))
+    ("eaa" "(1`WM(B" (?(1`(B 0 ?(1W(B ?(1M(B))
     ("ai" "(1d(B" (?(1d(B 0))
     ("ei" "(1c(B" (?(1c(B 0))
     ("ao" "(1`[R(B" (?(1`(B 0 ?(1[(B ?(1R(B))
-    ("arm" "(1S(B" (?(1S(B 0))))
+    ("aM" "(1S(B" (?(1S(B 0))))
 
 ;; Maa-sakod is put at the tail.
 (defconst lrt-maa-sakod-table
@@ -160,7 +160,10 @@
 (defun lrt-composing-pattern-double-c (str semi-vowel vowel-pattern)
   (let* ((patterns (copy-sequence vowel-pattern))
 	 (tail patterns)
-	 (chars (string-to-list str))
+	 (chars (string-to-list
+		 (if (= (chars-in-string str) 1)
+		     (decompose-string str)
+		   str)))
 	 place)
     ;; Embed C and SEMI-VOWEL (if any) at the place of 0.
     (while tail
@@ -235,7 +238,6 @@
 	(quail-delete-region)
 	(setq quail-current-str (lrt-compose-string maa-sakod-pattern))
 	(insert quail-current-str)
-	(setq quail-current-key " ")
 	(quail-show-translations)
 	(setq quail-current-data (list nil maa-sakod-pattern))))))
 
@@ -259,22 +261,28 @@
 		;; have already done it.
 		(nth 1 quail-current-data)))
 	     (tail tone-mark-pattern)
-	     (double-consonant-tail '(?(1'(B ?(1](B ?(1G(B ?(1E(B ?(1-(B ?(19(B ?(1A(B))
+	     (double-consonant-keys lrt-double-consonant-table)
+	     (double-consonant-flag nil)
 	     place)
+
+	;; Set DOUBLE-CONSONANT-FLAG to t if a user entered a double
+	;; consonant.
+	(while (and double-consonant-keys (not double-consonant-flag))
+	  (setq double-consonant-flag
+		(eq (string-match (car (car double-consonant-keys))
+				  quail-current-key)
+		    0)
+		double-consonant-keys (cdr double-consonant-keys)))
+
 	;; Find a place to embed TONE-MARK.  It should be after a
-	;; single or double consonant and following vowels.
+	;; single or double consonant and following upper or lower vowels.
 	(while (and tail (not place))
 	  (if (and
 	       (eq (get-char-code-property (car tail) 'phonetic-type)
 		   'consonant)
 	       ;; Skip `(1K(B' if it is the first letter of double consonant.
-	       (or (/= (car tail) ?(1K(B)
-		   (not (cdr tail))
-		   (not
-		    (if (= (car (cdr tail)) ?(1\(B)
-			(and (cdr (cdr tail))
-			     (memq (car (cdr (cdr tail))) double-consonant-tail))
-		      (memq (car (cdr tail)) double-consonant-tail)))))
+	       (or (not double-consonant-flag)
+		   (/= (car tail) ?(1K(B)))
 	      (progn
 		(setq place tail)
 		(setq tail (cdr tail))
@@ -301,10 +309,12 @@
 	(setq l1 lrt-single-consonant-table)
 	(while l1
 	  (setq e1 (car l1))
-	  (quail-defrule-internal (car e1) (cdr e1) map)
+	  (quail-defrule-internal (car e1) (vector (cdr e1)) map)
 	  (quail-defrule-internal
 	   (concat (car e1) semi-vowel-key)
-	   (compose-string (format "%c%c" (cdr e1) semi-vowel-char))
+	   (if (stringp (cdr e1))
+	       (compose-string (format "%s%c" (cdr e1) semi-vowel-char))
+	     (compose-string (format "%c%c" (cdr e1) semi-vowel-char)))
 	   map)
 	  (setq l2 lrt-vowel-table)
 	  (while l2
@@ -370,7 +380,7 @@
 	map)))
 
 (quail-define-package
- "lao-lrt" "Lao" "(1"(BR" t
+ "lao-lrt" "Lao" "(1E(BR" t
  "Lao input method using LRT (Lao Roman Transcription)"
  '(("k" . lrt-handle-maa-sakod)
    ("g" . lrt-handle-maa-sakod)
@@ -389,3 +399,18 @@
  'forget-last-selection 'deterministic 'kbd-translate 'show-layout)
 
 (lrt-generate-quail-map)
+
+;; Additional key definitions for Lao digits.
+
+(quail-defrule "\\0" ?(1p(B)
+(quail-defrule "\\1" ?(1q(B)
+(quail-defrule "\\2" ?(1r(B)
+(quail-defrule "\\3" ?(1s(B)
+(quail-defrule "\\4" ?(1t(B)
+(quail-defrule "\\5" ?(1u(B)
+(quail-defrule "\\6" ?(1v(B)
+(quail-defrule "\\7" ?(1w(B)
+(quail-defrule "\\8" ?(1x(B)
+(quail-defrule "\\9" ?(1y(B)
+
+;;; quail/lrt.el ends here
