@@ -286,7 +286,26 @@ LEIM is available from the same ftp directory as Emacs."))
     (define-key map [backspace] 'quail-delete-last-char)
     ;; At last, define default key binding.
     (append map '((t . quail-execute-non-quail-command))))
-  "Keymap used processing translation in Quail mode.
+  "Keymap used processing translation in complex Quail modes.
+Only a few especially complex input methods use this map;
+most use `quail-simple-translation-keymap' instead.
+This map is activated while translation region is active.")
+
+(defvar quail-simple-translation-keymap
+  (let ((map (make-keymap))
+	(i 0))
+    (while (< i ?\ )
+      (define-key map (char-to-string i) 'quail-execute-non-quail-command)
+      (setq i (1+ i)))
+    (while (< i 127)
+      (define-key map (char-to-string i) 'quail-self-insert-command)
+      (setq i (1+ i)))
+    (define-key map "\177" 'quail-delete-last-char)
+    (define-key map "\e" '(keymap (t . quail-execute-non-quail-command)))
+    ;; At last, define default key binding.
+    (append map '((t . quail-execute-non-quail-command))))
+  "Keymap used while processing translation in simple Quail modes.
+A few especially complex input methods use `quail--translation-keymap' instead.
 This map is activated while translation region is active.")
 
 (defvar quail-conversion-keymap
@@ -322,13 +341,13 @@ region is not active.")
 				  kbd-translate show-layout create-decode-map
 				  maximum-shortest overlay-plist
 				  update-translation-function
-				  conversion-keys)
+				  conversion-keys simple)
   "Define NAME as a new Quail package for input LANGUAGE.
 TITLE is a string to be displayed at mode-line to indicate this package.
 Optional arguments are GUIDANCE, DOCSTRING, TRANLSATION-KEYS,
  FORGET-LAST-SELECTION, DETERMINISTIC, KBD-TRANSLATE, SHOW-LAYOUT,
  CREATE-DECODE-MAP, MAXIMUM-SHORTEST, OVERLAY-PLIST,
- UPDATE-TRANSLATION-FUNCTION, and CONVERSION-KEYS.
+ UPDATE-TRANSLATION-FUNCTION, CONVERSION-KEYS and SIMPLE.
 
 GUIDANCE specifies how a guidance string is shown in echo area.
 If it is t, list of all possible translations for the current key is shown
@@ -390,17 +409,25 @@ for it) is inserted.
 
 CONVERSION-KEYS specifies additional key bindings used while
 conversion region is active.  It is an alist of single key character
-vs. corresponding command to be called."
+vs. corresponding command to be called.
+
+If SIMPLE is non-nil, then we do not alter the meanings of
+commands such as C-f, C-b, C-n, C-p and TAB; they are treated as
+non-Quail commands."
   (let (translation-keymap conversion-keymap)
     (if deterministic (setq forget-last-selection t))
     (if translation-keys
 	(progn
-	  (setq translation-keymap (copy-keymap quail-translation-keymap))
+	  (setq translation-keymap (copy-keymap
+				    (if simple quail-simple-translation-keymap
+				      quail-translation-keymap)))
 	  (while translation-keys
 	    (define-key translation-keymap
 	      (car (car translation-keys)) (cdr (car translation-keys)))
 	    (setq translation-keys (cdr translation-keys))))
-      (setq translation-keymap quail-translation-keymap))
+      (setq translation-keymap
+	    (if simple quail-simple-translation-keymap
+	      quail-translation-keymap)))
     (when conversion-keys
       (setq conversion-keymap (copy-keymap quail-conversion-keymap))
       (while conversion-keys
