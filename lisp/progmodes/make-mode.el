@@ -8,16 +8,13 @@
 ;; Keywords: unix, tools
 
 ;; RMS:
-;; This needs work.  The electric characters are too obnoxious.
-;; It should not define C-c LETTER.
-;; It should support knowing the list of existing macros and targets
-;; via M-TAB completion, not by preempting insertion of references.
+;; This needs work.
 ;; Also, the doc strings need fixing: the first line doesn't stand alone,
 ;; and other usage is not high quality.  Symbol names don't have `...'.
 
 ;; So, for the meantime, this is not the default mode for makefiles.
 
-;; $Id: makefile.el,v 1.15 1994/04/22 20:20:49 rms Exp rms $
+;; $Id: makefile.el,v 1.16 1994/05/22 22:10:39 rms Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -47,7 +44,7 @@
 ;; automatically updated, if necessary, whenever you invoke one of
 ;; these commands.  You can force it to be updated with C-c C-p.
 ;;
-;; The command C-c f adds certain filenames in the current directory
+;; The command C-c C-f adds certain filenames in the current directory
 ;; as targets.  You can filter out filenames by setting the variable
 ;; makefile-ignored-files-in-pickup-regex.
 ;;
@@ -56,7 +53,7 @@
 ;; prerequisites, which targets are out-of-date, and which have no
 ;; prerequisites.
 ;;
-;; The command C-c b pops up a browser window listing all target and
+;; The command C-c C-b pops up a browser window listing all target and
 ;; macro names.  You can mark or unmark items wit C-c SPC, and insert
 ;; all marked items back in the Makefile with C-c TAB.
 ;;
@@ -65,16 +62,43 @@
 ;;
 ;; There are numerous other customization variables.
 
+;;
+;; To Do:
+;;
+;; * Eliminate electric stuff entirely.
+;; * It might be nice to highlight targets differently depending on
+;;   whether they are up-to-date or not.  Not sure how this would
+;;   interact with font-lock.
+;; * Would be nice to edit the commands in ksh-mode and have
+;;   indentation and slashification done automatically.  Hard.
+;; * Consider removing browser mode.  It seems useless.
+;; * ":" should notice when a new target is made and add it to the
+;;   list (or at least set makefile-need-target-pickup).
+;; * Make browser into a mode.
+;; * Clean up macro insertion stuff.  It is a mess.
+;; * Browser entry and exit is weird.  Normalize.
+;; * Browser needs to be rewritten.  Right now it is kind of a crock.
+;;   Should at least:
+;;    * Act more like dired/buffer menu/whatever.
+;;    * Highlight as mouse traverses.
+;;    * B2 inserts.
+;; * Update documentation above.
+;; * Update texinfo manual.
+;; * Update files.el.
+
+
+
 ;;; Code:
 
 (provide 'makefile)
 
+;; Sadly we need this for a macro.
+(eval-when-compile
+  (require 'imenu))
+
 ;;; ------------------------------------------------------------
 ;;; Configurable stuff
 ;;; ------------------------------------------------------------
-
-(defconst makefile-mode-name "Makefile"
-  "The \"pretty name\" of makefile-mode, as it appears in the modeline.")
 
 (defvar makefile-browser-buffer-name "*Macros and Targets*"
   "Name of the macro- and target browser buffer.")
@@ -91,6 +115,10 @@ The normal value should be \" = \", since this is what
 standard make expects. However, newer makes such as dmake
 allow a larger variety of different macro assignments, so you
 might prefer to use \" += \" or \" := \" .")
+
+(defvar makefile-electric-keys nil
+  "If non-nil, install electric keybindings.
+Default is nil.")
 
 (defvar makefile-use-curly-braces-for-macros-p nil
   "Controls the style of generated macro references.
@@ -153,23 +181,38 @@ on one of those in the minibuffer whenever you enter a \".\"
 at the beginning of a line in makefile-mode.")
 
 (defvar makefile-runtime-macros-list
-  '(("@") ("&") (">") ("<") ("*") ("^") ("?") ("%"))
+  '(("@") ("&") (">") ("<") ("*") ("^") ("?") ("%") ("$"))
   "List of macros that are resolved by make at runtime.
 If you insert a macro reference using makefile-insert-macro-ref, the name
 of the macro is checked against this list. If it can be found its name will
 not be enclosed in { } or ( ).")
 
+;; Note that the first big subexpression is used by font lock.  Note
+;; that if you change this regexp you must fix the imenu index
+;; function defined at the end of the file.
 (defconst makefile-dependency-regex
-  "^[^ \t#:]+\\([ \t]+[^ \t#:]+\\)*[ \t]*:\\([ \t]*$\\|\\([^=\n].*$\\)\\)"
+  "^\\([^ \n\t#:]+\\([ \t]+[^ \t\n#:]+\\)*\\)[ \t]*:\\([ \t]*$\\|\\([^=\n].*$\\)\\)" 
   "Regex used to find dependency lines in a makefile.")
 
+;; Note that the first subexpression is used by font lock.  Note that
+;; if you change this regexp you must fix the imenu index function
+;; defined at the end of the file.
 (defconst makefile-macroassign-regex
-  "^[^ \t][^:#=]*[\\*:\\+]?:?=.*$"
+  "^\\([^ \n\t][^:#=\n]*\\)[ \t]*[*:+]?:?="
   "Regex used to find macro assignment lines in a makefile.")
 
 (defconst makefile-ignored-files-in-pickup-regex
   "\\(^\\..*\\)\\|\\(.*~$\\)\\|\\(.*,v$\\)\\|\\(\\.[chy]\\)"
   "Regex for filenames that will NOT be included in the target list.")
+
+(defconst makefile-font-lock-keywords
+  (list
+   ;; Do macro assignments.  These get the "type" face rather
+   ;; arbitrarily.
+   (list makefile-macroassign-regex 1 'font-lock-type-face)
+
+    ;; Do dependencies.  These get the function name face.
+   (list makefile-dependency-regex 1 'font-lock-function-name-face)))
 
 ;;; ------------------------------------------------------------
 ;;; The following configurable variables are used in the
@@ -221,18 +264,37 @@ interface:
     ()
   (setq makefile-mode-map (make-sparse-keymap))
   ;; set up the keymap
-  (define-key makefile-mode-map "$"        'makefile-insert-macro-ref)
-  (define-key makefile-mode-map "\C-c:"    'makefile-insert-target-ref)
-  (define-key makefile-mode-map ":"        'makefile-electric-colon)
-  (define-key makefile-mode-map "="        'makefile-electric-equal)
-  (define-key makefile-mode-map "."        'makefile-electric-dot)
+  (define-key makefile-mode-map "\C-c:" 'makefile-insert-target-ref)
+  (if makefile-electric-keys
+      (progn
+	(define-key makefile-mode-map "$" 'makefile-insert-macro-ref)
+	(define-key makefile-mode-map ":" 'makefile-electric-colon)
+	(define-key makefile-mode-map "=" 'makefile-electric-equal)
+	(define-key makefile-mode-map "." 'makefile-electric-dot)))
   (define-key makefile-mode-map "\C-c\C-f" 'makefile-pickup-filenames-as-targets)
   (define-key makefile-mode-map "\C-c\C-b" 'makefile-switch-to-browser)
   (define-key makefile-mode-map "\C-c\C-p" 'makefile-pickup-everything)
   (define-key makefile-mode-map "\C-c\C-u" 'makefile-create-up-to-date-overview)
   (define-key makefile-mode-map "\C-c\C-i" 'makefile-insert-gmake-function)
   (define-key makefile-mode-map "\M-p"     'makefile-previous-dependency)
-  (define-key makefile-mode-map "\M-n"     'makefile-next-dependency))  
+  (define-key makefile-mode-map "\M-n"     'makefile-next-dependency)
+  (define-key makefile-mode-map "\e\t"     'makefile-complete)
+
+  ;; Make menus.
+  (define-key makefile-mode-map [menu-bar makefile-mode]
+    (cons "Makefile" (make-sparse-keymap "Makefile")))
+
+  (define-key makefile-mode-map [menu-bar makefile-mode browse]
+    '("Pop up Makefile browser" . makefile-switch-to-browser))
+  (define-key makefile-mode-map [menu-bar makefile-mode complete]
+    '("Complete target or macro" . makefile-complete))
+  (define-key makefile-mode-map [menu-bar makefile-mode pickup]
+    '("Find targets and macros" . makefile-pickup-everything))
+
+  (define-key makefile-mode-map [menu-bar makefile-mode prev]
+    '("Move to previous dependency" . makefile-previous-dependency))
+  (define-key makefile-mode-map [menu-bar makefile-mode next]
+    '("Move to next dependency" . makefile-next-dependency)))
 
 (defvar makefile-browser-map nil
   "The keymap that is used in the macro- and target browser.")
@@ -266,8 +328,8 @@ interface:
   (modify-syntax-entry ?\} "){    " makefile-mode-syntax-table)
   (modify-syntax-entry ?#  "<     " makefile-mode-syntax-table)
   (modify-syntax-entry ?\n ">     " makefile-mode-syntax-table))
-  
-  
+
+
 ;;; ------------------------------------------------------------
 ;;; Internal variables.
 ;;; You don't need to configure below this line.
@@ -342,10 +404,6 @@ In the browser, use the following keys:
 makefile-mode can be configured by modifying the following
 variables:
 
-makefile-mode-name:
-    The \"pretty name\" of makefile-mode, as it
-    appears in the modeline.
-
 makefile-browser-buffer-name:
     Name of the macro- and target browser buffer.
 
@@ -407,6 +465,7 @@ makefile-special-targets-list:
    List of special targets. You will be offered to complete
    on one of those in the minibuffer whenever you enter a \".\"
    at the beginning of a line in makefile-mode."
+
   (interactive)
   (kill-all-local-variables)
   (make-local-variable 'local-write-file-hooks)
@@ -417,20 +476,44 @@ makefile-special-targets-list:
   (make-local-variable 'makefile-has-prereqs)
   (make-local-variable 'makefile-need-target-pickup)
   (make-local-variable 'makefile-need-macro-pickup)
+
+  ;; Font lock.
+  (make-local-variable 'font-lock-keywords)
+  (setq font-lock-keywords makefile-font-lock-keywords)
+  (make-local-variable 'font-lock-keywords-case-fold-search)
+  (setq font-lock-keywords-case-fold-search t)
+
+  ;; Add-log.
+  (make-local-variable 'add-log-current-defun-function)
+  (setq add-log-current-defun-function 'makefile-add-log-defun)
+
+  ;; Imenu.
+  (make-local-variable 'imenu-create-index-function)
+  (setq imenu-create-index-function 'makefile-menu-index-function)
+
+  ;; Comment stuff.
   (make-local-variable 'comment-start)
-  (make-local-variable 'comment-end)
-  (make-local-variable 'comment-start-skip)
   (setq comment-start "#")
+  (make-local-variable 'comment-end)
   (setq comment-end "")
-  (setq comment-start-skip "#[ \t]*")
+  (make-local-variable 'comment-start-skip)
+  (setq comment-start-skip "#+[ \t]*")
+
   ;; become the current major mode
   (setq major-mode 'makefile-mode)
-  (setq mode-name makefile-mode-name)
-  ;; activate keymap
+  (setq mode-name "Makefile")
+
+  ;; Activate keymap and syntax table.
   (use-local-map makefile-mode-map)
   (set-syntax-table makefile-mode-syntax-table)
-  (setq indent-tabs-mode t)		;real TABs are important in makefiles
-  (run-hooks 'makefile-mode-hook))  
+
+  ;; Real TABs are important in makefiles
+  (setq indent-tabs-mode t)
+  (run-hooks 'makefile-mode-hook))
+
+
+
+;;; Motion code.
 
 (defun makefile-next-dependency ()
   "Move (point) to the beginning of the next dependency line below (point)."
@@ -440,7 +523,7 @@ makefile-special-targets-list:
     (if (re-search-forward makefile-dependency-regex (point-max) t)
 	(progn (beginning-of-line) t)	; indicate success
       (goto-char here) nil)))
-      
+
 (defun makefile-previous-dependency ()
   "Move (point) to the beginning of the next dependency line above (point)."
   (interactive)
@@ -450,37 +533,41 @@ makefile-special-targets-list:
 	(progn (beginning-of-line) t)	; indicate success
       (goto-char here) nil)))
 
+
 
-;;; Stuff below here depends on the pickup state
+;;; Electric keys.  Blech.
 
-(defun makefile-electric-dot ()
-  "At (bol), offer completion on makefile-special-targets-list.
-Anywhere else just insert a dot."
-  (interactive)
+(defun makefile-electric-dot (arg)
+  "Prompt for the name of a special target to insert.
+Only does electric insertion at beginning of line.
+Anywhere else just self-inserts."
+  (interactive "p")
   (if (bolp)
       (makefile-insert-special-target)
-    (insert ".")))
+    (self-insert-command arg)))
 
 (defun makefile-insert-special-target ()
-  "Complete on makefile-special-targets-list, insert result at (point)."
+  "Propmt for and insert a special target name.
+Uses `makefile-special-targets' list."
   (interactive)
   (makefile-pickup-targets)
-  (let
-      ((special-target
-       (completing-read "Special target: "
-			makefile-special-targets-list nil nil nil)))
+  (let ((special-target
+	 (completing-read "Special target: "
+			  makefile-special-targets-list nil nil nil)))
     (if (zerop (length special-target))
 	()
-      (insert (format ".%s:" special-target))
+      (insert "." special-target ":")
       (makefile-forward-after-target-colon))))
 
-(defun makefile-electric-equal ()
-  "At (bol) do makefile-insert-macro.  Anywhere else just self-insert."
-  (interactive)
+(defun makefile-electric-equal (arg)
+  "Prompt for name of a macro to insert.
+Only does prompting if point is at beginning of line.
+Anywhere else just self-inserts."
+  (interactive "p")
   (makefile-pickup-macros)
   (if (bolp)
       (call-interactively 'makefile-insert-macro)
-    (insert "=")))
+    (self-insert-command arg)))
 
 (defun makefile-insert-macro (macro-name)
   "Prepare definition of a new macro."
@@ -489,7 +576,7 @@ Anywhere else just insert a dot."
   (if (not (zerop (length macro-name)))
       (progn
 	(beginning-of-line)
-	(insert (format "%s%s" macro-name makefile-macro-assign))
+	(insert macro-name makefile-macro-assign)
 	(setq makefile-need-macro-pickup t)
 	(makefile-remember-macro macro-name))))
 
@@ -500,10 +587,7 @@ Anywhere else just insert a dot."
     (progn
       (makefile-pickup-macros)
       (completing-read "Refer to macro: " makefile-macro-table nil nil nil))))
-   (if (not (zerop (length macro-name)))
-       (if (assoc macro-name makefile-runtime-macros-list)
-	   (insert (format "$%s" macro-name))
-	 (insert (makefile-format-macro-ref macro-name)))))
+  (makefile-do-macro-insertion macro-name))
 
 (defun makefile-insert-target (target-name)
   "Prepare definition of a new target (dependency line)."
@@ -511,7 +595,7 @@ Anywhere else just insert a dot."
   (if (not (zerop (length target-name)))
       (progn
 	(beginning-of-line)
-	(insert (format "%s%s" target-name makefile-target-colon))
+	(insert target-name makefile-target-colon)
 	(makefile-forward-after-target-colon)
 	(end-of-line)
 	(setq makefile-need-target-pickup t)
@@ -525,15 +609,18 @@ Anywhere else just insert a dot."
      (makefile-pickup-targets)
      (completing-read "Refer to target: " makefile-target-table nil nil nil))))
    (if (not (zerop (length target-name)))
-       (progn
-	 (insert (format "%s " target-name)))))
+       (insert target-name " ")))
 
-(defun makefile-electric-colon ()
-  "At (bol) defines a new target, anywhere else just self-insert ."
-  (interactive)
+(defun makefile-electric-colon (arg)
+  "Prompt for name of new target.
+Prompting only happens at beginning of line.
+Anywhere else just self-inserts."
+  (interactive "p")
   (if (bolp)
       (call-interactively 'makefile-insert-target)
-    (insert ":")))
+    (self-insert-command arg)))
+
+
 
 ;;; ------------------------------------------------------------
 ;;; Extracting targets and macros from an existing makefile
@@ -605,15 +692,19 @@ and add them to the list of known macros."
 	      (message "Picked up macro \"%s\" from line %d"
 		       macro-name line-number))))))
 
-(defun makefile-pickup-everything ()
+(defun makefile-pickup-everything (arg)
   "Calls makefile-pickup-targets and makefile-pickup-macros.
-See their documentation for what they do."
-  (interactive)
+See their documentation for what they do.
+Prefix arg means force pickups to be redone."
+  (interactive "P")
+  (if arg
+      (progn
+	(setq makefile-need-target-pickup t)
+	(setq makefile-need-macro-pickup t)))
   (makefile-pickup-macros)
   (makefile-pickup-targets)
   (if makefile-pickup-everything-picks-up-filenames-p
       (makefile-pickup-filenames-as-targets)))
-
 
 (defun makefile-pickup-filenames-as-targets ()
   "Scan the current directory for filenames, check each filename
@@ -632,8 +723,105 @@ names to the list of known targets."
 		       (message "Picked up file \"%s\" as target" name))))
 	    raw-filename-list)))
 
+
+
+;;; Completion.
+
+(defun makefile-complete ()
+  "Perform completion on Makefile construct preceding point.
+Can complete variable and target names.
+The context determines which are considered."
+  (interactive)
+  (let* ((beg (save-excursion
+		(skip-chars-backward "^$(){}:#= \t\n")
+		(point)))
+	 (try (buffer-substring beg (point)))
+	 (do-macros nil)
+	 (paren nil))
+
+    (save-excursion
+      (goto-char beg)
+      (let ((pc (preceding-char)))
+	(cond
+	 ;; Beginning of line means anything.
+	 ((bolp)
+	  ())
+
+	 ;; Preceding "$" means macros only.
+	 ((= pc ?$)
+	  (setq do-macros t))
+
+	 ;; Preceding "$(" or "${" means macros only.
+	 ((and (or (= pc ?{)
+		   (= pc ?\())
+	       (progn
+		 (setq paren pc)
+		 (backward-char)
+		 (and (not (bolp))
+		      (= (preceding-char) ?$))))
+	  (setq do-macros t)))))
+
+    ;; Try completion.
+    (let* ((table (append (if do-macros
+			      '()
+			    makefile-target-table)
+			  makefile-macro-table))
+	   (completion (try-completion try table)))
+      (cond
+       ;; Exact match, so insert closing paren or colon.
+       ((eq completion t)
+	(insert (if do-macros
+		    (if (eq paren ?{)
+			?}
+		      ?\))
+		  (if (save-excursion
+			(goto-char beg)
+			(bolp))
+		      ":"
+		    " "))))
+
+       ;; No match.
+       ((null completion)
+	(message "Can't find completion for \"%s\"" try)
+	(ding))
+
+       ;; Partial completion.
+       ((not (string= try completion))
+	;; FIXME it would be nice to supply the closing paren if an
+	;; exact, unambiguous match were found.  That is not possible
+	;; right now.  Ditto closing ":" for targets.
+	(delete-region beg (point))
+
+	;; DO-MACROS means doing macros only.  If not that, then check
+	;; to see if this completion is a macro.  Special insertion
+	;; must be done for macros.
+	(if (or do-macros
+		(assoc completion makefile-macro-table))
+	    (let ((makefile-use-curly-braces-for-macros-p
+		   (or (eq paren ?{)
+		       makefile-use-curly-braces-for-macros-p)))
+	      (delete-backward-char 2)
+	      (makefile-do-macro-insertion completion)
+	      (delete-backward-char 1))
+
+	  ;; Just insert targets.
+	  (insert completion)))
+
+       ;; Can't complete any more, so make completion list.  FIXME
+       ;; this doesn't do the right thing when the completion is
+       ;; actually inserted.  I don't think there is an easy way to do
+       ;; that.
+       (t
+	(message "Making completion list...")
+	(let ((list (all-completions try table)))
+	  (with-output-to-temp-buffer "*Completions*"
+	    (display-completion-list list)))
+	(message "Making completion list...done"))))))
+
+
+
 ;;; ------------------------------------------------------------
-;;; The browser window
+;;; Browser mode.
 ;;; ------------------------------------------------------------
 
 (defun makefile-browser-format-target-line (target selected)
@@ -812,6 +1000,7 @@ Insertion takes place at (point)."
   (makefile-pickup-macros)
   (makefile-browse makefile-target-table makefile-macro-table))
 
+
 
 ;;; ------------------------------------------------------------
 ;;; Up-to-date overview buffer
@@ -911,6 +1100,8 @@ and generates the overview, one line per target name."
 (defun makefile-query-by-make-minus-q (target &optional filename)
   (not (zerop (call-process makefile-brave-make nil nil nil "-f" filename "-q" target))))
 
+
+
 ;;; ------------------------------------------------------------
 ;;; Continuation cleanup
 ;;; ------------------------------------------------------------
@@ -945,6 +1136,7 @@ and generates the overview, one line per target name."
 				    line-nr))))))))
     dont-save))
 	  
+
 
 ;;; ------------------------------------------------------------
 ;;; GNU make function support
@@ -981,11 +1173,18 @@ powerful GNU make feature."
    prompt-list
    ","))
     
-
+
 
 ;;; ------------------------------------------------------------
 ;;; Utility functions
 ;;; ------------------------------------------------------------
+
+(defun makefile-do-macro-insertion (macro-name)
+  "Insert a macro reference."
+  (if (not (zerop (length macro-name)))
+      (if (assoc macro-name makefile-runtime-macros-list)
+	  (insert "$" macro-name)
+	(insert (makefile-format-macro-ref macro-name)))))
 
 (defun makefile-remember-target (target-name &optional has-prereqs)
   "Remember a given target if it is not already remembered for this buffer."
@@ -1070,4 +1269,47 @@ configuration variable makefile-use-curly-braces-for-macros-p ."
 (defun makefile-first-line-p ()
   (= (makefile-beginning-of-line-point) (point-min)))
 
-;; makefile.el ends here
+
+
+;;; Support for other packages, like add-log and imenu.
+
+(defun makefile-add-log-defun ()
+  "Return name of target or macro point is in, or nil."
+  (save-excursion
+    (beginning-of-line)
+    (cond
+     ((looking-at makefile-macroassign-regex)
+      (buffer-substring (match-beginning 1)
+			(match-end 1)))
+     ((progn
+	(forward-char)
+	(re-search-backward makefile-dependency-regex nil t))
+      (buffer-substring (match-beginning 1)
+			(match-end 1)))
+     (t nil))))
+
+;; FIXME it might be nice to have them separated by macro vs target.
+(defun makefile-menu-index-function ()
+  "Generate alist of indices for imenu."
+  (let (alist
+	stupid
+	(re (concat makefile-dependency-regex
+		    "\\|"
+		    makefile-macroassign-regex)))
+    (imenu-progress-message stupid 0)
+    (goto-char (point-min))
+    (while (re-search-forward re nil t)
+      (imenu-progress-message stupid)
+      (setq zardoz (list (match-beginning 0) (match-end 0)
+			 (match-beginning 1) (match-end 1)
+							  ))
+      (let ((n (if (match-beginning 1) 1 5)))
+	(setq alist (cons
+		     (cons (buffer-substring (match-beginning n)
+					     (match-end n))
+			   (match-beginning n))
+		     alist))))
+    (imenu-progress-message stupid 100)
+    (nreverse alist)))
+
+;;; makefile.el ends here
