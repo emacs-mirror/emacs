@@ -82,11 +82,7 @@ The default status is as follows.
   (set-terminal-coding-system-internal nil)
   (set-keyboard-coding-system-internal nil)
 
-  (setq sendmail-coding-system nil
-	rmail-file-coding-system nil)
-
-  (setq nonascii-insert-offset 0)
-  )
+  (setq nonascii-insert-offset 0))
 
 (set-language-info-alist
  "English" '((setup-function . setup-english-environment)
