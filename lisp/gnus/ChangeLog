@@ -1,4 +1,8 @@
-2001-10-30 ShengHuo ZHU  <zsh@cs.rochester.edu>
+2001-11-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mm-util.el (mm-charset-synonym-alist): Revert (some).
+
+2001-10-30  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* mm-util.el, nnultimate.el, nnweb.el, nnslashdot.el: Sync with
 	the Gnus CVS.

@@ -108,28 +108,29 @@
 (defvar mm-charset-synonym-alist
   `(
     ;; Perfectly fine?  A valid MIME name, anyhow.
-    ,(unless (mm-coding-system-p 'big5)
-       '(big5 . cn-big5))
+    ,@(unless (mm-coding-system-p 'big5)
+       '((big5 . cn-big5)))
     ;; Not in XEmacs, but it's not a proper MIME charset anyhow.
-    ,(unless (mm-coding-system-p 'x-ctext)
-       '(x-ctext . ctext))
+    ,@(unless (mm-coding-system-p 'x-ctext)
+       '((x-ctext . ctext)))
     ;; Apparently not defined in Emacs 20, but is a valid MIME name.
-    ,(unless (mm-coding-system-p 'gb2312)
-       '(gb2312 . cn-gb-2312))
+    ,@(unless (mm-coding-system-p 'gb2312)
+       '((gb2312 . cn-gb-2312)))
+    ;; ISO-8859-15 is very similar to ISO-8859-1.
+    ,@(unless (mm-coding-system-p 'iso-8859-15) ; Emacs 21 defines it.
+       '((iso-8859-15 . iso-8859-1)))
     ;; Windows-1252 is actually a superset of Latin-1.  See also
     ;; `gnus-article-dumbquotes-map'.
-    ;;,(unless (mm-coding-system-p 'windows-1252)	
-					; should be defined eventually
-    ;;  '(windows-1252 . iso-8859-1))
-    ;; ISO-8859-15 is very similar to ISO-8859-1.
-    ;;,(unless (mm-coding-system-p 'iso-8859-15) ; Emacs 21 defines it.
-    ;;   '(iso-8859-15 . iso-8859-1))
+    ,@(unless (mm-coding-system-p 'windows-1252)	
+       (if (mm-coding-system-p 'cp1252)
+	   '((windows-1252 . cp1252))
+	 '((windows-1252 . iso-8859-1))))
     ;; Windows-1250 is a variant of Latin-2 heavily used by Microsoft
     ;; Outlook users in Czech republic. Use this to allow reading of their
     ;; e-mails. cp1250 should be defined by M-x codepage-setup.
-    ;;,(unless (mm-coding-system-p 'windows-1250)	
-					; should be defined eventually
-    ;;  '(windows-1250 . cp1250))
+    ,@(if (and (not (mm-coding-system-p 'windows-1250))
+	       (mm-coding-system-p 'cp1250))
+	  '((windows-1250 . cp1250)))
     )
   "A mapping from invalid charset names to the real charset names.")
 
