@@ -2248,6 +2248,11 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	      goto retry;
 	    }
 
+	  /* If there is unread keyboard input, also return.  */
+	  if (XINT (read_kbd) != 0
+	      && requeued_events_pending_p ())
+	    break;
+
 	  if (! EMACS_TIME_NEG_P (timer_delay) && time_limit != -1)
 	    {
 	      EMACS_TIME difference;
@@ -2407,6 +2412,11 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  if (detect_input_pending_run_timers (do_display))
 	    break;
 	}
+
+      /* If there is unread keyboard input, also return.  */
+      if (XINT (read_kbd) != 0
+	  && requeued_events_pending_p ())
+	break;
 
       /* If wait_for_cell. check for keyboard input
 	 but don't run any timers.
