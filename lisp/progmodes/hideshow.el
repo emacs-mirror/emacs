@@ -5,7 +5,7 @@
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;;      Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: C C++ java lisp tools editing comments blocks hiding outlines
-;; Maintainer-Version: n/a (presently)
+;; Maintainer-Version: 5.39.2.8
 ;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
 
 ;; This file is part of GNU Emacs.
@@ -220,6 +220,7 @@
 ;;; Code:
 
 (require 'easymenu)
+(eval-when-compile (require 'cl))
 
 ;;---------------------------------------------------------------------------
 ;; user-configurable variables
@@ -374,28 +375,6 @@ Note that `mode-line-format' is buffer-local.")
 ;;---------------------------------------------------------------------------
 ;; system dependency
 
-; ;; xemacs compatibility
-; (when (string-match "xemacs\\|lucid" emacs-version)
-;   ;; use pre-packaged compatiblity layer
-;   (require 'overlay))
-;
-; ;; xemacs and emacs-19 compatibility
-; (when (or (not (fboundp 'add-to-invisibility-spec))
-;           (not (fboundp 'remove-from-invisibility-spec)))
-;   ;; `buffer-invisibility-spec' mutators snarfed from Emacs 20.3 lisp/subr.el
-;   (defun add-to-invisibility-spec (arg)
-;     (cond
-;      ((or (null buffer-invisibility-spec) (eq buffer-invisibility-spec t))
-;       (setq buffer-invisibility-spec (list arg)))
-;      (t
-;       (setq buffer-invisibility-spec
-;             (cons arg buffer-invisibility-spec)))))
-;   (defun remove-from-invisibility-spec (arg)
-;     (when buffer-invisibility-spec
-;       (setq buffer-invisibility-spec
-;             (delete arg buffer-invisibility-spec)))))
-
-;; hs-match-data
 (defalias 'hs-match-data 'match-data)
 
 ;;---------------------------------------------------------------------------
@@ -405,12 +384,9 @@ Note that `mode-line-format' is buffer-local.")
   "Delete hideshow overlays in region defined by FROM and TO."
   (when (< to from)
     (setq from (prog1 to (setq to from))))
-  (let ((ovs (overlays-in from to)))
-    (while ovs
-      (let ((ov (car ovs)))
-        (when (overlay-get ov 'hs)
-          (delete-overlay ov)))
-      (setq ovs (cdr ovs)))))
+  (dolist (ov (overlays-in from to))
+    (when (overlay-get ov 'hs)
+      (delete-overlay ov))))
 
 (defun hs-isearch-show (ov)
   "Delete overlay OV, and set `hs-headline' to nil.
@@ -773,18 +749,15 @@ See documentation for functions `hs-hide-block' and `run-hooks'."
    (or
     ;; first see if we have something at the end of the line
     (catch 'eol-begins-hidden-region-p
-      (let ((here (point))
-            (ovs (save-excursion (end-of-line) (overlays-at (point)))))
-        (while ovs
-          (let ((ov (car ovs)))
-            (when (overlay-get ov 'hs)
-              (goto-char
-               (cond (end (overlay-end ov))
-                     ((eq 'comment (overlay-get ov 'hs)) here)
-                     (t (+ (overlay-start ov) (overlay-get ov 'hs-ofs)))))
-              (delete-overlay ov)
-              (throw 'eol-begins-hidden-region-p t)))
-          (setq ovs (cdr ovs)))
+      (let ((here (point)))
+        (dolist (ov (save-excursion (end-of-line) (overlays-at (point))))
+          (when (overlay-get ov 'hs)
+            (goto-char
+             (cond (end (overlay-end ov))
+                   ((eq 'comment (overlay-get ov 'hs)) here)
+                   (t (+ (overlay-start ov) (overlay-get ov 'hs-ofs)))))
+            (delete-overlay ov)
+            (throw 'eol-begins-hidden-region-p t)))
         nil))
     ;; not immediately obvious, look for a suitable block
     (let ((c-reg (hs-inside-comment-p))
@@ -913,27 +886,19 @@ Key bindings:
              )))))
 
 ;; some housekeeping
-(or (assq 'hs-minor-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist
-          (cons (cons 'hs-minor-mode hs-minor-mode-map)
-                minor-mode-map-alist)))
-(or (assq 'hs-minor-mode minor-mode-alist)
-    (setq minor-mode-alist (append minor-mode-alist
-                                   (list '(hs-minor-mode " hs")))))
+(add-to-list 'minor-mode-map-alist (cons 'hs-minor-mode hs-minor-mode-map))
+(add-to-list 'minor-mode-alist '(hs-minor-mode " hs") t)
 
 ;; make some variables permanently buffer-local
-(let ((vars '(hs-minor-mode
-              hs-c-start-regexp
-              hs-block-start-regexp
-              hs-block-start-mdata-select
-              hs-block-end-regexp
-              hs-forward-sexp-func
-              hs-adjust-block-beginning)))
-  (while vars
-    (let ((var (car vars)))
-      (make-variable-buffer-local var)
-      (put var 'permanent-local t))
-    (setq vars (cdr vars))))
+(dolist (var '(hs-minor-mode
+               hs-c-start-regexp
+               hs-block-start-regexp
+               hs-block-start-mdata-select
+               hs-block-end-regexp
+               hs-forward-sexp-func
+               hs-adjust-block-beginning))
+  (make-variable-buffer-local var)
+  (put var 'permanent-local t))
 
 ;;---------------------------------------------------------------------------
 ;; that's it
