@@ -1,3 +1,8 @@
+2000-06-19  Dave Love  <fx@gnu.org>
+
+	* configure.in (GETTIMEOFDAY_ONE_ARGUMENT): Fix in case
+	_XOPEN_SOURCE is defined.
+
 2000-06-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (distclean): Also make distclean in lisp/. 
