@@ -170,6 +170,11 @@ element with the highest PRIORITY takes precedence."
   :group 'ibuffer)
 (defvar ibuffer-shrink-to-minimum-size nil)
 
+(defcustom ibuffer-truncate-lines t
+  "If non-nil, do not display continuation lines."
+  :type 'boolean
+  :group 'ibuffer)
+
 (defcustom ibuffer-case-fold-search case-fold-search
   "If non-nil, ignore case when searching."
   :type 'boolean
@@ -2098,7 +2103,7 @@ to disable all filtering currently in effect, use
   (setq mode-name "Ibuffer")
   (setq buffer-read-only t)
   (buffer-disable-undo)
-  (setq truncate-lines t)
+  (setq truncate-lines ibuffer-truncate-lines)
   ;; This makes things less ugly for Emacs 21 users with a non-nil
   ;; `show-trailing-whitespace'.
   (setq show-trailing-whitespace nil)
