@@ -758,7 +758,7 @@ appear on disk when you save the tar-file's buffer."
 				 (- (point-max) 3072) (point-max)))))))
 		      (multibyte enable-multibyte-characters)
 		      (detected (detect-coding-region
-				 1 (min 16384 (point-max)))))
+				 1 (min 16384 (point-max)) t)))
 		  (if coding
 		      (or (numberp (coding-system-eol-type coding))
 			  (setq coding (coding-system-change-eol-conversion
