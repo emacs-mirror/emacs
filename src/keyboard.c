@@ -1885,7 +1885,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  restore_getcjmp (local_getcjmp);
 	  tem0 = sit_for (echo_keystrokes, 0, 1, 1, 0);
 	  restore_getcjmp (save_jump);
-	  if (EQ (tem0, Qt))
+	  if (EQ (tem0, Qt)
+	      && ! CONSP (Vunread_command_events))
 	    echo_now ();
 	}
     }
@@ -1955,7 +1956,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 			  0, 1, 1, 0);
 	  restore_getcjmp (save_jump);
 
-	  if (EQ (tem0, Qt))
+	  if (EQ (tem0, Qt)
+	      && ! CONSP (Vunread_command_events))
 	    {
 	      Fdo_auto_save (Qnil, Qnil);
 
@@ -1969,6 +1971,14 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	      redisplay ();
 	    }
 	}
+    }
+
+  /* If this has become non-nil here, it has been set by a timer
+     or sentinel or filter.  */
+  if (CONSP (Vunread_command_events))
+    {
+      c = XCONS (Vunread_command_events)->car;
+      Vunread_command_events = XCONS (Vunread_command_events)->cdr;
     }
 
   /* Read something from current KBOARD's side queue, if possible.  */
@@ -2666,6 +2676,15 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  read_avail_input (1);
       }
 #endif /* not VMS */
+    }
+
+  if (CONSP (Vunread_command_events))
+    {
+      Lisp_Object first;
+      first = XCONS (Vunread_command_events)->car;
+      Vunread_command_events = XCONS (Vunread_command_events)->cdr;
+      *kbp = current_kboard;
+      return first;
     }
 
   /* At this point, we know that there is a readable event available
@@ -7092,7 +7111,8 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
       /* But first wait, and skip the message if there is input.  */
       if (!NILP (Fsit_for ((NUMBERP (Vsuggest_key_bindings)
 			    ? Vsuggest_key_bindings : make_number (2)),
-			   Qnil, Qnil)))
+			   Qnil, Qnil))
+	  && ! CONSP (Vunread_command_events))
 	{
 	  Lisp_Object binding;
 	  char *newmessage;
