@@ -98,13 +98,15 @@ first will be printed into the backtrace buffer."
 	(debugger-outer-standard-input standard-input)
 	(debugger-outer-standard-output standard-output)
 	(debugger-outer-cursor-in-echo-area cursor-in-echo-area))
+    ;; Set this instead of binding it, so that `q'
+    ;; will not restore it.
+    (setq overriding-terminal-local-map nil) 
     ;; Don't let these magic variables affect the debugger itself.
     (let ((last-command nil) this-command track-mouse
 	  (unread-command-char -1) unread-command-events
 	  last-input-event last-command-event last-nonmenu-event
 	  last-event-frame
 	  overriding-local-map
-	  overriding-terminal-local-map
 	  load-read-function
 	  (standard-input t) (standard-output t)
 	  (cursor-in-echo-area nil))
