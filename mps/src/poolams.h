@@ -1,7 +1,7 @@
 /* impl.h.poolams: AUTOMATIC MARK & SWEEP POOL CLASS INTERFACE
  *
- * $HopeName: MMsrc!poolams.h(MMdevel_pekka_rate.3) $
- * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
+ * $HopeName: MMsrc!poolams.h(trunk.2) $
+ * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .purpose: Internal interface to AMS functionality.
  */
@@ -82,10 +82,10 @@ typedef struct AMSGroupStruct {
 
 /* macros to get between child and parent structures */
 
-#define PoolPoolAMS(pool) PARENT(AMSStruct, poolStruct, pool)
+#define PoolPoolAMS(pool) PARENT(AMSStruct, poolStruct, (pool))
 #define AMSPool(ams)      (&(ams)->poolStruct)
 
-#define ActionAMS(action) PARENT(AMSStruct, actionStruct, action)
+#define ActionAMS(action) PARENT(AMSStruct, actionStruct, (action))
 #define AMSAction(ams)    (&(ams)->actionStruct)
 
 
@@ -100,15 +100,16 @@ typedef struct AMSGroupStruct {
 
 #define AMSGroupShift(group) ((group)->ams->grainShift)
 
-#define AMSAddrIndex(group, addr) \
-  ((Index)(AddrOffset(AMSGroupBase(group), addr) \
-           >> AMSGroupShift(group)))
-#define AMSIndexAddr(group, index) \
-  AddrAdd(AMSGroupBase(group), (Size)(index) << AMSGroupShift(group))
+#define AMS_ADDR_INDEX(group, addr) \
+  ((Index)(AddrOffset(AMSGroupBase((group)), (addr)) \
+           >> AMSGroupShift((group))))
+#define AMS_INDEX_ADDR(group, index) \
+  AddrAdd(AMSGroupBase((group)), \
+          (Size)(index) << AMSGroupShift((group)))
 
-#define AMSSegGroup(seg) ((AMSGroup)SegP(seg))
+#define AMSSegGroup(seg) ((AMSGroup)SegP((seg)))
 
-#define AMSArena(ams) PoolArena(AMSPool(ams))
+#define AMSArena(ams) PoolArena(AMSPool((ams)))
 
 #define AMSGroupArena(group) AMSArena((group)->ams)
 
@@ -167,7 +168,7 @@ typedef struct AMSGroupStruct {
                       (base), (limit), 1) \
 
 
-#define AMSAlloced(group, index) \
+#define AMS_ALLOCED(group, index) \
   ((group)->allocTableInUse \
    ? BTGet((group)->allocTable, (index)) \
    : ((group)->firstFree > (index)))
@@ -183,7 +184,7 @@ extern Res AMSBufferFill(Seg *segReturn,
                          Pool pool, Buffer buffer, Size size);
 extern void AMSBufferEmpty(Pool pool, Buffer buffer);
 
-extern Res AMSCondemn(Pool pool, Trace trace, Seg seg);
+extern Res AMSWhiten(Pool pool, Trace trace, Seg seg);
 extern Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
 extern Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 extern void AMSReclaim(Pool pool, Trace trace, Seg seg);
