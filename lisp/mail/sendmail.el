@@ -45,7 +45,7 @@ Delete these headers from old message when it's inserted in a reply.")
 
 ;; Useful to set in site-init.el
 ;;;###autoload
-(defconst send-mail-function 'sendmail-send-it "\
+(defvar send-mail-function 'sendmail-send-it "\
 Function to call to send the current buffer as mail.
 The headers are be delimited by a line which is `mail-header-separator'.")
 
