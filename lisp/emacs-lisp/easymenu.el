@@ -148,7 +148,7 @@ as a solid horizontal line.
 
 A menu item can be a list with the same format as MENU.  This is a submenu."
   `(progn
-     (defvar ,symbol nil ,doc)
+     ,(if symbol `(defvar ,symbol nil ,doc))
      (easy-menu-do-define (quote ,symbol) ,maps ,doc ,menu)))
 
 ;;;###autoload
@@ -266,14 +266,8 @@ would always fail because the key is `equal' but not `eq'."
 	       easy-menu-converted-items-table)))
 
 (defun easy-menu-convert-item-1 (item)
-  "Parse an item description and add the item to a keymap.
-This is the function that is used for item definition by the other easy-menu
-functions.
-MENU is a sparse keymap i.e. a list starting with the symbol `keymap'.
-ITEM defines an item as in `easy-menu-define'.
-Optional argument BEFORE is nil or a key in MENU.  If BEFORE is not nil
-put item before BEFORE in MENU, otherwise if item is already present in
-MENU, just change it, otherwise put it last in MENU."
+  "Parse an item description and convert it to a menu keymap element.
+ITEM defines an item as in `easy-menu-define'."
   (let (name command label prop remove help)
     (cond
      ((stringp item)			; An item or separator.
@@ -460,7 +454,7 @@ the submenu named BEFORE, otherwise add it at the end of the menu.
 
 Either call this from `menu-bar-update-hook' or use a menu filter,
 to implement dynamic menus."
-  (easy-menu-add-item nil path (cons name items) before))
+  (easy-menu-add-item nil path (easy-menu-create-menu name items) before))
 
 ;; XEmacs needs the following two functions to add and remove menus.
 ;; In Emacs this is done automatically when switching keymaps, so
