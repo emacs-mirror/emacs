@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.36) $
+ * $HopeName: MMsrc!poolawl.c(trunk.37) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.36) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.37) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -695,6 +695,10 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AVERT(AWL, awl);
   group = (AWLGroup)SegP(seg);
   AVERT(AWLGroup, group);
+
+  /* The following line is necessary to avoid a spurious AWL collection */
+  /* after an AMC Gen1 collection */
+  awl->lastCollected = ArenaMutatorAllocSize(PoolArena(pool));
 
   base = SegBase(seg);
 
