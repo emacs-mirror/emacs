@@ -489,6 +489,8 @@ Do not call this function yourself. */)
 
       doing_interact = False;
     }
+
+  return Qnil;
 }
 
 
