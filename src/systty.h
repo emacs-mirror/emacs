@@ -294,76 +294,14 @@ struct emacs_tty {
 };
 
 /* Define EMACS_GET_TTY and EMACS_SET_TTY,
-   the macros for reading and setting parts of `struct emacs_tty'.  */
+   the macros for reading and setting parts of `struct emacs_tty'.
 
-#ifdef HAVE_TCATTR
+   These got pretty unmanageable (huge macros are hard to debug), and
+   finally needed some code which couldn't be done as part of an
+   expression, so we moved them out to their own functions in sysdep.c.  */
+#define EMACS_GET_TTY(fd, p)        (emacs_get_tty ((fd), (p)))
+#define EMACS_SET_TTY(fd, p, waitp) (emacs_set_tty ((fd), (p), (waitp)))
 
-#define EMACS_GET_TTY_1(fd, p) (tcgetattr ((fd), &(p)->main) != -1)
-#define EMACS_SET_TTY_1(fd, p, waitp) \
-  (tcsetattr ((fd), (waitp) ? TCSAFLUSH : TCSADRAIN, &(p)->main) != -1)
-
-#else
-#ifdef HAVE_TERMIO
-
-#define EMACS_GET_TTY_1(fd, p) (ioctl ((fd), TCGETA, &(p)->main) != -1)
-#define EMACS_SET_TTY_1(fd, p, waitp)			\
-  (ioctl ((fd), (waitp) ? TCSETAW : TCSETAF, &(p)->main) != -1)
-
-#else
-#ifdef VMS
-
-/* These definitions will really only work in sysdep.c, because of their
-   use of input_iosb.  I don't know enough about VMS QIO to fix this.  */
-#define EMACS_GET_TTY_1(fd, p)					\
-  (1 & SYS$QIOW (0, (fd), IO$_SENSEMODE, (p), 0, 0,		\
-	    &(p)->main.class, 12, 0, 0, 0, 0))
-#define EMACS_SET_TTY_1(fd, p, waitp)				\
-  (1 & SYS$QIOW (0, (fd), IO$_SETMODE, &input_iosb, 0, 0,	\
-	    &(p)->main.class, 12, 0, 0, 0, 0))
-
-#else
-
-#define EMACS_GET_TTY_1(fd, p) (ioctl ((fd), TIOCGETP, &(p)->main) != -1)
-#define EMACS_SET_TTY_1(fd, p, waitp)			\
-  (ioctl ((fd), (waitp) ? TIOCSETP : TIOCSETN, &(p)->main) != -1)
-
-#endif
-#endif
-#endif
-
-#ifdef TIOCGLTC
-#define EMACS_GET_TTY_2(fd, p)				\
-  (ioctl ((fd), TIOCGLTC, &(p)->ltchars) != -1)
-#define EMACS_SET_TTY_2(fd, p, waitp)			\
-  (ioctl ((fd), TIOCSLTC, &(p)->ltchars) != -1)
-#else
-#define EMACS_GET_TTY_2(fd, p) 1
-#define EMACS_SET_TTY_2(fd, p, waitp) 1
-#endif /* TIOCGLTC */
-
-#ifdef TIOCGETC
-#define EMACS_GET_TTY_3(fd, p)				\
-  (ioctl ((fd), TIOCGETC, &(p)->tchars) != -1		\
-   && ioctl ((fd), TIOCLGET, &(p)->lmode) != -1)
-#define EMACS_SET_TTY_3(fd, p, waitp)			\
-  (ioctl ((fd), TIOCSETC, &(p)->tchars) != -1		\
-   && ioctl ((fd), TIOCLSET, &(p)->lmode) != -1)
-#else
-#define EMACS_GET_TTY_3(fd, p) 1
-#define EMACS_SET_TTY_3(fd, p, waitp) 1
-#endif /* TIOCGLTC */
-
-/* Define these to be a concatenation of all the EMACS_{GET,SET}_TTY_n
-   macros.  */
-#define EMACS_GET_TTY(fd, tc)	\
-  (EMACS_GET_TTY_1 (fd, tc)	\
-   && EMACS_GET_TTY_2 (fd, tc)	\
-   && EMACS_GET_TTY_3 (fd, tc))
-
-#define EMACS_SET_TTY(fd, tc, waitp)	\
-  (EMACS_SET_TTY_1 (fd, tc, waitp)	\
-   && EMACS_SET_TTY_2 (fd, tc, waitp)	\
-   && EMACS_SET_TTY_3 (fd, tc, waitp))
 
 /* Define EMACS_TTY_TABS_OK.  */
 
