@@ -939,9 +939,9 @@ the query replace mode will toggle between string replace and regexp replace."
     (if (string= str "")
 	(progn
 	  (setq vip-re-replace (not vip-re-replace))
-	  (message (format "Replace mode changed to %s."
-			   (if vip-re-replace "regexp replace"
-			     "string replace"))))
+	  (message "Replace mode changed to %s."
+		   (if vip-re-replace "regexp replace"
+		     "string replace")))
       (if vip-re-replace
 	  ;; (replace-regexp
 	  ;;  str
@@ -1460,9 +1460,9 @@ giving null search string."
     (if (string= vip-s-string "")
 	(progn
 	  (setq vip-re-search (not vip-re-search))
-	  (message (format "Search mode changed to %s search."
-			   (if vip-re-search "regular expression"
-			     "vanilla"))))
+	  (message "Search mode changed to %s search."
+		   (if vip-re-search "regular expression"
+		     "vanilla")))
       (vip-search vip-s-string t val)
       (if com
 	  (progn
@@ -1480,9 +1480,9 @@ giving null search string."
     (if (string= vip-s-string "")
 	(progn
 	  (setq vip-re-search (not vip-re-search))
-	  (message (format "Search mode changed to %s search."
-			   (if vip-re-search "regular expression"
-			     "vanilla"))))
+	  (message "Search mode changed to %s search."
+		   (if vip-re-search "regular expression"
+		     "vanilla")))
       (vip-search vip-s-string nil val)
       (if com
 	  (progn
