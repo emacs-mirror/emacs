@@ -82,6 +82,12 @@ to the FSF.
   to save their changes. If the user says yes, show them
   in a Custom buffer using customize-customized.
 
+** Emacs Lisp mode could put an overlay on the defun for every
+  function that has advice.  The overlay could have `after-text' like "
+  [Function has advice]".  It might look like
+     (defun foo [Function has advice] (x y) 
+  The overlay could also be a button that you could use to view the advice.
+
 ** ange-ftp
 *** understand sftp
 *** Use MLS for ange-ftp-insert-directory if a list of files is specified.

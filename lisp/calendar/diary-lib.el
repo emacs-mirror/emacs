@@ -846,7 +846,10 @@ After the entries are marked, the hooks `nongregorian-diary-marking-hook' and
              ;; Avoid redrawing when called recursively, eg through
              ;; mark-diary-entries-hook for #include's, else only get
              ;; the last set of diary marks.
-             (not marking-diary-entries))
+             (not marking-diary-entries)
+             ;; If called from redraw-calendar, the calendar has been
+             ;; erased, so no need to unmark the diary entries.
+             (not calendar-redrawing))
     (setq mark-diary-entries-in-calendar nil)
     (redraw-calendar))
   (let ((marking-diary-entries t)

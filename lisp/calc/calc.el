@@ -717,6 +717,20 @@ If nil, selections displayed but ignored.")
 (defvar var-gamma '(special-const (math-gamma-const)))
 (defvar var-Modes '(special-const (math-get-modes-vec)))
 
+(defvar calc-language-alist
+  '((latex-mode . latex)
+    (tex-mode   . tex)
+    (plain-tex-mode . tex)
+    (context-mode . tex)
+    (nroff-mode . eqn)
+    (pascal-mode . pascal)
+    (c-mode . c)
+    (c++-mode . c)
+    (fortran-mode . fortran)
+    (f90-mode . fortran))
+  "Alist of major modes with appropriate Calc languages.")
+
+
 (mapcar (lambda (v) (or (boundp v) (set v nil)))
 	  calc-local-var-list)
 

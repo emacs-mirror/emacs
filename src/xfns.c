@@ -1939,6 +1939,88 @@ static XIMStyle supported_xim_styles[] =
 
 /* Create an X fontset on frame F with base font name BASE_FONTNAME.  */
 
+char xic_defaut_fontset[] = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
+
+char *
+xic_create_fontsetname (base_fontname)
+     char *base_fontname;
+{
+  /* Make a fontset name from the base font name.  */
+  if (xic_defaut_fontset == base_fontname)
+    /* There is no base font name, use the default.  */
+    return base_fontname;
+  else
+    {
+      /* Make a fontset name from the base font name.
+	 The font set will be made of the following elements:
+	 - the base font.
+	 - the base font where the charset spec is replaced by -*-*.
+	 - the same but with the family also replaced with -*-*-.  */
+      char *p = base_fontname;
+      char *fontsetname;
+      int i;
+	
+      for (i = 0; *p; p++)
+	if (*p == '-') i++;
+      if (i != 14)
+	{ /* As the font name doesn't conform to XLFD, we can't
+	     modify it to generalize it to allcs and allfamilies.
+	     Use the specified font plus the default.  */
+	  int len = strlen (base_fontname) + strlen (xic_defaut_fontset) + 2;
+	  fontsetname = xmalloc (len);
+	  bzero (fontsetname, len);
+	  strcpy (fontsetname, base_fontname);
+	  strcat (fontsetname, ",");
+	  strcat (fontsetname, xic_defaut_fontset);
+	}
+      else
+	{
+	  int len;
+	  char *p1 = NULL;
+	  char *font_allcs = NULL;
+	  char *font_allfamilies = NULL;
+	  char *allcs = "*-*-*-*-*-*-*";
+	  char *allfamilies = "-*-*-";
+	  
+	  for (i = 0, p = base_fontname; i < 8; p++)
+	    {
+	      if (*p == '-')
+		{
+		  i++;
+		  if (i == 3)
+		    p1 = p + 1;
+		}
+	    }
+	  /* Build the font spec that matches all charsets.  */
+	  len = p - base_fontname + strlen (allcs) + 1;
+	  font_allcs = (char *) alloca (len);
+	  bzero (font_allcs, len);
+	  bcopy (base_fontname, font_allcs, p - base_fontname);
+	  strcat (font_allcs, allcs);
+
+	  /* Build the font spec that matches all families.  */
+	  len = p - p1 + strlen (allcs) + strlen (allfamilies) + 1;
+	  font_allfamilies = (char *) alloca (len);
+	  bzero (font_allfamilies, len);
+	  strcpy (font_allfamilies, allfamilies);
+	  bcopy (p1, font_allfamilies + (strlen (allfamilies)), p - p1);
+	  strcat (font_allfamilies, allcs);
+
+	  /* Build the actual font set name.  */
+	  len = strlen (base_fontname) + strlen (font_allcs)
+	    + strlen (font_allfamilies) + 3;
+	  fontsetname = xmalloc (len);
+	  bzero (fontsetname, len);
+	  strcpy (fontsetname, base_fontname);
+	  strcat (fontsetname, ",");
+	  strcat (fontsetname, font_allcs);
+	  strcat (fontsetname, ",");
+	  strcat (fontsetname, font_allfamilies);
+	}
+      return fontsetname;
+    }
+}
+
 static XFontSet
 xic_create_xfontset (f, base_fontname)
      struct frame *f;
@@ -1949,6 +2031,9 @@ xic_create_xfontset (f, base_fontname)
   int missing_count;
   char *def_string;
   Lisp_Object rest, frame;
+
+  if (!base_fontname)
+    base_fontname = xic_defaut_fontset;
 
   /* See if there is another frame already using same fontset.  */
   FOR_EACH_FRAME (rest, frame)
@@ -1966,12 +2051,16 @@ xic_create_xfontset (f, base_fontname)
 
   if (!xfs)
     {
+      char *fontsetname = xic_create_fontsetname (base_fontname);
+
       /* New fontset.  */
       xfs = XCreateFontSet (FRAME_X_DISPLAY (f),
-                            base_fontname, &missing_list,
+                            fontsetname, &missing_list,
                             &missing_count, &def_string);
       if (missing_list)
         XFreeStringList (missing_list);
+      if (fontsetname != base_fontname)
+	xfree (fontsetname);
     }
 
   if (FRAME_XIC_BASE_FONTNAME (f))
@@ -2053,6 +2142,11 @@ create_frame_xic (f)
   if (FRAME_XIC (f))
     return;
 
+  /* Create X fontset. */
+  xfs = xic_create_xfontset
+    (f, (FRAME_FONTSET (f) < 0) ? NULL
+        : (char *) SDATA (fontset_ascii (FRAME_FONTSET (f))));
+
   xim = FRAME_X_XIM (f);
   if (xim)
     {
@@ -2060,52 +2154,9 @@ create_frame_xic (f)
       XPoint spot;
       XVaNestedList preedit_attr;
       XVaNestedList status_attr;
-      char *base_fontname;
-      int fontset;
 
       s_area.x = 0; s_area.y = 0; s_area.width = 1; s_area.height = 1;
       spot.x = 0; spot.y = 1;
-      /* Create X fontset. */
-      fontset = FRAME_FONTSET (f);
-      if (fontset < 0)
-	base_fontname = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
-      else
-	{
-	  /* Determine the base fontname from the ASCII font name of
-	     FONTSET.  */
-	  char *ascii_font = (char *) SDATA (fontset_ascii (fontset));
-	  char *p = ascii_font;
-	  int i;
-
-	  for (i = 0; *p; p++)
-	    if (*p == '-') i++;
-	  if (i != 14)
-	    /* As the font name doesn't conform to XLFD, we can't
-	       modify it to get a suitable base fontname for the
-	       frame.  */
-	    base_fontname = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
-	  else
-	    {
-	      int len = strlen (ascii_font) + 1;
-	      char *p1 = NULL;
-
-	      for (i = 0, p = ascii_font; i < 8; p++)
-		{
-		  if (*p == '-')
-		    {
-		      i++;
-		      if (i == 3)
-			p1 = p + 1;
-		    }
-		}
-	      base_fontname = (char *) alloca (len);
-	      bzero (base_fontname, len);
-	      strcpy (base_fontname, "-*-*-");
-	      bcopy (p1, base_fontname + 5, p - p1);
-	      strcat (base_fontname, "*-*-*-*-*-*-*");
-	    }
-	}
-      xfs = xic_create_xfontset (f, base_fontname);
 
       /* Determine XIC style.  */
       if (xic_style == 0)

@@ -1,6 +1,6 @@
 /* File IO for GNU Emacs.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996, 1997, 1998,
-     1999, 2000, 2001, 2003, 2004  Free Software Foundation, Inc.
+     1999, 2000, 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2696,7 +2696,11 @@ This is what happens in interactive use with M-x.  */)
   CHECK_STRING (file);
   CHECK_STRING (newname);
   file = Fexpand_file_name (file, Qnil);
-  newname = Fexpand_file_name (newname, Qnil);
+
+  if (!NILP (Ffile_directory_p (newname)))
+    newname = Fexpand_file_name (Ffile_name_nondirectory (file), newname);
+  else
+    newname = Fexpand_file_name (newname, Qnil);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -2779,7 +2783,11 @@ This is what happens in interactive use with M-x.  */)
   CHECK_STRING (file);
   CHECK_STRING (newname);
   file = Fexpand_file_name (file, Qnil);
-  newname = Fexpand_file_name (newname, Qnil);
+
+  if (!NILP (Ffile_directory_p (newname)))
+    newname = Fexpand_file_name (Ffile_name_nondirectory (file), newname);
+  else
+    newname = Fexpand_file_name (newname, Qnil);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -2846,7 +2854,11 @@ This happens for interactive use with M-x.  */)
      we want to permit links to relative file names.  */
   if (SREF (filename, 0) == '~')
     filename = Fexpand_file_name (filename, Qnil);
-  linkname = Fexpand_file_name (linkname, Qnil);
+
+  if (!NILP (Ffile_directory_p (linkname)))
+    linkname = Fexpand_file_name (Ffile_name_nondirectory (filename), linkname);
+  else
+    linkname = Fexpand_file_name (linkname, Qnil);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -4508,7 +4520,6 @@ actually used.  */)
 	      if (CONSP (coding_system))
 		coding_system = XCAR (coding_system);
 	    }
-
 	  unbind_to (count, Qnil);
 	  inserted = Z_BYTE - BEG_BYTE;
 	}

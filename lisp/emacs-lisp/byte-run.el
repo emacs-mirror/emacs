@@ -1,6 +1,6 @@
 ;;; byte-run.el --- byte-compiler support for inlining
 
-;; Copyright (C) 1992, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -34,7 +34,7 @@
 ;; Redefined in byte-optimize.el.
 ;; This is not documented--it's not clear that we should promote it.
 (fset 'inline 'progn)
-(put 'inline 'lisp-indent-hook 0)
+(put 'inline 'lisp-indent-function 0)
 
 
 ;;; Interface to inline functions.
@@ -105,7 +105,7 @@ was first made obsolete, for example a date or a release number."
   (put variable 'byte-obsolete-variable (cons new when))
   variable)
 
-(put 'dont-compile 'lisp-indent-hook 0)
+(put 'dont-compile 'lisp-indent-function 0)
 (defmacro dont-compile (&rest body)
   "Like `progn', but the body always runs interpreted (not compiled).
 If you think you need this, you're probably making a mistake somewhere."
@@ -118,7 +118,7 @@ If you think you need this, you're probably making a mistake somewhere."
 ;;; definition in the file overrides the magic definitions on the
 ;;; byte-compile-macro-environment.
 
-(put 'eval-when-compile 'lisp-indent-hook 0)
+(put 'eval-when-compile 'lisp-indent-function 0)
 (defmacro eval-when-compile (&rest body)
   "Like `progn', but evaluates the body at compile time.
 The result of the body appears to the compiler as a quoted constant."
@@ -127,13 +127,14 @@ The result of the body appears to the compiler as a quoted constant."
   ;; (list 'quote (eval (cons 'progn body)))
   (cons 'progn body))
 
-(put 'eval-and-compile 'lisp-indent-hook 0)
+(put 'eval-and-compile 'lisp-indent-function 0)
 (defmacro eval-and-compile (&rest body)
   "Like `progn', but evaluates the body at compile time and at load time."
   (declare (debug t))
   ;; Remember, it's magic.
   (cons 'progn body))
 
+(put 'with-no-warnings 'lisp-indent-function 0)
 (defun with-no-warnings (&rest body)
   "Like `progn', but prevents compiler warnings in the body."
   ;; The implementation for the interpreter is basically trivial.
@@ -147,7 +148,7 @@ The result of the body appears to the compiler as a quoted constant."
 ;;; There is hardly any reason to change these parameters, anyway.
 ;;; --rms.
 
-;; (put 'byte-compiler-options 'lisp-indent-hook 0)
+;; (put 'byte-compiler-options 'lisp-indent-function 0)
 ;; (defmacro byte-compiler-options (&rest args)
 ;;   "Set some compilation-parameters for this file.  This will affect only the
 ;; file in which it appears; this does nothing when evaluated, and when loaded
