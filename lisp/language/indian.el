@@ -51,16 +51,6 @@
 
 ;;; Code:
 
-(define-prefix-command 'describe-indian-environment-map)
-(define-key-after describe-language-environment-map [Indian]
-  '("Indian" . describe-indian-environment-map)
-  t)
-
-(define-prefix-command 'setup-indian-environment-map)
-(define-key-after setup-language-environment-map [Indian]
-  '("Indian" . setup-indian-environment-map)
-  t)
-
 ;;  Followings are what you see when you refer to the Emacs
 ;;  representations of IS 13194 charcters.  However, this is merely
 ;;  tentative apperance, and you must convert them by
