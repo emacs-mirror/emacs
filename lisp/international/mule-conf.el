@@ -6,7 +6,7 @@
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
-;; Keywords: mule, multilingual, character set, coding system
+;; Keywords: i18n, mule, multilingual, character set, coding system
 
 ;; This file is part of GNU Emacs.
 
@@ -33,7 +33,7 @@
 
 ;;; Definitions of character sets.
 
-;; The charsets `ascii' and `unicoe' are aleady defined in charset.c
+;; The charsets `ascii' and `unicode' are already defined in charset.c
 ;; as below:
 ;;
 ;; (define-charset 'ascii
@@ -77,7 +77,7 @@
   :supplementary-p t)
 
 (define-charset 'iso-8859-1
-  "Laint-1 (ISO/IEC 8859-1)"
+  "Latin-1 (ISO/IEC 8859-1)"
   :short-name "Latin-1"
   :ascii-compatible-p t
   :code-space [0 255]
@@ -125,7 +125,7 @@
 	   :short-name (format "RHP of %s" ,name)
 	   :long-name (format "RHP of %s (%s)" ,name ,nickname)
 	   :iso-final-char ,iso-final
-	   :emacs-mule-id ,emacs-mule-id 
+	   :emacs-mule-id ,emacs-mule-id
 	   :code-space [32 127]
 	   :parents (list (cons ,symbol 128))))))
 
@@ -213,7 +213,7 @@
   :unify-map "gb2312-1980")
 
 (define-charset 'chinese-gbk
-  "GBK Chinese simpliefied."
+  "GBK Chinese simplified."
   :short-name "GBK"
   :long-name "GBK"
   :code-space [#x40 #xFE #x81 #xFE]
@@ -294,7 +294,7 @@
   :unify-map "big5")
 
 (define-charset 'chinese-big5-1
-  "Frequentry used part (A141-C67E) of Big5 (Chinese traditional)"
+  "Frequently used part (A141-C67E) of Big5 (Chinese traditional)"
   :short-name "Big5 (Level-1)"
   :long-name "Big5 (Level-1) A141-C67F"
   :iso-final-char ?0
@@ -304,7 +304,7 @@
   :unify-map "big5-1")
 
 (define-charset 'chinese-big5-2
-  "Less frequentry used part (C940-FEFE) of Big5 (Chinese traditional)"
+  "Less frequently used part (C940-FEFE) of Big5 (Chinese traditional)"
   :short-name "Big5 (Level-2)"
   :long-name "Big5 (Level-2) C940-FEFE"
   :iso-final-char ?1
@@ -355,7 +355,7 @@
 (define-charset 'japanese-jisx0213-2
   "JISX0213 Plane 2 (Japanese)"
   :short-name "JISX0213-2"
-  :long-name "JISX0213-2" 
+  :long-name "JISX0213-2"
   :iso-final-char ?P
   :emacs-mule-id 254
   :code-space [33 126 33 126]
@@ -534,7 +534,7 @@
   "Tibetan characters"
   :iso-final-char ?7
   :short-name "Tibetan 2-col"
-  :long-name "Tibetan 2 column" 
+  :long-name "Tibetan 2 column"
   :iso-final-char ?7
   :emacs-mule-id 252
   :code-space [33 126 33 126]
@@ -578,7 +578,7 @@
   :code-offset #x100)
 
 (define-charset 'ethiopic
-  "Ethiopic characters for Amahric and Tigrigna."
+  "Ethiopic characters for Amharic and Tigrigna."
   :short-name "Ethiopic"
   :long-name "Ethiopic characters"
   :iso-final-char ?3
