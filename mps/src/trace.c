@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.33) $
+ * $HopeName: MMsrc!trace.c(trunk.34) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.33) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.34) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -528,6 +528,10 @@ static void TraceReclaim(Trace trace)
         AVER((SegPool(seg)->class->attr & AttrGC) != 0);
 
         PoolReclaim(SegPool(seg), trace, seg);
+
+        /* If the segment still exists, it should no longer be white. */
+        AVER(!(SegOfAddr(&seg, space, base) &&
+               TraceSetIsMember(SegWhite(seg), trace->ti)));
       }
     } while(SegNext(&seg, space, base));
   }
