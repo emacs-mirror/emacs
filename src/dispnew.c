@@ -1879,7 +1879,7 @@ sit_for (sec, usec, reading, display)
     return Qt;
 
 #ifdef SIGIO
-  gobble_input ();
+  gobble_input (0);
 #endif
 
   XSET (read_kbd, Lisp_Int, reading ? -1 : 1);
