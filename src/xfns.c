@@ -3232,7 +3232,7 @@ This function is an internal primitive--use `make-frame' instead.")
 
   if (!NILP (parent))
     {
-      f->output_data.x->parent_desc = parent;
+      f->output_data.x->parent_desc = (Window) XINT (parent);
       f->output_data.x->explicit_parent = 1;
     }
   else
