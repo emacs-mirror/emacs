@@ -75,7 +75,8 @@ if it matches the first line of the file,
 ;;;###autoload
 (defcustom tex-main-file nil
   "*The main TeX source file which includes this buffer's file.
-The command `tex-buffer' runs TeX on `tex-main-file'if that is non-nil."
+The command `tex-file' runs TeX on the file specified by `tex-main-file'
+if the variable is non-nil."
   :type '(choice (const :tag "None" nil)
                  file)
   :group 'tex-file)
