@@ -106,8 +106,8 @@ C-l -- redisplay screen and ask again."
 
 ;;;###autoload
 (defun apply-macro-to-region-lines (top bottom &optional macro)
-  "For each complete line in the current region, move to the beginning of
-the line, and run the last keyboard macro.
+  "For each complete line between point and mark, move to the beginning
+of the line, and run the last keyboard macro.
 
 When called from lisp, this function takes two arguments TOP and
 BOTTOM, describing the current region.  TOP must be before BOTTOM.
@@ -146,8 +146,11 @@ and then select the region of un-tablified names and use
 `\\[apply-macro-to-region-lines]' to build the table from the names.
 "
   (interactive "r")
-  (if (null last-kbd-macro)
-      (error "No keyboard macro has been defined."))
+  (or macro
+      (progn
+	(if (null last-kbd-macro)
+	    (error "No keyboard macro has been defined."))
+	(setq macro last-kbd-macro)))
   (save-excursion
     (let ((end-marker (progn
 			(goto-char bottom)
@@ -158,7 +161,7 @@ and then select the region of un-tablified names and use
 	  (forward-line 1))
       (while (< (point) end-marker)
 	(save-excursion
-	  (execute-kbd-macro (or macro last-kbd-macro)))
+	  (execute-kbd-macro macro))
 	(forward-line 1)))))
 
 ;;;###autoload
