@@ -1900,7 +1900,7 @@ the inserted text.  Value is always t."
 (if calendar-mode-map
     nil
   (setq calendar-mode-map (make-sparse-keymap))
-  (if (display-popup-menus-p) (require 'cal-menu))
+  (require 'cal-menu)
   (calendar-for-loop i from 0 to 9 do
        (define-key calendar-mode-map (int-to-string i) 'digit-argument))
   (let ((l (list 'narrow-to-region 'mark-word 'mark-sexp 'mark-paragraph
@@ -2101,10 +2101,8 @@ For a complete description, type \
   (setq buffer-read-only t)
   (setq indent-tabs-mode nil)
   (update-calendar-mode-line)
-  (if (display-popup-menus-p)
-      (progn
-        (make-local-hook 'activate-menubar-hook)
-        (add-hook 'activate-menubar-hook 'cal-menu-update nil t)))
+  (make-local-hook 'activate-menubar-hook)
+  (add-hook 'activate-menubar-hook 'cal-menu-update nil t)
   (make-local-variable 'calendar-mark-ring)
   (make-local-variable 'displayed-month);;  Month in middle of window.
   (make-local-variable 'displayed-year));;  Year in middle of window.
