@@ -892,7 +892,10 @@ If the game is finished, this command requests for another game."
 			      ((= value 6) ?^)))
 
     (and (zerop value)
-	 (put-text-property (1- (point)) (point) 'mouse-face 'highlight))
+	 (add-text-properties (1- (point)) (point)
+			      '(mouse-face highlight
+				help-echo "\
+mouse-1: get robot moving, mouse-2: play on this square")))
     (delete-char 1)
     (backward-char 1))
   (sit-for 0))	; Display NOW
@@ -931,8 +934,9 @@ If the game is finished, this command requests for another game."
 		      (goto-char (point-max))))
 	       (setq point (point))
 	       (insert ?=)
-	       (put-text-property point (point)
-				  'mouse-face 'highlight))
+	       (add-text-properties point (point)
+				    '(mouse-face highlight help-echo "\
+mouse-1: get robot moving, mouse-2: play on this square")))
 	     (> (setq i (1- i)) 0))
       (if (= i (1- m))
 	  (setq opoint point))
