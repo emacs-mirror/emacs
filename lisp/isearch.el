@@ -1553,6 +1553,7 @@ Scroll-bar or mode-line events are processed appropriately."
 (put 'delete-other-windows 'isearch-scroll t)
 (put 'balance-windows 'isearch-scroll t)
 (put 'split-window-vertically 'isearch-scroll t)
+(put 'split-window-horizontally 'isearch-scroll t)
 (put 'enlarge-window 'isearch-scroll t)
 
 ;; Universal argument commands
