@@ -259,7 +259,7 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii)
 	{
 	  if (error_nonascii)
 	    {
-	      unread_command_events = Fcons (val, Qnil);
+	      Vunread_command_events = Fcons (val, Qnil);
 	      error ("Non-character input-event");
 	    }
 	  else
