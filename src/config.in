@@ -643,9 +643,6 @@ Boston, MA 02111-1307, USA.  */
    Solaris, for example). */
 #undef LD_SWITCH_X_SITE_AUX
 
-/* Define to -llockfile if it is usable. */
-#undef LIBMAIL
-
 /* Define to 1 if localtime caches TZ. */
 #undef LOCALTIME_CACHE
 
@@ -1013,20 +1010,17 @@ typedef unsigned size_t;
 #  endif
 #endif
 
-#ifndef MAC_OSX
-/* On Mac OS X, macros already defined in precompiled headers.  */
 /* avoid deprecated functions */
-#if HAVE_MEMCPY
+#ifdef HAVE_MEMCPY
 #  define bcopy(a,b,s) memcpy (b,a,s)
 #endif
-#if HAVE_MEMSET
+#ifdef HAVE_MEMSET
 #  define bzero(a,s) memset (a,0,s)
 #endif
-#if HAVE_MEMCMP
+#ifdef HAVE_MEMCMP
 #  define BCMP memcmp
 #  define bcmp memcmp
 #endif
-#endif /* MAC_OSX */
 
 #endif /* EMACS_CONFIG_H */
 
