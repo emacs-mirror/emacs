@@ -1,3 +1,11 @@
+2005-02-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-update-handler)
+	(gdb-speedbar-timer-fn): Ensure speedbar updates with new values
+	for watch expressions,
+	(gdb-var-create-handler): Don't set speedbar-update-flag.
+	(gdb-post-prompt): Simplify test for speedbar.
+
 2005-02-19  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
 	* ediff.el (ediff-set-diff-overlays-in-one-buffer,
