@@ -1,3 +1,16 @@
+2000-09-05  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-postgres): Use sql-postgres-options.
+	(sql-postgres-options): New variable.
+
+2000-09-05  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-mode-menu): Work around missing variable mark-active
+	in XEmacs.
+	(sql-mode): Added call to easy-menu-add for XEmacs compatibility.
+	(sql-interactive-mode): Added call to easy-menu-add for XEmacs
+	compatibility.
+
 2000-09-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* vc.el (vc-dired-resynch-file): Add autoload cookie.

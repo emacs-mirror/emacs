@@ -1,3 +1,8 @@
+2000-09-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* window.c (window_loop) <GET_LARGEST_WINDOW>: Fix bug making
+	get-largest-window always return nil.
+
 2000-09-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* lread.c (syms_of_lread): Make Vbytecomp_version_regexp a Lisp
