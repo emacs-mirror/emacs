@@ -1,3 +1,15 @@
+2004-10-26  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc,full-calc, calc-quit, calc-keypad)
+	(full-calc-keypad, calc-trail-display):  Use an extra argument
+	instead of `interactive-p'.
+
+	* calc/calc-misc.el (calc-other-window): Use an extra argument
+	instead of `interactive-p'. 
+
+	* calc/calc-rewr.el (calc-match): Use an extra argument instead of 
+	`interactive-p'. 
+
 2004-10-26  Kim F. Storm  <storm@cua.dk>
 
 	* help.el (describe-key): Describe both down-event and up-event
