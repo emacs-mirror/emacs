@@ -2455,7 +2455,11 @@ input method to search for e-acute in a Latin-1 buffer.
 See also command `unify-8859-on-decoding-mode'."
   :group 'mule
   :global t
-  :init-value t
+  ;; Actually, :init-value should be t, but that causes failure on
+  ;; bootstrapping.  So, as a workaround, we set nil here, and later
+  ;; call:
+  ;;	(unify-8859-on-encoding-mode 1)
+  :init-value nil
   (if unify-8859-on-encoding-mode
       (ucs-unify-8859 t nil)
     (ucs-fragment-8859 t nil)))
@@ -2483,7 +2487,7 @@ See also command `unify-8859-on-encoding-mode'."
 
 ;; Synchronize the status with the initial value of
 ;; unify-8859-on-encoding-mode and unify-8859-on-decoding-mode.
-(ucs-unify-8859 t nil)
+(unify-8859-on-encoding-mode 1)
 
 ;; Arrange to set up the translation-table for Quail.  This probably
 ;; isn't foolproof.
