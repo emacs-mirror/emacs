@@ -1,5 +1,17 @@
 2003-04-09  Kenichi Handa  <handa@etlken2>
 
+	* xfaces.c (Vface_font_rescale_alist): New variable.
+	(struct font_name): New member rescale_ratio.
+	(font_rescale_ratio): New function.
+	(split_font_name): If NUMERIC_P is nonzero, set
+	font->rescale_ratio.
+	(better_font_p): On comparing point sized, pay attention to
+	recale_ratio member of fonts.
+	(build_scalable_font_name): Reflect font->rescale_ratio in the
+	font name.
+	(syms_of_xfaces): Declare Vface_font_rescale_alist as a Lisp
+	variable.
+
 	* lread.c (read1): Before calling index, check if the 2nd
 	arguemnt is in ASCII range.
 
