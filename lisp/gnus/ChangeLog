@@ -3,6 +3,22 @@
 	* message.el (message-beginning-of-line): Change the behavior when
 	invoked between BOL and : so that it first moves backward.
 
+2005-01-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-setup-buffer): Kill and re-create the
+	article buffer when editing of the article is discarded.
+	(gnus-article-prepare): Revert.
+
+2005-01-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-prepare): Remove
+	message-strip-forbidden-properties from the local hook.
+
+2005-01-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-generate-mime-1): Convert string into unibyte when
+	inserting " *mml*" buffer's contents into a unibyte temp buffer.
+
 2005-01-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el (mm-insert-part): Switch the multibyteness of data
