@@ -1,3 +1,22 @@
+2003-08-24  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gud.el (gud-display-line): Don't set window-point if
+	source buffer is not visible. (Only happens with M-x gdba).
+
+	* gdb-ui.el (gdba): Remove gdb-quit (previously removed) from
+	documentation.
+	(gdb-source, gdb-source-info): Update to assembler unnecessary
+	as its done after each GDB command anyway.
+	(gdb-pre-prompt): Use with-current-buffer.
+	(gdb-insert-field): Add help-echo text.
+	(gdb-invalidate-assembler): Re-display of assembler now done in
+	gdb-info-breakpoints-custom.
+	(gdb-info-breakpoints-custom): Force re-display of assembler to
+	happen *after* update of breakpoints buffer.
+	(gdb-display-source-buffer): Don't choke if gdb-source-window
+	isn't visible.
+	(gdb-put-string, gdb-put-arrow): Remove free variables.
+
 2003-08-24  John Paul Wallington  <jpw@gnu.org>
 
 	* ibuffer.el (ibuffer-formats): Make name and size columns wider.
