@@ -4278,7 +4278,7 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 
   while (1)
     {
-      int x, i, ascent, descent;
+      int x, i, ascent = 0, descent = 0;
       
       /* Stop when ZV or TO_CHARPOS reached.  */
       if (!get_next_display_element (it)
@@ -10913,8 +10913,8 @@ dump_glyph_row (matrix, vpos, with_glyphs_p)
   fprintf (stderr, "Row Start   End Used oEI><O\\CTZFes     X    Y    W    H    V    A    P\n");
   fprintf (stderr, "=======================================================================\n");
   
-  fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1 \
-1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d %4d %4d %4d %4d %4d %4d %4d\n",
+  fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d\
+%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d %4d %4d %4d %4d %4d %4d %4d\n",
 	   row - matrix->rows,
 	   MATRIX_ROW_START_CHARPOS (row),
 	   MATRIX_ROW_END_CHARPOS (row),
@@ -11579,7 +11579,7 @@ display_line (it)
     {
       int n_glyphs_before, hpos_before, x_before;
       int x, i, nglyphs;
-      int ascent, descent, phys_ascent, phys_descent;
+      int ascent = 0, descent = 0, phys_ascent = 0, phys_descent = 0;
 
       /* Retrieve the next thing to display.  Value is zero if end of
 	 buffer reached.  */
