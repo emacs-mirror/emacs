@@ -10233,10 +10233,12 @@ redisplay_window (window, just_this_one_p)
 	}
       else if ((w != XWINDOW (minibuf_window)
 		|| minibuf_level == 0)
+	       /* Quail displays non-mini buffers in minibuffer window.
+		  In that case, redisplay the window normally.  */
 	       && !NILP (Fmemq (w->buffer, Vminibuffer_list)))
 	{
-	  /* W is a mini-buffer window, but it's not the currently
-	     active one, so clear it.  */
+	  /* W is a mini-buffer window, but it's not active, so clear
+	     it.  */
 	  int yb = window_text_bottom_y (w);
 	  struct glyph_row *row;
 	  int y;
