@@ -41,6 +41,7 @@ instead) with no arguments.  It returns a string or nil if it cannot guess.")
   (or change-log-default-name
       (if (eq system-type 'vax-vms) "$CHANGE_LOG$.TXT" "ChangeLog")))
 
+;;;###autoload
 (defun prompt-for-change-log-name ()
   "Prompt for a change log name."
   (let ((default (change-log-name)))
@@ -100,11 +101,13 @@ current buffer to the complete file name."
     file-name))
 
 ;;;###autoload
-(defun add-change-log-entry (&optional whoami file-name other-window)
+(defun add-change-log-entry (&optional whoami file-name other-window new-entry)
   "Find change log file and add an entry for today.
 Optional arg (interactive prefix) non-nil means prompt for user name and site.
 Second arg is file name of change log.  If nil, uses `change-log-default-name'.
-Third arg OTHER-WINDOW non-nil means visit in other window."
+Third arg OTHER-WINDOW non-nil means visit in other window.
+Fourth arg NEW-ENTRY non-nil means always create a new entry at the front;
+never append to an existing entry."
   (interactive (list current-prefix-arg
 		     (prompt-for-change-log-name)))
   (let* ((full-name (if whoami
@@ -163,7 +166,8 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 	   ;; Put this file name into the existing empty entry.
 	   (if entry
 	       (insert entry)))
-	  ((and (re-search-forward
+	  ((and (not new-entry)
+		(re-search-forward
 		 (concat (regexp-quote (concat "* " entry))
 			 ;; Don't accept `foo.bar' when
 			 ;; looking for `foo':
@@ -233,6 +237,7 @@ Runs `change-log-mode-hook'."
 	mode-name "Change Log"
 	left-margin 8
 	fill-column 74)
+  (use-local-map change-log-mode-map)
   ;; Let each entry behave as one paragraph:
   (set (make-local-variable 'paragraph-start) "^\\s *$\\|^^L")
   (set (make-local-variable 'paragraph-separate) "^\\s *$\\|^^L\\|^\\sw")
@@ -244,6 +249,25 @@ Runs `change-log-mode-hook'."
   (set (make-local-variable 'adaptive-fill-regexp) "\\s *")
   (run-hooks 'change-log-mode-hook))
 
+(defvar change-log-mode-map nil
+  "Keymap for Change Log major mode.")
+(if change-log-mode-map
+    nil
+  (setq change-log-mode-map (make-sparse-keymap))
+  (define-key change-log-mode-map "\M-q" 'change-log-fill-paragraph))
+
+;; It might be nice to have a general feature to replace this.  The idea I
+;; have is a variable giving a regexp matching text which should not be
+;; moved from bol by filling.  change-log-mode would set this to "^\\s *\\s(".
+;; But I don't feel up to implementing that today.
+(defun change-log-fill-paragraph (&optional justify)
+  "Fill the paragraph, but preserve open parentheses at beginning of lines.
+Prefix arg means justify as well."
+  (interactive "P")
+  (let ((paragraph-separate (concat paragraph-separate "\\|^\\s *\\s("))
+	(paragraph-start (concat paragraph-start "\\|^\\s *\\s(")))
+    (fill-paragraph justify)))
+
 (defvar add-log-current-defun-header-regexp
   "^\\([A-Z][A-Z_ ]*[A-Z_]\\|[a-z_---A-Z]+\\)[ \t]*[:=]"
   "*Heuristic regexp used by `add-log-current-defun' for unknown major modes.")
