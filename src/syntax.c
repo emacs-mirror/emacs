@@ -2567,6 +2567,7 @@ do { prev_from = from;				\
 
       if (code == Scomment)
 	{
+	  state.comstyle = SYNTAX_FLAGS_COMMENT_STYLE (prev_from_syntax);
 	  state.incomment = (SYNTAX_FLAGS_COMMENT_NESTED (prev_from_syntax) ?
 			     1 : -1);
 	  state.comstr_start = prev_from;
@@ -2642,22 +2643,13 @@ do { prev_from = from;				\
 	  curlevel->prev = curlevel->last;
 	  break;
 
-	startincomment:
-	  if (commentstop == 1)
-	    goto done;
-	  goto commentloop;
-
 	case Scomment:
-	  if (! state.incomment)
-	    abort ();
 	  if (commentstop || boundary_stop) goto done;
-	commentloop:
-	  /* The (from == BEGV) test is to enter the loop in the middle so
+	startincomment:
+	  /* The (from == BEGV) test was to enter the loop in the middle so
 	     that we find a 2-char comment ender even if we start in the
 	     middle of it.  We don't want to do that if we're just at the
-	     beginning of the comment (think of (*) ... (*)).
-	     Actually, the current code still doesn't handle such cases right
-	     when the comment style allows nesting.  */
+	     beginning of the comment (think of (*) ... (*)).  */
 	  found = forw_comment (from, from_byte, end,
 				state.incomment, state.comstyle,
 				(from == BEGV || from < state.comstr_start + 3)
@@ -2668,7 +2660,7 @@ do { prev_from = from;				\
 	     Luckily, the `done' doesn't use them and the INC_FROM
 	     sets them to a sane value without looking at them. */
 	  if (!found) goto done;
-	  INC_FROM; 
+	  INC_FROM;
 	  state.incomment = 0;
 	  state.comstyle = 0;	/* reset the comment style */
 	  if (boundary_stop) goto done;
