@@ -146,7 +146,7 @@ A multibyte character is handled correctly.")
   CHECK_STRING (string, 0);
   p = XSTRING (string);
   if (p->size)
-    XSETFASTINT (val, STRING_CHAR (p->data, p->size));
+    XSETFASTINT (val, STRING_CHAR (p->data, p->size_byte));
   else
     XSETFASTINT (val, 0);
   return val;
@@ -1741,7 +1741,7 @@ Both characters must have the same length of multi-byte form.")
   (start, end, fromchar, tochar, noundo)
      Lisp_Object start, end, fromchar, tochar, noundo;
 {
-  register int pos, stop, i, len, end_byte;
+  register int pos, pos_byte, stop, i, len, end_byte;
   int changed = 0;
   unsigned char fromwork[4], *fromstr, towork[4], *tostr, *p;
   int count = specpdl_ptr - specpdl;
@@ -1763,7 +1763,8 @@ Both characters must have the same length of multi-byte form.")
       towork[0] = XFASTINT (tochar), tostr = towork;
     }
 
-  pos = CHAR_TO_BYTE (XINT (start));
+  pos = XINT (start);
+  pos_byte = CHAR_TO_BYTE (pos);
   stop = CHAR_TO_BYTE (XINT (end));
   end_byte = stop;
 
@@ -1782,17 +1783,16 @@ Both characters must have the same length of multi-byte form.")
       current_buffer->filename = Qnil;
     }
 
-  if (pos < GPT_BYTE)
+  if (pos_byte < GPT_BYTE)
     stop = min (stop, GPT_BYTE);
-  p = BYTE_POS_ADDR (pos);
   while (1)
     {
-      if (pos >= stop)
+      if (pos_byte >= stop)
 	{
-	  if (pos >= end_byte) break;
+	  if (pos_byte >= end_byte) break;
 	  stop = end_byte;
-	  p = BYTE_POS_ADDR (pos);
 	}
+      p = BYTE_POS_ADDR (pos_byte);
       if (p[0] == fromstr[0]
 	  && (len == 1
 	      || (p[1] == fromstr[1]
@@ -1815,17 +1815,17 @@ Both characters must have the same length of multi-byte form.")
 	    }
 
 	  if (NILP (noundo))
-	    record_change (pos, len);
+	    record_change (pos, 1);
 	  for (i = 0; i < len; i++) *p++ = tostr[i];
-	  pos += len;
+	  pos++;
+	  pos_byte += len;
 	}
-      else
-	pos++, p++;
+      INC_BOTH (pos, pos_byte);
     }
 
   if (changed)
     signal_after_change (XINT (start),
-			 stop - XINT (start), stop - XINT (start));
+			 XINT (end) - XINT (start), XINT (end) - XINT (start));
 
   unbind_to (count, Qnil);
   return Qnil;
