@@ -1,3 +1,10 @@
+2002-11-24  Steven Tamm  <steventamm@mac.com>
+
+	* unexmacosx.c (unexec_realloc): Use malloc_default_zone to
+	determine the size of pointers alloced in unexed space instead
+	of using possibly invalid emacs_zone pointers.  This fixes the
+	binary incompatibility problems caused by updates to libSystem.B.
+
 2002-11-24  Richard M. Stallman  <rms@gnu.org>
 
 	* search.c (Fstring_match): Doc fix.

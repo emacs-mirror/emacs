@@ -888,7 +888,7 @@ unexec_realloc (void *old_ptr, size_t new_size)
 	/* 2002-04-15 T. Ikegami <ikegami@adam.uprr.pr>.  The original
 	   code to get size failed to reallocate read_buffer
 	   (lread.c).  */
-	int old_size = emacs_zone->size (emacs_zone, old_ptr);
+	int old_size = malloc_default_zone()->size (emacs_zone, old_ptr);
 	int size = new_size > old_size ? old_size : new_size;
 
 	if (size)
