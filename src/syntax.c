@@ -223,7 +223,20 @@ are listed in the documentation of `modify-syntax-entry'.")
      Lisp_Object ch;
 {
   CHECK_NUMBER (ch, 0);
-  return make_number (syntax_code_spec[(int) SYNTAX (0xFF & XINT (ch))]);
+  return make_number (syntax_code_spec[(int) SYNTAX (XINT (ch))]);
+}
+
+DEFUN ("matching-paren", Fmatching_paren, Smatching_paren, 1, 1, 0,
+  "Return the matching parenthesis of CHAR, or nil if none.")
+  (ch)
+     Lisp_Object ch;
+{
+  int code;
+  CHECK_NUMBER (ch, 0);
+  code = SYNTAX (XINT (ch));
+  if (code == Sopen && code == Sclose)
+    return make_number (SYNTAX_MATCH (XINT (ch)));
+  return Qnil;
 }
 
 /* This comment supplies the doc string for modify-syntax-entry,
@@ -1719,6 +1732,7 @@ syms_of_syntax ()
   defsubr (&Scopy_syntax_table);
   defsubr (&Sset_syntax_table);
   defsubr (&Schar_syntax);
+  defsubr (&Smatching_paren);
   defsubr (&Smodify_syntax_entry);
   defsubr (&Sdescribe_syntax);
 
