@@ -238,11 +238,11 @@ The following key sequence may cause multilingual text insertion."
   (interactive)
   (let ((str (char-to-string last-command-char))
 	(ccl (car (aref (coding-system-spec (keyboard-coding-system)) 4)))
-	(vec (make-vector 9 nil))
+	(vec [nil nil nil nil nil nil nil nil nil])
 	result)
     (while (= (length (setq result (ccl-execute-on-string ccl vec str t))) 0)
-      (setq str (format "%s%c" str (read-char-exclusive))
-	    vec (make-vector 9 nil)))
+      (dotimes (i 9) (aset vec i nil))
+      (setq str (format "%s%c" str (read-char-exclusive))))
     (setq unread-command-events
 	  (append (string-to-list result) unread-command-events))))
 
