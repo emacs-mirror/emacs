@@ -1230,7 +1230,7 @@ HIST, if non-nil, specifies a history list\n\
   or it can be a cons cell (HISTVAR . HISTPOS).\n\
   In that case, HISTVAR is the history list variable to use,\n\
   and HISTPOS is the initial position (the position in the list\n\
-  which INITIAL-CONTENTS corresponds to).\n\
+  which INITIAL-INPUT corresponds to).\n\
   Positions are counted starting from 1 at the beginning of the list.\n\
 DEF, if non-nil, is the default value.\n\
 \n\
