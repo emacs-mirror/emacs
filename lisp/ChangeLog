@@ -5,6 +5,8 @@
 	define-ibuffer-sorter, and define-ibuffer-op.
 	
 	* emacs-lisp/lisp-mode.el (toplevel): Ditto.
+
+	* ibuffer.el, ibuf-ext.el, ibuf-macs.el: New files.
 	
 2002-01-12  Richard M. Stallman  <rms@gnu.org>
 

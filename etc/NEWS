@@ -1,5 +1,5 @@
 GNU Emacs NEWS -- history of user-visible changes.  2001-03-15
-Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -479,7 +479,10 @@ formerly used for that purpose is now an alias for locale-coding-system.
 current syntactic context (as returned by parse-partial-sexp).
 
 *** The TCL package tcl-mode.el was replaced by tcl.el.
-This was actually done in Emacs-21.1 was not documented.
+This was actually done in Emacs-21.1, and was not documented.
+
+*** The new package Ibuffer provides a powerful, completely
+customizable replacement for buff-menu.el.
 
 
 * Installation Changes in Emacs 21.1
