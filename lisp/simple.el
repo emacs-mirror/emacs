@@ -4152,4 +4152,71 @@ after it has been set up properly in other respects."
     (if display-flag (pop-to-buffer new))
     new))
 
+
+;;; Syntax stuff.
+
+(defconst syntax-code-table
+    '((?\ . 0)
+      (?- . 0)				;whitespace
+      (?. . 1)				;punctuation
+      (?w . 2)				;word
+      (?_ . 3)				;symbol
+      (?\( . 4)				;open parenthesis
+      (?\) . 5)				;close parenthesis
+      (?\' . 6)				;expression prefix
+      (?\" . 7)				;string quote
+      (?$ . 8)				;paired delimiter
+      (?\\ . 9)				;escape
+      (?/ . 10)				;character quote
+      (?< . 11)				;comment start
+      (?> . 12)				;comment end
+      (?@ . 13)				;inherit
+      (nil . 14)			;comment fence
+      (nil . 15))			;string fence
+    "Alist of pairs (CHAR . CODE) mapping characters to syntax codes.
+CHAR is a character that is allowed as first char in the string
+specifying the syntax when calling `modify-syntax-entry'.  CODE is the
+corresponing syntax code as it is stored in a syntax cell, and
+can be used as value of a `syntax-table' property..")
+
+(defconst syntax-flag-table
+  '((?1 . #b10000000000000000)
+    (?2 . #b100000000000000000)
+    (?3 . #b1000000000000000000)
+    (?4 . #b10000000000000000000)
+    (?p . #b100000000000000000000)
+    (?b . #b1000000000000000000000)
+    (?n . #b10000000000000000000000))
+  "Alist of pairs (CHAR . FLAG) mapping characters to syntax flags.
+CHAR is a character that is allowed as second or following character
+in the string argument to `modify-syntax-entry' specifying the syntax.
+FLAG is the corresponding syntax flag value that is stored in a
+syntax table.")
+
+(defun string-to-syntax (string)
+  "Convert a syntax specification STRING into syntax cell form.
+STRING should be a string as it is allowed as argument of
+`modify-syntax-entry'.  Value is the equivalent cons cell
+\(CODE . MATCHING-CHAR) that can be used as value of a `syntax-table'
+text property."
+  (let* ((first-char (aref string 0))
+	 (code (or (cdr (assq first-char syntax-code-table))
+		   (error "Invalid syntax specification `%s'" string)))
+	 (length (length string))
+	 (i 1)
+	 matching-char)
+    ;; Determine the matching character, if any.
+    (when (and (> length 1)
+	       (memq first-char '(?\( ?\))))
+      (setq matching-char (aref string i)
+	    i (1+ i)))
+    ;; Add any flags to the syntax code.
+    (while (< i length)
+      (let ((flag (or (assq (aref string i) syntax-flag-table)
+		      (error "Invalid syntax flag in `%s'" string))))
+	(setq code (logior flag code))
+	(setq i (1+ i))))
+    
+    (cons code matching-char)))
+
 ;;; simple.el ends here
