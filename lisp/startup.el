@@ -334,7 +334,8 @@ from being initialized."
 
 ;; This function is called from the subdirs.el file.
 (defun normal-top-level-add-to-load-path (dirs)
-  (let ((tail (member (directory-file-name default-directory) load-path)))
+  (let ((tail (or (member (directory-file-name default-directory) load-path)
+		  (member default-directory load-path))))
     (setcdr tail (append (mapcar 'expand-file-name dirs) (cdr tail)))))
 
 (defun normal-top-level ()
@@ -671,6 +672,16 @@ from being initialized."
   ;; If -batch, terminate after processing the command options.
   (if noninteractive (kill-emacs t)))
 
+(defcustom initial-scratch-message "\
+This buffer is for notes you don't want to save, and for Lisp evaluation.
+If you want to create a file, visit that file with C-x C-f,
+then enter the text in that file's own buffer.
+
+"
+  "Initial message displayed in *scratch* buffer at startup.
+If this is nil, no message will be displayed."
+  :type 'string)
+
 (defun command-line-1 (command-line-args-left)
   (or noninteractive (input-pending-p) init-file-had-error
       (and inhibit-startup-echo-area-message
@@ -820,13 +831,8 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		       (sit-for 120))
 		   (with-current-buffer (get-buffer "*scratch*")
 		     (erase-buffer)
-		     (insert "\
-If you want to create a file, don't type the text in this buffer.
-This buffer is for notes you don't want to save, and for Lisp evaluation.
-If you want to create a file, first visit that file with C-x C-f,
-then enter the text in that file's own buffer.
-
-")
+		     (and initial-scratch-message
+			  (insert initial-scratch-message))
 		     (set-buffer-modified-p nil)))))))
     ;; Delay 2 seconds after the init file error message
     ;; was displayed, so user can read it.
