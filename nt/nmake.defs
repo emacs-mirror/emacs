@@ -39,6 +39,11 @@ SUBSYSTEM_CONSOLE=-subsystem:console
 INSTALL_DIR     = $(CURDIR)/..
 !endif
 
+# Ensure EMACSLOADPATH is defined in the environment.
+#
+!if [set EMACSLOADPATH=foo]
+!endif
+
 # Allow detection of builds with MSVC 5 or later, so we can
 # speed up compiles (see rule at end).
 #
