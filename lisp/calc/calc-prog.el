@@ -714,12 +714,12 @@
                        nil
                        (format "Editing formula (%s, %s, bound to %s).\n"
                                intcmd algcmd kys))
-		      (insert (math-showing-full-precision
-			       (math-format-nice-expr defn (frame-width)))
-			      "\n"))
+		      (insert  (math-showing-full-precision
+                                (math-format-nice-expr defn (frame-width)))
+                               "\n"))
 		     (calc-show-edit-buffer)
                      (goto-char (point-min))
-                     (forward-line 2))
+                     (forward-line 3))
 		 (error "That command's definition cannot be edited")))))))
 
 ;; Formatting the macro buffer
@@ -947,7 +947,7 @@ Redefine the corresponding command."
 
 (defun calc-finish-formula-edit (func)
   (goto-char (point-min))
-  (forward-line 2)
+  (forward-line 3)
   (let ((buf (current-buffer))
 	(str (buffer-substring (point) (point-max)))
 	(start (point))
