@@ -1379,16 +1379,59 @@ describe_buffer_bindings (descbuf)
 {
   register Lisp_Object start1, start2;
 
-  char *heading
-    = "key                     binding\n---                     -------\n";
+  char *key_heading
+    = "\
+key             binding\n\
+---             -------\n";
+  char *alternate_heading
+    = "\
+Alternate Characters (use anywhere the nominal character is listed):\n\
+nominal         alternate\n\
+-------         ---------\n";
 
   Fset_buffer (Vstandard_output);
+
+  /* Report on alternates for keys.  */
+  if (XTYPE (Vkeyboard_translate_table) == Lisp_String)
+    {
+      int c;
+      unsigned char *translate = XSTRING (Vkeyboard_translate_table)->data;
+      int translate_len = XSTRING (Vkeyboard_translate_table)->size;
+
+      for (c = 0; c < translate_len; c++)
+	if (translate[c] != c)
+	  {
+	    char buf[20];
+	    char *bufend;
+
+	    if (alternate_heading)
+	      {
+		insert_string (alternate_heading);
+		alternate_heading = 0;
+	      }
+
+	    bufend = push_key_description (translate[c], buf);
+	    insert (buf, bufend - buf);
+	    Findent_to (make_number (16), make_number (1));
+	    bufend = push_key_description (c, buf);
+	    insert (buf, bufend - buf);
+
+	    insert ("\n", 1);
+	  }
+
+      insert ("\n", 1);
+    }
 
   {
     int i, nmaps;
     Lisp_Object *modes, *maps;
 
+    /* Temporarily switch to descbuf, so that we can get that buffer's
+       minor modes correctly.  */
+    Fset_buffer (descbuf);
     nmaps = current_minor_maps (&modes, &maps);
+    Fset_buffer (Vstandard_output);
+
     for (i = 0; i < nmaps; i++)
       {
 	if (XTYPE (modes[i]) == Lisp_Symbol)
@@ -1400,7 +1443,7 @@ describe_buffer_bindings (descbuf)
 	else
 	  insert_string ("Strangely Named");
 	insert_string (" Minor Mode Bindings:\n");
-	insert_string (heading);
+	insert_string (key_heading);
 	describe_map_tree (maps[i], 0, Qnil);
 	insert_char ('\n');
       }
@@ -1410,13 +1453,14 @@ describe_buffer_bindings (descbuf)
   if (!NILP (start1))
     {
       insert_string ("Local Bindings:\n");
-      insert_string (heading);
+      insert_string (key_heading);
       describe_map_tree (start1, 0, Qnil);
       insert_string ("\n");
     }
 
   insert_string ("Global Bindings:\n");
-  insert_string (heading);
+  if (NILP (start1))
+    insert_string (key_heading);
 
   describe_map_tree (current_global_map, 0, XBUFFER (descbuf)->keymap);
 
