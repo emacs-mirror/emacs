@@ -5,7 +5,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -106,6 +106,7 @@ extern Display *x_current_display;
 #define FONT_WIDTH(foo) 1
 /* Function `getcbrk' is the most harmless I can think of right now...  */
 #define check_x if (FRAME_TERMCAP_P (bar)) error ("Not running under a windows system."); else getcbrk
+#define x_mouse_leave getcbrk
 #define XM_FAILURE -1
 #define XM_SUCCESS 1
 #define XM_NO_SELECT 2
@@ -122,6 +123,14 @@ typedef struct x_menu_struct
   int panecount;
   int width;
 } XMenu;
+
+XMenu *XMenuCreate (Display *, Window, char *);
+int XMenuAddPane (Display *, XMenu *, char *, int);
+int XMenuAddSelection (Display *, XMenu *, int, int, char *, int);
+void XMenuLocate (Display *, XMenu *, int, int, int, int,
+		  int *, int *, int *, int *);
+int XMenuActivate (Display *, XMenu *, int *, int *, int, int, unsigned, char **);
+void XMenuDestroy (Display *, XMenu *);
 
 #endif /* not HAVE_X_WINDOWS */
 
