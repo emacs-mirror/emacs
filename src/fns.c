@@ -2969,7 +2969,18 @@ is nil and `use-dialog-box' is non-nil.  */)
 #endif /* HAVE_MENUS */
       cursor_in_echo_area = 1;
       choose_minibuf_frame ();
-      message_with_string ("%s(y or n) ", xprompt, 0);
+
+      {
+	Lisp_Object pargs[3];
+
+	/* Colorize prompt accordingly to `minibuffer-prompt-face'.  */
+	pargs[0] = build_string ("%s(y or n) ");
+	pargs[1] = intern ("face");
+	pargs[2] = intern ("minibuffer-prompt");
+	args[0] = Fpropertize (3, pargs);
+	args[1] = xprompt;
+	Fmessage (2, args);
+      }
 
       if (minibuffer_auto_raise)
 	{
