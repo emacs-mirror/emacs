@@ -138,6 +138,7 @@ are: A a c i r S s t u"
 		 file-alist 
 		 (now (current-time))
 		 ;; do all bindings here for speed
+		 file-size
 		 fil attr)
 	    (cond ((memq ?A switches)
 		   (setq file-list
@@ -168,10 +169,19 @@ are: A a c i r S s t u"
 	      (setq elt (car file-alist)
 		    file-alist (cdr file-alist)
 		    short (car elt)
-		    attr (cdr elt))
+		    attr (cdr elt)
+		    file-size (nth 7 attr))
 	      (and attr
-		   (setq sum (+ sum (nth 7 attr)))
-		   (insert (ls-lisp-format short attr switches now))))
+		   (setq sum
+			 ;; Even if neither SUM nor file's size
+			 ;; overflow, their sum could.
+			 (if (or (< sum (- 134217727 file-size))
+				 (floatp sum)
+				 (floatp file-size))
+			     (+ sum file-size)
+			   (+ (float sum) file-size)))
+		   (insert (ls-lisp-format short attr file-size switches now))
+		   ))
 	    ;; Fill in total size of all files:
 	    (save-excursion
 	      (search-backward "total \007")
@@ -182,7 +192,8 @@ are: A a c i r S s t u"
 	;; file-attributes will not recognize a symlink to a directory
 	;; must make it a relative filename as ls does:
 	(setq file (file-name-nondirectory file))
-	(insert (ls-lisp-format file (file-attributes file) switches
+	(insert (ls-lisp-format file (file-attributes file)
+				(nth 7 (file-attributes file)) switches
 				(current-time)))))))
 
 (defun ls-lisp-delete-matching (regexp list)
@@ -240,19 +251,21 @@ are: A a c i r S s t u"
 	     (< lo0 lo1)))))
 
 
-(defun ls-lisp-format (file-name file-attr switches now)
+(defun ls-lisp-format (file-name file-attr file-size switches now)
   (let ((file-type (nth 0 file-attr)))
     (concat (if (memq ?i switches)	; inode number
 		(format "%6d " (nth 10 file-attr)))
 	    ;; nil is treated like "" in concat
 	    (if (memq ?s switches)	; size in K
-		(format "%4d " (fceiling (/ (nth 7 file-attr) 1024.0))))
+		(format "%4d " (fceiling (/ file-size 1024.0))))
 	    (nth 8 file-attr)		; permission bits
 	    ;; numeric uid/gid are more confusing than helpful
 	    ;; Emacs should be able to make strings of them.
 	    ;; user-login-name and user-full-name could take an
 	    ;; optional arg.
-	    (format " %3d %-8s %-8s %8d "
+	    (format (if (floatp file-size)
+ 			" %3d %-8s %-8s %8.0f "
+ 		      " %3d %-8s %-8s %8d ")
 		    (nth 1 file-attr)	; no. of links
 		    (if (= (user-uid) (nth 2 file-attr))
 			(user-login-name)
@@ -260,7 +273,7 @@ are: A a c i r S s t u"
 		    (if (eq system-type 'ms-dos)
 			"root"		; everything is root on MSDOS.
 		      (int-to-string (nth 3 file-attr)))	; gid
-		    (nth 7 file-attr)	; size in bytes
+		    file-size
 		    )
 	    (ls-lisp-format-time file-attr switches now)
 	    " "
