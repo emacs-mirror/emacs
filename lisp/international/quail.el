@@ -1,6 +1,6 @@
 ;;; quail.el --- Provides simple input method for multilingual text
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+;; Copyright (C) 1995, 2000 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 
 ;; Author: Kenichi HANDA <handa@etl.go.jp>
@@ -2407,54 +2407,53 @@ package to describe."
     ;; Then, insert text in the help buffer while paying attention to
     ;; the width of the frame in which the buffer displayed.
     (save-excursion
-      (progn
-	(set-buffer (get-buffer "*Help*"))
-	(setq buffer-read-only nil)
-	(insert "Input method: " (quail-name)
-		" (mode line indicator:"
-		(quail-title)
-		")\n\n")
-	(save-restriction
-	  (narrow-to-region (point) (point))
-	  (insert (quail-docstring))
-	  (goto-char (point-min))
-	  (with-syntax-table emacs-lisp-mode-syntax-table
-	    (while (re-search-forward "\\\\<\\sw\\(\\sw\\|\\s_\\)+>" nil t)
-	      (let ((sym (intern-soft
-			  (buffer-substring (+ (match-beginning 0) 2)
-					    (1- (point))))))
-		(if (and (boundp sym)
-			 (stringp (symbol-value sym)))
-		    (replace-match (symbol-value sym) t t)))))
-	  (goto-char (point-max)))
-	(or (bolp)
-	    (insert "\n"))
-	(insert "\n")
+      (set-buffer (get-buffer "*Help*"))
+      (setq buffer-read-only nil)
+      (insert "Input method: " (quail-name)
+	      " (mode line indicator:"
+	      (quail-title)
+	      ")\n\n")
+      (save-restriction
+	(narrow-to-region (point) (point))
+	(insert (quail-docstring))
+	(goto-char (point-min))
+	(with-syntax-table emacs-lisp-mode-syntax-table
+	  (while (re-search-forward "\\\\<\\sw\\(\\sw\\|\\s_\\)+>" nil t)
+	    (let ((sym (intern-soft
+			(buffer-substring (+ (match-beginning 0) 2)
+					  (1- (point))))))
+	      (if (and (boundp sym)
+		       (stringp (symbol-value sym)))
+		  (replace-match (symbol-value sym) t t)))))
+	(goto-char (point-max)))
+      (or (bolp)
+	  (insert "\n"))
+      (insert "\n")
 
-	(let ((done-list nil))
-	  ;; Show keyboard layout if the current package requests it..
-	  (when (quail-show-layout)
-	    (insert "
+      (let ((done-list nil))
+	;; Show keyboard layout if the current package requests it..
+	(when (quail-show-layout)
+	  (insert "
 KEYBOARD LAYOUT
 ---------------
 This input method works by translating individual input characters.
 Assuming that your actual keyboard has the `")
-	    (help-insert-xref-button
-	     quail-keyboard-layout-type
-	     #'quail-show-keyboard-layout quail-keyboard-layout-type
-	     "mouse-2, RET: show this layout")
-	    (insert "' layout,
+	  (help-insert-xref-button
+	   quail-keyboard-layout-type
+	   #'quail-show-keyboard-layout quail-keyboard-layout-type
+	   "mouse-2, RET: show this layout")
+	  (insert "' layout,
 translation results in the following \"virtual\" keyboard layout:
 ")
-	    (setq done-list
-		  (quail-insert-kbd-layout quail-keyboard-layout))
-	    (insert "If your keyboard has a different layout, rearranged from
+	  (setq done-list
+		(quail-insert-kbd-layout quail-keyboard-layout))
+	  (insert "If your keyboard has a different layout, rearranged from
 `")
-	    (help-insert-xref-button
-	     "standard"
-	     #'quail-show-keyboard-layout "standard"
-	     "mouse-2, RET: show this layout")
-	    (insert "', the \"virtual\" keyboard you get with this input method
+	  (help-insert-xref-button
+	   "standard"
+	   #'quail-show-keyboard-layout "standard"
+	   "mouse-2, RET: show this layout")
+	  (insert "', the \"virtual\" keyboard you get with this input method
 will be rearranged in the same way.
 
 You can set the variable `quail-keyboard-layout-type' to specify
@@ -2462,43 +2461,47 @@ the physical layout of your keyboard; the tables shown in
 documentation of input methods including this one are based on the
 physical keyboard layout as specified with that variable.
 ")
-	    (help-insert-xref-button
-	     "[customize keyboard layout]"
-	     #'customize-variable 'quail-keyboard-layout-type
-	     "mouse-2, RET: set keyboard layout type")
-	    (insert "\n"))
+	  (help-insert-xref-button
+	   "[customize keyboard layout]"
+	   #'customize-variable 'quail-keyboard-layout-type
+	   "mouse-2, RET: set keyboard layout type")
+	  (insert "\n"))
 
-	  ;; Show key sequences.
-	  (let ((decode-map (list 'decode-map))
-		elt pos num)
-	    (setq num (quail-build-decode-map (list (quail-map)) "" decode-map
-					      0 512 done-list))
-	    (when (> num 0)
-	      (insert "
+	;; Show key sequences.
+	(let ((decode-map (list 'decode-map))
+	      elt pos num)
+	  (setq num (quail-build-decode-map (list (quail-map)) "" decode-map
+					    0 512 done-list))
+	  (when (> num 0)
+	    (insert "
 KEY SEQUENCE
 -----------
 ")
-	      (if (quail-show-layout)
-		  (insert "You can also input more characters")
-		(insert "You can input characters"))
-	      (insert " by the following key sequences:\n")
-	      (quail-insert-decode-map decode-map))))
+	    (if (quail-show-layout)
+		(insert "You can also input more characters")
+	      (insert "You can input characters"))
+	    (insert " by the following key sequences:\n")
+	    (quail-insert-decode-map decode-map))))
 
-	(quail-help-insert-keymap-description
-	 (quail-translation-keymap)
-	 "\
+      (quail-help-insert-keymap-description
+       (quail-translation-keymap)
+       "\
 KEY BINDINGS FOR TRANSLATION
 ----------------------------\n")
-	(insert ?\n)
-	(if (quail-conversion-keymap)
-	    (quail-help-insert-keymap-description
-	     (quail-conversion-keymap)
-	     "\
+      (insert ?\n)
+      (if (quail-conversion-keymap)
+	  (quail-help-insert-keymap-description
+	   (quail-conversion-keymap)
+	   "\
 KEY BINDINGS FOR CONVERSION
 ---------------------------\n"))
-	(help-setup-xref (list #'quail-help (quail-name))
-			 (interactive-p))
-	(setq quail-current-package nil)))))
+      (help-setup-xref (list #'quail-help (quail-name))
+		       (interactive-p))
+      (setq quail-current-package nil)      
+      ;; Resize the help window again, now that it has all its contents.
+      (save-selected-window
+ 	(select-window (get-buffer-window (current-buffer)))
+	(run-hooks 'temp-buffer-show-hook)))))
 
 (defun quail-help-insert-keymap-description (keymap &optional header)
   (let (pos1 pos2 eol)
