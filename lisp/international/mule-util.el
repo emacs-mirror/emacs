@@ -37,7 +37,8 @@ TYPE should be `list' or `vector'."
 	 (i 0)
 	 l ch)
     (while (< i len)
-      (setq ch (sref string i))
+      (setq ch (if enable-multibyte-characters
+		   (sref string i) (aref string i)))
       (setq l (cons ch l))
       (setq i (+ i (char-bytes ch))))
     (setq l (nreverse l))
