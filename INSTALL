@@ -510,7 +510,8 @@ To install on MSDOG, you need to have the GNU C compiler for MSDOG
 Some users report that running Emacs 19.29 requires qdpmi memory
 management.  We do not know why this is so, since 19.28 did not need
 it.  If we find out what change introduced this requirement, we will
-try to eliminate it.
+try to eliminate it.  It is possible that this problem happens only
+when there is not enough physical memory on the machine.
 
 To build and install Emacs, type these commands:
 
