@@ -2039,8 +2039,12 @@ OLD and NEW are both characters used to mark files."
       (save-excursion
 	(goto-char (point-min))
 	(while (search-forward string nil t)
-	  (subst-char-in-region (match-beginning 0)
-				(match-end 0) old new))))))
+	  (if (if (= old ?\ )
+		  (save-match-data
+		    (dired-get-filename 'no-dir t))
+		t)
+	      (subst-char-in-region (match-beginning 0)
+				    (match-end 0) old new)))))))
 
 (defun dired-unmark-all-files-no-query ()
   "Remove all marks from all files in the Dired buffer."
