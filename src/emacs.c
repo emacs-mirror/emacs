@@ -40,6 +40,10 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/ioctl.h>
 #endif
 
+#ifdef BOEHM_GC
+#include <gc.h>
+#endif
+
 #ifdef WINDOWSNT
 #include <fcntl.h>
 #endif
@@ -793,9 +797,13 @@ main (argc, argv
   int no_loadup = 0;
   char *junk = 0;
 
-#if GC_MARK_STACK
+#if GC_MARK_STACK || defined (BOEHM_GC)
   extern Lisp_Object *stack_base;
   stack_base = &dummy;
+#endif
+#ifdef BOEHM_GC
+  /* Preferable to avoid setting it automatically; see gc.h.  */
+  GC_stackbottom = (char *) stack_base;
 #endif
 
 #ifdef LINUX_SBRK_BUG
