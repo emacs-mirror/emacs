@@ -38,10 +38,6 @@
 ;; Set the null device (for compile.el).
 (setq null-device "NUL")
 
-;; Set the grep regexp to match entries with drive letters.
-(setq grep-regexp-alist
-  '(("^\\(\\([a-zA-Z]:\\)?[^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 3)))
-
 ;; For distinguishing file types based upon suffixes.
 (defvar file-name-buffer-file-type-alist
   '(
