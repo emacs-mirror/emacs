@@ -10758,14 +10758,15 @@ XTread_socket (sd, bufp, numchars, expected)
 			  numchars--;
 			}
 		      /* Now non-ASCII.  */
-		      else if (! EQ ((c = Fgethash (make_number (keysym),
-						    Vx_keysym_table, Qnil)),
-				     Qnil))
+		      else if (HASH_TABLE_P (Vx_keysym_table)
+			       && (NATNUMP (c = Fgethash (make_number (keysym),
+							  Vx_keysym_table,
+							  Qnil))))
 			{
-			  bufp->kind = (SINGLE_BYTE_CHAR_P (c)
+			  bufp->kind = (SINGLE_BYTE_CHAR_P (XFASTINT (c))
 					? ASCII_KEYSTROKE_EVENT
 					: MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-			  bufp->code = c;
+			  bufp->code = XFASTINT (c);
 			  XSETFRAME (bufp->frame_or_window, f);
 			  bufp->arg = Qnil;
 			  bufp->modifiers
