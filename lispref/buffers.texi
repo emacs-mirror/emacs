@@ -678,7 +678,7 @@ proper value, @code{t} or @code{nil}.
 
 @defun barf-if-buffer-read-only
 This function signals a @code{buffer-read-only} error if the current
-buffer is read-only.  @xref{Interactive Call}, for another way to
+buffer is read-only.  @xref{Using Interactive}, for another way to
 signal an error if the current buffer is read-only.
 @end defun
 
