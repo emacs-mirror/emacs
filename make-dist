@@ -6,7 +6,7 @@
 #### be distributed.  This means that if you add a file with an odd name,
 #### you should make sure that this script will include it.
 
-# Copyright (C) 1995 Free Software Foundation, Inc.
+# Copyright (C) 1995, 1997 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -406,6 +406,22 @@ echo "Making links to \`etc'"
 ### tex litter.
 (cd etc
  ln `ls -d * | grep -v 'RCS' | grep -v 'Old' | grep -v '^e$'` ../${tempdir}/etc
+ ## If we ended up with a symlink, or if we did not get anything
+ ## due to a cross-device symlink, copy the file.
+ for file in [a-zA-Z]*.[hcs] [a-zA-Z]*.in [a-zA-Z]*.opt; do
+   if test -f ../${tempdir}/etc/$file; then
+     # test -f appears to succeed for a symlink
+     if test -L ../${tempdir}/etc/$file; then
+       rm ../${tempdir}/etc/$file
+       cp $file ../${tempdir}/etc
+       chmod a-w ../${tempdir}/etc/$file
+     fi
+   else
+     rm ../${tempdir}/etc/$file
+     cp $file ../${tempdir}/etc
+     chmod a-w ../${tempdir}/etc/$file
+   fi
+ done
  cd ../${tempdir}/etc
  rm -f DOC* *~ \#*\# *.dvi *.log *.orig *.rej *,v =* core
  rm -f TAGS)
