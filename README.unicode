@@ -124,3 +124,6 @@ existing support and the extra stuff at
    Fcheck_coding_systems_region.  Define ENABLE_CHECKING to find them.
 
  * You can grep the code for lots of fixmes.
+
+ * Old auto-save files, and similar files, such as Gnus drafts,
+   containing non-ASCII characters probably won't be re-read correctly.
