@@ -270,7 +270,10 @@
 	  form)
       ;; else
       (if (and (consp fn) (eq (car fn) 'autoload))
-	  (load (nth 1 fn)))
+	  (progn
+	    (load (nth 1 fn))
+	    (setq fn (or (cdr (assq name byte-compile-function-environment))
+			 (and (fboundp name) (symbol-function name))))))
       (if (and (consp fn) (eq (car fn) 'autoload))
 	  (error "file \"%s\" didn't define \"%s\"" (nth 1 fn) name))
       (if (symbolp fn)
