@@ -1,6 +1,6 @@
 /* impl.c.root: ROOT IMPLEMENTATION
  *
- * $HopeName: MMsrc!root.c(trunk.33) $
+ * $HopeName: MMsrc!root.c(trunk.34) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is the implementation of the root datatype.
@@ -10,7 +10,7 @@
 
 #include "mpm.h"
 
-SRCID(root, "$HopeName: MMsrc!root.c(trunk.33) $");
+SRCID(root, "$HopeName: MMsrc!root.c(trunk.34) $");
 
 
 /* RootStruct -- tracing root structure */
@@ -564,7 +564,7 @@ void RootAccess(Root root, AccessSet mode)
 
 Res RootsIterate(Globals arena, RootIterateFn f, void *p)
 {
-  Res res;
+  Res res = ResOK;
   Ring node, next;
 
   RING_FOR(node, &arena->rootRing, next) {
@@ -657,7 +657,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
 
 Res RootsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
 {
-  Res res;
+  Res res = ResOK;
   Ring node, next;
 
   RING_FOR(node, &arenaGlobals->rootRing, next) {
