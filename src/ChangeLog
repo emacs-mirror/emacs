@@ -1,5 +1,8 @@
 2001-02-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* insdel.c (del_range_1, del_range_byte, del_range_both): Handle
+	case that TO ends up beyond ZV after running before-change-functions.
+
 	* window.c (window_loop) <GET_BUFFER_WINDOW>: Prefer to return
 	the selected window if it is showing the buffer in question.
 
