@@ -1,3 +1,8 @@
+2003-05-31  Kenichi Handa  <handa@m17n.org>
+
+	* charset.h (VALID_LEADING_CODE_P): New macro.
+	(UNIBYTE_STR_AS_MULTIBYTE_P): Check more rigidly.
+
 2003-05-30  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (ccl_coding_driver): Set ccl->eight_bit_control
