@@ -1,45 +1,25 @@
-;;; forms.el -- Forms Mode - A GNU Emacs Major Mode
-;;; SCCS Status     : @(#)@ forms	1.2.7
-;;; Author          : Johan Vromans
-;;; Created On      : 1989
-;;; Last Modified By: Johan Vromans
-;;; Last Modified On: Mon Jul  1 14:13:20 1991
-;;; Update Count    : 15
-;;; Status          : OK
+;;; forms.el -- Forms mode: edit a file as a form to fill in.
+;;; Copyright (C) 1991 Free Software Foundation, Inc.
 
-;;; This file is part of GNU Emacs.
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY.  No author or distributor
-;;; accepts responsibility to anyone for the consequences of using it
-;;; or for whether it serves any particular purpose or works at all,
-;;; unless he says so in writing.  Refer to the GNU Emacs General Public
-;;; License for full details.
+;;; Author: Johan Vromans
 
-;;; Everyone is granted permission to copy, modify and redistribute
-;;; GNU Emacs, but only under the conditions described in the
-;;; GNU Emacs General Public License.   A copy of this license is
-;;; supposed to have been given to you along with GNU Emacs so you
-;;; can know your rights and responsibilities. 
-;;; If you don't have this copy, write to the Free Software
-;;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-;;;
+;; This file is part of GNU Emacs.
 
-;;; HISTORY 
-;;; 1-Jul-1991		Johan Vromans	
-;;;    Normalized error messages.
-;;; 30-Jun-1991		Johan Vromans	
-;;;    Add support for forms-modified-record-filter.
-;;;    Allow the filter functions to be the name of a function.
-;;;    Fix: parse--format used forms--dynamic-text destructively.
-;;;    Internally optimized the forms-format-list.
-;;;    Added support for debugging.
-;;;    Stripped duplicate documentation.
-;;;   
-;;; 29-Jun-1991		Johan Vromans	
-;;;    Add support for functions and lisp symbols in forms-format-list.
-;;;    Add function forms-enumerate.
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
 
-(provide 'forms-mode)
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
 
 ;;; Visit a file using a form.
 ;;;
@@ -232,21 +212,26 @@
 ;;;
 ;;; For convenience, TAB is always bound to forms-next-field, so you
 ;;; don't need the C-c prefix for this command.
-;;;
+
+;;; Code:
+
 ;;; Global variables and constants
 
-(defconst forms-version "1.2.7"
-  "Version of forms-mode implementation")
+(provide 'forms)			;;; official
+(provide 'forms-mode)			;;; for compatibility
+
+(defconst forms-version "1.2.10"
+  "Version of forms-mode implementation.")
 
 (defvar forms-forms-scrolls t
-  "If non-null: redefine scroll-up/down to be used with forms-mode.")
+  "If non-null: redefine scroll-up/down to be used with Forms mode.")
 
 (defvar forms-forms-jumps t
-  "If non-null: redefine beginning/end-of-buffer to be used with forms-mode.")
+  "If non-null: redefine beginning/end-of-buffer to be used with Forms mode.")
 
 (defvar forms-mode-hooks nil
-  "Hook functions to be run upon entering forms mode.")
-;;;
+  "Hook functions to be run upon entering Forms mode.")
+
 ;;; Mandatory variables - must be set by evaluating the control file
 
 (defvar forms-file nil
@@ -258,27 +243,25 @@
 (defvar forms-number-of-fields nil
   "Number of fields per record.")
 
-;;;
+
 ;;; Optional variables with default values
 
 (defvar forms-field-sep "\t"
-  "Field separator character (default TAB)")
+  "Field separator character (default TAB).")
 
 (defvar forms-read-only nil
   "Read-only mode (defaults to the write access on the data file).")
 
 (defvar forms-multi-line "\C-k"
-  "Character to separate multi-line fields (default ^K)")
+  "Character to separate multi-line fields (default C-k)")
 
 (defvar forms-forms-scroll t
-  "Redefine scroll-up/down to perform forms-next/prev-record when in
- forms mode.")
+  "Redefine scroll-up/down to perform forms-next/prev-record in Forms mode.")
 
 (defvar forms-forms-jump t
-  "Redefine beginning/end-of-buffer to perform forms-first/last-record
- when in forms mode.")
+  "Redefine beginning/end-of-buffer to perform forms-first/last-record in Forms mode.")
 
-;;;
+
 ;;; Internal variables.
 
 (defvar forms--file-buffer nil
@@ -327,7 +310,12 @@
 (defvar forms-fields nil
   "List with fields of the current forms. First field has number 1.")
 
-;;;
+(defvar forms-new-record-filter
+  "The name of a function that is called when a new record is created.")
+
+(defvar forms-modified-record-filter
+  "The name of a function that is called when a record has been modified.")
+
 ;;; forms-mode
 ;;;
 ;;; This is not a simple major mode, as usual. Therefore, forms-mode
@@ -432,7 +420,7 @@
 	;; and clean it
 	(erase-buffer)))
 
-  ;; make local variables
+  ;; Make more local variables
   (make-local-variable 'forms--file-buffer)
   (make-local-variable 'forms--total-records)
   (make-local-variable 'forms--current-record)
@@ -490,7 +478,7 @@
   ;; initialization done
   (setq forms--mode-setup t))
 
-;;;
+
 ;;; forms-process-format-list
 ;;;
 ;;; Validates forms-format-list.
@@ -576,7 +564,7 @@
   (setq forms--markers (make-vector forms--number-of-markers nil)))
 
 
-;;;
+
 ;;; Build the format routine from forms-format-list.
 ;;;
 ;;; The format routine (forms--format) will look like
@@ -616,22 +604,21 @@
 		    (mapcar 'forms--make-format-elt the-format-list)))))))
 
 (defun forms--make-format-elt (el)
-  (cond ((stringp el)
-	 (` ((insert (, el)))))
-	((numberp el)
-	 (prog1
-	     (` ((aset forms--markers (, the-marker) (point-marker))
-		 (insert (elt arg (, (1- el))))))
-	   (setq the-marker (1+ the-marker))))
-	((listp el)
-	 (prog1
-	     (` ((let ((the-dyntext (, el)))
-		   (insert the-dyntext)
-		   (setq forms--dynamic-text (append forms--dynamic-text
-						     (list the-dyntext)))))
-		)))
-	))
-
+  (cond 
+   ((stringp el)
+    (` ((insert (, el)))))
+   ((numberp el)
+    (prog1
+	(` ((aset forms--markers (, the-marker) (point-marker))
+	    (insert (elt arg (, (1- el))))))
+      (setq the-marker (1+ the-marker))))
+   ((listp el)
+    (prog1
+	(` ((let ((the-dyntext (, el)))
+	      (insert the-dyntext)
+	      (setq forms--dynamic-text (append forms--dynamic-text
+						(list the-dyntext)))))
+	   )))))
 
 (defun forms--concat-adjacent (the-list)
   "Concatenate adjacent strings in the-list and return the resulting list"
@@ -642,7 +629,7 @@
 		  (cdr the-rest))
 	    (cons (car the-list) the-rest)))
       the-list))
-;;;
+
 ;;; forms--make-parser.
 ;;;
 ;;; Generate parse routine from forms-format-list.
@@ -740,7 +727,7 @@
       (setq seen-text t)
       (setq the-field nil)))
    ))
-;;;
+
 
 (defun forms--set-minor-mode ()
   (setq minor-mode-alist
@@ -781,7 +768,7 @@
   (define-key map "\C-u" 'universal-argument)
   (define-key map "\C-h" help-map)
   )
-;;;
+
 ;;; Changed functions
 ;;;
 ;;; Emacs (as of 18.55) lacks the functionality of buffer-local
@@ -797,12 +784,13 @@
       nil
     (fset 'forms--scroll-down (symbol-function 'scroll-down))
     (fset 'scroll-down
-	  '(lambda (&optional arg) 
+	  (function
+	    (lambda (&optional arg) 
 	     (interactive "P")
 	     (if (and forms--mode-setup
 		      forms-forms-scroll)
 		 (forms-prev-record arg)
-	       (forms--scroll-down arg)))))
+	       (forms--scroll-down arg))))))
   ;;
   ;; scroll-up -> forms-next-record
   ;;
@@ -810,12 +798,13 @@
       nil
     (fset 'forms--scroll-up   (symbol-function 'scroll-up))
     (fset 'scroll-up
-	  '(lambda (&optional arg) 
+	  (function
+	   (lambda (&optional arg) 
 	     (interactive "P")
 	     (if (and forms--mode-setup
 		      forms-forms-scroll)
 		 (forms-next-record arg)
-	       (forms--scroll-up arg)))))
+	       (forms--scroll-up arg))))))
   ;;
   ;; beginning-of-buffer -> forms-first-record
   ;;
@@ -823,12 +812,13 @@
       nil
     (fset 'forms--beginning-of-buffer (symbol-function 'beginning-of-buffer))
     (fset 'beginning-of-buffer
-	  '(lambda ()
+	  (function
+	   (lambda ()
 	     (interactive)
 	     (if (and forms--mode-setup
 		      forms-forms-jump)
 		 (forms-first-record)
-	       (forms--beginning-of-buffer)))))
+	       (forms--beginning-of-buffer))))))
   ;;
   ;; end-of-buffer -> forms-end-record
   ;;
@@ -836,12 +826,13 @@
       nil
     (fset 'forms--end-of-buffer (symbol-function 'end-of-buffer))
     (fset 'end-of-buffer
-	  '(lambda ()
+	  (function
+	   (lambda ()
 	     (interactive)
 	     (if (and forms--mode-setup
 		      forms-forms-jump)
 		 (forms-last-record)
-	       (forms--end-of-buffer)))))
+	       (forms--end-of-buffer))))))
   ;;
   ;; save-buffer -> forms--save-buffer
   ;;
@@ -849,7 +840,8 @@
       nil
     (fset 'forms--save-buffer (symbol-function 'save-buffer))
     (fset 'save-buffer
-	  '(lambda (&optional arg)
+	  (function
+	   (lambda (&optional arg)
 	     (interactive "p")
 	     (if forms--mode-setup
 		 (progn
@@ -857,7 +849,7 @@
 		   (save-excursion
 		     (set-buffer forms--file-buffer)
 		     (forms--save-buffer arg)))
-	       (forms--save-buffer arg)))))
+	       (forms--save-buffer arg))))))
   ;;
   )
 
@@ -1038,7 +1030,7 @@ forms--the-record-list ."
 	(set-buffer-modified-p nil)
 	(goto-char here))))
 
-;;;
+
 ;;; Start and exit
 (defun forms-find-file (fn)
   "Visit file FN in forms mode"
@@ -1063,7 +1055,7 @@ forms--the-record-list ."
   (interactive "P")
   (forms--exit query nil))
 
-;;;
+
 ;;; Navigating commands
 
 (defun forms-next-record (arg)
@@ -1144,7 +1136,7 @@ forms--the-record-list ."
       (message "Number of records reset to %d." forms--total-records)))
   (forms-jump-record forms--total-records))
 
-;;;
+
 ;;; Other commands
 (defun forms-view-mode ()
   "Visit buffer read-only."
@@ -1321,8 +1313,7 @@ Usage: (setq forms-number-of-fields
 	(setq the-fields (cdr-safe the-fields))
 	(set el the-index)))
     the-index))
-
-;;;
+
 ;;; Debugging
 ;;;
 (defvar forms--debug nil
@@ -1350,7 +1341,9 @@ Usage: (setq forms-number-of-fields
 	  (goto-char (point-max))
 	  (insert ret)))))
 
-;;; Local Variables:
+;;; Disabled Local Variables:
 ;;; eval: (headers)
 ;;; eval: (setq comment-start ";;; ")
 ;;; End:
+
+;;; forms.el ends here.
