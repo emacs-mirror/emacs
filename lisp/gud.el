@@ -406,6 +406,8 @@ and source-file directory for your debugger."
   (gud-def gud-next   "next %p"      "\C-n" "Step one line (skip functions).")
   (gud-def gud-cont   "cont"         "\C-r" "Continue with display.")
   (gud-def gud-finish "finish"       "\C-f" "Finish executing current function.")
+  (gud-def gud-jump   "tbreak %f:%l\njump %f:%l" "\C-j" "Relocate execution address to line at point in source buffer.")
+
   (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
   (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
   (gud-def gud-print  "print %e"     "\C-p" "Evaluate C expression at point.")
@@ -2271,13 +2273,13 @@ Obeying it means displaying in another window the specified file and line."
 					       (buffer-file-name)
 					     (car frame)))))
 	 ((eq key ?l)
-	  (setq subst (if insource
-			  (save-excursion
-			    (beginning-of-line)
-			    (save-restriction
-			      (widen)
-			      (int-to-string (1+ (count-lines 1 (point))))))
-			(cdr frame))))
+	  (setq subst (int-to-string
+		       (if insource
+			   (save-restriction
+			     (widen)
+			     (+ (count-lines 1 (point))
+				(if (bolp) 1 0)))
+			 (cdr frame)))))
 	 ((eq key ?e)
 	  (setq subst (gud-find-c-expr)))
 	 ((eq key ?a)
