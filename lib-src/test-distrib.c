@@ -10,10 +10,13 @@
 
 #include <stdio.h>
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #ifndef O_RDONLY
 #define O_RDONLY 0
 #endif
-
 
 /* Break string in two parts to avoid buggy C compilers that ignore characters
    after nulls in strings.  */
