@@ -71,8 +71,9 @@ Relative times may be specified as a series of numbers followed by units:
 	       (let ((process-connection-type nil))
 		 ;; Don't search the exec path for the timer program;
 		 ;; we know exactly which one we want.
-		 (start-process (expand-file-name timer-program exec-directory)
-				nil "timer"))
+		 (start-process "timer" nil
+				(expand-file-name timer-program
+						  exec-directory)))
                timer-alist nil)
          (set-process-filter   timer-process 'timer-process-filter)
          (set-process-sentinel timer-process 'timer-process-sentinel)
