@@ -2326,13 +2326,17 @@ Interactively, confirmation is required unless you supply a prefix argument."
 (defun backup-buffer ()
   "Make a backup of the disk file visited by the current buffer, if appropriate.
 This is normally done before saving the buffer the first time.
-If the value is non-nil, it is the result of `file-modes' on the original
-file; this means that the caller, after saving the buffer, should change
-the modes of the new file to agree with the old modes.
 
 A backup may be done by renaming or by copying; see documentation of
 variable `make-backup-files'.  If it's done by renaming, then the file is
-no longer accessible under its old name."
+no longer accessible under its old name.
+
+The value is non-nil after a backup was made by renaming.
+It has the form (MODES . BACKUPNAME).
+MODES is the result of `file-modes' on the original
+file; this means that the caller, after saving the buffer, should change
+the modes of the new file to agree with the old modes.
+BACKUPNAME is the backup file name, which is the old file renamed."
   (if (and make-backup-files (not backup-inhibited)
 	   (not buffer-backed-up)
 	   (file-exists-p buffer-file-name)
@@ -2386,7 +2390,8 @@ no longer accessible under its old name."
 			     (copy-file real-file-name backupname t t)))
 			;; rename-file should delete old backup.
 			(rename-file real-file-name backupname t)
-			(setq setmodes (file-modes backupname)))
+			(setq setmodes
+			      (cons (file-modes backupname) backupname)))
 		    (file-error
 		     ;; If trouble writing the backup, write it in ~.
 		     (setq backupname (expand-file-name
@@ -2882,7 +2887,7 @@ After saving the buffer, this function runs `after-save-hook'."
 		  (nthcdr 10 (file-attributes buffer-file-name)))
 	    (if setmodes
 		(condition-case ()
-		    (set-file-modes buffer-file-name setmodes)
+		    (set-file-modes buffer-file-name (car setmodes))
 		  (error nil))))
 	  ;; If the auto-save file was recent before this command,
 	  ;; delete it now.
@@ -2895,13 +2900,14 @@ After saving the buffer, this function runs `after-save-hook'."
 ;; This does the "real job" of writing a buffer into its visited file
 ;; and making a backup file.  This is what is normally done
 ;; but inhibited if one of write-file-functions returns non-nil.
-;; It returns a value to store in setmodes.
+;; It returns a value (MODES . BACKUPNAME), like backup-buffer.
 (defun basic-save-buffer-1 ()
   (if save-buffer-coding-system
       (let ((coding-system-for-write save-buffer-coding-system))
 	(basic-save-buffer-2))
     (basic-save-buffer-2)))
 
+;; This returns a value (MODES . BACKUPNAME), like backup-buffer.
 (defun basic-save-buffer-2 ()
   (let (tempsetmodes setmodes)
     (if (not (file-writable-p buffer-file-name))
@@ -2960,7 +2966,8 @@ After saving the buffer, this function runs `after-save-hook'."
 	    ;; Since we have created an entirely new file
 	    ;; and renamed it, make sure it gets the
 	    ;; right permission bits set.
-	    (setq setmodes (or setmodes (file-modes buffer-file-name)))
+	    (setq setmodes (or setmodes (cons (file-modes buffer-file-name)
+					      buffer-file-name)))
 	    ;; We succeeded in writing the temp file,
 	    ;; so rename it.
 	    (rename-file tempname buffer-file-name t))
@@ -2970,10 +2977,18 @@ After saving the buffer, this function runs `after-save-hook'."
 	;; (setmodes is set) because that says we're superseding.
 	(cond ((and tempsetmodes (not setmodes))
 	       ;; Change the mode back, after writing.
-	       (setq setmodes (file-modes buffer-file-name))
-	       (set-file-modes buffer-file-name (logior setmodes 128))))
-	(write-region (point-min) (point-max)
-		      buffer-file-name nil t buffer-file-truename)))
+	       (setq setmodes (cons (file-modes buffer-file-name) buffer-file-name))
+	       (set-file-modes buffer-file-name (logior (car setmodes) 128))))
+	(let (success)
+	  (unwind-protect
+	      (progn
+		(write-region (point-min) (point-max)
+			      buffer-file-name nil t buffer-file-truename)
+		(setq success t))
+	    ;; If we get an error writing the new file, and we made
+	    ;; the backup by renaming, undo the backing-up.
+	    (and setmodes (not success)
+		 (rename-file (cdr setmodes) buffer-file-name))))))
     setmodes))
 
 (defun save-some-buffers (&optional arg pred)
