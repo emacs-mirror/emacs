@@ -1,35 +1,21 @@
 /* impl.c.arena: ARENA ALLOCATION FEATURES
  *
- * $HopeName: MMsrc!arena.c(trunk.76) $
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!arena.c(trunk.77) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  * 
  * .sources: design.mps.arena is the main design document.
- *
- * .improve.modular: The allocation stuff should be in a separate
- * structure.  We don't need to AVERT the whole Arena here (or
- * anywhere else, for that matter), but if everything's in the same
- * structure, then that's the rule.
  */
 
 #include "tract.h"
 #include "poolmv.h"
 #include "mpm.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.76) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.77) $");
 
 
 /* ArenaControlPool -- get the control pool */
 
 #define ArenaControlPool(arena) MVPool(&(arena)->controlPoolStruct)
-
-
-/* ArenaReservoir - return the reservoir for the arena */
-
-Reservoir ArenaReservoir(Arena arena)
-{
-  AVERT(Arena, arena);
-  return &arena->reservoirStruct;
-}
 
 
 /* ArenaTrivDescribe -- produce trivial description of an arena */
@@ -98,11 +84,12 @@ Bool ArenaClassCheck(ArenaClass class)
 }
 
 
-/* ArenaAllocCheck -- check the consistency of the allocation fields */
+/* ArenaCheck -- check the arena */
 
-Bool ArenaAllocCheck(Arena arena)
+Bool ArenaCheck(Arena arena)
 {
   CHECKS(Arena, arena);
+  CHECKD(Globals, ArenaGlobals(arena));
   CHECKD(ArenaClass, arena->class);
 
   CHECKL(BoolCheck(arena->poolReady));
@@ -150,12 +137,19 @@ Bool ArenaAllocCheck(Arena arena)
 }
 
 
-/* ArenaAllocInit -- initialize the allocation fields */
-
-void ArenaAllocInit(Arena arena, ArenaClass class)
+/* ArenaInit -- initialize the generic part of the arena
+ *
+ * .init.caller: Unlike PoolInit, this is called by the class init
+ * methods, not the generic Create.  This is because the class is
+ * responsible for allocating the descriptor.
+ */
+Res ArenaInit(Arena arena, Lock lock, ArenaClass class)
 {
+  Res res;
+
   /* We do not check the arena argument, because it's _supposed_ to */
   /* point to an uninitialized block of memory. */
+  /* We do not check the lock argument, because it's uninitialized. */
   AVERT(ArenaClass, class);
 
   arena->class = class;
@@ -184,25 +178,36 @@ void ArenaAllocInit(Arena arena, ArenaClass class)
   arena->chunkSerial = (Serial)0;
   ChunkCacheEntryInit(&arena->chunkCache);
 
+  res = GlobalsInit(ArenaGlobals(arena), lock);
+  if (res != ResOK)
+    return res;
+
   LocusInit(arena);
+
+  arena->sig = ArenaSig;
+
+  /* initialize the reservoir, design.mps.reservoir */
+  res = ReservoirInit(&arena->reservoirStruct, arena);
+  if (res != ResOK) 
+    goto failReservoirInit;
+
+  return ResOK;
+
+failReservoirInit:
+  GlobalsFinish(ArenaGlobals(arena));
+  return res;
 }
 
 
-/* ArenaAllocFinish -- finish the allocation fields */
+/* ArenaCreateV -- create the arena and call initializers */
 
-void ArenaAllocFinish(Arena arena)
-{
-  LocusFinish(arena);
-  RingFinish(&arena->chunkRing);
-}
-
-
-/* ArenaAllocCreate -- create the arena and call initializers */
-
-Res ArenaAllocCreate(Arena *arenaReturn, ArenaClass class, va_list args)
+Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
 {
   Arena arena;
   Res res;
+
+  AVER(arenaReturn != NULL);
+  AVERT(ArenaClass, class);
 
   /* Do initialization.  This will call ArenaInit (see .init.caller). */
   res = (*class->init)(&arena, class, args);
@@ -218,10 +223,29 @@ Res ArenaAllocCreate(Arena *arenaReturn, ArenaClass class, va_list args)
   /* load cache */
   ChunkEncache(arena, arena->primary);
 
+  res = ControlInit(arena);
+  if (res != ResOK) 
+    goto failControlInit;
+
+  /* initialize the message stuff, design.mps.message */
+  { /* @@@@ in the wrong place */
+    void *v;
+
+    res = ControlAlloc(&v, arena, BTSize(MessageTypeLIMIT), FALSE);
+    if (res != ResOK)
+      goto failEnabledBTAlloc;
+    arena->enabledMessageTypes = v;
+    BTResRange(arena->enabledMessageTypes, 0, MessageTypeLIMIT);
+  }
+
   AVERT(Arena, arena);
+  ArenaAnnounce(arena);
   *arenaReturn = arena;
   return ResOK;
 
+failEnabledBTAlloc:
+  ControlFinish(arena);
+failControlInit:
 failStripeSize:
   (*class->finish)(arena);
 failInit:
@@ -229,12 +253,54 @@ failInit:
 }
 
 
-/* ArenaAllocDestroy -- destroy the arena */
-
-void ArenaAllocDestroy(Arena arena)
+/* ArenaFinish -- finish the generic part of the arena
+ *
+ * .finish.caller: Unlike PoolFinish, this is called by the class finish
+ * methods, not the generic Destroy.  This is because the class is
+ * responsible for deallocating the descriptor.
+ */
+void ArenaFinish(Arena arena)
 {
+  ReservoirFinish(ArenaReservoir(arena));
+  LocusFinish(arena);
+  GlobalsFinish(ArenaGlobals(arena));
+  arena->sig = SigInvalid;
+  RingFinish(&arena->chunkRing);
+}
+
+
+/* ArenaDestroy -- destroy the arena */
+
+void ArenaDestroy(Arena arena)
+{
+  AVERT(Arena, arena);
+
+  ArenaDenounce(arena);
+
+  /* .message.queue.empty: Empty the queue of messages before */
+  /* proceeding to finish the arena.  It is important that this */
+  /* is done before destroying the finalization pool as otherwise */
+  /* the message queue would have dangling pointers to messages */
+  /* whose memory has been unmapped. */
+  MessageEmpty(arena);
+
+  /* throw away the BT used by messages */
+  if (arena->enabledMessageTypes != NULL) {
+    ControlFree(arena, (void *)arena->enabledMessageTypes, 
+                BTSize(MessageTypeLIMIT));
+    arena->enabledMessageTypes = NULL;
+  }
+
+  /* Empty the reservoir - see impl.c.reserv.reservoir.finish */
+  ReservoirSetLimit(ArenaReservoir(arena), 0);
+
+  arena->poolReady = FALSE;
+  ControlFinish(arena);
+
   /* Call class-specific finishing.  This will call ArenaFinish. */
   (*arena->class->finish)(arena);
+
+  EventFinish();
 }
 
 
@@ -266,28 +332,38 @@ void ControlFinish(Arena arena)
 }
 
 
-/* ArenaAllocDescribe -- describe the allocation fields */
+/* ArenaDescribe -- describe the arena */
 
-Res ArenaAllocDescribe(Arena arena, mps_lib_FILE *stream)
+Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
 {
   Res res;
 
   if (!CHECKT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
+  res = WriteF(stream, "Arena $P {\n", (WriteFP)arena,
+               "  class $P (\"$S\")\n", 
+               (WriteFP)arena->class, arena->class->name,
+               NULL);
+  if (res != ResOK) return res;
+
+  if (arena->poolReady) {
+    res = WriteF(stream,
+                 "  controlPool $P\n", (WriteFP)&arena->controlPoolStruct,
+                 NULL);
+    if (res != ResOK) return res;
+  }
+
   res = WriteF(stream,
-               "  poolReady $S\n",     arena->poolReady ? "YES" : "NO",
-               "  controlPool $P\n",   
-               (WriteFP)&arena->controlPoolStruct,
-               "  fillMutatorSize $U KB\n",
+               "  fillMutatorSize $U kB\n",
                  (WriteFU)(arena->fillMutatorSize / 1024),
-               "  emptyMutatorSize $U KB\n",
+               "  emptyMutatorSize $U kB\n",
                  (WriteFU)(arena->emptyMutatorSize / 1024),
-               "  allocMutatorSize $U KB\n",
+               "  allocMutatorSize $U kB\n",
                  (WriteFU)(arena->allocMutatorSize / 1024),
-               "  fillInternalSize $U KB\n",
+               "  fillInternalSize $U kB\n",
                  (WriteFU)(arena->fillInternalSize / 1024),
-               "  emptyInternalSize $U KB\n",
+               "  emptyInternalSize $U kB\n",
                  (WriteFU)(arena->emptyInternalSize / 1024),
                "  commitLimit $W\n", (WriteFW)arena->commitLimit,
 	       "  spareCommitted $W\n", (WriteFW)arena->spareCommitted,
@@ -298,6 +374,15 @@ Res ArenaAllocDescribe(Arena arena, mps_lib_FILE *stream)
   if (res != ResOK) return res;
 
   res = (*arena->class->describe)(arena, stream);
+  if (res != ResOK) return res;
+
+  res = GlobalsDescribe(ArenaGlobals(arena), stream);
+  if (res != ResOK) return res;
+
+  res = WriteF(stream,
+               "} Arena $P ($U)\n", (WriteFP)arena, 
+               (WriteFU)arena->serial,
+               NULL);
   return res;
 }
 
