@@ -28,7 +28,7 @@
 progname="$0"
 
 ### Exit if a command fails.
-### set -e
+set -e
 
 ### Print out each line we read, for debugging's sake.
 ### set -v
@@ -304,7 +304,10 @@ for subdir in lisp site-lisp leim real-leim real-leim/CXTERM-DIC \
 	      real-leim/SKK-DIC real-leim/ja-dic real-leim/quail \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
-	      etc etc/e lock info man msdos vms; do
+	      etc etc/e lock info man msdos vms mac mac/inc mac/inc/sys \
+	      mac/src
+do
+  echo "  ${tempdir}/${subdir}"
   mkdir ${tempdir}/${subdir}
 done
 
@@ -326,6 +329,7 @@ echo "Making links to \`lisp' and its subdirectories"
  ## simula.el doesn't keep abbreviations in simula.defns any more.
  ## ln [a-zA-Z]*.defns ../${tempdir}/lisp
  ln ChangeLog Makefile.in makefile.nt ChangeLog.? ../${tempdir}/lisp
+ ln makefile.w32-in ../${tempdir}/lisp
  test -f README && ln README ../${tempdir}/lisp
  (cd ../${tempdir}/lisp
   rm -f TAGS =*
@@ -351,9 +355,9 @@ echo "Making links to \`lisp' and its subdirectories"
  for file in $subdirs; do
    echo "  lisp/$file"
    mkdir ../${tempdir}/lisp/$file
-   ln $file/[a-zA-Z]*.el ../${tempdir}/lisp/$file
-   ln $file/[a-zA-Z]*.elc ../${tempdir}/lisp/$file
-   for img in $file/[a-zA-Z]*.xpm $file/[a-zA-Z]*.xbm; do
+   ln $file/[a-zA-Z0-9]*.el ../${tempdir}/lisp/$file
+   ln $file/[a-zA-Z0-9]*.elc ../${tempdir}/lisp/$file
+   for img in $file/[a-zA-Z]*.xpm $file/[a-zA-Z]*.xbm $file/[a-zA-Z]*.pbm; do
      if [ -f $img ]; then
        ln $img ../${tempdir}/lisp/$file
      fi
@@ -361,15 +365,21 @@ echo "Making links to \`lisp' and its subdirectories"
    if [ -f $file/README ]; then
      ln $file/README ../${tempdir}/lisp/$file
    fi
+
    if [ -f $file/ChangeLog ]; then
      ln $file/ChangeLog ../${tempdir}/lisp/$file
+     for f in $file/ChangeLog.[0-9]; do
+       if [ -f $f ]; then
+	 ln $f ../${tempdir}/lisp/$file
+       fi
+     done
    fi
  done )
 
 echo "Making links to \`leim' and its subdirectories for the LEIM distribution"
 ### Don't distribute TAGS, or =*.el files.
 (cd leim
- ln makefile.nt ../${tempdir}/real-leim
+ ln makefile.nt makefile.w32-in ../${tempdir}/real-leim
  ln ChangeLog README ../${tempdir}/real-leim
 
  ln CXTERM-DIC/*.tit ../${tempdir}/real-leim/CXTERM-DIC
@@ -414,7 +424,7 @@ echo "Making links to \`src'"
    fi
  done
  ln README ChangeLog ChangeLog.*[0-9] ../${tempdir}/src
- ln makefile.nt vms-pp.trans ../${tempdir}/src
+ ln makefile.nt makefile.w32-in vms-pp.trans ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
  cd ../${tempdir}/src
  rm -f config.h paths.h Makefile Makefile.c
@@ -438,6 +448,7 @@ echo "Making links to \`lib-src'"
  ln [a-zA-Z]*.[chy] ../${tempdir}/lib-src
  ln ChangeLog Makefile.in README testfile vcdiff ../${tempdir}/lib-src
  ln grep-changelog rcs2log rcs-checkin makefile.nt ../${tempdir}/lib-src
+ ln makefile.w32-in ../${tempdir}/lib-src
  ## If we ended up with a symlink, or if we did not get anything
  ## due to a cross-device symlink, copy the file.
  for file in [a-zA-Z]*.[chy]; do
@@ -461,8 +472,9 @@ echo "Making links to \`lib-src'"
 echo "Making links to \`nt'"
 (cd nt
  ln emacs.rc config.nt [a-z]*.in [a-z]*.c ../${tempdir}/nt
+ ln _emacs nmake.defs gmake.defs ../${tempdir}/nt
  ln [a-z]*.bat [a-z]*.h makefile.def makefile.nt ../${tempdir}/nt
- ln TODO ChangeLog INSTALL README ../${tempdir}/nt)
+ ln TODO ChangeLog INSTALL README makefile.w32-in ../${tempdir}/nt)
 
 echo "Making links to \`nt/inc'"
 (cd nt/inc
@@ -483,6 +495,22 @@ echo "Making links to \`nt/inc/netinet'"
 echo "Making links to \`nt/icons'"
 (cd nt/icons
  ln [a-z]*.ico ../../${tempdir}/nt/icons)
+
+echo "Making links to \`mac'"
+(cd mac
+ ln ChangeLog INSTALL README *.xml *.MPW ../${tempdir}/mac)
+
+echo "Making links to \`mac/inc'"
+(cd mac/inc
+ ln [a-z]*.h ../../${tempdir}/mac/inc)
+
+echo "Making links to \`mac/inc/sys'"
+(cd mac/inc/sys
+ ln [a-z]*.h ../../../${tempdir}/mac/inc/sys)
+
+echo "Making links to \`mac/src'"
+(cd mac/src
+ ln [a-z]*.c *.r ../../${tempdir}/mac/src)
 
 echo "Making links to \`msdos'"
 (cd msdos
@@ -540,7 +568,7 @@ echo "Making links to \`etc/e'"
 echo "Making links to \`info'"
 # Don't distribute backups or autosaves.
 (cd info
- ln `find . -type f -print | grep -v CVS | grep -v RCS` ../${tempdir}/info
+ ln `find . -type f -print | grep -v CVS | grep -v RCS | grep -v cvsignore` ../${tempdir}/info
  #ln [a-zA-Z]* ../${tempdir}/info
  cd ../${tempdir}/info
  # Avoid an error when expanding the wildcards later.
