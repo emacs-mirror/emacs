@@ -1128,9 +1128,10 @@ standard bindings:
 @end smallexample
 
 @c Emacs 19 feature
-If @var{oldmap} is non-@code{nil}, then its bindings determine which
-keys to rebind.  The rebindings still happen in @var{keymap}, not in
-@var{oldmap}.  Thus, you can change one map under the control of the
+If @var{oldmap} is non-@code{nil}, that changes the behavior of
+@code{substitute-key-definition}: the bindings in @var{oldmap} determine
+which keys to rebind.  The rebindings still happen in @var{keymap}, not
+in @var{oldmap}.  Thus, you can change one map under the control of the
 bindings in another.  For example,
 
 @smallexample
