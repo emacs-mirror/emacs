@@ -1,5 +1,10 @@
 2000-12-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_calc_absolute_position): Don't subtract menubar's
+	height for YNegative.
+	(x_calc_absolute_position) [USE_MOTIF]: Use the column widget's
+	height; also see comment there.
+
 	* window.c (coordinates_in_window): Handle computations for
 	positions on the vertical bar and fringes differently for
 	window-system frames.  Consider some pixels near the vertical bar
