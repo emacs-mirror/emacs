@@ -753,7 +753,9 @@ appear on disk when you save the tar-file's buffer."
 	 (end (+ start size)))
     (let* ((tar-buffer (current-buffer))
 	   (tar-buffer-multibyte enable-multibyte-characters)
-	   (tarname (file-name-nondirectory (buffer-file-name)))
+	   (tarname (if (buffer-file-name)
+			(file-name-nondirectory (buffer-file-name))
+		      (buffer-name)))
 	   (bufname (concat (file-name-nondirectory name)
 			    " ("
 			    tarname
