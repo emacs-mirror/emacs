@@ -217,7 +217,7 @@ md5_process_bytes (buffer, len, ctx)
      size_t len;
      struct md5_ctx *ctx;
 {
-  //const void aligned_buffer = buffer;
+  /* const void aligned_buffer = buffer; */
 
   /* When we already have some bits in our internal buffer concatenate
      both inputs first.  */
