@@ -410,7 +410,7 @@ void x_delete_display P_ ((struct x_display_info *));
 static unsigned int x_x_to_emacs_modifiers P_ ((struct x_display_info *,
 						unsigned));
 static int fast_find_position P_ ((struct window *, int, int *, int *,
-				   int *, int *));
+				   int *, int *, Lisp_Object));
 static int fast_find_string_pos P_ ((struct window *, int, Lisp_Object,
 				     int *, int *, int *, int *, int));
 static void set_output_cursor P_ ((struct cursor_pos *));
@@ -7049,13 +7049,14 @@ note_mouse_highlight (f, x, y)
 				  &dpyinfo->mouse_face_beg_col,
 				  &dpyinfo->mouse_face_beg_row,
 				  &dpyinfo->mouse_face_beg_x,
-				  &dpyinfo->mouse_face_beg_y);
+				  &dpyinfo->mouse_face_beg_y, Qnil);
+		       
 	      dpyinfo->mouse_face_past_end
 		= !fast_find_position (w, XFASTINT (after),
 				       &dpyinfo->mouse_face_end_col,
 				       &dpyinfo->mouse_face_end_row,
 				       &dpyinfo->mouse_face_end_x,
-				       &dpyinfo->mouse_face_end_y);
+				       &dpyinfo->mouse_face_end_y, Qnil);
 	      dpyinfo->mouse_face_window = window;
 	      dpyinfo->mouse_face_face_id
 		= face_at_buffer_position (w, pos, 0, 0,
@@ -7089,13 +7090,13 @@ note_mouse_highlight (f, x, y)
 				  &dpyinfo->mouse_face_beg_col,
 				  &dpyinfo->mouse_face_beg_row,
 				  &dpyinfo->mouse_face_beg_x,
-				  &dpyinfo->mouse_face_beg_y);
+				  &dpyinfo->mouse_face_beg_y, Qnil);
 	      dpyinfo->mouse_face_past_end
 		= !fast_find_position (w, XFASTINT (after),
 				       &dpyinfo->mouse_face_end_col,
 				       &dpyinfo->mouse_face_end_row,
 				       &dpyinfo->mouse_face_end_x,
-				       &dpyinfo->mouse_face_end_y);
+				       &dpyinfo->mouse_face_end_y, Qnil);
 	      dpyinfo->mouse_face_window = window;
 
 	      if (BUFFERP (object))
@@ -7138,6 +7139,54 @@ note_mouse_highlight (f, x, y)
 					   glyph->face_id, 1);
 	      show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
 	      cursor = None;
+	    }
+	  else if (STRINGP (object) && NILP (mouse_face))
+	    {
+	      /* A string which doesn't have mouse-face, but
+		 the text ``under'' it might have.  */
+	      struct glyph_row *r = MATRIX_ROW (w->current_matrix, vpos);
+	      int start = MATRIX_ROW_START_CHARPOS (r);
+	      
+	      pos = string_buffer_position (w, object, start);
+	      if (pos > 0)
+		mouse_face = get_char_property_and_overlay (make_number (pos),
+							    Qmouse_face,
+							    w->buffer,
+							    &overlay);
+	      if (!NILP (mouse_face) && !NILP (overlay))
+		{
+		  Lisp_Object before = Foverlay_start (overlay);
+		  Lisp_Object after = Foverlay_end (overlay);
+		  Lisp_Object ignore;
+
+		  /* Note that we might not be able to find position
+		     BEFORE in the glyph matrix if the overlay is
+		     entirely covered by a `display' property.  In
+		     this case, we overshoot.  So let's stop in
+		     the glyph matrix before glyphs for OBJECT.  */
+		  fast_find_position (w, XFASTINT (before),
+				      &dpyinfo->mouse_face_beg_col,
+				      &dpyinfo->mouse_face_beg_row,
+				      &dpyinfo->mouse_face_beg_x,
+				      &dpyinfo->mouse_face_beg_y,
+				      object);
+		       
+		  dpyinfo->mouse_face_past_end
+		    = !fast_find_position (w, XFASTINT (after),
+					   &dpyinfo->mouse_face_end_col,
+					   &dpyinfo->mouse_face_end_row,
+					   &dpyinfo->mouse_face_end_x,
+					   &dpyinfo->mouse_face_end_y,
+					   Qnil);
+		  dpyinfo->mouse_face_window = window;
+		  dpyinfo->mouse_face_face_id
+		    = face_at_buffer_position (w, pos, 0, 0,
+					       &ignore, pos + 1, 1);
+
+		  /* Display it as active.  */
+		  show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
+		  cursor = None;
+		}
 	    }
 	}
 
@@ -7184,7 +7233,7 @@ note_mouse_highlight (f, x, y)
 		    int pos = string_buffer_position (w, object, start);
 		    if (pos > 0)
 		      {
-			help = Fget_text_property (make_number (pos),
+			help = Fget_char_property (make_number (pos),
 						   Qhelp_echo, w->buffer);
 			if (!NILP (help))
 			  {
@@ -7452,13 +7501,15 @@ note_tool_bar_highlight (f, x, y)
    *HPOS, *VPOS, *X, and *Y are set to the positions found.  W's
    current glyphs must be up to date.  If POS is above window start
    return (0, 0, 0, 0).  If POS is after end of W, return end of
-   last line in W.  */
+   last line in W.  In the row containing POS, stop before glyphs
+   having STOP as object.  */
 
 static int
-fast_find_position (w, pos, hpos, vpos, x, y)
+fast_find_position (w, pos, hpos, vpos, x, y, stop)
      struct window *w;
      int pos;
      int *hpos, *vpos, *x, *y;
+     Lisp_Object stop;
 {
   int i;
   int lastcol;
@@ -7508,22 +7559,26 @@ fast_find_position (w, pos, hpos, vpos, x, y)
   for (i = 0; i < best_row->used[TEXT_AREA]; i++)
     {
       struct glyph *glyph = best_row->glyphs[TEXT_AREA] + i;
-      int charpos;
+      int charpos = glyph->charpos;
 
-      charpos = glyph->charpos;
-      if (charpos == pos)
+      if (BUFFERP (glyph->object))
 	{
-	  *hpos = i;
-	  *vpos = best_row_vpos;
-	  *x = current_x;
-	  *y = best_row->y;
-	  return 1;
+	  if (charpos == pos)
+	    {
+	      *hpos = i;
+	      *vpos = best_row_vpos;
+	      *x = current_x;
+	      *y = best_row->y;
+	      return 1;
+	    }
+	  else if (charpos > pos)
+	    break;
 	}
-      else if (charpos > pos)
+      else if (EQ (glyph->object, stop))
 	break;
-      else if (charpos > 0)
-	lastcol = i;
 
+      if (charpos > 0)
+	lastcol = i;
       current_x += glyph->pixel_width;
     }
 
