@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.97) $
+ * $HopeName: MMsrc!trace.c(trunk.98) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -10,7 +10,7 @@
 #include "mpm.h"
 #include <limits.h> /* for LONG_MAX */
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.97) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.98) $");
 
 
 /* Types
@@ -37,7 +37,7 @@ typedef struct TraceMessageStruct  {
 
 #define TraceMessageMessage(TraceMessage) (&((TraceMessage)->messageStruct))
 #define MessageTraceMessage(message) \
-  (PARENT(TraceMessageStruct, messageStruct, (message)))
+  (PARENT(TraceMessageStruct, messageStruct, message))
 
 static Bool TraceMessageCheck(TraceMessage message) 
 {
@@ -208,7 +208,7 @@ void ScanStateFinish(ScanState ss)
 
 Bool TraceIdCheck(TraceId ti)
 {
-  CHECKL(ti < TRACE_MAX);
+  CHECKL(ti < TraceLIMIT);
   UNUSED(ti); /* impl.c.mpm.check.unused */
   return TRUE;
 }
@@ -218,7 +218,7 @@ Bool TraceIdCheck(TraceId ti)
 
 Bool TraceSetCheck(TraceSet ts)
 {
-  CHECKL(ts < (1uL << TRACE_MAX));
+  CHECKL(ts < (1uL << TraceLIMIT));
   UNUSED(ts); /* impl.c.mpm.check.unused */
   return TRUE;
 }
@@ -592,7 +592,7 @@ static void traceFlip(Trace trace)
   /* grey objects so that it can't obtain white pointers.  This is */
   /* achieved by read protecting all segments containing objects */
   /* which are grey for any of the flipped traces. */
-  for(rank = 0; rank < RankMAX; ++rank)
+  for(rank = 0; rank < RankLIMIT; ++rank)
     RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
       Seg seg = SegOfGreyRing(node);
       if (TraceSetInter(SegGrey(seg), arena->flippedTraces) == TraceSetEMPTY
@@ -854,7 +854,7 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
 
   trace = ArenaTrace(arena, ti);
 
-  for(rank = 0; rank < RankMAX; ++rank) {
+  for(rank = 0; rank < RankLIMIT; ++rank) {
     RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
       Seg seg = SegOfGreyRing(node);
       AVERT(Seg, seg);
@@ -867,8 +867,7 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
     }
   }
 
-  /* There are no grey segments for this trace. */
-  return FALSE;
+  return FALSE; /* There are no grey segments for this trace. */
 }
 
 
@@ -924,7 +923,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
 
   /* The reason for scanning a segment is that it's grey. */
   AVER(TraceSetInter(ts, SegGrey(seg)) != TraceSetEMPTY);
-  EVENT_UUPP(traceScanSeg, ts, rank, arena, seg);
+  EVENT_UUPP(TraceScanSeg, ts, rank, arena, seg);
 
   white = traceSetWhiteUnion(ts, arena);
 
@@ -1455,7 +1454,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
   /* Calculate the rate of scanning. */
   {
     Size sSurvivors = (Size)(trace->condemned * (1.0 - mortality));
-    double nPolls = finishingTime / ARENA_POLL_MAX;
+    double nPolls = finishingTime / ArenaPollALLOCTIME;
 
     /* There must be at least one poll. */
     if (nPolls < 1.0)
@@ -1548,7 +1547,7 @@ void TracePoll(Arena arena)
     /* @@@@ sCondemned should be scannable only */
     sCondemned = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
     sSurvivors = (Size)(sCondemned * (1 - TraceTopGenMortality));
-    tTracePerScan = sFoundation + (sSurvivors * (1 + TRACE_COPY_SCAN_RATIO));
+    tTracePerScan = sFoundation + (sSurvivors * (1 + TraceCopyScanRATIO));
     AVER(TraceWorkFactor >= 0);
     AVER(sSurvivors + tTracePerScan * TraceWorkFactor <= (double)SizeMAX);
     sConsTrace = (Size)(sSurvivors + tTracePerScan * TraceWorkFactor);
