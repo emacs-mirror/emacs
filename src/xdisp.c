@@ -14611,7 +14611,7 @@ display_string (string, lisp_string, face_string, face_string_pos,
 		}
 	      break;
 	    }
-	  else if (x + glyph->pixel_width > it->first_visible_x)
+	  else if (x + glyph->pixel_width >= it->first_visible_x)
 	    {
 	      /* Glyph is at least partially visible.  */
 	      ++it->hpos;
