@@ -215,7 +215,7 @@ matched by parenthesis constructs in the pattern.")
       CHECK_NUMBER (start, 2);
       s = XINT (start);
       if (s < 0 && -s <= len)
-	s = len - s;
+	s = len + s;
       else if (0 > s || s > len)
 	args_out_of_range (string, start);
     }
