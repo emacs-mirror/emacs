@@ -2035,6 +2035,19 @@ x_set_tool_bar_lines (f, value, oldval)
   FRAME_TOOL_BAR_LINES (f) = nlines;
   x_change_window_heights (root_window, delta);
   adjust_glyphs (f);
+  
+  /* We also have to make sure that the internal border at the top of
+     the frame, below the menu bar or tool bar, is redrawn when the
+     tool bar disappears.  This is so because the internal border is
+     below the tool bar if one is displayed, but is below the menu bar
+     if there isn't a tool bar.  The tool bar draws into the area
+     below the menu bar.  */
+  if (FRAME_X_WINDOW (f) && FRAME_TOOL_BAR_LINES (f) == 0)
+    {
+      updating_frame = f;
+      clear_frame ();
+      updating_frame = NULL;
+    }
 }
 
 
