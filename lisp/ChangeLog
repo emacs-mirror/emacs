@@ -1,5 +1,8 @@
 2000-11-22  Miles Bader  <miles@gnu.org>
 
+	* textmodes/refill.el (refill-adjust-ignorable-overlay) 
+	(refill-fill-paragraph-at): Remove debugging code.
+
 	* calendar/calendar.el (generate-calendar-window): When we don't
 	call `fit-window-to-buffer', make sure the top line is fully visible.
 
