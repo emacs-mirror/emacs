@@ -2052,7 +2052,8 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
     }
   if (ulx < 0) x -= ulx;
   if (uly < 0) y -= uly;
-    
+
+  XMenuSetAEQ (menu, TRUE);
   XMenuSetFreeze (menu, TRUE);
   pane = selidx = 0;
   
