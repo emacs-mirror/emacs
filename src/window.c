@@ -526,6 +526,9 @@ coordinates_in_window (w, x, y)
   int ux = CANON_X_UNIT (f), uy = CANON_Y_UNIT (f);
   int x0 = XFASTINT (w->left) * ux;
   int x1 = x0 + XFASTINT (w->width) * ux;
+  /* The width of the area where the vertical line can be dragged.
+     (Between mode lines for instance.  */
+  int grabbable_width = ux;
 
   if (*x < x0 || *x >= x1)
     return ON_NOTHING;
@@ -567,10 +570,10 @@ coordinates_in_window (w, x, y)
       
       if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f))
 	{
-	  if (abs (*x - x0) < ux / 2)
+	  if (abs (*x - x0) < grabbable_width)
 	    part = ON_VERTICAL_BORDER;
 	}
-      else if (!WINDOW_RIGHTMOST_P (w) && abs (*x - x1) < ux / 2)
+      else if (!WINDOW_RIGHTMOST_P (w) && abs (*x - x1) < grabbable_width)
 	part = ON_VERTICAL_BORDER;
     }
   else if (WINDOW_WANTS_HEADER_LINE_P (w)
@@ -581,10 +584,10 @@ coordinates_in_window (w, x, y)
       
       if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f))
 	{
-	  if (abs (*x - x0) < ux / 2)
+	  if (abs (*x - x0) < grabbable_width)
 	    part = ON_VERTICAL_BORDER;
 	}
-      else if (!WINDOW_RIGHTMOST_P (w) && abs (*x - x1) < ux / 2)
+      else if (!WINDOW_RIGHTMOST_P (w) && abs (*x - x1) < grabbable_width)
 	part = ON_VERTICAL_BORDER;
     }
   /* Outside anything interesting?  */
@@ -604,7 +607,7 @@ coordinates_in_window (w, x, y)
       if (!w->pseudo_window_p
 	  && !FRAME_HAS_VERTICAL_SCROLL_BARS (f)
 	  && !WINDOW_RIGHTMOST_P (w)
-	  && (abs (*x - right_x - flags_area_width) < ux / 2))
+	  && (abs (*x - right_x - flags_area_width) < grabbable_width))
 	{
 	  part = ON_VERTICAL_BORDER;
 	}
