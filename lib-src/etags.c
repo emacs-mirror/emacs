@@ -133,7 +133,6 @@ typedef struct nd_st
   char *name;			/* function or type name	*/
   char *file;			/* file name			*/
   logical is_func;		/* use pattern or line no	*/
-  logical named;		/* list name separately		*/
   logical been_warned;		/* set if noticed dup		*/
   int lno;			/* line number tag is on	*/
   long cno;			/* character number line starts on */
@@ -1109,6 +1108,7 @@ find_entries (file, inf)
   NODE *old_last_node;
   extern NODE *last_node;
 
+  /* The memory block pointed by curfile is never released for simplicity. */
   curfile = savestr (file);
   cp = etags_strrchr (file, '.');
 
@@ -1149,33 +1149,27 @@ find_entries (file, inf)
 
 /* Record a tag. */
 void
-pfnote (name, is_func, named, linestart, linelen, lno, cno)
-     char *name;		/* tag name */
+pfnote (name, is_func, linestart, linelen, lno, cno)
+     char *name;		/* tag name, if different from definition */
      logical is_func;		/* tag is a function */
-     logical named;		/* tag different from text of definition */
      char *linestart;		/* start of the line where tag is */
      int linelen;		/* length of the line where tag is */
      int lno;			/* line number */
      long cno;			/* character number */
 {
   register NODE *np = xnew (1, NODE);
-  register char *fp;
 
   /* If ctags mode, change name "main" to M<thisfilename>. */
   if (CTAGS && !cxref_style && streq (name, "main"))
     {
-      fp = etags_strrchr (curfile, '/');
+      register char *fp = etags_strrchr (curfile, '/');
       np->name = concat ("M", fp == 0 ? curfile : fp + 1, "");
       fp = etags_strrchr (np->name, '.');
       if (fp && fp[1] != '\0' && fp[2] == '\0')
 	fp[0] = 0;
-      np->named = TRUE;
     }
   else
-    {
-      np->name = name;
-      np->named = named;
-    }
+    np->name = name;
   np->been_warned = FALSE;
   np->file = curfile;
   np->is_func = is_func;
@@ -1204,7 +1198,7 @@ free_tree (node)
     {
       register NODE *node_right = node->right;
       free_tree (node->left);
-      if (node->named)
+      if (node->name != NULL)
 	free (node->name);
       free (node->pat);
       free ((char *) node);
@@ -1255,7 +1249,7 @@ add_node (node, cur_node_p)
        */
       if (!dif)
 	{
-	  if (node->file == cur_node->file)
+	  if (streq (node->file, cur_node->file))
 	    {
 	      if (!no_warnings)
 		{
@@ -1304,18 +1298,12 @@ put_entries (node)
 
   if (!CTAGS)
     {
-      if (node->named)
-	{
-	  fprintf (tagf, "%s\177%s\001%d,%d\n",
-		   node->pat, node->name,
-		   node->lno, node->cno);
-	}
+      if (node->name != NULL)
+	fprintf (tagf, "%s\177%s\001%d,%d\n",
+		 node->pat, node->name, node->lno, node->cno);
       else
-	{
-	  fprintf (tagf, "%s\177%d,%d\n",
-		   node->pat,
-		   node->lno, node->cno);
-	}
+	fprintf (tagf, "%s\177%d,%d\n",
+		 node->pat, node->lno, node->cno);
     }
   else if (!cxref_style)
     {
@@ -1390,7 +1378,7 @@ total_size_of_entries (node)
       /* Count this entry */
       total += strlen (node->pat) + 1;
       total += number_len ((long) node->lno) + 1 + number_len (node->cno) + 1;
-      if (node->named)
+      if (node->name != NULL)
 	total += 1 + strlen (node->name);	/* \001name */
     }
 
@@ -1873,8 +1861,12 @@ do {									\
 #define make_tag(isfun)  do \
 {									\
   if (tok.valid)							\
-    pfnote (savestr (token_name.buffer), isfun, tok.named,		\
-	    tok.buffer, tok.linelen, tok.lineno, tok.linepos);		\
+    {									\
+      char *name = NULL;						\
+      if (tok.named)							\
+	name = savestr (token_name.buffer);				\
+      pfnote (name, isfun, tok.buffer, tok.linelen, tok.lineno, tok.linepos); \
+    }									\
   else if (DEBUG) abort ();						\
   tok.valid = FALSE;							\
 } while (0)
@@ -2341,10 +2333,9 @@ C_entries (c_ext, inf)
 	    {
 	      if (typdef == tinbody)
 		typdef = tend;
-#if FALSE			/* too risky */
-	      if (structdef == sinbody)
-		free (structtag);
-#endif
+	      if (FALSE)	/* too risky */
+		if (structdef == sinbody)
+		  free (structtag);
 
 	      structdef = snone;
 	      structtag = "<error>";
@@ -2426,7 +2417,7 @@ tail (cp)
 
   while (*cp && lowcase(*cp) == lowcase(dbp[len]))
     cp++, len++;
-  if (*cp == 0 && !intoken(dbp[len]))
+  if (*cp == '\0' && !intoken(dbp[len]))
     {
       dbp += len;
       return TRUE;
@@ -2488,8 +2479,7 @@ getit (inf)
 	&& (isalpha (*cp) || isdigit (*cp) || (*cp == '_') || (*cp == '$')));
        cp++)
     continue;
-  pfnote (savenstr (dbp, cp-dbp), TRUE, FALSE, lb.buffer,
-	  cp - lb.buffer + 1, lineno, linecharno);
+  pfnote (NULL, TRUE, lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 }
 
 void
@@ -2509,7 +2499,7 @@ Fortran_functions (inf)
 	dbp++;			/* Ratfor escape to fortran */
       while (isspace (*dbp))
 	dbp++;
-      if (*dbp == 0)
+      if (*dbp == '\0')
 	continue;
       switch (lowcase (*dbp))
 	{
@@ -2534,7 +2524,7 @@ Fortran_functions (inf)
 	    {
 	      while (isspace (*dbp))
 		dbp++;
-	      if (*dbp == 0)
+	      if (*dbp == '\0')
 		continue;
 	      if (tail ("precision"))
 		break;
@@ -2544,7 +2534,7 @@ Fortran_functions (inf)
 	}
       while (isspace (*dbp))
 	dbp++;
-      if (*dbp == 0)
+      if (*dbp == '\0')
 	continue;
       switch (lowcase (*dbp))
 	{
@@ -2605,7 +2595,7 @@ Asm_labels (inf)
  	  if (*cp == ':' || isspace (*cp))
  	    {
  	      /* Found end of label, so copy it and add it to the table. */
- 	      pfnote (savenstr (lb.buffer, cp-lb.buffer), TRUE, FALSE,
+ 	      pfnote (NULL, TRUE,
 		      lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
  	    }
  	}
@@ -2634,26 +2624,26 @@ Pascal_functions (inf)
 {
   struct linebuffer tline;	/* mostly copied from C_entries */
   long save_lcno;
-  int save_lineno;
-  char c, *cp;
-  char *nambuf;
+  int save_lineno, save_len;
+  char c;
 
   logical			/* each of these flags is TRUE iff: */
     incomment,			/* point is inside a comment */
     inquote,			/* point is inside '..' string */
-    get_tagname,		/* point is after PROCEDURE/FUNCTION */
-  /*   keyword, so next item = potential tag */
+    get_tagname,		/* point is after PROCEDURE/FUNCTION
+				   keyword, so next item = potential tag */
     found_tag,			/* point is after a potential tag */
     inparms,			/* point is within parameter-list */
-    verify_tag;			/* point has passed the parm-list, so the */
-  /*   next token will determine whether    */
-  /*   this is a FORWARD/EXTERN to be       */
-  /*   ignored, or whether it is a real tag */
+    verify_tag;			/* point has passed the parm-list, so the
+				   next token will determine whether this
+				   is a FORWARD/EXTERN to be ignored, or
+				   whether it is a real tag */
 
   lineno = 0;
   charno = 0;
   dbp = lb.buffer;
-  *dbp = 0;
+  *dbp = '\0';
+  save_len = 0;
   initbuffer (&tline);
 
   incomment = inquote = FALSE;
@@ -2673,15 +2663,15 @@ Pascal_functions (inf)
 	    continue;
 	  if (!((found_tag && verify_tag) ||
 		get_tagname))
-	    c = *dbp++;		/* only if don't need *dbp pointing */
-				/* to the beginning of the name of  */
-				/* the procedure or function        */
+	    c = *dbp++;		/* only if don't need *dbp pointing
+				   to the beginning of the name of
+				   the procedure or function */
 	}
       if (incomment)
 	{
-	  if (c == '}')		/* within { - } comments */
+	  if (c == '}')		/* within { } comments */
 	    incomment = FALSE;
-	  else if (c == '*' && dbp[1] == ')') /* within (* - *) comments */
+	  else if (c == '*' && *dbp == ')') /* within (* *) comments */
 	    {
 	      dbp++;
 	      incomment = FALSE;
@@ -2700,11 +2690,11 @@ Pascal_functions (inf)
 	  case '\'':
 	    inquote = TRUE;	/* found first quote */
 	    continue;
-	  case '{':		/* found open-{-comment */
+	  case '{':		/* found open { comment */
 	    incomment = TRUE;
 	    continue;
 	  case '(':
-	    if (*dbp == '*')	/* found open-(*-comment */
+	    if (*dbp == '*')	/* found open (* comment */
 	      {
 		incomment = TRUE;
 		dbp++;
@@ -2717,19 +2707,19 @@ Pascal_functions (inf)
 	      inparms = FALSE;
 	    continue;
 	  case ';':
-	    if ((found_tag) && (!inparms))	/* end of proc or fn stmt */
+	    if (found_tag && !inparms) /* end of proc or fn stmt */
 	      {
 		verify_tag = TRUE;
 		break;
 	      }
 	    continue;
 	  }
-      if ((found_tag) && (verify_tag) && (*dbp != ' '))
+      if (found_tag && verify_tag && (*dbp != ' '))
 	{
 	  /* check if this is an "extern" declaration */
-	  if (*dbp == 0)
+	  if (*dbp == '\0')
 	    continue;
-	  if ((*dbp == 'e') || (*dbp == 'E'))
+	  if (lowcase (*dbp == 'e'))
 	    {
 	      if (tail ("extern"))	/* superfluous, really! */
 		{
@@ -2737,7 +2727,7 @@ Pascal_functions (inf)
 		  verify_tag = FALSE;
 		}
 	    }
-	  else if ((*dbp == 'f') || (*dbp == 'F'))
+	  else if (lowcase (*dbp) == 'f')
 	    {
 	      if (tail ("forward"))	/*  check for forward reference */
 		{
@@ -2745,31 +2735,37 @@ Pascal_functions (inf)
 		  verify_tag = FALSE;
 		}
 	    }
-	  if ((found_tag) && (verify_tag)) /* not external proc, so make tag */
+	  if (found_tag && verify_tag) /* not external proc, so make tag */
 	    {
 	      found_tag = FALSE;
 	      verify_tag = FALSE;
-	      pfnote (nambuf, TRUE, FALSE, tline.buffer,
-		      cp - tline.buffer + 1, save_lineno, save_lcno);
+	      pfnote (NULL, TRUE,
+		      tline.buffer, save_len, save_lineno, save_lcno);
 	      continue;
 	    }
 	}
       if (get_tagname)		/* grab name of proc or fn */
 	{
-	  if (*dbp == 0)
+	  int size;
+
+	  if (*dbp == '\0')
 	    continue;
 
 	  /* save all values for later tagging */
-	  tline.size = lb.size;
+	  size  = strlen (lb.buffer) + 1;
+	  while (size > tline.size)
+	    {
+	      tline.size *= 2;
+	      tline.buffer = (char *) xrealloc (tline.buffer, tline.size);
+	    }
 	  strcpy (tline.buffer, lb.buffer);
 	  save_lineno = lineno;
 	  save_lcno = linecharno;
 
 	  /* grab block name */
-	  for (cp = dbp + 1; *cp && (!endtoken (*cp)); cp++)
+	  for (dbp++; *dbp && (!endtoken (*dbp)); dbp++)
 	    continue;
-	  nambuf = savenstr (dbp, cp-dbp);
-	  dbp = cp;		/* restore dbp to e-o-token */
+	  save_len = dbp - lb.buffer + 1;
 	  get_tagname = FALSE;
 	  found_tag = TRUE;
 	  continue;
@@ -2792,6 +2788,8 @@ Pascal_functions (inf)
 	    }
 	}
     }				/* while not eof */
+  
+  free (tline.buffer);
 }
 
 /*
@@ -2839,8 +2837,7 @@ L_getit ()
   if (cp == dbp)
     return;
   
-  pfnote (savenstr (dbp, cp-dbp), TRUE, FALSE, lb.buffer,
-	  cp - lb.buffer + 1, lineno, linecharno);
+  pfnote (NULL, TRUE, lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 }
 
 void
@@ -2950,15 +2947,14 @@ get_scheme ()
 {
   register char *cp;
 
-  if (*dbp == 0)
+  if (*dbp == '\0')
     return;
   /* Go till you get to white space or a syntactic break */
   for (cp = dbp + 1;
        *cp && *cp != '(' && *cp != ')' && !isspace (*cp);
        cp++)
     continue;
-  pfnote (savenstr (dbp, cp-dbp), TRUE, FALSE,
-	  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+  pfnote (NULL, TRUE, lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 }
 
 /* Find tags in TeX and LaTeX input files.  */
@@ -2982,8 +2978,10 @@ char *TEX_defenv = "\
 
 void TEX_mode ();
 struct TEX_tabent *TEX_decode_env ();
-void TEX_getit ();
 int TEX_Token ();
+#if TeX_named_tokens
+void TEX_getit ();
+#endif
 
 char TEX_esc = '\\';
 char TEX_opgrp = '{';
@@ -3026,7 +3024,11 @@ TeX_functions (inf)
 	  i = TEX_Token (lasthit);
 	  if (0 <= i)
 	    {
+	      pfnote (NULL, TRUE,
+		      lb.buffer, strlen (lb.buffer), lineno, linecharno);
+#if TeX_named_tokens
 	      TEX_getit (lasthit, TEX_toktab[i].len);
+#endif
 	      break;		/* We only save a line once */
 	    }
 	}
@@ -3121,6 +3123,7 @@ TEX_decode_env (evarname, defenv)
   return tab;
 }
 
+#if TeX_named_tokens
 /* Record a tag defined by a TeX command of length LEN and starting at NAME.
    The name being defined actually starts at (NAME + LEN + 1).
    But we seem to include the TeX command in the tag name.  */
@@ -3131,15 +3134,16 @@ TEX_getit (name, len)
 {
   char *p = name + len;
 
-  if (*name == 0)
+  if (*name == '\0')
     return;
 
   /* Let tag name extend to next group close (or end of line) */
   while (*p && *p != TEX_clgrp)
     p++;
-  pfnote (savenstr (name, p-name), TRUE, FALSE, lb.buffer,
-	  strlen (lb.buffer), lineno, linecharno);
+  pfnote (savenstr (name, p-name), TRUE,
+	  lb.buffer, strlen (lb.buffer), lineno, linecharno);
 }
+#endif
 
 /* If the text at CP matches one of the tag-defining TeX command names,
    return the pointer to the first occurrence of that command in TEX_toktab.
@@ -3208,8 +3212,7 @@ prolog_getit (s)
       else
 	s++;
     }
-  pfnote (savenstr (save_s, s-save_s), TRUE, FALSE,
-	  save_s, s-save_s, lineno, linecharno);
+  pfnote (NULL, TRUE, save_s, s-save_s, lineno, linecharno);
 }
 
 /* It is assumed that prolog predicate starts from column 0. */
@@ -3538,14 +3541,14 @@ readline (linebuffer, stream)
 				       patterns[i].name_pattern,
 				       &patterns[i].regs);
 	      if (name != NULL)
-		pfnote (name, TRUE, TRUE, linebuffer->buffer,
-			match, lineno, linecharno);
+		pfnote (name, TRUE,
+			linebuffer->buffer, match, lineno, linecharno);
 	    }
 	  else
 	    {
 	      /* Make an unnamed tag. */
-	      pfnote (NULL, TRUE, FALSE, linebuffer->buffer,
-		      match, lineno, linecharno);
+	      pfnote (NULL, TRUE,
+		      linebuffer->buffer, match, lineno, linecharno);
 	    }
 	  break;
 	}
@@ -3737,10 +3740,11 @@ char *
 relative_filename (file, dir)
      char *file, *dir;
 {
-  char *fp, *dp, *res;
+  char *fp, *dp, *abs, *res;
 
   /* Find the common root of file and dir. */
-  fp = absolute_filename (file, cwd);
+  abs = absolute_filename (file, cwd);
+  fp = abs;
   dp = dir;
   while (*fp++ == *dp++)
     continue;
@@ -3761,8 +3765,9 @@ relative_filename (file, dir)
 
   /* Add the filename relative to the common root of file and dir. */
   res = concat (res, fp + 1, "");
+  free (abs);
 
-  return res;			/* temporary stub */
+  return res;
 }
 
 /* Return a newly allocated string containing the
@@ -3856,7 +3861,7 @@ xrealloc (ptr, size)
      char *ptr;
      unsigned int size;
 {
-  long *result = (long *) realloc (ptr, size);
+  long *result =  (long *) realloc (ptr, size);
   if (result == NULL)
     fatal ("virtual memory exhausted");
   return result;
