@@ -185,6 +185,15 @@ Remove indentation from each line."
       ;; of the line and wants it to stay at the end of the line.
       (insert-before-markers-and-inherit ? )))))
 
+(defun fill-common-string-prefix (s1 s2)
+  "Return the longest common prefix of strings S1 and S2, or nil if none."
+  (let ((cmp (compare-strings s1 nil nil s2 nil nil)))
+    (if (eq cmp t) 
+	s1
+      (setq cmp (1- (abs cmp)))
+      (unless (zerop cmp)
+	(substring s1 0 cmp)))))
+    
 (defun fill-context-prefix (from to &optional first-line-regexp)
   "Compute a fill prefix from the text between FROM and TO.
 This uses the variables `adaptive-fill-regexp' and `adaptive-fill-function'
@@ -233,13 +242,24 @@ act as a paragraph-separator."
 		       ;; If the second line prefix is whitespace, use it.
 		       (string-match "\\`[ \t]+\\'" second-line-prefix))
 		   second-line-prefix
-		 ;; If the second line has the first line prefix,
-		 ;; plus whitespace, use the part that the first line shares.
-		 (if (string-match (concat "\\`"
-					     (regexp-quote first-line-prefix)
-					     "[ \t]*\\'")
-				   second-line-prefix)
-		     first-line-prefix)))
+
+		 ;; If using the common prefix of first-line-prefix
+		 ;; and second-line-prefix leads to problems, consider
+		 ;; to restore the code below that's commented out,
+		 ;; and document why a common prefix cannot be used.
+		 
+;		 ;; If the second line has the first line prefix,
+;		 ;; plus whitespace, use the part that the first line shares.
+;		 (if (string-match (concat "\\`"
+;					     (regexp-quote first-line-prefix)
+;					     "[ \t]*\\'")
+;				   second-line-prefix)
+;		     first-line-prefix)))
+
+		 ;; Use the longest common substring of both prefixes,
+		 ;; if there is one.
+		 (fill-common-string-prefix first-line-prefix
+					    second-line-prefix)))
 	;; If we get a fill prefix from a one-line paragraph,
 	;; maybe change it to whitespace,
 	;; and check that it isn't a paragraph starter.
