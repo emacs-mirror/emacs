@@ -53,11 +53,6 @@ The value is a list of three integers: the major and minor version
 numbers, and the build number."
   (x-server-version))
 
-(defvar w32-system-shells '("cmd" "cmd.exe" "command" "command.com"
-			    "4nt" "4nt.exe" "4dos" "4dos.exe"
-			    "ndos" "ndos.exe")
-  "List of strings recognized as Windows NT/9X system shells.")
-
 (defun w32-using-nt ()
   "Return non-nil if literally running on Windows NT (i.e., not Windows 9X)."
   (and (eq system-type 'windows-nt) (getenv "SystemRoot")))
@@ -81,9 +76,6 @@ numbers, and the build number."
       (and (member (downcase (file-name-nondirectory (w32-shell-name)))
 		   '("cmdproxy" "cmdproxy.exe"))
 	   (w32-system-shell-p (getenv "COMSPEC")))))
-
-(defvar w32-allow-system-shell nil
-  "*Disable startup warning when using \"system\" shells.")
 
 (defun w32-check-shell-configuration ()
   "Check the configuration of shell variables on Windows NT/9X.
@@ -433,12 +425,6 @@ bit output with no translation."
 ;;; Note this value is overridden below.
 (defvar x-cut-buffer-max 20000
   "Max number of characters to put in the cut buffer.")
-
-(defcustom x-select-enable-clipboard t
-  "Non-nil means cutting and pasting uses the clipboard.
-This is in addition to the primary selection."
-  :type 'boolean
-  :group 'killing)
 
 (defun x-select-text (text &optional push)
   "Make TEXT the last selected text.
