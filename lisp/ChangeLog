@@ -1,3 +1,8 @@
+2004-08-08  Lars Hansen  <larsh@math.ku.dk>
+
+	* wid-edit.el (widget-sexp-validate): Allow whitespace after
+	expression.
+
 2004-08-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* subr.el (global-unset-key, local-unset-key): Doc fixes.
