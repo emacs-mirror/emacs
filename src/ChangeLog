@@ -1,3 +1,10 @@
+2001-11-03  Richard M. Stallman  <rms@gnu.org>
+
+	* data.c (Fmake_local_variable): Doc fix.
+
+	* eval.c (Frun_hooks, Frun_hook_with_args_until_failure): Doc fix.
+	(Frun_hook_with_args_until_success, Frun_hook_with_args): Doc fix.
+
 2001-11-02  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (regcomp, regexec): Don't forget the __restrict.
