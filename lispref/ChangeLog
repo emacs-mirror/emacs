@@ -1,3 +1,8 @@
+2003-10-07  Juri Linkov  <juri@jurta.org>
+
+	* modes.texi (Imenu): Mention imenu-create-index-function's
+	default value.  Explain submenus better.
+
 2003-10-07  Lute Kamstra  <lute@gnu.org>
 
 	* modes.texi (Faces for Font Lock): Fix typo.
