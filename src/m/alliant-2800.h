@@ -141,3 +141,6 @@ unexec_text_start = hdr.a_text_addr;}
 /* POSIX Compatibility */
 /* Use System V.4 style getdents/readdir <dirent.h> for 2.2 and up. */
 #define SYSV_SYSTEM_DIR
+
+/* Use the K&R version of the DEFUN macro.  */
+#define USE_NONANSI_DEFUN
