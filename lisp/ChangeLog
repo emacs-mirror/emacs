@@ -1,3 +1,8 @@
+2001-01-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* isearch.el (isearch-forward): Add isearch-toggle-case-fold,
+	isearch-toggle-regexp and isearch-edit-string to doc string.
+
 2001-01-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/texinfo.el (texinfo-mode): Use backward-paragraph
