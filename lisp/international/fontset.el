@@ -44,134 +44,131 @@
        ;; Eval this at compile-time, since fontset.el is always loaded
        ;; when run under X and this would always load ind-util.el as well.
        (eval-when-compile
-	 `((latin-iso8859-1 . (nil . "ISO8859-1"))
-	   (latin-iso8859-2 . (nil . "ISO8859-2"))
-	   (latin-iso8859-3 . (nil . "ISO8859-3"))
-	   (latin-iso8859-4 . (nil . "ISO8859-4"))
-	   (thai-tis620 . ("*" . "TIS620"))
-	   (greek-iso8859-7 . ("*" . "ISO8859-7"))
-	   (arabic-iso8859-6 . ("*" . "ISO8859-6"))
-	   (hebrew-iso8859-8 . ("*" . "ISO8859-8"))
-	   (katakana-jisx0201 . ("*" . "JISX0201"))
-	   (latin-jisx0201 . (nil . "JISX0201"))
-	   (cyrillic-iso8859-5 . ("*" . "ISO8859-5"))
-	   (latin-iso8859-9 . (nil . "ISO8859-9"))
-	   (japanese-jisx0208-1978 . ("*" . "JISX0208.1978"))
-	   (chinese-gb2312 . ("*" . "GB2312.1980"))
-	   (japanese-jisx0208 . ("*" . "JISX0208.1990"))
-	   (korean-ksc5601 . ("*" . "KSC5601.1989"))
-	   (japanese-jisx0212 . ("*" . "JISX0212"))
-	   (chinese-cns11643-1 . ("*" . "CNS11643.1992-1"))
-	   (chinese-cns11643-2 . ("*" . "CNS11643.1992-2"))
-	   (chinese-cns11643-3 . ("*" . "CNS11643.1992-3"))
-	   (chinese-cns11643-4 . ("*" . "CNS11643.1992-4"))
-	   (chinese-cns11643-5 . ("*" . "CNS11643.1992-5"))
-	   (chinese-cns11643-6 . ("*" . "CNS11643.1992-6"))
-	   (chinese-cns11643-7 . ("*" . "CNS11643.1992-7"))
-	   (chinese-big5-1 . ("*" . "Big5"))
-	   (chinese-big5-2 . ("*" . "Big5"))
+	 `((ascii . (nil . "ISO8859-1"))
+	   (iso-8859-1 . (nil . "ISO8859-1"))
+	   (iso-8859-2 . (nil . "ISO8859-2"))
+	   (iso-8859-3 . (nil . "ISO8859-3"))
+	   (iso-8859-4 . (nil . "ISO8859-4"))
+	   (tis620-2533 . (nil . "TIS620*"))
+	   (iso-8859-7 . (nil . "ISO8859-7"))
+	   (iso-8859-6 . (nil . "ISO8859-6"))
+	   (iso-8859-8 . (nil . "ISO8859-8"))
+	   (iso-8859-5 . (nil . "ISO8859-5"))
+	   (iso-8859-9 . (nil . "ISO8859-9"))
+	   (iso-8859-14 . (nil . "ISO8859-14"))
+	   (iso-8859-15 . (nil . "ISO8859-15"))
+	   (chinese-gb2312 . (nil . "GB2312.1980*"))
+	   (japanese-jisx0208 . (nil . "JISX0208.1990*"))
+	   (korean-ksc5601 . (nil . "KSC5601.1987*"))
+	   (japanese-jisx0212 . (nil . "JISX0212*"))
+	   (big5 . (nil . "Big5"))
+	   (chinese-cns11643-1 . (nil . "CNS11643.1992-1"))
+	   (chinese-cns11643-2 . (nil . "CNS11643.1992-2"))
+	   (chinese-cns11643-3 . (nil . "CNS11643.1992-3"))
+	   (chinese-cns11643-4 . (nil . "CNS11643.1992-4"))
+	   (chinese-cns11643-5 . (nil . "CNS11643.1992-5"))
+	   (chinese-cns11643-6 . (nil . "CNS11643.1992-6"))
+	   (chinese-cns11643-7 . (nil . "CNS11643.1992-7"))
 	   (chinese-sisheng . (nil . "sisheng_cwnn"))
-	   (vietnamese-viscii-lower . (nil . "VISCII1.1"))
-	   (vietnamese-viscii-upper . (nil . "VISCII1.1"))
-	   (arabic-digit . ("*" . "MuleArabic-0"))
-	   (arabic-1-column . ("*" . "MuleArabic-1"))
-	   (arabic-2-column . ("*" . "MuleArabic-2"))
+	   (viscii . (nil . "VISCII1.1*"))
+	   (arabic-digit . (nil . "MuleArabic-0"))
+	   (arabic-1-column . (nil . "MuleArabic-1"))
+	   (arabic-2-column . (nil . "MuleArabic-2"))
 	   (ipa . (nil . "MuleIPA"))
-	   (ethiopic . ("*" . "Ethiopic-Unicode"))
-	   (ascii-right-to-left . (nil . "ISO8859-1"))
-	   (indian-is13194 . ("*" . "IS13194-Devanagari"))
-	   (indian-2-column . ("*" . "MuleIndian-2"))
-	   (lao . ("*" . "MuleLao-1"))
+	   (ethiopic . (nil . "Ethiopic-Unicode"))
+	   (indian-is13194 . (nil . "IS13194-Devanagari"))
+	   (indian-2-column . (nil . "MuleIndian-2"))
+	   (mule-lao . (nil . "MuleLao-1"))
 	   (tibetan . ("proportional" . "MuleTibetan-2"))
-	   (tibetan-1-column . ("*" . "MuleTibetan-1"))
-	   (latin-iso8859-14 . (nil . "ISO8859-14"))
-	   (latin-iso8859-15 . (nil . "ISO8859-15"))
-	   (mule-unicode-0100-24ff . (nil . "ISO10646-1"))
-	   (mule-unicode-2500-33ff . (nil . "ISO10646-1"))
-	   (mule-unicode-e000-ffff . (nil . "ISO10646-1"))
-	   (japanese-jisx0213-1 . ("*" . "JISX0213.2000-1"))
-	   (japanese-jisx0213-2 . ("*" . "JISX0213.2000-2"))
+	   (tibetan-1-column . (nil . "MuleTibetan-1"))
+	   (jisx0201 . (nil . "JISX0201*"))
+	   (japanese-jisx0208-1978 . (nil . "JISX0208.1978*"))
+	   (japanese-jisx0213-1 . (nil . "JISX0213.2000-1"))
+	   (japanese-jisx0213-2 . (nil . "JISX0213.2000-2"))
            ;; unicode
            ((,(decode-char 'ucs #x0900)
-	     . ,(decode-char 'ucs #x097F)) . ("*" . "ISO10646.indian-1"))
+	     . ,(decode-char 'ucs #x097F)) . (nil . "ISO10646.indian-1"))
            ;; indian
-	   (indian-glyph . ("*" . "Devanagari-CDAC"))
+	   (indian-glyph . (nil . "Devanagari-CDAC"))
 	   ((,(indian-glyph-char 0 'devanagari)
-	     . ,(indian-glyph-char 255 'devanagari)) . ("*" . "Devanagari-CDAC"))
+	     . ,(indian-glyph-char 255 'devanagari)) . (nil . "Devanagari-CDAC"))
 	   ((,(indian-glyph-char 0 'sanskrit)
-	     . ,(indian-glyph-char 255 'sanskrit)) . ("*" . "Sanskrit-CDAC"))
+	     . ,(indian-glyph-char 255 'sanskrit)) . (nil . "Sanskrit-CDAC"))
 	   ((,(indian-glyph-char 0 'bengali)
-	     . ,(indian-glyph-char 255 'bengali)) . ("*" . "Bengali-CDAC"))
+	     . ,(indian-glyph-char 255 'bengali)) . (nil . "Bengali-CDAC"))
 	   ((,(indian-glyph-char 0 'assamese)
-	     . ,(indian-glyph-char 255 'assamese)) . ("*" . "Assamese-CDAC"))
+	     . ,(indian-glyph-char 255 'assamese)) . (nil . "Assamese-CDAC"))
 	   ((,(indian-glyph-char 0 'punjabi)
-	     . ,(indian-glyph-char 255 'punjabi)) . ("*" . "Punjabi-CDAC"))
+	     . ,(indian-glyph-char 255 'punjabi)) . (nil . "Punjabi-CDAC"))
 	   ((,(indian-glyph-char 0 'gujarati)
-	     . ,(indian-glyph-char 255 'gujarati)) . ("*" . "Gujarati-CDAC"))
+	     . ,(indian-glyph-char 255 'gujarati)) . (nil . "Gujarati-CDAC"))
 	   ((,(indian-glyph-char 0 'oriya)
-	     . ,(indian-glyph-char 255 'oriya)) . ("*" . "Oriya-CDAC"))
+	     . ,(indian-glyph-char 255 'oriya)) . (nil . "Oriya-CDAC"))
 	   ((,(indian-glyph-char 0 'tamil)
-	     . ,(indian-glyph-char 255 'tamil)) . ("*" . "Tamil-CDAC"))
+	     . ,(indian-glyph-char 255 'tamil)) . (nil . "Tamil-CDAC"))
 	   ((,(indian-glyph-char 0 'telugu)
-	     . ,(indian-glyph-char 255 'telugu)) . ("*" . "Telugu-CDAC"))
+	     . ,(indian-glyph-char 255 'telugu)) . (nil . "Telugu-CDAC"))
 	   ((,(indian-glyph-char 0 'kannada)
-	     . ,(indian-glyph-char 255 'kannada)) . ("*" . "Kannada-CDAC"))
+	     . ,(indian-glyph-char 255 'kannada)) . (nil . "Kannada-CDAC"))
 	   ((,(indian-glyph-char 0 'malayalam)
-	     . ,(indian-glyph-char 255 'malayalam)) . ("*" . "Malayalam-CDAC"))
+	     . ,(indian-glyph-char 255 'malayalam)) . (nil . "Malayalam-CDAC"))
 	   )))
-      charset font-spec arg)
+      charset font-spec)
   (while l
     (setq charset (car (car l)) font-spec (cdr (car l)) l (cdr l))
-    (if (symbolp charset)
-	(setq arg (make-char charset))
-      (setq arg charset))
-    (set-fontset-font "fontset-default" arg font-spec)))
+    (set-fontset-font "fontset-default" charset font-spec)))
+
+(setq font-encoding-alist
+      '(("ISO8859-1" . iso-8859-1)
+	("ISO8859-2" . iso-8859-2)
+	("ISO8859-3" . iso-8859-3)
+	("ISO8859-4" . iso-8859-4)
+	("TIS620" . tis620-2533)
+	("ISO8859-7" . iso-8859-7)
+	("ISO8859-6" . iso-8859-6)
+	("ISO8859-8" . iso-8859-8)
+	("JISX0201" . jisx0201)
+	("ISO8859-5" . iso-8859-5)
+	("ISO8859-9" . iso-8859-9)
+	("JISX0208.1978" . japanese-jisx0208-1978)
+	("GB2312.1980" . chinese-gb2312)
+	("JISX0208.1990" . japanese-jisx0208)
+	("KSC5601.1987" . korean-ksc5601)
+	("JISX0212" . japanese-jisx0212)
+	("CNS11643.1992-1" . chinese-cns11643-1)
+	("CNS11643.1992-2" . chinese-cns11643-2)
+	("CNS11643.1992-3" . chinese-cns11643-3)
+	("CNS11643.1992-4" . chinese-cns11643-4)
+	("CNS11643.1992-5" . chinese-cns11643-5)
+	("CNS11643.1992-6" . chinese-cns11643-6)
+	("CNS11643.1992-7" . chinese-cns11643-7)
+	("Big5" . big5)
+	("sisheng_cwnn" . chinese-sisheng)
+	("VISCII" . viscii)
+	("MuleArabic-0" . arabic-digit)
+	("MuleArabic-1" . arabic-1-column)
+	("MuleArabic-2" . arabic-2-column)
+	("MuleIPA" . ipa)
+	("Ethiopic-Unicode" . ethiopic)
+	("IS13194-Devanagari" . indian-is13194)
+	("MuleIndian-2" . indian-2-column)
+	("MuleIndian-1" . indian-1-column)
+	("MuleLao-1" . mule-lao)
+	("MuleTibetan-2" . tibetan)
+	("MuleTibetan-1" . tibetan-1-column)
+	("ISO8859-14" . iso-8859-14)
+	("ISO8859-15" . iso-8859-15)
+	("JISX0213.2000-1" . japanese-jisx0213-1)
+	("JISX0213.2000-2" . japanese-jisx0213-2)
+	("ISO10646-1" . unicode)))
 
 ;; Set arguments in `font-encoding-alist' (which see).
-(defun set-font-encoding (pattern charset encoding)
+(defun set-font-encoding (pattern charset)
   (let ((slot (assoc pattern font-encoding-alist)))
     (if slot
-	(let ((place (assq charset (cdr slot))))
-	  (if place
-	      (setcdr place encoding)
-	    (setcdr slot (cons (cons charset encoding) (cdr slot)))))
+	(setcdr slot charset)
       (setq font-encoding-alist
-	    (cons (list pattern (cons charset encoding)) font-encoding-alist)))
-    ))
-
-(set-font-encoding "ISO8859-1" 'ascii 0)
-(set-font-encoding "JISX0201" 'latin-jisx0201 0)
-
-(define-ccl-program ccl-encode-unicode-font
-  `(0
-    (if (r0 == ,(charset-id 'ascii))
-	((r2 = r1)
-	 (r1 = 0))
-      (if (r0 == ,(charset-id 'latin-iso8859-1))
-	  ((r2 = (r1 + 128))
-	   (r1 = 0))
-	(if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
-	    ((r1 *= 96)
-	     (r1 += r2)
-	     (r1 += ,(- #x100 (* 32 96) 32))
-	     (r1 >8= 0)
-	     (r2 = r7))
-	  (if (r0 == ,(charset-id 'mule-unicode-2500-33ff))
-	      ((r1 *= 96)
-	       (r1 += r2)
-	       (r1 += ,(- #x2500 (* 32 96) 32))
-	       (r1 >8= 0)
-	       (r2 = r7))
-	    (if (r0 == ,(charset-id 'mule-unicode-e000-ffff))
-		((r1 *= 96)
-		 (r1 += r2)
-		 (r1 += ,(- #xe000 (* 32 96) 32))
-		 (r1 >8= 0)
-		 (r2 = r7)))))))))
-
-(setq font-ccl-encoder-alist
-      (cons '("ISO10646-1" . ccl-encode-unicode-font)
-	    font-ccl-encoder-alist))
+	    (cons (cons pattern charset) font-encoding-alist)))))
 
 ;; Setting for suppressing XLoadQueryFont on big fonts.
 (setq x-pixel-size-width-font-regexp
@@ -181,81 +178,68 @@
 (setq vertical-centering-font-regexp
       "gb2312\\|jisx0208\\|jisx0212\\|ksc5601\\|cns11643\\|big5")
 
-(defvar x-font-name-charset-alist
-  '(("iso8859-1" ascii latin-iso8859-1)
-    ("iso8859-2" ascii latin-iso8859-2)
-    ("iso8859-3" ascii latin-iso8859-3)
-    ("iso8859-4" ascii latin-iso8859-4)
-    ("iso8859-5" ascii cyrillic-iso8859-5)
-    ("iso8859-6" ascii arabic-iso8859-6)
-    ("iso8859-7" ascii greek-iso8859-7)
-    ("iso8859-8" ascii hebrew-iso8859-8)
-    ("iso8859-14" ascii latin-iso8859-14)
-    ("iso8859-15" ascii latin-iso8859-15)
-    ("tis620" ascii thai-tis620)
-    ("koi8" ascii cyrillic-iso8859-5)
-    ("viscii" ascii vietnamese-viscii-upper vietnamese-viscii-lower)
-    ("vscii" ascii vietnamese-viscii-upper vietnamese-viscii-lower)
-    ("mulelao-1" ascii lao)
-    ("iso10646-1" ascii latin-iso8859-1 mule-unicode-0100-24ff
-     mule-unicode-2500-33ff mule-unicode-e000-ffff))
-  "Alist of font names vs list of charsets the font can display.
-
-When a font name which matches some element of this alist is given as
-`-fn' command line argument or is specified by X resource, a fontset
-which uses the specified font for the corresponding charsets are
-created and used for the initial frame.")
+(defvar x-font-name-charset-alist nil
+  "This variable has no meaning now.  Just kept for backward compatibility.")
 
 ;;; XLFD (X Logical Font Description) format handler.
 
 ;; Define XLFD's field index numbers.		; field name
-(defconst xlfd-regexp-foundry-subnum 0)		; FOUNDRY
-(defconst xlfd-regexp-family-subnum 1)		; FAMILY_NAME
-(defconst xlfd-regexp-weight-subnum 2)		; WEIGHT_NAME
-(defconst xlfd-regexp-slant-subnum 3)		; SLANT
-(defconst xlfd-regexp-swidth-subnum 4)		; SETWIDTH_NAME
-(defconst xlfd-regexp-adstyle-subnum 5)		; ADD_STYLE_NAME
-(defconst xlfd-regexp-pixelsize-subnum 6)	; PIXEL_SIZE
-(defconst xlfd-regexp-pointsize-subnum 7)	; POINT_SIZE
-(defconst xlfd-regexp-resx-subnum 8)		; RESOLUTION_X
-(defconst xlfd-regexp-resy-subnum 9)		; RESOLUTION_Y
-(defconst xlfd-regexp-spacing-subnum 10)	; SPACING
-(defconst xlfd-regexp-avgwidth-subnum 11)	; AVERAGE_WIDTH
-(defconst xlfd-regexp-registry-subnum 12)	; CHARSET_REGISTRY
-(defconst xlfd-regexp-encoding-subnum 13)	; CHARSET_ENCODING
+(defconst xlfd-regexp-family-subnum 0)		; FOUNDRY and FAMILY
+(defconst xlfd-regexp-weight-subnum 1)		; WEIGHT_NAME
+(defconst xlfd-regexp-slant-subnum 2)		; SLANT
+(defconst xlfd-regexp-swidth-subnum 3)		; SETWIDTH_NAME
+(defconst xlfd-regexp-adstyle-subnum 4)		; ADD_STYLE_NAME
+(defconst xlfd-regexp-pixelsize-subnum 5)	; PIXEL_SIZE
+(defconst xlfd-regexp-pointsize-subnum 6)	; POINT_SIZE
+(defconst xlfd-regexp-resx-subnum 7)		; RESOLUTION_X
+(defconst xlfd-regexp-resy-subnum 8)		; RESOLUTION_Y
+(defconst xlfd-regexp-spacing-subnum 8)		; SPACING
+(defconst xlfd-regexp-avgwidth-subnum 10)	; AVERAGE_WIDTH
+(defconst xlfd-regexp-registry-subnum 11)	; REGISTRY and ENCODING
 
 ;; Regular expression matching against a fontname which conforms to
 ;; XLFD (X Logical Font Description).  All fields in XLFD should be
 ;; not be omitted (but can be a wild card) to be matched.
 (defconst xlfd-tight-regexp
   "^\
+-\\([^-]*-[^-]*\\)-\\([^-]*\\)-\\([^-]*\\)-\\([^-]*\\)\
 -\\([^-]*\\)-\\([^-]*\\)-\\([^-]*\\)-\\([^-]*\\)-\\([^-]*\\)\
--\\([^-]*\\)-\\([^-]*\\)-\\([^-]*\\)-\\([^-]*\\)-\\([^-]*\\)\
--\\([^-]*\\)-\\([^-]*\\)-\\([^-]*\\)-\\([^-]*\\)$")
+-\\([^-]*\\)-\\([^-]*\\)-\\([^-]*-[^-]*\\)$")
+
+;; Regular expression matching against a fontname which conforms to
+;; XLFD (X Logical Font Description).  All fields in XLFD from FOUNDRY
+;; to ADSTYLE, REGSITRY, and ENCODING should be not be omitted (but
+;; can be a wild card) to be matched.
+(defconst xlfd-style-regexp
+  "^\
+-\\([^-]*-[^-]*\\)-\\([^-]*\\)-\\([^-]*\\)-\\([^-]*\\)-\\([^-]*\\)-.*\
+-\\([^-]*-[^-]*\\)$")
 
 ;; List of field numbers of XLFD whose values are numeric.
 (defconst xlfd-regexp-numeric-subnums
-  (list xlfd-regexp-pixelsize-subnum	;6
-	xlfd-regexp-pointsize-subnum	;7
-	xlfd-regexp-resx-subnum		;8
-	xlfd-regexp-resy-subnum		;9
-	xlfd-regexp-avgwidth-subnum	;11
+  (list xlfd-regexp-pixelsize-subnum	;5
+	xlfd-regexp-pointsize-subnum	;6
+	xlfd-regexp-resx-subnum		;7
+	xlfd-regexp-resy-subnum		;8
+	xlfd-regexp-avgwidth-subnum	;10
 	))
 
 (defun x-decompose-font-name (pattern)
   "Decompose PATTERN into XLFD's fields and return vector of the fields.
-The length of the vector is 14.
+The length of the vector is 12.
 
 If PATTERN doesn't conform to XLFD, try to get a full XLFD name from
 X server and use the information of the full name to decompose
 PATTERN.  If no full XLFD name is gotten, return nil."
   (let (xlfd-fields fontname)
     (if (string-match xlfd-tight-regexp pattern)
-	(let ((i 0))
-	  (setq xlfd-fields (make-vector 14 nil))
-	  (while (< i 14)
-	    (aset xlfd-fields i (match-string (1+ i) pattern))
-	    (setq i (1+ i)))
+	(progn
+	  (setq xlfd-fields (make-vector 12 nil))
+	  (dotimes (i 12)
+	    (aset xlfd-fields i (match-string (1+ i) pattern)))
+	  (dotimes (i 12)
+	    (if (string-match "^[*-]+$" (aref xlfd-fields i))
+		(aset xlfd-fields i nil)))
 	  xlfd-fields)
       (setq fontname (condition-case nil
 			 (x-resolve-font-name pattern)
@@ -268,12 +252,11 @@ PATTERN.  If no full XLFD name is gotten, return nil."
 		l)
 	    ;; Setup xlfd-fields by the full XLFD name.  Each element
 	    ;; should be a cons of matched index and matched string.
-	    (setq xlfd-fields (make-vector 14 nil))
-	    (while (< i 14)
+	    (setq xlfd-fields (make-vector 12 nil))
+	    (dotimes (i 12)
 	      (aset xlfd-fields i
 		    (cons (match-beginning (1+ i))
-			  (match-string (1+ i) fontname)))
-	      (setq i (1+ i)))
+			  (match-string (1+ i) fontname))))
 
 	    ;; Replace wild cards in PATTERN by regexp codes.
 	    (setq i 0)
@@ -297,43 +280,33 @@ PATTERN.  If no full XLFD name is gotten, return nil."
 	    (if (string-match pattern fontname)
 		;; The regular expression PATTERN matchs the full XLFD
 		;; name.  Set elements that correspond to a wild card
-		;; in PATTERN to "*", set the other elements to the
+		;; in PATTERN to nil, set the other elements to the
 		;; exact strings in PATTERN.
 		(let ((l (cdr (cdr (match-data)))))
 		  (setq i 0)
-		  (while (< i 14)
+		  (while (< i 12)
 		    (if (or (null l) (< (car (aref xlfd-fields i)) (car l)))
 			(progn
 			  (aset xlfd-fields i (cdr (aref xlfd-fields i)))
 			  (setq i (1+ i)))
 		      (if (< (car (aref xlfd-fields i)) (car (cdr l)))
 			  (progn
-			    (aset xlfd-fields i "*")
+			    (aset xlfd-fields i nil)
 			    (setq i (1+ i)))
 			(setq l (cdr (cdr l)))))))
 	      ;; Set each element of xlfd-fields to the exact string
 	      ;; in the corresonding fields in full XLFD name.
-	      (setq i 0)
-	      (while (< i 14)
-		(aset xlfd-fields i (cdr (aref xlfd-fields i)))
-		(setq i (1+ i))))
+	      (dotimes (i 12)
+		(aset xlfd-fields i (cdr (aref xlfd-fields i)))))
 	    xlfd-fields)))))
-
-;; Replace consecutive wild-cards (`*') in NAME to one.
-;; Ex. (x-reduce-font-name "-*-*-*-iso8859-1") => "-*-iso8859-1"
-(defsubst x-reduce-font-name (name)
-  (while (string-match "-\\*-\\(\\*-\\)+" name)
-    (setq name (replace-match "-*-" t t name)))
-  name)
 
 (defun x-compose-font-name (fields &optional reduce)
   "Compose X's fontname from FIELDS.
-FIELDS is a vector of XLFD fields, the length 14.
+FIELDS is a vector of XLFD fields, the length 12.
 If a field is nil, wild-card letter `*' is embedded.
 Optional argument REDUCE is always ignored.  It exists just for
 backward compatibility."
   (concat "-" (mapconcat (lambda (x) (or x "*")) fields "-")))
-
 
 (defun x-must-resolve-font-name (xlfd-fields)
   "Like `x-resolve-font-name', but always return a font name.
@@ -342,7 +315,7 @@ If no font matching XLFD-FIELDS is available, successively replace
 parts of the font name pattern with \"*\" until some font is found.
 Value is name of that font."
   (let ((ascii-font nil) (index 0))
-    (while (and (null ascii-font) (<= index xlfd-regexp-encoding-subnum))
+    (while (and (null ascii-font) (<= index xlfd-regexp-registry-subnum))
       (let ((pattern (x-compose-font-name xlfd-fields)))
 	(condition-case nil
 	    (setq ascii-font (x-resolve-font-name pattern))
@@ -362,48 +335,48 @@ FONTLIST is an alist of charsets vs the corresponding font names.
 
 The fonts are complemented as below.
 
-If FONTLIST doesn't specify a font for ASCII charset, generate a font
-name for the charset from XLFD-FIELDS, and add that information to
-FONTLIST.
+At first, if FONTLIST doesn't specify a font for ASCII charset,
+generate a font name for the charset from XLFD-FIELDS, and add that
+information to FONTLIST.
 
-If a font specifid for ASCII supports the other charsets (see the
-variable `x-font-name-charset-alist'), add that information to FONTLIST."
-  (let* ((slot (assq 'ascii fontlist))
+Then, replace font names with the corresponding XLFD field vectors
+while substituting default field names for wild cards if they match
+`xlfd-style-regexp'.  The default field names are decided by
+XLFD-FIELDS."
+  (let* ((default-spec (vector (aref xlfd-fields xlfd-regexp-family-subnum)
+			       (aref xlfd-fields xlfd-regexp-weight-subnum)
+			       (aref xlfd-fields xlfd-regexp-slant-subnum)
+			       (aref xlfd-fields xlfd-regexp-swidth-subnum)
+			       (aref xlfd-fields xlfd-regexp-adstyle-subnum)
+			       (aref xlfd-fields xlfd-regexp-registry-subnum)))
+	 (slot (assq 'ascii fontlist))
 	 (ascii-font (cdr slot))
-	 ascii-font-spec)
+	 xlfd-ascii)
     (if ascii-font
-	(setcdr slot (setq ascii-font (x-resolve-font-name ascii-font)))
+	(progn
+	  (setcdr slot (setq ascii-font (x-resolve-font-name ascii-font)))
+	  (setq xlfd-ascii (x-decompose-font-name ascii-font))
+	  (dotimes (i 11)
+	    (or (aref xlfd-fields i)
+		(aset xlfd-fields i (aref xlfd-ascii i)))))
       ;; If font for ASCII is not specified, add it.
-      (aset xlfd-fields xlfd-regexp-registry-subnum "iso8859")
-      (aset xlfd-fields xlfd-regexp-encoding-subnum "1")
-      (setq ascii-font (x-must-resolve-font-name xlfd-fields))
+      (setq xlfd-ascii (copy-sequence xlfd-fields))
+      (aset xlfd-ascii xlfd-regexp-registry-subnum "iso8859-1")
+      (setq ascii-font (x-must-resolve-font-name xlfd-ascii))
       (setq fontlist (cons (cons 'ascii ascii-font) fontlist)))
 
-    ;; If the font for ASCII also supports the other charsets, and
-    ;; they are not specified in FONTLIST, add them.
-    (setq xlfd-fields (x-decompose-font-name ascii-font))
-    (if (not xlfd-fields)
-	(setq ascii-font-spec ascii-font)
-      (setq ascii-font-spec
-	    (cons (format "%s-%s"
-			  (aref xlfd-fields xlfd-regexp-foundry-subnum)
-			  (aref xlfd-fields xlfd-regexp-family-subnum))
-		  (format "%s-%s"
-			  (aref xlfd-fields xlfd-regexp-registry-subnum)
-			  (aref xlfd-fields xlfd-regexp-encoding-subnum)))))
-    (let ((tail x-font-name-charset-alist)
-	  elt)
-      (while tail
-	(setq elt (car tail) tail (cdr tail))
-	(if (string-match (car elt) ascii-font)
-	    (let ((charsets (cdr elt))
-		  charset)
-	      (while charsets
-		(setq charset (car charsets) charsets (cdr charsets))
-		(or (assq charset fontlist)
-		    (setq fontlist
-			  (cons (cons charset ascii-font-spec) fontlist))))))))
-    
+    (dolist (elt fontlist)
+      (let ((name (cdr elt))
+	    font-spec)
+	(when (string-match xlfd-style-regexp name)
+	  (setq font-spec (make-vector 6 nil))
+	  (dotimes (i 6)
+	    (aset font-spec i (match-string (1+ i) name)))
+	  (dotimes (i 6)
+	    (if (string-match "^[*-]+$" (aref font-spec i))
+		(aset font-spec i (aref default-spec i))))
+	  (setcdr elt font-spec))))
+
     fontlist))
 
 (defun fontset-name-p (fontset)
@@ -436,11 +409,11 @@ with \"fontset\" in `<CHARSET_REGISTRY> field."
 	      (slant  (aref xlfd-fields xlfd-regexp-slant-subnum))
 	      (swidth (aref xlfd-fields xlfd-regexp-swidth-subnum))
 	      (size   (aref xlfd-fields xlfd-regexp-pixelsize-subnum))
-	      (charset (aref xlfd-fields xlfd-regexp-registry-subnum))
-	      (nickname (aref xlfd-fields xlfd-regexp-encoding-subnum))
+	      (nickname (aref xlfd-fields xlfd-regexp-registry-subnum))
 	      name)
-	  (if (not (string= "fontset" charset))
+	  (if (not (string-match "^fontset-\\(.*\\)$" nickname))
 	      fontset
+	    (setq nickname (match-string 1 nickname))
 	    (if (> (string-to-int size) 0)
 		(setq name (format "%s: %s-dot" nickname size))
 	      (setq name nickname))
@@ -498,7 +471,7 @@ It returns a name of the created fontset."
 
       ;; Complement FONTLIST.
       (setq fontlist (x-complement-fontset-spec xlfd-fields fontlist))
-
+      (setq name (x-compose-font-name xlfd-fields))
       (new-fontset name fontlist)
 
       ;; Define the short name alias.
@@ -536,20 +509,15 @@ It returns a name of the created fontset."
   (if resolved-font
       (setq resolved-font (downcase resolved-font))
     (setq resolved-font (downcase (x-resolve-font-name font))))
-  (let ((xlfd (x-decompose-font-name font))
-	(resolved-xlfd (x-decompose-font-name resolved-font))
-	fontset fontset-spec)
-    (aset xlfd xlfd-regexp-foundry-subnum nil)
-    (aset xlfd xlfd-regexp-family-subnum nil)
-    (aset xlfd xlfd-regexp-registry-subnum "fontset")
+  (let ((xlfd (x-decompose-font-name resolved-font))
+	fontset)
     (if fontset-name
 	(setq fontset-name (downcase fontset-name))
       (setq fontset-name
-	    (format "%s_%s_%s"
-		    (aref resolved-xlfd xlfd-regexp-registry-subnum)
-		    (aref resolved-xlfd xlfd-regexp-encoding-subnum)
-		    (aref resolved-xlfd xlfd-regexp-pixelsize-subnum))))
-    (aset xlfd xlfd-regexp-encoding-subnum fontset-name)
+	    (subst-char-in-string
+	     "-" "_" (aref xlfd xlfd-regexp-registry-subnum) t)))
+    (aset xlfd xlfd-regexp-registry-subnum
+	  (format "fontset-%s" fontset-name))
     (setq fontset (x-compose-font-name xlfd))
     (or (query-fontset fontset)
 	(create-fontset-from-fontset-spec (concat fontset ", ascii:" font)))))
@@ -560,16 +528,7 @@ It returns a name of the created fontset."
 ;; specified here because FAMILY of those fonts are not "fixed" in
 ;; many cases.
 (defvar standard-fontset-spec
-  (purecopy "-*-fixed-medium-r-normal-*-16-*-*-*-*-*-fontset-standard,
-	chinese-gb2312:-*-medium-r-normal-*-16-*-gb2312*-*,
-	korean-ksc5601:-*-medium-r-normal-*-16-*-ksc5601*-*,
-	chinese-cns11643-1:-*-medium-r-normal-*-16-*-cns11643*-1,
-	chinese-cns11643-2:-*-medium-r-normal-*-16-*-cns11643*-2,
-	chinese-cns11643-3:-*-medium-r-normal-*-16-*-cns11643*-3,
-	chinese-cns11643-4:-*-medium-r-normal-*-16-*-cns11643*-4,
-	chinese-cns11643-5:-*-medium-r-normal-*-16-*-cns11643*-5,
-	chinese-cns11643-6:-*-medium-r-normal-*-16-*-cns11643*-6,
-	chinese-cns11643-7:-*-medium-r-normal-*-16-*-cns11643*-7")
+  (purecopy "-*-fixed-medium-r-normal-*-16-*-*-*-*-*-fontset-standard")
   "String of fontset spec of the standard fontset.
 You have the biggest chance to display international characters
 with correct glyphs by using the standard fontset.
