@@ -13,9 +13,9 @@ VPATH=@srcdir@
 # The makeinfo program is part of the Texinfo distribution.
 MAKEINFO = makeinfo
 INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl ../info/customize \
-	       ../info/dired-x ../info/ediff ../info/forms ../info/gnus \
-	       ../info/info ../info/message ../info/mh-e ../info/reftex \
-	       ../info/sc ../info/vip ../info/viper ../info/widget
+	        ../info/dired-x ../info/ediff ../info/forms ../info/gnus \
+		../info/info ../info/message ../info/mh-e ../info/reftex \
+		../info/sc ../info/vip ../info/viper ../info/widget
 DVI_TARGETS = emacs.dvi cc-mode.dvi cl.dvi  customize.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi
