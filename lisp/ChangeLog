@@ -1,3 +1,9 @@
+2003-05-31  John Paul Wallington  <jpw@gnu.org>
+
+	* files.el (large-file-warning-threshold): Add type, groups.
+
+	* progmodes/delphi.el (delphi-ignore-changes): Defvar; non-constant.
+
 2003-05-31  Kenichi Handa  <handa@m17n.org>
 
 	* files.el (recover-file): Bind coding-system-for-read to
