@@ -176,39 +176,29 @@ This definition is the heart of the calendar!")
 
 (defun cal-tex-list-holidays (d1 d2)
   "Generate a list of all holidays from absolute date D1 to D2."
-  (let* ((result nil)
-         (start (calendar-gregorian-from-absolute d1))
-         (start-month (extract-calendar-month start))
-         (start-year (extract-calendar-year start)))
-    (increment-calendar-month start-month start-year 1)
-    (let* ((end (calendar-gregorian-from-absolute d2))
-           (end-month (extract-calendar-month end))
-           (end-year (extract-calendar-year end)))
-      (if (= (extract-calendar-day end) 1)
-          (increment-calendar-month end-month end-year -1))
-      (let* ((s (calendar-absolute-from-gregorian
-                 (list start-month 1 start-year)))
-             (e (calendar-absolute-from-gregorian
-                 (list end-month 1 end-year)))
-             (d s)
-             (never t)
-             (displayed-month start-month)
-             (displayed-year start-year))
-        (while (or never (<= d e))
-          (setq result (append result (calendar-holiday-list)))
-          (setq never nil)
-          (increment-calendar-month displayed-month displayed-year 3)
-          (setq d (calendar-absolute-from-gregorian
-                   (list displayed-month 1 displayed-year))))))
-    (let ((in-range)
-          (p result))
-      (while p
-        (and (car (car p))
-             (let ((a (calendar-absolute-from-gregorian (car (car p)))))
-               (and (<= d1 a) (<= a d2)))
-             (setq in-range (append (list (car p)) in-range)))
-        (setq p (cdr p)))
-      in-range)))
+  (let* ((start (calendar-gregorian-from-absolute d1))
+         (displayed-month (extract-calendar-month start))
+         (displayed-year (extract-calendar-year start))
+         (end (calendar-gregorian-from-absolute d2))
+         (end-month (extract-calendar-month end))
+         (end-year (extract-calendar-year end))
+         (number-of-intervals
+          (1+ (/ (calendar-interval displayed-month displayed-year
+                                    end-month end-year)
+                 3)))
+         (holidays nil)
+         (in-range))
+    (increment-calendar-month displayed-month displayed-year 1)
+    (calendar-for-loop i from 1 to number-of-intervals do
+      (setq holidays (append holidays (calendar-holiday-list)))
+      (increment-calendar-month displayed-month displayed-year 3))
+    (while holidays
+      (and (car (car holidays))
+           (let ((a (calendar-absolute-from-gregorian (car (car holidays)))))
+             (and (<= d1 a) (<= a d2)))
+           (setq in-range (append (list (car holidays)) in-range)))
+      (setq holidays (cdr holidays)))
+    in-range))
 
 (defun cal-tex-list-diary-entries (d1 d2)
   "Generate a list of all diary-entries from absolute date D1 to D2."
