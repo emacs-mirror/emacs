@@ -1080,14 +1080,24 @@ exited abnormally with code %d\n"
 
 (defvar compilation-mode-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map compilation-minor-mode-map)
+    (define-key map [mouse-2] 'compile-goto-error)
+    (define-key map "\C-c\C-c" 'compile-goto-error)
+    (define-key map "\C-m" 'compile-goto-error)
+    (define-key map "\C-c\C-k" 'kill-compilation)
+    (define-key map "\M-n" 'compilation-next-error)
+    (define-key map "\M-p" 'compilation-previous-error)
+    (define-key map "\M-{" 'compilation-previous-file)
+    (define-key map "\M-}" 'compilation-next-file)
+
     (define-key map " " 'scroll-up)
     (define-key map "\^?" 'scroll-down)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
 
     ;; Set up the menu-bar
-    (define-key map [menu-bar compilation]
-      (cons "Compile" (make-sparse-keymap "Compile")))
+    (let ((submap (make-sparse-keymap "Compile")))
+      (define-key map [menu-bar compilation]
+	(cons "Compile" submap))
+      (set-keymap-parent submap compilation-menu-map))
     (define-key map [menu-bar compilation compilation-separator2]
       '("----" . nil))
     (define-key map [menu-bar compilation compilation-grep]
