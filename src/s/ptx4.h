@@ -8,7 +8,7 @@
 /* Marcus Daniels <marcus@sysc.pdx.edu> says that SIGINFO is defined
    on ptx4 but it is not a signal.  Prevent process.c from doing the
    wrong thing.  */
-#undef SIGINFO
+#define BROKEN_SIGINFO
 
 /* Marcus Daniels <marcus@sysc.pdx.edu> says vfork does exist.  */
 #define HAVE_VFORK

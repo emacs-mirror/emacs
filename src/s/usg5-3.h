@@ -1,5 +1,5 @@
 /* Definitions file for GNU Emacs running on AT&T's System V Release 3
-   Copyright (C) 1987 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -150,22 +150,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define _setjmp setjmp
 #define _longjmp longjmp
-
-/* On USG systems the system calls are interruptible by signals
- that the user program has elected to catch.  Thus the system call
- must be retried in these cases.  To handle this without massive
- changes in the source code, we remap the standard system call names
- to names for our own functions in sysdep.c that do the system call
- with retries. */
-
-#define read sys_read
-#define write sys_write
-#define open sys_open
-#define close sys_close
-
-#define INTERRUPTIBLE_OPEN
-#define INTERRUPTIBLE_CLOSE
-#define INTERRUPTIBLE_IO
 
 /* On USG systems these have different names */
 #define index strchr

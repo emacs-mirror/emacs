@@ -1,5 +1,5 @@
 /* This file is the configuration file for Linux-based GNU systems
-   Copyright (C) 1985, 1986, 1992, 1994, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 92, 94, 96, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -112,22 +112,6 @@ Boston, MA 02111-1307, USA.  */
    your system and must be used only through an encapsulation
    (Which you should place, by convention, in sysdep.c).  */
 
-/* On POSIX systems the system calls are interruptible by signals
- that the user program has elected to catch.  Thus the system call
- must be retried in these cases.  To handle this without massive
- changes in the source code, we remap the standard system call names
- to names for our own functions in sysdep.c that do the system call
- with retries. */
-
-#define read sys_read
-#define write sys_write
-#define open sys_open
-#define close sys_close
-
-#define INTERRUPTIBLE_OPEN
-#define INTERRUPTIBLE_CLOSE
-#define INTERRUPTIBLE_IO
-
 /* If you mount the proc file system somewhere other than /proc
    you will have to uncomment the following and make the proper
    changes */
@@ -172,16 +156,15 @@ Boston, MA 02111-1307, USA.  */
 
 /* As of version 1.1.51, Linux did not actually implement SIGIO.
    But it works in newer versions.  */
-/* Here we assume that signal.h is already included.  */
 #ifdef emacs
 #ifdef LINUX_SIGIO_DOES_WORK
 #define INTERRUPT_INPUT
 #else
-#undef SIGIO
+#define BROKEN_SIGIO
 /* Some versions of Linux define SIGURG and SIGPOLL as aliases for SIGIO.
    This prevents lossage in process.c.  */
-#undef SIGURG
-#undef SIGPOLL
+#define BROKEN_SIGURG
+#define BROKEN_SIGPOLL
 #endif
 #endif
 

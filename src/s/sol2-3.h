@@ -39,12 +39,12 @@
 						\
     sigblock (sigmask (SIGCLD));		\
     if (grantpt (fd) == -1)			\
-      { close (fd); return -1; }		\
+      { emacs_close (fd); return -1; }		\
     sigunblock (sigmask (SIGCLD));		\
     if (unlockpt (fd) == -1)			\
-      { close (fd); return -1; }		\
+      { emacs_close (fd); return -1; }		\
     if (!(ptyname = ptsname (fd)))		\
-      { close (fd); return -1; }		\
+      { emacs_close (fd); return -1; }		\
     strncpy (pty_name, ptyname, sizeof (pty_name)); \
     pty_name[sizeof (pty_name) - 1] = 0;	\
   }

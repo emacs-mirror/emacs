@@ -54,8 +54,8 @@ Boston, MA 02111-1307, USA.  */
 
    Define INTERRUPT_INPUT to make interrupt_input = 1 the default (use SIGIO)
 
-   Emacs uses the presence or absence of the SIGIO macro to indicate
-   whether or not signal-driven I/O is possible.  It uses
+   Emacs uses the presence or absence of the SIGIO and BROKEN_SIGIO macros
+   to indicate whether or not signal-driven I/O is possible.  It uses
    INTERRUPT_INPUT to decide whether to use it by default.
 
    SIGIO can be used only on systems that implement it (4.2 and 4.3).

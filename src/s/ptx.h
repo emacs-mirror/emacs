@@ -1,5 +1,5 @@
 /* Definitions file for GNU Emacs running on Sequent DYNIX/ptx 1.x/2.x
-   Copyright (C) 1987, 1990 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1990, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -84,7 +84,7 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/stropts.h>	/* Support for pty's */
 #include <sys/conf.h>
 
-/*#undef SIGIO*/		/* SIGIO is already undef'd elsewhere. PTX
+/*#define BROKEN_SIGIO*/	/* BROKEN_SIGIO is already defined. PTX
                                    has SIGIO, but it's just an alias for
                                    SIGPOLL.  */
 
