@@ -83,7 +83,10 @@ srcs = \
   $(srcdir)/variables.texi \
   $(srcdir)/windows.texi \
   $(srcdir)/index.unperm \
-  $(srcdir)/index.perm
+  $(srcdir)/index.perm \
+  $(srcdir)/gpl.texi \
+  $(srcdir)/doclicense.texi
+
 
 .PHONY: clean
 
