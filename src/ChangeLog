@@ -1,3 +1,7 @@
+2000-12-07  Andrew Innes  <andrewi@gnu.org>
+
+	* w32fns.c (xlfd_charset_of_font): Fix last change.
+
 2000-12-06  Dave Love  <fx@gnu.org>
 
 	* md5.h (__P): Don't define -- it comes from config.h.
