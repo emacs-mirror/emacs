@@ -185,7 +185,9 @@ are done with it in the server.")
     ;; Remove PROC from the list of clients.
     (when client
       (setq server-clients (delq client server-clients))
-      (setq server-frames (delq client server-frames))
+      (let ((frame (assq (car client) server-frames)))
+	(setq server-frames (delq frame server-frames))
+	(when (frame-live-p (cadr frame)) (delete-frame (cadr frame))))
       (dolist (buf (cdr client))
 	(with-current-buffer buf
 	  ;; Remove PROC from the clients of each buffer.
@@ -378,9 +380,9 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
       (if (null (cdr client))
 	  ;; This client is empty; get rid of it immediately.
 	  (progn
-	    (let ((frame (cadr (assq (car client) server-frames))))
-	      ;; Close the client's frame.
-	      (when frame (delete-frame frame)))
+	    (let ((frame (assq (car client) server-frames)))
+	      (setq server-frames (delq frame server-frames))
+	      (when (frame-live-p (cadr frame)) (delete-frame (cadr frame))))
 	    (delete-process proc)
 	    (server-log "Close empty client" proc))
 	;; We visited some buffer for this client.
@@ -467,9 +469,9 @@ FOR-KILLING if non-nil indicates that we are called from `kill-buffer'."
 	;; If client now has no pending buffers,
 	;; tell it that it is done, and forget it entirely.
 	(unless (cdr client)
-	  (let ((frame (cadr (assq (car client) server-frames))))
-	    ;; Close the client's frame.
-	    (when frame (delete-frame frame)))
+	  (let ((frame (assq (car client) server-frames)))
+	    (setq server-frames (delq frame server-frames))
+	    (when (frame-live-p (cadr frame)) (delete-frame (cadr frame))))
 	  (delete-process (car client))
 	  (server-log "Close" (car client))
 	  (setq server-clients (delq client server-clients))))

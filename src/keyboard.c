@@ -6689,7 +6689,7 @@ read_avail_input (expected)
                 if (! tty_list->next)
                   kill (0, SIGHUP); /* This was the last terminal. */
                 else
-                  ;             /* XXX tty should be closed here. */
+                  delete_tty (tty); /* XXX I wonder if this is safe here. */
               }
 #if defined (AIX) && (! defined (aix386) && defined (_BSD))
             /* The kernel sometimes fails to deliver SIGHUP for ptys.
@@ -6701,7 +6701,7 @@ read_avail_input (expected)
                 if (! tty_list->next)
                   kill (0, SIGHUP); /* This was the last terminal. */
                 else
-                  ;             /* XXX tty should be closed here. */
+                  delete_tty (tty); /* XXX I wonder if this is safe here. */
               }
 #endif
           }
