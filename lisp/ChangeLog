@@ -1,3 +1,24 @@
+2002-12-02  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-dict-map): Move specific
+	dictionary selection into a submenu.
+
+	* textmodes/fill.el (fill-indent-to-left-margin): New function.
+	(fill-newline, fill-region-as-paragraph): Use that.
+
+	* simple.el (completion-setup-function): Handle 
+	ffap-read-file-or-url-internal specially like
+	read-file-name-internal.
+
+2002-12-02  Simon Marshall  <marshals@perth>
+
+	* font-lock.el (c++-font-lock-extra-types): Fix previous change.
+
+2002-12-02  Fran,Ag(Bois Pinard  <pinard@iro.umontreal.ca>
+
+	* (makefile-font-lock-keywords): Highlight more make keywords:
+	defined, endef, override, export, unexport and vpath.
+
 2002-12-02  Dave Love  <fx@gnu.org>
 
 	* autoarg.el (autoarg-kp-mode): Give it a :group.

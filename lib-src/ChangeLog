@@ -1,3 +1,7 @@
+2002-12-02  Richard M. Stallman  <rms@gnu.org>
+
+	* emacsclient.c (main): Test HAVE_GETCWD rather than BSD_SYSTEM.
+
 2002-11-19  Ben Key  <bkey1@tampabay.rr.com>
 
 	* makefile.w32-in: Fixed a bug that caused the documentation for
