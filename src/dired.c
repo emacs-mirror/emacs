@@ -106,8 +106,9 @@ Lisp_Object Qfile_attributes;
 DEFUN ("directory-files", Fdirectory_files, Sdirectory_files, 1, 4, 0,
   "Return a list of names of files in DIRECTORY.\n\
 There are three optional arguments:\n\
-If FULL is non-nil, absolute pathnames of the files are returned.\n\
-If MATCH is non-nil, only pathnames containing that regexp are returned.\n\
+If FULL is non-nil, return absolute file names.  Otherwise return names\n\
+ that are relative to the specified directory.\n\
+If MATCH is non-nil, mention only file names that match the regexp MATCH.\n\
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
  NOSORT is useful if you plan to sort the result yourself.")
   (directory, full, match, nosort)
@@ -229,7 +230,7 @@ DEFUN ("file-name-completion", Ffile_name_completion, Sfile_name_completion,
   2, 2, 0,
   "Complete file name FILE in directory DIRECTORY.\n\
 Returns the longest string\n\
-common to all filenames in DIRECTORY that start with FILE.\n\
+common to all file names in DIRECTORY that start with FILE.\n\
 If there is only one and FILE matches it exactly, returns t.\n\
 Returns nil if DIR contains no name starting with FILE.")
   (file, directory)
