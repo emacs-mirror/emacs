@@ -8,6 +8,11 @@
 	* buff-menu.el: Add Keywords header.
 	Doc fix (C-x C-b is bound to list-buffers).
 
+	* dired-x.el: Add keyword files to get listed in finder.
+	Remove confusing notes about GNU Emacs 19.
+
+	* dired.el, dired-aux.el: Add Keywords header.
+
 2001-08-28  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-revert-file): Call the backend even if the FILE's
