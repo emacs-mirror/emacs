@@ -401,6 +401,7 @@ and postfix: Eee -> Ee, ajj -> aj, etc.
 
  ;; escape from composition
  ("\\w" ?w)	; breve or horn 
+ ("\\W" ?W)
  ("\\a" ?a)	; a circumflex
  ("\\A" ?A)	; A circumflex
  ("\\e" ?e)	; e circumflex
@@ -408,11 +409,17 @@ and postfix: Eee -> Ee, ajj -> aj, etc.
  ("\\o" ?o)	; o circumflex
  ("\\O" ?O)	; O circumflex
  ("\\s" ?s)	; acute
+ ("\\S" ?S)
  ("\\f" ?f)	; grave
+ ("\\F" ?F)
  ("\\r" ?r)	; hook above
+ ("\\R" ?R)
  ("\\x" ?x)	; tilde
+ ("\\X" ?X)
  ("\\j" ?j)	; dot below
+ ("\\J" ?J)
  ("\\d" ?d)	; d-bar (d)
+ ("\\D" ?D)	; D-bar (d)
  ("\\\\" ?\\)	; literal backslash
 )
 
