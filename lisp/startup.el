@@ -985,8 +985,15 @@ Each element in the list should be a list of strings or pairs
   :group 'initialization)
 
 
-(defcustom fancy-splash-delay 5
+(defcustom fancy-splash-delay 10
   "*Delay in seconds between splash screens."
+  :group 'fancy-splash-screen
+  :type 'integer)
+
+
+(defcustom fancy-splash-max-time 60
+  "*Show splash screens for at most this number of seconds.
+Values less than 60 seconds are ignored."
   :group 'fancy-splash-screen
   :type 'integer)
 
@@ -1002,6 +1009,7 @@ Each element in the list should be a list of strings or pairs
 
 (defvar fancy-current-text nil)
 (defvar fancy-splash-help-echo nil)
+(defvar fancy-splash-stop-time nil)
 
 
 (defun fancy-splash-insert (&rest args)
@@ -1076,6 +1084,8 @@ where FACE is a valid face specification, as it can be used with
 
 (defun fancy-splash-screens-1 (buffer)
   "Timer function displaying a splash screen."
+  (when (> (float-time) fancy-splash-stop-time)
+    (throw 'stop-splashing nil))
   (unless fancy-current-text
     (setq fancy-current-text fancy-splash-text))
   (let ((text (car fancy-current-text)))
@@ -1107,24 +1117,27 @@ where FACE is a valid face specification, as it can be used with
   (let ((old-busy-cursor display-busy-cursor)
 	(splash-buffer (current-buffer))
 	timer)
-    (unwind-protect
-	(let ((map (make-sparse-keymap))
-	      (show-help-function nil))
-	  (use-local-map map)
-	  (define-key map [t] 'fancy-splash-default-action)
-	  (define-key map [mouse-movement] 'ignore)
-	  (setq cursor-type nil
-		display-busy-cursor nil
-		buffer-undo-list t
-		mode-line-format
-		(propertize "---- %b %-" 'face '(:weight bold))
-		timer (run-with-timer 0 fancy-splash-delay
-				      #'fancy-splash-screens-1
-				      splash-buffer))
-	  (recursive-edit))
-      (cancel-timer timer)
-      (setq display-busy-cursor old-busy-cursor)
-      (kill-buffer splash-buffer))))
+    (catch 'stop-splashing
+      (unwind-protect
+	  (let ((map (make-sparse-keymap))
+		(show-help-function nil))
+	    (use-local-map map)
+	    (define-key map [t] 'fancy-splash-default-action)
+	    (define-key map [mouse-movement] 'ignore)
+	    (setq cursor-type nil
+		  display-busy-cursor nil
+		  buffer-undo-list t
+		  mode-line-format
+		  (propertize "---- %b %-" 'face '(:weight bold))
+		  fancy-splash-stop-time (+ (float-time)
+					    (max 60 fancy-splash-max-time))
+		  timer (run-with-timer 0 fancy-splash-delay
+					#'fancy-splash-screens-1
+					splash-buffer))
+	    (recursive-edit))
+	  (cancel-timer timer)
+	  (setq display-busy-cursor old-busy-cursor)
+	  (kill-buffer splash-buffer)))))
 
 
 (defun startup-echo-area-message ()
