@@ -27,10 +27,12 @@
 
 ;;; Code:
 
-(require 'sort)
+(provide 'rmailsort)
 
-;; For rmail-select-summary
-(require 'rmail)
+(eval-when-compile
+  (require 'mail-utils)
+  (require 'sort)
+  (require 'rmail))
 
 (autoload 'timezone-make-date-sortable "timezone")
 
@@ -243,7 +245,5 @@ Arguments are MSG and FIELD."
   "Make DATE sortable using the function string-lessp."
   ;; Assume the default time zone is GMT.
   (timezone-make-date-sortable date "GMT" "GMT"))
-
-(provide 'rmailsort)
 
 ;;; rmailsort.el ends here
