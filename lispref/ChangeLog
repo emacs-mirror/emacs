@@ -1,3 +1,7 @@
+2005-03-05  Richard M. Stallman  <rms@gnu.org>
+
+	* debugging.texi (Error Debugging): Remove stack-trace-on-error.
+
 2005-03-04  Lute Kamstra  <lute@gnu.org>
 
 	* debugging.texi (Error Debugging): Document stack-trace-on-error.
