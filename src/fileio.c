@@ -22,7 +22,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/stat.h>
 
 #ifdef VMS
-#include "pwd.h"
+#include "vms-pwd.h"
 #else
 #include <pwd.h>
 #endif
@@ -64,13 +64,7 @@ extern int sys_nerr;
 #include <nam.h>
 #endif
 
-#ifdef NEED_TIME_H
-#include <time.h>
-#else /* not NEED_TIME_H */
-#ifdef HAVE_TIMEVAL
-#include <sys/time.h>
-#endif /* HAVE_TIMEVAL */
-#endif /* not NEED_TIME_H */
+#include "systime.h"
 
 #ifdef HPUX
 #include <netio.h>
@@ -1417,33 +1411,17 @@ A prefix arg makes KEEP-TIME non-nil.")
 
   if (fstat (ifd, &st) >= 0)
     {
-#ifdef HAVE_TIMEVAL
       if (!NILP (keep_date))
 	{
-#ifdef USE_UTIME
-/* AIX has utimes() in compatibility package, but it dies.  So use good old
-   utime interface instead. */
-	  struct {
-	    time_t atime;
-	    time_t mtime;
-	  } tv;
-	  tv.atime = st.st_atime;
-	  tv.mtime = st.st_mtime;
-	  utime (XSTRING (newname)->data, &tv);
-#else /* not USE_UTIME */
-	  struct timeval timevals[2];
-	  timevals[0].tv_sec = st.st_atime;
-	  timevals[1].tv_sec = st.st_mtime;
-	  timevals[0].tv_usec = timevals[1].tv_usec = 0;
-	  utimes (XSTRING (newname)->data, timevals);
-#endif /* not USE_UTIME */
+	  EMACS_TIME atime, mtime;
+	  EMACS_SET_SECS_USECS (atime, st.st_atime, 0);
+	  EMACS_SET_SECS_USECS (mtime, st.st_mtime, 0);
+	  EMACS_SET_UTIMES (XSTRING (newname)->data, atime, mtime);
 	}
-#endif /* HAVE_TIMEVALS */
-
 #ifdef APOLLO
       if (!egetenv ("USE_DOMAIN_ACLS"))
 #endif
-      chmod (XSTRING (newname)->data, st.st_mode & 07777);
+	chmod (XSTRING (newname)->data, st.st_mode & 07777);
     }
 
   close (ifd);
