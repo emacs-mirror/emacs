@@ -2011,21 +2011,6 @@ construct_mouse_click (result, event, f)
 			  ? up_modifier 
 			  : down_modifier));
 
-  /* Notice if the mouse is still grabbed.  */
-  if (event->type == ButtonPress)
-    {
-      if (! x_mouse_grabbed)
-	Vmouse_depressed = Qt;
-      x_mouse_grabbed |= (1 << event->button);
-      last_mouse_frame = f;
-    }
-  else if (event->type == ButtonRelease)
-    {
-      x_mouse_grabbed &= ~(1 << event->button);
-      if (!x_mouse_grabbed)
-	Vmouse_depressed = Qnil;
-    }
-
   {
     int row, column;
 
@@ -2061,15 +2046,6 @@ construct_menu_click (result, event, f)
   XSET (result->x, Lisp_Int, event->x);
   XSET (result->y, Lisp_Int, -1);
   XSET (result->frame_or_window, Lisp_Frame, f);
-
-  /* Notice if the mouse is still grabbed.  */
-  if (event->type == ButtonPress)
-    {
-      if (! x_mouse_grabbed)
-	Vmouse_depressed = Qt;
-      x_mouse_grabbed |= (1 << event->button);
-      last_mouse_frame = f;
-    }
 }
 
 /* Function to report a mouse movement to the mainstream Emacs code.
@@ -2538,7 +2514,8 @@ XTmouse_position (f, bar_window, part, x, y, time)
 
 	win = root;
 
-	if (x_mouse_grabbed && FRAME_LIVE_P (last_mouse_frame))
+	if (x_mouse_grabbed && last_mouse_frame
+	    && FRAME_LIVE_P (last_mouse_frame))
 	  {
 	    /* If mouse was grabbed on a frame, give coords for that frame
 	       even if the mouse is now outside it.  */
@@ -4128,7 +4105,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #ifdef HAVE_X11
 	case MotionNotify:
 	  {
-	    if (x_mouse_grabbed && FRAME_LIVE_P (last_mouse_frame))
+	    if (x_mouse_grabbed && last_mouse_frame
+		&& FRAME_LIVE_P (last_mouse_frame))
 	      f = last_mouse_frame;
 	    else
 	      f = x_window_to_frame (event.xmotion.window);
@@ -4304,14 +4282,21 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    if (f && event.type == ButtonPress)
 		      construct_menu_click (&emacs_event,
 					    &event, f);
-		    else if (f)
-		      {
-			x_mouse_grabbed &= ~(1 << event.xbutton.button);
-			if (!x_mouse_grabbed)
-			  Vmouse_depressed = Qnil;
-		      }
 		  }
 #endif /* USE_X_TOOLKIT */
+	      }
+
+	    if (event.type == ButtonPress)
+	      {
+		x_mouse_grabbed |= (1 << event.xbutton.button);
+		Vmouse_depressed = Qt;
+		last_mouse_frame = f;
+	      }
+	    else
+	      {
+		x_mouse_grabbed &= ~(1 << event.xbutton.button);
+		if (!x_mouse_grabbed)
+		  Vmouse_depressed = Qnil;
 	      }
 
 	    if (numchars >= 1 && emacs_event.kind != no_event)
