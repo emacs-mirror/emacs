@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:options(trunk.18) $
+# $HopeName: MMQA_harness!script:options(trunk.19) $
 #
 
 # global options for qa commands
@@ -53,10 +53,8 @@ if (($ENV{"OS"} || "") eq "Windows_NT") {
  "LOG_DIR", "$test_dir/log",
  "PARAMETERS", "",
  "INTERFACE_VERSION", "BQ",
- "MAIL_RESULTS", "off",
-# "MAIL_RESULTS", "on",
- "MAIL_TO", "rit"
-# "MAIL_TO", "mm-qa-test-log"
+ "MAIL_RESULTS", "on",
+ "MAIL_TO", "mm-qa-test-log"
 );
 
 %qa_unlogged_opts = (DATA_DIR, 1, LOG_DIR, 1, MAIL_RESULTS, 1, MAIL_TO, 1);
