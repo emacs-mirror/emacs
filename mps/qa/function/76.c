@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!76.c(trunk.3) $
  summary = destroy space when messages are on the queue
  language = c
  link = testlib.o rankfmt.o
@@ -13,89 +13,13 @@ END_HEADER
 #include "mpsclo.h"
 #include "rankfmt.h"
 
+
 void *stackpointer;
 
 mps_space_t space;
 
 int final_count = 0;
 
-enum {
- FINAL_DISCARD,
- FINAL_REREGISTER,
- FINAL_STORE,
- FINAL_QUEUE
-};
-
-mps_message_t mqueue[10000];
-
-int qhd = 0;
-int qtl = 0;
-
-static void nq(mps_message_t mess) {
- mqueue[qhd] = mess;
- qhd = (qhd+1) % 10000;
- asserts(qhd != qtl, "No space in message queue.");
-}
-
-static int qmt(void) {
- if (qhd == qtl) {
-  return 1;
- } else {
-  return 0;
- }
-}
-
-static int dq(mps_message_t *mess) {
- if (qhd == qtl) {
-  return 0;
- } else {
-  *mess = mqueue[qtl];
-  qtl = (qtl+1) % 10000;
-  return 1;
- } 
-}
-
-static void process_mess(mps_message_t message, int faction, mps_addr_t *ref) {
- mps_addr_t ffref;
-
- switch (faction) {
-  case FINAL_DISCARD:
-   mps_message_discard(space, message);
-   break;
-  case FINAL_REREGISTER:
-   mps_message_finalization_ref(&ffref, space, message);
-   mps_finalize(space, &ffref);
-   final_count +=1;
-   mps_message_discard(space, message);
-   break;
-  case FINAL_STORE:
-   mps_message_finalization_ref(ref, space, message);
-   mps_message_discard(space, message);
-   break;
-  case FINAL_QUEUE:
-   nq(message);
-   break;
-  default:
-   asserts(0, "Unknown finalization action.");
- }
-}
-
-static void qpoll(mps_addr_t *ref, int faction) {
- mps_message_t message;
-
- if (dq(&message)) {
-  process_mess(message, faction, ref);
- }
-}
-
-static void finalpoll(mps_addr_t *ref, int faction) {
- mps_message_t message;
-
- if (mps_message_get(&message, space, MPS_MESSAGE_TYPE_FINALIZATION)) {
-  final_count -=1;
-  process_mess(message, faction, ref);
- }
-}
 
 static void test(void) {
  mps_pool_t poolamc, poolawl, poollo;
@@ -161,10 +85,10 @@ static void test(void) {
   a = allocone(apamc, 2, MPS_RANK_EXACT);
   c = allocone(apawl, 2, MPS_RANK_WEAK);
   d = allocone(aplo, 2, MPS_RANK_EXACT); /* rank irrelevant here! */
-  mps_finalize(space, &a);
-  mps_finalize(space, &c);
-  mps_finalize(space, &d);
-  mps_finalize(space, &d);
+  mps_finalize(space, (mps_addr_t*)&a);
+  mps_finalize(space, (mps_addr_t*)&c);
+  mps_finalize(space, (mps_addr_t*)&d);
+  mps_finalize(space, (mps_addr_t*)&d);
   final_count += 4;
  }
 
@@ -212,8 +136,8 @@ static void test(void) {
 
  mps_space_destroy(space);
  comment("Destroyed space.");
-
 }
+
 
 int main(void) {
  void *m;
