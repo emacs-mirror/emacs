@@ -3431,7 +3431,7 @@ see @ref{Help installing Emacs}.
 If you cannot find a solution in the documentation, send a message to
 @email{bug-gnu-emacs@@gnu.org}.
 
-Please do not post it to @uref{news:gnu.emacs.help} or send e-mail to
+Please don't post it to @uref{news:gnu.emacs.help} or send e-mail to
 @email{help-gnu-emacs@@gnu.org}.  For further guidelines, see
 @ref{Guidelines for newsgroup postings} and @ref{Reporting bugs}.
 

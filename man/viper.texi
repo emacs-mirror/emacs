@@ -1850,8 +1850,10 @@ specifying a new face.  (Emacs faces are described in the Emacs Lisp
 reference.)  On a color display, the following customization method is
 usually most effective:
 @example
-(set-face-foreground viper-replace-overlay-face "DarkSlateBlue")
-(set-face-background viper-replace-overlay-face "yellow")
+(set-face-foreground viper-replace-overlay-face 
+                     "DarkSlateBlue")
+(set-face-background viper-replace-overlay-face 
+                     "yellow")
 @end example
 For a complete list of colors available to you, evaluate the expression
 @code{(x-defined-colors)}.  (Type it in the buffer @code{*scratch*} and then
@@ -2057,7 +2059,8 @@ can write this:
 @noindent
 To customize the binding for @kbd{C-h} in Insert state:
 @example
-(define-key viper-insert-global-user-map "\C-h" 'my-del-backwards-function)
+(define-key viper-insert-global-user-map 
+            "\C-h" 'my-del-backwards-function)
 @end example
 @noindent
 
@@ -2106,7 +2109,8 @@ Dired functions, the trick can be accomplished via the following code:
 (setq my-dired-vi-purist-map (make-sparse-keymap))
 (define-key my-dired-vi-purist-map "k" 'viper-previous-line)
 (define-key my-dired-vi-purist-map "l" 'viper-forward-char)
-(viper-modify-major-mode 'dired-mode 'emacs-state my-dired-vi-purist-map)
+(viper-modify-major-mode 'dired-mode 
+                         'emacs-state my-dired-vi-purist-map)
 @end example
 
 Yet another way to customize key bindings in a major mode is to edit the
@@ -2530,15 +2534,15 @@ If a document consists of several files we can designate one of them as a
 master and put the following at the end of that file:
 @lisp
 ;;; Local Variables:
-;;; eval: (viper-setup-master-buffer "file1" "file2" "file3" "file5" "file5")
+;;; eval: (viper-setup-master-buffer "file1" "file2" "file3" "file4")
 ;;; End:
 @end lisp
 @noindent
-where @code{file1} to @code{file5} are names of files related to the master
+where @code{file1} to @code{file4} are names of files related to the master
 file.  Next time, when the master file is visited, the command
 @code{viper-setup-master-buffer} will be evaluated and the above files will
 be associated with the master file.  Then, the new Ex command
-@kbd{:RelatedFile} (abbr.@: @kbd{:R}) will display files 1 to 5 one after
+@kbd{:RelatedFile} (abbr.@: @kbd{:R}) will display files 1 to 4 one after
 another, so you can edit them.  If a file is not in any Emacs buffer, it
 will be visited.  The command @kbd{PreviousRelatedFile} (abbr., @kbd{:P})
 goes through the file list in the opposite direction.

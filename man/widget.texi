@@ -358,7 +358,8 @@ Interface}).
 					     '("En" "To" "Tre"))
 			   (widget-setup))
 		 "other work")
-  (widget-insert " for more information.\n\nNumbers: count to three below\n")
+  (widget-insert 
+    " for more information.\n\nNumbers: count to three below\n")
   (setq widget-example-repeat
 	(widget-create 'editable-list
 		       :entry-format "%i %d %v"
