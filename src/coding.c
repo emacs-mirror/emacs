@@ -362,6 +362,9 @@ char *coding_category_name[CODING_CATEGORY_IDX_MAX] = {
   "coding-category-iso-8-else",
   "coding-category-ccl",
   "coding-category-big5",
+  "coding-category-utf-8",
+  "coding-category-utf-16-be",
+  "coding-category-utf-16-le",
   "coding-category-raw-text",
   "coding-category-binary"
 };
@@ -2348,6 +2351,89 @@ detect_coding_big5 (src, src_end)
   return CODING_CATEGORY_MASK_BIG5;
 }
 
+/* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
+   Check if a text is encoded in UTF-8.  If it is, return
+   CODING_CATEGORY_MASK_UTF_8, else return 0.  */
+
+#define UTF_8_1_OCTET_P(c)         ((c) < 0x80)
+#define UTF_8_EXTRA_OCTET_P(c)     (((c) & 0xC0) == 0x80)
+#define UTF_8_2_OCTET_LEADING_P(c) (((c) & 0xE0) == 0xC0)
+#define UTF_8_3_OCTET_LEADING_P(c) (((c) & 0xF0) == 0xE0)
+#define UTF_8_4_OCTET_LEADING_P(c) (((c) & 0xF8) == 0xF0)
+#define UTF_8_5_OCTET_LEADING_P(c) (((c) & 0xFC) == 0xF8)
+#define UTF_8_6_OCTET_LEADING_P(c) (((c) & 0xFE) == 0xFC)
+
+int
+detect_coding_utf_8 (src, src_end)
+     unsigned char *src, *src_end;
+{
+  unsigned char c;
+  int seq_maybe_bytes;
+
+  while (src < src_end)
+    {
+      c = *src++;
+      if (UTF_8_1_OCTET_P (c))
+	continue;
+      else if (UTF_8_2_OCTET_LEADING_P (c))
+	seq_maybe_bytes = 1;
+      else if (UTF_8_3_OCTET_LEADING_P (c))
+	seq_maybe_bytes = 2;
+      else if (UTF_8_4_OCTET_LEADING_P (c))
+	seq_maybe_bytes = 3;
+      else if (UTF_8_5_OCTET_LEADING_P (c))
+	seq_maybe_bytes = 4;
+      else if (UTF_8_6_OCTET_LEADING_P (c))
+	seq_maybe_bytes = 5;
+      else
+	return 0;
+
+      do
+	{
+	  if (src >= src_end)
+	    return CODING_CATEGORY_MASK_UTF_8;
+
+	  c = *src++;
+	  if (!UTF_8_EXTRA_OCTET_P (c))
+	    return 0;
+	  seq_maybe_bytes--;
+	}
+      while (seq_maybe_bytes > 0);
+    }
+
+  return CODING_CATEGORY_MASK_UTF_8;
+}
+
+/* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
+   Check if a text is encoded in UTF-16 Big Endian (endian == 1) or
+   Little Endian (otherwise).  If it is, return
+   CODING_CATEGORY_MASK_UTF_16_BE or CODING_CATEGORY_MASK_UTF_16_LE,
+   else return 0.  */
+
+#define UTF_16_INVALID_P(val)	\
+  (((val) == 0xFFFE)		\
+   || ((val) == 0xFFFF))
+
+#define UTF_16_HIGH_SURROGATE_P(val) \
+  (((val) & 0xD800) == 0xD800)
+
+#define UTF_16_LOW_SURROGATE_P(val) \
+  (((val) & 0xDC00) == 0xDC00)
+
+int
+detect_coding_utf_16 (src, src_end)
+     unsigned char *src, *src_end;
+{
+  if ((src + 1) >= src_end) return 0;
+
+  if ((src[0] == 0xFF) && (src[1] == 0xFE))
+    return CODING_CATEGORY_MASK_UTF_16_LE;
+  else if ((src[0] == 0xFE) && (src[1] == 0xFF))
+    return CODING_CATEGORY_MASK_UTF_16_BE;
+
+  return 0;
+}
+
 /* See the above "GENERAL NOTES on `decode_coding_XXX ()' functions".
    If SJIS_P is 1, decode SJIS text, else decode BIG5 test.  */
 
@@ -3453,6 +3539,26 @@ setup_raw_text_coding_system (coding)
 	as BIG5.  Assigned the coding-system (Lisp symbol)
 	`cn-big5' by default.
 
+   o coding-category-utf-8
+
+	The category for a coding system which has the same code range
+	as UTF-8 (cf. RFC2279).  Assigned the coding-system (Lisp
+	symbol) `utf-8' by default.
+
+   o coding-category-utf-16-be
+
+	The category for a coding system in which a text has an
+	Unicode signature (cf. Unicode Standard) in the order of BIG
+	endian at the head.  Assigned the coding-system (Lisp symbol)
+	`utf-16-be' by default.
+
+   o coding-category-utf-16-le
+
+	The category for a coding system in which a text has an
+	Unicode signature (cf. Unicode Standard) in the order of
+	LITTLE endian at the head.  Assigned the coding-system (Lisp
+	symbol) `utf-16-le' by default.
+
    o coding-category-ccl
 
 	The category for a coding system of which encoder/decoder is
@@ -3481,7 +3587,10 @@ int ascii_skip_code[256];
 /* Detect how a text of length SRC_BYTES pointed by SOURCE is encoded.
    If it detects possible coding systems, return an integer in which
    appropriate flag bits are set.  Flag bits are defined by macros
-   CODING_CATEGORY_MASK_XXX in `coding.h'.
+   CODING_CATEGORY_MASK_XXX in `coding.h'.  If PRIORITIES is non-NULL,
+   it should point the table `coding_priorities'.  In that case, only
+   the flag bit for a coding system of the highest priority is set in
+   the returned value.
 
    How many ASCII characters are at the head is returned as *SKIP.  */
 
@@ -3492,8 +3601,8 @@ detect_coding_mask (source, src_bytes, priorities, skip)
 {
   register unsigned char c;
   unsigned char *src = source, *src_end = source + src_bytes;
-  unsigned int mask;
-  int i;
+  unsigned int mask, utf16_examined_p, iso2022_examined_p;
+  int i, idx;
 
   /* At first, skip all ASCII characters and control characters except
      for three ISO2022 specific control characters.  */
@@ -3528,7 +3637,14 @@ detect_coding_mask (source, src_bytes, priorities, skip)
 	  goto label_loop_detect_coding;
 	}
       if (priorities)
-	goto label_return_highest_only;
+	{
+	  for (i = 0; i < CODING_CATEGORY_IDX_MAX; i++)
+	    {
+	      if (mask & priorities[i])
+		return priorities[i];
+	    }
+	  return CODING_CATEGORY_MASK_RAW_TEXT;
+	}
     }
   else
     {
@@ -3537,8 +3653,12 @@ detect_coding_mask (source, src_bytes, priorities, skip)
       if (c < 0xA0)
 	{
 	  /* C is the first byte of SJIS character code,
-	     or a leading-code of Emacs' internal format (emacs-mule).  */
-	  try = CODING_CATEGORY_MASK_SJIS | CODING_CATEGORY_MASK_EMACS_MULE;
+	     or a leading-code of Emacs' internal format (emacs-mule),
+	     or the first byte of UTF-16.  */
+	  try = (CODING_CATEGORY_MASK_SJIS
+		  | CODING_CATEGORY_MASK_EMACS_MULE
+		  | CODING_CATEGORY_MASK_UTF_16_BE
+		  | CODING_CATEGORY_MASK_UTF_16_LE);
 
 	  /* Or, if C is a special latin extra code,
 	     or is an ISO2022 specific control code of C1 (SS2 or SS3), 
@@ -3559,11 +3679,15 @@ detect_coding_mask (source, src_bytes, priorities, skip)
       else
 	/* C is a character of ISO2022 in graphic plane right,
 	   or a SJIS's 1-byte character code (i.e. JISX0201),
-	   or the first byte of BIG5's 2-byte code.  */
+	   or the first byte of BIG5's 2-byte code,
+	   or the first byte of UTF-8/16.  */
 	try = (CODING_CATEGORY_MASK_ISO_8_ELSE
 		| CODING_CATEGORY_MASK_ISO_8BIT
 		| CODING_CATEGORY_MASK_SJIS
-		| CODING_CATEGORY_MASK_BIG5);
+		| CODING_CATEGORY_MASK_BIG5
+	        | CODING_CATEGORY_MASK_UTF_8
+	        | CODING_CATEGORY_MASK_UTF_16_BE
+	        | CODING_CATEGORY_MASK_UTF_16_LE);
 
       /* Or, we may have to consider the possibility of CCL.  */
       if (coding_system_table[CODING_CATEGORY_IDX_CCL]
@@ -3572,26 +3696,40 @@ detect_coding_mask (source, src_bytes, priorities, skip)
 	try |= CODING_CATEGORY_MASK_CCL;
 
       mask = 0;
+      utf16_examined_p = iso2022_examined_p = 0;
       if (priorities)
 	{
 	  for (i = 0; i < CODING_CATEGORY_IDX_MAX; i++)
 	    {
-	      if (priorities[i] & try & CODING_CATEGORY_MASK_ISO)
-		mask = detect_coding_iso2022 (src, src_end);
+	      if (!iso2022_examined_p
+		  && (priorities[i] & try & CODING_CATEGORY_MASK_ISO))
+		{
+		  mask |= detect_coding_iso2022 (src, src_end);
+		  iso2022_examined_p = 1;
+		}
 	      else if (priorities[i] & try & CODING_CATEGORY_MASK_SJIS)
-		mask = detect_coding_sjis (src, src_end);
+		mask |= detect_coding_sjis (src, src_end);
+	      else if (priorities[i] & try & CODING_CATEGORY_MASK_UTF_8)
+		mask |= detect_coding_utf_8 (src, src_end);
+	      else if (!utf16_examined_p
+		       && (priorities[i] & try &
+			   CODING_CATEGORY_MASK_UTF_16_BE_LE))
+		{
+		  mask |= detect_coding_utf_16 (src, src_end);
+		  utf16_examined_p = 1;
+		}
 	      else if (priorities[i] & try & CODING_CATEGORY_MASK_BIG5)
-		mask = detect_coding_big5 (src, src_end);      
+		mask |= detect_coding_big5 (src, src_end);
 	      else if (priorities[i] & try & CODING_CATEGORY_MASK_EMACS_MULE)
-		mask = detect_coding_emacs_mule (src, src_end);      
+		mask |= detect_coding_emacs_mule (src, src_end);      
 	      else if (priorities[i] & try & CODING_CATEGORY_MASK_CCL)
-		mask = detect_coding_ccl (src, src_end);
+		mask |= detect_coding_ccl (src, src_end);
 	      else if (priorities[i] & CODING_CATEGORY_MASK_RAW_TEXT)
-		mask = CODING_CATEGORY_MASK_RAW_TEXT;
+		mask |= CODING_CATEGORY_MASK_RAW_TEXT;
 	      else if (priorities[i] & CODING_CATEGORY_MASK_BINARY)
-		mask = CODING_CATEGORY_MASK_BINARY;
-	      if (mask)
-		goto label_return_highest_only;
+		mask |= CODING_CATEGORY_MASK_BINARY;
+	      if (mask & priorities[i])
+		return priorities[i];
 	    }
 	  return CODING_CATEGORY_MASK_RAW_TEXT;
 	}
@@ -3601,20 +3739,16 @@ detect_coding_mask (source, src_bytes, priorities, skip)
 	mask |= detect_coding_sjis (src, src_end);
       if (try & CODING_CATEGORY_MASK_BIG5)
 	mask |= detect_coding_big5 (src, src_end);      
+      if (try & CODING_CATEGORY_MASK_UTF_8)
+	mask |= detect_coding_utf_8 (src, src_end);
+      if (try & CODING_CATEGORY_MASK_UTF_16_BE_LE)
+	mask |= detect_coding_utf_16 (src, src_end);      
       if (try & CODING_CATEGORY_MASK_EMACS_MULE)
 	mask |= detect_coding_emacs_mule (src, src_end);
       if (try & CODING_CATEGORY_MASK_CCL)
 	mask |= detect_coding_ccl (src, src_end);
     }
   return (mask | CODING_CATEGORY_MASK_RAW_TEXT | CODING_CATEGORY_MASK_BINARY);
-
- label_return_highest_only:
-  for (i = 0; i < CODING_CATEGORY_IDX_MAX; i++)
-    {
-      if (mask & priorities[i])
-	return priorities[i];
-    }
-  return CODING_CATEGORY_MASK_RAW_TEXT;
 }
 
 /* Detect how a text of length SRC_BYTES pointed by SRC is encoded.
@@ -3710,6 +3844,76 @@ detect_eol_type (source, src_bytes, skip)
   return eol_type;
 }
 
+/* Like detect_eol_type, but detect EOL type in 2-octet
+   big-endian/little-endian format for coding systems utf-16-be and
+   utf-16-le.  */
+
+static int
+detect_eol_type_in_2_octet_form (source, src_bytes, skip, big_endian_p)
+     unsigned char *source;
+     int src_bytes, *skip;
+{
+  unsigned char *src = source, *src_end = src + src_bytes;
+  unsigned int c1, c2;
+  int total = 0;		/* How many end-of-lines are found so far.  */
+  int eol_type = CODING_EOL_UNDECIDED;
+  int this_eol_type;
+  int msb, lsb;
+
+  if (big_endian_p)
+    msb = 0, lsb = 1;
+  else
+    msb = 1, lsb = 0;
+
+  *skip = 0;
+
+  while ((src + 1) < src_end && total < MAX_EOL_CHECK_COUNT)
+    {
+      c1 = (src[msb] << 8) | (src[lsb]);
+      src += 2;
+
+      if (c1 == '\n' || c1 == '\r')
+	{
+	  if (*skip == 0)
+	    *skip = src - 2 - source;
+	  total++;
+	  if (c1 == '\n')
+	    {
+	      this_eol_type = CODING_EOL_LF;
+	    }
+	  else
+	    {
+	      if ((src + 1) >= src_end)
+		{
+		  this_eol_type = CODING_EOL_CR;
+		}
+	      else
+		{
+		  c2 = (src[msb] << 8) | (src[lsb]);
+		  if (c2 == '\n')
+		    this_eol_type = CODING_EOL_CRLF, src += 2;
+		  else
+		    this_eol_type = CODING_EOL_CR;
+		}
+	    }
+
+	  if (eol_type == CODING_EOL_UNDECIDED)
+	    /* This is the first end-of-line.  */
+	    eol_type = this_eol_type;
+	  else if (eol_type != this_eol_type)
+	    {
+	      /* The found type is different from what found before.  */
+	      eol_type = CODING_EOL_INCONSISTENT;
+	      break;
+	    }
+	}
+    }
+
+  if (*skip == 0)
+    *skip = src_end - source;
+  return eol_type;
+}
+
 /* Detect how end-of-line of a text of length SRC_BYTES pointed by SRC
    is encoded.  If it detects an appropriate format of end-of-line, it
    sets the information in *CODING.  */
@@ -3722,7 +3926,20 @@ detect_eol (coding, src, src_bytes)
 {
   Lisp_Object val;
   int skip;
-  int eol_type = detect_eol_type (src, src_bytes, &skip);
+  int eol_type;
+
+  switch (coding->category_idx)
+    {
+    case CODING_CATEGORY_IDX_UTF_16_BE:
+      eol_type = detect_eol_type_in_2_octet_form (src, src_bytes, &skip, 1);
+      break;
+    case CODING_CATEGORY_IDX_UTF_16_LE:
+      eol_type = detect_eol_type_in_2_octet_form (src, src_bytes, &skip, 0);
+      break;
+    default:
+      eol_type = detect_eol_type (src, src_bytes, &skip);
+      break;
+    }
 
   if (coding->heading_ascii > skip)
     coding->heading_ascii = skip;
@@ -5216,13 +5433,17 @@ detect_coding_system (src, src_bytes, highest)
 
   /* At first, gather possible coding systems in VAL.  */
   val = Qnil;
-  for (tmp = Vcoding_category_list; !NILP (tmp); tmp = XCDR (tmp))
+  for (tmp = Vcoding_category_list; CONSP (tmp); tmp = XCDR (tmp))
     {
-      int idx
-	= XFASTINT (Fget (XCAR (tmp), Qcoding_category_index));
-      if (coding_mask & (1 << idx))
+      Lisp_Object category_val, category_index;
+
+      category_index = Fget (XCAR (tmp), Qcoding_category_index);
+      category_val = Fsymbol_value (XCAR (tmp));
+      if (!NILP (category_val)
+	  && NATNUMP (category_index)
+	  && (coding_mask & (1 << XFASTINT (category_index))))
 	{
-	  val = Fcons (Fsymbol_value (XCAR (tmp)), val);
+	  val = Fcons (category_val, val);
 	  if (highest)
 	    break;
 	}
@@ -5231,7 +5452,7 @@ detect_coding_system (src, src_bytes, highest)
     val = Fnreverse (val);
 
   /* Then, replace the elements with subsidiary coding systems.  */
-  for (tmp = val; !NILP (tmp); tmp = XCDR (tmp))
+  for (tmp = val; CONSP (tmp); tmp = XCDR (tmp))
     {
       if (eol_type != CODING_EOL_UNDECIDED
 	  && eol_type != CODING_EOL_INCONSISTENT)
@@ -5712,17 +5933,13 @@ which is a list of all the arguments given to this function.")
 DEFUN ("update-coding-systems-internal",  Fupdate_coding_systems_internal,
        Supdate_coding_systems_internal, 0, 0, 0,
   "Update internal database for ISO2022 and CCL based coding systems.\n\
-When values of the following coding categories are changed, you must\n\
-call this function:\n\
-  coding-category-iso-7, coding-category-iso-7-tight,\n\
-  coding-category-iso-8-1, coding-category-iso-8-2,\n\
-  coding-category-iso-7-else, coding-category-iso-8-else,\n\
-  coding-category-ccl")
+When values of any coding categories are changed, you must\n\
+call this function")
   ()
 {
   int i;
 
-  for (i = CODING_CATEGORY_IDX_ISO_7; i <= CODING_CATEGORY_IDX_CCL; i++)
+  for (i = CODING_CATEGORY_IDX_EMACS_MULE; i < CODING_CATEGORY_IDX_MAX; i++)
     {
       Lisp_Object val;
 
@@ -5767,7 +5984,7 @@ This function is internal use only.")
     }
   /* If coding-category-list is valid and contains all coding
      categories, `i' should be CODING_CATEGORY_IDX_MAX now.  If not,
-     the following code saves Emacs from craching.  */
+     the following code saves Emacs from crashing.  */
   while (i < CODING_CATEGORY_IDX_MAX)
     coding_priorities[i++] = CODING_CATEGORY_MASK_RAW_TEXT;
 
