@@ -1,3 +1,8 @@
+2001-04-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* gmalloc.c (align): If the argument SIZE would overflow
+	__malloc_ptrdiff_t, fail right away.
+
 2001-04-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (compute_tip_xy): Add parameters WIDTH and HEIGHT.
