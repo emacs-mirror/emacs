@@ -25,6 +25,12 @@
 #
 !include ..\nt\makefile.def
 
+!IFDEF NTGUI
+SUBSYSTEM=windows
+!ELSE
+SUBSYSTEM=console
+!ENDIF
+
 #
 # HAVE_CONFIG_H is required by some generic gnu sources stuck into
 # the emacs source tree.
@@ -35,6 +41,11 @@ EMACS           = $(BLD)\emacs.exe
 TEMACS          = $(BLD)\temacs.exe
 TLIB1           = $(BLD)\temacs1.lib
 TLIB2           = $(BLD)\temacs2.lib
+!IFDEF NTGUI
+TLIBW32         = $(BLD)\temacw32.lib
+!ELSE
+TLIBW32		=
+!ENDIF
 TOBJ            = $(BLD)\emacs.obj
 !if $(MSVCNT11)
 TRES		= $(BLD)\emacs.res
@@ -43,7 +54,7 @@ TRES		= $(BLD)\emacs.rbj
 !endif
 TLASTLIB	= $(BLD)\lastfile.lib
 
-LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x1000000 -base:0xD00000 -debug:full -debugtype:cv -machine:$(ARCH) -subsystem:console -entry:_start 
+LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x1000000 -base:0xD00000 -debug:full -debugtype:cv -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map
 
 #
 # Split up the objects into two sets so that we don't run out of
@@ -110,9 +121,24 @@ OBJ2 =  $(BLD)\nt.obj           \
 	$(BLD)\region-cache.obj	\
 	$(BLD)\strftime.obj
 
+WIN32OBJ = $(BLD)\w32term.obj	\
+	   $(BLD)\w32xfns.obj	\
+	   $(BLD)\w32fns.obj	\
+	   $(BLD)\w32faces.obj	\
+	   $(BLD)\w32select.obj	\
+	   $(BLD)\w32menu.obj	\
+	   $(BLD)\w32reg.obj
+
 LIBS =  $(TLIB1)	\
 	$(TLIB2)	\
+!IFDEF NTGUI
+	$(TLIBW32)      \
+!ENDIF
 	$(TLASTLIB)	\
+!IFDEF NTGUI
+	gdi32.lib       \
+	comdlg32.lib    \
+!ENDIF
 	$(BASE_LIBS)	\
 	$(ADVAPI32)	\
 	user32.lib
@@ -153,7 +179,7 @@ $(EMACS):       $(PREPARED_HEADERS) $(DOC) $(TEMACS)
 # The undumped executable
 #
 temacs:         $(BLD) $(TEMACS)
-$(TEMACS):      $(TLIB1) $(TLIB2) $(TLASTLIB) $(TOBJ) $(TRES)
+$(TEMACS):      $(TLIB1) $(TLIB2) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES)
 		$(LINK) -out:$(TEMACS) $(LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
 
 #
@@ -174,13 +200,18 @@ $(TLIB1):       $(OBJ1)
 		@- $(AR) -out:$@ $**
 $(TLIB2):	$(OBJ2)
 		@- $(AR) -out:$@ $**
+!IFDEF NTGUI
+$(TLIBW32):	$(WIN32OBJ)
+		@- $(AR) -out:$@ $**
+!ENDIF
+
 #
-# Place lastfile.obj in it's own library so that it can be loaded after
+# Place lastfile.obj in its own library so that it can be loaded after
 # the source libraries but before any system libraries.  Doing so defines
-# the end of Emacs' data section portably across compilers.
+# the end of Emacs' data section portably across compilers and systems.
 #
 $(TLASTLIB):	$(BLD)\lastfile.obj
-		@- $(AR) -out:$@ $**
+  		@- $(AR) -out:$@ $**
 
 #
 # Object files.
@@ -198,7 +229,7 @@ install:        all
 #
 # Maintenance
 # 
-clean:;         - del /q *~ *.pdb config.h
+clean:;         - del /q *~ *.pdb config.h paths.h
 		- $(DEL_TREE) deleted
 		- $(DEL_TREE) obj
 
@@ -999,3 +1030,77 @@ $(BLD)\xdisp.obj : \
 	$(SRC)\termhooks.h \
 	$(SRC)\dispextern.h \
 	$(SRC)\intervals.h
+
+$(BLD)\w32faces.obj: \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\w32faces.c \
+	$(SRC)\dispextern.h \
+	$(SRC)\frame.h \
+	$(SRC)\w32term.h \
+	$(SRC)\win32.h \
+	$(SRC)\buffer.h \
+	$(SRC)\blockinput.h \
+  	$(SRC)\window.h
+
+$(BLD)\w32fns.obj: \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\w32fns.c \
+	$(SRC)\dispextern.h \
+	$(SRC)\frame.h \
+	$(SRC)\w32term.h \
+	$(SRC)\win32.h \
+	$(SRC)\buffer.h \
+	$(SRC)\blockinput.h \
+  	$(SRC)\window.h
+
+$(BLD)\w32menu.obj: \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\w32menu.c \
+	$(SRC)\dispextern.h \
+	$(SRC)\frame.h \
+	$(SRC)\w32term.h \
+	$(SRC)\win32.h \
+	$(SRC)\buffer.h \
+	$(SRC)\blockinput.h \
+  	$(SRC)\window.h
+
+$(BLD)\w32term.obj: \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\w32term.c \
+	$(SRC)\dispextern.h \
+	$(SRC)\frame.h \
+	$(SRC)\w32term.h \
+	$(SRC)\win32.h \
+	$(SRC)\buffer.h \
+	$(SRC)\blockinput.h \
+  	$(SRC)\window.h
+
+$(BLD)\w32select.obj: \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\w32select.c \
+	$(SRC)\dispextern.h \
+	$(SRC)\frame.h \
+	$(SRC)\w32term.h \
+	$(SRC)\win32.h \
+	$(SRC)\blockinput.h
+
+$(BLD)\w32reg.obj: \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\w32reg.c \
+	$(SRC)\dispextern.h \
+	$(SRC)\frame.h \
+	$(SRC)\w32term.h \
+	$(SRC)\win32.h \
+	$(SRC)\blockinput.h
