@@ -1,3 +1,8 @@
+2004-11-06  David Hansen  <david.hansen@gmx.net>  (tiny change)
+
+	* tempo.el (tempo-match-finder): Use [:word:] instead of "^\\b",
+	to solve a bug whereby tags with 'b' don't match.
+
 2004-11-05  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-search): Don't search in node header lines
