@@ -165,12 +165,15 @@ static Lisp_Object Vauto_save_timeout;
 /* Total number of times read_char has returned.  */
 int num_input_chars;
 
+/* Total number of times read_char has returned, outside of macros.  */
+int num_nonmacro_input_chars;
+
 /* Auto-save automatically when this many characters have been typed
    since the last time.  */
 
 static int auto_save_interval;
 
-/* Value of num_input_chars as of last auto save.  */
+/* Value of num_nonmacro_input_chars as of last auto save.  */
 
 int last_auto_save;
 
@@ -527,7 +530,7 @@ recursive_edit_1 ()
 /* When an auto-save happens, record the "time", and don't do again soon.  */
 record_auto_save ()
 {
-  last_auto_save = num_input_chars;
+  last_auto_save = num_nonmacro_input_chars;
 }
 
 Lisp_Object recursive_edit_unwind (), command_loop ();
@@ -1158,7 +1161,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   if (commandflag != 0
       && auto_save_interval > 0
-      && num_input_chars - last_auto_save > max (auto_save_interval, 20)
+      && num_nonmacro_input_chars - last_auto_save > max (auto_save_interval, 20)
       && !detect_input_pending ())
     {
       jmp_buf temp;
@@ -1193,7 +1196,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
       /* Auto save if enough time goes by without input.  */
       if (commandflag != 0
-	  && num_input_chars > last_auto_save
+	  && num_nonmacro_input_chars > last_auto_save
 	  && XTYPE (Vauto_save_timeout) == Lisp_Int
 	  && XINT (Vauto_save_timeout) > 0)
 	{
@@ -1285,6 +1288,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     }
 
   store_kbd_macro_char (c);
+
+  num_nonmacro_input_chars++;
 
  from_macro:
  reread_first:
