@@ -1,6 +1,6 @@
 ;;; ielm.el --- interaction mode for Emacs Lisp
 
-;; Copyright (C) 1994, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: David Smith <maa036@lancaster.ac.uk>
 ;; Maintainer: FSF
@@ -426,14 +426,14 @@ buffer, then the values in the working buffer are used.  The variables
 Expressions evaluated by IELM are not subject to `debug-on-quit' or
 `debug-on-error'.
 
-The behaviour of IELM may be customised with the following variables:
-* To stop beeping on error, set `ielm-noisy' to nil
+The behaviour of IELM may be customized with the following variables:
+* To stop beeping on error, set `ielm-noisy' to nil.
 * If you don't like the prompt, you can change it by setting `ielm-prompt'.
-* Set `ielm-dynamic-return' to nil for bindings like `lisp-interaction-mode'
+* Set `ielm-dynamic-return' to nil for bindings like `lisp-interaction-mode'.
 * Entry to this mode runs `comint-mode-hook' and `ielm-mode-hook'
  (in that order).
 
-Customised bindings may be defined in `ielm-map', which currently contains:
+Customized bindings may be defined in `ielm-map', which currently contains:
 \\{ielm-map}"
   (interactive)
   (comint-mode)
