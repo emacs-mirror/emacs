@@ -790,6 +790,7 @@ Returns the documentation as a string, also."
 	    (set-buffer standard-output)
 	    (if (> (count-lines (point-min) (point-max)) 10)
 		(progn
+		  (set-syntax-table emacs-lisp-mode-syntax-table)
 		  (goto-char (point-min))
 		  (if valvoid
 		      (forward-line 1)
