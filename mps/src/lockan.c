@@ -1,7 +1,7 @@
 /* impl.c.lockan: ANSI RECURSIVE LOCKS
  *
- * $HopeName: MMsrc!lockan.c(trunk.8) $
- * Copyright (C) 1995, 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!lockan.c(trunk.9) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is a trivial implementation of recursive locks
  * that assumes we are not running in a multi-threaded environment.
@@ -11,9 +11,10 @@
  * .limit: The limit on the number of recursive claims is ULONG_MAX.
  */
 
-#include "mpm.h"
+#include "lock.h"
+#include "mpmtypes.h"
 
-SRCID(lockan, "$HopeName: MMsrc!lockan.c(trunk.8) $");
+SRCID(lockan, "$HopeName: MMsrc!lockan.c(trunk.9) $");
 
 
 typedef struct LockStruct {     /* ANSI fake lock structure */
@@ -22,18 +23,19 @@ typedef struct LockStruct {     /* ANSI fake lock structure */
 } LockStruct;
 
 
-size_t LockSize(void)
+size_t (LockSize)(void)
 {
   return sizeof(LockStruct);
 }
 
-Bool LockCheck(Lock lock)
+Bool (LockCheck)(Lock lock)
 {
   CHECKS(Lock, lock);
   return TRUE;
 }
 
-void LockInit(Lock lock)
+
+void (LockInit)(Lock lock)
 {
   AVER(lock != NULL);
   lock->claims = 0;
@@ -41,35 +43,36 @@ void LockInit(Lock lock)
   AVERT(Lock, lock);
 }
 
-void LockFinish(Lock lock)
+void (LockFinish)(Lock lock)
 {
   AVERT(Lock, lock);
   AVER(lock->claims == 0);
   lock->sig = SigInvalid;
 }
 
-void LockClaim(Lock lock)
+
+void (LockClaim)(Lock lock)
 {
   AVERT(Lock, lock);
   AVER(lock->claims == 0);
   lock->claims = 1;
 }
 
-void LockReleaseMPM(Lock lock)
+void (LockReleaseMPM)(Lock lock)
 {
   AVERT(Lock, lock);
   AVER(lock->claims == 1);
   lock->claims = 0;
 }
 
-void LockClaimRecursive(Lock lock)
+void (LockClaimRecursive)(Lock lock)
 {
   AVERT(Lock, lock);
   ++lock->claims;
   AVER(lock->claims>0);
 }
 
-void LockReleaseRecursive(Lock lock)
+void (LockReleaseRecursive)(Lock lock)
 {
   AVERT(Lock, lock);
   AVER(lock->claims > 0);
@@ -97,22 +100,23 @@ static Lock globalLock = &globalLockStruct;
 
 static Lock globalRecLock = &globalRecursiveLockStruct;
 
-void LockClaimGlobalRecursive(void)
+
+void (LockClaimGlobalRecursive)(void)
 {
   LockClaimRecursive(globalRecLock);
 }
 
-void LockReleaseGlobalRecursive(void)
+void (LockReleaseGlobalRecursive)(void)
 {
   LockReleaseRecursive(globalRecLock);
 }
 
-void LockClaimGlobal(void)
+void (LockClaimGlobal)(void)
 {
   LockClaim(globalLock);
 }
 
-void LockReleaseGlobal(void)
+void (LockReleaseGlobal)(void)
 {
   LockReleaseMPM(globalLock);
 }
