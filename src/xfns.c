@@ -956,7 +956,7 @@ x_real_positions (f, xptr, yptr)
       XQueryTree (FRAME_X_DISPLAY (f), outer, &tmp_root_window,
 		  &f->output_data.x->parent_desc,
 		  &tmp_children, &tmp_nchildren);
-      XFree (tmp_children);
+      XFree ((char *) tmp_children);
 
       win_x = win_y = 0;
 
