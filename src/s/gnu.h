@@ -73,3 +73,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Until we finish the network.  */
 #undef HAVE_SOCKETS
+
+/* Some losing code fails to include this and then assumes
+   that because it is braindead that O_RDONLY==0.  */
+#ifndef NOT_C_CODE
+#include <fcntl.h>
+#endif
