@@ -51,10 +51,10 @@
 	(unread-command-events (list event)))
     ;; Make a keymap in which our last command leads to a menu
     (define-key newmap (vector (car event))
-      (nconc (make-sparse-keymap "Menu")
-	     (mouse-major-mode-menu-1
-	      (and (current-local-map)
-		   (lookup-key (current-local-map) [menu-bar])))))
+      (nconc (make-sparse-keymap (concat mode-name " Mode"))
+	     (cdr (mouse-major-mode-menu-1
+		   (and (current-local-map)
+			(lookup-key (current-local-map) [menu-bar]))))))
     (mouse-major-mode-menu-compute-equiv-keys newmap)
     ;; Make NEWMAP override the usual definition
     ;; of the mouse button that got us here.
@@ -100,7 +100,7 @@
 		(setq submap (cdr (car tail)))))
 	  (setq tail (cdr tail)))
 	(if (eq submap t) menubar
-	  submap))))
+	  (cdr submap)))))
 
 ;; Commands that operate on windows.
 
