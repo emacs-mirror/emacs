@@ -1,6 +1,6 @@
 ;;; eval-reg.el --- Redefine eval-region, and subrs that use it, in Lisp
 
-;; Copyright (C) 1994, 1996 Daniel LaLiberte
+;; Copyright (C) 1994, 1996 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Keywords: lisp
