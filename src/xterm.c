@@ -255,7 +255,10 @@ static int any_help_event_p;
 
 /* Non-zero means autoselect window with the mouse cursor.  */
 
-int x_autoselect_window_p;
+int autoselect_window_p;
+
+/* Last window where we saw the mouse.  Used by autoselect-window.  */
+static Lisp_Object last_window;
 
 /* Non-zero means draw block and hollow cursor as wide as the glyph
    under it.  For example, if a block cursor is over a tab, it will be
@@ -6653,29 +6656,6 @@ note_mouse_movement (frame, event)
   last_mouse_motion_event = *event;
   XSETFRAME (last_mouse_motion_frame, frame);
 
-#if 0 /* Lisp must not be called asynchronously, so this must
-	 not be done.  */
-  if (x_autoselect_window_p)
-    {
-      int area;
-      Lisp_Object window;
-      static Lisp_Object last_window;
-
-      window = window_from_coordinates (frame, XINT (event->x), XINT (event->y), &area, 0);
-
-      /* Window will be selected only when it is not selected now and
-	 last mouse movement event was not in it.  Minibuffer window
-	 will be selected iff it is active.  */
-      if (!EQ (window, last_window)
-	  && !EQ (window, selected_window)
-	  && (!MINI_WINDOW_P (XWINDOW (window))
-	      || (EQ (window, minibuf_window) && minibuf_level > 0)))
-	Fselect_window (window);
-
-      last_window=window;
-    }
-#endif
-
   if (event->window != FRAME_X_WINDOW (frame))
     {
       frame->mouse_moved = 1;
@@ -10895,7 +10875,35 @@ XTread_socket (sd, bufp, numchars, expected)
 		  }
 
 		if (f)
-		  note_mouse_movement (f, &event.xmotion);
+		  {
+
+		    /* Generate SELECT_WINDOW_EVENTs when needed.  */
+		    if (autoselect_window_p)
+		      {
+			Lisp_Object window;
+			int area;
+
+			window = window_from_coordinates (f,
+							  XINT (event.xmotion.x), XINT (event.xmotion.y),
+							  &area, 0);
+
+			/* Window will be selected only when it is not selected now and
+			   last mouse movement event was not in it.  Minibuffer window
+			   will be selected iff it is active.  */
+			if (!EQ (window, last_window)
+			    && !EQ (window, selected_window)
+			    && numchars > 0)
+			  {
+			    bufp->kind = SELECT_WINDOW_EVENT;
+			    bufp->frame_or_window = window;
+			    bufp->arg = Qnil;
+			    ++bufp, ++count, --numchars;
+			  }
+
+			last_window=window;
+		      }
+		    note_mouse_movement (f, &event.xmotion);
+		  }
 		else
 		  {
 #ifndef USE_TOOLKIT_SCROLL_BARS
@@ -15108,9 +15116,9 @@ syms_of_xterm ()
   staticpro (&previous_help_echo);
   help_echo_pos = -1;
 
-  DEFVAR_BOOL ("x-autoselect-window", &x_autoselect_window_p,
+  DEFVAR_BOOL ("autoselect-window", &autoselect_window_p,
     doc: /* *Non-nil means autoselect window with mouse pointer.  */);
-  x_autoselect_window_p = 0;
+  autoselect_window_p = 0;
 
   DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p,
     doc: /* *Non-nil means draw block cursor as wide as the glyph under it.
