@@ -1,3 +1,7 @@
+2002-01-14  Richard M. Stallman  <rms@gnu.org>
+
+	* calendar/calendar.el (diary-date-forms): Doc fix.
+
 2002-01-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* startup.el (command-line): Register the default tty colors even
