@@ -1,4 +1,7 @@
-2004-03-23  Kenichi Handa  <handa@m17n.org>
+2004-03-23  Kenichi Handa  <handa@etlken2>
+
+	* international/characters.el: Setup syntaxes for more parentheses
+	Unicode characters.
 
 	* international/mule-cmds.el (select-safe-coding-system): Merge
 	coding-system and auto-cs before comparing them.
