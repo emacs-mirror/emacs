@@ -1773,6 +1773,7 @@ This function returns the currently active minibuffer window, or
 @end defun
 
 @defun minibuffer-window &optional frame
+@anchor{Definition of minibuffer-window}
 This function returns the minibuffer window used for frame @var{frame}.
 If @var{frame} is @code{nil}, that stands for the current frame.  Note
 that the minibuffer window used by a frame need not be part of that

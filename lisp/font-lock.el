@@ -358,8 +358,9 @@ Each element in a user-level keywords list should have one of these forms:
  (eval . FORM)
 
 where MATCHER can be either the regexp to search for, or the function name to
-call to make the search (called with one argument, the limit of the search) and
-return non-nil if it succeeds (and set `match-data' appropriately).
+call to make the search (called with one argument, the limit of the search;
+it should return non-nil, move point, and set `match-data' appropriately iff
+it succeeds; like `re-search-forward' would).
 MATCHER regexps can be generated via the function `regexp-opt'.
 
 FORM is an expression, whose value should be a keyword element, evaluated when

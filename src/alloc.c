@@ -2395,6 +2395,17 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
   return val;
 }
 
+/* Get an error now if there's any junk in the cons free list.  */
+void
+check_cons_list ()
+{
+  struct Lisp_Cons *tail = cons_free_list;
+
+#if 0
+  while (tail)
+    tail = *(struct Lisp_Cons **)&tail->cdr;
+#endif
+}
 
 /* Make a list of 2, 3, 4 or 5 specified objects.  */
 

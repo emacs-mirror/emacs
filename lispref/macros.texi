@@ -239,7 +239,7 @@ additional information about it.  Two kinds of specification are
 currently supported:
 
 @table @code
-@item (edebug @var{edebug-form-spec})
+@item (debug @var{edebug-form-spec})
 Specify how to step through macro calls for Edebug.
 @xref{Instrumenting Macro Calls}, for more details.
 

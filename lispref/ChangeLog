@@ -1,3 +1,36 @@
+2004-07-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi: Various changes in addition to:
+	(Creating Frames): Expand and clarify description of `make-frame'.
+	(Window Frame Parameters): Either none or both of the `icon-left'
+	and `icon-top' parameters must be specified.  Put descriptions of
+	`menu-bar-lines' and `toolbar-lines' closer together and change
+	them accordingly.
+	(Frame Titles): `multiple-frames' is not guaranteed to be accurate
+	except while processing `frame-title-format' or `icon-title-format'.
+	(Deleting Frames): Correct description of `delete-frame'.
+	Non-nil return values of `frame-live-p' are like those of `framep'.
+	(Frames and Windows): mention return value of
+	`set-frame-selected-window'.
+	(Visibility of Frames): Mention `force' argument to
+	`make-frame-invisible'.  `frame-visible-p' returns t for all
+	frames on text-only terminals.
+	(Frame Configurations): Restoring a frame configuration does not
+	restore deleted frames.
+	(Window System Selections): `x-set-selection' returns DATA.
+	(Resources): Add example.
+	(Display Feature Testing): Clarify descriptions of
+	`display-pixel-height', `display-pixel-width', `x-server-version'
+	and `x-server-vendor'.
+
+	* windows.texi (Choosing Window): Add anchor.
+	* minibuf.texi (Minibuffer Misc): Add anchor.
+
+2004-07-23  John Paul Wallington  <jpw@gnu.org>
+
+	* macros.texi (Defining Macros): Declaration keyword for setting
+	Edebug spec is `debug' not `edebug'.
+
 2004-07-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* windows.texi: Various small changes in addition to:

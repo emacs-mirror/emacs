@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/windows
@@ -1089,6 +1089,7 @@ presumably the window was previously made by this function.
 @end defun
 
 @defopt special-display-frame-alist
+@anchor{Definition of special-display-frame-alist}
 This variable holds frame parameters for
 @code{special-display-popup-frame} to use when it creates a frame.
 @end defopt

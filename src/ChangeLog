@@ -1,3 +1,49 @@
+2004-07-27  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_in_display_line_to): Check BUFFER_POS_REACHED_P after
+	we have ensured that the glyph fits on the current line (or returned
+	MOVE_LINE_CONTINUED otherwise).
+
+2004-07-26  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_in_display_line_to): If overflow-newline-into-fringe
+	is enabled, return MOVE_LINE_CONTINUED rather than MOVE_POS_MATCH_OR_ZV
+	if target position is at end of display line but char is not a newline.
+
+2004-07-25  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (coordinates_in_window): Return ON_SCROLL_BAR
+	instead of ON_VERTICAL_BORDER, when on scroll bar.
+	(Fcoordinates_in_window_p): Handle ON_SCROLL_BAR--return nil.
+
+	* dispextern.h (enum window_part): Add ON_SCROLL_BAR.
+
+	* window.c (Fcoordinates_in_window_p):
+	Take account of FRAME_INTERNAL_BORDER_WIDTH.
+
+	* alloc.c (check_cons_list): New function (contents commented out).
+
+2004-07-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* xfaces.c (Fcolor_supported_p): Doc fix.
+
+	* frame.c (Fselect_frame, Fset_frame_selected_window)
+	(Fframe_visible_p, Fraise_frame): Doc fixes.
+
+2004-07-24  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.h (not_single_kboard_state): Declared.
+
+	* fileio.c (Fwrite_region): Doc fix.
+
+	* window.c (Fwindow_at): Take account of FRAME_INTERNAL_BORDER_WIDTH.
+
+	* abbrev.c (Fexpand_abbrev): Run Qpre_abbrev_expand_hook
+	only when a real abbrev is present.
+
+	* xfns.c (x_icon_verify): New function.
+	(Fx_create_frame): Use it.
+
 2004-07-22  Barry Fishman <barry_fishman@att.net>  (tiny change)
 
 	* s/gnu-linux.h: Use GC_MARK_STACK if __amd64__ is defined.

@@ -5544,17 +5544,15 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (setq ps-background-all-pages (nreverse ps-background-all-pages)
 	  ps-background-pages (nreverse ps-background-pages))
 
-    (ps-output "\n" ps-print-prologue-1)
-
-    (ps-output "\n/printGlobalBackground{\n")
+    (ps-output "\n" ps-print-prologue-1
+	       "\n/printGlobalBackground{\n")
     (mapcar 'ps-output ps-background-all-pages)
-    (ps-output "}def\n/printLocalBackground{\n}def\n")
-
-    (ps-output "\n%%EndProlog\n\n%%BeginSetup\n")
-
     (ps-output
+     "}def\n/printLocalBackground{\n}def\n"
+     "\n%%EndProlog\n\n%%BeginSetup\n"
      "\n%%IncludeResource: font Times-Roman"
-     "\n%%IncludeResource: font Times-Italic\n%%IncludeResource: font "
+     "\n%%IncludeResource: font Times-Italic"
+     "\n%%IncludeResource: font "
      (mapconcat 'identity
 		(ps-remove-duplicates
 		 (append (ps-fonts 'ps-font-for-text)
@@ -5563,22 +5561,20 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 			       (ps-font 'ps-font-for-footer 'normal)
 			       (ps-font 'ps-font-for-footer 'bold))))
 		"\n%%IncludeResource: font ")
-     "\n")
-
-    ;; Header/line number fonts
-    (ps-output (format "/h0 %s(%s)cvn DefFont\n" ; /h0 14/Helvetica-Bold DefFont
-		       ps-header-title-font-size-internal
-		       (ps-font 'ps-font-for-header 'bold))
-	       (format "/h1 %s(%s)cvn DefFont\n" ; /h1 12/Helvetica DefFont
-		       ps-header-font-size-internal
-		       (ps-font 'ps-font-for-header 'normal))
-	       (format "/L0 %s(%s)cvn DefFont\n" ; /L0 6/Times-Italic DefFont
-		       (ps-get-font-size 'ps-line-number-font-size)
-		       ps-line-number-font)
-	       (format "/H0 %s(%s)cvn DefFont\n" ; /H0 12/Helvetica DefFont
-		       ps-footer-font-size-internal
-		       (ps-font 'ps-font-for-footer 'normal))
-	       "\n\n% ---- These lines must be kept together because...
+     ;; Header/line number fonts
+     (format "\n/h0 %s(%s)cvn DefFont\n" ; /h0 14/Helvetica-Bold DefFont
+	     ps-header-title-font-size-internal
+	     (ps-font 'ps-font-for-header 'bold))
+     (format "/h1 %s(%s)cvn DefFont\n"	; /h1 12/Helvetica DefFont
+	     ps-header-font-size-internal
+	     (ps-font 'ps-font-for-header 'normal))
+     (format "/L0 %s(%s)cvn DefFont\n"	; /L0 6/Times-Italic DefFont
+	     (ps-get-font-size 'ps-line-number-font-size)
+	     ps-line-number-font)
+     (format "/H0 %s(%s)cvn DefFont\n"	; /H0 12/Helvetica DefFont
+	     ps-footer-font-size-internal
+	     (ps-font 'ps-font-for-footer 'normal))
+     "\n\n% ---- These lines must be kept together because...
 
 /h0 F
 /HeaderTitleLineHeight FontHeight def

@@ -264,10 +264,10 @@ Put point and mark around this or next paragraph (@code{mark-paragraph}).
   @kbd{M-@{} moves to the beginning of the current or previous
 paragraph, while @kbd{M-@}} moves to the end of the current or next
 paragraph.  Blank lines and text-formatter command lines separate
-paragraphs and are not considered part of any paragraph.  In Fundamental
-mode, but not in Text mode, an indented line also starts a new
-paragraph.  (If a paragraph is preceded by a blank line, these commands
-treat that blank line as the beginning of the paragraph.)
+paragraphs and are not considered part of any paragraph.  In Indented
+Text mode, but not in Text mode, an indented line also starts a new
+paragraph.  (If a paragraph is preceded by a blank line, these
+commands treat that blank line as the beginning of the paragraph.)
 
   In major modes for programs, paragraphs begin and end only at blank
 lines.  This makes the paragraph commands continue to be useful even
@@ -300,7 +300,7 @@ example, blank lines).  Lines that start a new paragraph and are
 contained in it must match only @code{paragraph-start}, not
 @code{paragraph-separate}.  For example, in Fundamental mode,
 @code{paragraph-start} is @w{@code{"[ \t\n\f]"}}, and
-@code{paragraph-separate} is @w{@code{"[ \t\f]*$"}}.
+@code{paragraph-separate} is @w{@code{"\f\\|[ \t]*$"}}.
 
   Normally it is desirable for page boundaries to separate paragraphs.
 The default values of these variables recognize the usual separator for
