@@ -47,34 +47,56 @@
 ;;; Code:
 
 ;;; Customization:
+(defgroup cpp nil
+  "Highlight or hide text according to cpp conditionals."
+  :group 'C
+  :prefix "cpp-")
 
-(defvar cpp-config-file (convert-standard-filename ".cpp.el")
-  "*File name to save cpp configuration.")
+(defcustom cpp-config-file (convert-standard-filename ".cpp.el")
+  "*File name to save cpp configuration."
+  :type 'file
+  :group 'cpp)
 
-(defvar cpp-known-face 'invisible
-  "*Face used for known cpp symbols.")
+(defcustom cpp-known-face 'invisible
+  "*Face used for known cpp symbols."
+  :type 'face
+  :group 'cpp)
 
-(defvar cpp-unknown-face 'highlight
-  "*Face used for unknown cpp symbols.")
+(defcustom cpp-unknown-face 'highlight
+  "*Face used for unknown cpp symbols."
+  :type 'face
+  :group 'cpp)
 
-(defvar cpp-face-type 'light 
+(defcustom cpp-face-type 'light 
   "*Indicate what background face type you prefer.
 Can be either light or dark for color screens, mono for monochrome
-screens, and none if you don't use a window system.")
+screens, and none if you don't use a window system."
+  :options '(light dark mono nil)
+  :type 'symbol
+  :group 'cpp)
 
-(defvar cpp-known-writable t
-  "*Non-nil means you are allowed to modify the known conditionals.")
+(defcustom cpp-known-writable t
+  "*Non-nil means you are allowed to modify the known conditionals."
+  :type 'boolean
+  :group 'cpp)
 
-(defvar cpp-unknown-writable t
-  "*Non-nil means you are allowed to modify the unknown conditionals.")
+(defcustom cpp-unknown-writable t
+  "*Non-nil means you are allowed to modify the unknown conditionals."
+  :type 'boolean
+  :group 'cpp)
 
-(defvar cpp-edit-list nil
+(defcustom cpp-edit-list nil
   "Alist of cpp macros and information about how they should be displayed.
 Each entry is a list with the following elements:
 0. The name of the macro (a string).
 1. Face used for text that is `ifdef' the macro.
 2. Face used for text that is `ifndef' the macro.
-3. `t', `nil', or `both' depending on what text may be edited.")
+3. `t', `nil', or `both' depending on what text may be edited."
+  :type '(repeat (list string face face
+		       (choice (const t)
+			       (const nil)
+			       (const both))))
+  :group 'cpp)
 
 (defvar cpp-overlay-list nil)
 ;; List of cpp overlays active in the current buffer.
@@ -108,38 +130,52 @@ Each entry is a list with the following elements:
     ("true" . t)
     ("both" . both)))
 
-(defvar cpp-face-default-list nil
-  "List of faces you can choose from for cpp conditionals.")
+(defcustom cpp-face-default-list nil
+  "List of faces you can choose from for cpp conditionals."
+  :type '(repeat face)
+  :group 'cpp)
 
-(defvar cpp-face-light-name-list
+(defcustom cpp-face-light-name-list
   '("light gray" "light blue" "light cyan" "light yellow" "light pink"
     "pale green" "beige" "orange" "magenta" "violet" "medium purple"
     "turquoise")
-  "Background colours useful with dark foreground colors.")
+  "Background colours useful with dark foreground colors."
+  :type '(repeat string)
+  :group 'cpp)
 
-(defvar cpp-face-dark-name-list
+(defcustom cpp-face-dark-name-list
   '("dim gray" "blue" "cyan" "yellow" "red"
     "dark green" "brown" "dark orange" "dark khaki" "dark violet" "purple"
     "dark turquoise")
-  "Background colours useful with light foreground colors.")
+  "Background colours useful with light foreground colors."
+  :type '(repeat string)
+  :group 'cpp)
 
-(defvar cpp-face-light-list nil
-  "Alist of names and faces to be used for light backgrounds.")
+(defcustom cpp-face-light-list nil
+  "Alist of names and faces to be used for light backgrounds."
+  :type '(repeat (cons string face))
+  :group 'cpp)
 
-(defvar cpp-face-dark-list nil
-  "Alist of names and faces to be used for dark backgrounds.")
+(defcustom cpp-face-dark-list nil
+  "Alist of names and faces to be used for dark backgrounds."
+  :type '(repeat (cons string face))
+  :group 'cpp)
 
-(defvar cpp-face-mono-list
-  '(("bold" . 'bold)
-    ("bold-italic" . 'bold-italic)
-    ("italic" . 'italic)
-    ("underline" . 'underline))
-  "Alist of names and faces to be used for monochrome screens.")
+(defcustom cpp-face-mono-list
+  '(("bold" . bold)
+    ("bold-italic" . bold-italic)
+    ("italic" . italic)
+    ("underline" . underline))
+  "Alist of names and faces to be used for monochrome screens."
+  :type '(repeat (cons string face))
+  :group 'cpp)
 
-(defvar cpp-face-none-list
+(defcustom cpp-face-none-list
    '(("default" . default)
      ("invisible" . invisible))
-   "Alist of names and faces available even if you don't use a window system.")
+   "Alist of names and faces available even if you don't use a window system."
+  :type '(repeat (cons string face))
+  :group 'cpp)
 
 (defvar cpp-face-all-list
   (append cpp-face-light-list

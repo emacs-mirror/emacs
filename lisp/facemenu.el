@@ -102,7 +102,12 @@
 (define-key global-map [C-down-mouse-2] 'facemenu-menu)
 (define-key global-map "\M-g" 'facemenu-keymap)
 
-(defvar facemenu-keybindings
+(defgroup facemenu nil
+  "Create a face menu for interactively adding fonts to text"
+  :group 'faces
+  :prefix "facemenu-")
+
+(defcustom facemenu-keybindings
   '((default     . "d")
     (bold        . "b")
     (italic      . "i")
@@ -119,14 +124,18 @@ except for those in `facemenu-unlisted-faces', are listed after them,
 but get no keyboard equivalents.
 
 If you change this variable after loading facemenu.el, you will need to call
-`facemenu-update' to make it take effect.")
+`facemenu-update' to make it take effect."
+  :type '(repeat (cons face string))
+  :group 'facemenu)
 
-(defvar facemenu-new-faces-at-end t
+(defcustom facemenu-new-faces-at-end t
   "*Where in the menu to insert newly-created faces.
 This should be nil to put them at the top of the menu, or t to put them
-just before \"Other\" at the end.")
+just before \"Other\" at the end."
+  :type 'boolean
+  :group 'facemenu)
 
-(defvar facemenu-unlisted-faces
+(defcustom facemenu-unlisted-faces
   '(modeline region secondary-selection highlight scratch-face)
   "*List of faces not to include in the Face menu.
 You can set this list before loading facemenu.el, or add a face to it before
@@ -136,7 +145,11 @@ call `facemenu-update' to recalculate the menu contents.
 
 If this variable is t, no faces will be added to the menu.  This is useful for
 temporarily turning off the feature that automatically adds faces to the menu
-when they are created.")
+when they are created."
+  :type '(choice (const :tag "Don't add" t)
+		 (const :tag "None" nil)
+		 (repeat face))
+  :group 'facemenu)
 
 ;;;###autoload
 (defvar facemenu-face-menu
@@ -242,20 +255,31 @@ requested in `facemenu-keybindings'.")
 (defalias 'facemenu-keymap facemenu-keymap)
 
 
-(defvar facemenu-add-face-function nil
+(defcustom facemenu-add-face-function nil
   "Function called at beginning of text to change or `nil'.
 This function is passed the FACE to set and END of text to change, and must
-return a string which is inserted.  It may set `facemenu-end-add-face'.")
+return a string which is inserted.  It may set `facemenu-end-add-face'."
+  :type '(choice (const :tag "None" nil)
+		 function)
+  :group 'facemenu)
 
-(defvar facemenu-end-add-face nil
+(defcustom facemenu-end-add-face nil
   "String to insert or function called at end of text to change or `nil'.
 This function is passed the FACE to set, and must return a string which is
-inserted.")
+inserted."
+  :type '(choice (const :tag "None" nil)
+		 string
+		 function)
+  :group 'facemenu)
 
-(defvar facemenu-remove-face-function nil
+(defcustom facemenu-remove-face-function nil
   "When non-nil, this is a function called to remove faces.
 This function is passed the START and END of text to change.
-May also be `t' meaning to use `facemenu-add-face-function'.")
+May also be `t' meaning to use `facemenu-add-face-function'."
+  :type '(choice (const :tag "None" nil)
+		 (const :tag "Use add-face" t)
+		 function)
+  :group 'facemenu)
 
 ;;; Internal Variables
 
