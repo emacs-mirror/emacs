@@ -422,17 +422,17 @@ that string instead of from the current buffer."
   "Translates REF from \"chmod(2V)\" to \"2v chmod\" style.
 Leave it as is if already in that style.  Possibly downcase and
 translate the section (see the Man-downcase-section-letters-flag
-and the Man-section-translations-alist variables)." 
+and the Man-section-translations-alist variables)."
   (let ((name "")
 	(section "")
 	(slist Man-section-translations-alist))
     (cond
      ;; "chmod(2V)" case ?
-     ((string-match (concat Man-reference-regexp "$") ref)
+     ((string-match (concat "^" Man-reference-regexp "$") ref)
       (setq name (Man-match-substring 1 ref)
 	    section (Man-match-substring 2 ref)))
      ;; "2v chmod" case ?
-     ((string-match (concat "\\(" Man-section-regexp
+     ((string-match (concat "^\\(" Man-section-regexp
 			    "\\) +\\(" Man-name-regexp "\\)$") ref)
       (setq name (Man-match-substring 2 ref)
 	    section (Man-match-substring 1 ref))))
