@@ -645,7 +645,7 @@ lisp_free (block)
 /* BLOCK_ALIGN has to be a power of 2.  */
 #define BLOCK_ALIGN (1 << 10)
 #define BLOCK_BYTES \
-  (BLOCK_ALIGN - sizeof (struct aligned_block *) - ABLOCKS_PADDING)
+  (BLOCK_ALIGN - sizeof (struct alinged_block *) - ABLOCKS_PADDING)
 
 /* Internal data structures and constants.  */
 
@@ -676,7 +676,9 @@ struct ablock
   struct ablocks *abase;
   /* The padding of all but the last ablock is unused.  The padding of
      the last ablock in an ablocks is not allocated.  */
+#if ABLOCKS_PADDING
   char padding[ABLOCKS_PADDING];
+#endif
 };
 
 /* A bunch of consecutive aligned blocks.  */
