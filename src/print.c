@@ -222,6 +222,7 @@ glyph_to_str_cpy (glyphs, str)
 #define PRINTDECLARE						\
    struct buffer *old = current_buffer;				\
    int old_point = -1, start_point;				\
+   int old_point_byte, start_point_byte;			\
    int specpdl_count = specpdl_ptr - specpdl;			\
    int free_print_buffer = 0;					\
    Lisp_Object original
@@ -242,8 +243,11 @@ glyph_to_str_cpy (glyphs, str)
        if (XMARKER (original)->buffer != current_buffer)	\
          set_buffer_internal (XMARKER (original)->buffer);	\
        old_point = PT;						\
-       SET_PT (marker_position (printcharfun));			\
+       old_point_byte = PT_BYTE;				\
+       SET_PT_BOTH (marker_position (printcharfun),		\
+		    marker_byte_position (printcharfun));	\
        start_point = PT;					\
+       start_point_byte = PT_BYTE;				\
        printcharfun = Qnil;					\
      }								\
    if (NILP (printcharfun))					\
@@ -273,10 +277,12 @@ glyph_to_str_cpy (glyphs, str)
      }							\
    unbind_to (specpdl_count, Qnil);			\
    if (MARKERP (original))				\
-     Fset_marker (original, make_number (PT), Qnil);	\
+     set_marker_both (original, Qnil, PT, PT_BYTE);	\
    if (old_point >= 0)					\
-     SET_PT (old_point + (old_point >= start_point	\
-			  ? PT - start_point : 0));	\
+     SET_PT_BOTH (old_point + (old_point >= start_point	\
+			       ? PT - start_point : 0), \
+		  old_point_byte + (old_point_byte >= start_point_byte	\
+			       ? PT_BYTE - start_point_byte : 0));	\
    if (old != current_buffer)				\
      set_buffer_internal (old);				\
    if (!CONSP (Vprint_gensym))				\
@@ -1067,6 +1073,7 @@ print (obj, printcharfun, escapeflag)
 	  register int i;
 	  register unsigned char c;
 	  struct gcpro gcpro1;
+	  int size;
 
 	  GCPRO1 (obj);
 
@@ -1079,10 +1086,17 @@ print (obj, printcharfun, escapeflag)
 #endif
 
 	  PRINTCHAR ('\"');
-	  for (i = 0; i < XSTRING (obj)->size; i++)
+	  size = XSTRING (obj)->size;
+	  for (i = 0; i < size;)
 	    {
+	      /* Here, we must convert each multi-byte form to the
+		 corresponding character code before handing it to PRINTCHAR.  */
+	      int len;
+	      int c = STRING_CHAR_AND_LENGTH (&XSTRING (obj)->data[i],
+					      size - i, len);
+	      i += len;
 	      QUIT;
-	      c = XSTRING (obj)->data[i];
+
 	      if (c == '\n' && print_escape_newlines)
 		{
 		  PRINTCHAR ('\\');
@@ -1121,7 +1135,7 @@ print (obj, printcharfun, escapeflag)
 	register unsigned char *p = XSYMBOL (obj)->name->data;
 	register unsigned char *end = p + XSYMBOL (obj)->name->size;
 	register unsigned char c;
-	int i;
+	int i, size;
 
 	if (p != end && (*p == '-' || *p == '+')) p++;
 	if (p == end)
@@ -1178,10 +1192,16 @@ print (obj, printcharfun, escapeflag)
 	    PRINTCHAR (':');
 	  }
 
-	for (i = 0; i < XSYMBOL (obj)->name->size; i++)
+	size = XSYMBOL (obj)->name->size;
+	for (i = 0; i < size;)
 	  {
+	    /* Here, we must convert each multi-byte form to the
+	       corresponding character code before handing it to PRINTCHAR.  */
+	    int len;
+	    int c = STRING_CHAR_AND_LENGTH (&XSYMBOL (obj)->name->data[i],
+					    size - i, len);
+	    i += len;
 	    QUIT;
-	    c = XSYMBOL (obj)->name->data[i];
 
 	    if (escapeflag)
 	      {
