@@ -617,6 +617,9 @@ If nil, uses `change-log-default-name'."
   (interactive (if current-prefix-arg
 		   (list current-prefix-arg
 			 (prompt-for-change-log-name))))
+  ;; Make sure the defvar for add-log-current-defun-function has been executed
+  ;; before binding it.
+  (require 'add-log)
   (let (;; Extract the comment first so we get any error before doing anything.
 	(comment (ring-ref vc-comment-ring 0))
 	;; Don't let add-change-log-entry insert a defun name.
