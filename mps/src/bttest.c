@@ -1,16 +1,15 @@
 /* impl.c.bttest: BIT TABLE TEST
  *
- * $HopeName: MMsrc!bttest.c(trunk.3) $
- * Copyright (C) 1998, Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!bttest.c(trunk.4) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 
 
 #include "mpm.h"
 #include "mps.h"
-#include "mpsaan.h" /* ANSI arena for BTCreate and BTDestroy */
+#include "mpsavm.h"
 #include "testlib.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include "mpstd.h"
@@ -19,17 +18,13 @@ struct itimerspec; /* stop complaints from time.h */
 #endif
 #include <time.h>
 
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif /* MPS_OS_SU */
 
-
-SRCID(bttest, "$HopeName: MMsrc!bttest.c(trunk.3) $");
+SRCID(bttest, "$HopeName: MMsrc!bttest.c(trunk.4) $");
 
 
 static BT bt; /* the BT which we will use */
 static Size btSize; /* the size of the current BT */
-static Arena arena; /* the ANSI arena which we use to allocate the BT */
+static Arena arena; /* the arena which we use to allocate the BT */
 
 
 #define MAX_ARGS 3
@@ -364,20 +359,18 @@ static void showBT(void) {
 #endif
       
 
+#define testArenaSIZE (((size_t)64)<<20)
+
 extern int main(int argc, char *argv[])
 {
-  mps_res_t res;
   bt = NULL;
   btSize = 0;
 
   testlib_unused(argc); testlib_unused(argv);
 
-  res = mps_arena_create((mps_arena_t *)&arena,
-                         mps_arena_class_an());
-  if (res != MPS_RES_OK) {
-    printf("failed to create ANSI arena.\n");
-    return 1;
-  }
+  die(mps_arena_create((mps_arena_t*)&arena, mps_arena_class_vm(),
+                       testArenaSIZE),
+      "mps_arena_create");
   while(1) {
     char input[100];
     printf("bt test> ");

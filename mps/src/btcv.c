@@ -1,7 +1,7 @@
-/*  impl.c.btss: BIT TABLE COVERAGE TEST
+/* impl.c.btss: BIT TABLE COVERAGE TEST
  *
- *  $HopeName: MMsrc!btcv.c(trunk.3) $
- * Copyright (C) 2000 Harlequin Ltd.  All rights reserved.
+ * $HopeName: MMsrc!btcv.c(trunk.4) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .readership: MPS developers
  *
@@ -13,20 +13,13 @@
 
 
 #include "mpm.h"
-#include "mpsaan.h" /* ANSI arena for BTCreate and BTDestroy */
+#include "mpsavm.h"
 #include "mps.h"
 #include "testlib.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 
-SRCID(btcv, "$HopeName: MMsrc!btcv.c(trunk.3) $");
-
-
-static void die_bool(Bool res, Bool expected, const char *s)
-{
-  die_expect((mps_res_t)res, (mps_res_t)expected, s);
-}
+SRCID(btcv, "$HopeName: MMsrc!btcv.c(trunk.4) $");
 
 
 /* bt*Symmetric -- Symmetric operations on bit tables
@@ -85,10 +78,10 @@ static void btTestSingleRange(BTFinderFn finder, BT bt,
    Index foundBase, foundLimit;
 
    found = finder(&foundBase, &foundLimit, bt, base, limit, length);
-   die_bool(found, expect, "FindResRange result"); 
+   cdie(found == expect, "FindResRange result"); 
    if (expect) {
-     die_bool(foundBase == expectBase, TRUE, "FindResRange base"); 
-     die_bool(foundLimit == expectLimit, TRUE, "FindResRange limit"); 
+     cdie(foundBase == expectBase, "FindResRange base"); 
+     cdie(foundLimit == expectLimit, "FindResRange limit"); 
    }
 }
 
@@ -432,17 +425,17 @@ static void btIsRangeTests(BT bt1, BT bt2, Count btSize,
       BTCopyInvertRange(bt1, bt2, 0, btSize);
 
       /* Check it with BTIsResRange, and the inverse with BTIsSetRange */
-      die_bool(BTIsResRange(bt1, base, limit), outside, "BTISResRange");
-      die_bool(BTIsSetRange(bt2, base, limit), outside, "BTISSetRange");
+      cdie(BTIsResRange(bt1, base, limit) == outside, "BTISResRange");
+      cdie(BTIsSetRange(bt2, base, limit) == outside, "BTISSetRange");
 
       /* Check the same range with BTRangesSame on an empty table */
       BTResRange(bt2, 0, btSize);
-      die_bool(BTRangesSame(bt1, bt2, base, limit), outside, "BTRangeSame");
+      cdie(BTRangesSame(bt1, bt2, base, limit) == outside, "BTRangeSame");
 
       /* Check the inverse with BTRangesSame on a full table */
       BTCopyInvertRange(bt1, bt2, 0, btSize);
       BTSetRange(bt1, 0, btSize);
-      die_bool(BTRangesSame(bt1, bt2, base, limit), outside, "BTRangeSame");
+      cdie(BTRangesSame(bt1, bt2, base, limit) == outside, "BTRangeSame");
     }
   }
 }
@@ -486,26 +479,26 @@ static void btCopyTests(BT bt1, BT bt2, Count btSize,
 
       /* check copying the region to the bottom of the other table */
       BTCopyOffsetRange(bt1, bt2, base, limit, 0, limit - base);
-      die_bool(BTIsResRange(bt2, 0, limit - base), outside, "BTIsResRange");
+      cdie(BTIsResRange(bt2, 0, limit - base) == outside, "BTIsResRange");
 
       /* check copying the region to the top of the other table */
       BTCopyOffsetRange(bt1, bt2, 
                         base, limit, btSize + base - limit, btSize);
-      die_bool(BTIsResRange(bt2, btSize + base - limit, btSize), outside, 
-               "BTIsResRange");
+      cdie(BTIsResRange(bt2, btSize + base - limit, btSize) == outside, 
+           "BTIsResRange");
 
       /* check copying the region to the same place in the other table */
       BTCopyOffsetRange(bt1, bt2, base, limit, base, limit);
-      die_bool(BTIsResRange(bt2, base, limit), outside, "BTIsResRange");
+      cdie(BTIsResRange(bt2, base, limit) == outside, "BTIsResRange");
 
       /* copy the range and check its the same */
       BTCopyRange(bt1, bt2, base, limit);
-      die_bool(BTRangesSame(bt1, bt2, base, limit), TRUE, "BTRangeSame");
+      cdie(BTRangesSame(bt1, bt2, base, limit), "BTRangeSame");
 
       /* invert the table, then copy it and check it again */
       BTCopyInvertRange(bt2, bt1, 0, btSize);
       BTCopyRange(bt1, bt2, base, limit);
-      die_bool(BTRangesSame(bt1, bt2, base, limit), TRUE, "BTRangeSame");
+      cdie(BTRangesSame(bt1, bt2, base, limit), "BTRangeSame");
     }
   }
 }
@@ -542,6 +535,9 @@ static void btTests(BT btlo, BT bthi, Count btSize)
 
 
 /* Start the world */
+
+#define testArenaSIZE (((size_t)64)<<20)
+
 int main(int argc, char *argv[])
 {
   mps_arena_t mpsArena;
@@ -555,8 +551,8 @@ int main(int argc, char *argv[])
   testlib_unused(argc); 
   testlib_unused(argv);
 
-  die((mps_res_t)mps_arena_create(&mpsArena, mps_arena_class_an()),
-      "Failed to create arena");
+  die(mps_arena_create(&mpsArena, mps_arena_class_vm(), testArenaSIZE),
+      "mps_arena_create");
   arena = (Arena)mpsArena; /* avoid pun */
 
   die((mps_res_t)BTCreate(&btlo, arena, btSize), 
