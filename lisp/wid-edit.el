@@ -2637,7 +2637,13 @@ when he invoked the menu."
 
 (defun widget-documentation-link-action (widget &optional event)
   "Run apropos on WIDGET's value.  Ignore optional argument EVENT."
-  (apropos (concat "\\`" (regexp-quote (widget-get widget :value)) "\\'")))
+  (let* ((string (widget-get widget :value))
+	 (symbol (intern string)))
+    (if (and (fboundp symbol) (boundp symbol))
+	(apropos (concat "\\`" (regexp-quote string) "\\'"))
+      (if (fboundp symbol)
+	  (describe-function symbol)
+	(describe-variable symbol)))))
 
 (defcustom widget-documentation-links t
   "Add hyperlinks to documentation strings when non-nil."
