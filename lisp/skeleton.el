@@ -86,11 +86,9 @@ which contains the skeleton, has a documentation to that effect.
 INTERACTOR and ELEMENT ... are as defined under `skeleton-insert'."
   (if skeleton-debug
       (set command skeleton))
-  (require 'backquote)
-  (`(progn
-      (defvar (, command) '(, skeleton)
-	(, documentation))
-      (defalias '(, command) 'skeleton-proxy))))
+  `(progn
+     (defvar ,command ',skeleton ,documentation)
+     (defalias ',command 'skeleton-proxy)))
 
 
 
@@ -186,6 +184,7 @@ available:
 	str	first time: read a string according to INTERACTOR
 		then: insert previously read string once more
 	help	help-form during interaction with the user or `nil'
+	input	initial input (string or cons with index) while reading str
 	quit	non-nil after resume: section is entered by keyboard quit
 	v1, v2	local variables for memorising anything you want"
   (and regions
@@ -204,32 +203,35 @@ available:
 		 (sort l2 '<))))
        (goto-char (car regions))
        (setq regions (cdr regions)))
-  (let (modified point resume: help quit v1 v2)
+  (let ((beg (point))
+	modified point resume: help input quit v1 v2)
     (or no-newline
 	(eolp)
-	;;(save-excursion
-	;;  (indent-to (prog1
-	;;		 (current-indentation)
-	;;	       (newline))))
 	(goto-char (prog1 (point)
-		     (indent-to (prog1
-				    (current-indentation)
+		     (indent-to (prog1 (current-indentation)
 				  (newline))))))
     (unwind-protect
-	(eval (list 'let skeleton-further-elements
-		    '(skeleton-internal-list skeleton (car skeleton))))
+	(eval `(let ,skeleton-further-elements
+		 (skeleton-internal-list skeleton)))
+      (sit-for 0)
+      (or (pos-visible-in-window-p beg)
+	  (progn
+	    (goto-char beg)
+	    (recenter 0)))
       (if point
 	  (goto-char point)))))
 
 
 
 (defun skeleton-read (str &optional initial-input recursive)
-  "Function for reading a string from the minibuffer in skeletons.
+  "Function for reading a string from the minibuffer within skeletons.
 PROMPT may contain a `%s' which will be replaced by `skeleton-subprompt'.
-If non-`nil' second arg INITIAL-INPUT is a string to insert before reading.
-While reading, the value of `minibuffer-help-form' is variable `help' if that is
-non-`nil' or a default string if optional ITERATIVE is non-`nil'."
-
+If non-`nil' second arg INITIAL-INPUT or variable `input' is a string or
+cons with index to insert before reading.  If third arg RECURSIVE is non-`nil'
+i.e. we are handling the iterator of a subskeleton, returns empty string if
+user didn't modify input.
+While reading, the value of `minibuffer-help-form' is variable `help' if that
+is non-`nil' or a default string."
   (or no-newline
       (eolp)
       (goto-char (prog1 (point)
@@ -245,60 +247,56 @@ left, and the current one is removed as far as it has been entered.
 If you quit, the current subskeleton is removed as far as it has been
 entered.  No more of the skeleton will be inserted, except maybe for a
 syntactically necessary termination."
-					 "
+					 "\
 You are inserting a skeleton.  Standard text gets inserted into the buffer
 automatically, and you are prompted to fill in the variable parts."))))
     (setq str (if (stringp str)
-		  (read-string (format str skeleton-subprompt) initial-input)
+		  (read-string (format str skeleton-subprompt)
+			       (setq initial-input (or initial-input input)))
 		(eval str))))
-  (if (or (null str) (string= str ""))
+  (if (and recursive
+	   (or (null str)
+	       (string= str "")
+	       (equal str initial-input)
+	       (equal str (car-safe initial-input))))
       (signal 'quit t)
     str))
 
 
-(defun skeleton-internal-list (skeleton &optional str recursive)
+(defun skeleton-internal-list (skeleton &optional recursive)
   (let* ((start (save-excursion (beginning-of-line) (point)))
 	 (column (current-column))
 	 (line (buffer-substring start
 				 (save-excursion (end-of-line) (point))))
+	 (str `(setq str (skeleton-read ',(car skeleton) nil ,recursive)))
 	 opoint)
-    (condition-case quit
-	(progn
-	  '(setq str (list 'setq 'str
-			  (if recursive
-			      (list 'skeleton-read (list 'quote str))
-			    (list (if (stringp str)
-				      'read-string
-				    'eval)
-				  str))))
-	  (setq str (list 'setq 'str
-			  (list 'skeleton-read
-				(list 'quote str nil recursive))))
-	  (while (setq modified (eq opoint (point))
-		       opoint (point)
-		       skeleton (cdr skeleton))
-	    (skeleton-internal-1 (car skeleton)))
-	  ;; maybe continue loop
-	  recursive)
-      (quit ;; remove the subskeleton as far as it has been shown
-       (if (eq (cdr quit) 'recursive)
-	   ()
-	 ;; the subskeleton shouldn't have deleted outside current line
-	 (end-of-line)
-	 (delete-region start (point))
-	 (insert line)
-	 (move-to-column column))
-       (if (eq (cdr quit) t)
-	   ;; empty string entered
-	   nil
-	 (while (if skeleton
-		    (not (eq (car (setq skeleton (cdr skeleton)))
-			     'resume:))))
-	 (if skeleton
-	     (skeleton-internal-list skeleton)
-	   ;; propagate signal we can't handle
-	   (if recursive (signal 'quit 'recursive)))
-	 (signal 'quit nil))))))
+    (while (setq modified (eq opoint (point))
+		 opoint (point)
+		 skeleton (cdr skeleton))
+      (condition-case quit
+	  (skeleton-internal-1 (car skeleton))
+	(quit
+	 (if (eq (cdr quit) 'recursive)
+	     (progn
+	       (setq recursive 'quit)
+	       (while (if skeleton
+			  (not (eq (car (setq skeleton (cdr skeleton)))
+				   'resume:)))))
+	   ;; remove the subskeleton as far as it has been shown
+	   ;; the subskeleton shouldn't have deleted outside current line
+	   ;; problematic when wrapping text starting on same line
+	   (end-of-line)
+	   (delete-region start (point))
+	   (insert line)
+	   (move-to-column column)
+	   (if (cdr quit)
+	       (setq skeleton ()
+		     recursive nil)
+	     (signal 'quit 'recursive)))))))
+  ;; maybe continue loop or go on to next outer resume: section
+  (if (eq recursive 'quit)
+      (signal 'quit 'recursive)
+    recursive))
 
 
 (defun skeleton-internal-1 (element &optional literal)
@@ -336,7 +334,7 @@ automatically, and you are prompted to fill in the variable parts."))))
 	((if (consp element)
 	     (or (stringp (car element))
 		 (consp (car element))))
-	 (while (skeleton-internal-list element (car element) t)))
+	 (while (skeleton-internal-list element t)))
 	((if (consp element)
 	     (eq 'quote (car element)))
 	 (eval (nth 1 element)))
@@ -410,6 +408,7 @@ the defaults are used.  These are (), [], {}, <> and `' for the
 symmetrical ones, and the same character twice for the others."
   (interactive "*P")
   (if (or arg
+	  overwrite-mode
 	  (not skeleton-pair)
 	  (if (not skeleton-pair-on-word) (looking-at "\\w"))
 	  (funcall skeleton-pair-filter))
