@@ -654,6 +654,7 @@ enum move_it_result
 
 /* Function prototypes.  */
 
+static void mark_window_display_accurate_1 P_ ((struct window *, int));
 static int single_display_prop_string_p P_ ((Lisp_Object, Lisp_Object));
 static int display_prop_string_p P_ ((Lisp_Object, Lisp_Object));
 static int cursor_row_p P_ ((struct window *, struct glyph_row *));
@@ -8709,54 +8710,15 @@ redisplay_internal (preserve_echo_area)
 	  && !FRAME_WINDOW_P (XFRAME (w->frame)))
 	update_mode_lines = 1;
     }
-
-  /* Now text on frame agrees with windows, so put info into the
-     windows for partial redisplay to follow.  */
-  if (!pause)
+  else
     {
-      register struct buffer *b = XBUFFER (w->buffer);
-
-      BUF_UNCHANGED_MODIFIED (b) = BUF_MODIFF (b);
-      BUF_OVERLAY_UNCHANGED_MODIFIED (b) = BUF_OVERLAY_MODIFF (b);
-      BUF_BEG_UNCHANGED (b) = BUF_GPT (b) - BUF_BEG (b);
-      BUF_END_UNCHANGED (b) = BUF_Z (b) - BUF_GPT (b);
-
-      if (consider_all_windows_p)
-	mark_window_display_accurate (FRAME_ROOT_WINDOW (sf), 1);
-      else
+      if (!consider_all_windows_p)
 	{
-	  w->last_point = make_number (BUF_PT (b));
-	  w->last_cursor = w->cursor;
-	  w->last_cursor_off_p = w->cursor_off_p;
-
-	  b->clip_changed = 0;
-	  b->prevent_redisplay_optimizations_p = 0;
-	  w->update_mode_line = Qnil;
-	  w->last_modified = make_number (BUF_MODIFF (b));
-	  w->last_overlay_modified = make_number (BUF_OVERLAY_MODIFF (b));
-	  w->last_had_star
-	    = (BUF_MODIFF (XBUFFER (w->buffer)) > BUF_SAVE_MODIFF (XBUFFER (w->buffer))
-	       ? Qt : Qnil);
-
-	  /* Record if we are showing a region, so can make sure to
-	     update it fully at next redisplay.  */
-	  w->region_showing = (!NILP (Vtransient_mark_mode)
-			       && (EQ (selected_window,
-				       current_buffer->last_selected_window)
-				   || highlight_nonselected_windows)
-			       && !NILP (XBUFFER (w->buffer)->mark_active)
-			       ? Fmarker_position (XBUFFER (w->buffer)->mark)
-			       : Qnil);
-
-	  w->window_end_valid = w->buffer;
-	  last_arrow_position = COERCE_MARKER (Voverlay_arrow_position);
-	  last_arrow_string = Voverlay_arrow_string;
+	  /* This has already been done above if
+	     consider_all_windows_p is set.  */
+	  mark_window_display_accurate_1 (w, 1);
 	  if (frame_up_to_date_hook != 0)
-	    (*frame_up_to_date_hook) (sf);
-
-	  w->current_matrix->buffer = b;
-	  w->current_matrix->begv = BUF_BEGV (b);
-	  w->current_matrix->zv = BUF_ZV (b);
+	    frame_up_to_date_hook (sf);
 	}
 
       update_mode_lines = 0;
@@ -8857,10 +8819,63 @@ unwind_redisplay (old_redisplaying_p)
 }
 
 
+/* Mark the display of window W as accurate or inaccurate.  If
+   ACCURATE_P is non-zero mark display of W as accurate.  If
+   ACCURATE_P is zero, arrange for W to be redisplayed the next time
+   redisplay_internal is called.  */
+
+static void
+mark_window_display_accurate_1 (w, accurate_p)
+     struct window *w;
+     int accurate_p;
+{
+  if (BUFFERP (w->buffer))
+    {
+      struct buffer *b = XBUFFER (w->buffer);
+	  
+      w->last_modified
+	= make_number (accurate_p ? BUF_MODIFF (b) : 0);
+      w->last_overlay_modified
+	= make_number (accurate_p ? BUF_OVERLAY_MODIFF (b) : 0);
+      w->last_had_star
+	= BUF_MODIFF (b) > BUF_SAVE_MODIFF (b) ? Qt : Qnil;
+
+      if (accurate_p)
+	{
+	  b->clip_changed = 0;
+	  b->prevent_redisplay_optimizations_p = 0;
+
+	  BUF_UNCHANGED_MODIFIED (b) = BUF_MODIFF (b);
+	  BUF_OVERLAY_UNCHANGED_MODIFIED (b) = BUF_OVERLAY_MODIFF (b);
+	  BUF_BEG_UNCHANGED (b) = BUF_GPT (b) - BUF_BEG (b);
+	  BUF_END_UNCHANGED (b) = BUF_Z (b) - BUF_GPT (b);
+	  
+	  w->current_matrix->buffer = b;
+	  w->current_matrix->begv = BUF_BEGV (b);
+	  w->current_matrix->zv = BUF_ZV (b);
+	  
+	  w->last_cursor = w->cursor;
+	  w->last_cursor_off_p = w->cursor_off_p;
+	  
+	  if (w == XWINDOW (selected_window))
+	    w->last_point = make_number (BUF_PT (b));
+	  else
+	    w->last_point = make_number (XMARKER (w->pointm)->charpos);
+	}
+    }
+
+  if (accurate_p)
+    {
+      w->window_end_valid = w->buffer;
+      w->update_mode_line = Qnil;
+    }
+}
+
+
 /* Mark the display of windows in the window tree rooted at WINDOW as
-   accurate or inaccurate.  If FLAG is non-zero mark display of WINDOW
-   as accurate.  If FLAG is zero arrange for WINDOW to be redisplayed
-   the next time redisplay_internal is called.  */
+   accurate or inaccurate.  If ACCURATE_P is non-zero mark display of
+   windows as accurate.  If ACCURATE_P is zero, arrange for windows to
+   be redisplayed the next time redisplay_internal is called.  */
 
 void
 mark_window_display_accurate (window, accurate_p)
@@ -8872,49 +8887,7 @@ mark_window_display_accurate (window, accurate_p)
   for (; !NILP (window); window = w->next)
     {
       w = XWINDOW (window);
-
-      if (BUFFERP (w->buffer))
-	{
-	  struct buffer *b = XBUFFER (w->buffer);
-	  
-	  w->last_modified
-	    = make_number (accurate_p ? BUF_MODIFF (b) : 0);
-	  w->last_overlay_modified
-	    = make_number (accurate_p ? BUF_OVERLAY_MODIFF (b) : 0);
-	  w->last_had_star = (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b)
-			      ? Qt : Qnil);
-
-#if 0 /* I don't think this is necessary because display_line does it.
-	 Let's check it.  */
-	  /* Record if we are showing a region, so can make sure to
-	     update it fully at next redisplay.  */
-	  w->region_showing
-	    = (!NILP (Vtransient_mark_mode)
-	       && (w == XWINDOW (current_buffer->last_selected_window)
-		   || highlight_nonselected_windows)
-	       && (!NILP (b->mark_active)
-		   ? Fmarker_position (b->mark)
-		   : Qnil));
-#endif
-	  
-	  if (accurate_p)
-	    {
-	      b->clip_changed = 0;
-	      b->prevent_redisplay_optimizations_p = 0;
-	      w->current_matrix->buffer = b;
-	      w->current_matrix->begv = BUF_BEGV (b);
-	      w->current_matrix->zv = BUF_ZV (b);
-	      w->last_cursor = w->cursor;
-	      w->last_cursor_off_p = w->cursor_off_p;
-	      if (w == XWINDOW (selected_window))
-		w->last_point = make_number (BUF_PT (b));
-	      else
-		w->last_point = make_number (XMARKER (w->pointm)->charpos);
-	    }
-	}
-
-      w->window_end_valid = w->buffer;
-      w->update_mode_line = Qnil;
+      mark_window_display_accurate_1 (w, accurate_p);
 
       if (!NILP (w->vchild))
 	mark_window_display_accurate (w->vchild, accurate_p);
