@@ -29,6 +29,8 @@ Boston, MA 02111-1307, USA.  */
 
 extern char *index ();
 
+extern Lisp_Object Qcursor_in_echo_area;
+
 Lisp_Object Vcurrent_prefix_arg, Qminus, Qplus;
 Lisp_Object Qcall_interactively;
 Lisp_Object Vcommand_history;
@@ -522,17 +524,27 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
 	case 'k':		/* Key sequence. */
-	  args[i] = Fread_key_sequence (build_string (callint_message),
-					Qnil, Qnil, Qnil);
-	  teml = args[i];
-	  visargs[i] = Fkey_description (teml);
+	  {
+	    int speccount1 = specpdl_ptr - specpdl;
+	    specbind (Qcursor_in_echo_area, Qt);
+	    args[i] = Fread_key_sequence (build_string (callint_message),
+					  Qnil, Qnil, Qnil);
+	    unbind_to (speccount1, Qnil);
+	    teml = args[i];
+	    visargs[i] = Fkey_description (teml);
+	  }
 	  break;
 
 	case 'K':		/* Key sequence to be defined. */
-	  args[i] = Fread_key_sequence (build_string (callint_message),
-					Qnil, Qt, Qnil);
-	  teml = args[i];
-	  visargs[i] = Fkey_description (teml);
+	  {
+	    int speccount1 = specpdl_ptr - specpdl;
+	    specbind (Qcursor_in_echo_area, Qt);
+	    args[i] = Fread_key_sequence (build_string (callint_message),
+					  Qnil, Qt, Qnil);
+	    teml = args[i];
+	    visargs[i] = Fkey_description (teml);
+	    unbind_to (speccount1, Qnil);
+	  }
 	  break;
 
 	case 'e':		/* The invoking event.  */
