@@ -105,7 +105,7 @@ Amdahl UTS (580-amdahl-sysv)
 Apple PowerPC Macintosh running GNU/Linux
 
   There are special considerations for a variety of this system which
-  is known as the ``Yellow Dog Linux'': Emacs may crash during
+  is known as the ``Yellow Dog [GNU/]Linux'': Emacs may crash during
   dumping.  To solve this, edit the header file src/m/macppc.h in the
   Emacs distribution, and remove the "#if 0" and "#endif" directives
   which surround the following block near the end of the file:
