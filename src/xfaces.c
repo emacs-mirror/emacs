@@ -1,5 +1,5 @@
 /* xfaces.c -- "Face" primitives.
-   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002
+   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003
    Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -6438,6 +6438,9 @@ choose_face_font (f, attrs, fontset, c, needs_overstrike)
   char *font_name = NULL;
   struct font_name *fonts;
   int nfonts, width_ratio;
+
+  if (needs_overstrike)
+    *needs_overstrike = 0;
 
   /* Get (foundry and) family name and registry (and encoding) name of
      a font for C.  */
