@@ -209,18 +209,6 @@
 (defvar calc-settings-file user-init-file
   "*File in which to record permanent settings; default is `user-init-file'.")
 
-;;;###autoload
-(defvar calc-gnuplot-name "gnuplot"
-  "*Name of GNUPLOT program, for calc-graph features.")
-
-;;;###autoload
-(defvar calc-gnuplot-plot-command nil
-  "*Name of command for displaying GNUPLOT output; %s = file name to print.")
-
-;;;###autoload
-(defvar calc-gnuplot-print-command "lp %s"
-  "*Name of command for printing GNUPLOT output; %s = file name to print.")
-
 (defvar calc-bug-address "belanger@truman.edu"
   "Address of the author of Calc, for use by `report-calc-bug'.")
 
@@ -898,13 +886,15 @@ If nil, selections displayed but ignored.")
  (lambda (x) (dolist (func (cdr x)) (autoload func (car x))))
     '(
 
- ("calc-aent" calc-Need-calc-aent calc-alg-digit-entry calc-alg-entry
+ ("calc-aent" calc-alg-digit-entry calc-alg-entry
     calc-check-user-syntax calc-do-alg-entry calc-do-calc-eval
     calc-do-quick-calc calc-match-user-syntax math-build-parse-table
     math-find-user-tokens math-read-expr-list math-read-exprs math-read-if
     math-read-token math-remove-dashes)
 
- ("calc-misc" calc-Need-calc-misc
+ ("calc-embed" calc-do-embedded-activate)
+
+ ("calc-misc" 
     calc-do-handle-whys calc-do-refresh calc-num-prefix-name
     calc-record-list calc-record-why calc-report-bug calc-roll-down-stack
     calc-roll-up-stack calc-temp-minibuffer-message calcFunc-floor
