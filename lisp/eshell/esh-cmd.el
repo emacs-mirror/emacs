@@ -1060,7 +1060,7 @@ at the moment are:
   object)
 
 (defconst function-p-func
-  (if (eshell-under-xemacs-p)
+  (if (fboundp 'compiled-function-p)
       'compiled-function-p
     'byte-code-function-p))
 
