@@ -1,3 +1,8 @@
+2004-04-20  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding): Delete unused variables.
+	(detect_coding_system): Likewise.
+
 2004-04-18  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (encode_coding_utf_8): Fix handling of raw-byte char.
