@@ -24,6 +24,8 @@ VPATH=@srcdir@
 CC=@CC@
 CPP=@CPP@
 CFLAGS=@CFLAGS@
+CPPFLAGS=@CPPFLAGS@
+LDFLAGS=@LDFLAGS@
 LN_S=@LN_S@
 # Substitute an assignment for the MAKE variable, because
 # BSD doesn't have it as a default.
@@ -48,8 +50,6 @@ config_h = config.h $(M_FILE) $(S_FILE)
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
-CPPFLAGS=
-LDFLAGS=
 C_SWITCH_SYSTEM=
 
 /* just to be sure the sh is used */
