@@ -1,5 +1,9 @@
 2001-12-23  Richard M. Stallman  <rms@gnu.org>
 
+	* term/x-win.el (x-handle-geometry): Put height and width
+	on default-frame-alist, left and top on initial-frame-alist.
+	* term/w32-win.el (x-handle-geometry): Likewise.
+
 	* sort.el (sort-reorder-buffer): Copy all to a temp buffer first.
 
 	* play/yow.el (yow): Use an arg to distinguish interactive calls,
