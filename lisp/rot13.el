@@ -52,6 +52,15 @@ To terminate the rot13 display, delete that window."
   (let ((w (display-buffer (current-buffer) t)))
     (set-window-display-table w rot13-display-table)))
 
+;;;###autoload
+(defun toggle-rot13-mode ()
+  "Toggle the use of rot 13 encoding for the current window."
+  (interactive)
+  (if (eq (window-display-table (selected-window)) rot13-display-table)
+      (set-window-display-table (selected-window) nil)
+    (if (null (window-display-table (selected-window)))
+	(set-window-display-table (selected-window) rot13-display-table))))
+
 (provide 'rot13)
 
 ;;; rot13.el ends here
