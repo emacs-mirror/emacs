@@ -1424,13 +1424,17 @@ The cdr of each element is the corresponding Emacs charset or coding system.")
 (defvar non-standard-designations-alist
   '(("$(0" . (big5 "big5-0" 2))
     ("$(1" . (big5 "big5-0" 2))
-    ("-V"  . (t "iso8859-10" 1))
-    ("-Y"  . (t "iso8859-13" 1))
-    ("-_"  . (t "iso8859-14" 1))
-    ("-b"  . (t "iso8859-15" 1))
-    ("-f"  . (t "iso8859-16" 1)))
+    ;; The following are actually standard; generating extended
+    ;; segments for them is wrong and screws e.g. Latin-9 users.
+    ;; 8859-{10,13,16} aren't Emacs charsets anyhow.  -- fx
+;;     ("-V"  . (t "iso8859-10" 1))
+;;     ("-Y"  . (t "iso8859-13" 1))
+;;     ("-_"  . (t "iso8859-14" 1))
+;;     ("-b"  . (t "iso8859-15" 1))
+;;     ("-f"  . (t "iso8859-16" 1))
+    )
   "Alist of ctext control sequences that introduce character sets which
-are not in the list of approved ICCCM encodings, and the corresponding
+are not in the list of approved encodings, and the corresponding
 coding system, identifier string, and number of octets per encoded
 character.
 
@@ -1440,7 +1444,7 @@ set in the text encoded by compound-text.  ENCODING is a coding system
 symbol; if it is t, it means that the ctext coding system already encodes
 the text correctly, and only the leading control sequence needs to be altered.
 If ENCODING is a coding system, we need to re-encode the text with that
-coding system.  CHARSET is the ICCCM name of the charset we need to put into
+coding system.  CHARSET is the name of the charset we need to put into
 the leading control sequence.  NOCTETS is the number of octets (bytes) that
 encode each character in this charset.  NOCTETS can be 0 (meaning the number
 of octets per character is variable), 1, 2, 3, or 4.")
@@ -1473,9 +1477,8 @@ text, and convert it in the temporary buffer.  Otherwise, convert in-place."
 	  (case-fold-search nil)
 	  pt desig encode-info encoding chset noctets textlen)
       (set-buffer-multibyte nil)
-      ;; The regexp below finds the leading sequences for big5 and
-      ;; iso8859-1[03-6] charsets.
-      (while (re-search-forward "\e\\(\$([01]\\|-[VY_bf]\\)" nil 'move)
+      ;; The regexp below finds the leading sequences for big5.
+      (while (re-search-forward "\e\\(\$([01]\\)" nil 'move)
 	(setq desig (match-string 1)
 	      pt (point-marker)
 	      encode-info (cdr (assoc desig non-standard-designations-alist))
