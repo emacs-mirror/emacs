@@ -2193,7 +2193,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   menu_item_selection = 0;
 
   /* Display the menu.  */
-  lw_popup_menu (menu, &dummy);
+  lw_popup_menu (menu, (XEvent *) &dummy);
   x_set_menu_resources_from_menu_face (f, menu);
   popup_activated_flag = 1;
 
