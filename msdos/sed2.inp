@@ -2,7 +2,7 @@
 # Configuration script for src/config.h
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2000
+# Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2000, 2002
 #   Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
@@ -20,33 +20,6 @@
 /^#undef GNU_MALLOC *$/s/undef/define/
 /^#undef REL_ALLOC *$/s/undef/define/
 /^#undef HAVE_SYS_SELECT/i\
-#if defined(__DJGPP__) && __DJGPP__ > 1\
-/* In v2.0 and later almost everything is defined in <sys/config.h>  */\
-#include <sys/config.h>\
-/* For those who still use DJGPP v2.01  */\
-#if __DJGPP__ == 2 && __DJGPP_MINOR__ == 1\
-#define NSIG 320\
-#endif\
-#define HAVE_SETITIMER 1\
-#undef HAVE_SELECT\
-#undef _LIBC\
-#define HAVE_STRUCT_UTIMBUF 1\
-#define LOCALTIME_CACHE 1\
-#define HAVE_TZSET 1\
-#define HAVE_LOGB 1\
-#define HAVE_FREXP 1\
-#define HAVE_FMOD 1\
-#define HAVE_RINT 1\
-#define HAVE_CBRT 1\
-#define HAVE_FPATHCONF 1\
-#define HAVE_SETRLIMIT 1\
-#define HAVE_TM_GMTOFF 1\
-#define HAVE_MBLEN 1\
-#define HAVE_STRUCT_TIMEZONE 1\
-#define HAVE_INDEX 1\
-#define HAVE_RINDEX 1\
-#define HAVE_MKSTEMP 1\
-#else /* not __DJGPP__ > 1 */
 /^#undef STDC_HEADERS *$/s/undef/define/
 /^#undef HAVE_SYS_TIMEB_H *$/s/undef/define/
 /^#undef HAVE_SYS_TIME_H *$/s/undef/define/
@@ -71,8 +44,6 @@
 /^#undef HAVE_MKTIME *$/s/undef/define/
 /^#undef HAVE_STRERROR *$/s/undef/define/
 /^#undef HAVE_TIMEVAL *$/s/undef/define/
-/ HAVE_TIMEVAL/a\
-#endif /* not __DJGPP__ > 1 */
 s/^#define USER_FULL_NAME .*$/#define USER_FULL_NAME (getenv ("NAME"))/
 s/^#undef STACK_DIRECTION *$/#define STACK_DIRECTION -1/
 s/^#undef EMACS_CONFIGURATION *$/#define EMACS_CONFIGURATION "i386-pc-msdosdjgpp"/
@@ -81,11 +52,3 @@ s!^#undef config_opsysfile *$!#define config_opsysfile "s/msdos.h"!
 s!^#undef config_machfile *$!#define config_machfile "m/intel386.h"!
 s/^#undef PROTOTYPES *$/#define PROTOTYPES 1/
 s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
-# ------------------------------------------------------------
-# Without this ifndef, gcc -E -traditional barfs with GCC 3.0
-# on the line which says if ! HAVE_MKTIME...
-# ------------------------------------------------------------
-/^#if ! HAVE_MKTIME || BROKEN_MKTIME/i\
-#ifndef __DJGPP__
-/^#define mktime emacs_mktime/a\
-#endif
