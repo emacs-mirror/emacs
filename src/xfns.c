@@ -5738,10 +5738,10 @@ lookup_image (f, spec)
   /* If not found, create a new image and cache it.  */
   if (img == NULL)
     {
+      BLOCK_INPUT;
       img = make_image (spec, hash);
       cache_image (f, img);
       img->load_failed_p = img->type->load (f, img) == 0;
-      xassert (!interrupt_input_blocked);
 
       /* If we can't load the image, and we don't have a width and
 	 height, use some arbitrary width and height so that we can
@@ -5817,10 +5817,8 @@ lookup_image (f, spec)
 		    }
 		  else if (NILP (mask) && found_p && img->mask)
 		    {
-		      BLOCK_INPUT;
 		      XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
 		      img->mask = 0;
-		      UNBLOCK_INPUT;
 		    }
     		}
 	    }
@@ -5850,6 +5848,9 @@ lookup_image (f, spec)
 	    }
 
 	}
+      
+      UNBLOCK_INPUT;
+      xassert (!interrupt_input_blocked);
     }
 
   /* We're using IMG, so set its timestamp to `now'.  */
@@ -6546,7 +6547,6 @@ xbm_load_image (f, img, contents, end)
       if (!NILP (value))
 	background = x_alloc_image_color (f, img, value, background);
 
-      BLOCK_INPUT;
       img->pixmap
 	= XCreatePixmapFromBitmapData (FRAME_X_DISPLAY (f),
 				       FRAME_X_WINDOW (f),
@@ -6563,8 +6563,6 @@ xbm_load_image (f, img, contents, end)
 	}
       else
 	success_p = 1;
-      
-      UNBLOCK_INPUT;
     }
   else
     image_error ("Error loading XBM image `%s'", img->spec, Qnil);
@@ -6659,8 +6657,6 @@ xbm_load (f, img)
 	  xassert (img->width > 0 && img->height > 0);
 	}
 
-      BLOCK_INPUT;
-      
       /* Get foreground and background colors, maybe allocate colors.  */
       if (fmt[XBM_FOREGROUND].count)
 	foreground = x_alloc_image_color (f, img, fmt[XBM_FOREGROUND].value,
@@ -6714,8 +6710,6 @@ xbm_load (f, img)
 	      x_clear_image (f, img);
 	    }
 	}
-
-      UNBLOCK_INPUT;
     }
 
   return success_p;
@@ -7052,8 +7046,6 @@ xpm_load (f, img)
 
   /* Create a pixmap for the image, either from a file, or from a
      string buffer containing data in the same format as an XPM file.  */
-  BLOCK_INPUT;
-
 #ifdef ALLOC_XPM_COLORS
   xpm_init_color_cache ();
 #endif
@@ -7065,7 +7057,6 @@ xpm_load (f, img)
       if (!STRINGP (file))
 	{
 	  image_error ("Cannot find image file `%s'", specified_file, Qnil);
-	  UNBLOCK_INPUT;
 	  return 0;
 	}
       
@@ -7081,7 +7072,6 @@ xpm_load (f, img)
 				      &img->pixmap, &img->mask,
 				      &attrs);
     }
-  UNBLOCK_INPUT;
 
   if (rc == XpmSuccess)
     {
@@ -7105,9 +7095,7 @@ xpm_load (f, img)
       xassert (img->width > 0 && img->height > 0);
 
       /* The call to XpmFreeAttributes below frees attrs.alloc_pixels.  */
-      BLOCK_INPUT;
       XpmFreeAttributes (&attrs);
-      UNBLOCK_INPUT;
     }
   else
     {
@@ -7235,10 +7223,8 @@ lookup_rgb_color (f, r, g, b)
       color.green = g;
       color.blue = b;
       
-      BLOCK_INPUT;
       cmap = FRAME_X_COLORMAP (f);
       rc = x_alloc_nearest_color (f, cmap, &color);
-      UNBLOCK_INPUT;
 
       if (rc)
 	{
@@ -7281,13 +7267,10 @@ lookup_pixel_color (f, pixel)
       Colormap cmap;
       int rc;
 
-      BLOCK_INPUT;
-      
       cmap = FRAME_X_COLORMAP (f);
       color.pixel = pixel;
       XQueryColor (FRAME_X_DISPLAY (f), cmap, &color);
       rc = x_alloc_nearest_color (f, cmap, &color);
-      UNBLOCK_INPUT;
 
       if (rc)
 	{
@@ -7397,8 +7380,6 @@ x_to_xcolors (f, img, rgb_p)
   XColor *colors, *p;
   XImage *ximg;
 
-  BLOCK_INPUT;
-  
   colors = (XColor *) xmalloc (img->width * img->height * sizeof *colors);
 
   /* Get the X image IMG->pixmap.  */
@@ -7421,8 +7402,6 @@ x_to_xcolors (f, img, rgb_p)
     }
 
   XDestroyImage (ximg);
-
-  UNBLOCK_INPUT;
   return colors;
 }
 
@@ -7442,7 +7421,6 @@ x_from_xcolors (f, img, colors)
   Pixmap pixmap;
   XColor *p;
   
-  BLOCK_INPUT;
   init_color_table ();
   
   x_create_x_image_and_pixmap (f, img->width, img->height, 0,
@@ -7464,7 +7442,6 @@ x_from_xcolors (f, img, colors)
   img->pixmap = pixmap;
   img->colors = colors_in_color_table (&img->ncolors);
   free_color_table ();
-  UNBLOCK_INPUT;
 }
 
 
@@ -7645,7 +7622,6 @@ x_disable_image (f, img)
       Display *dpy = FRAME_X_DISPLAY (f);
       GC gc;
 
-      BLOCK_INPUT;
       gc = XCreateGC (dpy, img->pixmap, 0, NULL);
       XSetForeground (dpy, gc, BLACK_PIX_DEFAULT (f));
       XDrawLine (dpy, img->pixmap, gc, 0, 0,
@@ -7664,8 +7640,6 @@ x_disable_image (f, img)
 		     img->width - 1, 0);
 	  XFreeGC (dpy, gc);
 	}
-      
-      UNBLOCK_INPUT;
     }
 }
 
@@ -7688,8 +7662,6 @@ x_build_heuristic_mask (f, img, how)
   int x, y, rc, look_at_corners_p;
   unsigned long bg = 0;
 
-  BLOCK_INPUT;
-
   if (img->mask)
     {
       XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
@@ -7700,10 +7672,7 @@ x_build_heuristic_mask (f, img, how)
   rc = x_create_x_image_and_pixmap (f, img->width, img->height, 1,
 				    &mask_img, &img->mask);
   if (!rc)
-    {
-      UNBLOCK_INPUT;
-      return 0;
-    }
+    return 0;
 
   /* Get the X image of IMG->pixmap.  */
   ximg = XGetImage (dpy, img->pixmap, 0, 0, img->width, img->height,
@@ -7779,7 +7748,6 @@ x_build_heuristic_mask (f, img, how)
   x_destroy_x_image (mask_img);
   XDestroyImage (ximg);
   
-  UNBLOCK_INPUT;
   return 1;
 }
 
@@ -8005,13 +7973,9 @@ pbm_load (f, img)
       || (type != PBM_MONO && max_color_idx < 0))
     goto error;
 
-  BLOCK_INPUT;
   if (!x_create_x_image_and_pixmap (f, width, height, 0,
 				    &ximg, &img->pixmap))
-    {
-      UNBLOCK_INPUT;
-      goto error;
-    }
+    goto error;
   
   /* Initialize the color hash table.  */
   init_color_table ();
@@ -8065,7 +8029,6 @@ pbm_load (f, img)
 		xfree (ximg->data);
 		ximg->data = NULL;
 		XDestroyImage (ximg);
-		UNBLOCK_INPUT;
 		image_error ("Invalid pixel value in image `%s'",
 			     img->spec, Qnil);
 		goto error;
@@ -8088,7 +8051,6 @@ pbm_load (f, img)
   /* Put the image into a pixmap.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
   x_destroy_x_image (ximg);
-  UNBLOCK_INPUT;
       
   img->width = width;
   img->height = height;
@@ -8433,11 +8395,9 @@ png_load (f, img)
 	  Colormap cmap;
 	  png_color_16 frame_background;
 
-	  BLOCK_INPUT;
 	  cmap = FRAME_X_COLORMAP (f);
 	  color.pixel = FRAME_BACKGROUND_PIXEL (f);
 	  XQueryColor (FRAME_X_DISPLAY (f), cmap, &color);
-	  UNBLOCK_INPUT;
 
 	  bzero (&frame_background, sizeof frame_background);
 	  frame_background.red = color.red;
@@ -8478,15 +8438,10 @@ png_load (f, img)
       fp = NULL;
     }
   
-  BLOCK_INPUT;
-
   /* Create the X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg,
 				    &img->pixmap))
-    {
-      UNBLOCK_INPUT;
-      goto error;
-    }
+    goto error;
   
   /* Create an image and pixmap serving as mask if the PNG image
      contains an alpha channel.  */
@@ -8498,7 +8453,6 @@ png_load (f, img)
       x_destroy_x_image (ximg);
       XFreePixmap (FRAME_X_DISPLAY (f), img->pixmap);
       img->pixmap = 0;
-      UNBLOCK_INPUT;
       goto error;
     }
 
@@ -8566,7 +8520,6 @@ png_load (f, img)
       x_destroy_x_image (mask_img);
     }
 
-  UNBLOCK_INPUT;
   UNGCPRO;
   return 1;
 }
@@ -8844,15 +8797,12 @@ jpeg_load (f, img)
 	fclose ((FILE *) fp);
       jpeg_destroy_decompress (&cinfo);
 
-      BLOCK_INPUT;
-      
       /* If we already have an XImage, free that.  */
       x_destroy_x_image (ximg);
 
       /* Free pixmap and colors.  */
       x_clear_image (f, img);
       
-      UNBLOCK_INPUT;
       UNGCPRO;
       return 0;
     }
@@ -8876,14 +8826,9 @@ jpeg_load (f, img)
   width = img->width = cinfo.output_width;
   height = img->height = cinfo.output_height;
 
-  BLOCK_INPUT;
-
   /* Create X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
-    {
-      UNBLOCK_INPUT;
-      longjmp (mgr.setjmp_buffer, 2);
-    }
+    longjmp (mgr.setjmp_buffer, 2);
 
   /* Allocate colors.  When color quantization is used,
      cinfo.actual_number_of_colors has been set with the number of
@@ -8943,7 +8888,6 @@ jpeg_load (f, img)
   /* Put the image into the pixmap.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
   x_destroy_x_image (ximg);
-  UNBLOCK_INPUT;
   UNGCPRO;
   return 1;
 }
@@ -9228,12 +9172,9 @@ tiff_load (f, img)
       return 0;
     }
 
-  BLOCK_INPUT;
-
   /* Create the X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     {
-      UNBLOCK_INPUT;
       xfree (buf);
       UNGCPRO;
       return 0;
@@ -9265,7 +9206,6 @@ tiff_load (f, img)
   x_put_x_image (f, ximg, img->pixmap, width, height);
   x_destroy_x_image (ximg);
   xfree (buf);
-  UNBLOCK_INPUT;
       
   img->width = width;
   img->height = height;
@@ -9476,12 +9416,9 @@ gif_load (f, img)
   width = img->width = gif->SWidth;
   height = img->height = gif->SHeight;
 
-  BLOCK_INPUT;
-
   /* Create the X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     {
-      UNBLOCK_INPUT;
       DGifCloseFile (gif);
       UNGCPRO;
       return 0;
@@ -9579,7 +9516,6 @@ gif_load (f, img)
   /* Put the image into the pixmap, then free the X image and its buffer.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
   x_destroy_x_image (ximg);
-  UNBLOCK_INPUT;
       
   UNGCPRO;
   return 1;
@@ -9736,12 +9672,10 @@ gs_load (f, img)
   img->height = in_height * FRAME_X_DISPLAY_INFO (f)->resy;
 
   /* Create the pixmap.  */
-  BLOCK_INPUT;
   xassert (img->pixmap == 0);
   img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			       img->width, img->height,
 			       DefaultDepthOfScreen (FRAME_X_SCREEN (f)));
-  UNBLOCK_INPUT;
 
   if (!img->pixmap)
     {
