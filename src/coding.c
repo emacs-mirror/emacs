@@ -5093,6 +5093,13 @@ setup_coding_system (coding_system, coding)
       coding->detector = NULL;
       coding->decoder = decode_coding_raw_text;
       coding->encoder = encode_coding_raw_text;
+      if (! EQ (eol_type, Qunix))
+	{
+	  coding->common_flags |= CODING_REQUIRE_DECODING_MASK;
+	  if (! VECTORP (eol_type))
+	    coding->common_flags |= CODING_REQUIRE_ENCODING_MASK;
+	}
+
     }
 
   return;
@@ -6381,7 +6388,9 @@ consume_chars (coding, translation_table, max_lookup)
 	{
 	  EMACS_INT bytes;
 
-	  if ((bytes = MULTIBYTE_LENGTH (src, src_end)) > 0)
+	  if (coding->encoder == encode_coding_raw_text)
+	    c = *src++, pos++;
+	  else if ((bytes = MULTIBYTE_LENGTH (src, src_end)) > 0)
 	    c = STRING_CHAR_ADVANCE (src), pos += bytes;
 	  else
 	    c = BYTE8_TO_CHAR (*src), src++, pos++;
@@ -6466,7 +6475,10 @@ encode_coding (coding)
   int max_lookup;
 
   attrs = CODING_ID_ATTRS (coding->id);
-  translation_table = get_translation_table (attrs, 1, &max_lookup);
+  if (coding->encoder == encode_coding_raw_text)
+    translation_table = Qnil, max_lookup = 0;
+  else
+    translation_table = get_translation_table (attrs, 1, &max_lookup);
 
   if (BUFFERP (coding->dst_object))
     {
