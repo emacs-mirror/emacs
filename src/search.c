@@ -670,7 +670,7 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
    the limit we bumped up against.
 
    If ALLOW_QUIT is non-zero, set immediate_quit.  That's good to do
-   except when inside redisplay.  */
+   except in special cases.  */
 
 int
 scan_newline (start, start_byte, limit, limit_byte, count, allow_quit)
@@ -687,6 +687,8 @@ scan_newline (start, start_byte, limit, limit_byte, count, allow_quit)
   register int ceiling;
   register unsigned char *ceiling_addr;
 
+  int old_immediate_quit = immediate_quit;
+
   /* If we are not in selective display mode,
      check only for newlines.  */
   int selective_display = (!NILP (current_buffer->selective_display)
@@ -695,7 +697,8 @@ scan_newline (start, start_byte, limit, limit_byte, count, allow_quit)
   /* The code that follows is like scan_buffer
      but checks for either newline or carriage return.  */
 
-  immediate_quit = allow_quit;
+  if (allow_quit)
+    immediate_quit++;
 
   start_byte = CHAR_TO_BYTE (start);
 
@@ -716,7 +719,7 @@ scan_newline (start, start_byte, limit, limit_byte, count, allow_quit)
 		{
 		  if (--count == 0)
 		    {
-		      immediate_quit = 0;
+		      immediate_quit = old_immediate_quit;
 		      start_byte = start_byte + cursor - base + 1;
 		      start = BYTE_TO_CHAR (start_byte);
 		      TEMP_SET_PT_BOTH (start, start_byte);
@@ -750,7 +753,7 @@ scan_newline (start, start_byte, limit, limit_byte, count, allow_quit)
 		{
 		  if (++count == 0)
 		    {
-		      immediate_quit = 0;
+		      immediate_quit = old_immediate_quit;
 		      /* Return the position AFTER the match we found.  */
 		      start_byte = start_byte + cursor - base + 1;
 		      start = BYTE_TO_CHAR (start_byte);
@@ -768,6 +771,7 @@ scan_newline (start, start_byte, limit, limit_byte, count, allow_quit)
     }
 
   TEMP_SET_PT_BOTH (limit, limit_byte);
+  immediate_quit = old_immediate_quit;
 
   return count * direction;
 }
