@@ -1,3 +1,5 @@
+yow.el --- generate random zippyisms
+
 ;; Copyright (C) 1985, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -86,3 +88,4 @@
 
 (provide 'yow)
 
+;;; yow.el ends here

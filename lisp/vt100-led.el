@@ -1,4 +1,5 @@
-;; Functions for controlling the LEDs on VT-100 terminals & clones.
+;;; vt100-led.el --- functions for LED control on VT-100 terminals & clones.
+
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -59,3 +60,5 @@ Element 0 is not used.")
     (send-string-to-terminal o)))
 
 (provide 'vt100-led)
+
+;;; vt100-led.el ends here

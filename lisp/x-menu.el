@@ -1,3 +1,5 @@
+;;; x-menu.el --- menu support for X 
+
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -143,3 +145,5 @@ This also creates the menu itself."
 	 (litem (cdr (nth item x-menu-items-alist))))
     (and litem (funcall litem event)))
   (pop-to-buffer x-menu-assoc-buffer))
+
+;;; x-menu.el ends here

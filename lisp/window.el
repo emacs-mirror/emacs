@@ -1,4 +1,5 @@
-;; GNU Emacs window commands aside from those written in C.
+;;; windows.el --- GNU Emacs window commands aside from those written in C.
+
 ;; Copyright (C) 1985, 1989 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -124,3 +125,5 @@ Use with a register previously set with \\[window-config-to-register]."
 (define-key ctl-x-map "7" 'register-to-window-config)
 (define-key ctl-x-map "}" 'enlarge-window-horizontally)
 (define-key ctl-x-map "{" 'shrink-window-horizontally)
+
+;;; windows.el ends here

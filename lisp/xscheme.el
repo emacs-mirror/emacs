@@ -1,4 +1,5 @@
-;; Run Scheme under Emacs
+;;; xscheme.el --- run Scheme under Emacs
+
 ;; Copyright (C) 1986, 1987, 1989, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -869,3 +870,5 @@ the remaining input.")
 		   (let ((state (parse-partial-sexp start (nth 2 state))))
 		     (if (nth 2 state) 'many 'one)))))
 	(set-syntax-table old-syntax-table)))))
+
+;;; xscheme.el ends here

@@ -1,5 +1,5 @@
-;; File:		ws-mode.el
-;; Description:		WordStar emulation mode for GNU Emacs
+;;; ws-mode.el --- WordStar emulation mode for GNU Emacs
+
 ;; Author:		Juergen Nickelsen <nickel@cs.tu-berlin.de>
 ;; Created:		13 Feb 1991
 ;; Version:		0.7
@@ -773,3 +773,5 @@ sWith: " )
     (ws-error (cond (ws-block-begin-marker "Block end marker not set")
 		    (ws-block-end-marker "Block begin marker not set")
 		    (t "Block markers not set")))))
+
+;;; ws-mode.el ends here
