@@ -3185,7 +3185,7 @@ to an empty field whose beginning and end are both at @var{pos}.
   In all of these functions, if @var{pos} is omitted or @code{nil}, the
 value of point is used by default.
 
-@defun field-beginning &optional pos escape-from-edge
+@defun field-beginning &optional pos escape-from-edge limit
 @tindex field-beginning
 This function returns the beginning of the field specified by @var{pos}.
 
@@ -3194,9 +3194,13 @@ If @var{pos} is at the beginning of its field, and
 always the beginning of the preceding field that @emph{ends} at @var{pos},
 regardless of the stickiness of the @code{field} properties around
 @var{pos}.
+
+If @var{limit} is non-@code{nil}, it is a buffer position; if the
+beginning of the field is before @var{limit}, then @var{limit} will be
+returned instead.
 @end defun
 
-@defun field-end &optional pos escape-from-edge
+@defun field-end &optional pos escape-from-edge limit
 @tindex field-end
 This function returns the end of the field specified by @var{pos}.
 
@@ -3204,6 +3208,10 @@ If @var{pos} is at the end of its field, and @var{escape-from-edge} is
 non-@code{nil}, then the return value is always the end of the following
 field that @emph{begins} at @var{pos}, regardless of the stickiness of
 the @code{field} properties around @var{pos}.
+
+If @var{limit} is non-@code{nil}, it is a buffer position; if the end
+of the field is after @var{limit}, then @var{limit} will be returned
+instead.
 @end defun
 
 @defun field-string &optional pos
