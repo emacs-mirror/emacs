@@ -212,9 +212,11 @@ invalid_character (c)
 
 /* 1 if CHARSET, C1, and C2 compose a valid character, else 0.  */
 #define CHAR_COMPONENTS_VALID_P(charset, c1, c2)	\
-  (CHARSET_DIMENSION (charset) == 1		\
-   ? ((c1) >= 0x20 && (c1) <= 0x7F)		\
-   : ((c1) >= 0x20 && (c1) <= 0x7F && (c2) >= 0x20 && (c2) <= 0x7F))
+  (charset == CHARSET_ASCII				\
+   ? ((c1) >= 0 && (c1) <= 0x7F)			\
+   : (CHARSET_DIMENSION (charset) == 1			\
+      ? ((c1) >= 0x20 && (c1) <= 0x7F)			\
+      : ((c1) >= 0x20 && (c1) <= 0x7F && (c2) >= 0x20 && (c2) <= 0x7F)))
 
 /* Set STR a pointer to the multi-byte form of the character C.  If C
    is not a composite character, the multi-byte form is set in WORKBUF
