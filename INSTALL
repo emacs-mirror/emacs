@@ -1,5 +1,5 @@
 GNU Emacs Installation Guide
-Copyright (c) 1992, 1994, 1996, 1997 Free software Foundation, Inc.
+Copyright (c) 1992, 1994, 1996, 1997, 2000 Free software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
@@ -14,16 +14,105 @@ Copyright (c) 1992, 1994, 1996, 1997 Free software Foundation, Inc.
    and that any new or changed statements about the activities
    of the Free Software Foundation are approved by the Foundation.
 
+BASIC INSTALLATION
+
+The simplest way to build Emacs is to use the `configure' shell script
+which attempts to guess correct values for various system-dependent
+variables and features and find the directories where various system
+headers and libraries are kept.  It then creates a `Makefile' in each
+subdirectory and a `config.h' file containing system-dependent
+definitions.  Running the Make utility then builds the package for
+your system.
+
+Here's the procedure to build Emacs using `configure' on systems which
+are supported by it.  If this simplified procedure fails, or if you
+are using a platform such as MS-Windows where `configure' script
+doesn't work, you might need to use various non-default options, and
+maybe perform some of the steps manually.  The more detailed
+description in the rest of the sections of this guide will help you do
+that, so please refer to them if the simple procedure does not work.
+
+  1. If you want to be able to input international characters which
+     your keyboard doesn't support directly (i.e., you cannot type
+     them at the shell prompt), download the leim-M.N.tar.gz
+     distribution and unpack it into the same directory where you have
+     unpacked the main Emacs distribution.  See ADDITIONAL
+     DISTRIBUTION FILES, below, for more about this.
+
+  2. Make sure your system has at least 120 MB of free disk space.
+
+  3a. `cd' to the directory where you unpacked Emacs and invoke the
+      `configure' script:
+
+		 ./configure
+
+  3b. Alternatively, create a separate directory, outside the source
+      directory, where you want to build Emacs, and invoke `configure'
+      from there:
+
+		 SOURCE-DIR/configure
+
+      where SOURCE-DIR is the top-level Emacs source directory.
+
+  4. When `configure' finishes, it prints several lines of details
+     about the system configuration.  Read those details carefully
+     looking for anything suspicious, such as wrong CPU and operating
+     system names, wrong places for headers or libraries, missing
+     libraries that you know are installed on your system, etc.
+
+     If you find anything wrong, you will have to pass to `configure'
+     explicit machine configuration name, and one or more options
+     which tell it where to find various headers and libraries; refer
+     to DETAILED BUILDING AND INSTALLATION section below.
+
+     If `configure' didn't find some image support libraries, such as
+     Xpm, jpeg, etc., refer to the subsection "Image support
+     libraries", below.
+
+     If the details printed by `configure' don't make any sense to
+     you, assume that `configure' did its job and proceed.
+
+  5. If you need to run the `configure' script more than once (e.g.,
+     with some non-default options), always clean the source
+     directories before running `configure' again:
+
+		make distclean 
+		./configure
+
+  6. Invoke the Make program:
+
+		 make
+
+  7. If Make succeeds, it will build an executable program `emacs' in
+     the `src' directory.  You can try this program, to make sure it
+     works:
+
+		 src/emacs -q
+
+  8. Assuming that the program `src/emacs' starts and displays its
+     opening screen, you can install the program and its auxiliary
+     files into their installation directories:
+
+		 make install
+
+  You are now ready to use Emacs.  If you wish to conserve disk space,
+  you may remove the program binaries and object files from the
+  directory where you built Emacs:
+
+		 make clean
+
 
 ADDITIONAL DISTRIBUTION FILES
 
 * leim-M.N.tar.gz
 
 The Emacs Lisp code for input methods for various international
-character scripts is distributed in a separate tar file because it
-amounts to a significant fraction of the size of the distribution.
-This tar file is called leim-M.N.tar.gz, with the same version number
-as Emacs, and it unpacks into the directory emacs-M.N/leim.
+character scripts allows you to input characters in scripts which are
+not directly supported by your keyboard. It is distributed in a
+separate tar file because it amounts to a significant fraction of the
+size of the distribution.  This tar file is called leim-M.N.tar.gz,
+with the same version number as Emacs, and it unpacks into the
+directory emacs-M.N/leim.
 
 You should unpack leim-M.N.tar.gz into the same directory where you
 have previously unpacked the main Emacs distribution.  It fills in the
@@ -40,13 +129,14 @@ first, just unpack Leim, build Emacs again, and install it again.
 The intlfonts distribution contains X11 fonts that Emacs needs in
 order to display international characters.  If you see a non-ASCII
 character appear as a hollow box, that means you don't have a font for
-it.  You might find a font in the intlfonts distribution.  If some
-characters don't look right, or appear improperly aligned, a font
-from the intlfonts distribution might look better.
+it.  You might find a font in the intlfonts distribution.  If you do
+have a font for a non-ASCII character, but some characters don't look
+right, or appear improperly aligned, a font from the intlfonts
+distribution might look better.
 
 The fonts in the intlfonts distribution are also used by the ps-print
 package for printing international characters.  The file
-lisp/ps-mule.el defines the .bdf font files required for printing
+lisp/ps-mule.el defines the *.bdf font files required for printing
 each character set.
 
 The intlfonts distribution contains its own installation instructions,
@@ -55,12 +145,16 @@ in the intlfonts/README file.
 * elisp-manual-M.N.tar.gz
 
 This distribution contains the Emacs Lisp Reference Manual which
-complements the Emacs Lisp Manual.  It is a good idea to install the
-Emacs Lisp Reference Manual after installing Emacs, to complete the
-on-line documentation of Emacs in Info.
+complements the Emacs Manual.  (The Emacs Manual is accessible from
+within the editor by typing "C-h i", then selecting the "Emacs" item
+from the menu, or by clicking "Help" in the menu bar and selecting
+"Read Emacs Manual".)  It is a good idea to install the Emacs Lisp
+Reference Manual after installing Emacs, to complete the on-line
+documentation of Emacs in Info.
 
 If you have installed Texinfo, you can install the Emacs Lisp
-Reference Manual this way:
+Reference Manual this way (after unpacking the elisp-manual-M.N.tar.gz
+file):
 
      cd elisp-manual-M.N
      ./configure --prefix=PREFIXDIR
@@ -76,16 +170,19 @@ that file `dir' in this directory contains an entry like this:
 * Image support libraries
 
 Emacs needs optional libraries to be able to display images (with the
-exception of PBM and XBM images whose support is built-in).  On some
-systems these may already be present or available as additional
-packages, particularly on GNU/Linux.  (In some cases older versions
-won't work because some routines are missing, and configure should
-avoid such old versions.)
+exception of PBM and XBM images whose support is built-in).
 
-If necessary, you can build them from source.  None are vital for
-running Emacs.  Here's the list of these optional libraries, and the
-URLs where they can be found:
+On some systems, particularly on GNU/Linux, these libraries may
+already be present or available as additional packages.  If not, you
+can download and build them from sources.  None of them are vital for
+running Emacs; however, note that Emacs will not be able to use color
+icons in the toolbar if the XPM support is not available.
 
+Here's the list of these optional libraries, and the URLs where they
+can be found:
+
+  . libXaw3d for fancy 3D-style 
+      scroll bars:    ftp://ftp.x.org/contrib/widgets/Xaw3d/
   . libxpm for XPM:   ftp://ftp.x.org/contrib/libraries/
   . libpng for PNG:   ftp://www.libpng.org/pub/png/
   . libz (for PNG):   http://www.info-zip.org/pub/infozip/zlib/
@@ -94,19 +191,20 @@ URLs where they can be found:
   . libungif for GIF: 
       http://prtr-13.ucsc.edu/~badger/software/libungif/index.shtml
 
-[libungif-4.1.0 can crash Emacs with uncompressed GIFs -- use
-libungif-4.1.0b1.]
+Emacs will configure itself to build with these libraries if the
+`configure' script finds them on your system, unless you supply the
+appropriate --without-LIB option.  In some cases, older versions of
+these libraries won't work because some routines are missing, and
+configure should avoid such old versions.  If that happens, use the
+--without-LIB options to `configure'.  See below for more details.
 
-Emacs will configure itself to build with these libraries if configure
-finds them on your system unless you supply the appropriate
---without-LIB option.  See below for more details.
 
+DETAILED BUILDING AND INSTALLATION:
 
-BUILDING AND INSTALLATION:
-
-(This is for a Unix or Unix-like system.  For MSDOS, see below; search
-for MSDOG.  For Windows NT or Windows 95, see the file nt/INSTALL.
-For the Mac, see the file mac/INSTALL.)
+(This is for a Unix or Unix-like system.  For MS-DOS and Windows 3.X,
+see below; search for MSDOG.  For Windows 9X, Windows ME, Windows NT,
+and Windows 2000, see the file nt/INSTALL.  For the Mac, see the file
+mac/INSTALL.)
 
 1) Make sure your system has enough swapping space allocated to handle
 a program whose pure code is 1.5 MB and whose data area is at
@@ -121,11 +219,14 @@ about 60 MB (70 MB with Leim) in the file system where it is
 installed; this includes the executable files, Lisp libraries,
 miscellaneous data files, and on-line documentation.  If the building
 and installation take place in different directories, then the
-installation procedure momentarily requires 95+60 MB (130+170 MB).
+installation procedure momentarily requires 95+60 MB (130+70 MB).
 
 2) Consult `./etc/MACHINES' to see what configuration name you should
 give to the `configure' program.  That file offers hints for
-getting around some possible installation problems.
+getting around some possible installation problems.  The file lists
+many different configurations, but only the part for your machine and
+operating system is relevant.  (The list is arranged in alphabetical
+order by the vendor name.)
 
 3) You can build Emacs in the top-level Emacs source directory
 or in a separate directory.
@@ -159,7 +260,10 @@ configure Emacs; use the option `--with-x-toolkit=TOOLKIT', where
 TOOLKIT is `athena' or `motif' (`yes' and `lucid' are synonyms for
 `athena').  On some systems, it does not work to use a toolkit with
 shared libraries.  A free implementation of Motif, called LessTif, is
-available ftom <http://www.lesstif.org>.
+available ftom <http://www.lesstif.org>.  You can get fancy 3D-style
+scroll bars, even without LessTif/Motif, if you have the Xaw3d library
+installed (see "Image support libraries" above for Xaw3d
+availability).
 
 The `--with-gcc' option specifies that the build process should
 compile Emacs using GCC.  If you don't want to use GCC, specify
@@ -187,6 +291,11 @@ or more of these options:
   --without-tiff       for TIFF image support
   --without-gif        for GIF image support
   --without-png        for PNG image support
+
+Use --without-toolkit-scroll-bars to disable LessTif/Motif or Xaw3d
+scroll bars.  --without-xim disables the use of X Input Methods, and
+--disable-largefile omits support for files larger than 2GB on systems
+which support that.
 
 The `--prefix=PREFIXDIR' option specifies where the installation process
 should put emacs and its data files.  This defaults to `/usr/local'.
@@ -231,6 +340,37 @@ output (useful mainly for debugging `configure').  You can give
 `configure' the option `--cache-file=FILE' to use the results of the
 tests in FILE instead of `config.cache'.  Set FILE to `/dev/null' to
 disable caching, for debugging `configure'.
+
+If the description of the system configuration printed by `configure'
+is not right, or if it claims some of the fatures or libraries are not
+available when you know they are, look at the `config.log' file for
+the trace of the failed tests performed by `configure' to check
+whether these features are supported.  Typically, some test fails
+because the compiler cannot find some function in the system
+libraries, or some macro-processor definition in the system headers.
+
+Some tests might fail because the compiler should look in special
+directories for some header files, or link against optional
+directories, or use special compilation options.  You can force
+`configure' and the build process which follows it to do that by
+setting the variables CPPFLAGS, CFLAGS, LDFLAGS, LIBS, and CC before
+running `configure'.  CPPFLAGS lists the options passed to the
+preprocessor, CFLAGS are compilation options, LDFLAGS are options used
+when linking, LIBS are libraries to link against, and CC is the
+command which invokes the compiler.
+
+Here's an example of a `configure' invocation which uses these
+variables:
+
+ CPPFLAGS='-I/foo/myinclude' LDFLAGS='-L/bar/mylib' \
+  CFLAGS='-O3' LIBS='-lfoo -lbar' ./configure
+
+(this is all one long line).  This tells `configure' to instruct the
+preprocessor to look in the `/foo/myinclude' directory for header
+files (in addition to the standard directories), instruct the linker
+to look in `/bar/mylib' for libraries, pass the -O3 optimization
+switch to the compiler, and link against libfoo.a and libbar.a
+libraries in addition to the standard ones.
 
 The work of `configure' can be done by editing various files in the
 distribution, but using `configure' is easier.  See the section called
