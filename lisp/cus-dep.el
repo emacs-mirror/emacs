@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(eval-when-compile (require 'cl))
 (require 'widget)
 (require 'cus-face)
 (require 'autoload)

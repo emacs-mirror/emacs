@@ -31,7 +31,7 @@
 ;;;
 ;;; 9-dec-86 Jeff Peck, Sun Microsystems Inc. <peck@sun.com>
 
-(require 'cl)
+(eval-when-compile (require 'cl))
 (require 'sun-fns)
 
 (eval-and-compile
