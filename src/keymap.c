@@ -1000,7 +1000,7 @@ bindings; see the description of `lookup-key' for more details about this.")
 }
 
 DEFUN ("global-set-key", Fglobal_set_key, Sglobal_set_key, 2, 2,
-  "kSet key globally: \nCSet key %s to command: ",
+  "KSet key globally: \nCSet key %s to command: ",
   "Give KEY a global binding as COMMAND.\n\
 COMMAND is a symbol naming an interactively-callable function.\n\
 KEY is a key sequence (a string or vector of characters or event types).\n\
@@ -1019,7 +1019,7 @@ that local binding will continue to shadow any global binding.")
 }
 
 DEFUN ("local-set-key", Flocal_set_key, Slocal_set_key, 2, 2,
-  "kSet key locally: \nCSet key %s locally to command: ",
+  "KSet key locally: \nCSet key %s locally to command: ",
   "Give KEY a local binding as COMMAND.\n\
 COMMAND is a symbol naming an interactively-callable function.\n\
 KEY is a key sequence (a string or vector of characters or event types).\n\
