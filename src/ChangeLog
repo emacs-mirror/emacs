@@ -7,8 +7,8 @@
 	0 because unused.
 
 	* bytecode.c, callint.c, callproc.c, casefiddle.c, casetab.c
-	* category.c, process.c, window.c: Change doc-string comments to
-	`new style' [w/`doc:' keyword].
+	* category.c, ccl.c, process.c, window.c: Change doc-string
+	comments to `new style' [w/`doc:' keyword].
 
 2001-10-20  Miles Bader  <miles@gnu.org>
 
