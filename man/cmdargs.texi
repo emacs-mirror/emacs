@@ -163,8 +163,9 @@ the initial Emacs frame.  @xref{Display X}, for more details.
 @opindex --no-window-system
 @cindex disable window system
 Don't communicate directly with the window system, disregarding the
-@env{DISPLAY} environment variable even if it is set.  This forces Emacs
-to run as if the display were a text-only terminal.
+@env{DISPLAY} environment variable even if it is set.  This means that
+Emacs uses the terminal from which it was launched for all its display
+and input.
 
 @need 3000
 @cindex batch mode
