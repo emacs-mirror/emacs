@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985,86,87,93,94,95,1997,2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Calendar/Diary, Gnus, Dired, Top
 @chapter The Calendar and the Diary
@@ -7,12 +7,16 @@
 @findex calendar
 
   Emacs provides the functions of a desk calendar, with a diary of
-planned or past events.  To enter the calendar, type @kbd{M-x calendar};
-this displays a three-month calendar centered on the current month, with
-point on the current date.  With a numeric argument, as in @kbd{C-u M-x
-calendar}, it prompts you for the month and year to be the center of the
-three-month calendar.  The calendar uses its own buffer, whose major
-mode is Calendar mode.
+planned or past events.  It also has facilities for other related tasks,
+such as managing your appointments, or keeping track of how much time
+you spend working on a certain project.
+
+  To enter the calendar, type @kbd{M-x calendar}; this displays a
+three-month calendar centered on the current month, with point on the
+current date.  With a numeric argument, as in @kbd{C-u M-x calendar}, it
+prompts you for the month and year to be the center of the three-month
+calendar.  The calendar uses its own buffer, whose major mode is
+Calendar mode.
 
   @kbd{Mouse-2} in the calendar brings up a menu of operations on a
 particular date; @kbd{C-Mouse-3} brings up a menu of commonly used
@@ -34,6 +38,7 @@ information about the calendar and diary.
 * Diary::               Displaying events from your diary.
 * Appointments::	Reminders when it's time to do something.
 * Daylight Savings::    How to specify when daylight savings time is active.
+* Time Intervals::      Keeping track of time intervals.
 @end menu
 
 @node Calendar Motion
@@ -1436,3 +1441,49 @@ minutes.  The value for Cambridge, Massachusetts is 60.
 after midnight local time when the transition to and from daylight
 savings time should occur.  For Cambridge, Massachusetts both variables'
 values are 120.
+
+@node Time Intervals
+@section Keeping Track of Time Intervals
+@cindex time intervals, keeping track of
+@cindex project, time spent working on
+
+  Emacs can help you keep track of time intervals.  A typical scenario
+is to keep track of how much time you spend working on certain projects.
+
+@findex timeclock-in
+@findex timeclock-out
+@findex timeclock-workday-remaining
+@findex timeclock-when-to-leave
+  Use the @kbd{M-x timeclock-in} command when you start working on a
+project, and @kbd{M-x timeclock-out} command when you're done.  Once
+you've collected some data, you can use @kbd{M-x
+timeclock-workday-remaining} to see how much time is left to work today
+(assuming a typical average of 8 hours a day), and @kbd{M-x
+timeclock-when-to-leave} which will calculate when you're free to go.
+
+@vindex timeclock-modeline-display
+@findex timeclock-modeline-display
+  If you want Emacs to display the amount of time ``left'' of your
+workday in the mode line, either customize the
+@code{timeclock-modeline-display} variable and set its value to
+@code{t}, or invoke the @kbd{M-x timeclock-modeline-display} command.
+
+@vindex timeclock-ask-before-exiting
+  Ending the current Emacs session might or might not mean that you stop
+working on the project.  If you'd like Emacs to ask you about this, set
+the value of the variable @code{timeclock-ask-before-exiting} to
+@code{t} (via @kbd{M-x customize}).  By default, only an explicit
+@kbd{M-x timeclock-out} tells Emacs you stopped working on a project.
+
+@cindex @file{.timelog} file
+@vindex timeclock-file
+@findex timeclock-reread-log
+  The timeclock functions work by accumulating the data on a file called
+@file{.timelog} in the user's home directory.  (On MS-DOS, this file is
+called @file{_timelog}, since leading dots in file names are not
+allowed.)  The name of this file can be changed by customizing the
+variable @code{timeclock-file}.  If you edit this file manually, or if
+you change the value of any of timeclock's customizable variables, you
+should run the command @kbd{M-x timeclock-reread-log}.  This will
+recompute any discrepancies in your average working time, and will make
+sure that the various display functions return the correct value.
