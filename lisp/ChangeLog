@@ -1,3 +1,31 @@
+2004-11-24  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-forms.el (math-fd-date, math-fd-dt, math-fd-year)
+	(math-fd-month, math-fd-day, math-fd-weekday, math-fd-hour)
+	(math-fd-minute, math-fd-second, math-fd-bc-flag): New variables.
+	(math-format-date, math-format-date-part): Replace variables
+	date, dt, year, month, day, weekday, hour, minute, second and
+	bc-flag by declared variables.
+	(math-pd-str): New variable.
+	(math-parse-date, math-parse-date-word, math-parse-standard-date):
+	Replace variable str by declared variable.
+	(math-daylight-savings-hook, math-tzone-names): Move definitions
+	to earlier in the file.
+	(var-TimeZone, math-exp-str, math-exp-pos): Declare them.
+	(math-sh-year): New variable.
+	(math-setup-add-holidays, math-setup-holidays)
+	(math-setup-year-holiday): Replace variable `year' by declared
+	variable.
+
+	* calc/calc-math.el (math-nrf-n, math-nrf-nf, math-nrf-nfm1):
+	New variables.
+	(math-nth-root-float, math-nth-root-float-iter): Replace variables
+	n, nf and nfm1 by declared variables.
+	(math-nri-n): New variable.
+	(math-nth-root-int, math-nth-root-int-iter): Replace variable n by
+	declared variable.
+	(calcFunc-log): Removed misplaced condition.
+
 2004-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* generic.el (generic-mode-set-comments): Accept an empty comment-end.
@@ -19,28 +47,22 @@
 	wid and off with math-svo-c, math-svo-wid and math-svo-off.
 
 	* calc/calccomp.el (math-comp-sel-tag): Declare it.
-
 	(math-svo-c, math-svo-wid, math-svo-off): New variables.
 	(math-stack-value-offset-fancy): Replace variables c, wid and off
 	by declared variables.
-
 	(math-comp-just, math-comp-comma-spc): New variables.
 	(math-compose-expr, math-compose-matrix): Replace variable `just'
 	by declared variable.
-
 	(math-comp-vector-prec): New variable.
 	(math-compose-expr, math-compose-matrix, math-compose-rows):
 	Replace variable vector-prec by declared variable.
-
 	(math-comp-left-bracket, math-comp-right-bracket)
 	(math-comp-comma): New variables.
 	(math-compose-expr, math-compose-rows): Replace variables
 	left-bracket, right-bracket and comma by declared variables.
-
 	(math-comp-full-width): New variable.
 	(math-comp-to-string-flat, math-comp-to-string-flat-term):
 	Replace variable full-width by declared variable.
-
 	(math-comp-highlight, math-comp-word, math-comp-level)
 	(math-comp-margin, math-comp-pos, math-comp-buf, math-comp-base)
 	(math-comp-hgt, math-comp-tag, math-comp-hpos, math-comp-vpos):
