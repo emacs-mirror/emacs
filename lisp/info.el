@@ -582,10 +582,10 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
    ;; Get nodename spelled as it is in the node.
    (re-search-forward "Node:[ \t]*")
    (setq Info-current-node
-	 (buffer-substring (point)
-			   (progn
-			    (skip-chars-forward "^,\t\n")
-			    (point))))
+	 (buffer-substring-no-properties (point)
+					 (progn
+					  (skip-chars-forward "^,\t\n")
+					  (point))))
    (Info-set-mode-line)
    ;; Find the end of it, and narrow.
    (beginning-of-line)
@@ -792,7 +792,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 ;; saying which chas may appear in the node name.
 (defun Info-following-node-name (&optional allowedchars)
   (skip-chars-forward " \t")
-  (buffer-substring
+  (buffer-substring-no-properties
    (point)
    (progn
      (while (looking-at (concat "[" (or allowedchars "^,\t\n") "]"))
@@ -916,7 +916,7 @@ NAME may be an abbreviation of the reference name."
     (forward-char 1)
     (setq str
 	  (if (looking-at ":")
-	      (buffer-substring beg (1- (point)))
+	      (buffer-substring-no-properties beg (1- (point)))
 	    (skip-chars-forward " \t\n")
 	    (Info-following-node-name (if multi-line "^.,\t" "^.,\t\n"))))
     (while (setq i (string-match "\n" str i))
