@@ -1,3 +1,9 @@
+2004-07-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* editfns.c (Ffloat_time, Fformat_time_string, Fdecode_time)
+	(Fcurrent_time_string, Fcurrent_time_zone): Mention in docstrings
+	that time values of the type (HIGH . LOW) are considered obsolete.
+
 2004-07-06  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* keyboard.c (syms_of_keyboard): Fix `keyboard-translate-table'

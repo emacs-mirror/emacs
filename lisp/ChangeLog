@@ -1,3 +1,60 @@
+2004-07-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.  Now it uses call-process instead of
+	shell-command for low command execution.
+	(pr-version): New version number (6.8).
+	(pr-shell-file-name): Option removed.
+	(pr-shell-command): Fun removed.
+	(pr-call-process): New fun.  Replace pr-shell-command.
+	(pr-standard-path, pr-remove-nil-from-list): New funs.
+	(zmacs-region-stays, current-mouse-event, current-menubar): New var.
+	(pr-ps-file-preview, pr-ps-file-using-ghostscript, pr-ps-file-print)
+	(pr-setup, pr-ps-set-printer, pr-txt-set-printer)
+	(pr-ps-utility-process, pr-txt-print): Code fix.
+
+2004-07-10  Stephan Stahl  <stahl@eos.franken.de>  (tiny change)
+
+	* ediff-mult.el (ediff-meta-truncate-filenames): Change type to
+	boolean.
+
+2004-07-09  Lars Hansen  <larsh@math.ku.dk>
+
+	* wid-edit.el (widget-field-buffer): Doc fix.
+
+2004-07-09  John Paul Wallington  <jpw@gnu.org>
+
+	* emacs-lisp/re-builder.el (reb-update-overlays): Distinguish
+	between one and several matches in message.
+
+2004-07-09  Richard M. Stallman  <rms@gnu.org>
+
+	* mouse.el (mouse-set-region-1): If transient-mark-mode
+	is `identity', change it to `only'.
+
+	* simple.el (current-word): Doc fix.
+
+2004-07-09  Mark A. Hershberger  <mah@everybody.org>
+
+	* progmodes/cperl-mode.el (cperl-mode): Adapt defun-prompt-regexp
+	so that it is more understanding of whitespace.
+
+	* xml.el (xml-maybe-do-ns, xml-parse-tag): Produce elements in the
+	form
+	(("ns" . "element") (attr-list) children) instead of
+	((:ns . "element") (attr-list) children) in order to reduce the
+	number of symbols used.
+	(xml-skip-dtd): Change to use xml-parse-dtd but set
+	xml-validating-parsing to nil.
+	(xml-parse-dtd): Parse entity deleclarations in DOCTYPEs.
+	(xml-substitute-entity): Remove in favor of new entity substitution.
+	(xml-substitute-special): Rewrite in to substitute complex
+	entities from DOCTYPE declarations.
+	(xml-parse-fragment): Parse fragments from entity deleclarations.
+	(xml-parse-region, xml-parse-tag, xml-parse-attlist)
+	(xml-parse-dtd, xml-substitute-special): Make validity checks
+	conditioned on xml-validating-parser.  Add "Not Well Formed" to
+	error messages about well-formedness.
+
 2004-07-08  Steven Tamm  <steventamm@mac.com>
 
 	* term/mac-win.el (mac-scroll-ignore-events, mac-scroll-down)

@@ -1,3 +1,7 @@
+2004-07-09  Richard M. Stallman  <rms@gnu.org>
+
+	* frames.texi (Input Focus): Minor fix.
+
 2004-07-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* frames.texi (Input Focus): Clarify descriptions of

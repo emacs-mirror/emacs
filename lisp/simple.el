@@ -3368,7 +3368,8 @@ With argument, do this that many times."
   "Return the symbol or word that point is on (or a nearby one) as a string.
 The return value includes no text properties.
 If optional arg STRICT is non-nil, return nil unless point is within
-or adjacent to a symbol or word.
+or adjacent to a symbol or word.  In all cases the value can be nil
+if there is no word nearby.
 The function, belying its name, normally finds a symbol.
 If optional arg REALLY-WORD is non-nil, it finds just a word."
   (save-excursion

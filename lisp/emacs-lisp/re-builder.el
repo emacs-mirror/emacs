@@ -670,9 +670,10 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
 		  (overlay-put overlay 'priority i)))
 	    (setq i (1+ i))))))
     (let ((count (if subexp submatches matches)))
-      (message"%s %smatch(es)%s"
+      (message"%s %smatch%s%s"
 	       (if (= 0 count) "No" (int-to-string count))
 	       (if subexp "subexpression " "")
+	       (if (= 1 count) "" "es")
 	       (if (and reb-auto-match-limit
 			(= reb-auto-match-limit count))
 		   " (limit reached)" "")))
