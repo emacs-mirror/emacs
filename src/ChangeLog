@@ -1,3 +1,51 @@
+2000-01-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* puresize.h (BASE_PURE_SIZE): Increase to 600000.
+
+	* lisp.h: Add prototype for allocate_string_data.
+
+	* alloc.c (Fgarbage_collect): Return number of live and free
+	strings.
+
+	* alloc.c (mark_buffer): Remove code in #if 0.
+	(gc_sweep): Ditto.
+	(UNMARK_BALANCE_INTERVALS): Give the macro statement form.
+	(strings_consed): New variable.
+	(allocate_string): Set it.
+	(syms_of_alloc): Add DEFVAR_INT for strings_consed.
+	(Fmemory_use_counts): Return strings_consed.  Use Flist.
+
+	* alloc.c: General cleanup in comments etc.  Remove conditional
+	compilation for `standalone'.
+
+	* lisp.h (struct Lisp_String): Make DATA member `unsigned char *'.
+
+	* alloc.c (MARK_STRING, UNMARK_STRING, STRING_MARKED_P):
+	(GC_STRING_BYTES, GC_STRING_CHARS): New macros.
+	(DONT_COPY_FLAG): Removed.
+	(SBLOCK_SIZE, LARGE_STRING_BYTES): New macros.
+	(struct sdata, struct sblock): New
+	(struct string_block): Rewritten.
+	(STRINGS_IN_STRING_BLOCK): New macro.
+	(oldest_sblock, current_sblock, total_strings, total_free_strings)
+	(large_sblocks, string_blocks, string_free_list): New variables.
+	(NEXT_FREE_LISP_STRING, SDATA_OF_STRING, SDATA_SIZE): New macros.
+	(init_strings): Rewritten.
+	(allocate_string, allocate_string_data, compact_small_strings)
+	(free_large_strings, sweep_strings): New functions.
+	(STRING_BLOCK_SIZE, STRING_BLOCK_OUTSIZE)
+	(struct string_block_head, current_string_block)
+	(first_string_block, large_string_blocks, STRING_FULLSIZE)
+	(STRING_PAD): Removed.
+	(make_uninit_multibyte_string, make_pure_string): Rewritten.
+	(Fgarbage_collect): Don't set mark bit in large strings.
+	(mark_object): Mark strings differently.  Mark symbol names
+	differently.
+	(survives_gc_p): Test marked strings differently.
+	(gc_sweep): Sweep strings differently, unmark strings in 
+	symbol names.
+	(compact_strings): Removed.
+
 2000-01-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xfaces.c (syms_of_xfaces): defsubr Scolor_gray_p and
