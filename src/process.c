@@ -2911,21 +2911,24 @@ read_process_output (proc, channel)
 		: coding->produced_char);
       chars_in_decoding_buf = 1;
     }
-#ifdef VMS
-  else if (chars_allocated)
+  else
     {
-      /* Although we don't have to decode the received data, we must
-         move it to an area which we don't have to free.  */
-      if (! STRINGP (p->decoding_buf)
-	  || STRING_BYTES (XSTRING (p->decoding_buf)) < nbytes)
-	p->decoding_buf = make_uninit_string (nbytes);
-      bcopy (chars, XSTRING (p->decoding_buf)->data, nbytes);
-      free (chars);
-      chars = XSTRING (p->decoding_buf)->data;
-      nchars = multibyte_chars_in_text (chars, nbytes);
-      chars_in_decoding_buf = 1;
-    }
+#ifdef VMS
+      if (chars_allocated)
+	{
+	  /* Although we don't have to decode the received data, we
+	     must move it to an area which we don't have to free.  */
+	  if (! STRINGP (p->decoding_buf)
+	      || STRING_BYTES (XSTRING (p->decoding_buf)) < nbytes)
+	    p->decoding_buf = make_uninit_string (nbytes);
+	  bcopy (chars, XSTRING (p->decoding_buf)->data, nbytes);
+	  free (chars);
+	  chars = XSTRING (p->decoding_buf)->data;
+	  chars_in_decoding_buf = 1;
+	}
 #endif
+      nchars = multibyte_chars_in_text (chars, nbytes);
+    }
 
   Vlast_coding_system_used = coding->symbol;
 
@@ -3053,6 +3056,9 @@ read_process_output (proc, channel)
 	 the restriction and widen.  */
       if (! (BEGV <= PT && PT <= ZV))
 	Fwiden ();
+
+      if (NILP (current_buffer->enable_multibyte_characters))
+	nchars = nbytes;
 
       /* Insert before markers in case we are inserting where
 	 the buffer's mark is, and the user's next command is Meta-y.  */
