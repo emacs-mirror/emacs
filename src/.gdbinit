@@ -146,6 +146,13 @@ document xprocess
 Print the address of the struct Lisp_process which the Lisp_Object $ points to.
 end
 
+define xfloat
+print ((struct Lisp_Float *) (($ & 0x00ffffff) | $data_seg_bits))->data
+end
+document xfloat
+Print $ assuming it is a lisp floating-point number.
+end
+
 define xscrollbar
 print (struct scrollbar *) (($ & 0x00ffffff) | $data_seg_bits)
 output *$
@@ -156,12 +163,13 @@ Print $ as a scrollbar pointer.
 end
 
 set print pretty on
+set print sevenbit-strings
 
 unset environment TERMCAP
 unset environment TERM
 echo TERMCAP and TERM environment variables unset.\n
 show environment DISPLAY
-set args -q -geometry +0+0
+set args -q -geometry 80x40+0+0
 
 # Don't let abort actually run, as it will make
 # stdio stop working and therefore the `pr' command above as well.
