@@ -1,5 +1,6 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985, 86,87,88,93,94,95,98,99 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86,87,88,93,94,95,98,99, 2000
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -490,8 +491,8 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
       /* See if there is a meta-map.  If there's none, there is
          no binding for IDX, unless a default binding exists in MAP.  */
       Lisp_Object meta_map =
-	get_keymap_1 (access_keymap
-		      (map, meta_prefix_char, t_ok, noinherit, autoload),
+	get_keymap_1 (access_keymap (map, meta_prefix_char,
+				     t_ok, noinherit, autoload),
 		      0, autoload);
       if (!NILP (meta_map))
 	{
