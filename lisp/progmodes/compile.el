@@ -959,6 +959,10 @@ exited abnormally with code %d\n"
 					  (concat status "\n")))
 		(t
 		 (compilation-handle-exit 'bizarre status status))))
+	;; Without async subprocesses, the buffer is not yet
+	;; fontified, so fontify it now.
+	(let ((font-lock-verbose nil))	; shut up font-lock messages
+	  (font-lock-fontify-buffer))
 	(message "Executing `%s'...done" command)))
     (if (buffer-local-value 'compilation-scroll-output outbuf)
 	(save-selected-window
