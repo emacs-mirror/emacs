@@ -1,3 +1,9 @@
+2005-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule.el (auto-coding-alist): Add .xpi files.
+
+	* files.el (auto-mode-alist): Add .xpi files.
+
 2005-03-26  Jure Cuhalev  <gandalf@owca.info>  (tiny change)
 
 	* textmodes/ispell.el (ispell-dictionary-alist-6): Add slovenian.

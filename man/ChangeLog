@@ -1,5 +1,8 @@
 2005-03-26  Eli Zaretskii  <eliz@gnu.org>
 
+	* misc.texi (Emacs Server): Fix the command for setting
+	server-name.  Add an xref to Invoking emacsclient.
+
 	* help.texi (Help Summary): Clarify when "C-h ." will do something
 	nontrivial.
 	(Apropos): Add cindex entry for apropos-sort-by-scores.
