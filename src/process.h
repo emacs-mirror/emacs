@@ -79,6 +79,11 @@ struct Lisp_Process
    are waiting for it.  */
 extern int synch_process_alive;
 
+/* Communicate exit status of synch process to from sigchld_handler
+   to Fcall_process.  */
+extern int synch_process_retcode;
+extern char *synch_process_death;
+
 /* Nonzero => this is a string explaining death of synchronous subprocess.  */
 extern char *synch_process_death;
 
