@@ -315,6 +315,7 @@ C-c C-v  mail-sent-via (add a sent-via field for each To or CC)."
   (define-key mail-mode-map "\C-c\C-f\C-f" 'mail-fcc)
   (define-key mail-mode-map "\C-c\C-f\C-c" 'mail-cc)
   (define-key mail-mode-map "\C-c\C-f\C-s" 'mail-subject)
+  (define-key mail-mode-map "\C-c\C-f\C-r" 'mail-reply-to)
   (define-key mail-mode-map "\C-c\C-t" 'mail-text)
   (define-key mail-mode-map "\C-c\C-y" 'mail-yank-original)
   (define-key mail-mode-map "\C-c\C-q" 'mail-fill-yanked-message)
@@ -346,6 +347,9 @@ C-c C-v  mail-sent-via (add a sent-via field for each To or CC)."
 
 (define-key mail-mode-map [menu-bar headers]
   (cons "Headers" (make-sparse-keymap "Headers")))
+
+(define-key mail-mode-map [menu-bar headers reply-to]
+  '("Reply-To" . mail-reply-to))
 
 (define-key mail-mode-map [menu-bar headers sent-via]
   '("Sent Via" . mail-sent-via))
@@ -615,11 +619,24 @@ the user from the mailer."
 	  (forward-char -5)
 	  (insert ?>)))
       (while fcc-list
-	(let ((buffer (get-file-buffer (car fcc-list)))
-	      (curbuf (current-buffer))
-	      (beg (point-min)) (end (point-max))
-	      (beg2 (save-excursion (goto-char (point-min))
-				    (forward-line 2) (point))))
+	(let* ((truename (file-truename (car fcc-list)))
+	       (buffer
+		(or (get-file-buffer (car fcc-list))
+		    (get-file-buffer truename)
+		    ;; Look for a buffer whose truename
+		    ;; matches that of the file we want.
+		    (let ((buflist (buffer-list)))
+		      (save-excursion
+			(while buflist
+			  (set-buffer (car buflist))
+			  (if (equal buffer-file-truename truename)
+			      (setq buflist nil))
+			  (setq buflist (cdr buflist)))
+			(current-buffer)))))
+	       (curbuf (current-buffer))
+	       (beg (point-min)) (end (point-max))
+	       (beg2 (save-excursion (goto-char (point-min))
+				     (forward-line 2) (point))))
 	  (if buffer
 	      ;; File is present in a buffer => append to that buffer.
 	      (save-excursion
@@ -738,6 +755,12 @@ the user from the mailer."
   (or (mail-position-on-field "fcc" t)	;Put new field after exiting FCC.
       (mail-position-on-field "to"))
   (insert "\nFCC: " folder))
+
+(defun mail-reply-to ()      
+  "Move point to end of Reply-To-field."
+  (interactive)
+  (expand-abbrev)
+  (mail-position-on-field "Reply-To"))
 
 (defun mail-position-on-field (field &optional soft)
   (let (end
