@@ -1,3 +1,8 @@
+2005-03-21  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (calc-do-embedded): Put data on stack before
+	changing modes.
+
 2005-03-21  Sam Steingold  <sds@gnu.org>
 
 	* add-log.el (add-log-current-defun): Support more C DEFUN forms.
