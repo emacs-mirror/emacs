@@ -211,7 +211,7 @@ paths-force: FRC
 	  -e 's;\(#.*PATH_INFO\).*$$;\1 "${infodir}";'			\
 	  -e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
 	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
-	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";'			\
+	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
 	${srcdir}/move-if-change paths.h.$$$$ src/paths.h
 
 src:	lib-src FRC
