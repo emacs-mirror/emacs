@@ -2459,7 +2459,7 @@ It may contain %-sequences meaning to substitute the next argument.\n\
 %g means print a number in exponential notation\n\
   or decimal-point notation, whichever uses fewer characters.\n\
 %c means print a number as a single character.\n\
-%S means print any object as an s-expression (using prin1).\n\
+%S means print any object as an s-expression (using `prin1').\n\
   The argument used for %d, %o, %x, %e, %f, %g or %c must be a number.\n\
 Use %% to put a single % into the output.")
   (nargs, args)
