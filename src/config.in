@@ -147,6 +147,8 @@ and this notice must be preserved on all copies.  */
 #define INLINE
 #endif
 
+#undef CONFIGURATION
+
 /* The configuration script defines opsysfile to be the name of the
    s/*.h file that describes the system type you are using.  The file
    is chosen based on the configuration name you give.
