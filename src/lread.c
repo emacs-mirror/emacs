@@ -1942,10 +1942,13 @@ read1 (readcharfun, pch, first_in_list)
 		return Fstring_make_unibyte (string);
 	      }
 	  }
-	else if (EQ (readcharfun, Qget_file_char))
+	else if (EQ (readcharfun, Qget_file_char)
+		 || EQ (readcharfun, Qlambda))
 	  /* Nowadays, reading directly from a file
 	     is used only for compiled Emacs Lisp files,
-	     and those always use the Emacs internal encoding.  */
+	     and those always use the Emacs internal encoding.
+	     Meanwhile, Qlambda is used for reading dynamic byte code
+	     (compiled with byte-compile-dynamic = t).  */
 	  nchars = multibyte_chars_in_text (read_buffer, p - read_buffer);
 	else
 	  /* In all other cases, if we read these bytes as
