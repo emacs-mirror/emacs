@@ -1184,7 +1184,7 @@ This is in addition to, but in preference to, the primary selection."
 ;;; Make TEXT, a string, the primary X selection.
 ;;; Also, set the value of X cut buffer 0, for backward compatibility
 ;;; with older X applications.
-;;; gildea@lcs.mit.edu says it's not desirable to put kills
+;;; gildea@stop.mail-abuse.org says it's not desirable to put kills
 ;;; in the clipboard.
 (defun x-select-text (text &optional push)
   ;; Don't send the cut buffer too much text.
