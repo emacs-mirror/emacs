@@ -1719,6 +1719,24 @@ size_t mps_message_gc_not_condemned_size(mps_arena_t mps_arena,
   return (size_t)size;
 }
 
+/* MPS_MESSAGE_TYPE_GC_START */
+const char *mps_message_gc_start_why(mps_arena_t mps_arena,
+  mps_message_t mps_message)
+{
+  const char *s;
+  Arena arena = (Arena)mps_arena;
+  Message message = (Message)mps_message;
+
+  ArenaEnter(arena);
+
+  AVERT(Arena, arena);
+
+  s = MessageGCStartWhy(message);
+
+  ArenaLeave(arena);
+
+  return s;
+}
 
 /* Telemetry */
 

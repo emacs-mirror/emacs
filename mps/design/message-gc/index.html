@@ -49,7 +49,7 @@ collectively they are called GC Messages. </p>
 
   <dt> <p> mps_message_type_gc_start() </p> </dt>
 
-  <dd> <p> These messages are generated once per GC at the start of a
+  <dd> <p> (new in gcgenmsg branch) These messages are generated once per GC at the start of a
   GC. </p> </dd>
 
   <dt> <p> mps_message_type_gc() </p> </dt>
@@ -58,10 +58,10 @@ collectively they are called GC Messages. </p>
 
   <dt> <p> mps_message_type_gc_generation() </p> </dt>
 
-  <dd> <p> These messages are generated once per generation per GC. A
-  single such message explains how a generation intends
-  to participate in the collection. They are useful to experts and
-  interesting to other parties. </p> </dd>
+  <dd> <p> (new in gcgenmsg branch) These messages are generated once
+  per generation per GC. A single such message explains how a generation
+  intends to participate in the collection. They are useful to experts
+  and interesting to other parties. </p> </dd>
 
 </dl>
 
@@ -306,6 +306,16 @@ the arena queue (at the end of the trace).</p>
   can fill with textual description. </p> </dd>
 
 </dl>
+
+<h2><a id="section-6" name="section-6">6. Testing</a></h2>
+
+<p> amcss already collects and reports mps_message_type_gc.  It should
+be simple to extend it to mps_message_type_gc_start and
+mps_message_type_gc_generation.  </p>
+
+<p> Using amcss might not give a very good coverage.  In particular not
+all the available reasons will appear.  Perhaps a more dedicated test
+should be written. </p>
 
 <h2><a id="section-A" name="section-A">A. References</a></h2>
 

@@ -398,6 +398,7 @@ Bool TraceCheck(Trace trace)
   if (trace->chain != NULL)
     CHECKU(Chain, trace->chain);
   /* @@@@ checks for counts missing */
+  CHECKD(TraceStartMessage, &trace->startMessage);
   return TRUE;
 }
 
@@ -1524,9 +1525,10 @@ static Res rootGrey(Root root, void *p)
 void TraceStart(Trace trace, double mortality, double finishingTime)
 {
   Arena arena;
+  Message message;
+  Res res;
   Seg seg;
   Size size;
-  Res res;
 
   AVERT(Trace, trace);
   AVER(trace->state == TraceINIT);
@@ -1534,6 +1536,13 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
   AVER(finishingTime >= 0.0);
 
   arena = trace->arena;
+
+  message = TraceStartMessageMessage(&trace->startMessage);
+  /* Check message is not on queue.  If it _is_ then client
+     must have not read it yet. */
+  if(!MessageOnQueue(message)) {
+    MessagePost(arena, message);
+  }
 
   /* From the already set up white set, derive a grey set. */
 

@@ -126,6 +126,31 @@ improvement [insert actual speed improvement here].
 
 </pre>
 
+<h2>Life cycle of a trace object</h2>
+
+<p> TraceCreate creates a trace in state TraceINIT </p>
+
+<p> Some segments get condemned (made white). </p>
+
+<p> TraceStart gets called which: </p>
+
+<ul>
+
+  <li> <p> Derives an initial reference partition based on the existing
+  white set.  The white zone set and the segments' summaries are used to
+  create an initial grey set. </p> </li>
+
+  <li> <p> emits a GCStart message. </p> </li>
+
+  <li> <p> initialises trace->rate by estimating the required scanning
+  rate </p> </li>
+
+  <li> <p> moves the trace into the state TraceUNFLIPPED </p> </li>
+
+  <li> <p> immediately calls traceFlip which flips the trace and moves
+  it into state TraceFLIPPED. </p> </li>
+
+</ul>
 
 <h2><a id="section-A" name="section-A">A. References</a></h2>
 
