@@ -1,0 +1,24 @@
+# ----------------------------------------------------------------------
+# Configuration script for lib-src/makefile
+# ----------------------------------------------------------------------
+/^# DIST: /d
+# /^SHELL *=/s/=.*$/= command.com/
+/^CC *=/s/=.*$/=gcc/
+/^version *=/s/=.*$/=19.17/
+/^configname *=/s/=.*$/=msdos/
+/^archlibdir *=/s!=.*$!=c:/emacs/bin!
+/^bindir *=/s!=.*$!=c:/emacs/bin!
+/^libdir *=/s!=.*$!=c:/emacs/bin!
+/^srcdir *=/s!=.*$!=.!
+/^VPATH *=/s!=.*$!=.!
+/^CFLAGS *=/s!=.*$!=-g!
+/^C_SWITCH_SYSTEM *=/s!=.*$!=-DMSDOS!
+/^LOADLIBES *=/s!=.*$!=!
+/^ALLOCA *=/s!=.*$!=alloca.o!
+/^INSTALLABLES/s/emacsclient *//
+s!^	\./!	go32 ./!
+/^	.*timer$/s/movemail *//
+/^	.*timer$/s/fakemail *//
+/^	.*timer$/s/emacsserver *//
+/^	.*timer$/s/ *timer//
+/^UTILITIES=/s/ wakeup//
