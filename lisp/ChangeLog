@@ -5,6 +5,9 @@
 
 2003-10-23  Dave Love  <fx@gnu.org>
 
+	* international/mule-cmds.el (locale-charset-to-coding-system):
+	Don't rely on nil being a coding system.
+
 	* mail/mail-extr.el (mail-extr-ignore-single-names): Add :version.
 	(mail-extr-address-syntax-table): Remove non-ASCII unibyte chars.
 	(mail-extr-voodoo): Use char classes in regexps (for non-ASCII).
