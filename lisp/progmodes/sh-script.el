@@ -774,8 +774,9 @@ with your script for an edit-interpret-debug cycle."
 	 (save-excursion
 	   (goto-char (point-min))
 	   (cond ((looking-at "#![ \t]?\\([^ \t\n]*/bin/env[ \t]\\)?\\([^ \t\n]+\\)")
-		 (match-string 2))
-		 ((string-match "\\.m?spec$" buffer-file-name)
+		  (match-string 2))
+		 ((and buffer-file-name
+		       (string-match "\\.m?spec$" buffer-file-name))
 		  "rpm")))))
     (if interpreter
 	(sh-set-shell interpreter nil nil)
