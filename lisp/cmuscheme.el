@@ -185,10 +185,10 @@ Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters.")
 ;;;###autoload
 (defun run-scheme (cmd)
   "Run an inferior Scheme process, input and output via buffer *scheme*.
-If there is a process already running in *scheme*, just switch to that buffer.
+If there is a process already running in `*scheme*', switch to that buffer.
 With argument, allows you to edit the command line (default is value
-of scheme-program-name).  Runs the hooks from inferior-scheme-mode-hook
-\(after the comint-mode-hook is run).
+of `scheme-program-name').  Runs the hooks `inferior-scheme-mode-hook'
+\(after the `comint-mode-hook' is run).
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
 
   (interactive (list (if current-prefix-arg
@@ -201,8 +201,8 @@ of scheme-program-name).  Runs the hooks from inferior-scheme-mode-hook
 	(inferior-scheme-mode)))
   (setq scheme-program-name cmd)
   (setq scheme-buffer "*scheme*")
-  (switch-to-buffer "*scheme*"))
-
+  (pop-to-buffer "*scheme*"))
+;;;###autoload (add-hook 'same-window-buffer-names "*scheme*")
 
 (defun scheme-send-region (start end)
   "Send the current region to the inferior Scheme process."
