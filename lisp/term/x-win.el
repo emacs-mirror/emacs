@@ -428,6 +428,7 @@ This returns ARGS with the arguments that have been processed removed."
 (define-key global-map [begin] 'beginning-of-buffer)
 (define-key global-map [end] 'end-of-buffer)
 
+(define-key global-map "\C-z" 'iconify)
 
 ;;; Do the actual X Windows setup here; the above code just defines
 ;;; functions and variables that we use now.
