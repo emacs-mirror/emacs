@@ -912,7 +912,7 @@ command_loop_1 ()
 
   /* Make sure this hook runs after commands that get errors and
      throw to top level.  */
-  if (!NILP (Vpost_command_hook))
+  if (!NILP (Vpost_command_hook) && !NILP (Vrun_hooks))
     {
       /* If we get an error during the post-command-hook,
 	 cause post-command-hook to be nil.  */
@@ -1039,7 +1039,7 @@ command_loop_1 ()
       /* Execute the command.  */
 
       this_command = cmd;
-      if (!NILP (Vpre_command_hook))
+      if (!NILP (Vpre_command_hook) && !NILP (Vrun_hooks))
 	{
 	  /* If we get an error during the pre-command-hook,
 	     cause pre-command-hook to be nil.  */
@@ -1176,7 +1176,7 @@ command_loop_1 ()
 	}
     directly_done: ;
 
-      if (!NILP (Vpost_command_hook))
+      if (!NILP (Vpost_command_hook) && !NILP (Vrun_hooks))
 	{
 	  /* If we get an error during the post-command-hook,
 	     cause post-command-hook to be nil.  */
@@ -1204,7 +1204,7 @@ command_loop_1 ()
 	  this_command_key_count = 0;
 	}
 
-      if (!NILP (current_buffer->mark_active))
+      if (!NILP (current_buffer->mark_active) && !NILP (Vrun_hooks))
 	{
 	  if (!NILP (Vdeactivate_mark) && !NILP (Vtransient_mark_mode))
 	    {
@@ -4522,7 +4522,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 		  if (t + 1 >= bufsize)
 		    error ("key sequence too long");
 		  /* Run the Lucid hook.  */
-		  call1 (Vrun_hooks, Qactivate_menubar_hook);
+		  if (!NILP (Vrun_hooks))
+		    call1 (Vrun_hooks, Qactivate_menubar_hook);
 		  /* If it has changed current-menubar from previous value,
 		     really recompute the menubar from the value.  */
 		  if (! NILP (Vlucid_menu_bar_dirty_flag))
@@ -4993,7 +4994,7 @@ Otherwise, that is done only if an arg is read using the minibuffer.")
   if (XTYPE (cmd) == Lisp_Symbol)
     {
       tem = Fget (cmd, Qdisabled);
-      if (!NILP (tem))
+      if (!NILP (tem) && !NILP (Vrun_hooks))
 	return call1 (Vrun_hooks, Qdisabled_command_hook);
     }
 
