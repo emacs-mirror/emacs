@@ -786,6 +786,7 @@ See also the function `substitute-in-file-name'.")
 #endif /* VMS */
 #ifdef DOS_NT
   int drive = 0;
+  int collapse_newdir = 1;
 #endif /* DOS_NT */
   int length;
   Lisp_Object handler;
@@ -1100,9 +1101,7 @@ See also the function `substitute-in-file-name'.")
 	    newdir = (unsigned char *) "";
 	  nm++;
 #ifdef DOS_NT
-	  if (IS_DIRECTORY_SEP (nm[0]))
-	    /* Make nm look like a relative file name.  */
-	    nm++;
+	  collapse_newdir = 0;
 #endif
 #ifdef VMS
 	  nm++;			/* Don't leave the slash in nm.  */
@@ -1128,9 +1127,7 @@ See also the function `substitute-in-file-name'.")
 #else
 	      nm = p;
 #ifdef DOS_NT
-	      if (IS_DIRECTORY_SEP (nm[0]))
-		/* Make nm look like a relative name.  */
-		nm++;
+	      collapse_newdir = 0;
 #endif
 #endif /* VMS */
 	    }
@@ -1234,7 +1231,7 @@ See also the function `substitute-in-file-name'.")
 
       /* Keep only a prefix from newdir if nm starts with slash
          (//server/share for UNC, nothing otherwise). */
-      if (IS_DIRECTORY_SEP (nm[0]))
+      if (IS_DIRECTORY_SEP (nm[0]) && collapse_newdir)
 	{
 #ifdef WINDOWSNT
 	  if (IS_DIRECTORY_SEP (newdir[0]) && IS_DIRECTORY_SEP (newdir[1]))
