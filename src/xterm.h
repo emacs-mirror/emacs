@@ -518,9 +518,6 @@ struct scroll_bar {
   (SCROLL_BAR_UNPACK ((ptr)->x_window_low, (ptr)->x_window_high, (int) id))
 
 
-/* Return the outside pixel width for a vertical scroll bar on frame F.  */
-#define VERTICAL_SCROLL_BAR_PIXEL_WIDTH(f) (2*FONT_WIDTH ((f)->display.x->font))
-
 /* Return the outside pixel height for a vertical scroll bar HEIGHT
    rows high on frame F.  */
 #define VERTICAL_SCROLL_BAR_PIXEL_HEIGHT(f, height) \
