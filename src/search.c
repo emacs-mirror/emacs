@@ -752,11 +752,6 @@ scan_newline (start, start_byte, limit, limit_byte, count, allow_quit)
 
   int old_immediate_quit = immediate_quit;
 
-  /* If we are not in selective display mode,
-     check only for newlines.  */
-  int selective_display = (!NILP (current_buffer->selective_display)
-			   && !INTEGERP (current_buffer->selective_display));
-
   /* The code that follows is like scan_buffer
      but checks for either newline or carriage return.  */
 
