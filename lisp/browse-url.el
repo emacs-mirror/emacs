@@ -1015,10 +1015,10 @@ used instead of `browse-url-new-window-p'."
 		  (substring url 7)
 		url)))
       (if (browse-url-maybe-new-window new-window (interactive-p))
-	  (compose-mail-other-window to nil nil nil nil
-				     (cons 'insert-buffer (current-buffer)))
-	(compose-mail to nil nil nil nil nil (cons 'insert-buffer
-					       (current-buffer)))))))
+	  (compose-mail-other-window to nil nil nil
+				     (list 'insert-buffer (current-buffer)))
+	(compose-mail to nil nil nil nil
+		      (list 'insert-buffer (current-buffer)))))))
 
 ;; --- Random browser ---
 
