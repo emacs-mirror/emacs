@@ -451,9 +451,8 @@ automatically, and you are prompted to fill in the variable parts.")))
 	 (or skeleton-modified
 	     (setq skeleton (cdr skeleton))))
 	((eq element '@)
-	 (if skeleton-point
-	     (push (point) skeleton-positions)
-	   (setq skeleton-point (point))))
+	 (push (point) skeleton-positions)
+	 (unless skeleton-point (setq skeleton-point (point))))
 	((eq 'quote (car-safe element))
 	 (eval (nth 1 element)))
 	((or (stringp (car-safe element))
