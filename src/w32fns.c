@@ -2965,6 +2965,7 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
       enter_crit ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
 
+#if 0
       /* Detect quit_char and set quit-flag directly.  Note that we dow
          this *after* posting the message to ensure the main thread will
          be woken up if blocked in sys_select(). */
@@ -2976,6 +2977,8 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 	if (c == quit_char)
 	  Vquit_flag = Qt;
       }
+#endif
+
       leave_crit ();
       break;
 
