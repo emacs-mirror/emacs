@@ -955,7 +955,7 @@ company policy is unsympathetic to the idea of donating to charity, you
 might instead suggest ordering a CD-ROM from the Foundation
 occasionally, or subscribing to periodic updates.
 
-@ifnotinfo
+@iftex
 @node Acknowledgments, Intro, Distrib, Top
 @unnumberedsec Acknowledgments
 
@@ -1000,7 +1000,7 @@ Warsaw, Morten Welinder, Joseph Brian Wells, Rodney Whitby, Ed
 Wilkinson, Mike Williams, Steven A. Wood, Dale R. Worley, Felix
 S. T. Wu, Tom Wurgler, Eli Zaretskii, Jamie Zawinski, Ian T. Zimmermann,
 Reto Zimmermann, and Neal Ziring.
-@end ifnotinfo
+@end iftex
 
 @node Intro, Glossary, Distrib, Top
 @unnumbered Introduction
