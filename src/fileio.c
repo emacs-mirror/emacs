@@ -761,7 +761,9 @@ it returns a file name such as \"[X]Y.DIR.1\".")
 DEFUN ("make-temp-name", Fmake_temp_name, Smake_temp_name, 1, 1, 0,
   "Generate temporary file name (string) starting with PREFIX (a string).\n\
 The Emacs process number forms part of the result,\n\
-so there is no danger of generating a name being used by another process.")
+so there is no danger of generating a name being used by another process.\n\
+In addition, this function makes an attempt to choose a name\n\
+which has no existing file.")
   (prefix)
      Lisp_Object prefix;
 {
