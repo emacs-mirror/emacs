@@ -36,7 +36,7 @@
       (cons 'file-name-history minibuffer-history-case-insensitive-variables))
 
 ;; Set the null device (for compile.el).
-(setq grep-null-device "NUL")
+(setq null-device "NUL")
 
 ;; Set the grep regexp to match entries with drive letters.
 (setq grep-regexp-alist
