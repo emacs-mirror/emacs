@@ -352,8 +352,8 @@ find_next_newline (from, cnt)
 Lisp_Object skip_chars ();
 
 DEFUN ("skip-chars-forward", Fskip_chars_forward, Sskip_chars_forward, 1, 2, 0,
-  "Move point forward, stopping before a char not in CHARS, or at position LIM.\n\
-CHARS is like the inside of a `[...]' in a regular expression\n\
+  "Move point forward, stopping before a char not in STRING, or at pos LIM.\n\
+STRING is like the inside of a `[...]' in a regular expression\n\
 except that `]' is never special and `\\' quotes `^', `-' or `\\'.\n\
 Thus, with arg \"a-zA-Z\", this skips letters stopping before first nonletter.\n\
 With arg \"^a-zA-Z\", skips nonletters stopping before first letter.\n\
@@ -365,7 +365,7 @@ Returns the distance traveled, either zero or positive.")
 }
 
 DEFUN ("skip-chars-backward", Fskip_chars_backward, Sskip_chars_backward, 1, 2, 0,
-  "Move point backward, stopping after a char not in CHARS, or at position LIM.\n\
+  "Move point backward, stopping after a char not in STRING, or at pos LIM.\n\
 See `skip-chars-forward' for details.\n\
 Returns the distance traveled, either zero or negative.")
   (string, lim)
