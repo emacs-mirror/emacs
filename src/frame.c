@@ -181,7 +181,7 @@ DEFUN ("frame-live-p", Fframe_live_p, Sframe_live_p, 1, 1, 0,
        doc: /* Return non-nil if OBJECT is a frame which has not been deleted.
 Value is nil if OBJECT is not a live frame.  If object is a live
 frame, the return value indicates what sort of output device it is
-displayed on.  See the documentation of  `framep' for possible
+displayed on.  See the documentation of `framep' for possible
 return values.  */)
      (object)
      Lisp_Object object;
