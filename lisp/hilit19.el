@@ -132,9 +132,6 @@
 ;;
 ;; KNOWN BUGS/TO DO LIST/HELP WANTED/APPLY WITHIN
 ;;
-;; * When more than one size of font is used in different frames, only one
-;;   font size can have bold & italic properties.
-;;
 ;; * unbalanced, unescaped double quote characters can confuse hilit19.
 ;;   This will be fixed someday, so don't bug me about it.
 ;;
@@ -637,17 +634,11 @@ See the documentation for hilit-translate and hilit-face-translation-table."
 	    (set-face-font face nil frame)
 	    (set-face-underline-p face (string-match "underline" fn))
 	    (if (string-match ".*bold" fn)
-		(progn
-		  ;; first, fix up this frame's face
-		  (make-face-bold face frame  'noerr)
-		  ;; now, fix up the face from the global list
-		  (set-face-font face (face-font face frame) t)))
+		;; make face bold in all frames
+		(make-face-bold face nil 'noerr))
 	    (if (string-match ".*italic" fn)
-		(progn
-		  ;; first, fix up this frame's face
-		  (make-face-italic face frame 'noerr)
-		  ;; now, fix up the face from the global list
-		  (set-face-font face (face-font face frame) t)))
+		;; make face italic in all frames
+		(make-face-italic face nil 'noerr))
 	    ))
       )))
   face)
