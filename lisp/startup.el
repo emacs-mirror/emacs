@@ -473,6 +473,13 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	;; ...-frame-alist.
 	(if (fboundp 'frame-notice-user-settings)
 	    (frame-notice-user-settings))
+	(if (fboundp 'frame-set-background-mode)
+	    ;; Set the faces for the initial background mode even if
+	    ;; frame-notice-user-settings didn't (such as on a tty).
+	    ;; frame-set-background-mode is idempotent, so it won't
+	    ;; cause any harm if it's already been done.
+	    (frame-set-background-mode (selected-frame)))
+
 	;; Now we know the user's default font, so add it to the menu.
 	(if (fboundp 'font-menu-add-default)
 	    (font-menu-add-default))
