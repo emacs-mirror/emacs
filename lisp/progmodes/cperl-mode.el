@@ -363,9 +363,10 @@ Font for POD headers."
   :type 'face
   :group 'cperl-faces)
 
-(defcustom cperl-invalid-face ''underline
+(defcustom cperl-invalid-face 'underline
   "*Face for highlighting trailing whitespace."
   :type 'face
+  :version "21.1"
   :group 'cperl-faces)
 
 (defcustom cperl-pod-here-fontify '(featurep 'font-lock)
@@ -4341,7 +4342,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	  (setq
 	   t-font-lock-keywords
 	   (list
-	    (list "[ \t]+$" 0 'cperl-invalid-face t)
+	    `("[ \t]+$" 0 ',cperl-invalid-face t)
 	    (cons
 	     (concat
 	      "\\(^\\|[^$@%&\\]\\)\\<\\("
