@@ -1,3 +1,9 @@
+2000-09-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in: Make this the leim Makefile.in.
+	(clean): Also remove $NON-TIT and $WORLD.
+	(RUN-EMACS): Set EMACSLOADPATH.
+
 2000-09-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* Makefile.in: Revert to no-leim Makefile.
