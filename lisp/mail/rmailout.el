@@ -31,15 +31,16 @@
   "*Alist matching regexps to suggested output Rmail files.
 This is a list of elements of the form (REGEXP . FILENAME).")
 
-(defun rmail-output-to-rmail-file (count file-name)
+;;; There are functions elsewhere in Emacs that use this function; check
+;;; them out before you change the calling method.
+(defun rmail-output-to-rmail-file (file-name &optional count)
   "Append the current message to an Rmail file named FILE-NAME.
 If the file does not exist, ask if it should be created.
 If file is being visited, the message is appended to the Emacs
 buffer visiting that file.
 A prefix argument N says to output N consecutive messages
 starting with the current one.  Deleted messages are skipped and don't count."
-  (interactive (list (prefix-numeric-value current-prefix-arg)
-		     (read-file-name
+  (interactive (list (read-file-name
 		      (concat "Output message to Rmail file: (default "
 			      (file-name-nondirectory rmail-last-rmail-file)
 			      ") ")
@@ -54,7 +55,9 @@ starting with the current one.  Deleted messages are skipped and don't count."
 				(setq answer (cdr (car tail))))
 			    (setq tail (cdr tail))))
 			;; If not suggestions, use same file as last time.
-			(or answer rmail-last-rmail-file)))))
+			(or answer rmail-last-rmail-file)))
+		     (prefix-numeric-value current-prefix-arg)))
+  (or count (setq count 1))
   (setq file-name
 	(expand-file-name file-name
 			  (file-name-directory rmail-last-rmail-file)))
@@ -122,13 +125,15 @@ starting with the current one.  Deleted messages are skipped and don't count."
       (if (> count 0)
 	  (rmail-next-undeleted-message 1)))))
 
-(defun rmail-output (count file-name)
+;;; There are functions elsewhere in Emacs that use this function; check
+;;; them out before you change the calling method.
+(defun rmail-output (file-name &optional count)
   "Append this message to Unix mail file named FILE-NAME.
 A prefix argument N says to output N consecutive messages
-starting with the current one.  Deleted messages are skipped and don't count."
+starting with the current one.  Deleted messages are skipped and don't count.
+When called from lisp code, N may be omitted."
   (interactive
-   (list (prefix-numeric-value current-prefix-arg)
-	 (read-file-name
+   (list (read-file-name
 	  (concat "Output message to Unix mail file"
 		  (if rmail-last-file
 		      (concat " (default "
@@ -136,7 +141,9 @@ starting with the current one.  Deleted messages are skipped and don't count."
 			      "): " )
 		    ": "))			
 	  (and rmail-last-file (file-name-directory rmail-last-file))
-	  rmail-last-file)))
+	  rmail-last-file)
+	 (prefix-numeric-value current-prefix-arg)))
+  (or count (setq count 1))
   (setq file-name
 	(expand-file-name file-name
 			  (and rmail-last-file
