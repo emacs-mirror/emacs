@@ -726,12 +726,14 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   next = next_interval (i);
 
   while (! NULL_INTERVAL_P (next) && intervals_equal (i, next)
-	 && (NILP (limit) || next->position < XFASTINT (limit)))
+	 && (NILP (limit)
+	     || next->position - (STRINGP (object)) < XFASTINT (limit)))
     next = next_interval (next);
 
   if (NULL_INTERVAL_P (next))
     return limit;
-  if (! NILP (limit) && !(next->position < XFASTINT (limit)))
+  if (! NILP (limit)
+      && !(next->position - (STRINGP (object)) < XFASTINT (limit)))
     return limit;
 
   XSETFASTINT (position, next->position - (STRINGP (object)));
@@ -760,7 +762,7 @@ property_change_between_p (beg, end)
       next = next_interval (next);
       if (NULL_INTERVAL_P (next))
 	return 0;
-      if (next->position >= end)
+      if (next->position - (STRINGP (object)) >= end)
 	return 0;
     }
 
@@ -801,12 +803,13 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   next = next_interval (i);
   while (! NULL_INTERVAL_P (next) 
 	 && EQ (here_val, textget (next->plist, prop))
-	 && (NILP (limit) || next->position < XFASTINT (limit)))
+	 && (NILP (limit) || next->position - (STRINGP (object)) < XFASTINT (limit)))
     next = next_interval (next);
 
   if (NULL_INTERVAL_P (next))
     return limit;
-  if (! NILP (limit) && !(next->position < XFASTINT (limit)))
+  if (! NILP (limit)
+      && !(next->position - (STRINGP (object)) < XFASTINT (limit)))
     return limit;
 
   XSETFASTINT (position, next->position - (STRINGP (object)));
@@ -845,16 +848,18 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
   previous = previous_interval (i);
   while (! NULL_INTERVAL_P (previous) && intervals_equal (previous, i)
 	 && (NILP (limit)
-	     || previous->position + LENGTH (previous) > XFASTINT (limit)))
+	     || (previous->position + LENGTH (previous) - (STRINGP (object))
+		 > XFASTINT (limit))))
     previous = previous_interval (previous);
   if (NULL_INTERVAL_P (previous))
     return limit;
   if (!NILP (limit)
-      && !(previous->position + LENGTH (previous) > XFASTINT (limit)))
+      && !(previous->position + LENGTH (previous) - (STRINGP (object))
+	   > XFASTINT (limit)))
     return limit;
 
   XSETFASTINT (position, (previous->position + LENGTH (previous)
-		     - (STRINGP (object))));
+			  - (STRINGP (object))));
   return position;
 }
 
@@ -895,16 +900,18 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
   while (! NULL_INTERVAL_P (previous)
 	 && EQ (here_val, textget (previous->plist, prop))
 	 && (NILP (limit)
-	     || previous->position + LENGTH (previous) > XFASTINT (limit)))
+	     || (previous->position + LENGTH (previous) - (STRINGP (object))
+		 > XFASTINT (limit))))
     previous = previous_interval (previous);
   if (NULL_INTERVAL_P (previous))
     return limit;
   if (!NILP (limit)
-      && !(previous->position + LENGTH (previous) > XFASTINT (limit)))
+      && !(previous->position + LENGTH (previous) - (STRINGP (object))
+	   > XFASTINT (limit)))
     return limit;
 
   XSETFASTINT (position, (previous->position + LENGTH (previous)
-		     - (STRINGP (object))));
+			  - (STRINGP (object))));
   return position;
 }
 
