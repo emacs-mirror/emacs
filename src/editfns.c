@@ -666,7 +666,7 @@ FORMAT-STRING may contain %-sequences to substitute parts of the time.\n\
 %Y is replaced by the year with century.\n\
 %Z is replaced by the time zone abbreviation.\n\
 \n\
-The number of options reflects the strftime(3) function.")
+The number of options reflects the `strftime' function.")
   (format_string, time)
      Lisp_Object format_string, time;
 {
@@ -684,8 +684,8 @@ The number of options reflects the strftime(3) function.")
   while (1)
     {
       char *buf = (char *) alloca (size);
-      if (strftime (buf, size, XSTRING (format_string)->data,
-		    localtime (&value)))
+      if (emacs_strftime (buf, size, XSTRING (format_string)->data,
+			  localtime (&value)))
 	return build_string (buf);
       /* If buffer was too small, make it bigger.  */
       size *= 2;
@@ -1773,8 +1773,8 @@ Use %% to put a single % into the output.")
 	    union { double d; int half[2]; } u;
 
 	    u.d = XFLOAT (args[n])->data;
-	    strings[i++] = (unsigned char *) u.half[0];
-	    strings[i++] = (unsigned char *) u.half[1];
+	    strings[i++] = (unsigned char *) (EMACS_INT) u.half[0];
+	    strings[i++] = (unsigned char *) (EMACS_INT) u.half[1];
 	  }
 #endif
 	else
