@@ -440,7 +440,7 @@ find_field (pos, merge_at_boundary, beg, end)
     else
       /* Find the previous field boundary.  */
       {
-	if (!NILP (merge_at_boundary) && before_field == Qboundary)
+	if (!NILP (merge_at_boundary) && EQ (before_field, Qboundary))
 	  /* Skip a `boundary' field.  */
 	  pos = Fprevious_single_char_property_change (pos, Qfield, Qnil,Qnil);
 
@@ -456,7 +456,7 @@ find_field (pos, merge_at_boundary, beg, end)
     else
       /* Find the next field boundary.  */
       {
-	if (!NILP (merge_at_boundary) && after_field == Qboundary)
+	if (!NILP (merge_at_boundary) && EQ (after_field, Qboundary))
 	  /* Skip a `boundary' field.  */
 	  pos = Fnext_single_char_property_change (pos, Qfield, Qnil, Qnil);
 
