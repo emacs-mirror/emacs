@@ -160,7 +160,7 @@ variable is ignored."
 ;;; Utilities
 
 (defmacro uniquify-push (item list)
-  (` (setq (, list) (cons (, item) (, list)))))
+  `(setq ,list (cons ,item ,list)))
 
 ;; For directories, return the last component, not the empty string.
 (defun uniquify-file-name-nondirectory (file-name)
@@ -168,11 +168,11 @@ variable is ignored."
 
 ;; uniquify-fix-list data structure
 (defmacro uniquify-fix-item-base (a)
-  (` (car (, a))))
+  `(car ,a))
 (defmacro uniquify-fix-item-filename (a)
-  (` (car (cdr (, a)))))
+  `(car (cdr ,a)))
 (defmacro uniquify-fix-item-buffer (a)
-  (` (car (cdr (cdr (, a))))))
+  `(car (cdr (cdr ,a))))
 ;; Not a macro: passed to mapcar.
 (defun uniquify-fix-item-unrationalized-buffer (item)
   (or (car (cdr (cdr (cdr item)))) nil))	;maybe better in the future
