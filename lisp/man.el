@@ -655,7 +655,7 @@ The following key bindings are currently in effect in the buffer:
 Returns t if section is found, nil otherwise."
   (let ((curpos (point)))
     (goto-char (point-min))
-    (if (re-search-forward (concat "^" section) (point-max) t)
+    (if (re-search-forward (concat "^\\s-?" section) (point-max) t)
 	(progn (beginning-of-line) t)
       (goto-char curpos)
       nil)
