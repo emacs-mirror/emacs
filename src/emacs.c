@@ -1111,11 +1111,12 @@ main (argc, argv, envp)
       syms_of_keyboard ();
 
 #ifdef macintosh
-      /* init_window_once calls make_terminal_frame which on Mac OS creates
-         a full-fledge output_mac type frame.  This does not work correctly
-         before syms_of_textprop, syms_of_macfns, syms_of_ccl,
-         syms_of_fontset, syms_of_xterm, syms_of_search, x_term_init, and
-         init_keyboard have already been called.  */
+      /* init_window_once calls make_terminal_frame which on Mac OS
+         creates a full-fledge output_mac type frame.  This does not
+         work correctly before syms_of_textprop, syms_of_macfns,
+         syms_of_ccl, syms_of_fontset, syms_of_xterm, syms_of_search,
+         syms_of_frame, x_term_init, and init_keyboard have already
+         been called.  */
       syms_of_textprop ();
       syms_of_macfns ();
       syms_of_ccl ();
@@ -1124,6 +1125,7 @@ main (argc, argv, envp)
       syms_of_macmenu ();
       syms_of_data ();
       syms_of_search ();
+      syms_of_frame ();
       
       x_term_init ();
       init_keyboard ();
@@ -1373,8 +1375,8 @@ main (argc, argv, envp)
 #ifndef macintosh
       /* Called before init_window_once for Mac OS.  */
       syms_of_search ();
-#endif
       syms_of_frame ();
+#endif
       syms_of_syntax ();
       syms_of_term ();
       syms_of_undo ();

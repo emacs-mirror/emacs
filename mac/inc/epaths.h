@@ -37,7 +37,7 @@ Boston, MA 02111-1307, USA.  */
    variable exec-path and the first file name in it sets the Lisp
    variable exec-directory.  exec-directory is used for finding
    executables and other architecture-dependent files.  */
-#define PATH_EXEC "~emacs/mac/bin"
+#define PATH_EXEC "~emacs/mac"
 
 /* Where Emacs should look for its architecture-independent data
    files, like the NEWS file.  The lisp variable data-directory

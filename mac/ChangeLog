@@ -1,3 +1,12 @@
+2000-11-26  Andrew Choi  <akochoi@i-cable.com>
+
+	* src/macterm.c (x_handle_tool_bar_click):
+	(note_tool_bar_highlight): change references to members deleted
+	from struct frame as in xterm.c.
+
+	* inc/epaths.h: set PATH_EXEC to ~emacs/mac instead of
+	~emacs/mac/bin.
+
 2000-10-25  Andrew Choi  <akochoi@i-cable.com>
 
 	* cw5-mcp.xml: renamed from emacs-cw5.mcp.xml.

@@ -1,3 +1,8 @@
+2000-11-26  Andrew Choi  <akochoi@i-cable.com>
+
+	* emacs.c (main) [macintosh]: call syms_of_frame before calling
+	init_window_once.
+
 2000-11-25  Jason Rumney  <jasonr@gnu.org>
 
 	* keyboard.c (make_lispy_event) [mouse_wheel, drag_n_drop]: Args
