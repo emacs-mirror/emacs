@@ -1,5 +1,5 @@
 /* Client process that communicates with GNU Emacs acting as server.
-   Copyright (C) 1986, 1987, 1994, 1999, 2000, 2001
+   Copyright (C) 1986, 1987, 1994, 1999, 2000, 2001, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -122,13 +122,18 @@ decode_options (argc, argv)
 	  break;
 
 	case 'V':
-	  fprintf (stderr, "emacsclient %s\n", VERSION);
-	  exit (1);
+	  printf ("emacsclient %s\n", VERSION);
+	  exit (0);
 	  break;
 
 	case 'H':
-	default:
 	  print_help_and_exit ();
+	  break;
+
+	default:
+	  fprintf (stderr, "Try `%s --help' for more information\n", progname);
+	  exit (1);
+	  break;
 	}
     }
 }
@@ -136,10 +141,11 @@ decode_options (argc, argv)
 void
 print_help_and_exit ()
 {
-  fprintf (stderr,
-	   "Usage: %s [OPTIONS] FILE...\n\
+  printf (
+	  "Usage: %s [OPTIONS] FILE...\n\
 Tell the Emacs server to visit the specified files.\n\
 Every FILE can be either just a FILENAME or [+LINE[:COLUMN]] FILENAME.\n\
+\n\
 The following OPTIONS are accepted:\n\
 -V, --version           Just print a version info and return\n\
 -H, --help              Print this usage information message\n\
@@ -148,8 +154,9 @@ The following OPTIONS are accepted:\n\
 -d, --display=DISPLAY   Visit the file in the given display\n\
 -a, --alternate-editor=EDITOR\n\
                         Editor to fallback to if the server is not running\n\
+\n\
 Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
-  exit (1);
+  exit (0);
 }
 
 /* Return a copy of NAME, inserting a &
@@ -294,7 +301,11 @@ main (argc, argv)
   decode_options (argc, argv);
 
   if (argc - optind < 1)
-    print_help_and_exit ();
+    {
+      fprintf (stderr, "%s: file name or argument required\n", progname);
+      fprintf (stderr, "Try `%s --help' for more information\n", progname);
+      exit (1);
+    }
 
   /*
    * Open up an AF_UNIX socket in this person's home directory
