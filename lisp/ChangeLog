@@ -1,3 +1,9 @@
+2004-05-05  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Copy the character with text
+	properties and overlays into the first line, and call
+	describe-text-properties on it.
+
 2004-05-05  Stephen Eglen  <stephen@anc.ed.ac.uk>
 
 	* iswitchb.el (iswitchb-global-map): Fix typo.
