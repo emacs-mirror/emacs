@@ -23,7 +23,7 @@
 	(Ftty_supports_face_attributes_p): Function deleted.
 	(Fdisplay_supports_face_attributes_p): New function.
 	(syms_of_xfaces): Initialize Sdisplay_supports_face_attributes_p.
-	(face_attr_equal_p): New function
+	(face_attr_equal_p): New function.
 	(lface_equal_p): Use it.
 
 2004-06-03  Juanma Barranquero  <lektu@terra.es>
@@ -3833,7 +3833,7 @@
 
 2003-07-09  Kim F. Storm  <storm@cua.dk>
 
-	* xterm.c (use_xim) [!USE_XIM]: Default to disable XIM if emacs
+	* xterm.c (use_xim) [!USE_XIM]: Default to disable XIM if Emacs
 	was configured with --without-xim.
 	(x_term_init) [!USE_XIM]: Use `useXIM' resource to turn on XIM.
 
@@ -4690,7 +4690,7 @@
 	window to only preserve the display margins in one of the windows.
 	When splitting horizontally, call adjust_window_margins	on both
 	windows to ensure that the text area of the new windows is non too
-	narrow.  This fixes a bug which could cause emacs to trap if the
+	narrow.  This fixes a bug which could cause Emacs to trap if the
 	width of the split window was less than the width of the display
 	margins.
 	(window_box_text_cols): Renamed from window_internal_width.
@@ -4721,7 +4721,7 @@
 	(Fset_window_margins): Do nothing if display margins are not
 	really changed.  Otherwise, call adjust_window_margins to ensure
 	the text area doesn't get too narrow.  This fixes a bug which
-	could cause emacs to trap if setting display margins wider than
+	could cause Emacs to trap if setting display margins wider than
 	the width of the window.
 	(Fset_window_fringes): New defun to allow user to specifically set
 	this window's fringe widths and position vs. display margins.
@@ -7995,7 +7995,7 @@
 	* process.c (Fformat_network_address): New function.
 	(syms_of_process): Defsubr it.
 	(list_processes_1): Use it to format :local/:remote address if
-	service/host is not set; before emacs would crash in that case.
+	service/host is not set; before Emacs would crash in that case.
 	(Fmake_network_process): Don't use Ffind_operation_coding_system
 	to setup coding system if host or service is not set.
 
@@ -9293,11 +9293,11 @@
 2002-07-11  Juanma Barranquero  <lektu@terra.es>
 
 	* alloc.c, buffer.c, bytecode.c, callint.c, callproc.c, coding.c,
-	composite.c, dired.c, dispnew.c, editfns.c, emacs.c, eval.c,
-	fileio.c, fns.c, insdel.c, keyboard.c, keymap.c, lread.c, macfns.c,
-	macmenu.c, macros.c, minibuf.c, print.c, process.c, sound.c,
-	textprop.c, w32fns.c, w32menu.c, window.c, xfaces.c, xfns.c,
-	xmenu.c, xselect.c, xterm.c: Use SPECPDL_INDEX wherever makes sense.
+	* composite.c, dired.c, dispnew.c, editfns.c, emacs.c, eval.c,
+	* fileio.c, fns.c, insdel.c, keyboard.c, keymap.c, lread.c, macfns.c,
+	* macmenu.c, macros.c, minibuf.c, print.c, process.c, sound.c,
+	* textprop.c, w32fns.c, w32menu.c, window.c, xfaces.c, xfns.c,
+	* xmenu.c, xselect.c, xterm.c: Use SPECPDL_INDEX wherever makes sense.
 
 2002-07-10  Juanma Barranquero  <lektu@terra.es>
 
@@ -12320,7 +12320,7 @@
 2001-12-14  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (EMACSLOADPATH): Define.
-	($(EMACS)): Run `list-load-path-shadows' after dumping emacs.
+	($(EMACS)): Run `list-load-path-shadows' after dumping Emacs.
 	(bootstrap-temacs): Remove dependency on bootstrap-clean.
 
 2001-12-13  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -13617,7 +13617,7 @@
 
 2001-10-28  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* emacs.c: Use argv[0] instead of emacs when -t was specified.
+	* emacs.c: Use argv[0] instead of "emacs" when -t was specified.
 
 	* keyboard.c: Change doc-string comments to `new style' [w/`doc:'
 	keyword].
