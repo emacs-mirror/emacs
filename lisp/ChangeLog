@@ -1,3 +1,7 @@
+2000-12-11  Miles Bader  <miles@gnu.org>
+
+	* window.el (window-text-height): Function removed (now in C).
+
 2000-12-10  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* log-edit.el (log-edit-parent-buffer): New var.

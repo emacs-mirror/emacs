@@ -2,6 +2,9 @@
 
 	* window.c (displayed_window_lines): Don't round up when
 	converting empty space at bottom to lines.
+	Handle non-newline-terminated final lines properly.
+	(Fwindow_text_height): New function (used to be in lisp).
+	(syms_of_window): Initialize it.
 
 2000-12-09  Stefan Monnier  <monnier@cs.yale.edu>
 
