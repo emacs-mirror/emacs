@@ -1,9 +1,8 @@
-/* $HopeName: MMQA_harness!testlib:platform.c(trunk.2) $
+/* $HopeName: MMQA_harness!testlib:platform.c(trunk.3) $
 */
 
-#include "mps.h"
-#include "platform.h"
 #include "testlib.h"
+/* that includes platform.h, so we don't need to */
 
 #ifdef MPS_OS_SU
 
