@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.20) $
+ * $HopeName: MMsrc!mpsi.c(trunk.21) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.20) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.21) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -70,6 +70,9 @@ SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.20) $");
  * satisfy rule.impl.trick.]
  *
  * .check.empty: Note that mpsi_check compiles away to almost nothing.
+ * 
+ * .check.enum.cast: enum comparisons have to be cast to avoid a warning
+ * from the SunPro C compiler. See builder.sc.warn.enum.
  */
 
 #define CHECKLVALUE(lv1, lv2) \
@@ -91,26 +94,27 @@ static Bool mpsi_check(void)
 {
   /* Check that external and internal result codes match. */
   /* See impl.h.mps.result-codes and impl.h.mpmtypes.result-codes. */
+  /* Also see .check.enum.cast. */
   CHECKL(CHECKTYPE(mps_res_t, Res));
-  CHECKL(MPS_RES_OK == ResOK);
-  CHECKL(MPS_RES_FAIL == ResFAIL);
-  CHECKL(MPS_RES_RESOURCE == ResRESOURCE);
-  CHECKL(MPS_RES_MEMORY == ResMEMORY);
-  CHECKL(MPS_RES_LIMIT == ResLIMIT);
-  CHECKL(MPS_RES_UNIMPL == ResUNIMPL);
-  CHECKL(MPS_RES_IO == ResIO);
+  CHECKL((Word)MPS_RES_OK == (Word)ResOK);
+  CHECKL((Word)MPS_RES_FAIL == (Word)ResFAIL);
+  CHECKL((Word)MPS_RES_RESOURCE == (Word)ResRESOURCE);
+  CHECKL((Word)MPS_RES_MEMORY == (Word)ResMEMORY);
+  CHECKL((Word)MPS_RES_LIMIT == (Word)ResLIMIT);
+  CHECKL((Word)MPS_RES_UNIMPL == (Word)ResUNIMPL);
+  CHECKL((Word)MPS_RES_IO == (Word)ResIO);
 
   /* Check that external and internal rank numbers match. */
   /* See impl.h.mps.ranks and impl.h.mpmtypes.ranks. */
+  /* Also see .check.enum.cast. */
   CHECKL(CHECKTYPE(mps_rank_t, Rank));
-  CHECKL(MPS_RANK_AMBIG == RankAMBIG);
-  CHECKL(MPS_RANK_EXACT == RankEXACT);
-  CHECKL(MPS_RANK_WEAK == RankWEAK);
-  CHECKL(MPS_RANK_FINAL == RankFINAL);
+  CHECKL((Word)MPS_RANK_AMBIG == (Word)RankAMBIG);
+  CHECKL((Word)MPS_RANK_EXACT == (Word)RankEXACT);
+  CHECKL((Word)MPS_RANK_WEAK == (Word)RankWEAK);
+  CHECKL((Word)MPS_RANK_FINAL == (Word)RankFINAL);
 
   /* The external idea of a word width and the internal one */
   /* had better match.  See design.mps.interface.c.cons. */
-  CHECKL(MPS_WORD_WIDTH == MPS_WORD_WIDTH);
   CHECKL(sizeof(mps_word_t) == sizeof(void *));
   CHECKL(CHECKTYPE(mps_word_t, Word));
   
@@ -178,6 +182,44 @@ mps_res_t mps_space_create_wmem(mps_space_t *mps_space_o,
   
   *mps_space_o = (mps_space_t)space;
   return MPS_RES_OK;
+}
+
+mps_res_t mps_space_extend(mps_space_t mps_space,
+                           mps_addr_t base,
+                           size_t size)
+{
+  Space space = (Space)mps_space;
+  Res res;
+
+  SpaceEnter(space);
+  res = ArenaExtend(space, (Addr)base, (Size)size);
+  SpaceLeave(space);
+
+  return (mps_res_t)res;
+}
+
+size_t mps_space_reserved(mps_space_t mps_space)
+{
+  Space space = (Space)mps_space;
+  Size size;
+
+  SpaceEnter(space);
+  size = ArenaReserved(space);
+  SpaceLeave(space);
+
+  return (size_t)size;
+}
+
+size_t mps_space_committed(mps_space_t mps_space)
+{
+  Space space = (Space)mps_space;
+  Size size;
+
+  SpaceEnter(space);
+  size = ArenaCommitted(space);
+  SpaceLeave(space);
+
+  return (size_t)size;
 }
 
 mps_res_t mps_space_create(mps_space_t *mps_space_o)
@@ -273,7 +315,8 @@ void mps_fmt_destroy(mps_fmt_t mps_fmt)
 
 mps_res_t mps_pool_create(mps_pool_t *mps_pool_o,
                           mps_space_t mps_space,
-                          mps_class_t mps_class, ...)
+                          mps_class_t mps_class,
+                          ...)
 {
   mps_res_t res;
   va_list args;
@@ -299,7 +342,7 @@ mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o,
   AVERT(Space, space);
   AVERT(PoolClass, class);
 
-  res = PoolCreateV(&pool, class, space, args);
+  res = PoolCreateV(&pool, space, class, args);
 
   SpaceLeave(space);
   
@@ -324,7 +367,6 @@ void mps_pool_destroy(mps_pool_t mps_pool)
 
   SpaceLeave(space);
 }
-
 
 mps_res_t mps_alloc(mps_addr_t *p_o,
                     mps_pool_t mps_pool,

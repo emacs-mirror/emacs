@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.21) $
+ * $HopeName: MMsrc!pool.c(trunk.22) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.21) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.22) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -60,7 +60,6 @@ Bool PoolCheck(Pool pool)
   return TRUE;
 }
 
-
 /* PoolInit, PoolInitV -- initialize a pool
  *
  * Initialize the generic fields of the pool and calls class-specific init. 
@@ -77,7 +76,8 @@ Res PoolInit(Pool pool, Space space, PoolClass class, ...)
   return res;
 }
 
-Res PoolInitV(Pool pool, Space space, PoolClass class, va_list args)
+Res PoolInitV(Pool pool, Space space,
+              PoolClass class, va_list args)
 {
   Res res;
 
@@ -119,18 +119,19 @@ failInit:
 
 /* PoolCreate, PoolCreateV: Allocate and initialise pool */
 
-Res PoolCreate(Pool *poolReturn, PoolClass class, Space space, ...)
+Res PoolCreate(Pool *poolReturn, Space space, 
+               PoolClass class, ...)
 {
   Res res;
   va_list args;
-  va_start(args, space);
-  res = PoolCreateV(poolReturn, class, space, args);
+  va_start(args, class);
+  res = PoolCreateV(poolReturn, space, class, args);
   va_end(args);
   return res;
 }
 
-Res PoolCreateV(Pool *poolReturn, PoolClass class,
-                Space space, va_list args)
+Res PoolCreateV(Pool *poolReturn, Space space,  
+                PoolClass class, va_list args)
 {
   Res res;
   Pool pool;
@@ -344,7 +345,7 @@ Space (PoolSpace)(Pool pool)
 }
 
 
-Res PoolSegAlloc(Seg *segReturn, Pool pool, Size size)
+Res PoolSegAlloc(Seg *segReturn, SegPref pref, Pool pool, Size size)
 {
   Res res;
   Seg seg;
@@ -352,10 +353,11 @@ Res PoolSegAlloc(Seg *segReturn, Pool pool, Size size)
 
   AVER(segReturn != NULL);
   AVERT(Pool, pool);
+  AVERT(SegPref, pref);
   space = PoolSpace(pool);
   AVER(SizeIsAligned(size, ArenaAlign(space)));
 
-  res = SegAlloc(&seg, space, size, pool);
+  res = SegAlloc(&seg, pref, space, size, pool);
   if(res != ResOK) return res;
 
   RingAppend(&pool->segRing, &seg->poolRing);

@@ -1,6 +1,6 @@
 /* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
  *
- * $HopeName: MMsrc!mpstd.h(trunk.14) $
+ * $HopeName: MMsrc!mpstd.h(trunk.15) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * Detect the target platform using predefined preprocessor symbols
@@ -20,7 +20,7 @@
  * check the value of _MIPS_FPSET, as it is defined across all Irix 5
  * and 6 platforms, and on Irix 6 distinguishes O32 from the other two
  * ABIs. When we support the other ABIs, we need a new OS name for
- * them.  See analysis.irix-cpp */
+ * them.  See analysis.irix-cpp. */
 
 #if defined(__sgi) && defined(__unix) && defined(__mips) && defined(_SYSTYPE_SVR4) && (_MIPS_FPSET == 16)
 #define MPS_PF_I5R4CC

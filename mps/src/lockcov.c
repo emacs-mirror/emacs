@@ -1,7 +1,7 @@
 /* impl.c.lockcov
  *                     LOCK COVERAGE TEST
  *
- * $HopeName: MMsrc!lockcov.c(MMdevel_restr.2) $
+ * $HopeName: MMsrc!lockcov.c(trunk.2) $
  */
 
 #include "mpm.h"
@@ -13,7 +13,7 @@ int main(void){
   LockInit(&b);
   LockClaim(&a);
   LockClaimRecursive(&b);
-  LockRelease(&a);
+  LockReleaseMPM(&a);
   LockClaimRecursive(&b);
   LockFinish(&a);
   LockReleaseRecursive(&b);
@@ -23,7 +23,7 @@ int main(void){
   LockClaim(&a);
   LockClaimRecursive(&a);
   LockReleaseRecursive(&a);
-  LockRelease(&a);
+  LockReleaseMPM(&a);
   LockFinish(&a);
 
   return 0;

@@ -2,7 +2,7 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.3) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.4) $
  * Copyright(C) 1995,1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -29,18 +29,18 @@
 #include "poolmrg.h"
 
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.3) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.4) $");
 
 #define MRGSig          ((Sig)0x519B0349)
 
 typedef struct MRGStruct {
   PoolStruct poolStruct;        /* generic pool structure */
-  RingStruct entry;		/* design.mps.poolmrg.poolstruct.entry */
-  RingStruct exit;		/* design.mps.poolmrg.poolstruct.exit */
-  RingStruct free;		/* design.mps.poolmrg.poolstruct.free */
-  RingStruct group;		/* design.mps.poolmrg.poolstruct.group */
-  Size extendBy;		/* design.mps.poolmrg.extend */
-  Sig sig;			/* impl.h.mps.sig */
+  RingStruct entry;             /* design.mps.poolmrg.poolstruct.entry */
+  RingStruct exit;              /* design.mps.poolmrg.poolstruct.exit */
+  RingStruct free;              /* design.mps.poolmrg.poolstruct.free */
+  RingStruct group;             /* design.mps.poolmrg.poolstruct.group */
+  Size extendBy;                /* design.mps.poolmrg.extend */
+  Sig sig;                      /* impl.h.mps.sig */
 } MRGStruct;
 
 #define PoolPoolMRG(pool) PARENT(MRGStruct, poolStruct, pool)
@@ -79,11 +79,11 @@ static Index indexOfLinkPart(Addr a, Space space)
   return pa - pbase;
 }
 
-#define MRGGroupSig	((Sig)0x5193499b)
+#define MRGGroupSig     ((Sig)0x5193499b)
 
 typedef struct MRGGroupStruct {
   Sig sig;                      /* impl.h.misc.sig */
-  RingStruct group;		/* design.mps.poolmrg.group.group */
+  RingStruct group;             /* design.mps.poolmrg.group.group */
   TraceSet grey;                /* design.mps.poolmrg.group.grey */
   Seg refseg;                   /* design.mps.poolmrg.group.segs */
   Seg linkseg;                  /* design.mps.poolmrg.group.segs */
@@ -126,7 +126,7 @@ static Res MRGGroupCreate(MRGGroup *groupReturn, MRG mrg)
   if(res != ResOK)
     goto failRefSegAlloc;
 
-  guardians = mrg->extendBy / sizeof(Addr);	/* per seg */
+  guardians = mrg->extendBy / sizeof(Addr);     /* per seg */
   linksegsize = guardians * sizeof(RingStruct);
   linksegsize = SizeAlignUp(linksegsize, ArenaAlign(space));
   res = PoolSegAlloc(&linkseg, pool, linksegsize);
@@ -182,7 +182,7 @@ static Res MRGGroupScan(ScanState ss, MRGGroup group, MRG mrg)
 
   ShieldExpose(space, group->refseg);
 
-  guardians = mrg->extendBy / sizeof(Addr);	/* per seg */
+  guardians = mrg->extendBy / sizeof(Addr);     /* per seg */
   AVER(guardians > 0);
   base = SegBase(space, group->refseg);
   refpart = (Addr *)base;
@@ -191,13 +191,13 @@ static Res MRGGroupScan(ScanState ss, MRGGroup group, MRG mrg)
       if(!TRACE_FIX1(ss, refpart[i])) continue;
       res = TRACE_FIX2(ss, &refpart[i]);
       if(res != ResOK) {
-	return res;
+        return res;
       }
-      if(ss->rank == RankFINAL && !ss->wasMarked) {	/* .improve.rank */
-	RingStruct *linkpart =
-	  (RingStruct *)SegBase(space, group->linkseg);
-	RingRemove(&linkpart[i]);
-	RingAppend(&mrg->exit, &linkpart[i]);
+      if(ss->rank == RankFINAL && !ss->wasMarked) {     /* .improve.rank */
+        RingStruct *linkpart =
+          (RingStruct *)SegBase(space, group->linkseg);
+        RingRemove(&linkpart[i]);
+        RingAppend(&mrg->exit, &linkpart[i]);
       }
     }
   } TRACE_SCAN_END(ss);
@@ -264,7 +264,7 @@ static Res MRGAlloc(Addr *pReturn, Pool pool, Size size)
   Index gi;
   MRG mrg;
   MRGGroup group;
-  MRGGroup junk;		/* .group.useless */
+  MRGGroup junk;                /* .group.useless */
   Res res;
   Ring f;
   Seg seg;
@@ -275,7 +275,7 @@ static Res MRGAlloc(Addr *pReturn, Pool pool, Size size)
   AVERT(MRG, mrg);
 
   AVER(pReturn != NULL);
-  AVER(size == sizeof(Addr));	/* design.mps.poolmrg.alloc.one-size */
+  AVER(size == sizeof(Addr));   /* design.mps.poolmrg.alloc.one-size */
 
   space = PoolSpace(pool);
 
@@ -283,8 +283,8 @@ static Res MRGAlloc(Addr *pReturn, Pool pool, Size size)
 
   /* design.mps.poolmrg.alloc.grow */
 
-  if(f == &mrg->free) {			/* (Ring has no elements) */
-    res = MRGGroupCreate(&junk, mrg);	/* .group.useless: group isn't used */
+  if(f == &mrg->free) {                 /* (Ring has no elements) */
+    res = MRGGroupCreate(&junk, mrg);   /* .group.useless: group isn't used */
     if(res != ResOK) {
       return res;
     }
@@ -335,7 +335,7 @@ static void MRGFree(Pool pool, Addr old, Size size)
   AVERT(Ring, &linkpart[gi]);
   RingRemove(&linkpart[gi]);
   RingAppend(&mrg->free, &linkpart[gi]);
-  *(Addr *)old = 0;   	/* design.mps.poolmrg.free.overwrite */
+  *(Addr *)old = 0;     /* design.mps.poolmrg.free.overwrite */
 }
 
 static Res MRGDescribe(Pool pool, mps_lib_FILE *stream)
@@ -365,9 +365,9 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream)
     refpart = (Addr *)SegBase(space, group->refseg);
     gi = indexOfLinkPart((Addr)r, space);
     WriteF(stream,
-	   "    at $A ref $A\n",
-	   (WriteFA)&refpart[gi], (WriteFA)refpart[gi],
-	   NULL);
+           "    at $A ref $A\n",
+           (WriteFA)&refpart[gi], (WriteFA)refpart[gi],
+           NULL);
   }
   WriteF(stream, "  Exit queue:\n", NULL);
   RING_FOR(r, &mrg->exit) {
@@ -377,9 +377,9 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream)
     refpart = (Addr *)SegBase(space, group->refseg);
     gi = indexOfLinkPart((Addr)r, space);
     WriteF(stream,
-	   "    at $A ref $A\n",
-	   (WriteFA)&refpart[gi], (WriteFA)refpart[gi],
-	   NULL);
+           "    at $A ref $A\n",
+           (WriteFA)&refpart[gi], (WriteFA)refpart[gi],
+           NULL);
   }
 
   return ResOK;
@@ -424,12 +424,12 @@ static Res MRGScan(ScanState ss, Pool pool, Bool *finishedReturn)
 
       group = RING_ELT(MRGGroup, group, r);
       if(TraceSetIsMember(group->grey, ss->traceId)) {
-	res = MRGGroupScan(ss, group, mrg);
-	if(res != ResOK) {
-	  return res;
-	}
-	*finishedReturn = FALSE;
-	return ResOK;
+        res = MRGGroupScan(ss, group, mrg);
+        if(res != ResOK) {
+          return res;
+        }
+        *finishedReturn = FALSE;
+        return ResOK;
       }
     }
   }

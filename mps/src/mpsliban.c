@@ -1,6 +1,6 @@
 /* impl.c.mpsliban: HARLEQUIN MEMORY POOL SYSTEM LIBRARY INTERFACE (ANSI)
  *
- * $HopeName: MMsrc!mpsliban.c(trunk.2) $
+ * $HopeName: MMsrc!mpsliban.c(trunk.3) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * PURPOSE
@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "mpstd.h"		/* .sunos.warn */
+#include "mpstd.h"              /* .sunos.warn */
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif

@@ -1,6 +1,6 @@
 /* impl.c.finalcv: FINALIZATION COVERAGE TEST
  *
- * $HopeName: MMsrc!finalcv.c(trunk.2) $
+ * $HopeName: MMsrc!finalcv.c(trunk.3) $
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -48,11 +48,11 @@
 #define N_ROOTS 20
 #define CHURN_FACTOR 1000
 #define ONE_SLOT_SIZE (3*sizeof(mps_word_t))
-#define MAGIC_0 36	/* source is person.richard */
+#define MAGIC_0 36      /* source is person.richard */
 /* The number that a half of all numbers generated from rnd are less
  * than.  Hence, probability a-half, or P a-half */
 /* see impl.h.testlib */
-#define P_A_HALF (1024uL*1024uL*1024uL - 1)	/* 2^30 - 1 */
+#define P_A_HALF (1024uL*1024uL*1024uL - 1)     /* 2^30 - 1 */
 
 /* tags an integer according to dylan format */
 static mps_word_t dylan_int(mps_word_t x)
@@ -67,7 +67,7 @@ static mps_class_t mps_class_mrg(void)
 }
 
 static void *root[N_ROOTS];
-static int rc = 0;			/* return code */
+static int rc = 0;                      /* return code */
 
 static void
 churn(mps_ap_t ap)
@@ -90,7 +90,7 @@ churn(mps_ap_t ap)
 static void *
 test(void *arg, size_t s)
 {
-  int i;			/* index */
+  int i;                        /* index */
   mps_ap_t ap;
   mps_fmt_t fmt;
   mps_pool_t amc;
@@ -109,11 +109,11 @@ test(void *arg, size_t s)
   die(mps_pool_create(&mrg, space, mps_class_mrg()), /* .hack.no-interface */
       "pool_create mrg\n");
   die(mps_root_create_table(&mps_root[0], space,
-			     MPS_RANK_EXACT, (mps_rm_t)0,
-			     root, (size_t)N_ROOTS), "root_create\n");
+                             MPS_RANK_EXACT, (mps_rm_t)0,
+                             root, (size_t)N_ROOTS), "root_create\n");
   die(mps_root_create_table(&mps_root[1], space,
-			     MPS_RANK_EXACT, (mps_rm_t)0,
-			     &p, (size_t)1), "root_create\n");
+                             MPS_RANK_EXACT, (mps_rm_t)0,
+                             &p, (size_t)1), "root_create\n");
   die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create\n");
 
   /* design.mps.poolmrg.test.alloc */
