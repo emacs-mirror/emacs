@@ -2682,9 +2682,7 @@ The format is suitable for use with `easy-menu-define'."
       ;; We can delay it under XEmacs.
       `(,name
 	:filter (lambda (&rest junk)
-		  (cdr (custom-menu-create ',symbol))))
-    ;; But we must create it now under Emacs.
-    (cons name (cdr (custom-menu-create symbol)))))
+		  (cdr (custom-menu-create ',symbol))))))
 
 ;;; The Custom Mode.
 
@@ -2697,10 +2695,15 @@ The format is suitable for use with `easy-menu-define'."
   (suppress-keymap custom-mode-map)
   (define-key custom-mode-map "q" 'bury-buffer))
 
-(easy-menu-define custom-mode-customize-menu 
-    custom-mode-map
-  "Menu used to customize customization buffers."
-  (customize-menu-create 'customize))
+(defvar custom-mode-customize-menu)
+(let ((menu (customize-menu-create 'customize)))
+  ;; In Emacs, this returns nil, so don't make this menu.
+  (if menu
+      (easy-menu-define custom-mode-customize-menu 
+			custom-mode-map
+			"Menu used to customize customization buffers."
+			menu)
+    (setq custom-mode-customize-menu nil)))
 
 (easy-menu-define custom-mode-menu 
     custom-mode-map
@@ -2739,7 +2742,8 @@ if that value is non-nil."
   (setq major-mode 'custom-mode
 	mode-name "Custom")
   (use-local-map custom-mode-map)
-  (easy-menu-add custom-mode-customize-menu)
+  (if custom-mode-customize-menu
+      (easy-menu-add custom-mode-customize-menu))
   (easy-menu-add custom-mode-menu)
   (make-local-variable 'custom-options)
   (run-hooks 'custom-mode-hook))
