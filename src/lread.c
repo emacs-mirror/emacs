@@ -756,9 +756,9 @@ Return t if file exists.")
 
 	  compiled = 1;
 
-    #ifdef DOS_NT
+#ifdef DOS_NT
 	  fmode = "rb";
-    #endif /* DOS_NT */
+#endif /* DOS_NT */
 	  stat ((char *)XSTRING (found)->data, &s1);
 	  XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 1] = 0;
 	  result = stat ((char *)XSTRING (found)->data, &s2);
