@@ -52,7 +52,8 @@
 ;; compiler at hand (emacs or xemacs).
 ;; The autoload, below, is useless in Emacs because ediff-hook.el
 ;; is dumped with emacs, but it is needed in XEmacs
-;;;###autoload
+;;;###autoload (defmacro ediff-cond-compile-for-xemacs-or-emacs (xemacs-form emacs-form) (if (string-match "XEmacs" emacs-version) xemacs-form emacs-form))
+
 (defmacro ediff-cond-compile-for-xemacs-or-emacs (xemacs-form emacs-form)
   (if (string-match "XEmacs" emacs-version)
       xemacs-form emacs-form))
