@@ -49,8 +49,10 @@ menus, turn this variable off, otherwise it is probably better to keep it on."
 ;;;###autoload
 (defmacro easy-menu-define (symbol maps doc menu)
   "Define a menu bar submenu in maps MAPS, according to MENU.
-The menu keymap is stored in symbol SYMBOL, both as its value
-and as its function definition.  DOC is used as the doc string for SYMBOL.
+
+If SYMBOL is non-nil, store the menu keymap in the value of SYMBOL,
+and define SYMBOL as a function to pop up the menu, with DOC as its doc string.
+If SYMBOL is nil, just store the menu keymap into MAPS.
 
 The first element of MENU must be a string.  It is the menu bar item name.
 It may be followed by the following keyword argument pairs
@@ -156,19 +158,20 @@ A menu item can be a list with the same format as MENU.  This is a submenu."
   ;; compatible.  Therefore everything interesting is done in this
   ;; function.
   (let ((keymap (easy-menu-create-menu (car menu) (cdr menu))))
-    (set symbol keymap)
-    (fset symbol
-	  `(lambda (event) ,doc (interactive "@e")
-	     ;; FIXME: XEmacs uses popup-menu which calls the binding
-	     ;; while x-popup-menu only returns the selection.
-	     (x-popup-menu event
-			   (or (and (symbolp ,symbol)
-				    (funcall
-				     (or (plist-get (get ,symbol 'menu-prop)
-						    :filter)
-					 'identity)
-				     (symbol-function ,symbol)))
-			       ,symbol))))
+    (when symbol
+      (set symbol keymap)
+      (fset symbol
+	    `(lambda (event) ,doc (interactive "@e")
+	       ;; FIXME: XEmacs uses popup-menu which calls the binding
+	       ;; while x-popup-menu only returns the selection.
+	       (x-popup-menu event
+			     (or (and (symbolp ,symbol)
+				      (funcall
+				       (or (plist-get (get ,symbol 'menu-prop)
+						      :filter)
+					   'identity)
+				       (symbol-function ,symbol)))
+				 ,symbol)))))
     (mapcar (lambda (map)
 	      (define-key map (vector 'menu-bar (easy-menu-intern (car menu)))
 		(cons 'menu-item
