@@ -112,11 +112,16 @@ are integer buffer positions in the reverse order of the insertion order.")
 (defvar skeleton-point)
 (defvar skeleton-regions)
 
+(def-edebug-spec skeleton-edebug-spec
+  ([&or null stringp (stringp &rest stringp) [[&not atom] def-form]]
+   &rest &or "n" "_" "-" ">" "@" "&" "!" "resume:"
+   ("quote" def-form) skeleton-edebug-spec def-form))
 ;;;###autoload
 (defmacro define-skeleton (command documentation &rest skeleton)
   "Define a user-configurable COMMAND that enters a statement skeleton.
 DOCUMENTATION is that of the command.
 SKELETON is as defined under `skeleton-insert'."
+  (declare (debug (&define name stringp skeleton-edebug-spec)))
   (if skeleton-debug
       (set command skeleton))
   `(progn
