@@ -9,6 +9,7 @@
 	(Top): Don't include it in DVI output.
 	(History): Explain $- and $+.
 	(Built-ins): New node.  Document `cd'.
+	(Built-ins): Explain `cd -42'.
 
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add Tramp.
 	(../info/tramp, tramp.dvi): New targets.
