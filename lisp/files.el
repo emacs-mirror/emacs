@@ -186,7 +186,10 @@ after you find a file.  If you explicitly request such a scan with
     (if (file-executable-p dir)
 	(setq default-directory dir)
       (error "Cannot cd to %s:  Permission denied" dir)))
-  (pwd))
+  ;; We used to call pwd at this point.  That's not terribly helpful
+  ;; when we're invoking cd interactively, and the new cmushell-based
+  ;; shell has its own (better) facilities for this.
+)
 
 (defun load-file (file)
   "Load the Lisp file named FILE."
@@ -205,6 +208,12 @@ This is an interface to the function `load'."
   (let ((pop-up-windows t))
     (pop-to-buffer buffer t)))
 
+(defun switch-to-buffer-other-screen (buffer)
+  "Switch to buffer BUFFER in another screen."
+  (interactive "BSwitch to buffer in other screen: ")
+  (let ((pop-up-screens t))
+    (pop-to-buffer buffer)))
+
 (defun find-file (filename)
   "Edit file FILENAME.
 Switch to a buffer visiting file FILENAME,
@@ -218,6 +227,13 @@ May create a new window, or reuse an existing one.
 See the function `display-buffer'."
   (interactive "FFind file in other window: ")
   (switch-to-buffer-other-window (find-file-noselect filename)))
+
+(defun find-file-other-screen (filename)
+  "Edit file FILENAME, in another screen.
+May create a new screen, or reuse an existing one.
+See the function `display-buffer'."
+  (interactive "FFind file in other screen: ")
+  (switch-to-buffer-other-screen (find-file-noselect filename)))
 
 (defun find-file-read-only (filename)
   "Edit file FILENAME but don't allow changes.
@@ -233,6 +249,14 @@ Like \\[find-file-other-window] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive "fFind file read-only other window: ")
   (find-file filename)
+  (setq buffer-read-only t))
+
+(defun find-file-read-only-other-screen (filename)
+  "Edit file FILENAME in another screen but don't allow changes.
+Like \\[find-file-other-screen] but marks buffer as read-only.
+Use \\[toggle-read-only] to permit editing."
+  (interactive "fFind file read-only other screen: ")
+  (find-file-other-screen filename)
   (setq buffer-read-only t))
 
 (defun find-alternate-file (filename)
@@ -277,6 +301,26 @@ otherwise a string <2> or <3> or ... is appended to get an unused name."
 	(setq lastname filename))
     (generate-new-buffer lastname)))
 
+(defun generate-new-buffer (name)
+  "Create and return a buffer with a name based on NAME.
+Choose the buffer's name using generate-new-buffer-name."
+  (get-buffer-create (generate-new-buffer-name name)))
+
+(defun abbreviate-file-name (filename)
+  "Return a version of FILENAME shortened using directory-abbrev-alist.
+This also substitutes \"~\" for the user's home directory.
+See \\[describe-variable] directory-abbrev-alist RET for more information."
+  (let ((tail directory-abbrev-alist))
+    (while tail
+      (if (string-match (car (car tail)) filename)
+	  (setq filename
+		(concat (cdr (car tail)) (substring filename (match-end 0)))))
+      (setq tail (cdr tail)))
+    (if (string-match (concat "^" (expand-file-name "~")) filename)
+	(setq filename
+	      (concat "~" (substring filename (match-end 0)))))
+    filename))
+
 (defun find-file-noselect (filename &optional nowarn)
   "Read file FILENAME into a buffer and return the buffer.
 If a buffer exists visiting FILENAME, return that one, but
@@ -288,13 +332,7 @@ The buffer is not selected, just returned to the caller."
 	   (file-exists-p (file-name-directory
 			   (substring filename (1- (match-end 0))))))
       (setq filename (substring filename (1- (match-end 0)))))
-  ;; Perform any appropriate abbreviations specified in directory-abbrev-alist.
-  (let ((tail directory-abbrev-alist))
-    (while tail
-      (if (string-match (car (car tail)) filename)
-	  (setq filename
-		(concat (cdr (car tail)) (substring filename (match-end 0)))))
-      (setq tail (cdr tail))))
+  (setq filename (abbreviate-file-name filename))
   (if (file-directory-p filename)
       (if find-file-run-dired
 	  (dired-noselect filename)
@@ -373,7 +411,19 @@ Finishes by calling the functions in `find-file-hooks'."
 		  ((file-attributes (directory-file-name default-directory))
 		   "File not found and directory write-protected")
 		  (t
-		   "File not found and directory doesn't exist"))))
+		   ;; If the directory the buffer is in doesn't exist,
+		   ;; offer to create it.  It's better to do this now
+		   ;; than when we save the buffer, because we want
+		   ;; autosaving to work.
+		   (setq buffer-read-only nil)
+		   (or (file-exists-p (file-name-directory buffer-file-name))
+		       (if (yes-or-no-p
+			    (format
+			     "The directory containing %s does not exist.  Create? "
+			     (abbreviate-file-name buffer-file-name)))
+			   (make-directory-path
+			    (file-name-directory buffer-file-name))))
+		   nil))))
       (if msg
 	  (progn
 	    (message msg)
@@ -546,23 +596,13 @@ if you wish to pass an empty string as the argument."
 	(unlock-buffer)))
   (setq buffer-file-name filename)
   (if filename				; make buffer name reflect filename.
-      (let ((new-name (file-name-nondirectory buffer-file-name))
-	    (old-name (buffer-name (current-buffer))))
+      (let ((new-name (file-name-nondirectory buffer-file-name)))
 	(if (string= new-name "")
 	    (error "Empty file name"))
 	(if (eq system-type 'vax-vms)
 	    (setq new-name (downcase new-name)))
 	(setq default-directory (file-name-directory buffer-file-name))
-	(and (get-buffer new-name)
-	     (setq new-name
-		   (buffer-name (create-file-buffer buffer-file-name)))
-	     (kill-buffer new-name))
-	(rename-buffer new-name)
-	(if (string= (prog1 (setq new-name (buffer-name (create-file-buffer
-							 buffer-file-name)))
-		       (kill-buffer new-name))
-		     old-name)
-	    (rename-buffer old-name))))
+	(rename-buffer new-name t)))
   (setq buffer-backed-up nil)
   (clear-visited-file-modtime)
   ;; write-file-hooks is normally used for things like ftp-find-file
@@ -716,7 +756,7 @@ Value is a list whose car is the name for the backup file
 			   (file-name-directory fn)))
 	   (versions (sort (mapcar 'backup-extract-version possibilities)
 			   '<))
-	   (high-water-mark (apply 'max (cons 0 versions)))
+	   (high-water-mark (apply 'max 0 versions))
 	   (deserve-versions-p
 	    (or version-control
 		(> high-water-mark 0)))
@@ -907,12 +947,11 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 	(run-hooks 'after-save-hooks))
     (message "(No changes need to be saved)")))
 
-
-(require 'map-ynp)
-
 (defun save-some-buffers (&optional arg exiting)
   "Save some modified file-visiting buffers.  Asks user about each one.
-With argument, saves all with no questions."
+Optional argument (the prefix) non-nil means save all with no questions.
+Optional second argument EXITING means ask about certain non-file buffers
+ as well as about file buffers."
   (interactive "P")
   (if (zerop (map-y-or-n-p
 	      (function
@@ -923,7 +962,7 @@ With argument, saves all with no questions."
 		       (and exiting
 			    (save-excursion
 			      (set-buffer buffer)
-			      buffer-offer-save (> (buffer-size) 0))))
+			      (and buffer-offer-save (> (buffer-size) 0)))))
 		      (if arg
 			  t
 			(if (buffer-file-name buffer)
@@ -1003,6 +1042,19 @@ or multiple mail buffers, etc."
     (kill-buffer new-buf)
     (rename-buffer name)
     (set-buffer-modified-p (buffer-modified-p)))) ; force mode line update
+
+(defun make-directory-path (path)
+  "Create all the directories along path that don't exist yet."
+  (interactive "Fdirectory path to create: ")
+  (let ((path (directory-file-name (expand-file-name path)))
+	create-list)
+    (while (not (file-exists-p path))
+      (setq create-list (cons path create-list)	    
+	    path (directory-file-name (file-name-directory path))))
+    (while create-list
+      (make-directory (car create-list))
+      (setq create-list (cdr create-list)))))
+
 
 (put 'revert-buffer-function 'permanent-local t)
 (defvar revert-buffer-function nil
@@ -1045,7 +1097,7 @@ If `revert-buffer-function' value is non-nil, it is called to do the work."
 	     ;; If file was backed up but has changed since,
 	     ;; we shd make another backup.
 	     (and (not auto-save-p)
-		  (not (verify-visited-file-modtime))
+		  (not (verify-visited-file-modtime (current-buffer)))
 		  (setq buffer-backed-up nil))
 	     ;; Get rid of all undo records for this buffer.
 	     (or (eq buffer-undo-list t)
@@ -1254,3 +1306,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 (define-key ctl-x-4-map "r" 'find-file-read-only-other-window)
 (define-key ctl-x-4-map "\C-f" 'find-file-other-window)
 (define-key ctl-x-4-map "b" 'switch-to-buffer-other-window)
+
+(define-key ctl-x-3-map "b" 'switch-to-buffer-other-screen)
+(define-key ctl-x-3-map "f" 'find-file-other-screen)
+(define-key ctl-x-3-map "r" 'find-file-read-only-other-screen)
