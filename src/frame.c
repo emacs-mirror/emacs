@@ -1818,26 +1818,6 @@ frames_discard_buffer (buffer)
     }
 }
 
-/* Move BUFFER to the end of the buffer-list of each frame.  */
-
-void
-frames_bury_buffer (buffer)
-     Lisp_Object buffer;
-{
-  Lisp_Object frame, tail;
-
-  FOR_EACH_FRAME (tail, frame)
-    {
-      struct frame *f = XFRAME (frame);
-      Lisp_Object found;
-      
-      found = Fmemq (buffer, f->buffer_list);
-      if (!NILP (found))
-	f->buffer_list = nconc2 (Fdelq (buffer, f->buffer_list),
-				 Fcons (buffer, Qnil));
-    }
-}
-
 /* Modify the alist in *ALISTPTR to associate PROP with VAL.
    If the alist already has an element for PROP, we change it.  */
 
