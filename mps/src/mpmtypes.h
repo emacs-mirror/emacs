@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.39) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.40) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -99,6 +99,9 @@ typedef unsigned MessageType;           /* design.mps.message */
 typedef struct MessageStruct *Message;  /* design.mps.message */
 typedef struct MessageClassStruct *MessageClass; /* design.mps.message */
 
+/* used in heap walker */
+typedef void (*FormattedObjectsStepMethod)(Addr, Format,
+                                           void *, unsigned long);
 
 /* Pool*Method -- see design.mps.class-interface */
 
@@ -125,7 +128,7 @@ typedef void (*PoolReclaimMethod)(Pool pool, Trace trace, Seg seg);
 typedef double (*PoolBenefitMethod)(Pool pool, Action action);
 typedef Res (*PoolActMethod)(Pool pool, Action action);
 typedef void (*PoolWalkMethod)(Pool pool, Seg seg,
-                               void (*f)(Addr, void *, unsigned long),
+                               FormattedObjectsStepMethod f,
 			       void *p, unsigned long s);
 typedef Res (*PoolDescribeMethod)(Pool pool, mps_lib_FILE *stream);
 
