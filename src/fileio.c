@@ -1949,7 +1949,18 @@ A prefix arg makes KEEP-TIME non-nil.")
 	  if (set_file_times (XSTRING (newname)->data, atime, mtime))
 	    report_file_error ("I/O error", Fcons (newname, Qnil));
 	}
+#ifndef MSDOS
+      chmod (XSTRING (newname)->data, st.st_mode & 07777);
+#else /* MSDOS */
+#if defined (__DJGPP__) && __DJGPP__ > 1
+      /* In DJGPP v2.0 and later, fstat usually returns true file mode bits,
+         and if it can't, it tells so.  Otherwise, under MSDOS we usually
+         get only the READ bit, which will make the copied file read-only,
+         so it's better not to chmod at all.  */
+      if ((_djstat_flags & _STFAIL_WRITEBIT) == 0)
 	chmod (XSTRING (newname)->data, st.st_mode & 07777);
+#endif /* DJGPP version 2 or newer */
+#endif /* MSDOS */
     }
 
   close (ifd);
@@ -2347,7 +2358,8 @@ check_executable (filename)
 	  && len >= 5
 	  && (stricmp ((suffix = filename + len-4), ".com") == 0
 	      || stricmp (suffix, ".exe") == 0
-	      || stricmp (suffix, ".bat") == 0));
+	      || stricmp (suffix, ".bat") == 0)
+	  || (st.st_mode & S_IFMT) == S_IFDIR);
 #else /* not DOS_NT */
 #ifdef HAVE_EACCESS
   return (eaccess (filename, 1) >= 0);
