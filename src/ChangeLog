@@ -1,5 +1,8 @@
 2003-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (xg_frame_cleared): Call gtk_widget_queue_draw for
+	all widgets.
+
 	* gtkutil.h: Removed xg_ignore_next_thumb.
 
 2003-03-18  Kenichi Handa  <handa@etlken2>

@@ -293,11 +293,14 @@ void
 xg_frame_cleared (f)
      FRAME_PTR f;
 {
-  GtkWidget *wfixed = f->output_data.x->edit_widget;
+  GtkWidget *w = f->output_data.x->widget;
 
-  if (wfixed)
+  if (w)
     {
-      gtk_container_set_reallocate_redraws (GTK_CONTAINER (wfixed), TRUE);
+      gtk_container_set_reallocate_redraws (GTK_CONTAINER (w), TRUE);
+      gtk_container_foreach (GTK_CONTAINER (w),
+                             (GtkCallback) gtk_widget_queue_draw,
+                             0);
       gdk_window_process_all_updates ();
     }
 }
