@@ -97,6 +97,7 @@ you can use the interactive function `toggle-fringe'"
 		 (const :tag "Only right" (0 . nil))
 		 (const :tag "Only left" (nil . 0))
 		 (const :tag "Half width" (5 . 5))
+		 (const :tag "Minimal" (1 . 1))
 		 (integer :tag "Specific width")
 		 (cons :tag "Different left/right sizes"
 		       (integer :tag "Left width")
