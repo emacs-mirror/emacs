@@ -1739,7 +1739,7 @@ different in appearance than the default face, and
 Point (2) implies that a @code{:weight black} attribute will be
 satisfied by any display that can display bold, as will
 @code{:foreground "yellow"} as long as some yellowish color can be
-displayed, but @code{:slant italic} will @emph{not} be satisified by
+displayed, but @code{:slant italic} will @emph{not} be satisfied by
 the tty display code's automatic substitution of a `dim' face for
 italic.
 @end defun
