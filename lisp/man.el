@@ -241,7 +241,7 @@ the associated section number."
 (defvar Man-cooked-hook nil
   "Hook run after removing backspaces but before `Man-mode' processing.")
 
-(defvar Man-name-regexp "[-a-zA-Z0-9_­][-a-zA-Z0-9_.­]*"
+(defvar Man-name-regexp "[-a-zA-Z0-9_­+][-a-zA-Z0-9_.­+]*"
   "Regular expression describing the name of a manpage (without section).")
 
 (defvar Man-section-regexp "[0-9][a-zA-Z+]*\\|[LNln]"
