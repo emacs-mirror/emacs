@@ -2452,10 +2452,16 @@ automatically breaks the line at a previous space."
   (auto-fill-mode 1))
 
 (defun set-fill-column (arg)
-  "Set `fill-column' to current column, or to argument if given.
-The variable `fill-column' has a separate value for each buffer."
+  "Set `fill-column' to specified argument.
+Just \\[universal-argument] as argument means to use the current column."
   (interactive "P")
-  (setq fill-column (if (integerp arg) arg (current-column)))
+  (cond ((integerp arg)
+	 (setq fill-column arg))
+	((consp arg)
+	 (setq fill-column (current-column)))
+	;; Disallow missing argument; it's probably a typo for C-x C-f.
+	(t
+	 (error "set-fill-column requires an explicit argument")))
   (message "fill-column set to %d" fill-column))
 
 (defconst comment-multi-line nil
