@@ -370,7 +370,8 @@ the user from the mailer."
 					"From: " (user-login-name) "\n"
 					"Date: " (current-time-string) "\n")
 				(insert-buffer-substring curbuf beg end)
-				(insert "\n\C-_"))
+				(insert "\n\C-_")
+				(rmail-set-message-counters))
 			    (insert-buffer-substring curbuf beg end)))
 		      (if max (narrow-to-region (point-min) max))))))
 	    ;; Else append to the file directly.
