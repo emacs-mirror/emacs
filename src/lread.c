@@ -1501,9 +1501,9 @@ isfloat_string (cp)
     {
       state |= E_CHAR;
       cp++;
+      if (*cp == '+' || *cp == '-')
+	cp++;
     }
-  if ((*cp == '+') || (*cp == '-'))
-    cp++;
 
   if (*cp >= '0' && *cp <= '9')
     {
@@ -2068,6 +2068,7 @@ defvar_kboard (namestring, offset)
 init_lread ()
 {
   char *normal;
+  int turn_off_warning = 0;
 
   /* Compute the default load-path.  */
 #ifdef CANNOT_DUMP
@@ -2103,7 +2104,10 @@ init_lread ()
 	      if (!NILP (tem1))
 		{
 		  if (NILP (Fmember (tem, Vload_path)))
-		    Vload_path = nconc2 (Vload_path, Fcons (tem, Qnil));
+		    {
+		      turn_off_warning = 1;
+		      Vload_path = nconc2 (Vload_path, Fcons (tem, Qnil));
+		    }
 		}
 	      else
 		/* That dir doesn't exist, so add the build-time
@@ -2133,25 +2137,26 @@ init_lread ()
      EMACSLOADPATH environment variable below, disable the warning on NT.  */
 
   /* Warn if dirs in the *standard* path don't exist.  */
-  {
-    Lisp_Object path_tail;
+  if (!turn_off_warning)
+    {
+      Lisp_Object path_tail;
 
-    for (path_tail = Vload_path;
-	 !NILP (path_tail);
-	 path_tail = XCONS (path_tail)->cdr)
-      {
-	Lisp_Object dirfile;
-	dirfile = Fcar (path_tail);
-	if (STRINGP (dirfile))
-	  {
-	    dirfile = Fdirectory_file_name (dirfile);
-	    if (access (XSTRING (dirfile)->data, 0) < 0)
-	      fprintf (stderr,
-		       "Warning: Lisp directory `%s' does not exist.\n",
-		       XSTRING (Fcar (path_tail))->data);
-	  }
-      }
-  }
+      for (path_tail = Vload_path;
+	   !NILP (path_tail);
+	   path_tail = XCONS (path_tail)->cdr)
+	{
+	  Lisp_Object dirfile;
+	  dirfile = Fcar (path_tail);
+	  if (STRINGP (dirfile))
+	    {
+	      dirfile = Fdirectory_file_name (dirfile);
+	      if (access (XSTRING (dirfile)->data, 0) < 0)
+		fprintf (stderr,
+			 "Warning: Lisp directory `%s' does not exist.\n",
+			 XSTRING (Fcar (path_tail))->data);
+	    }
+	}
+    }
 #endif /* WINDOWSNT */
 
   /* If the EMACSLOADPATH environment variable is set, use its value.
