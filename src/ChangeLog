@@ -1,3 +1,8 @@
+2004-02-15  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (init_fringe_bitmap) [MAC_OS, WORDS_BIG_ENDIAN]:
+	Perform byte-swapping.
+
 2004-02-14  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (struct draw_fringe_bitmap_params): Change member
