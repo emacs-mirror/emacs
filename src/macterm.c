@@ -12154,7 +12154,8 @@ init_required_apple_events ()
 
 #if USE_CARBON_EVENTS
 
-void init_service_handler()
+void
+init_service_handler ()
 {
   EventTypeSpec specs[] = {{kEventClassService, kEventServiceGetTypes},
 			   {kEventClassService, kEventServiceCopy},
@@ -12166,8 +12167,9 @@ void init_service_handler()
 /*
    MAC_TODO: Check to see if this is called by AEProcessDesc...
  */
-OSStatus mac_handle_service_event (EventHandlerCallRef callRef,
-				   EventRef event, void *data)
+OSStatus
+mac_handle_service_event (EventHandlerCallRef callRef,
+			  EventRef event, void *data)
 {
   OSStatus err = noErr; 
   switch (GetEventKind (event))
@@ -12343,8 +12345,9 @@ descriptor_error_exit:
 }
 
 
-static pascal OSErr mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
-					 DragReference theDrag)
+static pascal OSErr
+mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
+		     DragReference theDrag)
 {
   short items;
   short index;
