@@ -1867,26 +1867,30 @@ start of KEY, or nil if there is no match."
       (setq alist (cdr alist)))
     (cdr element)))
 
-(defun set-locale-environment (locale-name)
+(defun set-locale-environment (&optional locale-name)
   "Set up multi-lingual environment for using LOCALE-NAME.
-This sets the coding system priority and the default input method
-and sometimes other things.  LOCALE-NAME should be a string
+This sets the language environment, the coding system priority,
+the default input method and sometimes other things.
+
+LOCALE-NAME should be a string
 which is the name of a locale supported by the system;
 often it is of the form xx_XX.CODE, where xx is a language,
 XX is a country, and CODE specifies a character set and coding system.
 For example, the locale name \"ja_JP.EUC\" might name a locale
 for Japanese in Japan using the `japanese-iso-8bit' coding-system.
 
-If LOCALE-NAME is nil, its value is taken from the environment.
+If LOCALE-NAME is nil, its value is taken from the environment
+variables LC_ALL, LC_CTYLE and LANG (the first one that is set).
 
 The locale names supported by your system can typically be found in a
 directory named `/usr/share/locale' or `/usr/lib/locale'.  LOCALE-NAME
-may be translated according to the table specified by
+will be translated according to the table specified by
 `locale-translation-file-name'.
 
 See also `locale-charset-language-names', `locale-language-names',
 `locale-preferred-coding-systems' and `locale-coding-system'."
-
+  (interactive "sSet environment for locale: ")
+ 
   ;; Do this at runtime for the sake of binaries possibly transported
   ;; to a system without X.
   (setq locale-translation-file-name
