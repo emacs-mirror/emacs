@@ -544,7 +544,7 @@ bibtex-reference")
 (defconst bibtex-text-in-string 2
   "The regexp subexpression of the text part in bibtex-string")
 
-(defconst bibtex-name-alignement 2
+(defconst bibtex-name-alignment 2
   "Alignment for the name part in BibTeX fields.
 Chosen on aesthetic grounds only.")
 
@@ -1020,7 +1020,7 @@ as such should normally be set via a file local variable entry.")
   (let ((name  (if (consp e-t) (car e-t) e-t))
 	(value (if (consp e-t) (cdr e-t) "")))
     (insert ",\n")
-    (indent-to-column bibtex-name-alignement)
+    (indent-to-column bibtex-name-alignment)
     (insert name " = ")
     (indent-to-column bibtex-text-alignment)
     ;; lucid emacs prin1-to-string breaks the undo chain.  When they fix
@@ -1485,7 +1485,7 @@ an undefined location.
 ;;; Menus for bibtex mode
 
 (define-key bibtex-mode-map [menu-bar entry-types]
-  (make-sparse-keymap "Entry Types"))
+  (cons "Entry Types" (make-sparse-keymap "Entry Types")))
 
 (define-key bibtex-mode-map [menu-bar entry-types bibtex-InProceedings]
   '(" article in conference Proceedings " . bibtex-InProceedings))
@@ -1500,7 +1500,7 @@ an undefined location.
 (define-key bibtex-mode-map [menu-bar entry-types bibtex-MastersThesis]
   '("         Master's Thesis           " . bibtex-MastersThesis))
 ;define-key bibtex-mode-map [menu-bar entry-types bibtex-DEAthesis]
-'(("            DEA Thesis             " . bibtex-DEAthesis))
+;'(("            DEA Thesis             " . bibtex-DEAthesis))
 (define-key bibtex-mode-map [menu-bar entry-types bibtex-PhdThesis]
   '("            Phd. Thesis            " . bibtex-PhdThesis))
 (define-key bibtex-mode-map [menu-bar entry-types bibtex-TechReport]
@@ -1523,7 +1523,7 @@ an undefined location.
   '("             preamble              " . bibtex-preamble))
 
 (define-key bibtex-mode-map [menu-bar move/edit]
-  (make-sparse-keymap "Bibtex Edit"))
+  (cons "Bibtex Edit" (make-sparse-keymap "Bibtex Edit")))
 
 (define-key bibtex-mode-map [menu-bar move/edit bibtex-next-field]
   '("            next field             " . bibtex-next-field))
@@ -1534,11 +1534,17 @@ an undefined location.
 (define-key bibtex-mode-map [menu-bar move/edit bibtex-pop-next]
   '("snatch from similar following field" . bibtex-pop-next))
 (define-key bibtex-mode-map [menu-bar move/edit bibtex-remove-OPT]
-  '("            remove OPT             " . bibtex-remove-OPT)
+  '("            remove OPT             " . bibtex-remove-OPT))
 (define-key bibtex-mode-map [menu-bar move/edit bibtex-remove-double-quotes]
   '("           remove quotes           " . bibtex-remove-double-quotes))
 (define-key bibtex-mode-map [menu-bar move/edit bibtex-clean-entry]
   '("          clean up entry           " . bibtex-clean-entry))
+(define-key bibtex-mode-map [menu-bar move/edit find-bibtex-duplicates]
+  '("          find duplicates          " . find-bibtex-duplicates))
+(define-key bibtex-mode-map [menu-bar move/edit sort-bibtex-entries]
+  '("           sort entries            " . sort-bibtex-entries))
+(define-key bibtex-mode-map [menu-bar move/edit validate-bibtex-buffer]
+  '("         validate entries          " . validate-bibtex-buffer))
 
 
 ;; Please don't send anything to bug-gnu-emacs about these Sunwindows functions
