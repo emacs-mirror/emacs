@@ -34,7 +34,7 @@ distclean:
 	-rm -f paths.h config.h emacs-* temacs emacs xmakefile core *.o
 
 clean:
-	-rm -f temacs emacs prefix-args xmakefile* core \#* *.o
+	-rm -f temacs emacs prefix-args xmakefile* core \#* *.o libXMenu11.a
 
 versionclean:
 	-rm -f emacs emacs-* ../etc/DOC*
