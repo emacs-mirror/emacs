@@ -561,7 +561,7 @@ Anywhere else just self-inserts."
     (self-insert-command arg)))
 
 (defun makefile-insert-special-target ()
-  "Propmt for and insert a special target name.
+  "Prompt for and insert a special target name.
 Uses `makefile-special-targets' list."
   (interactive)
   (makefile-pickup-targets)
@@ -862,7 +862,7 @@ The context determines which are considered."
 (defun makefile-backslash-region (beg end arg)
   "Insert backslashes at end of every line in region.
 Useful for defining multi-line rules.
-If called with a prefix argument, trailing backslahes are removed."
+If called with a prefix argument, trailing backslashes are removed."
   (interactive "r\nP")
   (save-excursion
     (let ((do-lastline-p (progn (goto-char end) (not (bolp)))))
