@@ -3704,7 +3704,6 @@ DIR defaults to current buffer's directory default.")
   if (insert_default_directory)
     {
       insdef = dir;
-      insdef1 = dir;
       if (!NILP (initial))
 	{
 	  Lisp_Object args[2], pos;
@@ -3712,11 +3711,16 @@ DIR defaults to current buffer's directory default.")
 	  args[0] = insdef;
 	  args[1] = initial;
 	  insdef = Fconcat (2, args);
-	  pos = make_number (XSTRING (dir)->size);
+	  pos = make_number (XSTRING (double_dollars (dir))->size);
 	  insdef1 = Fcons (double_dollars (insdef), pos);
 	}
       else
 	insdef1 = double_dollars (insdef);
+    }
+  else if (!NILP (initial))
+    {
+      insdef = initial;
+      insdef1 = Fcons (double_dollars (insdef), 0);
     }
   else
     insdef = Qnil, insdef1 = Qnil;
