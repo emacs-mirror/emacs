@@ -348,6 +348,12 @@ message (m, a1, a2, a3)
     }
 }
 
+void
+update_echo_area ()
+{
+  message2 (echo_area_glyphs, echo_area_glyphs_length);
+}
+
 static void
 echo_area_display ()
 {
