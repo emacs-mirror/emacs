@@ -423,7 +423,7 @@ overall glyph is updated as follows:
 (defun compose-chars-component (ch)
   (if (< ch 128)
       (format "\240%c" (+ ch 128))
-    (let ((str (char-to-string ch)))
+    (let ((str (string-as-unibyte (char-to-string ch))))
       (if (cmpcharp ch)
 	  (substring str (if (= (aref str 1) ?\xFF) 2 1))
 	(aset str 0 (+ (aref str 0) ?\x20))
@@ -459,11 +459,11 @@ See the documentation of `reference-point-alist' for more detail."
 		    args (cdr (cdr args))))
 	  (setq str (concat str (compose-chars-component (car args)))
 		args (cdr args))))
-      str)))
+      (string-as-multibyte str))))
 
 ;;;###autoload
 (defun decompose-composite-char (char &optional type with-composition-rule)
-  "Convert composite character CHAR to a string containing components of CHAR.
+  "Convert composite character CHAR to a sequence of the components.
 Optional 1st arg TYPE specifies the type of sequence returned.
 It should be `string' (default), `list', or `vector'.
 Optional 2nd arg WITH-COMPOSITION-RULE non-nil means the returned
