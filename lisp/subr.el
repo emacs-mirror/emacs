@@ -181,7 +181,7 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 		(setq i (1+ i))))))
       (setq scan (cdr scan)))))
 
-(defun define-key-in-sequence (keymap key definition after)
+(defun define-key-after (keymap key definition after)
   "Add binding in KEYMAP for KEY => DEFINITION, right after AFTER's binding.
 This is like `define-key' except that the binding for KEY is placed
 just after the binding for the event AFTER, instead of at the beginning
