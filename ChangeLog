@@ -1,3 +1,7 @@
+2001-11-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Add support for FreeBSD/Alpha.
+
 2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* make-dist: Add COPYING to the top-level directory of the
