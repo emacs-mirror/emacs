@@ -143,6 +143,27 @@ post_msg (lpmsg)
   return (TRUE);
 }
 
+BOOL
+prepend_msg (Win32Msg *lpmsg)
+{
+  int_msg * lpNew = (int_msg *) myalloc (sizeof (int_msg));
+
+  if (!lpNew)
+    return (FALSE);
+
+  bcopy (lpmsg, &(lpNew->w32msg), sizeof (Win32Msg));
+
+  enter_crit ();
+
+  nQueue++;
+  lpNew->lpNext = lpHead;
+  lpHead = lpNew;
+
+  leave_crit ();
+
+  return (TRUE);
+}
+
 /*
  *    XParseGeometry parses strings of the form
  *   "=<width>x<height>{+-}<xoffset>{+-}<yoffset>", where
