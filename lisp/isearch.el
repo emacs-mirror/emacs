@@ -138,22 +138,8 @@
 (defconst isearch-pre-command-hook-exists (boundp 'pre-command-hook)) ;; lemacs
 (defconst isearch-event-data-type nil)  ;; lemacs
 
-
-;;;=========================================================================
-;;; The following, defined in loaddefs.el, are still used with isearch-mode.
-
-(defvar search-last-string ""
-  "Last string search for by a search command.
-This does not include direct calls to the primitive search functions,
-and does not include searches that are aborted.")
-
-(defvar search-last-regexp ""
-  "Last string searched for by a regexp search command.
-This does not include direct calls to the primitive search functions,
-and does not include searches that are aborted.")
-
 (defconst search-exit-option t
-  "Non-nil means random control characters terminate incremental search.")
+  "*Non-nil means random control characters terminate incremental search.")
 
 (defvar search-slow-window-lines 1
   "*Number of lines in slow search display windows.
@@ -185,8 +171,11 @@ string, and RET terminates editing and does a nonincremental search.")
   "*If non-nil, regular expression to match a sequence of whitespace chars.
 You might want to use something like \"[ \\t\\r\\n]+\" instead.")
 
+;; I removed the * from the doc string because highlighting is not 
+;; currently a clean thing to do.  Once highlighting is made clean, 
+;; this feature can be re-enabled and advertised.
 (defvar search-highlight nil
-  "*Whether isearch and query-replace should highlight the text which 
+  "Whether isearch and query-replace should highlight the text which 
 currently matches the search-string.")
 
 
@@ -592,16 +581,16 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (if (> (length isearch-string) 0)
       ;; Update the ring data.
       (if isearch-regexp 
-	  (if (and regexp-search-ring
-		   (not (string= isearch-string (car regexp-search-ring))))
+	  (if (or (null regexp-search-ring)
+		  (not (string= isearch-string (car regexp-search-ring))))
 	      (progn
 		(setq regexp-search-ring
 		      (cons isearch-string regexp-search-ring))
 		(if (> (length regexp-search-ring) regexp-search-ring-max)
 		    (setcdr (nthcdr (1- search-ring-max) regexp-search-ring)
 			    nil))))
-	(if (and search-ring
-		 (not (string= isearch-string (car search-ring))))
+	(if (or (null search-ring)
+		(not (string= isearch-string (car search-ring))))
 	    (progn
 	      (setq search-ring (cons isearch-string search-ring))
 	      (if (> (length search-ring) search-ring-max)
@@ -757,12 +746,12 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 
 	;; Empty isearch-string means use default.
 	(if (= 0 (length isearch-string))
-	    (setq isearch-string (if isearch-regexp search-last-regexp
-				   search-last-string))
-	  ;; Set last search string now so it is set even if we fail.
-	  (if search-last-regexp
-	      (setq search-last-regexp isearch-string)
-	    (setq search-last-string isearch-string)))
+	    (setq isearch-string (car (if isearch-regexp regexp-search-ring
+					search-ring)))
+	  ;; This used to set the last search string,
+	  ;; but I think it is not right to do that here.
+	  ;; Only the string actually used should be saved.
+	  )
 
 	;; Reinvoke the pending search.
 	(isearch-push-state)
