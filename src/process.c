@@ -1707,7 +1707,7 @@ static int waiting_for_user_input_p;
      1 to return when input is available, or
      -1 meaning caller will actually read the input, so don't throw to
        the quit handler, or
-     a cons cell, meaning wait wait until its car is non-nil
+     a cons cell, meaning wait until its car is non-nil
        (and gobble terminal input into the buffer if any arrives), or
      a process object, meaning wait until something arrives from that
        process.  The return value is true iff we read some input from
@@ -1929,7 +1929,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* If there is any, return immediately
 	 to give it higher priority than subprocesses */
 
-      /* We used to do his if wait_for_cell,
+      /* We used to do this if wait_for_cell,
 	 but that caused infinite recursion in selection request events.  */
       if ((XINT (read_kbd))
 	  && detect_input_pending ())
