@@ -173,12 +173,6 @@ static Lisp_Object Vselection_converter_alist;
 /* If the selection owner takes too long to reply to a selection request,
    we give up on it.  This is in milliseconds (0 = no timeout.)  */
 static EMACS_INT x_selection_timeout;
-
-/* Utility functions */
-
-static void lisp_data_to_selection_data ();
-static Lisp_Object selection_data_to_lisp_data ();
-static Lisp_Object x_get_window_property_as_lisp_data ();
 
 
 
@@ -769,9 +763,17 @@ x_reply_selection_request (event, format, data, size, type)
 
       TRACE1 ("Set %s to number of bytes to send",
 	      XGetAtomName (display, reply.property));
-      XChangeProperty (display, window, reply.property, dpyinfo->Xatom_INCR,
-		       32, PropModeReplace,
-		       (unsigned char *) &bytes_remaining, 1);
+      {
+        /* XChangeProperty expects an array of long even if long is more than
+           32 bits.  */
+        long value[1];
+
+        value[0] = bytes_remaining;
+        XChangeProperty (display, window, reply.property, dpyinfo->Xatom_INCR,
+                         32, PropModeReplace,
+                         (unsigned char *) value, 1);
+      }
+
       XSelectInput (display, window, PropertyChangeMask);
 
       /* Tell 'em the INCR data is there...  */
@@ -796,9 +798,9 @@ x_reply_selection_request (event, format, data, size, type)
       TRACE0 ("Got ACK");
       while (bytes_remaining)
 	{
-	  int i = ((bytes_remaining < max_bytes)
-		   ? bytes_remaining
-		   : max_bytes);
+          int i = ((bytes_remaining < max_bytes)
+                   ? bytes_remaining
+                   : max_bytes);
 
 	  BLOCK_INPUT;
 
@@ -1523,9 +1525,38 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
 	 reading it.  Deal with that, I guess.... */
       if (result != Success)
 	break;
-      *actual_size_ret *= *actual_format_ret / 8;
-      bcopy (tmp_data, (*data_ret) + offset, *actual_size_ret);
-      offset += *actual_size_ret;
+
+      /* The man page for XGetWindowProperty says:
+         "If the returned format is 32, the returned data is represented
+          as a long array and should be cast to that type to obtain the
+          elements."
+         This applies even if long is more than 32 bits, the X library
+         converts from 32 bit elements received from the X server to long
+         and passes the long array to us.  Thus, for that case bcopy can not
+         be used.  We convert to a 32 bit type here, because so much code
+         assume on that.
+
+         The bytes and offsets passed to XGetWindowProperty refers to the
+         property and those are indeed in 32 bit quantities if format is 32.  */
+
+      if (*actual_format_ret == 32 && *actual_format_ret < BITS_PER_LONG)
+        {
+          unsigned long i;
+          int  *idata = (int *) ((*data_ret) + offset);
+          long *ldata = (long *) tmp_data;
+
+          for (i = 0; i < *actual_size_ret; ++i)
+            {
+              idata[i]= (int) ldata[i];
+              offset += 4;
+            }
+        }
+      else
+        {
+          *actual_size_ret *= *actual_format_ret / 8;
+          bcopy (tmp_data, (*data_ret) + offset, *actual_size_ret);
+          offset += *actual_size_ret;
+        }
 
       /* This was allocated by Xlib, so use XFree.  */
       XFree ((char *) tmp_data);
@@ -1970,6 +2001,7 @@ lisp_data_to_selection_data (display, obj,
       else
 	/* This vector is an INTEGER set, or something like it */
 	{
+          int data_size = 2;
 	  *size_ret = XVECTOR (obj)->size;
 	  if (NILP (type)) type = QINTEGER;
 	  *format_ret = 16;
@@ -1982,7 +2014,11 @@ lisp_data_to_selection_data (display, obj,
 	("elements of selection vector must be integers or conses of integers"),
 			      Fcons (obj, Qnil)));
 
-	  *data_ret = (unsigned char *) xmalloc (*size_ret * (*format_ret/8));
+          /* Use sizeof(long) even if it is more than 32 bits.  See comment
+             in x_get_window_property and x_fill_property_data.  */
+          
+          if (*format_ret == 32) data_size = sizeof(long);
+	  *data_ret = (unsigned char *) xmalloc (*size_ret * data_size);
 	  for (i = 0; i < *size_ret; i++)
 	    if (*format_ret == 32)
 	      (*((unsigned long **) data_ret)) [i]
@@ -2469,8 +2505,10 @@ x_check_property_data (data)
    DATA is a Lisp list of values to be converted.
    RET is the C array that contains the converted values.  It is assumed
    it is big enough to hold all values.
-   FORMAT is 8, 16 or 32 and gives the size in bits for each C value to
-   be stored in RET.  */
+   FORMAT is 8, 16 or 32 and denotes char/short/long for each C value to
+   be stored in RET.  Note that long is used for 32 even if long is more
+   than 32 bits (see man pages for XChangeProperty, XGetWindowProperty and
+   XClientMessageEvent).  */
 
 void
 x_fill_property_data (dpy, data, ret, format)
@@ -2479,10 +2517,10 @@ x_fill_property_data (dpy, data, ret, format)
      void *ret;
      int format;
 {
-  CARD32 val;
-  CARD32 *d32 = (CARD32 *) ret;
-  CARD16 *d16 = (CARD16 *) ret;
-  CARD8  *d08 = (CARD8  *) ret;
+  long val;
+  long  *d32 = (long  *) ret;
+  short *d16 = (short *) ret;
+  char  *d08 = (char  *) ret;
   Lisp_Object iter;
 
   for (iter = data; CONSP (iter); iter = XCDR (iter))
@@ -2490,24 +2528,24 @@ x_fill_property_data (dpy, data, ret, format)
       Lisp_Object o = XCAR (iter);
 
       if (INTEGERP (o))
-        val = (CARD32) XFASTINT (o);
+        val = (long) XFASTINT (o);
       else if (FLOATP (o))
-        val = (CARD32) XFLOAT_DATA (o);
+        val = (long) XFLOAT_DATA (o);
       else if (CONSP (o))
-        val = (CARD32) cons_to_long (o);
+        val = (long) cons_to_long (o);
       else if (STRINGP (o))
         {
           BLOCK_INPUT;
-          val = XInternAtom (dpy, (char *) SDATA (o), False);
+          val = (long) XInternAtom (dpy, (char *) SDATA (o), False);
           UNBLOCK_INPUT;
         }
       else
         error ("Wrong type, must be string, number or cons");
 
       if (format == 8)
-        *d08++ = (CARD8) val;
+        *d08++ = (char) val;
       else if (format == 16)
-        *d16++ = (CARD16) val;
+        *d16++ = (short) val;
       else
         *d32++ = val;
     }
@@ -2633,7 +2671,8 @@ x_handle_dnd_message (f, event, dpyinfo, bufp)
 {
   Lisp_Object vec;
   Lisp_Object frame;
-  unsigned long size = (8*sizeof (event->data))/event->format;
+  /* format 32 => size 5, format 16 => size 10, format 8 => size 20 */
+  unsigned long size = 160/event->format;
   int x, y;
   unsigned char *data = (unsigned char *) event->data.b;
   int idata[5];
@@ -2712,8 +2751,6 @@ are ignored.  */)
   struct frame *f = check_x_frame (from);
   int count;
   int to_root;
-  int idata[5];
-  void *data;
 
   CHECK_STRING (message_type);
   CHECK_NUMBER (format);
@@ -2774,30 +2811,10 @@ are ignored.  */)
   event.xclient.window = to_root ? FRAME_OUTER_WINDOW (f) : wdest;
 
   
-  if (event.xclient.format == 32 && event.xclient.format < BITS_PER_LONG)
-    {
-      /* x_fill_property_data expects data to hold 32 bit values when
-         format == 32, but on a 64 bit machine long is 64 bits.
-         event.xclient.l is an array of long, so we must compensate. */
+  memset (event.xclient.data.b, 0, sizeof (event.xclient.data.b));
+  x_fill_property_data (dpyinfo->display, values, event.xclient.data.b,
+                        event.xclient.format);
 
-      memset (idata, 0, sizeof (idata));
-      data = idata;
-    }
-  else
-    {
-      memset (event.xclient.data.b, 0, sizeof (event.xclient.data.b));
-      data = event.xclient.data.b;
-    }
-
-  x_fill_property_data (dpyinfo->display, values, data, event.xclient.format);
-
-  if (data == idata)
-    {
-      int i;
-      for (i = 0; i < 5; ++i) /* There are only 5 longs in a ClientMessage. */
-        event.xclient.data.l[i] = (long) idata[i];
-    }
-  
   /* If event mask is 0 the event is sent to the client that created
      the destination window.  But if we are sending to the root window,
      there is no such client.  Then we set the event mask to 0xffff.  The
