@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.14 $")
+(defconst byte-compile-version "$Revision: 2.15 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1846,7 +1846,38 @@ If FORM is a lambda or a macro, byte-compile it as a function."
    ((atom fun)				; compiled function.
     ;; generate-emacs19-bytecodes must be on, otherwise byte-compile-lambda
     ;; would have produced a lambda.
-    fun)
+    (let ((const-vector (aref fun 2))
+	  (i 0)
+	  (uninterned nil))
+      ;; Find all the uninterned symbols that appear
+      ;; as constants in this function.
+      (while (< i (length const-vector))
+	(and (symbolp (aref const-vector i))
+	     (not (eq (aref const-vector i)
+		      (intern-soft (symbol-name (aref const-vector i)))))
+	     (setq uninterned (cons i uninterned)))
+	(setq i (1+ i)))
+      ;; Arrange to regenrate the uninterned symbols
+      ;; when we read in this code to produce the compiled function.
+      (if uninterned
+	  (let (modifiers)
+	    (while uninterned
+	      (let ((symbol (aref const-vector (car uninterned)))
+		    fixup)
+		(setq fixup
+		      ;; Some uninterned symbols specify how to
+		      ;; regenerate them.
+		      (if (get symbol 'byte-compile-regenerate)
+			  `(aset const-vector ,(car uninterned)
+				 ,(get symbol 'byte-compile-regenerate))
+			`(aset const-vector ,(car uninterned)
+			       (make-symbol ',(symbol-name symbol)))))
+		(setq modifiers (cons fixup modifiers)))
+	      (setq uninterned (cdr uninterned)))
+	    `(let* ((function ,fun) (const-vector (aref function 2)))
+	       ,@modifiers
+	       function))
+	fun)))
    ;; b-c-lambda didn't produce a compiled-function, so it's either a trivial
    ;; function, or this is Emacs 18, or generate-emacs19-bytecodes is off.
    ((let (tmp)
@@ -2057,13 +2088,20 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	    (while (cond
 		    ((memq (car (car rest)) '(byte-varref byte-constant))
 		     (setq tmp (car (cdr (car rest))))
-		     (if (if (eq (car (car rest)) 'byte-constant)
-			     (or (consp tmp)
-				 (and (symbolp tmp)
-				      (not (memq tmp '(nil t))))))
-			 (if maycall
-			     (setq body (cons (list 'quote tmp) body)))
-		       (setq body (cons tmp body))))
+		     ;; If we find an uninterned symbol as a constant
+		     ;; or variable, this expression must be compiled!
+		     ;; That is because byte-compile-byte-code-maker
+		     ;; must get a chance to process the uninterned symbol.
+		     (if (and (symbolp tmp)
+			      (not (eq tmp (intern-soft (symbol-name tmp)))))
+			 nil
+		       (if (if (eq (car (car rest)) 'byte-constant)
+			       (or (consp tmp)
+				   (and (symbolp tmp)
+					(not (memq tmp '(nil t))))))
+			   (if maycall
+			       (setq body (cons (list 'quote tmp) body)))
+			 (setq body (cons tmp body)))))
 		    ((and maycall
 			  ;; Allow a funcall if at most one atom follows it.
 			  (null (nthcdr 3 rest))
