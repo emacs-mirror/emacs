@@ -297,7 +297,7 @@ Whichever character you type to run this command is inserted.  */)
   CHECK_NUMBER (n);
 
   /* Barf if the key that invoked this was not a character.  */
-  if (!INTEGERP (last_command_char))
+  if (!CHARACTERP (last_command_char))
     bitch_at_user ();
   else if (XINT (n) >= 2 && NILP (current_buffer->overwrite_mode))
     {
