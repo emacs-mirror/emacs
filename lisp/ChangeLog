@@ -1,3 +1,8 @@
+2003-01-13  Dave Love  <fx@gnu.org>
+
+	* international/utf-16.el (mule-utf-16-be, mule-utf-16-le): Remove
+	pre-write-conversion.
+
 2003-01-13  Kim F. Storm  <storm@cua.dk>
 
 	* hexl.el (hexl-mode-map): Don't quote remapped command names.

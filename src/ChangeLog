@@ -1,3 +1,7 @@
+2003-01-13  Dave Love  <fx@gnu.org>
+
+	* fns.c (Freverse): Use QUIT.
+
 2003-01-13  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.c (minibuffer_completion_contents): 
