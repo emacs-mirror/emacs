@@ -4665,9 +4665,9 @@ To disallow this completely (like previous versions of emacs), customize
 the variable `minibuffer-prompt-properties', and turn on the
 `Inviolable' option.
 
-The function minibuffer-prompt-end returns the current position of the
+The function `minibuffer-prompt-end' returns the current position of the
 end of the minibuffer prompt, if the minibuffer is current.
-Otherwise, it returns zero.
+Otherwise, it returns `(point-min)'.
 
 ** New `field' abstraction in buffers.
 
