@@ -1698,17 +1698,21 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      Lisp_Object prev_event;
      int *used_mouse_menu;
 {
-  register Lisp_Object c;
+  Lisp_Object c;
   int count;
   jmp_buf local_getcjmp;
   jmp_buf save_jump;
   int key_already_recorded = 0;
   Lisp_Object tem, save;
   Lisp_Object also_record;
+  struct gcpro gcpro1;
+
   also_record = Qnil;
 
   before_command_key_count = this_command_key_count;
   before_command_echo_length = echo_length ();
+
+  GCPRO1 (c);
 
  retry:
 
@@ -1766,7 +1770,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  || executing_macro_index >= XFASTINT (Flength (Vexecuting_macro)))
 	{
 	  XSETINT (c, -1);
-	  return c;
+	  RETURN_UNGCPRO (c);
 	}
 
       c = Faref (Vexecuting_macro, make_number (executing_macro_index));
@@ -1929,7 +1933,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* Now that we have read an event, Emacs is not idle.  */
       timer_stop_idle ();
 
-      return c;
+      RETURN_UNGCPRO (c);
     }
 
   /* Maybe autosave and/or garbage collect due to idleness.  */
@@ -2104,12 +2108,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
  non_reread_1:
 
   /* Buffer switch events are only for internal wakeups
-     so don't show them to the user.  */
-  if (BUFFERP (c))
-    return c;
-
-  if (key_already_recorded)
-    return c;
+     so don't show them to the user.
+     Also, don't record a key if we already did.  */
+  if (BUFFERP (c) || key_already_recorded)
+    RETURN_UNGCPRO (c);
 
   /* Process special events within read_char
      and loop around to read another event.  */
@@ -2143,7 +2145,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     {
       /* If kbd_buffer_get_event gave us an EOF, return that.  */
       if (XINT (c) == -1)
-	return c;
+	RETURN_UNGCPRO (c);
 
       if (STRINGP (Vkeyboard_translate_table)
 	  && XSTRING (Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
@@ -2189,8 +2191,11 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (! NILP (also_record))
     record_char (also_record);
 
+  UNGCPRO;
+
  from_macro:
  reread_first:
+
   before_command_key_count = this_command_key_count;
   before_command_echo_length = echo_length ();
 
@@ -2247,7 +2252,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	}
     }
 
-  return c;
+  RETURN_UNGCPRO (c);
 }
 
 /* Record a key that came from a mouse menu.
