@@ -1610,8 +1610,8 @@ do_completion ()
   tem = Fcompare_strings (completion, Qnil, Qnil, string, Qnil, Qnil, Qt);
   completedp = !EQ (tem, Qt);
 
-  tem = Fstring_equal (completion, string);
-  if (NILP (tem))
+  tem = Fcompare_strings (completion, Qnil, Qnil, string, Qnil, Qnil, Qnil);
+  if (!EQ (tem, Qt))
     /* Rewrite the user's input.  */
     {
       Fdelete_field (make_number (ZV)); /* Some completion happened */
