@@ -665,18 +665,52 @@ will lead to undesirable results, so don't let it happen; the first
 change group you start for any given buffer should be the last one
 finished.
 
-** You can now use non-blocking connect to open network streams.
+** Enhanced networking support.
 
-The function open-network-stream has a new optional 7th argument.
-If non-nil, that function will initiate a non-blocking connect and
-return immediately before the connection is established.
+*** There is a new `make-network-process' function which supports
+opening of stream and datagram connections to a server, as well as
+create a stream or datagram server inside emacs.
 
-It returns nil if the system does not support non-blocking connects;
-the caller may then make a normal (blocking) open-network-stream.
+- A server is started using :server t arg.
+- Datagram connection is selected using :datagram t arg.
+- A server can open on a random port using :service t arg.
+- Local sockets are supported using :family 'local arg.
+- Non-blocking connect is supported using :nowait t arg.
 
-The filter and sentinel functions can now be specified as arguments
-to open-network-stream.  When the non-blocking connect completes, the
-sentinel is called with the status matching "open" or "failed".
+*** Original open-network-stream is now emulated using make-network-process.
+
+*** New function open-network-stream-nowait.
+
+This function initiates a non-blocking connect and returns immediately
+before the connection is established.  The filter and sentinel
+functions can be specified as arguments to open-network-stream-nowait.
+When the non-blocking connect completes, the sentinel is called with
+the status matching "open" or "failed".
+
+*** New function open-network-stream-server.
+
+*** New functions process-datagram-address and set-process-datagram-address.
+
+*** By default, the function process-contact still returns (HOST SERVICE)
+for a network process.  Using the new optional KEY arg, the complete list
+of network process properties or a specific property can be selected.
+
+Using :local and :remote as the KEY, the address of the local or
+remote end-point is returned.  An Inet address is represented as a 5
+element vector, where the first 4 elements contain the IP address and
+the fifth is the port number.
+
+*** Network processes can now be stopped and restarted with
+`stop-process' and `continue-process'.  For a server process, no
+connections are accepted in the stopped state.  For a client process,
+no input is received in the stopped state.
+
+*** Function list-processes now has an optional argument; if non-nil,
+only the processes whose query-on-exit flag is set are listed.
+
+*** New set-process-query-on-exit-flag and process-query-on-exit-flag
+functions.  The existing process-kill-without-query function is still
+supported, but new code should use the new functions.
 
 ** New function substring-no-properties.
 
