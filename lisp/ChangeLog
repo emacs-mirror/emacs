@@ -1,3 +1,8 @@
+2001-12-25  Richard M. Stallman  <rms@gnu.org>
+
+	* startup.el (command-line): Convert command line args
+	to Emacs internal representation using locale-coding-system.
+
 2001-12-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/fontset.el: Don't require ind-util when compiling.
