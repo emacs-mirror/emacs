@@ -1,3 +1,7 @@
+2003-02-07  Vinicius Jose Latorre <vinicius@cpqd.com.br>
+
+	* printing.el: New file.
+
 2003-02-07  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* language/european.el ("French", "Slovenian"): Fix doc strings.
