@@ -1,5 +1,8 @@
 2001-02-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* textmodes/flyspell.el (flyspell-region, flyspell-buffer): 
+	Add autoload cookies.
+
 	* calendar/cal-tex.el (cal-tex-weekly4-box): Respect setting 
 	of cal-tex-24.
 

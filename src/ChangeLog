@@ -1,5 +1,9 @@
 2001-02-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_set_glyph_string_background_width): Extend the
+	background face to the end of the drawing area in the text
+	area, only.
+
 	* xdisp.c (handle_single_display_prop): Set iterator's position
 	to where the `display' property starts, like for images.
 	(dump_glyph): New function.
