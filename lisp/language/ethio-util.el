@@ -397,7 +397,7 @@ If the 4th parameter FORCE is given and non-nil, perform conversion
 even if the buffer is read-only.
 
 See also the descriptions of the variables
-`ethio-use-colen-for-colon' and
+`ethio-use-colon-for-colon' and
 `ethio-use-three-dot-question'."
 
   (interactive "r\nP")
@@ -420,7 +420,7 @@ If the 2nd optional parametr FORCE is non-nil, perform conversion even if the
 buffer is read-only.
 
 See also the descriptions of the variables
-`ethio-use-colen-for-colon' and
+`ethio-use-colon-for-colon' and
 `ethio-use-three-dot-question'."
 
   (interactive "P")
@@ -953,7 +953,7 @@ If the 4th parameter FORCE is given and non-nil, convert even if the
 buffer is read-only.
 
 See also the descriptions of the variables
-`ethio-use-colen-for-colon', `ethio-use-three-dot-question',
+`ethio-use-colon-for-colon', `ethio-use-three-dot-question',
 `ethio-quote-vowel-always' and `ethio-numeric-reduction'."
 
   (interactive "r\nP")
@@ -975,7 +975,7 @@ If the 2nd optional parameter FORCE is non-nil, convert even if the
 buffer is read-only.
 
 See also the descriptions of the variables
-`ethio-use-colen-for-colon', `ethio-use-three-dot-question',
+`ethio-use-colon-for-colon', `ethio-use-three-dot-question',
 `ethio-quote-vowel-always' and `ethio-numeric-reduction'."
 
   (interactive "P")
