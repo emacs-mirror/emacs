@@ -170,7 +170,7 @@ struct frame
   /* A pointer to the kboard structure associated with this frame.
      For termcap frames, this points to initial_kboard.  For X frames,
      it will be the same as display.x->display_info->kboard.  */
-  KBOARD *kboard;
+  struct kboard *kboard;
 #endif
 
   /* Number of lines of menu bar.  */
