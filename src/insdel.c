@@ -578,7 +578,12 @@ adjust_markers_for_replace (from, from_byte, old_chars, old_bytes,
     {
       register struct Lisp_Marker *m = XMARKER (marker);
 
-      if (m->bytepos >= prev_to_byte)
+      if (m->bytepos >= prev_to_byte
+	  && (old_bytes != 0
+	      /* If this is an insertion (replacing 0 chars),
+		 reject the case of a marker that is at the
+		 insertion point and should stay before the insertion.  */
+	      || m->bytepos > from_byte || m->insertion_type))
 	{
 	  if (m->bytepos < prev_to_byte + combined_after_bytes)
 	    {
