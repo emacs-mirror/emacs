@@ -1,6 +1,6 @@
 /* impl.h.tract: PAGE TABLE INTERFACE
  *
- * $HopeName: MMsrc!tract.h(trunk.4) $
+ * $HopeName: MMsrc!tract.h(trunk.5) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
@@ -76,12 +76,12 @@ extern void TractFinish(Tract tract);
  *   allocated pages are mapped
  *   BTGet(allocTable, i) == 1
  *   PageRest()->pool == pool
- *  latent (in hysteresis fund)
+ *  spare
  *   these pages are mapped
  *   BTGet(allocTable, i) == 0
  *   PageRest()->pool == NULL
- *   PageRest()->type == PageTypeLatent
- *  free (not in the hysteresis fund)
+ *   PageRest()->type == PageTypeSpare
+ *  free
  *   these pages are not mapped
  *   BTGet(allocTable, i) == 0
  *   PTE may itself be unmapped, but when it is (use pageTableMapped
@@ -90,7 +90,7 @@ extern void TractFinish(Tract tract);
  *   PageRest()->type == PageTypeFree
  */
 
-enum {PageTypeLatent=1, PageTypeFree};
+enum {PageTypeSpare=1, PageTypeFree};
 
 typedef struct PageStruct {     /* page structure */
   union {
@@ -98,7 +98,6 @@ typedef struct PageStruct {     /* page structure */
     struct {
       Pool pool;                /* NULL, must be first field (.page) */
       int type;                 /* see .states */
-      RingStruct latentRing;    /* latent pages iff PageTypeLatent */
     } rest;                     /* other (non-allocated) page */
   } the;
 } PageStruct;
@@ -126,10 +125,6 @@ typedef struct PageStruct {     /* page structure */
 /* PageType -- type of page */
 
 #define PageType(page) ((page)->the.rest.type)
-
-/* PageLatentRing -- hfundRing of a page */
-
-#define PageLatentRing(page) (&(page)->the.rest.latentRing)
 
 
 /* Chunks */
