@@ -16,11 +16,14 @@ $test_dir = $0;
 
 $0 = "qa testing"; # this will show up in ps
 
-if ($test_dir eq "qa") {
- $test_dir = "./qa"
-}
+$test_dir =~ s/\\/\//; # i.e. convert to unix-style separators
 
-$test_dir =~ s/\/\w+$//;
+unless ($test_dir =~ m/\//) {
+ $test_dir = "./".$test_dir;
+} # ensure it has at least one / in it
+
+$test_dir =~ s/\/\w+$//; # remove leaf name and preceding separator
+
 $script_dir = $test_dir."/script";
 
 foreach (@INC) {
