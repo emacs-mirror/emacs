@@ -5,7 +5,7 @@
 ;;         Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 4.15
-;; Date: $Date: 2003/02/14 09:59:13 $
+;; Date: $Date: 2003/05/06 17:40:52 $
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -1399,7 +1399,7 @@ the leftover unidentified statements containing an equal sign."  )
 ;; Note that this is documented in the v18 manuals as being a string
 ;; of length one rather than a single character.
 ;; The code in this file accepts either format for compatibility.
-(defvar idlwave-comment-indent-char ?\
+(defvar idlwave-comment-indent-char ?\s
   "Character to be inserted for IDL comment indentation.
 Normally a space.")
 
