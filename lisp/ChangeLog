@@ -1,3 +1,8 @@
+2002-11-19  Masatake Yamato  <jet@gyve.org>  (tiny change)
+
+	* register.el (describe-register-1): Don't assign to val the value
+	returned by `remove-list-of-text-properties'.
+
 2002-11-18  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* calendar/diary-lib.el (fancy-diary-font-lock-keywords): Grok
