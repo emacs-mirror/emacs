@@ -454,7 +454,8 @@ value of this flag.")
     (setq vc-default-back-end (if (vc-find-binary "rcs") 'RCS 'SCCS)))))
 
 (defun vc-name (file)
-  "Return the master name of a file, nil if it is not registered."
+  "Return the master name of a file, nil if it is not registered.
+For CVS, the full name of CVS/Entries is returned."
   (or (vc-file-getprop file 'vc-name)
       (let ((name-and-type (vc-registered file)))
 	(if name-and-type
@@ -587,10 +588,10 @@ value of this flag.")
        ((eq (vc-backend file) 'CVS)
 	(or (and (eq (vc-checkout-model file) 'manual)
 		 (vc-lock-from-permissions file))
-	    (if (or (eq (vc-cvs-status file) 'up-to-date)
-		    (eq (vc-cvs-status file) 'needs-checkout))
-		(vc-file-setprop file 'vc-locking-user 'none)
-	      (vc-file-setprop file 'vc-locking-user (vc-file-owner file)))))
+	    (and (equal (vc-file-getprop file 'vc-checkout-time)
+			(nth 5 (file-attributes file)))
+		 (vc-file-setprop file 'vc-locking-user 'none))
+	    (vc-file-setprop file 'vc-locking-user (vc-file-owner file))))
 
        ((eq (vc-backend file) 'RCS)
 	(let (p-lock)
@@ -730,18 +731,32 @@ value of this flag.")
 	   vc-master-templates)
 	  nil)))))
 
+(defun vc-utc-string (timeval)
+  ;; Convert a time value into universal time, and return it as a
+  ;; human-readable string.  This is to compare CVS checkout times
+  ;; with file modification times.
+  (let (utc (high (car timeval)) (low  (nth 1 timeval))
+	(offset (car (current-time-zone))))
+    (setq low (- low offset))
+    (setq utc (if (> low 65535) 
+		  (list (1+ high) (- low 65536))
+		(if (< low 0)
+		    (list (1- high) (+ 65536 low))
+		  (list high low))))
+    (current-time-string utc)))
+	  
 (defun vc-find-cvs-master (dirname basename)
   ;; Check if DIRNAME/BASENAME is handled by CVS.
   ;; If it is, do a (throw 'found (cons MASTER 'CVS)).
-  ;; Note: If the file is ``cvs add''ed but not yet ``cvs commit''ed 
-  ;; the MASTER will not actually exist yet.  The other parts of VC
-  ;; checks for this condition.  This function returns nil if 
-  ;; DIRNAME/BASENAME is not handled by CVS.
+  ;; Note: This function throws the name of CVS/Entries
+  ;; NOT that of the RCS master file (because we wouldn't be able
+  ;; to access it under remote CVS).
+  ;; The function returns nil if DIRNAME/BASENAME is not handled by CVS.
   (if (and vc-handle-cvs
 	   (file-directory-p (concat dirname "CVS/"))
-	   (file-readable-p (concat dirname "CVS/Entries"))
-	   (file-readable-p (concat dirname "CVS/Repository")))
-      (let (buffer (fold case-fold-search))
+	   (file-readable-p (concat dirname "CVS/Entries")))
+      (let (buffer time (fold case-fold-search)
+	    (file (concat dirname basename)))
 	(unwind-protect
 	    (save-excursion
 	      (setq buffer (set-buffer (get-buffer-create "*vc-info*")))
@@ -752,23 +767,22 @@ value of this flag.")
 	      (setq case-fold-search nil)
 	      (cond
 	       ((re-search-forward
-		 (concat "^/" (regexp-quote basename) "/\\([^/]*\\)/")
+		 (concat "^/" (regexp-quote basename) 
+			 "/\\([^/]*\\)/\\([^/]*\\)/")
 		 nil t)
 		(setq case-fold-search fold)  ;; restore the old value
-		;; We found it.  Store away version number, now
-		;; that we are anyhow so close to finding it.
-		(vc-file-setprop (concat dirname basename) 
+		;; We found it.  Store away version number now that we 
+		;; are anyhow so close to finding it.
+		(vc-file-setprop file
 				 'vc-workfile-version
-				 (buffer-substring (match-beginning 1)
-						   (match-end 1)))
-		(vc-insert-file (concat dirname "CVS/Repository"))
-		(let ((master
-		       (concat (file-name-as-directory 
-				(buffer-substring (point-min)
-						  (1- (point-max))))
-			       basename
-			       ",v")))
-		  (throw 'found (cons master 'CVS))))
+				 (match-string 1))
+		;; If the file hasn't been modified since checkout,
+		;; store the checkout-time.
+		(setq mtime (nth 5 (file-attributes file)))
+		(if (string= (match-string 2) (vc-utc-string mtime))
+		    (vc-file-setprop file 'vc-checkout-time mtime)
+		  (vc-file-setprop file 'vc-checkout-time 0))
+		(throw 'found (cons (concat dirname "CVS/Entries") 'CVS)))
 	       (t (setq case-fold-search fold)  ;; restore the old value
 		  nil)))
 	  (kill-buffer buffer)))))
@@ -803,13 +817,20 @@ of the buffer.  With prefix argument, ask for version number."
 	 ;; The property is computed when the file is visited, so if it
 	 ;; is `nil' now, it is certain that the file is NOT 
 	 ;; version-controlled.
+	 (or (and (equal (vc-file-getprop file 'vc-checkout-time)
+			 (nth 5 (file-attributes file)))
+		  ;; File has been saved in the same second in which
+		  ;; it was checked out.  Clear the checkout-time
+		  ;; to avoid confusion.
+		  (vc-file-setprop file 'vc-checkout-time nil))
+	     t)
 	 (not (vc-locking-user file))
 	 (eq (vc-checkout-model file) 'implicit)
 	 (vc-file-setprop file 'vc-locking-user (user-login-name))
-	 (progn
-	   (and (eq (vc-backend file) 'CVS) 
-		(vc-file-setprop file 'vc-cvs-status nil))
-	   (vc-mode-line file)))))
+	 (or (and (eq (vc-backend file) 'CVS) 
+		  (vc-file-setprop file 'vc-cvs-status nil))
+	     t)
+	 (vc-mode-line file))))
 
 (defun vc-mode-line (file &optional label)
   "Set `vc-mode' to display type of version control for FILE.
