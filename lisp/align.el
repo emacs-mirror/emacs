@@ -205,22 +205,22 @@ If nil,then no messages will ever be printed to the minibuffer."
   :type '(repeat symbol)
   :group 'align)
 
-(defcustom align-dq-string-modes (append align-lisp-modes
-					 align-c++-modes
-					 align-perl-modes)
+(defcustom align-dq-string-modes
+  (append align-lisp-modes align-c++-modes align-perl-modes
+	  '(python-mode))
   "*A list of modes where double quoted strings should be excluded."
   :type '(repeat symbol)
   :group 'align)
 
-(defcustom align-sq-string-modes align-perl-modes
+(defcustom align-sq-string-modes
+  (append align-perl-modes '(python-mode))
   "*A list of modes where single quoted strings should be excluded."
   :type '(repeat symbol)
   :group 'align)
 
-(defcustom align-open-comment-modes (append align-lisp-modes
-					    align-c++-modes
-					    align-perl-modes
-					    '(makefile-mode))
+(defcustom align-open-comment-modes
+  (append align-lisp-modes align-c++-modes align-perl-modes
+	  '(python-mode makefile-mode))
   "*A list of modes with a single-line comment syntax.
 These are comments as in Lisp, which have a beginning but, end with
 the line (i.e., `comment-end' is an empty string)."
@@ -429,7 +429,7 @@ The possible settings for `align-region-separate' are:
 		       (looking-at
 			"\\(goto\\|return\\|new\\|delete\\|throw\\)"))
 		     (if (and (boundp 'font-lock-mode) font-lock-mode)
-			 (eq (cadr (memq 'face (text-properties-at (point))))
+			 (eq (get-text-property (point) 'face)
 			     'font-lock-comment-face)
 		       (eq (caar (c-guess-basic-syntax)) 'c))))))))
 
@@ -446,6 +446,13 @@ The possible settings for `align-region-separate' are:
 			  "\\(\\s-*\\)\\([^>= \t\n]\\|$\\)"))
      (group    . (1 2))
      (modes    . align-perl-modes)
+     (tab-stop . nil))
+
+    (python-assignment
+     (regexp   . ,(concat "[^=!<> \t\n]\\(\\s-*\\)="
+			  "\\(\\s-*\\)\\([^>= \t\n]\\|$\\)"))
+     (group    . (1 2))
+     (modes    . '(python-mode))
      (tab-stop . nil))
 
     (make-assignment
@@ -471,10 +478,10 @@ The possible settings for `align-region-separate' are:
     ;; perl-mode doesn't give us enough syntactic information (and we
     ;; don't do our own parsing yet), this rule is too destructive to
     ;; run normally.
-    (perl-comma-delimiter
+    (basic-comma-delimiter
      (regexp   . ",\\(\\s-*\\)[^# \t\n]")
      (repeat   . t)
-     (modes    . align-perl-modes)
+     (modes    . (append align-perl-modes '(python-mode)))
      (run-if   . ,(function (lambda () current-prefix-arg))))
 
     (c++-comment
@@ -486,16 +493,6 @@ The possible settings for `align-region-separate' are:
 		     (save-excursion
 		       (goto-char (match-beginning 1))
 		       (not (bolp)))))))
-
-    (c-macro-line-continuation
-     (regexp   . "\\(\\s-*\\)\\\\$")
-     (modes    . (append align-c++-modes '(makefile-mode)))
-     (column   . c-backslash-column))
-;      (valid
-;       . ,(function
-;	  (lambda ()
-;	    (memq (caar (c-guess-basic-syntax))
-;		  '(cpp-macro cpp-macro-cont))))))
 
     (c-chain-logic
      (regexp   . "\\(\\s-*\\)\\(&&\\|||\\|\\<and\\>\\|\\<or\\>\\)")
@@ -514,6 +511,29 @@ The possible settings for `align-region-separate' are:
 		     (save-excursion
 		       (goto-char (match-end 2))
 		       (looking-at "\\s-*\\(#\\|$\\)"))))))
+
+    (python-chain-logic
+     (regexp   . "\\(\\s-*\\)\\(\\<and\\>\\|\\<or\\>\\)")
+     (modes    . '(python-mode))
+     (valid    . ,(function
+		   (lambda ()
+		     (save-excursion
+		       (goto-char (match-end 2))
+		       (looking-at "\\s-*\\(#\\|$\\|\\\\\\)"))))))
+
+    (c-macro-line-continuation
+     (regexp   . "\\(\\s-*\\)\\\\$")
+     (modes    . align-c++-modes)
+     (column   . c-backslash-column))
+;      (valid
+;       . ,(function
+;	  (lambda ()
+;	    (memq (caar (c-guess-basic-syntax))
+;		  '(cpp-macro cpp-macro-cont))))))
+
+    (basic-line-continuation
+     (regexp   . "\\(\\s-*\\)\\\\$")
+     (modes    . '(python-mode makefile-mode)))
 
     (tex-record-separator
      (regexp . ,(function
@@ -1131,13 +1151,13 @@ have been aligned.  No changes will be made to the buffer."
 	(unless change
 	  (goto-char (cdar a))
 	  (if ecol
-	      (if (not (= ecol (current-column)))
+	      (if (/= ecol (current-column))
 		  (setq change t))
 	    (setq ecol (current-column))))
 	(when justify
 	  (goto-char (caar a))
 	  (if (and (re-search-forward "\\s-*" (cdar a) t)
-		   (not (= (point) (cdar a))))
+		   (/= (point) (cdar a)))
 	      (let ((bcol (current-column)))
 		(setcdr (car a) (cons (point-marker) (cdar a)))
 		(goto-char (cdr (cdar a)))
@@ -1153,7 +1173,7 @@ have been aligned.  No changes will be made to the buffer."
     ;; `align-region', all we have to do here is indent.
 
     (unless change
-      (setq change (and ecol (not (= col ecol)))))
+      (setq change (and ecol (/= col ecol))))
 
     (when (or func change)
       (while areas
