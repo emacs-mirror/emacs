@@ -2047,7 +2047,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
     fuFlags = MF_SEPARATOR;
   else 
     {
-      if (wv->enabled && wv->call_data != 0)
+      if (wv->enabled)
 	fuFlags = MF_STRING;
       else
 	fuFlags = MF_STRING | MF_GRAYED;
@@ -2062,7 +2062,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       else
 	out_string = wv->name;
 
-      if (wv->title)
+      if (wv->title || wv->call_data == 0)
 	{
 #if 0  /* no GC while popup menu is active */
 	  out_string = LocalAlloc (0, strlen (wv->name) + 1);
