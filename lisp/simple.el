@@ -506,7 +506,7 @@ If N is negative, find the previous or Nth previous match."
       (goto-char (point-min)))))
 
 (defun previous-history-element (n)
-  "Inserts the previous element of `command-history' into the minibuffer."
+  "Inserts the previous element of the minibuffer history into the minibuffer."
   (interactive "p")
   (next-history-element (- n)))
 
