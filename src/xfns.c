@@ -326,6 +326,35 @@ x_any_window_to_frame (dpyinfo, wdesc)
   return 0;
 }
 
+/* Likewise, but exclude the menu bar widget.  */
+
+struct frame *
+x_non_menubar_window_to_frame (dpyinfo, wdesc)
+     struct x_display_info *dpyinfo;
+     int wdesc;
+{
+  Lisp_Object tail, frame;
+  struct frame *f;
+  struct x_display *x;
+
+  for (tail = Vframe_list; GC_CONSP (tail); tail = XCONS (tail)->cdr)
+    {
+      frame = XCONS (tail)->car;
+      if (!GC_FRAMEP (frame))
+        continue;
+      f = XFRAME (frame);
+      if (f->display.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+	continue;
+      x = f->display.x;
+      /* This frame matches if the window is any of its widgets.  */
+      if (wdesc == XtWindow (x->widget) 
+	  || wdesc == XtWindow (x->column_widget) 
+	  || wdesc == XtWindow (x->edit_widget))
+	return f;
+    }
+  return 0;
+}
+
 /* Return the frame whose principal (outermost) window is WDESC.
    If WDESC is some other (smaller) window, we return 0.  */
 
