@@ -1169,6 +1169,14 @@ but if the second optional argument FORCE is non-nil, you may do so.")
     error ("Attempt to delete the only frame");
 #endif
 
+  if (!NILP (Vrun_hooks))
+    {
+      Lisp_Object args[2];
+      args[0] = intern ("delete-frame-hook");
+      args[1] = frame;
+      Frun_hook_with_args (2, args);
+    }
+
   /* Does this frame have a minibuffer, and is it the surrogate
      minibuffer for any other frame?  */
   if (FRAME_HAS_MINIBUF_P (XFRAME (frame)))
