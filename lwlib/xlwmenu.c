@@ -1195,6 +1195,23 @@ make_windows_if_needed (mw, n)
   }
 }
 
+/* Value is non-zero if WINDOW is part of menu bar widget W.  */
+
+int
+xlwmenu_window_p (w, window)
+     Widget w;
+     Window window;
+{
+  XlwMenuWidget mw = (XlwMenuWidget) w;
+  int i;
+  
+  for (i = 0; i < mw->menu.windows_length; ++i)
+    if (window == mw->menu.windows[i].window)
+      break;
+
+  return i < mw->menu.windows_length;
+}
+
 /* Make the window fit in the screen */
 static void
 fit_to_screen (mw, ws, previous_ws, horizontal_p)
