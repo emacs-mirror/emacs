@@ -18,8 +18,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <stdio.h>
-
 #include "config.h"
 #include "lisp.h"
 #include "buffer.h"
@@ -28,7 +26,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "commands.h"
 #include "indent.h"
 #include "termchar.h"
-#include "termhooks.h"
 #include "disptab.h"
 
 Lisp_Object Qwindowp;
@@ -87,10 +84,10 @@ int window_min_width;
 int pop_up_windows;
 
 /* Nonzero implies make new X screens for Fdisplay_buffer.  */
-int auto_new_screen;
+int pop_up_screens;
 
 /* Non-nil means use this function instead of default */
-Lisp_Object Vauto_new_screen_function;
+Lisp_Object Vpop_up_screen_function;
 
 /* Function to call to handle Fdisplay_buffer.  */
 Lisp_Object Vdisplay_buffer_function;
@@ -1395,24 +1392,13 @@ before each command.")
 
   selected_window = window;
 #ifdef MULTI_SCREEN
-  /* If we're selecting the minibuffer window of the selected screen,
-     don't change the selected screen, even if the minibuffer is on
-     a different screen.  */
-  if (XSCREEN (WINDOW_SCREEN (w)) != selected_screen
-      && ! EQ (SCREEN_MINIBUF_WINDOW (selected_screen), window))
+  if (XSCREEN (WINDOW_SCREEN (w)) != selected_screen)
     {
       XSCREEN (WINDOW_SCREEN (w))->selected_window = window;
       Fselect_screen (WINDOW_SCREEN (w), Qnil);
     }
   else
     selected_screen->selected_window = window;
-
-  /* When using the global minibuffer screen, we want the highlight to
-   go to the minibuffer's screen, and when we finish, we want the highlight
-   to return to the original screen.  Call the hook to put the highlight
-   where it belongs.  */
-  if (screen_rehighlight_hook)
-    (*screen_rehighlight_hook) ();
 #endif
 
   record_buffer (w->buffer);
@@ -1465,33 +1451,33 @@ Returns the window displaying BUFFER.")
     return window;
 
 #ifdef MULTI_SCREEN
-  if (auto_new_screen)
+  /* If there are no screens open that have more than a minibuffer,
+     we need to create a new screen.  */
+  if (pop_up_screens || last_nonminibuf_screen == 0)
     {
       window
-	= Fscreen_selected_window (NULL (Vauto_new_screen_function)
-				   ? Fx_create_screen (Qnil)
-				   : call0 (Vauto_new_screen_function));
+	= Fscreen_selected_window (call0 (Vpop_up_screen_function));
       Fset_window_buffer (window, buffer);
 #if 0
-	  Fselect_screen (XWINDOW (window)->screen, Qnil);
+      Fselect_screen (XWINDOW (window)->screen, Qnil);
 #endif
       return window;
     }
 #endif /* MULTI_SCREEN */
 
-  if (pop_up_windows)
-    {
+  if (pop_up_windows
 #ifdef MULTI_SCREEN
-      /* When minibuffer screen is used, this is the previous screen.
-	 Declared in minibuffer.c */
-      extern struct screen *active_screen;
-      Lisp_Object screens;
-
-      if (active_screen)
-	XSET (screens, Lisp_Screen, active_screen);
-      else
-	screens = Qnil;
-
+      || EQ (SCREEN_ROOT_WINDOW (selected_screen),
+	     SCREEN_MINIBUF_WINDOW (selected_screen))
+#endif
+      )
+    {
+      Lisp_Object screens = Qnil;
+      
+#ifdef MULTI_SCREEN
+      if (EQ (SCREEN_ROOT_WINDOW (selected_screen),
+	      SCREEN_MINIBUF_WINDOW (selected_screen)))
+	XSET (screens, Lisp_Screen, last_nonminibuf_screen);
 #endif
       /* Don't try to create a window if would get an error */
       if (split_height_threshold < window_min_height << 1)
@@ -2241,7 +2227,7 @@ by `current-window-configuration' (which see).")
   register Lisp_Object tem;
   Lisp_Object new_current_buffer;
   int k;
-  SCREEN_PTR s, screen_to_select;
+  SCREEN_PTR s;
 
   while (XTYPE (arg) != Lisp_Window_Configuration)
     {
@@ -2271,7 +2257,7 @@ by `current-window-configuration' (which see).")
   /* Mark all windows now on screen as "deleted".
      Restoring the new configuration "undeletes" any that are in it.  */
 
-  delete_all_subwindows (XWINDOW (s->root_window));
+  delete_all_subwindows (XWINDOW (SCREEN_ROOT_WINDOW (s)));
 #if 0
   /* This loses when the minibuf screen is not s. */
   delete_all_subwindows (XWINDOW (XWINDOW (minibuf_window)->prev));
@@ -2491,35 +2477,46 @@ save_window_save (window, vector, i)
 }
 
 DEFUN ("current-window-configuration",
-	Fcurrent_window_configuration, Scurrent_window_configuration, 0, 0, 0,
-       "Return an object representing Emacs' current window configuration.\n\
+	Fcurrent_window_configuration, Scurrent_window_configuration, 0, 1, 0,
+  "Return an object representing the current window configuration of SCREEN.\n\
+If SCREEN is nil or omitted, use the selected screen.\n\
 This describes the number of windows, their sizes and current buffers,\n\
 and for each displayed buffer, where display starts, and the positions of\n\
 point and mark.  An exception is made for point in the current buffer:\n\
 its value is -not- saved.")
-  ()
+  (screen)
+     Lisp_Object screen;
 {
   register Lisp_Object tem;
   register int n_windows;
   register struct save_window_data *data;
   register int i;
+  SCREEN_PTR s;
 
-  n_windows = count_windows (XWINDOW (SCREEN_ROOT_WINDOW (selected_screen)));
+  if (NULL (screen))
+    s = selected_screen;
+  else
+    {
+      CHECK_SCREEN (screen, 0);
+      s = XSCREEN (screen);
+    }
+
+  n_windows = count_windows (XWINDOW (SCREEN_ROOT_WINDOW (s)));
   data = (struct save_window_data *)
            XVECTOR (Fmake_vector (make_number (SAVE_WINDOW_DATA_SIZE),
 				  Qnil));
-  XFASTINT (data->screen_width) = SCREEN_WIDTH (selected_screen);
-  XFASTINT (data->screen_height) = SCREEN_HEIGHT (selected_screen);
-  data->current_window = selected_window;
+  XFASTINT (data->screen_width) = SCREEN_WIDTH (s);
+  XFASTINT (data->screen_height) = SCREEN_HEIGHT (s);
+  data->current_window = SCREEN_SELECTED_WINDOW (s);
   XSET (data->current_buffer, Lisp_Buffer, current_buffer);
   data->minibuf_scroll_window = Vminibuf_scroll_window;
-  data->root_window = SCREEN_ROOT_WINDOW (selected_screen);
+  data->root_window = SCREEN_ROOT_WINDOW (s);
   tem = Fmake_vector (make_number (n_windows), Qnil);
   data->saved_windows = tem;
   for (i = 0; i < n_windows; i++)
     XVECTOR (tem)->contents[i]
       = Fmake_vector (make_number (SAVED_WINDOW_VECTOR_SIZE), Qnil);
-  save_window_save (SCREEN_ROOT_WINDOW (selected_screen),
+  save_window_save (SCREEN_ROOT_WINDOW (s),
 		    XVECTOR (tem), 0);
   XSET (tem, Lisp_Window_Configuration, data);
   return (tem);
@@ -2538,7 +2535,7 @@ Does not restore the value of point in current buffer.")
   register int count = specpdl_ptr - specpdl;
 
   record_unwind_protect (Fset_window_configuration,
-			 Fcurrent_window_configuration ());
+			 Fcurrent_window_configuration (Qnil));
   val = Fprogn (args);
   return unbind_to (count, val);
 }
@@ -2630,18 +2627,17 @@ SCREEN-PART is one of the following symbols:\n\
   Vother_window_scroll_buffer = Qnil;
 
 #ifdef MULTI_SCREEN
-  DEFVAR_BOOL ("auto-new-screen", &auto_new_screen,
+  DEFVAR_BOOL ("pop-up-screens", &pop_up_screens,
     "*Non-nil means `display-buffer' should make a separate X-window.");
-  auto_new_screen = 0;
+  pop_up_screens = 0;
 
-  DEFVAR_LISP ("auto-new-screen-function", &Vauto_new_screen_function,
+  DEFVAR_LISP ("pop-up-screen-function", &Vpop_up_screen_function,
     "*If non-nil, function to call to handle automatic new screen creation.\n\
 It is called with no arguments and should return a newly created screen.\n\
-nil means call `x-create-screen' with a nil argument.\n\
 \n\
 A typical value might be `(lambda () (x-create-screen auto-screen-parms))'\n\
 where `auto-screen-parms' would hold the default screen parameters.");
-  Vauto_new_screen_function = Qnil;
+  Vpop_up_screen_function = Qnil;
 #endif
 
   DEFVAR_BOOL ("pop-up-windows", &pop_up_windows,

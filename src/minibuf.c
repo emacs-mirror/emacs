@@ -99,8 +99,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag)
 {
   register Lisp_Object val;
   int count = specpdl_ptr - specpdl;
+  Lisp_Object mini_screen = WINDOW_SCREEN (XWINDOW (minibuf_window));
   struct gcpro gcpro1, gcpro2;
-  Lisp_Object prev_screen = Qnil;
 
   if (XTYPE (prompt) != Lisp_String)
     prompt = build_string ("");
@@ -137,16 +137,35 @@ read_minibuf (map, initial, prompt, backup_n, expflag)
 
   /* If the minibuffer window is on a different screen, save that
      screen's configuration too.  */
-  if (XSCREEN (WINDOW_SCREEN (XWINDOW (minibuf_window)))
-      != selected_screen)
-    record_unwind_protect (Fset_window_configuration,
-			   Fcurrent_window_configuration (WINDOW_SCREEN (XWINDOW (minibuf_window))));
+  if (XSCREEN (mini_screen) != selected_screen)
+    {
+      record_unwind_protect (Fset_window_configuration,
+			     Fcurrent_window_configuration (mini_screen));
+    }
 
   val = current_buffer->directory;
   Fset_buffer (get_minibuffer (minibuf_level));
   current_buffer->directory = val;
   Fmake_local_variable (Qprint_escape_newlines);
   print_escape_newlines = 1;
+
+#ifdef MULTI_SCREEN
+  /* If the minibuffer window is on another screen, shift this screen's
+     focus to that window, and arrange to put it back later.  */
+  if (XSCREEN (WINDOW_SCREEN (XWINDOW (minibuf_window)))
+      != selected_screen)
+    {
+      record_unwind_protect (read_minibuf_unwind,
+			     Fcons (Fselected_screen (),
+				    SCREEN_FOCUS_SCREEN (selected_screen)));
+
+      Fredirect_screen_focus (Fselected_screen (), mini_screen);
+    }
+  else
+    record_unwind_protect (read_minibuf_unwind, Qnil);
+#else
+  record_unwind_protect (read_minibuf_unwind, Qnil);
+#endif
 
   Vminibuf_scroll_window = selected_window;
   Fset_window_buffer (minibuf_window, Fcurrent_buffer ());
@@ -155,7 +174,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag)
 
   Ferase_buffer ();
   minibuf_level++;
-  record_unwind_protect (read_minibuf_unwind, Qnil);
 
   if (!NULL (initial))
     {
@@ -188,7 +206,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag)
   val = make_string (BEG_ADDR, Z - BEG);
   bcopy (GAP_END_ADDR, XSTRING (val)->data + GPT - BEG, Z - GPT);
   unbind_to (count, Qnil);	/* The appropriate screen will get selected
-				   from set-window-configuration. */
+				   in set-window-configuration.  */
 
   UNGCPRO;
 
@@ -238,7 +256,8 @@ get_minibuffer (depth)
  and it restores the current window, buffer, etc. */
 
 void
-read_minibuf_unwind ()
+read_minibuf_unwind (data)
+     Lisp_Object data;
 {
   /* Erase the minibuffer we were using at this level.  */
   Fset_buffer (XWINDOW (minibuf_window)->buffer);
@@ -259,6 +278,12 @@ read_minibuf_unwind ()
   minibuf_prompt_width = minibuf_save_vector[minibuf_level].prompt_width;
   Vhelp_form = minibuf_save_vector[minibuf_level].help_form;
   Vcurrent_prefix_arg = minibuf_save_vector[minibuf_level].current_prefix_arg;
+
+#ifdef MULTI_SCREEN
+  /* Redirect the focus of the screen that called the minibuffer.  */
+  if (CONSP (data))
+    Fredirect_screen_focus (XCONS (data)->car, XCONS (data)->cdr);
+#endif
 }
 
 DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 5, 0,
