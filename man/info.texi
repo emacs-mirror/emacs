@@ -522,7 +522,8 @@ level but go backwards''
   You can go back to the node @samp{Help-M} by typing the command
 @kbd{u} for ``Up''.  That puts you at the @emph{front} of the
 node---to get back to where you were reading you have to type
-some @key{SPC}s.
+some @key{SPC}s.  (Some Info readers, such as the one built into Emacs,
+put you at the same place where you were reading in @samp{Help-M}.)
 
 @format
 >> Now type @kbd{u} to move back up to @samp{Help-M}.
