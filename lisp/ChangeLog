@@ -1,3 +1,8 @@
+2005-03-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/dcl-mode.el (dcl-imenu-generic-expression):
+	Update quasiquote/unquote syntax.
+
 2005-03-23  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/compile.el (compile-internal): Use "set default" for VMS.
