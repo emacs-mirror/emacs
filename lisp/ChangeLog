@@ -1115,7 +1115,7 @@
 
 	* warnings.el (lwarn, warn, warning-levels): Doc fix.
 	(warning-suppress-log-types): Fix typo.
-	(display-warning): Fix typo. Remove useless asignment to free variable
+	(display-warning): Fix typo. Remove useless assignment to free variable
 	`group-string'.
 
 2002-07-25  Markus Rost  <rost@math.ohio-state.edu>
