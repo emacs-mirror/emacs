@@ -2884,7 +2884,7 @@ resolve_face_name (face_name)
   if (STRINGP (face_name))
     face_name = intern (XSTRING (face_name)->data);
 
-  for (;;)
+  while (SYMBOLP (face_name))
     {
       aliased = Fget (face_name, Qface_alias);
       if (NILP (aliased))
