@@ -1421,9 +1421,9 @@ static void XTframe_rehighlight ();
 
 /* The focus has changed.  Update the frames as necessary to reflect
    the new situation.  Note that we can't change the selected frame
-   here, because the lisp code we are interrupting might become confused.
+   here, because the Lisp code we are interrupting might become confused.
    Each event gets marked with the frame in which it occurred, so the
-   lisp code can tell when the switch took place by examining the events.  */
+   Lisp code can tell when the switch took place by examining the events.  */
 
 static void
 x_new_focus_frame (frame)
@@ -5280,6 +5280,8 @@ x_destroy_window (f)
   f->display.x = 0;
   if (f == x_focus_frame)
     x_focus_frame = 0;
+  if (f == x_focus_event_frame)
+    x_focus_event_frame = 0;
   if (f == x_highlight_frame)
     x_highlight_frame = 0;
 
