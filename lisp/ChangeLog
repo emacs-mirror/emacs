@@ -1,3 +1,13 @@
+1999-12-10  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* cus-edit.el (custom-save-delete): Delete all occurrences,
+	leave point where the first occurrence was.
+	(custom-save-faces): Insert a newline at the end of the comment.
+	Avoid a double newline there.
+	If final closeparen is at bol, put a space before it.
+	(custom-save-variables): Likewise.
+	(custom-file): Doc fix.
+
 1999-12-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* dos-w32.el (file-name-buffer-file-type-alist): Add `$' at end of
