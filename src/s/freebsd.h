@@ -1,5 +1,15 @@
 /* s/ file for freebsd system.  */
 
+/* Get the correct __FreeBSD_version, even if this is before that was
+   defined. */
+#ifndef __FreeBSD__
+#define __FreeBSD_version 199401
+#elif __FreeBSD__ == 1
+#define __FreeBSD_version 199405
+#else
+#include <osreldate.h>
+#endif
+
 /* '__FreeBSD__' is defined by the preprocessor on FreeBSD-1.1 and up.
    Earlier versions do not have shared libraries, so inhibit them.
    You can inhibit them on newer systems if you wish
@@ -34,7 +44,6 @@
 #define LIBS_DEBUG
 #define LIBS_SYSTEM -lutil
 #define LIBS_TERMCAP -ltermcap
-#define LIB_GCC -lgcc
 
 #define SYSV_SYSTEM_DIR
 
@@ -42,12 +51,28 @@
 #undef BSD_PGRPS
 #define GETPGRP_NO_ARG
 
+#ifdef __ELF__
+
+#define LD_SWITCH_SYSTEM
+#define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o /usr/lib/crtbegin.o
+#define UNEXEC unexelf.o
+#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtend.o /usr/lib/crtn.o
+#undef LIB_GCC
+#define LIB_GCC
+
+#else /* not __ELF__ */
+
 #ifndef NO_SHARED_LIBS
 #define LD_SWITCH_SYSTEM -e start -dc -dp
 #define HAVE_TEXT_START		/* No need to define `start_of_text'. */
+#if __FreeBSD_version >= 300002
+#define START_FILES pre-crt0.o /usr/lib/aout/crt0.o
+#else /* __FreeBSD_version < 300002 */
 #define START_FILES pre-crt0.o /usr/lib/crt0.o
+#endif /* __FreeBSD_version < 300002 */
 #define UNEXEC unexsunos4.o
 #define RUN_TIME_REMAP
+#define LIB_GCC -lgcc
 
 #ifndef N_TRELOFF
 #define N_PAGSIZ(x) __LDPGSZ
@@ -62,6 +87,8 @@
 #define A_TEXT_SEEK(hdr) (N_TXTOFF(hdr) + A_TEXT_OFFSET(hdr))
 #endif /* __FreeBSD__ */
 #endif /* NO_SHARED_LIBS */
+
+#endif /* not __ELF__ */
 
 #define HAVE_WAIT_HEADER
 #define HAVE_GETLOADAVG
