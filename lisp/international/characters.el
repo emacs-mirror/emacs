@@ -1,6 +1,6 @@
 ;;; characters.el --- set syntax and category for multibyte characters
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+;; Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 
 ;; Keywords: multibyte character, character set, syntax, category
@@ -179,13 +179,57 @@
 
 (modify-category-entry (make-char 'cyrillic-iso8859-5) ?y)
 
-(let ((c 160))
-  (while (< c 256)
-    (modify-syntax-entry (make-char 'cyrillic-iso8859-5 c) "w")
-    (setq c (1+ c))))
+(modify-syntax-entry (make-char 'cyrillic-iso8859-5 160) " ")
 (modify-syntax-entry ?,L-(B ".")
 (modify-syntax-entry ?,Lp(B ".")
 (modify-syntax-entry ?,L}(B ".")
+(let ((tbl (standard-case-table)))
+  (set-case-syntax-pair ?,L!(B ?,Lq(B tbl)
+  (set-case-syntax-pair ?,L"(B ?,Lr(B tbl)
+  (set-case-syntax-pair ?,L#(B ?,Ls(B tbl)
+  (set-case-syntax-pair ?,L$(B ?,Lt(B tbl)
+  (set-case-syntax-pair ?,L%(B ?,Lu(B tbl)
+  (set-case-syntax-pair ?,L&(B ?,Lv(B tbl)
+  (set-case-syntax-pair ?,L'(B ?,Lw(B tbl)
+  (set-case-syntax-pair ?,L((B ?,Lx(B tbl)
+  (set-case-syntax-pair ?,L)(B ?,Ly(B tbl)
+  (set-case-syntax-pair ?,L*(B ?,Lz(B tbl)
+  (set-case-syntax-pair ?,L+(B ?,L{(B tbl)
+  (set-case-syntax-pair ?,L,(B ?,L|(B tbl)
+  (set-case-syntax-pair ?,L.(B ?,L~(B tbl)
+  (set-case-syntax-pair ?,L/(B ?,L(B tbl)
+  (set-case-syntax-pair ?,L0(B ?,LP(B tbl)
+  (set-case-syntax-pair ?,L1(B ?,LQ(B tbl)
+  (set-case-syntax-pair ?,L2(B ?,LR(B tbl)
+  (set-case-syntax-pair ?,L3(B ?,LS(B tbl)
+  (set-case-syntax-pair ?,L4(B ?,LT(B tbl)
+  (set-case-syntax-pair ?,L5(B ?,LU(B tbl)
+  (set-case-syntax-pair ?,L6(B ?,LV(B tbl)
+  (set-case-syntax-pair ?,L7(B ?,LW(B tbl)
+  (set-case-syntax-pair ?,L8(B ?,LX(B tbl)
+  (set-case-syntax-pair ?,L9(B ?,LY(B tbl)
+  (set-case-syntax-pair ?,L:(B ?,LZ(B tbl)
+  (set-case-syntax-pair ?,L;(B ?,L[(B tbl)
+  (set-case-syntax-pair ?,L<(B ?,L\(B tbl)
+  (set-case-syntax-pair ?,L=(B ?,L](B tbl)
+  (set-case-syntax-pair ?,L>(B ?,L^(B tbl)
+  (set-case-syntax-pair ?,L?(B ?,L_(B tbl)
+  (set-case-syntax-pair ?,L@(B ?,L`(B tbl)
+  (set-case-syntax-pair ?,LA(B ?,La(B tbl)
+  (set-case-syntax-pair ?,LB(B ?,Lb(B tbl)
+  (set-case-syntax-pair ?,LC(B ?,Lc(B tbl)
+  (set-case-syntax-pair ?,LD(B ?,Ld(B tbl)
+  (set-case-syntax-pair ?,LE(B ?,Le(B tbl)
+  (set-case-syntax-pair ?,LF(B ?,Lf(B tbl)
+  (set-case-syntax-pair ?,LG(B ?,Lg(B tbl)
+  (set-case-syntax-pair ?,LH(B ?,Lh(B tbl)
+  (set-case-syntax-pair ?,LI(B ?,Li(B tbl)
+  (set-case-syntax-pair ?,LJ(B ?,Lj(B tbl)
+  (set-case-syntax-pair ?,LK(B ?,Lk(B tbl)
+  (set-case-syntax-pair ?,LL(B ?,Ll(B tbl)
+  (set-case-syntax-pair ?,LM(B ?,Lm(B tbl)
+  (set-case-syntax-pair ?,LN(B ?,Ln(B tbl)
+  (set-case-syntax-pair ?,LO(B ?,Lo(B tbl))
 
 ;; Devanagari character set
 
