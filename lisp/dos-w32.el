@@ -46,12 +46,11 @@
 (defvar file-name-buffer-file-type-alist
   '(
     ("[:/].*config.sys$" . nil)		; config.sys text
-    ("\\.elc$" . t)			; emacs stuff
-    ("\\.\\(obj\\|exe\\|com\\|lib\\|sym\\|sys\\|chk\\|out\\|bin\\|ico\\|pif\\|class\\)$" . t)
+    ("\\.\\(obj\\|exe\\|com\\|lib\\|sys\\|bin\\|ico\\|pif\\|class\\)$" . t)
 					; MS-Dos stuff
-    ("\\.\\(dll\\|drv\\|cpl\\|scr\\vbx\\|386\\|vxd\\|fon\\|fnt\\|fot\\|ttf\\|grp\\)$" . t)
+    ("\\.\\(dll\\|drv\\|386\\|vxd\\|fon\\|fnt\\|fot\\|ttf\\|grp\\)$" . t)
 					; Windows stuff
-    ("\\.\\(hlp\\|bmp\\|wav\\|avi\\|mpg\\|jpg\\|tif\\|mov\\|au\\)" . t)
+    ("\\.\\(bmp\\|wav\\|avi\\|mpg\\|jpg\\|tif\\|mov\\|au\\)" . t)
 					; known binary data files
     ("\\.\\(arc\\|zip\\|pak\\|lzh\\|zoo\\)$" . t)
 					; Packers
@@ -250,6 +249,9 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 
 ;;; Support for printing under DOS/Windows, see lpr.el and ps-print.el.
 
+(defvar direct-print-region-use-command-dot-com t
+  "*Control whether command.com is used to print on Windows 9x.")
+
 ;; Function to actually send data to the printer port.
 ;; Supports writing directly, and using various programs.
 (defun direct-print-region-helper (printer
@@ -257,8 +259,7 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 				   lpr-prog
 				   delete-text buf display
 				   rest)
-  (let* ((directory-sep-char ?\\)	; expand file names in DOS format
-	 ;; Ignore case when matching known external program names.
+  (let* (;; Ignore case when matching known external program names.
 	 (case-fold-search t)
 	 ;; Convert / to \ in printer name, for sake of external programs.
 	 (printer
@@ -272,8 +273,10 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 	      (setq safe-dirs (cdr safe-dirs)))
 	    (car safe-dirs)))
 	 (tempfile
-	  (make-temp-name
-	   (expand-file-name "EP" (getenv "TMPDIR"))))
+	  (subst-char-in-string
+	   ?/ ?\\
+	   (make-temp-name
+	    (expand-file-name "EP" (getenv "TMPDIR")))))
 	 ;; capture output for diagnosis
 	 (errbuf (list (get-buffer-create " *print-region-helper*") t)))
     ;; It seems that we must be careful about the directory name that
@@ -284,7 +287,8 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
     ;; No action is needed for UNC printer names, which is just as well
     ;; because `expand-file-name' doesn't support UNC names on MS-DOS.
     (if (and (stringp printer) (not (string-match "^\\\\" printer)))
-	(setq printer (expand-file-name printer safe-dir)))
+	(setq printer
+	      (subst-char-in-string ?/ ?\\ (expand-file-name printer safe-dir))))
     ;; Handle known programs specially where necessary.
     (unwind-protect
 	(cond
@@ -323,6 +327,8 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 	 ;; programs from accessing LPT ports reliably.
 	 ((and (eq system-type 'windows-nt)
 	       (getenv "winbootdir")
+	       ;; Allow cop-out so command.com isn't invoked
+	       direct-print-region-use-command-dot-com
 	       ;; file-attributes fails on LPT ports on Windows 9x but
 	       ;; not on NT, so handle both cases for safety.
 	       (eq (or (nth 7 (file-attributes printer)) 0) 0))
