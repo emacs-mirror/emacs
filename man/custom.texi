@@ -1950,7 +1950,6 @@ translations to turn @kbd{C-h} into @key{DEL} and @key{DEL} into
 ;; @r{Translate @kbd{C-h} to @key{DEL}.}
 (keyboard-translate ?\C-h ?\C-?)
 
-@need 3000
 ;; @r{Translate @key{DEL} to @kbd{C-h}.}
 (keyboard-translate ?\C-? ?\C-h)
 @end example
