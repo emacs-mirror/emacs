@@ -1,3 +1,8 @@
+2001-10-17  Francesco Potorti`  <pot@gnu.org>
+
+	* comint.el (comint-password-prompt-regexp): Make it less
+	restrictive, letting comint recognise OpenSSH2 passphrase prompts.
+
 2001-10-15  John Wiegley  <johnw@gnu.org>
 
 	* eshell/em-unix.el (eshell/cat): Do a quick test if something is
