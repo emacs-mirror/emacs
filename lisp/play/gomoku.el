@@ -163,26 +163,22 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
 (defvar gomoku-emacs-won ()
   "For making font-lock use the winner's face for the line.")
 
-(defcustom gomoku-font-lock-O-face
-  (if (display-color-p)
-      (list (facemenu-get-face 'fg:red) 'bold))
-  "*Face to use for Emacs' O."
-  :type '(repeat face)
+(defface gomoku-font-lock-O-face
+    '((((class color)) (:foreground "red" :weight bold)))
+  "Face to use for Emacs' O."
   :group 'gomoku)
 
-(defcustom gomoku-font-lock-X-face
-  (if (display-color-p)
-      (list (facemenu-get-face 'fg:green) 'bold))
-  "*Face to use for your X."
-  :type '(repeat face)
+(defface gomoku-font-lock-X-face
+    '((((class color)) (:foreground "green" :weight bold)))
+  "Face to use for your X."
   :group 'gomoku)
 
 (defvar gomoku-font-lock-keywords
-  '(("O" . gomoku-font-lock-O-face)
-    ("X" . gomoku-font-lock-X-face)
+  '(("O" . 'gomoku-font-lock-O-face)
+    ("X" . 'gomoku-font-lock-X-face)
     ("[-|/\\]" 0 (if gomoku-emacs-won
-		     gomoku-font-lock-O-face
-		   gomoku-font-lock-X-face)))
+		     'gomoku-font-lock-O-face
+		   'gomoku-font-lock-X-face)))
   "*Font lock rules for Gomoku.")
 
 (put 'gomoku-mode 'front-sticky
