@@ -1,3 +1,21 @@
+2004-03-15  Masatake YAMATO  <jet@gyve.org>
+
+	Added context menu support in smerge mode.
+	Most of the part is written by Stefan Monnier.
+	
+	* smerge-mode.el (smerge-context-menu-map, smerge-context-menu): New
+	keyman and menu.
+	(smerge-text-properties): New function.
+	(smerge-remove-props): New function.
+	(smerge-popup-context-menu): New function.
+	(smerge-resolve): Call `smerge-remove-props'.
+	(smerge-keep-base, smerge-keep-other, smerge-keep-mine):
+	Ditto.
+	(smerge-keep-current): Ditto.
+	(smerge-kill-current): New function.
+	(smerge-match-conflict): Detect the file as `a same-diff conflict'
+	if the filename is "ANCESTOR". Put text properties.
+
 2004-03-15  David Ponce  <david@dponce.com>
 
 	* ruler-mode.el: (ruler-mode-left-fringe-cols)
