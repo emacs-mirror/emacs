@@ -1,5 +1,5 @@
 /* Work-alike for termcap, plus extra features.
-   Copyright (C) 1985, 1986, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 93, 94, 95 Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -28,10 +28,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #else /* not HAVE_CONFIG_H */
 
-#if defined(HAVE_STRING_H) || defined(STDC_HEADERS)
-#define bcopy(s, d, n) memcpy ((d), (s), (n))
-#endif
-
 #ifdef STDC_HEADERS
 #include <stdlib.h>
 #include <string.h>
@@ -39,6 +35,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 char *getenv ();
 char *malloc ();
 char *realloc ();
+#endif
+
+/* Do this after the include, in case string.h prototypes bcopy.  */
+#if (defined(HAVE_STRING_H) || defined(STDC_HEADERS)) && !defined(bcopy)
+#define bcopy(s, d, n) memcpy ((d), (s), (n))
 #endif
 
 #ifdef HAVE_UNISTD_H
