@@ -80,6 +80,8 @@ Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii;
    character.  */
 extern Lisp_Object meta_prefix_char;
 
+extern Lisp_Object Voverriding_local_map;
+
 void describe_map_tree ();
 static Lisp_Object define_as_prefix ();
 static Lisp_Object describe_buffer_bindings ();
@@ -819,20 +821,29 @@ recognize the default bindings, just as `read-key-sequence' does.")
   Lisp_Object *maps, value;
   int nmaps, i;
 
-  nmaps = current_minor_maps (0, &maps);
-  for (i = 0; i < nmaps; i++)
-    if (! NILP (maps[i]))
-      {
-	value = Flookup_key (maps[i], key, accept_default);
-	if (! NILP (value) && XTYPE (value) != Lisp_Int)
-	  return value;
-      }
-
-  if (! NILP (current_buffer->keymap))
+  if (!NILP (Voverriding_local_map))
     {
-      value = Flookup_key (current_buffer->keymap, key, accept_default);
+      value = Flookup_key (Voverriding_local_map, key, accept_default);
       if (! NILP (value) && XTYPE (value) != Lisp_Int)
 	return value;
+    }
+  else
+    { 
+      nmaps = current_minor_maps (0, &maps);
+      for (i = 0; i < nmaps; i++)
+	if (! NILP (maps[i]))
+	  {
+	    value = Flookup_key (maps[i], key, accept_default);
+	    if (! NILP (value) && XTYPE (value) != Lisp_Int)
+	      return value;
+	  }
+
+      if (! NILP (current_buffer->keymap))
+	{
+	  value = Flookup_key (current_buffer->keymap, key, accept_default);
+	  if (! NILP (value) && XTYPE (value) != Lisp_Int)
+	    return value;
+	}
     }
 
   value = Flookup_key (current_global_map, key, accept_default);
@@ -1731,7 +1742,10 @@ nominal         alternate\n\
     /* Temporarily switch to descbuf, so that we can get that buffer's
        minor modes correctly.  */
     Fset_buffer (descbuf);
-    nmaps = current_minor_maps (&modes, &maps);
+    if (!NILP (Voverriding_local_map))
+      nmaps = 0;
+    else
+      nmaps = current_minor_maps (&modes, &maps);
     Fset_buffer (Vstandard_output);
 
     /* Print the minor mode maps.  */
@@ -1767,7 +1781,11 @@ nominal         alternate\n\
   }
 
   /* Print the (major mode) local map.  */
-  start1 = XBUFFER (descbuf)->keymap;
+  if (!NILP (Voverriding_local_map))
+    start1 = Voverriding_local_map;
+  else
+    start1 = XBUFFER (descbuf)->keymap;
+
   if (!NILP (start1))
     {
       describe_map_tree (start1, 0, shadow, prefix,
