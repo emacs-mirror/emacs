@@ -235,6 +235,7 @@ static void vox_choose_format P_ ((struct sound_device *, struct sound *));
 static void vox_init P_ ((struct sound_device *));
 static void vox_write P_ ((struct sound_device *, char *, int));
 static void sound_perror P_ ((char *));
+static void sound_warning P_ ((char *));
 static int parse_sound P_ ((Lisp_Object, Lisp_Object *));
 static void find_sound_type P_ ((struct sound *));
 static u_int32_t le2hl P_ ((u_int32_t));
@@ -261,7 +262,24 @@ static void
 sound_perror (msg)
      char *msg;
 {
-  error ("%s: %s", msg, strerror (errno));
+  turn_on_atimers (1);
+#ifdef SIGIO
+  sigunblock (sigmask (SIGIO));
+#endif
+  if (errno != 0)
+    error ("%s: %s", msg, strerror (errno));
+  else
+    error ("%s", msg);
+}
+
+
+/* Display a warning message.  */
+
+static void
+sound_warning (msg)
+     char *msg;
+{
+  message (msg);
 }
 
 
@@ -417,12 +435,12 @@ a system-dependent default device name is used.  */)
       s.fd = openp (Fcons (Vdata_directory, Qnil),
 		    attrs[SOUND_FILE], Qnil, &file, 0);
       if (s.fd < 0)
-	sound_perror ("Open sound file");
+	sound_perror ("Could not open sound file");
 
       /* Read the first bytes from the file.  */
       s.header_size = emacs_read (s.fd, s.header, MAX_SOUND_HEADER_BYTES);
       if (s.header_size < 0)
-	sound_perror ("Reading sound file header");
+	sound_perror ("Invalid sound file header");
     }
   else
     {
@@ -633,7 +651,7 @@ wav_play (s, sd)
 	sd->write (sd, buffer, nbytes);
 
       if (nbytes < 0)
-	sound_perror ("Reading sound file");
+	sound_perror ("Error reading sound file");
     }
 }
 
@@ -723,7 +741,7 @@ au_play (s, sd)
 	sd->write (sd, buffer, nbytes);
       
       if (nbytes < 0)
-	sound_perror ("Reading sound file");
+	sound_perror ("Error reading sound file");
     }
 }
 
@@ -779,21 +797,22 @@ vox_configure (sd)
   val = sd->format;
   if (ioctl (sd->fd, SNDCTL_DSP_SETFMT, &sd->format) < 0
       || val != sd->format)
-    sound_perror ("Set sound format");
+    sound_perror ("Could not set sound format");
 
   val = sd->channels != 1;
   if (ioctl (sd->fd, SNDCTL_DSP_STEREO, &val) < 0
       || val != (sd->channels != 1))
-    sound_perror ("Set stereo/mono");
+    sound_perror ("Could not set stereo/mono");
 
   /* I think bps and sampling_rate are the same, but who knows.
      Check this. and use SND_DSP_SPEED for both.  */
   if (sd->sample_rate > 0)
     {
       val = sd->sample_rate;
-      if (ioctl (sd->fd, SNDCTL_DSP_SPEED, &sd->sample_rate) < 0
-	  || val != sd->sample_rate)
-	sound_perror ("Set sound speed");
+      if (ioctl (sd->fd, SNDCTL_DSP_SPEED, &sd->sample_rate) < 0)
+	sound_perror ("Could not set sound speed");
+      else if (val != sd->sample_rate)
+	sound_warning ("Could not set sample rate");
     }
 
   if (sd->volume > 0)
@@ -912,7 +931,7 @@ vox_write (sd, buffer, nbytes)
 {
   int nwritten = emacs_write (sd->fd, buffer, nbytes);
   if (nwritten < 0)
-    sound_perror ("Writing to sound device");
+    sound_perror ("Error writing to sound device");
 }
 
 
