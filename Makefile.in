@@ -331,6 +331,7 @@ install-arch-indep: mkdir
 		 rm -rf $${subdir}/RCS ; \
 		 rm -rf $${subdir}/CVS ; \
 		 rm -f  $${subdir}/\#* ; \
+		 rm -f  $${subdir}/.\#* ; \
 		 rm -f  $${subdir}/*~ ; \
 		 rm -f  $${subdir}/*.orig ; \
 	       done) ; \
