@@ -122,7 +122,7 @@
  '(ccl-decode-koi8 . ccl-encode-koi8)
  '((safe-charsets ascii cyrillic-iso8859-5)
    (mime-charset . koi8-r)
-   (valid-codes (0 127) 163 179 (192 255))))
+   (valid-codes (0 . 127) 163 179 (192 . 255))))
 
 (define-coding-system-alias 'koi8-r 'cyrillic-koi8)
 (define-coding-system-alias 'koi8 'cyrillic-koi8)
@@ -186,7 +186,7 @@
       (let* ((ch (aref cyrillic-alternativnyj-decode-table i))
 	     (split (split-char ch)))
 	(if (eq (car split) 'cyrillic-iso8859-5)
-	    (aset table (nth 1 split) i)
+	    (aset table (logior (nth 1 split) 128) i)
 	  (if (/= ch 32)
 	      (aset table ch i))))
       (setq i (1+ i)))
@@ -218,7 +218,7 @@
  "ALTERNATIVNYJ 8-bit encoding for Cyrillic"
  '(ccl-decode-alternativnyj . ccl-encode-alternativnyj)
  '((safe-charsets ascii cyrillic-iso8859-5)
-   (valid-codes (0 175) (224 241) 255)))
+   (valid-codes (0 . 175) (224 . 241) 255)))
 
 (define-coding-system-alias 'alternativnyj 'cyrillic-alternativnyj)
 
