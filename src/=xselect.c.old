@@ -53,10 +53,8 @@ Lisp_Object Vx_selection_value;
 /* The value of the current SECONDARY selection. */
 Lisp_Object Vx_secondary_selection_value;
 
-/* Types of selections we may make.  Note that Qcut_buffer0 isn't really
-   a selection, but it acts like one for the sake of Fx_own_selection and
-   Fx_selection_value.  */
-Lisp_Object Qprimary, Qsecondary, Qclipboard, Qcut_buffer0;
+/* Types of selections we may make.  */
+Lisp_Object Qprimary, Qsecondary, Qclipboard;
 
 /* Emacs' selection property identifiers. */
 Atom Xatom_emacs_selection;
@@ -110,7 +108,52 @@ int incr_nbytes;
 unsigned char *incr_value;
 unsigned char *incr_ptr;
 
-/* SELECTION OWNER CODE */
+/* Declarations for handling cut buffers.
+
+   Whenever we set a cut buffer or read a cut buffer's value, we cache
+   it in cut_buffer_value.  We look for PropertyNotify events about
+   the CUT_BUFFER properties, and invalidate our cache accordingly.
+   We ignore PropertyNotify events that we suspect were caused by our
+   own changes to the cut buffers, so we can keep the cache valid
+   longer.
+
+   IS ALL THIS HAIR WORTH IT?  Well, these functions get called every
+   time an element goes into or is retrieved from the kill ring, and
+   those ought to be quick.  It's not fun in time or space to wait for
+   50k cut buffers to fly back and forth across the net.  */
+
+/* The number of CUT_BUFFER properties defined under X.  */
+#define NUM_CUT_BUFFERS (8)
+
+/* cut_buffer_atom[n] is the atom naming the nth cut buffer.  */
+static Atom cut_buffer_atom[NUM_CUT_BUFFERS] = {
+  XA_CUT_BUFFER0, XA_CUT_BUFFER1, XA_CUT_BUFFER2, XA_CUT_BUFFER3,
+  XA_CUT_BUFFER4, XA_CUT_BUFFER5, XA_CUT_BUFFER6, XA_CUT_BUFFER7
+};
+
+/* cut_buffer_value is an eight-element vector;
+   (aref cut_buffer_value n) is the cached value of cut buffer n, or
+   Qnil if cut buffer n is unset.  */
+static Lisp_Object cut_buffer_value;
+
+/* Bit N of cut_buffer_cached is true if (aref cut_buffer_value n) is
+   known to be valid.  This is cleared by PropertyNotify events
+   handled by x_invalidate_cut_buffer_cache.  It would be wonderful if
+   that routine could just set the appropriate element of
+   cut_buffer_value to some special value meaning "uncached", but that
+   would lose if a GC happened to be in progress.
+
+   Bit N of cut_buffer_just_set is true if cut buffer N has been set since
+   the last PropertyNotify event; since we get an event even when we set
+   the property ourselves, we should ignore one event after setting
+   a cut buffer, so we don't have to throw away our cache.  */
+#ifdef __STDC__
+volatile
+#endif
+static cut_buffer_cached, cut_buffer_just_set;
+
+
+/* Acquiring ownership of a selection.  */
 
 
 /* Request selection ownership if we do not already have it. */
@@ -191,6 +234,7 @@ use X selections.")
 	}
       UNBLOCK_INPUT;
     }
+#if 0
   else if (EQ (type, Qcut_buffer0))
     {
       /* DECwindows and some other servers don't seem to like setting
@@ -216,6 +260,7 @@ use X selections.")
 	}
       UNBLOCK_INPUT;
     }
+#endif
   else
     error ("Invalid X selection type");
 
@@ -257,11 +302,14 @@ x_disown_selection (old_owner, selection, changed_owner_time)
     abort ();			/* Inconsistent state. */
 }
 
+
+/* Answering selection requests.  */
+
 int x_selection_alloc_error;
 int x_converting_selection;
 
-/* Reply to some client's request for our selection data.  Data is
-   placed in a property supplied by the requesting window.
+/* Reply to some client's request for our selection data.
+   Data is placed in a property supplied by the requesting window.
 
    If the data exceeds the maximum amount the server can send,
    then prepare to send it incrementally, and reply to the client with
@@ -519,7 +567,8 @@ x_send_incremental (event)
     }
 }
 
-/* SELECTION REQUESTOR CODE */
+
+/* Requesting the value of a selection.  */
 
 /* Predicate function used to match a requested event. */
 
@@ -579,7 +628,7 @@ selection, but optional argument TYPE may specify secondary or clipboard.")
   if (NILP (type) || EQ (type, Qprimary))
     {
       if (!NILP (Vx_selection_value))
-    return Vx_selection_value;
+	return Vx_selection_value;
 
       return get_selection_value (XA_PRIMARY);
     }
@@ -597,6 +646,7 @@ selection, but optional argument TYPE may specify secondary or clipboard.")
 
       return get_selection_value (Xatom_clipboard);
     }
+#if 0
   else if (EQ (type, Qcut_buffer0))
     {
       char *data;
@@ -613,6 +663,7 @@ selection, but optional argument TYPE may specify secondary or clipboard.")
       
       return string;
     }
+#endif
   else
     error ("Invalid X selection type");
 }
@@ -730,6 +781,148 @@ x_selection_arrival (event, requestor_window, requestor_time)
   return Qnil;
 }
 
+
+/* Cut buffer management.  */
+
+DEFUN ("x-get-cut-buffer", Fx_get_cut_buffer, Sx_get_cut_buffer, 0, 1, "",
+  "Return the value of cut buffer N, or nil if it is unset.\n\
+If N is omitted, it defaults to zero.\n\
+Note that cut buffers have some problems that selections don't; try to\n\
+write your code to use cut buffers only for backward compatibility,\n\
+and use selections for the serious work.")
+  (n)
+     Lisp_Object n;
+{
+  int buf_num;
+
+  if (NILP (n))
+    buf_num = 0;
+  else
+    {
+      CHECK_NUMBER (n, 0);
+      buf_num = XINT (n);
+    }
+
+  if (buf_num < 0 && buf_num > NUM_CUT_BUFFERS)
+    error ("cut buffer numbers must be from zero to seven.");
+
+  {
+    Lisp_Object value;
+
+    /* Note that no PropertyNotify events will be processed while
+       input is blocked.  */
+    BLOCK_INPUT;
+
+    if (cut_buffer_cached & (1 << buf_num))
+      value = XVECTOR (cut_buffer_value)->contents[buf_num];
+    else
+      {
+	/* Our cache is invalid; retrieve the property's value from
+	   the server.  */
+	int buf_len;
+	char *buf = XFetchBuffer (x_current_display, &buf_len, buf_num);
+
+	if (buf_len == 0)
+	  value = Qnil;
+	else
+	  value = make_string (buf, buf_len);
+
+	XVECTOR (cut_buffer_value)->contents[buf_num] = value;
+	cut_buffer_cached |= (1 << buf_num);
+
+	XFree (buf);
+      }
+
+    UNBLOCK_INPUT;
+
+    return value;
+  }
+}
+
+DEFUN ("x-set-cut-buffer", Fx_set_cut_buffer, Sx_set_cut_buffer, 2, 2, "",
+  "Set the value of cut buffer N to STRING.\n\
+Note that cut buffers have some problems that selections don't; try to\n\
+write your code to use cut buffers only for backward compatibility,\n\
+and use selections for the serious work.")
+  (n, string)
+     Lisp_Object n, string;
+{
+  int buf_num;
+
+  CHECK_NUMBER (n, 0);
+  CHECK_STRING (string, 1);
+
+  buf_num = XINT (n);
+
+  if (buf_num < 0 || buf_num > 7)
+    error ("cut buffer numbers must be from zero to seven.");
+
+  BLOCK_INPUT;
+
+  /* DECwindows and some other servers don't seem to like setting
+     properties to values larger than about 20k.  For very large
+     values, they signal an error, but for intermediate values they
+     just seem to hang.
+
+     We could just truncate the request, but it's better to let the
+     user know that the strategy he/she's using isn't going to work
+     than to have it work partially, but incorrectly.  */
+
+  if (XSTRING (string)->size == 0
+      || XSTRING (string)->size > MAX_SELECTION (x_current_display))
+    {
+      XStoreBuffer (x_current_display, (char *) 0, 0, buf_num);
+      string = Qnil;
+    }
+  else
+    {
+      XStoreBuffer (x_current_display,
+		    (char *) XSTRING (string)->data, XSTRING (string)->size,
+		    buf_num);
+    }
+
+  XVECTOR (cut_buffer_value)->contents[buf_num] = string;
+  cut_buffer_cached |= (1 << buf_num);
+  cut_buffer_just_set |= (1 << buf_num);
+
+  UNBLOCK_INPUT;
+
+  return string;
+}
+
+/* Ask the server to send us an event if any cut buffer is modified.  */
+
+void
+x_watch_cut_buffer_cache ()
+{
+  XSelectInput (x_current_display, ROOT_WINDOW, PropertyChangeMask);
+}
+
+/* The server has told us that a cut buffer has been modified; deal with that.
+   Note that this function is called at interrupt level.  */
+void
+x_invalidate_cut_buffer_cache (XPropertyEvent *event)
+{
+  int i;
+
+  /* See which cut buffer this is about, if any.  */
+  for (i = 0; i < NUM_CUT_BUFFERS; i++)
+    if (event->atom == cut_buffer_atom[i])
+      {
+	int mask = (1 << i);
+
+	if (cut_buffer_just_set & mask)
+	  cut_buffer_just_set &= ~mask;
+	else
+	  cut_buffer_cached &= ~mask;
+
+	break;
+      }
+}
+
+
+/* Bureaucracy.  */
+
 void
 syms_of_xselect ()
 {
@@ -751,10 +944,14 @@ syms_of_xselect ()
   staticpro (&Qsecondary);
   Qclipboard = intern ("clipboard");
   staticpro (&Qclipboard);
-  Qcut_buffer0 = intern ("cut-buffer0");
-  staticpro (&Qcut_buffer0);
 
   defsubr (&Sx_own_selection);
   defsubr (&Sx_selection_value);
+
+  cut_buffer_value = Fmake_vector (make_number (NUM_CUT_BUFFERS), Qnil);
+  staticpro (&cut_buffer_value);
+
+  defsubr (&Sx_get_cut_buffer);
+  defsubr (&Sx_set_cut_buffer);
 }
 #endif	/* X11 */
