@@ -73,10 +73,6 @@ and those for buffer-specialized fontification functions,
 `font-lock-inhibit-thing-lock' and `font-lock-maximum-size'.")
 (make-variable-buffer-local 'font-lock-defaults)
 
-;; This variable is used where font-lock.el itself supplies the
-;; keywords.  Really, this shouldn't need to be in font-core.el, but
-;; we can't avoid it.  In the future, this stuff will hopefully be
-;; moved to cc-mode itself.
 (defvar font-lock-defaults-alist nil
   "Alist of fall-back Font Lock defaults for major modes.
 
