@@ -1,3 +1,7 @@
+2003-03-21  Kenichi Handa  <handa@etlken2>
+
+	* fileio.c (Fexpand_file_name): Fix previous change.
+
 2003-03-19  Kenichi Handa  <handa@etlken2>
 
 	* fileio.c (Ffile_name_directory): Reconstruct file name by
