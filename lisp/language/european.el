@@ -63,7 +63,7 @@
 	;; in single-byte mode.
 	(when (and latin-name
 		   (string-match "^Latin-\\([1-9]\\)$" latin-name))
-	  (require (intern (downcase latin-name)))))))
+	  (load (downcase latin-name))))))
 
 ;; Latin-1 (ISO-8859-1)
 
