@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate December 31, 1998
+@set lastupdate January  6, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -529,6 +529,13 @@ could improve).
 
 @item
 Speech-recognition programs (single-speaker, disconnected speech is sufficient).
+
+@item
+A braille translation and formatting system which can convert marked up
+documents into braille.  This should let the user customize the braille
+translation rules; it would be good to divide it into a
+device-independent part plus drivers.  Contact Jason White,
+@email{jasonw@ariel.ucs.unimelb.EDU.AU}.
 
 @ignore Being done
 @item
