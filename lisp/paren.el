@@ -104,7 +104,7 @@ after `show-paren-delay' seconds of Emacs idle time."
 		    (let ((beg (min pos oldpos)) (end (max pos oldpos)))
 		      (and (/= (char-syntax (char-after beg)) ?\$)
 			   (setq mismatch
-				 (not (eq (char-after (1- end))
+				 (not (eq (char-before end)
 					  ;; This can give nil.
 					  (matching-paren (char-after beg))))))))
 		;; If they don't properly match, use a different face,
@@ -137,9 +137,9 @@ after `show-paren-delay' seconds of Emacs idle time."
 		   ;; highlight the paren at point to indicate misbalance.
 		   (let ((from (if (= dir 1)
 				   (point)
-				 (1- (point))))
+				 (forward-point -1)))
 			 (to (if (= dir 1)
-				 (1+ (point))
+				 (forward-point 1)
 			       (point))))
 		     (if show-paren-overlay-1
 			 (move-overlay show-paren-overlay-1
@@ -157,11 +157,15 @@ after `show-paren-delay' seconds of Emacs idle time."
 	       ;; If it's an unmatched paren, turn off any such highlighting.
 	       (or (and (not (integerp pos))
 			(delete-overlay show-paren-overlay))
-		   (if show-paren-overlay
-		       (move-overlay show-paren-overlay (- pos dir) pos
-				     (current-buffer))
-		     (setq show-paren-overlay
-			   (make-overlay (- pos dir) pos))))
+		   (save-excursion
+		     (goto-char pos)
+		     (if show-paren-overlay
+			 (move-overlay show-paren-overlay
+				       (forward-point (- dir))
+				       pos
+				       (current-buffer))
+		       (setq show-paren-overlay
+			     (make-overlay (forward-point (- dir)) pos)))))
 	       ;; Always set the overlay face, since it varies.
 	       (overlay-put show-paren-overlay 'face face))
 	      (t
