@@ -2908,10 +2908,12 @@ delete_tty (struct display *display)
 void
 create_tty_output (struct frame *f)
 {
+  struct tty_output *t;
+
   if (! FRAME_TERMCAP_P (f))
     abort ();
 
-  struct tty_output *t = xmalloc (sizeof (struct tty_output));
+  t = xmalloc (sizeof (struct tty_output));
   bzero (t, sizeof (struct tty_output));
 
   t->display_info = FRAME_DISPLAY (f)->display_info.tty;

@@ -590,6 +590,20 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 (defvar tool-bar-originally-present nil
   "Non-nil if tool-bars are present before user and site init files are read.")
 
+(defvar handle-args-function-alist '((nil . tty-handle-args))
+  "Functions for processing window-system dependent command-line arguments.
+Window system startup files should add their own function to this
+alist, which should parse the command line arguments.  Those
+pertaining to the window system should be processed and removed
+from the returned command line.")
+
+(defvar window-system-initialization-alist '((nil . ignore))
+  "Alist of window-system initialization functions.
+Window-system startup files should add their own initialization
+function to this list.  The function should take no arguments,
+and initialize the window system environment to prepare for
+opening the first frame (e.g. open a connection to the server).")
+
 ;; Handle the X-like command-line arguments "-fg", "-bg", "-name", etc.
 (defun tty-handle-args (args)
   (let (rest)
@@ -709,14 +723,21 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   ;; Read window system's init file if using a window system.
   (condition-case error
-      (if (and initial-window-system (not noninteractive))
-	  (load (concat term-file-prefix
-			(symbol-name initial-window-system)
-			"-win")
-		;; Every window system should have a startup file;
-		;; barf if we can't find it.
-		nil t))
-    ;; If we can't read it, print the error message and exit.
+    (unless noninteractive
+      (if (and initial-window-system
+	       (not (featurep
+		     (intern (concat (symbol-name initial-window-system)
+				     "-win")))))
+	  (error "Unsupported window system `%s'" initial-window-system))
+      ;; Process window-system specific command line parameters.
+      (setq command-line-args
+	    (funcall (or (cdr (assq initial-window-system handle-args-function-alist))
+			 (error "Unsupported window system `%s'" initial-window-system))
+		     command-line-args))
+      ;; Initialize the window system. (Open connection, etc.)
+      (funcall (or (cdr (assq initial-window-system window-system-initialization-alist))
+		   (error "Unsupported window system `%s'" initial-window-system))))
+    ;; If there was an error, print the error message and exit.
     (error
      (princ
       (if (eq (car error) 'error)
@@ -734,10 +755,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
      (terpri 'external-debugging-output)
      (setq initial-window-system nil)
      (kill-emacs)))
-
-  ;; Windowed displays do this inside their *-win.el.
-  (unless (or (display-graphic-p) noninteractive)
-    (setq command-line-args (tty-handle-args command-line-args)))
 
   (set-locale-environment nil)
 

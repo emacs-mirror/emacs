@@ -570,7 +570,9 @@ The optional second argument PARAMETERS specifies additional frame parameters."
   (interactive "sMake frame on display: ")
   (or (string-match "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" display)
       (error "Invalid display, not HOST:SERVER or HOST:SERVER.SCREEN"))
-  (load (concat term-file-prefix "x-win"))
+  (unless x-initialized
+    (setq x-display-name display)
+    (x-initialize-window-system))
   (make-frame `((window-system . x) (display . ,display) . ,parameters)))
 
 (defun make-frame-on-tty (device type &optional parameters)

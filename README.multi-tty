@@ -140,6 +140,8 @@ See arch logs.
 THINGS TO DO
 ------------
 
+** emacs -nw --eval '(y-or-n-p "Foobar")' segfaults.
+
 ** Fix color handling during tty+X combo sessions.  (It seems that tty
    sessions automatically convert the face colors to terminal colors
    when the face is loaded.  This conversion must happen instead on

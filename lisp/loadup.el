@@ -190,6 +190,13 @@
       (load "emacs-lisp/float-sup")))
 (message "%s" (garbage-collect))
 
+(when (fboundp 'x-create-frame)
+  (load "mouse")
+  (load "international/fontset")
+  (load "term/x-win"))
+
+(message "%s" (garbage-collect))
+
 (load "vc-hooks")
 (load "ediff-hook")
 (message "%s" (garbage-collect))

@@ -24,10 +24,16 @@
 
 ;;; Commentary:
 
-;; X-win.el:  this file is loaded from ../lisp/startup.el when it recognizes
-;; that X windows are to be used.  Command line switches are parsed and those
-;; pertaining to X are processed and removed from the command line.  The
-;; X display is opened and hooks are set for popping up the initial window.
+;; X-win.el: this file defines functions to initialize the X window
+;; system and process X-specific command line parameters before
+;; creating the first X frame.
+
+;; Note that contrary to previous Emacs versions, the act of loading
+;; this file should not have the side effect of initializing the
+;; window system or processing command line arguments (this file is
+;; now loaded in loadup.el).  See the variables
+;; `handle-args-function-alist' and
+;; `window-system-initialization-alist' for more details.
 
 ;; startup.el will then examine startup files, and eventually call the hooks
 ;; which create the first window(s).
@@ -1159,10 +1165,6 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 ;;;; Function keys
 
-;;; XXX This might be wrong with multi-tty support.
-(substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
-			   global-map)
-
 ;; Map certain keypad keys into ASCII characters
 ;; that people usually expect.
 (define-key function-key-map [backspace] [127])
@@ -2237,7 +2239,7 @@ order until succeed.")
     (if text
 	(remove-text-properties 0 (length text) '(foreign-selection nil) text))
     text))
-      
+
 ;;; Return the value of the current X selection.
 ;;; Consult the selection, and the cut buffer.  Treat empty strings
 ;;; as if they were unset.
@@ -2329,132 +2331,143 @@ order until succeed.")
     ))
 
 
-;;; Do the actual X Windows setup here; the above code just defines
-;;; functions and variables that we use now.
+;;; Window system initialization.
 
-(setq command-line-args (x-handle-args command-line-args))
-
-;;; Make sure we have a valid resource name.
-(or (stringp x-resource-name)
-    (let (i)
-      (setq x-resource-name (invocation-name))
-
-      ;; Change any . or * characters in x-resource-name to hyphens,
-      ;; so as not to choke when we use it in X resource queries.
-      (while (setq i (string-match "[.*]" x-resource-name))
-	(aset x-resource-name i ?-))))
-
-(x-open-connection (or x-display-name
-		       (setq x-display-name (getenv "DISPLAY")))
-		   x-command-line-resources
-		   ;; Exit Emacs with fatal error if this fails and we
-		   ;; are the initial display.
-		   (eq initial-window-system 'x))
-
-(add-to-list 'frame-creation-function-alist '(x . x-create-frame-with-faces))
-
-(setq x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
-			    x-cut-buffer-max))
-
-;; Setup the default fontset.
-(setup-default-fontset)
-
-;; Create the standard fontset.
-(create-fontset-from-fontset-spec standard-fontset-spec t)
-
-;; Create fontset specified in X resources "Fontset-N" (N is 0, 1, ...).
-(create-fontset-from-x-resource)
-
-;; Try to create a fontset from a font specification which comes
-;; from initial-frame-alist, default-frame-alist, or X resource.
-;; A font specification in command line argument (i.e. -fn XXXX)
-;; should be already in default-frame-alist as a `font'
-;; parameter.  However, any font specifications in site-start
-;; library, user's init file (.emacs), and default.el are not
-;; yet handled here.
-
-(let ((font (or (cdr (assq 'font initial-frame-alist))
-		(cdr (assq 'font default-frame-alist))
-		(x-get-resource "font" "Font")))
-      xlfd-fields resolved-name)
-  (if (and font
-	   (not (query-fontset font))
-	   (setq resolved-name (x-resolve-font-name font))
-	   (setq xlfd-fields (x-decompose-font-name font)))
-      (if (string= "fontset" (aref xlfd-fields xlfd-regexp-registry-subnum))
-	  (new-fontset font (x-complement-fontset-spec xlfd-fields nil))
-	;; Create a fontset from FONT.  The fontset name is
-	;; generated from FONT.
-	(create-fontset-from-ascii-font font resolved-name "startup"))))
-
-;; Sun expects the menu bar cut and paste commands to use the clipboard.
-;; This has ,? to match both on Sunos and on Solaris.
-(if (string-match "Sun Microsystems,? Inc\\."
-		  (x-server-vendor))
-    (menu-bar-enable-clipboard))
-
-;; Apply a geometry resource to the initial frame.  Put it at the end
-;; of the alist, so that anything specified on the command line takes
-;; precedence.
-(let* ((res-geometry (x-get-resource "geometry" "Geometry"))
-       parsed)
-  (if res-geometry
-      (progn
-	(setq parsed (x-parse-geometry res-geometry))
-	;; If the resource specifies a position,
-	;; call the position and size "user-specified".
-	(if (or (assq 'top parsed) (assq 'left parsed))
-	    (setq parsed (cons '(user-position . t)
-			       (cons '(user-size . t) parsed))))
-	;; All geometry parms apply to the initial frame.
-	(setq initial-frame-alist (append initial-frame-alist parsed))
-	;; The size parms apply to all frames.
-	(if (assq 'height parsed)
-	    (setq default-frame-alist
-		  (cons (cons 'height (cdr (assq 'height parsed)))
-			default-frame-alist)))
-	(if (assq 'width parsed)
-	    (setq default-frame-alist
-		  (cons (cons 'width (cdr (assq 'width parsed)))
-			default-frame-alist))))))
-
-;; Check the reverseVideo resource.
-(let ((case-fold-search t))
-  (let ((rv (x-get-resource "reverseVideo" "ReverseVideo")))
-    (if (and rv
-	     (string-match "^\\(true\\|yes\\|on\\)$" rv))
-	(setq default-frame-alist
-	      (cons '(reverse . t) default-frame-alist)))))
-
-;; Set x-selection-timeout, measured in milliseconds.
-(let ((res-selection-timeout
-       (x-get-resource "selectionTimeout" "SelectionTimeout")))
-  (setq x-selection-timeout 20000)
-  (if res-selection-timeout
-      (setq x-selection-timeout (string-to-number res-selection-timeout))))
-
-;; XXX This is wrong with multi-tty support.
 (defun x-win-suspend-error ()
   (error "Suspending an Emacs running under X makes no sense"))
-(add-hook 'suspend-hook 'x-win-suspend-error)
 
-;;; Arrange for the kill and yank functions to set and check the clipboard.
-(setq interprogram-cut-function 'x-select-text)
-(setq interprogram-paste-function 'x-cut-buffer-or-selection-value)
+(defvar x-initialized nil
+  "Non-nil if the X window system has been initialized.")
 
-;;; Turn off window-splitting optimization; X is usually fast enough
-;;; that this is only annoying.
-(setq split-window-keep-point t)
+(defun x-initialize-window-system ()
+  "Initialize Emacs for X frames and open the first connection to an X server."
+  ;; Make sure we have a valid resource name.
+  (or (stringp x-resource-name)
+      (let (i)
+	(setq x-resource-name (invocation-name))
 
-;; Motif direct handling of f10 wasn't working right,
-;; So temporarily we've turned it off in lwlib-Xm.c
-;; and turned the Emacs f10 back on.
-;; ;; Motif normally handles f10 itself, so don't try to handle it a second time.
-;; (if (featurep 'motif)
-;;     (global-set-key [f10] 'ignore))
+	;; Change any . or * characters in x-resource-name to hyphens,
+	;; so as not to choke when we use it in X resource queries.
+	(while (setq i (string-match "[.*]" x-resource-name))
+	  (aset x-resource-name i ?-))))
 
-;; Turn on support for mouse wheels.
-(mouse-wheel-mode 1)
+  (x-open-connection (or x-display-name
+			 (setq x-display-name (getenv "DISPLAY")))
+		     x-command-line-resources
+		     ;; Exit Emacs with fatal error if this fails and we
+		     ;; are the initial display.
+		     (eq initial-window-system 'x))
+
+  (setq x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
+			      x-cut-buffer-max))
+
+  ;; Setup the default fontset.
+  (setup-default-fontset)
+
+  ;; Create the standard fontset.
+  (create-fontset-from-fontset-spec standard-fontset-spec t)
+
+  ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1, ...).
+  (create-fontset-from-x-resource)
+
+  ;; Try to create a fontset from a font specification which comes
+  ;; from initial-frame-alist, default-frame-alist, or X resource.
+  ;; A font specification in command line argument (i.e. -fn XXXX)
+  ;; should be already in default-frame-alist as a `font'
+  ;; parameter.  However, any font specifications in site-start
+  ;; library, user's init file (.emacs), and default.el are not
+  ;; yet handled here.
+
+  (let ((font (or (cdr (assq 'font initial-frame-alist))
+		  (cdr (assq 'font default-frame-alist))
+		  (x-get-resource "font" "Font")))
+	xlfd-fields resolved-name)
+    (if (and font
+	     (not (query-fontset font))
+	     (setq resolved-name (x-resolve-font-name font))
+	     (setq xlfd-fields (x-decompose-font-name font)))
+	(if (string= "fontset" (aref xlfd-fields xlfd-regexp-registry-subnum))
+	    (new-fontset font (x-complement-fontset-spec xlfd-fields nil))
+	  ;; Create a fontset from FONT.  The fontset name is
+	  ;; generated from FONT.
+	  (create-fontset-from-ascii-font font resolved-name "startup"))))
+
+  ;; Sun expects the menu bar cut and paste commands to use the clipboard.
+  ;; This has ,? to match both on Sunos and on Solaris.
+  (if (string-match "Sun Microsystems,? Inc\\."
+		    (x-server-vendor))
+      (menu-bar-enable-clipboard))
+
+  ;; Apply a geometry resource to the initial frame.  Put it at the end
+  ;; of the alist, so that anything specified on the command line takes
+  ;; precedence.
+  (let* ((res-geometry (x-get-resource "geometry" "Geometry"))
+	 parsed)
+    (if res-geometry
+	(progn
+	  (setq parsed (x-parse-geometry res-geometry))
+	  ;; If the resource specifies a position,
+	  ;; call the position and size "user-specified".
+	  (if (or (assq 'top parsed) (assq 'left parsed))
+	      (setq parsed (cons '(user-position . t)
+				 (cons '(user-size . t) parsed))))
+	  ;; All geometry parms apply to the initial frame.
+	  (setq initial-frame-alist (append initial-frame-alist parsed))
+	  ;; The size parms apply to all frames.
+	  (if (assq 'height parsed)
+	      (setq default-frame-alist
+		    (cons (cons 'height (cdr (assq 'height parsed)))
+			  default-frame-alist)))
+	  (if (assq 'width parsed)
+	      (setq default-frame-alist
+		    (cons (cons 'width (cdr (assq 'width parsed)))
+			  default-frame-alist))))))
+
+  ;; Check the reverseVideo resource.
+  (let ((case-fold-search t))
+    (let ((rv (x-get-resource "reverseVideo" "ReverseVideo")))
+      (if (and rv
+	       (string-match "^\\(true\\|yes\\|on\\)$" rv))
+	  (setq default-frame-alist
+		(cons '(reverse . t) default-frame-alist)))))
+
+  ;; Set x-selection-timeout, measured in milliseconds.
+  (let ((res-selection-timeout
+	 (x-get-resource "selectionTimeout" "SelectionTimeout")))
+    (setq x-selection-timeout 20000)
+    (if res-selection-timeout
+	(setq x-selection-timeout (string-to-number res-selection-timeout))))
+
+  ;; XXX This is wrong in general with multi-tty support.
+  (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
+			     global-map)
+
+  ;; XXX This is wrong in general with multi-tty support.
+  (add-hook 'suspend-hook 'x-win-suspend-error)
+
+  ;; Arrange for the kill and yank functions to set and check the clipboard.
+  (setq interprogram-cut-function 'x-select-text)
+  (setq interprogram-paste-function 'x-cut-buffer-or-selection-value)
+
+  ;; Turn off window-splitting optimization; X is usually fast enough
+  ;; that this is only annoying.
+  (setq split-window-keep-point t)
+
+  ;; Motif direct handling of f10 wasn't working right,
+  ;; So temporarily we've turned it off in lwlib-Xm.c
+  ;; and turned the Emacs f10 back on.
+  ;; ;; Motif normally handles f10 itself, so don't try to handle it a second time.
+  ;; (if (featurep 'motif)
+  ;;     (global-set-key [f10] 'ignore))
+
+  ;; Turn on support for mouse wheels.
+  (mouse-wheel-mode 1)
+
+  (setq x-initialized t))
+
+(add-to-list 'handle-args-function-alist '(x . x-handle-args))
+(add-to-list 'frame-creation-function-alist '(x . x-create-frame-with-faces))
+(add-to-list 'window-system-initialization-alist '(x . x-initialize-window-system))
 
 (provide 'x-win)
 
