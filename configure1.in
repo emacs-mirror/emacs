@@ -2,7 +2,7 @@ dnl This is an autoconf script.
 dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.  You must have autoconf
-dnl version 1.4 or later.
+dnl version 1.7 or later.
 dnl
 dnl The following text appears in the resulting `configure' script,
 dnl explaining how to rebuild it.
@@ -15,7 +15,7 @@ dnl explaining how to rebuild it.
 ### from the file `./configure.in'.
 ### To rebuild it, execute the command
 ###	autoconf
-### in the this directory.  You must have autoconf version 1.4 or later.
+### in the this directory.  You must have autoconf version 1.7 or later.
 
 ### This file is part of GNU Emacs.
 
@@ -1395,7 +1395,7 @@ AC_DEFINE_UNQUOTED(UNEXEC_SRC,       ${UNEXEC_SRC})
 if [ "${HAVE_X_WINDOWS}" = "yes" ] ; then
   ] AC_DEFINE(HAVE_X_WINDOWS) [
 fi
-if [ "${USE_X_TOOLKIT}" = "yes" ] ; then
+if [ "${USE_X_TOOLKIT}" != "no" ] ; then
   ] AC_DEFINE(USE_X_TOOLKIT) [
 fi
 if [ "${HAVE_X11}" = "yes" ] ; then
@@ -1493,11 +1493,11 @@ AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile lwlib/Makefile src/Makefil
 # after src/config.h is built, since we rely on that file.
 
 changequote(,)dnl The horror, the horror.
-# Now get this: Some word that is part of the ${srcdir} directory name
-# might, just might, happen to be an identifier like `i386' or something,
+# Now get this: Some word that is part of the ${srcdir} directory name might,
+# just might, happen to be an identifier like `sun4' or `i386' or something,
 # and be predefined by the C preprocessor to some helpful value like 1, or
-# maybe the empty string.  Needless to say consequent macro substitutions
-# are less than conducive to the makefile finding the correct directory.
+# maybe the empty string.  Needless to say consequent macro substitutions are
+# less than conducive to the makefile finding the correct directory.
 srcdir_undefs="`echo $top_srcdir | 
 sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/  */ -U/g'  \
     -e 's/ -U$//' -e 's/^[^ ]/-U/' \
