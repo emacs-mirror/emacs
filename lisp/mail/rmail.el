@@ -344,6 +344,12 @@ Note:    it means the file has no messages in it.\n\^_")))
   (define-key rmail-mode-map " "      'scroll-up)
   (define-key rmail-mode-map "\177"   'scroll-down)
   (define-key rmail-mode-map "?"      'describe-mode)
+  (define-key rmail-mode-map "\C-c\C-s\C-d" 'rmail-sort-by-date)
+  (define-key rmail-mode-map "\C-c\C-s\C-s" 'rmail-sort-by-subject)
+  (define-key rmail-mode-map "\C-c\C-s\C-a" 'rmail-sort-by-author)
+  (define-key rmail-mode-map "\C-c\C-s\C-r" 'rmail-sort-by-recipient)
+  (define-key rmail-mode-map "\C-c\C-s\C-c" 'rmail-sort-by-correspondent)
+  (define-key rmail-mode-map "\C-c\C-s\C-l" 'rmail-sort-by-lines)
   )
 
 (define-key rmail-mode-map [menu-bar] (make-sparse-keymap))
@@ -1974,6 +1980,32 @@ With prefix argument N moves backward N messages with this label."
 (autoload 'rmail-edit-current-message "rmailedit"
   "Edit the contents of the current message"
   t)
+
+;;;; *** Rmail Sorting ***
+
+(autoload 'rmail-sort-by-date "rmailsort"
+  "Sort messages of current Rmail file by date.
+If prefix argument REVERSE is non-nil, sort them in reverse order." t)
+
+(autoload 'rmail-sort-by-subject "rmailsort"
+  "Sort messages of current Rmail file by subject.
+If prefix argument REVERSE is non-nil, sort them in reverse order." t)
+
+(autoload 'rmail-sort-by-author "rmailsort"
+  "Sort messages of current Rmail file by author.
+If prefix argument REVERSE is non-nil, sort them in reverse order." t)
+
+(autoload 'rmail-sort-by-recipient "rmailsort"
+  "Sort messages of current Rmail file by recipient.
+If prefix argument REVERSE is non-nil, sort them in reverse order." t)
+
+(autoload 'rmail-sort-by-correspondent "rmailsort"
+  "Sort messages of current Rmail file by other correspondent.
+If prefix argument REVERSE is non-nil, sort them in reverse order." t)
+
+(autoload 'rmail-sort-by-lines "rmailsort"
+  "Sort messages of current Rmail file by number of lines.
+If prefix argument REVERSE is non-nil, sort them in reverse order." t)
 
 ;;;; *** Rmail Summary Mode ***
 
