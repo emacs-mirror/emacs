@@ -659,7 +659,7 @@ The argument @var{character-set} is like the inside of a
 @samp{[@dots{}]} in a regular expression except that @samp{]} is never
 special and @samp{\} quotes @samp{^}, @samp{-} or @samp{\}.  Thus,
 @code{"a-zA-Z"} skips over all letters, stopping before the first
-nonletter, and @code{"^a-zA-Z}" skips nonletters stopping before the
+nonletter, and @code{"^a-zA-Z"} skips nonletters stopping before the
 first letter.  @xref{Regular Expressions}.
 
 If @var{limit} is supplied (it must be a number or a marker), it
