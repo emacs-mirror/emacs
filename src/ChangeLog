@@ -1,5 +1,8 @@
 2001-02-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* search.c (search_buffer): Call set_search_regs with a byte
+	position, not a character position.
+
 	* xfns.c (x_set_tool_bar_lines): Do nothing if frame is
 	minibuffer-only,
 
