@@ -2387,12 +2387,13 @@ read_process_output (proc, channel)
       /* Handling the process output should not deactivate the mark.  */
       Vdeactivate_mark = odeactivate;
 
+#if 0 /* Call record_asynch_buffer_change unconditionally,
+	 because we might have changed minor modes or other things
+	 that affect key bindings.  */
       if (! EQ (Fcurrent_buffer (), obuffer)
 	  || ! EQ (current_buffer->keymap, okeymap))
+#endif
 	record_asynch_buffer_change ();
-
-      if (waiting_for_user_input_p)
-	prepare_menu_bars ();
 
 #ifdef VMS
       start_vms_process_read (vs);
@@ -3386,12 +3387,12 @@ exec_sentinel (proc, reason)
   restore_match_data ();
 
   Vdeactivate_mark = odeactivate;
+#if 0
   if (! EQ (Fcurrent_buffer (), obuffer)
       || ! EQ (current_buffer->keymap, okeymap))
+#endif
     record_asynch_buffer_change ();
 
-  if (waiting_for_user_input_p)
-    prepare_menu_bars ();
   unbind_to (count, Qnil);
 }
 
@@ -3731,9 +3732,6 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   else
     /* It's infinite.  */
     timeout_p = 0;
-
-  /* This must come before stop_polling.  */
-  prepare_menu_bars ();
 
   /* Turn off periodic alarms (in case they are in use)
      because the select emulator uses alarms.  */
