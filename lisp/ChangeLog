@@ -1,3 +1,8 @@
+2004-10-22  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (translate-region): Implement it in Lisp
+	as a front end of translate-region-internal.
+
 2004-10-21  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-aent.el (calc-alg-ent-map, calc-alg-ent-esc-map):

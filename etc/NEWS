@@ -2287,6 +2287,9 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** Function `translate-region' accepts also a char-table as TABLE
+argument.
+
 +++
 ** Major mode functions now run the new normal hook
 `after-change-major-mode-hook', at their very end, after the mode hooks.

@@ -1,3 +1,8 @@
+2004-10-22  Kenichi Handa  <handa@m17n.org>
+
+	* text.texi (translate-region): Document that it accepts also a
+	char-table.
+
 2004-10-22  David Ponce  <david@dponce.com>
 
 	* windows.texi (Resizing Windows): Document the `preserve-before'
