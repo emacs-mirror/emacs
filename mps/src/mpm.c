@@ -1,17 +1,19 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(MMdevel_lib.6) $
+ * $HopeName: MMsrc!mpm.c(trunk.5) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
  *
  * .purpose: Miscellaneous support for the implementation of the MPM
  * and pool classes.
+ *
+ * .sources: design.mps.writef
  */
 
 #include "mpm.h"
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(MMdevel_lib.6) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.5) $");
 
 
 /* MPMCheck -- test MPM assumptions */
