@@ -1,3 +1,8 @@
+2002-01-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* keyboard.c (read_key_sequence): Remove unused variable
+	`extra_maps'.
+
 2002-01-13  Andreas Schwab  <schwab@suse.de>
 
 	* xterm.c (x_load_font): Never set fonts_changed_p to zero.
