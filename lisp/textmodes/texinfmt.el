@@ -2129,7 +2129,8 @@ This command is executed when texinfmt sees @item inside @multitable."
     (setq fill-column existing-fill-column)))
 
 
-;;; @ifinfo,  @iftex, @tex, @ifhtml, @html, @ifnottex, @ifnotinfo, @ifnothtml
+;;; @ifinfo,  @iftex, @tex, @ifhtml, @html, @ifplaintext
+;;  @ifnottex, @ifnotinfo, @ifnothtml, @ifnotplaintext
 
 (put 'ifinfo 'texinfo-format 'texinfo-discard-line)
 (put 'ifinfo 'texinfo-end 'texinfo-discard-command)
@@ -2144,6 +2145,12 @@ This command is executed when texinfmt sees @item inside @multitable."
 (defun texinfo-format-ifhtml ()
   (delete-region texinfo-command-start
                  (progn (re-search-forward "@end ifhtml[ \t]*\n")
+                        (point))))
+
+(put 'ifplaintext 'texinfo-format 'texinfo-format-ifplaintext)
+(defun texinfo-format-ifplaintext ()
+  (delete-region texinfo-command-start
+                 (progn (re-search-forward "@end ifplaintext[ \t]*\n")
                         (point))))
 
 (put 'tex 'texinfo-format 'texinfo-format-tex)
@@ -2163,6 +2170,9 @@ This command is executed when texinfmt sees @item inside @multitable."
   (delete-region texinfo-command-start
                  (progn (re-search-forward "@end ifnotinfo[ \t]*\n")
                         (point))))
+
+(put 'ifnotplaintext 'texinfo-format 'texinfo-discard-line)
+(put 'ifnotplaintext 'texinfo-end 'texinfo-discard-command)
 
 (put 'ifnottex 'texinfo-format 'texinfo-discard-line)
 (put 'ifnottex 'texinfo-end 'texinfo-discard-command)
@@ -4084,6 +4094,10 @@ the @ifeq command."
 (put 'smallbreak 'texinfo-format 'texinfo-discard-line)
 (put 'medbreak 'texinfo-format 'texinfo-discard-line)
 (put 'bigbreak 'texinfo-format 'texinfo-discard-line)
+(put 'afourpaper 'texinfo-format 'texinfo-discard-line)
+(put 'afivepaper 'texinoo-format 'texinfo-discard-line)
+(put 'afourlatex 'texinoo-format 'texinfo-discard-line)
+(put 'afourwide  'texinoo-format 'texinfo-discard-line)
 
 
 ;;; These noop commands discard the rest of the line.
@@ -4125,6 +4139,10 @@ the @ifeq command."
 (put 'shorttitlepage 'texinfo-format 'texinfo-discard-line-with-args)
 (put 'summarycontents 'texinfo-format 'texinfo-discard-line-with-args)
 (put 'input 'texinfo-format 'texinfo-discard-line-with-args)
+
+(put 'documentlanguage 'texinfo-format 'texinfo-discard-line-with-args)
+(put 'documentencoding 'texinfo-format 'texinfo-discard-line-with-args)
+
 
 
 ;;; Some commands cannot be handled
