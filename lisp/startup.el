@@ -225,6 +225,11 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 (defvar user-mail-address nil
   "*Full mailing address of this user.")
 
+(defvar auto-save-list-file-prefix "~/.saves-"
+  "Prefix for generating auto-save-list-file-name.
+Emacs's pid and the system name will be appended to
+this prefix to create a unique file name.")
+
 (defvar init-file-debug nil)
 
 (defvar init-file-had-error nil)
@@ -274,10 +279,11 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 				    (or mail-host-address
 					(system-name))))
     ;; Specify the file for recording all the auto save files of this session.
-    ;; This is used by multiple-recover.
+    ;; This is used by recover-session.
     (setq auto-save-list-file-name
 	  (expand-file-name
-	   (format "~/.saves-%d-%s"
+	   (format "%s%d-%s"
+		   auto-save-list-file-prefix
 		   (emacs-pid)
 		   (system-name))))
     (let ((menubar-bindings-done nil))
