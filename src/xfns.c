@@ -219,6 +219,10 @@ Lisp_Object Qscroll_bar_foreground, Qscroll_bar_background;
 Lisp_Object Qscreen_gamma, Qline_spacing, Qcenter;
 Lisp_Object Qcompound_text, Qcancel_timer;
 Lisp_Object Qwait_for_wm;
+Lisp_Object Qfullscreen;
+Lisp_Object Qfullwidth;
+Lisp_Object Qfullheight;
+Lisp_Object Qfullboth;
 
 /* The below are defined in frame.c.  */
 
@@ -733,6 +737,7 @@ static void x_disable_image P_ ((struct frame *, struct image *));
 void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 static void x_set_line_spacing P_ ((struct frame *, Lisp_Object, Lisp_Object));
 static void x_set_wait_for_wm P_ ((struct frame *, Lisp_Object, Lisp_Object));
+static void x_set_fullscreen P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_background_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_mouse_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_cursor_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
@@ -805,7 +810,9 @@ static struct x_frame_parm_table x_frame_parms[] =
   {"line-spacing",		x_set_line_spacing},
   {"left-fringe",		x_set_fringe_width},
   {"right-fringe",		x_set_fringe_width},
-  {"wait-for-wm",		x_set_wait_for_wm}
+  {"wait-for-wm",		x_set_wait_for_wm},
+  {"fullscreen",                x_set_fullscreen},
+  
 };
 
 /* Attach the `x-frame-parameter' properties to
@@ -821,6 +828,28 @@ init_x_parm_symbols ()
 	  make_number (i));
 }
 
+
+/* Really try to move where we want to be in case of fullscreen.  Some WMs
+   moves the window where we tell them.  Some (mwm, twm) moves the outer
+   window manager window there instead.
+   Try to compensate for those WM here. */
+static void
+x_fullscreen_move (f, new_top, new_left)
+     struct frame *f;
+     int new_top;
+     int new_left;
+{
+  if (new_top != f->output_data.x->top_pos
+      || new_left != f->output_data.x->left_pos)
+    {
+      int move_x = new_left + f->output_data.x->x_pixels_outer_diff;
+      int move_y = new_top + f->output_data.x->y_pixels_outer_diff;
+
+      f->output_data.x->want_fullscreen |= FULLSCREEN_MOVE_WAIT;
+      x_set_offset (f, move_x, move_y, 1);
+    }
+}
+
 /* Change the parameters of frame F as specified by ALIST.
    If a parameter is not specially recognized, do nothing special;
    otherwise call the `x_set_...' function for that parameter.
@@ -900,6 +929,7 @@ x_set_frame_parameters (f, alist)
      They are independent of other properties, but other properties (e.g.,
      cursor_color) are dependent upon them.  */
   /* Process default font as well, since fringe widths depends on it.  */
+  /* Also, process fullscreen, width and height depend upon that */
   for (p = 0; p < i; p++) 
     {
       Lisp_Object prop, val;
@@ -908,7 +938,8 @@ x_set_frame_parameters (f, alist)
       val = values[p];
       if (EQ (prop, Qforeground_color)
 	  || EQ (prop, Qbackground_color)
-	  || EQ (prop, Qfont))
+	  || EQ (prop, Qfont)
+          || EQ (prop, Qfullscreen))
 	{
 	  register Lisp_Object param_index, old_value;
 
@@ -949,7 +980,8 @@ x_set_frame_parameters (f, alist)
 	icon_left = val;
       else if (EQ (prop, Qforeground_color)
 	       || EQ (prop, Qbackground_color)
-	       || EQ (prop, Qfont))
+	       || EQ (prop, Qfont)
+               || EQ (prop, Qfullscreen))
 	/* Processed above.  */
 	continue;
       else
@@ -1002,6 +1034,23 @@ x_set_frame_parameters (f, alist)
 	XSETINT (icon_top, 0);
     }
 
+  if (FRAME_VISIBLE_P (f))
+    {
+      /* If the frame is visible already and the fullscreen parameter is
+         being set, it is too late to set WM manager hints to specify
+         size and position.
+         Here we first get the width, height and position that applies to
+         fullscreen.  We then move the frame to the appropriate
+         position.  Resize of the frame is taken care of in the code after
+         this if-statement.
+         If fullscreen is not specified, x_fullscreen_adjust returns
+         the current parameters and then x_fullscreen_move does nothing. */
+      int new_left, new_top;
+      
+      x_fullscreen_adjust (f, &width, &height, &new_top, &new_left);
+      x_fullscreen_move (f, new_top, new_left);
+    }
+  
   /* Don't set these parameters unless they've been explicitly
      specified.  The window might be mapped or resized while we're in
      this function, and we don't want to override that unless the lisp
@@ -1104,70 +1153,109 @@ x_real_positions (f, xptr, yptr)
      FRAME_PTR f;
      int *xptr, *yptr;
 {
-  int win_x, win_y;
-  Window child;
+  int win_x, win_y, outer_x, outer_y;
+  int real_x = 0, real_y = 0;
+  int had_errors = 0;
+  Window win = f->output_data.x->parent_desc;
 
-  /* This is pretty gross, but seems to be the easiest way out of
-     the problem that arises when restarting window-managers.  */
+  int count;
 
-#ifdef USE_X_TOOLKIT
-  Window outer = (f->output_data.x->widget
-		  ? XtWindow (f->output_data.x->widget)
-		  : FRAME_X_WINDOW (f));
-#else
-  Window outer = f->output_data.x->window_desc;
-#endif
-  Window tmp_root_window;
-  Window *tmp_children;
-  unsigned int tmp_nchildren;
+  BLOCK_INPUT;
 
-  while (1)
+  count = x_catch_errors (FRAME_X_DISPLAY (f));
+
+  if (win == FRAME_X_DISPLAY_INFO (f)->root_window)
+    win = FRAME_OUTER_WINDOW (f);
+
+  /* This loop traverses up the containment tree until we hit the root
+     window.  Window managers may intersect many windows between our window
+     and the root window.  The window we find just before the root window
+     should be the outer WM window. */
+  for (;;)
     {
-      int count = x_catch_errors (FRAME_X_DISPLAY (f));
-      Window outer_window;
+      Window wm_window, rootw;
+      Window *tmp_children;
+      unsigned int tmp_nchildren;
 
-      XQueryTree (FRAME_X_DISPLAY (f), outer, &tmp_root_window,
-		  &f->output_data.x->parent_desc,
-		  &tmp_children, &tmp_nchildren);
+      XQueryTree (FRAME_X_DISPLAY (f), win, &rootw,
+                  &wm_window, &tmp_children, &tmp_nchildren);
       XFree ((char *) tmp_children);
 
-      win_x = win_y = 0;
+      had_errors = x_had_errors_p (FRAME_X_DISPLAY (f));
 
-      /* Find the position of the outside upper-left corner of
-	 the inner window, with respect to the outer window.  */
-      if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
-	outer_window = f->output_data.x->parent_desc;
-      else
-	outer_window = outer;
+      if (wm_window == rootw || had_errors)
+        break;
 
+      win = wm_window;
+    }
+    
+  if (! had_errors)
+    {
+      int ign;
+      Window child, rootw;
+          
+      /* Get the real coordinates for the WM window upper left corner */
+      XGetGeometry (FRAME_X_DISPLAY (f), win,
+                    &rootw, &real_x, &real_y, &ign, &ign, &ign, &ign);
+
+      /* Translate real coordinates to coordinates relative to our
+         window.  For our window, the upper left corner is 0, 0.
+         Since the upper left corner of the WM window is outside
+         our window, win_x and win_y will be negative:
+
+         ------------------          ---> x
+         |      title                |
+         | -----------------         v y
+         | |  our window
+      */
       XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
 			     /* From-window, to-window.  */
-			     outer_window,
 			     FRAME_X_DISPLAY_INFO (f)->root_window,
+                             FRAME_X_WINDOW (f),
 
 			     /* From-position, to-position.  */
-			     0, 0, &win_x, &win_y,
+                             real_x, real_y, &win_x, &win_y,
 
 			     /* Child of win.  */
 			     &child);
 
-      /* It is possible for the window returned by the XQueryNotify
-	 to become invalid by the time we call XTranslateCoordinates.
-	 That can happen when you restart some window managers.
-	 If so, we get an error in XTranslateCoordinates.
-	 Detect that and try the whole thing over.  */
-      if (! x_had_errors_p (FRAME_X_DISPLAY (f)))
+      if (FRAME_X_WINDOW (f) == FRAME_OUTER_WINDOW (f))
 	{
-	  x_uncatch_errors (FRAME_X_DISPLAY (f), count);
-	  break;
+          outer_x = win_x;
+          outer_y = win_y;
 	}
+      else
+        {
+          XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
-      x_uncatch_errors (FRAME_X_DISPLAY (f), count);
+                                 /* From-window, to-window.  */
+                                 FRAME_X_DISPLAY_INFO (f)->root_window,
+                                 FRAME_OUTER_WINDOW (f),
+                                     
+                                 /* From-position, to-position.  */
+                                 real_x, real_y, &outer_x, &outer_y,
+                         
+                                 /* Child of win.  */
+                                 &child);
     }
 
-  *xptr = win_x;
-  *yptr = win_y;
+      had_errors = x_had_errors_p (FRAME_X_DISPLAY (f));
+    }
+      
+  x_uncatch_errors (FRAME_X_DISPLAY (f), count);
+      
+  UNBLOCK_INPUT;
+
+  if (had_errors) return;
+      
+  f->output_data.x->x_pixels_diff = -win_x;
+  f->output_data.x->y_pixels_diff = -win_y;
+  f->output_data.x->x_pixels_outer_diff = -outer_x;
+  f->output_data.x->y_pixels_outer_diff = -outer_y;
+
+  *xptr = real_x;
+  *yptr = real_y;
 }
 
 /* Insert a description of internally-recorded parameters of frame X
@@ -1348,6 +1436,25 @@ x_set_wait_for_wm (f, new_value, old_value)
      Lisp_Object new_value, old_value;
 {
   f->output_data.x->wait_for_wm = !NILP (new_value);
+}
+
+
+/* Change the `fullscreen' frame parameter of frame F.  OLD_VALUE is
+   the previous value of that parameter, NEW_VALUE is the new value. */
+
+static void
+x_set_fullscreen (f, new_value, old_value)
+     struct frame *f;
+     Lisp_Object new_value, old_value;
+{
+  if (NILP (new_value))
+    f->output_data.x->want_fullscreen = FULLSCREEN_NONE;
+  else if (EQ (new_value, Qfullboth))
+    f->output_data.x->want_fullscreen = FULLSCREEN_BOTH;
+  else if (EQ (new_value, Qfullwidth))
+    f->output_data.x->want_fullscreen = FULLSCREEN_WIDTH;
+  else if (EQ (new_value, Qfullheight))
+    f->output_data.x->want_fullscreen = FULLSCREEN_HEIGHT;
 }
 
 
@@ -3217,6 +3324,22 @@ x_figure_window_size (f, parms)
 	window_prompting |= PPosition;
     }
 
+  if (f->output_data.x->want_fullscreen != FULLSCREEN_NONE)
+    {
+      int left, top;
+      int width, height;
+      
+      /* It takes both for some WM:s to place it where we want */
+      window_prompting = USPosition | PPosition;
+      x_fullscreen_adjust (f, &width, &height, &top, &left);
+      f->width = width;
+      f->height = height;
+      f->output_data.x->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
+      f->output_data.x->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);
+      f->output_data.x->left_pos = left;
+      f->output_data.x->top_pos = top;
+    }
+  
   return window_prompting;
 }
 
@@ -4413,6 +4536,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "title", "Title", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qwait_for_wm, Qt,
 		       "waitForWM", "WaitForWM", RES_TYPE_BOOLEAN);
+  x_default_parameter (f, parms, Qfullscreen, Qnil,
+                       "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
 
@@ -11760,6 +11885,14 @@ syms_of_xfns ()
   staticpro (&Qcancel_timer);
   Qwait_for_wm = intern ("wait-for-wm");
   staticpro (&Qwait_for_wm);
+  Qfullscreen = intern ("fullscreen");
+  staticpro (&Qfullscreen);
+  Qfullwidth = intern ("fullwidth");
+  staticpro (&Qfullwidth);
+  Qfullheight = intern ("fullheight");
+  staticpro (&Qfullheight);
+  Qfullboth = intern ("fullboth");
+  staticpro (&Qfullboth);
   /* This is the end of symbol initialization.  */
 
   /* Text property `display' should be nonsticky by default.  */
