@@ -93,8 +93,6 @@
 (garbage-collect)
 (load "fill")
 (garbage-collect)
-(load "c-mode")
-(garbage-collect)
 (load "replace")
 (if (eq system-type 'vax-vms)
     (progn
@@ -137,7 +135,7 @@
 ;you may load them with a "site-load.el" file.
 ;But you must also cause them to be scanned when the DOC file
 ;is generated.  For VMS, you must edit ../vms/makedoc.com.
-;For other systems, you must edit ../src/Makefile.in.in.
+;For other systems, you must edit ../src/Makefile.in.
 (if (load "site-load" t)
     (garbage-collect))
 
