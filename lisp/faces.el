@@ -425,7 +425,11 @@ to NEW-FACE on frame NEW-FRAME."
 A face is considered to be ``the same'' as the default face if it is 
 actually specified in the same way (equivalent fonts, etc) or if it is 
 fully unspecified, and thus inherits the attributes of any face it 
-is displayed on top of."
+is displayed on top of.
+
+The optional argument FRAME specifies which frame to test;
+if FRAME is t, test the default for new frames.
+If FRAME is nil or omitted, test the selected frame."
   (let ((default (internal-get-face 'default frame)))
     (setq face (internal-get-face face frame))
     (not (and (or (equal (face-foreground default frame)
@@ -442,6 +446,18 @@ is displayed on top of."
 	      (equal (face-underline-p default frame)
 		     (face-underline-p face frame))
 	      ))))
+
+(defun face-nontrivial-p (face &optional frame)
+  "True if face FACE has some non-nil attribute.
+The optional argument FRAME specifies which frame to test;
+if FRAME is t, test the default for new frames.
+If FRAME is nil or omitted, test the selected frame."
+  (setq face (internal-get-face face frame))
+  (or (face-foreground face frame)
+      (face-background face frame)
+      (face-font face frame)
+      (face-stipple face frame)
+      (face-underline-p face frame)))
 
 
 (defun invert-face (face &optional frame)
