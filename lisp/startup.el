@@ -360,7 +360,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		(cons attrs normal-top-level-add-subdirs-inode-list))
 	  (while contents
 	    (unless (member (car contents) '("." ".." "RCS" "CVS"))
-	      (when (and (string-match "\\`[a-zA-Z0-9]" (car contents))
+	      (when (and (string-match "\\`[[:alnum:]]" (car contents))
 			 ;; Avoid doing a `stat' when it isn't necessary
 			 ;; because that can cause trouble when an NFS server
 			 ;; is down.
@@ -656,7 +656,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; If frame was created with a tool bar, switch tool-bar-mode on.
   (when (and (not noninteractive)
 	     (memq window-system '(x w32))
-	     (image-type-available-p 'xpm)
 	     (> (frame-parameter nil 'tool-bar-lines) 0))
     (tool-bar-mode t))
 
@@ -943,11 +942,11 @@ where FACE is a valid face specification, as it can be used with
 
 	;; Insert the image with a help-echo and a keymap.
 	(let ((map (make-sparse-keymap))
-	      (help-echo "mouse-2: browse http://www.gnu.org"))
+	      (help-echo "mouse-2: browse http://www.gnu.org/"))
 	  (define-key map [mouse-2]
 	    (lambda ()
 	      (interactive)
-	      (browse-url "http://www.gnu.org")
+	      (browse-url "http://www.gnu.org/")
 	      (throw 'exit nil)))
 	  (define-key map [down-mouse-2] 'ignore)
 	  (define-key map [up-mouse-2] 'ignore)
