@@ -2075,8 +2075,24 @@ read_process_output (proc, channel)
 	 hitting ^G when a filter happens to be running won't screw
 	 it up.  */
       int count = specpdl_ptr - specpdl;
+      Lisp_Object odeactivate;
+
+      odeactivate = Vdeactivate_mark;
+
       specbind (Qinhibit_quit, Qt);
       call2 (outstream, proc, make_string (chars, nchars));
+
+      /* Deactivate the mark now, so it doesn't happen
+	 *after* the following command.  */
+      if (!NILP (current_buffer->mark_active))
+	{
+	  if (!NILP (Vdeactivate_mark) && !NILP (Vtransient_mark_mode))
+	    {
+	      current_buffer->mark_active = Qnil;
+	      call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
+	    }
+	}
+      Vdeactivate_mark = odeactivate;
 
 #ifdef VMS
       start_vms_process_read (vs);
@@ -2090,6 +2106,9 @@ read_process_output (proc, channel)
     {
       Lisp_Object old_read_only;
       Lisp_Object old_begv, old_zv;
+      Lisp_Object odeactivate;
+
+      odeactivate = Vdeactivate_mark;
 
       Fset_buffer (p->buffer);
       opoint = point;
@@ -2133,6 +2152,19 @@ read_process_output (proc, channel)
       /* If the restriction isn't what it should be, set it.  */
       if (XFASTINT (old_begv) != BEGV || XFASTINT (old_zv) != ZV)
 	Fnarrow_to_region (old_begv, old_zv);
+
+      /* Deactivate the mark now, so it doesn't happen
+	 *after* the following command.  */
+      if (!NILP (current_buffer->mark_active))
+	{
+	  if (!NILP (Vdeactivate_mark) && !NILP (Vtransient_mark_mode))
+	    {
+	      current_buffer->mark_active = Qnil;
+	      call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
+	    }
+	}
+
+      Vdeactivate_mark = odeactivate;
 
       current_buffer->read_only = old_read_only;
       SET_PT (opoint);
