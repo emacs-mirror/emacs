@@ -62,11 +62,7 @@ extern int etext, __data_start; weak_extern (__data_start)
 /* The important properties of this type are that 1) it's a pointer, and
    2) arithmetic on it should work as if the size of the object pointed
    to has a size of 1.  */
-#ifdef __STDC__
-typedef void *POINTER;
-#else
-typedef char *POINTER;
-#endif
+typedef POINTER_TYPE *POINTER;
 
 typedef unsigned long SIZE;
 
