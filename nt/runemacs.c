@@ -44,8 +44,10 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
     goto error;
   *p = 0;
 
-  new_cmdline = alloca (MAX_PATH + strlen (cmdline) + 1);
-  strcpy (new_cmdline, modname);
+  new_cmdline = alloca (MAX_PATH + strlen (cmdline) + 3);
+  /* Quote executable name in case of spaces in the path. */
+  *new_cmdline = '"';
+  strcpy (new_cmdline + 1, modname);
 
 #ifdef CHOOSE_NEWEST_EXE
   {
@@ -57,7 +59,7 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
     WIN32_FIND_DATA wfd;
     HANDLE fh;
     p = new_cmdline + strlen (new_cmdline);
-    strcpy (p, "\\emacs*.exe ");
+    strcpy (p, "\\emacs*.exe\" ");
     fh = FindFirstFile (new_cmdline, &wfd);
     if (fh == INVALID_HANDLE_VALUE)
       goto error;
@@ -78,7 +80,7 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
     strcat (p, " ");
   }
 #else
-  strcat (new_cmdline, "\\emacs.exe ");
+  strcat (new_cmdline, "\\emacs.exe\" ");
 #endif
 
   /* Append original arguments if any; first look for arguments we
