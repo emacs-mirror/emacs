@@ -1,5 +1,5 @@
 /* GNU Emacs site configuration template file.  -*- C -*-
-   Copyright (C) 1988, 1993, 1994, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1993, 1994, 1999, 2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -297,6 +297,9 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_TIMEVAL
 
 /* If using GNU, then support inline function declarations. */
+/* Don't try to switch on inline handling as detected by AC_C_INLINE
+   generally, because even if non-gcc compilers accept `inline', they
+   may reject `extern inline'.  */
 #ifdef __GNUC__
 #define INLINE __inline__
 #else
@@ -416,12 +419,10 @@ Boston, MA 02111-1307, USA.  */
 #define BSTRING
 #endif
 
-/* Non-ANSI C compilers usually don't have volatile.  */
-#ifndef HAVE_VOLATILE
-#ifndef __STDC__
-#define volatile
-#endif
-#endif
+/* Define to empty if the keyword `volatile' does not work.  Warning:
+   valid code using `volatile' can become incorrect without.  Disable
+   with care. */
+#undef volatile
 
 /* Some of the files of Emacs which are intended for use with other
    programs assume that if you have a config.h file, you must declare
@@ -460,6 +461,25 @@ extern char *getenv ();
 #define BITS_PER_LONG 32
 #endif
 #endif
+
+/* Define as `void' if your compiler accepts `void *'; otherwise
+   define as `char'.  */
+#undef POINTER_TYPE
+#define PTR POINTER_TYPE *	/* For strftime.c.  */
+
+/* Define if the compiler supports function prototypes.  It may do so
+   but not define __STDC__ (e.g. DEC C by default) or may define it as
+   zero.  */
+#undef PROTOTYPES
+/* For mktime.c:  */
+#ifndef __P
+# if defined PROTOTYPES
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif  /* GCC.  */
+#endif /* __P */
+
 
 /* Don't include "string.h" or <stdlib.h> in non-C code.  */
 #ifndef NOT_C_CODE
