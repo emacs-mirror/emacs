@@ -1,3 +1,7 @@
+2000-05-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* time.el (display-time-mail-icon): Use `:ascent center'.
+
 2000-05-11  Dave Love  <fx@gnu.org>
 
 	* todo-mode.el: New file.
