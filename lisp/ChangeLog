@@ -1,9 +1,14 @@
+2001-10-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* wid-edit.el (widget-field-face, widget-single-line-field-face):
+	Define special colors for a tty.
+
 2001-10-17  Francesco Potorti`  <pot@gnu.org>
 
 	* comint.el (comint-password-prompt-regexp): Make it less
 	restrictive, letting comint recognise OpenSSH2 passphrase prompts.
 
-2001-10-15  John Wiegley  <johnw@gnu.org>
+2001-10-17  John Wiegley  <johnw@gnu.org>
 
 	* eshell/em-unix.el (eshell/cat): Do a quick test if something is
 	a regular file, before checking if it is a directory or symlink.
