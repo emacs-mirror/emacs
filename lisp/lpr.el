@@ -79,7 +79,8 @@ See definition of `print-region-1' for calling conventions.")
   (print-region-1 start end lpr-switches t))
 
 (defun print-region-1 (start end switches page-headers)
-  (let ((name (concat (buffer-name) " Emacs buffer"))
+  (let ((name (concat (buffer-name) "-Emacs-buffer"))
+	(title (concat (buffer-name) " Emacs buffer"))
 	(width tab-width))
     (save-excursion
       (message "Spooling...")
@@ -105,7 +106,7 @@ See definition of `print-region-1' for calling conventions.")
 	     (nconc (list start end lpr-command
 			  nil nil nil)
 		    (nconc (and lpr-add-options
-				(list "-J" name "-T" name))
+				(list "-J" name "-T" title))
 			   switches)))
       (if (markerp end)
 	  (set-marker end nil))
