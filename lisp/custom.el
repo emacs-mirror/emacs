@@ -88,7 +88,7 @@ The following KEYWORD's are defined:
 :group  VALUE should be a customization group.  
         Add SYMBOL to that group.
 
-Read the section about customization in the emacs lisp manual for more
+Read the section about customization in the Emacs Lisp manual for more
 information."
   `(eval-and-compile
      (custom-declare-variable (quote ,symbol) (quote ,value) ,doc ,@args)))
@@ -138,7 +138,7 @@ match one of the ITEM.  The following REQ are defined:
 `background' (what color is used for the background text)
   Should be one of `light' or `dark'.
 
-Read the section about customization in the emacs lisp manual for more
+Read the section about customization in the Emacs Lisp manual for more
 information."
   `(custom-declare-face (quote ,face) ,spec ,doc ,@args))
 
@@ -187,7 +187,7 @@ The following KEYWORD's are defined:
 :group  VALUE should be a customization group.
         Add SYMBOL to that group.
 
-Read the section about customization in the emacs lisp manual for more
+Read the section about customization in the Emacs Lisp manual for more
 information."
   `(custom-declare-group (quote ,symbol) ,members ,doc ,@args))
 
