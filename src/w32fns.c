@@ -4663,7 +4663,7 @@ int size;
 	       && !strcmp (dpyinfo->font_table[i].name, bdf_name))
 	      || (dpyinfo->font_table[i].full_name
 		  && !strcmp (dpyinfo->font_table[i].full_name, bdf_name)))
-	    return dpyinfo->font_table[i];
+	    return dpyinfo->font_table + i;
 	}
 
       retval = w32_load_bdf_font (f, bdf_name, size, bdf_file);
