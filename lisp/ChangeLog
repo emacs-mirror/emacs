@@ -1,3 +1,97 @@
+2001-10-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/cperl-mode.el: Merged in changes from v4.32.
+	 After 4.23 and: After 4.24:
+	(cperl-contract-levels): Restore position.
+	(cperl-beautify-level): Likewise.
+	(cperl-beautify-regexp): Likewise.
+	(cperl-commentify): Rudimental support for length=1 runs
+	(cperl-find-pods-heres): Process 1-char long REx comments too /a#/x
+	 After 4.25:
+	(cperl-commentify): Was recognizing length=2 "strings" as length=1.
+	(imenu-example--create-perl-index): Was not enforcing
+	syntaxification-to-the-end.
+	(cperl-invert-if-unless): Allow `for', `foreach'.
+	(cperl-find-pods-heres): Quote `cperl-nonoverridable-face'.
+	Mark qw(), m()x as indentable.
+	(cperl-init-faces): Highlight `sysopen' too.
+	Highlight $var in `for my $var' too.
+	(cperl-invert-if-unless): Was leaving whitespace at end.
+	(cperl-linefeed): Was splitting $var{$foo} if point after `{'.
+	(cperl-calculate-indent): Remove old commented out code.
+	Support (primitive) indentation of qw(), m()x.
+	 After 4.26:
+	(cperl-problems): Mention `fill-paragraph' on comment. \"" and
+	q [] with intervening newlines.
+	(cperl-autoindent-on-semi): New customization variable.
+	(cperl-electric-semi): Use `cperl-autoindent-on-semi'.
+	(cperl-tips): Mention how to make CPerl the default mode.
+	(cperl-mode): Support `outline-minor-mode'.  From Mark A. Hershberger.
+	(cperl-outline-level): New function.
+	(cperl-highlight-variables-indiscriminately): New customization var.
+	(cperl-init-faces): Use `cperl-highlight-variables-indiscriminately'.
+	From Sean Kamath <kamath@pogo.wv.tek.com>.
+	(cperl-after-block-p): Support CHECK and INIT.
+	(cperl-init-faces, cperl-short-docs): Likewise and "our".
+	From Doug MacEachern <dougm@covalent.net>.
+	 After 4.27:
+	(cperl-find-pods-heres): Recognize \"" as a string.
+	Mark whitespace between q and [] as `syntax-type' => `prestring'.
+	Allow whitespace between << and "FOO".
+	(cperl-problems): Remove \"" and q [] with intervening newlines.
+	Mention multiple <<EOF as unsupported.
+	(cperl-highlight-variables-indiscriminately): Doc misprint fixed.
+	(cperl-indent-parens-as-block): New configuration variable.
+	(cperl-calculate-indent): Merge cases of indenting non-BLOCK groups.
+	Use `cperl-indent-parens-as-block'.
+	(cperl-find-pods-heres): Test for =cut without empty line instead of
+	complaining about no =cut.
+	(cperl-electric-pod): Change the REx for POD from "\n\n=" to "^\n=".
+	(cperl-find-pods-heres): Likewise.
+	(cperl-electric-pod): Change `forward-sexp' to `forward-word':
+	POD could've been marked as comment already.
+	(cperl-unwind-to-safe): Unwind before start of POD too.
+	 After 4.28:
+	(cperl-forward-re): Throw an error at proper moment REx unfinished.
+	 After 4.29:
+	(x-color-defined-p): Make an extra case to peacify the warning.
+	Toplevel: `defvar' to peacify the warnings.
+	(cperl-find-pods-heres): Could access `font-lock-comment-face' in -nw.
+	No -nw-compile time warnings now.
+	(cperl-find-tags): TAGS file had too short substring-to-search.
+	Be less verbose in non-interactive mode
+	(imenu-example--create-perl-index): Set index-marker after name
+	(cperl-outline-regexp): New variable.
+	(cperl-outline-level): Made compatible with `cperl-outline-regexp'.
+	(cperl-mode): Made use `cperl-outline-regexp'.
+	 After 4.30:
+	(cperl-find-pods-heres): =cut the last thing, no blank line, was error.
+	(cperl-outline-level): Make start-of-file same level as `package'.
+	 After 4.31:
+	(cperl-electric-pod): `head1' and `over' electric only if empty.
+	(cperl-unreadable-ok): New variable.
+	(cperl-find-tags): Use `cperl-unreadable-ok', do not fail
+	on an unreadable file.
+	(cperl-write-tags): Use `cperl-unreadable-ok', do not fail
+	on an unreadable directory.
+
+	* progmodes/compile.el (compile-mouse-goto-error, compile-goto-error):
+	Consider the text between two errors as belonging to the first error.
+	(compilation-goto-locus): Use pop-to-buffer rather than
+	switch-to-buffer-other-frame.
+
+	* progmodes/awk-mode.el (awk-mode-syntax-table): / has string syntax.
+	(awk-font-lock-syntactic-keywords): New var.
+	(awk-mode): Use it.
+
+	* expand.el (expand-c-for-skeleton): Add explicit terminating \n.
+
+	* faces.el (describe-face): Call help-setup-xref earlier.
+
+	* jka-compr.el (jka-compr-load-suffixes): New var.
+	(jka-compr-install): Add its content to load-suffixes.
+	(jka-compr-uninstall): Remove its content from load-suffixes.
+
 2001-10-12  Sam Steingold  <sds@gnu.org>
 
 	* bindings.el (completion-ignored-extensions): CL-related
@@ -8,11 +102,10 @@
 
 2001-10-12  Gerd Moellmann  <gerd@gnu.org>
 
-	* emacs-lisp/bytecomp.el (byte-compile-check-lambda-list): New
-	function checking that lambda-list consists of non-constant
+	* emacs-lisp/bytecomp.el (byte-compile-check-lambda-list):
+	New function checking that lambda-list consists of non-constant
 	symbols, that &rest and &optional are followed by variable names,
-	that &rest VAR is the last element, and that variables aren't
-	doubled.
+	that &rest VAR is the last element, and that variables aren't doubled.
 	(byte-compile-lambda): Use it.
 
 2001-10-12  Eli Barzilay <eli@barzilay.org>
