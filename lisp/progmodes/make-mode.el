@@ -6,7 +6,7 @@
 ;; Adapted-By: ESR
 ;; Keywords: unix, tools
 
-;; $Id: makefile.el,v 1.3 1992/07/22 02:13:37 eric Exp eric $
+;; $Id: makefile.el,v 1.4 1993/03/22 03:27:18 eric Exp eric $
 
 ;; This file is part of GNU Emacs.
 
@@ -313,6 +313,7 @@ This is used in the function makefile-insert-gmake-function .")
 ;;; The mode function itself.
 ;;; ------------------------------------------------------------
 
+;;;#autoload
 (defun makefile-mode ()
   "Major mode for editing Makefiles.
 Calling this function invokes the function(s) \"makefile-mode-hook\" before
