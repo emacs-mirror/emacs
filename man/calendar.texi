@@ -1391,48 +1391,46 @@ appointment list with @kbd{M-x appt-delete}.
   The icalendar package aims at providing an implementation of the
 iCalendar standard, as defined in ``RFC 2445 -- Internet Calendaring and
 Scheduling Core Object Specification (iCalendar)''.  It provides a means
-for importing [iv]Calendar data into Emacs diary files and vice versa.
+for importing iCalendar (and the earlier vCalendar format) data into
+Emacs diary files and vice versa.
 
-  Importing should work correctly for ``ordinary'', i.e. non-recurring,
-events.  Recurring events may not be imported correctly, if they are
-imported at all.  Exporting of diary files into iCalendar files should
-work correctly for most diary entries.  Please note that
-@file{icalendar.el} is work in progress, so usage may evolve in future.
-
-@subsection Usage
+  Importing works for ``ordinary'' (i.e. non-recurring) events, but (at
+present) may not work correctly (if at all) for recurring events.
+Exporting of diary files into iCalendar files should work correctly for
+most diary entries.  Please note that @file{icalendar.el} is work in
+progress, so usage may evolve in future.
 
   To activate the package, use @code{(require 'icalendar)}.
 
 @findex icalendar-extract-ical-from-buffer
   The command @code{icalendar-extract-ical-from-buffer} extracts
 iCalendar data from the current buffer and adds it to your (default)
-diary file.  It can be used interactively, or for automatic extraction
-of iCalendar data; for example with the VM mail reader one could use:
+diary file.  This function is also suitable for automatic extraction of
+iCalendar data; for example with the Rmail mail client one could use:
 
 @example
-(add-hook 'vm-select-new-message-hook 'icalendar-extract-ical-from-buffer)
+(add-hook 'rmail-show-message-hook 'icalendar-extract-ical-from-buffer)
 @end example
 
 @findex icalendar-import-file
-  The function @code{icalendar-import-file} can be used
-non-interactively to import an iCalendar file.  @strong{Caution:} the
-contents of the target diary file are @emph{deleted} by default!  It is
-highly recommended to use a dedicated diary file for importing.  For
-example:
+  The command @code{icalendar-import-file} imports an iCalendar file.
+@strong{Caution:} the contents of the target diary file are
+@emph{deleted} by default!  It is highly recommended to use a dedicated
+diary file for importing.  For example:
 
 @example
 (icalendar-import-file "/here/is/calendar.ics" "/there/goes/ical-diary")
 @end example
 
 @noindent
-The import file can be added to the diary using an @code{#include}
-directive.  @xref{Fancy Diary Display,,, elisp, The Emacs Lisp Reference
-Manual}.
+You can use an @code{#include} directive to add the import file contents
+to the diary.  @xref{Fancy Diary Display,,, elisp, The Emacs Lisp
+Reference Manual}.
 
 @findex icalendar-convert-diary-to-ical
-  Use @code{icalendar-convert-diary-to-ical} to interactively export an
-Emacs diary file to iCalendar format.  @strong{Caution:} the contents of
-the target file are @emph{deleted} by default!
+  The command @code{icalendar-convert-diary-to-ical} exports an Emacs
+diary file to iCalendar format.  @strong{Caution:} the contents of the
+target file are @emph{deleted} by default!
 
 
 @node Daylight Savings
