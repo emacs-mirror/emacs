@@ -147,7 +147,7 @@ font of LessTif/Motif menus is currently not supported; attempts to set
 the font are ignored in this case.
 @item trailing-whitespace
 The face for highlighting trailing whitespace when
-@code{show-trailing-whitespace} is non-nil.
+@code{show-trailing-whitespace} is non-nil; see @ref{Trailing Whitespace}.
 @item variable-pitch
 The basic variable-pitch face.
 @end table
@@ -377,9 +377,10 @@ This command does nothing if the major mode is a member of the list
 realizing it.  In most cases, this @dfn{trailing whitespace} has no
 effect, but there are special circumstances where it matters.
 
-  You can make trailing whitespace visible on the screen by setting
-the variable @code{show-trailing-whitespace} to @code{t}.  Then Emacs
-displays trailing whitespace in the face @code{trailing-whitespace}.
+  You can make trailing whitespace visible on the screen by setting the
+buffer-local variable @code{show-trailing-whitespace} to @code{t}.  Then
+Emacs displays trailing whitespace in the face
+@code{trailing-whitespace}.
 
   Trailing whitespace is defined as spaces or tabs at the end of a
 line.  But trailing whitespace is not displayed specially if point is
