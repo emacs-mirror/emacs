@@ -1122,6 +1122,7 @@ stdout will be intermixed in the output stream.")
 
 (defun shell-command (command &optional output-buffer error-buffer)
   "Execute string COMMAND in inferior shell; display output, if any.
+With prefix argument, insert the COMMAND's output at point.
 
 If COMMAND ends in ampersand, execute it asynchronously.
 The output appears in the buffer `*Async Shell Command*'.
