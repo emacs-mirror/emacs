@@ -749,23 +749,10 @@ the current tar-entry."
 	 (size (tar-header-size tokens))
 	 (start (+ (tar-desc-data-start descriptor) tar-header-offset -1))
 	 (end (+ start size)))
-    (let* ((tar-buffer (current-buffer))
-	   buffer)
-      (unwind-protect
-	  (progn
-	    (setq buffer (generate-new-buffer "*tar-copy-tmp*"))
-	    (widen)
-	    (save-excursion
-	      (set-buffer buffer)
-	      (insert-buffer-substring tar-buffer start end)
-	      (set-buffer-modified-p nil) ; in case we abort
-	      (write-file to-file)
-	      (message "Copied tar entry %s to %s" name to-file)
-	      (set-buffer tar-buffer)))
-	(narrow-to-region 1 tar-header-offset)
-	(if buffer (kill-buffer buffer)))
-      )))
-
+    (save-restriction
+      (widen)
+      (write-region start end to-file))
+    (message "Copied tar entry %s to %s" name to-file)))
 
 (defun tar-flag-deleted (p &optional unflag)
   "*In Tar mode, mark this sub-file to be deleted from the tar file.
