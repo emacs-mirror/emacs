@@ -384,7 +384,10 @@ case "${canonical}" in
     machine=nh6000 opsys=powerunix
     NON_GNU_CPP="cc -Xo -E -P"
   ;;
-
+  ## SR2001/SR2201 running HI-UX/MPP
+  hppa1.1-hitachi-hiuxmpp* )
+    machine=sr2k opsys=hiuxmpp
+  ;;
   ## Honeywell XPS100
   xps*-honeywell-sysv* )
     machine=xps100 opsys=usg5-2
