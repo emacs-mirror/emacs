@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.352 2003/05/09 16:33:10 monnier Exp $
+;; $Id: vc.el,v 1.353 2003/05/18 02:53:24 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2666,9 +2666,13 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 (defun vc-delete-file (file)
   "Delete file and mark it as such in the version control system."
   (interactive "fVC delete file: ")
-  (let ((buf (get-file-buffer file)))
+  (let ((buf (get-file-buffer file))
+        (backend (vc-backend file)))
+    (unless backend
+      (error "File %s is not under version control" 
+             (file-name-nondirectory file)))
     (unless (vc-find-backend-function backend 'delete-file)
-      (error "Renaming files under %s is not supported in VC" backend))
+      (error "Deleting files under %s is not supported in VC" backend))
     (if (and buf (buffer-modified-p buf))
 	(error "Please save files before deleting them"))
     (unless (y-or-n-p (format "Really want to delete %s ? "
@@ -3079,7 +3083,6 @@ The annotations are relative to the current time, unless overridden by OFFSET."
       (set (make-local-variable 'vc-annotate-color-map) color-map))
   (set (make-local-variable 'vc-annotate-offset) offset)
   (font-lock-mode 1))
-(make-obsolete 'vc-annotate-display 'vc-annotate-display-select "21.4")
 
 (defvar vc-annotate-offset nil)
 
