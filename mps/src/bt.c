@@ -1,6 +1,6 @@
 /* impl.c.bt: BIT TABLES
  *
- * $HopeName: MMsrc!bt.c(trunk.17) $
+ * $HopeName: MMsrc!bt.c(trunk.21) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -15,36 +15,45 @@
 #include "mpm.h"
 
 
-SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.17) $");
+SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.21) $");
 
 
-/* is the whole word of bits at this index set? */
+/* BTIndexAlignUp, BTIndexAlignDown -- Align bit-table indices
+ * 
+ * Align bit-table indices up and down to word boundaries
+ */
 
-#define BTIsWordSet(bt,i) ((bt)[(i)>>MPS_WORD_SHIFT] == ~(Word)0)
+#define BTIndexAlignUp(index) (IndexAlignUp((index), MPS_WORD_WIDTH))
+#define BTIndexAlignDown(index) (IndexAlignDown((index), MPS_WORD_WIDTH))
 
-/* align bit-table indices up and down */
 
-#define BTIndexAlignUp(index) ((Index)SizeAlignUp((index), MPS_WORD_WIDTH))
-#define BTIndexAlignDown(index) ((Index)SizeAlignDown((index), MPS_WORD_WIDTH))
+/* BTMask -- generate sub-word masks
+ *
+ * Create a mask with only specified bits set
+ */
 
-/* return a word mask of bits set only from base and above */
+/* Return a word mask of bits set only from base and above */
 #define BTMaskLow(base) (~(Word)0 << (base))
 
-/* return a word mask of bits set only below limit */
+/* Return a word mask of bits set only below limit */
 #define BTMaskHigh(limit) (~(Word)0 >> (MPS_WORD_WIDTH - (limit)))
 
-/* return a word mask of bits set only in requested range */
+/* Return a word mask of bits set only in requested range */
 #define BTMask(base,limit) (BTMaskHigh((limit)) & BTMaskLow((base)))
 
-/*  ((~(Word)0 >> (MPS_WORD_WIDTH - ((limit) - (base)))) << (base)) */
 
-/* return word and bit indexes from index */
+/* BTWordIndex, BTBitIndex -- Decode BT indexes
+ *
+ * Return word and bit indexes from index
+ */
 
 #define BTWordIndex(index) ((index) >> MPS_WORD_SHIFT)
 #define BTBitIndex(index) ((index) & (MPS_WORD_WIDTH - 1))
 
 
-/* Predicate to determine whether a range is sufficiently small
+/* BTIsSmallRange -- test range size
+ *
+ * Predicate to determine whether a range is sufficiently small
  * that it's not worth trying to separate words and odd bits.
  * The choice of what counts as "sufficiently small" is made
  * for efficiency reasons. Empirical evidence indicates that
@@ -55,6 +64,7 @@ SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.17) $");
 
 
 /* ACT_ON_RANGE -- macro to act on a base-limit range
+ *
  * Three actions should be provided:
  *   - single_action(btIndex) - operates on a single bit
  *   - bits_action(wordIndex, base, limit) -- operates on part-words
@@ -69,84 +79,88 @@ SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.17) $");
 #define ACT_ON_RANGE(base,limit,single_action, \
                      bits_action,word_action) \
   BEGIN \
-    Index actInnerBase = BTIndexAlignUp((base)); \
-\
-  if (BTIsSmallRange(base, limit)) { \
-    /* Small ranges are processed most efficiently bit-by-bit */ \
-    Index actBit; \
-    for(actBit = base; actBit < limit; ++actBit) { \
-      single_action(actBit); \
-    } \
-  } else if (actInnerBase > limit) { /* no inner range */ \
-      AVER(base < limit); /* caught by small range case */ \
-      bits_action(BTWordIndex((base)), \
-                  BTBitIndex((base)), \
-                  BTBitIndex((limit))); \
+    if (BTIsSmallRange((base), (limit))) { \
+      /* Small ranges are processed most efficiently bit-by-bit */ \
+      Index actBit; \
+      for (actBit = (base); actBit < (limit); ++actBit) { \
+        single_action(actBit); \
+      } \
     } else { \
-      Index actInnerLimit = BTIndexAlignDown((limit)); \
-      Index actWordIndex, actWordBase, actWordLimit; \
-\
-      actWordBase = BTWordIndex(actInnerBase); \
-      actWordLimit = BTWordIndex(actInnerLimit); \
-\
-      if(base < actInnerBase) { \
-        bits_action(actWordBase-1, \
+      Index actInnerBase = BTIndexAlignUp((base)); \
+      if (actInnerBase > (limit)) { /* no inner range */ \
+        AVER((base) < (limit)); /* caught by small range case */ \
+        bits_action(BTWordIndex((base)), \
                     BTBitIndex((base)), \
-                    MPS_WORD_WIDTH); \
-      } \
+                    BTBitIndex((limit))); \
+      } else { \
+        Index actInnerLimit = BTIndexAlignDown((limit)); \
+        Index actWordIndex, actWordBase, actWordLimit; \
 \
-      for(actWordIndex = actWordBase; actWordIndex < actWordLimit; \
-          ++actWordIndex) { \
-        word_action(actWordIndex); \
-      } \
+        actWordBase = BTWordIndex(actInnerBase); \
+        actWordLimit = BTWordIndex(actInnerLimit); \
 \
-      if(limit > actInnerLimit) { \
-        bits_action(actWordLimit, 0, BTBitIndex((limit))); \
+        if ((base) < actInnerBase) { \
+          bits_action(actWordBase-1, \
+                      BTBitIndex((base)), \
+                      MPS_WORD_WIDTH); \
+        } \
+\
+        for (actWordIndex = actWordBase; actWordIndex < actWordLimit; \
+            ++actWordIndex) { \
+          word_action(actWordIndex); \
+        } \
+\
+        if ((limit) > actInnerLimit) { \
+          bits_action(actWordLimit, 0, BTBitIndex((limit))); \
+        } \
       } \
     } \
   END
 
+
 /* ACT_ON_RANGE_HIGH -- macro to act on a base-limit range 
+ *
  * in reverse order. Usage as for ACT_ON_RANGE
  */
+
 #define ACT_ON_RANGE_HIGH(base,limit,single_action, \
                           bits_action,word_action) \
   BEGIN \
-    Index actInnerBase = BTIndexAlignUp((base)); \
-\
-  if (BTIsSmallRange(base, limit)) { \
-    /* Small ranges are processed most efficiently bit-by-bit */ \
-    Index actBit; \
-    for(actBit = limit; actBit > base; --actBit) { \
-      single_action(actBit - 1); \
-    } \
-  } else if(actInnerBase > limit) { /* no inner range */ \
-      AVER(base < limit); /* caught by small range case */ \
-      bits_action(BTWordIndex((base)), \
-                  BTBitIndex((base)), \
-                  BTBitIndex((limit))); \
+    if (BTIsSmallRange((base), (limit))) { \
+      /* Small ranges are processed most efficiently bit-by-bit */ \
+      Index actBit; \
+      for (actBit = (limit); actBit > (base); --actBit) { \
+        single_action(actBit - 1); \
+      } \
     } else { \
-      Index actInnerLimit = BTIndexAlignDown((limit)); \
-      Index actWordIndex, actWordBase, actWordLimit; \
+      Index actInnerBase = BTIndexAlignUp((base)); \
+      if (actInnerBase > (limit)) { /* no inner range */ \
+        AVER((base) < (limit)); /* caught by small range case */ \
+        bits_action(BTWordIndex((base)), \
+                    BTBitIndex((base)), \
+                    BTBitIndex((limit))); \
+      } else { \
+        Index actInnerLimit = BTIndexAlignDown((limit)); \
+        Index actWordIndex, actWordBase, actWordLimit; \
 \
-      actWordBase = BTWordIndex(actInnerBase); \
-      actWordLimit = BTWordIndex(actInnerLimit); \
+        actWordBase = BTWordIndex(actInnerBase); \
+        actWordLimit = BTWordIndex(actInnerLimit); \
 \
-      if(limit > actInnerLimit) { \
-        bits_action(actWordLimit, 0, BTBitIndex((limit))); \
+        if ((limit) > actInnerLimit) { \
+          bits_action(actWordLimit, 0, BTBitIndex((limit))); \
+        } \
+\
+        for (actWordIndex = actWordLimit; actWordIndex > actWordBase; \
+            --actWordIndex) { \
+          word_action(actWordIndex-1); \
+        } \
+\
+        if ((base) < actInnerBase) { \
+          bits_action(actWordBase-1, \
+                      BTBitIndex((base)), \
+                      MPS_WORD_WIDTH); \
+        } \
       } \
-\
-      for(actWordIndex = actWordLimit; actWordIndex > actWordBase; \
-          --actWordIndex) { \
-        word_action(actWordIndex-1); \
-      } \
-\
-      if(base < actInnerBase) { \
-        bits_action(actWordBase-1, \
-		    BTBitIndex((base)), \
-                    MPS_WORD_WIDTH); \
-      } \
-\
     } \
   END
 
@@ -168,13 +182,14 @@ Res BTCreate(BT *btReturn, Arena arena, Count length)
   AVER(length > 0);
 
   res = ArenaAlloc(&p, arena, BTSize(length));
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
   bt = (BT)p;
 
   *btReturn = bt;
   return ResOK;
 }
+
 
 /* BTDestroy -- free a BT to the control pool.
  * 
@@ -190,6 +205,7 @@ void BTDestroy(BT bt, Arena arena, Count length)
   ArenaFree(arena, bt, BTSize(length));
 }
 
+
 /* BTCheck -- check the validity of a bit table
  *
  * There's not much that can be checked at present.  This is
@@ -204,7 +220,11 @@ static Bool BTCheck(BT bt)
 }
 
 
-/* design.mps.bt.fun.size */
+/* BTSize -- return the size of a BT
+ *
+ * See design.mps.bt.fun.size 
+ */
+
 size_t (BTSize)(unsigned long n)
 {
   /* check that the expression used in rounding up doesn't overflow */
@@ -214,7 +234,11 @@ size_t (BTSize)(unsigned long n)
 }
   
 
-/* design.mps.bt.fun.get */
+/* BTGet -- get a bit from a BT
+ *
+ * See design.mps.bt.fun.get 
+ */
+
 Bool (BTGet)(BT t, Index i)
 {
   AVER(BTCheck(t));
@@ -225,7 +249,11 @@ Bool (BTGet)(BT t, Index i)
 }
   
 
-/* design.mps.bt.fun.set */
+/* BTSet -- set a bit in a BT
+ *
+ * See design.mps.bt.fun.set 
+ */
+
 void (BTSet)(BT t, Index i)
 {
   AVER(BTCheck(t));
@@ -236,7 +264,11 @@ void (BTSet)(BT t, Index i)
 }
 
 
-/* design.mps.bt.fun.res */
+/* BTRes -- reset a bit in a BT
+ *
+ * design.mps.bt.fun.res
+ */
+
 void (BTRes)(BT t, Index i)
 {
   AVER(BTCheck(t));
@@ -247,7 +279,11 @@ void (BTRes)(BT t, Index i)
 }
 
 
-/* design.mps.bt.fun.set-range */
+/* BTSetRange -- set a range of bits in a BT
+ *
+ * design.mps.bt.fun.set-range
+ */
+
 void BTSetRange(BT t, Index base, Index limit)
 {
   AVER(BTCheck(t));
@@ -269,6 +305,7 @@ void BTSetRange(BT t, Index base, Index limit)
  *
  * See design.mps.bt.fun.is-reset-range.
  */
+
 Bool BTIsResRange(BT bt, Index base, Index limit)
 {
   AVER(BTCheck(bt));
@@ -278,9 +315,9 @@ Bool BTIsResRange(BT bt, Index base, Index limit)
 #define SINGLE_IS_RES_RANGE(i) \
   if (BTGet(bt, (i))) return FALSE
 #define BITS_IS_RES_RANGE(i,base,limit) \
-  if((bt[(i)] & BTMask((base),(limit))) != (Word)0) return FALSE
+  if ((bt[(i)] & BTMask((base),(limit))) != (Word)0) return FALSE
 #define WORD_IS_RES_RANGE(i) \
-  if(bt[(i)] != (Word)0) return FALSE
+  if (bt[(i)] != (Word)0) return FALSE
  
   ACT_ON_RANGE(base, limit, SINGLE_IS_RES_RANGE, 
                BITS_IS_RES_RANGE, WORD_IS_RES_RANGE);
@@ -292,6 +329,7 @@ Bool BTIsResRange(BT bt, Index base, Index limit)
  *
  * See design.mps.bt.fun.is-set-range.
  */
+
 Bool BTIsSetRange(BT bt, Index base, Index limit)
 {
   AVER(BTCheck(bt));
@@ -303,11 +341,11 @@ Bool BTIsSetRange(BT bt, Index base, Index limit)
 #define BITS_IS_SET_RANGE(i,base,limit) \
   BEGIN \
     Word bactMask = BTMask((base),(limit)); \
-    if((bt[(i)] & bactMask) != bactMask) \
+    if ((bt[(i)] & bactMask) != bactMask) \
       return FALSE; \
   END
 #define WORD_IS_SET_RANGE(i) \
-  if(bt[(i)] != ~(Word)0) return FALSE
+  if (bt[(i)] != ~(Word)0) return FALSE
 
   ACT_ON_RANGE(base, limit, SINGLE_IS_SET_RANGE, 
                BITS_IS_SET_RANGE, WORD_IS_SET_RANGE);
@@ -315,7 +353,11 @@ Bool BTIsSetRange(BT bt, Index base, Index limit)
 }
 
 
-/* design.mps.bt.fun.res-range */
+/* BTResRange -- reset a range of bits in a BT
+ *
+ * design.mps.bt.fun.res-range
+ */
+
 void BTResRange(BT t, Index base, Index limit)
 {
   AVER(BTCheck(t));
@@ -333,6 +375,7 @@ void BTResRange(BT t, Index base, Index limit)
 
 
 /* BTFindSet -- find the lowest set bit in a range in a bit table.
+ *
  * Sets foundReturn to false if the range is entirely reset;
  * in this case indexReturn is unset. Sets foundReturn to true
  * otherwise.
@@ -376,7 +419,10 @@ btFindSetLabel:; \
 #define ACTION_FIND_SET(wi,word,base,limit) \
   ACTION_FIND_SET_BIT((wi),(word),(base),(limit),btFindSetLabel)
 
-/* Helper macro to find the low bit in a range of a word.
+
+/* ACTION_FIND_SET_BIT -- Find first set bit in a range
+ *
+ * Helper macro to find the low bit in a range of a word.
  * Works by first shifting the base of the range to the low
  * bits of the word. Then loops performing a binary chop
  * over the data looking to see if a bit is set in the lower
@@ -384,6 +430,7 @@ btFindSetLabel:; \
  * shifted down. The loop completes after using a chop unit 
  * of a single single bit.
  */
+
 #define ACTION_FIND_SET_BIT(wi,word,base,limit,label) \
   BEGIN \
     /* no need to mask the low bits which are shifted */ \
@@ -392,8 +439,8 @@ btFindSetLabel:; \
     Count actionMaskWidth = (MPS_WORD_WIDTH >> 1); \
     Word actionMask = ~(Word)0 >> (MPS_WORD_WIDTH-actionMaskWidth); \
     if (actionWord != (Word)0) { \
-      while(actionMaskWidth != (Count)0) { \
-        if((actionWord & actionMask) == (Word)0) { \
+      while (actionMaskWidth != (Count)0) { \
+        if ((actionWord & actionMask) == (Word)0) { \
           actionIndex += actionMaskWidth; \
           actionWord >>= actionMaskWidth; \
         } \
@@ -408,6 +455,7 @@ btFindSetLabel:; \
 
 
 /* BTFindRes -- find the lowest reset bit in a range in a bit table.
+ *
  * Usage as for BTFindSet
  *
  * Internally uses the label btFindResLabel
@@ -447,6 +495,7 @@ btFindResLabel:; \
 
 
 /* BTFindSetHigh -- find the highest set bit in a range in a bit table.
+ *
  * Usage as for BTFindSet
  *
  * Internally uses the label btFindSetHighLabel
@@ -484,9 +533,13 @@ btFindSetHighLabel:; \
 #define ACTION_FIND_SET_HIGH(wi,word,base,limit) \
   ACTION_FIND_SET_BIT_HIGH((wi),(word),(base),(limit),btFindSetHighLabel)
 
-/* Helper macro to find the high bit in a range of a word.
+
+/* ACTION_FIND_SET_BIT_HIGH -- Find highest set bit in a range
+ *
+ * Helper macro to find the high bit in a range of a word.
  * Essentially a mirror image of ACTION_FIND_SET
  */
+
 #define ACTION_FIND_SET_BIT_HIGH(wi,word,base,limit,label) \
   BEGIN \
     /* no need to mask the high bits which are shifted */ \
@@ -496,8 +549,8 @@ btFindSetHighLabel:; \
     Count actionMaskWidth = (MPS_WORD_WIDTH >> 1); \
     Word actionMask = ~(Word)0 << (MPS_WORD_WIDTH-actionMaskWidth); \
     if (actionWord != (Word)0) { \
-      while(actionMaskWidth != (Count)0) { \
-        if((actionWord & actionMask) == (Word)0) { \
+      while (actionMaskWidth != (Count)0) { \
+        if ((actionWord & actionMask) == (Word)0) { \
           actionIndex -= actionMaskWidth; \
           actionWord <<= actionMaskWidth; \
         } \
@@ -511,7 +564,8 @@ btFindSetHighLabel:; \
   END
   
 
-/* BTFindResHigh -- find the highest reset bit in a bit table range 
+/* BTFindResHigh -- find the highest reset bit in a range 
+ *
  * Usage as for BTFindSet
  *
  * Internally uses the label btFindSetHighLabel
@@ -550,8 +604,9 @@ btFindResHighLabel:; \
   ACTION_FIND_SET_BIT_HIGH((wi),~(word),(base),(limit),btFindResHighLabel)
 
 
-/* BTFindResRange -- find a reset range of bits in a bit table,
- * starting at the low end of the search range.
+/* BTFindResRange -- find a reset range of bits in a bit table
+ *
+ * Starts searching at the low end of the search range.
  *
  * See design.mps.bt.fun.find-res-range.
  */
@@ -585,7 +640,7 @@ static Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
     Index setIndex;  /* index of last set bit found */
     Bool foundSet = FALSE; /* true if a set bit is found */
 
-    /* find the first reset bit if it's not already known */
+    /* Find the first reset bit if it's not already known */
     if (!foundRes) {
       BTFindRes(&foundRes, &resBase, bt, unseenBase, resLimit);
       if (!foundRes) {
@@ -599,7 +654,7 @@ static Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
     /* Look to see if there is any set bit in the minimum range */
     BTFindSetHigh(&foundSet, &setIndex, bt, unseenBase, minLimit);
     if (!foundSet) {
-      /* found minimum range. extend it. */
+      /* Found minimum range. Extend it. */
       Index setBase;   /* base of search for set bit */
       Index setLimit;  /* limit search for set bit */
       foundSet = FALSE;
@@ -619,7 +674,7 @@ static Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
       return TRUE;
         
     } else {
-      /* range was too small. Try again */
+      /* Range was too small. Try again */
       unseenBase = minLimit;
       if ((setIndex + 1) != minLimit) {
         /* Already found the start of next candidate range */
@@ -636,8 +691,9 @@ static Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
 }
 
 
-/* BTFindResRangeHigh -- find a reset range of bits in a bit table,
- * starting at the high end of the search range.
+/* BTFindResRangeHigh -- find a reset range of bits in a bit table
+ *
+ * Starts searching at the high end of the search range.
  *
  * See design.mps.bt.fun.find-res-range.
  */
@@ -673,7 +729,7 @@ static Bool BTFindResRangeHigh(Index *baseReturn, Index *limitReturn,
     Index setIndex;  /* index of first set bit found */
     Bool foundSet = FALSE; /* true if a set bit is found */
  
-    /* find the first reset bit if it's not already known */
+    /* Find the first reset bit if it's not already known */
     if (!foundRes) {
       /* Look for the limit of a range */
       BTFindResHigh(&foundRes, &resIndex, bt, resBase, unseenLimit);
@@ -689,7 +745,7 @@ static Bool BTFindResRangeHigh(Index *baseReturn, Index *limitReturn,
     /* Look to see if there is any set bit in the minimum range */
     BTFindSet(&foundSet, &setIndex, bt, minBase, unseenLimit);
     if (!foundSet) {
-      /* found minimum range. extend it. */
+      /* Found minimum range. Extend it. */
       Index setBase;   /* base of search for set bit */
       Index setLimit;  /* limit search for set bit */
       Index baseIndex; /* base of reset range found */
@@ -713,7 +769,7 @@ static Bool BTFindResRangeHigh(Index *baseReturn, Index *limitReturn,
       return TRUE;
       
     } else {
-      /* range was too small. Try again */
+      /* Range was too small. Try again */
       unseenLimit = minBase;
       if (setIndex != minBase) {
         /* Already found the start of next candidate range */
@@ -783,8 +839,9 @@ Bool BTFindShortResRange(Index *baseReturn, Index *limitReturn,
                         length, length);
 }
 
-/* BTFindShortResRangeHigh -- find short range of reset bits in a bit table,
- * starting to look from the top of the search range.
+/* BTFindShortResRangeHigh -- find short range of reset bits in a bit table
+ *
+ * Starts looking from the top of the search range.
  *
  * See design.mps.bt.fun.find-short-res-range-high.
  */
@@ -801,6 +858,7 @@ Bool BTFindShortResRangeHigh(Index *baseReturn, Index *limitReturn,
 			    length, length);
 }
 
+
 /* BTRangesSame -- check that a range of bits in two BTs are the same.
  * 
  * See design.mps.bt.if.ranges-same
@@ -813,20 +871,20 @@ Bool BTRangesSame(BT comparand, BT comparator, Index base, Index limit)
   AVER(base < limit);
 
 #define SINGLE_RANGES_SAME(i) \
-  if(BTGet(comparand, (i)) != BTGet(comparator, (i))) \
+  if (BTGet(comparand, (i)) != BTGet(comparator, (i))) \
       return FALSE
 #define BITS_RANGES_SAME(i,base,limit) \
   BEGIN \
     Index bactI = (i); \
     Word bactMask = BTMask((base),(limit)); \
-    if((comparand[bactI] & (bactMask)) != \
+    if ((comparand[bactI] & (bactMask)) != \
        (comparator[bactI] & (bactMask))) \
       return FALSE; \
   END
 #define WORD_RANGES_SAME(i) \
   BEGIN \
     Index wactI = (i); \
-    if((comparand[wactI]) != (comparator[wactI])) \
+    if ((comparand[wactI]) != (comparator[wactI])) \
       return FALSE; \
   END
  
@@ -834,6 +892,7 @@ Bool BTRangesSame(BT comparand, BT comparator, Index base, Index limit)
                BITS_RANGES_SAME, WORD_RANGES_SAME);
   return TRUE;
 }
+
 
 /* BTCopyInvertRange -- copy a range of bits from one BT to another,
  * inverting them as you go.
@@ -849,7 +908,7 @@ void BTCopyInvertRange(BT fromBT, BT toBT, Index base, Index limit)
   AVER(base < limit);
 
 #define SINGLE_COPY_INVERT_RANGE(i) \
-  if(BTGet(fromBT, (i))) \
+  if (BTGet(fromBT, (i))) \
     BTRes(toBT, (i)); \
   else \
     BTSet(toBT, (i)) 
