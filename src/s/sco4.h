@@ -76,12 +76,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef HAVE_SOCKETS
 #define LIBS_SYSTEM -lsocket
 
-/* configure can't get this right since it comes from -lsocket
-   and configure doesn't know to look there.  */
-#undef HAVE_XSCREENNUMBEROFSCREEN
-#define HAVE_XSCREENNUMBEROFSCREEN
-#endif
-
 /* SCO has gettimeofday in socket library */
 /* Autoconf should determine this, but for now, 
    play safe to avoid error rather than deleting this
@@ -89,6 +83,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef HAVE_GETTIMEOFDAY
 #define HAVE_GETTIMEOFDAY
 #endif
+#endif
+
+#ifdef HAVE_X11R5
+/* configure can't get this right linking fails unless -lsocket is used.  */
+#undef HAVE_XSCREENNUMBEROFSCREEN
+#define HAVE_XSCREENNUMBEROFSCREEN
 #endif
 
 /* We don't have -loldX, and we don't need it.  */
