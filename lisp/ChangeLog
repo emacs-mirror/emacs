@@ -1,5 +1,9 @@
 2001-11-07  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* subr.el (with-local-quit): New macro.
+	(make-syntax-table): Always inherit.
+	(functionp): Be more careful when `object' is a symbol.
+
 	* dabbrev.el (dabbrev-completion): Use "*Completions*".
 
 2001-11-07  Paul Eggert  <eggert@twinsun.com>
