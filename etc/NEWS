@@ -88,6 +88,17 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** When display margins are present in a window, the fringes are now
+displayed between the margins and the buffer's text area, rather than
+at the edges of the window.
+
+** A windows may now have individual fringe and scroll-bar settings,
+in addition to the individual display margin settings.
+
+Such individual settings are now preserved when windows are split
+horisontally or vertically, a saved window configuration is restored,
+or when the frame is resized.
+
 ** Under X, mouse-wheel-mode is turned on by default.
 
 ** The X resource useXIM can be used to turn off use of XIM, which may
@@ -1450,24 +1461,61 @@ with the form as argument, and if any returns t, the form is ok to call.
 If the form is not "ok to call", that means Emacs asks for
 confirmation as before.
 
-** Controlling the left and right fringe widths.
+** Controlling the default left and right fringe widths.
 
-The left and right fringe widths can now be controlled by setting the
-`left-fringe' and `right-fringe' frame parameters to an integer value
-specifying the width in pixels.  Setting the width to 0 effectively
-removes the corresponding fringe.
+The default left and right fringe widths for all windows of a frame
+can now be controlled by setting the `left-fringe' and `right-fringe'
+frame parameters to an integer value specifying the width in pixels.
+Setting the width to 0 effectively removes the corresponding fringe.
 
-The actual fringe widths may deviate from the specified widths, since
-the combined fringe widths must match an integral number of columns.
-The extra width is distributed evenly between the left and right fringe.
-For force a specific fringe width, specify the width as a negative
-integer (if both widths are negative, only the left fringe gets the
-specified width).
+The actual default fringe widths for the frame may deviate from the
+specified widths, since the combined fringe widths must match an
+integral number of columns.  The extra width is distributed evenly
+between the left and right fringe.  For force a specific fringe width,
+specify the width as a negative integer (if both widths are negative,
+only the left fringe gets the specified width).
 
 Setting the width to nil (the default), restores the default fringe
 width which is the minimum number of pixels necessary to display any
 of the currently defined fringe bitmaps.  The width of the built-in
 fringe bitmaps is 8 pixels.
+
+** Per-window fringes settings
+
+Windows can now have their own individual fringe widths and position
+settings.
+
+To control the fringe widths of a window, either set the buffer-local
+variables `left-fringe-width', `right-fringe-width', or call
+`set-window-fringes'.
+
+To control the fringe position in a window, that is, whether fringes
+are positioned between the display margins and the window's text area,
+or at the edges of the window, either set the buffer-local variable
+`fringes-outside-margins' or call `set-window-fringes'.
+
+The function `window-fringes' can be used to obtain the current
+settings.  To make `left-fringe-width', `right-fringe-width', and
+`fringes-outside-margins' take effect, you must set them before
+displaying the buffer in a window, or use `set-window-buffer' to force
+an update of the display margins.
+
+** Per-window vertical scroll-bar settings
+
+Windows can now have their own individual scroll-bar settings
+controlling the width and position of scroll-bars.
+
+To control the scroll-bar of a window, either set the buffer-local
+variables `scroll-bar-mode' and `scroll-bar-width', or call
+`set-window-scroll-bars'.  The function `window-scroll-bars' can be
+used to obtain the current settings.  To make `scroll-bar-mode' and
+`scroll-bar-width' take effect, you must set them before displaying
+the buffer in a window, or use `set-window-buffer' to force an update
+of the display margins.
+
+** The function `set-window-buffer' now has an optional third argument
+KEEP-MARGINS which will preserve the window's current margin, fringe,
+and scroll-bar settings if non-nil.
 
 +++
 ** Renamed file hooks to follow the convention:
