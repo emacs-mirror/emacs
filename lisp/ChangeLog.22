@@ -1,3 +1,9 @@
+2004-10-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (coding-system-equal): Move from mule-util.el.
+
+	* international/mule-util.el (coding-system-equal): Move to mule.el.
+
 2004-10-15  Kenichi Handa  <handa@m17n.org>
 
 	* international/encoded-kb.el (encoded-kbd-decode-code-list): New
