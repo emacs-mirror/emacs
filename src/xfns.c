@@ -264,7 +264,8 @@ check_x_display_info (frame)
 {
   if (NILP (frame))
     {
-      if (FRAME_X_P (selected_frame))
+      if (FRAME_X_P (selected_frame)
+	  && FRAME_LIVE_P (selected_frame))
 	return FRAME_X_DISPLAY_INFO (selected_frame);
       else if (x_display_list != 0)
 	return x_display_list;
