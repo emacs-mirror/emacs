@@ -125,8 +125,8 @@ See the functions `find-function' and `find-variable'."
       (setq library (replace-match "" t t library 1)))
   (or (locate-file library
 		   (or find-function-source-path load-path)
-		   (find-library-suffixes))
-      (error "Can't find library %s" file)))
+		   (append (find-library-suffixes) ""))
+      (error "Can't find library %s" library)))
 
 ;;;###autoload
 (defun find-library (library)
