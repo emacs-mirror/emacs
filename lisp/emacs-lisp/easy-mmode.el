@@ -290,11 +290,13 @@ in which `%s' turns it on."
 	   (let ((buf (pop ,buffers)))
 	     (when (buffer-live-p buf)
 	       (with-current-buffer buf (,turn-on))))))
+       (put ',buffers 'definition-name ',global-mode)
 
        ;; The function that catches kill-all-local-variables.
        (defun ,cmmh ()
 	 (add-to-list ',buffers (current-buffer))
-	 (add-hook 'post-command-hook ',buffers)))))
+	 (add-hook 'post-command-hook ',buffers))
+       (put ',cmmh 'definition-name ',global-mode))))
 
 ;;;
 ;;; easy-mmode-defmap
