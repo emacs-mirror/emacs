@@ -651,13 +651,11 @@ Similarly for Soar, Scheme, etc."
 ;; when output is inserted.
 (defun comint-filter (process string)
   (let ((obuf (current-buffer))
-	ordonly
 	opoint obeg oend)
     (set-buffer (process-buffer process))
     (setq opoint (point))
     (setq obeg (point-min))
     (setq oend (point-max))
-    (setq ordonly buffer-read-only)
     (let ((buffer-read-only nil)
 	  (nchars (length string)))
       (widen)
@@ -677,12 +675,11 @@ Similarly for Soar, Scheme, etc."
 	   (set-marker comint-last-input-end
 		       (- comint-last-input-end nchars)))
       (set-marker (process-mark process) (point) nil)
-      (force-mode-line-update)
+      (force-mode-line-update))
 
-      (narrow-to-region obeg oend)
-      (setq buffer-read-only ordonly)
-      (goto-char opoint)
-      (set-buffer obuf))))
+    (narrow-to-region obeg oend)
+    (goto-char opoint)
+    (set-buffer obuf)))
 
 (defun comint-get-old-input-default ()
   "Default for comint-get-old-input.
