@@ -675,6 +675,14 @@ that is beyond the control of Emacs and this command has no effect on it."
 		-1 1)))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'auto-lower (> arg 0)))))
+(defun set-frame-name (name)
+  "Set the name of the selected frame to NAME.
+When called interactively, prompt for the name of the frame.
+The frame name is displayed on the modeline if the terminal displays only
+one frame, otherwise the name is displayed on the frame's caption bar."
+  (interactive "sFrame name: ")
+  (modify-frame-parameters (selected-frame)
+			   (list (cons 'name name))))
 
 ;;;; Aliases for backward compatibility with Emacs 18.
 (defalias 'screen-height 'frame-height)
