@@ -975,7 +975,8 @@ When you move to this item with @code{widget-forward} or
 @code{widget-backward}, it will display the string @var{motion-doc} in
 the echo area.  In addition, @var{motion-doc} is used as the mouse
 @code{help-echo} string and may actually be a function or form evaluated
-to yield a help string as for @code{help-echo} text properties.
+to yield a help string.  If it is a function, it is called with one
+argument, the widget.
 @c @xref{Text help-echo}.
 
 @item :match @var{function}
