@@ -1,5 +1,7 @@
 2001-11-06  Richard M. Stallman  <rms@gnu.org>
 
+	* play/gomoku.el (gomoku): Doc fix.
+
 	* jka-compr.el (jka-compr-partial-uncompress): Support
 	an alternative of not using dd.
 	(jka-compr-dd-program): Use defcustom to define this.
