@@ -1,3 +1,8 @@
+2001-09-18  Miles Bader  <miles@gnu.org>
+
+	* diff-mode.el (diff-mode): Don't make the buffer read-only if
+	it's empty (and thus probably a new patch file about to be edited).
+
 2001-09-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):

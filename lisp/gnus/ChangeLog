@@ -1,3 +1,8 @@
+2001-09-18  Miles Bader  <miles@gnu.org>
+
+	* gnus-srvr.el (gnus-server-insert-server-line): Don't let an
+	error querying a backend abort the whole process.
+
 2001-09-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* gnus-srvr.el (gnus-server-mode): Doc fix.
