@@ -1129,16 +1129,18 @@ From a program, any arguments are passed to the `rcs2log' script."
 		   (setq files (cons (file-relative-name file) files)))
 	      (setq buffers (cdr buffers)))
 	    files))))
-  (find-file-other-window (find-change-log))
-  (barf-if-buffer-read-only)
-  (vc-buffer-sync)
-  (undo-boundary)
-  (goto-char (point-min))
-  (push-mark)
-  (message "Computing change log entries...")
-  (message "Computing change log entries... %s"
-           (if (eq 0 (apply 'call-process "rcs2log" nil t nil args))
-	       "done" "failed")))
+  (let ((odefault default-directory))
+    (find-file-other-window (find-change-log))
+    (barf-if-buffer-read-only)
+    (vc-buffer-sync)
+    (undo-boundary)
+    (goto-char (point-min))
+    (push-mark)
+    (message "Computing change log entries...")
+    (let ((default-directory odefault))
+      (message "Computing change log entries... %s"
+	       (if (eq 0 (apply 'call-process "rcs2log" nil t nil args))
+		   "done" "failed")))))
 
 ;; Functions for querying the master and lock files.
 
