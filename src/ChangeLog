@@ -1,7 +1,15 @@
+2000-03-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_specified_cursor_type): New function.
+	(x_set_cursor_type): Use it.
+
+	* buffer.h (struct buffer): Add cursor_type.
+
 2000-03-26  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (enum re_opcode_t): New opcode on_failure_jump_nastyloop.
-	(print_partial_compiled_pattern, re_compile_fastmap): Handle new opcode.
+	(print_partial_compiled_pattern, re_compile_fastmap): Handle new 
+	opcode.
 	(regex_compile): Use on_failure_jump_nastyloop for non-greedy loops.
 	(re_match_2_internal): Add code for on_failure_jump_nastyloop when
 	executing it as well as when popping it off the stack to find infinite
