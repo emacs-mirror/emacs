@@ -1,3 +1,10 @@
+2000-11-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c: Test USE_TOOLKIT_SCROLL_BARS everywhere with #ifdef and
+	#ifndef instead of using #if.
+	(XTread_socket) [USE_MOTIF] <KeyPress>: Call XmIsScrollBar only if
+	USE_TOOLKIT_SCROLL_BARS is defined.
+
 2000-11-30  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (x_set_cursor_color): Use x_update_cursor instead of
