@@ -3925,6 +3925,12 @@ DEFUN ("x-close-current-connection", Fx_close_current_connection,
        0, 0, 0, "Close the connection to the current X server.")
   ()
 {
+  /* Note: If we're going to call check_x here, then the fatal error
+     can't happen.  For the moment, this check is just for safety,
+     so a user won't try out the function and get a crash.  If it's
+     really intended only to be called when killing emacs, then there's
+     no reason for it to have a lisp interface at all.  */
+  check_x();
 #ifdef HAVE_X11
   /* This is ONLY used when killing emacs;  For switching displays
      we'll have to take care of setting CloseDownMode elsewhere. */
