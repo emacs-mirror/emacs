@@ -755,7 +755,7 @@ FILE should be the name of a library, with no directory name."
 digit, we read up to two more octal digits and return the character
 represented by the octal number consisting of those digits.
 Optional argument PROMPT specifies a string to use to prompt the user."
-  (let ((count 0) (code 0) char)
+  (let ((message-log-max nil) (count 0) (code 0) char)
     (while (< count 3)
       (let ((inhibit-quit (zerop count))
 	    (help-form nil))
@@ -772,7 +772,7 @@ Optional argument PROMPT specifies a string to use to prompt the user."
 	     (setq unread-command-events (list char) count 259))
 	    (t (setq code char count 259))))
     ;; Turn a meta-character into a character with the 0200 bit set.
-    (logior (if (/= (logand code (lsh 1 23)) 0) 128 0)
+    (logior (if (/= (logand code ?\M-\^@) 0) 128 0)
 	    (logand 255 code))))
 
 (defun force-mode-line-update (&optional all)
