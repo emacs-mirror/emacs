@@ -2985,8 +2985,8 @@ Transposing beyond buffer boundaries is an error.")
 	  /* Don't precompute these addresses.  We have to compute them
 	     at the last minute, because the relocating allocator might
 	     have moved the buffer around during the xmalloc.  */
-	  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1_byte);
-	  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2_byte);
+	  start1_addr = BYTE_POS_ADDR (start1_byte);
+	  start2_addr = BYTE_POS_ADDR (start2_byte);
 
           bcopy (start2_addr, temp, len2_byte);
           bcopy (start1_addr, start1_addr + len2_byte, len1_byte);
@@ -3001,8 +3001,8 @@ Transposing beyond buffer boundaries is an error.")
 	    temp = (unsigned char *) xmalloc (len1_byte);
 	  else
 	    temp = (unsigned char *) alloca (len1_byte);
-	  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1_byte);
-	  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2_byte);
+	  start1_addr = BYTE_POS_ADDR (start1_byte);
+	  start2_addr = BYTE_POS_ADDR (start2_byte);
           bcopy (start1_addr, temp, len1_byte);
           bcopy (start2_addr, start1_addr, len2_byte);
           bcopy (temp, start1_addr + len2_byte, len1_byte);
@@ -3041,8 +3041,8 @@ Transposing beyond buffer boundaries is an error.")
 	    temp = (unsigned char *) xmalloc (len1_byte);
 	  else
 	    temp = (unsigned char *) alloca (len1_byte);
-	  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1_byte);
-	  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2_byte);
+	  start1_addr = BYTE_POS_ADDR (start1_byte);
+	  start2_addr = BYTE_POS_ADDR (start2_byte);
           bcopy (start1_addr, temp, len1_byte);
           bcopy (start2_addr, start1_addr, len2_byte);
           bcopy (temp, start2_addr, len1_byte);
@@ -3074,8 +3074,8 @@ Transposing beyond buffer boundaries is an error.")
 	    temp = (unsigned char *) xmalloc (len2_byte);
 	  else
 	    temp = (unsigned char *) alloca (len2_byte);
-	  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1_byte);
-	  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2_byte);
+	  start1_addr = BYTE_POS_ADDR (start1_byte);
+	  start2_addr = BYTE_POS_ADDR (start2_byte);
           bcopy (start2_addr, temp, len2_byte);
           bcopy (start1_addr, start1_addr + len_mid + len2_byte, len1_byte);
           safe_bcopy (start1_addr + len1_byte, start1_addr + len2_byte, len_mid);
@@ -3110,8 +3110,8 @@ Transposing beyond buffer boundaries is an error.")
 	    temp = (unsigned char *) xmalloc (len1_byte);
 	  else
 	    temp = (unsigned char *) alloca (len1_byte);
-	  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1_byte);
-	  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2_byte);
+	  start1_addr = BYTE_POS_ADDR (start1_byte);
+	  start2_addr = BYTE_POS_ADDR (start2_byte);
           bcopy (start1_addr, temp, len1_byte);
           bcopy (start2_addr, start1_addr, len2_byte);
           bcopy (start1_addr + len1_byte, start1_addr + len2_byte, len_mid);
