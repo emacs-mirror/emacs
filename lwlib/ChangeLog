@@ -1,3 +1,8 @@
+2002-01-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* lwlib-Xaw.c (xaw_update_scrollbar, xaw_scrollbar_scroll)
+	(xaw_scrollbar_jump): Put whole functions in #if 0.
+
 2002-01-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* lwlib-Xaw.c (xaw_create_dialog): Initialize icon_name to

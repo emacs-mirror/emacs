@@ -1,3 +1,9 @@
+2002-01-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* minibuf.c (Fread_from_minibuffer, Fread_command, Fread_function)
+	(Fread_variable, Fread_buffer, minibuffer-completion-confirm): Fix
+	doc-strings.
+
 2002-01-26  Richard M. Stallman  <rms@gnu.org>
 
 	* buffer.c (syms_of_buffer): Doc fixes for scroll-...-aggressively.

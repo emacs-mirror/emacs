@@ -1,5 +1,13 @@
 2002-01-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* time.el (display-time-mail-directory): New option.
+	(display-time-mail-function): Update doc-string.
+	(display-time-mail-icon): Use XPM image when available.
+	(display-time-string-forms): Use more descriptive text as
+	help-echo property.
+	(display-time-mail-check-directory): New function.
+	(display-time-update): Use it.
+
 	* menu-bar.el (menu-bar-showhide-scroll-bar-menu): Quote
 	`window-system'.
 
