@@ -26,7 +26,12 @@
 
 ;;; Code:
 
-(require 'rmail)
+(provide 'rmailedit)
+
+(eval-when-compile
+  (require 'rmail)
+  (require 'rmaildesc)
+  (require 'rmailsum))
 
 (defcustom rmail-edit-mode-hook nil
   "List of functions to call when editing an RMAIL message."
@@ -100,6 +105,7 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
     (message "%s" (substitute-command-keys
 		   "Editing: Type \\[rmail-cease-edit] to return to Rmail, \\[rmail-abort-edit] to abort"))))
 
+;;; mbox: ready
 (defun rmail-cease-edit ()
   "Finish editing message; switch back to Rmail proper."
   (interactive)
@@ -113,8 +119,7 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
     (if (/= (preceding-char) ?\n)
 	(insert "\n"))
     ;; Adjust the marker that points to the end of this message.
-    (set-marker (aref rmail-message-vector (1+ rmail-current-message))
-		(point)))
+    (rmail-desc-set-start (1+ rmail-current-message) (point)))
   (let ((old rmail-old-text))
     (force-mode-line-update)
     (kill-all-local-variables)
@@ -127,19 +132,7 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
 	     (string= old (buffer-substring (point-min) (point-max))))
 	()
       (setq old nil)
-      (rmail-set-attribute "edited" t)
-      (if (boundp 'rmail-summary-vector)
-	  (progn
-	    (aset rmail-summary-vector (1- rmail-current-message) nil)
-	    (save-excursion
-	      (rmail-widen-to-current-msgbeg
-		(function (lambda ()
-			    (forward-line 2)
-			    (if (looking-at "Summary-line: ")
-				(let ((buffer-read-only nil))
-				  (delete-region (point)
-						 (progn (forward-line 1)
-							(point))))))))))))
+      (rmail-set-attribute "edited" t))
     (save-excursion
       (rmail-show-message)
       (rmail-toggle-header (if rmail-old-pruned 1 0))))
@@ -153,7 +146,5 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
   (insert rmail-old-text)
   (rmail-cease-edit)
   (rmail-highlight-headers))
-
-(provide 'rmailedit)
 
 ;;; rmailedit.el ends here
