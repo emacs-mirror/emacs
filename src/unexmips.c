@@ -173,7 +173,8 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
   text_section->s_scnptr = 0;
 
   pagesize = getpagesize ();
-  brk = (sbrk (0) + pagesize - 1) & (-pagesize);
+  /* Casting to int avoids compiler error on NEWS-OS 5.0.2.  */
+  brk = (((int) (sbrk (0))) + pagesize - 1) & (-pagesize);
   hdr.aout.dsize = brk - DATA_START;
   hdr.aout.bsize = 0;
   if (entry_address == 0)
