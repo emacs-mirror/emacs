@@ -7106,7 +7106,7 @@ syms_of_coding ()
      But don't staticpro it here--that is done in alloc.c.  */
   Qchar_table_extra_slots = intern ("char-table-extra-slots");
   Fput (Qsafe_chars, Qchar_table_extra_slots, make_number (0));
-  Fput (Qchar_coding_system, Qchar_table_extra_slots, make_number (1));
+  Fput (Qchar_coding_system, Qchar_table_extra_slots, make_number (2));
 
   Qvalid_codes = intern ("valid-codes");
   staticpro (&Qvalid_codes);
