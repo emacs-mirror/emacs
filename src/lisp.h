@@ -60,7 +60,7 @@ enum Lisp_Type
 #endif /* LISP_FLOAT_TYPE */
 
     /* This is not a type code.  It is for range checking.  */
-    Lisp_Type_Limit,
+    Lisp_Type_Limit
   };
 
 /* This is the set of datatypes that share a common structure.
@@ -83,6 +83,15 @@ enum Lisp_Misc_Type
     Lisp_Misc_Limit
   };
 
+/* These values are overridden by the m- file on some machines.  */
+#ifndef VALBITS
+#define VALBITS 28
+#endif
+
+#ifndef GCTYPEBITS
+#define GCTYPEBITS 3
+#endif
+
 #ifndef NO_UNION_TYPE
 
 #ifndef WORDS_BIG_ENDIAN
@@ -98,18 +107,18 @@ union Lisp_Object
 
     struct
       {
-	int val: 24;
-	char type;
+	int val: VALBITS;
+	int type: GCTYPEBITS+1;
       } s;
     struct
       {
-	unsigned int val: 24;
-	char type;
+	unsigned int val: VALBITS;
+	int type: GCTYPEBITS+1;
       } u;
     struct
       {
-	unsigned int val: 24;
-	enum Lisp_Type type: 7;
+	unsigned int val: VALBITS;
+	enum Lisp_Type type: GCTYPEBITS;
 	/* The markbit is not really part of the value of a Lisp_Object,
 	   and is always zero except during garbage collection.  */
 	unsigned int markbit: 1;
@@ -128,21 +137,21 @@ union Lisp_Object
 
     struct
       {
-	char type;
-	int val: 24;
+	int type: GCTYPEBITS+1;
+	int val: VALBITS;
       } s;
     struct
       {
-	char type;
-	unsigned int val: 24;
+	int type: GCTYPEBITS+1;
+	unsigned int val: VALBITS;
       } u;
     struct
       {
 	/* The markbit is not really part of the value of a Lisp_Object,
 	   and is always zero except during garbage collection.  */
 	unsigned int markbit: 1;
-	enum Lisp_Type type: 7;
-	unsigned int val: 24;
+	enum Lisp_Type type: GCTYPEBITS;
+	unsigned int val: VALBITS;
       } gu;
   }
 Lisp_Object;
@@ -158,15 +167,6 @@ Lisp_Object;
 #ifdef NO_UNION_TYPE
 
 #define Lisp_Object EMACS_INT
-
-/* These values are overridden by the m- file on some machines.  */
-#ifndef VALBITS
-#define VALBITS 28
-#endif
-
-#ifndef GCTYPEBITS
-#define GCTYPEBITS 3
-#endif
 
 #ifndef VALMASK
 #define VALMASK ((((EMACS_INT) 1)<<VALBITS) - 1)
