@@ -2,7 +2,7 @@
 #
 # Build and test MM at tip of main trunk (the MM_src compound)
 # 
-# $HopeName: HOMEmm!bin:build:MM_src_trunk(trunk.6) $
+# $HopeName: HOMEmm!bin:build:MM_src_trunk(trunk.7) $
 #
 
 script="`basename $0`"
@@ -20,10 +20,14 @@ test -d $HOME/Builds || mkdir $HOME/Builds ||
   die "Unable to create Builds directory."
 
 cd $HOME/Builds &&
-rm -rf mm &&
+rm -rf MM_src_trunk &&
+mkdir MM_src_trunk &&
+cd MM_src_trunk ||
+  die "Unable to get to Builds/MM_src_trunk directory"
+
 hope co -compound MM -branch . -recursive \
   -writable-files abort -missing-dir create -extra-files skip ||
-  die "Unable to check out MM from Hope"
+  die "Unable to check out MM_src_trunk from Hope"
 
 cd mm/src &&
 
