@@ -846,8 +846,7 @@ and move to the line in the SGML document that caused it."
 (defun sgml-lexical-context (&optional limit)
   "Return the lexical context at point as (TYPE . START).
 START is the location of the start of the lexical element.
-TYPE is one of `string', `comment', `tag', `cdata', ....
-Return nil if we are inside text (i.e. outside of any kind of tag).
+TYPE is one of `string', `comment', `tag', or `text'.
 
 If non-nil LIMIT is a nearby position before point outside of any tag."
   ;; As usual, it's difficult to get a reliable answer without parsing the
@@ -855,23 +854,26 @@ If non-nil LIMIT is a nearby position before point outside of any tag."
   ;; any string or tag or comment or ...
   (save-excursion
     (let ((pos (point))
-	  (state nil))
+	  (state nil)
+	  textstart)
       (if limit (goto-char limit)
 	;; Hopefully this regexp will match something that's not inside
 	;; a tag and also hopefully the match is nearby.
 	(re-search-backward "^[ \t]*<[_:[:alpha:]/%!?#]" nil 'move))
+      (setq textstart (point))
       (with-syntax-table sgml-tag-syntax-table
 	(while (< (point) pos)
 	  ;; When entering this loop we're inside text.
+	  (setq textstart (point))
 	  (skip-chars-forward "^<" pos)
 	  ;; We skipped text and reached a tag.  Parse it.
-	  ;; FIXME: this does not handle CDATA and funny stuff yet.
+	  ;; FIXME: Handle net-enabling start-tags and <![CDATA[ ...]]>.
 	  (setq state (parse-partial-sexp (point) pos 0)))
 	(cond
 	 ((nth 3 state) (cons 'string (nth 8 state)))
 	 ((nth 4 state) (cons 'comment (nth 8 state)))
 	 ((and state (> (nth 0 state) 0)) (cons 'tag (nth 1 state)))
-	 (t nil))))))
+	 (t (cons 'text textstart)))))))
 
 (defun sgml-beginning-of-tag (&optional top-level)
   "Skip to beginning of tag and return its name.
@@ -883,7 +885,7 @@ If this can't be done, return nil."
 	  (when (looking-at sgml-tag-name-re)
 	    (match-string-no-properties 1)))
       (if top-level nil
-	(when context
+	(when (not (eq (car context) 'text))
 	  (goto-char (cdr context))
 	  (sgml-beginning-of-tag t))))))
 
@@ -968,22 +970,43 @@ With prefix argument, unquote the region."
 	 (goto-char (1+ (cdr lcon)))
 	 (+ (current-column) sgml-basic-offset)))
 
-      (t
+      (t ;; text
        (while (looking-at "</")
 	 (forward-sexp 1)
 	 (skip-chars-forward " \t"))
-       (let ((context (xml-lite-get-context)))
-	 (cond
-	  ((null context) 0)		; no context
-	  (t
-	   (let ((here (point)))
-	     (goto-char (xml-lite-tag-end (car context)))
-	     (skip-chars-forward " \t\n")
-	     (if (and (< (point) here) (xml-lite-at-indentation-p))
-		 (current-column)
-	       (goto-char (xml-lite-tag-start (car context)))
-	       (+ (current-column)
-		  (* sgml-basic-offset (length context))))))))))))
+       (let* ((here (point))
+	      (unclosed (and ;; (not sgml-xml-mode)
+			     (looking-at sgml-tag-name-re)
+			     (member-ignore-case (match-string 1)
+						 sgml-unclosed-tags)
+			     (match-string 1)))
+	      (context
+	       ;; If possible, align on the previous non-empty text line.
+	       ;; Otherwise, do a more serious parsing to find the
+	       ;; tag(s) relative to which we should be indenting.
+	       (if (and (not unclosed) (skip-chars-backward " \t")
+			(< (skip-chars-backward " \t\n") 0)
+			(back-to-indentation)
+			(> (point) (cdr lcon)))
+		   nil
+		 (goto-char here)
+		 (nreverse (xml-lite-get-context (if unclosed nil 'empty)))))
+	      (there (point)))
+	 ;; Ignore previous unclosed start-tag in context.
+	 (while (and context unclosed
+		     (eq t (compare-strings
+			    (xml-lite-tag-name (car context)) nil nil
+			    unclosed nil nil t)))
+	   (setq context (cdr context)))
+	 ;; Indent to reflect nesting.
+	 (if (and context
+		  (goto-char (xml-lite-tag-end (car context)))
+		  (skip-chars-forward " \t\n")
+		  (< (point) here) (xml-lite-at-indentation-p))
+	     (current-column)
+	   (goto-char there)
+	   (+ (current-column)
+	      (* sgml-basic-offset (length context)))))))))
 
 (defun sgml-indent-line ()
   "Indent the current line as SGML."
