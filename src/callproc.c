@@ -81,6 +81,8 @@ char *synch_process_death;
 /* If synch_process_death is zero,
    this is exit code of synchronous subprocess.  */
 int synch_process_retcode;
+
+extern Lisp_Object Vdoc_file_name;
 
 #ifndef VMS  /* VMS version is in vmsproc.c.  */
 
@@ -636,24 +638,59 @@ egetenv (var)
 
 #endif /* not VMS */
 
-init_callproc ()
-{
-  register char * sh;
-  Lisp_Object tempdir;
+/* This is run before init_cmdargs.  */
 
-  {
-    char *data_dir = egetenv ("EMACSDATA");
+init_callproc_1 ()
+{
+  char *data_dir = egetenv ("EMACSDATA");
     
-    Vdata_directory =
-      Ffile_name_as_directory
-	(build_string (data_dir ? data_dir : PATH_DATA));
-  }
+  Vdata_directory
+    = Ffile_name_as_directory (build_string (data_dir ? data_dir
+					     : PATH_DATA));
 
   /* Check the EMACSPATH environment variable, defaulting to the
      PATH_EXEC path from paths.h.  */
   Vexec_path = decode_env_path ("EMACSPATH", PATH_EXEC);
   Vexec_directory = Ffile_name_as_directory (Fcar (Vexec_path));
   Vexec_path = nconc2 (decode_env_path ("PATH", ""), Vexec_path);
+}
+
+/* This is run after init_cmdargs, so that Vinvocation_directory is valid.  */
+
+init_callproc ()
+{
+  char *data_dir = egetenv ("EMACSDATA");
+    
+  register char * sh;
+  Lisp_Object tempdir;
+
+  if (initialized && !NILP (Vinvocation_directory))
+    {
+      /* Add to the path the ../lib-src dir of the Emacs executable,
+	 if that dir exists.  */
+      Lisp_Object tem, tem1;
+      tem = Fexpand_file_name (build_string ("../lib-src"),
+			       Vinvocation_directory);
+      tem1 = Ffile_exists_p (tem);
+      if (!NILP (tem1) && NILP (Fmember (tem, Vexec_path)))
+	{
+	  Vexec_path = nconc2 (Vexec_path, Fcons (tem, Qnil));
+	  Vexec_directory = Ffile_name_as_directory (tem);
+
+	  /* If we use ../lib-src, maybe use ../etc as well.
+	     Do so if ../etc exists and has our DOC-... file in it.  */
+	  if (data_dir == 0)
+	    {
+	      Lisp_Object tem, tem2, tem3;
+	      tem = Fexpand_file_name (build_string ("../etc"),
+				       Vinvocation_directory);
+	      tem2 = Fexpand_file_name (Vdoc_file_name, tem);
+	      tem3 = Ffile_exists_p (tem2);
+	      if (!NILP (tem2))
+		Vdata_directory = tem;
+	    }
+	}
+    }
 
   tempdir = Fdirectory_file_name (Vexec_directory);
   if (access (XSTRING (tempdir)->data, 0) < 0)
