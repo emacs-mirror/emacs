@@ -303,6 +303,14 @@ This function is used to generate completions for every argument."
   :type 'function
   :group 'pcomplete)
 
+(defcustom pcomplete-use-paring t
+  "*If t, pare alternatives that have already been used.
+If nil, you will always see the completion set of possible options, no
+matter which of those options have already been used in previous
+command arguments."
+  :type 'boolean
+  :group 'pcomplete)
+
 ;;; Internal Variables:
 
 ;; for cycling completion support
@@ -1017,7 +1025,7 @@ extra checking, and munging of the COMPLETIONS list."
 	   (message "No completions of %s" stub)
 	 (message "No completions")))
     ;; pare it down, if applicable
-    (if pcomplete-seen
+    (if (and pcomplete-use-paring pcomplete-seen)
 	(let* ((arg (pcomplete-arg))
 	       (prefix
 		(file-name-as-directory

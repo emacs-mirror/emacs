@@ -264,7 +264,7 @@ function), and the arguments passed to this function would be the list
   "Parse a variable interpolation.
 This function is explicit for adding to `eshell-parse-argument-hook'."
   (when (and (eq (char-after) ?$)
-	     (not (= (1+ (point)) (point-max))))
+	     (/= (1+ (point)) (point-max)))
     (forward-char)
     (list 'eshell-escape-arg
 	  (eshell-parse-variable))))
@@ -293,10 +293,18 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
 (defun eshell/export (&rest sets)
   "This alias allows the 'export' command to act as bash users expect."
   (while sets
-    (if (string-match "^\\([^=]+\\)=\\(.*\\)" (car sets))
+    (if (and (stringp (car sets))
+	     (string-match "^\\([^=]+\\)=\\(.*\\)" (car sets)))
 	(setenv (match-string 1 (car sets))
 		(match-string 2 (car sets))))
     (setq sets (cdr sets))))
+
+(defun eshell/unset (&rest args)
+  "Unset an environment variable."
+  (while args
+    (if (stringp (car args))
+	(setenv (car args) nil t))
+    (setq args (cdr args))))
 
 (defun pcomplete/eshell-mode/export ()
   "Completion function for Eshell's `export'."

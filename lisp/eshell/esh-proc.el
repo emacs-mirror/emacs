@@ -125,14 +125,15 @@ information, for example."
   "Reset the command input location after a process terminates.
 The signals which will cause this to happen are matched by
 `eshell-reset-signals'."
-  (if (string-match eshell-reset-signals status)
+  (if (and (stringp status)
+	   (string-match eshell-reset-signals status))
       (eshell-reset)))
 
 (defun eshell-wait-for-process (&rest procs)
   "Wait until PROC has successfully completed."
   (while procs
     (let ((proc (car procs)))
-      (when (processp proc)
+      (when (eshell-processp proc)
 	;; NYI: If the process gets stopped here, that's bad.
 	(while (assq proc eshell-process-list)
 	  (if (input-pending-p)
@@ -145,7 +146,8 @@ The signals which will cause this to happen are matched by
 
 (defun eshell/jobs (&rest args)
   "List processes, if there are any."
-  (and (process-list)
+  (and (fboundp 'process-list)
+       (process-list)
        (list-processes)))
 
 (defun eshell/kill (&rest args)
@@ -153,7 +155,7 @@ The signals which will cause this to happen are matched by
   (let ((ptr args)
 	(signum 'SIGINT))
     (while ptr
-      (if (or (processp (car ptr))
+      (if (or (eshell-processp (car ptr))
 	      (and (stringp (car ptr))
 		   (string-match "^[A-Za-z/][A-Za-z0-9<>/]+$"
 				 (car ptr))))
@@ -162,7 +164,7 @@ The signals which will cause this to happen are matched by
 	  (setcar ptr (get-process (car ptr))))
       (setq ptr (cdr ptr)))
     (while args
-      (let ((id (if (processp (car args))
+      (let ((id (if (eshell-processp (car args))
 		    (process-id (car args))
 		  (car args))))
 	(when id
@@ -206,7 +208,7 @@ The prompt will be set to PROMPT."
 
 (defsubst eshell-record-process-object (object)
   "Record OBJECT as now running."
-  (if (and (processp object)
+  (if (and (eshell-processp object)
 	   eshell-current-subjob-p)
       (eshell-interactive-print
        (format "[%s] %d\n" (process-name object) (process-id object))))
@@ -217,13 +219,19 @@ The prompt will be set to PROMPT."
 
 (defun eshell-remove-process-entry (entry)
   "Record the process ENTRY as fully completed."
-  (if (and (processp (car entry))
+  (if (and (eshell-processp (car entry))
 	   (nth 2 entry)
 	   eshell-done-messages-in-minibuffer)
       (message (format "[%s]+ Done %s" (process-name (car entry))
 		       (process-command (car entry)))))
   (setq eshell-process-list
 	(delq entry eshell-process-list)))
+
+(defvar eshell-scratch-buffer " *eshell-scratch*"
+  "Scratch buffer for holding Eshell's input/output.")
+(defvar eshell-last-sync-output-start nil
+  "A marker that tracks the beginning of output of the last subprocess.
+Used only on systems which do not support async subprocesses.")
 
 (defun eshell-gather-process-output (command args)
   "Gather the output from COMMAND + ARGS."
@@ -235,39 +243,88 @@ The prompt will be set to PROMPT."
 	      eshell-delete-exited-processes
 	    delete-exited-processes))
 	 (process-environment (eshell-environment-variables))
-	 (proc (apply 'start-process
-		      (file-name-nondirectory command) nil
-		      ;; `start-process' can't deal with relative
-		      ;; filenames
-		      (append (list (expand-file-name command)) args)))
-	 decoding encoding changed)
-    (eshell-record-process-object proc)
-    (set-process-buffer proc (current-buffer))
-    (if (eshell-interactive-output-p)
-	(set-process-filter proc 'eshell-output-filter)
-      (set-process-filter proc 'eshell-insertion-filter))
-    (set-process-sentinel proc 'eshell-sentinel)
-    (run-hook-with-args 'eshell-exec-hook proc)
-    (when (fboundp 'process-coding-system)
-      (let ((coding-systems (process-coding-system proc)))
-	(setq decoding (car coding-systems)
-	      encoding (cdr coding-systems)))
-      ;; If start-process decided to use some coding system for
-      ;; decoding data sent from the process and the coding system
-      ;; doesn't specify EOL conversion, we had better convert CRLF
-      ;; to LF.
-      (if (vectorp (coding-system-eol-type decoding))
-	  (setq decoding (coding-system-change-eol-conversion decoding 'dos)
-		changed t))
-      ;; Even if start-process left the coding system for encoding
-      ;; data sent from the process undecided, we had better use the
-      ;; same one as what we use for decoding.  But, we should
-      ;; suppress EOL conversion.
-      (if (and decoding (not encoding))
-	  (setq encoding (coding-system-change-eol-conversion decoding 'unix)
-		changed t))
-      (if changed
-	  (set-process-coding-system proc decoding encoding)))
+	 proc decoding encoding changed)
+    (cond
+     ((fboundp 'start-process)
+      (setq proc
+	    (apply 'start-process
+		   (file-name-nondirectory command) nil
+		   ;; `start-process' can't deal with relative
+		   ;; filenames
+		   (append (list (expand-file-name command)) args)))
+      (eshell-record-process-object proc)
+      (set-process-buffer proc (current-buffer))
+      (if (eshell-interactive-output-p)
+	  (set-process-filter proc 'eshell-output-filter)
+	(set-process-filter proc 'eshell-insertion-filter))
+      (set-process-sentinel proc 'eshell-sentinel)
+      (run-hook-with-args 'eshell-exec-hook proc)
+      (when (fboundp 'process-coding-system)
+	(let ((coding-systems (process-coding-system proc)))
+	  (setq decoding (car coding-systems)
+		encoding (cdr coding-systems)))
+	;; If start-process decided to use some coding system for
+	;; decoding data sent from the process and the coding system
+	;; doesn't specify EOL conversion, we had better convert CRLF
+	;; to LF.
+	(if (vectorp (coding-system-eol-type decoding))
+	    (setq decoding (coding-system-change-eol-conversion decoding 'dos)
+		  changed t))
+	;; Even if start-process left the coding system for encoding
+	;; data sent from the process undecided, we had better use the
+	;; same one as what we use for decoding.  But, we should
+	;; suppress EOL conversion.
+	(if (and decoding (not encoding))
+	    (setq encoding (coding-system-change-eol-conversion decoding 'unix)
+		  changed t))
+	(if changed
+	    (set-process-coding-system proc decoding encoding))))
+     (t
+      ;; No async subprocesses...
+      (let ((oldbuf (current-buffer))
+	    (interact-p (eshell-interactive-output-p))
+	    lbeg lend line proc-buf exit-status)
+	(and (not (markerp eshell-last-sync-output-start))
+	     (setq eshell-last-sync-output-start (point-marker)))
+	(setq proc-buf
+	      (set-buffer (get-buffer-create eshell-scratch-buffer)))
+	(erase-buffer)
+	(set-buffer oldbuf)
+	(run-hook-with-args 'eshell-exec-hook command)
+	(setq exit-status
+	      (apply 'call-process-region
+		     (append (list eshell-last-sync-output-start (point)
+				   command t
+				   eshell-scratch-buffer nil)
+			     args)))
+	;; When in a pipeline, record the place where the output of
+	;; this process will begin.
+	(and eshell-in-pipeline-p
+	     (set-marker eshell-last-sync-output-start (point)))
+	;; Simulate the effect of the process filter.
+	(when (numberp exit-status)
+	  (set-buffer proc-buf)
+	  (goto-char (point-min))
+	  (setq lbeg (point))
+	  (while (eq 0 (forward-line 1))
+	    (setq lend (point)
+		  line (buffer-substring-no-properties lbeg lend))
+	    (set-buffer oldbuf)
+	    (if interact-p
+		(eshell-output-filter nil line)
+	      (eshell-output-object line))
+	    (setq lbeg lend)
+	    (set-buffer proc-buf))
+	  (set-buffer oldbuf))
+	(eshell-update-markers eshell-last-output-end)
+	;; Simulate the effect of eshell-sentinel.
+	(eshell-close-handles (if (numberp exit-status) exit-status -1))
+	(run-hook-with-args 'eshell-kill-hook command exit-status)
+	(or eshell-in-pipeline-p
+	    (setq eshell-last-sync-output-start nil))
+	(if (not (numberp exit-status))
+	  (error "%s: external command failed: %s" command exit-status))
+	(setq proc t))))
     proc))
 
 (defun eshell-insertion-filter (proc string)

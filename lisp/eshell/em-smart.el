@@ -258,15 +258,20 @@ and the end of the buffer are still visible."
   "Display as much output as possible, smartly."
   (if (eobp)
       (recenter -1)
-    (and (memq 'eshell-smart-display-move pre-command-hook)
-	 (>= (point) eshell-last-input-start)
-	 (< (point) eshell-last-input-end)
-	 (set-window-start (selected-window)
-			   (line-beginning-position) t))
-    (if (pos-visible-in-window-p (point-max))
-	(save-excursion
-	  (goto-char (point-max))
-	  (recenter -1)))))
+    (let ((top-point (point)))
+      (and (memq 'eshell-smart-display-move pre-command-hook)
+	   (>= (point) eshell-last-input-start)
+	   (< (point) eshell-last-input-end)
+	   (set-window-start (selected-window)
+			     (line-beginning-position) t))
+      (if (pos-visible-in-window-p (point-max))
+	  (save-excursion
+	    (goto-char (point-max))
+	    (recenter -1)
+	    (unless (pos-visible-in-window-p top-point)
+	      (goto-char top-point)
+	      (set-window-start (selected-window)
+				(line-beginning-position) t)))))))
 
 (defun eshell-smart-goto-end ()
   "Like `end-of-buffer', but do not push a mark."

@@ -516,8 +516,8 @@ implemented via rewriting, rather than as a function."
 			      (list 'car
 				    (list 'symbol-value
 					  (list 'quote 'for-items)))))
-		  (list 'eshell-protect
-			(eshell-invokify-arg body t)))
+		  (list 'eshell-copy-handles
+			 (eshell-invokify-arg body t)))
 	    (list 'setcar 'for-items
 		  (list 'cadr
 			(list 'symbol-value
@@ -581,7 +581,7 @@ must be implemented via rewriting, rather than as a function."
       (eshell-structure-basic-command
        'while '("while" "until") (car terms)
        (eshell-invokify-arg (cadr terms) nil t)
-       (list 'eshell-protect
+       (list 'eshell-copy-handles
 	     (eshell-invokify-arg (car (last terms)) t)))))
 
 (defun eshell-rewrite-if-command (terms)
@@ -770,6 +770,31 @@ this grossness will be made to disappear by using `call/cc'..."
 	(eshell-errorn (error-message-string err))
 	(eshell-close-handles 1)))))
 
+;; (defun eshell-copy-or-protect-handles ()
+;;   (if (eshell-processp (car (aref eshell-current-handles
+;; 				  eshell-output-handle)))
+;;       (eshell-protect-handles eshell-current-handles)
+;;     (eshell-create-handles
+;;      (car (aref eshell-current-handles
+;; 		eshell-output-handle)) nil
+;;      (car (aref eshell-current-handles
+;; 		eshell-error-handle)) nil)))
+
+;; (defmacro eshell-copy-handles (object)
+;;   "Duplicate current I/O handles, so OBJECT works with its own copy."
+;;   `(let ((eshell-current-handles (eshell-copy-or-protect-handles)))
+;;      ,object))
+
+(defmacro eshell-copy-handles (object)
+  "Duplicate current I/O handles, so OBJECT works with its own copy."
+  `(let ((eshell-current-handles
+	  (eshell-create-handles
+	   (car (aref eshell-current-handles
+		      eshell-output-handle)) nil
+	   (car (aref eshell-current-handles
+		      eshell-error-handle)) nil)))
+     ,object))
+
 (defmacro eshell-protect (object)
   "Protect I/O handles, so they aren't get closed after eval'ing OBJECT."
   `(progn
@@ -779,32 +804,65 @@ this grossness will be made to disappear by using `call/cc'..."
 (defmacro eshell-do-pipelines (pipeline)
   "Execute the commands in PIPELINE, connecting each to one another."
   (when (setq pipeline (cadr pipeline))
-    `(let ((eshell-current-handles
-	    (eshell-create-handles
-	     (car (aref eshell-current-handles
-			eshell-output-handle)) nil
-	     (car (aref eshell-current-handles
-			eshell-error-handle)) nil)))
+    `(eshell-copy-handles
+      (progn
+	,(when (cdr pipeline)
+	   `(let (nextproc)
+	      (progn
+		(set 'nextproc
+		     (eshell-do-pipelines (quote ,(cdr pipeline))))
+		(eshell-set-output-handle ,eshell-output-handle
+					  'append nextproc)
+		(eshell-set-output-handle ,eshell-error-handle
+					  'append nextproc)
+		(set 'tailproc (or tailproc nextproc)))))
+	,(let ((head (car pipeline)))
+	   (if (memq (car head) '(let progn))
+	       (setq head (car (last head))))
+	   (when (memq (car head) eshell-deferrable-commands)
+	     (ignore
+	      (setcar head
+		      (intern-soft
+		       (concat (symbol-name (car head)) "*"))))))
+	,(car pipeline)))))
+
+(defmacro eshell-do-pipelines-synchronously (pipeline)
+  "Execute the commands in PIPELINE in sequence synchronously.
+Output of each command is passed as input to the next one in the pipeline.
+This is used on systems where `start-process' is not supported."
+  (when (setq pipeline (cadr pipeline))
+    `(let (result)
        (progn
 	 ,(when (cdr pipeline)
-	    `(let (nextproc)
+	    `(let (output-marker)
 	       (progn
-		 (set 'nextproc
-		      (eshell-do-pipelines (quote ,(cdr pipeline))))
+		 (set 'output-marker ,(point-marker))
 		 (eshell-set-output-handle ,eshell-output-handle
-					   'append nextproc)
+					   'append output-marker)
 		 (eshell-set-output-handle ,eshell-error-handle
-					   'append nextproc)
-		 (set 'tailproc (or tailproc nextproc)))))
+					   'append output-marker))))
 	 ,(let ((head (car pipeline)))
 	    (if (memq (car head) '(let progn))
 		(setq head (car (last head))))
+	    ;;; FIXME: is deferrable significant here?
 	    (when (memq (car head) eshell-deferrable-commands)
 	      (ignore
 	       (setcar head
 		       (intern-soft
 			(concat (symbol-name (car head)) "*"))))))
-	 ,(car pipeline)))))
+	 ;; The last process in the pipe should get its handles
+	 ;; redirected as we found them before running the pipe.
+	 ,(if (null (cdr pipeline))
+	      `(progn
+		 (set 'eshell-current-handles tail-handles)
+		 (set 'eshell-in-pipeline-p nil)))
+	 (set 'result ,(car pipeline))
+	 ;; tailproc gets the result of the last successful process in
+	 ;; the pipeline.
+	 (set 'tailproc (or result tailproc))
+	 ,(if (cdr pipeline)
+	      `(eshell-do-pipelines-synchronously (quote ,(cdr pipeline))))
+	 result))))
 
 (defalias 'eshell-process-identity 'identity)
 
@@ -812,7 +870,14 @@ this grossness will be made to disappear by using `call/cc'..."
   "Execute the commands in PIPELINE, connecting each to one another."
   `(let ((eshell-in-pipeline-p t) tailproc)
      (progn
-       (eshell-do-pipelines ,pipeline)
+       ,(if (fboundp 'start-process)
+	    `(eshell-do-pipelines ,pipeline)
+	  `(let ((tail-handles (eshell-create-handles
+				(car (aref eshell-current-handles
+					   ,eshell-output-handle)) nil
+				(car (aref eshell-current-handles
+					   ,eshell-error-handle)) nil)))
+	     (eshell-do-pipelines-synchronously ,pipeline)))
        (eshell-process-identity tailproc))))
 
 (defmacro eshell-as-subcommand (command)
@@ -919,12 +984,19 @@ at the moment are:
 	     (erase-buffer)
 	     (insert "command: \"" input "\"\n"))))
     (setq eshell-current-command command)
-    (eshell-resume-eval)))
+    (let ((delim (catch 'eshell-incomplete
+		   (eshell-resume-eval))))
+      (if delim
+	  (error "Unmatched delimiter: %c"
+		 (if (listp delim)
+		     (car delim)
+		   delim))))))
 
 (defun eshell-resume-command (proc status)
   "Resume the current command when a process ends."
   (when proc
-    (unless (or (string= "stopped" status)
+    (unless (or (not (stringp status))
+		(string= "stopped" status)
 		(string-match eshell-reset-signals status))
       (if (eq proc (eshell-interactive-process))
 	  (eshell-resume-eval)))))
@@ -941,7 +1013,7 @@ at the moment are:
 			  (setq retval
 				(eshell-do-eval
 				 eshell-current-command))))))
-	    (if proc
+	    (if (eshell-processp proc)
 		(ignore (setq eshell-last-async-proc proc))
 	      (cadr retval)))))
     (error
@@ -1019,38 +1091,31 @@ be finished later after the completion of an asynchronous subprocess."
 	(when (car eshell-command-body)
 	  (assert (not synchronous-p))
 	  (eshell-do-eval (car eshell-command-body))
-	  (setcar eshell-command-body nil))
+	  (setcar eshell-command-body nil)
+	  (setcar eshell-test-body nil))
 	(unless (car eshell-test-body)
 	  (setcar eshell-test-body (eshell-copy-tree (car args))))
-	(if (and (car eshell-test-body)
-		 (not (eq (car eshell-test-body) 0)))
-	    (while (cadr (eshell-do-eval (car eshell-test-body)))
-	      (setcar eshell-test-body 0)
-	      (setcar eshell-command-body (eshell-copy-tree (cadr args)))
-	      (eshell-do-eval (car eshell-command-body) synchronous-p)
-	      (setcar eshell-command-body nil)
-	      (setcar eshell-test-body (eshell-copy-tree (car args)))))
+	(while (cadr (eshell-do-eval (car eshell-test-body)))
+	  (setcar eshell-command-body (eshell-copy-tree (cadr args)))
+	  (eshell-do-eval (car eshell-command-body) synchronous-p)
+	  (setcar eshell-command-body nil)
+	  (setcar eshell-test-body (eshell-copy-tree (car args))))
 	(setcar eshell-command-body nil))
        ((eq (car form) 'if)
 	;; `eshell-copy-tree' is needed here so that the test argument
 	;; doesn't get modified and thus always yield the same result.
-	(when (car eshell-command-body)
-	  (assert (not synchronous-p))
-	  (eshell-do-eval (car eshell-command-body))
-	  (setcar eshell-command-body nil))
-	(unless (car eshell-test-body)
-	  (setcar eshell-test-body (eshell-copy-tree (car args))))
-	(if (and (car eshell-test-body)
-		 (not (eq (car eshell-test-body) 0)))
-	    (if (cadr (eshell-do-eval (car eshell-test-body)))
-		(progn
-		  (setcar eshell-test-body 0)
-		  (setcar eshell-command-body (eshell-copy-tree (cadr args)))
-		  (eshell-do-eval (car eshell-command-body) synchronous-p))
-	      (setcar eshell-test-body 0)
-	      (setcar eshell-command-body (eshell-copy-tree (car (cddr args))))
-	      (eshell-do-eval (car eshell-command-body) synchronous-p)))
-	(setcar eshell-command-body nil))
+	(if (car eshell-command-body)
+	    (progn
+	      (assert (not synchronous-p))
+	      (eshell-do-eval (car eshell-command-body)))
+	  (unless (car eshell-test-body)
+	    (setcar eshell-test-body (eshell-copy-tree (car args))))
+	  (if (cadr (eshell-do-eval (car eshell-test-body)))
+	      (setcar eshell-command-body (eshell-copy-tree (cadr args)))
+	    (setcar eshell-command-body (eshell-copy-tree (car (cddr args)))))
+	  (eshell-do-eval (car eshell-command-body) synchronous-p))
+	(setcar eshell-command-body nil)
+	(setcar eshell-test-body nil))
        ((eq (car form) 'setcar)
 	(setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p))
 	(eval form))
@@ -1131,7 +1196,7 @@ be finished later after the completion of an asynchronous subprocess."
 	      (if (and (memq (car form) eshell-deferrable-commands)
 		       (not eshell-current-subjob-p)
 		       result
-		       (processp result))
+		       (eshell-processp result))
 		  (if synchronous-p
 		      (eshell/wait result)
 		    (eshell-manipulate "inserting ignore form"
@@ -1172,7 +1237,8 @@ be finished later after the completion of an asynchronous subprocess."
 		(setq desc (substring desc 0
 				      (1- (or (string-match "\n" desc)
 					      (length desc)))))
-		(kill-buffer "*Help*")
+		(if (buffer-live-p (get-buffer "*Help*"))
+		    (kill-buffer "*Help*"))
 		(setq program (or desc name))))))
       (if (not program)
 	  (eshell-error (format "which: no %s in (%s)\n"

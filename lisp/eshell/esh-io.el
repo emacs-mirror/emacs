@@ -132,8 +132,8 @@ the function is expected to return another function -- which is the
 output function.  Otherwise, the second element itself is the output
 function.
 
-The output function is then called repeatedly with a single strings,
-with represents success pieces of the output of the command, until nil
+The output function is then called repeatedly with single strings,
+which represents successive pieces of the output of the command, until nil
 is passed, meaning EOF.
 
 NOTE: /dev/null is handled specially as a virtual target, and should
@@ -231,7 +231,9 @@ not be added to this variable."
   (standard-output output-mode &optional standard-error error-mode)
   "Create a new set of file handles for a command.
 The default location for standard output and standard error will go to
-STANDARD-OUTPUT and STANDARD-ERROR, respectively."
+STANDARD-OUTPUT and STANDARD-ERROR, respectively.
+OUTPUT-MODE and ERROR-MODE are either `overwrite', `append' or `insert';
+a nil value of mode defaults to `insert'."
   (let ((handles (make-vector eshell-number-of-handles nil))
 	(output-target (eshell-get-target standard-output output-mode))
 	(error-target (eshell-get-target standard-error error-mode)))
@@ -272,7 +274,7 @@ STATUS should be non-nil on successful termination of the output."
 
    ;; If we're redirecting to a process (via a pipe, or process
    ;; redirection), send it EOF so that it knows we're finished.
-   ((processp target)
+   ((eshell-processp target)
     (if (eq (process-status target) 'run)
 	(process-send-eof target)))
 
@@ -326,7 +328,8 @@ last execution result should not be changed."
 
 (defun eshell-get-target (target &optional mode)
   "Convert TARGET, which is a raw argument, into a valid output target.
-MODE is either `overwrite', `append' or `insert'."
+MODE is either `overwrite', `append' or `insert'; if it is omitted or nil,
+it defaults to `insert'."
   (setq mode (or mode 'insert))
   (cond
    ((stringp target)
@@ -367,7 +370,7 @@ MODE is either `overwrite', `append' or `insert'."
     (if (eq mode 'overwrite)
 	(set target nil))
     target)
-   ((or (processp target)
+   ((or (eshell-processp target)
 	(markerp target))
     target)
    (t
@@ -394,7 +397,7 @@ MODE is either `overwrite', `append' or `insert'."
 	(if (and (listp current)
 		 (not (member where current)))
 	    (setq current (append current (list where)))
-	  (setq current (list where)))
+	  (setq current where))
 	(if (not (aref eshell-current-handles index))
 	    (aset eshell-current-handles index (cons nil 1)))
 	(setcar (aref eshell-current-handles index) current)))))
@@ -438,20 +441,20 @@ after all printing is over with no argument."
 	  eshell-print-queue-count (1+ eshell-print-queue-count))))
 
 (defsubst eshell-print (object)
-  "Output OBJECT to the error handle."
+  "Output OBJECT to the standard output handle."
   (eshell-output-object object eshell-output-handle))
 
 (defsubst eshell-error (object)
-  "Output OBJECT to the error handle."
+  "Output OBJECT to the standard error handle."
   (eshell-output-object object eshell-error-handle))
 
 (defsubst eshell-errorn (object)
-  "Output OBJECT to the error handle."
+  "Output OBJECT followed by a newline to the standard error handle."
   (eshell-error object)
   (eshell-error "\n"))
 
 (defsubst eshell-printn (object)
-  "Output OBJECT to the error handle."
+  "Output OBJECT followed by a newline to the standard output handle."
   (eshell-print object)
   (eshell-print "\n"))
 
@@ -485,7 +488,7 @@ Returns what was actually sent, or nil if nothing was sent."
 	    (if moving
 		(goto-char target))))))
 
-   ((processp target)
+   ((eshell-processp target)
     (when (eq (process-status target) 'run)
       (setq object (eshell-stringify object))
       (process-send-string target object)))

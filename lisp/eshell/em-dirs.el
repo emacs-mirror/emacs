@@ -382,11 +382,13 @@ in the minibuffer:
 		(index 0))
 	    (if (= len 0)
 		(error "Directory ring empty"))
+	    (eshell-init-print-buffer)
 	    (while (< index len)
-	      (eshell-printn
+	      (eshell-buffered-print
 	       (concat (number-to-string index) ": "
-		       (ring-ref eshell-last-dir-ring index)))
+		       (ring-ref eshell-last-dir-ring index) "\n"))
 	      (setq index (1+ index)))
+	    (eshell-flush)
 	    (setq handled t)))))
      (path
       (setq path (eshell-expand-multiple-dots path))))

@@ -262,7 +262,7 @@ If N or M is nil, it means the end of the list."
 
 (put 'eshell-for 'lisp-indent-function 2)
 
-(defsubst eshell-flatten-list (args)
+(defun eshell-flatten-list (args)
   "Flatten any lists within ARGS, so that there are no sublists."
   (let ((new-list (list t)))
     (eshell-for a args

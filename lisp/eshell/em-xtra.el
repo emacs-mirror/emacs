@@ -41,7 +41,7 @@ naturally accessible within Emacs."
   "Implementation of expr, using the calc package."
   (if (not (fboundp 'calc-eval))
       (throw 'eshell-replace-command
-	     (eshell-parse-command "*expr" args))
+	     (eshell-parse-command "*expr" (eshell-flatten-list args)))
     ;; to fool the byte-compiler...
     (let ((func 'calc-eval))
       (funcall func (eshell-flatten-and-stringify args)))))

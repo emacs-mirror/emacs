@@ -117,7 +117,7 @@ Otherwise, `rmdir' is required."
   :type 'boolean
   :group 'eshell-unix)
 
-(defcustom eshell-ln-overwrite-files t
+(defcustom eshell-ln-overwrite-files nil
   "*If non-nil, `ln' will overwrite files without warning."
   :type 'boolean
   :group 'eshell-unix)
@@ -224,7 +224,7 @@ Remove (unlink) the FILE(s).")
 			  (not (y-or-n-p (format "rm: delete buffer `%s'? "
 						 entry)))))
 	   (eshell-funcalln 'kill-buffer entry)))
-	((processp entry)
+	((eshell-processp entry)
 	 (if verbose
 	     (eshell-printn (format "rm: killing process `%s'" entry)))
 	 (unless (or preview
@@ -353,13 +353,14 @@ Remove the DIRECTORY(ies), if they are empty.")
 				 command target)))
 		    (unless preview
 		      (eshell-funcalln 'make-directory target)))
-		  (eshell-shuffle-files command action
-					(mapcar
-					 (function
-					  (lambda (file)
-					    (concat source "/" file)))
-					 (directory-files source))
-					target func t args)
+		  (apply 'eshell-shuffle-files
+			 command action
+			 (mapcar
+			  (function
+			   (lambda (file)
+			     (concat source "/" file)))
+			  (directory-files source))
+			 target func t args)
 		  (when (eq func 'rename-file)
 		    (if verbose
 			(eshell-printn
@@ -527,7 +528,7 @@ with '--symbolic'.  When creating hard links, each TARGET must exist.")
   "Implementation of cat in Lisp."
   (if eshell-in-pipeline-p
       (throw 'eshell-replace-command
-	     (eshell-parse-command "*cat" args))
+	     (eshell-parse-command "*cat" (eshell-flatten-list args)))
     (eshell-init-print-buffer)
     (eshell-eval-using-options
      "cat" args
@@ -568,7 +569,7 @@ Concatenate FILE(s), or standard input, to standard output.")
 			 (list 'quote (eshell-copy-environment))))))
 	(compile (concat "make " (eshell-flatten-and-stringify args))))
     (throw 'eshell-replace-command
-	   (eshell-parse-command "*make" args))))
+	   (eshell-parse-command "*make" (eshell-flatten-list args)))))
 
 (defun eshell-occur-mode-goto-occurrence ()
   "Go to the occurrence the current line describes."
@@ -644,7 +645,8 @@ external command."
 		      (not eshell-in-pipeline-p)
 		      (not eshell-in-subcommand-p))))
 	(throw 'eshell-replace-command
-	       (eshell-parse-command (concat "*" command) args))
+	       (eshell-parse-command (concat "*" command)
+				     (eshell-flatten-list args)))
       (let* ((compilation-process-setup-function
 	      (list 'lambda nil
 		    (list 'setq 'process-environment
@@ -745,8 +747,8 @@ external command."
 			     (cadr (car entries)))))
 	  (unless (or (and symlink (not dereference-links))
 		      (and only-one-filesystem
-			   (not (= only-one-filesystem
-				   (nth 12 (car entries))))))
+			   (/= only-one-filesystem
+			       (nth 12 (car entries)))))
 	    (if symlink
 		(setq entry symlink))
 	    (setq size
@@ -769,10 +771,10 @@ external command."
     size))
 
 (defun eshell/du (&rest args)
-  "Implementation of \"du\" in Lisp, passing RAGS."
+  "Implementation of \"du\" in Lisp, passing ARGS."
   (if (eshell-search-path "du")
       (throw 'eshell-replace-command
-	     (eshell-parse-command "*du" args))
+	     (eshell-parse-command "*du" (eshell-flatten-list args)))
     (eshell-eval-using-options
      "du" args
      '((?a "all" nil show-all
@@ -875,32 +877,38 @@ Show wall-clock time elapsed during execution of COMMAND.")
 
 (defun eshell/diff (&rest args)
   "Alias \"diff\" to call Emacs `diff' function."
-  (if (or eshell-plain-diff-behavior
-	  (not (and (eshell-interactive-output-p)
-		    (not eshell-in-pipeline-p)
-		    (not eshell-in-subcommand-p))))
-      (throw 'eshell-replace-command
-	     (eshell-parse-command "*diff" args))
-    (setq args (eshell-flatten-list args))
-    (if (< (length args) 2)
-	(error "diff: missing operand"))
-    (let ((old (car (last args 2)))
-	  (new (car (last args)))
-	  (config (current-window-configuration)))
-      (if (= (length args) 2)
-	  (setq args nil)
-	(setcdr (last args 3) nil))
-      (with-current-buffer
-	  (diff old new (eshell-flatten-and-stringify args))
-	(when (fboundp 'diff-mode)
-	  (diff-mode)
-	  (set (make-local-variable 'eshell-diff-window-config) config)
-	  (local-set-key [?q] 'eshell-diff-quit)
-	  (if (fboundp 'turn-on-font-lock-if-enabled)
-	      (turn-on-font-lock-if-enabled))))
-      (other-window 1)
-      (goto-char (point-min))
-      nil)))
+  (let ((orig-args (eshell-flatten-list args)))
+    (if (or eshell-plain-diff-behavior
+	    (not (and (eshell-interactive-output-p)
+		      (not eshell-in-pipeline-p)
+		      (not eshell-in-subcommand-p))))
+	(throw 'eshell-replace-command
+	       (eshell-parse-command "*diff" orig-args))
+      (setq args (eshell-copy-list orig-args))
+      (if (< (length args) 2)
+	  (throw 'eshell-replace-command
+		 (eshell-parse-command "*diff" orig-args)))
+      (let ((old (car (last args 2)))
+	    (new (car (last args)))
+	    (config (current-window-configuration)))
+	(if (= (length args) 2)
+	    (setq args nil)
+	  (setcdr (last args 3) nil))
+	(with-current-buffer
+	    (condition-case err
+		(diff old new (eshell-flatten-and-stringify args))
+	      (error
+	       (throw 'eshell-replace-command
+		      (eshell-parse-command "*diff" orig-args))))
+	  (when (fboundp 'diff-mode)
+	    (diff-mode)
+	    (set (make-local-variable 'eshell-diff-window-config) config)
+	    (local-set-key [?q] 'eshell-diff-quit)
+	    (if (fboundp 'turn-on-font-lock-if-enabled)
+		(turn-on-font-lock-if-enabled))))
+	(other-window 1)
+	(goto-char (point-min))
+	nil))))
 
 (defun eshell/locate (&rest args)
   "Alias \"locate\" to call Emacs `locate' function."
@@ -911,7 +919,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	  (and (stringp (car args))
 	       (string-match "^-" (car args))))
       (throw 'eshell-replace-command
-	     (eshell-parse-command "*locate" args))
+	     (eshell-parse-command "*locate" (eshell-flatten-list args)))
     (save-selected-window
       (let ((locate-history-list (list (car args))))
 	(locate-with-filter (car args) (cadr args))))))

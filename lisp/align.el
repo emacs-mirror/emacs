@@ -873,7 +873,8 @@ on the format of these lists."
   (interactive "r")
   (let ((separator
 	 (or separate
-	     (if (symbolp align-region-separate)
+	     (if (and (symbolp align-region-separate)
+		      (boundp align-region-separate))
 		 (symbol-value align-region-separate)
 	       align-region-separate)
 	     'entire)))
@@ -1038,7 +1039,8 @@ to be colored."
 (defun align-newline-and-indent ()
   "A replacement function for `newline-and-indent', aligning as it goes."
   (interactive)
-  (let ((separate (or (if (symbolp align-region-separate)
+  (let ((separate (or (if (and (symbolp align-region-separate)
+			       (boundp align-region-separate))
 			  (symbol-value align-region-separate)
 			align-region-separate)
 		      'entire))

@@ -350,17 +350,13 @@ unless a different file is specified on the command line.")
 (defun eshell-put-history (input &optional ring at-beginning)
   "Put a new input line into the history ring."
   (unless ring (setq ring eshell-history-ring))
-  (subst-char-in-string ?\n ?\177 input t)
   (if at-beginning
       (ring-insert-at-beginning ring input)
     (ring-insert ring input)))
 
 (defun eshell-get-history (index &optional ring)
   "Get an input line from the history ring."
-  (unless ring (setq ring eshell-history-ring))
-  (let ((input (concat (ring-ref ring index))))
-    (subst-char-in-string ?\177 ?\n input t)
-    input))
+  (ring-ref (or ring eshell-history-ring) index))
 
 (defun eshell-add-to-history ()
   "Add INPUT to the history ring.
@@ -419,7 +415,8 @@ line, with the most recent command last.  See also
 	      (if (or (null ignore-dups)
 		      (ring-empty-p ring)
 		      (not (string-equal (ring-ref ring 0) history)))
-		  (ring-insert-at-beginning ring history)))
+		  (ring-insert-at-beginning
+		   ring (subst-char-in-string ?\177 ?\n history))))
 	    (setq count (1+ count))))
 	(setq eshell-history-ring ring
 	      eshell-history-index nil))))))
@@ -451,7 +448,9 @@ See also `eshell-read-history'."
 	(with-temp-buffer
 	  (while (> index 0)
 	    (setq index (1- index))
-	    (insert (ring-ref ring index) ?\n))
+	    (let ((start (point)))
+	      (insert (ring-ref ring index) ?\n)
+	      (subst-char-in-region start (1- (point)) ?\n ?\177)))
 	  (eshell-with-private-file-modes
 	   (write-region (point-min) (point-max) file append
 			 'no-message))))))))
@@ -891,7 +890,6 @@ If N is negative, search backwards for the -Nth previous match."
 	(goto-char eshell-last-output-end)
 	(delete-region (point) (point-max))
 	(when (and text (> (length text) 0))
-	  (subst-char-in-string ?\177 ?\n text t)
 	  (insert text)
 	  (put-text-property (1- (point)) (point)
 			     'last-search-pos before)

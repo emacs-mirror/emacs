@@ -225,7 +225,12 @@ to writing a completion function."
   (documentation-property 'pcomplete-default-completion-function
 			  'variable-documentation)
   :type (get 'pcomplete-default-completion-function 'custom-type)
-  :group 'pcomplete)
+  :group 'eshell-cmpl)
+
+(defcustom eshell-cmpl-use-paring t
+  (documentation-property 'pcomplete-use-paring 'variable-documentation)
+  :type (get 'pcomplete-use-paring 'custom-type)
+  :group 'eshell-cmpl)
 
 ;;; Functions:
 
@@ -265,6 +270,8 @@ to writing a completion function."
        eshell-cmpl-cycle-cutoff-length)
   (set (make-local-variable 'pcomplete-restore-window-delay)
        eshell-cmpl-restore-window-delay)
+  (set (make-local-variable 'pcomplete-use-paring)
+       eshell-cmpl-use-paring)
   ;; `pcomplete-arg-quote-list' should only be set after all the
   ;; load-hooks for any other extension modules have been run, which
   ;; is true at the time `eshell-mode-hook' is run

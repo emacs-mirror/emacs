@@ -474,6 +474,7 @@ sessions, such as when using `eshell-command'.")
 (defun eshell-find-tag (&optional tagname next-p regexp-p)
   "A special version of `find-tag' that ignores read-onlyness."
   (interactive)
+  (require 'etags)
   (let ((inhibit-read-only t)
 	(no-default (eobp)))
     (setq tagname (find-tag-interactive "Find tag: " no-default))

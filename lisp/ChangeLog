@@ -1,5 +1,9 @@
 2000-08-28  John Wiegley  <johnw@gnu.org>
 
+	* eshell/esh-util.el (eshell-flatten-list): It's not too wise to
+	have a defsubst call itself.  Made `eshell-flatten-list' back into
+	a function again.
+
 	* eshell/em-smart.el (eshell-smart-redisplay): Added a safety
 	catch, in case re-centering point at bottom messes up the display.
 	This happens frequently in Emacs 21, due I believe to variable

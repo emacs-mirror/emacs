@@ -235,7 +235,7 @@ input."
   (let ((proc (get-buffer-process (current-buffer))))
     (if (eobp)
 	(cond
-	 ((not (= (point) eshell-last-output-end))
+	 ((/= (point) eshell-last-output-end)
 	  (beep))
 	 (proc
 	  (process-send-eof))

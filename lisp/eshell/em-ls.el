@@ -820,7 +820,7 @@ Use TRUENAME for predicate tests, if passed."
 	      ((not (eshell-ls-filetype-p (cdr file) ?-))
 	       'eshell-ls-special-face)
 
-	      ((and (not (= (user-uid) 0)) ; root can execute anything
+	      ((and (/= (user-uid) 0) ; root can execute anything
 		    (eshell-ls-applicable (cdr file) 3
 					  'file-executable-p (car file)))
 	       'eshell-ls-executable-face)
