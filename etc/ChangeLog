@@ -1,3 +1,10 @@
+2004-04-18  Juri Linkov  <juri@jurta.org>
+
+	* TUTORIAL.fr, TUTORIAL.pl, TUTORIAL.ru, TUTORIAL.sl, TUTORIAL.sv
+	* TUTORIAL.th: Add sentence-end-double-space: nil.
+
+	* TUTORIAL.it, TUTORIAL.nl, TUTORIAL.sv: Add coding: latin-1.
+
 2004-04-16  David Kastrup  <dak@gnu.org>
 
 	* TUTORIAL.ru: Changes by Alex Ott checked in.

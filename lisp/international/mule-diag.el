@@ -1181,9 +1181,7 @@ see the function `describe-fontset' for the format of the list."
 	(goto-char (point-min))
 	(while (re-search-forward
 		"^  \\([^ ]+\\) (`.*' in mode line)$" nil t)
-	  (help-xref-button 1 #'help-input-method
-				(match-string 1)
-				"mouse-2: describe this method"))))))
+	  (help-xref-button 1 'help-input-method (match-string 1)))))))
 
 (defun list-input-methods-1 ()
   (if (not input-method-alist)

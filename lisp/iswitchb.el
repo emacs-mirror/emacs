@@ -1244,10 +1244,16 @@ Modified from `icomplete-completions'."
 		    (> (length comps) iswitchb-max-to-show))
 	       (setq comps
 		     (append
-		      (subseq comps 0 (/ iswitchb-max-to-show 2))
+		      (let ((res nil)
+			    (comp comps)
+			    (end (/ iswitchb-max-to-show 2)))
+			(while (>= (setq end (1- end)) 0)
+			  (setq res (cons (car comp) res)
+				comp (cdr comp)))
+			(nreverse res))
 		      (list "...")
-		      (subseq comps (- (length comps)
-				       (/ iswitchb-max-to-show 2))))))
+		      (nthcdr (- (length comps)
+				 (/ iswitchb-max-to-show 2)) comps))))
 	   (let* (
 		  ;;(most (try-completion name candidates predicate))
 		  (most nil)
