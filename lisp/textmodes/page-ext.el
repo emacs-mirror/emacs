@@ -1,9 +1,8 @@
 ;;; page-ext.el --- page handling commands
 
-;; Author: Robert J. Chassell <bob@gnu.ai.mit.edu>
-;; Last-Modified: 10 Apr 1991
-
 ;;; Copyright (C) 1990 Free Software Foundation
+
+;; Author: Robert J. Chassell <bob@gnu.ai.mit.edu>
 
 ;; This file is part of GNU Emacs.
 

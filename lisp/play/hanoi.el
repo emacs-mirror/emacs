@@ -2,7 +2,6 @@
 
 ;; Author: Damon Anton Permezel
 ;; Maintainer: FSF
-;; Last-Modified: 09 May 1991
 ;; Keywords: games
 
 ; Author (a) 1985, Damon Anton Permezel

@@ -1,12 +1,11 @@
 ;;; bg-mouse.el --- GNU Emacs code for BBN Bitgraph mouse.
 
+;; Copyright (C) Free Software Foundation, Inc. Oct 1985.
+
 ;; Author: John Robinson <jr@bbn-unix.arpa>
 ;;	Stephen Gildea <gildea@bbn.com>
 ;; Maintainer: FSF
-;; Last-Modified: 14 Jul 1992
 ;; Keywords: hardware
-
-;; Copyright (C) Free Software Foundation, Inc. Oct 1985.
 
 ;; This file is part of GNU Emacs.
 

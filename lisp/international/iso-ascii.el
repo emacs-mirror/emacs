@@ -1,10 +1,10 @@
 ;;; iso-ascii.el --- set up char tables for ISO 8859/1 on ASCII terminals.
 
+;; Copyright (C) 1987 Free Software Foundation, Inc.
+
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
-;; Last-Modified: 16 Mar 1992
-
-;; Copyright (C) 1987 Free Software Foundation, Inc.
+;; Keywords: i14n
 
 ;; This file is part of GNU Emacs.
 

@@ -1,10 +1,10 @@
 ;; iso8859-1.el --- set up case-conversion and syntax tables for ISO 8859/1
 
+;; Copyright (C) 1988 Free Software Foundation, Inc.
+
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
-;; Last-Modified: 24 Jun 1992
-
-;; Copyright (C) 1988 Free Software Foundation, Inc.
+;; Keywords: i14n
 
 ;; This file is part of GNU Emacs.
 

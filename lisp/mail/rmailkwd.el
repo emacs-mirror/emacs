@@ -1,10 +1,9 @@
 ;;; rmailkwd.el --- part of the "RMAIL" mail reader for Emacs.
 
-;; Maintainer: FSF
-;; Last-Modified: 31 Oct 1989
-;; Keywords: mail
-
 ;; Copyright (C) 1985, 1988 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
 

@@ -1,13 +1,13 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs
 
+;; Copyright (C) 1992 Free Software Foundation, Inc.
+
 ;; Author: Bengt Martensson <ubrinf!mond!bengt>
 ;;	Mark Shapiro <shapiro@corto.inria.fr>
 ;;	Mike Newton <newton@gumby.cs.caltech.edu>
 ;;	Aaron Larson <alarson@src.honeywell.com>
 ;; Maintainer: Mark Shapiro <shapiro@corto.inria.fr>
 ;; Keywords: tex, bib
-
-;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

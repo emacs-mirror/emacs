@@ -1,10 +1,9 @@
 ;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file.
 
-;; Maintainer: FSF
-;; Last-Modified: 01 Mar 1991
-;; Keywords: mail
-
 ;; Copyright (C) 1985, 1987 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
 

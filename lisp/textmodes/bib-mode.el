@@ -1,10 +1,9 @@
 ;;; bib-mode.el --- bib-mode, major mode for editing bib files.
 
-;; Maintainer: FSF
-;; Last-Modified: 16 Mar 1992
-;; Keywords: bib
-
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: bib
 
 ;; This file is part of GNU Emacs.
 

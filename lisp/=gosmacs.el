@@ -1,10 +1,9 @@
 ;;; gosmacs.el --- rebindings to imitate Gosmacs.
 
-;; Maintainer: FSF
-;; Last-Modified: 09 May 1991
-;; Keywords: emulations
-
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: emulations
 
 ;; This file is part of GNU Emacs.
 

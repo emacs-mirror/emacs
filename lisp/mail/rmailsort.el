@@ -1,10 +1,9 @@
 ;;; rmailsort.el --- Rmail: sort messages.
 
-;; Maintainer: FSF
-;; Last-Modified: 16 Mar 1992
+;; Copyright (C) 1990 Free Software Foundation, Inc.
+
 ;; Keywords: mail
 
-;; Copyright (C) 1990 Free Software Foundation, Inc.
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify

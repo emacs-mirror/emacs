@@ -1,10 +1,9 @@
 ;;; rmailedit.el --- "RMAIL edit mode"  Edit the current message.
 
-;; Maintainer: FSF
-;; Last-Modified: 31 Jul 1991
-;; Keywords: mail
-
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
 

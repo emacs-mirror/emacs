@@ -1,7 +1,6 @@
 ;;; completion.el --- dynamic word-completion code
 
 ;; Maintainer: bug-completion@think.com
-;; Last-Modified: 30 Jun 1992
 
 ;;; Commentary:
 

@@ -1,11 +1,10 @@
 ;;; array.el --- array editing commands for Gnu Emacs
 
+;; Copyright (C) 1987 Free Software Foundation, Inc.
+
 ;; Author David M. Brown
 ;; Maintainer: FSF
-;; Last-Modified: 30 Jan 1991
 ;; Keyword: extensions
-
-;; Copyright (C) 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

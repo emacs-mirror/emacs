@@ -1,10 +1,9 @@
 ;;; doctor.el --- psychological help for frustrated users.
 
-;; Maintainer: FSF
-;; Last-Modified: 24 Apr 1992
-;; Keywords: games
-
 ;; Copyright (C) 1985, 1987 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: games
 
 ;; This file is part of GNU Emacs.
 

@@ -1,11 +1,10 @@
 ;;; resume.el --- process command line args from within a suspended Emacs job
 
+;; Copyright (C) 1992 Free Software Foundation, Inc.
+
 ;; Author: Joe Wells <jbw@bucsf.bu.edu>
-;; Last-Modified: Tue Jun 13 1989
 ;; Adapted-By: ESR
 ;; Keywords: processes
-
-;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

@@ -1,10 +1,9 @@
 ;;; mlconvert.el --- convert buffer of Mocklisp code to real lisp.
 
-;; Maintainer: FSF
-;; Last-Modified: 09 May 1991
-;; Keywords: extensions
-
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.
 

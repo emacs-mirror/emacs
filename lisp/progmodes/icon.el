@@ -1,11 +1,10 @@
 ;;; icon.el --- mode for editing Icon code
 
+;; Copyright (C) 1989 Free Software Foundation, Inc.
+
 ;; Author: Chris Smith <convex!csmith>
 ;; Created: 15 Feb 89
-;; Last-Modified: 06 Mar 1991
 ;; Keywords: languages
-
-;; Copyright (C) 1989 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

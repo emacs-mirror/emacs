@@ -1,10 +1,9 @@
 ;;; rmailsum.el --- "RMAIL" mail reader for Emacs.
 
-;; Maintainer: FSF
-;; Last-Modified: 30 Nov 1990
-;; Keywords: mail
-
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
 

@@ -1,12 +1,11 @@
 ;; cust-print.el -- handles print-level and print-circle.
 
+;; Copyright (C) 1992 Free Software Foundation, Inc.
+
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Version: 1.0
-;; Last-Modified: 17 Mar 1992
 ;; Adapted-By: ESR
 ;; Keyword: extensions
-
-;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

@@ -1,11 +1,10 @@
 ;;; rfc822.el --- hairy rfc822 parser for mail and news and suchlike
 
+;; Copyright (C) 1986, 87, 1990 Free Software Foundation, Inc.
+
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Maintainer: FSF
-;; Last-Modified: 26 Nov 1990
 ;; Keywords: mail
-
-;; Copyright (C) 1986, 87, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

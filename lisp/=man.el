@@ -1,10 +1,9 @@
 ;;; man.el --- read in and display parts of Unix manual.
 
-;; Maintainer: FSF
-;; Last-Modified: 21 Dec 1991
-;; Keywords: unix
-
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: unix
 
 ;; This file is part of GNU Emacs.
 

@@ -1,9 +1,8 @@
 ;;; macros.el --- non-primitive commands for keyboard macros.
 
-;; Maintainer: FSF
-;; Last-Modified: 05 Nov 1991
-
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 

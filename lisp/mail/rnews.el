@@ -1,10 +1,9 @@
 ;;; rnews.el --- USENET news reader for gnu emacs
 
-;; Maintainer: FSF
-;; Last-Modified: 16 Mar 1992
-;; Keywords: news
-
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: news
 
 ;; This file is part of GNU Emacs.
 

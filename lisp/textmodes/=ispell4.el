@@ -1,10 +1,7 @@
 ;;; ispell.el --- this is the GNU EMACS interface to GNU ISPELL version 3.
 
-;; Maintainer: FSF
-;; Last-Modified: 02 Jun 1992
-
 ;;Copyright (C) 1990, 1991 Free Software Foundation, Inc.
-;;
+
 ;;This file is part of GNU Emacs.
 ;;
 ;;GNU Emacs is free software; you can redistribute it and/or modify

@@ -1,9 +1,8 @@
 ;;; buff-menu.el --- buffer menu main function and support functions.
 
-;; Maintainer: FSF
-;; Last-Modified: 09 Jul 1992
-
 ;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 

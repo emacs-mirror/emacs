@@ -1,10 +1,9 @@
 ;;; cmacexp.el --- C macro expansion
 
-;; Maintainer: FSF
-;; Last-Modified: 17 Apr 1992
-;; Keywords: c
-
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: c
 
 ;; This file is part of GNU Emacs.
 

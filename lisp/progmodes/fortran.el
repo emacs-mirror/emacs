@@ -1,12 +1,11 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
+;;; Copyright (c) 1991 Free Software Foundation, Inc.
+
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: bug-fortran-mode@erl.mit.edu
 ;; Version 1.28.3
-;; Last-Modified: 15 Jul 1991
 ;; Keywords: languages
-
-;;; Copyright (c) 1991 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

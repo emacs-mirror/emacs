@@ -1,9 +1,8 @@
 ;;; outline.el --- outline mode commands for Emacs
 
-;; Maintainer: FSF
-;; Last-Modified: 10 Apr 1991
-
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 

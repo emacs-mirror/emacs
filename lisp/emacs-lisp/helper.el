@@ -1,11 +1,10 @@
 ;;; helper.el --- utility help package supporting help in electric modes
 
+;; Copyright (C) 1985 Free Software Foundation, Inc.
+
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
-;; Last-Modified: 16 Mar 1991
 ;; Keywords: help
-
-;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

@@ -1,10 +1,9 @@
 ;; backquote.el --- backquoting for Emacs Lisp macros
 
-;; Author: Dick King (king@kestrel).
-;; Last-Modified: 16 Mar 1992
-;; Keywords: extensions
-
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
+
+;; Author: Dick King (king@kestrel).
+;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.
 

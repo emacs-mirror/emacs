@@ -1,10 +1,9 @@
 ;;; paragraphs.el --- paragraph and sentence parsing.
 
-;; Maintainer: FSF
-;; Last-Modified: 13 May 1991
-;; Keywords: wp
-
 ;; Copyright (C) 1985, 86, 87, 1991 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: wp
 
 ;; This file is part of GNU Emacs.
 

@@ -1,10 +1,9 @@
 ;;; dissociate.el --- scramble text amusingly for Emacs.
 
-;; Maintainer: FSF
-;; Last-Modified: 09 May 1991
-;; Keywords: games
-
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: games
 
 ;; This file is part of GNU Emacs.
 

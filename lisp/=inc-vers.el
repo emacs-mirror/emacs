@@ -1,10 +1,9 @@
 ;;; inc-vers.el --- load this to increment the recorded Emacs version number.
 
-;; Maintainer: FSF
-;; Last-Modified: 31 Oct 1989
-;; Keywords: internal
-
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
 

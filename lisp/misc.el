@@ -1,9 +1,8 @@
 ;;; misc.el --- basic editing commands for Emacs
 
-;; Maintainer: FSF
-;; Last-Modified: 31 Oct 1989
-
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 

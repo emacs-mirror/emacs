@@ -1,9 +1,8 @@
 ;;; compare-w.el --- compare text between windows for Emacs.
 
-;; Maintainer: FSF
-;; Last-Modified: 16 Mar 1992
-
 ;; Copyright (C) 1986, 1989 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 

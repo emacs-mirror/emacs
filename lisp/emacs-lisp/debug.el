@@ -1,10 +1,9 @@
 ;;; debug.el --- debuggers and related commands for Emacs
 
-;; Maintainer: FSF
-;; Last-Modified: 08 Jan 1992
-;; Keyword: lisp, tools
-
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keyword: lisp, tools
 
 ;; This file is part of GNU Emacs.
 

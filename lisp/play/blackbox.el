@@ -1,11 +1,10 @@
 ;;; blackbox.el --- blackbox game in Emacs Lisp
 
+;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
+
 ;; Author: F. Thomas May <uw-nsr!uw-warp!tom@beaver.cs.washington.edu>
-;; Last-Modified: 24 Jun 1992
 ;; Adapted-By: ESR
 ;; Keywords: games
-
-;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

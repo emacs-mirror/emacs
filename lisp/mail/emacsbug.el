@@ -1,12 +1,11 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list.
 
-;; Author: K. Shane Hartman
-;; Maintainer: FSF
-;; Last-Modified: 21 Dec 1991
-
-;; Not fully installed because it can work only on Internet hosts.
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
+;; Author: K. Shane Hartman
+;; Maintainer: FSF
+
+;; Not fully installed because it can work only on Internet hosts.
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify

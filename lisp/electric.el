@@ -1,11 +1,10 @@
 ;;; electric.el --- window maker and Command loop for `electric' modes.
 
+;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
-;; Last-Modified: 09 Jun 1992
 ;; Keywords: extensions
-
-;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

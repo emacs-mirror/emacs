@@ -1,9 +1,8 @@
 ;;; indent.el --- indentation commands for Emacs
 
-;; Maintainer: FSF
-;; Last-Modified: 09 Jul 1992
-
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 

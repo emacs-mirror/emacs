@@ -1,11 +1,10 @@
 ;;; edmacro.el --- keyboard macro editor
 
+;; Copyright (C) 1990 Free Software Foundation, Inc.
+
 ;; Author: Dave Gillespie <daveg@csvax.caltech.edu>
 ;; Maintainer: FSF
 ;; Version: 1.02
-;; Last-Modified: 09 May 1991
-
-;; Copyright (C) 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

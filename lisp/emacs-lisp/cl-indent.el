@@ -1,12 +1,11 @@
 ;;; cl-indent.el --- enhanced lisp-indent mode
 
-;; Author: Richard Mlynark <mly@eddie.mit.edu>
-;; Maintainer: FSF
-;; Last-Modified: 09 May 1991
-;; Keywords: lisp, tools
-
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 ;; Written by Richard Mlynarik July 1987
+;; Author: Richard Mlynark <mly@eddie.mit.edu>
+;; Maintainer: FSF
+;; Keywords: lisp, tools
+
 
 ;; This file is part of GNU Emacs.
 

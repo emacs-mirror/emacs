@@ -1,10 +1,9 @@
 ;;; autoinsert.el --- automatic mode-dependent insertion of text into new files
 
+;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+
 ;; Author: Charlie Martin <crm@cs.duke.edu>
 ;; Created: 01 Jul 1988
-;; Last-Modified: 30 Jun 1992
-
-;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

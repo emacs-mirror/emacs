@@ -1,10 +1,9 @@
 ;;; ada.el --- Ada editing support package in GNUlisp.  v1.0
 
-;; Author: Vincent Broman <broman@bugs.nosc.mil>
-;; Last-Modified: 30 Jan 1991
-;; Keywords: languages
-
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+
+;; Author: Vincent Broman <broman@bugs.nosc.mil>
+;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
 
