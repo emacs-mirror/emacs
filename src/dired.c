@@ -206,6 +206,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 		  int afterdirindex = dirnamelen;
 		  int total = len + dirnamelen;
 		  int needsep = 0;
+		  int nchars;
 
 		  /* Decide whether we need to add a directory separator.  */
 #ifndef VMS
@@ -221,6 +222,11 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 		    XSTRING (name)->data[afterdirindex++] = DIRECTORY_SEP;
 		  bcopy (dp->d_name,
 			 XSTRING (name)->data + afterdirindex, len);
+		  nchars = chars_in_text (dp->d_name,
+					  afterdirindex + len);
+		  XSTRING (name)->size = nchars;
+		  if (nchars == STRING_BYTES (XSTRING (name)))
+		    SET_STRING_BYTES (XSTRING (name), -1);
 		}
 	      else
 		name = make_string (dp->d_name, len);
