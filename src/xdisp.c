@@ -10170,6 +10170,7 @@ redisplay_window (window, just_this_one_p)
     = (!NILP (w->window_end_valid)
        && !current_buffer->clip_changed
        && END_UNCHANGED + BEG_UNCHANGED >= Z - BEG
+       && XFASTINT (w->last_modified) >= MODIFF
        && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF);
 
   /* When windows_or_buffers_changed is non-zero, we can't rely on
