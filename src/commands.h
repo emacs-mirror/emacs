@@ -45,6 +45,10 @@ extern Lisp_Object Vminibuffer_local_must_match_map;
 /* Last character of last key sequence.  */
 extern Lisp_Object last_command_char;
 
+/* Last input character read as a command, not counting menus
+   reached by the mouse.  */
+extern Lisp_Object last_nonmenu_event;
+
 /* Command character to be re-read, or -1 */
 extern int unread_command_char;
 
