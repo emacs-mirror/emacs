@@ -1,3 +1,43 @@
+1999-12-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* cc-mode.texi: Set file name to ../info/cc-mode.texi.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Documented the new up/down preprocessor
+	conditional function varieties.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Updated for all the new features and
+	proofread.  Major changes:
+	o  All text filling and line breaking issues is collected in a
+	   new top-level chapter.  The section on auto-fill mode
+	   interaction have been incorporated into this.
+	o  The list of the standard lineup functions is expanded with
+	   better explanations and examples.  It's moved to a
+	   top-level chapter since it's hard to find under Customizing
+	   Indentation / Advanced Customizations / Custom Indentation
+	   Functions.
+	o  The sections on Permanent Customization and Styles are
+	   mostly rewritten due to the changes in the style system.
+	   The part about the mode hooks has gotten an own section.
+
+1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Documented the default behavior when a symbol
+	doesn't exist on c-hanging-braces-alist.
+
+1999-12-12  Barry A. Warsaw  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Document the new semantics for c-default-style.
+
+1999-12-12  Barry Warsaw  <cc-mode-help@python.org>
+
+	* cc-mode.texi: Added a paragraph on
+ 	signal-error-on-buffer-boundary in the Limitations and Known Bugs
+ 	section.
+
 1999-12-10  Jonathan Kamens <jik@kamens.brookline.ma.us>
 
 	* rmail.texi: POP server may be specified as part of the mailbox
