@@ -1152,6 +1152,11 @@ again.  If you do this twice in the same position, it kills the selection."
 			    (overlay-start mouse-secondary-overlay)
 			    (overlay-end mouse-secondary-overlay)))))))
 
+(defvar mouse-menu-buffer-maxlen 20
+  "*Number of buffers in one pane (submenu) of the buffer menu.
+If we have lots of buffers, divide them into groups of
+`mouse-menu-buffer-maxlen' and make a pane (or submenu) for each one.")
+
 (defun mouse-buffer-menu (event)
   "Pop up a menu of buffers for selection with the mouse.
 This switches buffers in the window that you clicked on,
@@ -1198,15 +1203,16 @@ and selects that window."
 	 (menu
 	  ;; If we have lots of buffers, divide them into groups of 20
 	  ;; and make a pane (or submenu) for each one.
-	  (if (> (length buffers) 30)
+	  (if (> (length buffers) (/ (* mouse-menu-buffer-maxlen 3) 2))
 	      (let ((buffers (reverse buffers)) sublists next
 		    (i 1))
 		(while buffers
-		  ;; Pull off the next 20 buffers
+		  ;; Pull off the next mouse-menu-buffer-maxlen buffers
 		  ;; and make them the next element of sublist.
-		  (setq next (nthcdr 20 buffers))
+		  (setq next (nthcdr mouse-menu-buffer-maxlen buffers))
 		  (if next
-		      (setcdr (nthcdr 19 buffers) nil))
+		      (setcdr (nthcdr (1- mouse-menu-buffer-maxlen) buffers)
+			      nil))
 		  (setq sublists (cons (cons (format "Buffers %d" i) buffers)
 				       sublists))
 		  (setq i (1+ i))
