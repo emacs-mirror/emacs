@@ -115,7 +115,11 @@ shell it really is.")
     (zsh . "-f"))
   "*Single argument string for the magic number.  See `sh-feature'.")
 
-
+(defvar sh-shell-variables nil
+  "Alist of shell variable names that should be included in completion.
+These are used for completion in addition to all the variables named
+in `process-environment'.  Each element looks like (VAR . VAR), where
+the car and cdr are the same symbol.")
 
 (defun sh-canonicalize-shell (shell)
   "Convert a shell name SHELL to the one we should handle it as."
@@ -541,6 +545,7 @@ upto the next one or end of buffer into a string.")
 ;; mode-command and utility functions
 
 ;;;###autoload
+(put 'sh-mode 'mode-class 'special)
 (defun sh-mode ()
   "Major mode for editing shell scripts.
 This mode works for many shells, since they all have roughly the same syntax,
@@ -607,7 +612,6 @@ with your script for an edit-interpret-debug cycle."
   (make-local-variable 'font-lock-defaults)
   (make-local-variable 'skeleton-filter)
   (make-local-variable 'skeleton-newline-indent-rigidly)
-  (make-local-variable 'process-environment)
   (setq major-mode 'sh-mode
 	mode-name "Shell-script"
 	indent-line-function 'sh-indent-line
@@ -714,7 +718,7 @@ Calls the value of `sh-set-shell-hook' if set."
 	font-lock-syntax-table nil
 	comment-start-skip (concat (sh-feature sh-comment-prefix) "#+[\t ]*")
 	mode-line-process (format "[%s]" sh-shell)
-	process-environment (default-value 'process-environment)
+	sh-shell-variables nil
 	shell (sh-feature sh-variables))
   (set-syntax-table (sh-feature sh-mode-syntax-table))
   (save-excursion
@@ -898,7 +902,8 @@ region, clear header."
   "Make VARIABLE available for future completing reads in this buffer."
   (or (< (length var) sh-remember-variable-min)
       (getenv var)
-      (setq process-environment (cons (concat var "=") process-environment)))
+      (assoc var sh-shell-variables)
+      (setq sh-shell-variables (cons (cons var var) sh-shell-variables)))
   var)
 
 
@@ -1020,9 +1025,12 @@ region, clear header."
   "Insert an addition of VAR and prefix DELTA for Bourne (type) shell."
   (interactive
    (list (completing-read "Variable: "
-			  (mapcar (lambda (var)
-				    (substring var 0 (string-match "=" var)))
-				  process-environment))
+			  (nconc (mapcar (lambda (var)
+					   (let ((name
+						  (substring var 0 (string-match "=" var))))
+					     (cons name name)))
+					 process-environment)
+				 sh-shell-variables))
 	 (prefix-numeric-value current-prefix-arg)))
   (insert (sh-feature '((bash . "$[ ")
 			(ksh88 . "$(( ")
