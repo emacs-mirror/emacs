@@ -319,6 +319,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the <linux/version.h> header file. */
 #undef HAVE_LINUX_VERSION_H
 
+/* Define to 1 if you have the <locale.h> header file. */
+#undef HAVE_LOCALE_H
+
 /* Define to 1 if you have the `logb' function. */
 #undef HAVE_LOGB
 
@@ -346,14 +349,23 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `mbsinit' function. */
 #undef HAVE_MBSINIT
 
+/* Define to 1 if <wchar.h> declares mbstate_t. */
+#undef HAVE_MBSTATE_T
+
 /* Define to 1 if you have the `memcmp' function. */
 #undef HAVE_MEMCMP
+
+/* Define to 1 if you have the `memcpy' function. */
+#undef HAVE_MEMCPY
 
 /* Define to 1 if you have the `memmove' function. */
 #undef HAVE_MEMMOVE
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `mempcpy' function. */
+#undef HAVE_MEMPCPY
 
 /* Define to 1 if you have the `memset' function. */
 #undef HAVE_MEMSET
@@ -656,9 +668,6 @@ Boston, MA 02111-1307, USA.  */
    on `HAVE_STRUCT_NLIST_N_UN_N_NAME */
 #undef NLIST_NAME_UNION
 
-/* Define to 1 if you have <nlist.h>. */
-#undef NLIST_STRUCT
-
 /* Define to 1 if you don't have struct exception in math.h. */
 #undef NO_MATHERR
 
@@ -770,6 +779,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
+
+/* Define to a type if <wchar.h> does not define. */
+#undef mbstate_t
 
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
@@ -1013,20 +1025,15 @@ typedef unsigned size_t;
 #  endif
 #endif
 
-/* On Mac OS X, these macros are already defined in precompiled headers.  */
-#ifndef MAC_OSX
-/* avoid deprecated functions */
-#  ifdef HAVE_MEMCPY
-#    define bcopy(a,b,s) memcpy (b,a,s)
-#  endif
-#  ifdef HAVE_MEMSET
-#    define bzero(a,s) memset (a,0,s)
-#  endif
-#  ifdef HAVE_MEMCMP
-#    define BCMP memcmp
-#    define bcmp memcmp
-#  endif
-#endif /* MAC_OSX */
+#ifndef HAVE_BCOPY
+#define bcopy(a,b,s) memcpy (b,a,s)
+#endif
+#ifndef HAVE_BZERO
+#define bzero(a,s) memset (a,0,s)
+#endif
+#ifndef HAVE_BCMP
+#define BCMP memcmp
+#endif
 
 #endif /* EMACS_CONFIG_H */
 
