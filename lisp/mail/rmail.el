@@ -219,9 +219,9 @@ still the current message in the Rmail buffer.")
 ;;  delimiting used on a given host (delim1 and delim2 from the config
 ;;  files).
 
-(defvar mmdf-delim1 "^\001\001\001\001\n"
+(defvar rmail-mmdf-delim1 "^\001\001\001\001\n"
   "Regexp marking the start of an mmdf message")
-(defvar mmdf-delim2 "^\001\001\001\001\n"
+(defvar rmail-mmdf-delim2 "^\001\001\001\001\n"
   "Regexp marking the end of an mmdf message")
 
 (defvar rmail-message-filter nil
@@ -1357,7 +1357,7 @@ Optional DEFAULT is password to start with."
 		     (sit-for 3)
 		     ;; Try to get back in sync with a real message.
 		     (if (re-search-forward
-			  (concat mmdf-delim1 "\\|^From") nil t)
+			  (concat rmail-mmdf-delim1 "\\|^From") nil t)
 			 (beginning-of-line)
 		       (goto-char (point-max)))))))
     (goto-char (point-min))
@@ -1390,10 +1390,10 @@ Optional DEFAULT is password to start with."
 	       (narrow-to-region (point) (point-max)))
 	      ;;*** MMDF format
 	      ((let ((case-fold-search t))
-		 (looking-at mmdf-delim1))
+		 (looking-at rmail-mmdf-delim1))
 	       (let ((case-fold-search t))
 		 (replace-match "\^L\n0, unseen,,\n*** EOOH ***\n")
-		 (re-search-forward mmdf-delim2 nil t)
+		 (re-search-forward rmail-mmdf-delim2 nil t)
 		 (replace-match "\^_"))
 	       (save-excursion
 		 (save-restriction
@@ -1441,7 +1441,7 @@ Optional DEFAULT is password to start with."
 				     (and (looking-at "\^L")
 					  (search-forward "\n\^_" nil t))
 				     (let ((case-fold-search t))
-				       (looking-at mmdf-delim1))
+				       (looking-at rmail-mmdf-delim1))
 				     (looking-at "From "))))
 			  (goto-char (+ header-end size))
 			(message "Ignoring invalid Content-Length field")
@@ -1451,7 +1451,7 @@ Optional DEFAULT is password to start with."
 		    (concat "^[\^_]?\\("
 			    rmail-unix-mail-delimiter
 			    "\\|"
-			    mmdf-delim1 "\\|"
+			    rmail-mmdf-delim1 "\\|"
 			    "^BABYL OPTIONS:\\|"
 			    "\^L\n[01],\\)") nil t)
 		   (goto-char (match-beginning 1))
@@ -2475,24 +2475,31 @@ use \\[mail-yank-original] to yank the original message into it."
 			     (string-match rmail-reply-regexp subject))
 			   (substring subject (match-end 0))
 			 subject))))
-    (rmail-start-mail nil
-      (mail-strip-quoted-names reply-to)
-      subject
-      (rmail-make-in-reply-to-field from date message-id)
-      (if just-sender
-	  nil
-	(let* ((cc-list (rmail-dont-reply-to
-			  (mail-strip-quoted-names
-			    (if (null cc) to (concat to ", " cc))))))
-	  (if (string= cc-list "") nil cc-list)))
-      rmail-view-buffer
-      (list (list 'rmail-mark-message
-		  rmail-view-buffer
-		  (aref rmail-msgref-vector msgnum)
-		  "answered"))
-      nil
-      (list (cons "References" (concat (mapconcat 'identity references " ")
-				       " " message-id))))))
+    (rmail-start-mail
+     nil
+     ;; Using mail-strip-quoted-names is undesirable with newer mailers
+     ;; since they can handle the names unstripped.
+     ;; I don't know whether there are other mailers that still
+     ;; need the names to be stripped.
+     (mail-strip-quoted-names reply-to)
+     subject
+     (rmail-make-in-reply-to-field from date message-id)
+     (if just-sender
+	 nil
+       ;; mail-strip-quoted-names is NOT necessary for rmail-dont-reply-to
+       ;; to do its job.
+       (let* ((cc-list (rmail-dont-reply-to
+			(mail-strip-quoted-names
+			 (if (null cc) to (concat to ", " cc))))))
+	 (if (string= cc-list "") nil cc-list)))
+     rmail-view-buffer
+     (list (list 'rmail-mark-message
+		 rmail-view-buffer
+		 (aref rmail-msgref-vector msgnum)
+		 "answered"))
+     nil
+     (list (cons "References" (concat (mapconcat 'identity references " ")
+				      " " message-id))))))
 
 (defun rmail-mark-message (buffer msgnum-list attribute)
   "Give BUFFER's message number in MSGNUM-LIST the attribute ATTRIBUTE.
