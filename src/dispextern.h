@@ -2258,13 +2258,15 @@ struct redisplay_interface
   void (*clear_frame_area) P_ ((struct frame *f, int x, int y,
 				int width, int height));
 
-/* Draw specified cursor NEW_CURSOR_TYPE of width NEW_CURSOR_WIDTH
-   at row GLYPH_ROW on window W.  */
+/* Draw specified cursor CURSOR_TYPE of width CURSOR_WIDTH
+   at row GLYPH_ROW on window W if ON_P is 1.  If ON_P is
+   0, don't draw cursor.  If ACTIVE_P is 1, system caret
+   should track this cursor (when applicable).  */
   void (*draw_window_cursor) P_ ((struct window *w,
 				  struct glyph_row *glyph_row,
-				  int on, int x, int y,
-				  int new_cursor_type,
-				  int new_cursor_width));
+				  int x, int y,
+				  int cursor_type, int cursor_width,
+				  int on_p, int active_p));
 
 /* Draw vertical border for window W from (X,Y0) to (X,Y1).  */
   void (*draw_vertical_window_border) P_ ((struct window *w,

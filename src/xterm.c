@@ -7500,20 +7500,21 @@ x_clear_frame_area (f, x, y, width, height)
 /* RIF: Draw cursor on window W.  */
 
 static void
-x_draw_window_cursor (w, glyph_row, on, x, y, new_cursor_type, new_cursor_width)
+x_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, active_p)
      struct window *w;
      struct glyph_row *glyph_row;
-     int on, x, y;
-     int new_cursor_type, new_cursor_width;
+     int x, y;
+     int cursor_type, cursor_width;
+     int on_p, active_p;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
 
-  if (on)
+  if (on_p)
     {
-      w->phys_cursor_type = new_cursor_type;
+      w->phys_cursor_type = cursor_type;
       w->phys_cursor_on_p = 1;
 
-      switch (new_cursor_type)
+      switch (cursor_type)
 	{
 	case HOLLOW_BOX_CURSOR:
 	  x_draw_hollow_cursor (w, glyph_row);
@@ -7524,11 +7525,11 @@ x_draw_window_cursor (w, glyph_row, on, x, y, new_cursor_type, new_cursor_width)
 	  break;
 
 	case BAR_CURSOR:
-	  x_draw_bar_cursor (w, glyph_row, new_cursor_width, BAR_CURSOR);
+	  x_draw_bar_cursor (w, glyph_row, cursor_width, BAR_CURSOR);
 	  break;
 
 	case HBAR_CURSOR:
-	  x_draw_bar_cursor (w, glyph_row, new_cursor_width, HBAR_CURSOR);
+	  x_draw_bar_cursor (w, glyph_row, cursor_width, HBAR_CURSOR);
 	  break;
 
 	case NO_CURSOR:

@@ -5160,13 +5160,14 @@ w32_clear_frame_area (f, x, y, width, height)
 /* RIF: Draw or clear cursor on window W.  */
 
 static void
-w32_draw_window_cursor (w, glyph_row, on, x, y, new_cursor_type, new_cursor_width)
+w32_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, active_p)
      struct window *w;
      struct glyph_row *glyph_row;
-     int on, x, y;
-     int new_cursor_type, new_cursor_width;
+     int x, y;
+     int cursor_type, cursor_width;
+     int on_p, active_p;
 {
-  if (on)
+  if (on_p)
     {
       /* If the user wants to use the system caret, make sure our own
 	 cursor remains invisible.  */
@@ -5175,12 +5176,12 @@ w32_draw_window_cursor (w, glyph_row, on, x, y, new_cursor_type, new_cursor_widt
 	  if (w->phys_cursor_type != NO_CURSOR)
 	    erase_phys_cursor (w);
 
-	  new_cursor_type = w->phys_cursor_type = NO_CURSOR;
+	  cursor_type = w->phys_cursor_type = NO_CURSOR;
 	  w->phys_cursor_width = -1;
 	}
       else
 	{
-	  w->phys_cursor_type = new_cursor_type;
+	  w->phys_cursor_type = cursor_type;
 	}
 
       w->phys_cursor_on_p = 1;
@@ -5188,7 +5189,7 @@ w32_draw_window_cursor (w, glyph_row, on, x, y, new_cursor_type, new_cursor_widt
       /* If this is the active cursor, we need to track it with the
 	 system caret, so third party software like screen magnifiers
 	 and speech synthesizers can follow the cursor.  */
-      if (active_cursor)
+      if (active_p)
 	{
 	  HWND hwnd = FRAME_W32_WINDOW (f);
 
@@ -5210,7 +5211,7 @@ w32_draw_window_cursor (w, glyph_row, on, x, y, new_cursor_type, new_cursor_widt
 	  PostMessage (hwnd, WM_EMACS_TRACK_CARET, 0, 0);
 	}
 
-      switch (new_cursor_type)
+      switch (cursor_type)
 	{
 	case HOLLOW_BOX_CURSOR:
 	  x_draw_hollow_cursor (w, glyph_row);
@@ -5221,11 +5222,11 @@ w32_draw_window_cursor (w, glyph_row, on, x, y, new_cursor_type, new_cursor_widt
 	  break;
 
 	case BAR_CURSOR:
-	  x_draw_bar_cursor (w, glyph_row, new_cursor_width, BAR_CURSOR);
+	  x_draw_bar_cursor (w, glyph_row, cursor_width, BAR_CURSOR);
 	  break;
 
 	case HBAR_CURSOR:
-	  x_draw_bar_cursor (w, glyph_row, new_cursor_width, HBAR_CURSOR);
+	  x_draw_bar_cursor (w, glyph_row, cursor_width, HBAR_CURSOR);
 	  break;
 
 	case NO_CURSOR:
