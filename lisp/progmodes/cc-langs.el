@@ -1,6 +1,7 @@
 ;;; cc-langs.el --- specific language support for CC Mode
 
-;; Copyright (C) 1985,1987,1992-2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992,1993,1994,1995,1996,1997,1998,2000
+;;	Free Software Foundation, Inc.
 
 ;; Authors:    2000- Martin Stjernholm
 ;;	       1998-1999 Barry A. Warsaw and Martin Stjernholm

@@ -1,12 +1,11 @@
 ;;; idlwave.el --- IDL and WAVE CL editing mode for GNU Emacs
-;; Copyright (c) 1994, 1995, 1997 Chris Chase
-;; Copyright (c) 1999 Carsten Dominik
-;; Copyright (c) 1999, 2000 Free Software Foundation
+
+;; Copyright (c) 1994, 1995, 1997, 1999, 2000 Free Software Foundation
 
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: Carsten Dominik <dominik@strw.leidenuniv.nl>
 ;; Version: 4.2
-;; Date: $Date: 2000/06/20 12:49:47 $
+;; Date: $Date: 2000/12/06 19:46:15 $
 ;; Keywords: languages
 
 ;; This file is part of the GNU Emacs.

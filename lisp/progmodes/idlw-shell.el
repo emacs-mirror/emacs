@@ -1,12 +1,11 @@
 ;;; idlw-shell.el --- Run IDL or WAVE as an inferior process of Emacs.
-;; Copyright (c) 1994, 1995, 1996 Chris Chase
-;; Copyright (c) 1999 Carsten Dominik
-;; Copyright (c) 1999, 2000 Free Software Foundation
+
+;; Copyright (c) 1994, 1995, 1996, 1999, 2000 Free Software Foundation
 
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: Carsten Dominik <dominik@strw.leidenuniv.nl>
 ;; Version: 4.2
-;; Date: $Date: 2000/08/07 15:04:18 $
+;; Date: $Date: 2000/12/06 19:48:20 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
