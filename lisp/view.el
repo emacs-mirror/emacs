@@ -268,7 +268,7 @@ If you viewed a file that was not present in Emacs, its buffer is killed."
 	view-old-mode-line-buffer-identification)
   (setq major-mode view-old-major-mode)
   (setq mode-name view-old-mode-name)
-  (use-local-map (current-local-map))
+  (use-local-map view-old-local-map)
   (setq buffer-read-only view-old-buffer-read-only)
 
   (goto-char view-exit-position)
