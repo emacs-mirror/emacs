@@ -1,5 +1,8 @@
 2002-08-30  Juanma Barranquero  <lektu@terra.es>
 
+	* w32fns.c (Qbox): Make extern.
+	(syms_of_w32fns): Remove initialization of Qbox.
+
 	* xfns.c (Fx_open_connection): Fix error message. Patch from Rune
 	Kleveland <runekl@viewpoint.no>.
 
