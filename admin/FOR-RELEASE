@@ -38,8 +38,6 @@ isearch faces.
 
 ** Make GTK scrollbars behave like others w.r.t. overscrolling.
 
-** Make GTK toolbar look OK on monochrome displays.
-
 
 Local variables:
 mode: outline

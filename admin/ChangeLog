@@ -1,3 +1,7 @@
+2004-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* FOR-RELEASE: Removed entry about GTK and monochrome displays (done).
+
 2002-06-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* FOR-RELEASE: Moved here from the etc directory.
