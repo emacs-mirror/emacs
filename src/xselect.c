@@ -1,5 +1,5 @@
 /* X Selection processing for Emacs.
-   Copyright (C) 1993, 1994, 1995, 1996, 1997, 2000, 2001
+   Copyright (C) 1993, 1994, 1995, 1996, 1997, 2000, 2001, 2003
    Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -1695,8 +1695,8 @@ selection_data_to_lisp_data (display, data, size, type, format)
      If the number is > 16 bits, convert it to a cons of integers,
      16 bits in each half.
    */
-  else if (format == 32 && size == sizeof (long))
-    return long_to_cons (((unsigned long *) data) [0]);
+  else if (format == 32 && size == sizeof (int))
+    return long_to_cons (((unsigned int *) data) [0]);
   else if (format == 16 && size == sizeof (short))
     return make_number ((int) (((unsigned short *) data) [0]));
 
@@ -1721,7 +1721,7 @@ selection_data_to_lisp_data (display, data, size, type, format)
       Lisp_Object v = Fmake_vector (make_number (size / 4), make_number (0));
       for (i = 0; i < size / 4; i++)
 	{
-	  unsigned long j = ((unsigned long *) data) [i];
+	  unsigned int j = ((unsigned int *) data) [i];
 	  Faset (v, make_number (i), long_to_cons (j));
 	}
       return v;
