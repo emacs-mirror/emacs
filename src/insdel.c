@@ -27,6 +27,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 static void insert_1 ();
 static void insert_from_string_1 ();
+static void insert_from_buffer_1 ();
 static void gap_left ();
 static void gap_right ();
 static void adjust_markers ();
@@ -305,8 +306,8 @@ make_gap (increment)
 }
 
 /* Insert a string of specified length before point.
-   DO NOT use this for the contents of a Lisp string!
-   prepare_to_modify_buffer could relocate the string.  */
+   DO NOT use this for the contents of a Lisp string or a Lisp buffer!
+   prepare_to_modify_buffer could relocate the text.  */
 
 insert (string, length)
      register unsigned char *string;
@@ -436,6 +437,77 @@ insert_from_string_1 (string, pos, length, inherit)
 			       current_buffer, inherit);
 
   adjust_point (length);
+}
+
+/* Insert text from BUF, starting at POS and having length LENGTH, into the
+   current buffer.  If the text in BUF has properties, they are absorbed
+   into the current buffer.
+
+   It does not work to use `insert' for this, because a malloc could happen
+   and relocate BUF's text before the bcopy happens.  */
+
+void
+insert_from_buffer (buf, pos, length, inherit)
+     struct buffer *buf;
+     int pos, length;
+     int inherit;
+{
+  if (length > 0)
+    {
+      insert_from_buffer_1 (buf, pos, length, inherit);
+      signal_after_change (PT-length, 0, length);
+    }
+}
+
+static void
+insert_from_buffer_1 (buf, pos, length, inherit)
+     struct buffer *buf;
+     int pos, length;
+     int inherit;
+{
+  register Lisp_Object temp;
+  int chunk;
+
+  /* Make sure point-max won't overflow after this insertion.  */
+  XSETINT (temp, length + Z);
+  if (length + Z != XINT (temp))
+    error ("maximum buffer size exceeded");
+
+  prepare_to_modify_buffer (PT, PT);
+
+  if (PT != GPT)
+    move_gap (PT);
+  if (GAP_SIZE < length)
+    make_gap (length - GAP_SIZE);
+
+  record_insert (PT, length);
+  MODIFF++;
+
+  if (pos < BUF_GPT (buf))
+    {
+      chunk = min (length, BUF_GPT (buf) - pos);
+      bcopy (BUF_CHAR_ADDRESS (buf, pos), GPT_ADDR, chunk);
+    }
+  else
+    chunk = 0;
+  if (chunk < length)
+    bcopy (BUF_CHAR_ADDRESS (buf, pos + chunk),
+	   GPT_ADDR + chunk, length - chunk);
+
+#ifdef USE_TEXT_PROPERTIES
+  if (current_buffer->intervals != 0)
+    offset_intervals (current_buffer, PT, length);
+#endif
+
+  GAP_SIZE -= length;
+  GPT += length;
+  ZV += length;
+  Z += length;
+  adjust_point (length);
+
+  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+  graft_intervals_into_buffer (copy_intervals (buf->intervals, pos, length),
+			       PT - length, length, current_buffer, inherit);
 }
 
 /* Insert the character C before point */
