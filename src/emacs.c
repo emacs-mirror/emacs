@@ -91,6 +91,8 @@ Lisp_Object Vsystem_configuration;
    for use when reporting bugs.  */
 Lisp_Object Vsystem_configuration_options;
 
+Lisp_Object Qfile_name_handler_alist;
+
 /* If non-zero, emacs should not attempt to use an window-specific code,
    but instead should use the virtual terminal under which it was started */
 int inhibit_window_system;
@@ -210,13 +212,24 @@ init_cmdargs (argc, argv, skip_args)
      int skip_args;
 {
   register int i;
-  Lisp_Object name, dir;
+  Lisp_Object name, dir, tem;
+  int count = specpdl_ptr - specpdl;
+  Lisp_Object raw_name;
 
   initial_argv = argv;
   initial_argc = argc;
 
-  Vinvocation_name = Ffile_name_nondirectory (build_string (argv[0]));
-  Vinvocation_directory = Ffile_name_directory (build_string (argv[0]));
+  raw_name = build_string (argv[0]);
+
+  /* Add /: to the front of the name
+     if it would otherwise be treated as magic.  */
+  tem = Ffind_file_name_handler (raw_name, Qt);
+  if (! NILP (tem))
+    raw_name = concat2 (build_string ("/:"), raw_name);
+
+  Vinvocation_name = Ffile_name_nondirectory (raw_name);
+  Vinvocation_directory = Ffile_name_directory (raw_name);
+
   /* If we got no directory in argv[0], search PATH to find where
      Emacs actually came from.  */
   if (NILP (Vinvocation_directory))
@@ -225,12 +238,20 @@ init_cmdargs (argc, argv, skip_args)
       int yes = openp (Vexec_path, Vinvocation_name,
 		       EXEC_SUFFIXES, &found, 1);
       if (yes == 1)
-	Vinvocation_directory = Ffile_name_directory (found);
+	{
+	  /* Add /: to the front of the name
+	     if it would otherwise be treated as magic.  */
+	  tem = Ffind_file_name_handler (found, Qt);
+	  if (! NILP (tem))
+	    found = concat2 (build_string ("/:"), found);
+	  Vinvocation_directory = Ffile_name_directory (found);
+	}
     }
 
   if (!NILP (Vinvocation_directory)
       && NILP (Ffile_name_absolute_p (Vinvocation_directory)))
-    /* Emacs was started with relative path, like ./emacs  */
+    /* Emacs was started with relative path, like ./emacs.
+       Make it absolute.  */
     Vinvocation_directory = Fexpand_file_name (Vinvocation_directory, Qnil);
 
   Vinstallation_directory = Qnil;
@@ -298,6 +319,8 @@ init_cmdargs (argc, argv, skip_args)
 	Vcommand_line_args
 	  = Fcons (build_string (argv[i]), Vcommand_line_args);
     }
+
+  unbind_to (count, Qnil);
 }
 
 DEFUN ("invocation-name", Finvocation_name, Sinvocation_name, 0, 0, 0,
@@ -1466,8 +1489,7 @@ decode_env_path (evarname, defalt)
      char *evarname, *defalt;
 {
   register char *path, *p;
-
-  Lisp_Object lpath;
+  Lisp_Object lpath, element, tem;
 
   /* It's okay to use getenv here, because this function is only used
      to initialize variables when Emacs starts up, and isn't called
@@ -1483,9 +1505,16 @@ decode_env_path (evarname, defalt)
     {
       p = index (path, SEPCHAR);
       if (!p) p = path + strlen (path);
-      lpath = Fcons (p - path ? make_string (path, p - path)
-		     : build_string ("."),
-		     lpath);
+      element = (p - path ? make_string (path, p - path)
+		 : build_string ("."));
+
+      /* Add /: to the front of the name
+	 if it would otherwise be treated as magic.  */
+      tem = Ffind_file_name_handler (element, Qt);
+      if (! NILP (tem))
+	element = concat2 (build_string ("/:"), element);
+
+      lpath = Fcons (element, lpath);
       if (*p)
 	path = p + 1;
       else
@@ -1496,6 +1525,9 @@ decode_env_path (evarname, defalt)
 
 syms_of_emacs ()
 {
+  Qfile_name_handler_alist = intern ("file-name-handler-alist");
+  staticpro (&Qfile_name_handler_alist);
+
 #ifndef CANNOT_DUMP
 #ifdef HAVE_SHM
   defsubr (&Sdump_emacs_data);
