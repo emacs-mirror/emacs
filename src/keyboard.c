@@ -1897,8 +1897,9 @@ make_ctrl_char (c)
 
 /* Display a help message in the echo area.  */
 void
-show_help_echo (msg)
+show_help_echo (msg, ok_to_overwrite_keystroke_echo)
      Lisp_Object msg;
+     int ok_to_overwrite_keystroke_echo;
 {
   int count = specpdl_ptr - specpdl;
 
@@ -1911,7 +1912,7 @@ show_help_echo (msg)
   else if (/* Don't overwrite minibuffer contents.  */
 	   !MINI_WINDOW_P (XWINDOW (selected_window))
 	   /* Don't overwrite a keystroke echo.  */
-	   && NILP (echo_message_buffer)
+	   && (NILP (echo_message_buffer) || ok_to_overwrite_keystroke_echo)
 	   /* Don't overwrite a prompt.  */
 	   && !cursor_in_echo_area)
     {
@@ -2668,7 +2669,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   /* Display help if not echoing.  */
   if (CONSP (c) && EQ (XCAR (c), Qhelp_echo))
     {
-      show_help_echo (XCDR (XCDR (c)));
+      show_help_echo (XCDR (XCDR (c)), 0);
       goto retry;
     }
   
