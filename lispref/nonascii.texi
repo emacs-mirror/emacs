@@ -382,12 +382,12 @@ values is the character set's dimension.
 @end example
 @end defun
 
-@defun make-char charset &rest byte-values
-This function returns the character in character set @var{charset}
-identified by @var{byte-values}.  This is roughly the inverse of
-@code{split-char}.  Normally, you should specify either one or two
-@var{byte-values}, according to the dimension of @var{charset}.  For
-example,
+@defun make-char charset &optional code1 code2
+This function returns the character in character set @var{charset} whose
+position codes are @var{code1} and @var{code2}.  This is roughly the
+inverse of @code{split-char}.  Normally, you should specify either one
+or both of @var{code1} and @var{code2} according to the dimension of
+@var{charset}.  For example,
 
 @example
 (make-char 'latin-iso8859-1 72)
@@ -416,7 +416,10 @@ For example:
 @end example
 
 The character sets @sc{ascii}, @sc{eight-bit-control}, and
-@sc{eight-bit-graphic} don't have corresponding generic characters.
+@sc{eight-bit-graphic} don't have corresponding generic characters.  If
+@var{charset} is one of them and you don't supply @var{code1},
+@code{make-char} returns the character code corresponding to the
+smallest code in @var{charset}.
 
 @node Scanning Charsets
 @section Scanning for Character Sets
