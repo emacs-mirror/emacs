@@ -1,5 +1,7 @@
 1999-11-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* simple.el (with-syntax-table): Don't switch buffers.
+
 	* emacs-lisp/edebug.el, emacs-lisp/cust-print.el,
 	progmodes/hideif.el: Use new backquote syntax.
 
