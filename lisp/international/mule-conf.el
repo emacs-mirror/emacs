@@ -220,45 +220,46 @@
 ;; Coding systems not specific to each language environment.
 
 (make-coding-system
- 'coding-system-internal 0 ?=
+ 'internal 0 ?=
  "Internal coding system used in a buffer.")
 
 (make-coding-system
- 'coding-system-iso-2022-7 2 ?J
+ 'iso-2022-7 2 ?J
  "Coding system based on ISO2022 7-bit encoding."
  '((ascii t) nil nil nil
    short ascii-eol ascii-cntl seven))
 
 (make-coding-system
- 'coding-system-iso-2022-int 2 ?I
+ 'iso-2022-int-1 2 ?I
  "ISO-2022-INT-1"
  '((ascii t) (korean-ksc5601 t) nil nil
    short ascii-eol ascii-cntl seven locking-shift))
 
 (make-coding-system
- 'coding-system-iso-2022-int-2 2 ?I
- "ISO-2022-INT-2"
+ 'iso-2022-cjk 2 ?I
+ "Mixture of ISO-2022-JP, ISO-2022-KR, and ISO-2022-CN"
  '((ascii t)
    (nil korean-ksc5601 chinese-gb2312 chinese-cns11643-1 t)
    (nil chinese-cns11643-2)
    (nil chinese-cns11643-3 chinese-cns11643-4 chinese-cns11643-5
 	chinese-cns11643-6 chinese-cns11643-7)
-   short ascii-eol ascii-cntl seven locking-shift single-shift))
+   short ascii-eol ascii-cntl seven locking-shift single-shift nil nil nil
+   init-bol))
 
 (make-coding-system
- 'coding-system-iso-2022-ss2-8 2 ?I
+ 'iso-2022-ss2-8 2 ?I
  "ISO-2022 coding system using SS2 for 96-charset in 8-bit code."
  '((ascii t) nil t nil
    nil ascii-eol ascii-cntl nil nil single-shift))
 
 (make-coding-system
- 'coding-system-iso-2022-ss2-7 2 ?I
+ 'iso-2022-ss2-7 2 ?I
  "ISO-2022 coding system using SS2 for 96-charset in 7-bit code."
  '((ascii t) nil t nil
    short ascii-eol ascii-cntl seven nil single-shift))
 
 (make-coding-system
- 'coding-system-iso-2022-lock 2 ?i
+ 'iso-2022-lock 2 ?i
  "ISO-2022 coding system using Locking-Shift for 96-charset."
  '((ascii t) t nil nil
    nil ascii-eol ascii-cntl locking-shift))
@@ -287,13 +288,13 @@
 ;; values are set by the command `setup-language-environment' for each
 ;; language environment.
 
-(setq coding-category-internal	'coding-system-internal
-      coding-category-sjis	'coding-system-sjis
-      coding-category-iso-7	'coding-system-iso-2022-7
-      coding-category-iso-8-1	'coding-system-iso-8859-1
-      coding-category-iso-8-2	'coding-system-euc-japan
-      coding-category-iso-else	'coding-system-iso-2022-int
-      coding-category-big5	'coding-system-big5
+(setq coding-category-internal	'internal
+      coding-category-sjis	'sjis
+      coding-category-iso-7	'iso-2022-7
+      coding-category-iso-8-1	'iso-8859-1
+      coding-category-iso-8-2	'euc-japan
+      coding-category-iso-else	'iso-2022-cjk
+      coding-category-big5	'big5
       coding-category-binary	'no-conversion)
 
 (set-coding-priority
