@@ -1,0 +1,24 @@
+#
+#     BUILD FOR OSF/1, ALPHA, GCC PLATFORM
+#
+# $HopeName$
+#
+# Copyright (C) 1995 Harlequin Group, all rights reserved
+#
+# This is the GNU makefile for platform.o1algc.
+#
+# _ANSI_C_SOURCE is defined in PFMDEFS to avoid bug in library headers
+# which define TRUE and FALSE.
+#
+
+PFM = o1algc
+PFMDEFS = -DOS_OSF1 -DARCH_ALPHA -DBUILD_GCC -D_ANSI_C_SOURCE
+
+STD = asrtosan.c assert.c deque.c error.c liban.c meter.c misc.c sig.c
+MPM = arenan.c space.c pool.c poolclas.c poolmfs.c \
+      poolmv.c pools.c root.c fix.c format.c buffer.c
+AMC = poolamc.c
+TESTLIB = testlib.c
+LIBS = -lm
+
+include gc.gmk

@@ -1,0 +1,19 @@
+#
+#     BUILD FOR SUNOS/SPARC/GCC PLATFORM
+#
+#  $HopeName$
+#
+#  Copyright (C) 1995 Harlequin Group, all rights reserved
+#
+#  This is the GNU makefile for platform.suspgc.
+#
+
+PFM = suspgc
+PFMDEFS = -DOS_SUNOS -DARCH_SPARC -DBUILD_GCC
+
+STD = asrtosan.c assert.c deque.c error.c liban.c meter.c misc.c sig.c
+MPM = arenvm.c vmsu.c addrmap.c space.c pool.c poolclas.c poolmfs.c \
+      poolmv.c pools.c root.c fix.c format.c buffer.c
+TESTLIB = testlib.c
+
+include gc.gmk
