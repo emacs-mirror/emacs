@@ -1,6 +1,6 @@
 /* Session management module for systems which understand the X Session
    management protocol.
-   Copyright (C) 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -40,11 +40,13 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #include <sys/param.h>
+#include <stdio.h>
 
 #include "systime.h"
 #include "sysselect.h"
 #include "lisp.h"
 #include "termhooks.h"
+#include "termopts.h"
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 1024
