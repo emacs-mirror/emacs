@@ -1,3 +1,9 @@
+2001-05-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode): Make
+	font-lock-keywords-case-fold-search a buffer-local variable
+	with make-local-variable before setting it.
+
 2001-05-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* emacs-lisp/elp.el (elp-instrument-package): Don't allow empty

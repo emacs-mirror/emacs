@@ -1,3 +1,7 @@
+2001-05-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* src/macterm.c (clear_mouse_face): Check for nil tip_frame.
+
 2001-05-15  Andrew Choi  <akochoi@i-cable.com>
 
 	* src/Emacs.r: Change About box message.
