@@ -111,6 +111,13 @@ translators to read other languages for them.\n\n"))
 	     (not (equal system-configuration-options "")))
 	(insert "configured using `configure "
 		system-configuration-options "'\n"))
+    (insert "Important settings:\n")
+    (insert (format "  value of $LC_ALL: %s\n" (getenv "LC_ALL")))
+    (insert (format "  value of $LC_TYPE: %s\n" (getenv "LC_TYPE")))
+    (insert (format "  value of $LANG: %s\n" (getenv "LANG")))
+    (insert (format "  locale-coding-system: %s\n" locale-coding-system))
+    (insert (format "  default-enable-multibyte-characters: %s\n"
+		    default-enable-multibyte-characters))
     (insert "\n")
     (insert "Please describe exactly what actions triggered the bug\n"
 	    "and the precise symptoms of the bug:\n\n") 
