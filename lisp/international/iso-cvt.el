@@ -90,12 +90,13 @@
     (widen)
     (goto-char (point-min))
     (let ((work-tab trans-tab)
-	  (buffer-read-only nil))
+	  (buffer-read-only nil)
+	  (case-fold-search nil))
       (while work-tab
 	(save-excursion
 	  (let ((trans-this (car work-tab)))
 	    (while (re-search-forward (car trans-this) nil t)
-	      (replace-match (car (cdr trans-this)) nil nil)))
+	      (replace-match (car (cdr trans-this)) t nil)))
 	  (setq work-tab (cdr work-tab)))))))
 
 (defun iso-spanish ()
