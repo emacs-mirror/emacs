@@ -1,3 +1,12 @@
+2001-07-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* progmodes/ada-prj.el: Say that the file _is_ part of Emacs.
+	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>
+
+	* progmodes/ada-mode.el: Ditto.
+
+	* progmodes/ada-xref.el: Ditto.
+
 2001-07-11  Miles Bader  <miles@gnu.org>
 
 	* finder.el (finder-insert-at-column): Also move to the next line
