@@ -1,3 +1,18 @@
+2002-02-06  John Wiegley  <johnw@gnu.org>
+
+	* eshell/esh-ext.el (eshell-external-command): Added a fix for
+	XEmacs' new dired.el, which adds a global entry in the
+	`file-name-handler-alist'.
+
+2002-01-26  John Wiegley  <johnw@gnu.org>
+
+	* align.el (align-region): Added a missing name argument.
+
+2002-01-14  John Wiegley  <johnw@gnu.org>
+
+	* eshell/esh-ext.el (eshell-script-interpreter): Allow whitespace
+	after the #! of a shell interpretor specification.
+
 2002-02-15  Richard M. Stallman  <rms@gnu.org>
 
 	* help.el (describe-key-briefly): Make output in INSERT case
@@ -75,6 +90,7 @@
 	(mode-line-mode-menu): Each item now shows its mode line lighter.
 	(minor-mode-alist): Don't call propertize here.
 
+>>>>>>> 1.3452
 2002-02-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* progmodes/pascal.el (pascal-imenu-generic-expression): Add
@@ -334,6 +350,7 @@
 	(gamegrid-make-color-tty-face): Use the value of color, not the
 	symbol itself.  Don't call gamegrid-color.
 
+>>>>>>> 1.3440
 2002-02-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* gud.el (gud-refresh): Call recenter only after we are sure we
@@ -686,6 +703,7 @@
 
 	* progmodes/perl-mode.el (perl-mode-abbrev-table): Restore definition.
 
+>>>>>>> 1.3409
 2002-01-21  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/copyright.el (copyright-regexp): Fix previous change.
@@ -878,6 +896,7 @@
 	(eudc-display-mail): New function.
 	(eudc-bob-play-sound-at-point): Remove XEmacs case.
 
+>>>>>>> 1.3356
 2002-01-15  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/autoload.el (make-autoload):
@@ -1717,6 +1736,7 @@
 	* apropos.el (apropos-print): SPACING is now nil or a separator string.
 	(apropos-documentation, apropos-value): Pass a suitable string.
 
+>>>>>>> 1.3337
 2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dired.el (dired-free-space-program, dired-free-space-args):
