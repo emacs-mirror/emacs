@@ -980,33 +980,32 @@ A trivial interface to `imenu-add-to-menubar' suitable for use in a hook."
 
 (defvar imenu-buffer-menubar nil)
 
-(defvar imenu-update-menubar-modified-tick 0
+(defvar imenu-menubar-modified-tick 0
   "The value of (buffer-modified-tick) as of last call to `imenu-update-menubar'.
 This value becomes local in every buffer when it is set.")
-(make-variable-buffer-local 'imenu-update-menubar-modified-tick)
+(make-variable-buffer-local 'imenu-menubar-modified-tick)
 
 (defun imenu-update-menubar ()
-  (and (current-local-map)
-       (keymapp (lookup-key (current-local-map) [menu-bar index]))
-       (not (eq (buffer-modified-tick)
-		imenu-update-menubar-modified-tick))
-       (let ((index-alist (imenu--make-index-alist t)))
-	 ;; Don't bother updating if the index-alist has not changed
-	 ;; since the last time we did it.
-	 (or (equal index-alist imenu--last-menubar-index-alist)
-	     (let (menu menu1 old)
-	       (setq imenu--last-menubar-index-alist index-alist)
-	       (setq index-alist (imenu--split-submenus index-alist))
-	       (setq menu (imenu--split-menu index-alist
-                                             (buffer-name)))
-	       (setq menu1 (imenu--create-keymap-1 (car menu)
-                                                   (if (< 1 (length (cdr menu)))
-                                                       (cdr menu)
-						     (cdr (car (cdr menu))))))
-	       (setq imenu-update-menubar-modified-tick
-		     (buffer-modified-tick))
-	       (setq old (lookup-key (current-local-map) [menu-bar index]))
-	       (setcdr old (cdr menu1)))))))
+  (when (and (current-local-map)
+	     (keymapp (lookup-key (current-local-map) [menu-bar index]))
+	     (not (eq (buffer-modified-tick)
+		      imenu-menubar-modified-tick)))
+    (setq imenu-menubar-modified-tick (buffer-modified-tick))
+    (let ((index-alist (imenu--make-index-alist t)))
+      ;; Don't bother updating if the index-alist has not changed
+      ;; since the last time we did it.
+      (unless (equal index-alist imenu--last-menubar-index-alist)
+	(let (menu menu1 old)
+	  (setq imenu--last-menubar-index-alist index-alist)
+	  (setq index-alist (imenu--split-submenus index-alist))
+	  (setq menu (imenu--split-menu index-alist
+					(buffer-name)))
+	  (setq menu1 (imenu--create-keymap-1 (car menu)
+					      (if (< 1 (length (cdr menu)))
+						  (cdr menu)
+						(cdr (car (cdr menu))))))
+	  (setq old (lookup-key (current-local-map) [menu-bar index]))
+	  (setcdr old (cdr menu1)))))))
 
 (defun imenu--menubar-select (item)
   "Use Imenu to select the function or variable named in this menu ITEM."
