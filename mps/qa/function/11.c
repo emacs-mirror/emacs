@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!11.c(trunk.6) $
+ id = $HopeName: MMQA_test_function!11.c(trunk.7) $
  summary = lots of allocation to provoke mmap error in sunos
  language = c
  link = myfmt.o testlib.o
@@ -46,14 +46,11 @@ static void test(void)
       "create arena");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
- cdie(
-  mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
-   mps_stack_scan_ambig, stackpointer, 0),
-  "create root");
+ cdie(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+                          mps_stack_scan_ambig, stackpointer, 0),
+      "create root");
 
- cdie(
-  mps_fmt_create_A(&format, arena, &fmtA),
-  "create format");
+ cdie(mps_fmt_create_A(&format, arena, &fmtA), "create format");
  cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
  formatcomments = 0;
@@ -67,19 +64,17 @@ static void test(void)
 
  inpsize=0x4000;
 
- for (j=0; j<100; j++)
- {
- a = allocone(ap, 0, NULL, NULL, inpsize);
- b = a;
+ for (j=0; j<100; j++) {
+   a = allocone(ap, 0, NULL, NULL, inpsize);
+   b = a;
 
- for (i=1; i<100; i++)
- {
-  c = allocone(ap, i, NULL, NULL, inpsize);
-  b->ref[0] = c;
-  b = c;
- }
+   for (i=1; i<100; i++) {
+     c = allocone(ap, i, NULL, NULL, inpsize);
+     b->ref[0] = c;
+     b = c;
+   }
 
- comment("%d: %x", j, (int) a);
+   comment("%d: %x", j, (int) a);
  }
 
  mps_ap_destroy(ap);
