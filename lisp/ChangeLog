@@ -1,5 +1,15 @@
 2001-05-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* mail/rmail.el (rmail-mode-map): Use rmail-sort-by-labels
+	instead of rmail-sort-by-keywords.
+
+	* mail/rmailsort.el (rmail-sort-by-labels): Renamed from 
+	rmail-sort-by-keywords.
+
+	* mail/rmailsum.el (rmail-summary-sort-by-labels): Renamed
+	from rmail-summary-sort-by-keywords.  Doc fix.
+	(rmail-summary-mode): Doc fix.
+
 	* mail/rmail.el (rmail-edit): New Custom group.
 
 	* mail/rmailedit.el (rmail-edit-mode): Doc fix.
