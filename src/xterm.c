@@ -10752,8 +10752,10 @@ x_connection_closed (display, error_message)
 
   /* Indicate that this display is dead.  */
 
+#if 0 /* Closing the display caused a bus error on OpenWindows.  */
 #ifdef USE_X_TOOLKIT
   XtCloseDisplay (display);
+#endif
 #endif
 
   dpyinfo->display = 0;
