@@ -40,7 +40,7 @@ Boston, MA 02111-1307, USA.  */
 
 char my_edata[] = "End of Emacs initialized data";
 
-#ifdef WINDOWSNT
+#if defined(WINDOWSNT) || defined(CYGWIN)
 /* Help unexec locate the end of the .bss area used by Emacs (which
    isn't always a separate section in NT executables).  */
 char my_endbss[1];
