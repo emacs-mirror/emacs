@@ -635,9 +635,22 @@ openp (path, str, suffix, storeptr, exec_only)
 	  char *esuffix = (char *) index (nsuffix, ':');
 	  int lsuffix = esuffix ? esuffix - nsuffix : strlen (nsuffix);
 
-	  /* Concatenate path element/specified name with the suffix.  */
-	  strncpy (fn, XSTRING (filename)->data, XSTRING (filename)->size);
-	  fn[XSTRING (filename)->size] = 0;
+	  /* Concatenate path element/specified name with the suffix.
+	     If the directory starts with /:, remove that.  */
+	  if (XSTRING (filename)->size > 2
+	      && XSTRING (filename)->data[0] == '/'
+	      && XSTRING (filename)->data[1] == ':')
+	    {
+	      strncpy (fn, XSTRING (filename)->data + 2,
+		       XSTRING (filename)->size - 2);
+	      fn[XSTRING (filename)->size - 2] = 0;
+	    }
+	  else
+	    {
+	      strncpy (fn, XSTRING (filename)->data, XSTRING (filename)->size);
+	      fn[XSTRING (filename)->size] = 0;
+	    }
+
 	  if (lsuffix != 0)  /* Bug happens on CCI if lsuffix is 0.  */
 	    strncat (fn, nsuffix, lsuffix);
 
