@@ -95,6 +95,7 @@ fi
 ### that the shell is running in an Emacs window.)
 if [ $update = yes ];
 then
+  unset EMACS_UNIBYTE
   if [ -f src/emacs ];
   then
     EMACS=`pwd`/src/emacs
@@ -215,11 +216,11 @@ then
 
   echo "Updating finder, custom and autoload data"
 
-  (cd lisp; make updates EMACS=$EMACS)
+  (cd lisp; make updates EMACS="$EMACS")
 
   echo "Updating leim-list.el"
 
-  (cd leim; make leim-list.el EMACS=$EMACS)
+  (cd leim; make leim-list.el EMACS="$EMACS")
 
   echo "Recompiling Lisp files"
 
