@@ -1,3 +1,11 @@
+2003-01-21  Jason Rumney <jasonr@gnu.org>
+
+	* icons/hand.cur: New file.
+
+2003-01-21  David Ponce <david@dponce.com>
+
+	* emacs.rc (32649): Declare hand cursor resource.
+
 2003-01-15  Andrew Innes  <andrewi@gnu.org>
 
 	* gmake.defs (CURDIR): Convert to native Windows format (with
