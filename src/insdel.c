@@ -739,7 +739,7 @@ modify_region (buffer, start, end)
 
 void
 prepare_to_modify_buffer (start, end)
-     Lisp_Object start, end;
+     int start, end;
 {
   if (!NILP (current_buffer->read_only))
     Fbarf_if_buffer_read_only ();
@@ -779,13 +779,17 @@ prepare_to_modify_buffer (start, end)
 }
 
 /* Signal a change to the buffer immediately before it happens.
-   START and END are the bounds of the text to be changed,
-   as Lisp objects.  */
+   START_INT and END_INT are the bounds of the text to be changed.  */
 
 void
 signal_before_change (start, end)
-     Lisp_Object start, end;
+     int start_int, end_end;
 {
+  Lisp_Object start, end;
+
+  start = make_number (start_int);
+  end = make_number (end_int);
+
   /* If buffer is unmodified, run a special hook for that case.  */
   if (SAVE_MODIFF >= MODIFF
       && !NILP (Vfirst_change_hook)
