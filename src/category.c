@@ -145,8 +145,7 @@ DEFUN ("category-table-p", Fcategory_table_p, Scategory_table_p, 1, 1, 0,
      Lisp_Object arg;
 {
   if (CHAR_TABLE_P (arg)
-      && EQ (XCHAR_TABLE (arg)->purpose, Qcategory_table)
-      && CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (arg)) == 2)
+      && EQ (XCHAR_TABLE (arg)->purpose, Qcategory_table))
     return Qt;
   return Qnil;
 }
@@ -187,36 +186,45 @@ This is the one used for new buffers.")
 
 /* Return a copy of category table TABLE.  We can't simply use the
    function copy-sequence because no contents should be shared between
-   the original and the copy.
-
-   If TOP is 1, we at first copy the tree structure of the table.  */
+   the original and the copy.  This function is called recursively by
+   biding TABLE to a sub char table.  */
 
 Lisp_Object
-copy_category_table (table, top)
+copy_category_table (table)
      Lisp_Object table;
 {
-  int i;
+  Lisp_Object tmp;
+  int i, to;
 
-  if (top)
-    table = Fcopy_sequence (table);
-  else if (!NILP (XCHAR_TABLE (table)->defalt))
-    XCHAR_TABLE (table)->defalt
-      = Fcopy_sequence (XCHAR_TABLE (table)->defalt);
-
-  for (i = 0; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
+  if (!NILP (XCHAR_TABLE (table)->top))
     {
-      Lisp_Object idx = make_number (i);
-      Lisp_Object val = Faref (table, idx);
+      /* TABLE is a top level char table.
+	 At first, make a copy of tree structure of the table.  */
+      table = Fcopy_sequence (table);
 
-      if (NILP (val))		/* Do nothing because we can share nil.  */
-	;
-      else if (CATEGORY_SET_P (val))
-	Faset (table, idx, Fcopy_sequence (val));
-      else if (CHAR_TABLE_P (val))
-	Faset (table, idx, copy_category_table (val, 0));
-      else			/* Invalid contents.  */
-	Faset (table, idx, Qnil);
+      /* Then, copy elements for single byte characters one by one.  */
+      for (i = 0; i < CHAR_TABLE_SINGLE_BYTE_SLOTS; i++)
+	if (!NILP (tmp = XCHAR_TABLE (table)->contents[i]))
+	  XCHAR_TABLE (table)->contents[i] = Fcopy_sequence (tmp);
+      to = CHAR_TABLE_ORDINARY_SLOTS;
     }
+  else
+    {
+      i  = 32;
+      to = SUB_CHAR_TABLE_ORDINARY_SLOTS;
+    }
+
+  /* If the table has non-nil default value, copy it.  */
+  if (!NILP (tmp = XCHAR_TABLE (table)->defalt))
+    XCHAR_TABLE (table)->defalt = Fcopy_sequence (tmp);
+
+  /* At last, copy the remaining elements while paying attention to a
+     sub char table.  */
+  for (; i < to; i++)
+    if (!NILP (tmp = XCHAR_TABLE (table)->contents[i]))
+      XCHAR_TABLE (table)->contents[i]
+	= (SUB_CHAR_TABLE_P (tmp)
+	   ? copy_category_table (tmp) : Fcopy_sequence (tmp));
 
   return table;
 }
@@ -284,7 +292,7 @@ DEFUN ("category-set-mnemonics", Fcategory_set_mnemonics,
   return build_string (str);
 }
 
-/* Modify all category sets stored under category table TABLE so that
+/* Modify all category sets stored under sub char-table TABLE so that
    they contain (SET_VALUE is t) or don't contain (SET_VALUE is nil)
    CATEGORY.  */
 
@@ -302,13 +310,13 @@ modify_lower_category_set (table, category, set_value)
       XCHAR_TABLE (table)->defalt = val;
     }
 
-  for (i = 32; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
+  for (i = 32; i < SUB_CHAR_TABLE_ORDINARY_SLOTS; i++)
     {
       val = XCHAR_TABLE (table)->contents[i];
 
       if (CATEGORY_SET_P (val))
 	SET_CATEGORY_SET (val, category, set_value);
-      else if (CHAR_TABLE_P (val))
+      else if (SUB_CHAR_TABLE_P (val))
 	modify_lower_category_set (val, category, set_value);
     }
 }
@@ -352,7 +360,7 @@ If optional forth argument RESET is non NIL,\n\
   
   set_value = NILP (reset) ? Qt : Qnil;
 
-  if ((c) < CHAR_TABLE_SINGLE_BYTE_SLOTS)
+  if (c < CHAR_TABLE_SINGLE_BYTE_SLOTS)
     {
       val = XCHAR_TABLE (table)->contents[c];
       if (!CATEGORY_SET_P (val))
@@ -361,25 +369,24 @@ If optional forth argument RESET is non NIL,\n\
       return Qnil;
     }
 
-  if (COMPOSITE_CHAR_P (c))
-    c = cmpchar_component (c, 0);
   SPLIT_NON_ASCII_CHAR (c, charset, c1, c2);
 
   /* The top level table.  */
   val = XCHAR_TABLE (table)->contents[charset + 128];
-  if (NILP (val))
+  if (CATEGORY_SET_P (val))
+    category_set = val;
+  else if (!SUB_CHAR_TABLE_P (val))
     {
-      category_set = MAKE_CATEGORY_SET;
+      category_set = val = MAKE_CATEGORY_SET;
       XCHAR_TABLE (table)->contents[charset + 128] = category_set;
     }
-  else if (CATEGORY_SET_P (val))
-    category_set = val;
 
-  if (!c1)
+  if (c1 <= 0)
     {
       /* Only a charset is specified.  */
-      if (CHAR_TABLE_P (val))
-	/* All characters in CHARSET should be the same as for CATEGORY.  */
+      if (SUB_CHAR_TABLE_P (val))
+	/* All characters in CHARSET should be the same as for having
+           CATEGORY or not.  */
 	modify_lower_category_set (val, category, set_value);
       else
 	SET_CATEGORY_SET (category_set, category, set_value);
@@ -387,9 +394,9 @@ If optional forth argument RESET is non NIL,\n\
     }
 
   /* The second level table.  */
-  if (!CHAR_TABLE_P (val))
+  if (!SUB_CHAR_TABLE_P (val))
     {
-      val = Fmake_char_table (Qnil, Qnil);
+      val = make_sub_char_table (Qnil);
       XCHAR_TABLE (table)->contents[charset + 128] = val;
       /* We must set default category set of CHARSET in `defalt' slot.  */
       XCHAR_TABLE (val)->defalt = category_set;
@@ -397,17 +404,17 @@ If optional forth argument RESET is non NIL,\n\
   table = val;
 
   val = XCHAR_TABLE (table)->contents[c1];
-  if (NILP (val))
+  if (CATEGORY_SET_P (val))
+    category_set = val;
+  else if (!SUB_CHAR_TABLE_P (val))
     {
-      category_set = Fcopy_sequence (XCHAR_TABLE (table)->defalt);
+      category_set = val = Fcopy_sequence (XCHAR_TABLE (table)->defalt);
       XCHAR_TABLE (table)->contents[c1] = category_set;
     }
-  else if (CATEGORY_SET_P (val))
-    category_set = val;
 
-  if (!c2)
+  if (c2 <= 0)
     {
-      if (CHAR_TABLE_P (val))
+      if (SUB_CHAR_TABLE_P (val))
 	/* All characters in C1 group of CHARSET should be the same as
            for CATEGORY.  */
 	modify_lower_category_set (val, category, set_value);
@@ -417,9 +424,9 @@ If optional forth argument RESET is non NIL,\n\
     }
 
   /* The third (bottom) level table.  */
-  if (!CHAR_TABLE_P (val))
+  if (!SUB_CHAR_TABLE_P (val))
     {
-      val = Fmake_char_table (Qnil, Qnil);
+      val = make_sub_char_table (Qnil, Qnil);
       XCHAR_TABLE (table)->contents[c1] = val;
       /* We must set default category set of CHARSET and C1 in
          `defalt' slot.  */
@@ -428,13 +435,13 @@ If optional forth argument RESET is non NIL,\n\
   table = val;
 
   val = XCHAR_TABLE (table)->contents[c2];
-  if (NILP (val))
+  if (CATEGORY_SET_P (val))
+    category_set = val;
+  else if (!SUB_CHAR_TABLE_P (val))
     {
       category_set = Fcopy_sequence (XCHAR_TABLE (table)->defalt);
       XCHAR_TABLE (table)->contents[c2] = category_set;
     }
-  else if (CATEGORY_SET_P (val))
-    category_set = val;
   else
     /* This should never happen.  */
     error ("Invalid category table");
