@@ -1969,6 +1969,27 @@ Uses the `derived-mode-parent' property of the symbol to trace backwards."
 		(setq parent (get parent 'derived-mode-parent))))
     parent))
 
+(defun find-tag-default ()
+  "Determine default tag to search for, based on text at point.
+If there is no plausible default, return nil."
+  (save-excursion
+    (while (looking-at "\\sw\\|\\s_")
+      (forward-char 1))
+    (if (or (re-search-backward "\\sw\\|\\s_"
+				(save-excursion (beginning-of-line) (point))
+				t)
+	    (re-search-forward "\\(\\sw\\|\\s_\\)+"
+			       (save-excursion (end-of-line) (point))
+			       t))
+	(progn (goto-char (match-end 0))
+	       (buffer-substring-no-properties
+                (point)
+                (progn (forward-sexp -1)
+                       (while (looking-at "\\s'")
+                         (forward-char 1))
+                       (point))))
+      nil)))
+
 (defmacro with-syntax-table (table &rest body)
   "Evaluate BODY with syntax table of current buffer set to TABLE.
 The syntax table of the current buffer is saved, BODY is evaluated, and the
