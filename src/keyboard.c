@@ -7272,8 +7272,6 @@ parse_tool_bar_item (key, item)
 
   Lisp_Object filter = Qnil;
   Lisp_Object caption;
-  extern Lisp_Object QCenable, QCvisible, QChelp, QCfilter;
-  extern Lisp_Object QCbutton, QCtoggle, QCradio;
   int i;
 
   /* Defininition looks like `(menu-item CAPTION BINDING PROPS...)'.
