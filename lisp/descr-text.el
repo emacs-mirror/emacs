@@ -136,11 +136,9 @@ The `category' property is made into a widget button that call
 (defun describe-text-category (category)
   "Describe a text property category."
   (interactive "S")
-  (when (get-buffer "*Text Category*")
-    (kill-buffer "*Text Category*"))
   (save-excursion
-    (with-output-to-temp-buffer "*Text Category*"
-      (set-buffer "*Text Category*")
+    (with-output-to-temp-buffer "*Help*"
+      (set-buffer standard-output)
       (widget-insert "Category " (format "%S" category) ":\n\n")
       (describe-property-list (symbol-plist category))
       (describe-text-mode)
@@ -154,8 +152,6 @@ If optional second argument OUTPUT-BUFFER is non-nil,
 insert the output into that buffer, and don't initialize or clear it
 otherwise."
   (interactive "d")
-  (when (eq (current-buffer) (get-buffer "*Text Description*"))
-    (error "Can't do self inspection"))
   (if (>= pos (point-max))
       (error "No character follows specified position"))
   (if output-buffer
@@ -163,9 +159,11 @@ otherwise."
     (if (not (or (text-properties-at pos) (overlays-at pos)))
 	(message "This is plain text.")
       (let ((buffer (current-buffer)))
+	(when (eq buffer (get-buffer "*Help*"))
+	  (error "Can't do self inspection"))
 	(save-excursion
-	  (with-output-to-temp-buffer "*Text Description*"
-	    (set-buffer "*Text Description*")
+	  (with-output-to-temp-buffer "*Help*"
+	    (set-buffer standard-output)
 	    (setq output-buffer (current-buffer))
 	    (widget-insert "Text content at position " (format "%d" pos) ":\n\n")
 	    (with-current-buffer buffer
@@ -226,14 +224,12 @@ syntax, category, how the character is encoded in a file,
 character composition information (if relevant),
 as well as widgets, buttons, overlays, and text properties."
   (interactive "d")
-  (when (eq (current-buffer) (get-buffer "*Text Description*"))
-    (error "Can't do self inspection"))
   (if (>= pos (point-max))
       (error "No character follows specified position"))
   (let* ((char (char-after pos))
 	 (charset (char-charset char))
 	 (buffer (current-buffer))
-	 (composition (find-composition (point) nil nil t))
+	 (composition (find-composition pos nil nil t))
 	 (composed (if composition (buffer-substring (car composition)
 						     (nth 1 composition))))
 	 (multibyte-p enable-multibyte-characters)
@@ -261,11 +257,9 @@ as well as widgets, buttons, overlays, and text properties."
 		      (format "%d" (nth 1 split))
 		    (format "%d %d" (nth 1 split) (nth 2 split)))))
 	      ("syntax"
- 	       ,(let ((syntax (get-char-property (point) 'syntax-table)))
+ 	       ,(let ((syntax (syntax-after pos)))
 		  (with-temp-buffer
-		    (internal-describe-syntax-value
-		     (if (consp syntax) syntax
-		       (aref (or syntax (syntax-table)) char)))
+		    (internal-describe-syntax-value syntax)
 		    (buffer-string))))
 	      ("category"
 	       ,@(let ((category-set (char-category-set char)))
@@ -293,16 +287,15 @@ as well as widgets, buttons, overlays, and text properties."
 		     (list "not encodable by coding system"
 			   (symbol-name coding)))))
 	      ,@(if (or (memq 'mule-utf-8
-			  (find-coding-systems-region (point) (1+ (point))))
-			(get-char-property (point) 'untranslated-utf-8))
-		    (let ((uc (or (get-char-property (point)
-						     'untranslated-utf-8)
-				  (encode-char (char-after) 'ucs))))
+			  (find-coding-systems-region pos (1+ pos)))
+			(get-char-property pos 'untranslated-utf-8))
+		    (let ((uc (or (get-char-property pos 'untranslated-utf-8)
+				  (encode-char char 'ucs))))
 		      (if uc
 			  (list (list "Unicode"
 				      (format "%04X" uc))))))
 	      ,(if (display-graphic-p (selected-frame))
-		   (list "font" (or (internal-char-font (point))
+		   (list "font" (or (internal-char-font pos)
 				    "-- none --"))
 		 (list "terminal code"
 		       (let* ((coding (terminal-coding-system))
@@ -312,11 +305,10 @@ as well as widgets, buttons, overlays, and text properties."
 			   "not encodable")))))))
     (setq max-width (apply #'max (mapcar #'(lambda (x) (length (car x)))
 					 item-list)))
-    (when (get-buffer "*Help*")
-      (kill-buffer "*Help*"))
+    (when (eq (current-buffer) (get-buffer "*Help*"))
+      (error "Can't do self inspection"))
     (with-output-to-temp-buffer "*Help*"
-      (save-excursion
-	(set-buffer standard-output)
+      (with-current-buffer standard-output
 	(set-buffer-multibyte multibyte-p)
 	(let ((formatter (format "%%%ds:" max-width)))
 	  (dolist (elt item-list)
@@ -331,11 +323,20 @@ as well as widgets, buttons, overlays, and text properties."
 	      (insert " " clm))
 	    (insert "\n")))
 	(when composition
-	  (insert "\nComposed with the following character(s) "
-		  (mapconcat (lambda (x) (format "`%c'" x))
-			     (substring composed 1)
-			     ", ")
-		  " to form `" composed "'")
+	  (insert "\nComposed with the "
+		  (cond
+		   ((eq pos (car composition)) "following ")
+		   ((eq (1+ pos) (cadr composition)) "preceding ")
+		   (t ""))
+		  "character(s) `"
+		  (cond
+		   ((eq pos (car composition)) (substring composed 1))
+		   ((eq (1+ pos) (cadr composition)) (substring composed 0 -1))
+		   (t (concat (substring composed 0 (- pos (car composition)))
+			      "' and `"
+			      (substring composed (- (1+ pos) (car composition))))))
+		    
+		  "' to form `" composed "'")
 	  (if (nth 3 composition)
 	      (insert ".\n")
 	    (insert "\nby the rule ("
