@@ -863,15 +863,17 @@ w32_draw_bitmap (w, hdc, row, which)
 
   compat_hdc = CreateCompatibleDC (hdc);
   SaveDC (hdc);
-  fg_brush = CreateSolidBrush (FRAME_FOREGROUND_PIXEL (f));
+  fg_brush = CreateSolidBrush (face->foreground);
   orig_brush = SelectObject (hdc, fg_brush);
   horig_obj = SelectObject (compat_hdc, pixmap);
-  SetTextColor (hdc, FRAME_BACKGROUND_PIXEL (f));
-  SetBkColor (hdc, FRAME_FOREGROUND_PIXEL (f));
+  SetTextColor (hdc, face->foreground);
+  SetBkColor (hdc, face->background);
 #if 0 /* From w32bdf.c (which is from Meadow).  */
+  /* Old versions - in case we find a reason to fall back on them.  */
   BitBlt (hdc, x, y + dy, wd, h, compat_hdc, 0, 0, SRCCOPY);
-#else
   BitBlt (hdc, x, y + dy, wd, h, compat_hdc, 0, 0, 0xB8074A);
+#else
+  BitBlt (hdc, x, y + dy, wd, h, compat_hdc, 0, 0, 0xE20746);
 #endif
   SelectObject (compat_hdc, horig_obj);
   SelectObject (hdc, orig_brush);
