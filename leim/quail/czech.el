@@ -160,7 +160,7 @@
 (quail-define-package
  "czech-qwerty" "Czech" "CZ" nil
  "\"Standard\" Czech keyboard in the Windoze NT 105 keys version, QWERTY layout."
- nil t nil nil nil nil nil nil nil nil t)
+ nil t nil nil t nil nil nil nil nil t)
 
 (quail-define-rules
  ("1" ?+)
@@ -284,7 +284,7 @@ Czech keyboard.
 `1' is replaced by `+'.
 `+' is a dead key.  Multiple presses of the dead key generate various accents.
 All other keys are the same as on standard US keyboard."
- nil t nil nil nil nil nil nil nil nil t)
+ nil t nil nil t nil nil nil nil nil t)
 
 (quail-define-rules
  ("1" ?+)
@@ -374,7 +374,7 @@ Czech keyboard.
 `1' is replaced by `,By(B'.
 `+' is a dead key.  Multiple presses of the dead key generate various accents.
 All other keys are the same as on standard US keyboard."
- nil t nil nil nil nil nil nil nil nil t)
+ nil t nil nil t nil nil nil nil nil t)
 
 (quail-define-rules
  ("1" ?,By(B)
@@ -466,7 +466,7 @@ Czech keyboard.
 There are two dead keys on `=' and `+'.  Characters with diaresis are
 accessible through `+='.
 All other keys are the same as on standard US keyboard."
- nil t nil nil nil nil nil nil nil nil t)
+ nil t nil nil t nil nil nil nil nil t)
 
 (quail-define-rules
  ("2" ?,Bl(B)
