@@ -5,7 +5,7 @@
 
 2001-03-05  Dave Love  <fx@gnu.org>
 
-	* xterm.c (XTmouse_position): Fix tyypo.
+	* xterm.c (XTmouse_position): Fix typo.
 
 2001-03-05  Gerd Moellmann  <gerd@gnu.org>
 
