@@ -1,3 +1,7 @@
+2001-12-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* eval.c: Undo last change: the standard syntax is not wanted.
+
 2001-12-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xterm.c (x_free_frame_resources) [USE_X_TOOLKIT]: Remove all the

@@ -1,7 +1,11 @@
+2001-12-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* indent.el (indent-line-function): Default is indent-relative again.
+
 2001-12-07  Miles Bader  <miles@gnu.org>
 
-	* progmodes/compile.el (compilation-error-regexp-alist): Added
-	regexps for RXP.  From Reto Stamm <reto@xilinx.com>.
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	Added regexps for RXP.  From Reto Stamm <reto@xilinx.com>.
 
 2001-12-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -20,15 +24,15 @@
 	* xt-mouse.el (turn-off-xterm-mouse-tracking): Doc fix.
 
 2001-12-04  Colin Walters  <walters@debian.org>
-	
+
 	* emacs-lisp/autoload.el (make-autoload): Also generate autoloads
 	for `defmacro*' forms.
 
 	* emacs-lisp/lisp-mode.el (toplevel): Define docstring offset for
 	`defmacro*'.
-	
+
 2001-12-03  Stefan Monnier  <monnier@cs.yale.edu>
-	
+
 	* progmodes/antlr-mode.el (antlr-c-common-init): Undo last change.
 
 2001-12-02  Richard M. Stallman  <rms@gnu.org>

@@ -23,6 +23,8 @@ installed programs.
 
 * Changes in Emacs 21.3
 
+** Info-index finally offers completion.
+
 ** Controlling the left and right fringe widths.
 
 The left and right fringe widths can now be controlled by setting the
@@ -243,9 +245,8 @@ handler whose (match-beginning 0) is the largest is chosen.
 In case of ties, the old "first matched" rule applies.
 
 ** Dense keymaps now handle inheritance correctly.
-To that end, binding a key to t now behaves the same as binding it to
-nil (it shadows parent bindings but not bindings in keymaps of lower
-precedence).
+Previously a dense keymap would hide all of the simple-char key
+bindings of the parent keymap.
 
 ** jit-lock obeys a new text-property `jit-lock-defer-multiline'.
 If a piece of text with that property gets contextually refontified
