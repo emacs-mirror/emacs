@@ -110,13 +110,12 @@ users can override your changes if they wish.  @xref{Start-up Summary}.
 
 @defun dump-emacs to-file from-file
 @cindex unexec
-  This function dumps the current state of Emacs into an executable file
+This function dumps the current state of Emacs into an executable file
 @var{to-file}.  It takes symbols from @var{from-file} (this is normally
 the executable file @file{temacs}).
 
-If you use this function in an Emacs that was already dumped, you must
-set @code{command-line-processed} to @code{nil} first for good results.
-@xref{Command Line Arguments}.
+If you want to use this function in an Emacs that was already dumped,
+you must run Emacs with @samp{-batch}.
 @end defun
 
 @deffn Command emacs-version
