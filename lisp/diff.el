@@ -45,7 +45,7 @@
 ;;;###autoload
 (defcustom diff-command "diff"
   "*The command to use to run diff."
-  :type string
+  :type 'string
   :group 'diff)
 
 (defvar diff-regexp-alist
