@@ -5,6 +5,14 @@
 
 ;;; Commentary:
 
+;;; This file is very badly designed in that it redefines
+;;; standard functions of Emacs.  This is bad design, because
+;;; this file cannot be updated to correspond to the latest
+;;; versions of those functions.  Therefore, you must expect
+;;; it to produce unpredictable and undesirable results.
+;;; This file needs to be redesigned to work in a modular fashion.
+;;;  -- rms.
+
 ;;; This is a Completion system for GNU Emacs
 ;;;
 ;;;  E-Mail: 
@@ -2952,8 +2960,8 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 ;;;-----------------------------------------------
 (def-completion-wrapper newline :separator)
 (def-completion-wrapper newline-and-indent :separator)
-(if (function-defined-and-loaded 'shell-send-input)
-    (def-completion-wrapper shell-send-input :separator))
+;;;(if (function-defined-and-loaded 'shell-send-input)
+;;;    (def-completion-wrapper shell-send-input :separator))
 (def-completion-wrapper exit-minibuffer :minibuffer-separator)
 (def-completion-wrapper eval-print-last-sexp :separator)
 (def-completion-wrapper eval-last-sexp :separator)
@@ -3099,18 +3107,6 @@ and KILLP is t if prefix arg is was specified."
 ;;;-----------------------------------------------
 ;;; Local Thinking Machines stuff
 ;;;-----------------------------------------------
-
-(if (fboundp 'up-ten-lines)
-    (def-completion-wrapper up-ten-lines :under-or-before))
-(if (fboundp 'down-ten-lines)
-    (def-completion-wrapper down-ten-lines :under-or-before))
-(if (fboundp 'tmc-scroll-up)
-    (def-completion-wrapper tmc-scroll-up :under-or-before))
-(if (fboundp 'tmc-scroll-down)
-    (def-completion-wrapper tmc-scroll-down :under-or-before))
-(if (fboundp 'execute-extended-command-and-check-for-bindings)
-    (def-completion-wrapper execute-extended-command-and-check-for-bindings
-	:under-or-before))
 
 ;;; Tests --
 ;;; foobarbiz
