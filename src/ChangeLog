@@ -1,3 +1,7 @@
+2002-01-26  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (note_mouse_highlight): Reset help_echo.
+
 2002-01-24  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (x_scroll_run): Use ScrollWindowEx in place of BitBlt.

@@ -6547,6 +6547,9 @@ note_mouse_highlight (f, x, y)
   if (!WINDOWP (window))
     return;
 
+  /* Reset help_echo.  It will get recomputed below.  */
+  help_echo = Qnil;
+
   /* Convert to window-relative pixel coordinates.  */
   w = XWINDOW (window);
   frame_to_window_pixel_xy (w, &x, &y);
