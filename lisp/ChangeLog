@@ -1,3 +1,8 @@
+2003-07-19  Markus Rost  <rost@math.ohio-state.edu>
+
+	* textmodes/artist.el (artist-erase-char): Fix default value using
+	?\s.
+
 2003-07-19  John Paul Wallington  <jpw@gnu.org>
 
 	* textmodes/artist.el (artist-butlast-fn, artist-draw-sline)
