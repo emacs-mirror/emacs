@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
-;; Last-Modified:	$Date: 1994/10/01 13:27:15 $
-;; Version:		$Revision: 1.51 $
+;; Last-Modified:	$Date: 1994/10/06 10:28:26 $
+;; Version:		$Revision: 1.52 $
 ;; Keywords:		help
 ;; Adapted-By:		ESR, pot
 
@@ -346,10 +346,8 @@ This is necessary if one wants to dump man.el with emacs."
        (if Man-sed-script
 	   (concat "-e '" Man-sed-script "'")
 	 "")
+       "-e '/^[\001-\032]*$/d'"
        "-e '/\e[789]/s///g'"
-       "-e '/o\b+/s//o/g'"
-       "-e '/|\b-[-|\b]*/s//+/g'"
-       "-e '/^\\n$/D'"
        "-e '/[Nn]o such file or directory/d'"
        "-e '/Reformatting page.  Wait/d'"
        "-e '/Reformatting entry.  Wait/d'"
@@ -361,6 +359,7 @@ This is necessary if one wants to dump man.el with emacs."
        "-e '/^[ \t]*X[ \t]Version[ \t]1[01].*Release[ \t][0-9]/d'"
        "-e '/^[A-za-z].*Last[ \t]change:/d'"
        "-e '/^Sun[ \t]Release[ \t][0-9].*[0-9]$/d'"
+       "-e '/[ \t]*Copyright [0-9]* UNIX System Laboratories, Inc.$/d'"
        ))
      (cons
       Man-awk-command
@@ -630,9 +629,6 @@ Same for the ANSI bold and normal escape sequences."
     (backward-delete-char 2)
     (put-text-property (1- (point)) (point) 'face 'underline))
   (goto-char (point-min))
-  (while (re-search-forward "\e[789]" nil t)
-    (backward-delete-char 2))
-  (goto-char (point-min))
   (while (re-search-forward "\\(.\\)\\(\b\\1\\)+" nil t)
     (replace-match "\\1")
     (put-text-property (1- (point)) (point) 'face 'bold))
@@ -641,7 +637,7 @@ Same for the ANSI bold and normal escape sequences."
     (backward-delete-char 2)
     (put-text-property (1- (point)) (point) 'face 'bold))
   (goto-char (point-min))
-  (while (re-search-forward "|\b-[-|\b]*" nil t)
+  (while (re-search-forward "[-|]\\(\b[-|]\\)+" nil t)
     (replace-match "+")
     (put-text-property (1- (point)) (point) 'face 'bold))
   (message "%s man page made up" Man-arguments))
@@ -649,22 +645,24 @@ Same for the ANSI bold and normal escape sequences."
 (defun Man-cleanup-manpage ()
   "Remove overstriking and underlining from the current buffer."
   (interactive)
-  (message "Please wait: cleaning up the %s man page..." Man-arguments)
+  (message "Please wait: cleaning up the %s man page..."
+	   Man-arguments)
+  (or Man-sed-script
+      (progn
+	(goto-char (point-min))
+	(while (search-forward "_\b" nil t) (backward-delete-char 2))
+	(goto-char (point-min))
+	(while (search-forward "\b_" nil t) (backward-delete-char 2))
+	(goto-char (point-min))
+	(while (re-search-forward "\\(.\\)\\(\b\\1\\)+" nil t)
+	  (replace-match "\\1"))
+	(goto-char (point-min))
+	(while (re-search-forward "\e\\[[0-9]+m" nil t) (replace-match ""))
+	(goto-char (point-min))
+	(while (search-forward "o\b+" nil t) (backward-delete-char 2))
+	))
   (goto-char (point-min))
-  (while (re-search-forward "\e\\[[0-9]+m" nil t) (replace-match ""))
-  (goto-char (point-min))
-  (while (search-forward "_\b" nil t) (backward-delete-char 2))
-  (goto-char (point-min))
-  (while (search-forward "\b_" nil t) (backward-delete-char 2))
-  (goto-char (point-min))
-  (while (re-search-forward "\e[789]" nil t) (backward-delete-char 2))
-  (goto-char (point-min))
-  (while (re-search-forward "\\(.\\)\\(\b\\1\\)+" nil t)
-    (replace-match "\\1"))
-  (goto-char (point-min))
-  (while (search-forward "o\b+" nil t) (backward-delete-char 2))
-  (goto-char (point-min))
-  (while (re-search-forward "|\b-[-|\b]*" nil t) (replace-match "+"))
+  (while (re-search-forward "[-|]\\(\b[-|]\\)+" nil t) (replace-match "+"))
   (message "%s man page cleaned up" Man-arguments))
 
 (defun Man-bgproc-sentinel (process msg)
@@ -702,8 +700,7 @@ Same for the ANSI bold and normal escape sequences."
 		(kill-buffer Man-buffer)
 	      (if Man-fontify-manpage-flag
 		  (Man-fontify-manpage)
-		(if (not Man-sed-script)
-		    (Man-cleanup-manpage)))
+		(Man-cleanup-manpage))
 	      (run-hooks 'Man-cooked-hook)
 	      (Man-mode)
 	      (set-buffer-modified-p nil)
