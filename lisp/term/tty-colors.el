@@ -795,12 +795,13 @@ A canonicalized color name is all-lower case, with any blanks removed."
 (defun tty-color-define (name index &optional rgb frame)
   "Specify a tty color by its NAME, terminal INDEX and RGB values.
 NAME is a string, INDEX is typically a small integer used to send to
-the terminal driver to switch on this color, and RGB is a list of 3
-numbers that specify the intensity of red, green, and blue components
-of the color.
+the terminal driver a command to switch this color on, and RGB is a
+list of 3 numbers that specify the intensity of red, green, and blue
+components of the color.
 If specified, each one of the RGB components must be a number between
 0 and 65535.  If RGB is omitted, the specified color will never be used
 by `tty-color-translate' as an approximation to another color.
+FRAME is the frame where the defined color should be used.
 If FRAME is not specified or is nil, it defaults to the selected frame."
   (if (or (not (stringp name))
 	  (not (integerp index))
@@ -815,7 +816,11 @@ If FRAME is unspecified or nil, it defaults to the selected frame."
   (setq tty-defined-color-alist nil))
 
 (defun tty-color-off-gray-diag (r g b)
-  "Compute the angle between the color given by R,G,B and the gray diagonal."
+  "Compute the angle between the color given by R,G,B and the gray diagonal.
+The gray diagonal is the diagonal of the 3D cube in RGB space which
+connects the points corresponding to the black and white colors.  All the
+colors whose RGB coordinates belong to this diagonal are various shades
+of gray, thus the name."
   (let ((mag (sqrt (* 3 (+ (* r r) (* g g) (* b b))))))
     (if (< mag 1) 0 (acos (/ (+ r g b) mag)))))
 
@@ -864,9 +869,11 @@ FRAME defaults to the selected frame."
 
 (defun tty-color-translate (color &optional frame)
   "Given a color COLOR, return the index of the corresponding TTY color.
+
 COLOR must be a string that is either the color's name, or its X-style
 specification like \"#RRGGBB\" or \"RGB:rr/gg/bb\", where each primary.
 color can be given with 1 to 4 hex digits.
+
 If COLOR is a color name that is found among supported colors in
 `tty-color-alist', the associated index is returned.  Otherwise, the
 RGB values of the color, either as given by the argument or from
@@ -875,6 +882,7 @@ supported color that is the best approximation for COLOR in the RGB
 space.
 If COLOR is neither a valid X RGB specification of the color, nor a
 name of a color in `color-name-rgb-alist', the returned value is nil.
+
 If FRAME is unspecified or nil, it defaults to the selected frame."
   (and (stringp color)
        (let* ((color (tty-color-canonicalize color))
@@ -938,6 +946,7 @@ If FRAME is unspecified or nil, it defaults to the selected frame."
 
 (defun tty-color-by-index (idx &optional frame)
   "Given a numeric index of a tty color, return its description.
+
 FRAME, if unspecified or nil, defaults to the selected frame.
 Value is a list of the form \(NAME INDEX R G B\)."
   (and idx
@@ -952,6 +961,7 @@ Value is a list of the form \(NAME INDEX R G B\)."
 
 (defun tty-color-values (color &optional frame)
   "Return RGB values of the color COLOR on a termcap frame FRAME.
+
 If COLOR is not directly supported by the display, return the RGB
 values for a supported color that is its best approximation.
 The value is a list of integer RGB values--\(RED GREEN BLUE\).
@@ -971,6 +981,7 @@ If FRAME is omitted or nil, use the selected frame."
 
 (defun tty-color-desc (color &optional frame)
   "Return the description of the color COLOR for a character terminal.
+
 FRAME, if unspecified or nil, defaults to the selected frame.
 Value is a list of the form \(NAME INDEX R G B\).  Note that the returned
 NAME is not necessarily the same string as the argument COLOR, because
