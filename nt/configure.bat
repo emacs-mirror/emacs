@@ -187,7 +187,7 @@ gcc -c junk.c
 if not exist junk.o goto checkw32api
 gcc -mno-cygwin -c junk.c
 if exist junk.o set nocygwin=Y
-rm -f junk.c junk.o
+del junk.o junk.c
 
 :checkw32api
 rem ----------------------------------------------------------------------
@@ -200,8 +200,8 @@ rem   of w32api-xxx.zip from Anders Norlander since 1999-11-18 at least.
 rem
 echo Checking whether W32 API headers are too old...
 echo #include "windows.h" >junk.c
-echo test(PIMAGE_NT_HEADERS pHeader) >>junk.c
-echo {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);} >>junk.c
+echo test(PIMAGE_NT_HEADERS pHeader)>>junk.c
+echo {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);}>>junk.c
 gcc -c junk.c
 if exist junk.o goto gccOk
 
@@ -216,13 +216,13 @@ goto end
 
 :gccOk
 set COMPILER=gcc
-rm -f junk.c junk.o
+del junk.c junk.o
 echo Using 'gcc'
 goto genmakefiles
 
 :clOk
 set COMPILER=cl
-rm -f junk.c junk.obj
+del junk.c junk.obj
 echo Using 'MSVC'
 goto genmakefiles
 
@@ -233,18 +233,15 @@ if %COMPILER% == gcc set MAKECMD=gmake
 if %COMPILER% == cl set MAKECMD=nmake
 
 rem   Pass on chosen settings to makefiles.
-rem   NB. Be very careful to not have a space before redirection symbols
-rem   except when there is a preceding digit, when a space is required.
-rem
 echo # Start of settings from configure.bat >config.settings
-echo COMPILER=%COMPILER%>>config.settings
+echo COMPILER=%COMPILER% >>config.settings
 if (%nodebug%) == (Y) echo NODEBUG=1 >>config.settings
 if (%noopt%) == (Y) echo NOOPT=1 >>config.settings
 if (%nocygwin%) == (Y) echo NOCYGWIN=1 >>config.settings
-if not "(%prefix%)" == "()" echo INSTALL_DIR=%prefix%>>config.settings
-if not "(%usercflags%)" == "()" echo USER_CFLAGS=%usercflags%>>config.settings
-if not "(%userldflags%)" == "()" echo USER_LDFLAGS=%userldflags%>>config.settings
-echo # End of settings from configure.bat>>config.settings
+if not "(%prefix%)" == "()" echo INSTALL_DIR=%prefix% >>config.settings
+if not "(%usercflags%)" == "()" echo USER_CFLAGS=%usercflags% >>config.settings
+if not "(%userldflags%)" == "()" echo USER_LDFLAGS=%userldflags% >>config.settings
+echo # End of settings from configure.bat >>config.settings
 echo. >>config.settings
 
 copy config.nt ..\src\config.h
@@ -255,8 +252,8 @@ copy paths.h ..\src\epaths.h
 copy /b config.settings+%MAKECMD%.defs+..\nt\makefile.w32-in ..\nt\makefile
 copy /b config.settings+%MAKECMD%.defs+..\lib-src\makefile.w32-in ..\lib-src\makefile
 copy /b config.settings+%MAKECMD%.defs+..\src\makefile.w32-in ..\src\makefile
-if not exist ..\lisp\Makefile.unix rename ..\lisp\Makefile.in Makefile.unix
-if exist ..\lisp\makefile rm -f ../lisp/[Mm]akefile
+if not exist ..\lisp\Makefile.unix rename ..\lisp\Makefile Makefile.unix
+if exist ..\lisp\makefile del /f ..\lisp\makefile
 copy /b config.settings+%MAKECMD%.defs+..\lisp\makefile.w32-in ..\lisp\makefile
 rem   Use the default (no-op) Makefile.in if the nt version is not present.
 if exist ..\leim\makefile.w32-in copy /b config.settings+%MAKECMD%.defs+..\leim\makefile.w32-in ..\leim\makefile

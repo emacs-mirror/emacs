@@ -107,10 +107,7 @@ INDIAN=${srcdir}/quail/devanagari.elc
 
 TIBETAN=${srcdir}/quail/tibetan.elc
 
-LATIN=	${srcdir}/quail/latin-pre.elc	\
-	${srcdir}/quail/latin-post.elc	\
-	${srcdir}/quail/latin-alt.elc	\
-	${srcdir}/quail/latin-ltx.elc
+LATIN=${srcdir}/quail/latin-pre.elc ${srcdir}/quail/latin-post.elc
 
 SLAVIC= \
 	${srcdir}/quail/czech.elc \
@@ -191,6 +188,3 @@ clean mostlyclean:
 distclean maintainer-clean:
 	if test -f stamp-subdir; then rm -rf ${SUBDIRS} stamp-subdir; fi
 	rm -f Makefile
-
-extraclean: distclean
-	-rm -f *~ \#* m/?*~ s/?*~

@@ -1320,7 +1320,7 @@ AC_SUBST(LIBSOUND)
 dnl checks for header files
 AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
-  termcap.h stdio_ext.h fcntl.h term.h strings.h)
+  termcap.h stdio_ext.h fcntl.h term.h strings.h pwd.h sys/ioctl.h ulimit.h)
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_DECL_SYS_SIGLIST
@@ -1830,7 +1830,7 @@ no_return_alloc_pixels
     AC_DEFINE(HAVE_XPM)
   fi
 fi
-  
+
 ### Use -ljpeg if available, unless `--with-jpeg=no'.
 HAVE_JPEG=no
 if test "${HAVE_X11}" = "yes"; then
@@ -1842,10 +1842,19 @@ if test "${HAVE_X11}" = "yes"; then
   fi
 
   if test "${HAVE_JPEG}" = "yes"; then
-    AC_DEFINE(HAVE_JPEG)
+    AC_EGREP_CPP(
+changequote({, })dnl
+	{version=(6[2-9]|[7-9][0-9])},
+changequote([, ])dnl
+	[#include <jpeglib.h>
+	  version=JPEG_LIB_VERSION
+	  ],    
+	AC_DEFINE(HAVE_JPEG),
+	[AC_MSG_WARN([libjpeg found, but not version 6b or later])
+	HAVE_JPEG=no])
   fi
 fi
-  
+
 ### Use -lpng if available, unless `--with-png=no'.
 HAVE_PNG=no
 if test "${HAVE_X11}" = "yes"; then

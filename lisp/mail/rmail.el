@@ -152,8 +152,7 @@ It is useful to set this variable in the site customization file.")
 	  "\\|^precedence:\\|^list-help:\\|^list-post:\\|^list-subscribe:"
 	  "\\|^list-id:\\|^list-unsubscribe:\\|^list-archive:"
 	  "\\|^content-type:\\|^content-length:"
-	  "\\|^x-attribution:\\|^x-disclaimer:\\|^x-trace:"
-	  "\\|^x-complaints-to:\\|^nntp-posting-date:\\|^user-agent:")
+	  "\\|^x-attribution:\\|^x-disclaimer:")
   "*Regexp to match header fields that Rmail should normally hide.
 This variable is used for reformatting the message header,
 which normally happens once for each message,

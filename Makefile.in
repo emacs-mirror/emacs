@@ -475,9 +475,7 @@ uninstall:
 	    esac ;					\
 	  fi ;						\
 	done
-	(cd ${archlibdir} && rm -f fns-*)
-	-rm -rf ${libexecdir}/emacs/${version}
-	(cd ${infodir} && rm -f cl* ada-mode* autotype* ccmode* ebrowse* efaq* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* widget* woman* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip*)
+	(cd ${infodir} && rm -f cl* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip*)
 	(cd ${man1dir}  && rm -f emacs.1 etags.1 ctags.1)
 	(cd ${bindir}  && rm -f emacs-${version} $(EMACS))
 
@@ -564,7 +562,7 @@ maintainer-clean: FRC
 extraclean:
 	for i in ${SUBDIR}; do (cd $$i; $(MAKE) $(MFLAGS) extraclean); done
 	${top_distclean}
-	-rm -f config-tmp-*
+	-rm config-tmp-*
 	-rm -f *~ \#*
 
 ### Unlocking and relocking.  The idea of these productions is to reduce
@@ -608,7 +606,8 @@ relock:
 
 # The src subdir knows how to do the right thing
 # even when the build directory and source dir are different.
-TAGS tags: lib-src src
+TAGS tags:
+	lib-src src
 	cd src; $(MAKE) tags
 
 check:

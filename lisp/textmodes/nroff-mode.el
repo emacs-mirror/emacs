@@ -113,11 +113,7 @@ closing requests for requests that are used in matched pairs."
     (modify-syntax-entry ?\n ">  1" nroff-mode-syntax-table))
   (set-syntax-table nroff-mode-syntax-table)
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults
-	;; SYNTAX-BEGIN is set to backward-paragraph to avoid slow-down
-	;; near the end of large buffers due to searching to buffer's
-	;; beginning.
-	'(nroff-font-lock-keywords nil t nil backward-paragraph))
+  (setq font-lock-defaults '(nroff-font-lock-keywords nil t))
   (setq local-abbrev-table nroff-mode-abbrev-table)
   (make-local-variable 'nroff-electric-mode)
   (setq nroff-electric-mode nil)

@@ -256,10 +256,8 @@ configure Emacs; use the option `--with-x-toolkit=TOOLKIT', where
 TOOLKIT is `athena' or `motif' (`yes' and `lucid' are synonyms for
 `athena').  On some systems, it does not work to use a toolkit with
 shared libraries.  A free implementation of Motif, called LessTif, is
-available ftom <http://www.lesstif.org>.  Compiling with LessTif or
-Motif causes a standard File Selection Dialog to pop up when you type
-"C-x C-f" and similar commands.  You can get fancy 3D-style scroll
-bars, even without LessTif/Motif, if you have the Xaw3d library
+available ftom <http://www.lesstif.org>.  You can get fancy 3D-style
+scroll bars, even without LessTif/Motif, if you have the Xaw3d library
 installed (see "Image support libraries" above for Xaw3d
 availability).
 

@@ -4,7 +4,7 @@
 # Created: 1993-05-16
 # Public domain
 
-# $Id: mkinstalldirs,v 1.1 2001/02/02 13:04:53 gerd Exp $
+# $Id: mkinstalldirs,v 1.11 1998/05/19 07:05:25 drepper dead $
 
 errstatus=0
 
@@ -24,7 +24,7 @@ do
      if test ! -d "$pathcomp"; then
         echo "mkdir $pathcomp" 1>&2
 
-        (mkdir "$pathcomp" && chmod a+rx "$pathcomp") || lasterr=$?
+        mkdir "$pathcomp" || lasterr=$?
 
         if test ! -d "$pathcomp"; then
   	  errstatus=$lasterr

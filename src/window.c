@@ -3298,8 +3298,7 @@ SIZE includes that window's scroll bar, or the divider column to its right.")
 
 DEFUN ("enlarge-window", Fenlarge_window, Senlarge_window, 1, 2, "p",
   "Make current window ARG lines bigger.\n\
-From program, optional second arg non-nil means grow sideways ARG columns.\n\
-Interactively, if an argument is not given, make the window one line bigger.")
+From program, optional second arg non-nil means grow sideways ARG columns.")
   (arg, side)
      register Lisp_Object arg, side;
 {
@@ -3314,8 +3313,7 @@ Interactively, if an argument is not given, make the window one line bigger.")
 
 DEFUN ("shrink-window", Fshrink_window, Sshrink_window, 1, 2, "p",
   "Make current window ARG lines smaller.\n\
-From program, optional second arg non-nil means shrink sideways arg columns.\n\
-Interactively, if an argument is not given, make the window one line smaller.")
+From program, optional second arg non-nil means shrink sideways arg columns.")
   (arg, side)
      register Lisp_Object arg, side;
 {
@@ -4660,13 +4658,9 @@ zero means top of window, negative means relative to bottom of window.")
 	XSETINT (arg, XINT (arg) + lines);
     }
 
-#if 0 /* I don't understand why this is done.  Among other things,
-         it means that C-u 0 M-r moves to line 1, and C-u -1 M-r
-         moves to the line below the window end.  2000-02-05, gerd */
   if (w->vscroll)
     /* Skip past a partially visible first line.  */
     XSETINT (arg, XINT (arg) + 1);
-#endif
 
   return Fvertical_motion (arg, window);
 }

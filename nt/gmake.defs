@@ -76,10 +76,6 @@ SHELLTYPE=SH
 SETLOADPATH=EMACSLOADPATH=$(CURDIR)/../lisp
 endif
 
-MAKETYPE=gmake
-
-THISDIR		= .
-
 # Cygwin has changed quoting rules somewhat since b20, in a way that
 # affects makefiles using sh as the command processor, so we need to
 # detect which rules to use.
@@ -188,8 +184,6 @@ BLD             = $(OBJDIR)/$(ARCH)
 $(BLD):         $(OBJDIR)
 		-mkdir "$(BLD)"
 
-COMPILER_TEMP_FILES =
-
 CP		= cp -f
 CP_DIR		= cp -rf
 DEL		= rm
@@ -222,6 +216,9 @@ ARGQUOTE	= "
 DQUOTE		= \"
 
 endif
+
+# The location of the icon file
+EMACS_ICON_PATH = ../nt/emacs.ico
 
 ifdef NODEBUG
 DEBUG_FLAG = 

@@ -721,10 +721,8 @@ else
 		 multibyte form later.  */				\
 	      extra_bytes++;						\
 	  }								\
-	else if (CHAR_VALID_P (ch, 0))					\
-	  dst += CHAR_STRING (ch, dst);					\
 	else								\
-	  CCL_INVALID_CMD;						\
+	  dst += CHAR_STRING (ch, dst);					\
       }									\
     else								\
       CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);				\
@@ -1782,16 +1780,6 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	{
 	  bcopy (msg, dst, msglen);
 	  dst += msglen;
-	}
-      if (ccl->status == CCL_STAT_INVALID_CMD)
-	{
-	  /* Copy the remaining source data.  */
-	  int i = src_end - src;
-	  if (dst_bytes && (dst_end - dst) < i)
-	    i = dst_end - dst;
-	  bcopy (src, dst, i);
-	  src += i;
-	  dst += i;
 	}
     }
 

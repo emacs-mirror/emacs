@@ -1,6 +1,6 @@
 ;;; image-file.el --- Support for visiting image files
 ;;
-;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2000 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: multimedia
@@ -110,7 +110,6 @@ the command `insert-file-contents'."
     (when (and (or (null beg) (zerop beg)) (null end))
       (let* ((ibeg (point))
 	     (iend (+ (point) (cadr rval)))
-	     (visitingp (and visit (= ibeg (point-min)) (= iend (point-max))))
 	     (data
 	      (string-make-unibyte
 	       (buffer-substring-no-properties ibeg iend)))
@@ -123,16 +122,11 @@ the command `insert-file-contents'."
 			;; This a cheap attempt to make the whole buffer
 			;; read-only when we're visiting the file (as
 			;; opposed to just inserting it).
-			,@(and visitingp
+			,@(and visit
+			       (= ibeg (point-min))
+			       (= iend (point-max))
 			       '(read-only t front-sticky (read-only))))))
-	(add-text-properties ibeg iend props)
-	(when visitingp
-	  ;; Inhibit the cursor when the buffer contains only an image,
-	  ;; because cursors look very strange on top of images.
-	  (setq cursor-type nil)
-	  ;; This just makes the arrow displayed in the right fringe
-	  ;; area look correct when the image is wider than the window.
-	  (setq truncate-lines t))))
+	(add-text-properties ibeg iend props)))
     rval))
 
 (defun image-file-handler (operation &rest args)

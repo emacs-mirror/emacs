@@ -851,23 +851,16 @@ Recommended as a parent keymap for modes using widgets.")
   "Invoke the button that the mouse is pointing at."
   (interactive "@e")
   (if (widget-event-point event)
-      (let* ((pos (widget-event-point event))
-	     (button (get-char-property pos 'button)))
-	(if button
-	    ;; Mouse click on a widget button.  Do the following
-	    ;; in a save-excursion so that the click on the button
-	    ;; doesn't change point.
-	    (progn
+      (progn
+	(mouse-set-point event)
+	(let* ((pos (widget-event-point event))
+	       (button (get-char-property pos 'button)))
+	  (if button
 	      (save-excursion
-		(mouse-set-point event)
 		(let* ((overlay (widget-get button :button-overlay))
 		       (face (overlay-get overlay 'face))
 		       (mouse-face (overlay-get overlay 'mouse-face)))
 		  (unwind-protect
-		      ;; Read events, including mouse-movement events
-		      ;; until we receive a release event.  Highlight/
-		      ;; unhighlight the button the mouse was initially
-		      ;; on when we move over it.
 		      (let ((track-mouse t))
 			(save-excursion
 			  (when face	; avoid changing around image
@@ -891,25 +884,18 @@ Recommended as a parent keymap for modes using widgets.")
 						 widget-button-pressed-face))
 				(overlay-put overlay 'face face)
 				(overlay-put overlay 'mouse-face mouse-face))))
-
-			  ;; When mouse is released over the button, run
-			  ;; its action function.
 			  (when (and pos
 				     (eq (get-char-property pos 'button) button))
 			    (widget-apply-action button event))))
 		    (overlay-put overlay 'face face)
 		    (overlay-put overlay 'mouse-face mouse-face))))
 
-		(unless (pos-visible-in-window-p (widget-event-point event))
-		  (mouse-set-point event)
-		  (beginning-of-line)
-		  (recenter)))
-
-	    (let ((up t) command)
-	      ;; Mouse click not on a widget button.  Find the global
-	      ;; command to run, and check whether it is bound to an
-	      ;; up event.
-	      (mouse-set-point event)
+	    ;; Not on a button.  Find the global command to run, and
+	    ;; check whether it is bound to an up event.  Avoid a
+	    ;; `save-excursion' here, since a global command may
+	    ;; to change point, e.g. like `mouse-drag-drag' does.
+	    (let ((up t)
+		  command)
 	      (if (memq (event-basic-type event) '(mouse-1 down-mouse-1))
 		  (cond ((setq command	;down event
 			       (lookup-key widget-global-map [down-mouse-1]))
@@ -927,6 +913,10 @@ Recommended as a parent keymap for modes using widgets.")
 		  (setq event (read-event))))
 	      (when command
 		(call-interactively command)))))
+	  (unless (pos-visible-in-window-p (widget-event-point event))
+	    (mouse-set-point event)
+	    (beginning-of-line)
+	    (recenter)))
     (message "You clicked somewhere weird.")))
 
 (defun widget-button-press (pos &optional event)

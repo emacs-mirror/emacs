@@ -1,41 +1,14 @@
 		      Building and Installing Emacs
-		on Windows NT/2000 and Windows 95/98/ME
+		  on Windows NT and Windows 95/98/2000
 
   To compile Emacs, you will need either Microsoft Visual C++ 2.0 or
   later, or a Windows port of GCC 2.95 or later with Mingw and W32 API
   support and a port of GNU make.  You can use the Cygwin ports of GCC,
   but Emacs requires the Mingw headers and libraries to build.
 
-  If you build Emacs on Windows 9X or ME, not on Windows 2000 or
-  Windows NT, we suggest to install the Cygwin port of Bash.
-
   Please see http://www.mingw.org for pointers to GCC/Mingw binaries.
 
-  For reference, here is a list of which builds of GNU make are known
-  to work or not, and whether they work in the presence and/or absence
-  of sh.exe, the Cygwin port of Bash.
- 
-                                         sh exists     no sh
-
-    cygwin b20.1 make (3.75):            okay[1]       fails[2]
-    MSVC compiled gmake 3.77:            okay          okay
-    MSVC compiled gmake 3.78.1:          okay          okay
-    MSVC compiled gmake 3.79.1:          okay          okay
-    mingw32/gcc-2.92.2 make (3.77):      okay          okay[4]
-    cygwin compiled gmake 3.77:          okay[1]       fails[2]
-    cygwin compiled gmake 3.78.1:        okay          fails[2]
-    cygwin compiled gmake 3.79.1:        couldn't build make[3]
-
-  Notes:
-
-    [1] doesn't cope with makefiles with DOS line endings, so must mount
-        emacs source with text!=binary.
-    [2] fails when needs to invoke shell commands; okay invoking gcc etc.
-    [3] requires LC_MESSAGES support to build; maybe 2.95.x update to
-        cygwin provides this?
-    [4] may fail on Windows 9X and Windows ME; if so, install Bash.
-
-* Configuring
+Configuring:
 
   Configuration of Emacs is now handled by running configure.bat in the
   nt subdirectory.  It will detect which compiler you have available,
@@ -51,7 +24,7 @@
   is running, when gcc support is being tested.  These cannot be
   surpressed because of limitations in the Windows 9x command.com shell.
 
-* Building
+Building:
 
   After running configure, simply run the appropriate `make' program for
   your compiler to build Emacs.  For MSVC, this is nmake; for GCC, it is
@@ -63,7 +36,7 @@
   The warnings may be fixed in the main FSF source at some point, but
   until then we will just live with them.
 
-* Installing
+Installing:
 
   To install Emacs after it has compiled, simply run `make install'.
 
@@ -77,7 +50,7 @@
   The install process will run addpm to setup the registry entries, and
   to create a Start menu icon for Emacs.
 
-* Trouble-shooting
+Trouble-shooting:
 
   The main problems that are likely to be encountered when building
   Emacs stem from using an old version of GCC, or old Mingw or W32 API
@@ -99,20 +72,7 @@
   addsection.c relies on.  Versions of w32api-xxx.zip from at least
   1999-11-18 onwards are okay.
 
-  If configure succeeds, but make fails, install the Cygwin port of
-  Bash, even if the table above indicates that Emacs should be able to
-  build without sh.exe.  (Some versions of Windows shells are too dumb
-  for Makefile's used by Emacs.)
-
-  If you are using a recent Cygwin build of GCC, such as Cygwin version
-  1.1.8, you may need to specify some extra compiler flags like so:
-
-    configure --with-gcc --cflags -mwin32 --cflags -D__MSVCRT__
-
-  We will attempt to auto-detect the need for these flags in a future
-  release.
-
-* Debugging
+Debugging:
 
   You should be able to debug Emacs using the debugger that is
   appropriate for the compiler you used, namely DevStudio or Windbg if

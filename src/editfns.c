@@ -614,7 +614,7 @@ DEFUN ("constrain-to-field", Fconstrain_to_field, Sconstrain_to_field, 2, 5, 0,
 \n\
 A field is a region of text with the same `field' property.\n\
 If NEW-POS is nil, then the current point is used instead, and set to the\n\
-constrained position if that is different.\n\
+constrained position if that is is different.\n\
 \n\
 If OLD-POS is at the boundary of two fields, then the allowable\n\
 positions for NEW-POS depends on the value of the optional argument\n\

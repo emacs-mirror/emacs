@@ -1831,8 +1831,6 @@ x_set_font (f, arg, oldval)
     error ("The characters of the given font have varying widths");
   else if (STRINGP (result))
     {
-      if (!NILP (Fequal (result, oldval)))
-	return;
       store_frame_param (f, Qfont, result);
       recompute_basic_faces (f);
     }
@@ -2006,10 +2004,6 @@ x_set_tool_bar_lines (f, value, oldval)
 {
   int delta, nlines, root_height;
   Lisp_Object root_window;
-
-  /* Treat tool bars like menu bars.  */
-  if (FRAME_MINIBUF_ONLY_P (f))
-    return;
 
   /* Use VALUE only if an integer >= 0.  */
   if (INTEGERP (value) && XINT (value) >= 0)

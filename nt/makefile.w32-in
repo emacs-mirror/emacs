@@ -67,9 +67,9 @@ which-sh:
 #
 # Build emacs
 #
-all:	which-sh $(BLD) $(ALL) all-other-dirs-$(MAKETYPE)
+all:	which-sh $(BLD) $(ALL) all-other-dirs-$(SHELLTYPE)
 
-all-other-dirs-nmake:
+all-other-dirs-CMD:
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) all
 	cd ..\src
@@ -80,25 +80,25 @@ all-other-dirs-nmake:
 	$(MAKE) $(MFLAGS) all
 	cd ..\nt
 
-all-other-dirs-gmake:
+all-other-dirs-SH:
 	$(MAKE) $(MFLAGS) -C ../lib-src all
 	$(MAKE) $(MFLAGS) -C ../src all
 	$(MAKE) $(MFLAGS) -C ../lisp all
 	$(MAKE) $(MFLAGS) -C ../leim all
 
-recompile:	recompile-$(MAKETYPE)
+recompile:	recompile-$(SHELLTYPE)
 
-recompile-nmake:
+recompile-CMD:
 	cd ..\lisp
 	$(MAKE) $(MFLAGS) recompile
 	cd ..\nt
 
-recompile-gmake:
+recompile-SH:
 	$(MAKE) $(MFLAGS) -C ../lisp recompile
 
-bootstrap:	$(BLD) $(ALL) bootstrap-$(MAKETYPE)
+bootstrap:	$(BLD) $(ALL) bootstrap-$(SHELLTYPE)
 
-bootstrap-nmake:
+bootstrap-CMD:
 	cd ..\src
 	$(MAKE) $(MFLAGS) bootstrap
 	$(MAKE) $(MFLAGS) bootstrap-clean
@@ -106,20 +106,20 @@ bootstrap-nmake:
 	$(MAKE) $(MFLAGS) bootstrap
 	cd ..\nt
 
-bootstrap-gmake:
+bootstrap-SH:
 	$(MAKE) $(MFLAGS) -C ../src bootstrap
 	$(MAKE) $(MFLAGS) -C ../src bootstrap-clean
 	$(MAKE) $(MFLAGS) -C ../lisp bootstrap
 
-bootstrap-clean: bootstrap-clean-$(MAKETYPE)
+bootstrap-clean: bootstrap-clean-$(SHELLTYPE)
 
-bootstrap-clean-nmake:
+bootstrap-clean-CMD:
 	cd ..\src
 	$(MAKE) $(MFLAGS) bootstrap-clean
 	cd ..\lisp
 	$(MAKE) $(MFLAGS) bootstrap-clean
 
-bootstrap-clean-gmake:
+bootstrap-clean-SH:
 	$(MAKE) $(MFLAGS) -C ../src bootstrap-clean
 	$(MAKE) $(MFLAGS) -C ../lisp bootstrap-clean
 
@@ -132,7 +132,7 @@ $(INSTALL_DIR)/bin:
 #
 # Build and install emacs in INSTALL_DIR
 #
-install: all $(INSTALL_DIR)/bin install-other-dirs-$(MAKETYPE)
+install: all $(INSTALL_DIR)/bin install-other-dirs-$(SHELLTYPE)
 	- $(CP) $(BLD)/addpm.exe $(INSTALL_DIR)/bin
 	- $(CP) $(BLD)/ddeclient.exe $(INSTALL_DIR)/bin
 	- $(CP) $(BLD)/cmdproxy.exe $(INSTALL_DIR)/bin
@@ -154,7 +154,7 @@ install: all $(INSTALL_DIR)/bin install-other-dirs-$(MAKETYPE)
 	- $(DEL) ../same-dir.tst
 	- $(DEL) $(INSTALL_DIR)/same-dir.tst
 
-install-other-dirs-nmake:
+install-other-dirs-CMD:
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) install
 	cd ..\src
@@ -165,7 +165,7 @@ install-other-dirs-nmake:
 	$(MAKE) $(MFLAGS) install
 	cd ..\nt
 
-install-other-dirs-gmake:
+install-other-dirs-SH:
 	$(MAKE) $(MFLAGS) -C ../lib-src install
 	$(MAKE) $(MFLAGS) -C ../src install
 	$(MAKE) $(MFLAGS) -C ../lisp install
@@ -174,12 +174,12 @@ install-other-dirs-gmake:
 #
 # Maintenance
 # 
-clean:	clean-other-dirs-$(MAKETYPE)
-	- $(DEL) *~ $(COMPILER_TEMP_FILES)
+clean:	clean-other-dirs-$(SHELLTYPE)
+	- $(DEL) *~ *.pdb
 	- $(DEL_TREE) $(OBJDIR)
 	- $(DEL) ../etc/DOC ../etc/DOC-X
 
-clean-other-dirs-nmake:
+clean-other-dirs-CMD:
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) clean
 	cd ..\src
@@ -190,24 +190,13 @@ clean-other-dirs-nmake:
 	$(MAKE) $(MFLAGS) clean
 	cd ..\nt
 
-clean-other-dirs-gmake:
+clean-other-dirs-SH:
 	$(MAKE) $(MFLAGS) -C ../lib-src clean
 	$(MAKE) $(MFLAGS) -C ../src clean
 	$(MAKE) $(MFLAGS) -C ../lisp clean
 	$(MAKE) $(MFLAGS) -C ../leim clean
 
-cleanall-other-dirs-nmake:
-	cd ..\lib-src
-	$(MAKE) $(MFLAGS) cleanall
-	cd ..\src
-	$(MAKE) $(MFLAGS) cleanall
-	cd ..\nt
-
-cleanall-other-dirs-gmake:
-	$(MAKE) $(MFLAGS) -C ../lib-src cleanall
-	$(MAKE) $(MFLAGS) -C ../src cleanall
-
-cleanall: clean cleanall-other-dirs-$(MAKETYPE)
+cleanall: clean
 	 - $(DEL_TREE) obj
 	 - $(DEL_TREE) obj-spd
 	 - $(DEL_TREE) oo

@@ -2051,8 +2051,8 @@ x_produce_image_glyph (it)
   prepare_image_for_display (it->f, img);
 
   it->ascent = it->phys_ascent = image_ascent (img, face);
-  it->descent = it->phys_descent = img->height + 2 * img->vmargin - it->ascent;
-  it->pixel_width = img->width + 2 * img->hmargin;
+  it->descent = it->phys_descent = img->height + 2 * img->margin - it->ascent;
+  it->pixel_width = img->width + 2 * img->margin;
 
   it->nglyphs = 1;
   
@@ -4190,8 +4190,11 @@ x_draw_image_foreground (s)
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  x += s->img->hmargin;
-  y += s->img->vmargin;
+  if (s->img->margin)
+    {
+      x += s->img->margin;
+      y += s->img->margin;
+    }
 
   if (s->img->pixmap)
     {
@@ -4268,8 +4271,11 @@ x_draw_image_relief (s)
   
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  x += s->img->hmargin;
-  y += s->img->vmargin;
+  if (s->img->margin)
+    {
+      x += s->img->margin;
+      y += s->img->margin;
+    }
   
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
@@ -4314,8 +4320,11 @@ x_draw_image_foreground_1 (s, pixmap)
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  x += s->img->hmargin;
-  y += s->img->vmargin;
+  if (s->img->margin)
+    {
+      x += s->img->margin;
+      y += s->img->margin;
+    }
 
   if (s->img->pixmap)
     {
@@ -4394,7 +4403,7 @@ x_draw_glyph_string_bg_rect (s, x, y, w, h)
 	     |   s->face->box
 	     |
 	     |     +-------------------------
-	     |     |  s->img->vmargin
+	     |     |  s->img->margin
 	     |     |
 	     |     |       +-------------------
 	     |     |       |  the image
@@ -4407,6 +4416,7 @@ x_draw_image_glyph_string (s)
 {
   int x, y;
   int box_line_width = s->face->box_line_width;
+  int margin = s->img->margin;
   int height;
   Pixmap pixmap = 0;
 
@@ -4417,8 +4427,7 @@ x_draw_image_glyph_string (s)
      flickering.  */
   s->stippled_p = s->face->stipple != 0;
   if (height > s->img->height
-      || s->img->vmargin
-      || s->img->hmargin
+      || margin
 #if 0 /* MAC_TODO: image mask */
       || s->img->mask
 #endif
@@ -10197,7 +10206,7 @@ mac_font_pattern_match (fontname, pattern)
     char * fontname;
     char * pattern;
 {
-  char *regex = (char *) alloca (strlen (pattern) * 2 + 3);
+  char *regex = (char *) alloca (strlen (pattern) * 2);
   char *font_name_copy = (char *) alloca (strlen (fontname) + 1);
   char *ptr;
 
@@ -10269,13 +10278,13 @@ mac_to_x_fontname (char *name, int size, Style style, short scriptcode)
         strcpy(cs, "big5-0");
         break;
       case smSimpChinese:
-        strcpy(cs, "gb2312.1980-0");
+        strcpy(cs, "gb2312-0");
         break;
       case smJapanese:
         strcpy(cs, "jisx0208.1983-sjis");
         break;
       case smKorean:
-        strcpy(cs, "ksc5601.1989-0");
+        strcpy(cs, "ksc5601-0");
         break;        
       default:
         strcpy(cs, "mac-roman");
@@ -10315,9 +10324,9 @@ x_font_name_to_mac_font_name (char *xf, char *mf)
               foundry, family, weight, slant, cs) != 5)
     return;
 
-  if (strcmp (cs, "big5-0") == 0 || strcmp (cs, "gb2312.1980-0") == 0
+  if (strcmp (cs, "big5-0") == 0 || strcmp (cs, "gb2312-0") == 0
       || strcmp (cs, "jisx0208.1983-sjis") == 0
-      || strcmp (cs, "ksc5601.1989-0") == 0 || strcmp (cs, "mac-roman") == 0)
+      || strcmp (cs, "ksc5601-0") == 0 || strcmp (cs, "mac-roman") == 0)
     strcpy(mf, family);
   else
     sprintf(mf, "%s-%s-%s", foundry, family, cs);
@@ -10424,14 +10433,11 @@ x_list_fonts (struct frame *f,
   Lisp_Object newlist = Qnil;
   int n_fonts = 0;
   int i;
-  struct gcpro gcpro1, gcpro2;
 
   if (font_name_table == NULL)  /* Initialize when first used.  */
     init_font_name_table ();
 
   ptnstr = XSTRING (pattern)->data;
-
-  GCPRO2 (pattern, newlist);
 
   /* Scan and matching bitmap fonts.  */
   for (i = 0; i < font_name_count; i++)
@@ -10447,8 +10453,6 @@ x_list_fonts (struct frame *f,
     }
   
   /* MAC_TODO: add code for matching outline fonts here */
-
-  UNGCPRO;
 
   return newlist;
 }
