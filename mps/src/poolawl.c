@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.69) $
+ * $HopeName: MMsrc!poolawl.c(trunk.70) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  *
@@ -44,7 +44,7 @@
 #include "chain.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.69) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.70) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -139,7 +139,7 @@ typedef struct AWLSegStruct {
 #define AWLSegSeg(awlseg)          ((Seg)(awlseg))
 
 
-extern SegClass EnsureAWLSegClass(void);
+static SegClass AWLSegClassGet(void);
 
 
 static Bool AWLSegCheck(AWLSeg awlseg)
@@ -1224,7 +1224,7 @@ DEFINE_POOL_CLASS(AWLPoolClass, this)
   this->offset = offsetof(AWLStruct, poolStruct);
   this->init = AWLInit;
   this->finish = AWLFinish;
-  this->bufferClass = EnsureRankBufClass;
+  this->bufferClass = RankBufClassGet;
   this->bufferFill = AWLBufferFill;
   this->bufferEmpty = AWLBufferEmpty;
   this->access = AWLAccess;
