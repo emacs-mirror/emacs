@@ -764,7 +764,7 @@ somewhat; setting it to nil makes the diary display faster."
 (defcustom general-holidays
   '((holiday-fixed 1 1 "New Year's Day")
     (holiday-float 1 1 3 "Martin Luther King Day")
-    (holiday-fixed 2 2 "Ground Hog Day")
+    (holiday-fixed 2 2 "Groundhog Day")
     (holiday-fixed 2 14 "Valentine's Day")
     (holiday-float 2 1 3 "President's Day")
     (holiday-fixed 3 17 "St. Patrick's Day")
