@@ -33,8 +33,10 @@ Boston, MA 02111-1307, USA.  */
 #define DISP_INVIS_VECTOR(dp) ((dp)->extras[4])
 #define DISP_BORDER_GLYPH(dp) ((dp)->extras[5])
 
+extern Lisp_Object disp_char_vector ();
+
 #define DISP_CHAR_VECTOR(dp, c) \
-  (SINGLE_BYTE_CHAR_P(c) ? (dp)->contents[c] : Qnil)
+  (SINGLE_BYTE_CHAR_P(c) ? (dp)->contents[c] : disp_char_vector ((dp), (c)))
 
 /* Defined in window.c.  */
 extern struct Lisp_Char_Table *window_display_table ();
