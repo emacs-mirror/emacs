@@ -1,6 +1,6 @@
 /* impl.c.apss: AP MANUAL ALLOC STRESS TEST
  *
- * $HopeName: MMsrc!apss.c(trunk.2) $
+ * $HopeName: MMsrc!apss.c(trunk.3) $
  * Copyright (C) 1999 Harlequin Group plc.  All rights reserved.
  */
 
@@ -157,7 +157,6 @@ static int testInArena(mps_arena_t arena)
 int main(int argc, char **argv)
 {
   mps_arena_t arena;
-  int i;
 
   randomize(argc, argv);
 
