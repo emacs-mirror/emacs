@@ -383,16 +383,15 @@ This puts point at the start of the current subtree, and mark at the end."
 (defun outline-flag-region (from to flag)
   "Hides or shows lines from FROM to TO, according to FLAG.
 If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
-  (let ((inhibit-read-only t))
-    (save-excursion
-      (goto-char from)
-      (end-of-line)
-      (outline-discard-overlays (point) to 'outline)
-      (if flag
-          (let ((o (make-overlay (point) to)))
-            (overlay-put o 'invisible 'outline)
-	    (overlay-put o 'isearch-open-invisible
-			 'outline-isearch-open-invisible)))))
+  (save-excursion
+    (goto-char from)
+    (end-of-line)
+    (outline-discard-overlays (point) to 'outline)
+    (if flag
+	(let ((o (make-overlay (point) to)))
+	  (overlay-put o 'invisible 'outline)
+	  (overlay-put o 'isearch-open-invisible
+		       'outline-isearch-open-invisible))))
   (run-hooks 'outline-view-change-hook))
 
 
@@ -400,9 +399,8 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 ;; to the overlay that makes the outline invisible (see
 ;; `outline-flag-region').
 (defun outline-isearch-open-invisible (overlay)
-  (save-excursion
-    (goto-char (overlay-start overlay))
-    (show-entry)))
+  ;; We rely on the fact that isearch places point one the matched text.
+  (show-entry))
 
 
 ;; Exclude from the region BEG ... END all overlays
@@ -414,26 +412,21 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
   (if (< end beg)
       (setq beg (prog1 end (setq end beg))))
   (save-excursion
-    (let ((overlays (overlays-in beg end))
-	  o
-	  o1)
-      (while overlays
-	(setq o (car overlays))
-	(if (eq (overlay-get o 'invisible) prop)
-	    ;; Either push this overlay outside beg...end
-	    ;; or split it to exclude beg...end
-	    ;; or delete it entirely (if it is contained in beg...end).
-	    (if (< (overlay-start o) beg)
-		(if (> (overlay-end o) end)
-		    (progn
-		      (setq o1 (outline-copy-overlay o))
-		      (move-overlay o1 (overlay-start o1) beg)
-		      (move-overlay o end (overlay-end o)))
-		  (move-overlay o (overlay-start o) beg))
+    (dolist (o (overlays-in beg end))
+      (if (eq (overlay-get o 'invisible) prop)
+	  ;; Either push this overlay outside beg...end
+	  ;; or split it to exclude beg...end
+	  ;; or delete it entirely (if it is contained in beg...end).
+	  (if (< (overlay-start o) beg)
 	      (if (> (overlay-end o) end)
-		  (move-overlay o end (overlay-end o))
-		(delete-overlay o))))
-	(setq overlays (cdr overlays))))))
+		  (progn
+		    (move-overlay (outline-copy-overlay o)
+				  (overlay-start o) beg)
+		    (move-overlay o end (overlay-end o)))
+		(move-overlay o (overlay-start o) beg))
+	    (if (> (overlay-end o) end)
+		(move-overlay o end (overlay-end o))
+	      (delete-overlay o))))))))
 
 ;; Make a copy of overlay O, with the same beginning, end and properties.
 (defun outline-copy-overlay (o)
