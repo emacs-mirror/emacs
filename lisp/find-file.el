@@ -377,13 +377,6 @@ Variables of interest include:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Support functions
 
-(defun ff-emacs-19 ()
-  (string-match "^19\\.[0-9]+\\.[0-9]+$" emacs-version))
-
-(defun ff-xemacs ()
-  (or (string-match "Lucid"  emacs-version)
-      (string-match "XEmacs" emacs-version)))
-
 (defun ff-find-the-other-file (&optional in-other-window)
   "Find the header or source file corresponding to the current file.
 Being on a `#include' line pulls in that file, but see the help on
@@ -771,53 +764,25 @@ called before `ff-post-load-hooks'."
                   'switch-to-buffer-other-window 
                   buffer-or-name in-other-window nil))
 
-(cond 
- ((ff-emacs-19)
-  (defun ff-goto-click (event)
-    (set-buffer (window-buffer (posn-window (event-end event))))
-    (goto-char (posn-point (event-end event))))
+(defun ff-goto-click (event)
+  (set-buffer (window-buffer (posn-window (event-end event))))
+  (goto-char (posn-point (event-end event))))
 
-  ;;;###autoload
-  (defun ff-mouse-find-other-file (event)
-    "Visit the file you click on."
-    (interactive "e")
-    (save-excursion
-      (ff-goto-click event)
-      (ff-find-other-file nil)))
+;;;###autoload
+(defun ff-mouse-find-other-file (event)
+  "Visit the file you click on."
+  (interactive "e")
+  (save-excursion
+    (ff-goto-click event)
+    (ff-find-other-file nil)))
 
-  ;;;###autoload
-  (defun ff-mouse-find-other-file-other-window (event)
-    "Visit the file you click on."
-    (interactive "e")
-    (save-excursion
-      (ff-goto-click event)
-      (ff-find-other-file t)))
-
-  ;;;###autoload
-  (defun locate-file (fname dirs &optional suffix-list ignore-perms)
-    "Defines XEmacs look-alike locate-file for GNU Emacs-19."
-    (interactive)
-    (ff-get-file dirs fname suffix-list)) 
-  )
-
- ((ff-xemacs)
-
-  ;;;###autoload
-  (defun ff-mouse-find-other-file (event)
-    "Visit the file you click on."
-    (interactive "@e")
-    (save-excursion
-      (mouse-set-point event)
-      (ff-find-other-file nil)))
-
-  ;;;###autoload
-  (defun ff-mouse-find-other-file-other-window (event)
-    "Visit the file you click on."
-    (interactive "@e")
-    (save-excursion
-      (mouse-set-point event)
-      (ff-find-other-file t))) 
-  ))
+;;;###autoload
+(defun ff-mouse-find-other-file-other-window (event)
+  "Visit the file you click on."
+  (interactive "e")
+  (save-excursion
+    (ff-goto-click event)
+    (ff-find-other-file t)))
 
 (provide 'find-file)
 
