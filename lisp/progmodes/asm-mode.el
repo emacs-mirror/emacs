@@ -90,7 +90,9 @@
     2 font-lock-keyword-face)
    ;; directive started from ".".
    ("^\\(\\.\\(\\sw\\|\\s_\\)+\\)\\>[^:]?"
-    1 font-lock-keyword-face))
+    1 font-lock-keyword-face)
+   ;; %register
+   ("%\\sw+" . font-lock-variable-name-face))
  "Additional expressions to highlight in Assembler mode.")
 
 ;;;###autoload
