@@ -4,7 +4,8 @@
 	Don't call rmail-beginning-of-message.
 	Don't discard From: field.  Do discard Received: field.
 	Use unwind-protect to re-prune.
-
+	(rmail-retry-ignored-headers): Discard X-Authentication-Warning field.
+	
 2001-03-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-title): Add autoload cookie.
