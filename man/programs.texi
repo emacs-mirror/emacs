@@ -677,8 +677,6 @@ Move forward over a balanced expression (@code{forward-sexp}).
 Move backward over a balanced expression(@code{backward-sexp}).
 @item C-M-k
 Kill balanced expression forward (@code{kill-sexp}).
-@item C-M-@key{DEL}
-Kill balanced expression backward (@code{backward-kill-sexp}).
 @item C-M-t
 Transpose expressions (@code{transpose-sexps}).
 @item C-M-@@
@@ -725,17 +723,9 @@ opposite direction.
 @cindex killing expressions
 @kindex C-M-k
 @findex kill-sexp
-@kindex C-M-DEL
-@findex backward-kill-sexp
   Killing a whole balanced expression can be done with @kbd{C-M-k}
-(@code{kill-sexp}) or @kbd{C-M-@key{DEL}} (@code{backward-kill-sexp}).
-@kbd{C-M-k} kills the characters that @kbd{C-M-f} would move over, and
-@kbd{C-M-@key{DEL}} kills the characters that @kbd{C-M-b} would move
-over.  On some machines, @kbd{C-M-@key{DEL}} typed on the console is a
-command to reboot; when that is so, you cannot use it as an Emacs
-command.  This conflict is rare, though: usually the @key{DEL} key for
-Emacs is really @key{BACKSPACE}, and the reboot command is
-@kbd{C-M-@key{DELETE}}, so there is no conflict.
+(@code{kill-sexp}).  @kbd{C-M-k} kills the characters that @kbd{C-M-f}
+would move over.
 
 @cindex transposition of expressions
 @kindex C-M-t
