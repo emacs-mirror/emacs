@@ -124,7 +124,7 @@ struct font_info
 /* A value which may appear in the member encoding of struch font_info
    indicating that a font itself doesn't tell which encoding to be
    used.  */
-#define FONT_ENCODING_NOT_DECIDED 4
+#define FONT_ENCODING_NOT_DECIDED 255
 
 #define FONT_NOT_OPENED -1
 #define FONT_NOT_FOUND  -2
@@ -200,6 +200,11 @@ extern struct font_info *(*query_font_func) P_ ((struct frame *f, char *name));
 extern void (*set_frame_fontset_func) P_ ((struct frame *f, Lisp_Object arg,
 					   Lisp_Object oldval));
 
+/* To find a CCL program, fs_load_font calls this function.
+   The argument is a pointer to the struct font_info.
+   This function set the memer `encoder' of the structure.  */
+extern void (*find_ccl_program_func) P_ ((struct font_info *));
+
 /* Check if any window system is used now.  */
 extern void (*check_window_system_func) P_ ((void));
 
@@ -209,7 +214,7 @@ extern struct font_info *fs_load_font P_ ((struct frame *, struct font_info *,
 					   int, char *, int));
 extern int fs_query_fontset P_ ((struct frame *, char *));
 extern int fs_register_fontset P_ ((struct frame *, Lisp_Object));
-EXFUN (Fquery_fontset, 1);
+EXFUN (Fquery_fontset, 2);
 extern Lisp_Object list_fontsets P_ ((struct frame *, Lisp_Object, int));
 extern Lisp_Object Vglobal_fontset_alist;
 
