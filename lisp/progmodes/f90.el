@@ -1223,14 +1223,16 @@ Return (TYPE NAME), or nil if not found."
 With optional argument NUM, go forward that many balanced blocks.
 If NUM is negative, go backward to the start of a block.
 Checks for consistency of block types and labels (if present),
-and completes outermost block if necessary."
+and completes outermost block if necessary.
+Some of these things (which?) are not done if NUM is nil,
+which only happens in a noninteractive call."
   (interactive "p")
   (if (and num (< num 0)) (f90-beginning-of-block (- num)))
   (let ((f90-smart-end nil)             ; for the final `f90-match-end'
         (case-fold-search t)
         (count (or num 1))
         start-list start-this start-type start-label end-type end-label)
-    (if (interactive-p) (push-mark (point) t))
+    (if num (push-mark (point) t))
     (end-of-line)                       ; probably want this
     (while (and (> count 0) (re-search-forward f90-blocks-re nil 'move))
       (beginning-of-line)
@@ -1266,7 +1268,7 @@ and completes outermost block if necessary."
       (end-of-line))
     (if (> count 0) (error "Missing block end"))
     ;; Check outermost block.
-    (if (interactive-p)
+    (if num
         (save-excursion
           (beginning-of-line)
           (skip-chars-forward " \t0-9")
