@@ -1,3 +1,8 @@
+2000-03-21  Jason Rumney  <jasonr@gnu.org>
+
+	* cus-edit.el (custom-button-face): Use 3D look for w32.
+	(custom-button-pressed-face): Likewise.
+
 2000-03-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/etags.el (tags-case-fold-search): New user-option.
