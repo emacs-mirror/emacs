@@ -244,6 +244,14 @@ See also the function `event-modifier-bits'."
 	    (setq list (cons 'alt list)))
 	list))))
 
+(defun event-basic-type (event)
+  "Returns the basic type of the given event (all modifiers removed).
+The value is an ASCII printing character (not upper case) or a symbol."
+  (if (symbolp event)
+      (car (get event 'event-symbol-elements))
+    (let ((base (logand event (1- (lsh 1 18)))))
+      (downcase (if (< base 32) (logior base 64) base)))))
+
 (defmacro save-match-data (&rest body)
   "Execute the BODY forms, restoring the global value of the match data."
   (let ((original (make-symbol "match-data")))
