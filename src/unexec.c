@@ -1067,7 +1067,9 @@ write_segment (new, ptr, end)
 {
   register int i, nwrite, ret;
   char buf[80];
+#ifndef USE_CRT_DLL
   extern int errno;
+#endif
   /* This is the normal amount to write at once.
      It is the size of block that NFS uses.  */
   int writesize = 1 << 13;
