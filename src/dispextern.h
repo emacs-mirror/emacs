@@ -851,6 +851,10 @@ extern int fonts_changed_p;
 
 extern struct glyph space_glyph;
 
+/* Frame being updated by update_window/update_frame.  */
+
+extern struct frame *updating_frame;
+
 /* Window being updated by update_window.  This is non-null as long as
    update_window has not finished, and null otherwise.  It's role is
    analogous to updating_frame.  */
