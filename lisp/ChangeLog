@@ -1,5 +1,9 @@
 2004-11-20  Richard M. Stallman  <rms@gnu.org>
 
+	* buff-menu.el (list-buffers-noselect): Eliminate space at the start
+	of HEADER.  Compensate for this change in the code to add display
+	properties.  Don't make the first line intangible.
+
 	* info.el (Info-search): Fix previous change.
 
 2004-11-20  Thien-Thi Nguyen  <ttn@gnu.org>
