@@ -1,5 +1,8 @@
 2002-03-17  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* international/mule-diag.el (describe-char-after):
+	Use `internal-describe-syntax-value' again (got lost somewhere).
+
 	* international/ucs-tables.el (ucs-unify-8859, ucs-fragment-8859):
 	Use unify-8859-on-decoding-mode.
 	(unify-8859-on-decoding-mode): Also set translation-table-for-input.
