@@ -523,6 +523,18 @@ option variable again each time you start Emacs.  To save the option,
 invoke @samp{[State]} and select the @samp{Save for Future Sessions}
 operation.
 
+@vindex custom-file
+  The customization buffer normally saves customizations in
+@file{~/.emacs}.  If you wish, you can save customizations in another
+file instead.  To make this work, your @file{~/.emacs} should load
+that file and should also set @code{custom-file} to the name of that
+file.  For example:
+
+@example
+(load "~/.emacs-custom")
+(setq custom-file "~/.emacs-custom")
+@end example
+
   If Emacs was invoked with the @option{-q} or @option{--no-init-file}
 options (@pxref{Initial Options}), it will not let you save your
 customizations in your @file{~/.emacs} init file.  This is because
