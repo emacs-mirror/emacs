@@ -1,5 +1,8 @@
 2002-04-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* cus-start.el: Rename `x-autoselect-window' to
+	`autoselect-window'.
+
 	* window.el (handle-select-window): New function.
 	Update copyright.
 	
