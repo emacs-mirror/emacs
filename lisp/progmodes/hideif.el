@@ -876,7 +876,7 @@ is first activated.")
   (hif-update-mode-line))
 
 (defun hide-ifdef-toggle-outside-read-only ()
-  "Replacement for `toggle-read-only' within Hide-Ifdef mode."
+  "Replacement for `toggle-read-only' within Hide Ifdef mode."
   (interactive)
   (setq hif-outside-read-only (not hif-outside-read-only))
   (message "Read only %s"
@@ -902,12 +902,12 @@ is first activated.")
 
 
 (defun hide-ifdefs ()
-  "Hide the contents of some #ifdefs.  Assume that defined symbols have
-been added to `hide-ifdef-env'.  The text hidden is the text that would not
-be included by the C preprocessor if it were given the file with those
-symbols defined.
+  "Hide the contents of some #ifdefs.  
+Assume that defined symbols have been added to `hide-ifdef-env'.  
+The text hidden is the text that would not be included by the C
+preprocessor if it were given the file with those symbols defined.
 
-Turn off hiding by calling show-ifdef."
+Turn off hiding by calling `show-ifdef'."
 
   (interactive)
   (message "Hiding...")
@@ -925,7 +925,7 @@ Turn off hiding by calling show-ifdef."
 
 
 (defun show-ifdefs ()
-  "Cancel the effects of hide-ifdef.  The contents of all #ifdefs is shown."
+  "Cancel the effects of `hide-ifdef'.  The contents of all #ifdefs is shown."
   (interactive)
   (if buffer-read-only (toggle-read-only)) ; make it writable temporarily
   (setq selective-display nil)	; defaults
@@ -936,7 +936,8 @@ Turn off hiding by calling show-ifdef."
 
 
 (defun hif-find-ifdef-block ()
-  "Utilitiy for hide and show ifdef-block.  Set top and bottom of ifdef block."
+  "Utilitiy for hide and show `ifdef-block'.
+Set top and bottom of ifdef block."
   (let (max-bottom)
   (save-excursion
     (beginning-of-line)
@@ -1012,14 +1013,14 @@ Turn off hiding by calling show-ifdef."
     new-defs))
 
 (defun hide-ifdef-set-define-alist (name)
-  "Set the association for NAME to hide-ifdef-env."
+  "Set the association for NAME to `hide-ifdef-env'."
   (interactive "SSet define list: ")
   (setq hide-ifdef-define-alist
 	(cons (cons name (hif-compress-define-list hide-ifdef-env))
 	      hide-ifdef-define-alist)))
 
 (defun hide-ifdef-use-define-alist (name)
-  "Set hide-ifdef-env to the define list specified by NAME."
+  "Set `hide-ifdef-env' to the define list specified by NAME."
   (interactive "SUse define list: ")
   (let ((define-list (assoc name hide-ifdef-define-alist)))
     (if define-list
