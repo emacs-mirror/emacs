@@ -786,8 +786,11 @@ directory, like `default-directory'."
     (define-key map [down-mouse-3] 'ibuffer-mouse-popup-menu)
     map))
 
-(defvar ibuffer-delete-window-on-quit nil
-  "Whether or not to delete the window upon exiting `ibuffer'.")
+(defvar ibuffer-restore-window-config-on-quit nil
+  "If non-nil, restore previous window configuration upon exiting `ibuffer'.")
+
+(defvar ibuffer-prev-window-config nil
+  "Window configuration before starting Ibuffer.")
 
 (defvar ibuffer-did-modification nil)
 
@@ -2183,13 +2186,14 @@ If optional arg SILENT is non-nil, do not display progress messages."
 
 (defun ibuffer-quit ()
   "Quit this `ibuffer' session.
-Delete the current window iff `ibuffer-delete-window-on-quit' is non-nil."
+Try to restore the previous window configuration iff
+`ibuffer-restore-window-config-on-quit' is non-nil."
   (interactive)
-  (if ibuffer-delete-window-on-quit
-      (progn
+  (if ibuffer-restore-window-config-on-quit
+      (progn 
 	(bury-buffer)
 	(unless (= (count-windows) 1)
-	  (delete-window)))
+	  (set-window-configuration ibuffer-prev-window-config)))
     (bury-buffer)))
 
 ;;;###autoload
@@ -2232,6 +2236,7 @@ locally in this buffer."
   (interactive "P")
   (when ibuffer-use-other-window
     (setq other-window-p t))
+  (setq ibuffer-prev-window-config (current-window-configuration))
   (let ((buf (get-buffer-create (or name "*Ibuffer*"))))
     (if other-window-p
 	(funcall (if noselect #'(lambda (buf) (display-buffer buf t)) #'pop-to-buffer) buf)
@@ -2243,7 +2248,7 @@ locally in this buffer."
 	(select-window (get-buffer-window buf))
 	(or (eq major-mode 'ibuffer-mode)
 	    (ibuffer-mode))
-	(setq ibuffer-delete-window-on-quit other-window-p)
+	(setq ibuffer-restore-window-config-on-quit other-window-p)
 	(when shrink
 	  (setq ibuffer-shrink-to-minimum-size shrink))
 	(when qualifiers
@@ -2470,7 +2475,7 @@ will be inserted before the group at point."
   (set (make-local-variable 'ibuffer-cached-eliding-string) nil)
   (set (make-local-variable 'ibuffer-cached-elide-long-columns) nil)
   (set (make-local-variable 'ibuffer-current-format) nil)
-  (set (make-local-variable 'ibuffer-delete-window-on-quit) nil)
+  (set (make-local-variable 'ibuffer-restore-window-config-on-quit) nil)
   (set (make-local-variable 'ibuffer-did-modification) nil)
   (set (make-local-variable 'ibuffer-tmp-hide-regexps) nil)
   (set (make-local-variable 'ibuffer-tmp-show-regexps) nil)

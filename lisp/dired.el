@@ -288,21 +288,96 @@ The match starts at the beginning of the line and ends after the end
 of the line (\\n or \\r).
 Subexpression 2 must end right before the \\n or \\r.")
 
+(defgroup dired-faces nil
+  "Faces used by dired."
+  :group 'dired
+  :group 'faces)
+
+(defface dired-header
+  '((t (:inherit font-lock-type-face)))
+  "Face used for directory headers."
+  :group 'dired-faces
+  :version "21.4")
+(defvar dired-header-face 'dired-header
+  "Face name used for directory headers.")
+
+(defface dired-mark
+  '((t (:inherit font-lock-constant-face)))
+  "Face used for dired marks."
+  :group 'dired-faces
+  :version "21.4")
+(defvar dired-mark-face 'dired-mark
+  "Face name used for dired marks.")
+
+(defface dired-marked
+  '((t (:inherit font-lock-warning-face)))
+  "Face used for marked files."
+  :group 'dired-faces
+  :version "21.4")
+(defvar dired-marked-face 'dired-marked
+  "Face name used for marked files.")
+
+(defface dired-flagged
+  '((t (:inherit font-lock-warning-face)))
+  "Face used for flagged files."
+  :group 'dired-faces
+  :version "21.4")
+(defvar dired-flagged-face 'dired-flagged
+  "Face name used for flagged files.")
+
+(defface dired-warning
+  '((t (:inherit font-lock-comment-face)))
+  "Face used to highlight a part of a buffer that needs user attention."
+  :group 'dired-faces
+  :version "21.4")
+(defvar dired-warning-face 'dired-warning
+  "Face name used for a part of a buffer that needs user attention.")
+
+(defface dired-directory
+  '((t (:inherit font-lock-function-name-face)))
+  "Face used for subdirectories."
+  :group 'dired-faces
+  :version "21.4")
+(defvar dired-directory-face 'dired-directory
+  "Face name used for subdirectories.")
+
+(defface dired-symlink
+  '((t (:inherit font-lock-keyword-face)))
+  "Face used for symbolic links."
+  :group 'dired-faces
+  :version "21.4")
+(defvar dired-symlink-face 'dired-symlink
+  "Face name used for symbolic links.")
+
+(defface dired-ignored
+  '((t (:inherit font-lock-string-face)))
+  "Face used for files suffixed with `completion-ignored-extensions'."
+  :group 'dired-faces
+  :version "21.4")
+(defvar dired-ignored-face 'dired-ignored
+  "Face name used for files suffixed with `completion-ignored-extensions'.")
+
 (defvar dired-font-lock-keywords
   (list
    ;;
    ;; Directory headers.
-   (list dired-subdir-regexp '(1 font-lock-type-face))
+   (list dired-subdir-regexp '(1 dired-header-face))
+   ;;
+   ;; Dired marks.
+   (list dired-re-mark '(0 dired-mark-face))
    ;;
    ;; We make heavy use of MATCH-ANCHORED, since the regexps don't identify the
    ;; file name itself.  We search for Dired defined regexps, and then use the
    ;; Dired defined function `dired-move-to-filename' before searching for the
    ;; simple regexp ".+".  It is that regexp which matches the file name.
    ;;
-   ;; Dired marks.
-   (list dired-re-mark
-	 '(0 font-lock-constant-face)
-	 '(".+" (dired-move-to-filename) nil (0 font-lock-warning-face)))
+   ;; Marked files.
+   (list (concat "^[" (char-to-string dired-marker-char) "]")
+         '(".+" (dired-move-to-filename) nil (0 dired-marked-face)))
+   ;;
+   ;; Flagged files.
+   (list (concat "^[" (char-to-string dired-del-marker) "]")
+         '(".+" (dired-move-to-filename) nil (0 dired-flagged-face)))
    ;; People who are paranoid about security would consider this more
    ;; important than other things such as whether it is a directory.
    ;; But we don't want to encourage paranoia, so our default
@@ -311,33 +386,33 @@ Subexpression 2 must end right before the \\n or \\r.")
 ;;;   ;; Files that are group or world writable.
 ;;;   (list (concat dired-re-maybe-mark dired-re-inode-size
 ;;;		 "\\([-d]\\(....w....\\|.......w.\\)\\)")
-;;;	 '(1 font-lock-comment-face)
-;;;	 '(".+" (dired-move-to-filename) nil (0 font-lock-comment-face)))
+;;;	 '(1 dired-warning-face)
+;;;	 '(".+" (dired-move-to-filename) nil (0 dired-warning-face)))
    ;; However, we don't need to highlight the file name, only the
    ;; permissions, to win generally.  -- fx.
    ;; Fixme: we could also put text properties on the permission
    ;; fields with keymaps to frob the permissions, somewhat a la XEmacs.
    (list (concat dired-re-maybe-mark dired-re-inode-size
 		 "[-d]....\\(w\\)....")	; group writable
-	 '(1 font-lock-comment-face))
+	 '(1 dired-warning-face))
    (list (concat dired-re-maybe-mark dired-re-inode-size
 		 "[-d].......\\(w\\).")	; world writable
-	 '(1 font-lock-comment-face))
+	 '(1 dired-warning-face))
    ;;
    ;; Subdirectories.
    (list dired-re-dir
-	 '(".+" (dired-move-to-filename) nil (0 font-lock-function-name-face)))
+	 '(".+" (dired-move-to-filename) nil (0 dired-directory-face)))
    ;;
    ;; Symbolic links.
    (list dired-re-sym
-	 '(".+" (dired-move-to-filename) nil (0 font-lock-keyword-face)))
+	 '(".+" (dired-move-to-filename) nil (0 dired-symlink-face)))
    ;;
    ;; Files suffixed with `completion-ignored-extensions'.
    '(eval .
      ;; It is quicker to first find just an extension, then go back to the
      ;; start of that file name.  So we do this complex MATCH-ANCHORED form.
      (list (concat "\\(" (regexp-opt completion-ignored-extensions) "\\|#\\)$")
-	   '(".+" (dired-move-to-filename) nil (0 font-lock-string-face)))))
+	   '(".+" (dired-move-to-filename) nil (0 dired-ignored-face)))))
   "Additional expressions to highlight in Dired mode.")
 
 ;;; Macros must be defined before they are used, for the byte compiler.

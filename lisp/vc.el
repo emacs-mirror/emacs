@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.374 2004/03/28 22:00:19 monnier Exp $
+;; $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -2348,13 +2348,23 @@ If FOCUS-REV is non-nil, leave the point at that revision."
     ;; Don't switch to the output buffer before running the command,
     ;; so that any buffer-local settings in the vc-controlled
     ;; buffer can be accessed by the command.
-    (if (> (length (vc-arg-list (vc-backend file) 'print-log)) 1)
+    (condition-case err
         (progn
           (vc-call print-log file "*vc-change-log*")
           (set-buffer "*vc-change-log*"))
-      ;; for backward compatibility
-      (vc-call print-log file)
-      (set-buffer "*vc*"))
+      (wrong-number-of-arguments
+       ;; If this error came from the above call to print-log, try again
+       ;; without the optional buffer argument (for backward compatibility).
+       ;; Otherwise, resignal.
+       (if (or (not (eq (cadr err)
+                        (indirect-function 
+                         (vc-find-backend-function (vc-backend file) 
+                                                   'print-log))))
+               (not (eq (caddr err) 2)))
+           (signal wrong-number-of-arguments err)
+         ;; for backward compatibility
+         (vc-call print-log file)
+         (set-buffer "*vc*"))))
     (pop-to-buffer (current-buffer))
     (log-view-mode)
     (vc-exec-after

@@ -3606,12 +3606,13 @@ being undefined will be suppressed."
 		 (byte-compile-goto 'byte-goto donetag)
 		 (byte-compile-out-tag nexttag)))))
     ;; Last clause
-    (and (cdr clause) (not (eq (car clause) t))
-	 (progn (byte-compile-maybe-guarded (car clause)
-					    (byte-compile-form (car clause)))
-		(byte-compile-goto-if nil for-effect donetag)
-		(setq clause (cdr clause))))
-    (byte-compile-body-do-effect clause)
+    (let ((guard (car clause)))
+      (and (cdr clause) (not (eq guard t))
+	   (progn (byte-compile-form guard)
+		  (byte-compile-goto-if nil for-effect donetag)
+		  (setq clause (cdr clause))))
+      (byte-compile-maybe-guarded guard
+	(byte-compile-body-do-effect clause)))
     (byte-compile-out-tag donetag)))
 
 (defun byte-compile-and (form)

@@ -218,6 +218,120 @@
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
+2004-04-12  Joe Buehler  <jbuehler@hekiman.com>
+
+	* loadup.el: Add cygwin to system-type list, for unexec() support.
+
+2004-04-12  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (ibuffer-delete-window-on-quit): Remove.
+	(ibuffer-restore-window-config-on-quit): New variable to replace
+	`ibuffer-delete-window-on-quit'.  Update all references.
+	(ibuffer-prev-window-config): New variable.
+	(ibuffer-quit): Restore previous window configuration instead of
+	deleting window.
+	(ibuffer): Save window configuration before showing Ibuffer buffer.
+
+	* help.el (describe-mode): Doc fix.
+
+	* url/url-cookie.el (url-cookie-handle-set-cookie): Replace calls
+	to obsolete `assoc-ignore-case' with calls to `assoc-string'.
+
+2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords): Fix test
+	not to treat nil as a function.
+
+	* vc-arch.el (vc-arch-root): Be a bit more careful.
+	(vc-arch-register): Save the buffer if we modified it.
+	(vc-arch-delete-rej-if-obsolete): Save excursion.
+	(vc-arch-find-file-hook): Use the simpler after-save-hook.
+	(vc-arch-responsible-p, vc-arch-init-version): New functions.
+
+	* net/ldap.el (ldap-search): Use list*.
+
+2004-04-12  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-follow-reference): Allow multiline reference name.
+
+2004-04-11  Dave Love  <fx@gnu.org>
+
+	* url/url-mailto.el (url-mailto):
+	* url/url-history.el (url-history-setup-save-timer):
+	* url/url-cookie.el (url-cookie-setup-save-timer): Avoid warnings.
+
+	* url/url-file.el (url-file-build-filename): Don't use
+	directory-sep-char.
+
+	* url/url-auth.el (url-register-auth-scheme): Fix `format' call.
+
+	* url/url-about.el (url-scheme-registry): Defvar.
+	(url-about): Use text/plain.
+
+	* url/url-vars.el (cl): Don't require.
+	(url): Add :version.
+	(url-bug-address): Use bug-gnu-emacs.
+
+	* url/url-util.el (url-hexify-string): Don't give multibyte error
+	for char <16.
+	(mail-header-extract): Autoload.
+
+	* url/url-parse.el: Doc fixes.
+
+	* url/url-ldap.el (ldap): Require.
+	(url-ldap): Fix `format' call.
+	(url-ldap-certificate-formatter): Avoid warning.
+
+	* url/url-https.el (url-https-create-secure-wrapper): Use modern
+	backquotes.
+
+	* url/url-dav.el (url-dav-rename-file): Fix args of `signal'.
+	(url-intersection): New.
+	(url-dav-supported-p): Use it.
+	(url-dav-save-resource): Declare url-http-response-status special.
+
+	* url/url-cache.el (url-util): Require.
+
+	* emacs-lisp/bytecomp.el (byte-compile-cond): Fix last change.
+
+	* progmodes/python.el: New file.
+
+2004-04-11  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-arg-list): Function removed.
+	(vc-default-workfile-unchanged-p): Use condition-case to check for
+	backward compatibility.
+
+	* vc.el (vc-print-log): Use condition-case to check for backward
+	compatibility.
+
+2004-04-11  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-faces): New defgroup.
+	(dired-header, dired-mark, dired-marked, dired-flagged)
+	(dired-warning, dired-directory, dired-symlink, dired-ignored):
+	New faces.
+	(dired-header-face, dired-mark-face, dired-marked-face)
+	(dired-flagged-face, dired-warning-face, dired-directory-face)
+	(dired-symlink-face, dired-ignored-face): New face variables.
+	(dired-font-lock-keywords): Use them instead of font-lock faces.
+	Split the rule for dired marks into 3 separate rules: for marks,
+	marked file names and flagged file names.
+
+	* help-mode.el (help-make-xrefs): Add a final newline to the
+	*Help* buffer.
+
+2004-04-11  John Paul Wallington  <jpw@gnu.org>
+
+	* replace.el (occur-engine): Distinguish between one and several
+	matches in the matches per buffer heading.
+
+2004-04-11  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-confirm-unique-completion): New defcustom.
+	(ido-complete): Use it.
+	(ido-write-file): Set it to t unconditionally.
+
 2004-04-10  Miles Bader  <miles@gnu.org>
 
 	RCS keyword removal (only non-comment changes are enumerated here):

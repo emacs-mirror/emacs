@@ -2022,8 +2022,8 @@ value for that attribute.
 These functions return the foreground color (or background color,
 respectively) of face @var{face}, as a string.
 
-If @var{inherit} is nil, only a color directly defined by the face is
-returned.  If @var{inherit} is non-nil, any faces specified by its
+If @var{inherit} is @code{nil}, only a color directly defined by the face is
+returned.  If @var{inherit} is non-@code{nil}, any faces specified by its
 @code{:inherit} attribute are considered as well, and if @var{inherit}
 is a face or a list of faces, then they are also considered, until a
 specified color is found.  To ensure that the return value is always

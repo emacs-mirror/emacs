@@ -126,7 +126,7 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
   sec_attrs.bInheritHandle = FALSE;
 
   if (CreateProcess (NULL, new_cmdline, &sec_attrs, NULL, TRUE, priority_class,
-		     GetEnvironmentStrings (), NULL, &start, &child))
+		     NULL, NULL, &start, &child))
     {
       if (wait_for_child)
 	{

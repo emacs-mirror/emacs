@@ -1,10 +1,12 @@
 ;;; url-dav.el --- WebDAV support
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: Bill Perry <wmperry@gnu.org>
 ;; Keywords: url, vc
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -21,6 +23,12 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;; DAV is in RFC 2518.
+
+;;; Commentary:
+
+;;; Code:
+
 (eval-when-compile
   (require 'cl))
 
@@ -31,12 +39,23 @@
 (defvar url-dav-supported-protocols '(1 2)
   "List of supported DAV versions.")
 
+(defun url-intersection (l1 l2)
+  "Return a list of the elements occuring in both of the lists L1 and L2."
+  (if (null l2)
+      l2
+    (let (result)
+      (while l1
+	(if (member (car l1) l2)
+	    (setq result (cons (pop l1) result))
+	  (pop l1)))
+      (nreverse result))))
+
 ;;;###autoload
 (defun url-dav-supported-p (url)
   (and (featurep 'xml)
        (fboundp 'xml-expand-namespace)
-       (intersection url-dav-supported-protocols
-		     (plist-get (url-http-options url) 'dav))))
+       (url-intersection url-dav-supported-protocols
+			 (plist-get (url-http-options url) 'dav))))
 
 (defun url-dav-node-text (node)
   "Return the text data from the XML node NODE."
@@ -47,10 +66,10 @@
 
 
 ;;; Parsing routines for the actual node contents.
-;;;
-;;; I am not incredibly happy with how this code looks/works right
-;;; now, but it DOES work, and if we get the API right, our callers
-;;; won't have to worry about the internal representation.
+;;
+;; I am not incredibly happy with how this code looks/works right
+;; now, but it DOES work, and if we get the API right, our callers
+;; won't have to worry about the internal representation.
 
 (defconst url-dav-datatype-attribute
   'urn:uuid:c2f41010-65b3-11d1-a29f-00aa00c14882/dt)
@@ -86,8 +105,7 @@
   "List of regular expressions matching iso8601 dates.
 1st regular expression matches the date.
 2nd regular expression matches the time.
-3rd regular expression matches the (optional) timezone specification.
-")
+3rd regular expression matches the (optional) timezone specification.")
 
 (defun url-dav-process-date-property (node)
   (require 'parse-time)
@@ -357,11 +375,10 @@
 
 ;;; DAV request/response generation/processing
 (defun url-dav-process-response (buffer url)
-  "Parses a WebDAV response from BUFFER, interpreting it relative to URL.
+  "Parse a WebDAV response from BUFFER, interpreting it relative to URL.
 
 The buffer must have been retrieved by HTTP or HTTPS and contain an
-XML document.
-"
+XML document."
   (declare (special url-http-content-type
 		    url-http-response-status
 		    url-http-end-of-headers))
@@ -399,7 +416,7 @@ XML document.
 
 (defun url-dav-request (url method tag body
 				 &optional depth headers namespaces)
-  "Performs WebDAV operation METHOD on URL.  Returns the parsed responses.
+  "Perform WebDAV operation METHOD on URL.  Return the parsed responses.
 Automatically creates an XML request body if TAG is non-nil.
 BODY is the XML document fragment to be enclosed by <TAG></TAG>.
 
@@ -412,8 +429,7 @@ HEADERS is an assoc list of extra headers to send in the request.
 
 NAMESPACES is an assoc list of (NAMESPACE . EXPANSION), and these are
 added to the <TAG> element.  The DAV=DAV: namespace is automatically
-added to this list, so most requests can just pass in nil.
-"
+added to this list, so most requests can just pass in nil."
   ;; Take care of the default value for depth...
   (setq depth (or depth 0))
 
@@ -448,8 +464,7 @@ added to this list, so most requests can just pass in nil.
 
 Returns an assoc list, where the key is the filename (possibly a full
 URI), and the value is a standard property list of DAV property
-names (ie: DAV:resourcetype).
-"
+names (ie: DAV:resourcetype)."
   (url-dav-request url "PROPFIND" 'DAV:propfind
 		   (if attributes
 		       (mapconcat (lambda (attr)
@@ -471,8 +486,7 @@ names (ie: DAV:resourcetype).
 This will be used as the contents of the DAV:owner/DAV:href tag to
 identify the owner of a LOCK when requesting it.  This will be shown
 to other users when the DAV:lockdiscovery property is requested, so
-make sure you are comfortable with it leaking to the outside world.
-")
+make sure you are comfortable with it leaking to the outside world.")
 
 ;;;###autoload
 (defun url-dav-lock-resource (url exclusive &optional depth)
@@ -482,8 +496,7 @@ Optional 3rd argument DEPTH says how deep the lock should go, default is 0
 
 Returns a cons-cell of (SUCCESSFUL-RESULTS . FAILURE-RESULTS).
 SUCCESSFUL-RESULTS is a list of (URL STATUS locktoken).
-FAILURE-RESULTS is a list of (URL STATUS).
-"
+FAILURE-RESULTS is a list of (URL STATUS)."
   (setq	exclusive (if exclusive "<DAV:exclusive/>" "<DAV:shared/>"))
   (let* ((body
 	  (concat
@@ -554,8 +567,7 @@ FAILURE-RESULTS is a list of (URL STATUS).
 ;;;###autoload
 (defun url-dav-unlock-resource (url lock-token)
   "Release the lock on URL represented by LOCK-TOKEN.
-Returns `t' iff the lock was successfully released.
-"
+Returns t iff the lock was successfully released."
   (declare (special url-http-response-status))
   (let* ((url-request-extra-headers (list (cons "Lock-Token"
 						(concat "<" lock-token ">"))))
@@ -611,6 +623,8 @@ Returns `t' iff the lock was successfully released.
 	(otherwise
 	 (url-debug 'dav "Unrecognized DAV:locktype (%S)" (car lock)))))
     modes))
+
+(autoload 'url-http-head-file-attributes "url-http")
 
 ;;;###autoload
 (defun url-dav-file-attributes (url)
@@ -673,6 +687,7 @@ Returns `t' iff the lock was successfully released.
   "Save OBJ as URL using WebDAV.
 URL must be a fully qualified URL.
 OBJ may be a buffer or a string."
+  (declare (special url-http-response-status))
   (let ((buffer nil)
 	(result nil)
 	(url-request-extra-headers nil)
@@ -729,8 +744,7 @@ Use with care, and even then think three times.
 (defun url-dav-delete-directory (url &optional recursive lock-token)
   "Delete the WebDAV collection URL.
 If optional second argument RECURSIVE is non-nil, then delete all
-files in the collection as well.
-"
+files in the collection as well."
   (let ((status nil)
 	(props nil)
 	(props nil))
@@ -779,8 +793,7 @@ If FULL is non-nil, return absolute file names.  Otherwise return names
  that are relative to the specified directory.
 If MATCH is non-nil, mention only file names that match the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
- NOSORT is useful if you plan to sort the result yourself.
-"
+ NOSORT is useful if you plan to sort the result yourself."
   (let ((properties (url-dav-get-properties url '(DAV:resourcetype) 1))
 	(child-url nil)
 	(child-props nil)
@@ -860,7 +873,9 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 (defun url-dav-rename-file (oldname newname &optional overwrite)
   (if (not (and (string-match url-handler-regexp oldname)
 		(string-match url-handler-regexp newname)))
-      (signal 'file-error "Cannot rename between different URL backends" oldname newname))
+      (signal 'file-error
+	      (list "Cannot rename between different URL backends"
+		    oldname newname)))
 
   (let* ((headers nil)
 	 (props nil)
@@ -898,8 +913,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 ;;;###autoload
 (defun url-dav-file-name-all-completions (file url)
   "Return a list of all completions of file name FILE in directory DIRECTORY.
-These are all file names in directory DIRECTORY which begin with FILE.
-"
+These are all file names in directory DIRECTORY which begin with FILE."
   (url-dav-directory-files url nil (concat "^" file ".*")))
 
 ;;;###autoload
@@ -908,8 +922,7 @@ These are all file names in directory DIRECTORY which begin with FILE.
 Returns the longest string
 common to all file names in DIRECTORY that start with FILE.
 If there is only one and FILE matches it exactly, returns t.
-Returns nil if DIR contains no name starting with FILE.
-"
+Returns nil if DIR contains no name starting with FILE."
   (let ((matches (url-dav-file-name-all-completions file url))
 	(result nil))
     (cond
@@ -971,4 +984,5 @@ Returns nil if DIR contains no name starting with FILE.
 
 (provide 'url-dav)
 
-;;; arch-tag: 2b14b7b3-888a-49b8-a490-17276a40e78e
+;; arch-tag: 2b14b7b3-888a-49b8-a490-17276a40e78e
+;;; url-dav.el ends here

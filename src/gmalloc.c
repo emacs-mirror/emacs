@@ -352,6 +352,10 @@ Cambridge, MA 02139, USA.
 #include <errno.h>
 
 /* How to really get more memory.  */
+#if defined(CYGWIN)
+extern __ptr_t bss_sbrk PP ((ptrdiff_t __size));
+extern int bss_sbrk_did_unexec;
+#endif
 __ptr_t (*__morecore) PP ((ptrdiff_t __size)) = __default_morecore;
 
 /* Debugging hook for `malloc'.  */
@@ -1572,7 +1576,14 @@ __ptr_t
 __default_morecore (increment)
      __malloc_ptrdiff_t increment;
 {
-  __ptr_t result = (__ptr_t) __sbrk (increment);
+  __ptr_t result;
+#if defined(CYGWIN)
+  if (!bss_sbrk_did_unexec)
+    {
+      return bss_sbrk (increment);
+    }
+#endif
+  result = (__ptr_t) __sbrk (increment);
   if (result == (__ptr_t) -1)
     return NULL;
   return result;

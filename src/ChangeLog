@@ -67,6 +67,34 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-04-12  Joe Buehler  <jbuehler@hekimian.com>
+
+	* s/cygwin.h: Changes for Cygwin unexec() support, changes in
+	Cygwin itself.  Add support for Xaw3d scrollbars.
+
+	* puresize.h: Set up PURE_P() for Cygwin unexec() support.
+
+	* lastfile.c: Define my_endbss[] for Cygwin unexec() support.
+
+	* gmalloc.c (__default_morecore): Use bss_sbrk(), not __sbrk(),
+	before Cygwin unexec.
+
+	* Makefile.in: Link changes for Cygwin unexec() support.
+
+2004-04-12  Andreas Schwab  <schwab@suse.de>
+
+	* buffer.c (Fmake_indirect_buffer): Check that NAME is a string.
+
+2004-04-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffer.c (Fgenerate_new_buffer_name): Return NAME argument if
+	IGNORE argument equals NAME.  Doc fix.
+
+2004-04-11  Masatake YAMATO  <jet@gyve.org>
+
+	* buffer.c (fix_start_end_in_overlays): Make overlays
+	empty if they are backwards.
+
 2004-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc.c (Fsnarf_documentation): Ignore new file name entries.

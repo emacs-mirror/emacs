@@ -68,7 +68,7 @@ extern void pure_write_error P_ ((void));
 
 /* Define PURE_P.  */
 
-#ifdef VIRT_ADDR_VARIES
+#if defined(VIRT_ADDR_VARIES) || defined(CYGWIN)
 /* For machines like APOLLO where text and data can go anywhere
    in virtual memory.  */
 

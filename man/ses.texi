@@ -385,11 +385,11 @@ list.
 @code{ses-mode-hook} is a normal mode hook (list of functions to
 execute when starting SES mode for a buffer).
 
-The variable @code{safe-functions} is a a list of possibly-unsafe
+The variable @code{safe-functions} is a list of possibly-unsafe
 functions to be treated as safe when analysing formulas and printers.
 @xref{Virus protection}.  Before customizing @code{safe-functions},
 think about how much you trust the person who's suggesting this
-change.  The value t turns off all anti-virus protection.  A
+change.  The value @code{t} turns off all anti-virus protection.  A
 list-of-functions value might enable a ``gee whiz'' spreadsheet, but it
 also creates trapdoors in your anti-virus armor.  In order for virus
 protection to work, you must always press @kbd{n} when presented with

@@ -679,7 +679,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 	  (if (consp line) (setq end-line (cdr line) line (car line)))
 	  (if (consp col)	(setq end-col (cdr col)	  col (car col)))
 	  
-	  (if (symbolp line)
+	  (if (functionp line)
 	      ;; The old compile.el had here an undocumented hook that
 	      ;; allowed `line' to be a function that computed the actual
 	      ;; error location.  Let's do our best.

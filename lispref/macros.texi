@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 2004 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/macros
 @node Macros, Customization, Functions, Top
@@ -135,6 +135,28 @@ uses this feature.
      @result{} (progn (inc r) (inc s))  ; @r{@code{inc} not expanded here.}
 @end group
 @end smallexample
+@end defun
+
+
+@defun macroexpand-all form &optional environment
+@cindex macro expansion in entire form
+
+@code{macroexpand-all} expands macros like @code{macroexpand}, but
+will look for and expand all macros in @var{form}, not just at the
+top-level.
+
+In emacs-lisp, @code{macroexpand-all} guarantees that if no macros
+are expanded, the return value will be @code{eq} to @var{form}.
+
+Repeating the example used for @code{macroexpand} above with
+@code{macroexpand-all}, we see that @code{macroexpand-all} @emph{does}
+expand the embedded calls to @code{inc}:
+
+@smallexample
+(macroexpand-all '(inc2 r s))
+     @result{} (progn (setq r (1+ r)) (setq s (1+ s)))
+@end smallexample
+
 @end defun
 
 @node Compiling Macros

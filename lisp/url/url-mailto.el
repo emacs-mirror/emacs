@@ -1,27 +1,30 @@
 ;;; url-mail.el --- Mail Uniform Resource Locator retrieval code
+
+;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
+;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
+
 ;; Keywords: comm, data, processes
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;;; Code:
 
 (eval-when-compile (require 'cl))
 (require 'url-vars)
@@ -118,11 +121,12 @@
 	  (cond ((eq url-mail-command 'compose-mail)
 		 (funcall (get mail-user-agent 'sendfunc) nil))
 		;; otherwise, we can't be sure
-		((fboundp 'message-mail)
+		((fboundp 'message-send-and-exit)
 		 (message-send-and-exit))
 		(t (mail-send-and-exit nil)))))
     nil))
 
 (provide 'url-mailto)
 
-;;; arch-tag: 7b7ad52e-8760-497b-9444-75fae14e34c5
+;; arch-tag: 7b7ad52e-8760-497b-9444-75fae14e34c5
+;;; url-mailto.el ends here
