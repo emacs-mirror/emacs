@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,1997,2001 Free Software Foundation, Inc.
+@c Copyright (C) 1985,86,87,93,94,95,1997,2001, 2003 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Command Arguments, X Resources, Service, Top
 @appendix Command Line Arguments
@@ -495,6 +495,9 @@ Used by the Gnus package.
 @item SHELL
 The name of an interpreter used to parse and execute programs run from
 inside Emacs.
+@item SMTPSERVER
+The name of the outgoing mail server.  Used by the SMTP library
+(@pxref{Sending mail via SMTP,,,smtpmail}).
 @cindex background mode, on @command{xterm}
 @item TERM
 The type of the terminal that Emacs is using.  This variable must be
