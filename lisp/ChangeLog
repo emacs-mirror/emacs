@@ -8,6 +8,9 @@
 
 	* ebnf-abn.el: Doc fix.
 
+	* ebnf-bnf.el: Doc fix.
+	(ebnf-repeat): Code fix.
+
 	* ebnf2ps.el: Doc fix.
 
 2004-02-28  Juri Linkov  <juri@jurta.org>

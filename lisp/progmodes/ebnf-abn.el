@@ -4,7 +4,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/02/23 22:38:59 vinicius>
+;; Time-stamp: <2004/02/28 17:40:41 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 1.0
 
@@ -41,6 +41,8 @@
 ;; -----------
 ;;
 ;;	See the URL:
+;;	`http://www.ietf.org/rfc/rfc2234.txt'
+;;	or
 ;;	`http://www.faqs.org/rfcs/rfc2234.html'
 ;;	or
 ;;	`http://www.rnp.br/ietf/rfc/rfc2234.txt'

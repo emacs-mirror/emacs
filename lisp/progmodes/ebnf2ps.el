@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/02/28 17:58:16 vinicius>
+;; Time-stamp: <2004/02/28 18:19:37 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 4.0
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -193,7 +193,10 @@ Please send all bug fixes and enhancements to
 ;;    C D		sequence (C occurs before D)
 ;;    C | D		alternative (C or D occurs)
 ;;    A - B		exception (A excluding B, B without any non-terminal)
-;;    n * A		repetition (A repeats n (integer) times)
+;;    n * A		repetition (A repeats at least n (integer) times)
+;;    n * n A		repetition (A repeats exactly n (integer) times)
+;;    n * m A		repetition (A repeats at least n (integer) and at most
+;;			m (integer) times)
 ;;    (C)		group (expression C is grouped together)
 ;;    [C]		optional (C may or not occurs)
 ;;    C+		one or more occurrences of C
@@ -217,7 +220,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;;    exception = repeat [ "-" repeat].         ;; exception
 ;;
-;;    repeat = [ integer "*" ] term.            ;; repetition
+;;    repeat = [ integer "*" [ integer ]] term. ;; repetition
 ;;
 ;;    term = factor
 ;;         | [factor] "+"                       ;; one-or-more
