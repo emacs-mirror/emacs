@@ -151,7 +151,7 @@ The buffer for that command is the previous current buffer."
 		(beginning-of-line)
 		(read (current-buffer)))
 	    (set-buffer
-	     (cdr (buffer-list)))))))
+	     (car (cdr (buffer-list))))))))
 
 ;;;###autoload
 (defun command-history-mode ()
