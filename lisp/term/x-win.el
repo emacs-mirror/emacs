@@ -677,26 +677,36 @@ This is in addition to the primary selection.")
 	    resolved-name xlfd-fields)
 	(if (and font
 		 (not (query-fontset font))
-		 (setq resolved-name (or (x-resolve-font-name font) font))
+		 (setq resolved-name (x-resolve-font-name font))
 		 (setq xlfd-fields (x-decompose-font-name resolved-name)))
 	    (if (string= "fontset"
 			 (aref xlfd-fields xlfd-regexp-registry-subnum))
 		(new-fontset font (x-complement-fontset-spec xlfd-fields nil))
-	      (let (fontset fontset-spec)
-		;; Create a fontset from FONT.  The name is also
-		;; generated from FONT.
+	      ;; Create a fontset from FONT.  The fontset name is
+	      ;; generated from FONT.  Create style variants of the
+	      ;; fontset too.  Font names in the variants are
+	      ;; generated automatially unless X resources
+	      ;; XXX.attribyteFont explicitly specify them.
+	      (let ((styles (mapcar 'car x-style-funcs-alist))
+		    (faces '(bold italic bold-italic))
+		    face face-font fontset fontset-spec)
+		(while faces
+		  (setq face (car faces))
+		  (setq face-font (x-get-resource (concat (symbol-name face)
+							  ".attributeFont")
+						  "Face.AttributeFont"))
+		  (if face-font
+		      (setq styles (cons (cons face face-font)
+					 (delq face styles))))
+		  (setq faces (cdr faces)))
 		(aset xlfd-fields xlfd-regexp-foundry-subnum nil)
 		(aset xlfd-fields xlfd-regexp-family-subnum nil)
-		(aset xlfd-fields xlfd-regexp-adstyle-subnum nil)
-		(aset xlfd-fields xlfd-regexp-avgwidth-subnum nil)
 		(aset xlfd-fields xlfd-regexp-registry-subnum "fontset")
 		(aset xlfd-fields xlfd-regexp-encoding-subnum "startup")
 		(setq fontset (x-compose-font-name xlfd-fields))
-		(setq fontset-spec (concat fontset ", ascii:" resolved-name))
-		(create-fontset-from-fontset-spec fontset-spec t)
-		(setq fontset-alias-alist
-		      (cons (cons fontset font) fontset-alias-alist)))
-	      )))))
+		(create-fontset-from-fontset-spec
+		 (concat fontset ", ascii:" font) styles)
+		))))))
 
 ;; Sun expects the menu bar cut and paste commands to use the clipboard.
 ;; This has ,? to match both on Sunos and on Solaris.
