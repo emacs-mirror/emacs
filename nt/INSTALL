@@ -1,5 +1,5 @@
 		      Building and Installing Emacs
-		  on Windows NT and Windows 95/98/2000
+		on Windows NT/2000 and Windows 95/98/ME
 
   To compile Emacs, you will need either Microsoft Visual C++ 2.0 or
   later, or a Windows port of GCC 2.95 or later with Mingw and W32 API
@@ -7,7 +7,7 @@
   but Emacs requires the Mingw headers and libraries to build.
 
   If you build Emacs on Windows 9X or ME, not on Windows 2000 or
-  Windows/NT, we suggest to install the Cygwin port of Bash.
+  Windows NT, we suggest to install the Cygwin port of Bash.
 
   Please see http://www.mingw.org for pointers to GCC/Mingw binaries.
 
@@ -35,7 +35,7 @@
         cygwin provides this?
     [4] may fail on Windows 9X and Windows ME; if so, install Bash.
 
-Configuring:
+* Configuring
 
   Configuration of Emacs is now handled by running configure.bat in the
   nt subdirectory.  It will detect which compiler you have available,
@@ -51,7 +51,7 @@ Configuring:
   is running, when gcc support is being tested.  These cannot be
   surpressed because of limitations in the Windows 9x command.com shell.
 
-Building:
+* Building
 
   After running configure, simply run the appropriate `make' program for
   your compiler to build Emacs.  For MSVC, this is nmake; for GCC, it is
@@ -63,7 +63,7 @@ Building:
   The warnings may be fixed in the main FSF source at some point, but
   until then we will just live with them.
 
-Installing:
+* Installing
 
   To install Emacs after it has compiled, simply run `make install'.
 
@@ -77,7 +77,7 @@ Installing:
   The install process will run addpm to setup the registry entries, and
   to create a Start menu icon for Emacs.
 
-Trouble-shooting:
+* Trouble-shooting
 
   The main problems that are likely to be encountered when building
   Emacs stem from using an old version of GCC, or old Mingw or W32 API
@@ -104,7 +104,15 @@ Trouble-shooting:
   build without sh.exe.  (Some versions of Windows shells are too dumb
   for Makefile's used by Emacs.)
 
-Debugging:
+  If you are using a recent Cygwin build of GCC, such as Cygwin version
+  1.1.8, you may need to specify some extra compiler flags like so:
+
+    configure --with-gcc --cflags -mwin32 --cflags -D__MSVCRT__
+
+  We will attempt to auto-detect the need for these flags in a future
+  release.
+
+* Debugging
 
   You should be able to debug Emacs using the debugger that is
   appropriate for the compiler you used, namely DevStudio or Windbg if
