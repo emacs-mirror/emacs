@@ -1697,9 +1697,13 @@ read_escape (readcharfun, stringp, byterep)
       return c | alt_modifier;
 
     case 's':
+      if (stringp)
+	return ' ';
       c = READCHAR;
-      if (c != '-')
-	error ("Invalid escape character syntax");
+      if (c != '-') {
+	UNREAD (c);
+	return ' ';
+      }
       c = READCHAR;
       if (c == '\\')
 	c = read_escape (readcharfun, 0, byterep);
@@ -2247,6 +2251,7 @@ read1 (readcharfun, pch, first_in_list)
     case '?':
       {
 	int discard;
+	int nextc;
 
 	c = READCHAR;
 	if (c < 0)
@@ -2256,6 +2261,15 @@ read1 (readcharfun, pch, first_in_list)
 	  c = read_escape (readcharfun, 0, &discard);
 	else if (BASE_LEADING_CODE_P (c))
 	  c = read_multibyte (c, readcharfun);
+
+	nextc = READCHAR;
+	UNREAD (nextc);
+	if (nextc > 040
+	    && !(nextc == '?' 
+		 || nextc == '\"' || nextc == '\'' || nextc == ';'
+		 || nextc == '(' || nextc == ')'
+		 || nextc == '[' || nextc == ']' || nextc == '#'))
+	  Fsignal (Qinvalid_read_syntax, Fcons (make_string ("?", 1), Qnil));
 
 	return make_number (c);
       }

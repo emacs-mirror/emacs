@@ -1,5 +1,10 @@
 2003-02-13  Kim F. Storm  <storm@cua.dk>
 
+	* lread.c (read_escape): Interpret \s as a SPACE character, except
+	for \s-X in a character constant which still is the super modifier.
+	(read1): Signal an `invalid read syntax' error if a character
+	constant is immediately followed by a digit or symbol character.
+
 	* search.c (Fmatch_data): Doc fix.  Explicitly state that
 	match-data is undefined if last search failed.
 
