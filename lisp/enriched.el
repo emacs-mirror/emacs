@@ -432,19 +432,15 @@ Return value is \(begin end name positive-p), or nil if none was found."
       (delete-char 1)))
 
 (defun enriched-decode-foreground (from to &optional color)
-  (if (and color (display-color-p))
-      (list from to 'face (cons ':foreground color))
-    (if (null color)
-	(message "Warning: no color specified for <x-color>")
-      (message "Warning: color `%s' can't be displayed" color))
+  (if color
+      (list from to 'face (list ':foreground color))
+    (message "Warning: no color specified for <x-color>")
     nil))
 
 (defun enriched-decode-background (from to &optional color)
-  (if (and color (display-color-p))
-      (list from to 'face (cons ':background color))
-    (if (null color)
-	(message "Warning: no color specified for <x-bg-color>")
-      (message "Warning: color `%s' can't be displayed" color))
+  (if color
+      (list from to 'face (list ':background color))
+    (message "Warning: no color specified for <x-bg-color>")
     nil))
 
 ;;; Handling the `display' property.
