@@ -70,9 +70,13 @@
 				       calcFunc-max calcFunc-min))
 
 (defvar math-real-if-arg-functions '(calcFunc-sin calcFunc-cos
-				     calcFunc-tan calcFunc-arctan
+				     calcFunc-tan calcFunc-sec
+                                     calcFunc-csc calcFunc-cot
+                                     calcFunc-arctan
 				     calcFunc-sinh calcFunc-cosh
-				     calcFunc-tanh calcFunc-exp
+				     calcFunc-tanh calcFunc-sech
+                                     calcFunc-csch calcFunc-coth
+                                     calcFunc-exp
 				     calcFunc-gamma calcFunc-fact))
 
 (defvar math-integer-functions '(calcFunc-idiv
