@@ -1,5 +1,11 @@
 2001-06-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* net/quickurl.el (quickurl-url-file): Run through
+	convert-standard-filename.
+	(quickurl-list-populate-buffer): Add help-echo to
+	mouse-highlighted text.
+	(top-level): Update Dave's URL.
+
 	* textmodes/tex-mode.el (tex-validate-buffer): Add help-echo to
 	mouse-highlighted text.
 
