@@ -444,20 +444,6 @@ non-nested citation roots.  It is important to remember that if you
 change @code{sc-citation-root-regexp} you should always also change
 @code{sc-citation-nonnested-root-regexp}.@refill
 
-Nemacs users:@: For best results, try setting
-@code{sc-citation-root-regexp} to:@refill
-
-@example
-"\\([-._a-zA-Z0-9]\\|\\cc\\|\\cC\\|\\ch\\|\\cH\\|\\ck\\|\\cK\\|\\ca\\|\\cg\\|\\cr\\|\\cu\\)*"
-@end example
-
-Mule users:@: For best results, try setting
-@code{sc-citation-root-regexp} to:@refill
-
-@example
-"\\([-._a-zA-Z0-9]\\|\\cj\\)*"
-@end example
-
 @node  Information Keys and the Info Alist, Reference Headers, Miscellaneous Commands, Top
 @comment  node-name,  next,  previous,  up
 @cindex information keys
