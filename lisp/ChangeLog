@@ -1,3 +1,8 @@
+2004-04-02  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (eval-last-sexp-1): Setup the lexical
+	environment if lexical-binding is enabled.
+
 2003-10-14  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/macroexp.el (macroexpand-all-1): Special-case
