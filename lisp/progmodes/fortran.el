@@ -904,10 +904,14 @@ Auto-indent does not happen if a numeric ARG is used."
   "Moves point to the end of the current Fortran subprogram."
   (interactive)
   (let ((case-fold-search t))
-    (beginning-of-line 2)
-    (re-search-forward fortran-end-prog-re nil 'move)
-    (goto-char (match-beginning 0))
-    (forward-line)))
+    (if (save-excursion			; on END
+	  (beginning-of-line)
+	  (looking-at fortran-end-prog-re))
+	(forward-line)
+      (beginning-of-line 2)
+      (re-search-forward fortran-end-prog-re nil 'move)
+      (goto-char (match-beginning 0))
+      (forward-line))))
 
 (defun mark-fortran-subprogram ()
   "Put mark at end of Fortran subprogram, point at beginning.
