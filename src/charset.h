@@ -132,8 +132,19 @@ struct charset
   /* Dimension of the charset: 1, 2, 3, or 4.  */
   int dimension;
 
-  /* Minimum byte code in each dimension.  */
+  /* Byte code range of each dimension.  <code_space>[4N] is a mininum
+     byte code of the (N+1)th dimension, <code_space>[4N+1] is a
+     maximum byte code of the (N+1)th dimension, <code_space>[4N+2] is
+     (<code_space>[4N+1] - <code_space>[4N] + 1), <code_space>[4N+3]
+     is a number of characters containd in the first to (N+1)th
+     dismesions.  We get `char-index' of a `code-point' from this
+     information.  */
   int code_space[16];
+
+  /* If B is a byte of Nth dimension of a code-point, the (N-1)th bit
+     of code_space_mask[B] is set.  This array is used to quickly
+     check if a code-point is in a valid range.  */
+  unsigned char *code_space_mask;
 
   /* 1 if there's no gap in code-points.  */
   int code_linear_p;
