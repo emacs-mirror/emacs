@@ -76,6 +76,8 @@ File "foobar.ml", lines 5-8, characters 20-155: blah blah
 File "F:\ocaml\sorting.ml", line 65, characters 2-145:
 Warning: this expression should have type unit.
   File "/usr/share/gdesklets/display/TargetGauge.py", line 41, in add_children
+  File \lib\python\Products\PythonScripts\PythonScript.py, line 302, in _exec
+  File "/tmp/foo.py", line 10
 
 
 * Apollo cc, 4.3BSD fc & IBM RS6000/AIX xlc compiler & Microtec mcc68k & GNAT (July 94)
@@ -118,6 +120,7 @@ foo.c(5:5) : error EDC0350: Syntax error.
 symbol: irix
 
 ccom: Error: foo.c, line 2: syntax error
+cc: Info: foo.c, line 27: ...
 cfe: Warning 712: foo.c, line 2: illegal combination of pointer and ...
 cfe: Warning 600: xfe.c: 170: Not in a conditional directive while ...
 /usr/lib/cmplrs/cc/cfe: Error: foo.c: 1: blah blah
