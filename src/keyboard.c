@@ -2968,7 +2968,7 @@ record_char (c)
      Lisp_Object c;
 {
   /* Don't record `help-echo' in recent_keys unless it shows some help
-     message, and a different help than the previoiusly recorded
+     message, and a different help than the previously recorded
      event.  */
   if (CONSP (c) && EQ (XCAR (c), Qhelp_echo))
     {
