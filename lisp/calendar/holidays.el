@@ -389,7 +389,7 @@ date.  If date is nil, or if the date is not visible, there is no holiday."
             (list (calendar-gregorian-from-absolute (+ abs-easter 35))
                   "Rogation Sunday")
             (list (calendar-gregorian-from-absolute (+ abs-easter 39))
-                  "Ascension Sunday")
+                  "Ascension Day")
             (list (calendar-gregorian-from-absolute (+ abs-easter 49))
                   "Pentecost (Whitsunday)")
             (list (calendar-gregorian-from-absolute (+ abs-easter 50))
