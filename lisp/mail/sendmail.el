@@ -161,10 +161,10 @@ If t, it means to insert the contents of the file `mail-signature-file'.")
 (defvar mail-signature-file "~/.signature"
   "*File containing the text inserted at end of mail buffer.")
 
-(defvar mail-reply-buffer nil)
+(defvar mail-reply-action nil)
 (defvar mail-send-actions nil
   "A list of actions to be performed upon successful sending of a message.")
-(put 'mail-reply-buffer 'permanent-local t)
+(put 'mail-reply-action 'permanent-local t)
 (put 'mail-send-actions 'permanent-local t)
 
 (defvar mail-default-headers nil
@@ -252,7 +252,7 @@ actually occur.")
 	(if (file-exists-p mail-personal-alias-file)
 	    (build-mail-aliases))))
   (setq mail-send-actions actions)
-  (setq mail-reply-buffer replybuffer)
+  (setq mail-reply-action replybuffer)
   (goto-char (point-min))
   (insert "To: ")
   (save-excursion
@@ -322,7 +322,7 @@ C-c C-q  mail-fill-yanked-message (fill what was yanked).
 C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
   (interactive)
   (kill-all-local-variables)
-  (make-local-variable 'mail-reply-buffer)
+  (make-local-variable 'mail-reply-action)
   (make-local-variable 'mail-send-actions)
   (set-syntax-table mail-mode-syntax-table)
   (use-local-map mail-mode-map)
@@ -336,6 +336,7 @@ C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
   (make-local-variable 'paragraph-start)
   (make-local-variable 'normal-auto-fill-function)
   (setq normal-auto-fill-function 'mail-mode-auto-fill)
+  (setq fill-paragraph-function 'mail-mode-fill-paragraph)
   ;; `-- ' precedes the signature.  `-----' appears at the start of the
   ;; lines that delimit forwarded messages.
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
@@ -366,6 +367,45 @@ If within the headers, this makes the new lines into continuation lines."
 		(forward-line -1))
 	      t)))
     (do-auto-fill)))
+
+(defun mail-mode-fill-paragraph (arg)
+  ;; Do something special only if within the headers.
+  (if (< (point)
+	 (save-excursion
+	   (goto-char (point-min))
+	   (if (search-forward mail-header-separator nil t)
+	       (point)
+	     0)))
+      (let (beg end fieldname) 
+	(re-search-backward "^[-a-zA-Z]+:" nil 'yes)
+	(setq beg (point))
+	(setq fieldname
+	      (downcase (buffer-substring beg (1- (match-end 0)))))
+	(forward-line 1)
+	;; Find continuation lines and get rid of their continuation markers.
+	(while (looking-at "[ \t]")
+	  (delete-horizontal-space)
+	  (forward-line 1))
+	(setq end (point-marker))
+	(goto-char beg)
+	;; If this field contains addresses,
+	;; make sure we can fill after each address.
+	(if (member fieldname
+		    '("to" "cc" "bcc" "from" "reply-to"
+		      "resent-to" "resent-cc" "resent-bcc"
+		      "resent-from" "resent-reply-to"))
+	    (while (search-forward "," end t)
+	      (or (looking-at "[ \t]")
+		  (insert " "))))
+	(fill-region-as-paragraph beg end)
+	;; Mark all lines except the first as continuations.
+	(goto-char beg)
+	(forward-line 1)
+	(while (< (point) end)
+	  (insert "  ")
+	  (forward-line 1))
+	(move-marker end nil)
+	t)))
 
 ;;; Set up keymap.
 
@@ -930,13 +970,18 @@ However, if `mail-yank-prefix' is non-nil, insert that prefix on each line.
 Just \\[universal-argument] as argument means don't indent, insert no prefix,
 and don't delete any header fields."
   (interactive "P")
-  (if mail-reply-buffer
-      (let ((start (point)))
-	;; If the original message is in another window in the same frame,
-	;; delete that window to save screen space.
-	;; t means don't alter other frames.
-	(delete-windows-on mail-reply-buffer t)
-	(insert-buffer mail-reply-buffer)
+  (if mail-reply-action
+      (let ((start (point))
+	    (original mail-reply-action))
+	(and (consp original) (eq (car original) 'insert-buffer)
+	     (setq original (nth 1 original)))
+	(if (consp original)
+	    (apply (car original) (cdr original))
+	  ;; If the original message is in another window in the same frame,
+	  ;; delete that window to save screen space.
+	  ;; t means don't alter other frames.
+	  (delete-windows-on original t)
+	  (insert-buffer original))
 	(if (consp arg)
 	    nil
 	  (goto-char start)
@@ -1007,8 +1052,10 @@ The second through fifth arguments,
  TO, SUBJECT, IN-REPLY-TO and CC, specify if non-nil
  the initial contents of those header fields.
  These arguments should not have final newlines.
-The sixth argument REPLYBUFFER is a buffer whose contents
- should be yanked if the user types C-c C-y.
+The sixth argument REPLYBUFFER is a buffer which contains an
+ original message being replied to, or else an action
+ of the form (FUNCTION . ARGS) which says how to insert the original.
+ Or it can be nil, if not replying to anything.
 The seventh argument ACTIONS is a list of actions to take
  if/when the message is sent.  Each action looks like (FUNCTION . ARGS);
  when the message is sent, we apply FUNCTION to ARGS.
