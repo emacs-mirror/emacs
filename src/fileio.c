@@ -3894,8 +3894,8 @@ to the file, instead of any buffer contents, and END is ignored.")
   annotations = build_annotations (start, end, coding.pre_write_conversion);
   if (current_buffer != given_buffer)
     {
-      start = BEGV;
-      end = ZV;
+      XSETFASTINT (start, BEGV);
+      XSETFASTINT (end, ZV);
     }
 
 #ifdef CLASH_DETECTION
@@ -4205,8 +4205,8 @@ build_annotations (start, end, pre_write_conversion)
 	 been dealt with by this function.  */
       if (current_buffer != given_buffer)
 	{
-	  start = BEGV;
-	  end = ZV;
+	  XSETFASTINT (start, BEGV);
+	  XSETFASTINT (end, ZV);
 	  annotations = Qnil;
 	}
       Flength (res);   /* Check basic validity of return value */
@@ -4227,8 +4227,8 @@ build_annotations (start, end, pre_write_conversion)
 		   original_buffer);
       if (current_buffer != given_buffer)
 	{
-	  start = BEGV;
-	  end = ZV;
+	  XSETFASTINT (start, BEGV);
+	  XSETFASTINT (end, ZV);
 	  annotations = Qnil;
 	}
       Flength (res);
