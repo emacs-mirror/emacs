@@ -183,6 +183,16 @@ an Emacs error.
   @kbd{C-u C-x `} starts scanning from the beginning of the compilation
 buffer.  This is one way to process the same set of errors again.
 
+@vindex compilation-error-regexp-alist
+@vindex grep-regexp-alist
+  To parse messages from the compiler, Compilation mode uses the
+variable @code{compilation-error-regexp-alist} which lists various
+formats of error messages and tells Emacs how to extract the source file
+and the line number from the text of a message.  If your compiler isn't
+supported, you can tailor Compilation mode to it by adding elements to
+that list.  A similar variable @code{grep-regexp-alist} tells Emacs how
+to parse output of a @code{grep} command.
+
   Compilation mode also redefines the keys @key{SPC} and @key{DEL} to
 scroll by screenfuls, and @kbd{M-n} and @kbd{M-p} to move to the next or
 previous error message.  You can also use @kbd{M-@{} and @kbd{M-@}} to
