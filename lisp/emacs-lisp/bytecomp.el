@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.60 $")
+(defconst byte-compile-version "$Revision: 2.61 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -3564,5 +3564,7 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
 		  byte-compile-constant
 		  byte-compile-variable-ref))))
   nil)
+
+(run-hooks 'bytecomp-load-hook)
 
 ;;; bytecomp.el ends here
