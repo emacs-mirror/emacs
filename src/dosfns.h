@@ -34,7 +34,5 @@ extern unsigned char dos_country_info[DOS_COUNTRY_INFO];
 extern Lisp_Object Vdos_version;
 #ifndef HAVE_X_WINDOWS
 extern Lisp_Object Vdos_display_scancodes;
-extern Lisp_Object Vdos_menubar_clock;
-extern Lisp_Object Vdos_timer_hooks;
 extern Lisp_Object Qmsdos_color_translate;
 #endif
