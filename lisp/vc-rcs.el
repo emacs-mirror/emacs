@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.12 2000/11/16 18:13:16 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.13 2000/11/19 09:46:04 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -123,13 +123,14 @@ For a description of possible values, see `vc-check-master-templates'."
          (vc-rcs-fetch-master-state file
                                     (vc-file-getprop file
                                                      'vc-workfile-version))))
-    (if (eq state 'up-to-date)
-        (if (vc-workfile-unchanged-p file)
-            'up-to-date
-          (if (eq (vc-checkout-model file) 'locking)
-              'unlocked-changes
-            'edited))
-      state)))
+    (if (not (eq state 'up-to-date))
+        state
+      (require 'vc)
+      (if (vc-workfile-unchanged-p file)
+          'up-to-date
+        (if (eq (vc-checkout-model file) 'locking)
+            'unlocked-changes
+          'edited)))))
 
 (defun vc-rcs-state-heuristic (file)
   "State heuristic for RCS."
