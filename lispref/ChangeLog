@@ -1,3 +1,26 @@
+2004-06-24  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Misc Events): Describe usr1-signal, usr2-signal event.
+
+	* customize.texi (Variable Definitions): Note about doc strings
+	and :set.
+
+	* keymaps.texi (Keymap Terminology): Document `kbd'.
+	(Changing Key Bindings, Key Binding Commands): Use kbd in examples.
+
+	* display.texi (Invisible Text): Setting buffer-invisibility-spec
+	makes it buffer-local.
+
+	* files.texi (Saving Buffers): Correct previous change.
+
+	* commands.texi (Accessing Events):
+	Clarify posn-col-row and posn-actual-col-row.
+
+2004-06-24  David Ponce  <david.ponce@wanadoo.fr>
+
+	* commands.texi (Accessing Events): New functions
+	posn-at-point and posn-at-x-y.  Add example to posn-x-y.
+
 2004-06-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* lists.texi, files.texi, processes.texi, macros.texi, hash.texi:

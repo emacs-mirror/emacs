@@ -562,7 +562,8 @@ the buffer looking for properties to change.
 
 @defvar buffer-invisibility-spec
 This variable specifies which kinds of @code{invisible} properties
-actually make a character invisible.
+actually make a character invisible.  Setting this variable makes it
+buffer-local.
 
 @table @asis
 @item @code{t}

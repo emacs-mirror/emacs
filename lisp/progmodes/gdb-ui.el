@@ -29,10 +29,9 @@
 ;; GDB through the GUD buffer in the usual way, but there are also further
 ;; buffers which control the execution and describe the state of your program.
 ;; It separates the input/output of your program from that of GDB, if
-;; required, and displays expressions and their current values in their own
-;; buffers. It also uses features of Emacs 21 such as the display margin for
-;; breakpoints, and the toolbar (see the GDB Graphical Interface section in
-;; the Emacs info manual).
+;; required, and watches expressions in the speedbar. It also uses features of
+;; Emacs 21 such as the fringe/display margin for breakpoints, and the toolbar
+;; (see the GDB Graphical Interface section in the Emacs info manual).
 
 ;; Start the debugger with M-x gdba.
 
@@ -1207,8 +1206,8 @@ static char *magick[] = {
        (list
 	(concat
 	 (if (eq ?y (char-after (match-beginning 2)))
-	     gdb-server-prefix "disable "
-	   gdb-server-prefix "enable ")
+	     (concat gdb-server-prefix "disable ")
+	   (concat gdb-server-prefix "enable "))
 	 (match-string 1) "\n")
 	'ignore)))))
 
@@ -1226,10 +1225,12 @@ static char *magick[] = {
   (interactive)
   (save-excursion
     (beginning-of-line 1)
-    (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdbmi))
-	(looking-at "[0-9]*\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\\(\\S-*\\):\\([0-9]+\\)")
-      (re-search-forward "in\\s-+\\S-+\\s-+at\\s-+" nil t)
-      (looking-at "\\(\\S-*\\):\\([0-9]+\\)")))
+    (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+	(progn
+	  (re-search-forward "in\\s-+\\S-+\\s-+at\\s-+" nil t)
+	  (looking-at "\\(\\S-*\\):\\([0-9]+\\)"))
+    (looking-at
+     "[0-9]*\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\\(\\S-*\\):\\([0-9]+\\)")))
   (if (match-string 2)
       (let ((line (match-string 2))
 	    (file (match-string 1)))

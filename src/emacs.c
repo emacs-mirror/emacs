@@ -127,14 +127,6 @@ Lisp_Object Vkill_emacs_hook;
 /* An empty lisp string.  To avoid having to build any other.  */
 Lisp_Object empty_string;
 
-#ifdef SIGUSR1
-/* Hooks for signal USR1 and USR2 handling.  */
-Lisp_Object Vsignal_USR1_hook;
-#ifdef SIGUSR2
-Lisp_Object Vsignal_USR2_hook;
-#endif
-#endif
-
 /* Search path separator.  */
 Lisp_Object Vpath_separator;
 
@@ -2369,18 +2361,6 @@ The hook is not run in batch mode, i.e., if `noninteractive' is non-nil.  */);
 
   empty_string = build_string ("");
   staticpro (&empty_string);
-
-#ifdef SIGUSR1
-  DEFVAR_LISP ("signal-USR1-hook", &Vsignal_USR1_hook,
-	       doc: /* Hook to be run whenever emacs receives a USR1 signal.  */);
-  Vsignal_USR1_hook = Qnil;
-#ifdef SIGUSR2
-  DEFVAR_LISP ("signal-USR2-hook", &Vsignal_USR2_hook,
-	       doc: /* Hook to be run whenever emacs receives a USR2 signal.  */);
-  Vsignal_USR2_hook = Qnil;
-#endif
-#endif
-
 
   DEFVAR_INT ("emacs-priority", &emacs_priority,
 	      doc: /* Priority for Emacs to run at.

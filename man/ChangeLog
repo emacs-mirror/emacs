@@ -1,3 +1,21 @@
+2004-06-25  Richard M. Stallman  <rms@gnu.org>
+
+	* search.texi (Regexp Replace): Rewrite description of \# \, and \?.
+
+2004-06-25  David Kastrup  <dak@gnu.org>
+
+	* search.texi (Regexp Replace): Some typo corrections and
+	rearrangement.
+
+2004-06-24  David Kastrup  <dak@gnu.org>
+
+	* search.texi (Unconditional Replace): Use replace-string instead
+	of query-replace in example.
+	(Regexp Replace): Add explanations for `\,', `\#' and `\?'
+	sequences.
+	(Query Replace): Correct explanation of `^' which does not use
+	the mark stack.
+
 2004-06-21  Nick Roberts  <nickrob@gnu.org>
 
 	* misc.texi (Shell History Copying): Document comint-insert-input.

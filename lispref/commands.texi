@@ -872,7 +872,7 @@ the current Emacs session.  If a symbol has not yet been so used,
 * Repeat Events::               Double and triple click (or drag, or down).
 * Motion Events::		Just moving the mouse, not pushing a button.
 * Focus Events::		Moving the mouse between frames.
-* Misc Events::                 Other events window systems can generate.
+* Misc Events::                 Other events the system can generate.
 * Event Examples::		Examples of the lists for mouse events.
 * Classifying Events::		Finding the modifier keys in an event symbol.
 				Event types.
@@ -1462,9 +1462,9 @@ so that the focus event comes either before or after the multi-event key
 sequence, and not within it.
 
 @node Misc Events
-@subsection Miscellaneous Window System Events
+@subsection Miscellaneous System Events
 
-A few other event types represent occurrences within the window system.
+A few other event types represent occurrences within the system.
 
 @table @code
 @cindex @code{delete-frame} event
@@ -1517,6 +1517,14 @@ The usual way to handle this event is by visiting these files.
 
 This kind of event is generated, at present, only on some kinds of
 systems.
+
+@cindex @code{usr1-signal} event
+@cindex @code{usr2-signal} event
+@item usr1-signal
+@itemx usr2-signal
+These events are generated when the Emacs process receives the signals
+@code{SIGUSR1} and @code{SIGUSR2}.  They contain no additional data
+because signals do not carry additional information.
 @end table
 
   If one of these events arrives in the middle of a key sequence---that
@@ -1695,7 +1703,7 @@ position such events have.
 @end defun
 
 @cindex mouse position list, accessing
-  These seven functions take a position list as described above, and
+  These functions take a position list as described above, and
 return various parts of it.
 
 @defun posn-window position
@@ -1716,23 +1724,37 @@ is undefined.
 @end defun
 
 @defun posn-x-y position
-Return the pixel-based x and y coordinates in @var{position}, as a cons
-cell @code{(@var{x} . @var{y})}.
+Return the pixel-based x and y coordinates in @var{position}, as a
+cons cell @code{(@var{x} . @var{y})}.  These coordinates are relative
+to the window given by @code{posn-window}.
+
+This example shows how to convert these window-relative coordinates
+into frame-relative coordinates:
+
+@example
+(defun frame-relative-coordinates (position)
+  "Return frame-relative coordinates from POSITION."
+  (let* ((x-y (posn-x-y position))
+         (window (posn-window position))
+         (edges (window-inside-pixel-edges window)))
+    (cons (+ (car x-y) (car edges))
+          (+ (cdr x-y) (cadr edges)))))
+@end example
 @end defun
 
 @defun posn-col-row position
-Return the row and column (in units of frame default characters) of
-@var{position}, as a cons cell @code{(@var{col} . @var{row})}.  These
-are computed from the @var{x} and @var{y} values actually found in
-@var{position}.
+Return the row and column (in units of the frame's default character
+height and width) of @var{position}, as a cons cell @code{(@var{col} .
+@var{row})}.  These are computed from the @var{x} and @var{y} values
+actually found in @var{position}.
 @end defun
 
 @defun posn-actual-col-row position
 Return the actual row and column in @var{position}, as a cons cell
 @code{(@var{col} . @var{row})}.  The values are the actual row number
-in the window, and the actual character number in that row.  Return
-@code{nil} if @var{position} does not include the actual positions; in that
-case, @code{posn-col-row} can be used to get approximate values.
+in the window, and the actual character number in that row.  It returns
+@code{nil} if @var{position} does not include actual positions values.
+You can use @code{posn-col-row} to get approximate values.
 @end defun
 
 @defun posn-string position
@@ -1769,6 +1791,27 @@ is a buffer position, return the size of the character at that position.
 @defun posn-timestamp
 Return the timestamp in @var{position}.  This is the time at which the
 event occurred, in milliseconds.
+@end defun
+
+  These functions compute a position list given particular buffer
+position or screen position.  You can access the data in this position
+list with the functions described above.
+
+@defun posn-at-point &optional pos window
+This function returns a position list for position @var{pos} in
+@var{window}.  @var{pos} defaults to point in @var{window};
+@var{window} defaults to the selected window.
+
+@code{posn-at-point} returns @code{nil} if @var{pos} is not visible in
+@var{window}.
+@end defun
+
+@defun posn-at-x-y x y &optional frame-or-window
+This function returns position information corresponding to pixel
+coordinates @var{x} and @var{y} in a specified frame or window,
+@var{frame-or-window}, which defaults to the selected window.
+The coordinates @var{x} and @var{y} are relative to the
+frame or window used.
 @end defun
 
   These functions are useful for decoding scroll bar events.

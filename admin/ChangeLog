@@ -1,3 +1,7 @@
+2002-06-26  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* FOR-RELEASE: Moved here from the etc directory.
+
 2004-05-08  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* notes/BRANCH: New file, to be maintained per CVS branch.

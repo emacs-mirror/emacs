@@ -194,6 +194,11 @@ than one occasion.  You should normally avoid using backquotes in
 @var{default} because they are not expanded when editing the value,
 causing list values to appear to have the wrong structure.
 
+If you specify the @code{:set} option, to make the variable take other
+special actions when set through the customization buffer, the
+variable's documentation string should tell the user specifically how
+to do the same job in hand-written Lisp code.
+
 When you evaluate a @code{defcustom} form with @kbd{C-M-x} in Emacs Lisp
 mode (@code{eval-defun}), a special feature of @code{eval-defun}
 arranges to set the variable unconditionally, without testing whether

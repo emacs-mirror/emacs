@@ -1,11 +1,33 @@
+2004-06-27  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (file_dialog_callback): Disable edit control if set
+	to directories only on CDN_INITDONE message.
+	(Fx_file_dialog): Default to directories only when prompt starts
+	with "Dired".
+
+2004-06-25  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (allocate_misc): Update total_free_markers.
+	(free_misc): New function.
+	(safe_alloca_unwind, free_marker): Use it.
+
+	* lisp.h (free_misc): Add prototype.
+
+	* fns.c (Fmapconcat, Fmapcar): Remove superfluous GCPROs.
+
+2004-06-24  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.c (Vsignal_USR1_hook, Vsignal_USR2_hook): Definitions deleted.
+	(syms_of_emacs): Lisp variables deleted.
+
 2004-06-23  David Kastrup  <dak@gnu.org>
 
-	* search.c (Freplace_match): Adjust the match-data more
-	thoroughly when replacing strings in the buffer.
-	search.c (match-data): When INTEGERS is non-nil and the last match
-	was in a buffer, add the buffer as last element to the match data.
-	(Fset_match_data): If an additional element of the match-data is
-	a buffer, restore it to last_thing_searched.
+	* search.c (Freplace_match): Adjust the match-data more thoroughly
+	when replacing strings in the buffer.
+	(Fmatch_data): When INTEGERS is non-nil and the last match was in
+	a buffer, add the buffer as last element to the match data.
+	(Fset_match_data): If an additional element of the match-data is a
+	buffer, restore it to last_thing_searched.
 	(save_search_regs): Save last_thing_searched as part of the match
 	data.
 	(restore_match_data): Restore it again.
