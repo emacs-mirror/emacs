@@ -271,29 +271,29 @@
 (require 'font-lock)
 
 (eval-when-compile
-  ;; We don't do this at the top-level as we only use non-autoloaded macros.
-  (require 'cl)
-  ;;
-  ;; We use this to preserve or protect things when modifying text properties.
-  (defmacro save-buffer-state (varlist &rest body)
-    "Bind variables according to VARLIST and eval BODY restoring buffer state."
-    (` (let* ((,@ (append varlist
-		   '((modified (buffer-modified-p)) (buffer-undo-list t)
-		     (inhibit-read-only t) (inhibit-point-motion-hooks t)
-		     before-change-functions after-change-functions
-		     deactivate-mark buffer-file-name buffer-file-truename))))
-	 (,@ body)
-	 (when (and (not modified) (buffer-modified-p))
-	   (set-buffer-modified-p nil)))))
-  (put 'save-buffer-state 'lisp-indent-function 1)
-  ;;
-  ;; We use this for clarity and speed.  Naughty but nice.
-  (defmacro do-while (test &rest body)
-    "(do-while TEST BODY...): eval BODY... and repeat if TEST yields non-nil.
+ ;; We don't do this at the top-level as we only use non-autoloaded macros.
+ (require 'cl)
+ ;;
+ ;; We use this to preserve or protect things when modifying text properties.
+ (defmacro save-buffer-state (varlist &rest body)
+   "Bind variables according to VARLIST and eval BODY restoring buffer state."
+   `(let* (,@(append varlist
+                     '((modified (buffer-modified-p)) (buffer-undo-list t)
+                       (inhibit-read-only t) (inhibit-point-motion-hooks t)
+                       before-change-functions after-change-functions
+                       deactivate-mark buffer-file-name buffer-file-truename)))
+     ,@body
+     (when (and (not modified) (buffer-modified-p))
+       (set-buffer-modified-p nil))))
+ (put 'save-buffer-state 'lisp-indent-function 1)
+ ;;
+ ;; We use this for clarity and speed.  Naughty but nice.
+ (defmacro do-while (test &rest body)
+   "(do-while TEST BODY...): eval BODY... and repeat if TEST yields non-nil.
 The order of execution is thus BODY, TEST, BODY, TEST and so on
 until TEST returns nil."
-    (` (while (progn (,@ body) (, test)))))
-  (put 'do-while 'lisp-indent-function (get 'while 'lisp-indent-function)))
+   `(while (progn ,@body ,test)))
+ (put 'do-while 'lisp-indent-function (get 'while 'lisp-indent-function)))
 
 (defvar lazy-lock-mode nil)			; Whether we are turned on.
 (defvar lazy-lock-buffers nil)			; For deferral.

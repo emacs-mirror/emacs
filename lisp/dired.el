@@ -317,26 +317,26 @@ Subexpression 2 must end right before the \\n or \\r.")
 ;; It should end with a noun that can be pluralized by adding `s'.
 ;; Return value is the number of files marked, or nil if none were marked.
 (defmacro dired-mark-if (predicate msg)
-  (` (let (buffer-read-only count)
-       (save-excursion
-	 (setq count 0)
-	 (if (, msg) (message "Marking %ss..." (, msg)))
-	 (goto-char (point-min))
-	 (while (not (eobp))
-	   (if (, predicate)
-	       (progn
-		 (delete-char 1)
-		 (insert dired-marker-char)
-		 (setq count (1+ count))))
-	   (forward-line 1))
-	 (if (, msg) (message "%s %s%s %s%s."
-			  count
-			  (, msg)
-			  (dired-plural-s count)
-			  (if (eq dired-marker-char ?\040) "un" "")
-			  (if (eq dired-marker-char dired-del-marker)
-			      "flagged" "marked"))))
-       (and (> count 0) count))))
+  `(let (buffer-read-only count)
+    (save-excursion
+      (setq count 0)
+      (if ,msg (message "Marking %ss..." ,msg))
+      (goto-char (point-min))
+      (while (not (eobp))
+        (if ,predicate
+            (progn
+              (delete-char 1)
+              (insert dired-marker-char)
+              (setq count (1+ count))))
+        (forward-line 1))
+      (if ,msg (message "%s %s%s %s%s."
+                        count
+                        ,msg
+                        (dired-plural-s count)
+                        (if (eq dired-marker-char ?\040) "un" "")
+                        (if (eq dired-marker-char dired-del-marker)
+                            "flagged" "marked"))))
+    (and (> count 0) count)))
 
 (defmacro dired-map-over-marks (body arg &optional show-progress)
   "Eval BODY with point on each marked line.  Return a list of BODY's results.

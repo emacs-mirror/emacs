@@ -219,14 +219,14 @@ buffer will *not* have been changed.
 Return value of last form in FORMS."
   (let ((old-buffer (make-symbol "old-buffer"))
 	(hnd (make-symbol "ewoc")))
-    (` (let* (((, old-buffer) (current-buffer))
-	      ((, hnd) (, ewoc))
-	      (dll (ewoc--dll (, hnd)))
-	      (,@ varlist))
-	 (set-buffer (ewoc--buffer (, hnd)))
-	 (unwind-protect
-	     (progn (,@ forms))
-	   (set-buffer (, old-buffer)))))))
+    `(let* ((,old-buffer (current-buffer))
+            (,hnd ,ewoc)
+            (dll (ewoc--dll ,hnd))
+            ,@varlist)
+      (set-buffer (ewoc--buffer ,hnd))
+      (unwind-protect
+           (progn ,@forms)
+        (set-buffer ,old-buffer)))))
 
 (defmacro ewoc--set-buffer-bind-dll (ewoc &rest forms)
   `(ewoc--set-buffer-bind-dll-let* ,ewoc nil ,@forms))

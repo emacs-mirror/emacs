@@ -539,21 +539,20 @@ being set.  This might change someday.
 Optional second arg INFO-NODE means this bookmark is at info node
 INFO-NODE, so record this fact in the bookmark's entry."
   (let ((the-record
-         (` ((filename . (, (bookmark-buffer-file-name)))
-             (front-context-string
-              . (, (if (>= (- (point-max) (point)) bookmark-search-size)
-                       (buffer-substring-no-properties
-                        (point)
-                        (+ (point) bookmark-search-size))
-                     nil)))
-             (rear-context-string
-              . (, (if (>= (- (point) (point-min)) bookmark-search-size)
-                       (buffer-substring-no-properties
-                        (point)
-                        (- (point) bookmark-search-size))
-                     nil)))
-             (position . (, (point)))
-             ))))
+         `((filename . ,(bookmark-buffer-file-name))
+           (front-context-string
+            . ,(if (>= (- (point-max) (point)) bookmark-search-size)
+                   (buffer-substring-no-properties
+                    (point)
+                    (+ (point) bookmark-search-size))
+                   nil))
+           (rear-context-string
+            . ,(if (>= (- (point) (point-min)) bookmark-search-size)
+                   (buffer-substring-no-properties
+                    (point)
+                    (- (point) bookmark-search-size))
+                   nil))
+           (position . ,(point)))))
 
     ;; Now fill in the optional parts:
 
@@ -661,11 +660,11 @@ affect point."
             (ann       (nth 4 record)))
        (list
         name
-        (` ((filename             .    (, filename))
-            (front-context-string .    (, (or front-str "")))
-            (rear-context-string  .    (, (or rear-str  "")))
-            (position             .    (, position))
-            (annotation           .    (, ann)))))))
+        `((filename             .    ,filename)
+          (front-context-string .    ,(or front-str ""))
+          (rear-context-string  .    ,(or rear-str  ""))
+          (position             .    ,position)
+          (annotation           .    ,ann)))))
    old-list))
 
 
@@ -1347,7 +1346,7 @@ for a file, defaulting to the file defined by variable
       (set-buffer (let ((enable-local-variables nil))
                     (find-file-noselect file)))
       (goto-char (point-min))
-      (let ((print-length nil) 
+      (let ((print-length nil)
 	    (print-level nil))
 	(delete-region (point-min) (point-max))
 	(bookmark-insert-file-format-version-stamp)

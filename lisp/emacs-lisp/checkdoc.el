@@ -176,18 +176,18 @@
 
 ;; From custom web page for compatibility between versions of custom:
 (eval-and-compile
-  (condition-case ()
-      (require 'custom)
-    (error nil))
-  (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
-      nil ;; We've got what we needed
-    ;; We have the old custom-library, hack around it!
-    (defmacro defgroup (&rest args)
-      nil)
-    (defmacro custom-add-option (&rest args)
-      nil)
-    (defmacro defcustom (var value doc &rest args)
-      (` (defvar (, var) (, value) (, doc))))))
+ (condition-case ()
+     (require 'custom)
+   (error nil))
+ (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
+     nil ;; We've got what we needed
+     ;; We have the old custom-library, hack around it!
+     (defmacro defgroup (&rest args)
+       nil)
+     (defmacro custom-add-option (&rest args)
+       nil)
+     (defmacro defcustom (var value doc &rest args)
+       `(defvar ,var ,value ,doc))))
 
 (defcustom checkdoc-autofix-flag 'semiautomatic
   "*Non-nil means attempt auto-fixing of doc strings.

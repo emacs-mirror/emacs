@@ -1,3 +1,13 @@
+2001-11-27  Sam Steingold  <sds@gnu.org>
+
+	* ansi-color.el, bookmark.el, dired.el, emerge.el, fast-lock.el
+	* lazy-lock.el, mouse-sel.el, mail/feedmail.el
+	* emacs-lisp/advice.el, emacs-lisp/checkdoc.el, emacs-lisp/ewoc.el
+	* obsolete/c-mode.el, obsolete/cplus-md.el
+	* progmodes/dcl-mode.el, progmodes/idlw-shell.el, progmodes/idlwave.el
+	* term/sun-mouse.el, textmodes/artist.el:
+	Converted backquote to the new style.
+
 2001-11-27  Richard M. Stallman  <rms@gnu.org>
 
 	* cus-edit.el (custom-load-symbol): Don't always load locate-library.

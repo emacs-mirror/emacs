@@ -223,20 +223,20 @@ This is a good function to put in `comint-output-filter-functions'."
 
 
 (eval-when-compile
-  ;; We use this to preserve or protect things when modifying text
-  ;; properties.  Stolen from lazy-lock and font-lock.  Ugly!!!
-  ;; Probably most of this is not needed?
-  (defmacro save-buffer-state (varlist &rest body)
-    "Bind variables according to VARLIST and eval BODY restoring buffer state."
-    (` (let* ((,@ (append varlist
-		   '((modified (buffer-modified-p)) (buffer-undo-list t)
-		     (inhibit-read-only t) (inhibit-point-motion-hooks t)
-		     before-change-functions after-change-functions
-		     deactivate-mark buffer-file-name buffer-file-truename))))
-	 (,@ body)
-	 (when (and (not modified) (buffer-modified-p))
-	   (set-buffer-modified-p nil)))))
-  (put 'save-buffer-state 'lisp-indent-function 1))
+ ;; We use this to preserve or protect things when modifying text
+ ;; properties.  Stolen from lazy-lock and font-lock.  Ugly!!!
+ ;; Probably most of this is not needed?
+ (defmacro save-buffer-state (varlist &rest body)
+   "Bind variables according to VARLIST and eval BODY restoring buffer state."
+   `(let* (,@(append varlist
+                     '((modified (buffer-modified-p)) (buffer-undo-list t)
+                       (inhibit-read-only t) (inhibit-point-motion-hooks t)
+                       before-change-functions after-change-functions
+                       deactivate-mark buffer-file-name buffer-file-truename)))
+     ,@body
+     (when (and (not modified) (buffer-modified-p))
+       (set-buffer-modified-p nil))))
+ (put 'save-buffer-state 'lisp-indent-function 1))
 
 (defun ansi-color-unfontify-region (beg end &rest xemacs-stuff)
   "Replacement function for `font-lock-default-unfontify-region'.

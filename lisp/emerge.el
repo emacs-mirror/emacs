@@ -57,12 +57,12 @@
 (defmacro emerge-eval-in-buffer (buffer &rest forms)
   "Macro to switch to BUFFER, evaluate FORMS, returns to original buffer.
 Differs from `save-excursion' in that it doesn't save the point and mark."
-  (` (let ((StartBuffer (current-buffer)))
+  `(let ((StartBuffer (current-buffer)))
     (unwind-protect
-	(progn
-	  (set-buffer (, buffer))
-	  (,@ forms))
-      (set-buffer StartBuffer)))))
+         (progn
+           (set-buffer ,buffer)
+           ,@forms)
+      (set-buffer StartBuffer))))
 
 (defmacro emerge-defvar-local (var value doc) 
   "Defines SYMBOL as an advertised variable.  
@@ -70,10 +70,10 @@ Performs a defvar, then executes `make-variable-buffer-local' on
 the variable.  Also sets the `preserved' property, so that
 `kill-all-local-variables' (called by major-mode setting commands) 
 won't destroy Emerge control variables."
-  (` (progn
-       (defvar (, var) (, value) (, doc))
-       (make-variable-buffer-local '(, var))
-       (put '(, var) 'preserved t))))
+  `(progn
+    (defvar ,var ,value ,doc)
+    (make-variable-buffer-local ',var)
+    (put ',var 'preserved t)))
 
 ;; Add entries to minor-mode-alist so that emerge modes show correctly
 (defvar emerge-minor-modes-list
@@ -567,7 +567,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 ;;; Setup functions for two-file mode.
 
 (defun emerge-files-internal (file-A file-B &optional startup-hooks quit-hooks
-				     output-file)
+                              output-file)
   (if (not (file-readable-p file-A))
       (error "File `%s' does not exist or is not readable" file-A))
   (if (not (file-readable-p file-B))
@@ -587,10 +587,10 @@ This is *not* a user option, since Emerge uses it for its own processing.")
        (if temp
 	   (setq file-A temp
 		 startup-hooks
-		 (cons (` (lambda () (delete-file (, file-A))))
+		 (cons `(lambda () (delete-file ,file-A))
 		       startup-hooks))
-	 ;; Verify that the file matches the buffer
-	 (emerge-verify-file-buffer))))
+           ;; Verify that the file matches the buffer
+           (emerge-verify-file-buffer))))
     (emerge-eval-in-buffer
      buffer-B
      (widen)
@@ -598,10 +598,10 @@ This is *not* a user option, since Emerge uses it for its own processing.")
        (if temp
 	   (setq file-B temp
 		 startup-hooks
-		 (cons (` (lambda () (delete-file (, file-B))))
+		 (cons `(lambda () (delete-file ,file-B))
 		       startup-hooks))
-	 ;; Verify that the file matches the buffer
-	 (emerge-verify-file-buffer))))
+           ;; Verify that the file matches the buffer
+           (emerge-verify-file-buffer))))
     (emerge-setup buffer-A file-A buffer-B file-B startup-hooks quit-hooks
 		  output-file)))
 
@@ -741,10 +741,10 @@ This is *not* a user option, since Emerge uses it for its own processing.")
        (if temp
 	   (setq file-A temp
 		 startup-hooks
-		 (cons (` (lambda () (delete-file (, file-A))))
+		 (cons `(lambda () (delete-file ,file-A))
 		       startup-hooks))
-	 ;; Verify that the file matches the buffer
-	 (emerge-verify-file-buffer))))
+           ;; Verify that the file matches the buffer
+           (emerge-verify-file-buffer))))
     (emerge-eval-in-buffer
      buffer-B
      (widen)
@@ -752,10 +752,10 @@ This is *not* a user option, since Emerge uses it for its own processing.")
        (if temp
 	   (setq file-B temp
 		 startup-hooks
-		 (cons (` (lambda () (delete-file (, file-B))))
+		 (cons `(lambda () (delete-file ,file-B))
 		       startup-hooks))
-	 ;; Verify that the file matches the buffer
-	 (emerge-verify-file-buffer))))
+           ;; Verify that the file matches the buffer
+           (emerge-verify-file-buffer))))
     (emerge-eval-in-buffer
      buffer-ancestor
      (widen)
@@ -763,10 +763,10 @@ This is *not* a user option, since Emerge uses it for its own processing.")
        (if temp
 	   (setq file-ancestor temp
 		 startup-hooks
-		 (cons (` (lambda () (delete-file (, file-ancestor))))
+		 (cons `(lambda () (delete-file ,file-ancestor))
 		       startup-hooks))
-	 ;; Verify that the file matches the buffer
-	 (emerge-verify-file-buffer))))
+           ;; Verify that the file matches the buffer
+           (emerge-verify-file-buffer))))
     (emerge-setup-with-ancestor buffer-A file-A buffer-B file-B
 				buffer-ancestor file-ancestor
 				startup-hooks quit-hooks output-file)))
@@ -901,7 +901,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 		(emerge-read-file-name "Output file" emerge-last-dir-output
 				       f f nil)))))
   (if file-out
-      (add-hook 'quit-hooks (` (lambda () (emerge-files-exit (, file-out))))))
+      (add-hook 'quit-hooks `(lambda () (emerge-files-exit ,file-out))))
   (emerge-files-internal
    file-A file-B startup-hooks
    quit-hooks
@@ -923,7 +923,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 		(emerge-read-file-name "Output file" emerge-last-dir-output
 				       f f nil)))))
   (if file-out
-      (add-hook 'quit-hooks (` (lambda () (emerge-files-exit (, file-out))))))
+      (add-hook 'quit-hooks `(lambda () (emerge-files-exit ,file-out))))
   (emerge-files-with-ancestor-internal
    file-A file-B file-ancestor startup-hooks
    quit-hooks
@@ -951,17 +951,17 @@ This is *not* a user option, since Emerge uses it for its own processing.")
      (write-region (point-min) (point-max) emerge-file-B nil 'no-message))
     (emerge-setup (get-buffer buffer-A) emerge-file-A
 		  (get-buffer buffer-B) emerge-file-B
-		  (cons (` (lambda ()
-			     (delete-file (, emerge-file-A))
-			     (delete-file (, emerge-file-B))))
+		  (cons `(lambda ()
+                          (delete-file ,emerge-file-A)
+                          (delete-file ,emerge-file-B))
 			startup-hooks)
 		  quit-hooks
 		  nil)))
 
 ;;;###autoload
 (defun emerge-buffers-with-ancestor (buffer-A buffer-B buffer-ancestor
-					      &optional startup-hooks
-					      quit-hooks)
+                                     &optional startup-hooks
+                                     quit-hooks)
   "Run Emerge on two buffers, giving another buffer as the ancestor."
   (interactive
    "bBuffer A to merge: \nbBuffer B to merge: \nbAncestor buffer: ")
@@ -982,11 +982,11 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 				(get-buffer buffer-B) emerge-file-B
 				(get-buffer buffer-ancestor)
 				emerge-file-ancestor
-				(cons (` (lambda ()
-					   (delete-file (, emerge-file-A))
-					   (delete-file (, emerge-file-B))
-					   (delete-file
-					    (, emerge-file-ancestor))))
+				(cons `(lambda ()
+                                        (delete-file ,emerge-file-A)
+                                        (delete-file ,emerge-file-B)
+                                        (delete-file
+                                         ,emerge-file-ancestor))
 				      startup-hooks)
 				quit-hooks
 				nil)))
@@ -1001,7 +1001,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
     (setq command-line-args-left (nthcdr 3 command-line-args-left))
     (emerge-files-internal
      file-a file-b nil
-     (list (` (lambda () (emerge-command-exit (, file-out))))))))
+     (list `(lambda () (emerge-command-exit ,file-out))))))
 
 ;;;###autoload
 (defun emerge-files-with-ancestor-command ()
@@ -1015,15 +1015,15 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 	  (setq file-anc (nth 1 command-line-args-left))
 	  (setq file-out (nth 4 command-line-args-left))
 	  (setq command-line-args-left (nthcdr 5 command-line-args-left)))
-      ;; arguments are "file-a file-b ancestor file-out"
-      (setq file-a (nth 0 command-line-args-left))
-      (setq file-b (nth 1 command-line-args-left))
-      (setq file-anc (nth 2 command-line-args-left))
-      (setq file-out (nth 3 command-line-args-left))
-      (setq command-line-args-left (nthcdr 4 command-line-args-left)))
+        ;; arguments are "file-a file-b ancestor file-out"
+        (setq file-a (nth 0 command-line-args-left))
+        (setq file-b (nth 1 command-line-args-left))
+        (setq file-anc (nth 2 command-line-args-left))
+        (setq file-out (nth 3 command-line-args-left))
+        (setq command-line-args-left (nthcdr 4 command-line-args-left)))
     (emerge-files-with-ancestor-internal
      file-a file-b file-anc nil
-     (list (` (lambda () (emerge-command-exit (, file-out))))))))
+     (list `(lambda () (emerge-command-exit ,file-out))))))
       
 (defun emerge-command-exit (file-out)
   (emerge-write-and-delete file-out)
@@ -1036,7 +1036,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
   (setq emerge-file-out file-out)
   (emerge-files-internal
    file-a file-b nil
-   (list (` (lambda () (emerge-remote-exit (, file-out) '(, emerge-exit-func)))))
+   (list `(lambda () (emerge-remote-exit ,file-out ',emerge-exit-func)))
    file-out)
   (throw 'client-wait nil))
 
@@ -1045,7 +1045,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
   (setq emerge-file-out file-out)
   (emerge-files-with-ancestor-internal
    file-a file-b file-anc nil
-   (list (` (lambda () (emerge-remote-exit (, file-out) '(, emerge-exit-func)))))
+   (list `(lambda () (emerge-remote-exit ,file-out ',emerge-exit-func)))
    file-out)
   (throw 'client-wait nil))
 
@@ -1070,17 +1070,17 @@ This is *not* a user option, since Emerge uses it for its own processing.")
   (emerge-revisions-internal
    file revision-A revision-B startup-hooks
    (if arg
-       (cons (` (lambda ()
-		  (shell-command
-		   (, (format "%s %s" emerge-rcs-ci-program file)))))
+       (cons `(lambda ()
+               (shell-command
+                ,(format "%s %s" emerge-rcs-ci-program file)))
 	     quit-hooks)
-     quit-hooks)))
+       quit-hooks)))
 
 ;;;###autoload
 (defun emerge-revisions-with-ancestor (arg file revision-A
-					   revision-B ancestor
-					   &optional
-					   startup-hooks quit-hooks)
+                                       revision-B ancestor
+                                       &optional
+                                       startup-hooks quit-hooks)
   "Emerge two RCS revisions of a file, with another revision as ancestor."
   (interactive
    (list current-prefix-arg
@@ -1095,14 +1095,14 @@ This is *not* a user option, since Emerge uses it for its own processing.")
    file revision-A revision-B ancestor startup-hooks
    (if arg
        (let ((cmd ))
-	 (cons (` (lambda ()
-		    (shell-command
-		     (, (format "%s %s" emerge-rcs-ci-program file)))))
+	 (cons `(lambda ()
+                 (shell-command
+                  ,(format "%s %s" emerge-rcs-ci-program file)))
 	       quit-hooks))
-     quit-hooks)))
+       quit-hooks)))
 
 (defun emerge-revisions-internal (file revision-A revision-B &optional
-				      startup-hooks quit-hooks output-file)
+                                  startup-hooks quit-hooks output-file)
   (let ((buffer-A (get-buffer-create (format "%s,%s" file revision-A)))
 	(buffer-B (get-buffer-create (format "%s,%s" file revision-B)))
 	(emerge-file-A (emerge-make-temp-file "A"))
@@ -1127,18 +1127,18 @@ This is *not* a user option, since Emerge uses it for its own processing.")
     ;; Do the merge
     (emerge-setup buffer-A emerge-file-A
 		  buffer-B emerge-file-B
-		  (cons (` (lambda ()
-			     (delete-file (, emerge-file-A))
-			     (delete-file (, emerge-file-B))))
+		  (cons `(lambda ()
+                          (delete-file ,emerge-file-A)
+                          (delete-file ,emerge-file-B))
 			startup-hooks)
-		  (cons (` (lambda () (emerge-files-exit (, file))))
+		  (cons `(lambda () (emerge-files-exit ,file))
 			quit-hooks)
 		  nil)))
 
 (defun emerge-revision-with-ancestor-internal (file revision-A revision-B
-						    ancestor
-						    &optional startup-hooks
-						    quit-hooks output-file)
+                                               ancestor
+                                               &optional startup-hooks
+                                               quit-hooks output-file)
   (let ((buffer-A (get-buffer-create (format "%s,%s" file revision-A)))
 	(buffer-B (get-buffer-create (format "%s,%s" file revision-B)))
 	(buffer-ancestor (get-buffer-create (format "%s,%s" file ancestor)))
@@ -1175,12 +1175,12 @@ This is *not* a user option, since Emerge uses it for its own processing.")
     (emerge-setup-with-ancestor
      buffer-A emerge-file-A buffer-B emerge-file-B
      buffer-ancestor emerge-ancestor
-     (cons (` (lambda ()
-		(delete-file (, emerge-file-A))
-		(delete-file (, emerge-file-B))
-		(delete-file (, emerge-ancestor))))
+     (cons `(lambda ()
+             (delete-file ,emerge-file-A)
+             (delete-file ,emerge-file-B)
+             (delete-file ,emerge-ancestor))
 	   startup-hooks)
-     (cons (` (lambda () (emerge-files-exit (, file))))
+     (cons `(lambda () (emerge-files-exit ,file))
 	   quit-hooks)
      output-file)))
 
@@ -1225,26 +1225,26 @@ Otherwise, the A or B file present is copied to the output file."
 	    (goto-char (match-end 0))
 	    ;; Store the filename in the right variable
 	    (cond
-	     ((string-equal tag "a")
-	      (if file-A
-		  (error "This line has two `A' entries"))
-	      (setq file-A file))
-	     ((string-equal tag "b")
-	      (if file-B
-		  (error "This line has two `B' entries"))
-	      (setq file-B file))
-	     ((or (string-equal tag "anc") (string-equal tag "ancestor"))
-	      (if file-ancestor
-		  (error "This line has two `ancestor' entries"))
-	      (setq file-ancestor file))
-	     ((or (string-equal tag "out") (string-equal tag "output"))
-	      (if file-out
-		  (error "This line has two `output' entries"))
-	      (setq file-out file))
-	     (t
-	      (error "Unrecognized entry"))))
-	;; If the match on the entry pattern failed
-	(error "Unparsable entry")))
+              ((string-equal tag "a")
+               (if file-A
+                   (error "This line has two `A' entries"))
+               (setq file-A file))
+              ((string-equal tag "b")
+               (if file-B
+                   (error "This line has two `B' entries"))
+               (setq file-B file))
+              ((or (string-equal tag "anc") (string-equal tag "ancestor"))
+               (if file-ancestor
+                   (error "This line has two `ancestor' entries"))
+               (setq file-ancestor file))
+              ((or (string-equal tag "out") (string-equal tag "output"))
+               (if file-out
+                   (error "This line has two `output' entries"))
+               (setq file-out file))
+              (t
+               (error "Unrecognized entry"))))
+          ;; If the match on the entry pattern failed
+          (error "Unparsable entry")))
     ;; Make sure that file-A and file-B are present
     (if (not (or (and file-A file-B) file-out))
 	(error "Must have both `A' and `B' entries"))
@@ -1255,37 +1255,37 @@ Otherwise, the A or B file present is copied to the output file."
     (beginning-of-line 2)
     ;; Execute the correct command
     (cond
-     ;; Merge of two files with ancestor
-     ((and file-A file-B file-ancestor)
-      (message "Merging %s and %s..." file-A file-B)
-      (emerge-files-with-ancestor (not (not file-out)) file-A file-B
-				  file-ancestor file-out
-				  nil
-				  ;; When done, return to this buffer.
-				  (list
-				   (` (lambda ()
-					(switch-to-buffer (, (current-buffer)))
-					(message "Merge done."))))))
-     ;; Merge of two files without ancestor
-     ((and file-A file-B)
-      (message "Merging %s and %s..." file-A file-B)
-      (emerge-files (not (not file-out)) file-A file-B file-out
-		    nil
-		    ;; When done, return to this buffer.
-		    (list 
-		     (` (lambda ()
-			  (switch-to-buffer (, (current-buffer)))
-			  (message "Merge done."))))))
-     ;; There is an output file (or there would have been an error above),
-     ;; but only one input file.
-     ;; The file appears to have been deleted in one version; do nothing.
-     ((and file-ancestor emerge-execute-line-deletions)
-      (message "No action."))
-     ;; The file should be copied from the version that contains it
-     (t (let ((input-file (or file-A file-B)))
-	  (message "Copying...")
-	  (copy-file input-file file-out)
-	  (message "%s copied to %s." input-file file-out))))))
+      ;; Merge of two files with ancestor
+      ((and file-A file-B file-ancestor)
+       (message "Merging %s and %s..." file-A file-B)
+       (emerge-files-with-ancestor (not (not file-out)) file-A file-B
+                                   file-ancestor file-out
+                                   nil
+                                   ;; When done, return to this buffer.
+                                   (list
+                                    `(lambda ()
+                                      (switch-to-buffer ,(current-buffer))
+                                      (message "Merge done.")))))
+      ;; Merge of two files without ancestor
+      ((and file-A file-B)
+       (message "Merging %s and %s..." file-A file-B)
+       (emerge-files (not (not file-out)) file-A file-B file-out
+                     nil
+                     ;; When done, return to this buffer.
+                     (list 
+                      `(lambda ()
+                        (switch-to-buffer ,(current-buffer))
+                        (message "Merge done.")))))
+      ;; There is an output file (or there would have been an error above),
+      ;; but only one input file.
+      ;; The file appears to have been deleted in one version; do nothing.
+      ((and file-ancestor emerge-execute-line-deletions)
+       (message "No action."))
+      ;; The file should be copied from the version that contains it
+      (t (let ((input-file (or file-A file-B)))
+           (message "Copying...")
+           (copy-file input-file file-out)
+           (message "%s copied to %s." input-file file-out))))))
 
 ;;; Sample function for creating information for emerge-execute-line
 

@@ -187,51 +187,51 @@
     (error "`fast-lock' was written for long file name systems"))
 
 (eval-when-compile
-  ;;
-  ;; We don't do this at the top-level as we only use non-autoloaded macros.
-  (require 'cl)
-  ;;
-  ;; We use this to preserve or protect things when modifying text properties.
-  (defmacro save-buffer-state (varlist &rest body)
-    "Bind variables according to VARLIST and eval BODY restoring buffer state."
-    (` (let* ((,@ (append varlist
-		   '((modified (buffer-modified-p)) (buffer-undo-list t)
-		     (inhibit-read-only t) (inhibit-point-motion-hooks t)
-		     before-change-functions after-change-functions
-		     deactivate-mark buffer-file-name buffer-file-truename))))
-	 (,@ body)
-	 (when (and (not modified) (buffer-modified-p))
-	   (set-buffer-modified-p nil)))))
-  (put 'save-buffer-state 'lisp-indent-function 1)
-  ;;
-  ;; We use this to verify that a face should be saved.
-  (defmacro fast-lock-save-facep (face)
-    "Return non-nil if FACE is one of `fast-lock-save-faces'."
-    (` (or (null fast-lock-save-faces)
-	   (if (symbolp (, face))
-	       (memq (, face) fast-lock-save-faces)
-	     (let ((faces (, face)))
-	       (while (unless (memq (car faces) fast-lock-save-faces)
-			(setq faces (cdr faces))))
-	       faces)))))
-  ;;
-  ;; We use this for compatibility with a future Emacs.
-  (or (fboundp 'with-temp-message)
-      (defmacro with-temp-message (message &rest body)
-	(` (let ((temp-message (, message)) current-message)
-	     (unwind-protect
-		 (progn
-		   (when temp-message
-		     (setq current-message (current-message))
-		     (message temp-message))
-		   (,@ body))
-	       (when temp-message
-		 (message current-message)))))))
-  ;;
-  ;; We use this for compatibility with a future Emacs.
-  (or (fboundp 'defcustom)
-      (defmacro defcustom (symbol value doc &rest args) 
-	(` (defvar (, symbol) (, value) (, doc))))))
+ ;;
+ ;; We don't do this at the top-level as we only use non-autoloaded macros.
+ (require 'cl)
+ ;;
+ ;; We use this to preserve or protect things when modifying text properties.
+ (defmacro save-buffer-state (varlist &rest body)
+   "Bind variables according to VARLIST and eval BODY restoring buffer state."
+   `(let* (,@(append varlist
+                     '((modified (buffer-modified-p)) (buffer-undo-list t)
+                       (inhibit-read-only t) (inhibit-point-motion-hooks t)
+                       before-change-functions after-change-functions
+                       deactivate-mark buffer-file-name buffer-file-truename)))
+     ,@body
+     (when (and (not modified) (buffer-modified-p))
+       (set-buffer-modified-p nil))))
+ (put 'save-buffer-state 'lisp-indent-function 1)
+ ;;
+ ;; We use this to verify that a face should be saved.
+ (defmacro fast-lock-save-facep (face)
+   "Return non-nil if FACE is one of `fast-lock-save-faces'."
+   `(or (null fast-lock-save-faces)
+     (if (symbolp ,face)
+         (memq ,face fast-lock-save-faces)
+         (let ((faces ,face))
+           (while (unless (memq (car faces) fast-lock-save-faces)
+                    (setq faces (cdr faces))))
+           faces))))
+ ;;
+ ;; We use this for compatibility with a future Emacs.
+ (or (fboundp 'with-temp-message)
+     (defmacro with-temp-message (message &rest body)
+       `(let ((temp-message ,message) current-message)
+         (unwind-protect
+              (progn
+                (when temp-message
+                  (setq current-message (current-message))
+                  (message temp-message))
+                ,@body)
+           (when temp-message
+             (message current-message))))))
+ ;;
+ ;; We use this for compatibility with a future Emacs.
+ (or (fboundp 'defcustom)
+     (defmacro defcustom (symbol value doc &rest args) 
+       `(defvar ,symbol ,value ,doc))))
 
 ;(defun fast-lock-submit-bug-report ()
 ;  "Submit via mail a bug report on fast-lock.el."

@@ -133,19 +133,19 @@ Just like the Common Lisp function of the same name."
 
 ;;; All the useful code bits
 (defmacro sm::hit-code (hit)
-  (` (nth 0 (, hit))))
+  `(nth 0 ,hit))
 ;;; The button, or buttons if a chord.
 (defmacro sm::hit-button (hit)
-  (` (logand sm::ButtonBits (nth 0 (, hit)))))
+  `(logand sm::ButtonBits (nth 0 ,hit)))
 ;;; The shift, control, and meta flags.
 (defmacro sm::hit-shiftmask (hit)
-  (` (logand sm::ShiftmaskBits (nth 0 (, hit)))))
+  `(logand sm::ShiftmaskBits (nth 0 ,hit)))
 ;;; Set if a double click (but not a chord).
 (defmacro sm::hit-double (hit)
-  (` (logand sm::DoubleBits (nth 0 (, hit)))))
+  `(logand sm::DoubleBits (nth 0 ,hit)))
 ;;; Set on button release (as opposed to button press).
 (defmacro sm::hit-up (hit)
-  (` (logand sm::UpBits (nth 0 (, hit)))))
+  `(logand sm::UpBits (nth 0 ,hit)))
 ;;; Screen x position.
 (defmacro sm::hit-x (hit) (list 'nth 1 hit))
 ;;; Screen y position.
@@ -153,8 +153,8 @@ Just like the Common Lisp function of the same name."
 ;;; Milliseconds since last hit.
 (defmacro sm::hit-delta (hit) (list 'nth 3 hit))
 
-(defmacro sm::hit-up-p (hit)		; A predicate.
-  (` (not (zerop (sm::hit-up (, hit))))))
+(defmacro sm::hit-up-p (hit)    ; A predicate.
+  `(not (zerop (sm::hit-up ,hit))))
 
 ;;;
 ;;; Loc accessors.  for sm::window-xy
@@ -166,12 +166,12 @@ Just like the Common Lisp function of the same name."
 (defmacro eval-in-buffer (buffer &rest forms)
   "Macro to switches to BUFFER, evaluates FORMS, returns to original buffer."
   ;; When you don't need the complete window context of eval-in-window
-  (` (let ((StartBuffer (current-buffer)))
+  `(let ((StartBuffer (current-buffer)))
     (unwind-protect
-	(progn
-	  (set-buffer (, buffer))
-	  (,@ forms))
-    (set-buffer StartBuffer)))))
+         (progn
+           (set-buffer ,buffer)
+           ,@forms)
+      (set-buffer StartBuffer))))
 
 (put 'eval-in-buffer 'lisp-indent-function 1)
 
@@ -179,12 +179,12 @@ Just like the Common Lisp function of the same name."
 ;;;
 (defmacro eval-in-window (window &rest forms)
   "Switch to WINDOW, evaluate FORMS, return to original window."
-  (` (let ((OriginallySelectedWindow (selected-window)))
-       (unwind-protect
-	   (progn
-	     (select-window (, window))
-	     (,@ forms))
-	 (select-window OriginallySelectedWindow)))))
+  `(let ((OriginallySelectedWindow (selected-window)))
+    (unwind-protect
+         (progn
+           (select-window ,window)
+           ,@forms)
+      (select-window OriginallySelectedWindow))))
 (put 'eval-in-window 'lisp-indent-function 1)
 
 ;;;
@@ -196,14 +196,14 @@ Just like the Common Lisp function of the same name."
   "Switches to each window and evaluates FORM.  Optional argument
 YESMINI says to include the minibuffer as a window.
 This is a macro, and does not evaluate its arguments."
-  (` (let ((OriginallySelectedWindow (selected-window)))
-       (unwind-protect 
-	   (while (progn
-		    (, form)
-		    (not (eq OriginallySelectedWindow
-			     (select-window
-			      (next-window nil (, yesmini)))))))
-	 (select-window OriginallySelectedWindow)))))
+  `(let ((OriginallySelectedWindow (selected-window)))
+    (unwind-protect 
+         (while (progn
+                  ,form
+                  (not (eq OriginallySelectedWindow
+                           (select-window
+                            (next-window nil ,yesmini))))))
+      (select-window OriginallySelectedWindow))))
 (put 'eval-in-window 'lisp-indent-function 0)
 
 (defun move-to-loc (x y)

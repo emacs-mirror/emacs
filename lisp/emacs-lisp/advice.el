@@ -149,7 +149,7 @@
 ;; generates an advised definition of the `documentation' function, and
 ;; it will enable automatic advice activation when functions get defined.
 ;; All of this can be undone at any time with `M-x ad-stop-advice'.
-;; 
+;;
 ;; If you experience any strange behavior/errors etc. that you attribute to
 ;; Advice or to some ill-advised function do one of the following:
 
@@ -368,7 +368,7 @@
 ;; If this is a problem one can always specify an interactive form in a
 ;; before/around/after advice to gain control over argument values that
 ;; were supplied interactively.
-;; 
+;;
 ;; Then the body forms of the various advices in the various classes of advice
 ;; are assembled in order.  The forms of around advice L are normally part of
 ;; one of the forms of around advice L-1. An around advice can specify where
@@ -381,7 +381,7 @@
 ;; whose form depends on the type of the original function. The variable
 ;; `ad-return-value' will be set to its result. This variable is visible to
 ;; all pieces of advice which can access and modify it before it gets returned.
-;; 
+;;
 ;; The semantic structure of advised functions that contain protected pieces
 ;; of advice is the same. The only difference is that `unwind-protect' forms
 ;; make sure that the protected advice gets executed even if some previous
@@ -943,7 +943,7 @@
 ;;
 ;; We start by defining an innocent looking function `foo' that simply
 ;; adds 1 to its argument X:
-;;  
+;;
 ;; (defun foo (x)
 ;;   "Add 1 to X."
 ;;   (1+ x))
@@ -1905,30 +1905,30 @@ current head at every iteration.  If RESULT-FORM is supplied its value will
 be returned at the end of the iteration, nil otherwise.  The iteration can be
 exited prematurely with `(ad-do-return [VALUE])'."
   (let ((expansion
-         (` (let ((ad-dO-vAr (, (car (cdr varform))))
-		  (, (car varform)))
-	      (while ad-dO-vAr
-		(setq (, (car varform)) (car ad-dO-vAr))
-		(,@ body)
-		;;work around a backquote bug:
-		;;(` ((,@ '(foo)) (bar))) => (append '(foo) '(((bar)))) wrong
-		;;(` ((,@ '(foo)) (, '(bar)))) => (append '(foo) (list '(bar)))
-		(, '(setq ad-dO-vAr (cdr ad-dO-vAr))))
-	      (, (car (cdr (cdr varform))))))))
+         `(let ((ad-dO-vAr ,(car (cdr varform)))
+                ,(car varform))
+           (while ad-dO-vAr
+             (setq ,(car varform) (car ad-dO-vAr))
+             ,@body
+             ;;work around a backquote bug:
+             ;;(` ((,@ '(foo)) (bar))) => (append '(foo) '(((bar)))) wrong
+             ;;(` ((,@ '(foo)) (, '(bar)))) => (append '(foo) (list '(bar)))
+             ,'(setq ad-dO-vAr (cdr ad-dO-vAr)))
+           ,(car (cdr (cdr varform))))))
     ;;ok, this wastes some cons cells but only during compilation:
     (if (catch 'contains-return
 	  (ad-substitute-tree
 	   (function (lambda (subtree)
-		       (cond ((eq (car-safe subtree) 'ad-dolist))
-			     ((eq (car-safe subtree) 'ad-do-return)
-			      (throw 'contains-return t)))))
+             (cond ((eq (car-safe subtree) 'ad-dolist))
+                   ((eq (car-safe subtree) 'ad-do-return)
+                    (throw 'contains-return t)))))
 	   'identity body)
 	  nil)
-	(` (catch 'ad-dO-eXiT (, expansion)))
-      expansion)))
+	`(catch 'ad-dO-eXiT ,expansion)
+        expansion)))
 
 (defmacro ad-do-return (value)
-  (` (throw 'ad-dO-eXiT (, value))))
+  `(throw 'ad-dO-eXiT ,value))
 
 (if (not (get 'ad-dolist 'lisp-indent-hook))
     (put 'ad-dolist 'lisp-indent-hook 1))
@@ -1944,15 +1944,15 @@ exited prematurely with `(ad-do-return [VALUE])'."
   (let ((saved-function (intern (format "ad-real-%s" function))))
     ;; Make sure the compiler is loaded during macro expansion:
     (require 'byte-compile "bytecomp")
-    (` (if (not (fboundp '(, saved-function)))
-	   (progn (fset '(, saved-function) (symbol-function '(, function)))
-		  ;; Copy byte-compiler properties:
-		  (,@ (if (get function 'byte-compile)
-			  (` ((put '(, saved-function) 'byte-compile
-				   '(, (get function 'byte-compile)))))))
-		  (,@ (if (get function 'byte-opcode)
-			  (` ((put '(, saved-function) 'byte-opcode
-				   '(, (get function 'byte-opcode))))))))))))
+    `(if (not (fboundp ',saved-function))
+      (progn (fset ',saved-function (symbol-function ',function))
+             ;; Copy byte-compiler properties:
+             ,@(if (get function 'byte-compile)
+                   `((put ',saved-function 'byte-compile
+                      ',(get function 'byte-compile))))
+             ,@(if (get function 'byte-opcode)
+                   `((put ',saved-function 'byte-opcode
+                      ',(get function 'byte-opcode))))))))
 
 (defun ad-save-real-definitions ()
   ;; Macro expansion will hardcode the values of the various byte-compiler
@@ -1986,16 +1986,16 @@ exited prematurely with `(ad-do-return [VALUE])'."
 
 (defmacro ad-pushnew-advised-function (function)
   "Add FUNCTION to `ad-advised-functions' unless its already there."
-  (` (if (not (assoc (symbol-name (, function)) ad-advised-functions))
-	 (setq ad-advised-functions
-	       (cons (list (symbol-name (, function)))
-		     ad-advised-functions)))))
+  `(if (not (assoc (symbol-name ,function) ad-advised-functions))
+    (setq ad-advised-functions
+     (cons (list (symbol-name ,function))
+      ad-advised-functions))))
 
 (defmacro ad-pop-advised-function (function)
   "Remove FUNCTION from `ad-advised-functions'."
-  (` (setq ad-advised-functions
-	   (delq (assoc (symbol-name (, function)) ad-advised-functions)
-		 ad-advised-functions))))
+  `(setq ad-advised-functions
+    (delq (assoc (symbol-name ,function) ad-advised-functions)
+     ad-advised-functions)))
 
 (defmacro ad-do-advised-functions (varform &rest body)
   "`ad-dolist'-style iterator that maps over `ad-advised-functions'.
@@ -2003,23 +2003,23 @@ exited prematurely with `(ad-do-return [VALUE])'."
    BODY-FORM...)
 On each iteration VAR will be bound to the name of an advised function
 \(a symbol)."
-  (` (ad-dolist ((, (car varform))
-		 ad-advised-functions
-		 (, (car (cdr varform))))
-       (setq (, (car varform)) (intern (car (, (car varform)))))
-       (,@ body))))
+  `(ad-dolist (,(car varform)
+               ad-advised-functions
+               ,(car (cdr varform)))
+    (setq ,(car varform) (intern (car ,(car varform))))
+    ,@body))
 
 (if (not (get 'ad-do-advised-functions 'lisp-indent-hook))
     (put 'ad-do-advised-functions 'lisp-indent-hook 1))
 
 (defmacro ad-get-advice-info (function)
-  (` (get (, function) 'ad-advice-info)))
+  `(get ,function 'ad-advice-info))
 
 (defmacro ad-set-advice-info (function advice-info)
-  (` (put (, function) 'ad-advice-info (, advice-info))))
+  `(put ,function 'ad-advice-info ,advice-info))
 
 (defmacro ad-copy-advice-info (function)
-  (` (ad-copy-tree (get (, function) 'ad-advice-info))))
+  `(ad-copy-tree (get ,function 'ad-advice-info)))
 
 (defmacro ad-is-advised (function)
   "Return non-nil if FUNCTION has any advice info associated with it.
@@ -2034,7 +2034,7 @@ Assumes that FUNCTION has not yet been advised."
 
 (defmacro ad-get-advice-info-field (function field)
   "Retrieve the value of the advice info FIELD of FUNCTION."
-  (` (cdr (assq (, field) (ad-get-advice-info (, function))))))
+  `(cdr (assq ,field (ad-get-advice-info ,function))))
 
 (defun ad-set-advice-info-field (function field value)
   "Destructively modify VALUE of the advice info FIELD of FUNCTION."
@@ -2160,8 +2160,8 @@ Redefining advices affect the construction of an advised definition."
 (defvar ad-activate-on-top-level t)
 
 (defmacro ad-with-auto-activation-disabled (&rest body)
-  (` (let ((ad-activate-on-top-level nil))
-       (,@ body))))
+  `(let ((ad-activate-on-top-level nil))
+    ,@body))
 
 (defun ad-safe-fset (symbol definition)
   "A safe `fset' which will never call `ad-activate-internal' recursively."
@@ -2183,16 +2183,16 @@ Redefining advices affect the construction of an advised definition."
   (intern (format "ad-Orig-%s" function)))
 
 (defmacro ad-get-orig-definition (function)
-  (` (let ((origname (ad-get-advice-info-field (, function) 'origname)))
-       (if (fboundp origname)
-	   (symbol-function origname)))))
+  `(let ((origname (ad-get-advice-info-field ,function 'origname)))
+    (if (fboundp origname)
+        (symbol-function origname))))
 
 (defmacro ad-set-orig-definition (function definition)
-  (` (ad-safe-fset
-      (ad-get-advice-info-field function 'origname) (, definition))))
+  `(ad-safe-fset
+    (ad-get-advice-info-field function 'origname) ,definition))
 
 (defmacro ad-clear-orig-definition (function)
-  (` (fmakunbound (ad-get-advice-info-field (, function) 'origname))))
+  `(fmakunbound (ad-get-advice-info-field ,function 'origname)))
 
 
 ;; @@ Interactive input functions:
@@ -2300,7 +2300,7 @@ be used to prompt for the function."
 
 (defmacro ad-find-advice (function class name)
   "Find the first advice of FUNCTION in CLASS with NAME."
-  (` (assq (, name) (ad-get-advice-info-field (, function) (, class)))))
+  `(assq ,name (ad-get-advice-info-field ,function ,class)))
 
 (defun ad-advice-position (function class name)
   "Return position of first advice of FUNCTION in CLASS with NAME."
@@ -2458,11 +2458,11 @@ will clear the cache."
 
 (defmacro ad-macrofy (definition)
   "Take a lambda function DEFINITION and make a macro out of it."
-  (` (cons 'macro (, definition))))
+  `(cons 'macro ,definition))
 
 (defmacro ad-lambdafy (definition)
   "Take a macro function DEFINITION and make a lambda out of it."
-  (` (cdr (, definition))))
+  `(cdr ,definition))
 
 ;; There is no way to determine whether some subr is a special form or not,
 ;; hence we need this list (which is probably out of date):
@@ -2492,16 +2492,16 @@ will clear the cache."
 
 (defmacro ad-macro-p (definition)
   ;;"non-nil if DEFINITION is a macro."
-  (` (eq (car-safe (, definition)) 'macro)))
+  `(eq (car-safe ,definition) 'macro))
 
 (defmacro ad-lambda-p (definition)
   ;;"non-nil if DEFINITION is a lambda expression."
-  (` (eq (car-safe (, definition)) 'lambda)))
+  `(eq (car-safe ,definition) 'lambda))
 
 ;; see ad-make-advice for the format of advice definitions:
 (defmacro ad-advice-p (definition)
   ;;"non-nil if DEFINITION is a piece of advice."
-  (` (eq (car-safe (, definition)) 'advice)))
+  `(eq (car-safe ,definition) 'advice))
 
 ;; Emacs/Lemacs cross-compatibility
 ;; (compiled-function-p is an obsolete function in Emacs):
@@ -2511,15 +2511,15 @@ will clear the cache."
 
 (defmacro ad-compiled-p (definition)
   "Return non-nil if DEFINITION is a compiled byte-code object."
-  (` (or (byte-code-function-p (, definition))
-	 (and (ad-macro-p (, definition))
-	      (byte-code-function-p (ad-lambdafy (, definition)))))))
+  `(or (byte-code-function-p ,definition)
+    (and (ad-macro-p ,definition)
+     (byte-code-function-p (ad-lambdafy ,definition)))))
 
 (defmacro ad-compiled-code (compiled-definition)
   "Return the byte-code object of a COMPILED-DEFINITION."
-  (` (if (ad-macro-p (, compiled-definition))
-	 (ad-lambdafy (, compiled-definition))
-       (, compiled-definition))))
+  `(if (ad-macro-p ,compiled-definition)
+    (ad-lambdafy ,compiled-definition)
+    ,compiled-definition))
 
 (defun ad-lambda-expression (definition)
   "Return the lambda expression of a function/macro/advice DEFINITION."
@@ -2551,13 +2551,13 @@ supplied to make subr arglist lookup more efficient."
 ;; Store subr-args as `((arg1 arg2 ...))' so I can distinguish
 ;; a defined empty arglist `(nil)' from an undefined arglist:
 (defmacro ad-define-subr-args (subr arglist)
-  (` (put (, subr) 'ad-subr-arglist (list (, arglist)))))
+  `(put ,subr 'ad-subr-arglist (list ,arglist)))
 (defmacro ad-undefine-subr-args (subr)
-  (` (put (, subr) 'ad-subr-arglist nil)))
+  `(put ,subr 'ad-subr-arglist nil))
 (defmacro ad-subr-args-defined-p (subr)
-  (` (get (, subr) 'ad-subr-arglist)))
+  `(get ,subr 'ad-subr-arglist))
 (defmacro ad-get-subr-args (subr)
-  (` (car (get (, subr) 'ad-subr-arglist))))
+  `(car (get ,subr 'ad-subr-arglist)))
 
 (defun ad-subr-arglist (subr-name)
   "Retrieve arglist of the subr with SUBR-NAME.
@@ -2761,17 +2761,16 @@ element is its actual current value, and the third element is either
 `required', `optional' or `rest' depending on the type of the argument."
   (let* ((parsed-arglist (ad-parse-arglist arglist))
 	 (rest (nth 2 parsed-arglist)))
-    (` (list
-	(,@ (mapcar (function
-		     (lambda (req)
-		       (` (list '(, req) (, req) 'required))))
-		    (nth 0 parsed-arglist)))
-	(,@ (mapcar (function
-		     (lambda (opt)
-		       (` (list '(, opt) (, opt) 'optional))))
-		    (nth 1 parsed-arglist)))
-	(,@ (if rest (list (` (list '(, rest) (, rest) 'rest)))))
-	))))
+    `(list
+      ,@(mapcar (function
+                 (lambda (req)
+                  `(list ',req ,req 'required)))
+                (nth 0 parsed-arglist))
+      ,@(mapcar (function
+                 (lambda (opt)
+                  `(list ',opt ,opt 'optional)))
+                (nth 1 parsed-arglist))
+      ,@(if rest (list `(list ',rest ,rest 'rest))))))
 
 (defun ad-arg-binding-field (binding field)
   (cond ((eq field 'name) (car binding))
@@ -2785,7 +2784,7 @@ element is its actual current value, and the third element is either
 
 (defun ad-element-access (position list)
   (cond ((= position 0) (list 'car list))
-	((= position 1) (` (car (cdr (, list)))))
+	((= position 1) `(car (cdr ,list)))
 	(t (list 'nth position list))))
 
 (defun ad-access-argument (arglist index)
@@ -2814,11 +2813,11 @@ to be accessed, it returns a list with the index and name."
   (let ((argument-access (ad-access-argument arglist index)))
     (cond ((consp argument-access)
 	   ;; should this check whether there actually is something to set?
-	   (` (setcar (, (ad-list-access
-			  (car argument-access) (car (cdr argument-access))))
-		      (, value-form))))
+	   `(setcar ,(ad-list-access
+                      (car argument-access) (car (cdr argument-access)))
+             ,value-form))
 	  (argument-access
-	   (` (setq (, argument-access) (, value-form))))
+	   `(setq ,argument-access ,value-form))
 	  (t (error "ad-set-argument: No argument at position %d of `%s'"
 		    index arglist)))))
 
@@ -2830,12 +2829,12 @@ to be accessed, it returns a list with the index and name."
 	 (rest-arg (nth 2 parsed-arglist))
 	 args-form)
     (if (< index (length reqopt-args))
-	(setq args-form (` (list (,@ (nthcdr index reqopt-args))))))
+	(setq args-form `(list ,@(nthcdr index reqopt-args))))
     (if rest-arg
 	(if args-form
-	    (setq args-form (` (nconc (, args-form) (, rest-arg))))
-	  (setq args-form (ad-list-access (- index (length reqopt-args))
-					  rest-arg))))
+	    (setq args-form `(nconc ,args-form ,rest-arg))
+            (setq args-form (ad-list-access (- index (length reqopt-args))
+                                            rest-arg))))
     args-form))
 
 (defun ad-set-arguments (arglist index values-form)
@@ -2850,34 +2849,34 @@ The assignment starts at position INDEX."
 		       arglist index
 		       (ad-element-access values-index 'ad-vAlUeS))
 		      set-forms))
-	(setq set-forms
-	      (cons (if (= (car argument-access) 0)
-			(list 'setq
-			      (car (cdr argument-access))
-			      (ad-list-access values-index 'ad-vAlUeS))
-		      (list 'setcdr
-			    (ad-list-access (1- (car argument-access))
-					    (car (cdr argument-access)))
-			    (ad-list-access values-index 'ad-vAlUeS)))
-		    set-forms))
-	;; terminate loop
-	(setq arglist nil))
+          (setq set-forms
+                (cons (if (= (car argument-access) 0)
+                          (list 'setq
+                                (car (cdr argument-access))
+                                (ad-list-access values-index 'ad-vAlUeS))
+                          (list 'setcdr
+                                (ad-list-access (1- (car argument-access))
+                                                (car (cdr argument-access)))
+                                (ad-list-access values-index 'ad-vAlUeS)))
+                      set-forms))
+          ;; terminate loop
+          (setq arglist nil))
       (setq index (1+ index))
       (setq values-index (1+ values-index)))
     (if (null set-forms)
 	(error "ad-set-arguments: No argument at position %d of `%s'"
 	       index arglist)
-      (if (= (length set-forms) 1)
-	  ;; For exactly one set-form we can use values-form directly,...
-	  (ad-substitute-tree
-	   (function (lambda (form) (eq form 'ad-vAlUeS)))
-	   (function (lambda (form) values-form))
-	   (car set-forms))
-	;; ...if we have more we have to bind it to a variable:
-	(` (let ((ad-vAlUeS (, values-form)))
-	     (,@ (reverse set-forms))
-	     ;; work around the old backquote bug:
-	     (, 'ad-vAlUeS)))))))
+        (if (= (length set-forms) 1)
+            ;; For exactly one set-form we can use values-form directly,...
+            (ad-substitute-tree
+             (function (lambda (form) (eq form 'ad-vAlUeS)))
+             (function (lambda (form) values-form))
+             (car set-forms))
+            ;; ...if we have more we have to bind it to a variable:
+            `(let ((ad-vAlUeS ,values-form))
+              ,@(reverse set-forms)
+              ;; work around the old backquote bug:
+              ,'ad-vAlUeS)))))
 
 (defun ad-insert-argument-access-forms (definition arglist)
   "Expands arg-access text macros in DEFINITION according to ARGLIST."
@@ -3071,11 +3070,11 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 		    ((ad-interactive-form origdef)
 		     (if (and (symbolp function) (get function 'elp-info))
 			 (interactive-form (aref (get function 'elp-info) 2))
-		       (ad-interactive-form origdef)))		       
+		       (ad-interactive-form origdef)))
 		    ;; Otherwise we must have a subr: make it interactive if
 		    ;; we have to and initialize required arguments in case
 		    ;; it is called interactively:
-		    (orig-interactive-p 
+		    (orig-interactive-p
 		     (interactive-form origdef))))
 	     (orig-form
 	      (cond ((or orig-special-form-p orig-macro-p)
@@ -3104,7 +3103,7 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 		     ;; in order to do proper prompting:
 		     `(if (interactive-p)
 			  (call-interactively ',origname)
-			,(ad-make-mapped-call orig-arglist 
+			,(ad-make-mapped-call orig-arglist
 					      advised-arglist
 					      origname)))
 		    ;; And now for normal functions and non-interactive subrs
@@ -3126,7 +3125,7 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 	 (ad-get-enabled-advices function 'after)))))
 
 (defun ad-assemble-advised-definition
-  (type args docstring interactive orig &optional befores arounds afters)
+    (type args docstring interactive orig &optional befores arounds afters)
 
   "Assembles an original and its advices into an advised function.
 It constructs a function or macro definition according to TYPE which has to
@@ -3139,58 +3138,58 @@ should be modified.  The assembled function will be returned."
 
   (let (before-forms around-form around-form-protected after-forms definition)
     (ad-dolist (advice befores)
-      (cond ((and (ad-advice-protected advice)
-		  before-forms)
-	     (setq before-forms
-		   (` ((unwind-protect
-			   (, (ad-prognify before-forms))
-			 (,@ (ad-body-forms
-			      (ad-advice-definition advice))))))))
-	    (t (setq before-forms
-		     (append before-forms
-			     (ad-body-forms (ad-advice-definition advice)))))))
+               (cond ((and (ad-advice-protected advice)
+                           before-forms)
+                      (setq before-forms
+                            `((unwind-protect
+                                   ,(ad-prognify before-forms)
+                                ,@(ad-body-forms
+                                   (ad-advice-definition advice))))))
+                     (t (setq before-forms
+                              (append before-forms
+                                      (ad-body-forms (ad-advice-definition advice)))))))
 
-    (setq around-form (` (setq ad-return-value (, orig))))
+    (setq around-form `(setq ad-return-value ,orig))
     (ad-dolist (advice (reverse arounds))
-      ;; If any of the around advices is protected then we
-      ;; protect the complete around advice onion:
-      (if (ad-advice-protected advice)
-	  (setq around-form-protected t))
-      (setq around-form
-	    (ad-substitute-tree
-	     (function (lambda (form) (eq form 'ad-do-it)))
-	     (function (lambda (form) around-form))
-	     (ad-prognify (ad-body-forms (ad-advice-definition advice))))))
+               ;; If any of the around advices is protected then we
+               ;; protect the complete around advice onion:
+               (if (ad-advice-protected advice)
+                   (setq around-form-protected t))
+               (setq around-form
+                     (ad-substitute-tree
+                      (function (lambda (form) (eq form 'ad-do-it)))
+                      (function (lambda (form) around-form))
+                      (ad-prognify (ad-body-forms (ad-advice-definition advice))))))
 
     (setq after-forms
 	  (if (and around-form-protected before-forms)
-	      (` ((unwind-protect
-		      (, (ad-prognify before-forms))
-		    (, around-form))))
-	    (append before-forms (list around-form))))
+	      `((unwind-protect
+                     ,(ad-prognify before-forms)
+                  ,around-form))
+              (append before-forms (list around-form))))
     (ad-dolist (advice afters)
-      (cond ((and (ad-advice-protected advice)
-		  after-forms)
-	     (setq after-forms
-		   (` ((unwind-protect
-			   (, (ad-prognify after-forms))
-			 (,@ (ad-body-forms
-			      (ad-advice-definition advice))))))))
-	    (t (setq after-forms
-		     (append after-forms
-			     (ad-body-forms (ad-advice-definition advice)))))))
+               (cond ((and (ad-advice-protected advice)
+                           after-forms)
+                      (setq after-forms
+                            `((unwind-protect
+                                   ,(ad-prognify after-forms)
+                                ,@(ad-body-forms
+                                   (ad-advice-definition advice))))))
+                     (t (setq after-forms
+                              (append after-forms
+                                      (ad-body-forms (ad-advice-definition advice)))))))
 
     (setq definition
-	  (` ((,@ (if (memq type '(macro special-form)) '(macro)))
-	      lambda
-	      (, args)
-	      (,@ (if docstring (list docstring)))
-	      (,@ (if interactive (list interactive)))
-	      (let (ad-return-value)
-		(,@ after-forms)
-		(, (if (eq type 'special-form)
-		       '(list 'quote ad-return-value)
-		     'ad-return-value))))))
+	  `(,@(if (memq type '(macro special-form)) '(macro))
+            lambda
+            ,args
+            ,@(if docstring (list docstring))
+            ,@(if interactive (list interactive))
+            (let (ad-return-value)
+              ,@after-forms
+              ,(if (eq type 'special-form)
+                   '(list 'quote ad-return-value)
+                   'ad-return-value))))
 
     (ad-insert-argument-access-forms definition args)))
 
@@ -3266,14 +3265,14 @@ should be modified.  The assembled function will be returned."
 ;; a lot cheaper than reconstructing an advised definition.
 
 (defmacro ad-get-cache-definition (function)
-  (` (car (ad-get-advice-info-field (, function) 'cache))))
+  `(car (ad-get-advice-info-field ,function 'cache)))
 
 (defmacro ad-get-cache-id (function)
-  (` (cdr (ad-get-advice-info-field (, function) 'cache))))
+  `(cdr (ad-get-advice-info-field ,function 'cache)))
 
 (defmacro ad-set-cache (function definition id)
-  (` (ad-set-advice-info-field
-      (, function) 'cache (cons (, definition) (, id)))))
+  `(ad-set-advice-info-field
+    ,function 'cache (cons ,definition ,id)))
 
 (defun ad-clear-cache (function)
   "Clears a previously cached advised definition of FUNCTION.
@@ -3451,21 +3450,21 @@ advised definition from scratch."
 	  (symbol-function 'ad-make-origname))
 	 (frozen-definition
 	  (unwind-protect
-	      (progn
-		;; Make sure we construct a proper docstring:
-		(ad-safe-fset 'ad-make-advised-definition-docstring
-			      'ad-make-freeze-docstring)
-		;; Make sure `unique-origname' is used as the origname:
-		(ad-safe-fset 'ad-make-origname (lambda (x) unique-origname))
-		;; No we reset all current advice information to nil and
-		;; generate an advised definition that's solely determined
-		;; by ADVICE and the current origdef of FUNCTION:
-		(ad-set-advice-info function nil)
-		(ad-add-advice function advice class position)
-		;; The following will provide proper real docstrings as
-		;; well as a definition that will make the compiler happy:
-		(ad-set-orig-definition function orig-definition)
-		(ad-make-advised-definition function))
+               (progn
+                 ;; Make sure we construct a proper docstring:
+                 (ad-safe-fset 'ad-make-advised-definition-docstring
+                               'ad-make-freeze-docstring)
+                 ;; Make sure `unique-origname' is used as the origname:
+                 (ad-safe-fset 'ad-make-origname (lambda (x) unique-origname))
+                 ;; No we reset all current advice information to nil and
+                 ;; generate an advised definition that's solely determined
+                 ;; by ADVICE and the current origdef of FUNCTION:
+                 (ad-set-advice-info function nil)
+                 (ad-add-advice function advice class position)
+                 ;; The following will provide proper real docstrings as
+                 ;; well as a definition that will make the compiler happy:
+                 (ad-set-orig-definition function orig-definition)
+                 (ad-make-advised-definition function))
 	    ;; Restore the old advice state:
 	    (ad-set-advice-info function old-advice-info)
 	    ;; Restore functions:
@@ -3476,17 +3475,17 @@ advised definition from scratch."
 	(let* ((macro-p (ad-macro-p frozen-definition))
 	       (body (cdr (if macro-p
 			      (ad-lambdafy frozen-definition)
-			    frozen-definition))))
-	  (` (progn
-	       (if (not (fboundp '(, unique-origname)))
-		   (fset '(, unique-origname)
-			 ;; avoid infinite recursion in case the function
-			 ;; we want to freeze is already advised:
-			 (or (ad-get-orig-definition '(, function))
-			     (symbol-function '(, function)))))
-	       ((, (if macro-p 'defmacro 'defun))
-		(, function)
-		(,@ body))))))))
+                              frozen-definition))))
+	  `(progn
+            (if (not (fboundp ',unique-origname))
+                (fset ',unique-origname
+                      ;; avoid infinite recursion in case the function
+                      ;; we want to freeze is already advised:
+                      (or (ad-get-orig-definition ',function)
+                          (symbol-function ',function))))
+            (,(if macro-p 'defmacro 'defun)
+             ,function
+             ,@body))))))
 
 
 ;; @@ Activation and definition handling:
@@ -3812,13 +3811,13 @@ See Info node `(elisp)Advising Functions' for comprehensive documentation."
   (let* ((class (car args))
 	 (name (if (not (ad-class-p class))
 		   (error "defadvice: Invalid advice class: %s" class)
-		 (nth 1 args)))
+                   (nth 1 args)))
 	 (position (if (not (ad-name-p name))
 		       (error "defadvice: Invalid advice name: %s" name)
-		     (setq args (nthcdr 2 args))
-		     (if (ad-position-p (car args))
-			 (prog1 (car args)
-			   (setq args (cdr args))))))
+                       (setq args (nthcdr 2 args))
+                       (if (ad-position-p (car args))
+                           (prog1 (car args)
+                             (setq args (cdr args))))))
 	 (arglist (if (listp (car args))
 		      (prog1 (car args)
 			(setq args (cdr args)))))
@@ -3826,18 +3825,18 @@ See Info node `(elisp)Advising Functions' for comprehensive documentation."
 	  (mapcar
 	   (function
 	    (lambda (flag)
-	      (let ((completion
-		     (try-completion (symbol-name flag) ad-defadvice-flags)))
-		(cond ((eq completion t) flag)
-		      ((assoc completion ad-defadvice-flags)
-		       (intern completion))
-		      (t (error "defadvice: Invalid or ambiguous flag: %s"
-				flag))))))
+             (let ((completion
+                    (try-completion (symbol-name flag) ad-defadvice-flags)))
+               (cond ((eq completion t) flag)
+                     ((assoc completion ad-defadvice-flags)
+                      (intern completion))
+                     (t (error "defadvice: Invalid or ambiguous flag: %s"
+                               flag))))))
 	   args))
 	 (advice (ad-make-advice
 		  name (memq 'protect flags)
 		  (not (memq 'disable flags))
-		  (` (advice lambda (, arglist) (,@ body)))))
+		  `(advice lambda ,arglist ,@body)))
 	 (preactivation (if (memq 'preactivate flags)
 			    (ad-preactivate-advice
 			     function advice class position))))
@@ -3846,25 +3845,25 @@ See Info node `(elisp)Advising Functions' for comprehensive documentation."
 	;; jwz's idea: Freeze the advised definition into a dumpable
 	;; defun/defmacro whose docs can be written to the DOC file:
 	(ad-make-freeze-definition function advice class position)
-      ;; the normal case:
-      (` (progn
-	   (ad-add-advice '(, function) '(, advice) '(, class) '(, position))
-	   (,@ (if preactivation
-		   (` ((ad-set-cache
-			'(, function)
-			;; the function will get compiled:
-			(, (cond ((ad-macro-p (car preactivation))
-				  (` (ad-macrofy
-				      (function
-				       (, (ad-lambdafy
-					   (car preactivation)))))))
-				 (t (` (function
-					(, (car preactivation)))))))
-			'(, (car (cdr preactivation))))))))
-	   (,@ (if (memq 'activate flags)
-		   (` ((ad-activate '(, function)
-				    (, (if (memq 'compile flags) t)))))))
-	   '(, function))))))
+        ;; the normal case:
+        `(progn
+          (ad-add-advice ',function ',advice ',class ',position)
+          ,@(if preactivation
+                `((ad-set-cache
+                   ',function
+                   ;; the function will get compiled:
+                   ,(cond ((ad-macro-p (car preactivation))
+                           `(ad-macrofy
+                             (function
+                              ,(ad-lambdafy
+                                (car preactivation)))))
+                          (t `(function
+                               ,(car preactivation))))
+                   ',(car (cdr preactivation)))))
+          ,@(if (memq 'activate flags)
+                `((ad-activate ',function
+                   ,(if (memq 'compile flags) t))))
+          ',function))))
 
 
 ;; @@ Tools:
@@ -3880,39 +3879,39 @@ undone on exit of this macro."
 	 (current-bindings
 	  (mapcar (function
 		   (lambda (function)
-		     (setq index (1+ index))
-		     (list (intern (format "ad-oRiGdEf-%d" index))
-			   (` (symbol-function '(, function))))))
+                    (setq index (1+ index))
+                    (list (intern (format "ad-oRiGdEf-%d" index))
+                          `(symbol-function ',function))))
 		  functions)))
-    (` (let (, current-bindings)
-	 (unwind-protect
-	     (progn
-	       (,@ (progn
-		     ;; Make forms to redefine functions to their
-		     ;; original definitions if they are advised:
-		     (setq index -1)
-		     (mapcar
-		      (function
-		       (lambda (function)
-			 (setq index (1+ index))
-			 (` (ad-safe-fset
-			     '(, function)
-			     (or (ad-get-orig-definition '(, function))
-				 (, (car (nth index current-bindings))))))))
-		      functions)))
-	       (,@ body))
-	   (,@ (progn
-		 ;; Make forms to back-define functions to the definitions
-		 ;; they had outside this macro call:
-		 (setq index -1)
-		 (mapcar
-		  (function
-		   (lambda (function)
-		     (setq index (1+ index))
-		     (` (ad-safe-fset
-			 '(, function)
-			 (, (car (nth index current-bindings)))))))
-		  functions))))))))
+    `(let ,current-bindings
+      (unwind-protect
+           (progn
+             ,@(progn
+                ;; Make forms to redefine functions to their
+                ;; original definitions if they are advised:
+                (setq index -1)
+                (mapcar
+                 (function
+                  (lambda (function)
+                   (setq index (1+ index))
+                   `(ad-safe-fset
+                     ',function
+                     (or (ad-get-orig-definition ',function)
+                      ,(car (nth index current-bindings))))))
+                 functions))
+             ,@body)
+        ,@(progn
+           ;; Make forms to back-define functions to the definitions
+           ;; they had outside this macro call:
+           (setq index -1)
+           (mapcar
+            (function
+             (lambda (function)
+              (setq index (1+ index))
+              `(ad-safe-fset
+                ',function
+                ,(car (nth index current-bindings)))))
+            functions))))))
 
 (if (not (get 'ad-with-originals 'lisp-indent-hook))
     (put 'ad-with-originals 'lisp-indent-hook 1))

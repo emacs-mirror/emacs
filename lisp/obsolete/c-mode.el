@@ -207,99 +207,97 @@ regardless of where in the line point is when the TAB command is used."
 
 ;; This is actually the expression for C++ mode, but it's used for C too.
 (defvar c-imenu-generic-expression
-  (`
-   ((nil
-     (,
-      (concat
-       "^"				  ; beginning of line is required
+  `((nil
+     ,(concat
+       "^"                      ; beginning of line is required
        "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a "template <...>"
-       "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; type specs; there can be no
-       "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; more than 3 tokens, right?
+       "\\([a-zA-Z0-9_:]+[ \t]+\\)?" ; type specs; there can be no
+       "\\([a-zA-Z0-9_:]+[ \t]+\\)?" ; more than 3 tokens, right?
 
-       "\\("				  ; last type spec including */&
+       "\\("                    ; last type spec including */&
        "[a-zA-Z0-9_:]+"
-       "\\([ \t]*[*&]+[ \t]*\\|[ \t]+\\)"	  ; either pointer/ref sign or whitespace
-       "\\)?"				  ; if there is a last type spec
-       "\\("			      ; name; take that into the imenu entry
-       "[a-zA-Z0-9_:~]+"		      ; member function, ctor or dtor...
-					; (may not contain * because then
-					; "a::operator char*" would become "char*"!)
+       "\\([ \t]*[*&]+[ \t]*\\|[ \t]+\\)" ; either pointer/ref sign or whitespace
+       "\\)?"                   ; if there is a last type spec
+       "\\("                    ; name; take that into the imenu entry
+       "[a-zA-Z0-9_:~]+"        ; member function, ctor or dtor...
+                                ; (may not contain * because then
+                                ; "a::operator char*" would become "char*"!)
        "\\|"
        "\\([a-zA-Z0-9_:~]*::\\)?operator"
-       "[^a-zA-Z1-9_][^(]*"	      ; ...or operator
+       "[^a-zA-Z1-9_][^(]*"     ; ...or operator
        " \\)"
        "[ \t]*([^)]*)[ \t\n]*[^	      ;]" ; require something other than a ; after
-					; the (...) to avoid prototypes.  Can't
-					; catch cases with () inside the parentheses
-					; surrounding the parameters
-					; (like "int foo(int a=bar()) {...}"
+                                ; the (...) to avoid prototypes.  Can't
+                                ; catch cases with () inside the parentheses
+                                ; surrounding the parameters
+                                ; (like "int foo(int a=bar()) {...}"
 
-       )) 6)
+       ) 6)
     ("Class"
-     (, (concat
-	 "^"				   ; beginning of line is required
-	 "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a "template <...>"
-	 "class[ \t]+"
-	 "\\([a-zA-Z0-9_]+\\)"                ; this is the string we want to get
-	 "[ \t]*[:{]"
-	 )) 2)
-;; Example of generic expression for finding prototypes, structs, unions, enums.
-;; Uncomment if you want to find these too.  It will be a bit slower gathering
-;; the indexes.
-;    ("Prototypes"
-;     (,
-;      (concat
-;       "^"				  ; beginning of line is required
-;       "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a "template <...>"
-;       "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; type specs; there can be no
-;       "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; more than 3 tokens, right?
+     ,(concat
+       "^"                      ; beginning of line is required
+       "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a "template <...>"
+       "class[ \t]+"
+       "\\([a-zA-Z0-9_]+\\)"    ; this is the string we want to get
+       "[ \t]*[:{]"
+       ) 2)
+    ;; Example of generic expression for finding prototypes, structs, unions, enums.
+    ;; Uncomment if you want to find these too.  It will be a bit slower gathering
+    ;; the indexes.
+                                ;    ("Prototypes"
+                                ;     (,
+                                ;      (concat
+                                ;       "^"				  ; beginning of line is required
+                                ;       "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a "template <...>"
+                                ;       "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; type specs; there can be no
+                                ;       "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; more than 3 tokens, right?
 
-;       "\\("				  ; last type spec including */&
-;       "[a-zA-Z0-9_:]+"
-;       "\\([ \t]*[*&]+[ \t]*\\|[ \t]+\\)"	  ; either pointer/ref sign or whitespace
-;       "\\)?"				  ; if there is a last type spec
-;       "\\("			      ; name; take that into the imenu entry
-;       "[a-zA-Z0-9_:~]+"		      ; member function, ctor or dtor...
-;					; (may not contain * because then
-;					; "a::operator char*" would become "char*"!)
-;       "\\|"
-;       "\\([a-zA-Z0-9_:~]*::\\)?operator"
-;       "[^a-zA-Z1-9_][^(]*"	      ; ...or operator
-;       " \\)"
-;       "[ \t]*([^)]*)[ \t\n]*;" 	; require ';' after
-;					; the (...) Can't
-;					; catch cases with () inside the parentheses
-;					; surrounding the parameters
-;					; (like "int foo(int a=bar());"
-;       )) 6)
-;    ("Struct"
-;     (, (concat
-;	 "^"				; beginning of line is required
-;	 "\\(static[ \t]+\\)?"		; there may be static or const.
-;	 "\\(const[ \t]+\\)?"
-;	 "struct[ \t]+"
-;	 "\\([a-zA-Z0-9_]+\\)"		; this is the string we want to get
-;	 "[ \t]*[{]"
-;	 )) 3)
-;    ("Enum"
-;     (, (concat
-;	 "^"				; beginning of line is required
-;	 "\\(static[ \t]+\\)?"		; there may be static or const.
-;	 "\\(const[ \t]+\\)?"
-;	 "enum[ \t]+"
-;	 "\\([a-zA-Z0-9_]+\\)"		; this is the string we want to get
-;	 "[ \t]*[{]"
-;	 )) 3)
-;    ("Union"
-;     (, (concat
-;	 "^"				; beginning of line is required
-;	 "\\(static[ \t]+\\)?"		; there may be static or const.
-;	 "\\(const[ \t]+\\)?"
-;	 "union[ \t]+"
-;	 "\\([a-zA-Z0-9_]+\\)"		; this is the string we want to get
-;	 "[ \t]*[{]"
-;	 )) 3)
-    ))
+                                ;       "\\("				  ; last type spec including */&
+                                ;       "[a-zA-Z0-9_:]+"
+                                ;       "\\([ \t]*[*&]+[ \t]*\\|[ \t]+\\)"	  ; either pointer/ref sign or whitespace
+                                ;       "\\)?"				  ; if there is a last type spec
+                                ;       "\\("			      ; name; take that into the imenu entry
+                                ;       "[a-zA-Z0-9_:~]+"		      ; member function, ctor or dtor...
+                                ;					; (may not contain * because then
+                                ;					; "a::operator char*" would become "char*"!)
+                                ;       "\\|"
+                                ;       "\\([a-zA-Z0-9_:~]*::\\)?operator"
+                                ;       "[^a-zA-Z1-9_][^(]*"	      ; ...or operator
+                                ;       " \\)"
+                                ;       "[ \t]*([^)]*)[ \t\n]*;" 	; require ';' after
+                                ;					; the (...) Can't
+                                ;					; catch cases with () inside the parentheses
+                                ;					; surrounding the parameters
+                                ;					; (like "int foo(int a=bar());"
+                                ;       )) 6)
+                                ;    ("Struct"
+                                ;     (, (concat
+                                ;	 "^"				; beginning of line is required
+                                ;	 "\\(static[ \t]+\\)?"		; there may be static or const.
+                                ;	 "\\(const[ \t]+\\)?"
+                                ;	 "struct[ \t]+"
+                                ;	 "\\([a-zA-Z0-9_]+\\)"		; this is the string we want to get
+                                ;	 "[ \t]*[{]"
+                                ;	 )) 3)
+                                ;    ("Enum"
+                                ;     (, (concat
+                                ;	 "^"				; beginning of line is required
+                                ;	 "\\(static[ \t]+\\)?"		; there may be static or const.
+                                ;	 "\\(const[ \t]+\\)?"
+                                ;	 "enum[ \t]+"
+                                ;	 "\\([a-zA-Z0-9_]+\\)"		; this is the string we want to get
+                                ;	 "[ \t]*[{]"
+                                ;	 )) 3)
+                                ;    ("Union"
+                                ;     (, (concat
+                                ;	 "^"				; beginning of line is required
+                                ;	 "\\(static[ \t]+\\)?"		; there may be static or const.
+                                ;	 "\\(const[ \t]+\\)?"
+                                ;	 "union[ \t]+"
+                                ;	 "\\([a-zA-Z0-9_]+\\)"		; this is the string we want to get
+                                ;	 "[ \t]*[{]"
+                                ;	 )) 3)
+    )
   "Imenu generic expression for C mode.  See `imenu-generic-expression'.")
 
 (defun c-mode ()
@@ -1439,7 +1437,7 @@ If within a string or comment, move by sentences instead of statements."
 				(parse-partial-sexp beg (point)
 						    nil nil state)))
 			   (and (not (nth 3 new-state)) (not (nth 5 new-state))))
-			 (indent-for-comment)))))))))))
+			 (indent-for-comment)))))))))))))
 
 ;; Look at all comment-start strings in the current line after point.
 ;; Return t if one of them starts a real comment.

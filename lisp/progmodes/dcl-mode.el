@@ -237,13 +237,12 @@ never indented."
   :group 'dcl)
 
 (defcustom dcl-imenu-generic-expression
-  (`
-   ((nil "^\\$[ \t]*\\([A-Za-z0-9_\$]+\\):[ \t]+SUBROUTINE\\b" 1)
-    ((, dcl-imenu-label-labels)
+  `((nil "^\\$[ \t]*\\([A-Za-z0-9_\$]+\\):[ \t]+SUBROUTINE\\b" 1)
+    (,dcl-imenu-label-labels
      "^\\$[ \t]*\\([A-Za-z0-9_\$]+\\):\\([ \t]\\|$\\)" 1)
-    ((, dcl-imenu-label-goto) "\\s-GOTO[ \t]+\\([A-Za-z0-9_\$]+\\)" 1)
-    ((, dcl-imenu-label-gosub) "\\s-GOSUB[ \t]+\\([A-Za-z0-9_\$]+\\)" 1)
-    ((, dcl-imenu-label-call) "\\s-CALL[ \t]+\\([A-Za-z0-9_\$]+\\)" 1)))
+    (,dcl-imenu-label-goto "\\s-GOTO[ \t]+\\([A-Za-z0-9_\$]+\\)" 1)
+    (,dcl-imenu-label-gosub "\\s-GOSUB[ \t]+\\([A-Za-z0-9_\$]+\\)" 1)
+    (,dcl-imenu-label-call "\\s-CALL[ \t]+\\([A-Za-z0-9_\$]+\\)" 1))
   "*Default imenu generic expression for DCL.
 
 The default includes SUBROUTINE labels in the main listing and

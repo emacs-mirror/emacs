@@ -4,7 +4,7 @@
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: Carsten Dominik <dominik@strw.leidenuniv.nl>
 ;; Version: 4.7
-;; Date: $Date: 2000/12/19 11:12:40 $
+;; Date: $Date: 2001/07/16 12:22:59 $
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -140,14 +140,14 @@
 (eval-when-compile (require 'cl))
 
 (eval-and-compile
-  ;; Kludge to allow `defcustom' for Emacs 19.
-  (condition-case () (require 'custom) (error nil))
-  (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
-      nil ;; We've got what we needed
-    ;; We have the old or no custom-library, hack around it!
-    (defmacro defgroup (&rest args) nil)
-    (defmacro defcustom (var value doc &rest args) 
-      (` (defvar (, var) (, value) (, doc))))))
+ ;; Kludge to allow `defcustom' for Emacs 19.
+ (condition-case () (require 'custom) (error nil))
+ (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
+     nil ;; We've got what we needed
+     ;; We have the old or no custom-library, hack around it!
+     (defmacro defgroup (&rest args) nil)
+     (defmacro defcustom (var value doc &rest args) 
+       `(defvar ,var ,value ,doc))))
 
 (defgroup idlwave nil
   "Major mode for editing IDL/WAVE CL .pro files"
@@ -1360,8 +1360,8 @@ Normally a space.")
 
 (defmacro idlwave-keyword-abbrev (&rest args)
   "Creates a function for abbrev hooks to call `idlwave-check-abbrev' with args."
-  (` (quote (lambda ()
-              (, (append '(idlwave-check-abbrev) args))))))
+  `(quote (lambda ()
+            ,(append '(idlwave-check-abbrev) args))))
 
 ;; If I take the time I can replace idlwave-keyword-abbrev with
 ;; idlwave-code-abbrev and remove the quoted abbrev check from
@@ -1373,11 +1373,11 @@ Normally a space.")
   "Creates a function for abbrev hooks that ensures abbrevs are not quoted.
 Specifically, if the abbrev is in a comment or string it is unexpanded.
 Otherwise ARGS forms a list that is evaluated."
-  (` (quote (lambda ()
-	      (, (prin1-to-string args))  ;; Puts the code in the doc string
-              (if (idlwave-quoted)
-		  (progn (unexpand-abbrev) nil)
-                (, (append args)))))))
+  `(quote (lambda ()
+            ,(prin1-to-string args) ;; Puts the code in the doc string
+            (if (idlwave-quoted)
+                (progn (unexpand-abbrev) nil)
+                ,(append args)))))
 
 (defvar idlwave-mode-map (make-sparse-keymap)
   "Keymap used in IDL mode.")

@@ -4,7 +4,7 @@
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: Carsten Dominik <dominik@strw.leidenuniv.nl>
 ;; Version: 4.7
-;; Date: $Date: 2000/12/19 11:13:34 $
+;; Date: $Date: 2001/07/16 12:22:59 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -99,17 +99,17 @@
 
 (defvar idlwave-shell-have-new-custom nil)
 (eval-and-compile
-  ;; Kludge to allow `defcustom' for Emacs 19.
-  (condition-case () (require 'custom) (error nil))
-  (if (and (featurep 'custom)
-	   (fboundp 'custom-declare-variable)
-	   (fboundp 'defface))	   
-      ;; We've got what we needed
-      (setq idlwave-shell-have-new-custom t)
-    ;; We have the old or no custom-library, hack around it!
-    (defmacro defgroup (&rest args) nil)
-    (defmacro defcustom (var value doc &rest args) 
-      (` (defvar (, var) (, value) (, doc))))))
+ ;; Kludge to allow `defcustom' for Emacs 19.
+ (condition-case () (require 'custom) (error nil))
+ (if (and (featurep 'custom)
+          (fboundp 'custom-declare-variable)
+          (fboundp 'defface))	   
+     ;; We've got what we needed
+     (setq idlwave-shell-have-new-custom t)
+     ;; We have the old or no custom-library, hack around it!
+     (defmacro defgroup (&rest args) nil)
+     (defmacro defcustom (var value doc &rest args) 
+       `(defvar ,var ,value ,doc))))
 
 ;;; Customizations: idlwave-shell group
 
@@ -2382,16 +2382,16 @@ command."
   (idlwave-shell-send-command 
    idlwave-shell-bp-query
    '(progn
-      (idlwave-shell-filter-bp)
-      (setq idlwave-shell-old-bp idlwave-shell-bp-alist))
+     (idlwave-shell-filter-bp)
+     (setq idlwave-shell-old-bp idlwave-shell-bp-alist))
    'hide)
   ;; Get sources for IDL compiled procedures followed by setting
   ;; breakpoint.
   (idlwave-shell-send-command
    idlwave-shell-sources-query
-   (` (progn
-	(idlwave-shell-sources-filter)
-	(idlwave-shell-set-bp2 (quote (, bp)))))
+   `(progn
+     (idlwave-shell-sources-filter)
+     (idlwave-shell-set-bp2 (quote ,bp)))
    'hide))
 
 (defun idlwave-shell-set-bp2 (bp)
@@ -2403,11 +2403,11 @@ only after reaching the statement count times."
   (let*
       ((arg (idlwave-shell-bp-get bp 'count))
        (key (cond
-             ((not (and arg (numberp arg))) "")
-             ((= arg 1)
-              ",/once")
-             ((> arg 1)
-              (format ",after=%d" arg))))
+              ((not (and arg (numberp arg))) "")
+              ((= arg 1)
+               ",/once")
+              ((> arg 1)
+               (format ",after=%d" arg))))
        (line (idlwave-shell-bp-get bp 'line)))
     (idlwave-shell-send-command
      (concat "breakpoint,'" 
@@ -2415,10 +2415,9 @@ only after reaching the statement count times."
 	     (if (integerp line) (setq line (int-to-string line)))
 	     key)
      ;; Check for failure and look for breakpoint in IDL's list
-     (` (progn
-          (if (idlwave-shell-set-bp-check (quote (, bp)))
-              (idlwave-shell-set-bp3 (quote (, bp)))))
-        )
+     `(progn
+       (if (idlwave-shell-set-bp-check (quote ,bp))
+           (idlwave-shell-set-bp3 (quote ,bp))))
      ;; do not hide output 
      nil
      'preempt)))
@@ -2426,9 +2425,9 @@ only after reaching the statement count times."
 (defun idlwave-shell-set-bp3 (bp)
   "Find the breakpoint in IDL's internal list of breakpoints."
   (idlwave-shell-send-command idlwave-shell-bp-query
-			      (` (progn
-				   (idlwave-shell-filter-bp)
-				   (idlwave-shell-new-bp (quote (, bp)))))
+			      `(progn
+                                (idlwave-shell-filter-bp)
+                                (idlwave-shell-new-bp (quote ,bp)))
 			      'hide
 			      'preempt))
 
