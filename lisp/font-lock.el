@@ -236,12 +236,26 @@
 
 ;; User variables.
 
-(defcustom font-lock-verbose (* 0 1024)
-  "*If non-nil, means show status messages for buffer fontification.
-If a number, only buffers greater than this size have fontification messages."
-  :type '(choice (const :tag "never" nil)
-		 (const :tag "always" t)
-		 (integer :tag "size"))
+(defcustom font-lock-maximum-size (* 250 1024)
+  "*Maximum size of a buffer for buffer fontification.
+Only buffers less than this can be fontified when Font Lock mode is turned on.
+If nil, means size is irrelevant.
+If a list, each element should be a cons pair of the form (MAJOR-MODE . SIZE),
+where MAJOR-MODE is a symbol or t (meaning the default).  For example:
+ ((c-mode . 256000) (c++-mode . 256000) (rmail-mode . 1048576))
+means that the maximum size is 250K for buffers in C or C++ modes, one megabyte
+for buffers in Rmail mode, and size is irrelevant otherwise."
+  :type '(choice (const :tag "none" nil)
+		 (integer :tag "size")
+		 (repeat :menu-tag "mode specific" :tag "mode specific"
+			 :value ((t . nil))
+			 (cons :tag "Instance"
+			       (radio :tag "Mode"
+				      (const :tag "all" t)
+				      (symbol :tag "name"))
+			       (radio :tag "Size"
+				      (const :tag "none" nil)
+				      (integer :tag "size")))))
   :group 'font-lock)
 
 (defcustom font-lock-maximum-decoration t
@@ -269,26 +283,12 @@ decoration for buffers in C++ mode, and level 1 decoration otherwise."
 				      (integer :tag "level" 1)))))
   :group 'font-lock)
 
-(defcustom font-lock-maximum-size (* 250 1024)
-  "*Maximum size of a buffer for buffer fontification.
-Only buffers less than this can be fontified when Font Lock mode is turned on.
-If nil, means size is irrelevant.
-If a list, each element should be a cons pair of the form (MAJOR-MODE . SIZE),
-where MAJOR-MODE is a symbol or t (meaning the default).  For example:
- ((c-mode . 256000) (c++-mode . 256000) (rmail-mode . 1048576))
-means that the maximum size is 250K for buffers in C or C++ modes, one megabyte
-for buffers in Rmail mode, and size is irrelevant otherwise."
-  :type '(choice (const :tag "none" nil)
-		 (integer :tag "size")
-		 (repeat :menu-tag "mode specific" :tag "mode specific"
-			 :value ((t . nil))
-			 (cons :tag "Instance"
-			       (radio :tag "Mode"
-				      (const :tag "all" t)
-				      (symbol :tag "name"))
-			       (radio :tag "Size"
-				      (const :tag "none" nil)
-				      (integer :tag "size")))))
+(defcustom font-lock-verbose (* 0 1024)
+  "*If non-nil, means show status messages for buffer fontification.
+If a number, only buffers greater than this size have fontification messages."
+  :type '(choice (const :tag "never" nil)
+		 (const :tag "always" t)
+		 (integer :tag "size"))
   :group 'font-lock)
 
 ;; Fontification variables:
@@ -799,25 +799,6 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 ;; would also be contrary to the Principle of Least Surprise.  sm.
 
 (defvar font-lock-buffers nil)		; For remembering buffers.
-(defvar global-font-lock-mode nil)
-
-(defcustom font-lock-global-modes t
-  "*Modes for which Font Lock mode is automagically turned on.
-Global Font Lock mode is controlled by the `global-font-lock-mode' command.
-If nil, means no modes have Font Lock mode automatically turned on.
-If t, all modes that support Font Lock mode have it automatically turned on.
-If a list, it should be a list of `major-mode' symbol names for which Font Lock
-mode should be automatically turned on.  The sense of the list is negated if it
-begins with `not'.  For example:
- (c-mode c++-mode)
-means that Font Lock mode is turned on for buffers in C and C++ modes only."
-  :type '(choice (const :tag "none" nil)
-		 (const :tag "all" t)
-		 (set :menu-tag "mode specific" :tag "modes"
-		      :value (not)
-		      (const :tag "Except" not)
-		      (repeat :inline t (symbol :tag "mode"))))
-  :group 'font-lock)
 
 ;;;###autoload
 (defun global-font-lock-mode (&optional arg message)
@@ -840,6 +821,38 @@ turned on in a buffer if its major mode is one of `font-lock-global-modes'."
     (when message
       (message "Global Font Lock mode is now %s." (if off-p "OFF" "ON")))
     (setq global-font-lock-mode (not off-p))))
+
+;; Naughty hack.  This variable was originally a `defvar' to keep track of
+;; whether Global Font Lock mode was turned on or not.  As a `defcustom' with
+;; special `:set' and `:require' forms, we can provide custom mode control.
+(defcustom global-font-lock-mode nil
+  "Toggle Global Font Lock mode.
+When Global Font Lock mode is enabled, Font Lock mode is automagically
+turned on in a buffer if its major mode is one of `font-lock-global-modes'.
+You must modify via \\[customize] for this variable to have an effect."
+  :set (lambda (symbol value)
+	 (global-font-lock-mode (or value 0)))
+  :type 'boolean
+  :group 'font-lock
+  :require 'font-lock)
+
+(defcustom font-lock-global-modes t
+  "*Modes for which Font Lock mode is automagically turned on.
+Global Font Lock mode is controlled by the `global-font-lock-mode' command.
+If nil, means no modes have Font Lock mode automatically turned on.
+If t, all modes that support Font Lock mode have it automatically turned on.
+If a list, it should be a list of `major-mode' symbol names for which Font Lock
+mode should be automatically turned on.  The sense of the list is negated if it
+begins with `not'.  For example:
+ (c-mode c++-mode)
+means that Font Lock mode is turned on for buffers in C and C++ modes only."
+  :type '(choice (const :tag "none" nil)
+		 (const :tag "all" t)
+		 (set :menu-tag "mode specific" :tag "modes"
+		      :value (not)
+		      (const :tag "Except" not)
+		      (repeat :inline t (symbol :tag "mode"))))
+  :group 'font-lock)
 
 (defun font-lock-change-major-mode ()
   ;; Turn off Font Lock mode if it's on.
@@ -1591,7 +1604,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   "Face name to use for things that should stand out.")
 
 ;; Originally face attributes were specified via `font-lock-face-attributes'.
-;; Users then changed the default face attributes by setting this variable.
+;; Users then changed the default face attributes by setting that variable.
 ;; However, we try and be back-compatible and respect its value if set except
 ;; for faces where M-x customize has been used to save changes for the face.
 (when (boundp 'font-lock-face-attributes)
@@ -1890,6 +1903,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 	     "(" (regexp-opt
 		  '("cond" "if" "while" "catch" "throw" "let" "let*"
 		    "prog" "progn" "progv" "prog1" "prog2" "prog*"
+		    "closure" "preparse-closure" "make-closure"
 		    "inline" "save-restriction" "save-excursion"
 		    "save-window-excursion" "save-selected-window"
 		    "save-match-data" "save-current-buffer" "unwind-protect"
@@ -1994,23 +2008,117 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 ;    ("{\\\\\\(em\\|it\\|sl\\)\\([^}]+\\)}" 2 'italic keep)
 ;    ("\\\\\\([a-zA-Z@]+\\|.\\)" . font-lock-keyword-face)
 ;    ("^[ \t\n]*\\\\def[\\\\@]\\(\\w+\\)" 1 font-lock-function-name-face keep))
-  ;; Rewritten and extended for LaTeX2e by Ulrik Dickow <dickow@nbi.dk>.
-  '(("\\\\\\(begin\\|end\\|newcommand\\){\\([a-zA-Z0-9\\*]+\\)}"
-     2 font-lock-function-name-face)
-    ("\\\\\\(cite\\|label\\|pageref\\|ref\\){\\([^} \t\n]+\\)}"
-     2 font-lock-reference-face)
-    ("^[ \t]*\\\\def\\\\\\(\\(\\w\\|@\\)+\\)" 1 font-lock-function-name-face)
-    "\\\\\\([a-zA-Z@]+\\|.\\)"
-    ;; It seems a bit dubious to use `bold' and `italic' faces since we might
-    ;; not be able to display those fonts.
-    ;; LaTeX2e: \emph{This is emphasized}.
-    ("\\\\emph{\\([^}]+\\)}" 1 'italic keep)
-    ;; LaTeX2e: \textbf{This is bold}, \textit{...}, \textsl{...}
-    ("\\\\text\\(\\(bf\\)\\|it\\|sl\\){\\([^}]+\\)}"
-     3 (if (match-beginning 2) 'bold 'italic) keep)
-    ;; Old-style bf/em/it/sl. Stop at `\\' and un-escaped `&', for good tables.
-    ("\\\\\\(\\(bf\\)\\|em\\|it\\|sl\\)\\>\\(\\([^}&\\]\\|\\\\[^\\]\\)+\\)"
-     3 (if (match-beginning 2) 'bold 'italic) keep))
+;  ;; Rewritten and extended for LaTeX2e by Ulrik Dickow <dickow@nbi.dk>.
+;  '(("\\\\\\(begin\\|end\\|newcommand\\){\\([a-zA-Z0-9\\*]+\\)}"
+;     2 font-lock-function-name-face)
+;    ("\\\\\\(cite\\|label\\|pageref\\|ref\\){\\([^} \t\n]+\\)}"
+;     2 font-lock-reference-face)
+;    ("^[ \t]*\\\\def\\\\\\(\\(\\w\\|@\\)+\\)" 1 font-lock-function-name-face)
+;    "\\\\\\([a-zA-Z@]+\\|.\\)"
+;    ;; It seems a bit dubious to use `bold' and `italic' faces since we might
+;    ;; not be able to display those fonts.
+;    ;; LaTeX2e: \emph{This is emphasized}.
+;    ("\\\\emph{\\([^}]+\\)}" 1 'italic keep)
+;    ;; LaTeX2e: \textbf{This is bold}, \textit{...}, \textsl{...}
+;    ("\\\\text\\(\\(bf\\)\\|it\\|sl\\){\\([^}]+\\)}"
+;     3 (if (match-beginning 2) 'bold 'italic) keep)
+;    ;; Old-style bf/em/it/sl.  Stop at `\\' and un-escaped `&', for tables.
+;    ("\\\\\\(\\(bf\\)\\|em\\|it\\|sl\\)\\>\\(\\([^}&\\]\\|\\\\[^\\]\\)+\\)"
+;     3 (if (match-beginning 2) 'bold 'italic) keep))
+  ;;
+  ;; Rewritten with the help of Alexandra Bac <abac@welcome.disi.unige.it>.
+  (eval-when-compile
+    (let (;;
+	  ;; Names of commands whose arg should be fontified with fonts.
+	  (bold (regexp-opt '("bf" "textbf" "textsc" "textup"
+			      "boldsymbol" "pmb") t))
+	  (italic (regexp-opt '("it" "textit" "textsl" "emph") t))
+	  (type (regexp-opt '("texttt" "textmd" "textrm" "textsf") t))
+	  ;;
+	  ;; Names of commands whose arg should be fontified as a heading, etc.
+	  (headings (regexp-opt
+		     '("title" "chapter" "part" "begin" "end"
+		       "section" "subsection" "subsubsection"
+		       "section*" "subsection*" "subsubsection*"
+		       "paragraph" "subparagraph" "subsubparagraph"
+		       "newcommand" "renewcommand" "newenvironment"
+		       "newtheorem"
+		       "newcommand*" "renewcommand*" "newenvironment*"
+		       "newtheorem*")
+		     t))
+	  (variables (regexp-opt
+		      '("newcounter" "newcounter*" "setcounter" "addtocounter"
+			"setlength" "addtolength" "settowidth")
+		      t))
+	  (citations (regexp-opt
+		      '("cite" "label" "index" "glossary"
+			"footnote" "footnotemark" "footnotetext"
+			"ref" "pageref" "vref" "eqref" "caption")
+		      t))
+	  (includes (regexp-opt
+		     '("input" "include" "includeonly" "nofiles"
+		       "includegraphics" "includegraphics*" "usepackage"
+		       "bibliography" "epsfig" "psfig" "epsf")
+		     t))
+	  ;;
+	  ;; Names of commands that should be fontified.
+	  (specials (regexp-opt
+		     '("\\" "linebreak" "nolinebreak" "pagebreak" "nopagebreak"
+		       "newline" "newpage" "clearpage" "cleardoublepage"
+		       "displaybreak" "allowdisplaybreaks" "enlargethispage")
+		     t))
+	  (general "\\([a-zA-Z@]+\\|[^ \t\n]\\)")
+	  ;;
+	  ;; Miscellany.
+	  (slash "\\\\")
+	  (arg "\\(\\[[^]]*\\]\\)?{\\([^}]+\\)")
+	  )
+      (list
+       ;;
+       ;; Heading args.
+       (list (concat slash headings arg)
+	     (+ (regexp-opt-depth headings) (regexp-opt-depth arg))
+	     'font-lock-function-name-face)
+       ;;
+       ;; Variable args.
+       (list (concat slash variables arg)
+	     (+ (regexp-opt-depth variables) (regexp-opt-depth arg))
+	     'font-lock-variable-name-face)
+       ;;
+       ;; Citation args.
+       (list (concat slash citations arg)
+	     (+ (regexp-opt-depth citations) (regexp-opt-depth arg))
+	     'font-lock-reference-face)
+       ;;
+       ;; Include args.
+       (list (concat slash includes arg)
+	     (+ (regexp-opt-depth includes) (regexp-opt-depth arg))
+	     'font-lock-builtin-face)
+       ;;
+       ;; Definitions.  I think.
+       '("^[ \t]*\\\\def\\\\\\(\\(\\w\\|@\\)+\\)"
+	 1 font-lock-function-name-face)
+       ;;
+       ;; Command names, special and general.
+       (cons (concat slash specials) 'font-lock-warning-face)
+       (concat slash general)
+       ;;
+       ;; Font environments.  It seems a bit dubious to use `bold' and `italic'
+       ;; faces since we might not be able to display those fonts.
+       (list (concat slash bold arg)
+	     (+ (regexp-opt-depth bold) (regexp-opt-depth arg))
+	     '(quote bold) 'keep)
+       (list (concat slash italic arg)
+	     (+ (regexp-opt-depth italic) (regexp-opt-depth arg))
+	     '(quote italic) 'keep)
+       (list (concat slash type arg)
+	     (+ (regexp-opt-depth type) (regexp-opt-depth arg))
+	     '(quote bold-italic) 'keep)
+       ;;
+       ;; Old-style bf/em/it/sl.  Stop at `\\' and un-escaped `&', for tables.
+       '("\\\\\\(\\(bf\\)\\|em\\|it\\|sl\\)\\>\\(\\([^}&\\]\\|\\\\[^\\]\\)+\\)"
+	 3 (if (match-beginning 2) 'bold 'italic) keep)
+       )))
   "Default expressions to highlight in TeX modes.")
 
 ;;; User choices.
@@ -2261,15 +2369,12 @@ See also `c++-font-lock-extra-types'.")
 	     ;; Eric Hopper <hopper@omnifarious.mn.org> says these are new.
 	     "static_cast" "dynamic_cast" "const_cast" "reinterpret_cast") t)))
        (c++-operators
-	(mapconcat 'identity
-	 (mapcar 'regexp-quote
-		 ;; Taken from Stroustrup, minus keywords otherwise fontified.
-		 (sort '("+" "-" "*" "/" "%" "^" "&" "|" "~" "!" "=" "<" ">"
-			 "+=" "-=" "*=" "/=" "%=" "^=" "&=" "|=" "<<" ">>"
-			 ">>=" "<<=" "==" "!=" "<=" ">=" "&&" "||" "++" "--"
-			 "->*" "," "->" "[]" "()")
-		       #'(lambda (a b) (> (length a) (length b)))))
-	 "\\|"))
+	(eval-when-compile
+	  (regexp-opt
+	   ;; Taken from Stroustrup, minus keywords otherwise fontified.
+	   '("+" "-" "*" "/" "%" "^" "&" "|" "~" "!" "=" "<" ">" "+=" "-="
+	     "*=" "/=" "%=" "^=" "&=" "|=" "<<" ">>" ">>=" "<<=" "==" "!="
+	     "<=" ">=" "&&" "||" "++" "--" "->*" "," "->" "[]" "()"))))
        (c++-type-types
 	`(mapconcat 'identity
 	  (cons 
