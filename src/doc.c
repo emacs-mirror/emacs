@@ -184,7 +184,9 @@ stored in the `etc/DOC' file.")
   tem = Fget (sym, prop);
   if (XTYPE (tem) == Lisp_Int)
     tem = get_doc_string (XINT (tem) > 0 ? XINT (tem) : - XINT (tem));
-  return Fsubstitute_command_keys (tem);
+  if (XTYPE (tem) == Lisp_String)
+    return Fsubstitute_command_keys (tem);
+  return tem;
 }
 
 DEFUN ("Snarf-documentation", Fsnarf_documentation, Ssnarf_documentation,
