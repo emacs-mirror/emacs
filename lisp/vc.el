@@ -777,9 +777,7 @@ files in or below it."
 	)
     (if (zerop (vc-backend-diff file rel1 rel2))
 	(message "No changes to %s between %s and %s." file rel1 rel2)
-      (pop-to-buffer "*vc*")
-    )
-  )
+      (pop-to-buffer "*vc*"))))
 
 ;; Header-insertion code
 
