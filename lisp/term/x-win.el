@@ -693,10 +693,22 @@ This is in addition to the primary selection.")
 ;; Apply a geometry resource to the initial frame.  Put it at the end
 ;; of the alist, so that anything specified on the command line takes
 ;; precedence.
-(let ((res-geometry (x-get-resource "geometry" "Geometry")))
+(let* ((res-geometry (x-get-resource "geometry" "Geometry"))
+       parsed)
   (if res-geometry
-      (setq initial-frame-alist (append initial-frame-alist
-					(x-parse-geometry res-geometry)))))
+      (progn
+	(setq parsed (x-parse-geometry res-geometry))
+	;; All geometry parms apply to the initial frame.
+	(setq initial-frame-alist (append initial-frame-alist parsed))
+	;; The size parms apply to all frames.
+	(if (assq 'height parsed)
+	    (setq default-frame-alist
+		  (cons (cons 'height (cdr (assq 'height parsed)))
+			default-frame-alist)))
+	(if (assq 'width parsed)
+	    (setq default-frame-alist
+		  (cons (cons 'width (cdr (assq 'width parsed)))
+			default-frame-alist))))))
 
 ;; Check the reverseVideo resource.
 (let ((case-fold-search t))
