@@ -40,6 +40,12 @@ click in a scroll bar might be ignored by the scroll bar widget.  This
 is probably a bug in Xaw3d; when Xaw3d is compiled with arrows, the
 problem disappears.
 
+* Clicking C-mouse-2 in the scroll bar doesn't split the window.
+
+This currently doesn't work with scroll-bar widgets (and we don't know
+a good way of implementing it with widgets).  If Emacs is configured
+--without-toolkit-scroll-bars, C-mouse-2 on the scroll bar does work.
+
 * Some accented ISO-8859-1 characters or umlauts are displayed as | or _.
 
 Try other font set sizes (S-mouse-1).  If the problem persists with
