@@ -1248,12 +1248,12 @@ If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[u
 (defun diff-current-defun ()
   "Find the name of function at point.
 For use in `add-log-current-defun-function'."
-    (save-excursion
-      (when (looking-at diff-hunk-header-re)
-	(forward-line 1)
-	(while (and (looking-at " ") (not (zerop (forward-line 1))))))
-  (destructuring-bind (buf line-offset pos src dst &optional switched)
-      (diff-find-source-location)
+  (save-excursion
+    (when (looking-at diff-hunk-header-re)
+      (forward-line 1)
+      (while (and (looking-at " ") (not (zerop (forward-line 1))))))
+    (destructuring-bind (buf line-offset pos src dst &optional switched)
+	(diff-find-source-location)
       (beginning-of-line)
       (or (when (memq (char-after) '(?< ?-))
 	    ;; Cursor is pointing at removed text.  This could be a removed
