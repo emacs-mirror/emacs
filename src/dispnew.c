@@ -45,8 +45,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "xterm.h"
 #endif	/* HAVE_X_WINDOWS */
 
-extern char *getenv ();
-
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -1999,9 +1997,9 @@ init_display ()
   if (! display_arg)
     {
 #ifdef VMS
-      display_arg = getenv ("DECW$DISPLAY");
+      display_arg = (getenv ("DECW$DISPLAY") != 0);
 #else
-      display_arg = getenv ("DISPLAY");
+      display_arg = (getenv ("DISPLAY") != 0);
 #endif
     }
 
