@@ -1,5 +1,8 @@
 2001-11-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* xdisp.c (message_dolog): Remove unused variables `gcpro2',
+	`gcpro3' and `gcpro4'.
+
 	* coding.c (decode_coding_string): Remove unused variable
 	`gcpro1'.
 
