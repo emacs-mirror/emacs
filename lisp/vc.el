@@ -73,8 +73,7 @@
 ;;;;;;;;;;;;;;;;; Backend-specific functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; for each operation FUN, the backend should provide a function vc-BACKEND-FUN.
-;; Operations marked with a `-' instead of a `*' have a sensible default
-;; behavior.
+;; Operations marked with a `-' instead of a `*' are optional.
 
 ;; * registered (file)
 ;; * state (file)
@@ -91,6 +90,8 @@
 ;; - steal-lock (file &optional version)
 ;;     Only required if files can be locked by somebody else.
 ;; * register (file rev comment)
+;; * unregister (file backend)
+;; - receive-file (file move)
 ;; - responsible-p (file)
 ;;     Should also work if FILE is a directory (ends with a slash).
 ;; - could-register (file)
@@ -135,6 +136,7 @@
 ;; * print-log (file)
 ;;     Insert the revision log of FILE into the current buffer.
 ;; - show-log-entry (version)
+;; - comment-history (file)
 ;; - update-changelog (files)
 ;;     Find changelog entries for FILES, or for all files at or below
 ;;     the default-directory if FILES is nil.
@@ -372,6 +374,7 @@ and that its contents match what the master file says."
 (defvar vc-prefix-map
   (let ((map (make-sparse-keymap)))
     (define-key map "a" 'vc-update-change-log)
+    (define-key map "b" 'vc-switch-backend)
     (define-key map "c" 'vc-cancel-version)
     (define-key map "d" 'vc-directory)
     (define-key map "g" 'vc-annotate)
@@ -833,6 +836,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
     (if (not (vc-registered file))
 	(vc-register verbose comment)
       (vc-recompute-state file)
+      (vc-mode-line file)
       (setq state (vc-state file))
       (cond
        ;; up-to-date
@@ -841,8 +845,13 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 	(cond
 	 (verbose
 	  ;; go to a different version
-	  (setq version (read-string "Branch or version to move to: "))
-	  (vc-checkout file (eq (vc-checkout-model file) 'implicit) version))
+	  (setq version 
+		(read-string "Branch, version, or backend to move to: "))
+	  (let ((vsym (intern (upcase version))))
+	    (if (member vsym vc-handled-backends)
+		(vc-transfer-file file vsym)
+	      (vc-checkout file (eq (vc-checkout-model file) 'implicit) 
+			   version))))
 	 ((not (eq (vc-checkout-model file) 'implicit))
 	  ;; check the file out
 	  (vc-checkout file t))
@@ -876,8 +885,13 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 	  (if (yes-or-no-p "Revert to master version? ")
 	      (vc-revert-buffer)))
 	 (t ;; normal action
-	  (if verbose (setq version (read-string "New version: ")))
-	  (vc-checkin file version comment))))
+	  (if (not verbose)
+	      (vc-checkin file nil comment)
+	    (setq version (read-string "New version or backend: "))
+	    (let ((vsym (intern (upcase version))))
+	      (if (member vsym vc-handled-backends)
+		  (vc-transfer-file file vsym)
+		(vc-checkin file version comment)))))))
        
        ;; locked by somebody else
        ((stringp state)
@@ -1044,8 +1058,8 @@ first backend that could register the file is used."
   
   (vc-start-entry buffer-file-name
                   (if set-version
-                      (read-string "Initial version level for %s: "
-                                   (buffer-name))
+                      (read-string (format "Initial version level for %s: "
+					   (buffer-name)))
                     ;; TODO: Use backend-specific init version.
                     vc-default-init-version)
                   (or comment (not vc-initial-comment))
@@ -1092,6 +1106,15 @@ The default is to return nil always."
   "Return non-nil if BACKEND could be used to register FILE.
 The default implementation returns t for all files."
   t)
+
+(defun vc-unregister (file backend)
+  "Unregister FILE from version control system BACKEND."
+  (vc-call-backend backend 'unregister file)
+  (vc-file-clearprops file))
+
+(defun vc-default-unregister (backend file)
+  "Default implementation of vc-unregister, signals an error."
+  (error "Unregistering files is not supported for %s" backend))
 
 (defun vc-resynch-window (file &optional keep noquery)
   "If FILE is in the current buffer, either revert or unvisit it.
@@ -1488,7 +1511,9 @@ files in or below it."
     ;; Gnus-5.8.5 sets up an autoload for diff-mode, even if it's
     ;; not available.  Work around that.
     (if (require 'diff-mode nil t) (diff-mode))
-    (vc-exec-after '(progn (goto-char (point-min))
+    (vc-exec-after '(progn (if (eq (buffer-size) 0)
+			     (insert "No differences found.\n"))
+			   (goto-char (point-min))
 			   (shrink-window-if-larger-than-buffer)))
     t))
 
@@ -2154,6 +2179,79 @@ A prefix argument NOREVERT means do not revert the buffer afterwards."
        (t ;; revert buffer to file on disk
 	(vc-resynch-buffer file t t)))
       (message "Version %s has been removed from the master" target))))
+
+;;;autoload
+(defun vc-switch-backend (file backend)
+  "Make BACKEND the current version control system for FILE.  
+FILE must already be registered in BACKEND.  The change is not
+permanent, only for the current session.  This function only changes
+VC's perspective on FILE, it does not register or unregister it."
+  (interactive 
+   (list
+    buffer-file-name
+    (intern (upcase (read-string "Switch to backend: ")))))
+  (vc-file-clearprops file)
+  (vc-file-setprop file 'vc-backend backend)
+  (vc-resynch-buffer file t t))
+
+(defun vc-index-of (backend)
+  "Return the index of BACKEND in vc-handled-backends."
+  (- (length vc-handled-backends) 
+     (length (memq backend vc-handled-backends))))
+
+;;;autoload
+(defun vc-transfer-file (file new-backend)
+  "Transfer FILE to another version control system NEW-BACKEND.  
+If NEW-BACKEND has a higher precedence than FILE's current backend
+\(i.e. it comes earlier in vc-handled-backends), then register FILE in
+NEW-BACKEND, using the version number from the current backend as the
+base level.  If NEW-BACKEND has a lower precedence than the current
+backend, then commit all changes that were made under the current
+backend to NEW-BACKEND, and unregister FILE from the current backend.
+\(If FILE is not yet registered under NEW-BACKEND, register it.)"
+  (let ((old-backend (vc-backend file)))
+    (if (eq old-backend new-backend)
+	(error "%s is the current backend of %s"
+	       new-backend file)
+      (with-vc-properties
+       file
+       (vc-call-backend new-backend 'receive-file file 
+			(< (vc-index-of old-backend)
+			   (vc-index-of new-backend)))
+       `((vc-backend ,new-backend))))
+    (vc-resynch-buffer file t t)))
+
+(defun vc-default-receive-file (backend file move)
+  "Let BACKEND receive FILE from another version control system.
+If MOVE is non-nil, then FILE is unregistered from the old
+backend and its comment history is used as the initial contents
+of the log entry buffer."
+  (let ((old-backend (vc-backend file))
+	(rev (vc-workfile-version file))
+	(state (vc-state file))
+	(comment (and move
+		      (vc-find-backend-function old-backend 'comment-history)
+		      (vc-call 'comment-history file))))
+    (if move (vc-unregister file old-backend))
+    (vc-file-clearprops file)
+    (if (not (vc-call-backend backend 'registered file))
+	(with-vc-properties 
+	 file
+	 ;; TODO: If the file was 'edited under the old backend,
+	 ;; this should actually register the version 
+	 ;; it was based on.
+	 (vc-call-backend backend 'register file rev "")
+	 `((vc-backend ,backend)))
+      (vc-file-setprop file 'vc-backend backend)
+      (vc-file-setprop file 'vc-state 'edited)
+      (set-file-modes file
+		      (logior (file-modes file) 128)))
+    (when (or move (eq state 'edited))
+      (vc-file-setprop file 'vc-state 'edited)
+      ;; TODO: The comment history should actually become the
+      ;; initial contents of the log entry buffer.
+      (and comment (ring-insert vc-comment-ring comment))
+      (vc-checkin file))))
 
 (defun vc-rename-master (oldmaster newfile templates)
   "Rename OLDMASTER to be the master file for NEWFILE based on TEMPLATES."
