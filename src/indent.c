@@ -401,6 +401,11 @@ struct position val_compute_motion;
    and vpos give its cartesian location.  I'm not clear on what the
    other members are.
 
+   Note that FROMHPOS and TOHPOS should be expressed in real screen
+   columns, taking HSCROLL and the truncation glyph at the left margin
+   into account.  That is, beginning-of-line moves you to the hpos
+   -HSCROLL + (HSCROLL > 0).
+
    For example, to find the buffer position of column COL of line LINE
    of a certain window, pass the window's starting location as FROM
    and the window's upper-left coordinates as FROMVPOS and FROMHPOS.
@@ -422,12 +427,12 @@ struct position val_compute_motion;
 	    FRAME_HAS_VERTICAL_SCROLL_BARS (XFRAME (WINDOW_FRAME (window)))
 	  and frame_width = FRAME_WIDTH (XFRAME (window->frame))
 
-	Or,
-	  window_internal_width (w) - 1
+   Or you can let window_internal_width do this all for you, and write:
+	window_internal_width (w) - 1
 
    The `-1' accounts for the continuation-line backslashes; the rest
    accounts for window borders if the window is split horizontally, and
-   the scroll bars if the frame supports them.  */
+   the scroll bars if they are turned on.  */
 
 struct position *
 compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, tab_offset)
@@ -537,7 +542,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	      vpos++;
 	      hpos = 0;
 	      hpos -= hscroll;
-	      if (hscroll > 0) hpos++; /* Count the $ on column 0 */
+	      if (hscroll > 0) hpos++; /* Truncation glyph on column 0 */
 	      tab_offset = 0;
 	    }
 	}
