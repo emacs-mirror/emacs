@@ -450,9 +450,11 @@ This returns ARGS with the arguments that have been processed removed."
 The argument FRAME specifies which frame to try.
 The value may be different for frames on different X displays."
   (or frame (setq frame (selected-frame)))
-  (let ((all-colors x-colors)
-	(this-color nil)
-	(defined-colors nil))
+  (let* ((color-map-colors (mapcar (lambda (clr) (car clr)) w32-color-map))
+	 (all-colors (or color-map-colors x-colors))
+	 (this-color nil)
+	 (defined-colors nil))
+    (message "Defining colors...")
     (while all-colors
       (setq this-color (car all-colors)
 	    all-colors (cdr all-colors))
