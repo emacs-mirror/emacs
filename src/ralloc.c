@@ -1228,6 +1228,7 @@ r_alloc_check ()
 
 #include <sys/types.h>
 #include <sys/mman.h>
+
 #ifndef MAP_ANON
 #ifdef MAP_ANONYMOUS
 #define MAP_ANON MAP_ANONYMOUS
@@ -1235,11 +1236,14 @@ r_alloc_check ()
 #define MAP_ANON 0
 #endif
 #endif
+
 #include <stdio.h>
 #include <errno.h>
-#if !MAP_ANON
+
+#if MAP_ANON == 0
 #include <fcntl.h>
 #endif
+
 
 /* Memory is allocated in regions which are mapped using mmap(2).
    The current implementation lets the system select mapped
@@ -1279,14 +1283,15 @@ struct mmap_region
 
 static struct mmap_region *mmap_regions;
 
-/* Temporary storage for mmap_set_vars, see there.  */
-
-static struct mmap_region *mmap_regions_1;
-
 /* File descriptor for mmap.  If we don't have anonymous mapping,
    /dev/zero will be opened on it.  */
 
-static int mmap_fd = -1;
+static int mmap_fd;
+
+/* Temporary storage for mmap_set_vars, see there.  */
+
+static struct mmap_region *mmap_regions_1;
+static int mmap_fd_1;
 
 /* Value is X rounded up to the next multiple of N.  */
 
@@ -1317,7 +1322,7 @@ static struct mmap_region *mmap_find P_ ((POINTER_TYPE *, POINTER_TYPE *));
 POINTER_TYPE *r_alloc P_ ((POINTER_TYPE **, size_t));
 POINTER_TYPE *r_re_alloc P_ ((POINTER_TYPE **, size_t));
 void r_alloc_free P_ ((POINTER_TYPE **ptr));
-void r_alloc_init_fd ();
+
 
 /* Return a region overlapping address range START...END, or null if
    none.  END is not including, i.e. the last byte in the range
@@ -1453,14 +1458,13 @@ mmap_set_vars (restore_p)
      int restore_p;
 {
   struct mmap_region *r;
-  static int fd;
 
   if (restore_p)
     {
       mmap_regions = mmap_regions_1;
+      mmap_fd = mmap_fd_1;
       for (r = mmap_regions; r; r = r->next)
 	*r->var = MMAP_USER_AREA (r);
-      mmap_fd = fd;
     }
   else
     {
@@ -1468,6 +1472,7 @@ mmap_set_vars (restore_p)
 	*r->var = NULL;
       mmap_regions_1 = mmap_regions;
       mmap_regions = NULL;
+      mmap_fd_1 = mmap_fd;
       mmap_fd = -1;
     }
 }
@@ -1505,12 +1510,7 @@ r_alloc (var, nbytes)
   void *p;
   size_t map;
 
-  if (!r_alloc_initialized)
-    r_alloc_init ();
-#if defined (REL_ALLOC_MMAP) && !MAP_ANON
-  if (mmap_fd == -1)
-    r_alloc_init_fd ();
-#endif
+  r_alloc_init ();
 
   map = ROUND (nbytes + MMAP_REGION_STRUCT_SIZE, page_size);
   p = mmap (NULL, map, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE,
@@ -1554,12 +1554,7 @@ r_re_alloc (var, nbytes)
 {
   POINTER_TYPE *result;
   
-  if (!r_alloc_initialized)
-    r_alloc_init ();
-#if defined (REL_ALLOC_MMAP) && !MAP_ANON
-  if (mmap_fd == -1)
-    r_alloc_init_fd ();
-#endif
+  r_alloc_init ();
 
   if (*var == NULL)
     result = r_alloc (var, nbytes);
@@ -1627,13 +1622,8 @@ void
 r_alloc_free (var)
      POINTER_TYPE **var;
 {
-  if (!r_alloc_initialized)
-    r_alloc_init ();
-#if defined (REL_ALLOC_MMAP) && !MAP_ANON
-  if (mmap_fd == -1)
-    r_alloc_init_fd ();
-#endif
-
+  r_alloc_init ();
+  
   if (*var)
     {
       mmap_free (MMAP_REGION (*var));
@@ -1656,30 +1646,31 @@ r_alloc_free (var)
 extern POINTER (*__morecore) ();
 #endif
 
-/* Set up the file descriptor for non-anonymous mmapping.  */
-
-void
-r_alloc_init_fd ()
-{
-#ifdef REL_ALLOC_MMAP
-#if !MAP_ANON
-  /* No anonymous mmap -- we need the file descriptor.  */
-  mmap_fd = open ("/dev/zero", O_RDONLY);
-  if (mmap_fd < 0)
-    fatal ("cannot open /dev/zero");
-#endif
-#endif
-}
 
 /* Initialize various things for memory allocation.  */
 
 static void
 r_alloc_init ()
 {
+#if defined REL_ALLOC_MMAP && MAP_ANON == 0
+  /* The value of mmap_fd is initially 0 in temacs, and -1
+     in a dumped Emacs.  */
+  if (mmap_fd <= 0)
+    {
+      /* No anonymous mmap -- we need the file descriptor.  */
+      mmap_fd = open ("/dev/zero", O_RDONLY);
+      if (mmap_fd == -1)
+	fatal ("Cannot open /dev/zero: %s", emacs_strerror (errno));
+    }
+#endif /* REL_ALLOC_MMAP && MAP_ANON == 0 */
+
   if (r_alloc_initialized)
     return;
-
   r_alloc_initialized = 1;
+#if defined REL_ALLOC_MMAP && MAP_ANON != 0
+  mmap_fd = -1;
+#endif
+  
   page_size = PAGE;
 #ifndef SYSTEM_MALLOC
   real_morecore = __morecore;
@@ -1724,6 +1715,6 @@ r_alloc_init ()
 	 (char *) first_heap->end - (char *) first_heap->start);
   virtual_break_value = break_value = first_heap->bloc_start = first_heap->end;
 #endif
+  
   use_relocatable_buffers = 1;
-  r_alloc_init_fd ();
 }
