@@ -6333,8 +6333,8 @@ x_list_fonts (f, pattern, size, maxnames)
 		  if (NILP (Fassoc (tem, list)))
 		    {
 		      if (STRINGP (Vx_pixel_size_width_font_regexp)
-			  && (fast_string_match_ignore_case
-			      (Vx_pixel_size_width_font_regexp, names[i])
+			  && ((fast_c_string_match_ignore_case
+			       (Vx_pixel_size_width_font_regexp, names[i]))
 			      >= 0))
 			/* We can set the value of PIXEL_SIZE to the
 			  width of this font.  */
