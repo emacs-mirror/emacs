@@ -146,9 +146,9 @@ File names returned are absolute."
 	(setq tagname last-tag))
       (setq last-tag tagname)
       (while (progn
-	       (if (not (search-forward
-			 (if exact (concat tagname "(") tagname)
-			 nil t))
+	       (if (not (if exact
+			    (re-search-forward (concat "\\W" tagname "\\W") nil t)
+			  (search-forward tagname nil t)))
 		   (error "No %sentries containing %s"
 			  (if next "more " "") tagname))
 	       (not (looking-at "[^\n\177]*\177"))))
