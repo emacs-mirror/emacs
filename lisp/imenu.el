@@ -116,6 +116,14 @@ Another non-nil value means always display the index in a completion buffer."
 		 (other :tag "Always" t))
   :group 'imenu)
 
+(defcustom imenu-after-jump-hook nil
+  "*Hooks called after jumping to a place in the buffer.
+
+Useful things to use here include `reposition-window', `recenter', and
+\(lambda () (recenter 0)) to show at top of screen."
+  :type 'hook
+  :group 'imenu)
+
 ;;;###autoload
 (defcustom imenu-sort-function nil
   "*The function to use for sorting the index mouse-menu.
@@ -255,6 +263,22 @@ It should return the name for that index item.
 This variable is local in all buffers.")
 ;;;###autoload
 (make-variable-buffer-local 'imenu-extract-index-name-function)
+
+;;;###autoload
+(defvar imenu-name-lookup-function nil
+  "Function to compare string with index item.
+
+This function will be called with two strings, and should return
+non-nil if they match.
+
+If nil, comparison is done with `string='.
+Set this to some other function for more advanced comparisons,
+such as \"begins with\" or \"name matches and number of
+arguments match\".
+
+This variable is local in all buffers.")
+;;;###autoload
+(make-variable-buffer-local 'imenu-name-lookup-function)
 
 ;;;###autoload
 (defvar imenu-default-goto-function 'imenu-default-goto-function
@@ -649,7 +673,9 @@ as a way for the user to ask to recalculate the buffer's index alist."
       (cond ((listp tail)
 	     (if (setq res (imenu--in-alist str tail))
 		 (setq alist nil)))
-	    ((string= str head)
+	    ((if imenu-name-lookup-function
+                 (funcall imenu-name-lookup-function str head)
+               (string= str head))
 	     (setq alist nil res elt))))
     res))
 
@@ -1072,7 +1098,8 @@ for more information."
 	       (position (if is-special-item
 			     (cadr index-item) (cdr index-item)))
 	       (rest (if is-special-item (cddr index-item))))
-	   (apply function (car index-item) position rest)))))
+	   (apply function (car index-item) position rest))))
+  (run-hooks 'imenu-after-jump-hook))
 
 (provide 'imenu)
 
