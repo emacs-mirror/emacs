@@ -1912,6 +1912,9 @@ note_mouse_movement (frame, event)
     }
 }
 
+/* This is used for debugging, to turn off note_mouse_highlight.  */
+static int disable_mouse_highlight;
+
 /* Take proper action when the mouse has moved to position X, Y on frame F
    as regards highlighting characters that have mouse-face properties.
    Also dehighlighting chars where the mouse was before.  */
@@ -1924,6 +1927,9 @@ note_mouse_highlight (f, x, y)
   XRectangle new_glyph;
   Lisp_Object window;
   struct window *w;
+
+  if (disable_mouse_highlight)
+    return;
 
   mouse_face_mouse_x = x;
   mouse_face_mouse_y = y;
@@ -2059,7 +2065,10 @@ note_mouse_highlight (f, x, y)
 
 /* Find the row and column of position POS in window WINDOW.
    Store them in *COLUMNP and *ROWP.
-   This assumes display in WINDOW is up to date.  */
+   This assumes display in WINDOW is up to date.
+   If POS is above start of WINDOW, return coords
+   of start of first screen line.
+   If POS is after end of WINDOW, return coords of end of last screen line.  */
 
 static int
 fast_find_position (window, pos, columnp, rowp)
@@ -2076,6 +2085,7 @@ fast_find_position (window, pos, columnp, rowp)
   int height = XFASTINT (w->height) - ! MINI_WINDOW_P (w);
   int width = window_internal_width (w);
   int *charstarts;
+  int lastcol;
 
   for (i = 0;
        i < height;
@@ -2089,14 +2099,21 @@ fast_find_position (window, pos, columnp, rowp)
     }
 
   charstarts = FRAME_CURRENT_GLYPHS (f)->charstarts[top + row];
+  lastcol = left;
   for (i = 0; i < width; i++)
-    if (charstarts[left + i] == pos)
-      {
-	*rowp = row + top;
-	*columnp = i + left;
-	return 1;
-      }
+    {
+      if (charstarts[left + i] == pos)
+	{
+	  *rowp = row + top;
+	  *columnp = i + left;
+	  return 1;
+	}
+      else if (charstarts[left + i] > pos)
+	lastcol = left + i;
+    }
 
+  *rowp = row + top;
+  *columnp = lastcol;
   return 0;
 }
 
