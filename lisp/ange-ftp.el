@@ -4835,7 +4835,7 @@ Other orders of $ and _ seem to all work just fine.")
 ;;	  (cons '(vms . ange-ftp-dired-vms-ls-trim)
 ;;		ange-ftp-dired-ls-trim-alist)))	
 
-(defun ange-ftp-vms-sans-version (name)
+(defun ange-ftp-vms-sans-version (name &rest args)
   (save-match-data
     (if (string-match ";[0-9]+$" name)
 	(substring name 0 (match-beginning 0))
