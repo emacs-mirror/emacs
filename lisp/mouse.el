@@ -647,15 +647,14 @@ This must be bound to a button-down mouse event."
 				 (overlay-end mouse-secondary-overlay)))))))))
 
 (defun mouse-yank-secondary (click)
-  "Insert the last stretch of killed text at the position clicked on.
-Prefix arguments are interpreted as with \\[yank]."
+  "Insert the secondary selection at the position clicked on."
   (interactive "e")
   (save-excursion
     (set-buffer (window-buffer (posn-window (event-start click))))
     (goto-char (posn-point (event-start click)))
     (insert (x-get-selection 'SECONDARY))))
 
-(defun mouse-kill-secondary (click)
+(defun mouse-kill-secondary ()
   "Kill the text in the secondary selection.
 This is intended more as a keyboard command than as a mouse command
 but it can work as either one.
@@ -663,12 +662,14 @@ but it can work as either one.
 The current buffer (in case of keyboard use), or the buffer clicked on,
 must be the one that the secondary selection is in.  This requirement
 is to prevent accidents."
-  (interactive "e")
-  (or (eq (overlay-buffer mouse-secondary-overlay)
-	  (if (listp click)
-	      (window-buffer (posn-window (event-start click)))
-	    (current-buffer)))
-      (error "Select or click on the buffer where the secondary selection is"))
+  (interactive)
+  (let* ((keys (this-command-keys))
+	 (click (elt keys (1- (length keys)))))
+    (or (eq (overlay-buffer mouse-secondary-overlay)
+	    (if (listp click)
+		(window-buffer (posn-window (event-start click)))
+	      (current-buffer)))
+	(error "Select or click on the buffer where the secondary selection is")))
   (save-excursion
     (set-buffer (overlay-buffer mouse-secondary-overlay))
     (kill-region (overlay-start mouse-secondary-overlay)
@@ -1210,7 +1211,7 @@ and selects that window."
 (defvar x-fixed-font-alist
   '("Font menu"
     ("Misc"
-     ("6x10" "-misc-fixed-medium-r-semicondensed--10-110-75-75-c-60-*-1")
+     ("6x10" "-misc-fixed-medium-r-normal--10-100-75-75-c-60-*-1")
      ("6x12" "-misc-fixed-medium-r-semicondensed--12-110-75-75-c-60-*-1")
      ("6x13" "-misc-fixed-medium-r-semicondensed--13-120-75-75-c-60-*-1")
      ("lucida 13"
