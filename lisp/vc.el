@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.301 2001/07/30 08:17:20 gerd Exp $
+;; $Id: vc.el,v 1.302 2001/07/30 08:18:04 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -475,6 +475,14 @@ VC can handle."
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
+  :group 'vc
+  :version "21.1")
+
+;;;###autoload
+(defcustom vc-checkout-hook nil
+  "*Normal hook (list of functions) run after a file has been checked out.
+See `run-hooks'."
+  :type 'hook
   :group 'vc
   :version "21.1")
 
@@ -1442,7 +1450,8 @@ REV defaults to the latest revision."
 			'needs-patch)
 		    'edited))
      (vc-checkout-time . ,(nth 5 (file-attributes file)))))
-  (vc-resynch-buffer file t t))
+  (vc-resynch-buffer file t t)
+  (run-hooks 'vc-checkout-hook))
 
 (defun vc-steal-lock (file rev owner)
   "Steal the lock on FILE."
