@@ -121,7 +121,7 @@ and then returns."
 		     (if three-step-help
 			 (progn
 			   (setq key (let ((overriding-local-map local-map))
-				     (read-key-sequence nil)))
+				       (read-key-sequence nil)))
 			   ;; Make the HELP key translate to C-h.
 			   (if (lookup-key function-key-map key)
 			       (setq key (lookup-key function-key-map key)))
