@@ -544,7 +544,7 @@ If NOERROR is non-nil, return nil on failure."
 	(setq font (or font
 		       (face-font 'default frame)
 		       (cdr (assq 'font (frame-parameters frame)))))
-	(make-face-bold-internal face frame font))
+	(and font (make-face-bold-internal face frame font)))
       (or (not (equal ofont (face-font face)))
 	  (and (not noerror)
 	       (error "No bold version of %S" font))))))
@@ -582,7 +582,7 @@ If NOERROR is non-nil, return nil on failure."
 	(setq font (or font
 		       (face-font 'default frame)
 		       (cdr (assq 'font (frame-parameters frame)))))
-	(make-face-italic-internal face frame font))
+	(and font (make-face-italic-internal face frame font)))
       (or (not (equal ofont (face-font face)))
 	  (and (not noerror)
 	       (error "No italic version of %S" font))))))
@@ -618,7 +618,7 @@ If NOERROR is non-nil, return nil on failure."
 	(setq font (or font
 		       (face-font 'default frame)
 		       (cdr (assq 'font (frame-parameters frame)))))
-	(make-face-bold-italic-internal face frame font))
+	(and font (make-face-bold-italic-internal face frame font)))
       (or (not (equal ofont (face-font face)))
 	  (and (not noerror)
 	       (error "No bold italic version of %S" font))))))
@@ -672,7 +672,7 @@ If NOERROR is non-nil, return nil on failure."
 	(setq font1 (or font1
 			(face-font 'default frame)
 			(cdr (assq 'font (frame-parameters frame)))))
-	(setq font (x-make-font-unbold font1))
+	(setq font (and font1 (x-make-font-unbold font1)))
 	(if font (internal-try-face-font face font frame)))
       (or (not (equal ofont (face-font face)))
 	  (and (not noerror)
@@ -704,7 +704,7 @@ If NOERROR is non-nil, return nil on failure."
 	(setq font1 (or font1
 			(face-font 'default frame)
 			(cdr (assq 'font (frame-parameters frame)))))
-	(setq font (x-make-font-unitalic font1))
+	(setq font (and font1 (x-make-font-unitalic font1)))
 	(if font (internal-try-face-font face font frame)))
       (or (not (equal ofont (face-font face)))
 	  (and (not noerror)
