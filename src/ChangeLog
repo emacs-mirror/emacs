@@ -1,5 +1,9 @@
 2001-10-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.c (Fframe_parameter): Fix a bug whereby some
+	``artificial'' frame parameters, like `minibuffer' were not
+	obtained by calling Fframe_parameters.
+
 	* xterm.c (show_mouse_face): Clean up.  Recognize overwritten
 	cursor differently.
 
