@@ -1709,7 +1709,9 @@ This is a sub-directory of LEIM directory.")
 ;;;###autoload
 (defun quail-update-leim-list-file (dirname)
   "Update entries for Quail packages in LEIM list file of directory DIRNAME.
-LEIM is a library of Emacs input method."
+LEIM is a directory containing Emacs input methods;
+normally, it should specify the `leim' subdirectory
+of the Emacs source tree."
   (interactive "FDirectory of LEIM: ")
   (setq dirname (file-name-as-directory (expand-file-name dirname)))
   (let ((quail-dir (concat dirname quail-directory-name))
@@ -1756,9 +1758,8 @@ LEIM is a library of Emacs input method."
 	  ;; Insert entries for Quail.
 	  (while pkg-list
 	    (message "Checking %s ..." (car pkg-list))
-	    (setq pkg-buf (find-file-noselect (car pkg-list) t t))
-	    (save-excursion
-	      (set-buffer pkg-buf)
+	    (with-temp-buffer
+	      (insert-file-contents (car pkg-list))
 	      (goto-char (point-min))
 	      (while (search-forward "(quail-define-package" nil t)
 		(goto-char (match-beginning 0))
@@ -1768,17 +1769,17 @@ LEIM is a library of Emacs input method."
 		    (insert (format "(register-input-method
  %S %S '%s
  %S %S
- %S)\n" (nth 1 form)			; PACKAGE-NAME
- (nth 2 form)				; LANGUAGE
- 'quail-use-package			; ACTIVATE-FUNC
- (nth 3 form)				; PACKAGE-TITLE
- (progn					; PACKAGE-DESCRIPTION (one line)
-   (string-match ".*" (nth 5 form))
-   (match-string 0 (nth 5 form)))
- (file-relative-name			; PACKAGE-FILENAME
-  (file-name-sans-extension (car pkg-list)) dirname)
- ))))))
-	    (kill-buffer pkg-buf)
+ %S)\n"
+				    (nth 1 form)	; PACKAGE-NAME
+				    (nth 2 form)	; LANGUAGE
+				    'quail-use-package	; ACTIVATE-FUNC
+				    (nth 3 form)	; PACKAGE-TITLE
+				    (progn    ; PACKAGE-DESCRIPTION (one line)
+				      (string-match ".*" (nth 5 form))
+				      (match-string 0 (nth 5 form)))
+				    (file-relative-name ; PACKAGE-FILENAME
+				     (file-name-sans-extension (car pkg-list))
+				     dirname)))))))
 	    (setq pkg-list (cdr pkg-list)))
 	  (save-excursion
 	    (set-buffer list-buf)
