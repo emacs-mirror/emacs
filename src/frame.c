@@ -754,19 +754,18 @@ and nil for X and Y.")
   Lisp_Object x, y;
   unsigned long long_dummy;
 
+  f = selected_frame;
+  x = y = Qnil;
+
+  /* It's okay for the hook to refrain from storing anything.  */
   if (mouse_position_hook)
     (*mouse_position_hook) (&f,
 			    &lispy_dummy, &party_dummy,
 			    &x, &y,
 			    &long_dummy);
-  else
-    {
-      f = selected_frame;
-      x = y = Qnil;
-    }
 
   XSET (lispy_dummy, Lisp_Frame, f);
-  return Fcons (lispy_dummy, Fcons (make_number (x), make_number (y)));
+  return Fcons (lispy_dummy, Fcons (x, y));
 }
 
 DEFUN ("set-mouse-position", Fset_mouse_position, Sset_mouse_position, 3, 3, 0,
