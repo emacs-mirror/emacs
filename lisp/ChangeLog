@@ -1,3 +1,9 @@
+2000-06-08  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule.el
+	(after-insert-file-set-buffer-file-coding-system): If the buffer
+	size is greater than INSERTED, judget that we are not visiting.
+
 2000-06-07  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* whitespace.el (defgroup whitespace): Comment out `:version'.
