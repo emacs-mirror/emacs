@@ -879,22 +879,31 @@ internal_catch (tag, func, arg)
   return c.val;
 }
 
-/* Discard from the catchlist all catch tags back through CATCH.
-   Before each catch is discarded, unbind all special bindings
-   made within that catch.  Also, when discarding a catch that
-   corresponds to a condition handler, discard that handler.
+/* Unwind the specbind, catch, and handler stacks back to CATCH, and
+   jump to that CATCH, returning VALUE as the value of that catch.
 
-   At the end, restore some static info saved in CATCH.
+   This is the guts Fthrow and Fsignal; they differ only in the way
+   they choose the catch tag to throw to.  A catch tag for a
+   condition-case form has a TAG of Qnil.
 
-   This is used for correct unwinding in Fthrow and Fsignal,
-   before doing the longjmp that actually destroys the stack frames
-   in which these handlers and catches reside.  */
+   Before each catch is discarded, unbind all special bindings and
+   execute all unwind-protect clauses made above that catch.  Unwind
+   the handler stack as we go, so that the proper handlers are in
+   effect for each unwind-protect clause we run.  At the end, restore
+   some static info saved in CATCH, and longjmp to the location
+   specified in the
+
+   This is used for correct unwinding in Fthrow and Fsignal.  */
 
 static void
-unbind_catch (catch)
+unwind_to_catch (catch, value)
      struct catchtag *catch;
+     Lisp_Object value;
 {
   register int last_time;
+
+  /* Save the value in the tag.  */
+  catch->val = value;
 
   /* Restore the polling-suppression count.  */
   if (catch->poll_suppress_count > poll_suppress_count)
@@ -917,6 +926,8 @@ unbind_catch (catch)
   gcprolist = catch->gcpro;
   backtrace_list = catch->backlist;
   lisp_eval_depth = catch->lisp_eval_depth;
+  
+  _longjmp (catch->jmp, 1);
 }
 
 DEFUN ("throw", Fthrow, Sthrow, 2, 2, 0,
@@ -933,11 +944,7 @@ Both TAG and VALUE are evalled.")
 	for (c = catchlist; c; c = c->next)
 	  {
 	    if (EQ (c->tag, tag))
-	      {
-		c->val = val;
-		unbind_catch (c);
-		_longjmp (c->jmp, 1);
-	      }
+	      unwind_to_catch (c, val);
 	  }
       tag = Fsignal (Qno_catch, Fcons (tag, Fcons (val, Qnil)));
     }
@@ -1140,9 +1147,7 @@ See also the function `condition-case'.")
 	{
 	  struct handler *h = handlerlist;
 	  handlerlist = allhandlers;
-	  unbind_catch (h->tag);
-	  h->tag->val = Fcons (clause, Fcons (sig, data));
-	  _longjmp (h->tag->jmp, 1);
+	  unwind_to_catch (h->tag, Fcons (clause, Fcons (sig, data)));
 	}
     }
 
@@ -1195,9 +1200,10 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
     {
       if (wants_debugger (Vstack_trace_on_error, conditions))
 	internal_with_output_to_temp_buffer ("*Backtrace*", Fbacktrace, Qnil);
-      if (when_entered_debugger < num_nonmacro_input_chars
-	  && (EQ (sig, Qquit) ? debug_on_quit
-	      : wants_debugger (Vdebug_on_error, conditions)))
+      if ((EQ (sig, Qquit)
+	   ? debug_on_quit
+	   : wants_debugger (Vdebug_on_error, conditions))
+	  && when_entered_debugger < num_nonmacro_input_chars)
 	{
 	  int count = specpdl_ptr - specpdl;
 	  specbind (Qdebug_on_error, Qnil);
