@@ -17,3 +17,6 @@
 #undef C_SWITCH_SYSTEM
 #undef const
 #endif /* __GNUC__ */
+
+/* David Miller <davem@caip.rutgers.edu> says vfork fails on 2.4.  */
+#undef HAVE_VFORK
