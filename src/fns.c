@@ -2990,15 +2990,20 @@ If the region can't be decoded, return nil and don't modify the buffer.")
      and delete the old.  (Insert first in order to preserve markers.)  */
   /* We insert two spaces, then insert the decoded text in between
      them, at last, delete those extra two spaces.  This is to avoid
-     byte combining.  */
+     byte combining while inserting.  */
   TEMP_SET_PT_BOTH (XFASTINT (beg), ibeg);
   insert_1_both ("  ", 2, 2, 0, 1, 0);
   TEMP_SET_PT_BOTH (XFASTINT (beg) + 1, ibeg + 1);  
   insert (decoded, decoded_length);
   inserted_chars = PT - (XFASTINT (beg) + 1);
-  del_range_both (PT, PT_BYTE, XFASTINT (end) + inserted_chars + 2,
+  /* At first delete the original text.  This never cause byte
+     combining.  */
+  del_range_both (PT + 1, PT_BYTE + 1, XFASTINT (end) + inserted_chars + 2,
 		  iend + decoded_length + 2, 1);
-  del_range_both (XFASTINT (beg), ibeg, XFASTINT (beg) + 1, ibeg + 1, 1);
+  /* Next delete the extra spaces.  This will cause byte combining
+     error.  */
+  del_range_both (PT, PT_BYTE, PT + 1, PT_BYTE + 1, 0);
+  del_range_both (XFASTINT (beg), ibeg, XFASTINT (beg) + 1, ibeg + 1, 0);
   inserted_chars = PT - XFASTINT (beg);
 
   /* If point was outside of the region, restore it exactly; else just
