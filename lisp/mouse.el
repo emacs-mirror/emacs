@@ -418,7 +418,9 @@ release the mouse button.  Otherwise, it does not."
 	    ;; In the case of a multiple click, it gives the wrong results,
 	    ;; because it would fail to set up a region.
 	    (if (and (= (mod mouse-selection-click-count 3) 0) (fboundp fun))
-		(funcall fun event)
+		(progn
+		  (setq this-command fun)
+		  (funcall fun event))
 	      (if (not (= (overlay-start mouse-drag-overlay)
 			  (overlay-end mouse-drag-overlay)))
 		  (let (last-command this-command)
@@ -618,73 +620,78 @@ selection through the word or line clicked on.  If you do this
 again in a different position, it extends the selection again.
 If you do this twice in the same position, the selection is killed." 
   (interactive "e")
-  (mouse-minibuffer-check click)
-  (let ((click-posn (posn-point (event-start click)))
-	;; Don't let a subsequent kill command append to this one:
-	;; prevent setting this-command to kill-region.
-	(this-command this-command))
-    (if (and (mark t) (> (mod mouse-selection-click-count 3) 0))
-	(if (not (and (eq last-command 'mouse-save-then-kill)
-		      (equal click-posn
-			     (car (cdr-safe (cdr-safe mouse-save-then-kill-posn))))))
-	    ;; Find both ends of the object selected by this click.
-	    (let* ((range
-		    (mouse-start-end click-posn click-posn
-				     mouse-selection-click-count)))
-	      ;; Move whichever end is closer to the click.
-	      ;; That's what xterm does, and it seems reasonable.
-	      (if (< (abs (- click-posn (mark t)))
-		     (abs (- click-posn (point))))
-		  (set-mark (car range))
-		(goto-char (nth 1 range)))
-	      ;; We have already put the old region in the kill ring.
-	      ;; Replace it with the extended region.
-	      ;; (It would be annoying to make a separate entry.)
-	      (kill-new (buffer-substring (point) (mark t)) t)
-	      ;; Arrange for a repeated mouse-3 to kill this region.
-	      (setq mouse-save-then-kill-posn
-		    (list (car kill-ring) (point) click-posn))
-	      (mouse-show-mark))
-	  ;; If we click this button again without moving it,
-	  ;; that time kill.
-	  (mouse-save-then-kill-delete-region (point) (mark))
-	  (setq mouse-selection-click-count 0)
-	  (setq mouse-save-then-kill-posn nil))
-      (if (and (eq last-command 'mouse-save-then-kill)
-	       mouse-save-then-kill-posn
-	       (eq (car mouse-save-then-kill-posn) (car kill-ring))
-	       (equal (cdr mouse-save-then-kill-posn) (list (point) click-posn)))
-	  ;; If this is the second time we've called
-	  ;; mouse-save-then-kill, delete the text from the buffer.
-	  (progn
+  (let ((before-scroll point-before-scroll))
+    (mouse-minibuffer-check click)
+    (let ((click-posn (posn-point (event-start click)))
+	  ;; Don't let a subsequent kill command append to this one:
+	  ;; prevent setting this-command to kill-region.
+	  (this-command this-command))
+      (if (and (mark t) (> (mod mouse-selection-click-count 3) 0))
+	  (if (not (and (eq last-command 'mouse-save-then-kill)
+			(equal click-posn
+			       (car (cdr-safe (cdr-safe mouse-save-then-kill-posn))))))
+	      ;; Find both ends of the object selected by this click.
+	      (let* ((range
+		      (mouse-start-end click-posn click-posn
+				       mouse-selection-click-count)))
+		;; Move whichever end is closer to the click.
+		;; That's what xterm does, and it seems reasonable.
+		(if (< (abs (- click-posn (mark t)))
+		       (abs (- click-posn (point))))
+		    (set-mark (car range))
+		  (goto-char (nth 1 range)))
+		;; We have already put the old region in the kill ring.
+		;; Replace it with the extended region.
+		;; (It would be annoying to make a separate entry.)
+		(kill-new (buffer-substring (point) (mark t)) t)
+		;; Arrange for a repeated mouse-3 to kill this region.
+		(setq mouse-save-then-kill-posn
+		      (list (car kill-ring) (point) click-posn))
+		(mouse-show-mark))
+	    ;; If we click this button again without moving it,
+	    ;; that time kill.
 	    (mouse-save-then-kill-delete-region (point) (mark))
-	    ;; After we kill, another click counts as "the first time".
+	    (setq mouse-selection-click-count 0)
 	    (setq mouse-save-then-kill-posn nil))
-	(if (or (and (eq last-command 'mouse-save-then-kill)
-		     mouse-save-then-kill-posn)
-		(and mark-active transient-mark-mode)
-		(and (eq last-command 'mouse-drag-region)
-		     (or mark-even-if-inactive
-			 (not transient-mark-mode))))
-	    ;; We have a selection or suitable region, so adjust it.
-	    (let* ((posn (event-start click))
-		   (new (posn-point posn)))
-	      (select-window (posn-window posn))
-	      (if (numberp new)
-		  (progn
-		    ;; Move whichever end of the region is closer to the click.
-		    ;; That is what xterm does, and it seems reasonable.
-		    (if (< (abs (- new (point))) (abs (- new (mark t))))
-			(goto-char new)
-		      (set-mark new))
-		    (setq deactivate-mark nil)))
-	      (kill-new (buffer-substring (point) (mark t)) t))
-	  ;; We just have point, so set mark here.
-	  (mouse-set-mark-fast click)
-	  (kill-ring-save (point) (mark t)))
-	(mouse-show-mark)
-	(setq mouse-save-then-kill-posn
-	      (list (car kill-ring) (point) click-posn))))))
+	(if (and (eq last-command 'mouse-save-then-kill)
+		 mouse-save-then-kill-posn
+		 (eq (car mouse-save-then-kill-posn) (car kill-ring))
+		 (equal (cdr mouse-save-then-kill-posn) (list (point) click-posn)))
+	    ;; If this is the second time we've called
+	    ;; mouse-save-then-kill, delete the text from the buffer.
+	    (progn
+	      (mouse-save-then-kill-delete-region (point) (mark))
+	      ;; After we kill, another click counts as "the first time".
+	      (setq mouse-save-then-kill-posn nil))
+	  (if (or (and (eq last-command 'mouse-save-then-kill)
+		       mouse-save-then-kill-posn)
+		  (and mark-active transient-mark-mode)
+		  (and (memq last-command
+			     '(mouse-drag-region mouse-set-region))
+		       (or mark-even-if-inactive
+			   (not transient-mark-mode))))
+	      ;; We have a selection or suitable region, so adjust it.
+	      (let* ((posn (event-start click))
+		     (new (posn-point posn)))
+		(select-window (posn-window posn))
+		(if (numberp new)
+		    (progn
+		      ;; Move whichever end of the region is closer to the click.
+		      ;; That is what xterm does, and it seems reasonable.
+		      (if (< (abs (- new (point))) (abs (- new (mark t))))
+			  (goto-char new)
+			(set-mark new))
+		      (setq deactivate-mark nil)))
+		(kill-new (buffer-substring (point) (mark t)) t))
+	    ;; Set the mark where point is, then move where clicked.
+	    (mouse-set-mark-fast click)
+	    (if before-scroll
+		(goto-char before-scroll))
+	    (exchange-point-and-mark)
+	    (kill-ring-save (point) (mark t)))
+	  (mouse-show-mark)
+	  (setq mouse-save-then-kill-posn
+		(list (car kill-ring) (point) click-posn)))))))
 
 (global-set-key [M-mouse-1] 'mouse-start-secondary)
 (global-set-key [M-drag-mouse-1] 'mouse-set-secondary)
