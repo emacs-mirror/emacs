@@ -167,8 +167,7 @@ Do the right thing if the file has been compressed or zipped."
 	(let ((buffer-read-only nil))
 	  (shell-command-on-region (point-min) (point-max) decoder t)))))
 
-;;;###autoload
-(add-hook 'same-window-buffer-names "*info*")
+;;;###autoload (add-hook 'same-window-buffer-names "*info*")
 
 ;;;###autoload
 (defun info (&optional file)
