@@ -68,7 +68,7 @@ Alliant FX/2800 (i860-alliant-bsd)
 
   Known to work with 19.26 and OS version 2.2, compiler version 1.3.
 
-Alpha (DEC) running OSF/1 (alpha-dec-osf1, alpha-dec-linux-gnu)
+Alpha (DEC) running OSF/1 or GNU/Linux (alpha-dec-osf1, alpha-dec-linux-gnu)
 
   For OSF/1 (aka Digital Unix) version 4.0, update 386,
   it is reported that you need to run configure this way:
@@ -78,9 +78,9 @@ Alpha (DEC) running OSF/1 (alpha-dec-osf1, alpha-dec-linux-gnu)
   For 4.0 revision 564, and 4.0A and 4.0B, Emacs 20 seems to work
   with no special configuration options.
 
-  Note that the X11 libraries on GNU/Linux systems
-  for the Alpha are said to have bugs that prevent Emacs from working with X
-  (as of November 1995).
+  Note that the X11 libraries on GNU/Linux systems for the Alpha are
+  said to have bugs that prevent Emacs from working with X (as of
+  November 1995).  Recent releases work (July 2000).
 
 Altos 3068 (m68k-altos-sysv)
 
@@ -616,8 +616,8 @@ Intel 386 (i386-*-isc, 		i386-*-esix,	 i386-*-bsdi2,
     #define HAVE_XSCREENNUMBEROFSCREEN
 
   To work around the problem, add those definitions by hand.
-  It is possible that this problem happens only with X11R6
-  or that newer system versions have fixed it.
+  It is possible that this problem happens only with X11R6.
+  Newer system versions have fixed it.
 
   The 19.26 pretest was reported to work on SVR4.3 and on Freebsd.
 
@@ -963,7 +963,20 @@ Stride (m68k-stride-sysv)
 
 Sun 3, Sun 4 (sparc), Sun 386 (m68k-sun-sunos, sparc-sun-sunos, i386-sun-sunos,
 			       sparc-sun-sunos4.1.3noshr, sparc-sun-solaris2.*,
-			       i386-sun-solaris2.*)
+			       i386-sun-solaris2.*, sparc*-*-linux-gnu)
+
+  To build a 64-bit Emacs (including large file support) on a Solaris
+  system which supports 64-bit executables, use the Sun compiler,
+  configuring something like this (see the cc documentation for
+  information on 64-bit compilation):
+    env CC="cc -xarch=v9" ./configure --without-gcc
+
+  As of version 2.95, GCC doesn't support the 64-bit ABI properly, but
+  later releases may.
+
+  Emacs 20.5 and later work on SPARC GNU/Linux with the 32-bit ABI.
+  As of release 2.95, GCC doesn't work properly with the 64-bit ABI
+  (applicable on UltraSPARC), but that isn't the default mode.
 
   Emacs 20.3 fails to build on Solaris 2.5 if you use GCC 2.7.2.3.
   Installing GCC 2.8 fixes the problem.
