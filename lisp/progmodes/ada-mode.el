@@ -1071,7 +1071,7 @@ name"
 ;;;###autoload
 (defun ada-mode ()
   "Ada mode is the major mode for editing Ada code.
-This version was built on $Date: 2003/05/13 20:48:15 $.
+This version was built on $Date: 2003/09/01 15:45:34 $.
 
 Bindings are as follows: (Note: 'LFD' is control-j.)
 \\{ada-mode-map}
@@ -1342,22 +1342,8 @@ If you use ada-xref.el:
   ;; Fix is: redefine a new function ada-which-function, and call it when the
   ;; major-mode is ada-mode.
 
-  (unless (featurep 'xemacs)
-    ;;  This function do not require that we load which-func now.
-    ;;  This can be done by the user if he decides to use which-func-mode
-
-    (defadvice which-function (around ada-which-function activate)
-      "In Ada buffers, should work with overloaded subprograms, and does not
-use imenu."
-      (if (equal major-mode 'ada-mode)
-	  (set 'ad-return-value (ada-which-function))
-	ad-do-it))
-
-    ;;  So that we can activate which-func-modes for Ada mode
-    (if (and (boundp 'which-func-modes)
-	     (listp which-func-modes))
-	(add-to-list 'which-func-modes 'ada-mode))
-    )
+  (make-local-variable 'which-func-functions)
+  (setq which-func-functions '(ada-which-function))
 
   ;;  Support for indent-new-comment-line (Especially for XEmacs)
   (setq comment-multi-line nil)
