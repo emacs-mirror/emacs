@@ -4111,7 +4111,7 @@ erlang_attribute (s)
 
   if (strneq (s, "-define", 7) || strneq (s, "-record", 7))
     {
-      pos = 7 + eat_white (s, pos);
+      pos = 7 + eat_white (s, 7);
       if (s[pos++] == '(') 
 	{
 	  pos += eat_white (s, pos);
