@@ -846,9 +846,11 @@ which will run faster and probably do exactly what you want."
 		      ((eq def 'recenter)
 		       (recenter nil))
 		      ((eq def 'edit)
-		       (set-match-data
-			(prog1 (match-data)
-			  (save-excursion (recursive-edit))))
+		       (goto-char (match-beginning 0))
+		       (funcall search-function search-string limit t)
+		       (setq real-match-data (match-data))
+		       (save-excursion (recursive-edit))
+		       (set-match-data real-match-data)
 		       ;; Before we make the replacement,
 		       ;; decide whether the search string
 		       ;; can match again just after this match.
