@@ -1,3 +1,7 @@
+2002-09-12  Markus Rost  <rost@math.ohio-state.edu>
+
+	* unexsol.c: Include buffer.h, charset.h, coding.h.
+
 2002-09-11  Richard M. Stallman  <rms@gnu.org>
 
 	* unexsol.c: Don't use report_file_error; do it by hand
