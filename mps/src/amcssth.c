@@ -1,7 +1,9 @@
-/* impl.c.amcss: POOL CLASS AMC STRESS TEST
+/* impl.c.amcssth: POOL CLASS AMC STRESS TEST WITH TWO THREADS
  *
- * $HopeName: MMsrc!amcssth.c(trunk.1) $
+ * $HopeName: MMsrc!amcssth.c(trunk.2) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ *
+ * .posix: This is Posix only.
  */
 
 #define _POSIX_C_SOURCE 199309L
@@ -15,25 +17,31 @@
 #include "mpsw3.h"
 #endif
 #include "mps.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
 #include <time.h>
 
 
-#define testArenaSIZE     ((size_t)64<<20)
+/* These values have been tuned to cause one top-generation collection. */
+#define testArenaSIZE     ((size_t)1000*1024)
 #define avLEN             3
-#define exactRootsCOUNT   300
+#define exactRootsCOUNT   200
 #define ambigRootsCOUNT   50
-#define collectionsCOUNT  18
-#define rampSIZE          5
+#define genCOUNT          2
+#define collectionsCOUNT  37
+#define rampSIZE          9
 #define initTestFREQ      6000
+
+/* testChain -- generation parameters for the test */
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 150, 0.85 }, { 170, 0.45 } };
+
+
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
 #define objNULL           ((mps_addr_t)0xDECEA5ED)
+
 
 static mps_pool_t pool;
 static mps_ap_t ap;
@@ -69,10 +77,13 @@ static void test_stepper(mps_addr_t object, void *p, size_t s)
 }
 
 
+/* test -- the body of the test */
+
 static void *test(void *arg, size_t s)
 {
   mps_arena_t arena;
   mps_fmt_t format;
+  mps_chain_t chain;
   mps_root_t exactRoot, ambigRoot;
   unsigned long objs; size_t i;
   mps_word_t collections, rampSwitch;
@@ -85,16 +96,17 @@ static void *test(void *arg, size_t s)
   (void)s; /* unused */
 
   die(dylan_fmt(&format, arena), "fmt_create");
+  die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
-  die(mps_pool_create(&pool, arena, mps_class_amc(), format),
+  die(mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
       "pool_create(amc)");
 
   die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "BufferCreate");
-  die(mps_ap_create(&busy_ap, pool, MPS_RANK_EXACT), "BufferCreate");
+  die(mps_ap_create(&busy_ap, pool, MPS_RANK_EXACT), "BufferCreate 2");
 
-  for(i=0; i<exactRootsCOUNT; ++i)
+  for(i = 0; i < exactRootsCOUNT; ++i)
     exactRoots[i] = objNULL;
-  for(i=0; i<ambigRootsCOUNT; ++i)
+  for(i = 0; i < ambigRootsCOUNT; ++i)
     ambigRoots[i] = (mps_addr_t)rnd();
 
   die(mps_root_create_table_masked(&exactRoot, arena,
@@ -141,6 +153,13 @@ static void *test(void *arg, size_t s)
         if(ramping) {
           mps_ap_alloc_pattern_end(ap, ramp);
           mps_ap_alloc_pattern_end(busy_ap, ramp);
+          /* kill half of the roots */
+          for(i = 0; i < exactRootsCOUNT; i += 2) {
+            if(exactRoots[i] != objNULL) {
+              cdie(dylan_check(exactRoots[i]), "ramp kill check");
+              exactRoots[i] = objNULL;
+            }
+          }
           /* Every other time, switch back immediately. */
           if(collections & 1) ramping = 0;
         }
@@ -152,7 +171,7 @@ static void *test(void *arg, size_t s)
       }
     }
 
-    r = rnd();
+    r = (size_t)rnd();
     if(r & 1) {
       i = (r >> 1) % exactRootsCOUNT;
       if(exactRoots[i] != objNULL)
@@ -185,6 +204,7 @@ static void *test(void *arg, size_t s)
   mps_root_destroy(exactRoot);
   mps_root_destroy(ambigRoot);
   mps_pool_destroy(pool);
+  mps_chain_destroy(chain);
   mps_fmt_destroy(format);
 
   return NULL;
@@ -193,18 +213,8 @@ static void *test(void *arg, size_t s)
 
 static void *fooey2(void *arg, size_t s)
 {
-  #if 0
-  struct timeval now;
-  int wake_sec;
-  gettimeofday(&now, NULL);
-  wake_sec = now.tv_sec + 20;
-  do {
-    sleep(1);
-    gettimeofday(&now, NULL);
-  } while (wake_sec > now.tv_sec);
-  #endif
-
   struct timespec req, rem;
+
   req.tv_sec = 10;
   req.tv_nsec = 0;
   while(nanosleep(&req, &rem))
@@ -218,6 +228,7 @@ static void *fooey(void *arena)
   void *r;
   mps_thr_t thread;
   mps_thr_t thread2;
+
   /* register the thread twice, just to make sure it works */
   die(mps_thread_reg(&thread, (mps_arena_t)arena), "thread_reg");
   die(mps_thread_reg(&thread2, (mps_arena_t)arena), "thread2_reg");
@@ -239,7 +250,6 @@ int main(int argc, char **argv)
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create");
-  adjust_collection_freq(0.2);
   die(mps_thread_reg(&thread, arena), "thread_reg");
   pthread_create(&pthread1, NULL, fooey, (void *)arena);
   mps_tramp(&r, test, arena, 0);
