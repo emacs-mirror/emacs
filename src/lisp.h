@@ -2632,7 +2632,7 @@ EXFUN (Fcurrent_window_configuration, 1);
 extern int compare_window_configurations P_ ((Lisp_Object, Lisp_Object, int));
 EXFUN (Fcoordinates_in_window_p, 2);
 EXFUN (Fwindow_at, 3);
-EXFUN (Fpos_visible_in_window_p, 2);
+EXFUN (Fpos_visible_in_window_p, 3);
 extern void mark_window_cursors_off P_ ((struct window *));
 extern int window_internal_height P_ ((struct window *));
 extern int window_internal_width P_ ((struct window *));
