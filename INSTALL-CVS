@@ -41,4 +41,6 @@ CVS repository.  For example:
     cvs update -C lisp/loaddefs.el
 
 Questions, requests, and bug reports about the CVS versions of Emacs
-sould be sent to emacs-pretest-bug@gnu.org rather.
+should be sent to emacs-pretest-bug@gnu.org rather than gnu.emacs.help
+or gnu.emacs.bug.  Ideally, use M-x report-emacs-bug RET which will
+send it to the proper place.
