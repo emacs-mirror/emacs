@@ -56,6 +56,7 @@
     ("\"e"  . [235])
     ("\"i"  . [239])
     ("\"o"  . [246])
+    ("\"s"  . [223])
     ("\"u"  . [252])
     ("\"y"  . [255])
     ("''"   . [180])
@@ -79,7 +80,11 @@
     ("*-"   . [173])("-"   . [173])
     ("*."   . [183])("."   . [183])
     ("//"   . [247])
+    ("/A"   . [197])
+    ("/E"   . [198])
     ("/O"   . [216])
+    ("/a"   . [229])
+    ("/e"   . [230])
     ("/o"   . [248])
     ("1/2"  . [189])
     ("1/4"  . [188])
@@ -88,15 +93,11 @@
     ("*="   . [175])("="   . [175])
     ("*>"   . [187])(">"   . [187])
     ("*?"   . [191])("?"   . [191])
-    ("*A"   . [197])("A"   . [197])
-    ("*E"   . [198])("E"   . [198])
     ("*C"   . [169])("C"   . [169])
-    ("*D"   . [208])("D"   . [208])
     ("*L"   . [163])("L"   . [163])
     ("*P"   . [182])("P"   . [182])
     ("*R"   . [174])("R"   . [174])
     ("*S"   . [167])("S"   . [167])
-    ("*T"   . [222])("T"   . [222])
     ("*Y"   . [165])("Y"   . [165])
     ("^1"   . [185])
     ("^2"   . [178])
@@ -123,22 +124,21 @@
     ("`i"   . [236])
     ("`o"   . [242])
     ("`u"   . [249])
-    ("*a"   . [229])("a"   . [229])
-    ("*e"   . [230])("e"   . [230])
     ("*c"   . [162])("c"   . [162])
-    ("*d"   . [240])("d"   . [240])
     ("*o"   . [176])("o"   . [176])
-    ("*s"   . [223])("s"   . [223])
-    ("*t"   . [254])("t"   . [254])
     ("*u"   . [181])("u"   . [181])
     ("*x"   . [215])("x"   . [215])
     ("*|"   . [166])("|"   . [166])
     ("~A"   . [195])
+    ("~D"   . [208])
     ("~N"   . [209])
     ("~O"   . [213])
+    ("~T"   . [222])
     ("~a"   . [227])
+    ("~d"   . [240])
     ("~n"   . [241])
     ("~o"   . [245])
+    ("~t"   . [254])
     ("~~"   . [172]))
   "Alist of character translations for entering ISO characters.
 Each element has the form (STRING . VECTOR).
@@ -147,20 +147,7 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
 
 ;; Language-specific translation lists.
 (defvar iso-transl-language-alist
-  '(("German"
-     ("A"  . [196])
-     ("O"  . [214]) 
-     ("U"  . [220])
-     ("a"  . [228])
-     ("o"  . [246])
-     ("s"  . [223])
-     ("u"  . [252]))
-    ("Spanish"
-     ("!"  . [161])
-     ("?"  . [191])
-     ("N"  . [241])
-     ("n"  . [209]))
-    ("Esperanto"
+  '(("Esperanto"
      ("C"  . [198])
      ("G"  . [216])
      ("H"  . [166])
@@ -172,7 +159,26 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
      ("h"  . [182])
      ("j"  . [188])
      ("s"  . [254])
-     ("u"  . [253]))))
+     ("u"  . [253]))
+    ("French"
+     ("C"  . [199])
+     ("c"  . [231]))
+    ("German"
+     ("A"  . [196])
+     ("O"  . [214]) 
+     ("U"  . [220])
+     ("a"  . [228])
+     ("o"  . [246])
+     ("s"  . [223])
+     ("u"  . [252]))
+    ("Portuguese"
+     ("C"  . [199])
+     ("c"  . [231]))
+    ("Spanish"
+     ("!"  . [161])
+     ("?"  . [191])
+     ("N"  . [241])
+     ("n"  . [209]))))
 
 (defvar iso-transl-ctl-x-8-map nil
   "Keymap for C-x 8 prefix.")
@@ -187,7 +193,7 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
 ;; the first key of the sequence; and (if applicable) replacing the first
 ;; key of the sequence with the corresponding dead key.  For example, a
 ;; character associated with the string "~n" can be input with `C-x 8 ~ n'
-;; or `Alt-~ c' or `mute-asciitilde c'.
+;; or `Alt-~ n' or `mute-asciitilde n'.
 (defun iso-transl-define-keys (alist)
     (while alist
       (define-key iso-transl-ctl-x-8-map (car (car alist)) (cdr (car alist)))
