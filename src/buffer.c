@@ -532,6 +532,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   Lisp_Object buf;
   struct buffer *b;
 
+  CHECK_STRING (name);
   buf = Fget_buffer (name);
   if (!NILP (buf))
     error ("Buffer name `%s' is in use", SDATA (name));
