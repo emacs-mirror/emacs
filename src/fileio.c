@@ -2752,12 +2752,16 @@ and (2) it puts less data in the undo list.")
   int total;
   int not_regular = 0;
 
+  if (current_buffer->base_buffer && ! NILP (visit))
+    error ("Cannot do file visiting in an indirect buffer");
+
+  if (!NILP (current_buffer->read_only))
+    Fbarf_if_buffer_read_only ();
+
   val = Qnil;
   p = Qnil;
 
   GCPRO3 (filename, val, p);
-  if (!NILP (current_buffer->read_only))
-    Fbarf_if_buffer_read_only();
 
   CHECK_STRING (filename, 0);
   filename = Fexpand_file_name (filename, Qnil);
@@ -3057,7 +3061,7 @@ and (2) it puts less data in the undo list.")
 	  current_buffer->filename = filename;
 	}
 
-      current_buffer->save_modified = MODIFF;
+      SAVE_MODIFF = MODIFF;
       current_buffer->auto_save_modified = MODIFF;
       XSETFASTINT (current_buffer->save_length, Z - BEG);
 #ifdef CLASH_DETECTION
@@ -3166,6 +3170,9 @@ to the file, instead of any buffer contents, and END is ignored.")
     = NILP (current_buffer->buffer_file_type) ? O_TEXT : O_BINARY;
 #endif /* DOS_NT */
 
+  if (current_buffer->base_buffer && ! NILP (visit))
+    error ("Cannot do file visiting in an indirect buffer");
+
   if (!NILP (start) && !STRINGP (start))
     validate_region (&start, &end);
 
@@ -3199,7 +3206,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 
       if (visiting)
 	{
-	  current_buffer->save_modified = MODIFF;
+	  SAVE_MODIFF = MODIFF;
 	  XSETFASTINT (current_buffer->save_length, Z - BEG);
 	  current_buffer->filename = visit_file;
 	}
@@ -3446,7 +3453,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 
   if (visiting)
     {
-      current_buffer->save_modified = MODIFF;
+      SAVE_MODIFF = MODIFF;
       XSETFASTINT (current_buffer->save_length, Z - BEG);
       current_buffer->filename = visit_file;
       update_mode_lines++;
@@ -3810,11 +3817,16 @@ Non-nil second argument means save only current buffer.")
 	    && b != current_buffer)
 	  continue;
 
+	/* Don't auto-save indirect buffers.
+	   The base buffer takes care of it.  */
+	if (b->base_buffer)
+	  continue;
+
 	/* Check for auto save enabled
 	   and file changed since last auto save
 	   and file changed since last real save.  */
 	if (STRINGP (b->auto_save_file_name)
-	    && b->save_modified < BUF_MODIFF (b)
+	    && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)
 	    && b->auto_save_modified < BUF_MODIFF (b)
 	    /* -1 means we've turned off autosaving for a while--see below.  */
 	    && XINT (b->save_length) >= 0
@@ -3911,7 +3923,7 @@ DEFUN ("recent-auto-save-p", Frecent_auto_save_p, Srecent_auto_save_p,
   "Return t if buffer has been auto-saved since last read in or saved.")
   ()
 {
-  return (current_buffer->save_modified < current_buffer->auto_save_modified) ? Qt : Qnil;
+  return (SAVE_MODIFF < current_buffer->auto_save_modified) ? Qt : Qnil;
 }
 
 /* Reading and completing file names */
