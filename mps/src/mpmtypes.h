@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.76) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.77) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -156,7 +156,12 @@ typedef void (*SegSetSummaryMethod)(Seg seg, RefSet summary);
 typedef Buffer (*SegBufferMethod)(Seg seg);
 typedef void (*SegSetBufferMethod)(Seg seg, Buffer buffer);
 typedef Res (*SegDescribeMethod)(Seg seg, mps_lib_FILE *stream);
-
+typedef Res (*SegMergeMethod)(Seg seg, Seg segHi, 
+                              Addr base, Addr mid, Addr limit,
+                              Bool withReservoirPermit, va_list args);
+typedef Res (*SegSplitMethod)(Seg seg, Seg segHi, 
+                              Addr base, Addr mid, Addr limit,
+                              Bool withReservoirPermit, va_list args);
 
 /* Buffer*Method -- see design.mps.buffer */
 
@@ -168,6 +173,7 @@ typedef void (*BufferDetachMethod)(Buffer buffer);
 typedef Seg (*BufferSegMethod)(Buffer buffer);
 typedef RankSet (*BufferRankSetMethod)(Buffer buffer);
 typedef void (*BufferSetRankSetMethod)(Buffer buffer, RankSet rankSet);
+typedef void (*BufferReassignSegMethod)(Buffer buffer, Seg seg);
 typedef Res (*BufferDescribeMethod)(Buffer buffer, mps_lib_FILE *stream);
 
 
