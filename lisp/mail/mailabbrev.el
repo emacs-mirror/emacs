@@ -110,7 +110,7 @@
 ;;
 ;;  (add-hook
 ;;   'mail-setup-hook
-;;   '(lambda ()
+;;   (lambda ()
 ;;      (substitute-key-definition 'next-line 'mail-abbrev-next-line
 ;;				 mail-mode-map global-map)
 ;;      (substitute-key-definition 'end-of-buffer 'mail-abbrev-end-of-buffer
@@ -139,9 +139,9 @@
   :type 'boolean
   :group 'mail-abbrev
   :require 'mailabbrev
-  :set '(lambda (symbol value)
-	  (setq mail-abbrevs-mode value)
-	  (if value (mail-abbrevs-enable) (mail-abbrevs-disable)))
+  :set (lambda (symbol value)
+	 (setq mail-abbrevs-mode value)
+	 (if value (mail-abbrevs-enable) (mail-abbrevs-disable)))
   :initialize 'custom-initialize-default
   :version "20.3")
 

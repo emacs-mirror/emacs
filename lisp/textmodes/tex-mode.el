@@ -1367,8 +1367,8 @@ This function is more useful than \\[tex-buffer] when you need the
       (setq start (match-end 0)))
     (or (= start 0)
 	(setq elts (cons (substring s start) elts)))
-    (mapconcat '(lambda (elt)
-		  (if (= (length elt) 0) elt (expand-file-name elt)))
+    (mapconcat (lambda (elt)
+		 (if (= (length elt) 0) elt (expand-file-name elt)))
 	       (nreverse elts) ":")))
 
 (defun tex-shell-running ()
