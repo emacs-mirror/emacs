@@ -1,3 +1,7 @@
+2004-11-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1.inp: Revert last change.
+
 2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* sed1v2.inp: Use djecho for buildobj.lst.
