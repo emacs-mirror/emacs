@@ -2060,15 +2060,11 @@ decode_mode_spec (w, c, maxwidth)
 
     case 's':
       /* status of process */
-#ifdef subprocesses
       obj = Fget_buffer_process (Fcurrent_buffer ());
       if (NILP (obj))
 	return "no process";
       obj = Fsymbol_name (Fprocess_status (obj));
       break;
-#else
-      return "no processes";
-#endif /* subprocesses */
 
     case 'p':
       {

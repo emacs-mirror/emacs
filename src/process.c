@@ -22,8 +22,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "config.h"
 
+/* This file is split into two parts by the following preprocessor
+   conditional.  The 'then' clause contains all of the support for
+   asynchronous subprocesses.  The 'else' clause contains stub
+   versions of some of the asynchronous subprocess routines that are
+   often called elsewhere in Emacs, so we don't have to #ifdef the
+   sections that call them.  */
+
+
 #ifdef subprocesses
-/* The entire file is within this conditional */
 
 #include <stdio.h>
 #include <errno.h>
@@ -1743,15 +1750,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (read_kbd && detect_input_pending ())
 	nfds = 0;
       else
-#ifdef AIX
 	nfds = select (MAXDESC, &Available, 0, 0, &timeout);
-#else
-#ifdef HPUX
-	nfds = select (MAXDESC, &Available, 0, 0, &timeout);
-#else
-	nfds = select (MAXDESC, &Available, 0, 0, &timeout);
-#endif
-#endif
+
       xerrno = errno;
 
       /* Make C-g and alarm signals set flags again */
@@ -2884,4 +2884,168 @@ effect when `start-process' is called.");
 /*  defsubr (&Sprocess_connection); */
 }
 
-#endif /* subprocesses */
+
+#else /* not subprocesses */
+
+#include <sys/types.h>
+#include <errno.h>
+
+#include "lisp.h"
+#include "systime.h"
+#include "termopts.h"
+
+extern int screen_garbaged;
+
+
+/* As described above, except assuming that there are no subprocesses:
+
+   Wait for timeout to elapse and/or keyboard input to be available.
+
+   time_limit is:
+     timeout in seconds, or
+     zero for no limit, or
+     -1 means gobble data immediately available but don't wait for any.
+
+   read_kbd is:
+     0 to ignore keyboard input, or
+     1 to return when input is available, or
+     -1 means caller will actually read the input, so don't throw to
+       the quit handler.
+     We know that read_kbd will never be a Lisp_Process, since
+     `subprocesses' isn't defined.
+
+   do_display != 0 means redisplay should be done to show subprocess
+   output that arrives.  This version of the function ignores it.
+
+   If read_kbd is a pointer to a struct Lisp_Process, then the
+     function returns true iff we received input from that process
+     before the timeout elapsed.
+   Otherwise, return true iff we recieved input from any process.  */
+
+int
+wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
+     int time_limit, microsecs, read_kbd, do_display;
+{
+  EMACS_TIME end_time, timeout, *timeout_p;
+  int waitchannels;
+
+  /* What does time_limit really mean?  */
+  if (time_limit || microsecs)
+    {
+      /* It's not infinite.  */
+      timeout_p = &timeout;
+
+      if (time_limit == -1)
+	/* In fact, it's zero.  */
+	EMACS_SET_SECS_USECS (timeout, 0, 0);
+      else
+	EMACS_SET_SECS_USECS (timeout, time_limit, microsecs);
+
+      /* How far in the future is that?  */
+      EMACS_GET_TIME (end_time);
+      EMACS_ADD_TIME (end_time, end_time, timeout);
+    }
+  else
+    /* It's infinite.  */
+    timeout_p = 0;
+
+  /* Turn off periodic alarms (in case they are in use)
+     because the select emulator uses alarms.  */
+  stop_polling ();
+
+  for (;;)
+    {
+      int nfds;
+
+      waitchannels = read_kbd ? 1 : 0;
+
+      /* If calling from keyboard input, do not quit
+	 since we want to return C-g as an input character.
+	 Otherwise, do pending quit if requested.  */
+      if (read_kbd >= 0)
+	QUIT;
+
+      if (timeout_p)
+	{
+	  EMACS_GET_TIME (*timeout_p);
+	  EMACS_SUB_TIME (*timeout_p, end_time, *timeout_p);
+	  if (EMACS_TIME_NEG_P (*timeout_p))
+	    break;
+	}
+
+      /* Cause C-g and alarm signals to take immediate action,
+	 and cause input available signals to zero out timeout.  */
+      if (read_kbd < 0)
+	set_waiting_for_input (&timeout);
+
+      /* If a screen has been newly mapped and needs updating,
+	 reprocess its display stuff.  */
+      if (screen_garbaged)
+	redisplay_preserve_echo_area ();
+
+      if (read_kbd && detect_input_pending ())
+	nfds = 0;
+      else
+	nfds = select (1, &waitchannels, 0, 0, timeout_p);
+
+      /* Make C-g and alarm signals set flags again */
+      clear_waiting_for_input ();
+
+      /*  If we woke up due to SIGWINCH, actually change size now.  */
+      do_pending_window_change ();
+
+      if (nfds == -1)
+	{
+	  /* If the system call was interrupted, then go around the
+	     loop again.  */
+	  if (errno == EINTR)
+	    waitchannels = 0;
+	}
+#ifdef sun
+      else if (nfds > 0 && (waitchannels & 1)  && interrupt_input)
+	/* System sometimes fails to deliver SIGIO.  */
+	kill (getpid (), SIGIO);
+#endif
+      if (read_kbd && interrupt_input && (waitchannels & 1))
+	kill (0, SIGIO);
+
+      /* If we have timed out (nfds == 0) or found some input (nfds > 0),
+	 we should exit.  */
+      if (nfds >= 0)
+	break;
+    }
+
+  return 0;
+}
+
+
+DEFUN ("get-buffer-process", Fget_buffer_process, Sget_buffer_process, 1, 1, 0,
+  "Return the (or, a) process associated with BUFFER.\n\
+This copy of Emacs has not been built to support subprocesses, so this\n\
+function always returns nil.")
+  (name)
+     register Lisp_Object name;
+{
+  return Qnil;
+}
+
+/* Kill all processes associated with `buffer'.
+   If `buffer' is nil, kill all processes.
+   Since we have no subprocesses, this does nothing.  */
+
+kill_buffer_processes (buffer)
+     Lisp_Object buffer;
+{
+}
+
+init_process ()
+{
+}
+
+syms_of_process ()
+{
+  defsubr (&Sget_buffer_process);
+}
+
+
+#endif /* not subprocesses */
