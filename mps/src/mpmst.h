@@ -1,7 +1,7 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.19) $
- * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!mpmst.h(MMdevel_action2.11) $
+ * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
  *
@@ -94,11 +94,10 @@ typedef struct PoolClassStruct {
   PoolBufferExposeMethod bufferExpose;  /* remove protection */
   PoolBufferCoverMethod bufferCover;    /* reinstate protection */
   PoolCondemnMethod condemn;    /* condemn (some or all) objects */
-  PoolGreyMethod grey;          /* grey uncondemned objects */
+  PoolGreyMethod grey;          /* grey non-white objects */
   PoolScanMethod scan;          /* find references during tracing */
   PoolFixMethod fix;            /* referent reachable during tracing */
   PoolReclaimMethod reclaim;    /* reclaim dead objects after tracing */
-  PoolAccessMethod access;      /* handle an access to shielded memory */
   PoolDescribeMethod describe;  /* describe the contents of the pool */
   Sig endSig;                   /* .class.end-sig */
 } PoolClassStruct;
@@ -125,6 +124,8 @@ typedef struct PoolStruct {     /* generic structure */
   RingStruct bufferRing;        /* allocation buffers are attached to pool */
   Serial bufferSerial;          /* serial of next buffer */
   RingStruct segRing;           /* segs are attached to pool */
+  RingStruct actionRing;	/* actions are attached to pool */
+  Serial actionSerial;		/* serial of next action */
   Align alignment;              /* alignment for units */
 } PoolStruct;
 
@@ -262,26 +263,20 @@ typedef struct VMStruct {
 /* SegStruct -- segment structure
  *
  * .seg: Segments are the basic units of memory allocation from
- * the arena, and also the units of scanning, shielding, and colour
- * for the MPM (pool classes may subdivide segments and be able to
- * maintain colour on a finer grain (down to the object level for example)).
- *
- * .seg.pm: The pm field is used by both the shield (impl.c.shield)
- * and the ANSI fake protection (impl.c.protan).
- *
- * .seg.pool: This field must be first.  See
- * design.mps.arena.vm.assume.pointer-conversion for why.
+ * the arena.  See design.mps.seg.
  */
 
 typedef struct SegStruct {      /* segment structure */
-  Pool pool;                    /* MUST BE FIRST, see .seg.pool */
+  Pool pool;                    /* MUST BE FIRST (design.mps.seg.field.pool) */
   Bool single;                  /* single page segment */
-  Rank rank;                    /* rank of all references in this seg */
+  RankSet rankSet;		/* ranks of references in this seg */
   AccessSet pm, sm;             /* protection and shield modes */
   Size depth;                   /* see impl.c.shield.def.depth */
   void *p;                      /* pointer for use of owning pool */
-  TraceId condemned;            /* seg condemned? for which trace? */
+  TraceSet black;		/* traces for which seg is black */
   TraceSet grey;                /* traces for which seg is grey */
+  TraceSet white;            	/* traces for which seg is white */
+  RefSet summary;		/* summary of references out of seg */
   Buffer buffer;                /* non-NULL if seg is buffered */
   RingStruct poolRing;          /* link in list of segs in pool */
 } SegStruct;
@@ -386,18 +381,13 @@ typedef struct BufferStruct {
   Space space;                  /* owning space */
   Pool pool;                    /* owning pool */
   Seg seg;                      /* segment being buffered */
-  Rank rank;                    /* rank of references being created */
+  Rank rankSet;                 /* ranks of references being created */
   Addr base;                    /* base address of allocation buffer */
   APStruct apStruct;            /* the allocation point */
   Align alignment;              /* allocation alignment */
   RingStruct poolRing;          /* buffers are attached to pools */
-  AccessSet shieldMode;         /* shielding for allocated memory */
-#if 0
-  Bool exposed;                 /* is buffer memory exposed? */
-  TraceSet grey;                /* colour for allocated memory */
-#endif
-  void *p;
-  int i;                        /* (p and i) closure variables (for pool) */
+  void *p;			/* closure variable for pool */
+  int i;                        /* closure variable for pool */
 } BufferStruct;
 
 
@@ -511,7 +501,8 @@ typedef struct RootStruct {
   Space space;                  /* owning space */
   RingStruct spaceRing;         /* attachment to space */
   Rank rank;                    /* rank of references in this root */
-  TraceSet grey;                /* marked but not scanned for per trace */
+  TraceSet grey;                /* traces for which root is grey */
+  RefSet summary;		/* summary of references in root */
   RootVar var;                  /* union discriminator */
   union RootUnion {
     struct {
@@ -537,7 +528,7 @@ typedef struct RootStruct {
 } RootStruct;
 
 
-/* ScanState and TraceStruct
+/* ScanState
  *
  * .ss: See impl.c.trace.
  *
@@ -545,16 +536,13 @@ typedef struct RootStruct {
  * external scan state structure (mps_ss_s) thus:
  *   ss->fix            mps_ss->fix
  *   ss->zoneShift      mps_ss->w0
- *   ss->condemned      mps_ss->w1
+ *   ss->white          mps_ss->w1
  *   ss->summary        mps_ss->w2
  * See impl.h.mps.ss and impl.c.mpsi.check.ss.  This is why the
  * Sig field is in the middle of this structure.
  *
  * .ss.zone: The zoneShift field is therefore declared as Word
  * rather than Shift.
- *
- * The weakSplat field forms part of the design for weakness.
- * See design.mps.weakness.
  */
 
 #define ScanStateSig    ((Sig)0x5195CA95)
@@ -562,19 +550,43 @@ typedef struct RootStruct {
 typedef struct ScanStateStruct {
   Res (*fix)(ScanState, Addr *);/* fix function */
   Word zoneShift;               /* copy of space->zoneShift.  See .ss.zone */
-  RefSet condemned;             /* condemned set, for inline fix test */
+  RefSet white;                 /* white set, for inline fix test */
   RefSet summary;               /* accumulated summary of scanned references */
   Sig sig;                      /* design.mps.sig */
   Space space;                  /* owning space */
-  TraceId traceId;              /* trace ID of scan */
+  TraceSet traces;		/* traces to scan for */
   Rank rank;                    /* reference rank of scanning */
-  Addr weakSplat;               /* value of weak refs to unforwarded objects */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
 } ScanStateStruct;
 
+
+/* TraceStruct -- tracer state structure */
+
+#define TraceSig	((Sig)0x51924ACE)
+
 typedef struct TraceStruct {
-  RefSet condemned;             /* summary of comdemnded set */
+  Sig sig;			/* design.mps.sig */
+  TraceId ti;			/* index into TraceSets */
+  Space space;			/* owning space */
+  RefSet white;			/* superset of refs in white set */
+  TraceState state;		/* current state of trace */
+  Size interval;		/* polling interval */
 } TraceStruct;
+
+
+/* ActionStruct -- action structure
+ *
+ * See design.mps.action.
+ */
+
+#define ActionSig	((Sig)0x519AC209)
+
+typedef struct ActionStruct {
+  Sig sig;			/* design.mps.sig */
+  Serial serial;		/* from pool->actionSerial */
+  Pool pool;			/* owning pool */
+  RingStruct poolRing;		/* link in list of actions in pool */
+} ActionStruct;
 
 
 /* SpaceStruct -- the space structure
@@ -599,6 +611,7 @@ typedef struct SpaceStruct {
   LockStruct lockStruct;        /* space's lock */
   Size pollThreshold;           /* see impl.c.mpsi.poll and SpacePoll */
   Bool insidePoll;              /* prevent recursive polling, see SpacePoll */
+  Size actionInterval;		/* see SpacePoll */
 
   /* arena fields (impl.c.arena*) */
   ArenaStruct arenaStruct;      /* the arena */
@@ -629,6 +642,7 @@ typedef struct SpaceStruct {
 
   /* trace fields (impl.c.trace) */
   TraceSet busyTraces;          /* set of running traces */
+  TraceSet flippedTraces;	/* set of running and flipped traces */
   TraceStruct trace[TRACE_MAX]; /* trace structures.  See
                                    design.mps.trace.intance.limit */
 

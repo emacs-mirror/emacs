@@ -1,19 +1,16 @@
-/*  impl.c.pooln
+/* impl.c.pooln: NULL POOL
  *
- *                         NULL POOL
+ * $HopeName: MMsrc!pooln.c(MMdevel_action2.7) $
+ * Copyright(C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
- *  $HopeName: MMsrc!pooln.c(MMdevel_lib.2) $
- *
- *  Copyright(C) 1995 Harlequin Group, all rights reserved
- *
- *  This is the implementation of the null pool class.  Begin null it
- *  all functions are implemented in a trivial manner.
+ * This is the implementation of the null pool class.  Begin null it
+ * all functions are implemented in a trivial manner.
  */
 
 #include "mpm.h"
 #include "pooln.h"
 
-SRCID(pooln, "$HopeName: MMsrc!pooln.c(MMdevel_lib.2) $");
+SRCID(pooln, "$HopeName: MMsrc!pooln.c(MMdevel_action2.7) $");
 
 
 typedef struct PoolNStruct {
@@ -89,6 +86,8 @@ static Res NBufferInit(Pool pool, Buffer buffer)
   AVERT(Pool, pool);
   poolN = PoolPoolN(pool);
   AVERT(PoolN, poolN);
+
+  UNUSED(buffer);
 
   return ResLIMIT;  /* limit of nil buffers exceeded */
 }
@@ -172,8 +171,7 @@ static Res NDescribe(Pool pool, mps_lib_FILE *stream)
   return ResOK;
 }
 
-static Res NCondemn(RefSet *condemnedReturn, Pool pool,
-                     Space space, TraceId ti)
+static Res NCondemn(Pool pool, Trace trace, Seg seg)
 {
   PoolN poolN;
 
@@ -181,13 +179,13 @@ static Res NCondemn(RefSet *condemnedReturn, Pool pool,
   poolN = PoolPoolN(pool);
   AVERT(PoolN, poolN);
 
-  AVER(condemnedReturn != NULL);
-  AVERT(Space, space);
+  AVERT(Trace, trace);
+  AVERT(Seg, seg);
 
   return ResOK;
 }
 
-static void NMark(Pool pool, Space space, TraceId ti)
+static void NGrey(Pool pool, Trace trace, Seg seg)
 {
   PoolN poolN;
 
@@ -195,10 +193,11 @@ static void NMark(Pool pool, Space space, TraceId ti)
   poolN = PoolPoolN(pool);
   AVERT(PoolN, poolN);
 
-  AVERT(Space, space);
+  AVERT(Trace, trace);
+  AVERT(Seg, seg);
 }
 
-static Res NScan(ScanState ss, Pool pool, Bool *finishedReturn)
+static Res NScan(ScanState ss, Pool pool, Seg seg)
 {
   PoolN poolN;
 
@@ -206,8 +205,8 @@ static Res NScan(ScanState ss, Pool pool, Bool *finishedReturn)
   poolN = PoolPoolN(pool);
   AVERT(PoolN, poolN);
 
-  AVER(finishedReturn != NULL);
   AVERT(ScanState, ss);
+  AVERT(Seg, seg);
 
   return ResOK;
 }
@@ -221,13 +220,14 @@ static Res NFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVERT(PoolN, poolN);
 
   AVERT(ScanState, ss);
+  UNUSED(refIO);
   AVERT(Seg, seg);
   NOTREACHED;  /* since we don't allocate any objects, should never
                 * be called upon to fix a reference */
   return ResFAIL;
 }
 
-static void NReclaim(Pool pool, Space space, TraceId ti)
+static void NReclaim(Pool pool, Trace trace, Seg seg)
 {
   PoolN poolN;
 
@@ -235,21 +235,9 @@ static void NReclaim(Pool pool, Space space, TraceId ti)
   poolN = PoolPoolN(pool);
   AVERT(PoolN, poolN);
 
-  AVERT(Space, space);
-  /* all unmarked and condemned objects reclaimed */
-}
-
-static void NAccess(Pool pool, Seg seg, AccessSet mode)
-{
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
-
+  AVERT(Trace, trace);
   AVERT(Seg, seg);
-  UNUSED(mode);
-  /* deal with access to segment */
+  /* all unmarked and white objects reclaimed */
 }
 
 static PoolClassStruct PoolClassNStruct = {
@@ -269,11 +257,10 @@ static PoolClassStruct PoolClassNStruct = {
   NBufferExpose,                        /* bufferExpose */
   NBufferCover,                         /* bufferCover */
   NCondemn,                             /* condemn */
-  NMark,                                /* grey */
+  NGrey,                                /* grey */
   NScan,                                /* scan */
   NFix,                                 /* fix */
   NReclaim,                             /* reclaim */
-  NAccess,                              /* access */
   NDescribe,                            /* describe */
   PoolClassSig                          /* impl.h.mpmst.class.end-sig */
 };

@@ -1,7 +1,7 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.18) $
- * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!mpmtypes.h(MMdevel_action2.9) $
+ * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
  * .design: design.mps.type
@@ -39,9 +39,11 @@ typedef Addr Ref;                       /* design.mps.type.ref */
 typedef void *Pointer;                  /* design.mps.type.pointer */
 typedef Word RefSet;                    /* design.mps.refset */
 typedef unsigned Rank;                  /* design.mps.ref */
+typedef unsigned RankSet;
 typedef Size Epoch;                     /* design.mps.ld */
 typedef unsigned TraceId;               /* design.mps.tracer */
 typedef unsigned TraceSet;              /* design.mps.tracer */
+typedef unsigned TraceState;		/* design.mps.tracer */
 typedef unsigned AccessSet;             /* design.mps.type.access-set */
 typedef unsigned Attr;                  /* design.mps.type.attr */
 typedef int RootVar;                    /* design.mps.type.rootvar */
@@ -66,6 +68,7 @@ typedef struct VMStruct *VM;            /* impl.c.vm* */
 typedef struct RootStruct *Root;        /* impl.c.root */
 typedef struct ThreadStruct *Thread;    /* impl.c.th* */
 typedef Word EventType;                 /* impl.c.event */
+typedef struct ActionStruct *Action;	/* design.mps.action */
 
 
 /* Pool*Method -- see design.mps.class-interface */
@@ -83,15 +86,12 @@ typedef Bool (*PoolBufferTripMethod)   (Pool pool, Buffer buffer,
 typedef void (*PoolBufferExposeMethod) (Pool pool, Buffer buffer);
 typedef void (*PoolBufferCoverMethod)  (Pool pool, Buffer buffer);
 typedef Res  (*PoolDescribeMethod)     (Pool pool, mps_lib_FILE *stream);
-typedef Res  (*PoolCondemnMethod)      (RefSet *condemnedReturn, Pool pool,
-                                        Space space, TraceId ti);
-typedef void (*PoolGreyMethod)         (Pool pool, Space space, TraceId ti);
-typedef Res  (*PoolScanMethod)         (ScanState ss, Pool pool, 
-                                        Bool *finishedReturn);
+typedef Res  (*PoolCondemnMethod)      (Pool pool, Trace trace, Seg seg);
+typedef void (*PoolGreyMethod)         (Pool pool, Trace trace, Seg seg);
+typedef Res  (*PoolScanMethod)         (ScanState ss, Pool pool, Seg seg);
 typedef Res  (*PoolFixMethod)          (Pool pool, ScanState ss, Seg seg,
                                         Ref *refIO);
-typedef void (*PoolReclaimMethod)      (Pool pool, Space space, TraceId ti);
-typedef void (*PoolAccessMethod)       (Pool pool, Seg seg, AccessSet mode);
+typedef void (*PoolReclaimMethod)      (Pool pool, Trace trace, Seg seg);
 
 
 /* Format*Method -- see design.mps.format-interface */
@@ -125,7 +125,8 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 #define TraceIdNONE     ((TraceId)-1)   /* design.mps.tracer */
 #define RefSetEMPTY     BS_EMPTY(RefSet)
 #define RefSetUNIV      BS_UNIV(RefSet)
-#define TraceSetEMPTY   BS_EMPTY(TraceSet) /* design.mps.tracer */
+#define TraceSetEMPTY	BS_EMPTY(TraceSet) /* design.mps.tracer */
+#define RankSetEMPTY	BS_EMPTY(RankSet)
 #define AttrFMT         ((Attr)(1<<0))  /* design.mps.type.attr */
 #define AttrSCAN        ((Attr)(1<<1))
 #define AttrPM_NO_READ  ((Attr)(1<<2))
@@ -200,6 +201,17 @@ enum {
 };
 
 
+/* TraceStates -- see design.mps.tracer */
+
+enum {
+  TraceINIT,
+  TraceUNFLIPPED,
+  TraceFLIPPED,
+  TraceRECLAIM,
+  TraceFINISHED
+};
+
+
 /* Types for WriteF formats */
 /* These should be used with calls to WriteF. */
 /* These must be unpromotable types. */
@@ -214,8 +226,11 @@ typedef void *(*WriteFF)(void);
 typedef int WriteFC; /* Promoted */
 
 
-/* These names are intended to be mnemonic. They are derived from selected
- * letters as indicated, using the transliteration in design.mps.sig. 
+/* Event Codes -- see design.mps.telemetry
+ *
+ * These names are intended to be mnemonic.  They are derived from 
+ * selected letters as indicated, using the transliteration in 
+ * guide.hex.trans.
  */
 
 #define EventEventTime     ((EventType)0xEF213E77) /* EVent TIME */
@@ -233,5 +248,6 @@ typedef int WriteFC; /* Promoted */
 #define EventVMDestroy     ((EventType)0xEFF3DE52) /* EVent VM DESTroy */
 #define EventVMMap         ((EventType)0xEFF33AB7) /* EVent VM MAP */
 #define EventVMUnmap       ((EventType)0xEFF3093B) /* EVent VM UNMaP */
+
 
 #endif /* mpmtypes_h */

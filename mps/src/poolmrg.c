@@ -2,8 +2,8 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.5) $
- * Copyright(C) 1995,1997 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!poolmrg.c(MMdevel_action2.8) $
+ * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
  *
@@ -29,7 +29,7 @@
 #include "poolmrg.h"
 
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.5) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(MMdevel_action2.8) $");
 
 #define MRGSig          ((Sig)0x519B0349)
 
@@ -83,8 +83,7 @@ static Index indexOfLinkPart(Addr a, Space space)
 
 typedef struct MRGGroupStruct {
   Sig sig;                      /* impl.h.misc.sig */
-  RingStruct group;             /* design.mps.poolmrg.group.group */
-  TraceSet grey;                /* design.mps.poolmrg.group.grey */
+  RingStruct group;		/* design.mps.poolmrg.group.group */
   Seg refseg;                   /* design.mps.poolmrg.group.segs */
   Seg linkseg;                  /* design.mps.poolmrg.group.segs */
 } MRGGroupStruct;
@@ -149,13 +148,13 @@ static Res MRGGroupCreate(MRGGroup *groupReturn, MRG mrg)
   }
   AVER((Addr)(&linkpart[i]) <= SegLimit(space, linkseg));
   AVER((Addr)(&refpart[i]) <= SegLimit(space, refseg));
-  refseg->rank = RankFINAL;
+  refseg->rankSet = RankSetSingle(RankFINAL); /* design.mps.seg.field.rankSet.start */
+  refseg->summary = RefSetUNIV;		/* design.mps.seg.field.summary.start */
 
   group->refseg = refseg;
   group->linkseg = linkseg;
   refseg->p = group;
   linkseg->p = group;
-  group->grey = TraceSetEMPTY;
   RingInit(&group->group);
   RingAppend(&mrg->group, &group->group);
   group->sig = MRGGroupSig;
@@ -180,9 +179,7 @@ static Res MRGGroupScan(ScanState ss, MRGGroup group, MRG mrg)
 
   space = PoolSpace(MRGPool(mrg));
 
-  ShieldExpose(space, group->refseg);
-
-  guardians = mrg->extendBy / sizeof(Addr);     /* per seg */
+  guardians = mrg->extendBy / sizeof(Addr);	/* per seg */
   AVER(guardians > 0);
   base = SegBase(space, group->refseg);
   refpart = (Addr *)base;
@@ -201,10 +198,6 @@ static Res MRGGroupScan(ScanState ss, MRGGroup group, MRG mrg)
       }
     }
   } TRACE_SCAN_END(ss);
-
-  group->grey = TraceSetDel(group->grey, ss->traceId);
-  ShieldLower(space, group->refseg, AccessREAD | AccessWRITE);
-  ShieldCover(space, group->refseg);
 
   return ResOK;
 }
@@ -385,97 +378,27 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream)
   return ResOK;
 }
 
-static void MRGGrey(Pool pool, Space space, TraceId ti)
-{
-  MRG mrg;
-  Ring r;
-
-  AVERT(Pool, pool);
-  mrg = PoolPoolMRG(pool);
-  AVERT(MRG, mrg);
-  AVERT(Space, space);
-  AVERT(TraceId, ti);
-
-  RING_FOR(r, &mrg->group) {
-    MRGGroup group;
-
-    group = RING_ELT(MRGGroup, group, r);
-    group->grey = TraceSetAdd(group->grey, ti);
-    ShieldRaise(space, group->refseg, AccessREAD | AccessWRITE);
-  }
-}
-
-static Res MRGScan(ScanState ss, Pool pool, Bool *finishedReturn)
+static Res MRGScan(ScanState ss, Pool pool, Seg seg)
 {
   MRG mrg;
   Res res;
+  MRGGroup group;
 
   AVERT(ScanState, ss);
   AVERT(Pool, pool);
   mrg = PoolPoolMRG(pool);
   AVERT(MRG, mrg);
-  AVER(finishedReturn != NULL);
-
-  if(ss->rank == RankFINAL) {
-    Ring r;
-
-    RING_FOR(r, &mrg->group) {
-      MRGGroup group;
-
-      group = RING_ELT(MRGGroup, group, r);
-      if(TraceSetIsMember(group->grey, ss->traceId)) {
-        res = MRGGroupScan(ss, group, mrg);
-        if(res != ResOK) {
-          return res;
-        }
-        *finishedReturn = FALSE;
-        return ResOK;
-      }
-    }
-  }
-
-  *finishedReturn = TRUE;
-  return ResOK;
-}
-
-/* .amc.copy: This code is an almost exact copy of the analogous
- * method in impl.c.amc.  This is worrying.
- */
-static void MRGAccess(Pool pool, Seg seg, AccessSet mode)
-{
-  Space space;
-  MRG mrg;
-  MRGGroup group;
-  Res res;
-  ScanStateStruct ss;
-
-  AVERT(Pool, pool);
-  mrg = PoolPoolMRG(pool);
-  AVERT(MRG, mrg);
   AVERT(Seg, seg);
-  AVER(seg->pool == pool);
-  /* Cannot check AccessSet */
 
-  space = PoolSpace(pool);
-
+  AVER(seg->rankSet == RankSetSingle(RankFINAL));
+  AVER(TraceSetInter(seg->grey, ss->traces) != TraceSetEMPTY);
   group = (MRGGroup)seg->p;
+  AVER(seg == group->refseg);
 
-  ss.fix = TraceFix;
-  ss.zoneShift = space->zoneShift;
-  ss.summary = RefSetEMPTY;
-  ss.space = space;
-  ss.sig = ScanStateSig;
-  ss.rank = RankEXACT;  /* .access.exact */
-  ss.weakSplat = (Addr)0xadd4badd;
+  res = MRGGroupScan(ss, group, mrg);
+  if(res != ResOK) return res;
 
-  /* impl.c.amc.access.multi (!) */
-  for(ss.traceId = 0; ss.traceId < TRACE_MAX; ++ss.traceId) {
-    if(TraceSetIsMember(space->busyTraces, ss.traceId)) {
-      ss.condemned = space->trace[ss.traceId].condemned;
-      res = MRGGroupScan(&ss, group, mrg);
-      AVER(res == ResOK);       /* impl.c.amc.access.error (!) */
-    }
-  }
+  return ResOK;
 }
 
 static PoolClassStruct PoolClassMRGStruct = {
@@ -495,11 +418,10 @@ static PoolClassStruct PoolClassMRGStruct = {
   PoolNoBufferExpose,                   /* bufferExpose */
   PoolNoBufferCover,                    /* bufferCover */
   PoolNoCondemn,                        /* condemn */
-  MRGGrey,                              /* grey */
+  PoolTrivGrey,                         /* grey */
   MRGScan,                              /* scan */
   PoolNoFix,                            /* fix */
   PoolNoReclaim,                        /* reclaim */
-  MRGAccess,                            /* access */
   MRGDescribe,                          /* describe */
   PoolClassSig                          /* impl.h.mpmst.class.end-sig */
 };

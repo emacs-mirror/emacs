@@ -1,7 +1,7 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.22) $
- * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!mpm.h(trunk.23) $
+ * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #ifndef mpm_h
@@ -255,16 +255,13 @@ extern Res PoolCreateV(Pool *poolReturn, Space space,
 extern void PoolDestroy(Pool pool);
 extern Res PoolAlloc(Addr *pReturn, Pool pool, Size size);
 extern void PoolFree(Pool pool, Addr old, Size size);
-extern Res PoolCondemn(RefSet *condemnedReturn, Pool pool,
-                       Space space, TraceId ti);
-extern void PoolGrey(Pool pool, Space space, TraceId ti);
-extern Res PoolScan(ScanState ss, Pool pool, Bool *finishedReturn);
+extern Res PoolCondemn(Pool pool, Trace trace, Seg seg);
+extern void PoolGrey(Pool pool, Trace trace, Seg seg);
+extern Res PoolScan(ScanState ss, Pool pool, Seg seg);
 extern Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 #define PoolFix(pool, ss, seg, refIO) \
   ((*(pool)->class->fix)(pool, ss, seg, refIO))
-
-extern void PoolReclaim(Pool pool, Space space, TraceId ti);
-extern void PoolAccess(Pool pool, Seg seg, AccessSet mode);
+extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
 
 extern void PoolTrivFinish(Pool pool);
 extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size);
@@ -281,47 +278,50 @@ extern void PoolNoBufferExpose(Pool pool, Buffer buffer);
 extern void PoolNoBufferCover(Pool pool, Buffer buffer);
 extern Res PoolNoDescribe(Pool pool, mps_lib_FILE *stream);
 extern Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream);
-extern Res PoolNoCondemn(RefSet *condemnedReturn, Pool pool, Space space, TraceId ti);
-extern void PoolNoGrey(Pool pool, Space space, TraceId ti);
-extern Res PoolNoScan(ScanState ss, Pool pool, Bool *finishedReturn);
+extern Res PoolNoCondemn(Pool pool, Trace trace, Seg seg);
+extern void PoolNoGrey(Pool pool, Trace trace, Seg seg);
+extern void PoolTrivGrey(Pool pool, Trace trace, Seg seg);
+extern Res PoolNoScan(ScanState ss, Pool pool, Seg seg);
 extern Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
-extern void PoolNoReclaim(Pool pool, Space space, TraceId ti);
-extern void PoolNoAccess(Pool pool, Seg seg, AccessSet mode);
+extern void PoolNoReclaim(Pool pool, Trace trace, Seg seg);
 
 
 /* Trace Interface -- see impl.c.trace */
 
+#define TraceSetSingle(ti)	BS_SINGLE(TraceSet, ti)
 #define TraceSetIsMember(ts, ti)BS_IS_MEMBER(ts, ti)
 #define TraceSetAdd(ts, ti)     BS_ADD(TraceSet, ts, ti)
 #define TraceSetDel(ts, ti)     BS_DEL(TraceSet, ts, ti)
 #define TraceSetUnion(ts1, ts2) BS_UNION(ts1, ts2)
+#define TraceSetInter(ts1, ts2)	BS_INTER(ts1, ts2)
+#define TraceSetDiff(ts1, ts2)	BS_DIFF(ts1, ts2)
+#define TraceSetSuper(ts1, ts2)	BS_SUPER(ts1, ts2)
 
 extern TraceSet (TraceSetAdd)(TraceSet ts, TraceId id);
 extern TraceSet (TraceSetDel)(TraceSet ts, TraceId id);
 extern TraceSet (TraceSetUnion)(TraceSet ts1, TraceSet ts2);
 extern Bool (TraceSetIsMember)(TraceSet ts, TraceId id);
 
-extern Res TraceCreate(TraceId *tiReturn, Space space);
-extern void TraceDestroy(Space space, TraceId ti);
-
 extern Bool ScanStateCheck(ScanState ss);
 extern Bool TraceIdCheck(TraceId id);
 extern Bool TraceSetCheck(TraceSet ts);
+extern Bool TraceCheck(Trace trace);
 
-extern Res TraceFlip(Space space, TraceId ti, RefSet condemned);
-extern Size TracePoll(Space space, TraceId ti);
-
-extern Res TraceRunAtomic(Space space, TraceId ti);
-extern Res TraceRun(Space space, TraceId ti, Bool *finishedReturn);
+extern Res TraceCreate(Trace *traceReturn, Space space);
+extern void TraceDestroy(Trace trace);
+extern Res TraceStart(Trace trace, Pool pool);
+extern Res TracePoll(Trace trace);
+extern void TraceAccess(Space space, Seg seg, AccessSet mode);
 
 extern Res TraceFix(ScanState ss, Ref *refIO);
+extern void TraceSegGreyen(Space space, Seg seg, TraceSet ts);
 
 /* Equivalent to impl.h.mps MPS_SCAN_BEGIN */
 
 #define TRACE_SCAN_BEGIN(ss) \
   BEGIN \
     Shift SCANzoneShift = (ss)->zoneShift; \
-    RefSet SCANcondemned = (ss)->condemned; \
+    RefSet SCANwhite = (ss)->white; \
     RefSet SCANsummary = (ss)->summary; \
     Word SCANt; \
     {
@@ -331,7 +331,7 @@ extern Res TraceFix(ScanState ss, Ref *refIO);
 #define TRACE_FIX1(ss, ref) \
   (SCANt = (Word)1<<((Word)(ref)>>SCANzoneShift&(MPS_WORD_WIDTH-1)), \
    SCANsummary |= SCANt, \
-   SCANcondemned & SCANt)
+   SCANwhite & SCANt)
 
 /* Equivalent to impl.h.mps MPS_FIX2 */
 
@@ -355,6 +355,14 @@ extern Res TraceScanArea(ScanState ss, Addr *base, Addr *limit);
 extern Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit);
 
 
+/* Action Interface -- see design.mps.action */
+
+extern Bool ActionCheck(Action action);
+extern void ActionInit(Action action, Pool pool);
+extern void ActionFinish(Action action);
+extern void ActionPoll(Space space);
+
+
 /* Space Interface -- see impl.c.space */
 
 extern Res SpaceCreate(Space *spaceReturn, Addr base, Size size);
@@ -373,7 +381,8 @@ extern void SpaceFree(Space space, Addr base, Size size);
 #define SpaceTraceRing(space)   (&(space)->traceRing)
 #define SpaceThreadRing(space)  (&(space)->threadRing)
 #define SpaceEpoch(space)       ((space)->epoch) /* .epoch.ts */
-
+#define SpaceTrace(space, ti)	(&(space)->trace[ti])
+#define SpaceZoneShift(space)	((space)->zoneShift)
 
 /* Arena Interface -- see impl.c.arena* */
 
@@ -401,6 +410,8 @@ extern Bool SegOfAddr(Seg *segReturn, Space space, Addr addr);
 extern Seg SegFirst(Space space);
 extern Seg SegNext(Space space, Seg seg);
 extern Bool SegCheck(Seg seg);
+extern void SegInit(Seg seg, Pool pool);
+extern void SegFinish(Seg seg);
 
 
 /* Buffer Interface -- see impl.c.buffer */
@@ -413,7 +424,7 @@ extern Res BufferReserve(Addr *pReturn, Buffer buffer, Size size);
 extern Res BufferFill(Addr *pReturn, Buffer buffer, Size size);
 extern Bool BufferCommit(Buffer buffer, Addr p, Size size);
 extern Bool BufferTrip(Buffer buffer, Addr p, Size size);
-extern void BufferInit(Buffer buffer, Pool pool, Rank rank);
+extern Res BufferInit(Buffer buffer, Pool pool, Rank rank);
 extern void BufferFinish(Buffer buffer);
 extern void BufferSet(Buffer buffer, Seg seg, Addr base, Addr init, Addr limit);
 extern void BufferReset(Buffer buffer);
@@ -458,6 +469,11 @@ extern Res FormatDescribe(Format format, mps_lib_FILE *stream);
 /* Reference Interface -- see impl.c.ref */
 
 extern Bool RankCheck(Rank rank);
+extern Bool RankSetCheck(RankSet rankSet);
+
+#define RankSetIsMember(rs, r)	BS_IS_MEMBER(rs, r)
+#define RankSetSingle(r)	BS_SINGLE(RankSet, r)
+#define RankSetIsSingle(r)	BS_IS_SINGLE(r)
 
 #define RefSetZone(space, addr) \
   (((Word)(addr) >> space->zoneShift) & (MPS_WORD_WIDTH - 1))
@@ -522,7 +538,7 @@ extern Bool RootCheck(Root root);
 extern Res RootDescribe(Root root, mps_lib_FILE *stream);
 extern Bool RootIsAtomic(Root root);
 extern Rank RootRank(Root root);
-extern void RootGrey(Root root, TraceId ti);
+extern void RootGrey(Root root, Trace trace);
 extern Res RootScan(ScanState ss, Root root);
 extern Space RootSpace(Root root);
 

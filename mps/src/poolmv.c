@@ -1,7 +1,7 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(trunk.17) $
- * Copyright (C) 1994, 1995 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!poolmv.c(MMdevel_action2.2) $
+ * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
  *                   pool, since it is used to implement that pool.
@@ -9,8 +9,8 @@
  *                   poolPool.
  *
  * An observation: Freeing memory introduces more information
- * into the system than allocating it.  This causes the problem described
- * in note 2.
+ * into the system than allocating it.  This causes the problem
+ * described in note 2.
  *
  * Notes
  *  1. Need to measure typical fragmentation levels and adjust the
@@ -37,7 +37,7 @@
 #include "poolmfs.h"
 #include "mpscmv.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.17) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(MMdevel_action2.2) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
@@ -626,7 +626,6 @@ static PoolClassStruct PoolClassMVStruct = {
   PoolNoScan,                           /* scan */
   PoolNoFix,                            /* fix */
   PoolNoReclaim,                        /* relcaim */
-  PoolNoAccess,                         /* access */
   MVDescribe,                           /* describe */
   PoolClassSig                          /* impl.h.mpmst.class.end-sig */
 };
