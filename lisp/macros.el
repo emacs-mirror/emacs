@@ -41,6 +41,7 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
       (error "No keyboard macro defined"))
   (and (fboundp symbol)
        (not (stringp (symbol-function symbol)))
+       (not (vectorp (symbol-function symbol)))
        (error "Function %s is already defined and not a keyboard macro."
 	      symbol))
   (fset symbol last-kbd-macro))
