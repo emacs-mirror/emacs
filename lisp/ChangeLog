@@ -1,5 +1,8 @@
 2003-08-02  Andreas Schwab  <schwab@suse.de>
 
+	* apropos.el (apropos-words-to-regexp): Only add `wild' if `words'
+	has more than one member.
+
 	* progmodes/sh-script.el (sh-mode): Don't set mode-class property.
 
 2003-08-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
