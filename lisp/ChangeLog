@@ -1,5 +1,8 @@
 2002-01-07  Richard M. Stallman  <rms@gnu.org>
 
+	* dired.el (dired-copy-filename-as-kill): Call kill-append
+	if following a kill command.
+
 	* help-fns.el (describe-variable, describe-function):
 	Do save-excursion.
 
