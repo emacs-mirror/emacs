@@ -5,9 +5,10 @@
   See the end of the file for copying permissions.
 
   To compile Emacs, you will need either Microsoft Visual C++ 2.0 or
-  later, or a Windows port of GCC 2.95 or later with Mingw and W32 API
-  support and a port of GNU make.  You can use the Cygwin ports of GCC,
-  but Emacs requires the Mingw headers and libraries to build.
+  later and nmake, or a Windows port of GCC 2.95 or later with Mingw
+  and W32 API support and a port of GNU make.  You can use the Cygwin
+  ports of GCC, but Emacs requires the Mingw headers and libraries to
+  build.
 
   If you build Emacs on Windows 9X or ME, not on Windows 2000 or
   Windows NT, we suggest to install the Cygwin port of Bash.
