@@ -1,5 +1,6 @@
 /* Updating of data structures for redisplay.
-   Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1990,
+   1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -231,13 +232,11 @@ make_frame_glyphs (frame, empty)
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (frame))
     {
-      new->nruns = (int *) xmalloc (height * sizeof (int));
-      new->face_list
-	= (struct run **) xmalloc (height * sizeof (struct run *));
       new->top_left_x = (short *) xmalloc (height * sizeof (short));
       new->top_left_y = (short *) xmalloc (height * sizeof (short));
       new->pix_width = (short *) xmalloc (height * sizeof (short));
       new->pix_height = (short *) xmalloc (height * sizeof (short));
+      new->max_ascent = (short *) xmalloc (height * sizeof (short));
     }
 #endif
 
@@ -280,12 +279,11 @@ free_frame_glyphs (frame, glyphs)
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (frame))
     {
-      free (glyphs->nruns);
-      free (glyphs->face_list);
       free (glyphs->top_left_x);
       free (glyphs->top_left_y);
       free (glyphs->pix_width);
       free (glyphs->pix_height);
+      free (glyphs->max_ascent);
     }
 #endif
 
@@ -630,14 +628,6 @@ scroll_frame_lines (frame, from, end, amount)
 #ifdef HAVE_X_WINDOWS
       if (FRAME_X_P (frame))
 	{
-	  safe_bcopy (current_frame->nruns + from,
-		      current_frame->nruns + from + amount,
-		      (end - from) * sizeof current_frame->nruns[0]);
-
-	  safe_bcopy (current_frame->face_list + from,
-		      current_frame->face_list + from + amount,
-		      (end - from) * sizeof current_frame->face_list[0]);
-
 	  safe_bcopy (current_frame->top_left_x + from,
 		      current_frame->top_left_x + from + amount,
 		      (end - from) * sizeof current_frame->top_left_x[0]);
@@ -653,6 +643,10 @@ scroll_frame_lines (frame, from, end, amount)
 	  safe_bcopy (current_frame->pix_height + from,
 		      current_frame->pix_height + from + amount,
 		      (end - from) * sizeof current_frame->pix_height[0]);
+
+	  safe_bcopy (current_frame->max_ascent + from,
+		      current_frame->max_ascent + from + amount,
+		      (end - from) * sizeof current_frame->max_ascent[0]);
 	}
 #endif				/* HAVE_X_WINDOWS */
 
@@ -702,14 +696,6 @@ scroll_frame_lines (frame, from, end, amount)
 #ifdef HAVE_X_WINDOWS
       if (FRAME_X_P (frame))
 	{
-	  safe_bcopy (current_frame->nruns + from,
-		      current_frame->nruns + from + amount,
-		      (end - from) * sizeof current_frame->nruns[0]);
-
-	  safe_bcopy (current_frame->face_list + from,
-		      current_frame->face_list + from + amount,
-		      (end - from) * sizeof current_frame->face_list[0]);
-
 	  safe_bcopy (current_frame->top_left_x + from,
 		      current_frame->top_left_x + from + amount,
 		      (end - from) * sizeof current_frame->top_left_x[0]);
@@ -725,6 +711,10 @@ scroll_frame_lines (frame, from, end, amount)
 	  safe_bcopy (current_frame->pix_height + from,
 		      current_frame->pix_height + from + amount,
 		      (end - from) * sizeof current_frame->pix_height[0]);
+
+	  safe_bcopy (current_frame->max_ascent + from,
+		      current_frame->max_ascent + from + amount,
+		      (end - from) * sizeof current_frame->max_ascent[0]);
 	}
 #endif				/* HAVE_X_WINDOWS */
 
@@ -995,7 +985,7 @@ update_frame (f, force, inhibit_hairy_id)
 	  current_frame->top_left_x[FRAME_HEIGHT (f) - 1] = leftmost;
 	  current_frame->top_left_y[FRAME_HEIGHT (f) - 1]
 	    = PIXEL_HEIGHT (f) - f->display.x->internal_border_width
-	      - LINE_HEIGHT(f, FRAME_HEIGHT (f) - 1);
+	      - current_frame->pix_height[FRAME_HEIGHT (f) - 1];
 	  current_frame->top_left_x[0] = leftmost;
 	  current_frame->top_left_y[0] = downto;
 	}
@@ -1046,7 +1036,7 @@ update_frame (f, force, inhibit_hairy_id)
 
 #ifdef HAVE_X_WINDOWS
       if (FRAME_X_P (f))
-	downto += LINE_HEIGHT(f, i);
+	downto += current_frame->pix_height[i];
 #endif
     }
   pause = (i < FRAME_HEIGHT (f) - 1) ? i : 0;
