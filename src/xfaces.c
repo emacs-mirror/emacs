@@ -778,7 +778,7 @@ clear_font_table (f)
   Lisp_Object rest, frame;
   int i;
 
-  xassert (FRAME_X_P (c->f));
+  xassert (FRAME_X_P (f));
 
   used = (char *) alloca (dpyinfo->n_fonts * sizeof *used);
   bzero (used, dpyinfo->n_fonts * sizeof *used);
@@ -5839,7 +5839,7 @@ realize_x_face (c, attrs, charset)
   Lisp_Object unibyte_registry;
   struct gcpro gcpro1;
 
-  xassert (FRAME_X_P (f));
+  xassert (FRAME_X_P (c->f));
 
   /* If realizing a face for use in unibyte text, get the X registry
      and encoding to use from Vface_default_registry.  */
