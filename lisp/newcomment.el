@@ -73,7 +73,6 @@
 ;;;###autoload
 (defalias 'indent-new-comment-line 'comment-indent-new-line)
 
-;;;###autoload
 (defgroup comment nil
   "Indenting and filling of comments."
   :prefix "comment-"
