@@ -9427,8 +9427,6 @@ x_erase_phys_cursor (w)
   /* Erase the cursor by redrawing the character underneath it.  */
   if (mouse_face_here_p)
     hl = DRAW_MOUSE_FACE;
-  else if (cursor_row->inverse_p)
-    hl = DRAW_INVERSE_VIDEO;
   else
     hl = DRAW_NORMAL_TEXT;
   x_draw_phys_cursor_glyph (w, cursor_row, hl);
