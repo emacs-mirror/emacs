@@ -3,12 +3,17 @@ set main
 
 # Find lwlib source files too.
 dir ../lwlib
+dir /gd/gnu/lesstif-0.89.9/lib/Xm
 
 # Don't enter GDB when user types C-g to quit.
 # This has one unfortunate effect: you can't type C-c
 # at the GDB to stop Emacs, when using X.
 # However, C-z works just as well in that case.
 handle 2 noprint pass
+
+# Don't pass SIGALRM to Emacs.  This makes problems when
+# debugging.
+handle SIGALRM ignore
 
 # Set up a mask to use.
 # This should be EMACS_INT, but in some cases that is a macro.
@@ -241,6 +246,13 @@ end
 document xbuffer
 Set $ as a buffer pointer, assuming it is an Emacs Lisp buffer value.
 Print the name of the buffer.
+end
+
+define xhashtable
+print (struct Lisp_Hash_Table *) (($ & $valmask) | gdb_data_seg_bits)
+end
+document xhashtable
+Set $ as a hash table pointer, assuming it is an Emacs Lisp hash table value.
 end
 
 define xcons
