@@ -1,5 +1,7 @@
 2005-01-01  Richard M. Stallman  <rms@gnu.org>
 
+	* custom.texi (Face Customization): Mention hex color specs.
+
 	* emacs.texi (Top): Update Killing submenu.
 
 	* killing.texi (Killing): Reorganize section.

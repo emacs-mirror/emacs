@@ -1,3 +1,7 @@
+2005-01-01  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Face Attributes): Describe hex color specs.
+
 2004-12-31  Richard M. Stallman  <rms@gnu.org>
 
 	* os.texi (Timers): Update previous change.
