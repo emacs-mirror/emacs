@@ -1,5 +1,16 @@
 2001-03-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (Frecenter): Rewrite code handling negative values
+	of ARG on graphical frames.
+
+2001-03-07  Eli Zaretskii  <a34785@is.elta.co.il>
+
+	* window.c (displayed_window_lines): If W->start is outside the
+	accessible portion of the buffer, call start_display with BEGV or
+	ZV instead of W->start.
+
+2001-03-07  Gerd Moellmann  <gerd@gnu.org>
+
 	* buffer.c (syms_of_buffer) <header-line-format>: Doc fix.
 
 	* process.c (Fset_process_filter): Don't crash if the input

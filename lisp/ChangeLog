@@ -1,4 +1,9 @@
-2001-03-06  Stefan Monnier  <monnier@cs.yale.edu>
+2001-03-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* info.el (Info-scroll-down): Call pos-visible-in-window-p with
+	second arg t.
+
+2001-03-07  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* log-edit.el (log-edit-common-indent): New var.
 	(log-edit-set-common-indentation): Renamed from
