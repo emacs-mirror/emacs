@@ -11263,6 +11263,8 @@ x_connection_closed (dpy, error_message)
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;
 
+  handling_signal = 0;
+  
   /* We have to close the display to inform Xt that it doesn't
      exist anymore.  If we don't, Xt will continue to wait for
      events from the display.  As a consequence, a sequence of
@@ -11339,7 +11341,6 @@ x_connection_closed (dpy, error_message)
   TOTALLY_UNBLOCK_INPUT;
 
   clear_waiting_for_input ();
-  handling_signal = 0;
   error ("%s", error_message);
 }
 
