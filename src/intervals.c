@@ -1813,7 +1813,7 @@ textget (plist, prop)
      Lisp_Object plist;
      register Lisp_Object prop;
 {
-  lookup_char_property (plist, prop, 1);
+  return lookup_char_property (plist, prop, 1);
 }
 
 Lisp_Object
@@ -1824,15 +1824,15 @@ lookup_char_property (plist, prop, textprop)
 {
   register Lisp_Object tail, fallback = Qnil;
 
-  for (tail = plist; !NILP (tail); tail = Fcdr (Fcdr (tail)))
+  for (tail = plist; CONSP (tail); tail = Fcdr (XCDR (tail)))
     {
       register Lisp_Object tem;
-      tem = Fcar (tail);
+      tem = XCAR (tail);
       if (EQ (prop, tem))
-	return Fcar (Fcdr (tail));
+	return Fcar (XCDR (tail));
       if (EQ (tem, Qcategory))
 	{
-	  tem = Fcar (Fcdr (tail));
+	  tem = Fcar (XCDR (tail));
 	  if (SYMBOLP (tem))
 	    fallback = Fget (tem, prop);
 	}
@@ -1845,12 +1845,8 @@ lookup_char_property (plist, prop, textprop)
   if (NILP (tail))
     return tail;
   tail = XCDR (tail);
-  for (; NILP (fallback) && !NILP (tail); tail = XCDR (tail))
-    {
-      if (!CONSP (tail))
-	wrong_type_argument (Qlistp, tail);
-      fallback = Fplist_get (plist, XCAR (tail));
-    }
+  for (; NILP (fallback) && CONSP (tail); tail = XCDR (tail))
+    fallback = Fplist_get (plist, XCAR (tail));
   if (textprop && NILP (fallback) && CONSP (Vdefault_text_properties))
     fallback = Fplist_get (Vdefault_text_properties, prop);
   return fallback;
