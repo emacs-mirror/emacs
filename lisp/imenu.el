@@ -745,9 +745,8 @@ Their results are gathered into an index alist."
   "Defines whether `imenu--generic-function' should fold case when matching.
 
 This variable should be set (only) by initialization code
-for modes which use `imenu--generic-function'.  If it is not set, that
-function will use the current value of `case-fold-search' to match
-patterns.")
+for modes which use `imenu--generic-function'.  If it is not set, but
+`font-lock-defaults' is set, then font-lock's setting is used.")
 ;;;###autoload
 (make-variable-buffer-local 'imenu-case-fold-search)
 
@@ -779,7 +778,10 @@ PATTERNS."
 
   (let ((index-alist (list 'dummy))
 	prev-pos beg
-        (case-fold-search imenu-case-fold-search)
+        (case-fold-search (if (or (local-variable-p 'imenu-case-fold-search)
+				  (not (local-variable-p 'font-lock-defaults)))
+			      imenu-case-fold-search
+			    (nth 2 font-lock-defaults)))
         (old-table (syntax-table))
         (table (copy-syntax-table (syntax-table)))
         (slist imenu-syntax-alist))
