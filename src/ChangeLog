@@ -1,3 +1,11 @@
+2001-10-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* lisp.h (circular_list_error): Add prototype.
+
+	* data.c (Qcircular_list): New variable.
+	(circular_list_error): New function.
+	(syms_of_data): Initialize it Qcircular_list.
+
 2001-10-10  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* window.c, syntax.c, macros.c, frame.c, emacs.c, cmds.c, category.c,
