@@ -3394,7 +3394,7 @@ enlarge_window (window, delta, widthflag, preserve_before)
 	  {
 	    maxdelta = (*sizefun) (parent) - XINT (*sizep);
 	    /* Subtract size of siblings before, since we can't take that.  */
-	    maxdelta -= CURBEG (window) - CURBEG (parent);
+	    maxdelta -= XINT (CURBEG (window)) - XINT (CURBEG (parent));
 	  }
 	else
 	  maxdelta = (!NILP (p->next) ? ((*sizefun) (p->next)
