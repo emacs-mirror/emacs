@@ -942,6 +942,18 @@ one frame, otherwise the name is displayed on the frame's caption bar."
   (interactive "sFrame name: ")
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'name name))))
+
+(defun frame-current-scroll-bars (&optional frame)
+  "Return the current scroll-bar settings in frame FRAME.
+Value is a cons (VERTICAL . HORISONTAL) where VERTICAL specifies the
+current location of the vertical scroll-bars (left, right, or nil),
+and HORISONTAL specifies the current location of the horisontal scroll
+bars (top, bottom, or nil)."
+  (let ((vert (frame-parameter frame 'vertical-scroll-bars))
+	(hor nil))
+    (unless (memq vert '(left right nil))
+      (setq vert default-frame-scroll-bars))
+    (cons vert hor)))
 
 ;;;; Frame/display capabilities.
 (defun display-mouse-p (&optional display)
