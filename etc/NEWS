@@ -88,6 +88,15 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** `undo-only' (bound to C-x U) does an undo which does not redo any
+previous undo.
+
+** `uniquify-strip-common-suffix' tells uniquify to prefer
+`file|dir1' and `file|dir2' to `file|dir1/subdir' and `file|dir2/subdir'.
+
+** If the user visits a file larger than `large-file-warning-threshold',
+Emacs will prompt her for confirmation.
+
 ** A UTF-7 coding system is available in the library `utf-7'.
 
 ** GUD mode has its own tool bar for controlling execution of the inferior
@@ -347,6 +356,8 @@ command-line options to feed to TeX, and `tex-start-commands' which should hold
 TeX commands to use at startup.
 *** verbatim environments are now highlighted in courier by font-lock
 and super/sub-scripts are made into super/sub-scripts.
+
+*** New major mode doctex-mode for *.dtx files.
 
 +++
 ** New display feature: focus follows the mouse from one Emacs window
@@ -774,6 +785,8 @@ by VC.  These switches are used as "global options" for CVS, which
 means they are inserted before the command name.  For example, this
 allows you to specify a compression level using the "-z#" option for
 CVS.
+
+*** New backends for Subversion and Meta-CVS.
 
 ** EDiff changes.
 
@@ -1221,6 +1234,16 @@ timing measurements of code (including the garbage collection component).
 
 
 * Lisp Changes in Emacs 21.4
+
+** (map-keymap FUNCTION KEYMAP) applies the function to each binding
+in the keymap.
+
+** VC changes for backends:
+*** (vc-switches BACKEND OPERATION) is a new function for use by backends.
+*** The new `find-version' backend function replaces the `destfile'
+parameter of the `checkout' backend function.
+Old code still works thanks to a default `find-version' behavior that
+uses the old `destfile' parameter.
 
 ** `minor-mode-list' now holds a list of minor mode commands.
 
@@ -1911,6 +1934,12 @@ An octal escape makes it unibyte.
 text, in the same way it moves out from within text covered by an
 image or composition property.
 
+This makes it generally unnecessary to mark invisible text as intangible.
+This is particularly good because the intangible property often has
+unexpected side-effects since the property applies to everything
+(including `goto-char', ...) whereas this new code is only run after
+post-command-hook and thus does not care about intermediate states.
+	
 ** Only one of the beginning or end of an invisible, intangible region is
 considered an acceptable value for point; which one is determined by
 examining how the invisible/intangible properties are inherited when new

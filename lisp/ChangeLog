@@ -1,3 +1,39 @@
+2003-05-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* simple.el (back-to-indentation): Simplify.
+	(undo-equiv-table, undo-in-region, undo-no-redo): New vars.
+	(undo): Use them to implement the no-redo form of undo.
+	(undo-only): New fun.
+	(shell-command): Don't require `shell' since shell-mode is autoloaded.
+	(insert-buffer): Simplify.
+	(completion-setup-function): Use minibufferp.
+	(event-apply-alt-modifier, event-apply-super-modifier)
+	(event-apply-hyper-modifier, event-apply-shift-modifier)
+	(event-apply-control-modifier, event-apply-meta-modifier):
+	Fix docstring to show the proper key sequence.
+
+	* uniquify.el (uniquify-after-kill-buffer-p): Set default to t.
+	(uniquify-ignore-buffers-re): Revert to nil now that uniquify
+	is more careful about preserving buffer names.
+
+	* menu-bar.el (menu-bar-options-menu) <cua-mode>:
+	Use menu-bar-make-mm-toggle.
+
+	* files.el (file-relative-name): Remove dead code.
+	Make sure \n in a filename does not confuse us.
+
+	* help-fns.el (describe-variable): Mention permanent local status.
+
+	* comint.el (comint-carriage-motion, comint-output-filter):
+	Bind inhibit-read-only rather than buffer-read-only.
+	(comint-truncate-buffer): Bind inhibit-read-only.
+
+	* pcvs.el (cvs-make-cvs-buffer): Add the tag info.
+	(cvs-mode): Prevent pilot-error.
+
+	* vc-mcvs.el (vc-mcvs-registered, vc-mcvs-root): Check the output
+	of file-name-directory for nil.
+
 2003-05-13  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-open-stream): Don't hard code
@@ -6,17 +42,34 @@
 2003-05-13  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* whitespace.el (whitespace-global-mode): Add :link entry
-	  to the commentary section in whitespace.el
+	to the commentary section in whitespace.el
 
 2003-05-13  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-invalidate-assembler): Update assembler buffer
 	correctly when frame changes.
-	(gdb-info-threads-custom, gdb-threads-buffer-name) 
-	(gdb-display-threads-buffer, gdb-frame-threads-buffer) 
-	(gdb-threads-mode-map, gdb-threads-mode, gdb-get-thread-number) 
+	(gdb-info-threads-custom, gdb-threads-buffer-name)
+	(gdb-display-threads-buffer, gdb-frame-threads-buffer)
+	(gdb-threads-mode-map, gdb-threads-mode, gdb-get-thread-number)
 	(gdb-threads-select, gdb-threads-mouse-select): New functions and
 	variable for a buffer that provides a selectable threads list.
+
+2003-05-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* pcvs-parse.el (cvs-parse-table): `New directory' messages include
+	the full path.
+
+	* pcvs.el (cvs-minor-current-files): Move before first use.
+	(defun-cvs-mode): Remove unused var `restdoc'.
+	(cvs-edit-log-revision, ediff-after-quit-hook-internal): Declare.
+	(cvs-mode-diff-backup): Remove unused var `filter'.
+	(cvs-mode-run): Remove unused var `cvs-buf'.
+	(cvs-mode-do): Remove unused arg `parse'.
+	(cvs-retrieve-revision): Make sure HEAD gets the head of the branch.
+
+	* textmodes/sgml-mode.el (sgml-namespace-re): New const.
+	(sgml-namespace-face): New face.
+	(sgml-font-lock-keywords-1): Use them.
 
 2003-05-11  Kevin Ryde  <user42@zip.com.au>
 
