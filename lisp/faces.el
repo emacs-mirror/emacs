@@ -145,7 +145,8 @@ If FRAME is omitted or nil, use the selected frame."
 	(not (equal font (x-make-font-unitalic font)))
       (memq 'italic font))))
 
-(defun face-doc-string (face)
+(defalias 'face-doc-string 'face-documentation)
+(defun face-documentation (face)
   "Get the documentation string for FACE."
   (get face 'face-documentation))
 
@@ -275,7 +276,7 @@ in that frame; otherwise change each frame."
   (cond ((eq italic-p nil) (make-face-unitalic face frame t))
 	(t (make-face-italic face frame t))))
 
-(defun set-face-doc-string (face string)
+(defun set-face-documentation (face string)
   "Set the documentation string for FACE to STRING."
   (put face 'face-documentation string))
 
@@ -1137,7 +1138,7 @@ selected frame."
     (princ "   Stipple: ") (princ (or (face-stipple face) "none")) (terpri)
     (terpri)
     (princ "Documentation:") (terpri)
-    (let ((doc (face-doc-string face)))
+    (let ((doc (face-documentation face)))
       (if doc
 	  (princ doc)
 	(princ "not documented as a face.")))))
