@@ -148,7 +148,7 @@ the terminal-initialization file to be loaded.")
 (defconst abbrev-file-name 
   (if (eq system-type 'vax-vms)
       "~/abbrev.def"
-    "~/.abbrev_defs")
+    (convert-standard-filename "~/.abbrev_defs"))
   "*Default name of file to read abbrevs from.")
 
 ;;; paths.el ends here
