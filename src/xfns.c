@@ -8155,10 +8155,13 @@ png_load (f, img)
 
   /* Tell the PNG lib to handle gamma correction for us.  */
 
+#if defined(PNG_READ_sRGB_SUPPORTED) || defined(PNG_WRITE_sRGB_SUPPORTED)
   if (png_get_sRGB (png_ptr, info_ptr, &intent))
     /* There is a special chunk in the image specifying the gamma.  */
     png_set_sRGB (png_ptr, info_ptr, intent);
-  else if (png_get_gAMA (png_ptr, info_ptr, &image_gamma))
+  else
+#endif
+  if (png_get_gAMA (png_ptr, info_ptr, &image_gamma))
     /* Image contains gamma information.  */
     png_set_gamma (png_ptr, screen_gamma, image_gamma);
   else
