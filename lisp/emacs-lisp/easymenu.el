@@ -45,8 +45,8 @@ NAME is a string--the menu item name.
 CALLBACK is a command to run when the item is chosen,
 or a list to evaluate when the item is chosen.
 
-ENABLE is a symbol; if its value is non-nil, the item is enabled
-for selection.
+ENABLE is an expression; the item is enabled for selection
+whenever this expression's value is non-nil.
 
 A menu item can be a string.  Then that string appears in the menu as
 unselectable text.  A string consisting solely of hyphens is displayed
