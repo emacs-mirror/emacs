@@ -32,7 +32,7 @@ static void error(const char *format, ...)
   va_list args;
 
   fflush(stdout); /* sync */
-  fprintf(stderr, "%s: @%lu ", prog, (unsigned long) eventTime);
+  fprintf(stderr, "%s: ", prog);
   va_start(args, format);
   vfprintf(stderr, format, args);
   fprintf(stderr, "\n");
