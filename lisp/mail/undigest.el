@@ -36,6 +36,14 @@
   "\^_\^L\n0, unseen,,\n*** EOOH ***\n"
   "String for separating messages in an rmail file.")
 
+(defcustom rmail-forward-separator-regex
+  "^----.*\\([Ff]orwarded\\|[Oo]riginal\\).*[Mm]essage"
+  "*Regexp to match the string that introduces forwarded messages.
+This is not a header, but a string contained in the body of the message.
+You may need to customise it for local needs."
+  :type 'regexp
+  :group 'rmail-headers)
+
 
 (defconst rmail-digest-methods
   '(rmail-digest-parse-mime
@@ -231,8 +239,7 @@ following the containing message."
 	      (forwarded-from (mail-fetch-field "From"))
 	      (forwarded-date (mail-fetch-field "Date"))
 	      beg end prefix forward-msg)
-	  (cond ((re-search-forward
-		  "^----.*\\([Ff]orwarded\\|[Oo]riginal\\).*[Mm]essage" nil t)
+	  (cond ((re-search-forward rmail-forward-separator-regex nil t)
 		 (forward-line 1)
 		 (skip-chars-forward "\n")
 		 (setq beg (point))
