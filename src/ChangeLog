@@ -1,3 +1,10 @@
+2000-09-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* ralloc.c (obtain, relinquish, relinquish, r_alloc_size_in_use)
+	(get_bloc, relocate_blocs, update_heap_bloc_correspondence)
+	(resize_bloc, r_alloc_sbrk, r_alloc_init): Add casts to `char *'
+	where necessary, in case POINTER_TYPE is `void'.
+
 2000-09-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.c (make_terminal_frame): Initialize frame foreground and
