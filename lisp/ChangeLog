@@ -1,6 +1,10 @@
+2001-07-20  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* server.el (server-visit-files): Fix variable name typo.
+
 2001-07-20  Gerd Moellmann  <gerd@gnu.org>
 
-	* simple.el (delete-trailing-whitespace): Save match data 
+	* simple.el (delete-trailing-whitespace): Save match data
 	around looking-at.  From Markus Rost <rost@math.ohio-state.edu>.
 
 2001-07-19  Stefan Monnier  <monnier@cs.yale.edu>
