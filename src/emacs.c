@@ -2238,6 +2238,12 @@ You must run Emacs in batch mode in order to dump it.  */)
   memory_warnings (my_edata, malloc_warning);
 #endif /* not WINDOWSNT */
 #endif
+#ifdef HAVE_GTK_AND_PTHREAD
+  /* Pthread may call malloc before main, and then we will get an endless
+     loop, because pthread_self (see alloc.c) calls malloc the first time
+     it is called on some systems.  */
+  reset_malloc_hooks ();
+#endif
 #ifdef DOUG_LEA_MALLOC
   malloc_state_ptr = malloc_get_state ();
 #endif

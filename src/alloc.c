@@ -31,6 +31,10 @@ Boston, MA 02111-1307, USA.  */
 
 #include <signal.h>
 
+#ifdef HAVE_GTK_AND_PTHREAD
+#include <pthread.h>
+#endif
+
 /* This file is part of the core Lisp implementation, and thus must
    deal with the real data structures.  If the Lisp implementation is
    replaced, this file likely will not be used.  */
@@ -84,6 +88,35 @@ extern __malloc_size_t _bytes_used;
 extern __malloc_size_t __malloc_extra_blocks;
 
 #endif /* not DOUG_LEA_MALLOC */
+
+#if ! defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
+
+static pthread_mutex_t alloc_mutex;
+pthread_t main_thread;
+
+#define BLOCK_INPUT_ALLOC                       \
+  do                                            \
+    {                                           \
+      pthread_mutex_lock (&alloc_mutex);        \
+      if (pthread_self () == main_thread)       \
+        BLOCK_INPUT;                            \
+    }                                           \
+  while (0)
+#define UNBLOCK_INPUT_ALLOC                     \
+  do                                            \
+    {                                           \
+      if (pthread_self () == main_thread)       \
+        UNBLOCK_INPUT;                          \
+      pthread_mutex_unlock (&alloc_mutex);      \
+    }                                           \
+  while (0)
+
+#else /* SYSTEM_MALLOC || not HAVE_GTK_AND_PTHREAD */
+
+#define BLOCK_INPUT_ALLOC BLOCK_INPUT
+#define UNBLOCK_INPUT_ALLOC UNBLOCK_INPUT
+
+#endif /* SYSTEM_MALLOC || not HAVE_GTK_AND_PTHREAD */
 
 /* Value of _bytes_used, when spare_memory was freed.  */
 
@@ -1068,7 +1101,7 @@ static void
 emacs_blocked_free (ptr)
      void *ptr;
 {
-  BLOCK_INPUT;
+  BLOCK_INPUT_ALLOC;
 
 #ifdef GC_MALLOC_CHECK
   if (ptr)
@@ -1106,7 +1139,7 @@ emacs_blocked_free (ptr)
     spare_memory = (char *) malloc ((size_t) SPARE_MEMORY);
 
   __free_hook = emacs_blocked_free;
-  UNBLOCK_INPUT;
+  UNBLOCK_INPUT_ALLOC;
 }
 
 
@@ -1132,7 +1165,7 @@ emacs_blocked_malloc (size)
 {
   void *value;
 
-  BLOCK_INPUT;
+  BLOCK_INPUT_ALLOC;
   __malloc_hook = old_malloc_hook;
 #ifdef DOUG_LEA_MALLOC
     mallopt (M_TOP_PAD, malloc_hysteresis * 4096);
@@ -1164,7 +1197,7 @@ emacs_blocked_malloc (size)
 #endif /* GC_MALLOC_CHECK */
 
   __malloc_hook = emacs_blocked_malloc;
-  UNBLOCK_INPUT;
+  UNBLOCK_INPUT_ALLOC;
 
   /* fprintf (stderr, "%p malloc\n", value); */
   return value;
@@ -1180,7 +1213,7 @@ emacs_blocked_realloc (ptr, size)
 {
   void *value;
 
-  BLOCK_INPUT;
+  BLOCK_INPUT_ALLOC;
   __realloc_hook = old_realloc_hook;
 
 #ifdef GC_MALLOC_CHECK
@@ -1225,10 +1258,26 @@ emacs_blocked_realloc (ptr, size)
 #endif /* GC_MALLOC_CHECK */
 
   __realloc_hook = emacs_blocked_realloc;
-  UNBLOCK_INPUT;
+  UNBLOCK_INPUT_ALLOC;
 
   return value;
 }
+
+
+#ifdef HAVE_GTK_AND_PTHREAD
+/* Called from Fdump_emacs so that when the dumped Emacs starts, it has a
+   normal malloc.  Some thread implementations need this as they call
+   malloc before main.  The pthread_self call in BLOCK_INPUT_ALLOC then
+   calls malloc because it is the first call, and we have an endless loop.  */
+
+void
+reset_malloc_hooks ()
+{
+  __free_hook = 0;
+  __malloc_hook = 0;
+  __realloc_hook = 0;
+}
+#endif /* HAVE_GTK_AND_PTHREAD */
 
 
 /* Called from main to set up malloc to use our hooks.  */
@@ -1236,6 +1285,18 @@ emacs_blocked_realloc (ptr, size)
 void
 uninterrupt_malloc ()
 {
+#ifdef HAVE_GTK_AND_PTHREAD
+  pthread_mutexattr_t attr;
+
+  /*  GLIBC has a faster way to do this, but lets keep it portable.
+      This is according to the Single UNIX Specification.  */
+  pthread_mutexattr_init (&attr);
+  pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);
+  pthread_mutex_init (&alloc_mutex, &attr);
+
+  main_thread = pthread_self ();
+#endif /* HAVE_GTK_AND_PTHREAD */
+
   if (__free_hook != emacs_blocked_free)
     old_free_hook = __free_hook;
   __free_hook = emacs_blocked_free;

@@ -23,10 +23,12 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef USE_GTK
 #include <string.h>
+#include <signal.h>
 #include <stdio.h>
 #include "lisp.h"
 #include "xterm.h"
 #include "blockinput.h"
+#include "syssignal.h"
 #include "window.h"
 #include "atimer.h"
 #include "gtkutil.h"
@@ -1311,6 +1313,13 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
   int filesel_done = 0;
   xg_get_file_func func;
 
+#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+  /* I really don't know why this is needed, but without this the GLIBC add on
+     library linuxthreads hangs when the Gnome file chooser backend creates
+     threads.  */
+  sigblock (sigmask (__SIGRTMIN));
+#endif /* HAVE_GTK_AND_PTHREAD */
+
 #ifdef HAVE_GTK_FILE_BOTH
   extern int x_use_old_gtk_file_dialog;
 
@@ -1357,6 +1366,10 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
       x_menu_wait_for_event (0);
       gtk_main_iteration ();
     }
+
+#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+  sigunblock (sigmask (__SIGRTMIN));
+#endif
 
   if (filesel_done == GTK_RESPONSE_OK)
     fn = (*func) (w);

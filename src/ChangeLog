@@ -1,5 +1,27 @@
 2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c: Include signal.h and syssignal.h.
+	(xg_get_file_name): Block and unblock __SIGRTMIN if defined.
+
+	* alloc.c: If HAVE_GTK_AND_PTHREAD, include pthread.h,
+	new variables main_thread and alloc_mutex,
+	define (UN)BLOCK_INPUT_ALLOC to use alloc_mutex to protect
+	emacs_blocked_* calls and only do (UN)BLOCK_INPUT in the main thread.
+	If not HAVE_GTK_AND_PTHREAD, (UN)BLOCK_INPUT_ALLOC is the same as
+	(UN)BLOCK_INPUT.
+	(emacs_blocked_free, emacs_blocked_malloc)
+	(emacs_blocked_realloc): Use (UN)BLOCK_INPUT_ALLOC.
+	(uninterrupt_malloc): Initialize main_thread and alloc_mutex.
+	(reset_malloc_hooks): New function.
+
+	* lisp.h: Declare reset_malloc_hooks.
+
+	* emacs.c (Fdump_emacs): Call reset_malloc_hooks.
+
+	* keyboard.c: Conditionally include pthread.h
+	(handle_async_inpu, input_available_signalt): If not in the main
+	thread, block signal, send signal to main thread and return.
+
 	* gtkutil.c (xg_get_file_with_chooser): Handle local files only.
 	Set current folder in file chooser if default_filename is a
 	directory.

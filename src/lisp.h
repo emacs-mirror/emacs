@@ -2457,6 +2457,7 @@ extern void memory_warnings P_ ((POINTER_TYPE *, void (*warnfun) ()));
 /* Defined in alloc.c */
 extern void check_pure_size P_ ((void));
 extern void allocate_string_data P_ ((struct Lisp_String *, int, int));
+extern void reset_malloc_hooks P_ ((void));
 extern void uninterrupt_malloc P_ ((void));
 extern void malloc_warning P_ ((char *));
 extern void memory_full P_ ((void));
