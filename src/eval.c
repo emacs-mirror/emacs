@@ -2923,35 +2923,42 @@ specbind (symbol, value)
     }
   else
     {
+      Lisp_Object valcontents;
+      
       ovalue = find_symbol_value (symbol);
       specpdl_ptr->func = 0;
       specpdl_ptr->old_value = ovalue;
 
-      if (BUFFER_LOCAL_VALUEP (XSYMBOL (symbol)->value)
-	  || SOME_BUFFER_LOCAL_VALUEP (XSYMBOL (symbol)->value)
-	  || BUFFER_OBJFWDP (XSYMBOL (symbol)->value))
+      valcontents = XSYMBOL (symbol)->value;
+
+      if (BUFFER_LOCAL_VALUEP (valcontents)
+	  || SOME_BUFFER_LOCAL_VALUEP (valcontents)
+	  || BUFFER_OBJFWDP (valcontents))
 	{
-	  Lisp_Object current_buffer, binding_buffer;
+	  Lisp_Object where;
 	  
 	  /* For a local variable, record both the symbol and which
-	     buffer's value we are saving.  */
-	  current_buffer = Fcurrent_buffer ();
-	  binding_buffer = current_buffer;
-	  
-	  /* If the variable is not local in this buffer,
-	     we are saving the global value, so restore that.  */
-	  if (NILP (Flocal_variable_p (symbol, binding_buffer)))
-	    binding_buffer = Qnil;
-	  specpdl_ptr->symbol
-	    = Fcons (symbol, Fcons (binding_buffer, current_buffer));
+	     buffer's or frame's value we are saving.  */
+	  if (!NILP (Flocal_variable_p (symbol, Qnil)))
+	    where = Fcurrent_buffer ();
+	  else if (!BUFFER_OBJFWDP (valcontents)
+		   && XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame)
+	    where = XBUFFER_LOCAL_VALUE (valcontents)->frame;
+	  else
+	    where = Qnil;
+
+	  /* We're not using the `unused' slot in the specbinding
+	     structure because this would mean we have to do more
+	     work for simple variables.  */
+	  specpdl_ptr->symbol = Fcons (symbol, where);
 
 	  /* If SYMBOL is a per-buffer variable which doesn't have a
 	     buffer-local value here, make the `let' change the global
 	     value by changing the value of SYMBOL in all buffers not
 	     having their own value.  This is consistent with what
 	     happens with other buffer-local variables.  */
-	  if (NILP (binding_buffer)
-	      && BUFFER_OBJFWDP (XSYMBOL (symbol)->value))
+	  if (NILP (where)
+	      && BUFFER_OBJFWDP (valcontents))
 	    {
 	      ++specpdl_ptr;
 	      Fset_default (symbol, value);
@@ -2996,30 +3003,31 @@ unbind_to (count, value)
   while (specpdl_ptr != specpdl + count)
     {
       --specpdl_ptr;
-      
+
       if (specpdl_ptr->func != 0)
 	(*specpdl_ptr->func) (specpdl_ptr->old_value);
       /* Note that a "binding" of nil is really an unwind protect,
 	 so in that case the "old value" is a list of forms to evaluate.  */
       else if (NILP (specpdl_ptr->symbol))
 	Fprogn (specpdl_ptr->old_value);
-      /* If the symbol is a list, it is really (SYMBOL BINDING_BUFFER
-	 . CURRENT_BUFFER) and it indicates we bound a variable that
-	 has buffer-local bindings.  BINDING_BUFFER nil means that the
-	 variable had the default value when it was bound.  */
+      /* If the symbol is a list, it is really (SYMBOL . WHERE) where
+	 WHERE is either nil, a buffer, or a frame.  If WHERE is a
+	 buffer or frame, this indicates we bound a variable that had
+	 a buffer-local or frmae-local binding..  WHERE nil means that
+	 the variable had the default value when it was bound.  */
       else if (CONSP (specpdl_ptr->symbol))
 	{
-	  Lisp_Object symbol, buffer;
+	  Lisp_Object symbol, where;
 
 	  symbol = XCAR (specpdl_ptr->symbol);
-	  buffer = XCAR (XCDR (specpdl_ptr->symbol));
+	  where = XCDR (specpdl_ptr->symbol);
 
-	  /* Handle restoring a default value.  */
-	  if (NILP (buffer))
+	  if (NILP (where))
 	    Fset_default (symbol, specpdl_ptr->old_value);
-	  /* Handle restoring a value saved from a live buffer.  */
-	  else
-	    set_internal (symbol, specpdl_ptr->old_value, XBUFFER (buffer), 1);
+	  else if (BUFFERP (where))
+	    set_internal (symbol, specpdl_ptr->old_value, XBUFFER (where), 1);
+	  else 
+	    set_internal (symbol, specpdl_ptr->old_value, NULL, 1);
 	}
       else
 	{
