@@ -782,7 +782,9 @@ Do the same for the keys of the same name."
 		;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
 		(customize-mark-as-set 'text-mode-hook))
 	      :help "Automatically fill text between left and right margins"
-              :button (:toggle . (member 'turn-on-auto-fill text-mode-hook))))
+              :button (:toggle . (if (listp text-mode-hook)
+				     (member 'turn-on-auto-fill text-mode-hook)
+				   (eq 'turn-on-auto-fill text-mode-hook)))))
 (define-key menu-bar-options-menu [truncate-lines]
   '(menu-item "Truncate Long Lines in this Buffer"
 	      (lambda ()
