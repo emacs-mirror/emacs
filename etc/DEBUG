@@ -412,8 +412,8 @@ on the respective headers to remove the `:N' bitfield definitions
 
 The array `last_marked' (defined on alloc.c) can be used to display up
 to 500 last objects marked by the garbage collection process.
-Whenever a Lisp object is marked by the garbage collector, it records
-the pointer to that object in the `last_marked' array.  The variable
+Whenever the garbage collector marks a Lisp object, it records the
+pointer to that object in the `last_marked' array.  The variable
 `last_marked_index' holds the index into the `last_marked' array one
 place beyond where the pointer to the very last marked object is
 stored.
