@@ -472,7 +472,7 @@ patterns and to guarantee valid names."
 
 (defvar cd-path nil
   "Value of the CDPATH environment variable, as a list.
-Not actually set up until the first time you you use it.")
+Not actually set up until the first time you use it.")
 
 (defun parse-colon-path (cd-path)
   "Explode a colon-separated search path into a list of directory names.
@@ -1386,10 +1386,6 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.ms\\'" . nroff-mode)
      ("\\.man\\'" . nroff-mode)
      ("\\.\\(u?lpc\\|pike\\|pmod\\)\\'" . pike-mode)
-;;; The following should come after the ChangeLog pattern
-;;; for the sake of ChangeLog.1, etc.
-;;; and after the .scm.[0-9] pattern too.
-     ("\\.[12345678]\\'" . nroff-mode)
      ("\\.TeX\\'" . tex-mode)
      ("\\.sty\\'" . latex-mode)
      ("\\.cls\\'" . latex-mode)		;LaTeX 2e class
@@ -1455,7 +1451,15 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("configure\\.in\\'" . autoconf-mode)
      ("BROWSE\\'" . ebrowse-tree-mode)
      ("\\.ebrowse\\'" . ebrowse-tree-mode)
-     ("#\\*mail\\*" . mail-mode)))
+     ("#\\*mail\\*" . mail-mode)
+     ;; Get rid of any trailing .n.m and try again.
+     ;; This is for files saved by cvs-merge that look like .#<file>.<rev>
+     ;; or .#<file>.<rev>-<rev> or VC's <file>.~<rev>~
+     ("\\.~?[0-9]+\\.[0-9][-.0-9]*~?\\'" nil t)
+;;; The following should come after the ChangeLog pattern
+;;; for the sake of ChangeLog.1, etc.
+;;; and after the .scm.[0-9] and CVS' <file>.<rev> patterns too.
+     ("\\.[12345678]\\'" . nroff-mode)))
   "Alist of filename patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
 \(NON-NIL stands for anything that is not nil; the value does not matter.)
@@ -1606,18 +1610,20 @@ and we don't even do that unless it would come from the file name."
 		       (forward-char -1)
 		     (goto-char end))
 		   (skip-chars-backward " \t")
-		   (setq modes (cons (intern (concat (downcase (buffer-substring beg (point))) "-mode"))
-				     modes)))
+		   (push (intern (concat (downcase (buffer-substring beg (point))) "-mode"))
+			 modes))
 	       ;; Simple -*-MODE-*- case.
-	       (setq modes (cons (intern (concat (downcase (buffer-substring beg end))
-						 "-mode"))
-				 modes))))))
+	       (push (intern (concat (downcase (buffer-substring beg end))
+				     "-mode"))
+		     modes)))))
     ;; If we found modes to use, invoke them now,
     ;; outside the save-excursion.
-    (when modes
-      (unless just-from-file-name
-	(mapc 'funcall (nreverse modes)))
-      (setq done t))
+    (unless just-from-file-name
+      (dolist (mode (nreverse modes))
+	(if (not (functionp mode))
+	    (message "Ignoring unknown mode `%s'" mode)
+	  (setq done t)
+	  (funcall mode))))
     ;; If we didn't find a mode from a -*- line, try using the file name.
     (if (and (not done) buffer-file-name)
 	(let ((name buffer-file-name)
