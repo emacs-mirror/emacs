@@ -236,6 +236,24 @@ See also `find-buffer-visiting'.")
   return Qnil;
 }
 
+Lisp_Object
+get_truename_buffer (filename)
+     register Lisp_Object filename;
+{
+  register Lisp_Object tail, buf, tem;
+
+  for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+    {
+      buf = Fcdr (XCONS (tail)->car);
+      if (!BUFFERP (buf)) continue;
+      if (!STRINGP (XBUFFER (buf)->file_truename)) continue;
+      tem = Fstring_equal (XBUFFER (buf)->file_truename, filename);
+      if (!NILP (tem))
+	return buf;
+    }
+  return Qnil;
+}
+
 /* Incremented for each buffer created, to assign the buffer number. */
 int buffer_count;
 
