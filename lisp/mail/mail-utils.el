@@ -57,6 +57,49 @@ from START (inclusive) to END (exclusive)."
     (concat (substring string 0 start)
 	    (substring string end nil))))
 
+(defun mail-quote-printable (string &optional wrapper)
+  "Convert a string to the \"quoted printable\" Q encoding.
+If the optional argument WRAPPER is non-nil,
+we add the wrapper characters =3D?ISO-8859-1?Q?....?=3D."
+  (let ((i 0) (result ""))
+    (save-match-data
+      (while (string-match "[?=\"\200-\377]" string i)
+	(setq result
+	      (concat result (substring string i (match-beginning 0))
+		      (upcase (format "=%02x"
+				      (aref string (match-beginning 0))))))
+	(setq i (match-end 0)))
+      (if wrapper
+	  (concat "=3D?ISO-8859-1?Q?"
+		  result (substring string i)
+		  "?=3D")
+	(concat result (substring string i))))))
+
+(defun mail-unquote-printable-hexdigit (char)
+  (if (>= char ?A)
+      (+ (- char ?A) 10)
+    (- char ?0)))
+
+(defun mail-unquote-printable (string &optional wrapper)
+  "Undo the \"quoted printable\" encoding.
+If the optional argument WRAPPER is non-nil,
+we expect to find and remove the wrapper characters =3D?ISO-8859-1?Q?....?=3D."
+  (save-match-data
+    (and wrapper
+	 (string-match "\\`=3D\\?ISO-8859-1\\?Q\\?\\([^?]*\\)\\?" string)
+	 (setq string (match-string 1 string)))
+    (let ((i 0) (result ""))
+      (while (string-match "=\\(..\\)" string i)
+	(setq result
+	      (concat result (substring string i (match-beginning 0))
+		      (make-string 1
+				   (+ (* 16 (mail-unquote-printable-hexdigit
+					     (aref string (match-beginning 1))))
+				      (mail-unquote-printable-hexdigit
+				       (aref string (1+ (match-beginning 1))))))))
+	(setq i (match-end 0)))
+      (concat result (substring string i)))))
+
 (defun mail-strip-quoted-names (address)
   "Delete comments and quoted strings in an address list ADDRESS.
 Also delete leading/trailing whitespace and replace FOO <BAR> with just BAR.
