@@ -1,0 +1,57 @@
+#########################
+## LIST OF CHARSETS
+## Each line corresponds to one charset.
+## The following attributes are listed in this order
+## separated by a colon `:' in one line.
+##	CHARSET-SYMBOL-NAME,
+##	CHARSET-ID,
+##	DIMENSION (1 or 2)
+##	CHARS (94 or 96)
+##	BYTES (of multibyte form: 1, 2, 3, or 4),
+##	WIDTH (occupied column numbers: 1 or 2),
+##	DIRECTION (0:left-to-right, 1:right-to-left),
+##	ISO-FINAL-CHAR (character code of ISO-2022's final character)
+##	ISO-GRAPHIC-PLANE (ISO-2022's graphic plane, 0:GL, 1:GR)
+##	DESCRIPTION (describing string of the charset)
+tibetan-1-column:241:2:94:4:1:0:56:0:Tibetan 1 column glyph
+tibetan:252:2:94:4:2:0:55:0:Tibetan characters
+lao:167:1:94:3:1:0:49:0:Lao characters (ISO10646 0E80..0EDF)
+indian-1-column:240:2:94:4:1:0:54:0:Indian charset for 2-column width glypps
+indian-2-column:251:2:94:4:2:0:53:0:Indian charset for 2-column width glyphs
+indian-is13194:225:1:94:3:2:0:53:1:Generic Indian charset for data exchange with IS 13194
+ascii-right-to-left:166:1:94:3:1:1:66:0:ASCII (left half of ISO8859-1) with right-to-left direction
+chinese-cns11643-7:250:2:94:4:2:0:77:0:CNS11643 Plane 7 Chinese Traditional
+chinese-cns11643-6:249:2:94:4:2:0:76:0:CNS11643 Plane 6 Chinese Traditional
+chinese-cns11643-5:248:2:94:4:2:0:75:0:CNS11643 Plane 5 Chinese Traditional
+chinese-cns11643-4:247:2:94:4:2:0:74:0:CNS11643 Plane 4 Chinese Traditional
+chinese-cns11643-3:246:2:94:4:2:0:73:0:CNS11643 Plane 3 Chinese Traditional
+ethiopic:245:2:94:4:2:0:51:0:Ethiopic characters
+arabic-2-column:224:1:94:3:2:1:52:0:Arabic 2-column
+arabic-1-column:165:1:94:3:1:1:51:0:Arabic 1-column
+arabic-digit:164:1:94:3:1:0:50:0:Arabic digit
+vietnamese-viscii-upper:163:1:96:3:1:0:50:1:VISCII1.1 upper-case
+vietnamese-viscii-lower:162:1:96:3:1:0:49:1:VISCII1.1 lower-case
+ipa:161:1:96:3:1:0:48:1:IPA (International Phonetic Association)
+chinese-sisheng:160:1:94:3:1:0:48:0:SiSheng characters for PinYin/ZhuYin
+chinese-big5-2:153:2:94:3:2:0:49:0:Big5 Level-2 Chinese traditional
+chinese-big5-1:152:2:94:3:2:0:48:0:Big5 Level-1 Chinese traditional
+chinese-cns11643-2:150:2:94:3:2:0:72:0:CNS11643 Plane 2 Chinese traditional
+chinese-cns11643-1:149:2:94:3:2:0:71:0:CNS11643 Plane 1 Chinese traditional
+japanese-jisx0212:148:2:94:3:2:0:68:0:JISX0212 Japanese supplement
+korean-ksc5601:147:2:94:3:2:0:67:0:KSC5601 Korean Hangul and Hanja
+japanese-jisx0208:146:2:94:3:2:0:66:0:JISX0208.1983/1990 Japanese Kanji
+chinese-gb2312:145:2:94:3:2:0:65:0:GB2312 Chinese simplified
+japanese-jisx0208-1978:144:2:94:3:2:0:64:0:JISX0208.1978 Japanese Kanji (so called "old JIS")
+latin-iso8859-9:141:1:96:2:1:0:77:1:ISO8859-9 (Latin-5)
+cyrillic-iso8859-5:140:1:96:2:1:0:76:1:ISO8859-5 (Cyrillic)
+latin-jisx0201:138:1:94:2:1:0:74:0:JISX0201.1976 Japanese Roman
+katakana-jisx0201:137:1:94:2:1:0:73:1:JISX0201.1976 Japanese Kana
+hebrew-iso8859-8:136:1:96:2:1:1:72:1:ISO8859-8 (Hebrew)
+arabic-iso8859-6:135:1:96:2:1:1:71:1:ISO8859-6 (Arabic)
+greek-iso8859-7:134:1:96:2:1:0:70:1:ISO8859-7 (Greek)
+thai-tis620:133:1:96:2:1:0:84:1:TIS620.2529 (Thai)
+latin-iso8859-4:132:1:96:2:1:0:68:1:ISO8859-4 (Latin-4)
+latin-iso8859-3:131:1:96:2:1:0:67:1:ISO8859-3 (Latin-3)
+latin-iso8859-2:130:1:96:2:1:0:66:1:ISO8859-2 (Latin-2)
+latin-iso8859-1:129:1:96:2:1:0:65:1:ISO8859-1 (Latin-1)
+ascii:000:1:94:1:1:0:66:0:ASCII (ISO646 IRV)

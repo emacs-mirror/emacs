@@ -1,0 +1,975 @@
+1999-07-12  Richard Stallman  <rms@gnu.org>
+
+	* Version 20.4 released.
+
+1999-06-27  Karl Heuer  <kwzh@gnu.org>
+
+	* yow.lines: Fix indentation.  Fix typo.
+
+1999-01-19  Dave Love  <fx@gnu.org>
+
+	* MORE.STUFF: Revamped.
+
+1999-01-14  Dave Love  <fx@gnu.org>
+
+	* FAQ: Merge posted updates.
+
+1998-12-14  Dave Love  <fx@gnu.org>
+
+	* FAQ: Somewhat edited copy of the most recently posted version.
+
+1998-11-04  Kenichi Handa  <handa@etl.go.jp>
+
+	* MACHINES (NEC EWS4800): New section.
+
+1998-09-04  Karl Heuer  <kwzh@gnu.org>
+
+	* TUTORIAL: Use C-x C-l, not M-:, as example of disabled command.
+
+1998-08-19  Richard Stallman  <rms@psilocin.ai.mit.edu>
+
+	* Version 20.3 released.
+
+	* TUTORIAL.ro: New file.
+
+1998-04-10  Ken'ichi Handa  <handa@melange.gnu.org>
+
+	* TUTORIAL.sl: Renamed back to the original.
+
+1998-04-10  Kenichi Handa  <handa@etl.go.jp>
+
+	* TUTORIAL.cs: Renamed from TUTORIAL.cz.
+	* TUTORIAL.ja: Renamed from TUTORIAL.jp.
+	* TUTORIAL.ka: Renamed from TUTORIAL.kr.
+	* TUTORIAL.sk: Renamed from TUTORIAL.sl.
+
+1998-04-06  Kenichi Handa  <handa@etl.go.jp>
+
+	* TUTORIAL.jp: Re-translated for the latest TUTORIAL.
+
+1998-03-26  Richard Stallman  <rms@psilocin.gnu.org>
+
+	* TUTORIAL.sl: New file.
+
+1997-09-19  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 20.2 released.
+
+1997-09-15  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 20.1 released.
+
+1997-06-02  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
+
+	* CODINGS, CHARSETS: New files.
+
+1996-08-11  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 19.33 released.
+
+1996-07-31  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 19.32 released.
+
+1996-06-23  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* refcard.ps: File obtained from someone else;
+	it was generated badly here.
+
+1996-05-25  Karl Heuer  <kwzh@gnu.ai.mit.edu>
+
+	* Version 19.31 released.
+
+1996-05-25  Karl Heuer  <kwzh@gnu.ai.mit.edu>
+
+	* TUTORIAL: Rephrase the first page to fit on a standard tty screen.
+
+1996-05-03  Richard Stallman  <rms@delasyd.gnu.ai.mit.edu>
+
+	* emacs.bash: Use >|.
+
+1996-01-20  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* rgb.txt: New file.
+
+1995-11-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Version 19.30 released.
+
+1995-11-04  Lars Magne Ingebrigtsen  <larsi@ifi.uio.no>
+
+	* gnus-tut.txt: New file.
+
+1995-07-26  David J. MacKenzie  <djm@geech.gnu.ai.mit.edu>
+
+	* Rename termcap to termcap.src, the historical name for an
+	uninstalled termcap file.
+
+1995-06-28  Eric S. Raymond  <esr@spiff.gnu.ai.mit.edu>
+
+	* termcap.dat, termcap.ucb: deleted and replaced.
+
+	* termcap: New termcap file from the ncurses project; bigger,
+	better, brighter, does away with waxy yellow buildup.  Email
+	me at terminfo@ccil.org if you have any trouble with this.
+
+	* README: Changed to track above change.
+
+1995-05-24  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
+
+	* TUTORIAL: Delete reference to ALT.  Change <Rubout> to <Delete>.
+
+1995-04-26  Karl Heuer  <kwzh@nutrimat.gnu.ai.mit.edu>
+
+	* Makefile (maintainer-clean): Renamed from realclean.
+
+1995-04-09  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* tpu-doc.el: File moved to etc dir and renamed.
+
+1995-04-07  Boris Goldowsky  <boris@cs.rochester.edu>
+
+	* enriched.doc: Rewritten and simplified.
+
+1994-11-20  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Makefile (eterm): New rule.
+	(TIC): New variable.
+
+	* e/eterm, e/eterm.ti: New files.
+
+1994-10-24  Boris Goldowsky  <boris@mole.gnu.ai.mit.edu>
+
+	* enriched.doc: New file.
+
+1994-09-07  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Version 19.26 released.
+
+1994-07-03  Richard Stallman  (rms@gnu.ai.mit.edu)
+
+	* TUTORIAL: Talk about flow control along with C-x C-s and C-s.
+
+1994-05-30  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.25 released.
+
+1994-05-23  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.24 released.
+
+1994-05-16  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.23 released.
+
+1994-04-21  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (clean): Delete DOC*.
+
+1993-11-27  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.22 released.
+
+1993-11-16  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.21 released.
+
+1993-11-11  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.20 released.
+
+1993-08-14  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.19 released.
+
+1993-08-08  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.18 released.
+
+1993-07-06  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
+
+	* Version 19.16 released.
+
+1993-06-19  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* version 19.15 released.
+
+1993-06-17  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* Version 19.14 released.
+
+1993-06-16  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+        Bring mumbleclean targets into conformance with GNU coding standards.
+	* Makefile (distclean): Don't remove backup and autosave files.
+	These are easy to get rid of in other ways, and a pain to lose.
+	(mostlyclean, realclean): New targets.
+
+1993-06-08  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* Version 19.13 released.
+
+1993-05-30  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.10 released.
+
+1993-05-27  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
+
+	* Version 19.9 released.
+
+1993-05-24  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* Version 19.8 released.
+
+1993-05-22  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
+
+        * Version 19.7 released.
+
+1993-05-19  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* MACHINES: Mention Linux.
+
+1993-04-26  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
+
+	* MACHINES: Add section for NeXT, from Thorsten Ohl.
+
+1993-04-28  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+
+	* NEWS: Documented picture-mode improvements.
+
+1993-04-25  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+
+	* NEWS: Described the new properties of arrow keys and
+	next-line-add-newlines.  Fixed up the GUD description, it was
+	out of date.  This file referenced LNEWS when it should have
+	said news.texi; fixed.
+
+	news.texi: invocation-name now exists.
+
+1993-03-27  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+
+	* MORE.STUFF: Added.
+
+1993-03-22  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+
+	* NEWS: Preserved jimb's last change (documenting kill on
+	read-only buffers).
+	
+	Added documentation on new info features.
+
+1993-03-22  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+
+	* spook.lines:	Alpha-sorted this, and added some new hot buttons
+	for the 1990s.
+
+1993-03-19  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+
+	* MACHINES: Deleted some VMS caveats. If the src and lisp
+	ChangeLogs are correct,	dired and mail and process control are now
+	fully supported.
+
+	* NEWS: Added finder news.
+
+1993-03-19  Richard Stallman  (rms@geech.gnu.ai.mit.edu)
+
+	* NEWS: Changed.
+
+1993-03-19  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+
+	* sex.6: Added 900-line support
+
+	* NEWS: Added news about the package finder.
+
+1993-03-19  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+
+	* MACHINES: `Last updated 10 Feb 1992.' was obviously wrong, so
+	I nuked it.  Let the file mod date serve.  Merged in APOLLO and
+	SUNBUG files.  Changed references to 18.* to past tense.
+
+	* emacs.names: merged into JOKES.  I faked a mail header from the
+	Unknown User to delimit the first (unheaded) bit.
+
+	* Makefile (relock, unlock): New productions.
+
+1993-03-18  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+
+	Augean-stable cleaning time.  Partly to save space, but mostly to
+	reduce the dizzying amount of *stuff* confronting someone exploring
+	the Emacs distribution, I have the following changes in the etc
+	directory:
+
+	* CHARACTERS: merged into TO-DO file under the heading "Long Range:"
+
+	* DIFF, CCADIFF and GOSDIFF: merged into a new outline file titled
+	OTHER.EMACSES.  The present names don't really convey anything.
+	Various key bindings and feature descriptions have been updated.
+
+	* NICKLES.WORTH.  Nuked.  This is copyrighted material that could land
+	FSF in hot water.
+
+	* INTERVAL.IDEAS:  Nuked.  RMS's thinking, and indeed the
+	implementation of intervals, have progressed way beyond this.
+
+	* RCP:  Nuked.  It no longer said anything but "Ooops, sorry!"
+
+	* ED.WORSHIP, GNU.JOKES: merged into a mailbox called JOKES.
+	Future jokes can accumulate there.
+
+	* DISTRIB: the actual domestic order form is now ORDERS.USA.
+	The DISTRIB text now mentions 19.
+
+	* ORDERS.USA: created.  This is just the order form.  DISTRIB
+	has a pointer to it at the beginning.
+
+	* EUROPE: renamed to ORDERS.EUROPE.  DISTRIB now has a pointer
+	to it at the beginning.
+
+	* OOOONEWS, OOOONEWS: Nuked.  It's version  19 --- nobody needs the
+	version 15 and 17 files anymore.
+
+	All files marked "Nuked" have actually been moved to =-prefixed
+	names as per convention.  Originals of all files merged still
+	exist with =-names.
+
+1993-03-17  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+
+	* XENIX: nuked (moved to =XENIX).  The hackery it describes is
+	no longer necessary in the presence of 19's function-key-map
+	feature; I've added an explanation to the beginning of the file.
+
+1993-03-10  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
+
+	* MACHINES: Update description of SYSVr3 and r4 support, due to
+	Eric Raymond's changes.
+
+1993-03-09  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
+
+	* MACHINES: Mention that you have to edit the configure script
+	when you add support for a new machine, to get it to recognize the
+	configuration name.
+
+1992-11-20  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
+
+	* MACHINES: Converted to use GCC-style configuration names,
+	instead of listing m/*.h and s/*.h files.  All knowledge of m/ and
+	s/ files now lives in ../configure.
+
+1992-10-06  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
+
+	* NEWS: Document included tags tables.
+
+1992-07-22  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+
+	* Corrected the news about VC to reflect reality.
+
+1992-07-17  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* etags.1: New file, from Richard K. Pixley at Cygnus.
+
+1992-06-24  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
+
+	* Makefile: Most of the contents of this file were only relevant
+	to things in `../lib-src'; removed all but the `distclean' and
+	`clean' targets.
+
+1992-04-14  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
+
+	* COPYING: Got June 1991 version of the GPL here.
+
+	* ChangeLog: Since the old etc contents have been split into etc
+	and lib-src, the old etc's ChangeLog has been duplicated in the
+	new etc and lib-src.  That means that each contains complete and
+	coherent information, although each contains extraneous
+	information.	 
+
+1992-04-08  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
+
+	* lib-src/etags.c: "--no-warning" option renamed to "--no-warn",
+	to be consistent with other GNU programs, like makeinfo.
+
+	* lib-src/Makefile: Renamed to Makefile.in; the configure script
+	will edit this to produce Makefile.
+
+1992-04-07  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
+
+	* etags.c (print_help, print_version): New functions.
+	(main): Options added to support them.
+
+	* etags.c (longopts): New array of long names for the options.
+	(main): Recognize them.
+
+1992-04-06  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
+
+	* etags.c (C_entries): Removed comment saying that \" in a string
+	isn't recognized as magic, because it is correctly handled.
+
+	* getopt.c, getopt.h: New files, from GNU C library.
+	* etags.c: Rewritten to use getopt.
+	#include "getopt.h".
+	(file_num): Variable deleted; its role is now played by getopt's
+	optind.
+	(main): Argument processing loop rewritten to call getopt to get
+	next option.  Options which take parameters (-o and -i) rewritten
+	to get parameter from optarg instead of argv[1].  Filename
+	preprocessing loop and update command changed similarly.
+	* Makefile (etags, ctags): Depend on and link with getopt.h,
+	getopt.o, and getopt1.o.
+	(getopt.o, getopt1.o): New targets for the GNU getopt routines.
+
+	* etags.c (outfflag): Variable deleted; it is non-zero iff outfile
+	is non-zero.
+
+	(main): In the argument processing loop, the 'goto next_arg'
+	statements are breaking out of the switch statement in exactly the
+	same way that a simple 'break' statement would; replace the gotos
+	with breaks, and remove the label.
+
+1992-04-06  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* etags.c (C_entries): Clear tydef and next_token_is_func at start.
+	(consider_token): Move next_token_is_func to global.
+
+1992-04-02  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
+
+	* Makefile: Conform with GNU coding standards:
+	(mostlyclean): New target, synonymous with clean.
+	(TAGS, check): New targets.
+	(INSTALL, INSTALLFLAGS): New variables.
+
+1992-03-31  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
+
+    	* lib-src/Makefile, etc/MACHINES, etc/NEWS: Changed references to
+	`config.emacs' to `configure'.
+
+	* lib-src/Makefile: Adjusted for renaming of share-lib to etc.
+	* etc/MACHINES: Same.
+
+1992-03-30  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
+
+	* movemail.c (main): Allow tempname to be as long as necessary,
+	instead of limiting it to 39 characters.
+
+	* movemail.c (main): Move declaration of buf from top of function
+	to local block surrounding the copy loop.  This makes it less
+	likely to be confused with the buf used by the code which checks the
+	permissions on outname's directory.
+
+1992-03-20  Jim Kingdon  (kingdon@albert.gnu.ai.mit.edu)
+
+	* SERVICE: Remove my entry.
+
+1992-03-09  David J. MacKenzie  (djm@nutrimat.gnu.ai.mit.edu)
+
+	* Makefile (emacstool, nemacstool, xvetool): Use ${CFLAGS}, not
+	hardcoded -g.
+
+	* movemail.c (xmalloc): Return char *, not int.
+	(main) [!MAIL_USE_FLOCK]: Add a new conditional, MAIL_UNLINK_SPOOL,
+	that is off by default -- normally don't unlink the mail spool
+	file, just empty it.  Pass creat mode 0600, not 0666.
+
+1992-02-07  Jim Blandy  (jimb at pogo.cs.oberlin.edu)
+
+	* Makefile (../arch-lib): Depend on ${EXECUTABLES}.
+	(all): Instead of here.
+	(install): Don't use the -s option, since people need symbols to
+	debug code.
+
+1992-01-19  (Eric Youngdale at youngdale@v6550c.nrl.navy.mil)
+
+	* etags-vmslib.c (fn_exp): Add type cast.
+
+1992-01-18  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* movemail.c: Changes in comments.
+
+1992-01-13  Jim Blandy  (jimb at pogo.cs.oberlin.edu)
+
+	* Makefile: Make the distclean target erase the DOC files from
+	../share-lib and the executables from ../arch-lib.
+
+1992-01-09  Jim Blandy  (jimb at pogo.cs.oberlin.edu)
+
+	* emacsclient.c: #include <sys/stat.h>
+	(main): Do declare statbfr.
+
+1991-12-21  Richard Stallman  (rms at mole.gnu.ai.mit.edu)
+
+	* emacsserver.c, emacsclient.c [BSD]: Use either /tmp or ~
+	for the socket, depending on SERVER_HOME_DIR.
+	If using /tmp, put host name in the socket name.
+
+	* movemail.c (pfatal_and_delete): New function.
+	(main, popmail): Use it.
+	(popmail): Close output before deleting messages.
+	Check for error on close and on fsync.
+	Use `fatal' where appropriate.
+	(main): Remove (void).
+
+	* aixcc.lex: New file.  Not officially part of Emacs.
+	* Makefile: Rules for that.
+
+1991-12-04  Jim Blandy  (jimb at pogo.gnu.ai.mit.edu)
+
+	* yow.c (main): Rename all references to PATH_EXEC to PATH_DATA.
+
+	* etags.c (main): Properly cast call to alloca that initializes
+	included_files.
+
+1991-08-17  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
+
+	* etags.c (files_are_tag_tables): Remove global var.
+	(process_file): Don't test it.  Also remove hack checking for a
+	file named "TAGS".
+	(main): -i now takes an arg which is the name of a file to include.
+	Collect these names and emit include tags for them after processing
+	all the argument files.
+
+1991-07-30  Richard Stallman  (rms at mole.gnu.ai.mit.edu)
+
+	* wakeup.c: Terminate if parent goes away.
+
+1991-07-18  Richard Stallman  (rms at mole.gnu.ai.mit.edu)
+
+	* etags.c (C_entries): Process token before handling end of line.
+	When inner loops reach end of line, just back up.
+	Let the real end of line processing happen in just one place.
+	(consider_token):  Likewise.
+
+1991-04-11  Jim Blandy  (jimb at geech.gnu.ai.mit.edu)
+
+	* etags.c (TEX_mode): Skip comments while scanning the text to see
+	which escape character this file uses.
+
+1991-03-29  Richard Stallman  (rms at mole.gnu.ai.mit.edu)
+
+	* emacsserver.c [USG]: Terminate if msgrcv fails.
+
+1991-03-03  Richard Stallman  (rms at mole.ai.mit.edu)
+
+	* emacsserver.c [BSD]: Check for errors on stdin after scanf.
+
+1991-01-25  Jim Blandy  (jimb at churchy.ai.mit.edu)
+
+	* make-docfile: Find the arguments to a C function correctly,
+	by not ignoring the character that read_c_string returns.  Don't
+	even try to find argument names for functions that take MANY
+	or UNEVALLED arguments, since they're a figment of the docstring's
+	imagination.
+
+1991-01-14  Jim Blandy  (jimb at churchy.ai.mit.edu)
+
+	* make-docfile: Read the .elc files generated by the new byte
+	compiler.
+
+1990-12-31  Richard Stallman  (rms at mole.ai.mit.edu)
+
+	* refcard.tex: Use cm fonts, not am, in multi-column mode.
+
+1990-11-29  Richard Stallman  (rms at mole.ai.mit.edu)
+
+	* movemail.c (mbx_delimit_begin): Put space before `unseen'.
+
+1990-11-27  Richard Stallman  (rms at mole.ai.mit.edu)
+
+	* Makefile (install*): No need to install wakeup.
+
+1990-11-26  Richard Stallman  (rms at mole.ai.mit.edu)
+
+	* Makefile (install*): Install emacsclient like etags.
+
+1990-11-13  Richard Stallman  (rms at mole.ai.mit.edu)
+
+	* movemail.c (error): Handle 3 args.
+	(main): Don't check input access if using pop.
+
+1990-10-16  Richard Stallman  (rms at mole.ai.mit.edu)
+
+	* etags.c (find_entries): Check for numbers after Scheme suffix.
+
+1990-10-14  Richard Stallman  (rms at mole.ai.mit.edu)
+
+	* termcap.dat (vt200-80): Fix ke and ks to frob flag 1.
+
+1990-10-09  Richard Stallman  (rms at mole.ai.mit.edu)
+
+	* Makefile (nemacstool, xvetool): New targets.
+
+1990-09-26  Richard Stallman  (rms at mole.ai.mit.edu)
+
+	* emacsclient.c: Include errno.h and define related variables.
+
+1990-09-23  Richard Stallman  (rms at mole.ai.mit.edu)
+
+	* emacsclient.c: Change usage message.
+
+1990-08-30  David Lawrence  (tale at pogo.ai.mit.edu)
+
+	* emacs.1:  Add break before -nw option.
+
+1990-08-19  David J. MacKenzie  (djm at apple-gunkies)
+
+	* qsort.c: Replace with GNU version.
+
+1990-08-14  David J. MacKenzie  (djm at apple-gunkies)
+
+	* wakeup.c: New program replacing loadst.c.
+
+1990-08-14  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* emacsclient.c [USG]: Pass msgsnd only 4 args.
+
+1990-08-09  David J. MacKenzie  (djm at pogo.ai.mit.edu)
+
+	* etags.c: Rename `flag' variables for what they do instead of
+	which option character sets them.
+
+1990-05-28  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* loadst.c (main): Conditional to get load average on Apollo.
+
+1990-05-22  Joseph Arceneaux  (jla at churchy.ai.mit.edu)
+
+	* emacsserver.c: Set the permission on the socket to 0600.
+
+1990-03-27  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* emacsclient.c [BSD]: Print clean message for failing getwd.
+
+1990-03-20  David Lawrence  (tale at pogo.ai.mit.edu)
+
+	* getdate.y: Use the getdate.y from GNU tar for timer.
+
+1990-03-18  Jim Kingdon  (kingdon at pogo.ai.mit.edu)
+
+	* emacsclient.c (main): Don't put brackets around "filename" in
+	usage message.  It isn't optional.
+
+1990-03-14  Joseph Arceneaux  (jla at churchy.ai.mit.edu)
+
+	* etags.c (getit):  Recognize '$' as beginning identifiers.
+
+1990-02-22  David Lawrence  (tale at pogo.ai.mit.edu)
+
+	* emacsserver.c: Renamed from server.c.
+	* Makefile: Reference emacsserver rather than server.
+	* MACHINES: Doc fix for new emacsserver name.
+
+1990-01-25  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* emacsclient.c: Print program name in error messages.
+
+1990-01-19  David Lawrence  (tale at cocoa-puffs)
+
+	* timer.c, getdate.y (new files) and Makefile:
+	  Sub-process support for run-at-time in timer.el.
+	  Doesn't yet work correctly for USG. 
+
+1990-01-10  Jim Kingdon  (kingdon at pogo)
+
+	* MACHINES: Add HP 300 running BSD.
+
+1990-01-02  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* yow.c: Dynamically allocate buffer; skip header before random
+	choice to avoid bias toward first item.
+
+1989-12-24  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* etags.c (readline): Separate out init of `pend'.
+
+1989-12-17  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* etags.c: Undo changes relating to isgoodhdr.
+
+1989-12-16  Mosur Mohan  (rms at sugar-bombs.ai.mit.edu)
+
+	* etags.c (isgoodhdr): New macro.
+	(_gdh, notgdh): New variable used by that.
+	(init): Initialize _gdh.
+	(find_entries): Set header_file.
+	(consider_token): Use isgoodhdr if in header file.
+
+	* etags.c (total_size_of_entries):
+	Was miscalculating by 1 in rewritten case.
+
+	* etags.c (PAS_funcs): One arg to pfnote was missing.
+
+1989-12-05  Joseph Arceneaux  (jla at spiff)
+
+	* MACHINES: Change for the ULTRIX entry.
+
+1989-11-21  Joseph Arceneaux  (jla at spiff)
+
+	* etags.c (process_file): If file is not regular, return.
+
+1989-11-06  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* loadst.c (main): Handle FIXUP_KERNEL_SYMBOL_ADDR.
+
+1989-10-30  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* loadst.c (load_average): If HAVE_GETLOADAVG, use getloadavg.
+	(main): If HAVE_GETLOADAVG, don't call `nlist'.
+
+1989-10-25  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* etags.c (consider_token): Allow any number of typespec keywords
+	after `typedef', before new type name.
+	(enum sym_type): Add st_C_typespec.
+	(C_create_stab): Put typespec kwds in table.
+
+1989-08-27  Richard Stallman  (rms at apple-gunkies.ai.mit.edu)
+
+	* etags.c (main): Don't depend on name invoked by.
+	If CTAGS is not defined, assume it is ETAGS.
+
+1989-07-31  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* etags.c (L_funcs): Allow package name in define construct,
+	as in (foo::defmumble name-defined ...).
+
+1989-07-30  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* etags.c (find_entries): Stupid bug testing for C filename suffixes.
+
+	* Makefile (yow): Depends on ../src/paths.h.
+
+1989-07-04  Richard Stallman  (rms at apple-gunkies.ai.mit.edu)
+
+	* etags.c: Fix compilation by moving Pascal after Fortran.
+
+1989-06-15  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* movemail.c [USG]: Define F_OK, etc., if not found in header.
+
+1989-05-27  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* hexl.c: New file, supports hexl-mode.
+
+1989-05-14  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* movemail.c: New compilation flag MAIL_USE_MMDF.
+
+1989-05-08  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* emacsclient.c: Use BSD code whenever HAVE_SOCKETS.
+	* server.c: Likewise.
+
+	* make-docfile.c (scan_c_file): Output argument names at end of string.
+	(write_c_args): New subroutine.
+
+1989-04-27  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* movemail.c: Report failure of flock.
+
+1989-04-19  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* etags.c (find_entries): Allow multi-letter extensions for fortran.
+
+1989-04-18  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* loadst.c: on bsd4.3, use gettimeofday instead of CPUSTATES.
+
+1989-03-15  Jeff Peck  (rms at sugar-bombs.ai.mit.edu)
+
+	* emacstool.c: setenv IN_EMACSTOOL=t, TERM=sun, TERMCAP=.
+
+	* emacsstool.1: update to document environment variables.
+
+1989-02-21  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* etags.c (PAS_funcs): New function by Mosur Mohan.
+
+	* movemail.c: On sysv, include unistd.h.
+
+1989-02-18  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* b2m.c: New file.
+
+1989-02-15  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* etags.c: Prolog support from Sunichirou Sugou
+
+1989-02-03  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* Makefile (clean): New target.
+
+1989-01-25  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* fakemail.c (put_line): Break header lines at 79 cols.
+
+1989-01-19  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* etags.c: Greatly rewritten by Sam Kendall for C++ support and for
+	multiple tags per line.
+
+1989-01-03  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* movemail.c: Check access before doing real work.
+	Check that outfile is in a writable directory.
+	On fatal error, delete the lock file.
+
+1988-12-31  Richard Mlynarik  (mly at rice-chex.ai.mit.edu)
+
+        * env.c:  Add decl for my-index
+        * etags.c (file-entries): .oak => scheme
+
+1988-12-30  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* movemail.c: Use `access' to check input and output files.
+
+1988-12-28  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* emacsclient.c (main): Ignore all of CWD before first slash.
+
+1988-12-27  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* etags.c (readline): Double linebuffer->size outside the xrealloc.
+
+1988-12-22  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* server.c, emacsclient.c: Don't try to use gid_t; it isn't defined.
+	* server.c: chmod the socket to 0700.
+
+1988-12-09  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* fakemail.c (main): Let env var FAKEMAILER override pgm to run.
+	(add_field): Delete comments and turn `<', `>' to spaces
+	in header lines.
+	(USE_FAKEMAIL): New customization macro says to make fakemail
+	not be a no-op even on a BSD system.
+
+1988-12-01  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* etags.c (consider_token): Skip comments just like whitespace.
+	Notice `struct', etc. and set strtag for those tokens.
+	Return 1 for the token following `struct' if an open-brace follows it.
+	(C_entries): Special handling of token following `struct'
+	needed because we have probably advanced to the following line
+	to find the `{'.
+	(main): New option `T' sets tflag and strflag.
+	Set both of them by default if eflags.
+
+1988-11-30  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* movemail.c: Do fsync before closing output.
+
+1988-11-29  Richard Mlynarik  (mly at pickled-brain.ai.mit.edu)
+
+        * movemail.c:  Better error message when can't create tempname.
+        This file needs a great deal of extra error-checking and lucid reporting...
+
+1988-11-16  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* etags.c: Support assembler code for .s and .a files.
+	(getit): Allow underscore in a tag.
+
+1988-11-15  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* movemail.c: Close output and check errors before deleting input.
+
+1988-10-01  Richard Stallman  (rms at apple-gunkies.ai.mit.edu)
+
+	* emacsclient.c [SYSVIPC]: Compute cwd only once; decide properly
+	whether to prefix it.  Handle line number args.
+
+1988-09-24  Richard Stallman  (rms at gluteus.ai.mit.edu)
+
+	* etags.c (main): default setting of eflag was backwards.
+
+1988-09-23  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* etags.c: New option -i.  -f renamed -o.
+	`-' as input file means read input file names from stdin.
+	-i spec'd or input file named TAGS means the input file is another
+	tag table; output an "include" line for it.
+
+1988-09-19  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* Makefile: New vars DESTDIR, BINDIR, LIBDIR, MANDIR, MANEXT.
+	New targets install, install.sysv, install.xenix.
+	This makefile is now responsible for installing executables
+	and documentation from this directory into system directories.
+
+1988-09-16  Richard Stallman  (rms at corn-chex.ai.mit.edu)
+
+	* server.c, emacsclient.c (main): Compute socket name from euid.
+
+1988-08-04  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* emacsclient.c: Args like +DIGITS are passed through unchanged.
+
+1988-07-12  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* server.c: If both BSD and HAVE_SYSVIPC, use the latter.
+	* emacsclient.c: Likewise.
+	In the HAVE_SYSVIPC alternative, if BSD, use getwd instead of getcwd.
+
+1988-06-23  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* etags.c: Handle `typedef struct foo {' (price@mcc.com).
+	(istoken) New string-comparison macro.
+	(consider_token): New arg `level'.  New state `tag_ok' in `tydef'.
+
+1988-06-14  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* etags.c: Changes for VMS.
+	Always define ETAGS on VMS.
+	Define macros GOOD and BAD for success and failure exit codes.
+	(begtk, intk): Allow `$' in identifiers
+	(main): Don't support -B, -F or -u on VMS.
+	Alternate loop for scanning filename arguments.
+	(system): Delete definition of this function.
+
+	* etags-vmslib.c (system): Undefine this; VMS now provides it.
+
+1988-06-08  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* loadst.c: Prevent multiple-def errors on BSD and BSD4_3
+	around include of param.h.  (Like fns.c.)
+
+1988-05-16  Richard Stallman  (rms at frosted-flakes.ai.mit.edu)
+
+	* loadst.c (load_average): Move load-average code to this new fn.
+	Add conditionals to compute load ave on UMAX.
+
+1988-05-14  Richard Stallman  (rms at lucky-charms.ai.mit.edu)
+
+	* loadst.c: Change DK_HEADER_FILE to DKSTAT_HEADER_FILE
+	with opposite sense.
+
+1988-05-13  Chris Hanson  (cph at kleph)
+
+	* emacsclient.c: Delete references to unused variable `out'.  This
+	caused a bus error when used under hp-ux.
+
+1988-05-06  Richard Stallman  (rms at frosted-flakes.ai.mit.edu)
+
+	* loadst.c: Control dk.h conditional with DK_HEADER_FILE.
+
+1988-05-04  Richard Stallman  (rms at rice-krispies.ai.mit.edu)
+
+	* etags.c (find_entries): `.t' or `.sch' means scheme code.
+
+1988-04-29  Richard Stallman  (rms at frosted-flakes.ai.mit.edu)
+
+	* loadst.c: Add BSD4_3 conditional for file dk.h instead of dkstat.h.
+
+1988-04-28  Richard Stallman  (rms at frosted-flakes.ai.mit.edu)
+
+	* movemail.c: #undef close, since config can #define it on V.3.
+	* emacsclient.c, fakemail.c, loadst.c, server.c: likewise.
+
+1988-04-26  Richard Stallman  (rms at lucky-charms.ai.mit.edu)
+
+	* etags.c (TEX_mode, etc.): Remove superfluous backslashes from
+	invalid escape sequences such as `\{'.
+
+	* loadst.c: Add `sequent' conditional for file dk.h.
+
+1988-03-20  Richard M. Stallman  (rms at wilson)
+
+	* server.c [not BSD and not HAVE_SYSVIPC]: fix error message.
+
+	* loadst.c (main) [XENIX]: use /usr/spool/mail, not /usr/mail.

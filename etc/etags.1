@@ -1,0 +1,225 @@
+.\" Copyright (c) 1992 Free Software Foundation
+.\" See section COPYING for conditions for redistribution
+.TH etags 1 "19apr1994" "GNU Tools" "GNU Tools"
+.de BP
+.sp
+.ti -.2i
+\(**
+..
+
+.SH NAME
+etags, ctags \- generate tag file for Emacs, vi
+.SH SYNOPSIS
+.hy 0
+.na
+.B etags [\|\-aCDRSVh\|] [\|\-i \fIfile\fP\|] [\|\-l \fIlanguage\fP\|] [\|\-i \fIregexp\fP\|] [\|\-o \fItagfile\fP\|]
+.br
+[\|\-\-c++\|] [\|\-\-no\-defines\|] [\|\-\-ignore\-indentation\|]
+[\|\-\-language=\fIlanguage\fP\|] [\|\-\-regex=\fIregexp\fP\|]
+[\|\-\-no\-regexp\|] [\|\-\-help\|] [\|\-\-version\|]
+[\|\-\-include=\fIfile\fP\|] [\|\-\-output=\fItagfile\fP\|]
+[\|\-\-append\|] \fIfile\fP .\|.\|.
+
+.B ctags [\|\-aCdRSVh\|] [\|\-BtTuvwx\|] [\|\-l \fIlanguage\fP\|]
+.br
+[\|\-i \fIregexp\fP\|] [\|\-o \fItagfile\fP\|]
+[\|\-\-c++\|] [\|\-\-defines\|] [\|\-\-ignore\-indentation\|]
+[\|\-\-no\-warn\|] [\|\-\-cxref\|] [\|\-\-backward\-search\|]
+[\|\-\-forward\-search\|] [\|\-\-typedefs\|] [\|\-\-typedefs\-and\-c++\|]
+[\|\-\-language=\fIlanguage\fP\|] [\|\-\-regex=\fIregexp\fP\|]
+[\|\-\-help\|] [\|\-\-version\|]
+.br
+[\|\-\-output=\fItagfile\fP\|] [\|\-\-append\|] [\|\-\-update\|] \fIfile\fP .\|.\|.
+.ad b
+.hy 1
+.SH DESCRIPTION
+The `\|\fBetags\fP\|' program is used to create a tag table file, in a format
+understood by
+.BR emacs ( 1 )\c
+\&; the `\|\fBctags\fP\|' program is used to create a similar table in a
+format understood by
+.BR vi ( 1 )\c
+\&.  Both forms of the program understand
+the syntax of C, C++, Fortran, Pascal, LaTeX, Scheme,
+Emacs Lisp/Common Lisp, Erlang, Prolog and most assembler\-like syntaxes.
+Both forms read the files specified on the command line, and write a tag
+table (defaults: `\|TAGS\|' for \fBetags\fP, `\|tags\|' for
+\fBctags\fP) in the current working directory.
+Files specified with relative file names will be recorded in the tag
+table with file names relative to the directory where the tag table
+resides.  Files specified with absolute file names will be recorded
+with absolute file names.
+The programs recognize the language used in an input file based on its
+file name and contents.  The --language switch can be used to force
+parsing of the file names following the switch according to the given
+language, overriding guesses based on filename extensions.
+.SH OPTIONS
+Some options make sense only for the \fBvi\fP style tag files produced
+by ctags;
+\fBetags\fP does not recognize them.
+The programs accept unambiguous abbreviations for long option names.
+.TP
+.B \-a, \-\-append
+Append to existing tag file.  (For vi-format tag files, see also
+\fB\-\-update\fP.)
+.TP
+.B \-B, \-\-backward\-search
+Tag files written in the format expected by \fBvi\fP contain regular
+expression search instructions; the \fB\-B\fP option writes them using
+the delimiter `\|\fB?\fP\|', to search \fIbackwards\fP through files.
+The default is to use the delimiter `\|\fB/\fP\|', to search \fIforwards\fP
+through files.
+Only \fBctags\fP accepts this option.
+.TP
+.B \-C, \-\-c++
+Treat files with `\|.c\|' and `\|.h\|' extensions as C++ code, not C
+code.  Files with `\|.C\|', `\|.H\|', `\|.cxx\|', `\|.hxx\|', or
+`\|.cc\|' extensions are always assumed to be C++ code.
+.TP
+.B \-d, \-\-defines
+Create tag entries for C preprocessor definitions, too.  This is the
+default behavior for \fBetags\fP, so this option is only accepted
+by \fBctags\fP.
+.TP
+.B \-D, \-\-no\-defines
+Do not create tag entries for C preprocessor definitions.
+This may make the tags file much smaller if many header files are tagged.
+This is the default behavior for \fBctags\fP, so this option is only
+accepted by \fBetags\fP.
+.TP
+\fB\-l\fP \fIlanguage\fP, \fB\-\-language=\fIlanguage\fP
+Parse the following files according to the given language.  More than
+one such options may be intermixed with filenames.  Use \fB\-\-help\fP
+to get a list of the available languages and their default filename
+extensions.  The `auto' language can be used to restore automatic
+detection of language based on filename extension.  The `none'
+language may be used to disable language parsing altogether; only
+regexp matching is done in this case (see the \fB\-\-regex\fP option).
+.TP
+\fB\-o\fP \fItagfile\fP, \fB\-\-output=\fItagfile\fP
+Explicit name of file for tag table; overrides default `\|TAGS\|' or
+`\|tags\|'.   (But ignored with \fB\-v\fP or \fB\-x\fP.)
+.TP
+\fB\-r\fP \fIregexp\fP, \fB\-\-regex=\fIregexp\fP
+Make tags based on regexp matching for each line of the files
+following this option, in addition to the tags made with the standard
+parsing based on language.  May be freely intermixed with filenames
+and the \fB\-R\fP option.  The regexps are cumulative, i.e. each
+option will add to the previous ones.  The regexps are of the form:
+.br
+
+		\fB/\fP\fItagregexp\fP[\fB/\fP\fInameregexp\fP]\fB/\fP
+.br
+
+where \fItagregexp\fP is used to match the lines that must be tagged.
+It should not match useless characters.  If the match is
+such that more characters than needed are unavoidably matched by
+\fItagregexp\fP, it may be useful to add a \fInameregexp\fP, to
+narrow down the tag scope.  \fBctags\fP ignores regexps without a
+\fInameregexp\fP. 
+.br
+Here are some examples.  All the regexps are quoted to protect them
+from shell interpretation.
+.br
+
+Tag the DEFVAR macros in the emacs source files:
+.br
+\fI\-\-regex\='/[ \\t]*DEFVAR_[A-Z_ \\t(]+"\\([^"]+\\)"\/'\fP
+.br
+
+Tag VHDL files (this example is a single long line, broken here for
+formatting reasons):
+.br
+\fI\-\-language\=none\ \-\-regex='/[\ \\t]*\\(ARCHITECTURE\\|\\
+CONFIGURATION\\)\ +[^\ ]*\ +OF/'\ \-\-regex\='/[\ \\t]*\\
+\\(ATTRIBUTE\\|ENTITY\\|FUNCTION\\|PACKAGE\\(\ BODY\\)?\\
+\\|PROCEDURE\\|PROCESS\\|TYPE\\)[\ \\t]+\\([^\ \\t(]+\\)/\\3/'\fP
+.br
+
+Tag Cobol files:
+.br
+\fI\-\-language\=none \-\-regex\='/.......[a\-zA\-Z0\-9\-]+\\./'\fP
+.br
+
+Tag Postscript files:
+.br
+\fI\-\-language\=none \-\-regex\='#/[^\ \\t{]+#/'\fP
+.br
+
+Tag TCL files (this last example shows the usage of a \fItagregexp\fP):
+.br
+\fI\-\-lang\=none \-\-regex\='/proc[\ \\t]+\\([^\ \\t]+\\)/\\1/'\fP
+
+.TP
+.B \-R, \-\-no\-regex
+Don't do any more regexp matching on the following files.  May be
+freely intermixed with filenames and the \fB\-\-regex\fP option.
+.TP
+.B \-S, \-\-ignore\-indentation
+Don't rely on indentation as much as we normally do.  Currently, this
+means not to assume that a closing brace in the first column is the
+final brace of a function or structure definition in C and C++.
+.TP
+.B \-t, \-\-typedefs
+Record typedefs in C code as tags.  Since this is the default behaviour
+of \fBetags\fP, only \fBctags\fP accepts this option.
+.TP
+.B \-T, \-\-typedefs\-and\-c++
+Generate tag entries for typedefs, struct, enum, and union tags, and
+C++ member functions.  Since this is the default behaviour
+of \fBetags\fP, only \fBctags\fP accepts this option.
+.TP
+.B \-u, \-\-update
+Update tag entries for \fIfiles\fP specified on command line, leaving
+tag entries for other files in place.  Currently, this is implemented
+by deleting the existing entries for the given files and then
+rewriting the new entries at the end of the tags file.  It is often
+faster to simply rebuild the entire tag file than to use this.
+Only \fBctags\fP accepts this option.
+.TP
+.B \-v, \-\-vgrind
+Instead of generating a tag file, write index (in \fBvgrind\fP format)
+to standard output.  Only \fBctags\fP accepts this option.
+.TP
+.B \-w, \-\-no\-warn
+Suppress warning messages about duplicate entries.  The \fBetags\fP
+program does not check for duplicate entries, so this option is not
+allowed with it.
+.TP
+.B \-x, \-\-cxref
+Instead of generating a tag file, write a cross reference (in
+\fBcxref\fP format) to standard output.  Only \fBctags\fP accepts this option.
+.TP
+.B \-H, \-\-help
+Print usage information.
+.TP
+.B \-V, \-\-version
+Print the current version of the program (same as the version of the
+emacs \fBetags\fP is shipped with).
+
+.SH "SEE ALSO"
+`\|\fBemacs\fP\|' entry in \fBinfo\fP; \fIGNU Emacs Manual\fP, Richard
+Stallman.
+.br
+.BR cxref ( 1 ),
+.BR emacs ( 1 ),
+.BR vgrind ( 1 ),
+.BR vi ( 1 ).
+
+.SH COPYING
+Copyright (c) 1992 Free Software Foundation, Inc.
+.PP
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+.PP
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+.PP
+Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that this permission notice may be included in
+translations approved by the Free Software Foundation instead of in
+the original English.

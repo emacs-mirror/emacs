@@ -1,0 +1,176 @@
+Format of Version 5 Babyl Files:
+
+Warning:
+
+    This was written Tuesday, 12 April 1983 (by Eugene Ciccarelli),
+based on looking at a particular Babyl file and recalling various
+issues.  Therefore it is not guaranteed to be complete, but it is a
+start, and I will try to point the reader to various Babyl functions
+that will serve to clarify certain format questions.
+
+    Also note that this file will not contain control-characters,
+but instead have two-character sequences starting with Uparrow.
+Unless otherwise stated, an Uparrow <character> is to be read as
+Control-<character>, e.g. ^L is a Control-L.
+
+Versions:
+
+    First, note that each Babyl file contains in its BABYL OPTIONS
+section the version for the Babyl file format.  In principle, the
+format can be changed in any way as long as we increment the format
+version number; then programs can support both old and new formats.
+
+    In practice, version 5 is the only format version used, and the
+previous versions have been obsolete for so long that Emacs does not
+support them.
+
+
+Overall Babyl File Structure:
+
+    A Babyl file consists of a BABYL OPTIONS section followed by
+0 or more message sections.  The BABYL OPTIONS section starts
+with the line "BABYL OPTIONS:".  Message sections start with
+Control-Underscore Control-L Newline.  Each section ends
+with a Control-Underscore.  (That is also the first character
+of the starter for the next section, if any.)  Thus, a three
+message Babyl file looks like:
+
+BABYL OPTIONS:
+...the stuff within the Babyl Options section...
+^_^L
+...the stuff within the 1st message section...
+^_^L
+...the stuff within the 2nd message section...
+^_^L
+...the stuff within the last message section...
+^_
+
+    Babyl is tolerant about some whitespace at the end of the
+file -- the file may end with the final ^_ or it may have some
+whitespace, e.g. a newline, after it.
+
+
+The BABYL OPTIONS Section:
+
+    Each Babyl option is specified on one line (thus restricting
+string values these options can currently have).  Values are
+either numbers or strings.  The format is name, colon, and the
+value, with whitespace after the colon ignored, e.g.:
+
+Mail: ~/special-inbox
+
+    Unrecognized options are ignored.
+
+    Here are those options and the kind of values currently expected:
+
+    MAIL		Filename, the input mail file for this
+			Babyl file.  You may also use several file names
+			separated by commas.
+    Version		Number.  This should always be 5.
+    Labels		String, list of labels, separated by commas.
+
+
+Message Sections:
+
+    A message section contains one message and information
+associated with it.  The first line is the "status line", which
+contains a bit (0 or 1 character) saying whether the message has
+been reformed yet, and a list of the labels attached to this
+message.  Certain labels, called basic labels, are built into
+Babyl in a fundamental way, and are separated in the status line
+for convenience of operation.  For example, consider the status
+line:
+
+1, answered,, zval, bug,
+
+    The 1 means this message has been reformed.  This message is
+labeled "answered", "zval", and "bug".  The first, "answered", is
+a basic label, and the other two are user labels.  The basic
+labels come before the double-comma in the line.  Each label is
+preceded by ", " and followed by ",".  (The last basic label is
+in fact followed by ",,".)  If this message had no labels at all,
+it would look like:
+
+1,,
+
+    Or, if it had two basic labels, "answered" and "deleted", it
+would look like:
+
+1, answered, deleted,, zval, bug,
+
+    The & Label Babyl Message knows which are the basic labels.
+Currently they are:  deleted, unseen, recent, and answered.
+
+    After the status line comes the original header if any.
+Following that is the EOOH line, which contains exactly the
+characters "*** EOOH ***" (which stands for "end of original
+header").  Note that the original header, if a network format
+header, includes the trailing newline.  And finally, following the
+EOOH line is the visible message, header and text.  For example,
+here is a complete message section, starting with the message
+starter, and ending with the terminator:
+
+^_^L
+1,, wordab, eccmacs,
+Date: 11 May 1982 21:40-EDT
+From: Eugene C. Ciccarelli <ECC at MIT-AI>
+Subject: notes
+To: ECC at MIT-AI
+
+*** EOOH ***
+Date: Tuesday, 11 May 1982  21:40-EDT
+From: Eugene C. Ciccarelli <ECC>
+To:   ECC
+Re:   notes
+
+Remember to pickup check at cashier's office, and deposit it
+soon.  Pay rent.
+^_
+
+;;; Babyl File BNF:
+
+;;; Overall Babyl file structure:
+
+
+Babyl-File	::= Babyl-Options-Section  (Message-Section)*
+
+
+;;; Babyl Options section:
+
+
+Babyl-Options-Section
+		::= "BABYL OPTIONS:" newline (Babyl-Option)* Terminator
+
+Babyl-Option	::= Option-Name ":" Horiz-Whitespace BOptValue newline
+
+BOptValue	::= Number | 1-Line-String
+
+
+
+;;; Message section:
+
+
+Message-Section	::= Message-Starter  Status-Line  Orig-Header
+		    EOOH-Line  Message  Terminator
+
+Message-Starter	::= "^L" newline
+
+Status-Line	::= Bit-Char  ","  (Basic-Label)* "," (User-Label)* newline
+
+Basic-Label	::= Space  BLabel-Name  ","
+
+User-Label	::= Space  ULabel-Name  ","
+
+EOOH-Line	::= "*** EOOH ***" newline
+
+Message		::= Visible-Header  Message-Text
+
+
+;;; Utilities:
+
+Terminator	::= "^_"
+
+Horiz-Whitespace
+		::= (Space | Tab)*
+
+Bit-Char	::= "0" | "1"

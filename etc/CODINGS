@@ -1,0 +1,74 @@
+#########################
+## LIST OF CODING SYSTEMS
+## Each line corresponds to one coding system
+## Format of a line is:
+##   NAME:TYPE:MNEMONIC:EOL:FLAGS:DOCSTRING,
+## where
+##  TYPE = nil (no conversion), t (auto conversion),
+##         0 (Mule internal), 1 (SJIS), 2 (ISO2022), 3 (BIG5), or 4 (CCL)
+##  EOL = 0 (LF), 1 (CRLF), 2 (CR), or 3 (Automatic detection)
+##  FLAGS =
+##    if TYPE = 2 then
+##      comma (`,') separated data of the followings:
+##        G0, G1, G2, G3, SHORT-FORM, ASCII-EOL, ASCII-CNTL, SEVEN,
+##        LOCKING-SHIFT, SINGLE-SHIFT, USE-ROMAN, USE-OLDJIS, NO-ISO6429
+##    else if TYPE = 4 then
+##      comma (`,') separated CCL programs for read and write
+##    else
+##      0
+##
+no-conversion:nil:=:0:0:Do no conversion
+undecided:t:+:3:0:Detect coding-system automatically
+hz:0:z:3:0:Codins-system of Hz/ZW used for Chinese (GB).
+emacs-mule:0:=:3:0:Internal coding system used in a buffer.
+shift_jis:1:S:3:0:Coding-system of Shift-JIS used in Japan.
+sjis:1:S:3:0:Coding-system of Shift-JIS used in Japan.
+euc-japan-1990:2:E:3:ascii,japanese-jisx0208,katakana-jisx0201,japanese-jisx0212,1,1,1,0,0,1,0,0,0:Coding-system of Japanese EUC (Extended Unix Code).
+iso-2022-lock:2:i:3:(ascii,t),-2,-1,-1,0,1,1,1,0,0,0,0,0:ISO-2022 coding system using Locking-Shift for 96-charset.
+iso-2022-ss2-7:2:I:3:(ascii,t),-1,-2,-1,1,1,1,1,0,1,0,0,0:ISO-2022 coding system using SS2 for 96-charset in 7-bit code.
+iso-2022-ss2-8:2:I:3:(ascii,t),-1,-2,-1,0,1,1,0,0,1,0,0,0:ISO-2022 coding system using SS2 for 96-charset in 8-bit code.
+iso-2022-cjk:2:I:3:(ascii,t),(nil,korean-ksc5601,chinese-gb2312,chinese-cns11643-1,t),(nil,chinese-cns11643-2),(nil,chinese-cns11643-3,chinese-cns11643-4,chinese-cns11643-5,chinese-cns11643-6,chinese-cns11643-7),1,1,1,1,1,1,0,0,0:Mixture of ISO-2022-JP, ISO-2022-KR, and ISO-2022-CN
+cn-gb-2312:2:C:3:(ascii,t),chinese-gb2312,chinese-sisheng,-1,0,1,1,0,0,1,0,0,0:Coding-system of Chinese EUC (so called GB Encoding).
+lao:2:T:3:(ascii,t),(lao,t),-1,-1,0,1,0,0,0,0,0,0,0:Coding-system used for ASCII(MSB=0) & LAO(MSB=1).
+iso-2022-jp-1978-irv:2:J:3:(ascii,t),-1,-1,-1,1,1,1,1,0,0,1,1,0:Coding-system used for old jis terminal.
+junet:2:J:3:(ascii,t),-1,-1,-1,1,1,1,1,0,0,0,0,0:Coding system based on ISO2022 7-bit encoding.
+tis620:2:T:3:(ascii,t),(thai-tis620,t),-1,-1,0,1,0,0,0,0,0,0,0:Coding-system used for ASCII(MSB=0) & TIS620(MSB=1).
+euc-japan:2:E:3:ascii,japanese-jisx0208,katakana-jisx0201,japanese-jisx0212,1,1,1,0,0,1,0,0,0:Coding-system of Japanese EUC (Extended Unix Code).
+iso-2022-int-1:2:I:3:(ascii,t),(korean-ksc5601,t),-1,-1,1,1,1,1,1,0,0,0,0:ISO-2022-INT-1
+euc-china:2:C:3:(ascii,t),chinese-gb2312,chinese-sisheng,-1,0,1,1,0,0,1,0,0,0:Coding-system of Chinese EUC (so called GB Encoding).
+old-jis:2:J:3:(ascii,t),-1,-1,-1,1,1,1,1,0,0,1,1,0:Coding-system used for old jis terminal.
+iso-2022-7:2:J:3:(ascii,t),-1,-1,-1,1,1,1,1,0,0,0,0,0:Coding system based on ISO2022 7-bit encoding.
+iso-2022-cn:2:C:3:ascii,(nil,chinese-gb2312,chinese-cns11643-1),(nil,chinese-cns11643-2),(nil,chinese-cns11643-3,chinese-cns11643-4,chinese-cns11643-5,chinese-cns11643-6,chinese-cns11643-7),0,1,1,1,1,1,0,0,0:Coding system ISO-2022-CN for Chinese (GB and CNS character sets).
+ctext:2:X:3:(ascii,t),(latin-iso8859-1,t),-1,-1,0,1,1,0,0,0,0,0,0:MIME ISO-8859-1 Compound Text Encoding.
+iso-2022-jp:2:J:3:(ascii,t),-1,-1,-1,1,1,1,1,0,0,0,0,0:Coding system based on ISO2022 7-bit encoding.
+iso-2022-kr:2:k:3:ascii,(nil,korean-ksc5601),-1,-1,0,1,1,1,1,0,0,0,0:MIME ISO-2022-KR
+iso-2022-cn-ext:2:C:3:ascii,(nil,chinese-gb2312,chinese-cns11643-1),(nil,chinese-cns11643-2),(nil,chinese-cns11643-3,chinese-cns11643-4,chinese-cns11643-5,chinese-cns11643-6,chinese-cns11643-7),0,1,1,1,1,1,0,0,0:Coding system ISO-2022-CN for Chinese (GB and CNS character sets).
+iso-8859-1:2:X:3:(ascii,t),(latin-iso8859-1,t),-1,-1,0,1,1,0,0,0,0,0,0:MIME ISO-8859-1 Compound Text Encoding.
+iso-8859-2:2:2:3:(ascii,t),(latin-iso8859-2,t),-1,-1,0,1,1,0,0,0,0,0,0:MIME ISO-8859-2
+iso-8859-3:2:3:3:(ascii,t),(latin-iso8859-3,t),-1,-1,0,1,1,0,0,0,0,0,0:MIME ISO-8859-3
+iso-8859-4:2:4:3:(ascii,t),(latin-iso8859-4,t),-1,-1,0,1,1,0,0,0,0,0,0:MIME ISO-8859-4
+iso-8859-5:2:5:3:(ascii,t),(cyrillic-iso8859-5,t),-1,-1,0,1,1,0,0,0,0,0,0:MIME ISO-8859-5
+iso-8859-7:2:7:3:(ascii,t),(greek-iso8859-7,t),-1,-1,0,1,1,0,0,0,0,0,0:MIME ISO-8859-7
+iso-8859-8:2:8:3:(ascii,t),(hebrew-iso8859-8,t),-1,-1,0,1,1,0,0,0,0,0,1:MIME ISO-8859-8
+iso-8859-9:2:9:3:(ascii,t),(latin-iso8859-9,t),-1,-1,0,1,1,0,0,0,0,0,0:MIME ISO-8859-9
+euc-kr:2:K:3:(ascii,t),korean-ksc5601,-1,-1,0,1,1,0,0,0,0,0,0:Coding-system of Korean EUC (Extended Unix Code).
+euc-korea:2:K:3:(ascii,t),korean-ksc5601,-1,-1,0,1,1,0,0,0,0,0,0:Coding-system of Korean EUC (Extended Unix Code).
+cn-big5:3:B:3:0:Coding-system of BIG5.
+big5:3:B:3:0:Coding-system of BIG5.
+viscii:4:V:3: 3 106 e ffffff0b 100 0 1 19c6 3 4 19c7 19e7 7 8 9 a b c d e f 10 11 12 13 19d6 15 16 17 18 19db 1a 1b 1c 1d 19dc 1f 20 21 22 23 24 25 26 27 28 29 2a 2b 2c 2d 2e 2f 30 31 32 33 34 35 36 37 38 39 3a 3b 3c 3d 3e 3f 40 41 42 43 44 45 46 47 48 49 4a 4b 4c 4d 4e 4f 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f 60 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f 70 71 72 73 74 75 76 77 78 79 7a 7b 7c 7d 7e 7f 19d5 19a1 19a2 19a3 19a4 19a5 19a6 19a7 19a8 19a9 19aa 19ab 19ac 19ad 19ae 19af 19b0 19b1 19b2 19b5 19fe 19be 19b6 19b7 19b8 19f6 19f7 19ef 19fc 19fb 19f8 19cf 19f5 1921 1922 1923 1924 1925 1926 1927 1928 1929 192a 192b 192c 192d 192e 192f 1930 1931 1932 19de 19bd 1935 1936 1937 1938 19f1 19d1 19d7 19d8 193d 193e 19df 19e0 19e1 19e2 19e3 19e4 19e5 1946 1947 19e8 19e9 19ea 19eb 19ec 19ed 19ee 194f 19f0 1951 19f2 19f3 19f4 1955 1956 1957 1958 19f9 19fa 195b 195c 19fd 195e 195f 1960 1961 1962 1963 1964 1965 1966 1967 1968 1969 196a 196b 196c 196d 196e 196f 1970 1971 1972 1973 1974 1975 1976 1977 1978 1979 197a 197b 197c 197d 197e 19e6 fffefd0c 16, 1 121 e 41b 10 80 fffffc07 fffffb0c 41b 15 9a fffff707 fffff60c 881d 12 a2 e 4017 80 ffffef0b 80 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 a1 a2 a3 a4 a5 a6 a7 a8 a9 aa ab ac ad ae af b0 b1 b2 0 0 b5 b6 b7 b8 0 0 0 0 bd be 0 0 0 0 0 0 0 c6 c7 0 0 0 0 0 0 0 cf 0 d1 0 0 0 d5 d6 d7 d8 0 0 db dc 0 de df e0 e1 e2 e3 e4 e5 e6 e7 e8 e9 ea eb ec ed ee ef f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe 0 ffff6d0c 881b 12 a3 e 4017 80 ffff660b 80 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f 90 91 92 0 0 93 96 97 98 0 0 0 0 b4 95 0 0 0 0 0 0 0 2 5 0 0 0 0 0 0 0 9f 0 ba 0 0 0 80 14 bb bc 0 0 19 1e 0 b3 bf c0 c1 c2 c3 c4 c5 ff 6 c8 c9 ca cb cc cd ce 9b d0 b9 d2 d3 d4 a0 99 9a 9e d9 da 9d 9c dd 94 0 fffee40c fffee307 fffee20c 16:Coding-system used for VISCII 1.1.
+koi8:4:K:3: 3 106 e ffffff0b 100 0 1 2 3 4 5 6 7 8 9 a b c d e f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f 20 21 22 23 24 25 26 27 28 29 2a 2b 2c 2d 2e 2f 30 31 32 33 34 35 36 37 38 39 3a 3b 3c 3d 3e 3f 40 41 42 43 44 45 46 47 48 49 4a 4b 4c 4d 4e 4f 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f 60 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f 70 71 72 73 74 75 76 77 78 79 7a 7b 7c 7d 7e 7f 80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f 90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f 20 20 20 e71 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 e21 20 20 20 20 20 20 20 20 20 20 20 20 e6e e50 e51 e66 e54 e55 e64 e53 e65 e58 e59 e5a e5b e5c e5d e5e e5f e6f e60 e61 e62 e63 e56 e52 e6c e6b e57 e68 e6d e69 e67 e6a e4e e30 e31 e46 e34 e35 e44 e33 e45 e38 e39 e3a e3b e3c e3d e3e e3f e4f e40 e41 e42 e43 e36 e32 e4c e4b e37 e48 e4d e49 e47 e4a fffefd0c 16, 1 6e e 41b 15 8c fffffc07 fffffb0c e 4017 a0 fffff70b 60 20 b3 20 20 20 20 20 20 20 20 20 20 20 20 20 20 e1 e2 f7 e7 e4 e5 f6 fa e9 ea eb ec ed ee ef f0 f2 f3 f4 f5 e6 e8 e3 fe fb fd ff f9 f8 fc e0 f1 c1 c2 d7 c7 c4 c5 d6 da c9 ca cb cc cd ce cf d0 d2 d3 d4 d5 c6 c8 c3 de db dd df d9 d8 dc c0 d1 20 a3 20 20 20 20 20 20 20 20 20 20 20 20 20 20 ffff950c 16:Coding-system used for KOI8.
+koi8-r:4:K:3: 3 106 e ffffff0b 100 0 1 2 3 4 5 6 7 8 9 a b c d e f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f 20 21 22 23 24 25 26 27 28 29 2a 2b 2c 2d 2e 2f 30 31 32 33 34 35 36 37 38 39 3a 3b 3c 3d 3e 3f 40 41 42 43 44 45 46 47 48 49 4a 4b 4c 4d 4e 4f 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f 60 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f 70 71 72 73 74 75 76 77 78 79 7a 7b 7c 7d 7e 7f 80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f 90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f 20 20 20 e71 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 e21 20 20 20 20 20 20 20 20 20 20 20 20 e6e e50 e51 e66 e54 e55 e64 e53 e65 e58 e59 e5a e5b e5c e5d e5e e5f e6f e60 e61 e62 e63 e56 e52 e6c e6b e57 e68 e6d e69 e67 e6a e4e e30 e31 e46 e34 e35 e44 e33 e45 e38 e39 e3a e3b e3c e3d e3e e3f e4f e40 e41 e42 e43 e36 e32 e4c e4b e37 e48 e4d e49 e47 e4a fffefd0c 16, 1 6e e 41b 15 8c fffffc07 fffffb0c e 4017 a0 fffff70b 60 20 b3 20 20 20 20 20 20 20 20 20 20 20 20 20 20 e1 e2 f7 e7 e4 e5 f6 fa e9 ea eb ec ed ee ef f0 f2 f3 f4 f5 e6 e8 e3 fe fb fd ff f9 f8 fc e0 f1 c1 c2 d7 c7 c4 c5 d6 da c9 ca cb cc cd ce cf d0 d2 d3 d4 d5 c6 c8 c3 de db dd df d9 d8 dc c0 d1 20 a3 20 20 20 20 20 20 20 20 20 20 20 20 20 20 ffff950c 16:Coding-system used for KOI8.
+alternativnyj:4:A:3: 3 106 e ffffff0b 100 0 1 2 3 4 5 6 7 8 9 a b c d e f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f 20 21 22 23 24 25 26 27 28 29 2a 2b 2c 2d 2e 2f 30 31 32 33 34 35 36 37 38 39 3a 3b 3c 3d 3e 3f 40 41 42 43 44 45 46 47 48 49 4a 4b 4c 4d 4e 4f 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f 60 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f 70 71 72 73 74 75 76 77 78 79 7a 7b 7c 7d 7e 7f e30 e31 e32 e33 e34 e35 e36 e37 e38 e39 e3a e3b e3c e3d e3e e3f e40 e41 e42 e43 e44 e45 e46 e47 e48 e49 e4a e4b e4c e4d e4e e4f e50 e51 e52 e53 e54 e55 e56 e57 e58 e59 e5a e5b e5c e5d e5e e5f 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 e60 e61 e62 e63 e64 e65 e66 e67 e68 e69 e6a e6b e6c e6d e6e e6f e21 e71 20 20 20 20 20 20 20 20 20 20 20 20 20 e70 fffefd0c 16, 1 6e e 41b 15 8c fffffc07 fffffb0c e 4017 a0 fffff70b 60 20 f0 20 20 20 20 20 20 20 20 20 20 20 20 20 20 80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f 90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 aa ab ac ad ae af e0 e1 e2 e3 e4 e5 e6 e7 e8 e9 ea eb ec ed ee ef ff f1 20 20 20 20 20 20 20 20 20 20 20 20 20 20 ffff950c 16:Coding-system used for Alternativnyj
+vscii:4:V:3: 3 106 e ffffff0b 100 0 19fa 19f8 3 19d7 19d8 19e6 7 8 9 a b c d e f 10 19d1 19df 19cf 19d6 19db 19fd 19dc 18 19 1a 1b 1c 1d 1e 1f 20 21 22 23 24 25 26 27 28 29 2a 2b 2c 2d 2e 2f 30 31 32 33 34 35 36 37 38 39 3a 3b 3c 3d 3e 3f 40 41 42 43 44 45 46 47 48 49 4a 4b 4c 4d 4e 4f 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f 60 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f 70 71 72 73 74 75 76 77 78 79 7a 7b 7c 7d 7e 7f 19e0 19e4 19e3 19e1 19d5 19a3 19a7 19e8 19eb 19a8 19e9 19a9 19ae 19ec 19ef 19ee 19ed 19b8 19f2 19f6 19f5 19f3 19f7 19b5 19b6 19b7 19de 19be 19fe 19f9 19fc 19fb a0 19e5 19e2 19ea 19f4 19bd 19df 19f0 1965 1962 196a 1974 193e 1979 1970 19a2 c0 c1 c2 c3 c4 1960 1964 1963 1961 1955 19c6 1922 1946 1947 1921 19c7 19a1 19a5 19a6 19e7 19a5 19ab 1923 1925 1926 1967 1924 1927 1968 19ac 196b 1928 1969 1929 192b 192c 192d 192a 192e 196c 196f 19ad 19aa 19b0 196e 196d 1938 1972 19b1 1976 1975 1973 1977 1930 1931 1932 192f 1935 1936 1937 195e 193e 197e 1979 19b2 197c 197b 197a 1978 1957 1958 1966 1951 1971 194f 1956 195b 197d 195c 19af fffefd0c 16, 1 121 e 41b 10 80 fffffc07 fffffb0c 41b 15 9a fffff707 fffff60c 881d 12 a2 e 4017 80 ffffef0b 80 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 be bb c6 ca c7 c8 cb cf d1 d5 d2 d3 d4 d6 e8 e5 e6 e7 0 0 e9 ea eb de 0 0 0 0 0 ed 0 0 0 0 0 0 0 bc bd 0 0 0 0 0 0 0 fa 0 f8 0 0 0 b9 fb f5 f6 0 0 fc fe 0 ec 0 b5 b8 a9 b7 b6 a8 f7 c9 cc d0 aa ce d7 dd dc d8 ae f9 df e3 ab e2 e1 e4 f4 ef f3 f2 f1 fd ee 0 ffff6d0c 881b 12 a3 e 4017 80 ffff660b 80 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f 90 91 92 0 0 93 96 97 98 0 0 0 0 b4 95 0 0 0 0 0 0 0 2 5 0 0 0 0 0 0 0 9f 0 ba 0 0 0 80 14 bb bc 0 0 19 1e 0 b3 bf c0 c1 c2 c3 c4 c5 ff 6 c8 c9 ca cb cc cd ce 9b d0 b9 d2 d3 d4 a0 99 9a 9e d9 da 9d 9c dd 94 0 fffee40c fffee307 fffee20c 16:Coding-system used for VSCII-1.
+############################
+## LIST OF CODING CATEGORIES (ordered by priority)
+## CATEGORY:CODING-SYSTEM
+##
+coding-category-iso-7:iso-2022-7
+coding-category-iso-8-1:iso-8859-1
+coding-category-iso-8-2:iso-8859-1
+coding-category-iso-else:iso-2022-lock
+coding-category-emacs-mule:emacs-mule
+coding-category-sjis:sjis
+coding-category-big5:big5
+coding-category-binary:no-conversion

@@ -1,0 +1,68 @@
+\input rotate
+
+\font\title=ptmb at20pt
+\font\body=ptmr at12pt
+\font\price=ptmr at10pt
+
+\baselineskip=13pt
+\parskip=13pt
+\parindent=0pt
+
+\nopagenumbers
+
+\hsize=7in
+\vsize=9.25in
+
+\voffset=-1in
+\hoffset=-1in
+
+\hbox to7in{%
+  \vbox to9.25in{
+    \hsize=6in
+    \leftskip=.75in
+    \rightskip=.25in
+
+    \vskip2in
+
+    \title
+    \hfil GNU Emacs\hfil
+
+    \body
+    Most of the GNU Emacs text editor is written in the programming
+    language called Emacs Lisp.  You can write new code in Emacs Lisp and
+    install it as an extension to the editor.  However, Emacs Lisp is more
+    than a mere ``extension language''; it is a full computer programming
+    language in its own right.  You can use it as you would any other
+    programming language.
+
+    Because Emacs Lisp is designed for use in an editor, it has special
+    features for scanning and parsing text as well as features for handling
+    files, buffers, displays, subprocesses, and so on.  Emacs Lisp is
+    closely integrated with the editing facilities; thus, editing commands
+    are functions that can also conveniently be called from Lisp programs,
+    and parameters for customization are ordinary Lisp variables.
+
+    This manual describes Emacs Lisp.  Generally speaking, the earlier
+    chapters describe features of Emacs Lisp that have counterparts in
+    many programming languages, and later chapters describe features that
+    are peculiar to Emacs Lisp or relate specifically to editing.
+
+    \vfil
+
+    \leftskip=0pt
+    \rightskip=0pt
+
+    \parfillskip=0pt\hfil%
+    ISBN-1-882114-04-3
+
+    \vskip.5in
+  }%
+  \setbox0=\vbox to1in{
+    \vfil\hskip.5in
+    {\price FSF $\bullet$ US\$25.00 $\bullet$ Printed in USA}
+    \vskip.5in
+  }%
+  \rotl0%
+}
+
+\eject\bye

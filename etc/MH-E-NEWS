@@ -1,0 +1,144 @@
+User-visible changes to mh-e in version 5.0 from 4.1.
+
+   Note: This being a major release, there are many internal changes.
+This document lists only changes to the external interfaces of mh-e.
+
+   When upgrading, you must either explicitly reload the new versions of
+all mh-e files that are already loaded or restart your Emacs.
+
+   mh-e 5.0.1 contains minor changes from mh-e 5.0 to integrate it with
+Emacs 19.29.
+
+   mh-e 5.0.2 contains additional minor changes to integrate it with
+reporter.el (requires reporter.el version 3.1c or later) and Emacs
+19.30.  The mh-goto-msg function is much faster, which also speeds up
+several other operations.
+
+Major Changes and New Features in mh-e
+======================================
+
+   The emphasis for this release has been on consistency and
+documentation.  Many documentation strings were enhanced.
+Documentation strings were changed to comments for internal functions
+and variables.
+
+   There is now proper documentation in the form of a 75-page users
+manual.  The Texinfo source is mh-e.texi; the formatted Info document
+is mh-e.info.
+
+   There is a new command `mh-update-sequences', which updates MH's
+idea of what messages are in the Unseen sequence and what is the current
+folder and message.  `mh-quit' calls it.  While `mh-execute-commands'
+has always done this updating as a side effect, the new function is
+faster.
+
+   The MH profile entry "Inbox:" is supported.
+
+   If the show-buffer is modified, the user is queried before mh-e
+reuses the buffer to show a different message.  This buffer is also
+auto-saved and backed up correctly.
+
+   `mh-store-buffer' is significantly more robust.  It now handles
+messages created by a wide variety of packaging software.  The status
+message for `uudecode' includes the name of the file created.  An error
+is signaled if the subprocess exits with a non-zero status.
+
+   `mh-search-folder' behaves predictably, adding messages found to the
+`search' sequence.  It correctly handles the case of no messages found.
+
+   `mh-burst-digest' (`M-b') now only rescans the part of the folder
+affected by the burst.  It is now much faster in a large folder.
+
+New mh-e Hooks and Customization Variables
+==========================================
+
+   `mh-default-folder-for-message-function': new name for the old
+`mh-msg-folder-hook', which wasn't a hook.  The old name was confusing,
+leading people to think they could use `add-hook' with it, when
+actually `setq' is the correct way.
+
+   `mh-sortm-args': When this variable is used has changed.  Now
+`mh-sortm-args' is passed if there IS a prefix argument to
+`mh-sort-folder'.  The assumption is that for arguments you normally
+want, you would specify them in an MH profile entry.
+
+   `mh-mhn-args': new hook, a list of additional arguments to pass to
+the `mhn' program if `mh-edit-mhn' is given a prefix argument.
+
+   `mh-edit-mhn-hook': new hook called by `mh-edit-mhn', the function
+that formats MIME messages.
+
+   `mh-folder-list-change-hook': new hook, called whenever the cached
+list of folders, `mh-folder-list', is changed.
+
+   `mh-find-path-hook': new hook, called when entering mh-e.
+
+   `mh-repl-formfile': new variable, used to change the format file
+used by `mh-reply' from the default of "replcomps".
+
+   New variables to customize the scan format and notating:
+`mh-note-deleted', `mh-note-refiled', `mh-note-seq', `mh-note-cur',
+`mh-note-copied', `mh-note-printed'.
+
+Key Binding Changes in mh-e
+===========================
+
+   `RET' runs `mh-show' for consistency with the Finder and Info.  The
+old binding `.' still works, but `RET' is now the standard binding.
+
+   `M-<' now runs `mh-first-msg' for consistency with `M->', which runs
+`mh-last-msg'.
+
+   `C-c C-f C-d' in MH-Letter mode moves to a Dcc: header field.
+
+   `C-c C-f C-r' in MH-Letter mode moves to a From: header field.
+
+   `g' is now the standard binding for `mh-goto-msg'.  The old binding
+`j' still works.
+
+Other Improvements and Changes to mh-e
+======================================
+
+   `mh-lpr-command-format' no longer passes the "-p" argument to `lpr'
+by default.  The mail header typically has the date anyway.
+
+   When prompting for a sequence name, if no sequences have been used
+yet, mh-e will offer the first sequence the current message is in.
+
+   The patterns of more mailers are recognized by
+`mh-extract-rejected-mail'.
+
+   `mh-insert-prefix-string' no longer wraps the call to the
+`mail-citation-hook' function in a `save-excursion' so the hook writer
+can choose whether to leave point at the beginning or the end of the
+yanked text.
+
+   `mh-write-msg-to-file': The prompt now refers to "message" or
+"message body" depending on which will be written.  (This is controlled
+by a prefix argument.)  The file defaults to the last-used file instead
+of supplying only the directory name.
+
+   mh-e uses message ranges when running MH commands.  Thus "rmm 1 2 3
+4 6" is now "rmm 1-4 6".  This change makes it less likely to overflow
+system argument list limits, and it might be faster, too.
+
+Bug Fixes to mh-e
+=================
+
+   mh-e's idea of the unseen sequence now stays in sync with MH's
+better.
+
+   Functions that are supposed to find fields in the message header no
+longer look in the message body.
+
+   mh-e would sometimes fail to remove the "%" from a scan line when the
+message was removed from a sequence if the message was also in the
+Previous sequence.
+
+   The variable `mh-inc-prog' is now correctly used in all places.
+
+   `mh-pipe-msg' runs the process in the correct directory.
+
+   A partially scanned folder will no longer lose the "/select"
+annotation when you execute marked deletes and refiles with `x'.
+

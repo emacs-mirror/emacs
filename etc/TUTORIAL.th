@@ -1,0 +1,1007 @@
+,TJ'G9(B0,TET(B1,T"(B0,TJT(B1,T7(B0,T8Tl(B1 ,T>(B.,TH(B. 2528 ,Tb4B:(B0,TCT(B10,TIQ(B1,T7?(B0,TCU(B1,T+M?(B0,T5l(B1,TaG(B0,TCl(B1,T?RG(B0,T9l(B1,T`4(B0,T*Q(B1,T9(B (Free Software
+Foundation, Inc); ,T!(B0,TCX(B1,T3R(B0,THV(B1,T!IR`(B0,T'Wh(B1,TM9d"5M9(B0,T7i(B1,TRB:7(B. 
+0,T7h(B1,TR9!S(B0,TEQ(B1,T'(B0,THV(B1,T!IR(B0,T$Yh(B10,TAW(B1,TM!RCc(B0,T*i(B10,TMU(B1,TaA!(B0,TJl(B1 (Emacs tutorial) ,TM(B0,TBYh(B1,Tc9"3P(B0,T9Ui(B1.
+
+,Tb4B(B0,T7Qh(B1,TGd;$S(B0,TJQh(B1,T'"M'(B0,TMU(B1,TaA!(B0,TJl(B1 (Emacs) ,T(Pc(B0,T*i(B10,T$Yh(B10,T!Q(B1,T:(B0,T;Xh(B1,TA(B CONTROL (,T:R'$(B0,TCQi(B1,T'MR(`(B0,T;g(B1,T9(B0,T;Xh(B1,TA(B0,T7Uh(B10,TAU(B1
+0,TJQ(B1,T-(B0,TEQ(B1,T!I(B0,T3l(B1 CTRL ,TK(B0,TCW(B1,TM(B CTL) ,TK(B0,TCW(B1,TM(B 0,T;Xh(B1,TA(B META (,T:R'$(B0,TCQi(B1,T'MR(`(B0,T;g(B1,T9(B0,T;Xh(B1,TA(B0,T7Uh(B10,TAU(B10,TJQ(B1,T-(B0,TEQ(B1,T!I(B0,T3l(B1 EDIT ,TK(B0,TCW(B1,TM(B 
+ALT). ,Ta79(B0,T7Uh(B1,T(Pc(B0,T*i(B1,T$S`(B0,T5g(B1,TAc9!RCM(B0,T8T(B1,T:RB(B, ,T`CR(Pc(B0,T*i(B10,T5Q(B1,TG(B0,TBh(B1,TM(B0,T4Q(B1,T'(B0,T5h(B1,TMd;(B0,T9Ui(B1:
+
+ C-<chr>  ,TKARB(B0,T6V(B1,T'c(B0,TKi(B1,T!4(B0,T;Xh(B1,TA(B CONTROL ,TaEP(B0,T;Xh(B1,TA(B0,TMQ(B1,T!IC(B <chr> ,T>(B0,TCi(B1,TMA(B0,T!Q(B1,T9(B.
+	  0,T4Q(B1,T'(B0,T9Qi(B1,T9(B C-f ,T(PKARB(B0,T6V(B1,T'c(B0,TKi(B1,T!4(B0,T;Xh(B1,TA(B CONTROL ,TaEP(B0,T;Xh(B1,TA(B f ,T>(B0,TCi(B1,TMA(B0,T!Q(B1,T9(B.
+ M-<chr>  ,TKARB(B0,T6V(B1,T'c(B0,TKi(B1,T!4(B0,T;Xh(B1,TA(B META ,TK(B0,TCW(B1,TM(B EDIT ,TK(B0,TCW(B1,TM(B ALT ,TaEP(B0,T;Xh(B1,TA(B0,TMQ(B1,T!IC(B <chr>
+	  ,T>(B0,TCi(B1,TMA(B0,T!Q(B1,T9(B. ,Tc9!C(B0,T3U(B10,T7Uh(B1,Td(B0,TAh(B10,TAU(B10,T;Xh(B1,TA(B META, EDIT ,TK(B0,TCW(B1,TM(B ALT ,Tc(B0,TKi(B1,T!4(B0,T;Xh(B1,TA(B
+	  ESC ,Ta(B0,TEi(B1,TG;(B0,TEh(B1,TMB(B, ,Ta(B0,TEi(B1,TG!4(B0,T;Xh(B1,TA(B <chr>. ,T`CRc(B0,T*i(B10,TJQ(B1,T-(B0,TEQ(B1,T!I(B0,T3l(B1 <ESC> ,Ta79(B0,T;Xh(B1,TA(B ESC.
+
+,TKARB`K(B0,T5X(B1: ,Tc9!C(B0,T3U(B10,T7Uh(B10,T5i(B1,TM'!RC`(B0,TET(B1,T!c(B0,T*i(B10,TMU(B1,TaA!(B0,TJl(B1, ,Tc(B0,TKi(B1,T!4(B0,T;Xh(B1,TA(B C-x C-c. (,TJM'(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B.) 
+0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B ">>" 0,T7Uh(B1,T;CR!/M(B0,TBYh(B1,T7R'"M:(B0,T+i(B1,TRB(B0,TAW(B1,TM`(B0,T;g(B1,T9!RCa9P9Sc(B0,TKi(B10,T7h(B1,TR9EM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B. 0,T5Q(B1,TGM(B0,TBh(B1,TR'`(B0,T*h(B1,T9(B:
+<<Blank lines inserted here by startup of help-with-tutorial>>
+>>  ,T!4(B0,T;Xh(B1,TA(B C-v (0,T4Y(B1,TK(B0,T9i(B1,TR(M(B0,T6Q(B1,T4d;(B) ,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'K(B0,T9i(B1,TR(M(B0,T6Q(B1,T4d;(B.
+	(,TEM'7S(B0,T4Y(B1,Tb4B!RC!4(B0,T;Xh(B1,TA(B CONTROL ,TaEP(B0,T;Xh(B1,TA(B0,TMQ(B1,T!IC(B v ,T>(B0,TCi(B1,TMA(B0,T!Q(B1,T9(B).
+	,T(R!(B0,T9Ui(B1,Td;(B, 0,T7h(B1,TR9$GC(PEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B0,T9Ui(B10,T4Y(B1,T`(B0,TAWh(B1,TM(B0,T7h(B1,TR9(B0,TMh(B1,TR9K(B0,T9i(B1,TR(M(B0,T9Ui(B1,T(:a(B0,TEi(B1,TG(B.
+
+0,T7h(B1,TR9(P(B0,TJQ(B1,T'`!5`(B0,TKg(B1,T9d(B0,T4i(B10,TGh(B1,TRJM':CC(B0,T7Q(B1,T4"M'K(B0,T9i(B1,TR(M(B0,T7Uh(B1,Ta(B0,TEi(B1,TG(P(B0,TBQ(B1,T'$';CR!/c(B0,TKi(B1,T`(B0,TKg(B1,T9:9K(B0,T9i(B1,TR(M(B0,T6Q(B1,T4d;(B; 0,T9Uh(B1
+,T`(B0,T;g(B1,T9!RC(B0,T*h(B1,TGBc(B0,TKi(B10,T7h(B1,TR9JRARC6(B0,TMh(B1,TR9K(B0,T9i(B1,TR(Md(B0,T4i(B1,TM(B0,TBh(B1,TR'(B0,T5h(B1,TM`(B0,T9Wh(B1,TM'(B.
+
+0,TJTh(B1,T'aC!(B0,T7Uh(B10,T7h(B1,TR9(S`(B0,T;g(B1,T9(B0,T5i(B1,TM'(B0,TCYi(B10,T$W(B1,TM!RC`$(B0,TEWh(B1,TM95SaK(B0,T9h(B1,T'd;ARc9(B0,T"i(B1,TM$GRA(B. ,T"3P(B0,T9Ui(B10,T7h(B1,TR97CR:(B
+0,TGT(B10,T8U(B1,T!RC`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'K(B0,T9i(B1,TR(M(B0,T6Q(B1,T4d;a(B0,TEi(B1,TG(B0,T4i(B1,TGB(B0,T;Xh(B1,TA(B C-v. ,Tc9!RC(B0,T7Uh(B1,T(P`$(B0,TEWh(B1,TM9!(B0,TEQ(B1,T:d;K(B0,T9Vh(B1,T'K(B0,T9i(B1,TR(M(B, ,T!4(B0,T;Xh(B1,TA(B
+M-v (,T!4(B0,T;Xh(B1,TA(B META ,TaEP(B0,T;Xh(B1,TA(B v, ,TK(B0,TCW(B1,TM!4(B0,T;Xh(B1,TA(B <ESC>v 0,T6i(B1,TR(B0,T7h(B1,TR9d(B0,TAh(B10,TAU(B10,T;Xh(B1,TA(B META, EDIT, ,TK(B0,TCW(B1,TM(B ALT).
+
+>>  ,TEM'!4(B0,T;Xh(B1,TA(B M-v ,TaEP!4(B0,T;Xh(B1,TA(B C-v 0,T4Y(B1,T!RC7S'R9(B0,TJQ(B1,T!JM'JRA$(B0,TCQi(B1,T'(B.
+
+
+* ,TJ(B0,TCX(B1,T;(B
+-----
+
+,T$S(B0,TJQh(B1,T'(B0,T5h(B1,TMd;(B0,T9Ui(B1,Tc(B0,T*i(B1,T`(B0,TAWh(B1,TM(B0,T5i(B1,TM'!RC(B0,T4Y(B1,TK(B0,T9i(B1,TR(M(B0,T5h(B1,TR'f(B:
+
+	C-v	,T`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'K(B0,T9i(B1,TR(M(B0,T6Q(B1,T4d;K(B0,T9Vh(B1,T'K(B0,T9i(B1,TR(M(B
+	M-v	,T`$(B0,TEWh(B1,TM9!(B0,TEQ(B1,T:d;K(B0,T9Vh(B1,T'K(B0,T9i(B1,TR(M(B
+	C-l 	,TE:K(B0,T9i(B1,TR(M(B ,Ta(B0,TEi(B1,TGaJ4'<EK(B0,T9i(B1,TR(McK(B0,TAh(B1, ,T>(B0,TCi(B1,TMA(B0,T7Qi(B1,T'(B0,TBi(B1,TRB5SaK(B0,T9h(B1,T'"M'(B0,T"i(B1,TM$GRA(B0,T7Uh(B10,TAU(B1
+		 ,T`$M(B0,TCl(B1,T`+M(B0,TCl(B1 (cursor) ,T;CR!/M(B0,TBYh(B1,Td;aJ4'd(B0,TGi(B1,T!ER'(M(B.
+		 (,T$S(B0,TJQh(B1,T'(B0,T9Ui(B10,T$W(B1,TM(B CONTROL-L, ,Td(B0,TAh(B1,Tc(B0,T*h(B1 CONTROL-1.)
+
+>> 0,TJQ(B1,T'`!55SaK(B0,T9h(B1,T'"M'`$M(B0,TCl(B1,T`+M(B0,TCl(B1, ,TaEP(B0,TJQ(B1,T'`!5(B0,T4Y(B10,TGh(B1,TR(B0,TAU(B10,T"i(B1,TM$GRAMPdCM(B0,TBYh(B1,Tc!(B0,TEi(B1,T`$M(B0,TCl(B1,T`+M(B0,TCl(B1.
+   ,Ta(B0,TEi(B1,TG!4(B0,T;Xh(B1,TA(B C-l.
+   0,TJQ(B1,T'`!5(B0,T4Y(B1,T5SaK(B0,T9h(B1,T'"M'`$M(B0,TCl(B1,T`+M(B0,TCl(B10,TMU(B1,T!$(B0,TCQi(B1,T'(B ,T(P`(B0,TKg(B1,T9(B0,TGh(B1,TR(B0,TAU(B10,T"i(B1,TM$GRA`(B0,T4T(B1,TA;CR!/M(B0,TBYh(B1,Tc!(B0,TEi(B1,Tf(B 0,T!Q(B1,T:`$M(B0,TCl(B1,T`+M(B0,TCl(B1.
+
+
+* ,T!RC$G:(B0,T$X(B1,TA`$M(B0,TCl(B1,T`+M(B0,TCl(B1,T`(B0,T:Wi(B1,TM'(B0,T5i(B1,T9(B
+------------------------
+
+,T!RC`$(B0,TEWh(B1,TM9K(B0,T9i(B1,TR(Md;AR(B0,T9Qi(B1,T9`(B0,T;g(B1,T9(B0,TJTh(B1,T'(S`(B0,T;g(B1,T9(B ,Ta(B0,T5h(B10,T7h(B1,TR9(P7SM(B0,TBh(B1,TR'dC(B0,T6i(B1,TR(B0,T7h(B1,TR9(B0,T5i(B1,TM'!RC(P`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'(B
+,T5SaK(B0,T9h(B1,T'(B0,T7Uh(B10,T5i(B1,TM'!RC@RBc9(B0,T"i(B1,TM$GRA(B0,T7Uh(B1,T;CR!/M(B0,TBYh(B1,T:9K(B0,T9i(B1,TR(M(B?
+
+0,TAU(B1,TKERB(B0,TGT(B10,T8U(B10,T7Uh(B1,TJRARC6(P7Sd(B0,T4i(B1. 0,TGT(B10,T8U(B10,T7Uh(B10,T>Wi(B1,T9(B0,T7Uh(B10,TJX(B1,T4(B0,T$W(B1,TM!RCc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-p, C-b, C-f, ,TaEP(B C-n.
+,Ta(B0,T5h(B1,TEP$S(B0,TJQh(B1,T'(P`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,Td;K(B0,T9Vh(B1,T':CC(B0,T7Q(B1,T4K(B0,TCW(B1,TMK(B0,T9Vh(B1,T'$M(B0,TEQ(B1,TA(B0,T9l(B1,Tc9(B0,T7T(B1,TH7R'c4(B0,T7T(B1,TH7R'K(B0,T9Vh(B1,T':9K(B0,T9i(B1,TR(M(B.
+0,T5h(B1,TMd;(B0,T9Ui(B1,T`(B0,T;g(B1,T95RCR'aJ4'$S(B0,TJQh(B1,T'(B0,T7Qi(B1,T'(B0,TJUh(B1 ,TaEP(B0,T7T(B1,TH7R'(B0,T7Uh(B1,T`$M(B0,TCl(B1,T`+M(B0,TCl(B1,T`$(B0,TEWh(B1,TM9d;(B:
+
+			  ,T:CC(B0,T7Q(B1,T4(B0,T!h(B1,TM9K(B0,T9i(B1,TR(B, C-p
+				:
+				:
+   0,TBi(B1,TM9!(B0,TEQ(B1,T:(B, C-b  ....  ,T5SaK(B0,T9h(B1,T'`$M(B0,TCl(B1,T`+M(B0,TCl(B10,T;Q(B1,T((B0,T(X(B10,T:Q(B1,T9(B  ....  0,T"i(B1,TR'K(B0,T9i(B1,TR(B, C-f
+				:
+				:
+			  ,T:CC(B0,T7Q(B1,T4(B0,T6Q(B1,T4d;(B, C-n
+
+>> ,T`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,Td;(B0,T7Uh(B10,T!Vh(B1,T'!ER'"M'(B0,T<Q(B1,T'(B0,T"i(B1,TR':9b4Bc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-n ,TK(B0,TCW(B1,TM(B C-p. ,Ta(B0,TEi(B1,TG!4(B0,T;Xh(B1,TA(B
+   C-l ,T`(B0,T>Wh(B1,TMc(B0,TKi(B10,T<Q(B1,T';CR!/M(B0,TBYh(B1,T!ER'K(B0,T9i(B1,TR(M(B.
+
+0,T7h(B1,TR9MR((P(S$S(B0,TJQh(B1,T'd(B0,T4i(B10,T'h(B1,TRB(B0,T"Vi(B1,T9b4B(B0,TJQ(B1,T'`!5(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B0,T7Uh(B1,Tc(B0,T*i(B1: p ,TJSK(B0,TCQ(B1,T:(B previous (0,T!h(B1,TM9K(B0,T9i(B1,TR(B), n
+,TJSK(B0,TCQ(B1,T:(B next (0,T6Q(B1,T4d;(B), b ,TJSK(B0,TCQ(B1,T:(B backward (0,TBi(B1,TM9!(B0,TEQ(B1,T:(B), ,TaEP(B f ,TJSK(B0,TCQ(B1,T:(B forward
+(0,T"i(B1,TR'K(B0,T9i(B1,TR(B). ,T`K(B0,TEh(B1,TR(B0,T9Ui(B10,T$W(B1,TM`(B0,T:Wi(B1,TM'(B0,T5i(B1,T9"M'$S(B0,TJQh(B1,T'c9!RC$G:(B0,T$X(B1,TA5SaK(B0,T9h(B1,T'"M'`$M(B0,TCl(B1,T`+M(B0,TCl(B1, ,TaEP(B0,T7h(B1,TR9(B
+,T(P(B0,T5i(B1,TM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'`K(B0,TEh(B1,TR(B0,T9Ui(B10,T:h(B1,TMB$(B0,TCQi(B1,T'(B, ,T)P(B0,T9Qi(B1,T9(B0,T(V(B1,T'`(B0,T;g(B1,T9!RC(B0,T4U(B10,T7Uh(B1,T(P(S$S(B0,TJQh(B1,T'`K(B0,TEh(B1,TR(B0,T9Ui(B1,Td(B0,TGi(B1.
+
+>> ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-n 0,T4Y(B1,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,TE'AR(B0,TBQ(B1,T':CC(B0,T7Q(B1,T4(B0,T9Ui(B1.
+
+>> ,TEM'`$(B0,TEWh(B1,TM9`(B0,T"i(B1,TRd;c9:CC(B0,T7Q(B1,T4b4Bc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-f ,TaEP`$(B0,TEWh(B1,TM9(B0,T"Vi(B1,T9(B0,T"i(B1,TR':9b4Bc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-p.
+   0,TJQ(B1,T'`!5(B0,T4Y(B10,TGh(B1,TR`(B0,T!T(B1,T4MPdC(B0,T"Vi(B1,T9(B0,T6i(B1,TRc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-p ,T`(B0,TAWh(B1,TM5SaK(B0,T9h(B1,T'`$M(B0,TCl(B1,T`+M(B0,TCl(B1,T;CR!/M(B0,TBYh(B10,T7Uh(B1,T5C'!ER'(B
+   ,T"M':CC(B0,T7Q(B1,T4(B.
+
+,Ta(B0,T5h(B1,TEP:CC(B0,T7Q(B1,T4(B0,TJTi(B1,T9(B0,TJX(B1,T4(B0,T4i(B1,TGB(B0,TMQ(B1,T!"CP(B Newline, 0,T+Vh(B1,T'c(B0,T*i(B1,TaJ4'"M:`"5CPK(B0,TGh(B1,TR':CC(B0,T7Q(B1,T4(B. 0,T7Uh(B10,T7i(B1,TRB(B0,TJX(B1,T4"M'(B
+,Td?(B0,TEl(B10,T!g(B1,T(P(B0,TAU(B10,TMQ(B1,T!"CP(B Newline ,T`(B0,T*h(B1,T9(B0,T!Q(B1,T9(B (,Ta(B0,T5h(B1,TJSK(B0,TCQ(B1,T:(B0,TMU(B1,TaA!(B0,TJl(B1,Ta(B0,TEi(B1,TGd(B0,TAh(B1,T(S`(B0,T;g(B1,T9(B).
+
+>> ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-b 0,T7Uh(B1,T5SaK(B0,T9h(B1,T'`(B0,TCTh(B1,TA(B0,T5i(B1,T9"M':CC(B0,T7Q(B1,T4(B0,T4Y(B1. ,T`$M(B0,TCl(B1,T`+M(B0,TCl(B1,T(P`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'(B
+   0,T7i(B1,TRB(B0,TJX(B1,T4"M':CC(B0,T7Q(B1,T4(B0,T!h(B1,TM9K(B0,T9i(B1,TR(B. 0,T9Uh(B1,T`(B0,T;g(B1,T9`>CRP(B0,TGh(B1,TR`$M(B0,TCl(B1,T`+M(B0,TCl(B1,Td(B0,T4i(B1,T`$(B0,TEWh(B1,TM9(B0,T"i(B1,TRA(B0,TMQ(B1,T!"CP(B Newline ,Td;(B.
+
+,T$S(B0,TJQh(B1,T'(B C-f ,TJRARC6`$(B0,TEWh(B1,TM9(B0,T"i(B1,TRA(B0,TMQ(B1,T!"CP(B Newline ,Td(B0,T4i(B1,T`(B0,T*h(B1,T9`(B0,T4U(B1,TBG(B0,T!Q(B1,T:$S(B0,TJQh(B1,T'(B C-b.
+
+>> ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-b 0,T4Y(B10,TMU(B1,T!(B0,TJQ(B1,T!K(B0,T9h(B1,TMB(B, 0,T7h(B1,TR9(PJRARC6`(B0,T"i(B1,TRc(!RC`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,Td(B0,T4i(B10,T4U(B10,T"Vi(B1,T9(B.
+   ,Ta(B0,TEi(B1,TGEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-f ,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'(B0,T7i(B1,TRB(B0,TJX(B1,T4"M':CC(B0,T7Q(B1,T4(B.
+   ,Ta(B0,TEi(B1,TGEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-f 0,TMU(B1,T!(B0,TJQ(B1,T!$(B0,TCQi(B1,T'`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T':CC(B0,T7Q(B1,T4(B0,T6Q(B1,T4d;(B.
+
+,T`(B0,TAWh(B1,TM(B0,T7h(B1,TR9`$(B0,TEWh(B1,TM9(B0,T<h(B1,TR95SaK(B0,T9h(B1,T':9(B0,TJX(B1,T4K(B0,TCW(B1,TM(B0,T7i(B1,TRB(B0,TJX(B1,T4"M'K(B0,T9i(B1,TR(M(B, 0,T"i(B1,TM$GRA(B0,T6Q(B1,T4(R!:CC(B0,T7Q(B1,T4(B0,T7Uh(B1,TM(B0,TBYh(B10,T7Uh(B1
+,T"M:(B0,T9Qi(B1,T9(P"(B0,TBQ(B1,T:`(B0,T"i(B1,TRAR;CR!/M(B0,TBYh(B1,T:9K(B0,T9i(B1,TR(M(B. 0,T9Uh(B1,T`(B0,TCU(B1,TB!(B0,TGh(B1,TR(B ",T!RC`$(B0,TEWh(B1,TM9(B0,TAi(B1,TG9(B (scrolling)". 0,T9Uh(B1
+,T`(B0,T;g(B1,T9!RC7Sc(B0,TKi(B10,TMU(B1,TaA!(B0,TJl(B1,TJRARC6`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,Td;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'(B0,T7Uh(B10,T5i(B1,TM'!RC:9(B0,T"i(B1,TM$GRAd(B0,T4i(B1,Tb4B(B
+,Td(B0,TAh(B1,T`$(B0,TEWh(B1,TM9MM!9M!K(B0,T9i(B1,TR(M(B.
+
+>> ,TEM'`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,TE'MM!d;9M!K(B0,T9i(B1,TR(Mb4Bc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-n, ,Ta(B0,TEi(B1,TG(B0,T4Y(B10,TGh(B1,TR(B0,TAU(B1,TMPdC`(B0,T!T(B1,T4(B0,T"Vi(B1,T9(B.
+
+0,T6i(B1,TR`$(B0,TEWh(B1,TM9(B0,T7U(B1,TEP(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B0,T9Qi(B1,T9(B0,T*i(B1,TRd;(B, 0,T7h(B1,TR9(B0,T!g(B1,TJRARC6(P`$(B0,TEWh(B1,TM9d(B0,T4i(B10,T7U(B1,TEP$S(B. ,T$S(B0,TJQh(B1,T'(B M-f (META-f)
+,Tc(B0,T*i(B1,Tc9!RC`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'$S(B0,T7Uh(B1,TM(B0,TBYh(B10,T6Q(B1,T4d;(B ,TaEP(B M-b ,Tc(B0,T*i(B1,Tc9!RC`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'$S(B0,T7Uh(B1,TM(B0,TBYh(B10,T!h(B1,TM9K(B0,T9i(B1,TR(B.
+
+>> ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B M-f ,TaEP(B M-b 0,T4Y(B10,TJQ(B1,T!JM'JRA$(B0,TCQi(B1,T'(B.
+
+,T`(B0,TAWh(B1,TM(B0,T7h(B1,TR9M(B0,TBYh(B10,T7Uh(B1,T5SaK(B0,T9h(B1,T'!ER'"M'$S(B, ,T$S(B0,TJQh(B1,T'(B M-f ,T(Pc(B0,T*i(B1,T`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'(B0,T7i(B1,TRB"M'$S(B0,T9Qi(B1,T9(B. ,T`(B0,TAWh(B1,TM(B
+0,T7h(B1,TR9M(B0,TBYh(B10,T7Uh(B1,T5SaK(B0,T9h(B1,T'`(B0,TGi(B1,T9GCC$CPK(B0,TGh(B1,TR'$S(B, ,T$S(B0,TJQh(B1,T'(B M-f ,T(Pc(B0,T*i(B1,T`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'(B0,T7i(B1,TRB"M'$S(B
+0,T7Uh(B1,TM(B0,TBYh(B10,T6Q(B1,T4d;(B. ,T$S(B0,TJQh(B1,T'(B M-b ,T7SK(B0,T9i(B1,TR(B0,T7Uh(B1,T7S9M'`(B0,T4U(B1,TBG(B0,T!Q(B1,T9(B ,Ta(B0,T5h(B1,T`$(B0,TEWh(B1,TM9d;c9(B0,T7T(B1,TH7R'5C'(B0,T!Q(B1,T9(B0,T"i(B1,TRA(B.
+
+,TKARB`K(B0,T5X(B1: ,T`(B0,T9Wh(B1,TM'(R!@RIRd7Bd(B0,TAh(B10,TAU(B1,T!RCc(B0,T*i(B10,TMQ(B1,T!"CP`(B0,TGi(B1,T9GCC$(B (whitespace) ,Tc9!RCaJ4'(B
+	 ,T"M:`"5"M'$S(B, ,T)P(B0,T9Qi(B1,T9`(B0,TAWh(B1,TMM(B0,TBYh(B1,Tc9bKA4@RIRd7B(B (ThaiText mode) 0,TMU(B1,TaA!(B0,TJl(B1
+	 ,T(P7S!RC!S(B0,T!Q(B1,T:"M:`"5"M'$Sb4BMR(B0,THQ(B1,TBb;Ca!CA(B0,T5Q(B1,T4$S(B. ,T$S(B0,TJQh(B1,T'(B M-f ,TaEP(B M-b 
+	 0,T(V(B1,T'(P7S'R9d(B0,T4i(B1, ,Ta(B0,T5h(B1,T(Pc(B0,TKi(B1,T<E(B0,T5h(B1,TR'd;`(B0,TEg(B1,T!(B0,T9i(B1,TMB(B. ,T!(B0,TEh(B1,TRG(B0,T$W(B1,TM(B:
+
+	 ,Td(B0,TAh(B10,TGh(B1,TR(B0,T7h(B1,TR9M(B0,TBYh(B10,T7Uh(B1,T5SaK(B0,T9h(B1,T'!ER'K(B0,TCW(B1,TM5SaK(B0,T9h(B1,T'`(B0,TCTh(B1,TA(B0,T5i(B1,T9"M'$S(B0,T!g(B1,T5RA(B, ,T$S(B0,TJQh(B1,T'(B M-f ,T(Pc(B0,T*i(B1
+	 ,T`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'`(B0,TCTh(B1,TA(B0,T5i(B1,T9"M'$S(B0,T6Q(B1,T4d;c9!C(B0,T3U(B10,T7Uh(B1,T$S(B0,T9Qi(B1,T9d(B0,TAh(B1,Td(B0,T4i(B1,T`(B0,T;g(B1,T9$S(B0,TJX(B1,T4(B0,T7i(B1,TRB"M'(B
+	 ,T:CC(B0,T7Q(B1,T4(B. 0,T6i(B1,TR$S(B0,T9Qi(B1,T9`(B0,T;g(B1,T9$S(B0,TJX(B1,T4(B0,T7i(B1,TRB"M':CC(B0,T7Q(B1,T4(B, ,T$S(B0,TJQh(B1,T'(B M-f ,T(Pc(B0,T*i(B1,T`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'(B
+	 ,T5SaK(B0,T9h(B1,T'(B0,T7i(B1,TRB"M'$S(B0,T9Qi(B1,T9(B.
+
+>> ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B M-f ,TaEP(B M-b 0,T4Y(B1, ,Tb4B;P;9(B0,T!Q(B1,T:$S(B0,TJQh(B1,T'(B C-f ,TaEP(B C-b, 0,T7h(B1,TR9(P(B0,TJQ(B1,T'`!5(B
+   ,T`(B0,TKg(B1,T9!RC7S'R9"M'$S(B0,TJQh(B1,T'(B M-f ,TaEP(B M-b ,Tc95SaK(B0,T9h(B1,T'(B0,T5h(B1,TR'f(B 0,T7Qi(B1,T'c9$SaEPCPK(B0,TGh(B1,TR'$S(B.
+
+0,T7h(B1,TR9JRARC6(B0,TJQ(B1,T'`!5d(B0,T4i(B10,TGh(B1,TR$S(B0,TJQh(B1,T'(B C-f ,TaEP(B C-b 0,T9Qi(B1,T97SK(B0,T9i(B1,TR(B0,T7Uh(B1,Tc9(B0,TEQ(B1,T!I3P`(B0,T4U(B1,TBG(B0,T!Q(B1,T:$S(B0,TJQh(B1,T'(B M-f 
+,TaEP(B M-b, ,Ta(B0,T5h(B1,TM(B0,TBYh(B1,T:9`!3(B0,T1l(B10,T7Uh(B10,T5h(B1,TR'(B0,T!Q(B1,T9(B. 0,TJh(B1,TG9AR!(B 0,T;Xh(B1,TA(B META ,T(P(B0,T6Y(B1,T!!SK94c(B0,TKi(B1,Tc(B0,T*i(B10,T!Q(B1,T:!RC7S'R9c9(B
+,TCP(B0,T4Q(B1,T:(B0,T7Uh(B1,T`(B0,T!Uh(B1,TBG(B0,T"i(B1,TM'(B0,T!Q(B1,T:K(B0,T9h(B1,TGB(B0,T7Uh(B1,T!SK94(B0,T"Vi(B1,T97R'@RIR(B (,T`(B0,T*h(B1,T9(B ,T$S(B, ,T;CPbB$(B, 0,TBh(B1,TMK(B0,T9i(B1,TR(B, ,T`(B0,T;g(B1,T9(B0,T5i(B1,T9(B), 
+,T"3P(B0,T7Uh(B10,T;Xh(B1,TA(B CONTROL 0,T9Qi(B1,T9(B0,TAQ(B1,T!(P(B0,T6Y(B1,T!!SK94c(B0,TKi(B1,Tc(B0,T*i(B10,T!Q(B1,T:!RC7S'R9c9CP(B0,T4Q(B1,T:(B0,T7Uh(B1,T`(B0,T!Uh(B1,TBG(B0,T"i(B1,TM'(B0,T!Q(B1,T:K(B0,T9h(B1,TGB(B0,TBh(B1,TMB(B
+0,TMT(B1,TJCP(B0,T7Uh(B1,T7S!RCa(B0,T!i(B1,Td"d(B0,T4i(B1 (,T`(B0,T*h(B1,T9(B 0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B, ,T:CC(B0,T7Q(B1,T4(B, ,T`(B0,T;g(B1,T9(B0,T5i(B1,T9(B).
+
+,T!RC7S'R9c97S9M'`(B0,T4U(B1,TBG(B0,T!Q(B1,T9JSK(B0,TCQ(B1,T::CC(B0,T7Q(B1,T4(B0,T!Q(B1,T:;CPbB$(B: ,T$S(B0,TJQh(B1,T'(B C-a ,TaEP(B C-e ,Tc(B0,T*i(B1,T`$(B0,TEWh(B1,TM9(B
+,Td;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'`(B0,TCTh(B1,TA(B0,T5i(B1,T9aEP(B0,T7i(B1,TRB"M':CC(B0,T7Q(B1,T4(B, ,T"3P`(B0,T4U(B1,TBG(B0,T!Q(B1,T9$S(B0,TJQh(B1,T'(B M-a ,TaEP(B M-e ,Tc(B0,T*i(B1,T`$(B0,TEWh(B1,TM9(B
+,Td;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'`(B0,TCTh(B1,TA(B0,T5i(B1,T9aEP(B0,T7i(B1,TRB"M';CPbB$(B.
+
+,TKARB`K(B0,T5X(B1: ,T`(B0,T9Wh(B1,TM'(R!@RIRd7Bd(B0,TAh(B10,T9T(B1,TBAc(B0,T*i(B10,TMQ(B1,T!"CPA(B0,TKQ(B1,T>@R$(B (period) ,Tc9!RCaJ4'(B0,T(X(B1,T4(B0,TJTi(B1,T9(B0,TJX(B1,T4"M'(B
+	 ,T;CPbB$(B, ,T7Sc(B0,TKi(B1,Td(B0,TAh(B1,TJRARC6!SK94"M:`"5"M';CPbB$c(B0,TKi(B10,T6Y(B1,T!(B0,T5i(B1,TM'd(B0,T4i(B1. 0,T4Q(B1,T'(B0,T9Qi(B1,T9`(B0,TAWh(B1,TM(B
+	 ,TM(B0,TBYh(B1,Tc9bKA4@RIRd7B(B (ThaiText mode), ,T$S(B0,TJQh(B1,T'(B M-a ,TaEP(B M-e ,T(P`$(B0,TEWh(B1,TM9(B
+	 ,T`$M(B0,TCl(B1,T`+M(B0,TCl(B1,Td;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'`(B0,TCTh(B1,TA(B0,T5i(B1,T9"M'(B0,TBh(B1,TMK(B0,T9i(B1,TR(B ,TaEP5SaK(B0,T9h(B1,T'(B0,T7i(B1,TRB(B0,TJX(B1,T4"M'(B0,TBh(B1,TMK(B0,T9i(B1,TR(B
+	 ,T5RAES(B0,T4Q(B1,T:(B. ,TB!`(B0,TGi(B1,T9!C(B0,T3U(B10,T7Uh(B10,TAU(B1,T!RCc(B0,T*i(B10,TMQ(B1,T!"CPA(B0,TKQ(B1,T>@R$(B.
+
+>> ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-a ,TaEP(B C-e 0,T4Y(B10,TJQ(B1,T!JM'JRA$(B0,TCQi(B1,T'(B.
+   ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B M-a ,TaEP(B M-e 0,T4Y(B10,TJQ(B1,T!JM'JRA$(B0,TCQi(B1,T'(B.
+
+0,TJQ(B1,T'`!5(B0,T4Y(B10,TGh(B1,TR!RCc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-a 0,T+i(B1,TSf(B 0,T!Q(B1,T9(Pd(B0,TAh(B1,T`(B0,T!T(B1,T4<EMPdC(B, ,Ta(B0,T5h(B1,T!RCc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B M-a ,T(P7Sc(B0,TKi(B1
+,T`$M(B0,TCl(B1,T`+M(B0,TCl(B1,T`$(B0,TEWh(B1,TM9d;(B0,T7U(B1,TEP;CPbB$(B. ,Ta(B0,TAi(B10,TGh(B1,TR!RC`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,T"M'(B0,T7Qi(B1,T'JM'a::(B0,T9Ui(B1,T(Pd(B0,TAh(B1
+,T$(B0,TEi(B1,TRB(B0,T!Q(B1,T9`EB(B0,T7U(B1,T`(B0,T4U(B1,TBG(B, ,Ta(B0,T5h(B10,T!g(B10,T4Y(B1,T`(B0,T;g(B1,T98CCA*R(B0,T5T(B10,T4U(B1.
+
+,T:R'$(B0,TCQi(B1,T'`CR(B0,T!g(B1,T`(B0,TCU(B1,TB!5SaK(B0,T9h(B1,T'"M'`$M(B0,TCl(B1,T`+M(B0,TCl(B10,TGh(B1,TR(B "0,T(X(B1,T4(B (point)". ,T!(B0,TEh(B1,TRG(B0,T$W(B1,TM(B, ,T`$M(B0,TCl(B1,T`+M(B0,TCl(B10,T7Uh(B1
+,T;CR!/M(B0,TBYh(B1,T:9K(B0,T9i(B1,TR(M(B0,T!g(B10,T$W(B1,TM5SaK(B0,T9h(B1,T'(B0,T7Uh(B10,T(X(B1,T4;CR!/M(B0,TBYh(B1,T:9(B0,T"i(B1,TM$GRA(B0,T9Qh(B1,T9`M'(B.
+
+0,T5h(B1,TMd;(B0,T9Ui(B1,T`(B0,T;g(B1,T9J(B0,TCX(B1,T;"M'(B0,T*X(B1,T4$S(B0,TJQh(B1,T'JSK(B0,TCQ(B1,T:!RC`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1, 0,T+Vh(B1,T'CGA(B0,T6V(B1,T'!RC`$(B0,TEWh(B1,TM9c9CP(B0,T4Q(B1,T:$S(B
+,TaEP;CPbB$(B:
+
+	C-f	,T`$(B0,TEWh(B1,TM9d;(B0,T"i(B1,TR'K(B0,T9i(B1,TRK(B0,T9Vh(B1,T'(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B
+	C-b	,T`$(B0,TEWh(B1,TM9!(B0,TEQ(B1,T:d;K(B0,T9Vh(B1,T'(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B
+
+	M-f	,T`$(B0,TEWh(B1,TM9d;(B0,T"i(B1,TR'K(B0,T9i(B1,TRK(B0,T9Vh(B1,T'$S(B
+	M-b	,T`$(B0,TEWh(B1,TM9!(B0,TEQ(B1,T:d;K(B0,T9Vh(B1,T'$S(B
+
+	C-n	,T`$(B0,TEWh(B1,TM9d;:CC(B0,T7Q(B1,T4(B0,T6Q(B1,T4d;(B
+	C-p	,T`$(B0,TEWh(B1,TM9d;:CC(B0,T7Q(B1,T4(B0,T!h(B1,TM9K(B0,T9i(B1,TR(B
+
+	C-a	,T`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'`(B0,TCTh(B1,TA(B0,T5i(B1,T9"M':CC(B0,T7Q(B1,T4(B
+	C-e	,T`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'(B0,T7i(B1,TRB"M':CC(B0,T7Q(B1,T4(B
+
+	M-a	,T`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'`(B0,TCTh(B1,TA(B0,T5i(B1,T9"M';CPbB$(B
+	M-e	,T`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'(B0,T7i(B1,TRB"M';CPbB$(B
+
+>> ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'`K(B0,TEh(B1,TR(B0,T9Ui(B10,TJQ(B1,T!CPBP`(B0,T>Wh(B1,TM`(B0,T;g(B1,T9!RC(B0,T=V(B1,T!(B0,TKQ(B1,T4(B.
+   ,T$S(B0,TJQh(B1,T'`K(B0,TEh(B1,TR(B0,T9Ui(B1,T`(B0,T;g(B1,T9$S(B0,TJQh(B1,T'(B0,T7Uh(B1,Tc(B0,T*i(B10,T!Q(B1,T9(B0,T:h(B1,TMBAR!(B.
+
+0,TAU(B10,TMU(B1,T!JM'$S(B0,TJQh(B1,T'(B0,T7Uh(B1,TJS(B0,T$Q(B1,T-c9!RC`$(B0,TEWh(B1,TM95SaK(B0,T9h(B1,T'(B0,T$W(B1,TM(B ,T$S(B0,TJQh(B1,T'(B M-< (META 0,T9i(B1,TMB!(B0,TGh(B1,TR(B), ,Tc(B0,T*i(B1,Tc9!RC(B
+,T`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'`(B0,TCTh(B1,TA(B0,T5i(B1,T9"M'(B0,T"i(B1,TM$GRA(B, ,TaEP(B M-> (META ,TAR!!(B0,TGh(B1,TR(B), ,Tc(B0,T*i(B1,Tc9!RC`$(B0,TEWh(B1,TM9(B
+,Td;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'(B0,T7i(B1,TRB(B0,TJX(B1,T4"M'(B0,T"i(B1,TM$GRA(B.
+
+,Tc9`$(B0,TCWh(B1,TM';ERB7R'(B (terminal) 0,TJh(B1,TG9cK(B0,T-h(B1, 0,TMQ(B1,T!"CP(B "<" ,T(PM(B0,TBYh(B1,T`K(B0,T9W(B1,TM(B0,TMQ(B1,T!"CP(B0,T(X(B1,TE@R$(B
+(comma), ,T)P(B0,T9Qi(B1,T9(B0,T7h(B1,TR9(B0,T5i(B1,TM'c(B0,T*i(B10,T;Xh(B1,TA(B0,T*T(B1,T?(B0,T5l(B1 (shift) ,Tc9!RC(B0,T;i(B1,TM9(B0,TMQ(B1,T!"CP(B0,T9Qi(B1,T9(B. ,TJSK(B0,TCQ(B1,T:`$(B0,TCWh(B1,TM'(B
+,T;ERB7R'a::(B0,T9Ui(B1, 0,T7h(B1,TR9(B0,T(V(B1,T'(B0,T5i(B1,TM'c(B0,T*i(B10,T;Xh(B1,TA(B0,T*T(B1,T?(B0,T5l(B1,Tc9!RC(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B M-< ,Tc97S9M'`(B0,T4U(B1,TBG(B0,T!Q(B1,T9(B, 0,T6i(B1,TRd(B0,TAh(B1
+,T$S(B0,T9V(B1,T'(B0,T6V(B1,T'(B0,T;Xh(B1,TA(B0,T*T(B1,T?(B0,T5l(B1, 0,T!g(B1,TKARB$GRA(B0,TGh(B1,TR(B0,T7h(B1,TR9!S(B0,TEQ(B1,T'(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B M-comma.
+
+>> ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B M-< 0,T4Y(B1, ,T`(B0,T>Wh(B1,TM`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'`(B0,TCTh(B1,TA(B0,T5i(B1,T9"M'(B0,T$Yh(B10,TAW(B1,TM!RCc(B0,T*i(B10,T9Ui(B1.
+   ,Ta(B0,TEi(B1,TGc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-v 0,T+i(B1,TS(B0,T!Q(B1,T9KERBf(B ,T$(B0,TCQi(B1,T'`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P`$(B0,TEWh(B1,TM9!(B0,TEQ(B1,T:AR(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'`(B0,T4T(B1,TA(B0,T9Ui(B1.
+
+>> ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B M-> 0,T4Y(B1, ,T`(B0,T>Wh(B1,TM`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'(B0,T7i(B1,TRB(B0,TJX(B1,T4"M'(B0,T$Yh(B10,TAW(B1,TM!RCc(B0,T*i(B10,T9Ui(B1.
+   ,Ta(B0,TEi(B1,TGc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B M-v 0,T+i(B1,TS(B0,T!Q(B1,T9KERBf(B ,T$(B0,TCQi(B1,T'`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P`$(B0,TEWh(B1,TM9!(B0,TEQ(B1,T:AR(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'`(B0,T4T(B1,TA(B0,T9Ui(B1.
+
+0,T7h(B1,TR9JRARC6`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,Td(B0,T4i(B10,T4i(B1,TGB(B0,T;Xh(B1,TA(B0,TEY(B1,T!HC(B (arrow key), 0,T6i(B1,TR`$(B0,TCWh(B1,TM';ERB7R'"M'(B0,T7h(B1,TR9(B
+0,TAU(B10,T;Xh(B1,TA`K(B0,TEh(B1,TR(B0,T9Ui(B1,TM(B0,TBYh(B1. ,T`CRa9P9Sc(B0,TKi(B10,T=V(B1,T!(B0,TKQ(B1,T4c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-b, C-f, C-n ,TaEP(B C-p, 0,T4i(B1,TGB`K(B0,T5X(B1,T<EJRA(B
+,T;CP!RC(B. ,TK(B0,T9Vh(B1,T'(B, ,T$S(B0,TJQh(B1,T'`K(B0,TEh(B1,TR(B0,T9Ui(B1,T7S'R9d(B0,T4i(B1,T:9`$(B0,TCWh(B1,TM';ERB7R'(B0,T7X(B1,T!*(B0,T9T(B1,T4(B. ,TJM'(B, ,T`(B0,TAWh(B1,TM(B0,T7h(B1,TR9d(B0,T4i(B10,T=V(B1,T!(B0,TKQ(B1,T4(B
+,T!RCc(B0,T*i(B10,T!Q(B1,T:(B0,TMU(B1,TaA!(B0,TJl(B1,Ta(B0,TEi(B1,TG(B 0,T7h(B1,TR9(P(B0,TCYi(B10,TJV(B1,T!(B0,TGh(B1,TR!RCc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B0,T4i(B1,TGB(B0,T;Xh(B1,TA(B CONTROL 0,T9Qi(B1,T9$(B0,TEh(B1,TM'(B0,T5Q(B1,TG!(B0,TGh(B1,TR!RCc(B0,T*i(B1
+0,T;Xh(B1,TA(B0,TEY(B1,T!HC(B (,T`>CRP(B0,TGh(B1,TR(B0,T7h(B1,TR9d(B0,TAh(B10,T5i(B1,TM'`$(B0,TEWh(B1,TM9(B0,TBi(B1,TRB(B0,TAW(B1,TMMM!(R!5SaK(B0,T9h(B1,T'(B0,TAW(B1,TM(B0,TJQ(B1,TA(B0,T<Q(B1,TJ`EB(B). ,TJRA(B, ,T`(B0,TAWh(B1,TM(B
+0,T7h(B1,TR9(B0,T$Xi(B1,T9`$B(B0,T!Q(B1,T:!RCc(B0,T*i(B1,T$S(B0,TJQh(B1,T';CP!M:(B0,T!Q(B1,T:(B0,T;Xh(B1,TA(B CONTROL ,Ta(B0,TEi(B1,TG(B, 0,T7h(B1,TR9JRARC6(P(B0,T=V(B1,T!!RCc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B
+0,T*Qi(B1,T9(B0,TJY(B1,T'(B0,T5h(B1,TMd;d(B0,T4i(B10,TMU(B1,T!(B0,T4i(B1,TGB(B.
+
+,T$S(B0,TJQh(B1,T'(B0,TJh(B1,TG9cK(B0,T-h(B1,Tc9(B0,TMU(B1,TaA!(B0,TJl(B10,T9Qi(B1,T9(PJRARC6!S(B0,T!Q(B1,T:(B0,T5Q(B1,TG`E"MR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B1,Td(B0,T4i(B1; ,TJSK(B0,TCQ(B1,T:$S(B0,TJQh(B1,T'(B0,TJh(B1,TG9cK(B0,T-h(B1, 
+0,T5Q(B1,TG`E"`K(B0,TEh(B1,TR(B0,T9Ui(B10,T!g(B1,T(PKARB(B0,T6V(B1,T'(S9G9$(B0,TCQi(B1,T'"M'!RC;CPAGE<E"M'$S(B0,TJQh(B1,T'(B0,T5h(B1,TMd;(B. ,T!RC(B0,T7Uh(B1,T(P7Sc(B0,TKi(B10,TAU(B1
+,T!RC;CPAGE<E"M'$S(B0,TJQh(B1,T'(B0,T+i(B1,TS`(B0,T7h(B1,TR(S9G9(B0,T7Uh(B10,T5i(B1,TM'!RC(B0,T9Qi(B1,T9JRARC67Sd(B0,T4i(B1,Tb4B!RC(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-u 
+,Ta(B0,TEi(B1,TG5RA(B0,T4i(B1,TGB(B0,T5Q(B1,TG`E"(B0,T!h(B1,TM9(B0,T7Uh(B1,T(P(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B0,T7Uh(B10,T5i(B1,TM'!RC(B. 0,T6i(B1,TR(B0,T7h(B1,TR9(B0,TAU(B10,T;Xh(B1,TA(B META (,TK(B0,TCW(B1,TM(B EDIT ,TK(B0,TCW(B1,TM(B 
+ALT), 0,T7h(B1,TR9JRARC6(P7Sd(B0,T4i(B10,T4i(B1,TGB(B0,TMU(B1,T!(B0,TGT(B10,T8U(B1,TK(B0,T9Vh(B1,T'(B: 0,T;i(B1,TM9(B0,T5Q(B1,TG`E""3P(B0,T7Uh(B1,T!4(B0,T;Xh(B1,TA(B META ,TM(B0,TBYh(B1. ,T`CRa9P9S(B
+,Tc(B0,TKi(B10,T7h(B1,TR9(B0,T=V(B1,T!(B0,TKQ(B1,T4c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-u ,T`>CRP(B0,TGh(B1,TRJRARC6c(B0,T*i(B1,Td(B0,T4i(B10,T!Q(B1,T:`$(B0,TCWh(B1,TM';ERB7R'(B0,T7X(B1,T!*(B0,T9T(B1,T4(B. 0,T5Q(B1,TG`E"MR(B0,TCl(B1
+0,T!T(B1,TG`A9(B0,T5l(B10,T7Uh(B1,T!(B0,TEh(B1,TRG(B0,T6V(B1,T'(B0,T9Ui(B1,T`(B0,TCU(B1,TB!(B0,TGh(B1,TR(B ",TMR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B1,T`(B0,T5T(B1,TAK(B0,T9i(B1,TR(B (prefix argument)", ,T`>CRP(B0,TGh(B1,TR(B0,T7h(B1,TR9(B
+0,T5i(B1,TM'(B0,T;i(B1,TM9(B0,T5Q(B1,TG`E"(B0,T!h(B1,TM9(B0,T7Uh(B1,T(P(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B.
+
+0,T5Q(B1,TGM(B0,TBh(B1,TR'`(B0,T*h(B1,T9(B, ,T$S(B0,TJQh(B1,T'(B C-u 8 C-f ,T(P`$(B0,TEWh(B1,TM9d;(B0,T"i(B1,TR'K(B0,T9i(B1,TRa;4(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B.
+
+>> ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-n ,TK(B0,TCW(B1,TM(B C-p ,T;CP!M:(B0,T!Q(B1,T:(B0,T5Q(B1,TG`E"MR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B1, ,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1
+   ,T`(B0,T"i(B1,TRARc!(B0,TEi(B1,T:CC(B0,T7Q(B1,T4(B0,T9Ui(B1,Tb4Bc(B0,T*i(B1,T`(B0,T>U(B1,TB'$S(B0,TJQh(B1,T'`(B0,T4U(B1,TBG(B.
+
+,T$S(B0,TJQh(B1,T'(B0,TJh(B1,TG9cK(B0,T-h(B1,Tc(B0,T*i(B10,T5Q(B1,TG`E"MR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B1,T`K(B0,TEh(B1,TR(B0,T9Ui(B1,TJSK(B0,TCQ(B1,T:!RC;CPAGE<E$S(B0,TJQh(B1,T'(B0,T+i(B1,TS(B, ,Ta(B0,T5h(B1,T:R'$S(B0,TJQh(B1,T'(B0,T!g(B1,Tc(B0,T*i(B1
+,Tc9(B0,TEQ(B1,T!I3P(B0,TMWh(B1,T9(B. 0,TAU(B1,TKERB$S(B0,TJQh(B1,T'(B (,Ta(B0,T5h(B1,Td(B0,TAh(B1,TCGA$S(B0,TJQh(B1,T'(B0,T7Uh(B1,Td(B0,T4i(B1,T!(B0,TEh(B1,TRGAR(B0,T6V(B1,T'5C'(B0,T9Ui(B1) ,Tc(B0,T*i(B10,T5Q(B1,TG`E"(B0,T9Ui(B1,T`(B0,T;g(B1,T9(B0,T5Q(B1,TG(B
+0,T:h(B1,T'(B0,T*Ui(B1--,T!RC(B0,T7Uh(B10,TAU(B1,TMR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B1,T`(B0,T5T(B1,TAK(B0,T9i(B1,TR(B, ,Tb4Bd(B0,TAh(B1,T$S(B0,T9V(B1,T'(B0,T6V(B1,T'(B0,T$h(B1,TR"M'(B0,T5Q(B1,TG`E"(B, ,T(P7Sc(B0,TKi(B1,T$S(B0,TJQh(B1,T'(B0,T9Qi(B1,T97S'R9(B
+0,T5h(B1,TR'MM!d;(B.
+
+,T$S(B0,TJQh(B1,T'(B C-v ,TaEP(B M-v ,T`(B0,T;g(B1,T9$S(B0,TJQh(B1,T'(B0,T7Uh(B1,TB!`(B0,TGi(B1,T9(B0,TMU(B1,T!;CP`@7K(B0,T9Vh(B1,T'(B. 0,T6i(B1,TR(B0,T;i(B1,TM9(B0,T5Q(B1,TG`E"MR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B10,T4i(B1,TGBa(B0,TEi(B1,TG(B,
+,TK(B0,T9i(B1,TR(M(P(B0,T6Y(B1,T!`$(B0,TEWh(B1,TM9(B0,TAi(B1,TG9(B0,T"Vi(B1,T9K(B0,TCW(B1,TME'`(B0,T;g(B1,T9(S9G9:CC(B0,T7Q(B1,T4`(B0,T7h(B1,TR(B0,T5Q(B1,TG`E"(B0,T7Uh(B1,T!SK94(B, ,Ta79(B0,T7Uh(B1,T(P`$(B0,TEWh(B1,TM9(B0,TAi(B1,TG9(B
+0,T7U(B1,TEPK(B0,T9i(B1,TR(M(B. 0,T5Q(B1,TGM(B0,TBh(B1,TR'`(B0,T*h(B1,T9(B, ,T$S(B0,TJQh(B1,T'(B C-u 8 C-v ,T(P`$(B0,TEWh(B1,TM9(B0,TAi(B1,TG9K(B0,T9i(B1,TR(M(B0,T7U(B1,TEPa;4:CC(B0,T7Q(B1,T4(B.
+
+>> ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-u 8 C-v 0,T4Y(B1.
+
+,T$S(B0,TJQh(B1,T'(B0,T9Ui(B1,T(P`$(B0,TEWh(B1,TM9(B0,TAi(B1,TG9K(B0,T9i(B1,TR(M(B0,T"Vi(B1,T9d;a;4:CC(B0,T7Q(B1,T4(B. 0,T6i(B1,TR(B0,T7h(B1,TR9(B0,T5i(B1,TM'!RC(P`$(B0,TEWh(B1,TM9(B0,TAi(B1,TG9!(B0,TEQ(B1,T:AR(B0,TMU(B1,T!(B, 0,T7h(B1,TR9(B
+0,T!g(B1,T7Sd(B0,T4i(B1,Tb4B!RC!S(B0,T!Q(B1,T:(B0,T5Q(B1,TG`E"MR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B1,Tc(B0,TKi(B10,T!Q(B1,T:$S(B0,TJQh(B1,T'(B M-v.
+
+0,T6i(B1,TR(B0,T7h(B1,TR9!S(B0,TEQ(B1,T'c(B0,T*i(B1,T`M!(B0,T+l(B10,TGT(B1,T9b4(B0,TGl(B1 (X Window) ,TM(B0,TBYh(B1, ,T(P(B0,TAU(B1,Ta<'`$(B0,TEWh(B1,TM9(B0,TAi(B1,TG9(B (scroll bar) 0,T7Uh(B1
+,T`(B0,T;g(B1,T9(B0,T>Wi(B1,T9(B0,T7Uh(B10,TJUh(B1,T`K(B0,TEUh(B1,TBA(B0,T<W(B1,T9(B0,T<i(B1,TRM(B0,TBYh(B1,T7R'(B0,T4i(B1,TR9(B0,T+i(B1,TRB"M'(B0,TGT(B1,T9b4(B0,TGl(B1 (window) ,T"M'(B0,TMU(B1,TaA!(B0,TJl(B1. 0,T7h(B1,TR9JRARC6(B
+,T(P`$(B0,TEWh(B1,TM9(B0,TAi(B1,TG9(B0,T"i(B1,TM$GRAb4B!RC$(B0,TET(B1,T!`AR(B0,TJl(B1 (click mouse) ,T:9a<'`$(B0,TEWh(B1,TM9(B0,TAi(B1,TG9(B.
+
+>> ,TEM'!4(B0,T;Xh(B1,TA!ER'(B0,T7Uh(B10,TJh(B1,TG9:9(B0,TJX(B1,T4"M'(B0,T>Wi(B1,T9(B0,T7Uh(B10,T7Uh(B1,T`(B0,T9i(B1,T9(B (highlight) ,T@RBc9a<'`$(B0,TEWh(B1,TM9(B0,TAi(B1,TG9(B.
+   0,T"i(B1,TM$GRA(P(B0,T6Y(B1,T!`$(B0,TEWh(B1,TM9(B0,TAi(B1,TG9d;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'(B0,T7Uh(B10,T7Uh(B10,T7h(B1,TR9d(B0,T4i(B1,T$(B0,TET(B1,T!(B.
+
+>> ,TEM'`$(B0,TEWh(B1,TM9`AR(B0,TJl(B10,T"Vi(B1,T9E'(B0,T4Y(B1, ,T"3P(B0,T7Uh(B10,TBQ(B1,T'!4(B0,T;Xh(B1,TA!ER'M(B0,TBYh(B1. 0,T7h(B1,TR9(P>:(B0,TGh(B1,TR(B0,T"i(B1,TM$GRA(P`$(B0,TEWh(B1,TM9(B0,T7Uh(B10,T"Vi(B1,T9(B
+   ,TE'5RA(B0,T7Uh(B10,T7h(B1,TR9`$(B0,TEWh(B1,TM9`AR(B0,TJl(B1,Td;(B.
+
+
+* ,T!C(B0,T3U(B10,T7Uh(B10,TMU(B1,TaA!(B0,TJl(B1,TK(B0,TBX(B1,T4*P(B0,T'Q(B1,T!(B (hang up)
+----------------------------
+
+0,T6i(B1,TR(B0,TMU(B1,TaA!(B0,TJl(B1,TK(B0,TBX(B1,T4aEPd(B0,TAh(B1,T5M:J9M'$S(B0,TJQh(B1,T'c4f(B, 0,T7h(B1,TR9JRARC6B!`(B0,TET(B1,T!$S(B0,TJQh(B1,T'd(B0,T4i(B1,TM(B0,TBh(B1,TR';EM4(B0,T@Q(B1,TBb4Bc(B0,T*i(B1
+,T$S(B0,TJQh(B1,T'(B C-g. 0,T7h(B1,TR9JRARC6c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-g ,Tc9!RCB!`(B0,TET(B1,T!$S(B0,TJQh(B1,T'(B0,T7Uh(B1,T!S(B0,TEQ(B1,T'7S'R9M(B0,TBYh(B1,Td(B0,T4i(B1.
+
+0,T7h(B1,TR9JRARC6c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-g ,T`(B0,T>Wh(B1,TMB!`(B0,TET(B1,T!(B0,T5Q(B1,TG`E"MR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B1,TK(B0,TCW(B1,TM$S(B0,TJQh(B1,T'(B0,T7Uh(B10,T7h(B1,TR9!S(B0,TEQ(B1,T'(B0,T;i(B1,TM9M(B0,TBYh(B1,Td(B0,T4i(B1.
+
+>> ,TEM'(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-u 100 ,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(Pc(B0,TKi(B10,TAU(B10,T5Q(B1,TG`E"MR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B1,T`(B0,T;g(B1,T9(B 100, ,Ta(B0,TEi(B1,TG(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-g.
+   0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-f. ,T<E(B0,T7Uh(B1,Td(B0,T4i(B10,T!g(B10,T$W(B1,TM`$M(B0,TCl(B1,T`+M(B0,TCl(B1,T`$(B0,TEWh(B1,TM9d;`(B0,T>U(B1,TB'K(B0,T9Vh(B1,T'(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B, ,T`>CRP(B0,TGh(B1,TR(B0,T7h(B1,TR9d(B0,T4i(B1
+   ,TB!`(B0,TET(B1,T!(B0,T5Q(B1,TG`E"MR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B1,Td;a(B0,TEi(B1,TG(B0,T4i(B1,TGB$S(B0,TJQh(B1,T'(B C-g.
+
+0,T6i(B1,TR(B0,T7h(B1,TR9(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B <ESC> ,Tb4Bd(B0,TAh(B1,Td(B0,T4i(B10,T5Qi(B1,T'c((B, 0,T7h(B1,TR9(B0,T!g(B1,TJRARC6(PB!`(B0,TET(B1,T!$S(B0,TJQh(B1,T'(B0,T9Qi(B1,T9d(B0,T4i(B10,T4i(B1,TGB$S(B0,TJQh(B1,T'(B C-g.
+
+
+* ,T$S(B0,TJQh(B1,T'(B0,T7Uh(B10,T6Y(B1,T!(B0,T;T(B1,T47R'(B (disable)
+------------------------
+
+,T$S(B0,TJQh(B1,T':R'$S(B0,TJQh(B1,T'(B0,T6Y(B1,T!(B0,T;T(B1,T47R'd(B0,TGi(B1 ,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P(B0,T;i(B1,TM'(B0,T!Q(B1,T9d(B0,TAh(B1,Tc(B0,TKi(B10,T<Yi(B10,T7Uh(B1,T`(B0,TCTh(B1,TA(B0,T5i(B1,T9c(B0,T*i(B1 (beginning user) ,Tc(B0,T*i(B1,Td(B0,T4i(B1
+,Tb4Bd(B0,TAh(B1,Td(B0,T4i(B10,T5Qi(B1,T'c((B.
+
+0,T6i(B1,TR(B0,T7h(B1,TR9(B0,T;i(B1,TM9$S(B0,TJQh(B1,T';CP`@7(B0,T9Ui(B1,Ta(B0,TEi(B1,TG(B, 0,TMU(B1,TaA!(B0,TJl(B1,T(PaJ4'(B0,T"i(B1,TM$GRA(B0,TGh(B1,TR$S(B0,TJQh(B1,T'(B0,T9Qi(B1,T9(B0,T$W(B1,TMMPdC(B, ,TaEP(P6RA(B
+0,T7h(B1,TR9(B0,TGh(B1,TR(B0,T5i(B1,TM'!RC(P;CPAGE<E$S(B0,TJQh(B1,T'(B0,T9Qi(B1,T9K(B0,TCW(B1,TMd(B0,TAh(B1.
+
+0,T6i(B1,TR(B0,T7h(B1,TR9(B0,T5i(B1,TM'!RC(B0,T7Uh(B1,T(P;CPAGE<E$S(B0,TJQh(B1,T'(B0,T9Qi(B1,T9((B0,TCT(B1,T'f(B, ,T!4(B0,T;Xh(B1,TA(B space ,T`(B0,T>Wh(B1,TM5M:(B0,TBW(B1,T9(B0,TBQ(B1,T9$GRA(B0,T5i(B1,TM'!RC(B.
+,Tb4B;C!(B0,T5T(B1,Ta(B0,TEi(B1,TG(B, 0,T6i(B1,TR(B0,T7h(B1,TR9d(B0,TAh(B10,T5i(B1,TM'!RC(P;CPAGE<E$S(B0,TJQh(B1,T'(B0,T7Uh(B10,T6Y(B1,T!(B0,T;T(B1,T47R'd(B0,TGi(B1, 0,T!g(B1,T5M:(B "n" ,T`(B0,T7h(B1,TR(B0,T9Qi(B1,T9(B.
+
+>> ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-x C-l (0,T+Vh(B1,T'`(B0,T;g(B1,T9$S(B0,TJQh(B1,T'(B0,T7Uh(B10,T6Y(B1,T!(B0,T;T(B1,T47R'd(B0,TGi(B1), ,Ta(B0,TEi(B1,TG(B0,T;i(B1,TM9(B "n" ,T`(B0,T>Wh(B1,TM`(B0,T;g(B1,T9!RC5M:(B
+   ,T$S6RA(B.
+
+
+* 0,TGT(B1,T9b4(B0,TGl(B1 (window)
+----------------
+
+0,TMU(B1,TaA!(B0,TJl(B1,TJRARC6(B0,TAU(B1,Td(B0,T4i(B1,TKERB(B0,TGT(B1,T9b4(B0,TGl(B1, ,Ta(B0,T5h(B1,TEP(B0,TGT(B1,T9b4(B0,TGl(B10,T!g(B1,T(PaJ4'<E"M'(B0,T"i(B1,TM$GRA"M'59`M'(B. ,T`CR(P(B
+,TM(B0,T8T(B1,T:RB(B0,T6V(B1,T'(B0,TGT(B10,T8U(B1,T!RCc(B0,T*i(B1,Ta::KERB(B0,TGT(B1,T9b4(B0,TGl(B1,TK(B0,TEQ(B1,T'(R!(B0,T9Ui(B1. ,T5M9(B0,T9Ui(B1,T(P!(B0,TEh(B1,TRG(B0,T6V(B1,T'(B0,TGT(B10,T8U(B1,T!RC(B0,T;T(B1,T4(B0,TGT(B1,T9b4(B0,TGl(B10,T7Uh(B1,Td(B0,TAh(B10,T5i(B1,TM'(B
+,T!RC(B, ,Ta(B0,TEi(B1,TG!(B0,TEQ(B1,T:d;c(B0,T*i(B1,T`(B0,T>U(B1,TB'(B0,TGT(B1,T9b4(B0,TGl(B1,T`(B0,T4U(B1,TBG(B. 0,T+Vh(B1,T'JRARC67Sd(B0,T4i(B10,T4Q(B1,T'(B0,T9Ui(B1:
+
+	C-x 1	,TK(B0,T9Vh(B1,T'(B0,TGT(B1,T9b4(B0,TGl(B1 (0,T$W(B1,TM!RC(B0,T;T(B1,T4(B0,TGT(B1,T9b4(B0,TGl(B10,TMWh(B1,T9f(B 0,T7Qi(B1,T'KA4(B)
+
+0,T9Qh(B1,T9(B0,T$W(B1,TM`(B0,T>U(B1,TB'(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x ,Ta(B0,TEi(B1,TG5RA(B0,T4i(B1,TGB`E"(B 1. ,T$S(B0,TJQh(B1,T'(B C-x 1 ,T(P"BRB(B0,TGT(B1,T9b4(B0,TGl(B10,T7Uh(B10,TAU(B1
+,T`$M(B0,TCl(B1,T`+M(B0,TCl(B1,TM(B0,TBYh(B1 ,Tc(B0,TKi(B1,T`(B0,T5g(B1,TAK(B0,T9i(B1,TR(M(B. 0,T+Vh(B1,T'(P`(B0,T;g(B1,T9!RC(B0,T;T(B1,T4(B0,TGT(B1,T9b4(B0,TGl(B10,TMWh(B1,T9f(B 0,T7Qi(B1,T'KA4(B.
+
+>> ,T`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,TAR(B0,TBQ(B1,T':CC(B0,T7Q(B1,T4(B0,T9Ui(B1 ,Ta(B0,TEi(B1,TG(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-u 0 C-l.
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-h k C-f.
+   ,T(P`(B0,TKg(B1,T9(B0,TGh(B1,TR(B0,TGT(B1,T9b4(B0,TGl(B10,T9Ui(B10,TAU(B1,T"9R4(B0,TBh(B1,TME'(B ,T"3P(B0,T7Uh(B10,TAU(B10,TGT(B1,T9b4(B0,TGl(B1,TcK(B0,TAh(B1,T`(B0,T!T(B1,T4(B0,T"Vi(B1,T9aJ4'<E"M'`M!JRC(B0,T7Uh(B1,T`(B0,T!Uh(B1,TBG(B0,T!Q(B1,T:(B
+   ,T$S(B0,TJQh(B1,T'"M'(B C-f.
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x 1 ,Ta(B0,TEi(B1,TG(P>:(B0,TGh(B1,TR(B0,TGT(B1,T9b4(B0,TGl(B10,T7Uh(B1,TaJ4'CRB!RC"M'`M!JRCKRBd;(B.
+
+,T$S(B0,TJQh(B1,T'(B0,T9Ui(B10,T5h(B1,TR'(R!$S(B0,TJQh(B1,T'(B0,T7Uh(B1,Td(B0,T4i(B1,T!(B0,TEh(B1,TRGAR5C'(B0,T7Uh(B10,TGh(B1,TR$S(B0,TJQh(B1,T'(B0,T9Ui(B1,T;CP!M:(B0,T4i(B1,TGBJM'(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B. ,T$S(B0,TJQh(B1,T'(B0,T9Ui(B1,T`(B0,TCTh(B1,TA(B0,T5i(B1,T9(B
+0,T4i(B1,TGB(B0,TMQ(B1,T!"CP(B C-x. 0,TAU(B10,T*X(B1,T4"M'$S(B0,TJQh(B1,T'(B0,T7Uh(B10,T"Vi(B1,T9(B0,T5i(B1,T9(B0,T4i(B1,TGB(B0,TMQ(B1,T!"CP(B C-x; 0,TJh(B1,TG9cK(B0,T-h(B1,T(P`(B0,T!Uh(B1,TBG(B0,T"i(B1,TM'(B0,T!Q(B1,T:!RC(B
+0,T(Q(B1,T4!RC(B0,T!Q(B1,T:(B0,TGT(B1,T9b4(B0,TGl(B1, ,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B, 0,T:Q(B1,T?`?M(B0,TCl(B1, ,TaEP(B0,TMWh(B1,T9f(B ,Tc97S9M'`(B0,T4U(B1,TBG(B0,T!Q(B1,T9(B. ,T$S(B0,TJQh(B1,T'`K(B0,TEh(B1,TR(B0,T9Ui(B1,T(P(B
+,T;CP!M:(B0,T4i(B1,TGBJM'(B, ,TJRA(B, ,TK(B0,TCW(B1,TM(B0,TJUh(B10,T5Q(B1,TG(B0,TMQ(B1,T!IC(B.
+
+
+* ,T!RCa7C!(B (inserting) ,TaEP!RCE:(B (deleting)
+----------------------------------------------
+
+0,T6i(B1,TR(B0,T7h(B1,TR9(B0,T5i(B1,TM'!RC(B0,T7Uh(B1,T(Pa7C!(B0,T"i(B1,TM$GRA(B, 0,T!g(B1,TJRARC67Sd(B0,T4i(B1,Tb4B!RC(B0,T;i(B1,TM9(B0,T"i(B1,TM$GRA(B0,T9Qi(B1,T9`(B0,T"i(B1,TRd;`(B0,T7h(B1,TR(B0,T9Qi(B1,T9(B. 
+0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B0,T7Uh(B10,T7h(B1,TR9`(B0,TKg(B1,T9(B, ,T`(B0,T*h(B1,T9(B A, 7, *, ,T`(B0,T;g(B1,T9(B0,T5i(B1,T9(B, 0,T5h(B1,TR'(B0,T!g(B10,T6W(B1,TM(B0,TGh(B1,TR`(B0,T;g(B1,T9(B0,T"i(B1,TM$GRAaEP(B0,T6Y(B1,T!a7C!`(B0,T"i(B1,TRd;(B
+0,T7Q(B1,T9(B0,T7U(B10,T7Uh(B10,T;i(B1,TM9(B. ,T!4(B0,T;Xh(B1,TA(B <Return> ,Tc9!RC(B0,T7Uh(B1,T(Pa7C!(B0,TMQ(B1,T!"CP(B Newline.
+
+0,T7h(B1,TR9JRARC6E:(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B0,T5Q(B1,TG(B0,TJX(B1,T4(B0,T7i(B1,TRB(B0,T7Uh(B10,T7h(B1,TR9d(B0,T4i(B10,T;i(B1,TM9`(B0,T"i(B1,TRd;d(B0,T4i(B1,Tb4B!RC!4(B0,T;Xh(B1,TA(B <Delete>. 0,T;Xh(B1,TA(B
+<Delete> ,T`(B0,T;g(B1,T9(B0,T;Xh(B1,TAf(B ,TK(B0,T9Vh(B1,T':9a(B0,T;i(B1,T9(B0,T>T(B1,TA(B0,T>l(B1, 0,T+Vh(B1,T':R'$(B0,TCQi(B1,T'MR(`(B0,T;g(B1,T9(B0,T;Xh(B1,TA(B0,T7Uh(B1,T!S(B0,T!Q(B1,T:(B0,T4i(B1,TGB(B "Del". ,Tc9:R'(B
+,T!C(B0,T3U(B1, 0,T;Xh(B1,TA(B "Backspace" 0,T!g(B1,T7SK(B0,T9i(B1,TR(B0,T7Uh(B1,T`(B0,T*h(B1,T9`(B0,T4U(B1,TBG(B0,T!Q(B1,T:(B0,T;Xh(B1,TA(B <Delete>, ,Ta(B0,T5h(B10,T!g(B1,Td(B0,TAh(B1,T`JAMd;(B.
+
+,Tb4B(B0,T7Qh(B1,TGd;a(B0,TEi(B1,TG(B, 0,T;Xh(B1,TA(B <Delete> ,T(Pc(B0,T*i(B1,TJSK(B0,TCQ(B1,T:E:(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B0,T7Uh(B1,TM(B0,TBYh(B1,TK(B0,T9i(B1,TR5SaK(B0,T9h(B1,T'"M'`$M(B0,TCl(B1,T`+M(B0,TCl(B10,T;Q(B1,T((B0,T(X(B10,T:Q(B1,T9(B.
+
+>> ,TEM'7S(B0,T4Y(B1--0,T;i(B1,TM9(B0,T5Q(B1,TG(B0,TMQ(B1,T!ICc4f(B 0,TJQ(B1,T!JM'JRA(B0,T5Q(B1,TG(B, ,Ta(B0,TEi(B1,TGE:(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B0,T9Qi(B1,T9MM!b4B!4(B0,T;Xh(B1,TA(B
+   <Delete> 0,TJQ(B1,T!JM'JRA$(B0,TCQi(B1,T'(B. ,Td(B0,TAh(B10,T5i(B1,TM'(B0,T!Q(B1,T'GE(B0,TGh(B1,TR(P7Sc(B0,TKi(B10,T"i(B1,TM$GRAc9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T9Ui(B1,T`;(B0,TEUh(B1,TB9d;(B; 
+   0,T7h(B1,TR9(Pd(B0,TAh(B1,T7Sc(B0,TKi(B10,T"i(B1,TM$GRAc9(B0,T5i(B1,T9)(B0,T:Q(B1,T:"M'(B0,T$Yh(B10,TAW(B1,TM!RCc(B0,T*i(B1,T`;(B0,TEUh(B1,TB9a;E'(B. 0,T9Uh(B1,T`(B0,T;g(B1,T9`(B0,T>U(B1,TB')(B0,T:Q(B1,T:JS`9R`(B0,T7h(B1,TR(B0,T9Qi(B1,T9(B.
+
+,T`(B0,TAWh(B1,TM(B0,T"i(B1,TM$GRAc9:CC(B0,T7Q(B1,T4BRG`(B0,T!T(B1,T9!(B0,TGh(B1,TRK(B0,T9Vh(B1,T':CC(B0,T7Q(B1,T4"M'K(B0,T9i(B1,TR(M(B, 0,T"i(B1,TM$GRAc9:CC(B0,T7Q(B1,T4(B0,T9Qi(B1,T9(P(B0,T5h(B1,TM`(B0,T9Wh(B1,TM'(B
+,Td;(B0,TBQ(B1,T':CC(B0,T7Q(B1,T4(B0,T6Q(B1,T4d;"M'K(B0,T9i(B1,TR(M(B. 0,TMQ(B1,T!"CP(B backslash ("\") 0,T7Uh(B1,T;ERB"M'"M:"GR(B0,TAW(B1,TM(P(B0,T:h(B1,T'(B0,T*Ui(B1
+0,TGh(B1,TR(B0,T"i(B1,TM$GRA"M':CC(B0,T7Q(B1,T4(B0,T9Qi(B1,T9(B0,T5h(B1,TM`(B0,T9Wh(B1,TM'd;(B0,TBQ(B1,T':CC(B0,T7Q(B1,T4(B0,T6Q(B1,T4d;(B.
+
+>> 0,T;i(B1,TM9(B0,T"i(B1,TM$GRA(9!CP(B0,T7Qh(B1,T'(B0,T6V(B1,T'"M:"GR(B, ,Ta(B0,TEi(B1,TG(B0,T;i(B1,TM9(B0,T5h(B1,TMd;(B0,TMU(B1,T!(B. 0,T7h(B1,TR9(P`(B0,TKg(B1,T9!RCaJ4'<E"M'(B
+   ,T:CC(B0,T7Q(B1,T4(B0,T5h(B1,TM`(B0,T9Wh(B1,TM'(B0,T!Q(B1,T9(B.
+
+>> ,Tc(B0,T*i(B10,T;Xh(B1,TA(B <Delete> ,T`(B0,T>Wh(B1,TME:(B0,T"i(B1,TM$GRAMM!(9!CP(B0,T7Qh(B1,T'(B0,T"i(B1,TM$GRA(B0,T9Qi(B1,T9>M(B0,T4U(B10,T!Q(B1,T:$GRA!(B0,TGi(B1,TR'"M'K(B0,T9i(B1,TR(M(B. 
+   ,T:CC(B0,T7Q(B1,T4(B0,T7Uh(B10,T5h(B1,TM`(B0,T9Wh(B1,TM'(B0,T!Q(B1,T9(B0,T!g(B1,T(PKRBd;(B.
+
+0,T7h(B1,TR9JRARC6E:(B0,TMQ(B1,T!"CP(B Newline ,TMM!d(B0,T4i(B1,T`(B0,T*h(B1,T9`(B0,T4U(B1,TBG(B0,T!Q(B1,T:(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B0,TMWh(B1,T9f(B. ,T!RCE:(B0,TMQ(B1,T!"CP(B Newline 
+,TCPK(B0,TGh(B1,TR'JM':CC(B0,T7Q(B1,T4(P`(B0,T;g(B1,T9!RCCGAJM':CC(B0,T7Q(B1,T4(B0,T9Qi(B1,T9`(B0,T"i(B1,TR`(B0,T;g(B1,T9:CC(B0,T7Q(B1,T4`(B0,T4U(B1,TBG(B. 0,T6i(B1,TR<E"M'!RCCGAJM'(B
+,T:CC(B0,T7Q(B1,T4`(B0,T"i(B1,TR(B0,T4i(B1,TGB(B0,T!Q(B1,T97Sc(B0,TKi(B1,T:CC(B0,T7Q(B1,T4(B0,T9Qi(B1,T9BRG`(B0,T!T(B1,T9!(B0,TGh(B1,TR:CC(B0,T7Q(B1,T4"M'K(B0,T9i(B1,TR(Ma(B0,TEi(B1,TG(B, ,T:CC(B0,T7Q(B1,T4(B0,T9Qi(B1,T9(B0,T!g(B1,T(P`(B0,T;g(B1,T9:CC(B0,T7Q(B1,T4(B
+,Ta::(B0,T5h(B1,TM`(B0,T9Wh(B1,TM'(B.
+
+>> ,T`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,Td;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'`(B0,TCTh(B1,TA(B0,T5i(B1,T9"M':CC(B0,T7Q(B1,T4(B, ,Ta(B0,TEi(B1,TG!4(B0,T;Xh(B1,TA(B <Delete>.
+   ,T:CC(B0,T7Q(B1,T4(B0,T;Q(B1,T((B0,T(X(B10,T:Q(B1,T9(P(B0,T6Y(B1,T!`(B0,T*Wh(B1,TMA`(B0,T"i(B1,TR(B0,T!Q(B1,T::CC(B0,T7Q(B1,T4(B0,T!h(B1,TM9K(B0,T9i(B1,TR(B.
+
+>> ,T!4(B0,T;Xh(B1,TA(B <Return> ,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(Pa7C!(B0,TMQ(B1,T!"CP(B Newline ,T`(B0,T"i(B1,TRd;cK(B0,TAh(B1.
+
+,T$GC(Sd(B0,TGi(B10,TGh(B1,TR$S(B0,TJQh(B1,T'(B0,TJh(B1,TG9cK(B0,T-h(B1,T"M'(B0,TMU(B1,TaA!(B0,TJl(B1,T(PJRARC67Sc(B0,TKi(B1,T;CPAGE<E(B0,T+i(B1,TSd(B0,T4i(B1,TKERB$(B0,TCQi(B1,T'(B; 0,T+Vh(B1,T'CGA(B0,T6V(B1,T'(B
+,T(S9G9(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B0,T4i(B1,TGB(B. ,T!RC;CPAGE<E(B0,T+i(B1,TS"M'!RC(B0,T;i(B1,TM9(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B0,T$W(B1,TM!RCa7C!(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC`K(B0,TEh(B1,TR(B0,T9Qi(B1,T9`(B0,T"i(B1,TRd;(B.
+
+>> ,TEM'7S(B0,T4Y(B1,T`(B0,T4Uk(B1,TBG(B0,T9Ui(B1--0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-u 8 * ,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P(B0,T;i(B1,TM9JRB(B0,TMQ(B1,T!"CP(B ********.
+
+0,T7h(B1,TR9d(B0,T4i(B1,T`(B0,TCU(B1,TB9(B0,TCYi(B10,T6V(B1,T'(B0,TGT(B10,T8U(B1,T!RC`(B0,T:Wi(B1,TM'(B0,T5i(B1,T9c9!RC(B0,T;i(B1,TM9:R'(B0,TJTh(B1,T':R'M(B0,TBh(B1,TR'c9(B0,TMU(B1,TaA!(B0,TJl(B1,TaEP!RCa(B0,T!i(B1,Td"(B
+0,T"i(B1,TM(B0,T<T(B1,T4>ER4(B0,T5h(B1,TR'f(B. 0,T7h(B1,TR9JRARC6(B0,T7Uh(B1,T(PE:(B0,T7U(B1,TEP$SK(B0,TCW(B1,TM(B0,T7U(B1,TEP:CC(B0,T7Q(B1,T4c97S9M'`(B0,T4U(B1,TBG(B0,T!Q(B1,T9(B. 0,T5h(B1,TMd;(B0,T9Ui(B1,T`(B0,T;g(B1,T9(B
+,T!RCJ(B0,TCX(B1,T;!RCE:(B0,T4i(B1,TGB(B0,TGT(B10,T8U(B10,T5h(B1,TR'f(B:
+
+	<Delete>	,TE:(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B0,T7Uh(B1,TM(B0,TBYh(B1,TK(B0,T9i(B1,TR5SaK(B0,T9h(B1,T'`$M(B0,TCl(B1,T`+M(B0,TCl(B1
+	C-d		,TE:(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B0,T7Uh(B1,TM(B0,TBYh(B10,T6Q(B1,T4d;K(B0,TEQ(B1,T'5SaK(B0,T9h(B1,T'`$M(B0,TCl(B1,T`+M(B0,TCl(B1
+
+	M-<Delete>	0,T&h(B1,TR$S(B0,T7Uh(B1,TM(B0,TBYh(B1,TK(B0,T9i(B1,TR5SaK(B0,T9h(B1,T'`$M(B0,TCl(B1,T`+M(B0,TCl(B1
+	M-d		0,T&h(B1,TR$S(B0,T7Uh(B1,TM(B0,TBYh(B10,T6Q(B1,T4d;K(B0,TEQ(B1,T'5SaK(B0,T9h(B1,T'`$M(B0,TCl(B1,T`+M(B0,TCl(B1
+
+	C-k		0,T&h(B1,TR(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B0,T5Qi(B1,T'a(B0,T5h(B1,T5SaK(B0,T9h(B1,T'`$M(B0,TCl(B1,T`+M(B0,TCl(B1,Td;(9(B0,T6V(B1,T'(B0,T7i(B1,TRB:CC(B0,T7Q(B1,T4(B
+	M-k		0,T&h(B1,TR(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B0,T5Qi(B1,T'a(B0,T5h(B1,T5SaK(B0,T9h(B1,T'`$M(B0,TCl(B1,T`+M(B0,TCl(B1,Td;(9(B0,T6V(B1,T'(B0,T7i(B1,TRB"M';CPbB$(B
+
+,T$GC(P(B0,TJQ(B1,T'`!5d(B0,T4i(B10,TGh(B1,TR$S(B0,TJQh(B1,T'(B <Delete> ,TaEP(B C-d, 0,T!Q(B1,T:(B M-<Delete> ,TaEP(B M-d ,T`(B0,T;g(B1,T9$S(B0,TJQh(B1,T'(B
+,Tc97S9M'`(B0,T4U(B1,TBG(B0,T!Q(B1,T9(B0,T7Uh(B1,T`(B0,TCTh(B1,TA(R!$S(B0,TJQh(B1,T'(B C-f ,TaEP(B M-f (,Ta(B0,TAi(B10,TGh(B1,TR(B0,T;Xh(B1,TA(B <Delete> ,T(Pd(B0,TAh(B1,Tc(B0,T*h(B10,T5Q(B1,TG(B0,TMQ(B1,T!IC(B
+0,T!g(B1,T5RA(B, ,Ta(B0,T5h(B1,Td(B0,TAh(B1,Td(B0,T4i(B1,T`(B0,T;g(B1,T9`(B0,TCWh(B1,TM'JS(B0,T$Q(B1,T-(B). ,T$S(B0,TJQh(B1,T'(B C-k ,TaEP(B M-k 0,T!g(B1,T`(B0,T*h(B1,T9`(B0,T4U(B1,TBG(B0,T!Q(B1,T:(B C-e ,TaEP(B M-e 0,T7Uh(B1
+,T7S'R9c9(B0,TEQ(B1,T!I3P`(B0,T4U(B1,TBG(B0,T!Q(B1,T9a(B0,T5h(B1,T$9EPCP(B0,T4Q(B1,T:(B, 0,T$W(B1,TMCP(B0,T4Q(B1,T:(B0,T7Uh(B1,T`(B0,T;g(B1,T9:CC(B0,T7Q(B1,T4(B0,T!Q(B1,T:;CPbB$(B.
+
+,T`(B0,TAWh(B1,TM(B0,T7h(B1,TR9E:(B0,T5Q(B1,TG(B0,TMQ(B1,T!ICd;AR!!(B0,TGh(B1,TRK(B0,T9Vh(B1,T'(B0,T5Q(B1,TGc9$(B0,TCQi(B1,T'K(B0,T9Vh(B1,T'f(B, 0,TMU(B1,TaA!(B0,TJl(B1,T(P(B0,T:Q(B1,T9(B0,T7V(B1,T!(B0,T"i(B1,TM$GRA(B0,T7Uh(B10,T6Y(B1,T!E:d;d(B0,TGi(B1
+,T`(B0,T>Wh(B1,TM(B0,TGh(B1,TR(B0,T7h(B1,TR9(PJRARC6`(B0,TCU(B1,TB!!(B0,TEQ(B1,T:ARd(B0,T4i(B10,TMU(B1,T!(B. ,T!RC`(B0,TCU(B1,TB!!(B0,TEQ(B1,T:AR"M'(B0,T"i(B1,TM$GRA(B0,T7Uh(B10,T6Y(B1,T!(B0,T&h(B1,TRd;(B0,T9Qi(B1,T9`(B0,TCU(B1,TB!(B0,TGh(B1,TR(B
+",T!RC`(B0,TCU(B1,TB!(B0,T$W(B1,T9(B (yanking)". 0,T7h(B1,TR9JRARC6`(B0,TCU(B1,TB!(B0,T$W(B1,T9(B0,T"i(B1,TM$GRA(B0,T7Uh(B10,T6Y(B1,T!(B0,T&h(B1,TRd;!(B0,TEQ(B1,T:ARd(B0,T4i(B1,Tb4Bc(B0,TKi(B1
+,T;CR!/c9(B0,T7Uh(B10,T7Uh(B10,T6Y(B1,T!(B0,T&h(B1,TRd;(B, ,TK(B0,TCW(B1,TM;CR!/c9(B0,T7Uh(B1,Tc4f(B ,T"M'(B0,T"i(B1,TM$GRA(B0,T!g(B1,Td(B0,T4i(B1. 0,T7h(B1,TR9JRARC6`(B0,TCU(B1,TB!(B0,T$W(B1,T9(B0,T"i(B1,TM$GRA(B
+0,T!Uh(B1,T$(B0,TCQi(B1,T'(B0,T!g(B1,Td(B0,T4i(B1,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P7SJS`9R(B0,T"i(B1,TM$GRA(B. ,T$S(B0,TJQh(B1,T'(B0,T7Uh(B1,Tc(B0,T*i(B1,Tc9!RC`(B0,TCU(B1,TB!(B0,T$W(B1,T9(B0,T$W(B1,TM(B C-y.
+
+0,TJTh(B1,T'(B0,T7Uh(B1,T$GC(B0,TJQ(B1,T'`!5(B0,TMQ(B1,T9K(B0,T9Vh(B1,T'(B0,T$W(B1,TM(B0,T"i(B1,TMa5!(B0,T5h(B1,TR'CPK(B0,TGh(B1,TR'(B ",T!RC(B0,T&h(B1,TR(B (killing)" 0,T!Q(B1,T:(B ",T!RCE:(B
+(deleting)". 0,TJTh(B1,T'(B0,T7Uh(B10,T6Y(B1,T!(B "0,T&h(B1,TR(B (killed)" ,Td;(B0,T9Qi(B1,T9(B, ,TJRARC6(B0,T7Uh(B1,T(P`(B0,TCU(B1,TB!(B0,T$W(B1,T9(B (yank) ,TARd(B0,T4i(B1, 
+,Ta(B0,T5h(B10,TJTh(B1,T'(B0,T7Uh(B10,T6Y(B1,T!(B ",TE:(B (deleted)" ,Td;(B0,T9Qi(B1,T9(B, ,Td(B0,TAh(B1,TJRARC6(P`(B0,TCU(B1,TB!(B0,T$W(B1,T9ARd(B0,T4i(B1. ,Tb4B(B0,T7Qh(B1,TGd;(B, ,T$S(B0,TJQh(B1,T'(B0,T7Uh(B1,TJRARC6(B
+,TE:(B0,T"i(B1,TM$GRAd(B0,T4i(B10,T7U(B1,TEPAR!f(B ,T(P`(B0,T!g(B1,T:(B0,T"i(B1,TM$GRA(B0,T9Qi(B1,T9d(B0,TGi(B1, ,T"3P(B0,T7Uh(B1,T$S(B0,TJQh(B1,T'(B0,T7Uh(B1,TE:d(B0,T4i(B10,T7U(B1,TEP(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B, ,TK(B0,TCW(B1,TM:CC(B0,T7Q(B1,T4(B
+,T`;(B0,TEh(B1,TRaEP`(B0,TGi(B1,T9GCC$(B, ,T(Pd(B0,TAh(B1,T`(B0,T!g(B1,T:(B0,T"i(B1,TM$GRA(B0,T7Uh(B10,T6Y(B1,T!E:d;(B.
+
+>> ,T`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,Td;(B0,TBQ(B1,T'(B0,T(X(B1,T4`(B0,TCTh(B1,TA(B0,T5i(B1,T9"M':CC(B0,T7Q(B1,T4(B0,T7Uh(B1,Td(B0,TAh(B1,Tc(B0,T*h(B1,T:CC(B0,T7Q(B1,T4`;(B0,TEh(B1,TR(B.
+   ,Ta(B0,TEi(B1,TG(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-k ,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P(B0,T&h(B1,TR(B0,T"i(B1,TM$GRA(B0,T7Uh(B1,TM(B0,TBYh(B1,T:9:CC(B0,T7Q(B1,T4(B0,T9Qi(B1,T9(B.
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-k 0,TMU(B1,T!$(B0,TCQi(B1,T'K(B0,T9Vh(B1,T'(B. 0,T7h(B1,TR9(P`(B0,TKg(B1,T9(B0,TGh(B1,TR(B0,TMQ(B1,T!"CP(B Newline 0,T7Uh(B1,TM(B0,TBYh(B10,T7i(B1,TRB:CC(B0,T7Q(B1,T4(B0,T9Qi(B1,T9(P(B0,T6Y(B1,T!(B
+   0,T&h(B1,TRd;(B.
+
+,T(P(B0,TJQ(B1,T'`!5d(B0,T4i(B10,TGh(B1,TR$S(B0,TJQh(B1,T'(B C-k ,T$S(B0,TJQh(B1,T'aC!(P(B0,T&h(B1,TR`(B0,T9Wi(B1,TM$GRA"M':CC(B0,T7Q(B1,T4(B, ,TaEP$S(B0,TJQh(B1,T'(B C-k ,T$S(B0,TJQh(B1,T'(B
+0,T7Uh(B1,TJM'(P(B0,T&h(B1,TR:CC(B0,T7Q(B1,T4(B0,T9Qi(B1,T9(B, ,TaEP(P"(B0,TBQ(B1,T::CC(B0,T7Q(B1,T4(B0,TMWh(B1,T9f(B 0,T7Uh(B1,T`K(B0,TEW(B1,TM(B0,T7Qi(B1,T'KA4(B0,T"Vi(B1,T9(B. ,T$S(B0,TJQh(B1,T'(B C-k 0,T(Q(B1,T4!RC(B0,T!Q(B1,T:(B
+0,T5Q(B1,TG`E"MR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B1,Tc9(B0,TEQ(B1,T!I3P(B0,T7Uh(B1,Ta5!(B0,T5h(B1,TR'MM!d;(B: ,T$S(B0,TJQh(B1,T'(B0,T9Ui(B1,T(P(B0,T&h(B1,TRKERBf(B ,T:CC(B0,T7Q(B1,T4aEP`(B0,T9Wi(B1,TMKR"M'(B
+0,T"i(B1,TM$GRA(B0,T4i(B1,TGB(B. 0,T9Uh(B1,Td(B0,TAh(B1,T`K(B0,TAW(B1,TM9!RC7S(B0,T+i(B1,TSa::;C!(B0,T5T(B1. ,T$S(B0,TJQh(B1,T'(B C-u 2 C-k ,T(P(B0,T&h(B1,TR(B0,T7Qi(B1,T'JM':CC(B0,T7Q(B1,T4(B
+,T>(B0,TCi(B1,TMA(B0,T7Qi(B1,T'(B0,TMQ(B1,T!"CP(B Newline ,T"M':CC(B0,T7Q(B1,T4(B0,T9Qi(B1,T9f(B 0,T4i(B1,TGB(B; 0,T+Vh(B1,T'(B0,T5h(B1,TR'(R!!RC7S$S(B0,TJQh(B1,T'(B C-k ,TJM'$(B0,TCQi(B1,T'(B.
+
+,Tc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-y ,Tc9!RC(B0,T7Uh(B1,T(P`(B0,TCU(B1,TB!(B0,T$W(B1,T9(B0,T"i(B1,TM$GRA(B0,T7Uh(B10,T6Y(B1,T!(B0,T&h(B1,TRd;K(B0,TEQ(B1,T'(B0,TJX(B1,T4(B. 0,T"i(B1,TM$GRA(B0,T7Uh(B10,T6Y(B1,T!`(B0,TCU(B1,TB!(B0,T$W(B1,T9(B0,T9Qi(B1,T9(P(B
+,T;CR!/(B0,T7Uh(B1,T5SaK(B0,T9h(B1,T'`$M(B0,TCl(B1,T`+M(B0,TCl(B10,T;Q(B1,T((B0,T(X(B10,T:Q(B1,T9(B.
+
+>> ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-y ,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P`(B0,TCU(B1,TB!(B0,T$W(B1,T9(B0,T"i(B1,TM$GRA!(B0,TEQ(B1,T:AR(B.
+
+,T$S(B0,TJQh(B1,T'(B C-y 0,T!g(B1,T`K(B0,TAW(B1,TM9!RC`(B0,TCU(B1,TB!(B0,T$W(B1,T9(B0,TJTh(B1,T'"M'(B0,T7Uh(B1,Tc$C:R'$9d(B0,T4i(B1,T`MRd;(R!(B0,T7h(B1,TR9(B. 0,T7h(B1,TR9(P(B0,TJQ(B1,T'`!5d(B0,T4i(B10,TGh(B1,TR(B
+0,T6i(B1,TR(B0,T7h(B1,TR9c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-k 0,T5T(B1,T4(B0,T5h(B1,TM(B0,T!Q(B1,T9KERBf(B ,T$(B0,TCQi(B1,T'(B, 0,T"i(B1,TM$GRA(B0,T7Uh(B10,T6Y(B1,T!(B0,T&h(B1,TRd;(B0,T7Qi(B1,T'KA4(P(B0,T6Y(B1,T!`(B0,T!g(B1,T:d(B0,TGi(B10,T4i(B1,TGB(B0,T!Q(B1,T9(B,
+,T)P(B0,T9Qi(B1,T9!RCc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-y ,T`(B0,T>U(B1,TB'$(B0,TCQi(B1,T'`(B0,T4U(B1,TBG(B0,T!g(B1,T(P`(B0,TCU(B1,TB!(B0,T$W(B1,T9(B0,T"i(B1,TM$GRA!(B0,TEQ(B1,T:ARd(B0,T4i(B10,T7Qi(B1,T'KA4(B.
+
+>> ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-k ,TKERBf(B ,T$(B0,TCQi(B1,T'(B0,T4Y(B1.
+
+,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P`(B0,TCU(B1,TB!(B0,T$W(B1,T9(B0,T"i(B1,TM$GRA(B0,T7Uh(B10,T6Y(B1,T!(B0,T&h(B1,TRd;(B:
+
+>> ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-y. ,Ta(B0,TEi(B1,TG`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,TE'd;(B0,TJQ(B1,T!JM'JRA:CC(B0,T7Q(B1,T4(B, ,Ta(B0,TEi(B1,TGc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-y
+   0,TMU(B1,T!$(B0,TCQi(B1,T'(B. 0,T7h(B1,TR9(P`(B0,T"i(B1,TRc((B0,TGT(B10,T8U(B1,T!RC(B0,T7Uh(B1,T(PJS`9R(B0,T"i(B1,TM$GRA(B.
+
+0,T7h(B1,TR9(P7SM(B0,TBh(B1,TR'dC(B0,T6i(B1,TR(B0,T7h(B1,TR9(B0,T5i(B1,TM'!RC(P`(B0,TCU(B1,TB!(B0,T$W(B1,T9(B0,T"i(B1,TM$GRA:R'M(B0,TBh(B1,TR'(B, ,Ta(B0,TEi(B1,TG(B0,T&h(B1,TR:R'M(B0,TBh(B1,TR'MM!d;(B?
+,T$S(B0,TJQh(B1,T'(B C-y ,T(P`(B0,TCU(B1,TB!(B0,T$W(B1,T9(B0,T"i(B1,TM$GRA(B0,T7Uh(B10,T6Y(B1,T!(B0,T&h(B1,TR(B0,TEh(B1,TR(B0,TJX(B1,T4(B. ,Ta(B0,T5h(B10,T"i(B1,TM$GRA(B0,T!h(B1,TM9K(B0,T9i(B1,TR(B0,T9Qi(B1,T9(B0,TBQ(B1,T'$'`K(B0,TEW(B1,TMM(B0,TBYh(B1. 0,T7h(B1,TR9(B
+,TJRARC6(P`(B0,TCU(B1,TB!(B0,T$W(B1,T9ARd(B0,T4i(B10,TMU(B1,T!b4Bc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B M-y. ,TK(B0,TEQ(B1,T'(R!(B0,T7Uh(B10,T7h(B1,TR9d(B0,T4i(B1,T`(B0,TCU(B1,TB!(B0,T$W(B1,T9(B0,T"i(B1,TM$GRA(B0,TEh(B1,TR(B0,TJX(B1,T4a(B0,TEi(B1,TG(B,
+,Tc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B M-y ,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P`(B0,TCU(B1,TB!(B0,T$W(B1,T9(B0,T"i(B1,TM$GRA(B0,T!h(B1,TM9K(B0,T9i(B1,TR(B0,T9Qi(B1,T9ARa79(B0,T7Uh(B1. ,T!RCc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B M-y ,Ta(B0,T5h(B1,TEP$(B0,TCQi(B1,T'(B
+,T(P`(B0,TCU(B1,TB!(B0,T$W(B1,T9(B0,T"i(B1,TM$GRA(B0,T7Uh(B10,T6Y(B1,T!(B0,T&h(B1,TRd;c9ES(B0,T4Q(B1,T:(B0,T7Uh(B10,TBi(B1,TM9!(B0,TEQ(B1,T:(B0,T"Vi(B1,T9d;(B. ,T`(B0,TAWh(B1,TM(B0,T7h(B1,TR9d(B0,T4i(B10,T"i(B1,TM$GRA(B0,T7Uh(B10,T5i(B1,TM'!RC!(B0,TEQ(B1,T:(B0,T$W(B1,T9AR(B, 
+0,T7h(B1,TR9(B0,T!g(B1,Td(B0,TAh(B1,T(S`(B0,T;g(B1,T9(B0,T7Uh(B1,T(P(B0,T5i(B1,TM'7SMPdC(B0,T!Q(B1,T:(B0,T"i(B1,TM$GRA(B0,T9Qi(B1,T9(B0,TMU(B1,T!(B. ,T`(B0,T>U(B1,TB';(B0,TEh(B1,TMBM(B0,TBYh(B1,TM(B0,TBh(B1,TR'(B0,T9Qi(B1,T9(B, ,Ta(B0,TEi(B1,TG7S!RCa(B0,T!i(B1,Td"(B
+0,T"i(B1,TM$GRA(B0,TMWh(B1,T9(B0,T5h(B1,TMd;(B.
+
+0,T6i(B1,TR(B0,T7h(B1,TR9c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B M-y 0,T4i(B1,TGB(S9G9$(B0,TCQi(B1,T'(B0,T7Uh(B1,TAR!>M(B, 0,T7h(B1,TR9(P(B0,TBi(B1,TM9!(B0,TEQ(B1,T:AR(B0,TBQ(B1,T'(B0,T(X(B1,T4`(B0,TCTh(B1,TA(B0,T5i(B1,T9(B0,TMU(B1,T!$(B0,TCQi(B1,T'(B 
+(0,T"i(B1,TM$GRA(B0,T7Uh(B10,T6Y(B1,T!(B0,T&h(B1,TRd;(B0,TEh(B1,TR(B0,TJX(B1,T4(B).
+
+>> 0,T&h(B1,TRK(B0,T9Vh(B1,T':CC(B0,T7Q(B1,T4(B, ,T`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,Td;(B, 0,T&h(B1,TR(B0,TMU(B1,T!:CC(B0,T7Q(B1,T4(B.
+   ,Ta(B0,TEi(B1,TGc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-y ,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P`(B0,TCU(B1,TB!(B0,T$W(B1,T9:CC(B0,T7Q(B1,T4(B0,T7Uh(B10,T6Y(B1,T!(B0,T&h(B1,TRd;c9$(B0,TCQi(B1,T'(B0,T7Uh(B1,TJM'(B.
+   ,Ta(B0,TEi(B1,TGc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B M-y 0,T+Vh(B1,T'(P`(B0,TCV(B1,TB!(B0,T$W(B1,T9:CC(B0,T7Q(B1,T4(B0,T7Uh(B10,T6Y(B1,T!(B0,T&h(B1,TRd;c9$(B0,TCQi(B1,T'aC!ARa79(B0,T7Uh(B1.
+   ,Tc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B M-y 0,TMU(B1,T!(B, ,Ta(B0,TEi(B1,TG(B0,T4Y(B10,TGh(B1,TR(P`(B0,T!T(B1,T4MPdC(B0,T"Vi(B1,T9(B. ,TEM'7Sd;`(B0,TCWh(B1,TMBf(B ,T(9!(B0,TGh(B1,TR:CC(B0,T7Q(B1,T4(B0,T7Uh(B10,T6Y(B1,T!(B0,T&h(B1,TRd;(B
+   ,Tc9$(B0,TCQi(B1,T'(B0,T7Uh(B1,TJM'(P!(B0,TEQ(B1,T:(B0,T$W(B1,T9AR(B, ,Ta(B0,TEi(B1,TG7Sd;(B0,TMU(B1,T!(B0,TJQ(B1,T!CPBP(B.
+   0,T6i(B1,TR(B0,T7h(B1,TR9(B0,T5i(B1,TM'!RC(B, 0,T7h(B1,TR9MR((PEM'!S(B0,T!Q(B1,T:(B0,T5Q(B1,TG`E"MR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B10,T7Qi(B1,T'(B0,T7Uh(B1,T`(B0,T;g(B1,T9(S9G9:G!aEPE:c(B0,TKi(B10,T!Q(B1,T:(B
+   ,T$S(B0,TJQh(B1,T'(B M-y 0,T4Y(B1.
+
+
+* ,T!RC7S(B0,TBi(B1,TM9(B (undo)
+-------------------
+
+0,T6i(B1,TR(B0,T7h(B1,TR9d(B0,T4i(B1,Ta(B0,T!i(B1,Td"(B0,T"i(B1,TM$GRAd;(B, ,TaEP(B0,T$T(B1,T4(B0,TGh(B1,TRd(B0,T4i(B1,T7S(B0,T<T(B1,T4>ER4d;(B, 0,T7h(B1,TR9JRARC67S(B0,TBi(B1,TM9(B0,TJTh(B1,T'(B0,T7Uh(B1,Td(B0,T4i(B1
+,T`;(B0,TEUh(B1,TB9a;E'd;a(B0,TEi(B1,TG(B0,T4i(B1,TGB$S(B0,TJQh(B1,T'!RC7S(B0,TBi(B1,TM9(B, C-x u.
+
+,Tb4B;C!(B0,T5T(B1, ,T$S(B0,TJQh(B1,T'(B C-x u ,T7S(B0,TBi(B1,TM9$S(B0,TJQh(B1,T'(B0,T7Uh(B1,Td(B0,T4i(B1,T7Sd;a(B0,TEi(B1,TGK(B0,T9Vh(B1,T'$S(B0,TJQh(B1,T'(B; 0,T6i(B1,TR(B0,T7h(B1,TR97S(B0,TBi(B1,TM9(B0,T+i(B1,TS(B0,T5T(B1,T4(B0,T5h(B1,TM(B0,T!Q(B1,T9(B,
+,T!RC7S(B0,TBi(B1,TM9a(B0,T5h(B1,TEP$(B0,TCQi(B1,T'(P(B0,TBi(B1,TM9$S(B0,TJQh(B1,T'd;(B0,T7U(B1,TEP$S(B0,TJQh(B1,T'(B.
+
+,Ta(B0,T5h(B10,TAU(B10,T"i(B1,TMB!`(B0,TGi(B1,T9M(B0,TBYh(B1,TJM';CP!RC(B: ,T$S(B0,TJQh(B1,T'(B0,T7Uh(B1,Td(B0,TAh(B1,T`;(B0,TEUh(B1,TB9a;E'(B0,T"i(B1,TM$GRA(Pd(B0,TAh(B10,T9Q(B1,T:CGAM(B0,TBYh(B10,T4i(B1,TGB(B (0,T9Uh(B1,TCGA(B0,T6V(B1,T'(B
+,T$S(B0,TJQh(B1,T'!RC`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,TaEP!RC`$(B0,TEWh(B1,TM9(B0,TAi(B1,TG9(B), ,TaEP!RCa7C!(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B0,T!g(B1,T(P(B0,T6Y(B1,T!(B0,T(Q(B1,T4!RCb4BCGA(B
+,T`(B0,T;g(B1,T9!(B0,TEXh(B1,TA(B0,T7Uh(B1,Td(B0,TAh(B1,T`(B0,T!T(B1,T9(B 20 0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B0,T5h(B1,TM!(B0,TEXh(B1,TA(B. (0,T7Qi(B1,T'(B0,T9Ui(B1,T`(B0,T>Wh(B1,TME4(S9G9$(B0,TCQi(B1,T'"M'$S(B0,TJQh(B1,T'(B C-x u ,Tc9!RC7S(B
+0,TBi(B1,TM9!RCa7C!(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B.)
+
+>> 0,T&h(B1,TR:CC(B0,T7Q(B1,T4(B0,T9Ui(B10,T4i(B1,TGB$S(B0,TJQh(B1,T'(B C-k, ,Ta(B0,TEi(B1,TG(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x u. ,T:CC(B0,T7Q(B1,T4(B0,T7Uh(B10,T6Y(B1,T!(B0,T&h(B1,TRd;(P;CR!/!(B0,TEQ(B1,T:(B0,T$W(B1,T9AR(B.
+
+,T$S(B0,TJQh(B1,T'(B C-_ ,T`(B0,T;g(B1,T9(B0,TMU(B1,T!$S(B0,TJQh(B1,T'K(B0,T9Vh(B1,T'JSK(B0,TCQ(B1,T:!RC7S(B0,TBi(B1,TM9(B; ,T$S(B0,TJQh(B1,T'(B0,T9Ui(B1,T7S'R9`K(B0,TAW(B1,TM9(B0,T!Q(B1,T:$S(B0,TJQh(B1,T'(B C-x u,
+,Ta(B0,T5h(B10,TGh(B1,TRJP4G!!(B0,TGh(B1,TRc9!RC(B0,T;i(B1,TM9KERBf(B ,T$(B0,TCQi(B1,T'(B0,T5T(B1,T4(B0,T5h(B1,TM(B0,T!Q(B1,T9(B. 0,T"i(B1,TM`(B0,TJU(B1,TB"M'$S(B0,TJQh(B1,T'(B C-_ 0,T9Ui(B10,T$W(B1,TMc9:R'(B
+,Ta(B0,T;i(B1,T9(B0,T>T(B1,TA(B0,T>l(B1, ,TMR((Pd(B0,TAh(B1,T7CR:(B0,TGh(B1,TR(P(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'd(B0,T4i(B1,TM(B0,TBh(B1,TR'dC(B. 0,T9Qh(B1,T9(B0,T$W(B1,TM`K(B0,T5X(B10,T7Uh(B1,T7Sc(B0,TKi(B1,T`CR(B0,T5i(B1,TM'`5(B0,TCU(B1,TBA$S(B0,TJQh(B1,T'(B
+C-x u ,Tc(B0,TKi(B10,TMU(B1,T!(B0,T5h(B1,TR'KR!(B. ,Tc9`$(B0,TCWh(B1,TM';ERB7R':R'*(B0,T9T(B1,T4(B,0,T7h(B1,TR9MR((P(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-_ ,Td(B0,T4i(B1,Tb4B!RC!4(B
+0,TMQ(B1,T!"CP(B / ,Tc9"3P(B0,T7Uh(B1,T!4(B0,T;Xh(B1,TA(B CONTROL.
+
+0,T5Q(B1,TG`E"MR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B1,TJSK(B0,TCQ(B1,T:$S(B0,TJQh(B1,T'(B C-_ ,TaEP(B C-x u ,T(P`(B0,T;g(B1,T9!RC(B0,T+i(B1,TS(S9G9$(B0,TCQi(B1,T'"M'$S(B0,TJQh(B1,T'(B.
+
+
+* ,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B (file)
+----------------
+
+,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P`(B0,T!g(B1,T:(B0,T"i(B1,TM$GRA(B0,T7Uh(B1,Td(B0,T4i(B1,Ta(B0,T!i(B1,Td"d;(B0,T9Qi(B1,T9(B, 0,T7h(B1,TR9(P(B0,T5i(B1,TM'`(B0,T!g(B1,T:(B0,T"i(B1,TM$GRA(B0,T9Qi(B1,T9d(B0,TGi(B1,Tc9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B. ,Td(B0,TAh(B1,T`(B0,T*h(B1,T9(B0,T9Qi(B1,T9(B
+0,T"i(B1,TM$GRA(B0,T!g(B1,T(PKRBd;`(B0,TAWh(B1,TM(B0,T7h(B1,TR9`(B0,TET(B1,T!c(B0,T*i(B10,TMU(B1,TaA!(B0,TJl(B1. ,T!RC(B0,T7Uh(B1,T(P`(B0,T!g(B1,T:(B0,T"i(B1,TM$GRA(B0,T9Qi(B1,T9E'c9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B, 0,T7h(B1,TR9(B
+,T(P(B0,T5i(B1,TM'(B "0,T$i(B1,T9KR(B (find)" ,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T!h(B1,TM9(B0,T7Uh(B1,T(P`(B0,T"i(B1,TRd;c9(B0,T"i(B1,TM$GRA(B0,T9Qi(B1,T9d(B0,T4i(B1. (0,T9Uh(B1,T`(B0,TCU(B1,TB!(B0,TGh(B1,TR(B ",T!RC(B
+,T`(B0,TBW(B1,TM9(B (visiting)" ,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B.)
+
+,T!RC(B0,T$i(B1,T9KRa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEKARB(B0,T6V(B1,T'!RC(B0,T7Uh(B10,T7h(B1,TR9d(B0,T4i(B1,T`(B0,TKg(B1,T9`(B0,T9Wi(B1,TMKR"M'a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE@RBc9(B0,TMU(B1,TaA!(B0,TJl(B1. ,Tc9KERBf(B 
+,T7R'(B, 0,T4Y(B1,T`K(B0,TAW(B1,TM9(B0,TGh(B1,TR(B0,T7h(B1,TR9!S(B0,TEQ(B1,T'a(B0,T!i(B1,Td"(B0,T"i(B1,TM(B0,TAY(B1,TEc9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEM(B0,TBYh(B1. ,TM(B0,TBh(B1,TR'dC(B0,T!g(B1,T5RA(B, ,T!RCa(B0,T!i(B1,Td"@RBc9(B0,TMU(B1
+,TaA!(B0,TJl(B10,T9Qi(B1,T9(Pd(B0,TAh(B1,T$'M(B0,TBYh(B1,T(9!(B0,TGh(B1,TR(B0,T7h(B1,TR9(P(B "0,T(Q(B1,T4`(B0,T!g(B1,T:(B (save)" ,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T9Qi(B1,T9(B. 0,T9Uh(B1,T`(B0,T;g(B1,T9!RC(B0,T*h(B1,TGBc(B0,TKi(B10,T7h(B1,TR9(B
+,TJRARC6K(B0,TEU(B1,T!`(B0,TEUh(B1,TB'!RC7Sc(B0,TKi(B1,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T6Y(B1,T!a(B0,T!i(B1,Td"d(B0,TGi(B1,T$(B0,TCVh(B1,T'f(B ,T!ER'f(B 0,T6i(B1,TR(B0,T7h(B1,TR9d(B0,TAh(B1,Td(B0,T4i(B10,T5i(B1,TM'!RC(B. ,Ta(B0,TAi(B10,TGh(B1,TR(B
+0,T7h(B1,TR9(P7S!RC(B0,T(Q(B1,T4`(B0,T!g(B1,T:d;a(B0,TEi(B1,TG(B0,T!g(B1,T5RA(B, 0,TMU(B1,TaA!(B0,TJl(B10,T!g(B10,TBQ(B1,T'$'`K(B0,TEW(B1,TMa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T5i(B1,T9)(B0,T:Q(B1,T:d(B0,TGi(B1,Tb4B`(B0,T!g(B1,T:d(B0,TGi(B1,Tc9(B0,T*Wh(B1,TM(B
+,TcK(B0,TAh(B1, ,T`(B0,T<Wh(B1,TMd(B0,TGi(B1,Tc9!C(B0,T3U(B10,T7Uh(B10,T7h(B1,TR9a(B0,T!i(B1,Td"(B0,T<T(B1,T4>ER4(B.
+
+0,T6i(B1,TR(B0,T7h(B1,TR9(B0,TJQ(B1,T'`!5(B0,T4Y(B10,TJh(B1,TG9(B0,TEh(B1,TR'"M'K(B0,T9i(B1,TR(M"M'(B0,TMU(B1,TaA!(B0,TJl(B1, 0,T7h(B1,TR9(P`(B0,TKg(B1,T9:CC(B0,T7Q(B1,T4(B0,T7Uh(B1,T`(B0,TCTh(B1,TA(B0,T5i(B1,T9aEP(B0,TJTi(B1,T9(B0,TJX(B1,T4(B0,T4i(B1,TGB(B
+,T`(B0,TJi(B1,T9;CP(B. ,T:CC(B0,T7Q(B1,T4(B0,T9Qi(B1,T9MR((P`(B0,TCTh(B1,TA(B0,T5i(B1,T9(B0,T4i(B1,TGB(B "--:-- TUTORIAL" ,TK(B0,TCW(B1,TMMPdC7S9M'(B0,T9Qi(B1,T9(B. 0,TJh(B1,TG9(B0,T9Ui(B1
+,T"M'K(B0,T9i(B1,TR(M(B, ,Tb4B;C!(B0,T5T(B1,Ta(B0,TEi(B1,TG(B, ,T(PaJ4'(B0,T*Wh(B1,TMa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B10,T7h(B1,TR9!S(B0,TEQ(B1,T'`(B0,TBW(B1,TM9M(B0,TBYh(B1. ,T"3P(B0,T9Ui(B10,T7h(B1,TR9!S(B0,TEQ(B1,T'(B
+,T`(B0,TBW(B1,TM9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B10,T*Wh(B1,TM(B0,TGh(B1,TR(B "TUTORIAL.th" 0,T+Vh(B1,T'`(B0,T;g(B1,T9JS`9R"M'(B0,T$Yh(B10,TAW(B1,TM!RCc(B0,T*i(B10,TMU(B1,TaA!(B0,TJl(B1. ,T`(B0,TAWh(B1,TM(B0,T7h(B1,TR9d(B0,T4i(B1
+,T`(B0,TBW(B1,TM9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T4i(B1,TGB(B0,TMU(B1,TaA!(B0,TJl(B1, 0,T*Wh(B1,TM"M'a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T9Qi(B1,T9(P;CR!/c9(B0,T7Uh(B10,T7Uh(B1,Td(B0,T4i(B1,T!(B0,TEh(B1,TRGd(B0,TGi(B1,Ta(B0,TEi(B1,TG(B.
+
+0,TEQ(B1,T!I3P(B0,T>T(B1,T`HI(B0,T"i(B1,TMK(B0,T9Vh(B1,T'"M'$S(B0,TJQh(B1,T'`(B0,TBW(B1,TM9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T$W(B1,TM(B 0,T7h(B1,TR9(P(B0,T5i(B1,TM':M!(B0,T*Wh(B1,TM"M'a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B1,T(P(B
+,T`(B0,TBW(B1,TM9(B. ,T`CR`(B0,TCU(B1,TB!(B0,TEQ(B1,T!I3P`(B0,T*h(B1,T9(B0,T9Ui(B10,TGh(B1,TR(B "0,TMh(B1,TR9MR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B1,T(R!`$(B0,TCWh(B1,TM';ERB7R'(B" (,Tc9!C(B0,T3U(B10,T9Ui(B1, ,TMR(B0,TCl(B1
+0,T!T(B1,TG`A9(B0,T5l(B10,T!g(B10,T$W(B1,TM(B0,T*Wh(B1,TM"M'a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B). ,TK(B0,TEQ(B1,T'(R!(B0,T7Uh(B10,T7h(B1,TR9(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B
+
+	C-x C-f   Find a file
+
+0,TMU(B1,TaA!(B0,TJl(B1,T(P6RA(B0,T*Wh(B1,TMa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B. 0,T*Wh(B1,TMa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B10,T7h(B1,TR9(B0,T;i(B1,TM9`(B0,T"i(B1,TRd;(P;CR!/(B0,T7Uh(B1,T:CC(B0,T7Q(B1,T4(B0,TEh(B1,TR'"M'K(B0,T9i(B1,TR(M(B. 
+,T:CC(B0,T7Q(B1,T4(B0,TEh(B1,TR'"M'K(B0,T9i(B1,TR(M`(B0,TCU(B1,TB!(B0,TGh(B1,TR(B0,TAT(B10,T9T(B10,T:Q(B1,T?`?M(B0,TCl(B1 (minibuffer) ,T`(B0,TAWh(B1,TM(B0,T6Y(B1,T!c(B0,T*i(B1,T'R9c9(B0,TEQ(B1,T!I3P(B0,T9Ui(B1. 
+0,T7h(B1,TR9JRARC6c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B0,T7Uh(B1,Tc(B0,T*i(B1,Tc9!RCa(B0,T!i(B1,Td";C!(B0,T5T(B1,T"M'(B0,TMU(B1,TaA!(B0,TJl(B1,Ta(B0,T!i(B1,Td"(B0,T*Wh(B1,TM"M'a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B.
+
+,T"3P(B0,T7Uh(B10,T7h(B1,TR9!S(B0,TEQ(B1,T'(B0,T;i(B1,TM9(B0,T*Wh(B1,TMa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B (,TK(B0,TCW(B1,TM(B0,T"i(B1,TM(B0,TAY(B1,TEc4f(B ,Tc9(B0,TAT(B10,T9T(B10,T:Q(B1,T?`?M(B0,TCl(B10,T9Ui(B1), 0,T7h(B1,TR9JRARC6(B
+,TB!`(B0,TET(B1,T!$S(B0,TJQh(B1,T'(B0,T4i(B1,TGB!RCc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-g.
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x C-f, ,Ta(B0,TEi(B1,TG(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-g. 0,T9Uh(B1,T`(B0,T;g(B1,T9!RCB!`(B0,TET(B1,T!(B0,TAT(B10,T9T(B10,T:Q(B1,T?`?M(B0,TCl(B1, ,TaEP(B
+   ,TB!`(B0,TET(B1,T!$S(B0,TJQh(B1,T'(B C-x C-f 0,T7Uh(B1,T!S(B0,TEQ(B1,T'c(B0,T*i(B10,TAT(B10,T9T(B10,T:Q(B1,T?`?M(B0,TCl(B1,TM(B0,TBYh(B1. ,T<E(B0,TEQ(B1,T>(B0,T8l(B10,T$W(B1,TM(B0,T7h(B1,TR9(Pd(B0,TAh(B1,Td(B0,T4i(B1,T`(B0,TBW(B1,TM9(B
+   ,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEc4f(B.
+
+,T`(B0,TAWh(B1,TM(B0,T7h(B1,TR9d(B0,T4i(B10,T;i(B1,TM9(B0,T*Wh(B1,TMa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE`J(B0,TCg(B1,T(a(B0,TEi(B1,TG(B, ,T!4(B0,T;Xh(B1,TA(B <Return> ,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P(B0,TJTi(B1,T9(B0,TJX(B1,T4$S(B0,TJQh(B1,T'(B. ,Ta(B0,TEi(B1,TG$S(B0,TJQh(B1,T'(B
+C-x C-f 0,T!g(B1,T(P7S'R9(B, ,TaEP(P`(B0,TBW(B1,TM9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B10,T7h(B1,TR9d(B0,T4i(B1,T`(B0,TEW(B1,TM!d(B0,TGi(B1. 0,TAT(B10,T9T(B10,T:Q(B1,T?`?M(B0,TCl(B1,T(P(B
+,TKRBd;`(B0,TAWh(B1,TM`J(B0,TCg(B1,T((B0,TJTi(B1,T9$S(B0,TJQh(B1,T'(B C-x C-f.
+
+,TK(B0,TEQ(B1,T'(R!(B0,T9Qi(B1,T9d(B0,TAh(B1,T9R9`(B0,T9Wi(B1,TMKR"M'a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T!g(B1,T(P;CR!/:9K(B0,T9i(B1,TR(M(B, ,TaEP(B0,T7h(B1,TR9(B0,T!g(B1,T(PJRARC6a(B0,T!i(B1,Td"(B
+,T`(B0,T9Wi(B1,TMKRd(B0,T4i(B1. ,T`(B0,TAWh(B1,TM(B0,T7h(B1,TR9(B0,T5i(B1,TM'!RC(Pa(B0,T!i(B1,Td"(B0,T"i(B1,TM$GRAM(B0,TBh(B1,TR'6RGC(B, 0,T!g(B1,Tc(B0,TKi(B1,Tc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B
+
+	C-x C-s   Save the file
+
+,T$S(B0,TJQh(B1,T'(B0,T9Ui(B1,T(P7SJS`9R(B0,T"i(B1,TM$GRA(B0,T7Uh(B1,TM(B0,TBYh(B1,Tc9(B0,TMU(B1,TaA!(B0,TJl(B1,T`(B0,T"i(B1,TRd;`(B0,T!g(B1,T:d(B0,TGi(B1,Tc9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B. ,Tc9!RC!CP7S`(B0,T*h(B1,T9(B0,T9Ui(B1,Tc9(B
+,T$(B0,TCQi(B1,T'aC!(B0,TJX(B1,T4(B, 0,TMU(B1,TaA!(B0,TJl(B1,T(P`;(B0,TEUh(B1,TB9(B0,T*Wh(B1,TMa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T5i(B1,T9)(B0,T:Q(B1,T:`(B0,T>Wh(B1,TM(B0,TGh(B1,TR(Pd(B0,T4i(B1,T$'d(B0,TGi(B1. 0,T*Wh(B1,TMcK(B0,TAh(B10,T9Qi(B1,T9(B0,T5Qi(B1,T'(B0,T"Vi(B1,T9b4B(B
+,T!RC`(B0,T5T(B1,TA(B "~" ,T`(B0,T"i(B1,TRd;(B0,T7i(B1,TRB(B0,T*Wh(B1,TMa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T5i(B1,T9)(B0,T:Q(B1,T:(B.
+
+,T`(B0,TAWh(B1,TM7S!RC(B0,T(Q(B1,T4`(B0,T!g(B1,T:`(B0,TCU(B1,TB:(B0,TCi(B1,TMBa(B0,TEi(B1,TG(B, 0,TMU(B1,TaA!(B0,TJl(B1,T(P(B0,T>T(B1,TA(B0,T>l(B10,T*Wh(B1,TMa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T9Qi(B1,T9(B. 0,T7h(B1,TR9$GC(P(B0,T(Q(B1,T4`(B0,T!g(B1,T:(B0,T"i(B1,TM(B0,TAY(B1,TE(B
+0,T:h(B1,TMBf(B, ,T`(B0,T>Wh(B1,TM(B0,TGh(B1,TR(B0,T7h(B1,TR9(Pd(B0,T4i(B1,Td(B0,TAh(B10,T5i(B1,TM'`(B0,TJU(B1,TB'R9d;AR!(B0,T9Q(B1,T!KR!CP::`(B0,T!T(B1,T4(B0,T"Q(B1,T4(B0,T"i(B1,TM'(B.
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x C-s, ,T`(B0,T>Wh(B1,TM(B0,T(Q(B1,T4`(B0,T!g(B1,T:JS`9R(B0,T$Yh(B10,TAW(B1,TM!RCc(B0,T*i(B1,T"M'(B0,T7h(B1,TR9(B.
+   ,T(P;CR!/(B "Write ...TUTORIAL.th" 0,T7Uh(B1,T:CC(B0,T7Q(B1,T4(B0,TEh(B1,TR'(B0,TJX(B1,T4"M'K(B0,T9i(B1,TR(M(B.
+
+0,T"i(B1,TM(B0,TJQ(B1,T'`!5(B: ,Tc9:R'CP::(B, ,T!RC(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x C-s ,T(P7Sc(B0,TKi(B1,TK(B0,T9i(B1,TR(M*P(B0,T'Q(B1,T!aEP(B0,T7h(B1,TR9(Pd(B0,TAh(B1,Td(B0,T4i(B10,TCQ(B1,T:(B
+0,T"i(B1,TM$GRAc4f(B ,T(R!(B0,TMU(B1,TaA!(B0,TJl(B1. 0,T9Uh(B1,TaJ4'(B0,TGh(B1,TR(B "feature" ,T"M'CP::;(B0,T/T(B10,T:Q(B10,T5T(B1,T!RC(B0,T7Uh(B1,T`(B0,TCU(B1,TB!(B0,TGh(B1,TR(B "flow
+control" ,Td(B0,T4i(B10,T"Q(B1,T4"GR'!RC7S'R9"M'(B C-s ,TaEPd(B0,TAh(B1,T;(B0,TEh(B1,TMBc(B0,TKi(B1,T!(B0,TEQ(B1,T:(B0,TJYh(B10,TMU(B1,TaA!(B0,TJl(B10,TMU(B1,T!(B. ,Tc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-g 
+,T`(B0,T>Wh(B1,TMa(B0,T!i(B1,Td"d(B0,TAh(B1,Tc(B0,TKi(B1,TK(B0,T9i(B1,TR(M*P(B0,T'Q(B1,T!(B. ,Ta(B0,TEi(B1,TG(B0,T4Y(B1,T:7(B0,T7Uh(B10,TGh(B1,TR(B0,T4i(B1,TGB(B "Spontaneous Entry to
+Incremental Search" ,Tc9(B0,T$Yh(B10,TAW(B1,TM"M'(B0,TMU(B1,TaA!(B0,TJl(B10,T+Vh(B1,T'(Pa9P9S!RC(B0,T(Q(B1,T4!RC`(B0,T!Uh(B1,TBG(B0,T!Q(B1,T:(B "feature" 0,T9Ui(B1.
+
+0,T7h(B1,TR9JRARC6(P`(B0,TBW(B1,TM9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B10,TAU(B1,TM(B0,TBYh(B1,Ta(B0,TEi(B1,TG(B, ,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P(B0,T4Y(B1,TK(B0,TCW(B1,TMa(B0,T!i(B1,Td"(B. 0,T7h(B1,TR9JRARC6(P`(B0,TBW(B1,TM9(B
+,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B10,TBQ(B1,T'd(B0,TAh(B1,T;CR!/(B0,T!g(B1,Td(B0,T4i(B1. 0,T9Uh(B1,T`(B0,T;g(B1,T9!RCJ(B0,TCi(B1,TR'a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEcK(B0,TAh(B1,T"M'(B0,TMU(B1,TaA!(B0,TJl(B1: ,T`(B0,TBW(B1,TM9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B,
+0,T+Vh(B1,T'(P`(B0,TCTh(B1,TA(B0,T5i(B1,T9(B0,T4i(B1,TGBK(B0,T9i(B1,TR(M(B0,TGh(B1,TR'`;(B0,TEh(B1,TR(B, ,Ta(B0,TEi(B1,TG7S!RCa7C!(B0,T"i(B1,TM$GRA`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(PJ(B0,TCi(B1,TR'`(B0,T;g(B1,T9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T5h(B1,TMd;(B. 
+,T`(B0,TAWh(B1,TM(B0,T7h(B1,TR9(B0,TJQh(B1,T'c(B0,TKi(B1 "0,T(Q(B1,T4`(B0,T!g(B1,T:(B (save)" ,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B, 0,TMU(B1,TaA!(B0,TJl(B10,T(V(B1,T'(PJ(B0,TCi(B1,TR'a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T4i(B1,TGB(B0,T"i(B1,TM$GRA(B0,T7Uh(B1
+0,T7h(B1,TR9d(B0,T4i(B10,T;i(B1,TM9`(B0,T"i(B1,TRd;(B. ,T(R!(B0,T9Ui(B1,Td;(B, 0,T7h(B1,TR9JRARC6(P(B0,T5Q(B1,T4(B0,TJT(B1,T9c(EM'a(B0,T!i(B1,Td"a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B10,TAU(B1,TM(B0,TBYh(B1,Ta(B0,TEi(B1,TGd(B0,T4i(B1.
+
+
+* 0,T:Q(B1,T?`?M(B0,TCl(B1 (buffer)
+-----------------
+
+0,T6i(B1,TR(B0,T7h(B1,TR9`(B0,TBW(B1,TM9(B0,TMU(B1,T!a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEb4Bc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-x C-f, ,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEaC!(P(B0,TBQ(B1,T'$'M(B0,TBYh(B1,Tc9(B0,TMU(B1,TaA!(B0,TJl(B1. 0,T7h(B1,TR9(B
+,TJRARC6(PJ(B0,TEQ(B1,T:!(B0,TEQ(B1,T:d;d(B0,T4i(B10,TMU(B1,T!b4Bc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-x C-f. 0,TGT(B10,T8U(B10,T9Ui(B1,T(P7Sc(B0,TKi(B10,T7h(B1,TR9JRARC6`(B0,TBW(B1,TM9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B
+,T@RBc9(B0,TMU(B1,TaA!(B0,TJl(B1,Td(B0,T4i(B1,T(S9G9K(B0,T9Vh(B1,T'(B.
+
+>> ,TJ(B0,TCi(B1,TR'a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEaEPc(B0,TKi(B10,T*Wh(B1,TM(B0,TGh(B1,TR(B "foo" ,Tb4B!RC(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x C-f foo <Return>.
+   ,Ta(B0,TEi(B1,TG(B0,T;i(B1,TM9(B0,T"i(B1,TM$GRA(B, ,Ta(B0,T!i(B1,Td"(B, ,TaEP(B0,T(Q(B1,T4`(B0,T!g(B1,T:(B "foo" ,Tb4B!RC(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x C-s.
+   0,TJX(B1,T4(B0,T7i(B1,TRB(B, 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x C-f TUTORIAL <Return> ,T`(B0,T>Wh(B1,TM(Pd(B0,T4i(B10,TBi(B1,TM9!(B0,TEQ(B1,T:AR(B0,T7Uh(B10,T"i(B1,TM$GRA(B
+   ,T"M'(B0,T$Yh(B10,TAW(B1,TM!RCc(B0,T*i(B1.
+
+0,TMU(B1,TaA!(B0,TJl(B1,T`(B0,T!g(B1,T:(B0,T"i(B1,TM$GRA"M'a(B0,T5h(B1,TEPa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE@RBc9(B0,TJTh(B1,T'f(B (object) ,TK(B0,T9Vh(B1,T'(B, 0,T+Vh(B1,T'`(B0,TCU(B1,TB!(B0,TGh(B1,TR(B "0,T:Q(B1,T?`?M(B0,TCl(B1
+(buffer)". ,T!RC`(B0,TBW(B1,TM9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE`(B0,T;g(B1,T9!RCJ(B0,TCi(B1,TR'(B0,T:Q(B1,T?`?M(B0,TCl(B1,TcK(B0,TAh(B1,T@RBc9(B0,TMU(B1,TaA!(B0,TJl(B1. ,Tc9!RC(B0,T7Uh(B1,T(P(B0,T4Y(B1
+,TCRB!RC"M'(B0,T:Q(B1,T?`?M(B0,TCl(B10,T7Uh(B10,TAU(B1,TM(B0,TBYh(B1,Tc9(B0,TMU(B1,TaA!(B0,TJl(B10,T9Qi(B1,T9(B, ,Tc(B0,TKi(B10,T;i(B1,TM9$S(B0,TJQh(B1,T'(B:
+
+	C-x C-b   List buffers
+
+>> ,TEM'(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x C-b 0,T4Y(B1.
+
+0,T4Y(B10,TGh(B1,TRa(B0,T5h(B1,TEP(B0,T:Q(B1,T?`?M(B0,TCl(B10,TAU(B10,T*Wh(B1,TM(B0,TGh(B1,TRMPdC(B, ,TaEP:R'(B0,TMQ(B1,T9(B0,T!g(B1,T`(B0,T;g(B1,T9(B0,T*Wh(B1,TM"M'a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B10,TAU(B1,T`(B0,T9Wi(B1,TMKR(B0,T9Qi(B1,T9f(B ,TM(B0,TBYh(B1. ,T:R'(B
+0,T:Q(B1,T?`?M(B0,TCl(B1,Td(B0,TAh(B1,Td(B0,T4i(B1,T`(B0,T!Uh(B1,TBG(B0,T"i(B1,TM'(B0,T!Q(B1,T:a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B. 0,T5Q(B1,TGM(B0,TBh(B1,TR'`(B0,T*h(B1,T9(B, 0,T:Q(B1,T?`?M(B0,TCl(B10,T7Uh(B10,TAU(B10,T*Wh(B1,TM(B0,TGh(B1,TR(B "*Buffer List*"
+,Td(B0,TAh(B10,TAU(B1,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEc4f(B 0,T7Qi(B1,T'(B0,TJTi(B1,T9(B. 0,T9Uh(B1,T`(B0,T;g(B1,T9(B0,T:Q(B1,T?`?M(B0,TCl(B10,T+Vh(B1,T':CC(B0,T(X(B1,T`(B0,T9Wi(B1,TMKR"M'CRB!RC"M'(B0,T:Q(B1,T?`?M(B0,TCl(B10,T7Uh(B10,T6Y(B1,T!J(B0,TCi(B1,TR'(B
+0,T4i(B1,TGB$S(B0,TJQh(B1,T'(B C-x C-b. 0,T"i(B1,TM$GRAc4f(B 0,T7Uh(B10,T7h(B1,TR9`(B0,TKg(B1,T9:9K(B0,T9i(B1,TR(M"M'(B0,TMU(B1,TaA!(B0,TJl(B1,T(P;CR!/M(B0,TBYh(B1,T`(B0,T;g(B1,T9(B0,TJh(B1,TG9K(B0,T9Vh(B1,T'(B
+,T"M'(B0,T:Q(B1,T?`?M(B0,TCl(B1,Tc4(B0,T:Q(B1,T?`?M(B0,TCl(B1,TK(B0,T9Vh(B1,T'`JAM(B.
+
+>> ,TEM'c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-x 1 ,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P!S(B0,T(Q(B1,T4CRB!RC"M'(B0,T:Q(B1,T?`?M(B0,TCl(B1.
+
+0,T6i(B1,TR(B0,T7h(B1,TR9a(B0,T!i(B1,Td"(B0,T"i(B1,TM$GRAc9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEK(B0,T9Vh(B1,T'(B, ,Ta(B0,TEi(B1,TG`(B0,TBW(B1,TM9(B0,TMU(B1,T!a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEK(B0,T9Vh(B1,T'(B, 0,TMU(B1,TaA!(B0,TJl(B10,TBQ(B1,T'd(B0,TAh(B1,Td(B0,T4i(B10,T(Q(B1,T4`(B0,T!g(B1,T:(B
+0,T"i(B1,TM$GRA"M'a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEaC!(B. 0,T"i(B1,TM$GRA(B0,T7Uh(B10,T6Y(B1,T!a(B0,T!i(B1,Td"d;(P(B0,TBQ(B1,T'$'M(B0,TBYh(B1,Tc9(B0,TMU(B1,TaA!(B0,TJl(B1, ,Tc9(B0,T:Q(B1,T?`?M(B0,TCl(B1,TJSK(B0,TCQ(B1,T:(B
+,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T9Qi(B1,T9(B. ,T!RCJ(B0,TCi(B1,TR'K(B0,TCW(B1,TM!RCa(B0,T!i(B1,Td""M'(B0,T:Q(B1,T?`?M(B0,TCl(B1,TJSK(B0,TCQ(B1,T:a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B1,TJM'd(B0,TAh(B1,Td(B0,T4i(B10,TAU(B1,T<E(B0,T5h(B1,TM(B
+0,T:Q(B1,T?`?M(B0,TCl(B1,TJSK(B0,TCQ(B1,T:a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B1,TK(B0,T9Vh(B1,T'(B. 0,T9Uh(B1,T`(B0,T;g(B1,T9(B0,TJTh(B1,T'(B0,T7Uh(B10,TAU(B1,T;CPbB*(B0,T9l(B1,TAR!(B, ,Ta(B0,T5h(B10,T!g(B1,TKARB$GRA(B0,TGh(B1,TR(P(B0,T5i(B1,TM'(B0,TAU(B1
+0,TGT(B10,T8U(B1,T!RC(B0,T7Uh(B10,T4U(B1,Tc9!RC(B0,T(Q(B1,T4`(B0,T!g(B1,T:(B0,T:Q(B1,T?`?M(B0,TCl(B1,T"M'a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEaC!(B. 0,T9Uh(B1,Td(B0,TAh(B1,Td(B0,T4i(B1,TKARB$GRA(B0,TGh(B1,TR(P(B0,T5i(B1,TM'J(B0,TEQ(B1,T:!(B0,TEQ(B1,T:d;(B
+0,TBQ(B1,T'a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEaC!(B0,T4i(B1,TGB$S(B0,TJQh(B1,T'(B C-x C-f 0,T!h(B1,TM9(B, ,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(Pd(B0,T4i(B1,Tc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-x C-s ,Tc9!RC(B0,T(Q(B1,T4`(B0,T!g(B1,T:(B. 
+0,T4Q(B1,T'(B0,T9Qi(B1,T9`CR(B0,T(V(B1,T'`5(B0,TCU(B1,TBA$S(B0,TJQh(B1,T'(B
+
+	C-x s     Save some buffers
+
+,T$S(B0,TJQh(B1,T'(B C-x s ,T(P6RA(B0,T7h(B1,TR9`(B0,T!Uh(B1,TBG(B0,T!Q(B1,T:(B0,T:Q(B1,T?`?M(B0,TCl(B10,T7Uh(B1,Td(B0,T4i(B10,TCQ(B1,T:!RCa(B0,T!i(B1,Td"a(B0,T5h(B10,TBQ(B1,T'd(B0,TAh(B1,Td(B0,T4i(B10,TCQ(B1,T:!RC(B0,T(Q(B1,T4`(B0,T!g(B1,T:(B. 0,TMU(B1
+,TaA!(B0,TJl(B1,T(P6RA(B0,T7h(B1,TR9(B, ,TJSK(B0,TCQ(B1,T:a(B0,T5h(B1,TEP(B0,T:Q(B1,T?`?M(B0,TCl(B10,T4Q(B1,T'!(B0,TEh(B1,TRG(B, 0,TGh(B1,TR(P(B0,T(Q(B1,T4`(B0,T!g(B1,T:K(B0,TCW(B1,TMd(B0,TAh(B1.
+
+>> ,Ta7C!(B0,T"i(B1,TM$GRA(B0,TJQ(B1,T!K(B0,T9Vh(B1,T':CC(B0,T7Q(B1,T4(B, ,Ta(B0,TEi(B1,TG(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x s.
+   0,TMU(B1,TaA!(B0,TJl(B1,T(P6RA(B0,T7h(B1,TR9(B0,TGh(B1,TR(P(B0,T(Q(B1,T4`(B0,T!g(B1,T:(B0,T:Q(B1,T?`?M(B0,TCl(B10,T*Wh(B1,TM(B TUTORIAL ,TdKA(B.
+   ,T5M:(B0,TGh(B1,TRc(B0,T*h(B1,Tb4B!RC(B0,T;i(B1,TM9(B "y".
+
+
+* ,T!RC`(B0,T>Th(B1,TA(B0,T*X(B1,T4$S(B0,TJQh(B1,T'(B
+--------------
+
+0,TAU(B1,T$S(B0,TJQh(B1,T'"M'(B0,TMU(B1,TaA!(B0,TJl(B1,TM(B0,TBYh(B10,TMU(B1,T!AR!ARB(9`(B0,T!T(B1,T9!(B0,TGh(B1,TR(B0,T7Uh(B1,T(PJRARC6!S(B0,T!Q(B1,T:d(B0,T4i(B10,T4i(B1,TGB(B0,TMQ(B1,T!"CP;CPJA(B0,T!Q(B1,T:(B0,TMQ(B1,T!"CP(B
+,T$M9b7CE(B (control character) ,TaEPM(B0,T@T(B10,TMQ(B1,T!"CP(B (meta character). 0,TMU(B1,TaA!(B0,TJl(B1,Tc(B0,T*i(B1,T!RC(B
+,T;CPJA(B0,T!Q(B1,T:$S(B0,TJQh(B1,T'`J(B0,TCT(B1,TA(B (eXtend command). ,T!RC`J(B0,TCT(B1,TA(B0,T9Ui(B1,T`(B0,T;g(B1,T9d;d(B0,T4i(B1,TJM'(B0,TEQ(B1,T!I3P(B:
+
+	C-x	,T!RC`J(B0,TCT(B1,TA(B0,TMQ(B1,T!"CP(B (Character eXtend). ,T5RA(B0,T4i(B1,TGBK(B0,T9Vh(B1,T'(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B.
+	M-x	,T!RC`J(B0,TCT(B1,TA(B0,T4i(B1,TGB(B0,T*Wh(B1,TM$S(B0,TJQh(B1,T'(B (Named command eXtend). ,T5RA(B0,T4i(B1,TGB(B0,T*Wh(B1,TM`(B0,T5g(B1,TA(B.
+
+,T$S(B0,TJQh(B1,T'`K(B0,TEh(B1,TR(B0,T9Ui(B1,Tb4B(B0,T7Qh(B1,TGd;a(B0,TEi(B1,TG(P(B0,TAU(B1,T;CPbB*(B0,T9l(B1, ,Ta(B0,T5h(B10,TAQ(B1,T!(P(B0,TAU(B1,TbM!RJc(B0,T*i(B10,T9i(B1,TMB!(B0,TGh(B1,TR$S(B0,TJQh(B1,T'(B0,T5h(B1,TR'f(B 0,T7Uh(B10,T7h(B1,TR9d(B0,T4i(B1
+,T`(B0,TCU(B1,TB9(B0,TCYi(B1,Td;a(B0,TEi(B1,TG(B. 0,T7h(B1,TR9d(B0,T4i(B1,T>:d;a(B0,TEi(B1,TGJM'$S(B0,TJQh(B1,T'(B: ,T$S(B0,TJQh(B1,T'JSK(B0,TCQ(B1,T:!RC(B0,T(Q(B1,T4!RC(B0,T!Q(B1,T:a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B C-x C-f
+,TJSK(B0,TCQ(B1,T:!RC`(B0,TBW(B1,TM9(B (Find) ,TaEP(B C-x C-s ,TJSK(B0,TCQ(B1,T:!RC(B0,T(Q(B1,T4`(B0,T!g(B1,T:(B (Save). 0,TMU(B1,T!(B0,T5Q(B1,TGM(B0,TBh(B1,TR'K(B0,T9Vh(B1,T'(B0,T!g(B1
+0,T$W(B1,TM$S(B0,TJQh(B1,T'(B0,T7Uh(B1,Tc(B0,T*i(B1,Tc9!RC`(B0,TET(B1,T!c(B0,T*i(B10,TMU(B1,TaA!(B0,TJl(B1--,T$S(B0,TJQh(B1,T'(B C-x C-c. (,Td(B0,TAh(B10,T5i(B1,TM'`(B0,T;g(B1,T9(B0,TKh(B1,TG'(B0,TGh(B1,TR(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B10,T7h(B1,TR9d(B0,T4i(B1
+,Ta(B0,T!i(B1,Td"d;(P(B0,TJY(B1,T-KRB(B; ,T$S(B0,TJQh(B1,T'(B C-x C-c ,T(P`J9Mc(B0,TKi(B10,T(Q(B1,T4`(B0,T!g(B1,T:a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B10,T6Y(B1,T!a(B0,T!i(B1,Td"d;(B0,T!h(B1,TM9(B0,T7Uh(B1,T(P(B0,TJTi(B1,T9(B0,TJX(B1,T4(B
+0,TMU(B1,TaA!(B0,TJl(B1.)
+
+,T$S(B0,TJQh(B1,T'(B C-z ,T`(B0,T;g(B1,T9$S(B0,TJQh(B1,T'(B0,T7Uh(B1,Tc(B0,T*i(B1,Tc9!RCMM!(R!(B0,TMU(B1,TaA!(B0,TJl(B1,T`(B0,T;g(B1,T9!RC(B0,T*Qh(B1,TG$CRG(B *temporarily*--,T)P(B0,T9Qi(B1,T9(B
+0,T7h(B1,TR9JRARC6!(B0,TEQ(B1,T:d;(B0,TJYh(B10,TMU(B1,TaA!(B0,TJl(B1,Td(B0,T4i(B10,TMU(B1,T!K(B0,TEQ(B1,T'(R!(B0,T9Qi(B1,T9(B.
+
+,TJSK(B0,TCQ(B1,T:CP::(B0,T7Uh(B1,TM(B0,T9X(B1,T-R5c(B0,TKi(B1,Tc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B, C-z "suspends" 0,TMU(B1,TaA!(B0,TJl(B1; 0,T9Qh(B1,T9(B0,T$W(B1,TM!RC!(B0,TEQ(B1,T:d;(B0,TBQ(B1,T'`*E(B0,TEl(B1
+(shell) ,Tb4Bd(B0,TAh(B1,Td(B0,T4i(B1,T7SERB(B0,TMU(B1,TaA!(B0,TJl(B1. ,Tc9`*E(B0,TEl(B10,T7Qh(B1,TGd;(B, 0,T7h(B1,TR9JRARC6(B0,TCU(B10,T+Y(B1,TA(B (resume) 0,TMU(B1,TaA!(B0,TJl(B1
+,Td(B0,T4i(B10,T4i(B1,TGB$S(B0,TJQh(B1,T'(B `fg' ,TK(B0,TCW(B1,TM(B0,T4i(B1,TGB$S(B0,TJQh(B1,T'(B `%emacs'.
+
+,TJSK(B0,TCQ(B1,T:CP::(B0,T7Uh(B1,Td(B0,TAh(B10,TAU(B10,T?Q(B1,T'(B0,T!l(B10,T*Q(B1,T9(B "suspend", ,T$S(B0,TJQh(B1,T'(B C-z ,T(PJ(B0,TCi(B1,TR'(B0,T+Q(B1,T:`*E(B0,TEl(B1 (subshell)
+,T@RBc(B0,T5i(B10,TMU(B1,TaA!(B0,TJl(B1,T`(B0,T>Wh(B1,TMc(B0,TKi(B10,T7h(B1,TR9(B0,TAU(B1,TbM!RJ4S`(B0,T9T(B1,T9'R9b;Ca!CA(B0,TMWh(B1,T9(B0,T!h(B1,TM9a(B0,TEi(B1,TG(B0,T$h(B1,TMB!(B0,TEQ(B1,T:AR(B0,TBQ(B1,T'(B0,TMU(B1,TaA!(B0,TJl(B10,TMU(B1,T!$(B0,TCQi(B1,T'(B;
+0,T+Vh(B1,T'd(B0,TAh(B1,Tc(B0,T*h(B1,T!RC(B ",TMM!(R!(B (exit)" 0,TMU(B1,TaA!(B0,TJl(B1,T((B0,TCT(B1,T'(B. ,Tc9!C(B0,T3U(B10,T9Ui(B1, ,T$S(B0,TJQh(B1,T'`*E(B0,TEl(B1 `exit' ,T`(B0,T;g(B1,T9$S(B0,TJQh(B1,T'(B
+,T;C!(B0,T5T(B10,T7Uh(B1,Tc(B0,T*i(B1,Tc9!RC!(B0,TEQ(B1,T:d;(B0,TBQ(B1,T'(B0,TMU(B1,TaA!(B0,TJl(B1,T(R!(B0,T+Q(B1,T:`*E(B0,TEl(B1.
+
+,Tc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-x C-c 0,T!g(B10,T5h(B1,TM`(B0,TAWh(B1,TM(B0,T7h(B1,TR9(B0,T5i(B1,TM'!RC(P`(B0,TET(B1,T!c(B0,T*i(B10,TMU(B1,TaA!(B0,TJl(B1,T((B0,TCT(B1,T'f(B. 0,TGT(B10,T8U(B10,T9Ui(B1,T`(B0,T;g(B1,T9(B0,TGT(B10,T8U(B10,T7Uh(B10,T6Y(B1,T!(B0,T5i(B1,TM'c9(B
+,T!RC(B0,T7Uh(B1,T(P`(B0,TET(B1,T!c(B0,T*i(B10,TMU(B1,TaA!(B0,TJl(B1, ,Td(B0,TAh(B10,TGh(B1,TR(B0,TMU(B1,TaA!(B0,TJl(B10,T9Qi(B1,T9(P(B0,T6Y(B1,T!`(B0,TCU(B1,TB!c(B0,T*i(B1,T(R!b;Ca!CA(B0,T(Q(B1,T4!RC`AE(B0,TEl(B1 (mail
+handling programs) ,TK(B0,TCW(B1,TMb;Ca!CAMCC6;CPbB*(B0,T9l(B1 (utility programs) 0,T5h(B1,TR'f(B, 
+,T`(B0,T9Wh(B1,TM'(R!(B0,TGh(B1,TRb;Ca!CA`K(B0,TEh(B1,TR(B0,T9Ui(B1,Td(B0,TAh(B10,TAU(B10,TGT(B10,T8U(B1,T!RC(B0,T(Q(B1,T4!RC(B0,T!Q(B1,T:(B0,TMU(B1,TaA!(B0,TJl(B1,Td(B0,T4i(B1,Tb4B5C'(B. ,Tc9J@R>!RC7S'R9(B
+,T;C!(B0,T5T(B1, 0,T6i(B1,TR(B0,T7h(B1,TR9d(B0,TAh(B1,Td(B0,T4i(B10,T5i(B1,TM'!RC(P`(B0,TET(B1,T!c(B0,T*i(B10,TMU(B1,TaA!(B0,TJl(B1,T((B0,TCT(B1,T'f(B, 0,T7h(B1,TR9(B0,T!g(B1,T$GC(P(B suspend ,Tb4B!RCc(B0,T*i(B1
+,T$S(B0,TJQh(B1,T'(B C-z ,Ta79!RC`(B0,TET(B1,T!c(B0,T*i(B1,Td;`EB(B.
+
+0,TBQ(B1,T'(B0,TAU(B1,T$S(B0,TJQh(B1,T'(B0,T7Uh(B1,TM(B0,TBYh(B1,Tc9(B0,T*X(B1,T4$S(B0,TJQh(B1,T'(B C-x 0,TMU(B1,T!AR!(B. 0,T5h(B1,TMd;(B0,T9Ui(B1,T`(B0,T;g(B1,T9CRB!RC$S(B0,TJQh(B1,T'(B0,T7Uh(B10,T7h(B1,TR9d(B0,T4i(B1,T`(B0,TCU(B1,TB9(B0,TCYi(B1,Td;a(B0,TEi(B1,TG(B:
+
+	C-x C-f 	,T`(B0,TBW(B1,TM9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B (Find file).
+	C-x C-s		0,T(Q(B1,T4`(B0,T!g(B1,T:a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B (Save file).
+	C-x C-b		,T7SCRB!RC(B0,T:Q(B1,T?`?M(B0,TCl(B1 (List buffers).
+	C-x C-c		,T`(B0,TET(B1,T!c(B0,T*i(B10,TMU(B1,TaA!(B0,TJl(B1 (Quit Emacs).
+	C-x 1		,TE:K(B0,T9i(B1,TR(M(B0,T7Qi(B1,T'KA4b4B$'M(B0,TBYh(B1,Td(B0,TGi(B1,TK(B0,T9Vh(B1,T'K(B0,T9i(B1,TR(M(B 
+			(Delete all but one window).
+	C-x u		,T7S(B0,TBi(B1,TM9(B (Undo).
+
+,T$S(B0,TJQh(B1,T'(B0,T7Uh(B10,TAU(B10,T*Wh(B1,TM$S(B0,TJQh(B1,T'`J(B0,TCT(B1,TA(B0,T9Ui(B1,T`(B0,T;g(B1,T9$S(B0,TJQh(B1,T'(B0,T7Uh(B1,Tc(B0,T*i(B1,Td(B0,TAh(B10,T$h(B1,TMB(B0,T:h(B1,TMB(B0,T9Q(B1,T!(B, ,TK(B0,TCW(B1,TM`(B0,T;g(B1,T9$S(B0,TJQh(B1,T'(B0,T7Uh(B1,Tc(B0,T*i(B1,T`)>RPc9:R'bKA4(B
+,T`(B0,T7h(B1,TR(B0,T9Qi(B1,T9(B. 0,T5Q(B1,TGM(B0,TBh(B1,TR'K(B0,T9Vh(B1,T'"M'$S(B0,TJQh(B1,T'(B0,T9Ui(B10,T$W(B1,TM$S(B0,TJQh(B1,T'`;(B0,TEUh(B1,TB9a79(B-,TJRB(B0,TMQ(B1,T!"CP(B (replace-string),
+0,T+Vh(B1,T'`(B0,T;g(B1,T9!RC`;(B0,TEUh(B1,TB9a79JRB(B0,TMQ(B1,T!"CPK(B0,T9Vh(B1,T'(B0,T4i(B1,TGB(B0,TMU(B1,T!JRB(B0,TMQ(B1,T!"CPK(B0,T9Vh(B1,T'(B0,T7Qi(B1,T'KA4(B. ,T`(B0,TAWh(B1,TM(B0,T7h(B1,TR9(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B M-x,
+0,TMU(B1,TaA!(B0,TJl(B1,TaJ4'(B M-x 0,T7Uh(B1,T:CC(B0,T7Q(B1,T4(B0,TEh(B1,TR'(B0,TJX(B1,T4"M'K(B0,T9i(B1,TR(M(B, ,Tc9(B0,T7Uh(B10,T9Ui(B10,T7h(B1,TR9(P(B0,T5i(B1,TM'(B0,T>T(B1,TA(B0,T>l(B10,T*Wh(B1,TM"M'$S(B0,TJQh(B1,T'(B; ,Tc9!C(B0,T3U(B10,T9Ui(B1
+0,T$W(B1,TM(B "replace-string". 0,T7h(B1,TR9MR((P(B0,T>T(B1,TA(B0,T>l(B1 "repl s<TAB>" ,Ta(B0,TEi(B1,TG(B0,TMU(B1,TaA!(B0,TJl(B1,T(P`(B0,T5T(B1,TA(B0,T*Wh(B1,TM$S(B0,TJQh(B1,T'c(B0,TKi(B1
+,T`(B0,T5g(B1,TA`M'd(B0,T4i(B1. 0,TJTi(B1,T9(B0,TJX(B1,T4$S(B0,TJQh(B1,T'(B0,T4i(B1,TGB!RC!4(B0,T;Xh(B1,TA(B <Return>.
+
+,T$S(B0,TJQh(B1,T'`;(B0,TEUh(B1,TB9a79(B-,TJRB(B0,TMQ(B1,T!"CP(B (replace-string) 0,T5i(B1,TM'!RCJM'MR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B1--,TJRB(B0,TMQ(B1,T!"CP(B
+0,T7Uh(B1,T(P(B0,T6Y(B1,T!`;(B0,TEUh(B1,TB9a79(B, ,TaEPJRB(B0,TMQ(B1,T!"CP(B0,T7Uh(B1,T(Pc(B0,T*i(B1,T`;(B0,TEUh(B1,TB9a79(B. 0,T7h(B1,TR9(P(B0,T5i(B1,TM'(B0,TJTi(B1,T9(B0,TJX(B1,T4!RC(B0,T;i(B1,TM9a(B0,T5h(B1,TEPMR(B0,TCl(B1
+0,T!T(B1,TG`A9(B0,T5l(B10,T4i(B1,TGB!RC!4(B0,T;Xh(B1,TA(B <Return>.
+
+>> ,T`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,Td;(B0,TBQ(B1,T':CC(B0,T7Q(B1,T4`;(B0,TEh(B1,TR(B0,T7Uh(B1,TM(B0,TBYh(B1,Tc(B0,T5i(B1,T:CC(B0,T7Q(B1,T4(B0,T9Ui(B1,Td;JM':CC(B0,T7Q(B1,T4(B.
+   ,Ta(B0,TEi(B1,TG(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B M-x repl s<Return>changed<Return>altered<Return>.
+
+   0,TJQ(B1,T'`!5(B0,T4Y(B1,T!RC`;(B0,TEUh(B1,TB9a;E'"M':CC(B0,T7Q(B1,T4(B0,T9Ui(B1: 0,T7h(B1,TR9d(B0,T4i(B1,T`;(B0,TEUh(B1,TB9a79$S(B0,TGh(B1,TR(B c-h-a-n-g-e-d
+   0,T4i(B1,TGB$S(B0,TGh(B1,TR(B "altered" ,Tc9(B0,T7X(B1,T!(B0,T7Uh(B10,T7Uh(B1,T;CR!/(B0,T5Qi(B1,T'a(B0,T5h(B1,T5SaK(B0,T9h(B1,T'(B0,T7Uh(B1,T`$M(B0,TCl(B1,T`+M(B0,TCl(B1,TM(B0,TBYh(B10,T;Q(B1,T((B0,T(X(B10,T:Q(B1,T9(B.
+
+
+* 0,T(Q(B1,T4`(B0,T!g(B1,T:(B0,TMQ(B1,T5b9(B0,TAQ(B10,T5T(B1 (auto save)
+-------------------------
+
+,T`(B0,TAWh(B1,TM(B0,T7h(B1,TR9d(B0,T4i(B1,Ta(B0,T!i(B1,Td"a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEa(B0,TEi(B1,TG(B, ,Ta(B0,T5h(B10,T7h(B1,TR9(B0,TBQ(B1,T'd(B0,TAh(B1,Td(B0,T4i(B10,T(Q(B1,T4`(B0,T!g(B1,T:(B, ,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE`K(B0,TEh(B1,TR(B0,T9Qi(B1,T9MR((B0,TJY(B1,T-KRBd(B0,T4i(B10,T6i(B1,TR(B
+,T`$(B0,TCWh(B1,TM'$MA(B0,T>T(B1,TG`5M(B0,TCl(B1,T"M'(B0,T7h(B1,TR9`(B0,T!T(B1,T4(B0,T"Q(B1,T4(B0,T"i(B1,TM'(B. ,T`(B0,T>Wh(B1,TM(B0,T;i(B1,TM'(B0,T!Q(B1,T9`K(B0,T5X(B1,T!RC(B0,T3l(B1,T`(B0,T*h(B1,T9(B0,T9Ui(B1, 0,TMU(B1,TaA!(B0,TJl(B1,T7S!RC`(B0,T"U(B1,TB9(B
+0,T"i(B1,TM$GRAJSK(B0,TCQ(B1,T:a(B0,T5h(B1,TEPa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B10,T7h(B1,TR9!S(B0,TEQ(B1,T'7S!RCa(B0,T!i(B1,Td"M(B0,TBYh(B1,TE'c9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B "0,T(Q(B1,T4`(B0,T!g(B1,T:(B0,TMQ(B1,T5b9(B0,TAQ(B10,T5T(B1 
+(auto save)". 0,T*Wh(B1,TM"M'a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T(Q(B1,T4`(B0,T!g(B1,T:(B0,TMQ(B1,T5b9(B0,TAQ(B10,T5T(B1 (auto save file) ,T(P(B0,T6Y(B1,T!(B0,T5Qi(B1,T'cK(B0,TAh(B1,Tc(B0,TKi(B1
+0,TAU(B10,TMQ(B1,T!"CP(B "#" ,TM(B0,TBYh(B10,T7Qi(B1,T'(B0,T"i(B1,TR'K(B0,T9i(B1,TRaEP(B0,T"i(B1,TR'K(B0,TEQ(B1,T'(B0,T*Wh(B1,TMa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T5i(B1,T9)(B0,T:Q(B1,T:(B; 0,T5Q(B1,TGM(B0,TBh(B1,TR'`(B0,T*h(B1,T9(B, 0,T6i(B1,TR(B0,T*Wh(B1,TM"M'(B
+,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T9Qi(B1,T9`(B0,T;g(B1,T9(B "hello.c", 0,T*Wh(B1,TM"M'a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T(Q(B1,T4`(B0,T!g(B1,T:(B0,TMQ(B1,T5b9(B0,TAQ(B10,T5T(B1,T(P`(B0,T;g(B1,T9(B "#hello.c#". 
+,T`(B0,TAWh(B1,TM(B0,T7h(B1,TR97S!RC(B0,T(Q(B1,T4`(B0,T!g(B1,T:a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T4i(B1,TGB(B0,TGT(B10,T8U(B1,T!RC;C!(B0,T5T(B1,Ta(B0,TEi(B1,TG(B, 0,TMU(B1,TaA!(B0,TJl(B1,T(PE:a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T(Q(B1,T4`(B0,T!g(B1,T:(B0,TMQ(B1,T5b9(B0,TAQ(B10,T5T(B1
+0,T9Qi(B1,T9`(B0,TJU(B1,TB(B.
+
+0,T6i(B1,TR`$(B0,TCWh(B1,TM'$MA(B0,T>T(B1,TG`5M(B0,TCl(B1,T`(B0,T!T(B1,T4(B0,T"Q(B1,T4(B0,T"i(B1,TM'(B, 0,T7h(B1,TR9JRARC6(B0,T!Yi(B1 (recover) ,T(R!a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T(Q(B1,T4`(B0,T!g(B1,T:(B
+0,TMQ(B1,T5b9(B0,TAQ(B10,T5T(B10,T9Qi(B1,T9d(B0,T4i(B10,T4i(B1,TGB!RC`(B0,TBW(B1,TM9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEa::;C!(B0,T5T(B1 (,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B10,T7h(B1,TR9!S(B0,TEQ(B1,T'a(B0,T!i(B1,Td"M(B0,TBYh(B1, ,Td(B0,TAh(B1,Tc(B0,T*h(B1
+,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T(Q(B1,T4`(B0,T!g(B1,T:(B0,TMQ(B1,T5b9(B0,TAQ(B10,T5T(B1), ,Ta(B0,TEi(B1,TG(B0,T>T(B1,TA(B0,T>l(B1,T$S(B0,TJQh(B1,T'(B M-x recover file<Return>. ,T`(B0,TAWh(B1,TM(B0,TAU(B1,T!RC(B
+,T6RA`(B0,T>Wh(B1,TM!RC(B0,TBW(B1,T9(B0,TBQ(B1,T9(B, 0,T>T(B1,TA(B0,T>l(B1,T$S(B0,TGh(B1,TR(B yes<Return> ,T`(B0,T>Wh(B1,TM4S`(B0,T9T(B1,T9!RC(B0,T5h(B1,TMaEP7S!RC(B0,T!Yi(B10,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B10,T6Y(B1,T!(B
+0,T(Q(B1,T4`(B0,T!g(B1,T:(B0,TMQ(B1,T5b9(B0,TAQ(B10,T5T(B10,T9Qi(B1,T9(B.
+
+
+* ,T:(B0,TCT(B1,T`G3JP(B0,T7i(B1,TM9(B (echo area)
+------------------------
+
+0,TMU(B1,TaA!(B0,TJl(B10,TMh(B1,TR9$S(B0,TJQh(B1,T';CPJA(B (multicharacter command) ,T"3P(B0,T7Uh(B10,T7h(B1,TR9!S(B0,TEQ(B1,T'(B0,T>T(B1,TA(B0,T>l(B1,T`(B0,T"i(B1,TRd;(B0,T*i(B1,TRf(B,
+0,TMU(B1,TaA!(B0,TJl(B1,T(PaJ4'$S(B0,TJQh(B1,T'(B0,T5h(B1,TR'f(B 0,T7Uh(B10,T7h(B1,TR9d(B0,T4i(B10,T>T(B1,TA(B0,T>l(B1,T`(B0,T"i(B1,TRd;5C'(B0,TJh(B1,TG9(B0,TEh(B1,TR'"M'K(B0,T9i(B1,TR(M5C':(B0,TCT(B1,T`G3(B0,T7Uh(B1,T`(B0,TCU(B1,TB!(B0,TGh(B1,TR(B
+",T:(B0,TCT(B1,T`G3JP(B0,T7i(B1,TM9(B (echo area)". ,T:(B0,TCT(B1,T`G3JP(B0,T7i(B1,TM9(B0,T$W(B1,TM:CC(B0,T7Q(B1,T4(B0,TEh(B1,TR'(B0,TJX(B1,T4"M'K(B0,T9i(B1,TR(M(B.
+
+
+* ,T:CC(B0,T7Q(B1,T4aJ4'bKA4(B (mode line)
+---------------------------
+
+,T:CC(B0,T7Q(B1,T4(B0,T7Uh(B1,TM(B0,TBYh(B1,T`K(B0,T9W(B1,TM:(B0,TCT(B1,T`G3JP(B0,T7i(B1,TM9(B0,T9Qi(B1,T9`(B0,TCU(B1,TB!(B0,TGh(B1,TR(B "mode line". ,T:CC(B0,T7Q(B1,T4aJ4'bKA4(PaJ4'(B
+0,T"i(B1,TM$GRA:R'M(B0,TBh(B1,TR'c9(B0,TEQ(B1,T!I3P(B:
+
+--:**  TUTORIAL          (Fundamental)--L670--58%----------------
+
+,T:CC(B0,T7Q(B1,T4(B0,T9Ui(B1,Tc(B0,TKi(B10,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B1,T`(B0,T;g(B1,T9;CPbB*(B0,T9l(B1,T`(B0,T!Uh(B1,TBG(B0,T!Q(B1,T:J6R9@R>"M'(B0,TMU(B1,TaA!(B0,TJl(B1,TaEP(B0,T"i(B1,TM$GRA(B0,T7Uh(B10,T7h(B1,TR9!S(B0,TEQ(B1,T'7S!RC(B
+,Ta(B0,T!i(B1,Td"M(B0,TBYh(B1.
+
+0,T7h(B1,TR97CR:a(B0,TEi(B1,TG(B0,TGh(B1,TR(B0,T*Wh(B1,TMa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,TAU(B1,T$GRAKARBM(B0,TBh(B1,TR'dC(B--0,T$W(B1,TMa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B10,T7h(B1,TR9d(B0,T4i(B1,T`(B0,TBW(B1,TM9M(B0,TBYh(B1. -NN%-- 
+0,T:h(B1,T':M!5SaK(B0,T9h(B1,T'(B0,T;Q(B1,T((B0,T(X(B10,T:Q(B1,T9c9(B0,T"i(B1,TM$GRA"M'(B0,T7h(B1,TR9(B; 0,T9Qh(B1,T9KARB$GRA(B0,TGh(B1,TR(B0,TAU(B10,T"i(B1,TM$GRA(B NN ,T`;M(B0,TCl(B1,T`+9(B0,T5l(B10,T7Uh(B1,TM(B0,TBYh(B1
+,T`K(B0,T9W(B1,TM5SaK(B0,T9h(B1,T'(B0,TJY(B1,T'(B0,TJX(B1,T4"M'K(B0,T9i(B1,TR(M(B. 0,T6i(B1,TR5SaK(B0,T9h(B1,T'(B0,TJY(B1,T'(B0,TJX(B1,T4"M'a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEM(B0,TBYh(B1,T:9K(B0,T9i(B1,TR(M(B, ,T(P;CR!/(B
+--Top-- ,Ta79(B0,T7Uh(B1,T(P`(B0,T;g(B1,T9(B --00%--. 0,T6i(B1,TR5SaK(B0,T9h(B1,T'(B0,TEh(B1,TR'(B0,TJX(B1,T4"M'(B0,T"i(B1,TM$GRAM(B0,TBYh(B1,T:9K(B0,T9i(B1,TR(M(B, ,T(P;CR!/(B
+--Bot--. 0,T6i(B1,TR(B0,T7h(B1,TR9!S(B0,TEQ(B1,T'`(B0,TBW(B1,TM9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B1,T`(B0,TEg(B1,T!AR!(9(B0,T"i(B1,TM$GRA(B0,T7Qi(B1,T'KA4M(B0,TBYh(B1,T:9K(B0,T9i(B1,TR(M(B, ,T:CC(B0,T7Q(B1,T4(B
+,TaJ4'bKA4(PaJ4'(B0,TGh(B1,TR(B --All--.
+
+,T`$(B0,TCWh(B1,TM'KARB4M!(B0,T(Q(B1,T9:(B0,TCT(B1,T`G3(B0,T5i(B1,T9f(B ,T"M':CC(B0,T7Q(B1,T4aJ4'bKA4KARB$GRA(B0,TGh(B1,TR(B0,T7h(B1,TR9d(B0,T4i(B1,T7S!RC(B
+,T`;(B0,TEUh(B1,TB9a;E'`(B0,T9Wi(B1,TMKRc9(B0,T"i(B1,TM$GRAa(B0,TEi(B1,TG(B. ,TKR!(B0,T7h(B1,TR9`(B0,T>Th(B1,T'`(B0,TBW(B1,TM9K(B0,TCW(B1,TM(B0,T(Q(B1,T4`(B0,T!g(B1,T:a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B, 0,TJh(B1,TG9(B0,T7Uh(B1
+,Td(B0,T4i(B1,T!(B0,TEh(B1,TRG(B0,T6V(B1,T'(B0,T9Qi(B1,T9(Pd(B0,TAh(B10,TAU(B1,T`$(B0,TCWh(B1,TM'KARB4M!(B0,T(Q(B1,T9;CR!/(B, ,T(P(B0,TAU(B1,Ta(B0,T5h(B1,T`(B0,TJi(B1,T9;CP(B (dashes).
+
+0,TJh(B1,TG9(B0,T7Uh(B1,TM(B0,TBYh(B1,TCPK(B0,TGh(B1,TR'G'`(B0,TEg(B1,T:@RBc9:CC(B0,T7Q(B1,T4aJ4'bKA4(P:M!(B0,T7h(B1,TR9(B0,TGh(B1,TR(B0,T7h(B1,TR9!S(B0,TEQ(B1,T'M(B0,TBYh(B1,Tc9bKA4!RCa(B0,T!i(B1,Td"(B
+(editing mode) ,TMPdC(B. ,TbKA4b4B;(B0,TCT(B1,TBRB(B (default mode) 0,T$W(B1,TM(B Fundamental 0,T7Uh(B1
+0,T7h(B1,TR9!S(B0,TEQ(B1,T'c(B0,T*i(B1,TM(B0,TBYh(B1,Tc9"3P(B0,T9Ui(B1. 0,T9Uh(B10,T$W(B1,TM(B0,T5Q(B1,TGM(B0,TBh(B1,TR'"M'(B ",TbKA4K(B0,TEQ(B1,T!(B (major mode)".
+
+0,TMU(B1,TaA!(B0,TJl(B10,TAU(B1,TbKA4K(B0,TEQ(B1,T!M(B0,TBYh(B1,TKERBbKA4(B. 0,T:i(B1,TR'c(B0,T*i(B1,TJSK(B0,TCQ(B1,T:!RCa(B0,T!i(B1,Td"c9@RIRaEP(B/,TK(B0,TCW(B1,TM(B0,T"i(B1,TM$GRA*(B0,T9T(B1,T4(B0,T5h(B1,TR'f(B, 
+,T`(B0,T*h(B1,T9(B Lisp mode, Text mode, ,T`(B0,T;g(B1,T9(B0,T5i(B1,T9(B. 0,T7h(B1,TR9(PM(B0,TBYh(B1,Tc9bKA4K(B0,TEQ(B1,T!c4bKA4K(B0,TEQ(B1,T!K(B0,T9Vh(B1,T'c9`GER(B
+,T`(B0,T4U(B1,TBG(B, ,TaEP(B0,T*Wh(B1,TM"M'bKA4K(B0,TEQ(B1,T!(B0,T9Qi(B1,T9(P;CR!/M(B0,TBYh(B10,T7Uh(B1,T:CC(B0,T7Q(B1,T4aJ4'bKA4(B, 0,T7Uh(B10,T7Uh(B10,TAU(B1 "Fundamental" 
+,T;CR!/M(B0,TBYh(B1,Tc9"3P(B0,T9Ui(B1.
+
+,Ta(B0,T5h(B1,TEPbKA4K(B0,TEQ(B1,T!(P7Sc(B0,TKi(B1,T$S(B0,TJQh(B1,T'c(B0,TKi(B1,T<Ec9(B0,TEQ(B1,T!I3P(B0,T7Uh(B1,Ta5!(B0,T5h(B1,TR'(B0,T!Q(B1,T9(B. 0,T5Q(B1,TGM(B0,TBh(B1,TR'`(B0,T*h(B1,T9(B, 0,TAU(B1,TKERB$S(B0,TJQh(B1,T'(B0,T7Uh(B1,Tc(B0,T*i(B1
+,Tc9!RC!S(B0,T!Q(B1,T:KARB`K(B0,T5X(B1 (comment) ,Tc9b;Ca!CA(B, ,TaEP`(B0,T9Wh(B1,TM'(R!a(B0,T5h(B1,TEPb;Ca!CA(B0,TAU(B1,T$GRA(B0,T$T(B1,T4(B
+,Tc9!RCaJ4'<E"M'KARB`K(B0,T5X(B10,T7Uh(B1,Ta5!(B0,T5h(B1,TR'(B0,T!Q(B1,T9(B, ,Ta(B0,T5h(B1,TEPbKA4K(B0,TEQ(B1,T!(Pa7C!KARB`K(B0,T5X(B1,Tc9(B0,TEQ(B1,T!I3P(B0,T7Uh(B1
+,Ta5!(B0,T5h(B1,TR'(B0,T!Q(B1,T9(B. ,Ta(B0,T5h(B1,TEPbKA4K(B0,TEQ(B1,T!(P`(B0,T;g(B1,T9(B0,T*Wh(B1,TM"M'$S(B0,TJQh(B1,T'`J(B0,TCT(B1,TA(B, 0,T7Uh(B10,T7h(B1,TR9JRARC6:M!c(B0,TKi(B1,TJ(B0,TEQ(B1,T:d;(B0,TBQ(B1,T'bKA4(B0,T7Uh(B1
+0,T5i(B1,TM'!RCd(B0,T4i(B1. 0,T5Q(B1,TGM(B0,TBh(B1,TR'`(B0,T*h(B1,T9(B, M-x fundamental-mode ,T`(B0,T;g(B1,T9$S(B0,TJQh(B1,T'c9!RCJ(B0,TEQ(B1,T:d;(B0,TBQ(B1,T'(B
+Fundamental mode.
+
+0,T6i(B1,TR(B0,T7h(B1,TR9!S(B0,TEQ(B1,T'(Pa(B0,T!i(B1,Td"(B0,T"i(B1,TM$GRA(B0,T7Uh(B1,T`(B0,T;g(B1,T9@RIRd7B(B, ,T`(B0,T*h(B1,T9c9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T9Ui(B1, 0,T7h(B1,TR9$GC(Pc(B0,T*i(B1
+Thai-text mode.
+>> M-x thai-text-mode<Return>
+
+,Td(B0,TAh(B10,T5i(B1,TM'(B0,T!Q(B1,T'GE(B, ,T$S(B0,TJQh(B1,T'(B0,T7Uh(B10,T7h(B1,TR9!S(B0,TEQ(B1,T'(B0,THV(B1,T!IRM(B0,TBYh(B10,T9Ui(B1,Td(B0,TAh(B1,Td(B0,T4i(B1,Tc(B0,TKi(B1,T<E!CP7:AR!(B0,T9Q(B1,T!(B. ,Ta(B0,T5h(B10,T7h(B1,TR9JRARC6(B0,TJQ(B1,T'`!5d(B0,T4i(B1
+0,TGh(B1,TR$S(B0,TJQh(B1,T'(B M-f ,TaEP(B M-b 0,T6W(B1,TM(B0,TGh(B1,TR(B0,TMQ(B1,T!"CP(B apostrophe ,T`(B0,T;g(B1,T9(B0,TJh(B1,TG9K(B0,T9Vh(B1,T'"M'$S(B. 0,T!h(B1,TM9K(B0,T9i(B1,TR(B0,T9Ui(B1, ,Tc9(B 
+Fundamental mode, ,T$S(B0,TJQh(B1,T'(B M-f ,TaEP(B M-b 0,T6W(B1,TM(B0,TGh(B1,TR(B0,TMQ(B1,T!"CP(B apostrophe ,T`(B0,T;g(B1,T9(B0,T5Q(B1,TGa(B0,T:h(B1,T'$S(B 
+(word-separator).
+
+,TbKA4K(B0,TEQ(B1,T!`K(B0,TEh(B1,TR(B0,T9Ui(B1,T(Pc(B0,TKi(B1,T<E(B0,T7Uh(B10,T5h(B1,TR'MM!d;`(B0,TEg(B1,T!(B0,T9i(B1,TMB(B0,T4Q(B1,T'(B0,T7Uh(B1,T!(B0,TEh(B1,TRGa(B0,TEi(B1,TG(B0,T"i(B1,TR'(B0,T5i(B1,T9(B: ,T$S(B0,TJQh(B1,T'(B0,TJh(B1,TG9cK(B0,T-h(B1 ",T7SK(B0,T9i(B1,TR(B0,T7Uh(B1
+,T`K(B0,TAW(B1,TM9(B0,T!Q(B1,T9(B" ,Ta(B0,TAi(B1,T(PM(B0,TBYh(B1,Tc9bKA4K(B0,TEQ(B1,T!(B0,T7Uh(B10,T5h(B1,TR'(B0,T!Q(B1,T9(B, ,Ta(B0,T5h(B1,Tc(B0,TKi(B1,T<E(B0,T7Uh(B10,T5h(B1,TR'MM!d;(B0,T:i(B1,TR'`(B0,TEg(B1,T!(B0,T9i(B1,TMB(B.
+
+,Tc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-h m ,T`(B0,T>Wh(B1,TM(B0,TMh(B1,TR9CRBEP`(B0,TMU(B1,TB4"M'bKA4K(B0,TEQ(B1,T!(B0,T;Q(B1,T((B0,T(X(B10,T:Q(B1,T9(B0,T7Uh(B10,T7h(B1,TR9M(B0,TBYh(B1.
+
+>> ,Tc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-u C-v ,TK(B0,T9Vh(B1,T'$(B0,TCQi(B1,T'K(B0,TCW(B1,TMAR!!(B0,TGh(B1,TR(B0,T9Qi(B1,T9`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P"(B0,TBQ(B1,T::CC(B0,T7Q(B1,T4(B0,T9Ui(B10,T"Vi(B1,T9d;(B0,TBQ(B1,T'(B0,TJh(B1,TG9:9"M'K(B0,T9i(B1,TR(M(B.
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-h m, ,T`(B0,T>Wh(B1,TM(B0,T4Y(B10,TGh(B1,TR(B Text mode 0,T5h(B1,TR'(R!(B Fundamental mode ,TM(B0,TBh(B1,TR'dC(B.
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x 1 ,T`(B0,T>Wh(B1,TM"(B0,T(Q(B1,T4`M!JRC(B0,T*Ui(B1,Ta('MM!(R!K(B0,T9i(B1,TR(M(B.
+
+0,T7Uh(B1,T`(B0,TCU(B1,TB!(B0,TGh(B1,TRbKA4K(B0,TEQ(B1,T!(B0,T9Qi(B1,T9(B0,T!g(B1,T`>CRP(B0,TGh(B1,TR(B0,TAU(B1,TbKA4(B0,TBh(B1,TMB(B (minor mode) 0,TMU(B1,T!(B. ,TbKA4(B0,TBh(B1,TMBd(B0,TAh(B1,Td(B0,T4i(B1,T`(B0,T;g(B1,T9(B
+0,T5Q(B1,TG`(B0,TEW(B1,TM!c9bKA4K(B0,TEQ(B1,T!(B, ,T`(B0,T9Wh(B1,TM'(R!(B0,TGh(B1,TR(B0,TAU(B1,T!RC`;(B0,TEUh(B1,TB9d;`(B0,T>U(B1,TB'`(B0,TEg(B1,T!(B0,T9i(B1,TMB`(B0,T7h(B1,TR(B0,T9Qi(B1,T9(B. ,Ta(B0,T5h(B1,TEPbKA4(B0,TBh(B1,TMBJRARC6(B
+,T(P`(B0,T;T(B1,T4K(B0,TCW(B1,TM(B0,T;T(B1,T4d(B0,T4i(B1,T@RBc9(B0,T5Q(B1,TG`M'(B, 0,T$W(B1,TMa(B0,T5h(B1,TEPbKA4(B0,TBh(B1,TMB(P7S'R9b4B(B0,TMT(B1,TJCP(R!(B0,T!Q(B1,T9(B, ,TaEP(B
+,T`(B0,T;g(B1,T9(B0,TMT(B1,TJCP(R!bKA4K(B0,TEQ(B1,T!(B0,T4i(B1,TGB(B. ,T)P(B0,T9Qi(B1,T9(B0,T7h(B1,TR9JRARC6d(B0,TAh(B1,Tc(B0,T*i(B1,TbKA4(B0,TBh(B1,TMB`EB(B, ,TK(B0,TCW(B1,TMK(B0,T9Vh(B1,T'bKA4(B0,TBh(B1,TMB(B, ,TK(B0,TCW(B1,TM(B
+,TbKA4(B0,TBh(B1,TMBKERBf(B ,TbKA4<JA(B0,T!Q(B1,T9(B0,T!g(B1,Td(B0,T4i(B1.
+
+,TbKA4(B0,TBh(B1,TMB(B0,T7Uh(B10,TAU(B1,T;CPbB*(B0,T9l(B1,TAR!(B, ,Tb4B`)>RPJSK(B0,TCQ(B1,T:c(B0,T*i(B1,Ta(B0,T!i(B1,Td"(B0,T"i(B1,TM$GRA(B0,T7Uh(B1,T`(B0,T;g(B1,T9@RIR(B0,TMQ(B1,T'!DI(B, 0,T$W(B1,TM(B
+,TbKA4(B0,T(Q(B1,T4:CC(B0,T7Q(B1,T4(B0,TMQ(B1,T5b9(B0,TAQ(B10,T5T(B1 (Auto Fill). ,T`(B0,TAWh(B1,TMbKA4(B0,T9Ui(B1,T7S'R9(B, 0,TMU(B1,TaA!(B0,TJl(B1,T(Pa(B0,T:h(B1,T':CC(B0,T7Q(B1,T4CPK(B0,TGh(B1,TR'(B
+,T$S(B0,TMQ(B1,T5b9(B0,TAQ(B10,T5T(B1, 0,T7Q(B1,T9(B0,T7U(B10,T7Uh(B10,T7h(B1,TR9a7C!(B0,T"i(B1,TM$GRAaEP7Sc(B0,TKi(B1,T:CC(B0,T7Q(B1,T4(B0,T9Qi(B1,T9BRG`(B0,T!T(B1,T9d;(B.
+
+0,T7h(B1,TR9JRARC6`(B0,T;T(B1,T4bKA4(B0,T(Q(B1,T4:CC(B0,T7Q(B1,T4(B0,TMQ(B1,T5b9(B0,TAQ(B10,T5T(B1,Td(B0,T4i(B1,Tb4B!RCc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B M-x auto fill
+mode<Return>. ,T`(B0,TAWh(B1,TMbKA4(B0,T9Ui(B1,T7S'R9M(B0,TBYh(B1, 0,T7h(B1,TR9JRARC6(B0,T;T(B1,T4bKA4(B0,T9Ui(B1,Td(B0,T4i(B1,Tb4B!RCc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B M-x
+auto fill mode<Return>. 0,T6i(B1,TRbKA4(B0,T9Ui(B10,T;T(B1,T4M(B0,TBYh(B1, ,T$S(B0,TJQh(B1,T'(B0,T9Ui(B1,T(P`(B0,T;T(B1,T4bKA4c(B0,TKi(B1,T7S'R9(B, ,TaEP(B0,T6i(B1,TR(B
+,TbKA4(B0,T9Ui(B1,T`(B0,T;T(B1,T4M(B0,TBYh(B1, ,T$S(B0,TJQh(B1,T'(B0,T9Ui(B10,T!g(B1,T(P(B0,T;T(B1,T4bKA4(B. 0,T$W(B1,TM(B0,T>Y(B1,T4d(B0,T4i(B10,TGh(B1,TR$S(B0,TJQh(B1,T'(B0,T9Ui(B1 "toggles the mode".
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B M-x auto fill mode<Return> 0,T4Y(B1. ,Ta(B0,TEi(B1,TG(B0,T;i(B1,TM9(B "asdf " 0,T+i(B1,TSf(B 0,T!Q(B1,T9d;(9(B
+   0,T7h(B1,TR9`(B0,TKg(B1,T9(B0,TGh(B1,TR:CC(B0,T7Q(B1,T4(B0,T9Qi(B1,T9(B0,T6Y(B1,T!a(B0,T:h(B1,T'MM!`(B0,T;g(B1,T9JM':CC(B0,T7Q(B1,T4(B. 0,T7h(B1,TR9(B0,T5i(B1,TM'c(B0,TJh(B1,T`(B0,TGi(B1,T9GCC$`>CRP(B0,TGh(B1,TR!RC(B0,T(Q(B1,T4(B
+   ,T:CC(B0,T7Q(B1,T4(B0,TMQ(B1,T5b9(B0,TAQ(B10,T5T(B1,T(Pa(B0,T:h(B1,T':CC(B0,T7Q(B1,T45C'`(B0,TGi(B1,T9GCC$`(B0,T7h(B1,TR(B0,T9Qi(B1,T9(B.
+
+,T"M:`(B0,T<Wh(B1,TM(B (margin) ,Tb4BAR!(P(B0,T5Qi(B1,T'c(B0,TKi(B10,T7Uh(B1 70 0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B, ,Ta(B0,T5h(B10,T7h(B1,TR9(B0,T!g(B1,TJRARC6`;(B0,TEUh(B1,TB9(B0,T4i(B1,TGB$S(B0,TJQh(B1,T'(B
+C-x f. 0,T7h(B1,TR9$GC(B0,T5Qi(B1,T'"M:`(B0,T<Wh(B1,TM(B0,T4i(B1,TGB(B0,T5Q(B1,TG`E"MR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B1,T5RA(B0,T7Uh(B10,T7h(B1,TR9(B0,T5i(B1,TM'!RC(B.
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x f ,T>(B0,TCi(B1,TMA(B0,T4i(B1,TGBMR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B1 20. (C-u 2 0 C-x f).
+   ,Ta(B0,TEi(B1,TG(B0,T;i(B1,TM9(B0,T"i(B1,TM$GRAaEP(P`(B0,TKg(B1,T9(B0,TGh(B1,TR(B0,TMU(B1,TaA!(B0,TJl(B10,T(Q(B1,T4:CC(B0,T7Q(B1,T4(B0,T7Uh(B10,TAU(B1,T"9R4(B 20 0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B. ,Ta(B0,TEi(B1,TG(B0,T5Qi(B1,T'"M:(B
+   ,T`(B0,T<Wh(B1,TM`(B0,T;g(B1,T9(B 70 ,Tb4Bc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-x f 0,TMU(B1,T!$(B0,TCQi(B1,T'(B.
+
+0,T6i(B1,TR(B0,T7h(B1,TR97S!RC`;(B0,TEUh(B1,TB9a;E'5C'!ER'(B0,TBh(B1,TMK(B0,T9i(B1,TR(B, ,TbKA4(B0,T(Q(B1,T4:CC(B0,T7Q(B1,T4(B0,TMQ(B1,T5b9(B0,TAQ(B10,T5T(B1,T(Pd(B0,TAh(B10,T(Q(B1,T4:CC(B0,T7Q(B1,T4cK(B0,TAh(B1
+(re-fill) ,Tc(B0,TKi(B10,T7h(B1,TR9(B. 0,T6i(B1,TR(P(B0,T(Q(B1,T4:CC(B0,T7Q(B1,T4cK(B0,TAh(B1,Tc(B0,TKi(B10,T!Q(B1,T:(B0,TBh(B1,TMK(B0,T9i(B1,TR(B0,T9Qi(B1,T9(B, ,Tc(B0,TKi(B10,T;i(B1,TM9$S(B0,TJQh(B1,T'(B M-q (META-q)
+,Tb4BGR'5SaK(B0,T9h(B1,T'`$M(B0,TCl(B1,T`+M(B0,TCl(B1,Td(B0,TGi(B1,T@RBc9(B0,TBh(B1,TMK(B0,T9i(B1,TR(B0,T9Qi(B1,T9(B.
+
+>> ,T`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,T`(B0,T"i(B1,TRd;(B0,TBQ(B1,T'(B0,TBh(B1,TMK(B0,T9i(B1,TR(B0,T"i(B1,TR':9(B, ,Ta(B0,TEi(B1,TG(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B M-q.
+
+
+* ,T!RC(B0,TJW(B1,T:(B0,T$i(B1,T9(B (searching)
+---------------------
+
+0,TMU(B1,TaA!(B0,TJl(B1,TJRARC6(B0,TJW(B1,T:(B0,T$i(B1,T9JRB(B0,TMQ(B1,T!"CP(B (,T!(B0,TEXh(B1,TA"M'(B0,T5Q(B1,TG(B0,TMQ(B1,T!ICK(B0,TCW(B1,TM$S(B0,T7Uh(B1,TM(B0,TBYh(B10,T5h(B1,TM`(B0,T9Wh(B1,TM'(B0,T!Q(B1,T9(B) ,Td(B0,TAh(B10,TGh(B1,TR(Pd;(B
+0,T"i(B1,TR'K(B0,T9i(B1,TRK(B0,TCW(B1,TM(B0,TBi(B1,TM9!(B0,TEQ(B1,T:(B, 0,T7Qh(B1,TG(B0,T7Qi(B1,T'(B0,T"i(B1,TM$GRA(B. ,T!RC(B0,TJW(B1,T:(B0,T$i(B1,T9JRB(B0,TMQ(B1,T!"CP(B0,T$W(B1,TM$S(B0,TJQh(B1,T'c9!RC`$(B0,TEWh(B1,TM95SaK(B0,T9h(B1,T'(B
+,T"M'`$M(B0,TCl(B1,T`+M(B0,TCl(B1; ,T`$M(B0,TCl(B1,T`+M(B0,TCl(B1,T(P`$(B0,TEWh(B1,TM9d;M(B0,TBYh(B10,T7Uh(B1,T5SaK(B0,T9h(B1,T'(B0,T6Q(B1,T4d;(B0,T7Uh(B10,TAU(B1,TJRB(B0,TMQ(B1,T!"CP(B0,T9Qi(B1,T9M(B0,TBYh(B1.
+
+,T$S(B0,TJQh(B1,T'(B0,TJW(B1,T:(B0,T$i(B1,T9c9(B0,TMU(B1,TaA!(B0,TJl(B10,T5h(B1,TR'(R!$S(B0,TJQh(B1,T'(B0,TJW(B1,T:(B0,T$i(B1,T9c9b;Ca!CA:CC3R(B0,T8T(B1,T!C(B0,T3l(B1 (editor) 0,TJh(B1,TG9cK(B0,T-h(B1, ,Tc9(B
+0,TEQ(B1,T!I3P(B0,T7Uh(B1,T`(B0,T;g(B1,T9(B "incremental". 0,T9Uh(B1,TKARB$GRA(B0,TGh(B1,TR!RC(B0,TJW(B1,T:(B0,T$i(B1,T9`(B0,TCTh(B1,TA(B0,T5Qi(B1,T'a(B0,T5h(B10,T7Uh(B10,T7h(B1,TR9d(B0,T4i(B10,T;i(B1,TM9(B0,TMQ(B1,T!"CP(B0,T7Uh(B1
+0,T5i(B1,TM'!RC(B0,TJW(B1,T:(B0,T$i(B1,T9(B.
+
+,T$S(B0,TJQh(B1,T'(B0,T7Uh(B1,Tc(B0,T*i(B1,T`(B0,T>Wh(B1,TMc(B0,TKi(B1,T7S!RC(B0,TJW(B1,T:(B0,T$i(B1,T9d;(B0,T"i(B1,TR'K(B0,T9i(B1,TR(B0,T$W(B1,TM(B C-s, ,TaEP7S!RC(B0,TJW(B1,T:(B0,T$i(B1,T9(B0,TBi(B1,TM9d;(B0,T"i(B1,TR'K(B0,TEQ(B1,T'(B0,T$W(B1,TM(B
+C-r. ,Ta(B0,T5h(B1,T$MB(B0,T!h(B1,TM9(B! ,TM(B0,TBh(B1,TR`(B0,T>Th(B1,T'EM'(B.
+
+,T`(B0,TAWh(B1,TM(B0,T7h(B1,TR9(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-s 0,T7h(B1,TR9(P(B0,TJQ(B1,T'`!5`(B0,TKg(B1,T9(B0,TGh(B1,TR(B0,TAU(B1,T$S(B0,TGh(B1,TR(B "I-search" ,T;CR!/(B0,T7Uh(B1,T:(B0,TCT(B1,T`G3JP(B0,T7i(B1,TM9(B
+(echo area). 0,T9Uh(B1,TaJ4'(B0,TGh(B1,TR(B0,TMU(B1,TaA!(B0,TJl(B1,Td(B0,T4i(B1,TM(B0,TBYh(B1,Tc9!RC(B0,T$i(B1,T9a::(B incremental ,TaEP!S(B0,TEQ(B1,T'CM(B
+0,TJTh(B1,T'(B0,T7Uh(B10,T7h(B1,TR9(P(B0,T>T(B1,TA(B0,T>l(B1,T`(B0,T>Wh(B1,TM(B0,TJW(B1,T:(B0,T$i(B1,T9(B. ,T!4(B0,T;Xh(B1,TA(B <Return> ,T`(B0,T>Wh(B1,TM(B0,TJTi(B1,T9(B0,TJX(B1,T4$S(B0,TJQh(B1,T'(B0,TJW(B1,T:(B0,T$i(B1,T9(B.
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-s ,T`(B0,T>Wh(B1,TM`(B0,TCTh(B1,TA!RC(B0,TJW(B1,T:(B0,T$i(B1,T9(B. 0,T>T(B1,TA(B0,T>l(B10,TMQ(B1,T!IC(B0,T7U(B1,TEP(B0,T5Q(B1,TG(B0,T*i(B1,TRf(B, 0,T>T(B1,TA(B0,T>l(B1,T$S(B0,TGh(B1,TR(B 'cursor',
+   ,TK(B0,TBX(B1,T4K(B0,TEQ(B1,T'(R!(B0,T7Uh(B10,T7h(B1,TR9(B0,T>T(B1,TA(B0,T>l(B10,T7U(B1,TEP(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B, ,Ta(B0,TEi(B1,TG(B0,T4Y(B10,TGh(B1,TR(B0,TAU(B1,TMPdC`(B0,T!T(B1,T4(B0,T"Vi(B1,T9(B0,T!Q(B1,T:`$M(B0,TCl(B1,T`+M(B0,TCl(B1.
+   ,T"3P(B0,T9Ui(B10,T7h(B1,TR9d(B0,T4i(B10,TJW(B1,T:(B0,T$i(B1,T9$S(B0,TGh(B1,TR(B "cursor" ,Td;K(B0,T9Vh(B1,T'K9a(B0,TEi(B1,TG(B.
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-s 0,TMU(B1,T!$(B0,TCQi(B1,T'(B, ,T`(B0,T>Wh(B1,TM(B0,TJW(B1,T:(B0,T$i(B1,T95SaK(B0,T9h(B1,T'(B0,T6Q(B1,T4d;"M'$S(B0,TGh(B1,TR(B "cursor".
+>> ,T!4(B0,T;Xh(B1,TA(B <Delete> 0,TJQ(B1,T!(B0,TJUh(B1,T$(B0,TCQi(B1,T'(B, ,Ta(B0,TEi(B1,TG(B0,T4Y(B10,TGh(B1,TR`$M(B0,TCl(B1,T`+M(B0,TCl(B1,T`$(B0,TEWh(B1,TM9(B0,T7Uh(B1,TM(B0,TBh(B1,TR'dC(B.
+>> ,T!4(B0,T;Xh(B1,TA(B <Return> ,T`(B0,T>Wh(B1,TM(B0,TJTi(B1,T9(B0,TJX(B1,T4$S(B0,TJQh(B1,T'(B0,TJW(B1,T:(B0,T$i(B1,T9(B.
+
+0,T7h(B1,TR9`(B0,TKg(B1,T9K(B0,TCW(B1,TMd(B0,TAh(B10,TGh(B1,TR(B0,TAU(B1,TMPdC`(B0,T!T(B1,T4(B0,T"Vi(B1,T9(B? ,Tc9!RC(B0,TJW(B1,T:(B0,T$i(B1,T9a::(B incremental, 0,TMU(B1,TaA!(B0,TJl(B1,T>BRBRA(B
+,T`$(B0,TEWh(B1,TM9d;5RAJRB(B0,TMQ(B1,T!"CP(B0,T7Uh(B10,T7h(B1,TR9d(B0,T4i(B10,T>T(B1,TA(B0,T>l(B1,TE'd;c9a(B0,T5h(B1,TEP$(B0,TCQi(B1,T'(B. 0,T6i(B1,TR(P`$(B0,TEWh(B1,TM9d;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'(B
+0,T6Q(B1,T4d;"M'$S(B, 0,T!g(B1,T7Sd(B0,T4i(B1,Tb4B!RC(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-s 0,TMU(B1,T!$(B0,TCQi(B1,T'(B. 0,T6i(B1,TRd(B0,TAh(B10,TAU(B1,T$S(B0,T9Qi(B1,T9(B0,TMU(B1,T!a(B0,TEi(B1,TG(B, 0,TMU(B1,TaA!(B0,TJl(B1,T(P(B0,TCi(B1,TM'(B
+,T:M!(B (beep) 0,T7h(B1,TR9(B0,TGh(B1,TR!RC(B0,TJW(B1,T:(B0,T$i(B1,T9$(B0,TCQi(B1,T'(B0,T9Qi(B1,T9(B ",T>ER4(B (failing)", ,T$S(B0,TJQh(B1,T'(B C-g 0,T!g(B1,TJRARC6c(B0,T*i(B1,Tc9(B
+,T!RC(B0,TJTi(B1,T9(B0,TJX(B1,T4!RC(B0,TJW(B1,T:(B0,T$i(B1,T9d(B0,T4i(B1.
+
+0,T"i(B1,TM(B0,TJQ(B1,T'`!5(B: ,Tc9:R'CP::(B, ,T!RC(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-s ,T(P7Sc(B0,TKi(B1,TCP::"M'(B0,T7h(B1,TR9*P(B0,T'Q(B1,T!aEP(B0,T7h(B1,TR9(Pd(B0,TAh(B1,T`(B0,TKg(B1,T9(B
+0,T"i(B1,TM$GRAMPdC:9(B0,TMU(B1,TaA!(B0,TJl(B1. 0,TEQ(B1,T!I3P(B0,T9Ui(B1,TaJ4'(B0,TGh(B1,TR(B "feature" ,T"M'CP::;(B0,T/T(B10,T:Q(B10,T5T(B1,T!RC(B, 0,T7Uh(B1,T`(B0,TCU(B1,TB!(B0,TGh(B1,TR(B 
+"flow control" 0,T9Qi(B1,T9(B, ,Td(B0,T4i(B10,T"Q(B1,T4"GR'!RC7S'R9"M'$S(B0,TJQh(B1,T'(B C-s ,TaEPd(B0,TAh(B1,TBMAc(B0,TKi(B1,T!(B0,TEQ(B1,T:(B0,TJYh(B10,TMU(B1,TaA!(B0,TJl(B1
+0,TMU(B1,T!(B. ,T!RC(B0,T7Uh(B1,T(Pa(B0,T!i(B1,Td"!RCK(B0,TBX(B1,T4*P(B0,T'Q(B1,T!(B0,T9Qi(B1,T9(B, ,Tc(B0,TKi(B10,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-q. 0,THV(B1,T!IR(B0,TGT(B10,T8U(B1,T!RC(B0,T(Q(B1,T4!RC(B0,T!Q(B1,T:(B "feature" 
+0,T9Ui(B1,Td(B0,T4i(B10,T7Uh(B1,T:7(B0,T7Uh(B10,TGh(B1,TR(B0,T4i(B1,TGB(B "Spontaneous Entry to Incremental Search" ,Tc9(B0,T$Yh(B10,TAW(B1,TM"M'(B0,TMU(B1,TaA!(B0,TJl(B1.
+
+0,T6i(B1,TR(B0,T7h(B1,TR9M(B0,TBYh(B1,TCPK(B0,TGh(B1,TR'!RC(B0,TJW(B1,T:(B0,T$i(B1,T9a::(B incremental ,TM(B0,TBYh(B1, ,Ta(B0,TEi(B1,TG(B0,T7h(B1,TR9!4(B0,T;Xh(B1,TA(B <Delete>, 0,T7h(B1,TR9(P(B
+0,TJQ(B1,T'`!5`(B0,TKg(B1,T9(B0,TGh(B1,TR(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B0,TJX(B1,T4(B0,T7i(B1,TRB(B0,T7Uh(B10,T7h(B1,TR9(B0,T;i(B1,TM9`(B0,T"i(B1,TRd;(B0,T9Qi(B1,T9(B0,T6Y(B1,T!E:MM!(B, ,TaEP(P(B0,TBi(B1,TM9!(B0,TEQ(B1,T:d;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'(B
+0,T!h(B1,TM9K(B0,T9i(B1,TR"M'!RC(B0,TJW(B1,T:(B0,T$i(B1,T9(B. 0,T5Q(B1,TGM(B0,TBh(B1,TR'`(B0,T*h(B1,T9(B, ,TJA(B0,TAX(B10,T5T(B10,TGh(B1,TR(B0,T7h(B1,TR9d(B0,T4i(B10,T;i(B1,TM9(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B "c", ,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P(B0,TJW(B1,T:(B0,T$i(B1,T9(B
+,T5SaK(B0,T9h(B1,T'(B0,T7Uh(B1,T;CR!/(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B "c" 0,T9Qi(B1,T9(B. ,T5M9(B0,T9Ui(B10,T6i(B1,TR(B0,T7h(B1,TR9(B0,T>T(B1,TA(B0,T>l(B10,T5Q(B1,TG(B0,TMQ(B1,T!IC(B "u", ,T`$M(B0,TCl(B1,T`+M(B0,TCl(B10,T!g(B1,T(P(B
+,T`$(B0,TEWh(B1,TM9d;M(B0,TBYh(B10,T7Uh(B1,T5SaK(B0,T9h(B1,T'(B0,T7Uh(B1,T;CR!/JRB(B0,TMQ(B1,T!"CP(B "cu" ,TaC!(B0,TJX(B1,T4(B. ,T5M9(B0,T9Ui(B1,Tc(B0,TKi(B1,T!4(B0,T;Xh(B1,TA(B <Delete>.
+0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B "u" ,T(P(B0,T6Y(B1,T!E:MM!(R!JRB(B0,TMQ(B1,T!"CP(B0,T7Uh(B1,T7S!RC(B0,TJW(B1,T:(B0,T$i(B1,T9M(B0,TBYh(B1, ,TaEP`$M(B0,TCl(B1,T`+M(B0,TCl(B10,T!g(B1,T(P`$(B0,TEWh(B1,TM9(B
+,T!(B0,TEQ(B1,T:d;(B0,TBQ(B1,T'5SaK(B0,T9h(B1,T'(B0,T7Uh(B1,T;CR!/(B0,T5Q(B1,TG(B0,TMQ(B1,T!IC(B "c" ,TaC!(B0,TJX(B1,T4(B.
+
+0,T6i(B1,TR(B0,T7h(B1,TR9M(B0,TBYh(B1,TCPK(B0,TGh(B1,TR'!RC(B0,TJW(B1,T:(B0,T$i(B1,T9(B, ,Ta(B0,TEi(B1,TG(B0,T;i(B1,TM9$S(B0,TJQh(B1,T';CPJA"M'(B CONTROL ,TK(B0,TCW(B1,TM(B META (,T9M!(R!(B
+0,T"i(B1,TMB!`(B0,TGi(B1,T9:R';CP!RC(B--,T$S(B0,TJQh(B1,T'(B0,T>T(B1,T`HI(B0,T7Uh(B1,Tc(B0,T*i(B1,TJSK(B0,TCQ(B1,T:!RC(B0,TJW(B1,T:(B0,T$i(B1,T9(B, ,Td(B0,T4i(B1,Ta(B0,T!h(B1 C-s ,TaEP(B C-r), ,T!RC(B0,TJW(B1,T:(B
+0,T$i(B1,T9(P(B0,TJTi(B1,T9(B0,TJX(B1,T4E'(B.
+
+,T$S(B0,TJQh(B1,T'(B C-s ,T`(B0,TCTh(B1,TA!RC(B0,TJW(B1,T:(B0,T$i(B1,T9(B0,T4i(B1,TGB!RCAM'KRJRB(B0,TMQ(B1,T!"CP(B0,T5Qi(B1,T'a(B0,T5h(B1,T5SaK(B0,T9h(B1,T'(B0,T;Q(B1,T((B0,T(X(B10,T:Q(B1,T9"M'`$M(B0,TCl(B1,T`+M(B0,TCl(B1.
+0,T6i(B1,TR(B0,T7h(B1,TR9(B0,T5i(B1,TM'!RC(B0,TJW(B1,T:(B0,T$i(B1,T9JRB(B0,TMQ(B1,T!"CP(B0,T7Uh(B1,TM(B0,TBYh(B10,T!h(B1,TM9K(B0,T9i(B1,TRc9(B0,T"i(B1,TM$GRA(B0,T9Qi(B1,T9(B, ,Tc(B0,TKi(B10,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-r ,Ta79(B.
+,T$S(B0,TJQh(B1,T'(B C-s ,T(P7S'R9`K(B0,TAW(B1,TM9(B0,T!Q(B1,T:$S(B0,TJQh(B1,T'(B C-r 0,T7X(B1,T!M(B0,TBh(B1,TR'(B, ,TB!`(B0,TGi(B1,T9(B0,T7T(B1,TH7R'"M'!RC(B0,TJW(B1,T:(B0,T$i(B1,T9(B
+,T`(B0,T7h(B1,TR(B0,T9Qi(B1,T9(B, 0,T7Uh(B1,T5C'(B0,T"i(B1,TRA(B0,T!Q(B1,T9(B.
+
+
+* 0,TGT(B1,T9b4(B0,TGl(B1,Ta::KERB(B0,TGT(B1,T9b4(B0,TGl(B1 (multiple windows)
+--------------------------------------
+
+0,TEQ(B1,T!I3P(B0,T7Uh(B10,T9h(B1,TRJ9c((B0,TMQ(B1,T9K(B0,T9Vh(B1,T'"M'(B0,TMU(B1,TaA!(B0,TJl(B10,T!g(B10,T$W(B1,TM(B, 0,T7h(B1,TR9JRARC6aJ4'<Ed(B0,T4i(B1,TAR!!(B0,TGh(B1,TRK(B0,T9Vh(B1,T'(B0,TGT(B1,T9b4(B0,TGl(B1,T:9K(B0,T9Vh(B1,T'(B
+,TK(B0,T9i(B1,TR(Mc9`GER`(B0,T4U(B1,TBG(B0,T!Q(B1,T9(B.
+
+>> ,T`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,TAR(B0,T7Uh(B1,T:CC(B0,T7Q(B1,T4(B0,T9Ui(B1, ,Ta(B0,TEi(B1,TG(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-u 0 C-l.
+
+>> 0,T5h(B1,TMd;(B, 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x 2 0,T+Vh(B1,T'(Pa(B0,T:h(B1,T'K(B0,T9i(B1,TR(MMM!`(B0,T;g(B1,T9JM'(B0,TGT(B1,T9b4(B0,TGl(B1.
+   0,T7Qi(B1,T'JM'(B0,TGT(B1,T9b4(B0,TGl(B1,TaJ4'(B0,T$Yh(B10,TAW(B1,TM!RCc(B0,T*i(B10,T9Ui(B1. ,T`$M(B0,TCl(B1,T`+M(B0,TCl(B1,T;CR!/M(B0,TBYh(B1,Tc9(B0,TGT(B1,T9b4(B0,TGl(B1,T:9(B.
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-M-v ,T`(B0,T>Wh(B1,TM`$(B0,TEWh(B1,TM9(B0,TAi(B1,TG9(B0,TGT(B1,T9b4(B0,TGl(B10,T"i(B1,TR'(B0,TEh(B1,TR'(B.
+   (0,T6i(B1,TR(B0,T7h(B1,TR9d(B0,TAh(B10,TAU(B10,T;Xh(B1,TA(B META, 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B ESC C-v ,Ta79(B.)
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x o ("o" ,TKARB(B0,T6V(B1,T'(B "other") ,T`(B0,T>Wh(B1,TM`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,TAR(B0,TBQ(B1,T'(B0,TGT(B1,T9b4(B0,TGl(B10,TEh(B1,TR'(B.
+>> ,Tc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-v ,TaEP(B M-v ,Tc9(B0,TGT(B1,T9b4(B0,TGl(B10,TEh(B1,TR'`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P`$(B0,TEWh(B1,TM9(B0,TAi(B1,TG9(B.
+   0,TMh(B1,TR9$Sa9P9S(B0,T9Ui(B10,T4i(B1,TGB(B0,TGT(B1,T9b4(B0,TGl(B1,T:9(B.
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x o 0,TMU(B1,T!$(B0,TCQi(B1,T'`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P`$(B0,TEWh(B1,TM9`$M(B0,TCl(B1,T`+M(B0,TCl(B1,T!(B0,TEQ(B1,T:d;(B0,TGT(B1,T9b4(B0,TGl(B1,T:9(B.
+   ,T`$M(B0,TCl(B1,T`+M(B0,TCl(B1,Tc9(B0,TGT(B1,T9b4(B0,TGl(B1,T:9(P;CR!/5C'(B0,T7Uh(B10,T7Uh(B1,T`$B;CR!/(B.
+
+0,T7h(B1,TR9JRARC6c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-x o ,T`(B0,T>Wh(B1,TMJ(B0,TEQ(B1,T:d;ARCPK(B0,TGh(B1,TR'(B0,TGT(B1,T9b4(B0,TGl(B1. ,Ta(B0,T5h(B1,TEP(B0,TGT(B1,T9b4(B0,TGl(B10,TAU(B1,T5SaK(B0,T9h(B1,T'"M'(B
+,T`$M(B0,TCl(B1,T`+M(B0,TCl(B1,T"M'(B0,T5Q(B1,TG`M'(B, ,Ta(B0,T5h(B1,T(P(B0,TAU(B1,T`(B0,T>U(B1,TB'(B0,TGT(B1,T9b4(B0,TGl(B1,T`(B0,T4U(B1,TBG`(B0,T7h(B1,TR(B0,T9Qi(B1,T9(B0,T7Uh(B1,TaJ4'(B0,T5Q(B1,TG`$M(B0,TCl(B1,T`+M(B0,TCl(B1. 0,T7X(B1,T!$S(B0,TJQh(B1,T'(B0,T!g(B1,T(P(B
+0,TAU(B1,T<E(B0,T5h(B1,TM(B0,TGT(B1,T9b4(B0,TGl(B10,T7Uh(B10,TAU(B1,T`$M(B0,TCl(B1,T`+M(B0,TCl(B1,T;CR!/M(B0,TBYh(B1,T`(B0,T7h(B1,TR(B0,T9Qi(B1,T9(B. ,T`CR`(B0,TCU(B1,TB!(B0,TGT(B1,T9b4(B0,TGl(B10,T9Ui(B10,TGh(B1,TR(B "0,TGT(B1,T9b4(B0,TGl(B10,T7Uh(B10,T6Y(B1,T!`(B0,TEW(B1,TM!(B 
+(selected window)".
+
+,T$S(B0,TJQh(B1,T'(B C-M-v 0,TAU(B1,T;CPbB*(B0,T9l(B1,TAR!`(B0,TAWh(B1,TM(B0,T7h(B1,TR9!S(B0,TEQ(B1,T'a(B0,T!i(B1,Td"(B0,T"i(B1,TM$GRA:9(B0,TGT(B1,T9b4(B0,TGl(B1,TK(B0,T9Vh(B1,T'(B, ,TaEP(B0,T4Y(B10,TMU(B1,T!(B0,TGT(B1,T9b4(B0,TGl(B1,TK(B0,T9Vh(B1,T'(B
+,T`(B0,T>Wh(B1,TM!RC(B0,TMi(B1,TR'(B0,TMT(B1,T'(B. 0,T7h(B1,TR9JRARC6c(B0,TKi(B1,T`$M(B0,TCl(B1,T`+M(B0,TCl(B1,T;CR!/:9(B0,TGT(B1,T9b4(B0,TGl(B10,T7Uh(B10,T7h(B1,TR9!S(B0,TEQ(B1,T'a(B0,T!i(B1,Td"M(B0,TBYh(B1,T5EM4`GER(B,
+,Ta(B0,TEi(B1,TG`$(B0,TEWh(B1,TM95SaK(B0,T9h(B1,T'"M'(B0,TMU(B1,T!(B0,TGT(B1,T9b4(B0,TGl(B1,TK(B0,T9Vh(B1,T'(B0,T4i(B1,TGB$S(B0,TJQh(B1,T'(B C-M-v.
+
+,T$S(B0,TJQh(B1,T'(B C-M-v ,T`(B0,T;g(B1,T9(B0,T5Q(B1,TGM(B0,TBh(B1,TR'K(B0,T9Vh(B1,T'"M'$S(B0,TJQh(B1,T';CPJA(B CONTROL-META. 0,T6i(B1,TR(B0,T7h(B1,TR9(B0,TAU(B10,T;Xh(B1,TA(B META,
+0,T7h(B1,TR9JRARC6(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-M-v ,Tb4B!RC!4(B0,T;Xh(B1,TA(B CONTROL ,TaEP(B META ,T"3P(B0,T7Uh(B1,T!4(B0,T;Xh(B1,TA(B0,TMQ(B1,T!"CP(B
+v. ,Td(B0,TAh(B10,TGh(B1,TR(P!4(B0,T;Xh(B1,TA(B CONTROL ,TK(B0,TCW(B1,TM(B META 0,T!h(B1,TM9(B0,T!g(B1,Td(B0,TAh(B10,TAU(B10,T;Q(B1,T-KRMPdC(B, ,T`>CRP(B0,TGh(B1,TR(B0,T7Qi(B1,T'JM'(B0,T;Xh(B1,TA`(B0,T;g(B1,T9(B0,T;Xh(B1,TA(B
+,T"BRB"M'(B0,T;Xh(B1,TA(B0,TMQ(B1,T!"CP(B0,T7Uh(B10,T7h(B1,TR9(P!4(B.
+
+0,T6i(B1,TR(B0,T7h(B1,TR9d(B0,TAh(B10,TAU(B10,T;Xh(B1,TA(B META, ,TaEP(B0,T7h(B1,TR9c(B0,T*i(B10,T;Xh(B1,TA(B ESC ,Ta79(B, ,TES(B0,T4Q(B1,T:"M'!RC!4(B0,T;Xh(B1,TA(P(B0,TAU(B1,T<E(B0,T5h(B1,TM!RC7S'R9(B: 
+0,T7h(B1,TR9(B0,T5i(B1,TM'!4(B0,T;Xh(B1,TA(B ESC ,Ta(B0,TEi(B1,TG5RA(B0,T4i(B1,TGB$S(B0,TJQh(B1,T'(B CONTROL-v, ,T`>CRP(B0,TGh(B1,TR$S(B0,TJQh(B1,T'(B CONTROL-ESC v ,T(Pd(B0,TAh(B1
+,T7S'R9(B. 0,T7Qi(B1,T'(B0,T9Ui(B1,T`>CRP(B0,TGh(B1,TR(B0,T;Xh(B1,TA(B ESC ,T`(B0,T;g(B1,T9(B0,TMQ(B1,T!"CP(B0,T5Q(B1,TGK(B0,T9Vh(B1,T'(B, ,Td(B0,TAh(B1,Tc(B0,T*h(B10,T;Xh(B1,TA"BRB(B.
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x 1 (,Tc9(B0,TGT(B1,T9b4(B0,TGl(B1,T:9(B) ,T`(B0,T>Wh(B1,TM!S(B0,T(Q(B1,T4(B0,TGT(B1,T9b4(B0,TGl(B10,TEh(B1,TR'(B.
+
+(0,T6i(B1,TR(B0,T7h(B1,TR9(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x 1 ,Tc9(B0,TGT(B1,T9b4(B0,TGl(B10,TEh(B1,TR'(B, 0,TGT(B1,T9b4(B0,TGl(B1,T:9(B0,T!g(B1,T(PKRBd;(B. 0,T7h(B1,TR9JRARC6(S(B
+,T$S(B0,TJQh(B1,T'(B0,T9Ui(B1,Td(B0,T4i(B1,Tb4B(B0,T$T(B1,T4(B0,TGh(B1,TR(B ",T`K(B0,TEW(B1,TMd(B0,TGi(B1,T`(B0,T>U(B1,TB'K(B0,T9Vh(B1,T'(B0,TGT(B1,T9b4(B0,TGl(B1--0,TGT(B1,T9b4(B0,TGl(B10,T7Uh(B1,TM(B0,TBYh(B1,Tc9"3P(B0,T9Ui(B1.")
+
+0,T7h(B1,TR9d(B0,TAh(B1,T(S`(B0,T;g(B1,T9(B0,T5i(B1,TM'aJ4'<E"M'(B0,T:Q(B1,T?`?M(B0,TCl(B1,T`(B0,T4U(B1,TBG(B0,T!Q(B1,T9:9(B0,T7Qi(B1,T'JM'(B0,TGT(B1,T9b4(B0,TGl(B1. 0,T6i(B1,TR(B0,T7h(B1,TR9c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-x C-f
+,T`(B0,T>Wh(B1,TM(B0,T$i(B1,T9KRa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEc9(B0,TGT(B1,T9b4(B0,TGl(B1,TK(B0,T9Vh(B1,T'(B, 0,TMU(B1,T!(B0,TGT(B1,T9b4(B0,TGl(B1,TK(B0,T9Vh(B1,T'(Pd(B0,TAh(B1,T`;(B0,TEUh(B1,TB9a;E'(B. 0,T7h(B1,TR9JRARC6(B0,T$i(B1,T9KR(B
+,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TEc9a(B0,T5h(B1,TEP(B0,TGT(B1,T9b4(B0,TGl(B1,Td(B0,T4i(B10,TMT(B1,TJCP(B0,T5h(B1,TM(B0,T!Q(B1,T9(B.
+
+0,T5h(B1,TMd;`(B0,T;g(B1,T9(B0,TMU(B1,T!(B0,TGT(B10,T8U(B1,TK(B0,T9Vh(B1,T'"M'!RCc(B0,T*i(B1,TJM'(B0,TGT(B1,T9b4(B0,TGl(B1,TJSK(B0,TCQ(B1,T:aJ4'<E"M'JM'(B0,TJTh(B1,T'(B0,T7Uh(B10,T5h(B1,TR'(B0,T!Q(B1,T9(B:
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x 4 C-f ,Ta(B0,TEi(B1,TG5RA(B0,T4i(B1,TGB(B0,T*Wh(B1,TMa(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B. 0,TJTi(B1,T9(B0,TJX(B1,T4$S(B0,TJQh(B1,T'(B0,T4i(B1,TGB!RC!4(B0,T;Xh(B1,TA(B
+   <Return>. ,T(P`(B0,TKg(B1,T9(B0,TGh(B1,TR(B0,TAU(B1,Ta(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B10,T5i(B1,TM'!RC;CR!/M(B0,TBYh(B1,Tc9(B0,TGT(B1,T9b4(B0,TGl(B10,TEh(B1,TR'(B. ,T`$M(B0,TCl(B1,T`+M(B0,TCl(B10,T!g(B1,T(Pd;(B
+   ,T;CR!/(B0,T7Uh(B10,TGT(B1,T9b4(B0,TGl(B10,T9Qi(B1,T9(B0,T4i(B1,TGB(B.
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x o ,T`(B0,T>Wh(B1,TM!(B0,TEQ(B1,T:d;(B0,TBQ(B1,T'(B0,TGT(B1,T9b4(B0,TGl(B1,T:9(B, ,Ta(B0,TEi(B1,TG(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x 1 ,T`(B0,T>Wh(B1,TM!S(B0,T(Q(B1,T4(B0,TGT(B1,T9b4(B0,TGl(B10,TEh(B1,TR'(B.
+
+
+* ,TCP(B0,T4Q(B1,T:"M'!RCa(B0,T!i(B1,Td"a::`(B0,TCU(B1,TB!(B0,T+i(B1,TS(B (recursive editing levels)
+-------------------------------------------------------
+
+,T:R'$(B0,TCQi(B1,T'(B0,T7h(B1,TR9MR((P`(B0,T"i(B1,TRd;M(B0,TBYh(B1,Tc9(B ",TCP(B0,T4Q(B1,T:"M'!RCa(B0,T!i(B1,Td"a::!RC`(B0,TCU(B1,TB!(B0,T+i(B1,TS(B (recursive editing
+level)". ,TJ@R>(B0,T4Q(B1,T'!(B0,TEh(B1,TRG`(B0,T*h(B1,T9(B0,T9Ui(B1,TaJ4'(B0,T4i(B1,TGBG'`(B0,TEg(B1,T:(B0,T!i(B1,TRA(B0,T;Y(B1,Tc9:CC(B0,T7Q(B1,T4aJ4'bKA4(B, 0,TEi(B1,TMACM:G'`(B0,TEg(B1,T:(B0,T7Uh(B1
+,TaJ4'(B0,T*Wh(B1,TM"M'bKA4K(B0,TEQ(B1,T!(B. 0,T5Q(B1,TGM(B0,TBh(B1,TR'`(B0,T*h(B1,T9(B, 0,T7h(B1,TR9MR((P`(B0,TKg(B1,T9(B [(Fundamental)] ,Ta79(B0,T7Uh(B1,T(P`(B0,T;g(B1,T9(B
+(Fundamental).
+
+,Tc9!RC(B0,T7Uh(B1,T(PMM!(R!CP(B0,T4Q(B1,T:"M'!RCa(B0,T!i(B1,Td"a::`(B0,TCU(B1,TB!(B0,T+i(B1,TS(B, ,T!4(B0,T;Xh(B1,TA(B ESC ESC ESC. 0,T9Uh(B1,T`(B0,T;g(B1,T9(B
+,T$S(B0,TJQh(B1,T'(B0,T7Uh(B1,Tc(B0,T*i(B1,Td(B0,T4i(B10,T7Qh(B1,TGd;c9!RCMM!(R!CP(B0,T4Q(B1,T:c4f(B ,T"M'!RC;CPAGE<E(B. 0,T7h(B1,TR9JRARC6c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B0,T9Ui(B1,Tc9(B
+,T!RC!S(B0,T(Q(B1,T4(B0,TGT(B1,T9b4(B0,TGl(B10,T>T(B1,T`HI(B0,TMWh(B1,T9f(B, ,TCGA(B0,T7Qi(B1,T'!RCMM!(R!(B0,TAT(B10,T9T(B10,T:Q(B1,T?`?M(B0,TCl(B1 (minibuffer).
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B M-x ,T`(B0,T>Wh(B1,TM`(B0,T"i(B1,TRd;c9(B0,TAT(B10,T9T(B10,T:Q(B1,T?`?M(B0,TCl(B1; ,T!4(B0,T;Xh(B1,TA(B ESC ESC ESC ,T`(B0,T>Wh(B1,TMMM!(R!(B
+   0,TAT(B10,T9T(B10,T:Q(B1,T?`?M(B0,TCl(B10,T9Qi(B1,T9(B.
+
+0,T7h(B1,TR9d(B0,TAh(B1,TJRARC6c(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-g ,T`(B0,T>Wh(B1,TMMM!(R!CP(B0,T4Q(B1,T:"M'!RCa(B0,T!i(B1,Td"a::`(B0,TCU(B1,TB!(B0,T+i(B1,TS(B.
+,T`>CRP(B0,TGh(B1,TR$S(B0,TJQh(B1,T'(B C-g ,Tc(B0,T*i(B1,T`(B0,T>Wh(B1,TMB!`(B0,TET(B1,T!$S(B0,TJQh(B1,T'aEPMR(B0,TCl(B10,T!T(B1,TG`A9(B0,T5l(B1,T@RBc9CP(B0,T4Q(B1,T:"M'!RCa(B0,T!i(B1,Td"a::(B
+,T`(B0,TCU(B1,TB!(B0,T+i(B1,TS(B.
+
+
+* ,T!RC`(B0,TCU(B1,TB!(B0,T4Y(B10,T"i(B1,TM$GRA(B0,T*h(B1,TGB`K(B0,TEW(B1,TM`(B0,T>Th(B1,TA`(B0,T5T(B1,TA(B (getting more help)
+-------------------------------------------------
+
+,Tc9(B0,T$Yh(B10,TAW(B1,TM(B0,T9Ui(B1,T`CR>BRBRA(B0,T7Uh(B1,T(Pc(B0,TKi(B10,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Uh(B1,T`(B0,T>U(B1,TB'>MJSK(B0,TCQ(B1,T:!RC`(B0,TCTh(B1,TAc(B0,T*i(B10,TMU(B1,TaA!(B0,TJl(B1. 0,TBQ(B1,T'$'(B0,TAU(B10,T"i(B1,TM(B0,TAY(B1,TE(B0,TMU(B1,T!AR!c9(B
+0,TMU(B1,TaA!(B0,TJl(B10,T+Vh(B1,T'`CRd(B0,TAh(B1,TJRARC6(B0,T7Uh(B1,T(P9SARM(B0,T8T(B1,T:RBd(B0,TGi(B1,Tc9(B0,T7Uh(B10,T9Ui(B1,Td(B0,T4i(B10,T7Qi(B1,T'KA4(B. ,TM(B0,TBh(B1,TR'dC(B0,T!g(B1,T5RA(B, 0,T7h(B1,TR9MR((B0,T5i(B1,TM'!RC(B
+,T`(B0,TCU(B1,TB9(B0,TCYi(B1,T`(B0,T!Uh(B1,TBG(B0,T!Q(B1,T:(B0,TMU(B1,TaA!(B0,TJl(B1,T`(B0,T>Th(B1,TA`(B0,T5T(B1,TA`>CRP(B0,TMU(B1,TaA!(B0,TJl(B10,TBQ(B1,T'(B0,TAU(B10,T$X(B1,T3JA(B0,T:Q(B10,T5T(B10,TMU(B1,T!AR!ARB(B. 0,TMU(B1,TaA!(B0,TJl(B1,Td(B0,T4i(B1,T`5(B0,TCU(B1,TBA$S(B0,TJQh(B1,T'(B
+,TJSK(B0,TCQ(B1,T:`(B0,TCU(B1,TB!(B0,T4Y(B1,T`(B0,T9Wi(B1,TMKR`(B0,T!Uh(B1,TBG(B0,T!Q(B1,T:$S(B0,TJQh(B1,T'"M'(B0,TMU(B1,TaA!(B0,TJl(B1. ,T$S(B0,TJQh(B1,T'(B "0,T*h(B1,TGB`K(B0,TEW(B1,TM(B (help)" 0,T7Qi(B1,T'KA4`(B0,TCTh(B1,TA(B0,T4i(B1,TGB(B
+0,TMQ(B1,T!"CP(B CONTROL-h, 0,T+Vh(B1,T'`(B0,TCU(B1,TB!(B0,TGh(B1,TR(B "0,TMQ(B1,T!"CP(B0,T*h(B1,TGB`K(B0,TEW(B1,TM(B (the Help character)".
+
+,Tc9!RC(B0,T7Uh(B1,T(Pc(B0,T*i(B10,T$X(B1,T3JA(B0,T:Q(B10,T5T(B10,T*h(B1,TGB`K(B0,TEW(B1,TM(B, 0,T;i(B1,TM9(B0,TMQ(B1,T!"CP(B C-h, ,Ta(B0,TEi(B1,TG5RA(B0,T4i(B1,TGB(B0,TMU(B1,T!K(B0,T9Vh(B1,T'(B0,TMQ(B1,T!"CP`(B0,T>Wh(B1,TM:M!(B0,TGh(B1,TR(B
+0,T7h(B1,TR9(B0,T5i(B1,TM'!RC$S(B0,T*h(B1,TGB`K(B0,TEW(B1,TMMPdC(B. 0,T6i(B1,TR(B0,T7h(B1,TR9d(B0,TAh(B1,T7CR:(B0,TGh(B1,TR(P7SMPdC(B0,T5h(B1,TMd;(B, 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-h ? ,Ta(B0,TEi(B1,TG(B
+0,TMU(B1,TaA!(B0,TJl(B1,T(P:M!(B0,T7h(B1,TR9(B0,TGh(B1,TR(B0,TAU(B1,T$S(B0,T*h(B1,TGBMPdC(B0,T7Uh(B10,TMU(B1,TaA!(B0,TJl(B1,TJRARC6(Pc(B0,TKi(B1,Td(B0,T4i(B1. 0,T6i(B1,TR(B0,T7h(B1,TR9(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-h ,Ta(B0,TEi(B1,TG(B
+0,T5i(B1,TM'!RCB!`(B0,TET(B1,T!(B0,T7h(B1,TR9(B, 0,T!g(B1,TJRARC6B!`(B0,TET(B1,T!d(B0,T4i(B1,Tb4Bc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-g.
+
+(,Tc9:R'CP::(B0,T9Qi(B1,T9(B, ,T$GRAKARB"M'(B0,TMQ(B1,T!"CP(B C-h ,Td(B0,T4i(B10,T6Y(B1,T!`;(B0,TEUh(B1,TB9d;(B. 0,T+Vh(B1,T'b4B$GRA`(B0,T;g(B1,T9((B0,TCT(B1,T'a(B0,TEi(B1,TGd(B0,TAh(B1
+,T$GC(P7S`(B0,T*h(B1,T9(B0,T9Ui(B1, 0,T7Qi(B1,T'(B0,T9Ui(B10,T7h(B1,TR9MR((P(B0,T*Ui(B1,Ta('(B0,T5h(B1,TM(B0,T<Yi(B10,T4Y(B1,TaECP::d(B0,T4i(B1. ,TJSK(B0,TCQ(B1,T:!RCa(B0,T!i(B10,T;Q(B1,T-KR`)>RPK(B0,T9i(B1,TR(B, 0,T6i(B1,TR(B
+,T$S(B0,TJQh(B1,T'(B C-h ,Td(B0,TAh(B1,Td(B0,T4i(B1,TaJ4'(B0,T"i(B1,TM$GRA`(B0,T!Uh(B1,TBG(B0,T!Q(B1,T:$S(B0,T*h(B1,TGB`K(B0,TEW(B1,TM(B0,T7Uh(B10,TJh(B1,TG9(B0,TEh(B1,TR'"M'K(B0,T9i(B1,TR(M(B0,T9Qi(B1,T9(B, ,Tc(B0,TKi(B1,TEM'!4(B0,T;Xh(B1,TA(B F1 
+,TK(B0,TCW(B1,TM(B M-x help<Return> ,Ta79(B.)
+
+0,T$X(B1,T3JA(B0,T:Q(B10,T5T(B1,T`(B0,T:Wi(B1,TM'(B0,T5i(B1,T9"M'$S(B0,TJQh(B1,T'(B0,T*h(B1,TGB`K(B0,TEW(B1,TM(B0,T$W(B1,TM$S(B0,TJQh(B1,T'(B C-h c. ,TEM'(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-h, 0,TMQ(B1,T!"CP(B c, ,Ta(B0,TEi(B1,TG(B
+,T5RA(B0,T4i(B1,TGB(B0,TMQ(B1,T!"CPK(B0,TCW(B1,TMJRB(B0,TMQ(B1,T!"CP(B; ,Ta(B0,TEi(B1,TG(B0,TMU(B1,TaA!(B0,TJl(B1,T(PaJ4'$SM(B0,T8T(B1,T:RB"M'$S(B0,TJQh(B1,T'(B0,T9Qi(B1,T9b4B(B0,TJQ(B1,T'`";(B.
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-h c CONTROL-p.
+   0,T"i(B1,TM$GRA(B0,T7Uh(B1,T;CR!/(P`(B0,T;g(B1,T9(B0,T4Q(B1,T'(B0,T5h(B1,TMd;(B0,T9Ui(B1
+
+	C-p runs the command previous-line
+
+0,T9Uh(B1,T`(B0,T;g(B1,T9!RC:M!(B "0,T*Wh(B1,TM(B0,T?Q(B1,T'(B0,T!l(B10,T*Q(B1,T9"M'$S(B0,TJQh(B1,T'(B" 0,T9Qi(B1,T9(B. 0,T*Wh(B1,TM"M'(B0,T?Q(B1,T'(B0,T!l(B10,T*Q(B1,T9c(B0,T*i(B1,T`(B0,T>Wh(B1,TM!RC;(B0,TCQ(B1,T:aEPa(B0,T5h(B1,T'`(B0,T5T(B1,TA(B0,TMU(B1,TaA!(B0,TJl(B1. 
+,Ta(B0,T5h(B1,T`(B0,T9Wh(B1,TM'(R!(B0,T*Wh(B1,TM"M'(B0,T?Q(B1,T'(B0,T!l(B10,T*Q(B1,T9(B0,T9Qi(B1,T9(B0,T5Qi(B1,T'`(B0,T>Wh(B1,TM(B0,T*Ui(B1,T:M!(B0,TGh(B1,TR$S(B0,TJQh(B1,T'(B0,T9Qi(B1,T97S'R9M(B0,TBh(B1,TR'dC(B, 0,T+Vh(B1,T'MR(`(B0,T;g(B1,T9(B0,T5Q(B1,TG(B0,T*h(B1,TGB:M!(B
+,T$SM(B0,T8T(B1,T:RBb4B(B0,TJQ(B1,T'`";d(B0,T4i(B1--,TMR(`(B0,T>U(B1,TB'>M(B0,T7Uh(B1,T(P`(B0,T5W(B1,TM9c(B0,TKi(B10,T7h(B1,TR9(B0,T9V(B1,T!(B0,T6V(B1,T'$S(B0,TJQh(B1,T'(B0,T7Uh(B10,T5i(B1,TM'!RCd(B0,T4i(B1.
+
+,T$S(B0,TJQh(B1,T'(B0,T7Uh(B1,T;CP!M:(B0,T4i(B1,TGBKERB(B0,TMQ(B1,T!"CP(B ,T`(B0,T*h(B1,T9$S(B0,TJQh(B1,T'(B C-x C-s ,TaEP(B (0,T6i(B1,TR(B0,T7h(B1,TR9d(B0,TAh(B10,TAU(B10,T;Xh(B1,TA(B META ,TK(B0,TCW(B1,TM(B
+EDIT ,TK(B0,TCW(B1,TM(B ALT) ,T$S(B0,TJQh(B1,T'(B <ESC>v ,TJRARC6c(B0,T*i(B1,T5RAK(B0,TEQ(B1,T'$S(B0,TJQh(B1,T'(B C-h c.
+
+,T!RC(B0,T7Uh(B1,T(P`(B0,TCU(B1,TB!(B0,T4Y(B10,T"i(B1,TM(B0,TAY(B1,TE`(B0,T>Th(B1,TA`(B0,T!Uh(B1,TBG(B0,T!Q(B1,T:$S(B0,TJQh(B1,T'(B, ,Tc(B0,TKi(B1,Tc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-h k ,Ta79$S(B0,TJQh(B1,T'(B C-h c.
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-h k CONTROL-p.
+
+0,T9Uh(B1,T`(B0,T;g(B1,T9!RCaJ4'<E$SM(B0,T8T(B1,T:RB"M'(B0,T?Q(B1,T'(B0,T!l(B10,T*Q(B1,T9(B, ,T>(B0,TCi(B1,TMA(B0,T!Q(B1,T:(B0,T*Wh(B1,TM"M'$S(B0,TJQh(B1,T'(B0,T9Qi(B1,T9(B, ,Tc9(B0,TGT(B1,T9b4(B0,TGl(B1,TK(B0,T9Vh(B1,T'"M'(B0,TMU(B1,TaA!(B0,TJl(B1. 
+,T`(B0,TAWh(B1,TM(B0,T7h(B1,TR9(B0,TMh(B1,TR9`J(B0,TCg(B1,T(a(B0,TEi(B1,TG(B, 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x 1 ,T`(B0,T>Wh(B1,TM!S(B0,T(Q(B1,T4(B0,T"i(B1,TM$GRA"M'$S(B0,T*h(B1,TGB`K(B0,TEW(B1,TM(B. 0,T7h(B1,TR9d(B0,TAh(B1
+,T(S`(B0,T;g(B1,T9(B0,T7Uh(B1,T(P(B0,T5i(B1,TM'7S(B0,T7Q(B1,T9(B0,T7U(B1. 0,T7h(B1,TR9MR(7S!RCa(B0,T!i(B1,Td""3P(B0,T7Uh(B10,T4Y(B10,T"i(B1,TM$GRA$S(B0,T*h(B1,TGB`K(B0,TEW(B1,TM(B0,T9Qi(B1,T9M(B0,TBYh(B1, ,Ta(B0,TEi(B1,TG(B
+0,T$h(B1,TMB(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x 1.
+
+0,T5h(B1,TMd;(B0,T9Ui(B1,T`(B0,T;g(B1,T9(B0,T5Q(B1,TG`(B0,TEW(B1,TM!(B0,T7Uh(B1,T`(B0,T;g(B1,T9;CPbB*(B0,T9l(B1:
+
+   C-h f	,TM(B0,T8T(B1,T:RB(B0,T?Q(B1,T'(B0,T!l(B10,T*Q(B1,T9(B. 0,T>T(B1,TA(B0,T>l(B10,T*Wh(B1,TM(B0,T?Q(B1,T'(B0,T!l(B10,T*Q(B1,T9(B0,T7Uh(B10,T5i(B1,TM'!RC7CR:5RAE'd;(B.
+
+>> ,TEM'(B0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-h f previous-line<Return>.
+   0,T9Uh(B1,T`(B0,T;g(B1,T9!RC(B0,T7Uh(B1,T(P7Sc(B0,TKi(B10,TMU(B1,TaA!(B0,TJl(B10,T>T(B1,TA(B0,T>l(B10,T"i(B1,TM(B0,TAY(B1,TE(B0,T7Qi(B1,T'KA4(B0,T7Uh(B10,TAU(B1,T`(B0,T!Uh(B1,TBG(B0,T!Q(B1,T:(B0,T?Q(B1,T'(B0,T!l(B10,T*Q(B1,T9"M'$S(B0,TJQh(B1,T'(B C-p.
+
+   C-h a 	,T$S(B0,TJQh(B1,T'$GRA(B0,T7Uh(B1,T`KARPJA(B (Command Apropos). 0,T;i(B1,TM9$SK(B0,TEQ(B1,T!(B (keyword)
+		,Ta(B0,TEi(B1,TG(B0,TMU(B1,TaA!(B0,TJl(B1,T(PaJ4'CRB!RC"M'$S(B0,TJQh(B1,T'(B0,T7Qi(B1,T'KA4(B0,T7Uh(B10,TAU(B1,T$SK(B0,TEQ(B1,T!;CP!M:M(B0,TBYh(B1.
+		,T$S(B0,TJQh(B1,T'`K(B0,TEh(B1,TR(B0,T9Ui(B1,T(P`(B0,TCU(B1,TB!c(B0,T*i(B1,Td(B0,T4i(B10,T4i(B1,TGB$S(B0,TJQh(B1,T'(B META-x.
+		,TJSK(B0,TCQ(B1,T::R'$S(B0,TJQh(B1,T'(B, ,T$S(B0,TJQh(B1,T'$GRA(B0,T7Uh(B1,T`KARPJA(B (Command Apropos) ,T(P(B
+		,TaJ4'CRB!RC"M'$S(B0,TJQh(B1,T'(B0,T7Uh(B1,T;CP!M:(B0,T4i(B1,TGBK(B0,T9Vh(B1,T'K(B0,TCW(B1,TMJM'JRB(B0,TMQ(B1,T!"CP(B0,T7Uh(B1,Tc(B0,T*i(B1,T`(B0,TCU(B1,TB!(B
+		,T$S(B0,TJQh(B1,T'`(B0,T4U(B1,TBG(B0,T!Q(B1,T9(B0,T4i(B1,TGB(B.
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-h a file<Return>.
+
+0,T9Uh(B1,T`(B0,T;g(B1,T9!RCaJ4'CRB!RC"M'$S(B0,TJQh(B1,T';CP!M:"M'(B M-x 0,T!Q(B1,T:(B "file" ,Tc9(B0,T*Wh(B1,TM"M'$S(B0,TJQh(B1,T'(B
+0,T7Qi(B1,T'KA4c9(B0,TMU(B1,T!K(B0,T9i(B1,TR(M(B. 0,T7h(B1,TR9(P`(B0,TKg(B1,T9$S(B0,TJQh(B1,T';CP!M:(B0,TMQ(B1,T!"CP(B (character-command) ,T`(B0,T*h(B1,T9(B C-x
+C-f ,TaJ4'M(B0,TBYh(B10,T!Q(B1,T:(B0,T*Wh(B1,TM"M'$S(B0,TJQh(B1,T'(B0,T9Qi(B1,T9f(B ,T`(B0,T*h(B1,T9(B find-file.
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-M-v ,T`(B0,T>Wh(B1,TM`$(B0,TEWh(B1,TM9(B0,TAi(B1,TG9(B0,TGT(B1,T9b4(B0,TGl(B1,T$S(B0,T*h(B1,TGB`K(B0,TEW(B1,TM(B (help window). ,TEM'7S(B0,T4Y(B10,TJQ(B1,T!(B
+   ,TJM'JRA$(B0,TCQi(B1,T'(B.
+
+>> 0,T;i(B1,TM9$S(B0,TJQh(B1,T'(B C-x 1 ,T`(B0,T>Wh(B1,TM!S(B0,T(Q(B1,T4(B0,TGT(B1,T9b4(B0,TGl(B1,T$S(B0,T*h(B1,TGB`K(B0,TEW(B1,TM(B.
+
+
+* ,TJ(B0,TCX(B1,T;(B
+-----
+
+0,TJTh(B1,T'$GC(Sd(B0,TGi(B10,T$W(B1,TM(B, ,T$S(B0,TJQh(B1,T'(B C-x C-c ,Tc(B0,T*i(B1,TJSK(B0,TCQ(B1,T:MM!(R!(B0,TMU(B1,TaA!(B0,TJl(B1,TM(B0,TBh(B1,TR'6RGC(B. 0,T6i(B1,TR(B0,T5i(B1,TM'!RCMM!d;(B0,TBQ(B1,T'(B
+,T`*E(B0,TEl(B10,T*Qh(B1,TG$CRG(B, ,TaEPJRARC6!(B0,TEQ(B1,T:AR(B0,TBQ(B1,T'(B0,TMU(B1,TaA!(B0,TJl(B1,Td(B0,T4i(B10,TMU(B1,T!(B0,T9Qi(B1,T9(B, ,Tc(B0,TKi(B1,Tc(B0,T*i(B1,T$S(B0,TJQh(B1,T'(B C-z.
+
+0,T$Yh(B10,TAW(B1,TM!RCc(B0,T*i(B10,T9Ui(B10,TAU(B1,T`(59Rc(B0,TKi(B10,T<Yi(B10,T7Uh(B1,T`(B0,T>Th(B1,T'`(B0,TCTh(B1,TAc(B0,T*i(B10,T7Qi(B1,T'KERBJRARC6`(B0,T"i(B1,TRc(d(B0,T4i(B1, 0,T4Q(B1,T'(B0,T9Qi(B1,T9(B0,T6i(B1,TR(B0,T7h(B1,TR9>::R'(B0,TJTh(B1,T'(B0,T7Uh(B1,Td(B0,TAh(B1
+0,T*Q(B1,T4`(9(B, ,Td(B0,TAh(B10,T5i(B1,TM'(B0,T9Qh(B1,T'5SK(B0,T9T(B10,T5Q(B1,TG`M'(B - ,TJM:6RAARd(B0,T4i(B1,T`EB(B!
+
+
+* ,T!RC7SJS`9R(B (copying)
+----------------------
+
+0,T$Yh(B10,TAW(B1,TM(B0,T9Ui(B1,Td(B0,T4i(B10,TCQ(B1,T:!RC(B0,T>Q(B1,T29RAR`(B0,T;g(B1,T9CPBP`GER9R9(B, ,T`(B0,TCTh(B1,TA(B0,T5Qi(B1,T'a(B0,T5h(B10,T5i(B1,T9)(B0,T:Q(B1,T:(B0,T7Uh(B1,T`(B0,T"U(B1,TB9b4B(B Stuart Cracraft.
+
+0,T$Yh(B10,TAW(B1,TM`GM(B0,TCl(B10,T*Q(B1,T9(B0,T9Ui(B1, ,T`(B0,T*h(B1,T9`(B0,T4U(B1,TBG(B0,T!Q(B1,T:(B GNU Emacs, ,Td(B0,T4i(B10,TCQ(B1,T:!RCJ'G9(B0,TJT(B1,T7(B0,T8Tl(B1, ,TaEP<9G!d(B0,TGi(B1,Tc9`(B0,T'Wh(B1,TM9d"c9(B
+,T!RC`<Ba>(B0,TCh(B10,T4i(B1,TGB(B:
+
+,TJ'G9(B0,TET(B1,T"(B0,TJT(B1,T7(B0,T8Tl(B1 ,T>(B.,TH(B. 2528, 2529 ,Tb4B?(B0,TCU(B1,T+M?(B0,T5l(B1,TaG(B0,TCl(B1,T?RG(B0,T9l(B1,T`4(B0,T*Q(B1,T9(B (Free Software Foundation) 
+
+   0,T7X(B1,T!(B0,T7h(B1,TR9(B0,TAU(B10,TJT(B1,T7(B0,T8Tl(B1,Tc9!RC7SJS`9RK(B0,TCW(B1,TM`<Ba>(B0,TCh(B1,T`M!JRC(B0,T9Ui(B1, ,Tc9(B0,T7X(B1,T!(B0,TJWh(B1,TM(B, ,Tb4B(B0,T5i(B1,TM'a9:(B0,T"i(B1,TM$GRAaJ4'(B
+   0,TJT(B1,T7(B0,T8Tl(B1,TaEP!RCM(B0,T9X(B1,T-R5(B0,T9Ui(B1,Td;>(B0,TCi(B1,TMA(B0,T4i(B1,TGB(B. 0,T7Qi(B1,T'(B0,T9Ui(B1,T`(B0,T>Wh(B1,TM(B0,T*Ui(B1,Tc(B0,TKi(B1,T`(B0,TKg(B1,T9(B0,TGh(B1,TR(B0,T<Yi(B1,T`<Ba>(B0,TCh(B1,Td(B0,T4i(B1,TM(B0,T9X(B1,T-R5c(B0,TKi(B10,T<Yi(B10,T7Uh(B1,Td(B0,T4i(B10,TCQ(B1,T:(B
+   ,TJRARC67S!RC`<Ba>(B0,TCh(B10,T5h(B1,TMd;d(B0,T4i(B1,Tb4BMR(B0,THQ(B1,TB(B0,T"i(B1,TM$GRAc9`M!JRC(B0,T9Ui(B1.
+
+   ,T!RCM(B0,T9X(B1,T-R5(B0,T9Qi(B1,T9d(B0,T4i(B1,TCGA(B0,T6V(B1,T'(B0,TJT(B1,T7(B0,T8Tl(B1,Tc9!RC`<Ba>(B0,TCh(B1,T`GM(B0,TCl(B10,T*Q(B1,T9(B0,T7Uh(B1,T;(B0,TCQ(B1,T:;(B0,TCX(B1,T'a(B0,TEi(B1,TG(B, ,TK(B0,TCW(B1,TM(B0,TJh(B1,TG9K(B0,T9Vh(B1,T'"M'(B
+   ,T`M!JRC(B0,T9Ui(B1, ,T@RBc(B0,T5i(B1,T`(B0,T'Wh(B1,TM9d"(B0,T"i(B1,TR':9(B, ,T5EM4(9(B0,TJT(B1,T7(B0,T8Tl(B1,Tc9!RC:M!(B0,TGh(B1,TRc$C`(B0,T;g(B1,T9(B0,T<Yi(B1,T;(B0,TCQ(B1,T:;(B0,TCX(B1,T'(B0,TEh(B1,TR(B0,TJX(B1,T4(B.
+
+,T`(B0,T'Wh(B1,TM9d""M'!RC7SJS`9R(B0,TMU(B1,TaA!(B0,TJl(B1,T(P(B0,T+Q(B1,T:(B0,T+i(B1,TM9AR!!(B0,TGh(B1,TR(B0,T9Ui(B1, ,Ta(B0,T5h(B10,TAU(B1,T`(59RCA(B0,T3l(B10,T7Uh(B1,T`K(B0,TAW(B1,TM9(B0,T!Q(B1,T9(B. ,T!(B0,TCX(B1,T3R(B
+0,TMh(B1,TR9a(B0,T?i(B1,TA(B0,T"i(B1,TM(B0,TAY(B1,TE(B COPYING ,Ta(B0,TEi(B1,TG`<Ba>(B0,TCh(B1,TJS`9R"M'(B GNU Emacs ,Td;(B0,TBQ(B1,T'`(B0,T>Wh(B1,TM9f(B ,T"M'(B0,T7h(B1,TR9(B0,T4i(B1,TGB(B. 
+0,T*h(B1,TGB(B0,T!Q(B1,T97SERBCP::KG'+M?(B0,T5l(B1,TaG(B0,TCl(B1 (",TaJ4'$GRA`(B0,T;g(B1,T9`(B0,T(i(B1,TR(B0,T"i(B1,TRG`(B0,T(i(B1,TR"M'(B") 0,T4i(B1,TGB!RCc(B0,T*i(B1, 
+,T!RC`(B0,T"U(B1,TB9(B, ,TaEP!RC`(B0,T;g(B1,T9`(B0,T(i(B1,TR"M'(B0,TCh(B1,TGA(B0,T!Q(B1,T9"M'+M?(B0,T5l(B1,TaG(B0,TCl(B1,T`J(B0,TCU(B1 (free software).
+
+
+* 0,T5i(B1,T9)(B0,T:Q(B1,T:(B0,TGh(B1,TR(B0,T4i(B1,TGB`(B0,TCWh(B1,TM'!RC7SJS`9R(B
+--------------------------
+
+0,T5h(B1,TMd;(B0,T9Ui(B1,T`(B0,T;g(B1,T9`M!JRC(B0,TGh(B1,TR(B0,T4i(B1,TGB`(B0,TCWh(B1,TM'!RC7SJS`9R(B0,T7Uh(B1,T`(B0,T;g(B1,T9(B0,T5i(B1,T9)(B0,T:Q(B1,T:(B. ,T`M!JRC(B0,T9Ui(B1,T;CR!/M(B0,TBYh(B1,Tc9(B0,T$Yh(B10,TAW(B1,TM!RCc(B0,T*i(B1
+0,TMU(B1,TaA!(B0,TJl(B1,T)(B0,T:Q(B1,T:@RIR(B0,TMQ(B1,T'!DI(B, 0,T+Vh(B1,T'`(B0,T;g(B1,T9(B0,T5i(B1,T9)(B0,T:Q(B1,T:"M'`M!JRCa;E)(B0,T:Q(B1,T:(B0,T9Ui(B10,T4i(B1,TGB(B.
+
+This tutorial descends from a long line of Emacs tutorials
+starting with the one written by Stuart Cracraft for the original Emacs.
+
+This version of the tutorial, like GNU Emacs, is copyrighted, and
+comes with permission to distribute copies on certain conditions:
+
+Copyright (c) 1985, 1996 Free Software Foundation
+
+   Permission is granted to anyone to make or distribute verbatim copies
+   of this document as received, in any medium, provided that the
+   copyright notice and permission notice are preserved,
+   and that the distributor grants the recipient permission
+   for further redistribution as permitted by this notice.
+
+   Permission is granted to distribute modified versions
+   of this document, or of portions of it,
+   under the above conditions, provided also that they
+   carry prominent notices stating who last altered them.
+
+The conditions for copying Emacs itself are more complex, but in the
+same spirit.  Please read the file COPYING and then do give copies of
+GNU Emacs to your friends.  Help stamp out software obstructionism
+("ownership") by using, writing, and sharing free software!
+
+
+* ,T$S(B0,TJh(B1,T'(B0,T7i(B1,TRB(B
+---------
+
+0,T$Yh(B10,TAW(B1,TM)(B0,T:Q(B1,T:(B0,T9Ui(B1,Td(B0,T4i(B1,Ta;E(R!(B0,T5i(B1,T9)(B0,T:Q(B1,T:(B0,T7Uh(B1,T`(B0,T;g(B1,T9@RIR(B0,TMQ(B1,T'!DI(B, 0,T+Vh(B1,T'(P;CR!/M(B0,TBYh(B1,Tc9(B0,TMU(B1,TaA!(B0,TJl(B1,T`GM(B0,TCl(B10,T*Q(B1,T9(B 20.4. 
+0,T<Yi(B1,Ta;Ed(B0,T4i(B1,T7S!RCa;E(B0,T"Vi(B1,T9ARcK(B0,TAh(B1,T`(B0,T9Wh(B1,TM'(R!)(B0,T:Q(B1,T:`(B0,T!h(B1,TR(B0,T7Uh(B1,T`(B0,T;g(B1,T9@RIRd7B(B, 0,T+Vh(B1,T'a;Eb4B(B ,T4C(B.,TAR9>(B ,TG'(B0,THl(B1
+,TJRB(B0,TJX(B1,TGCC3(B, ,Td(B0,T4i(B10,TMT(B1,T'(B0,T$Yh(B10,TAW(B1,TM"M'(B0,TMU(B1,TaA!(B0,TJl(B1,T`GM(B0,TCl(B10,T*Q(B1,T9`(B0,T!h(B1,TR(B, ,TaEP"3P(B0,T9Ui(B10,TMU(B1,TaA!(B0,TJl(B1,T`GM(B0,TCl(B10,T*Q(B1,T9(B 20.4 0,T!g(B1,Td(B0,T4i(B1
+,T`;(B0,TEUh(B1,TB9a;E'd;AR!a(B0,TEi(B1,TG(B. ,T9M!(R!(B0,T9Ui(B1, 0,T<Yi(B1,Ta;E(B0,TBQ(B1,T'd(B0,T4i(B1,T9S`$(B0,TCWh(B1,TM'KARBGCC$5M9ARc(B0,T*i(B1,Tc9(B0,T7Uh(B10,T9Ui(B10,T4i(B1,TGB(B, 
+0,T7Qi(B1,T'(B0,T9Ui(B10,T!g(B1,T`(B0,T>Wh(B1,TM(B0,T7Uh(B1,T(P`(B0,T"U(B1,TB9c(B0,TKi(B1,Td(B0,T4i(B1,T$GRA(B0,T7Uh(B10,T*Q(B1,T4`(9(B. ,TK(B0,TGQ(B1,T'`(B0,T;g(B1,T9M(B0,TBh(B1,TR'(B0,TBTh(B1,T'(B0,TGh(B1,TR(B0,T$Yh(B10,TAW(B1,TM)(B0,T:Q(B1,T:(B0,T9Ui(B1,T(P`(B0,T;g(B1,T9;CPbB*(B0,T9l(B1 
+,TaEP(Pd(B0,T4i(B10,TCQ(B1,T:!RCa(B0,T!i(B1,Td"c(B0,TKi(B10,T4U(B10,TBTh(B1,T'f(B 0,T"Vi(B1,T9(B0,TMU(B1,T!(B0,T5h(B1,TMf(B ,Td;(B. ,T"M"M:(B0,T$X(B1,T3(B 0,T$X(B1,T3(B0,T7Q(B1,TH(B0,T9U(B10,TBl(B1 ,T`((B0,TCT(B1,T->C(B 0,T7Uh(B1,Tc(B0,TKi(B1,T$GRA(B
+0,T*h(B1,TGB`K(B0,TEW(B1,TM5CG(JM:(B0,T5i(B1,T9)(B0,T:Q(B1,T:(B.
+
+22 ,TA!CR$A(B 2542
+0,TGT(B10,TCQ(B1,T*(B ,THC`(B0,TET(B1,TH(B0,TEi(B1,TSGR(B0,T3T(B1,T*(B
+virach@nectec.or.th
+
+Translate - January 1999 by Virach Sornlertlamvanich
+

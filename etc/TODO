@@ -1,0 +1,48 @@
+* Implement a clean way to use different major modes for
+  different parts of a buffer.
+
+* Give start-process the ability to direct standard-error
+  output to a different filter.
+
+* Make compile.el record the markers that point to error loci
+  on text properties in the error message lines.
+
+* Make desktop.el save the "frame configuration" of Emacs (in some
+  useful sense).
+
+* Make movemail work with IMAP.
+
+* Add ANSI C prototype forward declarations to the source files,
+  so that even the functions used within one file have prototypes.
+
+* Replace finder.el with something that generates an Info file
+  which gives the same information through a menu structure.
+
+* Implement a variant of uncompress.el or jka-compr.el that
+  works with GNU Privacy Guard for encryption.
+
+* Save undo information in files, and reload it when needed
+  for undoing.
+
+* modify comint.el so that input appears in a special font.
+  I can add a simple Emacs feature to help.
+
+* Implement other text formatting properties.
+** Footnotes that can appear either in place
+  or at the end of the page.
+** text property that says "don't break line in middle of this".
+  Don't break the line between two characters that have the
+  same value of this property.
+** Discretionary hyphens that disappear at end of line.
+
+* Implement use of mmap to allocate buffers, when mmap exists.
+
+* Change the Windows NT menu code
+  so that it handles the deep_p argument and avoids
+  regenerating the whole menu bar menu tree except
+  when the user tries to use the menubar.
+
+  This requires the RIT to forward the WM_INITMENU message to
+  the main thread, and not return from that message until the main
+  thread has processed the menu_bar_activate_event and regenerated
+  the whole menu bar.  In the mean time, it should process other messages.
