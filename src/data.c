@@ -834,8 +834,8 @@ store_symval_forwarding (symbol, valcontents, newval)
     }
 }
 
-/* Set up the buffer-local symbol SYMBOL for validity in the current
-   buffer.  VALCONTENTS is the contents of its value cell.
+/* Set up the buffer-local symbol SYMBOL for validity in the current buffer.
+   VALCONTENTS is the contents of its value cell.
    Return the value forwarded one step past the buffer-local indicator.  */
 
 static Lisp_Object
@@ -910,7 +910,8 @@ find_symbol_value (symbol)
 
   if (BUFFER_LOCAL_VALUEP (valcontents)
       || SOME_BUFFER_LOCAL_VALUEP (valcontents))
-    valcontents = swap_in_symval_forwarding (symbol, valcontents);
+    valcontents = swap_in_symval_forwarding (symbol, valcontents,
+					     current_buffer);
 
   if (MISCP (valcontents))
     {
@@ -958,22 +959,33 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
   (symbol, newval)
      register Lisp_Object symbol, newval;
 {
-  return set_internal (symbol, newval, 0);
+  return set_internal (symbol, newval, current_buffer, 0);
 }
 
 /* Store the value NEWVAL into SYMBOL.
+   If buffer-locality is an issue, BUF specifies which buffer to use.
+   (0 stands for the current buffer.)
+
    If BINDFLAG is zero, then if this symbol is supposed to become
    local in every buffer where it is set, then we make it local.
    If BINDFLAG is nonzero, we don't do that.  */
 
 Lisp_Object
-set_internal (symbol, newval, bindflag)
+set_internal (symbol, newval, buf, bindflag)
      register Lisp_Object symbol, newval;
+     struct buffer *buf;
      int bindflag;
 {
   int voide = EQ (newval, Qunbound);
 
   register Lisp_Object valcontents, tem1, current_alist_element;
+
+  if (buf == 0)
+    buf = current_buffer;
+
+  /* If restoring in a dead buffer, do nothing.  */
+  if (NILP (buf->name))
+    return newval;
 
   CHECK_SYMBOL (symbol, 0);
   if (NILP (symbol) || EQ (symbol, Qt)
@@ -989,7 +1001,7 @@ set_internal (symbol, newval, bindflag)
       register int mask = XINT (*((Lisp_Object *)
 				  (idx + (char *)&buffer_local_flags)));
       if (mask > 0 && ! bindflag)
-	current_buffer->local_var_flags |= mask;
+	buf->local_var_flags |= mask;
     }
 
   else if (BUFFER_LOCAL_VALUEP (valcontents)
@@ -1031,7 +1043,7 @@ set_internal (symbol, newval, bindflag)
 	 currently cached, or if it's a Lisp_Buffer_Local_Value and
 	 we're looking at the default value, the cache is invalid; we
 	 need to write it out, and find the new CURRENT-ALIST-ELEMENT.  */
-      if (current_buffer != XBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer)
+      if (buf != XBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer)
 	  || !EQ (selected_frame, XBUFFER_LOCAL_VALUE (valcontents)->frame)
 	  || (BUFFER_LOCAL_VALUEP (valcontents)
 	      && EQ (XCAR (current_alist_element),
@@ -1044,7 +1056,7 @@ set_internal (symbol, newval, bindflag)
 		   do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
 
 	  /* Find the new value for CURRENT-ALIST-ELEMENT.  */
-	  tem1 = Fassq (symbol, current_buffer->local_var_alist);
+	  tem1 = Fassq (symbol, buf->local_var_alist);
 	  XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer = 1;
 	  XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame = 0;
 
@@ -1075,8 +1087,8 @@ set_internal (symbol, newval, bindflag)
 	      else
 		{
 		  tem1 = Fcons (symbol, Fcdr (current_alist_element));
-		  current_buffer->local_var_alist
-		    = Fcons (tem1, current_buffer->local_var_alist);
+		  buf->local_var_alist
+		    = Fcons (tem1, buf->local_var_alist);
 		}
 	    }
 
@@ -1085,8 +1097,7 @@ set_internal (symbol, newval, bindflag)
 	    = tem1;
 
 	  /* Set BUFFER and FRAME for binding now loaded.  */
-	  XSETBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer,
-		      current_buffer);
+	  XSETBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer, buf);
 	  XBUFFER_LOCAL_VALUE (valcontents)->frame = selected_frame;
 	}
       valcontents = XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
