@@ -85,6 +85,7 @@ if "%1" == "--no-opt" goto noopt
 if "%1" == "--no-cygwin" goto nocygwin
 if "%1" == "--cflags" goto usercflags
 if "%1" == "--ldflags" goto userldflags
+if "%1" == "--without-png" goto withoutpng
 if "%1" == "" goto checkutils
 :usage
 echo Usage: configure [options]
@@ -97,6 +98,7 @@ echo.   --no-opt                disable optimization
 echo.   --no-cygwin             use -mno-cygwin option with GCC
 echo.   --cflags FLAG           pass FLAG to compiler
 echo.   --ldflags FLAG          pass FLAG to compiler when linking
+echo.   --without-png          	do not use libpng even if it is installed 
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
@@ -143,6 +145,12 @@ set userldflags=%userldflags%%sep2%%1
 set sep2= %nothing%
 shift
 goto again
+rem ----------------------------------------------------------------------
+
+:withoutpng
+set pngsupport=N
+set HAVE_PNG=
+goto again
 
 rem ----------------------------------------------------------------------
 rem    Check that necessary utilities (cp and rm) are present.
@@ -165,7 +173,7 @@ goto end
 rem ----------------------------------------------------------------------
 rem   Auto-detect compiler if not specified, and validate GCC if chosen.
 :checkcompiler
-if (%COMPILER%)==(cl) goto genmakefiles
+if (%COMPILER%)==(cl) goto compilercheckdone
 if (%COMPILER%)==(gcc) goto checkgcc
 
 echo Checking whether 'cl' is available...
@@ -231,13 +239,39 @@ goto end
 set COMPILER=gcc
 rm -f junk.c junk.o
 echo Using 'gcc'
-goto genmakefiles
+goto compilercheckdone
 
 :clOk
 set COMPILER=cl
 rm -f junk.c junk.obj
 echo Using 'MSVC'
-goto genmakefiles
+
+:compilercheckdone
+
+rem ----------------------------------------------------------------------
+rem   Check for external image libraries. Since they are loaded
+rem   dynamically, the libraries themselves do not need to be present
+rem   at compile time, but the header files are required.
+
+if (%pngsupport%) == (N) goto pngDone
+
+echo Checking for libpng...
+echo #include "png.h" >junk.c
+echo main (){} >>junk.c
+rem   -o option is ignored with cl, but allows result to be consistent.
+%COMPILER% %usercflags% -c junk.c -o junk.obj
+if exist junk.obj goto havePng
+
+echo ...building without PNG support.
+set HAVE_PNG=
+goto :pngDone
+
+:havePng
+echo ...PNG header available, building with PNG support.
+set HAVE_PNG=1
+
+:pngDone
+rm -f junk.c junk.obj
 
 rem ----------------------------------------------------------------------
 :genmakefiles
@@ -261,8 +295,13 @@ echo # End of settings from configure.bat>>config.settings
 echo. >>config.settings
 
 copy config.nt ..\src\config.h
+echo. >>..\src\config.h
+echo /* Start of settings from configure.bat.  */ >>..\src\config.h
 if not "(%usercflags%)" == "()" echo #define USER_CFLAGS " %usercflags%">>..\src\config.h
 if not "(%userldflags%)" == "()" echo #define USER_LDFLAGS " %userldflags%">>..\src\config.h
+if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>..\src\config.h
+echo /* End of settings from configure.bat.  */ >>..\src\config.h
+
 copy paths.h ..\src\epaths.h
 
 copy /b config.settings+%MAKECMD%.defs+..\nt\makefile.w32-in ..\nt\makefile
