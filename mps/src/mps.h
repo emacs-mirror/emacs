@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.19) $
+ * $HopeName: MMsrc!mps.h(trunk.20) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -238,6 +238,10 @@ extern mps_res_t mps_root_create(mps_root_t *, mps_space_t, mps_rank_t,
 extern mps_res_t mps_root_create_table(mps_root_t *, mps_space_t,
                                        mps_rank_t, mps_rm_t,
                                        mps_addr_t *, size_t);
+extern mps_res_t mps_root_create_table_masked(mps_root_t *, mps_space_t,
+                                              mps_rank_t, mps_rm_t,
+                                              mps_addr_t *, size_t,
+                                              mps_word_t);
 extern mps_res_t mps_root_create_fmt(mps_root_t *, mps_space_t,
                                      mps_rank_t, mps_rm_t,
                                      mps_fmt_scan_t, mps_addr_t,

@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.24) $
+ * $HopeName: MMsrc!mpsi.c(trunk.25) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.24) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.25) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -679,6 +679,43 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
   /* See .root-mode. */
   res = RootCreateTable(&root, space, rank,
                         (Addr *)base, (Addr *)base + size);
+
+  SpaceLeave(space);
+  
+  if(res != ResOK) return res;
+  
+  *mps_root_o = (mps_root_t)root;
+  return MPS_RES_OK;
+}
+
+mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
+                                       mps_space_t mps_space,
+                                       mps_rank_t mps_rank,
+                                       mps_rm_t mps_rm,
+                                       mps_addr_t *base, size_t size,
+                                       mps_word_t mask)
+{
+  Space space = (Space)mps_space;
+  Rank rank = (Rank)mps_rank;
+  Root root;
+  Res res;
+
+  SpaceEnter(space);
+
+  AVER(mps_root_o != NULL);
+  AVERT(Space, space);
+  AVER(base != NULL);
+  AVER((unsigned long)size > 0);
+  /* Can't check anything about mask */
+
+  /* Note, size is the length of the array at base, not */
+  /* the size in bytes.  However, RootCreateTable expects */
+  /* base and limit pointers.  Be careful. */
+
+  /* See .root-mode. */
+  res = RootCreateTableMasked(&root, space, rank,
+                              (Addr *)base, (Addr *)base + size,
+                              mask);
 
   SpaceLeave(space);
   
