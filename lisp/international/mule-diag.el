@@ -201,7 +201,6 @@ SORT-KEY should be `name' or `iso-spec' (default `name')."
 		     charset
 		     (charset-dimension charset)
 		     (charset-chars charset)
-		     (charset-bytes charset)
 		     (aref char-width-table (make-char charset))
 ;;; 		     (charset-direction charset)
 		     (charset-iso-final-char charset)
@@ -287,92 +286,36 @@ detailed meanings of these arguments."
       (setq i (1+ i))))
   (insert "\n"))
 
-(defun list-iso-charset-chars (charset)
-  (let ((dim (charset-dimension charset))
-	(chars (charset-chars charset))
-	(plane (charset-iso-graphic-plane charset))
-	min max)
-    (insert (format "Characters in the coded character set %s.\n" charset))
-
-    (cond ((eq charset 'eight-bit-control)
-	   (setq min 128 max 159))
-	  ((eq charset 'eight-bit-graphic)
-	   (setq min 160 max 255))
-	  (t
-	   (if (= chars 94)
-	       (setq min 33 max 126)
-	     (setq min 32 max 127))
-	   (or (= plane 0)
-	       (setq min (+ min 128) max (+ max 128)))))
-
-    (if (= dim 1)
-	(list-block-of-chars charset 0 min max)
-      (let ((i min))
-	(while (<= i max)
-	  (list-block-of-chars charset i min max)
-	  (setq i (1+ i)))))))
-
-(defun list-non-iso-charset-chars (charset)
-  "List all characters in non-built-in coded character set CHARSET."
-  (let* ((slot (assq charset non-iso-charset-alist))
-	 (charsets (nth 1 slot))
-	 (translate-method (nth 2 slot))
-	 (ranges (nth 3 slot))
-	 range)
-    (or slot
-	(error "Unknown character set: %s" charset))
-    (insert (format "Characters in the coded character set %s.\n" charset))
-    (if charsets
-	(insert "They are mapped to: "
-		(mapconcat #'symbol-name charsets ", ")
-		"\n"))
-    (while ranges
-      (setq range (pop ranges))
-      (if (integerp (car range))
-	  ;; The form of RANGES is (FROM1 TO1 FROM2 TO2 ...).
-	  (if (and (not (functionp translate-method))
-		   (< (car (last range)) 256))
-	      ;; Do it all in one block to avoid the listing being
-	      ;; broken up at gaps in the range.  Don't do that for
-	      ;; function translate-method, since not all codes in
-	      ;; that range may be valid.
-	      (list-block-of-chars translate-method
-				   0 (car range) (car (last range)))
-	    (while range
-	      (list-block-of-chars translate-method
-				   0 (car range) (nth 1 range))
-	      (setq range (nthcdr 2 range))))
-	;; The form of RANGES is ((FROM1-1 TO1-1 ...) . (FROM2-1 TO2-1 ...)).
-	(let ((row-range (car range))
-	      row row-max
-	      col-range col col-max)
-	  (while row-range
-	    (setq row (car row-range) row-max (nth 1 row-range)
-		  row-range (nthcdr 2 row-range))
-	    (while (<= row row-max)
-	      (setq col-range (cdr range))
-	      (while col-range
-		(setq col (car col-range) col-max (nth 1 col-range)
-		      col-range (nthcdr 2 col-range))
-		(list-block-of-chars translate-method row col col-max))
-	      (setq row (1+ row)))))))))
-
-
 ;;;###autoload
 (defun list-charset-chars (charset)
-  "Display a list of characters in character set CHARSET.
-This can list both Emacs `official' (ISO standard) charsets and the
-characters encoded by various Emacs coding systems which correspond to
-PC `codepages' and other coded character sets."
+  "Display a list of characters in character set CHARSET."
   (interactive (list (read-charset "Character set: ")))
   (with-output-to-temp-buffer "*Help*"
     (with-current-buffer standard-output
       (setq indent-tabs-mode nil)
       (set-buffer-multibyte t)
-      (cond ((charsetp charset)
-	     (list-iso-charset-chars charset))
-	    (t
-	     (error "Invalid character set %s" charset))))))
+      (unless (charsetp charset)
+	(error "Invalid character set %s" charset))
+      (let ((dim (charset-dimension charset))
+	    (chars (charset-chars charset))
+	    ;; 	(plane (charset-iso-graphic-plane charset))
+	    (plane 1)
+	    (range (plist-get (charset-plist charset) :code-space))
+	    min max min2 max2)
+	(if (> dim 2)
+	    (error "Can only list 1- and 2-dimensional charsets"))
+	(insert (format "Characters in the coded character set %s.\n" charset))
+	(setq min (aref range 0)
+	      max (aref range 1))
+	(if (= dim 1)
+	    ;; Fixme: get iso 1-dim codes right
+	    (list-block-of-chars charset 0 min max)
+	  (setq min2 (aref range 2)
+		max2 (aref range 3))
+	  (let ((i min2))
+	    (while (<= i max2)
+	      (list-block-of-chars charset i min max)
+	      (setq i (1+ i)))))))))
 
 
 ;;;###autoload
@@ -386,6 +329,8 @@ PC `codepages' and other coded character sets."
     (with-current-buffer standard-output
       (insert "Character set: " (symbol-name charset) ?\n)
       (insert (charset-description charset) "\n\n")
+      (if (plist-get (charset-plist charset) :ascii-compatible-p)
+	  (insert "ASCII compatible.\n"))
       (insert "Number of contained characters: "
 	      (if (= (charset-dimension charset) 1)
 		  (format "%d\n" (charset-chars charset))
@@ -396,7 +341,28 @@ PC `codepages' and other coded character sets."
 	  (insert (format "`%c'\n" (charset-iso-final-char charset)))
 	(insert "not assigned\n"))
       (insert (format "Width (how many columns on screen): %d\n"
-		      (aref char-width-table (make-char charset)))))))
+		      (aref char-width-table (make-char charset))))
+      (let ((map (plist-get (charset-plist charset) :map)))
+	(if (stringp map)
+	    (insert "Loaded from map file " map ?\n)))
+      (let ((invalid (plist-get (charset-plist charset) :invalid-code)))
+	(if invalid
+	    (insert (format "Invalid character: %c (code %d)\n"
+			    invalid invalid))))
+      (let ((id (plist-get (charset-plist charset) :emacs-mule-id)))
+	(if id
+	    (insert "Id in emacs-mule coding system: "
+		    (number-to-string id) ?\n)))
+;; Fixme: junk this?
+;;       (let ((coding (plist-get (aref info 14) 'preferred-coding-system)))
+;; 	(when coding
+;; 	  (insert (format "Preferred coding system: %s\n" coding))
+;; 	  (search-backward (symbol-name coding))
+;; 	  (help-xref-button 0 'help-coding-system coding)))
+
+      ;; Fixme: parents, code-space, iso-revision-number,
+      ;; supplementary-p, code-offset, unify-map?
+      )))
 
 ;;;###autoload
 (defun describe-char-after (&optional pos)
@@ -437,9 +403,7 @@ which font is being used for displaying the character."
 	       ,(format "(%s)" (charset-description charset)))
 	      ("code point"
 	       ,(let ((split (split-char char)))
-		  (if (= (charset-dimension charset) 1)
-		      (format "%d" (nth 1 split))
-		    (format "%d %d" (nth 1 split) (nth 2 split)))))
+		  (mapconcat #'number-to-string (cdr split) " ")))
 	      ("syntax"
  	       ,(let* ((old-table (syntax-table))
  		       (table (get-char-property (point) 'syntax-table)))
