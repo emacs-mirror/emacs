@@ -1,10 +1,13 @@
+2004-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sysdep.c (emacs_write): Don't use QUIT.
+
 2004-11-29  Kenichi Handa  <handa@m17n.org>
 
 	* buffer.c (init_buffer): Set current_buffer->directory to a
 	multibyte string made by string_to_multibyte.
 
-	* emacs.c (init_cmdargs): Set unibyte strings in
-	Vcommand_line_args.
+	* emacs.c (init_cmdargs): Set unibyte strings in Vcommand_line_args.
 
 2004-11-27  Andreas Schwab  <schwab@suse.de>
 
@@ -13,8 +16,8 @@
 	* s/gnu-linux.h: Enable no-op gcpros on ia64.
 	(GC_MARK_SECONDARY_STACK) [__ia64__]: Define.
 
-	* filelock.c (lock_file_1): Call get_boot_time early.  Increase
-	buffer size.
+	* filelock.c (lock_file_1): Call get_boot_time early.
+	Increase buffer size.
 
 2004-11-27  Eli Zaretskii  <eliz@gnu.org>
 

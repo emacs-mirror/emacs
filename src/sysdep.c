@@ -3285,7 +3285,15 @@ emacs_write (fildes, buf, nbyte)
       if (rtnval == -1)
 	{
 	  if (errno == EINTR)
-	    { QUIT; continue; }
+	    {
+#ifdef SYNC_INPUT
+	      /* I originally used `QUIT' but that might causes files to
+		 be truncated if you hit C-g in the middle of it.  --Stef  */
+	      if (interrupt_input_pending)
+		handle_async_input ();
+#endif
+	      continue;
+	    }
 	  else
 	    return (bytes_written ? bytes_written : -1);
 	}
