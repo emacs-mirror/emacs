@@ -286,11 +286,7 @@ and KILLP is t if a prefix arg was specified."
 	      (delete-char 1)))
 	(forward-char -1)
 	(setq count (1- count)))))
-  (delete-backward-char arg killp)
-  ;; In overwrite mode, back over columns while clearing them out,
-  ;; unless at end of line.
-  (and overwrite-mode (not (eolp))
-       (save-excursion (insert-char ?\  arg))))
+  (delete-backward-char arg killp))
 
 (defun zap-to-char (arg char)
   "Kill up to and including ARG'th occurrence of CHAR.
