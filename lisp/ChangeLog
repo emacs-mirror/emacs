@@ -1,3 +1,11 @@
+2002-07-02  Juanma Barranquero  <lektu@terra.es>
+
+	* mail/rmailsum.el (rmail-user-mail-address-regexp): Fix typo.
+
+	* textmodes/reftex-cite.el (reftex-citation): Fix typo.
+
+	* progmodes/cperl-mode.el (cperl-break-one-line-blocks-when-indent): Fix typo.
+
 2002-07-02  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/bindat.el: New file.
