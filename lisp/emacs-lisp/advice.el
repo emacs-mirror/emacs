@@ -3925,6 +3925,10 @@ undone on exit of this macro."
 ;; Use the advice mechanism to advise `documentation' to make it
 ;; generate proper documentation strings for advised definitions:
 
+;; This makes sure we get the right arglist for `documentation'
+;; during bootstrapping.
+(ad-define-subr-args 'documentation '(function &optional raw))
+
 (defadvice documentation (after ad-advised-docstring first disable preact)
   "Builds an advised docstring if FUNCTION is advised."
   ;; Because we get the function name from the advised docstring
