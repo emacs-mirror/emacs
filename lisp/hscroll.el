@@ -35,7 +35,7 @@
 (defvar hscroll-version "0.0")
 
 (defgroup hscroll nil
-  "This customization group is kept for compatibilry only.
+  "This customization group is kept for compatibility only.
 Emacs now does hscrolling automatically.  Please remove references
 to hscroll from your init file and code."
   :group 'editing)
