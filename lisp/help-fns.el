@@ -45,7 +45,15 @@ If there's no tutorial in that language, `TUTORIAL' is selected.
 With arg, you are asked to choose which language."
   (interactive "P")
   (let ((lang (if arg
-		  (read-language-name 'tutorial "Language: " "English")
+		  (progn
+		    ;; Display a completion list right away
+		    ;; to guide the user.
+		    (with-output-to-temp-buffer "*Completions*"
+		      (display-completion-list
+		       (all-completions "" language-info-alist
+					(lambda (elm)
+					  (and (listp elm) (assq 'tutorial elm))))))
+		    (read-language-name 'tutorial "Language: " "English"))
 		(if (get-language-info current-language-environment 'tutorial)
 		    current-language-environment
 		  "English")))
