@@ -4892,7 +4892,7 @@ If you like, you can expand mail aliases as abbrevs, as soon as you
 type them in.  To enable this feature, execute the following:
 
 @lisp
-(add-hook 'mail-setup-hook 'mail-abbrevs-setup)
+(add-hook 'mail-mode-hook 'mail-abbrevs-setup)
 @end lisp
 
 Note that the aliases are expanded automatically only after you type

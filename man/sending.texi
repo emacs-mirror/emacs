@@ -323,7 +323,7 @@ you type them in (@pxref{Abbrevs}).  To enable this feature, execute the
 following:
 
 @example
-(add-hook 'mail-setup-hook 'mail-abbrevs-setup)
+(add-hook 'mail-mode-hook 'mail-abbrevs-setup)
 @end example
 
 @noindent
@@ -349,7 +349,7 @@ afterward.  However, you can rebind @kbd{C-n} and @kbd{M->} to cause
 expansion as well.  Here's how to do that:
 
 @smallexample
-(add-hook 'mail-setup-hook
+(add-hook 'mail-mode-hook
           (lambda ()
             (substitute-key-definition
               'next-line 'mail-abbrev-next-line

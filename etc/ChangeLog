@@ -1,3 +1,9 @@
+2000-12-29  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-prin1.ps: Handle form feed better when ps-zebra-stripe-follow
+	is non-nil.
+	(printZebra, BeginPage): Code fix.
+	
 2000-12-15  Miles Bader  <miles@gnu.org>
 
 	* DEBUG: Add note aboute using `inverse-video' to detect excessive

@@ -1,3 +1,10 @@
+2000-12-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/mailabbrev.el (mail-abbrevs-enable, mail-abbrevs-disable):
+	Use mail-mode-hook instead of mail-setup-hook.  Otherwise
+	continuing an interrupted message with C-u C-x m for instence,
+	winds up in Mail mode without abbrevs.
+
 2000-12-29  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Handle form feed better when ps-zebra-stripe-follow is

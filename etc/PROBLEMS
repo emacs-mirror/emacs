@@ -1,6 +1,11 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* When using Xaw3d scroll bars without arrows, the very first mouse
+click in a scroll bar might be ignored by the scroll bar widget.  This
+is probably a bug in Xaw3d; when Xaw3d is compiled with arrows, the
+problem disappears.
+
 * Some accented ISO-8859-1 characters or umlauts are displayed as | or _.
 
 Try other font set sizes (S-mouse-1).  If the problem persists with
