@@ -57,15 +57,19 @@ casify_object (flag, obj)
 	    }
 	  return obj;
 	}
+
       if (STRINGP (obj))
 	{
-	  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+	  int multibyte = STRING_MULTIBYTE (obj);
 
 	  obj = Fcopy_sequence (obj);
-	  len = XSTRING (obj)->size;
-	  for (i = 0; i < len; i++)
+	  len = XSTRING (obj)->size_byte;
+
+	  /* Scan all single-byte characters from start of string.  */
+	  for (i = 0; i < len;)
 	    {
 	      c = XSTRING (obj)->data[i];
+
 	      if (multibyte && c >= 0x80)
 		/* A multibyte character can't be handled in this
                    simple loop.  */
@@ -75,15 +79,25 @@ casify_object (flag, obj)
 	      else if (!UPPERCASEP (c)
 		       && (!inword || flag != CASE_CAPITALIZE_UP))
 		c = UPCASE1 (c);
+	      /* If this char won't fit in a single-byte string.
+		 fall out to the multibyte case.  */
+	      if (multibyte ? ! ASCII_BYTE_P (c)
+		  : ! SINGLE_BYTE_CHAR_P (c))
+		break;
+
 	      XSTRING (obj)->data[i] = c;
 	      if ((int) flag >= (int) CASE_CAPITALIZE)
 		inword = SYNTAX (c) == Sword;
+	      i++;
 	    }
+
+	  /* If we didn't do the whole string as single-byte,
+	     scan the rest in a more complex way.  */
 	  if (i < len)
 	    {
 	      /* The work is not yet finished because of a multibyte
 		 character just encountered.  */
-	      int fromlen, tolen, j = i;
+	      int fromlen, tolen, j = i, j_byte = i;
 	      char *buf
 		= (char *) alloca ((len - i) * MAX_LENGTH_OF_MULTI_BYTE_FORM
 				   + i);
@@ -92,6 +106,7 @@ casify_object (flag, obj)
 	      /* Copy data already handled.  */
 	      bcopy (XSTRING (obj)->data, buf, i);
 
+	      /* From now on, I counts bytes.  */
 	      while (i < len)
 		{
 		  c = STRING_CHAR_AND_LENGTH (XSTRING (obj)->data + i,
@@ -102,13 +117,14 @@ casify_object (flag, obj)
 			   && (!inword || flag != CASE_CAPITALIZE_UP))
 		    c = UPCASE1 (c);
 		  tolen = CHAR_STRING (c, workbuf, str);
-		  bcopy (str, buf + j, tolen);
+		  bcopy (str, buf + j_byte, tolen);
 		  i += fromlen;
-		  j += tolen;
+		  j++;
+		  j_byte += tolen;
 		  if ((int) flag >= (int) CASE_CAPITALIZE)
 		    inword = SYNTAX (c) == Sword;
 		}
-	      obj = make_string (buf, j);
+	      obj = make_multibyte_string (buf, j, j_byte);
 	    }
 	  return obj;
 	}
