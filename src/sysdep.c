@@ -278,7 +278,7 @@ init_baud_rate ()
 #ifdef HAVE_TCATTR
       tcgetattr (0, &sg);
 #else
-      ioctl (fd, TIOCGETP, &sg);
+      ioctl (fd, TCGETA, &sg);
 #endif
       ospeed = sg.c_cflag & CBAUD;
 #else /* neither VMS nor TERMIOS nor TERMIO */
