@@ -6587,6 +6587,7 @@ x_put_x_image (f, ximg, pixmap, width, height)
      struct frame *f;
      XImage *ximg;
      Pixmap pixmap;
+     int width, height;
 {
   GC gc;
   
