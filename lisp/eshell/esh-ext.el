@@ -150,6 +150,13 @@ by the user on the command line."
   :type 'integer
   :group 'eshell-ext)
 
+(defcustom eshell-explicit-command-char ?*
+  "*If this char occurs before a command name, call it externally.
+That is, although vi may be an alias, *vi will always call the
+external version.  UNIX users may prefer this variable to be \."
+  :type 'character
+  :group 'eshell-ext)
+
 ;;; Functions:
 
 (defun eshell-ext-initialize ()
@@ -161,7 +168,7 @@ by the user on the command line."
   "If a command name begins with `*', call it externally always.
 This bypasses all Lisp functions and aliases."
   (when (and (> (length command) 1)
-	     (eq (aref command 0) ?*))
+	     (eq (aref command 0) eshell-explicit-command-char))
     (let ((cmd (eshell-search-path (substring command 1))))
       (if cmd
 	  (or (eshell-external-command cmd args)
