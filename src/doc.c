@@ -70,6 +70,10 @@ munge_doc_file_name (name)
 #endif /* VMS */
 }
 
+/* Buffer used for reading from documentation file.  */
+static char *get_doc_string_buffer;
+static int get_doc_string_buffer_size;
+
 /* Extract a doc string from a file.  FILEPOS says where to get it.
    If it is an integer, use that position in the standard DOC-... file.
    If it is (FILE . INTEGER), use FILE as the file name
@@ -82,9 +86,6 @@ static Lisp_Object
 get_doc_string (filepos)
      Lisp_Object filepos;
 {
-  static char *buffer;
-  static int buffer_size;
-
   char *from, *to;
   register int fd;
   register char *name;
@@ -162,23 +163,27 @@ get_doc_string (filepos)
 	     position, name);
     }
 
-  /* Read the doc string into a buffer.
-     p points beyond the data just read.  */
+  /* Read the doc string into get_doc_string_buffer.
+     P points beyond the data just read.  */
 
-  p = buffer;
+  p = get_doc_string_buffer;
   while (1)
     {
-      int space_left = buffer_size - (p - buffer);
+      int space_left = (get_doc_string_buffer_size
+			- (p - get_doc_string_buffer));
       int nread;
 
       /* Allocate or grow the buffer if we need to.  */
       if (space_left == 0)
 	{
-	  int in_buffer = p - buffer;
-	  buffer_size += 16 * 1024;
-	  buffer = (char *) xrealloc (buffer, buffer_size + 1);
-	  p = buffer + in_buffer;
-	  space_left = buffer_size - (p - buffer);
+	  int in_buffer = p - get_doc_string_buffer;
+	  get_doc_string_buffer_size += 16 * 1024;
+	  get_doc_string_buffer
+	    = (char *) xrealloc (get_doc_string_buffer,
+				 get_doc_string_buffer_size + 1);
+	  p = get_doc_string_buffer + in_buffer;
+	  space_left = (get_doc_string_buffer_size
+			- (p - get_doc_string_buffer));
 	}
 
       /* Read a disk block at a time.
@@ -194,7 +199,7 @@ get_doc_string (filepos)
       p[nread] = 0;
       if (!nread)
 	break;
-      if (p == buffer)
+      if (p == get_doc_string_buffer)
 	p1 = index (p + offset, '\037');
       else
 	p1 = index (p, '\037');
@@ -210,8 +215,8 @@ get_doc_string (filepos)
 
   /* Scan the text and perform quoting with ^A (char code 1).
      ^A^A becomes ^A, ^A0 becomes a null char, and ^A_ becomes a ^_.  */
-  from = buffer + offset;
-  to = buffer + offset;
+  from = get_doc_string_buffer + offset;
+  to = get_doc_string_buffer + offset;
   while (from != p)
     {
       if (*from == 1)
@@ -233,7 +238,8 @@ get_doc_string (filepos)
 	*to++ = *from++;
     }
 
-  return make_string (buffer + offset, to - (buffer + offset));
+  return make_string (get_doc_string_buffer + offset,
+		      to - (get_doc_string_buffer + offset));
 }
 
 /* Get a string from position FILEPOS and pass it through the Lisp reader.
