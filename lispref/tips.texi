@@ -248,7 +248,7 @@ coherent if all libraries use the same conventions.
 
 @item
 Try to avoid compiler warnings about undefined free variables, by adding
-@cdode{defvar} definitions for these variables.
+@code{defvar} definitions for these variables.
 
 If you bind a variable in one function, and use it or set it in another
 function, the compiler warns about the latter function unless the
