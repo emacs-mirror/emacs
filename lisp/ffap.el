@@ -1183,15 +1183,15 @@ which may actually result in an url rather than a filename."
 		    (abbreviate-file-name (expand-file-name guess))
 		    ))
 	  (setq dir (file-name-directory guess))))
-    (setq guess
-	  (completing-read
-	   prompt
-	   'ffap-read-file-or-url-internal
-	   dir
-	   nil
-	   (if dir (cons guess (length dir)) guess)
-	   (list 'file-name-history)
-	   ))
+    (let ((minibuffer-completing-file-name t))
+      (setq guess
+	    (completing-read
+	     prompt
+	     'ffap-read-file-or-url-internal
+	     dir
+	     nil
+	     (if dir (cons guess (length dir)) guess)
+	     (list 'file-name-history))))
     ;; Do file substitution like (interactive "F"), suggested by MCOOK.
     (or (ffap-url-p guess) (setq guess (substitute-in-file-name guess)))
     ;; Should not do it on url's, where $ is a common (VMS?) character.
