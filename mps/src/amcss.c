@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.27) $
+ * $HopeName: MMsrc!amcss.c(trunk.28) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  */
 
@@ -24,8 +24,8 @@
 
 #define testArenaSIZE     ((size_t)64<<20)
 #define avLEN             4
-#define exactRootsCOUNT   50
-#define ambigRootsCOUNT   100
+#define exactRootsCOUNT   300
+#define ambigRootsCOUNT   50
 #define collectionsCOUNT  18
 #define rampSIZE          5
 #define initTestFREQ      6000
@@ -155,6 +155,9 @@ static void *test(void *arg, size_t s)
       if(exactRoots[i] != objNULL)
         assert(dylan_check(exactRoots[i]));
       exactRoots[i] = make();
+      if(exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
+        dylan_write(exactRoots[(exactRootsCOUNT-1) - i],
+                    exactRoots, exactRootsCOUNT);
     } else {
       i = (r >> 1) % ambigRootsCOUNT;
       ambigRoots[(ambigRootsCOUNT-1) - i] = make();
@@ -165,7 +168,7 @@ static void *test(void *arg, size_t s)
     if(r % initTestFREQ == 0)
       *(int*)busy_init = -1; /* check that the buffer is still there */
 
-    if(objs % 1000 == 0) {
+    if(objs % 1024 == 0) {
       putchar('.');
       fflush(stdout);
     }
