@@ -466,7 +466,7 @@ copy_sub_char_table (arg)
 
 
 DEFUN ("copy-sequence", Fcopy_sequence, Scopy_sequence, 1, 1, 0,
-       doc: /* Return a copy of a list, vector or string.
+       doc: /* Return a copy of a list, vector, string or char-table.
 The elements of a list or vector are not copied; they are shared
 with the original. */)
      (arg)
