@@ -1,3 +1,7 @@
+2002-03-06  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_draw_hollow_cursor): Draw same size as block cursor.
+
 2002-03-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (echo_prompt, echo_char, echo_dash, echo_now) 

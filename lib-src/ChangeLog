@@ -1,3 +1,8 @@
+2002-03-06  Jason Rumney  <jasonr@gnu.org>
+
+	* etags.c (put_entries): Use #if !CTAGS, to fix link error on
+	compilers that don't optimize out dead code.
+
 2002-03-05  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c: Honour #line directives.
