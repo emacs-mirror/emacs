@@ -1,5 +1,8 @@
 2000-03-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (display_echo_area): Temporarily inhibit garbage
+	collection.
+
 	* xfns.c: Remove obsolete code in #if 0.
 	(Fx_focus_frame): New function.
 
