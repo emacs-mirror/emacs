@@ -986,7 +986,7 @@ Please send all bug fixes and enhancements to
 ;;      (my-mixed-family
 ;;       (fonts (normal               . "Courier-Bold")
 ;;              (bold                 . "Helvetica")
-;;              (italic               . "Zapf-Chancery-MediumItalic")
+;;              (italic               . "ZapfChancery-MediumItalic")
 ;;              (bold-italic          . "NewCenturySchlbk-BoldItalic")
 ;;              (w3-table-hack-x-face . "LineDrawNormal"))
 ;;       (size . 10.0)
@@ -1010,7 +1010,7 @@ Please send all bug fixes and enhancements to
 ;;       (fonts (w3-table-hack-x-face . "LineDrawNormal")
 ;;              (bold                 . "Helvetica")
 ;;              (bold-italic          . "NewCenturySchlbk-BoldItalic")
-;;              (italic               . "Zapf-Chancery-MediumItalic")
+;;              (italic               . "ZapfChancery-MediumItalic")
 ;;              (normal               . "Courier-Bold"))
 ;;       (avg-char-width . 6.0)
 ;;       (space-width . 6.0)
@@ -2820,8 +2820,16 @@ It has effect only when `ps-spool-duplex' is non-nil."
      (line-height . 9.63)
      (space-width . 2.78)
      (avg-char-width . 2.78))
+    (ZapfChancery-MediumItalic
+     (fonts (normal . "ZapfChancery-MediumItalic"))
+     (size . 10.0)
+     (line-height . 11.45)
+     (space-width . 2.2)
+     (avg-char-width . 4.10811))
+    ;; We keep this wrong entry name (but with correct font name) for
+    ;; backward compatibility.
     (Zapf-Chancery-MediumItalic
-     (fonts (normal . "Zapf-Chancery-MediumItalic"))
+     (fonts (normal . "ZapfChancery-MediumItalic"))
      (size . 10.0)
      (line-height . 11.45)
      (space-width . 2.2)
