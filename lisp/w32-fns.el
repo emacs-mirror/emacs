@@ -42,13 +42,48 @@
 ;; Ignore case on file-name completion
 (setq completion-ignore-case t)
 
-;; The cmd.exe shell uses the "/c" switch instead of the "-c" switch
-;; for executing its command line argument (from simple.el).
-(setq shell-command-switch "/c")
+(defvar w32-system-shells '("cmd" "cmd.exe" "command" "command.com")
+  "List of strings recognized as Windows NT/95 system shells.")
 
-;; For appending suffixes to directories and files in shell completions.
-(add-hook 'shell-mode-hook 
-	  '(lambda () (setq comint-completion-addsuffix '("\\" . " "))))
+(defun w32-using-nt ()
+  "Return t if running on Windows NT (as oppposed to, e.g., Windows 95)."
+  (and (eq system-type 'windows-nt) (getenv "SystemRoot")))
+
+(defun w32-shell-name ()
+  "Return the name of the shell being used on Windows NT/95."
+  (or (and (boundp 'explicit-shell-file-name) explicit-shell-file-name)
+      (getenv "ESHELL")
+      (getenv "SHELL")
+      (and (w32-using-nt) "cmd.exe")
+      "command.com"))
+
+(defun w32-using-system-shell-p ()
+  "Return t if using a Windows NT/95 system shell (cmd.exe or command.com)."
+  (member (downcase (file-name-nondirectory (w32-shell-name))) 
+	  w32-system-shells))
+
+(defun w32-startup ()
+  "Configure Emacs during startup for running on Windows NT/95.
+This function is invoked after loading the init files and processing
+the command line, and is intended to initialize anything important 
+not initialized by the user or site."
+  ;; Configure shell mode if using a system shell.
+  (cond ((w32-using-system-shell-p)
+	 (let ((shell (file-name-nondirectory (w32-shell-name))))
+	   ;; "/c" is used for executing command line arguments.
+	   (setq shell-command-switch "/c")
+	   ;; Complete directories using a backslash.
+	   (setq comint-completion-addsuffix '("\\" . " "))
+	   ;; Initialize the explicit-"shell"-args variable.
+	   (cond ((member (downcase shell) '("cmd" "cmd.exe"))
+		  (let* ((args-sym-name (format "explicit-%s-args" shell))
+			 (args-sym (intern-soft args-sym-name)))
+		    (cond ((not args-sym)
+			   (setq args-sym (intern args-sym-name))
+			   ;; The "/q" prevents cmd.exe from echoing commands.
+			   (set args-sym '("/q")))))))))))
+
+(add-hook 'emacs-startup-hook 'w32-startup)
 
 ;; Avoid creating auto-save file names containing invalid characters.
 (fset 'original-make-auto-save-file-name
