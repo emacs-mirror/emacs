@@ -2009,6 +2009,8 @@ get_system_name ()
 	    if (hp)
 	      {
 		char *fqdn = hp->h_name;
+		char *p;
+
 		if (!index (fqdn, '.'))
 		  {
 		    /* We still don't have a fully qualified domain name.
@@ -2021,6 +2023,18 @@ get_system_name ()
 		  }
 		hostname = (char *) xrealloc (hostname, strlen (fqdn) + 1);
 		strcpy (hostname, fqdn);
+#if 0
+		/* Convert the host name to lower case.  */
+		/* Using ctype.h here would introduce a possible locale
+		   dependence that is probably wrong for hostnames.  */
+		p = hostname
+		while (*p)
+		  {
+		    if (*p >= 'A' && *p <= 'Z')
+		      *p += 'a' - 'A';
+		    p++;
+		  }
+#endif
 	      }
 	  }
 #endif /* HAVE_SOCKETS */
