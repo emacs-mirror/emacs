@@ -1005,7 +1005,7 @@ FRAME nil or omitted means delete all frames except the selected frame."
 
 (defcustom automatic-hscrolling t
   "*Allow or disallow autmatic scrolling windows horizontally.
-If non-nil, windows are autmatically scrolled horizontally to make
+If non-nil, windows are automatically scrolled horizontally to make
 point visible."
   :version "21.1"
   :type 'boolean
