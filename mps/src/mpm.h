@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.6) $
+ * $HopeName: MMsrc!mpm.h(trunk.7) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
@@ -58,8 +58,20 @@ extern Addr (AddrSub)(Addr addr, Size size);
 extern Size (AddrOffset)(Addr base, Addr limit);
 #define AddrOffset(p, l)        ((Size)((Word)(l) - (Word)(p)))
 
+/* Logs and Powers
+ * 
+ * SizeIsP2 returns TRUE if and only if size is a non-negative integer
+ * power of 2, and FALSE otherwise.
+ * 
+ * SizeLog2 returns the logarithm in base 2 of size.  size must be a
+ * power of 2.
+ * 
+ * SizeFloorLog2 returns the floor of the logarithm in base 2 of size.
+ * size can be any value.
+ */
 extern Bool SizeIsP2(Size size);
 extern Shift SizeLog2(Size size);
+extern Shift SizeFloorLog2(Size size);
 
 #define AddrWord(a)             ((Word)a)
 #define SizeWord(s)             ((Word)s)
@@ -413,6 +425,8 @@ extern Addr VMBase(Space space);
 extern Addr VMLimit(Space space);
 extern Res VMMap(Space space, Addr base, Addr limit);
 extern void VMUnmap(Space space, Addr base, Addr limit);
+extern Size VMReserved(Space space);
+extern Size VMMapped(Space space);
 
 
 #endif /* mpm_h */
