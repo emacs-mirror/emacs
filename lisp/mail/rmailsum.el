@@ -156,19 +156,23 @@ nil for FUNCTION means all messages."
       (let ((summary-msgs ())
 	    (new-summary-line-count 0))
 	(let ((msgnum 1)
-	      (buffer-read-only nil))
-	  (save-restriction
-	    (save-excursion
-	      (widen)
-	      (goto-char (point-min))
-	      (while (>= rmail-total-messages msgnum)
-		(if (or (null function)
-			(apply function (cons msgnum args)))
-		    (setq summary-msgs
-			  (cons (cons msgnum (rmail-make-summary-line msgnum))
-				summary-msgs)))
-		(setq msgnum (1+ msgnum)))
-	      (setq summary-msgs (nreverse summary-msgs)))))
+	      (buffer-read-only nil)
+	      (old-min (point-min-marker))
+	      (old-max (point-max-marker)))
+	  ;; Can't use save-restriction here; that doesn't work if we
+	  ;; plan to modify text outside the original restriction.
+	  (save-excursion
+	    (widen)
+	    (goto-char (point-min))
+	    (while (>= rmail-total-messages msgnum)
+	      (if (or (null function)
+		      (apply function (cons msgnum args)))
+		  (setq summary-msgs
+			(cons (cons msgnum (rmail-make-summary-line msgnum))
+			      summary-msgs)))
+	      (setq msgnum (1+ msgnum)))
+	    (setq summary-msgs (nreverse summary-msgs)))
+	  (narrow-to-region old-min old-max))
 	;; Temporarily, while summary buffer is unfinished,
 	;; we "don't have" a summary.
 	(setq rmail-summary-buffer nil)
