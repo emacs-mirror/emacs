@@ -150,6 +150,8 @@ int vms_stmlf_recfm;
 static Lisp_Object Vinhibit_file_name_handlers;
 static Lisp_Object Vinhibit_file_name_operation;
 
+extern Lisp_Object Qcompletion_ignored_extensions;
+
 Lisp_Object Qfile_error, Qfile_already_exists;
 
 Lisp_Object Qfile_name_history;
@@ -1902,17 +1904,19 @@ If file has multiple names, it continues to exist with the other names.")
   (filename)
      Lisp_Object filename;
 {
+  int count = specpdl_ptr - specpdl;
   Lisp_Object handler;
   CHECK_STRING (filename, 0);
   filename = Fexpand_file_name (filename, Qnil);
 
+  specbind (Qcompletion_ignored_extensions, Qnil);
   handler = Ffind_file_name_handler (filename, Qdelete_file);
   if (!NILP (handler))
-    return call2 (handler, Qdelete_file, filename);
+    return unbind_to (count, call2 (handler, Qdelete_file, filename));
 
   if (0 > unlink (XSTRING (filename)->data))
     report_file_error ("Removing old name", Flist (1, &filename));
-  return Qnil;
+  return unbind_to (count, Qnil);
 }
 
 DEFUN ("rename-file", Frename_file, Srename_file, 2, 3,
