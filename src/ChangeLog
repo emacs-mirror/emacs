@@ -1,5 +1,16 @@
 2000-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* xfaces.c (tty_defined_color): Pass frame to tty-color-desc.  The
+	list of colors renamed to tty-defined-color-alist.
+	(tty_color_name): Pass the frame to tty-color-by-index.
+	(realize_tty_face): tty-color-alist is now a function which
+	accepts the frame as argument.
+
+	* term.c (Ftty_display_color_p): Accept an optional argument
+	FRAME.
+
+2000-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* term.c (insert_glyphs): Pass glyph, not &glyph, to
 	encode_terminal_code.
 

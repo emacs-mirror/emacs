@@ -1,3 +1,17 @@
+2000-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* faces.el (read-face-attribute, defined-colors, color-defined-p):
+	Pass the frame to tty-color-* functions.
+	(display-color-p, frame-set-background-mode): Pass the frame to
+	tty-display-color-p.
+
+	* term/tty-colors.el (tty-defined-color-alist): Renamed from
+	tty-color-alist.
+	(tty-color-alist, tty-modify-color-alist): New functions.
+	(tty-color-define,  tty-color-clear, tty-color-approximate)
+	(tty-color-translate, tty-color-by-index, tty-color-desc): Accept
+	an optional parameter FRAME.
+
 2000-01-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* image.el (create-image, defimage): Don't assume image data is a
