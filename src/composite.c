@@ -559,7 +559,8 @@ update_compositions (from, to, check_mask)
     }
 
   if (min_pos < max_pos)
-    Fput_text_property (min_pos, max_pos, Qauto_composed, Qnil, Qnil);
+    Fput_text_property (make_number (min_pos), make_number (max_pos),
+			Qauto_composed, Qnil, Qnil);
 }
 
 
