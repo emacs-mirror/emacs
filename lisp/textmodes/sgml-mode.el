@@ -373,6 +373,13 @@ Otherwise, it is set to be buffer-local when the file has
 
 (defvar v2)				; free for skeleton
 
+(defun sgml-comment-indent-new-line (&optional soft)
+  (let ((comment-start "-- ")
+	(comment-start-skip "\\(<!\\)?--[ \t]*")
+	(comment-end " --")
+	(comment-style 'plain))
+    (comment-indent-new-line soft)))
+
 (defun sgml-mode-facemenu-add-face-function (face end)
   (if (setq face (cdr (assq face sgml-face-tag-alist)))
       (progn
@@ -416,6 +423,8 @@ Do \\[describe-key] on the following bindings to discover what they do.
   (set (make-local-variable 'comment-start) "<!-- ")
   (set (make-local-variable 'comment-end) " -->")
   (set (make-local-variable 'comment-indent-function) 'sgml-comment-indent)
+  (set (make-local-variable 'comment-line-break-function)
+       'sgml-comment-indent-new-line)
   (set (make-local-variable 'skeleton-further-elements)
        '((completion-ignore-case t)))
   (set (make-local-variable 'skeleton-end-hook)
@@ -885,7 +894,7 @@ If non-nil LIMIT is a nearby position before point outside of any tag."
 	  (skip-chars-forward "^<" pos)
           (setq state
                 (cond
-                 ((= (point) pos) 
+                 ((= (point) pos)
                   ;; We got to the end without seeing a tag.
                   nil)
                  ((looking-at "<!\\[[A-Z]+\\[")
@@ -988,7 +997,7 @@ Leave point at the beginning of the tag."
       (setq tag-type 'comment
             tag-start (search-backward "<!--" nil t)))
      ((sgml-looking-back-at "]]")   ; cdata
-      (setq tag-type 'cdata 
+      (setq tag-type 'cdata
             tag-start (re-search-backward "<!\\[[A-Z]+\\[" nil t)))
      (t
       (setq tag-start
