@@ -1705,6 +1705,39 @@ If this is zero, point is always centered after it moves off frame.")
    (if (eq lines '-) nil
      (if (null lines) '-
        (- (prefix-numeric-value lines))))))
+
+(defun beginning-of-buffer-other-window (arg)
+  "Move point to the beginning of the buffer in the other window.
+Leave mark at previous position.
+With arg N, put point N/10 of the way from the true beginning."
+  (interactive "P")
+  (let ((orig-window (selected-window))
+	(window (other-window-for-scrolling)))
+    ;; We use unwind-protect rather than save-window-excursion
+    ;; because the latter would preserve the things we want to change.
+    (unwind-protect
+	(progn
+	  (select-window window)
+	  ;; Set point and mark in that window's buffer.
+	  (beginning-of-buffer arg)
+	  ;; Set point accordingly.
+	  (recenter '(t)))
+      (select-window orig-window))))
+
+(defun end-of-buffer-other-window (arg)
+  "Move point to the end of the buffer in the other window.
+Leave mark at previous position.
+With arg N, put point N/10 of the way from the true end."
+  (interactive "P")
+  ;; See beginning-of-buffer-other-window for comments.
+  (let ((orig-window (selected-window))
+	(window (other-window-for-scrolling)))
+    (unwind-protect
+	(progn
+	  (select-window window)
+	  (beginning-of-buffer arg)
+	  (recenter '(t)))
+      (select-window orig-window))))
 
 (defun transpose-chars (arg)
   "Interchange characters around point, moving forward one character.
