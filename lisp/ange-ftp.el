@@ -689,15 +689,31 @@ cross-mounted.")
   "*If non-nil avoid checking permissions on the .netrc file.")
 
 (defvar ange-ftp-default-user nil
-  "*User name to use when none is specied in a file name.
-If nil, then the name under which the user is logged in is used.
-If non-nil but not a string, the user is prompted for the name.")
+  "*User name to use when none is specified in a file name.
+If non-nil but not a string, you are prompted for the name.
+If nil, the value of `ange-ftp-netrc-default-user' is used.
+If that is nil too, then your login name is used.
+
+To change the user name foir a host that you have already used in this
+session, you must use `ange-ftp-set-user' to change the cached
+information about that host.")
+
+(defvar ange-ftp-netrc-default-user nil
+  "Alternate default user name to use when none is specified.
+This variable is set from the `default' command in your `.netrc' file,
+if there is one.")
 
 (defvar ange-ftp-default-password nil
-  "*Password to use when the user is the same as ange-ftp-default-user.")
+  "*Password to use when the user name equals `ange-ftp-default-user'.")
 
 (defvar ange-ftp-default-account nil
-  "*Account password to use when the user is the same as ange-ftp-default-user.")
+  "*Account to use when the user name equals `ange-ftp-default-user'.")
+
+(defvar ange-ftp-netrc-default-password nil
+  "*Password to use when the user name equals `ange-ftp-netrc-default-user'.")
+
+(defvar ange-ftp-netrc-default-account nil
+  "*Account to use when the user name equals `ange-ftp-netrc-default-user'.")
 
 (defvar ange-ftp-generate-anonymous-password t
   "*If t, use value of `user-mail-address' as password for anonymous ftp.
@@ -975,6 +991,7 @@ only return the directory part of FILE."
 			 (let ((enable-recursive-minibuffers t))
 			   (read-string (format "User for %s: " host)
 					(user-login-name))))
+			(ange-ftp-netrc-default-user)
 			;; Default to the user's login name.
 			(t
 			 (user-login-name))))
@@ -1052,11 +1069,17 @@ Optional DEFAULT is password to start with."
   ;; defaults.
   (cond ((ange-ftp-lookup-passwd host user))
 	
-	;; see if default user and password set from the .netrc file.
+	;; See if default user and password set.
 	((and (stringp ange-ftp-default-user)
 	      ange-ftp-default-password
 	      (string-equal user ange-ftp-default-user))
 	 ange-ftp-default-password)
+	
+	;; See if default user and password set from .netrc file.
+	((and (stringp ange-ftp-netrc-default-user)
+	      ange-ftp-netrc-default-password
+	      (string-equal user ange-ftp-netrc-default-user))
+	 ange-ftp-netrc-default-password)
 	
 	;; anonymous ftp password is handled specially since there is an
 	;; unwritten rule about how that is used on the Internet.
@@ -1111,7 +1134,10 @@ Optional DEFAULT is password to start with."
 			       ange-ftp-account-hashtable)
       (and (stringp ange-ftp-default-user)
 	   (string-equal user ange-ftp-default-user)
-	   ange-ftp-default-account)))
+	   ange-ftp-default-account)
+      (and (stringp ange-ftp-netrc-default-user)
+	   (string-equal user ange-ftp-netrc-default-user)
+	   ange-ftp-netrc-default-account)))
 
 ;;;; ------------------------------------------------------------
 ;;;; ~/.netrc support
@@ -1185,11 +1211,11 @@ Optional DEFAULT is password to start with."
 		  password (ange-ftp-parse-netrc-token "password" end)
 		  account  (ange-ftp-parse-netrc-token "account"  end))
 	    (and login
-		 (setq ange-ftp-default-user login))
+		 (setq ange-ftp-netrc-default-user login))
 	    (and password
-		 (setq ange-ftp-default-password password))
+		 (setq ange-ftp-netrc-default-password password))
 	    (and account
-		 (setq ange-ftp-default-account account)))))
+		 (setq ange-ftp-netrc-default-account account)))))
     (goto-char end)))
 
 ;; Read in ~/.netrc, if one exists.  If ~/.netrc file exists and has
@@ -2925,7 +2951,7 @@ system TYPE.")
 	       (abbr (ange-ftp-abbreviate-filename filename)))
 	  (unwind-protect
 	      (progn
-		(let ((executing-macro t)
+		(let ((executing-kbd-macro t)
 		      (filename (buffer-file-name))
 		      (mod-p (buffer-modified-p)))
 		  (unwind-protect
