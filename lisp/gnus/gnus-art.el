@@ -3057,11 +3057,11 @@ forbidden in URL encoding."
 
 (defun gnus-button-url (address)
   "Browse ADDRESS."
-  (funcall browse-url-browser-function address))
+  (browse-url address))
 
 (defun gnus-button-embedded-url (address)
   "Browse ADDRESS."
-  (funcall browse-url-browser-function (gnus-strip-whitespace address)))
+  (browse-url (gnus-strip-whitespace address)))
 
 ;;; Next/prev buttons in the article buffer.
 
