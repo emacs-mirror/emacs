@@ -1,10 +1,10 @@
-;;; gud.el --- Grand Unified Debugger mode for gdb, sdb, dbx, xdb or perldb
+;;; gud.el --- Grand Unified Debugger mode for running GDB and other debuggers
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 93, 94, 95, 96, 1998 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -34,7 +34,8 @@
 ;; wrote the GDB command completion code.  Dave Love <d.love@dl.ac.uk>
 ;; added the IRIX kluge, re-implemented the Mips-ish variant and added
 ;; a menu. Brian D. Carlstrom <bdc@ai.mit.edu> combined the IRIX kluge with 
-;; the gud-xdb-directories hack producing gud-dbx-directories.
+;; the gud-xdb-directories hack producing gud-dbx-directories.  Derek L. Davies
+;; <ddavies@world.std.com> added support for jdb (Java debugger.)
 
 ;;; Code:
 
@@ -1228,7 +1229,7 @@ directories if your program contains sources from more than one directory."
       (gud-make-debug-menu)
       buf)))
 
-(defcustom perldb-command-name "perl"
+(defcustom gud-perldb-command-name "perl"
   "File name for executing Perl."
   :type 'string
   :group 'gud)
@@ -1242,7 +1243,7 @@ and source-file directory for your debugger."
    (list (read-from-minibuffer "Run perldb (like this): "
 			       (if (consp gud-perldb-history)
 				   (car gud-perldb-history)
-				 (concat perldb-command-name
+				 (concat gud-perldb-command-name
 					 " "
 					 (or (buffer-file-name)
 					     "-e 0")
@@ -1267,6 +1268,290 @@ and source-file directory for your debugger."
   (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'perldb-mode-hook)
   )
+
+;; ======================================================================
+;;
+;; JDB support.
+;;
+;; AUTHOR:	Derek Davies <ddavies@world.std.com>
+;;
+;; CREATED:	Sun Feb 22 10:46:38 1998 Derek Davies.
+;;
+;; INVOCATION NOTES:
+;;
+;; You invoke jdb-mode with:
+;;
+;;    M-x jdb <enter>
+;;
+;; It responds with:
+;;
+;;    Run jdb (like this): jdb 
+;;
+;; type any jdb switches followed by the name of the class you'd like to debug.
+;; Supply a fully qualfied classname (these do not have the ".class" extension)
+;; for the name of the class to debug (e.g. "COM.the-kind.ddavies.CoolClass").
+;; See the known problems section below for restrictions when specifying jdb
+;; command line switches (search forward for '-classpath').
+;;
+;; You should see something like the following:
+;;
+;;    Current directory is ~/src/java/hello/
+;;    Initializing jdb...
+;;    0xed2f6628:class(hello)
+;;    >
+;;
+;; To set an initial breakpoint try:
+;;
+;;    > stop in hello.main
+;;    Breakpoint set in hello.main
+;;    >
+;;
+;; To execute the program type:
+;;
+;;    > run
+;;    run hello 
+;;
+;;    Breakpoint hit: running ...
+;;    hello.main (hello:12)
+;;
+;; Type M-n to step over the current line and M-s to step into it.  That,
+;; along with the JDB 'help' command should get you started.  The 'quit'
+;; JDB command will get out out of the debugger.
+;;
+;; KNOWN PROBLEMS AND FIXME's:
+;;
+;; Each source file must contain one and only one class or interface
+;; definition.
+;;
+;; Does not grok UNICODE id's.  Only ASCII id's are supported.
+;;
+;; Loses when valid package statements are embedded in certain kinds of
+;; comments and/or string literals, but this should be rare.
+;;
+;; You must not put whitespace between "-classpath" and the path to
+;; search for java classes even though it is required when invoking jdb
+;; from the command line.  See gud-jdb-massage-args for details.
+;;
+;; ======================================================================
+;; gud jdb variables and functions
+
+;; History of argument lists passed to jdb.
+(defvar gud-jdb-history nil)
+
+;; List of Java source file directories.
+(defvar gud-jdb-directories (list ".")
+  "*A list of directories that gud jdb should search for source code.  
+The file names should be absolute, or relative to the current directory.")
+
+;; List of the java source files for this debugging session.
+(defvar gud-jdb-source-files nil)
+
+;; Return a list of java source files.  PATH gives the directories in
+;; which to search for files with extension EXTN.  Normally EXTN is
+;; given as the regular expression "\\.java$" .
+(defun gud-jdb-build-source-files-list (path extn)
+  (apply 'nconc (mapcar (lambda (d) (directory-files d t extn nil)) path)))
+
+;; Return the package (with trailing period) to which FILE belongs.
+;; Returns "" if FILE is in the default package.  BUF is the name of a
+;; buffer into which FILE is read so that it can be searched in order
+;; to determine it's package.  As a consequence, the contents of BUF
+;; are erased by this function.
+(defun gud-jdb-package-of-file (buf file)
+  (set-buffer buf)
+  (insert-file-contents file nil nil nil t)
+  ;; FIXME: Java IDs are UNICODE strings - this code does not
+  ;; do the right thing!
+  ;; FIXME: Does not always ignore contents of comments or string literals.
+  (if (re-search-forward
+		  "^[ \t]*package[ \t]+\\([a-zA-Z0-9$_\.]+\\)[ \t]*;" nil t)
+	  (concat (match-string 1) ".")
+	""))
+
+;; Association list of fully qualified class names (package + class name) and
+;; their source files.
+(defvar gud-jdb-class-source-alist nil)
+
+;; Return an alist of fully qualified classes and the source files
+;; holding their definitions.  SOURCES holds a list of all the source
+;; files to examine.
+(defun gud-jdb-build-class-source-alist (sources)
+  (let ((tmpbuf (get-buffer-create "*gud-jdb-scratch*")))
+	(prog1
+		(mapcar
+		 (lambda (s)
+		   (cons
+			(concat
+			 (gud-jdb-package-of-file tmpbuf s)
+			 (file-name-sans-versions
+				   (file-name-sans-extension
+						 (file-name-nondirectory s))))
+			s)) sources)
+	  (kill-buffer tmpbuf))))
+
+;; Change what was given in the minibuffer to something that can be used to
+;; invoke the debugger.
+(defun gud-jdb-massage-args (file args)
+  ;; The jdb executable must have whitespace between "-classpath" and
+  ;; it's value while gud-common-init expects all switch values to
+  ;; follow the switch keyword without intervening whitespace.  We
+  ;; require that when the user enters the "-classpath" switch in the
+  ;; EMACS minibuffer that they do so without the intervening
+  ;; whitespace.  This function adds it back (it's called after
+  ;; gud-common-init).  There are more switches like this (for
+  ;; instance "-host" and "-password") but I don't care about them
+  ;; yet.
+  (if args
+	  (let (massaged-args user-error)
+	
+		(while
+			(and args
+				 (not (string-match "-classpath\\(.+\\)" (car args)))
+				 (not (setq user-error
+							(string-match "-classpath$" (car args)))))
+		  (setq massaged-args (append massaged-args (list (car args))))
+		  (setq args (cdr args)))
+
+		;; By this point the current directory is all screwed up.  Maybe we
+		;; could fix things and re-invoke gud-common-init, but for now I think
+		;; issueing the error is good enough.
+		(if user-error
+			(progn
+			  (kill-buffer (current-buffer))
+			  (error "Error: Omit whitespace between '-classpath' and it's value")))
+		
+		(if args
+			(setq massaged-args
+				  (append
+				   massaged-args
+				   (list "-classpath")
+				   (list
+					(substring
+					 (car args)
+					 (match-beginning 1) (match-end 1)))
+				   (cdr args)))
+		  massaged-args))))
+
+;; Search for an association with P, a fully qualified class name, in
+;; gud-jdb-class-source-alist.  The asssociation gives the fully
+;; qualified file name of the source file which produced the class.
+(defun gud-jdb-find-source-file (p)
+  (cdr (assoc p gud-jdb-class-source-alist)))
+
+;; See comentary for other debugger's marker filters - there you will find
+;; important notes about STRING.
+(defun gud-jdb-marker-filter (string)
+
+  ;; Build up the accumulator.
+  (setq gud-marker-acc
+		(if gud-marker-acc
+			(concat gud-marker-acc string)
+			string))
+
+  ;; We process STRING from left to right.  Each time through the following
+  ;; loop we process at most one marker.  The start variable keeps track of
+  ;; where we are in the input string through the iterations of this loop.
+  (let (start file-found)
+
+	;; Process each complete marker in the input.  There may be an incomplete
+	;; marker at the end of the input string.  Incomplete markers are left
+	;; in the accumulator for processing the next time the function is called.
+	(while
+		
+		;; Do we see a marker?
+		(string-match
+				;; jdb puts out a string of the following form when it
+				;; hits a breakpoint:
+				;;
+				;;     <fully-qualified-class><method> (<class>:<line-number>)
+				;;
+				;; <fully-qualified-class>'s are composed of Java ID's
+				;; separated by periods.  <method> and <class> are
+				;; also Java ID's.  <method> begins with a period and
+				;; may contain less-than and greater-than (constructors,
+				;; for instance, are called <init> in the symbol table.)
+				;; Java ID's begin with a letter followed by letters
+				;; and/or digits.  The set of letters includes underscore
+				;; and dollar sign.
+				;;
+				;; The first group matches <fully-qualified-class>,
+				;; the second group matches <class> and the third group
+				;; matches <line-number>.  We don't care about using
+				;; <method> so we don't "group" it.
+				;;
+				;; FIXME: Java ID's are UNICODE strings, this matches ASCII
+				;; ID's only.
+				"\\([a-zA-Z0-9.$_]+\\)\\.[a-zA-Z0-9$_<>]+ (\\([a-zA-Z0-9$_]+\\):\\([0-9]+\\))"
+				gud-marker-acc start)
+	  
+	  ;; Figure out the line on which to position the debugging arrow.
+	  ;; Return the info as a cons of the form:
+	  ;;
+	  ;;     (<file-name> . <line-number>) .
+	  (if (setq
+		   file-found
+		   (gud-jdb-find-source-file
+				(substring gud-marker-acc
+						   (match-beginning 1)
+						   (match-end 1))))
+		  (setq gud-last-frame
+				(cons
+				 file-found
+				 (string-to-int
+						 (substring gud-marker-acc
+									(match-beginning 3)
+									(match-end 3)))))
+		(message "Could not find source file."))
+
+		;; Set start after the last character of STRING that we've looked at
+		;; and loop to look for another marker.
+		(setq start (match-end 0))))
+
+  ;; We don't filter any debugger output so just return what we were given.
+  string)
+
+(defun gud-jdb-find-file (f)
+  (and (file-readable-p f)
+	   (find-file-noselect f)))
+
+(defvar gud-jdb-command-name "jdb" "Command that executes the Java debugger.")
+
+;;;###autoload
+(defun jdb (command-line)
+  "Run jdb with command line COMMAND-LINE in a buffer.  The buffer is named 
+\"*gud*\" if no initial class is given or \"*gud-<initial-class-basename>*\" 
+if there is.  If the \"-classpath\" switch is given, omit all whitespace 
+between it and it's value."
+  (interactive
+   (list (read-from-minibuffer "Run jdb (like this): "
+			   (if (consp gud-jdb-history)
+				   (car gud-jdb-history)
+				 (concat gud-jdb-command-name " "))
+			   nil nil
+			   '(gud-jdb-history . 1))))
+
+  (gud-common-init command-line 'gud-jdb-massage-args
+	   'gud-jdb-marker-filter 'gud-jdb-find-file)
+
+  (gud-def gud-break  "stop at %l" "\C-b" "Set breakpoint at current line.")
+  (gud-def gud-remove "clear %l" "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-step   "step"    "\C-s" "Step one source line with display.")
+  (gud-def gud-next   "next"    "\C-n" "Step one line (skip functions).")
+  (gud-def gud-cont   "cont"    "\C-r" "Continue with display.")
+
+  (setq comint-prompt-regexp "^> \|^.+\[[0-9]+\] ")
+  (setq paragraph-start comint-prompt-regexp)
+  (run-hooks 'jdb-mode-hook)
+
+  ;; Create and bind the class/source association list as well as the source
+  ;; file list.
+  (setq
+   gud-jdb-class-source-alist
+   (gud-jdb-build-class-source-alist
+		(setq
+		 gud-jdb-source-files
+		 (gud-jdb-build-source-files-list gud-jdb-directories "\\.java$")))))  
+
 
 ;;
 ;; End of debugger-specific information
