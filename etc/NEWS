@@ -870,7 +870,7 @@ so I will know I still need to look at it -- rms.
 ** easy-mmode-define-minor-mode now takes an additional BODY argument
 and is renamed `define-minor-mode'.
 
-** If an abbrevs has only a hook, and that hooks has a non-nil
+** If an abbrev has only a hook, and that hook has a non-nil
 `no-self-insert' property, the return value of the hook specifies
 whether an expansion has been done or not.  If it returns nil, no
 expansion has been performed.  The character leading to the call of
@@ -5502,7 +5502,7 @@ from `bibtex-string-files' are searched.
 
 ** Iso Accents mode now supports Latin-3 as an alternative.
 
-** The commadn next-error now opens blocks hidden by hideshow.
+** The command next-error now opens blocks hidden by hideshow.
 
 ** The function using-unix-filesystems has been replaced by the
 functions add-untranslated-filesystem and remove-untranslated-filesystem.
