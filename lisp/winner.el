@@ -52,6 +52,7 @@
   "Restoring window configurations."
   :group 'windows)
 
+;;;###autoload
 (defcustom winner-mode nil
   "Toggle winner-mode.
 You must modify via \\[customize] for this variable to have an effect."
