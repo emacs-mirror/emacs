@@ -1299,9 +1299,10 @@ Does NOT find the source line like \\[next-error]."
 		  (error-list compilation-error-list))
 	      (while error-list
 		(save-excursion
-		  (put-text-property (goto-char (car (car error-list)))
-				     (progn (end-of-line) (point))
-				     'mouse-face 'highlight))
+		  (add-text-properties (goto-char (car (car error-list)))
+				       (progn (end-of-line) (point))
+				       '(mouse-face highlight help-echo "\
+mouse-2: visit this file and line")))
 		(setq error-list (cdr error-list))))
 	    )))))
 
@@ -1722,7 +1723,8 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
   (let ((inhibit-read-only t)
 	(buffer-undo-list t)
 	deactivate-mark)
-    (remove-text-properties (point-min) (point-max) '(mouse-face highlight))))
+    (remove-text-properties (point-min) (point-max)
+			    '(mouse-face highlight help-echo nil))))
 
 
 ;; This function is not needed any more by compilation mode.
