@@ -1,3 +1,36 @@
+2003-05-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* window.c (Fset_window_buffer): Add type of `keep_margins'.
+	(Fset_window_fringes, Fset_window_scroll_bars): Declare before use.
+
+	* window.h (window_box_text_cols): Declare.
+
+	* xdisp.c (window_text_bottom_y, draw_row_fringe_bitmaps)
+	(x_draw_vertical_border): Remove unused var `f'.
+
+	* xfaces.c (build_scalable_font_name): Remove `unused var
+	pixel_size' warning.
+
+	* xfns.c (png_load): Remove `unused vars intent, image_gamma' warning.
+
+	* unexelf.c (unexec): Remove `unused var n' warning.
+
+	* strftime.c (my_strftime_localtime_r): Remove `defined but
+	unused' warning.
+
+	* process.c (allocate_pty): Remove `unused var stb' and
+	`cp might be used uninitialized' warnings.
+
+	* dispnew.c (mode_line_string): Remove unused var `f'.
+
+	* coding.c (find_safe_codings): Remove unused var `i'.
+
+	* bytecode.c (Fbyte_code): Remove `unused val' warning.
+
+	* buffer.c (Fkill_buffer): Remove unused var `list'.
+
+	* alloc.c (Fgarbage_collect): Remove `unused var tail' warning.
+
 2003-05-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* frame.c (make_frame): Condition want_fullscreen with
