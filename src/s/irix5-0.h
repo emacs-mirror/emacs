@@ -99,13 +99,6 @@ char *_getpty();
 /* Tell process_send_signal to use VSUSP instead of VSWTCH.  */
 #define PREFER_VSUSP
 
-/* Because unexsgi.c cannot handle a ".sbss" section yet, we must
-   tell the linker to avoid making one.  SGI's cc does this by
-   default, but GCC (at least 2.5.8 and 2.6.0) doesn't. */
-#ifdef __GNUC__
-#define LD_SWITCH_SYSTEM -G 0
-#endif
-
 /* define MAIL_USE_FLOCK if the mailer uses flock
    to interlock access to /usr/spool/mail/$USER.
    The alternative is that a lock file named
@@ -114,8 +107,10 @@ char *_getpty();
 #define MAIL_USE_FLOCK
 
 /* use K&R C */
+#if 0
 #ifndef __GNUC__
 #define C_SWITCH_SYSTEM -cckr
+#endif
 #endif
 
 /* -g does not work on Irix, and since gcc warns if you use it,
