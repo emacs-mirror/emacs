@@ -10709,7 +10709,12 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 		      (pos == 0	  /* From overlay */
 		       || pos == pt_old)))
 		{
-		  cursor_from_overlay_pos = pos == 0 ? last_pos : 0;
+		  /* Estimate overlay buffer position from the buffer
+		     positions of the glyphs before and after the overlay.
+		     Add 1 to last_pos so that if point corresponds to the
+		     glyph right after the overlay, we still use a 'cursor'
+		     property found in that overlay.  */
+		  cursor_from_overlay_pos = pos == 0 ? last_pos+1 : 0;
 		  cursor = glyph;
 		  cursor_x = x;
 		}
