@@ -1,6 +1,11 @@
+2000-11-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* sort.el (sort-columns): If sort-fold-case it non-nil, invoke
+	sort(1) with the `-f' argument.
+
 2000-11-16  Andre Spiegel  <spiegel@gnu.org>
 
-        * vc.el (vc-revert-buffer): Ask for confirmation if file seems 
+	* vc.el (vc-revert-buffer): Ask for confirmation if file seems 
 	up-to-date.
 	(vc-do-command): In the asynchronous case, output messages only if 
 	the minibuffer is not active.
