@@ -291,6 +291,44 @@ close_file_data (file_data *p_file)
 
 /* Routines to manipulate NT executable file sections.  */
 
+static void
+get_bss_info_from_map_file (file_data *p_infile, PUCHAR *p_bss_start, 
+			    DWORD *p_bss_size)
+{
+  int n, start, len;
+  char map_filename[MAX_PATH];
+  char buffer[256];
+  FILE *map;
+
+  /* Overwrite the .exe extension on the executable file name with
+     the .map extension.  */
+  strcpy (map_filename, p_infile->name);
+  n = strlen (map_filename) - 3;
+  strcpy (&map_filename[n], "map");
+
+  map = fopen (map_filename, "r");
+  if (!map)
+    {
+      printf ("Failed to open map file %s, error %d...bailing out.\n",
+	      map_filename, GetLastError ());
+      exit (-1);
+    }
+
+  while (fgets (buffer, sizeof (buffer), map))
+    {
+      if (!(strstr (buffer, ".bss") && strstr (buffer, "DATA")))
+	continue;
+      n = sscanf (buffer, " %*d:%x %x", &start, &len);
+      if (n != 2)
+	{
+	  printf ("Failed to scan the .bss section line:\n%s", buffer);
+	  exit (-1);
+	}
+      break;
+    }
+  *p_bss_start = (PUCHAR) start;
+  *p_bss_size = (DWORD) len;
+}
 
 static unsigned long
 get_section_size (PIMAGE_SECTION_HEADER p_section)
@@ -311,7 +349,7 @@ get_section_info (file_data *p_infile)
 {
   PIMAGE_DOS_HEADER dos_header;
   PIMAGE_NT_HEADERS nt_header;
-  PIMAGE_SECTION_HEADER section;
+  PIMAGE_SECTION_HEADER section, data_section;
   unsigned char *ptr;
   int i;
   
@@ -355,6 +393,7 @@ get_section_info (file_data *p_infile)
 	  extern char my_edata[];
 
 	  /* The .data section.  */
+	  data_section = section;
 	  ptr  = (char *) nt_header->OptionalHeader.ImageBase +
 	    section->VirtualAddress;
 	  data_start_va = ptr;
@@ -367,6 +406,21 @@ get_section_info (file_data *p_infile)
 	  data_size = my_edata - data_start_va;
 	}
       section++;
+    }
+
+  if (!bss_start && !bss_size)
+    {
+      /* Starting with MSVC 4.0, the .bss section has been eliminated
+	 and appended virtually to the end of the .data section.  Our
+	 only hint about where the .bss section starts in the address
+	 comes from the SizeOfRawData field in the .data section
+	 header.  Unfortunately, this field is only approximate, as it
+	 is a rounded number and is typically rounded just beyond the
+	 start of the .bss section.  To find the start and size of the
+	 .bss section exactly, we have to peek into the map file.  */
+      get_bss_info_from_map_file (p_infile, &ptr, &bss_size);
+      bss_start = ptr + nt_header->OptionalHeader.ImageBase
+	+ data_section->VirtualAddress;
     }
 }
 
