@@ -4,7 +4,7 @@
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: bug-fortran-mode@erl.mit.edu
-;; Version 1.30.5.1 (Sept 16, 1994)
+;; Version 1.30.6 (July 27, 1995)
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -46,7 +46,7 @@
 
 ;;; Bugs to bug-fortran-mode@erl.mit.edu
 
-(defconst fortran-mode-version "version 1.30.5.1")
+(defconst fortran-mode-version "version 1.30.6")
 
 ;;; Code:
 
@@ -160,7 +160,7 @@ This variable used in TAB format mode.")
  style.")
 
 (defvar fortran-break-before-delimiters t
-  "*Non-nil causes `fortran-do-auto-fill' to break lines before delimiters.")
+  "*Non-nil causes `fortran-fill' to break lines before delimiters.")
 
 (if fortran-mode-syntax-table
     ()
@@ -442,7 +442,7 @@ Variables controlling indentation style and extra features:
     Non-nil causes line number digits to be moved to the correct column 
     as typed.  (default t)
  fortran-break-before-delimiters
-    Non-nil causes `fortran-do-auto-fill' breaks lines before delimiters.
+    Non-nil causes `fortran-fill' breaks lines before delimiters.
     (default t)
  fortran-startup-message
     Set to nil to inhibit message first time Fortran mode is used.
@@ -1034,7 +1034,7 @@ The marks are pushed."
 	     (> (save-excursion (end-of-line) (current-column)) fill-column))
 	(save-excursion
 	  (end-of-line)
-	  (fortran-do-auto-fill)))
+	  (fortran-fill)))
     (if fortran-blink-matching-if
 	(progn
 	  (fortran-blink-matching-if)
@@ -1408,11 +1408,15 @@ automatically breaks the line at a previous space."
 	       (if (if (null arg)
 		       (not auto-fill-function)
 		     (> (prefix-numeric-value arg) 0))
-		   'fortran-indent-line
+		   'fortran-do-auto-fill
 		 nil))
     (force-mode-line-update)))
 
 (defun fortran-do-auto-fill ()
+  (if (> (current-column) fill-column)
+      (fortran-indent-line)))
+
+(defun fortran-fill ()
   (interactive)
   (let* ((opoint (point))
 	 (bol (save-excursion (beginning-of-line) (point)))
@@ -1510,7 +1514,7 @@ automatically breaks the line at a previous space."
 	  (end-of-line)
 	  (delete-region (point) (match-end 0))
 	  (delete-horizontal-space)
-	  (fortran-do-auto-fill))
+	  (fortran-fill))
       (fortran-split-line))
     (if comment-string
 	(save-excursion
