@@ -6680,11 +6680,13 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (set-buffer gnus-group-buffer)
       (if quit-config
 	  (gnus-handle-ephemeral-exit quit-config)
+	(goto-char group-point)
+	;; If gnus-group-buffer is already displayed, make sure we also move
+	;; the cursor in the window that displays it.
+	(let ((win (get-buffer-window (current-buffer) 0)))
+	  (if win (set-window-point win (point))))
 	(unless leave-hidden
-	  (gnus-configure-windows 'group 'force))
-	;; Move point after calling gnus-configure-windows to make sure it
-	;; moves the window's point as well.
-	(goto-char group-point))
+	  (gnus-configure-windows 'group 'force)))
       ;; Clear the current group name.
       (unless quit-config
 	(setq gnus-newsgroup-name nil)))))
