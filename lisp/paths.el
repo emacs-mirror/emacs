@@ -189,7 +189,8 @@ Its name should end with a slash.")
    ((file-exists-p "/bin/rcmd") "/bin/rcmd")
    ((file-exists-p "/bin/rsh") "/bin/rsh")
    ((file-exists-p "/usr/bin/rsh") "/usr/bin/rsh")
-   (t "rsh")))
+   (t "rsh"))
+  "File name for remote-shell program (often rsh or remsh).")
 
 (defconst term-file-prefix (if (eq system-type 'vax-vms) "[.term]" "term/") "\
 If non-nil, Emacs startup does (load (concat term-file-prefix (getenv \"TERM\")))
