@@ -1,5 +1,17 @@
 2002-12-04  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* gdb-ui.el: Fold top-level `setq's and `define-key's into their
+	corresponding defvar.
+	(gdb-inferior-io-mode-map): New var.
+	Add bindings to it rather than to comint-mode-map.
+	(gdb-display-number-end): Use dolist.  Remove always-true test.
+	(gdb-delete-line): Move and simplify.
+	(gdb-display-end): Don't bother going to beg-of-line since we're there.
+	(gdb-array-format1): Use dolist.
+	(gdb-make-windows-menu, gdb-make-frames-menu):
+	Move to top-level code.  Move the menus to within the GUD menu.
+	Make the menus only appear in gdba mode.
+
 	* gdb-ui.el (gdb-inferior-io-mode-map): Remove (unused).
 	(gdb-inferior-io-mode): Use define-minor-mode.
 	(gdb-source-info): Don't burp if there's no source file.
