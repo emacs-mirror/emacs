@@ -394,11 +394,11 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-edit-menu [select-paste]
   '(menu-item "Select and Paste" yank-menu
 	      :enable (and (cdr yank-menu) (not buffer-read-only))
-	      :help "Paste text cut/copied earlier"))
+	      :help "Paste (yank) text cut or copied earlier"))
 (define-key menu-bar-edit-menu [paste]
   '(menu-item "Paste" yank
 	      :enable (and (x-selection-exists-p) (not buffer-read-only))
-	      :help "Paste text most recently cut/copied"))
+	      :help "Paste (yank) text most recently cut/copied"))
 (define-key menu-bar-edit-menu [copy]
   '(menu-item "Copy" menu-bar-kill-ring-save
 	      :enable mark-active
