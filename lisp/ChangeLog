@@ -1,3 +1,19 @@
+2004-12-01  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* faces.el (glyph): New face.
+
+	* disp-table.el: Add an autoloaded table, that doesn't require
+	this library, with glyph face.
+
+	* textmodes/conf-mode.el (conf-ppd-mode-syntax-table): New var.
+	(conf-ppd-mode): New conf-mode wrapper for printer descriptions.
+	(conf-quote-normal): Allow normalizing only ' or ".
+	(conf-mode): Regexp-quote constructed comment-start and don't
+	match section {} where "name" contains braces.
+
+	* files.el (auto-mode-alist): Add conf-ppd-mode, inittab and acpid
+	files.
+
 2004-12-01  Kenichi Handa  <handa@m17n.org>
 
 	* term/x-win.el (x-last-selected-text-cut-encoded): New variable.
