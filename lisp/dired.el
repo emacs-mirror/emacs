@@ -392,7 +392,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (dired-internal-noselect dir-or-list switches)))
 
 ;; Separate function from dired-noselect for the sake of dired-vms.el.
-(defun dired-internal-noselect (dir-or-list &optional switches)
+(defun dired-internal-noselect (dir-or-list &optional switches mode)
   ;; If there is an existing dired buffer for DIRNAME, just leave
   ;; buffer as it is (don't even call dired-revert).
   ;; This saves time especially for deep trees or with ange-ftp.
@@ -402,8 +402,13 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   ;; revert the buffer.
   ;; A pity we can't possibly do "Directory has changed - refresh? "
   ;; like find-file does.
+  ;; Optional argument MODE is passed to dired-find-buffer-nocreate,
+  ;; see there.
   (let* ((dirname (if (consp dir-or-list) (car dir-or-list) dir-or-list))
-	 (buffer (dired-find-buffer-nocreate dir-or-list))
+	 ;; The following line used to use dir-or-list.
+	 ;; That never found an existing buffer, in the case
+	 ;; where it is a list.
+	 (buffer (dired-find-buffer-nocreate dirname mode))
 	 ;; note that buffer already is in dired-mode, if found
 	 (new-buffer-p (not buffer))
 	 (old-buf (current-buffer)))
@@ -435,6 +440,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	      (file-name-directory dirname)))
       (or switches (setq switches dired-listing-switches))
       (dired-mode dirname switches)
+      (if mode (funcall mode))
       ;; default-directory and dired-actual-switches are set now
       ;; (buffer-local), so we can call dired-readin:
       (let ((failed t))
@@ -454,16 +460,18 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (set-buffer old-buf)
     buffer))
 
-;; This differs from dired-buffers-for-dir in that it does not consider
-;; subdirs of default-directory and searches for the first match only
-(defun dired-find-buffer-nocreate (dirname)
+(defun dired-find-buffer-nocreate (dirname &optional mode)
+  ;; This differs from dired-buffers-for-dir in that it does not consider
+  ;; subdirs of default-directory and searches for the first match only.
+  ;; Also, the major mode must be MODE.
   (let (found (blist dired-buffers))    ; was (buffer-list)
+    (or mode (setq mode 'dired-mode))
     (while blist
       (if (null (buffer-name (cdr (car blist))))
 	  (setq blist (cdr blist))
 	(save-excursion
 	  (set-buffer (cdr (car blist)))
-	  (if (and (eq major-mode 'dired-mode)
+	  (if (and (eq major-mode mode)
 		   (equal dired-directory dirname))
 	      (setq found (cdr (car blist))
 		    blist nil)
