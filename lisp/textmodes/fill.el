@@ -117,9 +117,9 @@ if it would act as a paragraph-starter on the second line."
   :group 'fill)
 
 (defcustom adaptive-fill-function nil
-  "*Function to call to choose a fill prefix for a paragraph.
+  "*Function to call to choose a fill prefix for a paragraph, or nil.
 This function is used when `adaptive-fill-regexp' does not match."
-  :type 'function
+  :type '(choice (const nil) function)
   :group 'fill)
 
 (defvar fill-indent-according-to-mode nil
