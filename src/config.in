@@ -147,7 +147,7 @@ and this notice must be preserved on all copies.  */
 #undef HAVE_SELECT
 #undef HAVE_MKTIME
 #undef HAVE_EACCESS
-
+#undef HAVE_GETPAGESIZE
 #undef HAVE_INET_SOCKETS
 
 #undef HAVE_AIX_SMT_EXP
