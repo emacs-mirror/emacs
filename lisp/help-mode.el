@@ -31,7 +31,7 @@
 ;;; Code:
 
 (require 'button)
-(eval-when-compile (require 'view))
+(require 'view)
 
 (defvar help-mode-map (make-sparse-keymap)
   "Keymap for help mode.")
@@ -147,10 +147,11 @@ The format is (FUNCTION ARGS...).")
   :supertype 'help-xref
   'help-function (lambda (fun file)
 		   (require 'find-func)
-		  ;; Don't use find-function-noselect because it follows
+		   ;; Don't use find-function-noselect because it follows
 		   ;; aliases (which fails for built-in functions).
-		   (let* ((location (find-function-search-for-symbol
-				     fun nil file)))
+		   (let ((location
+			  (if (bufferp file) (cons file fun)
+			    (find-function-search-for-symbol fun nil file))))
 		     (pop-to-buffer (car location))
 		     (goto-char (cdr location))))
   'help-echo (purecopy "mouse-2, RET: find function's definition"))
@@ -197,8 +198,8 @@ Commands:
 	(list (cons (selected-window) help-return-method))))
 
 
-;;; Grokking cross-reference information in doc strings and
-;;; hyperlinking it.
+;; Grokking cross-reference information in doc strings and
+;; hyperlinking it.
 
 ;; This may have some scope for extension and the same or something
 ;; similar should be done for widget doc strings, which currently use
@@ -220,7 +221,7 @@ Commands:
 The words preceding the quoted symbol can be used in doc strings to
 distinguish references to variables, functions and symbols.")
 
-(defconst help-xref-mule-regexp nil
+(defvar help-xref-mule-regexp nil
   "Regexp matching doc string references to MULE-related keywords.
 
 It is usually nil, and is temporarily bound to an appropriate regexp
@@ -245,11 +246,12 @@ This should be called very early, before the output buffer is cleared,
 because we want to record the \"previous\" position of point so we can
 restore it properly when going back."
   (with-current-buffer (help-buffer)
-    (if interactive-p
-	;; Why do we want to prevent the user from going back ??  -stef
-	(setq help-xref-stack nil)
-      (when help-xref-stack-item
-	(push (cons (point) help-xref-stack-item) help-xref-stack)))
+    (when help-xref-stack-item
+      (push (cons (point) help-xref-stack-item) help-xref-stack))
+    (when interactive-p
+      (let ((tail (nthcdr 10 help-xref-stack)))
+	;; Truncate the stack.
+	(if tail (setcdr tail nil))))
     (setq help-xref-stack-item item)))
 
 (defvar help-xref-following nil
@@ -260,6 +262,13 @@ restore it properly when going back."
    (if help-xref-following
        (current-buffer)
      (get-buffer-create "*Help*"))))
+
+(defvar help-xref-override-view-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map view-mode-map)
+    (define-key map "\r" nil)
+    map)
+  "Replacement keymap for `view-mode' in help buffers.")
 
 ;;;###autoload
 (defun help-make-xrefs (&optional buffer)
@@ -406,11 +415,7 @@ that."
 				   (current-buffer))))
       ;; View mode steals RET from us.
       (set (make-local-variable 'minor-mode-overriding-map-alist)
-           (list (cons 'view-mode
-                       (let ((map (make-sparse-keymap)))
-                         (set-keymap-parent map view-mode-map)
-                         (define-key map "\r" 'help-follow)
-                         map))))
+           (list (cons 'view-mode help-xref-override-view-map)))
       (set-buffer-modified-p old-modified))))
 
 ;;;###autoload
@@ -517,7 +522,7 @@ help buffer."
 	  (help-setup-xref (list #'help-xref-interned symbol) nil)))))))
 
 
-;;; Navigation/hyperlinking with xrefs
+;; Navigation/hyperlinking with xrefs
 
 (defun help-follow-mouse (click)
   "Follow the cross-reference that you CLICK on."
