@@ -3211,7 +3211,10 @@ so it has a way to determine color values."
 (defun ps-print-region (from to &optional filename)
   "Generate and print a PostScript image of the region.
 Like `ps-print-buffer', but prints just the current region."
-  (interactive (list (point) (mark) (ps-print-preprint current-prefix-arg)))
+  (interactive
+   (unless mark-active
+     (error "The mark is not set now"))
+   (list (point) (mark) (ps-print-preprint current-prefix-arg)))
   (ps-print-without-faces from to filename t))
 
 
@@ -3221,7 +3224,10 @@ Like `ps-print-buffer', but prints just the current region."
 Like `ps-print-region', but includes font, color, and underline information in
 the generated image.  This command works only if you are using a window system,
 so it has a way to determine color values."
-  (interactive (list (point) (mark) (ps-print-preprint current-prefix-arg)))
+  (interactive
+   (unless mark-active
+     (error "The mark is not set now"))
+   (list (point) (mark) (ps-print-preprint current-prefix-arg)))
   (ps-print-with-faces from to filename t))
 
 
@@ -3302,7 +3308,10 @@ The table depends on the current ps-print setup."
 (defun ps-nb-pages-region (nb-lines)
   "Display number of pages to print the region, for various font heights.
 The table depends on the current ps-print setup."
-  (interactive (list (count-lines (mark) (point))))
+  (interactive
+   (unless mark-active
+     (error "The mark is not set now"))
+   (list (count-lines (mark) (point))))
   (ps-nb-pages nb-lines))
 
 (defvar ps-prefix-quote nil
