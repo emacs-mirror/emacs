@@ -355,6 +355,8 @@ store_in_keymap (keymap, idx, def)
 	switch (XTYPE (elt))
 	  {
 	  case Lisp_Vector:
+	    if (XVECTOR (elt)->size != DENSE_TABLE_SIZE)
+	      break;
 	    if (XTYPE (idx) == Lisp_Int)
 	      {
 		XVECTOR (elt)->contents[XFASTINT (idx)] = def;
@@ -380,6 +382,8 @@ store_in_keymap (keymap, idx, def)
 	      goto keymap_end;
 	    break;
 	  }
+
+	QUIT;
       }
 
   keymap_end:
