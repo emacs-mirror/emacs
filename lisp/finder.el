@@ -77,7 +77,7 @@
   (setq finder-mode-map (make-sparse-keymap))
   (define-key finder-mode-map " "	'finder-select)
   (define-key finder-mode-map "?"	'finder-summary)
-  (define-key finder-mode-map "x"	'finder-exit)
+  (define-key finder-mode-map "q"	'finder-exit)
   (define-key finder-mode-map "f"	'finder-list-keywords)
 ;  )
 
@@ -227,7 +227,7 @@ arguments compiles from `load-path'."
 
 (defun finder-mode ()
   "Major mode for browsing package documentation.
-
+\\<finder-mode-map>
 \\[finder-select]	more help for the item on the current line
 \\[finder-exit]	exit Finder mode and fill the Finder buffer.
 "
@@ -247,7 +247,8 @@ arguments compiles from `load-path'."
   "Summarize basic Finder commands."
   (interactive)
   (message
-   "SPC = select, f = back to Finder, x = eXit, ? = help"))
+   (substitute-command-keys
+    "\\<finder-mode-map>\\[finder-select] = select, \\[finder-list-keywords] = back to finder, \\[finder-exit] = quit, \\[finder-summary] = help")))
 
 (defun finder-exit ()
   "Exit Finder mode and kill the buffer"
