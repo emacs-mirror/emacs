@@ -1,3 +1,15 @@
+2002-03-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	Add support for bootstraping Emacs:
+
+	* sed1v2.inp: Edit the bootstrap-* targets.  Fix the mostlyclean
+	target.
+
+	* mainmake.v2 (maybe_bootstrap, bootstrap, bootstrap-lisp-1) 
+	(bootstrap-lisp, bootstrap-src, bootstrap-clean-before) 
+	(bootstrap-clean-after): New targets.
+	(all): Depend on maybe_bootstrap.
+
 2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sed1v2.inp: Delete _gdbinit in distclean target.
