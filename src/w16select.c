@@ -669,7 +669,7 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
       xfree (buf);
       if (SYMBOLP (coding.post_read_conversion)
 	  && !NILP (Ffboundp (coding.post_read_conversion)))
-	ret = run_pre_post_conversion_on_str (ret, coding, 0);
+	ret = run_pre_post_conversion_on_str (ret, &coding, 0);
       Vlast_coding_system_used = coding.symbol;
     }
   else
