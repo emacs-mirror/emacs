@@ -27,7 +27,7 @@
 
 ;;; Commentary:
 
-;; Define filesets, which can be opened or saved with the power one or
+;; Define filesets, which can be opened or saved with the power of one or
 ;; two mouse clicks only.  A fileset is either a list of files, a file
 ;; pattern, a base directory and a search pattern (for files), or an
 ;; inclusion group (i.e. a base file including other files).
@@ -86,7 +86,7 @@
 (eval-and-compile
   (unless (boundp 'filesets-running-xemacs)
     (defvar filesets-running-xemacs (string-match "XEmacs\\|Lucid" emacs-version)
-      "Non-nil means we are runninn XEmacs.")))
+      "Non-nil means we are running XEmacs.")))
 
 (defvar filesets-menu-cache nil
   "The whole filesets menu.")
