@@ -573,8 +573,9 @@ Emacsen that supports it.
 Specifies how to display a message whenever you move to the widget with
 either @code{widget-forward} or @code{widget-backward} or move the mouse
 over it (using the standard @code{help-echo} mechanism).  The argument
-is either a string to display or a function of one argument, the widget,
-which should return a string to display.
+is either a string to display, a function of one argument, the widget,
+which should return a string to display, or a form that evaluates to
+such a string.
 
 @vindex indent@r{ keyword}
 @item :indent
