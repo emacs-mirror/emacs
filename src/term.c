@@ -28,6 +28,9 @@ Boston, MA 02111-1307, USA.  */
 
 #include <sys/file.h>
 
+#include <unistd.h>             /* For isatty. */
+#include <sys/ioctl.h>          /* For TIOCNOTTY. */
+
 #include "lisp.h"
 #include "termchar.h"
 #include "termopts.h"
@@ -64,6 +67,10 @@ extern int tgetnum P_ ((char *id));
 
 #ifndef O_RDWR
 #define O_RDWR 2
+#endif
+
+#ifndef O_NOCTTY
+#define O_NOCTTY 0
 #endif
 
 static void turn_on_face P_ ((struct frame *, int face_id));
@@ -152,6 +159,10 @@ int max_frame_lines;
    (Direct output does not count).  */
 
 FRAME_PTR updating_frame;
+
+/* Non-zero if we have dropped our controlling tty and therefore
+   should not open a frame on stdout. */
+static int no_controlling_tty;
 
 /* Provided for lisp packages.  */
 
@@ -2169,8 +2180,6 @@ DEFUN ("frame-tty-type", Fframe_tty_type, Sframe_tty_type, 0, 1, 0,
 struct display *
 init_initial_display (void)
 {
-  struct tty_display_info *tty;
-  
   if (initialized || display_list || tty_list)
     abort ();
 
@@ -2285,12 +2294,41 @@ term_init (char *name, char *terminal_type, int must_succeed)
     {
       int fd;
       FILE *file;
-      fd = emacs_open (name, O_RDWR, 0);
+
+#ifdef O_IGNORE_CTTY
+      /* Open the terminal device.  Don't recognize it as our
+         controlling terminal, and don't make it the controlling tty
+         if we don't have one at the moment.  */
+      fd = emacs_open (name, O_RDWR | O_IGNORE_CTTY | O_NOCTTY, 0);
+#else
+      /* Alas, O_IGNORE_CTTY is a GNU extension that is only defined
+         on Hurd.  On other systems, we need to dissociate ourselves
+         from the controlling tty when we want to open a frame on the
+         same terminal.  The function setsid should be used for this,
+         but it didn't work for me. */
+
+      fd = emacs_open (name, O_RDWR | O_NOCTTY, 0);
+      
+#ifdef TIOCNOTTY
+      /* Drop our controlling tty if it is the same device. */
+      if (ioctl (fd, TIOCNOTTY, 0) != -1)
+        {
+          no_controlling_tty = 1;
+        }
+#endif
+#endif /* O_IGNORE_CTTY */
+
       if (fd < 0)
         {
           delete_tty (display);
           error ("Could not open file: %s", name);
         }
+      if (! isatty (fd))
+        {
+          close (fd);
+          error ("Not a tty device: %s", name);
+        }
+
       file = fdopen (fd, "w+");
       tty->name = xstrdup (name);
       tty->input = file;
@@ -2298,6 +2336,12 @@ term_init (char *name, char *terminal_type, int must_succeed)
     }
   else
     {
+      if (no_controlling_tty)
+        {
+          /* Opening a frame on stdout is unsafe if we have
+             disconnected our controlling terminal. */
+          error ("There is no controlling terminal any more");
+        }
       tty->name = 0;
       tty->input = stdin;
       tty->output = stdout;
@@ -2805,6 +2849,8 @@ tty.  The functions are run with one arg, the frame to be deleted.  */)
     error ("No such terminal device: %s", name);
 
   delete_tty (d);
+
+  return Qnil;
 }
 
 static int deleting_tty = 0;
@@ -2952,7 +2998,7 @@ void
 mark_ttys ()
 {
   struct tty_display_info *tty;
-  Lisp_Object *p;
+
   for (tty = tty_list; tty; tty = tty->next)
     {
       if (tty->top_frame)

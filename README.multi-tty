@@ -60,22 +60,23 @@ architectures, though.)  Both multiple tty device support and
 simultaneous X and tty frame support works fine.  Emacsclient has been
 extended to support opening a new terminal frame.
 
-
 Please let me know if you find any bugs in this branch.
+
+HOW TO COMPILE AND TEST
+-----------------------
 
 To try it out, compile and run the multi-tty branch with the following
 commands:
 
    	mkdir +build
 	cd +build
-	../configure
+	../configure <your favourite options>
 	make bootstrap
 	src/emacs -nw		# You can also try without -nw
 	M-x server-start
 
 and then (from a shell prompt on another terminal) start emacsclient
 with
-
 	lib-src/emacsclient -t /optional/file/names...
 
 You'll hopefully have two fully working, independent frames on
@@ -160,9 +161,12 @@ THANKS
 The following is an (incomplete) list of people who have contributed
 to the project by testing, bug reports, and suggestions.  Thanks!
 
-Robert J. Chassel <bob@rattlesnake.com>
-Romain Francoise <romain@orekobech.com>
-Ami Fischman <ami@fischman.org>
+Robert J. Chassel <bob at rattlesnake dot com>
+Romain Francoise <romain at orekobech dot com>
+Ami Fischman <ami at fischman dot org>
+Dan Nicolaescu <dann at ics dot uci dot edu>
+
+Richard Stallman was kind enough to review my patches.
 
 
 CHANGELOG
@@ -172,6 +176,10 @@ See arch logs.
 
 THINGS TO DO
 ------------
+** Dan Nicolaescu (dann at ics dot uci dot edu) suggests that -nw
+   should be added as an alias for -t in emacsclient.  Good idea.
+   (Alas, implementing this is not trivial, getopt_long does not seem
+   to support two-letter ``short'' options.)
 
 ** Robert J. Chassell reports:
 
@@ -631,6 +639,13 @@ DIARY OF CHANGES
 
 -- Don't exit Emacs when the last X connection fails during a
    multi-display session.
+
+   (Fixed.)
+
+
+-- Dan Nicolaescu noticed that starting emacsclient on the same
+   terminal device that is the controlling tty of the Emacs process
+   gives unexpected results.
 
    (Fixed.)
 
