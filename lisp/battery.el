@@ -1,6 +1,6 @@
 ;;; battery.el --- display battery status information
 
-;; Copyright (C) 1997, 1998, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2000, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;; Keywords: hardware
@@ -24,9 +24,9 @@
 
 ;;; Commentary:
 
-;; There is at present only a function interpreting the new `/proc/apm'
-;; file format of Linux version 1.3.58 or newer.  That is, what a lucky
-;; coincidence, exactly the interface provided by the author's laptop.
+;; There is at present support for interpreting the new `/proc/apm'
+;; file format of Linux version 1.3.58 or newer and for the `/proc/acpi/'
+;; directory structure of Linux 2.4.20 and 2.6.
 
 ;;; Code:
 
@@ -308,8 +308,8 @@ The following %-sequences are provided:
 	  (cons ?r (or (and rate (number-to-string rate)) "N/A"))
 	  (cons ?B (or charging-state "N/A"))
 	  (cons ?b (or (and (string= charging-state "charging") "+")
-		       (and warn (< capacity warn) "-")
 		       (and low (< capacity low) "!")
+		       (and warn (< capacity warn) "-")
 		       ""))
 	  (cons ?h (or (and hours (number-to-string hours)) "N/A"))
 	  (cons ?m (or (and minutes (number-to-string minutes)) "N/A"))
