@@ -3288,22 +3288,44 @@ Lisp_Object Qfind_buffer_file_type;
 #define READ_BUF_SIZE (64 << 10)
 #endif
 
-/* This function is called when a function bound to
-   Vset_auto_coding_function causes some error.  At that time, a text
-   of a file has already been inserted in the current buffer, but,
-   markers has not yet been adjusted.  Thus we must adjust markers
-   here.  We are sure that the buffer was empty before the text of the
-   file was inserted.  */
+extern void adjust_markers_for_delete P_ ((int, int, int, int));
+
+/* This function is called after Lisp functions to decide a coding
+   system are called, or when they cause an error.  Before they are
+   called, the current buffer is set unibyte and it contains only a
+   newly inserted text (thus the buffer was empty before the
+   insertion).
+
+   The functions may set markers, overlays, text properties, or even
+   alter the buffer contents, change the current buffer.
+
+   Here, we reset all those changes by:
+	o set back the current buffer.
+	o move all markers and overlays to BEG.
+	o remove all text properties.
+	o set back the buffer multibyteness.  */
 
 static Lisp_Object
-set_auto_coding_unwind (multibyte)
-     Lisp_Object multibyte;
+decide_coding_unwind (unwind_data)
+     Lisp_Object unwind_data;
 {
-  int inserted = Z_BYTE - BEG_BYTE;
+  Lisp_Object multibyte, undo_list, buffer;
 
-  if (!NILP (multibyte))
-    inserted = multibyte_chars_in_text (GPT_ADDR - inserted, inserted);
-  adjust_after_insert (PT, PT_BYTE, Z, Z_BYTE, inserted);
+  multibyte = XCAR (unwind_data);
+  unwind_data = XCDR (unwind_data);
+  undo_list = XCAR (unwind_data);
+  buffer = XCDR (unwind_data);
+
+  if (current_buffer != XBUFFER (buffer))
+    set_buffer_internal (XBUFFER (buffer));
+  adjust_markers_for_delete (BEG, BEG_BYTE, Z, Z_BYTE);
+  adjust_overlays_for_delete (BEG, Z - BEG);
+  BUF_INTERVALS (current_buffer) = 0;
+  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
+
+  /* Now we are safe to change the buffer's multibyteness directly.  */
+  current_buffer->enable_multibyte_characters = multibyte;
+  current_buffer->undo_list = undo_list;
 
   return Qnil;
 }
@@ -4061,27 +4083,26 @@ actually used.")
 	val = Vcoding_system_for_read;
       else
 	{
-	  if (inserted > 0 && ! NILP (Vset_auto_coding_function))
-	    {
-	      /* Since we are sure that the current buffer was
-		 empty before the insertion, we can toggle
-		 enable-multibyte-characters directly here without
-		 taking care of marker adjustment and byte
-		 combining problem.  */
-	      Lisp_Object prev_multibyte;
+	  /* Since we are sure that the current buffer was empty
+	     before the insertion, we can toggle
+	     enable-multibyte-characters directly here without taking
+	     care of marker adjustment and byte combining problem.  By
+	     this way, we can run Lisp program safely before decoding
+	     the inserted text.  */
+	  Lisp_Object unwind_data;
 	      int count = specpdl_ptr - specpdl;
 
-	      prev_multibyte = current_buffer->enable_multibyte_characters;
+	  unwind_data = Fcons (current_buffer->enable_multibyte_characters,
+			       Fcons (current_buffer->undo_list,
+				      Fcurrent_buffer ()));
 	      current_buffer->enable_multibyte_characters = Qnil;
-	      record_unwind_protect (set_auto_coding_unwind,
-				     prev_multibyte);
+	  current_buffer->undo_list = Qt;
+	  record_unwind_protect (decide_coding_unwind, unwind_data);
+
+	  if (inserted > 0 && ! NILP (Vset_auto_coding_function))
+	    {
 	      val = call2 (Vset_auto_coding_function,
 			   filename, make_number (inserted));
-	      /* Discard the unwind protect for recovering the
-		 error of Vset_auto_coding_function.  */
-	      specpdl_ptr--;
-	      current_buffer->enable_multibyte_characters = prev_multibyte;
-	      TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
 	    }
 
 	  if (NILP (val))
@@ -4096,6 +4117,9 @@ actually used.")
 	      if (CONSP (coding_systems))
 		val = XCAR (coding_systems);
 	    }
+
+	  unbind_to (count, Qnil);
+	  inserted = Z_BYTE - BEG_BYTE;
 	}
 
       /* The following kludgy code is to avoid some compiler bug.
