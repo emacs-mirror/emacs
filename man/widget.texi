@@ -1650,18 +1650,18 @@ programmers who want to examine the content of a widget.  The browser
 shows the value of each keyword, but uses links for certain keywords
 such as @samp{:parent}, which avoids printing cyclic structures.
 
-@deffn Command widget-browse WIDGET
-Create a widget browser for WIDGET.
-When called interactively, prompt for WIDGET.
+@deffn Command widget-browse @var{widget}
+Create a widget browser for @var{widget}.
+When called interactively, prompt for @var{widget}.
 @end deffn
 
-@deffn Command widget-browse-other-window WIDGET
-Create a widget browser for WIDGET and show it in another window.
-When called interactively, prompt for WIDGET.
+@deffn Command widget-browse-other-window @var{widget}
+Create a widget browser for @var{widget} and show it in another window.
+When called interactively, prompt for @var{widget}.
 @end deffn
 
-@deffn Command widget-browse-at POS
-Create a widget browser for the widget at POS.
+@deffn Command widget-browse-at @var{pos}
+Create a widget browser for the widget at @var{pos}.
 When called interactively, use the position of point.
 @end deffn
 
