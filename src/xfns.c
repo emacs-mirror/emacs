@@ -9404,7 +9404,7 @@ DEFUN ("x-show-busy-cursor", Fx_show_busy_cursor,
        Sx_show_busy_cursor, 0, 0, 0,
   "Show a busy cursor, if not already shown.\n\
 Each call to this function must be matched by a call to\n\
-x-undisplay-busy-cursor to make the busy pointer disappear again.")
+`x-hide-busy-cursor' to make the busy pointer disappear again.")
   ()
 {
   ++busy_count;
@@ -9426,11 +9426,13 @@ x-undisplay-busy-cursor to make the busy pointer disappear again.")
 		XSetWindowAttributes attrs;
 
 		attrs.cursor = f->output_data.x->busy_cursor;
+		
 		f->output_data.x->busy_window
 		  = XCreateWindow (FRAME_X_DISPLAY (f),
 				   FRAME_OUTER_WINDOW (f),
 				   0, 0, 32000, 32000, 0, 0,
-				   InputOnly, CopyFromParent,
+				   InputOnly,
+				   CopyFromParent,
 				   mask, &attrs);
 	      }
 
@@ -9447,8 +9449,8 @@ DEFUN ("x-hide-busy-cursor", Fx_hide_busy_cursor,
        Sx_hide_busy_cursor, 0, 1, 0,
   "Hide a busy-cursor.\n\
 A busy-cursor will actually be undisplayed when a matching\n\
-`x-undisplay-busy-cursor' is called for each `x-display-busy-cursor'\n\
-issued.  FORCE non-nil means undisplay the busy-cursor forcibly,\n\
+`x-hide-busy-cursor' is called for each `x-show-busy-cursor'\n\
+issued.  FORCE non-nil means hide the busy-cursor forcibly,\n\
 not counting calls.")
   (force)
      Lisp_Object force;
