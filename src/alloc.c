@@ -4427,6 +4427,12 @@ mark_image_cache (f)
 Lisp_Object *last_marked[LAST_MARKED_SIZE];
 int last_marked_index;
 
+/* For debugging--call abort when we cdr down this many
+   links of a list, in mark_object.  In debugging,
+   the call to abort will hit a breakpoint.
+   Normally this is zero and the check never goes off.  */
+int mark_object_loop_halt;
+
 void
 mark_object (argptr)
      Lisp_Object *argptr;
@@ -4437,6 +4443,7 @@ mark_object (argptr)
   void *po;
   struct mem_node *m;
 #endif
+  int cdr_count = 0;
 
  loop:
   obj = *objptr;
@@ -4790,10 +4797,14 @@ mark_object (argptr)
 	if (EQ (ptr->cdr, Qnil))
 	  {
 	    objptr = &ptr->car;
+	    cdr_count = 0;
 	    goto loop;
 	  }
 	mark_object (&ptr->car);
 	objptr = &ptr->cdr;
+	cdr_count++;
+	if (cdr_count == mark_object_loop_halt)
+	  abort ();
 	goto loop;
       }
 
