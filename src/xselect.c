@@ -1646,6 +1646,10 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	  coding.dst_multibyte = 1;
 	  Vnext_selection_coding_system = Qnil;
           coding.mode |= CODING_MODE_LAST_BLOCK;
+	  /* We explicitely disable composition handling because
+	     selection data should not contain any composition
+	     sequence.  */
+	  coding.composing = COMPOSITION_DISABLED;
 	  bufsize = decoding_buffer_size (&coding, size);
 	  buf = (unsigned char *) xmalloc (bufsize);
 	  decode_coding (&coding, data, buf, size, bufsize);
