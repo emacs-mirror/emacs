@@ -82,7 +82,7 @@ Turning on Text mode runs the normal hook `text-mode-hook'."
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'indent-relative-maybe))
 
-(defun paragraph-indent-text-mode ()
+(define-derived-mode paragraph-indent-text-mode text-mode "Parindent"
   "Major mode for editing text, with leading spaces starting a paragraph.
 In this mode, you do not need blank lines between paragraphs
 when the first line of the following paragraph starts with whitespace.
@@ -91,13 +91,7 @@ Special commands:
 \\{text-mode-map}
 Turning on Paragraph-Indent Text mode runs the normal hooks
 `text-mode-hook' and `paragraph-indent-text-mode-hook'."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map text-mode-map)
-  (setq mode-name "Parindent")
-  (setq major-mode 'paragraph-indent-text-mode)
-  (setq local-abbrev-table text-mode-abbrev-table)
-  (set-syntax-table text-mode-syntax-table)
+  (paragraph-indent-minor-mode)
   (run-hooks 'text-mode-hook 'paragraph-indent-text-mode-hook))
 
 (defun paragraph-indent-minor-mode ()
@@ -109,8 +103,8 @@ Turning on Paragraph-Indent minor mode runs the normal hook
 `paragraph-indent-text-mode-hook'."
   (interactive)
   (set (make-local-variable 'paragraph-start)
-       (default-value 'paragraph-start))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
+       (concat "[ \t\n\f]\\|" paragraph-start))
+  (set (make-local-variable 'indent-line-function) 'indent-to-left-margin)
   (run-hooks 'paragraph-indent-text-mode-hook))
       
 (defalias 'indented-text-mode 'text-mode)
