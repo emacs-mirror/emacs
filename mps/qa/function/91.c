@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!91.c(trunk.3) $
  summary = EPVM time allocations
  language = c
  link = testlib.o epvmfmt.o
@@ -18,7 +18,9 @@ END_HEADER
 
 void *stackpointer;
 
-static void timealloc(mps_pool_t pool, mps_ap_t ap, size_t size, int num, int step) {
+
+static void timealloc(mps_pool_t pool, mps_ap_t ap, size_t size,
+                      int num, int step) {
  int i, j;
  clock_t t0, t1;
  int secs;
@@ -36,7 +38,8 @@ static void timealloc(mps_pool_t pool, mps_ap_t ap, size_t size, int num, int st
  }
  mps_epvm_restore(pool, 0);
 
-};
+}
+
 
 static void test(void)
 {
@@ -74,8 +77,8 @@ static void test(void)
  mps_thread_dereg(thread);
  mps_arena_destroy(arena);
  comment("Destroyed arena");
-
 }
+
 
 int main(void) {
  void *m;
@@ -85,6 +88,3 @@ int main(void) {
  pass();
  return 0;
 }
-
-
-
