@@ -244,11 +244,14 @@ savings time according to `calendar-daylight-savings-starts' and
 			calendar-daylight-time-zone-name
 			calendar-standard-time-zone-name))
 	 (24-hours (truncate time))
+	 (minutes (round (* 60 (- time 24-hours))))
+         (24-hours (if (= minutes 60) (1+ 24-hours) 24-hours))
+         (minutes (if (= minutes 60) 0 minutes))
+         (minutes (format "%02d" minutes))
 	 (12-hours (format "%d" (if (> 24-hours 12)
 				    (- 24-hours 12)
 				  (if (= 24-hours 0) 12 24-hours))))
 	 (am-pm (if (>= 24-hours 12) "pm" "am"))
-	 (minutes (format "%02d" (round (* 60 (- time 24-hours)))))
 	 (24-hours (format "%02d" 24-hours)))
     (mapconcat 'eval calendar-time-display-form "")))
 
