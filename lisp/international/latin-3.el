@@ -33,7 +33,7 @@
 
 (let ((downcase (standard-case-table))
       (set-case-syntax-offset
-       (if enable-multibyte-characters
+       (if set-case-syntax-set-multibyte
 	   (- (make-char 'latin-iso8859-3) 128)
 	 0)))
   (set-case-syntax 160 " " downcase)	; NBSP (no-break space)
@@ -99,7 +99,10 @@
   (set-case-syntax 255 "w" downcase)	; dot accent
 )
 
-(provide 'latin-3.el)
+;; When preloading this file, don't provide the feature.
+;; Explicit `require' is used to load this for 8-bit characters.
+(or set-case-syntax-set-multibyte
+    (provide 'latin-3.el))
 
 ;;; latin-3.el ends here
 

@@ -3,7 +3,9 @@
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 
 ;; Author: Michael Gschwind (mike@vlsivie.tuwien.ac.at)
+;; Maintainer: FSF
 ;; Keywords: i18n
+;; Was formerly named iso02-syn.el.
 
 ;; This file is part of GNU Emacs.
 
@@ -32,7 +34,7 @@
 
 (let ((downcase (standard-case-table))
       (set-case-syntax-offset
-       (if enable-multibyte-characters
+       (if set-case-syntax-set-multibyte
 	   (- (make-char 'latin-iso8859-2) 128)
 	 0)))
   (set-case-syntax 160 " " downcase)	  ; NBSP (no-break space)
@@ -93,6 +95,9 @@
   (set-case-syntax 255 "w" downcase)	; dot accent
 )
 
-(provide 'latin-2)
+;; When preloading this file, don't provide the feature.
+;; Explicit `require' is used to load this for 8-bit characters.
+(or set-case-syntax-set-multibyte
+    (provide 'latin-2))
 
 ;;; latin-2.el ends here

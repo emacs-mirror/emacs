@@ -1,4 +1,4 @@
-;;; latin-4.el --- support for ISO Latin 4 (ISO 8859-4)
+;;; latin-4.el --- define syntax and case conversion for Latin 4 (ISO 8859-4).
 
 ;; Copyright (C) 1988,1997 Free Software Foundation, Inc.
 
@@ -33,7 +33,7 @@
 
 (let ((tbl (standard-case-table))
       (set-case-syntax-offset
-       (if enable-multibyte-characters
+       (if set-case-syntax-set-multibyte
 	   (- (make-char 'latin-iso8859-4) 128)
 	 0)))
   (set-case-syntax 160 "w" tbl)		;NO-BREAK SPACE
@@ -93,6 +93,9 @@
   (set-case-syntax 247 "_" tbl)		;DIVISION SIGN
   (set-case-syntax 255 "w" tbl))	;DOT ABOVE
 
-(provide 'latin-4)
+;; When preloading this file, don't provide the feature.
+;; Explicit `require' is used to load this for 8-bit characters.
+(or set-case-syntax-set-multibyte
+    (provide 'latin-4))
 
 ;;; latin-4.el ends here
