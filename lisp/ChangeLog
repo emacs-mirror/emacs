@@ -1,3 +1,27 @@
+2003-11-01  Alan Mackenzie  <acm@muc.de>
+
+	Changes to allow scrolling whilst in isearch mode:
+	* isearch.el (isearch-unread-key-sequence): New function,
+	extracted from isearch-other-meta-char.
+	(top level): (put 'foo 'isearch-scroll) on all Emacs's
+	"scrollable" standard functions.
+	(isearch-allow-scroll): New customizable variable.
+	(isearch-string-out-of-window, isearch-back-into-window)
+	(isearch-reread-key-sequence-naturally)
+	(isearch-lookup-scroll-key): New functions.
+	(isearch-other-meta-char): Doc string and functionality enhanced.
+	Now accepts a prefix argument.
+	(isearch-lazy-highlight-window-end): New variable.
+	(isearch-lazy-highlight-new-loop): Pay attention to the window's
+	end (thru isearch-lazy-highlight-window-end), not only its start.
+
+	* simple.el (overriding-map-is-bound, saved-overriding-map): New
+	variables.
+	(ensure-overriding-map-is-bound, restore-overriding-map): New
+	functions.
+	(universal-argument, universal-argument-more, negative-argument)
+	(digit-argument, universal-argument-other-key): Minor changes.
+
 2003-11-01  Alexander Pohoyda  <alexander.pohoyda@gmx.net>  (tiny change)
 
 	* mail/rmailsum.el (rmail-summary-goto-msg): Don't call itself
