@@ -313,7 +313,7 @@ struct composition_data
   struct composition_data *prev, *next;
 };
 
-/* Macros used for the member finish_status of the struct
+/* Macros used for the member `result' of the struct
    coding_system.  */
 #define CODING_FINISH_NORMAL		0
 #define CODING_FINISH_INSUFFICIENT_SRC	1
@@ -621,9 +621,6 @@ extern int decoding_buffer_size P_ ((struct coding_system *, int));
 extern int encoding_buffer_size P_ ((struct coding_system *, int));
 extern void detect_coding P_ ((struct coding_system *, unsigned char *, int));
 extern void detect_eol P_ ((struct coding_system *, unsigned char *, int));
-extern int conversion_buffer_size;
-extern char *conversion_buffer;
-extern char *get_conversion_buffer P_ ((int));
 extern int setup_coding_system P_ ((Lisp_Object, struct coding_system *));
 extern Lisp_Object code_convert_string P_ ((Lisp_Object,
 					    struct coding_system *, int, int));
