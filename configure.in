@@ -2,7 +2,7 @@ dnl This is an autoconf script.
 dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
-AC_PREREQ(1.110)dnl
+AC_PREREQ(1.111)dnl
 AC_INIT(src/lisp.h)
 AC_CONFIG_HEADER(src/config.h)
 
@@ -20,10 +20,6 @@ lockdir='${statedir}/emacs/lock'
 archlibdir='${libdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
 
-AC_ARG_WITH(x10,
-[  --with-x10              Support the X Window System version 10])
-AC_ARG_WITH(x,
-[  --with-x                Support the X Window System version 11])
 AC_ARG_WITH(x-toolkit,
 [  --with-x-toolkit=KIT    Use an X toolkit (KIT = lucid or athena)],
 [	  case "${withval}" in
@@ -837,18 +833,12 @@ dnl other checks for UNIX variants
 
 #### Choose a window system.
 
-case "${with_x10}" in
-  yes ) window_system=x10 ;;
-  no ) window_system=none ;;
-  *) 
-    AC_FIND_X
-    if test "$no_x" = yes; then
-      window_system=none
-    else
-      window_system=x11
-    fi
-  ;;
-esac
+AC_FIND_X
+if test "$no_x" = yes; then
+  window_system=none
+else
+  window_system=x11
+fi
 
 test "${x_libraries}" != NONE && LD_SWITCH_X_SITE="-L${x_libraries}"
 test "${x_libraries}" != NONE && LD_SWITCH_X_SITE_AUX="-R${x_libraries}"
@@ -864,11 +854,6 @@ dnl      motif ) USE_X_TOOLKIT=MOTIF ;;
 dnl      open-look ) USE_X_TOOLKIT=OPEN_LOOK ;;	
       * ) USE_X_TOOLKIT=none ;;
     esac
-  ;;
-  x10 )
-    HAVE_X_WINDOWS=yes
-    HAVE_X11=no
-    USE_X_TOOLKIT=none
   ;;
   none )
     HAVE_X_WINDOWS=no
