@@ -335,6 +335,13 @@ Defaults to the value of `browse-url-galeon-arguments' at the time
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
+(defcustom browse-url-mozilla-new-window-is-tab nil
+  "*Whether to open up new windows in a tab or a new window.
+If non-nil, then open the URL in a new tab rather than a new window if
+`browse-url-mozilla' is asked to open it in a new window."
+  :type 'boolean
+  :group 'browse-url)
+
 (defcustom browse-url-galeon-new-window-is-tab nil
   "*Whether to open up new windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
@@ -853,6 +860,10 @@ non-nil, load the document in a new Mozilla window, otherwise use a
 random existing one.  A non-nil interactive prefix argument reverses
 the effect of `browse-url-new-window-flag'.
 
+If `browse-url-mozilla-new-window-is-tab' is non-nil, then whenever a
+document would otherwise be loaded in a new window, it is loaded in a
+new tab in an existing window instead.
+
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
@@ -862,16 +873,21 @@ used instead of `browse-url-new-window-flag'."
     (setq url (replace-match
 	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
   (let* ((process-environment (browse-url-process-environment))
-         (process (apply 'start-process
-			 (concat "mozilla " url) nil
-			 browse-url-mozilla-program
-			 (append
-			  browse-url-mozilla-arguments
-			  (list "-remote"
-				(concat "openURL("
-					url
-					(if new-window ",new-window")
-					")"))))))
+         (process
+	  (apply 'start-process
+		 (concat "mozilla " url) nil
+		 browse-url-mozilla-program
+		 (append
+		  browse-url-mozilla-arguments
+		  (list "-remote"
+			(concat "openURL("
+				url
+				(if (browse-url-maybe-new-window
+				     new-window)
+				    (if browse-url-mozilla-new-window-is-tab
+					",new-tab")
+				  ",new-window")
+				")"))))))
     (set-process-sentinel process
 			  `(lambda (process change)
 			     (browse-url-mozilla-sentinel process ,url)))))
