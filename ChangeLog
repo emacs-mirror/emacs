@@ -1,3 +1,9 @@
+2002-02-26  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in <making srcdir absolute>: Verify that PWD is correct,
+	not just well-formed and valid.
+	(mips-compaq-nonstopux*): New configuration.
+	
 2002-02-18  Paul Eggert  <eggert@twinsun.com>
 
 	* make-dist: Port to POSIX 1003.1-2001, which doesn't allow "head -1".
