@@ -1,3 +1,15 @@
+2000-12-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_free_gcs): New function.
+
+	* xterm.h (x_free_gcs): Add prototype.
+
+	* widget.c (EmacsFrameDestroy): Call x_free_gcs instead of
+	freeing GCs here.
+
+	* xterm.c (x_destroy_window): Call x_free_gcs so that
+	resources of non-toolkit X windows will be freed.
+
 2000-12-07  Andrew Innes  <andrewi@gnu.org>
 
 	* w32fns.c (xlfd_charset_of_font): Fix last change.
