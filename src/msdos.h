@@ -80,6 +80,9 @@ struct display_info
 
   /* Nonzero means defer mouse-motion highlighting.  */
   int mouse_face_defer;
+
+  /* Nonzero means that the mouse highlight should not be shown.  */
+  int mouse_face_hidden;
 };
 
 /* This is a cut-down version of the one in xterm.h, which see.  */
