@@ -1287,6 +1287,31 @@ Otherwise just like (insert STRINGS...)."
 	  (set-text-properties opoint (point) nil)
 	(remove-list-of-text-properties opoint (point)
 					yank-excluded-properties)))))
+
+(defun insert-buffer-substring-no-properties (buf &optional start end)
+  "Insert before point a substring of buffer BUFFER, without text properties.
+BUFFER may be a buffer or a buffer name.
+Arguments START and END are character numbers specifying the substring.
+They default to the beginning and the end of BUFFER."
+  (let ((opoint (point)))
+    (insert-buffer-substring buf start end)
+    (let ((inhibit-read-only t))
+      (set-text-properties opoint (point) nil))))
+
+(defun insert-buffer-substring-as-yank (buf &optional start end)
+  "Insert before point a part of buffer BUFFER, stripping some text properties.
+BUFFER may be a buffer or a buffer name.  Arguments START and END are
+character numbers specifying the substring.  They default to the
+beginning and the end of BUFFER.  Strip text properties from the
+inserted text according to `yank-excluded-properties'."
+  (let ((opoint (point)))
+    (insert-buffer-substring buf start end)
+    (let ((inhibit-read-only t))
+      (if (eq yank-excluded-properties t)
+	  (set-text-properties opoint (point) nil)
+	(remove-list-of-text-properties opoint (point)
+					yank-excluded-properties)))))
+
 
 ;; Synchronous shell commands.
 
