@@ -238,7 +238,7 @@ echo "Making links to \`src'."
  ln [a-zA-Z]*.s ../${tempdir}/src
  ln README Makefile.in.in ChangeLog ChangeLog.? config.h.in paths.h.in \
     ../${tempdir}/src
- ld makefile.nt ../${tempdir}/src
+ ln makefile.nt ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
  ln *.opt vms-pp.trans ../${tempdir}/src
  cd ../${tempdir}/src
