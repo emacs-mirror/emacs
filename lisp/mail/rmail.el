@@ -1644,40 +1644,44 @@ use \\[mail-yank-original] to yank the original message into it."
          (let ((mail-use-rfc822 t))
            (rmail-make-in-reply-to-field from date message-id)))))
 
-(defun rmail-forward ()
-  "Forward the current message to another user."
-  (interactive)
-  (let ((forward-buffer (current-buffer))
-	(subject (concat "["
-			 (let ((from (or (mail-fetch-field "From")
-					 (mail-fetch-field ">From"))))
-			   (if from
-			       (concat (mail-strip-quoted-names from) ": ")
-			     ""))
-			 (or (mail-fetch-field "Subject") "")
-			 "]")))
-    ;; Turn off the usual actions for initializing the message body
-    ;; because we want to get only the text from the failure message.
-    (let (mail-signature mail-setup-hook)
-      ;; If only one window, use it for the mail buffer.
-      ;; Otherwise, use another window for the mail buffer
-      ;; so that the Rmail buffer remains visible
-      ;; and sending the mail will get back to it.
-      (if (funcall (if (one-window-p t)
-		       (function mail)
-		     (function mail-other-window))
-		   nil nil subject nil nil nil
-		   (list (list (function (lambda (buf msgnum)
-				 (save-excursion
-				   (set-buffer buf)
-				   (rmail-set-attribute
-				     "forwarded" t msgnum))))
-			       (current-buffer)
-			       rmail-current-message)))
-	  (save-excursion
-	    (goto-char (point-max))
-	    (forward-line 1)
-	    (insert-buffer forward-buffer))))))
+(defun rmail-forward (resend)
+  "Forward the current message to another user.
+With prefix argument, \"resend\" the message instead of forwarding it;
+see the documentation of `rmail-resend'."
+  (interactive "P")
+  (if resend
+      (call-interactively 'rmail-resend)
+    (let ((forward-buffer (current-buffer))
+	  (subject (concat "["
+			   (let ((from (or (mail-fetch-field "From")
+					   (mail-fetch-field ">From"))))
+			     (if from
+				 (concat (mail-strip-quoted-names from) ": ")
+			       ""))
+			   (or (mail-fetch-field "Subject") "")
+			   "]")))
+      ;; Turn off the usual actions for initializing the message body
+      ;; because we want to get only the text from the failure message.
+      (let (mail-signature mail-setup-hook)
+	;; If only one window, use it for the mail buffer.
+	;; Otherwise, use another window for the mail buffer
+	;; so that the Rmail buffer remains visible
+	;; and sending the mail will get back to it.
+	(if (funcall (if (one-window-p t)
+			 (function mail)
+		       (function mail-other-window))
+		     nil nil subject nil nil nil
+		     (list (list (function (lambda (buf msgnum)
+				   (save-excursion
+				     (set-buffer buf)
+				     (rmail-set-attribute
+				       "forwarded" t msgnum))))
+				 (current-buffer)
+				 rmail-current-message)))
+	    (save-excursion
+	      (goto-char (point-max))
+	      (forward-line 1)
+	      (insert-buffer forward-buffer)))))))
 
 (defun rmail-resend (address &optional from comment mail-alias-file)
   "Resend current message to ADDRESSES.
@@ -1727,7 +1731,8 @@ typically for purposes of moderating a list."
 	  ;; of the original message.
 	  (let (mail-aliases)
 	    (sendmail-send-it)))
-      (kill-buffer tembuf))))
+      (kill-buffer tembuf))
+    (rmail-set-attribute "resent" t rmail-current-message)))
 
 (defvar mail-unsent-separator
   (concat "^ *---+ +Unsent message follows +---+ *$\\|"
