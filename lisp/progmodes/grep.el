@@ -194,6 +194,8 @@ The following place holders should be present in the string:
   "Keymap for grep buffers.
 `compilation-minor-mode-map' is a cdr of this.")
 
+(defalias 'kill-grep 'kill-compilation)
+
 ;;;; TODO --- refine this!!
 
 ;;; (defcustom grep-use-compilation-buffer t
@@ -213,11 +215,38 @@ or when it is used with \\[grep-next-match].
 Notice that using \\[next-error] or \\[compile-goto-error] modifies
 `complation-last-buffer' rather than `grep-last-buffer'.")
 
-;; Note: the character class after the optional drive letter does not
-;; include a space to support file names with blanks.
 (defvar grep-regexp-alist
-  '(("\\([a-zA-Z]?:?.+?\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
+  '(("^\\(.+?\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2)
+    ("^Binary file \\(.+\\) matches$" 1 nil nil 1))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
+
+(defvar grep-error "grep hit"
+  "Message to print when no matches are found.")
+
+;; Reverse the colors because grep hits are not errors (though we jump there
+;; with `next-error'), and unreadable files can't be gone to.
+(defvar grep-hit-face	compilation-info-face
+  "Face name to use for grep hits.")
+
+(defvar grep-error-face	compilation-error-face
+  "Face name to use for grep error messages.")
+
+(defvar grep-mode-font-lock-keywords
+   '(;; Command output lines.
+     ("^\\([A-Za-z_0-9/\.+-]+\\)[ \t]*:" 1 font-lock-function-name-face)
+     (": \\(.+\\): \\(?:Permission denied\\|No such \\(?:file or directory\\|device or address\\)\\)$"
+      1 grep-error-face)
+     ;; remove match from grep-regexp-alist before fontifying
+     ("^Grep finished \\(?:(\\(matches found\\))\\|with \\(no matches found\\)\\).*"
+      (0 '(face nil message nil help-echo nil mouse-face nil) t)
+      (1 grep-hit-face nil t)
+      (2 grep-error-face nil t))
+     ("^Grep \\(exited abnormally\\) with code \\([0-9]+\\).*"
+      (0 '(face nil message nil help-echo nil mouse-face nil) t)
+      (1 compilation-warning-face)
+      (2 compilation-line-face)))
+   "Additional things to highlight in grep output.
+This gets tacked on the end of the generated expressions.")
 
 (defvar grep-program
   ;; Currently zgrep has trouble.  It runs egrep instead of grep,
@@ -251,9 +280,7 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 
 (defun grep-process-setup ()
   "Setup compilation variables and buffer for `grep'.
-Set up `compilation-exit-message-function' and `compilation-window-height'.
-Sets `grep-last-buffer' and runs `grep-setup-hook'."
-  (setq grep-last-buffer (current-buffer))
+Set up `compilation-exit-message-function' and run `grep-setup-hook'."
   (set (make-local-variable 'compilation-exit-message-function)
        (lambda (status code msg)
 	 (if (eq status 'exit)
@@ -264,13 +291,6 @@ Sets `grep-last-buffer' and runs `grep-setup-hook'."
 		   (t
 		    (cons msg code)))
 	   (cons msg code))))
-  (if grep-window-height
-      (set (make-local-variable 'compilation-window-height)
-	   grep-window-height))
-  (set (make-local-variable 'compile-auto-highlight)
-       grep-auto-highlight)
-  (set (make-local-variable 'compilation-scroll-output)
-       grep-scroll-output)
   (run-hooks 'grep-setup-hook))
 
 (defun grep-compute-defaults ()
@@ -402,15 +422,20 @@ temporarily highlight in visited source lines."
 
   ;; Setting process-setup-function makes exit-message-function work
   ;; even when async processes aren't supported.
-  (let* ((compilation-process-setup-function 'grep-process-setup)
-	 (buf (compile-internal (if (and grep-use-null-device null-device)
-				    (concat command-args " " null-device)
-				  command-args)
-				"No more grep hits" "grep"
-				;; Give it a simpler regexp to match.
-				nil grep-regexp-alist
-				nil nil nil nil nil nil
-				highlight-regexp grep-mode-map)))))
+  (let ((compilation-process-setup-function 'grep-process-setup))
+    (compilation-start (if (and grep-use-null-device null-device)
+			   (concat command-args " " null-device)
+			 command-args)
+		       'grep-mode nil highlight-regexp)))
+
+;;;###autoload (autoload 'grep-mode "grep" nil t)
+(define-compilation-mode grep-mode "Grep"
+  "Sets `grep-last-buffer' and `compilation-window-height'."
+  (setq grep-last-buffer (current-buffer))
+  (set (make-local-variable 'compilation-error-face)
+       grep-hit-face)
+  (set (make-local-variable 'compilation-error-regexp-alist)
+       grep-regexp-alist))
 
 ;; This is a copy of find-tag-default from etags.el.
 (defun grep-tag-default ()
