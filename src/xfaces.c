@@ -5466,6 +5466,21 @@ lookup_derived_face (f, symbol, c, face_id)
   return lookup_face (f, attrs, c, default_face);
 }
 
+DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
+       Sface_attributes_as_vector, 1, 1, 0,
+       doc: /* Return a vector of face attributes corresponding to PLIST. */)
+     (plist)
+     Lisp_Object plist;
+{
+  Lisp_Object lface;
+  lface = Fmake_vector (make_number (LFACE_VECTOR_SIZE),
+			Qunspecified);
+  merge_face_vector_with_property (XFRAME (selected_frame),
+				   XVECTOR (lface)->contents,
+				   plist);
+  return lface;
+}
+
 
 
 /***********************************************************************
@@ -6714,7 +6729,6 @@ compute_char_face (f, ch, prop)
   return face_id;
 }
 
-
 /* Return the face ID associated with buffer position POS for
    displaying ASCII characters.  Return in *ENDPTR the position at
    which a different face is needed, as far as text properties and
@@ -7202,6 +7216,7 @@ syms_of_xfaces ()
   defsubr (&Sinternal_set_font_selection_order);
   defsubr (&Sinternal_set_alternative_font_family_alist);
   defsubr (&Sinternal_set_alternative_font_registry_alist);
+  defsubr (&Sface_attributes_as_vector);
 #if GLYPH_DEBUG
   defsubr (&Sdump_face);
   defsubr (&Sshow_face_resources);
