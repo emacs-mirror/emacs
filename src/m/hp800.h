@@ -174,10 +174,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 /* Define the BSTRING functions in terms of the sysV functions. */
+/* On HPUX 8.05, including types.h can include strings.h
+   which defines these as macros.  Hence the #ifndefs.  */
 
+#ifndef HAVE_BCOPY
 #define bcopy(a,b,s)	memcpy (b,a,s)
 #define bzero(a,s)	memset (a,0,s)
 #define bcmp		memcmp
+#endif
 
 /* On USG systems these have different names. */
 
