@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.12
+;; Version:    5.13
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -28,21 +28,27 @@
 ;; Boston, MA 02111-1307, USA.
 
 
-;; WARNING: Be *exceptionally* careful about modifications to this
-;; function!  Much of CC Mode depends on this Doing The Right Thing.
-;; If you break it you will be sorry.
+;; KLUDGE ALERT: c-maybe-labelp is used to pass information between
+;; c-crosses-statement-barrier-p and c-beginning-of-statement-1.  A
+;; better way should be implemented, but this will at least shut up
+;; the byte compiler.
+(defvar c-maybe-labelp nil)
+
+;; WARNING WARNING WARNING
+;;
+;; Be *exceptionally* careful about modifications to this function!
+;; Much of CC Mode depends on this Doing The Right Thing.  If you
+;; break it you will be sorry.  If you think you know how this works,
+;; you probably don't.  No human on Earth does! :-)
+;;
+;; WARNING WARNING WARNING
 
 (defun c-beginning-of-statement-1 (&optional lim)
   ;; move to the start of the current statement, or the previous
   ;; statement if already at the beginning of one.
   (let ((firstp t)
 	(substmt-p t)
-	donep c-in-literal-cache
-	;; KLUDGE ALERT: maybe-labelp is used to pass information
-	;; between c-crosses-statement-barrier-p and
-	;; c-beginning-of-statement-1.  A better way should be
-	;; implemented.
-	maybe-labelp saved
+	donep c-in-literal-cache saved
 	(last-begin (point)))
     ;; first check for bare semicolon
     (if (and (progn (c-backward-syntactic-ws lim)
@@ -76,7 +82,7 @@
 		(setq last-begin (point)
 		      donep t)))
 
-	  (setq maybe-labelp nil)
+	  (setq c-maybe-labelp nil)
 	  ;; see if we're in a literal. if not, then this bufpos may be
 	  ;; a candidate for stopping
 	  (cond
@@ -138,7 +144,7 @@
 	   ((c-crosses-statement-barrier-p (point) last-begin)
 	    (setq donep t))
 	   ;; CASE 7: ignore labels
-	   ((and maybe-labelp
+	   ((and c-maybe-labelp
 		 (or (and c-access-key (looking-at c-access-key))
 		     ;; with switch labels, we have to go back further
 		     ;; to try to pick up the case or default
@@ -201,7 +207,7 @@
 		  (if (memq (char-after) '(?\; ?{ ?}))
 		      (setq crossedp t)
 		    (if (eq (char-after) ?:)
-			(setq maybe-labelp t))
+			(setq c-maybe-labelp t))
 		    (forward-char 1))
 		  (setq lim (point)))
 	      (forward-char 1))))
