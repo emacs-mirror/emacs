@@ -329,15 +329,23 @@ int
 unibyte_char_to_multibyte (c)
      int c;
 {
-  if (c >= 0240 && c < 0400)
+  if (c < 0400)
     {
       int c_save = c;
 
       if (! NILP (Vnonascii_translation_table))
-	c = XINT (Faref (Vnonascii_translation_table, make_number (c)));
-      else if (nonascii_insert_offset > 0)
-	c += nonascii_insert_offset;
-      if (c >= 0240 && (c < 0400 || ! VALID_MULTIBYTE_CHAR_P (c)))
+	{
+	  c = XINT (Faref (Vnonascii_translation_table, make_number (c)));
+	  if (c >= 0400 && ! VALID_MULTIBYTE_CHAR_P (c))
+	    c = c_save + DEFAULT_NONASCII_INSERT_OFFSET;
+	}
+      else if (c >= 0240 && nonascii_insert_offset > 0)
+	{
+	  c += nonascii_insert_offset;
+	  if (c < 0400 || ! VALID_MULTIBYTE_CHAR_P (c))
+	    c = c_save + DEFAULT_NONASCII_INSERT_OFFSET;
+	}
+      else if (c >= 0240)
 	c = c_save + DEFAULT_NONASCII_INSERT_OFFSET;
     }
   return c;
@@ -369,11 +377,16 @@ multibyte_char_to_unibyte (c, rev_tbl)
 	  temp = Faref (rev_tbl, make_number (c));
 	  if (INTEGERP (temp))
 	    c = XINT (temp);
+	  if (c >= 256)
+	    c = (c_save & 0177) + 0200;
 	}
-      else if (nonascii_insert_offset > 0)
-	c -= nonascii_insert_offset;
-      if (c < 128 || c >= 256)
-	c = (c_save & 0177) + 0200;
+      else
+	{
+	  if (nonascii_insert_offset > 0)
+	    c -= nonascii_insert_offset;
+	  if (c < 128 || c >= 256)
+	    c = (c_save & 0177) + 0200;
+	}
     }
 
   return c;
@@ -1806,6 +1819,9 @@ init_charset_once ()
     val = Fcons (make_number (GENERIC_COMPOSITION_CHAR), val);
     Vgeneric_character_list = Fnreverse (val);
   }
+
+  nonascii_insert_offset = 0;
+  Vnonascii_translation_table = Qnil;
 }
 
 #ifdef emacs
