@@ -2354,7 +2354,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 				       /* Child of win.  */
 				       &child);
 
-		if (child == None)
+		if (child == None || child == win)
 		  break;
 
 		win = child;
@@ -5453,6 +5453,8 @@ x_iconify_frame (f)
     return;
 
   BLOCK_INPUT;
+
+  FRAME_SAMPLE_VISIBILITY (f);
 
   type = x_icon_type (f);
   if (!NILP (type))
