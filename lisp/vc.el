@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.311.4.7 2002/10/15 18:48:46 spiegel Exp $
+;; $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -206,10 +206,12 @@
 ;;   Check out revision REV of FILE into the working area.  If EDITABLE
 ;;   is non-nil, FILE should be writable by the user and if locking is
 ;;   used for FILE, a lock should also be set.  If REV is non-nil, that
-;;   is the revision to check out (default is current workfile version);
-;;   if REV is the empty string, that means to check out the head of the
-;;   trunk.  If optional arg DESTFILE is given, it is an alternate
-;;   filename to write the contents to.
+;;   is the revision to check out (default is current workfile version).
+;;   If REV is t, that means to check out the head of the current branch;
+;;   if it is the empty string, check out the head of the trunk.  If
+;;   optional arg DESTFILE is given, it is an alternate filename
+;;   to write the contents to.  The implementation should pass the value 
+;;   of vc-checkout-switches to the backend command.
 ;;
 ;; * revert (file &optional contents-done)
 ;;
@@ -1135,7 +1137,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 	(if (yes-or-no-p (format
 			  "%s is not up-to-date.  Get latest version? "
 			  (file-name-nondirectory file)))
-	    (vc-checkout file (eq (vc-checkout-model file) 'implicit) "")
+	    (vc-checkout file (eq (vc-checkout-model file) 'implicit) t)
 	  (if (and (not (eq (vc-checkout-model file) 'implicit))
 		   (yes-or-no-p "Lock this version? "))
 	      (vc-checkout file t)
