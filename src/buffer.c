@@ -646,6 +646,8 @@ reset_buffer (b)
   b->enable_multibyte_characters = buffer_defaults.enable_multibyte_characters;
   b->cursor_type = buffer_defaults.cursor_type;
   b->extra_line_spacing = buffer_defaults.extra_line_spacing;
+
+  b->display_error_modiff = 0;
 }
 
 /* Reset buffer B's local variables info.
