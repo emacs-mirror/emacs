@@ -405,9 +405,10 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
       (end-of-line)
       (outline-discard-overlays (point) to 'outline)
       (if flag
-	  (let ((o (make-overlay (point) to)))
-	    (overlay-put o 'invisible 'outline)
-	    (overlay-put o 'outline t)))))
+          (let ((o (make-overlay (point) to)))
+            (overlay-put o 'invisible 'outline)
+	    (overlay-put o 'isearch-open-invisible
+			 'outline-isearch-open-invisible)))))
   (run-hooks 'outline-view-change-hook))
 
 ;; Exclude from the region BEG ... END all overlays
