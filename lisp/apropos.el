@@ -102,8 +102,9 @@ for the regexp; the part that matches gets displayed in this font."
   :group 'apropos
   :type 'face)
 
-(defcustom apropos-show-scores nil
-  "*Non-nil means show score for each match, and sort matches by scores."
+(defcustom apropos-sort-by-scores nil
+  "*Non-nil means sort matches by scores; best match is shown first.
+The computed score is shown for each match."
   :group 'apropos
   :type 'boolean)
 
@@ -771,7 +772,7 @@ separate items with that string."
 		(lambda (a b)
 		  ;; Don't sort by score if user can't see the score.
 		  ;; It would be confusing.  -- rms.
-		  (if apropos-show-scores
+		  (if apropos-sort-by-scores
 		      (or (> (cadr a) (cadr b))
 			  (and (= (cadr a) (cadr b))
 			       (string-lessp (car a) (car b))))
@@ -804,7 +805,7 @@ separate items with that string."
 			      ;; changed the variable!
 			      ;; Just say `no' to variables containing faces!
 			      'face apropos-symbol-face)
-	  (if apropos-show-scores
+	  (if apropos-sort-by-scores
 	      (insert " (" (number-to-string (cadr apropos-item)) ") "))
 	  ;; Calculate key-bindings if we want them.
 	  (and do-keys
