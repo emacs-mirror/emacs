@@ -1,3 +1,11 @@
+2000-09-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* autoinsert.el (auto-insert-mode): Use define-minor-mode.
+
+	* newcomment.el (comment-indent-function): Use 0 for ;;; and %%%.
+	(comment-indent): Make sure there's a space between code and comment.
+	Shift comments left to avoid going past fill-column.
+
 2000-09-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (startup-echo-area-message): New function.
