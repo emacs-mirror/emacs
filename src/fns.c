@@ -1852,7 +1852,7 @@ See also the documentation of make-char.")
   c = XINT (ch);
   SPLIT_NON_ASCII_CHAR (c, charset, code1, code2);
   if (! CHARSET_DEFINED_P (charset))
-    error ("Invalid character: %d", c);
+    invalid_character (c);
 
   if (charset == CHARSET_ASCII)
     return (XCHAR_TABLE (char_table)->defalt = value);
