@@ -250,27 +250,10 @@ X and Y are 0-based character positions in the window."
 
 ;;; Returns the window that screen position (x, y) is in or nil if none,
 ;;; meaning we are in the echo area with a non-active minibuffer.
-;;; If coordinates-in-window-p were not in an X-windows-specific file
-;;; we could use that.  In Emacs 19 can even use locate-window-from-coordinates
 (defun bg-window-from-x-y (x y)
   "Find window corresponding to screen coordinates.
 X and Y are 0-based character positions on the screen."
-  (let ((edges (window-edges))
-	(window nil))
-    (while (and (not (eq window (selected-window)))
-		(or (<  y (nth 1 edges))
-		    (>= y (nth 3 edges))
-		    (<  x (nth 0 edges))
-		    (>= x (nth 2 edges))))
-      (setq window (next-window window))
-      (setq edges (window-edges window)))
-    (cond ((eq window (selected-window))
-	   nil)				;we've looped: not found
-	  ((not window)
-	   (selected-window))		;just starting: current window
-	  (t
-	    window))
-    ))
+  (some-window (lambda (w) (coordinates-in-window-p (cons x y) w))))
 
 (defun bg-command-execute (bg-command)
   (if (commandp bg-command)
