@@ -1,3 +1,10 @@
+2003-08-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* mail/smtpmail.el Fix previous change:
+	(smtpmail-send-queued-mail): Set smtpmail-mail-address before
+	calling smtpmail-via-smtp.
+	(smtpmail-via-smtp): Add fall-back values for envelope-from.
+
 2003-08-26  John Paul Wallington  <jpw@gnu.org>
 
 	* image.el (image-jpeg-p): Don't search beyond length of data.
