@@ -1,3 +1,10 @@
+2001-01-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* dabbrev.el (dabbrev--substitute-expansion): 
+	Treat a one-capital-letter abbrev as "not all upper case",
+	so as to force preservation of the expansion's pattern
+	if the expansion starts with a capital letter.
+
 2001-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* facemenu.el (facemenu-set-face, facemenu-set-face-from-menu):
