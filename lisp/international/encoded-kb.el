@@ -70,11 +70,13 @@
 
 (defvar encoded-kbd-iso2022-designation-map
   (let ((map (make-sparse-keymap))
-	(l charset-list))
+	(l charset-list)
+	final-char)
     (while l
-      (define-key map
-	(char-to-string (charset-iso-final-char (car l)))
-	'encoded-kbd-iso2022-designation)
+      (setq final-char (charset-iso-final-char (car l)))
+      (if final-char
+	  (define-key map (char-to-string final-char)
+	    'encoded-kbd-iso2022-designation))
       (setq l (cdr l)))
     map)
   "Keymap for handling ISO2022 designation sequence in Encoded-kbd mode.")
