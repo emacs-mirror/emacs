@@ -440,12 +440,12 @@ install-arch-indep: mkdir info
 	    if test "`echo DOC-*`" != "DOC-*"; then rm DOC; fi); \
 	else true; fi
 	-unset CDPATH; \
-	if [ -r ${srcdir}/lisp ] \
-	   && [ -r ${srcdir}/lisp/simple.el ] \
-	   && [ x`(cd ${srcdir}/lisp; /bin/pwd)` != x`(cd ${lispdir}; /bin/pwd)` ]; \
+	if [ -r ./lisp ] \
+	   && [ -r ./lisp/simple.el ] \
+	   && [ x`(cd ./lisp; /bin/pwd)` != x`(cd ${lispdir}; /bin/pwd)` ]; \
 	then \
 	   echo "Copying lisp/*.el and lisp/*.elc to ${lispdir} ..." ; \
-	   (cd ${srcdir}/lisp; tar -chf - *.el *.elc) \
+	   (cd lisp; tar -chf - *.el *.elc) \
 	     |(cd ${lispdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
 	   (cd ${lispdir}; find . -exec chown $${LOGNAME} {} ';') ; \
 	else true; fi
