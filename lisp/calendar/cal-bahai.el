@@ -503,4 +503,5 @@ Prefix arg will make the entry nonmarking."
 
 (provide 'cal-bahai)
 
+;;; arch-tag: c1cb1d67-862a-4264-a01c-41cb4df01f14
 ;;; cal-bahai.el ends here
