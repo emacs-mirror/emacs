@@ -1,3 +1,39 @@
+2000-06-14  Carsten Dominik  <dominik@strw.leidenuniv.nl>
+
+	* textmodes/reftex.el (reftex-find-citation-regexp-format):
+	Support for bibentry.
+	(reftex-compile-variables): Fixed problem with end of section-re.
+
+	* texmodes/reftex-dcr.el (reftex-view-crossref,
+	reftex-view-crossref-from-bibtex): Deal with changed
+	`reftex-find-citation-regexp-format'.
+	(reftex-view-regexp-match, reftex-view-crossref-from-bibtex):
+	Replaced `remprop' with `put'.
+	(reftex-view-crossref, reftex-view-crossref-when-idle): Support
+	for bibentry.
+
+	* textmodes/reftex-vars.el (reftex-cite-format-builtin): New entry for
+	bibentry package.
+
+	* textmodes/reftex-parse.el (reftex-locate-bibliography-files): Regexp
+	also matches "\nobibliography".
+
+	* textmodes/reftex-global.el (reftex-renumber-simple-labels): Call
+	`reftex-ensure-write-access' before doing anything.
+	(reftex-ensure-write-access): New function.
+
+
+2000-06-14  Carsten Dominik  <dominik@strw.leidenuniv.nl>
+
+	* progmodes/idlwave.el: File re-installed (update to version 4.2)
+
+	* progmodes/idlw-shell.el: File re-installed (update to version 4.2)
+
+	* progmodes/idlw-rinfo.el: File re-installed (update to version 4.2)
+
+	* progmodes/idlw-toolbar.el: File re-installed (update to version 4.2)
+
+
 2000-06-20  Dave Love  <fx@gnu.org>
 
 	* faces.el (frame-background-mode): Use set-default, not set, in
