@@ -1198,10 +1198,15 @@ menu_highlight_callback (widget, id, call_data)
   struct frame *f;
   Lisp_Object frame, help;
 
+  help = wv && wv->help ? build_string (wv->help) : Qnil;
+  
   /* Determine the frame for the help event.  */
   f = menubar_id_to_frame (id);
   if (f)
-    XSETFRAME (frame, f);
+    {
+      XSETFRAME (frame, f);
+      kbd_buffer_store_help_event (frame, help);
+    }
   else
     {
       /* WIDGET is the popup menu.  It's parent is the frame's 
@@ -1217,11 +1222,9 @@ menu_highlight_callback (widget, id, call_data)
 		  FRAME_X_P (f) && f->output_data.x->widget == frame_widget))
 	    break;
 	}
-    }
 
-  /* Store the help event.  */
-  help = wv && wv->help ? build_string (wv->help) : Qnil;
-  kbd_buffer_store_help_event (frame, help);
+      show_help_echo (help, Qnil, Qnil, Qnil, 1);
+    }
 }
 
 /* This callback is called from the menu bar pulldown menu
@@ -2054,7 +2057,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
       else
 	{
 	  /* Create a new item within current pane.  */
-	  Lisp_Object item_name, enable, descrip, def, type, selected;
+	  Lisp_Object item_name, enable, descrip, def, type, selected, help;
 	  item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
 	  enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
 	  descrip
@@ -2062,6 +2065,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	  def = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_DEFINITION];
 	  type = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_TYPE];
 	  selected = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_SELECTED];
+	  help = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_HELP];
 
 #ifndef HAVE_MULTILINGUAL_MENU
           if (STRINGP (item_name) && STRING_MULTIBYTE (item_name))
@@ -2096,6 +2100,8 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	    abort ();
 
 	  wv->selected = !NILP (selected);
+	  if (STRINGP (help))
+	    wv->help = XSTRING (help)->data;
 	  
 	  prev_wv = wv;
 
