@@ -1,5 +1,7 @@
 1999-10-31  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (resize_mini_window): Compute needed height differently.
+
 	* fns.c (Flength): Unroll loop over lists.
 
 	* xdisp.c (append_space): Return non-zero if space was appended.

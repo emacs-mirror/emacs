@@ -1,3 +1,9 @@
+1999-10-31  Rajesh Vaidheeswarran  <rv@dsmit.com>
+
+	* whitespace.el (whitespace-update-modeline): Bugfix to ensure
+	that the modeline display was updated *only* when
+	`whitespace-display-in-modeline' was set, not otherwise.
+
 1999-10-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/sgml-mode.el (sgml-char-names): Change "half" to
