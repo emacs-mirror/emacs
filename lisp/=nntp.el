@@ -389,6 +389,8 @@ If the stream is opened, return T, otherwise return NIL."
 
 (defun nntp-request-article (id)
   "Select article by message ID (or number)."
+  (if (numberp id)
+      (setq id (number-to-string id)))
   (prog1
       ;; If NEmacs, end of message may look like: "\256\215" (".^M")
       (nntp-send-command "^\\.\r$" "ARTICLE" id)
