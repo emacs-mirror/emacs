@@ -96,6 +96,7 @@ Stefan Monnier
 	lisp/textmodes/tex-mode.el
 	lisp/progmodes/perl-mode.el
 	lisp/progmodes/tcl.el
+	lisp/emacs-lisp/easymenu.el
 
 Miles Bader
 	src/eval.c
