@@ -23,7 +23,17 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifndef VMS
 #ifndef WAITTYPE
-#if (!defined (BSD) && !defined (UNIPLUS) && !defined (STRIDE) && !(defined (HPUX) && !defined (NOMULTIPLEJOBS)) && !defined (HAVE_WAIT_HEADER)) || defined (LINUX) || defined (WAIT_USE_INT)
+
+#ifdef WAIT_USE_INT
+/* Some systems have  union wait  in their header, but we should use
+   int regardless of that.  */
+#include <sys/wait.h>
+#define WAITTYPE int
+#define WRETCODE(w) WEXITSTATUS (w)
+
+#else /* not WAIT_USE_INT */
+
+#if (!defined (BSD) && !defined (UNIPLUS) && !defined (STRIDE) && !(defined (HPUX) && !defined (NOMULTIPLEJOBS)) && !defined (HAVE_WAIT_HEADER)) || defined (LINUX)
 #define WAITTYPE int
 #define WIFSTOPPED(w) ((w&0377) == 0177)
 #define WIFSIGNALED(w) ((w&0377) != 0177 && (w&~0377) == 0)
@@ -34,7 +44,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef WCOREDUMP
 #define WCOREDUMP(w) ((w&0200) != 0)
 #endif
+
 #else 
+
 #ifdef BSD4_1
 #include <wait.h>
 #else
@@ -72,8 +84,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define WIFEXITED(w) (WTERMSIG (w) == 0)
 #endif
 #endif /* BSD or UNIPLUS or STRIDE */
+#endif /* not WAIT_USE_INT */
 #endif /* no WAITTYPE */
+
 #else /* VMS */
+
 #define WAITTYPE int
 #define WIFSTOPPED(w) 0
 #define WIFSIGNALED(w) 0
@@ -86,4 +101,5 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <iodef.h>
 #include <clidef.h>
 #include "vmsproc.h"
+
 #endif /* VMS */
