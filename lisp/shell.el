@@ -688,8 +688,9 @@ See `shell-dynamic-complete-filename'.  Returns t if successful."
 	 (paths (cdr (reverse exec-path)))
 	 (cwd (file-name-as-directory (expand-file-name default-directory)))
 	 (ignored-extensions
-	  (mapconcat (function (lambda (x) (concat (regexp-quote x) "$")))
-		     comint-completion-fignore "\\|"))
+	  (and comint-completion-fignore
+	       (mapconcat (function (lambda (x) (concat (regexp-quote x) "$")))
+			  comint-completion-fignore "\\|")))
 	 (path "") (comps-in-path ()) (file "") (filepath "") (completions ()))
     ;; Go thru each path in the search path, finding completions.
     (while paths
