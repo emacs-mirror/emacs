@@ -55,15 +55,7 @@ init_editfns ()
   Lisp_Object tem;
 
   /* Set up system_name even when dumping.  */
-
-  Vsystem_name = build_string (get_system_name ());
-  p = XSTRING (Vsystem_name)->data;
-  while (*p)
-    {
-      if (*p == ' ' || *p == '\t')
-	*p = '-';
-      p++;
-    }
+  init_system_name ();
 
 #ifndef CANNOT_DUMP
   /* Don't bother with this on initial start when just dumping out */
@@ -537,6 +529,13 @@ DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
   ()
 {
   return Vsystem_name;
+}
+
+/* For the benefit of callers who don't want to include lisp.h */
+char *
+get_system_name ()
+{
+  return XSTRING (Vsystem_name)->data;
 }
 
 DEFUN ("emacs-pid", Femacs_pid, Semacs_pid, 0, 0, 0,
