@@ -52,6 +52,10 @@ char pot_etags_version[] = "@(#) pot revision number is 10.32";
 
 #include <stdio.h>
 #include <ctype.h>
+#include <errno.h>
+#ifndef errno
+extern int errno;
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -430,7 +434,7 @@ main (argc, argv)
   if (!CTAGS)
     typedefs = typedefs_and_cplusplus = constantypedefs = 1;
 
-  for (;;)
+  while (1)
     {
       int opt;
       opt = getopt_long (argc, argv, "aCdDf:o:StTi:BuvxwVH", longopts, 0);
@@ -3194,25 +3198,28 @@ etags_getcwd ()
 }
 #else /* not DOS_NT */
 /* Does the same work as the system V getcwd, but does not need to
-   guess buffer size in advance.  Included mostly for compatibility. */
+   guess buffer size in advance. */
 char *
 etags_getcwd ()
 {
-  char *buf;
   int bufsize = 256;
+  char *buf = xnew (bufsize, char);
 
 #ifdef HAVE_GETCWD
-  do
+  while (getcwd (buf, bufsize / 2) == NULL)
     {
-      buf = xnew (bufsize, char);
+      if (errno != ERANGE)
+	{
+	  perror ("pwd");
+	  exit (BAD);
+	}
       bufsize *= 2;
+      buf = xnew (bufsize, char);
     }
-  while (getcwd (buf, bufsize / 2) == NULL);
 #else
   do
     {
       FILE *pipe;
-      buf = xnew (bufsize, char);
 
       pipe = (FILE *) popen ("pwd 2>/dev/null", "r");
       if (pipe == NULL)
@@ -3228,6 +3235,7 @@ etags_getcwd ()
       pclose (pipe);
 
       bufsize *= 2;
+      buf = xnew (bufsize, char);
 
     } while (buf[strlen (buf) - 1] != '\n');
 #endif
