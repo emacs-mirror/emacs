@@ -510,6 +510,11 @@ Lisp_Object Vmax_mini_window_height;
 int message_truncate_lines;
 Lisp_Object Qmessage_truncate_lines;
 
+/* Set to 1 in clear_message to make redisplay_internal aware
+   of an emptied echo area.   */
+
+static int message_cleared_p;
+
 /* Non-zero means we want a hollow cursor in windows that are not
    selected.  Zero means there's no cursor in such windows.  */
 
@@ -6895,7 +6900,10 @@ clear_message (current_p, last_displayed_p)
      int current_p, last_displayed_p;
 {
   if (current_p)
-    echo_area_buffer[0] = Qnil;
+    {
+      echo_area_buffer[0] = Qnil;
+      message_cleared_p = 1;
+    }
   
   if (last_displayed_p)
     echo_area_buffer[1] = Qnil;
@@ -8406,12 +8414,19 @@ redisplay_internal (preserve_echo_area)
   /* Normally the message* functions will have already displayed and
      updated the echo area, but the frame may have been trashed, or
      the update may have been preempted, so display the echo area
-     again here.  Checking both message buffers captures the case that
+     again here.  Checking message_cleared_p captures the case that
      the echo area should be cleared.  */
-  if (!NILP (echo_area_buffer[0]) || !NILP (echo_area_buffer[1]))
+  if (!NILP (echo_area_buffer[0]) || message_cleared_p)
     {
       int window_height_changed_p = echo_area_display (0);
       must_finish = 1;
+
+      /* If we don't display the current message, don't clear the
+	 message_cleared_p flag, because, if we did, we wouldn't clear
+	 the echo area in the next redisplay which doesn't preserve
+	 the echo area.  */
+      if (!display_last_displayed_message_p)
+	message_cleared_p = 0;
       
       if (fonts_changed_p)
 	goto retry;
