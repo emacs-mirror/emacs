@@ -132,7 +132,7 @@ Does not work yet.
 @xref{Display Margins}.
 
 @item line-spacing
-@xref{Yet to be written}.
+@c @xref{Yet to be written}.
 
 @item local-abbrev-table
 @xref{Abbrevs}.
@@ -213,7 +213,7 @@ Used for communication between mouse commands and scroll-bar commands.
 @xref{Mode Line Variables}.
 
 @item vertical-scroll-bar
-@xref{Yet to be written}.
+@c @xref{Yet to be written}.
 @end table
 
 @ignore
