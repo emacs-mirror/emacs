@@ -18,5 +18,5 @@
    modified the shared C library to include resolver support without
    also changing the C archive library (/usr/lib/libc.a).  To deal
    with this, you may need to link with the resolver library; to do
-   that, uncomment the following line.  */
+   that, copy the following definition to config.h.  */
 /* #define LIBS_SYSTEM -lresolv */
