@@ -1063,6 +1063,10 @@ in another keymap reached from @var{keymap}.)  The argument
 meaningful.  (For a list of meaningful types, see @ref{Key Lookup}.)
 The value returned by @code{define-key} is @var{binding}.
 
+If @var{key} is @code{[t]}, this sets the default binding in
+@var{keymap}.  When an event has no binding of its own, the Emacs
+command loop uses the keymap's default binding, if there is one.
+
 @cindex invalid prefix key error
 @cindex key sequence error
 Every prefix of @var{key} must be a prefix key (i.e., bound to a keymap)
@@ -1072,8 +1076,8 @@ key so that the rest of @var{key} can be defined as specified.
 
 If there was previously no binding for @var{key} in @var{keymap}, the
 new binding is added at the beginning of @var{keymap}.  The order of
-bindings in a keymap makes no difference in most cases, but it does
-matter for menu keymaps (@pxref{Menu Keymaps}).
+bindings in a keymap makes no difference for keyboard input, but it
+does matter for menu keymaps (@pxref{Menu Keymaps}).
 @end defun
 
   Here is an example that creates a sparse keymap and makes a number of
