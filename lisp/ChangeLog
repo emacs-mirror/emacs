@@ -1,3 +1,7 @@
+2002-06-04  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el: Don't require cl.
+
 2002-06-03  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.el (dired-do-shell-command): Doc fix in autoload.
