@@ -1988,6 +1988,7 @@ x_set_scroll_bar_width (f, arg, oldval)
     }
 
   change_frame_size (f, 0, FRAME_WIDTH (f), 0, 0);
+  FRAME_CURSOR_X (f) =  FRAME_LEFT_SCROLL_BAR_WIDTH (f);
 }
 
 /* Subroutines of creating an X frame.  */
