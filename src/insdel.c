@@ -1068,7 +1068,7 @@ insert_from_gap (nchars, nbytes)
 			     0);
 
   if (BUF_INTERVALS (current_buffer) != 0)
-    offset_intervals (current_buffer, PT, nchars);
+    offset_intervals (current_buffer, GPT, nchars);
 
   if (GPT - nchars < PT)
     adjust_point (nchars, nbytes);
