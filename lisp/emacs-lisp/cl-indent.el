@@ -422,6 +422,7 @@ by `lisp-body-indent'."
            (handler-bind . let) (restart-bind . let)
            (locally 1)
            ;(loop ...)
+           (:method (&lambda &body)) ; in `defgeneric'
            (multiple-value-bind ((&whole 6 &rest 1) 4 &body))
            (multiple-value-call (4 &body))
            (multiple-value-prog1 1)
