@@ -1,3 +1,24 @@
+2000-10-22  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-version-backup-file-name): New optional args 
+	MANUAL and REGEXP.
+	(vc-delete-automatic-version-backups, vc-make-version-backup): 
+	New functions.
+	(vc-before-save): Use the latter.
+	(vc-default-make-version-backups-p): Added `-p' suffix to avoid
+	confusion.
+
+	* vc-cvs.el (vc-cvs-make-version-backups-p): Added `-p' suffix as 
+	expected by vc[-hooks].el.
+
+	* vc.el (vc-checkout): Added `-p' suffix in call to
+	vc-make-version-backups-p; use vc-make-version-backup to actually
+	make the backup.
+	(vc-version-other-window, vc-version-backup-file): Handle both
+	automatic and manual backups.
+	(vc-revert-file): Use vc-delete-automatic-version-backups to get rid
+	of all of them.
+
 2000-10-22  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-highlight-input, comint-highlight-prompt):
