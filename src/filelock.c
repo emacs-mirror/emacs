@@ -100,7 +100,7 @@ typedef struct
 /* Write the name of the lock file for FN into LFNAME.  Length will be
    that of FN plus two more for the leading `.#' plus one for the null.  */
 #define MAKE_LOCK_NAME(lock, file) \
-  (lock = (char *) alloca (XSTRING (file)->size + 2 + 1), \
+  (lock = (char *) alloca (XSTRING (file)->size_byte + 2 + 1), \
    fill_in_lock_file_name (lock, (file)))
 
 static void
