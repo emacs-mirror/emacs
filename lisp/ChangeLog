@@ -1,4 +1,8 @@
-2005-02-21  Stefan  <monnier@iro.umontreal.ca>
+2005-02-21  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* pcvs.el (cvs-retrieve-revision): Fix thinko.
+
+2005-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.el (blink-cursor-mode): Use define-minor-mode.
 
