@@ -1727,7 +1727,7 @@ With argument 0, interchanges line point is in with line mark is in."
   "*Column to indent right-margin comments to.
 Setting this variable automatically makes it local to the current buffer.
 Each mode establishes a different default value for this variable; you
-can the value for a particular mode using that mode's hook.")
+can set the value for a particular mode using that mode's hook.")
 (make-variable-buffer-local 'comment-column)
 
 (defconst comment-start nil
