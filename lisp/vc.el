@@ -1485,9 +1485,7 @@ Return nil if there is no such person."
    (progn			;; SCCS
      (vc-do-command 0 "unget" file nil)
      (vc-do-command 0 "get" file nil))
-   (progn
-     (delete-file file)		;; RCS
-     (vc-do-command 0 "co" file "-u")))
+   (vc-do-command 0 "co" file "-f" "-u")) ;; RCS.  This deletes the work file.
   (vc-file-setprop file 'vc-locking-user nil)
   (message "Reverting %s...done" file)
   )
@@ -1495,15 +1493,12 @@ Return nil if there is no such person."
 (defun vc-backend-steal (file &optional rev)
   ;; Steal the lock on the current workfile.  Needs RCS 5.6.2 or later for -M.
   (message "Stealing lock on %s..." file)
-  (progn
-    (vc-do-command 0 "unget" file "-n" (if rev (concat "-r" rev)))
-    (vc-do-command 0 "get" file "-g" (if rev (concat "-r" rev)))
-    )
-  (progn
-    (vc-do-command 0 "rcs" "-M" (concat "-u" rev) file)
-    (delete-file file)
-    (vc-do-command 0 "rcs" (concat "-l" rev) file)
-    )
+  (vc-backend-dispatch
+   (progn
+     (vc-do-command 0 "unget" file "-n" (if rev (concat "-r" rev)))
+     (vc-do-command 0 "get" file "-g" (if rev (concat "-r" rev)))
+     )
+   (vc-do-command 0 "rcs" "-M" (concat "-u" rev) (concat "-l" rev) file))
   (vc-file-setprop file 'vc-locking-user (user-login-name))
   (message "Stealing lock on %s...done" file)
   )  
