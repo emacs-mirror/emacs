@@ -2902,7 +2902,7 @@ DEFUN ("base64-encode-string", Fbase64_encode_string, Sbase64_encode_string,
 Optional second argument NO-LINE-BREAK means do not break long lines\n\
 into shorter lines.")
      (string, no_line_break)
-     Lisp_Object string;
+     Lisp_Object string, no_line_break;
 {
   int allength, length, encoded_length;
   char *encoded;
