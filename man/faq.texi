@@ -1195,6 +1195,7 @@ and on @code{xterm} with @kbd{emacs -nw}.
 * Using an already running Emacs process::  
 * Compiler error messages::     
 * Indenting switch statements::  
+* Customizing C and C++ indentation::  
 * Horizontal scrolling::        
 * Overwrite mode::              
 * Turning off beeping::         
@@ -1709,7 +1710,7 @@ following to inform Emacs of your changes:
          compilation-error-regexp-alist))
 @end lisp
 
-@node Indenting switch statements, Horizontal scrolling, Compiler error messages, Common requests
+@node Indenting switch statements, Customizing C and C++ indentation, Compiler error messages, Common requests
 @section How do I change the indentation for @code{switch}?
 @cindex @code{switch}, indenting
 @cindex Indenting of @code{switch}
@@ -1746,7 +1747,91 @@ C programming in Emacs 20 and later) and add the following line to yoyr
 
 There appears to be no way to do this with the old @code{c-mode}.
 
-@node Horizontal scrolling, Overwrite mode, Indenting switch statements, Common requests
+@node Customizing C and C++ indentation, Horizontal scrolling, Indenting switch statements, Common requests
+@section How to customize indentation in C, C@t{++}, and Java buffers?
+@cindex Indentation, how to customize
+@cindex Customize indentation
+
+The Emacs @code{cc-mode} features an interactive procedure for
+customizing the indentation style, which is fully explained in the
+@cite{CC Mode} manual that is part of the Emacs distribution, see
+@ref{Customizing Indentation, , Customization Indentation, ccmode,
+The CC Mode Manual}.  Here's a short summary of the procedure:
+
+@enumerate
+@item
+Go to the beginning of the first line where you don't like the
+indentation and type @kbd{C-c C-o}.  Emacs will prompt you for the
+syntactic symbol; type @key{RET} to accept the default it suggests.
+
+@item
+Emacs now prompts for the offset of this syntactic symbol, showing the
+default (the current definition) inside parentheses.  You can choose
+one of these:
+
+@table @code
+@item 0
+No extra indentation.
+@item +
+Indent one basic offset.
+@item -
+Outdent one basic offset.
+@item ++
+Indent two basic offsets
+@item --
+Outdent two basic offsets.
+@item *
+Indent half basic offset.
+@item /
+Outdent hal basic offset.
+@end table
+
+@item
+After choosing one of these symbols, type @kbd{C-c C-q} to reindent
+the line or the block according to what you just specified.
+
+@item
+If you don't like the result, go back to step 1.  Otherwise, add the
+following line to your @file{.emacs}:
+
+@lisp
+(c-set-offset '@var{syntactic-symbol} @var{offset})
+@end lisp
+
+@noindent
+where @var{syntactic-symbol} is the name Emacs shows in the minibuffer
+when you type @kbd{C-c C-o} at the beginning of the line, and
+@var{offset} is one of the indentation symbols listed above (@code{+},
+@code{/}, @code{0}, etc.) that you've chosen during the interactive
+procedure.
+
+@item
+Go to the next line whose indentation is not to your liking and repeat
+the process there.
+@end enumerate
+
+It is recommended to put all the resulting @code{(c-set-offset ...)}
+customizations inside a C mode hook, like this:
+
+@lisp
+(defun my-c-mode-hook ()
+  (c-set-offset ...)
+  (c-set-offset ...))
+(add-hook 'c-mode-hook 'my-c-mode-hook)
+@end lisp
+
+@noindent
+Using @code{c-mode-hook} avoids the need to put a @w{@code{(require
+'cc-mode)}} into your @file{.emacs} file, because @code{c-set-offset}
+might be unavailable when @code{cc-mode} is not loaded.
+
+Note that @code{c-mode-hook} runs for C source files only; use
+@code{c++-mode-hook} for C@t{++} sources, @code{java-mode-hook} for
+Java sources, etc.  If you want the same customizations to be in
+effect in @emph{all} languages supported by @code{cc-mode}, use
+@code{c-mode-common-hook}.
+
+@node Horizontal scrolling, Overwrite mode, Customizing C and C++ indentation, Common requests
 @section How can I make Emacs automatically scroll horizontally?
 @cindex @code{hscroll-mode}
 @cindex Horizontal scrolling
@@ -2609,6 +2694,7 @@ later), which converts these ANSI escape sequences into colors.
 * Problems with very large files::  
 * ^M in the shell buffer::      
 * Shell process exits abnormally::  
+* Problems with Shell Mode on MS-Windows::  
 * Termcap/Terminfo entries for Emacs::  
 * Spontaneous entry into isearch-mode::  
 * Problems talking to certain hosts::  
@@ -2720,6 +2806,16 @@ with the following Lisp form,
 (setenv "ESHELL" "/bin/csh")
 @end lisp
 
+The above solutions try to prevent the shell from producing the
+@samp{^M} characters in the first place.  If this is not possible
+(e.g., if you use a Windows shell), you can get Emacs to remove these
+characters from the buffer by adding this to your @file{.emacs} init
+file:
+
+@smalllisp
+(add-hook 'comint-output-filter-functions 'shell-strip-ctrl-m)
+@end smalllisp
+
 On a related note: If your shell is echoing your input line in the shell
 buffer, you might want to try the following command in your shell
 start-up file:
@@ -2728,7 +2824,7 @@ start-up file:
 stty -icrnl -onlcr -echo susp ^Z
 @end example
 
-@node Shell process exits abnormally, Termcap/Terminfo entries for Emacs, ^M in the shell buffer, Bugs and problems
+@node Shell process exits abnormally, Problems with Shell Mode on MS-Windows, ^M in the shell buffer, Bugs and problems
 @section Why do I get "Process shell exited abnormally with code 1"?
 @cindex Abnormal exits from @code{shell-mode}
 @cindex @code{shell-mode} exits
@@ -2753,10 +2849,39 @@ It has been reported that this sometimes happened when Emacs was started
 as an X client from an xterm window (i.e., had a controlling tty) but the
 xterm was later terminated.
 
-See also @samp{PROBLEMS} (in the top-level directory when you unpack the
-Emacs source) for other possible causes of this message.
+See also @samp{PROBLEMS} (in the @file{etc} subdirectory of the
+top-level directory when you unpack the Emacs source) for other
+possible causes of this message.
 
-@node Termcap/Terminfo entries for Emacs, Spontaneous entry into isearch-mode, Shell process exits abnormally, Bugs and problems
+@node Problems with Shell Mode on MS-Windows, Termcap/Terminfo entries for Emacs, Shell process exits abnormally, Bugs and problems
+@section Why do I get an error message when I try to run @kbd{M-x shell}?
+
+@cindex Shell Mode, and MS-Windows
+@cindex @code{explicit-shell-file-name}
+On MS-Windows, this might happen because Emacs tries to look for the
+shell in a wrong place.  The default file name @file{/bin/sh} is
+usually incorrect for non-Unix systems.  If you know where your shell
+executable is, set the variable @code{explicit-shell-file-name} in
+your @file{.emacs} file to point to its full file name, like this:
+
+@lisp
+(setq explicit-shell-file-name "d:/shells/bash.exe")
+@end lisp
+
+If you don't know what shell does Emacs use, try the @kbd{M-!}
+command; if that works, put the following line into your
+@file{.emacs}:
+
+@lisp
+(setq explicit-shell-file-name shell-file-name)
+@end lisp
+
+@cindex Antivirus programs, and Shell Mode
+Some people have trouble with Shell Mode because of intrusive
+antivirus software; disabling the resident antivirus program solves
+the problems in those cases.
+
+@node Termcap/Terminfo entries for Emacs, Spontaneous entry into isearch-mode, Problems with Shell Mode on MS-Windows, Bugs and problems
 @section Where is the termcap/terminfo entry for terminal type "emacs"?
 @cindex Termcap
 @cindex Terminfo
@@ -3293,10 +3418,10 @@ files before you upgrade, and you shouldn't have too much trouble.
 @cindex Problems building Emacs
 @cindex Errors when building Emacs
 
-First look in the file @file{PROBLEMS} (in the top-level directory when
-you unpack the Emacs source) to see if there is already a solution for
-your problem.  Next, look for other questions in this FAQ that have to
-do with Emacs installation and compilation problems.
+First look in the file @file{etc/PROBLEMS} (where you unpack the Emacs
+source) to see if there is already a solution for your problem.  Next,
+look for other questions in this FAQ that have to do with Emacs
+installation and compilation problems.
 
 If you'd like to have someone look at your problem and help solve it,
 see @ref{Help installing Emacs}.
@@ -3640,9 +3765,9 @@ All of these utilities are available at
 
 @end table
 
-The files @file{INSTALL} (near its end) and @file{PROBLEMS} in the
-top-level directory of the Emacs source contains some additional
-information regarding Emacs under MS-DOS.
+The files @file{INSTALL} (near its end) and @file{etc/PROBLEMS} in the
+directory of the Emacs sources contains some additional information
+regarding Emacs under MS-DOS.
 
 For a list of other MS-DOS implementations of Emacs (and Emacs
 look-alikes), consult the list of "Emacs implementations and literature,"
@@ -3656,9 +3781,9 @@ lack certain features, such as the Emacs Lisp extension language.
 @node Emacs for Windows, Emacs for OS/2, Emacs for MS-DOS, Finding Emacs and related packages
 @section Where can I get Emacs for Microsoft Windows
 @cindex FAQ for NT Emacs
+@cindex Emacs for MS-Windows
 @cindex Microsoft Windows, Emacs for
-@cindex Windows NT and Windows 2K, Emacs for
-@cindex Windows 95, 98, and ME, Emacs for
+@cindex Windows 9X, ME, NT, 2K, and CE, Emacs for
 
 For information on Emacs for Windows 95 and NT, read the FAQ produced by
 @email{voelker@@cs.washington.edu, Geoff Voelker}, available at
@@ -3666,6 +3791,15 @@ For information on Emacs for Windows 95 and NT, read the FAQ produced by
 @uref{http://www.gnu.org/software/emacs/windows/ntemacs.html}
 
 @xref{Emacs for MS-DOS}, for Windows 3.1.
+
+A port of Emacs 20.7 for Windows CE, based on NTEmacs, is available at
+
+@uref{http://www.rainer-keuchel.de/software.html}
+
+@noindent
+This port was done by @email{coyxc@@rainer-keuchel.de, Rainer Keuchel},
+and supports all Emacs features except async subprocesses and menus.
+You will need MSVC 6.0 and a Windows CE SDK to build this port.
 
 @node Emacs for OS/2, Emacs for Atari ST, Emacs for Windows, Finding Emacs and related packages
 @section Where can I get Emacs for my PC running OS/2?
