@@ -1515,7 +1515,7 @@ The second and third parameters BEGIN and END specify the region."
 ;; TeX support
 ;;
 
-(defconst fidel-to-tex-map
+(defconst ethio-fidel-to-tex-map
  [ "heG"  "huG"  "hiG"  "haG"  "hEG"   "hG"  "hoG"      ""     ;;   0 - 7
    "leG"  "luG"  "liG"  "laG"  "lEG"   "lG"  "loG"  "lWaG"     ;;   8
    "HeG"  "HuG"  "HiG"  "HaG"  "HEG"   "HG"  "HoG"  "HWaG"     ;;  16
