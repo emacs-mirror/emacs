@@ -1371,10 +1371,10 @@ tabs_safe_p ()
   EMACS_GET_TTY (input_fd, &tty);
   return EMACS_TTY_TABS_OK (&tty);
 }
-
+
 /* Get terminal size from system.
-   Store number of lines into *heightp and width into *widthp.
-   If zero or a negative number is stored, the value is not valid.  */
+   Store number of lines into *HEIGHTP and width into *WIDTHP.
+   We store 0 if there's no valid information.  */
 
 get_frame_size (widthp, heightp)
      int *widthp, *heightp;
@@ -1427,6 +1427,43 @@ get_frame_size (widthp, heightp)
 #endif
 
 #endif /* not VMS */
+#endif /* not SunOS-style */
+#endif /* not BSD-style */
+}
+
+/* Set the logical window size associated with descriptor FD
+   to HEIGHT and WIDTH.  This is used mainly with ptys.  */
+
+int
+set_window_size (fd, height, width)
+     int fd, height, width;
+{
+#ifdef TIOCSWINSZ
+
+  /* BSD-style.  */
+  struct winsize size;
+  size.ws_row = height;
+  size.ws_col = width;
+
+  if (ioctl (fd, TIOCSWINSZ, &size) == -1)
+    return 0; /* error */
+  else
+    return 1;
+
+#else
+#ifdef TIOCSSIZE
+
+  /* SunOS - style.  */
+  struct ttysize size;  
+  size.ts_lines = height;
+  size.ts_cols = width;
+
+  if (ioctl (fd, TIOCGSIZE, &size) == -1)
+    return 0;
+  else
+    return 1;
+#else
+  return -1;
 #endif /* not SunOS-style */
 #endif /* not BSD-style */
 }
