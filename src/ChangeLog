@@ -1,3 +1,10 @@
+2000-02-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.c (Fmouse_position): GCPRO retval instead of x and y.
+
+	* xfns.c (x_window_to_frame, x_any_window_to_frame)
+	(x_non_menubar_window_to_frame): Check the busy-cursor window.
+
 2000-02-21  Dave Love  <fx@gnu.org>
 
 	* frame.c (Vmouse_position_function): New variable.
