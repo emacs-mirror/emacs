@@ -1,3 +1,9 @@
+2002-05-14  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/fortran.el (fortran-directive-re): New name for
+	fortran-preprocessor-re.  All usage updated.
+	(fortran-calculate-indent): Give directives zero indentation.
+
 2002-05-14  Jason Rumney  <jasonr@gnu.org>
 
 	* emacs-lisp/easymenu.el (easy-menu-name-match): Match both
