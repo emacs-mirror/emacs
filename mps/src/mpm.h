@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.13) $
+ * $HopeName: MMsrc!mpm.h(trunk.14) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
@@ -54,7 +54,7 @@ extern Bool (WordIsAligned)(Word word, Align align);
 #define WordIsAligned(w, a)     (((w) & ((a) - 1)) == 0)
 
 extern Word (WordAlignUp)(Word word, Align align);
-#define WordAlignUp(w, a)       (((w) + (a) - 1) & ~((a) - 1))
+#define WordAlignUp(w, a)       (((w) + (a) - 1) & ~((Word)(a) - 1))
 
 extern Bool AlignCheck(Align align);
 
@@ -93,8 +93,8 @@ extern Bool SizeIsP2(Size size);
 extern Shift SizeLog2(Size size);
 extern Shift SizeFloorLog2(Size size);
 
-#define AddrWord(a)             ((Word)a)
-#define SizeWord(s)             ((Word)s)
+#define AddrWord(a)             ((Word)(a))
+#define SizeWord(s)             ((Word)(s))
 #define AddrIsAligned(p, a)     WordIsAligned(AddrWord(p), a)
 #define AddrAlignUp(p, a)       ((Addr)WordAlignUp(AddrWord(p), a))
 #define SizeIsAligned(s, a)     WordIsAligned(SizeWord(s), a)
