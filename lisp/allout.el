@@ -104,7 +104,7 @@ the layout specification.
 
 You can associate a particular outline layout with a file by setting
 this var via the file's local variables.  For example, the following
-lines at the bottom of an elisp file:
+lines at the bottom of an Emacs Lisp file:
 
 ;;;Local variables:
 ;;;outline-layout: \(0 : -1 -1 0\)
