@@ -1,5 +1,13 @@
 2001-10-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* textmodes/sgml-mode.el (sgml-mode-map): Bind 8-bit codes above
+	127 to sgml-maybe-name-self.
+	(sgml-name-8bit-mode): Doc fix.
+	(sgml-char-names-table): New variable.
+	(sgml-name-char): Support non-ASCII and mule-unicode-*
+	characters.  Doc fix.
+	(sgml-maybe-name-self): Convert unibyte characters to multibyte.
+
 	* tooltip.el (tooltip-x-offset, tooltip-y-offset): Mention in the
 	doc string the effect of `left' and `top' parameters in
 	tooltip-frame-parameters, the default values, and the units.
