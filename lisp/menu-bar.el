@@ -282,7 +282,7 @@ A large number or nil slows down menu responsiveness."
 
 (define-key menu-bar-search-menu [i-search]
   (list 'menu-item "Incremental Search" menu-bar-i-search-menu
-	      :help "Incremental Search"))
+	      :help "Incremental Search finds partial matches while you type the search string.\nIt is most convenient from the keyboard.  Try it!"))
 (define-key menu-bar-search-menu [separator-tag-isearch]
   '(menu-item "--"))
 
