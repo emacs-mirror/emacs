@@ -4563,7 +4563,8 @@ x_connection_closed (display, error_message)
 	Fdelete_frame (frame, Qt);
       }
 
-  x_delete_display (dpyinfo);
+  if (dpyinfo)
+    x_delete_display (dpyinfo);
 
   if (x_display_list == 0)
     {
