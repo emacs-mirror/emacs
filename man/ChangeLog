@@ -1,3 +1,7 @@
+2003-09-29  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* pcl-cvs.texi (Selected Files): Fix typo.
+
 2003-09-24  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* cmdargs.texi (Font X): Mention new default font.  More
@@ -232,7 +236,7 @@
 	* faq.texi: Update copyright and maintenance details.
 	Update some package URLs, versions, and maintainers.
 	Remove many references to the Emacs Lisp Archive.
-	
+
 2003-04-23  Simon Josefsson  <jas@extundo.com>
 
 	* smtpmail.texi: Fix license (the invariant sections mentioned has

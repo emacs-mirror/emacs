@@ -1,3 +1,7 @@
+2003-09-29  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* pcvs.el (cvs-mode-unmark-up): Move to goal column when done.
+
 2003-09-29  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
 	* bindings.el (mode-line-modes): Remove superfluous :propertize
