@@ -333,11 +333,12 @@ message_dolog (m, len, nlflag, multibyte)
 	       && ! NILP (current_buffer->enable_multibyte_characters))
 	{
 	  int i = 0;
+	  unsigned char *msg = (unsigned char *) m;
 	  /* Convert a single-byte string to multibyte
 	     for the *Message* buffer.  */
 	  while (i < len)
 	    {
-	      int c = unibyte_char_to_multibyte (m[i++]);
+	      int c = unibyte_char_to_multibyte (msg[i++]);
 	      insert_char (c);
 	    }
 	}
