@@ -3,8 +3,7 @@
 ;; Copyright (C) 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
-
-;; |$Date: 1995/04/25 22:28:40 $|$Revision: 1.90 $
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 
@@ -684,7 +683,12 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 	    (isearch-yank-flag isearch-yank-flag)
 	    (isearch-invalid-regexp isearch-invalid-regexp)
 	    (isearch-within-brackets isearch-within-brackets)
-	    (isearch-other-end isearch-other-end)
+;;; Don't bind this.  We want isearch-search, below, to set it.
+;;; And the old value won't matter after that.
+;;;	    (isearch-other-end isearch-other-end)
+;;; Perhaps some of these other variables should be bound for a
+;;; shorter period, ending before the next isearch-search.
+;;; But there doesn't seem to be a real bug, so let's not risk it now.
 	    (isearch-opoint isearch-opoint)
 	    (isearch-slow-terminal-mode isearch-slow-terminal-mode)
 	    (isearch-small-window isearch-small-window)
