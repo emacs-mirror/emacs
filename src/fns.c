@@ -19,6 +19,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+#define DOC_STRINGS_IN_COMMENTS
 
 #include <config.h>
 
@@ -75,20 +76,20 @@ extern long time ();
 #endif
 
 DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
-  "Return the argument unchanged.")
-  (arg)
+       /* Return the argument unchanged. */
+       (arg))
      Lisp_Object arg;
 {
   return arg;
 }
 
 DEFUN ("random", Frandom, Srandom, 0, 1, 0,
-  "Return a pseudo-random number.\n\
-All integers representable in Lisp are equally likely.\n\
-  On most systems, this is 28 bits' worth.\n\
-With positive integer argument N, return random number in interval [0,N).\n\
-With argument t, set the random number seed from the current time and pid.")
-  (n)
+       /* Return a pseudo-random number.
+All integers representable in Lisp are equally likely.
+  On most systems, this is 28 bits' worth.
+With positive integer argument N, return random number in interval [0,N).
+With argument t, set the random number seed from the current time and pid. */
+       (n))
      Lisp_Object n;
 {
   EMACS_INT val;
@@ -120,12 +121,12 @@ With argument t, set the random number seed from the current time and pid.")
 /* Random data-structure functions */
 
 DEFUN ("length", Flength, Slength, 1, 1, 0,
-  "Return the length of vector, list or string SEQUENCE.\n\
-A byte-code function object is also allowed.\n\
-If the string contains multibyte characters, this is not the necessarily\n\
-the number of bytes in the string; it is the number of characters.\n\
-To get the number of bytes, use `string-bytes'")
-  (sequence)
+       /* Return the length of vector, list or string SEQUENCE.
+A byte-code function object is also allowed.
+If the string contains multibyte characters, this is not the necessarily
+the number of bytes in the string; it is the number of characters.
+To get the number of bytes, use `string-bytes'. */
+       (sequence))
      register Lisp_Object sequence;
 {
   register Lisp_Object val;
@@ -177,11 +178,11 @@ To get the number of bytes, use `string-bytes'")
    since it must terminate.  */
 
 DEFUN ("safe-length", Fsafe_length, Ssafe_length, 1, 1, 0,
-  "Return the length of a list, but avoid error or infinite loop.\n\
-This function never gets an error.  If LIST is not really a list,\n\
-it returns 0.  If LIST is circular, it returns a finite value\n\
-which is at least the number of distinct elements.")
-  (list)
+       /* Return the length of a list, but avoid error or infinite loop.
+This function never gets an error.  If LIST is not really a list,
+it returns 0.  If LIST is circular, it returns a finite value
+which is at least the number of distinct elements. */
+       (list))
      Lisp_Object list;
 {
   Lisp_Object tail, halftail, length;
@@ -202,10 +203,10 @@ which is at least the number of distinct elements.")
   return length;
 }
 
-DEFUN ("string-bytes", Fstring_bytes, Sstring_bytes, 1, 1, 0,
-  "Return the number of bytes in STRING.\n\
-If STRING is a multibyte string, this is greater than the length of STRING.")
-  (string)
+DEFUN ("string-bytes", Fstring_bytes, Sstring_bytes, 1, 1, 0, 
+       /* Return the number of bytes in STRING.
+If STRING is a multibyte string, this is greater than the length of STRING. */
+       (string))
      Lisp_Object string;
 {
   CHECK_STRING (string, 1);
@@ -213,10 +214,10 @@ If STRING is a multibyte string, this is greater than the length of STRING.")
 }
 
 DEFUN ("string-equal", Fstring_equal, Sstring_equal, 2, 2, 0,
-  "Return t if two strings have identical contents.\n\
-Case is significant, but text properties are ignored.\n\
-Symbols are also allowed; their print names are used instead.")
-  (s1, s2)
+       /* Return t if two strings have identical contents.
+Case is significant, but text properties are ignored.
+Symbols are also allowed; their print names are used instead. */
+       (s1, s2))
      register Lisp_Object s1, s2;
 {
   if (SYMBOLP (s1))
@@ -235,20 +236,20 @@ Symbols are also allowed; their print names are used instead.")
 
 DEFUN ("compare-strings", Fcompare_strings,
        Scompare_strings, 6, 7, 0,
-  "Compare the contents of two strings, converting to multibyte if needed.\n\
-In string STR1, skip the first START1 characters and stop at END1.\n\
-In string STR2, skip the first START2 characters and stop at END2.\n\
-END1 and END2 default to the full lengths of the respective strings.\n\
-\n\
-Case is significant in this comparison if IGNORE-CASE is nil.\n\
-Unibyte strings are converted to multibyte for comparison.\n\
-\n\
-The value is t if the strings (or specified portions) match.\n\
-If string STR1 is less, the value is a negative number N;\n\
-  - 1 - N is the number of characters that match at the beginning.\n\
-If string STR1 is greater, the value is a positive number N;\n\
-  N - 1 is the number of characters that match at the beginning.")
-  (str1, start1, end1, str2, start2, end2, ignore_case)
+/* Compare the contents of two strings, converting to multibyte if needed.
+In string STR1, skip the first START1 characters and stop at END1.
+In string STR2, skip the first START2 characters and stop at END2.
+END1 and END2 default to the full lengths of the respective strings.
+
+Case is significant in this comparison if IGNORE-CASE is nil.
+Unibyte strings are converted to multibyte for comparison.
+
+The value is t if the strings (or specified portions) match.
+If string STR1 is less, the value is a negative number N;
+  - 1 - N is the number of characters that match at the beginning.
+If string STR1 is greater, the value is a positive number N;
+  N - 1 is the number of characters that match at the beginning. */
+       (str1, start1, end1, str2, start2, end2, ignore_case))
      Lisp_Object str1, start1, end1, start2, str2, end2, ignore_case;
 {
   register int end1_char, end2_char;
@@ -337,10 +338,10 @@ If string STR1 is greater, the value is a positive number N;\n\
 }
 
 DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
-  "Return t if first arg string is less than second in lexicographic order.\n\
-Case is significant.\n\
-Symbols are also allowed; their print names are used instead.")
-  (s1, s2)
+/* Return t if first arg string is less than second in lexicographic order.
+Case is significant.
+Symbols are also allowed; their print names are used instead. */
+       (s1, s2))
      register Lisp_Object s1, s2;
 {
   register int end;
@@ -408,11 +409,11 @@ concat3 (s1, s2, s3)
 }
 
 DEFUN ("append", Fappend, Sappend, 0, MANY, 0,
-  "Concatenate all the arguments and make the result a list.\n\
-The result is a list whose elements are the elements of all the arguments.\n\
-Each argument may be a list, vector or string.\n\
-The last argument is not copied, just used as the tail of the new list.")
-  (nargs, args)
+       /* Concatenate all the arguments and make the result a list.
+The result is a list whose elements are the elements of all the arguments.
+Each argument may be a list, vector or string.
+The last argument is not copied, just used as the tail of the new list. */
+       (nargs, args))
      int nargs;
      Lisp_Object *args;
 {
@@ -420,10 +421,10 @@ The last argument is not copied, just used as the tail of the new list.")
 }
 
 DEFUN ("concat", Fconcat, Sconcat, 0, MANY, 0,
-  "Concatenate all the arguments and make the result a string.\n\
-The result is a string whose elements are the elements of all the arguments.\n\
-Each argument may be a string or a list or vector of characters (integers).")
-  (nargs, args)
+       /* Concatenate all the arguments and make the result a string.
+The result is a string whose elements are the elements of all the arguments.
+Each argument may be a string or a list or vector of characters (integers). */
+       (nargs, args))
      int nargs;
      Lisp_Object *args;
 {
@@ -431,10 +432,10 @@ Each argument may be a string or a list or vector of characters (integers).")
 }
 
 DEFUN ("vconcat", Fvconcat, Svconcat, 0, MANY, 0,
-  "Concatenate all the arguments and make the result a vector.\n\
-The result is a vector whose elements are the elements of all the arguments.\n\
-Each argument may be a list, vector or string.")
-  (nargs, args)
+       /* Concatenate all the arguments and make the result a vector.
+The result is a vector whose elements are the elements of all the arguments.
+Each argument may be a list, vector or string. */
+       (nargs, args))
      int nargs;
      Lisp_Object *args;
 {
@@ -464,10 +465,10 @@ copy_sub_char_table (arg)
 
 
 DEFUN ("copy-sequence", Fcopy_sequence, Scopy_sequence, 1, 1, 0,
-  "Return a copy of a list, vector or string.\n\
-The elements of a list or vector are not copied; they are shared\n\
-with the original.")
-  (arg)
+       /* Return a copy of a list, vector or string.
+The elements of a list or vector are not copied; they are shared
+with the original. */
+       (arg))
      Lisp_Object arg;
 {
   if (NILP (arg)) return arg;
@@ -1053,10 +1054,10 @@ string_make_unibyte (string)
 
 DEFUN ("string-make-multibyte", Fstring_make_multibyte, Sstring_make_multibyte,
        1, 1, 0,
-  "Return the multibyte equivalent of STRING.\n\
-The function `unibyte-char-to-multibyte' is used to convert\n\
-each unibyte character to a multibyte character.")
-  (string)
+       /* Return the multibyte equivalent of STRING.
+The function `unibyte-char-to-multibyte' is used to convert
+each unibyte character to a multibyte character. */
+       (string))
      Lisp_Object string;
 {
   CHECK_STRING (string, 0);
@@ -1066,10 +1067,10 @@ each unibyte character to a multibyte character.")
 
 DEFUN ("string-make-unibyte", Fstring_make_unibyte, Sstring_make_unibyte,
        1, 1, 0,
-  "Return the unibyte equivalent of STRING.\n\
-Multibyte character codes are converted to unibyte\n\
-by using just the low 8 bits.")
-  (string)
+       /* Return the unibyte equivalent of STRING.
+Multibyte character codes are converted to unibyte
+by using just the low 8 bits. */
+       (string))
      Lisp_Object string;
 {
   CHECK_STRING (string, 0);
@@ -1079,13 +1080,13 @@ by using just the low 8 bits.")
 
 DEFUN ("string-as-unibyte", Fstring_as_unibyte, Sstring_as_unibyte,
        1, 1, 0,
-  "Return a unibyte string with the same individual bytes as STRING.\n\
-If STRING is unibyte, the result is STRING itself.\n\
-Otherwise it is a newly created string, with no text properties.\n\
-If STRING is multibyte and contains a character of charset\n\
-`eight-bit-control' or `eight-bit-graphic', it is converted to the\n\
-corresponding single byte.")
-  (string)
+       /* Return a unibyte string with the same individual bytes as STRING.
+If STRING is unibyte, the result is STRING itself.
+Otherwise it is a newly created string, with no text properties.
+If STRING is multibyte and contains a character of charset
+`eight-bit-control' or `eight-bit-graphic', it is converted to the
+corresponding single byte.  */
+       (string))
      Lisp_Object string;
 {
   CHECK_STRING (string, 0);
@@ -1105,13 +1106,13 @@ corresponding single byte.")
 
 DEFUN ("string-as-multibyte", Fstring_as_multibyte, Sstring_as_multibyte,
        1, 1, 0,
-  "Return a multibyte string with the same individual bytes as STRING.\n\
-If STRING is multibyte, the result is STRING itself.\n\
-Otherwise it is a newly created string, with no text properties.\n\
-If STRING is unibyte and contains an individual 8-bit byte (i.e. not\n\
-part of a multibyte form), it is converted to the corresponding\n\
-multibyte character of charset `eight-bit-control' or `eight-bit-graphic'.")
-  (string)
+/* Return a multibyte string with the same individual bytes as STRING.
+If STRING is multibyte, the result is STRING itself.
+Otherwise it is a newly created string, with no text properties.
+If STRING is unibyte and contains an individual 8-bit byte (i.e. not
+part of a multibyte form), it is converted to the corresponding
+multibyte character of charset `eight-bit-control' or `eight-bit-graphic'.  */
+       (string))
      Lisp_Object string;
 {
   CHECK_STRING (string, 0);
@@ -1137,13 +1138,13 @@ multibyte character of charset `eight-bit-control' or `eight-bit-graphic'.")
 }
 
 DEFUN ("copy-alist", Fcopy_alist, Scopy_alist, 1, 1, 0,
-  "Return a copy of ALIST.\n\
-This is an alist which represents the same mapping from objects to objects,\n\
-but does not share the alist structure with ALIST.\n\
-The objects mapped (cars and cdrs of elements of the alist)\n\
-are shared, however.\n\
-Elements of ALIST that are not conses are also shared.")
-  (alist)
+       /* Return a copy of ALIST.
+This is an alist which represents the same mapping from objects to objects,
+but does not share the alist structure with ALIST.
+The objects mapped (cars and cdrs of elements of the alist)
+are shared, however.
+Elements of ALIST that are not conses are also shared.  */
+       (alist))
      Lisp_Object alist;
 {
   register Lisp_Object tem;
@@ -1164,12 +1165,12 @@ Elements of ALIST that are not conses are also shared.")
 }
 
 DEFUN ("substring", Fsubstring, Ssubstring, 2, 3, 0,
-  "Return a substring of STRING, starting at index FROM and ending before TO.\n\
-TO may be nil or omitted; then the substring runs to the end of STRING.\n\
-If FROM or TO is negative, it counts from the end.\n\
-\n\
-This function allows vectors as well as strings.")
-  (string, from, to)
+/* Return a substring of STRING, starting at index FROM and ending before TO.
+TO may be nil or omitted; then the substring runs to the end of STRING.
+If FROM or TO is negative, it counts from the end.
+
+This function allows vectors as well as strings.  */
+       (string, from, to))
      Lisp_Object string;
      register Lisp_Object from, to;
 {
@@ -1276,8 +1277,8 @@ substring_both (string, from, from_byte, to, to_byte)
 }
 
 DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
-  "Take cdr N times on LIST, returns the result.")
-  (n, list)
+       /* Take cdr N times on LIST, returns the result.  */
+       (n, list))
      Lisp_Object n;
      register Lisp_Object list;
 {
@@ -1295,17 +1296,17 @@ DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
 }
 
 DEFUN ("nth", Fnth, Snth, 2, 2, 0,
-  "Return the Nth element of LIST.\n\
-N counts from zero.  If LIST is not that long, nil is returned.")
-  (n, list)
+       /* Return the Nth element of LIST.
+N counts from zero.  If LIST is not that long, nil is returned.  */
+       (n, list))
      Lisp_Object n, list;
 {
   return Fcar (Fnthcdr (n, list));
 }
 
 DEFUN ("elt", Felt, Selt, 2, 2, 0,
-  "Return element of SEQUENCE at index N.")
-  (sequence, n)
+       /* Return element of SEQUENCE at index N.  */
+       (sequence, n))
      register Lisp_Object sequence, n;
 {
   CHECK_NUMBER (n, 0);
@@ -1322,9 +1323,9 @@ DEFUN ("elt", Felt, Selt, 2, 2, 0,
 }
 
 DEFUN ("member", Fmember, Smember, 2, 2, 0,
-  "Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.\n\
-The value is actually the tail of LIST whose car is ELT.")
-  (elt, list)
+/* Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.
+The value is actually the tail of LIST whose car is ELT.  */
+       (elt, list))
      register Lisp_Object elt;
      Lisp_Object list;
 {
@@ -1343,10 +1344,10 @@ The value is actually the tail of LIST whose car is ELT.")
 }
 
 DEFUN ("memq", Fmemq, Smemq, 2, 2, 0,
-  "Return non-nil if ELT is an element of LIST.\n\
-Comparison done with EQ.  The value is actually the tail of LIST\n\
-whose car is ELT.")
-  (elt, list)
+       /* Return non-nil if ELT is an element of LIST.
+Comparison done with EQ.  The value is actually the tail of LIST
+whose car is ELT.  */
+       (elt, list))
      Lisp_Object elt, list;
 {
   while (1)
@@ -1373,10 +1374,10 @@ whose car is ELT.")
 }
 
 DEFUN ("assq", Fassq, Sassq, 2, 2, 0,
-  "Return non-nil if KEY is `eq' to the car of an element of LIST.\n\
-The value is actually the element of LIST whose car is KEY.\n\
-Elements of LIST that are not conses are ignored.")
-  (key, list)
+  /* Return non-nil if KEY is `eq' to the car of an element of LIST.
+The value is actually the element of LIST whose car is KEY.
+Elements of LIST that are not conses are ignored.  */
+       (key, list))
      Lisp_Object key, list;
 {
   Lisp_Object result;
@@ -1430,9 +1431,9 @@ assq_no_quit (key, list)
 }
 
 DEFUN ("assoc", Fassoc, Sassoc, 2, 2, 0,
-  "Return non-nil if KEY is `equal' to the car of an element of LIST.\n\
-The value is actually the element of LIST whose car equals KEY.")
-  (key, list)
+  /* Return non-nil if KEY is `equal' to the car of an element of LIST.
+The value is actually the element of LIST whose car equals KEY.  */
+       (key, list))
      Lisp_Object key, list;
 {
   Lisp_Object result, car;
@@ -1474,9 +1475,9 @@ The value is actually the element of LIST whose car equals KEY.")
 }
 
 DEFUN ("rassq", Frassq, Srassq, 2, 2, 0,
-  "Return non-nil if KEY is `eq' to the cdr of an element of LIST.\n\
-The value is actually the element of LIST whose cdr is KEY.")
-  (key, list)
+  /* Return non-nil if KEY is `eq' to the cdr of an element of LIST.
+The value is actually the element of LIST whose cdr is KEY.  */
+       (key, list))
      register Lisp_Object key;
      Lisp_Object list;
 {
@@ -1516,9 +1517,9 @@ The value is actually the element of LIST whose cdr is KEY.")
 }
 
 DEFUN ("rassoc", Frassoc, Srassoc, 2, 2, 0,
-  "Return non-nil if KEY is `equal' to the cdr of an element of LIST.\n\
-The value is actually the element of LIST whose cdr equals KEY.")
-  (key, list)
+  /* Return non-nil if KEY is `equal' to the cdr of an element of LIST.
+The value is actually the element of LIST whose cdr equals KEY.  */
+       (key, list))
      Lisp_Object key, list;
 {
   Lisp_Object result, cdr;
@@ -1560,12 +1561,12 @@ The value is actually the element of LIST whose cdr equals KEY.")
 }
 
 DEFUN ("delq", Fdelq, Sdelq, 2, 2, 0,
-  "Delete by side effect any occurrences of ELT as a member of LIST.\n\
-The modified LIST is returned.  Comparison is done with `eq'.\n\
-If the first member of LIST is ELT, there is no way to remove it by side effect;\n\
-therefore, write `(setq foo (delq element foo))'\n\
-to be sure of changing the value of `foo'.")
-  (elt, list)
+  /* Delete by side effect any occurrences of ELT as a member of LIST.
+The modified LIST is returned.  Comparison is done with `eq'.
+If the first member of LIST is ELT, there is no way to remove it by side effect;
+therefore, write `(setq foo (delq element foo))'
+to be sure of changing the value of `foo'.  */
+       (elt, list))
      register Lisp_Object elt;
      Lisp_Object list;
 {
@@ -1595,14 +1596,14 @@ to be sure of changing the value of `foo'.")
 }
 
 DEFUN ("delete", Fdelete, Sdelete, 2, 2, 0,
-  "Delete by side effect any occurrences of ELT as a member of SEQ.\n\
-SEQ must be a list, a vector, or a string.\n\
-The modified SEQ is returned.  Comparison is done with `equal'.\n\
-If SEQ is not a list, or the first member of SEQ is ELT, deleting it\n\
-is not a side effect; it is simply using a different sequence.\n\
-Therefore, write `(setq foo (delete element foo))'\n\
-to be sure of changing the value of `foo'.")
-  (elt, seq)
+  /* Delete by side effect any occurrences of ELT as a member of SEQ.
+SEQ must be a list, a vector, or a string.
+The modified SEQ is returned.  Comparison is done with `equal'.
+If SEQ is not a list, or the first member of SEQ is ELT, deleting it
+is not a side effect; it is simply using a different sequence.
+Therefore, write `(setq foo (delete element foo))'
+to be sure of changing the value of `foo'.  */
+       (elt, seq))
      Lisp_Object elt, seq;
 {
   if (VECTORP (seq))
@@ -1719,9 +1720,9 @@ to be sure of changing the value of `foo'.")
 }
 
 DEFUN ("nreverse", Fnreverse, Snreverse, 1, 1, 0,
-  "Reverse LIST by modifying cdr pointers.\n\
-Returns the beginning of the reversed list.")
-  (list)
+       /* Reverse LIST by modifying cdr pointers.
+Returns the beginning of the reversed list.  */
+       (list))
      Lisp_Object list;
 {
   register Lisp_Object prev, tail, next;
@@ -1743,9 +1744,9 @@ Returns the beginning of the reversed list.")
 }
 
 DEFUN ("reverse", Freverse, Sreverse, 1, 1, 0,
-  "Reverse LIST, copying.  Returns the beginning of the reversed list.\n\
-See also the function `nreverse', which is used more often.")
-  (list)
+  /* Reverse LIST, copying.  Returns the beginning of the reversed list.
+See also the function `nreverse', which is used more often.  */
+       (list))
      Lisp_Object list;
 {
   Lisp_Object new;
@@ -1760,11 +1761,11 @@ See also the function `nreverse', which is used more often.")
 Lisp_Object merge ();
 
 DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
-  "Sort LIST, stably, comparing elements using PREDICATE.\n\
-Returns the sorted list.  LIST is modified by side effects.\n\
-PREDICATE is called with two elements of LIST, and should return T\n\
-if the first element is \"less\" than the second.")
-  (list, predicate)
+  /* Sort LIST, stably, comparing elements using PREDICATE.
+Returns the sorted list.  LIST is modified by side effects.
+PREDICATE is called with two elements of LIST, and should return t
+if the first element is "less" than the second.  */
+       (list, predicate))
      Lisp_Object list, predicate;
 {
   Lisp_Object front, back;
@@ -1852,12 +1853,12 @@ merge (org_l1, org_l2, pred)
 
 
 DEFUN ("plist-get", Fplist_get, Splist_get, 2, 2, 0,
-  "Extract a value from a property list.\n\
-PLIST is a property list, which is a list of the form\n\
-\(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value\n\
-corresponding to the given PROP, or nil if PROP is not\n\
-one of the properties on the list.")
-  (plist, prop)
+  /* Extract a value from a property list.
+PLIST is a property list, which is a list of the form
+\(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
+corresponding to the given PROP, or nil if PROP is not
+one of the properties on the list.  */
+       (plist, prop))
      Lisp_Object plist;
      Lisp_Object prop;
 {
@@ -1883,9 +1884,9 @@ one of the properties on the list.")
 }
 
 DEFUN ("get", Fget, Sget, 2, 2, 0,
-  "Return the value of SYMBOL's PROPNAME property.\n\
-This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.")
-  (symbol, propname)
+  /* Return the value of SYMBOL's PROPNAME property.
+This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */
+       (symbol, propname))
      Lisp_Object symbol, propname;
 {
   CHECK_SYMBOL (symbol, 0);
@@ -1893,14 +1894,14 @@ This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.")
 }
 
 DEFUN ("plist-put", Fplist_put, Splist_put, 3, 3, 0,
-  "Change value in PLIST of PROP to VAL.\n\
-PLIST is a property list, which is a list of the form\n\
-\(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.\n\
-If PROP is already a property on the list, its value is set to VAL,\n\
-otherwise the new PROP VAL pair is added.  The new plist is returned;\n\
-use `(setq x (plist-put x prop val))' to be sure to use the new value.\n\
-The PLIST is modified by side effects.")
-  (plist, prop, val)
+  /* Change value in PLIST of PROP to VAL.
+PLIST is a property list, which is a list of the form
+\(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.
+If PROP is already a property on the list, its value is set to VAL,
+otherwise the new PROP VAL pair is added.  The new plist is returned;
+use `(setq x (plist-put x prop val))' to be sure to use the new value.
+The PLIST is modified by side effects.  */
+       (plist, prop, val))
      Lisp_Object plist;
      register Lisp_Object prop;
      Lisp_Object val;
@@ -1929,9 +1930,9 @@ The PLIST is modified by side effects.")
 }
 
 DEFUN ("put", Fput, Sput, 3, 3, 0,
-  "Store SYMBOL's PROPNAME property with value VALUE.\n\
-It can be retrieved with `(get SYMBOL PROPNAME)'.")
-  (symbol, propname, value)
+  /* Store SYMBOL's PROPNAME property with value VALUE.
+It can be retrieved with `(get SYMBOL PROPNAME)'.  */
+       (symbol, propname, value))
      Lisp_Object symbol, propname, value;
 {
   CHECK_SYMBOL (symbol, 0);
@@ -1941,14 +1942,14 @@ It can be retrieved with `(get SYMBOL PROPNAME)'.")
 }
 
 DEFUN ("equal", Fequal, Sequal, 2, 2, 0,
-  "Return t if two Lisp objects have similar structure and contents.\n\
-They must have the same data type.\n\
-Conses are compared by comparing the cars and the cdrs.\n\
-Vectors and strings are compared element by element.\n\
-Numbers are compared by value, but integers cannot equal floats.\n\
- (Use `=' if you want integers and floats to be able to be equal.)\n\
-Symbols must match exactly.")
-  (o1, o2)
+  /* Return t if two Lisp objects have similar structure and contents.
+They must have the same data type.
+Conses are compared by comparing the cars and the cdrs.
+Vectors and strings are compared element by element.
+Numbers are compared by value, but integers cannot equal floats.
+ (Use `=' if you want integers and floats to be able to be equal.)
+Symbols must match exactly.  */
+       (o1, o2))
      register Lisp_Object o1, o2;
 {
   return internal_equal (o1, o2, 0) ? Qt : Qnil;
@@ -2070,9 +2071,9 @@ internal_equal (o1, o2, depth)
 extern Lisp_Object Fmake_char_internal ();
 
 DEFUN ("fillarray", Ffillarray, Sfillarray, 2, 2, 0,
-  "Store each element of ARRAY with ITEM.\n\
-ARRAY is a vector, string, char-table, or bool-vector.")
-  (array, item)
+  /* Store each element of ARRAY with ITEM.
+ARRAY is a vector, string, char-table, or bool-vector.  */
+       (array, item))
      Lisp_Object array, item;
 {
   register int size, index, charval;
@@ -2141,8 +2142,8 @@ ARRAY is a vector, string, char-table, or bool-vector.")
 
 DEFUN ("char-table-subtype", Fchar_table_subtype, Schar_table_subtype,
        1, 1, 0,
-  "Return the subtype of char-table CHAR-TABLE.   The value is a symbol.")
-  (char_table)
+  /* Return the subtype of char-table CHAR-TABLE.  The value is a symbol.  */
+       (char_table))
      Lisp_Object char_table;
 {
   CHECK_CHAR_TABLE (char_table, 0);
@@ -2152,12 +2153,12 @@ DEFUN ("char-table-subtype", Fchar_table_subtype, Schar_table_subtype,
 
 DEFUN ("char-table-parent", Fchar_table_parent, Schar_table_parent,
        1, 1, 0,
-  "Return the parent char-table of CHAR-TABLE.\n\
-The value is either nil or another char-table.\n\
-If CHAR-TABLE holds nil for a given character,\n\
-then the actual applicable value is inherited from the parent char-table\n\
-\(or from its parents, if necessary).")
-  (char_table)
+  /* Return the parent char-table of CHAR-TABLE.
+The value is either nil or another char-table.
+If CHAR-TABLE holds nil for a given character,
+then the actual applicable value is inherited from the parent char-table
+\(or from its parents, if necessary).  */
+       (char_table))
      Lisp_Object char_table;
 {
   CHECK_CHAR_TABLE (char_table, 0);
@@ -2167,9 +2168,9 @@ then the actual applicable value is inherited from the parent char-table\n\
 
 DEFUN ("set-char-table-parent", Fset_char_table_parent, Sset_char_table_parent,
        2, 2, 0,
-  "Set the parent char-table of CHAR-TABLE to PARENT.\n\
-PARENT must be either nil or another char-table.")
-  (char_table, parent)
+  /* Set the parent char-table of CHAR-TABLE to PARENT.
+PARENT must be either nil or another char-table.  */
+       (char_table, parent))
      Lisp_Object char_table, parent;
 {
   Lisp_Object temp;
@@ -2192,8 +2193,8 @@ PARENT must be either nil or another char-table.")
 
 DEFUN ("char-table-extra-slot", Fchar_table_extra_slot, Schar_table_extra_slot,
        2, 2, 0,
-  "Return the value of CHAR-TABLE's extra-slot number N.")
-  (char_table, n)
+       /* Return the value of CHAR-TABLE's extra-slot number N.  */
+       (char_table, n))
      Lisp_Object char_table, n;
 {
   CHECK_CHAR_TABLE (char_table, 1);
@@ -2208,8 +2209,8 @@ DEFUN ("char-table-extra-slot", Fchar_table_extra_slot, Schar_table_extra_slot,
 DEFUN ("set-char-table-extra-slot", Fset_char_table_extra_slot,
        Sset_char_table_extra_slot,
        3, 3, 0,
-  "Set CHAR-TABLE's extra-slot number N to VALUE.")
-  (char_table, n, value)
+       /* Set CHAR-TABLE's extra-slot number N to VALUE.  */
+       (char_table, n, value))
      Lisp_Object char_table, n, value;
 {
   CHECK_CHAR_TABLE (char_table, 1);
@@ -2223,11 +2224,11 @@ DEFUN ("set-char-table-extra-slot", Fset_char_table_extra_slot,
 
 DEFUN ("char-table-range", Fchar_table_range, Schar_table_range,
        2, 2, 0,
-  "Return the value in CHAR-TABLE for a range of characters RANGE.\n\
-RANGE should be nil (for the default value)\n\
-a vector which identifies a character set or a row of a character set,\n\
-a character set name, or a character code.")
-  (char_table, range)
+  /* Return the value in CHAR-TABLE for a range of characters RANGE.
+RANGE should be nil (for the default value)
+a vector which identifies a character set or a row of a character set,
+a character set name, or a character code.  */
+       (char_table, range))
      Lisp_Object char_table, range;
 {
   CHECK_CHAR_TABLE (char_table, 0);
@@ -2269,11 +2270,11 @@ a character set name, or a character code.")
 
 DEFUN ("set-char-table-range", Fset_char_table_range, Sset_char_table_range,
        3, 3, 0,
-  "Set the value in CHAR-TABLE for a range of characters RANGE to VALUE.\n\
-RANGE should be t (for all characters), nil (for the default value)\n\
-a vector which identifies a character set or a row of a character set,\n\
-a coding system, or a character code.")
-  (char_table, range, value)
+  /* Set the value in CHAR-TABLE for a range of characters RANGE to VALUE.
+RANGE should be t (for all characters), nil (for the default value)
+a vector which identifies a character set or a row of a character set,
+a coding system, or a character code.  */
+       (char_table, range, value))
      Lisp_Object char_table, range, value;
 {
   int i;
@@ -2323,10 +2324,10 @@ a coding system, or a character code.")
 
 DEFUN ("set-char-table-default", Fset_char_table_default,
        Sset_char_table_default, 3, 3, 0,
-  "Set the default value in CHAR-TABLE for a generic character CHAR to VALUE.\n\
-The generic character specifies the group of characters.\n\
-See also the documentation of make-char.")
-  (char_table, ch, value)
+  /* Set the default value in CHAR-TABLE for a generic character CHAR to VALUE.
+The generic character specifies the group of characters.
+See also the documentation of make-char.  */
+       (char_table, ch, value))
      Lisp_Object char_table, ch, value;
 {
   int c, charset, code1, code2;
@@ -2414,8 +2415,8 @@ optimize_sub_char_table (table, chars)
 
 DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
        1, 1, 0,
-  "Optimize char table TABLE.")
-  (table)
+       /* Optimize char table TABLE.  */
+       (table))
      Lisp_Object table;
 {
   Lisp_Object elt;
@@ -2521,11 +2522,11 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
 }
 
 DEFUN ("map-char-table", Fmap_char_table, Smap_char_table,
-  2, 2, 0,
-  "Call FUNCTION for each (normal and generic) characters in CHAR-TABLE.\n\
-FUNCTION is called with two arguments--a key and a value.\n\
-The key is always a possible IDX argument to `aref'.")
-  (function, char_table)
+       2, 2, 0,
+  /* Call FUNCTION for each (normal and generic) characters in CHAR-TABLE.
+FUNCTION is called with two arguments--a key and a value.
+The key is always a possible IDX argument to `aref'.  */
+       (function, char_table))
      Lisp_Object function, char_table;
 {
   /* The depth of char table is at most 3. */
@@ -2588,9 +2589,9 @@ nconc2 (s1, s2)
 }
 
 DEFUN ("nconc", Fnconc, Snconc, 0, MANY, 0,
-  "Concatenate any number of lists by altering them.\n\
-Only the last argument is not altered, and need not be a list.")
-  (nargs, args)
+       /* Concatenate any number of lists by altering them.
+Only the last argument is not altered, and need not be a list.  */
+       (nargs, args))
      int nargs;
      Lisp_Object *args;
 {
@@ -2717,11 +2718,11 @@ mapcar1 (leni, vals, fn, seq)
 }
 
 DEFUN ("mapconcat", Fmapconcat, Smapconcat, 3, 3, 0,
-  "Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.\n\
-In between each pair of results, stick in SEPARATOR.  Thus, \" \" as\n\
-SEPARATOR results in spaces between the values returned by FUNCTION.\n\
-SEQUENCE may be a list, a vector, a bool-vector, or a string.")
-  (function, sequence, separator)
+  /* Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
+In between each pair of results, stick in SEPARATOR.  Thus, "" as
+SEPARATOR results in spaces between the values returned by FUNCTION.
+SEQUENCE may be a list, a vector, a bool-vector, or a string.  */
+       (function, sequence, separator))
      Lisp_Object function, sequence, separator;
 {
   Lisp_Object len;
@@ -2752,10 +2753,10 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.")
 }
 
 DEFUN ("mapcar", Fmapcar, Smapcar, 2, 2, 0,
-  "Apply FUNCTION to each element of SEQUENCE, and make a list of the results.\n\
-The result is a list just as long as SEQUENCE.\n\
-SEQUENCE may be a list, a vector, a bool-vector, or a string.")
-  (function, sequence)
+  /* Apply FUNCTION to each element of SEQUENCE, and make a list of the results.
+The result is a list just as long as SEQUENCE.
+SEQUENCE may be a list, a vector, a bool-vector, or a string.  */
+       (function, sequence))
      Lisp_Object function, sequence;
 {
   register Lisp_Object len;
@@ -2772,10 +2773,10 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.")
 }
 
 DEFUN ("mapc", Fmapc, Smapc, 2, 2, 0,
-  "Apply FUNCTION to each element of SEQUENCE for side effects only.\n\
-Unlike `mapcar', don't accumulate the results.  Return SEQUENCE.\n\
-SEQUENCE may be a list, a vector, a bool-vector, or a string.")
-  (function, sequence)
+  /* Apply FUNCTION to each element of SEQUENCE for side effects only.
+Unlike `mapcar', don't accumulate the results.  Return SEQUENCE.
+SEQUENCE may be a list, a vector, a bool-vector, or a string.  */
+       (function, sequence))
      Lisp_Object function, sequence;
 {
   register int leni;
@@ -2789,18 +2790,18 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.")
 /* Anything that calls this function must protect from GC!  */
 
 DEFUN ("y-or-n-p", Fy_or_n_p, Sy_or_n_p, 1, 1, 0,
-  "Ask user a \"y or n\" question.  Return t if answer is \"y\".\n\
-Takes one argument, which is the string to display to ask the question.\n\
-It should end in a space; `y-or-n-p' adds `(y or n) ' to it.\n\
-No confirmation of the answer is requested; a single character is enough.\n\
-Also accepts Space to mean yes, or Delete to mean no.  \(Actually, it uses\n\
-the bindings in `query-replace-map'; see the documentation of that variable\n\
-for more information.  In this case, the useful bindings are `act', `skip',\n\
-`recenter', and `quit'.\)\n\
-\n\
-Under a windowing system a dialog box will be used if `last-nonmenu-event'\n\
-is nil and `use-dialog-box' is non-nil.")
-  (prompt)
+  /* Ask user a "y or n" question.  Return t if answer is "y".
+Takes one argument, which is the string to display to ask the question.
+It should end in a space; `y-or-n-p' adds `(y or n) ' to it.
+No confirmation of the answer is requested; a single character is enough.
+Also accepts Space to mean yes, or Delete to mean no.  \(Actually, it uses
+the bindings in `query-replace-map'; see the documentation of that variable
+for more information.  In this case, the useful bindings are `act', `skip',
+`recenter', and `quit'.\)
+
+Under a windowing system a dialog box will be used if `last-nonmenu-event'
+is nil and `use-dialog-box' is non-nil.  */
+       (prompt))
      Lisp_Object prompt;
 {
   register Lisp_Object obj, key, def, map;
@@ -2929,15 +2930,15 @@ do_yes_or_no_p (prompt)
 /* Anything that calls this function must protect from GC!  */
 
 DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, 1, 0,
-  "Ask user a yes-or-no question.  Return t if answer is yes.\n\
-Takes one argument, which is the string to display to ask the question.\n\
-It should end in a space; `yes-or-no-p' adds `(yes or no) ' to it.\n\
-The user must confirm the answer with RET,\n\
-and can edit it until it has been confirmed.\n\
-\n\
-Under a windowing system a dialog box will be used if `last-nonmenu-event'\n\
-is nil, and `use-dialog-box' is non-nil.")
-  (prompt)
+  /* Ask user a yes-or-no question.  Return t if answer is yes.
+Takes one argument, which is the string to display to ask the question.
+It should end in a space; `yes-or-no-p' adds `(yes or no) ' to it.
+The user must confirm the answer with RET,
+and can edit it until it has been confirmed.
+
+Under a windowing system a dialog box will be used if `last-nonmenu-event'
+is nil, and `use-dialog-box' is non-nil.  */
+       (prompt))
      Lisp_Object prompt;
 {
   register Lisp_Object ans;
@@ -2994,14 +2995,17 @@ is nil, and `use-dialog-box' is non-nil.")
 }
 
 DEFUN ("load-average", Fload_average, Sload_average, 0, 1, 0,
-  "Return list of 1 minute, 5 minute and 15 minute load averages.\n\
-Each of the three load averages is multiplied by 100,\n\
-then converted to integer.\n\
-When USE-FLOATS is non-nil, floats will be used instead of integers.\n\
-These floats are not multiplied by 100.\n\n\
-If the 5-minute or 15-minute load averages are not available, return a\n\
-shortened list, containing only those averages which are available.")
-  (use_floats)
+  /* Return list of 1 minute, 5 minute and 15 minute load averages.
+     
+Each of the three load averages is multiplied by 100, then converted
+to integer.
+
+When USE-FLOATS is non-nil, floats will be used instead of integers.
+These floats are not multiplied by 100.
+
+If the 5-minute or 15-minute load averages are not available, return a
+shortened list, containing only those averages which are available.  */
+       (use_floats))
      Lisp_Object use_floats;
 {
   double load_ave[3];
@@ -3025,14 +3029,14 @@ shortened list, containing only those averages which are available.")
 Lisp_Object Vfeatures, Qsubfeatures, Vafter_load_alist;
 
 DEFUN ("featurep", Ffeaturep, Sfeaturep, 1, 2, 0,
-  "Returns t if FEATURE is present in this Emacs.\n\
-Use this to conditionalize execution of lisp code based on the presence or\n\
-absence of emacs or environment extensions.\n\
-Use `provide' to declare that a feature is available.\n\
-This function looks at the value of the variable `features'.\n\
-The optional argument SUBFEATURE can be used to check a specific\n\
-subfeature of FEATURE.")
-  (feature, subfeature)
+  /* Returns t if FEATURE is present in this Emacs.
+     
+Use this to conditionalize execution of lisp code based on the
+presence or absence of emacs or environment extensions.
+Use `provide' to declare that a feature is available.  This function
+looks at the value of the variable `features'.  The optional argument
+SUBFEATURE can be used to check a specific subfeature of FEATURE.  */
+       (feature, subfeature))
      Lisp_Object feature, subfeature;
 {
   register Lisp_Object tem;
@@ -3044,10 +3048,10 @@ subfeature of FEATURE.")
 }
 
 DEFUN ("provide", Fprovide, Sprovide, 1, 2, 0,
-  "Announce that FEATURE is a feature of the current Emacs.\n\
-The optional argument SUBFEATURES should be a list of symbols listing\n\
-particular subfeatures supported in this version of FEATURE.")
-  (feature, subfeatures)
+  /* Announce that FEATURE is a feature of the current Emacs.
+The optional argument SUBFEATURES should be a list of symbols listing
+particular subfeatures supported in this version of FEATURE.  */
+       (feature, subfeatures))
      Lisp_Object feature, subfeatures;
 {
   register Lisp_Object tem;
@@ -3070,17 +3074,17 @@ particular subfeatures supported in this version of FEATURE.")
 }
 
 DEFUN ("require", Frequire, Srequire, 1, 3, 0,
-  "If feature FEATURE is not loaded, load it from FILENAME.\n\
-If FEATURE is not a member of the list `features', then the feature\n\
-is not loaded; so load the file FILENAME.\n\
-If FILENAME is omitted, the printname of FEATURE is used as the file name,\n\
-and `load' will try to load this name appended with the suffix `.elc',\n\
-`.el' or the unmodified name, in that order.\n\
-If the optional third argument NOERROR is non-nil,\n\
-then return nil if the file is not found instead of signaling an error.\n\
-Normally the return value is FEATURE.\n\
-The normal messages at start and end of loading FILENAME are suppressed.")
-  (feature, filename, noerror)
+  /* If feature FEATURE is not loaded, load it from FILENAME.
+If FEATURE is not a member of the list `features', then the feature
+is not loaded; so load the file FILENAME.
+If FILENAME is omitted, the printname of FEATURE is used as the file name,
+and `load' will try to load this name appended with the suffix `.elc',
+`.el' or the unmodified name, in that order.
+If the optional third argument NOERROR is non-nil,
+then return nil if the file is not found instead of signaling an error.
+Normally the return value is FEATURE.
+The normal messages at start and end of loading FILENAME are suppressed.  */
+       (feature, filename, noerror))
      Lisp_Object feature, filename, noerror;
 {
   register Lisp_Object tem;
@@ -3123,13 +3127,13 @@ The normal messages at start and end of loading FILENAME are suppressed.")
    for the sole reason of efficiency.  */
 
 DEFUN ("plist-member", Fplist_member, Splist_member, 2, 2, 0,
-  "Return non-nil if PLIST has the property PROP.\n\
-PLIST is a property list, which is a list of the form\n\
-\(PROP1 VALUE1 PROP2 VALUE2 ...\).  PROP is a symbol.\n\
-Unlike `plist-get', this allows you to distinguish between a missing\n\
-property and a property with the value nil.\n\
-The value is actually the tail of PLIST whose car is PROP.")
-  (plist, prop)
+  /* Return non-nil if PLIST has the property PROP.
+PLIST is a property list, which is a list of the form
+\(PROP1 VALUE1 PROP2 VALUE2 ...\).  PROP is a symbol.
+Unlike `plist-get', this allows you to distinguish between a missing
+property and a property with the value nil.
+The value is actually the tail of PLIST whose car is PROP.  */
+       (plist, prop))
      Lisp_Object plist, prop;
 {
   while (CONSP (plist) && !EQ (XCAR (plist), prop))
@@ -3142,9 +3146,9 @@ The value is actually the tail of PLIST whose car is PROP.")
 }
 
 DEFUN ("widget-put", Fwidget_put, Swidget_put, 3, 3, 0,
-  "In WIDGET, set PROPERTY to VALUE.\n\
-The value can later be retrieved with `widget-get'.")
-  (widget, property, value)
+  /* In WIDGET, set PROPERTY to VALUE.
+The value can later be retrieved with `widget-get'.  */
+       (widget, property, value))
      Lisp_Object widget, property, value;
 {
   CHECK_CONS (widget, 1);
@@ -3153,10 +3157,10 @@ The value can later be retrieved with `widget-get'.")
 }
 
 DEFUN ("widget-get", Fwidget_get, Swidget_get, 2, 2, 0,
-  "In WIDGET, get the value of PROPERTY.\n\
-The value could either be specified when the widget was created, or\n\
-later with `widget-put'.")
-  (widget, property)
+  /* In WIDGET, get the value of PROPERTY.
+The value could either be specified when the widget was created, or
+later with `widget-put'.  */
+       (widget, property))
      Lisp_Object widget, property;
 {
   Lisp_Object tmp;
@@ -3180,9 +3184,9 @@ later with `widget-put'.")
 }
 
 DEFUN ("widget-apply", Fwidget_apply, Swidget_apply, 2, MANY, 0,
-  "Apply the value of WIDGET's PROPERTY to the widget itself.\n\
-ARGS are passed as extra arguments to the function.")
-  (nargs, args)
+  /* Apply the value of WIDGET's PROPERTY to the widget itself.
+ARGS are passed as extra arguments to the function.  */
+       (nargs, args))
      int nargs;
      Lisp_Object *args;
 {
@@ -3287,11 +3291,11 @@ static int base64_decode_1 P_ ((const char *, char *, int, int, int *));
 
 DEFUN ("base64-encode-region", Fbase64_encode_region, Sbase64_encode_region,
        2, 3, "r",
-       "Base64-encode the region between BEG and END.\n\
-Return the length of the encoded text.\n\
-Optional third argument NO-LINE-BREAK means do not break long lines\n\
-into shorter lines.")
-     (beg, end, no_line_break)
+       /* Base64-encode the region between BEG and END.
+Return the length of the encoded text.
+Optional third argument NO-LINE-BREAK means do not break long lines
+into shorter lines.  */
+       (beg, end, no_line_break))
      Lisp_Object beg, end, no_line_break;
 {
   char *encoded;
@@ -3352,10 +3356,10 @@ into shorter lines.")
 
 DEFUN ("base64-encode-string", Fbase64_encode_string, Sbase64_encode_string,
        1, 2, 0,
-       "Base64-encode STRING and return the result.\n\
-Optional second argument NO-LINE-BREAK means do not break long lines\n\
-into shorter lines.")
-     (string, no_line_break)
+       /* Base64-encode STRING and return the result.
+Optional second argument NO-LINE-BREAK means do not break long lines
+into shorter lines.  */
+       (string, no_line_break))
      Lisp_Object string, no_line_break;
 {
   int allength, length, encoded_length;
@@ -3493,11 +3497,11 @@ base64_encode_1 (from, to, length, line_break, multibyte)
 
 
 DEFUN ("base64-decode-region", Fbase64_decode_region, Sbase64_decode_region,
-  2, 2, "r",
-  "Base64-decode the region between BEG and END.\n\
-Return the length of the decoded text.\n\
-If the region can't be decoded, signal an error and don't modify the buffer.")
-     (beg, end)
+       2, 2, "r",
+       /* Base64-decode the region between BEG and END.
+Return the length of the decoded text.
+If the region can't be decoded, signal an error and don't modify the buffer.  */
+       (beg, end))
      Lisp_Object beg, end;
 {
   int ibeg, iend, length, allength;
@@ -3560,8 +3564,8 @@ If the region can't be decoded, signal an error and don't modify the buffer.")
 
 DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
        1, 1, 0,
-  "Base64-decode STRING and return the result.")
-  (string)
+       /* Base64-decode STRING and return the result.  */
+       (string))
      Lisp_Object string;
 {
   char *decoded;
@@ -4664,8 +4668,8 @@ sxhash (obj, depth)
 
 
 DEFUN ("sxhash", Fsxhash, Ssxhash, 1, 1, 0,
-  "Compute a hash code for OBJ and return it as integer.")
-  (obj)
+       /* Compute a hash code for OBJ and return it as integer.  */
+       (obj))
      Lisp_Object obj;
 {
   unsigned hash = sxhash (obj, 0);;
@@ -4674,34 +4678,36 @@ DEFUN ("sxhash", Fsxhash, Ssxhash, 1, 1, 0,
 
 
 DEFUN ("make-hash-table", Fmake_hash_table, Smake_hash_table, 0, MANY, 0,
-  "Create and return a new hash table.\n\
-Arguments are specified as keyword/argument pairs.  The following\n\
-arguments are defined:\n\
-\n\
-:test TEST -- TEST must be a symbol that specifies how to compare keys.\n\
-Default is `eql'.  Predefined are the tests `eq', `eql', and `equal'.\n\
-User-supplied test and hash functions can be specified via\n\
-`define-hash-table-test'.\n\
-\n\
-:size SIZE -- A hint as to how many elements will be put in the table.\n\
-Default is 65.\n\
-\n\
-:rehash-size REHASH-SIZE - Indicates how to expand the table when\n\
-it fills up.  If REHASH-SIZE is an integer, add that many space.\n\
-If it is a float, it must be > 1.0, and the new size is computed by\n\
-multiplying the old size with that factor.  Default is 1.5.\n\
-\n\
-:rehash-threshold THRESHOLD -- THRESHOLD must a float > 0, and <= 1.0.\n\
-Resize the hash table when ratio of the number of entries in the table.\n\
-Default is 0.8.\n\
-\n\
-:weakness WEAK -- WEAK must be one of nil, t, `key', `value',\n\
-`key-or-value', or `key-and-value'.  If WEAK is not nil, the table returned\n\
-is a weak table.  Key/value pairs are removed from a weak hash table when\n\
-there are no non-weak references pointing to their key, value, one of key\n\
-or value, or both key and value, depending on WEAK.  WEAK t is equivalent\n\
-to `key-and-value'.  Default value of WEAK is nil.")
-  (nargs, args)
+       /* Create and return a new hash table.
+	  
+Arguments are specified as keyword/argument pairs.  The following
+arguments are defined:
+
+:test TEST -- TEST must be a symbol that specifies how to compare
+keys.  Default is `eql'.  Predefined are the tests `eq', `eql', and
+`equal'.  User-supplied test and hash functions can be specified via
+`define-hash-table-test'.
+
+:size SIZE -- A hint as to how many elements will be put in the table.
+Default is 65.
+
+:rehash-size REHASH-SIZE - Indicates how to expand the table when it
+fills up.  If REHASH-SIZE is an integer, add that many space.  If it
+is a float, it must be > 1.0, and the new size is computed by
+multiplying the old size with that factor.  Default is 1.5.
+
+:rehash-threshold THRESHOLD -- THRESHOLD must a float > 0, and <= 1.0.
+Resize the hash table when ratio of the number of entries in the
+table.  Default is 0.8.
+
+:weakness WEAK -- WEAK must be one of nil, t, `key', `value',
+`key-or-value', or `key-and-value'.  If WEAK is not nil, the table
+returned is a weak table.  Key/value pairs are removed from a weak
+hash table when there are no non-weak references pointing to their
+key, value, one of key or value, or both key and value, depending on
+WEAK.  WEAK t is equivalent to `key-and-value'.  Default value of WEAK
+is nil.  */
+       (nargs, args))
      int nargs;
      Lisp_Object *args;
 {
@@ -4786,8 +4792,8 @@ to `key-and-value'.  Default value of WEAK is nil.")
 
 
 DEFUN ("copy-hash-table", Fcopy_hash_table, Scopy_hash_table, 1, 1, 0,
-       "Return a copy of hash table TABLE.")
-  (table)
+       /* Return a copy of hash table TABLE.  */
+       (table))
      Lisp_Object table;
 {
   return copy_hash_table (check_hash_table (table));
@@ -4795,11 +4801,12 @@ DEFUN ("copy-hash-table", Fcopy_hash_table, Scopy_hash_table, 1, 1, 0,
 
 
 DEFUN ("makehash", Fmakehash, Smakehash, 0, 1, 0,
-       "Create a new hash table.\n\
-Optional first argument TEST specifies how to compare keys in\n\
-the table.  Predefined tests are `eq', `eql', and `equal'.  Default\n\
-is `eql'.  New tests can be defined with `define-hash-table-test'.")
-  (test)
+       /* Create a new hash table.
+	  
+Optional first argument TEST specifies how to compare keys in the
+table.  Predefined tests are `eq', `eql', and `equal'.  Default is
+`eql'.  New tests can be defined with `define-hash-table-test'.  */
+       (test))
      Lisp_Object test;
 {
   Lisp_Object args[2];
@@ -4810,9 +4817,9 @@ is `eql'.  New tests can be defined with `define-hash-table-test'.")
 
 
 DEFUN ("hash-table-count", Fhash_table_count, Shash_table_count, 1, 1, 0,
-  "Return the number of elements in TABLE.")
-  (table)
-       Lisp_Object table;
+       /* Return the number of elements in TABLE.  */
+       (table))
+     Lisp_Object table;
 {
   return check_hash_table (table)->count;
 }
@@ -4820,9 +4827,9 @@ DEFUN ("hash-table-count", Fhash_table_count, Shash_table_count, 1, 1, 0,
 
 DEFUN ("hash-table-rehash-size", Fhash_table_rehash_size,
        Shash_table_rehash_size, 1, 1, 0,
-  "Return the current rehash size of TABLE.")
-  (table)
-       Lisp_Object table;
+       /* Return the current rehash size of TABLE.  */
+       (table))
+     Lisp_Object table;
 {
   return check_hash_table (table)->rehash_size;
 }
@@ -4830,20 +4837,20 @@ DEFUN ("hash-table-rehash-size", Fhash_table_rehash_size,
 
 DEFUN ("hash-table-rehash-threshold", Fhash_table_rehash_threshold,
        Shash_table_rehash_threshold, 1, 1, 0,
-  "Return the current rehash threshold of TABLE.")
-  (table)
-       Lisp_Object table;
+       /* Return the current rehash threshold of TABLE.  */
+       (table))
+     Lisp_Object table;
 {
   return check_hash_table (table)->rehash_threshold;
 }
 
 
 DEFUN ("hash-table-size", Fhash_table_size, Shash_table_size, 1, 1, 0,
-  "Return the size of TABLE.\n\
-The size can be used as an argument to `make-hash-table' to create\n\
-a hash table than can hold as many elements of TABLE holds\n\
-without need for resizing.")
-  (table)
+       /* Return the size of TABLE.
+The size can be used as an argument to `make-hash-table' to create
+a hash table than can hold as many elements of TABLE holds
+without need for resizing.  */
+       (table))
        Lisp_Object table;
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
@@ -4852,9 +4859,9 @@ without need for resizing.")
 
 
 DEFUN ("hash-table-test", Fhash_table_test, Shash_table_test, 1, 1, 0,
-  "Return the test TABLE uses.")
-  (table)
-       Lisp_Object table;
+       /* Return the test TABLE uses.  */
+       (table))
+     Lisp_Object table;
 {
   return check_hash_table (table)->test;
 }
@@ -4862,17 +4869,17 @@ DEFUN ("hash-table-test", Fhash_table_test, Shash_table_test, 1, 1, 0,
 
 DEFUN ("hash-table-weakness", Fhash_table_weakness, Shash_table_weakness,
        1, 1, 0,
-  "Return the weakness of TABLE.")
-  (table)
-       Lisp_Object table;
+       /* Return the weakness of TABLE.  */
+       (table))
+     Lisp_Object table;
 {
   return check_hash_table (table)->weak;
 }
 
 
 DEFUN ("hash-table-p", Fhash_table_p, Shash_table_p, 1, 1, 0,
-  "Return t if OBJ is a Lisp hash table object.")
-  (obj)
+       /* Return t if OBJ is a Lisp hash table object.  */
+       (obj))
      Lisp_Object obj;
 {
   return HASH_TABLE_P (obj) ? Qt : Qnil;
@@ -4880,8 +4887,8 @@ DEFUN ("hash-table-p", Fhash_table_p, Shash_table_p, 1, 1, 0,
 
 
 DEFUN ("clrhash", Fclrhash, Sclrhash, 1, 1, 0,
-  "Clear hash table TABLE.")
-  (table)
+       /* Clear hash table TABLE.  */
+       (table))
      Lisp_Object table;
 {
   hash_clear (check_hash_table (table));
@@ -4890,9 +4897,9 @@ DEFUN ("clrhash", Fclrhash, Sclrhash, 1, 1, 0,
 
 
 DEFUN ("gethash", Fgethash, Sgethash, 2, 3, 0,
-  "Look up KEY in TABLE and return its associated value.\n\
-If KEY is not found, return DFLT which defaults to nil.")
-  (key, table, dflt)
+       /* Look up KEY in TABLE and return its associated value.
+If KEY is not found, return DFLT which defaults to nil.  */
+       (key, table, dflt))
      Lisp_Object key, table, dflt;
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
@@ -4902,10 +4909,10 @@ If KEY is not found, return DFLT which defaults to nil.")
 
 
 DEFUN ("puthash", Fputhash, Sputhash, 3, 3, 0,
-  "Associate KEY with VALUE in hash table TABLE.\n\
-If KEY is already present in table, replace its current value with\n\
-VALUE.")
-  (key, value, table)
+       /* Associate KEY with VALUE in hash table TABLE.
+If KEY is already present in table, replace its current value with
+VALUE.  */
+       (key, value, table))
      Lisp_Object key, value, table;
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
@@ -4923,8 +4930,8 @@ VALUE.")
 
 
 DEFUN ("remhash", Fremhash, Sremhash, 2, 2, 0,
-  "Remove KEY from TABLE.")
-  (key, table)
+       /* Remove KEY from TABLE.  */
+       (key, table))
      Lisp_Object key, table;
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
@@ -4934,9 +4941,9 @@ DEFUN ("remhash", Fremhash, Sremhash, 2, 2, 0,
 
 
 DEFUN ("maphash", Fmaphash, Smaphash, 2, 2, 0,
-  "Call FUNCTION for all entries in hash table TABLE.\n\
-FUNCTION is called with 2 arguments KEY and VALUE.")
-  (function, table)
+       /* Call FUNCTION for all entries in hash table TABLE.
+FUNCTION is called with 2 arguments KEY and VALUE.  */
+       (function, table))
      Lisp_Object function, table;
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
@@ -4958,16 +4965,17 @@ FUNCTION is called with 2 arguments KEY and VALUE.")
 
 DEFUN ("define-hash-table-test", Fdefine_hash_table_test,
        Sdefine_hash_table_test, 3, 3, 0,
-  "Define a new hash table test with name NAME, a symbol.\n\
-In hash tables create with NAME specified as test, use TEST to compare\n\
-keys, and HASH for computing hash codes of keys.\n\
-\n\
-TEST must be a function taking two arguments and returning non-nil\n\
-if both arguments are the same.   HASH must be a function taking\n\
-one argument and return an integer that is the hash code of the\n\
-argument.  Hash code computation should use the whole value range of\n\
-integers, including negative integers.")
-  (name, test, hash)
+       /* Define a new hash table test with name NAME, a symbol.
+	  
+In hash tables created with NAME specified as test, use TEST to
+compare keys, and HASH for computing hash codes of keys.
+
+TEST must be a function taking two arguments and returning non-nil if
+both arguments are the same.  HASH must be a function taking one
+argument and return an integer that is the hash code of the argument.
+Hash code computation should use the whole value range of integers,
+including negative integers.  */
+       (name, test, hash))
      Lisp_Object name, test, hash;
 {
   return Fput (name, Qhash_table_test, list2 (test, hash));
@@ -4983,32 +4991,33 @@ integers, including negative integers.")
 #include "coding.h"
 
 DEFUN ("md5", Fmd5, Smd5, 1, 5, 0,
-  "Return MD5 message digest of OBJECT, a buffer or string.\n\
-A message digest is a cryptographic checksum of a document,\n\
-and the algorithm to calculate it is defined in RFC 1321.\n\
-\n\
-The two optional arguments START and END are character positions\n\
-specifying for which part of OBJECT the message digest should be computed.\n\
-If nil or omitted, the digest is computed for the whole OBJECT.\n\
-\n\
-The MD5 message digest is computed from the result of encoding the\n\
-text in a coding system, not directly from the internal Emacs form\n\
-of the text.  The optional fourth argument CODING-SYSTEM specifies\n\
-which coding system to encode the text with.  It should be the same\n\
-coding system that you used or will use when actually writing the text\n\
-into a file.\n\
-\n\
-If CODING-SYSTEM is nil or omitted, the default depends on OBJECT.\n\
-If OBJECT is a buffer, the default for CODING-SYSTEM is whatever\n\
-coding system would be chosen by default for writing this text\n\
-into a file.\n\
-\n\
-If OBJECT is a string, the most preferred coding system (see the\n\
-command `prefer-coding-system') is used.\n\
-\n\
-If NOERROR is non-nil, silently assume the `raw-text' coding if the\n\
-guesswork fails.  Normally, an error is signaled in such case.")
-  (object, start, end, coding_system, noerror)
+       /* Return MD5 message digest of OBJECT, a buffer or string.
+	  
+A message digest is a cryptographic checksum of a document, and the
+algorithm to calculate it is defined in RFC 1321.
+
+The two optional arguments START and END are character positions
+specifying for which part of OBJECT the message digest should be
+computed.  If nil or omitted, the digest is computed for the whole
+OBJECT.
+
+The MD5 message digest is computed from the result of encoding the
+text in a coding system, not directly from the internal Emacs form of
+the text.  The optional fourth argument CODING-SYSTEM specifies which
+coding system to encode the text with.  It should be the same coding
+system that you used or will use when actually writing the text into a
+file.
+
+If CODING-SYSTEM is nil or omitted, the default depends on OBJECT.  If
+OBJECT is a buffer, the default for CODING-SYSTEM is whatever coding
+system would be chosen by default for writing this text into a file.
+
+If OBJECT is a string, the most preferred coding system (see the
+command `prefer-coding-system') is used.
+
+If NOERROR is non-nil, silently assume the `raw-text' coding if the
+guesswork fails.  Normally, an error is signaled in such case.  */
+       (object, start, end, coding_system, noerror))
      Lisp_Object object, start, end, coding_system, noerror;
 {
   unsigned char digest[16];
@@ -5263,17 +5272,17 @@ syms_of_fns ()
 
   Fset (Qyes_or_no_p_history, Qnil);
 
-  DEFVAR_LISP ("features", &Vfeatures,
-    "A list of symbols which are the features of the executing emacs.\n\
-Used by `featurep' and `require', and altered by `provide'.");
+  DEFVAR_LISP ("features", &Vfeatures
+    /* A list of symbols which are the features of the executing emacs.
+Used by `featurep' and `require', and altered by `provide'.  */);
   Vfeatures = Qnil;
   Qsubfeatures = intern ("subfeatures");
   staticpro (&Qsubfeatures);
 
-  DEFVAR_BOOL ("use-dialog-box", &use_dialog_box,
-    "*Non-nil means mouse commands use dialog boxes to ask questions.\n\
-This applies to y-or-n and yes-or-no questions asked by commands\n\
-invoked by mouse clicks and mouse menu items.");
+  DEFVAR_BOOL ("use-dialog-box", &use_dialog_box
+    /* *Non-nil means mouse commands use dialog boxes to ask questions.
+This applies to y-or-n and yes-or-no questions asked by commands
+invoked by mouse clicks and mouse menu items.  */);
   use_dialog_box = 1;
 
   defsubr (&Sidentity);
