@@ -186,9 +186,14 @@ frame's parameter list, like this:
 * Underlines appear at the wrong position.
 
 This is caused by fonts having a wrong UNDERLINE_POSITION property.
-An example is the font 7x13 on XFree prior to version 4.1.  To
-circumvent this problem, set x-use-underline-position-properties to
-nil in your .emacs.
+Examples are the font 7x13 on XFree prior to version 4.1, or the jmk
+neep font from the Debian xfonts-jmk package.  To circumvent this
+problem, set x-use-underline-position-properties to nil in your
+`.emacs'.
+
+To see what is the value of UNDERLINE_POSITION defined by the font,
+type `xlsfonts -lll FONT' and look at the font's UNDERLINE_POSITION
+property.
 
 * When using Xaw3d scroll bars without arrows, the very first mouse
 click in a scroll bar might be ignored by the scroll bar widget.  This
