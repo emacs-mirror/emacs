@@ -3889,7 +3889,7 @@ Automatically becomes buffer-local when set in any fashion.");
 
   DEFVAR_PER_BUFFER ("ctl-arrow", &current_buffer->ctl_arrow, Qnil,
     "*Non-nil means display control chars with uparrow.\n\
-Nil means use backslash and octal digits.\n\
+A value of nil means use backslash and octal digits.\n\
 Automatically becomes buffer-local when set in any fashion.\n\
 This variable does not apply to characters whose display is specified\n\
 in the current display table (if there is one).");
