@@ -1,6 +1,6 @@
 ;;; calc.el --- the GNU Emacs calculator
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Colin Walters <walters@debian.org>
@@ -2076,7 +2076,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	(setq last-command-char (upcase last-command-char)))
     (cond
      ((memq last-command-char '(?_ ?n))
-      (goto-char (point-min))
+      (goto-char (minibuffer-prompt-end))
       (if (and (search-forward " +/- " nil t)
 	       (not (search-forward "e" nil t)))
 	  (beep)
