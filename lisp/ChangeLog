@@ -1,3 +1,11 @@
+2004-10-21  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (calc-alg-ent-map, calc-alg-ent-esc-map):
+	Declared these variables with defvar.
+
+	* calc/calc-aent.el (calc-do-alg-entry): Since `calc-alg-ent-map'
+	is bound, only check to see if it is bound.
+
 2004-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* calc/calc-help.el (calc-describe-bindings): Fix last change.
