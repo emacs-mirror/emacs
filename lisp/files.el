@@ -3453,7 +3453,9 @@ PATTERN that already quotes some of the special characters."
 		(concat (substring pattern 0 (match-beginning 0))
 			"\\"
 			(substring pattern (match-beginning 0)))
-		beg (1+ (match-end 0)))))))))
+		beg (1+ (match-end 0)))))
+      pattern))))
+  
 
 (defvar insert-directory-program "ls"
   "Absolute or relative name of the `ls' program used by `insert-directory'.")
