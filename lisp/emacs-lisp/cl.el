@@ -218,14 +218,6 @@ Keywords supported:  :test :test-not :key"
 ;;; These macros are so simple and so often-used that it's better to have
 ;;; them all the time than to load them from cl-macs.el.
 
-(defmacro when (cond &rest body)
-  "(when COND BODY...): if COND yields non-nil, do BODY, else return nil."
-  (list 'if cond (cons 'progn body)))
-
-(defmacro unless (cond &rest body)
-  "(unless COND BODY...): if COND yields nil, do BODY, else return nil."
-  (cons 'if (cons cond (cons nil body))))
-
 (defun cl-map-extents (&rest cl-args)
   (if (fboundp 'next-overlay-at) (apply 'cl-map-overlays cl-args)
     (if (fboundp 'map-extents) (apply 'map-extents cl-args))))
