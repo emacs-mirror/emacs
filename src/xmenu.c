@@ -132,9 +132,9 @@ be the return value for that line (i.e. if it is selected).")
     }
   else
     {
-      tem = EVENT_START (position);
-      window = POSN_WINDOW (tem);
-      tem = POSN_WINDOW_POSN (tem);
+      tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
+      window = Fcar (tem);	     /* POSN_WINDOW (tem) */
+      tem = Fcar (Fcdr (Fcdr (tem))); /* POSN_WINDOW_POSN (tem) */
       x = Fcar (tem);
       y = Fcdr (tem);
     }
