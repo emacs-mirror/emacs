@@ -64,13 +64,19 @@ Emacs once a day at most---or once a week if you never log out---the
 extra time is not too severe a problem.
 
 @cindex @file{site-load.el}
+
   You can specify additional files to preload by writing a library named
-@file{site-load.el} that loads them.  You may need to increase the value
-of @code{PURESIZE}, in @file{src/puresize.h}, to make room for the
-additional data.  (Try adding increments of 20000 until it is big
-enough.)  However, the advantage of preloading additional files
-decreases as machines get faster.  On modern machines, it is usually not
-advisable.
+@file{site-load.el} that loads them.  You may need to add a definition
+
+@example
+#define SITELOAD_PURESIZE_EXTRA @var{n}
+@end example
+
+@noindent
+to make @var{n} added bytes of pure space to hold the additional files.
+(Try adding increments of 20000 until it is big enough.)  However, the
+advantage of preloading additional files decreases as machines get
+faster.  On modern machines, it is usually not advisable.
 
   After @file{loadup.el} reads @file{site-load.el}, it finds the
 documentation strings for primitive and preloaded functions (and
@@ -208,6 +214,8 @@ matter what the Lisp program or the user does, it is impossible to refer
 to them, since there is no longer a way to reach them.  Their space
 might as well be reused, since no one will miss them.  The second
 (``sweep'') phase of the garbage collector arranges to reuse them.
+
+??? Maybe add something describing weak hash tables here?
 
 @cindex free list
   The sweep phase puts unused cons cells onto a @dfn{free list}
@@ -433,7 +441,7 @@ If all args return nil, return nil.")
 @end group
 
 @group
-  if (NULL (args))
+  if (NILP (args))
     return Qnil;
 
   args_left = args;
@@ -444,11 +452,11 @@ If all args return nil, return nil.")
   do
     @{
       val = Feval (Fcar (args_left));
-      if (!NULL (val))
+      if (!NILP (val))
         break;
       args_left = Fcdr (args_left);
     @}
-  while (!NULL (args_left));
+  while (!NILP (args_left));
 @end group
 
 @group
@@ -726,14 +734,128 @@ explicitly using a suitable predicate (@pxref{Type Predicates}).
 We describe them here, naming them by the names used in the C code.
 Many are accessible indirectly in Lisp programs via Lisp primitives.
 
-@table @code
-@item name
-The buffer name is a string that names the buffer.  It is guaranteed to
-be unique.  @xref{Buffer Names}.
+Two structures are used to represent buffers in C.  The
+@code{buffer_text} structure contains fields describing the text of a
+buffer; the @code{buffer} structure holds other fields.  In the case
+of indirect buffers, two or more @code{buffer} structures reference
+the same @code{buffer_text} structure.
 
-@item save_modified
-This field contains the time when the buffer was last saved, as an integer.
-@xref{Buffer Modification}.
+Here is a list of the @code{struct buffer_text} fields:
+
+@table @code
+@item beg
+This field contains the Actual address of the buffer contents.
+
+@item got
+This holds the character position of the gap in the buffer.
+
+@item z
+This field contains the character position of the end of the buffer
+text.
+
+@item gpt_byte
+Contains the byte position of the gap.
+
+@item z_byte
+Holds the byte position of the end of the buffer text.
+
+@item gap_size
+Contains the size of buffer's gap.
+
+@item modiff
+This field counts buffer-modification events for this buffer.  It is
+incremented for each such event, and never otherwise changed.
+
+@item save_modiff
+Contains the previous value of @code{modiff}, as of the last time a
+buffer was visited or saved in a file.
+    
+@item overlay_modiff
+Counts modifications to overlays analogous to @code{modiff}.
+       
+@item beg_unchanged
+Holds the number of characters at the start of the text that are known
+to be unchanged since the last redisplay that finished.
+    
+@item end_unchanged
+Holds the number of characters at the end of the text that are known to
+be unchanged since the last redisplay that finished.
+    
+@item unchanged_modified
+Contains the value of @code{modiff} at the time of the last redisplay
+that finished.  If this value matches @code{modiff},
+@code{beg_unchanged} and @code{end_unchanged} contain no useful
+information.
+    
+@item overlay_unchanged_modified
+Contains the value of @code{overlay_modiff} at the time of the last
+redisplay that finished.  If this value matches @code{overlay_modiff},
+@code{beg_unchanged} and @code{end_unchanged} contain no useful
+information.
+       
+@item markers
+The markers that refer to this buffer.  This is actually a single
+marker, and successive elements in its marker @code{chain} are the other
+markers referring to this buffer text.
+
+@item intervals
+Contains the interval tree which records the text properties of this
+buffer.
+@end table
+
+The fields of @code{struct buffer} are:
+
+@table @code
+@item next
+Points to the next buffer, in the chain of all buffers including killed
+buffers.  This chain is used only for garbage collection, in order to
+collect killed buffers properly.  Note that vectors, and most kinds of
+objects allocated as vectors, are all on one chain, but buffers are on a
+separate chain of their own.
+
+@item own_text
+This is a @code{struct buffer_text} structure.  In an ordinary buffer,
+it holds the buffer contents.  In indirect buffers, this field is not
+used.
+
+@item text
+This points to the @code{buffer_text} structure that is used for this
+buffer.  In an ordinary buffer, this is the @code{own_text} field above.
+In an indirect buffer, this is the @code{own_text} field of the base
+buffer.
+
+@item pt
+Contains the character position of point in a buffer.
+
+@item pt_byte
+Contains the byte position of point in a buffer.
+
+@item begv
+This field contains the character position of the beginning of the 
+accessible range of text in the buffer.
+
+@item begv_byte
+This field contains the byte position of the beginning of the 
+accessible range of text in the buffer.
+
+@item zv
+This field contains the character position of the end of the 
+accessible range of text in the buffer.
+
+@item zv_byte
+This field contains the byte position of the end of the 
+accessible range of text in the buffer.
+
+@item base_buffer
+In an indirect buffer, this points to the base buffer.  In an ordinary
+buffer, it is null.
+
+@item local_var_flags
+This field contains flags indicating that certain variables are local in
+this buffer.  Such variables are declared in the C code using
+@code{DEFVAR_PER_BUFFER}, and their buffer-local bindings are stored in
+fields in the buffer structure itself.  (Some of these fields are
+described in this table.)
 
 @item modtime
 This field contains the modification time of the visited file.  It is
@@ -744,15 +866,97 @@ if the file has changed on disk.  @xref{Buffer Modification}.
 @item auto_save_modified
 This field contains the time when the buffer was last auto-saved.
 
+@item auto_save_failure_time
+The time at which we detected a failure to auto-save, or -1 if we didn't
+have a failure.
+
 @item last_window_start
 This field contains the @code{window-start} position in the buffer as of
 the last time the buffer was displayed in a window.
 
+@item clip_changed
+This flag is set when narrowing changes in a buffer.
+
+@item prevent_redisplay_optimizations_p
+A flag indicating the redisplay optiomizations should not be used 
+to display this buffer.
+
 @item undo_list
 This field points to the buffer's undo list.  @xref{Undo}.
 
-@item syntax_table_v
+@item name
+The buffer name is a string that names the buffer.  It is guaranteed to
+be unique.  @xref{Buffer Names}.
+
+@item filename
+The name of the file visited in this buffer, or @code{nil}.
+ 
+@item directory
+The directory for expanding relative file names.
+
+@item save_length
+Length of the file this buffer is visiting, when last read or saved.
+This and other fields concerned with saving are not kept in the
+@code{buffer_text} structure because indirect buffers are never saved.
+
+@item auto_save_file_name
+File name used for auto-saving this buffer.  This is not in the 
+@code{buffer_text} because it's not used in indirect buffers at all.
+
+@item read_only
+Non-@code{nil} means this buffer is read-only.
+
+@item mark
+This field contains the mark for the buffer.  The mark is a marker,
+hence it is also included on the list @code{markers}.  @xref{The Mark}.
+
+@item local_var_alist
+This field contains the association list describing the buffer-local
+variable bindings of this buffer, not including the built-in
+buffer-local bindings that have special slots in the buffer object.
+(Those slots are omitted from this table.)  @xref{Buffer-Local
+Variables}.
+
+@item major_mode
+Symbol naming the major mode of this buffer, e.g., @code{lisp-mode}.
+
+@item mode_name
+Pretty name of major mode, e.g., @code{"Lisp"}.
+
+@item mode_line_format
+Mode line element that controls the format of the mode line.  If this
+is @code{nil}, no mode line will be displayed.
+
+@item header_line_format
+This field is analoguous to @code{mode_line_format} for the mode 
+line displayed at the top of windows.
+
+@item keymap
+This field holds the buffer's local keymap.  @xref{Keymaps}.
+
+@item abbrev_table
+This buffer's local abbrevs.
+
+@item syntax_table
 This field contains the syntax table for the buffer.  @xref{Syntax Tables}.
+
+@item category_table
+This field contains the category table for the buffer.
+
+@item case_fold_search
+The value of @code{case-fold-search} in this buffer.
+
+@item tab_width
+The value of @code{tab-width} in this buffer.
+
+@item fill_column
+The value of @code{fill-column} in this buffer.
+
+@item left_margin
+The value of @code{left-margin} in this buffer.
+
+@item auto_fill_function
+The value of @code{auto-fill-function} in this buffer.
 
 @item downcase_table
 This field contains the conversion table for converting text to lower case.
@@ -770,43 +974,37 @@ case-folding search.  @xref{Case Tables}.
 This field contains the equivalence table for case-folding search.
 @xref{Case Tables}.
 
+@item truncate_lines
+The value of @code{truncate-lines} in this buffer.
+
+@item ctl_arrow
+The value of @code{ctl-arrow} in this buffer.
+
+@item selective_display
+The value of @code{selective-display} in this buffer.
+
+@item selective_display_ellipsis
+The value of @code{selective-display-ellipsis} in this buffer.
+
+@item minor_modes
+An alist of the minor modes of this buffer.
+
+@item overwrite_mode
+The value of @code{overwrite_mode} in this buffer.
+
+@item abbrev_mode
+The value of @code{abbrev-mode} in this buffer.
+
 @item display_table
 This field contains the buffer's display table, or @code{nil} if it doesn't
 have one.  @xref{Display Tables}.
 
-@item markers
-This field contains the chain of all markers that currently point into
-the buffer.  Deletion of text in the buffer, and motion of the buffer's
-gap, must check each of these markers and perhaps update it.
-@xref{Markers}.
-
-@item backed_up
-This field is a flag that tells whether a backup file has been made
-for the visited file of this buffer.
-
-@item mark
-This field contains the mark for the buffer.  The mark is a marker,
-hence it is also included on the list @code{markers}.  @xref{The Mark}.
+@item save_modified
+This field contains the time when the buffer was last saved, as an integer.
+@xref{Buffer Modification}.
 
 @item mark_active
 This field is non-@code{nil} if the buffer's mark is active.
-
-@item local_var_alist
-This field contains the association list describing the buffer-local
-variable bindings of this buffer, not including the built-in
-buffer-local bindings that have special slots in the buffer object.
-(Those slots are omitted from this table.)  @xref{Buffer-Local
-Variables}.
-
-@item base_buffer
-This field holds the buffer's base buffer (if it is an indirect buffer),
-or @code{nil}.
-
-@item keymap
-This field holds the buffer's local keymap.  @xref{Keymaps}.
-
-@item overlay_center
-This field holds the current overlay center position.  @xref{Overlays}.
 
 @item overlays_before
 This field holds a list of the overlays in this buffer that end at or
@@ -818,9 +1016,66 @@ This field holds a list of the overlays in this buffer that end after
 the current overlay center position.  They are sorted in order of
 increasing beginning position.
 
+@item overlay_center
+This field holds the current overlay center position.  @xref{Overlays}.
+
 @item enable_multibyte_characters
 This field holds the buffer's local value of
 @code{enable-multibyte-characters}---either @code{t} or @code{nil}.
+
+@item buffer_file_coding_system
+The value of @code{buffer-file-coding-system} in this buffer.
+
+@item file_format
+The value of @code{buffer-file-format} in this buffer.
+
+@item pt_marker
+In an indirect buffer, or a buffer that is the base of an indirect
+buffer, this holds a marker that records point for this buffer when the
+buffer is not current.
+
+@item begv_marker
+In an indirect buffer, or a buffer that is the base of an indirect
+buffer, this holds a marker that records @code{begv} for this buffer
+when the buffer is not current.
+ 
+@item zv_marker
+In an indirect buffer, or a buffer that is the base of an indirect
+buffer, this holds a marker that records @code{zv} for this buffer when
+the buffer is not current.
+
+@item file_truename
+The truename of the visited file, or @code{nil}.
+
+@item invisibility_spec
+The value of @code{buffer-invisibility-spec} in this buffer.
+
+@item last_selected_window
+This is the last window that was selected with this buffer in it, or @code{nil}
+if that window no longer displays this buffer.
+
+@item display_count
+This field is incremented each time the buffer is displayed in a window.
+
+@item left_margin_width
+The value of @code{left-margin-width} in this buffer.
+
+@item right_margin_width
+The value of @code{right-margin-width} in this buffer.
+
+@item indicate_empty_lines
+Non-@code{nil} means indicate empty lines (lines with no text) with a
+small bitmap in the fringe, when using a window system that can do it.
+
+@item display_time
+This holds a time stamp that is updated each time this buffer is
+displayed in a window.
+
+@item scroll_up_aggressively
+The value of @code{scroll-up-aggressively} in this buffer.
+ 
+@item scroll_down_aggressively
+The value of @code{scroll-down-aggressively} in this buffer.
 @end table
 
 @node Window Internals
@@ -837,36 +1092,33 @@ The frame that this window is on.
 @item mini_p
 Non-@code{nil} if this window is a minibuffer window.
 
-@item buffer
-The buffer that the window is displaying.  This may change often during
-the life of the window.
+@item parent
+Internally, Emacs arranges windows in a tree; each group of siblings has
+a parent window whose area includes all the siblings.  This field points
+to a window's parent.
 
-@item dedicated
-Non-@code{nil} if this window is dedicated to its buffer.
+Parent windows do not display buffers, and play little role in display
+except to shape their child windows.  Emacs Lisp programs usually have
+no access to the parent windows; they operate on the windows at the
+leaves of the tree, which actually display buffers.
 
-@item pointm
-@cindex window point internals
-This is the value of point in the current buffer when this window is
-selected; when it is not selected, it retains its previous value.
+The following four fields also describe the window tree structure.
 
-@item start
-The position in the buffer that is the first character to be displayed
-in the window.
+@item hchild
+In a window subdivided horizontally by child windows, the leftmost child.
+Otherwise, @code{nil}.
 
-@item force_start
-If this flag is non-@code{nil}, it says that the window has been
-scrolled explicitly by the Lisp program.  This affects what the next
-redisplay does if point is off the screen: instead of scrolling the
-window to show the text around point, it moves point to a location that
-is on the screen.
+@item vchild
+In a window subdivided vertically by child windows, the topmost child.
+Otherwise, @code{nil}.
 
-@item last_modified
-The @code{modified} field of the window's buffer, as of the last time
-a redisplay completed in this window.
+@item next
+The next sibling of this window.  It is @code{nil} in a window that is
+the rightmost or bottommost of a group of siblings.
 
-@item last_point
-The buffer's value of point, as of the last time
-a redisplay completed in this window.
+@item prev
+The previous sibling of this window.  It is @code{nil} in a window that
+is the leftmost or topmost of a group of siblings.
 
 @item left
 This is the left-hand edge of the window, measured in columns.  (The
@@ -884,33 +1136,153 @@ The width of the window, measured in columns.  This width includes the
 scroll bar and fringes, and/or the separator line on the right of the
 window (if any).
 
-@item next
-This is the window that is the next in the chain of siblings.  It is
-@code{nil} in a window that is the rightmost or bottommost of a group of
-siblings.
+@item buffer
+The buffer that the window is displaying.  This may change often during
+the life of the window.
 
-@item prev
-This is the window that is the previous in the chain of siblings.  It is
-@code{nil} in a window that is the leftmost or topmost of a group of
-siblings.
+@item start
+The position in the buffer that is the first character to be displayed
+in the window.
 
-@item parent
-Internally, Emacs arranges windows in a tree; each group of siblings has
-a parent window whose area includes all the siblings.  This field points
-to a window's parent.
+@item pointm
+@cindex window point internals
+This is the value of point in the current buffer when this window is
+selected; when it is not selected, it retains its previous value.
 
-Parent windows do not display buffers, and play little role in display
-except to shape their child windows.  Emacs Lisp programs usually have
-no access to the parent windows; they operate on the windows at the
-leaves of the tree, which actually display buffers.
+@item force_start
+If this flag is non-@code{nil}, it says that the window has been
+scrolled explicitly by the Lisp program.  This affects what the next
+redisplay does if point is off the screen: instead of scrolling the
+window to show the text around point, it moves point to a location that
+is on the screen.
 
-@item hscroll
-This is the number of columns that the display in the window is scrolled
-horizontally to the left.  Normally, this is 0.
+@item optional_new_start
+Set to a non-@code{nil} value when we have explicitly changed the value of
+@code{start}, but don't want the next redisplay to be obliged to use the
+new value.
+
+@item frozen_window_start_p
+This field is set temporarily to 1 to indicate to redisplay that 
+@code{start} of this window should not be changed, even if point
+gets invisible.
+
+@item start_at_line_beg
+Non-@code{nil} means current value of @code{start} was the beginning of a line
+when it was chosen.
+
+@item too_small_ok
+Non-@code{nil} means don't delete this window for becoming ``too small''.
+
+@item height_fixed_p
+This field is temporarily set to 1 to fix the height of the selected
+window when the echo area is resized.
 
 @item use_time
 This is the last time that the window was selected.  The function
 @code{get-lru-window} uses this field.
+
+@item sequence_number
+A unique number assigned to this window when it was created.
+
+@item last_modified
+The @code{modiff} field of the window's buffer, as of the last time
+a redisplay completed in this window.
+
+@item last_overlay_modified
+The @code{overlay_modiff} field of the window's buffer, as of the last
+time a redisplay completed in this window.
+
+@item last_point
+The buffer's value of point, as of the last time a redisplay completed
+in this window.
+
+@item last_had_star
+A non-@code{nil} value means the window's buffer was ``modified'' when the
+window was last updated.
+
+@item vertical_scroll_bar
+This window's vertical scroll bar.
+
+@item left_margin_width
+The width of the left margin in this window, or @code{nil} not to
+specify it (in which case the buffer's value of @code{left-margin-width}
+is used.
+
+@item right_margin_width
+Likewise for the right margin.
+
+@begin ignore
+@item last_mark_x
+@item last_mark_y
+???Not used.
+@end ignore
+
+@item window_end_pos
+This is computed as @code{z} minus the buffer position of the last glyph
+in the current matrix of the window.  The value is only valid if
+@code{window_end_valid} is not @code{nil}.
+
+@item window_end_bytepos
+The byte position corresponding to @code{window_end_pos}.
+
+@item window_end_vpos
+The window-relative vertical position of the line containing
+@code{window_end_pos}.
+
+@item window_end_valid
+This field is set to a non-@code{nil} value if @code{window_end_pos} is truly
+valid.  This is @code{nil} if nontrivial redisplay is preempted since in that
+case the display that @code{window_end_pos} was computed for did not get
+onto the screen.
+
+@item redisplay_end_trigger
+If redisplay in this window goes beyond this buffer position, it runs
+run the @code{redisplay-end-trigger-hook}.
+
+@begin ignore
+@item orig_height
+@item orig_top
+??? Are temporary storage areas.
+@end ignore
+
+@item cursor
+A structure describing where the cursor is in this window.
+
+@item last_cursor
+The value of @code{cursor} as of the last redisplay that finished.
+
+@item phys_cursor
+A structure describing where the cursor of this window physically is.
+
+@item phys_cursor_type
+The type of cursor that was last displayed on this window.
+
+@item phys_cursor_on_p
+This field is non-zero if the cursor is physically on.
+
+@item cursor_off_p
+Non-zero means the cursor in this window is logically on.
+
+@item last_cursor_off_p
+This field contains the value of @code{cursor_off_p} as of the time of
+the last redisplay.
+
+@item must_be_updated_p
+This is set to 1 during redisplay when this window must be updated.
+
+@item pseudo_window_p
+A non-zero value of this field means this is a window that is not
+part of the normal window tree.
+ 
+@item hscroll
+This is the number of columns that the display in the window is scrolled
+horizontally to the left.  Normally, this is 0.
+
+@item vscroll
+Vertical scroll amount, in pixels.  Normally, this is 0.
+
+@item dedicated
+Non-@code{nil} if this window is dedicated to its buffer.
 
 @item display_table
 The window's display table, or @code{nil} if none is specified for it.
@@ -930,6 +1302,16 @@ The position in the buffer for which the line number is known, or
 If the region (or part of it) is highlighted in this window, this field
 holds the mark position that made one end of that region.  Otherwise,
 this field is @code{nil}.
+
+@item column_number_displayed
+The column number currently displayed in this window's mode line, or @code{nil}
+if column numbers are not being displayed.
+
+@item current_matrix
+A glyph matrix describing the current display of this window.
+
+@item desired_matrix
+A glyph matrix describing the desired display of this window.
 @end table
 
 @node Process Internals
@@ -1005,4 +1387,26 @@ some systems, there is no need to record this, so the value is
 @item tty_name
 The name of the terminal that the subprocess is using,
 or @code{nil} if it is using pipes.
+
+@item decode_coding_system
+Coding-system for decoding the input from this process.
+
+@item decoding_buf
+A working buffer for decoding.
+
+@item decoding_carryover
+Size of carryover in decoding.
+
+@item encode_coding_system
+Coding-system for encoding the output to this process.
+
+@item encoding_buf
+A working buffer for enecoding.
+
+@item encoding_carryover
+Size of carryover in encoding.
+
+@item inherit_coding_system_flag
+Flag to set @code{coding-system} of the process buffer from the
+coding system used to decode process output.
 @end table
