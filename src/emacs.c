@@ -995,6 +995,8 @@ struct standard_args standard_args[] =
   { "-vb", "--vertical-scroll-bars", 5, 0 },
   /* These have the same priority as ordinary file name args,
      so they are not reordered with respect to those.  */
+  { "-L", "--directory", 0, 1 },
+  { "-directory", 0, 0, 1 },
   { "-l", "--load", 0, 1 },
   { "-load", 0, 0, 1 },
   { "-f", "--funcall", 0, 1 },
