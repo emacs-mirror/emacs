@@ -2871,10 +2871,12 @@ for first matching file."
 	    (if ido-xemacs 
 		;; XEmacs extents are put on by default, doesn't seem to be
 		;; any way of switching them off.
-		(display-completion-list completion-list
-					 :help-string "ido "
-					 :activate-callback 
-					 '(lambda (x y z) (message "doesn't work yet, sorry!")))
+		;; This obscure code avoids a byte compiler warning in GNU emacs.
+		(let ((f 'display-completion-list))
+		  (funcall f completion-list
+			   :help-string "ido "
+			   :activate-callback 
+			   '(lambda (x y z) (message "doesn't work yet, sorry!"))))
 	      ;; else running Emacs
 	      ;;(add-hook 'completion-setup-hook 'completion-setup-function)
 	      (display-completion-list completion-list)))))))
