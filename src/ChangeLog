@@ -29,6 +29,8 @@
 	(encode_char): Adjusted for the change of Funify_charset.  Fix
 	detecting of invalid code.
 	(Fset_charset_priority): Increment charset_ordered_list_tick.
+	(Fmap_charset_chars): Fix handling of default value for FROM_CODE
+	and TO_CODE.
 
 	* coding.c (LEADING_CODE_PRIVATE_11, LEADING_CODE_PRIVATE_12,
 	LEADING_CODE_PRIVATE_21, LEADING_CODE_PRIVATE_22): Macros
