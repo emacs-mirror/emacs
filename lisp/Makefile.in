@@ -121,6 +121,11 @@ update-subdirs: doit
 
 updates: update-subdirs autoloads finder-data custom-deps
 
+# Update the AUTHORS file.
+
+update-authors:
+	EMACSLOADPATH=$(lisp) $(emacs) -f batch-update-authors $(srcdir)/AUTHORS $(srcdir)
+
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
 	${ETAGS} $(lisptagsfiles1) $(lisptagsfiles2)
 
