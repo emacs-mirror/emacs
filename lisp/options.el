@@ -37,9 +37,6 @@
 (defun list-options ()
   "Display a list of Emacs user options, with values and documentation."
   (interactive)
-  (save-excursion
-    (set-buffer (get-buffer-create "*List Options*"))
-    (Edit-options-mode))
   (with-output-to-temp-buffer "*List Options*"
     (let (vars)
       (mapatoms (function (lambda (sym)
@@ -48,25 +45,28 @@
       (setq vars (sort vars 'string-lessp))
       (while vars
 	(let ((sym (car vars)))
-	  (princ ";; ")
-	  (prin1 sym)
-	  (princ ":\n\t")
-	  (prin1 (symbol-value sym))
-	  (terpri)
-	  (princ (substitute-command-keys 
-		  (documentation-property sym 'variable-documentation)))
-	  (princ "\n;;\n"))
-	(setq vars (cdr vars)))))
-  (save-excursion
-    (set-buffer "*List Options*")
-    (setq buffer-read-only t)))
+	  (when (boundp sym)
+	    (princ ";; ")
+	    (prin1 sym)
+	    (princ ":\n\t")
+	    (prin1 (symbol-value sym))
+	    (terpri)
+	    (princ (substitute-command-keys 
+		    (documentation-property sym 'variable-documentation)))
+	    (princ "\n;;\n"))
+	  (setq vars (cdr vars))))
+      (with-current-buffer "*List Options*"
+	(Edit-options-mode)
+	(setq buffer-read-only t)))))
 
 ;;;###autoload
 (defun edit-options ()
   "Edit a list of Emacs user option values.
 Selects a buffer containing such a list,
 in which there are commands to set the option values.
-Type \\[describe-mode] in that buffer for a list of commands."
+Type \\[describe-mode] in that buffer for a list of commands.
+
+The Custom feature is intended to make this obsolete."
   (interactive)
   (list-options)
   (pop-to-buffer "*List Options*"))
