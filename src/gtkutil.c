@@ -1108,14 +1108,14 @@ xg_mark_data ()
   xg_list_node *iter;
 
   for (iter = xg_menu_cb_list.next; iter; iter = iter->next)
-    mark_object (&((xg_menu_cb_data *) iter)->menu_bar_vector);
+    mark_object (((xg_menu_cb_data *) iter)->menu_bar_vector);
 
   for (iter = xg_menu_item_cb_list.next; iter; iter = iter->next)
     {
       xg_menu_item_cb_data *cb_data = (xg_menu_item_cb_data *) iter;
 
       if (! NILP (cb_data->help))
-        mark_object (&cb_data->help);
+        mark_object (cb_data->help);
     }
 }
 

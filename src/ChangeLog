@@ -1,3 +1,7 @@
+2003-07-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_mark_data): Update calls to mark_object.
+
 2003-07-29  Richard M. Stallman  <rms@gnu.org>
 
 	* xterm.c (xim_open_dpy, xim_initialize, xim_close_dpy):
