@@ -4422,8 +4422,6 @@ DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
      Lisp_Object resource, class, frame;
 {
   Lisp_Object value = Qnil;
-#ifndef WINDOWSNT
-#ifndef MAC_OS
   CHECK_STRING (resource);
   CHECK_STRING (class);
   CHECK_LIVE_FRAME (frame);
@@ -4431,8 +4429,6 @@ DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
   value = display_x_get_resource (FRAME_X_DISPLAY_INFO (XFRAME (frame)),
 				  resource, class, Qnil, Qnil);
   UNBLOCK_INPUT;
-#endif /* not MAC_OS */
-#endif /* not WINDOWSNT */
   return value;
 }
 
