@@ -62,35 +62,21 @@ that text will be copied verbatim to `generated-autoload-file'.")
 
 (defun make-autoload (form file)
   "Turn FORM into an autoload or defvar for source file FILE.
-Returns nil if FORM is not a `defun', `define-skeleton',
-`define-derived-mode', `define-generic-mode', `defmacro', `defcustom',
-`define-minor-mode' or `easy-mmode-define-minor-mode'."
+Returns nil if FORM is not a function or variable or macro definition."
   (let ((car (car-safe form)))
     (if (memq car '(defun define-skeleton defmacro define-derived-mode 
 		     define-generic-mode easy-mmode-define-minor-mode
 		     define-minor-mode defun*))
 	(let ((macrop (eq car 'defmacro))
-	      name doc)
-	  (setq form (cdr form)
-		name (car form)
-		;; Ignore the arguments.
-		form (cdr (cond 
-			   ((memq car '(define-skeleton define-minor-mode
-					 easy-mmode-define-minor-mode)) form)
-			   ((eq car 'define-derived-mode) (cdr (cdr form)))
-			   ((eq car 'define-generic-mode) 
-			    (cdr (cdr (cdr (cdr (cdr form))))))
-			   (t (cdr form))))
-		doc (car form))
-	  (if (stringp doc)
-	      (setq form (cdr form))
-	    (setq doc nil))
+	      (name (nth 1 form))
+	      (body (nthcdr (get car 'doc-string-elt) form))
+	      (doc (if (stringp (car body)) (pop body))))
 	  ;; `define-generic-mode' quotes the name, so take care of that
 	  (list 'autoload (if (listp name) name (list 'quote name)) file doc
-		(or (eq car 'define-skeleton) (eq car 'define-derived-mode)
-		    (eq car 'define-generic-mode) 
-		    (eq car 'easy-mmode-define-minor-mode)
-		    (eq car 'define-minor-mode)
+		(or (and (memq car '(define-skeleton define-derived-mode
+				      define-generic-mode
+				      easy-mmode-define-minor-mode
+				      define-minor-mode)) t)
 		    (eq (car-safe (car form)) 'interactive))
 		(if macrop (list 'quote 'macro) nil)))
       ;; Convert defcustom to a simpler (and less space-consuming) defvar,
@@ -130,16 +116,17 @@ Returns nil if FORM is not a `defun', `define-skeleton',
 
 (put 'autoload 'doc-string-elt 3)
 (put 'defun    'doc-string-elt 3)
+(put 'defun*    'doc-string-elt 3)
 (put 'defvar   'doc-string-elt 3)
 (put 'defcustom 'doc-string-elt 3)
 (put 'defconst 'doc-string-elt 3)
 (put 'defmacro 'doc-string-elt 3)
 (put 'defsubst 'doc-string-elt 3)
-(put 'define-skeleton 'doc-string-elt 3)
-(put 'define-derived-mode 'doc-string-elt 3)
-(put 'easy-mmode-define-minor-mode 'doc-string-elt 3)
-(put 'define-minor-mode 'doc-string-elt 3)
-(put 'define-generic-mode 'doc-string-elt 3)
+(put 'define-skeleton 'doc-string-elt 2)
+(put 'define-derived-mode 'doc-string-elt 4)
+(put 'easy-mmode-define-minor-mode 'doc-string-elt 2)
+(put 'define-minor-mode 'doc-string-elt 2)
+(put 'define-generic-mode 'doc-string-elt 7)
 
 
 (defun autoload-trim-file-name (file)
@@ -172,6 +159,52 @@ markers before we call `read'."
 	  (replace-match " "))
 	(goto-char (point-min))
 	(read (current-buffer))))))
+
+;; !! Requires OUTBUF to be bound !!
+(defun autoload-print-form (form)
+  "Print FORM such that make-docfile will find the docstrings."
+  (cond
+   ;; If the form is a sequence, recurse.
+   ((eq (car form) 'progn) (mapcar 'autoload-print-form (cdr form)))
+   ;; Symbols at the toplevel are meaningless.
+   ((symbolp form) nil)
+   (t
+    (let ((doc-string-elt (get (car-safe form) 'doc-string-elt)))
+      (if (and doc-string-elt (stringp (nth doc-string-elt form)))
+	  ;; We need to hack the printing because the
+	  ;; doc-string must be printed specially for
+	  ;; make-docfile (sigh).
+	  (let* ((p (nthcdr (1- doc-string-elt) form))
+		 (elt (cdr p)))
+	    (setcdr p nil)
+	    (princ "\n(" outbuf)
+	    (let ((print-escape-newlines t)
+		  (print-escape-nonascii t))
+	      (mapcar (lambda (elt)
+			(prin1 elt outbuf)
+			(princ " " outbuf))
+		      form))
+	    (princ "\"\\\n" outbuf)
+	    (let ((begin (with-current-buffer outbuf (point))))
+	      (princ (substring (prin1-to-string (car elt)) 1)
+		     outbuf)
+	      ;; Insert a backslash before each ( that
+	      ;; appears at the beginning of a line in
+	      ;; the doc string.
+	      (with-current-buffer outbuf
+		(save-excursion
+		  (while (search-backward "\n(" begin t)
+		    (forward-char 1)
+		    (insert "\\"))))
+	      (if (null (cdr elt))
+		  (princ ")" outbuf)
+		(princ " " outbuf)
+		(princ (substring (prin1-to-string (cdr elt)) 1)
+		       outbuf))
+	      (terpri outbuf)))
+	(let ((print-escape-newlines t)
+	      (print-escape-nonascii t))
+	  (print form outbuf)))))))
 
 (defun generate-file-autoloads (file)
   "Insert at point a loaddefs autoload section for FILE.
@@ -237,68 +270,15 @@ are used."
 		    (if (eolp)
 			;; Read the next form and make an autoload.
 			(let* ((form (prog1 (read (current-buffer))
-				       (or (bolp) (forward-line 1))))
-			       (autoload-1 (make-autoload form load-name))
-			       (autoload (if (eq (car autoload-1) 'progn)
-					     (cadr autoload-1)
-					   autoload-1))
-			       (doc-string-elt (get (car-safe form)
-						    'doc-string-elt)))
+					       (or (bolp) (forward-line 1))))
+			       (autoload (make-autoload form load-name)))
 			  (if autoload
 			      (setq autoloads-done (cons (nth 1 form)
 							 autoloads-done))
 			    (setq autoload form))
-			  (if (and doc-string-elt
-				   (stringp (nth doc-string-elt autoload)))
-			      ;; We need to hack the printing because the
-			      ;; doc-string must be printed specially for
-			      ;; make-docfile (sigh).
-			      (let* ((p (nthcdr (1- doc-string-elt)
-						autoload))
-				     (elt (cdr p)))
-				(setcdr p nil)
-				(princ "\n(" outbuf)
-				(let ((print-escape-newlines t)
-				      (print-escape-nonascii t))
-				  (mapcar (function (lambda (elt)
-						      (prin1 elt outbuf)
-						      (princ " " outbuf)))
-					  autoload))
-				(princ "\"\\\n" outbuf)
-				(let ((begin (save-excursion
-					       (set-buffer outbuf)
-					       (point))))
-				  (princ (substring
-					  (prin1-to-string (car elt)) 1)
-					 outbuf)
-				  ;; Insert a backslash before each ( that
-				  ;; appears at the beginning of a line in
-				  ;; the doc string.
-				  (save-excursion
-				    (set-buffer outbuf)
-				    (save-excursion
-				      (while (search-backward "\n(" begin t)
-					(forward-char 1)
-					(insert "\\"))))
-				  (if (null (cdr elt))
-				      (princ ")" outbuf)
-				    (princ " " outbuf)
-				    (princ (substring
-					    (prin1-to-string (cdr elt))
-					    1)
-					   outbuf))
-				  (terpri outbuf)))
-			    (let ((print-escape-newlines t)
-				  (print-escape-nonascii t))
-			      (print autoload outbuf)))
-			  (if (eq (car autoload-1) 'progn)
-			      ;; Print the rest of the form
-			      (let ((print-escape-newlines t)
-				    (print-escape-nonascii t))
-				(mapcar (function (lambda (elt)
-						    (print elt outbuf)))
-					(cddr autoload-1)))))
-			  ;; Copy the rest of the line to the output.
+			  (autoload-print-form autoload))
+	 
+		      ;; Copy the rest of the line to the output.
 		      (princ (buffer-substring
 			      (progn
 				;; Back up over whitespace, to preserve it.
