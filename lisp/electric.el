@@ -29,7 +29,10 @@
 ;;; Code:
 
 ;; perhaps this should be in subr.el...
-(defun shrink-window-if-larger-than-buffer (window)
+(defun shrink-window-if-larger-than-buffer (&optional window)
+  "Shrink the WINDOW to be as small as possible to display its contents.  Do
+nothing if only one window is displayed or if the buffer contains more lines
+than the present window height."
   (save-excursion
     (set-buffer (window-buffer window))
     (let ((w (selected-window)) ;save-window-excursion can't win
