@@ -1,23 +1,23 @@
 ;;; checkdoc --- Check documentation strings for style requirements
 
 ;;;  Copyright (C) 1997, 1998  Free Software Foundation
-;;
+
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 0.4.2
+;; Version: 0.4.3
 ;; Keywords: docs, maint, lisp
-;;
+
 ;; This file is part of GNU Emacs.
-;;
+
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
-;;
+
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;;
+
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
@@ -169,6 +169,10 @@
 ;; 0.4.2 Added some more comments in the commentary.
 ;;       You can now `quote' symbols that look like keystrokes
 ;;       When spell checking, meta variables can end in `th' or `s'.
+;; 0.4.3 Fixed bug where multi-function checking skips defuns that
+;;         have comments before the doc-string.
+;;       Fixed bug where keystrokes were identified from a variable name
+;;         like ASSOC-P.
 
 ;;; TO DO:
 ;;   Hook into the byte compiler on a defun/defver level to generate
@@ -182,7 +186,7 @@
 ;;     not specifically docstring related.  Would this even be useful?
 
 ;;; Code:
-(defvar checkdoc-version "0.4.2"
+(defvar checkdoc-version "0.4.3"
   "Release version of checkdoc you are currently running.")
 
 ;; From custom web page for compatibility between versions of custom:
@@ -609,18 +613,15 @@ is the starting location.  If this is nil, `point-min' is used instead."
       ;; the user is navigating down through the buffer.
       (if take-notes (checkdoc-start-section "checkdoc"))
       (while (and (not wrong) (checkdoc-next-docstring))
-	(if (not (checkdoc-char= (following-char) ?\"))
-	    ;; No doc-string...
-	    nil
-	  ;; OK, lets look at the doc-string.
-	  (setq msg (checkdoc-this-string-valid))
-	  (if msg
-	      ;; Oops
-	      (if take-notes
-		  (progn
-		    (checkdoc-error (point) msg)
-		    (setq errors t))
-		(setq wrong (point)))))))
+	;; OK, lets look at the doc-string.
+	(setq msg (checkdoc-this-string-valid))
+	(if msg
+	    ;; Oops
+	    (if take-notes
+		(progn
+		  (checkdoc-error (point) msg)
+		  (setq errors t))
+	      (setq wrong (point))))))
     (if wrong
 	(progn
 	  (goto-char wrong)
@@ -1120,7 +1121,7 @@ may require more formatting.")
      ;;     Instead, use the `\\[...]' construct to stand for them.
      (save-excursion
        (let ((f nil) (m nil) (start (point))
-	     (re "[^`]\\([CMA]-[a-zA-Z]\\|\\(\\([CMA]-\\)?\
+	     (re "[^`A-Za-z0-9_]\\([CMA]-[a-zA-Z]\\|\\(\\([CMA]-\\)?\
 mouse-[0-3]\\)\\)\\>"))
 	 ;; Find the first key sequence not in a sample
 	 (while (and (not f) (setq m (re-search-forward re e t)))
