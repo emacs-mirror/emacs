@@ -39,20 +39,12 @@ lacks unexec, asynchronous processes, and networking support.
 
 * Changes in Emacs 21.1
 
-+++
-** Refill minor mode provides preliminary support for keeping
-paragraphs filled as you modify them.
-
 ** auto-compression mode is no longer enabled just by loading jka-compr.el.
 To control it, set `auto-compression-mode' via Custom or use the
 `auto-compression-mode' command.
 
 ** `browse-url-gnome-moz' is a new option for
 `browse-url-browser-function', invoking Mozilla in GNOME.
-
-+++
-** The new global minor mode `auto-image-file-mode' allows image files
-to be visited as images.
 
 +++
 ** The functions `keep-lines', `flush-lines' and `how-many' now
@@ -1797,6 +1789,14 @@ facilities for Emacs, similar to what zsh and tcsh offer.  The main
 difference is that completion functions are written in Lisp, meaning
 they can be profiled, debugged, etc.
 
++++
+** Refill minor mode provides preliminary support for keeping
+paragraphs filled as you modify them.
+
++++
+** The new global minor mode `auto-image-file-mode' allows image files
+to be visited as images.
+
 ** Withdrawn packages
 
 *** mldrag.el has been removed.  mouse.el provides the same
@@ -2061,9 +2061,9 @@ a composition at a specified position in a buffer or a string.
 *** The function `decompose-composite-char' is now labeled as
 obsolete.
 
-** The new character set `mule-unicode-0100-24ff',
+** The new character sets `mule-unicode-0100-24ff',
 `mule-unicode-2500-33ff', and `mule-unicode-e000-ffff' are introduced
-for Unicode characters of the range U+0100..U+24FF, U+2500..U+33FF,
+for Unicode characters in the range U+0100..U+24FF, U+2500..U+33FF,
 U+E000..U+FFFF respectively.
 
 ** The new character sets `japanese-jisx0213-1' and
