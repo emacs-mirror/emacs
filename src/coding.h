@@ -614,6 +614,8 @@ struct coding_system
 
 #endif /* !WINDOWSNT */
 
+#define ENCODE_UTF_8(str) code_convert_string_norecord (str, Qutf_8, 1)
+
 /* Extern declarations.  */
 extern int decode_coding P_ ((struct coding_system *, const unsigned char *,
 			      unsigned char *, int, int));
@@ -655,6 +657,7 @@ extern Lisp_Object Qcoding_system, Qeol_type, Qcoding_category_index;
 extern Lisp_Object Qraw_text, Qemacs_mule;
 extern Lisp_Object Qbuffer_file_coding_system;
 extern Lisp_Object Vcoding_category_list;
+extern Lisp_Object Qutf_8;
 
 extern Lisp_Object Qtranslation_table;
 extern Lisp_Object Qtranslation_table_id;
