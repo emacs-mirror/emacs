@@ -1,3 +1,8 @@
+2004-11-19  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* files.texi (Old Versions):
+	No longer document annotation as "CVS only".
+
 2004-11-10  Andre Spiegel  <spiegel@gnu.org>
 
 	* files.texi (Version Control): Rewrite the introduction about
@@ -12,10 +17,10 @@
 
 2004-11-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* frames.texi (Dialog Boxes): 
-	* idlwave.texi (Continued Statement Indentation): 
+	* frames.texi (Dialog Boxes):
+	* idlwave.texi (Continued Statement Indentation):
 	* reftex.texi (Options (Index Support)):
-	(Displaying and Editing the Index, Table of Contents): 
+	(Displaying and Editing the Index, Table of Contents):
 	* speedbar.texi (Creating a display, Major Display Modes): Replace
 	non-nil with non-@code{nil}.
 
@@ -49,8 +54,8 @@
 2004-10-18  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Reporting Bugs):  Changed the address that bugs
-	should be sent to. 
-	
+	should be sent to.
+
 2004-10-15  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (New Features): Add 5.11.
@@ -69,7 +74,7 @@
 
 	* calc.texi (Help Commands):  Changed the descriptions of
 	calc-describe-function and calc-describe-variable to match their
-	current behavior. 
+	current behavior.
 
 2004-10-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -236,7 +241,7 @@
 
 	* calc.texi (Notations Used in This Manual): Put in an earlier
 	mention that DEL could be called Backspace.
-	
+
 2004-09-20  Richard M. Stallman  <rms@gnu.org>
 
 	* custom.texi (Hooks): Explain using setq to clear out a hook.

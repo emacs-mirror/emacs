@@ -1,5 +1,13 @@
 2004-11-19  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* vc-rcs.el (vc-rcs-parse): New function.
+	(vc-rcs-annotate-command): Likewise.
+	(vc-rcs-annotate-current-time): Likewise.
+	(vc-rcs-annotate-time): Likewise.
+	(vc-rcs-annotate-extract-revision-at-line): Likewise.
+
+2004-11-19  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* Makefile.in (recompile): Set `max-specpdl-size' before compiling.
 
 2004-11-18  Jay Belanger  <belanger@truman.edu>
