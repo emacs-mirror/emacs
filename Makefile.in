@@ -8,51 +8,83 @@
 #		must change mandir to /usr/local/man/man1.
 # make install.xenix  to install on Xenix.
 # make install.aix    to install on AIX.
-# make tags	to update tags tables.
+# make TAGS	to update tags tables.
 #
-# make distclean	to delete everything that wasn't in the distribution.
-#	This is a very dangerous thing to do!  It removes backup files,
-#	among other things.
-# make clean
-#	This is a little less dangerous.
-# make dist
-#	This produces a tar file from the current source tree suitable
-#	for redistribution.
+# make clean  or  make mostlyclean
+#      Delete all files from the current directory that are normally
+#      created by building the program.  Don't delete the files that
+#      record the configuration.  Also preserve files that could be made
+#      by building, but normally aren't because the distribution comes
+#      with them.
+#
+#      Delete `.dvi' files here if they are not part of the distribution.
+# 
+# make distclean
+#      Delete all files from the current directory that are created by
+#      configuring or building the program.  If you have unpacked the
+#      source and built the program without creating any other files,
+#      `make distclean' should leave only the files that were in the
+#      distribution.
+# 
+# make realclean
+#      Delete everything from the current directory that can be
+#      reconstructed with this Makefile.  This typically includes
+#      everything deleted by distclean, plus more: C source files
+#      produced by Bison, tags tables, info files, and so on.
+#
+# make extraclean
+#      Still more severe - delete backup and autosave files, too.
 
 SHELL = /bin/sh
 
-# ==================== Where To Install Things ====================
+# ==================== Things `configure' Might Edit ====================
 
+CC=cc
+CONFIG_CFLAGS=-g
+
+### These help us choose version- and architecture-specific directories
+### to install files in.
+
+### This should be the number of the Emacs version we're building,
+### like `18.59' or `19.0'.
 version=version-not-set
+
+### This should be the name of the configuration we're building Emacs
+### for, like `mips-dec-ultrix' or `sparc-sun-sunos'.
 configname=configuration-name-not-set
 
+# ==================== Where To Install Things ====================
+
 # The default location for installation.  Everything is placed in
-# subdirectories of this directory.  This directory must exist when
-# you start installation.  The default values for many of the
-# variables below are expressed in terms of this one, so you may not
-# need to change them.
+# subdirectories of this directory.  The default values for many of
+# the variables below are expressed in terms of this one, so you may
+# not need to change them.
 prefix=/usr/local
+
+# Like `prefix', but used for architecture-specific files.
+exec_prefix=${prefix}
 
 # Where to install Emacs and other binaries that people will want to
 # run directly (like etags).
-bindir=${prefix}/bin
+bindir=${exec_prefix}/bin
 
 # Where to install architecture-independent data files.  ${lispdir}
-# and ${etcdir} are below this.
-datadir=${prefix}/lib/emacs/${version}
+# and ${etcdir} are subdirectories of this.
+datadir=${prefix}/lib
 
 # Where to install and expect the files that Emacs modifies as it
-# runs.	 These files are all architecture-independent.	Right now,
-# the only such data is the locking directory.
-statedir=${prefix}/lib/emacs
+# runs.  These files are all architecture-independent. Right now, the
+# only such data is the locking directory; ${lockdir} is a
+# subdirectory of this.
+statedir=${prefix}/lib
 
 # Where to install and expect executable files to be run by Emacs
 # rather than directly by users, and other architecture-dependent
-# data.
-libdir=${prefix}/${version}/${configname}
+# data.  ${archlibdir} is a subdirectory of this.
+libdir=${exec_prefix}/lib
 
 # Where to install Emacs's man pages, and what extension they should have.
-mandir=/usr/man/man1
+mandir=${prefix}/man/man1
 manext=.1
 
 # Where to install and expect the info files describing Emacs.	In the
@@ -61,22 +93,27 @@ manext=.1
 # system, it is inappropriate to imply that it is part of Emacs.
 infodir=${prefix}/info
 
-# Where to find the source code.  The source code for Emacs's C kernel
-# is expected to be in ${srcdir}/src, and the source code for Emacs's
-# utility programs is expected to be in ${srcdir}/lib-src.
-# This is set by the configure script's `--srcdir' option.
+# Where to find the source code - setting this to anything but
+# . doesn't work yet.  The source code for Emacs's C kernel is
+# expected to be in ${srcdir}/src, and the source code for Emacs's
+# utility programs is expected to be in ${srcdir}/lib-src.  This is
+# set by the configure script's `--srcdir' option.
 srcdir=.
-
 
 # ==================== Emacs-specific directories ====================
 
-# Where to install the elisp files distributed with Emacs.
-lispdir=${datadir}/lisp
+# These variables hold the values Emacs will actually use.  They are
+# based on the values of the standard Make variables above.
+
+# Where to install the elisp files distributed with Emacs.  This
+# includes the Emacs version, so that the lisp files for different
+# versions of Emacs will install themselves in separate directories.
+lispdir=${datadir}/emacs/${version}/lisp
 
 # Directories Emacs should search for elisp files specific to this
 # site (i.e. customizations), before consulting ${lispdir}.  This
 # should be a colon-separated list of directories.
-locallisppath=${prefix}/lib/emacs/local-lisp
+locallisppath=${datadir}/emacs/local-lisp
 
 # Where Emacs will search to find its elisp files.  Before changing
 # this, check to see if your purpose wouldn't better be served by
@@ -95,20 +132,20 @@ buildlisppath=../lisp
 
 # Where to install the other architecture-independent data files
 # distributed with Emacs (like the tutorial, the cookie recipes and
-# the Zippy database).
-etcdir=${datadir}/etc
+# the Zippy database).  This path usually contains the Emacs version
+# number, so the data files for multiple versions of Emacs may be
+# installed at once.
+etcdir=${datadir}/emacs/${version}/etc
 
 # Where to create and expect the locking directory, where the Emacs
 # locking code keeps track of which files are currently being edited.
-lockdir=${statedir}/lock
+lockdir=${statedir}/emacs/lock
 
 # Where to put executables to be run by Emacs rather than the user.
-archlibdir=${libdir}
-
-# ==================== Things `configure' might edit ====================
-
-CC=cc
-CFLAGS=-g
+# This path usually includes the Emacs version and configuration name,
+# so that multiple configurations for multiple versions of Emacs may
+# be installed at once.
+archlibdir=${libdir}/emacs/${version}/${configname}
 
 # ==================== Utility Programs for the Build ====================
 
@@ -121,45 +158,118 @@ INSTALL_DATA = ${INSTALL}
 # ============================= Targets ==============================
 
 # Flags passed down to subdirectory makefiles.
-MFLAGS = CC='${CC}' CFLAGS='${CFLAGS}'
+MFLAGS = 
+
+CFLAGS=${CONFIG_CFLAGS}
 
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution
 # and you cannot remake them without installing Emacs first.
 SUBDIR = lib-src src
 
-# Subdirectories to install, and where they'll go.
-COPYDIR = arch-lib etc info lisp
-COPYDESTS = ${libdir} ${datadir} ${infodir} ${lispdir}
+# The makefiles of the directories in $SUBDIR.
+SUBDIR_MAKEFILES = lib-src/Makefile src/Makefile
+
+# Subdirectories to install, and where they'll go.  lib-src's makefile
+# knows how to install it, so we don't do that here.
+COPYDIR = etc ${srcdir}/info ${srcdir}/lisp
+COPYDESTS = ${etcdir} ${infodir} ${lispdir}
 
 all:	src/paths.h ${SUBDIR}
 
 removenullpaths=sed -e 's/^://' -e 's/:$$//' -e 's/::/:/'
 
+# We force the rebuilding of src/paths.h because the user might give
+# make different values for the various directories.  Since we use
+# move-if-change, src/paths.h only actually changes if the user did
+# something notable, so the only unnecessary work we do is in building
+# src/paths.h.tmp, which isn't much.
 # Note that sed is not in /bin on 386bsd.
-src/paths.h: Makefile src/paths.h.in
+src/paths.h: Makefile ${srcdir}/src/paths.h.in FRC
 	lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
-	sed < src/paths.h.in > src/paths.h.tmp				\
+	sed < ${srcdir}/src/paths.h.in > src/paths.h.tmp		\
 	-e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'		\
 	-e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${buildlisppath}'";'	\
-	-e 's;\(#.*PATH_EXEC\).*$$;\1 "${libdir}";'			\
-	-e 's;\(#.*PATH_DATA\).*$$;\1 "${datadir}";'			\
+	-e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'			\
+	-e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
 	-e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";'
-	./move-if-change src/paths.h.tmp src/paths.h
+	${srcdir}/move-if-change src/paths.h.tmp src/paths.h
 
 src:	lib-src
 
 .RECURSIVE: ${SUBDIR}
 
-${SUBDIR}: FRC
-	cd $@; make ${MFLAGS} all
+${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
+	cd $@; make all ${MFLAGS} \
+		CC='${CC}' CFLAGS='${CFLAGS}' \
+		srcdir='${srcdir}/$@' libdir='${libdir}'
 
-install: all mkdir lockdir
+## We build the makefiles for the subdirectories here so that we can
+## edit the values for the path variables into them.  This means that
+## when the user has built them from this makefile once, they will use
+## the right default values for the path variables.
+lib-src/Makefile: ${srcdir}/lib-src/Makefile.in Makefile
+	echo "Producing \`lib-src/Makefile' from \`${srcdir}/lib-src/Makefile.in'."
+	rm -f lib-src/Makefile.tmp
+	(echo "# This file is generated from \`${srcdir}/lib-src/Makefile.in'." ; \
+	 echo "# If you are thinking about editing it, you should seriously consider" ; \
+	 echo "# running \`make lib-src/Makefile' at the top of the" ;	\
+	 echo "# Emacs build tree instead, or editing" ;		\
+	 echo "# \`${srcdir}/lib-src/Makefile.in' itself." ; 		\
+	 /bin/sed < ${srcdir}/lib-src/Makefile.in			\
+	 -e 's|^\(version *=\).*$$|\1'"${version}"'|' 			\
+	 -e 's|^\(configname *=\).*$$|\1'"${configname}"'|' 		\
+	 -e 's|^\(prefix *=\).*$$|\1'"${prefix}"'|'	 		\
+	 -e 's|^\(exec_prefix *=\).*$$|\1'"${exec_prefix}"'|'		\
+	 -e 's|^\(libdir *=\).*$$|\1'"${libdir}"'|' 			\
+	 -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|' 			\
+	 -e 's|^\(archlibdir *=\).*$$|\1'"${archlibdir}"'|' 		\
+	 -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
+	 -e 's|^CONFIG_CFLAGS *=.*$$|CONFIG_CFLAGS='"${CONFIG_CFLAGS}"'|' \
+	 -e 's|^LOADLIBES *=.*$$|LOADLIBES='"${libsrc_libs}"'|'		\
+	 -e '/^# DIST: /d') > lib-src/Makefile.tmp
+	${srcdir}/move-if-change lib-src/Makefile.tmp lib-src/Makefile
+	# Remind people not to edit this.
+	chmod -w lib-src/Makefile
+
+src/Makefile: ${srcdir}/src/Makefile.in Makefile
+	echo "Producing \`src/Makefile' from \`${srcdir}/src/Makefile.in'."
+	rm -f src/Makefile.tmp
+	(echo "# This file is generated from \`${srcdir}/src/Makefile.in'." ; \
+	 echo "# If you are thinking about editing it, you should seriously consider" ; \
+	 echo "# running \`make src/Makefile' at the top of the" ;	\
+	 echo "# Emacs build tree instead, or editing" ;		\
+	 echo "# \`${srcdir}/src/Makefile.in' itself." ; 		\
+	 /bin/sed < ${srcdir}/src/Makefile.in				\
+	 -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|' 			\
+	 -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
+	 -e 's|^CONFIG_CFLAGS *=.*$$|CONFIG_CFLAGS='"${CONFIG_CFLAGS}"'|' \
+	 -e '/^# DIST: /d') > src/Makefile.tmp
+	${srcdir}/move-if-change src/Makefile.tmp src/Makefile
+	# Remind people not to edit this.
+	chmod -w src/Makefile
+
+oldXMenu/Makefile: ${srcdir}/oldXMenu/Makefile Makefile
+	echo "Producing \`src/Makefile' from \`${srcdir}/src/Makefile.in'."
+	rm -f src/Makefile.tmp
+	cp "${srcdir}"/oldXMenu/Makefile oldXMenu/Makefile
+
+
+Makefile:
+	./config.status
+
+# ==================== Installation ====================
+
+install: all mkdir
+	## If we let lib-src do its own installation, that means we
+	## don't have to duplicate the list of utilities to install in
+	## this Makefile as well.
+	(cd lib-src; make install ${MFLAGS} bindir=${bindir} libdir=${libdir})
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
-	   if [ `/bin/pwd`/$${dir} != `(cd $${dest}; /bin/pwd)` ] ; then \
+	   if [ `(cd $${dir}; /bin/pwd)` != `(cd $${dest}; /bin/pwd)` ]; then \
 	     (cd $${dir}; tar cf - . ) | (cd $${dest}; umask 0; tar xf - ) ; \
 	     for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
 	       rm -rf $${subdir}/RCS ; \
@@ -168,15 +278,27 @@ install: all mkdir lockdir
 	     done ; \
 	   fi ; \
 	 done
-	${INSTALL_PROGRAM} ${INSTALLFLAGS} -c arch-lib/emacsclient ${bindir}/emacsclient
-	${INSTALL_PROGRAM} ${INSTALLFLAGS} -c arch-lib/etags ${bindir}/etags
-	${INSTALL_PROGRAM} ${INSTALLFLAGS} -c arch-lib/ctags ${bindir}/ctags
-	${INSTALL_PROGRAM} ${INSTALLFLAGS} -c -m 1755 src/xemacs ${bindir}/xemacs
-	${INSTALL_DATA} ${INSTALLFLAGS} -c -m 444 etc/emacs.1 ${mandir}/emacs.1
+	(cd info ; \
+	 if [ ! -f ${infodir}/dir ]; then \
+	   ${INSTALL_DATA} ${INSTALLFLAGS} -m 444 ./dir ${infodir}/dir ; \
+         fi ; \
+	 for f in *.info* ; do \
+	   ${INSTALL_DATA} ${INSTALLFLAGS} -m 444 $$f ${infodir}/$$f ; \
+         done)
+	for page in emacs etags ctags ; do \
+	  ${INSTALL_DATA} ${INSTALLFLAGS} -m 444 etc/$${page}.1 \
+	    ${mandir}/$${page}${manext} ; \
+        done
+	${INSTALL_PROGRAM} ${INSTALLFLAGS} -m 1755 src/xemacs \
+	  ${bindir}/emacs-${version}
 	-rm -f ${bindir}/emacs
-	mv ${bindir}/xemacs ${bindir}/emacs
+	ln ${bindir}/emacs-${version} ${bindir}/emacs
 
-install.sysv: all mkdir lockdir
+install.sysv: all mkdir
+	## If we let lib-src do its own installation, that means we
+	## don't have to duplicate the list of utilities to install in
+	## this Makefile as well.
+	(cd lib-src; make install ${MFLAGS} bindir=${bindir} libdir=${libdir})
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
@@ -189,14 +311,25 @@ install.sysv: all mkdir lockdir
 	     done ; \
 	   fi ; \
 	 done
-	-cpset arch-lib/emacsclient ${bindir}/emacsclient 755 bin bin
-	-cpset arch-lib/etags ${bindir}/etags 755 bin bin
-	-cpset arch-lib/ctags ${bindir}/ctags 755 bin bin
-	-cpset etc/emacs.1 ${mandir}/emacs.1 444 bin bin
+	-(cd info ; \
+	 if [ ! -f ${infodir}/dir ]; then \
+	   cpset ./dir ${infodir} 444 bin bin ; \
+         fi ; \
+	 for f in *.info* ; do \
+	    cpset $$f ${infodir} 444 bin bin ; \
+         done)
+	-for page in emacs etags ctags ; do \
+	  cpset etc/$${page}.1 ${mandir}/$${page}${manext} 444 bin bin ; \
+        done
 	-/bin/rm -f ${bindir}/emacs
-	-cpset src/xemacs ${bindir}/emacs 1755 bin bin
+	-cpset src/xemacs ${bindir}/emacs-${version} 1755 bin bin
+	-ln ${bindir}/emacs-${version} ${bindir}/emacs
   
-install.xenix: all mkdir lockdir
+install.xenix: all mkdir
+	## If we let lib-src do its own installation, that means we
+	## don't have to duplicate the list of utilities to install in
+	## this Makefile as well.
+	(cd lib-src; make install ${MFLAGS} bindir=${bindir} libdir=${libdir})
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
@@ -209,16 +342,30 @@ install.xenix: all mkdir lockdir
 	     done ; \
 	   fi ; \
 	 done
-	cp arch-lib/etags arch-lib/ctags arch-lib/emacsclient ${bindir}
-	chmod 755 ${bindir}/etags ${bindir}/ctags ${bindir}/emacsclient
-	cp etc/emacs.1 ${mandir}/emacs.1
-	chmod 444 ${mandir}/emacs.1
+	(cd info ; \
+	 if [ ! -f ${infodir}/dir ]; then \
+	   cp ./dir ${infodir} ; \
+	   chmod 444 ${infodir}/dir ; \
+         fi ; \
+	 for f in *.info* ; do \
+	    cp $$f ${infodir} ; \
+	    chmod 444 ${infodir}/$$f ; \
+         done)
+	for page in emacs etags ctags ; do \
+	  cp etc/$${page}.1 ${mandir}/$${page}${manext} ; \
+	  chmod 444 ${mandir}/$${page}${manext} ; \
+        done
 	-mv -f ${bindir}/emacs ${bindir}/emacs.old
-	cp src/xemacs ${bindir}/emacs
+	cp src/xemacs ${bindir}/emacs-${version}
+	ln ${bindir}/emacs-${version} ${bindir}/emacs
 	chmod 1755 ${bindir}/emacs
 	-rm -f ${bindir}/emacs.old
 
-install.aix: all mkdir lockdir
+install.aix: all mkdir
+	## If we let lib-src do its own installation, that means we
+	## don't have to duplicate the list of utilities to install in
+	## this Makefile as well.
+	(cd lib-src; make install ${MFLAGS} bindir=${bindir} libdir=${libdir})
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
@@ -231,71 +378,91 @@ install.aix: all mkdir lockdir
 	     done ; \
 	   fi ; \
 	 done
-	${INSTALL_PROGRAM} ${INSTALLFLAGS} -f ${bindir} etc/emacsclient
-	${INSTALL_PROGRAM} ${INSTALLFLAGS} -f ${bindir} etc/etags
-	${INSTALL_PROGRAM} ${INSTALLFLAGS} -f ${bindir} etc/ctags
+	(cd info ; \
+	 if [ ! -f ${infodir}/dir ]; then \
+	   ${INSTALL_DATA} ${INSTALLFLAGS} -M 444 -f ${infodir} ./dir ; \
+         fi ; \
+	 for f in *.info* ; do \
+	    ${INSTALL_DATA} ${INSTALLFLAGS} -M 444 -f ${infodir} $$f ; \
+         done)
 	${INSTALL_PROGRAM} ${INSTALLFLAGS} -M 1755 -f ${bindir} src/xemacs
-	${INSTALL_DATA} ${INSTALLFLAGS} -M 444 -f ${mandir} etc/emacs.1
+	mv ${bindir}/xemacs ${bindir}/emacs-${version}
+	for page in emacs etags ctags ; do \
+	  ${INSTALL_DATA} ${INSTALLFLAGS} -M 444 -f ${mandir} etc/$${page}.1 ;\
+        done
 	-rm -f ${bindir}/emacs
-	mv ${bindir}/xemacs ${bindir}/emacs
+	ln ${bindir}/emacs-${version} ${bindir}/emacs
 
-# Build all the directories
+### Build all the directories we're going to install Emacs in.  Since
+### we may be creating several layers of directories (for example,
+### /usr/local/lib/emacs/19.0/mips-dec-ultrix4.2), we use make-path
+### instead of mkdir.  Not all systems' mkdirs have the `-p' flag.
 mkdir: FRC
-	# If any of the directories are below ${emacsdir}, create it.
-	-for dir in ${COPYDESTS}; do \
-	   case "$${dir}" in \
-	     ${emacsdir}/* ) \
-	       if [ ! -d ${emacsdir} ]; then \
-		 mkdir ${emacsdir} ; \
-		 chmod 777 ${emacsdir} ; \
-	       fi ; \
-	       break\
-	     ;; \
-	   esac ; \
-	 done
-	-mkdir ${COPYDESTS}
-	-chmod 777 ${COPYDESTS}
-
-lockdir:
-	# If the lockdir needs ${emacsdir}, create it.
-	-case "${lockdir}" in \
-	   ${statedir}/* ) \
-	     if [ ! -d ${emacsdir} ]; then \
-	       mkdir ${emacsdir} ; \
-	       chmod 777 ${emacsdir} ; \
-	     fi \
-	   ;; \
-	 esac
-	-mkdir ${LOCKDIR}
-	-chmod 777 ${LOCKDIR}
+	./lib-src/make-path ${COPYDESTS} ${lockdir}
+	chmod 777 ${COPYDESTS} ${lockdir}
 
 FRC:
 
+
+# ==================== Cleaning up and miscellanea ====================
+
+### `clean'
+###      Delete all files from the current directory that are normally
+###      created by building the program.  Don't delete the files that
+###      record the configuration.  Also preserve files that could be made
+###      by building, but normally aren't because the distribution comes
+###      with them.
+### `mostlyclean'
+###      Like `clean', but may refrain from deleting a few files that
+###      people normally don't want to recompile.  For example, the
+###      `mostlyclean' target for GCC does not delete `libgcc.a', because
+###      recompiling it is rarely necessary and takes a lot of time.
+### 
 clean mostlyclean:
 	cd src; make clean
-	if [ `/bin/pwd` != `(cd ${emacsdir}; /bin/pwd)` ] ; then \
-		(cd etc; make clean); \
-		(cd lib-src; make clean); \
+	cd lib-src; make clean
+	cd oldXMenu; make clean
+	if [ `(cd ${etcdir} ; /bin/pwd` != `(cd etc; /bin/pwd)` ] ; then \
+	  cd etc; make clean; \
 	else true; \
 	fi
-	cd oldXMenu; make clean
 
+### `distclean'
+###      Delete all files from the current directory that are created by
+###      configuring or building the program.  This should leave only the
+###      files that would be in the distribution.
 distclean:
 	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} distclean); done
 	-(cd lock; rm *)
 	-rm config.status config-tmp-*
-	-rm #*# *~
 
+### `realclean'
+###      Delete everything from the current directory that can be
+###      reconstructed with this makefile.  This typically includes
+###      everything deleted by distclean, plus more: C source files
+###      produced by Bison, tags tables, info files, and so on.
 realclean:
 	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} realclean); done
 	(cd lock; rm *)
 	rm config.status
 
+### This doesn't actually appear in the coding standards, but Karl
+### says GCC supports it, and that's where the configuration part of
+### the coding standards seem to come from.  It's like distclean, but
+### it deletes backup and autosave files too.
+extraclean:
+	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} extraclean); done
+	-(cd lock; rm *)
+	-rm config.status config-tmp-*
+	-rm -f *~ \#*
+
+
 TAGS tags:	lib-src
-	cd src; ../arch-lib/etags *.[ch] ../lisp/*.el ../lisp/term/*.el
+	(cd ${srcdir} ; lib-src/etags --output=./src/TAGS \
+	 src/*.[ch] lisp/*.el lisp/term/*.el)
 
 check:
 	@echo "We don't have any tests for GNU Emacs yet."
 
 dist:
-	make-dist
+	cd ${srcdir}; make-dist
