@@ -940,6 +940,11 @@ If file does not exist, returns nil.  */)
   /* If the size is out of range for an integer, return a float.  */
   if (XINT (values[7]) != s.st_size)
     values[7] = make_float ((double)s.st_size);
+  /* If the size is negative, and its type is long, convert it back to
+     positive.  */
+  if (s.st_size < 0 && sizeof (s.st_size) == sizeof (long))
+    values[7] = make_float ((double) ((unsigned long) s.st_size));
+
   filemodestring (&s, modes);
   values[8] = make_string (modes, 10);
 #if defined (BSD4_2) || defined (BSD4_3) /* file gid will be dir gid */
