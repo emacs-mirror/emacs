@@ -587,6 +587,7 @@ If INITVALUE is missing, SYMBOL's value is not set.")
   tail = Fcdr (Fcdr (args));
   if (!NILP (Fcar (tail)))
     {
+      tem = Fcar (tail);
       if (!NILP (Vpurify_flag))
 	tem = Fpurecopy (tem);
       Fput (sym, Qvariable_documentation, tem);
@@ -2233,9 +2234,19 @@ funcall_lambda (fun, nargs, arg_vector)
   if (CONSP (fun))
     val = Fprogn (Fcdr (Fcdr (fun)));
   else
-    val = Fbyte_code (XVECTOR (fun)->contents[COMPILED_BYTECODE],
-		      XVECTOR (fun)->contents[COMPILED_CONSTANTS],
-		      XVECTOR (fun)->contents[COMPILED_STACK_DEPTH]);
+    {
+      /* If we have not actually read the bytecode string
+	 and constants vector yet, fetch them from the file.  */
+      if (CONSP (XVECTOR (fun)->contents[COMPILED_BYTECODE]))
+	{
+	  tem = read_doc_string (XVECTOR (fun)->contents[COMPILED_BYTECODE]);
+	  XVECTOR (fun)->contents[COMPILED_BYTECODE] = XCONS (tem)->car;
+	  XVECTOR (fun)->contents[COMPILED_CONSTANTS] = XCONS (tem)->cdr;
+	}
+      val = Fbyte_code (XVECTOR (fun)->contents[COMPILED_BYTECODE],
+			XVECTOR (fun)->contents[COMPILED_CONSTANTS],
+			XVECTOR (fun)->contents[COMPILED_STACK_DEPTH]);
+    }
   return unbind_to (count, val);
 }
 
