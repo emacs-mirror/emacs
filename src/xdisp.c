@@ -1369,9 +1369,9 @@ try_window (window, pos)
 	  /* Next line, unless prev line ended in end of buffer with no cr */
 	  = vpos - (val.vpos && (FETCH_CHAR (val.bufpos - 1) != '\n'
 #ifdef USE_TEXT_PROPERTIES
-				 || ! NILP (Fget_text_property (val.bufpos-1,
+				 || ! NILP (Fget_char_property (val.bufpos-1,
 								Qinvisible,
-								Fcurrent_buffer ()))
+								window))
 #endif
 				 ));
       pos = val.bufpos;
@@ -2056,10 +2056,10 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	     the next property change */
 	  while (pos == next_invisible && pos < end)
 	    {
-	      Lisp_Object position, limit, endpos, prop;
+	      Lisp_Object position, limit, endpos, prop, ww;
 	      XFASTINT (position) = pos;
-	      prop = Fget_text_property (position, Qinvisible,
-					 Fcurrent_buffer ());
+	      XSET (ww, Lisp_Window, w);
+	      prop = Fget_char_property (position, Qinvisible, ww);
 	      /* This is just an estimate to give reasonable
 		 performance; nothing should go wrong if it is too small.  */
 	      XFASTINT (limit) = pos + 50;
