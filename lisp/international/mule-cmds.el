@@ -2169,7 +2169,7 @@ If the language name is nil, there is no corresponding language environment.")
      (".*8859[-_]?9\\>" . "Latin-5")
      (".*8859[-_]?14\\>" . "Latin-8")
      (".*8859[-_]?15\\>" . "Latin-9")
-     (".*utf\\(-?8\\)\\>" . "UTF-8")
+     (".*utf-?8\\>" . "UTF-8")
      ;; utf-8@euro exists, so put this last.  (@euro really specifies
      ;; the currency, rather than the charset.)
      (".*@euro\\>" . "Latin-9")))
