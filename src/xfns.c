@@ -778,34 +778,34 @@ static unsigned long lookup_pixel_color P_ ((struct frame *f, unsigned long p));
 
 static struct x_frame_parm_table x_frame_parms[] =
 {
-  "auto-raise",			x_set_autoraise,
-  "auto-lower",			x_set_autolower,
-  "background-color",		x_set_background_color,
-  "border-color",		x_set_border_color,
-  "border-width",		x_set_border_width,
-  "cursor-color",		x_set_cursor_color,
-  "cursor-type",		x_set_cursor_type,
-  "font",			x_set_font,
-  "foreground-color",		x_set_foreground_color,
-  "icon-name",			x_set_icon_name,
-  "icon-type",			x_set_icon_type,
-  "internal-border-width",	x_set_internal_border_width,
-  "menu-bar-lines",		x_set_menu_bar_lines,
-  "mouse-color",		x_set_mouse_color,
-  "name",			x_explicitly_set_name,
-  "scroll-bar-width",		x_set_scroll_bar_width,
-  "title",			x_set_title,
-  "unsplittable",		x_set_unsplittable,
-  "vertical-scroll-bars",	x_set_vertical_scroll_bars,
-  "visibility",			x_set_visibility,
-  "tool-bar-lines",		x_set_tool_bar_lines,
-  "scroll-bar-foreground",	x_set_scroll_bar_foreground,
-  "scroll-bar-background",	x_set_scroll_bar_background,
-  "screen-gamma",		x_set_screen_gamma,
-  "line-spacing",		x_set_line_spacing,
-  "left-fringe",		x_set_fringe_width,
-  "right-fringe",		x_set_fringe_width,
-  "wait-for-wm",		x_set_wait_for_wm
+  {"auto-raise",		x_set_autoraise},
+  {"auto-lower",		x_set_autolower},
+  {"background-color",		x_set_background_color},
+  {"border-color",		x_set_border_color},
+  {"border-width",		x_set_border_width},
+  {"cursor-color",		x_set_cursor_color},
+  {"cursor-type",		x_set_cursor_type},
+  {"font",			x_set_font},
+  {"foreground-color",		x_set_foreground_color},
+  {"icon-name",			x_set_icon_name},
+  {"icon-type",			x_set_icon_type},
+  {"internal-border-width",	x_set_internal_border_width},
+  {"menu-bar-lines",		x_set_menu_bar_lines},
+  {"mouse-color",		x_set_mouse_color},
+  {"name",			x_explicitly_set_name},
+  {"scroll-bar-width",		x_set_scroll_bar_width},
+  {"title",			x_set_title},
+  {"unsplittable",		x_set_unsplittable},
+  {"vertical-scroll-bars",	x_set_vertical_scroll_bars},
+  {"visibility",		x_set_visibility},
+  {"tool-bar-lines",		x_set_tool_bar_lines},
+  {"scroll-bar-foreground",	x_set_scroll_bar_foreground},
+  {"scroll-bar-background",	x_set_scroll_bar_background},
+  {"screen-gamma",		x_set_screen_gamma},
+  {"line-spacing",		x_set_line_spacing},
+  {"left-fringe",		x_set_fringe_width},
+  {"right-fringe",		x_set_fringe_width},
+  {"wait-for-wm",		x_set_wait_for_wm}
 };
 
 /* Attach the `x-frame-parameter' properties to
@@ -5005,7 +5005,7 @@ visual_classes[] =
   {"PseudoColor",	PseudoColor},
   {"TrueColor",		TrueColor},
   {"DirectColor",	DirectColor},
-  NULL
+  {NULL, 0}
 };
 
 
