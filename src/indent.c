@@ -801,7 +801,7 @@ indented_beyond_p (pos, pos_byte, column)
 
   val = position_indentation (PT_BYTE);
   SET_PT_BOTH (opoint, opoint_byte);
-  return val;
+  return val >= column;
 }
 
 DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2, "p",
