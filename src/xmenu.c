@@ -153,7 +153,7 @@ static int menu_items_n_panes;
 static int menu_items_submenu_depth;
 
 /* Flag which when set indicates a dialog or menu has been posted by
-   Xt on behalf of one of the widget sets. */
+   Xt on behalf of one of the widget sets.  */
 static int popup_activated_flag;
 
 
@@ -337,7 +337,7 @@ menu_item_equiv_key (item_string, item1, descrip_ptr)
   if (! EQ (def1, def)
       /* If the command is an alias for another
          (such as easymenu.el and lmenu.el set it up),
-         check if the original command matches the cached command. */
+         check if the original command matches the cached command.  */
       && !(SYMBOLP (def) && SYMBOLP (XSYMBOL (def)->function)
            && EQ (def1, XSYMBOL (def)->function))
       /* If something had no key binding before, don't recheck it--
@@ -1001,7 +1001,10 @@ on the left of the dialog box and all following items on the right.\n\
 #ifdef USE_X_TOOLKIT
 
 /* Loop in Xt until the menu pulldown or dialog popup has been
-   popped down (deactivated). */
+   popped down (deactivated).
+
+   NOTE: All calls to popup_get_selection() should be protected
+   with BLOCK_INPUT, UNBLOCK_INPUT wrappers.  */
 void
 popup_get_selection (initial_event)
      XEvent *initial_event;
@@ -1015,16 +1018,14 @@ popup_get_selection (initial_event)
 
   while (1)
     {
-      BLOCK_INPUT;
       XtDispatchEvent (&event);
-      UNBLOCK_INPUT;
       if (!popup_activated())
 	break;
       XtAppNextEvent (Xt_app_con, &event);
     }
 }
 
-/* Detect if a dialog or menu has been posted. */
+/* Detect if a dialog or menu has been posted.  */
 int
 popup_activated ()
 {
@@ -1129,7 +1130,7 @@ menubar_selection_callback (widget, id, client_data)
 }
 
 /* This callback is invoked when a dialog or menu is finished being
-   used and has been unposted. */
+   used and has been unposted.  */
 
 static void
 popup_deactivate_callback (widget, id, client_data)
@@ -1357,7 +1358,7 @@ update_frame_menubar (f)
       XtVaSetValues (x->menubar_widget, XtNmappedWhenManaged, 1, 0);
     }
 
-  /* Re-manage the text-area widget, and then thrash the sizes. */
+  /* Re-manage the text-area widget, and then thrash the sizes.  */
   XtManageChild (x->edit_widget);
   lw_refigure_widget (x->column_widget, True);
 
@@ -1425,7 +1426,7 @@ set_frame_menubar (f, first_time)
 	 menu trees we supply, rather than just the menu bar item names.  */
       lw_modify_all_widgets (id, first_wv, 1);
 
-      /* Re-enable the edit widget to resize. */
+      /* Re-enable the edit widget to resize.  */
       lw_allow_resizing (f->display.x->widget, True);
     }
   else
@@ -1745,7 +1746,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	}
     }
 
-  /* Deal with the title, if it is non-nil. */
+  /* Deal with the title, if it is non-nil.  */
   if (!NILP (title))
     {
       widget_value *wv_title = malloc_widget_value ();
