@@ -1,3 +1,9 @@
+2002-04-25  Simon Josefsson  <jas@extundo.com>
+
+	* mail/sendmail.el (mail-use-dsn): New variable to request
+	delivery status notification from MTA.
+	(sendmail-send-it): Use it.
+
 2002-04-25  Colin Walters  <walters@verbum.org>
 
 	* replace.el (multi-occur-by-filename-regexp): Doc fix.
