@@ -182,7 +182,7 @@ xrealloc (ptr, size)
      int size;
 {
   long *result = (long *) realloc (ptr, ((unsigned) size));
-  if (result == ((char *) NULL))
+  if (result == ((long *) NULL))
     fatal ("virtual memory exhausted");
   return result;
 }
