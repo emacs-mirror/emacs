@@ -525,10 +525,11 @@ If nil, that means no input method is activated now.")
 (put 'current-input-method-title 'permanent-local t)
 
 (defcustom default-input-method nil
-  "*Default input method for multilingual text.
+  "*Default input method for multilingual text (a string).
 This is the input method activated automatically by the command
 `toggle-input-method' (\\[toggle-input-method])."
-  :group 'mule)
+  :group 'mule
+  :type 'string)
 
 (defvar input-method-history nil
   "History list for some commands that read input methods.")
@@ -807,13 +808,19 @@ This hook is mainly used for cancelling the effect of
 	(set-language-environment language-name)
       (error "Bogus calling sequence"))))
 
-(defvar current-language-environment "English"
-  "The last language environment specified with `set-language-environment'.")
+(defcustom current-language-environment "English"
+  "The last language environment specified with `set-language-environment'."
+  :set 'set-language-environment
+  :initialize 'custom-initialize-default
+  :group 'mule
+  :type 'string)
 
 (defun set-language-environment (language-name)
   "Set up multi-lingual environment for using LANGUAGE-NAME.
 This sets the coding system priority and the default input method
-and sometimes other things."
+and sometimes other things.  LANGUAGE-NAME should be a string
+which is the name of a language environment.  For example, \"Latin-1\"
+specifies the character set for the major languages of Western Europe."
   (interactive (list (read-language-name
 		      'setup-function
 		      "Set language environment (default, English): ")))
