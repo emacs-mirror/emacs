@@ -1386,7 +1386,6 @@ option followed by a colon `:' if the option accepts an argument."
       < < "esac" \n
       < "done" \n
       "shift " (sh-add "OPTIND" -1)))
-(put 'sh-while-getopts 'menu-enable '(sh-feature sh-while-getopts))
 
 
 
