@@ -1822,7 +1822,7 @@ print_object (obj, printcharfun, escapeflag)
 
 	  PRINTCHAR ('#');
 	  PRINTCHAR ('&');
-	  sprintf (buf, "%d", XBOOL_VECTOR (obj)->size);
+	  sprintf (buf, "%ld", (long) XBOOL_VECTOR (obj)->size);
 	  strout (buf, -1, -1, printcharfun, 0);
 	  PRINTCHAR ('\"');
 
@@ -1875,7 +1875,7 @@ print_object (obj, printcharfun, escapeflag)
       else if (WINDOWP (obj))
 	{
 	  strout ("#<window ", -1, -1, printcharfun, 0);
-	  sprintf (buf, "%d", XFASTINT (XWINDOW (obj)->sequence_number));
+	  sprintf (buf, "%ld", (long) XFASTINT (XWINDOW (obj)->sequence_number));
 	  strout (buf, -1, -1, printcharfun, 0);
 	  if (!NILP (XWINDOW (obj)->buffer))
 	    {
@@ -1896,8 +1896,8 @@ print_object (obj, printcharfun, escapeflag)
 	      PRINTCHAR (' ');
 	      strout (SDATA (SYMBOL_NAME (h->weak)), -1, -1, printcharfun, 0);
 	      PRINTCHAR (' ');
-	      sprintf (buf, "%d/%d", XFASTINT (h->count),
-		       XVECTOR (h->next)->size);
+	      sprintf (buf, "%ld/%ld", (long) XFASTINT (h->count),
+		       (long) XVECTOR (h->next)->size);
 	      strout (buf, -1, -1, printcharfun, 0);
 	    }
 	  sprintf (buf, " 0x%lx", (unsigned long) h);
@@ -2020,7 +2020,7 @@ print_object (obj, printcharfun, escapeflag)
 	  break;
 
 	case Lisp_Misc_Intfwd:
-	  sprintf (buf, "#<intfwd to %d>", *XINTFWD (obj)->intvar);
+	  sprintf (buf, "#<intfwd to %ld>", (long) *XINTFWD (obj)->intvar);
 	  strout (buf, -1, -1, printcharfun, 0);
 	  break;
 

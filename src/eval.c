@@ -617,6 +617,7 @@ usage: (defun NAME ARGLIST [DOCSTRING] BODY...)  */)
   register Lisp_Object defn;
 
   fn_name = Fcar (args);
+  CHECK_SYMBOL (fn_name);
   defn = Fcons (Qlambda, Fcdr (args));
   if (!NILP (Vpurify_flag))
     defn = Fpurecopy (defn);

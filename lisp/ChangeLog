@@ -1,3 +1,149 @@
+2004-06-14  Kenichi Handa  <handa@m17n.org>
+
+	* international/code-pages.el (windows-1256, cp1125): Fix tables
+	for several characters.
+
+	* international/utf-8.el (ccl-encode-mule-utf-8): Fix previous
+	change.
+
+2004-06-13  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/paragraphs.el (sentence-end): Add 0x5397d as close brace.
+
+	* emulation/pc-select.el: Doc fixes: say "PC Selection mode",
+	not "`pc-selection-mode'".
+
+	* emacs-lisp/bytecomp.el: Put `...' around symbols in warning messages.
+
+	* simple.el (previous-matching-history-element): Specify a default.
+
+	* hexl.el (hexl-mode): Catch errors in hexl-goto-address.
+
+	* cus-face.el (custom-declare-face): Simplify code.
+
+	* abbrev.el (abbrev-mode, edit-abbrevs-map): Doc fixes.
+
+2004-06-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (before-save-hook): Add `time-stamp' to the options.
+
+	* time-stamp.el (time-stamp): Recommend adding it to
+	`before-save-hook', rather than `write-file-functions'
+	Make a similar change in `Commentary' section.
+
+2004-06-13  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* diff-mode.el (diff-current-defun): If at start of hunk, use
+	position of first change.
+
+2004-06-13  Lars Hansen  <larsh@math.ku.dk>
+
+	* dired-x.el (dired-mark-omitted): Bind to "*O".
+
+2004-06-12  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-bmenu-relocate): New function, as
+	suggested by David J. Biesack <David.Biesack@sas.com>.
+	(bookmark-bmenu-mode-map): Bind `bookmark-bmenu-relocate' to "R".
+	(bookmark-bmenu-mode): Describe binding in doc string.
+	(bookmark-set-filename): Save the bookmark list if it's time.
+
+2004-06-13  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-8.el (ccl-decode-mule-utf-8): Fix previous
+	change.
+	(ccl-untranslated-to-ucs): Fix typo.
+
+2004-06-12  Karl Chen  <quarl@hkn.eecs.berkeley.edu>  (tiny change)
+
+	* progmodes/python.el (python-open-block-statement-p): Fix
+	indentation after a block opening that contains a comment.
+
+2004-06-12  J,Ai(Br,At(Bme Marant  <jerome@marant.org>  (tiny change)
+
+	* bindings.el (completion-ignored-extensions): Add file extensions
+	of Python byte-compiled files.
+
+2004-06-12  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-goto-node): Add autoload.
+	(Info-toc): Add substring-no-properties on Info file name.
+	(Info-mode, info, Info-toc, Info-mode-menu): Doc fix.
+	(Info-mode-map): Bind L to Info-history, T to Info-toc.
+
+2004-06-12  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-language-environment): Load
+	subst tables if necessary.
+
+	* international/mule.el (decode-char): Load subst tables if
+	necessary.
+	(encode-char): Likewise.
+
+	* international/utf-16.el (utf-16-decode-ucs): Handle a surrogate
+	pair correctly.  Call ccl-mule-utf-untrans for untranslable chars.
+	(utf-16le-decode-loop): Set r5 to -1 before loop.
+	(utf-16be-decode-loop): Likewise.
+	(ccl-decode-mule-utf-16le): Add EOF processing block.
+	(ccl-decode-mule-utf-16be): Likewise.
+	(ccl-decode-mule-utf-16le-with-signature): Likewise.
+	(ccl-decode-mule-utf-16be-with-signature): Likewise.
+	(ccl-decode-mule-utf-16): Likewise.  Set r5 to -1 initially.
+	(ccl-mule-utf-16-encode-untrans): New CCL.
+	(utf-16-decode-to-ucs): Handle pre-read character.
+	(utf-16le-encode-loop): Handle surrogate pair.
+	(utf-16be-encode-loop): Likewise.
+	(ccl-encode-mule-utf-16le-with-signature): Adjusted for the change
+	of utf-16le-encode-loop.
+	(ccl-encode-mule-utf-16be-with-signature): Adjusted for the change
+	of utf-16be-encode-loop.
+	(mule-utf-16-post-read-conversion): Call
+	utf-8-post-read-conversion at first.
+	(mule-utf-16[{le|be}], mule-utf-16{le|be}-with-signature): Include
+	CJK charsets in safe-charsets if utf-translate-cjk-mode is on.
+	Add post-read-conversion and pre-write-conversion.
+
+	* international/utf-8.el (utf-translate-cjk-charsets): New
+	variable.
+	(utf-translate-cjk-unicode-range): New variable.
+	(utf-translate-cjk-load-tables): New function.
+	(utf-lookup-subst-table-for-decode): New function.
+	(utf-lookup-subst-table-for-encode): New function.
+	(utf-translate-cjk-mode): Init-value changed to t.  Don't load
+	tables here.  Update safe-charsets of utf-* coding systems.
+	(ccl-mule-utf-untrans): New CCL.
+	(ccl-decode-mule-utf-8): Call ccl-mule-utf-untrans.  Use `repeat'
+	at end of each branch.
+	(ccl-mule-utf-8-encode-untrans): New CCL.
+	(ccl-encode-mule-utf-8): Call ccl-mule-utf-8-encode-untrans.
+	(ccl-untranslated-to-ucs): Handle 2-byte encoding.  Set r1 to the
+	length of encoding.  Don't return r0.
+	(utf-8-compose): New arg hash-table.  Handle 2-byte encoding.
+	(utf-8-post-read-conversion): Narrow to region properly.  If
+	utf-translate-cjk-mode is on, load tables if necessary.  Call
+	utf-8-compose with hash-table arg if necessary.  Call
+	XXX-compose-region instead of XXX-post-read-convesion.
+	(utf-8-pre-write-conversion): New function.
+	(mule-utf-8): Include CJK charsets in safe-charsets if
+	utf-translate-cjk-mode is on.  Add pre-write-conversion.
+
+	* international/characters.el: Temporarily set
+	utf-translate-cjk-mode to nil.
+
+	* language/devan-util.el (devanagari-compose-region): Add
+	autoload cookie.
+
+	* international/ccl.el (ccl-dump-call): Fix printing the
+	subroutine name.
+
+2004-06-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired.el (dired-revert): If buffer is marked unmodified before
+	reverting, keep it marked unmodified.
+	Adapt to new conventions for commenting out code.
+	(dired-make-relative): Adapt to new conventions for commenting out
+	code.
+
 2004-06-10  Miles Bader  <miles@gnu.ai.mit.edu>
 
 	* eshell/esh-module.el (eshell-load-defgroups): Bind
@@ -2169,17 +2315,21 @@
 	(desktop-buffer-info-misc-data): Rename to
 	Info-desktop-buffer-misc-data and move to info.el.
 	(desktop-read): Add message about number of buffers restored/failed.
+
 	* dired.el (dired-restore-desktop-buffer) Move from desktop.el.
 	Add parameters.  Pause to display error only when
 	desktop-missing-file-warning is non-nil.
 	(dired-desktop-buffer-misc-data): Move from desktop.el.  Add parameter.
 	(dired-mode): Bind desktop-buffer-misc-data-function.
+
 	* info.el (Info-restore-desktop-buffer): Move from desktop.el.
 	Add Parameters.
 	(Info-desktop-buffer-misc-data): Move from desktop.el.  Add parameter.
 	(Info-mode): Bind desktop-buffer-misc-data-function.
+
 	* mail/rmail.el (rmail-restore-desktop-buffer): Move from desktop.el.
 	Add Parameters.
+
 	* mh-e/mh-e.el (mh-restore-desktop-buffer): Move from desktop.el.
 	Add Parameters.
 

@@ -6316,6 +6316,7 @@ encode_coding_string (str, coding, nocopy)
       produced += coding->produced;
       produced_char += coding->produced_char;
       if (result == CODING_FINISH_NORMAL
+	  || result == CODING_FINISH_INTERRUPT
 	  || (result == CODING_FINISH_INSUFFICIENT_SRC
 	      && coding->consumed == 0))
 	break;

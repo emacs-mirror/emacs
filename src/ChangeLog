@@ -1,3 +1,82 @@
+2004-06-13  Richard M. Stallman  <rms@gnu.org>
+
+	* regex.h (CHAR_CLASS_MAX_LENGTH, re_wctype_t, re_wchar_t)
+	(re_wctype, re_iswctype, re_wctype_to_bit):
+	Non-function definitions moved here from regex.c.
+	
+	* regex.c (re_wctype, re_iswctype): Function defs longer static.
+	(CHAR_CLASS_MAX_LENGTH, re_wctype_t, re_wchar_t)
+	(re_wctype, re_iswctype, re_wctype_to_bit):
+	Non-function definitions moved to regex.h.
+
+	* window.c (Fselect_window): Doc fix.
+
+	* syntax.c: Include regex.h.
+	(skip_chars): New arg HANDLE_ISO_CLASSES.  Callers changed.
+	If requested, make a list of classes, then check the scanned
+	chars for membership in them.
+	(in_classes): New function.
+	Doc fix.
+
+	* keyboard.c (cmd_error): Don't call any_kboard_state
+	if inside a recursive edit level.
+
+2004-06-13  Lorentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* keyboard.c (command_loop): Call any_kboard_state before
+	command_loop_2 when at top level.
+
+2004-06-13  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (print_object): Always use %ld for printing EMACS_INT.
+
+	* keyboard.c (cancel_hourglass_unwind): Return a value.
+	(modify_event_symbol): Always use %ld for printing EMACS_INT.
+	(Fexecute_extended_command): Likewise.
+
+	* syntax.h (SYNTAX_ENTRY_FOLLOW_PARENT): Rename local variable to
+	avoid clashes.
+	(SYNTAX): Likewise.
+	(SYNTAX_WITH_FLAGS): Likewise.
+	(SYNTAX_MATCH): Likewise.
+
+	* syntax.c (char_quoted): Avoid warning about undefined operation.
+	(find_defun_start): Likewise.
+	(scan_lists): Likewise.
+	(INC_FROM): Likewise.
+	(scan_sexps_forward): Likewise.
+
+	* image.c: Include <ctype.h>.
+
+	* xfaces.c (face_attr_equal_p): Declare parameters.
+
+2004-06-13  Kenichi Handa  <handa@m17n.org>
+
+	* ccl.c (CCL_READ_CHAR): If hit EOF, set REG to -1.
+
+2004-06-12  Matthew Mundell  <matt@mundell.ukfsn.org>
+
+	* eval.c (Fdefun): Signal an error if NAME is not a symbol.
+
+2004-06-12  Kenichi Handa  <handa@m17n.org>
+
+	* ccl.c (CCL_CALL_FOR_MAP_INSTRUCTION): Save eof_ic in
+	ccl_prog_stack_struct and update it.
+	(CCL_INVALID_CMD): If CCL_DEBUG is defined, call ccl_debug_hook.
+	(CCL_READ_CHAR): Get instruction counter from eof_ic, not from
+	ccl->eof_ic on EOF.
+	(ccl_debug_hook): New function.
+	(struct ccl_prog_stack): New member eof_ic.
+	(ccl_driver): Handle EOF in subrountine call correctly.
+
+2004-06-11  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_string): Check CODING_FINISH_INTERRUPT.
+
+2004-06-11  Kim F. Storm  <storm@cua.dk>
+
+	* emacs.c (shut_down_emacs): Inhibit redisplay during shutdown.
+
 2004-06-11  Juanma Barranquero  <lektu@terra.es>
 
 	* keyboard.c (Fposn_at_point): Doc fix.

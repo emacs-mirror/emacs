@@ -26,6 +26,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "charset.h"
 #include "keymap.h"
+#include "regex.h"
 
 /* Make syntax table lookup grant data in gl_state.  */
 #define SYNTAX_ENTRY_VIA_PROPERTY
@@ -97,11 +98,12 @@ static int find_start_modiff;
 static int find_defun_start P_ ((int, int));
 static int back_comment P_ ((int, int, int, int, int, int *, int *));
 static int char_quoted P_ ((int, int));
-static Lisp_Object skip_chars P_ ((int, int, Lisp_Object, Lisp_Object));
+static Lisp_Object skip_chars P_ ((int, int, Lisp_Object, Lisp_Object, int));
 static Lisp_Object scan_lists P_ ((int, int, int, int));
 static void scan_sexps_forward P_ ((struct lisp_parse_state *,
 				    int, int, int, int,
 				    int, Lisp_Object, int));
+static int in_classes P_ ((int, Lisp_Object));
 
 
 struct gl_state_s gl_state;		/* Global state of syntax parser.  */
@@ -292,8 +294,11 @@ char_quoted (charpos, bytepos)
 
   while (bytepos >= beg)
     {
+      int c;
+
       UPDATE_SYNTAX_TABLE_BACKWARD (charpos);
-      code = SYNTAX (FETCH_CHAR (bytepos));
+      c = FETCH_CHAR (bytepos);
+      code = SYNTAX (c);
       if (! (code == Scharquote || code == Sescape))
 	break;
 
@@ -380,12 +385,16 @@ find_defun_start (pos, pos_byte)
   gl_state.use_global = 0;
   while (PT > BEGV)
     {
+      int c;
+
       /* Open-paren at start of line means we may have found our
 	 defun-start.  */
-      if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
+      c = FETCH_CHAR (PT_BYTE);
+      if (SYNTAX (c) == Sopen)
 	{
 	  SETUP_SYNTAX_TABLE (PT + 1, -1);	/* Try again... */
-	  if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
+	  c = FETCH_CHAR (PT_BYTE);
+	  if (SYNTAX (c) == Sopen)
 	    break;
 	  /* Now fallback to the default value.  */
 	  gl_state.current_syntax_table = current_buffer->syntax_table;
@@ -1314,13 +1323,13 @@ except that `]' is never special and `\\' quotes `^', `-' or `\\'
  (but not as the end of a range; quoting is never needed there).
 Thus, with arg "a-zA-Z", this skips letters stopping before first nonletter.
 With arg "^a-zA-Z", skips nonletters stopping before first letter.
-Returns the distance traveled, either zero or positive.
-Note that char classes, e.g. `[:alpha:]', are not currently supported;
-they will be treated as literals.  */)
+Char classes, e.g. `[:alpha:]', are supported.
+
+Returns the distance traveled, either zero or positive.  */)
      (string, lim)
      Lisp_Object string, lim;
 {
-  return skip_chars (1, 0, string, lim);
+  return skip_chars (1, 0, string, lim, 1);
 }
 
 DEFUN ("skip-chars-backward", Fskip_chars_backward, Sskip_chars_backward, 1, 2, 0,
@@ -1330,7 +1339,7 @@ Returns the distance traveled, either zero or negative.  */)
      (string, lim)
      Lisp_Object string, lim;
 {
-  return skip_chars (0, 0, string, lim);
+  return skip_chars (0, 0, string, lim, 1);
 }
 
 DEFUN ("skip-syntax-forward", Fskip_syntax_forward, Sskip_syntax_forward, 1, 2, 0,
@@ -1342,7 +1351,7 @@ This function returns the distance traveled, either zero or positive.  */)
      (syntax, lim)
      Lisp_Object syntax, lim;
 {
-  return skip_chars (1, 1, syntax, lim);
+  return skip_chars (1, 1, syntax, lim, 0);
 }
 
 DEFUN ("skip-syntax-backward", Fskip_syntax_backward, Sskip_syntax_backward, 1, 2, 0,
@@ -1354,13 +1363,14 @@ This function returns the distance traveled, either zero or negative.  */)
      (syntax, lim)
      Lisp_Object syntax, lim;
 {
-  return skip_chars (0, 1, syntax, lim);
+  return skip_chars (0, 1, syntax, lim, 0);
 }
 
 static Lisp_Object
-skip_chars (forwardp, syntaxp, string, lim)
+skip_chars (forwardp, syntaxp, string, lim, handle_iso_classes)
      int forwardp, syntaxp;
      Lisp_Object string, lim;
+     int handle_iso_classes;
 {
   register unsigned int c;
   unsigned char fastmap[0400];
@@ -1376,12 +1386,14 @@ skip_chars (forwardp, syntaxp, string, lim)
   int size_byte;
   const unsigned char *str;
   int len;
+  Lisp_Object iso_classes;
 
   CHECK_STRING (string);
   char_ranges = (int *) alloca (SCHARS (string) * (sizeof (int)) * 2);
   string_multibyte = STRING_MULTIBYTE (string);
   str = SDATA (string);
   size_byte = SBYTES (string);
+  iso_classes = Qnil;
 
   /* Adjust the multibyteness of the string to that of the buffer.  */
   if (multibyte != string_multibyte)
@@ -1437,6 +1449,45 @@ skip_chars (forwardp, syntaxp, string, lim)
 	fastmap[syntax_spec_code[c & 0377]] = 1;
       else
 	{
+	  if (handle_iso_classes && c == '['
+	      && i_byte < size_byte
+	      && STRING_CHAR (str + i_byte, size_byte - i_byte) == ':')
+	    {
+	      const unsigned char *class_beg = str + i_byte + 1;
+	      const unsigned char *class_end = class_beg;
+	      const unsigned char *class_limit = str + size_byte;
+	      /* Leave room for the null.	 */
+	      unsigned char class_name[CHAR_CLASS_MAX_LENGTH + 1];
+	      re_wctype_t cc;
+
+	      if (class_limit - class_beg > CHAR_CLASS_MAX_LENGTH)
+		class_limit = class_beg + CHAR_CLASS_MAX_LENGTH;
+
+	      while (class_end != class_limit
+		     && ! (*class_end >= 0200
+			   || *class_end <= 040
+			   || (*class_end == ':'
+			       && class_end[1] == ']')))
+		class_end++;
+
+	      if (class_end == class_limit
+		  || *class_end >= 0200
+		  || *class_end <= 040)
+		error ("Invalid ISO C character class");
+
+	      bcopy (class_beg, class_name, class_end - class_beg);
+	      class_name[class_end - class_beg] = 0;
+
+	      cc = re_wctype (class_name);
+	      if (cc == 0)
+		error ("Invalid ISO C character class");
+
+	      iso_classes = Fcons (make_number (cc), iso_classes);
+
+	      i_byte = class_end + 2 - str;
+	      continue;
+	    }
+
 	  if (c == '\\')
 	    {
 	      if (i_byte == size_byte)
@@ -1630,6 +1681,15 @@ skip_chars (forwardp, syntaxp, string, lim)
 		      stop = endp;
 		    }
 		  c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, nbytes);
+
+		  if (! NILP (iso_classes) && in_classes (c, iso_classes))
+		    {
+		      if (negate)
+			break;
+		      else
+			goto fwd_ok;
+		    }
+
 		  if (SINGLE_BYTE_CHAR_P (c))
 		    {
 		      if (!fastmap[c])
@@ -1652,6 +1712,7 @@ skip_chars (forwardp, syntaxp, string, lim)
 		      if (!(negate ^ (i < n_char_ranges)))
 			break;
 		    }
+		fwd_ok:
 		  p += nbytes, pos++, pos_byte += nbytes;
 		}
 	    else
@@ -1664,8 +1725,19 @@ skip_chars (forwardp, syntaxp, string, lim)
 		      p = GAP_END_ADDR;
 		      stop = endp;
 		    }
+
+		  if (!NILP (iso_classes) && in_classes (*p, iso_classes))
+		    {
+		      if (negate)
+			break;
+		      else
+			goto fwd_ok;
+		    }
+
 		  if (!fastmap[*p])
 		    break;
+
+		fwd_unibyte_ok:
 		  p++, pos++;
 		}
 	  }
@@ -1691,6 +1763,15 @@ skip_chars (forwardp, syntaxp, string, lim)
 		    p = prev_p - 1, c = *p, nbytes = 1;
 		  else
 		    c = STRING_CHAR (p, MAX_MULTIBYTE_LENGTH);
+
+		  if (! NILP (iso_classes) && in_classes (c, iso_classes))
+		    {
+		      if (negate)
+			break;
+		      else
+			goto back_ok;
+		    }
+
 		  if (SINGLE_BYTE_CHAR_P (c))
 		    {
 		      if (!fastmap[c])
@@ -1705,6 +1786,7 @@ skip_chars (forwardp, syntaxp, string, lim)
 		      if (!(negate ^ (i < n_char_ranges)))
 			break;
 		    }
+		back_ok:
 		  pos--, pos_byte -= nbytes;
 		}
 	    else
@@ -1717,8 +1799,19 @@ skip_chars (forwardp, syntaxp, string, lim)
 		      p = GPT_ADDR;
 		      stop = endp;
 		    }
+
+		  if (! NILP (iso_classes) && in_classes (p[-1], iso_classes))
+		    {
+		      if (negate)
+			break;
+		      else
+			goto fwd_ok;
+		    }
+
 		  if (!fastmap[p[-1]])
 		    break;
+
+		back_unibyte_ok:
 		  p--, pos--;
 		}
 	  }
@@ -1740,6 +1833,30 @@ skip_chars (forwardp, syntaxp, string, lim)
 
     return make_number (PT - start_point);
   }
+}
+
+/* Return 1 if character C belongs to one of the ISO classes
+   in the list ISO_CLASSES.  Each class is represented by an
+   integer which is its type according to re_wctype.  */
+
+static int
+in_classes (c, iso_classes)
+     int c;
+     Lisp_Object iso_classes;
+{
+  int fits_class = 0;
+
+  while (! NILP (iso_classes))
+    {
+      Lisp_Object elt;
+      elt = XCAR (iso_classes);
+      iso_classes = XCDR (iso_classes);
+
+      if (re_iswctype (c, XFASTINT (elt)))
+	fits_class = 1;
+    }
+
+  return fits_class;
 }
 
 /* Jump over a comment, assuming we are at the beginning of one.
@@ -2124,7 +2241,7 @@ scan_lists (from, count, depth, sexpflag)
 	  INC_BOTH (from, from_byte);
 	  UPDATE_SYNTAX_TABLE_FORWARD (from);
 	  if (from < stop && comstart_first
-	      && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from_byte))
+	      && (c = FETCH_CHAR (from_byte), SYNTAX_COMSTART_SECOND (c))
 	      && parse_sexp_ignore_comments)
 	    {
 	      /* we have encountered a comment start sequence and we
@@ -2449,7 +2566,7 @@ scan_lists (from, count, depth, sexpflag)
 	   Fcons (build_string ("Unbalanced parentheses"),
 		  Fcons (make_number (last_good),
 			 Fcons (make_number (from), Qnil))));
-
+  abort ();
   /* NOTREACHED */
 }
 
@@ -2588,8 +2705,8 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
 #define INC_FROM				\
 do { prev_from = from;				\
      prev_from_byte = from_byte; 		\
-     prev_from_syntax				\
-       = SYNTAX_WITH_FLAGS (FETCH_CHAR (prev_from_byte)); \
+     temp = FETCH_CHAR (prev_from_byte);	\
+     prev_from_syntax = SYNTAX_WITH_FLAGS (temp); \
      INC_BOTH (from, from_byte);		\
      if (from < end)				\
        UPDATE_SYNTAX_TABLE_FORWARD (from);	\
@@ -2664,7 +2781,8 @@ do { prev_from = from;				\
   curlevel->last = -1;
 
   SETUP_SYNTAX_TABLE (prev_from, 1);
-  prev_from_syntax = SYNTAX_WITH_FLAGS (FETCH_CHAR (prev_from_byte));
+  temp = FETCH_CHAR (prev_from_byte);
+  prev_from_syntax = SYNTAX_WITH_FLAGS (temp);
   UPDATE_SYNTAX_TABLE_FORWARD (from);
 
   /* Enter the loop at a place appropriate for initial state.  */
@@ -2743,7 +2861,8 @@ do { prev_from = from;				\
 	  while (from < end)
 	    {
 	      /* Some compilers can't handle this inside the switch.  */
-	      temp = SYNTAX (FETCH_CHAR (from_byte));
+	      temp = FETCH_CHAR (from_byte);
+	      temp = SYNTAX (temp);
 	      switch (temp)
 		{
 		case Scharquote:

@@ -40,15 +40,11 @@
       (unless (facep face)
 	;; If the user has already created the face, respect that.
 	(let ((value (or (get face 'saved-face) spec))
-	      (frames (frame-list))
-	      (have-window-system (memq initial-window-system '(x w32)))
-	      frame)
+	      (have-window-system (memq initial-window-system '(x w32))))
 	  ;; Create global face.
 	  (make-empty-face face)
 	  ;; Create frame-local faces
-	  (while frames
-	    (setq frame (car frames)
-		  frames (cdr frames))
+	  (dolist (frame (frame-list))
 	    (face-spec-set face value frame)
 	    (when (memq (window-system frame) '(x w32))
 	      (setq have-window-system t)))

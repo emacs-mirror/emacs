@@ -1,4 +1,5 @@
-precious ^(config\.status)$
+# Generated files
+precious ^(config\.status|config\.cache)$
 
 # Build-in-place makes these directories, so just ignore them
 precious ^(info)$

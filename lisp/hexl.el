@@ -217,7 +217,9 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
         (set-buffer-modified-p modified))
       (make-local-variable 'hexl-max-address)
       (setq hexl-max-address max-address)
-      (hexl-goto-address original-point))
+      (condition-case nil
+	  (hexl-goto-address original-point)
+	(error nil)))
 
     ;; We do not turn off the old major mode; instead we just
     ;; override most of it.  That way, we can restore it perfectly.
@@ -405,7 +407,7 @@ This function is indented to be used as eldoc callback."
 Signal error if ADDRESS out of range."
   (interactive "nAddress: ")
   (if (or (< address 0) (> address hexl-max-address))
-	  (error "Out of hexl region"))
+      (error "Out of hexl region"))
   (goto-char (hexl-address-to-marker address)))
 
 (defun hexl-goto-hex-address (hex-address)

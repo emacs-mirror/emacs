@@ -1290,20 +1290,21 @@ is used to further constrain the set of candidates.  */)
 	  XSETFASTINT (zero, 0);
 
 	  /* Ignore this element if it fails to match all the regexps.  */
-	  {
-	    int count = SPECPDL_INDEX ();
-	    specbind (Qcase_fold_search, completion_ignore_case ? Qt : Qnil);
-	    for (regexps = Vcompletion_regexp_list; CONSP (regexps);
-		 regexps = XCDR (regexps))
-	      {
-		tem = Fstring_match (XCAR (regexps), eltstring, zero);
-		if (NILP (tem))
-		  break;
-	      }
-	    unbind_to (count, Qnil);
-	    if (CONSP (regexps))
-	      continue;
-	  }
+	  if (CONSP (Vcompletion_regexp_list))
+	    {
+	      int count = SPECPDL_INDEX ();
+	      specbind (Qcase_fold_search, completion_ignore_case ? Qt : Qnil);
+	      for (regexps = Vcompletion_regexp_list; CONSP (regexps);
+		   regexps = XCDR (regexps))
+		{
+		  tem = Fstring_match (XCAR (regexps), eltstring, zero);
+		  if (NILP (tem))
+		    break;
+		}
+	      unbind_to (count, Qnil);
+	      if (CONSP (regexps))
+		continue;
+	    }
 
 	  /* Ignore this element if there is a predicate
 	     and the predicate doesn't like it. */
@@ -1541,20 +1542,21 @@ are ignored unless STRING itself starts with a space.  */)
 	  XSETFASTINT (zero, 0);
 
 	  /* Ignore this element if it fails to match all the regexps.  */
-	  {
-	    int count = SPECPDL_INDEX ();
-	    specbind (Qcase_fold_search, completion_ignore_case ? Qt : Qnil);
-	    for (regexps = Vcompletion_regexp_list; CONSP (regexps);
-		 regexps = XCDR (regexps))
-	      {
-		tem = Fstring_match (XCAR (regexps), eltstring, zero);
-		if (NILP (tem))
-		  break;
-	      }
-	    unbind_to (count, Qnil);
-	    if (CONSP (regexps))
-	      continue;
-	  }
+	  if (CONSP (Vcompletion_regexp_list))
+	    {
+	      int count = SPECPDL_INDEX ();
+	      specbind (Qcase_fold_search, completion_ignore_case ? Qt : Qnil);
+	      for (regexps = Vcompletion_regexp_list; CONSP (regexps);
+		   regexps = XCDR (regexps))
+		{
+		  tem = Fstring_match (XCAR (regexps), eltstring, zero);
+		  if (NILP (tem))
+		    break;
+		}
+	      unbind_to (count, Qnil);
+	      if (CONSP (regexps))
+		continue;
+	    }
 
 	  /* Ignore this element if there is a predicate
 	     and the predicate doesn't like it. */
@@ -1789,19 +1791,20 @@ the values STRING, PREDICATE and `lambda'.  */)
     return call3 (alist, string, predicate, Qlambda);
 
   /* Reject this element if it fails to match all the regexps.  */
-  {
-    int count = SPECPDL_INDEX ();
-    specbind (Qcase_fold_search, completion_ignore_case ? Qt : Qnil);
-    for (regexps = Vcompletion_regexp_list; CONSP (regexps);
-	 regexps = XCDR (regexps))
-      {
-	if (NILP (Fstring_match (XCAR (regexps),
-				 SYMBOLP (tem) ? string : tem,
-				 Qnil)))
-	  return unbind_to (count, Qnil);
-      }
-    unbind_to (count, Qnil);
-  }
+  if (CONSP (Vcompletion_regexp_list))
+    {
+      int count = SPECPDL_INDEX ();
+      specbind (Qcase_fold_search, completion_ignore_case ? Qt : Qnil);
+      for (regexps = Vcompletion_regexp_list; CONSP (regexps);
+	   regexps = XCDR (regexps))
+	{
+	  if (NILP (Fstring_match (XCAR (regexps),
+				   SYMBOLP (tem) ? string : tem,
+				   Qnil)))
+	    return unbind_to (count, Qnil);
+	}
+      unbind_to (count, Qnil);
+    }
 
   /* Finally, check the predicate.  */
   if (!NILP (predicate))

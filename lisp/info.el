@@ -469,7 +469,8 @@ with the top-level Info directory.
 
 In interactive use, a non-numeric prefix argument directs
 this command to read a file name from the minibuffer.
-A numeric prefix argument appends the number to the buffer name.
+A numeric prefix argument selects an Info buffer with the prefix number
+appended to the Info buffer name.
 
 The search path for Info files is in the variable `Info-directory-list'.
 The top-level Info directory is made by combining all the files named `dir'
@@ -1315,6 +1316,7 @@ any double quotes or backslashes must be escaped (\\\",\\\\)."
 ;; Go to an info node specified with a filename-and-nodename string
 ;; of the sort that is found in pointers in nodes.
 
+;;;###autoload
 (defun Info-goto-node (nodename &optional fork)
   "Go to info node named NODENAME.  Give just NODENAME or (FILENAME)NODENAME.
 If NODENAME is of the form (FILENAME)NODENAME, the node is in the Info file
@@ -1672,7 +1674,8 @@ If SAME-FILE is non-nil, do not move to a different Info file."
     (goto-char (or p (point-min)))))
 
 (defun Info-toc ()
-  "Go to a node with table of contents of the current Info file."
+  "Go to a node with table of contents of the current Info file.
+Table of contents is created from the tree structure of menus."
   (interactive)
   (let ((curr-file Info-current-file)
         (curr-node Info-current-node)
@@ -1687,7 +1690,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
         (insert "*Note Top::\n")
         (Info-insert-toc
          (nth 2 (assoc "Top" node-list)) ; get Top nodes
-         node-list 0 curr-file))
+         node-list 0 (substring-no-properties curr-file)))
       (if (not (bobp))
           (let ((Info-hide-note-references 'hide)
                 (Info-fontify-visited-nodes nil))
@@ -2786,6 +2789,7 @@ if point is in a menu item description, follow that menu item."
   (define-key Info-mode-map "h" 'Info-help)
   (define-key Info-mode-map "i" 'Info-index)
   (define-key Info-mode-map "l" 'Info-last)
+  (define-key Info-mode-map "L" 'Info-history)
   (define-key Info-mode-map "m" 'Info-menu)
   (define-key Info-mode-map "n" 'Info-next)
   (define-key Info-mode-map "p" 'Info-prev)
@@ -2796,6 +2800,7 @@ if point is in a menu item description, follow that menu item."
   (define-key Info-mode-map "\M-s" 'Info-search)
   (define-key Info-mode-map "\M-n" 'clone-buffer)
   (define-key Info-mode-map "t" 'Info-top-node)
+  (define-key Info-mode-map "T" 'Info-toc)
   (define-key Info-mode-map "u" 'Info-up)
   ;; For consistency with dired-copy-filename-as-kill.
   (define-key Info-mode-map "w" 'Info-copy-current-node-name)
@@ -2843,9 +2848,9 @@ if point is in a menu item description, follow that menu item."
    ["Last" Info-last :active Info-history
     :help "Go to the last node you were at"]
    ["History" Info-history :active Info-history-list
-    :help "Go to the history buffer"]
+    :help "Go to menu of visited nodes"]
    ["Table of Contents" Info-toc
-    :help "Go to the buffer with a table of contents"]
+    :help "Go to table of contents"]
    ("Index..."
     ["Lookup a String" Info-index
      :help "Look for a string in the index items"]
@@ -2990,15 +2995,15 @@ Selecting other nodes:
 \\[Info-directory]	Go to the Info directory node.
 \\[Info-follow-reference]	Follow a cross reference.  Reads name of reference.
 \\[Info-last]	Move to the last node you were at.
-\\[Info-history]	Go to the history buffer.
-\\[Info-toc]	Go to the buffer with a table of contents.
-\\[Info-index]	Look up a topic in this file's Index and move to that node.
-\\[Info-index-next]	(comma) Move to the next match from a previous \\<Info-mode-map>\\[Info-index] command.
-\\[info-apropos]	Look for a string in the indices of all manuals.
+\\[Info-history]	Go to menu of visited nodes.
+\\[Info-toc]	Go to table of contents of the current Info file.
 \\[Info-top-node]	Go to the Top node of this file.
 \\[Info-final-node]	Go to the final node in this file.
 \\[Info-backward-node]	Go backward one node, considering all nodes as forming one sequence.
 \\[Info-forward-node]	Go forward one node, considering all nodes as forming one sequence.
+\\[Info-index]	Look up a topic in this file's Index and move to that node.
+\\[Info-index-next]	(comma) Move to the next match from a previous \\<Info-mode-map>\\[Info-index] command.
+\\[info-apropos]	Look for a string in the indices of all manuals.
 
 Moving within a node:
 \\[Info-scroll-up]	Normally, scroll forward a full screen.
@@ -3015,15 +3020,15 @@ Advanced commands:
 \\[Info-copy-current-node-name]	Put name of current info node in the kill ring.
 \\[clone-buffer]	Select a new cloned Info buffer in another window.
 \\[Info-edit]	Edit contents of selected node.
-1	Pick first item in node's menu.
-2, 3, 4, 5   Pick second ... fifth item in node's menu.
+1 .. 9	Pick first ... ninth item in node's menu.
+	  Every third `*' is highlighted to help pick the right number.
 \\[Info-goto-node]	Move to node specified by name.
 	  You may include a filename as well, as (FILENAME)NODENAME.
 \\[universal-argument] \\[info]	Move to new Info file with completion.
+\\[universal-argument] N \\[info]	Select Info buffer with prefix number in the name *info*<N>.
 \\[Info-search]	Search through this Info file for specified regexp,
 	  and select the node in which the next occurrence is found.
-\\[Info-search-case-sensitively]	Search through this Info file
-	  for specified regexp case-sensitively.
+\\[Info-search-case-sensitively]	Search through this Info file for specified regexp case-sensitively.
 \\[Info-search-next]	Search for another occurrence of regexp
 	  from a previous \\<Info-mode-map>\\[Info-search] command.
 \\[Info-next-reference]	Move cursor to next cross-reference or menu item.

@@ -589,6 +589,12 @@ The variable @code{dired-chown-program} specifies the name of the
 program to use to do the work (different systems put @code{chown} in
 different places).
 
+@findex dired-do-touch
+@kindex T @r{(Dired)}
+@cindex changing file time (in Dired)
+@item T @var{timestamp} @key{RET}
+Change the time of the specified files (@code{dired-do-touch}).
+
 @findex dired-do-print
 @kindex P @r{(Dired)}
 @cindex printing files (in Dired)

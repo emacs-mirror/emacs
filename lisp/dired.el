@@ -880,7 +880,8 @@ Must also be called after dired-actual-switches have changed.
 Should not fail even on completely garbaged buffers.
 Preserves old cursor, marks/flags, hidden-p."
   (widen)				; just in case user narrowed
-  (let ((opoint (point))
+  (let ((modflag (buffer-modified-p))
+	(opoint (point))
 	(ofile (dired-get-filename nil t))
 	(mark-alist nil)		; save marked files
 	(hidden-subdirs (dired-remember-hidden))
@@ -907,9 +908,10 @@ Preserves old cursor, marks/flags, hidden-p."
     (save-excursion			; hide subdirs that were hidden
       (dolist (dir hidden-subdirs)
 	(if (dired-goto-subdir dir)
-	    (dired-hide-subdir 1)))))
+	    (dired-hide-subdir 1))))
+    (unless modflag (restore-buffer-modified-p nil)))
   ;; outside of the let scope
-;;; Might as well not override the user if the user changed this.
+;;;  Might as well not override the user if the user changed this.
 ;;;  (setq buffer-read-only t)
   )
 
@@ -1707,7 +1709,7 @@ DIR must be a directory name, not a file name."
       (setq dir (expand-file-name dir)))
   (if (string-match (concat "^" (regexp-quote dir)) file)
       (substring file (match-end 0))
-;;; (or no-error
+;;;  (or no-error
 ;;;	(error "%s: not in directory tree growing at %s" file dir))
     file))
 

@@ -1147,7 +1147,8 @@ cmd_error (data)
 
   Vinhibit_quit = Qnil;
 #ifdef MULTI_KBOARD
-  any_kboard_state ();
+  if (command_loop_level == 0 && minibuf_level == 0)
+    any_kboard_state ();
 #endif
 
   return make_number (0);
@@ -6261,12 +6262,8 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist_or_stem,
 	{
 	  int len = SBYTES (name_alist_or_stem);
 	  char *buf = (char *) alloca (len + 50);
-	  if (sizeof (int) == sizeof (EMACS_INT))
-	    sprintf (buf, "%s-%d", SDATA (name_alist_or_stem),
-		     (int)XINT (symbol_int) + 1);
-	  else if (sizeof (long) == sizeof (EMACS_INT))
-	    sprintf (buf, "%s-%ld", SDATA (name_alist_or_stem),
-		     (long)XINT (symbol_int) + 1);
+          sprintf (buf, "%s-%ld", SDATA (name_alist_or_stem),
+                   (long) XINT (symbol_int) + 1);
 	  value = intern (buf);
 	}
       else if (name_table != 0 && name_table[symbol_num])
@@ -9790,23 +9787,9 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   else if (CONSP (prefixarg) && XINT (XCAR (prefixarg)) == 4)
     strcpy (buf, "C-u ");
   else if (CONSP (prefixarg) && INTEGERP (XCAR (prefixarg)))
-    {
-      if (sizeof (int) == sizeof (EMACS_INT))
-	sprintf (buf, "%d ", XINT (XCAR (prefixarg)));
-      else if (sizeof (long) == sizeof (EMACS_INT))
-	sprintf (buf, "%ld ", (long) XINT (XCAR (prefixarg)));
-      else
-	abort ();
-    }
+    sprintf (buf, "%ld ", (long) XINT (XCAR (prefixarg)));
   else if (INTEGERP (prefixarg))
-    {
-      if (sizeof (int) == sizeof (EMACS_INT))
-	sprintf (buf, "%d ", XINT (prefixarg));
-      else if (sizeof (long) == sizeof (EMACS_INT))
-	sprintf (buf, "%ld ", (long) XINT (prefixarg));
-      else
-	abort ();
-    }
+    sprintf (buf, "%ld ", (long) XINT (prefixarg));
 
   /* This isn't strictly correct if execute-extended-command
      is bound to anything else.  Perhaps it should use

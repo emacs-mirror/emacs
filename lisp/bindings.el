@@ -524,7 +524,9 @@ is okay.  See `mode-line-format'.")
 	 ;; files you do want to see, not just TeX stuff.  -- fx
 	 ".toc" ".aux"
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
-	 ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs")))
+	 ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs"
+	 ;; Python byte-compiled
+	 ".pyc" ".pyo")))
 
 ;; Suffixes used for executables.
 (setq exec-suffixes

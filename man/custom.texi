@@ -1984,9 +1984,20 @@ arguments, all surrounded by parentheses.  For example, @code{(setq
 fill-column 60)} calls the function @code{setq} to set the variable
 @code{fill-column} (@pxref{Filling}) to 60.
 
-  The second argument to @code{setq} is an expression for the new value of
-the variable.  This can be a constant, a variable, or a function call
-expression.  In @file{.emacs}, constants are used most of the time.  They can be:
+  You can set any Lisp variable with @code{setq}, but with certain
+variables @code{setq} won't do what you probably want in the
+@file{.emacs} file.  Some variables automatically become buffer-local
+when set with @code{setq}; what you want in @file{.emacs} is to set
+the default value, using @code{setq-default}.  Some customizable minor
+mode variables do special things to enable the mode when you set them
+with Customize, but ordinary @code{setq} won't do that; to enable the
+mode in your @file{.emacs} file, call the minor mode command.  The
+following section has examples of both of these methods.
+
+  The second argument to @code{setq} is an expression for the new
+value of the variable.  This can be a constant, a variable, or a
+function call expression.  In @file{.emacs}, constants are used most
+of the time.  They can be:
 
 @table @asis
 @item Numbers:
@@ -2104,6 +2115,14 @@ which supports most of the languages of Western Europe.
 
 @example
 (set-language-environment "Latin-1")
+@end example
+
+@need 1500
+@item
+Turn off Line Number mode, a global minor mode.
+
+@example
+(line-number-mode 0)
 @end example
 
 @need 1500

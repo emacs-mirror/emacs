@@ -207,6 +207,8 @@ extern Lisp_Object Vinitial_window_system;
 
 extern Lisp_Object Vauto_save_list_file_name;
 
+extern Lisp_Object Vinhibit_redisplay;
+
 #ifdef USG_SHARED_LIBRARIES
 /* If nonzero, this is the place to put the end of the writable segment
    at startup.  */
@@ -2008,6 +2010,9 @@ shut_down_emacs (sig, no_x, stuff)
 {
   /* Prevent running of hooks from now on.  */
   Vrun_hooks = Qnil;
+
+  /* Don't update display from now on.  */
+  Vinhibit_redisplay = Qt;
 
   /* If we are controlling the terminal, reset terminal modes.  */
 #ifdef EMACS_HAVE_TTY_PGRP

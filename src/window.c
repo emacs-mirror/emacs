@@ -3064,8 +3064,8 @@ defaults.  */)
 
 DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
        doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
-If WINDOW is not already selected, also make WINDOW's buffer current.
-Also make WINDOW the frame's selected window.
+If WINDOW is not already selected, make WINDOW's buffer current
+and make WINDOW the frame's selected window.
 Optional second arg NORECORD non-nil means
 do not put this buffer at the front of the list of recently selected ones.
 

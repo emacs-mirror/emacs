@@ -953,7 +953,8 @@ See also `minibuffer-history-case-insensitive-variables'."
 					nil
 					minibuffer-local-map
 					nil
-					'minibuffer-history-search-history)))
+					'minibuffer-history-search-history
+					(car minibuffer-history-search-history))))
      ;; Use the last regexp specified, by default, if input is empty.
      (list (if (string= regexp "")
 	       (if minibuffer-history-search-history
