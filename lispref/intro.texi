@@ -4,6 +4,9 @@
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/intro
 
+@c Versino of the manual.
+@set VERSION 2.8
+
 @node Introduction, Lisp Data Types, Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Introduction
@@ -34,7 +37,7 @@ Lisp that have counterparts in many programming languages, and later
 chapters describe features that are peculiar to Emacs Lisp or relate
 specifically to editing.
 
-  This is edition 2.6.
+  This is edition @value{VERSION}.
 
 @menu
 * Caveats::             Flaws and a request for help.
