@@ -1604,6 +1604,7 @@ extern Lisp_Object truncate_undo_list ();
 
 /* defined in textprop.c */
 extern Lisp_Object Qmodification_hooks;
+extern Lisp_Object Qrear_nonsticky;
 extern Lisp_Object Qinsert_in_front_hooks, Qinsert_behind_hooks;
 extern Lisp_Object Fnext_property_change ();
 extern Lisp_Object Fnext_single_property_change ();
