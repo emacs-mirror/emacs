@@ -28,6 +28,7 @@ typedef struct W32FontStruct {
   TEXTMETRIC tm;
   HFONT hfont;
   bdffont *bdf;
+  int double_byte_p;
 } W32FontStruct;
 
 typedef struct W32FontStruct XFontStruct;
