@@ -1596,7 +1596,7 @@ backup file names and the like)."
 	      (setq buffer-offer-save nil)
 	      (buffer-disable-undo blobby-buffer)
 	      (insert-file-contents-literally maybe-file)
-	      ;; work around text-vs-binary wierdness and also around rmail-resend's creative
+	      ;; work around text-vs-binary weirdness and also around rmail-resend's creative
 	      ;; manipulation of mail-header-separator
 	      ;;
 	      ;; if we don't find the normal M-H-S, and the alternative is defined but also
@@ -1795,7 +1795,7 @@ Synonyms:
    s  SEND         immediately (same as \"i\")
    S  SEND!        immediately (same as \"I\")
    r  ROUGH        draft (same as \"d\")
-   R  ROUGH!       draft (same as \"R\")
+   R  ROUGH!       draft (same as \"D\")
    n  NOPE         didn't mean it (same as \"e\")
    y  YUP          do the default behavior (same as \"C-m\")
 
