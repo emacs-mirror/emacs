@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.41 2001/11/29 21:29:36 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.42 2001/12/02 04:19:32 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -30,7 +30,6 @@
 
 ;;; Bugs:
 
-;; - comment-indent on /*  */ jumps to /*  ><*/ instead of /* >< */.
 ;; - nested comments in sgml-mode are not properly quoted.
 ;; - single-char nestable comment-start can only do the "\\s<+" stuff
 ;;   if the corresponding closing marker happens to be right.
@@ -450,7 +449,15 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
 	   (begpos (comment-search-forward eolpos t))
 	   cpos indent)
       ;; An existing comment?
-      (if begpos (setq cpos (point-marker))
+      (if begpos
+	  (progn
+	    (if (and (not (looking-at "[\t\n ]"))
+		     (looking-at comment-end-skip))
+		;; The comment is empty and we have skipped all its space
+		;; and landed right before the comment-ender:
+		;; Go back to the middle of the space.
+		(forward-char (/ (skip-chars-backward " \t") -2)))
+	    (setq cpos (point-marker)))
 	  ;; If none, insert one.
 	  (save-excursion
 	    ;; Some comment-indent-function insist on not moving comments that
