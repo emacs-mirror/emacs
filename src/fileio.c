@@ -1,5 +1,5 @@
 /* File IO for GNU Emacs.
-   Copyright (C) 1985,86,87,88,93,94,95,96 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,88,93,94,95,96,1997 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3909,7 +3909,7 @@ to the file, instead of any buffer contents, and END is ignored.")
       /* If we've locked this file for some other buffer,
 	 query before proceeding.  */
       if (!visiting && EQ (Ffile_locked_p (lockname), Qt))
-	call2 (intern ("ask-user-about-lock"), fn, Vuser_login_name);
+	call2 (intern ("ask-user-about-lock"), filename, Vuser_login_name);
 
       lock_file (lockname);
     }
@@ -4853,7 +4853,7 @@ DIR defaults to current buffer's directory default.")
   else if (STRINGP (initial))
     {
       insdef = initial;
-      insdef1 = Fcons (double_dollars (insdef), 0);
+      insdef1 = Fcons (double_dollars (insdef), make_number (0));
     }
   else
     insdef = Qnil, insdef1 = Qnil;
