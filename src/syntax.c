@@ -374,22 +374,24 @@ find_defun_start (pos, pos_byte)
      syntax-tables.  */
   gl_state.current_syntax_table = current_buffer->syntax_table;
   gl_state.use_global = 0;
-  while (PT > BEGV)
+  if (open_paren_in_column_0_is_defun_start)
     {
-      /* Open-paren at start of line means we may have found our
-	 defun-start.  */
-      if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
+      while (PT > BEGV)
 	{
-	  SETUP_SYNTAX_TABLE (PT + 1, -1);	/* Try again... */
-	  if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen
-	      && open_paren_in_column_0_is_defun_start)
-	    break;
-	  /* Now fallback to the default value.  */
-	  gl_state.current_syntax_table = current_buffer->syntax_table;
-	  gl_state.use_global = 0;
+	  /* Open-paren at start of line means we may have found our
+	     defun-start.  */
+	  if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
+	    {
+	      SETUP_SYNTAX_TABLE (PT + 1, -1);	/* Try again... */
+	      if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
+		break;
+	      /* Now fallback to the default value.  */
+	      gl_state.current_syntax_table = current_buffer->syntax_table;
+	      gl_state.use_global = 0;
+	    }
+	  /* Move to beg of previous line.  */
+	  scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -2, 1);
 	}
-      /* Move to beg of previous line.  */
-      scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -2, 1);
     }
 
   /* Record what we found, for the next try.  */
