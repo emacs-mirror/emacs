@@ -114,13 +114,13 @@ used in the FAQ.
 @end menu
 
 @node Basic keys, Extended commands, FAQ notation, FAQ notation
-@section What do these mean: @kbd{C-h}, @kbd{M-C-a}, @key{RET}, @kbd{@key{ESC} a}, etc.?
+@section What do these mean: @kbd{C-h}, @kbd{C-M-a}, @key{RET}, @kbd{@key{ESC} a}, etc.?
 @cindex Basic keys
 @cindex Control key, notation for
 @cindex @key{Meta} key, notation for
 @cindex Control-Meta characters, notation for
 @cindex @kbd{C-h}, definition of
-@cindex @kbd{M-C-h}, definition of
+@cindex @kbd{C-M-h}, definition of
 @cindex @key{DEL}, definition of
 @cindex @key{ESC}, definition of
 @cindex @key{LFD}, definition of
@@ -1482,7 +1482,7 @@ to search for unprintable characters using @code{re-search-forward}:
 
 Using @code{isearch-forward-regexp}:
 
-@kbd{M-C-s [^ @key{TAB} @key{LFD} C-q @key{RET} C-q C-l @key{SPC} -~]}
+@kbd{C-M-s [^ @key{TAB} @key{LFD} C-q @key{RET} C-q C-l @key{SPC} -~]}
 
 To delete all unprintable characters, simply use replace-regexp:
 
@@ -2010,7 +2010,7 @@ delete it and reinsert it.  Emacs will momentarily move the cursor to
 the matching parenthesis.
 
 @item
-@kbd{M-C-f} (@code{forward-sexp}) and @kbd{M-C-b} (@code{backward-sexp})
+@kbd{C-M-f} (@code{forward-sexp}) and @kbd{C-M-b} (@code{backward-sexp})
 will skip over one set of balanced parentheses, so you can see which
 parentheses match.  (You can train it to skip over balanced brackets
 and braces at the same time by modifying the syntax table.)
@@ -2107,7 +2107,7 @@ You can type the form in the @file{*scratch*} buffer, and then type
 will be inserted in the buffer.
 
 @item
-In @code{emacs-lisp-mode}, typing @kbd{M-C-x} evaluates a top-level form
+In @code{emacs-lisp-mode}, typing @kbd{C-M-x} evaluates a top-level form
 before or around point.
 
 @item

@@ -1972,8 +1972,8 @@ This is yet one more command that does the same as the @key{RET}
 command, but this one does it without expunging and hiding dormants
 (@code{gnus-group-visible-select-group}).
 
-@item M-C-@key{RET}
-@kindex M-C-@key{RET} @r{(Group)}
+@item C-M-@key{RET}
+@kindex C-M-@key{RET} @r{(Group)}
 @findex gnus-group-select-group-ephemerally
 Finally, this command selects the current group ephemerally without
 doing any processing of its contents
@@ -3025,8 +3025,8 @@ zombies.
 Run all expirable articles in the current group through the expiry
 process (if any) (@code{gnus-group-expire-articles}).
 
-@item C-c M-C-x
-@kindex C-c M-C-x @r{(Group)}
+@item C-c C-M-x
+@kindex C-c C-M-x @r{(Group)}
 @findex gnus-group-expire-all-groups
 Run all articles in all groups through the expiry process
 (@code{gnus-group-expire-all-groups}).
@@ -5843,9 +5843,9 @@ meaningful.  Here's one example:
 @table @kbd
 
 @item T k
-@itemx M-C-k
+@itemx C-M-k
 @kindex T k @r{(Summary)}
-@kindex M-C-k @r{(Summary)}
+@kindex C-M-k @r{(Summary)}
 @findex gnus-summary-kill-thread
 Mark all articles in the current (sub-)thread as read
 (@code{gnus-summary-kill-thread}).  If the prefix argument is positive,
@@ -5853,9 +5853,9 @@ remove all marks instead.  If the prefix argument is negative, tick
 articles instead.
 
 @item T l
-@itemx M-C-l
+@itemx C-M-l
 @kindex T l @r{(Summary)}
-@kindex M-C-l @r{(Summary)}
+@kindex C-M-l @r{(Summary)}
 @findex gnus-summary-lower-thread
 Lower the score of the current (sub-)thread
 (@code{gnus-summary-lower-thread}).
@@ -5926,8 +5926,8 @@ understand the numeric prefix.
 
 @item T n
 @kindex T n @r{(Summary)}
-@itemx M-C-n
-@kindex M-C-n @r{(Summary)}
+@itemx C-M-n
+@kindex C-M-n @r{(Summary)}
 @itemx M-down
 @kindex M-down @r{(Summary)}
 @findex gnus-summary-next-thread
@@ -5935,8 +5935,8 @@ Go to the next thread (@code{gnus-summary-next-thread}).
 
 @item T p
 @kindex T p @r{(Summary)}
-@itemx M-C-p
-@kindex M-C-p @r{(Summary)}
+@itemx C-M-p
+@kindex C-M-p @r{(Summary)}
 @itemx M-up
 @kindex M-up @r{(Summary)}
 @findex gnus-summary-prev-thread
@@ -8506,8 +8506,8 @@ process/prefix convention (@pxref{Process/Prefix}).
 Expire all expirable articles in the group
 (@code{gnus-summary-expire-articles}).
 
-@item B M-C-e
-@kindex B M-C-e @r{(Summary)}
+@item B C-M-e
+@kindex B C-M-e @r{(Summary)}
 @findex gnus-summary-expire-articles-now
 Delete all the expirable articles in the group
 (@code{gnus-summary-expire-articles-now}).  This means that @strong{all}
@@ -8799,8 +8799,8 @@ whenever you see a message that is a collection of other messages of
 some format, you @kbd{C-d} and read these messages in a more convenient
 fashion.
 
-@item M-C-d
-@kindex M-C-d @r{(Summary)}
+@item C-M-d
+@kindex C-M-d @r{(Summary)}
 @findex gnus-summary-read-document
 This command is very similar to the one above, but lets you gather
 several documents into one biiig group
@@ -8824,14 +8824,14 @@ to have truncation switched off while reading articles.
 Expand the summary buffer window (@code{gnus-summary-expand-window}).
 If given a prefix, force an @code{article} window configuration.
 
-@item M-C-e
-@kindex M-C-e @r{(Summary)}
+@item C-M-e
+@kindex C-M-e @r{(Summary)}
 @findex gnus-summary-edit-parameters
 Edit the group parameters (@pxref{Group Parameters}) of the current
 group (@code{gnus-summary-edit-parameters}).
 
-@item M-C-a
-@kindex M-C-a @r{(Summary)}
+@item C-M-a
+@kindex C-M-a @r{(Summary)}
 @findex gnus-summary-customize-parameters
 Customize the group parameters (@pxref{Group Parameters}) of the current
 group (@code{gnus-summary-customize-parameters}).
@@ -17094,9 +17094,9 @@ same time?  You can't, and you're probably perfectly happy that way.
 I'm not, so I've added a second prefix---the @dfn{symbolic prefix}.  The
 prefix key is @kbd{M-i} (@code{gnus-symbolic-argument}), and the next
 character typed in is the value.  You can stack as many @kbd{M-i}
-prefixes as you want.  @kbd{M-i a M-C-u} means ``feed the @kbd{M-C-u}
-command the symbolic prefix @code{a}''.  @kbd{M-i a M-i b M-C-u} means
-``feed the @kbd{M-C-u} command the symbolic prefixes @code{a} and
+prefixes as you want.  @kbd{M-i a C-M-u} means ``feed the @kbd{C-M-u}
+command the symbolic prefix @code{a}''.  @kbd{M-i a M-i b C-M-u} means
+``feed the @kbd{C-M-u} command the symbolic prefixes @code{a} and
 @code{b}''.  You get the drift.
 
 Typing in symbolic prefixes to commands that don't accept them doesn't
@@ -18090,7 +18090,7 @@ never be totally undoable.
 @findex gnus-undo
 The undoability is provided by the @code{gnus-undo-mode} minor mode.  It
 is used if @code{gnus-use-undo} is non-@code{nil}, which is the
-default.  The @kbd{M-C-_} key performs the @code{gnus-undo} 
+default.  The @kbd{C-M-_} key performs the @code{gnus-undo} 
 command, which should feel kinda like the normal Emacs @code{undo}
 command.
 
@@ -19918,7 +19918,7 @@ There's a way now to specify that ``uninteresting'' fields be suppressed
 when generating lines in buffers (@pxref{Advanced Formatting}).
 
 @item
-Several commands in the group buffer can be undone with @kbd{M-C-_}
+Several commands in the group buffer can be undone with @kbd{C-M-_}
 (@pxref{Undo}).
 
 @item
@@ -19950,7 +19950,7 @@ the native server (@pxref{Changing Servers}).
 
 @item
 A new command for reading collections of documents
-(@code{nndoc} with @code{nnvirtual} on top) has been added---@kbd{M-C-d}
+(@code{nndoc} with @code{nnvirtual} on top) has been added---@kbd{C-M-d}
 (@pxref{Really Various Summary Commands}).
 
 @item
@@ -22093,7 +22093,7 @@ description   = <string>
 
 Believe it or not, but some people who use Gnus haven't really used
 Emacs much before they embarked on their journey on the Gnus Love Boat.
-If you are one of those unfortunates whom ``@kbd{M-C-a}'', ``kill the
+If you are one of those unfortunates whom ``@kbd{C-M-a}'', ``kill the
 region'', and ``set @code{gnus-flargblossen} to an alist where the key
 is a regexp that is used for matching on the group name'' are magical
 phrases with little or no meaning, then this appendix is for you.  If
@@ -22133,11 +22133,11 @@ which is the meta key on this keyboard.  It's usually located somewhere
 to the left hand side of the keyboard, usually on the bottom row.
 
 Now, us Emacs people don't say ``press the meta-control-m key'',
-because that's just too inconvenient.  We say ``press the @kbd{M-C-m}
+because that's just too inconvenient.  We say ``press the @kbd{C-M-m}
 key''.  @kbd{M-} is the prefix that means ``meta'' and ``C-'' is the
 prefix that means ``control''.  So ``press @kbd{C-k}'' means ``press
 down the control key, and hold it down while you press @kbd{k}''.
-``Press @kbd{M-C-k}'' means ``press down and hold down the meta key and
+``Press @kbd{C-M-k}'' means ``press down and hold down the meta key and
 the control key and then press @kbd{k}''.  Simple, ay?
 
 This is somewhat complicated by the fact that not all keyboards have a

@@ -272,7 +272,7 @@ Some configuration examples are also given in the appendix.
 @multitable @columnfractions .15 .85
 @item @key{TAB}
 @tab Indent the current line relative to context.
-@item @kbd{M-C-\}
+@item @kbd{C-M-\}
 @tab Re-indent all lines in the current region.
 @item @kbd{M-@key{RET}}
 @tab Start a continuation line.  Or split the current line at point.
@@ -405,7 +405,7 @@ end
 The indentation probably looks funny, since it's different from the
 settings you use, so use the @key{TAB} key in each line to automatically
 line it up (or more quickly @emph{select} the entire buffer with
-@kbd{C-x h} followed by @kbd{M-C-\}).  Notice how different syntactical
+@kbd{C-x h} followed by @kbd{C-M-\}).  Notice how different syntactical
 elements are highlighted in different colors, if you have set up support
 for font-lock.
 
@@ -550,7 +550,7 @@ following lines in @file{.emacs}
 @end lisp
 
 Restart Emacs, take the program we developed in the first part of this
-tutorial and re-indent it with @kbd{C-c h} and @kbd{M-C-\}.  You
+tutorial and re-indent it with @kbd{C-c h} and @kbd{C-M-\}.  You
 probably want to keep these lines in @file{.emacs}, with values adjusted
 to your likings.  If you want to get more information about any of these
 variables, type, e.g., @kbd{C-h v idlwave-main-block-indent @key{RET}}.
@@ -712,11 +712,11 @@ governed by a number of variables.
 
 @cindex Foreign code, adapting
 @cindex Indentation, of foreign code
-@kindex M-C-\
+@kindex C-M-\
 To re-indent a larger portion of code (e.g. when working with foreign code
-written with different conventions), use @kbd{M-C-\}
+written with different conventions), use @kbd{C-M-\}
 (@code{indent-region}) after marking the relevant code.  Useful marking
-commands are @kbd{C-x h} (the entire file) or @kbd{M-C-h} (the
+commands are @kbd{C-x h} (the entire file) or @kbd{C-M-h} (the
 current subprogram). @xref{Actions}, for information how to impose
 additional formatting conventions on foreign code.
 
@@ -1491,7 +1491,7 @@ must be non-@code{nil}.
 Action can also be applied to a larger piece of code, e.g. in order to
 convert foreign code to your own style.  To do this, mark the relevant
 part of the code and execute @kbd{M-x expand-region-abbrevs}.  Useful
-marking commands are @kbd{C-x h} (the entire file) or @kbd{M-C-h} (the
+marking commands are @kbd{C-x h} (the entire file) or @kbd{C-M-h} (the
 current subprogram). @xref{Code Indentation}, for information how to
 adjust the indentation of the code.
 @end itemize
@@ -1679,13 +1679,13 @@ program.  These are
 @tab Beginning of block (stay inside the block)
 @item @kbd{C-c @}}
 @tab End of block (stay inside the block)
-@item @kbd{M-C-n}
+@item @kbd{C-M-n}
 @tab Forward block (on same level)
-@item @kbd{M-C-p}
+@item @kbd{C-M-p}
 @tab Backward block (on same level)
-@item @kbd{M-C-d}
+@item @kbd{C-M-d}
 @tab Down block (enters a block)
-@item @kbd{M-C-u}
+@item @kbd{C-M-u}
 @tab Backward up block (leaves a block)
 @item @kbd{C-c C-n}
 @tab Next Statement

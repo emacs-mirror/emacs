@@ -446,8 +446,8 @@ Move to the signature of the message (@code{message-goto-signature}).
 Yank the message that's being replied to into the message buffer
 (@code{message-yank-original}).
 
-@item C-c M-C-y
-@kindex C-c M-C-y
+@item C-c C-M-y
+@kindex C-c C-M-y
 @findex message-yank-buffer
 Prompt for a buffer name and yank the contents of that buffer into the
 message buffer (@code{message-yank-buffer}).

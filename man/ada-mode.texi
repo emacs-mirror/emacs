@@ -546,11 +546,11 @@ these functions are available through the Ada menu, and you can also use
 the following key bindings or the command names:
 
 @table @kbd
-@item M-C-e
+@item C-M-e
 @findex ada-next-procedure
 Move to the next function/procedure/task, which ever comes next
 (@code{ada-next-procedure}).
-@item M-C-a
+@item C-M-a
 @findex ada-previous-procedure
 Move to previous function/procedure/task
 (@code{ada-previous-procedure}).
@@ -791,7 +791,7 @@ name of the variable.
 @table @kbd
 @item @key{TAB}
 Indent the current line or the current region.
-@item M-C-\
+@item C-M-\
 Indent lines in the current selected block.
 @item C-c @key{TAB}
 Indent the current line and prints the name of the variable used for

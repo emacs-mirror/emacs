@@ -2132,7 +2132,7 @@ Select one of multiple index keys (those separated with @samp{||}).
 @item e
 Edit the replacement text.
 @item C-r
-Recursive edit.  Use @kbd{M-C-c} to return to the indexing process.
+Recursive edit.  Use @kbd{C-M-c} to return to the indexing process.
 @item s
 Save this buffer and ask again about the current match.
 @item S

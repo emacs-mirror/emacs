@@ -1536,10 +1536,10 @@ variables, described below.  See @code{c-tab-always-indent},
 numeric argument, this command rigidly indents the region, preserving
 the relative indentation among the lines.
 
-@kindex M-C-q
+@kindex C-M-q
 @findex c-indent-exp
 @findex indent-exp (c-)
-@item @kbd{M-C-q} (@code{c-indent-exp})
+@item @kbd{C-M-q} (@code{c-indent-exp})
 Indent an entire balanced brace or parenthesis expression.  Note that
 point must be on the opening brace or parenthesis of the expression you
 want to indent.
@@ -1554,17 +1554,17 @@ re-indent a nested brace construct, such as a nested class or function,
 or a Java method.  The top-level construct being re-indented must be
 complete, i.e. it must have both a beginning brace and an ending brace.
 
-@kindex M-C-\
+@kindex C-M-\
 @findex indent-region
-@item @kbd{M-C-\} (@code{indent-region})
+@item @kbd{C-M-\} (@code{indent-region})
 Indents an arbitrary region of code.  This is a standard Emacs command,
 tailored for C code in a @ccmode{} buffer.  Note that of course, point
 and mark must delineate the region you want to indent.
 
-@kindex M-C-h
+@kindex C-M-h
 @findex c-mark-function
 @findex mark-function (c-)
-@item @kbd{M-C-h} (@code{c-mark-function})
+@item @kbd{C-M-h} (@code{c-mark-function})
 While not strictly an indentation command, this is useful for marking
 the current top-level function or class definition as the current
 region.  As with @code{c-indent-defun}, this command operates on
@@ -1718,7 +1718,7 @@ argument, move backward.
 Move point to the beginning of the innermost C statement.  If point is
 already at the beginning of a statement, move to the beginning of the
 closest preceding statement, even if that means moving into a block (you
-can use @kbd{M-C-b} to move over a balanced block).  With prefix
+can use @kbd{C-M-b} to move over a balanced block).  With prefix
 argument @var{n}, move back @var{n} @minus{} 1 statements.
 
 If point is within or next to a comment or a string which spans more
@@ -1735,7 +1735,7 @@ whether to do sentence motion in or near comments and multiline strings.
 @item @kbd{M-e} (@code{c-end-of-statement})
 Move point to the end of the innermost C statement.  If point is at the
 end of a statement, move to the end of the next statement, even if it's
-inside a nested block (use @kbd{M-C-f} to move to the other side of the
+inside a nested block (use @kbd{C-M-f} to move to the other side of the
 block).  With prefix argument @var{n}, move forward @var{n} @minus{} 1
 statements.
 
