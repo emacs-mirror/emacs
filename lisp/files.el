@@ -221,6 +221,23 @@ and ignores this variable.")
 This is an interface to the function `load'."
   (interactive "sLoad library: ")
   (load library))
+
+;; OTHER is the other file to be compared.
+(defun file-local-copy (file)
+  "Copy the file FILE into a temporary file on this machine.
+Returns the name of the local copy, or nil, if FILE is directly
+accessible."
+  (let (handler (handlers file-name-handler-alist))
+    (save-match-data
+     (while (and (consp handlers) (null handler))
+       (if (and (consp (car handlers))
+		(stringp (car (car handlers)))
+		(string-match (car (car handlers)) file))
+	   (setq handler (cdr (car handlers))))
+       (setq handlers (cdr handlers))))
+    (if handler
+	(funcall handler 'file-local-copy file)
+      nil)))
 
 (defun switch-to-buffer-other-window (buffer)
   "Select buffer BUFFER in another window."
@@ -831,12 +848,13 @@ redefine it.
 If the optional argument KEEP-BACKUP-VERSION is non-nil,
 we do not remove backup version numbers, only true file version numbers."
   (let (handler (handlers file-name-handler-alist))
-    (while (and (consp handlers) (null handler))
-      (if (and (consp (car handlers))
-	       (stringp (car (car handlers)))
-	       (string-match (car (car handlers)) name))
-	  (setq handler (cdr (car handlers))))
-      (setq handlers (cdr handlers)))
+    (save-match-data
+     (while (and (consp handlers) (null handler))
+       (if (and (consp (car handlers))
+		(stringp (car (car handlers)))
+		(string-match (car (car handlers)) name))
+	   (setq handler (cdr (car handlers))))
+       (setq handlers (cdr handlers))))
     (if handler
 	(funcall handler 'file-name-sans-versions name keep-backup-version)
       (substring name 0
@@ -1430,12 +1448,13 @@ This works by running a directory listing program
 whose name is in the variable `ls-program'.
 If WILDCARD, it also runs the shell specified by `shell-file-name'."
   (let (handler (handlers file-name-handler-alist))
-    (while (and (consp handlers) (null handler))
-      (if (and (consp (car handlers))
-	       (stringp (car (car handlers)))
-	       (string-match (car (car handlers)) file))
-	  (setq handler (cdr (car handlers))))
-      (setq handlers (cdr handlers)))
+    (save-match-data
+     (while (and (consp handlers) (null handler))
+       (if (and (consp (car handlers))
+		(stringp (car (car handlers)))
+		(string-match (car (car handlers)) file))
+	   (setq handler (cdr (car handlers))))
+       (setq handlers (cdr handlers))))
     (if handler
 	(funcall handler 'insert-directory file switches
 		 wildcard full-directory-p)

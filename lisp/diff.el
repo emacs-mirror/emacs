@@ -53,6 +53,15 @@ subexpression gives the line number in the old file, and NEW-IDX'th
 subexpression gives the line number in the new file.  If OLD-IDX or NEW-IDX
 is nil, REGEXP matches only half a section.")
 
+(defvar diff-old-file nil
+  "This is the old file name in the comparison in this buffer.")
+(defvar diff-new-file nil
+  "This is the new file name in the comparison in this buffer.")
+(defvar diff-old-temp-file nil
+  "This is the name of a temp file to be deleted after diff finishes.")
+(defvar diff-new-temp-file nil
+  "This is the name of a temp file to be deleted after diff finishes.")
+
 ;; See compilation-parse-errors-function (compile.el).
 (defun diff-parse-differences (limit-search find-at-least)
   (setq compilation-error-list nil)
@@ -118,7 +127,8 @@ is nil, REGEXP matches only half a section.")
       (if (nth 2 g)			;NEW-IDX
 	  (funcall new-error diff-new-file (nth 2 g)))
 
-      (if (or (and find-at-least (>= nfound find-at-least))
+      (if (or (and find-at-least
+		   (>= compilation-num-errors-found find-at-least))
 	      (and limit-search (>= (point) limit-search)))
 	      ;; We have found as many new errors as the user wants,
 	      ;; or the user wanted a specific diff, and we're past it.
@@ -166,8 +176,8 @@ With prefix arg, prompt for diff switches."
   (message "Comparing files %s %s..." new old)
   (setq new (expand-file-name new)
 	old (expand-file-name old))
-  (let ((old-alt (diff-prepare old new))
-	(new-alt (diff-prepare new old))
+  (let ((old-alt (file-local-copy old))
+	(new-alt (file-local-copy new))
 	buf)
     (unwind-protect
 	(let ((command
@@ -188,26 +198,16 @@ With prefix arg, prompt for diff switches."
 	  (save-excursion
 	    (set-buffer buf)
 	    (set (make-local-variable 'diff-old-file) old)
-	    (set (make-local-variable 'diff-new-file) new))
-	  buf)
-      (if old-alt (delete-file old-alt))
-      (if new-alt (delete-file new-alt)))))
-
-;; Copy the file FILE into a temporary file if that is necessary
-;; for comparison.  (This is only necessary if the file name has a handler.)
-;; OTHER is the other file to be compared.
-(defun diff-prepare (file other)
-  (let (handler handlers)
-    (setq handlers file-name-handler-alist)
-    (while (and (consp handlers) (null handler))
-      (if (and (consp (car handlers))
-	       (stringp (car (car handlers)))
-	       (string-match (car (car handlers)) file))
-	  (setq handler (cdr (car handlers))))
-      (setq handlers (cdr handlers)))
-    (if handler
-	(funcall handler 'diff-prepare file other)
-      nil)))
+	    (set (make-local-variable 'diff-new-file) new)
+	    (set (make-local-variable 'diff-old-temp-file) old-alt)
+	    (set (make-local-variable 'diff-new-temp-file) new-alt)
+	    (set (make-local-variable 'compilation-finish-function)
+		 (function (lambda (buff msg)
+			     (if diff-old-temp-file
+				 (delete-file diff-old-temp-file))
+			     (if diff-new-temp-file
+				 (delete-file diff-new-temp-file))))))
+	  buf))))
 
 ;;;###autoload
 (defun diff-backup (file &optional switches)
