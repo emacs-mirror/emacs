@@ -1,6 +1,6 @@
 ;;; pascal.el  -  Major mode for editing pascal source in emacs.
 
-;;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;;; Author: Espen Skoglund (espensk@stud.cs.uit.no)
 ;;; Keywords: languages

@@ -1,5 +1,5 @@
 ;;; msb.el --- Customizable buffer-selection with multiple menus.
-;; Copyright (C) 1993, 1994 Lars Lindberg <Lars.Lindberg@sypro.cap.se>
+;; Copyright (C) 1993, 1994, 1995 Lars Lindberg <Lars.Lindberg@sypro.cap.se>
 ;;
 ;; Author: Lars Lindberg <Lars.Lindberg@sypro.cap.se>
 ;; Created: 8 Oct 1993

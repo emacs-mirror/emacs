@@ -1,5 +1,5 @@
 /* Unexec for Siemens machines running Sinix (modified SVR4).
-   Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992, 1993, 1994
+   Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992, 1993, 1994, 1995
    Free Software Foundation, Inc.
 
     This program is free software; you can redistribute it and/or modify

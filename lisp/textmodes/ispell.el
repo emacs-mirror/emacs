@@ -2,7 +2,7 @@
 ;;; GNU EMACS interface for International Ispell Version 3.1 by Geoff Kuenning.
 ;;;
 ;;;
-;;; Copyright (C) 1994 Free Software Foundation, Inc.
+;;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 ;;;
 ;;;
 ;;; Authors         : Ken Stevens <k.stevens@ieee.org>

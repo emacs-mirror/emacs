@@ -1,11 +1,11 @@
 ;;; tempo.el --- Flexible template insertion
-;; Copyright (C) 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: David K}gedal <davidk@lysator.liu.se >
 ;; Created: 16 Feb 1994
 ;; Version: 1.2.2
 ;; Keywords: extensions, languages, tools
-;; $Revision: 1.6 $
+;; $Revision: 1.7 $
 
 ;; This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; paragraphs.el --- paragraph and sentence parsing.
 
-;; Copyright (C) 1985, 86, 87, 91, 94 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 91, 94, 95 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
