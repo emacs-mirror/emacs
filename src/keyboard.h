@@ -62,12 +62,16 @@ extern Lisp_Object internal_last_event_frame;
 #define EVENT_START(event) (XCONS (XCONS (event)->cdr)->car)
 #define EVENT_END(event) (XCONS (XCONS (XCONS (event)->cdr)->cdr)->car)
 
+/* Extract the click count from a multi-click event.  */
+#define EVENT_CLICK_COUNT(event) (Fnth ((event), make_number (2)))
+
 /* Extract the fields of a position.  */
 #define POSN_WINDOW(posn) (XCONS (posn)->car)
 #define POSN_BUFFER_POSN(posn) (XCONS (XCONS (posn)->cdr)->car)
 #define POSN_WINDOW_POSN(posn) (XCONS (XCONS (XCONS (posn)->cdr)->cdr)->car)
 #define POSN_TIMESTAMP(posn) \
   (XCONS (XCONS (XCONS (XCONS (posn)->cdr)->cdr)->cdr)->car)
+#define POSN_SCROLLBAR_PART(posn)	(Fnth ((posn), make_number (4)))
 
 /* Some of the event heads.  */
 extern Lisp_Object Qswitch_frame;
