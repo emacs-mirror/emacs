@@ -449,32 +449,13 @@ be re-created.")
   (defalias 'checkdoc-call-eval-buffer 'eval-current-buffer)
   )
 
-;; Emacs 20 has this handy function.
-(if (not (fboundp 'princ-list))
-    (defun princ-list (&rest args)
-      "Call `princ' on ARGS."
-      (mapcar 'princ args)))
-
 ;; Emacs 20s have MULE characters which don't equate to numbers.
 (if (fboundp 'char=)
     (defalias 'checkdoc-char= 'char=)
   (defalias 'checkdoc-char= '=))
 
-;; Emacs 19.28 and earlier don't have the handy 'add-to-list function
-(if (fboundp 'add-to-list)
-
-    (defalias 'checkdoc-add-to-list 'add-to-list)
-
-  (defun checkdoc-add-to-list (list-var element)
-    "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet."
-    (if (not (member element (symbol-value list-var)))
-	(set list-var (cons element (symbol-value list-var)))))
-  )
-
-;; To be safe in new Emacsen, we want to read events, not characters
-(if (fboundp 'read-event)
-    (defalias 'checkdoc-read-event 'read-event)
-  (defalias 'checkdoc-read-event 'read-char))
+;; Read events, not characters
+(defalias 'checkdoc-read-event 'read-event)
 
 ;;; User level commands
 ;;
@@ -764,7 +745,7 @@ perform the fix."
       msg)))
 
 (defun checkdoc-next-message-error (enable-fix)
-  "Find and return the next checkdoc mesasge related error list, or nil.
+  "Find and return the next checkdoc message related error list, or nil.
 Only text for error and `y-or-n-p' strings are checked.  See
 `checkdoc-next-error' for details on the return value.
 Argument ENABLE-FIX turns on the auto-fix feature.  This argument
