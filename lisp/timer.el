@@ -219,7 +219,7 @@ fire repeatedly that many seconds apart."
   (interactive "e")
   (setq timer-event-last-2 timer-event-last-1)
   (setq timer-event-last-1 timer-event-last)
-  (setq timer-event-last event)
+  (setq timer-event-last (cons event (copy-sequence event)))
   (let ((inhibit-quit t)
 	(timer (car-safe (cdr-safe event))))
     (if (timerp timer)
