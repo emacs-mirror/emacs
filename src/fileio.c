@@ -336,7 +336,8 @@ use the standard functions without calling themselves recursively.  */)
      Lisp_Object filename, operation;
 {
   /* This function must not munge the match data.  */
-  Lisp_Object chain, inhibited_handlers;
+  Lisp_Object chain, inhibited_handlers, result = Qnil;
+  int pos = -1;
 
   CHECK_STRING (filename);
 
@@ -353,21 +354,26 @@ use the standard functions without calling themselves recursively.  */)
       if (CONSP (elt))
 	{
 	  Lisp_Object string;
+	  int match_pos;
 	  string = XCAR (elt);
-	  if (STRINGP (string) && fast_string_match (string, filename) >= 0)
+	  if (STRINGP (string)
+	      && (match_pos = fast_string_match (string, filename)) > pos)
 	    {
 	      Lisp_Object handler, tem;
 
 	      handler = XCDR (elt);
 	      tem = Fmemq (handler, inhibited_handlers);
 	      if (NILP (tem))
-		return handler;
+		{
+		  result = handler;
+		  pos = match_pos;
+		}
 	    }
 	}
 
       QUIT;
     }
-  return Qnil;
+  return result;
 }
 
 DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory,
@@ -2101,9 +2107,13 @@ duplicates what `expand-file-name' does.  */)
 
 	/* Get variable value */
 	o = (unsigned char *) egetenv (target);
-	if (!o) goto badvar;
-	total += strlen (o);
-	substituted = 1;
+	if (o)
+	  {
+	    total += strlen (o);
+	    substituted = 1;
+	  }
+	else if (*p == '}')
+	  goto badvar;
       }
 
   if (!substituted)
@@ -2153,9 +2163,11 @@ duplicates what `expand-file-name' does.  */)
 	/* Get variable value */
 	o = (unsigned char *) egetenv (target);
 	if (!o)
-	  goto badvar;
-
-	if (STRING_MULTIBYTE (filename))
+	  {
+	    *x++ = '$';
+	    strcpy (x, target); x+= strlen (target);
+	  }
+	else if (STRING_MULTIBYTE (filename))
 	  {
 	    /* If the original string is multibyte,
 	       convert what we substitute into multibyte.  */
