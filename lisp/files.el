@@ -68,7 +68,7 @@ the name it is linked to."
   :group 'abbrev
   :group 'find-file)
 
-;;; Turn off backup files on VMS since it has version numbers.
+;; Turn off backup files on VMS since it has version numbers.
 (defcustom make-backup-files (not (eq system-type 'vax-vms))
   "*Non-nil means make a backup of a file the first time it is saved.
 This can be done by renaming the file or by copying.
@@ -1347,7 +1347,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.p\\'" . pascal-mode)
      ("\\.pas\\'" . pascal-mode)
      ("\\.ad[abs]\\'" . ada-mode)
-     ("\\.\\([pP][Llm]\\|al\\)\\'" . perl-mode)
+     ("\\.\\([pP]\\([Llm]\\|erl\\)\\|al\\)\\'" . perl-mode)
      ("\\.s?html?\\'" . html-mode)
      ("\\.cc\\'" . c++-mode)
      ("\\.hh\\'" . c++-mode)
@@ -1364,8 +1364,8 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.mk\\'" . makefile-mode)
      ("\\(M\\|m\\|GNUm\\)akefile\\(\\.in\\)?\\'" . makefile-mode)
      ("\\.am\\'" . makefile-mode)	;For Automake.
-;;; Less common extensions come here
-;;; so more common ones above are found faster.
+     ;; Less common extensions come here
+     ;; so more common ones above are found faster.
      ("\\.texinfo\\'" . texinfo-mode)
      ("\\.te?xi\\'" . texinfo-mode)
      ("\\.s\\'" . asm-mode)
@@ -1455,11 +1455,13 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("#\\*mail\\*" . mail-mode)
      ;; Get rid of any trailing .n.m and try again.
      ;; This is for files saved by cvs-merge that look like .#<file>.<rev>
-     ;; or .#<file>.<rev>-<rev> or VC's <file>.~<rev>~
-     ("\\.~?[0-9]+\\.[0-9][-.0-9]*~?\\'" nil t)
-;;; The following should come after the ChangeLog pattern
-;;; for the sake of ChangeLog.1, etc.
-;;; and after the .scm.[0-9] and CVS' <file>.<rev> patterns too.
+     ;; or .#<file>.<rev>-<rev> or VC's <file>.~<rev>~.
+     ;; Using mode nil rather than `ignore' would let the search continue
+     ;; through this list (with the shortened name) rather than start over.
+     ("\\.~?[0-9]+\\.[0-9][-.0-9]*~?\\'" ignore t)
+     ;; The following should come after the ChangeLog pattern
+     ;; for the sake of ChangeLog.1, etc.
+     ;; and after the .scm.[0-9] and CVS' <file>.<rev> patterns too.
      ("\\.[12345678]\\'" . nroff-mode)
      ("\\.g\\'" . antlr-mode)))
   "Alist of filename patterns vs corresponding major mode functions.
@@ -2107,8 +2109,8 @@ no longer accessible under its old name."
 	(setq backup-info (find-backup-file-name real-file-name)
 	      backupname (car backup-info)
 	      targets (cdr backup-info))
-;;;     (if (file-directory-p buffer-file-name)
-;;;         (error "Cannot save buffer in directory %s" buffer-file-name))
+	;; (if (file-directory-p buffer-file-name)
+	;;     (error "Cannot save buffer in directory %s" buffer-file-name))
 	(if backup-info
 	    (condition-case ()
 		(let ((delete-old-versions
