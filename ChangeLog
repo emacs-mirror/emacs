@@ -1,3 +1,8 @@
+2000-10-29  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* Makefile.in (install-arch-indep): `install-info' from Debian and
+	from Texinfo use different syntaxes.
+
 2000-10-19  Eric M. Ludlam  <zappo@ultranet.com>
 
 	* info/dir (Speedbar): Add entry.

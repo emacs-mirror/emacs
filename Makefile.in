@@ -412,7 +412,7 @@ install-arch-indep: mkdir info
 	then \
 	  for f in ada-mode autotype ccmode cl dired-x ebrowse ediff efaq emacs emacs-mime eudc forms gnus idlwave info message mh-e pcl-cvs reftex sc vip viper widget woman; do \
 	    (cd $${thisdir}; \
-	     ${INSTALL_INFO} --dir-file=${infodir}/dir --info-file=${infodir}/$$f); \
+	     ${INSTALL_INFO} --info-dir=${infodir} ${infodir}/$$f); \
 	  done; \
 	else true; fi
 	-chmod -R a+r ${datadir}/emacs ${COPYDESTS} ${infodir}
