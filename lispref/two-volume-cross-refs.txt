@@ -40,21 +40,21 @@ In brief: you run tex on a .texi file with
 
 Here are the steps in detail:
 
-% tex elisp-vol1.texi
-% texindex elisp-vol1.??
-% tex elisp-vol1.texi
+% tex vol1.texi
+% texindex vol1.??
+% tex vol1.texi
 
-% tex elisp-vol2.texi
-% texindex elisp-vol2.??
-% tex elisp-vol2.texi
+% tex vol2.texi
+% texindex vol2.??
+% tex vol2.texi
 
 ### Create .aux files with volume numbers for other volume.
 
-% cp elisp-vol1.aux elisp1-aux
-% cp elisp-vol2.aux elisp2-aux
+% cp vol1.aux elisp1-aux
+% cp vol2.aux elisp2-aux
 
-% cp elisp-vol1.aux elisp1-aux-vol-number-added
-% cp elisp-vol2.aux elisp2-aux-vol-number-added
+% cp vol1.aux elisp1-aux-vol-number-added
+% cp vol2.aux elisp2-aux-vol-number-added
 
 on elisp1-aux-vol-number-added
 (volume-aux-markup 1)           see defun for volum-aux-markup below.
@@ -64,21 +64,21 @@ on elisp2-aux-vol-number-added
 (volume-aux-markup 2)
 to create             elisp2-aux-vol-number-added
 
-insert elisp2-aux-vol-number-added into elisp-vol1.aux  (append)
-insert elisp1-aux-vol-number-added into elisp-vol2.aux  (prepend)
+insert elisp2-aux-vol-number-added into vol1.aux  (append)
+insert elisp1-aux-vol-number-added into vol2.aux  (prepend)
 
 (so you dont have to do it again)
-% cp elisp-vol1.aux elisp1-aux-2vol-ready
-% cp elisp-vol2.aux elisp2-aux-2vol-ready
+% cp vol1.aux elisp1-aux-2vol-ready
+% cp vol2.aux elisp2-aux-2vol-ready
 
 
 ### Create .fn files with volume numbers for other volume.
 
-% cp elisp-vol1.fn elisp1-fn
-% cp elisp-vol2.fn elisp2-fn
+% cp vol1.fn elisp1-fn
+% cp vol2.fn elisp2-fn
 
-% cp elisp-vol1.fn elisp1-fn-vol-number-added
-% cp elisp-vol2.fn elisp2-fn-vol-number-added
+% cp vol1.fn elisp1-fn-vol-number-added
+% cp vol2.fn elisp2-fn-vol-number-added
 
 on elisp1-fn-vol-number-added
 (volume-index-markup "I")
@@ -88,27 +88,27 @@ on elisp2-fn-vol-number-added
 (volume-index-markup "II")
 to create             elisp2-fn-vol-number-added
 
-insert elisp2-fn-vol-number-added into elisp-vol1.fn: do following `cat'
-insert elisp1-fn-vol-number-added into elisp-vol2.fn: do following `cat'
+insert elisp2-fn-vol-number-added into vol1.fn: do following `cat'
+insert elisp1-fn-vol-number-added into vol2.fn: do following `cat'
 
-% cat elisp2-fn-vol-number-added >> elisp-vol1.fn
-% cat elisp1-fn-vol-number-added >> elisp-vol2.fn
+% cat elisp2-fn-vol-number-added >> vol1.fn
+% cat elisp1-fn-vol-number-added >> vol2.fn
 
 Be sure to handle special case entries by hand.
 Be sure that .fn file has no blank lines.
 
-% texindex elisp-vol1.fn
-% texindex elisp-vol2.fn
+% texindex vol1.fn
+% texindex vol2.fn
 
 (so you dont have to do it again)
-% cp elisp-vol1.fns elisp1-fns-2vol-ready
-% cp elisp-vol2.fns elisp2-fns-2vol-ready
+% cp vol1.fns elisp1-fns-2vol-ready
+% cp vol2.fns elisp2-fns-2vol-ready
 
 ### Create merged .toc file with volume number headings.
 
-append elisp-vol2.toc to elisp-vol1.toc  with following `cat'
+append vol2.toc to vol1.toc  with following `cat'
 
-% cat elisp-vol1.toc elisp-vol2.toc > elisp-toc-2vol.toc
+% cat vol1.toc vol2.toc > elisp-toc-2vol.toc
 
 and edit in Volume titles
 
@@ -134,33 +134,33 @@ Copy the tocs to something you can remember more easily
 % cp elisp2-toc.toc elisp1-toc-ready.toc 
 % cp elisp1-toc.toc elisp2-toc-ready.toc 
 
-Then, edit elisp-vol1.texi to input elisp1-toc-ready.toc 
-and elisp-vol2.texi to input elisp2-toc-ready.toc 
+Then, edit vol1.texi to input elisp1-toc-ready.toc 
+and vol2.texi to input elisp2-toc-ready.toc 
 
 
 ### Now format the two volumes:
 
-% cp elisp1-aux-2vol-ready elisp-vol1.aux
-% cp elisp2-aux-2vol-ready elisp-vol2.aux
+% cp elisp1-aux-2vol-ready vol1.aux
+% cp elisp2-aux-2vol-ready vol2.aux
 
-% tex elisp-vol1.texi
-% tex elisp-vol2.texi
+% tex vol1.texi
+% tex vol2.texi
 
 
 
 For every additional run:
 
 ### recopy aux files so the correct ones are read:
-% cp elisp1-aux-2vol-ready elisp-vol1.aux
-% cp elisp2-aux-2vol-ready elisp-vol2.aux
+% cp elisp1-aux-2vol-ready vol1.aux
+% cp elisp2-aux-2vol-ready vol2.aux
 
 Do not run texindex.  Then proper sorted index will stay.
- else do: % cp elisp2-fns-2vol-ready elisp-vol2.fns
+ else do: % cp elisp2-fns-2vol-ready vol2.fns
 
 Do not change the .texi files; they will call the elisp-toc-2vol.toc file.
 
-% tex elisp-vol1.texi
-% tex elisp-vol2.texi
+% tex vol1.texi
+% tex vol2.texi
 
 ================================================================
 
