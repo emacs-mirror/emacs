@@ -56,5 +56,7 @@
 /* Don't define _BSD */
 #undef C_SWITCH_SYSTEM
 
-/* HPUX 10.10 needs this; HPUX 10.20 does not.  */
-#define POLLING_PROBLEM_IN_SELECT
+/* HP-UX 10.10 seem to have problems with signals coming in
+   Causes "poll: interrupted system call" messages when Emacs is run
+   in an X window (see process.c) */
+#define POLL_INTERRUPTED_SYS_CALL
