@@ -906,7 +906,7 @@ dired."
 ;;;   that matches the first file in the file list.
 ;;;
 ;;; * If the REGEXP matches all the entries of the file list then evaluate
-;;;   COMMAND, which is either a string or an elisp expression returning a
+;;;   COMMAND, which is either a string or a Lisp expression returning a
 ;;;   string.  COMMAND may be a list of commands.
 ;;;
 ;;; * Return this command to `dired-guess-shell-command' which prompts user

@@ -213,3 +213,4 @@ This version calls `eval-region' on the whole buffer."
 
 (provide 'eval-reg)
 
+;;; eval-reg.el ends here

@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 14 Jul 1992
-;; Version: $Id: lisp-mnt.el,v 1.8 1994/05/03 23:21:00 kwzh Exp rms $
+;; Version: $Id: lisp-mnt.el,v 1.9 1994/06/17 19:59:09 rms Exp rms $
 ;; Keywords: docs
 ;; X-Bogus-Bureaucratic-Cruft: Gruad will get you if you don't watch out!
 
@@ -87,7 +87,7 @@
 ;; author *is* one of the maintainers.)
 ;; 
 ;;    * Keywords line --- used by the finder code (now under construction)
-;; for finding elisp code related to a topic.
+;; for finding Emacs Lisp code related to a topic.
 ;;
 ;;    * X-Bogus-Bureaucratic-Cruft line --- this is a joke and an example
 ;; of a comment header.  Headers starting with `X-' should never be used
@@ -100,7 +100,7 @@
 ;;    * Change log line --- optional, exists to terminate the commentary
 ;; section and start a change-log part, if one exists.
 ;; 
-;;    * Code line --- exists so elisp can know where commentary and/or
+;;    * Code line --- exists so Lisp can know where commentary and/or
 ;; change-log sections end.
 ;; 
 ;;    * Footer line --- marks end-of-file so it can be distinguished from

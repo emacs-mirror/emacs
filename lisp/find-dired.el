@@ -6,8 +6,8 @@
 ;;	   Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Keywords: unix
 
-(defconst find-dired-version (substring "$Revision: 1.18 $" 11 -2)
-  "$Id: find-dired.el,v 1.18 1994/12/15 12:16:29 rms Exp roland $")
+(defconst find-dired-version (substring "$Revision: 1.19 $" 11 -2)
+  "$Id: find-dired.el,v 1.19 1995/03/06 19:55:47 roland Exp rms $")
 
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -25,39 +25,11 @@
 ;;; 02139, USA.
 ;;;
 
-;;; Commentary:
-
-;; LISPDIR ENTRY for the Elisp Archive ===============================
-;;    LCD Archive Entry:
-;;    find-dired|Roland McGrath, Sebastian Kremer
-;;    |roland@gnu.ai.mit.edu, sk@thp.uni-koeln.de
-;;    |Run a `find' command and dired the output
-;;    |$Date: 1994/12/15 12:16:29 $|$Revision: 1.18 $|
-
-;; INSTALLATION ======================================================
-
-;; To use this file, byte-compile it, install it somewhere in your
-;; load-path, and put:
-
-;;   (autoload 'find-dired "find-dired" nil t)
-;;   (autoload 'find-name-dired "find-dired" nil t)
-;;   (autoload 'find-grep-dired "find-dired" nil t)
-
-;; in your ~/.emacs, or site-init.el, etc.
-
-;; To bind it to a key, put, e.g.:
-;;
-;;   (global-set-key "\C-cf" 'find-dired)
-;;   (global-set-key "\C-cn" 'find-name-dired)
-;;   (global-set-key "\C-cl" 'find-grep-dired)
-;;
-;; in your ~/.emacs.
-
 ;;; Code:
 
 (require 'dired)
 
-;; find(1)'s -ls corresponds to these switches.
+;; find's -ls corresponds to these switches.
 ;; Note -b, at least GNU find quotes spaces etc. in filenames
 ;;;###autoload
 (defvar find-ls-option (if (eq system-type 'berkeley-unix) '("-ls" . "-gilsb")

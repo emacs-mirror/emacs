@@ -1436,7 +1436,7 @@
 ;; (fie 2)
 ;; 8
 ;;
-;; If you put a preactivating `defadvice' into an elisp file that gets byte-
+;; If you put a preactivating `defadvice' into a Lisp file that gets byte-
 ;; compiled then the constructed advised definition will get compiled by
 ;; the byte-compiler. For that to occur in a v18 emacs you have to put the
 ;; `defadvice' inside a `defun' because the v18 compiler does not compile

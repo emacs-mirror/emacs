@@ -46,11 +46,6 @@
 ;;; can be enabled any time after the package is loaded by invoking
 ;;; icomplete-mode without a prefix arg.
 
-;;; This version of icomplete runs on Emacs 19.18 and later.  (It
-;;; depends on the incorporation of minibuffer-setup-hook.)  The elisp
-;;; archives, ftp://archive.cis.ohio-state.edu/pub/gnu/emacs/elisp-archive,
-;;; probably still has a version that works in GNU Emacs v18.
-
 ;;; Thanks to everyone for their suggestions for refinements of this
 ;;; package.  I particularly have to credit Michael Cook, who
 ;;; implemented an incremental completion style in his 'iswitch'

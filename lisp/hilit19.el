@@ -454,7 +454,7 @@ your init file.")
 
 (defconst hilit-default-face-table
   '(
-    ;; used for C/C++ and elisp and perl
+    ;; used for C/C++ and Emacs Lisp and perl
     (comment	firebrick-italic    moccasin           italic)
     (include	purple		    Plum1	       bold-italic)
     (define	ForestGreen-bold    green	       bold)
