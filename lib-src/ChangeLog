@@ -1,3 +1,8 @@
+2001-10-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* make-docfile.c (read_c_string_or_comment): Don't drop a '*'
+	in a C doc comment.
+
 2001-10-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* make-docfile.c (read_c_string_or_comment): Renamed from
