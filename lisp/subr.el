@@ -847,21 +847,23 @@ If FILE is already loaded, evaluate FORM right now.
 It does nothing if FORM is already on the list for FILE.
 FILE must match exactly.  Normally FILE is the name of a library,
 with no directory or extension specified, since that is how `load'
-is normally called."
-  ;; Make sure `load-history' contains the files dumped with Emacs
-  ;; for the case that FILE is one of the files dumped with Emacs.
-  (load-symbol-file-load-history)
-  ;; Make sure there is an element for FILE.
-  (or (assoc file after-load-alist)
-      (setq after-load-alist (cons (list file) after-load-alist)))
-  ;; Add FORM to the element if it isn't there.
+is normally called.
+FILE can also be a feature (i.e. a symbol), in which case FORM is
+evaluated whenever that feature is `provide'd."
   (let ((elt (assoc file after-load-alist)))
-    (or (member form (cdr elt))
-	(progn
-	  (nconc elt (list form))
-	  ;; If the file has been loaded already, run FORM right away.
-	  (and (assoc file load-history)
-	       (eval form)))))
+    ;; Make sure there is an element for FILE.
+    (unless elt (setq elt (list file)) (push elt after-load-alist))
+    ;; Add FORM to the element if it isn't there.
+    (unless (member form (cdr elt))
+      (nconc elt (list form))
+      ;; If the file has been loaded already, run FORM right away.
+      (if (if (symbolp file)
+	      (featurep file)
+	    ;; Make sure `load-history' contains the files dumped with
+	    ;; Emacs for the case that FILE is one of them.
+	    (load-symbol-file-load-history)
+	    (assoc file load-history))
+	  (eval form))))
   form)
 
 (defun eval-next-after-load (file)
@@ -1534,11 +1536,10 @@ configuration."
 
 (defun functionp (object)
   "Non-nil iff OBJECT is a type of object that can be called as a function."
-  (or (and (symbolp object)
-	   (fboundp object)
+  (or (and (symbolp object) (fboundp object)
 	   (setq object (indirect-function object))
 	   (eq (car-safe object) 'autoload)
-	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
+	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr object)))))))
       (subrp object) (byte-code-function-p object)
       (eq (car-safe object) 'lambda)))
 
