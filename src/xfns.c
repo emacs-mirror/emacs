@@ -5478,7 +5478,7 @@ prepare_image_for_display (f, img)
 
   /* If IMG doesn't have a pixmap yet, load it now, using the image
      type dependent loader function.  */
-  if (img->pixmap == 0 && !img->load_failed_p)
+  if (img->pixmap == None && !img->load_failed_p)
     img->load_failed_p = img->type->load (f, img) == 0;
 }
      
@@ -5513,11 +5513,46 @@ image_ascent (img, face)
 		  Helper functions for X image types
  ***********************************************************************/
 
+static void x_clear_image_1 P_ ((struct frame *, struct image *, int,
+				 int, int));
 static void x_clear_image P_ ((struct frame *f, struct image *img));
 static unsigned long x_alloc_image_color P_ ((struct frame *f,
 					      struct image *img,
 					      Lisp_Object color_name,
 					      unsigned long dflt));
+
+
+/* Clear X resources of image IMG on frame F.  PIXMAP_P non-zero means
+   free the pixmap if any.  MASK_P non-zero means clear the mask
+   pixmap if any.  COLORS_P non-zero means free colors allocated for
+   the image, if any.  */
+
+static void
+x_clear_image_1 (f, img, pixmap_p, mask_p, colors_p)
+     struct frame *f;
+     struct image *img;
+     int pixmap_p, mask_p, colors_p;
+{
+  if (pixmap_p && img->pixmap)
+    {
+      XFreePixmap (FRAME_X_DISPLAY (f), img->pixmap);
+      img->pixmap = None;
+    }
+
+  if (mask_p && img->mask)
+    {
+      XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
+      img->mask = None;
+    }
+      
+  if (colors_p && img->ncolors)
+    {
+      x_free_colors (f, img->colors, img->ncolors);
+      xfree (img->colors);
+      img->colors = NULL;
+      img->ncolors = 0;
+    }
+}
 
 /* Free X resources of image IMG which is used on frame F.  */
 
@@ -5527,27 +5562,7 @@ x_clear_image (f, img)
      struct image *img;
 {
   BLOCK_INPUT;
-  
-  if (img->pixmap)
-    {
-      XFreePixmap (FRAME_X_DISPLAY (f), img->pixmap);
-      img->pixmap = 0;
-    }
-
-  if (img->mask)
-    {
-      XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
-      img->mask = 0;
-    }
-      
-  if (img->ncolors)
-    {
-      x_free_colors (f, img->colors, img->ncolors);
-      xfree (img->colors);
-      img->colors = NULL;
-      img->ncolors = 0;
-    }
-  
+  x_clear_image_1 (f, img, 1, 1, 1);
   UNBLOCK_INPUT;
 }
 
@@ -5837,7 +5852,7 @@ lookup_image (f, spec)
 		  else if (NILP (mask) && found_p && img->mask)
 		    {
 		      XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
-		      img->mask = 0;
+		      img->mask = None;
 		    }
     		}
 	    }
@@ -5865,9 +5880,8 @@ lookup_image (f, spec)
 				      Fplist_get (tem, QCcolor_adjustment));
 		}
 	    }
-
 	}
-      
+
       UNBLOCK_INPUT;
       xassert (!interrupt_input_blocked);
     }
@@ -5990,7 +6004,7 @@ x_create_x_image_and_pixmap (f, width, height, depth, ximg, pixmap)
 
   /* Allocate a pixmap of the same size.  */
   *pixmap = XCreatePixmap (display, window, width, height, depth);
-  if (*pixmap == 0)
+  if (*pixmap == None)
     {
       x_destroy_x_image (*ximg);
       *ximg = NULL;
@@ -6575,7 +6589,7 @@ xbm_load_image (f, img, contents, end)
 				       depth);
       xfree (data);
 
-      if (img->pixmap == 0)
+      if (img->pixmap == None)
 	{
 	  x_clear_image (f, img);
 	  image_error ("Unable to create X pixmap for `%s'", img->spec, Qnil);
@@ -7454,7 +7468,7 @@ x_from_xcolors (f, img, colors)
       }
 
   xfree (colors);
-  x_clear_image (f, img);
+  x_clear_image_1 (f, img, 1, 0, 1);
 
   x_put_x_image (f, oimg, pixmap, img->width, img->height);
   x_destroy_x_image (oimg);
@@ -7611,7 +7625,7 @@ x_disable_image (f, img)
      struct image *img;
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  
+
   if (dpyinfo->n_planes >= 2)
     {
       /* Color (or grayscale).  Convert to gray, and equalize.  Just
@@ -7684,9 +7698,9 @@ x_build_heuristic_mask (f, img, how)
   if (img->mask)
     {
       XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
-      img->mask = 0;
+      img->mask = None;
     }
-  
+
   /* Create an image and pixmap serving as mask.  */
   rc = x_create_x_image_and_pixmap (f, img->width, img->height, 1,
 				    &mask_img, &img->mask);
@@ -8471,7 +8485,7 @@ png_load (f, img)
     {
       x_destroy_x_image (ximg);
       XFreePixmap (FRAME_X_DISPLAY (f), img->pixmap);
-      img->pixmap = 0;
+      img->pixmap = None;
       goto error;
     }
 
@@ -9691,7 +9705,7 @@ gs_load (f, img)
   img->height = in_height * FRAME_X_DISPLAY_INFO (f)->resy;
 
   /* Create the pixmap.  */
-  xassert (img->pixmap == 0);
+  xassert (img->pixmap == None);
   img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			       img->width, img->height,
 			       DefaultDepthOfScreen (FRAME_X_SCREEN (f)));
