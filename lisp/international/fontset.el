@@ -228,13 +228,18 @@ Fontnames for charsets not listed in FONTLIST are generated from
 XLFD-FIELDS and a property of x-charset-register of each charset
 automatically."
   (let ((charsets charset-list)
-	(loose-xlfd-fields (copy-sequence xlfd-fields)))
-    (aset loose-xlfd-fields xlfd-regexp-pixelsize-subnum nil)
-    (aset loose-xlfd-fields xlfd-regexp-pointsize-subnum nil)
-    (aset loose-xlfd-fields xlfd-regexp-resx-subnum nil)
-    (aset loose-xlfd-fields xlfd-regexp-resy-subnum nil)
-    (aset loose-xlfd-fields xlfd-regexp-spacing-subnum nil)
-    (aset loose-xlfd-fields xlfd-regexp-avgwidth-subnum nil)
+	(style-ignored (copy-sequence xlfd-fields))
+	(size-ignored (copy-sequence xlfd-fields)))
+    (aset style-ignored xlfd-regexp-weight-subnum nil)
+    (aset style-ignored xlfd-regexp-slant-subnum nil)
+    (aset style-ignored xlfd-regexp-swidth-subnum nil)
+    (aset style-ignored xlfd-regexp-adstyle-subnum nil)
+    (aset size-ignored xlfd-regexp-pixelsize-subnum nil)
+    (aset size-ignored xlfd-regexp-pointsize-subnum nil)
+    (aset size-ignored xlfd-regexp-resx-subnum nil)
+    (aset size-ignored xlfd-regexp-resy-subnum nil)
+    (aset size-ignored xlfd-regexp-spacing-subnum nil)
+    (aset size-ignored xlfd-regexp-avgwidth-subnum nil)
     (while charsets
       (let ((charset (car charsets)))
 	(if (null (assq charset fontlist))
@@ -249,15 +254,18 @@ automatically."
 		      encoding-val "*"))
 	      (aset xlfd-fields xlfd-regexp-registry-subnum registry-val)
 	      (aset xlfd-fields xlfd-regexp-encoding-subnum encoding-val)
-	      (aset loose-xlfd-fields xlfd-regexp-registry-subnum registry-val)
-	      (aset loose-xlfd-fields xlfd-regexp-encoding-subnum encoding-val)
+	      (aset style-ignored xlfd-regexp-registry-subnum registry-val)
+	      (aset style-ignored xlfd-regexp-encoding-subnum encoding-val)
+	      (aset size-ignored xlfd-regexp-registry-subnum registry-val)
+	      (aset size-ignored xlfd-regexp-encoding-subnum encoding-val)
 	      (setq fontname (x-compose-font-name xlfd-fields t))
 	      (setq fontlist (cons (cons charset fontname) fontlist))
 	      (or (assoc fontname alternative-fontname-alist)
 		  (setq alternative-fontname-alist
 			(cons (list
 			       fontname
-			       (x-compose-font-name loose-xlfd-fields t)
+			       (x-compose-font-name style-ignored t)
+			       (x-compose-font-name size-ignored t)
 			       (concat "*-" registry-val "-" encoding-val))
 			      alternative-fontname-alist)))
 	      )))
@@ -364,7 +372,9 @@ by modifying FONTSET-SPEC appropriately.  STYLE can be one of `bold',
 
 
 ;; Create standard fontset from 16 dots fonts which are the most widely
-;; installed fonts.
+;; installed fonts.  Fonts for Chinese-GB, Korean, and Chinese-CNS are
+;; specified here because FAMILY of those fonts are not "fixed" in
+;; many cases.
 (defvar standard-fontset-spec
   "-*-fixed-medium-r-normal-*-16-*-*-*-*-*-fontset-standard,
 	chinese-gb2312:-*-medium-r-normal-*-16-*-gb2312*-*,
