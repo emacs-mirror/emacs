@@ -1,6 +1,6 @@
 ;;; nntp.el --- nntp access for Gnus
 
-;; Copyright (C) 1987,88,89,90,92,93,94,95 Free Software Foundation, Inc.
+;; Copyright (C) 1987,88,89,90,92,93,94,95,96 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; 	Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
@@ -1019,36 +1019,28 @@ It will prompt for a password."
     (process-send-string nntp-server-process cmd)))
 
 (defun nntp-send-region-to-server (begin end)
-  "Send current buffer region (from BEGIN to END) to news server."
+  "Send the current buffer region (from BEGIN to END) to the server."
   (save-excursion
-    ;; We have to work in the buffer associated with NNTP server
-    ;;  process because of NEmacs hack.
-    (copy-to-buffer nntp-server-buffer begin end)
-    (set-buffer nntp-server-buffer)
-    (setq begin (point-min))
-    (setq end (point-max))
-    ;; `process-send-region' does not work if text to be sent is very
-    ;;  large. I don't know maximum size of text sent correctly.
-    (let ((last nil)
-	  (size 100))			;Size of text sent at once.
-      (save-restriction
-	(narrow-to-region begin end)
-	(goto-char begin)
-	(while (not (eobp))
-	  ;;(setq last (min end (+ (point) size)))
-	  ;; NEmacs gets confused if character at `last' is Kanji.
-	  (setq last (save-excursion
-		       (goto-char (min end (+ (point) size)))
-		       (or (eobp) (forward-char 1)) ;Adjust point
-		       (point)))
-	  (process-send-region nntp-server-process (point) last)
-	  ;; I don't know whether the next codes solve the known
-	  ;;  problem of communication error of GNU Emacs.
-	  (accept-process-output)
-	  ;;(sit-for 0)
-	  (goto-char last))))
-    ;; We cannot erase buffer, because reply may be received.
-    (delete-region begin end)))
+    (let ((cur (current-buffer)))
+      ;; Copy the buffer over to the send buffer.
+      (set-buffer (get-buffer-create " *nntp send*"))
+      (buffer-disable-undo (current-buffer))
+      (erase-buffer)
+      (insert-buffer-substring cur begin end)
+      (save-excursion
+	(set-buffer cur)
+	(erase-buffer))
+      ;; `process-send-region' does not work if the text to be sent is very
+      ;; large, so we send it piecemeal.
+      (let ((last (point-min))
+	    (size 100))			;Size of text sent at once.
+	(while (/= last (point-max))
+	  (process-send-region 
+	   nntp-server-process
+	   last (setq last (min (+ last size) (point-max))))
+	  ;; Read any output from the server.  May be unnecessary.
+	  (accept-process-output)))
+      (kill-buffer (current-buffer)))))
 
 (defun nntp-open-server-semi-internal (server &optional service)
   "Open SERVER.
