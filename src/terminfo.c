@@ -27,24 +27,6 @@ Boston, MA 02111-1307, USA.  */
 
 char *UP, *BC, PC;
 
-#ifdef HAVE_SPEED_T
-#include <termios.h>
-speed_t ospeed;
-#else
-#if defined (HAVE_LIBNCURSES) && ! defined (NCURSES_OSPEED_T)
-short ospeed;
-#else
-#if defined (HAVE_TERMIOS_H) && defined (LINUX)
-#include <termios.h>
-/* HJL's version of libc is said to need this on the Alpha.
-   On the other hand, DEC OSF1 on the Alpha needs ospeed to be a short.  */
-speed_t ospeed;
-#else
-short ospeed;
-#endif
-#endif
-#endif
-
 /* Interface to curses/terminfo library.
    Turns out that all of the terminfo-level routines look
    like their termcap counterparts except for tparm, which replaces
