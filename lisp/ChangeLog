@@ -1,3 +1,10 @@
+2000-02-20  Dave Love  <fx@gnu.org>
+
+	* frame.el (display-mouse-p): Use variable xterm-mouse-mode and
+	check for t-mouse too.
+
+	* cus-start.el: Make echo-keystrokes `number'.
+
 2000-02-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* menu-bar.el (menu-bar-goto-menu) [next-tag, next-tag-otherw]:
