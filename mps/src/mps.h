@@ -2,7 +2,7 @@
  *
  *           HARLEQUIN MEMORY POOL SYSTEM INTERFACE
  *
- *  $HopeName: MMsrc!mps.h(trunk.9) $
+ *  $HopeName: MMsrc!mps.h(trunk.10) $
  *
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  */
@@ -139,7 +139,7 @@ typedef struct mps_ap_s {       /* allocation point descriptor */
  * The structure definition is provided so that the client code can
  * in-line it into other structures, such as pointer hash-tables.
  *
- * .ld: Keep in sync with impl.h.ld.struct.
+ * .ld: Keep in sync with impl.h.mpmst.ld.struct.
  */
 
 typedef struct mps_ld_s {       /* location dependency descriptor */
