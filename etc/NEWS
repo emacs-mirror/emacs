@@ -986,6 +986,9 @@ be navigated with the arrow keys (like Gtk+, Mac and W32).
 ESC, like they do for Gtk+, Mac and W32.
 
 ---
+**  Dialogs and menus pop down when pressing C-g.
+
+---
 ** The menu item "Open File..." has been split into two items, "New File..."
 and "Open File...".  "Open File..." now opens only existing files.  This is
 to support existing GUI file selection dialogs better.
