@@ -9424,13 +9424,13 @@ XTread_socket (sd, bufp, numchars, expected)
 		  note_mouse_movement (f, &event.xmotion);
 		else
 		  {
-#ifndef USE_X_TOOLKIT
+#ifndef USE_TOOLKIT_SCROLL_BARS
 		    struct scroll_bar *bar
 		      = x_window_to_scroll_bar (event.xmotion.window);
 
 		    if (bar)
 		      x_scroll_bar_note_movement (bar, &event);
-#endif /* USE_X_TOOLKIT */
+#endif /* USE_TOOLKIT_SCROLL_BARS */
 
 		    /* If we move outside the frame, then we're
 		       certainly no longer on any text in the frame.  */
