@@ -105,6 +105,21 @@ These supersede the values given in `default-frame-alist'.")
 	  (frame-selected-window frame))))))
 
 (setq special-display-function 'special-display-popup-frame)
+
+;; Handle delete-frame events from the X server.
+(defun handle-delete-frame (event)
+  (interactive "e")
+  (let ((frame (posn-window (event-start event)))
+	(i 0)
+	(tail (frame-list)))
+    (while tail
+      (and (frame-visible-p (car tail))
+	   (not (eq (car tail) frame))
+	  (setq i (1+ i)))
+      (setq tail (cdr tail)))
+    (if (> i 0)
+	(delete-frame frame t)
+      (kill-emacs))))
 
 ;;;; Arrangement of frames at startup
 
