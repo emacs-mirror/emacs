@@ -851,8 +851,32 @@ init_callproc ()
 	    {
 	      tem = Fexpand_file_name (build_string ("etc"),
 				       Vinstallation_directory);
-	      Vdoc_directory = Vdata_directory = Ffile_name_as_directory (tem);
+	      Vdoc_directory = Ffile_name_as_directory (tem);
 	    }
+	}
+    }
+
+  /* Look for the files that should be in etc.  We don't use
+     Vinstallation_directory, because these files are never installed
+     in /bin near the executable, and they are never in the build
+     directory when that's different from the source directory.
+
+     Instead, if these files are not in the nominal place, we try the
+     source directory.  */
+  if (data_dir == 0)
+    {
+      Lisp_Object tem, tem1, newdir;
+
+      tem = Fexpand_file_name (build_string ("GNU"), Vdata_directory);
+      tem1 = Ffile_exists_p (tem);
+      if (NILP (tem1))
+	{
+	  newdir = Fexpand_file_name (build_string ("../etc/"),
+				      build_string (PATH_DUMPLOADSEARCH));
+	  tem = Fexpand_file_name (build_string ("GNU"), newdir);
+	  tem1 = Ffile_exists_p (tem);
+	  if (!NILP (tem1))
+	    Vdata_directory = newdir;
 	}
     }
 #endif
