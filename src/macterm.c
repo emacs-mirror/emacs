@@ -10747,8 +10747,14 @@ init_font_name_table ()
 							      sc));
 	      }
 	    else
-	      add_font_name_table_entry (mac_to_x_fontname (name, size, style,
-							    sc));
+	      {
+		add_font_name_table_entry (mac_to_x_fontname (name, size,
+							      style, sc));
+		if (smJapanese == sc)
+		  add_font_name_table_entry (mac_to_x_fontname (name, size,
+								style,
+								-smJapanese));
+	      }
 	}
   
       /* Dispose of the iterators.  */
@@ -10833,7 +10839,7 @@ init_font_name_table ()
 			    = mac_to_x_fontname (name,
 						 assc_entry->fontSize,
 						 assc_entry->fontStyle,
-						 smRoman);
+						 -smJapanese);
 			}
 		    }
 		}
@@ -11105,7 +11111,7 @@ XLoadQueryFont (Display *dpy, char *fontname)
     if (sscanf (name, 
 		"-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]--%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%31s",
 		cs) == 1
-	&& 0 == strcmp (cs, "mac-roman"))  
+	&& 0 == strcmp (cs, "jisx0201.1976-0"))  
       font->mac_scriptcode = smRoman;
   }
   

@@ -1,3 +1,9 @@
+2002-07-03  Andrew Choi  <akochoi@shaw.ca>
+
+	* macterm.c (init_font_name_table): Also add entry for
+	jisx0201.1976-0 coding for Japanese font.
+	(XLoadQueryFont): Use it.
+
 2002-07-02  Richard M. Stallman  <rms@gnu.org>
 
 	* keymap.c (Fdefine_key): Doc fix.
