@@ -980,7 +980,7 @@ set_internal (symbol, newval, bindflag)
       register int idx = XBUFFER_OBJFWD (valcontents)->offset;
       register int mask = XINT (*((Lisp_Object *)
 				  (idx + (char *)&buffer_local_flags)));
-      if (mask > 0)
+      if (mask > 0 && ! bindflag)
 	current_buffer->local_var_flags |= mask;
     }
 
