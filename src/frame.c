@@ -80,6 +80,7 @@ Lisp_Object Qx;
 Lisp_Object Qwin32;
 Lisp_Object Qvisible;
 Lisp_Object Qbuffer_predicate;
+Lisp_Object Qtitle;
 
 Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
@@ -120,6 +121,8 @@ syms_of_frame_1 ()
   staticpro (&Qvisible);
   Qbuffer_predicate = intern ("buffer-predicate");
   staticpro (&Qbuffer_predicate);
+  Qtitle = intern ("title");
+  staticpro (&Qtitle);
 
   Qmouse_leave_buffer_hook = intern ("mouse-leave-buffer-hook");
   staticpro (&Qmouse_leave_buffer_hook);
