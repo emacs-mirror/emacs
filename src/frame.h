@@ -561,7 +561,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_WINDOW_WIDTH_ARG(f, width)	\
      ((width)					\
       + FRAME_SCROLL_BAR_WIDTH (f)		\
-      + FRAME_FLAGS_AREA_COLS (f))
+      + FRAME_FRINGE_COLS (f))
 
 /* Maximum + 1 legitimate value for FRAME_CURSOR_X.  */
 #define FRAME_CURSOR_X_LIMIT(f) \
@@ -723,18 +723,18 @@ extern Lisp_Object selected_frame;
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-#define FRAME_FLAGS_AREA_COLS(F) \
-     (FRAME_WINDOW_P (F) ? FRAME_X_FLAGS_AREA_COLS (F) : 0)
-#define FRAME_FLAGS_AREA_WIDTH(F) \
-     (FRAME_WINDOW_P (F) ? FRAME_X_FLAGS_AREA_WIDTH (F) : 0)
-#define FRAME_LEFT_FLAGS_AREA_WIDTH(F) \
-     (FRAME_WINDOW_P (F) ? FRAME_X_LEFT_FLAGS_AREA_WIDTH (F) : 0)
+#define FRAME_FRINGE_COLS(F) \
+     (FRAME_WINDOW_P (F) ? FRAME_X_FRINGE_COLS (F) : 0)
+#define FRAME_FRINGE_WIDTH(F) \
+     (FRAME_WINDOW_P (F) ? FRAME_X_FRINGE_WIDTH (F) : 0)
+#define FRAME_LEFT_FRINGE_WIDTH(F) \
+     (FRAME_WINDOW_P (F) ? FRAME_X_LEFT_FRINGE_WIDTH (F) : 0)
      
 #else /* not HAVE_WINDOW_SYSTEM */
 
-#define FRAME_FLAGS_AREA_WIDTH(F)	0
-#define FRAME_FLAGS_AREA_COLS(F)	0
-#define FRAME_LEFT_FLAGS_AREA_WIDTH(F)  0
+#define FRAME_FRINGE_WIDTH(F)	0
+#define FRAME_FRINGE_COLS(F)	0
+#define FRAME_LEFT_FRINGE_WIDTH(F)  0
 
 #endif /* not HAVE_WINDOW_SYSTEM */
      
