@@ -4714,7 +4714,7 @@ VALUE.")
   else
     hash_put (h, key, value, hash);
   
-  return Qnil;
+  return value;
 }
 
 
