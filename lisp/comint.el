@@ -1214,7 +1214,9 @@ it just adds completion characters to the end of the filename."
 	 (pathnondir (file-name-nondirectory pathname))
 	 (completions
 	  (file-name-all-completions pathnondir
-				     (or pathdir default-directory))))
+				     (if pathdir
+					 (expand-file-name pathdir)
+				       default-directory))))
     (cond ((null completions)
 	   (message "No completions of %s" pathname)
 	   (ding))
