@@ -744,7 +744,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
    isearch-adjusted nil
    isearch-yank-flag nil)
   (when isearch-lazy-highlight
-    (isearch-lazy-highlight-new-loop nil nil))
+    (isearch-lazy-highlight-new-loop))
   ;; We must prevent the point moving to the end of composition when a
   ;; part of the composition has just been searched.
   (setq disable-point-adjustment t))
@@ -2347,7 +2347,7 @@ is nil.  This function is called when exiting an incremental search if
 (defalias 'isearch-lazy-highlight-cleanup 'lazy-highlight-cleanup)
 (make-obsolete 'isearch-lazy-highlight-cleanup 'lazy-highlight-cleanup "22.1")
 
-(defun isearch-lazy-highlight-new-loop (beg end)
+(defun isearch-lazy-highlight-new-loop (&optional beg end)
   "Cleanup any previous `lazy-highlight' loop and begin a new one.
 BEG and END specify the bounds within which highlighting should occur.
 This is called when `isearch-update' is invoked (which can cause the
@@ -2389,11 +2389,12 @@ by other Emacs features."
 (defun isearch-lazy-highlight-search ()
   "Search ahead for the next or previous match, for lazy highlighting.
 Attempt to do the search exactly the way the pending isearch would."
-  (let ((case-fold-search isearch-case-fold-search)
+  (let ((case-fold-search isearch-lazy-highlight-case-fold-search)
+	(isearch-regexp isearch-lazy-highlight-regexp)
 	(search-spaces-regexp search-whitespace-regexp))
     (condition-case nil
 	(funcall (isearch-search-fun)
-		 isearch-string
+		 isearch-lazy-highlight-last-string
 		 (if isearch-forward
 		     (min (or isearch-lazy-highlight-end-limit (point-max))
 			  (if isearch-lazy-highlight-wrapped
