@@ -71,8 +71,7 @@
 (require 'screen)
 
 (setq command-switch-alist
-      (append '(("-dm" .	x-establish-daemon-mode)
-		("-bw" .	x-handle-numeric-switch)
+      (append '(("-bw" .	x-handle-numeric-switch)
 		("-d" .		x-handle-display)
 		("-display" .	x-handle-display)
 		("-name" .	x-handle-switch)
@@ -150,13 +149,6 @@
   (setq initial-screen-alist (append initial-screen-alist
 				     (x-geometry (car x-invocation-args)))
 	x-invocation-args (cdr x-invocation-args)))
-
-;; The daemon stuff isn't really useful at the moment.
-(defvar x-daemon-mode nil
-  "When set, means initially create just a minibuffer.")
-	  
-(defun x-establish-daemon-mode (switch)
-  (setq x-daemon-mode t))
 
 (defvar x-display-name nil
   "The X display name specifying server and X screen.")
@@ -626,6 +618,7 @@ This returns ARGS with the arguments that have been processed removed."
 ;;; Do the actual X Windows setup here; the above code just defines
 ;;; functions and variables that we use now.
 
+(setq command-line-args (x-handle-args command-line-args))
 (x-open-connection (or x-display-name
 		       (setq x-display-name (getenv "DISPLAY"))))
 
@@ -636,7 +629,6 @@ This returns ARGS with the arguments that have been processed removed."
 
 (setq screen-creation-function 'x-create-screen)
 (x-read-resources)
-(setq command-line-args (x-handle-args command-line-args))
 (x-pop-initial-window)
 
 (setq suspend-hook
