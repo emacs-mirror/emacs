@@ -1,6 +1,6 @@
 ;;; ediff-mult.el --- support for multi-file/multi-buffer processing in Ediff
 
-;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 2001 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -1966,8 +1966,9 @@ If this is a session registry buffer then just bury it."
 	    (setq olist
 		  (mapcar (lambda (elt) (overlay-get elt 'ediff-meta-info))
 			  olist))
-	    (while (and olist (null (car olist))
-			(overlay-get (car olist) 'invisible))
+	    (while (and olist
+			(or (null (car olist))
+			    (overlay-get (car olist) 'invisible)))
 	      (setq olist (cdr olist)))
 	    (setq result (car olist)))))
     (if result
