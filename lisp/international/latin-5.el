@@ -96,14 +96,14 @@
   (set-case-syntax-pair 218 250 tbl)	;latin letter u with acute
   (set-case-syntax-pair 219 251 tbl)	;latin letter u with circumflex
   (set-case-syntax-pair 220 252 tbl)	;latin letter u with diaeresis
-  (set-downcase-syntax  221 ?i  tbl)	;latin capital letter i with dot above
+  (set-case-syntax 221 "w" tbl)		;latin capital letter i with dot above
   (set-case-syntax-pair 222 254 tbl)	;latin letter s with cedilla
   (set-case-syntax 223 "w" tbl)		;latin small letter sharp s
   (set-case-syntax 234 "w" tbl)		;latin small letter e with ogonek
   (set-case-syntax 236 "w" tbl)		;latin small letter e with dot above
   (set-case-syntax 239 "w" tbl)		;latin small letter i with macron
   (set-case-syntax 247 "_" tbl)		;division sign
-  (set-upcase-syntax ?I 253 tbl)	;latin small letter i dotless
+  (set-case-syntax 253 "w" tbl)		;latin small letter i dotless
   (set-case-syntax 255 "w" tbl))	;latin small letter y with diaeresis
 
 ;; When preloading this file, don't provide the feature.
