@@ -1812,7 +1812,10 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* Wait till there is something to do */
 
       Available = input_wait_mask;
-      if (! XINT (read_kbd) && wait_for_cell == 0)
+      /* We used to have  && wait_for_cell == 0
+	 but that led to lossage handling selection_request events:
+	 within one, we would start to handle another.  */
+      if (! XINT (read_kbd))
 	FD_CLR (0, &Available);
 
       /* If frame size has changed or the window is newly mapped,
@@ -1891,7 +1894,9 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* If there is any, return immediately
 	 to give it higher priority than subprocesses */
 
-      if ((XINT (read_kbd) || wait_for_cell)
+      /* We used to do his if wait_for_cell,
+	 but that caused infinite recursion in selection request events.  */
+      if ((XINT (read_kbd))
 	  && detect_input_pending ())
 	{
 	  swallow_events ();
