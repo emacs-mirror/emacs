@@ -8,11 +8,12 @@
   Emacs @dfn{registers} are compartments where you can save text,
 rectangles, positions, and other things for later use.  Once you save
 text or a rectangle in a register, you can copy it into the buffer
-once or many times; you can move point to a position saved in a
-register once or many times.
+once, or many times; you can move point to a position saved in a
+register once, or many times.
 
 @findex view-register
-  Each register has a name, which is a single character.  A register can
+  Each register has a name, which consists of a single character.
+A register can
 store a piece of text, a rectangle, a position, a window configuration,
 or a file name, but only one thing at any given time.  Whatever you
 store in a register remains there until you store something else in that
@@ -59,7 +60,7 @@ register.
 @findex jump-to-register
   The command @kbd{C-x r j @var{r}} moves point to the position recorded
 in register @var{r}.  The register is not affected; it continues to
-record the same position.  You can jump to the saved position any number
+hold the same position.  You can jump to the saved position any number
 of times.
 
   If you use @kbd{C-x r j} to go to a saved position, but the buffer it
@@ -86,9 +87,10 @@ Insert text from register @var{r} (@code{insert-register}).
 @kindex C-x r i
 @findex copy-to-register
 @findex insert-register
-  @kbd{C-x r s @var{r}} stores a copy of the text of the region into the
-register named @var{r}.  Given a numeric argument, @kbd{C-x r s @var{r}}
-deletes the text from the buffer as well.
+  @kbd{C-x r s @var{r}} stores a copy of the text of the region into
+the register named @var{r}.  @kbd{C-u C-x r s @var{r}}, the same
+command with a numeric argument, deletes the text from the buffer as
+well.
 
   @kbd{C-x r i @var{r}} inserts in the buffer the text from register
 @var{r}.  Normally it leaves point before the text and places the mark
