@@ -844,8 +844,9 @@ using `make-temp-name', and the generated name is returned."
     (let ((coding
 	   (or coding-system-for-read
 	       (and set-auto-coding-function
-		    (funcall set-auto-coding-function
-			     filename (- (point-max) (point-min))))
+		    (save-excursion
+		      (funcall set-auto-coding-function
+			       filename (- (point-max) (point-min)))))
 	       ;; dos-w32.el defines find-operation-coding-system for
 	       ;; DOS/Windows systems which preserves the coding-system
 	       ;; of existing files.  We want it to act here as if the
