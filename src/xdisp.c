@@ -2686,9 +2686,7 @@ handle_single_display_prop (it, prop, object, position)
       && EQ (XCAR (prop), Qheight)
       && CONSP (XCDR (prop)))
     {
-      if (FRAME_TERMCAP_P (it->f)
-	  || FRAME_MSDOS_P (it->f)
-	  || FRAME_W32_CONSOLE_P (it->f))
+      if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
 	return 0;
       
       /* `(height HEIGHT)'.  */
@@ -2753,9 +2751,7 @@ handle_single_display_prop (it, prop, object, position)
 	   && CONSP (XCDR (prop)))
     {
       /* `(space_width WIDTH)'.  */
-      if (FRAME_TERMCAP_P (it->f)
-	  || FRAME_MSDOS_P (it->f)
-	  || FRAME_W32_CONSOLE_P (it->f))
+      if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
 	return 0;
       
       value = XCAR (XCDR (prop));
@@ -2767,9 +2763,7 @@ handle_single_display_prop (it, prop, object, position)
 	   && CONSP (XCDR (prop)))
     {
       /* `(raise FACTOR)'.  */
-      if (FRAME_TERMCAP_P (it->f)
-	  || FRAME_MSDOS_P (it->f)
-	  || FRAME_W32_CONSOLE_P (it->f))
+      if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
 	return 0;
       
 #ifdef HAVE_WINDOW_SYSTEM
