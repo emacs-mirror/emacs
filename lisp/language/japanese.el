@@ -37,7 +37,7 @@
    short ascii-eol ascii-cntl seven)
  '((safe-charsets ascii japanese-jisx0208-1978 japanese-jisx0208
 		  latin-jisx0201 japanese-jisx0212 katakana-jisx0201)
-   (mime-charset . 'iso-2022-jp)))
+   (mime-charset . iso-2022-jp)))
 
 (define-coding-system-alias 'junet 'iso-2022-jp)
 
