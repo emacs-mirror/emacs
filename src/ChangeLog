@@ -1,3 +1,15 @@
+2001-01-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c, callproc.c, fns.c, keyboard.c, process.c, sunfns.c,
+	* sysdep.c, vmsproc.c, xselect.c: Call
+	redisplay_preserve_echo_area with additional arg.
+
+	* dispextern.h, lisp.h (redisplay_preserve_echo_area): Change
+	prototype.
+	
+	* xdisp.c (redisplay_preserve_echo_area): Add parameter
+	FROM_WHERE, for debugging.
+
 2001-01-16  Kenichi Handa  <handa@etl.go.jp>
 
 	* ccl.c (Fregister_ccl_program): Handle the return value of

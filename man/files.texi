@@ -951,13 +951,12 @@ this---saving them---updates the files themselves.
 @vindex auto-save-list-file-prefix
   Interrupted sessions are recorded for later recovery in files named
 @file{~/.emacs.d/auto-save-list/.saves-@var{pid}-@var{hostname}}.  The
-@samp{~/.emacs.d/auto-save-list/.saves-} portion of
-these names comes from the value of @code{auto-save-list-file-prefix}.
-You can arrange to record sessions in a different place by setting that
-variable in your @file{.emacs} file, but you'll have to redefine
-@code{recover-session} as well to make it look in the new place.  If you
-set @code{auto-save-list-file-prefix} to @code{nil} in your
-@file{.emacs} file, sessions are not recorded for recovery.
+@samp{~/.emacs.d/auto-save-list/.saves-} portion of these names comes
+from the value of @code{auto-save-list-file-prefix}.  You can arrange
+to record sessions in a different place by setting that variable in
+your @file{.emacs} file.  If you set @code{auto-save-list-file-prefix}
+to @code{nil} in your @file{.emacs} file, sessions are not recorded
+for recovery.
 
 @node File Aliases
 @section File Name Aliases
