@@ -1,3 +1,17 @@
+2004-04-08  Kenichi Handa  <handa@m17n.org>
+
+	* category.h: Sync to HEAD.
+
+	* category.c: Sync to HEAD.
+
+	* syntax.h: Sync to HEAD.
+
+	* syntax.c: Sync to HEAD.
+
+	* regex.h: Sync to HEAD.
+
+	* regex.c: Sync to HEAD.
+
 2004-04-07  Kenichi Handa  <handa@m17n.org>
 
 	* editfns.c: Sync to HEAD.
