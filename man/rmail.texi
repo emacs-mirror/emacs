@@ -69,13 +69,13 @@ message by specifying its message number with the @kbd{j} key
 (@pxref{Rmail Motion}).
 
 @kindex s @r{(Rmail)}
-@findex rmail-save
+@findex rmail-expunge-and-save
   Following the usual conventions of Emacs, changes in an Rmail file
 become permanent only when the file is saved.  You can save it with
-@kbd{s} (@code{rmail-save}), which also expunges deleted messages from
-the file first (@pxref{Rmail Deletion}).  To save the file without
-expunging, use @kbd{C-x C-s}.  Rmail also saves the Rmail file after
-merging new mail from an inbox file (@pxref{Rmail Inbox}).
+@kbd{s} (@code{rmail-expunge-and-save}), which also expunges deleted
+messages from the file first (@pxref{Rmail Deletion}).  To save the
+file without expunging, use @kbd{C-x C-s}.  Rmail also saves the Rmail
+file after merging new mail from an inbox file (@pxref{Rmail Inbox}).
 
 @kindex q @r{(Rmail)}
 @findex rmail-quit
@@ -688,8 +688,7 @@ the same as the first time.  Alternatively, you can edit the text or
 headers and then send it.  The variable
 @code{rmail-retry-ignored-headers}, in the same format as
 @code{rmail-ignored-headers} (@pxref{Rmail Display}), controls which
-headers are stripped from the failed message when retrying it; it
-defaults to @code{nil}.
+headers are stripped from the failed message when retrying it.
 
 @kindex f @r{(Rmail)}
 @findex rmail-forward
@@ -718,7 +717,7 @@ current one.
   @dfn{Resending} is an alternative similar to forwarding; the
 difference is that resending sends a message that is ``from'' the
 original sender, just as it reached you---with a few added header fields
-@samp{Resent-from} and @samp{Resent-to} to indicate that it came via
+@samp{Resent-From} and @samp{Resent-To} to indicate that it came via
 you.  To resend a message in Rmail, use @kbd{C-u f}.  (@kbd{f} runs
 @code{rmail-forward}, which is programmed to invoke @code{rmail-resend}
 if you provide a numeric argument.)
@@ -742,7 +741,7 @@ already composing, or to alter a message you have sent.@refill
   If you set the variable @code{rmail-mail-new-frame} to a
 non-@code{nil} value, then all the Rmail commands to start sending a
 message create a new frame to edit it in.  This frame is deleted when
-you send the message, or when you use the @samp{Don't Send} item in the
+you send the message, or when you use the @samp{Cancel} item in the
 @samp{Mail} menu.
 
   All the Rmail commands to send a message use the mail-composition
@@ -754,10 +753,11 @@ method that you have chosen (@pxref{Mail Methods}).
 
   A @dfn{summary} is a buffer containing one line per message to give
 you an overview of the mail in an Rmail file.  Each line shows the
-message number, the sender, the labels, and the subject.  Almost all
-Rmail commands are valid in the summary buffer also; these apply to the
-message described by the current line of the summary.  Moving point in
-the summary buffer selects messages as you move to their summary lines.
+message number and date, the sender, the line count, the labels, and
+the subject.  Moving point in the summary buffer selects messages as
+you move to their summary lines.  Almost all Rmail commands are valid
+in the summary buffer also; when used there, they apply to the message
+described by the current line of the summary.
 
   A summary buffer applies to a single Rmail file only; if you are
 editing multiple Rmail files, each one can have its own summary buffer.
@@ -995,20 +995,18 @@ default, the @samp{From} and @samp{Subject} fields.  The variable
 specifies the header fields to highlight; if it matches the beginning
 of a header field, that whole field is highlighted.
 
-  If you specify unusual colors for your text foreground and background,
-the colors used for highlighting may not go well with them.  If so,
-specify different colors for the @code{highlight} face.  That is worth
-doing because the @code{highlight} face is used for other kinds of
-highlighting as well.  @xref{Faces}, for how to do this.
-
-  To turn off highlighting entirely in Rmail, set
+  If you specify unusual colors for your text foreground and
+background, the colors used for highlighting may not go well with
+them.  If so, specify different colors for the face
+@code{rmail-highlight-face}.  @xref{Faces}, for how to do this.  To
+turn off highlighting entirely in Rmail, set
 @code{rmail-highlighted-headers} to @code{nil}.
 
   You can highlight and activate URLs in incoming messages by adding
 the function @code{goto-address} to the hook
 @code{rmail-show-message-hook}.  Then you can browse these URLs by
 clicking on them with @kbd{Mouse-2} or by moving to one and typing
-@kbd{C-c @key{RET}}.  @xref{Goto-address}.
+@kbd{C-c @key{RET}}.  @xref{Goto-address, Activating URLs, Activating URLs}.
 
 @node Rmail Coding
 @section Rmail and Coding Systems
@@ -1017,8 +1015,8 @@ clicking on them with @kbd{Mouse-2} or by moving to one and typing
   Rmail automatically decodes messages which contain non-@sc{ascii}
 characters, just as it does with files you visit and with and
 subprocess output.  Rmail uses the standard
-@samp{charset=@var{charset}} header in the message to determine how
-the was message encoded by the sender.  It maps @var{charset} into the
+@samp{charset=@var{charset}} header in the message, if any, to determine how
+the message was encoded by the sender.  It maps @var{charset} into the
 corresponding Emacs coding system (@pxref{Coding Systems}), and uses
 that coding system to decode message text.  If the message header
 doesn't have the charset specification, or if the @var{charset} it
