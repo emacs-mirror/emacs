@@ -3354,7 +3354,7 @@ readdirver (dirp)
 
 
 int
-set_file_times (path, atime, mtime)
+set_file_times (filename, atime, mtime)
      char *filename;
      EMACS_TIME atime, mtime;
 {
