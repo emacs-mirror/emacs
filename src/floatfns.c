@@ -626,7 +626,7 @@ DEFUN ("float", Ffloat, Sfloat, 1, 1, 0,
 }
 
 DEFUN ("logb", Flogb, Slogb, 1, 1, 0,
-  "Returns the integer not greater than the base 2 log of the magnitude of ARG.\n\
+  "Returns largest integer <= the base 2 log of the magnitude of ARG.\n\
 This is the same as the exponent of a float.")
      (arg)
      Lisp_Object arg;
