@@ -13,7 +13,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.22 2000/12/11 03:20:21 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.23 2000/12/18 03:17:40 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -867,7 +867,7 @@ With a prefix argument, prompt for cvs FLAGS to use."
 
 (defun-cvs-mode (cvs-mode-revert-buffer . SIMPLE)
                 (&optional ignore-auto noconfirm)
-  "Rerun `cvs-examine' on the current directory with the defauls flags."
+  "Rerun `cvs-examine' on the current directory with the default flags."
   (interactive)
   (cvs-examine default-directory t))
 
