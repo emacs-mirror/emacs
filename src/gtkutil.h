@@ -151,6 +151,8 @@ extern int xg_update_frame_menubar P_ ((FRAME_PTR f));
 
 extern void xg_keep_popup P_ ((GtkWidget *menu, GtkWidget *submenu));
 
+extern int xg_get_scroll_id_for_window P_ ((Window wid));
+
 extern void xg_create_scroll_bar P_ ((FRAME_PTR f,
                                       struct scroll_bar *bar,
                                       GCallback scroll_callback,

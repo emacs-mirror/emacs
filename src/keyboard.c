@@ -5431,6 +5431,9 @@ make_lispy_event (event)
 	event->modifiers |= click_modifier;
 	event->modifiers &= ~up_modifier;
 
+	if (event->code >= ASIZE (mouse_syms))
+          mouse_syms = larger_vector (mouse_syms, event->code + 1, Qnil);
+
 	/* Get the symbol we should use for the mouse click.  */
 	head = modify_event_symbol (event->code,
 				    event->modifiers,

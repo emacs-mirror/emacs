@@ -8436,6 +8436,10 @@ x_window_to_scroll_bar (window_id)
 {
   Lisp_Object tail;
 
+#ifdef USE_GTK
+  window_id = (Window) xg_get_scroll_id_for_window (window_id);
+#endif /* USE_GTK */
+
   for (tail = Vframe_list;
        XGCTYPE (tail) == Lisp_Cons;
        tail = XCDR (tail))
@@ -9860,7 +9864,6 @@ x_scroll_bar_expose (bar, event)
    This may be called from a signal handler, so we have to ignore GC
    mark bits.  */
 
-#ifndef USE_TOOLKIT_SCROLL_BARS
 
 static void
 x_scroll_bar_handle_click (bar, event, emacs_event)
@@ -9914,6 +9917,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
       XSETINT (bar->dragging, y - XINT (bar->start));
 #endif
 
+#ifndef USE_TOOLKIT_SCROLL_BARS
     /* If the user has released the handle, set it to its final position.  */
     if (event->type == ButtonRelease
 	&& ! NILP (bar->dragging))
@@ -9924,6 +9928,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
 	x_scroll_bar_set_handle (bar, new_start, new_end, 0);
 	bar->dragging = Qnil;
       }
+#endif
 
     /* Same deal here as the other #if 0.  */
 #if 0
@@ -9940,6 +9945,8 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
     XSETINT (emacs_event->y, top_range);
   }
 }
+
+#ifndef USE_TOOLKIT_SCROLL_BARS
 
 /* Handle some mouse motion while someone is dragging the scroll bar.
 
@@ -11421,10 +11428,18 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
           }
         else
           {
-#ifndef USE_TOOLKIT_SCROLL_BARS
             struct scroll_bar *bar
               = x_window_to_scroll_bar (event.xbutton.window);
 
+#ifdef USE_TOOLKIT_SCROLL_BARS
+            /* Make the "Ctrl-Mouse-2 splits window" work for toolkit
+               scroll bars.  */
+            if (bar && event.xbutton.state & ControlMask)
+              {
+                x_scroll_bar_handle_click (bar, &event, &emacs_event);
+                *finish = X_EVENT_DROP;
+              }
+#else /* not USE_TOOLKIT_SCROLL_BARS */
             if (bar)
               x_scroll_bar_handle_click (bar, &event, &emacs_event);
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
@@ -11534,7 +11549,8 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
     OTHER:
 #ifdef USE_X_TOOLKIT
     BLOCK_INPUT;
-    XtDispatchEvent (&event);
+    if (*finish != X_EVENT_DROP)
+      XtDispatchEvent (&event);
     UNBLOCK_INPUT;
 #endif /* USE_X_TOOLKIT */
     break;
