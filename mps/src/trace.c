@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.72) $
+ * $HopeName: MMsrc!trace.c(trunk.73) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -10,7 +10,7 @@
 #include <limits.h>
 
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.72) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.73) $");
 
 
 /* Types
@@ -477,6 +477,15 @@ found:
   trace->reclaimSize = (Size)0;
   trace->sig = TraceSig;
   AVERT(Trace, trace);
+
+  /* We suspend the mutator threads so that the PoolWhiten methods */
+  /* can calculate white sets without the mutator allocating in */
+  /* buffers under our feet. */
+
+  /* @@@@ This is a short-term fix for change.dylan.crow.160098, */
+  /* and should receive a long-term fix in change.dylan.dove.160098. */
+
+  ShieldSuspend(arena);
 
   *traceReturn = trace;
   return ResOK;
