@@ -692,7 +692,7 @@ to non-@code{nil}.  If you do that, DOS-style files will be displayed
 with the @samp{^M} characters visible in the buffer; some people
 prefer this to the more subtle @samp{(DOS)} end-of-line type
 indication near the left edge of the mode line (@pxref{Mode Line,
-eol-mnemonic}.
+eol-mnemonic}).
 
 @vindex inhibit-iso-escape-detection
 @cindex escape sequences in files

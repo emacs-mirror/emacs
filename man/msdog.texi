@@ -457,7 +457,7 @@ typed with the Windows-style backslashes, while the value of
 causes Windows to @dfn{capture} the LPT2 port and redirect the printed
 material to the printer connected to the machine @code{joes_pc}.
 After this command, setting @code{printer-name} to @code{"LPT2"}
-should send the printed material to the networked printer.
+should produce the hardcopy on the networked printer.
 
   Some printers expect DOS codepage encoding of non-ASCII text, even
 though they are connected to a Windows machine which uses a different
