@@ -459,6 +459,11 @@ material to the printer connected to the machine @code{joes_pc}.
 After this command, setting @code{printer-name} to @code{"LPT2"}
 should produce the hardcopy on the networked printer.
 
+  With some varieties of Windows network software, you can instruct
+Windows to capture a specific printer port such as @code{"LPT2"} and
+redirect it to a networked printer via the @w{@code{Control
+Panel->Printers}} applet instead of @samp{net use}.
+
   Some printers expect DOS codepage encoding of non-ASCII text, even
 though they are connected to a Windows machine which uses a different
 encoding for the same locale.  For example, in the Latin-1 locale, DOS
