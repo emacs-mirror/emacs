@@ -44,8 +44,8 @@
 ;; country and language.
 ;;   Most dictionary changes should be made in this file so all users can
 ;; enjoy them.  Local or modified dictionaries are supported in your .emacs
-;; file.  Modify the variable `ispell-local-dictionary-alist' to include
-;; these dictionaries, and they will be installed when ispell.el is loaded.
+;; file.  Use the variable `ispell-local-dictionary-alist' to specify
+;; your own dictionaries.
 
 ;;  Depending on the mail system you use, you may want to include these:
 ;;  (add-hook 'news-inews-hook 'ispell-message)
@@ -428,28 +428,26 @@ where DICTNAME is the name of your default dictionary."
   :type 'boolean
   :group 'ispell)
 
-;;; This is the local dictionary to use.  When nil the default dictionary will
-;;; be used.  Change set-default call to use a new default dictionary.
+(defvar ispell-local-dictionary-overridden nil
+  "Non-nil means the user has explicitly set this buffer's Ispell dictionary.")
+(make-variable-buffer-local 'ispell-local-dictionary)
+
 (defcustom ispell-local-dictionary nil
-  "If non-nil, the dictionary to be used for Ispell commands.
-The value must be a string dictionary name in `ispell-dictionary-alist'.
+  "If non-nil, the dictionary to be used for Ispell commands in this buffer.
+The value must be a string dictionary name,
+or nil, which means use the global setting in `ispell-dictionary'.
+Dictionary names are defined in `ispell-local-dictionary-alist'
+and `ispell-dictionary-alist',
 
 Setting `ispell-local-dictionary' to a value has the same effect as
 calling \\[ispell-change-dictionary] with that value.  This variable
 is automatically set when defined in the file with either
-`ispell-dictionary-keyword' or the Local Variable syntax.
-
-To create a non-standard default dictionary (not from `ispell-dictionary-alist')
-call function `set-default' with the new dictionary name."
+`ispell-dictionary-keyword' or the Local Variable syntax."
   :type '(choice string
 		 (const :tag "default" nil))
   :group 'ispell)
 
 (make-variable-buffer-local 'ispell-local-dictionary)
-
-;; Call this function set up the default dictionary if not English.
-;;(set-default 'ispell-local-dictionary nil)
-
 
 (defcustom ispell-extra-args nil
   "*If non-nil, a list of extra switches to pass to the Ispell program.
@@ -473,17 +471,14 @@ buffer's major mode."
 (make-variable-buffer-local 'ispell-skip-html)
 
 
-;;; Define definitions here only for personal dictionaries.
 ;;;###autoload
 (defcustom ispell-local-dictionary-alist nil
-  "*Contains local or customized dictionary definitions.
+  "*List of local or customized dictionary definitions.
+These can override the values in `ispell-dictionary-alist'.
 
-These will override the values in `ispell-dictionary-alist'.
-
-Customization changes made to `ispell-dictionary-alist' will not operate
-over emacs sessions.  To make permanent changes to your dictionary
-definitions, you will need to make your changes in this variable, save,
-and then re-start emacs."
+To make permanent changes to your dictionary definitions, you
+will need to make your changes in this variable, save, and then
+re-start emacs."
   :type '(repeat (list (choice :tag "Dictionary"
 			       (string :tag "Dictionary name")
 			       (const :tag "default" nil))
@@ -646,9 +641,8 @@ and then re-start emacs."
 
 
 ;;;###autoload
-(defcustom ispell-dictionary-alist
-  (append ispell-local-dictionary-alist	; dictionary customizations
-	  ispell-dictionary-alist-1 ispell-dictionary-alist-2
+(defvar ispell-dictionary-alist
+  (append ispell-dictionary-alist-1 ispell-dictionary-alist-2
 	  ispell-dictionary-alist-3 ispell-dictionary-alist-4
 	  ispell-dictionary-alist-5 ispell-dictionary-alist-6)
   "An alist of dictionaries and their associated parameters.
@@ -696,33 +690,7 @@ CHARACTER-SET used for languages with multibyte characters.
 
 Note that the CASECHARS and OTHERCHARS slots of the alist should
 contain the same character set as casechars and otherchars in the
-LANGUAGE.aff file \(e.g., english.aff\)."
-  :type '(repeat (list (choice :tag "Dictionary"
-			       (string :tag "Dictionary name")
-			       (const :tag "default" nil))
-		       (regexp :tag "Case characters")
-		       (regexp :tag "Non case characters")
-		       (regexp :tag "Other characters")
-		       (boolean :tag "Many other characters")
-		       (repeat :tag "Ispell command line args"
-			       (string :tag "Arg"))
-		       (choice :tag "Extended character mode"
-			       (const "~tex") (const "~plaintex")
-			       (const "~nroff") (const "~list")
-			       (const "~latin1") (const "~latin3")
- 			       (const :tag "default" nil))
-		       (choice :tag "Coding System"
-			       (const iso-8859-1)
-			       (const iso-8859-2)
-			       (const koi8-r))))
-  :group 'ispell)
-
-;;; update the dictionaries at load time
-(setq ispell-dictionary-alist
-      (append ispell-local-dictionary-alist	; dictionary customizations
-	      ispell-dictionary-alist-1 ispell-dictionary-alist-2
-	      ispell-dictionary-alist-3 ispell-dictionary-alist-4
-	      ispell-dictionary-alist-5 ispell-dictionary-alist-6))
+LANGUAGE.aff file \(e.g., english.aff\).")
 
 (defvar ispell-really-aspell nil) ; Non-nil if aspell extensions should be used
 
@@ -877,7 +845,7 @@ and added as a submenu of the \"Edit\" menu.")
 (defun ispell-valid-dictionary-list ()
   "Returns a list of valid dictionaries.
 The variable `ispell-library-directory' defines the library location."
-  (let ((dicts ispell-dictionary-alist)
+  (let ((dicts (append ispell-local-dictionary-alist ispell-dictionary-alist))
 	(dict-list (cons "default" nil))
 	name load-dict)
     (dolist (dict dicts)
@@ -899,11 +867,12 @@ The variable `ispell-library-directory' defines the library location."
 	  (setq dict-list (cons name dict-list))))
     dict-list))
 
-
 ;;;###autoload
 (if ispell-menu-map-needed
     (let ((dicts (if (fboundp 'ispell-valid-dictionary-list)
 		     (ispell-valid-dictionary-list)
+		   ;; This case is used in loaddefs.el
+		   ;; since ispell-valid-dictionary-list isn't defined then.
 		   (mapcar (lambda (x) (or (car x) "default"))
 			   ispell-dictionary-alist)))
 	  (dict-map (make-sparse-keymap "Dictionaries")))
@@ -1054,14 +1023,14 @@ The variable `ispell-library-directory' defines the library location."
 
 
 ;;; This variable contains the current dictionary being used if the ispell
-;;; process is running.  Otherwise it contains the global default.
-(defvar ispell-dictionary nil
+;;; process is running.
+(defvar ispell-current-dictionary nil
   "The name of the current dictionary, or nil for the default.
-When `ispell-local-dictionary' is nil, `ispell-dictionary' is used to select
-the dictionary for new buffers.
-
 This is passed to the ispell process using the `-d' switch and is
-used as key in `ispell-dictionary-alist' (which see).")
+used as key in `ispell-local-dictionary-alist' and `ispell-dictionary-alist'.")
+
+(defvar ispell-dictionary nil
+  "Default dictionary to use if `ispell-local-dictionary' is nil.")
 
 (defun ispell-decode-string (str)
   "Decodes multibyte character strings.
@@ -1097,7 +1066,9 @@ Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
 ;; regular expression matching.
 
 (defun ispell-get-decoded-string (n)
-  (let* ((slot (assoc ispell-dictionary ispell-dictionary-alist))
+  (let* ((slot (or
+		(assoc ispell-current-dictionary ispell-local-dictionary-alist)
+		(assoc ispell-current-dictionary ispell-dictionary-alist)))
 	 (str (nth n slot)))
     (when (and (> (length str) 0)
 	       (not (multibyte-string-p str)))
@@ -1123,13 +1094,17 @@ Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
 (defun ispell-get-otherchars ()
   (ispell-get-decoded-string 3))
 (defun ispell-get-many-otherchars-p ()
-  (nth 4 (assoc ispell-dictionary ispell-dictionary-alist)))
+  (nth 4 (or (assoc ispell-current-dictionary ispell-local-dictionary-alist)
+	     (assoc ispell-current-dictionary ispell-dictionary-alist))))
 (defun ispell-get-ispell-args ()
-  (nth 5 (assoc ispell-dictionary ispell-dictionary-alist)))
+  (nth 5 (or (assoc ispell-current-dictionary ispell-local-dictionary-alist)
+	     (assoc ispell-current-dictionary ispell-dictionary-alist))))
 (defun ispell-get-extended-character-mode ()
-  (nth 6 (assoc ispell-dictionary ispell-dictionary-alist)))
+  (nth 6 (or (assoc ispell-current-dictionary ispell-local-dictionary-alist)
+	     (assoc ispell-current-dictionary ispell-dictionary-alist))))
 (defun ispell-get-coding-system ()
-  (nth 7 (assoc ispell-dictionary ispell-dictionary-alist)))
+  (nth 7 (or (assoc ispell-current-dictionary ispell-local-dictionary-alist)
+	     (assoc ispell-current-dictionary ispell-dictionary-alist))))
 
 
 (defvar ispell-pdict-modified-p nil
@@ -1181,8 +1156,9 @@ There can be multiple of these keywords in the file.")
 
 (defconst ispell-dictionary-keyword "Local IspellDict: "
   "The keyword for a local dictionary to use.
-The keyword must be followed by a correct dictionary name in
-`ispell-dictionary-alist'.  When multiple occurrences exist, the last keyword
+The keyword must be followed by a valid dictionary name, defined in
+`ispell-local-dictionary-alist' or `ispell-dictionary-alist'.
+When multiple occurrences exist, the last keyword
 definition is used.")
 
 (defconst ispell-pdict-keyword "Local IspellPersDict: "
@@ -1439,7 +1415,8 @@ when called interactively, non-corrective messages are suppressed.
 With a prefix argument (or if CONTINUE is non-nil),
 resume interrupted spell-checking of a buffer or region.
 
-Word syntax described by `ispell-dictionary-alist' (which see).
+Word syntax is controlled by the definition of the chosen dictionary,
+which is in `ispell-local-dictionary-alist' or `ispell-dictionary-alist'.
 
 This will check or reload the dictionary.  Use \\[ispell-change-dictionary]
 or \\[ispell-region] to update the Ispell process.
@@ -1549,7 +1526,8 @@ is non-nil when called interactively, then the following word
 Optional second argument contains otherchars that can be included in word
 many times.
 
-Word syntax described by `ispell-dictionary-alist' (which see)."
+Word syntax is controlled by the definition of the chosen dictionary,
+which is in `ispell-local-dictionary-alist' or `ispell-dictionary-alist'."
   (let* ((ispell-casechars (ispell-get-casechars))
 	 (ispell-not-casechars (ispell-get-not-casechars))
 	 (ispell-otherchars (ispell-get-otherchars))
@@ -2309,13 +2287,13 @@ When asynchronous processes are not supported, `run' is always returned."
 Keeps argument list for future ispell invocations for no async support."
   (let (args)
     ;; Local dictionary becomes the global dictionary in use.
-    (if ispell-local-dictionary
-	(setq ispell-dictionary ispell-local-dictionary))
+    (setq ispell-current-dictionary
+	  (or ispell-local-dictionary ispell-dictionary))
     (setq args (ispell-get-ispell-args))
-    (if (and ispell-dictionary		; use specified dictionary
+    (if (and ispell-current-dictionary	; use specified dictionary
 	     (not (member "-d" args)))	; only define if not overridden
 	(setq args
-	      (append (list "-d" ispell-dictionary) args)))
+	      (append (list "-d" ispell-current-dictionary) args)))
     (if ispell-personal-dictionary	; use specified pers dict
 	(setq args
 	      (append args
@@ -2431,9 +2409,7 @@ With NO-ERROR, just return non-nil if there was no Ispell running."
 
 ;;;###autoload
 (defun ispell-change-dictionary (dict &optional arg)
-  "Change `ispell-dictionary' (q.v.) to DICT and kill old Ispell process.
-A new one will be started as soon as necessary.
-
+  "Change to dictionary DICT for Ispell.
 By just answering RET you can find out what the current dictionary is.
 
 With prefix argument, set the default dictionary."
@@ -2441,39 +2417,42 @@ With prefix argument, set the default dictionary."
    (list (completing-read
 	  "Use new dictionary (RET for current, SPC to complete): "
 	  (and (fboundp 'ispell-valid-dictionary-list)
-	       (mapcar (lambda (x)(cons x nil)) (ispell-valid-dictionary-list)))
+	       (mapcar 'list (ispell-valid-dictionary-list)))
 	  nil t)
 	 current-prefix-arg))
+  (unless arg (ispell-accept-buffer-local-defs))
   (if (equal dict "default") (setq dict nil))
   ;; This relies on completing-read's bug of returning "" for no match
   (cond ((equal dict "")
 	 (message "Using %s dictionary"
 		  (or ispell-local-dictionary ispell-dictionary "default")))
-	((and (equal dict ispell-dictionary)
-	      (or (null ispell-local-dictionary)
-		  (equal dict ispell-local-dictionary)))
+	((equal dict (or ispell-local-dictionary
+			 ispell-dictionary "default"))
 	 ;; Specified dictionary is the default already.  No-op
 	 (and (interactive-p)
-	      (message "No change, using %s dictionary" (or dict "default"))))
+	      (message "No change, using %s dictionary" dict)))
 	(t				; reset dictionary!
-	 (if (assoc dict ispell-dictionary-alist)
-	     (progn
-	       (if (or arg (null dict))	; set default dictionary
-		   (setq ispell-dictionary dict))
-	       (if (null arg)		; set local dictionary
-		   (setq ispell-local-dictionary dict)))
+	 (if (or (assoc dict ispell-local-dictionary-alist)
+		 (assoc dict ispell-dictionary-alist))
+	     (if arg
+		 ;; set default dictionary
+		 (setq ispell-dictionary dict)
+	       ;; set local dictionary
+	       (setq ispell-local-dictionary dict)
+	       (setq ispell-local-dictionary-overridden t))
 	   (error "Undefined dictionary: %s" dict))
-	 (ispell-kill-ispell t)
-	 (message "(Next %sIspell command will use %s dictionary)"
-		  (cond ((equal ispell-local-dictionary ispell-dictionary)
-			 "")
-			(arg "global ")
-			(t "local "))
-		  (or (if (or (equal ispell-local-dictionary ispell-dictionary)
-			      (null arg))
-			  ispell-local-dictionary
-			ispell-dictionary)
-		      "default")))))
+	 (message "%s Ispell dictionary set to %s"
+		  (if arg "Global" "Local")
+		  dict))))
+
+(defun ispell-internal-change-dictionary ()
+  "Update the dictionary actually used by Ispell.
+This may kill the Ispell process; if so,
+a new one will be started when needed."
+  (let ((dict (or ispell-local-dictionary ispell-dictionary "default")))
+    (unless (equal ispell-current-dictionary dict)
+      (setq ispell-current-dictionary dict)
+      (ispell-kill-ispell t))))
 
 
 ;;; Spelling of comments are checked when ispell-check-comments is non-nil.
@@ -2493,7 +2472,7 @@ Return nil if spell session is quit,
 	(message "Spell checking %s using %s dictionary..."
 		 (if (and (= reg-start (point-min)) (= reg-end (point-max)))
 		     (buffer-name) "region")
-		 (or ispell-dictionary "default"))
+		 (or ispell-current-dictionary "default"))
 	;; Returns cursor to original location.
 	(save-window-excursion
 	  (goto-char reg-start)
@@ -2511,7 +2490,7 @@ Return nil if spell session is quit,
 		  (goto-char reg-start)))
 	    (let (message-log-max)
 	      (message "Continuing spelling check using %s dictionary..."
-		       (or ispell-dictionary "default")))
+		       (or ispell-current-dictionary "default")))
 	    (set-marker rstart reg-start)
 	    (set-marker ispell-region-end reg-end)
 	    (while (and (not ispell-quit)
@@ -2941,7 +2920,7 @@ Returns the sum shift due to changes in word replacements."
 	    (if (not ispell-quit)
 		(let (message-log-max)
 		  (message "Continuing spelling check using %s dictionary..."
-			   (or ispell-dictionary "default"))))
+			   (or ispell-current-dictionary "default"))))
 	    (sit-for 0)
 	    (setq start (marker-position line-start)
 		  end (marker-position line-end))
@@ -3511,14 +3490,15 @@ Both should not be used to define a buffer-local dictionary."
       ;; Override the local variable definition.
       ;; Uses last occurrence of ispell-dictionary-keyword.
       (goto-char (point-max))
-      (if (search-backward ispell-dictionary-keyword nil t)
-	  (progn
-	    (search-forward ispell-dictionary-keyword)
-	    (setq end (save-excursion (end-of-line) (point)))
-	    (if (re-search-forward " *\\([^ \"]+\\)" end t)
-		(setq ispell-local-dictionary
-		      (buffer-substring-no-properties (match-beginning 1)
-						      (match-end 1))))))
+      (unless ispell-local-dictionary-overridden
+	(if (search-backward ispell-dictionary-keyword nil t)
+	    (progn
+	      (search-forward ispell-dictionary-keyword)
+	      (setq end (save-excursion (end-of-line) (point)))
+	      (if (re-search-forward " *\\([^ \"]+\\)" end t)
+		  (setq ispell-local-dictionary
+			(buffer-substring-no-properties (match-beginning 1)
+							(match-end 1)))))))
       (goto-char (point-max))
       (if (search-backward ispell-pdict-keyword nil t)
 	  (progn
@@ -3535,8 +3515,7 @@ Both should not be used to define a buffer-local dictionary."
 	(ispell-kill-ispell t)
 	(setq ispell-personal-dictionary ispell-local-pdict)))
   ;; Reload if new dictionary defined.
-  (if (not (equal ispell-local-dictionary ispell-dictionary))
-      (ispell-change-dictionary ispell-local-dictionary)))
+  (ispell-internal-change-dictionary))
 
 
 (defun ispell-buffer-local-words ()
