@@ -234,9 +234,9 @@ property of the major mode name.")
 	(in-signature (save-excursion
 			(re-search-backward message-signature-separator nil t))))
     (cond (in-headers
-	   (save-excursion
-	     (beginning-of-line)
-	     (looking-at "^Subject:")))
+	   (and (save-excursion (beginning-of-line)
+				(looking-at "^Subject:"))
+		(> (point) (match-end 0))))
 	  (in-signature
 	   nil)
 	  (t
