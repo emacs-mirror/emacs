@@ -1,7 +1,7 @@
 /* impl.h.mpscmv: MEMORY POOL SYSTEM CLASS "MV"
  *
- * $HopeName$
- * Copyright (C) 1996, 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!mpscmv.h(trunk.3) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 
 #ifndef mpscmv_h
