@@ -348,6 +348,8 @@ justification.  Fourth arg NOSQUEEZE non-nil means not to make spaces
 between words canonical before filling.  Fifth arg SQUEEZE-AFTER, if non-nil,
 means don't canonicalize spaces before that position.
 
+Return the fill-prefix used for filling.
+
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there."
   (interactive (progn
@@ -670,7 +672,18 @@ space does not end a sentence, so don't break a line there."
 	;; Leave point after final newline.
 	(goto-char (point-max)))
       (unless (eobp)
-	(forward-char 1)))))
+	(forward-char 1))
+      ;; Return the fill-prefix we used
+      fill-prefix)))
+
+(defsubst skip-line-prefix (prefix)
+  "If point is inside the string PREFIX at the beginning of line, move past it."
+  (when (and prefix
+	     (< (- (point) (line-beginning-position)) (length prefix))
+	     (save-excursion
+	       (beginning-of-line)
+	       (looking-at (regexp-quote prefix))))
+    (goto-char (match-end 0))))
 
 (defun fill-paragraph (arg)
   "Fill paragraph at or after point.  Prefix arg means justify as well.
@@ -679,7 +692,9 @@ space does not end a sentence, so don't break a line there.
 the variable `fill-column' controls the width for filling.
 
 If `fill-paragraph-function' is non-nil, we call it (passing our
-argument to it), and if it returns non-nil, we simply return its value."
+argument to it), and if it returns non-nil, we simply return its value.
+
+If `fill-paragraph-function' is nil, return the fill-prefix used for filling."
   (interactive (progn
 		 (barf-if-buffer-read-only)
 		 (list (if current-prefix-arg 'full))))
@@ -688,6 +703,8 @@ argument to it), and if it returns non-nil, we simply return its value."
 		 fill-paragraph-function)
 	     (funcall function arg)))
       (let ((before (point))
+	    ;; Fill prefix used for filling the paragraph
+	    fill-pfx
 	    ;; If fill-paragraph is called recursively,
 	    ;; don't give fill-paragraph-function a second chance.
 	    fill-paragraph-function)
@@ -697,11 +714,17 @@ argument to it), and if it returns non-nil, we simply return its value."
 	  (let ((end (point))
 		(beg (progn (backward-paragraph) (point))))
 	    (goto-char before)
-	    (if use-hard-newlines
-		;; Can't use fill-region-as-paragraph, since this paragraph
-		;; may still contain hard newlines.  See fill-region.
-		(fill-region beg end arg)
-	      (fill-region-as-paragraph beg end arg)))))))
+	    (setq fill-pfx 
+		  (if use-hard-newlines
+		      ;; Can't use fill-region-as-paragraph, since this
+		      ;; paragraph may still contain hard newlines.  See
+		      ;; fill-region.
+		      (fill-region beg end arg)
+		    (fill-region-as-paragraph beg end arg)))))
+	;; See if point ended up inside the fill-prefix, and if so, move
+	;; past it.
+	(skip-line-prefix fill-pfx)
+	fill-pfx)))
 
 (defun fill-region (from to &optional justify nosqueeze to-eop)
   "Fill each of the paragraphs in the region.
@@ -718,6 +741,8 @@ whitespace other than line breaks untouched, and fifth arg TO-EOP
 non-nil means to keep filling to the end of the paragraph (or next
 hard newline, if `use-hard-newlines' is on).
 
+Return the fill-prefix used for filling the last paragraph.
+
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there."
   (interactive (progn
@@ -726,7 +751,7 @@ space does not end a sentence, so don't break a line there."
 		       (if current-prefix-arg 'full))))
   (unless (memq justify '(t nil none full center left right))
     (setq justify 'full))
-  (let (end beg)
+  (let (end beg fill-pfx)
     (save-restriction
       (goto-char (max from to))
       (if to-eop
@@ -756,8 +781,10 @@ space does not end a sentence, so don't break a line there."
 	  (if (< (point) beg)
 	      (goto-char beg))
 	  (if (>= (point) initial)
-	      (fill-region-as-paragraph (point) end justify nosqueeze)
-	    (goto-char end)))))))
+	      (setq fill-pfx
+		    (fill-region-as-paragraph (point) end justify nosqueeze))
+	    (goto-char end))))
+      fill-pfx)))
 
 
 (defcustom default-justification 'left
