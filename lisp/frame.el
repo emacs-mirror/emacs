@@ -1196,18 +1196,15 @@ itself as a pre-command hook."
   :group 'cursor)
 
 
-(defcustom show-cursor-in-non-selected-windows t
+(defcustom cursor-in-non-selected-windows t
   "*Non-nil means show a hollow box cursor in non-selected-windows.
 If nil, don't show a cursor except in the selected window.
-Setting this variable directly has no effect; use custom instead
-\(or set the variable `cursor-in-non-selected-windows')."
+Use Custom to set this variable to get the display updated." 
   :tag "Cursor in non-selected windows"
   :type 'boolean
   :group 'cursor
-  :get #'(lambda (symbol) cursor-in-non-selected-windows)
   :set #'(lambda (symbol value)
 	   (set-default symbol value)
-	   (setq cursor-in-non-selected-windows value)
 	   (force-mode-line-update t)))
   
 
