@@ -681,11 +681,6 @@ is given and non-nil, the unwanted frames are iconified instead."
 ;;;; Convenience functions for accessing and interactively changing
 ;;;; frame parameters.
 
-(defun frame-parameter (frame parameter)
-  "Return FRAME's value for parameter PARAMETER.
-If FRAME is nil, describe the currently selected frame."
-  (cdr (assq parameter (frame-parameters frame))))
-
 (defun frame-height (&optional frame)
   "Return number of lines available for display on FRAME.
 If FRAME is omitted, describe the currently selected frame."
