@@ -742,10 +742,7 @@ else cover the whole bufer."
 			   (delete-char 1) (insert "-") t)
 		       ((?\\ ?#) t)
 		       (t (when (and first last (< first last))
-			    (let ((str
-				   (save-excursion
-				     (delete-and-extract-region first last))))
-			      (insert str)))
+			    (insert (delete-and-extract-region first last)))
 			  (setq first nil last nil)
 			  (equal ?\  c)))
 		(forward-line 1))))))))))
@@ -819,7 +816,7 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
     (if diff-unhandled-changes
 	(setq diff-unhandled-changes
 	      (cons (min beg (car diff-unhandled-changes))
-		    (max beg (cdr diff-unhandled-changes))))
+		    (max end (cdr diff-unhandled-changes))))
       (setq diff-unhandled-changes (cons beg end)))))
 
 (defun diff-post-command-hook ()
@@ -828,6 +825,8 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
     (ignore-errors
       (save-excursion
 	(goto-char (car diff-unhandled-changes))
+	;; Maybe we've cut the end of the hunk before point.
+	(if (and (bolp) (not (bobp))) (backward-char 1))
 	;; We used to fixup modifs on all the changes, but it turns out
 	;; that it's safer not to do it on big changes, for example
 	;; when yanking a big diff, since we might then screw up perfectly
@@ -844,7 +843,7 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 	(diff-beginning-of-hunk)
 	(when (save-excursion
 		(diff-end-of-hunk)
-		(> (point) (cdr diff-unhandled-changes)))
+		(>= (point) (cdr diff-unhandled-changes)))
 	  (diff-fixup-modifs (point) (cdr diff-unhandled-changes)))))
     (setq diff-unhandled-changes nil)))
 
@@ -1183,8 +1182,8 @@ For use in `add-log-current-defun-function'."
 	    (let ((old (if switched dst src)))
 	      (with-temp-buffer
 		(insert (car old))
-		(goto-char (cdr old))
 		(funcall (with-current-buffer buf major-mode))
+		(goto-char (+ (point-min) (cdr old)))
 		(add-log-current-defun))))
 	  (with-current-buffer buf
 	    (goto-char (+ (car pos) (cdr src)))
