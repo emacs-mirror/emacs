@@ -129,6 +129,8 @@
     ((?\~ ?t) ?\376)
     ((?\~ ?>) ?\273)
     ((?\~ ?<) ?\253)
+    ((?\~ ?!) ?\241)  ;; Inverted exclamation mark
+    ((?\~ ??) ?\277)  ;; Inverted question mark
     ((?\~ ?\ ) ?\~)
     ((?\~ ?\~) ?\270) ;; cedilla accent
     ((?\/ ?A) ?\305) ;; A-with-ring (Norwegian and Danish)
