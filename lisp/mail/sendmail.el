@@ -910,16 +910,19 @@ the user from the mailer."
 		   (mail-file-babyl-p (car fcc-list)))
 	      ;; If the file is a Babyl file,
 	      ;; convert the message to Babyl format.
-	      (save-excursion
-		(set-buffer (get-buffer-create " mail-temp"))
-		(setq buffer-read-only nil)
-		(erase-buffer)
-		(insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
-			"Date: " (mail-rfc822-date) "\n")
-		(insert-buffer-substring curbuf beg2 end)
-		(insert "\n\C-_")
-		(write-region (point-min) (point-max) (car fcc-list) t)
-		(erase-buffer))
+	      (let ((coding-system-for-write
+		     (or rmail-file-coding-system
+			 'emacs-mule)))
+		(save-excursion
+		  (set-buffer (get-buffer-create " mail-temp"))
+		  (setq buffer-read-only nil)
+		  (erase-buffer)
+		  (insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
+			  "Date: " (mail-rfc822-date) "\n")
+		  (insert-buffer-substring curbuf beg2 end)
+		  (insert "\n\C-_")
+		  (write-region (point-min) (point-max) (car fcc-list) t)
+		  (erase-buffer)))
 	    (write-region
 	     (1+ (point-min)) (point-max) (car fcc-list) t))
 	  (and buffer (not dont-write-the-file)
