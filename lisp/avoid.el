@@ -80,7 +80,8 @@
 (defcustom mouse-avoidance-mode nil
   "Activate mouse avoidance mode.  
 See function `mouse-avoidance-mode' for possible values.
-You must modify via \\[customize] for this variable to have an effect."
+This variable should be set only with \\[customize], which is equivalent
+to using the function `mouse-avoidance-mode'.
   :set (lambda (symbol value)
 	 ;; 'none below prevents toggling when value is nil.
 	 (mouse-avoidance-mode (or value 'none))) 
