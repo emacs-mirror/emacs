@@ -40,8 +40,6 @@ enum emacs_code_class_type
     EMACS_carriage_return_code,	/* 0x0D (carriage-return) to be used
 				   in selective display mode.  */
     EMACS_ascii_code,		/* ASCII characters.  */
-    EMACS_leading_code_composition, /* Leading code of a composite
-				       character.  */
     EMACS_leading_code_2,	/* Base leading code of official
 				   TYPE9N character.  */
     EMACS_leading_code_3,	/* Base leading code of private TYPE9N
@@ -260,21 +258,60 @@ enum coding_type
 				     eol-type is not consistent
 				     through the file.  */
 
-/* Character composition status while encoding/decoding.  */
-#define COMPOSING_NO		 0 /* not composing */
-#define COMPOSING_WITH_RULE_HEAD 1 /* 1st char of with-rule composing follow */
-#define COMPOSING_NO_RULE_HEAD	 2 /* 1st char of no-rule composing follow */
-#define COMPOSING_WITH_RULE_TAIL 3 /* Nth char of with-rule composing follow */
-#define COMPOSING_NO_RULE_TAIL	 4 /* Nth char of no-rule composing follow */
-#define COMPOSING_WITH_RULE_RULE 5 /* composition rule follow */
-
 /* 1 iff composing.  */
-#define COMPOSING_P(composing) (composing)
-/* 1 iff 1st char of composing element follows.  */
-#define COMPOSING_HEAD_P(composing) \
-  ((composing) && (composing) <= COMPOSING_NO_RULE_HEAD)
-/* 1 iff composing with embeded composition rule.  */
-#define COMPOSING_WITH_RULE_P(composing) ((composing) & 1)
+#define COMPOSING_P(coding) ((int) coding->composing > (int) COMPOSITION_NO)
+
+#define COMPOSITION_DATA_SIZE 4080
+#define COMPOSITION_DATA_MAX_BUNCH_LENGTH (4 + MAX_COMPOSITION_COMPONENTS*2)
+
+/* Data structure to hold information about compositions of text that
+   is being decoded or encode.  ISO 2022 base code conversion routines
+   handle special ESC sequences for composition specification.  But,
+   they can't get/put such information directly from/to a buffer in
+   the deepest place.  So, they store or retrieve the information
+   through this structure.
+
+   The encoder stores the information in this structure when it meets
+   ESC sequences for composition while encoding codes, then, after all
+   text codes are encoded, puts `composition' properties on the text
+   by refering the structure.
+
+   The decoder at first stores the information of a text to be
+   decoded, then, while decoding codes, generates ESC sequences for
+   composition at proper places by refering the structure.  */
+
+struct composition_data
+{
+  /* The character position of the first character to be encoded or
+     decoded.  START and END (see below) are relative to this
+     position.  */
+  int char_offset;
+
+  /* The composition data.  These elements are repeated for each
+     composition:
+	LENGTH START END METHOD [ COMPONENT ... ]
+     where,
+        LENGTH is the number of elements for this composition.
+
+	START and END are starting and ending character positions of
+	the composition relative to `char_offset'.
+
+	METHOD is one of `enum cmposing_status' specifying the way of
+	composition.
+
+	COMPONENT is a character or an encoded composition rule.  */
+  int data[COMPOSITION_DATA_SIZE];
+
+  /* The number of elements in `data' currently used.  */
+  int used;
+
+  /* Pointers to the previous and next structures.  When `data' is
+     filled up, another structure is allocated and linked in `next'.
+     The new struture has backward link to this struture in `prev'.
+     The number of chaind structures depends on how many compositions
+     the text being encoded or decoded contains.  */
+  struct composition_data *prev, *next;
+};
 
 /* Macros used for the member finish_status of the struct
    coding_system.  */
@@ -282,7 +319,8 @@ enum coding_type
 #define CODING_FINISH_INSUFFICIENT_SRC	1
 #define CODING_FINISH_INSUFFICIENT_DST	2
 #define CODING_FINISH_INCONSISTENT_EOL	3
-#define CODING_FINISH_INTERRUPT		4
+#define CODING_FINISH_INSUFFICIENT_CMP	4
+#define CODING_FINISH_INTERRUPT		5
 
 /* Macros used for the member `mode' of the struct coding_system.  */
 
@@ -329,13 +367,23 @@ struct coding_system
      set.  */
   unsigned char safe_charsets[MAX_CHARSET + 1];
 
-  /* Non-zero means that characters are being composed currently while
-     decoding or encoding.  See macros COMPOSING_XXXX above for the
-     meaing of each non-zero value.  */
+  /* The current status of composition handling.  */
   int composing;
 
-  /* Number of composed characters in the current composing sequence.  */
-  int composed_chars;
+  /* 1 iff the next character is a composition rule.  */
+  int composition_rule_follows;
+
+  /* Information of compositions are stored here on decoding and set
+     in advance on encoding.  */
+  struct composition_data *cmp_data;
+
+  /* Index to cmp_data->data for the first element for the current
+     composition.  */
+  int cmp_data_start;
+
+  /* Index to cmp_data->data for the current element for the current
+     composition.  */
+  int cmp_data_index;
 
   /* Detailed information specific to each type of coding system.  */
   union spec
@@ -522,6 +570,11 @@ extern int decode_coding P_ ((struct coding_system *, unsigned char *,
 			      unsigned char *, int, int));
 extern int encode_coding P_ ((struct coding_system *, unsigned char *,
 			      unsigned char *, int, int));
+extern void coding_save_composition P_ ((struct coding_system *, int, int,
+					 Lisp_Object));
+extern void coding_free_composition_data P_ ((struct coding_system *));
+extern void coding_adjust_composition_offset P_ ((struct coding_system *,
+						  int));
 extern int code_convert_region P_ ((int, int, int, int, struct coding_system *,
 				    int, int));
 extern int decoding_buffer_size P_ ((struct coding_system *, int));
