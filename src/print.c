@@ -1429,11 +1429,15 @@ print_object (obj, printcharfun, escapeflag)
 		  PRINTCHAR ('\\');
 		  PRINTCHAR ('f');
 		}
-	      else if (multibyte && ! ASCII_BYTE_P (c)
-		       && print_escape_multibyte)
+	      else if (multibyte
+		       && ! ASCII_BYTE_P (c)
+		       && (SINGLE_BYTE_CHAR_P (c) || print_escape_multibyte))
 		{
 		  /* When multibyte is disabled,
-		     print multibyte string chars using hex escapes.  */
+		     print multibyte string chars using hex escapes.
+		     For a char code that could be in a unibyte string,
+		     when found in a multibyte string, always use a hex escape
+		     so it reads back as multibyte.  */
 		  unsigned char outbuf[50];
 		  sprintf (outbuf, "\\x%x", c);
 		  strout (outbuf, -1, -1, printcharfun, 0);
