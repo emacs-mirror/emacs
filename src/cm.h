@@ -177,7 +177,7 @@ extern int evalcost ();
 
 extern void cmcheckmagic ();
 extern int cmputc ();
-extern int cmcostinit ();
-extern int cmgoto ();
-extern int Wcm_clear ();
+extern void cmcostinit ();
+extern void cmgoto ();
+extern void Wcm_clear ();
 extern int Wcm_init ();
