@@ -2262,7 +2262,7 @@ x_produce_glyphs (it)
 	  /* Bounding box of the overall glyphs.  */
 	  int leftmost, rightmost, lowest, highest;
 	  int i, width, ascent, descent;
-          enum w32_font_type font_type;
+          enum w32_char_font_type font_type;
 
 	  cmp->font = (void *) font;
 
