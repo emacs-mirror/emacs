@@ -260,7 +260,7 @@ check_x_display_info (frame)
 /* Return the Emacs frame-object corresponding to an X window.
    It could be the frame's main window or an icon window.  */
 
-/* This function can be called during GC, so use XGCTYPE.  */
+/* This function can be called during GC, so use GC_xxx type test macros.  */
 
 struct frame *
 x_window_to_frame (wdesc)
@@ -269,11 +269,10 @@ x_window_to_frame (wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
 
-  for (tail = Vframe_list; XGCTYPE (tail) == Lisp_Cons;
-       tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list; GC_CONSP (tail); tail = XCONS (tail)->cdr)
     {
       frame = XCONS (tail)->car;
-      if (XGCTYPE (frame) != Lisp_Frame)
+      if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
 #ifdef USE_X_TOOLKIT
@@ -304,11 +303,10 @@ x_any_window_to_frame (wdesc)
   struct frame *f;
   struct x_display *x;
 
-  for (tail = Vframe_list; XGCTYPE (tail) == Lisp_Cons;
-       tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list; GC_CONSP (tail); tail = XCONS (tail)->cdr)
     {
       frame = XCONS (tail)->car;
-      if (XGCTYPE (frame) != Lisp_Frame)
+      if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
       if (f->display.nothing == 1) 
@@ -337,11 +335,10 @@ x_top_window_to_frame (wdesc)
   struct frame *f;
   struct x_display *x;
 
-  for (tail = Vframe_list; XGCTYPE (tail) == Lisp_Cons;
-       tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list; GC_CONSP (tail); tail = XCONS (tail)->cdr)
     {
       frame = XCONS (tail)->car;
-      if (XGCTYPE (frame) != Lisp_Frame)
+      if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
       if (f->display.nothing == 1) 
