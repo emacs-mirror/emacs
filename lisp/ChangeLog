@@ -1,3 +1,7 @@
+2003-01-19  Kim F. Storm  <storm@cua.dk>
+
+	* msb.el: Use `dir' instead of `path' everywhere.
+
 2003-01-18  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (kill-new, kill-append, kill-region): New
