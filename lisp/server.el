@@ -399,9 +399,8 @@ or nil.  KILLED is t if we killed BUFFER
 	    (unless for-killing
 	      (when (and (not killed)
 			 server-kill-new-buffers
-			 (save-excursion
-			   (set-buffer buffer)
-			   server-existing-buffer))
+			 (with-current-buffer buffer
+			   (not server-existing-buffer)))
 		(setq killed t)
 		(bury-buffer buffer)
 		(kill-buffer buffer))
