@@ -41,6 +41,9 @@
 (require 'finder-inf)
 (require 'picture)
 
+;; Local variable in finder buffer.
+(defvar finder-headmark)
+
 (defvar finder-known-keywords
   '(
     (abbrev	. "abbreviation handling, typing shortcuts, macros")
@@ -54,7 +57,7 @@
     (games	. "games, jokes and amusements")
     (hardware	. "support for interfacing with exotic hardware")
     (help	. "support for on-line help systems")
-    (i14n	. "internationalization and alternate character-set support")
+    (i18n	. "internationalization and alternate character-set support")
     (internal	. "code for Emacs internals, build process, defaults")
     (languages	. "specialized modes for editing programming languages")
     (lisp	. "Lisp support, including Emacs Lisp")
@@ -87,7 +90,7 @@
   "Assoc list mapping file names to description & keyword lists.")
 
 (defun finder-compile-keywords (&rest dirs)
-  "Regenerate the keywords association list into the file finder-inf.el.
+  "Regenerate the keywords association list into the file `finder-inf.el'.
 Optional arguments are a list of Emacs Lisp directories to compile from; no
 arguments compiles from `load-path'."
   (save-excursion
@@ -106,11 +109,13 @@ arguments compiles from `load-path'."
 	  (mapcar
 	   (function
 	    (lambda (f) 
-	      (if (and (string-match "\\.el$" f) (not (member f processed)))
-		  (let (summary keystart)
+	      (if (and (string-match "^[^=].*\\.el$" f)
+		       (not (member f processed)))
+		  (let (summary keystart keywords)
 		    (setq processed (cons f processed))
 		    (save-excursion
 		      (set-buffer (get-buffer-create "*finder-scratch*"))
+		      (buffer-disable-undo (current-buffer))
 		      (erase-buffer)
 		      (insert-file-contents
 		       (concat (file-name-as-directory (or d ".")) f))
@@ -126,7 +131,11 @@ arguments compiles from `load-path'."
 		     (if keywords (format "(%s)" keywords) "nil")
 		     ")\n")
 		    (subst-char-in-region keystart (point) ?, ? )
-		    )
+		    (let ((end (point)))
+		      (goto-char keystart)
+		      (while (search-forward "i14n" end t)
+			(replace-match "i18n"))
+		      (goto-char end)))
 		)))
 	   (directory-files (or d ".")))
 	  ))
@@ -152,7 +161,7 @@ arguments compiles from `load-path'."
 		 (cons (symbol-name keyword) keyword))))
    finder-known-keywords)
   (goto-char (point-min))
-  (setq headmark (point))
+  (setq finder-headmark (point))
   (setq buffer-read-only t)
   (set-buffer-modified-p nil)
   (balance-windows)
@@ -164,7 +173,7 @@ arguments compiles from `load-path'."
   (let ((id (intern key)))
     (insert
      "The following packages match the keyword `" key "':\n\n")
-    (setq headmark (point))
+    (setq finder-headmark (point))
     (mapcar
      (function (lambda (x)
 		 (if (memq id (car (cdr (cdr x))))
@@ -206,7 +215,7 @@ arguments compiles from `load-path'."
     ))
 
 (defun finder-current-item ()
-  (if (and headmark (< (point) headmark))
+  (if (and finder-headmark (< (point) finder-headmark))
       (error "No keyword or filename on this line")
     (save-excursion
       (beginning-of-line)
@@ -239,8 +248,8 @@ arguments compiles from `load-path'."
   (set-syntax-table emacs-lisp-mode-syntax-table)
   (setq mode-name "Finder")
   (setq major-mode 'finder-mode)
-  (make-local-variable 'headmark)
-  (setq headmark nil)
+  (make-local-variable 'finder-headmark)
+  (setq finder-headmark nil)
 )
 
 (defun finder-summary ()
