@@ -149,6 +149,7 @@ CR/LF translation, and nil otherwise."
 CR/LF translation.  FILESYSTEM is a string containing the directory
 prefix corresponding to the filesystem.  For example, for a Unix 
 filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
+  (interactive "fUntranslated file system: ")
   (let ((fs (untranslated-canonical-name filesystem)))
     (if (member fs untranslated-filesystem-list)
 	untranslated-filesystem-list
@@ -160,6 +161,7 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 CR/LF translation.  FILESYSTEM is a string containing the directory
 prefix corresponding to the filesystem.  For example, for a Unix 
 filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
+  (interactive "fUntranslated file system: ")
   (setq untranslated-filesystem-list 
 	(delete (untranslated-canonical-name filesystem)
 		untranslated-filesystem-list)))
