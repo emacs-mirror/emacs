@@ -87,7 +87,7 @@ extern int errno;
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "window.h"
 
@@ -3576,7 +3576,7 @@ actually used.  */)
   unsigned char buffer[1 << 14];
   int replace_handled = 0;
   int set_coding_system = 0;
-  int coding_system_decided = 0;
+  Lisp_Object coding_system;
   int read_quit = 0;
 
   if (current_buffer->base_buffer && ! NILP (visit))
@@ -3713,20 +3713,20 @@ actually used.  */)
 	}
     }
 
+  /* The value Qnil means that the coding system is not yet
+     decided.  */
+  coding_system = Qnil;
   if (BEG < Z)
     {
       /* Decide the coding system to use for reading the file now
          because we can't use an optimized method for handling
          `coding:' tag if the current buffer is not empty.  */
-      Lisp_Object val;
-      val = Qnil;
-
       if (!NILP (Vcoding_system_for_read))
-	val = Vcoding_system_for_read;
+	coding_system = Vcoding_system_for_read;
       else if (! NILP (replace))
 	/* In REPLACE mode, we can use the same coding system
 	   that was used to visit the file.  */
-	val = current_buffer->buffer_file_coding_system;
+	coding_system = current_buffer->buffer_file_coding_system;
       else
 	{
 	  /* Don't try looking inside a file for a coding system
@@ -3773,8 +3773,8 @@ actually used.  */)
 		  current_buffer->enable_multibyte_characters = Qnil;
 		  insert_1_both (read_buf, nread, nread, 0, 0, 0);
 		  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
-		  val = call2 (Vset_auto_coding_function,
-			       filename, make_number (nread));
+		  coding_system = call2 (Vset_auto_coding_function,
+						filename, make_number (nread));
 		  set_buffer_internal (prev);
 
 		  /* Remove the binding for standard-output.  */
@@ -3791,7 +3791,7 @@ actually used.  */)
 		}
 	    }
 
-	  if (NILP (val))
+	  if (NILP (coding_system))
 	    {
 	      /* If we have not yet decided a coding system, check
                  file-coding-system-alist.  */
@@ -3805,20 +3805,19 @@ actually used.  */)
 	    }
 	}
 
-      setup_coding_system (Fcheck_coding_system (val), &coding);
-      /* Ensure we set Vlast_coding_system_used.  */
-      set_coding_system = 1;
+      if (NILP (coding_system))
+	coding_system = Qundecided;
+      else
+	CHECK_CODING_SYSTEM (coding_system);
 
-      if (NILP (current_buffer->enable_multibyte_characters)
-	  && ! NILP (val))
+      if (NILP (current_buffer->enable_multibyte_characters))
 	/* We must suppress all character code conversion except for
 	   end-of-line conversion.  */
-	setup_raw_text_coding_system (&coding);
+	coding_system = raw_text_coding_system (coding_system);
 
-      coding.src_multibyte = 0;
-      coding.dst_multibyte
-	= !NILP (current_buffer->enable_multibyte_characters);
-      coding_system_decided = 1;
+      setup_coding_system (coding_system, &coding);
+      /* Ensure we set Vlast_coding_system_used.  */
+      set_coding_system = 1;
     }
 
   /* If requested, replace the accessible part of the buffer
@@ -3837,7 +3836,8 @@ actually used.  */)
      and let the following if-statement handle the replace job.  */
   if (!NILP (replace)
       && BEGV < ZV
-      && !(coding.common_flags & CODING_REQUIRE_DECODING_MASK))
+      && (NILP (coding_system)
+	  || ! CODING_REQUIRE_DECODING (&coding)))
     {
       /* same_at_start and same_at_end count bytes,
 	 because file access counts bytes
@@ -3872,21 +3872,14 @@ actually used.  */)
 	  else if (nread == 0)
 	    break;
 
-	  if (coding.type == coding_type_undecided)
-	    detect_coding (&coding, buffer, nread);
-	  if (coding.common_flags & CODING_REQUIRE_DECODING_MASK)
-	    /* We found that the file should be decoded somehow.
-               Let's give up here.  */
+	  if (CODING_REQUIRE_DETECTION (&coding))
 	    {
-	      giveup_match_end = 1;
-	      break;
+	      coding_system = detect_coding_system (buffer, nread, 1, 0,
+						    coding_system);
+	      setup_coding_system (coding_system, &coding);
 	    }
-
-	  if (coding.eol_type == CODING_EOL_UNDECIDED)
-	    detect_eol (&coding, buffer, nread);
-	  if (coding.eol_type != CODING_EOL_UNDECIDED
-	      && coding.eol_type != CODING_EOL_LF)
-	    /* We found that the format of eol should be decoded.
+	  if (CODING_REQUIRE_DECODING (&coding))
+	    /* We found that the file should be decoded somehow.
                Let's give up here.  */
 	    {
 	      giveup_match_end = 1;
@@ -4033,17 +4026,20 @@ actually used.  */)
       int same_at_end = ZV_BYTE;
       int overlap;
       int bufpos;
-      /* Make sure that the gap is large enough.  */
-      int bufsize = 2 * st.st_size;
-      unsigned char *conversion_buffer = (unsigned char *) xmalloc (bufsize);
+      unsigned char *decoded;
       int temp;
+      int this_count = BINDING_STACK_SIZE ();
+      Lisp_Object conversion_buffer
+	= make_conversion_work_buffer (! NILP (current_buffer
+					       ->enable_multibyte_characters));
+
+      record_unwind_protect (code_conversion_restore, save_excursion_save ());
 
       /* First read the whole file, performing code conversion into
 	 CONVERSION_BUFFER.  */
 
       if (lseek (fd, XINT (beg), 0) < 0)
 	{
-	  xfree (conversion_buffer);
 	  report_file_error ("Setting file position",
 			     Fcons (orig_filename, Qnil));
 	}
@@ -4055,71 +4051,41 @@ actually used.  */)
 
       while (how_much < total)
 	{
+	  /* We read one bunch by one (READ_BUF_SIZE bytes) to allow
+	     quitting while reading a huge while.  */
 	  /* try is reserved in some compilers (Microsoft C) */
 	  int trytry = min (total - how_much, READ_BUF_SIZE - unprocessed);
-	  unsigned char *destination = read_buf + unprocessed;
 	  int this;
 
 	  /* Allow quitting out of the actual I/O.  */
 	  immediate_quit = 1;
 	  QUIT;
-	  this = emacs_read (fd, destination, trytry);
+	  this = emacs_read (fd, read_buf + unprocessed, trytry);
 	  immediate_quit = 0;
 
-	  if (this < 0 || this + unprocessed == 0)
+	  if (this <= 0)
 	    {
-	      how_much = this;
+	      if (this < 0)
+		how_much = this;
 	      break;
 	    }
 
 	  how_much += this;
 
-	  if (CODING_MAY_REQUIRE_DECODING (&coding))
-	    {
-	      int require, result;
+	  decode_coding_c_string (&coding, read_buf, unprocessed + this,
+				  conversion_buffer);
+	  unprocessed = coding.carryover_bytes;
+	  if (coding.carryover_bytes > 0)
+	    bcopy (coding.carryover, read_buf, unprocessed);
+	}	  
+      
+      emacs_close (fd);
 
-	      this += unprocessed;
-
-	      /* If we are using more space than estimated,
-		 make CONVERSION_BUFFER bigger.  */
-	      require = decoding_buffer_size (&coding, this);
-	      if (inserted + require + 2 * (total - how_much) > bufsize)
-		{
-		  bufsize = inserted + require + 2 * (total - how_much);
-		  conversion_buffer = (unsigned char *) xrealloc (conversion_buffer, bufsize);
-		}
-
-	      /* Convert this batch with results in CONVERSION_BUFFER.  */
-	      if (how_much >= total)  /* This is the last block.  */
-		coding.mode |= CODING_MODE_LAST_BLOCK;
-	      if (coding.composing != COMPOSITION_DISABLED)
-		coding_allocate_composition_data (&coding, BEGV);
-	      result = decode_coding (&coding, read_buf,
-				      conversion_buffer + inserted,
-				      this, bufsize - inserted);
-
-	      /* Save for next iteration whatever we didn't convert.  */
-	      unprocessed = this - coding.consumed;
-	      bcopy (read_buf + coding.consumed, read_buf, unprocessed);
-	      if (!NILP (current_buffer->enable_multibyte_characters))
-		this = coding.produced;
-	      else
-		this = str_as_unibyte (conversion_buffer + inserted,
-				       coding.produced);
-	    }
-
-	  inserted += this;
-	}
-
-      /* At this point, INSERTED is how many characters (i.e. bytes)
-	 are present in CONVERSION_BUFFER.
-	 HOW_MUCH should equal TOTAL,
-	 or should be <= 0 if we couldn't read the file.  */
+      /* At this point, HOW_MUCH should equal TOTAL, or should be <= 0
+	 if we couldn't read the file.  */
 
       if (how_much < 0)
 	{
-	  xfree (conversion_buffer);
-
 	  if (how_much == -1)
 	    error ("IO error reading %s: %s",
 		   XSTRING (orig_filename)->data, emacs_strerror (errno));
@@ -4127,21 +4093,30 @@ actually used.  */)
 	    error ("maximum buffer size exceeded");
 	}
 
-      /* Compare the beginning of the converted file
-	 with the buffer text.  */
+      if (unprocessed > 0)
+	{
+	  coding.mode |= CODING_MODE_LAST_BLOCK;
+	  decode_coding_c_string (&coding, read_buf, unprocessed,
+				  conversion_buffer);
+	  coding.mode &= ~CODING_MODE_LAST_BLOCK;
+	}
+
+      decoded = BUF_BEG_ADDR (XBUFFER (conversion_buffer));
+      inserted = BUF_Z_BYTE (XBUFFER (conversion_buffer));
+
+      /* Compare the beginning of the converted string with the buffer
+	 text.  */
 
       bufpos = 0;
       while (bufpos < inserted && same_at_start < same_at_end
-	     && FETCH_BYTE (same_at_start) == conversion_buffer[bufpos])
+	     && FETCH_BYTE (same_at_start) == decoded[bufpos])
 	same_at_start++, bufpos++;
 
-      /* If the file matches the buffer completely,
+      /* If the file matches the head of buffer completely,
 	 there's no need to replace anything.  */
 
       if (bufpos == inserted)
 	{
-	  xfree (conversion_buffer);
-	  emacs_close (fd);
 	  specpdl_ptr--;
 	  /* Truncate the buffer to the size of the file.  */
 	  del_range_byte (same_at_start, same_at_end, 0);
@@ -4149,8 +4124,8 @@ actually used.  */)
 	  goto handled;
 	}
 
-      /* Extend the start of non-matching text area to multibyte
-	 character boundary.  */
+      /* Extend the start of non-matching text area to the previous
+	 multibyte character boundary.  */
       if (! NILP (current_buffer->enable_multibyte_characters))
 	while (same_at_start > BEGV_BYTE
 	       && ! CHAR_HEAD_P (FETCH_BYTE (same_at_start)))
@@ -4163,11 +4138,11 @@ actually used.  */)
       /* Compare with same_at_start to avoid counting some buffer text
 	 as matching both at the file's beginning and at the end.  */
       while (bufpos > 0 && same_at_end > same_at_start
-	     && FETCH_BYTE (same_at_end - 1) == conversion_buffer[bufpos - 1])
+	     && FETCH_BYTE (same_at_end - 1) == decoded[bufpos - 1])
 	same_at_end--, bufpos--;
 
-      /* Extend the end of non-matching text area to multibyte
-	 character boundary.  */
+      /* Extend the end of non-matching text area to the next
+	 multibyte character boundary.  */
       if (! NILP (current_buffer->enable_multibyte_characters))
 	while (same_at_end < ZV_BYTE
 	       && ! CHAR_HEAD_P (FETCH_BYTE (same_at_end)))
@@ -4185,11 +4160,11 @@ actually used.  */)
 
       /* Replace the chars that we need to replace,
 	 and update INSERTED to equal the number of bytes
-	 we are taking from the file.  */
+	 we are taking from the decoded string.  */
       inserted -= (Z_BYTE - same_at_end) + (same_at_start - BEG_BYTE);
 
       if (same_at_end != same_at_start)
-	{
+	{	
 	  del_range_byte (same_at_start, same_at_end, 0);
 	  temp = GPT;
 	  same_at_start = GPT_BYTE;
@@ -4200,18 +4175,16 @@ actually used.  */)
 	}
       /* Insert from the file at the proper position.  */
       SET_PT_BOTH (temp, same_at_start);
-      insert_1 (conversion_buffer + same_at_start - BEG_BYTE, inserted,
-		0, 0, 0);
-      if (coding.cmp_data && coding.cmp_data->used)
-	coding_restore_composition (&coding, Fcurrent_buffer ());
-      coding_free_composition_data (&coding);
-  
+      insert_from_buffer (XBUFFER (conversion_buffer),
+			  buf_bytepos_to_charpos (XBUFFER (conversion_buffer),
+						  same_at_start),
+			  buf_bytepos_to_charpos (XBUFFER (conversion_buffer),
+						  same_at_start + inserted),
+			  0);
       /* Set `inserted' to the number of inserted characters.  */
       inserted = PT - temp;
 
-      xfree (conversion_buffer);
-      emacs_close (fd);
-      specpdl_ptr--;
+      unbind_to (this_count, Qnil);
 
       goto handled;
     }
@@ -4255,7 +4228,7 @@ actually used.  */)
   inserted = 0;
   
   /* Here, we don't do code conversion in the loop.  It is done by
-     code_convert_region after all data are read into the buffer.  */
+     decode_coding_gap after all data are read into the buffer.  */
   {
     int gap_size = GAP_SIZE;
     
@@ -4346,18 +4319,16 @@ actually used.  */)
 
  notfound:
 
-  if (! coding_system_decided)
+  if (NILP (coding_system))
     {
       /* The coding system is not yet decided.  Decide it by an
 	 optimized method for handling `coding:' tag.
 
 	 Note that we can get here only if the buffer was empty
 	 before the insertion.  */
-      Lisp_Object val;
-      val = Qnil;
 
       if (!NILP (Vcoding_system_for_read))
-	val = Vcoding_system_for_read;
+	coding_system = Vcoding_system_for_read;
       else
 	{
 	  /* Since we are sure that the current buffer was empty
@@ -4378,11 +4349,11 @@ actually used.  */)
 
 	  if (inserted > 0 && ! NILP (Vset_auto_coding_function))
 	    {
-	      val = call2 (Vset_auto_coding_function,
-			   filename, make_number (inserted));
+	      coding_system = call2 (Vset_auto_coding_function,
+					    filename, make_number (inserted));
 	    }
 
-	  if (NILP (val))
+	  if (NILP (coding_system))
 	    {
 	      /* If the coding system is not yet decided, check
 		 file-coding-system-alist.  */
@@ -4392,66 +4363,70 @@ actually used.  */)
 	      args[2] = visit, args[3] = beg, args[4] = end, args[5] = Qnil;
 	      coding_systems = Ffind_operation_coding_system (6, args);
 	      if (CONSP (coding_systems))
-		val = XCAR (coding_systems);
+		coding_system = XCAR (coding_systems);
 	    }
 
 	  unbind_to (count, Qnil);
 	  inserted = Z_BYTE - BEG_BYTE;
 	}
 
-      /* The following kludgy code is to avoid some compiler bug.
-	 We can't simply do
-	 setup_coding_system (val, &coding);
-	 on some system.  */
-      {
-	struct coding_system temp_coding;
-	setup_coding_system (val, &temp_coding);
-	bcopy (&temp_coding, &coding, sizeof coding);
-      }
-      /* Ensure we set Vlast_coding_system_used.  */
-      set_coding_system = 1;
+      if (NILP (coding_system))
+	coding_system = Qundecided;
+      else
+	CHECK_CODING_SYSTEM (coding_system);
 
-      if (NILP (current_buffer->enable_multibyte_characters)
-	  && ! NILP (val))
+      if (NILP (current_buffer->enable_multibyte_characters))
 	/* We must suppress all character code conversion except for
 	   end-of-line conversion.  */
-	setup_raw_text_coding_system (&coding);
-      coding.src_multibyte = 0;
-      coding.dst_multibyte
-	= !NILP (current_buffer->enable_multibyte_characters);
+	coding_system = raw_text_coding_system (coding_system);
+
+      setup_coding_system (coding_system, &coding);
+      /* Ensure we set Vlast_coding_system_used.  */
+      set_coding_system = 1;
     }
 
-  if (!NILP (visit)
-      /* Can't do this if part of the buffer might be preserved.  */
-      && NILP (replace)
-      && (coding.type == coding_type_no_conversion
-	  || coding.type == coding_type_raw_text))
+  if (!NILP (visit))
     {
-      /* Visiting a file with these coding system makes the buffer
-         unibyte. */
-      current_buffer->enable_multibyte_characters = Qnil;
-      coding.dst_multibyte = 0;
-    }
-
-  if (inserted > 0 || coding.type == coding_type_ccl)
-    {
-      if (CODING_MAY_REQUIRE_DECODING (&coding))
+      /* When we visit a file by raw-text, we change the buffer to
+	 unibyte.  If we have not yet decided how to decode a text,
+	 decide it at first by detecting the file's encoding.  */
+      if (CODING_REQUIRE_DETECTION (&coding))
 	{
-	  code_convert_region (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
-			       &coding, 0, 0);
-	  inserted = coding.produced_char;
+	  coding_system = detect_coding_system (PT_ADDR, inserted, 1, 0,
+						coding_system);
+	  setup_coding_system (coding_system, &coding);
 	}
-      else
-	adjust_after_insert (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
- 			     inserted);
+
+      if (CODING_FOR_UNIBYTE (&coding)
+	  /* Can't do this if part of the buffer might be preserved.  */
+	  && NILP (replace))
+	/* Visiting a file with these coding system makes the buffer
+	   unibyte. */
+	current_buffer->enable_multibyte_characters = Qnil;
     }
+
+  if (CODING_REQUIRE_DETECTION (&coding)
+      || CODING_REQUIRE_DECODING (&coding))
+    {
+      move_gap_both (PT, PT_BYTE);
+      GAP_SIZE += inserted;
+      ZV_BYTE -= inserted;
+      Z_BYTE -= inserted;
+      ZV -= inserted;
+      Z -= inserted;
+      decode_coding_gap (&coding, inserted, inserted);
+      inserted = coding.produced_char;
+    }
+  else if (inserted > 0)
+    adjust_after_insert (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
+			 inserted);
 
 #ifdef DOS_NT
   /* Use the conversion type to determine buffer-file-type
      (find-buffer-file-type is now used to help determine the
      conversion).  */
-  if ((coding.eol_type == CODING_EOL_UNDECIDED 
-       || coding.eol_type == CODING_EOL_LF)
+  if ((coding.eol_type == eol_type_undecided 
+       || coding.eol_type == eol_type_lf)
       && ! CODING_REQUIRE_DECODING (&coding))
     current_buffer->buffer_file_type = Qt;
   else
@@ -4515,7 +4490,7 @@ actually used.  */)
     }
 
   if (set_coding_system)
-    Vlast_coding_system_used = coding.symbol;
+    Vlast_coding_system_used = coding_system;
 
   /* Call after-change hooks for the inserted text, aside from the case
      of normal visiting (not with REPLACE), which is done in a new buffer
@@ -4560,8 +4535,6 @@ actually used.  */)
 }
 
 static Lisp_Object build_annotations P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object build_annotations_2 P_ ((Lisp_Object, Lisp_Object,
-					    Lisp_Object, Lisp_Object));
 
 /* If build_annotations switched buffers, switch back to BUF.
    Kill the temporary buffer that was selected in the meantime.
@@ -4643,40 +4616,36 @@ choose_write_coding_system (start, end, filename,
 	  using_default_coding = 1;
 	}
 	    
+      if (! NILP (val) && ! force_raw_text)
+	{
+	  Lisp_Object spec, attrs;
+
+	  CHECK_CODING_SYSTEM_GET_SPEC (val, spec);
+	  attrs = AREF (spec, 0);
+	  if (EQ (CODING_ATTR_TYPE (attrs), Qraw_text))
+	    force_raw_text = 1;
+	}
+
       if (!force_raw_text
 	  && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
 	/* Confirm that VAL can surely encode the current region.  */
 	val = call3 (Vselect_safe_coding_system_function, start, end, val);
 
-      setup_coding_system (Fcheck_coding_system (val), coding);
-      if (coding->eol_type == CODING_EOL_UNDECIDED
-	  && !using_default_coding)
-	{
-	  if (! EQ (default_buffer_file_coding.symbol,
-		    buffer_defaults.buffer_file_coding_system))
-	    setup_coding_system (buffer_defaults.buffer_file_coding_system,
-				 &default_buffer_file_coding);
-	  if (default_buffer_file_coding.eol_type != CODING_EOL_UNDECIDED)
-	    {
-	      Lisp_Object subsidiaries;
+      /* If the decided coding-system doesn't specify end-of-line
+	 format, we use that of
+	 `default-buffer-file-coding-system'.  */
+      if (! using_default_coding)
+	val = (coding_inherit_eol_type
+	       (val, buffer_defaults.buffer_file_coding_system));
 
-	      coding->eol_type = default_buffer_file_coding.eol_type;
-	      subsidiaries = Fget (coding->symbol, Qeol_type);
-	      if (VECTORP (subsidiaries)
-		  && XVECTOR (subsidiaries)->size == 3)
-		coding->symbol
-		  = XVECTOR (subsidiaries)->contents[coding->eol_type];
-	    }
-	}
-
+      /* If we decide not to encode text, use `raw-text' or one of its
+	 subsidiaries.  */
       if (force_raw_text)
-	setup_raw_text_coding_system (coding);
-      goto done_setup_coding;
+	val = raw_text_coding_system (val);
     }
 
   setup_coding_system (Fcheck_coding_system (val), coding);
 
- done_setup_coding:
   if (!STRINGP (start) && !NILP (current_buffer->selective_display))
     coding->mode |= CODING_MODE_SELECTIVE_DISPLAY;
 }
@@ -4816,11 +4785,9 @@ This does code conversion according to the value of
      unsavable chars (as was the case with X-Symbol).  */
   choose_write_coding_system (start, end, filename,
 			      append, visit, lockname, &coding);
-  Vlast_coding_system_used = coding.symbol;
+  Vlast_coding_system_used = CODING_ID_NAME (coding.id);
 
   given_buffer = current_buffer;
-  annotations = build_annotations_2 (start, end,
-				     coding.pre_write_conversion, annotations);
   if (current_buffer != given_buffer)
     {
       XSETFASTINT (start, BEGV);
@@ -4963,6 +4930,9 @@ This does code conversion according to the value of
   if (GPT > BEG && GPT_ADDR[-1] != '\n')
     move_gap (find_next_newline (GPT, 1));
 #else
+#if 0
+  /* The new encoding routine doesn't require the following.  */
+
   /* Whether VMS or not, we must move the gap to the next of newline
      when we must put designation sequences at beginning of line.  */
   if (INTEGERP (start)
@@ -4976,6 +4946,7 @@ This does code conversion according to the value of
       SET_PT_BOTH (opoint, opoint_byte);
     }
 #endif
+#endif
 
   failure = 0;
   immediate_quit = 1;
@@ -4988,23 +4959,10 @@ This does code conversion according to the value of
     }
   else if (XINT (start) != XINT (end))
     {
-      tem = CHAR_TO_BYTE (XINT (start));
-
-      if (XINT (start) < GPT)
-	{
-	  failure = 0 > a_write (desc, Qnil, XINT (start),
-				 min (GPT, XINT (end)) - XINT (start),
-				 &annotations, &coding);
-	  save_errno = errno;
-	}
-
-      if (XINT (end) > GPT && !failure)
-	{
-	  tem = max (XINT (start), GPT);
-	  failure = 0 > a_write (desc, Qnil, tem , XINT (end) - tem,
-				 &annotations, &coding);
-	  save_errno = errno;
-	}
+      failure = 0 > a_write (desc, Qnil,
+			     XINT (start), XINT (end) - XINT (start),
+			     &annotations, &coding);
+      save_errno = errno;
     }
   else
     {
@@ -5020,7 +4978,7 @@ This does code conversion according to the value of
     {
       /* We have to flush out a data. */
       coding.mode |= CODING_MODE_LAST_BLOCK;
-      failure = 0 > e_write (desc, Qnil, 0, 0, &coding);
+      failure = 0 > e_write (desc, Qnil, 1, 1, &coding);
       save_errno = errno;
     }
 
@@ -5196,30 +5154,6 @@ build_annotations (start, end)
   return annotations;
 }
 
-static Lisp_Object
-build_annotations_2 (start, end, pre_write_conversion, annotations)
-     Lisp_Object start, end, pre_write_conversion, annotations;
-{
-  struct gcpro gcpro1;
-  Lisp_Object res;
-
-  GCPRO1 (annotations);
-  /* At last, do the same for the function PRE_WRITE_CONVERSION
-     implied by the current coding-system.  */
-  if (!NILP (pre_write_conversion))
-    {
-      struct buffer *given_buffer = current_buffer;
-      Vwrite_region_annotations_so_far = annotations;
-      res = call2 (pre_write_conversion, start, end);
-      Flength (res);
-      annotations = (current_buffer != given_buffer
-		     ? res
-		     : merge (annotations, res, Qcar_less_than_car));
-    }
-
-  UNGCPRO;
-  return annotations;
-}
 
 /* Write to descriptor DESC the NCHARS chars starting at POS of STRING.
    If STRING is nil, POS is the character position in the current buffer.
@@ -5291,76 +5225,45 @@ e_write (desc, string, start, end, coding)
      int start, end;
      struct coding_system *coding;
 {
-  register char *addr;
-  register int nbytes;
-  char buf[WRITE_BUF_SIZE];
   int return_val = 0;
-
-  if (start >= end)
-    coding->composing = COMPOSITION_DISABLED;
-  if (coding->composing != COMPOSITION_DISABLED)
-    coding_save_composition (coding, start, end, string);
 
   if (STRINGP (string))
     {
-      addr = XSTRING (string)->data;
-      nbytes = STRING_BYTES (XSTRING (string));
-      coding->src_multibyte = STRING_MULTIBYTE (string);
+      start = 0;
+      end = XSTRING (string)->size;
     }
-  else if (start < end)
-    {
-      /* It is assured that the gap is not in the range START and END-1.  */
-      addr = CHAR_POS_ADDR (start);
-      nbytes = CHAR_TO_BYTE (end) - CHAR_TO_BYTE (start);
-      coding->src_multibyte
-	= !NILP (current_buffer->enable_multibyte_characters);
-    }
-  else
-    {
-      addr = "";
-      nbytes = 0;
-      coding->src_multibyte = 1;
-    }
+
+  coding->mode |= CODING_MODE_FIXED_DESTINATION;
+  if (! NILP (current_buffer->selective_display))
+    coding->mode |= CODING_MODE_SELECTIVE_DISPLAY;
 
   /* We used to have a code for handling selective display here.  But,
      now it is handled within encode_coding.  */
-  while (1)
+  do
     {
-      int result;
+      if (STRINGP (string))
+	encode_coding_object (coding, string,
+			      start, string_char_to_byte (string, start),
+			      end, string_char_to_byte (string, end), Qt);
+      else
+	encode_coding_object (coding, Fcurrent_buffer (),
+			      start, CHAR_TO_BYTE (start),
+			      end, CHAR_TO_BYTE (end), Qt);
 
-      result = encode_coding (coding, addr, buf, nbytes, WRITE_BUF_SIZE);
       if (coding->produced > 0)
 	{
-	  coding->produced -= emacs_write (desc, buf, coding->produced);
+	  coding->produced -= emacs_write (desc,
+					   XSTRING (coding->dst_object)->data,
+					   coding->produced);
 	  if (coding->produced)
 	    {
 	      return_val = -1;
 	      break;
 	    }
 	}
-      nbytes -= coding->consumed;
-      addr += coding->consumed;
-      if (result == CODING_FINISH_INSUFFICIENT_SRC
-	  && nbytes > 0)
-	{
-	  /* The source text ends by an incomplete multibyte form.
-             There's no way other than write it out as is.  */
-	  nbytes -= emacs_write (desc, addr, nbytes);
-	  if (nbytes)
-	    {
-	      return_val = -1;
-	      break;
-	    }
-	}
-      if (nbytes <= 0)
-	break;
       start += coding->consumed_char;
-      if (coding->cmp_data)
-	coding_adjust_composition_offset (coding, start);
     }
-
-  if (coding->cmp_data)
-    coding_free_composition_data (coding);
+  while (start < end);
 
   return return_val;
 }
