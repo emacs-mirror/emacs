@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.374 2004/03/28 22:00:19 monnier Exp $
+;; $Id: vc.el,v 1.375 2004/04/11 15:05:18 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2361,7 +2361,7 @@ If FOCUS-REV is non-nil, leave the point at that revision."
                          (vc-find-backend-function (vc-backend file) 
                                                    'print-log))))
                (not (eq (caddr err) 2)))
-           (signal wrong-number-of-arguments err)
+           (signal 'wrong-number-of-arguments err)
          ;; for backward compatibility
          (vc-call print-log file)
          (set-buffer "*vc*"))))
