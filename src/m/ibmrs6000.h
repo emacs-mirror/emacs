@@ -117,9 +117,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define OBJECTS_MACHINE hftctl.o
 #define C_SWITCH_MACHINE -D_BSD
-#define LIBS_MACHINE -lrts
+/* cdfwz@r2d2.giss.nasa.gov says -lIM -liconv is needed.  */
+#define LIBS_MACHINE -lrts -lIM -liconv
 #define START_FILES
-#define HAVE_GETTIMEOFDAY
 #define HAVE_SYSVIPC
 #define HAVE_SETSID
 #define HAVE_GETWD
