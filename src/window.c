@@ -2549,6 +2549,10 @@ window_scroll (window, n, noerror)
   int lose;
   Lisp_Object bolp, nmoved;
 
+  /* Always set force_start so that redisplay_window will run
+     thw window-start-functions.  */
+  w->force_start = Qt;
+
   XSETFASTINT (tem, PT);
   tem = Fpos_visible_in_window_p (tem, window);
 
@@ -2557,7 +2561,6 @@ window_scroll (window, n, noerror)
       Fvertical_motion (make_number (- (ht / 2)), window);
       XSETFASTINT (tem, PT);
       Fset_marker (w->start, tem, w->buffer);
-      w->force_start = Qt;
     }
 
   SET_PT (marker_position (w->start));
