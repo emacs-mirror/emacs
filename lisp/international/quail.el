@@ -125,7 +125,8 @@ See the documentation of `quail-define-package' for the other elements.")
 (defsubst quail-name ()
   "Return the name of the current Quail package."
   (nth 0 quail-current-package))
-(defsubst quail-title ()
+;;;###autoload
+(defun quail-title ()
   "Return the title of the current Quail package."
   (let ((title (nth 1 quail-current-package)))
     ;; TITLE may be a string or a list.  If it is a list, each element
