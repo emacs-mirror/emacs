@@ -851,7 +851,8 @@ of the start of the occurrence."
 
 (defun dabbrev--safe-replace-match (string &optional fixedcase literal)
   (if (eq major-mode 'picture-mode)
-      (picture-replace-match string fixedcase literal)
+      (with-no-warnings
+       (picture-replace-match string fixedcase literal))
     (replace-match string fixedcase literal)))
 
 ;;;----------------------------------------------------------------
