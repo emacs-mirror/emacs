@@ -4555,7 +4555,8 @@ back_to_previous_visible_line_start (it)
 	{
 	  Lisp_Object prop;
 
-	  prop = Fget_char_property (make_number (IT_CHARPOS (*it)),
+	  /* Check the newline before point for invisibility.  */
+	  prop = Fget_char_property (make_number (IT_CHARPOS (*it) - 1),
 				     Qinvisible, it->window);
 	  if (TEXT_PROP_MEANS_INVISIBLE (prop))
 	    visible_p = 0;
