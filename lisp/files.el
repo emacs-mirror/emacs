@@ -1111,6 +1111,9 @@ If `enable-local-variables' is nil, this function does not check for a
 (put 'minor-mode-map-alist 'risky-local-variable t)
 (put 'after-load-alist 'risky-local-variable t)
 	    
+(defun hack-one-local-variable-quotep (exp)
+  (and (consp exp) (eq (car exp) 'quote) (consp (cdr exp))))
+
 ;; "Set" one variable in a local variables spec.
 ;; A few variable names are treated specially.
 (defun hack-one-local-variable (var val)
@@ -1124,17 +1127,31 @@ If `enable-local-variables' is nil, this function does not check for a
 	((or (get var 'risky-local-variable)
 	     (string-match "-hooks?$\\|-functions?$\\|-forms?$"
 			   (symbol-name var)))
-	 (if (and (not (string= (user-login-name) "root"))
-		  (or (eq enable-local-eval t)
-		      (and enable-local-eval
-			   (save-window-excursion
-			     (switch-to-buffer (current-buffer))
-			     (save-excursion
-			       (beginning-of-line)
-			       (set-window-start (selected-window) (point)))
-			     (setq enable-local-eval
-				   (y-or-n-p (format "Process `eval' or hook local variables in file %s? "
-						     (file-name-nondirectory buffer-file-name))))))))
+	 ;; Permit evaling a put of a harmless property
+	 ;; if the args do nothing tricky.
+	 (if (or (and (eq var 'eval)
+		      (consp val)
+		      (eq (car val) 'put)
+		      (hack-one-local-variable-quotep (nth 1 val))
+		      (hack-one-local-variable-quotep (nth 2 val))
+		      ;; Only allow safe values of lisp-indent-hook;
+		      ;; not functions.
+		      (or (numberp (nth 3 val))
+			  (eq (nth 3 val) 'defun))
+		      (memq (nth 1 (nth 2 val))
+			    '(lisp-indent-hook)))
+		 ;; Permit eval if not root and user says ok.
+		 (and (not (string= (user-login-name) "root"))
+		      (or (eq enable-local-eval t)
+			  (and enable-local-eval
+			       (save-window-excursion
+				 (switch-to-buffer (current-buffer))
+				 (save-excursion
+				   (beginning-of-line)
+				   (set-window-start (selected-window) (point)))
+				 (setq enable-local-eval
+				       (y-or-n-p (format "Process `eval' or hook local variables in file %s? "
+							 (file-name-nondirectory buffer-file-name)))))))))
 	     (if (eq var 'eval)
 		 (save-excursion (eval val))
 	       (make-local-variable var)
