@@ -38,21 +38,7 @@ lisppath='${locallisppath}:${lispdir}'
 etcdir='${datadir}/emacs/${version}/etc'
 archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
-gamedir=yes
-
-AC_ARG_WITH(game-dir,
-[  --with-game-dir         use a shared game directory if possible],
-   [
-   gamedir="$withval"
-])
-if test "$gamedir" = yes; then
-  gamedir="${localstatedir}/games/emacs"
-fi
-eval tgamedir=\"$gamedir\"
-if test "$gamedir" != no; then
-  AC_DEFINE_UNQUOTED(HAVE_SHARED_GAME_DIR, "$tgamedir",
-	  	       [Define to the name of the shared game directory.])
-fi
+gamedir='${localstatedir}/games/emacs'
 
 gameuser=games
 AC_ARG_WITH(game-user,
