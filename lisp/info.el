@@ -1184,7 +1184,10 @@ N is the digit argument used to invoke this command."
 	((Info-no-error (Info-up))
 	 ;; Since we have already gone thru all the items in this menu,
 	 ;; go up to the end of this node.
-	 (goto-char (point-max)))
+	 (goto-char (point-max))
+	 ;; Since logically we are done with the node with that menu,
+	 ;; move on from it.
+	 (Info-next-preorder))
 	(t
 	 (error "No more nodes"))))
 
@@ -1196,9 +1199,20 @@ N is the digit argument used to invoke this command."
 	  ;; If we go down a menu item, go to the end of the node
 	  ;; so we can scroll back through it.
 	  (goto-char (point-max)))
+	 ;; Keep going down, as long as there are nested menu nodes.
+	 (while (Info-no-error
+		 (Info-last-menu-item)
+		 ;; If we go down a menu item, go to the end of the node
+		 ;; so we can scroll back through it.
+		 (goto-char (point-max))))
 	 (recenter -1))
 	((Info-no-error (Info-prev))
 	 (goto-char (point-max))
+	 (while (Info-no-error
+		 (Info-last-menu-item)
+		 ;; If we go down a menu item, go to the end of the node
+		 ;; so we can scroll back through it.
+		 (goto-char (point-max))))
 	 (recenter -1))
 	((Info-no-error (Info-up))
 	 (goto-char (point-min))
@@ -1234,9 +1248,14 @@ previous node or back up to the parent node."
   (if (or (< (window-start) (point-min))
 	  (> (window-start) (point-max)))
       (set-window-start (selected-window) (point)))
-  (let ((virtual-end (save-excursion
-		       (goto-char (point-min))
-		       (search-forward "\n* Menu:" nil t))))
+  (let* ((current-point (point))
+	 (virtual-end (save-excursion
+			(beginning-of-line)
+			(setq current-point (point))
+			(goto-char (point-min))
+			(search-forward "\n* Menu:"
+					current-point
+					t))))
     (if (or virtual-end (pos-visible-in-window-p (point-min)))
 	(Info-last-preorder)
       (scroll-down))))
