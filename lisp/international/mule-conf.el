@@ -1106,7 +1106,7 @@
   :min-code '(#xE332 . #x9A36)
   :max-code '(#xFE39 . #xFE39)
   :supplementary-p t
-  :code-offset #X22484C			; ... #x279f93
+  :code-offset #x22484C			; ... #x279f93
   )
 
 (define-charset 'gb18030
@@ -1117,6 +1117,13 @@
   :superset '(ascii gb18030-2-byte
 		    gb18030-4-byte-bmp gb18030-4-byte-smp
 		    gb18030-4-byte-ext-1 gb18030-4-byte-ext-2))
+
+(define-charset 'chinese-cns11643-15
+  "CNS11643 Plane 15 Chinese Traditional"
+  :short-name  "CNS11643-15"
+  :long-name "CNS11643-15 (Chinese traditional)"
+  :code-space [33 126 33 126]
+  :code-offset #x27A000)
 
 (unify-charset 'chinese-gb2312)
 (unify-charset 'chinese-gbk)
