@@ -1,3 +1,7 @@
+2001-11-10  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el (redisplay-dont-pause): Don't set.
+
 2001-11-09  Andre Spiegel  <spiegel@gnu.org>
 
 	Suggested by Kalle Olavi Niemitalo <kon@iki.fi>:

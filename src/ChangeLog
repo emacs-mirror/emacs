@@ -1,3 +1,80 @@
+2001-11-10  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fx_file_dialog): Pass a filter to GetOpenFileName.
+	(enum_font_cb2): Ignore fonts starting with @, unless explicitly
+	specified.
+
+	* w32term.c (remember_mouse_glyph): New function.
+	(w32_mouse_position): Use it.
+	(note_mouse_movement): If the mouse moved off the glyph, remember
+	its new position.
+
+	* w32term.h (struct w32_output): Correct spelling of x_compatible.
+	(w32_display_info): Add mouse_face_overlay.
+
+	* w32term.c (x_y_to_hpos_vpos): Add parameter BUFFER_ONLY_P.
+	(fast_find_string_pos): New function.
+	(fast_find_position): Return the correct vpos.  Add parameter
+	STOP.  In the final row, stop before glyphs having STOP as object.
+	Don't consider glyphs that are not from a buffer.
+	(expose_window_tree, expose_frame): Don't compute intersections here.
+	(expose_window): Do it here instead.
+	(expose_window_tree, expose_window, expose_line): Return 1 when
+	overwriting mouse-face.
+	(expose_window): If W is the window currently being updated, mark
+	the frame garbaged.
+	(expose_frame): If mouse-face was overwritten, redo it.
+	(x_draw_glyph_string): Restore clipping after drawing box.
+	Fix a computation of the underline position.
+	(w32_get_glyph_string_clip_rect): Minor cleanup.
+	(x_fill_stretch_glyph_string): Remove an assertion.
+	(x_produce_glyphs): Don't convert multibyte characters
+	to unibyte characters in unibyte buffers.
+	(cursor_in_mouse_face_p): New function.
+	(x_draw_stretch_glyph_string): Use it to choose a different GC
+	when drawing a cursor within highlighted text.  Don't draw
+	background again if it has already been drawn.
+	(x_draw_glyph_string_box): Don't draw a full-width
+	box just because the glyph row's full_width_p flag is set.
+	(x_draw_glyphs): Fix computation of rightmost x for
+	full-width rows.
+	(w32_draw_relief_rect): Extend left shadow to the bottom and left;
+	change bottom shadow accordingly. Some cleanup.
+	(x_update_window_end): Handle overwritten mouse face
+	also for tool bar windows.
+	(show_mouse_face): Set the glyph row's mouse_face_p flag also when
+	DRAW is DRAW_IMAGE_RAISED.
+	(clear_mouse_face): Return 1 if text with mouse face was
+	actually redrawn.  Make the function static.  Reset
+	dpyinfo->mouse_face_overlay otherwise note_mouse_highlight might
+	optimize away highlighting if we pass over that same overlay again.
+	(note_mouse_highlight): Call mouse_face_overlay_overlaps
+	to detect a case where we have to highlight a different region
+	despite not having left the currently highlighted region.
+	Set mouse_face_overlay in the x_display_info.  Avoid changing the
+	mouse pointer shape when show_mouse_face has already done it, or
+	there is no need.  Handle mouse-face and help-echo in strings.
+	(glyph_rect): New function.
+	(w32_mouse_position): Use it to raise the threshold for mouse
+	movement event generation.
+	(w32_initialize_display_info): Initialize the x_display_info's
+	mouse_face_overlay.
+	(w32_set_vertical_scroll_bar): Don't clear a zero height
+	or width area.
+	(w32_set_vertical_scroll_bar, x_scroll_bar_create): Don't configure
+	a widget to zero height.
+
+	* w32fns.c (x_set_foreground_color): Set frame's cursor_pixel.
+	(x_set_font): Handle case of x_new_fontset returning the same name
+	as before, although there was a change in fontsets.
+
+	* w32menu.c (single_submenu, w32_menu_show) [!HAVE_MULTILINGUAL_MENU]:
+	Protect unibyte strings created by replacing their multibyte
+	equivalents in menu_items.
+	(w32_menu_show): Don't overwrite an item's name with its key
+	description in case the description is a multibyte string.
+	(single_submenu): Some cleanup.
+
 2001-11-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* unexelf.c (unexec): Use mmap/munmap to allocate buffers 
