@@ -1367,10 +1367,12 @@ with SIGHUP.  */)
   frames_discard_buffer (buf);
   Vinhibit_quit = tem;
 
-  /* Delete any auto-save file, if we saved it in this session.  */
+  /* Delete any auto-save file, if we saved it in this session.
+     But not if the buffer is modified.  */
   if (STRINGP (b->auto_save_file_name)
       && b->auto_save_modified != 0
-      && BUF_SAVE_MODIFF (b) < b->auto_save_modified)
+      && BUF_SAVE_MODIFF (b) < b->auto_save_modified
+      && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
     {
       Lisp_Object tem;
       tem = Fsymbol_value (intern ("delete-auto-save-files"));
