@@ -421,6 +421,9 @@ case "${srcdir}" in
   *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
 esac
 
+### Remove trailing slashes.
+srcdir=`echo "${srcdir}" | sed 's,\([^/]\)/*$,\1,'`
+
 #### Check if the source directory already has a configured system in it.
 if [ `pwd` != `(cd ${srcdir} && pwd)` ] \
    && [ -f "${srcdir}/src/config.h" ] ; then
