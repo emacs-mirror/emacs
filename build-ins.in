@@ -131,6 +131,6 @@ for dir in ${copydir} ; do
 done
 
 cp ${libdir}/[ce]tags ${bindir}
-mv src/xemacs ${BINDIR}/emacs
+mv src/emacs ${BINDIR}/emacs
 rm src/temacs
 chmod 777 ${bindir}/[ce]tags ${bindir}/emacs
