@@ -4039,7 +4039,7 @@ actually used.")
       /* Set `inserted' to the number of inserted characters.  */
       inserted = PT - temp;
 
-      free (conversion_buffer);
+      xfree (conversion_buffer);
       emacs_close (fd);
       specpdl_ptr--;
 
