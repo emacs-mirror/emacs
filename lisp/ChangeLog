@@ -1,3 +1,11 @@
+2003-01-28  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-vars.el, progmodes/cc-mode.el
+	(c-require-final-newline): Made this variable an alist to
+	specify a value for each language.  The default value causes
+	`require-final-newline' to be set to t only in languages where
+	the standard requires a final newline.
+
 2003-01-27  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (kill-new): Improve doc string for yank-handler.
