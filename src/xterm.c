@@ -466,6 +466,16 @@ static void x_clear_cursor P_ ((struct window *));
 static void frame_highlight P_ ((struct frame *));
 static void frame_unhighlight P_ ((struct frame *));
 static void x_new_focus_frame P_ ((struct x_display_info *, struct frame *));
+static int  x_focus_changed P_ ((int,
+                                 int,
+                                 struct x_display_info *,
+                                 struct frame *,
+                                 struct input_event *,
+                                 int));
+static int  x_detect_focus_change P_ ((struct x_display_info *,
+                                       XEvent *,
+                                       struct input_event *,
+                                       int));
 static void XTframe_rehighlight P_ ((struct frame *));
 static void x_frame_rehighlight P_ ((struct x_display_info *));
 static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
@@ -6291,6 +6301,121 @@ x_new_focus_frame (dpyinfo, frame)
   x_frame_rehighlight (dpyinfo);
 }
 
+/* Handle FocusIn and FocusOut state changes for FRAME.
+   If FRAME has focus and there exists more than one frame, puts
+   an FOCUS_IN_EVENT into BUFP.
+   Returns number of events inserted into BUFP. */
+
+static int
+x_focus_changed (type, state, dpyinfo, frame, bufp, numchars)
+     int type;
+     int state;
+     struct x_display_info *dpyinfo;
+     struct frame *frame;
+     struct input_event *bufp;
+     int numchars;
+{
+  int nr_events = 0;
+
+  if (type == FocusIn)
+    {
+      if (dpyinfo->x_focus_event_frame != frame)
+        {
+          x_new_focus_frame (dpyinfo, frame);
+          dpyinfo->x_focus_event_frame = frame;
+      
+          /* Don't stop displaying the initial startup message
+             for a switch-frame event we don't need.  */
+          if (numchars > 0
+              && GC_NILP (Vterminal_frame)
+              && GC_CONSP (Vframe_list)
+              && !GC_NILP (XCDR (Vframe_list)))
+            {
+              bufp->kind = FOCUS_IN_EVENT;
+              XSETFRAME (bufp->frame_or_window, frame);
+              bufp->arg = Qnil;
+              ++bufp;
+              numchars--;
+              ++nr_events;
+            }
+        }
+
+      frame->output_data.x->focus_state |= state;
+
+#ifdef HAVE_X_I18N
+      if (FRAME_XIC (frame))
+        XSetICFocus (FRAME_XIC (frame));
+#endif
+    }
+  else if (type == FocusOut)
+    {
+      frame->output_data.x->focus_state &= ~state;
+      
+      if (dpyinfo->x_focus_event_frame == frame)
+        {
+          dpyinfo->x_focus_event_frame = 0;
+          x_new_focus_frame (dpyinfo, 0);
+        }
+
+#ifdef HAVE_X_I18N
+      if (FRAME_XIC (frame))
+        XUnsetICFocus (FRAME_XIC (frame));
+#endif
+    }
+
+  return nr_events;
+}
+
+/* The focus may have changed.  Figure out if it is a real focus change,
+   by checking both FocusIn/Out and Enter/LeaveNotify events.
+
+   Returns number of events inserted into BUFP. */
+
+static int
+x_detect_focus_change (dpyinfo, event, bufp, numchars)
+     struct x_display_info *dpyinfo;
+     XEvent *event;
+     struct input_event *bufp;
+     int numchars;
+{
+  struct frame *frame;
+  int nr_events = 0;
+  
+  frame = x_top_window_to_frame (dpyinfo, event->xany.window);
+  if (! frame) return nr_events;
+  
+  switch (event->type)
+    {
+    case EnterNotify:
+    case LeaveNotify:
+      if (event->xcrossing.detail != NotifyInferior
+          && event->xcrossing.focus
+          && ! (frame->output_data.x->focus_state & FOCUS_EXPLICIT))
+        nr_events = x_focus_changed ((event->type == EnterNotify
+                                      ? FocusIn : FocusOut),
+                                     FOCUS_IMPLICIT,
+                                     dpyinfo,
+                                     frame,
+                                     bufp,
+                                     numchars);
+      break;
+
+    case FocusIn:
+    case FocusOut:
+      nr_events = x_focus_changed (event->type,
+                                   (event->xfocus.detail == NotifyPointer
+                                    ? FOCUS_IMPLICIT : FOCUS_EXPLICIT),
+                                   dpyinfo,
+                                   frame,
+                                   bufp,
+                                   numchars);
+      break;
+    }
+
+  return nr_events;
+}
+
+
 /* Handle an event saying the mouse has moved out of an Emacs frame.  */
 
 void
@@ -10751,15 +10876,16 @@ XTread_socket (sd, bufp, numchars, expected)
 	      goto OTHER;
 #endif
 
-	      /* Here's a possible interpretation of the whole
-		 FocusIn-EnterNotify FocusOut-LeaveNotify mess.  If
-		 you get a FocusIn event, you have to get a FocusOut
-		 event before you relinquish the focus.  If you
-		 haven't received a FocusIn event, then a mere
-		 LeaveNotify is enough to free you.  */
-
 	    case EnterNotify:
 	      {
+                int n;
+
+                n = x_detect_focus_change (dpyinfo, &event, bufp, numchars);
+                if (n > 0)
+                {
+                  bufp += n, count += n, numchars -= n;
+                }
+              
 		f = x_any_window_to_frame (dpyinfo, event.xcrossing.window);
 
 #if 0
@@ -10786,34 +10912,29 @@ XTread_socket (sd, bufp, numchars, expected)
 	      }
 
 	    case FocusIn:
-	      f = x_any_window_to_frame (dpyinfo, event.xfocus.window);
-	      if (event.xfocus.detail != NotifyPointer)
-		dpyinfo->x_focus_event_frame = f;
-	      if (f)
 		{
-		  x_new_focus_frame (dpyinfo, f);
+                int n;
 
-		  /* Don't stop displaying the initial startup message
-		     for a switch-frame event we don't need.  */
-		  if (GC_NILP (Vterminal_frame)
-		      && GC_CONSP (Vframe_list)
-		      && !GC_NILP (XCDR (Vframe_list)))
+                n = x_detect_focus_change (dpyinfo, &event, bufp, numchars);
+                if (n > 0)
 		    {
-		      bufp->kind = FOCUS_IN_EVENT;
-		      XSETFRAME (bufp->frame_or_window, f);
-		      bufp->arg = Qnil;
-		      ++bufp, ++count, --numchars;
+                  bufp += n, count += n, numchars -= n;
 		    }
 		}
-
-#ifdef HAVE_X_I18N
-	      if (f && FRAME_XIC (f))
-		XSetICFocus (FRAME_XIC (f));
-#endif
 
 	      goto OTHER;
 
 	    case LeaveNotify:
+              {
+                int n;
+
+                n = x_detect_focus_change (dpyinfo, &event, bufp, numchars);
+                if (n > 0)
+                {
+                  bufp += n, count += n, numchars -= n;
+                }
+              }
+
 	      f = x_top_window_to_frame (dpyinfo, event.xcrossing.window);
 	      if (f)
 		{
@@ -10841,32 +10962,19 @@ XTread_socket (sd, bufp, numchars, expected)
 		      bufp += n, count += n, numchars -= n;
 		    }
 
-#if 0
-		  if (event.xcrossing.focus)
-		    x_mouse_leave (dpyinfo);
-		  else
-		    {
-		      if (f == dpyinfo->x_focus_event_frame)
-			dpyinfo->x_focus_event_frame = 0;
-		      if (f == dpyinfo->x_focus_frame)
-			x_new_focus_frame (dpyinfo, 0);
-		    }
-#endif
 		}
 	      goto OTHER;
 
 	    case FocusOut:
-	      f = x_any_window_to_frame (dpyinfo, event.xfocus.window);
-	      if (event.xfocus.detail != NotifyPointer
-		  && f == dpyinfo->x_focus_event_frame)
-		dpyinfo->x_focus_event_frame = 0;
-	      if (f && f == dpyinfo->x_focus_frame)
-		x_new_focus_frame (dpyinfo, 0);
+              {
+                int n;
 
-#ifdef HAVE_X_I18N
-	      if (f && FRAME_XIC (f))
-		XUnsetICFocus (FRAME_XIC (f));
-#endif
+                n = x_detect_focus_change (dpyinfo, &event, bufp, numchars);
+                if (n > 0)
+                {
+                  bufp += n, count += n, numchars -= n;
+                }
+              }
 
 	      goto OTHER;
 
