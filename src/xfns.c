@@ -10117,9 +10117,13 @@ x_kill_gs_process (pixmap, f)
     if (c->images[i]->pixmap == pixmap)
       break;
 
+  /* Should someone in between have cleared the image cache, for
+     instance, give up.  */
+  if (i == c->used)
+    return;
+  
   /* Kill the GS process.  We should have found PIXMAP in the image
      cache and its image should contain a process object.  */
-  xassert (i < c->used);
   img = c->images[i];
   xassert (PROCESSP (img->data.lisp_val));
   Fkill_process (img->data.lisp_val, Qnil);
