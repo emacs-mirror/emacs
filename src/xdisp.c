@@ -2497,7 +2497,8 @@ try_window (window, pos)
 	  int invis = 0;
 #ifdef USE_TEXT_PROPERTIES
 	  Lisp_Object invis_prop;
-	  invis_prop = Fget_char_property (val.bufpos-1, Qinvisible, window);
+	  invis_prop = Fget_char_property (make_number (val.bufpos - 1),
+					   Qinvisible, window);
 	  invis = TEXT_PROP_MEANS_INVISIBLE (invis_prop);
 #endif
 
