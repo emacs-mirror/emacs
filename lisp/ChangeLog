@@ -1,5 +1,9 @@
 1999-11-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* faces.el (make-face-bold, make-face-unbold, make-face-italic)
+	(make-face-unitalic, make-face-bold-italic): Add NOERROR argument
+	for compatibility with old face implementation.
+
 	* isearch.el (isearch-complete-edit, isearch-ring-advance-edit):
 	Use erase-field instead of erase-buffer.
 
