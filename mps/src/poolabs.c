@@ -1,11 +1,7 @@
 /* impl.c.poolabs: ABSTRACT POOL CLASSES
  *
- * $HopeName: MMsrc!poolabs.c(trunk.5) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
- *
- * READERSHIP
- *
- * .readership: any MPS developer
+ * $HopeName: MMsrc!poolabs.c(trunk.6) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
  *
@@ -31,7 +27,8 @@
 
 #include "mpm.h"
 
-SRCID(poolabs, "$HopeName: MMsrc!poolabs.c(trunk.5) $");
+SRCID(poolabs, "$HopeName: MMsrc!poolabs.c(trunk.6) $");
+
 
 typedef PoolClassStruct AbstractPoolClassStruct;
 typedef PoolClassStruct AbstractAllocFreePoolClassStruct;
@@ -130,13 +127,6 @@ void PoolClassMixInCollect(PoolClass class)
   /* Fix, reclaim & benefit are part of the collection */
   /* protocol - but there are no useful default methods */
   /* for them */
-  /*
-  class->fix = PoolTrivFix;
-  class->fixEmergency = PoolTrivFix;
-  class->reclaim = PoolTrivReclaim;
-  class->benefit = PoolTrivBenefit;
-  */
-  class->act = PoolCollectAct;
   class->rampBegin = PoolTrivRampBegin;
   class->rampEnd = PoolTrivRampEnd;
 }
@@ -208,7 +198,3 @@ DEFINE_CLASS(AbstractCollectPoolClass, class)
   INHERIT_CLASS(class, AbstractScanPoolClass);
   PoolClassMixInCollect(class);
 }
-
-
-
-
