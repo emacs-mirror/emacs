@@ -1667,8 +1667,7 @@ If INITIAL is non-nil, it specifies the initial input string."
        ((memq ido-exit '(edit chdir))
 	(cond
 	 ((memq ido-cur-item '(file dir))
-	  (let* ((process-environment (cons "HOME=/" process-environment)) ;; cheat read-file-name
-		 (read-file-name-function nil)
+	  (let* ((read-file-name-function nil)
 		 (edit (eq ido-exit 'edit))
 		 (d ido-current-directory)
 		 (f ido-text-init)
@@ -1676,7 +1675,9 @@ If INITIAL is non-nil, it specifies the initial input string."
 	    (setq ido-text-init "")
 	    (while new
 	      (setq new (if edit
-			     (read-file-name (concat prompt "[EDIT] ") d (concat d f) nil f)
+			     (read-file-name (concat prompt "[EDIT] ")
+					     (expand-file-name d)
+					     (concat d f) nil f)
 			   f)
 		    d (or (file-name-directory new) "/")
 		    f (file-name-nondirectory new)
