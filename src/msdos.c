@@ -772,12 +772,18 @@ IT_cmgoto (FRAME_PTR f)
      already in sync with the window contents.  */
   int update_cursor_pos = MODIFF == unchanged_modified;
 
-  /* If we are in the echo area, put the cursor at the end of text.  */
+  /* If we are in the echo area, and the cursor is beyond the end of
+     the text, put the cursor at the end of text.  */
   if (!update_cursor_pos
       && XFASTINT (XWINDOW (FRAME_MINIBUF_WINDOW (f))->top) <= new_pos_Y)
     {
-      new_pos_X = FRAME_DESIRED_GLYPHS (f)->used[new_pos_Y];
-      update_cursor_pos = 1;
+      int tem_X = FRAME_DESIRED_GLYPHS (f)->used[new_pos_Y];
+
+      if (current_pos_X > tem_X)
+	{
+	  new_pos_X = tem_X;
+	  update_cursor_pos = 1;
+	}
     }
 
   if (update_cursor_pos
