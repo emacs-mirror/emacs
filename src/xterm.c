@@ -11250,10 +11250,14 @@ x_connection_signal (signalnum)	/* If we don't have an argument, */
   signal (signalnum, x_connection_signal);
 #endif /* USG */
 }
-
-/* Handling X errors.  */
 
-/* Handle the loss of connection to display DISPLAY.  */
+
+/************************************************************************
+			  Handling X errors
+ ************************************************************************/
+
+/* Handle the loss of connection to display DPY.  ERROR_MESSAGE is
+   the text of an error message that lead to the connection loss.  */
 
 static SIGTYPE
 x_connection_closed (dpy, error_message)
@@ -11262,8 +11266,18 @@ x_connection_closed (dpy, error_message)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;
-
+  int count;
+  char *msg;
+  
+  msg = (char *) alloca (strlen (error_message) + 1);
+  strcpy (msg, error_message);
   handling_signal = 0;
+  
+  /* Prevent being called recursively because of an error condition
+     below.  Otherwise, we might end up with printing ``can't find per
+     display information'' in the recursive call instead of printing
+     the original message here.  */
+  count = x_catch_errors (dpy);
   
   /* We have to close the display to inform Xt that it doesn't
      exist anymore.  If we don't, Xt will continue to wait for
@@ -11281,15 +11295,7 @@ x_connection_closed (dpy, error_message)
      in OpenWindows.  I don't know how to cicumvent it here.  */
   
 #ifdef USE_X_TOOLKIT
-  {
-    /* Prevent being called recursively because of an error condition
-       in XtCloseDisplay.  Otherwise, we might end up with printing
-       ``can't find per display information'' in the recursive call
-       instead of printing the original message here.  */
-    int count = x_catch_errors (dpy);
-    XtCloseDisplay (dpy);
-    x_uncatch_errors (dpy, count);
-  }
+  XtCloseDisplay (dpy);
 #endif
 
   /* Indicate that this display is dead.  */
@@ -11326,9 +11332,11 @@ x_connection_closed (dpy, error_message)
   if (dpyinfo)
     x_delete_display (dpyinfo);
 
+  x_uncatch_errors (dpy, count);
+  
   if (x_display_list == 0)
     {
-      fprintf (stderr, "%s\n", error_message);
+      fprintf (stderr, "%s\n", msg);
       shut_down_emacs (0, 0, Qnil);
       exit (70);
     }
@@ -11341,8 +11349,9 @@ x_connection_closed (dpy, error_message)
   TOTALLY_UNBLOCK_INPUT;
 
   clear_waiting_for_input ();
-  error ("%s", error_message);
+  error ("%s", msg);
 }
+
 
 /* This is the usual handler for X protocol errors.
    It kills all frames on the display that we got the error for.
@@ -11363,6 +11372,7 @@ x_error_quitter (display, error)
 	   buf, error->request_code);
   x_connection_closed (display, buf1);
 }
+
 
 /* This is the first-level handler for X protocol errors.
    It calls x_error_quitter or x_error_catcher.  */
