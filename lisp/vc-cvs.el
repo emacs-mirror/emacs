@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.22 2001/04/17 05:59:57 eliz Exp $
+;; $Id: vc-cvs.el,v 1.23 2001/07/04 15:51:18 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -378,16 +378,17 @@ REV is the revision to check out into WORKFILE."
 	(vc-mode-line file)
 	(message "Checking out %s...done" filename)))))
 
-(defun vc-cvs-revert (file)
+(defun vc-cvs-revert (file &optional contents-done)
   "Revert FILE to the version it was based on."
-  ;; Check out via standard output (caused by the final argument
-  ;; FILE below), so that no sticky tag is set.
-  (vc-cvs-checkout file nil (vc-workfile-version file) file)
-  ;; If "cvs edit" was used to make the file writable,
-  ;; call "cvs unedit" now to undo that.
-  (if (and (not (eq (vc-cvs-checkout-model file) 'implicit))
-           vc-cvs-use-edit)
-      (vc-do-command nil 0 "cvs" file "unedit")))
+  (unless contents-done
+    ;; Check out via standard output (caused by the final argument
+    ;; FILE below), so that no sticky tag is set.
+    (vc-cvs-checkout file nil (vc-workfile-version file) file))
+  (unless (eq (vc-checkout-model file) 'implicit)
+    (if vc-cvs-use-edit
+        (vc-do-command nil 0 "cvs" file "unedit")
+      ;; Make the file read-only by switching off all w-bits
+      (set-file-modes file (logand (file-modes file) 3950)))))
 
 (defun vc-cvs-merge (file first-version &optional second-version)
   "Merge changes into current working copy of FILE.

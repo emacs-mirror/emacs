@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.11 2001/03/29 11:49:22 spiegel Exp $
+;; $Id: vc-sccs.el,v 1.12 2001/07/16 12:22:59 pj Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -261,7 +261,7 @@ locked.  REV is the revision to check out into WORKFILE."
 		   switches)))))
     (message "Checking out %s...done" filename)))
 
-(defun vc-sccs-revert (file)
+(defun vc-sccs-revert (file &optional contents-done)
   "Revert FILE to the version it was based on."
   (vc-do-command nil 0 "unget" (vc-name file))
   (vc-do-command nil 0 "get" (vc-name file))
