@@ -93,6 +93,7 @@ extern struct re_pattern_buffer searchbuf;
 #endif
 
 extern int completion_ignore_case;
+extern Lisp_Object Vcompletion_regexp_list;
 extern Lisp_Object Ffind_file_name_handler ();
 
 Lisp_Object Vcompletion_ignored_extensions;
@@ -375,80 +376,98 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		  }
 	    }
 
-	  /* Unless an ignored-extensions match was found,
-             process this name as a completion */
-	  if (passcount || !CONSP (tem))
+	  /* If an ignored-extensions match was found,
+	     don't process this name as a completion.  */
+	  if (!passcount && CONSP (tem))
+	    continue;
+
+	  if (!passcount)
 	    {
-	      /* Update computation of how much all possible completions match */
+	      Lisp_Object regexps;
+	      Lisp_Object zero;
+	      XFASTINT (zero) = 0;
 
-	      matchcount++;
-
-	      if (all_flag || NILP (bestmatch))
+	      /* Ignore this element if it fails to match all the regexps.  */
+	      for (regexps = Vcompletion_regexp_list; CONSP (regexps);
+		   regexps = XCONS (regexps)->cdr)
 		{
-		  /* This is a possible completion */
-		  if (directoryp)
-		    {
-		      /* This completion is a directory; make it end with '/' */
-		      name = Ffile_name_as_directory (make_string (dp->d_name, len));
-		    }
-		  else
-		    name = make_string (dp->d_name, len);
-		  if (all_flag)
-		    {
-		      bestmatch = Fcons (name, bestmatch);
-		    }
-		  else
-		    {
-		      bestmatch = name;
-		      bestmatchsize = XSTRING (name)->size;
-		    }
+		  tem = Fstring_match (XCONS (regexps)->car, elt, zero);
+		  if (NILP (tem))
+		    break;
+		}
+	      if (CONSP (regexps))
+		continue;
+	    }
+
+	  /* Update computation of how much all possible completions match */
+
+	  matchcount++;
+
+	  if (all_flag || NILP (bestmatch))
+	    {
+	      /* This is a possible completion */
+	      if (directoryp)
+		{
+		  /* This completion is a directory; make it end with '/' */
+		  name = Ffile_name_as_directory (make_string (dp->d_name, len));
+		}
+	      else
+		name = make_string (dp->d_name, len);
+	      if (all_flag)
+		{
+		  bestmatch = Fcons (name, bestmatch);
 		}
 	      else
 		{
-		  compare = min (bestmatchsize, len);
-		  p1 = XSTRING (bestmatch)->data;
-		  p2 = (unsigned char *) dp->d_name;
-		  matchsize = scmp(p1, p2, compare);
-		  if (matchsize < 0)
-		    matchsize = compare;
-		  if (completion_ignore_case)
-		    {
-		      /* If this is an exact match except for case,
-			 use it as the best match rather than one that is not
-			 an exact match.  This way, we get the case pattern
-			 of the actual match.  */
-		      if ((matchsize == len
-			   && matchsize + !!directoryp 
-			      < XSTRING (bestmatch)->size)
-			  ||
-			  /* If there is no exact match ignoring case,
-			     prefer a match that does not change the case
-			     of the input.  */
-			  (((matchsize == len)
-			    ==
-			    (matchsize + !!directoryp 
-			     == XSTRING (bestmatch)->size))
-			   /* If there is more than one exact match aside from
-			      case, and one of them is exact including case,
-			      prefer that one.  */
-			   && !bcmp (p2, XSTRING (file)->data, XSTRING (file)->size)
-			   && bcmp (p1, XSTRING (file)->data, XSTRING (file)->size)))
-			{
-			  bestmatch = make_string (dp->d_name, len);
-			  if (directoryp)
-			    bestmatch = Ffile_name_as_directory (bestmatch);
-			}
-		    }
-
-		  /* If this dirname all matches, see if implicit following
-		     slash does too.  */
-		  if (directoryp
-		      && compare == matchsize
-		      && bestmatchsize > matchsize
-		      && p1[matchsize] == '/')
-		    matchsize++;
-		  bestmatchsize = matchsize;
+		  bestmatch = name;
+		  bestmatchsize = XSTRING (name)->size;
 		}
+	    }
+	  else
+	    {
+	      compare = min (bestmatchsize, len);
+	      p1 = XSTRING (bestmatch)->data;
+	      p2 = (unsigned char *) dp->d_name;
+	      matchsize = scmp(p1, p2, compare);
+	      if (matchsize < 0)
+		matchsize = compare;
+	      if (completion_ignore_case)
+		{
+		  /* If this is an exact match except for case,
+		     use it as the best match rather than one that is not
+		     an exact match.  This way, we get the case pattern
+		     of the actual match.  */
+		  if ((matchsize == len
+		       && matchsize + !!directoryp 
+			  < XSTRING (bestmatch)->size)
+		      ||
+		      /* If there is no exact match ignoring case,
+			 prefer a match that does not change the case
+			 of the input.  */
+		      (((matchsize == len)
+			==
+			(matchsize + !!directoryp 
+			 == XSTRING (bestmatch)->size))
+		       /* If there is more than one exact match aside from
+			  case, and one of them is exact including case,
+			  prefer that one.  */
+		       && !bcmp (p2, XSTRING (file)->data, XSTRING (file)->size)
+		       && bcmp (p1, XSTRING (file)->data, XSTRING (file)->size)))
+		    {
+		      bestmatch = make_string (dp->d_name, len);
+		      if (directoryp)
+			bestmatch = Ffile_name_as_directory (bestmatch);
+		    }
+		}
+
+	      /* If this dirname all matches, see if implicit following
+		 slash does too.  */
+	      if (directoryp
+		  && compare == matchsize
+		  && bestmatchsize > matchsize
+		  && p1[matchsize] == '/')
+		matchsize++;
+	      bestmatchsize = matchsize;
 	    }
 	}
       closedir (d);
