@@ -1,4 +1,4 @@
-;;; authors.el --- utility for maintaining Emacs' AUTHORS file
+;;; authors.el --- utility for maintaining Emacs' AUTHORS file -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 2000 Free Software Foundation, Inc.
 
@@ -68,7 +68,7 @@ file individually.")
     ("Edward M Reingold" . "Edward M. Reingold")
     ("Eric Ludlam" . "Eric M. Ludlam")
     ("Eric Raymond" . "Eric S. Raymond")
-    ("Francois Pinard" . "François Pinard")
+    ("Francois Pinard" . "Fran,Ag(Bois Pinard")
     ("Fred Pierresteguy" . "Frederic Pierresteguy")
     ("Hallvard B Furuseth" . "Hallvard B. Furuseth")
     ("ISO-2022-JP" . "ignore")
@@ -94,6 +94,8 @@ file individually.")
     ("Francesco Potorti`" . "Francesco Potorti")
     ("Roland Roberts" . "Roland B. Roberts")
     ("David Smith" . "David M. Smith")
+    ("Jan Djarv" . "Jan Dj,Ad(Brv")
+    ("Jan D." . "Jan Dj,Ad(Brv")
     )
   "Alist of author aliases.
 

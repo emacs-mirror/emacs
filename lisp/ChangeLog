@@ -1,3 +1,8 @@
+2003-01-26  Jan D.  <jan.h.d@swipnet.se>
+
+	* emacs-lisp/authors.el (authors-aliases): Add Jan D.
+	Set iso-2022-7bit coding: cookie.
+
 2003-01-26  Kim F. Storm  <storm@cua.dk>
 
 	* info.el (Info-extract-menu-node-name): Fix 2003-01-24 change.
