@@ -387,9 +387,9 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise."
 
 ;; Interaction with other packages.
 (eval-after-load 'cua
-  (progn
-    (add-to-list 'cua--standard-movement-commands 'crisp-home)
-    (add-to-list 'cua--standard-movement-commands 'crisp-end)))
+  '(progn
+     (add-to-list 'cua--standard-movement-commands 'crisp-home)
+     (add-to-list 'cua--standard-movement-commands 'crisp-end)))
 
 (run-hooks 'crisp-load-hook)
 (provide 'crisp)

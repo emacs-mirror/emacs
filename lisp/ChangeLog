@@ -1,3 +1,8 @@
+2003-04-02  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* emulation/crisp.el (top-level): Quote second arg to
+	`eval-after-load'.
+
 2003-04-02  Miles Bader  <miles@gnu.org>
 
 	* scroll-bar.el (scroll-bar-mode): Correctly specify `nil' choice.
