@@ -1,6 +1,21 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Characters from the mule-unicode charsets aren't displayed.
+
+XFree86 4 contains many fonts in iso10646-1 encoding which have
+minimal character repertoires (whereas the encoding is meant to be a
+reasonable indication of the repertoire).  Emacs may choose one of
+these to display characters from the mule-unicode charsets and then
+typically won't be able to find the glyphs to display many characters.
+(Check with C-u C-x =.)  To avoid this, you may need to use a fontset
+which sets the font for the mule-unicode sets explicitly, e.g. to use
+GNU unifont include in the fontset spec:
+
+mule-unicode-2500-33ff:-gnu-unifont-*-iso10646-1,\
+mule-unicode-e000-ffff:-gnu-unifont-*-iso10646-1,\
+mule-unicode-0100-24ff:-gnu-unifont-*-iso10646-1
+
 * Mule-UCS loads very slowly.
 
 Changes to Emacs internals interact badly with Mule-UCS's `un-define'
