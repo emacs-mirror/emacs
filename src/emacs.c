@@ -1469,7 +1469,6 @@ main (argc, argv, envp)
       extern void dump_opcode_frequencies ();
 
       atexit (_mcleanup);
-      // atexit (dump_opcode_frequencies);
       /* This uses safe_bcopy because that function comes first in the
 	 Emacs executable.  It might be better to use something that
 	 gives the start of the text segment, but start_of_text is not
