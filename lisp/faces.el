@@ -629,36 +629,40 @@ also the same size as FACE on FRAME, or fail."
     (cdr (assq 'font (frame-parameters (selected-frame))))))
 
 (defun x-frob-font-weight (font which)
-  (cond ((string-match x-font-regexp font)
-	 (concat (substring font 0 (match-beginning x-font-regexp-weight-subnum))
-		 which
-		 (substring font (match-end x-font-regexp-weight-subnum)
-			    (match-beginning x-font-regexp-adstyle-subnum))
-		 ;; Replace the ADD_STYLE_NAME field with *
-		 ;; because the info in it may not be the same
-		 ;; for related fonts.
-		 "*"
-		 (substring font (match-end x-font-regexp-adstyle-subnum))))
-	((or (string-match x-font-regexp-head font)
-	     (string-match x-font-regexp-weight font))
-	 (concat (substring font 0 (match-beginning 1)) which
-		 (substring font (match-end 1))))))
+  (let ((case-fold-search t))
+    (cond ((string-match x-font-regexp font)
+	   (concat (substring font 0
+			      (match-beginning x-font-regexp-weight-subnum))
+		   which
+		   (substring font (match-end x-font-regexp-weight-subnum)
+			      (match-beginning x-font-regexp-adstyle-subnum))
+		   ;; Replace the ADD_STYLE_NAME field with *
+		   ;; because the info in it may not be the same
+		   ;; for related fonts.
+		   "*"
+		   (substring font (match-end x-font-regexp-adstyle-subnum))))
+	  ((or (string-match x-font-regexp-head font)
+	       (string-match x-font-regexp-weight font))
+	   (concat (substring font 0 (match-beginning 1)) which
+		   (substring font (match-end 1)))))))
 
 (defun x-frob-font-slant (font which)
-  (cond ((string-match x-font-regexp font)
-	 (concat (substring font 0 (match-beginning x-font-regexp-slant-subnum))
-		 which
-		 (substring font (match-end x-font-regexp-slant-subnum)
-			    (match-beginning x-font-regexp-adstyle-subnum))
-		 ;; Replace the ADD_STYLE_NAME field with *
-		 ;; because the info in it may not be the same
-		 ;; for related fonts.
-		 "*"
-		 (substring font (match-end x-font-regexp-adstyle-subnum))))
-	((or (string-match x-font-regexp-head font)
-	     (string-match x-font-regexp-slant font))
-	 (concat (substring font 0 (match-beginning 1)) which
-		 (substring font (match-end 1))))))
+  (let ((case-fold-search t))
+    (cond ((string-match x-font-regexp font)
+	   (concat (substring font 0
+			      (match-beginning x-font-regexp-slant-subnum))
+		   which
+		   (substring font (match-end x-font-regexp-slant-subnum)
+			      (match-beginning x-font-regexp-adstyle-subnum))
+		   ;; Replace the ADD_STYLE_NAME field with *
+		   ;; because the info in it may not be the same
+		   ;; for related fonts.
+		   "*"
+		   (substring font (match-end x-font-regexp-adstyle-subnum))))
+	  ((or (string-match x-font-regexp-head font)
+	       (string-match x-font-regexp-slant font))
+	   (concat (substring font 0 (match-beginning 1)) which
+		   (substring font (match-end 1)))))))
 
 (defun x-make-font-bold (font)
   "Given an X font specification, make a bold version of it.
