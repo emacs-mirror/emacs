@@ -700,8 +700,7 @@ the value of `comment-column' (leaving at least one space after code)."
   (if (looking-at fortran-comment-line-start-skip) 0
     (save-excursion
       (skip-chars-backward " \t")
-      (max (1+ (current-column))
-	   comment-column))))
+      (max (1+ (current-column)) comment-column))))
 
 (defun fortran-indent-comment ()
   "Align or create comment on current line.
@@ -754,14 +753,14 @@ With non-nil ARG, uncomments the region."
     (goto-char beg-region)
     (beginning-of-line)
     (if arg
-        (let ((com (regexp-quote fortran-comment-region))) ;uncomment region
+        (let ((com (regexp-quote fortran-comment-region))) ; uncomment
           (if (looking-at com)
               (delete-region (point) (match-end 0)))
           (while (and (zerop (forward-line 1))
                       (< (point) end-region-mark))
             (if (looking-at com)
                 (delete-region (point) (match-end 0)))))
-      (insert fortran-comment-region) ;comment the region
+      (insert fortran-comment-region)   ; comment
       (while (and (zerop (forward-line 1))
                   (< (point) end-region-mark))
         (insert fortran-comment-region)))
@@ -777,7 +776,7 @@ Any other key combination is executed normally."
   (let (c)
     (insert last-command-char)
     (if (and abbrev-mode
-             (or (eq (setq c (read-event)) ??) ;insert char if not equal to `?'
+             (or (eq (setq c (read-event)) ??) ; insert char if not `?'
                  (eq c help-char)))
 	(fortran-abbrev-help)
       (setq unread-command-events (list c)))))
@@ -802,9 +801,9 @@ Any other key combination is executed normally."
 
 (defun fortran-column-ruler ()
   "Insert a column ruler momentarily above current line, till next keystroke.
-The ruler is defined by the value of `fortran-column-ruler-fixed' when in fixed
-format mode, and `fortran-column-ruler-tab' when in TAB format mode.
-The key typed is executed unless it is SPC."
+The ruler is defined by the value of `fortran-column-ruler-fixed' in fixed
+format mode, and `fortran-column-ruler-tab' in TAB format mode.
+The next key typed is executed unless it is SPC."
   (interactive)
   (momentary-string-display
    (if indent-tabs-mode
@@ -865,8 +864,8 @@ See also `fortran-window-create'."
       (insert ?\n (match-string 0))
     (if indent-tabs-mode
 	(insert ?\n ?\t (fortran-numerical-continuation-char))
-      (insert "\n " fortran-continuation-string))) ; Space after \n important
-  (fortran-indent-line))		; when the cont string is C, c or *.
+      (insert "\n " fortran-continuation-string))) ; space after \n important
+  (fortran-indent-line))               ; when cont string is C, c or *
 
 (defun fortran-remove-continuation ()
   "Delete any Fortran continuation characters at point.
@@ -936,7 +935,6 @@ Auto-indent does not happen if a numeric ARG is used."
       (fortran-indent-line))))
 
 
-
 (defun fortran-check-end-prog-re ()
   "Check a preliminary match against `fortran-end-prog-re'."
   ;; Having got a possible match for the subprogram end, we need a
@@ -1093,7 +1091,7 @@ Return point or nil."
 	(let ((count 1))
 	  (while (and (not (zerop count))
 		      (not (eq (fortran-next-statement) 'last-statement))
-		      ;; Keep local to subprogram
+		      ;; Keep local to subprogram.
 		      (not (and (looking-at fortran-end-prog-re)
 				(fortran-check-end-prog-re))))
 	    (skip-chars-forward " \t0-9")
@@ -1122,7 +1120,7 @@ Return point or nil.  Ignores labelled DO loops (ie DO 10 ... 10 CONTINUE)."
 	(let ((count 1))
 	  (while (and (not (zerop count))
 		      (not (eq (fortran-previous-statement) 'first-statement))
-		      ;; Keep local to subprogram
+		      ;; Keep local to subprogram.
 		      (not (and (looking-at fortran-end-prog-re)
 				(fortran-check-end-prog-re))))
 	    (skip-chars-forward " \t0-9")
@@ -1173,7 +1171,7 @@ Return point or nil."
 		   (save-excursion
 		     (if (or
 			  (looking-at ".*)[ \t]*then\\b[ \t]*[^ \t(=a-z0-9]")
-			  (let (then-test) ; Multi-line if-then.
+			  (let (then-test) ; multi-line if-then
 			    (while
 				(and
 				 (zerop (forward-line 1))
@@ -1232,7 +1230,7 @@ Return point or nil."
 		   (save-excursion
 		     (if (or
 			  (looking-at ".*)[ \t]*then\\b[ \t]*[^ \t(=a-z0-9]")
-			  (let (then-test) ; Multi-line if-then.
+			  (let (then-test) ; multi-line if-then
 			    (while
 				(and
 				 (zerop (forward-line 1))
@@ -1327,9 +1325,9 @@ Return point or nil."
         (skip-chars-forward " \t0-9")
         (cond ((looking-at "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?if[ \t]*(")
                (if (or (looking-at ".*)[ \t]*then\\b[ \t]*[^ \t_$(=a-z0-9]")
-                       (let (then-test)	;multi-line if-then
+                       (let (then-test)	; multi-line if-then
                          (while (and (zerop (forward-line 1))
-                                     ;;search forward for then
+                                     ;; Search forward for then.
                                      (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]")
                                      (not (setq then-test
                                                 (looking-at
@@ -1357,7 +1355,7 @@ Return point or nil."
                (setq icol (+ icol fortran-structure-indent)))
               ((and (looking-at fortran-end-prog-re1)
                     (fortran-check-end-prog-re))
-               ;; Previous END resets indent to minimum
+               ;; Previous END resets indent to minimum.
                (setq icol fortran-minimum-statement-indent)))))
     (save-excursion
       (beginning-of-line)
@@ -1470,8 +1468,8 @@ notes: 1) A non-zero/non-blank character in column 5 indicates a continuation
 		       (insert ?\t (fortran-numerical-continuation-char) 1))
 	      (forward-char 6))
 	  (delete-horizontal-space)
-	  ;; Put line number in columns 0-4
-	  ;; or put continuation character in column 5.
+	  ;; Put line number in columns 0-4, or
+          ;; continuation character in column 5.
 	  (cond ((eobp))
 		((looking-at (regexp-quote fortran-continuation-string))
 		 (if indent-tabs-mode
@@ -1521,7 +1519,7 @@ Otherwise return nil."
       (beginning-of-line)
       (when (looking-at "[ \t]*[0-9]+")
         (skip-chars-forward " \t")
-        (skip-chars-forward "0")	;skip past leading zeros
+        (skip-chars-forward "0")	; skip past leading zeros
         (setq charnum
               (buffer-substring (point) (progn
                                           (skip-chars-forward "0-9")
@@ -1573,18 +1571,17 @@ If ALL is nil, only match comments that start in column > 0."
      ((save-excursion			; comment lines too
 	(beginning-of-line)
 	(looking-at fortran-comment-line-start-skip)) nil)
-     (t (let (;; ok, serious now. Init some local vars:
-	      (parse-state '(0 nil nil nil nil nil 0))
+     (t (let ((parse-state '(0 nil nil nil nil nil 0))
 	      (quoted-comment-start (if comment-start
 					(regexp-quote comment-start)))
 	      (not-done t)
 	      parse-limit end-of-line)
-	  ;; move to start of current statement
+	  ;; Move to start of current statement.
 	  (fortran-next-statement)
 	  (fortran-previous-statement)
-	  ;; now parse up to WHERE
+	  ;; Now parse up to WHERE.
 	  (while not-done
-	    (if (or ;; skip to next line if:
+	    (if (or ;; Skip to next line if:
 		 ;; - comment line?
 		 (looking-at fortran-comment-line-start-skip)
 		 ;; - at end of line?
@@ -1597,29 +1594,29 @@ If ALL is nil, only match comments that start in column > 0."
 		(if (> (forward-line) 0)
 		    (setq not-done nil))
 	      ;; else:
-	      ;; if we are at beginning of code line, skip any
+	      ;; If we are at beginning of code line, skip any
 	      ;; whitespace, labels and tab continuation markers.
 	      (if (bolp) (skip-chars-forward " \t0-9"))
-	      ;; if we are in column <= 5 now, check for continuation char
+	      ;; If we are in column <= 5 now, check for continuation char.
 	      (cond ((= 5 (current-column)) (forward-char 1))
 		    ((and (< (current-column) 5)
 			  (equal fortran-continuation-string
 				 (char-to-string (following-char)))
 			  (forward-char 1))))
-	      ;; find out parse-limit from here
+	      ;; Find out parse-limit from here.
 	      (setq end-of-line (line-end-position))
 	      (setq parse-limit (min where end-of-line))
-	      ;; parse max up to comment-start, if non-nil and in current line
+	      ;; Parse max up to comment-start, if non-nil and in current line.
 	      (if comment-start
 		  (save-excursion
 		    (if (re-search-forward quoted-comment-start end-of-line t)
 			(setq parse-limit (min (point) parse-limit)))))
-	      ;; now parse if still in limits
+	      ;; Now parse if still in limits.
 	      (if (< (point) where)
 		  (setq parse-state (parse-partial-sexp
 				     (point) parse-limit nil nil parse-state))
 		(setq not-done nil))))
-	  ;; result is
+	  ;; Result.
 	  (nth 3 parse-state))))))
 
 ;; From old version.
@@ -1670,7 +1667,7 @@ If ALL is nil, only match comments that start in column > 0."
 		 )
 		(when (<= (point) (1+ bos))
                   (move-to-column (1+ fill-column))
-                  ;;what is this doing???
+                  ;; What is this doing???
                   (or (re-search-forward "[\t\n,'+-/*)=]" eol t)
                       (goto-char bol)))
 		(if (bolp)
@@ -1682,12 +1679,12 @@ If ALL is nil, only match comments that start in column > 0."
 		(if fortran-break-before-delimiters
 		    (point)
 		  (1+ (point)))))))
-    ;; if we are in an in-line comment, don't break unless the
+    ;; If we are in an in-line comment, don't break unless the
     ;; line of code is longer than it should be. Otherwise
     ;; break the line at the column computed above.
     ;;
-    ;; Need to use fortran-find-comment-start-skip to make sure that quoted !'s
-    ;; don't prevent a break.
+    ;; Need to use fortran-find-comment-start-skip to make sure that
+    ;; quoted !'s don't prevent a break.
     (when (and (save-excursion
 		 (beginning-of-line)
 		 (if (not (fortran-find-comment-start-skip))
@@ -1716,7 +1713,7 @@ If ALL is nil, only match comments that start in column > 0."
 	   (if (fortran-find-comment-start-skip)
 	       (delete-and-extract-region
 		(match-beginning 0) (line-end-position))))))
-    ;; Forward line 1 really needs to go to next non white line
+    ;; Forward line 1 really needs to go to next non white line.
     (if (save-excursion (forward-line)
 			(looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]"))
 	(progn
@@ -1806,7 +1803,7 @@ Supplying prefix arg DO-SPACE prevents stripping the whitespace."
     ;; We must be inside function body for this to work.
     (fortran-beginning-of-subprogram)
     (let ((case-fold-search t))		; case-insensitive
-      ;; search for fortran subprogram start
+      ;; Search for fortran subprogram start.
       (if (re-search-forward
            (concat "^[ \t]*\\(program\\|subroutine\\|function"
                    "\\|[ \ta-z0-9*()]*[ \t]+function\\|"
@@ -1816,7 +1813,7 @@ Supplying prefix arg DO-SPACE prevents stripping the whitespace."
            t)
           (or (match-string-no-properties 2)
               (progn
-                ;; move to EOL or before first left paren
+                ;; Move to EOL or before first left paren.
                 (if (re-search-forward "[(\n]" nil t)
                     (progn (backward-char)
                            (skip-chars-backward " \t"))
