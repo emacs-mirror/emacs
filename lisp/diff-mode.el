@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.29 2000/10/15 04:49:55 monnier Exp $
+;; Revision: $Id: diff-mode.el,v 1.30 2000/10/17 12:12:00 eliz Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -174,6 +174,8 @@ when editing big diffs)."
      (:foreground "green"))
     (((class color) (background light))
      (:background "grey85"))
+    (((class color) (background dark))
+     (:background "grey45"))
     (t (:bold t)))
   "`diff-mode' face inherited by hunk and index header faces."
   :group 'diff-mode)
@@ -186,6 +188,8 @@ when editing big diffs)."
      (:foreground "cyan"))
     (((class color) (background light))
      (:background "grey70" :bold t))
+    (((class color) (background dark))
+     (:background "grey60" :bold t))
     (t (:bold t)))			; :height 1.3
   "`diff-mode' face used to highlight file header lines."
   :group 'diff-mode)
@@ -225,21 +229,25 @@ when editing big diffs)."
   :group 'diff-mode)
 (defvar diff-changed-face 'diff-changed-face)
 
-(defface diff-comment-face
-  '((t (:inherit font-lock-comment-face)))
+(defface diff-context-face
+  '((((class color) (background light))
+     (:foreground "grey50"))
+    (((class color) (background dark))
+     (:foreground "grey70"))
+    (t ))
   "`diff-mode' face used to highlight context and other side-information."
   :group 'diff-mode)
-(defvar diff-comment-face 'diff-comment-face)
+(defvar diff-context-face 'diff-context-face)
 
 (defvar diff-font-lock-keywords
   '(("^\\(@@ -[0-9,]+ \\+[0-9,]+ @@\\)\\(.*\\)$" ;unified
      (1 diff-hunk-header-face)
-     (2 diff-comment-face))
+     (2 diff-context-face))
     ("^--- .+ ----$"		;context
      . diff-hunk-header-face)
     ("\\(\\*\\{15\\}\\)\\(.*\\)$"	;context
      (1 diff-hunk-header-face)
-     (2 diff-comment-face))
+     (2 diff-context-face))
     ("^\\*\\*\\* .+ \\*\\*\\*\\*". diff-hunk-header-face) ;context
     ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) \\(\\S-+\\)\\(.*[^*-]\\)?\n"
      (0 diff-header-face) (2 diff-file-header-face prepend))
@@ -249,7 +257,7 @@ when editing big diffs)."
     ("^[-<].*\n" . diff-removed-face)
     ("^Index: \\(.+\\).*\n" (0 diff-header-face) (1 diff-index-face prepend))
     ("^#.*" . font-lock-string-face)
-    ("^[^-=+*!<>].*\n" . diff-comment-face)))
+    ("^[^-=+*!<>].*\n" . diff-context-face)))
 
 (defconst diff-font-lock-defaults
   '(diff-font-lock-keywords t nil nil nil (font-lock-multiline . nil)))
