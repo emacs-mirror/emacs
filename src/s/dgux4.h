@@ -53,7 +53,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    the original definition would be lost. */
 #define NO_DGUX_SIGNAL_REDEF
 
-#include "dgux5-4r3.h"
+#include "dgux5-4-3.h"
 
 #define LIBS_DEBUG /* nothing, -lg doesn't exist */
 
