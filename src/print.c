@@ -603,7 +603,7 @@ to make it write to the debugging output.\n")
 
 void
 float_to_string (buf, data)
-     char *buf;
+     unsigned char *buf;
      double data;
 {
   register unsigned char *cp, c;
