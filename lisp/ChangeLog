@@ -1,5 +1,7 @@
 2000-02-04  Dave Love  <fx@gnu.org>
 
+	* bindings.el (mode-line-mule-info): Fix/extend last change.
+
 	* completion.el: Replace completion-dolist with dolist.
 
 	* tar-mode.el: Replace tar-dolist, tar-dotimes with dolist,
