@@ -4562,7 +4562,7 @@ Value is nil if ATTR doesn't have a discrete set of valid values.")
 
 DEFUN ("internal-merge-in-global-face", Finternal_merge_in_global_face,
        Sinternal_merge_in_global_face, 2, 2, 0,
-  "Add attributes from frame-default definition of FACE to FACE on FRAME.
+  "Add attributes from frame-default definition of FACE to FACE on FRAME.\n\
 Default face attributes override any local face attributes.")
   (face, frame)
      Lisp_Object face, frame;
