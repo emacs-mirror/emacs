@@ -164,7 +164,7 @@ check_mark ()
 }
 
 
-DEFUN ("call-interactively", Fcall_interactively, Scall_interactively, 1, 2, 0,
+DEFUN ("call-interactively", Fcall_interactively, Scall_interactively, 1, 3, 0,
   "Call FUNCTION, reading args according to its interactive calling specs.\n\
 Return the value FUNCTION returns.\n\
 The function contains a specification of how to do the argument reading.\n\
@@ -175,8 +175,8 @@ See `interactive'.\n\
 Optional second arg RECORD-FLAG non-nil\n\
 means unconditionally put this command in the command-history.\n\
 Otherwise, this is done only if an arg is read using the minibuffer.")
-  (function, record)
-     Lisp_Object function, record;
+  (function, record, keys)
+     Lisp_Object function, record, keys;
 {
   Lisp_Object *args, *visargs;
   unsigned char **argstrings;
@@ -206,6 +206,15 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
   char *tem1;
   int arg_from_tty = 0;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  int key_count;
+
+  if (NILP (keys))
+    keys = this_command_keys, key_count = this_command_key_count;
+  else
+    {
+      CHECK_VECTOR (keys, 3);
+      key_count = XVECTOR (keys)->size;
+    }
 
   /* Save this now, since use of minibuffer will clobber it. */
   prefix_arg = Vcurrent_prefix_arg;
@@ -322,9 +331,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
   /* Here if function specifies a string to control parsing the defaults */
 
   /* Set next_event to point to the first event with parameters.  */
-  for (next_event = 0; next_event < this_command_key_count; next_event++)
-    if (EVENT_HAS_PARAMETERS
-	(XVECTOR (this_command_keys)->contents[next_event]))
+  for (next_event = 0; next_event < key_count; next_event++)
+    if (EVENT_HAS_PARAMETERS (XVECTOR (keys)->contents[next_event]))
       break;
   
   /* Handle special starting chars `*' and `@'.  Also `-'.  */
@@ -346,7 +354,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	{
 	  Lisp_Object event;
 
-	  event = XVECTOR (this_command_keys)->contents[next_event];
+	  event = XVECTOR (keys)->contents[next_event];
 	  if (EVENT_HAS_PARAMETERS (event)
 	      && (event = XCONS (event)->cdr, CONSP (event))
 	      && (event = XCONS (event)->car, CONSP (event))
@@ -509,18 +517,18 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
 	case 'e':		/* The invoking event.  */
-	  if (next_event >= this_command_key_count)
+	  if (next_event >= key_count)
 	    error ("%s must be bound to an event with parameters",
 		   (SYMBOLP (function)
 		    ? (char *) XSYMBOL (function)->name->data
 		    : "command"));
-	  args[i] = XVECTOR (this_command_keys)->contents[next_event++];
+	  args[i] = XVECTOR (keys)->contents[next_event++];
 	  varies[i] = -1;
 
 	  /* Find the next parameterized event.  */
-	  while (next_event < this_command_key_count
+	  while (next_event < key_count
 		 && ! (EVENT_HAS_PARAMETERS
-		       (XVECTOR (this_command_keys)->contents[next_event])))
+		       (XVECTOR (keys)->contents[next_event])))
 	    next_event++;
 
 	  break;
