@@ -1,3 +1,8 @@
+2004-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-parse.el (cvs-parse-table, cvs-parse-commit): Try to adapt to
+	the newer format of some messages in cvs-1.12.1.
+
 2004-08-19  Masatake YAMATO  <jet@gyve.org>
 
 	* emacs-lisp/elp.el (elp-results-symname-map): New keymap.
