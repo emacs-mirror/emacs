@@ -1,3 +1,8 @@
+2000-12-09  Miles Bader  <miles@gnu.org>
+
+	* windows.texi (Window Start): Update documentation for
+	`pos-visible-in-window-p'.
+
 2000-11-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* lists.texi (Building Lists): Add footnote to explain how to add
