@@ -70,8 +70,7 @@ If CONFIRM is non-nil, the user will be asked for an NNTP server."
 			   (list 'nnmh-directory
 				 (file-name-as-directory
 				  (expand-file-name
-				   (concat "~/" (substring
-						 gnus-nntp-server 1)))))
+				   (substring gnus-nntp-server 1) "~/")))
 			   (list 'nnmh-get-new-mail nil)))
 		    (t
 		     (list 'nntp gnus-nntp-server)))))
