@@ -2522,7 +2522,7 @@ Return list of symbols found.")
      Lisp_Object regexp, predicate;
 {
   struct gcpro gcpro1, gcpro2;
-  CHECK_REGEXP (regexp, 0);
+  CHECK_STRING (regexp, 0);
   apropos_predicate = predicate;
   GCPRO2 (apropos_predicate, apropos_accumulate);
   apropos_accumulate = Qnil;
