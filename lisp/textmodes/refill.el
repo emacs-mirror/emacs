@@ -119,6 +119,8 @@ complex processing.")
      (t (refill-fill-paragraph nil)))
     (setq refill-doit nil)))
 
+(defvar refill-late-fill-paragraph-function nil)
+
 ;;;###autoload
 (define-minor-mode refill-mode
   "Toggle Refill minor mode.
@@ -134,12 +136,14 @@ refilling if they would cause auto-filling."
       (progn
 	(add-hook 'after-change-functions 'refill-after-change-function nil t)
 	(add-hook 'post-command-hook 'refill-post-command-function nil t)
+	(set (make-local-variable 'refill-late-fill-paragraph-function)
+	     fill-paragraph-function)
 	(set (make-local-variable 'fill-paragraph-function)
 	     'refill-fill-paragraph)
 	(auto-fill-mode 0))
     (remove-hook 'after-change-functions 'refill-after-change-function t)
     (remove-hook 'post-command-hook 'refill-post-command-function t)
-    (setq fill-paragraph-function nil)))
+    (setq fill-paragraph-function refill-late-fill-paragraph-function)))
 
 (provide 'refill)
 
