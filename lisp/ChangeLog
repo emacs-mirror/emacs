@@ -1,3 +1,8 @@
+2002-10-22  Bob Halley  <halley@play-bow.org>
+
+	* eshell/esh-io.el (eshell-set-output-handle): Fix so that
+	multiple redirection can work.
+
 2002-10-21  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/text-mode.el (text-mode-syntax-table): Make ' a prefix.
