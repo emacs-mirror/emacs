@@ -865,6 +865,7 @@ if [ ! "${opsys}" ]; then
     *-sysv2.2 | *-sysvr2.2 )		opsys=usg5-2-2 ;;
     *-sysv3 | *-sysvr3 )		opsys=usg5-3 ;;
     *-sysv4 | *-sysvr4 )		opsys=usg5-4 ;;
+    *-sysv4.2 | *-sysvr4.2 )		opsys=usg5-4-2 ;;
     * )
       unported=true
     ;;
