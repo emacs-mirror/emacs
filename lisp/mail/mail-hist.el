@@ -283,7 +283,7 @@ its own independent history, as does the body of the message.
 
 Although you can do so, it does not make much sense to call this
 without having called `mail-hist-previous-header' first
-(\\[mail-hist-previous-header]).
+\(\\[mail-hist-previous-header]).
 
 The history only contains the contents of outgoing messages, not
 received mail."
