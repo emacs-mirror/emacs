@@ -977,9 +977,9 @@ by word boundaries.  The argument's value doesn't matter.
   What if you want to exchange @samp{x} and @samp{y}: replace every @samp{x} with a @samp{y} and vice versa?  You can do it this way:
 
 @example
-M-x query-replace @key{RET} x @key{RET} @@TEMP@@ @key{RET}
-M-x query-replace @key{RET} y @key{RET} x @key{RET}
-M-x query-replace @key{RET} @@TEMP@@ @key{RET} y @key{RET}
+M-x replace-string @key{RET} x @key{RET} @@TEMP@@ @key{RET}
+M-< M-x replace-string @key{RET} y @key{RET} x @key{RET}
+M-< M-x replace-string @key{RET} @@TEMP@@ @key{RET} y @key{RET}
 @end example
 
 @noindent
@@ -1015,6 +1015,49 @@ M-x replace-regexp @key{RET} \(c[ad]+r\)-safe @key{RET} \1 @key{RET}
 
 @noindent
 performs the inverse transformation.
+
+  You can also use arbitrary Lisp expressions evaluated at replacement
+time by placing @samp{\,} before them in the replacement string.  Inside
+of those expressions, the symbols @samp{\&} and @samp{\@var{d}} refer to
+match and submatch strings like described above (a submatch not matching
+anything will be @samp{nil}), and @samp{\&#} and @samp{\@var{d}#} to
+those strings converted to numbers.  @samp{\#} is short for
+@samp{replace-count}, the number of already completed replacements.
+This particular shorthand can also be used outside of @samp{\,}.
+
+  Repeating our example to exchange @samp{x} and @samp{y}, we can thus
+do it also this way:
+
+@example
+M-x replace-regexp @key{RET} \(x\)\|y @key{RET}
+\,(if \1 "y" "x") @key{RET}
+@end example
+
+  Another feature you can use in the replacement string of Regexp
+commands is @samp{\?}.  In that case you will be allowed to edit the
+replacement string at the given position before the replacement gets
+performed.  Lisp style replacements have already been done before
+@samp{\?} is executed.  For example,
+
+@example
+M-x replace-regexp @key{RET} \footnote@{ @key{RET}
+\&\\label@{fn:\#\?@} @key{RET}
+@end example
+
+@noindent
+will add labels starting with @samp{\label@{fn:0@}} to occurences of
+@samp{\footnote@{}, but letting you edit each replacement before
+performing it.  If you want labels starting at 1, use @samp{\,(1+ \#)}
+instead of @samp{\#}.
+
+As another example, to add consecutively numbered strings like
+@samp{ABC00042} to column 73 to~80 (unless they are already occupied),
+you can use
+
+@example
+M-x replace-regexp @key{RET} ^.\@{0,72\@}$ @key{RET}
+\,(format "%-72sABC%05d" \& \#) @key{RET}
+@end example
 
 @node Replacement and Case, Query Replace, Regexp Replace, Replace
 @subsection Replace Commands and Case
@@ -1126,9 +1169,8 @@ to replace all remaining occurrences without asking again.
 
 @item ^
 to go back to the position of the previous occurrence (or what used to
-be an occurrence), in case you changed it by mistake.  This works by
-popping the mark ring.  Only one @kbd{^} in a row is meaningful, because
-only one previous replacement position is kept during @code{query-replace}.
+be an occurrence), in case you changed it by mistake or want to
+reexamine it.
 
 @item C-r
 to enter a recursive editing level, in case the occurrence needs to be
