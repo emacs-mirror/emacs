@@ -270,7 +270,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define SYSTEM_PURESIZE_EXTRA 60000
 #endif
 
-/* Tell that garbage collector that setjmp is known to save all
+/* Tell the garbage collector that setjmp is known to save all
    registers relevant for conservative garbage collection in the
    jmp_buf.  */
 

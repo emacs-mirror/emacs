@@ -743,8 +743,8 @@ treated as a compiled CCL code.
 a value of `safe-charsets' in PLIST."
 
   ;; For compatiblity with XEmacs, we check the type of TYPE.  If it
-  ;; is a symbol, perhaps, this fucntion is called with arguments of
-  ;; XEmacs style.  Here, try to transform that kind of arguments to
+  ;; is a symbol, perhaps, this function is called with XEmacs-style
+  ;; arguments.  Here, try to transform that kind of arguments to
   ;; Emacs style.
   (if (symbolp type)
       (let ((args (transform-make-coding-system-args coding-system type
