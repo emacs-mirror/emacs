@@ -1,3 +1,8 @@
+2000-10-09  Andreas Schwab  <schwab@suse.de>
+
+	* process.c (Fopen_network_stream) [HAVE_GETADDRINFO]: Reset S to
+	-1 after socket is closed, to fall through to error processing.
+
 2000-10-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (IT_set_frame_parameters): Don't initialize Lisp_Object
