@@ -58,7 +58,7 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
     WIN32_FIND_DATA wfd;
     HANDLE fh;
     p = new_cmdline + strlen (new_cmdline);
-    strcpy (p, "\\emacs*.exe");
+    strcpy (p, "\\emacs*.exe ");
     fh = FindFirstFile (new_cmdline, &wfd);
     if (fh == INVALID_HANDLE_VALUE)
       goto error;
@@ -79,7 +79,7 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
     strcat (p, " ");
   }
 #else
-  strcat (new_cmdline, "\\emacs.exe");
+  strcat (new_cmdline, "\\emacs.exe ");
 #endif
 
   /* Append original arguments if any; first look for -wait as first
