@@ -1,7 +1,7 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001, 2002,
-;;   2003, 2004  Free Software Foundation, Inc.
+;;   2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -1039,7 +1039,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
     (byte-compile-set-symbol-position (car form))
     (if (memq 'obsolete byte-compile-warnings)
 	(byte-compile-warn "`%s' is an obsolete function%s; %s" (car form)
-			   (if when (concat " since " when) "")
+			   (if when (concat " (as of Emacs " when ")") "")
 			   (if (stringp (car new))
 			       (car new)
 			     (format "use `%s' instead." (car new)))))
@@ -2779,7 +2779,7 @@ That command is designed for interactive use only" fn))
 	(let* ((ob (get var 'byte-obsolete-variable))
 	       (when (cdr ob)))
 	  (byte-compile-warn "`%s' is an obsolete variable%s; %s" var
-			     (if when (concat " since " when) "")
+			     (if when (concat " (as of Emacs " when ")") "")
 			     (if (stringp (car ob))
 				 (car ob)
 			       (format "use `%s' instead." (car ob))))))

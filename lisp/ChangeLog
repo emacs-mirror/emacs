@@ -1,3 +1,8 @@
+2005-03-09  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-variable-ref)
+	(byte-compile-obsolete): Change " since VER" to " (as of Emacs VER)".
+
 2005-03-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/latin-1.el: Set case and syntax for 255 only if
