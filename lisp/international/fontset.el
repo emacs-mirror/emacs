@@ -4,7 +4,7 @@
 ;; Licensed to the Free Software Foundation.
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
-;; Keywords: mule, multilingual, fontset
+;; Keywords: mule, i18n, fontset
 
 ;; This file is part of GNU Emacs.
 
@@ -68,6 +68,18 @@
 	("ethiopic-unicode" . ethiopic)
 	("is13194-devanagari" . indian-is13194)
 	("devanagari-cdac" . devanagari-glyph)
+;; These would be necessary for supporting the complete set of Indian
+;; scripts.  See also mule-conf.el.
+;; 	("sanskrit-cdac" . sanskrit-glyph)
+;; 	("bengali-cdac" . bengali-glyph)
+;; 	("assamese-cdac" . assamese-glyph)
+;; 	("punjabi-cdac" . punjabi-glyph)
+;; 	("gujarati-cdac" . gujarati-glyph)
+;; 	("oriya-cdac" . oriya-glyph)
+;; 	("tamil-cdac" . tamil-glyph)
+;; 	("telugu-cdac" . telugu-glyph)
+;; 	("kannada-cdac" . kannada-glyph)
+;; 	("malayalam-cdac" . malayalam-glyph)
 	("muleindian-2" . indian-2-column)
 	("muleindian-1" . indian-1-column)
 	("mulelao-1" . mule-lao)
@@ -111,6 +123,7 @@
 	  (nil . "ISO8859-10")
 	  (nil . "ISO8859-13")
 	  (nil . "ISO8859-14")
+	  (nil . "ISO8859-15")
 	  (nil . "VISCII1.1-1"))
 
    (thai (nil . "TIS620*")
@@ -186,24 +199,150 @@
    (indian-is13194 (nil . "is13194-devanagari"))
    (indian-1-column ("*" . "muleindian-2"))
    (devanagari-glyph ("altsys-dv_ttsurekh" . "devanagari-cdac"))
+;; These would be necessary for supporting the complete set of Indian
+;; scripts.
+   ;; fixme: family name
+;;    (sanskrit-glyph ("*" . "sanskrit-cdac"))
+;;    (bengali-glyph ("*" . "bengali-cdac"))
+;;    (assamese-glyph ("*" . "assamese-cdac"))
+;;    (punjabi-glyph ("*" . "punjabi-cdac"))
+;;    (gujarati-glyph ("*" . "gujarati-cdac"))
+;;    (oriya-glyph ("*" . "oriya-cdac"))
+;;    (tamil-glyph ("*" . "tamil-cdac"))
+;;    (telugu-glyph ("*" . "telugu-cdac"))
+;;    (kannada-glyph ("*" . "kannada-cdac"))
    (malayalam-glyph ("altsys-ml_ttkarthika" . "malayalam-cdac"))
    (ipa (nil . "MuleIPA-1"))
    ))
 
 ;; Append Unicode fonts.
-;; This may find fonts of more varients (bold, italic) but don't cover
+;; This may find fonts with more variants (bold, italic) but which don't cover
 ;; many characters.
 (set-fontset-font "fontset-default" '(#x00A0 . #xFFFF)
 		  '(nil . "iso10646-1") nil 'append)
-;; These may find fonts that covers many characters but less varients.
+;; These may find fonts that cover many characters but with fewer variants.
 (set-fontset-font "fontset-default" '(#x00A0 . #xFFFF)
 		  '("gnu-unifont" . "iso10646-1") nil 'append)
 (set-fontset-font "fontset-default" '(#x00A0 . #xFFFF)
 		  '("mutt-clearlyu" . "iso10646-1") nil 'append)
 
+;; These are the registered registries/encodings from
+;; ftp://ftp.x.org/pub/DOCS/registry 2001/06/01
 
-;; Set arguments in `font-encoding-alist' (which see).
+;; Name                                            Reference
+;; ----                                            ---------
+;; "DEC"                                           [27]
+;;         registry prefix
+;; "DEC.CNS11643.1986-2"                           [53]
+;;         CNS11643 2-plane using the encoding
+;;         suggested in that standard
+;; "DEC.DTSCS.1990-2"                              [54]
+;;         DEC Taiwan Supplemental Character Set
+;; "fujitsu.u90x01.1991-0"                         [87]
+;; "fujitsu.u90x03.1991-0"                         [87]
+;; "GB2312.1980-0"                                 [39],[12]
+;;         China (PRC) Hanzi, GL encoding
+;; "GB2312.1980-1"                                 [39]
+;;         (deprecated)
+;;         China (PRC) Hanzi, GR encoding
+;; "HP-Arabic8"                                    [36]
+;;         HPARABIC8 8-bit character set
+;; "HP-East8"                                      [36]
+;;         HPEAST8 8-bit character set
+;; "HP-Greek8"                                     [36]
+;;         HPGREEK8 8-bit character set
+;; "HP-Hebrew8"                                    [36]
+;;         HPHEBREW8 8-bit character set
+;; "HP-Japanese15"                                 [36]
+;;         HPJAPAN15 15-bit characer set,
+;;         modified from industry defacto
+;;         standard Shift-JIS
+;; "HP-Kana8"                                      [36]
+;;         HPKANA8 8-bit character set
+;; "HP-Korean15"                                   [36]
+;;         HPKOREAN15 15-bit character set
+;; "HP-Roman8"                                     [36]
+;;         HPROMAN8 8-bit character set
+;; "HP-SChinese15"                                 [36]
+;;         HPSCHINA15 15-bit character set for
+;;         support of Simplified Chinese
+;; "HP-TChinese15"                                 [36]
+;;         HPTCHINA15 15-bit character set for
+;;         support of Traditional Chinese
+;; "HP-Turkish8"                                   [36]
+;;         HPTURKISH8 8-bit character set
+;; "IPSYS"                                         [59]
+;;         registry prefix
+;; "IPSYS.IE-1"                                    [59]
+;; "ISO2022"<REG>"-"<ENC>                          [44]
+;; "ISO646.1991-IRV"                               [107]
+;;         ISO 646 International Reference Version
+;; "ISO8859-1"                                     [15],[12]
+;;         ISO Latin alphabet No. 1
+;; "ISO8859-2"                                     [15],[12]
+;;         ISO Latin alphabet No. 2
+;; "ISO8859-3"                                     [15],[12]
+;;         ISO Latin alphabet No. 3
+;; "ISO8859-4"                                     [15],[12]
+;;         ISO Latin alphabet No. 4
+;; "ISO8859-5"                                     [15],[12]
+;;         ISO Latin/Cyrillic alphabet
+;; "ISO8859-6"                                     [15],[12]
+;;         ISO Latin/Arabic alphabet
+;; "ISO8859-7"                                     [15],[12]
+;;         ISO Latin/Greek alphabet
+;; "ISO8859-8"                                     [15],[12]
+;;         ISO Latin/Hebrew alphabet
+;; "ISO8859-9"                                     [15],[12]
+;;         ISO Latin alphabet No. 5
+;; "ISO8859-10"                                    [15],[12]
+;;         ISO Latin alphabet No. 6
+;; "ISO8859-13"                                    [15],[12]
+;;         ISO Latin alphabet No. 7
+;; "ISO8859-14"                                    [15],[12]
+;;         ISO Latin alphabet No. 8
+;; "ISO8859-15"                                    [15],[12]
+;;         ISO Latin alphabet No. 9
+;; "FCD8859-15"                                    [7]
+;;         (deprecated)
+;;         ISO Latin alphabet No. 9, Final Committee Draft
+;; "ISO10646-1"                                    [133]
+;;         Unicode Universal Multiple-Octet Coded Character Set
+;; "ISO10646-MES"                                  [133]
+;;         (deprecated)
+;;         Unicode Minimum European Subset
+;; "JISX0201.1976-0"                               [38],[12]
+;;         8-Bit Alphanumeric-Katakana Code
+;; "JISX0208.1983-0"                               [40],[12]
+;;         Japanese Graphic Character Set,
+;;         GL encoding
+;; "JISX0208.1990-0"                               [71]
+;;         Japanese Graphic Character Set,
+;;         GL encoding
+;; "JISX0208.1983-1"                               [40]
+;;         (deprecated)
+;;         Japanese Graphic Character Set,
+;;         GR encoding
+;; "JISX0212.1990-0"                               [72]
+;;         Supplementary Japanese Graphic Character Set,
+;;         GL encoding
+;; "KOI8-R"                                        [119]
+;;         Cyrillic alphabet
+;; "KSC5601.1987-0"                                [41],[12]
+;;         Korean Graphic Character Set,
+;;         GL encoding
+;; "KSC5601.1987-1"                                [41]
+;;         (deprecated)
+;;         Korean Graphic Character Set,
+;;         GR encoding
+;; "omron_CNS11643-0"                              [45]
+;; "omron_CNS11643-1"                              [45]
+;; "omron_BIG5-0"                                  [45]
+;; "omron_BIG5-1"                                  [45]
+;; "wn.tamil.1993"                                 [103]
+
 (defun set-font-encoding (pattern charset)
+  "Set arguments in `font-encoding-alist' (which see)."
   (let ((slot (assoc pattern font-encoding-alist)))
     (if slot
 	(setcdr slot charset)
@@ -252,7 +391,7 @@
 
 ;; Regular expression matching against a fontname which conforms to
 ;; XLFD (X Logical Font Description).  All fields in XLFD from FOUNDRY
-;; to ADSTYLE, REGSITRY, and ENCODING should be not be omitted (but
+;; to ADSTYLE, REGISTRY, and ENCODING should be not be omitted (but
 ;; can be a wild card) to be matched.
 (defconst xlfd-style-regexp
   "^\
@@ -269,7 +408,7 @@
 	))
 
 (defun x-decompose-font-name (pattern)
-  "Decompose PATTERN into XLFD's fields and return vector of the fields.
+  "Decompose PATTERN into XLFD fields and return vector of the fields.
 The length of the vector is 12.
 
 If PATTERN doesn't conform to XLFD, try to get a full XLFD name from
@@ -322,7 +461,7 @@ PATTERN.  If no full XLFD name is gotten, return nil."
 
 	    ;; Set each element of xlfd-fields to proper strings.
 	    (if (string-match pattern fontname)
-		;; The regular expression PATTERN matchs the full XLFD
+		;; The regular expression PATTERN matches the full XLFD
 		;; name.  Set elements that correspond to a wild card
 		;; in PATTERN to nil, set the other elements to the
 		;; exact strings in PATTERN.
@@ -339,13 +478,13 @@ PATTERN.  If no full XLFD name is gotten, return nil."
 			    (setq i (1+ i)))
 			(setq l (cdr (cdr l)))))))
 	      ;; Set each element of xlfd-fields to the exact string
-	      ;; in the corresonding fields in full XLFD name.
+	      ;; in the corresponding fields in full XLFD name.
 	      (dotimes (i 12)
 		(aset xlfd-fields i (cdr (aref xlfd-fields i)))))
 	    xlfd-fields)))))
 
 (defun x-compose-font-name (fields &optional reduce)
-  "Compose X's fontname from FIELDS.
+  "Compose X fontname from FIELDS.
 FIELDS is a vector of XLFD fields, the length 12.
 If a field is nil, wild-card letter `*' is embedded.
 Optional argument REDUCE is always ignored.  It exists just for
@@ -432,9 +571,9 @@ with \"fontset\" in `<CHARSET_REGISTRY> field."
        (string= (match-string (1+ xlfd-regexp-registry-subnum) fontset)
 		"fontset")))
 
-;; Return a list to be appended to `x-fixed-font-alist' when
-;; `mouse-set-font' is called.
 (defun generate-fontset-menu ()
+  "Return list to be appended to `x-fixed-font-alist'.
+Done when `mouse-set-font' is called."
   (let (l)
     (dolist (fontset (fontset-list))
       (or (string-match "fontset-default$" fontset)
@@ -554,7 +693,7 @@ which case, the corresponding script is decided by the variable
 	(name (match-string 0 fontset-spec))
 	xlfd-fields script fontlist ascii-font)
     (if (query-fontset name)
-	(or noerror 
+	(or noerror
 	    (error "Fontset \"%s\" already exists" name))
       (setq xlfd-fields (x-decompose-font-name name))
       (or xlfd-fields
@@ -598,8 +737,8 @@ which case, the corresponding script is decided by the variable
   "Create a fontset from an ASCII font FONT.
 
 Optional 1st arg RESOLVED-FONT is a resolved name of FONT.  If
-omitted, x-resolve-font-name is called to get the resolved name.  At
-this time, if FONT is not available, error is signaled.
+omitted, `x-resolve-font-name' is called to get the resolved name.  At
+this time, if FONT is not available, an error is signaled.
 
 Optional 2nd arg FONTSET-NAME is a string to be used in
 `<CHARSET_ENCODING>' fields of a new fontset name.  If it is omitted,
