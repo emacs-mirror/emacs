@@ -1,7 +1,6 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
 ;;; Copyright (C) 1989, 1990, 1991, 1992, 1993  Free Software Foundation, Inc.
-;;; ??? Waiting for papers from several people.
 ;;;
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
 ;; Keywords: comm
@@ -859,7 +858,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.18 $")
+(defconst ange-ftp-version "$Revision: 1.19 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
