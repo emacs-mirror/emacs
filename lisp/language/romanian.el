@@ -31,7 +31,7 @@
 (defun setup-romanian-environment ()
   "Setup multilingual environment (MULE) for Romanian."
   (interactive)
-  (setup-8-bit-environment "Romanian" 'latin-iso8859-2 "romanian")
+  (setup-8-bit-environment "Romanian" 'latin-iso8859-2 "latin-2-postfix")
   (load "latin-2"))
 
 (set-language-info-alist
@@ -39,7 +39,7 @@
 	    (charset . (ascii latin-iso8859-2))
 	    (coding-system . (iso-8859-2))
 	    (coding-priority . (iso-8859-2))
-	    (sample-text . "Bunã ziua, bine aþi venit!")
+	    (sample-text . "Bun,Ac(B ziua, bine a,A~(Bi venit!")
 	    (documentation . nil))
  '("European"))
 
