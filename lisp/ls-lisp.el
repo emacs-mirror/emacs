@@ -515,26 +515,40 @@ Return nil if no time switch found."
 	((memq ?t switches) 5)		; last modtime
 	((memq ?u switches) 4)))	; last access
 
+(defun ls-lisp-time-to-seconds (time)
+  "Convert TIME to a floating point number."
+  (+ (* (car time) 65536.0)
+     (cadr time)
+     (/ (or (nth 2 time) 0) 1000000.0)))
+
 (defun ls-lisp-format-time (file-attr time-index now)
   "Format time for file with attributes FILE-ATTR according to TIME-INDEX.
 Use the same method as ls to decide whether to show time-of-day or year,
 depending on distance between file date and NOW.
 All ls time options, namely c, t and u, are handled."
   (let* ((time (nth (or time-index 5) file-attr)) ; default is last modtime
-	 (diff16 (- (car time) (car now)))
-	 (diff (+ (ash diff16 16) (- (car (cdr time)) (car (cdr now)))))
-	 (past-cutoff (- (* 6 30 24 60 60)))	; 6 30-day months
-	 (future-cutoff (* 60 60)))		; 1 hour
+	 (diff (- (ls-lisp-time-to-seconds time)
+		  (ls-lisp-time-to-seconds now)))
+	 ;; Consider a time to be recent if it is within the past six
+	 ;; months.  A Gregorian year has 365.2425 * 24 * 60 * 60 ==
+	 ;; 31556952 seconds on the average, and half of that is 15778476.
+	 ;; Write the constant explicitly to avoid roundoff error.
+	 (past-cutoff -15778476)) ; half a Gregorian year
     (condition-case nil
-	(format-time-string
-	 (if (and
-	      (<= past-cutoff diff) (<= diff future-cutoff)
-	      ;; Sanity check in case `diff' computation overflowed.
-	      (<= (1- (ash past-cutoff -16)) diff16)
-	      (<= diff16 (1+ (ash future-cutoff -16))))
-	     "%b %e %H:%M"
-	   "%b %e  %Y")
-	 time)
+	;; Use traditional time format in the C or POSIX locale,
+	;; ISO-style time format otherwise, so columns line up.
+	(let ((locale system-time-locale))
+	  (if (not locale)
+	      (let ((vars '("LC_ALL" "LC_TIME" "LANG")))
+		(while (and vars (not (setq locale (getenv (car vars)))))
+		  (setq vars (cdr vars)))))
+	  (if (member locale '("C" "POSIX"))
+	      (setq locale nil))
+	  (format-time-string
+	   (if (and (<= past-cutoff diff) (<= diff 0))
+	       (if locale "%m-%d %H:%M" "%b %e %H:%M")
+	     (if locale "%Y-%m-%d " "%b %e  %Y"))
+	   time))
       (error "Unk  0  0000"))))
 
 (provide 'ls-lisp)
