@@ -1436,11 +1436,11 @@ x_get_arg (alist, param, attribute, class, type)
 	      {
 		Lisp_Object lower;
 		lower = Fdowncase (tem);
-		if (!strcmp (XSTRING (tem)->data, "on")
-		    || !strcmp (XSTRING (tem)->data, "true"))
+		if (!strcmp (XSTRING (lower)->data, "on")
+		    || !strcmp (XSTRING (lower)->data, "true"))
 		  return Qt;
-		else if (!strcmp (XSTRING (tem)->data, "off")
-		      || !strcmp (XSTRING (tem)->data, "false"))
+		else if (!strcmp (XSTRING (lower)->data, "off")
+		      || !strcmp (XSTRING (lower)->data, "false"))
 		  return Qnil;
 		else
 		  return Fintern (tem, Qnil);
