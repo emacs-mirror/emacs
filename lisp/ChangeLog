@@ -1,3 +1,7 @@
+1999-10-21  Dave Love  <fx@gnu.org>
+
+	* loadup.el: Add latin-8, latin-9.
+
 1999-10-20  Paul Eggert  <eggert@twinsun.com>
 
 	* disp-table.el (standard-display-european): Remove undocumented
