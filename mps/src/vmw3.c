@@ -1,6 +1,8 @@
-/*  ==== VIRTUAL MEMORY MAPPING FOR WIN32S ====
+/*  impl.c.vmnt
  *
- *  $HopeName$
+ *                 VIRTUAL MEMORY MAPPING FOR WIN32
+ *
+ *  $HopeName: MMsrc/!vmnt.c(trunk.1)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -9,7 +11,8 @@
  *
  *  VirtualAlloc is used to reserve address space and to "commit" (map)
  *  address ranges onto storage.  VirtualFree is used to release and
- *  "decommit" (unmap) pages.
+ *  "decommit" (unmap) pages.  These functions are documented in the
+ *  Win32 SDK help, under System Services/Memory Management.
  *
  *  Notes
  *   1. GetSystemInfo returns a thing called szAllocationGranularity
@@ -23,11 +26,25 @@
 #include "vm.h"
 
 #ifndef OS_NT
-#error "vmnt.c is NT specific, but OS_NT is not set"
+#error "vmnt.c is Win32 specific, but OS_NT is not set"
 #endif
 
 #include <stddef.h>
 #include <windows.h>
+
+
+#ifdef DEBUG_SIGN
+static SigStruct VMSigStruct;
+#endif
+
+
+typedef struct VMStruct
+{
+#ifdef DEBUG_SIGN
+  Sig sig;
+#endif
+  Addr base, limit;     /* boundaries of reserved space */
+} VMStruct;
 
 
 Addr VMGrain(void)
@@ -39,87 +56,140 @@ Addr VMGrain(void)
 
   GetSystemInfo(&si);
   grain = (Addr)si.dwPageSize;
-
   AVER(IsPoT(grain));
 
   return(grain);
 }
 
 
-Error VMReserve(Addr *baseReturn, Addr *limitReturn, Addr size)
+#ifdef DEBUG_ASSERT
+
+Bool VMIsValid(VM vm, ValidationType validParam)
+{
+  AVER(vm != NULL);
+#ifdef DEBUG_SIGN
+  AVER(ISVALIDNESTED(Sig, vm->sig));
+  AVER(vm->sig == &VMSigStruct);
+#endif
+  AVER(vm->base != 0);
+  AVER(vm->limit != 0);
+  AVER(vm->base < vm->limit);
+  AVER(IsAligned(VMGrain(), vm->base));
+  AVER(IsAligned(VMGrain(), vm->limit));
+  return(TRUE);
+}
+
+#endif /* DEBUG_ASSERT */
+
+
+Error VMCreate(VM *vmReturn, Addr size)
 {
   LPVOID base;
-#ifdef DEBUG_ASSERT
   Addr grain = VMGrain();
-#endif
+  VM vm;
 
-  AVER(size > 0);
+  AVER(vmReturn != NULL);
   AVER(IsAligned(grain, size));
   AVER(sizeof(LPVOID) == sizeof(Addr));
 
+  /* Allocate in a page to store the descriptor on. */
+  base = VirtualAlloc(NULL, AlignUp(grain, sizeof(VMStruct)),
+          MEM_COMMIT, PAGE_READWRITE);
+  if(base == NULL)
+    return(ErrRESOURCE);
+  vm = (VM)base;
+
+  /* Allocate the address space. */
   base = VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_NOACCESS);
   if(base == NULL)
     return(ErrRESOURCE);
 
   AVER(IsAligned(grain, (Addr)base));
 
-  *baseReturn = (Addr)base;
-  *limitReturn = (Addr)base + size;
+  vm->base = (Addr)base;
+  vm->limit = (Addr)base + size;
+  
+#ifdef DEBUG_SIGN
+  SigInit(&VMSigStruct, "VM");
+  vm->sig = &VMSigStruct;
+#endif
+
+  AVER(ISVALID(VM, vm));
+
+  *vmReturn = vm;
   return(ErrSUCCESS);
 }
 
 
-void VMRelease(Addr base, Addr limit)
+void VMDestroy(VM vm)
 {
   BOOL b;
-#ifdef DEBUG_ASSERT
   Addr grain = VMGrain();
-#endif
 
-  AVER(IsAligned(grain, base));
-  AVER(IsAligned(grain, limit));
-  AVER(base < limit);
-  AVER(base != 0);
+  AVER(ISVALID(VM, vm));
 
-  b = VirtualFree((LPVOID)base, (DWORD)(limit - base), MEM_RELEASE);
+  /* Note: There is no need to invalidate vm->sig since the page it's */
+  /* on is about to disappear from memory. */
+
+  b = VirtualFree((LPVOID)vm->base, (DWORD)0, MEM_RELEASE);
+  AVER(b == TRUE);
+  
+  b = VirtualFree((LPVOID)vm, (DWORD)0, MEM_RELEASE);
   AVER(b == TRUE);
 }
 
 
-Error VMMap(Addr base, Addr limit)
+Addr VMBase(VM vm)
+{
+  AVER(ISVALID(VM, vm));
+  return(vm->base);
+}
+
+Addr VMLimit(VM vm)
+{
+  AVER(ISVALID(VM, vm));
+  return(vm->limit);
+}
+
+
+Error VMMap(VM vm, Addr base, Addr limit)
 {
   LPVOID b;
 #ifdef DEBUG_ASSERT
   Addr grain = VMGrain();
 #endif
 
+  AVER(ISVALID(VM, vm));
   AVER(IsAligned(grain, base));
   AVER(IsAligned(grain, limit));
   AVER(base < limit);
-  AVER(base != 0);
+  AVER(base >= vm->base);
+  AVER(limit <= vm->limit);
 
   b = VirtualAlloc((LPVOID)base, (DWORD)(limit - base),
-		   MEM_COMMIT, PAGE_READWRITE);
+       MEM_COMMIT, PAGE_READWRITE);
   if(b == NULL)
     return(ErrRESMEM);
 
-  AVER((Addr)b == base);	/* base should've been aligned */
+  AVER((Addr)b == base);        /* base should've been aligned */
 
   return(ErrSUCCESS);
 }
 
 
-void VMUnmap(Addr base, Addr limit)
+void VMUnmap(VM vm, Addr base, Addr limit)
 {
 #ifdef DEBUG_ASSERT
   Addr grain = VMGrain();
 #endif
   BOOL b;
 
+  AVER(ISVALID(VM, vm));
   AVER(IsAligned(grain, base));
   AVER(IsAligned(grain, limit));
   AVER(base < limit);
-  AVER(base != 0);
+  AVER(base >= vm->base);
+  AVER(limit <= vm->limit);
 
   b = VirtualFree((LPVOID)base, (DWORD)(limit - base), MEM_DECOMMIT);
   AVER(b == TRUE);
