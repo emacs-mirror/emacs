@@ -1,5 +1,8 @@
 2001-09-22  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* vc-hooks.el (vc-delete-automatic-version-backups):
+	Don't fail if the directory doesn't exist.
+
 	* diff-mode.el (diff-default-read-only): New var.
 	(diff-mode): Use it.
 
