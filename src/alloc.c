@@ -126,6 +126,12 @@ EMACS_INT gc_cons_threshold;
 
 int gc_in_progress;
 
+/* Nonzero means abort if try to GC.
+   This is for code which is written on the assumption that
+   no GC will happen, so as to verify that assumption.  */
+
+int abort_on_gc;
+
 /* Nonzero means display messages at beginning and end of GC.  */
 
 int garbage_collection_messages;
@@ -4092,6 +4098,9 @@ Garbage collection happens automatically if you cons more than
   Lisp_Object total[8];
   int count = SPECPDL_INDEX ();
   EMACS_TIME t1, t2, t3;
+
+  if (abort_on_gc)
+    abort ();
 
   EMACS_GET_TIME (t1);
 
