@@ -30,16 +30,10 @@
 ;;; Code:
 
 (require 'quail)
-
-(defun quail-hangul-switch-back (key idx)
-  (if (not input-method-history)
-      (toggle-input-method t)
-    (quail-delete-region)
-    (activate-input-method (car input-method-history)))
-  (throw 'quail-tag nil))
+(require 'korea-util)
 
 (quail-define-package
- "korean-symbol" "Korean" "한글심벌입력표" t
+ "korean-symbol" "Korean" "심벌" t
  "한글심벌입력표:
   【(】괄호열기【arrow】화살【sex】♂♀【index】첨자  【accent】악센트
   【)】괄호닫기【music】음악【dot】점  【quote】따옴표【xtext】§※¶¡¿
@@ -56,8 +50,6 @@
   【자소】2벌식 + ㅥ(S) ㅿ(t_) ㆀ(DD) ㆁ(D) ㆆ(G) ㆅ(GG) ㆍ(uk)")
 
 (quail-define-rules
- ("\\" quail-hangul-switch-back)
-
  ("("	"〔〈《「『【")
  (")"	"〕〉》」』】")
  ("math"	"±×÷≠≤≥∞∴∠⊥⌒∂∇≡≒〓≪≫√∽∝∵∫∬∈∋⊆⊇⊂⊃∪∩∧∨￢⇔∀∃∮∑∏")
