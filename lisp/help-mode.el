@@ -365,6 +365,9 @@ that."
 ;;; 				(pop-to-buffer (car location))
 ;;; 				(goto-char (cdr location))))
 			  (help-xref-button 8 'help-function-def sym))
+			 ((facep sym)
+			  (if (save-match-data (looking-at "[ \t\n]+face\\W"))
+			      (help-xref-button 8 'help-face sym)))
                          ((and (boundp sym) (fboundp sym))
                           ;; We can't intuit whether to use the
                           ;; variable or function doc -- supply both.
@@ -375,10 +378,7 @@ that."
 						   'variable-documentation))
 			  (help-xref-button 8 'help-variable sym))
 			 ((fboundp sym)
-			  (help-xref-button 8 'help-function sym))
-			 ((facep sym)
-			  (if (save-match-data (looking-at "[ \t\n]+face\\W"))
-			      (help-xref-button 8 'help-face sym))))))))
+			  (help-xref-button 8 'help-function sym)))))))
               ;; An obvious case of a key substitution:
               (save-excursion
                 (while (re-search-forward
