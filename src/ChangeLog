@@ -1,3 +1,18 @@
+2003-02-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* fns.c (string_to_multibyte): Remove unused var i.
+	(Flanginfo): Fix int/Lisp_Object mixup.
+	(void_call2): New fun.
+	(Fmap_char_table): Use it in place of call2.
+
+	* xfaces.c (x_face_list_fonts): Fix int/Lisp_Object mixup.
+
+	* macros.c (Fstart_kbd_macro): Remove redundant assignment.
+
+	* keymap.c (copy_keymap_1): Make it static.
+
+	* alloc.c (Fgarbage_collect): Don't use XSETFLOAT.
+
 2003-02-22  David Ponce  <david@dponce.com>
 
 	* lread.c (Fload): Don't check STRING_MULTIBYTE.
@@ -8,8 +23,8 @@
 
 	* process.c (create_process): Remove setting of subtty.
 	(emacs_get_tty_pgrp): New function.
-	(Fprocess_running_child_p, process_send_signal): Call
-	emacs_get_tty_pgrp instead of ioctl.
+	(Fprocess_running_child_p, process_send_signal):
+	Call emacs_get_tty_pgrp instead of ioctl.
 	(process_send_signal): Call EMACS_KILLPG if ioctl TIOCSIGSEND fails.
 
 2003-02-21  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
@@ -28,16 +43,15 @@
 
 	* s/hpux10-20.h: New file.
 
-	* process.c (wait_reading_process_input): Use
-	POLL_INTERRUPTED_SYS_CALL, not POLLING_PROBLEM_IN_SELECT.
+	* process.c (wait_reading_process_input):
+	Use POLL_INTERRUPTED_SYS_CALL, not POLLING_PROBLEM_IN_SELECT.
 
 2003-02-20  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (check_fontset_name): If NAME is nil, return the
 	default fontset.
 	(override_font_info): New function.
-	(Fset_fontset_font): Document that NAME nil means the default
-	fontset.
+	(Fset_fontset_font): Document that NAME nil means the default fontset.
 	(Ffontset_info): If FONTSET is not the default fontset, merge
 	FONTSET onto the copy of the default fontset, and work on that
 	copy.  Document that NAME nil means the default fontset.
@@ -48,8 +62,8 @@
 
 2003-02-19  Andreas Schwab  <schwab@suse.de>
 
-	* lisp.h (Fcancel_kbd_macro_events, Fstring_to_multibyte): Add
-	prototypes.
+	* lisp.h (Fcancel_kbd_macro_events, Fstring_to_multibyte):
+	Add prototypes.
 
 2003-02-19  Kenichi Handa  <handa@m17n.org>
 
@@ -66,7 +80,7 @@
 	names.
 
 	* xfaces.c (x_face_list_fonts): Allocate struct font_name here.
-	(sorted_font_list): Moved allocation of struct font_name to
+	(sorted_font_list): Move allocation of struct font_name to
 	x_face_list_fonts.
 	(Fx_font_family_list): Set font-list-limit to -1 to get all font names.
 	(Fx_list_fonts): Set maxnames to -1 to get all font names.
@@ -120,8 +134,8 @@
 
 2003-02-16  Jason Rumney  <jasonr@gnu.org>
 
-	* w32fns.c (w32_list_bdf_fonts, w32_list_fonts): Negative
-	max_fonts parameter means list all.
+	* w32fns.c (w32_list_bdf_fonts, w32_list_fonts):
+	Negative max_fonts parameter means list all.
 
 2003-02-14  Dave Love  <fx@gnu.org>
 
@@ -169,8 +183,8 @@
 
 	* process.c (QCfilter_multibyte): New variable.
 	(setup_process_coding_systems): New function.
-	(Fset_process_buffer, Fset_process_filter): Call
-	setup_process_coding_systems.
+	(Fset_process_buffer, Fset_process_filter):
+	Call setup_process_coding_systems.
 	(Fstart_process): Initialize the member `filter_multibyte' of
 	struct Lisp_Process.
 	(create_process): Call setup_process_coding_systems.
@@ -219,8 +233,8 @@
 2003-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_text_icon, x_raise_frame, x_lower_frame)
-	(x_make_frame_invisible, x_wm_set_icon_position): Use
-	FRAME_OUTER_WINDOW instead of ifdef X_TOOLKIT/else/endif.
+	(x_make_frame_invisible, x_wm_set_icon_position):
+	Use FRAME_OUTER_WINDOW instead of ifdef X_TOOLKIT/else/endif.
 
 	* xfns.c (x_set_name, x_set_title): Ditto.
 
@@ -295,12 +309,11 @@
 2003-01-31  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (SKIP_GLYPHS): New macro.
-	(set_cursor_from_row): Skip all glyphs that comes from overlay
-	string.
+	(set_cursor_from_row): Skip all glyphs that comes from overlay string.
 
 2003-01-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* gtkutil.c (free_frame_tool_bar): Removed debug printf.
+	* gtkutil.c (free_frame_tool_bar): Remove debug printf.
 
 2003-01-30  Dave Love  <fx@gnu.org>
 
@@ -422,8 +435,7 @@
 2003-01-24  Kenichi Handa  <handa@m17n.org>
 
 	* keyboard.c (adjust_point_for_property): New second arg MODIFIED.
-	It it is nonzero, don't pretend that an invisible area doesn't
-	exist.
+	It it is nonzero, don't pretend that an invisible area doesn't exist.
 	(command_loop_1): Call adjust_point_for_property with proper
 	second arg.
 
@@ -480,8 +492,8 @@
 	add function w32_define_cursor.
 	(show_mouse_face): Delete #if 0 to enable function w32_define_cursor
 	and change member name output_data.x to output_data.w32.
-	(w32_initialize_display_info): Setup
-	dpyinfo->vertical_scroll_bar_cursor.
+	(w32_initialize_display_info):
+	Setup dpyinfo->vertical_scroll_bar_cursor.
 
 	* w32fns.c (Vx_hand_shape): New variable.
 	(w32_wnd_proc): Add message entries for WM_SETCURSOR and
@@ -626,12 +638,11 @@
 
 2002-11-08  Juanma Barranquero  <lektu@terra.es>
 
-	* w32term.c (w32_draw_fringe_bitmap): Remove unused local variable
-	window.
+	* w32term.c (w32_draw_fringe_bitmap): Remove unused variable window.
 
 2002-11-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* process.c (Fformat_network_address): Removed unused locals p,
+	* process.c (Fformat_network_address): Remove unused locals p,
 	cp, and i.
 
 2002-11-06  Dave Love  <fx@gnu.org>
