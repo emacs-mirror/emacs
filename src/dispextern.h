@@ -1985,6 +1985,22 @@ struct image
   unsigned long *colors;
   int ncolors;
 
+  /* A single `background color' for this image, for the use of anyone that
+     cares about such a thing.  Only valid if the `background_valid' field
+     is true.  This should generally be accessed by calling the accessor
+     macro `IMAGE_BACKGROUND', which will heuristically calculate a value
+     if necessary.  */
+  unsigned long background;
+
+  /* True if this image has a `transparent' background -- that is, is
+     uses an image mask.  The accessor macro for this is
+     `IMAGE_BACKGROUND_TRANSPARENT'.  */
+  unsigned background_transparent : 1;
+
+  /* True if the `background' and `background_transparent' fields are
+     valid, respectively. */
+  unsigned background_valid : 1, background_transparent_valid : 1;
+
   /* Width and height of the image.  */
   int width, height;
 
@@ -2268,6 +2284,10 @@ void forall_images_in_image_cache P_ ((struct frame *,
 int valid_image_p P_ ((Lisp_Object));
 void prepare_image_for_display P_ ((struct frame *, struct image *));
 int lookup_image P_ ((struct frame *, Lisp_Object));
+unsigned long image_background P_ ((struct image *, struct frame *,
+				    XImage *ximg));
+int image_background_transparent P_ ((struct image *, struct frame *,
+				      XImage *mask));
 extern Lisp_Object tip_frame;
 extern Window tip_window;
 EXFUN (Fx_show_tip, 6);
@@ -2275,6 +2295,24 @@ EXFUN (Fx_hide_tip, 0);
 extern void start_hourglass P_ ((void));
 extern void cancel_hourglass P_ ((void));
 extern int display_hourglass_p;
+
+/* Returns the background color of IMG, calculating one heuristically if
+   necessary.  If non-zero, XIMG is an existing XImage object to use for
+   the heuristic.  */
+
+#define IMAGE_BACKGROUND(img, f, ximg)					      \
+   ((img)->background_valid						      \
+    ? (img)->background							      \
+    : image_background (img, f, ximg))
+
+/* Returns true if IMG has a `transparent' background, using heuristics
+   to decide if necessary.  If non-zero, MASK is an existing XImage
+   object to use for the heuristic.  */
+
+#define IMAGE_BACKGROUND_TRANSPARENT(img, f, mask)			      \
+   ((img)->background_transparent_valid					      \
+    ? (img)->background_transparent					      \
+    : image_background_transparent (img, f, mask))
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
