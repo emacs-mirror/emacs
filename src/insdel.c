@@ -1300,33 +1300,65 @@ adjust_before_replace (from, from_byte, to, to_byte)
 {
   adjust_markers_for_delete (from, from_byte, to, to_byte);
   record_delete (from, to - from);
+  adjust_overlays_for_delete (from, to - from);
 }
 
 /* This function should be called after altering the text between FROM
-   and TO to a new text of LEN chars (LEN_BYTE bytes).
-   COMBINED_BEFORE_BYTES and COMBINED_AFTER_BYTES are the number
-   of bytes before (resp. after) the change which combine with
-   the beginning or end of the replacement text to form one character.  */
+   and TO to a new text of LEN chars (LEN_BYTE bytes), but before
+   making the text a buffer contents.  It exists just after GPT_ADDR.  */
 
 void
-adjust_after_replace (from, from_byte, to, to_byte, len, len_byte,
-		      combined_before_bytes, combined_after_bytes)
+adjust_after_replace (from, from_byte, to, to_byte, len, len_byte)
      int from, from_byte, to, to_byte, len, len_byte;
-     int combined_before_bytes, combined_after_bytes;
 {
-  int adjusted_nchars = len - combined_before_bytes - combined_after_bytes;
+  int combined_before_bytes
+    = count_combining_before (GPT_ADDR, len_byte, from, from_byte);
+  int combined_after_bytes
+    = count_combining_after (GPT_ADDR, len_byte, from, from_byte);
+
+  if (combined_after_bytes)
+    record_delete (from, combined_after_bytes);
+
+  if (combined_before_bytes)
+    record_delete (from - 1, 1);
+
+  /* Update various buffer positions for the new text.  */
+  GAP_SIZE -= len_byte;
+  ZV += len; Z+= len;
+  ZV_BYTE += len_byte; Z_BYTE += len_byte;
+  GPT += len; GPT_BYTE += len_byte;
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor. */
+
+  if (combined_after_bytes)
+    move_gap_both (GPT + combined_after_bytes,
+		   GPT_BYTE + combined_after_bytes);
+
   record_insert (from - !!combined_before_bytes, len);
-  if (from < PT)
-    adjust_point (len - (to - from) + combined_after_bytes,
-		  len_byte - (to_byte - from_byte) + combined_after_bytes);
-#ifdef USE_TEXT_PROPERTIES
-  offset_intervals (current_buffer, PT, adjusted_nchars - (to - from));
-#endif
-  adjust_overlays_for_delete (from, to - from);
-  adjust_overlays_for_insert (from, adjusted_nchars);
+  adjust_overlays_for_insert (from, len);
   adjust_markers_for_insert (from, from_byte,
-			     from + adjusted_nchars, from_byte + len_byte,
+			     from + len, from_byte + len_byte,
 			     combined_before_bytes, combined_after_bytes, 0);
+#ifdef USE_TEXT_PROPERTIES
+  if (BUF_INTERVALS (current_buffer) != 0)
+    offset_intervals (current_buffer, from, len - (to - from));
+#endif
+
+  {
+    int pos = PT, pos_byte = PT_BYTE;
+
+    if (from < PT)
+      adjust_point (len - (to - from) + combined_after_bytes,
+		    len_byte - (to_byte - from_byte) + combined_after_bytes);
+    else if (from == PT && combined_before_bytes)
+      adjust_point (0, combined_before_bytes);
+
+    if (combined_after_bytes)
+      combine_bytes (from + len, from_byte + len_byte, combined_after_bytes);
+
+    if (combined_before_bytes)
+      combine_bytes (from, from_byte, combined_before_bytes);
+  }
+
   if (len == 0)
     evaporate_overlays (from);
   MODIFF++;
