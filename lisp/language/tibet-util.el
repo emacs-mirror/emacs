@@ -139,13 +139,25 @@ The returned string has no composition information."
   (let ((last (last components))
 	(stack-upper '(tc . bc))
 	(stack-under '(bc . tc))
-	rule)
+	rule comp-vowel tmp)
     ;; Special treatment for 'a chung.
     ;; If 'a follows a consonant, turn it into the subjoined form.
-    (if (and (= char ?$(7"A(B)
-	     (aref (char-category-set (car last)) ?0))
-	(setq char ?$(7"R(B)) ;; modified for new font by Tomabechi 1999/12/10
+    ;; * Disabled by Tomabechi 2000/06/09 *
+    ;; Because in Unicode, $(7"A(B may follow directly a consonant without
+    ;; any intervening vowel, as in 4$(7"90"914""0"""Q14"A0"A1!;(B=4$(7"90"91(B 4$(7""0""1(B 4$(7"A0"A1(B not 4$(7"90"91(B 4$(7""0""1(B $(7"Q(B 4$(7"A0"A1(B  
+    ;;(if (and (= char ?$(7"A(B)
+    ;;	     (aref (char-category-set (car last)) ?0))
+    ;;	(setq char ?$(7"R(B)) ;; modified for new font by Tomabechi 1999/12/10
 
+    ;; Composite vowel signs are decomposed before being added
+    ;; Added by Tomabechi 2000/06/08
+    (if (memq char '(?$(7"T(B ?$(7"V(B ?$(7"W(B ?$(7"X(B ?$(7"Y(B ?$(7"Z(B ?$(7"b(B))
+	(setq comp-vowel
+	      (cddr (assoc (char-to-string char)
+			   tibetan-composite-vowel-alist))
+	      char
+	      (cadr (assoc (char-to-string char)
+			   tibetan-composite-vowel-alist))))
     (cond
      ;; Compose upper vowel sign vertically over.
      ((aref (char-category-set char) ?2)
@@ -156,14 +168,12 @@ The returned string has no composition information."
       (if (eq char ?$(7"Q(B)		;; `$(7"Q(B' should not visible when composed.
 	  (setq rule nil)
 	(setq rule stack-under)))
-
      ;; Transform ra-mgo (superscribed r) if followed by a subjoined
      ;; consonant other than w, ', y, r.
      ((and (= (car last) ?$(7"C(B)
 	   (not (memq char '(?$(7#>(B ?$(7"R(B ?$(7#B(B ?$(7#C(B))))
       (setcar last ?$(7!"(B) ;; modified for newfont by Tomabechi 1999/12/10
       (setq rule stack-under))
-
      ;; Transform initial base consonant if followed by a subjoined
      ;; consonant but 'a.
      (t
@@ -176,7 +186,11 @@ The returned string has no composition information."
 	(setq rule stack-under))))
 
     (if rule
-	(setcdr last (list rule char)))))
+	(setcdr last (list rule char)))
+    ;; Added by Tomabechi 2000/06/08
+    (if comp-vowel
+	(nconc last comp-vowel))
+    ))
 
 ;;;###autoload
 (defun tibetan-compose-string (str)
@@ -184,6 +198,7 @@ The returned string has no composition information."
   (let ((idx 0))
     ;; `$(7"A(B' is included in the pattern for subjoined consonants
     ;; because we treat it specially in tibetan-add-components.
+    ;; (This feature is removed by Tomabechi 2000/06/08)
     (while (setq idx (string-match tibetan-composable-pattern str idx))
       (let ((from idx)
 	    (to (match-end 0))
@@ -214,6 +229,7 @@ The returned string has no composition information."
 	(goto-char (point-min))
 	;; `$(7"A(B' is included in the pattern for subjoined consonants
 	;; because we treat it specially in tibetan-add-components.
+	;; (This feature is removed by Tomabechi 2000/06/08)
 	(while (re-search-forward tibetan-composable-pattern nil t)
 	  (let ((from (match-beginning 0))
 		(to (match-end 0))
