@@ -36,9 +36,9 @@
 /* For AIX, it turns out compiling emacs under AIX 3.2.4 REQUIRES "cc -g"
    because "cc -O" crashes. Under AIX 3.2.5, "cc -O" is required because
    "cc -g" crashes. Go figure.  --floppy@merlin.mit.edu */
+/* See comments about this in aix3-2-5.h.  -- fx */
 #ifndef __GNUC__
-#define C_SWITCH_DEBUG -g
-#define C_SWITCH_OPTIMIZE
+#define C_DEBUG_SWITCH -g -O
 #endif
 
 /* The character-composition stuff is broken in X11R5.

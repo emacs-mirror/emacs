@@ -28,3 +28,8 @@
 
 /* Specify the type that the 3rd arg of `accept' points to.  */
 #define SOCKLEN_TYPE int
+
+#ifndef __GNUC__
+/* Optimize, inaccurate debugging.  */
+#define C_DEBUG_SWITCH -g3
+#endif
