@@ -1,12 +1,13 @@
 ;;; elp.el --- Emacs Lisp Profiler
 
+;; Copyright (C) 1994 Barry A. Warsaw
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
 ;; Author: 1994 Barry A. Warsaw <bwarsaw@cnri.reston.va.us>
 ;; Maintainer:    tools-help@anthem.nlm.nih.gov
 ;; Created:       26-Feb-1994
-;; Version:       2.18
-;; Last Modified: 1994/09/14 14:00:09
+;; Version:       2.22
+;; Last Modified: 1994/12/23 17:46:21
 ;; Keywords:      Emacs Lisp Profile Timing
 
 ;; This file is part of GNU Emacs.
@@ -32,8 +33,8 @@
 ;; profiler.el. Both were written for Emacs 18 and both were pretty
 ;; good first shots at profiling, but I found that they didn't provide
 ;; the functionality or interface that I wanted.  So I wrote this.
-;; I've tested elp in Lucid Emacs 19.9 and Emacs 19.22.  There's no
-;; point in even trying to make this work with Emacs 18.
+;; I've tested elp in both Emacs 19's.  There's no point in even
+;; trying to make this work with Emacs 18.
 
 ;; Unlike previous profilers, elp uses Emacs 19's built-in function
 ;; current-time to return interval times.  This obviates the need for
@@ -54,8 +55,11 @@
 ;; are calculated using wall-clock time, so other system load will
 ;; affect accuracy too.
 
-;; There are only 3 variables you can change to customize behavior of
-;; elp. See below for their description.
+;; Here is a list of variable you can use to customize elp:
+;;   elp-function-list
+;;   elp-reset-after-results
+;;   elp-sort-by-function
+;;   elp-report-limit
 ;;
 ;; Here is a list of the interactive commands you can use:
 ;;   elp-instrument-function
@@ -67,6 +71,8 @@
 ;;   elp-reset-function
 ;;   elp-reset-list
 ;;   elp-reset-all
+;;   elp-set-master
+;;   elp-unset-master
 ;;   elp-results
 ;;   elp-submit-bug-report
 ;;
@@ -76,12 +82,12 @@
 ;; information is recorded whenever they are called.  To print out the
 ;; current results, use elp-results.  With elp-reset-after-results set
 ;; to non-nil, profiling information will be reset whenever the
-;; results are displayed. You can also reset all profiling info at any
-;; time with elp-reset-all.
+;; results are displayed.  You can also reset all profiling info at
+;; any time with elp-reset-all.
 ;;
 ;; You can also instrument all functions in a package, provided that
 ;; the package follows the GNU coding standard of a common textural
-;; prefix. elp-instrument-package does this.
+;; prefix.  Use the elp-instrument-package command for this.
 ;;
 ;; If you want to sort the results, set elp-sort-by-function to some
 ;; predicate function.  The three most obvious choices are predefined:
@@ -92,8 +98,8 @@
 ;;
 ;; Elp can instrument byte-compiled functions just as easily as
 ;; interpreted functions, but it cannot instrument macros.  However,
-;; when you redefine a function (e.g.  with eval-defun), you'll need
-;; to re-instrument it with elp-instrument-function.  Re-instrumenting
+;; when you redefine a function (e.g. with eval-defun), you'll need to
+;; re-instrument it with elp-instrument-function.  Re-instrumenting
 ;; resets profiling information for that function.  Elp can also
 ;; handle interactive functions (i.e. commands), but of course any
 ;; time spent idling for user prompts will show up in the timing
@@ -108,14 +114,19 @@
 ;;  (defun baz () (bar) (foo))
 ;;
 ;; and you want to find out the amount of time spent in bar and foo,
-;; but only during execution of bar, make bar the master and the call
-;; of foo from baz will not add to foo's total timing sums.  Use
+;; but only during execution of bar, make bar the master.  The call of
+;; foo from baz will not add to foo's total timing sums.  Use
 ;; elp-set-master and elp-unset-master to utilize this feature.  Only
 ;; one master function can be used at a time.
 
 ;; You can restore any function's original function definition with
 ;; elp-restore-function.  The other instrument, restore, and reset
 ;; functions are provided for symmetry.
+
+;; LCD Archive Entry:
+;; elp|Barry A. Warsaw|tools-help@anthem.nlm.nih.gov|
+;; Emacs Lisp Profiler|
+;; 1994/12/23 17:46:21|2.22|~/misc/elp.el.Z|
 
 ;;; Code:
 
@@ -156,7 +167,7 @@ functions will be displayed.")
 ;; end user configuration variables
 
 
-(defconst elp-version "2.18"
+(defconst elp-version "2.22"
   "ELP version number.")
 
 (defconst elp-help-address "tools-help@anthem.nlm.nih.gov"
@@ -336,6 +347,7 @@ Use optional LIST if provided instead."
 
 (defun elp-unset-master ()
   "Unsets the master function."
+  (interactive)
   ;; when there's no master function, recording is turned on by default.
   (setq elp-master nil
 	elp-record-p t))
@@ -408,6 +420,21 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
   ;; sort by highest average time spent in function. See `sort'.
   (>= (aref vec1 2) (aref vec2 2)))
 
+(defsubst elp-pack-number (number width)
+  ;; pack the NUMBER string into WIDTH characters, watching out for
+  ;; very small or large numbers
+  (if (<= (length number) width)
+      number
+    ;; check for very large or small numbers
+    (if (string-match "^\\(.*\\)\\(e[+-].*\\)$" number)
+	(concat (substring
+		 (substring number (match-beginning 1) (match-end 1))
+		 0
+		 (- width (match-end 2) (- (match-beginning 2)) 3))
+		"..."
+		(substring number (match-beginning 2) (match-end 2)))
+      (concat (substring number 0 width)))))
+
 (defun elp-output-result (resultvec)
   ;; output the RESULTVEC into the results buffer. RESULTVEC is a 4 or
   ;; more element vector where aref 0 is the call count, aref 1 is the
@@ -432,13 +459,11 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
       ;; print stuff out, formatting it nicely
       (insert callcnt)
       (insert-char 32 (+ elp-cc-len (- (length callcnt)) 2))
-      (if (> (length totaltime) elp-et-len)
-	  (insert (substring totaltime 0 elp-et-len) "  ")
-	(insert totaltime)
-	(insert-char 32 (+ elp-et-len (- (length totaltime)) 2)))
-      (if (> (length avetime) elp-at-len)
-	  (insert (substring avetime 0 elp-at-len))
-	(insert avetime))
+      (let ((ttstr (elp-pack-number totaltime elp-et-len))
+	    (atstr (elp-pack-number avetime elp-at-len)))
+	(insert ttstr)
+	(insert-char 32 (+ elp-et-len (- (length ttstr)) 2))
+	(insert atstr))
       (insert "\n"))))
 
 ;;;###autoload
@@ -528,5 +553,4 @@ displayed."
 
 
 (provide 'elp)
-
 ;; elp.el ends here
