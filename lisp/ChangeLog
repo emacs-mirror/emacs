@@ -1,3 +1,7 @@
+2002-01-25  Richard M. Stallman  <rms@gnu.org>
+
+	* subr.el (remove): Doc fix.
+
 2002-01-24  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/compile.el (compilation-handle-exit):

@@ -799,7 +799,7 @@ the matching is case-sensitive."
 		  (add-text-properties
 		   (marker-position text-beg) (- (marker-position text-end) 1)
 		   '(mouse-face highlight
-		     help-echo "mouse-2: go to this occurence"))
+		     help-echo "mouse-2: go to this occurrence"))
 		  (put-text-property (marker-position text-beg)
 				     (marker-position text-end)
 				     'occur occur-marker)
