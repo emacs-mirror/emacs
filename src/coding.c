@@ -3764,7 +3764,9 @@ shrink_decoding_region (beg, end, coding, str)
       return;
     }
 
-  if (coding->heading_ascii >= 0)
+  eol_conversion = (coding->eol_type != CODING_EOL_LF);
+
+  if ((! eol_conversion) && (coding->heading_ascii >= 0))
     /* Detection routine has already found how much we can skip at the
        head.  */
     *beg += coding->heading_ascii;
@@ -3779,8 +3781,6 @@ shrink_decoding_region (beg, end, coding, str)
       begp_orig = begp = BYTE_POS_ADDR (*beg);
       endp_orig = endp = begp + *end - *beg;
     }
-
-  eol_conversion = (coding->eol_type != CODING_EOL_LF);
 
   switch (coding->type)
     {
