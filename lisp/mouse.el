@@ -1221,8 +1221,6 @@ and selects that window."
 	  (progn
 	    (or (framep window) (select-window window))
 	    (switch-to-buffer buf))))))
-
-(defun mouse-buffer-menu-split (alist)
 
 ;;; These need to be rewritten for the new scroll bar implementation.
 
