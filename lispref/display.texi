@@ -1065,7 +1065,7 @@ overlays that specify property @var{prop} for the character at point:
   (let ((overlays (overlays-at (point)))
         found)
     (while overlays
-      (let ((overlay (cdr overlays)))
+      (let ((overlay (car overlays)))
         (if (overlay-get overlay prop)
             (setq found (cons overlay found))))
       (setq overlays (cdr overlays)))
