@@ -399,6 +399,7 @@ enum draw_glyphs_face
   DRAW_IMAGE_SUNKEN
 };
 
+static int clear_mouse_face P_ ((struct x_display_info *));
 static int x_alloc_nearest_color_1 P_ ((Display *, Colormap, XColor *));
 static void x_set_window_size_1 P_ ((struct frame *, int, int, int));
 static const XColor *x_color_cells P_ ((Display *, int *));
@@ -6880,18 +6881,19 @@ note_mouse_highlight (f, x, y)
 	  || area != TEXT_AREA
 	  || !MATRIX_ROW (w->current_matrix, vpos)->displays_text_p)
 	{
-	  clear_mouse_face (dpyinfo);
-	  return;
+	  if (clear_mouse_face (dpyinfo))
+	    cursor = None;
+	  goto set_cursor;
 	}
 
       pos = glyph->charpos;
       object = glyph->object;
       if (!STRINGP (object) && !BUFFERP (object))
-	return;
+	goto set_cursor;
 
       /* If we get an out-of-range value, return now; avoid an error.  */
       if (BUFFERP (object) && pos > BUF_Z (b))
-	return;
+	goto set_cursor;
 
       /* Make the window's buffer temporarily current for
 	 overlays_at and compute_char_face.  */
@@ -6948,8 +6950,8 @@ note_mouse_highlight (f, x, y)
 	      && mouse_face_overlay_overlaps (dpyinfo->mouse_face_overlay)))
 	{
 	  /* Clear the display of the old active region, if any.  */
-	  clear_mouse_face (dpyinfo);
-	  cursor = None;
+	  if (clear_mouse_face (dpyinfo))
+	    cursor = None;
 
 	  /* Find the highest priority overlay that has a mouse-face
 	     property.  */
@@ -7142,6 +7144,8 @@ note_mouse_highlight (f, x, y)
       current_buffer = obuf;
     }
 
+ set_cursor:
+  
   if (cursor != None)
     XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), cursor);
 }
@@ -7652,24 +7656,25 @@ show_mouse_face (dpyinfo, draw)
 }
 
 /* Clear out the mouse-highlighted active region.
-   Redraw it un-highlighted first.  */
+   Redraw it un-highlighted first.  Value is non-zero if mouse
+   face was actually drawn unhighlighted.  */
 
-void
+static int
 clear_mouse_face (dpyinfo)
      struct x_display_info *dpyinfo;
 {
-#if 0 /* This prevents redrawing tool bar items when changing from one
-	 to another while a tooltip is open, so don't do it.  */
-  if (!NILP (tip_frame))
-    return;
-#endif
+  int cleared = 0;
   
-  if (! NILP (dpyinfo->mouse_face_window))
-    show_mouse_face (dpyinfo, DRAW_NORMAL_TEXT);
+  if (!NILP (dpyinfo->mouse_face_window))
+    {
+      show_mouse_face (dpyinfo, DRAW_NORMAL_TEXT);
+      cleared = 1;
+    }
 
   dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
   dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
   dpyinfo->mouse_face_window = Qnil;
+  return cleared;
 }
 
 
