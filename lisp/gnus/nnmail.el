@@ -25,10 +25,11 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (require 'nnheader)
 (require 'timezone)
 (require 'message)
-(require 'cl)
 (require 'custom)
 
 (eval-and-compile
