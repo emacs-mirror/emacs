@@ -1,3 +1,8 @@
+2002-08-30  Juanma Barranquero  <lektu@terra.es>
+
+	* xfns.c (Fx_open_connection): Fix error message. Patch from Rune
+	Kleveland <runekl@viewpoint.no>.
+
 2002-08-30  Kim F. Storm  <storm@cua.dk>
 
 	The following changes consolidates the handling of the cursor
@@ -39,7 +44,7 @@
 	(x_set_cursor_type): Use set_frame_cursor_types.
 	(Qbar, Qbox): Removed.
 	(syms_of_macfns): Don't intern or staticpro them.
-	
+
 	* macterm.c (x_specified_cursor_type): Remove prototype.
 	(x_draw_bar_cursor): Use FRAME_CURSOR_WIDTH.
 	(x_display_and_set_cursor): Use get_window_cursor_type.
@@ -51,7 +56,7 @@
 	(struct output_mac) <current_cursor, desired_cursor, cursor_width>
 	<blink_off_cursor, blink_off_cursor_width>: Members removed.
 	(FRAME_DESIRED_CURSOR): Macro removed.
-	
+
 	* w32fns.c (Vblink_cursor_alist): Removed.
 	(Qbar, Qhbar, Qbox, Qhollow): Removed.
 	(syms_of_w32fns): Don't intern, staticpro, or define them.
@@ -64,7 +69,7 @@
 	Remove unused local variables cursor_off_state.
 	Redraw cursor if hbar cursor width changes.
 	Changed all occurrences of w32_highlight_frame to x_highlight_frame.
-	
+
 	* w32term.h (enum text_cursor_kinds): Removed.
 	(struct output_w32) <current_cursor, desired_cursor, cursor_width>
 	<blink_off_cursor, blink_off_cursor_width>: Members removed.
@@ -72,7 +77,7 @@
 	(FRAME_BLINK_OFF_CURSOR_WIDTH): Macros removed.
 	(struct w32_display_info) <x_highlight_frame>: Renamed member from
 	w32_highlight_frame.
-	
+
 	* xfns.c (Vblink_cursor_alist): Removed.
 	(Qbar, Qhbar, Qbox, Qhollow): Removed.
 	(syms_of_xfns): Don't intern, staticpro, or define them.
@@ -91,7 +96,7 @@
 	(FRAME_DESIRED_CURSOR, FRAME_CURSOR_WIDTH, FRAME_BLINK_OFF_CURSOR)
 	(FRAME_BLINK_OFF_CURSOR_WIDTH): Macros removed.
 	(x_specified_cursor_type): Remove prototype.
-	
+
 2002-08-28  Richard M. Stallman  <rms@gnu.org>
 
 	* w32fns.c (x_set_cursor_type): Set FRAME_BLINK_OFF_CURSOR and
