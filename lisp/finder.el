@@ -185,6 +185,7 @@ no arguments compiles from `load-path'."
 		       (progn (end-of-line) (point))
 		       'mouse-face 'highlight)))
 
+;;;###autoload
 (defun finder-list-keywords ()
   "Display descriptions of the keywords in the Finder buffer."
   (interactive)
@@ -242,6 +243,7 @@ Try compressed versions if jka-compr is in use."
             ;; last resort for MS-DOG et al
             (locate-library (concat library "z"))))))
 
+;;;###autoload
 (defun finder-commentary (file)
   "Display FILE's commentary section.
 FILE should be in a form suitable for passing to `locate-library'."
@@ -292,6 +294,7 @@ FILE should be in a form suitable for passing to `locate-library'."
     (goto-char (posn-point (event-start event)))
     (finder-select)))
 
+;;;###autoload
 (defun finder-by-keyword ()
   "Find packages matching a given keyword."
   (interactive)
