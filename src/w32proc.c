@@ -45,6 +45,7 @@ Boston, MA 02111-1307, USA.
 #include "systime.h"
 #include "syswait.h"
 #include "process.h"
+#include "w32term.h"
 
 /* Control whether spawnve quotes arguments as necessary to ensure
    correct parsing by child process.  Because not all uses of spawnve
@@ -606,7 +607,7 @@ w32_executable_type (char * filename, int * is_dos_app, int * is_cygnus_app)
 
       nt_header = (PIMAGE_NT_HEADERS) ((char *) dos_header + dos_header->e_lfanew);
 
-      if (nt_header > dos_header + executable.size) 
+      if ((char *) nt_header > (char *) dos_header + executable.size) 
 	{
 	  /* Some dos headers (pkunzip) have bogus e_lfanew fields.  */
 	  *is_dos_app = TRUE;
@@ -736,7 +737,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   unixtodos_filename (cmdname);
   argv[0] = cmdname;
 
-  /* Determine whether program is a 16-bit DOS executable, or a Win32
+  /* Determine whether program is a 16-bit DOS executable, or a w32
      executable that is implicitly linked to the Cygnus dll (implying it
      was compiled with the Cygnus GNU toolchain and hence relies on
      cygwin.dll to parse the command line - we use this to decide how to
@@ -771,7 +772,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
      exactly, so we treat quotes at the beginning and end of arguments
      as embedded quotes.
 
-     The Win32 GNU-based library from Cygnus doubles quotes to escape
+     The w32 GNU-based library from Cygnus doubles quotes to escape
      them, while MSVC uses backslash for escaping.  (Actually the MSVC
      startup code does attempt to recognise doubled quotes and accept
      them, but gets it wrong and ends up requiring three quotes to get a
@@ -1109,8 +1110,17 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 	    else
 	      {
 		/* Unable to find something to wait on for this fd, skip */
+
+		/* Note that this is not a fatal error, and can in fact
+		   happen in unusual circumstances.  Specifically, if
+		   sys_spawnve fails, eg. because the program doesn't
+		   exist, and debug-on-error is t so Fsignal invokes a
+		   nested input loop, then the process output pipe is
+		   still included in input_wait_mask with no child_proc
+		   associated with it.  (It is removed when the debugger
+		   exits the nested input loop and the error is thrown.)  */
+
 		DebPrint (("sys_select: fd %ld is invalid! ignoring\n", i));
-		abort ();
 	      }
 	  }
       }
@@ -1119,8 +1129,14 @@ count_children:
   /* Add handles of child processes.  */
   nc = 0;
   for (cp = child_procs+(child_proc_count-1); cp >= child_procs; cp--)
-    /* some child_procs might be sockets; ignore them */
-    if (CHILD_ACTIVE (cp) && cp->procinfo.hProcess)
+    /* Some child_procs might be sockets; ignore them.  Also some
+       children may have died already, but we haven't finished reading
+       the process output; ignore them too.  */
+    if (CHILD_ACTIVE (cp) && cp->procinfo.hProcess
+	&& (cp->fd < 0
+	    || (fd_info[cp->fd].flags & FILE_SEND_SIGCHLD) == 0
+	    || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0)
+	)
       {
 	wait_hnd[nh + nc] = cp->procinfo.hProcess;
 	cps[nc] = cp;
@@ -1176,9 +1192,16 @@ count_children:
       if (active >= nh)
 	{
 	  cp = cps[active - nh];
+
+	  /* We cannot always signal SIGCHLD immediately; if we have not
+	     finished reading the process output, we must delay sending
+	     SIGCHLD until we do.  */
+
+	  if (cp->fd >= 0 && (fd_info[cp->fd].flags & FILE_AT_EOF) == 0)
+	    fd_info[cp->fd].flags |= FILE_SEND_SIGCHLD;
 	  /* SIG_DFL for SIGCHLD is ignore */
-	  if (sig_handlers[SIGCHLD] != SIG_DFL
-	      && sig_handlers[SIGCHLD] != SIG_IGN)
+	  else if (sig_handlers[SIGCHLD] != SIG_DFL &&
+		   sig_handlers[SIGCHLD] != SIG_IGN)
 	    {
 #ifdef FULL_DEBUG
 	      DebPrint (("select calling SIGCHLD handler for pid %d\n",
@@ -1314,6 +1337,10 @@ sys_kill (int pid, int sig)
 	      keybd_event (vk_break_code, break_scan_code, KEYEVENTF_KEYUP, 0);
 	      keybd_event (VK_CONTROL, control_scan_code, KEYEVENTF_KEYUP, 0);
 
+	      /* Sleep for a bit to give time for Emacs frame to respond
+		 to focus change events (if Emacs was active app).  */
+	      Sleep (10);
+
 	      SetForegroundWindow (foreground_window);
 	    }
 	}
@@ -1349,7 +1376,24 @@ sys_kill (int pid, int sig)
    Could try to invoke DestroyVM through CallVxD.
 
 */
+#if 0
+	      /* On Win95, posting WM_QUIT causes the 16-bit subsystem
+		 to hang when cmdproxy is used in conjunction with
+		 command.com for an interactive shell.  Posting
+		 WM_CLOSE pops up a dialog that, when Yes is selected,
+		 does the same thing.  TerminateProcess is also less
+		 than ideal in that subprocesses tend to stick around
+		 until the machine is shutdown, but at least it
+		 doesn't freeze the 16-bit subsystem.  */
 	      PostMessage (cp->hwnd, WM_QUIT, 0xff, 0);
+#endif
+	      if (!TerminateProcess (proc_hand, 0xff))
+		{
+		  DebPrint (("sys_kill.TerminateProcess returned %d "
+			     "for pid %lu\n", GetLastError (), pid));
+		  errno = EINVAL;
+		  rc = -1;
+		}
 	    }
 	  else
 #endif
@@ -1696,6 +1740,48 @@ human-readable form.")
   return make_number (GetThreadLocale ());
 }
 
+DWORD int_from_hex (char * s)
+{
+  DWORD val = 0;
+  static char hex[] = "0123456789abcdefABCDEF";
+  char * p;
+
+  while (*s && (p = strchr(hex, *s)) != NULL)
+    {
+      unsigned digit = p - hex;
+      if (digit > 15)
+	digit -= 6;
+      val = val * 16 + digit;
+      s++;
+    }
+  return val;
+}
+
+/* We need to build a global list, since the EnumSystemLocale callback
+   function isn't given a context pointer.  */
+Lisp_Object Vw32_valid_locale_ids;
+
+BOOL CALLBACK enum_locale_fn (LPTSTR localeNum)
+{
+  DWORD id = int_from_hex (localeNum);
+  Vw32_valid_locale_ids = Fcons (make_number (id), Vw32_valid_locale_ids);
+  return TRUE;
+}
+
+DEFUN ("w32-get-valid-locale-ids", Fw32_get_valid_locale_ids, Sw32_get_valid_locale_ids, 0, 0, 0,
+  "Return list of all valid Windows locale ids.\n\
+Each id is a numerical value; use `w32-get-locale-info' to convert to a\n\
+human-readable form.")
+     ()
+{
+  Vw32_valid_locale_ids = Qnil;
+
+  EnumSystemLocales (enum_locale_fn, LCID_SUPPORTED);
+
+  Vw32_valid_locale_ids = Fnreverse (Vw32_valid_locale_ids);
+  return Vw32_valid_locale_ids;
+}
+
 
 DEFUN ("w32-get-default-locale-id", Fw32_get_default_locale_id, Sw32_get_default_locale_id, 0, 1, 0,
   "Return Windows locale id for default locale setting.\n\
@@ -1726,6 +1812,11 @@ If successful, the new locale id is returned, otherwise nil.")
   if (!SetThreadLocale (XINT (lcid)))
     return Qnil;
 
+  /* Need to set input thread locale if present.  */
+  if (dwWindowsThreadId)
+    /* Reply is not needed.  */
+    PostThreadMessage (dwWindowsThreadId, WM_EMACS_SETLOCALE, XINT (lcid), 0);
+
   return make_number (GetThreadLocale ());
 }
 
@@ -1745,6 +1836,7 @@ syms_of_ntproc ()
   defsubr (&Sw32_get_locale_info);
   defsubr (&Sw32_get_current_locale_id);
   defsubr (&Sw32_get_default_locale_id);
+  defsubr (&Sw32_get_valid_locale_ids);
   defsubr (&Sw32_set_current_locale);
 
   DEFVAR_LISP ("w32-quote-process-args", &Vw32_quote_process_args,
