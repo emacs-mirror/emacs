@@ -1,3 +1,9 @@
+2002-05-04  Kim F. Storm  <storm@cua.dk>
+
+	* cus-edit.el (custom-buffer-verbose-help): New variable.
+	(custom-buffer-create-internal): Remove verbose introduction
+	in customization buffer when it is nil.
+
 2002-05-03  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-var.el (eshell-modify-global-environment): Added this
