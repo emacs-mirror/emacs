@@ -8,6 +8,7 @@
 	`byte-compile-last-logged-file' to it.  Test whether
 	byte-compile-current-file equals byte-compile-last-logged-file
 	instead of whether its nil.
+	(byte-compile-file): Bind `byte-compile-last-logged-file' to nil.
 
 2000-10-23  Stefan Monnier  <monnier@cs.yale.edu>
 
