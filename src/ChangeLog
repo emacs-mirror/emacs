@@ -1,3 +1,8 @@
+2000-10-10  Andreas Schwab  <schwab@suse.de>
+
+	* alloc.c (mark_object): Remove all workarounds installed on
+	1993-08-08.
+
 2000-10-10  Kenichi Handa  <handa@etl.go.jp>
 
 	* fns.c (READ_QUADRUPLET_BYTE): Set *NCHARS_RETURN before
