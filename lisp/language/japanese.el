@@ -97,7 +97,8 @@
 	      (exit-function . exit-japanese-environment)
 	      (tutorial . "TUTORIAL.ja")
 	      (charset japanese-jisx0208 japanese-jisx0208-1978
-		       japanese-jisx0212 latin-jisx0201 katakana-jisx0201)
+		       japanese-jisx0212 latin-jisx0201 katakana-jisx0201
+		       japanese-jisx0213-1 japanese-jisx0213-2)
 	      (coding-system iso-2022-jp japanese-iso-8bit
 			     japanese-shift-jis japanese-iso-7bit-1978-irv)
 	      (coding-priority iso-2022-jp japanese-iso-8bit
