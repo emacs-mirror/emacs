@@ -6284,7 +6284,7 @@ x_destroy_x_image (ximg)
 /* Put XImage XIMG into pixmap PIXMAP on frame F.  WIDTH and HEIGHT
    are width and height of both the image and pixmap.  */
 
-void
+static void
 x_put_x_image (f, ximg, pixmap, width, height)
      struct frame *f;
      XImage *ximg;
