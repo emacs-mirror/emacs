@@ -1,5 +1,13 @@
 2002-12-17  Kenichi Handa  <handa@m17n.org>
 
+	* international/mule.el (set-file-name-coding-system): New
+	function.
+
+	* international/mule-cmds.el (mule-keymap, set-coding-system-map):
+	Add bindings for set-file-name-coding-system.
+
+2002-12-17  Kenichi Handa  <handa@m17n.org>
+
 	* international/mule-cmds.el (universal-coding-system-argument):
 	Bind coding-system-require-warning to t.
 	(select-safe-coding-system): Handle t in the arg

@@ -1,3 +1,15 @@
+2002-12-17  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (coding_system_require_warning): New variable.
+	(syms_of_coding): DEFVAR it.
+
+	* coding.h (coding_system_require_warning): Extern it.
+
+	* fileio.c (choose_write_coding_system): Even if
+	Vcoding_system_for_write is non-nil, if
+	coding_system_require_warning is nonzero, call
+	Vselect_safe_coding_system_function.
+
 2002-12-17  Markus Rost  <rost@math.ohio-state.edu>
 
 	* Makefile.in (lisp, shortlisp): Add cus-face and timer.
