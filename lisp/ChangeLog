@@ -1,3 +1,8 @@
+2000-03-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* pcvs-defs.el (toplevel): Remove autoload cookie for form
+	requiring easymenu.
+
 2000-03-15  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: PostScript user-defined prologue, PostScript error
