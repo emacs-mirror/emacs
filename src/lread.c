@@ -91,18 +91,30 @@ Lisp_Object Vload_file_name;
 /* Function to use for reading, in `load' and friends.  */
 Lisp_Object Vload_read_function;
 
+/* Nonzero means load should forcibly load all dynamic doc strings.  */
+static int load_force_doc_strings;
+
 /* List of descriptors now open for Fload.  */
 static Lisp_Object load_descriptor_list;
 
-/* File for get_file_char to read from.  Use by load */
+/* File for get_file_char to read from.  Use by load.  */
 static FILE *instream;
 
 /* When nonzero, read conses in pure space */
 static int read_pure;
 
-/* For use within read-from-string (this reader is non-reentrant!!) */
+/* For use within read-from-string (this reader is non-reentrant!!)  */
 static int read_from_string_index;
 static int read_from_string_limit;
+
+/* This contains the last string skipped with #@.  */
+static char *saved_doc_string;
+/* Length of buffer allocated in saved_doc_string.  */
+static int saved_doc_string_size;
+/* Length of actual data in saved_doc_string.  */
+static int saved_doc_string_length;
+/* This is the file position that string came from.  */
+static int saved_doc_string_position;
 
 /* Nonzero means inside a new-style backquote
    with no surrounding parentheses.
@@ -461,6 +473,11 @@ Return t if file exists.")
   if (!NILP (temp))
     Fprogn (Fcdr (temp));
   UNGCPRO;
+
+  if (saved_doc_string)
+    free (saved_doc_string);
+  saved_doc_string = 0;
+  saved_doc_string_size = 0;
 
   if (!noninteractive && NILP (nomessage))
     message ("Loading %s...done", XSTRING (str)->data);
@@ -1223,9 +1240,39 @@ read1 (readcharfun, pch, first_in_list)
 	  if (c >= 0)
 	    UNREAD (c);
 	  
-	  /* Skip that many characters.  */
-	  for (i = 0; i < nskip && c >= 0; i++)
-	    c = READCHAR;
+#ifndef DOS_NT /* I don't know if filepos works right on MSDOS and Windoze.  */
+	  if (load_force_doc_strings && EQ (readcharfun, Qget_file_char))
+	    {
+	      /* If we are supposed to force doc strings into core right now,
+		 record the last string that we skipped,
+		 and record where in the file it comes from.  */
+	      if (saved_doc_string_size == 0)
+		{
+		  saved_doc_string_size = nskip + 100;
+		  saved_doc_string = (char *) malloc (saved_doc_string_size);
+		}
+	      if (nskip > saved_doc_string_size)
+		{
+		  saved_doc_string_size = nskip + 100;
+		  saved_doc_string = (char *) realloc (saved_doc_string,
+						       saved_doc_string_size);
+		}
+
+	      saved_doc_string_position = ftell (instream);
+
+	      /* Copy that many characters into saved_doc_string.  */
+	      for (i = 0; i < nskip && c >= 0; i++)
+		saved_doc_string[i] = c = READCHAR;
+
+	      saved_doc_string_length = i;
+	    }
+	  else
+#endif /* not DOS_NT */
+	    {
+	      /* Skip that many characters.  */
+	      for (i = 0; i < nskip && c >= 0; i++)
+		c = READCHAR;
+	    }
 	  goto retry;
 	}
       if (c == '$')
@@ -1565,7 +1612,8 @@ read_list (flag, readcharfun)
   register Lisp_Object elt, tem;
   struct gcpro gcpro1, gcpro2;
   /* 0 is the normal case.
-     1 means this list is a doc reference; replace it with the number 0.  */ 
+     1 means this list is a doc reference; replace it with the number 0.
+     2 means this list is a doc reference; replace it with the doc string.  */ 
   int doc_reference = 0;
 
   /* Initialize this to 1 if we are reading a list.  */
@@ -1602,6 +1650,9 @@ read_list (flag, readcharfun)
 	    elt = concat2 (build_string ("../lisp/"),
 			   Ffile_name_nondirectory (elt));
 	}
+      else if (EQ (elt, Vload_file_name)
+	       && load_force_doc_strings)
+	doc_reference = 2;
 
       if (ch)
 	{
@@ -1627,6 +1678,46 @@ read_list (flag, readcharfun)
 		{
 		  if (doc_reference == 1)
 		    return make_number (0);
+		  if (doc_reference == 2)
+		    {
+		      /* Get a doc string from the file we are loading.
+			 If it's in saved_doc_string, get it from there.  */
+		      int pos = XINT (XCONS (val)->cdr);
+		      if (pos >= saved_doc_string_position
+			  && pos < (saved_doc_string_position
+				    + saved_doc_string_length))
+			{
+			  int start = pos - saved_doc_string_position;
+			  int from, to;
+
+			  /* Process quoting with ^A,
+			     and find the end of the string,
+			     which is marked with ^_ (037).  */
+			  for (from = start, to = start;
+			       saved_doc_string[from] != 037;)
+			    {
+			      int c = saved_doc_string[from++];
+			      if (c == 1)
+				{
+				  c = saved_doc_string[from++];
+				  if (c == 1)
+				    saved_doc_string[to++] = c;
+				  else if (c == '0')
+				    saved_doc_string[to++] = 0;
+				  else if (c == '_')
+				    saved_doc_string[to++] = 037;
+				}
+			      else
+				saved_doc_string[to++] = c;
+			    }
+
+			  return make_string (saved_doc_string + start,
+					      to - start);
+			}
+		      else
+			return read_doc_string (val);
+		    }
+
 		  return val;
 		}
 	      return Fsignal (Qinvalid_read_syntax, Fcons (make_string (". in wrong context", 18), Qnil));
@@ -1783,7 +1874,12 @@ OBARRAY defaults to the value of the variable `obarray'.")
   hash = oblookup_last_bucket_number;
 
   if (EQ (XVECTOR (obarray)->contents[hash], tem))
-    XSETSYMBOL (XVECTOR (obarray)->contents[hash], XSYMBOL (tem)->next);
+    {
+      if (XSYMBOL (tem)->next)
+	XSETSYMBOL (XVECTOR (obarray)->contents[hash], XSYMBOL (tem)->next);
+      else
+	XSETINT (XVECTOR (obarray)->contents[hash], 0);
+    }
   else
     {
       Lisp_Object tail, following;
@@ -2265,6 +2361,11 @@ or variables, and cons cells `(provide . FEATURE)' and `(require . FEATURE)'.");
     "Function used by `load' and `eval-region' for reading expressions.\n\
 The default is nil, which means use the function `read'.");
   Vload_read_function = Qnil;
+
+  DEFVAR_BOOL ("load-force-doc-strings", &load_force_doc_strings,
+     "Non-nil means `load' should force-load all dynamic doc strings.\n\
+This is useful when the file being loaded is a temporary copy.");
+  load_force_doc_strings = 0;
 
   load_descriptor_list = Qnil;
   staticpro (&load_descriptor_list);
