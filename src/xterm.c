@@ -11894,9 +11894,14 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 						   &new_cursor_width);
     }
 
-  /* Dim out or hollow out the cursor,
-     if it has blinked off or for nonselected windows.  */
-  if (w->cursor_off_p || cursor_off_state)
+  /* If cursor has blinked off, use the other specified state.  */
+  if (w->cursor_off_p)
+    {
+      new_cursor_type = FRAME_BLINK_OFF_CURSOR (f);
+      new_cursor_width = FRAME_BLINK_OFF_CURSOR_WIDTH (f);
+    }
+  /* Dim out or hollow out the cursor for nonselected windows.  */
+  if (cursor_off_state)
     {
       if (new_cursor_type == FILLED_BOX_CURSOR)
 	new_cursor_type = HOLLOW_BOX_CURSOR;
