@@ -1,3 +1,8 @@
+2003-02-20  Kenichi Handa  <handa@m17n.org>
+
+	* process.c (setup_process_coding_systems): If the process's
+	in/out descriptor is -1, do nothing.
+
 2003-02-19  Andreas Schwab  <schwab@suse.de>
 
 	* lisp.h (Fcancel_kbd_macro_events, Fstring_to_multibyte): Add
