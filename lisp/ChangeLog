@@ -1,3 +1,8 @@
+2000-04-27  Dave Love  <fx@gnu.org>
+
+	* help.el (locate-library): Use mapc.
+	(help-manyarg-func-alist): Add call-process-region.
+
 2000-04-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* subr.el (add-minor-mode): Use `set' instead of `setq'.
