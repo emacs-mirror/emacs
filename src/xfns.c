@@ -1650,7 +1650,7 @@ x_set_mouse_color (f, arg, oldval)
 	= XCreateFontCursor (dpy, XINT (Vx_sensitive_text_pointer_shape));
     }
   else
-    cross_cursor = XCreateFontCursor (dpy, XC_crosshair);
+    cross_cursor = XCreateFontCursor (dpy, XC_hand2);
 
   if (!NILP (Vx_window_horizontal_drag_shape))
     {
