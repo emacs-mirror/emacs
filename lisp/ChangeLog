@@ -1,3 +1,9 @@
+2001-10-11  Miles Bader  <miles@gnu.org>
+
+	* diff.el (diff): Display default values in prompts as
+	`(default ...)', not `(...)'.
+	* info.el (Info-follow-reference): Likewise.
+
 2001-10-10  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/tcl.el: Change maintainer to FSF and remove loads of
