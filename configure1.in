@@ -559,13 +559,13 @@ case "${configuration}" in
 
   ## HP 9000 series 700 and 800, running HP/UX
   hppa*-hp-hpux7* )
-    machine=hp9000s800 opsys=hpux ;;
+    machine=hp9000s800 opsys=hpux
   ;;
   hppa*-hp-hpux8* )
-    machine=hp9000s800 opsys=hpux8 ;;
+    machine=hp9000s800 opsys=hpux8
   ;;
   hppa*-hp-hpux9* )
-    machine=hp9000s800 opsys=hpux9 ;;
+    machine=hp9000s800 opsys=hpux9
   ;;
 
   ## HP 9000 series 700 and 800, running HP/UX
