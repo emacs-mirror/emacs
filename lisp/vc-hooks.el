@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.131 2000/11/24 16:25:59 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.132 2001/07/11 22:05:01 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -482,11 +482,13 @@ a regexp for matching all such backup files, regardless of the version."
 
 (defun vc-delete-automatic-version-backups (file)
   "Delete all existing automatic version backups for FILE."
-  (mapcar
-   (lambda (f)
-     (delete-file f))
-   (directory-files (file-name-directory file) t
-                    (vc-version-backup-file-name file nil nil t))))
+  (condition-case nil
+      (mapcar
+       'delete-file
+       (directory-files (file-name-directory file) t
+			(vc-version-backup-file-name file nil nil t)))
+    ;; Don't fail when the directory doesn't exist.
+    (file-error nil)))
 
 (defun vc-make-version-backup (file)
   "Make a backup copy of FILE, which is assumed in sync with the repository.
