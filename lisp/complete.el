@@ -446,7 +446,11 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 	      (setq basestr (substring str incname)
 		    dirname (substring str 0 incname))
 	    (setq basestr (file-name-nondirectory str)
-		  dirname (file-name-directory str)))
+		  dirname (file-name-directory str))
+	    ;; Make sure str is consistent with its directory and basename
+	    ;; parts.  This is important on DOZe'NT systems when str only
+	    ;; includes a drive letter, like in "d:".
+	    (setq str (concat dirname basestr)))
 	(setq basestr str))
 
       ;; Convert search pattern to a standard regular expression
