@@ -1,3 +1,8 @@
+2001-03-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* simple.el (transient-mark-mode): Mention ESC ESC ESC in the doc
+	string as well.
+
 2001-03-30  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (backup-directory-alist): Fix typo.
