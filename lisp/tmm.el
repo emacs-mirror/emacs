@@ -248,16 +248,18 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 		  (cons (concat f tmm-mid-prompt str) (cdr elt)))))
 	    (reverse list))))
 
-(defun tmm-define-keys ()
+(defun tmm-define-keys (minibuffer)
   (mapcar (lambda (str)
 	    (define-key (current-local-map) str 'tmm-shortcut)
 	    (define-key (current-local-map) (downcase str) 'tmm-shortcut))
 	  tmm-short-cuts)
-  (define-key (current-local-map) [pageup] 'tmm-goto-completions)
-  (define-key (current-local-map) [prior] 'tmm-goto-completions)
-  (define-key (current-local-map) "\ev" 'tmm-goto-completions)
-  (define-key (current-local-map) "\C-n" 'next-history-element)
-  (define-key (current-local-map) "\C-p" 'previous-history-element))
+  (if minibuffer
+      (progn
+	(define-key (current-local-map) [pageup] 'tmm-goto-completions)
+	(define-key (current-local-map) [prior] 'tmm-goto-completions)
+	(define-key (current-local-map) "\ev" 'tmm-goto-completions)
+	(define-key (current-local-map) "\C-n" 'next-history-element)
+	(define-key (current-local-map) "\C-p" 'previous-history-element))))
 
 (defun tmm-add-prompt ()
   (remove-hook 'minibuffer-setup-hook 'tmm-add-prompt)
@@ -266,7 +268,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
   (let ((win (selected-window)))
     (setq tmm-old-mb-map (current-local-map))
     (use-local-map (append (make-sparse-keymap) tmm-old-mb-map))
-    (tmm-define-keys)
+    (tmm-define-keys t)
     ;; Get window and hide it for electric mode to get correct size
     (save-window-excursion 
       (let ((completions
@@ -283,7 +285,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
       (set-buffer (window-buffer (Electric-pop-up-window "*Completions*")))
       (setq tmm-old-comp-map (current-local-map))
       (use-local-map (append (make-sparse-keymap) tmm-old-comp-map))
-      (tmm-define-keys)
+      (tmm-define-keys nil)
       (select-window win)		; Cannot use
 					; save-window-excursion, since
 					; it restores the size
