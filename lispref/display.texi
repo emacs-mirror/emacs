@@ -1525,70 +1525,83 @@ including the final newline if there is one.  (A line that is
 continued doesn't include a final newline.)  In the most common case,
 the line height equals the height of the default frame font.
 
-  There are several other ways to change the line height, either by
-specifying an absolute height for the display line, or by adding
-additional vertical space below each line.
+  There are several ways to explicitly control or change the line
+height, either by specifying an absolute height for the display line,
+or by adding additional vertical space below one or all lines.
 
 @kindex line-height @r{(text property)}
-  A newline can have a @code{line-height} text or overlay property that
-controls the total height of the display line ending in that newline.
-We will call the property value @var{line-height}.
+  A newline can have a @code{line-height} text or overlay property
+that controls the total height of the display line ending in that
+newline.  If the property value is zero, the displayed height of the
+line is exactly what its contents need; no line-spacing is added.
+This case is useful for tiling small images or image slices without
+adding blank areas between the images.
 
-  If @var{line-height} property is 0, the height of the line is
-determined solely from its contents; nothing is added.  Any
-@code{line-spacing} property on this newline is ignored.  This case is
-useful for tiling small images or image slices without adding blank
-areas between the images.
+  If the property value is not zero, it specifies a desired height,
+@var{line-height}.  There are several ways it can do this:
 
-  If @var{line-height} property is a positive integer, the value
-specifies the minimum line height in pixels.  The line's ascent height
-is increased as necessary to achieve the specified height.
+@table @code
+@item @var{integer}
+If the property is a positive integer, @var{line-height} is that integer.
+@item @var{float}
+If the property is a float, @var{float}, @var{line-height} is @var{float}
+times the frame's default line height.
+@item (@var{ratio} . @var{face})
+If the property is a cons of the format shown, @var{line-height} is
+@var{ratio} times the height of face @var{face}.  @var{ratio} can be
+any type of number.  If @var{face} is @code{t}, it refers to the
+current face.
+@end table
 
-  If @var{line-height} property is a floating point number, the
-minimum line height is the product of @var{line-height} and the
-default frame line height.
+  Thus, any valid nonzero property value specifies a height in pixels,
+@var{line-height}, one way or another.  If the line contents' height
+is less than @var{line-height}, Emacs adds extra vertical space above
+the line to achieve the total height @var{line-height}.  Otherwise,
+@var{line-height} has no effect.
 
-  If @var{line-height} property is a cons @code{(@var{ratio} . @var{face})},
-the minimum line height is calculated as @var{ratio} times the height
-of face @var{face}.  The @var{ratio} is an integer or a floating point
-number.  If @var{face} is @code{t}, it refers to the current face.
+  If you don't specify the @code{line-height} propery, the line's
+height consists of the contents' height plus the line spacing.
 
 @vindex default-line-spacing
-  You can specify additional line spacing for all lines in a frame
-with the @code{line-spacing} frame parameter, @xref{Window Frame
-Parameters}.  However, if the variable @code{default-line-spacing} is
+  You can specify the line spacing for all lines in a frame with the
+@code{line-spacing} frame parameter, @xref{Window Frame Parameters}.
+However, if the variable @code{default-line-spacing} is
 non-@code{nil}, it overrides the frame's @code{line-spacing}
 parameter.  An integer value specifies the number of pixels put below
 lines on window systems.  A floating point number specifies the
-spacing relative to the default frame line height.
+spacing relative to the frame's default line height.
 
 @vindex line-spacing
-  You can specify additional line spacing for all lines in a buffer
-via the buffer-local @code{line-spacing} variable.  An integer value
-specifies the number of pixels put below lines on window systems.  A
-floating point number specifies the spacing relative to the default
-frame line height.
+  You can specify the line spacing for all lines in a buffer via the
+buffer-local @code{line-spacing} variable.  An integer value specifies
+the number of pixels put below lines on window systems.  A floating
+point number specifies the spacing relative to the default frame line
+height.  This overrides line spacings specified for the frame.
 
 @kindex line-spacing @r{(text property)}
   Finally, a newline can have a @code{line-spacing} text or overlay
 property that controls the height of the display line ending with that
 newline.  The property value overrides the default frame line spacing
-and the buffer local @code{line-spacing} variable.  We will call the
-property value @var{line-spacing}.
+and the buffer local @code{line-spacing} variable.
 
-  If the @var{line-spacing} value is a positive integer, the value
-specifies additional vertical space, below the display line, in
-pixels.
+  One way or another, these mechanisms specify a line spacing for each
+line.  Let's call the value @var{line-spacing}.
+
+  If the @var{line-spacing} value is a positive integer, it specifies
+the number of pixels of additional vertical space.  This space appears
+below the display line contents.
 
   If the @var{line-spacing} value is a floating point number or cons,
-the additional vertical space is the product of @var{line-spacing} and
-the default frame line height.
+the additional vertical space is @var{line-spacing} times the frame
+default line height.
 
+@ignore  @c I think we may want to delete this, so don't document it -- rms.
   If the @var{line-spacing} value is a cons @code{(total . @var{spacing})}
 where @var{spacing} is any of the forms described above, the value of
 @var{spacing} specifies the total displayed height of the line,
 regardless of the height of the characters in it.  This is equivalent
 to using the @code{line-height} property.
+@end ignore
 
 @node Faces
 @section Faces
