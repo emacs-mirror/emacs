@@ -3112,14 +3112,18 @@ DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
   return (Fintern (val, Qnil));
 }
 
-DEFUN ("read-coding-system", Fread_coding_system, Sread_coding_system, 1, 1, 0,
-  "Read a coding system or nil from the minibuffer, prompting with string PROMPT.")
-  (prompt)
-     Lisp_Object prompt;
+DEFUN ("read-coding-system", Fread_coding_system, Sread_coding_system, 1, 2, 0,
+  "Read a coding system from the minibuffer, prompting with string PROMPT.\n\
+If the user enters null input, return second argument DEFAULT-CODING-SYSTEM.")
+  (prompt, default_coding_system)
+     Lisp_Object prompt, default_coding_system;
 {
   Lisp_Object val;
+  if (SYMBOLP (default_coding_system))
+    XSETSTRING (default_coding_system, XSYMBOL (default_coding_system)->name);
   val = Fcompleting_read (prompt, Vobarray, Qcoding_system_p,
-			  Qt, Qnil, Qcoding_system_history, Qnil, Qnil);
+			  Qt, Qnil, Qcoding_system_history,
+			  default_coding_system, Qnil);
   return (XSTRING (val)->size == 0 ? Qnil : Fintern (val, Qnil));
 }
 
