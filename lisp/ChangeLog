@@ -1,3 +1,8 @@
+2004-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-svn.el (vc-svn-diff): Treat options from vc-svn-diff-switches and
+	vc-diff-switches differently.
+
 2004-08-22  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* speedbar.el (speedbar-file-regexp): Give it a phony defvar
@@ -7,8 +12,8 @@
 
 2004-08-22  Richard M. Stallman  <rms@gnu.org>
 
-	* textmodes/flyspell.el (flyspell-word): Use
-	set-process-query-on-exit-flag.
+	* textmodes/flyspell.el (flyspell-word):
+	Use set-process-query-on-exit-flag.
 	(flyspell-highlight-duplicate-region): Take POSS as arg.
 	(flyspell-word): Pass POSS as arg.
 
@@ -51,8 +56,7 @@
 
 2004-08-22  Andreas Schwab  <schwab@suse.de>
 
-	* cvs-status.el: Require pcvs during byte-compiling for
-	defun-cvs-mode.
+	* cvs-status.el: Require pcvs during byte-compiling for defun-cvs-mode.
 
 2004-08-22  Masatake YAMATO  <jet@gyve.org>
 
