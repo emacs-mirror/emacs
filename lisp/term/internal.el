@@ -1,5 +1,4 @@
-;; -*- coding: emacs-mule -*-
-;;; internal.el ---support for PC keyboards and screens, internal terminal
+;;; internal.el --- support for PC internal terminal -*- coding: raw-text; -*-
 
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
