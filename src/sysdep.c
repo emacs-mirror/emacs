@@ -193,10 +193,9 @@ static int baud_convert[] =
 extern short ospeed;
 
 /* The file descriptor for Emacs's input terminal.
-   Under Unix, this is normaly zero except when using X;
-   under VMS, we place the input channel number here.
-   This allows us to write more code that works for both VMS and Unix.  */
-static int input_fd;
+   Under Unix, this is normally zero except when using X;
+   under VMS, we place the input channel number here.  */
+int input_fd;
 
 /* Specify a different file descriptor for further input operations.  */
 
