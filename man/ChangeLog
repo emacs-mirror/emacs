@@ -1,3 +1,8 @@
+2005-03-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* trouble.texi (Contributing): Mention Savannah. Direct users to
+	emacs-devel.
+
 2005-03-01  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar.texi (Adding to Diary): Mention redrawing of calendar
