@@ -1,6 +1,6 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs
 
-;; Copyright (C) 1992, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
 
 ;; Author: Stefan Schoef <schoef@offis.uni-oldenburg.de>
 ;;	Bengt Martensson <bengt@mathematik.uni-Bremen.de>
@@ -43,6 +43,22 @@
 (eval-when-compile
   (require 'compile))
 
+
+;; Bug Reporting
+
+(defconst
+  bibtex-maintainer-address "Dirk Herrmann <D.Herrmann@tu-bs.de>")
+;; current maintainer
+
+(defconst
+  bibtex-maintainer-salutation "Hallo Dirk,")
+;; current maintainer
+
+(defconst
+  bibtex-version "(emacs 20.4)")
+;; current version of the bibtex.el file
+
+
 ;; User Options:
 
 (defgroup bibtex nil
@@ -318,9 +334,9 @@ after last parsing and which are maintained in sorted order are parsed."
                           ("publisher" "Publishing company, its location")
                           ("note" "Remarks to be put at the end of the \\bibitem")))
 			((("author" "Author1 [and Author2 ...] [and others]")
-                          ("title" "Title of the article in proceedings (BibTeX converts it to lowercase)")
-			  ("booktitle" "Name of the conference proceedings"))
-			 (("pages" "Pages in the conference proceedings")
+                          ("title" "Title of the article in proceedings (BibTeX converts it to lowercase)"))
+			 (("booktitle" "Name of the conference proceedings")
+			  ("pages" "Pages in the conference proceedings")
                           ("year" "Year of publication")
                           ("editor" "Editor1 [and Editor2 ...] [and others]")
                           ("volume" "Volume of the conference proceedings in the series")
@@ -364,7 +380,8 @@ after last parsing and which are maintained in sorted order are parsed."
                       ("note" "Remarks to be put at the end of the \\bibitem")))))
     ("Proceedings" . (((("title" "Title of the conference proceedings")
                         ("year" "Year of publication"))
-		       (("editor" "Editor1 [and Editor2 ...] [and others]")
+		       (("booktitle" "Title of the proceedings for cross references")
+			("editor" "Editor1 [and Editor2 ...] [and others]")
                         ("volume" "Volume of the conference proceedings in the series")
                         ("number" "Number of the conference proceedings in a small series (overwritten by volume)")
                         ("series" "Series in which the conference proceedings appeared")
@@ -452,7 +469,7 @@ file)."
   :type '(repeat file))
 
 (defvar bibtex-string-file-path (getenv "BIBINPUTS")
-  "*Colon separated list of pathes to search for `bibtex-string-files'.")
+  "*Colon separated list of paths to search for `bibtex-string-files'.")
 
 (defcustom bibtex-help-message t
   "*If not nil print help messages in the echo area on entering a new field."
@@ -731,6 +748,23 @@ the value of `bibtex-text-indentation', minus 2."
     (start-itimer "bibtex" function secs (if repeat secs nil) t)))
 
 
+;; Support for hideshow minor mode
+(defun bibtex-hs-forward-sexp (arg)
+  "Replacement for `forward-sexp' to be used by `hs-minor-mode'."
+  (if (< arg 0)
+      (backward-sexp 1)
+    (if (looking-at "@\\S(*\\s(")
+	(progn
+	  (goto-char (match-end 0))
+	  (forward-char -1)
+	  (forward-sexp 1))
+      (forward-sexp 1))))
+
+(add-to-list
+ 'hs-special-modes-alist
+ '(bibtex-mode "@\\S(*\\s(" "\\s)" nil bibtex-hs-forward-sexp nil))
+
+
 ;; Syntax Table, Keybindings and BibTeX Entry List
 (defvar bibtex-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -747,6 +781,7 @@ the value of `bibtex-text-indentation', minus 2."
 
 (defvar bibtex-mode-map
   (let ((km (make-sparse-keymap)))
+    ;; The Key `C-c&' is reserved for reftex.el
     (define-key km "\t" 'bibtex-find-text)
     (define-key km "\n" 'bibtex-next-field)
     (define-key km "\M-\t" 'bibtex-complete-string)
@@ -773,7 +808,6 @@ the value of `bibtex-text-indentation', minus 2."
     (define-key km "\C-\M-l" 'bibtex-reposition-window)
     (define-key km "\C-\M-h" 'bibtex-mark-entry)
     (define-key km "\C-c\C-b" 'bibtex-entry)
-    (define-key km "\C-c\C-t" 'bibtex-hide-entry-bodies)
     (define-key km "\C-c\C-rn" 'bibtex-narrow-to-entry)
     (define-key km "\C-c\C-rw" 'widen)
     (define-key km "\C-c\C-o" 'bibtex-remove-OPT-or-ALT)
@@ -816,7 +850,10 @@ the value of `bibtex-text-indentation', minus 2."
     "--"
     ["Ispell Entry" bibtex-ispell-entry t]
     ["Ispell Entry Abstract" bibtex-ispell-abstract t]
-    ["Narrow to Entry" bibtex-narrow-to-entry t])
+    ["Narrow to Entry" bibtex-narrow-to-entry t]
+    "--"
+    ["View Cite Locations (RefTeX)" reftex-view-crossref-from-bibtex
+     (fboundp 'reftex-view-crossref-from-bibtex)])
    ("Operating on Current Field"
     ["Remove Delimiters" bibtex-remove-delimiters t]
     ["Remove OPT or ALT Prefix" bibtex-remove-OPT-or-ALT t]
@@ -840,7 +877,6 @@ the value of `bibtex-text-indentation', minus 2."
     ["Validate Entries" bibtex-validate t]
     ["Sort Entries" bibtex-sort-buffer t]
     ["Reformat Entries" bibtex-reformat t]
-    ["Hide Entry Bodies" bibtex-hide-entry-bodies t]
     ["Count Entries" bibtex-count-entries t])
    ("Miscellaneous"
     ["Convert Alien Buffer" bibtex-convert-alien t]
@@ -864,13 +900,6 @@ the value of `bibtex-text-indentation', minus 2."
        ["Miscellaneous" bibtex-Misc t]
        ["String" bibtex-String t]
        ["Preamble" bibtex-Preamble t]))
-
-
-;; Bug Reporting
-
-(defconst
-  bibtex-maintainer-address "Dirk Herrmann <D.Herrmann@tu-bs.de>")
-;; current maintainer
 
 
 ;; Internal Variables
@@ -964,7 +993,7 @@ the value of `bibtex-text-indentation', minus 2."
 ;; Regexp defining the type part of a BibTeX reference entry (almost
 ;; the same as bibtex-field-name)
 
-(defconst bibtex-reference-key "[][a-z0-9.:;?!`'/*@+=|()<>&_^$-]+")
+(defconst bibtex-reference-key "[][a-zA-Z0-9.:;?!`'/*@+=|()<>&_^$-]+")
 ;; Regexp defining the label part of a BibTeX reference entry
 
 (defconst bibtex-field-name "[^\"#%'(),={} \t\n0-9][^\"#%'(),={} \t\n]*")
@@ -1394,7 +1423,7 @@ the value of `bibtex-text-indentation', minus 2."
 (defun bibtex-move-outside-of-entry ()
   ;; Make sure we are outside of a BibTeX entry.
   (let ((orig-point (point)))
-  (bibtex-end-of-entry)
+    (bibtex-end-of-entry)
     (if (< (point) orig-point)
         ;; We moved backward, so we weren't inside an entry to begin with.
         ;; Leave point at the beginning of a line, and preferably
@@ -1966,7 +1995,7 @@ the value of `bibtex-text-indentation', minus 2."
 		 titleword
 		 bibtex-autokey-titleword-ignore)
 		(setq counter (1- counter))
-	      (setq
+              (setq
 	       titleword
 	       (funcall bibtex-autokey-titleword-case-convert titleword))
 	      (if (or (not (numberp bibtex-autokey-titlewords))
@@ -2471,7 +2500,6 @@ The following may be of interest as well:
     bibtex-ispell-abstract
     bibtex-ispell-entry
     bibtex-narrow-to-entry
-    bibtex-hide-entry-bodies
     bibtex-sort-buffer
     bibtex-validate
     bibtex-count
@@ -2612,7 +2640,7 @@ non-nil.
         (let ((reporter-prompt-for-summary-p t))
           (reporter-submit-bug-report
            bibtex-maintainer-address
-           (concat "bibtex.el " "(emacs 19.35)")
+           (concat "bibtex.el " bibtex-version)
            (list
             'system-configuration
             'system-configuration-options
@@ -2678,9 +2706,9 @@ non-nil.
             ;; user variables which shouldn't cause any errors
             )
            nil nil
-           (concat "To the bibtex.el maintainer:
+           (concat bibtex-maintainer-salutation "
 
-I want to report a bug on Emacs BibTeX mode.
+I want to report a bug on Emacs BibTeX mode " bibtex-version ".
 I've read the `Bugs' section in the `Emacs' info page, so I know how
 to make a clear and unambiguous report. I have started a fresh Emacs
 via `"invocation-name " --no-init-file --no-site-file', thereafter (in
@@ -3002,22 +3030,6 @@ If mark is active it counts entries in region, if not in whole buffer."
   (save-excursion
     (narrow-to-region
      (bibtex-beginning-of-entry) (bibtex-end-of-entry))))
-
-(defun bibtex-hide-entry-bodies (&optional arg)
-  "Hide all lines between first and last BibTeX entries not beginning with @.
-With prefix argument ARG, show all text."
-  (interactive "P")
-  (save-excursion
-    (let ((buffer-read-only nil))
-      (if arg
-	  (subst-char-in-region (point-min) (point-max) ?\r ?\n t)
-	(let ((pos (point-max)))
-	  (goto-char (point-max))
-	  (while (re-search-backward "^@" nil t)
-	    (subst-char-in-region (point) pos ?\n ?\r t)
-	    (if (not (bobp)) (forward-char -1))
-	    (setq pos (point)))))
-      (setq selective-display (not arg)))))
 
 (defun bibtex-sort-buffer ()
   "Sort BibTeX buffer alphabetically by key.
