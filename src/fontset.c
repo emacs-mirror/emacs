@@ -234,7 +234,7 @@ static int fontset_id_valid_p P_ ((int));
 static Lisp_Object fontset_pattern_regexp P_ ((Lisp_Object));
 static void accumulate_script_ranges P_ ((Lisp_Object, Lisp_Object,
 					  Lisp_Object));
-
+static Lisp_Object find_font_encoding P_ ((char *));
 
 
 /********** MACROS AND FUNCTIONS TO HANDLE FONTSET **********/
@@ -792,14 +792,14 @@ make_fontset_for_ascii_face (f, base_fontset_id, face)
 
 /* Load a font named FONTNAME on frame F.  Return a pointer to the
    struct font_info of the loaded font.  If loading fails, return
-   NULL.  CHARSET_ID is an ID of charset to encode characters for this
-   font.  */
+   NULL.  CHARSET is an ID of charset to encode characters for this
+   font.  If it is -1, find one from Vfont_encoding_alist.  */
 
 struct font_info *
-fs_load_font (f, fontname, charset_id)
+fs_load_font (f, fontname, charset)
      FRAME_PTR f;
      char *fontname;
-     int charset_id;
+     int charset;
 {
   struct font_info *fontp;
 
@@ -808,16 +808,25 @@ fs_load_font (f, fontname, charset_id)
     return NULL;
 
   fontp = (*load_font_func) (f, fontname, 0);
-  if (!fontp)
-    return NULL;
+  if (! fontp || fontp->charset >= 0)
+    return fontp;
 
   fontname = fontp->full_name;
 
-  fontp->charset = charset_id;
+  if (charset < 0)
+    {
+      Lisp_Object charset_symbol;
+
+      charset_symbol = find_font_encoding (fontname);
+      if (CONSP (charset_symbol))
+	charset_symbol = XCAR (charset_symbol);
+      charset = XINT (CHARSET_SYMBOL_ID (charset_symbol));
+    }
+  fontp->charset = charset;
   fontp->vertical_centering = 0;
   fontp->font_encoder = NULL;
 
-  if (charset_id != charset_ascii)
+  if (charset != charset_ascii)
     {
       fontp->vertical_centering
 	= (STRINGP (Vvertical_centering_font_regexp)
@@ -836,9 +845,9 @@ fs_load_font (f, fontname, charset_id)
 #endif
 
 
-/* Return ENCODING or a cons(ENCODING REPERTORY) of the font FONTNAME.
-   ENCODING is a charset symbol that specifies the encoding of the
-   font.  REPERTORY is a charset symbol or nil.  */
+/* Return ENCODING or a cons of ENCODING and REPERTORY of the font
+   FONTNAME.  ENCODING is a charset symbol that specifies the encoding
+   of the font.  REPERTORY is a charset symbol or nil.  */
 
 
 static Lisp_Object
