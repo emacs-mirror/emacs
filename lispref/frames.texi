@@ -1478,14 +1478,6 @@ This function used to be called @code{x-color-values},
 and that name is still supported as an alias.
 @end defun
 
-@defun display-color-p &optional display
-@tindex display-color-p
-@findex x-display-color-p
-This function returns @code{t} if the screen is a color screen.
-It used to be called @code{x-display-color-p}, and that name
-is still supported as an alias.
-@end defun
-
 @node Text Terminal Colors
 @section Text Terminal Colors
 @cindex colors on text-only terminals
@@ -1622,6 +1614,19 @@ once.  This is true for displays that use a window system such as X, and
 false for text-only terminals.
 @end defun
 
+@defun display-color-p &optional display
+@tindex display-color-p
+@findex x-display-color-p
+This function returns @code{t} if the screen is a color screen.
+It used to be called @code{x-display-color-p}, and that name
+is still supported as an alias.
+@end defun
+
+@defun display-grayscale-p &optional display
+@tindex display-grayscale-p
+This function returns @code{t} if the screen can display shades of gray.
+@end defun
+
 @defun display-selections-p &optional display
 @tindex display-selections-p
 This function returns @code{t} if @var{display} supports selections.
@@ -1629,12 +1634,67 @@ Windowed displays normally support selections, but they may also be
 supported in some other cases.
 @end defun
 
-  These functions obtain additional information specifically
-about X displays.
-
-@defun x-display-screens &optional display
+@defun display-screens &optional display
+@tindex display-screens
 This function returns the number of screens associated with the display.
 @end defun
+
+@defun display-pixel-height &optional display
+@tindex display-pixel-height
+This function returns the height of the screen in pixels.
+@end defun
+
+@defun display-mm-height &optional display
+@tindex display-mm-height
+This function returns the height of the screen in millimeters,
+or @code{nil} if Emacs cannot get that information.
+@end defun
+
+@defun display-pixel-width &optional display
+@tindex display-pixel-width
+This function returns the width of the screen in pixels.
+@end defun
+
+@defun display-mm-width &optional display
+@tindex display-mm-width
+This function returns the width of the screen in millimeters,
+or @code{nil} if Emacs cannot get that information.
+@end defun
+
+@defun display-backing-store &optional display
+@tindex display-backing-store
+This function returns the backing store capability of the screen.
+Values can be the symbols @code{always}, @code{when-mapped}, or
+@code{not-useful}.  The function can also return @code{nil}
+when the question is inapplicable to a certain kind of display.
+@end defun
+
+@defun display-save-under &optional display
+@tindex display-save-under
+This function returns non-@code{nil} if the display supports the
+SaveUnder feature.
+@end defun
+
+@defun display-planes &optional display
+@tindex display-planes
+This function returns the number of planes the display supports.
+@end defun
+
+@defun display-visual-class &optional display
+@tindex display-visual-class
+This function returns the visual class for the screen.  The value is one
+of the symbols @code{static-gray}, @code{gray-scale},
+@code{static-color}, @code{pseudo-color}, @code{true-color}, and
+@code{direct-color}.
+@end defun
+
+@defun display-color-cells &optional display
+@tindex display-color-cells
+This function returns the number of color cells the screen supports.
+@end defun
+
+  These functions obtain additional information specifically
+about X displays.
 
 @defun x-server-version &optional display
 This function returns the list of version numbers of the X server
@@ -1643,52 +1703,6 @@ running the display.
 
 @defun x-server-vendor &optional display
 This function returns the vendor that provided the X server software.
-@end defun
-
-@defun x-display-pixel-height &optional display
-This function returns the height of the screen in pixels.
-@end defun
-
-@defun x-display-mm-height &optional display
-This function returns the height of the screen in millimeters.
-@end defun
-
-@defun x-display-pixel-width &optional display
-This function returns the width of the screen in pixels.
-@end defun
-
-@defun x-display-mm-width &optional display
-This function returns the width of the screen in millimeters.
-@end defun
-
-@defun x-display-backing-store &optional display
-This function returns the backing store capability of the screen.
-Values can be the symbols @code{always}, @code{when-mapped}, or
-@code{not-useful}.
-@end defun
-
-@defun x-display-save-under &optional display
-This function returns non-@code{nil} if the display supports the
-SaveUnder feature.
-@end defun
-
-@defun x-display-planes &optional display
-This function returns the number of planes the display supports.
-@end defun
-
-@defun x-display-visual-class &optional display
-This function returns the visual class for the screen.  The value is one
-of the symbols @code{static-gray}, @code{gray-scale},
-@code{static-color}, @code{pseudo-color}, @code{true-color}, and
-@code{direct-color}.
-@end defun
-
-@defun x-display-grayscale-p &optional display
-This function returns @code{t} if the screen can display shades of gray.
-@end defun
-
-@defun x-display-color-cells &optional display
-This function returns the number of color cells the screen supports.
 @end defun
 
 @ignore
