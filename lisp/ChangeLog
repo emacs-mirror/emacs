@@ -1,3 +1,10 @@
+2000-05-29  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/encoded-kb.el
+	(encoded-kbd-iso2022-designation-map): Pay attention to that
+	charset-iso-final-char return -1 for eight-bit-control and
+	eight-bit-graphic.
+
 2000-05-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* speedbar.el (speedbar-use-images, speedbar-update-flag)
