@@ -2467,9 +2467,12 @@ properties and overlays that apply to the image.
 If this property is omitted, it defaults to 50.
 
 @item :margin @var{margin}
-The @code{:margin} property specifies how many pixels to add as an extra
-margin around the image.  The value, @var{margin}, must be a
-non-negative number; if it is not specified, the default is zero.
+The @code{:margin} property specifies how many pixels to add as an
+extra margin around the image.  The value, @var{margin}, must be a a
+non-negative number, or a pair @code{(@var{x} . @var{y})} of such
+numbers.  If it is a pair, @var{x} specifies how many pixels to add
+horizontally, and @var{y} specifies how many pixels to add vertically.
+If @code{:margin} is not specified, the default is zero.
 
 @item :relief @var{relief}
 The @code{:relief} property, if non-@code{nil}, adds a shadow rectangle

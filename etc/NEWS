@@ -3642,8 +3642,9 @@ overlays that apply to the image.
 
 `:margin MARGIN'
 
-MARGIN must be a number >= 0 specifying how many pixels to put as
-margin around the image.  Default is 0.
+MARGIN must be either a number >= 0 specifying how many pixels to put
+as margin around the image, or a pair (X . Y) with X specifying the
+horizontal margin and Y specifying the vertical margin.  Default is 0.
 
 `:relief RELIEF'
 
@@ -4074,7 +4075,8 @@ raised when the mouse moves over them.
 
 You can add extra space between tool bar items by setting
 `tool-bar-button-margin' to a positive integer specifying a number of
-pixels.  Default is 1.
+pixels, or a pair of integers (X . Y) specifying horizontal and
+vertical margins .  Default is 1.
 
 You can change the shadow thickness of tool bar buttons by setting
 `tool-bar-button-relief' to an integer.  Default is 3.

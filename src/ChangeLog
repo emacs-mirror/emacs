@@ -1,5 +1,29 @@
 2001-01-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (Vtool_bar_button_margin): Replaces tool_bar_button_margin.
+	(build_desired_tool_bar_string): Handle Vtool_bar_button_margin
+	being a pair of margins.
+	(syms_of_xdisp): Change DEFVAR_INT of tool-bar-button-margins
+	to DEFVAR_LISP.  Extend doc.
+
+	* xfns.c (Fimage_size, image_ascent): Adapt to the change of image
+	margins.
+	(lookup_image): If `:margin MARGIN' is specified, and MARGIN is a
+	pair of integers `(X . Y)', use X for the horizontal and Y for the
+	vertical margin.
+	(IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR): New enumerator.
+	(parse_image_spec): Check it.
+	(xbm_format, xpm_format, pbm_format, png_format, jpeg_format) 
+	(tiff_format, gif_format, gs_format): Use
+	IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR for :margin.
+
+	* xterm.c (x_produce_image_glyph, x_draw_image_foreground) 
+	(x_draw_image_relief, x_draw_image_foreground_1) 
+	(x_draw_image_glyph_string): Adapt to the change of image margins.
+
+	* dispextern.h (struct image): Replace member `margin' with
+	`hmargin' and `vmargin'.
+
 	* xdisp.c (Fdump_tool_bar_row) [GLYPH_DEBUG]: Add parameters ROW
 	and GLYPHS.
 
