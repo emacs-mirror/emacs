@@ -866,10 +866,7 @@ Returns the compilation buffer created."
 	  (if (eq mode t)
 	      (prog1 "compilation" (require 'comint))
 	    (replace-regexp-in-string "-mode$" "" (symbol-name mode))))
-	 cd-path		 ; in case process-environment contains CDPATH
-	 (thisdir (if (string-match "^\\s *cd\\s +\\(.+?\\)\\s *[;&\n]" command)
-		      (substitute-in-file-name (match-string 1 command))
-		    default-directory))
+	 (thisdir default-directory)
 	 outwin outbuf)
     (with-current-buffer
 	(setq outbuf
@@ -890,17 +887,25 @@ Returns the compilation buffer created."
 	      (error "Cannot have two processes in `%s' at once"
 		     (buffer-name)))))
       (buffer-disable-undo (current-buffer))
+      ;; first transfer directory from where M-x compile was called
+      (setq default-directory thisdir)
       ;; Make compilation buffer read-only.  The filter can still write it.
       ;; Clear out the compilation buffer.
-      (let ((inhibit-read-only t))
+      (let ((inhibit-read-only t)
+	    (default-directory thisdir))
+	;; Then evaluate a cd command if any, but don't perform it yet, else start-command
+	;; would do it again through the shell: (cd "..") AND sh -c "cd ..; make"
+	(cd (if (string-match "^\\s *cd\\(?:\\s +\\(\\S +?\\)\\)?\\s *[;&\n]" command)
+		(if (match-end 1)
+		    (match-string 1 command)
+		  "~")
+	      default-directory))
 	(erase-buffer)
-	;; Change its default-directory to the directory where the compilation
-	;; will happen, and insert a `cd' command to indicate this.
-	(setq default-directory thisdir)
 	;; output a mode setter, for saving and later reloading this buffer
 	(insert "-*- mode: " name-of-mode
 		"; default-directory: " (prin1-to-string default-directory)
-		" -*-\n" command "\n"))
+		" -*-\n" command "\n")
+	(setq thisdir default-directory))
       (set-buffer-modified-p nil))
     ;; If we're already in the compilation buffer, go to the end
     ;; of the buffer, so point will track the compilation output.
@@ -985,7 +990,9 @@ exited abnormally with code %d\n"
 	  ;; fontified, so fontify it now.
 	  (let ((font-lock-verbose nil)) ; shut up font-lock messages
 	    (font-lock-fontify-buffer))
-	  (message "Executing `%s'...done" command))))
+	  (message "Executing `%s'...done" command)))
+      ;; Now finally cd to where the shell started make/grep/...
+      (setq default-directory thisdir))
     (if (buffer-local-value 'compilation-scroll-output outbuf)
 	(save-selected-window
 	  (select-window outwin)
