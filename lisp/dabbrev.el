@@ -128,6 +128,12 @@ Set this to nil if no characters should be skipped."
 		 (const :tag "off" nil))
   :group 'dabbrev)
 
+(defcustom dabbrev--eliminate-newlines t
+  "*Non-nil means dabbrev should not insert newlines.
+Instead it converts them to spaces."
+  :type 'boolean
+  :group 'dabbrev)
+
 (defcustom dabbrev-case-fold-search 'case-fold-search
   "*Control whether dabbrev searches should ignore case.
 A value of nil means case is significant.
@@ -648,8 +654,6 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 					"\\sw\\|\\s_")
 	dabbrev--check-other-buffers dabbrev-check-other-buffers))
 
-;;; Find all buffers that are considered "friends" according to the
-;;; function pointed out by dabbrev-friend-buffer-function.
 (defun dabbrev--select-buffers ()
   "Return a list of all buffers that should be searched for a possible abbrev.
 
@@ -666,9 +670,11 @@ if it is bound, returns nil.  The resulting partial list is returned."
 	    (boundp 'dabbrev-friend-buffer-function)
 	    (funcall dabbrev-friend-buffer-function buffer))))))
 
-;;; Search for ABBREV, N times, normally looking forward,
-;;; but looking in reverse instead if REVERSE is non-nil.
 (defun dabbrev--try-find (abbrev reverse n ignore-case)
+  "Search for ABBREV, backwards if REVERSE, N times.
+If IGNORE-CASE is non-nil, ignore case while searching.
+Return the expansion found, and save the location of the start
+of the expansion in `dabbrev--last-expansion-location'."
   (save-excursion
     (save-restriction
       (widen)
@@ -686,8 +692,9 @@ if it is bound, returns nil.  The resulting partial list is returned."
 	     (setq dabbrev--last-expansion-location (point)))
 	expansion))))
 
-;;; Find all expansions of ABBREV
 (defun dabbrev--find-all-expansions (abbrev ignore-case)
+  "Return a list of all possible expansions of ABBREV.
+If IGNORE-CASE is non-nil, accept matches which differ in case."
   (let ((all-expansions nil)
 	expansion)
     (save-excursion
@@ -699,12 +706,16 @@ if it is bound, returns nil.  The resulting partial list is returned."
 (defun dabbrev--scanning-message ()
   (message "Scanning `%s'" (buffer-name (current-buffer))))
 
-;;; Find one occasion of ABBREV.
-;;; DIRECTION > 0 means look that many times backwards.
-;;; DIRECTION < 0 means look that many times forward.
-;;; DIRECTION = 0 means try both backward and forward.
-;;; IGNORE-CASE non-nil means ignore case when searching.
 (defun dabbrev--find-expansion (abbrev direction ignore-case)
+  "Find one occurrence of ABBREV, and return the expansion.
+DIRECTION > 0 means look that many times backwards.
+DIRECTION < 0 means look that many times forward.
+DIRECTION = 0 means try both backward and forward.
+IGNORE-CASE non-nil means ignore case when searching.
+This sets `dabbrev--last-direction' to 1 or -1 according
+to the direction in which the occurrence was actually found.
+It sets `dabbrev--last-expansion-location' to the location 
+of the start of the occurrence."
   (let (expansion)
     (save-excursion
       (cond
@@ -828,10 +839,12 @@ to record whether we upcased the expansion, downcased it, or did neither."
 
     ;; If we upcased or downcased the original expansion,
     ;; do likewise for the subsequent words when we copy them.
-    (and (equal abbrev " ")
-	 dabbrev--last-case-pattern
-	 (setq expansion
-	       (funcall dabbrev--last-case-pattern expansion)))
+    ;; Don't do any of the usual case processing, though.
+    (when (equal abbrev " ")
+      (if dabbrev--last-case-pattern
+	  (setq expansion
+		(funcall dabbrev--last-case-pattern expansion)))
+      (setq use-case-replace nil))
 
     ;; If the expansion has mixed case
     ;; and it is not simply a capitalized word,
@@ -852,8 +865,15 @@ to record whether we upcased the expansion, downcased it, or did neither."
 	       (string= abbrev
 			(substring expansion 0 (length abbrev))))
 	  (setq use-case-replace nil)))
-    (if (equal abbrev " ")
+
+    ;; If the abbrev and the expansion are both all-lower-case
+    ;; then don't do any conversion.  The conversion would be a no-op
+    ;; for this replacement, but it would carry forward to subsequent words.
+    ;; The goal of this is to preven that carrying forward.
+    (if (and (string= expansion (downcase expansion))
+	     (string= abbrev (downcase abbrev)))
 	(setq use-case-replace nil))
+
     (if use-case-replace
 	(setq expansion (downcase expansion)))
 
@@ -866,11 +886,18 @@ to record whether we upcased the expansion, downcased it, or did neither."
 		    (cond ((equal abbrev (upcase abbrev)) 'upcase)
 			  ((equal abbrev (downcase abbrev)) 'downcase)))))
 
+    ;; Convert newlines to spaces.
+    (if dabbrev--eliminate-newlines
+	(while (string-match "\n" expansion)
+	  (setq expansion (replace-match " " nil nil expansion))))
+
     (if old
 	(save-excursion
 	  (search-backward old))
       ;;(set-match-data (list (point-marker) (point-marker)))
-      (search-backward abbrev))
+      (search-backward abbrev)
+      (search-forward abbrev))
+
     ;; Make case of replacement conform to case of abbreviation
     ;; provided (1) that kind of thing is enabled in this buffer
     ;; and (2) the replacement itself is all lower case.
@@ -882,22 +909,24 @@ to record whether we upcased the expansion, downcased it, or did neither."
 ;;;----------------------------------------------------------------
 ;;; Search function used by dabbrevs library.
 
-;;; ABBREV is string to find as prefix of word.  Second arg, REVERSE,
-;;; is t for reverse search, nil for forward.  Variable dabbrev-limit
-;;; controls the maximum search region size.  Third argument IGNORE-CASE
-;;; non-nil means treat case as insignificant while looking for a match
-;;; and when comparing with previous matches.  Also if that's non-nil
-;;; and the match is found at the beginning of a sentence and is in
-;;; lower case except for the initial then it is converted to all lower
-;;; case for return.
-
-;;; Table of expansions already seen is examined in buffer
-;;; `dabbrev--last-table' so that only distinct possibilities are found
-;;; by dabbrev-re-expand.
-
-;;; Value is the expansion, or nil if not found.
 
 (defun dabbrev--search (abbrev reverse ignore-case)
+  "Search for something that could be used to expand ABBREV.
+
+Second arg, REVERSE, is t for reverse search, nil for forward.
+The variable `dabbrev-limit' controls the maximum search region size.
+Third argument IGNORE-CASE non-nil means treat case as insignificant while
+looking for a match and when comparing with previous matches.  Also if
+that's non-nil and the match is found at the beginning of a sentence
+and is in lower case except for the initial then it is converted to
+all lower case for return.
+
+Table of expansions already seen is examined in buffer
+`dabbrev--last-table' so that only distinct possibilities are found
+by dabbrev-re-expand.
+
+Returns the expansion found, or nil if not found.
+Leaves point at the location of the start of the expansion."
   (save-match-data
     (let ((pattern1 (concat (regexp-quote abbrev)
 			    "\\(" dabbrev--abbrev-char-regexp "\\)"))
