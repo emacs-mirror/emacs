@@ -1,6 +1,6 @@
 /* impl.c.global: ARENA-GLOBAL INTERFACES
  *
- * $HopeName: MMsrc!global.c(trunk.11) $
+ * $HopeName: MMsrc!global.c(trunk.12) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .sources: See design.mps.arena.  design.mps.thread-safety is relevant
@@ -27,7 +27,7 @@
 #include "mpm.h"
 
 
-SRCID(global, "$HopeName: MMsrc!global.c(trunk.11) $");
+SRCID(global, "$HopeName: MMsrc!global.c(trunk.12) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -127,6 +127,14 @@ Bool GlobalsCheck(Globals arenaGlobals)
 
   /* no check possible on pollThreshold */
   CHECKL(BoolCheck(arenaGlobals->insidePoll));
+  CHECKL(BoolCheck(arenaGlobals->clamped));
+  CHECKL(arenaGlobals->fillMutatorSize >= 0.0);
+  CHECKL(arenaGlobals->emptyMutatorSize >= 0.0);
+  CHECKL(arenaGlobals->allocMutatorSize >= 0.0);
+  CHECKL(arenaGlobals->fillMutatorSize - arenaGlobals->emptyMutatorSize
+         >= arenaGlobals->allocMutatorSize);
+  CHECKL(arenaGlobals->fillInternalSize >= 0.0);
+  CHECKL(arenaGlobals->emptyInternalSize >= 0.0);
 
   CHECKL(BoolCheck(arenaGlobals->bufferLogging));
   CHECKL(RingCheck(&arenaGlobals->poolRing));
@@ -173,7 +181,6 @@ Bool GlobalsCheck(Globals arenaGlobals)
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
   for(rank = 0; rank < RankLIMIT; ++rank)
     CHECKL(RingCheck(&arena->greyRing[rank]));
-  CHECKL(BoolCheck(arena->clamped));
   CHECKL(RingCheck(&arena->chainRing));
 
   /* can't write a check for arena->epoch */
@@ -233,6 +240,12 @@ Res GlobalsInit(Globals arenaGlobals)
 
   arenaGlobals->pollThreshold = 0.0;
   arenaGlobals->insidePoll = FALSE;
+  arenaGlobals->clamped = FALSE;
+  arenaGlobals->fillMutatorSize = 0.0;
+  arenaGlobals->emptyMutatorSize = 0.0;
+  arenaGlobals->allocMutatorSize = 0.0;
+  arenaGlobals->fillInternalSize = 0.0;
+  arenaGlobals->emptyInternalSize = 0.0;
 
   arenaGlobals->mpsVersionString = MPSVersion();
   arenaGlobals->bufferLogging = FALSE;
@@ -266,7 +279,6 @@ Res GlobalsInit(Globals arenaGlobals)
   for(rank = 0; rank < RankLIMIT; ++rank)
     RingInit(&arena->greyRing[rank]);
   STATISTIC(arena->writeBarrierHitCount = 0);
-  arena->clamped = FALSE;
   RingInit(&arena->chainRing);
 
   arena->epoch = (Epoch)0;              /* impl.c.ld */
@@ -518,42 +530,39 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
  * if we introduce background activities other than tracing.  */
 
 #ifdef MPS_PROD_EPCORE
-void (ArenaPoll)(Arena arena)
+void (ArenaPoll)(Globals globals)
 {
   /* Don't poll, just check. */
-  AVERT(Arena, arena);
+  AVERT(Globals, globals);
 }
 #else
-void ArenaPoll(Arena arena)
+void ArenaPoll(Globals globals)
 {
-  Globals arenaGlobals;
   double size;
 
-  AVERT(Arena, arena);
-  arenaGlobals = ArenaGlobals(arena);
-  AVERT(Globals, arenaGlobals);
+  AVERT(Globals, globals);
 
   if (!DONGLE_TEST_QUICK()) {
     /* Cripple it by deleting the control pool. */
-    arena->poolReady = FALSE; /* suppress check */
-    PoolFinish(ArenaControlPool(arena));
+    GlobalsArena(globals)->poolReady = FALSE; /* suppress check */
+    PoolFinish(ArenaControlPool(GlobalsArena(globals)));
     return;
   }
-  if (arena->clamped)
+  if (globals->clamped)
     return;
-  size = arena->fillMutatorSize;
-  if (arenaGlobals->insidePoll || size < arenaGlobals->pollThreshold)
+  size = globals->fillMutatorSize;
+  if (globals->insidePoll || size < globals->pollThreshold)
     return;
 
-  arenaGlobals->insidePoll = TRUE;
+  globals->insidePoll = TRUE;
 
-  TracePoll(arena);
+  TracePoll(globals);
 
-  size = arena->fillMutatorSize;
-  arenaGlobals->pollThreshold = size + ArenaPollALLOCTIME;
-  AVER(arenaGlobals->pollThreshold > size); /* enough precision? */
+  size = globals->fillMutatorSize;
+  globals->pollThreshold = size + ArenaPollALLOCTIME;
+  AVER(globals->pollThreshold > size); /* enough precision? */
 
-  arenaGlobals->insidePoll = FALSE;
+  globals->insidePoll = FALSE;
 }
 #endif
 
@@ -710,6 +719,17 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
                "  pollThreshold $U kB\n",
                (WriteFU)(arenaGlobals->pollThreshold / 1024),
                arenaGlobals->insidePoll ? "inside poll\n" : "outside poll\n",
+               arenaGlobals->clamped ? "clamped\n" : "released\n",
+               "  fillMutatorSize $U kB\n",
+                 (WriteFU)(arenaGlobals->fillMutatorSize / 1024),
+               "  emptyMutatorSize $U kB\n",
+                 (WriteFU)(arenaGlobals->emptyMutatorSize / 1024),
+               "  allocMutatorSize $U kB\n",
+                 (WriteFU)(arenaGlobals->allocMutatorSize / 1024),
+               "  fillInternalSize $U kB\n",
+                 (WriteFU)(arenaGlobals->fillInternalSize / 1024),
+               "  emptyInternalSize $U kB\n",
+                 (WriteFU)(arenaGlobals->emptyInternalSize / 1024),
                "  poolSerial $U\n", (WriteFU)arenaGlobals->poolSerial,
                "  rootSerial $U\n", (WriteFU)arenaGlobals->rootSerial,
                "  formatSerial $U\n", (WriteFU)arena->formatSerial,
