@@ -1,3 +1,43 @@
+2001-10-21  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fx_file_dialog): Pass a filter to GetOpenFileName.
+
+	* w32menu.c (single_submenu, w32_menu_show) [!HAVE_MULTILINGUAL_MENU]:
+	Protect unibyte stings created by replacing their multibyte
+	equivalents in menu_items.
+	(w32_menu_show): Don't overwrite an item's name with its key
+	description in case the description is a multibyte string.
+	(single_submenu): Some cleanup.
+
+	* w32fns.c (x_laplace_read_row, x_laplace_write_row): Removed.
+	(postprocess_image): New function.
+	(lookup_image): Call it for all image types except PostScript.
+	(x_kill_gs_process): Call postprocess_image.
+	(tiff_error_handler, tiff_warning_handler): New functions.
+	(tiff_load): Install them as handlers.
+	(x_kill_gs_process): Recognize if someone has cleared the image
+	cache under us.
+	(valid_image_p): Protect better against invalid image
+	specifications.  Previous code could signal an error.
+	(Fx_hide_tip, Fshow_tip): Doc fix.
+	(Fv_max_tooltip_size): New variable.
+	(syns_of_xfns): DEFVAR_LISP it.
+	(Fx_show_tip): Add parameter TEXT.  Set the tip frame's root
+	window buffer to *tip* right after creating the frame. Set frame's
+	window_width.  Use a maximum tooltip size specified by
+	Vx_max_tooltip_size, if that has valid contents.
+	(compute_tip_xy): Add parameters WIDTH and HEIGHT.
+	Make sure the tooltip is completely visible.
+	(x_create_tip_frame): Set tooltip buffer's truncate-lines to nil.
+	(Fx_create_frame): Adjust the frame's height for presence
+	of the tool bar before calling x_figure_window_size.
+	(x_set_tool_bar_lines): Clear the tool bar window's current matrix
+	when the window gets smaller.
+	(x_set_foreground_color): Set frame's cursor_pixel.
+	(x_set_foreground_color, x_set_background_color): Cleaned up.
+	(x_set_font): Handle case of x_new_fontset returning the same name
+	as before, although there was a change in fontsets.
+
 2001-10-21  Miles Bader  <miles@gnu.org>
 
 	* data.c (Fplus, Fminus, Fmax, Ftimes, Fquo, Flogand, Flogior) 
