@@ -5782,6 +5782,8 @@ An entry (nil PROPERTY VALUE BEG . END) indicates that a text property
 was modified between BEG and END.  PROPERTY is the property name,
 and VALUE is the old value.
 
+An entry (FUN-NAME . ARGS) means undo the change with (apply FUN-NAME ARGS).
+
 An entry (MARKER . DISTANCE) indicates that the marker MARKER
 was adjusted in position by the offset DISTANCE (an integer).
 
