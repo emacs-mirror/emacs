@@ -262,6 +262,11 @@ Set it to either \`yes' or \`no'."
 	  exec_prefix="${val}"
         ;;
 
+	## Verbose flag, tested by autoconf macros.
+	"verbose" )
+	  verbose=yes
+	;;
+
 	## Has the user asked for some help?
 	"usage" | "help" )
 	  echo "${short_usage}" | more
