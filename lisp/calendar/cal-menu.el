@@ -300,7 +300,7 @@ ERROR is t, otherwise just returns nil."
 ;        (list (format "Chinese date: %s" (calendar-chinese-date-string date))))
 ;       so instead,
             (list '("Chinese date (select to echo Chinese date)"
-                    . calendar-print-chinese-date))
+                    . calendar-mouse-chinese-date))
             (let ((c (calendar-coptic-date-string date)))
               (if (not (string-equal c ""))
                   (list (list (format "Coptic date: %s" c)))))
@@ -316,6 +316,12 @@ ERROR is t, otherwise just returns nil."
                       (calendar-mayan-date-string date)))))))))
         (and selection (call-interactively selection))))
 
+(defun calendar-mouse-chinese-date ()
+  "Show Chinese equivalent for mouse-selected date."
+  (interactive)
+  (save-excursion
+    (calendar-goto-date (calendar-event-to-date))
+    (calendar-print-chinese-date)))
 
 (defun calendar-mouse-2-date-menu (event)
   "Pop up menu for Mouse-2 for selected date in the calendar window."
