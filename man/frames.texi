@@ -141,7 +141,7 @@ click on a character with ``symbol'' syntax (such as underscore, in C
 mode), it sets the region around the symbol surrounding that character.
 
 If you click on a character with open-parenthesis or close-parenthesis
-syntax, it sets the region around the parenthetical grouping (sexp)
+syntax, it sets the region around the parenthetical grouping
 which that character starts or ends.  If you click on a character with
 string-delimiter syntax (such as a singlequote or doublequote in C), it
 sets the region around the string constant (using heuristics to figure
