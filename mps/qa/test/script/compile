@@ -21,9 +21,9 @@ $plat_link{"sol2.4_sparc"} = "-lm";
 sub compiler_settings {
  if ($PLATFORM =~ "^nt_") {
   $cc_command = "cl";
-  $cc_opts = "/nologo /DWIN32 /D_WINDOWS /W3 /Z7 /DMMQA_VERS_$INTERFACE_VERSION";
+  $cc_opts = "/nologo /DWIN32 /D_WINDOWS /W3 /Zi /Oy- /DMMQA_VERS_$INTERFACE_VERSION";
   $cc_link = "$obj_dir/platform.obj";
-  $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT";
+  $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /debugtype:both /pdb:none /debug:full";
   $cc_include = "/I$testlib_dir /I$MPS_INCLUDE_DIR";
   $cc_conly = "/c";
   $cc_obj = "/Fo";
