@@ -1,3 +1,10 @@
+2002-05-07  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-send-it): Use user-mail-address from
+	calling buffer.
+	(smtpmail-auth-credentials): Bump :version to 21.4 (21.3 will not
+	have the patch).
+
 2002-05-09  Kim F. Storm  <storm@cua.dk>
 
 	* wid-edit.el (checkbox): New check-mark image.

@@ -167,7 +167,7 @@ looks like `user@realm'."
 		       (string  :tag "Username")
 		       (choice (const :tag "Query when needed" nil)
 				       (string  :tag "Password")))))
-  :version "21.3"
+  :version "21.4"
   :group 'smtpmail)
 
 (defcustom smtpmail-starttls-credentials '(("" 25 "" ""))
@@ -220,6 +220,7 @@ This is relative to `smtpmail-queue-dir'.")
 	(case-fold-search nil)
 	delimline
 	(mailbuf (current-buffer))
+	(mail-address user-mail-address)
 	(smtpmail-code-conv-from
 	 (if enable-multibyte-characters
 	     (let ((sendmail-coding-system smtpmail-code-conv-from))
@@ -260,7 +261,7 @@ This is relative to `smtpmail-queue-dir'.")
 	    ;; they put one in themselves.
 	    (goto-char (point-min))
 	    (if (not (re-search-forward "^From:" delimline t))
-		(let* ((login user-mail-address)
+		(let* ((login mail-address)
 		       (fullname (user-full-name)))
 		  (cond ((eq mail-from-style 'angles)
 			 (insert "From: " fullname)
@@ -685,7 +686,7 @@ This is relative to `smtpmail-queue-dir'.")
 ;	      (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
 	      (smtpmail-send-command process (format "MAIL FROM: <%s>%s%s"
 						     (or mail-envelope-from
-							 user-mail-address)
+							 mail-address)
 						     size-part
 						     body-part))
 
