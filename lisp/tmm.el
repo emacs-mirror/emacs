@@ -1,6 +1,7 @@
 ;;; tmm.el --- text mode access to menu-bar
 
-;; Copyright (C) 1994, 1995, 1996, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 2000, 2001
+;;   Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich <ilya@math.mps.ohio-state.edu>
 ;; Maintainer: FSF
@@ -339,12 +340,11 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 	(with-output-to-temp-buffer "*Completions*"
 	  (display-completion-list completions))
         (remove-hook 'completion-setup-hook 'tmm-completion-delete-prompt))
-      (if tmm-completion-prompt
-          (progn
-	    (set-buffer "*Completions*")
-	    (goto-char 1)
-            (insert tmm-completion-prompt)))
-      )
+      (when tmm-completion-prompt
+	(set-buffer "*Completions*")
+	(let ((buffer-read-only nil))
+	  (goto-char (point-min))
+	  (insert tmm-completion-prompt))))
     (save-selected-window
       (other-window 1)			; Electric-pop-up-window does
 					; not work in minibuffer
@@ -410,12 +410,14 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 		   (or (keymapp elt) (eq (car elt) 'lambda))
 		 (fboundp elt))
 	       (setq km elt))
+
 	      ((if (listp (cdr-safe elt))
 		   (or (keymapp (cdr-safe elt))
 		       (eq (car (cdr-safe elt)) 'lambda))
 		 (fboundp (cdr-safe elt)))
 	       (setq km (cdr elt))
 	       (and (stringp (car elt)) (setq str (car elt))))
+
 	      ((if (listp (cdr-safe (cdr-safe elt)))
 		   (or (keymapp (cdr-safe (cdr-safe elt)))
 		       (eq (car (cdr-safe (cdr-safe elt))) 'lambda))
@@ -426,8 +428,12 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 		    (stringp (cdr (car (cdr elt)))) ; keyseq cache
 		    (setq cache (cdr (car (cdr elt))))
 		    cache (setq str (concat str cache))))
+
 	      ((eq (car-safe elt) 'menu-item)
+	       ;; (menu-item TITLE COMMAND KEY ...)
 	       (setq plist (cdr-safe (cdr-safe (cdr-safe elt))))
+	       (when (consp (car-safe plist))
+		 (setq plist (cdr-safe plist)))
 	       (setq km (nth 2 elt))
 	       (setq str (eval (nth 1 elt)))
 	       (setq filter (plist-get plist :filter))
@@ -439,6 +445,7 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 		    (setq cache (cdr (nth 3 elt)))
 		    cache
 		    (setq str (concat str cache))))
+
 	      ((if (listp (cdr-safe (cdr-safe (cdr-safe elt))))
 		   (or (keymapp (cdr-safe (cdr-safe (cdr-safe elt))))
 		       (eq (car (cdr-safe (cdr-safe (cdr-safe elt)))) 'lambda))
@@ -450,6 +457,7 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 		    (stringp (cdr (car (cdr (cdr elt))))) ; keyseq cache
 		    (setq cache (cdr (car (cdr (cdr elt)))))
 		    cache (setq str (concat str cache))))
+
 	      ((stringp event)		; x-popup or x-popup element
 	       (if (or in-x-menu (stringp (car-safe elt)))
 		   (setq str event event nil km elt)
