@@ -1,6 +1,6 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
- * $HopeName: MMsrc!check.h(trunk.16) $
+ * $HopeName: MMsrc!check.h(trunk.17) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .aver: This header defines a family of AVER and NOTREACHED macros.
@@ -29,6 +29,12 @@
 /* CheckLevel -- Control check method behaviour; see impl.c.assert */
 
 extern unsigned CheckLevel;
+
+enum {
+  CheckNONE = 0,
+  CheckSHALLOW = 1,
+  CheckDEEP = 2
+};
 
 
 /* AVER, AVERT -- MPM assertions
