@@ -808,10 +808,11 @@ containing the executable being debugged.")
               gud-marker-acc "")
       (setq gud-marker-acc (concat gud-marker-acc string)))
     (if result
-        (if (or (string-match "\\([^\n \t:]+\\): [^:]+: \\([0-9]+\\):" result)
+        (if (or (string-match "\\([^\n \t:]+\\): [^:]+: \\([0-9]+\\)[: ]"
+			      result)
                 (string-match "[^: \t]+:[ \t]+\\([^:]+\\): [^:]+: \\([0-9]+\\):"
                               result))
-            (let ((line (string-to-int 
+            (let ((line (string-to-int
                          (substring result (match-beginning 2) (match-end 2))))
                   (file (gud-xdb-file-name
                          (substring result (match-beginning 1) (match-end 1)))))
