@@ -4006,9 +4006,7 @@ reseat_to_string (it, s, string, charpos, precision, field_width, multibyte)
   
   /* If STRING is specified, use its multibyteness, otherwise use the
      setting of MULTIBYTE, if specified.  */
-  if (STRINGP (string))
-    it->multibyte_p = STRING_MULTIBYTE (string);
-  else if (multibyte >= 0)
+  if (multibyte >= 0)
     it->multibyte_p = multibyte > 0;
   
   if (s == NULL)
