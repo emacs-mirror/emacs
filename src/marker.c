@@ -828,16 +828,14 @@ see `marker-insertion-type'.")
 {
   register Lisp_Object new;
 
-  if (INTEGERP (marker) || MARKERP (marker))
-    {
-      new = Fmake_marker ();
-      Fset_marker (new, marker,
-		   (MARKERP (marker) ? Fmarker_buffer (marker) : Qnil));
-      XMARKER (new)->insertion_type = !NILP (type);
-      return new;
-    }
-  else
+  if (! (INTEGERP (marker) || MARKERP (marker)))
     marker = wrong_type_argument (Qinteger_or_marker_p, marker);
+
+  new = Fmake_marker ();
+  Fset_marker (new, marker,
+	       (MARKERP (marker) ? Fmarker_buffer (marker) : Qnil));
+  XMARKER (new)->insertion_type = !NILP (type);
+  return new;
 }
 
 DEFUN ("marker-insertion-type", Fmarker_insertion_type,
