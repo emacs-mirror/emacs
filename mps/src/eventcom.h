@@ -1,7 +1,7 @@
 /* impl.h.eventcom -- Event Logging Common Definitions
  *
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
- * $HopeName: MMsrc!eventcom.h(trunk.17) $
+ * $HopeName: MMsrc!eventcom.h(trunk.18) $
  *
  * .readership: MPS developers
  * .sources: mps.design.telemetry
@@ -61,6 +61,8 @@ typedef EventStringStruct *EventString;
 #define EventArenaFree	    ((EventType)0xEFA64F6E) /* AReNa FREe */
 #define EventSegAlloc       ((EventType)0xEF5E9A77) /* SEG ALLoc */
 #define EventSegFree	    ((EventType)0xEF5E9F6E) /* SEG FREe */
+#define EventSegMerge	    ((EventType)0xEF5E93E6) /* SEG MERge */
+#define EventSegSplit	    ((EventType)0xEF5E95B7) /* SEG SPLit */
 #define EventAMCGenCreate   ((EventType)0xEFA3C94C) /* AMC GeN Create */
 #define EventAMCGenDestroy  ((EventType)0xEFA3C94D) /* AMC GeN Destroy */
 #define EventAMCInit        ((EventType)0xEFA3C141) /* AMC INIt */
