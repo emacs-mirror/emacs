@@ -178,7 +178,7 @@
 ;; Actual Glyph for 1-column width.
 (define-charset nil 'indian-1-column
   [2 94 1 0 ?6 0 "Indian 1-col" "Indian 1 Column"
-     "Indian charset for 2-column width glypps"])
+     "Indian charset for 2-column width glyphs"])
 
 ;; Lao script.
 ;; ISO10646's 0x0E80..0x0EDF are mapped to 0x20..0x7F.
@@ -195,14 +195,14 @@
 (setup-special-charsets)
 
 
-;; This is a table of alternate charsets.
-(setq standard-character-unification-table-for-read
+;; These are tables for unifying characters on decoding and encoding.
+(setq standard-character-unification-table-for-decode
       (make-unification-table
        (list (cons (make-char 'japanese-jisx0208-1978)
 		   (make-char 'japanese-jisx0208))
 	     (cons (make-char 'latin-jisx0201) (make-char 'ascii)))))
 
-(setq standard-character-unification-table-for-write nil)
+(setq standard-character-unification-table-for-encode nil)
 
 
 ;;; Make fundamental coding systems.
