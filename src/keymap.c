@@ -163,7 +163,7 @@ synkey (frommap, fromchar, tomap, tochar)
      int fromchar, tochar;
 {
   Lisp_Object v, c;
-  XSET (v, Lisp_Vector, tomap);
+  XSETVECTOR (v, tomap);
   XFASTINT (c) = tochar;
   frommap->contents[fromchar] = Fcons (v, c);
 }
@@ -1820,7 +1820,7 @@ then we display only bindings that start with that prefix.")
      Lisp_Object prefix;
 {
   register Lisp_Object thisbuf;
-  XSET (thisbuf, Lisp_Buffer, current_buffer);
+  XSETBUFFER (thisbuf, current_buffer);
   internal_with_output_to_temp_buffer ("*Help*",
 				       describe_buffer_bindings,
 				       Fcons (thisbuf, prefix));
@@ -2071,7 +2071,7 @@ describe_command (definition)
 
   if (SYMBOLP (definition))
     {
-      XSET (tem1, Lisp_String, XSYMBOL (definition)->name);
+      XSETSTRING (tem1, XSYMBOL (definition)->name);
       insert1 (tem1);
       insert_string ("\n");
     }
