@@ -4740,10 +4740,12 @@ kill_buffer_processes (buffer)
 {
 }
 
+void
 init_process ()
 {
 }
 
+void
 syms_of_process ()
 {
   defsubr (&Sget_buffer_process);
