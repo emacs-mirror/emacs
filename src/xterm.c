@@ -429,7 +429,8 @@ static int fast_find_string_pos P_ ((struct window *, int, Lisp_Object,
 static void set_output_cursor P_ ((struct cursor_pos *));
 static struct glyph *x_y_to_hpos_vpos P_ ((struct window *, int, int,
 					   int *, int *, int *, int));
-static void note_mode_line_highlight P_ ((struct window *, int, int));
+static void note_mode_line_or_margin_highlight P_ ((struct window *, int,
+						    int, int));
 static void note_mouse_highlight P_ ((struct frame *, int, int));
 static void note_tool_bar_highlight P_ ((struct frame *f, int, int));
 static void x_handle_tool_bar_click P_ ((struct frame *, XButtonEvent *));
@@ -851,7 +852,7 @@ x_draw_fringe_bitmap (w, row, which, left_p)
   Window window = FRAME_X_WINDOW (f);
   int x, y, wd, h, dy;
   int b1, b2;
-  unsigned char *bits;
+  unsigned char *bits = NULL;
   Pixmap pixmap;
   GC gc = f->output_data.x->normal_gc;
   struct face *face;
@@ -6791,80 +6792,55 @@ frame_to_window_pixel_xy (w, x, y)
 }
 
 
-/* Take proper action when mouse has moved to the mode or header line of
-   window W, x-position X.  MODE_LINE_P non-zero means mouse is on the
-   mode line.  X is relative to the start of the text display area of
-   W, so the width of fringes and scroll bars must be subtracted
-   to get a position relative to the start of the mode line.  */
-
+/* Take proper action when mouse has moved to the mode or header line
+   or marginal area of window W, x-position X and y-position Y.  Area
+   is 1, 3, 6 or 7 for the mode line, header line, left and right
+   marginal area respectively.  X is relative to the start of the text
+   display area of W, so the width of bitmap areas and scroll bars
+   must be subtracted to get a position relative to the start of the
+   mode line.  */
+ 
 static void
-note_mode_line_highlight (w, x, mode_line_p)
+note_mode_line_or_margin_highlight (w, x, y, portion)
      struct window *w;
-     int x, mode_line_p;
+     int x, y, portion;
 {
   struct frame *f = XFRAME (w->frame);
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Cursor cursor = dpyinfo->vertical_scroll_bar_cursor;
   struct glyph_row *row;
+  int i, area, charpos;
+  Lisp_Object string, help, map, pos;
 
-  if (mode_line_p)
-    row = MATRIX_MODE_LINE_ROW (w->current_matrix);
-  else
-    row = MATRIX_HEADER_LINE_ROW (w->current_matrix);
+  if (portion == 1 || portion == 3)
+    string = mode_line_string (w, x, y, portion == 1, &charpos);
+   else
+     string = marginal_area_string (w, x, y, portion, &charpos);
 
-  if (row->enabled_p)
+  if (STRINGP (string))
     {
-      struct glyph *glyph, *end;
-      Lisp_Object help, map;
-      int x0;
+      pos = make_number (charpos);
       
-      /* Find the glyph under X.  */
-      glyph = row->glyphs[TEXT_AREA];
-      end = glyph + row->used[TEXT_AREA];
-      x0 = - (FRAME_LEFT_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f)
-	      + FRAME_X_LEFT_FRINGE_WIDTH (f));
-      
-      while (glyph < end
-	     && x >= x0 + glyph->pixel_width)
+      /* If we're on a string with `help-echo' text property, arrange
+	 for the help to be displayed.  This is done by setting the
+	 global variable help_echo to the help string.  */
+      help = Fget_text_property (pos, Qhelp_echo, string);
+      if (!NILP (help))
 	{
-	  x0 += glyph->pixel_width;
-	  ++glyph;
+	  help_echo = help;
+	  XSETWINDOW (help_echo_window, w);
+	  help_echo_object = string;
+	  help_echo_pos = charpos;
 	}
 
-      if (glyph < end
-	  && STRINGP (glyph->object)
-	  && XSTRING (glyph->object)->intervals
-	  && glyph->charpos >= 0
-	  && glyph->charpos < XSTRING (glyph->object)->size)
-	{
-	  /* If we're on a string with `help-echo' text property,
-	     arrange for the help to be displayed.  This is done by
-	     setting the global variable help_echo to the help string.  */
-	  help = Fget_text_property (make_number (glyph->charpos),
-				     Qhelp_echo, glyph->object);
-	  if (!NILP (help))
-	    {
-	      help_echo = help;
-	      XSETWINDOW (help_echo_window, w);
-	      help_echo_object = glyph->object;
-	      help_echo_pos = glyph->charpos;
-	    }
-
-	  /* Change the mouse pointer according to what is under X/Y.  */
-	  map = Fget_text_property (make_number (glyph->charpos),
-				    Qlocal_map, glyph->object);
-	  if (KEYMAPP (map))
-	    cursor = f->output_data.x->nontext_cursor;
-	  else
-	    {
-	      map = Fget_text_property (make_number (glyph->charpos),
-					Qkeymap, glyph->object);
-	      if (KEYMAPP (map))
-		cursor = f->output_data.x->nontext_cursor;
-	    }
-	}
+     /* Change the mouse pointer according to what is under X/Y.  */
+      map = Fget_text_property (pos, Qlocal_map, string);
+      if (!KEYMAPP (map))
+	map = Fget_text_property (pos, Qkeymap, string);
+      if (KEYMAPP (map))
+	cursor = f->output_data.x->nontext_cursor;
     }
-
+  
   XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), cursor);
 }
 
@@ -6932,10 +6908,10 @@ note_mouse_highlight (f, x, y)
       return;
     }
 
-  /* Mouse is on the mode or header line?  */
-  if (portion == 1 || portion == 3)
+  /* Mouse is on the mode, header line or margin?  */
+  if (portion == 1 || portion == 3 || portion == 6 || portion == 7)
     {
-      note_mode_line_highlight (w, x, portion == 1);
+      note_mode_line_or_margin_highlight (w, x, y, portion);
       return;
     }
   
