@@ -6,12 +6,23 @@ in compiling, installing and running GNU Emacs.
 This may happen if you use a development version of GNU `cpp' from one
 of the GCC snapshots between Oct 2000 and Feb 2001, or from a released
 version of GCC newer than 2.95.2 which was prepared around those
-dates.  The preprocessor in those versions expands ".." into ". .",
-which breaks relative file names that reference the parent directory.
+dates; similar problems were reported with some snapshots of GCC 3.1
+around Sep 30 2001.  The preprocessor in those versions is
+incompatible with a traditional Unix cpp (e.g., it expands ".." into
+". .", which breaks relative file names that reference the parent
+directory; or inserts TAB characters before lines that set Make
+variables).
 
 The solution is to make sure the preprocessor is run with the
-`-traditional' option.  (The `configure' script does that
-automatically.)
+`-traditional' option.  The `configure' script does that automatically
+when it detects the known problems in your cpp, but you might hit some
+unknown ones.  To force the `configure' script to use `-traditional',
+run the script like this:
+
+  CPP='gcc -E -traditional" ./configure ...
+
+(replace the ellipsis "..." with any additional arguments you pass to
+the script).
 
 Note that this problem does not pertain to the MS-Windows port of
 Emacs, since it doesn't use the preprocessor to generate Makefiles.
