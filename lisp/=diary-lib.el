@@ -114,15 +114,14 @@ syntax of `*' changed to be a word constituent.")
 
 (defun list-diary-entries (date number)
   "Create and display a buffer containing the relevant lines in diary-file.
-All lines that apply to DATE and the next NUMBER-1 days are included.
-
-Makes all diary entries in the diary file invisible (using selective display),
-*except* those that are relevant.
+The arguments are DATE and NUMBER; the entries selected are those
+for NUMBER days starting with date DATE.  The other entries are hidden
+using selective display.
 
 Returns a list of all relevant diary entries found, if any, in order by date.
 The list entries have the form ((month day year) string).  If the variable
-`diary-list-include-blanks' is t, this list will include a dummy diary entry
-(consisting of the empty string) for a date with no diary entries.
+`diary-list-include-blanks' is t, this list includes a dummy diary entry
+\(consisting of the empty string) for a date with no diary entries.
 
 After the list is prepared, the hooks `nongregorian-diary-listing-hook',
 `list-diary-entries-hook', and `diary-display-hook' are run.  These hooks

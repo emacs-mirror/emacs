@@ -182,25 +182,6 @@ Thus ARG can also contain additional grep options."
 	  (setq mode-line-process nil)
 	  (message "find-dired %s finished." (current-buffer))))))
 
-(or (fboundp 'start-process-shell-command)
-    ;; From version 19 subr.el.
-    (defun start-process-shell-command (name buffer &rest args)
-      "Start a program in a subprocess.  Return the process object for it.
-Args are NAME BUFFER COMMAND &rest COMMAND-ARGS.
-NAME is name for process.  It is modified if necessary to make it unique.
-BUFFER is the buffer or (buffer-name) to associate with the process.
- Process output goes at end of that buffer, unless you specify
- an output stream or filter function to handle the output.
- BUFFER may be also nil, meaning that this process is not associated
- with any buffer
-Third arg is command name, the name of a shell command.
-Remaining arguments are the arguments for the command.
-Wildcards and redirection are handle as usual in the shell."
-      (if (eq system-type 'vax-vms)
-	  (apply 'start-process name buffer args)
-	(start-process name buffer shell-file-name "-c"
-		       (concat "exec " (mapconcat 'identity args " "))))))
-
 (provide 'find-dired)
 
 ;;; find-dired.el ends here
