@@ -1,5 +1,8 @@
 2004-07-18  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* emacs-xtra.texi (Subdir switches): Dired does not remember the
+	`R' switch.
+
 	* dired.texi (Dired Updating): `k' only deletes inserted
 	subdirectories from the Dired buffer if a prefix argument was given.
 
