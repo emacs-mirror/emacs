@@ -1,3 +1,8 @@
+2002-02-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* font-lock.el (save-buffer-state): Use restore-buffer-modified-p.
+	(c-font-lock-syntactic-face-function): Accept doxygen-style comments.
+
 2002-02-08  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/text-mode.el (text-mode-hook-identify): Define as no-op.
@@ -9,12 +14,12 @@
 
 2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* net/ange-ftp.el (ange-ftp-process-handle-line) 
+	* net/ange-ftp.el (ange-ftp-process-handle-line)
 	(ange-ftp-set-xfer-size): If the file's size is a float, divide
 	by 1024 instead of using ash.
 
-	* international/mule-cmds.el (select-safe-coding-system): State
-	the buffer's name in the message popped in the *Warning* buffer,
+	* international/mule-cmds.el (select-safe-coding-system):
+	State the buffer's name in the message popped in the *Warning* buffer,
 	and make sure the offending buffer is displayed.
 
 2002-02-07  Markus Rost  <rost@math.ohio-state.edu>
@@ -28,13 +33,13 @@
 	* register.el (list-registers): New command.
 	(describe-register-1): New subroutine, taken out of view-register.
 
-	* emacs-lisp/copyright.el (copyright-regexp): 
+	* emacs-lisp/copyright.el (copyright-regexp):
 	Delete the unibyte copyright symbol; it's redundant.
 	Fix a spazz in the multibyte encoding here.
 
 2002-02-07  Dave Love  <fx@gnu.org>
 
-	* language/cyril-util.el (cyrillic-encode-koi8-r-char) 
+	* language/cyril-util.el (cyrillic-encode-koi8-r-char)
 	(cyrillic-encode-alternativnyj-char): Get translation tables from
 	symbol properties, not as variables.
 	(standard-display-cyrillic-translit): Include unicodes.
@@ -88,7 +93,7 @@
 
 	* subr.el (force-mode-line-update): Doc fix.
 
-	* subr.el (atomic-change-group, prepare-change-group) 
+	* subr.el (atomic-change-group, prepare-change-group)
 	(activate-change-group, accept-change-group, cancel-change-group):
 	New functions.
 
@@ -111,8 +116,7 @@
 
 	* play/pong.el (pong-height): Don't use height that exceeds the
 	frame height.
-	(pong-border-options): Make the border colors slightly more
-	bright.
+	(pong-border-options): Make the border colors slightly more bright.
 
 	* play/gamegrid.el (gamegrid-display-type): Treat any
 	color-capable display as color-x, if display-color-p is fboundp.
@@ -137,28 +141,24 @@
 
 2002-02-04  Simon Josefsson  <jas@extundo.com>
 
-	* dired.el (dired-load-hook, dired-mode-hook) 
+	* dired.el (dired-load-hook, dired-mode-hook)
 	(dired-before-readin-hook, dired-after-readin-hook): Defcustom.
 
 2002-02-03  Colin Walters  <walters@verbum.org>
 
-	* ibuf-ext.el (ibuffer-filter-format-alist,
-	ibuffer-cached-filter-formats,
-	ibuffer-compiled-filter-formats): New variables.
-	
+	* ibuf-ext.el (ibuffer-filter-format-alist)
+	(ibuffer-cached-filter-formats, ibuffer-compiled-filter-formats):
+	New variables.
 	* ibuffer.el (ibuffer): Remove link; the "home page" for ibuffer
 	is now the Emacs CVS tree.
 	(ibuffer-formats): Doc fix.
-	(ibuffer-active-formats-name, ibuffer-current-formats): New
-	functions.
+	(ibuffer-active-formats-name, ibuffer-current-formats): New functions.
 	(ibuffer-current-format): Use them.
-	(ibuffer-recompile-formats): Add support for
-	ibuffer-filter-format-alist.
-	(ibuffer-check-formats): Ditto.
-	(ibuffer-switch-format): Ditto.
-	(ibuffer-update-title): Ditto.
+	(ibuffer-recompile-formats, ibuffer-check-formats)
+	(ibuffer-switch-format, ibuffer-update-title):
+	Add support for ibuffer-filter-format-alist.
 	(define-ibuffer-column process): Remove unncessary consing.
-	
+
 	* ibuf-macs.el (define-ibuffer-column): Add beginnings of support
 	for a summary column.
 
@@ -173,10 +173,8 @@
 
 2002-02-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* menu-bar.el (menu-bar-help-menu): Use different text for
-	tool-tip.
-	(menu-bar-options-save): Save also the value of
-	`display-time-mode'.
+	* menu-bar.el (menu-bar-help-menu): Use different text for tool-tip.
+	(menu-bar-options-save): Save also the value of `display-time-mode'.
 	(showhide-date-time): New function.
 	(menu-bar-showhide-menu): New menu-item "Date and time".
 
@@ -219,8 +217,7 @@
 	These changes integrate new version of flyspell.el from its
 	maintainer, Manuel Serrano:
 
-	* textmodes/flyspell.el (flyspell-issue-message-flag): New user
-	option.
+	* textmodes/flyspell.el (flyspell-issue-message-flag): New user option.
 	(flyspell-mode-on, flyspell-notify-misspell)
 	(flyspell-small-region, flyspell-external-point-words)
 	(flyspell-large-region): Use it
@@ -248,8 +245,8 @@
 	* novice.el (enable-command): If Emacs was invoked as "emacs -q",
 	don't alter the user's ~/.emacs.
 	(disable-command): If user-init-file is nil or does not exist,
-	default to "~/.emacs" (~/_emacs on DOS and, maybe, Windows).  But
-	don't alter the init file if Emacs was invoked as "emacs -q"
+	default to "~/.emacs" (~/_emacs on DOS and, maybe, Windows).
+	But don't alter the init file if Emacs was invoked as "emacs -q"
 
 2002-02-01  Stefan Monnier  <monnier@cs.yale.edu>
 

@@ -6,6 +6,10 @@
 
 	* sysdep.c (init_system_name): Put unused variable `p' in #if 0.
 
+2002-02-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* lisp.h (Fx_file_dialog): Export (for Motif code in fileio.c).
+
 2002-02-07  Kim F. Storm  <storm@cua.dk>
 
 	* keymap.c (where_is_internal): Only check whether definition is
@@ -23,14 +27,14 @@
 	defining command remapping.  Doc updated.
 	(Flookup_key): Remap command through keymap if KEY is a symbol.
 	(is_command_symbol): New function.
-	(Fkey_binding): Use it.  New optional argument NO-REMAP.  Doc
-	updated.  Callers changed.  Perform command remapping via
+	(Fkey_binding): Use it.  New optional argument NO-REMAP.
+	Doc updated.  Callers changed.  Perform command remapping via
 	recursive call unless that arg is non-nil.
 	(where_is_internal): New argument no_remap.  Callers changed.
 	Call recursively to find original key bindings for a remapped
 	comand unless that arg is non-nil.
-	(Fwhere_is_internal): New optional argument NO-REMAP.  Doc
-	updated.  Callers changed.  Pass arg to where_is_internal. 
+	(Fwhere_is_internal): New optional argument NO-REMAP.
+	Doc updated.  Callers changed.  Pass arg to where_is_internal.
 
 	* keymap.h (Fkey_binding, Fwhere_is_internal): Update prototype.
 	(is_command_symbol): Added prototype.
@@ -63,7 +67,7 @@
 	* lread.c (read1): Redesign strategy for force_multibyte and
 	force_singlebyte.  Now is_multibyte records whether read_buffer
 	is multibyte.  Encountering any multibyte character makes it so.
-	
+
 2002-02-02  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* term.c (term_get_fkeys_1): If `k0' and `k;' are both specified and
