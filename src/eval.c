@@ -378,7 +378,7 @@ whose values are discarded.")
 }
 
 DEFUN ("prog2", Fprog2, Sprog2, 2, UNEVALLED, 0,
-  "(prog1 X Y BODY...): eval X, Y and BODY sequentially; value from Y.\n\
+  "(prog2 X Y BODY...): eval X, Y and BODY sequentially; value from Y.\n\
 The value of Y is saved during the evaluation of the remaining args,\n\
 whose values are discarded.")
   (args)
