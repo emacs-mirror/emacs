@@ -1131,12 +1131,16 @@ read the man page for the C library function @code{chmod} (as opposed
 to a command by the same name), type @kbd{M-x manual-entry @key{RET}
 chmod(2v) @key{RET}} (assuming @code{chmod} is in section @samp{2v}).
 
+@vindex Man-switches
   If you do not specify a section, the results depend on how the
-@code{man} command works on your system.  Some of them display only
+@code{man} program works on your system.  Some of them display only
 the first man page they find.  Others display all man pages that have
 the specified name, so you can move between them with the @kbd{M-n}
-and @kbd{M-p} keys.  The mode line shows how many manual pages are
-present in the Man buffer.
+and @kbd{M-p} keys@footnote{On some systems, the @code{man} program
+accepts a @samp{-a} command-line option which tells it to display all
+the man pages for the specified topic.  If you want this behavior, you
+can add this option to the value of the variable @code{Man-switches}.}.
+The mode line shows how many manual pages are present in the Man buffer.
 
 @vindex Man-fontify-manpage-flag
   By default, Emacs uses faces in man pages if Emacs can display
