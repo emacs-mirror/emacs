@@ -18,9 +18,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* x_handle_selection_notify
-x_reply_selection_request
-XFree
-x_selection_timeout initial value  */
+x_reply_selection_request  */
+
 
 /* Rewritten by jwz */
 
@@ -96,7 +95,7 @@ Lisp_Object Vselection_alist;
 Lisp_Object Vselection_converter_alist;
 
 /* If the selection owner takes too long to reply to a selection request,
-   we give up on it.  This is in seconds (0 = no timeout.)
+   we give up on it.  This is in milliseconds (0 = no timeout.)
  */
 int x_selection_timeout;
 
@@ -958,6 +957,7 @@ x_get_foreign_selection (selection_symbol, target_type)
   Atom target_property = Xatom_EMACS_TMP;
   Atom selection_atom = symbol_to_x_atom (display, selection_symbol);
   Atom type_atom;
+  int secs, usecs;
 
   if (CONSP (target_type))
     type_atom = symbol_to_x_atom (display, XCONS (target_type)->car);
@@ -975,9 +975,10 @@ x_get_foreign_selection (selection_symbol, target_type)
   XCONS (reading_selection_reply)->car = Qnil;
   UNBLOCK_INPUT;
 
-  /* This allows quits.  */
-  wait_reading_process_input (x_selection_timeout, 0,
-			      reading_selection_reply, 0);
+  /* This allows quits.  Also, don't wait forever.  */
+  secs = x_selection_timeout / 1000;
+  usecs = (x_selection_timeout % 1000) * 1000;
+  wait_reading_process_input (secs, usecs, reading_selection_reply, 0);
 
   if (NILP (XCONS (reading_selection_reply)->car))
     error ("timed out waiting for reply from selection owner");
@@ -1935,10 +1936,10 @@ it merely informs you that they have happened.");
   Vx_sent_selection_hooks = Qnil;
 
   DEFVAR_INT ("x-selection-timeout", &x_selection_timeout,
-   "Number of seconds to wait for a selection reply from another X client.\n\
-If the selection owner doens't reply in this many seconds, we give up.\n\
+   "Number of milliseconds to wait for a selection reply.\n\
+If the selection owner doens't reply in this time, we give up.\n\
 A value of 0 means wait as long as necessary.  This is initialized from the\n\
-\"*selectionTimeout\" resource (which is expressed in milliseconds).");
+\"*selectionTimeout\" resource.");
   x_selection_timeout = 0;
 
   QPRIMARY   = intern ("PRIMARY");	staticpro (&QPRIMARY);
