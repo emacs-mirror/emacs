@@ -611,6 +611,74 @@ For minor modes, see following pages.\n\n"))
 	  (setq minor-modes (cdr minor-modes))))
       (print-help-return-message))))
 
+(defun describe-minor-mode (minor-mode)
+  "Display documentation of a minor mode given as MINOR-MODE."
+  (interactive (list (intern (completing-read 
+			      "Minor mode: "
+			      (delete nil (mapcar
+					   (function (lambda (x)
+						       (if (eval (car x))
+							   (symbol-name (car x)))))
+					   minor-mode-alist))))))
+  (if (fboundp minor-mode)
+      (describe-function minor-mode)
+    (describe-variable minor-mode)))
+
+(defun describe-minor-mode-from-indicator (indicator)
+  "Display documentation of a minor mode specified by INDICATOR."
+  (interactive (list 
+		(completing-read 
+		 "Minor mode indicator: "
+		 (delete nil 
+			 (mapcar
+			  #'(lambda (x)
+			      (if (eval (car x))
+				  (let ((i (expand-minor-mode-indicator-object (cadr x))))
+				    (if (and (< 0 (length i))
+					     (string= " " (substring i 0 1)))
+					(substring i 1)
+				      i))))
+			  minor-mode-alist)))))
+  (let ((minor-mode (lookup-minor-mode-from-indicator indicator)))
+    (if minor-mode
+	(describe-minor-mode minor-mode)
+      (error "Cannot find minor mode for `%s'" indicator))))
+
+(defun lookup-minor-mode-from-indicator (indicator)
+  "Return a minor mode symbol from its indicator on the modeline."
+  (if (and (< 0 (length indicator)) 
+	   (not (string= " " (substring indicator 0 1))))
+      (setq indicator (concat " " indicator)))
+  (let ((minor-modes minor-mode-alist)
+	result)
+    (while minor-modes
+      (let* ((minor-mode (car (car minor-modes)))
+	     (anindicator (car (cdr (car minor-modes)))))
+	(setq anindicator (expand-minor-mode-indicator-object anindicator))
+	(if (and (stringp anindicator) 
+		 (string= anindicator indicator))
+	    (setq result minor-mode
+		  minor-modes nil)
+	  (setq minor-modes (cdr minor-modes)))))
+    result))
+
+(defun expand-minor-mode-indicator-object (obj)
+  "Expand OBJ that represents a minor-mode indicator.
+cdr part of a `minor-mode-alist' element(indicator object) is the
+indicator of minor mode that is in car part.  Normally indicator
+object is a string. However, in some case it is more compound object
+like cons cell. This function tries to make the compound object a string."
+  ;; copied from describe-mode
+  (while (and obj (symbolp obj)
+	      (boundp obj)
+	      (not (eq obj (symbol-value obj))))
+    (setq obj (symbol-value obj)))
+  (when (and (consp obj) 
+	     (keywordp (car obj))
+	     (eq :eval (car obj)))
+    (setq obj (eval (cadr obj))))
+  obj)
+
 
 ;;; Automatic resizing of temporary buffers.
 
