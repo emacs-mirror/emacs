@@ -11,7 +11,7 @@
 2002-06-21  Kim F. Storm  <storm@filanet.dk>
 
 	* emulation/cua-base.el (cua--prefix-arg): Make register prefixes
-	work again. Corrected error in check for C-u initiated prefix.
+	work again.  Corrected error in check for C-u initiated prefix.
 
 	* emulation/keypad.el (keypad-setup): Handle kp-begin like kp-space.
 
@@ -31,7 +31,7 @@
 	* edmacro.el (edmacro-fix-menu-commands):
 	Discard `help-echo' events.  Handle (menu-bar) events.
 	Simplify by converting key sequence to a list and then back to vector.
-	
+
 2002-06-21  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
 	* mwheel.el: Allow arbitrary keys for scrolling, add a third
@@ -49,6 +49,10 @@
 	(find-file, find-file-other-window, find-file-other-frame)
 	(find-file-read-only, find-file-read-only-other-window)
 	(find-file-read-only-other-frame): Use it and fix prompts.
+
+2002-06-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* pcvs-defs.el (cvs-version): Use cvs-program rather than "cvs".
 
 2002-06-20  Emmanuel Briot  <briot@act-europe.fr>
 
@@ -120,6 +124,24 @@
 
 	* progmodes/f90.el (f90-type-def-re): Fix value.
 	(f90-looking-at-type-like): Adapt for new `f90-type-def-re' value.
+
+2002-06-18  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* international/quail.el (quail-help): Don't assume the buffer
+	is displayed in the same frame.
+
+	* emacs-lisp/debug.el (cancel-debug-on-entry):
+	* emacs-lisp/regexp-opt.el (regexp-opt-group): Don't cons uselessly.
+
+	* pcvs.el (cvs-vc-command-advice): Handle the case where args
+	are passed to `cvs' before the command name.
+	(cvs-fileinfo-kill): Mark old FIs as up-to-date rather than dead.
+
+	* pcvs-info.el (cvs-add-face): Minor rewrite.
+	(cvs-fileinfo-pp): Use `cvs-goal-column' with directory entries.
+
+	* newcomment.el (comment-normalize-vars): Refresh the comment-foo-skip
+	regexp when they don't match comment-foo any more.
 
 2002-06-18  Juanma Barranquero  <lektu@terra.es>
 
@@ -197,8 +219,8 @@
 
 2002-06-14  Juanma Barranquero  <lektu@terra.es>
 
-	* comint.el (comint-snapshot-last-prompt): Bind
-	`inhibit-read-only' to t to support read-only prompts.
+	* comint.el (comint-snapshot-last-prompt):
+	Bind `inhibit-read-only' to t to support read-only prompts.
 	(comint-output-filter): Likewise.
 
 2002-06-14  Miles Bader  <miles@gnu.org>
@@ -230,8 +252,8 @@
 
 2002-06-12  Karl Fogel  <kfogel@red-bean.com>
 
-	* bookmark.el (bookmark-file-or-variation-thereof): Restore
-	vc-backend check, thanks to Robert Thorpe for noticing.
+	* bookmark.el (bookmark-file-or-variation-thereof):
+	Restore vc-backend check, thanks to Robert Thorpe for noticing.
 
 2002-06-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -241,6 +263,11 @@
 
 	* term/w32-win.el (x-handle-switch): Fix handling of
 	x-invocation-args for switches with arguments.
+
+2002-06-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* menu-bar.el (menu-bar-showhide-fringe-menu): Don't use `fringe-mode'
+	without first making sure it's bound.
 
 2002-06-12  Richard M. Stallman  <rms@gnu.org>
 
@@ -280,8 +307,8 @@
 
 2002-06-12  Colin Walters  <walters@debian.org>
 
-	* font-core.el (font-lock-core-only): Variable deleted.  All uses
-	removed.
+	* font-core.el (font-lock-core-only): Variable deleted.
+	All uses removed.
 	(font-lock-set-defaults): Variable alist settings moved back into
 	font-lock-set-defaults-1.
 	(turn-on-font-lock-if-enabled): Always turn on font-lock unless it
@@ -297,8 +324,8 @@
 
 	* replace.el (occur-mode): Don't set `font-lock-defaults'.
 
-	* help-mode.el (help-highlight-p, help-highlight-face): Variable
-	was unused; deleted.
+	* help-mode.el (help-highlight-p, help-highlight-face):
+	Variable was unused; delete.
 	(help-make-xrefs): Doc fix.
 
 2002-06-11  Richard M. Stallman  <rms@gnu.org>
@@ -348,8 +375,7 @@
 	* comint.el (comint-send-input, comint-output-filter): Use the
 	`font-lock-face' property instead of `face'.  Don't check the
 	highlight-enabling variables anymore.
-	(comint-highlight-input, comint-highlight-prompt): Variables
-	removed.
+	(comint-highlight-input, comint-highlight-prompt): Variables removed.
 
 	* faces.el (display-supports-face-attributes-p): New function.
 	(face-spec-set-match-display): Support `supports' predicate.
@@ -371,28 +397,27 @@
 
 2002-06-09  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-style.el (c-set-style, c-set-style-1): Added
-	another state for the `dont-override' flag where it only keeps
+	* progmodes/cc-style.el (c-set-style, c-set-style-1):
+	Add another state for the `dont-override' flag where it only keeps
 	globally set variables.
 
 2002-06-08  Colin Walters  <walters@gnu.org>
 
 	* descr-text.el (describe-text-properties): Sort the output by the
-	size of the values.  Put `font-lock-face' property on property
-	names.
+	size of the values.  Put `font-lock-face' property on property names.
 	(toplevel): Provide `descr-text'.
 
 	* international/mule-diag.el (describe-char-after): When there are
 	text properties, require `descr-text', and just call
 	`describe-text-properties'.
 
-	* international/mule.el (sgml-html-meta-auto-coding-function): New
-	function.
+	* international/mule.el (sgml-html-meta-auto-coding-function):
+	New function.
 	(auto-coding-from-file-contents): Delete; merge functionality into
 	`set-auto-coding'.
 	(set-auto-coding): Move tests from `auto-coding-functions' so that
-	they have a lower priority than coding: tags.  Put
-	`auto-coding-regexp-alist' tests before coding: tag tests.
+	they have a lower priority than coding: tags.
+	Put `auto-coding-regexp-alist' tests before coding: tag tests.
 	(sgml-xml-auto-coding-function): Simply `intern' the match, and
 	test if it's a valid coding system.
 	(auto-coding-functions): Add `sgml-html-meta-auto-coding-function'.
