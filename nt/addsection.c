@@ -293,8 +293,14 @@ copy_executable_and_add_section (file_data *p_infile,
   } while (0)
 
 #define DST_TO_OFFSET()  PTR_TO_OFFSET (dst, p_outfile)
-#define ROUND_UP_DST(align) \
-  (dst = p_outfile->file_base + ROUND_UP (DST_TO_OFFSET (), (align)))
+#define ROUND_UP_DST_AND_ZERO(align)						\
+  do {										\
+    unsigned char *newdst = p_outfile->file_base				\
+      + ROUND_UP (DST_TO_OFFSET (), (align));					\
+    /* Zero the alignment slop; it may actually initialize real data.  */	\
+    memset (dst, 0, newdst - dst);						\
+    dst = newdst;								\
+  } while (0)
 
   /* Copy the source image sequentially, ie. section by section after
      copying the headers and section table, to simplify the process of
@@ -333,13 +339,15 @@ copy_executable_and_add_section (file_data *p_infile,
   else
     new_section_name = NULL;
 
+  /* Align the first section's raw data area, and set the header size
+     field accordingly.  */
+  ROUND_UP_DST_AND_ZERO (dst_nt_header->OptionalHeader.FileAlignment);
+  dst_nt_header->OptionalHeader.SizeOfHeaders = DST_TO_OFFSET ();
+
   for (i = 0; i < nt_header->FileHeader.NumberOfSections; i++)
     {
       char msg[100];
       sprintf (msg, "Copying raw data for %s...", section->Name);
-
-      /* Align the section's raw data area.  */
-      ROUND_UP_DST (dst_nt_header->OptionalHeader.FileAlignment);
 
       /* Update the file-relative offset for this section's raw data (if
          it has any) in case things have been relocated; we will update
@@ -357,12 +365,12 @@ copy_executable_and_add_section (file_data *p_infile,
 	ROUND_UP (dst_section->SizeOfRawData,
 		  dst_nt_header->OptionalHeader.FileAlignment);
 
+      /* Align the next section's raw data area.  */
+      ROUND_UP_DST_AND_ZERO (dst_nt_header->OptionalHeader.FileAlignment);
+
       section++;
       dst_section++;
     }
-
-  /* Pad out the final section raw data area.  */
-  ROUND_UP_DST (dst_nt_header->OptionalHeader.FileAlignment);
 
   /* Add the extra section entry (which adds no raw data).  */
   if (new_section_name != NULL)
