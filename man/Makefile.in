@@ -65,9 +65,10 @@ EMACSSOURCES= \
 	${srcdir}/trouble.texi \
 	${srcdir}/cmdargs.texi \
 	${srcdir}/anti.texi \
+	${srcdir}/msdog.texi \
 	${srcdir}/gnu.texi \
-	${srcdir}/gnu1.texi \
-	${srcdir}/glossary.texi
+	${srcdir}/glossary.texi \
+	${srcdir}/ack.texi
 
 info: $(INFO_TARGETS)
 
