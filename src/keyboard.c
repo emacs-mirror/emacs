@@ -1283,8 +1283,8 @@ command_loop_1 ()
 		{
                   struct Lisp_Char_Table *dp
 		    = window_display_table (XWINDOW (selected_window));
-		  lose = FETCH_BYTE (PT);
-		  SET_PT (forward_point (1));
+		  lose = FETCH_BYTE (PT_BYTE);
+		  SET_PT (PT + 1);
 		  if ((dp
 		       ? (VECTORP (DISP_CHAR_VECTOR (dp, lose))
 			  ? XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1
@@ -1293,7 +1293,7 @@ command_loop_1 ()
 		       : (lose >= 0x20 && lose < 0x7f))
 		      /* To extract the case of continuation on
                          wide-column characters.  */
-		      && (WIDTH_BY_CHAR_HEAD (FETCH_BYTE (PT)) == 1)
+		      && (WIDTH_BY_CHAR_HEAD (FETCH_BYTE (PT_BYTE)) == 1)
 		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
 			  >= MODIFF)
 		      && (XFASTINT (XWINDOW (selected_window)->last_overlay_modified)
@@ -1312,8 +1312,8 @@ command_loop_1 ()
 		{
                   struct Lisp_Char_Table *dp
 		    = window_display_table (XWINDOW (selected_window));
-		  SET_PT (forward_point (-1));
-		  lose = FETCH_BYTE (PT);
+		  SET_PT (PT - 1);
+		  lose = FETCH_BYTE (PT_BYTE);
 		  if ((dp
 		       ? (VECTORP (DISP_CHAR_VECTOR (dp, lose))
 			  ? XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1
@@ -1370,7 +1370,7 @@ command_loop_1 ()
 		    nonundocount = 0;
 
 		  if (!lose
-		      && (PT == ZV || FETCH_BYTE (PT) == '\n'))
+		      && (PT == ZV || FETCH_BYTE (PT_BYTE) == '\n'))
 		    {
 		      struct Lisp_Char_Table *dp
 			= window_display_table (XWINDOW (selected_window));
