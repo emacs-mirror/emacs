@@ -336,6 +336,9 @@ struct coding_system safe_terminal_coding;
 /* Coding system of what is sent from terminal keyboard.  */
 struct coding_system keyboard_coding;
 
+/* Default coding system to be used to write a file.  */
+struct coding_system default_buffer_file_coding;
+
 Lisp_Object Vfile_coding_system_alist;
 Lisp_Object Vprocess_coding_system_alist;
 Lisp_Object Vnetwork_coding_system_alist;
@@ -5182,6 +5185,7 @@ init_coding_once ()
   setup_coding_system (Qnil, &keyboard_coding);
   setup_coding_system (Qnil, &terminal_coding);
   setup_coding_system (Qnil, &safe_terminal_coding);
+  setup_coding_system (Qnil, &default_buffer_file_coding);
 
   bzero (coding_system_table, sizeof coding_system_table);
 
