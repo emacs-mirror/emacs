@@ -1,5 +1,18 @@
 GNU Emacs for Mac OS
 
+Copyright (c) 2001 Free Software Foundation, Inc.
+
+   Permission is granted to anyone to make or distribute verbatim
+   copies of this document as received, in any medium, provided that
+   the copyright notice and permission notice are preserved, and that
+   the distributor grants the recipient permission for further
+   redistribution as permitted by this notice.
+
+   Permission is granted to distribute modified versions of this
+   document, or of portions of it, under the above conditions,
+   provided also that they carry prominent notices stating who last
+   changed them.
+
 This directory contains the files needed to build GNU Emacs on the Mac
 OS (8.1-9.0).  Many of the major features of the Unix version are
 supported: multiple frames, colors, scroll bars, menu bars, use of the
