@@ -1733,7 +1733,7 @@ EXFUN (Fread, 1);
 EXFUN (Fread_from_string, 3);
 EXFUN (Fintern, 2);
 EXFUN (Fintern_soft, 2);
-EXFUN (Fload, 4);
+EXFUN (Fload, 5);
 EXFUN (Fget_file_char, 0);
 EXFUN (Fread_char, 0);
 extern Lisp_Object read_filtered_event P_ ((int, int, int));
