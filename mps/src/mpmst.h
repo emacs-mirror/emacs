@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(MMdevel_action2.11) $
+ * $HopeName: MMsrc!mpmst.h(trunk.21) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -75,7 +75,7 @@ typedef struct RingStruct {     /* double-ended queue structure */
  * initializers.
  */
 
-#define PoolClassSig    ((Sig)0x519C1A55)
+#define PoolClassSig    ((Sig)0x519C7A55) /* SIGnature pool CLASS */
 
 typedef struct PoolClassStruct {
   Sig sig;                      /* design.mps.sig */
@@ -113,7 +113,7 @@ typedef struct PoolClassStruct {
  * design.mps.pool.
  */
 
-#define PoolSig         ((Sig)0x519B0011)
+#define PoolSig         ((Sig)0x519B0019) /* SIGnature POOL */
 
 typedef struct PoolStruct {     /* generic structure */
   Sig sig;                      /* design.mps.sig */
@@ -141,7 +141,7 @@ typedef struct PoolStruct {     /* generic structure */
  * design.mps.pool.outer-structure.sig
  */
 
-#define MFSSig          ((Sig)0x5193F5B1)
+#define MFSSig          ((Sig)0x5193F599) /* SIGnature MFS */ 
 
 typedef struct MFSStruct {      /* MFS outer structure */
   PoolStruct poolStruct;        /* generic structure */
@@ -167,7 +167,7 @@ typedef struct MFSStruct {      /* MFS outer structure */
  * design.mps.pool.outer-structure.sig
  */
 
-#define MVSig           ((Sig)0x519E3FEE)
+#define MVSig           ((Sig)0x5193B999) /* SIGnature MV */
 
 typedef struct MVStruct {       /* MV pool outer structure */
   PoolStruct poolStruct;        /* generic structure */
@@ -192,7 +192,7 @@ typedef struct MVStruct {       /* MV pool outer structure */
  * vm (which is usually specific to an operating system).
  */
 
-#define VMSig           ((Sig)0x519FEE33)
+#define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
 
 #ifdef VM_RM                    /* impl.h.config */
 
@@ -287,7 +287,7 @@ typedef struct SegStruct {      /* segment structure */
  * preferences about the segments they allocate.
  */
 
-#define SegPrefSig      ((Sig)0x5195e997)
+#define SegPrefSig      ((Sig)0x5195E9B6) /* SIGnature SEG PRef */ 
 
 typedef struct SegPrefStruct {  /* segment placement preferences */
   Sig sig;                      /* impl.h.misc.sig */
@@ -300,7 +300,7 @@ typedef struct SegPrefStruct {  /* segment placement preferences */
  * (impl.h.mpmst.space).
  */
 
-#define ArenaSig        ((Sig)0x519A7E9A)
+#define ArenaSig        ((Sig)0x519A6E4A) /* SIGnature ARENA */ 
 
 #ifdef ARENA_ANSI
 
@@ -373,7 +373,7 @@ typedef struct APStruct {
  * The buffer contains an AP which may be exported to the client.
  */
 
-#define BufferSig       ((Sig)0x519B0FFA)
+#define BufferSig       ((Sig)0x519B0FFE) /* SIGnature BUFFEr */
 
 typedef struct BufferStruct {
   Sig sig;                      /* design.mps.sig */
@@ -401,7 +401,7 @@ typedef struct BufferStruct {
  * some way to cope.
  */
 
-#define FormatSig       ((Sig)0x519F43A2)
+#define FormatSig       ((Sig)0x519F63A2) /* Signature FoRMAT */
 
 typedef struct FormatStruct {
   Sig sig;                      /* design.mps.sig */
@@ -442,8 +442,8 @@ typedef struct LDStruct {
  * by them) will depend on an OS interface.
  */
 
-#define LockSig         ((Sig)0x519110CC)
-#define ThreadSig       ((Sig)0x51924EAD)
+#define LockSig         ((Sig)0x51970CC9) /* SIGnature LOCK */ 
+#define ThreadSig       ((Sig)0x519286ED) /* SIGnature THREaD */
 
 #if defined(MPS_OS_W3)
 
@@ -493,7 +493,7 @@ typedef struct ThreadStruct {   /* ANSI fake thread structure */
  * Synchronize with impl.c.root.
  */
 
-#define RootSig         ((Sig)0x51940022)
+#define RootSig         ((Sig)0x51960029) /* SIGnature ROOT */
 
 typedef struct RootStruct {
   Sig sig;                      /* design.mps.sig */
@@ -545,7 +545,7 @@ typedef struct RootStruct {
  * rather than Shift.
  */
 
-#define ScanStateSig    ((Sig)0x5195CA95)
+#define ScanStateSig    ((Sig)0x5195CA45) /* SIGnature SCAN State */
 
 typedef struct ScanStateStruct {
   Res (*fix)(ScanState, Addr *);/* fix function */
@@ -599,7 +599,7 @@ typedef struct ActionStruct {
  * which owns each group of fields is commented.
  */
 
-#define SpaceSig        ((Sig)0x5195BACE)
+#define SpaceSig        ((Sig)0x5195BACE) /* SIGnature SPACE */
 
 typedef struct SpaceStruct {
   /* space fields (impl.c.space) */
