@@ -396,7 +396,7 @@ Print messages at start and end of loading unless\n\
 If optional fourth arg NOSUFFIX is non-nil, don't try adding\n\
  suffixes `.elc' or `.el' to the specified name FILE.\n\
 If optional fifth arg MUST-SUFFIX is non-nil, insist on\n\
- the suffix `.elc' or `.el'; don't accept just FILE unless
+ the suffix `.elc' or `.el'; don't accept just FILE unless\n\
  it ends in one of those suffixes or includes a directory name.\n\
 Return t if file exists.")
   (file, noerror, nomessage, nosuffix, must_suffix)
