@@ -56,8 +56,7 @@
 ;; implemented an incremental completion style in his 'iswitch'
 ;; functions that served as a model for icomplete.  Some other
 ;; contributors: Noah Freidman (restructuring as minor mode), Colin
-;; Rafferty (lemacs reconciliation), Lars Lindberg, RMS, and
-;; others.
+;; Rafferty (lemacs reconciliation), Lars Lindberg, RMS, and others.
 
 ;; klm.
 
@@ -96,8 +95,7 @@ icompletion is occurring.")
 ;;;_ + Internal Variables
 ;;;_  = icomplete-mode
 (defvar icomplete-mode t
-  "Non-nil enables incremental minibuffer completion, once
-`\\[icomplete-mode]' function has set things up.")
+  "*Non-nil enables incremental minibuffer completion (see \\[icomplete-mode].")
 ;;;_  = icomplete-eoinput 1
 (defvar icomplete-eoinput 1
   "Point where minibuffer input ends and completion info begins.")
@@ -119,21 +117,19 @@ Use `icomplete-mode' function to set it up properly for incremental
 minibuffer completion.")
 (add-hook 'icomplete-post-command-hook 'icomplete-exhibit)
 
-(defvar icomplete-show-key-bindings (string-match "XEmacs\\|Lucid"
-						  emacs-version)
-  "When non-nil show key bindings as well as completion when matching
-a command.  Currently working only for XEmacs - see `icomplete-get-keys'.")
+(defvar icomplete-show-key-bindings t
+  "*When non-nil, show key bindings as well as completion for sole matches.")
 
 (defun icomplete-get-keys (func-name)
-  "Return the keys `func-name' is bound to as a string, or nil if none.
-  NOTE that this depends on `owindow' minbuf setting and `current-local-map'
-  taking arg, both present in XEmacs but not present in mainline GNU Emacs
-  19.34."
-  (when (commandp func-name)
+  "Return strings naming keys bound to `func-name', or nil if none.
+Examines the prior, not current, buffer, presuming that current buffer
+is minibuffer."
+  (if (commandp func-name)
     (save-excursion
       (let* ((sym (intern func-name))
-	     (buf (set-buffer (window-buffer owindow)))
-	     (keys (where-is-internal sym (current-local-map buf))))
+	     (buf (other-buffer))
+	     (map (save-excursion (set-buffer buf) (current-local-map)))
+	     (keys (where-is-internal sym map)))
 	(if keys
 	    (concat "<"
 		    (mapconcat 'key-description
@@ -146,8 +142,8 @@ a command.  Currently working only for XEmacs - see `icomplete-get-keys'.")
 ;;;_ > icomplete-mode (&optional prefix)
 ;;;###autoload
 (defun icomplete-mode (&optional prefix)
-  "Activate incremental minibuffer completion for this emacs session,
-or deactivate with negative prefix arg."
+  "Activate incremental minibuffer completion for this Emacs session.
+Deactivates with negative universal argument."
   (interactive "p")
   (or prefix (setq prefix 0))
   (cond ((>= prefix 0)
@@ -159,7 +155,6 @@ or deactivate with negative prefix arg."
 
 ;;;_ > icomplete-simple-completing-p ()
 (defun icomplete-simple-completing-p ()
-
   "Non-nil if current window is minibuffer that's doing simple completion.
 
 Conditions are:
@@ -215,7 +210,6 @@ and `minibuffer-setup-hook'."
 ;;;_ > icomplete-exhibit ()
 (defun icomplete-exhibit ()
   "Insert icomplete completions display.
-
 Should be run via minibuffer `post-command-hook'.  See `icomplete-mode'
 and `minibuffer-setup-hook'."
   (if (icomplete-simple-completing-p)
@@ -271,7 +265,7 @@ one of \(), \[], or \{} pairs.  The choice of brackets is as follows:
 
 The displays for unambiguous matches have ` [Matched]' appended
 \(whether complete or not), or ` \[No matches]', if no eligible
-matches exist.  \(In XEmacs, keybindings for matched commands, if any,
+matches exist.  \(Keybindings for uniquely matched commands
 are exhibited within the square braces.)"
 
   ;; 'all-completions' doesn't like empty
@@ -352,13 +346,6 @@ are exhibited within the square braces.)"
 			   (concat "," alternatives)
 			 alternatives)
 		       close-bracket-prospects)))))))
-
-;;;_ + Initialization
-;;; If user hasn't setq-default icomplete-mode to nil, then setup for
-;;; activation:
-(if icomplete-mode
-    (icomplete-mode))
-
 
 ;;;_* Local emacs vars.
 ;;;Local variables:
