@@ -947,7 +947,9 @@ If `enable-local-variables' is nil, this function does not check for a
 	   ;; Don't look for -*- if this file name matches any
 	   ;; of the regexps in inhibit-first-line-modes-regexps.
 	   (let ((temp inhibit-first-line-modes-regexps)
-		 (name (file-name-sans-versions buffer-file-name)))
+		 (name (if buffer-file-name
+			   (file-name-sans-versions buffer-file-name)
+			 (buffer-name))))
 	     (while (let ((sufs inhibit-first-line-modes-suffixes))
 		      (while (and sufs (not (string-match (car sufs) name)))
 			(setq sufs (cdr sufs)))
