@@ -199,7 +199,7 @@ delta.  At present, delta = 0.01 degrees, so the value of the variable
    "Sidereal time at Greenwich at midnight (universal time).")
 
 (defvar solar-northern-spring-or-summer-season nil
-  "T if northern spring or summer and nil otherwise.
+  "Non-nil if northern spring or summer and nil otherwise.
 Needed for polar areas, in order to know whether the day lasts 0 or 24 hours.")
 
 (defun solar-setup ()
