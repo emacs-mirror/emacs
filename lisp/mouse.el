@@ -675,8 +675,8 @@ If you do this twice in the same position, the selection is killed."
 	      (kill-new (buffer-substring (point) (mark t)) t))
 	  ;; We just have point, so set mark here.
 	  (mouse-set-mark-fast click)
-	  (kill-ring-save (point) (mark t))
-	  (mouse-show-mark))
+	  (kill-ring-save (point) (mark t)))
+	(mouse-show-mark)
 	(setq mouse-save-then-kill-posn
 	      (list (car kill-ring) (point) click-posn))))))
 
