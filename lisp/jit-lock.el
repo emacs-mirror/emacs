@@ -210,19 +210,19 @@ the variable `jit-lock-stealth-nice'."
 		'jit-lock-fontify-buffer))
 
 	 ;; Install an idle timer for stealth fontification.
-	 (when (and jit-lock-stealth-time
-		    (null jit-lock-stealth-timer))
+	 (when (and jit-lock-stealth-time (null jit-lock-stealth-timer))
 	   (setq jit-lock-stealth-timer
 		 (run-with-idle-timer jit-lock-stealth-time
 				      jit-lock-stealth-time
 				      'jit-lock-stealth-fontify)))
 
 	 ;; Initialize deferred contextual fontification if requested.
-	 (when (or (eq jit-lock-defer-contextually 'always)
-		   (and (not (eq jit-lock-defer-contextually 'never))
+	 (when (or (eq jit-lock-defer-contextually t)
+		   (and jit-lock-defer-contextually
 			(boundp 'font-lock-keywords-only)
 			(null font-lock-keywords-only)))
-	   (setq jit-lock-first-unfontify-pos (point-max)))
+	   (setq jit-lock-first-unfontify-pos
+		 (or jit-lock-first-unfontify-pos (point-max))))
 
 	 ;; Setup our after-change-function
 	 ;; and remove font-lock's (if any).
@@ -252,11 +252,15 @@ the variable `jit-lock-stealth-nice'."
 		     'font-lock-after-change-function nil t))
 	 (remove-hook 'fontification-functions 'jit-lock-function))))
 
-(defun jit-lock-register (fun)
+;;;###autoload
+(defun jit-lock-register (fun &optional contextual)
   "Register FUN as a fontification function to be called in this buffer.
 FUN will be called with two arguments START and END indicating the region
-that need to be (re)fontified."
+that needs to be (re)fontified.
+If non-nil, CONTEXTUAL means that a contextual fontification would be useful."
   (add-hook 'jit-lock-functions fun nil t)
+  (when (and contextual jit-lock-defer-contextually)
+    (set (make-local-variable 'jit-lock-defer-contextually) t))
   (jit-lock-mode t))
 
 (defun jit-lock-unregister (fun)
