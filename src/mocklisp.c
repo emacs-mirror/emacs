@@ -140,9 +140,7 @@ DEFUN ("ml-provide-prefix-argument", Fml_provide_prefix_argument, Sml_provide_pr
 {
   struct gcpro gcpro1;
   GCPRO1 (args);
-  if (!current_perdisplay)
-    abort ();
-  current_perdisplay->Vcurrent_prefix_arg = Feval (Fcar (args));
+  Vcurrent_prefix_arg = Feval (Fcar (args));
   UNGCPRO;
   return Feval (Fcar (Fcdr (args)));
 }
@@ -158,13 +156,11 @@ DEFUN ("ml-prefix-argument-loop", Fml_prefix_argument_loop, Sml_prefix_argument_
   struct gcpro gcpro1;
 
   /* Set `arg' in case we call a built-in function that looks at it.  Still are a few. */
-  if (!current_perdisplay)
-    abort ();
-  tem = current_perdisplay->Vcurrent_prefix_arg;
-  if (NILP (tem))
+  if (NILP (Vcurrent_prefix_arg))
     i = 1;
   else
     {
+      tem = Vcurrent_prefix_arg;
       if (CONSP (tem))
 	tem = Fcar (tem);
       if (EQ (tem, Qminus))
