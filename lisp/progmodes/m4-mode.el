@@ -34,15 +34,6 @@
 ;; * want to make m4-m4-(buffer|region) look sorta like M-x compile look&feel ?
 ;; * sexp motion commands don't seem to work right
 
-;; to autoload m4 lisp code:  
-;; (autoload 'm4-mode "m4-mode" nil t)
-;;
-;; or can use (load "m4-mode") or (require 'm4-mode) to just load it 
-;;
-;; to try to "auto-detect" m4 files:
-;; (setq auto-mode-alist 
-;;	 (cons '(".*\\.m4$" . m4-mode)
-;;	       auto-mode-alist))
 ;;; Thanks: 
 ;;;         to Akim Demaille and Terry Jones for the bug reports
 ;;;         to Simon Marshall for the regexp tip
@@ -128,8 +119,9 @@
   (process-send-eof "m4process")
   (switch-to-buffer-other-window "*m4 output*"))
 
+;;;###autoload
 (defun m4-mode ()
-  "A major-mode to edit m4 macro files
+  "A major mode to edit m4 macro files.
 \\{m4-mode-map}
 "
   (interactive)
