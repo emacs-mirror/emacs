@@ -1,3 +1,44 @@
+2001-10-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/nroff-mode.el (nroff-mode-abbrev-table, nroff-mode):
+	Use define-derived-mode.
+	(nroff-mode-map, nroff-mode-syntax-table): Massage.
+
+	* mail/mailabbrev.el (mail-abbrev-in-expansion-header-p): Simplify.
+
+	* emacs-lisp/lselect.el: Use facep iso find-face.
+
+	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression):
+	Use regexp-opt.
+	(doc-string-elt): Set symbols' prop.  Copied from autoload.el.
+	(lisp-font-lock-syntactic-face-function): New function.
+	(lisp-mode-variables): Use it.  Make arg optional.
+	(emacs-lisp-mode): Don't pass an arg to lisp-mode-variables.
+	(lisp-mode): Don't pass an arg to lisp-mode-variables.
+	Set comment-start-skip.
+
+	* emacs-lisp/lisp-mnt.el (lm-history-header): Accept `ChangeLog'.
+
+	* emacs-lisp/cl-macs.el (frame-parameter): Add a setf method.
+	(ignore-errors): Don't bother using a `err' symbol.
+
+	* emacs-lisp/autoload.el (autoload-ensure-default-file)
+	(autoload-insert-section-header, autoload-before-p)
+	(autoload-remove-section): New functions.
+	(generate-file-autoloads): Use them.
+	(update-file-autoloads): Use them.  Return FILE if there's no cookie.
+	Make sure the autoload file is properly formatted when creating it.
+	(update-autoloads-from-directories): Use them as well.
+	Only update autoloads for files whose timestamp has changed.
+	Add a dummy entry to remember the files which had no autoload cookies.
+
+	* timer.el (timer-relative-time): Fix computation for negative `micro'.
+
+	* subr.el (define-key-after): Allow `key' to be longer than 1.
+	(make-local-hook): Make obsolete.
+	(add-hook, remove-hook): Don't use make-local-hook any more.
+	(make-syntax-table): Inherit all chars from s-s-t.
+
 2001-10-04  Gerd Moellmann  <gerd@gnu.org>
 
 	This is a fix for a report saying that resuming a search with C-s
@@ -16,15 +57,14 @@
 	* startup.el (inhibit-startup-buffer-menu): New user-option.
 	(command-line-1): If inhibit-startup-buffer-menu is set, don't
 	display the buffer menu.  From Simon Josefsson <jas@extundo.com>.
-	
+
 	This allows upto 99999 messages in the summary without screwing up
-	the summary sorting.  Previously 9999 was the maximum.  Added
-	to NEWS.
-	
-	* mail/rmailsum.el (rmail-make-summary-line) 
-	(rmail-make-summary-line-1, rmail-summary-next-same-subject) 
-	(rmail-summary-goto-msg, rmail-summary-goto-msg): Allow
-	5-digit message ids instead of 4.
+	the summary sorting.  Previously 9999 was the maximum.  Added to NEWS.
+
+	* mail/rmailsum.el (rmail-make-summary-line)
+	(rmail-make-summary-line-1, rmail-summary-next-same-subject)
+	(rmail-summary-goto-msg, rmail-summary-goto-msg):
+	Allow 5-digit message ids instead of 4.
 
 	This adds expansion of environment variables in the value
 	specified with M-x setenv.  Added to NEWS.
