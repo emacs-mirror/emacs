@@ -40,6 +40,11 @@ while [ $# -gt 0 ]; do
       new_extension=".new"
       shift
     ;;
+    ## This option tells make-dist to use `compress' instead of gzip.
+    ## Normally, make-dist uses gzip whenever it is present.
+    "--compress")
+      default_gzip="compress"
+    ;;
     * )
       echo "${progname}: Unrecognized argument: $1" >&2
       exit 1
@@ -253,21 +258,23 @@ if [ "${newer}" ]; then
 fi
 
 if [ "${make_tar}" = yes ]; then
-  echo "Looking for gzip."
-  temppath=`echo $PATH | sed 's/^:/.:/
-			      s/::/:.:/g
-			      s/:$/:./
-			      s/:/ /g'`
-  default_compress=`(
-    for dir in ${temppath}; do
-      if [ -f ${dir}/gzip ]; then echo 'gzip --best'; exit 0; fi
-    done
-    echo compress
-  )`
+  if [ "${default_gzip}" = "" ]; then
+    echo "Looking for gzip."
+    temppath=`echo $PATH | sed 's/^:/.:/
+				s/::/:.:/g
+				s/:$/:./
+				s/:/ /g'`
+    default_gzip=`(
+      for dir in ${temppath}; do
+	if [ -f ${dir}/gzip ]; then echo 'gzip --best'; exit 0; fi
+      done
+      echo compress
+    )`
+  fi
   echo "Creating tar file."
   (cd ${tempparent}
    tar cvf - ${emacsname}) \
-   | ${default_compress} > ${emacsname}.tar.Z
+   | ${default_gzip} > ${emacsname}.tar.Z
   )
 fi
 
