@@ -214,61 +214,70 @@ EVENT should be a scroll bar click or drag event."
 If you click outside the slider, the window scrolls to bring the slider there."
   (interactive "e")
   (let* (done
-	 (echo-keystrokes 0))
-    (or point-before-scroll
-	(setq point-before-scroll (point)))
-    ;; Our scrolling can move point; don't let that clear point-before-scroll.
-    (let (point-before-scroll)
-      (scroll-bar-drag-1 event)
-      (track-mouse
-	(while (not done)
-	  (setq event (read-event))
-	  (if (eq (car-safe event) 'mouse-movement)
-	      (setq event (read-event)))
-	  (cond ((eq (car-safe event) 'scroll-bar-movement)
-		 (scroll-bar-drag-1 event))
-		(t
-		 ;; Exit when we get the drag event; ignore that event.
-		 (setq done t)))))
-      (sit-for 0))))
+	 (echo-keystrokes 0)
+	 (end-position (event-end event))
+	 (window (nth 0 end-position))
+	 (before-scroll))
+    (with-current-buffer (window-buffer window)
+      (setq before-scroll point-before-scroll))
+    (save-selected-window
+      (select-window window)
+      (setq before-scroll
+	    (or before-scroll (point))))
+    (scroll-bar-drag-1 event)
+    (track-mouse
+      (while (not done)
+	(setq event (read-event))
+	(if (eq (car-safe event) 'mouse-movement)
+	    (setq event (read-event)))
+	(cond ((eq (car-safe event) 'scroll-bar-movement)
+	       (scroll-bar-drag-1 event))
+	      (t
+	       ;; Exit when we get the drag event; ignore that event.
+	       (setq done t)))))
+    (sit-for 0)
+    (with-current-buffer (window-buffer window)
+      (setq point-before-scroll before-scroll))))
 
 (defun scroll-bar-scroll-down (event)
   "Scroll the window's top line down to the location of the scroll bar click.
 EVENT should be a scroll bar click."
   (interactive "e")
-  (let ((old-selected-window (selected-window)))
-    (unwind-protect
-	(progn
-	  (let* ((end-position (event-end event))
-		 (window (nth 0 end-position))
-		 (portion-whole (nth 2 end-position)))
-	    (let (point-before-scroll)
-	      (select-window window))
-	    (or point-before-scroll
-		(setq point-before-scroll (point)))
-	    (let (point-before-scroll)
-	      (scroll-down
-	       (scroll-bar-scale portion-whole (1- (window-height)))))))
-      (select-window old-selected-window))))
+  (let* ((end-position (event-end event))
+	 (window (nth 0 end-position))
+	 (before-scroll))
+    (with-current-buffer (window-buffer window)
+      (setq before-scroll point-before-scroll))
+    (save-selected-window
+      (let ((portion-whole (nth 2 end-position)))
+	(select-window window)
+	(setq before-scroll
+	      (or before-scroll (point)))
+	(scroll-down
+	 (scroll-bar-scale portion-whole (1- (window-height))))))
+    (sit-for 0)
+    (with-current-buffer (window-buffer window)
+      (setq point-before-scroll before-scroll))))
 
 (defun scroll-bar-scroll-up (event)
   "Scroll the line next to the scroll bar click to the top of the window.
 EVENT should be a scroll bar click."
   (interactive "e")
-  (let ((old-selected-window (selected-window)))
-    (unwind-protect
-	(progn
-	  (let* ((end-position (event-end event))
-		 (window (nth 0 end-position))
-		 (portion-whole (nth 2 end-position)))
-	    (let (point-before-scroll)
-	      (select-window window))
-	    (or point-before-scroll
-		(setq point-before-scroll (point)))
-	    (let (point-before-scroll)
-	      (scroll-up
-	       (scroll-bar-scale portion-whole (1- (window-height)))))))
-      (select-window old-selected-window))))
+  (let* ((end-position (event-end event))
+	 (window (nth 0 end-position))
+	 (before-scroll))
+    (with-current-buffer (window-buffer window)
+      (setq before-scroll point-before-scroll))
+    (save-selected-window
+      (let ((portion-whole (nth 2 end-position)))
+	(select-window window)
+	(setq before-scroll
+	      (or before-scroll (point)))
+	(scroll-up
+	 (scroll-bar-scale portion-whole (1- (window-height))))))
+    (sit-for 0)
+    (with-current-buffer (window-buffer window)
+      (setq point-before-scroll before-scroll))))
 
 
 ;;;; Bindings.
