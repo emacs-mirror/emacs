@@ -334,14 +334,13 @@ what kind of block it is suppose to hide."
       (setq beg (prog1 end (setq end beg))))
   (save-excursion
     (goto-char beg)
-    (while (< (point) end)
-      (let ((overlays (overlays-at (point))))
-	(while overlays
-	  (let ((o (car overlays)))
-	    (if (eq (overlay-get o prop) value)
-		    (delete-overlay o)))
-	  (setq overlays (cdr overlays))))
-      (goto-char (next-overlay-change (point))))))
+    (let ((overlays (overlays-in beg end))
+	  o)
+      (while overlays
+	(setq o (car overlays))
+	(if (eq (overlay-get o prop) value)
+	    (delete-overlay o))
+	  (setq overlays (cdr overlays))))))
 
 (defun hs-hide-block-at-point (&optional end comment-reg)
   "Hide block iff on block beginning, optional END means reposition at end.
