@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- Tools for customizing Emacs and Lisp packages.
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
@@ -3480,7 +3480,17 @@ or (if there were none) at the end of the buffer."
 	      (setq first (point)))))))
     (if first
 	(goto-char first)
-      (goto-char (point-max)))))
+      ;; Move in front of local variables, otherwise long Custom
+      ;; entries would make them ineffective.
+      (let ((pos (point-max))
+	    (case-fold-search t))
+	(save-excursion
+	  (goto-char (point-max))
+	  (search-backward "\n\^L" (max (- (point-max) 3000) (point-min))
+			   'move)
+	  (when (search-forward "Local Variables:" nil t)
+	    (setq pos (line-beginning-position))))
+	(goto-char pos)))))
 
 (defun custom-save-variables ()
   "Save all customized variables in `custom-file'."
