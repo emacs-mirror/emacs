@@ -335,17 +335,23 @@ ARGS is a list of additional arguments."
 ;;;
 
 (defun easy-mmode-define-syntax (css args)
-  (let ((st (make-syntax-table (cadr (memq :copy args)))))
+  (let ((st (make-syntax-table (plist-get args :copy)))
+	(parent (plist-get args :inherit)))
     (dolist (cs css)
       (let ((char (car cs))
 	    (syntax (cdr cs)))
 	(if (sequencep char)
 	    (mapcar (lambda (c) (modify-syntax-entry c syntax st)) char)
 	  (modify-syntax-entry char syntax st))))
+    (if parent (set-char-table-parent
+		st (if (symbolp parent) (symbol-value parent) parent)))
     st))
 
 ;;;###autoload
 (defmacro easy-mmode-defsyntax (st css doc &rest args)
+  "Define variable ST as a syntax-table.
+CSS contains a list of syntax specifications of the form (CHAR . SYNTAX).
+"
   `(progn
      (autoload 'easy-mmode-define-syntax "easy-mmode")
      (defconst ,st (easy-mmode-define-syntax ,css ,(cons 'list args)) doc)))
