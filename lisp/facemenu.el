@@ -460,7 +460,7 @@ These special properties include `invisible', `intangible' and `read-only'."
   (let ((inhibit-read-only t))
     (remove-text-properties 
      start end '(invisible nil intangible nil read-only nil))))
-
+
 ;;; Describe-Text Mode.
 
 (defun describe-text-done ()
@@ -548,7 +548,7 @@ The `category' property is made into a widget button that call
 	     (describe-text-sexp value))))
     (widget-insert "\n")
     (setq properties (cdr (cdr properties)))))
-
+
 ;;; Describe-Text Commands.
 
 (defun describe-text-category (category)
@@ -618,44 +618,7 @@ The `category' property is made into a widget button that call
 	    (describe-text-properties properties))
 	  (describe-text-mode)
 	  (goto-char (point-min)))))))
-
-;;; List Text Properties
-
-;;;###autoload
-(defun list-text-properties-at (p)
-  "Pop up a buffer listing text-properties at LOCATION."
-  (interactive "d")
-  (let ((props (text-properties-at p))
-	category
-	str)
-    (if (null props)
-	(message "None")
-      (if (and (not (cdr (cdr props)))
-	       (not (eq (car props) 'category))
-	       (< (length (setq str (format "Text property at %d:  %s  %S"
-					    p (car props) (car (cdr props)))))
-		  (frame-width)))
-	  (message "%s" str)
-	(with-output-to-temp-buffer "*Text Properties*"
-	  (princ (format "Text properties at %d:\n\n" p))
-	  (setq help-xref-stack nil)
-	  (while props
-	    (if (eq (car props) 'category)
-		(setq category (car (cdr props))))
-	    (princ (format "%-20s %S\n"
-			   (car props) (car (cdr props))))
-	    (setq props (cdr (cdr props))))
-	  (if category
-	      (progn
-		(setq props (symbol-plist category))
-		(princ (format "\nCategory %s:\n\n" category))
-		(while props
-		  (princ (format "%-20s %S\n"
-				 (car props) (car (cdr props))))
-		  (if (eq (car props) 'category)
-		      (setq category (car (cdr props))))
-		  (setq props (cdr (cdr props)))))))))))
-
+
 ;;;###autoload
 (defun facemenu-read-color (&optional prompt)
   "Read a color using the minibuffer."
