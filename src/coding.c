@@ -4052,7 +4052,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
 	  len = ZV - BEGV;
 	  new = current_buffer;
 	  set_buffer_internal_1 (prev);
-	  del_range_2 (from, to, from_byte, to_byte);
+	  del_range_2 (from, from_byte, to, to_byte);
 	  insert_from_buffer (new, BEG, len, 0);
 	  to = from + len;
 	  to_byte = multibyte ? CHAR_TO_BYTE (to) : to;
