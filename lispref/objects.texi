@@ -439,7 +439,7 @@ important than the @sc{ascii} representation.
 and the hexadecimal character code.  You can use any number of hex
 digits, so you can represent any character code in this way.
 Thus, @samp{?\x41} for the character @kbd{A}, @samp{?\x1} for the
-character @kbd{C-a}, and @code{?\x8e0} for the character
+character @kbd{C-a}, and @code{?\x8e0} for the Latin-1 character
 @iftex
 @samp{@`a}.
 @end iftex

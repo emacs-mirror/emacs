@@ -1969,11 +1969,11 @@ tags.  Use the @samp{--packages-only} option to create tags for
 packages only.
 
 With Ada, it is possible to have the same name used for different
-entity kind (e.g. same name for a procedure and a function).  Also,
-for things like package, procedures and functions, there is the spec
-(i.e. the interface) and the body (i.e. the implementation).  To
+entity kinds (e.g.@: the same name for a procedure and a function).  Also,
+for things like packages, procedures and functions, there is the spec
+(i.e.@: the interface) and the body (i.e.@: the implementation).  To
 facilitate the choice to the user, a tag value is appended with a
-qualifier :
+qualifier:
 
 @table @asis
 @item function
