@@ -357,7 +357,7 @@ Returns the distance traveled, either zero or positive.")
   (string, lim)
      Lisp_Object string, lim;
 {
-  return skip_chars (1, string, lim);
+  return skip_chars (1, 0, string, lim);
 }
 
 DEFUN ("skip-chars-backward", Fskip_chars_backward, Sskip_chars_backward, 1, 2, 0,
@@ -367,12 +367,36 @@ Returns the distance traveled, either zero or negative.")
   (string, lim)
      Lisp_Object string, lim;
 {
-  return skip_chars (0, string, lim);
+  return skip_chars (0, 0, string, lim);
+}
+
+DEFUN ("skip-syntax-forward", Fskip_syntax_forward, Sskip_syntax_forward, 1, 2, 0,
+  "Move point forward across chars in specified syntax classes.\n\
+SYNTAX is a string of syntax code characters.\n\
+Stop before a char whose syntax is not in SYNTAX, or at position LIM.\n\
+If SYNTAX starts with ^, skip characters whose syntax is NOT in SYNTAX.\n\
+This function returns the distance traveled, either zero or positive.")
+  (syntax, lim)
+     Lisp_Object syntax, lim;
+{
+  return skip_chars (1, 1, syntax, lim);
+}
+
+DEFUN ("skip-syntax-backward", Fskip_syntax_backward, Sskip_syntax_backward, 1, 2, 0,
+  "Move point backward across chars in specified syntax classes.\n\
+SYNTAX is a string of syntax code characters.\n\
+Stop on reaching a char whose syntax is not in SYNTAX, or at position LIM.\n\
+If SYNTAX starts with ^, skip characters whose syntax is NOT in SYNTAX.\n\
+This function returns the distance traveled, either zero or negative.")
+  (syntax, lim)
+     Lisp_Object syntax, lim;
+{
+  return skip_chars (0, 1, syntax, lim);
 }
 
 Lisp_Object
-skip_chars (forwardp, string, lim)
-     int forwardp;
+skip_chars (forwardp, syntaxp, string, lim)
+     int forwardp, syntaxp;
      Lisp_Object string, lim;
 {
   register unsigned char *p, *pend;
@@ -405,29 +429,36 @@ skip_chars (forwardp, string, lim)
       negate = 1; p++;
     }
 
-  /* Find the characters specified and set their elements of fastmap.  */
+  /* Find the characters specified and set their elements of fastmap.
+     If syntaxp, each character counts as itself.
+     Otherwise, handle backslashes and ranges specially  */
 
   while (p != pend)
     {
       c = *p++;
-      if (c == '\\')
-        {
-	  if (p == pend) break;
-	  c = *p++;
-	}
-      if (p != pend && *p == '-')
-	{
-	  p++;
-	  if (p == pend) break;
-	  while (c <= *p)
-	    {
-	      fastmap[c] = 1;
-	      c++;
-	    }
-	  p++;
-	}
-      else
+      if (syntaxp)
 	fastmap[c] = 1;
+      else
+	{
+	  if (c == '\\')
+	    {
+	      if (p == pend) break;
+	      c = *p++;
+	    }
+	  if (p != pend && *p == '-')
+	    {
+	      p++;
+	      if (p == pend) break;
+	      while (c <= *p)
+		{
+		  fastmap[c] = 1;
+		  c++;
+		}
+	      p++;
+	    }
+	  else
+	    fastmap[c] = 1;
+	}
     }
 
   /* If ^ was the first character, complement the fastmap. */
@@ -440,15 +471,34 @@ skip_chars (forwardp, string, lim)
     int start_point = point;
 
     immediate_quit = 1;
-    if (forwardp)
+    if (syntaxp)
       {
-	while (point < XINT (lim) && fastmap[FETCH_CHAR (point)])
-	  SET_PT (point + 1);
+
+	if (forwardp)
+	  {
+	    while (point < XINT (lim)
+		   && fastmap[(unsigned char) syntax_code_spec[(int) SYNTAX (FETCH_CHAR (point))]])
+	      SET_PT (point + 1);
+	  }
+	else
+	  {
+	    while (point > XINT (lim)
+		   && fastmap[(unsigned char) syntax_code_spec[(int) SYNTAX (FETCH_CHAR (point - 1))]])
+	      SET_PT (point - 1);
+	  }
       }
     else
       {
-	while (point > XINT (lim) && fastmap[FETCH_CHAR (point - 1)])
-	  SET_PT (point - 1);
+	if (forwardp)
+	  {
+	    while (point < XINT (lim) && fastmap[FETCH_CHAR (point)])
+	      SET_PT (point + 1);
+	  }
+	else
+	  {
+	    while (point > XINT (lim) && fastmap[FETCH_CHAR (point - 1)])
+	      SET_PT (point - 1);
+	  }
       }
     immediate_quit = 0;
 
@@ -1446,6 +1496,8 @@ syms_of_search ()
   defsubr (&Slooking_at);
   defsubr (&Sskip_chars_forward);
   defsubr (&Sskip_chars_backward);
+  defsubr (&Sskip_syntax_forward);
+  defsubr (&Sskip_syntax_backward);
   defsubr (&Ssearch_forward);
   defsubr (&Ssearch_backward);
   defsubr (&Sword_search_forward);
