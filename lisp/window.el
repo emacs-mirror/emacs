@@ -335,29 +335,6 @@ This is a kluge."
     0))
 
 
-;;; These functions should eventually be replaced with versions that
-;;; really do the job (instead of using the kludgey mode-line face
-;;; hacking junk).
-
-(defun window-text-height (&optional window)
-  "Return the height in lines of the text display area of WINDOW.
-This doesn't include the mode-line (or header-line if any) or any
-partial-height lines in the text display area.
-
-Note that the current implementation of this function may sometimes
-return an inaccurate value, but attempts to be conservative, by
-returning fewer lines than actually exist in the case where the real
-value cannot be determined."
-  (with-current-buffer (window-buffer window)
-    (- (window-height window)
-       (if (and (not (window-minibuffer-p window))
-		mode-line-format)
-	   (1+ (mode-line-window-height-fudge))
-	 0)
-       (if header-line-format
-	   (1+ (mode-line-window-height-fudge 'header-line))
-	 0))))
-
 (defun set-window-text-height (window height)
   "Sets the height in lines of the text display area of WINDOW to HEIGHT.
 This doesn't include the mode-line (or header-line if any) or any
