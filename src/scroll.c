@@ -272,8 +272,8 @@ do_scrolling (frame, matrix, window_size, unchanged_at_top)
   bcopy (current_frame->bufp, temp_frame->bufp,
 	 current_frame->height * sizeof (int));
 
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (frame))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (frame))
     {
       bcopy (current_frame->top_left_x, temp_frame->top_left_x,
 	     current_frame->height * sizeof (short));
@@ -678,8 +678,8 @@ do_direct_scrolling (frame, matrix, window_size, unchanged_at_top)
   bcopy (current_frame->bufp, temp_frame->bufp,
 	 current_frame->height * sizeof (int));
 
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (frame))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (frame))
     {
       bcopy (current_frame->top_left_x, temp_frame->top_left_x,
 	     current_frame->height * sizeof (short));
