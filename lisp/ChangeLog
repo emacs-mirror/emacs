@@ -13,10 +13,10 @@
 	* ffap.el (ffap-read-file-or-url): Eliminate reliance of the call
 	to `completing-read' on a recently fixed bug.
 
-	* fringe.el (fringe-query-style): Suggest `?' in minibuffer prompt
-	(instead of <SPACE>) to get the list of possible fringe modes.
-	(<SPACE> only works if both `partial-completion-mode' and
-	`completion-auto-help' are nil.)
+	* fringe.el (fringe-query-style): Suggest `?' in minibuffer prompt,
+	instead of SPACE, to get the list of possible fringe modes.  SPACE
+	only works if both `partial-completion-mode' and
+	`completion-auto-help' are nil.
 
 	* complete.el (PC-is-complete-p): delete.
 	(PC-do-completion): Replace all calls to `PC-is-complete-p' with
