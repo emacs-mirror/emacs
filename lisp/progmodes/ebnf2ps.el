@@ -2,12 +2,12 @@
 
 ;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
-;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Keywords:   wp, ebnf, PostScript
-;; Time-stamp:        <2001-07-15 01:05:00 pavel>
-;; Version:   3.5
-;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/Emacs.html
+;; Keywords: wp, ebnf, PostScript
+;; Time-stamp: <2001/09/18 21:29:37 vinicius>
+;; Version: 3.6
+;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
 ;; This file is part of GNU Emacs.
 
@@ -26,8 +26,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-(defconst ebnf-version "3.5"
-  "ebnf2ps.el, v 3.5 <2001/02/02 vinicius>
+(defconst ebnf-version "3.6"
+  "ebnf2ps.el, v 3.6 <2001/09/18 vinicius>
 
 
 Vinicius's last change version.  When reporting bugs, please also
@@ -223,7 +223,7 @@ Please send all bug fixes and enhancements to
 ;;           | "{" body [ "||" body ] "}"       ;; zero-or-more
 ;;           .
 ;;
-;;    non_terminal = "[A-Za-z\\240-\\377][!#%&'*-,0-:<>@-Z\\^-z~\\240-\\377]*".
+;;    non_terminal = "[!#%&'*-,0-:<>@-Z\\\\^-z~\\240-\\377]+".
 ;;
 ;;    terminal = "\\([^\"\\]\\|\\\\[ -~\\240-\\377]\\)+".
 ;;
@@ -3555,7 +3555,7 @@ end
 
 /#ebnf2ps#end{showpage #ebnf2ps#save restore end}def
 
-%%EndPrologue
+%%EndProlog
 "
   "EBNF EPS begin")
 
@@ -4364,7 +4364,7 @@ end
 	   (insert " & ebnf2ps v" ebnf-version)
 	   ;; insert ebnf settings & engine
 	   (goto-char (point-max))
-	   (search-backward "\n%%EndPrologue\n")
+	   (search-backward "\n%%EndProlog\n")
 	   (ebnf-insert-ebnf-prologue)
 	   (ps-output "\n")))))
 
@@ -4400,7 +4400,7 @@ end
 					 ebnf-except-font
 					 ebnf-repeat-font)))
 			  "\n%%+ font ")))
-     "\n%%Pages: 0\n%%EndComments\n\n%%BeginPrologue\n"
+     "\n%%Pages: 0\n%%EndComments\n\n%%BeginProlog\n"
      ebnf-eps-prologue)
     (ebnf-insert-ebnf-prologue)
     (insert ebnf-eps-begin
