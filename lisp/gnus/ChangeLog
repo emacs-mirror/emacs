@@ -1,3 +1,9 @@
+2000-09-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* gnus.el (gnus-mode-line-buffer-identification) [Emacs]: Change
+	image's :ascent to 80.  That gives a mode-line which is approx.
+	as tall as the normal one.
+
 2000-09-21  Dave Love  <fx@gnu.org>
 
 	* gnus-ems.el (gnus-article-display-xface): Use unibyte for the
