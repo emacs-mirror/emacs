@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
-;; Author: Per Abrahamsen <abraham@iesd.auc.dk>
+;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: i18n
 
 ;; This file is part of GNU Emacs.
