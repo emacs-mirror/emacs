@@ -2182,8 +2182,8 @@ show_mouse_face (dpyinfo, hl)
       /* If the cursor's in the text we are about to rewrite,
 	 turn the cursor off.  */
       if (i == curs_y
-	  && curs_x >= FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_col - 1
-	  && curs_x <= FRAME_X_DISPLAY_INFO (f)->mouse_face_end_col)
+	  && curs_x >= column - 1
+	  && curs_x <= endcolumn)
 	{
 	  x_display_cursor (f, 0);
 	  cursor_off = 1;
