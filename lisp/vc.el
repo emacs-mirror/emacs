@@ -1646,10 +1646,16 @@ A prefix argument means do not revert the buffer afterwards."
                 ;; Check out unlocked, and revert buffer.
                 (vc-checkout (buffer-file-name) nil recent))
               (setq done t))
+          ;; If the checkout fails, vc-do-command signals an error.
+          ;; We catch this error, check the reason, correct the
+          ;; version number, and try a second time.
           (error (set-buffer "*vc*")
                  (goto-char (point-min))
-                 (if (re-search-forward "no side branches present for" nil t)
+                 (if (search-forward "no side branches present for" nil t)
                      (progn (setq recent (vc-branch-part recent))
+                            ;; vc-do-command popped up a window with
+                            ;; the error message.  Get rid of it, by
+                            ;; restoring the old window configuration.
                             (set-window-configuration config))
                    ;; No, it was some other error: re-signal it.
                    (signal (car err) (cdr err))))))
