@@ -1194,6 +1194,9 @@ following hook:
 It is meant to be used for highlighting the article in some way.  It
 is not run if `gnus-visual' is nil.")
 
+(defun gnus-parse-headers-hook nil
+  "*A hook called before parsing the headers.")
+
 (defvar gnus-exit-group-hook nil
   "*A hook called when exiting (not quitting) summary mode.")
 
@@ -3075,6 +3078,7 @@ Note: LIST has to be sorted over `<'."
 (defvar gnus-group-group-map nil)
 (defvar gnus-group-mark-map nil)
 (defvar gnus-group-list-map nil)
+(defvar gnus-group-help-map nil)
 (defvar gnus-group-sub-map nil)
 (put 'gnus-group-mode 'mode-class 'special)
 
@@ -3131,7 +3135,6 @@ Note: LIST has to be sorted over `<'."
   (define-key gnus-group-mode-map "Z" 'gnus-group-clear-dribble)
   (define-key gnus-group-mode-map "q" 'gnus-group-exit)
   (define-key gnus-group-mode-map "Q" 'gnus-group-quit)
-  (define-key gnus-group-mode-map "\M-f" 'gnus-group-fetch-faq)
   (define-key gnus-group-mode-map "?" 'gnus-group-describe-briefly)
   (define-key gnus-group-mode-map "\C-c\C-i" 'gnus-info-find-node)
   (define-key gnus-group-mode-map "\M-e" 'gnus-group-edit-group-method)
@@ -3180,6 +3183,10 @@ Note: LIST has to be sorted over `<'."
   (define-key gnus-group-list-map "d" 'gnus-group-description-apropos)
   (define-key gnus-group-list-map "m" 'gnus-group-list-matching)
   (define-key gnus-group-list-map "M" 'gnus-group-list-all-matching)
+
+  (define-prefix-command 'gnus-group-help-map)
+  (define-key gnus-group-mode-map "H" 'gnus-group-help-map)
+  (define-key gnus-group-help-map "f" 'gnus-group-fetch-faq)
 
   (define-prefix-command 'gnus-group-sub-map)
   (define-key gnus-group-mode-map "S" 'gnus-group-sub-map)
@@ -7175,6 +7182,8 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 	headers id dep end ref)
     (save-excursion
       (set-buffer nntp-server-buffer)
+      ;; Allow the user to mangle the headers before parsing them.
+      (run-hooks 'gnus-parse-headers-hook)
       (goto-char (point-min))
       ;; Search to the beginning of the next header. Error messages
       ;; do not begin with 2 or 3.
@@ -7312,6 +7321,8 @@ list of headers that match SEQUENCE (see `nntp-retrieve-headers')."
 	number headers header)
     (save-excursion
       (set-buffer nntp-server-buffer)
+      ;; Allow the user to mangle the headers before parsing them.
+      (run-hooks 'gnus-parse-headers-hook)
       (goto-char (point-min))
       (while (and sequence (not (eobp)))
 	(setq number (read cur))
@@ -8959,7 +8970,7 @@ functions. (Ie. mail newsgroups at present.)"
 		  (gnus-request-article-this-buffer
 		   (car articles) gnus-newsgroup-name)
 		  (gnus-request-accept-article
-		   (if select-method (quote select-method) to-newsgroup)
+		   (if select-method (list 'quote select-method) to-newsgroup)
 		   (not (cdr articles)))))
 	  (let* ((entry 
 		  (or
@@ -9431,7 +9442,9 @@ the actual number of articles marked is returned."
 
 (defun gnus-summary-set-process-mark (article)
   "Set the process mark on ARTICLE and update the summary line."
-  (setq gnus-newsgroup-processable (cons article gnus-newsgroup-processable))
+  (setq gnus-newsgroup-processable 
+	(cons article 
+	      (delq article gnus-newsgroup-processable)))
   (let ((buffer-read-only nil))
     (if (gnus-summary-goto-subject article)
 	(progn
@@ -9757,7 +9770,10 @@ even ticked and dormant ones."
   ;; Fix by Sudish Joseph <joseph@cis.ohio-state.edu>.
   (gnus-set-global-variables)
   (let ((buffer-read-only nil)
-	(orig-article (gnus-summary-article-number))
+	(orig-article 
+	 (progn
+	   (gnus-summary-search-forward t)
+	   (gnus-summary-article-number)))
 	(marks (concat "^[" marks "]")))
     (goto-char (point-min))
     (if gnus-newsgroup-adaptive
@@ -10231,12 +10247,14 @@ Argument REVERSE means reverse order."
    (cons
     (lambda ()
       (let* ((header (gnus-get-header-by-num (gnus-summary-article-number)))
-	     (extract (funcall
-		       gnus-extract-address-components
-		       (mail-header-from header))))
-	(concat (or (car extract) (cdr extract))
-		"\r" (int-to-string (mail-header-number header))
-		"\r" (mail-header-subject header))))
+	     extract)
+	(if (not (vectorp header))
+	    ""
+	  (setq extract (funcall gnus-extract-address-components
+				 (mail-header-from header)))
+	  (concat (or (car extract) (cdr extract))
+		  "\r" (int-to-string (mail-header-number header))
+		  "\r" (mail-header-subject header)))))
     'gnus-thread-sort-by-author)
    reverse))
 
@@ -10250,13 +10268,15 @@ Argument REVERSE means reverse order."
    (cons
     (lambda ()
       (let* ((header (gnus-get-header-by-num (gnus-summary-article-number)))
-	     (extract (funcall
-		       gnus-extract-address-components
-		       (mail-header-from header))))
-	(concat 
-	 (downcase (gnus-simplify-subject (gnus-summary-subject-string) t))
-	 "\r" (int-to-string (mail-header-number header))
-	 "\r" (or (car extract) (cdr extract)))))
+	     extract)
+	(if (not (vectorp header))
+	    ""
+	  (setq extract (funcall gnus-extract-address-components
+				 (mail-header-from header)))
+	  (concat 
+	   (downcase (gnus-simplify-subject (gnus-summary-subject-string) t))
+	   "\r" (int-to-string (mail-header-number header))
+	   "\r" (or (car extract) (cdr extract))))))
     'gnus-thread-sort-by-subject)
    reverse))
 
@@ -10853,7 +10873,8 @@ The following commands are available:
 	  (erase-buffer)
 	  ;; There may be some overlays that we have to kill...
 	  (insert "i")
-	  (let ((overlays (overlays-at (point-min))))
+	  (let ((overlays (and (fboundp 'overlays-at)
+			       (overlays-at (point-min)))))
 	    (while overlays
 	      (delete-overlay (car overlays))
 	      (setq overlays (cdr overlays))))
@@ -12056,7 +12077,7 @@ If LEVEL is non-nil, the news will be set up at level LEVEL."
 
     ;; Find new newsgroups and treat them.
     (if (and init gnus-check-new-newsgroups gnus-read-active-file (not level)
-	     (gnus-server-opened gnus-select-method))
+	     (gnus-check-server gnus-select-method))
 	(gnus-find-new-newsgroups))
 
     ;; Find the number of unread articles in each non-dead group.
