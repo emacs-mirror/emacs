@@ -1,3 +1,11 @@
+2002-09-13  Juanma Barranquero  <lektu@terra.es>
+
+	* progmodes/idlw-shell.el (idlwave-shell-cleanup): Fix reference
+	to `idlwave-idlwave_routine_info-compiled'.
+
+	* whitespace.el (whitespace-unload-hook): Call `remove-hook' with
+	three arguments, not four.
+
 2002-09-12  Richard M. Stallman  <rms@gnu.org>
 
 	* international/mule-cmds.el (universal-coding-system-argument):
