@@ -808,6 +808,7 @@ EXFUN (Fbuffer_name, 1);
 EXFUN (Fget_file_buffer, 1);
 EXFUN (Fnext_overlay_change, 1);
 EXFUN (Fdelete_overlay, 1);
+EXFUN (Fbuffer_local_value, 2);
 
 /* Functions to call before and after each text change.  */
 extern Lisp_Object Vbefore_change_functions;
