@@ -1,0 +1,257 @@
+# ==== NTI3MV NMAKE FILE ====
+#
+# $HopeName$
+#
+# Copyright (C) 1995 Harlequin Group, all rights reserved
+#
+PFM = nti3mv
+PFMDEFS = /DOS_NT /DARCH_386 /DBUILD_MVC /DWIN32 /D_WINDOWS
+
+STD = <asrtosan> <assert> <deque> <error> <liban> <meter> <misc> <sig>
+MPM = <arenvm> <vmnt> <addrmap> <space> <pool> <poolclas> <poolmfs> \
+      <poolmv> <pools> <root> <fix> <format> <buffer>
+TESTLIB = <testlib>
+
+#!INCLUDE mv.nmk
+
+# ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
+#
+# $HopeName$
+#
+# Copyright (C) 1995 Harlequin Group, all rights reserved
+#
+# DESCRIPTION
+#
+# This makefile fragment is conceptually included in more specific
+# makefiles for platforms which use the "mv" builder.  Alas
+# due to shortcomings in nmake and the fact that only nti3mv uses mv
+# at the moment it is physically part of mti3mv.nmk. [It is not possible
+# use a macro in a substituion, hence this file uses nti3mv instead of $(PFM)]
+#
+# %%PART: Add a new parameter for the files included in the part
+# Parameters:
+#   PFM      platform code, e.g. "nti3mv"
+#   PFMDEFS  /D options to define platforms preprocessor symbols
+#            to the compiler.  Eg "/DOS_NT /DARCH_386 /DBUILD_MVC"
+#   STD      list of sources which make up the "std" part for this
+#            platform.  Each source is stripped of its .c extension
+#            and surrounded in angle brackets (<>)
+#   MPM      as above for the "mpm" part
+#   TESTLIB  as above for the "testlib" part
+#   NOISY    if defined, causes command to be emitted
+#
+#
+# EDITING
+#
+# To add new targets. varieties, and parts:
+# Search for the string "%%TARGET", "%%VARIETY", or "%%PART" in this makefile
+# and follow the instructions.  If you're adding a part, you'll have to change
+# the makefile for all the platforms which use this makefile to define the
+# source list for that part.
+#
+
+# CHECK PARAMETERS
+#
+# [These only test if the symbol is defined; there is opportunity to be more
+#  comprehensive]
+#
+# %%PART: Add checks for the parameter eith the sources for the new part.
+
+!IFNDEF PFM
+!ERROR mv.nmk: PFM not defined
+!ENDIF
+!IFNDEF PFMDEFS
+!ERROR mv.nmk: PFMDEFS not defined
+!ENDIF
+!IFNDEF STD
+!ERROR mv.nmk: STD not defined
+!ENDIF
+!IFNDEF MPM
+!ERROR mv.nmk: MPM not defined
+!ENDIF
+!IFNDEF TESTLIB
+!ERROR mv.nmk: TESTLIB not defined
+!ENDIF
+
+
+# DECLARATIONS
+
+
+!IFDEF NOISY
+ECHO = rem
+!ELSE
+.SILENT:
+ECHO = echo
+!ENDIF
+
+
+# C FLAGS
+# %%VARIETY: Define a macro containing the set of flags for the new variety.
+
+# All compilations
+# [Sadly /W4 causes <windows.h> to emit thousands of warnings]
+CFLAGSCOMMON = /nologo /W3 /WX $(PFMDEFS) 
+
+# "debug" variety flags
+# [Used to use /Zi instead of /Z7.  /Z7 generates debugging output in the
+#  object and linked files themselves, whereas /Zi generated debugging
+#  output in a .PDB file.]
+CFDEBUG = /DDEBUG /DVALID_NONESTED /Z7
+
+# "release" variety flags
+CFRELEASE = /DVALID_NONE /O2
+
+# "devel" variety flags
+CFDEVEL = /DDEBUG /DVALID_ALL /Z7
+
+# LINKER FLAGS
+# %%VARIETY: define a macro containing the flags for the new variety
+LINKER = link
+LINKFLAGSCOMMON = /nologo
+LFDEBUG = /PROFILE /DEBUG:full /DEBUGTYPE:cv
+LFRELEASE = /RELEASE
+LFDEVEL = $(LINKFLAGSDEB)
+
+# Library manager
+# %%VARIETY: define a macro containing the flags for the new variety
+LIBMAN = lib                    # can't call this LIB -- it screws the environment
+LIBFLAGSCOMMON = /nologo
+LIBFLAGSDEB = 
+LIBFLAGSREL = 
+LIBFLAGSDEV =
+
+# Browser database manager [not used at present]
+#BSC = bscmake
+#BSCFLAGS = /nologo /n
+
+
+# Source to object file mappings
+# and CFLAGS amalgamation
+# %%VARIETY %%PART: Add new macros which expand to the files included 
+# in the part for each variety
+# %%VARIETY: Add a CFLAGS macro which expands to the flags that that variety
+# should use when compiling C.  And a LINKFLAGS macro which expands to the
+# flags that the variety should use when building executables.  And a LIBFLAGS
+# macro which expands to the flags that the variety should use when builing
+# libraries
+!IF "$(VARIETY)" == "debug"
+CFLAGS=$(CFLAGSCOMMON) $(CFDEBUG)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDEBUG)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDEB)
+STDOBJ0 = $(STD:<=nti3mv\debug\)
+STDOBJ = $(STDOBJ0:>=.obj)
+MPMOBJ0 = $(MPM:<=nti3mv\debug\)
+MPMOBJ = $(MPMOBJ0:>=.obj)
+TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\debug\)
+TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
+
+!ELSEIF "$(VARIETY)" == "release"
+CFLAGS=$(CFLAGSCOMMON) $(CFRELEASE)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFRELEASE)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSREL)
+STDOBJ0 = $(STD:<=nti3mv\release\)
+STDOBJ = $(STDOBJ0:>=.obj)
+MPMOBJ0 = $(MPM:<=nti3mv\release\)
+MPMOBJ = $(MPMOBJ0:>=.obj)
+TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\release\)
+TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
+
+!ELSEIF "$(VARIETY)" == "devel"
+CFLAGS=$(CFLAGSCOMMON) $(CFDEVEL)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDEVEL)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDEV)
+STDOBJ0 = $(STD:<=nti3mv\devel\)
+STDOBJ = $(STDOBJ0:>=.obj)
+MPMOBJ0 = $(MPM:<=nti3mv\devel\)
+MPMOBJ = $(MPMOBJ0:>=.obj)
+TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\devel\)
+TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
+!ENDIF
+
+
+# == Pseudo-targets
+
+# "all" builds all the varieties of all targets
+# %%TARGET: Add the target  to the all dependencies
+
+all: stdcover.exe mpmstres.exe std.lib mpm.lib
+
+# Convenience targets
+# %%TARGET: Add a pseudo-target for the new part
+
+stdcover.exe mpmstres.exe std.lib mpm.lib:
+	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
+
+# "clean" removes the directory containing the build results for the platform
+
+clean:
+	$(ECHO) $(PFM): $@
+        -echo y | rmdir/s $(PFM)
+        -deltree /Y $(PFM)
+
+# target target
+# %%VARIETY: Add a recusive make call for the new variety
+
+!IFDEF TARGET
+!IFNDEF VARIETY
+target:
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=devel variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=debug variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=release variety
+!ENDIF
+!ENDIF
+
+# variety
+
+!IFDEF VARIETY
+!IFDEF TARGET
+variety: $(PFM)\$(VARIETY)\$(TARGET)
+!ENDIF
+!ENDIF
+
+
+# GENUINE TARGETS
+#
+# Each line defines an executable or library target to be built and the object
+# files it is build from.  For an executable these lines add dependencies to
+# the generic rules below, and should not include commands to execute.
+# For a library this is not possible and the target should include commands
+# to build it.
+# %%TARGET: Add your new target here
+
+!IFDEF VARIETY
+
+$(PFM)\$(VARIETY)\stdcover.exe: $(PFM)\$(VARIETY)\stdcover.obj $(STDOBJ)
+
+$(PFM)\$(VARIETY)\mpmstres.exe: $(PFM)\$(VARIETY)\mpmstres.obj $(MPMOBJ) $(STDOBJ)
+
+$(PFM)\$(VARIETY)\std.lib: $(STDOBJ)
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+$(PFM)\$(VARIETY)\mpm.lib: $(STDOBJ) $(MPMOBJ)
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+!ENDIF
+
+# GENERIC RULES
+
+# Object files
+# [builds objects for static linking with libc]
+
+{}.c{$(PFM)\$(VARIETY)}.obj:
+	$(ECHO) $@
+	@if not exist $(PFM) mkdir $(PFM)
+        @if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
+        cl /c $(CFLAGS) /ML /FR$*.sbr /Fd$(PFM)\$(VARIETY)\$(<:.obj=.pdb) /Fo$@ $<
+
+# Depenencies
+# [we can't build these at the moment]
+
+# Executables
+
+{$(PFM)\$(VARIETY)}.obj{$(PFM)\$(VARIETY)}.exe:
+	$(ECHO) $@
+	$(LINKER) $(LINKFLAGS) /OUT:$@ $(**) libc.lib
+
+#!INCLUDE depend.mak
+
