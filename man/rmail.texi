@@ -129,7 +129,7 @@ to move sequentially through the file, since this is the order of
 receipt of messages.  When you enter Rmail, you are positioned at the
 first message that you have not yet made current (that is, the first one
 that has the @samp{unseen} attribute; @pxref{Rmail Attributes}).  Move
-forward to see the other new messages; move backward to reexamine old
+forward to see the other new messages; move backward to re-examine old
 messages.
 
 @table @kbd
@@ -256,7 +256,7 @@ deleted remains current.  A numeric argument to either command reverses
 the direction of motion after deletion.
 
 @vindex rmail-delete-message-hook
-  Whenever Rmail deletes a message, it invokes the function(s) listed in
+  Whenever Rmail deletes a message, it runs the hook
 @code{rmail-delete-message-hook}.  When the hook functions are invoked,
 the message has been marked deleted, but it is still the current message
 in the Rmail buffer.
@@ -441,11 +441,6 @@ file name from the message @samp{Subject} header.
 specified file.  This file may be an Rmail file or it may be in system
 inbox format; the output commands ascertain the file's format and write
 the copied message in that format.
-
-  When copying a message to a file in Unix mail file format, these
-commands include whichever header fields are currently visible.  Use the
-@kbd{t} command first, if you wish, to specify which headers to show
-(and copy).
 
   The @kbd{o} and @kbd{C-o} commands differ in two ways: each has its
 own separate default file name, and each specifies a choice of format to
@@ -827,7 +822,7 @@ a match for the regular expression @var{topic}.
 
 @kindex C-M-s @r{(Rmail)}
 @findex rmail-summary-by-regexp
-  @kbd{C-M-s @var{rgexp} @key{RET}} (@code{rmail-summary-by-regexp})
+  @kbd{C-M-s @var{regexp} @key{RET}} (@code{rmail-summary-by-regexp})
 makes a partial summary which mentions only the messages whose headers
 (including the date and the subject lines) match the regular
 expression @var{regexp}.
@@ -1013,15 +1008,15 @@ clicking on them with @kbd{Mouse-2} or by moving to one and typing
 
 @cindex decoding mail messages (Rmail)
   Rmail automatically decodes messages which contain non-@sc{ascii}
-characters, just as it does with files you visit and with and
-subprocess output.  Rmail uses the standard
-@samp{charset=@var{charset}} header in the message, if any, to determine how
-the message was encoded by the sender.  It maps @var{charset} into the
-corresponding Emacs coding system (@pxref{Coding Systems}), and uses
-that coding system to decode message text.  If the message header
-doesn't have the charset specification, or if the @var{charset} it
-specifies is not recognized, Rmail chooses the coding system with the
-usual Emacs heuristics and defaults (@pxref{Recognize Coding}).
+characters, just as Emacs does with files you visit and with subprocess
+output.  Rmail uses the standard @samp{charset=@var{charset}} header in
+the message, if any, to determine how the message was encoded by the
+sender.  It maps @var{charset} into the corresponding Emacs coding
+system (@pxref{Coding Systems}), and uses that coding system to decode
+message text.  If the message header doesn't have the charset
+specification, or if the @var{charset} it specifies is not recognized,
+Rmail chooses the coding system with the usual Emacs heuristics and
+defaults (@pxref{Recognize Coding}).
 
 @cindex fixing incorrectly decoded mail messages
   Occasionally, a message is decoded incorrectly, either because Emacs

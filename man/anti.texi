@@ -18,9 +18,9 @@ avoids the complexity of display layout in Emacs 21.  To wit:
 @itemize @minus
 @item
 Variable-size characters are not supported in Emacs 20.  You cannot use
-fonts which contain oversized characters, and using italics fonts can
+fonts which contain oversized characters, and using italic fonts can
 result in illegible display.  However, text which uses variable-size
-fonts is unreadable anyway.  With all characters in a frame layed out on
+fonts is unreadable anyway.  With all characters in a frame laid out on
 a regular grid, each character having the same height and width, text is
 much easier to read.
 
