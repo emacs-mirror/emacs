@@ -201,7 +201,7 @@
 ;;     Love, Dirk Herrmann, Gael Marziou, Jan Djarv, Guillaume Leray,
 ;;     Moody Ahmad, Preston F. Crow, Lars Lindberg, Reto Zimmermann,
 ;;     Keith Sheffield, Chew Meng Kuan, Tony Lam, Pete Ware, François
-;;     Pinard, Stefan Monnier, Joseph Eydelnant
+;;     Pinard, Stefan Monnier, Joseph Eydelnant, Michael Ernst
 ;;
 ;; Special thanks go to Dan Nicolaescu, who reimplemented hideshow using
 ;; overlays (rather than selective display), added isearch magic, folded
