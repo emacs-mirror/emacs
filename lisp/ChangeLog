@@ -5,14 +5,24 @@
 	(emacs-index-search, elisp-index-search): New functions.
 	(apropso-documentation, apropos, apropos-value, apropos-variable)
 	(apropos-commands): Modify menu item names and help text.
-	(elisp-index-search, emacs-index-search, emacs-glossary): New
-	menu items.
+	(elisp-index-search, emacs-index-search, emacs-glossary):
+	New menu items.
 	(menu-bar-manuals-menu): Move the Ordering Manuals item to a
 	submenu.
 	(info-elisp, info-elintro): New menu items.
 	(apropos): Modify the menu item name.
 
 2001-11-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/lisp-mode.el (read-if): Add lisp-indent-function prop.
+
+	* textmodes/outline.el (outline-promote, outline-demote): Typo.
+
+	* man.el (man-follow-mouse): New function.
+	(Man-mode-map): Bind mouse-2 to it.
+	(Man-match-substring): Remove.  Replace with `match-string'.
+	(man): Use the `default-value' argument to `read-string'.
+	(Man-fontify-manpage): Add mouse-face to cross references.
 
 	* emacs-lisp/cl-macs.el (shiftf): Fix more.  Simplify.
 
