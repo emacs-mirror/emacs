@@ -233,9 +233,18 @@ The Lisp value REGISTER is a character."
 	  (progn
 	    (princ "the text:\n")
 	    (princ val))
-	(princ "text starting with\n    ")
-	(string-match "[^ \t\n].\\{,20\\}" val)
-	(princ (match-string 0 val))))
+	(cond 
+	 ;; Extract first N characters starting with first non-whitespace.
+	 ((string-match (format "[^ \t\n].\\{,%d\\}"
+				;; Deduct 6 for the spaces inserted below.
+				(min 20 (max 0 (- (window-width) 6))))
+			val)
+	  (princ "text starting with\n    ")
+	  (princ (match-string 0 val)))
+	 ((string-match "^[ \t\n]+$" val)
+	  (princ "whitespace"))
+	 (t
+	  (princ "the empty string")))))
      (t
       (princ "Garbage:\n")
       (if verbose (prin1 val))))))
