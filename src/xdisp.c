@@ -3174,6 +3174,12 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 	}
       else if (c == '\n')
 	{
+#if 0
+	  /* Same as p1prev, but after the invis_vector_contents text
+	     (if we have that on this line).  */
+	  GLYPH *p1prev_modified;
+#endif
+
 	  invis = 0;
 	  if (last_invis_skip == pos
 	      && TEXT_PROP_MEANS_INVISIBLE_WITH_ELLIPSIS (last_invis_prop))
@@ -3189,23 +3195,30 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 	    }
 	  if (invis && selective_rlen > 0 && p1 >= leftmargin)
 	    {
+#if 0
+	      GLYPH *cs, *csend;
+
+	      cs = charstart + (p1 - p1start);
+#endif
+
 	      p1 += selective_rlen;
 	      if (p1 - leftmargin > width)
 		p1 = endp;
+
+#if 0 /* This needs more work; charstarts needs to record
+	 both whether a position ho;ds an ellipsis character
+	 and what buffer position it corresponds to.  */
+	      csend = charstart + (p1 - p1start);
+	      while (cs != csend)
+		*cs++ = -2;
+	      /* The idea is to use p1prev_modified instead of p1prev
+		 in the loop below over p2x.  */
+	      p1prev_modified = p1;
+#endif
+
 	      copy_part_of_rope (f, p1prev, p1prev, invis_vector_contents,
 				 (p1 - p1prev), current_face, rev_dir_bit);
 	    }
-#ifdef HAVE_FACES
-	  /* Draw the face of the newline character as extending all the 
-	     way to the end of the frame line.  */
-	  if (current_face)
-	    {
-	      if (p1 < leftmargin)
-		p1 = leftmargin;
-	      while (p1 < endp)
-		*p1++ = FAST_MAKE_GLYPH (' ', current_face) | rev_dir_bit;
-	    }
-#endif
 
 	  /* Update charstarts for the newline that ended this line.  */
 	  /* Do nothing here for a char that's entirely off the left edge
@@ -3224,6 +3237,17 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 	      while (p2x < p2)
 		*p2x++ = -1;
 	    }
+#ifdef HAVE_FACES
+	  /* Draw the face of the newline character as extending all the 
+	     way to the end of the frame line.  */
+	  if (current_face)
+	    {
+	      if (p1 < leftmargin)
+		p1 = leftmargin;
+	      while (p1 < endp)
+		*p1++ = FAST_MAKE_GLYPH (' ', current_face) | rev_dir_bit;
+	    }
+#endif
 
 	  break;
 	}
