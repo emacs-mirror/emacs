@@ -712,6 +712,7 @@ reverts the file without asking the user for confirmation.
   Some major modes customize @code{revert-buffer} by making
 buffer-local bindings for these variables:
 
+@anchor{Definition of revert-buffer-function}
 @defvar revert-buffer-function
 The value of this variable is the function to use to revert this
 buffer.  If non-@code{nil}, it should be a function with two optional
