@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.44) $
+ * $HopeName: MMsrc!poolamc.c(trunk.45) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.44) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.45) $");
 
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailBoard */
@@ -24,7 +24,6 @@ typedef struct AMCGenStruct *AMCGen;
 /* forward declarations */
 
 static Bool AMCCheck(AMC amc);
-static Bool AMCGenCheck(AMCGen gen);
 static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 extern PoolClass EnsureAMCPoolClass(void);
@@ -100,6 +99,7 @@ typedef struct AMCSegStruct {
 
 #define AMCSegTypeP(seg)           (SegAMCSeg(seg)->segTypeP)
 #define AMCSegSetTypeP(seg, type)  (SegAMCSeg(seg)->segTypeP = (type))
+
 
 static Bool AMCSegCheck(AMCSeg amcseg)
 {
@@ -287,8 +287,7 @@ static Bool AMCNailBoardCheck(AMCNailBoard board)
   /* We know that shift corresponds to pool->align */
   CHECKL(BoolCheck(board->newMarks));
   CHECKL(board->distinctNails <= board->nails);
-  CHECKL(1uL << board->markShift
-         == AMCPool(board->gen->amc)->alignment);
+  CHECKL(1uL << board->markShift == PoolAlignment(AMCPool(board->gen->amc)));
   /* weak check for BTs @@@@ */
   CHECKL(board->mark != NULL);
   return TRUE;
@@ -349,10 +348,10 @@ static AMCGen AMCBufGen(Buffer buffer)
 static void AMCBufSetGen(Buffer buffer, AMCGen gen)
 {
   AMCBuf amcbuf;
+
   AVERT(Buffer, buffer);
-  if (gen != NULL) {
+  if (gen != NULL)
     AVERT(AMCGen, gen);
-  }
   amcbuf = BufferAMCBuf(buffer);
   AVERT(AMCBuf, amcbuf);
   amcbuf->gen = gen;
@@ -1331,11 +1330,7 @@ static Res AMCScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
   Bool total = TRUE;
   Size bytesScanned = 0;
 
-  /* arguments checked by AMCScan */
-
-  /* Actually only unused when telemetry is off.  Needs */
-  /* fixing when EVENT_* is fixed. @@@@ */
-  UNUSED(amc);
+  UNUSED(amc); /* Actually only unused when telemetry is off. @@@@ */
 
   EVENT_PPP(AMCScanBegin, amc, seg, ss); /* @@@@ use own event */
 
@@ -1355,8 +1350,7 @@ static Res AMCScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
       if (AMCNailGetMark(seg, p)) {
         res = (*format->scan)(ss, p, q);
         if (res != ResOK) {
-          *totalReturn = FALSE;
-          *moreReturn = TRUE;
+          *totalReturn = FALSE; *moreReturn = TRUE;
           return res;
         }
         bytesScanned += AddrOffset(p, q);
@@ -1379,8 +1373,7 @@ static Res AMCScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
     if (AMCNailGetMark(seg, p)) {
       res = (*format->scan)(ss, p, q);
       if (res != ResOK) {
-        *totalReturn = FALSE;
-        *moreReturn = TRUE;
+        *totalReturn = FALSE; *moreReturn = TRUE;
         return res;
       }
       bytesScanned += AddrOffset(p, q);
@@ -1409,8 +1402,6 @@ static Res AMCScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
 {
   Bool total;
   Bool moreScanning;
-
-  /* arguments checked by AMCScan */
 
   do {
     Res res;
@@ -2043,7 +2034,7 @@ static Res AMCSegDescribe(AMC amc, Seg seg, mps_lib_FILE *stream)
   Align step;
   Size row;
 
-  step = AMCPool(amc)->alignment;
+  step = PoolAlignment(AMCPool(amc));
   row = step * 64;
 
   base = SegBase(seg);
