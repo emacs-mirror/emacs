@@ -147,6 +147,9 @@ extern Atom Xatom_wm_delete_window;
 extern Atom Xatom_wm_configure_denied; /* When our config request is denied */
 extern Atom Xatom_wm_window_moved;     /* When the WM moves us. */
 
+/* EditRes protocol */
+extern Atom Xatom_editres_name;
+
 #else	/* X10 */
 
 /* Default size of an Emacs window.  */
@@ -4066,6 +4069,7 @@ Optional second arg XRM_STRING is a string of resources in xrdb format.")
 					    "WM_CONFIGURE_DENIED", False);
   Xatom_wm_window_moved =  XInternAtom (x_current_display, "WM_MOVED",
 					False);
+  Xatom_editres_name =  XInternAtom (x_current_display, "Editres", False);
   UNBLOCK_INPUT;
 #else /* not HAVE_X11 */
   XFASTINT (Vwindow_system_version) = 10;
