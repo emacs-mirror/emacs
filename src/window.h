@@ -122,6 +122,8 @@ struct window
     Lisp_Object temslot;
     /* text.modified of displayed buffer as of last time display completed */
     Lisp_Object last_modified;
+    /* BUF_OVERLAY_MODIFIED of displayed buffer as of last complete update.  */
+    Lisp_Object last_overlay_modified;
     /* Value of point at that time */
     Lisp_Object last_point;
     /* Non-nil if the buffer was "modified" when the window
@@ -281,6 +283,11 @@ extern int end_unchanged;
    if it matches MODIFF, beg_unchanged and end_unchanged
    contain no useful information.  */
 extern int unchanged_modified;
+
+/* BUF_OVERLAY_MODIFF of current buffer, as of last redisplay that finished;
+   if it matches BUF_OVERLAY_MODIFF, beg_unchanged and end_unchanged
+   contain no useful information.  */
+extern int overlay_unchanged_modified;
 
 /* Nonzero if BEGV - BEG or Z - ZV of current buffer has changed
    since last redisplay that finished.  */
