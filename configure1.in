@@ -1537,8 +1537,10 @@ if [ "$run_in_place" = "1" ]; then
    locallisppath='${srcdir}/site-lisp'
    etcdir='${srcdir}/etc'
    lockdir='${srcdir}/lock'
-   archlibdir=`(cd lib-src && pwd)`
-   docdir=`(cd etc && pwd)`
+   # We used to make archlibdir and docdir absolute,
+   # but that caused trouble with automounters.
+   archlibdir='${srcdir}/lib-src'
+   docdir='${srcdir}/etc'
    infodir='${srcdir}/info'
 elif [ "$single_tree" = "1" ]; then
    if [ "$exec_prefix_specified" = "" ]; then
