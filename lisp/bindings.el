@@ -33,8 +33,7 @@
 ;;; Such strings read into Lisp as numbers (during the pure-loading phase).
 ;;;
 ;;; But you must obey certain rules to make sure the string is understood
-;;; and goes into etc/DOCnnn properly.  Otherwise, the string will not go
-;;; anywhere!
+;;; and goes into etc/DOCnnn properly.
 ;;;
 ;;; The doc string must appear in the standard place in a call to
 ;;; defun, autoload, defvar or defconst.  No Lisp macros are recognized.
@@ -64,8 +63,8 @@ mnemonics of the following coding systems:
 
 (make-variable-buffer-local 'mode-line-mule-info)
 
-(defvar mode-line-buffer-identification (purecopy '("%12b"))
-  "Mode-line control for identifying the buffer being displayed.
+(defvar mode-line-buffer-identification (purecopy '("%12b")) "\
+Mode-line control for identifying the buffer being displayed.
 Its default value is (\"%12b\").
 Major modes that edit things other than ordinary files may change this
 \(e.g. Info, Dired,...)")
@@ -74,8 +73,8 @@ Major modes that edit things other than ordinary files may change this
 
 (defvar mode-line-frame-identification '("-%F  "))
 
-(defvar mode-line-process nil
-  "Mode-line control for displaying info on process status.
+(defvar mode-line-process nil "\
+Mode-line control for displaying info on process status.
 Normally nil in most modes, since there is no process to display.")
 
 (make-variable-buffer-local 'mode-line-process)
@@ -134,25 +133,25 @@ is okay.  See `mode-line-format'.")
 			 ;; not really a minor mode...
 			 (defining-kbd-macro " Def")))
 
-(defvar mode-line-buffer-identification-keymap nil
-  "Keymap for what is displayed by `mode-line-buffer-identification'.")
+(defvar mode-line-buffer-identification-keymap nil "\
+Keymap for what is displayed by `mode-line-buffer-identification'.")
 
-(defvar mode-line-minor-mode-keymap nil
-  "Keymap for what is displayed by `mode-line-mode-name'.")
+(defvar mode-line-minor-mode-keymap nil "\
+Keymap for what is displayed by `mode-line-mode-name'.")
 
-(defvar mode-line-mode-menu-keymap nil
-  "Keymap for mode operations menu in the mode line.")
+(defvar mode-line-mode-menu-keymap nil "\
+Keymap for mode operations menu in the mode line.")
 
-(defun mode-line-unbury-buffer ()
-  "Switch to the last buffer in the buffer list that is not hidden."
+(defun mode-line-unbury-buffer () "\
+Switch to the last buffer in the buffer list that is not hidden."
   (interactive)
   (let ((list (reverse (buffer-list))))
     (while (eq (sref (buffer-name (car list)) 0) ? )
       (setq list (cdr list)))
     (switch-to-buffer (car list))))
 
-(defun mode-line-other-buffer ()
-  "Switch to the most recently selected buffer other than the current one."
+(defun mode-line-other-buffer () "\
+Switch to the most recently selected buffer other than the current one."
   (interactive)
   (switch-to-buffer (other-buffer)))
 
@@ -166,8 +165,8 @@ is okay.  See `mode-line-format'.")
       (if binding
 	  (call-interactively binding)))))
 
-(defun mode-line-mode-name ()
-  "Return a string to display in the mode line for the current mode name."
+(defun mode-line-mode-name () "\
+Return a string to display in the mode line for the current mode name."
   (let (length (result mode-name))
     (when mode-line-mouse-sensitive-p
       (let ((local-map (get-text-property 0 'local-map result))
@@ -185,8 +184,8 @@ is okay.  See `mode-line-format'.")
 			     'help-echo "mouse-3: minor mode menu" result))))
     result))
 
-(defvar mode-line-mouse-sensitive-p nil
-  "Non-nil means mode line has been made mouse-sensitive.")
+(defvar mode-line-mouse-sensitive-p nil "\
+Non-nil means mode line has been made mouse-sensitive.")
 
 (defun make-mode-line-mouse-sensitive ()
   (when (and window-system
@@ -403,11 +402,7 @@ is okay.  See `mode-line-format'.")
 	"^Version control package .*.el not found. Use vc.el instead$"
 	
 	;; cus-edit
-	"^No user options have changed defaults in recent Emacs versions$"
-
-	;; BBDB
-	"^no previous record$"
-	"^no next record$"))
+	"^No user options have changed defaults in recent Emacs versions$"))
 
 
 (make-variable-buffer-local 'indent-tabs-mode)
@@ -417,8 +412,8 @@ is okay.  See `mode-line-format'.")
 
 (define-key esc-map "\t" 'complete-symbol)
 
-(defun complete-symbol (arg)
-  "Perform tags completion on the text around point.
+(defun complete-symbol (arg) "\
+Perform tags completion on the text around point.
 Completes to the set of names listed in the current tags table.
 The string to complete is chosen in the same way as the default
 for \\[find-tag] (which see).
