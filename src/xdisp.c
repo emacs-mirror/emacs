@@ -2490,6 +2490,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 
       if (len > width)
 	len = width;
+#ifdef HAVE_X_WINDOWS
       if (!NULL_INTERVAL_P (XSTRING (Voverlay_arrow_string)->intervals))
 	{
 	  /* If the arrow string has text props, obey them when displaying.  */
@@ -2506,6 +2507,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	    }
 	}
       else
+#endif /* HAVE_X_WINDOWS */
 	{
 	  for (i = 0; i < len; i++)
 	    leftmargin[i] = p[i];
