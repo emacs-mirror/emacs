@@ -1,3 +1,8 @@
+2002-04-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* dispextern.h (DEFAULT_TOOL_BAR_BUTTON_MARGIN)
+	(DEFAULT_TOOL_BAR_BUTTON_RELIEF): Change default values.
+
 2002-04-28  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.c (Fall_completions, Ftry_completion): New arg to Fcommandp.

@@ -1,3 +1,7 @@
+2002-04-29  Triet Hoai Lai  <thlai@ee.usyd.edu.au>
+
+	* quail/vntelex.el: Use proper charset.
+
 2002-04-22  Koaunghi Un <koaunghi@ling.cnu.ac.kr>
 
 	* quail/hanja.el ("Od"): Remove rule.

@@ -11,6 +11,9 @@
 	* filesets.el (filesets-data): Doc fix.
 	(filesets-running-xemacs): Define even when compiling.
 
+	* recentf.el (recentf-cancel-dialog): Remove dot at the end of
+	sentence.
+
 2002-04-29  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/fill.el (fill-context-prefix): Fix last change with
