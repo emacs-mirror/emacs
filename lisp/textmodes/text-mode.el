@@ -75,7 +75,7 @@ Turning on Text mode runs the normal hook `text-mode-hook'."
   (setq local-abbrev-table text-mode-abbrev-table)
   (set-syntax-table text-mode-syntax-table)
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "[ \t]*$\\|" page-delimiter))
+  (setq paragraph-start (concat page-delimiter "\\|[ \t]*$"))
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'indent-line-function)
