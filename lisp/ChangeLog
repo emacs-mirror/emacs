@@ -1,3 +1,10 @@
+2000-02-23  Kenichi Handa  <handa@etl.go.jp>
+
+	* emacs-lisp/lisp-mode.el: Don't change syntax of multibyte
+	characters.
+	(lisp-mode-variables): Set multibyte-syntax-as-symbol to t
+	locally.
+
 2000-02-22  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table)

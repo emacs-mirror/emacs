@@ -1,3 +1,13 @@
+2000-02-23  Kenichi Handa  <handa@etl.go.jp>
+
+	* syntax.c (multibyte_syntax_as_symbol): New variable.
+	(syms_of_syntax): Declare it as a Lisp variable.
+	(SYNTAX_WITH_MULTIBYTE_CHECK): New macro.
+	(scan_lists): If both sexpflag and multibyte_syntax_as_symbol are
+	nonzero, treat all multibyte characters as symbol.
+	(init_syntax_once): Give syntax `word' to all mutlbiyte
+	characters.
+
 2000-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.c (Fdelete_frame): Don't let echo_area_window to remain on
