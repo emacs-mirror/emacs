@@ -4146,8 +4146,9 @@ x_set_glyph_string_background_width (s, start, last_x)
    glyph; e.g. it is DRAW_CURSOR if a cursor has to be drawn.  LAST_X
    is the right-most x-position of the drawing area.  */
 
-#define BUILD_STRETCH_GLYPH_STRING(W, ROW, AREA, START, END, HEAD, TAIL,    \
-				 HL, X, LAST_X)				    \
+/* SunOS 4 bundled cc, barfed on continuations in the arg lists here
+   and below -- keep them on one line.  */
+#define BUILD_STRETCH_GLYPH_STRING(W, ROW, AREA, START, END, HEAD, TAIL, HL, X, LAST_X) \
      do									    \
        {								    \
 	 s = (struct glyph_string *) alloca (sizeof *s);		    \
@@ -4168,8 +4169,7 @@ x_set_glyph_string_background_width (s, start, last_x)
    glyph; e.g. it is DRAW_CURSOR if a cursor has to be drawn.  LAST_X
    is the right-most x-position of the drawing area.  */
 
-#define BUILD_IMAGE_GLYPH_STRING(W, ROW, AREA, START, END, HEAD, TAIL,	\
-				 HL, X, LAST_X)				\
+#define BUILD_IMAGE_GLYPH_STRING(W, ROW, AREA, START, END, HEAD, TAIL, HL, X, LAST_X) \
      do									\
        {								\
 	 s = (struct glyph_string *) alloca (sizeof *s);		\
@@ -4191,8 +4191,7 @@ x_set_glyph_string_background_width (s, start, last_x)
    is DRAW_CURSOR if a cursor has to be drawn.  LAST_X is the
    right-most x-position of the drawing area.  */
 
-#define BUILD_CHAR_GLYPH_STRINGS(W, ROW, AREA, START, END, HEAD, TAIL, HL, \
-			         X, LAST_X, OVERLAPS_P)			   \
+#define BUILD_CHAR_GLYPH_STRINGS(W, ROW, AREA, START, END, HEAD, TAIL, HL, X, LAST_X, OVERLAPS_P) \
      do									   \
        {								   \
 	 int c, charset, face_id;					   \
@@ -4273,8 +4272,7 @@ x_set_glyph_string_background_width (s, start, last_x)
    to allocate glyph strings (because x_draw_glyphs can be called
    asynchronously).  */
 
-#define BUILD_GLYPH_STRINGS(W, ROW, AREA, START, END, HEAD, TAIL, HL,	   \
-			    X, LAST_X, OVERLAPS_P)			   \
+#define BUILD_GLYPH_STRINGS(W, ROW, AREA, START, END, HEAD, TAIL, HL, X, LAST_X, OVERLAPS_P) \
      do									   \
        {								   \
 	 HEAD = TAIL = NULL;						   \
@@ -7143,7 +7141,7 @@ xt_action_hook (widget, client_data, action_name, event, params,
   scroll_bar_p = XtIsSubclass (widget, scrollbarWidgetClass);
   end_action = "EndScroll";
 #else
-#error unknown scroll bar toolkit
+  #error unknown scroll bar toolkit
 #endif /* HAVE_XAW3D */
 
   /* Although LessTif uses XtTimeouts like Xaw3d, the timer hack to
