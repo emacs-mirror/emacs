@@ -1565,6 +1565,7 @@ levels in the snapshot."
 	(vc-backend-print-log file)
 	(pop-to-buffer (get-buffer-create "*vc*"))
 	(setq default-directory (file-name-directory file))
+	(goto-char (point-max)) (forward-line -1)
 	(while (looking-at "=*\n")
 	  (delete-char (- (match-end 0) (match-beginning 0)))
 	  (forward-line -1))
@@ -1573,14 +1574,36 @@ levels in the snapshot."
 	    (delete-char (- (match-end 0) (match-beginning 0))))
 	(shrink-window-if-larger-than-buffer)
 	;; move point to the log entry for the current version
-	(if (not (eq (vc-backend file) 'SCCS))
-	    (let ((pos (re-search-forward
-			;; also match some context, for safety
-			(concat "----\nrevision " (vc-workfile-version file)
-				"\\(\tlocked by:.*\n\\|\n\\)date: ") nil t)))
-	      (if pos (progn (goto-char pos)
-			     (beginning-of-line)
-			     (forward-line -1)))))
+	(and (not (eq (vc-backend file) 'SCCS))
+	     (re-search-forward
+	      ;; also match some context, for safety
+	      (concat "----\nrevision " (vc-workfile-version file)
+		      "\\(\tlocked by:.*\n\\|\n\\)date: ") nil t)
+	     ;; set the display window so that 
+	     ;; the whole log entry is displayed
+	     (let (start end lines)
+	       (beginning-of-line) (forward-line -1) (setq start (point))
+	       (if (not (re-search-forward "^----*\nrevision" nil t))
+		   (setq end (point-max))
+		 (beginning-of-line) (forward-line -1) (setq end (point)))
+	       (setq lines (count-lines start end))
+	       (cond
+		;; if the global information and this log entry fit
+		;; into the window, display from the beginning
+		((< (count-lines (point-min) end) (window-height))
+		 (goto-char (point-min))
+		 (recenter 0)
+		 (goto-char start))
+		;; if the whole entry fits into the window,
+		;; display it centered
+		((< (1+ lines) (window-height))
+		 (goto-char start)
+		 (recenter (1- (- (/ (window-height) 2) (/ lines 2)))))
+		;; otherwise (the entry is too large for the window),
+		;; display from the start
+		(t
+		 (goto-char start)
+		 (recenter 0)))))
 	)
     (vc-registration-error buffer-file-name)
     )
