@@ -471,26 +471,32 @@ This is relative to `smtpmail-queue-dir'.")
     (if (null (and cred (condition-case ()
 			    (progn
 			      (require 'starttls)
-			      (call-process starttls-program))
+			      (call-process (if starttls-use-gnutls
+						starttls-gnutls-program
+					      starttls-program)))
 			  (error nil))))
 	;; The normal case.
 	(open-network-stream "SMTP" process-buffer host port)
       (let* ((cred-key (smtpmail-cred-key cred))
 	     (cred-cert (smtpmail-cred-cert cred))
 	     (starttls-extra-args
-	      (when (and (stringp cred-key) (stringp cred-cert)
-			 (file-regular-p
-			  (setq cred-key (expand-file-name cred-key)))
-			 (file-regular-p
-			  (setq cred-cert (expand-file-name cred-cert))))
-		(list "--key-file" cred-key "--cert-file" cred-cert)))
+	      (append
+	       starttls-extra-args
+	       (when (and (stringp cred-key) (stringp cred-cert)
+			  (file-regular-p
+			   (setq cred-key (expand-file-name cred-key)))
+			  (file-regular-p
+			   (setq cred-cert (expand-file-name cred-cert))))
+		 (list "--key-file" cred-key "--cert-file" cred-cert))))
 	     (starttls-extra-arguments
-	      (when (and (stringp cred-key) (stringp cred-cert)
-			 (file-regular-p
-			  (setq cred-key (expand-file-name cred-key)))
-			 (file-regular-p
-			  (setq cred-cert (expand-file-name cred-cert))))
-		(list "--x509keyfile" cred-key "--x509certfile" cred-cert))))
+	      (append
+	       starttls-extra-arguments
+	       (when (and (stringp cred-key) (stringp cred-cert)
+			  (file-regular-p
+			   (setq cred-key (expand-file-name cred-key)))
+			  (file-regular-p
+			   (setq cred-cert (expand-file-name cred-cert))))
+		 (list "--x509keyfile" cred-key "--x509certfile" cred-cert)))))
 	(starttls-open-stream "SMTP" process-buffer host port)))))
 
 (defun smtpmail-try-auth-methods (process supported-extensions host port)
