@@ -2160,8 +2160,10 @@ init_lread ()
 
   /* If the EMACSLOADPATH environment variable is set, use its value.
      This doesn't apply if we're dumping.  */
+#ifndef CANNOT_DUMP
   if (NILP (Vpurify_flag)
       && egetenv ("EMACSLOADPATH"))
+#endif
     Vload_path = decode_env_path ("EMACSLOADPATH", normal);
 
   Vvalues = Qnil;
