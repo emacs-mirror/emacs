@@ -515,7 +515,8 @@ directory, like `default-directory'."
       (cons "Filter" (make-sparse-keymap "Filter")))
 
     (define-key-after map [menu-bar view filter filter-disable]
-      '(menu-item "Disable all filtering" ibuffer-filter-disable))
+      '(menu-item "Disable all filtering" ibuffer-filter-disable
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
     (define-key-after map [menu-bar view filter filter-by-mode]
       '(menu-item "Add filter by major mode..." ibuffer-filter-by-mode))
     (define-key-after map [menu-bar view filter filter-by-name]
@@ -531,29 +532,38 @@ directory, like `default-directory'."
     (define-key-after map [menu-bar view filter filter-by-predicate]
       '(menu-item "Add filter by Lisp predicate..." ibuffer-filter-by-predicate))
     (define-key-after map [menu-bar view filter pop-filter]
-      '(menu-item "Remove top filter" ibuffer-pop-filter))
+      '(menu-item "Remove top filter" ibuffer-pop-filter
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
     (define-key-after map [menu-bar view filter or-filter]
       '(menu-item "OR top two filters" ibuffer-or-filter
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)
 		  :help "Create a new filter which is the logical OR of the top two filters"))
     (define-key-after map [menu-bar view filter negate-filter]
-      '(menu-item "Negate top filter" ibuffer-negate-filter))
+      '(menu-item "Negate top filter" ibuffer-negate-filter
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
     (define-key-after map [menu-bar view filter decompose-filter]
       '(menu-item "Decompose top filter" ibuffer-decompose-filter
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)		  
 		  :help "Break down a complex filter like OR or NOT"))
     (define-key-after map [menu-bar view filter exchange-filters]
-      '(menu-item "Swap top two filters" ibuffer-exchange-filters))
+      '(menu-item "Swap top two filters" ibuffer-exchange-filters
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
     (define-key-after map [menu-bar view filter save-filters]
       '(menu-item "Save current filters permanently..." ibuffer-save-filters
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)		  
 		  :help "Use a mnemnonic name to store current filter stack"))
     (define-key-after map [menu-bar view filter switch-to-saved-filters]
       '(menu-item "Restore permanently saved filters..." ibuffer-switch-to-saved-filters
+		  :enable (and (featurep 'ibuf-ext) ibuffer-saved-filters)
 		  :help "Replace current filters with a saved stack"))
     (define-key-after map [menu-bar view filter add-saved-filters]
       '(menu-item "Add to permanently saved filters..." ibuffer-add-saved-filters
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)
 		  :help "Include already saved stack with current filters"))
     (define-key-after map [menu-bar view filter delete-saved-filters]
       '(menu-item "Delete permanently saved filters..."
-		  ibuffer-delete-saved-filters))
+		  ibuffer-delete-saved-filters
+		  :enable (and (featurep 'ibuf-ext) ibuffer-saved-filters)))
 
     ;; Filter groups
 
@@ -594,14 +604,17 @@ directory, like `default-directory'."
     (define-key-after groups-map [save-filter-groups]
       '(menu-item "Save current filter groups permanently..."
 		  ibuffer-save-filter-groups
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)
 		  :help "Use a mnemnonic name to store current filter groups"))
     (define-key-after groups-map [switch-to-saved-filter-groups]
       '(menu-item "Restore permanently saved filters..."
 		  ibuffer-switch-to-saved-filter-groups
+		  :enable (and (featurep 'ibuf-ext) ibuffer-saved-filter-groups)
 		  :help "Replace current filters with a saved stack"))    
     (define-key-after groups-map [delete-saved-filter-groups]
       '(menu-item "Delete permanently saved filter groups..."
-		  ibuffer-delete-saved-filter-groups))
+		  ibuffer-delete-saved-filter-groups
+		  :enable (and (featurep 'ibuf-ext) ibuffer-saved-filter-groups)))
     (define-key-after groups-map [set-filter-groups-by-mode]
       '(menu-item "Set current filter groups to filter by mode"
 		  ibuffer-set-filter-groups-by-mode))
