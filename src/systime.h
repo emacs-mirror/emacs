@@ -18,6 +18,9 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+#ifndef _SYSTIME_H
+#define _SYSTIME_H
+
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>
@@ -37,7 +40,7 @@ extern char *tzname[];	/* RS6000 and others want it this way.  */
 
 /* SVr4 doesn't actually declare this in its #include files.  */
 #ifdef USG5_4
-extern long timezone;
+extern time_t timezone;
 #endif
 
 #ifdef VMS
@@ -163,3 +166,4 @@ extern int set_file_times ();
 #define EMACS_TIME_LT(T1, T2) (EMACS_TIME_CMP (T1, T2) < 0)
 #define EMACS_TIME_LE(T1, T2) (EMACS_TIME_CMP (T1, T2) <= 0)
 
+#endif /* _SYSTIME_H */
