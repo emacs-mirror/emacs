@@ -95,6 +95,7 @@
       (if cmd
 	  (condition-case conditions
 	      (progn (command-execute cmd)
+		     (setq last-command this-command)
 		     (if (or (prog1 quit-flag (setq quit-flag nil))
 			     (= last-input-char ?\C-g))
 			 (progn (setq unread-command-char -1)
