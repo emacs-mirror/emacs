@@ -262,7 +262,7 @@ store_function_docstring (fun, offset)
 	{
 	  tem = Fcdr (Fcdr (fun));
 	  if (CONSP (tem) && INTEGERP (XCONS (tem)->car))
-	    XFASTINT (XCONS (tem)->car) = offset;
+	    XSETFASTINT (XCONS (tem)->car, offset);
 	}
       else if (EQ (tem, Qmacro))
 	store_function_docstring (XCONS (fun)->cdr, offset);
@@ -274,7 +274,7 @@ store_function_docstring (fun, offset)
       /* This bytecode object must have a slot for the
 	 docstring, since we've found a docstring for it.  */
       if (XVECTOR (fun)->size > COMPILED_DOC_STRING)
-	XFASTINT (XVECTOR (fun)->contents[COMPILED_DOC_STRING]) = offset;
+	XSETFASTINT (XVECTOR (fun)->contents[COMPILED_DOC_STRING], offset);
     }
 }
 
