@@ -1,3 +1,8 @@
+2001-11-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emacstool.1, etags.1, emacs.1: Modify distribution terms to
+	something simpler than the GFDL.
+
 2001-11-22  Colin Walters  <walters@debian.org>
 
 	* PROBLEMS: Remove already applied calc info patches.  Clarify
