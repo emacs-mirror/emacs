@@ -1,3 +1,12 @@
+2004-11-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calcalg2.el (math-linear-subst-tried): New variable.
+	(math-do-integral):  Set `math-linear-subst-tried' to nil. 
+	(math-do-integral-methods):  Use `math-linear-subst-tried' to
+	determine what type of substitution to try. 
+	(math-integ-try-linear-substituion):  Set
+	`math-linear-subst-tried' to t.
+
 2004-11-08  Kim F. Storm  <storm@cua.dk>
 
 	* Makefile.in (bootstrap-clean): New target for 'make bootstrap'.
