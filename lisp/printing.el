@@ -5,13 +5,13 @@
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Time-stamp: <2004/02/26 00:43:07 vinicius>
+;; Time-stamp: <2004/02/29 20:52:58 vinicius>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.7.2
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
 (defconst pr-version "6.7.2"
-  "printing.el, v 6.7.2 <2004/02/26 vinicius>
+  "printing.el, v 6.7.2 <2004/02/29 vinicius>
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <vinicius@cpqd.com.br>
@@ -5882,7 +5882,8 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   (pr-insert-toggle 'pr-print-using-ghostscript " Print via Ghostscript\n  ")
 
   ;; 4. Settings: Upside-Down           Page Parity
-  (pr-insert-toggle 'ps-print-upside-down " Upside-Down           ")
+  (pr-insert-toggle 'ps-print-upside-down " Upside-Down")
+  (pr-insert-italic "\n\nSelect Pages  :   " 2 14)
   (pr-insert-menu "Page Parity" 'ps-even-or-odd-pages
 		  (mapcar #'(lambda (alist)
 			      (list 'quote

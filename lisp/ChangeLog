@@ -13,6 +13,10 @@
 	* eshell/em-smart.el (eshell-smart-maybe-jump-to-end): Fix typo in
 	docstring.
 
+2004-02-29  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el (pr-insert-section-4): Adjust buffer interface.
+
 2004-02-29  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
 	Version 2.0.39 of Tramp released.
