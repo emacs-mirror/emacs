@@ -1417,8 +1417,8 @@ these buffers.")
 (defvar ediff-use-last-dir nil
   "*If t, Ediff uses previous directory as default when reading file name.")
   
-(defvar ediff-nix-help-in-control-buffer nil
-  "*Non-nil mean C-h should not to invoke Emacs help.
+(defvar ediff-no-help-in-control-buffer nil
+  "*Non-nil mean C-h should not invoke Emacs help.
 Instead, C-h jumps to previous difference.")
   
 (defvar ediff-temp-file-prefix
