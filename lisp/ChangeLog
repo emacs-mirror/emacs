@@ -1,5 +1,7 @@
 2001-02-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* isearch.el (isearch-forward): Doc fix.
+
 	* textmodes/nroff-mode.el (nroff-mode): Set the SYNTAX-BEGIN part
 	of font-lock-defaults to backward-paragraph.
 
