@@ -541,6 +541,27 @@ resolution finer than a second.")
 }
 
 
+static int
+lisp_time_argument (specified_time, result)
+     Lisp_Object specified_time;
+     time_t *result;
+{
+  if (NILP (specified_time))
+    return time (result) != -1;
+  else
+    {
+      Lisp_Object high, low;
+      high = Fcar (specified_time);
+      CHECK_NUMBER (high, 0);
+      low = Fcdr (specified_time);
+      if (XTYPE (low) == Lisp_Cons)
+	low = Fcar (low);
+      CHECK_NUMBER (low, 0);
+      *result = (XINT (high) << 16) + (XINT (low) & 0xffff);
+      return *result >> 16 == XINT (high);
+    }
+}
+
 DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 1, 0,
   "Return the current time, as a human-readable string.\n\
 Programs can use this function to decode a time,\n\
@@ -556,24 +577,12 @@ and from `file-attributes'.")
   (specified_time)
      Lisp_Object specified_time;
 {
-  long value;
+  time_t value;
   char buf[30];
   register char *tem;
 
-  if (NILP (specified_time))
-    value = time ((long *) 0);
-  else
-    {
-      Lisp_Object high, low;
-      high = Fcar (specified_time);
-      CHECK_NUMBER (high, 0);
-      low = Fcdr (specified_time);
-      if (XTYPE (low) == Lisp_Cons)
-	low = Fcar (low);
-      CHECK_NUMBER (low, 0);
-      value = ((XINT (high) << 16) + (XINT (low) & 0xffff));
-    }
-
+  if (! lisp_time_argument (specified_time, &value))
+    value = -1;
   tem = (char *) ctime (&value);
 
   strncpy (buf, tem, 24);
@@ -582,42 +591,79 @@ and from `file-attributes'.")
   return build_string (buf);
 }
 
-DEFUN ("current-time-zone", Fcurrent_time_zone, Scurrent_time_zone, 0, 0, 0,
-  "Return the offset, savings state, and names for the current time zone.\n\
-This returns a list of the form (OFFSET SAVINGS-FLAG STANDARD SAVINGS).\n\
-OFFSET is an integer specifying how many minutes east of Greenwich the\n\
-    current time zone is located.  A negative value means west of\n\
-    Greenwich.  Note that this describes the standard time; if daylight\n\
-    savings time is in effect, it does not affect this value.\n\
-SAVINGS-FLAG is non-nil iff daylight savings time or some other sort\n\
-    of seasonal time adjustment is in effect.\n\
-STANDARD is a string giving the name of the time zone when no seasonal\n\
-    time adjustment is in effect.\n\
-SAVINGS is a string giving the name of the time zone when there is a\n\
-    seasonal time adjustment in effect.\n\
-If the local area does not use a seasonal time adjustment,\n\
-SAVINGS-FLAG is always nil, and STANDARD and SAVINGS are equal.\n\
+#define TM_YEAR_ORIGIN 1900
+
+/* Yield A - B, measured in seconds.  */
+static long
+difftm(a, b)
+     struct tm *a, *b;
+{
+  int ay = a->tm_year + (TM_YEAR_ORIGIN - 1);
+  int by = b->tm_year + (TM_YEAR_ORIGIN - 1);
+  return
+    (
+     (
+      (
+       /* difference in day of year */
+       a->tm_yday - b->tm_yday
+       /* + intervening leap days */
+       +  ((ay >> 2) - (by >> 2))
+       -  (ay/100 - by/100)
+       +  ((ay/100 >> 2) - (by/100 >> 2))
+       /* + difference in years * 365 */
+       +  (long)(ay-by) * 365
+       )*24 + (a->tm_hour - b->tm_hour)
+      )*60 + (a->tm_min - b->tm_min)
+     )*60 + (a->tm_sec - b->tm_sec);
+}
+
+DEFUN ("current-time-zone", Fcurrent_time_zone, Scurrent_time_zone, 0, 1, 0,
+  "Return the offset and name for the local time zone.\n\
+This returns a list of the form (OFFSET NAME).\n\
+OFFSET is an integer number of seconds ahead of UTC (east of Greenwich).\n\
+    A negative value means west of Greenwich.\n\
+NAME is a string giving the name of the time zone.\n\
+If an argument is given, it specifies when the time zone offset is determined\n\
+instead of using the current time.  The argument should have the form:\n\
+  (HIGH . LOW)\n\
+or the form:\n\
+  (HIGH LOW . IGNORED).\n\
+Thus, you can use times obtained from `current-time'\n\
+and from `file-attributes'.\n\
 \n\
 Some operating systems cannot provide all this information to Emacs;\n\
 in this case, current-time-zone will return a list containing nil for\n\
 the data it can't find.")
-  ()
+  (specified_time)
+     Lisp_Object specified_time;
 {
-#ifdef EMACS_CURRENT_TIME_ZONE
-  int offset, savings_flag;
-  char standard[11];
-  char savings[11];
+  time_t value;
+  struct tm *t;
 
-  EMACS_CURRENT_TIME_ZONE (&offset, &savings_flag, standard, savings);
-
-  return Fcons (make_number (offset),
-		Fcons ((savings_flag ? Qt : Qnil),
-		       Fcons (build_string (standard),
-			      Fcons (build_string (savings),
-				     Qnil))));
-#else
-  return Fmake_list (4, Qnil);
+  if (lisp_time_argument (specified_time, &value)
+      && (t = gmtime(&value)) != 0)
+    {
+      struct tm gmt = *t;  /* Make a copy, in case localtime modifies *t.  */
+      long offset;
+      char *s, buf[6];
+      t = localtime(&value);
+      offset = difftm(t, &gmt);
+      s = 0;
+#ifdef HAVE_TM_ZONE
+      if (t->tm_zone)
+	s = t->tm_zone;
 #endif
+      if (!s)
+	{
+	  /* No local time zone name is available; use "+-NNNN" instead.  */
+	  long am = (offset < 0 ? -offset : offset) / 60;
+	  sprintf (buf, "%c%02d%02d", (offset < 0 ? '-' : '+'), am/60, am%60);
+	  s = buf;
+	}
+      return Fcons (make_number (offset), Fcons (build_string (s), Qnil));
+    }
+  else
+    return Fmake_list (2, Qnil);
 }
 
 
