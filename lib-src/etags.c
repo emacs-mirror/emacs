@@ -31,7 +31,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.15";
+char pot_etags_version[] = "@(#) pot revision number is 11.16";
 
 #ifdef MSDOS
 #include <fcntl.h>
@@ -248,7 +248,7 @@ logical vgrind_style;		/* -v: create vgrind style index output */
 logical no_warnings;		/* -w: suppress warnings */
 logical cxref_style;		/* -x: create cxref style output */
 logical cplusplus;		/* .[hc] means C++, not C */
-logical noindentypedefs;	/* -S: ignore indentation in C */
+logical noindentypedefs;	/* -I: ignore indentation in C */
 #define permit_duplicates TRUE	/* allow duplicate tags */
 
 struct option longopts[] =
@@ -260,7 +260,7 @@ struct option longopts[] =
   { "defines",			no_argument,	   NULL, 'd' },
   { "help",			no_argument,	   NULL, 'h' },
   { "help",			no_argument,	   NULL, 'H' },
-  { "ignore-indentation",	no_argument,	   NULL, 'S' },
+  { "ignore-indentation",	no_argument,	   NULL, 'I' },
   { "include",			required_argument, NULL, 'i' },
   { "language",                 required_argument, NULL, 'l' },
   { "no-defines",		no_argument,	   NULL, 'D' },
@@ -485,7 +485,7 @@ names from stdin.\n\n", progname);
 #endif /* ETAGS_REGEXPS */
   puts ("-o FILE, --output=FILE\n\
         Write the tags to FILE.");
-  puts ("-S, --ignore-indentation\n\
+  puts ("-I, --ignore-indentation\n\
         Don't rely on indentation quite as much as normal.  Currently,\n\
         this means not to assume that a closing brace in the first\n\
         column is the final brace of a function or structure\n\
@@ -711,7 +711,7 @@ main (argc, argv)
   while (1)
     {
       int opt = getopt_long (argc, argv,
-			     "-aCdDf:l:o:r:RStTi:BuvxwVhH", longopts, 0);
+			     "-aCdDf:Il:o:r:RStTi:BuvxwVhH", longopts, 0);
 
       if (opt == EOF)
 	break;
@@ -748,11 +748,15 @@ main (argc, argv)
 	case 'o':
 	  if (tagfile)
 	    {
-	      fprintf(stderr,
-		      "%s: -%c flag may only be given once.\n", progname, opt);
+	      fprintf (stderr, "%s: -%c option may only be given once.\n",
+		       progname, opt);
 	      goto usage;
 	    }
 	  tagfile = optarg;
+	  break;
+	case 'I':
+	case 'S':		/* for backward compatibility */
+	  noindentypedefs = TRUE;
 	  break;
 	case 'l':
 	  if (!get_language (optarg, &argbuffer[current_arg].function))
@@ -776,9 +780,6 @@ main (argc, argv)
 	  ++current_arg;
 	  break;
 #endif /* ETAGS_REGEXPS */
-	case 'S':
-	  noindentypedefs = TRUE;
-	  break;
 	case 'V':
 	  print_version ();
 	  break;
@@ -816,8 +817,6 @@ main (argc, argv)
 	  break;
 #endif /* CTAGS */
 	default:
-	  fprintf (stderr,
-		   "%s: -%c flag not recognised.\n", progname, opt);
 	  goto usage;
 	}
     }
@@ -835,8 +834,8 @@ main (argc, argv)
       fprintf (stderr, "%s: No input files specified.\n", progname);
 
     usage:
-      fprintf (stderr, "%s: Try `%s --help' for a complete list of options.\n",
-	       progname, progname);
+      fprintf (stderr, "\tTry `%s --help' for a complete list of options.\n",
+	       progname);
       exit (BAD);
     }
 
