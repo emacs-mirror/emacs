@@ -1,7 +1,0 @@
-                  MM/EP-CORE "PRE-GC" PRODUCT VERSION
-                         version.epcore.pre-gc
-                             incomplete doc
-                            nickb 1997-02-21
-
-See plan.epcore.release.pre-gc
-

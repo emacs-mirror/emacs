@@ -1,7 +1,0 @@
-                  MM/EPCORE "TRAPPING" PRODUCT VERSION
-                        version.epcore.trapping
-                             incomplete doc
-                           richard 1996-07-17
-
-See plan.epcore.release.trap
-

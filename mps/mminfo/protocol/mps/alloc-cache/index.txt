@@ -1,7 +1,0 @@
-                     MPS ALLOCATION CACHE PROTOCOL
-                        protocol.mps.alloc-cache
-                             incomplete doc
-                            pekka 1999-12-23
-
-[just a placeholder now]
-

@@ -1,7 +1,0 @@
-                          SEARCH-TEST MED-NAN
-                      comments.search-test.med-nan
-                              obsolete doc
-                          richardk 1998-10-22
-
-maligned notation
-

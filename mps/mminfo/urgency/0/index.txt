@@ -1,6 +1,0 @@
-                            UNKNOWN URGENCY
-                               urgency.0
-                            obsolete urgency
-                           richard 1995-08-15
-
-Adjective: unknown

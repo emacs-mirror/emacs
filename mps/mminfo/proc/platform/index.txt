@@ -1,8 +1,0 @@
-                   PROCEDURE FOR CREATING A PLATFORM
-                             proc.platform
-                             obsolete proc
-                           richard 1995-08-14
-
-
-.ask.richard: Ask Richard how to create a platform document.
-

@@ -1,8 +1,0 @@
-                          THE "PLANNED" STAGE
-                             stage.planned
-                             obsolete stage
-                           richard 1995-08-22
-
-
-.meaning: The task has been defined, assigned, and scheduled.
-

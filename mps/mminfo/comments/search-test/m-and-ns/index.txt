@@ -1,7 +1,0 @@
-                          SEARCH-TEST M-AND-NS
-                     comments.search-test.m-and-ns
-                              obsolete doc
-                          richardk 1998-10-22
-
-malign and notes
-

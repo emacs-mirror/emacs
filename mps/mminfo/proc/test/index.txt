@@ -1,4 +1,0 @@
-                            TEST PROCEDURES
-                               proc.test
-                             obsolete proc
-                             dsm 1995-08-16

@@ -1,9 +1,0 @@
-                   HOW TO BUILD ON UNIX-LIKE MACHINES
-                          proc.build.unix-like
-                             obsolete proc
-                             drj 1995-10-25
-
-
-.subsume: This document has been subsumed by proc.build.  q.v.  drj 1998-06-17
-
-

@@ -1,9 +1,0 @@
-                          THE "UNKNOWN" STAGE
-                             stage.unknown
-                             obsolete stage
-                           richard 1995-08-22
-
-
-.meaning: The "unknown" stage is used to indicate that a task is in an unknown 
-state.
-

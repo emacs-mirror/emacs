@@ -1,6 +1,0 @@
-                           DOCUMENT STATUSES
-                        process.infosys.statuses
-                               draft doc
-                           richard 1995-08-28
-
-

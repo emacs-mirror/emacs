@@ -1,4 +1,0 @@
-               THE ARCHITECTURE OF THE MEMORY POOL SYSTEM
-                        design.mps.architecture
-                           incomplete design
-                           richard 1995-08-28

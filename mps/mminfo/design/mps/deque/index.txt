@@ -1,4 +1,0 @@
-                THE DESIGN OF THE DOUBLE-ENDED QUEUE ADT
-                            design.mps.deque
-                           incomplete design
-                           richard 1995-08-25

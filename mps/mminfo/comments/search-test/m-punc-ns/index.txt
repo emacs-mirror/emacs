@@ -1,8 +1,0 @@
-                         SEARCH-TEST M-PUNC-NS
-                     comments.search-test.m-punc-ns
-                              obsolete doc
-                          richardk 1998-10-22
-
-malign ~!@#£$%^*()_-+={[}]|;<,>?/ notes noampersand nobackslash nocolon 
-noperiod
-

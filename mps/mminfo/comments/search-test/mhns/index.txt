@@ -1,7 +1,0 @@
-                            SEARCH-TEST MHNS
-                       comments.search-test.mhns
-                              obsolete doc
-                          richardk 1998-10-22
-
-malign-notes
-

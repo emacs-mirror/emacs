@@ -1,8 +1,0 @@
-                        REVIEW ROLE: CORRECTNESS
-                         role.check.correctness
-                             incomplete doc
-                           gavinm 1996-07-26
-
-The correctness checking role focuses on whether the product document is 
-correct, i.e. will have the intended consequences.
-

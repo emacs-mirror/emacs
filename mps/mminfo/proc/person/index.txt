@@ -1,8 +1,0 @@
-                PROCEDURE FOR CREATING A PERSON DOCUMENT
-                              proc.person
-                             obsolete proc
-                           richard 1995-08-14
-
-
-.ask.richard: Ask me how to create a person document.
-

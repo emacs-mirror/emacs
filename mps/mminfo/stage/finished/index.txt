@@ -1,8 +1,0 @@
-                          THE "FINISHED" STAGE
-                             stage.finished
-                             obsolete stage
-                           richard 1995-08-22
-
-
-.meaning: The task has been finished, but the results have not been approved.
-

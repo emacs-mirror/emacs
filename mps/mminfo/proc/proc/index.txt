@@ -1,8 +1,0 @@
-                   PROCEDURE FOR CREATING PROCEDURES
-                               proc.proc
-                            incomplete proc
-                           richard 1995-08-14
-
-
-.ask.richard: Ask Richard how to create a procedure document.
-

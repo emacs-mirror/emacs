@@ -1,7 +1,0 @@
-                          SEARCH-TEST MNOT-NS
-                      comments.search-test.mnot-ns
-                              obsolete doc
-                          richardk 1998-10-22
-
-malignnot notes
-

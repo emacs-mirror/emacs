@@ -1,6 +1,0 @@
-                 PROCEDURE FOR LEADER DURING EXIT CHECK
-                      book.gilb93.proc.leader.exit
-                            incomplete quote
-                           richard 1995-08-04
-
-

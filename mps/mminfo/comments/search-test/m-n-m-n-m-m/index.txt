@@ -1,7 +1,0 @@
-                        SEARCH-TEST M-N-M-N-M-M
-                    comments.search-test.m-n-m-n-m-m
-                              obsolete doc
-                          richardk 1998-10-22
-
-malign note malign note malign malign
-

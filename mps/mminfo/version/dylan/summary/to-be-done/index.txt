@@ -1,6 +1,0 @@
-                 TO-BE-DONE ITEMS FROM VERSION.DYLAN.*
-                    version.dylan.summary.to-be-done
-                              obsolete doc
-                            nick 1997-07-04
-
-

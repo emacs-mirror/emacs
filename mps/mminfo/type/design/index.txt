@@ -1,8 +1,0 @@
-                       THE "DESIGN" DOCUMENT TYPE
-                              type.design
-                            incomplete type
-                           richard 1995-08-25
-
-Rules: rule.universal
-
-Tag template: design.<area>(.<name>)+

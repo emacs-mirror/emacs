@@ -1,8 +1,0 @@
-            PROCEDURE FOR CREATING A RELEASE IN MM EVOLUTION
-                          proc.release.create
-                            incomplete proc
-                           gavinm 1997-06-13
-
-
-[Placeholder]
-

@@ -1,8 +1,0 @@
-                   VERSION "DRILL" OF THE MM PRODUCT
-                         version.product.drill
-                             incomplete doc
-                           richard 1997-05-14
-
-[Intended specification must be filled in as an action from 
-meeting.product.1997-05-15.  richard 1997-05-15]
-

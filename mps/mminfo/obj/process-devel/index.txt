@@ -1,9 +1,0 @@
-                    DOCUMENT THE DEVELOPMENT PROCESS
-                           obj.process-devel
-                          obsolete unknown obj
-                             drj 1995-11-01
-
-Responsible: drj
-Products: .report
-Sources: http://www.best.com/~thvv/mspp.html
-Procedures: proc.universal

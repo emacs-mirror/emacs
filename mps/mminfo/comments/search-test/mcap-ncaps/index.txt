@@ -1,7 +1,0 @@
-                         SEARCH-TEST MCAP-NCAPS
-                    comments.search-test.mcap-ncaps
-                              obsolete doc
-                          richardk 1998-10-22
-
-Malign Notes
-

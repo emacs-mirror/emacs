@@ -1,9 +1,0 @@
-                           DAVID "PABLO" COHN
-                              person.cohn
-                           incomplete person
-                           gavinm 1998-03-09
-
-
-Member of Adaptive Systems Group, collaborating with MM to make components of 
-the MPS more adaptive and adaptable.
-

@@ -1,7 +1,0 @@
-                           SEARCH-TEST M-NAN
-                       comments.search-test.m-nan
-                              obsolete doc
-                          richardk 1998-10-22
-
-malign notation
-

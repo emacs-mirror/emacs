@@ -1,8 +1,0 @@
-                          SEARCH-TEST TM-S-NT
-                      comments.search-test.tm-s-nt
-                              obsolete doc
-                          richardk 1998-10-22
-
-This bit ends with malign. Here is another bit. Notes is the first word in this 
-last bit.
-

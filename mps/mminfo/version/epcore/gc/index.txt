@@ -1,6 +1,0 @@
-                     MM/EPCORE "GC" PRODUCT VERSION
-                           version.epcore.gc
-                             incomplete doc
-                           richard 1996-07-17
-
-

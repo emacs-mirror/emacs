@@ -1,8 +1,0 @@
-            PROCEDURE FOR BEGINNING DEVELOPMENT OF A RELEASE
-                           proc.release.begin
-                            incomplete proc
-                           gavinm 1997-06-13
-
-
-[Placeholder]
-

@@ -1,8 +1,0 @@
-                    PROCEDURE FOR CLOSING A RELEASE
-                           proc.release.close
-                            incomplete proc
-                           gavinm 1997-06-13
-
-
-[Placeholder]
-

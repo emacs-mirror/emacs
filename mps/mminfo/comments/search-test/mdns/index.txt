@@ -1,7 +1,0 @@
-                            SEARCH-TEST MDNS
-                       comments.search-test.mdns
-                              obsolete doc
-                          richardk 1998-10-22
-
-malign.notes
-

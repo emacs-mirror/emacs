@@ -1,7 +1,0 @@
-              PLACEHOLDER: MOVED TO OVERVIEW.FUTURE-IDEAS
-                           design.mps.future
-                              obsolete doc
-                           gavinm 1998-10-30
-
-See overview.future-ideas(0).
-

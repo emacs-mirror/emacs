@@ -1,9 +1,0 @@
-                    HOW TO BUILD ON PC-LIKE MACHINES
-                           proc.build.pc-like
-                             obsolete proc
-                             drj 1996-06-07
-
-
-.subsume: This document has been subsumed by proc.build.  q.v. drj 1999-01-04
-
-

@@ -1,7 +1,0 @@
-                  MM/EPCORE "LAYERED" PRODUCT VERSION
-                         version.epcore.layered
-                             incomplete doc
-                           richard 1997-01-08
-
-See plan.epcore.release.layered
-
