@@ -913,10 +913,7 @@ unwind_to_catch (catch, value)
   catch->val = value;
 
   /* Restore the polling-suppression count.  */
-  if (catch->poll_suppress_count > poll_suppress_count)
-    abort ();
-  while (catch->poll_suppress_count < poll_suppress_count)
-    start_polling ();
+  set_poll_suppress_count (catch->poll_suppress_count);
 
   do
     {
