@@ -156,9 +156,16 @@ Boston, MA 02111-1307, USA.  */
    width---tries to find a best match for the specified font height,
    etc.
 
-   2. Setting face-alternative-font-family-alist allows the user to
+   2. Setting face-font-family-alternatives allows the user to
    specify alternative font families to try if a family specified by a
    face doesn't exist.
+
+   3. Setting face-font-registry-alternatives allows the user to
+   specify all alternative font registries to try for a face
+   specifying a registry.
+
+   4. Setting face-ignored-fonts allows the user to ignore specific
+   fonts.
 
 
    Character compositition.
@@ -388,6 +395,10 @@ Lisp_Object Vface_alternative_font_registry_alist;
    list.  */
 
 Lisp_Object Vscalable_fonts_allowed;
+
+/* List of regular expressions that matches names of fonts to ignore. */
+
+Lisp_Object Vface_ignored_fonts;
 
 /* Maximum number of fonts to consider in font_list.  If not an
    integer > 0, DEFAULT_FONT_LIST_LIMIT is used instead.  */
@@ -2334,6 +2345,18 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
 	 split them into fields.  */
       for (i = j = 0; i < n; ++i)
 	{
+	  Lisp_Object elt, tail;
+
+	  for (tail = Vface_ignored_fonts; CONSP (tail); tail = XCDR (tail))
+	    {
+	      elt = XCAR (tail);
+	      if (STRINGP (elt)
+		  && fast_c_string_match_ignore_case (elt, names[i]) >= 0)
+		break;
+	    }
+	  if (!NILP (tail))
+	    continue;
+
 	  /* Make a copy of the font name.  */
 	  fonts[j].name = xstrdup (names[i]);
 
@@ -7254,6 +7277,11 @@ scaled if its name matches a regular expression in the list.");
 #else
   Vscalable_fonts_allowed = Qnil;
 #endif
+
+  DEFVAR_LISP ("face-ignored-fonts", &Vface_ignored_fonts,
+    "List of ignored fonts.\n\
+Each element is a regular expression that matches names of fonts to ignore.");
+  Vface_ignored_fonts = Qnil;
 
 #ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sbitmap_spec_p);
