@@ -169,7 +169,7 @@
 ;;; Functions:
 
 (defun mm-mule-charset-to-mime-charset (charset)
-  "Return the MIME charset corresponding to MULE CHARSET."
+  "Return the MIME charset corresponding to the given Mule CHARSET."
   (let ((alist mm-mime-mule-charset-alist)
 	out)
     (while alist
@@ -198,7 +198,9 @@ used as the line break code type of the coding system."
    ;; ascii
    ((eq charset 'us-ascii)
     'ascii)
-   ;; Check to see whether we can handle this charset.
+   ;; Check to see whether we can handle this charset.  (This depends
+   ;; on there being some coding system matching each `mime-charset'
+   ;; coding sysytem property defined, as there should be.)
    ((memq charset (mm-get-coding-system-list))
     charset)
    ;; Nope.
@@ -221,14 +223,17 @@ used as the line break code type of the coding system."
       string)))
 
 (defsubst mm-enable-multibyte ()
-  "Enable multibyte in the current buffer."
+  "Set the multibyte flag of the current buffer.
+Only do this if the default value of `enable-multibyte-characters' is
+non-nil.  This is a no-op in XEmacs."
   (when (and (fboundp 'set-buffer-multibyte)
              (boundp 'enable-multibyte-characters)
 	     (default-value 'enable-multibyte-characters))
     (set-buffer-multibyte t)))
 
 (defsubst mm-disable-multibyte ()
-  "Disable multibyte in the current buffer."
+  "Unset the multibyte flag of in the current buffer.
+This is a no-op in XEmacs."
   (when (fboundp 'set-buffer-multibyte)
     (set-buffer-multibyte nil)))
 
@@ -287,7 +292,7 @@ If the charset is `composition', return the actual one."
 	     mail-parse-mule-charset)))))))
 
 (defun mm-mime-charset (charset)
-  "Return the MIME charset corresponding to the MULE CHARSET."
+  "Return the MIME charset corresponding to the given Mule CHARSET."
   (if (and (fboundp 'coding-system-get) (fboundp 'get-charset-property))
       ;; This exists in Emacs 20.
       (or
@@ -296,7 +301,6 @@ If the charset is `composition', return the actual one."
 	     (mm-preferred-coding-system charset) 'mime-charset))
        (and (eq charset 'ascii)
 	    'us-ascii)
-       (mm-preferred-coding-system charset)
        (mm-mule-charset-to-mime-charset charset))
     ;; This is for XEmacs.
     (mm-mule-charset-to-mime-charset charset)))
@@ -333,48 +337,26 @@ If the charset is `composition', return the actual one."
 
 (defmacro mm-with-unibyte-buffer (&rest forms)
   "Create a temporary buffer, and evaluate FORMS there like `progn'.
-See also `with-temp-file' and `with-output-to-string'."
-  (let ((temp-buffer (make-symbol "temp-buffer"))
-	(multibyte (make-symbol "multibyte")))
-    `(if (or (featurep 'xemacs)
-	     (not (boundp 'enable-multibyte-characters)))
-	 (with-temp-buffer ,@forms)
-       (let ((,multibyte (default-value 'enable-multibyte-characters))
-	     ,temp-buffer)
-	 (unwind-protect
-	     (progn
-	       (setq-default enable-multibyte-characters nil)
-	       (setq ,temp-buffer
-		     (get-buffer-create (generate-new-buffer-name " *temp*")))
-	       (unwind-protect
-		   (with-current-buffer ,temp-buffer
-		     (let ((buffer-file-coding-system mm-binary-coding-system)
-			   (coding-system-for-read mm-binary-coding-system)
-			   (coding-system-for-write mm-binary-coding-system))
-		       ,@forms))
-		 (and (buffer-name ,temp-buffer)
-		      (kill-buffer ,temp-buffer))))
-	   (setq-default enable-multibyte-characters ,multibyte))))))
+Use unibyte mode for this."
+  `(let (default-enable-multibyte-characters)
+     (with-temp-buffer ,@forms)))
 (put 'mm-with-unibyte-buffer 'lisp-indent-function 0)
 (put 'mm-with-unibyte-buffer 'edebug-form-spec '(body))
 
 (defmacro mm-with-unibyte-current-buffer (&rest forms)
-  "Evaluate FORMS there like `progn' in current buffer."
+  "Evaluate FORMS with current current buffer temporarily made unibyte.
+Also bind `default-enable-multibyte-characters' to nil.
+Equivalent to `progn' in XEmacs"
   (let ((multibyte (make-symbol "multibyte")))
-    `(if (or (featurep 'xemacs)
-	     (not (fboundp 'set-buffer-multibyte)))
-	 (progn
-	   ,@forms)
-       (let ((,multibyte (default-value 'enable-multibyte-characters)))
-	 (unwind-protect
-	     (let ((buffer-file-coding-system mm-binary-coding-system)
-		   (coding-system-for-read mm-binary-coding-system)
-		   (coding-system-for-write mm-binary-coding-system))
-	       (set-buffer-multibyte nil)
-	       (setq-default enable-multibyte-characters nil)
-	       ,@forms)
-	   (setq-default enable-multibyte-characters ,multibyte)
-	   (set-buffer-multibyte ,multibyte))))))
+    `(if (fboundp 'set-buffer-multibyte)
+	 (let ((,multibyte enable-multibyte-characters))
+	   (unwind-protect
+	       (let (default-enable-multibyte-characters)
+		 (set-buffer-multibyte nil)
+		 ,@forms)
+	     (set-buffer-multibyte ,multibyte)))
+       (progn
+	 ,@forms))))
 (put 'mm-with-unibyte-current-buffer 'lisp-indent-function 0)
 (put 'mm-with-unibyte-current-buffer 'edebug-form-spec '(body))
 
@@ -401,22 +383,14 @@ Mule4 only."
 (put 'mm-with-unibyte-current-buffer-mule4 'edebug-form-spec '(body))
 
 (defmacro mm-with-unibyte (&rest forms)
-  "Set default `enable-multibyte-characters' to `nil', eval the FORMS."
-  (let ((multibyte (make-symbol "multibyte")))
-    `(if (or (featurep 'xemacs)
-	     (not (boundp 'enable-multibyte-characters)))
-	 (progn ,@forms)
-       (let ((,multibyte (default-value 'enable-multibyte-characters)))
-	 (unwind-protect
-	     (progn
-	       (setq-default enable-multibyte-characters nil)
-	       ,@forms)
-	   (setq-default enable-multibyte-characters ,multibyte))))))
+  "Eval the FORMS with the default value of `enable-multibyte-characters' nil, ."
+  `(let (default-enable-multibyte-characters)
+     ,@forms))
 (put 'mm-with-unibyte 'lisp-indent-function 0)
 (put 'mm-with-unibyte 'edebug-form-spec '(body))
 
 (defun mm-find-charset-region (b e)
-  "Return a list of charsets in the region."
+  "Return a list of Emacs charsets in the region B to E."
   (cond
    ((and (mm-multibyte-p)
  	 (fboundp 'find-charset-region))
