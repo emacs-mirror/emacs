@@ -137,14 +137,14 @@ Print the contents of $, assuming it is an Emacs Lisp cons.
 end
 
 define xcar
-print ((($ >> 24) & 0x7f) == Lisp_Cons ? ((struct Lisp_Cons *) (($ & 0x0fffffff) | $data_seg_bits))->car : 0)
+print ((($ >> 28) & 0xf) == Lisp_Cons ? ((struct Lisp_Cons *) (($ & 0x0fffffff) | $data_seg_bits))->car : 0)
 end
 document xcar
 Print the car of $, assuming it is an Emacs Lisp pair.
 end
 
 define xcdr
-print ((($ >> 24) & 0x7f) == Lisp_Cons ? ((struct Lisp_Cons *) (($ & 0x0fffffff) | $data_seg_bits))->cdr : 0)
+print ((($ >> 28) & 0xf) == Lisp_Cons ? ((struct Lisp_Cons *) (($ & 0x0fffffff) | $data_seg_bits))->cdr : 0)
 end
 document xcdr
 Print the cdr of $, assuming it is an Emacs Lisp pair.
