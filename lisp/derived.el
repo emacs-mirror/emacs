@@ -178,8 +178,8 @@ been generated automatically, with a reference to the keymap."
       (case (pop body)
 	(:group (setq group (pop body)))
 	(:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
-	(:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))))
-
+	(:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
+	(t (pop body))))
 
     (setq docstring (derived-mode-make-docstring
 		     parent child docstring syntax abbrev))
