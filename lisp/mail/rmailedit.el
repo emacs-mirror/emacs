@@ -68,7 +68,7 @@ to return to regular RMAIL:
   (if (and (eq (key-binding "\C-c\C-c") 'rmail-cease-edit)
 	   (eq (key-binding "\C-c\C-]") 'rmail-abort-edit))
       (message "Editing: Type C-c C-c to return to Rmail, C-c C-] to abort")
-    (message (substitute-command-keys
+    (message "%s" (substitute-command-keys
 	       "Editing: Type \\[rmail-cease-edit] to return to Rmail, \\[rmail-abort-edit] to abort"))))
 
 (defun rmail-cease-edit ()
