@@ -301,6 +301,8 @@ rigidly along with this one."
 	     (> end beg))
 	   (indent-code-rigidly beg end shift-amt)))))
 
+defvar calculate-lisp-indent-last-sexp)
+
 (defun calculate-lisp-indent (&optional parse-start)
   "Return appropriate indentation for current line as Lisp code.
 In usual case returns an integer: the column to indent to.
@@ -316,7 +318,7 @@ of the start of the containing expression."
           ;; setting this to a number inhibits calling hook
           (desired-indent nil)
           (retry t)
-          last-sexp containing-sexp)
+          calculate-lisp-indent-last-sexp containing-sexp)
       (if parse-start
           (goto-char parse-start)
           (beginning-of-defun))
@@ -328,48 +330,54 @@ of the start of the containing expression."
 		  state
                   (> (setq paren-depth (elt state 0)) 0))
         (setq retry nil)
-        (setq last-sexp (elt state 2))
+        (setq calculate-lisp-indent-last-sexp (elt state 2))
         (setq containing-sexp (elt state 1))
         ;; Position following last unclosed open.
         (goto-char (1+ containing-sexp))
         ;; Is there a complete sexp since then?
-        (if (and last-sexp (> last-sexp (point)))
+        (if (and calculate-lisp-indent-last-sexp
+		 (> calculate-lisp-indent-last-sexp (point)))
             ;; Yes, but is there a containing sexp after that?
-            (let ((peek (parse-partial-sexp last-sexp indent-point 0)))
+            (let ((peek (parse-partial-sexp calculate-lisp-indent-last-sexp
+					    indent-point 0)))
               (if (setq retry (car (cdr peek))) (setq state peek)))))
       (if retry
           nil
         ;; Innermost containing sexp found
         (goto-char (1+ containing-sexp))
-        (if (not last-sexp)
+        (if (not calculate-lisp-indent-last-sexp)
 	    ;; indent-point immediately follows open paren.
 	    ;; Don't call hook.
             (setq desired-indent (current-column))
 	  ;; Find the start of first element of containing sexp.
-	  (parse-partial-sexp (point) last-sexp 0 t)
+	  (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
 	  (cond ((looking-at "\\s(")
 		 ;; First element of containing sexp is a list.
 		 ;; Indent under that list.
 		 )
 		((> (save-excursion (forward-line 1) (point))
-		    last-sexp)
+		    calculate-lisp-indent-last-sexp)
 		 ;; This is the first line to start within the containing sexp.
 		 ;; It's almost certainly a function call.
-		 (if (= (point) last-sexp)
+		 (if (= (point) calculate-lisp-indent-last-sexp)
 		     ;; Containing sexp has nothing before this line
 		     ;; except the first element.  Indent under that element.
 		     nil
 		   ;; Skip the first element, find start of second (the first
 		   ;; argument of the function call) and indent under.
 		   (progn (forward-sexp 1)
-			  (parse-partial-sexp (point) last-sexp 0 t)))
+			  (parse-partial-sexp (point)
+					      calculate-lisp-indent-last-sexp
+					      0 t)))
 		 (backward-prefix-chars))
 		(t
-		 ;; Indent beneath first sexp on same line as last-sexp.
-		 ;; Again, it's almost certainly a function call.
-		 (goto-char last-sexp)
+		 ;; Indent beneath first sexp on same line as
+		 ;; calculate-lisp-indent-last-sexp.  Again, it's
+		 ;; almost certainly a function call.
+		 (goto-char calculate-lisp-indent-last-sexp)
 		 (beginning-of-line)
-		 (parse-partial-sexp (point) last-sexp 0 t)
+		 (parse-partial-sexp (point) calculate-lisp-indent-last-sexp
+				     0 t)
 		 (backward-prefix-chars)))))
       ;; Point is at the point to indent under unless we are inside a string.
       ;; Call indentation hook except when overridden by lisp-indent-offset
@@ -396,20 +404,21 @@ of the start of the containing expression."
 (defun lisp-indent-function (indent-point state)
   (let ((normal-indent (current-column)))
     (goto-char (1+ (elt state 1)))
-    (parse-partial-sexp (point) last-sexp 0 t)
+    (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
     (if (and (elt state 2)
              (not (looking-at "\\sw\\|\\s_")))
         ;; car of form doesn't seem to be a a symbol
         (progn
           (if (not (> (save-excursion (forward-line 1) (point))
-                      last-sexp))
-              (progn (goto-char last-sexp)
+                      calculate-lisp-indent-last-sexp))
+              (progn (goto-char calculate-lisp-indent-last-sexp)
                      (beginning-of-line)
-                     (parse-partial-sexp (point) last-sexp 0 t)))
-          ;; Indent under the list or under the first sexp on the
-          ;; same line as last-sexp.  Note that first thing on that
-          ;; line has to be complete sexp since we are inside the
-          ;; innermost containing sexp.
+                     (parse-partial-sexp (point)
+					 calculate-lisp-indent-last-sexp 0 t)))
+          ;; Indent under the list or under the first sexp on the same
+          ;; line as calculate-lisp-indent-last-sexp.  Note that first
+          ;; thing on that line has to be complete sexp since we are
+          ;; inside the innermost containing sexp.
           (backward-prefix-chars)
           (current-column))
       (let ((function (buffer-substring (point)
