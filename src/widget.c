@@ -532,6 +532,14 @@ create_frame_gcs (ew)
     XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)), 0, 0);
 }
 
+static char setup_frame_cursor_bits[] =
+{
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
 static void
 setup_frame_gcs (ew)
      EmacsFrame ew;
@@ -539,14 +547,6 @@ setup_frame_gcs (ew)
   XGCValues gc_values;
   struct frame* s = ew->emacs_frame.frame;
   Pixmap blank_stipple, blank_tile;
-
-  static char cursor_bits[] =
-    {
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-    };
 
   /* We have to initialize all of our GCs to have a stipple/tile, otherwise
      XGetGCValues returns uninitialized data when we query the stipple
@@ -559,7 +559,7 @@ setup_frame_gcs (ew)
 
   blank_stipple = 
     XCreateBitmapFromData (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
-			   cursor_bits, 2, 2);
+			   setup_frame_cursor_bits, 2, 2);
 
   /* use fg = 0, bg = 1 below, but it's irrelevant since this pixmap should
      never actually get used as a background tile!
@@ -567,7 +567,8 @@ setup_frame_gcs (ew)
   blank_tile =
     XCreatePixmapFromBitmapData (XtDisplay(ew),
 				 RootWindowOfScreen (XtScreen (ew)),
-				 cursor_bits, 2, 2, 0, 1, ew->core.depth);
+				 setup_frame_cursor_bits, 2, 2, 0, 1,
+				 ew->core.depth);
 
   /* Normal video */
   gc_values.font = ew->emacs_frame.font->fid;
@@ -602,7 +603,7 @@ setup_frame_gcs (ew)
   gc_values.stipple =
     XCreateBitmapFromData (XtDisplay (ew),
 			   RootWindowOfScreen (XtScreen (ew)),
-			   cursor_bits, 16, 16);
+			   setup_frame_cursor_bits, 16, 16);
   XChangeGC (XtDisplay (ew), s->display.x->cursor_gc,
 	     (GCFont | GCForeground | GCBackground | GCGraphicsExposures
 	      | GCStipple | GCTile),
