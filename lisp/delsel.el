@@ -91,7 +91,10 @@ insertion commands first delete the region and then insert.")
 (defun delete-selection-mode (arg)
   "Toggle Delete Selection mode.
 When ON, typed text replaces the selection if the selection is active.
-When OFF, typed text is just inserted at point."
+When OFF, typed text is just inserted at point.
+
+A positive argument turns the mode on, negative argument turns it off,
+and no argument (or nil) toggles the mode."
   (interactive "P")
   (setq delete-selection-mode
 	(if (null arg) (not delete-selection-mode)
