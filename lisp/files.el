@@ -2107,8 +2107,10 @@ Then you'll be asked about a number of files to recover."
   (goto-char (point-min))
   (or (looking-at "Move to the session you want to recover,")
       (let ((inhibit-read-only t))
-	(insert "Move to the session you want to recover,\n")
-	(insert "then type C-c C-c to select it.\n\n")))
+	(insert "Move to the session you want to recover,\n"
+		"then type C-c C-c to select it.\n\n"
+		"You can also delete some of these files;\n"
+		"type d on a line to mark that file for deletion.\n\n")))
   (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
   (define-key (current-local-map) "\C-c\C-c" 'recover-session-finish))
 
@@ -2120,6 +2122,7 @@ This command is used in the special Dired buffer created by
   ;; Get the name of the session file to recover from.
   (let ((file (dired-get-filename))
 	(buffer (get-buffer-create " *recover*")))
+    (dired-do-flagged-delete t)
     (unwind-protect
 	(save-excursion
 	  ;; Read in the auto-save-list file.
