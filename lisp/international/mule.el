@@ -289,7 +289,7 @@ It can be retrieved with `(get-charset-property CHARSET PROPNAME)'."
 
 (defun charset-chars (charset)
   "Return character numbers contained in a dimension of CHARSET."
-  (let ((code-space (plist-get (cahrset-plist charset) :code-space)))
+  (let ((code-space (plist-get (charset-plist charset) :code-space)))
     (1+ (- (aref code-space 1) (aref code-space 0)))))
 
 (defun charset-iso-final-char (charset)
