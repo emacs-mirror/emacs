@@ -131,11 +131,11 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   int count = specpdl_ptr - specpdl;
   Lisp_Object mini_frame;
 
-  if (XTYPE (prompt) != Lisp_String)
+  if (!STRINGP (prompt))
     prompt = build_string ("");
 
   /* Emacs in -batch mode calls minibuffer: print the prompt.  */
-  if (noninteractive && XTYPE (prompt) == Lisp_String)
+  if (noninteractive && STRINGP (prompt))
     printf ("%s", XSTRING (prompt)->data);
 
   if (!enable_recursive_minibuffers
@@ -187,7 +187,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
      up Emacs and buf's default directory is Qnil.  Here's a hack; can
      you think of something better to do?  Find another buffer with a
      better directory, and use that one instead.  */
-  if (XTYPE (val) == Lisp_String)
+  if (STRINGP (val))
     current_buffer->directory = val;
   else
     {
@@ -200,7 +200,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 	  Lisp_Object other_buf;
 
 	  other_buf = XCONS (XCONS (buf_list)->car)->cdr;
-	  if (XTYPE (XBUFFER (other_buf)->directory) == Lisp_String)
+	  if (STRINGP (XBUFFER (other_buf)->directory))
 	    {
 	      current_buffer->directory = XBUFFER (other_buf)->directory;
 	      break;
@@ -228,7 +228,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   if (!NILP (initial))
     {
       Finsert (1, &initial);
-      if (!NILP (backup_n) && XTYPE (backup_n) == Lisp_Int)
+      if (!NILP (backup_n) && INTEGERP (backup_n))
 	Fforward_char (backup_n);
     }
 
@@ -271,7 +271,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 
   /* Add the value to the appropriate history list unless it is empty.  */
   if (XSTRING (val)->size != 0
-      && XTYPE (Vminibuffer_history_variable) == Lisp_Symbol
+      && SYMBOLP (Vminibuffer_history_variable)
       && ! EQ (XSYMBOL (Vminibuffer_history_variable)->value, Qunbound))
     {
       /* If the caller wanted to save the value read on a history list,
@@ -436,7 +436,7 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 
   CHECK_STRING (prompt, 0);
   if (!NILP (initial_contents))
     {
-      if (XTYPE (initial_contents) == Lisp_Cons)
+      if (CONSP (initial_contents))
 	{
 	  position = Fcdr (initial_contents);
 	  initial_contents = Fcar (initial_contents);
@@ -455,7 +455,7 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 
   else
     keymap = get_keymap (keymap,2);
 
-  if (XTYPE (hist) == Lisp_Symbol)
+  if (SYMBOLP (hist))
     {
       histvar = hist;
       histpos = Qnil;
@@ -569,7 +569,7 @@ If optional third arg REQUIRE-MATCH is non-nil, only existing buffer names are a
   Lisp_Object args[3];
   struct gcpro gcpro1;
 
-  if (XTYPE (def) == Lisp_Buffer)
+  if (BUFFERP (def))
     def = XBUFFER (def)->name;
   if (!NILP (def))
     {
@@ -618,7 +618,7 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   CHECK_STRING (string, 0);
-  if (!list && XTYPE (alist) != Lisp_Vector)
+  if (!list && !VECTORP (alist))
     return call3 (alist, string, pred, Qnil);
 
   bestmatch = Qnil;
@@ -669,7 +669,7 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 
       /* Is this element a possible completion? */
 
-      if (XTYPE (eltstring) == Lisp_String
+      if (STRINGP (eltstring)
 	  && XSTRING (string)->size <= XSTRING (eltstring)->size
 	  && 0 > scmp (XSTRING (eltstring)->data, XSTRING (string)->data,
 		       XSTRING (string)->size))
@@ -821,7 +821,7 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   CHECK_STRING (string, 0);
-  if (!list && XTYPE (alist) != Lisp_Vector)
+  if (!list && !VECTORP (alist))
     {
       return call3 (alist, string, pred, Qt);
     }
@@ -873,7 +873,7 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 
       /* Is this element a possible completion? */
 
-      if (XTYPE (eltstring) == Lisp_String
+      if (STRINGP (eltstring)
 	  && XSTRING (string)->size <= XSTRING (eltstring)->size
 	  /* Reject alternatives that start with space
 	     unless the input starts with space.  */
@@ -975,7 +975,7 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 6, 0,
   position = Qnil;
   if (!NILP (init))
     {
-      if (XTYPE (init) == Lisp_Cons)
+      if (CONSP (init))
 	{
 	  position = Fcdr (init);
 	  init = Fcar (init);
@@ -989,7 +989,7 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 6, 0,
 	}
     }
 
-  if (XTYPE (hist) == Lisp_Symbol)
+  if (SYMBOLP (hist))
     {
       histvar = hist;
       histpos = Qnil;
@@ -1095,7 +1095,7 @@ do_completion ()
       || NILP (Vminibuffer_completion_table))
     tem = assoc_for_completion (Fbuffer_string (),
 				Vminibuffer_completion_table);
-  else if (XTYPE (Vminibuffer_completion_table) == Lisp_Vector)
+  else if (VECTORP (Vminibuffer_completion_table))
     {
       /* the primitive used by Fintern_soft */
       extern Lisp_Object oblookup ();
@@ -1104,7 +1104,7 @@ do_completion ()
       /* Bypass intern-soft as that loses for nil */
       tem = oblookup (Vminibuffer_completion_table,
 		      XSTRING (tem)->data, XSTRING (tem)->size);
-      if (XTYPE (tem) != Lisp_Symbol)
+      if (!SYMBOLP (tem))
 	tem = Qnil;
       else if (!NILP (Vminibuffer_completion_predicate))
 	tem = call1 (Vminibuffer_completion_predicate, tem);
@@ -1166,7 +1166,7 @@ assoc_for_completion (key, list)
       elt = Fcar (tail);
       if (!CONSP (elt)) continue;
       thiscar = Fcar (elt);
-      if (XTYPE (thiscar) != Lisp_String)
+      if (!STRINGP (thiscar))
 	continue;
       if (completion_ignore_case)
 	thiscar = Fupcase (thiscar);
@@ -1366,7 +1366,7 @@ Return nil if there is no valid completion, else t.")
 			     Vminibuffer_completion_predicate);
       UNGCPRO;
 
-      if (XTYPE (tem) == Lisp_String)
+      if (STRINGP (tem))
 	completion = tem;
       else
 	{
@@ -1377,7 +1377,7 @@ Return nil if there is no valid completion, else t.")
 			     Vminibuffer_completion_predicate);
 	  UNGCPRO;
 
-	  if (XTYPE (tem) == Lisp_String)
+	  if (STRINGP (tem))
 	    completion = tem;
 	}
     }      
@@ -1429,7 +1429,7 @@ It can find the completion buffer in `standard-output'.")
      points to a non-string that is pointed to by COMPLETIONS.  */
   GCPRO1 (completions);
 
-  if (XTYPE (Vstandard_output) == Lisp_Buffer)
+  if (BUFFERP (Vstandard_output))
     set_buffer_internal (XBUFFER (Vstandard_output));
 
   if (NILP (completions))
@@ -1446,7 +1446,7 @@ It can find the completion buffer in `standard-output'.")
 	     until after the text has been made. */
 	  if (i & 1)
 	    {
-	      if (XTYPE (Vstandard_output) == Lisp_Buffer)
+	      if (BUFFERP (Vstandard_output))
 		Findent_to (make_number (35), make_number (2));
 	      else
 		{
@@ -1466,7 +1466,7 @@ It can find the completion buffer in `standard-output'.")
 	  elt = Fcar (tail);
 	  if (CONSP (elt))
 	    {
-	      if (XTYPE (Vstandard_output) != Lisp_Buffer)
+	      if (!BUFFERP (Vstandard_output))
 		{
 		  Lisp_Object tem;
 		  tem = Flength (Fcar (elt));
@@ -1479,7 +1479,7 @@ It can find the completion buffer in `standard-output'.")
 	    }
 	  else
 	    {
-	      if (XTYPE (Vstandard_output) != Lisp_Buffer)
+	      if (!BUFFERP (Vstandard_output))
 		{
 		  Lisp_Object tem;
 		  tem = Flength (elt);
@@ -1492,7 +1492,7 @@ It can find the completion buffer in `standard-output'.")
 
   UNGCPRO;
 
-  if (XTYPE (Vstandard_output) == Lisp_Buffer)
+  if (BUFFERP (Vstandard_output))
     set_buffer_internal (old);
 
   if (!NILP (Vrun_hooks))
@@ -1530,7 +1530,7 @@ DEFUN ("self-insert-and-exit", Fself_insert_and_exit, Sself_insert_and_exit, 0, 
   "Terminate minibuffer input.")
   ()
 {
-  if (XTYPE (last_command_char) == Lisp_Int)
+  if (INTEGERP (last_command_char))
     internal_self_insert (last_command_char, 0);
   else
     bitch_at_user ();
