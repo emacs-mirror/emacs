@@ -2178,7 +2178,7 @@ expression with auto-compression-mode enabled.
 with the more general `:mask' property.
 
 +++
-** Image specifications accept more `:algorithm's.
+** Image specifications accept more `:conversion's.
 
 ** A `?' can be used in a symbol name without escaping it with a
 backslash.
@@ -3657,7 +3657,7 @@ horizontal margin and Y specifying the vertical margin.  Default is 0.
 RELIEF is analogous to the `:relief' attribute of faces.  Puts a relief
 around an image.
 
-`:algorithm ALGO'
+`:conversion ALGO'
 
 Apply an image algorithm to the image before displaying it.
 

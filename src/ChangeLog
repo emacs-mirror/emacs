@@ -1,5 +1,12 @@
 2001-01-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (QCconversion): Replaces QCalgorithm.
+
+	* w32fns.c (QCconversion): Replaces QCalgorithm.  Update copyright.
+
+	* xdisp.c (build_desired_tool_bar_string): Use :conversion instead
+	of :algorithm.
+	
 	* xdisp.c (redisplay_tool_bar): Change tool bar's height when
 	not everything could be displayed.
 

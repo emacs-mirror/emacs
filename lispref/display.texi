@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001
 @c   Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/display
@@ -2481,8 +2481,8 @@ shadow lines, in pixels.  If @var{relief} is negative, shadows are drawn
 so that the image appears as a pressed button; otherwise, it appears as
 an unpressed button.
 
-@item :algorithm @var{algorithm}
-The @code{:algorithm} property, if non-@code{nil}, specifies a
+@item :conversion @var{algorithm}
+The @code{:conversion} property, if non-@code{nil}, specifies a
 conversion algorithm that should be applied to the image before it is
 displayed; the value, @var{algorithm}, specifies which algorithm.
 

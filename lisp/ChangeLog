@@ -1,3 +1,41 @@
+2001-01-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* isearch.el (isearch-lazy-highlight-initial-delay)
+	(isearch-lazy-highlight-interval): Default to 0.
+
+2001-01-17  Bob Glickstein  <bobg@zanshin.com>
+
+	* isearch.el (isearch-highlight): Set isearch-overlay priority to
+	1 here rather than each time through
+	isearch-lazy-highlight-new-loop.
+	(isearch-lazy-highlight-max): Variable deleted.
+	(isearch-lazy-highlight-max-at-a-time): New user variable, like
+	isearch-lazy-highlight-max but controls a single invocation of
+	isearch-lazy-highlight-update.
+	(isearch-lazy-highlight-wrapped): Variable recreated.
+	(isearch-lazy-highlight-window-start): New variable.
+	(isearch-lazy-highlight-cleanup): Restored to behavior of
+	before 2-Jan.
+	(isearch-lazy-highlight-remove-overlays): Function deleted;
+	behavior folded into isearch-lazy-highlight-cleanup.  "Keep"
+	behavior removed.
+	(isearch-lazy-highlight-new-loop): Restore old behavior of calling
+	isearch-lazy-highlight-update in a loop rather than just once.
+	Test isearch-invalid-regexp here and decide not to start a new
+	loop, rather than testing it each time through
+	isearch-lazy-highlight-update.
+	(isearch-lazy-highlight-search): Function restored.
+	(isearch-lazy-highlight-update): Get called in a timer loop again,
+	but this time highlight more than one match each time through.
+	Only highlight matches in the visible part of the window.  Start
+	at point, move in the direction of the search, and wrap around at
+	the edge of the window.  Use sit-for to force redisplay and ensure
+	window-start is credible.  "Face suppressing" behavior removed;
+	overlay priorities should make it unnecessary, right?
+	(isearch-highlight): Face suppressing behavior removed.
+	(isearch-dehighlight): Face suppressing behavior removed.
+	(isearch-set-lazy-highlight-faces-at): Removed.
+
 2001-01-17  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/european.el ("Latin-1"): Make the format of description
