@@ -3838,6 +3838,8 @@ display_string (w, vpos, string, length, hpos, truncate,
 /* This is like a combination of memq and assq.
    Return 1 if PROPVAL appears as an element of LIST
    or as the car of an element of LIST.
+   If PROPVAL is a list, compare each element against LIST
+   in that way, and return 1 if any element of PROPVAL is found in LIST.
    Otherwise return 0.
    This function cannot quit.  */
 
@@ -3846,21 +3848,40 @@ invisible_p (propval, list)
      register Lisp_Object propval;
      Lisp_Object list;
 {
-  register Lisp_Object tail;
-  for (tail = list; CONSP (tail); tail = Fcdr (tail))
+  register Lisp_Object tail, proptail;
+  for (tail = list; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       register Lisp_Object tem;
-      tem = Fcar (tail);
+      tem = XCONS (tail)->car;
       if (EQ (propval, tem))
 	return 1;
       if (CONSP (tem) && EQ (propval, XCONS (tem)->car))
 	return 1;
     }
+  if (CONSP (propval))
+    for (proptail = propval; CONSP (proptail);
+	 proptail = XCONS (proptail)->cdr)
+      {
+	Lisp_Object propelt;
+	propelt = XCONS (proptail)->car;
+	for (tail = list; CONSP (tail); tail = XCONS (tail)->cdr)
+	  {
+	    register Lisp_Object tem;
+	    tem = XCONS (tail)->car;
+	    if (EQ (propelt, tem))
+	      return 1;
+	    if (CONSP (tem) && EQ (propelt, XCONS (tem)->car))
+	      return 1;
+	  }
+      }
   return 0;
 }
 
 /* Return 1 if PROPVAL appears as the car of an element of LIST
    and the cdr of that element is non-nil.
+   If PROPVAL is a list, check each element of PROPVAL in that way,
+   and the first time some element is found,
+   return 1 if the cdr of that element is non-nil.
    Otherwise return 0.
    This function cannot quit.  */
 
@@ -3869,14 +3890,28 @@ invisible_ellipsis_p (propval, list)
      register Lisp_Object propval;
      Lisp_Object list;
 {
-  register Lisp_Object tail;
-  for (tail = list; CONSP (tail); tail = Fcdr (tail))
+  register Lisp_Object tail, proptail;
+  for (tail = list; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       register Lisp_Object tem;
-      tem = Fcar (tail);
+      tem = XCONS (tail)->car;
       if (CONSP (tem) && EQ (propval, XCONS (tem)->car))
 	return ! NILP (XCONS (tem)->cdr);
     }
+  if (CONSP (propval))
+    for (proptail = propval; CONSP (proptail);
+	 proptail = XCONS (proptail)->cdr)
+      {
+	Lisp_Object propelt;
+	propelt = XCONS (proptail)->car;
+	for (tail = list; CONSP (tail); tail = XCONS (tail)->cdr)
+	  {
+	    register Lisp_Object tem;
+	    tem = XCONS (tail)->car;
+	    if (CONSP (tem) && EQ (propelt, XCONS (tem)->car))
+	      return ! NILP (XCONS (tem)->cdr);
+	  }
+      }
   return 0;
 }
 
