@@ -12821,7 +12821,10 @@ x_free_frame_resources (f)
       
 #ifdef USE_X_TOOLKIT
       if (f->output_data.x->widget)
-	XtDestroyWidget (f->output_data.x->widget);
+	{
+	  XtDestroyWidget (f->output_data.x->widget);
+	  f->output_data.x->widget = NULL;
+	}
       free_frame_menubar (f);
 #endif /* USE_X_TOOLKIT */
 
