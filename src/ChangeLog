@@ -1,3 +1,18 @@
+2001-05-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* w32bdf.c (search_file_line, set_bdf_font_info, seek_char)
+	(w32_get_bdf_glyph): Cast between unsigned char and char when
+	passing arguments to subroutines, to shut up compiler warnings.
+	(w32_get_bdf_glyph): Don't mix signed and unsigned when calling
+	GET_HEX_VAL.
+
+	* xfaces.c: Include keyboard.h before frame.h, not after it.
+
+	* widget.c: Include keyboard.h before frame.h.
+
+	* w32term.h (struct image, struct face): Forward declaration, to
+	avoid compiler warnings.
+
 2001-05-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (read_key_sequence): Don't modify events when
