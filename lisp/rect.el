@@ -202,6 +202,23 @@ but instead winds up to the right of the rectangle."
     (indent-to (+ endcol whitewidth))))
 
 ;;;###autoload
+(defun close-rectangle (start end)
+  "Delete all whitespace following a specified column in each line.
+The left edge of the rectangle specifies the position in each line
+at which whitespace deletion should begin.  On each line in the
+rectangle, all continuous whitespace starting at that column is deleted."
+  (interactive "r")
+  (operate-on-rectangle '(lambda (startpos begextra endextra)
+			   (save-excursion
+			     (goto-char startpos)
+			     (delete-region (point)
+					    (progn
+					      (skip-syntax-forward " ")
+					      (point)))))
+			start end t))
+
+
+;;;###autoload
 (defun string-rectangle (start end string)
   "Insert STRING on each line of the region-rectangle, shifting text right.
 The left edge of the rectangle specifies the column for insertion.
