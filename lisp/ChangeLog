@@ -1,5 +1,7 @@
 1999-11-19  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* files.el (auto-mode-alist): add patterns for diff-mode.
+
 	* complete.el (PC-do-complete-and-exit): use minibuffer-prompt-end to
 	detect an empty prompt.
 
