@@ -461,11 +461,16 @@ is visible (and the real data of the buffer is hidden)."
       (message "Warning: premature EOF parsing tar file")))
   (save-excursion
     (goto-char (point-min))
-    (let ((buffer-read-only nil))
+    (let ((buffer-read-only nil)
+	  (summaries nil))
+      ;; Collect summary lines and insert them all at once since tar files
+      ;; can be pretty big.
       (tar-dolist (tar-desc tar-parse-info)
-	(insert-string
-	  (tar-header-block-summarize (tar-desc-tokens tar-desc)))
-	(insert-string "\n"))
+	(setq summaries
+	      (cons (tar-header-block-summarize (tar-desc-tokens tar-desc))
+		    (cons "\n"
+			  summaries))))
+      (insert (apply 'concat summaries))
       (make-local-variable 'tar-header-offset)
       (setq tar-header-offset (point))
       (narrow-to-region 1 tar-header-offset)
