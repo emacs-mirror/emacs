@@ -1,3 +1,7 @@
+2004-02-16  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/rx.el (rx-not): Bind case-fold-search to nil.
+
 2004-02-16  Richard Stallman  <rms@gnu.org>
 
 	* Makefile.in (TAGS, TAGS-LISP): Filter out of `els' only
