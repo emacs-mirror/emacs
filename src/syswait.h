@@ -32,52 +32,49 @@ Boston, MA 02111-1307, USA.  */
    below.  */
 
 #if 1
+#include <sys/types.h>
+
+/* Old code included a comment that HPUX version 7 has broken
+   definitions of some of the macros and `the convex' does too.
+   HAVE_SYS_WAIT_H probably won't be defined on them if they still get
+   used, but for safety...  -- fx */
+#if (defined (HPUX) && !defined (HPUX8)) || defined (convex)
+#undef HAVE_SYS_WAIT_H
+#endif
+
+#if defined HAVE_SYS_WAIT_H	/* We have sys/wait.h with POSIXoid
+				   definitions. */
+
+#include <sys/wait.h>
+#ifndef WCOREDUMP		/* not POSIX */
+#define WCOREDUMP(status) ((status) & 0x80)
+#endif
+
+#else  /* !HAVE_SYS_WAIT_H */
+
+/* Note that sys/wait.h may still be included by stdlib.h or something
+   according to XPG.  */
+
+#undef WEXITSTATUS
+#define WEXITSTATUS(status) (((status)  & 0xff00) >> 8)
+#undef WIFEXITED
+#define WIFEXITED(status) (WTERMSIG(status) == 0)
+#undef WIFSTOPPED
+#define WIFSTOPPED(status) (((status) & 0xff) == 0x7f)
+#undef WIFSIGNALED
+#define WIFSIGNALED(status) (!WIFSTOPPED(status) && !WIFEXITED(status))
+#undef WSTOPSIG
+#define WSTOPSIG(status) WEXITSTATUS(status)
+#undef WTERMSIG
+#define WTERMSIG(status) ((status) & 0x7f)
+#undef WCOREDUMP
+#define WCOREDUMP(status) ((status) & 0x80)
+#endif /* HAVE_SYS_WAIT_H */
+
 #undef WAITTYPE
 #define WAITTYPE int
-#define WRETCODE(w) WEXITSTATUS (w)
-
-#include <sys/types.h>
-#if HAVE_SYS_WAIT_H
-#include <sys/wait.h>
-#endif
-
-#if defined (HPUX) || defined (convex)
-/* HPUX version 7 has broken definitions of these.  */
-/* pvogel@convex.com says the convex does too.  */
-#undef WTERMSIG
-#undef WSTOPSIG
-#undef WIFSTOPPED
-#undef WIFSIGNALED
-#undef WIFEXITED
-#endif /* HPUX || convex */
-
-#ifndef WEXITSTATUS
-# define WEXITSTATUS(stat_val) ((unsigned)(stat_val) >> 8)
-#endif
-#ifndef WIFEXITED
-# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
-#endif
-#ifndef WIFSTOPPED
-#define WIFSTOPPED(w) ((w&0377) == 0177)
-#endif
-#ifndef WIFSIGNALED
-#define WIFSIGNALED(w) ((w&0377) != 0177 && (w&~0377) == 0)
-#endif
-#ifndef WIFEXITED
-#define WIFEXITED(w) ((w&0377) == 0)
-#endif
-#ifndef WRETCODE
-#define WRETCODE(w) (w >> 8)
-#endif
-#ifndef WSTOPSIG
-#define WSTOPSIG(w) (w >> 8)
-#endif
-#ifndef WTERMSIG
-#define WTERMSIG(w) (w & 0377)
-#endif
-#ifndef WCOREDUMP
-#define WCOREDUMP(w) ((w&0200) != 0)
-#endif
+#undef WRETCODE
+#define WRETCODE(status) WEXITSTATUS (status)
 
 #else  /* !1 */
 
@@ -99,7 +96,7 @@ Boston, MA 02111-1307, USA.  */
 #define WIFEXITED(w) ((w&0377) == 0)
 #define WRETCODE(w) (w >> 8)
 #define WSTOPSIG(w) (w >> 8)
-#define WTERMSIG(w) (w & 0377)
+#define WTERMSIG(w) (w & 0177)
 #ifndef WCOREDUMP
 #define WCOREDUMP(w) ((w&0200) != 0)
 #endif
