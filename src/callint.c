@@ -41,6 +41,7 @@ Lisp_Object Qcall_interactively;
 Lisp_Object Vcommand_history;
 
 extern Lisp_Object Vhistory_length;
+extern Lisp_Object Vthis_original_command, real_this_command;
 
 Lisp_Object Vcommand_debug_status, Qcommand_debug_status;
 Lisp_Object Qenable_recursive_minibuffers;
@@ -291,6 +292,14 @@ supply if the command inquires which events were used to invoke it.  */)
   int key_count;
   int record_then_fail = 0;
 
+  Lisp_Object save_this_command, save_last_command;
+  Lisp_Object save_this_original_command, save_real_this_command;
+
+  save_this_command = Vthis_command;
+  save_this_original_command = Vthis_original_command;
+  save_real_this_command = real_this_command;
+  save_last_command = current_kboard->Vlast_command;
+
   if (NILP (keys))
     keys = this_command_keys, key_count = this_command_key_count;
   else
@@ -395,6 +404,12 @@ supply if the command inquires which events were used to invoke it.  */)
 		XSETCDR (teml, Qnil);
 	    }
 	}
+
+      Vthis_command = save_this_command;
+      Vthis_original_command = save_this_original_command;
+      real_this_command= save_real_this_command;
+      current_kboard->Vlast_command = save_last_command;
+
       single_kboard_state ();
       return apply1 (function, specs);
     }
@@ -840,6 +855,11 @@ supply if the command inquires which events were used to invoke it.  */)
 
   if (record_then_fail)
     Fbarf_if_buffer_read_only ();
+
+  Vthis_command = save_this_command;
+  Vthis_original_command = save_this_original_command;
+  real_this_command= save_real_this_command;
+  current_kboard->Vlast_command = save_last_command;
 
   single_kboard_state ();
 
