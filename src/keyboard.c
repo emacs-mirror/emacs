@@ -5130,6 +5130,12 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
   return Qnil ;
 }
 
+/* Buffer in use so far for the minibuf prompts for menu keymaps.
+   We make this bigger when necessary, and never free it.  */
+static char *read_char_minibuf_menu_text;
+/* Size of that buffer.  */
+static int read_char_minibuf_menu_width;
+
 static Lisp_Object
 read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
      int commandflag ;
@@ -5140,13 +5146,27 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
   register Lisp_Object name;
   int nlength;
   int width = FRAME_WIDTH (selected_frame) - 4;
-  char *menu = (char *) alloca (width + 4);
   int idx = -1;
   int nobindings = 1;
   Lisp_Object rest, vector;
+  char *menu;
 
   if (! menu_prompting)
     return Qnil;
+
+  /* Make sure we have a big enough buffer for the menu text.  */
+  if (read_char_minibuf_menu_text == 0)
+    {
+      read_char_minibuf_menu_width = width + 4;
+      read_char_minibuf_menu_text = (char *) xmalloc (width + 4);
+    }
+  else if (width + 4 > read_char_minibuf_menu_width)
+    {
+      read_char_minibuf_menu_width = width + 4;
+      read_char_minibuf_menu_text
+	= (char *) xrealloc (read_char_minibuf_menu_text, width + 4);
+    }
+  menu = read_char_minibuf_menu_text;
 
   /* Get the menu name from the first map that has one (a prompt string).  */
   for (mapno = 0; mapno < nmaps; mapno++)
