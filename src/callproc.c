@@ -646,8 +646,13 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
      started with its standard in, out, or error closed, as might
      happen under X.  */
   in = relocate_fd (in, 3);
-  out = relocate_fd (out, 3);
-  err = relocate_fd (err, 3);
+  if (out == err)
+    err = out = relocate_fd (out, 3);
+  else
+    {
+      out = relocate_fd (out, 3);
+      err = relocate_fd (err, 3);
+    }
 
   close (0);
   close (1);
