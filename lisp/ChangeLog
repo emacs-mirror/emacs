@@ -1,3 +1,24 @@
+2004-04-29  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-mode-map): Bind \C-w to isearch-yank-word
+	instead of isearch-yank-word-or-char.  Add new key bindings for
+	isearch-yank-char to \C-f, and isearch-del-char to \C-b.
+	(isearch-del-char): New fun.
+	(isearch-forward, isearch-edit-string): Update docstring.
+	(isearch-yank-char): Doc fix.
+	(isearch-other-meta-char): Restore point after scrolling.
+
+	* progmodes/compile.el (compilation-context-lines): Add nil option
+	to disable compilation output window scrolling.
+	(compilation-set-window): Use it.
+
+	* outline.el (outline-next-preface, outline-show-heading): Don't
+	leave unhidden blank line before heading.
+	(outline-end-of-subtree): Include last newline into subtree.
+	(hide-entry): Leave point at beginning of heading instead of end.
+	(outline-up-heading): Push mark for the first call of successive
+	command calls.
+
 2004-04-28  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* comint.el (comint-prompt-read-only): New variable.
