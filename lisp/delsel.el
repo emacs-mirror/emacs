@@ -3,6 +3,7 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Matthieu Devin <devin@lucid.com>
+;; Maintainer: FSF
 ;; Created: 14 Jul 92
 ;; Last change  18-Feb-93, devin.
 

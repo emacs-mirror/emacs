@@ -4,6 +4,7 @@
 
 ;; Author: Charlie Martin <crm@cs.duke.edu>
 ;; Adapted-By: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 

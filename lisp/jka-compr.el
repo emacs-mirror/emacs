@@ -3,6 +3,7 @@
 ;; Copyright (C) 1993, 1994, 1995, 1997  Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
+;; Maintainer: FSF
 ;; Keywords: data
 
 ;; This file is part of GNU Emacs.

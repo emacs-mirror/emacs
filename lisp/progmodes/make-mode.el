@@ -4,6 +4,7 @@
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
+;; Maintainer: FSF
 ;; Adapted-By: ESR
 ;; Keywords: unix, tools
 

@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1986, 87, 88, 1997 Free Software Foundation, Inc.
 
-;; Author: Bill Rozas <jinz@prep.ai.mit.edu>
+;; Author: Bill Rozas <jinx@martigny.ai.mit.edu>
 ;; Keywords: languages, lisp
 
 ;; This file is part of GNU Emacs.

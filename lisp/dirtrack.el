@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 
-;; Author:  Peter Breton
+;; Author: Peter Breton <pbreton@i-kinetics.com>
 ;; Created: Sun Nov 17 1996
 ;; Keywords: processes
 ;; Time-stamp: <97/02/01 20:35:06 peter>
