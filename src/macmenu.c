@@ -2267,6 +2267,14 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
 	CFStringRef string =
 	  CFStringCreateWithCString (NULL, item_name, kCFStringEncodingUTF8);
 
+ 	if (string == NULL)
+ 	  {
+ 	    /* Failed to interpret as UTF8.  Fall back to Mac Roman.
+ 	       Maybe wv->name is corrupted?  */
+ 	    string = CFStringCreateWithCString (NULL, item_name,
+ 						kCFStringEncodingMacRoman);
+ 	  }
+	
 	SetMenuItemTextWithCFString (menu, pos, string);
 	CFRelease (string);
       }

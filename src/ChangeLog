@@ -1,3 +1,8 @@
+2004-12-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (add_menu_item): Fallback on MacRoman if encoding
+	menu text as UTF8 fails.
+
 2004-12-01  Kim F. Storm  <storm@cua.dk>
 
 	* alloc.c: Add commentary for last change.
