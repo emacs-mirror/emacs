@@ -60,6 +60,13 @@ A large number or nil slows down menu responsiveness.")
 
 (defvar vc-menu-map (make-sparse-keymap "Version Control"))
 
+(define-key menu-bar-tools-menu [gdb] '("Debugger..." . gdb))
+(define-key menu-bar-tools-menu [compile] '("Compile..." . compile))
+(define-key menu-bar-tools-menu [grep] '("Search Files..." . grep))
+
+(define-key menu-bar-tools-menu [separator-1]
+  '("--"))
+
 (define-key menu-bar-tools-menu [calendar] '("Display Calendar" . calendar))
 (define-key menu-bar-tools-menu [rmail] '("Read Mail" . rmail))
 (define-key menu-bar-tools-menu [gnus] '("Read Net News" . gnus))
