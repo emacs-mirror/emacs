@@ -12,7 +12,7 @@
 @kindex F1
 
   Emacs provides extensive help features accessible through a single
-character, @kbd{C-h}.  @kbd{C-h} is a prefix key that is used only for
+character, @kbd{C-h}.  @kbd{C-h} is a prefix key that is used for
 commands that display documentation.  The characters that you can type after
 @kbd{C-h} are called @dfn{help options}.  One help option is @kbd{C-h};
 that is how you ask for help about using @kbd{C-h}.  To cancel, type
@@ -111,7 +111,7 @@ Display a table of all key bindings in effect now, in this order: minor
 mode bindings, major mode bindings, and global bindings
 (@code{describe-bindings}).
 @item C-h c @var{key}
-Show the name of the command that will be run if @var{key} is typed
+Show the name of the command that @var{key} runs
 (@code{describe-key-briefly}).  Here @kbd{c} stands for ``character.''
 For more extensive information on @var{key}, use @kbd{C-h k}.
 @item C-h f @var{function} @key{RET}
@@ -133,8 +133,8 @@ Display a description of the last 100 characters you typed
 @item C-h m
 Display documentation of the current major mode (@code{describe-mode}).
 @item C-h n
-Display documentation of changes to Emacs and its packages, most
-recent first (@code{view-emacs-news}).
+Display documentation of Emacs changes, most recent first
+(@code{view-emacs-news}).
 @item C-h P
 Display info on known problems with Emacs and possible workarounds
 (@code{view-emacs-problems}).
@@ -146,13 +146,12 @@ what they mean (@code{describe-syntax}).  @xref{Syntax}.
 @item C-h t
 Enter the Emacs interactive tutorial (@code{help-with-tutorial}).
 @item C-h v @var{var} @key{RET}
-Display the documentation for the Lisp variable @var{var}
+Display the documentation of the Lisp variable @var{var}
 (@code{describe-variable}).
 @item C-h w @var{command} @key{RET}
-Display the list of keys that will run the command named @var{command}
-(@code{where-is}).
+Show which keys run the command named @var{command} (@code{where-is}).
 @item C-h C @var{coding} @key{RET}
-Describe a coding system @var{coding}
+Describe coding system @var{coding}
 (@code{describe-coding-system}).
 @item C-h C @key{RET}
 Describe the coding systems currently in use.
@@ -160,7 +159,7 @@ Describe the coding systems currently in use.
 Describe an input method (@code{describe-input-method}).
 @item C-h L @var{language-env} @key{RET}
 Display information on the character sets, coding systems and input
-methods used for a language environment @var{language-env}
+methods used for language environment @var{language-env}
 (@code{describe-language-environment}).
 @item C-h C-c
 Display the copying conditions for GNU Emacs.
@@ -230,14 +229,13 @@ you may find that some of your favorite abbreviations that work in
 among command names yet fail to be unique when other function names are
 allowed.
 
-  The name of the function that @kbd{C-h f} describes has a default which is
-used if you type @key{RET} leaving the minibuffer empty.  The default is
-the function called by the innermost Lisp expression in the buffer around
-point, @emph{provided} that is a valid, defined Lisp function name.  For
-example, if point is located following the text @samp{(make-vector (car
-x)}, the innermost list containing point is the one that starts with
-@samp{(make-vector}, so the default is to describe the function
-@code{make-vector}.
+  The default function name for @kbd{C-h f} to describe, if you type
+just @key{RET}, is the name of the function called by the innermost Lisp
+expression in the buffer around point, @emph{provided} that is a valid,
+defined Lisp function name.  For example, if point is located following
+the text @samp{(make-vector (car x)}, the innermost list containing
+point is the one that starts with @samp{(make-vector}, so the default is
+to describe the function @code{make-vector}.
 
   @kbd{C-h f} is often useful just to verify that you have the right
 spelling for the function name.  If @kbd{C-h f} mentions a name from the
@@ -407,8 +405,8 @@ the ones currently in use.  @xref{Coding Systems}.
 @node Help Mode
 @section Help Mode Commands
 
-  Help buffers provide the same commands commands as the View mode
-(@pxref{Misc File Ops}), plus a few special commands of their own.
+  Help buffers provide the same commands as View mode (@pxref{Misc File
+Ops}), plus a few special commands of their own.
 
 @table @kbd
 @item @key{SPC}
@@ -453,7 +451,7 @@ previous cross reference (@code{help-previous-ref}).
 @cindex on-line manuals
   @kbd{C-h i} (@code{info}) runs the Info program, which is used for
 browsing through structured documentation files.  The entire Emacs manual
-is available within Info.  Eventually all of the documentation of the GNU
+is available within Info.  Eventually all the documentation of the GNU
 system will be available.  Type @kbd{h} after entering Info to run
 a tutorial on using Info.
 
