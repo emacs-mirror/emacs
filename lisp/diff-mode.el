@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.34 2000/11/12 16:59:52 monnier Exp $
+;; Revision: $Id: diff-mode.el,v 1.35 2000/11/14 18:09:21 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 
-;; Provides support for font-lock patterns, outline-regexps, navigation
+;; Provides support for font-lock, outline, navigation
 ;; commands, editing and various conversions as well as jumping
 ;; to the corresponding source file.
 
@@ -45,7 +45,8 @@
 ;; Todo:
 
 ;; - Improve narrowed-view support.
-;; - Improve the `compile' support (?).
+;; - re-enable (conditionally) the `compile' support after improving it to use
+;;   the same code as diff-goto-source.
 ;; - Support for # comments in context->unified.
 ;; - Do a fuzzy search in diff-goto-source.
 ;; - Allow diff.el to use diff-mode.
@@ -874,14 +875,18 @@ This mode runs `diff-mode-hook'.
   ;;   (set (make-local-variable 'paragraph-separate) paragraph-start)
   ;;   (set (make-local-variable 'page-delimiter) "--- [^\t]+\t")
   ;; compile support
-  (set (make-local-variable 'compilation-file-regexp-alist)
-       diff-file-regexp-alist)
-  (set (make-local-variable 'compilation-error-regexp-alist)
-       diff-error-regexp-alist)
-  (when (string-match "\\.rej\\'" (or buffer-file-name ""))
-    (set (make-local-variable 'compilation-current-file)
-	 (substring buffer-file-name 0 (match-beginning 0))))
-  (compilation-shell-minor-mode 1)
+
+  ;;;; compile support is not good enough yet.  Also it can be annoying
+  ;; and should thus only be enabled conditionally.
+  ;; (set (make-local-variable 'compilation-file-regexp-alist)
+  ;;      diff-file-regexp-alist)
+  ;; (set (make-local-variable 'compilation-error-regexp-alist)
+  ;;      diff-error-regexp-alist)
+  ;; (when (string-match "\\.rej\\'" (or buffer-file-name ""))
+  ;;   (set (make-local-variable 'compilation-current-file)
+  ;; 	 (substring buffer-file-name 0 (match-beginning 0))))
+  ;; (compilation-shell-minor-mode 1)
+
   ;; setup change hooks
   (toggle-read-only t)
   (if (not diff-update-on-the-fly-flag)
@@ -1086,7 +1091,7 @@ With a prefix argument, REVERSE the hunk."
      ((null line-offset)
       (error "Can't find the text to patch"))
      ((and switched
-	   ;; A reversed patch was detected, perhaps apply it in reverse
+	   ;; A reversed patch was detected, perhaps apply it in reverse.
 	   (not (save-window-excursion
 		  (pop-to-buffer buf)
 		  (goto-char (+ pos (cdr old)))
