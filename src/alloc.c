@@ -516,11 +516,22 @@ buffer_memory_full ()
 }
 
 
-/* Like malloc but check for no memory and block interrupt input..  */
-
 #ifdef XMALLOC_OVERRUN_CHECK
 
+/* Check for overrun in malloc'ed buffers by wrapping a 16 byte header
+   and a 16 byte trailer around each block.
+
+   The header consists of 12 fixed bytes + a 4 byte integer contaning the
+   original block size, while the trailer consists of 16 fixed bytes.
+
+   The header is used to detect whether this block has been allocated
+   through these functions -- as it seems that some low-level libc
+   functions may bypass the malloc hooks.
+*/
+
+
 #define XMALLOC_OVERRUN_CHECK_SIZE 16
+
 static char xmalloc_overrun_check_header[XMALLOC_OVERRUN_CHECK_SIZE-4] =
   { 0x9a, 0x9b, 0xae, 0xaf,
     0xbf, 0xbe, 0xce, 0xcf,
@@ -532,74 +543,99 @@ static char xmalloc_overrun_check_trailer[XMALLOC_OVERRUN_CHECK_SIZE] =
     0xca, 0xcb, 0xcc, 0xcd,
     0xda, 0xdb, 0xdc, 0xdd };
 
+/* Macros to insert and extract the block size in the header.  */
+
+#define XMALLOC_PUT_SIZE(ptr, size)	\
+  (ptr[-1] = (size & 0xff),		\
+   ptr[-2] = ((size >> 8) & 0xff),	\
+   ptr[-3] = ((size >> 16) & 0xff),	\
+   ptr[-4] = ((size >> 24) & 0xff))
+
+#define XMALLOC_GET_SIZE(ptr)			\
+  (size_t)((unsigned)(ptr[-1])		|	\
+	   ((unsigned)(ptr[-2]) << 8)	|	\
+	   ((unsigned)(ptr[-3]) << 16)	|	\
+	   ((unsigned)(ptr[-4]) << 24))
+
+
+/* Like malloc, but wraps allocated block with header and trailer.  */
+
 POINTER_TYPE *
 overrun_check_malloc (size)
      size_t size;
 {
-  register char *val;
+  register unsigned char *val;
 
-  val = (char *) malloc (size + XMALLOC_OVERRUN_CHECK_SIZE*2);
+  val = (unsigned char *) malloc (size + XMALLOC_OVERRUN_CHECK_SIZE*2);
   if (val)
     {
       bcopy (xmalloc_overrun_check_header, val, XMALLOC_OVERRUN_CHECK_SIZE - 4);
-      bcopy (&size, val + XMALLOC_OVERRUN_CHECK_SIZE - 4, sizeof (size));
       val += XMALLOC_OVERRUN_CHECK_SIZE;
+      XMALLOC_PUT_SIZE(val, size);
       bcopy (xmalloc_overrun_check_trailer, val + size, XMALLOC_OVERRUN_CHECK_SIZE);
     }
   return (POINTER_TYPE *)val;
 }
+
+
+/* Like realloc, but checks old block for overrun, and wraps new block
+   with header and trailer.  */
 
 POINTER_TYPE *
 overrun_check_realloc (block, size)
      POINTER_TYPE *block;
      size_t size;
 {
-  register char *val = (char *)block;
+  register unsigned char *val = (unsigned char *)block;
 
   if (val
       && bcmp (xmalloc_overrun_check_header,
 	       val - XMALLOC_OVERRUN_CHECK_SIZE,
 	       XMALLOC_OVERRUN_CHECK_SIZE - 4) == 0)
     {
-      size_t osize;
-      bcopy (val - 4, &osize, sizeof (osize));
+      size_t osize = XMALLOC_GET_SIZE (val);
       if (bcmp (xmalloc_overrun_check_trailer,
 		val + osize,
 		XMALLOC_OVERRUN_CHECK_SIZE))
 	abort ();
+      bzero (val + osize, XMALLOC_OVERRUN_CHECK_SIZE);
       val -= XMALLOC_OVERRUN_CHECK_SIZE;
+      bzero (val, XMALLOC_OVERRUN_CHECK_SIZE);
     }
 
-  val = (char *) realloc ((POINTER_TYPE *)val, size + XMALLOC_OVERRUN_CHECK_SIZE*2);
+  val = (unsigned char *) realloc ((POINTER_TYPE *)val, size + XMALLOC_OVERRUN_CHECK_SIZE*2);
 
   if (val)
     {
       bcopy (xmalloc_overrun_check_header, val, XMALLOC_OVERRUN_CHECK_SIZE - 4);
-      bcopy (&size, val + XMALLOC_OVERRUN_CHECK_SIZE - 4, sizeof (size));
       val += XMALLOC_OVERRUN_CHECK_SIZE;
+      XMALLOC_PUT_SIZE(val, size);
       bcopy (xmalloc_overrun_check_trailer, val + size, XMALLOC_OVERRUN_CHECK_SIZE);
     }
   return (POINTER_TYPE *)val;
 }
 
+/* Like free, but checks block for overrun.  */
+
 void
 overrun_check_free (block)
      POINTER_TYPE *block;
 {
-  char *val = (char *)block;
+  unsigned char *val = (unsigned char *)block;
 
   if (val
       && bcmp (xmalloc_overrun_check_header,
 	       val - XMALLOC_OVERRUN_CHECK_SIZE,
 	       XMALLOC_OVERRUN_CHECK_SIZE - 4) == 0)
     {
-      size_t osize;
-      bcopy (val - 4, &osize, sizeof (osize));
+      size_t osize = XMALLOC_GET_SIZE (val);
       if (bcmp (xmalloc_overrun_check_trailer,
 		val + osize,
 		XMALLOC_OVERRUN_CHECK_SIZE))
 	abort ();
+      bzero (val + osize, XMALLOC_OVERRUN_CHECK_SIZE);
       val -= XMALLOC_OVERRUN_CHECK_SIZE;
+      bzero (val, XMALLOC_OVERRUN_CHECK_SIZE);
     }
 
   free (val);
@@ -612,6 +648,9 @@ overrun_check_free (block)
 #define realloc overrun_check_realloc
 #define free overrun_check_free
 #endif
+
+
+/* Like malloc but check for no memory and block interrupt input..  */
 
 POINTER_TYPE *
 xmalloc (size)
@@ -1527,10 +1566,17 @@ static int total_string_size;
 
 
 #ifdef GC_CHECK_STRING_OVERRUN
-#define GC_STRING_EXTRA	4
-static char string_overrun_pattern[GC_STRING_EXTRA] = { 0xde, 0xad, 0xbe, 0xef };
+
+/* We check for overrun in string data blocks by appending a small
+   "cookie" after each allocated string data block, and check for the
+   presense of this cookie during GC.  */
+
+#define GC_STRING_OVERRUN_COOKIE_SIZE	4
+static char string_overrun_cookie[GC_STRING_OVERRUN_COOKIE_SIZE] =
+  { 0xde, 0xad, 0xbe, 0xef };
+
 #else
-#define GC_STRING_EXTRA 0
+#define GC_STRING_OVERRUN_COOKIE_SIZE 0
 #endif
 
 /* Value is the size of an sdata structure large enough to hold NBYTES
@@ -1555,6 +1601,10 @@ static char string_overrun_pattern[GC_STRING_EXTRA] = { 0xde, 0xad, 0xbe, 0xef }
       & ~(sizeof (EMACS_INT) - 1))
 
 #endif /* not GC_CHECK_STRING_BYTES */
+
+/* Extra bytes to allocate for each string.  */
+
+#define GC_STRING_EXTRA (GC_STRING_OVERRUN_COOKIE_SIZE)
 
 /* Initialize string allocation.  Called from init_alloc_once.  */
 
@@ -1655,6 +1705,9 @@ check_string_bytes (all_p)
 
 #ifdef GC_CHECK_STRING_FREE_LIST
 
+/* Walk through the string free list looking for bogus next pointers.
+   This may catch buffer overrun from a previous string.  */
+
 static void
 check_string_free_list ()
 {
@@ -1703,7 +1756,7 @@ allocate_string ()
       total_free_strings += STRING_BLOCK_SIZE;
     }
 
-  check_string_free_list();
+  check_string_free_list ();
 
   /* Pop a Lisp_String off the free-list.  */
   s = string_free_list;
@@ -1819,7 +1872,8 @@ allocate_string_data (s, nchars, nbytes)
   s->size_byte = nbytes;
   s->data[nbytes] = '\0';
 #ifdef GC_CHECK_STRING_OVERRUN
-  bcopy(string_overrun_pattern, (char *) data + needed, GC_STRING_EXTRA);
+  bcopy (string_overrun_cookie, (char *) data + needed,
+	 GC_STRING_OVERRUN_COOKIE_SIZE);
 #endif
   b->next_free = (struct sdata *) ((char *) data + needed + GC_STRING_EXTRA);
 
@@ -1926,13 +1980,13 @@ sweep_strings ()
 	}
     }
 
-  check_string_free_list();
+  check_string_free_list ();
 
   string_blocks = live_blocks;
   free_large_strings ();
   compact_small_strings ();
 
-  check_string_free_list();
+  check_string_free_list ();
 }
 
 
@@ -2004,16 +2058,16 @@ compact_small_strings ()
 	  else
 	    nbytes = SDATA_NBYTES (from);
 
-#ifdef GC_CHECK_STRING_BYTES
 	  if (nbytes > LARGE_STRING_BYTES)
 	    abort ();
-#endif
 
 	  nbytes = SDATA_SIZE (nbytes);
 	  from_end = (struct sdata *) ((char *) from + nbytes + GC_STRING_EXTRA);
 
 #ifdef GC_CHECK_STRING_OVERRUN
-	  if (bcmp(string_overrun_pattern, ((char *) from_end) - GC_STRING_EXTRA, GC_STRING_EXTRA))
+	  if (bcmp (string_overrun_cookie,
+		    ((char *) from_end) - GC_STRING_OVERRUN_COOKIE_SIZE,
+		    GC_STRING_OVERRUN_COOKIE_SIZE))
 	    abort ();
 #endif
 
