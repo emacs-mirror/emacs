@@ -134,8 +134,10 @@ static int region_face;
    does not specify that display aspect.  */
 #define FACE_DEFAULT (~0)
 
-Lisp_Object Qface, Qmouse_face;
+Lisp_Object Qface;
 Lisp_Object Qpixmap_spec_p;
+
+extern Lisp_Object Qmouse_face;  /* In textprop.c.  */
 
 int face_name_id_number ( /* FRAME_PTR, Lisp_Object name */ );
 
