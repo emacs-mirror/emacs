@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.65) $
+ * $HopeName: MMsrc!poolawl.c(trunk.67) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  *
@@ -41,9 +41,10 @@
 
 #include "mpscawl.h"
 #include "mpm.h"
+#include "chain.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.65) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.67) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -83,7 +84,7 @@ typedef struct AWLStatTotalStruct {
 typedef struct AWLStruct {
   PoolStruct poolStruct;
   Shift alignShift;
-  Chain chain;
+  Chain chain;              /* dummy chain */
   Size size;                /* allocated size in bytes */
   Serial gen;               /* associated generation (for SegAlloc) */
   Count succAccesses;       /* number of successive single accesses */
@@ -495,8 +496,11 @@ static Res AWLInit(Pool pool, va_list arg)
 {
   AWL awl;
   Format format;
+  Chain chain;
+  Res res;
+  static GenParamStruct genParam = { SizeMAX, 0.5 /* dummy */ };
 
-  /* weak check, as half way through initialization */
+  /* Weak check, as half-way through initialization. */
   AVER(pool != NULL);
 
   awl = PoolPoolAWL(pool);
@@ -504,8 +508,11 @@ static Res AWLInit(Pool pool, va_list arg)
   format = va_arg(arg, Format);
   AVERT(Format, format);
   pool->format = format;
-  awl->chain = va_arg(arg, Chain);
-  AVERT(Chain, awl->chain);
+
+  res = ChainCreate(&chain, pool->arena, 1, &genParam);
+  if (res != ResOK)
+    return res;
+  awl->chain = chain;
 
   awl->alignShift = SizeLog2(pool->alignment);
   awl->gen = AWLGen;
@@ -539,6 +546,8 @@ static void AWLFinish(Pool pool)
     AVERT(Seg, seg);
     SegFree(seg);
   }
+  awl->sig = SigInvalid;
+  ChainDestroy(awl->chain);
 }
 
 
