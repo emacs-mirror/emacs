@@ -76,7 +76,8 @@ XtApplyToWidgets (w, proc, arg)
       int nkids = cw->composite.num_children;
       Widget *kids = (Widget *) malloc (sizeof (Widget) * nkids);
       int i;
-      lwlib_bcopy (cw->composite.children, kids, sizeof (Widget) * nkids);
+      lwlib_bcopy ((char *) cw->composite.children, (char *) kids,
+		   sizeof (Widget) * nkids);
       for (i = 0; i < nkids; i++)
 /* This prevent us from using gadgets, why is it here? */
 /*	if (XtIsWidget (kids [i])) */
