@@ -1,3 +1,9 @@
+2001-08-16  Miles Bader  <miles@gnu.org>
+
+	* simple.el (line-move): Pass an ESCAPE-FROM-EDGE argument of t
+	when calling `constrain-to-field', to avoid problems with comint
+	prompts.
+
 2001-08-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/cl-indent.el (lisp-indent-defmethod): New function.
