@@ -1,0 +1,25 @@
+# -sed1v2.inp-----------------------------------------------------------
+# Configuration script for src/makefile under DJGPP v2.x
+# ----------------------------------------------------------------------
+s/^#.*//
+s/^[ \f\t][ \f\t]*$//
+s/^ /	/
+s/\.h\.in/.h-in/
+/^	\.\/temacs/i\
+	stubedit temacs.exe minstack=40k
+/^MAKE *=/s/^/# /
+/^SHELL *=/s/^/# /
+/^srcdir *=/s/@[^@\n]*@/./
+/^VPATH *=/s/@[^@\n]*@/./
+/^CC *=/s/@[^@\n]*@/gcc/
+/^CPP *=/s/@[^@\n]*@/gcc -e/
+/^CFLAGS *=/s/@[^@\n]*@/-O2 -g/
+/^LN_S *=/s/@[^@\n]*@/ln -s/
+/^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
+/^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
+/^@SET_MAKE@$/s/@SET_MAKE@//
+/^.\${libsrc}make-docfile.*>/s!make-docfile!make-docfile -o ../etc/DOC!
+/^.\${libsrc}make-doc/s!>.*$!!
+/^[ 	]*$/d
+/^temacs:/s/prefix-args//
+/^	#/d

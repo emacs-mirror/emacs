@@ -1,0 +1,25 @@
+# -sed3v2.inp-------------------------------------------------------------
+# Configuration script for lib-src/makefile under DJGPP v2
+# ----------------------------------------------------------------------
+/^# DIST: /d
+/^SHELL *=/s/^/# /
+/^CC *=/s/=.*$/=gcc/
+# Actually, here we should patch in the exact version number, but only
+# [ce]tags uses it.  Don't pass it.  This is more update-resistant.
+/-DVERSION=/s/-DVERSION="\\"\${version}\\""//
+/^configname *=/s/=.*$/=msdos/
+/^archlibdir *=/s!=.*$!=/emacs/bin!
+/^bindir *=/s!=.*$!=/emacs/bin!
+/^libdir *=/s!=.*$!=/emacs/bin!
+/^srcdir *=/s!=.*$!=.!
+/^VPATH *=/s!=.*$!=.!
+/^CFLAGS *=/s!=.*$!=-O2 -g!
+/^C_SWITCH_SYSTEM *=/s!=.*$!=-DMSDOS!
+/^LOADLIBES *=/s!=.*$!=!
+/^ALLOCA *=/s!=.*$!=alloca.o!
+/^INSTALLABLES/s/emacsclient *//
+s!^	\./!	!
+/^UTILITIES=/s/ wakeup//
+/^UTILITIES=/s/ movemail//
+/^UTILITIES=/s/ emacsserver//
+/^UTILITIES=/s/ timer//
