@@ -1,3 +1,8 @@
+2002-12-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* mail/undigest.el (rmail-digest-end-regexps): Simplify.
+	(undigestify-rmail-message): Fix paren-bug and simplify.
+
 2002-12-15  Dave Love  <fx@gnu.org>
 
 	* language/european.el (mac-roman): Add mime-charset property.

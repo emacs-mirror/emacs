@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; See Internet RFC 934
+;; See Internet RFC 1153
 
 ;;; Code:
 
