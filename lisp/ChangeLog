@@ -9,6 +9,8 @@
 
 2000-11-16  Andre Spiegel  <spiegel@gnu.org>
 
+	* vc-{cvs,rcs,sccs}.el: Functions reordered.
+	
 	* vc.el (vc-revert-buffer): Ask for confirmation if file seems 
 	up-to-date.
 	(vc-do-command): In the asynchronous case, output messages only if 
