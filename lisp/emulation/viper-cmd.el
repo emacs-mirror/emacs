@@ -2554,22 +2554,23 @@ These keys are ESC, RET, and LineFeed"
     (or (eq viper-intermediate-command 'viper-repeat)
 	(viper-special-read-and-insert-char))
 
-      (if (eq char ?\C-m) (setq char ?\n))
-
-      (delete-char 1 t)
-
-      (setq char (if com viper-d-char (viper-char-at-pos 'backward)))
-      (if com (insert char))
-
-      (setq viper-d-char char)
-
-      (viper-loop (1- (if (> arg 0) arg (- arg)))
-		  (delete-char 1 t)
-		  (insert char))
-
-      (viper-adjust-undo)
-      (backward-char arg)
-      ))
+    ;; Is this needed?
+    (if (eq char ?\C-m) (setq char ?\n))
+    
+    (delete-char 1 t)
+    
+    (setq char (if com viper-d-char (viper-char-at-pos 'backward)))
+    (if com (insert char))
+    
+    (setq viper-d-char char)
+    
+    (viper-loop (1- (if (> arg 0) arg (- arg)))
+		(delete-char 1 t)
+		(insert char))
+    
+    (viper-adjust-undo)
+    (backward-char arg)
+    ))
 
 
 ;; basic cursor movement.  j, k, l, h commands.

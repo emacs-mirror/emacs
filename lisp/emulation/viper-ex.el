@@ -716,6 +716,8 @@ reversed."
       
 
 ;; Get a regular expression and set `ex-variant', if found
+;; Viper doesn't parse the substitution or search patterns.
+;; In particular, it doesn't expand ~ into the last substitution.
 (defun viper-get-ex-pat ()
   (save-window-excursion
     (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
@@ -848,7 +850,9 @@ reversed."
 	       (forward-line (1- ex-token))
 	       (setq address (point-marker)))))
 	  ((eq ex-token-type 'end)
-	   (setq address (point-max-marker)))
+	   (save-excursion
+	     (goto-char (1- (point-max)))
+	     (setq address (point-marker))))
 	  ((eq ex-token-type 'plus) t)  ; do nothing
 	  ((eq ex-token-type 'minus) t) ; do nothing
 	  ((eq ex-token-type 'search-forward)
@@ -871,6 +875,7 @@ reversed."
 
 
 ;; Search pattern and set address
+;; Doesn't wrap around. Should it?
 (defun ex-search-address (forward)
   (if (string= ex-token "")
       (if (null viper-s-string)
@@ -1251,27 +1256,27 @@ reversed."
 	((string= ex-file "")
 	 (error viper-NoFileSpecified)))
       
-;;;  (let (msg do-edit)
-;;;    (if buffer-file-name
-;;;	(cond ((buffer-modified-p)
-;;;	       (setq msg
-;;;		     (format "Buffer %s is modified.  Discard changes? "
-;;;			     (buffer-name))
-;;;		     do-edit t))
-;;;	      ((not (verify-visited-file-modtime (current-buffer)))
-;;;	       (setq msg
-;;;		     (format "File %s changed on disk.  Reread from disk? "
-;;;			     buffer-file-name)
-;;;		     do-edit t))
-;;;	      (t (setq do-edit nil))))
-;;;      
-;;;    (if do-edit
-;;;	(if (yes-or-no-p msg)
-;;;	    (progn
-;;;	      (set-buffer-modified-p nil)
-;;;	      (kill-buffer (current-buffer)))
-;;;	  (message "Buffer %s was left intact" (buffer-name))))
-;;;    ) ; let
+     (let (msg do-edit)
+       (if buffer-file-name
+   	(cond ((buffer-modified-p)
+   	       (setq msg
+   		     (format "Buffer %s is modified.  Discard changes? "
+   			     (buffer-name))
+   		     do-edit t))
+   	      ((not (verify-visited-file-modtime (current-buffer)))
+   	       (setq msg
+   		     (format "File %s changed on disk.  Reread from disk? "
+   			     buffer-file-name)
+   		     do-edit t))
+   	      (t (setq do-edit nil))))
+         
+       (if do-edit
+   	(if (yes-or-no-p msg)
+   	    (progn
+   	      (set-buffer-modified-p nil)
+   	      (kill-buffer (current-buffer)))
+   	  (message "Buffer %s was left intact" (buffer-name))))
+       ) ; let
   
   (if (null (setq file (get-file-buffer ex-file)))
       (progn 

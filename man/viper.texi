@@ -3210,8 +3210,9 @@ syntax tables in order to not thwart the various major modes that set these
 tables.
 
 The usual Emacs convention is used to indicate Control Characters, i.e
-C-h for Control-h.  @emph{Do not confuse this to mean the separate
-characters C - h!!!} The @kbd{^} is itself, never used to indicate a
+C-h for Control-h.  @emph{Do not confuse this with a sequence of separate
+characters
+C, -, h!!!} The @kbd{^} is itself, never used to indicate a
 Control character.
 
 Finally, we note that Viper's Ex-style commands can be made to work on the
@@ -3680,6 +3681,10 @@ In Emacs, @samp{\&} stands for the last matched expression, so
 @kbd{s/[ab]+/\&\&/} will double the string matched by @kbd{[ab]}.
 Viper doesn't treat @samp{&} specially, unlike Vi: use @samp{\&} instead.
 
+Viper does not parse search patterns and does not expand special symbols
+found there (e.g., @samp{~} is not expanded to the result of the previous
+substitution).
+
 Note: @emph{The newline character (inserted as @kbd{C-qC-j})
 can be used in <repl>}.
 @item  :[x,y]copy [z]
@@ -3745,6 +3750,11 @@ wrapping around.
 @table @kbd
 @item <count>  /<string>
 To the <count>th occurrence of <string>.
+
+Viper does not parse search patterns and does not expand special symbols
+found there (e.g., @samp{~} is not expanded to the result of the previous
+substitution).
+
 @item <count>  ?<string>
 To the <count>th previous occurrence of <string>.
 @item <count>  g<move>
