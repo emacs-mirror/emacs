@@ -433,8 +433,8 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
     (define-key map "\r"       'newline)
     (define-key map "\C-c\r"   'f90-break-line)
 ;;;  (define-key map [M-return] 'f90-break-line)
-    (define-key map "\C-c\C-a" 'f90-previous-block-start)
-    (define-key map "\C-c\C-e" 'f90-next-block-end)
+    (define-key map "\C-c\C-a" 'f90-previous-block)
+    (define-key map "\C-c\C-e" 'f90-next-block)
     (define-key map "\C-c\C-d" 'f90-join-lines)
     (define-key map "\C-c\C-f" 'f90-fill-region)
     (define-key map "\C-c\C-p" 'f90-previous-statement)
@@ -1189,15 +1189,12 @@ Return nil if no later statement is found."
     not-last-statement))
 
 (defun f90-beginning-of-subprogram ()
-  "Move point to the beginning of subprogram.
+  "Move point to the beginning of the current subprogram.
 Return (TYPE NAME), or nil if not found."
   (interactive)
   (let ((count 1) (case-fold-search t) matching-beg)
     (beginning-of-line)
-    (skip-chars-forward " \t0-9")
-    (if (setq matching-beg (f90-looking-at-program-block-start))
-	(setq count (1- count)))
-    (while (and (not (zerop count))
+    (while (and (> count 0)
 		(re-search-backward f90-program-block-re nil 'move))
       (beginning-of-line)
       (skip-chars-forward " \t0-9")
@@ -1212,16 +1209,12 @@ Return (TYPE NAME), or nil if not found."
       nil)))
 
 (defun f90-end-of-subprogram ()
-  "Move point to the end of subprogram.
+  "Move point to the end of the current subprogram.
 Return (TYPE NAME), or nil if not found."
   (interactive)
   (let ((count 1) (case-fold-search t) matching-end)
-    (beginning-of-line)
-    (skip-chars-forward " \t0-9")
-    (if (setq matching-end (f90-looking-at-program-block-end))
-	(setq count (1- count)))
     (end-of-line)
-    (while (and (not (zerop count))
+    (while (and (> count 0)
 		(re-search-forward f90-program-block-re nil 'move))
       (beginning-of-line)
       (skip-chars-forward " \t0-9")
@@ -1285,7 +1278,7 @@ and completes outermost block if necessary."
                    (error "End label `%s' does not match start label `%s'"
                           end-label start-label)))))
       (end-of-line))
-    (if (> count 0) (error "Unterminated block"))
+    (if (> count 0) (error "Missing block end"))
     ;; Check outermost block.
     (if (interactive-p)
         (save-excursion
@@ -1340,39 +1333,40 @@ Does not check the outermost block, because it may be incomplete."
                           start-label end-label))))))
      (if (> count 0) (error "Missing block start"))))
 
-(defun f90-next-block-end (&optional num)
-  "Move point forward to the next block end.
-With optional argument NUM, go forward that many block ends.
-If NUM is negative, go backward to the start of a block."
+(defun f90-next-block (&optional num)
+  "Move point forward to the next end or start of a code block.
+With optional argument NUM, go forward that many blocks.
+If NUM is negative, go backwards.
+A block is a subroutine, if-endif, etc."
   (interactive "p")
-  (if (and num (< num 0)) (f90-previous-block-start (- num)))
-  (let ((count (or num 1))
-        (end-re (concat "end[ \t]*" f90-blocks-re)))
-    (while (and (> count 0) (re-search-forward end-re nil 'move))
+  (let ((case-fold-search t)
+        (count (if num (abs num) 1)))
+    (while (and (> count 0)
+                (if (> num 0) (re-search-forward f90-blocks-re nil 'move)
+                  (re-search-backward f90-blocks-re nil 'move)))
       (beginning-of-line)
       (skip-chars-forward " \t0-9")
-      (or (f90-in-string) (f90-in-comment)
-          (setq count (1- count)))
-      (end-of-line))))
+      (cond ((or (f90-in-string) (f90-in-comment)))
+            ((or
+              (looking-at "end[ \t]*")
+              (f90-looking-at-do)
+              (f90-looking-at-select-case)
+              (f90-looking-at-type-like)
+              (f90-looking-at-program-block-start)
+              (f90-looking-at-if-then)
+              (f90-looking-at-where-or-forall))
+             (setq count (1- count))))
+      (if (> num 0) (end-of-line)
+        (beginning-of-line)))))
 
-(defun f90-previous-block-start (&optional num)
-  "Move point backward to the previous block start.
-With optional argument NUM, go backward that many block starts.
-If NUM is negative, go forward to the end of a block."
+
+(defun f90-previous-block (&optional num)
+  "Move point backward to the previous end or start of a code block.
+With optional argument NUM, go backward that many blocks.
+If NUM is negative, go forwards.
+A block is a subroutine, if-endif, etc."
   (interactive "p")
-  (if (and num (< num 0)) (f90-next-block-end (- num)))
-  (let ((count (or num 1)))
-    (while (and (> count 0) (re-search-backward f90-blocks-re nil 'move))
-      (beginning-of-line)
-      (skip-chars-forward " \t0-9")
-      (or (f90-in-string) (f90-in-comment)
-          (and (or (f90-looking-at-do)
-                   (f90-looking-at-select-case)
-                   (f90-looking-at-type-like)
-                   (f90-looking-at-program-block-start)
-                   (f90-looking-at-if-then)
-                   (f90-looking-at-where-or-forall))
-               (setq count (1- count)))))))
+  (f90-next-block (- (or num 1))))
 
 
 (defvar f90-mark-subprogram-overlay nil
