@@ -106,8 +106,8 @@
 
 The arguments to this command are as follow:
 
-PARENT:    the name of the command for the parent mode (ie. text-mode).
 CHILD:     the name of the command for the derived mode.
+PARENT:    the name of the command for the parent mode (ie. text-mode).
 NAME:      a string which will appear in the status line (ie. \"Hypertext\")
 DOCSTRING: an optional documentation string--if you do not supply one,
            the function will attempt to invent something useful.
