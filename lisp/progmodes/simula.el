@@ -1621,17 +1621,6 @@ If not nil and not t, move to limit of search and return nil."
     ;; save point for later calls to this function
     (setq simula-find-comment-point (if end (point) -1))
     (and end (cons start end))))
-
-(if (not (fboundp 'save-match-data))
-    (defmacro save-match-data (&rest body)
-      "Execute the BODY forms, restoring the global value of the match data."
-      (let ((original (make-symbol "match-data")))
-	(list
-	 'let (list (list original '(match-data)))
-	 (list 'unwind-protect
-	       (cons 'progn body)
-	       (list 'store-match-data original))))))
-
 
 ;; defuns for submitting bug reports
 
