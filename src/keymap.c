@@ -224,9 +224,16 @@ get_keymap_1 (object, error, autoload)
   Lisp_Object tem;
 
  autoload_retry:
-  tem = indirect_function (object);
-  if (CONSP (tem) && EQ (XCONS (tem)->car, Qkeymap))
-    return tem;
+  if (NILP (object))
+    goto end;
+  if (CONSP (object) && EQ (XCAR (object), Qkeymap))
+    return object;
+  else
+    {
+      tem = indirect_function (object);
+      if (CONSP (tem) && EQ (XCONS (tem)->car, Qkeymap))
+	return tem;
+    }
 
   /* Should we do an autoload?  Autoload forms for keymaps have
      Qkeymap as their fifth element.  */
@@ -250,6 +257,7 @@ get_keymap_1 (object, error, autoload)
 	}
     }
 
+ end:
   if (error)
     wrong_type_argument (Qkeymapp, object);
   else
@@ -545,68 +553,76 @@ get_keyelt (object, autoload)
 {
   while (1)
     {
-      register Lisp_Object map, tem;
-
-      /* If the contents are (KEYMAP . ELEMENT), go indirect.  */
-      map = get_keymap_1 (Fcar_safe (object), 0, autoload);
-      tem = Fkeymapp (map);
-      if (!NILP (tem))
-	{
-	  Lisp_Object key;
-	  key = Fcdr (object);
-	  if (INTEGERP (key) && (XINT (key) & meta_modifier))
-	    {
-	      object = access_keymap (map, meta_prefix_char, 0, 0);
-	      map = get_keymap_1 (object, 0, autoload);
-	      object = access_keymap (map,
-				      make_number (XINT (key) & ~meta_modifier),
-				      0, 0);
-	    }
-	  else
-	    object = access_keymap (map, key, 0, 0);
-	}
-
-      else if (!(CONSP (object)))
+      if (!(CONSP (object)))
 	/* This is really the value.  */
 	return object;
 
-      /* If the keymap contents looks like (STRING . DEFN),
-	 use DEFN.
-	 Keymap alist elements like (CHAR MENUSTRING . DEFN)
-	 will be used by HierarKey menus.  */
-      else if (STRINGP (XCONS (object)->car))
-	{
-	  object = XCONS (object)->cdr;
-	  /* Also remove a menu help string, if any,
-	     following the menu item name.  */
-	  if (CONSP (object) && STRINGP (XCONS (object)->car))
-	    object = XCONS (object)->cdr;
-	  /* Also remove the sublist that caches key equivalences, if any.  */
-	  if (CONSP (object)
-	      && CONSP (XCONS (object)->car))
-	    {
-	      Lisp_Object carcar;
-	      carcar = XCONS (XCONS (object)->car)->car;
-	      if (NILP (carcar) || VECTORP (carcar))
-		object = XCONS (object)->cdr;
-	    }
-	}
+      /* If the keymap contents looks like (keymap ...) or (lambda ...)
+	 then use itself. */
+      else if (EQ (XCAR (object), Qkeymap) || EQ (XCAR (object), Qlambda))
+	return object;
 
       /* If the keymap contents looks like (menu-item name . DEFN)
 	 or (menu-item name DEFN ...) then use DEFN.
 	 This is a new format menu item.
       */
-      else if (EQ (XCONS (object)->car, Qmenu_item)
-	       && CONSP (XCONS (object)->cdr))
+      else if (EQ (XCAR (object), Qmenu_item))
 	{
-	  object = XCONS (XCONS (object)->cdr)->cdr;
-	  if (CONSP (object))
-	    object = XCONS (object)->car;
+	  if (CONSP (XCDR (object)))
+	    {
+	      object = XCDR (XCDR (object));
+	      if (CONSP (object))
+		object = XCAR (object);
+	    }
+	  else
+	    /* Invalid keymap */
+	    return object;
 	}
 
+      /* If the keymap contents looks like (STRING . DEFN), use DEFN.
+	 Keymap alist elements like (CHAR MENUSTRING . DEFN)
+	 will be used by HierarKey menus.  */
+      else if (STRINGP (XCAR (object)))
+	{
+	  object = XCDR (object);
+	  /* Also remove a menu help string, if any,
+	     following the menu item name.  */
+	  if (CONSP (object) && STRINGP (XCAR (object)))
+	    object = XCDR (object);
+	  /* Also remove the sublist that caches key equivalences, if any.  */
+	  if (CONSP (object) && CONSP (XCAR (object)))
+	    {
+	      Lisp_Object carcar;
+	      carcar = XCAR (XCAR (object));
+	      if (NILP (carcar) || VECTORP (carcar))
+		object = XCDR (object);
+	    }
+	}
+
+      /* If the contents are (KEYMAP . ELEMENT), go indirect.  */
       else
-	/* Anything else is really the value.  */
-	return object;
+	{
+	  register Lisp_Object map;
+	  map = get_keymap_1 (Fcar_safe (object), 0, autoload);
+	  if (NILP (map))
+	    /* Invalid keymap */
+	    return object;
+	  else
+	    {
+	      Lisp_Object key;
+	      key = Fcdr (object);
+	      if (INTEGERP (key) && (XINT (key) & meta_modifier))
+		{
+		  object = access_keymap (map, meta_prefix_char, 0, 0);
+		  map = get_keymap_1 (object, 0, autoload);
+		  object = access_keymap (map, make_number (XINT (key)
+							    & ~meta_modifier),
+					  0, 0);
+		}
+	      else
+		object = access_keymap (map, key, 0, 0);
+	    }
+	}
     }
 }
 
