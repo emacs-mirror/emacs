@@ -1,5 +1,13 @@
 2000-06-01  Dave Love  <fx@gnu.org>
 
+	* cmds.c (internal_self_insert): Don't check
+	Vbefore_change_function, Vafter_change_function.
+
+	* insdel.c (signal_before_change, signal_after_change): Likewise.
+
+	* buffer.c (Vbefore_change_function, Vafter_change_function):
+	Variables and their initializations deleted.
+
 	* callint.c (Fcall_interactively): Doc fix.
 
 	* terminfo.c (ospeed) [HAVE_SPEED_T]: Don't declare extern.

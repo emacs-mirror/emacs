@@ -1,3 +1,9 @@
+2000-06-02  Dave Love  <fx@gnu.org>
+
+	* autoarg.el: Rewritten to use define-minor-mode.
+	(autoarg-kp-digits, autoarg-kp-mode-map): New variable.
+	(autoarg-kp-mode, autoarg-kp-digit-argument): New command.
+
 2000-06-02  Kenichi Handa  <handa@etl.go.jp>
 
 	* isearch.el (isearch-other-meta-char): Fix previous change.
