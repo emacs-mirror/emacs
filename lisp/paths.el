@@ -42,18 +42,19 @@
 (defvar gnus-default-nntp-server ""
   ;; set this to your local server
   "The name of the host running an NNTP server.
-If it is a string such as `:DIRECTORY', then ~/DIRECTORY
-is used as a news spool.  gnus-nntp-server is initialised from NNTPSERVER
+If it is a string such as \":DIRECTORY\", then ~/DIRECTORY
+is used as a news spool.  `gnus-nntp-server' is initialised from NNTPSERVER
 environment variable or, if none, this value.")
 
 (defvar gnus-nntp-service "nntp"
   "NNTP service name, usually \"nntp\" or 119).
-Go to a local news spool if its value is nil.")
+Go to a local news spool if its value is nil, in which case `gnus-nntp-server'
+should be set to `(system-name)'.")
 
 (defvar gnus-your-domain nil
   "Your domain name without your host name like: \"stars.flab.Fujitsu.CO.JP\"
-The `DOMAINNAME' environment variable is used instead if defined.  If
-the function (system-name) returns a fully qualified domain name, there is no
+The DOMAINNAME environment variable is used instead if defined.  If
+the function `system-name' returns a fully qualified domain name, there is no
 need to define the name.")
 
 (defvar gnus-your-organization ""
