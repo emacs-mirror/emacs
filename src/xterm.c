@@ -11298,7 +11298,7 @@ x_make_frame_visible (f)
      so that incoming events are handled.  */
   {
     Lisp_Object frame;
-    int count = input_signal_count;
+    int count;
     /* This must be before UNBLOCK_INPUT
        since events that arrive in response to the actions above
        will set it when they are handled.  */
@@ -11350,37 +11350,33 @@ x_make_frame_visible (f)
 
     XSETFRAME (frame, f);
 
-    while (1)
+    /* Wait until the frame is visible.  Process X events until a
+       MapNotify event has been seen, or until we think we won't get a
+       MapNotify at all..  */
+    for (count = input_signal_count + 10;
+	 input_signal_count < count && !FRAME_VISIBLE_P (f);)
       {
+	/* Force processing of queued events.  */
 	x_sync (f);
-	/* Once we have handled input events,
-	   we should have received the MapNotify if one is coming.
-	   So if we have not got it yet, stop looping.
-	   Some window managers make their own decisions
-	   about visibility.  */
-	if (input_signal_count != count)
-	  break;
-	/* Machines that do polling rather than SIGIO have been observed
-	   to go into a busy-wait here.  So we'll fake an alarm signal
-	   to let the handler know that there's something to be read.
-	   We used to raise a real alarm, but it seems that the handler
-	   isn't always enabled here.  This is probably a bug.  */
+
+	/* Machines that do polling rather than SIGIO have been
+	   observed to go into a busy-wait here.  So we'll fake an
+	   alarm signal to let the handler know that there's something
+	   to be read.  We used to raise a real alarm, but it seems
+	   that the handler isn't always enabled here.  This is
+	   probably a bug.  */
 	if (input_polling_used ())
 	  {
-	    /* It could be confusing if a real alarm arrives while processing
-	       the fake one.  Turn it off and let the handler reset it.  */
+	    /* It could be confusing if a real alarm arrives while
+	       processing the fake one.  Turn it off and let the
+	       handler reset it.  */
 	    alarm (0);
 	    input_poll_signal (0);
 	  }
-	/* Once we have handled input events,
-	   we should have received the MapNotify if one is coming.
-	   So if we have not got it yet, stop looping.
-	   Some window managers make their own decisions
-	   about visibility.  */
-	if (input_signal_count != count)
-	  break;
+
+	/* See if a MapNotify event has been processed.  */
+	FRAME_SAMPLE_VISIBILITY (f);
       }
-    FRAME_SAMPLE_VISIBILITY (f);
   }
 }
 
