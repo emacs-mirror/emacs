@@ -495,7 +495,7 @@ The return value is number of composed characters."
   (if (< (1+ from) to)
       (prog1 (- to from)
 	(if string
-	    (compose-string from to)
+	    (compose-string string from to)
 	  (compose-region from to))
 	(- to from))))
 
