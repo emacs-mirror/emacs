@@ -111,7 +111,7 @@ less than a full screen."
 	  (choice :tag "Normal"
 		  (const :tag "Full screen" :value nil)
 		  (integer :tag "Specific # of lines")
-		  (float :tag "Fraction of window")
+		  (number :tag "Fraction of window")
 		  (cons
 		   (repeat (choice :tag "modifier"
 				   (const alt) (const control) (const hyper)
@@ -119,7 +119,7 @@ less than a full screen."
 		   (choice :tag "scroll amount"
 			   (const :tag "Full screen" :value nil)
 			   (integer :tag "Specific # of lines")
-			   (float :tag "Fraction of window"))))
+			   (number :tag "Fraction of window"))))
           (repeat
            (cons
             (repeat (choice :tag "modifier"
@@ -128,7 +128,7 @@ less than a full screen."
             (choice :tag "scroll amount"
                     (const :tag "Full screen" :value nil)
                     (integer :tag "Specific # of lines")
-                    (float :tag "Fraction of window"))))))
+                    (number :tag "Fraction of window"))))))
 
 (defcustom mouse-wheel-progessive-speed t
   "If non-nil, the faster the user moves the wheel, the faster the scrolling.
