@@ -402,3 +402,12 @@ to operate effectively with double the number of lines of a file visible
 in a given screen height using side-by-side windows on the same buffer:
 split the window with @kbd{C-x 3} and then use @kbd{M-x follow-mode} to
 synchronize the windows.
+
+@cindex cursor in non-selected windows
+@vindex show-cursor-in-non-selected-windows
+@vindex cursor-in-non-selected-windows
+Normally, the cursor in non-selected windows is shown as a hollow box.
+If you want Emacs not to display the cursor in non-selected windows,
+customize the option @code{show-cursor-in-non-selected-windows}, or set
+the variable @code{cursor-in-non-selected-windows} to a non-@code{nil}
+value.
