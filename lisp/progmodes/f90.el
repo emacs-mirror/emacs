@@ -340,8 +340,8 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
    ;; Special highlighting of "module procedure foo-list"
    '("\\<\\(module[ \t]*procedure\\)\\>" (1 font-lock-keyword-face))
    ;; Highlight definition of new type
-   '("\\<\\(type\\)[ \t]*\\(.*::[ \t]*\\|[ \t]+\\)\\(\\sw+\\)"
-     (1 font-lock-keyword-face) (3 font-lock-function-name-face))
+;;;   '("\\<\\(type\\)[ \t]*\\(.*::[ \t]*\\|[ \t]+\\)\\(\\sw+\\)"
+;;;     (1 font-lock-keyword-face) (3 font-lock-function-name-face))
    ;; Other functions and declarations.
    '("\\<\\(\\(?:end[ \t]*\\)?\\(program\\|module\\|function\\|subroutine\\|type\\)\\|use\\|call\\)\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
@@ -353,7 +353,7 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
       (list
        ;; Variable declarations (avoid the real function call)
        '("^[ \t0-9]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|logical\\|type[ \t]*(\\sw+)\\)\\(.*::\\|[ \t]*(.*)\\)?\\([^!\n]*\\)"
-	 (1 font-lock-type-face) (4 font-lock-variable-name-face))
+	 (1 font-lock-type-face t) (4 font-lock-variable-name-face))
        ;; do, if, select, where, and forall constructs
        '("\\<\\(end[ \t]*\\(do\\|if\\|select\\|forall\\|where\\)\\)\\>\\([ \t]+\\(\\sw+\\)\\)?"
 	 (1 font-lock-keyword-face) (3 font-lock-constant-face nil t))
