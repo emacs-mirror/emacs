@@ -5000,7 +5000,10 @@ run_pre_post_conversion_on_str (str, coding, encodep)
   if (encodep)
     call2 (coding->pre_write_conversion, make_number (BEG), make_number (Z));
   else
-    call1 (coding->post_read_conversion, make_number (Z - BEG));
+    {
+      TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
+      call1 (coding->post_read_conversion, make_number (Z - BEG));
+    }
   inhibit_pre_post_conversion = 0;
   str = make_buffer_string (BEG, Z, 0);
   return unbind_to (count, str);
@@ -5110,7 +5113,7 @@ decode_coding_string (str, coding, nocopy)
 
   if (SYMBOLP (coding->post_read_conversion)
       && !NILP (Ffboundp (coding->post_read_conversion)))
-    str = run_pre_post_conversion_on_str (str, 0);
+    str = run_pre_post_conversion_on_str (str, coding, 0);
 
   return str;
 }
@@ -5130,7 +5133,7 @@ encode_coding_string (str, coding, nocopy)
 
   if (SYMBOLP (coding->pre_write_conversion)
       && !NILP (Ffboundp (coding->pre_write_conversion)))
-    str = run_pre_post_conversion_on_str (str, 1);
+    str = run_pre_post_conversion_on_str (str, coding, 1);
 
   from = 0;
   to = XSTRING (str)->size;
