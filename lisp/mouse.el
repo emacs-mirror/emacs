@@ -18,8 +18,9 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
@@ -488,7 +489,8 @@ In Transient Mark mode, the highlighting remains once you
 release the mouse button.  Otherwise, it does not."
   (interactive "e")
   (mouse-minibuffer-check start-event)
-  (let* ((start-posn (event-start start-event))
+  (let* ((echo-keystrokes 0)
+	 (start-posn (event-start start-event))
 	 (start-point (posn-point start-posn))
 	 (start-window (posn-window start-posn))
 	 (start-frame (window-frame start-window))
@@ -916,7 +918,8 @@ Highlight the drag area as you move the mouse.
 This must be bound to a button-down mouse event."
   (interactive "e")
   (mouse-minibuffer-check start-event)
-  (let* ((start-posn (event-start start-event))
+  (let* ((echo-keystrokes 0)
+	 (start-posn (event-start start-event))
 	 (start-point (posn-point start-posn))
 	 (start-window (posn-window start-posn))
 	 (start-frame (window-frame start-window))
