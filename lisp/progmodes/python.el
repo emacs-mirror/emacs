@@ -1117,8 +1117,8 @@ def _emacs_args (name):  # get arglist of name for eldoc &c
         doc = func.__doc__
         if doc.find (' ->') != -1:
             print '_emacs_out', doc.split (' ->')[0]
-        elif doc.find ('\n') != -1:
-            print '_emacs_out', doc.split ('\n')[0]
+        elif doc.find ('\\n') != -1:
+            print '_emacs_out', doc.split ('\\n')[0]
         return None
     if inspect.ismethod (func): func = func.im_func
     if not inspect.isfunction (func):
@@ -1247,10 +1247,8 @@ module-qualified names."
 		 (set (make-local-variable 'python-orig-file) nil)
 		 (set (make-local-variable 'python-orig-start-line) nil)
 		 (format "\
-try:
-    if globals().has_key(%S): reload(%s)
-    else: import %s
-except: None
+if globals().has_key(%S): reload(%s)
+else: import %s
 " module module module))
 	     (set (make-local-variable 'python-orig-file) file-name)
 	     (set (make-local-variable 'python-orig-start-line) 1)
@@ -1289,7 +1287,7 @@ Interactively, prompt for symbol."
 	 (enable-recursive-minibuffers t)
 	 val)
      (setq val (read-string (if symbol
-				(format "Describe variable (default %s): "
+				(format "Describe symbol (default %s): "
 				      symbol)
 			      "Describe symbol: ")
 			    nil nil symbol))
