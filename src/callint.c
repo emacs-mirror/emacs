@@ -606,6 +606,10 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
     if (varies[i] >= 1 && varies[i] <= 4)
       XSETINT (args[i], marker_position (args[i]));
 
+#ifdef MULTI_PERDISPLAY
+  display_locked = 1;
+#endif
+
   {
     Lisp_Object val;
     specbind (Qcommand_debug_status, Qnil);
