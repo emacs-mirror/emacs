@@ -1,3 +1,8 @@
+2000-10-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* alloc.c (toplevel): Conditionalize compilation of mem_*
+	functions differently.
+	
 2000-10-20  Jason Rumney  <jasonr@gnu.org>
 
 	* alloc.c (toplevel): Move #ifdef GC_MARK_STACK back to above
