@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!136.c(trunk.4) $
  summary = MVFF low-memory test; reusing arena in other pool
  language = c
  link = testlib.o
@@ -31,8 +31,10 @@ END_HEADER
 #include "mpscmv.h"
 #include "mpsavm.h"
 
+
 #define MAXSMALLOBJECTS (100000ul)
 #define MAXLARGEOBJECTS (100000ul)
+
 
 void *stackpointer;
 mps_arena_t arena;
@@ -41,33 +43,32 @@ static mps_addr_t
   largeObjects[MAXLARGEOBJECTS],
   smallObjects[MAXSMALLOBJECTS];
 
+
 static void do_test(size_t extendBy, size_t avgSize, size_t align,
                     int slotHigh, int arenaHigh, int firstFit)
 {
- mps_pool_t pool, pool2;
- mps_res_t res;
- mps_addr_t p;
- unsigned int i;
- unsigned long nLargeObjects = 0, nSmallObjects = 0;
- unsigned long largeObjectSize, smallObjectSize;
+  mps_pool_t pool, pool2;
+  mps_res_t res = MPS_RES_OK; /* suppress warning */
+  mps_addr_t p;
+  unsigned int i;
+  unsigned long nLargeObjects = 0, nSmallObjects = 0;
+  unsigned long largeObjectSize, smallObjectSize;
 
   largeObjectSize = extendBy;
   smallObjectSize = align;
 
-  die(
-  mps_pool_create(&pool, arena, mps_class_mvff(),
-                  extendBy, avgSize, align, slotHigh, arenaHigh, firstFit),
-  "create MVFF pool");
+  die(mps_pool_create(&pool, arena, mps_class_mvff(),
+                      extendBy, avgSize, align, slotHigh, arenaHigh, firstFit),
+      "create MVFF pool");
 
-  die(
-  mps_pool_create(&pool2, arena, mps_class_mv(),
-                  extendBy, avgSize, /* maxSize */ extendBy),
-  "create MV pool");
+  die(mps_pool_create(&pool2, arena, mps_class_mv(),
+                      extendBy, avgSize, /* maxSize */ extendBy),
+      "create MV pool");
 
   /* First we allocate large objects until we run out of memory. */
   for(i = 0; i < MAXLARGEOBJECTS; i++) {
     res = mps_alloc(&p, pool, largeObjectSize);
-    if(res != MPS_RES_OK)
+    if (res != MPS_RES_OK)
       break;
     largeObjects[nLargeObjects] = p;
     ++nLargeObjects;
@@ -88,7 +89,7 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
   /* Then we allocate lots of small objects. */
   for(i = 0; i < MAXSMALLOBJECTS; i++) {
     res = mps_alloc(&p, pool, smallObjectSize);
-    if(res != MPS_RES_OK)
+    if (res != MPS_RES_OK)
       break;
     smallObjects[nSmallObjects] = p;
     ++nSmallObjects;
@@ -98,7 +99,7 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
           MAXSMALLOBJECTS, smallObjectSize);
 
   comment("Allocated %lu objects of size %lu",
-    nSmallObjects, smallObjectSize);
+          nSmallObjects, smallObjectSize);
 
   /* Then we free every other small object */
   for(i = 0; i < nSmallObjects; i += 2) {
@@ -117,12 +118,13 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
   /* Then we allocate in another pool. */
   res = mps_alloc(&p, pool2, largeObjectSize);
   asserts(res == MPS_RES_OK, 
-    "Couldn't allocate one object of size %lu in second pool",
-    (unsigned long)largeObjectSize);
+          "Couldn't allocate one object of size %lu in second pool",
+          (unsigned long)largeObjectSize);
 
   mps_pool_destroy(pool);
   mps_pool_destroy(pool2);
 }
+
 
 static void test(void)
 {
@@ -131,23 +133,25 @@ static void test(void)
   size_t comlimit;
   mps_bool_t slotHigh, arenaHigh, firstFit;
 
- cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*50)), "create arena");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*50)),
+      "create arena");
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
  for (comlimit = 512 *1024; comlimit >= 64 * 1024; comlimit -= 4*1024) {
-  mps_arena_commit_limit_set(arena, comlimit);
-  report("limit", "%x", comlimit);
-  symm = ranint(8);
-  slotHigh = (symm >> 2) & 1;
-  arenaHigh = (symm >> 1) & 1;
-  firstFit = (symm & 1);
+   mps_arena_commit_limit_set(arena, comlimit);
+   report("limit", "%x", comlimit);
+   symm = ranint(8);
+   slotHigh = (symm >> 2) & 1;
+   arenaHigh = (symm >> 1) & 1;
+   firstFit = (symm & 1);
 
-  do_test(4096, 8, 8, slotHigh, arenaHigh, firstFit);
+   do_test(4096, 8, 8, slotHigh, arenaHigh, firstFit);
  }
 
  mps_thread_dereg(thread);
  mps_arena_destroy(arena);
 }
+
 
 int main(void)
 {
