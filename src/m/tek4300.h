@@ -48,7 +48,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically.  */
 
+#ifndef tek4300
 #define tek4300
+#endif
 
 /* Use type int rather than a union, to represent Lisp_Object */
 
