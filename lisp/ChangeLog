@@ -1,3 +1,8 @@
+2000-12-30  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-diag.el (print-fontset): Indent font name by
+	24 columns, not 25.
+
 2000-12-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/flyspell.el (mail-mode-flyspell-verify): Spell-check
