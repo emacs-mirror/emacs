@@ -1,5 +1,5 @@
-Copyright (c) 1985, 2004, 2005 Free Software Foundation, Inc;  Zie de voorwaarden onderaan.
-Je leest nu de Emacs-inleiding, zoals vertaald door Pieter Schoenmakers.
+Je leest nu de Emacs-inleiding.  De kopieervoorwaarden staan onderaan.
+Copyright (c) 1985, 1996, 1997, 2003, 2004, 2005 Free Software Foundation
 
 De meeste Emacs-commando's gebruiken de CONTROL-toets (soms CTRL of CTL
 genaamd) en/of de META-toets (soms genaamd EDIT of ALT).  In plaats van
@@ -8,14 +8,15 @@ steeds de volledige naam te noemen, gebruiken we de volgende afkortingen:
  C-<ltr>  betekent: houd de CONTROL-toets ingedrukt en tik de toets <ltr>
 	  Dus C-f wordt: houd de CONTROL-toets ingedrukt en tik f.
  M-<ltr>  betekent: houd de META-, EDIT- of ALT-toets ingedrukt en tik de
-	  toets <chr>.  Als er geen toets META, EDIT of ALT is, kun je ook
+	  toets <ltr>.  Als er geen toets META, EDIT of ALT is, kun je ook
 	  eerst de ESC-toets tikken, gevolgd door <ltr>.  We verwijzen naar
-	  de ESC toets als <ESC>.
+	  de ESC-toets als <ESC>.
 
 BELANGRIJK: om Emacs te verlaten, tik C-x C-c (twee tekens).
 De tekens ">>" tegen de linkerkantlijn nodigen je uit om een
 bepaald commando te proberen.  Bijvoorbeeld:
-<<Blank lines inserted here by startup of help-with-tutorial>>
+<<Blank lines inserted around following line by help-with-tutorial>>
+[Lege regels om didactische redenen.  Hieronder gaat het verder.]
 >>  Tik nu C-v (volgend scherm) om naar het volgende scherm te gaan.
 	(Geef nu het commando door de CONTROL-toets ingedrukt te houden
 	terwijl je de v tikt.)
@@ -23,13 +24,13 @@ bepaald commando te proberen.  Bijvoorbeeld:
 	lezen van een scherm.
 
 Merk op dat er een overlapping van twee regels is als je van een scherm naar
-het volgende gaat; dat zorgt voor continuïteit bij het lezen van 
+het volgende gaat; dat zorgt voor continuïteit bij het lezen van
 de tekst.
 
 Het eerste wat je moet weten, is hoe je je naar verschillende plaatsen in de
 tekst kan bewegen.  Je weet al hoe je een scherm vooruit moet gaan: met
 C-v.  Om een scherm terug te gaan, tik je M-v (houd de META-toets ingedrukt
-en tik v, of tik <ESC>-v als je geen META, EDIT of ALT toets hebt).
+en tik v, of tik <ESC> v als je geen META-, EDIT- of ALT-toets hebt).
 
 >>  Probeer nu een paar keer M-v, steeds gevolgd door C-v.
 
@@ -39,16 +40,20 @@ en tik v, of tik <ESC>-v als je geen META, EDIT of ALT toets hebt).
 
 De volgende commando's zijn handig om volledige schermen te bekijken:
 
-	C-v	ga een scherm vooruit
-	M-v	ga een scherm terug
-	C-l	maak het scherm schoon en teken alle tekst
+	C-v	Ga een scherm vooruit
+	M-v	Ga een scherm terug
+	C-l	Maak het scherm schoon en teken alle tekst
 		 opnieuw, waarbij de regel waarop de cursor
 		 staat, op het midden van het scherm terecht
 		 komt.  (C-l is CONTROL-L, niet CONTROL-1.)
 
->> Kijk waar de cursor staat, en onthoud de tekst errond.
+>> Kijk waar de cursor staat, en onthoud de tekst er omheen.
    Tik C-l.
    Zoek de cursor en merk op dat hij nog steeds bij dezelfde tekst staat.
+
+Als je toetsenbord PageUp- en PageDn-toetsen heeft dan kun je deze ook
+gebruiken om een scherm terug dan wel vooruit te gaan, maar het werken
+met C-v en M-v is efficiënter.
 
 
 * BASISCOMMANDO'S CURSORBEWEGINGEN
@@ -58,9 +63,9 @@ Het is handig om je per scherm te bewegen, maar hoe beweeg je je nu
 naar een specifieke plaats op het scherm?
 
 Er is een aantal manieren waarop je dit kan doen.  Je kan de
-pijltjestoetsen gebruiken, maar het is efficïenter om je handen in de
+pijltjestoetsen gebruiken, maar het is efficiënter om je handen in de
 standaardhouding te laten, en de commando's C-p, C-b, C-f en C-n te
-gebruiken.  Elk van deze commando's 
+gebruiken.  Elk van deze commando's
 verplaatst de cursor precies een regel of teken in een bepaalde richting
 op het scherm.  Hier volgt een figuur met de vier commando's en de
 richting waarin ze de cursor bewegen:
@@ -132,8 +137,8 @@ de cursor analoog de andere kant op.
 Merk op dat er een analogie bestaat tussen enerzijds C-f en C-b en
 anderzijds M-f en M-b.  Het is bij veel commando's zo dat META-tekens
 gebruikt worden om iets te doen in eenheden van de taal (woorden,
-zinnen, alinea's) terwijl Control-tekens te maken hebben met dingen die
-los staan van wat je aan het editeren bent (tekens, regels, enz.).
+zinnen, alinea's) terwijl CONTROL-tekens te maken hebben met dingen die
+los staan van wat je aan het bewerken bent (tekens, regels, enz.).
 
 Deze analogie gaat ook op voor regels en zinnen: C-a en C-e bewegen de
 cursor naar het begin of eind van een regel, terwijl met M-a,
@@ -154,20 +159,20 @@ scherm de plek zien waar punt in de tekst staat.
 Nu volgt een samenvatting van eenvoudige cursorbewegingen,
 met inbegrip van de commando's die de cursor per woord of zin bewegen:
 
-	C-f	ga een teken vooruit
-	C-b	ga een teken achteruit
+	C-f	Ga een teken vooruit
+	C-b	Ga een teken achteruit
 
-	M-f	ga een woord vooruit
-	M-b	ga een woord achteruit
+	M-f	Ga een woord vooruit
+	M-b	Ga een woord achteruit
 
-	C-n	ga naar de volgende regel
-	C-p	ga naar de vorige regel
+	C-n	Ga naar de volgende regel
+	C-p	Ga naar de vorige regel
 
-	C-a	ga naar het begin van de regel
-	C-e	ga naar het eind van de regel
+	C-a	Ga naar het begin van de regel
+	C-e	Ga naar het eind van de regel
 
-	M-a	ga terug naar het begin van de zin
-	M-e	ga vooruit naar het eind van de zin
+	M-a	Ga terug naar het begin van de zin
+	M-e	Ga vooruit naar het eind van de zin
 
 >> Probeer al deze commando's een paar keer als oefening.
    Deze commando's worden het vaakst gebruikt.
@@ -189,19 +194,19 @@ gebruiken om M-< in te tikken: zonder shift zou je M-, (META komma) tikken.
 
 Als je toetsenbord pijltjestoetsen heeft, kan je die ook gebruiken om de
 cursor te verplaatsen.  We raden je aan om C-b, C-f, C-n en C-p
-te leren, om drie redenen.  Ten eerste werken ze op alle 
+te leren, om drie redenen.  Ten eerste werken ze op alle
 toetsenborden, ook die zonder pijltjestoetsen.  Ten tweede zul je merken
-dat wanneer je eenmaal wat ervaring hebt opgedaan in de omgang met 
-Emacs, het gebruik van de CTRL-tekens sneller is dan werken met de 
-pijltjestoetsen (omdat je handen in de normale tikpositie kunnen blijven).  Ten 
-derde, als je eenmaal gewend bent aan deze commando's met CTRL-tekens, 
+dat wanneer je eenmaal wat ervaring hebt opgedaan in de omgang met
+Emacs, het gebruik van de CONTROL-tekens sneller is dan werken met de
+pijltjestoetsen (omdat je handen in de normale tikpositie kunnen blijven).  Ten
+derde, als je eenmaal gewend bent aan deze commando's met CONTROL-tekens,
 kan je makkelijk andere gevorderde cursorbewegingscommando's leren.
 
 De meeste Emacs-commando's accepteren een numeriek argument.  Voor de
 meeste commando's is dit argument het aantal keren dat het commando
-herhaald moet worden.  Je geeft dit numerieke argument aan met C-u en 
-vervolgens de cijfers van het getal, vóór het commando.  
-Als je toetsenbord een META- (of EDIT- of ALT-) toets hebt, is er ook
+herhaald moet worden.  Je geeft dit numerieke argument aan met C-u en
+vervolgens de cijfers van het getal, vóór het commando.
+Als je toetsenbord een META- (of EDIT- of ALT-) toets heeft, is er ook
 een andere manier om het getal aan te geven: tik de cijfers terwijl
 je de META toets ingedrukt houdt.  We raden je aan de C-u manier te
 leren omdat die beschikbaar is op elke terminal.
@@ -214,8 +219,8 @@ Bijvoorbeeld, C-u 8 C-f beweegt de cursor 8 plaatsen naar voren.
 
 Voor de meeste commando's is het numerieke argument het aantal keren dat
 het commando herhaald moet worden.  Voor sommige commando's  betekent het
-echter iets anders.  Verschillende commando's (die je totnogtoe niet 
-geleerd hebt) gebruiken het als een vlag -- de aanwezigheid van een 
+echter iets anders.  Verschillende commando's (die je totnogtoe niet
+geleerd hebt) gebruiken het als een vlag -- de aanwezigheid van een
 prefix-argument, ongeacht zijn waarde, maakt dat het commando iets anders
 doet.
 
@@ -260,8 +265,8 @@ Als je per ongeluk een <ESC> tikt, kan je dat ongedaan maken met het
 commando C-g.
 
 
-* ONMOGELIJKE COMMANDO'S
-------------------------
+* UITGESCHAKELDE COMMANDO'S
+---------------------------
 
 Sommige Emacs-commando's zijn uitgeschakeld zodat beginnende gebruikers ze
 niet per ongeluk kunnen uitvoeren.
@@ -270,7 +275,7 @@ Als je een van de uitgeschakelde commando's intikt, laat Emacs uitleg zien
 over het commando dat je gegeven hebt, en vraagt of je het werkelijk wil
 uitvoeren.
 
-Wanneer je het commando echt wil uitvoeren, tik dan Spatie (de
+Wanneer je het commando echt wil uitvoeren, tik dan <SPC> (de
 spatiebalk) als antwoord op de vraag.  Normaal wil je het commando niet
 uitvoeren en beantwoord je de vraag met "n" (van "no" of "nee").
 
@@ -284,21 +289,28 @@ uitvoeren en beantwoord je de vraag met "n" (van "no" of "nee").
 Emacs kan meerdere vensters laten zien, elk venster met zijn eigen tekst.
 We zullen later uitleggen hoe je met meerdere vensters om kan gaan.  Op
 dit moment willen we slechts uitleggen hoe je van extra vensters af kunt
-komen en terug kan keren naar eenvoudig editeren met één venster.  Het is
+komen en terug kan keren naar het werken met één venster.  Het is
 eenvoudig:
 
-	C-x 1	een enkel venster (dat wil zeggen: verwijder alle andere vensters)
+	C-x 1	Een enkel venster (dat wil zeggen: verwijder alle andere vensters).
 
 Het commando is CONTROL-x gevolgd door het cijfer 1.  C-x 1 vergroot het
 venster waar de cursor in staat tot het hele scherm.  Alle andere vensters
 worden verwijderd.
 
 >> Zet de cursor op deze regel en tik C-u 0 C-l.
->> Tik nu Control-h k Control-f.
+>> Tik nu C-h k C-f.
    Zie hoe dit venster kleiner is geworden, terwijl een nieuw venster verschijnt
-   om de documentatie van het Control-f commando te laten zien.
+   om de documentatie van het C-f commando te laten zien.
 
 >> Tik nu C-x 1 en zie het documentatievenster verdwijnen.
+
+Dit commando is anders dan de commando's die je tot nu toe geleerd
+hebt aangezien het uit twee tekens bestaat.  Het begint met het teken
+CONTROL-x.  Er zijn een heleboel commando's die met CONTROL-x
+beginnen.  Veel van die commando's hebben te maken met vensters,
+bestanden, buffers, en gelijkaardige dingen.  Dergelijke commando's
+bestaan uit twee, drie of vier tekens.
 
 
 * TOEVOEGEN EN WEGHALEN
@@ -350,7 +362,7 @@ een schermregel past, zal hij getoond worden met een vervolgregel.
 
 >> Tik <Return> om de Newline die je net verwijderd hebt weer toe te voegen.
 
-Je herinnert je dat je bij de meeste Emacs-commando's het aantal keren op kan 
+Je herinnert je dat je bij de meeste Emacs-commando's het aantal keren op kan
 geven, dat ze herhaald moeten worden.  Dit geldt ook voor gewone tekens.
 Als je een gewoon teken herhaalt, wordt dat teken herhaaldelijk toegevoegd.
 
@@ -360,35 +372,43 @@ Je hebt nu de eenvoudigste manier geleerd om iets in Emacs te tikken en fouten t
 verbeteren.  Je kan tekst ook per woord of regel verwijderen.  Hier volgt
 een samenvatting van de commando's om tekst te verwijderen:
 
-	<Delback>    haal het teken weg dat voor de cursor staat
-	C-d   	     haal het teken weg dat achter de cursor staat
+	<Delback>    Haal het teken weg dat voor de cursor staat
+	C-d   	     Haal het teken weg dat achter de cursor staat
 
-	M-<Delback>  verwijder het woord dat voor de cursor staat
-	M-d	     verwijder het woord dat achter de cursor staat
+	M-<Delback>  Verwijder het woord dat voor de cursor staat
+	M-d	     Verwijder het woord dat achter de cursor staat
 
-	C-k	     verwijder alles van de cursor tot het eind van de regel
-	M-k	     verwijder alles van de cursor tot het eind van de zin
+	C-k	     Verwijder alles van de cursor tot het eind van de regel
+	M-k	     Verwijder alles van de cursor tot het eind van de zin
 
-Merk op dat <Delback> en C-d, met M-<Delback> en M-d de analogie verder 
+Merk op dat <Delback> en C-d, met M-<Delback> en M-d de analogie verder
 trekken, die begon met C-f en M-f  (waarbij we voor het gemak even vergeten dat
-<Delback> niet echt een control teken is).  C-k en M-k lijken enigzins op
+<Delback> niet echt een CONTROL-teken is).  C-k en M-k lijken enigzins op
 C-e en M-e in hun relatie tot regels en zinnen.
 
-Als je meer dan een enkel teken tegelijk weghaalt, bewaart Emacs de tekst
-die je verwijdert, zodat je hem weer terug kan halen.  Verwijderde tekst
-terughalen heet "yanken".  Je kan verwijderde tekst terugbrengen op de
-plaats waar je hem hebt verwijderd of op een andere plaats in de tekst.
-Je kan ook meerdere keren yanken om er meedere kopieën van te maken.  Het
-yank-commando is C-y.
+Je kunt ook op één uniforme manier een willekeurig deel van de tekst
+verwijderen.  Beweeg daartoe naar één kant van het gedeelte dat je
+wilt verwijderen en tik C-@ of C-<SPC>.  (<SPC> is de spatiebalk.)
+Beweeg daarna naar de andere kant en tik C-w.  Dat verwijdert alle
+tekst tussen de twee posities.
 
-Merk op dat er een verschil is tussen iets weghalen en iets verwijderen:
-iets dat je hebt verwijderd, kan je terugbrengen, maar iets dat je hebt
+>> Beweeg de cursor naar de J aan het begin van de vorige alinea.
+>> Tik C-<SPC>.  Emacs toont nu de mededeling "Mark set" ("Markering
+   geplaatst") onderaan het scherm.
+>> Plaats de cursor op de n van "kant" op de tweede regel van de
+   alinea.
+>> Tik C-w.  Dit zal de tekst vanaf de J tot vlak voor de n
+   verwijderen.
+
+Er is een verschil tussen iets weghalen en iets verwijderen: iets dat
+je hebt verwijderd, kan je terugbrengen, maar iets dat je hebt
 weggehaald niet.  (In het Engels is het verschil tussen "killing" en
-"deleting" duidelijker dan tussen de Nederlandse vertalingen "verwijderen" en
-"weghalen".)  In het algemeen geldt dat de commando's die meer tekst dan
-een enkel teken, Newline of spatie verwijderen, deze tekst bewaren zodat hij
-geyankt kan worden, terwijl dat niet geldt voor commando's die slechts een
-enkel teken weghalen.
+"deleting" duidelijker dan tussen de Nederlandse vertalingen
+"verwijderen" en "weghalen".)  Verwijderde tekst terughalen heet
+"yanken".  In het algemeen geldt dat de commando's die meer tekst dan
+een enkel teken, Newline of spatie verwijderen, deze tekst bewaren
+zodat hij geyankt kan worden, terwijl dat niet geldt voor commando's
+die slechts een enkel teken weghalen.
 
 >> Zet de cursor op het begin van een regel die niet leeg is.
    Tik C-k om de tekst op die regel te verwijderen.
@@ -396,7 +416,7 @@ enkel teken weghalen.
 
 Merk op hoe een enkel C-k commando de inhoud van een regel verwijdert, een
 tweede C-k commando de regel zelf zodat alle volgende regels een regel
-omhoog komen.  Het numerieke argument is voor C-k bijzonder: het aangegeven 
+omhoog komen.  Het numerieke argument is voor C-k bijzonder: het aangegeven
 aantal regels zal worden verwijderd, inclusief de inhoud.  Dit is meer dan
 simpelweg herhaling: C-u 2 C-k verwijdert twee regels, terwijl tweemaal
 C-k tikken dat niet doet.
@@ -488,27 +508,20 @@ opslaat, zorgt Emacs ervoor dat het originele bestand onder een gewijzigde
 naam nog steeds beschikbaar is, voor het geval je later besluit dat de
 veranderingen toch niet zo goed waren.
 
-Bij de onderkant van het scherm zie je een regel die begint en 
-eindigt met streepjes, met aan het begin "--:-- TUTORIAL.nl" of iets
+Bij de onderkant van het scherm zie je een regel die begint en
+eindigt met streepjes, met aan het begin "-1:-- TUTORIAL.nl" of iets
 dergelijks.  Dit deel van het scherm laat normaal de naam van het bestand
 zien dat je op dat moment bezoekt.  Op dit moment bezoek je een bestand
 dat "TUTORIAL.nl" heet; het is je eigen kopie van de Nederlandstalige
 Emacs-inleiding ("tutorial" in het Engels).  Als je in Emacs een bestand
 bezoekt dan staat de naam van het bestand altijd op deze plaats.
 
-De commando's om een bestand te bezoeken of op te slaan zijn anders dan de
-commando's die je tot nu toe geleerd hebt; ze bestaan namelijk uit twee
-tekens.  Beide commando's beginnen met het teken Control-x.  Er zijn een
-heleboel commando's die met Control-x beginnen.  Veel van die commando's
-hebben te maken met bestanden, buffers, en gelijkaardige dingen.
-Dergelijke commando's bestaan uit twee, drie of vier tekens.
-
-Nog iets bijzonders aan het commando om een bestand te bezoeken, is dat je
+Iets bijzonders aan het commando om een bestand te bezoeken, is dat je
 aan moet geven welk bestand je wil.  Dit heet dat het commando "een
 argument van de gebruiker vraagt"; in dit geval de naam van het bestand.
 Nadat je het commando
 
-	C-x C-f		bezoek bestand (met de f van "find file")
+	C-x C-f		Bezoek bestand (met de f van "find file").
 
 hebt getikt vraagt Emacs om de naam van het bestand.  De naam die je
 intikt verschijnt op de onderste regel van het scherm.  Wanneer die regel
@@ -531,19 +544,19 @@ Na korte tijd verschijnt de inhoud van het bestand op het scherm en kan
 je de inhoud wijzigen.  Als je de wijzigingen op wilt slaan, tik dan het
 commando
 
-	C-x C-s   sla bestand op (met de s van "save file")
+	C-x C-s   Sla bestand op (met de s van "save file").
 
-Dit commando slaat de tekst zoals Emacs die nu heeft in het bestand op. 
+Dit commando slaat de tekst zoals Emacs die nu heeft in het bestand op.
 De eerste keer dat je dit doet, slaat Emacs het originele bestand onder een
 andere naam op, zodat het niet verloren gaat.  De nieuwe naam bestaat uit de
 oude bestandsnaam gevolgd door een "~".
 
 Als Emacs het bestand heeft opgeslagen, laat het de naam van het
-bestand zien.  Het is een goede gewoonte een bestand regelmatig te op te slaan
+bestand zien.  Het is een goede gewoonte een bestand regelmatig op te slaan
 zodat er niet teveel werk verloren gaat als het systeem hangt of crasht.
 
 >> Tik C-x C-s, om je kopie van deze inleiding op te slaan.  Als het goed is
-   verschijnt "Wrote ...TUTORIAL" op de onderste schermregel.
+   verschijnt "Wrote ...TUTORIAL.nl" op de onderste schermregel.
 
 OPMERKING: Op sommige systemen gebeurt er helemaal niets als je C-x C-s
 tikt, en daarna ook niets meer.  Dit komt door een eigenschap van de
@@ -569,7 +582,7 @@ gewoon in Emacs.  Je kan naar dat bestand terug door het gewoon nog een
 keer te bezoeken met C-x C-f.  Op deze manier kan je een behoorlijk aantal
 bestanden in Emacs krijgen.
 
->> Creëer een bestand dat "foo" heet door te tikken: C-f C-f foo
+>> Creëer een bestand dat "foo" heet door te tikken: C-x C-f foo
    <Return>.  Voeg hieraan wat tekst toe, wijzig hem, en sla "foo" op
    door C-x C-s te tikken.  Tik hierna C-x C-f TUTORIAL <Return> om
    weer hier, in de inleiding, terug te komen.
@@ -578,18 +591,46 @@ Emacs bewaart intern de tekst van elk bestand in een ding dat een "buffer"
 genoemd wordt.  Als je een bestand bezoekt wordt er een nieuwe buffer
 gemaakt.  Om een lijst van de huidige buffers te zien, tik
 
-	C-x C-b   laat de bufferlijst zien
+	C-x C-b   Laat de bufferlijst zien
 
 >> Probeer C-x C-b nu.
 
-Bemerk dat elke buffer een naam heeft en mogelijk ook een bestandsnaam; dit
-is de naam van het bestand waarmee de buffer overeenkomt.  Sommige buffers
-hebben niets met een bestand te maken.  Bijvoorbeeld, de buffer die
-"*Buffer List*" heet heeft geen bestand.  Die buffer is de buffer die de
-lijst bevat die door C-x C-b gemaakt wordt.  ALLE tekst die je in een
-Emacs venster ziet is altijd onderdeel van een of andere buffer.
+Bemerk dat elke buffer een naam heeft en mogelijk ook een
+bestandsnaam; dit is de naam van het bestand waarmee de buffer
+overeenkomt.  ALLE tekst die je in een Emacs venster ziet is altijd
+onderdeel van een of andere buffer.
 
 >> Tik C-x 1 om de bufferlijst te verwijderen.
+
+Wanneer je met meerdere buffers werkt, dan is op elk moment slechts
+één van die buffers "actueel".  De actuele buffer is degene die je aan
+het bewerken bent.  Als je een andere buffer wilt bewerken, dan moet
+je daarnaar "omschakelen".  Als je wilt omschakelen naar een buffer
+die overeenkomt met een bestand, dan kun je dit doen door dat bestand
+opnieuw te bezoeken met C-x C-f.  Er is ook een makkelijkere manier:
+gebruik het commando C-x b.  Dit commando vraagt je naar de naam van
+de buffer.
+
+>> Tik C-x b foo <Return> om terug te gaan naar de buffer "foo" die de
+   tekst van het bestand "foo" bevat.  Tik vervolgens C-x b TUTORIAL
+   <Return> om terug te komen naar deze Emacs-inleiding.
+
+Meestal is de naam van de buffer gelijk aan de naam van het bestand
+(minus de naam van de directory).  Dit klopt echter niet altijd.  De
+lijst met buffers die je maakt met C-x C-b laat je altijd de naam van
+elke buffer zien.
+
+ALLE tekst die je ziet in een venster van Emacs is altijd onderdeel
+van een of andere buffer.  Sommige buffers komen niet overeen met een
+bestand.  De buffer genaamd "*Buffer List*" heeft bijvoorbeeld geen
+bijbehorend bestand.  Deze buffer bevat de lijst met buffers die je
+gemaakt hebt met C-x C-b.  Ook de buffer "*Messages*" heeft geen
+geassocieerd bestand; deze buffer bevat de mededelingen die Emacs je
+op de onderste regel toonde.
+
+>> Tik C-x b *Messages* <Return> om de buffer met mededelingen te
+   bekijken.  Tik daarna weer C-x b TUTORIAL <Return> om terug te
+   keren naar deze buffer met de Emacs-inleiding
 
 Als je de tekst van het ene bestand verandert en dan een ander bestand
 bezoekt, wordt het eerste bestand niet opgeslagen.  De wijzigingen blijven
@@ -600,7 +641,7 @@ manier nodig is om het eerste bestand te bewaren.  Het zou erg vervelend
 zijn om er eerst naar terug te moeten gaan met C-x C-f om het dan te
 kunnen bewaren met C-x C-s.  Dus hebben we het commando:
 
-	C-x s	  sla een paar buffers op
+	C-x s	  Sla een paar buffers op
 
 C-x s vraagt voor elke buffer die veranderingen heeft die nog niet
 opgeslagen zijn, of je de buffer wilt bewaren.
@@ -616,20 +657,21 @@ opgeslagen zijn, of je de buffer wilt bewaren.
 
 Er zijn veel meer Emacs commando's dan er op de toetsen van het
 toetsenbord passen, zelfs als we hun aantal kunnen vergroten door de
-control of meta toets te gebruiken.  Emacs lost dit probleem op met het X
+CONTROL- of META-toets te gebruiken.  Emacs lost dit probleem op met het X
 commando (met de X van eXtensie of uitbreiding).  Het X commando komt voor in
 twee smaken:
 
-	C-x	Tekenuitbreiding.  Bevolgd door een teken.
+	C-x	Tekenuitbreiding.  Gevolgd door een teken.
 	M-x	Commando-naam-uitbreiding.  Wordt gevolgd door een naam.
 
-Deze commando's zijn in het algemeen nuttig, maar worden minder gebruikt
-dan de commando's die je tot nu toe al geleerd hebt.  Je hebt al twee van deze
-commando's gezien: C-x C-f om een bestand te bezoeken, en C-x C-s om het
-te bewaren.  Een ander voorbeeld is het commando om Emacs te verlaten: dit
-is C-x C-c.  (Maak je geen zorgen over het verloren gaan van veranderingen
-die niet opgeslagen zijn; C-x C-c vraagt of je veranderde buffers wilt
-bewaren voordat Emacs helemaal eindigt.)
+Deze commando's zijn in het algemeen nuttig, maar worden minder
+gebruikt dan de commando's die je tot nu toe al geleerd hebt.  Je hebt
+al enkele van deze commando's gezien: C-x C-f om een bestand te
+bezoeken en C-x C-s om het te bewaren, bijvoorbeeld.  Een ander
+voorbeeld is het commando om Emacs te verlaten: dit is C-x C-c.  (Maak
+je geen zorgen over het verloren gaan van veranderingen die niet
+opgeslagen zijn; C-x C-c vraagt of je veranderde buffers wilt bewaren
+voordat Emacs helemaal eindigt.)
 
 C-z is het commando om Emacs *tijdelijk* te verlaten, zodat je daarna weer
 terug kan keren in dezelfde Emacs-sessie.
@@ -655,13 +697,16 @@ behalve als je uit wilt loggen natuurlijk.
 Er bestaan vele C-x commando's.  Hier is een lijst van degene die je nu al
 kent:
 
-	C-x C-f		bezoek bestand
-	C-x C-s		sla bestand op
-	C-x C-b		laat bufferlijst zien
-	C-x C-c		verlaat Emacs
-	C-x u		herstel
+	C-x C-f		Bezoek bestand
+	C-x C-s		Sla bestand op
+	C-x s		Sla een paar buffers op
+	C-x C-b		Laat bufferlijst zien
+	C-x b		Schakel naar een buffer
+	C-x C-c		Verlaat Emacs
+	C-x 1		Een enkel venster
+	C-x u		Herstel
 
-Commando-naam-bevelen worden nog minder vaak gebruikt, of alleen onder bepaalde omstandigheden. 
+Commando-naam-bevelen worden nog minder vaak gebruikt, of alleen onder bepaalde omstandigheden.
 Een voorbeeld is het commando replace-string, dat in de hele tekst een string
 vervangt door een andere string ("to replace" betekent "vervangen").
 Als je M-x tikt, toont Emacs onderaan het scherm "M-x" en moet je de naam van
@@ -689,7 +734,7 @@ de veranderingen verloren kunnen gaan als het systeem zou hangen of
 herstarten.  Om je hiertegen te beschermen, slaat Emacs regelmatig
 de veranderde tekst automatisch op.  De naam van het bestand waarin de
 tekst automatisch wordt opgeslagen begint en eindigt met een #.
-Bijvoorbeeld, als je het bestand "hello.c" aan het editeren bent, wordt
+Bijvoorbeeld, als je het bestand "hello.c" aan het bewerken bent, wordt
 de tekst automatisch opgeslagen in een bestand dat "#hello.c#" heet.  Zodra
 je het bestand werkelijk opslaat, wordt het automatisch opgeslagen bestand
 verwijderd.
@@ -715,18 +760,22 @@ Dit gebied omvat de onderste regel van het scherm.
 De regel direct boven het echo gebied heet de "modusregel".  De modusregel
 ziet er ongeveer zo uit:
 
---**-Emacs: TUTORIAL.nl       (Fundamental)--68%------------------------
+-1:**  TUTORIAL.nl    62% L763    (Fundamental)-----------------------
 
 Deze regel geeft interessante informatie over Emacs en de tekst die
-je aan het editeren bent.
+je aan het bewerken bent.
 
-Je weet al wat de bestandsnaam betekent: het is de naam van het bestand
-dat je bezoekt.  -NN%-- geeft je huidige positie in de tekst aan: NN
-procent van de tekst bevindt zich boven het scherm.  Als het bestand vanaf
-het begin op het scherm staat, staat er --Top-- in plaats van --00%--.
-Als het laatste stuk tekst op het scherm staat, zal er --Bot-- staan (van
-"bottom", "onderkant" in het Nederlands).  Als de tekst zo klein is dat hij
-volledig op het scherm past staat --All-- in de modus-regel.
+Je weet al wat de bestandsnaam betekent: het is de naam van het
+bestand dat je bezoekt.  NN% geeft je huidige positie in de tekst aan:
+NN procent van de tekst bevindt zich boven het scherm.  Als het
+bestand vanaf het begin op het scherm staat, staat er "Top" in plaats
+van " 0%".  Als het laatste stuk tekst op het scherm staat, zal er
+"Bot" staan (van "bottom", "onderkant" in het Nederlands).  Als de
+tekst zo klein is dat hij volledig op het scherm past staat "All" in
+de modus-regel.
+
+De L gevolgd door een getal geeft het nummer van de regel waarin punt
+zich bevindt.
 
 De sterretjes aan het begin betekenen dat je de tekst veranderd hebt.
 Direct na het bezoeken of opslaan staan er gewoon streepjes.
@@ -737,7 +786,7 @@ bent.  De standaardmodus is de "Fundamental" modus, die je nu gebruikt
 modus heet een hoofdmodus ("major mode" in het Engels).
 
 Emacs heeft verschillende hoofdmodi.  Sommige daarvan zijn bedoeld voor
-het editeren van verschillende talen of soorten tekst, zoals bijvoorbeeld
+het bewerken van verschillende talen of soorten tekst, zoals bijvoorbeeld
 Lisp modus, Text modus, etc.  Op elk moment is er altijd precies een modus
 actief, en de naam daarvan staat in de modusregel, op de plaats waar nu
 "Fundamental" staat.
@@ -750,9 +799,9 @@ beginnen.  Elke hoofdmodus is de naam van een uitgebreid commando, en met
 dat commando schakel je om naar die hoofdmodus.  Zo is bijvoorbeeld
 M-x fundamental-mode het commando om naar de basismodus om te schakelen.
 
-Als je Nederlandse of Engelse tekst wil gaan editeren, zoals bijvoorbeeld
+Als je Nederlandse of Engelse tekst wil gaan bewerken, zoals bijvoorbeeld
 dit bestand, kan je beter "Text mode" gebruiken, de modus om tekst in een
-gewone taal te editeren:
+gewone taal te bewerken:
 
 >> Tik M-x text-mode<Return>.
 
@@ -779,7 +828,7 @@ daarvan.  Elke bijmodus kan aan- of uitgezet worden, onafhankelijk van
 andere bijmodi en onafhankelijk van de hoofdmodus.  Het is dus mogelijk geen bijmodi, één bijmodus
 of een willekeurige combinatie van bijmodi te gebruiken.
 
-Een nuttige bijmodus voor het editeren van tekst in een natuurlijke taal,
+Een nuttige bijmodus voor het bewerken van tekst in een natuurlijke taal,
 zoals het Nederlands, is Auto Fill modus ("auto fill" betekent automatisch
 uitvullen).  Wanneer deze modus aanstaat, breekt Emacs automatisch een
 regel tussen twee woorden af als de regel te lang wordt.
@@ -825,11 +874,11 @@ gebeurt tijdens het intikken van de gezochte string.
 
 Het commando om het voorwaarts zoeken te starten is C-s (met de "s" van "to
 search", zoeken); C-r start het achterwaarts zoeken (met de "r" van
-"reverse" of achteruit).  MAAR WACHT! Probeer ze nu nog niet.
+"reverse" of achteruit).  MAAR WACHT!  Probeer ze nu nog niet.
 
 Als je C-s tikt verschijnt de string "I-search" in het echo-gebied.  Dit
 betekent dat Emacs bezig is met een "incremental search" (incrementele
-zoekopdracht) en wacht op het intikken van de zoekstring.  <RET> beëindigt
+zoekopdracht) en wacht op het intikken van de zoekstring.  <Return> beëindigt
 het zoeken.
 
 >> Tik nu C-s om het zoeken te starten.  Tik nu, LANGZAAM, één letter per
@@ -839,13 +888,21 @@ het zoeken.
 >> Tik nogmaals C-s, om naar het volgende voorkomen van het woord "cursor" te
    zoeken.
 >> Tik nu viermaal <Delback> en let op de cursorbewegingen.
->> Tik <RET> om het zoeken te beëindigen.
+>> Tik <Return> om het zoeken te beëindigen.
 
 Zag je wat er gebeurde?  Tijdens incrementeel zoeken probeert Emacs naar
 de eerste plek te gaan waar de string staat die je tot dan toe getikt
 hebt.  Om naar de volgende plek te gaan, tik je C-s nog een keer.  Als er
 geen volgende plek is gevonden, biept Emacs en vertelt je dat de zoekopdracht
-niets gevonden heeft ("is failing" in het Engels).  C-g zou het zoeken ook afbreken.
+niets gevonden heeft ("failing" in het Engels).  C-g zou het zoeken ook afbreken.
+
+OPMERKING: Op sommige systemen gebeurt er helemaal niets als je C-s
+tikt, en daarna ook niets meer.  Dit komt door een eigenschap van de
+machine waarop je werkt die te maken heeft met "flow control".  Met
+C-s stopt de "flow" en komt niets meer van wat je tikt bij Emacs
+terecht.  Om deze situatie te herstellen, tik C-q.  Lees daarna het
+hoofdstuk "Spontaneous Entry to Incremental Search" in het
+Emacs-handboek over hoe je moet omgaan met deze situatie.
 
 Als je tijdens incrementeel zoeken <Delback> tikt, zal je zien dat het
 laatste teken dat je aan de zoekstring toegevoegd hebt, weggehaald wordt en dat het
@@ -880,7 +937,7 @@ scherm kan laten zien.
    bovenste venster.
 
 >> Tik C-M-v om de tekst in het onderste venster te verschuiven.
-   (Als je geen META-toets hebt, tik dan ESC C-v.)
+   (Als je geen META-toets hebt, tik dan <ESC> C-v.)
 
 >> Tik C-x o (met de o van "other"; "ander" in het Nederlands)
    om de cursor naar het andere venster te verplaatsen.
@@ -898,20 +955,20 @@ in een daarvan.  Alle normale commando's hebben betrekking op het venster
 waarin de cursor staat.  Dit venster is het "geselecteerde venster"
 ("selected window" in het Engels).
 
-Het C-M-v commando is erg nuttig wanneer je tekst aan het editeren bent in
+Het C-M-v commando is erg nuttig wanneer je tekst aan het bewerken bent in
 het ene venster, terwijl je het andere venster als referentie gebruikt.
 Je kan de cursor dan altijd in het venster houden waarin je bezig bent,
 terwijl je met C-M-v door de tekst in het andere venster loopt.
 
 C-M-v is een voorbeeld van een CONTROL-META teken.  Als je een echte
-META-toets hebt kan je C-M-v intikken door zowel CTRL als META ingedrukt te
-houden terwijl je v tikt.  Het maakt niet uit in welke volgorde je CTRL en
+META-toets hebt kan je C-M-v intikken door zowel CONTROL als META ingedrukt te
+houden terwijl je v tikt.  Het maakt niet uit in welke volgorde je CONTROL en
 META indrukt; het gaat erom welke toetsen ingedrukt zijn terwijl je tikt.
 
-Als je geen echte META-toets hebt kan je ESC gebruiken; de volgorde is dan
-wel belangrijk.  Je moet dan eerst ESC tikken, gevolgd door CTRL-v;
-CTRL-ESC v zal niet werken.  Dit komt doordat ESC zelf een teken is,
-terwijl CTRL en META dat niet zijn.
+Als je geen echte META-toets hebt kan je <ESC> gebruiken; de volgorde is dan
+wel belangrijk.  Je moet dan eerst <ESC> tikken, gevolgd door CONTROL-v;
+CONTROL-<ESC> v zal niet werken.  Dit komt doordat <ESC> zelf een teken is,
+terwijl CONTROL en META dat niet zijn.
 
 >> Tik C-x 1 (in het bovenste venster) om het onderste venster te laten
    verdwijnen.
@@ -919,6 +976,11 @@ terwijl CTRL en META dat niet zijn.
 (Als je C-x 1 tikt in het onderste venster laat je het bovenste
 verdwijnen.  C-x 1 betekent zoveel als "ik wil maar 1 venster,
 en wel dat venster waar de cursor nu in staat.")
+
+Je hoeft niet dezelfde buffer in beide vensters te hebben.  Wanneer je
+C-x C-f gebruikt om een bestand in één van de vensters te bezoeken,
+zal het andere venster niet veranderen.  Je kunt de vensters
+onafhankelijk van elkaar gebruiken om bestanden te bezoeken.
 
 Hier is nog een manier om twee venster te krijgen die elk een andere tekst
 laten zien:
@@ -939,11 +1001,11 @@ Soms kom je in Emacs in een recursief bewerkingsniveau terecht (Engels:
 haken die om de haakjes van de naam van de hoofdmodus staan.  Dan staat er
 bijvoorbeeld [(Fundamental)] in plaats van (Fundamental).
 
-Tik ESC ESC ESC Om uit een recursief bewerkingsniveau te komen.  Dit is
+Tik <ESC> <ESC> <ESC> Om uit een recursief bewerkingsniveau te komen.  Dit is
 een algemeen "ontsnappingscommando".  Je kan het ook gebruiken om extra
 vensters te verwijderen of om uit de minibuffer te komen.
 
->> Tik M-x om in een minibuffer te komen, en tik dan ESC ESC ESC
+>> Tik M-x om in een minibuffer te komen, en tik dan <ESC> <ESC> <ESC>
    om er weer uit te komen.
 
 C-g is niet bruikbaar om uit een recursief bewerkingsniveau te komen.  De
@@ -971,14 +1033,15 @@ idee, zeker als die verandering op alle gebruikers invloed heeft, en is
 een geldige reden om je beklag te doen bij de systeembeheerder of de
 helpdesk.  Als C-h intussen niet een bericht onderaan het scherm laat zien
 over mogelijke hulp, probeer dan de F1 toets (functietoets 1) of gebruik
-M-x help RET.)
+M-x help <Return>.)
 
 De eenvoudigste hulp is C-h c.  Tik C-h, het teken "c" en een teken of
 uitgebreid commando, en Emacs laat een zeer korte beschrijving van het
 commando zien.
 
->> Tik C-h c Control-p.
-   De beschrijving die getoond wordt zou zoiets moeten zijn als
+>> Tik C-h c C-p.
+
+De beschrijving die getoond wordt, zou zoiets moeten zijn als:
 
 	C-p runs the command previous-line
 
@@ -1012,6 +1075,10 @@ Hier zijn nog wat nuttige mogelijkheden van C-h:
    Dit laat alle informatie zien die Emacs heeft over de functie die het
    C-p commando implementeert.
 
+Een vergelijkbaar commando C-h v toont de documentatie van variabelen
+die je kunt instellen om het gedrag van Emacs naar wens aan te passen.
+Het commando vraagt je om de naam van een variabele.
+
    C-h a	Commando Apropos.  Tik een woord in en Emacs zal een
 		lijst van alle commando's laten zien waarin dat woord
 		voorkomt.  Al deze commando's kunnen aangeroepen worden
@@ -1028,12 +1095,47 @@ commandonaam zoals find-file.
 
 >> Tik C-x 1 om het hulpvenster te verwijderen.
 
+   C-h i	Lees de online handleidingen (ook wel Info genoemd).
+		Dit commando zet je in een speciale buffer genaamd
+		"*info*" waar je online handleidingen kunt lezen van
+		software die op je computer is geïnstalleerd.  Tik m
+		Emacs <Return> om de handleiding van Emacs te lezen.
+		Als je nog nooit Info hebt gebruikt dan kun je ?
+		tikken zodat Emacs je een rondleiding geeft langs de
+		mogelijkheden van het Info systeem.  Wanneer je klaar
+		bent met deze Emacs-inleiding dan kun je de
+		Emacs-Info-handleiding gebruiken als je primaire bron
+		van informatie.
+
+
+* MEER MOGELIJKHEDEN
+--------------------
+
+Je kunt meer over Emacs leren door haar handleiding te lezen.  Deze is
+zowel als boek als in elektronische vorm via Info beschikbaar (gebruik
+het Help menu of tik <F10> h r).  Kijk bijvoorbeeld eens naar
+"completion", hetgeen minder tikwerk oplevert, of "dired" wat het
+omgaan met bestanden vereenvoudigt.
+
+"Completion" (of "afmaken", in het Nederlands) is een manier om
+onnodig tikwerk te voorkomen.  Als je bijvoorbeeld naar de
+"*Messages*" buffer wilt omschakelen, dan kun je C-x b *M<Tab> tikken
+en dan zal Emacs de rest van de buffernaam invullen voor zover dit
+mogelijk is.  Completion staat beschreven in de node "Completion" in
+de Emacs-Info-handleiding.
+
+"Dired" toont je een lijst van bestanden in een directory, waarmee je
+gemakkelijk bestanden kunt bezoeken, van naam kunt veranderen, kunt
+wissen, of andere acties op uit kunt voeren.  Informatie over Dired
+kun je vinden in de node "Dired" van de Emacs-Info-handleiding.
+
 
 * CONCLUSIE
 -----------
 
-Denk eraan dat je met C-x C-c gebruikt om Emacs te verlaten.  Om tijdelijk
-een shell te krijgen en daarna weer in Emacs terug te komen, tik C-z.
+Denk eraan dat je met C-x C-c Emacs permanent verlaat.  Om tijdelijk
+een shell te krijgen en daarna weer in Emacs terug te komen, tik je
+C-z.
 
 De bedoeling van deze inleiding is dat ze begrijpelijk is voor alle nieuwe
 Emacs-gebruikers.  Als je dus iets onduidelijks bent tegengekomen, blijf
@@ -1047,7 +1149,7 @@ dan niet zitten en maak jezelf geen verwijten.  Doe je beklag!
 van Emacs-inleidingen, die begon met de inleiding die Stuart Cracraft schreef
 voor de originele Emacs.  Deze Nederlandse vertaling is gemaakt door
 Pieter Schoenmakers <tiggr@ics.ele.tue.nl> op basis van de GNU Emacs 20.2
-TUTORIAL, en verbeterd en verbeterd door Frederik Fouvry.
+TUTORIAL, en nagezien en verbeterd door Frederik Fouvry en Lute Kamstra.
 
 (Wat nu volgt is een vertaling naar het Nederlands van de condities voor
 gebruik en verspreiding van deze inleiding.  Deze vertaling is niet
@@ -1056,9 +1158,9 @@ vertaling worden ontleend, en de vertaling wordt gevolgd door het Engelse
 origineel.)
 
 Deze versie van de inleiding valt onder copyright, net als GNU Emacs.
-Je mag deze inleiding verdelen onder bepaalde voorwaarden:
+Je mag deze inleiding verspreiden onder bepaalde voorwaarden:
 
-Copyright (c) 1985, 1996, 1997 Free Software Foundation
+Copyright (c) 1985, 1996, 1997, 2003, 2004, 2005 Free Software Foundation
 
    Iedereen mag letterlijke kopieën van dit document, zowel ontvangen als
    verspreiden, op elk medium, vooropgesteld dat de copyrightvermelding en
@@ -1082,7 +1184,7 @@ te gebruiken, te schrijven en te delen!
 This version of the tutorial, like GNU Emacs, is copyrighted, and
 comes with permission to distribute copies on certain conditions:
 
-Copyright (c) 1985, 1996 Free Software Foundation
+Copyright (c) 1985, 1996, 1997, 2003, 2004, 2005 Free Software Foundation
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
