@@ -3266,10 +3266,16 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
 (make-obsolete-variable 'unread-command-char
   "use unread-command-events instead.  That variable is a list of events to reread, so it now uses nil to mean `no event', instead of -1.")
 (make-obsolete-variable 'unread-command-event
-  "use unread-command-events; this is now a list of events.")
+  "use unread-command-events; which is a list of events rather than a single event.")
 (make-obsolete-variable 'suspend-hooks 'suspend-hook)
 (make-obsolete-variable 'comment-indent-hook 'comment-indent-function)
 (make-obsolete-variable 'meta-flag "Use the set-input-mode function instead.")
+(make-obsolete-variable 'executing-macro 'executing-kbd-macro)
+(make-obsolete-variable 'before-change-function
+  "use before-change-functions; which is a list of functions rather than a single function.")
+(make-obsolete-variable 'after-change-function
+  "use after-change-functions; which is a list of functions rather than a single function.")
+(make-obsolete-variable 'font-lock-doc-string-face 'font-lock-string-face)
 
 (provide 'byte-compile)
 (provide 'bytecomp)
@@ -3307,22 +3313,22 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
 ;; itself, compile some of its most used recursive functions (at load time).
 ;;
 (eval-when-compile
- (or (byte-code-function-p (symbol-function 'byte-compile-form))
-     (assq 'byte-code (symbol-function 'byte-compile-form))
-     (let ((byte-optimize nil) ; do it fast
-	   (byte-compile-warnings nil))
-       (mapcar '(lambda (x)
-		  (or noninteractive (message "compiling %s..." x))
-		  (byte-compile x)
-		  (or noninteractive (message "compiling %s...done" x)))
-	       '(byte-compile-normal-call
-		 byte-compile-form
-		 byte-compile-body
-		 ;; Inserted some more than necessary, to speed it up.
-		 byte-compile-top-level
-		 byte-compile-out-toplevel
-		 byte-compile-constant
-		 byte-compile-variable-ref))))
- nil)
+  (or (byte-code-function-p (symbol-function 'byte-compile-form))
+      (assq 'byte-code (symbol-function 'byte-compile-form))
+      (let ((byte-optimize nil)		; do it fast
+	    (byte-compile-warnings nil))
+	(mapcar '(lambda (x)
+		   (or noninteractive (message "compiling %s..." x))
+		   (byte-compile x)
+		   (or noninteractive (message "compiling %s...done" x)))
+		'(byte-compile-normal-call
+		  byte-compile-form
+		  byte-compile-body
+		  ;; Inserted some more than necessary, to speed it up.
+		  byte-compile-top-level
+		  byte-compile-out-toplevel
+		  byte-compile-constant
+		  byte-compile-variable-ref))))
+  nil)
 
 ;;; bytecomp.el ends here
