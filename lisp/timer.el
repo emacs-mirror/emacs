@@ -137,14 +137,15 @@ SECS may be a fraction."
     (aset timer 3 (or (nth 2 time) 0))))
 
 (defun timer-set-time-with-usecs (timer time usecs &optional delta)
-  "Set the trigger time of TIMER to TIME.
+  "Set the trigger time of TIMER to TIME plus USECS.
 TIME must be in the internal format returned by, e.g., `current-time'.
-If optional third argument DELTA is a non-zero integer, make the timer
+The microsecond count from TIME is ignored, and USECS is used instead.
+If optional fourth argument DELTA is a non-zero integer, make the timer
 fire repeatedly that many seconds apart."
   (or (timerp timer)
       (error "Invalid timer"))
-  (aset timer 1 (car time))
-  (aset timer 2 (if (consp (cdr time)) (car (cdr time)) (cdr time)))
+  (aset timer 1 (nth 0 time))
+  (aset timer 2 (nth 1 time))
   (aset timer 3 usecs)
   (aset timer 4 (and (numberp delta) (> delta 0) delta))
   timer)
