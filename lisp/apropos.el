@@ -518,7 +518,7 @@ alphabetically by symbol name; but this function also sets
 	    symbol item point1 point2)
 	(set-buffer standard-output)
 	(apropos-mode)
-	(if window-system
+	(if (display-mouse-p)
 	    (insert "If you move the mouse over text that changes color,\n"
 		    (substitute-command-keys
 		     "you can click \\[apropos-mouse-follow] to get more information.\n")))
