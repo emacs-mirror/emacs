@@ -1,18 +1,18 @@
 #!/bin/sh
-#
-# make-dist: create an Emacs distribution tar file from the current
-# source tree.	This basically creates a duplicate directory
-# structure, and then hard links into it only those files that should
-# be distributed.  This means that if you add a file with an odd name,
-# you should make sure that this script will include it.
+
+#### make-dist: create an Emacs distribution tar file from the current
+#### source tree.	This basically creates a duplicate directory
+#### structure, and then hard links into it only those files that should
+#### be distributed.  This means that if you add a file with an odd name,
+#### you should make sure that this script will include it.
 
 progname="$0"
 
-# Exit if a command fails.
-# set -e
+### Exit if a command fails.
+### set -e
 
-# Print out each line we read, for debugging's sake.
-# set -v
+### Print out each line we read, for debugging's sake.
+### set -v
 
 clean_up=yes
 make_tar=yes
@@ -20,21 +20,21 @@ newer=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    # This option tells make-dist not to delete the staging directory
-    # after it's done making the tar file.
+    ## This option tells make-dist not to delete the staging directory
+    ## after it's done making the tar file.
     "--no-clean-up" )
       clean_up=no
     ;;
-    # This option tells make-dist not to make a tar file.  Since it's 
-    # rather pointless to build the whole staging directory and then
-    # nuke it, using this option also selects '--no-clean-up'.
+    ## This option tells make-dist not to make a tar file.  Since it's 
+    ## rather pointless to build the whole staging directory and then
+    ## nuke it, using this option also selects '--no-clean-up'.
     "--no-tar" )
       make_tar=no
       clean_up=no
     ;;
-    # This option tells make-dist to make the distribution normally, then
-    # remove all files newer than the given timestamp file.  This is useful
-    # for creating incremental or patch distributions
+    ## This option tells make-dist to make the distribution normally, then
+    ## remove all files newer than the given timestamp file.  This is useful
+    ## for creating incremental or patch distributions
     "--newer")
       newer="$2"
       new_extension=".new"
@@ -48,7 +48,7 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-# Make sure we're running in the right place.
+### Make sure we're running in the right place.
 if [ ! -d src -o ! -f src/lisp.h -o ! -d lisp -o ! -f lisp/version.el ]; then
   echo "${progname}: Can't find \`src/lisp.h' and \`lisp/version.el'." >&2
   echo "${progname} must be run in the top directory of the Emacs" >&2
@@ -56,7 +56,7 @@ if [ ! -d src -o ! -f src/lisp.h -o ! -d lisp -o ! -f lisp/version.el ]; then
   exit 1
 fi
 
-# Find out which version of Emacs this is.
+### Find out which version of Emacs this is.
 version=`grep 'defconst[	 ]*emacs-version' lisp/version.el \
 	 | sed -e 's/^.*"\([0-9][0-9]*\.[0-9][0-9]*\)\..*$/\1/'`
 if [ ! "${version}" ]; then
@@ -64,7 +64,7 @@ if [ ! "${version}" ]; then
   exit 1
 fi
 
-# Make sure the subdirectory is available.
+### Make sure the subdirectory is available.
 tempparent="make-dist.tmp.$$"
 if [ -d ${tempparent} ]; then
   echo "${progname}: staging directory \`${tempparent}' already exists.
@@ -80,8 +80,8 @@ mkdir ${tempparent}
 emacsname="emacs-${version}${new_extension}"
 tempdir="${tempparent}/${emacsname}"
 
-# This trap ensures that the staging directory will be cleaned up even
-# when the script is interrupted in mid-career.
+### This trap ensures that the staging directory will be cleaned up even
+### when the script is interrupted in mid-career.
 if [ "${clean_up}" = yes ]; then
   trap "echo 'Interrupted...cleaning up the staging directory.'; rm -rf ${tempparent}; exit 1" 1 2 15
 fi
@@ -89,14 +89,22 @@ fi
 echo "Creating top directory: \`${tempdir}'"
 mkdir ${tempdir}
 
-# We copy in the top-level files before creating the subdirectories in
-# hopes that this will make the top-level files appear first in the
-# tar file; this means that people can start reading the INSTALL and
-# README while the rest of the tar file is still unpacking.  Whoopee.
+echo
+
+echo "Don't worry if `ln' complains that it can't make
+echo "cross-filesystem links for these files; we take care of them
+echo "later.
+
+### We copy in the top-level files before creating the subdirectories in
+### hopes that this will make the top-level files appear first in the
+### tar file; this means that people can start reading the INSTALL and
+### README while the rest of the tar file is still unpacking.  Whoopee.
 echo "Making links to top-level files." 
 ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README move-if-change ${tempdir}
-ln ChangeLog Makefile.in build-install.in configure config.sub ${tempdir}
+ln ChangeLog Makefile.in build-install.in configure ${tempdir}
 ln make-dist ${tempdir}
+### Copy config.sub; it's a cross-filesystem symlink.
+cp config.sub ${tempdir}
 
 echo "Creating subdirectories."
 for subdir in lisp lisp/term local-lisp external-lisp \
@@ -106,12 +114,12 @@ for subdir in lisp lisp/term local-lisp external-lisp \
 done
 
 echo "Making links to \`lisp'."
-# Don't distribute =*.el files, site-init.el, site-load.el, or default.el.
+### Don't distribute =*.el files, site-init.el, site-load.el, or default.el.
 (cd lisp
  ln [a-zA-Z]*.el ../${tempdir}/lisp
  ln [a-zA-Z]*.elc ../${tempdir}/lisp
- # simula.el doesn't keep abbreviations in simula.defns any more.
- # ln [a-zA-Z]*.defns ../${tempdir}/lisp
+ ## simula.el doesn't keep abbreviations in simula.defns any more.
+ ## ln [a-zA-Z]*.defns ../${tempdir}/lisp
  ln ChangeLog README ../${tempdir}/lisp
  cd ../${tempdir}/lisp
  rm -f site-init site-init.el site-init.elc
@@ -119,24 +127,27 @@ echo "Making links to \`lisp'."
  rm -f default default.el default.elc)
 
 echo "Making links to \`lisp/term'."
-# Don't distribute =*.el files.
+### Don't distribute =*.el files.
 (cd lisp/term
  ln [a-zA-Z]*.el ../../${tempdir}/lisp/term
  ln [a-zA-Z]*.elc ../../${tempdir}/lisp/term
  ln README ../../${tempdir}/lisp/term)
 
 echo "Making links to \`external-lisp'."
-# Don't distribute =*.el files.
+### Don't distribute =*.el files.
 (cd external-lisp
  ln [a-zA-Z]*.el ../${tempdir}/external-lisp
  ln [a-zA-Z]*.elc ../${tempdir}/external-lisp
  ln ChangeLog README ../${tempdir}/external-lisp)
 
 echo "Making links to \`src'."
-# Don't distribute =*.[ch] files, or the configured versions of
-# config.h.in, paths.h.in, or Makefile.in.
+### Don't distribute =*.[ch] files, or the configured versions of
+### config.h.in, paths.h.in, or Makefile.in.
 (cd src
+ echo "  (If we can't link gmalloc.c, that's okay.)"
  ln [a-zA-Z]*.c ../${tempdir}/src
+ ## Might be a symlink to a file on another filesystem.
+ cp gmalloc.c ../${tempdir}/src
  ln [a-zA-Z]*.h ../${tempdir}/src
  ln [a-zA-Z]*.s ../${tempdir}/src
  ln README Makefile.in ymakefile ChangeLog config.h.in paths.h.in \
@@ -171,35 +182,35 @@ echo "Making links to \`oldXMenu'."
  ln README Makefile Imakefile ChangeLog ../${tempdir}/oldXMenu)
 
 echo "Making links to \`etc'."
-# Don't distribute DOC files, backups, autosaves, or tex litter.
+### Don't distribute DOC files, backups, autosaves, or tex litter.
 (cd etc
  ln [0-9a-zA-Z]* ../${tempdir}/etc
  cd ../${tempdir}/etc
- # Avoid an error when expanding the wildcards later.
+ ## Avoid an error when expanding the wildcards later.
  for dummy in DOC-dummy dummy~ \#dummy\# dummy.dvi dummy.log; do
    ln MACHINES ${dummy}
  done
  rm -f DOC* *~ \#*\# *.dvi *.log core)
 
-# For now, we comment these out, since I'm not changing them any.
-#!! echo "Making links to \`cpp'."
-#!! (cd cpp
-#!!  ln cccp.c cexp.y Makefile README ../${tempdir}/cpp)
-#!! 
-#!! echo "Making links to \`info'."
-#!! # Don't distribute backups or autosaves.
-#!! (cd info
-#!!  ln [a-zA-Z]* ../${tempdir}/info
-#!!  cd ../${tempdir}/info
-#!!  # Avoid an error when expanding the wildcards later.
-#!!  ln emacs dummy~ ; ln emacs \#dummy\#
-#!!  rm -f *~ \#*\# core)
-#!! 
-#!! echo "Making links to \`man'."
-#!! (cd man
-#!!  ln *.tex *.texinfo *.texi *.aux *.cps *.fns *.kys *.vrs ../${tempdir}/man
-#!!  ln *.c ../${tempdir}/man
-#!!  ln ChangeLog Makefile README split-man ../${tempdir}/man)
+### For now, we comment these out, since I'm not changing them any.
+###!! echo "Making links to \`cpp'."
+###!! (cd cpp
+###!!  ln cccp.c cexp.y Makefile README ../${tempdir}/cpp)
+###!! 
+###!! echo "Making links to \`info'."
+###!! # Don't distribute backups or autosaves.
+###!! (cd info
+###!!  ln [a-zA-Z]* ../${tempdir}/info
+###!!  cd ../${tempdir}/info
+###!!  # Avoid an error when expanding the wildcards later.
+###!!  ln emacs dummy~ ; ln emacs \#dummy\#
+###!!  rm -f *~ \#*\# core)
+###!! 
+###!! echo "Making links to \`man'."
+###!! (cd man
+###!!  ln *.tex *.texinfo *.texi *.aux *.cps *.fns *.kys *.vrs ../${tempdir}/man
+###!!  ln *.c ../${tempdir}/man
+###!!  ln ChangeLog Makefile README split-man ../${tempdir}/man)
 
 echo "Making links to \`shortnames'."
 (cd shortnames
@@ -211,21 +222,6 @@ echo "Making links to \`vms'."
  ln [0-9a-zA-Z]* ../${tempdir}/vms
  cd ../${tempdir}/vms
  rm -f *~)
-
-### On the GNU machines, these files are symbolic links to files on
-### another device, meaning that we can't make hard links to them in
-### the staging directory.  I can't think of a better solution, so I
-### just have a special kludge here which knows exactly which files
-### this might happen to and copies them if they don't seem to have
-### been linked.
-echo "Making sure we got all the files that may be cross-device"
-echo "symbolic links."
-for file in ./config.sub ./src/gmalloc.c ; do
-  if [ ! -f ${tempdir}/${file} ] ; then
-    echo "  \`${file}' was missed; copying it."
-    cp ${file} ${tempdir}/${file}
-  fi
-done
 
 echo "Making sure copying notices are all symlinks to \`etc/COPYING'."
 rm -f ${tempdir}/etc/COPYING
@@ -239,9 +235,9 @@ done
 
 if [ "${newer}" ]; then
   echo "Removing files older than $newer."
-  # We remove .elc files unconditionally, on the theory that anyone picking
-  # up an incremental distribution already has a running Emacs to byte-compile
-  # them with.
+  ## We remove .elc files unconditionally, on the theory that anyone picking
+  ## up an incremental distribution already has a running Emacs to byte-compile
+  ## them with.
   find ${tempparent} \( -name '*.elc' -o ! -newer ${newer} \) -exec rm -f {} \;
 fi
 
@@ -255,4 +251,4 @@ if [ "${clean_up}" = yes ]; then
   rm -rf ${tempparent}
 fi
 
-# make-dist ends here
+### make-dist ends here
