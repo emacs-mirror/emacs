@@ -111,7 +111,15 @@ NOTE-END
 #define HAVE_ALLOCA
 
 /* GNU malloc and the relocating allocator do not work together
-   with X. */
+   with X.   [Who wrote that?]  */
+
+/* May 1995: reportedly [Rainer Schoepf <schoepf@uni-mainz.de>] both the
+   system and the gnu malloc system work with "alpha-dec-osf3.0" and
+   "alpha-dec-osf3.2".  */
+
+/* May 1995: it seems to me [Morten Welinder <terra@diku.dk>] that both
+   mallocs work with "alpha-dec-osf2.0", but I daren't break anything
+   right now.  Feel free to play if you want.  */
 
 #define SYSTEM_MALLOC
 
@@ -154,8 +162,11 @@ NOTE-END
 
 #define ORDINARY_LINK
 
+#ifndef __GNUC__
+/* This apparently is for the system ld as opposed to Gnu ld.  */
 #ifdef OSF1
 #define LD_SWITCH_MACHINE      -non_shared
+#endif
 #endif
 
 #define LIBS_DEBUG
@@ -210,7 +221,21 @@ NOTE-END
 #undef bzero
 #undef bcmp
 
+/* We need to prototype these for the lib-src programs even if we don't
+   use the system malloc for the Emacs proper.  */
 extern void *malloc (), *realloc ();
+
 extern long *xmalloc (), *xrealloc ();
-#endif
-#endif
+
+#ifdef REL_ALLOC
+#ifndef _MALLOC_INTERNAL
+/* "char *" because ralloc.c defines it that way.  gmalloc.c thinks it
+   is allowed to prototype these as "void *" so we don't prototype in
+   that case.  You're right: it stinks!  */
+extern char *r_alloc (), *r_re_alloc ();
+extern void r_alloc_free ();
+#endif /* not _MALLOC_INTERNAL */
+#endif /* REL_ALLOC */
+
+#endif /* not THIS_IS_YMAKEFILE */
+#endif /* not NOT_C_CODE */
