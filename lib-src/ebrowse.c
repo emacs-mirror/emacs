@@ -3250,7 +3250,7 @@ add_declarator (cls, id, flags, sc)
           char *regexp = matching_regexp ();
           int pos = BUFFER_POS ();
 
-          if (cls)
+          if (*cls)
 	    add_member_defn (*cls, *id, regexp, pos, 0, 1, SC_UNKNOWN, flags);
           else
             add_global_defn (*id, regexp, pos, 0, 1, sc, flags);
