@@ -1,7 +1,3 @@
-2003-02-28  Lute Kamstra  <Lute.Kamstra@cwi.nl>   (tiny change)
-
-	* gnus.texi: Note that SSL support needs external libraries.
-
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Version 21.2 released.
