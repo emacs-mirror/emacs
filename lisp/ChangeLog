@@ -1,3 +1,8 @@
+2001-10-26  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* button.el (button): Special face definition for MS-DOS
+	terminals.
+
 2001-10-26  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/sh-script.el (sh-font-lock-syntactic-keywords):
