@@ -106,8 +106,8 @@ of the file that precede the first header line.
 +++
 ** `set-auto-mode' now gives the interpreter magic line (if present)
 precedence over the file name.  Likewise an <?xml or <!DOCTYPE declaration
-will give the buffer XML or SGML mode, unless the file name leads to a mode in
-`xml-based-modes'.
+will give the buffer XML or SGML mode, based on the new var
+`magic-mode-alist'.
 
 +++
 ** New function `looking-back' checks whether a regular expression matches
@@ -2090,6 +2090,13 @@ anyone has committed to the repository since you last executed
 
 
 * New modes and packages in Emacs 21.4
+
+** The new package conf-mode.el handles thousands of configuration files, with
+varying syntaxes for comments (;, #, //, /* */ or !), assignment (var = value,
+var : value, var value or keyword var value) and sections ([section] or
+section { }).  Many files under /etc/, or with suffixes like .cf through
+.config, .properties (Java), .desktop (KDE/Gnome), .ini and many others are
+recognized.
 
 ** The new package password.el provide a password cache and expiring mechanism.
 
