@@ -1,6 +1,6 @@
 /* impl.h.tract: PAGE TABLE INTERFACE
  *
- * $HopeName: MMsrc!tract.h(trunk.2) $
+ * $HopeName: MMsrc!tract.h(trunk.3) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
@@ -173,6 +173,16 @@ extern void ChunkEncache(Arena arena, Chunk chunk);
 
 extern Bool ChunkOfAddr(Chunk *chunkReturn, Arena arena, Addr addr);
 
+/* CHUNK_OF_ADDR -- return the chunk containing an address
+ *
+ * arena and addr are evaluated multiple times.
+ */
+
+#define CHUNK_OF_ADDR(chunkReturn, arena, addr) \
+  (((arena)->chunkCache.base <= (addr) && (addr) < (arena)->chunkCache.limit) \
+   ? (*(chunkReturn) = (arena)->chunkCache.chunk, TRUE) \
+   : ChunkOfAddr(chunkReturn, arena, addr))
+
 
 /* AddrPageBase -- the base of the page this address is on */
 
@@ -184,9 +194,25 @@ extern Bool ChunkOfAddr(Chunk *chunkReturn, Arena arena, Addr addr);
 
 extern Tract TractOfBaseAddr(Arena arena, Addr addr);
 extern Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr);
-/* @@@@ make it a real macro, and update design.mps.trace.fix.tractofaddr? */
+
+/* TRACT_OF_ADDR -- return the tract containing an address */
+
 #define TRACT_OF_ADDR(tractReturn, arena, addr) \
-  TractOfAddr(tractReturn, arena, addr)
+  BEGIN \
+    Arena _arena = (arena); \
+    Addr _addr = (addr); \
+    Chunk _chunk; \
+    Index _i; \
+    \
+    if (CHUNK_OF_ADDR(&_chunk, _arena, _addr)) { \
+      _i = INDEX_OF_ADDR(_chunk, _addr); \
+      if (BTGet(_chunk->allocTable, _i)) \
+        *(tractReturn) = PageTract(&_chunk->pageTable[_i]); \
+      else \
+        *(tractReturn) = NULL; \
+    } else \
+        *(tractReturn) = NULL; \
+  END
 
 
 /* INDEX_OF_ADDR -- return the index of the page containing an address
