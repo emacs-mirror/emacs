@@ -200,10 +200,11 @@ act as a paragraph-separator."
 	(if at-second
 	    ;; If we get a fill prefix from the second line,
 	    ;; make sure it's on the first line too.
-	    (save-excursion
-	      (forward-line -1)
-	      (if (looking-at (regexp-quote result))
-		  result))
+	    (and result
+		 (save-excursion
+		   (forward-line -1)
+		   (if (looking-at (regexp-quote result))
+		       result)))
 	  ;; If we get a fill prefix from a one-line paragraph,
 	  ;; maybe change it to whitespace,
 	  ;; and check that it isn't a paragraph starter.
