@@ -1,6 +1,8 @@
-/* test UNALIGNED 1st arg to fmt_create_A
-   language c
-   link testlib.o newfmt.o
+/* TEST_HEADER
+ summary = UNALIGNED 1st arg to fmt_create_A
+ language = c
+ link = testlib.o newfmt.o
+END_HEADER
 */
 
 #include "testlib.h"

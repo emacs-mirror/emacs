@@ -1,6 +1,8 @@
-/* test UNALIGNED space for is_stale
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = UNALIGNED space for is_stale
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

@@ -1,6 +1,8 @@
-/* test NULL pool to mps_ap_create
-   language c
-   link testlib.o newfmt.o
+/* TEST_HEADER
+ summary = NULL pool to mps_ap_create
+ language = c
+ link = testlib.o newfmt.o
+END_HEADER
 */
 
 #include "testlib.h"

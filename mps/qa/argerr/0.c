@@ -1,6 +1,8 @@
-/* test create a space with a NULL space_t
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = create a space with a NULL space_t
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

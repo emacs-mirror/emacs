@@ -1,6 +1,8 @@
-/* test zero maxSize for pool_create (MV)
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = zero maxSize for pool_create (MV)
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

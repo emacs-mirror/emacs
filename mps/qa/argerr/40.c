@@ -1,6 +1,8 @@
-/* test unitSize > extendBy for pool_create (MFS)
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = unitSize > extendBy for pool_create (MFS)
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

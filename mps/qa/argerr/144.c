@@ -1,6 +1,8 @@
-/* test null root_t for mps_root_destroy
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = null root_t for mps_root_destroy
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

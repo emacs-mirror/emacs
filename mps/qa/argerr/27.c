@@ -1,6 +1,8 @@
-/* test unaligned 1st arg to mps_free
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = unaligned 1st arg to mps_free
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

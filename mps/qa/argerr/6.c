@@ -1,6 +1,8 @@
-/* test NULL 2nd arg to fmt_create_A
-   language c
-   link testlib.o newfmt.o
+/* TEST_HEADER
+ summary = NULL 2nd arg to fmt_create_A
+ language = c
+ link = testlib.o newfmt.o
+END_HEADER
 */
 
 #include "testlib.h"

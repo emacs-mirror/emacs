@@ -1,6 +1,8 @@
-/* test MPS_RANK_MIN-1 rank for mps_root_create
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = MPS_RANK_MIN-1 rank for mps_root_create
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

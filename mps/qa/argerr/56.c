@@ -1,6 +1,8 @@
-/* test NULL ap to mps_reserve
-   language c
-   link testlib.o newfmt.o
+/* TEST_HEADER
+ summary = NULL ap to mps_reserve
+ language = c
+ link = testlib.o newfmt.o
+END_HEADER
 */
 
 #include "testlib.h"
