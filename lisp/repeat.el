@@ -201,12 +201,15 @@ this function is always whether the value of `this-command' would've been
 
 ;;;;; ******************* THE REPEAT COMMAND ITSELF ******************* ;;;;;
 
+(defvar repeat-previous-repeated-command nil
+  "The previous repeated command.")
+
 ;;;###autoload
 (defun repeat (repeat-arg)
   "Repeat most recently executed command.
 With prefix arg, apply new prefix arg to that command; otherwise, maintain
 prefix arg of most recently executed command if it had one.
-This command is named after the `.' command in the vi editor.
+This command is like the `.' command in the vi editor.
 
 If this command is invoked by a multi-character key sequence, it can then
 be repeated by repeating the final character of that sequence.  This behavior
@@ -220,12 +223,17 @@ can be modified by the global variable `repeat-on-final-keystroke'."
   ;; "repeat-" prefix, reserved by this package, for *local* variables that
   ;; might be visible to re-executed commands, including this function's arg.
   (interactive "P")
-  (setq this-command                      real-last-command
-        repeat-num-input-keys-at-repeat   num-input-keys)
+  (when (eq real-last-command 'repeat)
+    (setq real-last-command repeat-previous-repeated-command))
+  (when (null real-last-command)
+    (error "There is nothing to repeat"))
   (when (eq real-last-command 'mode-exit)
     (error "real-last-command is mode-exit & can't be repeated"))
   (when (memq real-last-command repeat-too-dangerous)
     (error "Command %S too dangerous to repeat automatically" real-last-command))
+  (setq this-command                      real-last-command
+        repeat-num-input-keys-at-repeat   num-input-keys)
+  (setq repeat-previous-repeated-command this-command)
   (when (null repeat-arg)
     (setq repeat-arg last-prefix-arg))
   ;; Now determine whether to loop on repeated taps of the final character
