@@ -396,6 +396,7 @@ enum draw_glyphs_face
   DRAW_IMAGE_SUNKEN
 };
 
+static void x_set_window_size_1 P_ ((struct frame *, int, int, int));
 static const XColor *x_color_cells P_ ((struct frame *, int *));
 static void x_update_window_end P_ ((struct window *, int, int));
 static void frame_to_window_pixel_xy P_ ((struct window *, int *, int *));
@@ -11866,37 +11867,19 @@ x_set_offset (f, xoff, yoff, change_gravity)
   UNBLOCK_INPUT;
 }
 
-/* Call this to change the size of frame F's x-window.
-   If CHANGE_GRAVITY is 1, we change to top-left-corner window gravity
-   for this size change and subsequent size changes.
-   Otherwise we leave the window gravity unchanged.  */
 
-void
-x_set_window_size (f, change_gravity, cols, rows)
+/* Change the size of frame F's X window to COLS/ROWS in the case F
+   doesn't have a widget.  If CHANGE_GRAVITY is 1, we change to
+   top-left-corner window gravity for this size change and subsequent
+   size changes.  Otherwise we leave the window gravity unchanged.  */
+
+static void
+x_set_window_size_1 (f, change_gravity, cols, rows)
      struct frame *f;
      int change_gravity;
      int cols, rows;
 {
-#ifndef USE_X_TOOLKIT
   int pixelwidth, pixelheight;
-#endif
-
-  BLOCK_INPUT;
-
-#ifdef USE_X_TOOLKIT
-  {
-    /* The x and y position of the widget is clobbered by the
-       call to XtSetValues within EmacsFrameSetCharSize.
-       This is a real kludge, but I don't understand Xt so I can't
-       figure out a correct fix.  Can anyone else tell me? -- rms.  */
-    int xpos = f->output_data.x->widget->core.x;
-    int ypos = f->output_data.x->widget->core.y;
-    EmacsFrameSetCharSize (f->output_data.x->edit_widget, cols, rows);
-    f->output_data.x->widget->core.x = xpos;
-    f->output_data.x->widget->core.y = ypos;
-  }
-
-#else /* not USE_X_TOOLKIT */
 
   check_frame_size (f, &rows, &cols);
   f->output_data.x->vertical_scroll_bar_extra
@@ -11941,7 +11924,43 @@ x_set_window_size (f, change_gravity, cols, rows)
   SET_FRAME_GARBAGED (f);
 
   XFlush (FRAME_X_DISPLAY (f));
+}
 
+
+/* Call this to change the size of frame F's x-window.
+   If CHANGE_GRAVITY is 1, we change to top-left-corner window gravity
+   for this size change and subsequent size changes.
+   Otherwise we leave the window gravity unchanged.  */
+
+void
+x_set_window_size (f, change_gravity, cols, rows)
+     struct frame *f;
+     int change_gravity;
+     int cols, rows;
+{
+  BLOCK_INPUT;
+
+#ifdef USE_X_TOOLKIT
+  
+  if (f->output_data.x->widget != None)
+    {
+      /* The x and y position of the widget is clobbered by the
+	 call to XtSetValues within EmacsFrameSetCharSize.
+	 This is a real kludge, but I don't understand Xt so I can't
+	 figure out a correct fix.  Can anyone else tell me? -- rms.  */
+      int xpos = f->output_data.x->widget->core.x;
+      int ypos = f->output_data.x->widget->core.y;
+      EmacsFrameSetCharSize (f->output_data.x->edit_widget, cols, rows);
+      f->output_data.x->widget->core.x = xpos;
+      f->output_data.x->widget->core.y = ypos;
+    }
+  else
+    x_set_window_size_1 (f, change_gravity, cols, rows);
+  
+#else /* not USE_X_TOOLKIT */
+  
+  x_set_window_size_1 (f, change_gravity, cols, rows);
+  
 #endif /* not USE_X_TOOLKIT */
 
   /* If cursor was outside the new size, mark it as off.  */
