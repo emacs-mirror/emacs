@@ -152,7 +152,7 @@ long *
 xmalloc (size)
      unsigned int size;
 {
-  char *result = (char *) malloc (size);
+  long *result = (long *) malloc (size);
   if (result == NULL)
   {
     perror ("malloc");
