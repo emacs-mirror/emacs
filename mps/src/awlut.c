@@ -1,17 +1,12 @@
 /* impl.c.awlut: POOL CLASS AWL UNIT TEST
  *
- * $HopeName: MMsrc!awlut.c(trunk.13) $
- * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
- *
- * READERSHIP
- *
- * Any MPS developer, any interested QA.
+ * $HopeName: MMsrc!awlut.c(trunk.14) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
  *
  * .design: see design.mps.poolawl.test.*
  */
-
 
 #include "mpscawl.h"
 #include "mpsclo.h"
@@ -24,11 +19,6 @@
 #include "mpsw3.h"
 #endif
 #include <string.h>
-#include <assert.h>
-#include <stdio.h>
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
 
 
 #define testArenaSIZE     ((size_t)64<<20)
@@ -143,6 +133,7 @@ static mps_word_t *alloc_table(unsigned long n, mps_ap_t ap)
   return object;
 }
 
+
 /* gets the nth slot from a table
  * .assume.dylan-obj
  */
@@ -157,7 +148,7 @@ static mps_word_t *table_slot(mps_word_t *table, unsigned long n)
 static void set_table_slot(mps_word_t *table,
                            unsigned long n, mps_word_t *p)
 {
-  assert(table[0] == (mps_word_t)table_wrapper);
+  cdie(table[0] == (mps_word_t)table_wrapper, "set_table_slot");
   table[3+n] = (mps_word_t)p;
 }
 
@@ -166,8 +157,8 @@ static void set_table_slot(mps_word_t *table,
  */
 static void table_link(mps_word_t *t1, mps_word_t *t2)
 {
-  assert(t1[0] == (mps_word_t)table_wrapper);
-  assert(t2[0] == (mps_word_t)table_wrapper);
+  cdie(t1[0] == (mps_word_t)table_wrapper, "table_link 1");
+  cdie(t2[0] == (mps_word_t)table_wrapper, "table_link 2");
   t1[1] = (mps_word_t)t2;
   t2[1] = (mps_word_t)t1;
 }
@@ -241,9 +232,10 @@ struct guff_s {
 };
 
 /* v serves two purposes:
- * A pseudo stack base for the stack root.
- * Pointer to a guff structure, which packages some values needed
- * (arena and thr mostly) */
+ *  - a pseudo stack base for the stack root.
+ *  - pointer to a guff structure, which packages some values needed
+ *   (arena and thr mostly)
+ */
 static void *setup(void *v, size_t s)
 {
   struct guff_s *guff;
@@ -297,12 +289,14 @@ static void *setup(void *v, size_t s)
 }
 
 
-int main(void)
+int main(int argc, char **argv)
 {
   struct guff_s guff;
   mps_arena_t arena;
   mps_thr_t thread;
   void *r;
+
+  randomize(argc, argv);
 
   initialise_wrapper(wrapper_wrapper);
   initialise_wrapper(string_wrapper);
@@ -317,6 +311,7 @@ int main(void)
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 
+  fflush(stdout); /* synchronize */
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
   return 0;
 }
