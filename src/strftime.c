@@ -441,7 +441,7 @@ static CHAR_T const month_name[][10] =
 # define ut 0
 #endif
 
-#if !defined _LIBC && HAVE_TZNAME && HAVE_TZSET
+#if !defined _LIBC && !defined(WINDOWSNT) && HAVE_TZNAME && HAVE_TZSET
   /* Solaris 2.5 tzset sometimes modifies the storage returned by localtime.
      Work around this bug by copying *tp before it might be munged.  */
   size_t _strftime_copytm __P ((char *, size_t, const char *,
@@ -459,8 +459,7 @@ static CHAR_T const month_name[][10] =
     return _strftime_copytm (s, maxsize, format, &tmcopy ut_argument);
   }
 # undef my_strftime
-# define my_strftime(S, Maxsize, Format, Tp) \
-  _strftime_copytm (S, Maxsize, Format, Tp)
+# define my_strftime _strftime_copytm
 #endif
 
 
@@ -804,8 +803,8 @@ my_strftime (s, maxsize, format, tp ut_argument)
         subformat:
           {
             CHAR_T *old_start = p;
-            size_t len = my_strftime (NULL, (size_t) -1, subfmt, tp);
-            add (len, my_strftime (p, maxsize - i, subfmt, tp));
+            size_t len = my_strftime (NULL, (size_t) -1, subfmt, tp, 0);
+            add (len, my_strftime (p, maxsize - i, subfmt, tp, 0));
 
             if (to_uppcase)
               while (old_start < p)
