@@ -546,7 +546,11 @@ space does not end a sentence, so don't break a line there."
 		      ;; character to find the correct break point.
 		      (if (not (and (eq (charset-after (1- (point))) 'ascii)
 				    (eq (charset-after (point)) 'ascii)))
-			  (fill-find-break-point linebeg))))
+			  (fill-find-break-point
+			   (+ linebeg
+			      (current-left-margin)
+			      (if fill-prefix (string-width fill-prefix)
+				0))))))
 
 		;; If the left margin and fill prefix by themselves
 		;; pass the fill-column, keep at least one word.
