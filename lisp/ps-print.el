@@ -9,16 +9,15 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/04/14 11:07:23 vinicius>
-;; Version:	5.1.5
+;; Time-stamp:	<2000/04/24 12:23:14 vinicius>
+;; Version:	5.2
 
-(defconst ps-print-version "5.1.5"
-  "ps-print.el, v 5.1.5 <2000/04/14 vinicius>
+(defconst ps-print-version "5.2"
+  "ps-print.el, v 5.2 <2000/04/24 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
-Emacs without changes to the version number.  When reporting bugs,
-please also report the version of Emacs, if any, that ps-print was
-distributed with.
+Emacs without changes to the version number.  When reporting bugs, please also
+report the version of Emacs, if any, that ps-print was distributed with.
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <vinicius@cpqd.com.br>.
@@ -209,30 +208,34 @@ Please send all bug fixes and enhancements to
 ;; 1 inch  ==       2.54  cm    ==     72       points
 ;; 1 cm    ==  (/ 1 2.54) inch  ==  (/ 72 2.54) points
 ;;
-;; The variable `ps-paper-type' determines the size of paper ps-print
-;; formats for; it should contain one of the symbols:
-;; `a4' `a3' `letter' `legal' `letter-small' `tabloid'
-;; `ledger' `statement' `executive' `a4small' `b4' `b5'
+;; The variable `ps-paper-type' determines the size of paper ps-print formats
+;; for; it should contain one of the symbols: `a4' `a3' `letter' `legal'
+;; `letter-small' `tabloid' `ledger' `statement' `executive' `a4small' `b4'
+;; `b5'.
 ;;
-;; The variable `ps-landscape-mode' determines the orientation
-;; of the printing on the page:
-;; nil means `portrait' mode, non-nil means `landscape' mode.
+;; The variable `ps-landscape-mode' determines the orientation of the printing
+;; on the page: nil means `portrait' mode, non-nil means `landscape' mode.
 ;; There is no oblique mode yet, though this is easy to do in ps.
 ;;
-;; In landscape mode, the text is NOT scaled: you may print 70 lines
-;; in portrait mode and only 50 lignes in landscape mode.
-;; The margins represent margins in the printed paper:
-;; the top margin is the margin between the top of the page
+;; In landscape mode, the text is NOT scaled: you may print 70 lines in portrait
+;; mode and only 50 lines in landscape mode.  The margins represent margins in
+;; the printed paper: the top margin is the margin between the top of the page
 ;; and the printed header, whatever the orientation is.
 ;;
-;; The variable `ps-number-of-columns' determines the number of columns
-;; both in landscape and portrait mode.
+;; The variable `ps-number-of-columns' determines the number of columns both in
+;; landscape and portrait mode.
 ;; You can use:
-;; - (the standard) one column portrait mode
-;; - (my favorite) two columns landscape mode (which spares trees)
-;; but also
+;; - (the standard) one column portrait mode.
+;; - (my favorite) two columns landscape mode (which spares trees).
+;; but also:
 ;; - one column landscape mode for files with very long lines.
-;; - multi-column portrait or landscape mode
+;; - multi-column portrait or landscape mode.
+;;
+;; The variable `ps-print-upside-down' determines other orientation for printing
+;; page: nil means `normal' printing, non-nil means `upside-down' printing.  The
+;; default value is nil (`normal' printing).
+;;
+;; The `upside-down' orientation can be used in portrait or landscape mode.
 ;;
 ;;
 ;; Horizontal layout
@@ -592,6 +595,30 @@ Please send all bug fixes and enhancements to
 ;; The variable `ps-line-number' specifies whether to number each line;
 ;; non-nil means do so.  The default is nil (don't number each line).
 ;;
+;; The variable `ps-line-number-step' specifies the interval that line number is
+;; printed.  For example, if `ps-line-number-step' is set to 2, the printing
+;; will look like:
+;;
+;;    1 one line
+;;      one line
+;;    3 one line
+;;      one line
+;;    4 one line
+;;      one line
+;;      ...
+;;
+;; Valid values are:
+;;
+;; integer	an integer that specifies the interval that line number is
+;;		printed.  If it's lesser than or equal to zero, it's used the
+;;		value 1.
+;;
+;; `zebra'	specifies that only the line number of the first line in a zebra
+;;		stripe is to be printed.
+;;
+;; Any other value is treated as `zebra'.
+;; The default value is 1, so each line number is printed.
+;;
 ;;
 ;; Zebra Stripes
 ;; -------------
@@ -817,6 +844,17 @@ Please send all bug fixes and enhancements to
 ;; next time ps-print is invoked.  If you need that the lists always be
 ;; rebuilt when ps-print is invoked, set the variable
 ;; `ps-always-build-face-reference' to t.
+;;
+;; If you need to print without worrying about face background color, set the
+;; variable `ps-use-face-background' which specifies if face background should
+;; be used.  Valid values are:
+;;
+;;    t		always use face background color.
+;;    nil	never use face background color.
+;;    (face...)	list of faces whose background color will be used.
+;;
+;; Any other value will be treated as t.
+;; The default value is t.
 ;;
 ;;
 ;; How Ps-Print Deals With Color
@@ -1062,6 +1100,12 @@ Please send all bug fixes and enhancements to
 ;; Acknowledgements
 ;; ----------------
 ;;
+;; Thanks to David X Callaway <dxc@xprt.net> for helping debugging PostScript
+;; level 1 compatibility.
+;;
+;; Thanks to Colin Marquardt <colin.marquardt@usa.alcatel.com> for upside-down
+;; and line number step suggestions.
+;;
 ;; Thanks to Klaus Berndl <klaus.berndl@sdm.de> for user defined PostScript
 ;; prologue code suggestion.
 ;;
@@ -1152,6 +1196,12 @@ Please send all bug fixes and enhancements to
 	(and n (/= n 1) (forward-line (1- n)))
 	(beginning-of-line)
 	(point))))
+
+
+(defconst ps-windows-system
+  (memq system-type '(win32 w32 mswindows ms-dos windows-nt)))
+(defconst ps-lp-system
+  (memq system-type '(usq-unix-v dgux hpux irix)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1433,6 +1483,11 @@ example `letter', `legal' or `a4'."
   :type 'boolean
   :group 'ps-print-page)
 
+(defcustom ps-print-upside-down nil
+  "*Non-nil means print upside-down."
+  :type 'boolean
+  :group 'ps-print-page)
+
 (defcustom ps-print-control-characters 'control-8-bit
   "*Specify the printable form for control and 8-bit characters.
 That is, instead of sending, for example, a ^D (\\004) to printer,
@@ -1550,6 +1605,34 @@ See also documentation for `ps-zebra-stripes' and `ps-zebra-stripe-height'."
 (defcustom ps-line-number nil
   "*Non-nil means print line number."
   :type 'boolean
+  :group 'ps-print-miscellany)
+
+(defcustom ps-line-number-step 1
+  "*Specify the interval that line number is printed.
+
+For example, `ps-line-number-step' is set to 2, the printing will look like:
+
+   1 one line
+     one line
+   3 one line
+     one line
+   4 one line
+     one line
+     ...
+
+Valid values are:
+
+   integer	an integer that specifies the interval that line number is
+		printed.  If it's lesser than or equal to zero, it's used the
+		value 1.
+
+   `zebra'	specifies that only the line number of the first line in a zebra
+		stripe is to be printed.
+
+Any other value is treated as `zebra'."
+  :type '(choice :tag "Line Number Step"
+		 (integer :tag "Step Interval")
+		 (const :tag "Synchronize Zebra" zebra))
   :group 'ps-print-miscellany)
 
 (defcustom ps-print-background-image nil
@@ -1740,7 +1823,7 @@ NOTE: page numbers are displayed as part of headers,
   :group 'ps-print-headers)
 
 (defcustom ps-spool-config
-  (if (memq system-type '(win32 w32 mswindows ms-dos windows-nt))
+  (if ps-windows-system
       nil
     'lpr-switches)
   "*Specify who is responsable for setting duplex and page size switches.
@@ -2046,6 +2129,24 @@ This applies to generating PostScript."
   :type '(repeat face)
   :group 'ps-print-face)
 
+(defcustom ps-use-face-background nil
+  "*Specify if face background should be used.
+
+Valid values are:
+
+   t		always use face background color.
+   nil		never use face background color.
+   (face...)	list of faces whose background color will be used.
+
+Any other value will be treated as t."
+  :type '(choice :tag "Use Face Background"
+		 (const :tag "Always Use Face Background" t)
+		 (const :tag "Never Use Face Background" nil)
+		 (repeat :menu-tag "Face Background List"
+			 :tag "Face Background List"
+			 face))
+  :group 'ps-print-face)
+
 (defcustom ps-left-header
   (list 'ps-get-buffer-name 'ps-header-dirpart)
   "*The items to display (each on a line) on the left part of the page header.
@@ -2276,15 +2377,19 @@ The table depends on the current ps-print setup."
 
       ps-paper-type          %s
       ps-landscape-mode      %s
+      ps-print-upside-down   %s
       ps-number-of-columns   %s
 
       ps-zebra-stripes       %s
       ps-zebra-stripe-height %s
       ps-zebra-color         %s
       ps-line-number         %s
+      ps-line-number-step    %s
 
       ps-default-fg %s
       ps-default-bg %s
+
+      ps-use-face-background %s
 
       ps-print-control-characters %s
 
@@ -2332,13 +2437,16 @@ The table depends on the current ps-print setup."
    (ps-print-quote ps-print-region-function)
    (ps-print-quote ps-paper-type)
    ps-landscape-mode
+   ps-print-upside-down
    ps-number-of-columns
    ps-zebra-stripes
    ps-zebra-stripe-height
    (ps-print-quote ps-zebra-color)
    ps-line-number
+   (ps-print-quote ps-line-number-step)
    (ps-print-quote ps-default-fg)
    (ps-print-quote ps-default-bg)
+   (ps-print-quote ps-use-face-background)
    (ps-print-quote ps-print-control-characters)
    (ps-print-quote ps-print-background-image)
    (ps-print-quote ps-print-background-text)
@@ -2420,13 +2528,12 @@ The table depends on the current ps-print setup."
 
 (defun ps-prologue-file (filenumber)
   (save-excursion
-    (let ((buffer
-	   (or (find-file-noselect
-		(format "%sps-prin%d.ps"
-			ps-postscript-code-directory filenumber)
-		'no-warn 'rawfile)
-	       (error "ps-print PostScript prologue %d file was not found."
-		      filenumber))))
+    (let* ((filename (format "%sps-prin%d.ps"
+			     ps-postscript-code-directory filenumber))
+	   (buffer
+	    (or (find-file-noselect filename 'no-warn 'rawfile)
+		(error "ps-print PostScript prologue `%s' file was not found."
+		       filename))))
       (set-buffer buffer)
       (prog1
 	  (buffer-string)
@@ -3792,6 +3899,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (ps-output-boolean "LandscapeMode      "
 		       (or ps-landscape-mode
 			   (eq (ps-n-up-landscape n-up) 'pag)))
+    (ps-output-boolean "UpsideDown         " ps-print-upside-down)
     (ps-output (format "/NumberOfColumns     %d def\n" ps-number-of-columns)
 
 	       (format "/LandscapePageHeight %s def\n" ps-landscape-page-height)
@@ -3827,7 +3935,12 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
     (ps-output-boolean "Zebra           " ps-zebra-stripes)
     (ps-output-boolean "PrintLineNumber " ps-line-number)
-    (ps-output (format "/ZebraHeight      %d def\n" ps-zebra-stripe-height)
+    (ps-output-boolean "SyncLineZebra   " (not (integerp ps-line-number-step)))
+    (ps-output (format "/PrintLineStep    %d def\n"
+		       (if (integerp ps-line-number-step)
+			   ps-line-number-step
+			 1))
+	       (format "/ZebraHeight      %d def\n" ps-zebra-stripe-height)
 	       "/ZebraColor       "
 	       (ps-format-color ps-zebra-color 0.95)
 	       "def\n/BackgroundColor  "
@@ -3974,12 +4087,23 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
 
 (defun ps-begin-job ()
+  (let ((last-char (aref ps-postscript-code-directory
+			 (1- (length ps-postscript-code-directory)))))
+    (or (eq last-char ?/)
+	(and ps-windows-system (eq last-char ?\\))
+	(setq ps-postscript-code-directory
+	      (concat ps-postscript-code-directory "/"))))
   (or (equal ps-mark-code-directory ps-postscript-code-directory)
       (setq ps-print-prologue-0     (ps-prologue-file 0)
 	    ps-print-prologue-1     (ps-prologue-file 1)
 	    ps-print-prologue-2     (ps-prologue-file 2)
 	    ps-print-duplex-feature (ps-prologue-file 3)
 	    ps-mark-code-directory  ps-postscript-code-directory))
+  (or (listp ps-use-face-background)
+      (setq ps-use-face-background t))
+  (and (integerp ps-line-number-step)
+       (<= ps-line-number-step 0)
+       (setq ps-line-number-step 1))
   (save-excursion
     (set-buffer ps-spool-buffer)
     (goto-char (point-max))
@@ -4380,17 +4504,37 @@ If FACE is not a valid face name, it is used default face."
 	     new-face))))
 
 
+(defun ps-face-background (face background)
+  (and (or (eq ps-use-face-background t)
+	   (cond ((symbolp face)
+		  (memq face ps-use-face-background))
+		 ((listp face)
+		  (let (ok)
+		    (while face
+		      (if (memq (car face) ps-use-face-background)
+			  (setq face nil
+				ok   t)
+			(setq face (cdr face))))
+		    ok))
+		 (t
+		  nil)
+		 ))
+       background))
+
+
 (defun ps-face-attribute-list (face-or-list)
   (if (listp face-or-list)
       ;; list of faces
       (let ((effects 0)
-	    foreground background face-attr)
+	    foreground background face-attr face)
 	(while face-or-list
-	  (setq face-attr (ps-face-attributes (car face-or-list))
-		effects (logior effects (aref face-attr 0)))
+	  (setq face         (car face-or-list)
+		face-or-list (cdr face-or-list)
+		face-attr    (ps-face-attributes face)
+		effects      (logior effects (aref face-attr 0)))
 	  (or foreground (setq foreground (aref face-attr 1)))
-	  (or background (setq background (aref face-attr 2)))
-	  (setq face-or-list (cdr face-or-list)))
+	  (or background
+	      (setq background (ps-face-background face (aref face-attr 2)))))
 	(vector effects foreground background))
     ;; simple face
     (ps-face-attributes face-or-list)))
@@ -4408,7 +4552,7 @@ If FACE is not a valid face name, it is used default face."
     (let* ((face-bit   (ps-face-attribute-list face))
 	   (effect     (aref face-bit 0))
 	   (foreground (aref face-bit 1))
-	   (background (aref face-bit 2))
+	   (background (ps-face-background face (aref face-bit 2)))
 	   (fg-color (if (and ps-color-p foreground)
 			 (ps-color-scale foreground)
 		       ps-default-color))
@@ -4736,9 +4880,9 @@ If FACE is not a valid face name, it is used default face."
 
 
 (defconst ps-printer-name-option
-  (cond ((memq system-type '(win32 w32 mswindows ms-dos windows-nt))
+  (cond (ps-windows-system
 	 "-P")
-	((memq system-type '(usq-unix-v dgux hpux irix))
+	(ps-lp-system
 	 "-d")
 	(t
 	 "-P" )))
