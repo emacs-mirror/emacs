@@ -1100,8 +1100,14 @@ command_loop_1 ()
 
       /* If the previous command tried to force a specific window-start,
 	 forget about that, in case this command moves point far away
-	 from that position.  */
-      XWINDOW (selected_window)->force_start = Qnil;
+	 from that position.  But also throw away beg_unchanged and
+	 end_unchanged information in that case, so that redisplay will
+	 update the whole window properly.  */
+      if (!NILP (XWINDOW (selected_window)->force_start))
+	{
+	  XWINDOW (selected_window)->force_start = Qnil;
+	  beg_unchanged = end_unchanged = 0;
+	}
 
       cmd = read_key_sequence_cmd;
       if (!NILP (Vexecuting_macro))
