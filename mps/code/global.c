@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2002 Global Graphics Software.
  *
  * .sources: See design.mps.arena.  design.mps.thread-safety is relevant
  * to the functions ArenaEnter and ArenaLeave in this file.
@@ -20,12 +21,11 @@
  * functions should be in some other module, they just ended up here by
  * confusion over naming.  */
 
-#include "dongle.h"
+#include "bt.h"
 #include "poolmrg.h"
 #include "mps.h" /* finalization */
 #include "poolmv.h"
 #include "mpm.h"
-
 
 SRCID(global, "$Id$");
 
@@ -216,9 +216,6 @@ Res GlobalsInit(Globals arenaGlobals)
   /* This is one of the first things that happens, */
   /* so check static consistency here. */
   AVER(MPMCheck());
-
-  if (!DongleTestFull())
-    return ResFAIL;
 
   arenaClaimRingLock();
   /* Ensure static things are initialized. */
@@ -542,12 +539,6 @@ void ArenaPoll(Globals globals)
 
   AVERT(Globals, globals);
 
-  if (!DONGLE_TEST_QUICK()) {
-    /* Cripple it by deleting the control pool. */
-    GlobalsArena(globals)->poolReady = FALSE; /* suppress check */
-    PoolFinish(ArenaControlPool(GlobalsArena(globals)));
-    return;
-  }
   if (globals->clamped)
     return;
   size = globals->fillMutatorSize;
@@ -589,7 +580,7 @@ Res ArenaFinalize(Arena arena, Ref obj)
   Res res;
 
   AVERT(Arena, arena);
-  /* Could consider checking that Ref is valid. */
+  AVER(ArenaHasAddr(arena, (Addr)obj));
 
   if (!arena->isFinalPool) {
     Pool pool;
@@ -600,9 +591,27 @@ Res ArenaFinalize(Arena arena, Ref obj)
     arena->finalPool = pool;
     arena->isFinalPool = TRUE;
   }
-  AVER(arena->isFinalPool);
 
-  res = MRGRegister(arena->finalPool, (Ref)obj);
+  res = MRGRegister(arena->finalPool, obj);
+  return res;
+}
+
+
+/* ArenaDefinalize -- removes one finalization registration of an object
+ *
+ * See design.mps.finalize.  */
+
+Res ArenaDefinalize(Arena arena, Ref obj)
+{
+  Res res;
+
+  AVERT(Arena, arena);
+  AVER(ArenaHasAddr(arena, (Addr)obj));
+
+  if (!arena->isFinalPool) {
+    return ResFAIL;
+  }
+  res = MRGDeregister(arena->finalPool, obj);
   return res;
 }
 

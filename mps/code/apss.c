@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2002 Global Graphics Software.
  */
 
 
@@ -21,6 +22,8 @@
 #define testLOOPS 10
 
 
+/* make -- allocate one object */
+
 static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 {
   mps_res_t res;
@@ -35,8 +38,10 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 }
 
 
-static mps_res_t stress(mps_class_t class, mps_arena_t arena,
-                        size_t (*size)(int i), ...)
+/* stress -- create a pool of the requested type and allocate in it */
+
+static mps_res_t stress(mps_class_t class, size_t (*size)(int i),
+                        mps_arena_t arena, ...)
 {
   mps_res_t res = MPS_RES_OK;
   mps_pool_t pool;
@@ -46,7 +51,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
   int *ps[testSetSIZE];
   size_t ss[testSetSIZE];
 
-  va_start(arg, size);
+  va_start(arg, arena);
   res = mps_pool_create_v(&pool, arena, class, arg);
   va_end(arg);
   if (res != MPS_RES_OK)
@@ -107,6 +112,9 @@ allocFail:
 
 #define alignUp(w, a)       (((w) + (a) - 1) & ~((size_t)(a) - 1))
 
+
+/* randomSize8 -- produce sizes both latge and small, 8-byte aligned */
+
 static size_t randomSize8(int i)
 {
   size_t maxSize = 2 * 160 * 0x2000;
@@ -115,24 +123,32 @@ static size_t randomSize8(int i)
 }
 
 
-static mps_pool_debug_option_s debugOptions = { (void *)"postpost", 8 };
+/* testInArena -- test all the pool classes in the given arena */
 
-static void testInArena(mps_arena_t arena)
+static mps_pool_debug_option_s bothOptions =
+  { (void *)"postpost", 8, (void *)"DEAD", 4 };
+
+static mps_pool_debug_option_s fenceOptions =
+  { (void *)"\0XXX ''\"\"'' XXX\0", 16, NULL, 0 };
+
+static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
 {
   mps_res_t res;
 
+  /* IWBN to test MVFFDebug, but the MPS doesn't support debugging APs, */
+  /* yet (MV Debug works here, because it fakes it through PoolAlloc). */
   printf("MVFF\n\n");
-  res = stress(mps_class_mvff(), arena, randomSize8,
+  res = stress(mps_class_mvff(), randomSize8, arena,
                (size_t)65536, (size_t)32, (size_t)4, TRUE, TRUE, TRUE);
   if (res == MPS_RES_COMMIT_LIMIT) return;
   die(res, "stress MVFF");
   printf("MV debug\n\n");
-  res = stress(mps_class_mv_debug(), arena, randomSize8,
-               &debugOptions, (size_t)65536, (size_t)32, (size_t)65536);
+  res = stress(mps_class_mv_debug(), randomSize8, arena,
+               options, (size_t)65536, (size_t)32, (size_t)65536);
   if (res == MPS_RES_COMMIT_LIMIT) return;
   die(res, "stress MV debug");
   printf("MV\n\n");
-  res = stress(mps_class_mv(), arena, randomSize8,
+  res = stress(mps_class_mv(), randomSize8, arena,
                (size_t)65536, (size_t)32, (size_t)65536);
   if (res == MPS_RES_COMMIT_LIMIT) return;
   die(res, "stress MV");
@@ -147,13 +163,13 @@ int main(int argc, char **argv)
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), 2*testArenaSIZE),
       "mps_arena_create");
-  mps_arena_commit_limit_set(arena, testArenaSIZE);
-  testInArena(arena);
+  die(mps_arena_commit_limit_set(arena, testArenaSIZE), "commit limit");
+  testInArena(arena, &fenceOptions);
   mps_arena_destroy(arena);
 
   die(mps_arena_create(&arena, mps_arena_class_vmnz(), 2*testArenaSIZE),
       "mps_arena_create");
-  testInArena(arena);
+  testInArena(arena, &bothOptions);
   mps_arena_destroy(arena);
 
   fflush(stdout); /* synchronize */

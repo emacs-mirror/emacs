@@ -1,6 +1,4 @@
-!  impl.s.sssus8
-!
-!                      STACK SCANNING
+!  impl.s.sssus8: STACK SCANNING
 !
 !  $Id$
 !

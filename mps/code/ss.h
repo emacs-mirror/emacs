@@ -1,5 +1,4 @@
-/*  impl.h.ss
- *              STACK SCANNING
+/* impl.h.ss: STACK SCANNING
  *
  *  $Id$
  *

@@ -14,7 +14,7 @@ SRCID(arena, "$Id$");
 
 /* ArenaControlPool -- get the control pool */
 
-#define ArenaControlPool(arena) MVPool(&(arena)->controlPoolStruct)
+#define ArenaControlPool(arena) MV2Pool(&(arena)->controlPoolStruct)
 
 
 /* ArenaTrivDescribe -- produce trivial description of an arena */

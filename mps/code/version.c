@@ -10,13 +10,11 @@
  *
  * DESIGN
  *
- * .design: See design.mps.version-library, but to let you in on a
- * secret it works by declaring a string with all the necessary info
- * in.
- */
+ * .design: See design.mps.version-library, but - to let you in on a
+ * secret - it works by declaring a string with all the necessary info
+ * in.  */
 
 #include "mpm.h"
-
 
 SRCID(version, "$Id$");
 
@@ -28,7 +26,7 @@ SRCID(version, "$Id$");
  * whatever.
  */
 
-#define MPS_RELEASE "$Id$ *** DEVELOPMENT ONLY ***"
+#define MPS_RELEASE "release.epcore.chub"
 
 
 /* MPSCopyrightNotice -- copyright notice for the binary
@@ -38,7 +36,7 @@ SRCID(version, "$Id$");
  */
 
 char MPSCopyrightNotice[] =
-  "Copyright (c) 2001 Ravenbrook Limited.";
+  "Copyright (c) 2002 Ravenbrook Limited and Global Graphics Software.";
 
 
 /* MPSVersion -- return version string

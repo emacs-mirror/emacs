@@ -1,7 +1,8 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
- *  $Id$
- *  Copyright (c) 2001 Ravenbrook Limited.
+ * $Id$
+ * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2002 Global Graphics Software.
  *
  * .readership: MPS developers, Dylan developers
  *
@@ -56,29 +57,14 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
-
-#ifdef MPS_PF_SUS8LC
-/* .hack.stderr: builder.lc (LCC) uses Sun's header files.  Sun's
- * assert.h is broken, as it assumes it can use stderr.  We have to
- * fix it by supplying stderr.
- */
-#include <stdio.h>
-#endif
+#include <limits.h>
 
 
 #define notreached()    assert(0)
 #define unused(param)   ((void)param)
 
-#ifdef MPS_BUILD_MV
 
-/* MSVC 2.0 generates a warning for unused(). */
 #ifdef _MSC_VER
-#if _MSC_VER < 1000
-#pragma warning(disable: 4705)
-#endif
-#else /* _MSC_VER */
-#error "Expected _MSC_VER to be defined for builder.mv"
-#endif /* _MSC_VER */
 
 /* MPS_END causes "constant conditional" warnings. */
 #pragma warning(disable: 4127)
@@ -87,10 +73,14 @@
 /* has been removed". */
 #pragma warning(disable: 4514)
 
-#endif /* MPS_BUILD_MV */
+#endif /* _MSC_VER */
 
 
 #define ALIGN           sizeof(mps_word_t)
+
+#define MPS_WORD_WIDTH (sizeof(mps_word_t) * CHAR_BIT)
+#define MPS_WORD_SHIFT (MPS_WORD_WIDTH == 64 ? 6 : 5)
+/* MPS_WORD_SHIFT is a bit hacky, but good enough for tests. */
 
 #ifdef FMTDY_COUNTING
 #define FMTDY_COUNT(x) x
@@ -198,7 +188,7 @@ int dylan_wrapper_check(mps_word_t *w)
   assert(ff == 2 || t == 0);
 
   /* The number of patterns is (fixed fields+31)/32. */
-  assert(ff != 2 || t == ((fl + MPS_WORD_WIDTH - 1) >> MPS_WORD_SHIFT));
+  assert(ff != 2 || t == ((fl + MPS_WORD_WIDTH - 1) / MPS_WORD_WIDTH));
 
   /* The patterns are random bits, so we can't check them.  However, */
   /* the left-over bits in the last pattern should be zero. */
@@ -361,11 +351,13 @@ static mps_res_t dylan_scan_pat(mps_ss_t mps_ss,
   return MPS_RES_OK;
 }
 
+
 #define NONWORD_LENGTH(_vt, _es) \
   ((_es) < MPS_WORD_SHIFT ? \
    ((_vt) + (1 << (MPS_WORD_SHIFT - (_es))) - 1) >> \
      (MPS_WORD_SHIFT - (_es)) : \
    (_vt) << ((_es) - MPS_WORD_SHIFT))
+
 
 extern mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
 {
@@ -408,7 +400,8 @@ extern mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
     return MPS_RES_OK;
   }
 
-  mps_fix(mps_ss, p);           /* fix the wrapper */
+  res = mps_fix(mps_ss, p);     /* fix the wrapper */
+  if ( res != MPS_RES_OK ) return res;
   w = (mps_word_t *)p[0];       /* wrapper is header word */
   assert(dylan_wrapper_check(w));
 
@@ -563,7 +556,8 @@ extern mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
   /* object should not be forwarded (as there is no forwarding method) */
   assert((h & 3) == 0);
 
-  mps_fix(mps_ss, p);
+  res = mps_fix(mps_ss, p);
+  if ( res != MPS_RES_OK ) return res;
 
   /* w points to wrapper */
   w = (mps_word_t *)p[0];
@@ -688,7 +682,7 @@ static void dylan_copy(mps_addr_t old, mps_addr_t new)
   assert(dylan_wrapper_check(*(mps_word_t **)old));
   /* .improve.memcpy: Can do better here as we know that new and old
    * will be aligned (to MPS_PF_ALIGN) */
-  memcpy(new, old, length);
+  (void)memcpy(new, old, length);
 }
 
 static mps_addr_t dylan_isfwd(mps_addr_t object)

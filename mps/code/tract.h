@@ -10,6 +10,7 @@
 
 #include "mpmtypes.h"
 #include "ring.h"
+#include "bt.h"
 
 
 /* TractStruct -- tract structure
@@ -231,11 +232,11 @@ extern Index IndexOfAddr(Chunk chunk, Addr addr);
   AddrAdd((chunk)->base, ChunkPagesToSize(chunk, i))
 
 
-/* TractIsContiguousRange -- do base and limit define a contiguous range */
+/* TractAverContiguousRange -- verify that range is contiguous */
 
-#define AverTractIsContiguousRange(arena, rangeBase, rangeLimit) \
+#define TractAverContiguousRange(arena, rangeBase, rangeLimit) \
   BEGIN \
-    Chunk _ch; \
+    Chunk _ch = NULL; \
     \
     UNUSED(_ch); \
     AVER(ChunkOfAddr(&_ch, arena, rangeBase) && (rangeLimit) <= _ch->limit); \
@@ -255,7 +256,7 @@ extern Bool TractNext(Tract *tractReturn, Arena arena, Addr addr);
 
 #define TRACT_TRACT_FOR(tract, addr, arena, firstTract, limit) \
   tract = (firstTract); addr = TractBase(tract); \
-  AverTractIsContiguousRange(arena, addr, limit); \
+  TractAverContiguousRange(arena, addr, limit); \
   for(; tract != NULL; \
       (addr = AddrAdd(addr, (arena)->alignment)), \
       (addr < (limit) ? \

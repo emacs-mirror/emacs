@@ -1,6 +1,5 @@
-!  impl.s.sssos8
+!  impl.s.sssos8: STACK SCANNING
 !
-!                      STACK SCANNING
 !
 !  $Id$
 !

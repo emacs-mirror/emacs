@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2002 Global Graphics Software.
  *
  * .posix: This is Posix only.
  */
@@ -12,21 +13,18 @@
 #include "testlib.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
-#include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
-#include "mps.h"
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
 #include <time.h>
 
 
-/* These values have been tuned to cause one top-generation collection. */
+/* These values have been tuned in the hope of getting one dynamic collection. */
 #define testArenaSIZE     ((size_t)1000*1024)
+#define gen1SIZE          ((size_t)150)
+#define gen2SIZE          ((size_t)170)
 #define avLEN             3
-#define exactRootsCOUNT   200
+#define exactRootsCOUNT   180
 #define ambigRootsCOUNT   50
 #define genCOUNT          2
 #define collectionsCOUNT  37
@@ -36,7 +34,7 @@
 /* testChain -- generation parameters for the test */
 
 static mps_gen_param_s testChain[genCOUNT] = {
-  { 150, 0.85 }, { 170, 0.45 } };
+  { gen1SIZE, 0.85 }, { gen2SIZE, 0.45 } };
 
 
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
@@ -53,6 +51,38 @@ mps_chain_t chain;
 mps_root_t exactRoot, ambigRoot;
 unsigned long objs = 0;
 
+
+/* report - report statistics from any terminated GCs */
+
+static void report(mps_arena_t arena)
+{
+  mps_message_t message;
+  static int nCollections = 0;
+    
+  while (mps_message_get(&message, arena, mps_message_type_gc())) {
+    size_t live, condemned, not_condemned;
+
+    live = mps_message_gc_live_size(arena, message);
+    condemned = mps_message_gc_condemned_size(arena, message);
+    not_condemned = mps_message_gc_not_condemned_size(arena, message);
+
+    printf("\nCollection %d finished:\n", ++nCollections);
+    printf("live %lu\n", (unsigned long)live);
+    printf("condemned %lu\n", (unsigned long)condemned);
+    printf("not_condemned %lu\n", (unsigned long)not_condemned);
+
+    mps_message_discard(arena, message);
+
+    if (condemned > (gen1SIZE + gen2SIZE + (size_t)128) * 1024)
+      /* When condemned size is larger than could happen in a gen 2
+       * collection (discounting ramps, natch), guess that was a dynamic
+       * collection, and reset the commit limit, so it doesn't run out. */
+      die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "set limit");
+  }
+}
+
+
+/* make -- create one new object */
 
 static mps_addr_t make(mps_ap_t ap)
 {
@@ -74,11 +104,14 @@ static mps_addr_t make(mps_ap_t ap)
 }
 
 
-static void test_stepper(mps_addr_t object, void *p, size_t s)
+/* test_stepper -- stepping function for walk */
+
+static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pol,
+                         void *p, size_t s)
 {
-  (*(unsigned long *)p)++;
+  testlib_unused(object); testlib_unused(fmt); testlib_unused(pol);
   testlib_unused(s);
-  testlib_unused(object);
+  (*(unsigned long *)p)++;
 }
 
 
@@ -97,7 +130,7 @@ static void init(void)
   for(i = 0; i < exactRootsCOUNT; ++i)
     exactRoots[i] = objNULL;
   for(i = 0; i < ambigRootsCOUNT; ++i)
-    ambigRoots[i] = (mps_addr_t)rnd();
+    ambigRoots[i] = rnd_addr();
 
   die(mps_root_create_table_masked(&exactRoot, arena,
                                    MPS_RANK_EXACT, (mps_rm_t)0,
@@ -171,10 +204,10 @@ static void *test(void *arg, size_t s)
 
   collections = 0;
   rampSwitch = rampSIZE;
-  mps_ap_alloc_pattern_begin(ap, ramp);
-  mps_ap_alloc_pattern_begin(busy_ap, ramp);
+  die(mps_ap_alloc_pattern_begin(ap, ramp), "pattern begin (ap)");
+  die(mps_ap_alloc_pattern_begin(busy_ap, ramp), "pattern begin (busy_ap)");
   ramping = 1;
-  while(collections < collectionsCOUNT) {
+  while (collections < collectionsCOUNT) {
     unsigned long c;
     size_t r;
 
@@ -182,23 +215,29 @@ static void *test(void *arg, size_t s)
 
     if (collections != c) {
       collections = c;
-      printf("\nCollection %lu, %lu objects.\n",
-             c, objs);
-      for(r = 0; r < exactRootsCOUNT; ++r)
-        cdie(exactRoots[r] == objNULL || dylan_check(exactRoots[r]),
+      printf("\nCollection %lu started, %lu objects.\n", c, objs);
+      report(arena);
+
+      for (i = 0; i < exactRootsCOUNT; ++i)
+        cdie(exactRoots[i] == objNULL || dylan_check(exactRoots[i]),
              "all roots check");
+
       if (collections == collectionsCOUNT / 2) {
         unsigned long object_count = 0;
         mps_arena_park(arena);
-	mps_amc_apply(pool, test_stepper, &object_count, 0);
+	mps_arena_formatted_objects_walk(arena, test_stepper, &object_count, 0);
 	mps_arena_release(arena);
-	printf("mps_amc_apply stepped on %lu objects.\n", object_count);
+	printf("stepped on %lu objects.\n", object_count);
       }
       if (collections == rampSwitch) {
+        int begin_ramp = !ramping
+          || /* Every other time, switch back immediately. */ (collections & 1);
+
         rampSwitch += rampSIZE;
         if (ramping) {
-          mps_ap_alloc_pattern_end(ap, ramp);
-          mps_ap_alloc_pattern_end(busy_ap, ramp);
+          die(mps_ap_alloc_pattern_end(ap, ramp), "pattern end (ap)");
+          die(mps_ap_alloc_pattern_end(busy_ap, ramp), "pattern end (busy_ap)");
+          ramping = 0;
           /* kill half of the roots */
           for(i = 0; i < exactRootsCOUNT; i += 2) {
             if (exactRoots[i] != objNULL) {
@@ -206,12 +245,12 @@ static void *test(void *arg, size_t s)
               exactRoots[i] = objNULL;
             }
           }
-          /* Every other time, switch back immediately. */
-          if (collections & 1) ramping = 0;
         }
-        if (!ramping) {
-          mps_ap_alloc_pattern_begin(ap, ramp);
-          mps_ap_alloc_pattern_begin(busy_ap, ramp);
+        if (begin_ramp) {
+          die(mps_ap_alloc_pattern_begin(ap, ramp),
+              "pattern rebegin (ap)");
+          die(mps_ap_alloc_pattern_begin(busy_ap, ramp),
+              "pattern rebegin (busy_ap)");
           ramping = 1;
         }
       }
@@ -223,6 +262,7 @@ static void *test(void *arg, size_t s)
       *(int*)busy_init = -1; /* check that the buffer is still there */
 
     if (objs % 1024 == 0) {
+      report(arena);
       putchar('.');
       fflush(stdout);
     }
@@ -278,6 +318,7 @@ int main(int argc, char **argv)
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create");
+  mps_message_type_enable(arena, mps_message_type_gc());
   init();
   die(mps_thread_reg(&thread, arena), "thread_reg");
   pthread_create(&pthread1, NULL, fooey, (void *)&childIsFinished);
@@ -290,6 +331,7 @@ int main(int argc, char **argv)
   }
 
   finish();
+  report(arena);
   mps_arena_destroy(arena);
 
   fflush(stdout); /* synchronize */

@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2001 Global Graphics Software.
  *
  * .design: This header file crosses module boundaries.  The relevant
  * design a module's structures should be found in that module's design
@@ -71,6 +72,7 @@ typedef struct PoolClassStruct {
   PoolFramePopMethod framePop;  /* pop an allocation frame */
   PoolFramePopPendingMethod framePopPending;  /* notify pending pop */
   PoolWalkMethod walk;          /* walk over a segment */
+  PoolFreeWalkMethod freewalk;  /* walk over free blocks */
   PoolBufferClassMethod bufferClass; /* default BufferClass of pool */
   PoolDescribeMethod describe;  /* describe the contents of the pool */
   PoolDebugMixinMethod debugMixin; /* find the debug mixin, if any */

@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2002 Global Graphics Software.
  */
 
 #ifndef dbgpool_h
@@ -25,6 +26,8 @@ typedef void (*TagInitMethod)(void* tag, va_list args);
 typedef struct PoolDebugOptionsStruct {
   void* fenceTemplate;
   Size  fenceSize;
+  void* freeTemplate;
+  Size  freeSize;
   /* TagInitMethod tagInit; */
   /* Size  tagSize; */
 } PoolDebugOptionsStruct;
@@ -40,6 +43,8 @@ typedef struct PoolDebugMixinStruct {
   Sig sig;
   Addr fenceTemplate;
   Size fenceSize;
+  Addr freeTemplate;
+  Size freeSize;
   TagInitMethod tagInit;
   Size tagSize;
   Pool tagPool;
@@ -50,8 +55,13 @@ typedef struct PoolDebugMixinStruct {
 
 extern Bool PoolDebugMixinCheck(PoolDebugMixin dbg);
 
-
 extern void PoolClassMixInDebug(PoolClass class);
+
+extern void DebugPoolCheckFences(Pool pool);
+extern void DebugPoolCheckFreeSpace(Pool pool);
+
+extern void DebugPoolFreeSplat(Pool pool, Addr base, Addr limit);
+extern void DebugPoolFreeCheck(Pool pool, Addr base, Addr limit);
 
 
 #endif /* dbgpool_h */

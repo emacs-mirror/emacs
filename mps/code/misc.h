@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2001 Global Graphics Software.
  *
  * Small general things which are useful for C but aren't part of the
  * memory manager itself.  The only reason that this file exists is
@@ -20,25 +21,6 @@ enum {
   FALSE = 0,
   TRUE = 1
 };
-
-
-/* offsetof -- offset of field within structure
- *
- * .hack.offsetof: On platform.sus8lc the offsetof macro is not defined
- * (because LCC does not bother fixing up SunOS's broken header files).
- * We define it here using normal C constructs.  This hack is only
- * required on platform.sus8lc and no other platforms.  See
- * change.mps.tracer2.170226
- */
-
-#ifdef MPS_PF_SUS8LC
-#ifdef offsetof
-#error "offsetof was unexpectedly already defined on platform SUS8LC"
-#else
-#define offsetof(type, field) ((size_t)(((char *)&((type *)0)->field) \
-			      - (char *)0))
-#endif /* offsetof */
-#endif /* MPS_PF_SUS8LC */
 
 
 /* SrcId -- source identification
@@ -157,11 +139,15 @@ typedef const struct SrcIdStruct {
  * Given a pointer to a field of a structure this returns a pointer to
  * the main structure.  PARENT(foo_t, x, foo->x) == foo.
  *
- * This macro is thread-safe.  design.mps.misc.parent.thread-safe
+ * This macro is thread-safe, see design.mps.misc.parent.thread-safe.
+ *
+ * That intermediate (void *) is required to stop some compilers complaining
+ * about alignment of 'type *' being greater than that of 'char *'.  Which
+ * is true, but not a bug, since p really is a pointer into a 'type' struct.
  */
 
 #define PARENT(type, field, p) \
-  ((type *)((char *)(p) - offsetof(type, field)))
+  ((type *)(void *)((char *)(p) - offsetof(type, field)))
 
 
 /* Bit Sets -- sets of integers in [0,N-1].

@@ -43,7 +43,6 @@
 #include "mpm.h"
 #include "chain.h"
 
-
 SRCID(poolawl, "$Id$");
 
 

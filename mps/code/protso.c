@@ -2,7 +2,6 @@
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.
- *
  */
 
 #include "mpm.h"

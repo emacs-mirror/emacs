@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2002 Global Graphics Software.
  */
 
 #ifndef fmthe_h

@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2002 Global Graphics Software.
  *
  * DESIGN
  *
@@ -27,7 +28,8 @@ Bool FormatCheck(Format format)
   CHECKL(AlignCheck(format->alignment));
   /* @@@@ alignment should be less than maximum allowed */
   CHECKL(FUNCHECK(format->scan));
-  CHECKL(FUNCHECK(format->skip));
+  CHECKL(format->variety == FormatVarietyFixed
+         ? format->skip == NULL : FUNCHECK(format->skip));
   CHECKL(FUNCHECK(format->move));
   CHECKL(FUNCHECK(format->isMoved));
   /* Ignore unused copy field. */
@@ -82,13 +84,13 @@ Res FormatCreate(Format *formatReturn, Arena arena,
   format->isMoved = isMoved;
   format->copy = copy;
   format->pad = pad;
-  if(class == NULL) {
+  if (class == NULL) {
     format->class = &FormatDefaultClass;
   } else {
     AVER(variety == FormatVarietyB);
     format->class = class;
   }
-  if(headerSize != 0) {
+  if (headerSize != 0) {
     AVER(variety == FormatVarietyAutoHeader);
     format->headerSize = headerSize;
   } else {
@@ -108,6 +110,8 @@ Res FormatCreate(Format *formatReturn, Arena arena,
 }
 
 
+/* FormatDestroy -- destroy a format */
+
 void FormatDestroy(Format format)
 {
   AVERT(Format, format);
@@ -122,7 +126,10 @@ void FormatDestroy(Format format)
 }
 
 
-/* Must be thread safe.  See design.mps.interface.c.thread-safety. */
+/* FormatArena -- find the arena of a format
+ *
+ * Must be thread-safe.  See design.mps.interface.c.thread-safety. */
+
 Arena FormatArena(Format format)
 {
   /* Can't AVER format as that would not be thread-safe */
@@ -130,6 +137,8 @@ Arena FormatArena(Format format)
   return format->arena;
 }
 
+
+/* FormatDescribe -- describe a format */
 
 Res FormatDescribe(Format format, mps_lib_FILE *stream)
 {
@@ -148,7 +157,7 @@ Res FormatDescribe(Format format, mps_lib_FILE *stream)
                "  pad $F\n", (WriteFF)format->pad,
                "} Format $P ($U)\n", (WriteFP)format, (WriteFU)format->serial,
                NULL);
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
 
   return ResOK;
 }

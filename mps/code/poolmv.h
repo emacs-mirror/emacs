@@ -1,7 +1,8 @@
-/* .impl.h.poolmv: MANUAL VARIABLE POOL
+/* impl.h.poolmv: MANUAL VARIABLE POOL
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: This is the interface to the manual-variable pool class.
  *
@@ -49,8 +50,7 @@ extern PoolClass PoolClassMV(void);
 
 extern Bool MVCheck(MV mv);
 
-#define MVPool(mv) (&(mv)->poolStruct)
-extern Pool (MVPool)(MV mv);
+#define MV2Pool(mv) (&(mv)->poolStruct)
 
 
 #endif /* poolmv_h */

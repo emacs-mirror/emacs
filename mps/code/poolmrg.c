@@ -2,7 +2,9 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
- *
+ * Copyright (C) 2002 Global Graphics Software.
+ * 
+ * 
  * DESIGN
  *
  * .design: See design.mps.poolmrg.
@@ -26,6 +28,7 @@
  * and MRG pools, whatever that might be.
  */
 
+#include "ring.h"
 #include "mpm.h"
 #include "poolmrg.h"
 
@@ -34,12 +37,11 @@ SRCID(poolmrg, "$Id$");
 
 /* Types */
 
-/* enumerate the states of a Guardian */
+/* enumerate the states of a guardian */
 enum {
   MRGGuardianFREE = 1,
   MRGGuardianPREFINAL,
-  MRGGuardianFINAL,
-  MRGGuardianPOSTFINAL
+  MRGGuardianFINAL
 };
 
 
@@ -47,7 +49,7 @@ enum {
 
 typedef struct LinkStruct *Link;
 typedef struct LinkStruct {
-  int state;                     /* Free, Prefinal, Final, Postfinal */
+  int state;                     /* Free, Prefinal, Final */
   union {
     MessageStruct messageStruct; /* state = Final */
     RingStruct linkRing;         /* state one of {Free, Prefinal} */
@@ -323,8 +325,10 @@ static Count MRGGuardiansPerSeg(MRG mrg)
 
 /* design.mps.poolmrg.guardian.assoc */
 
+
 #define refPartOfIndex(refseg, index) \
   ((RefPart)SegBase(RefSeg2Seg(refseg)) + (index))
+
 
 static RefPart MRGRefPartOfLink(Link link, Arena arena)
 {
@@ -349,9 +353,12 @@ static RefPart MRGRefPartOfLink(Link link, Arena arena)
   return refPartOfIndex(linkseg->refSeg, index);
 }
 
+
 #define linkOfIndex(linkseg, index) \
   ((Link)SegBase(LinkSeg2Seg(linkseg)) + (index))
 
+
+#if 0
 static Link MRGLinkOfRefPart(RefPart refPart, Arena arena)
 {
   Seg seg;
@@ -374,6 +381,7 @@ static Link MRGLinkOfRefPart(RefPart refPart, Arena arena)
 
   return linkOfIndex(refseg->linkSeg, index);
 }
+#endif
 
 
 /* MRGGuardianInit -- Initialises both parts of a guardian */
@@ -395,35 +403,26 @@ static void MRGGuardianInit(MRG mrg, Link link, RefPart refPart)
 /* MRGMessage* -- Implementation of MRG's MessageClass */
 
 
-/* MRGMessageDelete -- deletes the message (frees up the memory) */
+/* MRGMessageDelete -- deletes the message (frees up the guardian) */
 
 static void MRGMessageDelete(Message message)
 {
-  RefPart refPart;
   Pool pool;
   Arena arena;
   Link link;
+  Bool b;
 
   AVERT(Message, message);
 
   arena = MessageArena(message);
-
-  { /* Calculate pool */
-    Bool b;
-    Seg seg;
-    b = SegOfAddr(&seg, arena, (Addr)message);
-    AVER(b);
-
-    pool = SegPool(seg);
-  }
+  b = PoolOfAddr(&pool, arena, (Addr)message);
+  AVER(b);
   AVER(pool->class == PoolClassMRG());
 
   link = linkOfMessage(message);
-  MessageFinish(message);
   AVER(link->state == MRGGuardianFINAL);
-  link->state = MRGGuardianPOSTFINAL;
-  refPart = MRGRefPartOfLink(link, arena);
-  PoolFree(pool, (Addr)refPart, sizeof(RefPartStruct));
+  MessageFinish(message);
+  MRGGuardianInit(Pool2MRG(pool), link, MRGRefPartOfLink(link, arena));
 }
 
 
@@ -547,7 +546,7 @@ failLinkSegAlloc:
 }
 
 
-/* MRGFinalise -- finalize the indexth guardian in the segment */
+/* MRGFinalize -- finalize the indexth guardian in the segment */
 
 static void MRGFinalize(Arena arena, MRGLinkSeg linkseg, Index index)
 {
@@ -686,6 +685,8 @@ static void MRGFinish(Pool pool)
 }
 
 
+/* MRGRegister -- register an object for finalization */
+
 Res MRGRegister(Pool pool, Ref ref)
 {
   Ring freeNode;
@@ -707,7 +708,6 @@ Res MRGRegister(Pool pool, Ref ref)
 
   /* design.mps.poolmrg.alloc.grow */
   if (RingIsSingle(&mrg->freeRing)) {
-    /* .refseg.useless: refseg isn't used */
     /* @@@@ Should the client be able to use the reservoir for this? */
     res = MRGSegPairCreate(&junk, mrg, /* withReservoirPermit */ FALSE);  
     if (res != ResOK)
@@ -731,32 +731,49 @@ Res MRGRegister(Pool pool, Ref ref)
 }
 
 
-/* MRGFree -- free a guardian */
+/* MRGDeregister -- deregister (once) an object for finalization */
 
-static void MRGFree(Pool pool, Addr old, Size size)
+Res MRGDeregister(Pool pool, Ref obj)
 {
-  MRG mrg;
+  Ring node, nextNode;
+  Count nGuardians;       /* guardians per seg */
   Arena arena;
-  Link link;
-  RefPart refPart;
+  MRG mrg;
 
   AVERT(Pool, pool);
-  AVER(old != (Addr)0);
-  AVER(size == sizeof(RefPartStruct));
+  /* Can't check obj */
 
   mrg = Pool2MRG(pool);
   AVERT(MRG, mrg);
-
-  refPart = (RefPart)old;
-
+  nGuardians = MRGGuardiansPerSeg(mrg);
   arena = PoolArena(pool);
-  AVERT(Arena, arena);
 
-  /* design.mps.poolmrg.guardian.ref.free */
-  link = MRGLinkOfRefPart(refPart, arena);
-  AVER(link->state == MRGGuardianPOSTFINAL);
+  /* map over the segments */
+  RING_FOR(node, &mrg->refRing, nextNode) {
+    MRGRefSeg refSeg = RING_ELT(MRGRefSeg, mrgRing, node);
+    MRGLinkSeg linkSeg;
+    Count i;
+    Link link;
+    RefPart refPart;
 
-  MRGGuardianInit(mrg, link, refPart);
+    AVERT(MRGRefSeg, refSeg);
+    linkSeg = refSeg->linkSeg;
+    /* map over each guardian in the segment */
+    for(i = 0, link = (Link)SegBase(LinkSeg2Seg(linkSeg)),
+          refPart = (RefPart)SegBase(RefSeg2Seg(refSeg));
+        i < nGuardians;
+        ++i, ++link, ++refPart) {
+      /* check if it's allocated and points to obj */
+      if (link->state == MRGGuardianPREFINAL
+          && MRGRefPartRef(arena, refPart) == obj) {
+        RingRemove(&link->the.linkRing);
+        RingFinish(&link->the.linkRing);
+        MRGGuardianInit(mrg, link, refPart);
+        return ResOK;
+      }
+    }
+  }
+  return ResFAIL;
 }
 
 
@@ -833,7 +850,6 @@ DEFINE_POOL_CLASS(MRGPoolClass, this)
   this->attr |= (AttrSCAN | AttrFREE | AttrINCR_RB);
   this->init = MRGInit;
   this->finish = MRGFinish;
-  this->free = MRGFree;
   this->grey = PoolTrivGrey;
   this->blacken = PoolTrivBlacken;
   this->scan = MRGScan;

@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: This code bridges between the MPS interface to C,
  * impl.h.mps, and the internal MPM interfaces, as defined by
@@ -183,18 +184,6 @@ mps_rank_t mps_rank_exact(void)
 mps_rank_t mps_rank_weak(void)
 {
   return RankWEAK;
-}
-
-
-mps_assert_t mps_assert_install(mps_assert_t handler)
-{
-  AVER(handler != NULL);
-  return AssertInstall(handler);
-}
-
-mps_assert_t mps_assert_default(void)
-{
-  return AssertDefault();
 }
 
 
@@ -442,6 +431,7 @@ void mps_space_destroy(mps_space_t mps_space)
 }
 #endif
 
+
 /* mps_arena_has_addr -- is this address managed by this arena? */
 
 mps_bool_t mps_arena_has_addr(mps_arena_t mps_arena, mps_addr_t p)
@@ -554,10 +544,45 @@ mps_res_t mps_fmt_create_auto_header(mps_fmt_t *mps_fmt_o,
                      (FormatSkipMethod)mps_fmt->skip,
                      (FormatMoveMethod)mps_fmt->fwd,
                      (FormatIsMovedMethod)mps_fmt->isfwd,
-                     (FormatCopyMethod)NULL,
+                     NULL,
                      (FormatPadMethod)mps_fmt->pad,
                      NULL,
                      (Size)mps_fmt->mps_headerSize);
+
+  ArenaLeave(arena);
+
+  if (res != ResOK) return res;
+  *mps_fmt_o = (mps_fmt_t)format;
+  return MPS_RES_OK;
+}
+
+
+/* mps_fmt_create_fixed -- create an object format of variant fixed */
+
+mps_res_t mps_fmt_create_fixed(mps_fmt_t *mps_fmt_o,
+                               mps_arena_t mps_arena,
+                               mps_fmt_fixed_s *mps_fmt_fixed)
+{
+  Arena arena = (Arena)mps_arena;
+  Format format;
+  Res res;
+
+  ArenaEnter(arena);
+
+  AVER(mps_fmt_fixed != NULL);
+
+  res = FormatCreate(&format,
+                     arena,
+                     (Align)mps_fmt_fixed->align,
+                     FormatVarietyFixed,
+                     (FormatScanMethod)mps_fmt_fixed->scan,
+                     NULL,
+                     (FormatMoveMethod)mps_fmt_fixed->fwd,
+                     (FormatIsMovedMethod)mps_fmt_fixed->isfwd,
+                     NULL,
+                     (FormatPadMethod)mps_fmt_fixed->pad,
+                     NULL,
+                     (Size)0);
 
   ArenaLeave(arena);
 
@@ -1462,7 +1487,7 @@ mps_word_t mps_collections(mps_arena_t mps_arena)
 }
 
 
-/* mps_finalize -- register for finalize */
+/* mps_finalize -- register for finalization */
 
 mps_res_t mps_finalize(mps_arena_t mps_arena, mps_addr_t *refref)
 {
@@ -1479,11 +1504,22 @@ mps_res_t mps_finalize(mps_arena_t mps_arena, mps_addr_t *refref)
   return res;
 }
 
-void mps_definalize(mps_arena_t arena, mps_addr_t *refref)
+
+/* mps_definalize -- deregister for finalization */
+
+mps_res_t mps_definalize(mps_arena_t mps_arena, mps_addr_t *refref)
 {
-  /* Not yet implemented */
-  UNUSED(arena); UNUSED(refref);
-  NOTREACHED;
+  Res res;
+  Addr object;
+  Arena arena = (Arena)mps_arena;
+
+  ArenaEnter(arena);
+
+  object = (Addr)ArenaPeek(arena, (Addr)refref);
+  res = ArenaDefinalize(arena, object);
+
+  ArenaLeave(arena);
+  return res;
 }
 
 

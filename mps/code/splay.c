@@ -17,10 +17,11 @@
 #include "splay.h"
 #include "mpm.h"
 
-
 SRCID(splay, "$Id$");
 
+
 /* Basic getter and setter methods */
+
 #define SplayTreeRoot(t) RVALUE((t)->root)
 #define SplayTreeSetRoot(t, r) BEGIN ((t)->root = (r)); END
 #define SplayNodeLeftChild(n) RVALUE((n)->left)
@@ -30,8 +31,10 @@ SRCID(splay, "$Id$");
 #define SplayNodeSetRightChild(n, child) \
   BEGIN ((n)->right = (child)); END
 
+
 #define SplayCompare(tree, key, node) \
   (((tree)->compare)((key), (node)))
+
 
 Bool SplayTreeCheck(SplayTree tree)
 {
@@ -41,6 +44,7 @@ Bool SplayTreeCheck(SplayTree tree)
   CHECKL(tree->updateNode == NULL || FUNCHECK(tree->updateNode));
   return TRUE;
 }
+
 
 Bool SplayNodeCheck(SplayNode node)
 {
@@ -64,6 +68,7 @@ void SplayTreeInit(SplayTree tree, SplayCompareMethod compare,
   AVERT(SplayTree, tree);
 }
 
+
 void SplayNodeInit(SplayNode node)
 {
   AVER(node != NULL);
@@ -75,6 +80,7 @@ void SplayNodeInit(SplayNode node)
   AVERT(SplayNode, node);
 }
 
+
 void SplayNodeFinish(SplayNode node)
 {
   AVERT(SplayNode, node);
@@ -84,12 +90,14 @@ void SplayNodeFinish(SplayNode node)
   SplayNodeSetRightChild(node, NULL);
 }
 
+
 void SplayTreeFinish(SplayTree tree)
 {
   AVERT(SplayTree, tree);
   SplayTreeSetRoot(tree, NULL);
   tree->compare = NULL;
 }
+
 
 static void SplayNodeUpdate(SplayTree tree, SplayNode node)
 {
@@ -130,6 +138,7 @@ static void SplayLinkRight(SplayNode *topIO, SplayNode *rightIO)
   SplayNodeSetLeftChild(*rightIO, NULL);
 }
 
+
 /* SplayLinkLeft -- Move top to right child of top
  *
  * Link the current top node into the right child of the left tree,
@@ -156,6 +165,7 @@ static void SplayLinkLeft(SplayNode *topIO, SplayNode *leftIO) {
   SplayNodeSetRightChild(*leftIO, NULL);
 }
 
+
 /* SplayRotateLeft -- Rotate right child edge of node
  *
  * Rotates node, right child of node, and left child of right
@@ -177,7 +187,7 @@ static void SplayRotateLeft(SplayNode *nodeIO, SplayTree tree) {
   SplayNodeSetLeftChild(nodeRight, *nodeIO);
   *nodeIO = nodeRight;
 
-  if(tree->updateNode != NULL) {
+  if (tree->updateNode != NULL) {
     SplayNodeUpdate(tree, SplayNodeLeftChild(nodeRight));
     /* Don't need to update new root because we know that we will */
     /* do either a link or an assemble next, and that will sort it */
@@ -186,6 +196,7 @@ static void SplayRotateLeft(SplayNode *nodeIO, SplayTree tree) {
 
   return;
 }
+
 
 /* SplayRotateRight -- Rotate left child edge of node
  *
@@ -208,7 +219,7 @@ static void SplayRotateRight(SplayNode *nodeIO, SplayTree tree) {
   SplayNodeSetRightChild(nodeLeft, *nodeIO);
   *nodeIO = nodeLeft;
 
-  if(tree->updateNode != NULL) {
+  if (tree->updateNode != NULL) {
     SplayNodeUpdate(tree, SplayNodeRightChild(nodeLeft));
     /* Don't need to update new root because we know that we will */
     /* do either a link or an assemble next, and that will sort it */
@@ -217,6 +228,7 @@ static void SplayRotateRight(SplayNode *nodeIO, SplayTree tree) {
 
   return;
 }
+
 
 /* SplayAssemble -- Assemble left right and top trees into one
  *
@@ -241,11 +253,11 @@ static void SplayAssemble(SplayTree tree, SplayNode top,
   AVER(rightTop == NULL ||
        (SplayNodeCheck(rightTop) && SplayNodeCheck(rightFirst)));
 
-  if(leftTop != NULL) {
+  if (leftTop != NULL) {
     SplayNodeSetRightChild(leftLast, SplayNodeLeftChild(top));
     SplayNodeSetLeftChild(top, leftTop);
 
-    if(tree->updateNode != NULL) {
+    if (tree->updateNode != NULL) {
       /* Update client property using pointer reversal (Ugh!). */
       SplayNode node, parent, rightChild;
 
@@ -274,11 +286,11 @@ static void SplayAssemble(SplayTree tree, SplayNode top,
   }
   /* otherwise leave top->left alone */
 
-  if(rightTop != NULL) {
+  if (rightTop != NULL) {
     SplayNodeSetLeftChild(rightFirst, SplayNodeRightChild(top));
     SplayNodeSetRightChild(top, rightTop);
 
-    if(tree->updateNode != NULL) {
+    if (tree->updateNode != NULL) {
       /* Update client property using pointer reversal (Ugh!). */
       SplayNode node, parent, leftChild;
 
@@ -307,9 +319,10 @@ static void SplayAssemble(SplayTree tree, SplayNode top,
   }
   /* otherwise leave top->right alone */
 
-  if(tree->updateNode != NULL)
+  if (tree->updateNode != NULL)
     SplayNodeUpdate(tree, top);
 }
+
 
 /* SplaySplay -- Splay the tree (top-down) around a given key
  *
@@ -324,7 +337,7 @@ static Bool SplaySplay(SplayNode *nodeReturn, SplayTree tree,
                        void *key, SplayCompareMethod compareMethod) {
   /* The sides structure avoids a boundary case in SplayLink* */
   SplayNodeStruct sides; /* rightTop and leftTop */
-  SplayNode top, leftLast, rightFirst; 
+  SplayNode top, leftLast, rightFirst;
   Bool found;
   Compare compareTop;
 
@@ -334,14 +347,14 @@ static Bool SplaySplay(SplayNode *nodeReturn, SplayTree tree,
 
   top = SplayTreeRoot(tree); /* will be copied back at end */
 
-  if(top == NULL) {
+  if (top == NULL) {
     *nodeReturn = NULL;
     return FALSE;
   }
-   
+
   /* short-circuit case where node is already top */
   compareTop = (*compareMethod)(key, top);
-  if(compareTop == CompareEQUAL) {
+  if (compareTop == CompareEQUAL) {
     *nodeReturn = top;
     return TRUE;
   }
@@ -356,7 +369,7 @@ static Bool SplaySplay(SplayNode *nodeReturn, SplayTree tree,
 
     case CompareLESS: {
       SplayNode topLeft = SplayNodeLeftChild(top);
-      if(topLeft == NULL) {
+      if (topLeft == NULL) {
         found = FALSE;
         goto assemble;
       } else {
@@ -371,14 +384,14 @@ static Bool SplaySplay(SplayNode *nodeReturn, SplayTree tree,
         } /* break; */
 
         case CompareLESS: {                  /* zig-zig */
-          if(SplayNodeLeftChild(topLeft) == NULL)
+          if (SplayNodeLeftChild(topLeft) == NULL)
             goto terminalZig;
           SplayRotateRight(&top, tree);
           SplayLinkRight(&top, &rightFirst);
         } break;
 
         case CompareGREATER: {               /* zig-zag */
-          if(SplayNodeRightChild(topLeft) == NULL)
+          if (SplayNodeRightChild(topLeft) == NULL)
             goto terminalZig;
           SplayLinkRight(&top, &rightFirst);
           SplayLinkLeft(&top, &leftLast);
@@ -393,7 +406,7 @@ static Bool SplaySplay(SplayNode *nodeReturn, SplayTree tree,
 
     case CompareGREATER: {
       SplayNode topRight = SplayNodeRightChild(top);
-      if(topRight == NULL) {
+      if (topRight == NULL) {
         found = FALSE;
         goto assemble;
       } else {
@@ -408,14 +421,14 @@ static Bool SplaySplay(SplayNode *nodeReturn, SplayTree tree,
         } /* break; */
 
         case CompareGREATER: {               /* zag-zag */
-          if(SplayNodeRightChild(topRight) == NULL)
+          if (SplayNodeRightChild(topRight) == NULL)
             goto terminalZag;
           SplayRotateLeft(&top, tree);
           SplayLinkLeft(&top, &leftLast);
         } break;
 
         case CompareLESS: {                  /* zag-zig */
-          if(SplayNodeLeftChild(topRight) == NULL)
+          if (SplayNodeLeftChild(topRight) == NULL)
             goto terminalZag;
           SplayLinkLeft(&top, &leftLast);
           SplayLinkRight(&top, &rightFirst);
@@ -439,7 +452,7 @@ static Bool SplaySplay(SplayNode *nodeReturn, SplayTree tree,
     }
     compareTop = (*compareMethod)(key, top);
   } /* end while(TRUE) */
-     
+
 terminalZig:
   SplayLinkRight(&top, &rightFirst);
   found = FALSE;
@@ -476,9 +489,9 @@ Res SplayTreeInsert(SplayTree tree, SplayNode node, void *key) {
   AVER(SplayNodeLeftChild(node) == NULL);
   AVER(SplayNodeRightChild(node) == NULL);
 
-  if(SplayTreeRoot(tree) == NULL) {
+  if (SplayTreeRoot(tree) == NULL) {
     SplayTreeSetRoot(tree, node);
-  } else if(SplaySplay(&neighbour, tree, key, tree->compare)) {
+  } else if (SplaySplay(&neighbour, tree, key, tree->compare)) {
     return ResFAIL;
   } else {
     AVER(SplayTreeRoot(tree) == neighbour);
@@ -504,7 +517,7 @@ Res SplayTreeInsert(SplayTree tree, SplayNode node, void *key) {
     } break;
     }
 
-    if(tree->updateNode != NULL) {
+    if (tree->updateNode != NULL) {
       SplayNodeUpdate(tree, neighbour);
       SplayNodeUpdate(tree, node);
     }
@@ -530,21 +543,21 @@ Res SplayTreeDelete(SplayTree tree, SplayNode node, void *key) {
   found = SplaySplay(&del, tree, key, tree->compare);
   AVER(!found || del == node);
 
-  if(!found) {
+  if (!found) {
     return ResFAIL;
-  } else if(SplayNodeLeftChild(node) == NULL) {
+  } else if (SplayNodeLeftChild(node) == NULL) {
     SplayTreeSetRoot(tree, SplayNodeRightChild(node));
-  } else if(SplayNodeRightChild(node) == NULL) {
+  } else if (SplayNodeRightChild(node) == NULL) {
     SplayTreeSetRoot(tree, SplayNodeLeftChild(node));
   } else {
     rightHalf = SplayNodeRightChild(node);
     SplayTreeSetRoot(tree, SplayNodeLeftChild(node));
-    if(SplaySplay(&leftLast, tree, key, tree->compare)) {
+    if (SplaySplay(&leftLast, tree, key, tree->compare)) {
       return ResFAIL;
     } else {
       AVER(SplayNodeRightChild(leftLast) == NULL);
       SplayNodeSetRightChild(leftLast, rightHalf);
-      if(tree->updateNode != NULL) {
+      if (tree->updateNode != NULL) {
         SplayNodeUpdate(tree, leftLast);
       }
     }
@@ -562,14 +575,13 @@ Res SplayTreeDelete(SplayTree tree, SplayNode node, void *key) {
  * design.mps.splay.impl.search.
  */
 
-
 Res SplayTreeSearch(SplayNode *nodeReturn, SplayTree tree, void *key) {
   SplayNode node;
 
   AVERT(SplayTree, tree);
   AVER(nodeReturn != NULL);
 
-  if(SplaySplay(&node, tree, key, tree->compare)) {
+  if (SplaySplay(&node, tree, key, tree->compare)) {
     *nodeReturn = node;
   } else {
     return ResFAIL;
@@ -593,20 +605,20 @@ static SplayNode SplayTreePredecessor(SplayTree tree, void *key) {
   oldRoot = SplayTreeRoot(tree);
   AVERT(SplayNode, oldRoot);
 
-  if(SplayNodeLeftChild(oldRoot) == NULL) {
+  if (SplayNodeLeftChild(oldRoot) == NULL) {
     newRoot = NULL; /* No predecessor */
   } else {
     /* temporarily chop off the right half-tree, inclusive of root */
     SplayTreeSetRoot(tree, SplayNodeLeftChild(oldRoot));
     SplayNodeSetLeftChild(oldRoot, NULL);
-    if(SplaySplay(&newRoot, tree, key, tree->compare)) {
+    if (SplaySplay(&newRoot, tree, key, tree->compare)) {
       NOTREACHED; /* Another matching node found */
     } else {
       AVER(SplayNodeRightChild(newRoot) == NULL);
       SplayNodeSetRightChild(newRoot, oldRoot);
     }
 
-    if(tree->updateNode != NULL) {
+    if (tree->updateNode != NULL) {
       SplayNodeUpdate(tree, oldRoot);
       SplayNodeUpdate(tree, newRoot);
     }
@@ -630,20 +642,20 @@ static SplayNode SplayTreeSuccessor(SplayTree tree, void *key) {
   oldRoot = SplayTreeRoot(tree);
   AVERT(SplayNode, oldRoot);
 
-  if(SplayNodeRightChild(oldRoot) == NULL) {
+  if (SplayNodeRightChild(oldRoot) == NULL) {
     newRoot = NULL; /* No successor */
   } else {
     /* temporarily chop off the left half-tree, inclusive of root */
     SplayTreeSetRoot(tree, SplayNodeRightChild(oldRoot));
     SplayNodeSetRightChild(oldRoot, NULL);
-    if(SplaySplay(&newRoot, tree, key, tree->compare)) {
+    if (SplaySplay(&newRoot, tree, key, tree->compare)) {
       NOTREACHED; /* Another matching node found */
     } else {
       AVER(SplayNodeLeftChild(newRoot) == NULL);
       SplayNodeSetLeftChild(newRoot, oldRoot);
     }
 
-    if(tree->updateNode != NULL) {
+    if (tree->updateNode != NULL) {
       SplayNodeUpdate(tree, oldRoot);
       SplayNodeUpdate(tree, newRoot);
     }
@@ -670,9 +682,9 @@ Res SplayTreeNeighbours(SplayNode *leftReturn, SplayNode *rightReturn,
   AVER(leftReturn != NULL);
   AVER(rightReturn != NULL);
 
-  if(SplaySplay(&neighbour, tree, key, tree->compare)) {
+  if (SplaySplay(&neighbour, tree, key, tree->compare)) {
     return ResFAIL;
-  } else if(neighbour == NULL) {
+  } else if (neighbour == NULL) {
     *leftReturn = *rightReturn = NULL;
   } else {
     switch(SplayCompare(tree, key, neighbour)) {
@@ -700,7 +712,7 @@ Res SplayTreeNeighbours(SplayNode *leftReturn, SplayNode *rightReturn,
 /* SplayTreeFirst, SplayTreeNext -- Iterators
  *
  * SplayTreeFirst receives a key that must precede all
- * nodes in the tree.  It returns NULL if the tree is empty. 
+ * nodes in the tree.  It returns NULL if the tree is empty.
  * Otherwise, it splays the tree to the first node, and returns the
  * new root.  See design.mps.splay.function.splay.tree.first.
  *
@@ -714,9 +726,9 @@ SplayNode SplayTreeFirst(SplayTree tree, void *zeroKey) {
   SplayNode node;
   AVERT(SplayTree, tree);
 
-  if(SplayTreeRoot(tree) == NULL) {
+  if (SplayTreeRoot(tree) == NULL) {
     node = NULL;
-  } else if(SplaySplay(&node, tree, zeroKey, tree->compare)) {
+  } else if (SplaySplay(&node, tree, zeroKey, tree->compare)) {
     NOTREACHED;
   } else {
     AVER(SplayNodeLeftChild(node) == NULL);
@@ -751,43 +763,39 @@ static Res SplayNodeDescribe(SplayNode node, mps_lib_FILE *stream,
                              SplayNodeDescribeMethod nodeDescribe) {
   Res res;
 
-  AVERT(SplayNode, node);
+#if defined(CHECK)
+  if (!SplayNodeCheck(node)) return ResFAIL;
   /* stream and nodeDescribe checked by SplayTreeDescribe */
+#endif
 
   res = WriteF(stream, "( ", NULL);
-  if(res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
-  if(SplayNodeLeftChild(node) != NULL) {
+  if (SplayNodeLeftChild(node) != NULL) {
     res = SplayNodeDescribe(SplayNodeLeftChild(node), stream, nodeDescribe);
-    if(res != ResOK)
-      return res;
+    if (res != ResOK) return res;
 
     res = WriteF(stream, " / ", NULL);
-    if(res != ResOK)
-      return res;
+    if (res != ResOK) return res;
   }
 
   res = (*nodeDescribe)(node, stream);
-  if(res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
-  if(SplayNodeRightChild(node) != NULL) {
+  if (SplayNodeRightChild(node) != NULL) {
     res = WriteF(stream, " \\ ", NULL);
-    if(res != ResOK)
-      return res;
+    if (res != ResOK) return res;
 
     res = SplayNodeDescribe(SplayNodeRightChild(node), stream, nodeDescribe);
-    if(res != ResOK)
-      return res;
+    if (res != ResOK) return res;
   }
 
   res = WriteF(stream, " )", NULL);
-  if(res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
   return ResOK;
 }
+
 
 typedef struct {
   SplayTestNodeMethod testNode;
@@ -816,10 +824,10 @@ static Compare SplayFindFirstCompare(void *key, SplayNode node)
   testTree = closure->testTree;
   tree = closure->tree;
 
-  if(SplayNodeLeftChild(node) != NULL &&
+  if (SplayNodeLeftChild(node) != NULL &&
      (*testTree)(tree, SplayNodeLeftChild(node), closureP, closureS)) {
     return CompareLESS;
-  } else if((*testNode)(tree, node, closureP, closureS)) {
+  } else if ((*testNode)(tree, node, closureP, closureS)) {
     return CompareEQUAL;
   } else {
     AVER(SplayNodeRightChild(node) != NULL &&
@@ -847,10 +855,10 @@ static Compare SplayFindLastCompare(void *key, SplayNode node)
   testTree = closure->testTree;
   tree = closure->tree;
 
-  if(SplayNodeRightChild(node) != NULL &&
+  if (SplayNodeRightChild(node) != NULL &&
      (*testTree)(tree, SplayNodeRightChild(node), closureP, closureS)) {
      return CompareGREATER;
-  } else if((*testNode)(tree, node, closureP, closureS)) {
+  } else if ((*testNode)(tree, node, closureP, closureS)) {
     return CompareEQUAL;
   } else {
     AVER(SplayNodeLeftChild(node) != NULL &&
@@ -887,7 +895,7 @@ Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree,
 
   node = SplayTreeRoot(tree);
 
-  if(node == NULL || !(*testTree)(tree, node, closureP, closureS))
+  if (node == NULL || !(*testTree)(tree, node, closureP, closureS))
     return FALSE; /* no suitable nodes in tree */
 
   closureStruct.p = closureP;
@@ -896,8 +904,8 @@ Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree,
   closureStruct.testTree = testTree;
   closureStruct.tree = tree;
 
-  if(SplaySplay(&node, tree, (void *)&closureStruct,
-    &SplayFindFirstCompare)) {
+  if (SplaySplay(&node, tree, (void *)&closureStruct,
+                 &SplayFindFirstCompare)) {
     *nodeReturn = node;
     return TRUE;
   } else {
@@ -923,7 +931,7 @@ Bool SplayFindLast(SplayNode *nodeReturn, SplayTree tree,
 
   node = SplayTreeRoot(tree);
 
-  if(node == NULL || !(*testTree)(tree, node, closureP, closureS))
+  if (node == NULL || !(*testTree)(tree, node, closureP, closureS))
     return FALSE; /* no suitable nodes in tree */
 
   closureStruct.p = closureP;
@@ -932,8 +940,8 @@ Bool SplayFindLast(SplayNode *nodeReturn, SplayTree tree,
   closureStruct.testTree = testTree;
   closureStruct.tree = tree;
 
-  if(SplaySplay(&node, tree, (void *)&closureStruct,
-    &SplayFindLastCompare)) {
+  if (SplaySplay(&node, tree, (void *)&closureStruct,
+                 &SplayFindLastCompare)) {
     *nodeReturn = node;
     return TRUE;
   } else {
@@ -952,7 +960,7 @@ Bool SplayRoot(SplayNode *nodeReturn, SplayTree tree)
   AVERT(SplayTree, tree);
 
   node = SplayTreeRoot(tree);
-  if(node == NULL)
+  if (node == NULL)
     return FALSE;
   else {
     *nodeReturn = node;
@@ -997,21 +1005,21 @@ Res SplayTreeDescribe(SplayTree tree, mps_lib_FILE *stream,
                       SplayNodeDescribeMethod nodeDescribe) {
   Res res;
 
-  if(!SplayTreeCheck(tree)) return ResFAIL;
-  if(stream == NULL) return ResFAIL;
-  if(!FUNCHECK(nodeDescribe)) return ResFAIL;
+#if defined(CHECK)
+  if (!SplayTreeCheck(tree)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+  if (!FUNCHECK(nodeDescribe)) return ResFAIL;
+#endif
 
   res = WriteF(stream,
                "Splay $P {\n", (WriteFP)tree,
                "  compare $F\n", (WriteFF)tree->compare,
                NULL);
-  if(res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
-  if(SplayTreeRoot(tree) != NULL) {
+  if (SplayTreeRoot(tree) != NULL) {
     res = SplayNodeDescribe(SplayTreeRoot(tree), stream, nodeDescribe);
-    if(res != ResOK)
-      return res;
+    if (res != ResOK) return res;
   }
 
   res = WriteF(stream, "\n}\n", NULL);

@@ -10,29 +10,29 @@ DONGLELIB = $(RAINBOWPATH)\spromeps.lib
 
 PFMDEFS = /DWIN32 /D_WINDOWS /I$(RAINBOWPATH)
 
-MPM = <assert> <ring> <mpm> <bt> <protocol> <boot> \
+MPM = <ring> <mpm> <bt> <protocol> <boot> \
       <arenavm> <arenacl> <locus> <arena> <global> <tract> <reserv> \
       <pool> <poolabs> <poolmfs> <poolmv> \
       <root> <format> <buffer> <walk> <lockw3> \
       <ref> <trace> <protw3> <prmcan> <shield> <vmw3> \
       <than> <ssan> <mpsi> <mpsiw3> <ld> <span> \
-      <event> <action> <seg> <sac> <poolmrg> <message> <dbgpool> \
+      <event> <seg> <sac> <poolmrg> <message> <dbgpool> <dbgpooli> \
       <ref> <trace> <protw3> <prmcan> <shield> \
       <than> <ssan> <mpsi> <mpsiw3> <ld> <vmw3> \
-      <event> <action> <seg> <poolmrg> <message> <span> \
+      <event> <seg> <poolmrg> <message> <span> \
       <abq> <meter> <cbs> <poolmv2> <splay> <version> <poolmvff>
-SW  = <assert> <ring> <mpm> <bt> <protocol> \
+SW  = <ring> <mpm> <bt> <protocol> \
       <arenavm> <arenacl> <arena> <tract> <walk> <reserv> \
       <pool> <poolabs> <poolmfs> \
       <poolmv> <root> <format> <buffer> \
       <ref> <trace> <protsw> <prmcan> <shield> <vmw3> \
       <than> <ssan> <mpsi> <ld> \
-      <event> <action> <seg> <sac> <poolmrg> <message> <mpsioan> \
-      <poolepdl> <poolepvm> <poolams> <dbgpool> \
+      <event> <seg> <sac> <poolmrg> <message> <mpsioan> \
+      <poolams> <poolamsi> <dbgpool> <dbgpooli> \
       <abq> <meter> <cbs> <poolmv2> <splay> <version> <poolmvff>
 PLINTH = <mpsliban> <mpsioan>
 AMC = <poolamc>
-AMS = <poolams>
+AMS = <poolams> <poolamsi>
 AWL = <poolawl>
 LO  = <poollo>
 DW = <fmtdy> <fmtno>

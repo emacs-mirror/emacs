@@ -637,7 +637,7 @@ Bool SegCheck(Seg seg)
 
   /* Each tract of the segment must agree about white traces */
   TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, seg->limit) {
-    Seg trseg;
+    Seg trseg = NULL; /* suppress compiler warning */
 
     UNUSED(trseg); /* @@@@ unused in hot varieties */
     CHECKL(TractCheck(tract));  /* design.mps.check.type.no-sig */
@@ -1241,9 +1241,9 @@ static void gcSegSetWhite(Seg seg, TraceSet white)
   limit = SegLimit(seg);
   /* Each tract of the segment records white traces */
   TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, limit) {
-    Seg trseg;
+    Seg trseg = NULL; /* suppress compiler warning */
 
-    UNUSED(trseg); /* @@@@ hack: unused in hot varieties */
+    UNUSED(trseg); /* @@@@ unused in hot varieties */
     AVER_CRITICAL(TractCheck(tract));  /* design.mps.check.type.no-sig */
     AVER_CRITICAL(TRACT_SEG(&trseg, tract) && (trseg == seg));
     TractSetWhite(tract, white);

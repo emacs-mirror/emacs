@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2002 Global Graphics Software.
  *
  * DESIGN
  *
@@ -44,6 +45,7 @@
 
 /* Open sesame magic */
 #define _POSIX_SOURCE
+#define _XOPEN_SOURCE 500
 
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -54,12 +56,6 @@
 #include <unistd.h>
 
 SRCID(vmso, "$Id$");
-
-
-/* Fix up unprototyped system calls.  */
-
-extern int close(int fd);
-extern int munmap(caddr_t addr, size_t len);
 
 
 /* VMStruct -- virtual memory structure */
@@ -78,12 +74,16 @@ typedef struct VMStruct {
 } VMStruct;
 
 
+/* VMAlign -- return the page size */
+
 Align VMAlign(VM vm)
 {
   AVERT(VM, vm);
   return vm->align;
 }
 
+
+/* VMCheck -- check a VM structure */
 
 Bool VMCheck(VM vm)
 {
@@ -102,9 +102,11 @@ Bool VMCheck(VM vm)
 }
 
 
+/* VMCreate -- reserve some virtual address space, and create a VM structure */
+
 Res VMCreate(VM *vmReturn, Size size)
 {
-  caddr_t addr;
+  void *addr;
   Align align;
   int zero_fd;
   int none_fd;
@@ -137,7 +139,7 @@ Res VMCreate(VM *vmReturn, Size size)
   }
 
   /* Map in a page to store the descriptor on. */
-  addr = mmap((caddr_t)0, (size_t)SizeAlignUp(sizeof(VMStruct), align),
+  addr = mmap((void *)0, (size_t)SizeAlignUp(sizeof(VMStruct), align),
               PROT_READ | PROT_WRITE, MAP_PRIVATE,
               zero_fd, (off_t)0);
   if(addr == MAP_FAILED) {
@@ -152,7 +154,7 @@ Res VMCreate(VM *vmReturn, Size size)
   vm->align = align;
 
   /* .map.reserve: See .assume.not-last. */
-  addr = mmap((caddr_t)0, (size_t)size, PROT_NONE, MAP_SHARED,
+  addr = mmap((void *)0, (size_t)size, PROT_NONE, MAP_SHARED,
               none_fd, (off_t)0);
   if(addr == MAP_FAILED) {
     AVER(errno == ENOMEM); /* .assume.mmap.err */
@@ -175,7 +177,7 @@ Res VMCreate(VM *vmReturn, Size size)
   return ResOK;
 
 failReserve:
-  (void)munmap((caddr_t)vm, (size_t)SizeAlignUp(sizeof(VMStruct), align));
+  (void)munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), align));
 failVMMap:
   (void)close(none_fd); /* see .close.fail */
 failNoneOpen:
@@ -183,6 +185,8 @@ failNoneOpen:
   return res;
 }
 
+
+/* VMDestroy -- destroy the VM structure */
 
 void VMDestroy(VM vm)
 {
@@ -199,9 +203,9 @@ void VMDestroy(VM vm)
   vm->sig = SigInvalid;
 
   zero_fd = vm->zero_fd; none_fd = vm->none_fd;
-  r = munmap((caddr_t)vm->base, (size_t)AddrOffset(vm->base, vm->limit));
+  r = munmap((void *)vm->base, (size_t)AddrOffset(vm->base, vm->limit));
   AVER(r == 0);
-  r = munmap((caddr_t)vm,
+  r = munmap((void *)vm,
              (size_t)SizeAlignUp(sizeof(VMStruct), vm->align));
   AVER(r == 0);
   /* .close.fail: We ignore failure from close() as there's very */
@@ -213,11 +217,16 @@ void VMDestroy(VM vm)
 }
 
 
+/* VMBase -- return the base address of the memory reserved */
+
 Addr VMBase(VM vm)
 {
   AVERT(VM, vm);
   return vm->base;
 }
+
+
+/* VMLimit -- return the limit address of the memory reserved */
 
 Addr VMLimit(VM vm)
 {
@@ -226,11 +235,16 @@ Addr VMLimit(VM vm)
 }
 
 
+/* VMReserved -- return the amount of address space reserved */
+
 Size VMReserved(VM vm)
 {
   AVERT(VM, vm);
   return vm->reserved;
 }
+
+
+/* VMMapped -- return the amount of memory actually mapped */
 
 Size VMMapped(VM vm)
 {
@@ -239,10 +253,12 @@ Size VMMapped(VM vm)
 }
 
 
+/* VMMap -- map the given range of memory */
+
 Res VMMap(VM vm, Addr base, Addr limit)
 {
   Size size;
-  caddr_t addr;
+  void *addr;
 
   AVERT(VM, vm);
   AVER(base < limit);
@@ -258,7 +274,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
   /* Check it won't lose any bits. */
   AVER(size <= (Size)(size_t)-1);
 
-  addr = mmap((caddr_t)base, (size_t)size,
+  addr = mmap((void *)base, (size_t)size,
               PROT_READ | PROT_WRITE | PROT_EXEC,
               MAP_PRIVATE | MAP_FIXED,
               vm->zero_fd, (off_t)0);
@@ -266,7 +282,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
     AVER(errno == EAGAIN); /* .assume.mmap.err */
     return ResMEMORY;
   }
-  AVER(addr == (caddr_t)base);
+  AVER(addr == (void *)base);
 
   vm->mapped += size;
 
@@ -275,10 +291,12 @@ Res VMMap(VM vm, Addr base, Addr limit)
 }
 
 
+/* VMUnmap -- unmap the given range of memory */
+
 void VMUnmap(VM vm, Addr base, Addr limit)
 {
   Size size;
-  caddr_t addr;
+  void *addr;
 
   AVERT(VM, vm);
   AVER(base < limit);
@@ -296,10 +314,10 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   size = AddrOffset(base, limit);
   /* Check it won't lose any bits. */
   AVER(size <= (Size)(size_t)-1);
-  addr = mmap((caddr_t)base, (size_t)size,
+  addr = mmap((void *)base, (size_t)size,
               PROT_NONE, MAP_SHARED | MAP_FIXED,
               vm->none_fd, (off_t)AddrOffset(vm->base, base));
-  AVER(addr == (caddr_t)base);
+  AVER(addr == (void *)base);
 
   vm->mapped -= size;
 

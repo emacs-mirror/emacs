@@ -14,6 +14,7 @@
  * "real work" goes on in the modules that provide the actual messages.
  */
 
+#include "bt.h"
 #include "mpm.h"
 
 SRCID(message, "$Id$");

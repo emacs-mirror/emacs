@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2002 Global Graphics Software.
  *
  * .readership: customers, MPS developers.
  * .sources: design.mps.interface.c.
@@ -10,7 +11,6 @@
 #ifndef mps_h
 #define mps_h
 
-#include "mpstd.h"              /* detect platform */
 #include <stddef.h>
 #include <stdarg.h>
 #include <limits.h>
@@ -39,7 +39,7 @@ typedef struct mps_frame_s
 
 /* Concrete Types */
 
-typedef MPS_T_WORD mps_word_t;  /* machine word (target dep.) */
+typedef unsigned long mps_word_t; /* pointer-sized word */
 typedef int mps_bool_t;         /* boolean (int) */
 typedef int mps_res_t;          /* result code (int) */
 typedef unsigned mps_shift_t;   /* shift amount (unsigned int) */
@@ -133,11 +133,13 @@ typedef struct mps_sac_s {
 } mps_sac_s;
 
 /* .sacc: Keep in sync with impl.h.sac. */
-typedef struct mps_sac_classes_s {
+typedef struct mps_sac_class_s {
   size_t mps_block_size;
   size_t mps_cached_count;
   unsigned mps_frequency;
-} mps_sac_classes_s;
+} mps_sac_class_s;
+
+#define mps_sac_classes_s mps_sac_class_s
 
 
 /* Location Dependency */
@@ -210,6 +212,15 @@ typedef struct mps_fmt_auto_header_s {
 } mps_fmt_auto_header_s;
 
 
+typedef struct mps_fmt_fixed_s {
+  mps_align_t     align;
+  mps_fmt_scan_t  scan;
+  mps_fmt_fwd_t   fwd;
+  mps_fmt_isfwd_t isfwd;
+  mps_fmt_pad_t   pad;
+} mps_fmt_fixed_s;
+
+
 /* Internal Definitions */
 
 #define MPS_BEGIN       do {
@@ -220,15 +231,6 @@ typedef struct mps_fmt_auto_header_s {
  * warning can be turned off using:
  * #pragma warning(disable: 4127)
  */
-
-
-/* Assertion Handling */
-
-typedef void (*mps_assert_t)(const char *, const char *, const char *,
-                             unsigned);
-
-extern mps_assert_t mps_assert_install(mps_assert_t);
-extern mps_assert_t mps_assert_default(void);
 
 
 /* arenas */
@@ -278,6 +280,8 @@ extern mps_res_t mps_fmt_create_B(mps_fmt_t *, mps_arena_t,
                                   mps_fmt_B_s *);
 extern mps_res_t mps_fmt_create_auto_header(mps_fmt_t *, mps_arena_t,
                                             mps_fmt_auto_header_s *);
+extern mps_res_t mps_fmt_create_fixed(mps_fmt_t *, mps_arena_t,
+                                      mps_fmt_fixed_s *);
 extern void mps_fmt_destroy(mps_fmt_t);
 
 
@@ -481,21 +485,7 @@ extern mps_res_t mps_stack_scan_ambig(mps_ss_t, mps_thr_t,
 /* Protection Trampoline and Thread Registration */
 
 typedef void *(*mps_tramp_t)(void *, size_t);
-
 extern void (mps_tramp)(void **, mps_tramp_t, void *, size_t);
-
-#ifndef mps_tramp /* If a platform-specific version hasn't been defined */
-
-#define mps_tramp(r_o, f, p, s) \
-  MPS_BEGIN \
-    void **_r_o = (r_o); \
-    mps_tramp_t _f = (f); \
-    void *_p = (p); \
-    size_t _s = (s); \
-    *_r_o = (*_f)(_p, _s); \
-  MPS_END
-
-#endif
 
 extern mps_res_t mps_thread_reg(mps_thr_t *, mps_arena_t);
 extern void mps_thread_dereg(mps_thr_t);
@@ -542,7 +532,7 @@ extern size_t mps_message_gc_not_condemned_size(mps_arena_t,
 /* Finalization */
 
 extern mps_res_t mps_finalize(mps_arena_t, mps_addr_t *);
-extern void mps_definalize(mps_arena_t, mps_addr_t *);
+extern mps_res_t mps_definalize(mps_arena_t, mps_addr_t *);
 
 
 /* Telemetry */
@@ -573,15 +563,18 @@ extern void mps_arena_roots_walk(mps_arena_t,
                                  void *, size_t);
 
 
-/* Fenceposting */
+/* Allocation debug options */
 
 
 typedef struct mps_pool_debug_option_s {
   void* fence_template;
   size_t fence_size;
+  void*  free_template;
+  size_t free_size;
 } mps_pool_debug_option_s;
 
 extern void mps_pool_check_fenceposts(mps_pool_t);
+extern void mps_pool_check_free_space(mps_pool_t);
 
 
 /* Scanner Support */
@@ -598,7 +591,8 @@ extern mps_res_t mps_fix(mps_ss_t, mps_addr_t *);
     {
 
 #define MPS_FIX1(ss, ref) \
-  (_mps_wt = 1uL<<((mps_word_t)(ref)>>_mps_w0&(MPS_WORD_WIDTH-1)), \
+  (_mps_wt = 1uL << ((mps_word_t)(ref) >> _mps_w0 \
+                     & (sizeof(mps_word_t) * CHAR_BIT - 1)), \
    _mps_w2 |= _mps_wt, \
    _mps_w1 & _mps_wt)
 

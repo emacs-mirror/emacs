@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2001 Global Graphics Software.
  *
  * Detect the target platform using predefined preprocessor symbols
  * defined by the build environment.  The symbols are derived from the
@@ -24,8 +25,9 @@
  * them.  Alignment from testing.
  */
 
-#if defined(__sgi) && defined(__unix) && defined(__mips) \
-    && defined(_SYSTYPE_SVR4) && (_MIPS_FPSET == 16)
+#if defined(CONFIG_PF_I5M2CC) \
+    || defined(__sgi) && defined(__unix) && defined(__mips) \
+       && defined(_SYSTYPE_SVR4) && (_MIPS_FPSET == 16)
 #define MPS_PF_I5M2CC
 #define MPS_PF_STRING   "i5m2cc"
 #define MPS_OS_I5
@@ -38,8 +40,9 @@
 
 /* See above.  Alignment from testing. */
 
-#elif defined(__sgi) && defined(__unix) && defined(__mips) \
-      && defined(_SYSTYPE_SVR4) && defined(_ABIN32)
+#elif defined(CONFIG_PF_IAM4CC) \
+      || defined(__sgi) && defined(__unix) && defined(__mips) \
+         && defined(_SYSTYPE_SVR4) && defined(_ABIN32)
 #define MPS_PF_IAM4CC
 #define MPS_PF_STRING   "iam4cc"
 #define MPS_OS_IA
@@ -52,7 +55,8 @@
 
 /* winnt.h from MS VC 2.0 */
 
-#elif defined(_MSC_VER) && defined(_WIN32) && defined(_M_ALPHA)
+#elif defined(CONFIG_PF_W3ALMV) \
+      || defined(_MSC_VER) && defined(_WIN32) && defined(_M_ALPHA)
 #define MPS_PF_W3ALMV
 #define MPS_PF_STRING   "w3almv"
 #define MPS_OS_W3
@@ -65,7 +69,8 @@
 
 /* winnt.h from MS VC 2.0 */
 
-#elif defined(_MSC_VER) && defined(_WIN32) && defined(_M_PPC)
+#elif defined(CONFIG_PF_W3PPMV) \
+      || defined(_MSC_VER) && defined(_WIN32) && defined(_M_PPC)
 #define MPS_PF_W3PPMV
 #define MPS_PF_STRING   "w3ppmv"
 #define MPS_OS_W3
@@ -83,7 +88,8 @@
  * VC malloc is 16!
  */
 
-#elif defined(_MSC_VER) && defined(_WIN32) && defined(_M_IX86)
+#elif defined(CONFIG_PF_W3I3MV) \
+      || defined(_MSC_VER) && defined(_WIN32) && defined(_M_IX86)
 #define MPS_PF_W3I3MV
 #define MPS_PF_STRING   "w3i3mv"
 #define MPS_OS_W3
@@ -98,7 +104,8 @@
  * a way to determine the OS -- we assume MacOS 7.
  */
 
-#elif defined(__MWERKS__) && __MC68K__ == 1
+#elif defined(CONFIG_PF_S760MW) \
+      || (defined(__MWERKS__) && __MC68K__ == 1)
 #define MPS_PF_S760MW
 #define MPS_PF_STRING   "s760mw"
 #define MPS_OS_S7
@@ -113,7 +120,8 @@
  * a way to determine the OS -- we assume MacOS 7.
  */
 
-#elif defined(__MWERKS__) && __POWERPC__ == 1
+#elif defined(CONFIG_PF_S7PPMW) \
+      || defined(__MWERKS__) && __POWERPC__ == 1
 #define MPS_PF_S7PPMW
 #define MPS_PF_STRING   "s7ppmw"
 #define MPS_OS_S7
@@ -130,7 +138,8 @@
  * which lets us determine the system version.
  */
 
-#elif defined(m68k) && (defined (applec) || defined(__SC__))
+#elif defined(CONFIG_PF_S760AC) \
+      || defined(m68k) && (defined (applec) || defined(__SC__))
 #define MPS_PF_S760AC
 #define MPS_PF_STRING   "s760ac"
 #define MPS_OS_S7
@@ -147,7 +156,8 @@
  * which lets us determine the system version.
  */
 
-#elif defined(__PPCC__) || (defined(__MRC__) && defined(__POWERPC))
+#elif defined(CONFIG_PF_S7PPAC) \
+      || defined(__PPCC__) || (defined(__MRC__) && defined(__POWERPC))
 #define MPS_PF_S7PPAC
 #define MPS_PF_STRING   "s7ppac"
 #define MPS_OS_S7
@@ -163,7 +173,9 @@
  * ools/Preprocessor/Preprocessor.[ef].html>
  */
 
-#elif defined(__APPLE__) && defined(__ppc__) && defined(__MACH__) && defined(__GNUC__)
+#elif defined(CONFIG_PF_XCPPGC) \
+      || defined(__APPLE__) && defined(__ppc__) && defined(__MACH__) \
+         && defined(__GNUC__)
 #define MPS_PF_XCPPGC
 #define MPS_PF_STRING   "xcppgc"
 #define MPS_OS_XC
@@ -176,8 +188,9 @@
 
 /* GCC 2.5.8, gcc -E -dM, (__SVR4 indicates Solaris) */
 
-#elif defined(__sun__) && defined(__sparc__) && defined(__GNUC__) \
-      && !defined(__svr4__)
+#elif defined(CONFIG_PF_SUS8GC) \
+      || defined(__sun__) && defined(__sparc__) && defined(__GNUC__) \
+         && !defined(__svr4__)
 #define MPS_PF_SUS8GC
 #define MPS_PF_STRING   "sus8gc"
 #define MPS_OS_SU
@@ -190,8 +203,9 @@
 
 /* LCC 3.4 (ish), man page */
 
-#elif defined(sun) && defined(sparc) && defined(__LCC__) \
-      && !defined(__svr4__)
+#elif defined(CONFIG_PF_SUS8LC) \
+      || defined(sun) && defined(sparc) && defined(__LCC__) \
+         && !defined(__svr4__)
 #define MPS_PF_SUS8LC
 #define MPS_PF_STRING   "sus8lc"
 #define MPS_OS_SU
@@ -204,8 +218,9 @@
 
 /* GCC 2.5.8, gcc -E -dM */
 
-#elif defined(__sun__) && defined(__sparc__) && defined(__GNUC__) \
-      && defined(__svr4__)
+#elif defined(CONFIG_PF_SOS8GC) \
+      || defined(__sun__) && defined(__sparc__) && defined(__GNUC__) \
+         && defined(__svr4__)
 #define MPS_PF_SOS8GC
 #define MPS_PF_STRING   "sos8gc"
 #define MPS_OS_SO
@@ -221,9 +236,9 @@
  * macros for that.
  */
 
-#elif defined(__sun) && defined(__SUNPRO_C) && defined(__SVR4) \
-      && defined(__sparc)
-
+#elif defined(CONFIG_PF_SOS9SC) \
+      || defined(__sun) && defined(__SUNPRO_C) && defined(__SVR4) \
+         && defined(__sparc)
 #define MPS_PF_SOS9SC
 #define MPS_PF_STRING   "sos9sc"
 #define MPS_OS_SO
@@ -236,7 +251,8 @@
 
 /* GCC 2.6.3, gcc -E -dM */
 
-#elif defined(__osf__) && defined(__alpha__) && defined(__GNUC__)
+#elif defined(CONFIG_PF_O1ALGC) \
+      || defined(__osf__) && defined(__alpha__) && defined(__GNUC__)
 #define MPS_PF_O1ALGC
 #define MPS_PF_STRING   "o1algc"
 #define MPS_OS_O1
@@ -250,7 +266,8 @@
 
 /* From the cc(1) man page */
 
-#elif defined(__osf__) && defined(__alpha) && defined(__DECC)
+#elif defined(CONFIG_PF_O1ALCC) \
+      || defined(__osf__) && defined(__alpha) && defined(__DECC)
 #define MPS_PF_O1ALCC
 #define MPS_PF_STRING   "o1alcc"
 #define MPS_OS_O1
@@ -267,7 +284,8 @@
  * all 4.
  */
 
-#elif defined(__linux__) && defined(__i386__) && defined(__GNUC__)
+#elif defined(CONFIG_PF_LII4GC) \
+      || defined(__linux__) && defined(__i386__) && defined(__GNUC__)
 #define MPS_PF_LII4GC
 #define MPS_PF_STRING   "lii4gc"
 #define MPS_OS_LI
@@ -280,7 +298,8 @@
 
 /* GCC 2.7.2, gcc -E -dM */
 
-#elif defined(__linux__) && defined(__PPC__) && defined(__GNUC__)
+#elif defined(CONFIG_PF_LIPPGC) \
+      || defined(__linux__) && defined(__PPC__) && defined(__GNUC__)
 #define MPS_PF_LIPPGC
 #define MPS_PF_STRING   "lippgc"
 #define MPS_OS_LI
@@ -294,7 +313,8 @@
 /* GCC 2.95.3, gcc -E -dM
  */
 
-#elif defined(__FreeBSD__) && defined (__i386__) && defined (__GNUC__)
+#elif defined(CONFIG_PF_FRI4GC) \
+      || defined(__FreeBSD__) && defined (__i386__) && defined (__GNUC__)
 #define MPS_PF_FRI4GC
 #define MPS_PF_STRING   "fri4gc"
 #define MPS_OS_FR

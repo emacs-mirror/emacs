@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2001 Global Graphics Software.
  */
 
 
@@ -96,7 +97,7 @@ extern Ring (RingNext)(Ring ring);
 
 /* .ring.elt: See design.mps.ring.elt */
 #define RING_ELT(type, field, node) \
-   ((type)((char *)(node) - (size_t)(&((type)0)->field)))
+   ((type)(void *)((char *)(node) - (size_t)(&((type)0)->field)))
 
 /* .ring.for: See design.mps.ring.for */
 #define RING_FOR(node, ring, next) \

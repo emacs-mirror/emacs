@@ -29,9 +29,7 @@ extern mps_lib_FILE *mps_lib_get_stdout(void);
 extern int mps_lib_fputc(int, mps_lib_FILE *);
 extern int mps_lib_fputs(const char *, mps_lib_FILE *);
 
-
-extern void mps_lib_abort(void);
-
+extern void mps_lib_assert_fail(const char *);
 
 extern void *(mps_lib_memset)(void *, int, size_t);
 extern void *(mps_lib_memcpy)(void *, const void *, size_t);

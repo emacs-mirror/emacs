@@ -1,7 +1,8 @@
-/* impl.c.poolmvff: First Fit Manual Variable Pool
+/* impl.c.poolmvff: Manual Variable First Fit Pool
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: This is a pool class for manually managed objects of
  * variable size where address-ordered first fit is an appropriate
@@ -53,8 +54,8 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
 } MVFFStruct;
 
 
-#define PoolPoolMVFF(pool)   PARENT(MVFFStruct, poolStruct, pool)
-#define MVFFPool(mvff)       (&((mvff)->poolStruct))
+#define Pool2MVFF(pool)   PARENT(MVFFStruct, poolStruct, pool)
+#define MVFF2Pool(mvff)       (&((mvff)->poolStruct))
 #define CBSOfMVFF(mvff)      (&((mvff)->cbsStruct))
 #define MVFFOfCBS(cbs)       PARENT(MVFFStruct, cbsStruct, cbs)
 
@@ -71,8 +72,8 @@ typedef struct MVFFDebugStruct {
 typedef MVFFDebugStruct *MVFFDebug;
 
 
-#define MVFFPoolMVFFDebug(mvff) PARENT(MVFFDebugStruct, mvffStruct, mvff)
-#define MVFFDebugPoolMVFF(mvffd) (&((mvffd)->mvffStruct))
+#define MVFF2MVFFDebug(mvff) PARENT(MVFFDebugStruct, mvffStruct, mvff)
+#define MVFFDebug2MVFF(mvffd) (&((mvffd)->mvffStruct))
 
 
 /* MVFFAddToFreeList -- Add given range to free list
@@ -126,7 +127,7 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
   if (AddrOffset(base, limit) < mvff->minSegSize)
     return; /* not large enough for entire segments */
 
-  arena = PoolArena(MVFFPool(mvff));
+  arena = PoolArena(MVFF2Pool(mvff));
   b = SegOfAddr(&seg, arena, base);
   AVER(b);
 
@@ -143,13 +144,13 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
       mvff->total -= AddrOffset(segBase, segLimit);
       SegFree(seg);
     }
-   
+
     /* Avoid calling SegNext if the next segment would fail */
     /* the loop test, mainly because there might not be a */
     /* next segment. */
     if (segLimit == limit) /* segment ends at end of range */
       break;
-   
+
     b = SegNext(&seg, arena, segBase);
     AVER(b);
     segBase = SegBase(seg);
@@ -181,7 +182,7 @@ static Res MVFFAddSeg(Seg *segReturn,
   AVER(size > 0);
   AVER(BoolCheck(withReservoirPermit));
 
-  pool = MVFFPool(mvff);
+  pool = MVFF2Pool(mvff);
   arena = PoolArena(pool);
   align = ArenaAlign(arena);
 
@@ -211,6 +212,7 @@ static Res MVFFAddSeg(Seg *segReturn,
 
   mvff->total += segSize;
   base = SegBase(seg); limit = AddrAdd(base, segSize);
+  DebugPoolFreeSplat(pool, base, limit);
   MVFFAddToFreeList(&base, &limit, mvff);
   AVER(base <= SegBase(seg));
   if (mvff->minSegSize > segSize) mvff->minSegSize = segSize;
@@ -242,7 +244,7 @@ static Bool MVFFFindFirstFree(Addr *baseReturn, Addr *limitReturn,
   AVER(limitReturn != NULL);
   AVERT(MVFF, mvff);
   AVER(size > 0);
-  AVER(SizeIsAligned(size, PoolAlignment(MVFFPool(mvff))));
+  AVER(SizeIsAligned(size, PoolAlignment(MVFF2Pool(mvff))));
 
   findDelete = mvff->slotHigh ? CBSFindDeleteHIGH : CBSFindDeleteLOW;
 
@@ -268,7 +270,7 @@ static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size,
   Bool foundBlock;
 
   AVERT(Pool, pool);
-  mvff = PoolPoolMVFF(pool);
+  mvff = Pool2MVFF(pool);
   AVERT(MVFF, mvff);
 
   AVER(aReturn != NULL);
@@ -313,7 +315,7 @@ static void MVFFFree(Pool pool, Addr old, Size size)
   MVFF mvff;
 
   AVERT(Pool, pool);
-  mvff = PoolPoolMVFF(pool);
+  mvff = Pool2MVFF(pool);
   AVERT(MVFF, mvff);
 
   AVER(old != (Addr)0);
@@ -348,7 +350,7 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Pool, pool);
-  mvff = PoolPoolMVFF(pool);
+  mvff = Pool2MVFF(pool);
   AVERT(MVFF, mvff);
   AVERT(Buffer, buffer);
   AVER(size > 0);
@@ -389,7 +391,7 @@ static void MVFFBufferEmpty(Pool pool, Buffer buffer,
   MVFF mvff;
 
   AVERT(Pool, pool);
-  mvff = PoolPoolMVFF(pool);
+  mvff = Pool2MVFF(pool);
   AVERT(MVFF, mvff);
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
@@ -436,7 +438,7 @@ static Res MVFFInit(Pool pool, va_list arg)
   AVER(BoolCheck(arenaHigh));
   AVER(BoolCheck(firstFit));
 
-  mvff = PoolPoolMVFF(pool);
+  mvff = Pool2MVFF(pool);
   arena = PoolArena(pool);
 
   mvff->extendBy = extendBy;
@@ -452,7 +454,7 @@ static Res MVFFInit(Pool pool, va_list arg)
   res = ControlAlloc(&p, arena, sizeof(SegPrefStruct), FALSE);
   if (res != ResOK)
     return res;
- 
+
   mvff->segPref = (SegPref)p;
   *mvff->segPref = *SegPrefDefault();
   SegPrefExpress(mvff->segPref, arenaHigh ? SegPrefHigh : SegPrefLow, NULL);
@@ -463,14 +465,21 @@ static Res MVFFInit(Pool pool, va_list arg)
   mvff->total = 0;
   mvff->free = 0;
 
-  CBSInit(arena, CBSOfMVFF(mvff), (void *)mvff, NULL, NULL, NULL, NULL,
-          mvff->extendBy, align, TRUE, TRUE);
+  res = CBSInit(arena, CBSOfMVFF(mvff), (void *)mvff, NULL, NULL, NULL, NULL,
+                mvff->extendBy, align, TRUE, TRUE);
+
+  if (res != ResOK)
+    goto failInit;
 
   mvff->sig = MVFFSig;
   AVERT(MVFF, mvff);
   EVENT_PPWWWUUU(PoolInitMVFF, pool, arena, extendBy, avgSize, align,
                  slotHigh, arenaHigh, firstFit);
   return ResOK;
+
+failInit:
+  ControlFree(arena, p, sizeof(SegPrefStruct));
+  return res;
 }
 
 
@@ -484,7 +493,7 @@ static void MVFFFinish(Pool pool)
   Ring ring, node, nextNode;
 
   AVERT(Pool, pool);
-  mvff = PoolPoolMVFF(pool);
+  mvff = Pool2MVFF(pool);
   AVERT(MVFF, mvff);
 
   ring = PoolSegRing(pool);
@@ -493,7 +502,7 @@ static void MVFFFinish(Pool pool)
     AVER(SegPool(seg) == pool);
     SegFree(seg);
   }
- 
+
   /* Could maintain mvff->total here and check it falls to zero, */
   /* but that would just make the function slow.  If only we had */
   /* a way to do operations only if AVERs are turned on. */
@@ -514,10 +523,10 @@ static PoolDebugMixin MVFFDebugMixin(Pool pool)
   MVFF mvff;
 
   AVERT(Pool, pool);
-  mvff = PoolPoolMVFF(pool);
+  mvff = Pool2MVFF(pool);
   AVERT(MVFF, mvff);
   /* Can't check MVFFDebug, because this is called during init */
-  return &(MVFFPoolMVFFDebug(mvff)->debug);
+  return &(MVFF2MVFFDebug(mvff)->debug);
 }
 
 
@@ -529,7 +538,7 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
   MVFF mvff;
 
   if (!CHECKT(Pool, pool)) return ResFAIL;
-  mvff = PoolPoolMVFF(pool);
+  mvff = Pool2MVFF(pool);
   if (!CHECKT(MVFF, mvff)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
@@ -551,7 +560,7 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
 
   res = WriteF(stream, "}\n", NULL);
 
-  return res;              
+  return res;
 }
 
 
@@ -613,9 +622,9 @@ size_t mps_mvff_free_size(mps_pool_t mps_pool)
 
   pool = (Pool)mps_pool;
   AVERT(Pool, pool);
-  mvff = PoolPoolMVFF(pool);
+  mvff = Pool2MVFF(pool);
   AVERT(MVFF, mvff);
- 
+
   return (size_t)mvff->free;
 }
 
@@ -628,7 +637,7 @@ size_t mps_mvff_size(mps_pool_t mps_pool)
 
   pool = (Pool)mps_pool;
   AVERT(Pool, pool);
-  mvff = PoolPoolMVFF(pool);
+  mvff = Pool2MVFF(pool);
   AVERT(MVFF, mvff);
 
   return (size_t)mvff->total;
@@ -640,16 +649,16 @@ size_t mps_mvff_size(mps_pool_t mps_pool)
 static Bool MVFFCheck(MVFF mvff)
 {
   CHECKS(MVFF, mvff);
-  CHECKD(Pool, MVFFPool(mvff));
-  CHECKL(IsSubclassPoly(MVFFPool(mvff)->class, MVFFPoolClassGet()));
+  CHECKD(Pool, MVFF2Pool(mvff));
+  CHECKL(IsSubclassPoly(MVFF2Pool(mvff)->class, MVFFPoolClassGet()));
   CHECKD(SegPref, mvff->segPref);
   CHECKL(mvff->extendBy > 0);                   /* see .arg.check */
-  CHECKL(mvff->minSegSize >= ArenaAlign(PoolArena(MVFFPool(mvff))));
+  CHECKL(mvff->minSegSize >= ArenaAlign(PoolArena(MVFF2Pool(mvff))));
   CHECKL(mvff->avgSize > 0);                    /* see .arg.check */
   CHECKL(mvff->avgSize <= mvff->extendBy);      /* see .arg.check */
   CHECKL(mvff->total >= mvff->free);
-  CHECKL(SizeIsAligned(mvff->free, PoolAlignment(MVFFPool(mvff))));
-  CHECKL(SizeIsAligned(mvff->total, ArenaAlign(PoolArena(MVFFPool(mvff)))));
+  CHECKL(SizeIsAligned(mvff->free, PoolAlignment(MVFF2Pool(mvff))));
+  CHECKL(SizeIsAligned(mvff->total, ArenaAlign(PoolArena(MVFF2Pool(mvff)))));
   CHECKD(CBS, CBSOfMVFF(mvff));
   CHECKL(BoolCheck(mvff->slotHigh));
   CHECKL(BoolCheck(mvff->firstFit));
@@ -673,7 +682,7 @@ void mps_mvff_stat(mps_pool_t mps_pool)
 
   pool = (Pool)mps_pool;
   AVERT(Pool, pool);
-  mvff = PoolPoolMVFF(pool);
+  mvff = Pool2MVFF(pool);
   AVERT(MVFF, mvff);
 
   METER_EMIT(&CBSOfMVFF(mvff)->splaySearch);

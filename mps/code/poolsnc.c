@@ -21,7 +21,6 @@
 #include "mpscsnc.h"
 #include "mpm.h"
 
-
 SRCID(poolsnc, "$Id$");
 
 

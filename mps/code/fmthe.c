@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2002 Global Graphics Software.
  *
  * Uses impl.c.fmtdy for the actual Dylan format, and just adds
  * a thin layer to handle the object headers themselves.
@@ -14,17 +15,6 @@
 
 #include <string.h>
 #include <stdlib.h>
-
-#include "mpstd.h"
-#ifdef MPS_PF_SUS8LC
-/* .hack.stderr: builder.lc (LCC) uses Sun's header files.  Sun's
- * assert.h is broken, as it assumes it can use stderr.  We have to
- * fix it by supplying stderr.
- */
-#include <stdio.h>
-/* Better include ossu.h as well, in case we use other stuff from stdio.h. */
-#include "ossu.h"
-#endif
 
 #include "testlib.h"
 
@@ -99,10 +89,6 @@ static mps_addr_t dylan_header_skip(mps_addr_t object)
 {
   mps_addr_t *p;        /* cursor in object */
   int header;
-
-  p = (mps_addr_t *)object;
-  assert(p != NULL);
-
   header = *(int*)((char*)object - headerSIZE);
   switch(headerType(header)) {
   case realTYPE:

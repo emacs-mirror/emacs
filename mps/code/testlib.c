@@ -2,15 +2,17 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: A library of functions that may be of use to unit tests.
  */
 
 #include "testlib.h"
 #include "mps.h"
-#include "mpm.h"
+#include "misc.h" /* for NOOP */
 #include <math.h>
 #include <stdlib.h>
+#include <limits.h>
 #ifdef MPS_OS_IA
 struct itimerspec; /* stop complaints from time.h */
 #endif
@@ -19,21 +21,40 @@ struct itimerspec; /* stop complaints from time.h */
 
 /* rnd -- a random number generator
  *
- * I nabbed it from "ML for the Working Programmer"
- * Originally from:
+ * I nabbed it from "ML for the Working Programmer", originally from:
  * Stephen K Park & Keith W Miller (1988). Random number generators:
- * good one are to find.  Communications of the ACM, 31:1192-1201
+ * good one are to find.  Communications of the ACM, 31:1192-1201.
  */
 
 unsigned long rnd(void)
 {
   static unsigned long seed = 1;
   double s;
+
   s = seed;
   s *= 16807.0;
   s = fmod(s, 2147483647.0);  /* 2^31 - 1 */
   seed = (unsigned long)s;
   return seed;
+}
+
+
+/* rnd_addr -- a random address generator
+ *
+ * rnd gives 31 random bits, we run it repeatedly to get enough bits.
+ */
+
+#define ADDR_BITS (sizeof(mps_addr_t) * CHAR_BIT)
+
+mps_addr_t rnd_addr(void)
+{
+  mps_word_t res;
+  unsigned bits;
+
+  for (bits = 0, res = 0; bits < ADDR_BITS;
+       bits += 31, res = res << 31 | (mps_word_t)rnd())
+    NOOP;
+  return (mps_addr_t)res;
 }
 
 
@@ -43,7 +64,7 @@ void randomize(int argc, char **argv)
 {
   int i, k, n;
 
-  if(argc > 1) {
+  if (argc > 1) {
     n = sscanf(argv[1], "%d", &k);
     die((n == 1) ? MPS_RES_OK : MPS_RES_FAIL, "randomize");
   } else {

@@ -2,9 +2,11 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2002 Global Graphics Software.
  */
 
 #include "mpscmv.h"
+#include "mpscmvff.h"
 #include "mpslib.h"
 #include "mpsavm.h"
 #include "testlib.h"
@@ -23,8 +25,10 @@ extern mps_class_t PoolClassMFS(void);
 #define testLOOPS 10
 
 
-static mps_res_t stress(mps_class_t class, mps_arena_t arena,
-                        size_t (*size)(int i), ...)
+/* stress -- create a pool of the requested type and allocate in it */
+
+static mps_res_t stress(mps_class_t class, size_t (*size)(int i),
+                        mps_arena_t arena, ...)
 {
   mps_res_t res;
   mps_pool_t pool;
@@ -33,7 +37,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
   int *ps[testSetSIZE];
   size_t ss[testSetSIZE];
 
-  va_start(arg, size);
+  va_start(arg, arena);
   res = mps_pool_create_v(&pool, arena, class, arg);
   va_end(arg);
   if (res != MPS_RES_OK)
@@ -87,6 +91,10 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
+#define alignUp(w, a) (((w) + (a) - 1) & ~((size_t)(a) - 1))
+
+
+/* randomSize -- produce sizes both latge and small */
 
 static size_t randomSize(int i)
 {
@@ -98,6 +106,18 @@ static size_t randomSize(int i)
 }
 
 
+/* randomSize8 -- produce sizes both latge and small, 8-byte aligned */
+
+static size_t randomSize8(int i)
+{
+  size_t maxSize = 2 * 160 * 0x2000;
+  /* Reduce by a factor of 2 every 10 cycles.  Total allocation about 40 MB. */
+  return alignUp(rnd() % max((maxSize >> (i / 10)), 2) + 1, 8);
+}
+
+
+/* fixedSize -- produce always the same size */
+
 static size_t fixedSizeSize = 0;
 
 static size_t fixedSize(int i)
@@ -107,23 +127,35 @@ static size_t fixedSize(int i)
 }
 
 
-static mps_pool_debug_option_s debugOptions = { (void *)"postpost", 8 };
+/* testInArena -- test all the pool classes in the given arena */
 
-static int testInArena(mps_arena_t arena)
+static mps_pool_debug_option_s bothOptions =
+  { (void *)"postpost", 8, (void *)"DEAD", 4 };
+
+static mps_pool_debug_option_s fenceOptions =
+  { (void *)"\0XXX ''\"\"'' XXX\0", 16, NULL, 0 };
+
+static int testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
 {
+  /* IWBN to test MVFFDebug, but the MPS doesn't support debugging */
+  /* cross-segment allocation (possibly MVFF ought not to). */
+  printf("MVFF\n");
+  die(stress(mps_class_mvff(), randomSize8, arena,
+             (size_t)65536, (size_t)32, (size_t)4, TRUE, TRUE, TRUE),
+      "stress MVFF");
   printf("MV debug\n");
-  die(stress(mps_class_mv_debug(), arena, randomSize,
-             &debugOptions, (size_t)65536, (size_t)32, (size_t)65536),
+  die(stress(mps_class_mv_debug(), randomSize, arena,
+             options, (size_t)65536, (size_t)32, (size_t)65536),
       "stress MV debug");
 
   printf("MFS\n");
   fixedSizeSize = 13;
   die(stress(PoolClassMFS(),
-             arena, fixedSize, (size_t)100000, fixedSizeSize),
+             fixedSize, arena, (size_t)100000, fixedSizeSize),
       "stress MFS");
 
   printf("MV\n");
-  die(stress(mps_class_mv(), arena, randomSize,
+  die(stress(mps_class_mv(), randomSize, arena,
              (size_t)65536, (size_t)32, (size_t)65536),
       "stress MV");
 
@@ -139,12 +171,12 @@ int main(int argc, char **argv)
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
-  testInArena(arena);
+  testInArena(arena, &bothOptions);
   mps_arena_destroy(arena);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), smallArenaSIZE),
       "mps_arena_create");
-  testInArena(arena);
+  testInArena(arena, &fenceOptions);
   mps_arena_destroy(arena);
 
   fflush(stdout); /* synchronize */

@@ -16,7 +16,6 @@
 #include "check.h"
 #include "misc.h"
 
-
 SRCID(ring, "$Id$");
 
 

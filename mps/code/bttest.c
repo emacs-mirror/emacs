@@ -18,7 +18,6 @@ struct itimerspec; /* stop complaints from time.h */
 #endif
 #include <time.h>
 
-
 SRCID(bttest, "$Id$");
 
 

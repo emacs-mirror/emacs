@@ -1,0 +1,291 @@
+#
+# Makefile for CORE RIP MPS subsystem
+#
+# $HopeName: SWmps!make:makefile.jam(trunk.11) $
+#
+
+# Variant details come before compilation rules
+
+RequiresVariant warning_level : high ;
+# RequiresVariant warnings_are_fatal ;
+
+
+# generic_MPS turns off SW-specific configuration; Non_generic_MPS
+# means SW.  We do it this way round so that SW is the default.  You
+# never want to build a generic_MPS variant of SW, only of MPS tests.
+ImplementsVariant generic_MPS ;
+
+
+# Determine which MPS platform code matches this target.
+local MPSOS ; local MPSPF ;
+switch $(TargetOS) {
+    case win_32 :
+        MPSOS = w3 ;
+        switch $(TargetArch) {
+            case pentium     : MPSPF = w3i3mv ;
+            case alpha       : MPSPF = w3almv ;
+            case ppc         : MPSPF = w3ppmv ;
+        }
+    case irix_5 :              MPSOS = i5 ; MPSPF = i5m2cc ;
+    case irix_6 :              MPSOS = ia ; MPSPF = iam4cc ;
+
+    case linux_2 :             MPSOS = li ; MPSPF = lii4gc ;
+
+    case solaris :             MPSOS = so ; MPSPF = sos8gc ;
+
+    case macos_8 :             MPSOS = s7 ; MPSPF = s7ppac ;
+    case macos_x :             MPSOS = xc ; MPSPF = xcppgc ;
+}
+if ! $(MPSPF) {
+    Error Cannot determine MPS platform for target $(TargetOS)-$(TargetArch) ;
+}
+
+
+# Set MPS configuration
+
+AddToVar Inherited Local : C-Defines : CONFIG_PF_$(MPSPF:U) ;
+
+AddToVar Inherited Local : C-Defines : CONFIG_PROD_EPCORE
+         : Variant Non_generic_MPS ;
+AddToVar Inherited Local : C-Defines : CONFIG_PROD_MPS
+         : Variant generic_MPS ;
+AddToVar Inherited Local : Suffix    : mps : Variant generic_MPS ;
+
+AddToVar Inherited Local : C-Defines : CONFIG_ASSERT : Build ASSERT ;
+AddToVar Inherited Local : C-Defines : CONFIG_DEBUG : Build DEBUG ;
+
+
+# Compilation rules
+
+
+    DependsOn all : mps ;
+
+#    C-IncludeExportDirectories
+#    : .. ;
+
+
+AddToVar Local : VariantMPSsources
+         : prmcan.c protsw.c ssan.c than.c
+           mpsioan.c poolepdl.c poolepvm.c
+         : Variant Non_generic_MPS ;
+
+switch $(MPSPF) {
+case w3i3mv :
+    AddToVar Local : VariantMPSsources
+             : lockw3.c prmci3w3.c proti3.c protw3.c spi3.c ssw3i3.c thw3i3.c
+               mpsiw3.c
+             : Variant generic_MPS ;
+    AddToVar Local : VariantMPSsources : vmw3.c ;
+case w3ppmv :
+    AddToVar Local : VariantMPSsources
+             : lockw3.c prmcan.c protw3.c span.c ssan.c than.c
+               mpsiw3.c
+             : Variant generic_MPS ;
+    AddToVar Local : VariantMPSsources : vmw3.c ;
+case w3almv :
+    AddToVar Local : VariantMPSsources
+             : lockw3.c prmcan.c protw3.c span.c ssan.c than.c
+               mpsiw3.c
+             : Variant generic_MPS ;
+    AddToVar Local : VariantMPSsources : vmw3.c ;
+case sos8gc :
+    AddToVar Local : VariantMPSsources
+             : lockan.c prmcan.c protso.c span.c sssus8.c than.c
+             : Variant generic_MPS ;
+    AddToVar Local : VariantMPSsources : vmso.c ;
+case iam4cc :
+    AddToVar Local : VariantMPSsources
+             : lockan.c prmcan.c protan.c span.c ssan.c than.c
+             : Variant generic_MPS ;
+    AddToVar Local : VariantMPSsources : vmi5.c ;
+case lii4gc :
+    AddToVar Local : VariantMPSsources
+             : lockli.c prmci3li.c protli.c protlii3.c proti3.c pthrdext.c
+               span.c sslii3.c thlii4.c
+             : Variant generic_MPS ;
+    AddToVar Local : VariantMPSsources : vmli.c ;
+    AddToVar Local Inherited : C-Defines : _REENTRANT : Variant generic_MPS ;
+case s7ppac :
+    AddToVar Local : VariantMPSsources
+             : lockan.c prmcan.c protan.c span.c ssan.c than.c
+             : Variant generic_MPS ;
+    AddToVar Local : VariantMPSsources : vman.c ;
+case xcppgc :
+    AddToVar Local : VariantMPSsources
+             : lockan.c prmcan.c protan.c span.c ssan.c than.c
+             : Variant generic_MPS ;
+    AddToVar Local : VariantMPSsources : vmxc.c ;
+case * :
+    Error Undefined MPS platform ;
+}
+
+    Library mps :
+        $(VariantMPSsources)
+        arena.c
+        arenacl.c
+        arenavm.c
+        boot.c
+        bt.c
+        buffer.c
+        cbs.c
+        dbgpool.c
+        dbgpooli.c
+        event.c
+        format.c
+        global.c
+        ld.c
+        locus.c
+        message.c
+        meter.c
+        mpm.c
+        mpsi.c
+        pool.c
+        poolabs.c
+        poolamc.c
+        poolams.c
+        poolamsi.c
+        poolawl.c
+        poollo.c
+        poolmfs.c
+        poolmrg.c
+        poolmv.c
+        poolmvff.c
+        poolsnc.c
+        protocol.c
+        ref.c
+        reserv.c
+        ring.c
+        root.c
+        sac.c
+        seg.c
+        shield.c
+        splay.c
+        trace.c
+        tract.c
+        version.c
+        walk.c
+    ;
+
+
+    # Auxiliary tools
+
+    AddToVar Local : VariantPlinthSources : mpsioan.c : Variant generic_MPS ;
+    Library plinth :
+        $(VariantPlinthSources)
+        mpsliban.c
+    ;
+
+    Executable eventcnv : eventcnv.c eventpro.c table.c ;
+
+    Executable replay
+	: replay.c eventrep.c eventpro.c table.c mpsliban.c fmtpstst.c ;
+    C-LinkWithLibraries replay : mps testlib ;
+
+
+    # Test files
+
+    # testrun is the target for building and running all tests.
+    FloatingDepends testrun ;
+    # testrun1 is an intermediate target required by a bug in GenericTarget.
+    DependsOn testrun : testrun1 ;
+    local testTarget ; MakeGristed testTarget : testrun : $(CurrentPath) ;
+    local testTarget1 ; MakeGristed testTarget1 : testrun1 : $(CurrentPath) ;
+    NOTFILE $(testTarget) $(testTarget1) ;
+    ALWAYS $(testTarget) $(testTarget1) ;
+
+rule TestExecutable {
+    # TestExecutable executable : additional_sources : variant_for_testrun ;
+    Executable $(1) : $(1).c $(2).c ;
+    if $(MPSPF) in sos8gc {
+      # We'd like to do
+      #   C-Exec-Linker_Libraries on $(1) += -lm ;
+      # but for some reason, it doesn't work.  As long as there's nothing
+      # in this file after the TestExecutables, this AddToVar is harmless.
+      AddToVar Local : C-Exec-Linker_Libraries : -lm ;
+    }
+    C-LinkWithLibraries $(1) :
+        mps
+        plinth
+        testlib
+    ;
+    # Parse the variant by using AddToVar.
+    AddToVar Local : runTest : yes : Variant $(3) ;
+    if $(runTest) = yes {
+      GenericTarget testrun1 : $(1:S=$(C-Exec-Suffix)) :
+          # There must be a space after $>, or GenericTarget won't replace it.
+	  echo ...TESTING $> ...$(NewLine)
+	  $> ;
+    }
+    ReplaceVar Local : runTest : : Variant $(3) ;
+}
+
+    Library testlib :
+        testlib.c
+    ;
+
+    TestExecutable abqtest : : mv2_broken ;
+    TestExecutable amcss : fmtdy fmtdytst : generic_MPS ;
+    TestExecutable amcsshe : fmthe : generic_MPS ;
+    TestExecutable amcssth : fmtdy fmtdytst : pthreads ;
+    TestExecutable amsss : fmtdy fmtdytst : generic_MPS ;
+    TestExecutable apss ;
+    TestExecutable arenacv ;
+    TestExecutable btcv ;
+    TestExecutable bttest : : interactive_test ;
+    TestExecutable cbstest ;
+    TestExecutable epdss : : Non_generic_MPS ;
+    TestExecutable epvmss : fmtpstst : Non_generic_MPS ;
+    TestExecutable finalcv : fmtdy fmtdytst ;
+    TestExecutable locbwcss ;
+    TestExecutable lockcov ;
+    TestExecutable lockutw3 : : Windows ;
+    TestExecutable locusss ;
+    TestExecutable locv ;
+    TestExecutable messtest ;
+    TestExecutable mpmss ;
+    TestExecutable mpsicv : fmtdy fmtdytst ;
+    TestExecutable mv2test : poolmv2 abq : mv2_broken ;
+    TestExecutable poolncv : pooln ;
+    TestExecutable qs : : generic_MPS ;
+    TestExecutable sacss ;
+    TestExecutable segsmss : fmtdy fmtdytst : generic_MPS ;
+    TestExecutable teletest : : interactive_test ;
+
+
+# $Log: make:makefile.jam,v $
+# Revision 1.11  2002/05/21  13:22:47  pekka
+# Remove assert.c (change.mps.epcore.chub.160200)
+#
+# Revision 1.10  2002/05/09  17:50:03  pekka
+# Add testrun
+#
+# Revision 1.9  2002/02/15  19:14:04  pekka
+# Remove .s file on Solaris
+#
+# Revision 1.8  2002/02/12  14:45:00  pekka
+# [Bug #24034]
+# On Solaris, you have add -lm
+#
+# Revision 1.7  2002/02/07  17:13:52  pekka
+# [Bug #24034]
+# clean up
+#
+# Revision 1.6  2002/01/09  17:11:45  pekka
+# Add poolamsi.c
+#
+# Revision 1.5  2002/01/04  17:25:06  pekka
+# Add dbgpooli.c
+#
+# Revision 1.4  2002/01/02  19:50:04  pekka
+# Clarify comment on generic_MPS; add some more tests
+#
+# Revision 1.3  2001/12/21  14:34:43  pekka
+# Add missing Linux stuff
+#
+# Revision 1.2  2001/12/18  21:08:32  pekka
+# Warnings can't be fatal yet
+#
+# Revision 1.1  2001/12/18  21:03:44  pekka
+# new unit
+# New makefile for building MPS with Jam Doughtnut
+#

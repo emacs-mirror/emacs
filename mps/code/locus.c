@@ -15,7 +15,6 @@
 #include "mpstd.h"
 #include <float.h> /* for DBL_MAX */
 
-
 SRCID(locus, "$Id$");
 
 
@@ -45,7 +44,7 @@ SegPref SegPrefDefault(void)
 
 /* SegPrefExpress -- express a segment preference */
 
-Res SegPrefExpress(SegPref pref, SegPrefKind kind, void *p)
+void SegPrefExpress(SegPref pref, SegPrefKind kind, void *p)
 {
   AVERT(SegPref, pref);
   AVER(pref != &segPrefDefault);
@@ -82,12 +81,8 @@ Res SegPrefExpress(SegPref pref, SegPrefKind kind, void *p)
     /* See design.mps.pref. */
     break;
   }
-
-  return ResOK;
 }
 
-
-#if 1
 
 /* GenDescCheck -- check a GenDesc */
 
@@ -473,9 +468,6 @@ void LocusFinish(Arena arena)
 Bool LocusCheck(Arena arena)
 {
   /* Can't check arena, because this is part of ArenaCheck. */
-  GenDescCheck(&arena->topGen);
+  CHECKL(GenDescCheck(&arena->topGen));
   return TRUE;
 }
-
-
-#endif
