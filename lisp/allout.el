@@ -5,8 +5,8 @@
 ;; Author: Ken Manheimer <klm@python.org>
 ;; Maintainer: Ken Manheimer <klm@python.org>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.29 2001/07/16 11:39:41 pj Exp $||
-;; Keywords: outline mode wp languages
+;; Version: $Id: allout.el,v 1.30 2001/11/26 16:23:06 pj Exp $||
+;; Keywords: outlines mode wp languages
 
 ;; This file is part of GNU Emacs.
 
@@ -509,7 +509,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = outline-version
 (defvar outline-version
-  (let ((rcs-rev "$Revision: 1.29 $"))
+  (let ((rcs-rev "$Revision: 1.30 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
