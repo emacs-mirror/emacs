@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.13 1992/10/06 08:59:39 rms Exp rms $	
+;;	$Id: vc.el,v 1.14 1992/10/26 05:33:20 rms Exp rms $	
 
 ;; This file is part of GNU Emacs.
 
@@ -102,6 +102,9 @@ is sensitive to blank lines.")
 (defvar vc-log-entry-mode nil)
 (defvar vc-log-operation nil)
 (defvar vc-log-after-operation-hook nil)
+
+(defvar vc-log-file)
+(defvar vc-log-version)
 
 (defconst vc-name-assoc-file "VC-names")
 
@@ -358,7 +361,8 @@ level to check it in under."
 	(message "Enter initial comment.  Type C-c C-c when done."))
     (progn
       (vc-backend-admin file rev)
-      (vc-resynch-window file vc-keep-workfiles))))
+      ;; Inhibit query here, since otherwise we always get asked.
+      (vc-resynch-window file vc-keep-workfiles t))))
 
 (defun vc-steal-lock (file rev &optional owner)
   "Steal the lock on the current workfile."
