@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.284 2000/10/26 20:53:11 monnier Exp $
+;; $Id: vc.el,v 1.285 2000/10/27 12:13:19 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -147,7 +147,7 @@
 ;; * latest-on-branch-p (file)
 ;; - cancel-version (file writable)
 ;; - rename-file (old new)
-;; - annotate-command (file buf)
+;; - annotate-command (file buf rev)
 ;; - annotate-difference (pos)
 ;;     Only required if `annotate-command' is defined for the backend.
 
@@ -2612,30 +2612,40 @@ menu items."
 ;;;;  the contents in BUFFER.
 
 ;;;###autoload
-(defun vc-annotate (ratio)
+(defun vc-annotate (prefix)
   "Display the result of the \"Annotate\" command using colors.
 \"Annotate\" is defined by `vc-BACKEND-annotate-command'.  New lines
-are displayed in red, old in blue.  A prefix argument specifies a
-factor for stretching the time scale.
+are displayed in red, old in blue.  When given a prefix argument, asks
+for a version to annotate from, and a factor for stretching the time 
+scale.
 
 `vc-annotate-menu-elements' customizes the menu elements of the
 mode-specific menu. `vc-annotate-color-map' and
 `vc-annotate-very-old-color' defines the mapping of time to
 colors. `vc-annotate-background' specifies the background color."
-  (interactive "p")
+  (interactive "P")
   (vc-ensure-vc-buffer)
-  (message "Annotating...")
   (let ((temp-buffer-name (concat "*Annotate " (buffer-name) "*"))
-	(temp-buffer-show-function 'vc-annotate-display)
-	(vc-annotate-ratio ratio)
-	(vc-annotate-backend (vc-backend (buffer-file-name))))
+        (temp-buffer-show-function 'vc-annotate-display)
+        (vc-annotate-version 
+         (if prefix (read-string 
+                     (format "Annotate from version: (default %s) "
+                             (vc-workfile-version (buffer-file-name)))
+                     nil nil (vc-workfile-version (buffer-file-name)))))
+        (vc-annotate-ratio 
+         (if prefix (string-to-number
+                     (read-string "Annotate ratio: (default 1.0) " 
+                                  nil nil "1.0"))))
+        (vc-annotate-backend (vc-backend (buffer-file-name))))
+    (message "Annotating...")
     (if (not (vc-find-backend-function vc-annotate-backend 'annotate-command))
 	(error "Sorry, annotating is not implemented for %s"
 	       vc-annotate-backend))
     (with-output-to-temp-buffer temp-buffer-name
       (vc-call-backend vc-annotate-backend 'annotate-command
 		       (file-name-nondirectory (buffer-file-name))
-		       (get-buffer temp-buffer-name)))
+		       (get-buffer temp-buffer-name)
+                       vc-annotate-version))
     ;; Don't use the temp-buffer-name until the buffer is created
     ;; (only after `with-output-to-temp-buffer'.)
     (setq vc-annotate-buffers
