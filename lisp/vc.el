@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.329 2002/02/28 13:01:48 spiegel Exp $
+;; $Id: vc.el,v 1.330 2002/03/05 13:14:11 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -698,6 +698,7 @@ The keys are \(BUFFER . BACKEND\).  See also `vc-annotate-get-backend'.")
   "Return t if REV is a branch revision."
   (not (eq nil (string-match "\\`[0-9]+\\(\\.[0-9]+\\.[0-9]+\\)*\\'" rev))))
 
+;;;###autoload
 (defun vc-branch-part (rev)
   "Return the branch part of a revision number REV."
   (let ((index (string-match "\\.[0-9]+\\'" rev)))
