@@ -1216,7 +1216,7 @@ which may actually result in an url rather than a filename."
 	     'ffap-read-file-or-url-internal
 	     dir
 	     nil
-	     (if dir (cons guess (1+ (length dir))) guess)
+	     (if dir (cons guess (length dir)) guess)
 	     (list 'file-name-history))))
     ;; Do file substitution like (interactive "F"), suggested by MCOOK.
     (or (ffap-url-p guess) (setq guess (substitute-in-file-name guess)))
