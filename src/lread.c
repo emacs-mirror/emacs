@@ -711,7 +711,8 @@ Return t if file exists.")
   /* Check if we're loading this file again while another load
      of the same file is already in progress.  */
   if (!NILP (Fmember (found, Vloads_in_progress)))
-    error ("Recursive load of file `%s'", XSTRING (file)->data);
+    Fsignal (Qerror, Fcons (build_string ("Recursive load"),
+			    Fcons (found, Vloads_in_progress)));
   record_unwind_protect (record_load_unwind, Vloads_in_progress);
   Vloads_in_progress = Fcons (found, Vloads_in_progress);
 
@@ -3428,6 +3429,7 @@ init_lread ()
   load_descriptor_list = Qnil;
 
   Vstandard_input = Qt;
+  Vloads_in_progress = Qnil;
 }
 
 /* Print a warning, using format string FORMAT, that directory DIRNAME
