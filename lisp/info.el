@@ -1107,23 +1107,14 @@ N is the digit argument used to invoke this command."
   (list 'condition-case nil (cons 'progn (append body '(t))) '(error nil)))
 
 (defun Info-next-preorder ()
-  "Go to the next subnode, popping up a level if there is none."
-  (interactive)
-  (cond ((Info-no-error (Info-next-menu-item)))
-	((Info-no-error (Info-up))
-	 (forward-line 1)
-	 (and (re-search-forward "^\\*" nil t) (beginning-of-line)))
-	(t
-	 (error "No more nodes"))))
-
-(defun Info-next-preorder-1 ()
   "Go to the next subnode or the next node, or go up a level."
   (interactive)
   (cond ((Info-no-error (Info-next-menu-item)))
 	((Info-no-error (Info-next)))
 	((Info-no-error (Info-up))
-	 (forward-line 1)
-	 (and (re-search-forward "^\\*" nil t) (beginning-of-line)))
+	 ;; Since we have already gone thru all the items in this menu,
+	 ;; go up to the end of this node.
+	 (goto-char (point-max)))
 	(t
 	 (error "No more nodes"))))
 
@@ -1134,15 +1125,22 @@ N is the digit argument used to invoke this command."
 	  (Info-last-menu-item)
 	  ;; If we go down a menu item, go to the end of the node
 	  ;; so we can scroll back through it.
-	  (goto-char (point-max))))
-	((Info-no-error (Info-up))		(forward-line -1))
-	(t 					(error "No previous nodes"))))
+	  (goto-char (point-max)))
+	 (recenter -1))
+	((Info-no-error (Info-prev))
+	 (goto-char (point-max))
+	 (recenter -1))
+	((Info-no-error (Info-up))
+	 (goto-char (point-min))
+	 (or (search-forward "\n* Menu:" nil t)
+	     (goto-char (point-max))))
+	(t (error "No previous nodes"))))
 
 (defun Info-scroll-up ()
   "Scroll one screenful forward in Info, considering all nodes as one sequence.
 Once you scroll far enough in a node that its menu appears on the screen,
 the next scroll moves into its first subnode.  When you scroll past
-the end of a node, that goes back to the parent node."
+the end of a node, that goes to the next node or back up to the parent node."
   (interactive)
   (if (or (< (window-start) (point-min))
 	  (> (window-start) (point-max)))
@@ -1159,10 +1157,9 @@ the end of a node, that goes back to the parent node."
 
 (defun Info-scroll-down ()
   "Scroll one screenful back in Info, considering all nodes as one sequence.
-If you are within the menu of a node, this follows the previous
-menu item, so that you scroll through all the subnodes, ordered
-as if they appeared in place of the menu.  When you scroll past
-the beginning of a node, that goes back to the parent node."
+Within the menu of a node, this goes to its last subnode.
+When you scroll past the beginning of a node, that goes to the
+previous node or back up to the parent node."
   (interactive)
   (if (or (< (window-start) (point-min))
 	  (> (window-start) (point-max)))
@@ -1380,7 +1377,7 @@ At end of the node's text, moves to the next node, or up if none."
     (goto-char pos))
   (and (not (Info-try-follow-nearest-node))
        (save-excursion (forward-line 1) (eobp))
-       (Info-next-preorder-1)))
+       (Info-next-preorder)))
 
 (defun Info-follow-nearest-node ()
   "\\<Info-mode-map>Follow a node reference near point.
@@ -1388,7 +1385,7 @@ Like \\[Info-menu], \\[Info-follow-reference], \\[Info-next], \\[Info-prev] or \
 If no reference to follow, moves to the next node, or up if none."
   (interactive)
   (or (Info-try-follow-nearest-node)
-      (Info-next-preorder-1)))
+      (Info-next-preorder)))
 
 ;; Common subroutine.
 (defun Info-try-follow-nearest-node ()
@@ -1505,9 +1502,6 @@ Advanced commands:
 \\[universal-argument] \\[info]	Move to new Info file with completion.
 \\[Info-search]	Search through this Info file for specified regexp,
 	and select the node in which the next occurrence is found.
-\\[Info-next-preorder]	Next-preorder; that is, try to go to the next menu item,
-	and if that fails try to move up, and if that fails, tell user
- 	he/she is done reading.
 \\[Info-next-reference]	Move cursor to next cross-reference or menu item.
 \\[Info-prev-reference]	Move cursor to previous cross-reference or menu item."
   (kill-all-local-variables)
