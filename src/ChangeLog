@@ -1,3 +1,7 @@
+2005-01-19  Kim F. Storm  <storm@cua.dk>
+
+	* fns.c (sweep_weak_table): Advance prev pointer when we keep a pair.
+
 2005-01-18  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (fast_find_position): Backtrack to find first row if
