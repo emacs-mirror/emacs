@@ -18,6 +18,11 @@ so we will look at it
 `--program-suffix' and `--program-transform-name' that affect the names of
 installed programs.
 
+---
+** Leim is now part of the Emacs distribution.
+You no longer need to download a separate tarball in order to build
+Emacs with Leim.
+
 ** Support for FreeBSD/Alpha has been added.
 
 
