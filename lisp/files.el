@@ -1268,6 +1268,7 @@ in that case, this function acts as if `enable-local-variables' were t."
     ("\\.clo\\'" . latex-mode)		;LaTeX 2e class option
     ("\\.bbl\\'" . latex-mode)
     ("\\.bib\\'" . bibtex-mode)
+    ("\\.sql\\'" . sql-mode)
     ("\\.m4\\'" . m4-mode)
     ("\\.mc\\'" . m4-mode)
     ("\\.mf\\'" . metafont-mode)
