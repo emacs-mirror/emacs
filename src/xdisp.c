@@ -1368,9 +1368,12 @@ try_window (window, pos)
 	last_text_vpos
 	  /* Next line, unless prev line ended in end of buffer with no cr */
 	  = vpos - (val.vpos && (FETCH_CHAR (val.bufpos - 1) != '\n'
+#ifdef USE_TEXT_PROPERTIES
 				 || ! NILP (Fget_text_property (val.bufpos-1,
 								Qinvisible,
-								Fcurrent_buffer ()))));
+								Fcurrent_buffer ()))
+#endif
+				 ));
       pos = val.bufpos;
     }
 
