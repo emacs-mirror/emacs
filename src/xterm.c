@@ -12131,7 +12131,7 @@ x_catch_errors (dpy)
   record_unwind_protect (x_catch_errors_unwind, x_error_message_string);
 
   x_error_message_string = make_uninit_string (X_ERROR_MESSAGE_SIZE);
-  SREF (x_error_message_string, 0) = 0;
+  SSET (x_error_message_string, 0, 0);
 
   return count;
 }
@@ -12181,7 +12181,7 @@ void
 x_clear_errors (dpy)
      Display *dpy;
 {
-  SREF (x_error_message_string, 0) = 0;
+  SSET (x_error_message_string, 0, 0);
 }
 
 /* Stop catching X protocol errors and let them make Emacs die.
