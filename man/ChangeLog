@@ -1,3 +1,9 @@
+2004-12-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Consistently capitalized all mode names.
+	(Answers to Exercises): Mention that an answer can be a fraction
+	when in Fraction mode.
+
 2004-12-13  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi: Fix some TeX definitions.
