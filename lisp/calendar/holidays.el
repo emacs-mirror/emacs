@@ -143,14 +143,14 @@ The optional LABEL is used to label the buffer created."
                    (cdr (assoc choice lists))))
           (name (if (string-equal choice "Equinoxes/Solstices")
                     choice
-                  (if (string-equal choice "Ask")
+                  (if (member choice '("Ask" ""))
                       "Holidays" 
                     (format "%s Holidays" choice)))))
      (list start-year end-year which name)))
   (message "Computing holidays...")
   (let* ((holiday-buffer "*Holidays*")
          (calendar-holidays (if l l calendar-holidays))
-         (title (if label label "Holidays"))
+         (title (or label "Holidays"))
          (holiday-list nil)
          (s (calendar-absolute-from-gregorian (list 2 1 y1)))
          (e (calendar-absolute-from-gregorian (list 11 1 y2)))
@@ -164,23 +164,26 @@ The optional LABEL is used to label the buffer created."
       (increment-calendar-month displayed-month displayed-year 3)
       (setq d (calendar-absolute-from-gregorian
                (list displayed-month 1 displayed-year))))
-    (set-buffer (get-buffer-create holiday-buffer))
-    (setq buffer-read-only nil)
-    (calendar-set-mode-line
-     (if (= y1 y2)
-         (format "%s for %s" label y1)
-       (format "%s for %s-%s" label y1 y2)))
-    (erase-buffer)
-    (goto-char (point-min))
-    (insert
-     (mapconcat
-      '(lambda (x) (concat (calendar-date-string (car x)) ": " (car (cdr x))))
-      holiday-list "\n"))
-    (goto-char (point-min))
-    (set-buffer-modified-p nil)
-    (setq buffer-read-only t)
-    (display-buffer holiday-buffer)
-    (message "Computing holidays...done")))
+    (save-excursion
+      (set-buffer (get-buffer-create holiday-buffer))
+      (setq buffer-read-only nil)
+      (calendar-set-mode-line
+       (if (= y1 y2)
+           (format "%s for %s" title y1)
+         (format "%s for %s-%s" title y1 y2)))
+      (erase-buffer)
+      (goto-char (point-min))
+      (insert
+       (mapconcat
+        '(lambda (x) (concat (calendar-date-string (car x))
+                             ": " (car (cdr x))))
+        holiday-list "\n"))
+      (goto-char (point-min))
+      (set-buffer-modified-p nil)
+      (setq buffer-read-only t)
+      (display-buffer holiday-buffer)
+      (message "Computing holidays...done"))))
+
 
 (defun check-calendar-holidays (date)
   "Check the list of holidays for any that occur on DATE.
