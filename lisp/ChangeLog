@@ -18,8 +18,8 @@
 
 	* composite.el (decompose-composite-char): Declare it as obsolete.
 
-	* man.el (Man-fontify-manpage): Pay attention to overstrike
-	pattern for CJK characters (X^H^HX).
+	* man.el (Man-fontify-manpage): Pay attention to underline and
+	overstrike pattern for CJK characters (e.g. __^H^H and X^H^HX).
 
 2000-06-08  Gerd Moellmann  <gerd@gnu.org>
 

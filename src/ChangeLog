@@ -1,5 +1,8 @@
 2000-06-10  Kenichi Handa  <handa@etl.go.jp>
 
+	* fileio.c (Finsert_file_contents): Be sure to setup src_multibyte
+	and dst_multibyte members of coding.
+
 	* charset.c (update_charset_table): Update the table
 	bytes_by_char_head.
 	(init_charset_once): Initialize elements of bytes_by_char_head to
