@@ -766,6 +766,23 @@
 	 (point))
     ))
 
+(defun c-at-toplevel-p ()
+  "Return a determination as to whether point is at the `top-level'.
+Being at the top-level means that point is either outside any
+enclosing block (such function definition), or inside a class
+definition, but outside any method blocks.
+
+If point is not at the top-level (e.g. it is inside a method
+definition), then nil is returned.  Otherwise, if point is at a
+top-level not enclosed within a class definition, t is returned.
+Otherwise, a 2-vector is returned where the zeroth element is the
+buffer position of the start of the class declaration, and the first
+element is the buffer position of the enclosing class's opening
+brace."
+  (let ((state (c-parse-state)))
+    (or (not (c-most-enclosing-brace state))
+	(c-search-uplist-for-classkey state))))
+
 (defun c-just-after-func-arglist-p (&optional containing)
   ;; Return t if we are between a function's argument list closing
   ;; paren and its opening brace.  Note that the list close brace
