@@ -1,6 +1,7 @@
 ;; The Linux console handles Latin-1 by default.
 
-(set-terminal-coding-system 'iso-latin-1)
+(unless (terminal-coding-system)
+  (set-terminal-coding-system 'iso-latin-1))
 
 ;; Make Latin-1 input characters work, too.
 ;; Meta will continue to work, because the kernel
