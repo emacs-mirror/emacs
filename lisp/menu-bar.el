@@ -267,7 +267,7 @@ and selects that window."
     (setq menu (cons "Buffer and Frame Menu" menu))
 
     (let ((buf (x-popup-menu (if (listp event) event
-			       (cons '(0 0) (selected-frame)))
+			       (list '(0 0) (selected-frame)))
 			     menu))
 	  (window (and (listp event) (posn-window (event-start event)))))
       (cond ((framep buf)
@@ -280,7 +280,7 @@ and selects that window."
 	     (if complex-buffers-menu-p
 		 (let ((action (x-popup-menu
 				(if (listp event) event
-				  (cons '(0 0) (selected-frame)))
+				  (list '(0 0) (selected-frame)))
 				'("Buffer Action"
 				  (""
 				   ("Save Buffer" . save-buffer)
