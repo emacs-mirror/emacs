@@ -1,3 +1,69 @@
+2002-11-07  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el: Remove all autoload cookies.
+	(composition-function-table): Variable declaration moved from
+	composite.c.  Format changed.
+	(save-buffer-state): Copied from font-lock.el.
+	(auto-composition-chunk-size): New variable.
+	(auto-compose-chars): New function.  Set
+	auto-composition-function to it.
+	(toggle-auto-composition): New function.
+
+	* international/characters.el: Make all chararacters in the
+	charset tibetan to tibetan script.
+
+	* international/mule-conf.el (tibetan): Fix :code-space property.
+	(tibetan-1-column): Delete :superset property, add :code-offset
+	property.
+
+	* international/quail.el (quail-input-string-to-events): Don't
+	generate compose-chars-after events.
+
+	* language/devanagari.el: Register devanagari-composable-function
+	in composition-function-table for Devanagari characters.
+
+	* language/devan-util.el: Register devanagari-composable-pattern
+	in indian-composable-pattern.
+	(devanagari-composition-function): Add autoload cookie.  Change
+	arguments to conform to composition-function-table.
+
+	* language/european.el: Register combining characters in
+	composition-function-table.
+	(diacritic-composition-function): Change arguments to conform to
+	composition-function-table.
+
+	* language/indian.el (indian-composable-pattern): New variable.
+
+	* language/ind-util.el (indian-compose-region): Don't call
+	compose-chars-after, instead call a function registered in
+	composition-function-table.
+
+	* language/lao.el: Register lao-composition-function in
+	composition-function-table for Lao vowels and tones.
+	(lao): Don't use lao-post-read-conversion.
+	
+	* language/lao-util.el (lao-post-read-conversion): Delete this
+	function.
+	(lao-composition-function): Change arguments to conform to
+	composition-function-table.
+
+	* language/thai.el: Register thai-composition-function in
+	composition-function-table for Thai vowels and tones.
+	(thai-tis620): Don't use thai-post-read-conversion.
+
+	* language/thai-util.el (thai-post-read-conversion): Delete this
+	function.
+	(thai-composition-function): Change arguments to conform to
+	composition-function-table.
+
+	* language/tibetan.el: Register tibetan-composition-function in
+	composition-function-table for Tibetan characters.
+
+	* language/tibet-util.el (tibetan-composition-function): Change
+	arguments to conform to composition-function-table.
+
+	* loadup.el: Load composite
+
 2002-11-01  Dave Love  <fx@gnu.org>
 
 	* international/mule-diag.el (unicode-data): Find unicodedata-file

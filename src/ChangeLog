@@ -1,3 +1,30 @@
+2002-11-07  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (lisp, shortlisp): Add composite.elc
+
+	* composite.h (Qauto_composed, Vauto_composition_function,
+	Qauto_composition_function): Extern them.
+
+	* composite.c (Vcomposition_function_table,
+	Qcomposition_function_table): Delete variables.
+	(Qauto_composed, Vauto_composition_function,
+	Qauto_composition_function): New variables.
+	(run_composition_function): Don't call
+	compose-chars-after-function.
+	(update_compositions): Clear `auto-composed' text property.
+	(compose_chars_in_text): Delete this function.
+	(syms_of_composite): Staticpro Qauto_composed and
+	Qauto_composition_function.  Declare Vauto_composition_function as
+	a Lisp variable.
+
+	* dispextern.h (enum prop_idx): Add member AUTO_COMPOSED_PROP_IDX.
+
+	* xdisp.c (it_props): Add an entry for Qauto_composed.
+	(handle_auto_composed_prop): New function.
+
+	* xselect.c (selection_data_to_lisp_data): Don't call
+	compose_chars_in_text.
+
 2002-11-06  Dave Love  <fx@gnu.org>
 
 	* xterm.c (XTread_socket): Check Lisp types for Vx_keysym_table
