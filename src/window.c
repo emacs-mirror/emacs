@@ -6504,9 +6504,10 @@ using `special-display-function'.  See also `special-display-regexps'.
 An element of the list can be a list instead of just a string.
 There are two ways to use a list as an element:
   (BUFFER FRAME-PARAMETERS...)   (BUFFER FUNCTION OTHER-ARGS...)
-In the first case, FRAME-PARAMETERS are used to create the frame.
-In the latter case, FUNCTION is called with BUFFER as the first argument,
-followed by OTHER-ARGS--it can display BUFFER in any way it likes.
+In the first case, the FRAME-PARAMETERS are pairs of the form
+\(PARAMETER . VALUE); these parameter values are used to create the frame.
+In the second case, FUNCTION is called with BUFFER as the first argument,
+followed by the OTHER-ARGS--it can display BUFFER in any way it likes.
 All this is done by the function found in `special-display-function'.
 
 If the specified frame parameters include (same-buffer . t), the
@@ -6529,9 +6530,10 @@ using `special-display-function'.
 An element of the list can be a list instead of just a string.
 There are two ways to use a list as an element:
   (REGEXP FRAME-PARAMETERS...)   (REGEXP FUNCTION OTHER-ARGS...)
-In the first case, FRAME-PARAMETERS are used to create the frame.
-In the latter case, FUNCTION is called with the buffer as first argument,
-followed by OTHER-ARGS--it can display the buffer in any way it likes.
+In the first case, the FRAME-PARAMETERS are pairs of the form
+\(PARAMETER . VALUE); these parameter values are used to create the frame.
+In the second case, FUNCTION is called with BUFFER as the first argument,
+followed by the OTHER-ARGS--it can display the buffer in any way it likes.
 All this is done by the function found in `special-display-function'.
 
 If the specified frame parameters include (same-buffer . t), the
