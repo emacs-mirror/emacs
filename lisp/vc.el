@@ -30,8 +30,8 @@
 ;; and Richard Stallman contributed valuable criticism, support, and testing.
 ;;
 ;; Supported version-control systems presently include SCCS and RCS;
-;; your RCS version should be 5.6.2 or later for proper operation of
-;; the lock-breaking code.
+;; the RCS lock-stealing code doesn't work right unless you use RCS 5.6.2
+;; or newer.  Currently (January 1994) that is only a beta test release.
 ;;
 ;; The RCS code assumes strict locking.  You can support the RCS -x option
 ;; by adding pairs to the vc-master-templates list.
