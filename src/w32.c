@@ -206,11 +206,13 @@ readdir (DIR *dirp)
 
 int getuid ();	/* forward declaration */
 
-static char the_passwd_name[256];
-static char the_passwd_passwd[256];
-static char the_passwd_gecos[256];
-static char the_passwd_dir[256];
-static char the_passwd_shell[256];
+#define PASSWD_FIELD_SIZE 256
+
+static char the_passwd_name[PASSWD_FIELD_SIZE];
+static char the_passwd_passwd[PASSWD_FIELD_SIZE];
+static char the_passwd_gecos[PASSWD_FIELD_SIZE];
+static char the_passwd_dir[PASSWD_FIELD_SIZE];
+static char the_passwd_shell[PASSWD_FIELD_SIZE];
 
 static struct passwd the_passwd = 
 {
@@ -227,7 +229,7 @@ static struct passwd the_passwd =
 struct passwd *
 getpwuid (int uid)
 {
-  int size = 256;
+  int size = PASSWD_FIELD_SIZE;
   
   if (!GetUserName (the_passwd.pw_name, &size))
     return NULL;
@@ -273,22 +275,35 @@ get_emacs_configuration (void)
     /* Determine the processor type.  */
     switch (get_processor_type ()) 
       {
+
+#ifdef PROCESSOR_INTEL_386
       case PROCESSOR_INTEL_386:
       case PROCESSOR_INTEL_486:
       case PROCESSOR_INTEL_PENTIUM:
 	arch = "i386";
 	break;
+#endif
+
+#ifdef PROCESSOR_INTEL_860
       case PROCESSOR_INTEL_860:
 	arch = "i860";
 	break;
+#endif
+
+#ifdef PROCESSOR_MIPS_R2000
       case PROCESSOR_MIPS_R2000:
       case PROCESSOR_MIPS_R3000:
       case PROCESSOR_MIPS_R4000:
 	arch = "mips";
 	break;
+#endif
+
+#ifdef PROCESSOR_ALPHA_21064
       case PROCESSOR_ALPHA_21064:
 	arch = "alpha";
 	break;
+#endif
+
       default:
 	arch = "unknown";
 	break;
