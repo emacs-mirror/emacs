@@ -1995,6 +1995,8 @@ isfloat_string (cp)
 {
   register int state;
   
+  char *start = cp;
+
   state = 0;
   if (*cp == '+' || *cp == '-')
     cp++;
@@ -2030,6 +2032,8 @@ isfloat_string (cp)
       while (*cp >= '0' && *cp <= '9')
 	cp++;
     }
+  else if (cp == start)
+    ;
   else if (cp[-1] == '+' && cp[0] == 'I' && cp[1] == 'N' && cp[2] == 'F')
     {
       state |= EXP_INT;
