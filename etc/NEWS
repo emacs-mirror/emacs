@@ -1080,11 +1080,12 @@ matches are automatically cleared when you end the search.  If it is
 set to nil, you can remove the highlights manually with `M-x
 isearch-lazy-highlight-cleanup'.
 
++++
 ** Changes in sort.el
 
 The function sort-numeric-fields interprets numbers starting with `0'
 as octal and numbers starting with `0x' or `0X' as hexadecimal.  The
-new user-option sort-numberic-base can be used to specify a default
+new user-option sort-numeric-base can be used to specify a default
 numeric base.
 
 ** Changes to Ange-ftp
