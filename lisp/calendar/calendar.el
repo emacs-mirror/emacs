@@ -207,11 +207,11 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
 (add-to-list 'facemenu-unlisted-faces 'diary-face)
 (defface diary-face
   '((((class color) (background light))
-     (:foreground "red"))
+     :foreground "red")
     (((class color) (background dark))
-     (:foreground "yellow"))
+     :foreground "yellow")
     (t
-     (:bold t)))
+     :bold t))
   "Face for highlighting diary entries."
   :group 'diary)
 
@@ -224,11 +224,11 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
 (add-to-list 'facemenu-unlisted-faces 'holiday-face)
 (defface holiday-face
   '((((class color) (background light))
-     (:background "pink"))
+     :background "pink")
     (((class color) (background dark))
-     (:background "chocolate4"))
+     :background "chocolate4")
     (t
-     (:inverse-video t)))
+     :inverse-video t))
   "Face for indicating dates that have holidays."
   :group 'diary)
 
