@@ -244,7 +244,7 @@ USER and PASSWORD are defaulted from the values used when
 	    ((looking-at ignore)
 	     (forward-line 1))
 	    ((not (search-forward "\n" nil t))
-	     ;; the way asynchronous process-output fucks with (point)
+	     ;; the way asynchronous process-output works with (point)
 	     ;;  is really really disgusting.
 	     (setq p (point))
 	     (condition-case ()
