@@ -1,4 +1,4 @@
-2002-10-22  Bob Halley  <halley@play-bow.org>
+2002-10-22  Bob Halley  <halley@play-bow.org>  (tiny change)
 
 	* eshell/esh-io.el (eshell-set-output-handle): Fix so that
 	multiple redirection can work.
