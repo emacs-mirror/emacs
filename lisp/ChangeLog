@@ -1,3 +1,10 @@
+2003-12-30  Simon Josefsson  <jas@extundo.com>
+
+	* textmodes/texinfo.el: Change maintainer to FSF.  Suggested by
+	karl@freefriends.org (Karl Berry), since the Texinfo Elisp files
+	have only been distributed with Emacs for some years.
+	(texinfo-mode-hook): Customize.
+
 2003-12-30  Eli Zaretskii  <eliz@elta.co.il>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Make the code
