@@ -185,7 +185,7 @@
 ;; doesn't work.  Or maybe it allows you to think less and drift off to sleep.
 ;;
 ;; So, here are my opinions/advice/guidelines:
-;;
+;; 
 ;; - Highlight conceptual objects, such as function and variable names, and
 ;;   different objects types differently, i.e., (a) and (b) above, highlight
 ;;   function names differently to variable names.
@@ -233,6 +233,12 @@
   :link '(custom-manual "(emacs)Support Modes")
   :load 'lazy-lock
   :group 'font-lock)
+
+(defgroup jit-lock nil
+  "Font Lock support mode to fontify just-in-time."
+  :link '(custom-manual "(emacs)Support Modes")
+  :load 'dmnd-lock
+  :group 'font-lock)
 
 ;; User variables.
 
@@ -279,7 +285,7 @@ decoration for buffers in C++ mode, and level 1 decoration otherwise."
 				      (symbol :tag "name"))
 			       (radio :tag "Decoration"
 				      (const :tag "default" nil)
-				      (const :tag "maximum" t)
+				      (const :tag "maximum" t) 
 				      (integer :tag "level" 1)))))
   :group 'font-lock)
 
@@ -446,7 +452,7 @@ and those for buffer-specialised fontification functions,
 	   nil nil ((?_ . "w")) beginning-of-defun
 	   (font-lock-mark-block-function . mark-defun)))
 	(c++-mode-defaults
-	 '((c++-font-lock-keywords c++-font-lock-keywords-1
+	 '((c++-font-lock-keywords c++-font-lock-keywords-1 
 	    c++-font-lock-keywords-2 c++-font-lock-keywords-3)
 	   nil nil ((?_ . "w")) beginning-of-defun
 	   (font-lock-mark-block-function . mark-defun)))
@@ -585,8 +591,8 @@ This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-inhibit-thing-lock nil
   "List of Font Lock mode related modes that should not be turned on.
-Currently, valid mode names as `fast-lock-mode' and `lazy-lock-mode'.
-This is normally set via `font-lock-defaults'.")
+Currently, valid mode names as `fast-lock-mode', `jit-lock-mode' and
+`lazy-lock-mode'.  This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-mode nil)		; Whether we are turned on/modeline.
 (defvar font-lock-fontified nil)	; Whether we have fontified the buffer.
@@ -914,8 +920,9 @@ means that Font Lock mode is turned on for buffers in C and C++ modes only."
 (defcustom font-lock-support-mode nil
   "*Support mode for Font Lock mode.
 Support modes speed up Font Lock mode by being choosy about when fontification
-occurs.  Known support modes are Fast Lock mode (symbol `fast-lock-mode') and
-Lazy Lock mode (symbol `lazy-lock-mode').  See those modes for more info.
+occurs.  Known support modes are Fast Lock mode (symbol `fast-lock-mode'),
+Lazy Lock mode (symbol `lazy-lock-mode'), and Just-in-time Lock mode (symbol
+`jit-lock-mode'.  See those modes for more info.
 If nil, means support for Font Lock mode is never performed.
 If a symbol, use that support mode.
 If a list, each element should be of the form (MAJOR-MODE . SUPPORT-MODE),
@@ -928,6 +935,7 @@ The value of this variable is used when Font Lock mode is turned on."
   :type '(choice (const :tag "none" nil)
 		 (const :tag "fast lock" fast-lock-mode)
 		 (const :tag "lazy lock" lazy-lock-mode)
+		 (const :tag "jit lock" jit-lock-mode)
 		 (repeat :menu-tag "mode specific" :tag "mode specific"
 			 :value ((t . lazy-lock-mode))
 			 (cons :tag "Instance"
@@ -937,35 +945,45 @@ The value of this variable is used when Font Lock mode is turned on."
 			       (radio :tag "Support"
 				      (const :tag "none" nil)
 				      (const :tag "fast lock" fast-lock-mode)
-				      (const :tag "lazy lock" lazy-lock-mode)))
+				      (const :tag "lazy lock" lazy-lock-mode)
+				      (const :tag "JIT lock" jit-lock-mode)))
 			 ))
   :group 'font-lock)
 
 (defvar fast-lock-mode nil)
 (defvar lazy-lock-mode nil)
+(defvar jit-lock-mode nil)
 
 (defun font-lock-turn-on-thing-lock ()
   (let ((thing-mode (font-lock-value-in-major-mode font-lock-support-mode)))
     (cond ((eq thing-mode 'fast-lock-mode)
 	   (fast-lock-mode t))
 	  ((eq thing-mode 'lazy-lock-mode)
-	   (lazy-lock-mode t)))))
+	   (lazy-lock-mode t))
+	  ((eq thing-mode 'jit-lock-mode)
+	   (jit-lock-mode t)))))
 
 (defun font-lock-turn-off-thing-lock ()
   (cond (fast-lock-mode
 	 (fast-lock-mode nil))
+	(jit-lock-mode
+	 (jit-lock-mode nil))
 	(lazy-lock-mode
 	 (lazy-lock-mode nil))))
 
 (defun font-lock-after-fontify-buffer ()
   (cond (fast-lock-mode
 	 (fast-lock-after-fontify-buffer))
+	(jit-lock-mode
+	 (jit-lock-after-fontify-buffer))
 	(lazy-lock-mode
 	 (lazy-lock-after-fontify-buffer))))
 
 (defun font-lock-after-unfontify-buffer ()
   (cond (fast-lock-mode
 	 (fast-lock-after-unfontify-buffer))
+	(jit-lock-mode
+	 (jit-lock-after-unfontify-buffer))
 	(lazy-lock-mode
 	 (lazy-lock-after-unfontify-buffer))))
 
@@ -1084,7 +1102,7 @@ The value of this variable is used when Font Lock mode is turned on."
 ;; The following must be rethought, since keywords can override fontification.
 ;      ;; Now scan for keywords, but not if we are inside a comment now.
 ;      (or (and (not font-lock-keywords-only)
-;	       (let ((state (parse-partial-sexp beg end nil nil
+;	       (let ((state (parse-partial-sexp beg end nil nil 
 ;						font-lock-cache-state)))
 ;		 (or (nth 4 state) (nth 7 state))))
 ;	  (font-lock-fontify-keywords-region beg end))
@@ -1349,8 +1367,8 @@ START should be at the beginning of a line."
     (when (or (nth 3 state) (nth 4 state))
       (setq string (nth 3 state) beg (point))
       (setq state (parse-partial-sexp (point) end nil nil state 'syntax-table))
-      (put-text-property beg (point) 'face
-			 (if string
+      (put-text-property beg (point) 'face 
+			 (if string 
 			     font-lock-string-face
 			   font-lock-comment-face)))
     ;;
@@ -1362,8 +1380,8 @@ START should be at the beginning of a line."
 		  (or (nth 3 state) (nth 4 state))))
       (setq string (nth 3 state) beg (nth 8 state))
       (setq state (parse-partial-sexp (point) end nil nil state 'syntax-table))
-      (put-text-property beg (point) 'face
-			 (if string
+      (put-text-property beg (point) 'face 
+			 (if string 
 			     font-lock-string-face
 			   font-lock-comment-face)))))
 
@@ -1440,9 +1458,10 @@ START should be at the beginning of a line."
       ;; Find an occurrence of `matcher' from `start' to `end'.
       (setq keyword (car keywords) matcher (car keyword))
       (goto-char start)
-      (while (if (stringp matcher)
-		 (re-search-forward matcher end t)
-	       (funcall matcher end))
+      (while (and (< (point) end)
+		  (if (stringp matcher)
+		      (re-search-forward matcher end t)
+		    (funcall matcher end)))
 	;; Apply each highlight to this instance of `matcher', which may be
 	;; specific highlights or more keywords anchored to `matcher'.
 	(setq highlights (cdr keyword))
@@ -1655,7 +1674,8 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;; But now we do it the custom way.  Note that `defface' will not overwrite any
 ;; faces declared above via `custom-declare-face'.
 (defface font-lock-comment-face
-  '((((class grayscale) (background light))
+  '((((type tty) (class color)) (:foreground "red"))
+    (((class grayscale) (background light))
      (:foreground "DimGray" :bold t :italic t))
     (((class grayscale) (background dark))
      (:foreground "LightGray" :bold t :italic t))
@@ -1666,7 +1686,8 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-string-face
-  '((((class grayscale) (background light)) (:foreground "DimGray" :italic t))
+  '((((type tty) (class color)) (:foreground "green"))
+    (((class grayscale) (background light)) (:foreground "DimGray" :italic t))
     (((class grayscale) (background dark)) (:foreground "LightGray" :italic t))
     (((class color) (background light)) (:foreground "RosyBrown"))
     (((class color) (background dark)) (:foreground "LightSalmon"))
@@ -1675,7 +1696,8 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-keyword-face
-  '((((class grayscale) (background light)) (:foreground "LightGray" :bold t))
+  '((((type tty) (class color)) (:foreground "cyan" :weight bold))
+    (((class grayscale) (background light)) (:foreground "LightGray" :bold t))
     (((class grayscale) (background dark)) (:foreground "DimGray" :bold t))
     (((class color) (background light)) (:foreground "Purple"))
     (((class color) (background dark)) (:foreground "Cyan"))
@@ -1684,7 +1706,8 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-builtin-face
-  '((((class grayscale) (background light)) (:foreground "LightGray" :bold t))
+  '((((type tty) (class color)) (:foreground "blue" :weight light))
+    (((class grayscale) (background light)) (:foreground "LightGray" :bold t))
     (((class grayscale) (background dark)) (:foreground "DimGray" :bold t))
     (((class color) (background light)) (:foreground "Orchid"))
     (((class color) (background dark)) (:foreground "LightSteelBlue"))
@@ -1693,14 +1716,16 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-function-name-face
-  '((((class color) (background light)) (:foreground "Blue"))
+  '((((type tty) (class color)) (:foreground "blue" :weight bold))
+    (((class color) (background light)) (:foreground "Blue"))
     (((class color) (background dark)) (:foreground "LightSkyBlue"))
     (t (:inverse-video t :bold t)))
   "Font Lock mode face used to highlight function names."
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-variable-name-face
-  '((((class grayscale) (background light))
+  '((((type tty) (class color)) (:foreground "yellow" :weight light))
+    (((class grayscale) (background light))
      (:foreground "Gray90" :bold t :italic t))
     (((class grayscale) (background dark))
      (:foreground "DimGray" :bold t :italic t))
@@ -1711,7 +1736,8 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-type-face
-  '((((class grayscale) (background light)) (:foreground "Gray90" :bold t))
+  '((((type tty) (class color)) (:foreground "green"))
+    (((class grayscale) (background light)) (:foreground "Gray90" :bold t))
     (((class grayscale) (background dark)) (:foreground "DimGray" :bold t))
     (((class color) (background light)) (:foreground "ForestGreen"))
     (((class color) (background dark)) (:foreground "PaleGreen"))
@@ -1720,7 +1746,8 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-constant-face
-  '((((class grayscale) (background light))
+  '((((type tty) (class color)) (:foreground "magenta"))
+    (((class grayscale) (background light))
      (:foreground "LightGray" :bold t :underline t))
     (((class grayscale) (background dark))
      (:foreground "Gray50" :bold t :underline t))
@@ -1731,7 +1758,8 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-warning-face
-  '((((class color) (background light)) (:foreground "Red" :bold t))
+  '((((type tty) (class color)) (:foreground "red"))
+    (((class color) (background light)) (:foreground "Red" :bold t))
     (((class color) (background dark)) (:foreground "Pink" :bold t))
     (t (:inverse-video t :bold t)))
   "Font Lock mode face used to highlight warnings."
@@ -2255,7 +2283,7 @@ See also `c-font-lock-extra-types'.")
 	(regexp-opt-depth c-type-specs))
        (c-type-names
 	`(mapconcat 'identity
-	  (cons
+	  (cons 
 	   (,@ (eval-when-compile
 		 (regexp-opt
 		  '("char" "short" "int" "long" "signed" "unsigned"
@@ -2454,7 +2482,7 @@ See also `c++-font-lock-extra-types'.")
 	(regexp-opt-depth c++-type-specs))
        (c++-type-names
 	`(mapconcat 'identity
-	  (cons
+	  (cons 
 	   (,@ (eval-when-compile
 		 (regexp-opt
 		  '("signed" "unsigned" "short" "long"
@@ -2795,7 +2823,7 @@ See also `java-font-lock-extra-types'.")
        ;; Classes immediately followed by an object name.
        (java-type-names
 	`(mapconcat 'identity
-	  (cons
+	  (cons 
 	   (,@ (eval-when-compile
 		 (regexp-opt '("boolean" "char" "byte" "short" "int" "long"
 			       "float" "double" "void"))))
