@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.84) $
+ * $HopeName: MMsrc!mpmst.h(trunk.85) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -297,8 +297,6 @@ typedef struct SegClassStruct {
   SegSetRankSetMethod setRankSet; /* change rank set of segment */
   SegSetRankSummaryMethod setRankSummary; /* change rank set & summary */
   SegDescribeMethod describe;   /* describe the contents of the seg */
-  SegPMethod p;                 /* get P field of segment */
-  SegSetPMethod setP;           /* set P field of segment */
   Sig sig;                      /* .class.end-sig */
 } SegClassStruct;
 
@@ -315,6 +313,7 @@ typedef struct SegStruct {      /* segment structure */
   Sig sig;                      /* impl.h.misc.sig */
   SegClass class;               /* segment class structure */
   Tract firstTract;             /* first tract of segment */
+  RingStruct poolRing;          /* link in list of segs in pool */
   Addr limit;                   /* limit of segment */
   unsigned depth : SHIELD_DEPTH_WIDTH; /* see impl.c.shield.def.depth */
   AccessSet pm : AccessMAX;     /* protection mode, impl.c.shield */
@@ -336,11 +335,9 @@ typedef struct SegStruct {      /* segment structure */
 
 typedef struct GCSegStruct {    /* GC segment structure */
   SegStruct segStruct;          /* superclass fields must come first */
-  RingStruct poolRing;          /* link in list of segs in pool */
   RingStruct greyRing;          /* link in list of grey segs */
   RefSet summary;               /* summary of references out of seg */
   Buffer buffer;                /* non-NULL if seg is buffered */
-  void *p;                      /* pointer for use of owning pool */
   Sig sig;                      /* design.mps.sig */
 } GCSegStruct;
 
