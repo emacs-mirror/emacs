@@ -1239,6 +1239,10 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
+** Easy-menu's :filter now works as in XEmacs.
+It takes the unconverted (i.e. XEmacs) form of the menu and the result
+is automatically converted to Emacs' form.
+
 ** The new function `window-list' has been defined
 
 - Function: window-list &optional WINDOW MINIBUF ALL-FRAMES
@@ -1279,7 +1283,7 @@ If ALL-FRAMES is a frame, it means include windows on that frame.
 Anything else means restrict to the selected frame.
 
 ** The function `single-key-description' now encloses function key
-and event names in ange brackets.
+and event names in angle brackets.
 
 ** If the variable `message-truncate-lines' is bound to t around a
 call to `message', the echo area will not be resized to display that
@@ -1403,7 +1407,7 @@ X 0213 Plane 1 and Plane 2.
 +++
 ** The new character sets `eight-bit-control' and `eight-bit-graphic'
 are introduced for 8-bit characters in the ranges 0x80..0x9F and
-0xA0..0xFF repectively.
+0xA0..0xFF respectively.
 
 +++
 ** If the APPEND argument of `write-region' is an integer, it seeks to
@@ -1412,28 +1416,8 @@ that offset in the file before writing.
 ** `concat' no longer accepts individual integer arguments, as
 promised long ago.
 
-** The function `add-minor-mode' simplifies the definition of minor
-modes.
-
-- Function: add-minor-mode TOGGLE NAME &optional KEYMAP AFTER TOGGLE-FUN
-
-Register a new minor mode.
-
-TOGGLE is a symbol which is the name of a buffer-local variable that
-is toggled on or off to say whether the minor mode is active or not.
-
-NAME specifies what will appear in the mode line when the minor mode
-is active.  NAME should be either a string starting with a space, or a
-symbol whose value is such a string.
-
-Optional KEYMAP is the keymap for the minor mode that will be added
-to `minor-mode-map-alist'.
-
-Optional AFTER specifies that TOGGLE should be added after AFTER
-in `minor-mode-alist'.
-
-Optional TOGGLE-FUN is there for compatiblity with other Emacssen.
-It is currently not used.
+** The function `add-minor-mode' has been added for convenience and
+compatibility with XEmacs (and is used internally by define-minor-mode).
 
 ** The function `shell-command' now sets the default directory of the
 `*Shell Command Output*' buffer to the default directory of the buffer
@@ -1535,7 +1519,7 @@ INTEGER optionally contains a sign.
     => 267
 
 ** The function `documentation-property' now evaluates the value of
-the given property to obtain a a string if it doesn't refer to etc/DOC
+the given property to obtain a string if it doesn't refer to etc/DOC
 and isn't a string.
 
 ** If called for a symbol, the function `documentation' now looks for
