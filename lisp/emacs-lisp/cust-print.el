@@ -9,7 +9,12 @@
 ;; LCD Archive Entry:
 ;; cust-print|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |Handle print-level, print-circle and more.
-;; |$Date: 1994/03/23 20:34:29 $|$Revision: 1.4 $|
+;; |$Date: 1994/03/24 20:26:05 $|1.5|
+
+;; Version 1.5 ($Revision: 1.13 $ from Emacs 19)
+
+;; Emacs maintainers: please inform me of any changes to this code.
+;; Better yet, ask me first.
 
 ;; This file is part of GNU Emacs.
 
@@ -28,8 +33,13 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; ===============================
-;;; $Header: /import/kaplan/kaplan/liberte/Edebug/RCS/cust-print.el,v 1.4 1994/03/23 20:34:29 liberte Exp liberte $
 ;;; $Log: cust-print.el,v $
+;;; Revision 1.13  1994/03/24  20:26:05  liberte
+;;; Change "internal" to "original" throughout.
+;;;         (add-custom-printer, delete-custom-printer) replace customizers.
+;;;         (with-custom-print) new
+;;;         (custom-prin1-to-string) Made it more robust.
+;;;
 ;;; Revision 1.4  1994/03/23  20:34:29  liberte
 ;;; * Change "emacs" to "original" - I just can't decide. 
 ;;;
@@ -129,8 +139,8 @@
     print-level
     print-circle
 
-    install-custom-print
-    uninstall-custom-print
+    custom-print-install
+    custom-print-uninstall
     custom-print-installed-p
     with-custom-print
 
@@ -281,11 +291,10 @@ Any pair that has the same PREDICATE is first removed."
 	      (cust-print-original-error error))))
 
 
-(defalias 'install-custom-print-funcs 'install-custom-print)
-(defun install-custom-print ()
+(defun custom-print-install ()
   "Replace print functions with general, customizable, Lisp versions.
 The emacs subroutines are saved away, and you can reinstall them
-by running `uninstall-custom-print'."
+by running `custom-print-uninstall'."
   (interactive)
   (mapcar 'cust-print-set-function-cell
 	  '((prin1 custom-prin1)
@@ -298,8 +307,7 @@ by running `uninstall-custom-print'."
 	    ))
   t)
   
-(defalias 'uninstall-custom-print-funcs 'uninstall-custom-print)
-(defun uninstall-custom-print ()
+(defun custom-print-uninstall ()
   "Reset print functions to their emacs subroutines."
   (interactive)
   (mapcar 'cust-print-set-function-cell
@@ -326,9 +334,9 @@ by running `uninstall-custom-print'."
   "Temporarily install the custom print package while executing BODY."
   (` (unwind-protect
 	 (progn
-	   (install-custom-print)
+	   (custom-print-install)
 	   (,@ body))
-       (uninstall-custom-print))))
+       (custom-print-uninstall))))
 
 
 ;; Lisp replacements for prin1 and princ, and for some subrs that use them
