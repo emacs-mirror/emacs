@@ -1,3 +1,9 @@
+2001-04-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-menu-update): When there are no menus and/or no
+	cross references in the node, make the respective items of the
+	Info menu-bar menu inactive.
+
 2001-04-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* indent.el (indent-for-tab-command): Call indent-line-function
