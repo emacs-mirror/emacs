@@ -59,8 +59,7 @@
 
   (set-default-coding-systems 'korean-iso-8bit)
 
-  (setq default-input-method "korean-hangul")
-  (setq-default default-input-method "korean-hangul"))
+  (setq default-input-method "korean-hangul"))
 
 (set-language-info-alist
  "Korean" '((setup-function . setup-korean-environment)
