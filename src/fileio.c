@@ -2971,6 +2971,10 @@ and (2) it puts less data in the undo list.")
 	     Otherwise loop around and scan the preceding bufferfull.  */
 	  if (bufpos != 0)
 	    break;
+	  /* If display current starts at beginning of line,
+	     keep it that way.  */
+	  if (XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
+	    XWINDOW (selected_window)->start_at_line_beg = Fbolp ();
 	}
       immediate_quit = 0;
 
