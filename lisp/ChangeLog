@@ -1,6 +1,6 @@
 2002-03-08  Daniel Pfeiffer  <occitan@esperanto.org>
 
-	* mpuz.el (mpuz-unsolved-face, mpuz-solved-face)
+	* play/mpuz.el (mpuz-unsolved-face, mpuz-solved-face)
 	(mpuz-trivial-face, mpuz-text-face, mpuz-solve-when-trivial)
 	(mpuz-allow-double-multiplicator): New options for nicer look and
 	new features.
