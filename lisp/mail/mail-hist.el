@@ -105,7 +105,7 @@ Oldest elements are dumped first."
   "Get name of mail header point is currently in, without the colon.
 Returns nil if not in a header, implying that point is in the body of
 the message."
-  (if (> (point) (mail-text-start))
+  (if (>= (point) (mail-text-start))
       nil ; then we are in the body of the message
     (save-excursion
       (let* ((body-start
