@@ -4526,7 +4526,7 @@ alloc_buffer_text (b, nbytes)
 #elif defined REL_ALLOC
   p = r_alloc ((POINTER_TYPE **) &b->text->beg, nbytes);
 #else
-  p = xmalloc (b->text->beg, nbytes);
+  p = xmalloc (nbytes);
 #endif
   
   if (p == NULL)
