@@ -59,7 +59,7 @@
 
 ;;; Code:
 
-(defconst pascal-mode-version "2.3"
+(defconst pascal-mode-version "2.4"
   "Version of `pascal.el'.")
 
 (defvar pascal-mode-abbrev-table nil
@@ -75,20 +75,21 @@
   (define-key pascal-mode-map "."        'electric-pascal-semi-or-dot)
   (define-key pascal-mode-map ":"        'electric-pascal-colon)
   (define-key pascal-mode-map "="        'electric-pascal-equal)
+  (define-key pascal-mode-map "#"        'electric-pascal-hash)
   (define-key pascal-mode-map "\r"       'electric-pascal-terminate-line)
   (define-key pascal-mode-map "\t"       'electric-pascal-tab)
-  (define-key pascal-mode-map "\e\t"     'pascal-complete-word)
-  (define-key pascal-mode-map "\e?"      'pascal-show-completions)
+  (define-key pascal-mode-map "\M-\t"    'pascal-complete-word)
+  (define-key pascal-mode-map "\M-?"     'pascal-show-completions)
   (define-key pascal-mode-map "\177"     'backward-delete-char-untabify)
-  (define-key pascal-mode-map "\e\C-h"   'pascal-mark-defun)
-  (define-key pascal-mode-map "\C-cb"    'pascal-insert-block)
+  (define-key pascal-mode-map "\M-\C-h"  'pascal-mark-defun)
+  (define-key pascal-mode-map "\C-c\C-b" 'pascal-insert-block)
   (define-key pascal-mode-map "\M-*"     'pascal-star-comment)
   (define-key pascal-mode-map "\C-c\C-c" 'pascal-comment-area)
   (define-key pascal-mode-map "\C-c\C-u" 'pascal-uncomment-area)
-  (define-key pascal-mode-map "\e\C-a"   'pascal-beg-of-defun)
-  (define-key pascal-mode-map "\e\C-e"   'pascal-end-of-defun)
-  (define-key pascal-mode-map "\C-cg"    'pascal-goto-defun)
-  (define-key pascal-mode-map "\C-c\C-o"  'pascal-outline)
+  (define-key pascal-mode-map "\M-\C-a"  'pascal-beg-of-defun)
+  (define-key pascal-mode-map "\M-\C-e"  'pascal-end-of-defun)
+  (define-key pascal-mode-map "\C-c\C-d" 'pascal-goto-defun)
+  (define-key pascal-mode-map "\C-c\C-o" 'pascal-outline)
 ;;; A command to change the whole buffer won't be used terribly
 ;;; often, so no need for a key binding.
 ;  (define-key pascal-mode-map "\C-cd"    'pascal-downcase-keywords)
@@ -315,7 +316,7 @@ no args, if that value is non-nil."
   (setq indent-line-function 'pascal-indent-line)
   (setq comment-indent-function 'pascal-indent-comment)
   (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments t)
+  (setq parse-sexp-ignore-comments nil)
   (make-local-variable 'case-fold-search)
   (setq case-fold-search t)
   (make-local-variable 'comment-start-skip)
@@ -397,11 +398,21 @@ no args, if that value is non-nil."
       (let ((pascal-tab-always-indent nil))
 	(pascal-indent-command))))
 
+(defun electric-pascal-hash ()
+  "Insert `#', and indent to coulmn 0 if this is a CPP directive."
+  (interactive)
+  (insert last-command-char)
+  (if (save-excursion (beginning-of-line) (looking-at "^[ \t]*#"))
+      (save-excursion (beginning-of-line)
+		      (delete-horizontal-space))))
+
 (defun electric-pascal-tab ()
   "Function called when TAB is pressed in Pascal mode."
   (interactive)
-  ;; Do nothing if within a string.
-  (if (pascal-within-string)
+  ;; Do nothing if within a string or in a CPP directive.
+  (if (or (pascal-within-string)
+	  (and (not (bolp))
+	       (save-excursion (beginning-of-line) (eq (following-char) ?#))))
       (insert "\t")
     ;; If pascal-tab-always-indent, indent the beginning of the line.
     (if pascal-tab-always-indent
@@ -708,6 +719,7 @@ on the line which ends a function or procedure named NAME."
 (defconst pascal-indent-alist
   '((block . (+ ind pascal-indent-level))
     (case . (+ ind pascal-case-indent))
+    (caseblock . ind) (cpp . 0)
     (declaration . (+ ind pascal-indent-level))
     (paramlist . (pascal-indent-paramlist t))
     (comment . (pascal-indent-comment t))
@@ -743,8 +755,9 @@ on the line which ends a function or procedure named NAME."
     (if (looking-at "^[0-9a-zA-Z]+[ \t]*:[^=]")
 	(search-forward ":" nil t))
     (delete-horizontal-space)
-    ;; Some thing should not be indented
+    ;; Some things should not be indented
     (if (or (and (eq type 'declaration) (looking-at pascal-declaration-re))
+	    (eq type 'cpp)
 	    (looking-at pascal-defun-re))
 	()
       ;; Other things should have no extra indent
@@ -760,7 +773,7 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
   (save-excursion
     (let* ((oldpos (point))
 	   (state (save-excursion (parse-partial-sexp (point-min) (point))))
-	   (nest 0) (par 0) (complete nil)
+	   (nest 0) (par 0) (complete (looking-at "[ \t]*end\\>"))
 	   (elsed (looking-at "[ \t]*else\\>"))
 	   (type (catch 'nesting
 		   ;; Check if inside a string, comment or parenthesis
@@ -768,11 +781,27 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 			 ((nth 4 state) (throw 'nesting 'comment))
 			 ((> (car state) 0)
 			  (goto-char (scan-lists (point) -1 (car state)))
-			  (setq par (1+ (current-column)))))
+			  (setq par (1+ (current-column))))
+			 ((save-excursion (beginning-of-line)
+					  (eq (following-char) ?#))
+			  (throw 'nesting 'cpp)))
 		   ;; Loop until correct indent is found
 		   (while t
 		     (backward-sexp 1)
-		     (cond (;--Nest block outwards
+		     (cond (;--Escape from case statements
+			    (and (looking-at "[A-Za-z0-9]+[ \t]*:[^=]")
+				 (not complete)
+				 (save-excursion (skip-chars-backward " \t")
+						 (bolp))
+				 (= (save-excursion
+				      (end-of-line) (backward-sexp) (point))
+				    (point))
+				 (> (save-excursion (goto-char oldpos)
+						    (beginning-of-line)
+						    (point))
+				    (point)))
+			    (throw 'nesting 'caseblock))
+			   (;--Nest block outwards
 			    (looking-at pascal-beg-block-re)
 			    (if (= nest 0)
 				(cond ((looking-at "case\\>")
@@ -822,6 +851,7 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 			    (bobp)
 			    (throw 'nesting 'unknown))
 			   )))))
+
       ;; Return type of block and indent level.
       (if (> par 0)                               ; Unclosed Parenthesis 
 	  (list 'contexp par)
@@ -874,7 +904,7 @@ column number the line should be indented to."
     ;; Indent all case statements
     (while (< (point) (marker-position end))
       (if (re-search-forward
-	   "^[ \t]*[^ \t,:]+[ \t]*\\(,[ \t]*[^ \t,:]+[ \t]*\\)*:"
+	   "^[ \t]*[^][ \t,\\.:]+[ \t]*\\(,[ \t]*[^ \t,:]+[ \t]*\\)*:"
 	   (marker-position end) 'move)
 	  (forward-char -1))
       (indent-to (1+ ind))
@@ -1373,8 +1403,8 @@ The default is a name found in the buffer around point."
       (setq pascal-outline-map (copy-keymap pascal-mode-map))
     (setq pascal-outline-map (make-sparse-keymap))
     (set-keymap-parent pascal-outline-map pascal-mode-map))
-  (define-key pascal-outline-map "\e\C-a"   'pascal-outline-prev-defun)
-  (define-key pascal-outline-map "\e\C-e"   'pascal-outline-next-defun)
+  (define-key pascal-outline-map "\M-\C-a"  'pascal-outline-prev-defun)
+  (define-key pascal-outline-map "\M-\C-e"  'pascal-outline-next-defun)
   (define-key pascal-outline-map "\C-c\C-d" 'pascal-outline-goto-defun)
   (define-key pascal-outline-map "\C-c\C-s" 'pascal-show-all)
   (define-key pascal-outline-map "\C-c\C-h" 'pascal-hide-other-defuns))
