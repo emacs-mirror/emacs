@@ -986,15 +986,6 @@ variable `msb-menu-cond'."
 			 (cddr buffers-menu))
 		(or buffers-menu 'undefined)))))))
 
-(when (and (boundp 'menu-bar-update-hook)
-	   (not (fboundp 'frame-or-buffer-changed-p)))
-  (defvar msb--buffer-count 0)
-  (defun frame-or-buffer-changed-p ()
-    (let ((count (length (buffer-list))))
-      (when (/= count msb--buffer-count)
-        (setq msb--buffer-count count)
-        t))))
-
 (unless (or (not (boundp 'menu-bar-update-hook))
 	    (memq 'menu-bar-update-buffers menu-bar-update-hook))
     (add-hook 'menu-bar-update-hook 'menu-bar-update-buffers))
@@ -1004,4 +995,8 @@ variable `msb-menu-cond'."
 
 (provide 'msb)
 (eval-after-load 'msb (run-hooks 'msb-after-load-hooks))
+
+;; Load the cl-extra library now, since we will certainly need it later.
+(mapc 'ignore nil)
+
 ;;; msb.el ends here
