@@ -216,12 +216,16 @@
 
 (put 'undecided-unix 'coding-system 'undecided)
 (put 'undecided-unix 'eol-type 0)
+(put 'undecided-unix 'eol-variant t)
 (put 'undecided-dos 'coding-system 'undecided)
 (put 'undecided-dos 'eol-type 1)
+(put 'undecided-dos 'eol-variant t)
 (put 'undecided-mac 'coding-system 'undecided)
 (put 'undecided-mac 'eol-type 2)
+(put 'undecided-mac 'eol-variant t)
 (put 'undecided 'coding-system
-     (vector t ?+ "Detect coding-system automatically" nil nil))
+     (vector t ?+ "No conversion on encoding, automatic conversion on decoding"
+	     nil nil))
 (put 'undecided 'eol-type
      (vector 'undecided-unix
 	     'undecided-dos
@@ -231,22 +235,30 @@
 
 (make-coding-system
  'emacs-mule 0 ?=
- "Internal coding system used in a buffer.")
+ "Emacs internal format used in buffer and string")
 
 (make-coding-system
- 'iso-2022-7 2 ?J
- "Coding system based on ISO2022 7-bit encoding."
+ 'iso-2022-7bit 2 ?J
+ "ISO 2022 based 7-bit encoding using only G0"
  '((ascii t) nil nil nil
    short ascii-eol ascii-cntl seven))
 
 (make-coding-system
- 'iso-2022-int-1 2 ?I
- "ISO-2022-INT-1"
- '((ascii t) (korean-ksc5601 t) nil nil
-   short ascii-eol ascii-cntl seven locking-shift))
+ 'iso-2022-7bit-ss2 2 ?<
+ "ISO 2022 based 7-bit encoding using SS2 for 96-charset"
+ '((ascii t) nil t nil
+   short ascii-eol ascii-cntl seven nil single-shift))
 
 (make-coding-system
- 'iso-2022-cjk 2 ?I
+ 'iso-2022-7bit-lock 2 ?>
+ "ISO-2022 coding system using Locking-Shift for 96-charset"
+ '((ascii t) t nil nil
+   nil ascii-eol ascii-cntl locking-shift))
+
+(define-coding-system-alias 'iso-2022-7bit-lock 'iso-2022-int-1)
+
+(make-coding-system
+ 'iso-2022-7bit-lock-ss2 2 ?i
  "Mixture of ISO-2022-JP, ISO-2022-KR, and ISO-2022-CN"
  '((ascii t)
    (nil korean-ksc5601 chinese-gb2312 chinese-cns11643-1 t)
@@ -256,39 +268,25 @@
    short ascii-eol ascii-cntl seven locking-shift single-shift nil nil nil
    init-bol))
 
+(define-coding-system-alias 'iso-2022-7bit-lock-ss2 'iso-2022-cjk)
+
 (make-coding-system
- 'iso-2022-ss2-8 2 ?I
- "ISO-2022 coding system using SS2 for 96-charset in 8-bit code."
+ 'iso-2022-8bit-ss2 2 ?@
+ "ISO 2022 based 8-bit encoding using SS2 for 96-charset"
  '((ascii t) nil t nil
    nil ascii-eol ascii-cntl nil nil single-shift))
-
-(make-coding-system
- 'iso-2022-ss2-7 2 ?I
- "ISO-2022 coding system using SS2 for 96-charset in 7-bit code."
- '((ascii t) nil t nil
-   short ascii-eol ascii-cntl seven nil single-shift))
-
-(make-coding-system
- 'iso-2022-lock 2 ?i
- "ISO-2022 coding system using Locking-Shift for 96-charset."
- '((ascii t) t nil nil
-   nil ascii-eol ascii-cntl locking-shift))
 
 ;; The other coding-systems are defined in each language specific
 ;; section of languages.el.
 
-;; Setting coding system 'undecided for reading any files.  Though,
+;; Setting coding system `undecided' for reading any files.  Though,
 ;; compiled Emacs Lisp files (*.elc) should never be decoded nor
 ;; encoded.
 
-(setq coding-system-alist
-      '((insert-file-contents
-	 ("\\.elc$" . (no-conversion . nil))
-	 ("loaddefs.el$" . (no-conversion . nil))
-	 ("" . (undecided . nil)))
-	(write-region
-	 ("\\.elc$" . (nil . no-conversion))
-	 ("loaddefs.el$" . (nil . no-conversion)))))
+(setq file-coding-system-alist
+      '(("\\.elc$" . (no-conversion . no-conversion))
+	("loaddefs.el$" . (no-conversion . no-conversion))
+	("" . (undecided . nil))))
 
 
 ;;; Setting coding categories and their priorities.
@@ -299,12 +297,12 @@
 ;; language environment.
 
 (setq coding-category-emacs-mule 'emacs-mule
-      coding-category-sjis	'sjis
-      coding-category-iso-7	'iso-2022-7
-      coding-category-iso-8-1	'iso-8859-1
-      coding-category-iso-8-2	'iso-8859-1
-      coding-category-iso-else	'iso-2022-lock
-      coding-category-big5	'big5
+      coding-category-sjis	'japanese-shift-jis
+      coding-category-iso-7	'iso-2022-7bit
+      coding-category-iso-8-1	'iso-latin-1
+      coding-category-iso-8-2	'iso-latin-1
+      coding-category-iso-else	'iso-2022-7bit-lock
+      coding-category-big5	'chinese-big5
       coding-category-binary	'no-conversion)
 
 (set-coding-priority
