@@ -33,7 +33,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 15.10";
+char pot_etags_version[] = "@(#) pot revision number is 15.13";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -1634,7 +1634,7 @@ find_entries (inf)
      which is unlikely. */
   if (parser == NULL)
     rewind (inf);
-#if 0
+
   /* Else try to guess the language given the case insensitive file name. */
   if (parser == NULL)
     {
@@ -1645,7 +1645,7 @@ find_entries (inf)
 	  parser = lang->function;
 	}
     }
-#endif
+
   if (!no_line_directive
       && curfdp->lang != NULL && curfdp->lang->metasource)
     /* It may be that this is a bingo.y file, and we already parsed a bingo.c
