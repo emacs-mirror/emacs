@@ -2544,8 +2544,8 @@ check_executable (filename)
 	  || (st.st_mode & S_IFMT) == S_IFDIR);
 #endif /* not WINDOWSNT */
 #else /* not DOS_NT */
-#ifdef HAVE_EACCESS
-  return (eaccess (filename, 1) >= 0);
+#ifdef HAVE_EUIDACCESS
+  return (euidaccess (filename, 1) >= 0);
 #else
   /* Access isn't quite right because it uses the real uid
      and we really want to test with the effective uid.
