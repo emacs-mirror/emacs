@@ -55,7 +55,8 @@
 ;; for additional motif keybindings.
 ;; Thanks to jvromans@squirrel.nl (Johan Vromans) for a bug report
 ;; concerning setting of this-command.
-;;
+;; Dan Nicolaescu <done@nexus.sorostm.ro> suggested suppressing the
+;; scroll-up/scroll-down error.
 ;;
 ;; Ok, some details about the idea of pc-selection-mode:
 ;;
@@ -71,8 +72,17 @@
 ;;    They will be bound according to the "old" behaviour to S-delete (cut),
 ;;    S-insert (paste) and C-insert (copy). These keys do the same in many
 ;;    other programs.
+;;
 
-;;; Code:
+;;;; Customization:
+
+(defvar pc-select-override-scroll-error t
+  "*Non-nil means don't generate error on scrolling past edge of buffer.
+This variable applies in PC Selection mode only.
+The scroll commands normally generate an error if you try to scroll
+past the top or bottom of the buffer.  This is annoying when selecting
+text with these commands.  If you set this variable to non-nil, these
+errors are suppressed.")
 
 ;;;;
 ;; misc
@@ -83,7 +93,8 @@
 (defun copy-region-as-kill-nomark (beg end)
   "Save the region as if killed; but don't kill it; deactivate mark.
 If `interprogram-cut-function' is non-nil, also save the text for a window
-system cut and paste.\n
+system cut and paste.
+
 Deactivating mark is to avoid confusion with delete-selection-mode
 and transient-mark-mode."
  (interactive "r")
@@ -119,9 +130,18 @@ and nil is returned."
   (ensure-mark)
   (forward-word arg))
 
+(defun forward-line-mark (&optional arg)
+  "Ensure mark is active; move cursor vertically down ARG lines."
+  (interactive "p")
+  (ensure-mark)
+  (forward-line arg)
+  (setq this-command 'forward-line)
+)
+
 (defun forward-paragraph-mark (&optional arg)
   "Ensure mark is active; move forward to end of paragraph.
-With arg N, do it N times; negative arg -N means move backward N paragraphs.\n
+With arg N, do it N times; negative arg -N means move backward N paragraphs.
+
 A line which `paragraph-start' matches either separates paragraphs
 \(if `paragraph-separate' matches it also) or is the first line of a paragraph.
 A paragraph end is the beginning of a line which is not part of the paragraph
@@ -129,7 +149,7 @@ to which the end of the previous line belongs, or the end of the buffer."
   (interactive "p")
   (ensure-mark)
   (forward-paragraph arg))
- 
+
 (defun next-line-mark (&optional arg)
   "Ensure mark is active; move cursor vertically down ARG lines.
 If there is no character in the target line exactly under the current column,
@@ -139,7 +159,8 @@ If there is no line in the buffer after this one, behavior depends on the
 value of `next-line-add-newlines'.  If non-nil, it inserts a newline character
 to create a line, and moves the cursor to that line.  Otherwise it moves the
 cursor to the end of the buffer \(if already at the end of the buffer, an error
-is signaled).\n
+is signaled).
+
 The command C-x C-n can be used to create
 a semipermanent goal column to which this command always moves.
 Then it does not try to move vertically.  This goal column is stored
@@ -158,6 +179,16 @@ If scan reaches end of buffer, stop there without error."
   (end-of-line arg)
   (setq this-command 'end-of-line))
 
+(defun backward-line-mark (&optional arg)
+  "Ensure mark is active; move cursor vertically up ARG lines."
+  (interactive "p")
+  (ensure-mark)
+  (if (null arg)
+      (setq arg 1))
+  (forward-line (- arg))
+  (setq this-command 'forward-line)
+)
+
 (defun scroll-down-mark (&optional arg)
   "Ensure mark is active; scroll down ARG lines; or near full screen if no ARG.
 A near full screen is `next-screen-context-lines' less than a full screen.
@@ -169,9 +200,11 @@ When calling from a program, supply a number as argument or nil."
 
 (defun end-of-buffer-mark (&optional arg)
   "Ensure mark is active; move point to the end of the buffer.
-With arg N, put point N/10 of the way from the end.\n
+With arg N, put point N/10 of the way from the end.
+
 If the buffer is narrowed, this command uses the beginning and size
-of the accessible part of the buffer.\n
+of the accessible part of the buffer.
+
 Don't use this command in Lisp programs!
 \(goto-char \(point-max)) is faster and avoids clobbering the mark."
   (interactive "P")
@@ -219,9 +252,18 @@ and nil is returned."
   (setq mark-active nil)
   (forward-word arg))
 
+(defun forward-line-nomark (&optional arg)
+  "Deactivate mark; move cursor vertically down ARG lines."
+  (interactive "p")
+  (setq mark-active nil)
+  (forward-line arg)
+  (setq this-command 'forward-line)
+)
+
 (defun forward-paragraph-nomark (&optional arg)
   "Deactivate mark; move forward to end of paragraph.
-With arg N, do it N times; negative arg -N means move backward N paragraphs.\n
+With arg N, do it N times; negative arg -N means move backward N paragraphs.
+
 A line which `paragraph-start' matches either separates paragraphs
 \(if `paragraph-separate' matches it also) or is the first line of a paragraph.
 A paragraph end is the beginning of a line which is not part of the paragraph
@@ -239,7 +281,8 @@ If there is no line in the buffer after this one, behavior depends on the
 value of `next-line-add-newlines'.  If non-nil, it inserts a newline character
 to create a line, and moves the cursor to that line.  Otherwise it moves the
 cursor to the end of the buffer (if already at the end of the buffer, an error
-is signaled).\n
+is signaled).
+
 The command C-x C-n can be used to create
 a semipermanent goal column to which this command always moves.
 Then it does not try to move vertically.  This goal column is stored
@@ -258,6 +301,16 @@ If scan reaches end of buffer, stop there without error."
   (end-of-line arg)
   (setq this-command 'end-of-line))
 
+(defun backward-line-nomark (&optional arg)
+  "Deactivate mark; move cursor vertically up ARG lines."
+  (interactive "p")
+  (setq mark-active nil)
+  (if (null arg)
+      (setq arg 1))
+  (forward-line (- arg))
+  (setq this-command 'forward-line)
+)
+
 (defun scroll-down-nomark (&optional arg)
   "Deactivate mark; scroll down ARG lines; or near full screen if no ARG.
 A near full screen is `next-screen-context-lines' less than a full screen.
@@ -269,9 +322,11 @@ When calling from a program, supply a number as argument or nil."
 
 (defun end-of-buffer-nomark (&optional arg)
   "Deactivate mark; move point to the end of the buffer.
-With arg N, put point N/10 of the way from the end.\n
+With arg N, put point N/10 of the way from the end.
+
 If the buffer is narrowed, this command uses the beginning and size
-of the accessible part of the buffer.\n
+of the accessible part of the buffer.
+
 Don't use this command in Lisp programs!
 \(goto-char (point-max)) is faster and avoids clobbering the mark."
   (interactive "P")
@@ -320,12 +375,14 @@ With argument, do this that many times."
 
 (defun backward-paragraph-mark (&optional arg)
   "Ensure mark is active; move backward to start of paragraph.
-With arg N, do it N times; negative arg -N means move forward N paragraphs.\n
+With arg N, do it N times; negative arg -N means move forward N paragraphs.
+
 A paragraph start is the beginning of a line which is a
 `first-line-of-paragraph' or which is ordinary text and follows a
 paragraph-separating line; except: if the first real line of a
 paragraph is preceded by a blank line, the paragraph starts at that
-blank line.\n
+blank line.
+
 See `forward-paragraph' for more information."
   (interactive "p")
   (ensure-mark)
@@ -335,10 +392,12 @@ See `forward-paragraph' for more information."
   "Ensure mark is active; move cursor vertically up ARG lines.
 If there is no character in the target line exactly over the current column,
 the cursor is positioned after the character in that line which spans this
-column, or at the end of the line if it is not long enough.\n
+column, or at the end of the line if it is not long enough.
+
 The command C-x C-n can be used to create
 a semipermanent goal column to which this command always moves.
-Then it does not try to move vertically.\n
+Then it does not try to move vertically.
+
 If you are thinking of using this in a Lisp program, consider using
 `forward-line' with a negative argument instead.  It is usually easier
 to use and more reliable (no dependence on goal column, etc.)."
@@ -367,9 +426,11 @@ When calling from a program, supply a number as argument or nil."
 
 (defun beginning-of-buffer-mark (&optional arg)
   "Ensure mark is active; move point to the beginning of the buffer.
-With arg N, put point N/10 of the way from the beginning.\n
+With arg N, put point N/10 of the way from the beginning.
+
 If the buffer is narrowed, this command uses the beginning and size
-of the accessible part of the buffer.\n
+of the accessible part of the buffer.
+
 Don't use this command in Lisp programs!
 \(goto-char (p\oint-min)) is faster and avoids clobbering the mark."
   (interactive "P")
@@ -405,12 +466,14 @@ With argument, do this that many times."
 
 (defun backward-paragraph-nomark (&optional arg)
   "Deactivate mark; move backward to start of paragraph.
-With arg N, do it N times; negative arg -N means move forward N paragraphs.\n
+With arg N, do it N times; negative arg -N means move forward N paragraphs.
+
 A paragraph start is the beginning of a line which is a
 `first-line-of-paragraph' or which is ordinary text and follows a
 paragraph-separating line; except: if the first real line of a
 paragraph is preceded by a blank line, the paragraph starts at that
-blank line.\n
+blank line.
+
 See `forward-paragraph' for more information."
   (interactive "p")
   (setq mark-active nil)
@@ -420,7 +483,8 @@ See `forward-paragraph' for more information."
   "Deactivate mark; move cursor vertically up ARG lines.
 If there is no character in the target line exactly over the current column,
 the cursor is positioned after the character in that line which spans this
-column, or at the end of the line if it is not long enough.\n
+column, or at the end of the line if it is not long enough.
+
 The command C-x C-n can be used to create
 a semipermanent goal column to which this command always moves.
 Then it does not try to move vertically."
@@ -448,9 +512,11 @@ When calling from a program, supply a number as argument or nil."
 
 (defun beginning-of-buffer-nomark (&optional arg)
   "Deactivate mark; move point to the beginning of the buffer.
-With arg N, put point N/10 of the way from the beginning.\n
+With arg N, put point N/10 of the way from the beginning.
+
 If the buffer is narrowed, this command uses the beginning and size
-of the accessible part of the buffer.\n
+of the accessible part of the buffer.
+
 Don't use this command in Lisp programs!
 \(goto-char (point-min)) is faster and avoids clobbering the mark."
   (interactive "P")
@@ -468,14 +534,47 @@ Don't use this command in Lisp programs!
 
 ;;;###autoload
 (defun pc-selection-mode ()
-  "Change mark behaviour to emulate motif, MAC or MS-Windows cut and paste style.\n
-This mode will switch on delete-selection-mode and
-transient-mark-mode.\n
-The cursor keys (and others) are bound to new functions
-which will modify the status of the mark. It will be
-possible to select regions with shift-cursorkeys. All this
-tries to emulate the look-and-feel of GUIs like motif,
-the MAC GUI or MS-Windows (sorry for the last one)."
+  "Change mark behaviour to emulate Motif, MAC or MS-Windows cut and paste style.
+
+This mode enables Delete Selection mode and Transient Mark mode.
+
+The arrow keys (and others) are bound to new functions
+which modify the status of the mark.
+
+The ordinary arrow keys disable the mark.
+The shift-arrow keys move, leaving the mark behind.
+
+C-LEFT and C-RIGHT move back or forward one word, disabling the mark.
+S-C-LEFT and S-C-RIGHT move back or forward one word, leaving the mark behind.
+
+C-DOWN and C-UP move back or forward a paragraph, disabling the mark.
+S-C-DOWN and S-C-UP move back or forward a paragraph, leaving the mark behind.
+
+HOME moves to beginning of line, disabling the mark.
+S-HOME moves to beginning of line, leaving the mark behind.
+With Ctrl or Meta, these keys move to beginning of buffer instead.
+
+END moves to end of line, disabling the mark.
+S-END moves to end of line, leaving the mark behind.
+With Ctrl or Meta, these keys move to end of buffer instead.
+
+PRIOR or PAGE-UP scrolls and disables the mark.
+S-PRIOR or S-PAGE-UP scrolls and leaves the mark behind.
+
+S-DELETE kills the region (`kill-region').
+S-INSERT yanks text from the kill ring (`yank').
+C-INSERT copies the region into the kill ring (`copy-region-as-kill').
+
+In addition, certain other PC bindings are imitated:
+
+  F6           other-window
+  DELETE       delete-char
+  C-DELETE     kill-line
+  M-DELETE     kill-word
+  C-M-DELETE   kill-sexp
+  C-BACKSPACE  backward-kill-word
+  M-BACKSPACE  undo"
+
   (interactive)
   ;;
   ;; keybindings
@@ -535,6 +634,11 @@ the MAC GUI or MS-Windows (sorry for the last one)."
   (define-key global-map [C-insert]  'copy-region-as-kill)
   (define-key global-map [S-delete]  'kill-region)
 
+  (define-key global-map [M-S-down]  'forward-line-mark)
+  (define-key global-map [M-down]    'forward-line-nomark)
+  (define-key global-map [M-S-up]    'backward-line-mark)
+  (define-key global-map [M-up]      'backward-line-nomark)
+
   ;; The following bindings are useful on Sun Type 3 keyboards
   ;; They implement the Get-Delete-Put (copy-cut-paste)
   ;; functions from sunview on the L6, L8 and L10 keys
@@ -546,7 +650,6 @@ the MAC GUI or MS-Windows (sorry for the last one)."
   ;; I modified them a little to work together with the
   ;; mark functionality I added.
 
-  (global-set-key [f1] 'help)		; KHelp         F1
   (global-set-key [f6] 'other-window)	; KNextPane     F6
   (global-set-key [delete] 'delete-char) ; KDelete       Del
   (global-set-key [C-delete] 'kill-line) ; KEraseEndLine cDel
@@ -569,6 +672,15 @@ the MAC GUI or MS-Windows (sorry for the last one)."
   ;;
   (setq transient-mark-mode t)
   (setq mark-even-if-inactive t)
-  (delete-selection-mode 1))
+  (delete-selection-mode 1)
+  (cond (pc-select-override-scroll-error
+	 (defadvice scroll-up (around scroll-to-bottom-if-eob activate)
+	   (condition-case nil
+	       ad-do-it
+	     (end-of-buffer (goto-char (point-max)))))
+	 (defadvice scroll-down (around scroll-to-top-if-bob activate)
+	   (condition-case nil
+	       ad-do-it
+	     (beginning-of-buffer (goto-char (point-min))))))))
 
 ;;; pc-select.el ends here
