@@ -1,4 +1,7 @@
-2000-10-16  Miles Bader  <miles@lsi.nec.co.jp>
+2000-10-16  Miles Bader  <miles@gnu.org>
+
+	* xfns.c (xpm_lookup_color): Make h unsigned to avoid wackiness
+	when the high bit gets set.
 
 	* editfns.c (Fconstrain_to_field): Check carefully for field
 	boundaries if either OLD_POS or NEW_POS has a non-nil field
