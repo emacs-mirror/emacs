@@ -303,7 +303,7 @@ If nil, VC itself computes this value when it is first needed.")
      (progn   ;; RCS
        (vc-file-setprop file 'vc-default-branch nil)
        (vc-file-setprop file 'vc-head-version nil)
-       (vc-file-setprop file 'vc-master-workfile--version nil)
+       (vc-file-setprop file 'vc-master-workfile-version nil)
        (vc-file-setprop file 'vc-master-locks nil))
      (progn
        (vc-file-setprop file 'vc-cvs-status nil))))
@@ -345,8 +345,7 @@ If nil, VC itself computes this value when it is first needed.")
 	       (kill-buffer (get-buffer "*vc-info*")))
 	   (string= tip-version workfile-version))))
      ;; CVS
-     (or (string= (vc-workfile-version file) "0") ;; added but not committed.
-	 (string= (vc-workfile-version file) (vc-latest-version file)))))
+     t))
 
 (defun vc-registration-error (file)
   (if file
@@ -572,7 +571,7 @@ to an optional list of FLAGS."
   ;;; If comment is specified, it will be used as an admin or checkin comment.
   (let ((vc-file (vc-name file))
 	(vc-type (vc-backend file))
-	owner version)
+	owner version buffer)
     (cond
 
      ;; if there is no master file corresponding, create one
@@ -588,14 +587,23 @@ to an optional list of FLAGS."
      ((and (eq vc-type 'CVS)
 	   (or (eq (vc-cvs-status file) 'needs-checkout)
 	       (eq (vc-cvs-status file) 'needs-merge)))
-      (vc-buffer-sync)
-      (if (yes-or-no-p (format "%s is not up-to-date.  Merge in changes now? "
-			       (buffer-name)))
+      (if (or vc-dired-mode
+	      (yes-or-no-p 
+	       (format "%s is not up-to-date.  Merge in changes now? "
+		       (buffer-name))))
 	  (progn
-	    (if (and (buffer-modified-p)
+	    (if vc-dired-mode
+		(and (setq buffer (get-file-buffer file))
+		     (buffer-modified-p buffer)
+		     (switch-to-buffer-other-window buffer)
+		     (vc-buffer-sync t))
+	      (setq buffer (current-buffer))
+	      (vc-buffer-sync t))
+	    (if (and buffer (buffer-modified-p buffer)
 		     (not (yes-or-no-p 
-			   "Buffer %s modified; merge file on disc anyhow? " 
-			   (buffer-name))))
+			   (format 
+			    "Buffer %s modified; merge file on disc anyhow? " 
+			    (buffer-name buffer)))))
 		(error "Merge aborted"))
 	    (if (not (zerop (vc-backend-merge-news file)))
 		;; Overlaps detected - what now?  Should use some
@@ -603,7 +611,8 @@ to an optional list of FLAGS."
 		;; emerge, but for now, simply warn the user with a
 		;; message.
 		(message "Conflicts detected!"))
-	    (vc-resynch-window file t (not (buffer-modified-p))))
+	    (and buffer
+		 (vc-resynch-buffer file t (not (buffer-modified-p buffer)))))
 	(error "%s needs update" (buffer-name))))
 
      ;; if there is no lock on the file, assert one and get it
@@ -689,12 +698,17 @@ to an optional list of FLAGS."
   ;; Do a vc-next-action-on-file on all the marked files, possibly 
   ;; passing on the log comment we've just entered.
   (let ((configuration (current-window-configuration))
-	(dired-buffer (current-buffer)))
+	(dired-buffer (current-buffer))
+	(dired-dir default-directory))
     (dired-map-over-marks
      (let ((file (dired-get-filename)) p)
        (message "Processing %s..." file)
+       ;; Adjust the default directory so that checkouts
+       ;; go to the right place.
+       (setq default-directory (file-name-directory file))
        (vc-next-action-on-file file nil comment)
        (set-buffer dired-buffer)
+       (setq default-directory dired-dir)
        (vc-dired-update-line file)
        (set-window-configuration configuration)
        (message "Processing %s...done" file))
@@ -745,13 +759,12 @@ merge in the changes into your working copy."
   (catch 'nogo
     (if vc-dired-mode
 	(let ((files (dired-get-marked-files)))
-	  (if (= (length files) 1)
-	      (find-file-other-window (car files))
-	    (if (string= "" 
-                  (mapconcat
+	  (if (string= "" 
+		 (mapconcat
 	             (function (lambda (f)
 			 (if (eq (vc-backend f) 'CVS)
-			     (if (eq (vc-cvs-status f) 'locally-modified)
+			     (if (or (eq (vc-cvs-status f) 'locally-modified)
+				     (eq (vc-cvs-status f) 'locally-added))
 				 "@" "")
 			   (if (vc-locking-user f) "@" ""))))
 		     files ""))
@@ -759,7 +772,7 @@ merge in the changes into your working copy."
 	      (vc-start-entry nil nil nil
 			      "Enter a change comment for the marked files."
 			      'vc-next-action-dired))
-	    (throw 'nogo nil))))
+	    (throw 'nogo nil)))
     (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
     (if buffer-file-name
@@ -1284,10 +1297,21 @@ on a buffer attached to the file named in the current Dired buffer line."
 
 (defun vc-dired-update-line (file)
   ;; Update the vc-dired listing line of file -- it is assumed 
-  ;; that point is already on this line.
-  (dired-do-redisplay 1)
-  (dired-previous-line 1)
+  ;; that point is already on this line.  Don't use dired-do-redisplay
+  ;; for this, because it cannot handle the way vc-dired deals with 
+  ;; subdirectories.
   (beginning-of-line)
+  (forward-char 2)
+  (let ((start (point)))
+    (forward-line 1)
+    (beginning-of-line)
+    (delete-region start (point))
+    (insert-directory file dired-listing-switches)
+    (forward-line -1)
+    (end-of-line)
+    (delete-char (- (length file)))
+    (insert (substring file (length (expand-file-name default-directory))))
+    (goto-char start))
   (vc-dired-reformat-line (vc-dired-state-info file)))
 
 ;;; Note in Emacs 18 the following defun gets overridden
@@ -1332,22 +1356,20 @@ in all these directories.  With a prefix argument, it lists all files."
 	   (cons dir (nreverse filelist))
 	   dired-listing-switches)
 	  (setq dired-buf (current-buffer))
-	  (setq nonempty (not (eq 2 (count-lines (point-min) 
-						 (point-max))))))))
+	  (setq nonempty (not (eq 0 (length filelist)))))))
+    (switch-to-buffer dired-buf)
+    (vc-dired-mode)
+    ;; Make a few modifications to the header
+    (setq buffer-read-only nil)
+    (goto-char (point-min))
+    (forward-line 1)	      ;; Skip header line
+    (let ((start (point)))    ;; Erase (but don't remove) the 
+      (end-of-line)           ;; "wildcard" line.
+      (delete-region start (point)))
+    (beginning-of-line)
     (if nonempty
 	(progn
-	  (switch-to-buffer dired-buf)
-	  (vc-dired-mode)
-	  ;; Make a few aesthetical modifications to the header
-	  (setq buffer-read-only nil)
-	  (goto-char (point-min))
-	  (insert "\n")             ;; Insert a blank line
-	  (forward-line 1)	    ;; Skip header line
-	  (let ((start (point)))    ;; Erase (but don't remove) the 
-	    (end-of-line)           ;; "wildcard" line.
-	    (delete-region start (point)))
-	  (beginning-of-line)
-	  ;; Now plug the version information into the individual lines
+	  ;; Plug the version information into the individual lines
 	  (mapcar
 	   (function
 	    (lambda (x)
@@ -1357,9 +1379,11 @@ in all these directories.  With a prefix argument, it lists all files."
 	   (nreverse statelist))
 	  (setq buffer-read-only t)
 	  (goto-char (point-min))
-	  (dired-next-line 3)
+	  (dired-next-line 2)
 	  )
-      (kill-buffer dired-buf)
+      (dired-next-line 1) 
+      (insert "  ")
+      (setq buffer-read-only t)
       (message "No files are currently %s under %s"
 	       (if verbose "registered" "locked") default-directory))
     ))
@@ -1883,7 +1907,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 		    (setq failed nil))
 		(and failed (file-exists-p filename) (delete-file filename))))
 	  ;; default for verbose checkout: clear the sticky tag
-	  ;; so that the actual update will go to the head of the trunk
+	  ;; so that the actual update will get the head of the trunk
 	  (and rev (string= rev "")
 	       (vc-do-command nil 0 "cvs" file 'WORKFILE "update" "-A"))
 	  ;; If a revision was specified, check that out.
