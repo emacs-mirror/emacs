@@ -1,3 +1,8 @@
+2001-03-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* bytecode.c (Fbyte_code) <Btemp_output_buffer_setup>: Check the arg is
+	a string before extracting its data.
+
 2001-03-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (Frecenter): Rewrite code handling negative values
@@ -137,8 +142,7 @@
 	NULL after destroying it, otherwise XTread_socket can access a
 	destroyed widget when input is unblocked.
 
-	* xfns.c (x_set_foreground_color): Set the background of the
-	cursor GC.
+	* xfns.c (x_set_foreground_color): Set the background of the cursor GC.
 	
 	* xfns.c (x_set_font): Handle case of x_new_fontset returning the
 	same name as before, although there was a change in fontsets.
