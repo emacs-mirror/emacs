@@ -530,11 +530,11 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 ;; disk.  DIRNAME should be the directory name of that directory.
 (defun dired-directory-changed-p (dirname)
   (not (let ((attributes (file-attributes dirname))
-		    (modtime (visited-file-modtime)))
-		(or (eq modtime 0)
-		    (not (eq (car attributes) t))
-		    (and (= (car (nth 5 attributes)) (car modtime))
-			 (= (nth 1 (nth 5 attributes)) (cdr modtime)))))))
+	     (modtime (visited-file-modtime)))
+	 (or (eq modtime 0)
+	     (not (eq (car attributes) t))
+	     (and (= (car (nth 5 attributes)) (car modtime))
+		  (= (nth 1 (nth 5 attributes)) (cdr modtime)))))))
 
 (defun dired-buffer-stale-p (&optional noconfirm)
   "Return non-nil if current dired buffer needs updating.
