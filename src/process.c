@@ -2645,6 +2645,9 @@ send_process (proc, buf, len, object)
   /* Use volatile to protect variables from being clobbered by longjmp.  */
   int rv;
   volatile unsigned char *procname = XSTRING (XPROCESS (proc)->name)->data;
+  struct gcpro gcpro1;
+
+  GCPRO1 (object);
 
 #ifdef VMS
   struct Lisp_Process *p = XPROCESS (proc);
@@ -2783,6 +2786,8 @@ send_process (proc, buf, len, object)
       error ("SIGPIPE raised on process %s; closed it", procname);
 #endif
     }
+
+  UNGCPRO;
 }
 
 DEFUN ("process-send-region", Fprocess_send_region, Sprocess_send_region,
