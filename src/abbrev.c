@@ -295,9 +295,7 @@ Returns the abbrev symbol, if expansion took place.  */)
 
       FETCH_CHAR_ADVANCE (c, idx, idx_byte);
       if (! multibyte)
-	{
-	  MAKE_CHAR_MULTIBYTE (c);
-	}
+	MAKE_CHAR_MULTIBYTE (c);
 
       if (UPPERCASEP (c))
 	c = DOWNCASE (c), uccount++;
@@ -384,7 +382,7 @@ Returns the abbrev symbol, if expansion took place.  */)
 
 	  /* Find the initial.  */
 	  while (pos < PT_BYTE
-		 && SYNTAX (*BUF_BYTE_ADDRESS (current_buffer, pos)) != Sword)
+		 && SYNTAX (FETCH_CHAR_AS_MULTIBYTE (pos)) != Sword)
 	    pos++;
 
 	  /* Change just that.  */
