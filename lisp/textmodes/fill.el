@@ -71,10 +71,10 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 	    (if (eolp) (forward-line 1))
 	    ;; If paragraph has only one line, don't assume
 	    ;; that additional lines would have the same starting
-	    ;; decoration.  Instead, assume they would have white space
-	    ;; reaching to the same column.
-	    (re-search-forward adaptive-fill-regexp)
-	    (setq fill-prefix (make-string (current-column) ?\ )))))
+	    ;; decoration.  Assume no indentation.
+;;	    (re-search-forward adaptive-fill-regexp)
+;;	    (setq fill-prefix (make-string (current-column) ?\ ))
+	    )))
 
     (save-restriction
       (narrow-to-region from to)
