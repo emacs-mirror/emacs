@@ -183,7 +183,7 @@ Both tables are indexed by the position code of Vietnamese characters.")
 		       (;; Vietnamese upper
 			(read r0)
 			(r0 -= 128)
-			(write-read-repeat r0 ,(cdr viet-viscii-encode-table)))
+			(write-read-repeat r0 ,(cdr viet-vscii-encode-table)))
 		     ;; not Vietnamese
 		     (write-read-repeat r0))))))))
   "CCL program to encode VSCII-1.")
