@@ -1145,7 +1145,7 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
 ;;; Functions for finding the file name in a dired buffer line.
 
 (defvar dired-move-to-filename-regexp
-  "\\(Jan\\|Feb\\|Mar\\|Apr\\|May\\|Jun\\|Jul\\|Aug\\|Sep\\|Oct\\|Nov\\|Dec\\)[ ]+[0-9]+"
+  "\\(Jan\\|Feb\\|Mar\\|Apr\\|May\\|Jun\\|Jul\\|Aug\\|Sep\\|Oct\\|Nov\\|Dec\\)[ ]+[0-9]+ [ 0-9][0-9][:0-9][0-9][ 0-9] "
   "Regular expression to match a month abbreviation followed by a number.")
 
 ;; Move to first char of filename on this line.
@@ -1154,13 +1154,10 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
   ;; This is the UNIX version.
   (or eol (setq eol (progn (end-of-line) (point))))
   (beginning-of-line)
-  (or (if (re-search-forward dired-move-to-filename-regexp eol t)
-	  (progn
-	    (goto-char (match-end 0))
-	    (if (= 7 (skip-chars-forward " 0-9:" (+ (point) 7)))
-		(point))))
-      (if raise-error
-	  (error "No file on this line"))))
+  (if (re-search-forward dired-move-to-filename-regexp eol t)
+      (goto-char (match-end 0))
+    (if raise-error
+	(error "No file on this line"))))
 
 (defun dired-move-to-end-of-filename (&optional no-error)
   ;; Assumes point is at beginning of filename,
