@@ -32,6 +32,8 @@ invalid pointer from string_free_list.
 
 ** Clean up flymake.el to follow Emacs Lisp conventions.
 
+** Fix up url-ldap.el.
+
 * BUGS
 
 ** Mailabbrev should quote addresses to correspond to RFC 822.
