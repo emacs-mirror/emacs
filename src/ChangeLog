@@ -1,3 +1,9 @@
+2002-11-29  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (start_display): Check more intelligently for
+	whether the line is continued.
+	(move_it_vertically_backward): Clear it->continuation_lines_width.
+
 2002-11-28  Dave Love  <fx@gnu.org>
 
 	* s/amdahl.h, s/unipl5-0.h, m/sgi3000.h, s/3700.h, s/alliant-2800.h:
