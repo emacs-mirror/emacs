@@ -1,3 +1,15 @@
+2004-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* toolbar/alias.pbm toolbar/close.pbm toolbar/copy.pbm toolbar/cut.pbm
+	* toolbar/help.pbm toolbar/home.pbm toolbar/index.pbm
+	* toolbar/jump_to.pbm toolbar/left_arrow.pbm toolbar/new.pbm
+	* toolbar/open.pbm toolbar/paste.pbm toolbar/preferences.pbm
+	* toolbar/print.pbm toolbar/right_arrow.pbm toolbar/save.pbm
+	* toolbar/saveas.pbm toolbar/search.pbm toolbar/spell.pbm
+	* toolbar/undo.pbm toolbar/up_arrow.pbm: New conversions from xpm files.
+
+	* toolbar/README: New file.
+
 2004-06-06  Richard M. Stallman  <rms@gnu.org>
 
 	* isearch.el (isearch-mode-map): Undo previous change.
