@@ -1,5 +1,5 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1997, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -54,7 +54,6 @@ Lisp_Object Qpoint_left;
 Lisp_Object Qpoint_entered;
 Lisp_Object Qcategory;
 Lisp_Object Qlocal_map;
-Lisp_Object Qkeymap;
 
 /* Visual properties text (including strings) may have.  */
 Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
@@ -1870,8 +1869,6 @@ rear-nonsticky properties of the character overrides NONSTICKINESS.");
   Qcategory = intern ("category");
   staticpro (&Qlocal_map);
   Qlocal_map = intern ("local-map");
-  staticpro (&Qkeymap);
-  Qkeymap = intern ("keymap");
   staticpro (&Qfront_sticky);
   Qfront_sticky = intern ("front-sticky");
   staticpro (&Qrear_nonsticky);
