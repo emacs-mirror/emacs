@@ -2333,24 +2333,14 @@ Keywords are recognized and not considered identifiers."
 	(setq savepos (point)
 	      step-type step-tmp))
 
-      ;; Skip over any comments that stands between the statement and
-      ;; boi.  If stop-at-boi-only is nil and we're not at boi after
-      ;; this, then we're done.
-      (while (and (/= (setq savepos (point)) boi)
-		  (c-forward-comment -1))
-	(setq at-comment t
-	      boi (c-point 'boi)))
-      (goto-char savepos)
-
-      (when (or stop-at-boi-only
-		(= (point) boi))
-	(catch 'done
+      (catch 'done
 	  ;; Loop if we have to back out of the containing block.
 	  (while
 	    (progn
 	      ;; Loop if we have to back up another statement.
 	      (while
 		  (progn
+
 		    ;; Always start by skipping over any comments that
 		    ;; stands between the statement and boi.
 		    (while (and (/= (setq savepos (point)) boi)
@@ -2358,26 +2348,47 @@ Keywords are recognized and not considered identifiers."
 		      (setq at-comment t
 			    boi (c-point 'boi)))
 		    (goto-char savepos)
-		    (and (or at-comment
-			     (eq step-type 'label)
-			     (/= savepos boi))
-			 (progn
-			   ;; Current position not good enough; skip
-			   ;; backward another statement.
-			   (setq stop-at-boi-only t
-				 step-type (c-beginning-of-statement-1
-					    containing-sexp))
-			   ;; Record this a substatement if we skipped
-			   ;; up one level, but not if we're still on
-			   ;; the same line.  This so e.g. a sequence
-			   ;; of "else if" clauses won't indent deeper
-			   ;; and deeper.
-			   (when (and (eq step-type 'up)
-				      (< (point) boi))
-			     (setcdr syms-tail (list 'substatement))
-			     (setq syms-tail (cdr syms-tail)))
-			   (setq boi (c-point 'boi))
-			   (/= (point) savepos))))
+
+		    (and
+		     (or at-comment
+			 (eq step-type 'label)
+			 (/= savepos boi))
+
+		     (progn
+		       ;; Current position might not be good enough;
+		       ;; skip backward another statement.
+		       (setq step-type (c-beginning-of-statement-1
+					containing-sexp))
+
+		       (if (and (not stop-at-boi-only)
+				(/= savepos boi)
+				(memq step-type '(up previous)))
+			   ;; If stop-at-boi-only is nil, we shouldn't
+			   ;; back up over previous or containing
+			   ;; statements to try to reach boi, so go
+			   ;; back to the last position and exit.
+			   (progn
+			     (goto-char savepos)
+			     nil)
+			 (if (and (not stop-at-boi-only)
+				  (memq step-type '(up previous beginning)))
+			     ;; If we've moved into another statement
+			     ;; then we should no longer try to stop
+			     ;; after boi.
+			     (setq stop-at-boi-only t))
+
+			 ;; Record this a substatement if we skipped up
+			 ;; one level, but not if we're still on the
+			 ;; same line.  This so e.g. a sequence of "else
+			 ;; if" clauses won't indent deeper and deeper.
+			 (when (and (eq step-type 'up)
+				    (< (point) boi))
+			   (setcdr syms-tail (list 'substatement))
+			   (setq syms-tail (cdr syms-tail)))
+
+			 (setq boi (c-point 'boi))
+			 (/= (point) savepos)))))
+
 		(setq savepos (point)
 		      at-comment nil))
 	      (setq at-comment nil)
@@ -2389,10 +2400,8 @@ Keywords are recognized and not considered identifiers."
 						       paren-state)
 		      containing-sexp (c-most-enclosing-brace paren-state))
 
-		(when (and (prog1
-			       (eq prev-paren ?{)
-			     (setq prev-paren (char-after)))
-			   (eq prev-paren ?\())
+
+		(when (eq (setq prev-paren (char-after)) ?\()
 		  (c-backward-syntactic-ws containing-sexp)
 		  (when (c-on-identifier)
 		    ;; Arrived at a function arglist start.  Exit with
@@ -2433,9 +2442,11 @@ Keywords are recognized and not considered identifiers."
 			;; we're at now is found to be good enough in
 			;; the loop above.
 			(setq step-type nil))
-		    (setq stop-at-boi-only t
-			  boi (c-point 'boi)))))
-	      ))))
+		    (if (and (not stop-at-boi-only)
+			     (memq step-type '(up previous beginning)))
+			(setq stop-at-boi-only t))
+		    (setq boi (c-point 'boi)))))
+	      )))
 
       (while syms
 	(c-add-syntax (car syms) (point))
