@@ -196,14 +196,14 @@ The following key sequence may cause multilingual text insertion."
    ((= last-command-char ?\217)		; SS3 (Single Shift 3)
     (aset encoded-kbd-iso2022-invocations 2 3))
    (t
-  (let* ((charset (aref encoded-kbd-iso2022-designations
-			(or (aref encoded-kbd-iso2022-invocations 2)
-			    (aref encoded-kbd-iso2022-invocations 1))))
-	 (char (if (= (charset-dimension charset) 1)
-		   (make-char charset last-command-char)
+    (let* ((charset (aref encoded-kbd-iso2022-designations
+			  (or (aref encoded-kbd-iso2022-invocations 2)
+			      (aref encoded-kbd-iso2022-invocations 1))))
+	   (char (if (= (charset-dimension charset) 1)
+		     (make-char charset last-command-char)
 		   (make-char charset last-command-char
 			      (read-char-exclusive)))))
-    (aset encoded-kbd-iso2022-invocations 2 nil)
+      (aset encoded-kbd-iso2022-invocations 2 nil)
       (setq unread-command-events (cons char unread-command-events))))))
 
 (defun encoded-kbd-self-insert-sjis ()
