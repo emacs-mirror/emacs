@@ -314,13 +314,14 @@ FONTLIST.
 
 If a font specifid for ASCII supports the other charsets (see the
 variable `x-font-name-charset-alist'), add that information to FONTLIST."
-  (let ((ascii-font (cdr (assq 'ascii fontlist))))
-
-    ;; If font for ASCII is not specified, add it.
-    (unless ascii-font
+  (let* ((slot (assq 'ascii fontlist))
+	 (ascii-font (cdr slot)))
+    (if ascii-font
+	(setcdr slot (setq ascii-font (x-resolve-font-name ascii-font)))
+      ;; If font for ASCII is not specified, add it.
       (aset xlfd-fields xlfd-regexp-registry-subnum "iso8859")
       (aset xlfd-fields xlfd-regexp-encoding-subnum "1")
-      (setq ascii-font (x-compose-font-name xlfd-fields))
+      (setq ascii-font (x-resolve-font-name (x-compose-font-name xlfd-fields)))
       (setq fontlist (cons (cons 'ascii ascii-font) fontlist)))
 
     ;; If the font for ASCII also supports the other charsets, and
@@ -428,6 +429,7 @@ It returns a name of the created fontset."
 	(if (charsetp charset)
 	    (setq fontlist (cons (cons charset (match-string 2 fontset-spec))
 				 fontlist))))
+      (setq ascii-font (cdr (assq 'ascii fontlist)))
 
       ;; Complement FONTLIST.
       (setq fontlist (x-complement-fontset-spec xlfd-fields fontlist))
@@ -443,7 +445,8 @@ It returns a name of the created fontset."
 		      (cons (cons name alias) fontset-alias-alist)))))
 
       ;; Define the ASCII font name alias.
-      (setq ascii-font (cdr (assq 'ascii fontlist)))
+      (or ascii-font
+	  (setq ascii-font (cdr (assq 'ascii fontlist))))
       (or (rassoc ascii-font fontset-alias-alist)
 	  (setq fontset-alias-alist
 		(cons (cons name ascii-font)
