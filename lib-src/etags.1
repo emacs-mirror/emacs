@@ -16,7 +16,7 @@ etags, ctags \- generate tag file for Emacs, vi
 .if n .br
 .B [\|\-o \fItagfile\fP\|] [\|\-r \fIregexp\fP\|]
 .br
-.B [\|\-\-append\|] [\|\-\-c++\|] [\|\-\-no\-defines\|]
+.B [\|\-\-append\|] [\|\-\-no\-defines\|]
 .B [\|\-\-no\-globals\|] [\|\-\-include=\fIfile\fP\|]
 .B [\|\-\-ignore\-indentation\|] [\|\-\-language=\fIlanguage\fP\|]
 .B [\|\-\-members\|] [\|\-\-output=\fItagfile\fP\|]
@@ -29,7 +29,7 @@ etags, ctags \- generate tag file for Emacs, vi
 .if n .br
 .B [\|\-o \fItagfile\fP\|] [\|\-r \fIregexp\fP\|]
 .br
-.B [\|\-\-append\|] [\|\-\-backward\-search\|] [\|\-\-c++\|]
+.B [\|\-\-append\|] [\|\-\-backward\-search\|]
 .B [\|\-\-cxref\|] [\|\-\-defines\|] [\|\-\-forward\-search\|]
 .B [\|\-\-globals\|] [\|\-\-ignore\-indentation\|]
 .B [\|\-\-language=\fIlanguage\fP\|] [\|\-\-members\|]
@@ -80,11 +80,6 @@ the delimiter `\|\fB?\fP\|', to search \fIbackwards\fP through files.
 The default is to use the delimiter `\|\fB/\fP\|', to search \fIforwards\fP
 through files.
 Only \fBctags\fP accepts this option.
-.TP
-.B \-C, \-\-c++
-Treat files with `\|.c\|' and `\|.h\|' extensions as C++ code, not C
-code.  Files with `\|.C\|', `\|.H\|', `\|.cxx\|', `\|.hxx\|', or
-`\|.cc\|' extensions are always assumed to be C++ code.
 .TP
 .B \-\-declarations
 In C and derived languages, create tags for function declarations,

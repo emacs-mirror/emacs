@@ -1,10 +1,33 @@
+2001-01-28  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c: Be capable to parse nested struct-like structures.
+	(structdef, structtag): Struct state machine revisited.
+	(struct tok): Revisited.
+	(cstack, nestlev, instruct): New struct and macros.
+	(pushclass_above, popclass_above, write_classname): New functions
+	for dealing with nested class names, inspired by Mykola Dzyuba.
+	(consider_token, make_C_tag, C_entries): Many changes for dealing
+	with arbitrarily nested structures.
+	(etags_getcwd): #if MSDOS, not #ifdef MSDOS!
+	(C_entries): Consider templates in C++.
+	(sym_type): New constant st_C_class for detecting "class" also in
+	C mode.
+	(C_AUTO): New macro for automatic detection of C++.
+	(consider_token): Automatic set C++ mode.
+	(C_entries): New security check for yacc.
+	(print_language_names, print_help): Mention the autodetect
+	feature, do not show help for the -C option, now mostly	useless.
+	(C_entries): Tag C++ forward declarations if --declarations.
+	(C_entries): Don't be fooled by things like XDEFUN.
+	(consider_token): Discard asm pseudo function.
+
 2001-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* etags.c: Add a coding: tag.
 
 2001-01-26  Gerd Moellmann  <gerd@gnu.org>
 
-	* ebrowse.c (matching_regexp_buffer, matching_regexp_end_buf): 
+	* ebrowse.c (matching_regexp_buffer, matching_regexp_end_buf):
 	New variables.
 	(matching_regexp): Use them instead of static variables in
 	function scope.

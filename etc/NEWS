@@ -1460,6 +1460,12 @@ declarations when given the --declarations option.
 *** In C++, tags are created for "operator".  The tags have the form
 "operator+", without spaces between the keyword and the operator.
 
+*** You shouldn't generally need any more the -C or -c++ option: etags
+automatically detects a C++ file when it meets the `class' keyword.
+
+*** Etags now is able to delve at arbitrary deeps into nested structures in
+C-like languages.  Previously, it was limited to one or two brace levels.
+
 *** New language Ada: tags are functions, procedures, packages, tasks, and
 types.
 
