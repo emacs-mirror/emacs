@@ -1,7 +1,17 @@
+2002-05-22  Dave Love  <fx@gnu.org>
+
+	* international/code-pages.el: Removed.
+
 2002-05-22  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/fontset.el: Add setting for unicode font at the
 	end of the default fontset.
+
+2002-05-21  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (adobe-standard-encoding, symbol):
+	Adjust :code-space.
+	(ibm850): Add :ascii-compatible-p.
 
 2002-05-21  Kenichi Handa  <handa@etl.go.jp>
 
