@@ -6667,10 +6667,10 @@ tty_read_avail_input (struct display *display,
                       struct input_event *buf,
                       int numchars, int expected)
 {
-  /* Using KBD_BUFFER_SIZE - 1 here avoids reading more than
-     the kbd_buffer can really hold.  That may prevent loss
-     of characters on some systems when input is stuffed at us.  */
-  unsigned char cbuf[KBD_BUFFER_SIZE - 1];
+  /* Using numchars - 1 here avoids reading more than the buf can
+     really hold.  That may prevent loss of characters on some systems
+     when input is stuffed at us.  */
+  unsigned char cbuf[numchars - 1];
   int n_to_read, i;
   struct tty_display_info *tty = display->display_info.tty;
   int nread = 0;
