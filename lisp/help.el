@@ -1056,6 +1056,14 @@ Must be previously-defined."
 The words preceding the quoted symbol can be used in doc strings to
 distinguish references to variables, functions and symbols.")
 
+(defconst help-xref-mule-regexp nil
+  "Regexp matching doc string references to multilingualization related keywords.
+
+It is usually nil, and temporarily bound to a proper regexp while
+executing multilingualiation related help commands
+(e.g. describe-coding-system).")
+
+
 (defconst help-xref-info-regexp
   (purecopy "\\<[Ii]nfo[ \t\n]+node[ \t\n]+`\\([^']+\\)'")
   "Regexp matching doc string references to an Info node.")
@@ -1084,6 +1092,11 @@ with `help-follow'.  Cross-references have the canonical form `...'
 and the type of reference may be disambiguated by the preceding
 word(s) used in `help-xref-symbol-regexp'.
 
+If the variable `help-xref-mule-regexp' is non-nil, find also
+cross-reference information related to multiligualization issues
+\(e.g. coding-system).  This variable is also used to disambiguate the
+type of reference as the same way as `help-xref-symbol-regexp'.
+
 A special reference `back' is made to return back through a stack of
 help buffers.  Variable `help-back-label' specifies the text for
 that."
@@ -1111,6 +1124,33 @@ that."
 			(setq data (concat "(emacs)" data))))
 		    (help-xref-button 1 #'info data
 				      "mouse-2, RET: read this Info node"))))
+	      ;; Mule related keywords.  Do this before trying
+	      ;; `help-xref-symbol-regexp' because some of Mule
+	      ;; keywords have variable or function definitions.
+	      (if help-xref-mule-regexp
+		  (save-excursion
+		    (while (re-search-forward help-xref-mule-regexp nil t)
+		      (let* ((data (match-string 5))
+			     (sym (intern-soft data)))
+			(cond
+			 ((match-string 3) ; coding system
+			  (and (coding-system-p sym)
+			       (help-xref-button
+				5 #'describe-coding-system sym
+				"mouse-2, RET: describe this coding system")))
+			 ((match-string 4) ; input method
+			  (and (assoc data input-method-alist)
+			       (help-xref-button
+				5 #'describe-input-method data
+				"mouse-2, RET: describe this input method")))
+			 ((coding-system-p sym)
+			  (help-xref-button
+			   5 #'describe-coding-system sym
+			   "mouse-2, RET: describe this coding system"))
+			 ((assoc data input-method-alist)
+			  (help-xref-button
+			   5 #'describe-input-method data
+			   "mouse-2, RET: describe this input method")))))))
               ;; Quoted symbols
               (save-excursion
                 (while (re-search-forward help-xref-symbol-regexp nil t)
