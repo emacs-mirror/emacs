@@ -32,6 +32,7 @@
   (set-language-environment-coding-systems "Japanese")
   (if (eq system-type 'ms-dos)
       (prefer-coding-system 'japanese-shift-jis))
+  (setq default-file-name-coding-system 'japanese-iso-8bit)
   (setq default-input-method "japanese"))
 
 (defconst japanese-kana-table
