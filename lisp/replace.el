@@ -967,7 +967,10 @@ just as `query-replace' does.  Instead, write a simple loop like this:
 
 which will run faster and probably do exactly what you want.  Please
 see the documentation of `replace-match' to find out how to simulate
-`case-replace'."
+`case-replace'.
+
+This function returns nil if and only if there were no matches to
+make, or the user didn't cancel the call."
   (or map (setq map query-replace-map))
   (and query-flag minibuffer-auto-raise
        (raise-frame (window-frame (minibuffer-window))))
@@ -1123,12 +1126,11 @@ see the documentation of `replace-match' to find out how to simulate
 			 (setq done t))
 			((eq def 'backup)
 			 (if stack
-			     (let ((elt (car stack)))
+			     (let ((elt (pop stack)))
 			       (goto-char (car elt))
 			       (setq replaced (eq t (cdr elt)))
 			       (or replaced
-				   (set-match-data (cdr elt)))
-			       (setq stack (cdr stack)))
+				   (set-match-data (cdr elt))))
 			   (message "No previous match")
 			   (ding 'no-terminate)
 			   (sit-for 1)))
