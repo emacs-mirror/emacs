@@ -297,7 +297,8 @@ WIDTH is a number of columns the composition occupies on the screen."
 
 
 ;; A char-table of functions to call for compositions.
-;;;###autoload(put 'composition-function-table 'char-table-extra-slots 0)
+;;;###autoload
+(put 'composition-function-table 'char-table-extra-slots 0)
 
 ;;;###autoload
 (defvar composition-function-table
