@@ -1,6 +1,6 @@
 ;;; ls-lisp.el --- emulate insert-directory completely in Emacs Lisp
 
-;; Copyright (C) 1992, 1994 by Sebastian Kremer <sk@thp.uni-koeln.de>
+;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Maintainer: FSF
