@@ -63,10 +63,6 @@
 ;;                       | nil
 ;;    string     ::= "..."
 ;;
-;; Since XML is case insensitive, tag_name is always converted to lower-cases.
-;; tag_name is then converted to a symbol (this is not a string, so that the
-;; list takes less space in memory and is faster to traverse).
-;;
 ;; Some macros are provided to ease the parsing of this list
 
 ;;; Code:
@@ -209,7 +205,7 @@ Returns one of:
    ;;  opening tag
    ((looking-at "<\\([^/> \t]+\\)")
     (let* ((node-name (match-string 1))
-	   (children (list (intern (downcase node-name))))
+	   (children (list (intern node-name)))
 	   pos)
       (goto-char (match-end 1))
 
@@ -274,7 +270,7 @@ Leaves the point on the first non-blank character after the tag."
 	name)
     (skip-chars-forward " \t\n")
     (while (looking-at "\\([a-zA-Z_:][a-zA-Z0-9.-_:]*\\)[ \t\n]*=[ \t\n]*")
-      (set 'name (intern (downcase (match-string 1))))
+      (set 'name (intern (match-string 1)))
       (goto-char (match-end 0))
 
       ;; Do we have a string between quotes (or double-quotes),
@@ -355,7 +351,7 @@ The DTD must end before the position END in the current buffer."
        ((looking-at
 	 "[\t \n]*<!ELEMENT[ \t\n]+\\([a-zA-Z0-9.%;]+\\)[ \t\n]+\\([^>]+\\)>")
 
-	(setq element (intern (downcase (match-string-no-properties 1)))
+	(setq element (intern (match-string-no-properties 1))
 	      type    (match-string-no-properties 2))
 	(set 'end-pos (match-end 0))
 	
