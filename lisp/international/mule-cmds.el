@@ -985,7 +985,9 @@ see `language-info-alist'."
 	(progn
 	  (setq key-slot (list key))
 	  (setcdr lang-slot (cons key-slot (cdr lang-slot)))))
-    (setcdr key-slot (purecopy info))))
+    (setcdr key-slot (purecopy info))
+    (put 'current-language-environment 'custom-type
+	 (current-language-environment-custom-type))))
 
 (defun set-language-info-alist (lang-env alist &optional parents)
   "Store ALIST as the definition of language environment LANG-ENV.
@@ -1485,6 +1487,13 @@ This hook is mainly used for canceling the effect of
 	  (customize-mark-as-set 'current-language-environment))
       (error "Bogus calling sequence"))))
 
+(defun current-language-environment-custom-type ()
+  "Return a custom type for `current-language-environment'.
+This is based on `language-info-alist'."
+  (cons 'choice (mapcar (lambda (lang)
+			  (list 'const (car lang)))
+			language-info-alist)))
+
 (defcustom current-language-environment "English"
   "The last language environment specified with `set-language-environment'.
 This variable should be set only with \\[customize], which is equivalent
@@ -1498,9 +1507,8 @@ to using the function `set-language-environment'."
 			  current-language-environment)
 			language-info-alist))
 	     "English"))
-  :type (cons 'choice (mapcar (lambda (lang)
-				(list 'const (car lang)))
-			      language-info-alist))
+  ;; a better custom type will be set with `set-language-info'.
+  :type 'string
   :initialize 'custom-initialize-default
   :group 'mule)
 
