@@ -197,6 +197,7 @@ static Lisp_Object
 region_limit (beginningp)
      int beginningp;
 {
+  extern Lisp_Object Vmark_even_if_inactive; /* Defined in callint.c. */
   register Lisp_Object m;
   if (!NILP (Vtransient_mark_mode) && NILP (Vmark_even_if_inactive)
       && NILP (current_buffer->mark_active))
