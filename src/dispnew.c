@@ -171,7 +171,7 @@ static int update_window P_ ((struct window *, int));
 static int update_frame_1 P_ ((struct frame *, int, int));
 static void set_window_cursor_after_update P_ ((struct window *));
 static int row_equal_p P_ ((struct window *, struct glyph_row *,
-			    struct glyph_row *));
+			    struct glyph_row *, int));
 static void adjust_frame_glyphs_for_window_redisplay P_ ((struct frame *));
 static void adjust_frame_glyphs_for_frame_redisplay P_ ((struct frame *));
 static void reverse_rows P_ ((struct glyph_matrix *, int, int));
@@ -1348,12 +1348,14 @@ line_draw_cost (matrix, vpos)
 /* Test two glyph rows A and B for equality.  Value is non-zero if A
    and B have equal contents.  W is the window to which the glyphs
    rows A and B belong.  It is needed here to test for partial row
-   visibility.  */
+   visibility.  MOUSE_FACE_P non-zero means compare the mouse_face_p
+   flags of A and B, too.  */
 
 static INLINE int 
-row_equal_p (w, a, b)
+row_equal_p (w, a, b, mouse_face_p)
      struct window *w;
      struct glyph_row *a, *b;
+     int mouse_face_p;
 {
   if (a == b)
     return 1;
@@ -1363,6 +1365,9 @@ row_equal_p (w, a, b)
     {
       struct glyph *a_glyph, *b_glyph, *a_end;
       int area;
+
+      if (mouse_face_p && a->mouse_face_p != b->mouse_face_p)
+	return 0;
 
       /* Compare glyphs.  */
       for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
@@ -3417,6 +3422,12 @@ direct_output_forward_char (n)
   if (!NILP (echo_area_buffer[0]) || !NILP (echo_area_buffer[1]))
     return 0;
 
+  /* Give up if currently displaying a message instead of the
+     minibuffer contents.  */
+  if (XWINDOW (minibuf_window) == w
+      && EQ (minibuf_window, echo_area_window))
+    return 0;
+  
   /* Give up if we don't know where the cursor is.  */
   if (w->cursor.vpos < 0)
     return 0;
@@ -4323,7 +4334,7 @@ add_row_entry (w, row)
   int i = row->hash % row_table_size;
   
   entry = row_table[i];
-  while (entry && !row_equal_p (w, entry->row, row))
+  while (entry && !row_equal_p (w, entry->row, row, 1))
     entry = entry->next;
   
   if (entry == NULL)
@@ -4388,7 +4399,7 @@ scrolling_window (w, header_line_p)
 	 && MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (current_matrix, i)) <= yb
          && row_equal_p (w,
 			 MATRIX_ROW (desired_matrix, i),
-                         MATRIX_ROW (current_matrix, i)))
+                         MATRIX_ROW (current_matrix, i), 1))
     {
       assign_row (MATRIX_ROW (current_matrix, i),
 		  MATRIX_ROW (desired_matrix, i));
@@ -4435,7 +4446,7 @@ scrolling_window (w, header_line_p)
 	     == MATRIX_ROW (desired_matrix, j - 1)->y)
          && row_equal_p (w,
 			 MATRIX_ROW (desired_matrix, i - 1),
-                         MATRIX_ROW (current_matrix, j - 1)))
+                         MATRIX_ROW (current_matrix, j - 1), 1))
     --i, --j;
   last_new = i;
   last_old = j;
