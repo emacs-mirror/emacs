@@ -20,8 +20,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* Length of echobuf field in each KBOARD.  */
 
-#define ECHOBUFSIZE 300
-
 /* Each KBOARD represents one logical input stream from which Emacs gets input.
    If we are using an ordinary terminal, it has one KBOARD object.
    Usually each X display screen has its own KBOARD,
@@ -129,12 +127,9 @@ struct kboard
        larger when you have multiple screens on a single X display.  */
     int reference_count;
 
-    /* Where to append more text to echobuf if we want to.  */
-    char *echoptr;
-
     /* The text we're echoing in the modeline - partial key sequences,
-       usually.  '\0'-terminated.  This really shouldn't have a fixed size.  */
-    char echobuf[ECHOBUFSIZE];
+       usually.  This is nil when not echoing.  */
+    Lisp_Object echo_string;
 
     /* This flag indicates that events were put into kbd_queue
        while Emacs was running for some other KBOARD.
@@ -152,7 +147,7 @@ struct kboard
     char immediate_echo;
 
     /* If we have echoed a prompt string specified by the user,
-       this is its length.  Otherwise this is -1.  */
+       this is its length in characters.  Otherwise this is -1.  */
     char echo_after_prompt;
   };
 
