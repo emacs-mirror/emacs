@@ -41,6 +41,11 @@
 
 	* xfaces.c (merge_face_heights): Coerce back to int explicitly.
 
+2001-11-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* window.c (Fset_window_vscroll): Doc fix.  From Kalle Olavi
+	Niemitalo <kon@iki.fi>.
+
 2001-11-25  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.h (FRAME_X_FRINGE_COLS): No fringe on tip frames.
