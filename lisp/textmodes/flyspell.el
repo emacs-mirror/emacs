@@ -378,9 +378,7 @@ property of the major mode name.")
 	  (setq minor-mode-map-alist
 		(cons (cons 'flyspell-mode flyspell-mode-map)
 		      minor-mode-map-alist)))
-  (define-key flyspell-mode-map "\M-\t" 'flyspell-auto-correct-word)
-  (define-key flyspell-mode-map [(mouse-2)]
-    (function flyspell-correct-word/local-keymap)))
+  (define-key flyspell-mode-map "\M-\t" 'flyspell-auto-correct-word))
 
 
 ;; the name of the overlay property that defines the keymap
