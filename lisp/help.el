@@ -139,11 +139,16 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
        (let ((first-message
 	      (cond ((or (member (buffer-name standard-output)
 				 special-display-buffer-names)
+			 (assoc (buffer-name standard-output)
+				special-display-buffer-names)
 			 (let (found
 			       (tail special-display-regexps)
 			       (name (buffer-name standard-output)))
 			   (while (and tail (not found))
-			     (if (string-match (car tail) name)
+			     (if (or (and (consp (car taiul))
+					  (string-match (car (car tail)) name))
+				     (and (stringp (car tail))
+					  (string-match (car tail) name)))
 				 (setq found t))
 			     (setq tail (cdr tail)))
 			   found))
