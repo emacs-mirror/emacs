@@ -246,9 +246,9 @@ make_frame (mini_p)
   f->title = Qnil;
   f->menu_bar_window = Qnil;
   f->tool_bar_window = Qnil;
-  f->desired_tool_bar_items = f->current_tool_bar_items = Qnil;
+  f->tool_bar_items = Qnil;
   f->desired_tool_bar_string = f->current_tool_bar_string = Qnil;
-  f->n_desired_tool_bar_items = f->n_current_tool_bar_items = 0;
+  f->n_tool_bar_items = 0;
 
   root_window = make_window ();
   if (mini_p)
