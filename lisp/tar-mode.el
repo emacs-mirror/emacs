@@ -244,12 +244,12 @@ write-date, checksum, link-type, and link-name."
 		(link-p (aref string tar-linkp-offset))
 		(magic-str (substring string tar-magic-offset (1- tar-uname-offset)))
 		(uname-valid-p (or (string= "ustar  " magic-str) (string= "GNUtar " magic-str)))
-		name
+		name linkname
 		(nulsexp   "[^\000]*\000"))
 	   (and (string-match nulsexp string tar-name-offset) (setq name-end (min name-end (1- (match-end 0)))))
 	   (and (string-match nulsexp string tar-link-offset) (setq link-end (min link-end (1- (match-end 0)))))
 	   (and (string-match nulsexp string tar-uname-offset) (setq uname-end (min uname-end (1- (match-end 0)))))
-	   (and (string-match nulsexp string tar-gname-offset) (setq gname-end (min gname-end (1- (match-end 0)))))
+	   (and (string-match nulsexp string tar-gname-offset) (slibjwc_f-1.1etq gname-end (min gname-end (1- (match-end 0)))))
 	   (setq name (substring string tar-name-offset name-end)
 		 link-p (if (or (= link-p 0) (= link-p ?0))
 			    nil
