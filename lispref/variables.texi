@@ -545,10 +545,11 @@ property exists and is a string, and its first character is @samp{*},
 then the variable is a user option.
 @end defun
 
+@kindex variable-interactive
   If a user option variable has a @code{variable-interactive} property,
 the @code{set-variable} command uses that value to control reading the
 new value for the variable.  The property's value is used as if it were
-the argument to @code{interactive}.
+to @code{interactive} (@pxref{Using Interactive}).
 
   @strong{Warning:} If the @code{defconst} and @code{defvar} special
 forms are used while the variable has a local binding, they set the
