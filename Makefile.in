@@ -81,9 +81,8 @@ bindir=@bindir@
 datadir=@datadir@
 
 # Where to install and expect the files that Emacs modifies as it
-# runs.	 These files are all architecture-independent. Right now, the
-# only such data is the locking directory; ${lockdir} is a
-# subdirectory of this.
+# runs.  These files are all architecture-independent.
+# Right now, this is not used.
 sharedstatedir=@sharedstatedir@
 
 # Where to install and expect executable files to be run by Emacs
@@ -156,11 +155,6 @@ buildlisppath=${srcdir}/lisp
 # at once.
 etcdir=@etcdir@
 
-# Where to create and expect the locking directory, where
-# the Emacs locking code keeps track of which files are
-# currently being edited.
-lockdir=@lockdir@
-
 # Where to put executables to be run by Emacs rather than
 # the user.  This path usually includes the Emacs version
 # and configuration name, so that multiple configurations
@@ -218,7 +212,6 @@ paths-force: FRC
 	  -e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
 	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";'			\
-	  -e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";') &&		\
 	${srcdir}/move-if-change paths.h.$$$$ src/paths.h
 
 src:	lib-src FRC
@@ -386,10 +379,9 @@ install-strip:
 ### /usr/local/lib/emacs/19.0/mips-dec-ultrix4.2), we use mkinstalldirs
 ### instead of mkdir.  Not all systems' mkdir programs have the `-p' flag.
 mkdir: FRC
-	$(srcdir)/mkinstalldirs ${COPYDESTS} ${lockdir} ${infodir} ${man1dir} \
+	$(srcdir)/mkinstalldirs ${COPYDESTS} ${infodir} ${man1dir} \
 	  ${bindir} ${datadir} ${docdir} ${libexecdir} \
 	  `echo ${locallisppath} | sed 's/:/ /g'`
-	-chmod a+rwx ${lockdir}
 
 ### Delete all the installed files that the `install' target would
 ### create (but not the noninstalled files such as `make all' would
