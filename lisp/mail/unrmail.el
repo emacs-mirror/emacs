@@ -46,11 +46,15 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 ;;;###autoload
 (defun unrmail (file to-file)
   "Convert Rmail file FILE to mailbox-format file TO-FILE."
-  (interactive "fUnrmail (rmail file): \nfUnrmail into (new mailbox file): ")
-  (let ((message-count 0))
+  (interactive "fUnrmail (rmail file): \nFUnrmail into (new mailbox file): ")
+  (let ((message-count 0)
+	(rmail-delete-after-output nil))
     (rmail file)
-    (rmail-show-message 1)
-    (while (not (rmail-output to-file))
-      (setq message-count (1+ message-count)))))
+    (message "Writing messages to %s..." to-file)
+    (while (< message-count rmail-total-messages)
+      (rmail-show-message
+       (setq message-count (1+ message-count)))
+      (rmail-output to-file 1 t))
+    (message "Writing messages to %s...done" to-file)))
 
 ;;; unrmail.el ends here
