@@ -735,8 +735,9 @@ component, DEFAULT-DIRECTORY is used as the basis for completion."
 			     (string-match pcomplete-dir-ignore file))
 		      (and pcomplete-file-ignore
 			   (string-match pcomplete-file-ignore file))))))))
-      (setq above-cutoff (> (length completions)
-			    pcomplete-cycle-cutoff-length))
+      (setq above-cutoff (and pcomplete-cycle-cutoff-length
+			     (> (length completions)
+				pcomplete-cycle-cutoff-length)))
       (sort completions
 	    (function
 	     (lambda (l r)
