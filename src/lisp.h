@@ -20,7 +20,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 /* Declare the prototype for a general external function.  */
-#if defined (__STDC__) || defined (WINDOWSNT)
+#if defined (PROTOTYPES) || defined (WINDOWSNT)
 #define P_(proto) proto
 #else
 #define P_(proto) ()
@@ -2087,12 +2087,8 @@ extern void syms_of_xdisp P_ ((void));
 extern void init_xdisp P_ ((void));
 
 /* Defined in vm-limit.c.  */
-#ifdef __STDC__
-extern void memory_warnings P_ ((void *, void (*warnfun) ()));
-#else
-extern void memory_warnings P_ ((char *, void (*warnfun) ()));
-#endif
-				
+extern void memory_warnings P_ ((POINTER_TYPE *, void (*warnfun) ()));
+
 /* Defined in alloc.c */
 extern void allocate_string_data P_ ((struct Lisp_String *, int, int));
 extern void uninterrupt_malloc P_ ((void));
