@@ -369,15 +369,6 @@ get_clipboard_data (Format, Data, Size, Raw)
   __dpmi_regs regs;
   unsigned long xbuf_addr;
   unsigned char *dp = Data;
-  /* Copying text from the DOS box on Windows 95 evidently doubles the
-     size of text as reported by the clipboard.  So we must begin
-     looking for the zeroes as if the actual size were half of what's
-     reported.  Jeez, what a mess!  */
-  unsigned half_size = Size > 32 ? Size / 2 : Size;
-  /* Where we should begin looking for zeroes.  See commentary below.  */
-  unsigned char *last_block = dp + ((half_size & 0x1f)
-				    ? (half_size & 0x20)
-				    : half_size - 0x20);
 
   if (Format != CF_OEMTEXT)
     return 0;
@@ -424,23 +415,22 @@ get_clipboard_data (Format, Data, Size, Raw)
 	      dp--;
 	      *dp++ = '\n';
 	      xbuf_addr++;
-	      if (last_block > dp)
-		last_block--;	/* adjust the beginning of the last 32 bytes */
 	      if (*lcdp == '\n')
 		lcdp++;
 	    }
 	  /* Windows reportedly rounds up the size of clipboard data
-	     (passed in SIZE) to a multiple of 32.  We therefore bail
-	     out when we see the first null character in the last 32-byte
-	     block.  */
-	  else if (c == '\0' && dp > last_block)
+	     (passed in SIZE) to a multiple of 32, and removes trailing
+	     spaces from each line without updating SIZE.  We therefore
+	     bail out when we see the first null character.  */
+	  else if (c == '\0')
 	    break;
 	}
 
       /* If the text in clipboard is identical to what we put there
 	 last time set_clipboard_data was called, pretend there's no
 	 data in the clipboard.  This is so we don't pass our own text
-	 from the clipboard.  */
+	 from the clipboard (which might be troublesome if the killed
+	 text includes null characters).  */
       if (last_clipboard_text &&
 	  xbuf_addr - xbuf_beg == (long)(lcdp - last_clipboard_text))
 	dp = (unsigned char *)Data + 1;
