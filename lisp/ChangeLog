@@ -1,3 +1,10 @@
+2001-08-16  Miles Bader  <miles@gnu.org>
+
+	* simple.el (line-move): Undo previous change.
+	* comint.el (comint-send-input): Add `inhibit-line-move-field-capture' 
+	property to input-terminating `boundary' overlays to avoid
+	line-move wierdness.
+
 2001-08-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* lazy-lock.el (lazy-lock-fontify-region): Widen the current
