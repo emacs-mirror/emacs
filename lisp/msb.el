@@ -456,14 +456,7 @@ If the argument is left out or nil, then the current buffer is considered."
 
 ;; Strip one hierarchy level from the end of DIR.
 (defun msb--strip-dir (dir)
-  (save-match-data
-    (cond
-     ((string-match "^\\([^/]*/.+/\\)[^/]+$" dir)
-      (substring dir (match-beginning 1) (match-end 1)))
-     ((string-match "^\\([^/]*/\\)" dir)
-      (substring dir (match-beginning 1) (match-end 1)))
-     (t
-      (error "msb: Directory `%s' has an unrecognized format" dir)))))
+  (file-name-directory (directory-file-name dir)))
 
 ;; Create an alist with all buffers from LIST that lies under the same
 ;; directory will be in the same item as the directory string.
