@@ -641,13 +641,12 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 (defvar dired-mode-map nil "Local keymap for dired-mode buffers.")
 (if dired-mode-map
     nil
-  ;; Force `f' rather than `e' in the mode doc:
-  (defalias 'dired-advertised-find-file 'dired-find-file)
   ;; This looks ugly when substitute-command-keys uses C-d instead d:
   ;;  (define-key dired-mode-map "\C-d" 'dired-flag-file-deletion)
 
   (setq dired-mode-map (make-keymap))
   (suppress-keymap dired-mode-map)
+  (define-key dired-mode-map [mouse-2] 'dired-mouse-find-file-other-window)
   ;; Commands to mark or flag certain categories of files
   (define-key dired-mode-map "#" 'dired-flag-auto-save-files)
   (define-key dired-mode-map "*" 'dired-mark-executables)
@@ -1023,10 +1022,24 @@ Creates a buffer if necessary."
 up)
 	  (dired-goto-file dir)))))
 
+;; Force `f' rather than `e' in the mode doc:
+(defalias 'dired-advertised-find-file 'dired-find-file)
 (defun dired-find-file ()
   "In dired, visit the file or directory named on this line."
   (interactive)
   (find-file (file-name-sans-versions (dired-get-filename) t)))
+
+(defun dired-mouse-find-file-other-window (event)
+  "In dired, visit the file or directory name you click on."
+  (interactive "e")
+  (let (file)
+    (save-excursion
+      (set-buffer (window-buffer (posn-window (event-end event))))
+      (save-excursion
+	(goto-char (posn-point (event-end event)))
+	(setq file (dired-get-filename))))
+    (select-window (posn-window (event-end event)))
+    (find-file-other-window (file-name-sans-versions file t))))
 
 (defun dired-view-file ()
   "In dired, examine a file in view mode, returning to dired when done.
