@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.215 1998/04/01 12:26:43 spiegel Exp rms $
+;; $Id: vc.el,v 1.216 1998/04/04 05:22:37 rms Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -318,27 +318,6 @@ If nil, VC itself computes this value when it is first needed."
 (defvar vc-comment-ring-index nil)
 (defvar vc-last-comment-match nil)
 
-;; Back-portability to Emacs 18
-
-(defun file-executable-p-18 (f)
-  (let ((modes (file-modes f)))
-    (and modes (not (zerop (logand 292))))))
-
-(defun file-regular-p-18 (f)
-  (let ((attributes (file-attributes f)))
-    (and attributes (not (car attributes)))))
-
-; Conditionally rebind some things for Emacs 18 compatibility
-(if (not (boundp 'minor-mode-map-alist))
-    (progn
-      (setq compilation-old-error-list nil)
-      (fset 'file-executable-p 'file-executable-p-18)
-      (fset 'shrink-window-if-larger-than-buffer 'beginning-of-buffer)
-      ))
-
-(if (not (fboundp 'file-regular-p))
-    (fset 'file-regular-p 'file-regular-p-18))
-
 ;;; Find and compare backend releases
 
 (defun vc-backend-release (backend)
@@ -498,10 +477,16 @@ If nil, VC itself computes this value when it is first needed."
      ;; CVS
      t))
 
-(defun vc-registration-error (file)
-  (if file
-      (error "File %s is not under version control" file)
-    (error "Buffer %s is not associated with a file" (buffer-name))))
+(defun vc-ensure-vc-buffer ()
+  ;; Make sure that the current buffer visits a version-controlled file.
+  (if vc-dired-mode
+      (set-buffer (find-file-noselect (dired-get-filename)))
+    (while vc-parent-buffer
+      (pop-to-buffer vc-parent-buffer))
+    (if (not (buffer-file-name))
+	(error "Buffer %s is not associated with a file" (buffer-name))
+      (if (not (vc-backend (buffer-file-name)))
+	  (error "File %s is not under version control" (buffer-file-name))))))
 
 (defvar vc-binary-assoc nil)
 
@@ -971,11 +956,8 @@ merge in the changes into your working copy."
 			      "Enter a change comment for the marked files."
 			      'vc-next-action-dired))
 	    (throw 'nogo nil)))
-    (while vc-parent-buffer
-      (pop-to-buffer vc-parent-buffer))
-    (if buffer-file-name
-	(vc-next-action-on-file buffer-file-name verbose)
-      (vc-registration-error nil))))
+    (vc-ensure-vc-buffer)
+    (vc-next-action-on-file buffer-file-name verbose)))
 
 ;;; These functions help the vc-next-action entry point
 
@@ -1314,15 +1296,9 @@ checked in version of that file.  This uses no arguments.
 With a prefix argument, it reads the file name to use
 and two version designators specifying which versions to compare."
   (interactive (list current-prefix-arg t))
-  (if vc-dired-mode
-      (set-buffer (find-file-noselect (dired-get-filename))))
-  (while vc-parent-buffer
-      (pop-to-buffer vc-parent-buffer))
+  (vc-ensure-vc-buffer)
   (if historic
       (call-interactively 'vc-version-diff)
-    (if (or (null buffer-file-name) (null (vc-name buffer-file-name)))
-	(error
-	 "There is no version-control master associated with this buffer"))
     (let ((file buffer-file-name)
 	  unchanged)
       (vc-buffer-sync not-urgent)
@@ -1423,19 +1399,14 @@ files in or below it."
 If the current buffer is named `F', the version is named `F.~REV~'.
 If `F.~REV~' already exists, it is used instead of being re-created."
   (interactive "sVersion to visit (default is latest version): ")
-  (if vc-dired-mode
-      (set-buffer (find-file-noselect (dired-get-filename))))
-  (while vc-parent-buffer
-      (pop-to-buffer vc-parent-buffer))
-  (if (and buffer-file-name (vc-name buffer-file-name))
-      (let* ((version (if (string-equal rev "")
-			  (vc-latest-version buffer-file-name)
-			rev))
-	     (filename (concat buffer-file-name ".~" version "~")))
-	 (or (file-exists-p filename)
-	     (vc-backend-checkout buffer-file-name nil version filename))
-	 (find-file-other-window filename))
-    (vc-registration-error buffer-file-name)))
+  (vc-ensure-vc-buffer)
+  (let* ((version (if (string-equal rev "")
+		      (vc-latest-version buffer-file-name)
+		    rev))
+	 (filename (concat buffer-file-name ".~" version "~")))
+    (or (file-exists-p filename)
+	(vc-backend-checkout buffer-file-name nil version filename))
+    (find-file-other-window filename)))
 
 ;; Header-insertion code
 
@@ -1445,10 +1416,7 @@ If `F.~REV~' already exists, it is used instead of being re-created."
 Headers desired are inserted at the start of the buffer, and are pulled from
 the variable `vc-header-alist'."
   (interactive)
-  (if vc-dired-mode
-      (find-file-other-window (dired-get-filename)))
-  (while vc-parent-buffer
-      (pop-to-buffer vc-parent-buffer))
+  (vc-ensure-vc-buffer)
   (save-excursion
     (save-restriction
       (widen)
@@ -1488,10 +1456,12 @@ the variable `vc-header-alist'."
 	(replace-match "$\\1$")))
     (vc-restore-buffer-context context)))
 
+;;;###autoload
 (defun vc-resolve-conflicts ()
   "Invoke ediff to resolve conflicts in the current buffer.
 The conflicts must be marked with rcsmerge conflict markers."
   (interactive)
+  (vc-ensure-vc-buffer)
   (let* ((found nil)
          (file-name (file-name-nondirectory buffer-file-name))
 	 (your-buffer   (generate-new-buffer 
@@ -1832,58 +1802,50 @@ locked are updated to the latest versions."
 (defun vc-print-log ()
   "List the change log of the current buffer in a window."
   (interactive)
-  (if vc-dired-mode
-      (set-buffer (find-file-noselect (dired-get-filename))))
-  (while vc-parent-buffer
-      (pop-to-buffer vc-parent-buffer))
-  (if (and buffer-file-name (vc-name buffer-file-name))
-      (let ((file buffer-file-name))
-	(vc-backend-print-log file)
-	(pop-to-buffer (get-buffer-create "*vc*"))
-	(setq default-directory (file-name-directory file))
-	(goto-char (point-max)) (forward-line -1)
-	(while (looking-at "=*\n")
-	  (delete-char (- (match-end 0) (match-beginning 0)))
-	  (forward-line -1))
-	(goto-char (point-min))
-	(if (looking-at "[\b\t\n\v\f\r ]+")
-	    (delete-char (- (match-end 0) (match-beginning 0))))
-	(shrink-window-if-larger-than-buffer)
-	;; move point to the log entry for the current version
-	(and (not (eq (vc-backend file) 'SCCS))
-	     (re-search-forward
-	      ;; also match some context, for safety
-	      (concat "----\nrevision " (vc-workfile-version file)
-		      "\\(\tlocked by:.*\n\\|\n\\)date: ") nil t)
-	     ;; set the display window so that 
-	     ;; the whole log entry is displayed
-	     (let (start end lines)
-	       (beginning-of-line) (forward-line -1) (setq start (point))
-	       (if (not (re-search-forward "^----*\nrevision" nil t))
-		   (setq end (point-max))
-		 (beginning-of-line) (forward-line -1) (setq end (point)))
-	       (setq lines (count-lines start end))
-	       (cond
-		;; if the global information and this log entry fit
-		;; into the window, display from the beginning
-		((< (count-lines (point-min) end) (window-height))
-		 (goto-char (point-min))
-		 (recenter 0)
-		 (goto-char start))
-		;; if the whole entry fits into the window,
-		;; display it centered
-		((< (1+ lines) (window-height))
-		 (goto-char start)
-		 (recenter (1- (- (/ (window-height) 2) (/ lines 2)))))
-		;; otherwise (the entry is too large for the window),
-		;; display from the start
-		(t
-		 (goto-char start)
-		 (recenter 0)))))
-	)
-    (vc-registration-error buffer-file-name)
-    )
-  )
+  (vc-ensure-vc-buffer)
+  (let ((file buffer-file-name))
+    (vc-backend-print-log file)
+    (pop-to-buffer (get-buffer-create "*vc*"))
+    (setq default-directory (file-name-directory file))
+    (goto-char (point-max)) (forward-line -1)
+    (while (looking-at "=*\n")
+      (delete-char (- (match-end 0) (match-beginning 0)))
+      (forward-line -1))
+    (goto-char (point-min))
+    (if (looking-at "[\b\t\n\v\f\r ]+")
+	(delete-char (- (match-end 0) (match-beginning 0))))
+    (shrink-window-if-larger-than-buffer)
+    ;; move point to the log entry for the current version
+    (and (not (eq (vc-backend file) 'SCCS))
+	 (re-search-forward
+	  ;; also match some context, for safety
+	  (concat "----\nrevision " (vc-workfile-version file)
+		  "\\(\tlocked by:.*\n\\|\n\\)date: ") nil t)
+	 ;; set the display window so that 
+	 ;; the whole log entry is displayed
+	 (let (start end lines)
+	   (beginning-of-line) (forward-line -1) (setq start (point))
+	   (if (not (re-search-forward "^----*\nrevision" nil t))
+	       (setq end (point-max))
+	     (beginning-of-line) (forward-line -1) (setq end (point)))
+	   (setq lines (count-lines start end))
+	   (cond
+	    ;; if the global information and this log entry fit
+	    ;; into the window, display from the beginning
+	    ((< (count-lines (point-min) end) (window-height))
+	     (goto-char (point-min))
+	     (recenter 0)
+	     (goto-char start))
+	    ;; if the whole entry fits into the window,
+	    ;; display it centered
+	    ((< (1+ lines) (window-height))
+	     (goto-char start)
+	     (recenter (1- (- (/ (window-height) 2) (/ lines 2)))))
+	    ;; otherwise (the entry is too large for the window),
+	    ;; display from the start
+	    (t
+	     (goto-char start)
+	     (recenter 0)))))))
 
 ;;;###autoload
 (defun vc-revert-buffer ()
@@ -1893,10 +1855,7 @@ to that version.  Note that for RCS and CVS, this function does not
 automatically pick up newer changes found in the master file; 
 use C-u \\[vc-next-action] RET to do so."
   (interactive)
-  (if vc-dired-mode
-      (find-file-other-window (dired-get-filename)))
-  (while vc-parent-buffer
-      (pop-to-buffer vc-parent-buffer))
+  (vc-ensure-vc-buffer)
   (let ((file buffer-file-name)
 	;; This operation should always ask for confirmation.
 	(vc-suppress-confirm nil)
@@ -1918,13 +1877,8 @@ use C-u \\[vc-next-action] RET to do so."
   "Get rid of most recently checked in version of this file.
 A prefix argument means do not revert the buffer afterwards."
   (interactive "P")
-  (if vc-dired-mode
-      (find-file-other-window (dired-get-filename)))
-  (while vc-parent-buffer
-    (pop-to-buffer vc-parent-buffer))
+  (vc-ensure-vc-buffer)
   (cond 
-   ((not (vc-registered (buffer-file-name)))
-    (vc-registration-error (buffer-file-name)))
    ((eq (vc-backend (buffer-file-name)) 'CVS)
     (error "Unchecking files under CVS is dangerous and not supported in VC"))
    ((vc-locking-user (buffer-file-name))
@@ -2228,8 +2182,9 @@ mode-specific menu. `vc-annotate-color-map' and
 `vc-annotate-very-old-color' defines the mapping of time to
 colors. `vc-annotate-background' specifies the background color."
   (interactive "p")
-  (if (not (eq (vc-buffer-backend) 'CVS)) ; This only works with CVS
-      (vc-registration-error (buffer-file-name)))
+  (vc-ensure-vc-buffer)
+  (if (not (eq (vc-backend (buffer-file-name)) 'CVS))
+      (error "Sorry, vc-annotate is only implemented for CVS"))
   (message "Annotating...")
   (let ((temp-buffer-name (concat "*cvs annotate " (buffer-name) "*"))
 	(temp-buffer-show-function 'vc-annotate-display)
@@ -2794,9 +2749,7 @@ THRESHOLD, nil otherwise"
 	       (and newvers (concat "-r" newvers))
 	       (if (listp diff-switches)
 		   diff-switches
-		 (list diff-switches)))))
-     (t
-      (vc-registration-error file)))))
+		 (list diff-switches))))))))
 
 (defun vc-backend-merge-news (file)
   ;; Merge in any new changes made to FILE.
