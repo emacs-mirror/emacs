@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:compile(MMQA_harness_dev.2) $
+# $HopeName: MMQA_harness!script:compile(trunk.27) $
 #
 # provides subroutines to compile or compile and link
 # tests and test libraries.
@@ -10,39 +10,47 @@
 1;
 
 sub log_system {
- local ($command, $output, $logfile, $stdin, $time0, $time1) = @_;
+    local ($command, $output, $logfile, $stdin) = @_;
+    my $time0; my $time1;
 
- $std_log = "$obj_dir/std_log.log";
- $err_log = "$obj_dir/err_log.log";
+    $std_log = "$obj_dir/std_log.log";
+    $err_log = "$obj_dir/err_log.log";
 
- &debug("LOG SYSTEM:\n c>$command\n i<$stdin\n o>$output\n l>$logfile");
+    &debug("LOG SYSTEM:\n c>$command\n i<$stdin\n o>$output\n l>$logfile");
 
- if ($stdin eq "STDIN") {
-  $stdin = "";
- } else {
-  $stdin = $stdin_red." ".$stdin;
- }
+    if ($stdin eq "STDIN") {
+        $stdin = "";
+    } else {
+        $stdin = $stdin_red." ".$stdin;
+    }
 
- $time0 = time;
+    $time0 = time;
 
- if ($logfile ne "no") {
-  if ($output eq "no") {
-   &mysystem("$comwrap$command$comwrapend $stdin $stdout_red $std_log $err_red $err_log");
-  } else {
-   &mysystem("$comwrap$command$comwrapend $stdin $err_red $err_log $stdout_dup $std_log");
-# there's no way to duplicate std_err as far as I know.
-   &mysystem("$catcommand $err_log");
-  }
-  &mysystem("$catcommand $std_log $err_log $stdout_red $logfile");
- } else {
-  if ($output eq "no") {
-   die "Silly attempt to run test and ignore results.\n";
-  } else {
-   &mysystem("$comwrap$command$comwrapend $stdin");
-  }
- }
- $time1 = time;
- $testtotaltime = $time1-$time0;
+    if ($logfile ne "no") {
+        open(SAVEERR, ">&STDERR");
+        open(STDERR, ">$err_log");
+        if ($output eq "no") {
+            &mysystem("$comwrap$command$comwrapend $stdin $stdout_red $std_log");
+        } else {
+            &mysystem("$comwrap$command$comwrapend $stdin $stdout_dup $std_log");
+        }
+        $time1 = time;
+        close(STDERR);
+        if ($output ne "no") {
+            &mysystem("$catcommand $err_log");
+        }
+        open(STDERR, ">&SAVEERR");
+        &mysystem("$catcommand $std_log $err_log $stdout_red $logfile");
+    } else {
+        if ($output eq "no") {
+            die "Silly attempt to run test and ignore results.\n";
+        } else {
+            &mysystem("$comwrap$command$comwrapend $stdin");
+            $time1 = time;
+        }
+    }
+    $time1 = time;
+    $testtotaltime = $time1-$time0;
 }
 
 sub compile {
@@ -82,8 +90,7 @@ sub compile_and_link {
 
  $command = &convdirseps(
   "$cc_command $cc_opts $hashdefs $comobjfspec$cc_exe$exefile ".
-  "$srcfile $linkfiles $MPS_LINK_OBJ $cc_link $cc_include $cc_link_opts ".
-  "$stderr_merge |");
+  "$srcfile $linkfiles $MPS_LINK_OBJ $cc_link $cc_include $cc_link_opts|");
  
  &debug("OPEN >>$command<<");
 
