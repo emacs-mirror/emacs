@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate November 25, 1998
+@set lastupdate December  9, 1998
 @c %**end of header
 
 @setchapternewpage off
@@ -451,6 +451,10 @@ account receivables, payroll, inventory control, order processing, etc.
 @item
 A teleconferencing program which does the job of CU-SeeMe (which is,
 alas, not free software).
+
+@item
+A free ICQ-compatible server program.  (The ICQ server itself is not
+free software.)
 
 @item
 A free replacement for Glimpse, which is not free software.
