@@ -492,9 +492,9 @@ static Lisp_Object
 delete_temp_file (name)
      Lisp_Object name;
 {
-  /* Use Fdelete_file because that runs a file name handler.
+  /* Use Fdelete_file (indirectly) because that runs a file name handler.
      We did that when writing the file, so we should do so when deleting.  */
-  Fdelete_file (name);
+  internal_delete_file (name);
 }
 
 DEFUN ("call-process-region", Fcall_process_region, Scall_process_region,
