@@ -177,9 +177,9 @@ scan_file (filename)
      char *filename;
 {
   int len = strlen (filename);
-  if (!strcmp (filename + len - 4, ".elc"))
+  if (len > 4 && !strcmp (filename + len - 4, ".elc"))
     return scan_lisp_file (filename, READ_BINARY);
-  else if (!strcmp (filename + len - 3, ".el"))
+  else if (len > 3 && !strcmp (filename + len - 3, ".el"))
     return scan_lisp_file (filename, READ_TEXT);
   else
     return scan_c_file (filename, READ_TEXT);
