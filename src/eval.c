@@ -2161,7 +2161,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
   register Lisp_Object spread_arg;
   register Lisp_Object *funcall_args;
   Lisp_Object fun;
-  int nvars;
+  struct gcpro gcpro1;
 
   fun = args [0];
   funcall_args = 0;
@@ -2201,7 +2201,8 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
 						 * sizeof (Lisp_Object));
 	  for (i = numargs; i < XSUBR (fun)->max_args;)
 	    funcall_args[++i] = Qnil;
-	  nvars = 1 + XSUBR (fun)->max_args;
+	  GCPRO1 (*funcall_args);
+	  gcpro1.nvars = 1 + XSUBR (fun)->max_args;
 	}
     }
  funcall:
@@ -2211,7 +2212,8 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
     {
       funcall_args = (Lisp_Object *) alloca ((1 + numargs)
 					     * sizeof (Lisp_Object));
-      nvars = 1 + numargs;
+      GCPRO1 (*funcall_args);
+      gcpro1.nvars = 1 + numargs;
     }
 
   bcopy (args, funcall_args, nargs * sizeof (Lisp_Object));
@@ -2224,7 +2226,8 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
       spread_arg = XCDR (spread_arg);
     }
 
-  return Ffuncall (nvars, funcall_args);
+  /* By convention, the caller needs to gcpro Ffuncall's args.  */
+  RETURN_UNGCPRO (Ffuncall (gcpro1.nvars, funcall_args));
 }
 
 /* Run hook variables in various ways.  */
