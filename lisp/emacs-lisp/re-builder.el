@@ -327,10 +327,16 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   "Return binding for SYMBOL in the RE Builder target buffer."
   `(with-current-buffer reb-target-buffer ,symbol))
 
+;;; This is to help people find this in Apropos.
+;;;###autoload
+(defun regexp-builder ()
+  "Alias for `re-builder': Construct a regexp interactively."
+  (interactive)
+  (re-builder))
 
 ;;;###autoload
 (defun re-builder ()
-  "Call up the RE Builder for the current window."
+  "Construct a regexp interactively."
   (interactive)
 
   (if (and (string= (buffer-name) reb-buffer)

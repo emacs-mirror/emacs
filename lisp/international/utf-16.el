@@ -391,7 +391,7 @@ name `utf-translation-table-for-decode'.")
 
 
 (define-ccl-program ccl-encode-mule-utf-16le
-  `(1
+  `(2
     ,utf-16le-encode-loop)
   "Encode to UTF-16LE (little endian without signature).
 Characters from the charsets ascii, eight-bit-control,
@@ -401,7 +401,7 @@ after translation through the translation-table of name
 Others are encoded as U+FFFD.")
 
 (define-ccl-program ccl-encode-mule-utf-16be
-  `(1
+  `(2
     ,utf-16be-encode-loop)
   "Encode to UTF-16BE (big endian without signature).
 Characters from the charsets ascii, eight-bit-control,
@@ -411,7 +411,7 @@ after translation through the translation-table named
 Others are encoded as U+FFFD.")
 
 (define-ccl-program ccl-encode-mule-utf-16le-with-signature
-  `(1
+  `(4
     ((write #xFF)
      (write #xFE)
      ,@utf-16le-encode-loop))
@@ -423,7 +423,7 @@ after translation through the translation-table of name
 Others are encoded as U+FFFD.")
 
 (define-ccl-program ccl-encode-mule-utf-16be-with-signature
-  `(1
+  `(4
     ((write #xFE)
      (write #xFF)
      ,@utf-16be-encode-loop))

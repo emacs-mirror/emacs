@@ -164,7 +164,8 @@ user for what type to save as."
 
 (defun url-have-visited-url (url)
   (url-do-setup)
-  (gethash url url-history-hash-table nil))
+  (and url-history-hash-table
+       (gethash url url-history-hash-table nil)))
 
 (defun url-completion-function (string predicate function)
   (url-do-setup)

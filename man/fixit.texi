@@ -11,12 +11,12 @@ the times when you catch a mistake in your text just after you have made
 it, or change your mind while composing text on the fly.
 
   The most fundamental command for correcting erroneous editing is the
-undo command, @kbd{C-x u} or @kbd{C-_}.  This command undoes a single
-command (usually), a part of a command (in the case of
-@code{query-replace}), or several consecutive self-inserting characters.
-Consecutive repetitions of @kbd{C-_} or @kbd{C-x u} undo earlier and
-earlier changes, back to the limit of the undo information available.
-@xref{Undo}, for more information.
+undo command, @kbd{C-x u} or @kbd{C-_} or @kbd{C-/}.  This command
+undoes a single command (usually), a part of a command (in the case of
+@code{query-replace}), or several consecutive self-inserting
+characters.  Consecutive repetitions of the undo command undo earlier
+and earlier changes, back to the limit of the undo information
+available.  @xref{Undo}, for more information.
 
 @menu
 * Kill Errors:: Commands to kill a batch of recently entered text.
@@ -164,6 +164,7 @@ Enable Flyspell mode for comments and strings only.
 @item M-$
 Check and correct spelling of the word at point (@code{ispell-word}).
 @item M-@key{TAB}
+@itemx @key{ESC} @key{TAB}
 Complete the word before point based on the spelling dictionary
 (@code{ispell-complete-word}).
 @item M-x ispell
@@ -239,11 +240,13 @@ Skip this word---continue to consider it incorrect, but don't change it
 here.
 
 @item r @var{new} @key{RET}
-Replace the word (just this time) with @var{new}.
+Replace the word (just this time) with @var{new}.  (The replacement
+string will be rescanned for more spelling errors.)
 
 @item R @var{new} @key{RET}
 Replace the word with @var{new}, and do a @code{query-replace} so you
-can replace it elsewhere in the buffer if you wish.
+can replace it elsewhere in the buffer if you wish.  (The replacements
+will be rescanned for more spelling errors.)
 
 @item @var{digit}
 Replace the word (just this time) with one of the displayed
@@ -277,8 +280,9 @@ the replacement by typing a digit.  You can use @samp{*} in @var{word} as a
 wildcard.
 
 @item C-g
-Quit interactive spell checking.  You can restart it again afterward
-with @kbd{C-u M-$}.
+Quit interactive spell checking, leaving point at the word that was
+being checked.  You can restart checking again afterward with @kbd{C-u
+M-$}.
 
 @item X
 Same as @kbd{C-g}.
@@ -296,6 +300,9 @@ Refresh the screen.
 @item C-z
 This key has its normal command meaning (suspend Emacs or iconify this
 frame).
+
+@item ?
+Show the list of options.
 @end table
 
 @findex ispell-complete-word

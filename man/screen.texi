@@ -29,19 +29,23 @@ into multiple text windows, each of which can be used for a different
 file (@pxref{Windows}).  In this manual, the word ``window'' always
 refers to the subdivisions of a frame within Emacs.
 
-  At any time, one window is the @dfn{selected window}; the most
-prominent cursor indicates which window is selected.  Most Emacs
-commands implicitly apply to the text in the selected window (though
-mouse commands generally operate on whatever window you click them in,
-whether selected or not).  The other windows display text for
-reference only, unless/until you select them.  If you use multiple
-frames under the X Window System, then giving the input focus to a
-particular frame selects a window in that frame.
+  At any time, one window is the @dfn{selected window}.  On graphical
+terminals, the selected window normally shows a more prominent cursor
+(solid and blinking) while other windows show a weaker cursor (such as
+a hollow box).  On text terminals, which have just one cursor, that cursor
+appears in the selected window.
+
+  Most Emacs commands implicitly apply to the text in the selected
+window (though mouse commands generally operate on whatever window you
+click them in, whether selected or not).  The other windows display
+text for reference only, unless/until you select them.  If you use
+multiple frames under the X Window System, then giving the input focus
+to a particular frame selects a window in that frame.
 
   Each window's last line is a @dfn{mode line}, which describes what
-is going on in that window.  It appears in inverse video, if the
-terminal supports that; its contents normally begin with
-@w{@samp{--:-- @ *scratch*}} when Emacs starts.  The mode line
+is going on in that window.  It appears in different color and/or a
+``3D'' box, if the terminal supports that; its contents normally begin
+with @w{@samp{--:-- @ *scratch*}} when Emacs starts.  The mode line
 displays status information such as what buffer is being displayed
 above it in the window, what major and minor modes are in use, and
 whether the buffer contains unsaved changes.
@@ -58,7 +62,7 @@ whether the buffer contains unsaved changes.
 @cindex point
 @cindex cursor
 
-  Within Emacs, the terminal's cursor shows the location at which
+  Within Emacs, the active cursor shows the location at which
 editing commands will take effect.  This location is called @dfn{point}.
 Many Emacs commands move point through the text, so that you can edit at
 different places in it.  You can also place point by clicking mouse
@@ -93,9 +97,9 @@ though.  Once display updating finishes, Emacs puts the cursor where
 point is.
 
   On graphical terminals, Emacs shows a cursor in each window; the
-selected window's cursor is solid or blinking, and the other cursors
-are just hollow.  Thus, the most striking cursor always shows you
-the selected window, on all kinds of terminals.
+selected window's cursor is solid and blinking, and the other cursors
+are just hollow.  Thus, the most prominent cursor always shows you the
+selected window, on all kinds of terminals.
 
   @xref{Cursor Display}, for customizable variables that control display
 of the cursor or cursors.
@@ -111,11 +115,11 @@ for accessing the value now called ``point.''
 
   The line at the bottom of the frame (below the mode line) is the
 @dfn{echo area}.  It is used to display small amounts of text for
-several purposes.
+various purposes.
 
-  @dfn{Echoing} means displaying the characters that you type.  Outside
-Emacs, the operating system normally echoes all your input.  Emacs
-handles echoing differently.
+  @dfn{Echoing} means displaying the characters that you type.  At the
+command line, the operating system normally echoes all your input.
+Emacs handles echoing differently.
 
   Single-character commands do not echo in Emacs, and multi-character
 commands echo only if you pause while typing them.  As soon as you pause
@@ -326,7 +330,7 @@ them here, as you can more easily see for yourself.
   When you are using a window system, you can use the mouse to choose a
 command from the menu bar.  An arrow pointing right, after the menu
 item, indicates that the item leads to a subsidiary menu; @samp{...} at
-the end means that the command will read arguments from the keyboard
+the end means that the command will read arguments (further input from you)
 before it actually does anything.
 
   To view the full command name and documentation for a menu item, type

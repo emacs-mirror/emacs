@@ -958,6 +958,9 @@ that is inserted into the command line before the filename."
 			   (mapconcat 'identity vc-path path-separator))
 		   process-environment))
 	    (w32-quote-process-args t))
+	(if (and (eq okstatus 'async) (file-remote-p default-directory))
+	    ;; start-process does not support remote execution
+	    (setq okstatus nil))
 	(if (eq okstatus 'async)
 	    (let ((proc (apply 'start-process command (current-buffer) command
 			       squeezed)))

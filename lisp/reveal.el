@@ -1,6 +1,6 @@
 ;;; reveal.el --- Automatically reveal hidden text at point
 
-;; Copyright (C) 2000, 2001, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: outlines
@@ -93,16 +93,22 @@
 			  (overlays-at (point))))
 	 (push (cons (selected-window) ol) reveal-open-spots)
 	 (setq old-ols (delq ol old-ols))
-	 (let ((open (overlay-get ol 'reveal-toggle-invisible)) inv)
-	   (when (or open
-		     (and (setq inv (overlay-get ol 'invisible))
-			  (symbolp inv)
-			  (or (setq open (or (get inv 'reveal-toggle-invisible)
-					     (overlay-get ol 'isearch-open-invisible-temporary)))
-			      (overlay-get ol 'isearch-open-invisible)
-			      (and (consp buffer-invisibility-spec)
-				   (assq inv buffer-invisibility-spec)))
-			  (overlay-put ol 'reveal-invisible inv)))
+	 (let ((inv (overlay-get ol 'invisible)) open)
+	   (when (and inv
+		      ;; There's an `invisible' property.  Make sure it's
+		      ;; actually invisible.
+		      (or (not (listp buffer-invisibility-spec))
+			  (memq inv buffer-invisibility-spec)
+			  (assq inv buffer-invisibility-spec))
+		      (or (setq open
+				(or (overlay-get ol 'reveal-toggle-invisible)
+				    (and (symbolp inv)
+					 (get inv 'reveal-toggle-invisible))
+				    (overlay-get ol 'isearch-open-invisible-temporary)))
+			  (overlay-get ol 'isearch-open-invisible)
+			  (and (consp buffer-invisibility-spec)
+			       (cdr (assq inv buffer-invisibility-spec))))
+		      (overlay-put ol 'reveal-invisible inv))
 	     (if (null open)
 		 (overlay-put ol 'invisible nil)
 	       ;; Use the provided opening function and repeat (since the
@@ -110,7 +116,8 @@
 	       (setq repeat t)
 	       (condition-case err
 		   (funcall open ol nil)
-		 (error (message "!!Reveal-show: %s !!" err)
+		 (error (message "!!Reveal-show (funcall %s %s nil): %s !!"
+				 open ol err)
 			;; Let's default to a meaningful behavior to avoid
 			;; getting stuck in an infinite loop.
 			(setq repeat nil)
@@ -147,7 +154,8 @@
 					   (overlay-get ol 'isearch-open-invisible-temporary)))))
 		   (condition-case err
 		       (funcall open ol t)
-		     (error (message "!!Reveal-hide: %s !!" err)))
+		     (error (message "!!Reveal-hide (funcall %s %s t): %s !!"
+				     open ol err)))
 		 (overlay-put ol 'invisible inv))))))))
    (error (message "Reveal: %s" err)))))
 
