@@ -506,8 +506,12 @@ truncation marks, continuation marks, overlay arrows and alike.  The
 foreground, background, and stipple of these areas can be changed by
 customizing face `fringe'.
 
-** The mode line under X is now drawn with shadows by default.  You
-can change its appearance by modifying the face `modeline'.
+** The mode line under X is now drawn with shadows by default.
+You can change its appearance by modifying the face `mode-line'.
+
+The variable `mode-line-inverse-video', which was used in older
+versions of emacs to make the mode-line stand out, now defaults to nil,
+and its use is deprecated.
 
 ** LessTif support.
 
