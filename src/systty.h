@@ -273,7 +273,7 @@ static struct sensemode {
 
 #ifdef EMACS_HAVE_TTY_PGRP
 
-#ifdef HAVE_TERMIOS
+#if defined (HAVE_TERMIOS) && ! defined (BSD_TERMIOS)
 
 #define EMACS_GET_TTY_PGRP(fd, pgid) (*(pgid) = tcgetpgrp ((fd)))
 #define EMACS_SET_TTY_PGRP(fd, pgid) (tcsetpgrp ((fd), *(pgid)))
