@@ -578,7 +578,7 @@ coordinates_in_window (w, x, y)
 	  if (!WINDOW_LEFTMOST_P (w) && abs (*x - x0) < grabbable_width)
 	    return ON_VERTICAL_BORDER;
 	}
-      else 
+      else
 	{
 	  if (abs (*x - x1) < grabbable_width)
 	    return ON_VERTICAL_BORDER;
@@ -601,7 +601,7 @@ coordinates_in_window (w, x, y)
 
   lmargin_width = window_box_width (w, LEFT_MARGIN_AREA);
   rmargin_width = window_box_width (w, RIGHT_MARGIN_AREA);
-  
+
   text_left = window_box_left (w, TEXT_AREA);
   text_right = text_left + window_box_width (w, TEXT_AREA);
 
@@ -2419,7 +2419,7 @@ window_min_size (w, width_p, ignore_fixed_p, fixed)
 }
 
 
-/* Adjust the margins of window W if text area is too small.  
+/* Adjust the margins of window W if text area is too small.
    Return 1 if window width is ok after adjustment; 0 if window
    is still too narrow.  */
 
@@ -2766,7 +2766,7 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
     {
       /* Set left and right marginal area width etc. from buffer.  */
 
-      /* This may call adjust_window_margins three times, so 
+      /* This may call adjust_window_margins three times, so
 	 temporarily disable window margins.  */
       w->left_margin_cols = w->right_margin_cols = Qnil;
 
@@ -2799,7 +2799,7 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
 
 DEFUN ("set-window-buffer", Fset_window_buffer, Sset_window_buffer, 2, 3, 0,
        doc: /* Make WINDOW display BUFFER as its contents.
-BUFFER can be a buffer or buffer name.  
+BUFFER can be a buffer or buffer name.
 Optional third arg KEEP_MARGINS non-nil means that WINDOW's current
 display margins, fringe widths, and scroll bar settings are maintained;
 the default is to reset these from BUFFER's local settings or the frame
@@ -5707,7 +5707,7 @@ DEFUN ("set-window-fringes", Fset_window_fringes, Sset_window_fringes,
 If window is nil, set fringes of the currently selected window.
 Second parameter LEFT-WIDTH specifies the number of pixels to reserve
 for the left fringe.  Third parameter RIGHT-WIDTH does the same for
-the right fringe.  Fourth parameter OUTSIDE-MARGINS non-nil specifies 
+the right fringe.  Fourth parameter OUTSIDE-MARGINS non-nil specifies
 that fringes are drawn outside of the display margins; by default, fringes
 are drawn between display marginal areas and the text area.
 A nil width parameter means to use the frame's corresponding fringe width.  */)
@@ -5774,8 +5774,8 @@ this is automatically adjusted to a multiple of the frame column width.
 Third parameter VERTICAL-TYPE specifies the type of the vertical scroll
 bar: left, right, or nil.
 A width of nil and type of t means to use the frame's corresponding value.  */)
-     (window, width, vertical_type, horisontal_type)
-     Lisp_Object window, width, vertical_type, horisontal_type;
+     (window, width, vertical_type, horizontal_type)
+     Lisp_Object window, width, vertical_type, horizontal_type;
 {
   struct window *w = decode_window (window);
 
@@ -5808,7 +5808,7 @@ DEFUN ("window-scroll-bars", Fwindow_scroll_bars, Swindow_scroll_bars,
        0, 1, 0,
        doc: /* Get width and type of scroll bars of window WINDOW.
 If WINDOW is omitted or nil, use the currently selected window.
-Value is a list of the form (WIDTH COLS VERTICAL-TYPE HORISONTAL-TYPE).  */)
+Value is a list of the form (WIDTH COLS VERTICAL-TYPE HORIZONTAL-TYPE).  */)
      (window)
      Lisp_Object window;
 {
