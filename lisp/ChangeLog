@@ -1,5 +1,8 @@
 2000-07-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.el (blink-cursor): Default to nil if not running under
+	a window-system.
+
 	* faces.el (face-spec-set): Ignore invalid attributes like 20.x.
 	(face-x-resources): Remove duplicate entry for :font.
 
