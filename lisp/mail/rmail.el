@@ -965,7 +965,8 @@ argument causes us to read a file name and use that file as the inbox."
 		  ;; have a From: field.
 		  (if has-from
 		      ""
-		    "From: \\1\n")))))))))
+		    "From: \\1\n"))
+		t)))))))
 
 ;;;; *** Rmail Message Formatting and Header Manipulation ***
 
@@ -979,8 +980,9 @@ argument causes us to read a file name and use that file as the inbox."
     (delete-char 1)
     (insert ?1)
     (forward-line 1)
-    (if (looking-at "Summary-line: ")
-	(forward-line 1))
+    (let ((case-fold-search t))
+      (if (looking-at "Summary-line: ")
+	  (forward-line 1)))
     (if (looking-at "\\*\\*\\* EOOH \\*\\*\\*\n")
 	(delete-region (point)
 		       (progn (forward-line 1) (point))))
@@ -1019,8 +1021,9 @@ argument causes us to read a file name and use that file as the inbox."
 	(progn (delete-char 1)
 	       (insert ?0)
 	       (forward-line 1)
-	       (if (looking-at "Summary-Line:")
-		   (forward-line 1))
+	       (let ((case-fold-search t))
+		 (if (looking-at "Summary-Line:")
+		     (forward-line 1)))
 	       (insert "*** EOOH ***\n")
 	       (forward-char -1)
 	       (search-forward "\n*** EOOH ***\n")
