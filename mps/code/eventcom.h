@@ -1,6 +1,6 @@
 /* impl.h.eventcom -- Event Logging Common Definitions
  *
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  * $Id$
  *
  * .sources: mps.design.telemetry

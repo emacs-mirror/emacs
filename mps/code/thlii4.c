@@ -1,7 +1,7 @@
 /*  impl.c.thlii3: Threads Manager for Intel x86 systems with LinuxThreads
  *
  *  $Id$
- *  Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ *  Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This is a pthreads implementation of the threads manager.
  * This implements impl.h.th.

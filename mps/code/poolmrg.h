@@ -3,7 +3,7 @@
  *               MANUAL RANK GUARDIAN POOL CLASS
  *
  *  $Id$
- *  Copyright (C) 1995,1997 Harlequin Group, all rights reserved
+ *  Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #ifndef poolmrg_h

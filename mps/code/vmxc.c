@@ -1,7 +1,7 @@
 /* impl.c.vmxc: VIRTUAL MEMORY MAPPING FOR MacOS X
  *
  * $Id$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .design: design.mps.vm
  *

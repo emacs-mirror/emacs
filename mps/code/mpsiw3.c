@@ -4,7 +4,7 @@
  *
  *  $Id$
  *
- *  Copyright (C) 1996, 1997 Harlequin Group, all rights reserved
+ *  Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #include "mpm.h"

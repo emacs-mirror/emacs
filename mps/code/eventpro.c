@@ -1,5 +1,5 @@
 /* impl.c.eventpro: Event processing routines
- * Copyright (C) 1999 Harlequin Group plc.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * $Id$
  */

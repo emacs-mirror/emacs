@@ -1,7 +1,7 @@
 # impl.nmk.w3ppmv: WINDOWS (POWERPC) NMAKE FILE
 #
 # $Id$
-# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+# Copyright (c) 2001 Ravenbrook Limited.
 
 PFM = w3ppmv
 

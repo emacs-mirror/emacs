@@ -1,7 +1,7 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
  * $Id$
- * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #include "fmtdy.h"

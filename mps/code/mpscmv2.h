@@ -1,7 +1,7 @@
 /* impl.h.mpscmv2: MEMORY POOL SYSTEM CLASS "MVT"
  *
  * $Id$
- * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #ifndef mpscmv2_h

@@ -1,7 +1,7 @@
 /* impl.c.dumper: Simple Event Dumper
  *
  * $Id$
- * Copyright (C) 1997 Harlequin Group plc.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: MM developers.
  *

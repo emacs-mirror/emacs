@@ -1,7 +1,7 @@
 # impl.gmk.gc: GNUMAKEFILE FRAGMENT FOR GNU CC
 #
 # $Id$
-# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+# Copyright (c) 2001 Ravenbrook Limited.
 #
 # This file is included by platform makefiles that use the GNU CC
 # compiler.  It defines the compiler-specific variables that the

@@ -1,7 +1,7 @@
 # impl.gmk.gp: GNUMAKEFILE FRAGMENT FOR GNU CC/GPROF
 #
 # $Id$
-# Copyright (C) 1998 Harlequin Group plc, all rights reserved
+# Copyright (c) 2001 Ravenbrook Limited.
 #
 # This file is included by platform makefiles that use the GNU CC
 # compiler with gprof.  It defines the compiler specific variables 

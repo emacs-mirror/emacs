@@ -3,7 +3,7 @@
  *
  *  $Id$
  *
- *  Copyright (C) 1995 Harlequin Group, all rights reserved
+ *  Copyright (c) 2001 Ravenbrook Limited.
  *
  *  Provides a function for scanning the stack and registers
  *

@@ -1,7 +1,7 @@
 /* impl.h.mpslib: HARLEQUIN MEMORY POOL SYSTEM LIBRARY INTERFACE
  *
  * $Id$
- * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: MPS client application developers, MPS developers.
  * .sources: design.mps.lib

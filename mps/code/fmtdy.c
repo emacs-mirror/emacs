@@ -1,7 +1,7 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
  *  $Id$
- *  Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
+ *  Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: MPS developers, Dylan developers
  *

@@ -1,7 +1,7 @@
 /* impl.c.ld: LOCATION DEPENDENCY IMPLEMENTATION
  *
  * $Id$
- * Copyright (C) 1996 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .def: A location dependency records the fact that the bit-patterns
  * of some references will be used directly (most likely for

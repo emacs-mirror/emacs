@@ -1,7 +1,7 @@
 /* impl.h.mpscsnc: MEMORY POOL SYSTEM CLASS "SNC"
  *
  * $Id$
- * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #ifndef mpscsnc_h

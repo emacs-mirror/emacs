@@ -1,7 +1,7 @@
 /* impl.c.arenavmx: STUBS FOR ARENAVM
  *
  * $Id$
- * Copyright (C) 1999 Harlequin Group plc.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This file is not properly part of the MPS.  It is a
  * convenience file for EP-Core who do _not_ wish to get a link error,
