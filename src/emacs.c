@@ -409,18 +409,20 @@ main (argc, argv, envp)
 
   clearerr (stdin);
 
-#ifdef BSD_PGRPS
-  if (initialized)
+  if (! noninteractive1)
     {
-      inherited_pgroup = EMACS_GETPGRP (0);
-      setpgrp (0, getpid ());
-    }
+#ifdef BSD_PGRPS
+      if (initialized)
+	{
+	  inherited_pgroup = EMACS_GETPGRP (0);
+	  setpgrp (0, getpid ());
+	}
 #else
 #if defined (USG5) && defined (INTERRUPT_INPUT)
-  setpgrp ();
+      setpgrp ();
 #endif
 #endif
-
+    }
 
 #ifdef APOLLO
 #ifndef APOLLO_SR10
