@@ -345,7 +345,102 @@ Note:    it means the file has no messages in it.\n\^_")))
   (define-key rmail-mode-map "\177"   'scroll-down)
   (define-key rmail-mode-map "?"      'describe-mode)
   )
+
+(define-key rmail-mode-map [menu-bar] (make-sparse-keymap))
 
+(define-key rmail-mode-map [menu-bar classify]
+  (cons "Classify" (make-sparse-keymap "Classify")))
+
+(define-key rmail-mode-map [menu-bar classify output-inbox]
+  '("Output (inbox)" . rmail-output))
+
+(define-key rmail-mode-map [menu-bar classify output]
+  '("Output (Rmail)" . rmail-output-to-rmail-file))
+
+(define-key rmail-mode-map [menu-bar classify kill-label]
+  '("Kill Label" . rmail-kill-label))
+
+(define-key rmail-mode-map [menu-bar classify add-label]
+  '("Add Label" . rmail-add-label))
+
+(define-key rmail-mode-map [menu-bar summary]
+  (cons "Summary" (make-sparse-keymap "Summary")))
+
+(define-key rmail-mode-map [menu-bar summary labels]
+  '("By Labels" . rmail-summary-by-labels))
+
+(define-key rmail-mode-map [menu-bar summary recipients]
+  '("By Recipients" . rmail-summary-by-recipients))
+
+(define-key rmail-mode-map [menu-bar summary topic]
+  '("By Topic" . rmail-summary-by-topic))
+
+(define-key rmail-mode-map [menu-bar summary regexp]
+  '("By Regexp" . rmail-summary-by-regexp))
+
+(define-key rmail-mode-map [menu-bar summary all]
+  '("All" . rmail-summary))
+
+(define-key rmail-mode-map [menu-bar mail]
+  (cons "Mail" (make-sparse-keymap "Mail")))
+
+(define-key rmail-mode-map [menu-bar mail continue]
+  '("Continue" . rmail-continue))
+
+(define-key rmail-mode-map [menu-bar mail forward]
+  '("Forward" . rmail-forward))
+
+(define-key rmail-mode-map [menu-bar mail retry]
+  '("Retry" . rmail-retry-failure))
+
+(define-key rmail-mode-map [menu-bar mail reply]
+  '("Reply" . rmail-reply))
+
+(define-key rmail-mode-map [menu-bar mail mail]
+  '("Mail" . rmail-mail))
+
+(define-key rmail-mode-map [menu-bar delete]
+  (cons "Delete" (make-sparse-keymap "Delete")))
+
+(define-key rmail-mode-map [menu-bar delete expunge/save]
+  '("Expunge/Save" . rmail-expunge-and-save))
+
+(define-key rmail-mode-map [menu-bar delete expunge]
+  '("Expunge" . rmail-expunge))
+
+(define-key rmail-mode-map [menu-bar delete undelete]
+  '("Undelete" . rmail-undelete-previous-message))
+
+(define-key rmail-mode-map [menu-bar delete delete]
+  '("Delete" . rmail-delete-forward))
+
+(define-key rmail-mode-map [menu-bar move]
+  (cons "Move" (make-sparse-keymap "Move")))
+
+(define-key rmail-mode-map [menu-bar move search-back]
+  '("Search Back" . rmail-search-backward))
+
+(define-key rmail-mode-map [menu-bar move search]
+  '("Search" . rmail-search))
+
+(define-key rmail-mode-map [menu-bar move previous]
+  '("Previous Nondeleted" . rmail-previous-undeleted-message))
+
+(define-key rmail-mode-map [menu-bar move next]
+  '("Next Nondeleted" . rmail-next-undeleted-message))
+
+(define-key rmail-mode-map [menu-bar move last]
+  '("Last" . rmail-last-message))
+
+(define-key rmail-mode-map [menu-bar move first]
+  '("First" . rmail-first-message))
+
+(define-key rmail-mode-map [menu-bar move previous]
+  '("Previous" . rmail-previous-message))
+
+(define-key rmail-mode-map [menu-bar move next]
+  '("Next" . rmail-next-message))
+
 ;; Rmail mode is suitable only for specially formatted data.
 (put 'rmail-mode 'mode-class 'special)
 
@@ -1276,6 +1371,30 @@ or forward if N is negative."
          (save-excursion 
            (search-forward "*** EOOH ***" (point-max)) (point))))
     (re-search-forward regexp end t)))
+
+(defun rmail-search-backward (regexp &optional n)
+  "Show message containing next match for REGEXP.
+Prefix argument gives repeat count; negative argument means search
+backwards (through earlier messages).
+Interactively, empty argument means use same regexp used last time."
+  (interactive
+    (let* ((reversep (>= (prefix-numeric-value current-prefix-arg) 0))
+	   (prompt
+	    (concat (if reversep "Reverse " "") "Rmail search (regexp): "))
+	   regexp)
+      (if rmail-search-last-regexp
+	  (setq prompt (concat prompt
+			       "(default "
+			       rmail-search-last-regexp
+			       ") ")))
+      (setq regexp (read-string prompt))
+      (cond ((not (equal regexp ""))
+	     (setq rmail-search-last-regexp regexp))
+	    ((not rmail-search-last-regexp)
+	     (error "No previous Rmail search string")))
+      (list rmail-search-last-regexp
+	    (prefix-numeric-value current-prefix-arg))))
+  (rmail-search regexp (- n)))
 
 (defvar rmail-search-last-regexp nil)
 (defun rmail-search (regexp &optional n)
