@@ -23,7 +23,6 @@ In other words, you are welcome to use, share and improve this program.
 You are forbidden to forbid anyone else to use, share and improve
 what you give them.   Help stamp out software-hoarding!  */
 
-
 /*
  * unexec.c - Convert a running program into an a.out file.
  *
@@ -117,6 +116,7 @@ what you give them.   Help stamp out software-hoarding!  */
 /*
  * New modifications for Siemens Nixdorf's MIPS-based machines.
  * Marco.Walther@mch.sni.de
+ * marco@inreach.com
  *
  * The problem: Before the bss segment we have a so called sbss segment
  *              (small bss) and maybe an sdata segment. These segments
@@ -305,6 +305,9 @@ what you give them.   Help stamp out software-hoarding!  */
 #include <fcntl.h>
 #include <elf.h>
 #include <sys/mman.h>
+#include <assert.h>
+
+/* #define DEBUG */
 
 #ifndef emacs
 #define fatal(a, b, c) fprintf(stderr, a, b, c), exit(1)
@@ -382,6 +385,11 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   Elf32_Off  new_data3_offset;
   Elf32_Addr new_data2_addr;
   Elf32_Addr new_data3_addr;
+
+
+  Elf32_Addr old_rel_dyn_addr;
+  Elf32_Word old_rel_dyn_size;
+  int old_rel_dyn_index;
 
   Elf32_Word old_sdata_size, new_sdata_size;
   int old_sdata_index = 0;
@@ -463,6 +471,26 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (old_sbss_index != (old_bss_index - 1))
     fatal (".sbss should come immediately before .bss in %s.\n", old_name, 0);
 
+  /* Find the old .rel.dyn section.
+   */
+
+  for (old_rel_dyn_index = 1; old_rel_dyn_index < old_file_h->e_shnum;
+       old_rel_dyn_index++)
+    {
+#ifdef DEBUG
+      fprintf (stderr, "Looking for .rel.dyn - found %s\n",
+	       old_section_names + OLD_SECTION_H(old_rel_dyn_index).sh_name);
+#endif
+      if (!strcmp (old_section_names + OLD_SECTION_H(old_rel_dyn_index).sh_name,
+		   ".rel.dyn"))
+	break;
+    }
+  if (old_rel_dyn_index == old_file_h->e_shnum)
+    fatal ("Can't find .rel_dyn in %s.\n", old_name, 0);
+
+  old_rel_dyn_addr = OLD_SECTION_H(old_rel_dyn_index).sh_addr;
+  old_rel_dyn_size = OLD_SECTION_H(old_rel_dyn_index).sh_size;
+
   /* Figure out parameters of the new data3 and data2 sections.
    * Change the sbss and bss sections.
    */
@@ -516,6 +544,8 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   fprintf (stderr, "old_sbss_index %d\n", old_sbss_index);
   fprintf (stderr, "old_sbss_addr %x\n", old_sbss_addr);
   fprintf (stderr, "old_sbss_size %x\n", old_sbss_size);
+  fprintf (stderr, "old_rel_dyn_addr %x\n", old_rel_dyn_addr);
+  fprintf (stderr, "old_rel_dyn_size %x\n", old_rel_dyn_size);
   if (old_sdata_index)
     {
     fprintf (stderr, "old_sdata_size %x\n", old_sdata_size);
@@ -816,6 +846,61 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	    }
 	}
     }
+  {
+    Elf32_Rel *rel_p;
+    unsigned int old_data_addr_start;
+    unsigned int old_data_addr_end;
+    unsigned int old_data_offset;
+    unsigned int new_data_offset;
+    int i;
+
+    rel_p = (Elf32_Rel *)OLD_SECTION_H(old_rel_dyn_index).sh_addr;
+    old_data_addr_start = OLD_SECTION_H(old_data_index).sh_addr;
+    old_data_addr_end = old_data_addr_start +
+      OLD_SECTION_H(old_data_index).sh_size;
+    old_data_offset = (int)OLD_SECTION_H(old_data_index).sh_offset +
+      (unsigned int)old_base;
+    new_data_offset = (int)NEW_SECTION_H(old_data_index).sh_offset +
+      (unsigned int)new_base;
+
+#ifdef DEBUG
+    fprintf(stderr, "old_data.sh_addr= 0x%08x ... 0x%08x\n", old_data_addr_start,
+	    old_data_addr_end);
+#endif /* DEBUG */
+
+    for (i = 0; i < old_rel_dyn_size/sizeof(Elf32_Rel); i++)
+      {
+#ifdef DEBUG
+	fprintf(stderr, ".rel.dyn offset= 0x%08x  type= %d  sym= %d\n",
+		rel_p->r_offset, ELF32_R_TYPE(rel_p->r_info), ELF32_R_SYM(rel_p->r_info));
+#endif /* DEBUG */
+
+	if (rel_p->r_offset)
+	  {
+	    unsigned int offset;
+
+	    assert(old_data_addr_start <= rel_p->r_offset &&
+		   rel_p->r_offset <= old_data_addr_end);
+
+	    offset = rel_p->r_offset - old_data_addr_start;
+
+#ifdef DEBUG
+	    fprintf(stderr, "r_offset= 0x%08x  *r_offset= 0x%08x\n",
+		    rel_p->r_offset, *((int *)(rel_p->r_offset)));
+	    fprintf(stderr, "old     = 0x%08x  *old     =0x%08x\n",
+		    (old_data_offset + offset - (unsigned int)old_base),
+		    *((int *)(old_data_offset + offset)));
+	    fprintf(stderr, "new     = 0x%08x  *new     =0x%08x\n",
+		    (new_data_offset + offset - (unsigned int)new_base),
+		    *((int *)(new_data_offset + offset)));
+#endif /* DEBUG */
+
+	    *((int *)(new_data_offset + offset)) = *((int *)(old_data_offset + offset));
+	  }
+
+	rel_p++;
+      }
+  }
 
   /* Close the files and make the new file executable */
 
