@@ -5,7 +5,7 @@
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
 
-;; $Id: whitespace.el,v 1.19 2001/12/13 17:34:57 rv Exp $
+;; $Id: whitespace.el,v 1.20 2002/09/11 21:30:25 monnier Exp $
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -843,7 +843,7 @@ This is meant to be added buffer-locally to `write-file-functions'."
 
 (defun whitespace-unload-hook ()
   (remove-hook 'find-file-hook 'whitespace-buffer)
-  (remove-hook 'write-file-functions 'whitespace-write-file-hook nil t)
+  (remove-hook 'write-file-functions 'whitespace-write-file-hook t)
   (remove-hook 'kill-buffer-hook 'whitespace-buffer))
 
 (provide 'whitespace)
