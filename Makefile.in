@@ -111,16 +111,22 @@ srcdir=.
 # versions of Emacs will install themselves in separate directories.
 lispdir=${datadir}/emacs/${version}/lisp
 
+# Where to install the elisp files which are distributed with Emacs
+# but not maintained by the FSF.  This includes the Emacs version, so
+# that the lisp files for different versions of Emacs will install
+# themselves in separate directories.
+externallispdir=${datadir}/emacs/${version}/external-lisp
+
 # Directories Emacs should search for elisp files specific to this
 # site (i.e. customizations), before consulting ${lispdir}.  This
 # should be a colon-separated list of directories.
-locallisppath=${datadir}/emacs/local-lisp
+locallisppath=${datadir}/emacs/site-lisp
 
 # Where Emacs will search to find its elisp files.  Before changing
 # this, check to see if your purpose wouldn't better be served by
 # changing locallisppath.  This should be a colon-separated list of
 # directories.
-lisppath=${locallisppath}:${lispdir}
+lisppath=${locallisppath}:${lispdir}:${externallispdir}
 
 # Where Emacs will search for its elisp files while building.  This is
 # only used during the process of compiling Emacs, to help Emacs find
@@ -176,8 +182,8 @@ SUBDIR_MAKEFILES = lib-src/Makefile src/Makefile
 # When installing the info files, we need to do special things to
 # avoid nuking an existing dir file, so we don't do that here;
 # instead, we have written out explicit code in the `install' targets.
-COPYDIR = etc ${srcdir}/lisp
-COPYDESTS = ${etcdir} ${lispdir}
+COPYDIR = etc ${srcdir}/lisp ${srcdir}/external-lisp
+COPYDESTS = ${etcdir} ${lispdir} ${externallispdir}
 
 all:	src/paths.h ${SUBDIR}
 
@@ -206,7 +212,7 @@ src:	lib-src
 
 ${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
 	cd $@; $(MAKE) all ${MFLAGS} \
-		CC='${CC}' CFLAGS='${CFLAGS}' \
+		CC='${CC}' CONFIG_CFLAGS='${CONFIG_CFLAGS}' \
 		srcdir='${srcdir}/$@' libdir='${libdir}'
 
 ## We build the makefiles for the subdirectories here so that we can
