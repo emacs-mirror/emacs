@@ -1147,8 +1147,8 @@ mouse_get_pos (f, bar_window, part, x, y, time)
   *f = selected_frame;
   *bar_window = Qnil;
   gettimeofday (&tv, NULL);
-  *x = make_number (regs.x.cx);
-  *y = make_number (regs.x.dx);
+  *x = make_number (regs.x.cx / 8);
+  *y = make_number (regs.x.dx / 8);
   *time = tv.tv_usec;
   mouse_moved = 0;
 }
@@ -1174,9 +1174,22 @@ mouse_init1 ()
   union REGS regs;
   int present;
 
+  if (!internal_terminal)
+    return 0;
+
   regs.x.ax = 0x0021;
   int86 (0x33, &regs, &regs);
-  present = internal_terminal && (regs.x.ax & 0xffff) == 0xffff;
+  present = (regs.x.ax & 0xffff) == 0xffff;
+  if (!present)
+    {
+      /* Reportedly, the above doesn't work for some mouse drivers.  There
+	 is an additional detection method that should work, but might be
+	 a little slower.  Use that as an alternative.  */
+      regs.x.ax = 0x0000;
+      int86 (0x33, &regs, &regs);
+      present = (regs.x.ax & 0xffff) == 0xffff;
+    }
+
   if (present)
     {
       if (regs.x.bx == 3)
