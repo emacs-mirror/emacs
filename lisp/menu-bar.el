@@ -654,6 +654,11 @@ PROPS are additional properties."
 (define-key menu-bar-options-menu [custom-separator]
   '("--"))
 
+(define-key menu-bar-options-menu [mouse-set-font]
+  '(menu-item "Set Font/Fontset" mouse-set-font
+	       :visible (display-multi-font-p)
+	       :help "Select a font from list of known fonts/fontsets"))
+
 ;; The "Show/Hide" submenu of menu "Options"
 
 (defvar menu-bar-showhide-menu (make-sparse-keymap "Show/Hide"))
