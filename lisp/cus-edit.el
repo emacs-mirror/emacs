@@ -3447,15 +3447,21 @@ to the new custom file.  This will preserve your existing customizations."
 
 (defun custom-file ()
   "Return the file name for saving customizations."
-  (if (and (null user-init-file)
-	   (or (file-exists-p "~/.emacs")
-	       (and (memq system-type '(ms-dos windows-nt))
-		    (file-exists-p "~/_emacs"))))
-      ;; Started with -q, i.e. the file containing Custom settings
-      ;; hasn't been read.  Saving settings there would overwrite
-      ;; other settings.
-      (error "Saving settings when running -q would overwrite existing settings")
-    (setq custom-file (or custom-file user-init-file))))
+  (setq custom-file
+	(or custom-file
+	    (let ((user-init-file user-init-file)
+		  (default-init-file
+		    (if (eq system-type 'ms-dos) "~/_emacs" "~/.emacs")))
+	      (when (null user-init-file)
+		(if (or (file-exists-p default-init-file)
+			(and (eq system-type 'windows-nt)
+			     (file-exists-p "~/_emacs")))
+		    ;; Started with -q, i.e. the file containing
+		    ;; Custom settings hasn't been read.  Saving
+		    ;; settings there would overwrite other settings.
+		    (error "Saving settings from \"emacs -q\" would overwrite existing customizations"))
+		(setq user-init-file default-init-file))
+	      user-init-file))))
 
 (defun custom-save-delete (symbol)
   "Visit `custom-file' and delete all calls to SYMBOL from it.
