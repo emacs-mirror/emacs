@@ -353,11 +353,11 @@ previously with @code{add-untranslated-filesystem}.
 @section Printing and MS-DOS
 
   Printing commands, such as @code{lpr-buffer} (@pxref{Hardcopy}) and
-@code{ps-print-buffer} (@pxref{Postscript}) can work in MS-DOS and
+@code{ps-print-buffer} (@pxref{PostScript}) can work in MS-DOS and
 MS-Windows by sending the output to one of the printer ports, if a
 Unix-style @code{lpr} program is unavailable.  This behaviour is
 controlled by the same variables that control printing with @code{lpr}
-on Unix (@pxref{Hardcopy}, @pxref{Postscript Variables}), but the
+on Unix (@pxref{Hardcopy}, @pxref{PostScript Variables}), but the
 defaults for these variables on MS-DOS and MS-Windows are not the same
 as the defaults on Unix.
 
@@ -423,7 +423,7 @@ when @code{lpr-command} is not @code{""}.  If the variable
 @vindex ps-lpr-command @r{(MS-DOS)}
 @vindex ps-lpr-switches @r{(MS-DOS)}
   A parallel set of variables, @code{ps-lpr-command},
-@code{ps-lpr-switches}, and @code{ps-printer-name} (@pxref{Postscript
+@code{ps-lpr-switches}, and @code{ps-printer-name} (@pxref{PostScript
 Variables}), defines how PostScript files should be printed.  These
 variables are used in the same way as the corresponding variables
 described above for non-PostScript printing.  Thus, the value of
@@ -633,7 +633,7 @@ Processes}.
 
 @cindex printing under MS-DOS
   Printing commands, such as @code{lpr-buffer} (@pxref{Hardcopy}) and
-@code{ps-print-buffer} (@pxref{Postscript}), work in MS-DOS by sending
+@code{ps-print-buffer} (@pxref{PostScript}), work in MS-DOS by sending
 the output to one of the printer ports.  @xref{MS-DOS Printing}.
 
   When you run a subprocess synchronously on MS-DOS, make sure the
