@@ -2243,7 +2243,7 @@ handle_display_prop (it)
 }
 
 
-/* Value is the position of the end of the `display' property stating
+/* Value is the position of the end of the `display' property starting
    at START_POS in OBJECT.  */
 
 static struct text_pos
@@ -2254,27 +2254,14 @@ display_prop_end (it, object, start_pos)
 {
   Lisp_Object end;
   struct text_pos end_pos;
-  
-  /* Characters having this form of property are not displayed, so
-     we have to find the end of the property.  */
-  end = Fnext_single_property_change (make_number (start_pos.charpos),
-				      Qdisplay, object, Qnil);
-  if (NILP (end))
-    {
-      /* A nil value of `end' means there are no changes of the
-	 property to the end of the buffer or string.  */
-      if (it->current.overlay_string_index >= 0)
-	end_pos.charpos = XSTRING (it->string)->size;
-      else
-	end_pos.charpos = it->end_charpos;
-    }
-  else
-    end_pos.charpos = XFASTINT (end);
 
-  if (STRINGP (it->string))
+  end = next_single_char_property_change (make_number (CHARPOS (start_pos)),
+					  Qdisplay, object, Qnil);
+  CHARPOS (end_pos) = XFASTINT (end);
+  if (STRINGP (object))
     compute_string_pos (&end_pos, start_pos, it->string);
   else
-    end_pos.bytepos = CHAR_TO_BYTE (end_pos.charpos);
+    BYTEPOS (end_pos) = CHAR_TO_BYTE (XFASTINT (end));
 
   return end_pos;
 }
@@ -4430,10 +4417,9 @@ invisible_text_between_p (it, start_charpos, end_charpos)
     invisible_found_p = 1;
   else
     {
-      limit = Fnext_single_property_change (make_number (start_charpos),
-					    Qinvisible,
-					    Fcurrent_buffer (),
-					    make_number (end_charpos));
+      limit = next_single_char_property_change (make_number (start_charpos),
+						Qinvisible, Qnil,
+						make_number (end_charpos));
       invisible_found_p = XFASTINT (limit) < end_charpos;
     }
 
