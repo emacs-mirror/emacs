@@ -70,6 +70,7 @@
 
 (let ((map			; JIS		vs	CP932
        '((#x301C . #xFF5E)	; WAVE DASH		FULLWIDTH TILDE
+	 (#x2014 . #x2015)	; EM DASH		HORIZONTAL BAR
 	 (#x2016 . #x2225)	; DOUBLE VERTICAL LINE	PARALLEL TO
 	 (#x2212 . #xFF0D)	; MINUS SIGN		FULLWIDTH HYPHEN-MINUS
 	 (#x00A2 . #xFFE0)	; CENT SIGN		FULLWIDTH CENT SIGN
@@ -77,17 +78,15 @@
 	 (#x00AC . #xFFE2)	; NOT SIGN		FULLWIDTH NOT SIGN
 	 (#x00A6 . #xFFE4)	; BROKEN LINE		FULLWIDTH BROKEN LINE
 	 )))
-  (define-translation-table 'japanese-ucs-cp932-map map)
+  (define-translation-table 'japanese-ucs-cp932-to-jis-map map)
   (mapc #'(lambda (x) (let ((tmp (car x)))
 			(setcar x (cdr x)) (setcdr x tmp)))
 	map)
-  (define-translation-table 'japanese-ucs-jis-map map)
-  (define-translation-table 'japanese-ucs-glibc-map map))
+  (define-translation-table 'japanese-ucs-jis-to-cp932-map map))
 
 ;; U+2014 (EM DASH) vs U+2015 (HORIZONTAL BAR)
-(aset (get 'japanese-ucs-cp932-map 'translation-table) #x2014 #x2015)
-(aset (get 'japanese-ucs-jis-map 'translation-table)   #x2015 #x2014)
-(aset (get 'japanese-ucs-glibc-map 'translation-table) #x2014 #x2015)
+(define-translation-table 'japanese-ucs-glibc-to-jis-map '((#x2015 . #x2014)))
+(define-translation-table 'japanese-ucs-jis-to-glibc-map '((#x2014 . #x2015)))
 
 (define-coding-system 'japanese-shift-jis
   "Shift-JIS 8-bit encoding for Japanese (MIME:SHIFT_JIS)"
