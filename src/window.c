@@ -1265,14 +1265,27 @@ window_loop (type, obj, mini, frames)
 	      {
 		/* Find another buffer to show in this window.  */
 		Lisp_Object another_buffer;
+		FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (w)));
 		another_buffer = Fother_buffer (obj, Qnil);
 		if (NILP (another_buffer))
 		  another_buffer
 		    = Fget_buffer_create (build_string ("*scratch*"));
-		XWINDOW (w)->dedicated = Qnil;
-		Fset_window_buffer (w, another_buffer);
-		if (EQ (w, selected_window))
-		  Fset_buffer (XWINDOW (w)->buffer);
+#ifdef MULTI_FRAME
+		/* If this window is dedicated, and in a frame of its own,
+		   kill the frame.  */
+		if (EQ (w, FRAME_ROOT_WINDOW (f))
+		    && XWINDOW (w)->dedicated
+		    && other_visible_frames (f))
+		  Fdelete_frame (WINDOW_FRAME (XWINDOW (w)), Qnil);
+		else
+#endif
+		  {
+		    /* Otherwise show a different buffer in the window.  */
+		    XWINDOW (w)->dedicated = Qnil;
+		    Fset_window_buffer (w, another_buffer);
+		    if (EQ (w, selected_window))
+		      Fset_buffer (XWINDOW (w)->buffer);
+		  }
 	      }
 	    break;
 	  }
