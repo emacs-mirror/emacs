@@ -1,6 +1,6 @@
 ;;; m4-mode.el --- m4 code editing commands for Emacs
 
-;;; Copyright (C) 1996 Free Software Foundation, Inc.
+;;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Andrew Csillag <drew@staff.prodigy.com>
 ;; Maintainer: Andrew Csillag <drew@staff.prodigy.com>
@@ -43,27 +43,39 @@
 ;; (setq auto-mode-alist 
 ;;	 (cons '(".*\\.m4$" . m4-mode)
 ;;	       auto-mode-alist))
-
 ;;; Thanks: 
 ;;;         to Akim Demaille and Terry Jones for the bug reports
+;;;         to Simon Marshall for the regexp tip
+;;;         to Martin Buchholz for some general fixes
 
 ;;; Code:
 
-;;path to the m4 program
-(defvar m4-program "/usr/local/bin/m4")
+(defvar m4-program 
+  (cond 
+   ((file-exists-p "/usr/local/bin/m4") "/usr/local/bin/m4")
+   ((file-exists-p "/usr/bin/m4") "/usr/bin/m4")
+   ((file-exists-p "/bin/m4") "/bin/m4")
+   ((file-exists-p "/usr/ccs/bin/m4") "/usr/ccs/bin/m4")
+   )
+  "File name of the m4 executable.")
 
-;;thank god for make-regexp.el!
+;;options to m4
+(defconst m4-program-options nil)
+;;to use --prefix-builtins, you can use
+;;(defconst m4-program-options '("-P"))
+;;or
+;;(defconst m4-program-options '("--prefix-builtins"))
+
 (defvar m4-font-lock-keywords
   `(
-    ("^\\\#.*" . font-lock-comment-face)
-    ("\\\$\\\*" . font-lock-variable-name-face)
-    ("\\\$[0-9]" . font-lock-variable-name-face)
-    ("\\\$\\\#" . font-lock-variable-name-face)
+    ("\\(\\b\\(m4_\\)?dnl\\b\\|^\\#\\).*$" . font-lock-comment-face)
+;    ("\\(\\bdnl\\b\\|\\bm4_dnl\\b\\|^\\#\\).*$" . font-lock-comment-face)
+    ("\\$[*#@0-9]" . font-lock-variable-name-face)
     ("\\\$\\\@" . font-lock-variable-name-face)
     ("\\\$\\\*" . font-lock-variable-name-face)
     ("\\b\\(builtin\\|change\\(com\\|quote\\|word\\)\\|d\\(e\\(bug\\(file\\|mode\\)\\|cr\\|f\\(ine\\|n\\)\\)\\|iv\\(ert\\|num\\)\\|nl\\|umpdef\\)\\|e\\(rrprint\\|syscmd\\|val\\)\\|f\\(ile\\|ormat\\)\\|gnu\\|i\\(f\\(def\\|else\\)\\|n\\(c\\(lude\\|r\\)\\|d\\(ex\\|ir\\)\\)\\)\\|l\\(en\\|ine\\)\\|m\\(4\\(exit\\|wrap\\)\\|aketemp\\)\\|p\\(atsubst\\|opdef\\|ushdef\\)\\|regexp\\|s\\(hift\\|include\\|ubstr\\|ys\\(cmd\\|val\\)\\)\\|tra\\(ceo\\(ff\\|n\\)\\|nslit\\)\\|un\\(d\\(efine\\|ivert\\)\\|ix\\)\\)\\b" . font-lock-keyword-face)
     ("\\b\\(m4_\\(builtin\\|change\\(com\\|quote\\|word\\)\\|d\\(e\\(bug\\(file\\|mode\\)\\|cr\\|f\\(ine\\|n\\)\\)\\|iv\\(ert\\|num\\)\\|nl\\|umpdef\\)\\|e\\(rrprint\\|syscmd\\|val\\)\\|f\\(ile\\|ormat\\)\\|i\\(f\\(def\\|else\\)\\|n\\(c\\(lude\\|r\\)\\|d\\(ex\\|ir\\)\\)\\)\\|l\\(en\\|ine\\)\\|m\\(4\\(_undefine\\|exit\\|wrap\\)\\|aketemp\\)\\|p\\(atsubst\\|opdef\\|ushdef\\)\\|regexp\\|s\\(hift\\|include\\|ubstr\\|ys\\(cmd\\|val\\)\\)\\|tra\\(ceo\\(ff\\|n\\)\\|nslit\\)\\|undivert\\)\\)\\b" . font-lock-keyword-face)
-    "default font-lock-keywords")
+    "Default font-lock-keywords for m4 mode.")
 )
 
 ;;this may still need some work
@@ -79,6 +91,7 @@
 (modify-syntax-entry ?*  "w" m4-mode-syntax-table)
 (modify-syntax-entry ?_  "w" m4-mode-syntax-table)
 (modify-syntax-entry ?\"  "w" m4-mode-syntax-table)
+(modify-syntax-entry ?\"  "w" m4-mode-syntax-table)
 
 (defvar m4-mode-map
   (let ((map (make-sparse-keymap)))
@@ -87,23 +100,33 @@
     (define-key map "\C-c\C-c" 'comment-region)
     map))
 
+(defun m4-end-m4 (process event)
+  (cond ((equal event "kill\n") (princ "m4 process done"))
+	(t (princ
+	    (format "Process: %s had the event `%s'" process event)))))
+
+(defun m4-start-m4 ()
+  (eval (append (append '(start-process "m4process" "*m4 output*" m4-program)
+		m4-program-options) '("-e")))
+  (set-process-sentinel (get-process "m4process") 'm4-end-m4))
+
 (defun m4-m4-buffer ()
   "send contents of the current buffer to m4"
   (interactive)
-  (start-process "m4process" "*m4 output*" m4-program "-e")
+  (m4-start-m4)
   (process-send-region "m4process" (point-min) (point-max))
   (process-send-eof "m4process")
-  (switch-to-buffer "*m4 output*")
-)
+  (switch-to-buffer-other-window "*m4 output*")
+  (delete-process "m4process"))
+
 
 (defun m4-m4-region ()
   "send contents of the current region to m4"
   (interactive)
-  (start-process "m4process" "*m4 output*" m4-program "-e")
+  (m4-start-m4)
   (process-send-region "m4process" (point) (mark))
   (process-send-eof "m4process")
-  (switch-to-buffer "*m4 output*")
-)
+  (switch-to-buffer-other-window "*m4 output*"))
 
 (defun m4-mode ()
   "A major-mode to edit m4 macro files
@@ -122,7 +145,7 @@
   (make-local-variable	'font-lock-defaults)  
   (setq major-mode 'm4-mode
 	mode-name "m4"
-	font-lock-defaults `(m4-font-lock-keywords nil)
+	font-lock-defaults '(m4-font-lock-keywords nil)
 	)
   (set-syntax-table m4-mode-syntax-table)
   (run-hooks 'm4-mode-hook))
