@@ -532,6 +532,8 @@ static int font_list P_ ((struct frame *, Lisp_Object, Lisp_Object,
 			  Lisp_Object, struct font_name **));
 static int try_font_list P_ ((struct frame *, Lisp_Object *, 
 			      Lisp_Object, Lisp_Object, struct font_name **));
+static int try_alternative_families P_ ((struct frame *f, Lisp_Object,
+					 Lisp_Object, struct font_name **));
 static int cmp_font_names P_ ((const void *, const void *));
 static struct face *realize_face P_ ((struct face_cache *, Lisp_Object *, int,
 				      struct face *, int));
@@ -5786,6 +5788,44 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio)
 }
 
 
+/* Get a list of matching fonts on frame F, considering alterntive
+   font families from Vface_alternative_font_registry_alist.
+
+   FAMILY is the font family whose alternatives are considered.
+
+   REGISTRY, if a string, specifies a font registry and encoding to
+   match.  A value of nil means include fonts of any registry and
+   encoding.
+   
+   Return in *FONTS a pointer to a vector of font_name structures for
+   the fonts matched.  Value is the number of fonts found.  */
+
+static int
+try_alternative_families (f, family, registry, fonts)
+     struct frame *f;
+     Lisp_Object family, registry;
+     struct font_name **fonts;
+{
+  Lisp_Object alter;
+  int nfonts = 0;
+
+  /* Try alternative font families.  */
+  alter = Fassoc (family, Vface_alternative_font_family_alist);
+  if (CONSP (alter))
+    {
+      for (alter = XCDR (alter);
+	   CONSP (alter) && nfonts == 0;
+	   alter = XCDR (alter))
+	{
+	  if (STRINGP (XCAR (alter)))
+	    nfonts = font_list (f, Qnil, XCAR (alter), registry, fonts);
+	}
+    }
+
+  return nfonts;
+}
+
+
 /* Get a list of matching fonts on frame F.
 
    FAMILY, if a string, specifies a font family.  If nil, use
@@ -5805,41 +5845,39 @@ try_font_list (f, attrs, family, registry, fonts)
      Lisp_Object family, registry;
      struct font_name **fonts;
 {
-  int nfonts;
+  int nfonts = 0;
 
-  if (NILP (family) && STRINGP (attrs[LFACE_FAMILY_INDEX]))
-    family = attrs[LFACE_FAMILY_INDEX];
-
-  nfonts = font_list (f, Qnil, family, registry, fonts);
-  if (nfonts == 0 && !NILP (family))
+  if (STRINGP (attrs[LFACE_FAMILY_INDEX]))
     {
-      Lisp_Object alter;
-
-      /* Try alternative font families.  */
-      alter = Fassoc (family, Vface_alternative_font_family_alist);
-      if (CONSP (alter))
-	for (alter = XCDR (alter);
-	     CONSP (alter) && nfonts == 0;
-	     alter = XCDR (alter))
-	  {
-	    if (STRINGP (XCAR (alter)))
-	      nfonts = font_list (f, Qnil, XCAR (alter), registry, fonts);
-	  }
-
-      /* Try font family of the default face or "fixed".  */
+      Lisp_Object face_family;
+      face_family = attrs[LFACE_FAMILY_INDEX];
+      nfonts = font_list (f, Qnil, face_family, registry, fonts);
       if (nfonts == 0)
+	nfonts = try_alternative_families (f, face_family, registry, fonts);
+    }
+
+  if (nfonts == 0)
+    {
+      nfonts = font_list (f, Qnil, family, registry, fonts);
+      if (nfonts == 0 && !NILP (family))
 	{
-	  struct face *dflt = FACE_FROM_ID (f, DEFAULT_FACE_ID);
-	  if (dflt)
-	    family = dflt->lface[LFACE_FAMILY_INDEX];
-	  else
-	    family = build_string ("fixed");
-	  nfonts = font_list (f, Qnil, family, registry, fonts);
-	}
+	  nfonts = try_alternative_families (f, family, registry, fonts);
 
-      /* Try any family with the given registry.  */
-      if (nfonts == 0)
-	nfonts = font_list (f, Qnil, Qnil, registry, fonts);
+	  /* Try font family of the default face or "fixed".  */
+	  if (nfonts == 0)
+	    {
+	      struct face *default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+	      if (default_face)
+		family = default_face->lface[LFACE_FAMILY_INDEX];
+	      else
+		family = build_string ("fixed");
+	      nfonts = font_list (f, Qnil, family, registry, fonts);
+	    }
+
+	  /* Try any family with the given registry.  */
+	  if (nfonts == 0)
+	    nfonts = font_list (f, Qnil, Qnil, registry, fonts);
+	}
     }
 
   return nfonts;
@@ -5891,16 +5929,10 @@ choose_face_font (f, attrs, fontset, c)
       xassert (!SINGLE_BYTE_CHAR_P (c));
       return NULL;
     }
+  
   /* If what we got is a name pattern, return it.  */
   if (STRINGP (pattern))
     return xstrdup (XSTRING (pattern)->data);
-
-  /* Family name may be specified both in ATTRS and car part of
-     PATTERN.  The former has higher priority if C is a single byte
-     character.  */
-  if (STRINGP (attrs[LFACE_FAMILY_INDEX])
-      && SINGLE_BYTE_CHAR_P (c))
-    XCAR (pattern) = Qnil;
 
   /* Get a list of fonts matching that pattern and choose the
      best match for the specified face attributes from it.  */
