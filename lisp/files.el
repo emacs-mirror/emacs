@@ -2497,7 +2497,7 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 
 (defcustom after-save-hook nil
   "Normal hook that is run after a buffer is saved to its file."
-  :options '(make-buffer-file-executable-if-script-p)
+  :options '(executable-make-buffer-file-executable-if-script-p)
   :type 'hook
   :group 'files)
 
