@@ -127,6 +127,7 @@ to which the end of the previous line belongs, or the end of the buffer."
 	       (re-search-backward "^\n" (max (1- (point)) (point-min)) t)
 	       (looking-at paragraph-separate))
 	  nil
+	(setq start (point))
 	;; Move back over paragraph-separating lines.
 	(forward-char -1) (beginning-of-line)
 	(while (and (not (bobp))
@@ -140,13 +141,22 @@ to which the end of the previous line belongs, or the end of the buffer."
 	  ;; Search back for line that starts or separates paragraphs.
 	  (if (if fill-prefix-regexp
 		  ;; There is a fill prefix; it overrides paragraph-start.
-		  (progn
+		  (let (multiple-lines)
 		    (while (and (progn (beginning-of-line) (not (bobp)))
 				(progn (move-to-left-margin)
 				       (not (looking-at paragraph-separate)))
 				(looking-at fill-prefix-regexp))
+		      (if (not (= (point) start))
+			  (setq multiple-lines t))
 		      (forward-line -1))
-		   (not (bobp)))
+		    (move-to-left-margin)
+		    ;; Don't move back over a line before the paragraph
+		    ;; which doesn't start with fill-prefix
+		    ;; unless that is the only line we've moved over.
+		    (and (not (looking-at fill-prefix-regexp))
+			 multiple-lines
+			 (forward-line 1))
+		    (not (bobp)))
 		(while (and (re-search-backward sp-paragraph-start nil 1)
 			    ;; Found a candidate, but need to check if it is a
 			    ;; REAL paragraph-start.
