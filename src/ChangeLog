@@ -5,6 +5,9 @@
 
 2003-05-31  Kenichi Handa  <handa@m17n.org>
 
+	* buffer.c (Fset_buffer_multibyte): Correctly recover a narrowed
+	region when a buffer is changed to unibyte.
+
 	* charset.h (VALID_LEADING_CODE_P): New macro.
 	(UNIBYTE_STR_AS_MULTIBYTE_P): Check more rigidly.
 
