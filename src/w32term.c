@@ -6037,9 +6037,13 @@ glyph_to_pixel_coords (w, hpos, vpos, frame_x, frame_y)
   return success_p;
 }
 
+/* Parse a button MESSAGE. The button index is returned in PBUTTON, and
+   the state in PUP. XBUTTON provides extra information for extended mouse
+   button messages. Returns FALSE if unable to parse the message.  */
 BOOL 
-parse_button (message, pbutton, pup)
+parse_button (message, xbutton, pbutton, pup)
      int message;
+     int xbutton;
      int * pbutton;
      int * pup;
 {
@@ -6084,6 +6088,14 @@ parse_button (message, pbutton, pup)
 	button = 1;
       up = 1;
       break;
+    case WM_XBUTTONDOWN:
+      button = xbutton + 2;
+      up = 0;
+      break;
+    case WM_XBUTTONUP:
+      button = xbutton + 2;
+      up = 1;
+      break;
     default:
       return (FALSE);
     }
@@ -6109,7 +6121,8 @@ construct_mouse_click (result, msg, f)
   int button;
   int up;
 
-  parse_button (msg->msg.message, &button, &up);
+  parse_button (msg->msg.message, HIWORD (msg->msg.wParam),
+		&button, &up);
 
   /* Make the event type no_event; we'll change that when we decide
      otherwise.  */
@@ -8661,6 +8674,8 @@ w32_read_socket (sd, bufp, numchars, expected)
 	case WM_MBUTTONUP:
 	case WM_RBUTTONDOWN:
 	case WM_RBUTTONUP:
+	case WM_XBUTTONDOWN:
+	case WM_XBUTTONUP:
 	  {
             /* If we decide we want to generate an event to be seen
                by the rest of Emacs, we put it here.  */
@@ -8712,8 +8727,9 @@ w32_read_socket (sd, bufp, numchars, expected)
                     }
 	      }
 	    
-	    parse_button (msg.msg.message, &button, &up);
-	    
+	    parse_button (msg.msg.message, HIWORD (msg.msg.wParam),
+			  &button, &up);
+
 	    if (up)
 	      {
 		dpyinfo->grabbed &= ~ (1 << button);
