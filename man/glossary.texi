@@ -614,6 +614,12 @@ Keyboard macros are a way of defining new Emacs commands from
 sequences of existing ones, with no need to write a Lisp program.
 @xref{Keyboard Macros}.
 
+@cindex keyboard shortcuts
+@item Keyboard Shortcut
+A keyboard shortcut is a key sequence (q.v.@:) which invokes a
+command.  What other programs call ``assign a keyboard shortcut''
+Emacs calls ``bind a key sequence''.  See `binding.'
+
 @item Key Sequence
 A key sequence (key, for short) is a sequence of input events (q.v.@:)
 that are meaningful as a single unit.  If the key sequence is enough to
