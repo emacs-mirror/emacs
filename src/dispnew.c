@@ -928,7 +928,12 @@ direct_output_forward_char (n)
   register FRAME_PTR frame = selected_frame;
   register struct window *w = XWINDOW (selected_window);
   int position;
-  
+  int hpos = FRAME_CURSOR_X (frame);
+
+  /* Give up if in truncated text at end of line.  */
+  if (hpos >= XFASTINT (w->left) + window_internal_width (w) - 1)
+    return 0;
+
   /* Avoid losing if cursor is in invisible text off left margin
      or about to go off either side of window.  */
   if ((FRAME_CURSOR_X (frame) == XFASTINT (w->left)
@@ -1959,8 +1964,9 @@ Emacs was built without floating point support.\n\
 /* This is just like wait_reading_process_input, except that
    it does the redisplay.
 
-   It's also just like Fsit_for, except that it can be used for
-   waiting for input as well.  */
+   It's also much like Fsit_for, except that it can be used for
+   waiting for input as well.  One differnce is that sit_for
+   does not call prepare_menu_bars; Fsit_for does call that.  */
 
 Lisp_Object
 sit_for (sec, usec, reading, display)
@@ -2051,6 +2057,8 @@ Value is t if waited the full time with no input arriving.")
     error ("millisecond `sit-for' not supported on %s", SYSTEM_TYPE);
 #endif
 
+  if (NILP (nodisp))
+    prepare_menu_bars ();
   return sit_for (sec, usec, 0, NILP (nodisp));
 }
 
