@@ -182,7 +182,7 @@ To save places automatically in all files, put this in your `.emacs' file:
           ;; and make sure it will be saved again for later
           (setq save-place t)))))
 
-(defun save-place-kill-emacs-hook
+(defun save-place-kill-emacs-hook ()
   (save-places-to-alist)
   (save-place-alist-to-file))
 
