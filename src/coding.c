@@ -1594,9 +1594,8 @@ emacs_mule_char (coding, src, nbytes, nchars)
 
     case 1:
       code = c;
-      charset = CHARSET_FROM_ID (ASCII_BYTE_P (code) ? charset_ascii
-				 : code < 0xA0 ? charset_8_bit_control
-				 : charset_8_bit_graphic);
+      charset = CHARSET_FROM_ID (ASCII_BYTE_P (code)
+				 ? charset_ascii : charset_eight_bit);
       break;
 
     default:
@@ -4279,7 +4278,10 @@ encode_coding_raw_text (coding)
 
 		CHAR_STRING_ADVANCE (c, p1);
 		while (p0 < p1)
-		  EMIT_ONE_BYTE (*p0);
+		  {
+		    EMIT_ONE_BYTE (*p0);
+		    p0++;
+		  }
 	      }
 	  }
       else
@@ -5789,7 +5791,7 @@ make_conversion_work_buffer (multibytep)
   set_buffer_internal (XBUFFER (buf));
   current_buffer->undo_list = Qt;
   Ferase_buffer ();
-  Fset_buffer_multibyte (multibytep ? Qt : Qnil);
+  Fset_buffer_multibyte (multibytep ? Qt : Qnil, Qnil);
   set_buffer_internal (current);
   return buf;
 }
