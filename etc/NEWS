@@ -582,9 +582,9 @@ specified table.
   (with-syntax-table TABLE &rest BODY)
 
 Evaluate BODY with syntax table of current buffer set to a copy of
-TABLE.  Point, mark, current buffer, and syntax table are saved, BODY
-is evaluated, and the saved values are restored, even in case of an
-abnormal exit.  Value is what BODY returns.
+TABLE.  The current syntax table is saved, BODY is evaluated, and the
+saved table is restored, even in case of an abnormal exit.  Value is
+what BODY returns.
 
 ** The optional argument BUFFER of function file-local-copy has been
 removed since it wasn't used by anything.
