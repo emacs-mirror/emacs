@@ -220,10 +220,11 @@ for \\[find-tag] (which see)."
 ;; that we will not need to keep permanently.
 (garbage-collect)
 
-;; Make Latin-1, Latin-2 and Latin-3 characters self-insert.
-(set-char-table-range (nth 1 global-map) [129] 'self-insert-command)
-(set-char-table-range (nth 1 global-map) [130] 'self-insert-command)
-(set-char-table-range (nth 1 global-map) [131] 'self-insert-command)
+;; Make Latin-1, Latin-2, Latin-3 and Latin-4 characters self-insert.
+(aset (nth 1 global-map) (make-char 'latin-iso8859-1) 'self-insert-command)
+(aset (nth 1 global-map) (make-char 'latin-iso8859-2) 'self-insert-command)
+(aset (nth 1 global-map) (make-char 'latin-iso8859-3) 'self-insert-command)
+(aset (nth 1 global-map) (make-char 'latin-iso8859-4) 'self-insert-command)
 
 (define-key ctl-x-map "n" (make-sparse-keymap))
 (define-key ctl-x-map "r" (make-sparse-keymap))
