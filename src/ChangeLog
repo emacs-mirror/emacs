@@ -1,5 +1,13 @@
 2004-11-02  Kim F. Storm  <storm@cua.dk>
 
+	* Makefile.in (callproc.o): Depend on blockinput.h atimer.h systime.h.
+
+2004-11-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* callproc.c (Fcall_process): Block input around vfork.
+
+2004-11-02  Kim F. Storm  <storm@cua.dk>
+
 	* eval.c (Fcalled_interactively_p): Rename from Fcall_interactive_p.
 	(syms_of_eval): Defsubr it.
 
