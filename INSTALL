@@ -511,34 +511,55 @@ problems sometimes encountered, and what to do about them.
 Installation on MSDOG (a.k.a. MSDOS)
 
 To install on MSDOG, you need to have the GNU C compiler for MSDOG
-(also known as djgpp), GNU Make, rm, mv, chmod, and sed.  See the
-remarks in config.bat for more information about locations and
-versions.
+(also known as djgpp), GNU Make, rm, mv, and sed.  See the remarks in
+config.bat for more information about locations and versions.  The
+file etc/FAQ includes pointers to Internet sites where you can find
+the necessary utilities; search for "MS-DOS".  The configuration step
+(see below) will test for these utilities and will refuse to continue
+if any of them isn't found.
 
-If you are compiling on an MSDOG-like system which has long file
-names, you may need to do `SET LFN=y' for some of the commands,
-especially the compilation commands.  It might be more convenient to
-unpack the Emacs distribution with djtar, which comes with djgpp; if
-you do `SET LFN=n' before unpacking, djtar truncates file names to 8.3
-naming as it extracts files, even if the system allows long file
-names, and this ensures that build procedures designed for 8.3 file
-names still work.  Use djtar with the command `djtar -x foo.tar' or
-`djtar -x foo.tgz'.
+If you are building the MSDOG version of Emacs on an MSDOG-like system
+which supports long file names (e.g. Windows 95), you need to make
+sure that long file names are handled consistently both when you
+unpack the distribution and compile it.  If you intend to compile with
+DJGPP v2.0 or later, and long file names support is enabled (LFN=y in
+the environment), you need to unpack Emacs distribution in a way that
+doesn't truncate the original long filenames to the DOS 8.3 namespace;
+the easiest way to do this is to use djtar program which comes with
+DJGPP, since it will note the LFN setting and behave accordingly.
+DJGPP v1 doesn't support long filenames, so you must unpack Emacs with
+a program that truncates the filenames to 8.3 naming as it extracts
+files; again, using djtar after setting LFN=n is the recommended way.
+You can build Emacs with LFN=n even if you use DJGPP v2, if some of
+your tools don't support long file names: just ensure that LFN is set
+to `n' during both unpacking and compiling.
 
-Some users report that running Emacs 19.29 requires dpmi memory
-management.  We do not know why this is so, since 19.28 did not need
-it.  If we find out what change introduced this requirement, we may
-try to eliminate it.  ("May" because perhaps djgpp version 2's
-improved dpmi handling means this is no longer a problem.)
+(By the time you read this, you have already unpacked the Emacs
+distribution, but if the explanations above imply that you should have
+done it differently, it's safer to delete the directory tree created
+by the unpacking program and unpack Emacs again, than to risk running
+into problems during the build process.)
 
-It is possible that this problem happens only when there is not enough
-physical memory on the machine.
+It is important to understand that the runtime support of long file
+names by the Emacs binary is NOT affected by the LFN setting during
+compilation; Emacs compiled with DJGPP v2.0 or later will always
+support long file names on Windows 95 no matter what was the setting
+of LFN at compile time.
 
-You can find out if you have a dpmi host by running go32 (part of
-djgpp) without arguments; it will tell you if it uses dpmi memory.
-For more information about dpmi memory, consult the djgpp FAQ.
+To unpack Emacs with djtar, type this command:
 
-To build and install Emacs, type these commands:
+    djtar -x emacs.tgz
+
+(This assumes that the Emacs distribution is called `emacs.tgz' on
+your system.)  There are a few files in the archive whose names
+collide with other files under the 8.3 DOS naming.  If you have set
+LFN=n, djtar will ask you to supply alternate names for these files;
+you can just press `Enter' when this happens (which makes djtar skip
+these files) because they aren't required for MS-DOS.
+
+When unpacking is done, a directory called `emacs-XX.YY' will be
+created, where XX.YY is the Emacs version.  To build and install
+Emacs, chdir to that directory and type these commands:
 
     config msdos
     make install
@@ -549,7 +570,10 @@ sibling directory called bin.  For example, if you build in directory
 /emacs, installing moves the executables from /emacs/src and
 /emacs/lib-src to the directory /emacs/bin, so you can then delete the
 subdirectories /emacs/src and /emacs/lib-src if you wish.  The only
-subdirectories you need to keep are bin, lisp, etc and info.
+subdirectories you need to keep are bin, lisp, etc and info.  The bin
+subdirectory should be added to your PATH.  The msdos subdirectory
+includes a PIF and an icon file for Emacs which you might find useful
+if you run Emacs under MS Windows.
 
 Emacs on MSDOS finds the lisp, etc and info directories by looking in
 ../lisp, ../etc and ../info, starting from the directory where the
