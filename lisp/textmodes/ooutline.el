@@ -160,7 +160,7 @@ in the file it applies to."
 	      font-lock-variable-name-face))
 	nil t))
     ;; Highlight citations of the form [1] and [Mar94].
-    ("\\[\\([A-Z][A-Za-z]+\\)*[0-9]+\\]" . font-lock-type-face))
+    ("\\[\\([[:upper:]][[:alpha:]]+\\)*[0-9]+\\]" . font-lock-type-face))
   "Additional expressions to highlight in Outline mode.")
 
 (defun outline-mode ()
