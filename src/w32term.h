@@ -603,7 +603,9 @@ extern void w32_unload_font ();
 #define WM_EMACS_DESTROYWINDOW         (WM_EMACS_START + 0x06)
 #define WM_EMACS_TRACKPOPUPMENU        (WM_EMACS_START + 0x07)
 #define WM_EMACS_SETFOCUS              (WM_EMACS_START + 0x08)
-#define WM_EMACS_END                   (WM_EMACS_START + 0x10)
+#define WM_EMACS_SETFOREGROUND         (WM_EMACS_START + 0x09)
+#define WM_EMACS_SETLOCALE             (WM_EMACS_START + 0x0a)
+#define WM_EMACS_END                   (WM_EMACS_START + 0x0b)
 
 #define WND_FONTWIDTH_INDEX    (0) 
 #define WND_LINEHEIGHT_INDEX   (4) 
