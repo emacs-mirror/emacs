@@ -1,3 +1,8 @@
+2000-10-28  Dave Love  <fx@gnu.org>
+
+	* international/latin1-disp.el (latin1-char-displayable-p): Don't
+	use window-system.
+
 2000-10-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dos-w32.el (find-file-not-found-set-buffer-file-coding-system):

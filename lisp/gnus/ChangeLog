@@ -1,3 +1,7 @@
+2000-10-27 Christoph Conrad <christoph.conrad@gmx.de>
+
+	* gnus-draft.el (gnus-draft-send-message): Typo.
+
 2000-10-27  John Wiegley  <johnw@gnu.org>
 
 	* gnus-art.el (gnus-treat-hide-citation-maybe): Added this
@@ -26,6 +30,10 @@
 	Cashin <ecashin@coe.uga.edu>).
 
 2000-10-27  Simon Josefsson  <simon@josefsson.org>
+
+	* gnus-agent.el (gnus-agent-possibly-do-gcc):
+	(gnus-agent-restore-gcc):
+	(gnus-agent-possibly-save-gcc): New functions.
 
 	* nnimap.el (nnimap-group-overview-filename): Create directory for
 	newfile (when use long filenames is nil).  Copy+delete file if
@@ -75,6 +83,9 @@
 	support ACL's.
 
 2000-10-27  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-draft.el (gnus-draft-send-message): Ditto.
+	(gnus-group-send-drafts): Ditto.
 
 	* gnus-art.el (gnus-request-article-this-buffer):
 	gnus-refer-article-method might be a single method.
