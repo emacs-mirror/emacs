@@ -1,3 +1,9 @@
+2002-09-28  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* progmodes/m4-mode.el (m4-font-lock-keywords)
+	(m4-mode-syntax-table, m4-mode-abbrev-table, m4-m4-buffer)
+	(m4-m4-region): Doc fixes.
+
 2002-09-21  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* net/eudc.el (eudc-install-menu): Use `define-key' and
