@@ -1570,28 +1570,6 @@ set_process_environment ()
 				    Vprocess_environment);
 }
 
-static Lisp_Object
-decode_suffixes (string)
-     char *string;
-{
-  char *p;
-  Lisp_Object suffixes;
-
-  suffixes = Qnil;
-  while (1)
-    {
-      p = index (string, ':');
-      if (!p) p = string + strlen (string);
-      suffixes = Fcons (make_string (string, p - string),
-                        suffixes);
-      if (*p)
-	string = p + 1;
-      else
-	break;
-    }
-  return Fnreverse (suffixes);
-}
-
 void
 syms_of_callproc ()
 {
@@ -1611,7 +1589,7 @@ Each element is a string (directory name) or nil (try default directory).");
   DEFVAR_LISP ("exec-suffixes", &Vexec_suffixes,
     "*List of suffixes to try to find executable file names.\n\
 Each element is a string");
-  Vexec_suffixes = decode_suffixes (EXEC_SUFFIXES);
+  Vexec_suffixes = Qnil;
 
   DEFVAR_LISP ("exec-directory", &Vexec_directory,
     "Directory for executables for Emacs to invoke.\n\
