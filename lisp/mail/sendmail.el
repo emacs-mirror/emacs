@@ -146,7 +146,10 @@ removed from alias expansions."
 ;;;###autoload
 (defvar mail-signature nil
   "*Text inserted at end of mail buffer when a message is initialized.
-If t, it means to insert the contents of the file `~/.signature'.")
+If t, it means to insert the contents of the file `mail-signature-file'.")
+
+(defvar mail-signature-file "~/.signature"
+  "*File containing the text inserted at end of mail buffer.")
 
 (defvar mail-reply-buffer nil)
 (defvar mail-send-actions nil
@@ -262,10 +265,10 @@ actually occur.")
     ;; Insert the signature.  But remember the beginning of the message.
     (if to (setq to (point)))
     (cond ((eq mail-signature t)
-	   (if (file-exists-p "~/.signature")
+	   (if (file-exists-p mail-signature-file)
 	       (progn
 		 (insert "\n\n-- \n")
-		 (insert-file-contents "~/.signature"))))
+		 (insert-file-contents mail-signature-file))))
 	  (mail-signature
 	   (insert mail-signature)))
     (goto-char (point-max))
@@ -285,7 +288,7 @@ C-c C-f  move to a header field (and create it if there isn't):
 	 C-c C-f C-c  move to CC:	C-c C-f C-b  move to BCC:
 	 C-c C-f C-f  move to FCC:
 C-c C-t  mail-text (move to beginning of message text).
-C-c C-w  mail-signature (insert `~/.signature' file).
+C-c C-w  mail-signature (insert `mail-signature-file' file).
 C-c C-y  mail-yank-original (insert current message, in Rmail).
 C-c C-q  mail-fill-yanked-message (fill what was yanked).
 C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
@@ -808,7 +811,7 @@ the user from the mailer."
   (search-forward (concat "\n" mail-header-separator "\n")))
 
 (defun mail-signature (atpoint)
-  "Sign letter with contents of the file `~/.signature'.
+  "Sign letter with contents of the file `mail-signature-file'.
 Prefix arg means put contents at point."
   (interactive "P")
   (save-excursion
@@ -819,7 +822,7 @@ Prefix arg means put contents at point."
     (or atpoint
 	(delete-region (point) (point-max)))
     (insert "\n\n-- \n")
-    (insert-file-contents (expand-file-name "~/.signature"))))
+    (insert-file-contents (expand-file-name mail-signature-file))))
 
 (defun mail-fill-yanked-message (&optional justifyp)
   "Fill the paragraphs of a message yanked into this one.
@@ -906,8 +909,8 @@ and don't delete any header fields."
 When this function returns, the buffer `*mail*' is selected.
 The value is t if the message was newly initialized; otherwise, nil.
 
-Optionally, the signature file `~/.signature' can be inserted at the end;
-see the variable `mail-signature'.
+Optionally, the signature file `mail-signature-file' can be inserted at the
+end; see the variable `mail-signature'.
 
 \\<mail-mode-map>
 While editing message, type \\[mail-send-and-exit] to send the message and exit.
