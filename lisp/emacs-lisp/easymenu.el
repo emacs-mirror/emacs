@@ -622,7 +622,7 @@ In some cases we use that to select between the local and global maps."
 	(catch 'found
 	  (if (and map (symbolp map) (not (keymapp map)))
 	      (setq map (symbol-value map)))
-	  (let ((maps (or map (current-active-maps))))
+	  (let ((maps (if map (list map) (current-active-maps))))
 	    ;; Look for PATH in each map.
 	    (unless map (push 'menu-bar path))
 	    (dolist (name path)
