@@ -12,6 +12,7 @@
 	(byte-compile-push-binding-init): Don't use LFORMINFO if it's nil.
 	(byte-compile-lambda): Don't look at lexical environment unless
 	we're using lexical binding.
+	(byte-compile-defmacro): Correctly generate macros.
 
 	* emacs-lisp/byte-lexbind.el (byte-compile-unbind): Optimize the
 	dynamic-bindings-only case.

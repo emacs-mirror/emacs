@@ -1,3 +1,7 @@
+2002-08-26  Miles Bader  <miles@gnu.org>
+
+	* bytecode.c (Fbyte_code): Fsub1 can GC, so protect it.
+
 2002-06-12  Miles Bader  <miles@gnu.org>
 
 	Lexical binding changes to the byte-code interpreter:
