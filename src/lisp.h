@@ -1342,6 +1342,7 @@ extern Lisp_Object Fprocess_status (), Fkill_process ();
 
 /* defined in callproc.c */
 extern Lisp_Object Vexec_path, Vexec_directory, Vdata_directory;
+extern Lisp_Object Vdoc_directory;
 
 /* defined in doc.c */
 extern Lisp_Object Vdoc_file_name;
