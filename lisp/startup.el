@@ -329,8 +329,19 @@ from being initialized."
 		 string)
   :group 'auto-save)
 
-(defvar locale-translation-file-name "/usr/share/locale/locale.alias"
-  "*File name for the system's file of locale-name aliases.")
+(defvar locale-translation-file-name
+  (let ((files '("/usr/lib/X11/locale/locale.alias" ; e.g. X11R6.4
+		 "/usr/X11R6/lib/X11/locale/locale.alias" ; e.g. RedHat 4.2
+		 "/usr/openwin/lib/locale/locale.alias" ; e.g. Solaris 2.6
+		 ;;
+		 ;; The following name appears after the X-related names above,
+		 ;; since the X-related names are what X actually uses.
+		 "/usr/share/locale/locale.alias" ; GNU/Linux sans X
+		 )))
+    (while (and files (not (file-exists-p (car files))))
+      (setq files (cdr files)))
+    (car files))
+  "*File name for the system's file of locale-name aliases, or nil if none.")
 
 (defvar init-file-debug nil)
 
@@ -505,11 +516,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ;; Translate "swedish" into "sv_SE.ISO-8859-1", and so on,
     ;; using the translation file that GNU/Linux systems have.
     (and ctype
+	 locale-translation-file-name
 	 (not (string-match iso-8859-n-locale-regexp ctype))
-	 (file-exists-p locale-translation-file-name)
 	 (with-temp-buffer
 	   (insert-file-contents locale-translation-file-name)
-	   (if (re-search-forward (concat "^" ctype "[ \t]+") nil t)
+	   (if (re-search-forward
+		(concat "^" (regexp-quote ctype) ":?[ \t]+") nil t)
 	       (setq ctype (buffer-substring (point)
 					     (progn (end-of-line) (point)))))))
     ;; Now see if the locale specifies an ISO 8859 character set.
