@@ -1036,7 +1036,7 @@ cmd_error_internal (data, context)
 	 running under a window system.  */
       || (!NILP (Vwindow_system)
 	  && !inhibit_window_system
-	  && !FRAME_WINDOW_P (selected_frame))
+	  && FRAME_TERMCAP_P (selected_frame))
       || noninteractive)
     {
       stream = Qexternal_debugging_output;
