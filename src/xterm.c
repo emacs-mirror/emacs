@@ -1428,6 +1428,75 @@ pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds)
 /* Any buttons grabbed. */
 unsigned int x_mouse_grabbed;
 
+/* Which modifier keys are on which modifier bits?
+
+   With each keystroke, X returns eight bits indicating which modifier
+   keys were held down when the key was pressed.  The low three bits
+   indicate the state of the shift, shift lock, caps lock, and control
+   keys; their interpretation is fixed.  However, the interpretation
+   of the other five modifier bits depends on what keys are attached
+   to them.  If the Meta_L and Meta_R keysyms are on mod5, then mod5
+   is the meta bit.
+   
+   x_meta_mod_mask is a mask containing the bits used for the meta key.
+   It may have more than one bit set, if more than one modifier bit
+   has meta keys on it.  Basically, if EVENT is a KeyPress event,
+   the meta key is pressed if (EVENT.state & x_meta_mod_mask) != 0.  */
+static int x_meta_mod_mask;
+
+/* Initialize mode_switch_bit and modifier_meaning.  */
+static void
+x_find_modifier_meanings ()
+{
+  KeyCode min_code, max_code;
+  KeySym *syms;
+  int syms_per_code;
+  XModifierKeymap *mods;
+
+  x_meta_mod_mask = 0;
+  
+  XDisplayKeycodes (x_current_display, &min_code, &max_code);
+  syms = XGetKeyboardMapping (x_current_display,
+			      min_code, max_code - min_code + 1,
+			      &syms_per_code);
+  mods = XGetModifierMapping (x_current_display);
+
+  /* If CapsLock is on the lock modifier, then only letters should be
+     affected; since XLookupString takes care of this for us, the lock
+     modifier shouldn't set shift_modifier.  However, if ShiftLock is
+     on the lock modifier, then lock should mean shift.  */
+  {
+    int row, col;	/* The row and column in the modifier table. */
+
+    for (row = 3; row < 8; row++)
+      for (col = 0; col < mods->max_keypermod; col++)
+	{
+	  KeyCode code =
+	    mods->modifiermap[(row * mods->max_keypermod) + col];
+
+	  /* Are any of this keycode's keysyms a meta key?  */
+	  {
+	    int code_col;
+
+	    for (code_col = 0; code_col < syms_per_code; code_col++)
+	      {
+		int sym = syms[(code * syms_per_code) + code_col];
+
+		if (sym == XK_Meta_L || sym == XK_Meta_R)
+		  {
+		    x_meta_mod_mask |= (1 << row);
+		    break;
+		  }
+	      }
+	  }
+	}
+  }
+
+  XFree ((char *) syms);
+  XFreeModifierMap (mods);
+}
+
+
 /* Convert a set of X modifier bits to the proper form for a
    struct input_event modifiers value.  */
 
@@ -1437,7 +1506,7 @@ x_convert_modifiers (state)
 {
   return (  ((state & (ShiftMask | LockMask)) ? shift_modifier : 0)
 	  | ((state & ControlMask)            ? ctrl_modifier  : 0)
-	  | ((state & Mod1Mask)               ? meta_modifier  : 0));
+	  | ((state & x_meta_mod_mask)        ? meta_modifier  : 0));
 }
 
 extern struct frame *x_window_to_scrollbar ();
@@ -1802,9 +1871,20 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  break;
 
 	case PropertyNotify:
-	  /* If we were to do this synchronously, there'd be no worry
-	     about re-selecting. */
-	  x_send_incremental (event);
+
+	  /* If we're being told about a root window property, then it's
+	     a cut buffer change.  */
+	  if (event.xproperty.window == ROOT_WINDOW)
+	    x_invalidate_cut_buffer_cache (&event.xproperty);
+
+	  /* Otherwise, we're probably handling an incremental
+             selection transmission.  */
+	  else
+	    {
+	      /* If we were to do this synchronously, there'd be no worry
+		 about re-selecting. */
+	      x_send_incremental (event);
+	    }
 	  break;
 
 	case Expose:
@@ -3665,7 +3745,14 @@ x_term_init (display_name)
 				+ 2);
     sprintf (x_id_name, "%s@%s", XSTRING (invocation_name)->data, hostname);
   }
+
+  /* Figure out which modifier bits mean what.  */
+  x_find_modifier_meanings ();
   
+  /* Watch for PropertyNotify events on the root window; we use them
+     to figure out when to invalidate our cache of the cut buffers.  */
+  x_watch_cut_buffer_cache ();
+
   dup2 (ConnectionNumber (x_current_display), 0);
 
 #ifndef SYSV_STREAMS
