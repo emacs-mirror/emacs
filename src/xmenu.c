@@ -116,20 +116,6 @@ static void single_keymap_panes ();
 static void list_of_panes ();
 static void list_of_items ();
 
-/* Allocate a widget_value, blocking input.  */
-
-widget_value *
-xmalloc_widget_value ()
-{
-  widget_value *value;
-
-  BLOCK_INPUT;
-  value = malloc_widget_value ();
-  UNBLOCK_INPUT;
-
-  return value;
-}
-
 /* This holds a Lisp vector that holds the results of decoding
    the keymaps or alist-of-alists that specify a menu.
 
@@ -1307,6 +1293,19 @@ popup_deactivate_callback (widget, id, client_data)
   popup_activated_flag = 0;
 }
 
+/* Allocate a widget_value, blocking input.  */
+
+widget_value *
+xmalloc_widget_value ()
+{
+  widget_value *value;
+
+  BLOCK_INPUT;
+  value = malloc_widget_value ();
+  UNBLOCK_INPUT;
+
+  return value;
+}
 
 /* This recursively calls free_widget_value on the tree of widgets.
    It must free all data that was malloc'ed for these widget_values.
