@@ -109,6 +109,8 @@ Lisp_Object Vbuffer_alist;
 Lisp_Object Vbefore_change_function;
 Lisp_Object Vafter_change_function;
 
+Lisp_Object Vtransient_mark_mode;
+
 /* List of functions to call before changing an unmodified buffer.  */
 Lisp_Object Vfirst_change_hook;
 Lisp_Object Qfirst_change_hook;
@@ -279,7 +281,7 @@ reset_buffer (b)
   reset_buffer_local_variables(b);
 }
 
-reset_buffer_local_variables(b)
+reset_buffer_local_variables (b)
      register struct buffer *b;
 {
   register int offset;
@@ -297,6 +299,7 @@ reset_buffer_local_variables(b)
   b->upcase_table = Vascii_upcase_table;
   b->case_canon_table = Vascii_downcase_table;
   b->case_eqv_table = Vascii_upcase_table;
+  b->mark_active = Qnil;
 #if 0
   b->sort_table = XSTRING (Vascii_sort_table);
   b->folding_sort_table = XSTRING (Vascii_folding_sort_table);
@@ -1294,6 +1297,7 @@ init_buffer_once ()
   buffer_defaults.display_table = Qnil;
   buffer_defaults.fieldlist = Qnil;
   buffer_defaults.undo_list = Qnil;
+  buffer_defaults.mark_active = Qnil;
 
   XFASTINT (buffer_defaults.tab_width) = 8;
   buffer_defaults.truncate_lines = Qnil;
@@ -1321,6 +1325,7 @@ init_buffer_once ()
   XFASTINT (buffer_local_flags.major_mode) = -1;
   XFASTINT (buffer_local_flags.mode_name) = -1;
   XFASTINT (buffer_local_flags.undo_list) = -1;
+  XFASTINT (buffer_local_flags.mark_active) = -1;
 
   XFASTINT (buffer_local_flags.mode_line_format) = 1;
   XFASTINT (buffer_local_flags.abbrev_mode) = 2;
@@ -1684,6 +1689,14 @@ nil marks undo boundaries.  The undo command treats the changes\n\
 between two undo boundaries as a single step to be undone.\n\
 \n\
 If the value of the variable is t, undo information is not recorded.");
+
+  DEFVAR_PER_BUFFER ("mark-active", &current_buffer->mark_active, Qnil, 
+    "Non-nil means the mark and region are currently active in this buffer.\n\
+Automatically local in all buffers.");
+
+  DEFVAR_LISP ("transient-mark-mode", &Vtransient_mark_mode,
+    "*Non-nil means deactivate the mark when the buffer contents change.");
+  Vtransient_mark_mode = Qnil;
 
   defsubr (&Sbuffer_list);
   defsubr (&Sget_buffer);
