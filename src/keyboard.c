@@ -6574,7 +6574,7 @@ record_asynch_buffer_change ()
    a small buffer of input events -- and then poll for more input if we
    read a full buffer of input events.  */
 
-#define NREAD_INPUT_EVENTS 8
+#define NREAD_INPUT_EVENTS 512
 
 static int
 read_avail_input (expected)
