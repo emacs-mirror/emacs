@@ -172,7 +172,7 @@ thing again."
   :type 'boolean
   :group 'eshell-dirs)
 
-;;; Internal  Variables:
+;;; Internal Variables:
 
 (defvar eshell-dirstack nil
   "List of directories saved by pushd in the Eshell buffer.
