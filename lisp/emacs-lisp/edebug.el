@@ -4238,7 +4238,6 @@ It is removed when you hit any char."
 
 (defconst edebug-mode-menus
   '("Edebug"
-     "----"
      ["Stop" edebug-stop t]
      ["Step" edebug-step-mode t]
      ["Next" edebug-next-mode t]
@@ -4342,8 +4341,6 @@ With prefix argument, make it a temporary breakpoint."
 ;; Epoch specific code was in a separate file: edebug-epoch.el.
 
 (easy-menu-define edebug-menu edebug-mode-map "Edebug menus" edebug-mode-menus)
-
-(if (display-popup-menus-p) (x-popup-menu nil edebug-menu))
 
 ;;; Byte-compiler
 
