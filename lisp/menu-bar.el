@@ -56,6 +56,8 @@
 (define-key menu-bar-edit-menu [spell] '("Spell..." . ispell-menu-map))
 (define-key menu-bar-edit-menu [fill] '("Fill" . fill-region))
 (define-key menu-bar-edit-menu [clear] '("Clear" . delete-region))
+(define-key menu-bar-edit-menu [query-replace]
+  '("Query Replace" . query-replace))
 (define-key menu-bar-edit-menu [re-search-back]
   '("Regexp Search Backwards" . re-search-backward))
 (define-key menu-bar-edit-menu [search-back]
@@ -79,6 +81,7 @@
 (put 'undo 'menu-enable '(if (eq last-command 'undo)
 			     pending-undo-list
 			   (consp buffer-undo-list)))
+(put 'query-replace 'menu-enable (not buffer-read-only))
 
 (autoload 'ispell-menu-map "ispell" nil t 'keymap)
 
