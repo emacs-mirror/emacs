@@ -88,6 +88,15 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+---
+** The saveplace.el package now filters out unreadable files.
+When you exit Emacs, the saved positions in visited files no longer
+include files that aren't readable, e.g. files that don't exist.
+Customize the new option `save-place-forget-unreadable-files' to nil
+to get the old behavior.  The new options `save-place-save-skipped'
+and `save-place-skip-check-regexp' allow further fine-tuning of this
+feature.
+
 ** On window systems, lines which are exactly as wide as the window
 (not counting the final newline character) are no longer broken into
 two lines on the display (with just the newline on the second line).
