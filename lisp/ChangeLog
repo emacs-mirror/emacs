@@ -1,3 +1,23 @@
+2000-10-10  Dave Love  <fx@gnu.org>
+
+	* toolbar/tool-bar.el (tool-bar-add-item)
+	(tool-bar-add-item-from-menu): Don't favour XPM icons on mono
+	display.
+
+	* startup.el (command-line): Don't require XPM support for toolbar.
+
+	* toolbar/attach.pbm, toolbar/cancel.pbm, toolbar/close.pbm:
+	* toolbar/copy.pbm, toolbar/cut.pbm, toolbar/exit.pbm:
+	* toolbar/fld_open.pbm, toolbar/help.pbm, toolbar/home.pbm:
+	* toolbar/index.pbm, toolbar/info.pbm, toolbar/jump_to.pbm:
+	* toolbar/left_arrow.pbm, toolbar/mail.pbm, toolbar/mail_compose.pbm:
+	* toolbar/mail_send.pbm, toolbar/new.pbm, toolbar/open.pbm:
+	* toolbar/paste.pbm, toolbar/preferences.pbm, toolbar/print.pbm:
+	* toolbar/right_arrow.pbm, toolbar/save.pbm, toolbar/saveas.pbm:
+	* toolbar/search-replace.pbm, toolbar/search.pbm, toolbar/spell.pbm:
+	* toolbar/undo.pbm, toolbar/up_arrow.pbm: New files straight from
+	the .xpms; probably need retouching.
+
 2000-10-10  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* subr.el (add-to-list): Add optional argument APPEND.
