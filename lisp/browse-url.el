@@ -46,10 +46,14 @@
 ;; browse-url-mmm        MMM         ?
 ;; browse-url-generic    arbitrary
 
+;; [The Netscape browser is now free software
+;; <URL:http://www.mozilla.org/>, albeit not GPLed, so it is
+;; reasonable to keep it as the default.]
+
 ;; Note that versions of Netscape before 1.1b1 did not have remote
 ;; control.  <URL:http://www.netscape.com/newsref/std/x-remote.html>.
 
-;; Netscape can cache Web pages so it may be necessary to tell it to
+;; Browsers can cache Web pages so it may be necessary to tell them to
 ;; reload the current page if it has changed (e.g. if you have edited
 ;; it).  There is currently no perfect automatic solution to this.
 
@@ -98,9 +102,9 @@
 ;; support for Java applets and multicast) can be used like Mosaic by
 ;; setting `browse-url-mosaic-program' appropriately.
 
-;; I [Denis Howe] recommend Nelson Minar <nelson@santafe.edu>'s excellent
-;; html-helper-mode.el for editing HTML and thank Nelson for
-;; his many useful comments on this code.
+;; I [Denis Howe, not Dave Love] recommend Nelson Minar
+;; <nelson@santafe.edu>'s excellent html-helper-mode.el for editing
+;; HTML and thank Nelson for his many useful comments on this code.
 ;; <URL:http://www.santafe.edu/%7Enelson/hhm-beta/>
 
 ;; See also hm--html-menus <URL:http://www.tnt.uni-hannover.de/%7Emuenkel/
@@ -692,9 +696,11 @@ the effect of `browse-url-new-window-p'.
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-p'."
   (interactive (browse-url-interactive-arg "Netscape URL: "))
-  ;; URL encode any commas in the URL
-  (while (string-match "," url)
-    (setq url (replace-match "%2C" t t url)))
+  ;; URL encode any `confusing' characters in the URL.  This needs to
+  ;; include at least commas; presumably also close parens.
+  (while (string-match "[,)]" url)
+    (setq url (replace-match
+	       (format "%x" (string-to-char (match-string 0 url))) t t url)))
   (let* ((process-environment (browse-url-process-environment))
          (process (apply 'start-process
  			(concat "netscape " url) nil
