@@ -1,11 +1,18 @@
+2001-12-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easymenu.el (easy-menu-intern): New fun.
+	(easy-menu-do-define, easy-menu-convert-item-1)
+	(easy-menu-define-key-intern, easy-menu-get-map): Use it.
+	(easy-menu-return-item): Only return nil if there is no binding.
+
 2001-12-13  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* whitespace.el (whitespace-version): 3.2
 	* whitespace.el (whitespace-force-mode-line-update): Replace with
 	`whitespace-mode-line-update', which is an alias to the correct
 	function in various emacsen.
-	* whitespace.el (whitespace-{un,}highlight-the-space): Add
-	colorized highlighting of the bogus whitespaces in a buffer/file,
+	* whitespace.el (whitespace-{un,}highlight-the-space):
+	Add colorized highlighting of the bogus whitespaces in a buffer/file,
 	using the `whitespace-highlight-face' if
 	`whitespace-display-spaces-in-color' is set.
 
@@ -50,8 +57,8 @@
 	Allow null elements in VEC.
 
 	* international/ucs-tables.el (unify-8859-on-encoding-mode)
-	(unify-8859-on-decoding-mode): Swap the code in their bodies.  Add
-	:version.
+	(unify-8859-on-decoding-mode): Swap the code in their bodies.
+	Add :version.
 
 2001-12-11  Richard M. Stallman  <rms@gnu.org>
 
@@ -67,8 +74,7 @@
 
 2001-12-11  Dave Love  <fx@gnu.org>
 
-	* language/thai-util.el, language/thai.el: Add Unicode
-	equivalents.
+	* language/thai-util.el, language/thai.el: Add Unicode equivalents.
 
 	* language/european.el: Remove autoload cookies.  Fix registration
 	of diacritic composition function.
@@ -86,12 +92,12 @@
 	* textmodes/ispell.el (ispell-buffer-local-parsing):
 	Match xml like sgml.
 
-	* emacs-lisp/advice.el (ad-compile-function): 
+	* emacs-lisp/advice.el (ad-compile-function):
 	Byte compile the function under another (uninterned) name.
 
 	* gud.el (gdb): Define and bind gud-jump.
 
-	* font-lock.el (font-lock-mode): 
+	* font-lock.el (font-lock-mode):
 	Put our function at the end of after-change-functions.
 
 	* ediff-diff.el (ediff-cmp-options): Doc fix.
@@ -126,8 +132,8 @@
 
 2001-12-07  Stephen Eglen  <stephen@gnu.org>
 
-	* iswitchb.el (iswitchb-visit-buffer): Use
-	`select-frame-set-input-focus'--needed when window manager
+	* iswitchb.el (iswitchb-visit-buffer):
+	Use `select-frame-set-input-focus'--needed when window manager
 	uses "click to focus" policy.
 
 2001-12-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
@@ -175,19 +181,17 @@
 	(diacritic-compose-buffer, diacritic-post-read-conversion)
 	(diacritic-composition-function): New functions.
 
-	* international/utf-8.el (ucs-mule-to-mule-unicode): New
-	translation table.
+	* international/utf-8.el (ucs-mule-to-mule-unicode):
+	New translation table.
 	(ccl-encode-mule-utf-8): Use it.
 	(utf-8-untranslated-to-ucs, utf-8-help-echo, utf-8-compose)
-	(utf-8-post-read-conversion, utf-8-pre-write-conversion): New
-	function.
+	(utf-8-post-read-conversion, utf-8-pre-write-conversion): New function.
 	(utf-8-subst-table): New variable.
 	(utf-8-compose-scripts): New option.
-	(mule-utf-8): Update safe-charsets, pre-write and post-read
-	conversion.
+	(mule-utf-8): Update safe-charsets, pre-write and post-read conversion.
 
-	* international/ucs-tables.el, international/utf-8-subst.el: New
-	file.
+	* international/ucs-tables.el, international/utf-8-subst.el:
+	New files.
 
 	* international/characters.el: Don't set word syntax (the default)
 	explicitly.  Add a diacritic category.  Add info for Unicode
