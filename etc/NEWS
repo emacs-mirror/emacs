@@ -1140,7 +1140,7 @@ replaces the Dired buffer with the buffer for an alternate file or
 directory.
 
 ---
-*** The new command `dired-show-file-type' (usually bound to `w') shows
+*** The new command `dired-show-file-type' (usually bound to `y') shows
 a message in the echo area describing what type of file the point is on.
 This command invokes the external program `file' do its work, and so
 will only work on systems with that program, and will be only as
