@@ -320,7 +320,6 @@ implementations you move with left/right paddle."
   
   (define-key pong-mode-map pong-pause-key 'pong-pause)
 
-  (make-local-hook 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook 'pong-quit nil t)
 
   ;; Initialization of some variables
