@@ -2664,6 +2664,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 
     (easy-menu-define
      gnus-article-treatment-menu gnus-article-mode-map ""
+     ;; Fixme: this should use :active (and maybe :visible).
      '("Treatment"
        ["Hide headers" gnus-article-hide-headers t]
        ["Hide signature" gnus-article-hide-signature t]
@@ -2682,6 +2683,9 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 	(cons "Post" gnus-summary-post-menu)))
 
     (gnus-run-hooks 'gnus-article-menu-hook)))
+
+;; Fixme: do something for the Emacs tool bar in Article mode a la
+;; Summary.
 
 (defun gnus-article-mode ()
   "Major mode for displaying an article.
@@ -2949,7 +2953,8 @@ If ALL-HEADERS is non-nil, no headers are hidden."
 
 (defvar gnus-mime-button-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map gnus-article-mode-map)
+    ;; Not for Emacs 21: fixme better.
+    ;; (set-keymap-parent map gnus-article-mode-map)
     (define-key map gnus-mouse-2 'gnus-article-push-button)
     (define-key map gnus-down-mouse-3 'gnus-mime-button-menu)
     (dolist (c gnus-mime-button-commands)
@@ -2960,17 +2965,15 @@ If ALL-HEADERS is non-nil, no headers are hidden."
   "Construct a context-sensitive menu of MIME commands."
   (interactive "e")
   (save-excursion
-    (let ((pos (event-start event)))
-      (set-buffer (window-buffer (posn-window pos)))
-      (goto-char (posn-point pos))
-      (gnus-article-check-buffer)
-      (let ((response (x-popup-menu
-		       t `("MIME Part"
-			   ("" ,@(mapcar (lambda (c)
-					   (cons (caddr c) (car c)))
-					 gnus-mime-button-commands))))))
-	(if response
-	    (call-interactively response))))))
+    (mouse-set-point event)
+    (gnus-article-check-buffer)
+    (let ((response (x-popup-menu
+		     t `("MIME Part"
+			 ("" ,@(mapcar (lambda (c)
+					 (cons (caddr c) (car c)))
+				       gnus-mime-button-commands))))))
+      (if response
+	  (call-interactively response)))))
 
 (defun gnus-mime-view-all-parts (&optional handles)
   "View all the MIME parts."
@@ -3288,12 +3291,13 @@ In no internal viewer is available, use an external viewer."
     (setq b (point))
     (gnus-eval-format
      gnus-mime-button-line-format gnus-mime-button-line-format-alist
-     `(local-map ,gnus-mime-button-map
-		 keymap ,gnus-mime-button-map
-		 gnus-callback gnus-mm-display-part
-		 gnus-part ,gnus-tmp-id
-		 article-type annotation
-		 gnus-data ,handle))
+     `(keymap ,gnus-mime-button-map
+       ;; Not for Emacs 21: fixme better.
+       ;; local-map ,gnus-mime-button-map
+       gnus-callback gnus-mm-display-part
+       gnus-part ,gnus-tmp-id
+       article-type annotation
+       gnus-data ,handle))
     (setq e (point))
     (widget-convert-button
      'link b e
@@ -3521,7 +3525,8 @@ In no internal viewer is available, use an external viewer."
 		       ',gnus-article-mime-handle-alist))
 	       (gnus-mime-display-alternative
 		',ihandles ',not-pref ',begend ,id))
-	     local-map ,gnus-mime-button-map
+	     ;; Not for Emacs 21: fixme better.
+	     ;; local-map ,gnus-mime-button-map
 	     ,gnus-mouse-face-prop ,gnus-article-mouse-face
 	     face ,gnus-article-button-face
 	     keymap ,gnus-mime-button-map
@@ -3546,7 +3551,8 @@ In no internal viewer is available, use an external viewer."
 			 ',gnus-article-mime-handle-alist))
 		 (gnus-mime-display-alternative
 		  ',ihandles ',handle ',begend ,id))
-	       local-map ,gnus-mime-button-map
+	       ;; Not for Emacs 21: fixme better.
+	       ;; local-map ,gnus-mime-button-map
 	       ,gnus-mouse-face-prop ,gnus-article-mouse-face
 	       face ,gnus-article-button-face
 	       keymap ,gnus-mime-button-map
