@@ -643,7 +643,7 @@
 ;;      form))
 
 (defun byte-optimize-approx-equal (x y)
-  (< (* (abs (- x y)) 100) (abs (+ x y))))
+  (<= (* (abs (- x y)) 100) (abs (+ x y))))
 
 ;; Collect all the constants from FORM, after the STARTth arg,
 ;; and apply FUN to them to make one argument at the end.
@@ -694,6 +694,20 @@
 ;;; (actually, it would be safe if we know the sole arg
 ;;; is not a marker).
 ;;	((null (cdr (cdr form))) (nth 1 form))
+	((and (null (nthcdr 3 form))
+	      (or (memq (nth 1 form) '(1 -1))
+		  (memq (nth 2 form) '(1 -1))))
+	 ;; Optiize (+ x 1) into (1+ x) and (+ x -1) into (1- x).
+	 (let ((integer
+		(if (memq (nth 1 form) '(1 -1))
+		    (nth 1 form)
+		  (nth 2 form)))
+	       (other
+		(if (memq (nth 1 form) '(1 -1))
+		    (nth 2 form)
+		  (nth 1 form))))
+	   (list (if (eq integer 1) '1+ '1-)
+		 other)))
 	(t form)))
 
 (defun byte-optimize-minus (form)
@@ -705,6 +719,10 @@
 	   ;; (- x y ... 0)  --> (- x y ...)
 	   (setq form (copy-sequence form))
 	   (setcdr (cdr (cdr form)) (delq 0 (nthcdr 3 form))))
+	  ((equal (nthcdr 2 form) '(1))
+	   (setq form (list '1- (nth 1 form))))
+	  ((equal (nthcdr 2 form) '(-1))
+	   (setq form (list '1+ (nth 1 form))))
 	  ;; If form is (- CONST foo... CONST), merge first and last.
 	  ((and (numberp (nth 1 form))
 		(numberp last))
