@@ -70,11 +70,8 @@ V comprises characters encodable by mule-utf-8."
     (while (< i 128)
       (aset encoding-vector i i)
       (setq i (1+ i)))
-    (while (< i 160)
-      (aset encoding-vector i (aref v (- i 128)))
-      (setq i (1+ i)))
     (while (< i 256)
-      (aset encoding-vector i (decode-char 'ucs i))
+      (aset encoding-vector i (aref v (- i 128)))
       (setq i (1+ i)))
     (make-translation-table-from-vector encoding-vector)))
 
