@@ -291,7 +291,7 @@ These hooks have the following distinct roles:
                            (concat
                             "\\*\\|0*" (int-to-string year)
                             (if abbreviated-calendar-year
-                                (concat "\\|" (int-to-string (% year 100)))
+                                (concat "\\|" (format "%02d" (% year 100)))
                               "")))
                           (regexp
                            (concat
