@@ -1010,7 +1010,8 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
   for (tail = combine_after_change_list; CONSP (tail);
        tail = XCONS (tail)->cdr)
     {
-      Lisp_Object elt, thisbeg, thisend, thischange;
+      Lisp_Object elt;
+      int thisbeg, thisend, thischange;
 
       /* Extract the info from the next element.  */
       elt = XCONS (tail)->car;
