@@ -234,6 +234,17 @@ are used."
 	  (terpri outbuf)
 	  (insert ";;; Generated autoloads from "
 		  (autoload-trim-file-name file) "\n")
+	  ;; Warn if we put a line in loaddefs.el
+	  ;; that is long enough to cause trouble.
+	  (while (< (point) output-end)
+	    (let ((beg (point)))
+	      (end-of-line)
+	      (if (> (- (point) beg) 900)
+		  (progn
+		    (message "A line is too long--over 900 characters")
+		    (sleep-for 2)
+		    (goto-char output-end))))
+	    (forward-line 1))
 	  (goto-char output-end)
 	  (insert generate-autoload-section-trailer)))
     (message "Generating autoloads for %s...done" file)))
