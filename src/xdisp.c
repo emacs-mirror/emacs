@@ -1840,11 +1840,19 @@ init_from_display_pos (it, w, pos)
   init_iterator (it, w, charpos, bytepos, NULL, DEFAULT_FACE_ID);
 
   for (i = 0; i < it->n_overlay_strings; ++i)
-    if (index (XSTRING (it->overlay_strings[i])->data, '\n'))
-      {
-	overlay_strings_with_newlines = 1;
-	break;
-      }
+    {
+      char *s = XSTRING (it->overlay_strings[i])->data;
+      char *e = s + STRING_BYTES (XSTRING (it->overlay_strings[i]));
+      
+      while (s < e && *s != '\n')
+	++s;
+
+      if (s < e)
+	{
+	  overlay_strings_with_newlines = 1;
+	  break;
+	}
+    }
 
   /* If position is within an overlay string, set up IT to the right
      overlay string.  */
@@ -1881,6 +1889,11 @@ init_from_display_pos (it, w, pos)
       it->current.string_pos = pos->string_pos;
       it->method = next_element_from_string;
     }
+  
+#if 0 /* This is bogus because POS not having an overlay string
+	 position does not mean it's after the string.  Example: A
+	 line starting with a before-string and initialization of IT
+	 to the previous row's end position.  */
   else if (it->current.overlay_string_index >= 0)
     {
       /* If POS says we're already after an overlay string ending at
@@ -1894,6 +1907,7 @@ init_from_display_pos (it, w, pos)
       if (CHARPOS (pos->pos) == ZV)
 	it->overlay_strings_at_end_processed_p = 1;
     }
+#endif /* 0 */
   
   if (CHARPOS (pos->string_pos) >= 0)
     {
@@ -5558,7 +5572,7 @@ add_to_log (format, arg1, arg2)
 
   len = STRING_BYTES (XSTRING (msg)) + 1;
   buffer = (char *) alloca (len);
-  strcpy (buffer, XSTRING (msg)->data);
+  bcopy (XSTRING (msg)->data, buffer, len);
   
   message_dolog (buffer, len - 1, 1, 0);
   UNGCPRO;
