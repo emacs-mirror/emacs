@@ -122,6 +122,3 @@ Boston, MA 02111-1307, USA.  */
 
 #define SIGNALS_VIA_CHARACTERS
 
-/* We do have vfork.  */
-
-#define HAVE_VFORK

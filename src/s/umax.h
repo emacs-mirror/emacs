@@ -165,10 +165,6 @@ Boston, MA 02111-1307, USA.  */
    #define TEXT_START 0
 */
 
-/* (Assume) we do have vfork.  */
-
-#define HAVE_VFORK
-
 /* Process groups work in the traditional BSD manner.  */
 
 #define BSD_PGRPS

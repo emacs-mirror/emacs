@@ -63,10 +63,6 @@
 
 #define CLASH_DETECTION
 
-#if defined(HAVE_X_WINDOWS) && defined(HAVE_X11)
-#define HAVE_VFORK		/* Graciously provided by libX.a */
-#endif
-
 #define utimes utime  /* Someone should check this.  */
 /* ??? */
 #define IRIS

@@ -143,10 +143,6 @@ Boston, MA 02111-1307, USA.  */
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->__ptr - (FILE)->__base)
 #endif
 
-#ifndef HAVE_VFORK
-#define HAVE_VFORK
-#endif
-
 /* Use ELF and get real shared libraries */ 
 
 #undef COFF

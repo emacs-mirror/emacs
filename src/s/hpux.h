@@ -186,7 +186,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* Some additional system facilities exist.  */
 
-#define HAVE_VFORK
 #define HAVE_PERROR  /* Delete this line for version 6.  */
 
 /* The following maps shared exec file to demand loaded exec.

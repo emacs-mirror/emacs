@@ -86,10 +86,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define HAVE_PTYS
 
-/* (Assume) we do have vfork.  */
-
-#define HAVE_VFORK
-
 /*
  *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
  *      The 4.2 opendir, etc., library functions.

@@ -145,10 +145,6 @@ Boston, MA 02111-1307, USA.  */
 #define PTY_NAME_SPRINTF \
 	sprintf (pty_name, "/dev/pty%x", i);
 
-/* (Assume) we do have vfork.  */
-
-#define HAVE_VFORK
-
 /* Process groups work in the traditional BSD manner.  */
 
 #define BSD_PGRPS

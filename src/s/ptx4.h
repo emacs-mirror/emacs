@@ -10,9 +10,6 @@
    wrong thing.  */
 #define BROKEN_SIGINFO
 
-/* Marcus Daniels <marcus@sysc.pdx.edu> says vfork does exist.  */
-#define HAVE_VFORK
-
 /* pae@dim.com (Phil Ernhardt) says this correction to
    the definition in usg5-4.h is needed to prevent
    all asynchronous subprocesses from exiting right away.  */
