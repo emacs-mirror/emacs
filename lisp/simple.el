@@ -2491,7 +2491,7 @@ it were the arg to `interactive' (which see) to interactively read the value."
     (if (null beg)
 	(error "No completion here"))
     (setq beg (previous-single-property-change beg 'mouse-face))
-    (setq end (next-single-property-change end 'mouse-face))
+    (setq end (or (next-single-property-change end 'mouse-face) (point-max)))
     (choose-completion-string (buffer-substring beg end))))
 
 ;; Delete the longest partial match for STRING
