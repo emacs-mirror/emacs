@@ -237,6 +237,11 @@ Now, the screen looks like this:
  column 0   column 80
 @end group
 @end smallexample
+
+Normally, Emacs indicates the border between two side-by-side windows
+with a scroll bar (@pxref{X Frame Parameters,Scroll Bars}) or @samp{|}
+characters.  The display table can specify alternative border
+characters; see @ref{Display Tables}.
 @end deffn
 
 @deffn Command split-window-vertically size
