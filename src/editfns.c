@@ -1624,7 +1624,9 @@ This feature lets (apply 'encode-time (decode-time ...)) work.
 Out-of-range values for SEC, MINUTE, HOUR, DAY, or MONTH are allowed;
 for example, a DAY of 0 means the day preceding the given month.
 Year numbers less than 100 are treated just like other year numbers.
-If you want them to stand for years in this century, you must do that yourself.  */)
+If you want them to stand for years in this century, you must do that yourself.
+
+usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
      (nargs, args)
      int nargs;
      register Lisp_Object *args;
@@ -2019,7 +2021,9 @@ Any other markers at the point of insertion remain before the text.
 If the current buffer is multibyte, unibyte strings are converted
 to multibyte for insertion (see `unibyte-char-to-multibyte').
 If the current buffer is unibyte, multibyte strings are converted
-to unibyte for insertion.  */)
+to unibyte for insertion.
+
+usage: (insert &rest ARGS)  */)
      (nargs, args)
      int nargs;
      register Lisp_Object *args;
@@ -2038,7 +2042,9 @@ Any other markers at the point of insertion remain before the text.
 If the current buffer is multibyte, unibyte strings are converted
 to multibyte for insertion (see `unibyte-char-to-multibyte').
 If the current buffer is unibyte, multibyte strings are converted
-to unibyte for insertion.  */)
+to unibyte for insertion.
+
+usage: (insert-and-inherit &rest ARGS)  */)
      (nargs, args)
      int nargs;
      register Lisp_Object *args;
@@ -2055,7 +2061,9 @@ Point and markers move forward to end up after the inserted text.
 If the current buffer is multibyte, unibyte strings are converted
 to multibyte for insertion (see `unibyte-char-to-multibyte').
 If the current buffer is unibyte, multibyte strings are converted
-to unibyte for insertion.  */)
+to unibyte for insertion.
+
+usage: (insert-before-markers &rest ARGS)  */)
      (nargs, args)
      int nargs;
      register Lisp_Object *args;
@@ -2074,7 +2082,9 @@ Point and markers move forward to end up after the inserted text.
 If the current buffer is multibyte, unibyte strings are converted
 to multibyte for insertion (see `unibyte-char-to-multibyte').
 If the current buffer is unibyte, multibyte strings are converted
-to unibyte for insertion.  */)
+to unibyte for insertion.
+
+usage: (insert-before-markers-and-inherit &rest ARGS)  */)
      (nargs, args)
      int nargs;
      register Lisp_Object *args;
@@ -2952,7 +2962,9 @@ The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  See `format' for details.
 
 If the first argument is nil, clear any existing message; let the
-minibuffer contents show.  */)
+minibuffer contents show.
+
+usage: (message STRING &rest ARGS)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2978,7 +2990,9 @@ The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  See `format' for details.
 
 If the first argument is nil, clear any existing message; let the
-minibuffer contents show.  */)
+minibuffer contents show.
+
+usage: (message-box STRING &rest ARGS)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -3038,7 +3052,9 @@ The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  See `format' for details.
 
 If the first argument is nil, clear any existing message; let the
-minibuffer contents show.  */)
+minibuffer contents show.
+
+usage: (message-or-box STRING &rest ARGS)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -3063,7 +3079,8 @@ DEFUN ("propertize", Fpropertize, Spropertize, 3, MANY, 0,
        doc: /* Return a copy of STRING with text properties added.
 First argument is the string to copy.
 Remaining arguments form a sequence of PROPERTY VALUE pairs for text
-properties to add to the result.  */)
+properties to add to the result.
+usage: (propertize STRING &rest PROPERTIES)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -3120,7 +3137,9 @@ It may contain %-sequences meaning to substitute the next argument.
 %c means print a number as a single character.
 %S means print any object as an s-expression (using `prin1').
   The argument used for %d, %o, %x, %e, %f, %g or %c must be a number.
-Use %% to put a single % into the output.  */)
+Use %% to put a single % into the output.
+
+usage: (format STRING &rest OBJECTS)  */)
      (nargs, args)
      int nargs;
      register Lisp_Object *args;
