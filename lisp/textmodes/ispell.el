@@ -322,8 +322,8 @@ This variable can be set by the user to whatever face they desire.
 It's most convenient if the cursor color and highlight color are
 slightly different.")
 
-(defvar ispell-check-comments nil
-  "*Spelling of comments checked when non-nil.")
+(defvar ispell-check-comments t
+  "*If nil, don't check spelling of comments.")
 
 (defvar ispell-query-replace-choices nil
   "*Corrections made throughout region when non-nil.
