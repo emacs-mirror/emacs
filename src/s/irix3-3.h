@@ -183,3 +183,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* sioctl.h should be included where appropriate.  */
 
 #define NEED_SIOCTL
+
+/* This affects child_setup.  */
+
+#define SETPGRP_RELEASES_CTTY
