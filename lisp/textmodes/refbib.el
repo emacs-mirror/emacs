@@ -49,7 +49,7 @@
 ; modified 2/23/89, include capitalize stop words in r2b stop words,
 ;                   fixed problems with contractions (e.g. it's),
 ;                   caught multiple stop words in a row
-; modified 3/1/89,  fixed capitialize-title for first words all caps
+; modified 3/1/89,  fixed capitalize-title for first words all caps
 ; modified 3/15/89, allow use of " to delimit fields
 ; modified 4/18/89, properly "quote" special characters on output
 
@@ -109,7 +109,7 @@ in `r2b-proceedings-list' (although it wouldn't cause an error).")
 
 (defvar r2b-additional-stop-words
 	 "Some\\|What"
-   "Words other than the `capitialize-title-stop-words'
+   "Words other than the `capitalize-title-stop-words'
 which are not to be used to build the citation key")
 
 
@@ -124,7 +124,7 @@ which are not to be used to build the citation key")
    (concat
       "the\\|and\\|of\\|is\\|a\\|an\\|of\\|for\\|in\\|to\\|in\\|on\\|at\\|"
       "by\\|with\\|that\\|its")
-   "Words not to be capitialized in a title (unless they are the first
+   "Words not to be capitalized in a title (unless they are the first
 word in the title)")
 
 (defvar capitalize-title-stop-regexp
