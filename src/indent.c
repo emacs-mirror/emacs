@@ -47,7 +47,7 @@ int indent_tabs_mode;
    Some things in set last_known_column_point to -1
    to mark the memorized value as invalid.  */
 
-float last_known_column;
+double last_known_column;
 
 /* Value of point when current_column was called.  */
 
@@ -57,8 +57,8 @@ int last_known_column_point;
 
 int last_known_column_modified;
 
-static float current_column_1 P_ ((void));
-static float position_indentation P_ ((int));
+static double current_column_1 P_ ((void));
+static double position_indentation P_ ((int));
 
 /* Cache of beginning of line found by the last call of
    current_column. */
@@ -355,7 +355,7 @@ invalidate_current_column ()
   last_known_column_point = 0;
 }
 
-float
+double
 current_column ()
 {
   register int col;
@@ -502,7 +502,7 @@ current_column ()
    This function handles characters that are invisible
    due to text properties or overlays.  */
 
-static float
+static double
 current_column_1 ()
 {
   register int tab_width = XINT (current_buffer->tab_width);
@@ -652,7 +652,7 @@ current_column_1 ()
    If BEG is nil, that stands for the beginning of STRING.
    If END is nil, that stands for the end of STRING.  */
 
-static float
+static double
 string_display_width (string, beg, end)
      Lisp_Object string, beg, end;
 {
@@ -778,7 +778,7 @@ even if that goes past COLUMN; by default, MININUM is zero.  */)
 }
 
 
-static float position_indentation P_ ((int));
+static double position_indentation P_ ((int));
 
 DEFUN ("current-indentation", Fcurrent_indentation, Scurrent_indentation,
        0, 0, 0,
@@ -797,7 +797,7 @@ following any initial whitespace.  */)
   return val;
 }
 
-static float
+static double
 position_indentation (pos_byte)
      register int pos_byte;
 {
@@ -890,9 +890,9 @@ position_indentation (pos_byte)
 int
 indented_beyond_p (pos, pos_byte, column)
      int pos, pos_byte;
-     float column;
+     double column;
 {
-  float val;
+  double val;
   int opoint = PT, opoint_byte = PT_BYTE;
 
   SET_PT_BOTH (pos, pos_byte);
@@ -1612,7 +1612,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		{
 		  if (selective > 0
 		      && indented_beyond_p (pos, pos_byte,
-                                            (float) selective)) /* iftc */
+                                            (double) selective)) /* iftc */
 		    {
 		      /* If (pos == to), we don't have to take care of
 			 selective display.  */
@@ -1628,7 +1628,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 			    }
 			  while (pos < to
 				 && indented_beyond_p (pos, pos_byte,
-                                                       (float) selective)); /* iftc */
+                                                       (double) selective)); /* iftc */
 			  /* Allow for the " ..." that is displayed for them. */
 			  if (selective_rlen)
 			    {
@@ -1878,7 +1878,7 @@ vmotion (from, vtarget, w)
 		 && ((selective > 0
 		      && indented_beyond_p (XFASTINT (prevline),
 					    CHAR_TO_BYTE (XFASTINT (prevline)),
-					    (float) selective)) /* iftc */
+					    (double) selective)) /* iftc */
 		     /* watch out for newlines with `invisible' property */
 		     || (propval = Fget_char_property (prevline,
 						       Qinvisible,
@@ -1938,7 +1938,7 @@ vmotion (from, vtarget, w)
 	     && ((selective > 0
 		  && indented_beyond_p (XFASTINT (prevline),
 					CHAR_TO_BYTE (XFASTINT (prevline)),
-					(float) selective)) /* iftc */
+					(double) selective)) /* iftc */
 		 /* watch out for newlines with `invisible' property */
 		 || (propval = Fget_char_property (prevline, Qinvisible,
 						   text_prop_object),
