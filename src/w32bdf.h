@@ -21,8 +21,8 @@ Boston, MA 02111-1307, USA.  */
 /* Based heavily on code by H. Miyashita for Meadow (a descendant of
    MULE for W32). */
 
-#ifndef __W32BDF_H__
-#define __W32BDF_H__
+#ifndef EMACS_W32BDF_H
+#define EMACS_W32BDF_H
 
 #define BDF_FIRST_OFFSET_TABLE 0x200
 #define BDF_SECOND_OFFSET_TABLE 0x80
@@ -101,4 +101,4 @@ int w32_BDF_TextOut (bdffont *fontp, HDC hdc, int left,
                      int bytelen, int fixed_pitch_size);
 int w32_BDF_to_x_font (char *file, char* xstr, int len);
 
-#endif  /* __W32BDF_H__ */
+#endif  /* EMACS_W32BDF_H */
