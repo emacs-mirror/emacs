@@ -1,3 +1,9 @@
+2004-10-10  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* net/ange-ftp.el (ange-ftp-remote-shell): Remove variable.
+	(ange-ftp-call-chmod): Reference remote-shell-program instead of
+	ange-ftp-remote-shell.
+
 2004-10-10  Andreas Schwab  <schwab@suse.de>
 
 	* emacs-lisp/byte-opt.el (byte-optimize-backward-word): Optimize
