@@ -3777,25 +3777,30 @@ actually used.  */)
 	      else if (nread > 0)
 		{
 		  struct buffer *prev = current_buffer;
-		  int count1;
+		  Lisp_Object buffer;
+		  struct buffer *buf;
 
 		  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 
-		  /* The call to temp_output_buffer_setup binds
-		     standard-output.  */
-		  count1 = specpdl_ptr - specpdl;
-		  temp_output_buffer_setup (" *code-converting-work*");
+		  buffer = Fget_buffer_create (build_string (" *code-converting-work*"));
+		  buf = XBUFFER (buffer);
+
+		  buf->directory = current_buffer->directory;
+		  buf->read_only = Qnil;
+		  buf->filename = Qnil;
+		  buf->undo_list = Qt;
+		  buf->overlays_before = Qnil;
+		  buf->overlays_after = Qnil;
 		  
-		  set_buffer_internal (XBUFFER (Vstandard_output));
-		  current_buffer->enable_multibyte_characters = Qnil;
+		  set_buffer_internal (buf);
+		  Ferase_buffer ();
+		  buf->enable_multibyte_characters = Qnil;
+
 		  insert_1_both (read_buf, nread, nread, 0, 0, 0);
 		  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
 		  val = call2 (Vset_auto_coding_function,
 			       filename, make_number (nread));
 		  set_buffer_internal (prev);
-
-		  /* Remove the binding for standard-output.  */
-		  unbind_to (count1, Qnil);
 		  
 		  /* Discard the unwind protect for recovering the
                      current buffer.  */
