@@ -3744,7 +3744,7 @@ main (argc, argv)
 	{
 	  /* Check that the file to append to exists, and is not
 	     empty.  More specifically, it should be a valid file
-	     produced by a vaprevious run of ebrowse, but that's too
+	     produced by a previous run of ebrowse, but that's too
 	     difficult to check.  */
 	  FILE *fp;
 	  int rc;
