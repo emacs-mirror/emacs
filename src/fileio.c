@@ -3215,9 +3215,13 @@ The value is an integer.")
   XSETINT (value, (~ realmask) & 0777);
   return value;
 }
-
-#ifdef unix
 
+
+#ifdef __NetBSD__
+#define unix 42
+#endif
+
+#ifdef unix
 DEFUN ("unix-sync", Funix_sync, Sunix_sync, 0, 0, "",
   "Tell Unix to finish all pending disk updates.")
   ()
