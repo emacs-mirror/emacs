@@ -63,7 +63,7 @@ match for @var{topic}, a regular expression.  @xref{Apropos}.
 @item C-h i d m emacs @key{RET} i @var{topic} @key{RET}
 This looks up @var{topic} in the indices of the Emacs on-line manual.
 If there are several matches, Emacs displays the first one.  You can then
-press @key{,} to move to other matches, until you find what you are
+press @kbd{,} to move to other matches, until you find what you are
 looking for.
 
 @item C-h i d m emacs @key{RET} s @var{topic} @key{RET}
