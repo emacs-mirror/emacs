@@ -34,7 +34,7 @@ Lisp_Object QCLIPBOARD;
 
 /* Coding system for communicating with other Windows programs via the
    clipboard.  */
-static Lisp_Object Vclipboard_coding_system;
+static Lisp_Object Vselection_coding_system;
 
 #if 0
 DEFUN ("w32-open-clipboard", Fw32_open_clipboard, Sw32_open_clipboard, 0, 1, 0,
@@ -182,7 +182,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
 	HANDLE htext2;
 
 	setup_coding_system
-	  (Fcheck_coding_system (Vclipboard_coding_system), &coding);
+	  (Fcheck_coding_system (Vselection_coding_system), &coding);
 	coding.mode |= CODING_MODE_LAST_BLOCK;
 	bufsize = encoding_buffer_size (&coding, nbytes);
 	if ((htext = GlobalAlloc (GMEM_MOVEABLE | GMEM_DDESHARE, bufsize)) == NULL)
@@ -255,7 +255,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data, Sw32_get_clipboard_dat
 	struct coding_system coding;
 
 	setup_coding_system
-	  (Fcheck_coding_system(Vclipboard_coding_system), &coding);
+	  (Fcheck_coding_system(Vselection_coding_system), &coding);
 	coding.mode |= CODING_MODE_LAST_BLOCK;
 	bufsize = decoding_buffer_size (&coding, nbytes);
 	buf = (unsigned char *) xmalloc (bufsize);
@@ -371,13 +371,12 @@ syms_of_w32select ()
   defsubr (&Sw32_get_clipboard_data);
   defsubr (&Sx_selection_exists_p);
 
-  DEFVAR_LISP ("clipboard-coding-system", &Vclipboard_coding_system,
+  DEFVAR_LISP ("selection-coding-system", &Vselection_coding_system,
     "Coding system for communicating with other X clients.\n\
 When sending or receiving text via cut_buffer, selection, and clipboard,\n\
 the text is encoded or decoded by this coding system.\n\
 A default value is `compound-text'");
-  Vclipboard_coding_system=intern ("iso-latin-1-dos");
-  staticpro(&Vclipboard_coding_system);
+  Vselection_coding_system=intern ("iso-latin-1-dos");
 
   QCLIPBOARD = intern ("CLIPBOARD");	staticpro (&QCLIPBOARD);
 }
