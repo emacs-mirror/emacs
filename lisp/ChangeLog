@@ -1,3 +1,13 @@
+2000-11-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Revert the latest changes.
+	Allow the three positional arguments to be skipped and replaced
+	by keyword arguments.
+	Add a :toggle argument to determine whether a nil arg means toggle
+	or means turn-on.  The default is unchanged.
+	Add a call to force-mode-line-update.
+
 2000-11-01  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/elp.el (elp-restore-function): Remove autoload
