@@ -93,6 +93,13 @@ The --with-gcc option says that the build process should use GCC to
 	or not you have GCC by searching your executable path, but if
 	it guesses incorrectly, you may need to use this.
 
+The --run-in-place option sets up default values for the path
+	variables in \`./Makefile' so that Emacs will expect to find
+	its data files (lisp libraries, runnable programs, and the
+	like) in the same locations they occupy while Emacs builds.
+	This means that you don't have to install Emacs in order to
+	run it; it uses its data files as they were unpacked.
+
 The --srcdir=DIR option specifies that the configuration and build
 	processes should look for the Emacs source code in DIR, when
 	DIR is not the current directory.  This option doesn't work yet.
@@ -105,6 +112,12 @@ unsuccessful after disturbing the status quo, it removes config.status."
 
 ### Record all the arguments, so we can save them in config.status.
 arguments="$@"
+
+### These values are used to comment and uncomment different values
+### for the path variables in the Makefile, to choose the installed
+### configuration or the run-in-place configuration.
+rip_paths='#disabled# '
+inst_paths=''
 
 while [ $# != 0 ]; do
   arg="$1"
@@ -221,6 +234,12 @@ Set it to either \`yes' or \`no'."
 	  x_libraries="${val}"
 	  LD_SWITCH_X_SITE="-L${x_libraries}"
         ;;
+
+	## Should this use the "development configuration"?
+	"run_in_place" )
+	  rip_paths=''
+	  inst_paths='#disabled# '
+	;;
 
 	## Has the user asked for some help?
 	"usage" | "help" )
@@ -584,6 +603,11 @@ case "${configuration}" in
     machine=mips opsys=usg5-2-2
   ;;
 
+  ## NeXT
+  m68*-next-mach* | m68*-next-bsd* )
+    machine=next opsys=mach2
+  ;;
+
   ## The complete machine from National Semiconductor
   ns32k-ns-genix* )
     machine=ns32000 opsys=usg5-2
@@ -771,12 +795,9 @@ fi
 machfile="m/${machine}.h"
 opsysfile="s/${opsys}.h"
 
-#### Set some things up for the autoconf macros.
-trap 'rm -f conftest* core; exit 1' 1 3 15
-
-rm -f conftest*
-compile='${CC-cc} $CFLAGS $DEFS conftest.c -o conftest $LIBS >/dev/null 2>&1'
-
+]
+AC_PREPARE(lisp)
+[
 
 #### Choose a compiler.
 DEFS=-g
@@ -793,17 +814,20 @@ if [ "${GCC}" != "" ]; then
   DEFS="${DEFS} -O"
 fi
 
-
 #### Some other nice autoconf tests.
 ]
-AC_CONST
+AC_PROG_CPP
+AC_HAVE_HEADERS(sys/timeb.h)
 AC_RETSIGTYPE
-AC_HAVE_FUNCS(gettimeofday)
+AC_ALLOCA
+AC_HAVE_FUNCS(gettimeofday gethostname dup2)
+AC_CONST
 [
 
 
 #### Choose a window system.
 echo "Checking window system."
+
 window_system=''
 case "${with_x}" in
   yes )
@@ -868,9 +892,17 @@ case ${HAVE_X11} in
 esac
 
 ### Check for XFree386.  It needs special hacks.
+lib_havexbsd=no
+]
+AC_HAVE_LIBRARY( Xbsd , have_libxbsd=yes , have_libxbsd=no )
+[
+if [ -n "${x_libraries}" ] && [ -f ${x_libraries}/libXbsd.a ]; then
+  have_libxbsd=yes
+fi
+
 case ${window_system} in
   x11 )
-    if [ -d /usr/X386/include ]; then
+    if [ -d /usr/X386/include ] && [ "${have_libxbsd}" = "yes" ]; then
       HAVE_XFREE386=yes
       if [ "${C_SWITCH_X_SITE}" = "" ]; then
 	C_SWITCH_X_SITE="-I/usr/X386/include"
@@ -884,7 +916,12 @@ esac
 echo "Examining the machine- and system-dependent files to find out"
 echo " - which libraries the lib-src programs will want, and"
 echo " - whether the GNU malloc routines are usable."
-tempcname="configure.tmp.$$.c"
+
+### It's not important that this name contain the PID; you can't run
+### two configures in the same directory and have anything work
+### anyway.
+tempcname="conftest.c"
+
 echo '
 #include "'${srcdir}'/src/'${opsysfile}'"
 #include "'${srcdir}'/src/'${machfile}'"
@@ -905,7 +942,7 @@ echo '
 @configure@ system_malloc=no
 #endif
 ' > ${tempcname}
-eval `${CC} -E ${tempcname} \
+eval `${CPP} ${tempcname} \
        | grep '@configure@' \
        | sed -e 's/^@configure@ \([^=]*=\)\(.*\)$/\1"\2"/'`
 rm ${tempcname}
@@ -946,6 +983,8 @@ AC_SUBST(c_switch_system)
 AC_SUBST(libsrc_libs)
 AC_SUBST(machfile)
 AC_SUBST(opsysfile)
+AC_SUBST(rip_paths)
+AC_SUBST(inst_paths)
 AC_SUBST(LD_SWITCH_X_SITE)
 AC_SUBST(C_SWITCH_X_SITE)
 [
