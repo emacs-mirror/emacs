@@ -26,10 +26,9 @@
 
 
 (defmacro calc-record-compilation-date-macro ()
-  (` (setq calc-installed-date (, (concat (current-time-string)
-					  " by "
-					  (user-full-name)))))
-)
+  `(setq calc-installed-date ,(concat (current-time-string)
+				      " by "
+				      (user-full-name))))
 
 
 (defmacro calc-wrapper (&rest body)
