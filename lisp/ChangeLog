@@ -1,3 +1,8 @@
+2004-12-27  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-8.el (utf-translate-cjk-load-tables): Bind
+	coding-system-for-read to nil while loading subst-*.
+
 2004-12-26  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-store.el (calc-read-var-name): Remove "var-" from
