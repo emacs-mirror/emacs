@@ -1146,10 +1146,11 @@ different buffer menu using the function `msb'."
   (if msb-mode
       (progn
 	(add-hook 'menu-bar-update-hook 'msb-menu-bar-update-buffers)
-	(remove-hook 'menu-bar-update-hook 'menu-bar-update-buffers))
+	(remove-hook 'menu-bar-update-hook 'menu-bar-update-buffers)
+	(msb-menu-bar-update-buffers t))
     (remove-hook 'menu-bar-update-hook 'msb-menu-bar-update-buffers)
-    (add-hook 'menu-bar-update-hook 'menu-bar-update-buffers))
-  (run-hooks 'menu-bar-update-hook))
+    (add-hook 'menu-bar-update-hook 'menu-bar-update-buffers)
+    (menu-bar-update-buffers t)))
 
 (defun msb-unload-hook ()
   (msb-mode 0))
