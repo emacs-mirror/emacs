@@ -2001,7 +2001,7 @@ show_help_echo (help, window, object, pos, ok_to_overwrite_keystroke_echo)
 	    {
 	      int count = specpdl_ptr - specpdl;
 	      specbind (Qmessage_truncate_lines, Qt);
-	      message3_nolog (help, XSTRING (help)->size,
+	      message3_nolog (help, STRING_BYTES (XSTRING (help)),
 			      STRING_MULTIBYTE (help));
 	      unbind_to (count, Qnil);
 	    }
