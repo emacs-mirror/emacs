@@ -878,7 +878,10 @@ shell from reading its init file."
 ;; File name format.
 
 (defcustom tramp-file-name-structure
-  (list "\\`/\\[\\(\\([a-zA-Z0-9]+\\)/\\)?\\(\\([-a-zA-Z0-9_#/:]+\\)@\\)?\\([-a-zA-Z0-9_#/:@.]+\\)\\]\\(.*\\)\\'"
+  (list (concat "\\`/\\[\\(\\([a-zA-Z0-9]+\\)/\\)?" ;method
+		"\\(\\([-a-zA-Z0-9_#/:]+\\)@\\)?" ;user
+		"\\([-a-zA-Z0-9_#/:@.]+\\)\\]" ;host
+		"\\(.*\\)\\'")		;path
         2 4 5 6)
   "*List of five elements (REGEXP METHOD USER HOST FILE), detailing \
 the tramp file name structure.
@@ -933,8 +936,6 @@ Also see `tramp-file-name-structure' and `tramp-file-name-regexp'."
   :group 'tramp
   :type 'string)
 
-;; HHH: New.  This format spec is made to handle the cases where the
-;;      user does not provide a user name for the connection.
 (defcustom tramp-make-tramp-file-user-nil-format "/[%m/%h]%p"
   "*Format string saying how to construct tramp file name when the user name is not known.
 `%m' is replaced by the method name.
@@ -950,14 +951,13 @@ Also see `tramp-make-tramp-file-format', `tramp-file-name-structure', and `tramp
   (list (concat
          ;; prefix
          "\\`/\\[\\(\\([a-z0-9]+\\)\\)?"
-         ;; regexp specifying a hop
+         ;; regexp specifying the hops
          "\\(\\(%s\\)+\\)"
          ;; path name
          "\\]\\(.*\\)\\'")
         2                               ;number of pair to match method
         3                               ;number of pair to match hops
         -1)                             ;number of pair to match path
-
   "*Describes the file name structure of `multi' files.
 Multi files allow you to contact a remote host in several hops.
 This is a list of four elements (REGEXP METHOD HOP PATH).
@@ -986,7 +986,9 @@ string, but I haven't actually tried what happens if it doesn't..."
                (integer :tag "Paren pair to match path")))
 
 (defcustom tramp-multi-file-name-hop-structure
-  (list "/\\([a-z0-9_]+\\):\\([a-z0-9_]+\\)@\\([a-z0-9.-]+\\)"
+  (list (concat "/\\([a-z0-9_]+\\):"	;hop method
+		"\\([a-z0-9_]+\\)@"	;user
+		"\\([a-z0-9.-]+\\)")	;host
         1 2 3)
   "*Describes the structure of a hop in multi files.
 This is a list of four elements (REGEXP METHOD USER HOST).  First
@@ -1393,7 +1395,7 @@ The LINKNAME argument should look like \"/path/to/target\" or
     (when (tramp-ange-ftp-file-name-p l-multi-method l-method)
       (tramp-invoke-ange-ftp 'make-symbolic-link
 			     filename linkname ok-if-already-exists))
-    (let ((ln (tramp-get-remote-ln l-multi l-method l-user l-host))
+    (let ((ln (tramp-get-remote-ln l-multi-method l-method l-user l-host))
 	  (cwd (file-name-directory l-path)))
       (unless ln
 	(signal 'file-error
@@ -1417,11 +1419,11 @@ The LINKNAME argument should look like \"/path/to/target\" or
       ;; that FILENAME belongs to.
       (zerop
        (tramp-send-command-and-check
-	fn-multi fn-method fn-user fn-host
+	l-multi-method l-method l-user l-host
 	(format "cd %s && %s -sf %s %s"
 		cwd ln
-		(tramp-file-name-path file) ; target
-		(tramp-file-name-path link)) ; link name
+		l-path 
+		filename)
 	t)))))
 
 
@@ -1737,7 +1739,7 @@ is initially created and is kept cached by the remote shell."
   (with-current-buffer buf
     (let ((f (buffer-file-name)))
       (with-parsed-tramp-file-name f nil
-	(when (tramp-ange-ftp-file-name-p f)
+	(when (tramp-ange-ftp-file-name-p multi-method method)
 	  ;; This one requires a hack since the file name is not passed
 	  ;; on the arg list.
 	  (let ((buffer-file-name (tramp-make-ange-ftp-file-name
@@ -1765,7 +1767,7 @@ is initially created and is kept cached by the remote shell."
 			       (point) (progn (end-of-line) (point)))))
 		 (equal tramp-buffer-file-attributes attr))
 		;; If file does not exist, say it is not modified.
-		nil))))))
+		(t nil)))))))
 
 (defadvice clear-visited-file-modtime (after tramp activate)
   "Set `tramp-buffer-file-attributes' back to nil.
@@ -2275,14 +2277,14 @@ If KEEP-DATE is non-nil, preserve the time stamp when copying."
 (defun tramp-handle-delete-file (filename)
   "Like `delete-file' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (with-tramp-calling-ange-ftp
-	nil 'delete-file (list filename)
-      (save-excursion
-	(unless (zerop (tramp-send-command-and-check
-			multi-method method user host
-			(format "rm -f %s"
-				(tramp-shell-quote-argument path))))
-	  (signal 'file-error "Couldn't delete Tramp file"))))))
+    (when (tramp-ange-ftp-file-name-p multi-method method)
+      (tramp-invoke-ange-ftp 'delete-file filename))
+    (save-excursion
+      (unless (zerop (tramp-send-command-and-check
+		      multi-method method user host
+		      (format "rm -f %s"
+			      (tramp-shell-quote-argument path))))
+	(signal 'file-error "Couldn't delete Tramp file")))))
 
 ;; Dired.
 
@@ -2969,13 +2971,52 @@ Falls back to normal file name handler if no tramp file name handler exists."
 (add-to-list 'file-name-handler-alist
 	     (cons tramp-file-name-regexp 'tramp-file-name-handler))
 
-;; If jka-compr is already loaded, move it to the front of
-;; `file-name-handler-alist'.  On Emacs 21.3 or so this will not be
-;; necessary anymore.
-(let ((jka (rassoc 'jka-compr-handler file-name-handler-alist)))
-  (when jka
+;;;###autoload
+(defun tramp-handle-ange-ftp ()
+  (interactive)
+  "Turn Ange-FTP off and an Ange-FTP-like filename format.
+Requests suitable for Ange-FTP will be forwarded to Ange-FTP.
+Also see the variables `tramp-ftp-method', `tramp-default-method',
+and `tramp-default-method-alist'."
+j  (let ((a1 (rassq 'ange-ftp-hook-function file-name-handler-alist))
+	(a2 (rassq 'ange-ftp-completion-hook-function file-name-handler-alist))
+	(a3 (rassq 'tramp-file-name-handler file-name-handler-alist)))
     (setq file-name-handler-alist
-	  (cons jka (delete jka file-name-handler-alist)))))
+	  (delete a1 (delete a2 (delete a3 file-name-handler-alist)))))
+  (setq tramp-file-name-structure
+	(list (concat "\\`/\\(\\([a-zA-Z0-9]+\\)#\\)?" ;method
+		      "\\(\\([^:@/]+\\)@\\)?" ;user
+		      "\\([^:/]+\\):"	;host
+		      "\\(.*\\)\\'")	;path
+	      2 4 5 6)
+	tramp-file-name-regexp "\\`/[^/:]+:"
+	tramp-make-tramp-file-format "/%m#%u@%h:%p"
+	tramp-make-tramp-file-user-nil-format "/%m#%h:%p"
+	tramp-multi-file-name-structure
+	(list (concat "\\`\\([a-zA-Z0-9]+\\)\\)?" ;method
+		      "\\(\\(%s\\)+\\)"	;hops
+		      ":\\(.*\\)\\'")	;path
+	      2 3 -1)
+	tramp-multi-file-name-hop-structure
+	(list (concat ":\\([a-zA-z0-9_]+\\):" ;hop method
+		      "\\([^@:/]+\\)@"	;user
+		      "\\([^:/]+\\)")	;host
+	      1 2 3)
+	tramp-make-multi-tramp-file-format
+	(list "/%m" ":%m:%u@%h" ":%p"))
+  (add-to-list 'file-name-handler-alist
+	       (cons tramp-file-name-regexp 'tramp-file-name-handler))
+  (tramp-repair-jka-compr))
+
+(defun tramp-repair-jka-compr ()
+  "If jka-compr is already loaded, move it to the front of
+`file-name-handler-alist'.  On Emacs 21.4 or so this will not be
+necessary anymore."
+  (let ((jka (rassoc 'jka-compr-handler file-name-handler-alist)))
+    (when jka
+      (setq file-name-handler-alist
+	    (cons jka (delete jka file-name-handler-alist))))))
+(tramp-repair-jka-compr)
 
 (defun tramp-invoke-ange-ftp (operation &rest args)
   "Invoke the Ange-FTP handler function and throw."
@@ -3897,7 +3938,7 @@ nil."
                              tramp-current-user tramp-current-host))
           (goto-char (point-max))
           (insert "[[Regexp `" regexp "' not found"
-                  (if timeout (concat " in " timeout " secs") "")
+                  (if timeout (format " in %d secs" timeout) "")
                   "]]"))))
     found))
 
@@ -4338,7 +4379,7 @@ the remote host use line-endings as defined in the variable
                                  tramp-current-user tramp-current-host))
           (goto-char (point-max))
           (insert "[[Remote prompt `" end-of-output "' not found"
-                  (if timeout (concat " in " timeout " secs") "")
+                  (if timeout (format " in %d secs" timeout) "")
                   "]]"))))
     (goto-char (point-min))
     ;; Return value is whether end-of-output sentinel was found.
@@ -5165,7 +5206,6 @@ TRAMP.
 ;; * Revise the comments near the beginning of the file.
 ;; * Cooperate with PCL-CVS.  It uses start-process, which doesn't
 ;;   work for remote files.
-;; * Allow /[method/user@host:port] syntax for the ssh "-p" argument.
 ;; * Rewrite `tramp-shell-quote-argument' to abstain from using
 ;; `shell-quote-argument'.
 ;; * Completion gets confused when you leave out the method name.
@@ -5184,7 +5224,6 @@ TRAMP.
 ;; * Don't use globbing for directories with many files, as this is
 ;;   likely to produce long command lines, and some shells choke on
 ;;   long command lines.
-;; * Implement `load' operation.
 ;; * Find out about the new auto-save mechanism in Emacs 21 and
 ;;   do the right thing.
 ;; * `vc-directory' does not work.  It never displays any files, even

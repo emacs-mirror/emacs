@@ -1,3 +1,19 @@
+2002-06-27  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-file-name-structure)
+	(tramp-multi-file-name-hop-structure): Split for easier
+	readability. 
+	(tramp-handle-make-symbolic-link): Use user/host/method/... from
+	LINKNAME, not FILENAME.
+	(tramp-handle-verify-visited-file-modtime): Call
+	tramp-ange-ftp-file-name-p with right parameters.
+	(tramp-handle-verify-visited-file-modtime): `insert' does not
+	work for integers, convert them to strings first.
+	(tramp-handle-ange-ftp): New function to perform setup for
+	replacing Ange-FTP with Tramp.
+	(tramp-repair-jka-compr): New function to factor out some
+	previously top-level code.  Call the function at top-level.
+
 2002-06-27  Juanma Barranquero  <lektu@terra.es>
 
 	* composite.el (decompose-composite-char): Fix docstring.
