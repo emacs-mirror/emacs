@@ -82,10 +82,6 @@ The default value is `devanagari'.")
       (cons (cons "-CDAC" 'ccl-encode-indian-glyph-font)
 	    font-ccl-encoder-alist))
 
-(setq font-ccl-encoder-alist
-      (cons '("ISO10646.*-1" . ccl-encode-unicode-font)
-	    font-ccl-encoder-alist))
-
 (provide 'indian)
 
 ;;; indian.el ends here
