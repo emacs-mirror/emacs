@@ -851,24 +851,24 @@ See documentation of variable `tags-file-name'."
   (let ((table (make-vector 511 0)))
     (save-excursion
       (goto-char (point-min))
-      (while (search-forward "\177" nil t)
-	;; Handle multiple \177's on a line.
-	(save-excursion
-	  (skip-syntax-backward "w_")
-	  (or (bolp)
-	      (intern (buffer-substring
-		       (point)
-		       (progn
-			 (skip-syntax-backward "w_")
-			 ;; ??? New
-			 ;; `::' in the middle of a C++ tag.
-			 (and (= (preceding-char) ?:)
-			      (= (char-after (- (point) 2)) ?:)
-			      (progn
-				(backward-char 2)
-				(skip-syntax-backward "w_")))
-			 (point)))
-		      table)))))
+      ;; This monster regexp matches an etags tag line.
+      ;;   \1 is the string to match;
+      ;;   \2 is not interesting;
+      ;;   \3 is the guessed tag name; XXX guess should be better eg DEFUN
+      ;;   \4 is the char to start searching at;
+      ;;   \5 is the line to start searching at;
+      ;;   \6 is not interesting;
+      ;;   \7 is the explicitly-specified tag name.
+      (while (re-search-forward
+	      "^\\(\\(.+[ \t]+\\)?\\([-a-zA-Z0-9_$]+\\)[^-a-zA-Z0-9_$]*\\)\177\
+\\([0-9]+\\),\\([0-9]+\\)\\(,\001\\([^\n]+\\)\\)?\n"
+	      nil t)
+	(intern	(if (match-beginning 6)
+		    ;; There is an explicit tag name.
+		    (buffer-substring (match-beginning 6) (match-end 6))
+		  ;; No explicit tag name.  Best guess.
+		  (buffer-substring (match-beginning 3) (match-end 3)))
+		table)))
     table))
 
 (defun etags-snarf-tag ()
