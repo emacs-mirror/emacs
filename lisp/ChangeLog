@@ -1,5 +1,9 @@
 2000-12-01  Miles Bader  <miles@gnu.org>
 
+	* image-file.el (image-file-name-regexp): Automatically add
+	upper-case variants of each filename extension in
+	`image-file-name-extensions', since they seem to be common.
+
 	* simple.el (minibuffer-contents) 
 	(minibuffer-contents-no-properties, delete-minibuffer-contents):
 	New functions.
