@@ -24,13 +24,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (require 'mm-util)
-(eval-when-compile (require 'cl))
 
 (defconst url-version "Emacs"
   "Version number of URL package.")
 
 (defgroup url nil
   "Uniform Resource Locator tool"
+  :version "21.4"
   :group 'hypermedia)
 
 (defgroup url-file nil
@@ -94,7 +94,7 @@ the second time is 'too old' when compared to the first time."
   :type 'function
   :group 'url-cache)
 
-(defvar url-bug-address "w3-bugs@xemacs.org"
+(defconst url-bug-address "bug-gnu-emacs@gnu.org"
   "Where to send bug reports.")
 
 (defcustom url-personal-mail-address nil
