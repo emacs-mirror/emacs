@@ -1066,7 +1066,7 @@ summary to display in the minibuffer.
 
 There are several helper functions you can use if you are going to use
 built in tagging.  These functions can be @code{or}ed since each one
-returns non-nil if it displays a message.  They are:
+returns non-@code{nil} if it displays a message.  They are:
 
 @table @code
 @cindex @code{speedbar-item-info-file-helper}
@@ -1165,7 +1165,7 @@ when the mouse passes over it.  @var{function} is called whenever the
 user clicks on the text.
 
 The optional argument @var{token} is extra data to associated with the
-text.  Lastly @var{prevline} should be non-nil if you want this line to
+text.  Lastly @var{prevline} should be non-@code{nil} if you want this line to
 appear directly after the last button which was created instead of on
 the next line.
 @end defun

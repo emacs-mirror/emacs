@@ -267,6 +267,7 @@
   :group 'editing-basics
   :group 'convenience
   :group 'emulations
+  :version "21.4"
   :link '(emacs-commentary-link :tag "Commentary" "cua-base.el")
   :link '(emacs-library-link :tag "Lisp File" "cua-base.el"))
 
@@ -1338,7 +1339,6 @@ paste (in addition to the normal emacs bindings)."
   :set-after '(cua-enable-modeline-indications cua-use-hyper-key)
   :require 'cua-base
   :link '(emacs-commentary-link "cua-base.el")
-  :version "21.4"
   (setq mark-even-if-inactive t)
   (setq highlight-nonselected-windows nil)
   (make-variable-buffer-local 'cua--explicit-region-start)

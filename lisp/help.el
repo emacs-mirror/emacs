@@ -267,7 +267,7 @@ If that doesn't give a function, return nil."
 		      (and (symbolp obj) (fboundp obj) obj))))
 	      (error nil))))
       (let* ((str (find-tag-default))
-	     (obj (if str (read str))))
+	     (obj (if str (intern str))))
 	(and (symbolp obj) (fboundp obj) obj))))
 
 

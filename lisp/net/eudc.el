@@ -462,73 +462,73 @@ attribute name ATTR."
   "Display the record list RECORDS in a formatted buffer.
 If RAW-ATTR-NAMES is non-nil, the raw attribute names are displayed
 otherwise they are formatted according to `eudc-user-attribute-names-alist'."
-  (let ((buffer (get-buffer-create "*Directory Query Results*"))
-	inhibit-read-only
+  (let (inhibit-read-only
 	precords
 	(width 0)
 	beg
 	first-record
 	attribute-name)
-    (switch-to-buffer buffer)
-    (setq buffer-read-only t)
-    (setq inhibit-read-only t)
-    (erase-buffer)
-    (insert "Directory Query Result\n")
-    (insert "======================\n\n\n")
-    (if (null records)
-	(insert "No match found.\n"
-		(if eudc-strict-return-matches
-		    "Try setting `eudc-strict-return-matches' to nil or change `eudc-default-return-attributes'.\n"
-		  ""))
-      ;; Replace field names with user names, compute max width
-      (setq precords
-	    (mapcar
-	     (function
-	      (lambda (record)
+    (with-output-to-temp-buffer "*Directory Query Results*"
+      (with-current-buffer standard-output
+	(setq buffer-read-only t)
+	(setq inhibit-read-only t)
+	(erase-buffer)
+	(insert "Directory Query Result\n")
+	(insert "======================\n\n\n")
+	(if (null records)
+	    (insert "No match found.\n"
+		    (if eudc-strict-return-matches
+			"Try setting `eudc-strict-return-matches' to nil or change `eudc-default-return-attributes'.\n"
+		      ""))
+	  ;; Replace field names with user names, compute max width
+	  (setq precords
 		(mapcar
 		 (function
-		  (lambda (field)
-		    (setq attribute-name
-			  (if raw-attr-names
-			      (symbol-name (car field))
-			    (eudc-format-attribute-name-for-display (car field))))
-		    (if (> (length attribute-name) width)
-			(setq width (length attribute-name)))
-		    (cons attribute-name (cdr field))))
-		 record)))
-	     records))
-      ;; Display the records
-      (setq first-record (point))
-      (mapcar
-       (function
-	(lambda (record)
-	  (setq beg (point))
-	  ;; Map over the record fields to print the attribute/value pairs
-	  (mapcar (function
-		   (lambda (field)
-		     (eudc-print-record-field field width)))
-		  record)
-	  ;; Store the record internal format in some convenient place
-	  (overlay-put (make-overlay beg (point))
-		       'eudc-record
-		       (car records))
-	  (setq records (cdr records))
-	  (insert "\n")))
-       precords))
-    (insert "\n")
-    (widget-create 'push-button
-		   :notify (lambda (&rest ignore)
-			     (eudc-query-form))
-		   "New query")
-    (widget-insert " ")
-    (widget-create 'push-button
-		   :notify (lambda (&rest ignore)
-			     (kill-this-buffer))
-		   "Quit")
-    (eudc-mode)
-    (widget-setup)
-    (if first-record
-	(goto-char first-record))))
+		  (lambda (record)
+		    (mapcar
+		     (function
+		      (lambda (field)
+			(setq attribute-name
+			      (if raw-attr-names
+				  (symbol-name (car field))
+				(eudc-format-attribute-name-for-display (car field))))
+			(if (> (length attribute-name) width)
+			    (setq width (length attribute-name)))
+			(cons attribute-name (cdr field))))
+		     record)))
+		 records))
+	  ;; Display the records
+	  (setq first-record (point))
+	  (mapcar
+	   (function
+	    (lambda (record)
+	      (setq beg (point))
+	      ;; Map over the record fields to print the attribute/value pairs
+	      (mapcar (function
+		       (lambda (field)
+			 (eudc-print-record-field field width)))
+		      record)
+	      ;; Store the record internal format in some convenient place
+	      (overlay-put (make-overlay beg (point))
+			   'eudc-record
+			   (car records))
+	      (setq records (cdr records))
+	      (insert "\n")))
+	   precords))
+	(insert "\n")
+	(widget-create 'push-button
+		       :notify (lambda (&rest ignore)
+				 (eudc-query-form))
+		       "New query")
+	(widget-insert " ")
+	(widget-create 'push-button
+		       :notify (lambda (&rest ignore)
+				 (kill-this-buffer))
+		       "Quit")
+	(eudc-mode)
+	(widget-setup)
+	(if first-record
+	    (goto-char first-record))))))
 
 (defun eudc-process-form ()
   "Process the query form in current buffer and display the results."
@@ -709,34 +709,36 @@ server for future sessions."
       (eudc-save-options)))
 
 ;;;###autoload
-(defun eudc-get-email (name)
-  "Get the email field of NAME from the directory server."
-  (interactive "sName: ")
+(defun eudc-get-email (name &optional error)
+  "Get the email field of NAME from the directory server.
+If ERROR is non-nil, report an error if there is none."
+  (interactive "sName: \np")
   (or eudc-server
       (call-interactively 'eudc-set-server))
   (let ((result (eudc-query (list (cons 'name name)) '(email)))
 	email)
     (if (null (cdr result))
 	(setq email (eudc-cdaar result))
-      (error "Multiple match. Use the query form"))
-    (if (interactive-p)
+      (error "Multiple match--use the query form"))
+    (if error
 	(if email
 	    (message "%s" email)
 	  (error "No record matching %s" name)))
     email))
 
 ;;;###autoload
-(defun eudc-get-phone (name)
-  "Get the phone field of NAME from the directory server."
-  (interactive "sName: ")
+(defun eudc-get-phone (name &optional error)
+  "Get the phone field of NAME from the directory server.
+If ERROR is non-nil, report an error if there is none."
+  (interactive "sName: \np")
   (or eudc-server
       (call-interactively 'eudc-set-server))
   (let ((result (eudc-query (list (cons 'name name)) '(phone)))
 	phone)
     (if (null (cdr result))
 	(setq phone (eudc-cdaar result))
-      (error "Multiple match. Use the query form"))
-    (if (interactive-p)
+      (error "Multiple match--use the query form"))
+    (if error
 	(if phone
 	    (message "%s" phone)
 	  (error "No record matching %s" name)))

@@ -224,9 +224,8 @@ Quit current game         \\[5x5-quit-game]"
           5x5-y-pos (/ 5x5-grid-size 2)
           5x5-moves 0
           5x5-grid  (5x5-make-move (5x5-make-new-grid) 5x5-y-pos 5x5-x-pos))
-    (when (interactive-p)
-      (5x5-draw-grid (list 5x5-grid))
-      (5x5-position-cursor))))
+    (5x5-draw-grid (list 5x5-grid))
+    (5x5-position-cursor)))
 
 (defun 5x5-quit-game ()
   "Quit the current game of `5x5'."

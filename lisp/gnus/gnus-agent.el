@@ -160,6 +160,7 @@ read articles as they would just be downloaded again."
   "Chunk size for `gnus-agent-fetch-session'.
 The function will split its article fetches into chunks smaller than
 this limit."
+  :version "21.4"
   :group 'gnus-agent
   :type 'integer)
 
@@ -170,6 +171,7 @@ contents from a group's local storage.  This value may be overridden
 to disable expiration in specific categories, topics, and groups.  Of
 course, you could change gnus-agent-enable-expiration to DISABLE then
 enable expiration per categories, topics, and groups."
+  :version "21.4"
   :group 'gnus-agent
   :type '(radio (const :format "Enable " ENABLE)
                 (const :format "Disable " DISABLE)))
@@ -195,6 +197,7 @@ See Info node `(gnus)Server Buffer'."
   "Whether and when outgoing mail should be queued by the agent.
 When `always', always queue outgoing mail.  When nil, never
 queue.  Otherwise, queue if and only if unplugged."
+  :version "21.4"
   :group 'gnus-agent
   :type '(radio (const :format "Always" always)
 		(const :format "Never" nil)
@@ -203,6 +206,7 @@ queue.  Otherwise, queue if and only if unplugged."
 (defcustom gnus-agent-prompt-send-queue nil
   "If non-nil, `gnus-group-send-queue' will prompt if called when
 unplugged."
+  :version "21.4"
   :group 'gnus-agent
   :type 'boolean)
 

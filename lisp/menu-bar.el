@@ -186,10 +186,15 @@ A large number or nil slows down menu responsiveness."
   '(menu-item "Open Directory..." dired
 	      :help "Read a directory, operate on its files"))
 (define-key menu-bar-files-menu [open-file]
-  '(menu-item "Open File..." find-file
+  '(menu-item "Open File..." find-file-existing
 	      :enable (not (window-minibuffer-p
 			    (frame-selected-window menu-updating-frame)))
-	      :help "Read a file into an Emacs buffer"))
+	      :help "Read an existing file into an Emacs buffer"))
+(define-key menu-bar-files-menu [new-file]
+  '(menu-item "New File..." find-file
+	      :enable (not (window-minibuffer-p
+			    (frame-selected-window menu-updating-frame)))
+	      :help "Read or create a file and edit it"))
 
 
 ;; The "Edit" menu items

@@ -587,6 +587,7 @@ Done before generating the new subject of a forward."
 		non-word-constituents
 		"]\\)+>+\\|[ \t]*[]>|}+]\\)+"))))
   "*Regexp matching the longest possible citation prefix on a line."
+  :version "21.4"
   :group 'message-insertion
   :link '(custom-manual "(message)Insertion Variables")
   :type 'regexp)
@@ -743,6 +744,7 @@ Doing so would be even more evil than leaving it out."
   "*Envelope-from when sending mail with sendmail.
 If this is nil, use `user-mail-address'.  If it is the symbol
 `header', use the From: header of the message."
+  :version "21.4"
   :type '(choice (string :tag "From name")
 		 (const :tag "Use From: header from message" header)
 		 (const :tag "Use `user-mail-address'" nil))
@@ -855,7 +857,8 @@ the signature is inserted."
   (let ((map (make-sparse-keymap 'message-minibuffer-local-map)))
     (set-keymap-parent map minibuffer-local-map)
     map)
-  "Keymap for `message-read-from-minibuffer'.")
+  "Keymap for `message-read-from-minibuffer'."
+  :version "21.4")
 
 ;;;###autoload
 (defcustom message-citation-line-function 'message-insert-citation-line
@@ -1435,6 +1438,7 @@ no, only reply back to the author."
 
 (defcustom message-user-fqdn nil
   "*Domain part of Messsage-Ids."
+  :version "21.4"
   :group 'message-headers
   :link '(custom-manual "(message)News Headers")
   :type '(radio (const :format "%v  " nil)
@@ -6590,6 +6594,7 @@ which specify the range to operate on."
 	'("^\\(Disposition-Notification-To\\|Return-Receipt-To\\):"
 	  . message-expand-name))
   "Alist of (RE . FUN).  Use FUN for completion on header lines matching RE."
+  :version "21.4"
   :group 'message
   :type '(alist :key-type regexp :value-type function))
 

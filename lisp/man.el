@@ -426,7 +426,7 @@ Otherwise, the value is whatever the function
 		      (view-file f)
 		    (error "Cannot read a file: %s" f))
 		(error "Cannot find a file: %s" f))))
-  'help-echo "mouse-2: mouse-2: display this file")
+  'help-echo "mouse-2: display this file")
 
 
 ;; ======================================================================

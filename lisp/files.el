@@ -977,6 +977,14 @@ expand wildcards (if any) and visit multiple files."
 	  (mapcar 'switch-to-buffer (cdr value)))
       (switch-to-buffer-other-frame value))))
 
+(defun find-file-existing (filename &optional wildcards)
+  "Edit the existing file FILENAME.
+Like \\[find-file] but only allow files that exists."
+  (interactive (find-file-read-args "Find existing file: " t))
+  (unless (file-exists-p filename) (error "%s does not exist" filename))
+  (find-file filename wildcards)
+  (current-buffer))
+
 (defun find-file-read-only (filename &optional wildcards)
   "Edit file FILENAME but don't allow changes.
 Like \\[find-file] but marks buffer as read-only.
@@ -1225,6 +1233,7 @@ suppresses this warning."
 When nil, never request confirmation."
   :group 'files
   :group 'find-file
+  :version "21.4"
   :type '(choice integer (const :tag "Never request confirmation" nil)))
 
 (defun find-file-noselect (filename &optional nowarn rawfile wildcards)
@@ -1836,20 +1845,27 @@ be interpreted by the interpreter matched by the second group of the
 regular expression.  The mode is then determined as the mode associated
 with that interpreter in `interpreter-mode-alist'.")
 
-(defvar xml-based-modes '(html-mode)
-  "Modes that override an XML declaration.
-When `set-auto-mode' sees an <?xml or <!DOCTYPE declaration, that
-buffer will be in some XML mode.  If `auto-mode-alist' associates
-the file with one of the modes in this list, that mode will be
-used.  Else `xml-mode' or `sgml-mode' is used.")
+(defvar magic-mode-alist
+  '(;; The < comes before the groups (but the first) to reduce backtracking.
+    ;; Is there a nicer way of getting . including \n?
+    ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
+    ("\\(?:<\\?xml\\s +[^>]*>\\)?\\s *<\\(?:!--\\(?:.\\|\n\\)*?-->\\s *<\\)*\\(?:!DOCTYPE\\s +[^>]*>\\s *<\\)?\\s *\\(?:!--\\(?:.\\|\n\\)*?-->\\s *<\\)*[Hh][Tt][Mm][Ll]" . html-mode)
+    ;; These two must come after html, because they are more general:
+    ("<\\?xml " . xml-mode)
+    ("\\s *<\\(?:!--\\(?:.\\|\n\\)*?-->\\s *<\\)*!DOCTYPE " . sgml-mode)
+    ("%![^V]" . ps-mode))
+  "Alist of buffer beginnings vs corresponding major mode functions.
+Each element looks like (REGEXP . FUNCTION).  FUNCTION will be
+called, unless it is nil.")
 
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
+
 This checks for a -*- mode tag in the buffer's text, checks the
 interpreter that runs this file against `interpreter-mode-alist',
-looks for an <?xml or <!DOCTYPE declaration (see
-`xml-based-modes'), or compares the filename against the entries
-in `auto-mode-alist'.
+compares the buffer beginning against `magic-mode-alist',
+or compares the filename against the entries in
+`auto-mode-alist'.
 
 It does not check for the `mode:' local variable in the
 Local Variables section of the file; for that, use `hack-local-variables'.
@@ -1895,7 +1911,7 @@ only set the major mode, if that would change it."
 	    (if (not (functionp mode))
 		(message "Ignoring unknown mode `%s'" mode)
 	      (setq done t)
-	      (or (set-auto-mode-0 mode)
+	      (or (set-auto-mode-0 mode keep-mode-if-same)
 		  (throw 'nop nil)))))
       ;; If we didn't, look for an interpreter specified in the first line.
       ;; As a special case, allow for things like "#!/bin/env perl", which
@@ -1908,48 +1924,49 @@ only set the major mode, if that would change it."
 	    ;; Map interpreter name to a mode, signalling we're done at the
 	    ;; same time.
 	    done (assoc (file-name-nondirectory mode)
-			interpreter-mode-alist))
-      ;; If we found an interpreter mode to use, invoke it now.
-      (if done (set-auto-mode-0 (cdr done))))
-    (if (and (not done) buffer-file-name)
-	(let ((name buffer-file-name))
-	  ;; Remove backup-suffixes from file name.
-	  (setq name (file-name-sans-versions name))
-	  (while name
-	    ;; Find first matching alist entry.
-	    (let ((case-fold-search
-		   (memq system-type '(vax-vms windows-nt cygwin))))
-	      (if (and (setq mode (assoc-default name auto-mode-alist
+			interpreter-mode-alist)))
+    ;; If we found an interpreter mode to use, invoke it now.
+    (if done
+	(set-auto-mode-0 (cdr done) keep-mode-if-same)
+      (if (setq done (save-excursion
+		       (goto-char (point-min))
+		       (assoc-default nil magic-mode-alist
+				      (lambda (re dummy)
+					(looking-at re)))))
+	  (set-auto-mode-0 done keep-mode-if-same)
+	(if buffer-file-name
+	    (let ((name buffer-file-name))
+	      ;; Remove backup-suffixes from file name.
+	      (setq name (file-name-sans-versions name))
+	      (while name
+		;; Find first matching alist entry.
+		(let ((case-fold-search
+		       (memq system-type '(vax-vms windows-nt cygwin))))
+		  (if (and (setq mode (assoc-default name auto-mode-alist
 						 'string-match))
-		       (consp mode)
-		       (cadr mode))
-		  (setq mode (car mode)
-			name (substring name 0 (match-beginning 0)))
-		(setq name)))
-	    (when mode
-	      (if xml (or (memq mode xml-based-modes)
-			  (setq mode 'xml-mode)))
-	      (set-auto-mode-0 mode)
-	      (setq done t)))))
-    (and xml
-	 (not done)
-	 (set-auto-mode-0 'xml-mode))))
+			   (consp mode)
+			   (cadr mode))
+		      (setq mode (car mode)
+			    name (substring name 0 (match-beginning 0)))
+		    (setq name)))
+		(when mode
+		  (set-auto-mode-0 mode keep-mode-if-same)))))))))
 
 
 ;; When `keep-mode-if-same' is set, we are working on behalf of
 ;; set-visited-file-name.  In that case, if the major mode specified is the
 ;; same one we already have, don't actually reset it.  We don't want to lose
 ;; minor modes such as Font Lock.
-(defun set-auto-mode-0 (mode)
+(defun set-auto-mode-0 (mode &optional keep-mode-if-same)
   "Apply MODE and return it.
-If `keep-mode-if-same' is non-nil MODE is chased of any aliases and
-compared to current major mode.  If they are the same, do nothing
-and return nil."
+If optional arg KEEP-MODE-IF-SAME is non-nil, MODE is chased of
+any aliases and compared to current major mode.  If they are the
+same, do nothing and return nil."
   (when keep-mode-if-same
     (while (symbolp (symbol-function mode))
       (setq mode (symbol-function mode)))
     (if (eq mode major-mode)
-	(setq mode)))
+	(setq mode nil)))
   (when mode
     (funcall mode)
     mode))
@@ -3813,7 +3830,7 @@ This command is used in the special Dired buffer created by
 
 (defun kill-some-buffers (&optional list)
   "Kill some buffers.  Asks the user whether to kill each one of them.
-Non-interactively, if optional argument LIST is non-`nil', it
+Non-interactively, if optional argument LIST is non-nil, it
 specifies the list of buffers to kill, asking for approval for each one."
   (interactive)
   (if (null list)

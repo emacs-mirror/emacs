@@ -45,6 +45,7 @@
 Ibuffer allows you to operate on buffers in a manner much like Dired.
 Operations include sorting, marking by regular expression, and
 the ability to filter the displayed buffers by various criteria."
+  :version "21.4"
   :group 'convenience)
 
 (defcustom ibuffer-formats '((mark modified read-only " " (name 18 18 :left :elide)

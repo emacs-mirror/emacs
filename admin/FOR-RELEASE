@@ -8,6 +8,8 @@ Tasks needed before the next release.
 
 ** Face remapping.
 
+** Let mouse-1 follow links.
+
 
 * FATAL ERRORS
 
@@ -18,10 +20,226 @@ redisplay uses an invalidated face_id with FACE_FROM_ID
 which then returns a NULL pointer.  Said to happen with
 isearch faces.
 
+** Investigate reported crashes in compact_small_strings.
+
+** Investigate reported crashes related to using an
+invalid pointer from string_free_list.
+
+
+* LOSSAGE
+
+** Clean up flymake.el to follow Emacs Lisp conventions.
+
 
 * GTK RELATED BUGS
 
 ** Make GTK scrollbars behave like others w.r.t. overscrolling.
+
+
+* REDISPLAY RELATED BUGS
+
+** Avoid unbreakable loops in redisplay.
+
+Redisplay may loop if there is an error in some display property, e.g.
+     (space 'left-margin)
+
+A fix would be to somehow disable handling of display properties if an error
+is encountered.
+
+** Problem with cursor border around images and window-margins:
+
+The border around the image when the cursor is on the image
+flows into the right fringe and margin.
+
+     (progn
+       (auto-image-file-mode 1)
+       (find-file (concat data-directory "splash.xpm"))
+       (set-window-margins (selected-window) 25 25))
+
+
+** Problem with modeline and window margins:
+
+The mode line's right "box" line is misplaced under the right margin,
+rather than at the right window edge.
+
+emacs -Q
+(set-window-margins nil 25 25)
+C-x 2
+
+
+** custom mode-line face makes Emacs freeze up
+
+From: Stephen Berman <Stephen.Berman@gmx.net>
+Date: Sun, 24 Oct 2004 02:08:56 +0200
+
+1. Start Emacs with -q -no-site-file.
+
+2. Type `M-x customize-face' and at the prompt `mode-line'.
+
+3. In the Custom buffer for mode-line face
+   a. check width and give it the value `narrow';
+   b. check height and give it the value 120 in 1/10 pt;
+   c. check underline and give it the value `on' (or `colored');
+   d. check overline and give it the value `on' (or `colored').
+
+4. Set for current session.
+
+5. Invoke Ediff on any two files.
+
+6. Now Emacs is frozen and consumes 95-99% of CPU.
+
+The customizations in step 3 appear to be the minimum necessary to
+induce this bug.  Leave out any one of them and Ediff runs without a
+problem.  Also if the 1/10 point value of height is 130 or greater
+there's no bug (with the default font family; with e.g. Helvetica the
+bug is induced only by a value of 100 or less).
+
+I've noticed this freeze up only when invoking Ediff.  The only thing
+I've been able to do is kill Emacs externally, via top or with kill
+when run in gdb, after interrupting.  When the freeze up happens
+within a gdb session, there is no automatic debugging feedback.  After
+interrupting I can get a backtrace, here's an example:
+
+Update: Maybe only reveals itself when compiled with GTK+
+
+
+** Mouse-face overlay bleeds into header line
+
+From: Stephen Berman <Stephen.Berman@gmx.net>
+Date: Thu, 21 Oct 2004 18:11:01 +0200
+
+Mouse-face overlays bleed into the header line when the beginning of
+the overlay is above (point-min).  To reproduce:
+
+1. Start Emacs with -q -no-site-file.
+
+2. In *scratch* eval (setq ov (make-overlay 66 92)), (overlay-put ov
+'mouse-face 'highlight), and (setq header-line-format "test").
+
+3. Drag the mouse over the string "evaluation.\n;; If you want" and
+notice the highlighting of only this string.
+
+4. Now click on the down arrow in the scroll bar until the line
+beginning ";; If you want" is directly below the header line.
+
+5. Drag the mouse over ";; If you want" and notice that not only it
+but also the header line are highlighted.
+
+
+** scroll-preserve-screen-position doesn't work with a header-line-format
+
+From: jbyler+emacs-lists@anon41.eml.cc
+Date: Tue, 17 Aug 2004 17:10:14 -0400
+
+There seems to be an off-by-one error triggered by using a header line
+together with scroll-preserve-screen-position.  The symptom: instead of
+staying in the same position on the screen when scrolling, the cursor
+moves one screen line down each time the buffer is scrolled.  Put
+another way: repeatedly typing C-v M-v or using a mouse scroll wheel to
+scroll up and down causes the cursor to migrate slowly down the screen
+instead of staying put as it should.
+
+To reproduce:
+
+emacs -q --no-site-file
+(setq scroll-preserve-screen-position t)
+(setq header-line-format "")
+C-v M-v C-v M-v C-v M-v etc.
+
+
+** Clicking on partially visible lines fails
+
+From: David Kastrup <dak@gnu.org>
+Date: 27 Apr 2004 16:42:58 +0200
+
+I had gnus display a mouse-highlighted line (a URL from browse-url)
+partially at the bottom of its window.  If I click with middle mouse
+key on it, the window gets recentered while I hold the mouse key
+pressed.  If I release it, the window returns into its old position
+(cursor in top row) and nothing happens, presumably because the click
+was not registered on the line itself, but on the magically
+recentered version.
+
+That is a nuisance.  Recentering of even partially visible click
+targets should only happen if window-point moves there, but not at
+the time of the click.  From the moment I hold down a key until it
+gets released, the displayed window portion should not change, with
+the sole exception of scrolling when dragging at the edge of the
+screen.
+
+
+** Can't drag modeline when mouse-autoselect-window is set
+
+From: Klaus Zeitler <kzeitler@lucent.com>
+Date: Mon, 11 Oct 2004 11:14:49 +0200
+
+1. start emacs -q --no-site-file
+2. set variable mouse-autoselect-window to t
+3. split-window-vertically
+
+now I can drag the modeline only upwards but not downwards
+
+
+** line-spacing and (recenter -1)
+
+From: SAITO Takuya <tabmore@rivo.mediatti.net>
+Date: Mon, 31 May 2004 02:07:57 +0900 (JST)
+
+(recenter -1) does not show point at the bottom of the window
+if line-spacing is set to positive integer.
+
+Start emacs -Q, and evaluate below:
+
+(progn
+  (setq line-spacing 1)
+  (dotimes (i (window-height))
+    (insert "\n" (int-to-string i)))
+  (recenter -1))
+
+Then, point is displayed at the center of the window.
+But point should be displayed at the bottom of the window like Emacs-21.3.
+
+
+** line-spacing and garbage in fringe
+
+From: SAITO Takuya <tabmore@rivo.mediatti.net>
+Date: Mon, 31 May 2004 02:08:05 +0900 (JST)
+
+Start emacs -Q and evaluate below with C-xC-e:
+
+(let ((lines 2)
+      (spacing 1))
+  (setq line-spacing spacing
+	indicate-buffer-boundaries t)
+  (insert (make-string (window-height) ?\n))
+  (goto-char (point-min))
+  (message (make-string (* (window-width) lines) ?.))
+  (scroll-up 1))
+
+then, garbage is displayed in right fringe.
+
+Above code reproduces this bug with
+(frame-parameter nil 'font)
+=> "-Adobe-Courier-Medium-R-Normal--12-120-75-75-M-70-ISO8859-1"
+
+If you use different font, you may need different value of
+`lines' and/or `spacing'.
+
+
+** line-spacing and Electric-pop-up-window
+
+From: SAITO Takuya <tabmore@rivo.mediatti.net>
+Date: Mon, 31 May 2004 02:08:10 +0900 (JST)
+
+Electric-pop-up-window does not work well
+if truncate long lines disabled and/or
+`line-spacing' is set to positive integer.
+
+For example, start emacs -Q --line-spacing 1, and type M-` .
+Then, the last line of *Completions* buffer is not visible.
+
+fit-window-to-buffer works well for me, so I guess
+Electric-pop-up-window can use it.
 
 
 * DOCUMENTATION

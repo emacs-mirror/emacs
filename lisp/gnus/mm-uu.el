@@ -80,6 +80,7 @@ This can be either \"inline\" or \"attachment\".")
 
 (defcustom mm-uu-diff-groups-regexp "gnus\\.commits"
   "*Regexp matching diff groups."
+  :version "21.4"
   :type 'regexp
   :group 'gnus-article-mime)
 

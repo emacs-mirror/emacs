@@ -235,6 +235,10 @@ casify_region (flag, b, e)
       else if (!UPPERCASEP (c)
 	       && (!inword || flag != CASE_CAPITALIZE_UP))
 	c = UPCASE1 (c);
+      if (multibyte && c >= 0x80)
+	/* A multibyte result character can't be handled in this
+	   simple loop.  */
+	break;
       FETCH_BYTE (i) = c;
       if (c != c2)
 	changed = 1;
@@ -272,22 +276,17 @@ casify_region (flag, b, e)
 		       tolen = CHAR_STRING (c2, str),
 		       fromlen == tolen)
 		{
+		  /* Length is unchanged.  */
 		  for (j = 0; j < tolen; ++j)
 		    FETCH_BYTE (i + j) = str[j];
 		}
 	      else
-		{
-		  error ("Can't casify letters that change length");
-#if 0 /* This is approximately what we'd like to be able to do here */
-		  if (tolen < fromlen)
-		    del_range_1 (i + tolen, i + fromlen, 0, 0);
-		  else if (tolen > fromlen)
-		    {
-		      TEMP_SET_PT (i + fromlen);
-		      insert_1 (str + fromlen, tolen - fromlen, 1, 0, 0);
-		    }
-#endif
-		}
+		/* Replace one character with the other,
+		   keeping text properties the same.  */
+		replace_range_2 (start + 1, i + tolen,
+				 start + 2, i + tolen + fromlen,
+				 str, 1, tolen,
+				 0);
 	    }
 	  if ((int) flag >= (int) CASE_CAPITALIZE)
 	    inword = SYNTAX (c2) == Sword;

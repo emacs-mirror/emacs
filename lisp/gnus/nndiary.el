@@ -223,6 +223,7 @@
 
 (defgroup nndiary nil
   "The Gnus Diary backend."
+  :version "21.4"
   :group 'gnus-diary)
 
 (defcustom nndiary-mail-sources

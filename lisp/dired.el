@@ -546,7 +546,7 @@ Optional third argument FILTER, if non-nil, is a function to select
 	    (if current-prefix-arg
 		(read-string "Dired listing switches: "
 			     dired-listing-switches))
-	    (read-file-name (format "Dired %s(directory): " str)
+	    (read-directory-name (format "Dired %s(directory): " str)
 			    nil default-directory nil))))
 
 ;;;###autoload (define-key ctl-x-map "d" 'dired)

@@ -499,7 +499,7 @@ Return 0 if there is no such symbol."
 		(and (symbolp obj) (boundp obj) obj))))
 	(error nil))
       (let* ((str (find-tag-default))
-	     (obj (if str (read str))))
+	     (obj (if str (intern str))))
 	(and (symbolp obj) (boundp obj) obj))
       0))
 

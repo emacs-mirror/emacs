@@ -170,7 +170,7 @@ cus-load.el:
 	touch $@
 custom-deps: cus-load.el doit
 	@echo Directories: $(WINS)
-	-$(emacs) -l cus-dep --eval $(ARGQUOTE)(setq find-file-hooks nil)$(ARGQUOTE) -f custom-make-dependencies $(lisp) $(WINS)
+	-$(emacs) -l cus-dep --eval $(ARGQUOTE)(setq find-file-hook nil)$(ARGQUOTE) -f custom-make-dependencies $(lisp) $(WINS)
 
 finder-data: doit
 	@echo Directories: $(WINS)
@@ -220,7 +220,7 @@ loaddefs.el-CMD:
 autoloads: loaddefs.el doit
 	@echo Directories: $(WINS)
 	$(emacs) -l autoload \
-		--eval $(ARGQUOTE)(setq find-file-hooks nil \
+		--eval $(ARGQUOTE)(setq find-file-hook nil \
 			find-file-suppress-same-file-warnings t \
 			generated-autoload-file \
 			  $(DQUOTE)$(lisp)/loaddefs.el$(DQUOTE))$(ARGQUOTE) \

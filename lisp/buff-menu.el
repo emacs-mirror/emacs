@@ -627,8 +627,9 @@ For more information, see the function `buffer-menu'."
 			(define-key map [header-line mouse-2]
 			  `(lambda (e)
 			     (interactive "e")
-			     (if e (set-buffer (window-buffer (posn-window (event-end e)))))
-			     (Buffer-menu-sort ,column)))
+			     (save-window-excursion
+			       (if e (mouse-select-window e))
+			       (Buffer-menu-sort ,column))))
 			map)))
 
 (defun list-buffers-noselect (&optional files-only)

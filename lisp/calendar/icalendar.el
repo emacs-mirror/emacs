@@ -31,16 +31,7 @@
 
 ;;; History:
 
-;;  0.07: Renamed commands!
-;;        icalendar-extract-ical-from-buffer -> icalendar-import-buffer
-;;        icalendar-convert-diary-to-ical    -> icalendar-export-file
-;;        Naming scheme: icalendar-.* = user command; icalendar--.* =
-;;        internal.
-;;        Added icalendar-export-region.
-;;        The import and export commands do not clear their target file,
-;;        but append their results to the target file.
-;;        I18n-problems fixed -- use calendar-(month|day)-name-array.
-;;        Fixed problems with export of multi-line diary entries.
+;;  0.07 onwards: see lisp/ChangeLog
 
 ;;  0.06: Bugfixes regarding icalendar-import-format-*.
 ;;        Fix in icalendar-convert-diary-to-ical -- thanks to Philipp
@@ -99,7 +90,7 @@
 
 ;;; Code:
 
-(defconst icalendar-version 0.07
+(defconst icalendar-version 0.08
   "Version number of icalendar.el.")
 
 ;; ======================================================================
@@ -333,7 +324,7 @@ children."
         param-name param-value)
     (when value-string
       (save-current-buffer
-        (set-buffer (get-buffer-create " *ical-temp*"))
+        (set-buffer (get-buffer-create " *icalendar-work*"))
         (set-buffer-modified-p nil)
         (erase-buffer)
         (insert value-string)
@@ -529,7 +520,17 @@ Note that this silently ignores seconds."
                 (setq num (1+ num))))
             calendar-day-name-array))
     ;; Error:
-    "??"))
+    nil))
+
+(defun icalendar--date-to-isodate (date &optional day-shift)
+  "Convert DATE to iso-style date.
+DATE must be a list of the form (month day year).
+If DAY-SHIFT is non-nil, the result is shifted by DAY-SHIFT days."
+  (let ((mdy (calendar-gregorian-from-absolute
+              (+ (calendar-absolute-from-gregorian date)
+                 (or day-shift 0)))))
+    (format "%04d%02d%02d" (nth 2 mdy) (nth 0 mdy) (nth 1 mdy))))
+
 
 (defun icalendar--datestring-to-isodate (datestring &optional day-shift)
   "Convert diary-style DATESTRING to iso-style date.
@@ -587,7 +588,7 @@ takes care of european-style."
     (if (> day 0)
         (let ((mdy (calendar-gregorian-from-absolute
                     (+ (calendar-absolute-from-gregorian (list month day
-							       year))
+                                                               year))
                        (or day-shift 0)))))
           (format "%04d%02d%02d" (nth 2 mdy) (nth 0 mdy) (nth 1 mdy)))
       nil)))
@@ -625,22 +626,24 @@ would be \"pm\"."
   "Export diary file to iCalendar format.
 All diary entries in the file DIARY-FILENAME are converted to iCalendar
 format.  The result is appended to the file ICAL-FILENAME."
-  (interactive "FExport diary data from file:
+  (interactive "FExport diary data from file: 
 Finto iCalendar file: ")
   (save-current-buffer
     (set-buffer (find-file diary-filename))
     (icalendar-export-region (point-min) (point-max) ical-filename)))
 
 (defalias 'icalendar-convert-diary-to-ical 'icalendar-export-file)
-(make-obsolete 'icalendar-convert-diary-to-ical 'icalendar-export-file
-               "icalendar 0.07")
+(make-obsolete 'icalendar-convert-diary-to-ical 'icalendar-export-file)
 
 ;; User function
 (defun icalendar-export-region (min max ical-filename)
   "Export region in diary file to iCalendar format.
 All diary entries in the region from MIN to MAX in the current buffer are
 converted to iCalendar format.  The result is appended to the file
-ICAL-FILENAME."
+ICAL-FILENAME.
+
+Returns non-nil if an error occurred.  In this case an error message is
+written to the buffer ` *icalendar-errors*'."
   (interactive "r
 FExport diary data into iCalendar file: ")
   (let ((result "")
@@ -649,9 +652,14 @@ FExport diary data into iCalendar file: ")
         (entry-rest "")
         (header "")
         (contents)
-        (oops nil)
+        (found-error nil)
         (nonmarker (concat "^" (regexp-quote diary-nonmarking-symbol)
                            "?")))
+    ;; prepare buffer with error messages
+    (save-current-buffer
+      (set-buffer (get-buffer-create " *icalendar-errors*"))
+      (erase-buffer))
+    ;; here we go
     (save-excursion
       (goto-char min)
       (while (re-search-forward
@@ -664,330 +672,366 @@ FExport diary data into iCalendar file: ")
                              (car (current-time))
                              (cadr (current-time))
                              (car (cddr (current-time)))))
-        (setq oops nil)
-        (cond
-         ;; anniversaries
-         ((string-match
-           (concat nonmarker
-                   "%%(diary-anniversary \\([^)]+\\))\\s-*\\(.*\\)")
-           entry-main)
-          (icalendar--dmsg "diary-anniversary %s" entry-main)
-          (let* ((datetime (substring entry-main (match-beginning 1)
-                                      (match-end 1)))
-                 (summary (icalendar--convert-string-for-export
-                           (substring entry-main (match-beginning 2)
-                                      (match-end 2))))
-                 (startisostring (icalendar--datestring-to-isodate
-                                  datetime))
-                 (endisostring (icalendar--datestring-to-isodate
-                                datetime 1)))
-            (setq contents
-                  (concat "\nDTSTART;VALUE=DATE:" startisostring
-                          "\nDTEND;VALUE=DATE:" endisostring
-                          "\nSUMMARY:" summary
-                          "\nRRULE:FREQ=YEARLY;INTERVAL=1"
-                          ;; the following is redundant,
-                          ;; but korganizer seems to expect this... ;(
-                          ;; and evolution doesn't understand it... :(
-                          ;; so... who is wrong?!
-                          ";BYMONTH=" (substring startisostring 4 6)
-                          ";BYMONTHDAY=" (substring startisostring 6 8)
-                          )))
-          (unless (string= entry-rest "")
-            (setq contents (concat contents "\nDESCRIPTION:"
-                                   (icalendar--convert-string-for-export
-                                    entry-rest)))))
-         ;; cyclic events
-         ;; %%(diary-cyclic )
-         ((string-match
-           (concat nonmarker
-                   "%%(diary-cyclic \\([^ ]+\\) +"
-                   "\\([^ /]+[ /]+[^ /]+[ /]+[^ ]+\\))\\s-*\\(.*\\)")
-           entry-main)
-          (icalendar--dmsg "diary-cyclic %s" entry-main)
-          (let* ((frequency (substring entry-main (match-beginning 1)
-                                       (match-end 1)))
-                 (datetime (substring entry-main (match-beginning 2)
-                                      (match-end 2)))
-                 (summary (icalendar--convert-string-for-export
-                           (substring entry-main (match-beginning 3)
-                                      (match-end 3))))
-                 (startisostring (icalendar--datestring-to-isodate
-                                  datetime))
-                 (endisostring (icalendar--datestring-to-isodate
-                                datetime 1)))
-            (setq contents
-                  (concat "\nDTSTART;VALUE=DATE:" startisostring
-                          "\nDTEND;VALUE=DATE:" endisostring
-                          "\nSUMMARY:" summary
-                          "\nRRULE:FREQ=DAILY;INTERVAL=" frequency
-                          ;; strange: korganizer does not expect
-                          ;; BYSOMETHING here...
-                          )))
-          (unless (string= entry-rest "")
-            (setq contents (concat contents "\nDESCRIPTION:"
-                                   (icalendar--convert-string-for-export
-                                    entry-rest)))))
-         ;; diary-date -- FIXME
-         ((string-match
-           (concat nonmarker
-                   "%%(diary-date \\([^)]+\\))\\s-*\\(.*\\)")
-           entry-main)
-          (icalendar--dmsg "diary-date %s" entry-main)
-          (setq oops t))
-         ;; float events -- FIXME
-         ((string-match
-           (concat nonmarker
-                   "%%(diary-float \\([^)]+\\))\\s-*\\(.*\\)")
-           entry-main)
-          (icalendar--dmsg "diary-float %s" entry-main)
-          (setq oops t))
-         ;; block events
-         ((string-match
-           (concat nonmarker
-                   "%%(diary-block \\([^ /]+[ /]+[^ /]+[ /]+[^ ]+\\) +"
-                   "\\([^ /]+[ /]+[^ /]+[ /]+[^ ]+\\))\\s-*\\(.*\\)")
-           entry-main)
-          (icalendar--dmsg "diary-block %s" entry-main)
-          (let* ((startstring (substring entry-main (match-beginning 1)
-                                         (match-end 1)))
-                 (endstring (substring entry-main (match-beginning 2)
-                                       (match-end 2)))
-                 (summary (icalendar--convert-string-for-export
-                           (substring entry-main (match-beginning 3)
-                                      (match-end 3))))
-                 (startisostring (icalendar--datestring-to-isodate
-                                  startstring))
-                 (endisostring (icalendar--datestring-to-isodate
-                                endstring 1)))
-            (setq contents
-                  (concat "\nDTSTART;VALUE=DATE:" startisostring
-                          "\nDTEND;VALUE=DATE:" endisostring
-                          "\nSUMMARY:" summary
-                          ))
-            (unless (string= entry-rest "")
-              (setq contents (concat contents "\nDESCRIPTION:"
-                                     (icalendar--convert-string-for-export
-                                      entry-rest))))))
-         ;; other sexp diary entries -- FIXME
-         ((string-match
-           (concat nonmarker
-                   "%%(\\([^)]+\\))\\s-*\\(.*\\)")
-           entry-main)
-          (icalendar--dmsg "diary-sexp %s" entry-main)
-          (setq oops t))
-         ;; weekly by day
-         ;; Monday 8:30 Team meeting
-         ((and (string-match
-                (concat nonmarker
-                        "\\([a-z]+\\)\\s-+"
-                        "\\(0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?"
-                        "\\(-0?"
-                        "\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?"
-                        "\\)?"
-                        "\\s-*\\(.*\\)$")
-                entry-main)
-               (icalendar--get-weekday-abbrev
-                (substring entry-main (match-beginning 1) (match-end 1))))
-          (icalendar--dmsg "weekly %s" entry-main)
-          (let* ((day (icalendar--get-weekday-abbrev
-                       (substring entry-main (match-beginning 1)
-                                  (match-end 1))))
-                 (starttimestring (icalendar--diarytime-to-isotime
-                                   (if (match-beginning 3)
-                                       (substring entry-main
-                                                  (match-beginning 3)
-                                                  (match-end 3))
-                                     nil)
-                                   (if (match-beginning 4)
-                                       (substring entry-main
-                                                  (match-beginning 4)
-                                                  (match-end 4))
-                                     nil)))
-                 (endtimestring (icalendar--diarytime-to-isotime
-                                 (if (match-beginning 6)
-                                     (substring entry-main
-                                                (match-beginning 6)
-                                                (match-end 6))
-                                   nil)
-                                 (if (match-beginning 7)
-                                     (substring entry-main
-                                                (match-beginning 7)
-                                                (match-end 7))
-                                   nil)))
-                 (summary (icalendar--convert-string-for-export
-                           (substring entry-main (match-beginning 8)
-                                      (match-end 8)))))
-            (when starttimestring
-              (unless endtimestring
-                (let ((time (read (icalendar--rris "^T0?" ""
-                                                   starttimestring))))
-                  (setq endtimestring (format "T%06d" (+ 10000 time))))))
-            (setq contents
-                  (concat "\nDTSTART"
-                          (if starttimestring "" ";VALUE=DATE")
-                          ":19000101" ;; FIXME? Probability that this
-                          ;; is the right day is 1/7
-                          (or starttimestring "")
-                          "\nDTEND"
-                          (if endtimestring "" ";VALUE=DATE")
-                          ":19000101" ;; FIXME?
-                          (or endtimestring "")
-                          "\nSUMMARY:" summary
-                          "\nRRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=" day
-                          )))
-          (unless (string= entry-rest "")
-            (setq contents (concat contents "\nDESCRIPTION:"
-                                   (icalendar--convert-string-for-export
-                                    entry-rest)))))
-         ;; yearly by day
-         ;; 1 May Tag der Arbeit
-         ((string-match
-           (concat nonmarker
-                   (if european-calendar-style
-                       "0?\\([1-9]+[0-9]?\\)\\s-+\\([a-z]+\\)\\s-+"
-                     "\\([a-z]+\\)\\s-+0?\\([1-9]+[0-9]?\\)\\s-+")
-                   "\\*?\\s-*"
-                   "\\(0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?"
-                   "\\("
-                   "-0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?"
-                   "\\)?"
-                   "\\s-*\\([^0-9]+.*\\)$" ; must not match years
-                   )
-           entry-main)
-          (icalendar--dmsg "yearly %s" entry-main)
-          (let* ((daypos (if european-calendar-style 1 2))
-                 (monpos (if european-calendar-style 2 1))
-                 (day (read (substring entry-main (match-beginning daypos)
-                                       (match-end daypos))))
-                 (month (icalendar--get-month-number
-                         (substring entry-main (match-beginning monpos)
-                                    (match-end monpos))))
-                 (starttimestring (icalendar--diarytime-to-isotime
-                                   (if (match-beginning 4)
-                                       (substring entry-main
-                                                  (match-beginning 4)
-                                                  (match-end 4))
-                                     nil)
-                                   (if (match-beginning 5)
-                                       (substring entry-main
-                                                  (match-beginning 5)
-                                                  (match-end 5))
-                                     nil)))
-                 (endtimestring (icalendar--diarytime-to-isotime
-                                 (if (match-beginning 7)
-                                     (substring entry-main
-                                                (match-beginning 7)
-                                                (match-end 7))
-                                   nil)
-                                 (if (match-beginning 8)
-                                     (substring entry-main
-                                                (match-beginning 8)
-                                                (match-end 8))
-                                   nil)))
-                 (summary (icalendar--convert-string-for-export
-                           (substring entry-main (match-beginning 9)
-                                      (match-end 9)))))
-            (when starttimestring
-              (unless endtimestring
-                (let ((time (read (icalendar--rris "^T0?" ""
-                                                   starttimestring))))
-                  (setq endtimestring (format "T%06d" (+ 10000 time))))))
-            (setq contents
-                  (concat "\nDTSTART"
-                          (if starttimestring "" ";VALUE=DATE")
-                          (format ":1900%02d%02d" month day)
-                          (or starttimestring "")
-                          "\nDTEND"
-                          (if endtimestring "" ";VALUE=DATE")
-                          (format ":1900%02d%02d" month day)
-                          (or endtimestring "")
-                          "\nSUMMARY:" summary
-                          "\nRRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH="
-                          (format "%2d" month)
-                          ";BYMONTHDAY="
-                          (format "%2d" day)
-                          )))
-          (unless (string= entry-rest "")
-            (setq contents (concat contents "\nDESCRIPTION:"
-                                   (icalendar--convert-string-for-export
-                                    entry-rest)))))
-         ;; "ordinary" events, start and end time given
-         ;; 1 Feb 2003 Hs Hochzeitsfeier, Dreieich
-         ((string-match
-           (concat nonmarker
-                   "\\([^ /]+[ /]+[^ /]+[ /]+[^ ]+\\)\\s-+"
-                   "\\(0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?"
-                   "\\("
-                   "-0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?"
-                   "\\)?"
-                   "\\s-*\\(.*\\)")
-           entry-main)
-          (icalendar--dmsg "ordinary %s" entry-main)
-          (let* ((datestring (icalendar--datestring-to-isodate
-                              (substring entry-main (match-beginning 1)
-                                         (match-end 1))))
-                 (starttimestring (icalendar--diarytime-to-isotime
-                                   (if (match-beginning 3)
-                                       (substring entry-main
-                                                  (match-beginning 3)
-                                                  (match-end 3))
-                                     nil)
-                                   (if (match-beginning 4)
-                                       (substring entry-main
-                                                  (match-beginning 4)
-                                                  (match-end 4))
-                                     nil)))
-                 (endtimestring (icalendar--diarytime-to-isotime
-                                 (if (match-beginning 6)
-                                     (substring entry-main
-                                                (match-beginning 6)
-                                                (match-end 6))
-                                   nil)
-                                 (if (match-beginning 7)
-                                     (substring entry-main
-                                                (match-beginning 7)
-                                                (match-end 7))
-                                   nil)))
-                 (summary (icalendar--convert-string-for-export
-                           (substring entry-main (match-beginning 8)
-                                      (match-end 8)))))
-            (when starttimestring
-              (unless endtimestring
-                (let ((time (read (icalendar--rris "^T0?" ""
-                                                   starttimestring))))
-                  (setq endtimestring (format "T%06d" (+ 10000 time))))))
-            (setq contents (format
-                            "\nDTSTART%s:%s%s\nDTEND%s:%s%s\nSUMMARY:%s"
-                            (if starttimestring "" ";VALUE=DATE")
-                            datestring
-                            (or starttimestring "")
-                            (if endtimestring ""
-                              ";VALUE=DATE")
-                            datestring
-                            (or endtimestring "")
-                            summary))
-            (unless (string= entry-rest "")
-              (setq contents (concat contents "\nDESCRIPTION:"
-                                     (icalendar--convert-string-for-export
-                                      entry-rest))))))
-         ;; everything else
-         (t
-          ;; Oops! what's that?
-          (setq oops t)))
-        (if oops
-            (message "Cannot export entry on line %d"
-                     (count-lines (point-min) (point)))
-          (setq result (concat result header contents "\nEND:VEVENT"))))
+        (condition-case error-val
+            (progn
+              (cond
+               ;; anniversaries
+               ((string-match
+                 (concat nonmarker
+                         "%%(diary-anniversary \\([^)]+\\))\\s-*\\(.*\\)")
+                 entry-main)
+                (icalendar--dmsg "diary-anniversary %s" entry-main)
+                (let* ((datetime (substring entry-main (match-beginning 1)
+                                            (match-end 1)))
+                       (summary (icalendar--convert-string-for-export
+                                 (substring entry-main (match-beginning 2)
+                                            (match-end 2))))
+                       (startisostring (icalendar--datestring-to-isodate
+                                        datetime))
+                       (endisostring (icalendar--datestring-to-isodate
+                                      datetime 1)))
+                  (setq contents
+                        (concat "\nDTSTART;VALUE=DATE:" startisostring
+                                "\nDTEND;VALUE=DATE:" endisostring
+                                "\nSUMMARY:" summary
+                                "\nRRULE:FREQ=YEARLY;INTERVAL=1"
+                                ;; the following is redundant,
+                                ;; but korganizer seems to expect this... ;(
+                                ;; and evolution doesn't understand it... :(
+                                ;; so... who is wrong?!
+                                ";BYMONTH=" (substring startisostring 4 6)
+                                ";BYMONTHDAY=" (substring startisostring 6 8)
+                                )))
+                (unless (string= entry-rest "")
+                  (setq contents (concat contents "\nDESCRIPTION:"
+                                         (icalendar--convert-string-for-export
+                                          entry-rest)))))
+               ;; cyclic events
+               ;; %%(diary-cyclic )
+               ((string-match
+                 (concat nonmarker
+                         "%%(diary-cyclic \\([^ ]+\\) +"
+                         "\\([^ /]+[ /]+[^ /]+[ /]+[^ ]+\\))\\s-*\\(.*\\)")
+                 entry-main)
+                (icalendar--dmsg "diary-cyclic %s" entry-main)
+                (let* ((frequency (substring entry-main (match-beginning 1)
+                                             (match-end 1)))
+                       (datetime (substring entry-main (match-beginning 2)
+                                            (match-end 2)))
+                       (summary (icalendar--convert-string-for-export
+                                 (substring entry-main (match-beginning 3)
+                                            (match-end 3))))
+                       (startisostring (icalendar--datestring-to-isodate
+                                        datetime))
+                       (endisostring (icalendar--datestring-to-isodate
+                                      datetime 1)))
+                  (setq contents
+                        (concat "\nDTSTART;VALUE=DATE:" startisostring
+                                "\nDTEND;VALUE=DATE:" endisostring
+                                "\nSUMMARY:" summary
+                                "\nRRULE:FREQ=DAILY;INTERVAL=" frequency
+                                ;; strange: korganizer does not expect
+                                ;; BYSOMETHING here...
+                                )))
+                (unless (string= entry-rest "")
+                  (setq contents (concat contents "\nDESCRIPTION:"
+                                         (icalendar--convert-string-for-export
+                                          entry-rest)))))
+               ;; diary-date -- FIXME
+               ((string-match
+                 (concat nonmarker
+                         "%%(diary-date \\([^)]+\\))\\s-*\\(.*\\)")
+                 entry-main)
+                (icalendar--dmsg "diary-date %s" entry-main)
+                (error "`diary-date' is not supported yet"))
+               ;; float events -- FIXME
+               ((string-match
+                 (concat nonmarker
+                         "%%(diary-float \\([^)]+\\))\\s-*\\(.*\\)")
+                 entry-main)
+                (icalendar--dmsg "diary-float %s" entry-main)
+                (error "`diary-float' is not supported yet"))
+               ;; block events
+               ((string-match
+                 (concat nonmarker
+                         "%%(diary-block \\([^ /]+[ /]+[^ /]+[ /]+[^ ]+\\) +"
+                         "\\([^ /]+[ /]+[^ /]+[ /]+[^ ]+\\))\\s-*\\(.*\\)")
+                 entry-main)
+                (icalendar--dmsg "diary-block %s" entry-main)
+                (let* ((startstring (substring entry-main (match-beginning 1)
+                                               (match-end 1)))
+                       (endstring (substring entry-main (match-beginning 2)
+                                             (match-end 2)))
+                       (summary (icalendar--convert-string-for-export
+                                 (substring entry-main (match-beginning 3)
+                                            (match-end 3))))
+                       (startisostring (icalendar--datestring-to-isodate
+                                        startstring))
+                       (endisostring (icalendar--datestring-to-isodate
+                                      endstring 1)))
+                  (setq contents
+                        (concat "\nDTSTART;VALUE=DATE:" startisostring
+                                "\nDTEND;VALUE=DATE:" endisostring
+                                "\nSUMMARY:" summary
+                                ))
+                  (unless (string= entry-rest "")
+                    (setq contents (concat contents "\nDESCRIPTION:"
+                                           (icalendar--convert-string-for-export
+                                            entry-rest))))))
+               ;; other sexp diary entries -- FIXME
+               ((string-match
+                 (concat nonmarker
+                         "%%(\\([^)]+\\))\\s-*\\(.*\\)")
+                 entry-main)
+                (icalendar--dmsg "diary-sexp %s" entry-main)
+                (error "sexp-entries are not supported yet"))
+               ;; weekly by day
+               ;; Monday 8:30 Team meeting
+               ((and (string-match
+                      (concat nonmarker
+                              "\\([a-z]+\\)\\s-+"
+                              "\\(0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?"
+                              "\\(-0?"
+                              "\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?"
+                              "\\)?"
+                              "\\s-*\\(.*\\)$")
+                      entry-main)
+                     (icalendar--get-weekday-abbrev
+                      (substring entry-main (match-beginning 1) (match-end 1))))
+                (icalendar--dmsg "weekly %s" entry-main)
+                (let* ((day (icalendar--get-weekday-abbrev
+                             (substring entry-main (match-beginning 1)
+                                        (match-end 1))))
+                       (starttimestring (icalendar--diarytime-to-isotime
+                                         (if (match-beginning 3)
+                                             (substring entry-main
+                                                        (match-beginning 3)
+                                                        (match-end 3))
+                                           nil)
+                                         (if (match-beginning 4)
+                                             (substring entry-main
+                                                        (match-beginning 4)
+                                                        (match-end 4))
+                                           nil)))
+                       (endtimestring (icalendar--diarytime-to-isotime
+                                       (if (match-beginning 6)
+                                           (substring entry-main
+                                                      (match-beginning 6)
+                                                      (match-end 6))
+                                         nil)
+                                       (if (match-beginning 7)
+                                           (substring entry-main
+                                                      (match-beginning 7)
+                                                      (match-end 7))
+                                         nil)))
+                       (summary (icalendar--convert-string-for-export
+                                 (substring entry-main (match-beginning 8)
+                                            (match-end 8)))))
+                  (when starttimestring
+                    (unless endtimestring
+                      (let ((time (read (icalendar--rris "^T0?" ""
+                                                         starttimestring))))
+                        (setq endtimestring (format "T%06d" (+ 10000 time))))))
+                  (setq contents
+                        (concat "\nDTSTART;"
+                                (if starttimestring
+                                    "VALUE=DATE-TIME:"
+                                  "VALUE=DATE:")
+                                ;; find the correct week day,
+                                ;; 1st january 2000 was a saturday
+                                (format
+                                 "200001%02d"
+                                 (+ (icalendar--get-weekday-number day) 2))
+                                (or starttimestring "")
+                                "\nDTEND;"
+                                (if endtimestring
+                                    "VALUE=DATE-TIME:"
+                                  "VALUE=DATE:")
+                                (format
+                                 "200001%02d"
+                                 ;; end is non-inclusive!
+                                 (+ (icalendar--get-weekday-number day)
+                                    (if endtimestring 2 3)))
+                                (or endtimestring "")
+                                "\nSUMMARY:" summary
+                                "\nRRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=" day
+                                )))
+                (unless (string= entry-rest "")
+                  (setq contents (concat contents "\nDESCRIPTION:"
+                                         (icalendar--convert-string-for-export
+                                          entry-rest)))))
+               ;; yearly by day
+               ;; 1 May Tag der Arbeit
+               ((string-match
+                 (concat nonmarker
+                         (if european-calendar-style
+                             "0?\\([1-9]+[0-9]?\\)\\s-+\\([a-z]+\\)\\s-+"
+                           "\\([a-z]+\\)\\s-+0?\\([1-9]+[0-9]?\\)\\s-+")
+                         "\\*?\\s-*"
+                         "\\(0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?"
+                         "\\("
+                         "-0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?"
+                         "\\)?"
+                         "\\s-*\\([^0-9]+.*\\)$" ; must not match years
+                         )
+                 entry-main)
+                (icalendar--dmsg "yearly %s" entry-main)
+                (let* ((daypos (if european-calendar-style 1 2))
+                       (monpos (if european-calendar-style 2 1))
+                       (day (read (substring entry-main (match-beginning daypos)
+                                             (match-end daypos))))
+                       (month (icalendar--get-month-number
+                               (substring entry-main (match-beginning monpos)
+                                          (match-end monpos))))
+                       (starttimestring (icalendar--diarytime-to-isotime
+                                         (if (match-beginning 4)
+                                             (substring entry-main
+                                                        (match-beginning 4)
+                                                        (match-end 4))
+                                           nil)
+                                         (if (match-beginning 5)
+                                             (substring entry-main
+                                                        (match-beginning 5)
+                                                        (match-end 5))
+                                           nil)))
+                       (endtimestring (icalendar--diarytime-to-isotime
+                                       (if (match-beginning 7)
+                                           (substring entry-main
+                                                      (match-beginning 7)
+                                                      (match-end 7))
+                                         nil)
+                                       (if (match-beginning 8)
+                                           (substring entry-main
+                                                      (match-beginning 8)
+                                                      (match-end 8))
+                                         nil)))
+                       (summary (icalendar--convert-string-for-export
+                                 (substring entry-main (match-beginning 9)
+                                            (match-end 9)))))
+                  (when starttimestring
+                    (unless endtimestring
+                      (let ((time (read (icalendar--rris "^T0?" ""
+                                                         starttimestring))))
+                        (setq endtimestring (format "T%06d" (+ 10000 time))))))
+                  (setq contents
+                        (concat "\nDTSTART;"
+                                (if starttimestring "VALUE=DATE-TIME:"
+                                  "VALUE=DATE:")
+                                (format "1900%02d%02d" month day)
+                                (or starttimestring "")
+                                "\nDTEND;"
+                                (if endtimestring "VALUE=DATE-TIME:"
+                                  "VALUE=DATE:")
+                                ;; end is not included! shift by one day
+                                (icalendar--date-to-isodate
+                                 (list month day 1900) (if endtimestring 0 1))
+                                (or endtimestring "")
+                                "\nSUMMARY:"
+                                summary
+                                "\nRRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH="
+                                (format "%2d" month)
+                                ";BYMONTHDAY="
+                                (format "%2d" day)
+                                )))
+                (unless (string= entry-rest "")
+                  (setq contents (concat contents "\nDESCRIPTION:"
+                                         (icalendar--convert-string-for-export
+                                          entry-rest)))))
+               ;; "ordinary" events, start and end time given
+               ;; 1 Feb 2003 Hs Hochzeitsfeier, Dreieich
+               ((string-match
+                 (concat nonmarker
+                         "\\([^ /]+[ /]+[^ /]+[ /]+[^ ]+\\)\\s-+"
+                         "\\(0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?"
+                         "\\("
+                         "-0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?"
+                         "\\)?"
+                         "\\s-*\\(.*\\)")
+                 entry-main)
+                (icalendar--dmsg "ordinary %s" entry-main)
+                (let* ((startdatestring (icalendar--datestring-to-isodate
+                                         (substring entry-main
+                                                    (match-beginning 1)
+                                                    (match-end 1))))
+                       (starttimestring (icalendar--diarytime-to-isotime
+                                         (if (match-beginning 3)
+                                             (substring entry-main
+                                                        (match-beginning 3)
+                                                        (match-end 3))
+                                           nil)
+                                         (if (match-beginning 4)
+                                             (substring entry-main
+                                                        (match-beginning 4)
+                                                        (match-end 4))
+                                           nil)))
+                       (endtimestring (icalendar--diarytime-to-isotime
+                                       (if (match-beginning 6)
+                                           (substring entry-main
+                                                      (match-beginning 6)
+                                                      (match-end 6))
+                                         nil)
+                                       (if (match-beginning 7)
+                                           (substring entry-main
+                                                      (match-beginning 7)
+                                                      (match-end 7))
+                                         nil)))
+                       (summary (icalendar--convert-string-for-export
+                                 (substring entry-main (match-beginning 8)
+                                            (match-end 8)))))
+                  (unless startdatestring
+                    (error "Could not parse date"))
+                  (when starttimestring
+                    (unless endtimestring
+                      (let ((time (read (icalendar--rris "^T0?" ""
+                                                         starttimestring))))
+                        (setq endtimestring (format "T%06d" (+ 10000 time))))))
+                  (setq contents (concat
+                                  "\nDTSTART;"
+                                  (if starttimestring "VALUE=DATE-TIME:"
+                                    "VALUE=DATE:")
+                                  startdatestring
+                                  (or starttimestring "")
+                                  "\nDTEND;"
+                                  (if endtimestring "VALUE=DATE-TIME:"
+                                    "VALUE=DATE:")
+                                  (icalendar--datestring-to-isodate
+                                   (substring entry-main
+                                              (match-beginning 1)
+                                              (match-end 1))
+                                   (if endtimestring 0 1))
+                                  (or endtimestring "")
+                                  "\nSUMMARY:"
+                                  summary))
+                  ;; could not parse the date
+                  (unless (string= entry-rest "")
+                    (setq contents (concat contents "\nDESCRIPTION:"
+                                           (icalendar--convert-string-for-export
+                                            entry-rest))))))
+               ;; everything else
+               (t
+                ;; Oops! what's that?
+                (error "Could not parse entry")))
+              (setq result (concat result header contents "\nEND:VEVENT")))
+          ;; handle errors
+          (error
+           (setq found-error t)
+           (save-current-buffer
+             (set-buffer (get-buffer-create " *icalendar-errors*"))
+             (insert (format "Error in line %d -- %s: `%s'\n"
+                             (count-lines (point-min) (point))
+                             (cadr error-val)
+                             entry-main))))))
+
       ;; we're done, insert everything into the file
       (let ((coding-system-for-write 'utf8))
         (set-buffer (find-file ical-filename))
         (goto-char (point-max))
         (insert "BEGIN:VCALENDAR")
-	(insert "\nPRODID:-//Emacs//NONSGML icalendar.el//EN")
+        (insert "\nPRODID:-//Emacs//NONSGML icalendar.el//EN")
         (insert "\nVERSION:2.0")
         (insert result)
-        (insert "\nEND:VCALENDAR\n")))))
+        (insert "\nEND:VCALENDAR\n")))
+    found-error))
 
 ;; ======================================================================
 ;; Import -- convert icalendar to emacs-diary
@@ -1001,7 +1045,7 @@ Argument ICAL-FILENAME output iCalendar file.
 Argument DIARY-FILENAME input `diary-file'.
 Optional argument NON-MARKING determines whether events are created as
 non-marking or not."
-  (interactive "fImport iCalendar data from file:
+  (interactive "fImport iCalendar data from file: 
 Finto diary file:
 p")
   ;; clean up the diary file
@@ -1062,9 +1106,7 @@ reading, parsing, or converting iCalendar data!"
        "Current buffer does not contain icalendar contents!"))))
 
 (defalias 'icalendar-extract-ical-from-buffer 'icalendar-import-buffer)
-
-(make-obsolete 'icalendar-extract-ical-from-buffer 'icalendar-import-buffer
-               "icalendar 0.07")
+(make-obsolete 'icalendar-extract-ical-from-buffer 'icalendar-import-buffer)
 
 ;; ======================================================================
 ;; private area
@@ -1184,7 +1226,7 @@ written into the buffer ` *icalendar-errors*'."
                                (setq diary-string
                                      (format "%s %s%s%s"
                                              (aref calendar-day-name-array
- 						   weekday)
+                                                   weekday)
                                              start-t (if end-t "-" "")
                                              (or end-t "")))
                              ;; FIXME!!!!

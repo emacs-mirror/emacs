@@ -568,7 +568,7 @@ document.@refill
 @item r
 @vindex reftex-enable-partial-scans
 Reparse the LaTeX document and rebuild the @file{*toc*} buffer.  When
-@code{reftex-enable-partial-scans} is non-nil, rescan only the file this
+@code{reftex-enable-partial-scans} is non-@code{nil}, rescan only the file this
 location is defined in, not the entire document.@refill
 
 @item C-u r
@@ -2355,7 +2355,7 @@ will move to the correct position.@refill
 @item r
 @vindex reftex-enable-partial-scans
 Reparse the LaTeX document and rebuild the @file{*Index*} buffer.  When
-@code{reftex-enable-partial-scans} is non-nil, rescan only the file this
+@code{reftex-enable-partial-scans} is non-@code{nil}, rescan only the file this
 location is defined in, not the entire document.@refill
 
 @item C-u r
@@ -4348,7 +4348,7 @@ index entry.  If you have a macro
 should be @samp{Molecules!}.@refill
 
 @var{exclude} can be a function.  If this function exists and returns a
-non-nil value, the index entry at point is ignored.  This was
+non-@code{nil} value, the index entry at point is ignored.  This was
 implemented to support the (deprecated) @samp{^} and @samp{_} shortcuts
 in the LaTeX2e @code{index} package.@refill
 

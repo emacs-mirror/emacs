@@ -896,15 +896,14 @@ then prompt for the MODE to customize."
   (let ((name (format "*Customize Group: %s*"
 		      (custom-unlispify-tag-name group))))
     (if (get-buffer name)
-	(let ((window (selected-window))
+	(let (
 	      ;; Copied from `custom-buffer-create-other-window'.
 	      (pop-up-windows t)
 	      (special-display-buffer-names nil)
 	      (special-display-regexps nil)
 	      (same-window-buffer-names nil)
 	      (same-window-regexps nil))
-	  (pop-to-buffer name)
-	  (select-window window))
+	  (pop-to-buffer name))
       (custom-buffer-create-other-window
        (list (list group 'custom-group))
        name
@@ -1240,21 +1239,20 @@ that option."
 
 ;;;###autoload
 (defun custom-buffer-create-other-window (options &optional name description)
-  "Create a buffer containing OPTIONS.
+  "Create a buffer containing OPTIONS, and display it in another window.
+The result includes selecting that window.
 Optional NAME is the name of the buffer.
 OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
 SYMBOL is a customization option, and WIDGET is a widget for editing
 that option."
   (unless name (setq name "*Customization*"))
-  (let ((window (selected-window))
-	(pop-up-windows t)
+  (let ((pop-up-windows t)
 	(special-display-buffer-names nil)
 	(special-display-regexps nil)
 	(same-window-buffer-names nil)
 	(same-window-regexps nil))
     (pop-to-buffer (custom-get-fresh-buffer name))
-    (custom-buffer-create-internal options description)
-    (select-window window)))
+    (custom-buffer-create-internal options description)))
 
 (defcustom custom-reset-button-menu nil
   "If non-nil, only show a single reset button in customize buffers.

@@ -98,6 +98,9 @@
 ;;				`obsolete'  (obsolete variables and functions)
 ;;				`noruntime' (calls to functions only defined
 ;;					     within `eval-when-compile')
+;;				`cl-warnings' (calls to CL functions)
+;;				`interactive-only' (calls to commands that are
+;;						   not good to call from Lisp)
 ;; byte-compile-compatibility	Whether the compiler should
 ;;				generate .elc files which can be loaded into
 ;;				generic emacs 18.
@@ -336,7 +339,8 @@ If it is 'byte, then only byte-level optimizations will be logged."
   :type 'boolean)
 
 (defconst byte-compile-warning-types
-  '(redefine callargs free-vars unresolved obsolete noruntime cl-functions)
+  '(redefine callargs free-vars unresolved
+	     obsolete noruntime cl-functions interactive-only)
   "The list of warning types used when `byte-compile-warnings' is t.")
 (defcustom byte-compile-warnings t
   "*List of warnings that the byte-compiler should issue (t for all).
@@ -352,13 +356,21 @@ Elements of the list may be be:
   noruntime   functions that may not be defined at runtime (typically
               defined only under `eval-when-compile').
   cl-functions    calls to runtime functions from the CL package (as
-		  distinguished from macros and aliases)."
+		  distinguished from macros and aliases).
+  interactive-only
+	      commands that normally shouldn't be called from Lisp code."
   :group 'bytecomp
   :type `(choice (const :tag "All" t)
 		 (set :menu-tag "Some"
 		      (const free-vars) (const unresolved)
 		      (const callargs) (const redefine)
-		      (const obsolete) (const noruntime) (const cl-functions))))
+		      (const obsolete) (const noruntime)
+		      (const cl-functions) (const interactive-only))))
+
+(defvar byte-compile-interactive-only-functions
+  '(beginning-of-buffer end-of-buffer replace-string replace-regexp
+			insert-file)
+  "List of commands that are not meant to be called from Lisp.")
 
 (defvar byte-compile-not-obsolete-var nil
   "If non-nil, this is a variable that shouldn't be reported as obsolete.")
@@ -2872,6 +2884,10 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	   (byte-compile-set-symbol-position fn)
 	   (when (byte-compile-const-symbol-p fn)
 	     (byte-compile-warn "`%s' called as a function" fn))
+	   (and (memq 'interactive-only byte-compile-warnings)
+		(memq (car form) byte-compile-interactive-only-functions)
+		(byte-compile-warn "`%s' used from Lisp code\n\
+That command is designed for interactive use only" fn))
 	   (if (and handler
 		    (or (not (byte-compile-version-cond
 			      byte-compile-compatibility))

@@ -47,8 +47,6 @@
   (let ((imap-username user)
 	(imap-password pass)
 	(authenticator (if user 'login 'anonymous)))
-    (if (stringp port)
-	(setq port (string-to-int port)))
     (nnimap-open-server host
 			`((nnimap-server-port ,port)
 			  (nnimap-stream 'network)

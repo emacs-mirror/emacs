@@ -205,21 +205,25 @@ If nil, a faster, but more primitive, buffer is used instead."
 
 (defcustom gnus-server-agent-face 'gnus-server-agent-face
   "Face name to use on AGENTIZED servers."
+  :version "21.4"
   :group 'gnus-server-visual
   :type 'face)
 
 (defcustom gnus-server-opened-face 'gnus-server-opened-face
   "Face name to use on OPENED servers."
+  :version "21.4"
   :group 'gnus-server-visual
   :type 'face)
 
 (defcustom gnus-server-closed-face 'gnus-server-closed-face
   "Face name to use on CLOSED servers."
+  :version "21.4"
   :group 'gnus-server-visual
   :type 'face)
 
 (defcustom gnus-server-denied-face 'gnus-server-denied-face
   "Face name to use on DENIED servers."
+  :version "21.4"
   :group 'gnus-server-visual
   :type 'face)
 

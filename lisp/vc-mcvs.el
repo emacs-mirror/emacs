@@ -26,9 +26,9 @@
 ;;; Commentary:
 
 ;; The home page of the Meta-CVS version control system is at
-;; 
+;;
 ;;      http://users.footprints.net/~kaz/mcvs.html
-;; 
+;;
 ;; This is derived from vc-cvs.el as follows:
 ;; - cp vc-cvs.el vc-mcvs.el
 ;; - Replace CVS/ with MCVS/CVS/
@@ -478,7 +478,11 @@ Optional arg VERSION is a version to annotate from."
   (vc-mcvs-command
    buffer
    (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
-   file "annotate" (if version (concat "-r" version))))
+   file "annotate" (if version (concat "-r" version)))
+  (with-current-buffer buffer
+    (goto-char (point-min))
+    (re-search-forward "^[0-9]")
+    (delete-region (point-min) (1- (point)))))
 
 (defalias 'vc-mcvs-annotate-current-time 'vc-cvs-annotate-current-time)
 (defalias 'vc-mcvs-annotate-time 'vc-cvs-annotate-time)

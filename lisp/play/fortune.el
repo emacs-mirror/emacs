@@ -271,7 +271,7 @@ and choose the directory as the fortune-file."
 	 (fortune-ask-file)
        fortune-file)))
    (save-excursion
-    (fortune-in-buffer (interactive-p) file)
+    (fortune-in-buffer t file)
     (set-buffer fortune-buffer-name)
     (let* ((fortune (buffer-string))
 	   (signature (concat fortune-sigstart fortune fortune-sigend)))
@@ -285,7 +285,7 @@ and choose the directory as the fortune-file."
 (defun fortune-in-buffer (interactive &optional file)
   "Put a fortune cookie in the *fortune* buffer.
 
-When INTERACTIVE is nil, don't display it.  Optional argument FILE,
+INTERACTIVE is ignored.  Optional argument FILE,
 when supplied, specifies the file to choose the fortune from."
   (let ((fortune-buffer (or (get-buffer fortune-buffer-name)
 			    (generate-new-buffer fortune-buffer-name)))

@@ -1464,7 +1464,7 @@ adjust_after_insert (from, from_byte, to, to_byte, newlen)
   Z -= len; Z_BYTE -= len_byte;
   adjust_after_replace (from, from_byte, Qnil, newlen, len_byte);
 }
-
+
 /* Replace the text from character positions FROM to TO with NEW,
    If PREPARE is nonzero, call prepare_to_modify_buffer.
    If INHERIT, the newly inserted text should inherit text properties
@@ -1639,6 +1639,122 @@ replace_range (from, to, new, prepare, inherit, markers)
 
   signal_after_change (from, nchars_del, GPT - from);
   update_compositions (from, GPT, CHECK_BORDER);
+}
+
+/* Replace the text from character positions FROM to TO with
+   the text in INS of length INSCHARS.
+   Keep the text properties that applied to the old characters
+   (extending them to all the new chars if there are more new chars).
+
+   Note that this does not yet handle markers quite right.
+
+   If MARKERS is nonzero, relocate markers.
+
+   Unlike most functions at this level, never call
+   prepare_to_modify_buffer and never call signal_after_change.  */
+
+void
+replace_range_2 (from, from_byte, to, to_byte, ins, inschars, insbytes, markers)
+     int from, from_byte, to, to_byte;
+     char *ins;
+     int inschars, insbytes, markers;
+{
+  int nbytes_del, nchars_del;
+  Lisp_Object temp;
+
+  CHECK_MARKERS ();
+
+  nchars_del = to - from;
+  nbytes_del = to_byte - from_byte;
+
+  if (nbytes_del <= 0 && insbytes == 0)
+    return;
+
+  /* Make sure point-max won't overflow after this insertion.  */
+  XSETINT (temp, Z_BYTE - nbytes_del + insbytes);
+  if (Z_BYTE - nbytes_del + insbytes != XINT (temp))
+    error ("Maximum buffer size exceeded");
+
+  /* Make sure the gap is somewhere in or next to what we are deleting.  */
+  if (from > GPT)
+    gap_right (from, from_byte);
+  if (to < GPT)
+    gap_left (to, to_byte, 0);
+
+  GAP_SIZE += nbytes_del;
+  ZV -= nchars_del;
+  Z -= nchars_del;
+  ZV_BYTE -= nbytes_del;
+  Z_BYTE -= nbytes_del;
+  GPT = from;
+  GPT_BYTE = from_byte;
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
+
+  if (GPT_BYTE < GPT)
+    abort ();
+
+  if (GPT - BEG < BEG_UNCHANGED)
+    BEG_UNCHANGED = GPT - BEG;
+  if (Z - GPT < END_UNCHANGED)
+    END_UNCHANGED = Z - GPT;
+
+  if (GAP_SIZE < insbytes)
+    make_gap (insbytes - GAP_SIZE);
+
+  /* Copy the replacement text into the buffer.  */
+  bcopy (ins, GPT_ADDR, insbytes);
+
+#ifdef BYTE_COMBINING_DEBUG
+  /* We have copied text into the gap, but we have not marked
+     it as part of the buffer.  So we can use the old FROM and FROM_BYTE
+     here, for both the previous text and the following text.
+     Meanwhile, GPT_ADDR does point to
+     the text that has been stored by copy_text.  */
+  if (count_combining_before (GPT_ADDR, insbytes, from, from_byte)
+      || count_combining_after (GPT_ADDR, insbytes, from, from_byte))
+    abort ();
+#endif
+
+  GAP_SIZE -= insbytes;
+  GPT += inschars;
+  ZV += inschars;
+  Z += inschars;
+  GPT_BYTE += insbytes;
+  ZV_BYTE += insbytes;
+  Z_BYTE += insbytes;
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
+
+  if (GPT_BYTE < GPT)
+    abort ();
+
+  /* Adjust the overlay center as needed.  This must be done after
+     adjusting the markers that bound the overlays.  */
+  if (nchars_del != inschars)
+    {
+      adjust_overlays_for_insert (from, inschars);
+      adjust_overlays_for_delete (from + inschars, nchars_del);
+    }
+
+  /* Adjust markers for the deletion and the insertion.  */
+  if (markers
+      && ! (nchars_del == 1 && inschars == 1))
+    adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
+				inschars, insbytes);
+
+  offset_intervals (current_buffer, from, inschars - nchars_del);
+
+  /* Relocate point as if it were a marker.  */
+  if (from < PT && nchars_del != inschars)
+    adjust_point ((from + inschars - (PT < to ? PT : to)),
+		  (from_byte + insbytes
+		   - (PT_BYTE < to_byte ? PT_BYTE : to_byte)));
+
+  if (insbytes == 0)
+    evaporate_overlays (from);
+
+  CHECK_MARKERS ();
+
+  MODIFF++;
 }
 
 /* Delete characters in current buffer

@@ -38,7 +38,7 @@
 (defun url-news-open-host (host port user pass)
   (if (fboundp 'nnheader-init-server-buffer)
       (nnheader-init-server-buffer))
-  (nntp-open-server host (list (string-to-int port)))
+  (nntp-open-server host (list port))
   (if (and user pass)
       (progn
 	(nntp-send-command "^.*\r?\n" "AUTHINFO USER" user)

@@ -436,9 +436,11 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 
 (defun grep-default-command ()
   (let ((tag-default
-	 (funcall (or find-tag-default-function
-		      (get major-mode 'find-tag-default-function)
-		      'find-tag-default)))
+         (shell-quote-argument
+          (or (funcall (or find-tag-default-function
+                           (get major-mode 'find-tag-default-function)
+                           'find-tag-default))
+              "")))
 	(sh-arg-re "\\(\\(?:\"\\(?:[^\"]\\|\\\\\"\\)+\"\\|'[^']+'\\|[^\"' \t\n]\\)+\\)")
 	(grep-default (or (car grep-history) grep-command)))
     ;; Replace the thing matching for with that around cursor.
@@ -460,7 +462,7 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 					      0 (match-beginning 2))
 				   " *."
 				   (file-name-extension buffer-file-name))))
-      (replace-match (or tag-default "") t t grep-default 1))))
+      (replace-match tag-default t t grep-default 1))))
 
 ;;;###autoload
 (defun grep (command-args &optional highlight-regexp)

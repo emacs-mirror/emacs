@@ -1029,13 +1029,13 @@ If MODE is 2 then do the same for lines."
 	(echo-keystrokes 0)
 	event events key ignore
 	(x-lost-selection-functions
-	 (if (boundp 'x-lost-selection-functions)
-	     (copy-sequence x-lost-selection-functions))))
-    (add-hook 'x-lost-selection-hook
+	 (when (boundp 'x-lost-selection-functions)
+           (copy-sequence x-lost-selection-functions))))
+    (add-hook 'x-lost-selection-functions
 	      (lambda (seltype)
-		(if (eq seltype 'PRIMARY)
-		    (progn (setq ignore t)
-			   (throw 'mouse-show-mark t)))))
+		(when (eq seltype 'PRIMARY)
+                  (setq ignore t)
+                  (throw 'mouse-show-mark t))))
     (if transient-mark-mode
 	(delete-overlay mouse-drag-overlay)
       (move-overlay mouse-drag-overlay (point) (mark t)))
@@ -1065,8 +1065,7 @@ If MODE is 2 then do the same for lines."
 					  nil keys)
 		      (setq events nil)))))))
     ;; If we lost the selection, just turn off the highlighting.
-    (if ignore
-	nil
+    (unless ignore
       ;; For certain special keys, delete the region.
       (if (member key mouse-region-delete-keys)
 	  (delete-region (overlay-start mouse-drag-overlay)
@@ -1113,7 +1112,7 @@ and set mark at the beginning.
 Prefix arguments are interpreted as with \\[yank].
 If `mouse-yank-at-point' is non-nil, insert at point
 regardless of where you click."
-  (interactive "*e\nP")
+  (interactive "e\nP")
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
   (or mouse-yank-at-point (mouse-set-point click))
@@ -1415,7 +1414,7 @@ The function returns a non-nil value if it creates a secondary selection."
 Move point to the end of the inserted text.
 If `mouse-yank-at-point' is non-nil, insert at point
 regardless of where you click."
-  (interactive "*e")
+  (interactive "e")
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
   (or mouse-yank-at-point (mouse-set-point click))

@@ -4625,17 +4625,25 @@ window_scroll_pixel_based (window, n, whole, noerror)
       w->force_start = Qt;
     }
 
+  /* The rest of this function uses current_y in a nonstandard way,
+     not including the height of the header line if any.  */
   it.current_y = it.vpos = 0;
 
-  /* Preserve the screen position if we must.  */
+  /* Preserve the screen position if we should.  */
   if (preserve_y >= 0)
     {
+      /* If we have a header line, take account of it.  */
+      if (WINDOW_WANTS_HEADER_LINE_P (w))
+	preserve_y -= CURRENT_HEADER_LINE_HEIGHT (w);
+
       move_it_to (&it, -1, -1, preserve_y, -1, MOVE_TO_Y);
       SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
     }
   else
     {
-      /* Move PT out of scroll margins.  */
+      /* Move PT out of scroll margins.
+	 This code wants current_y to be zero at the window start position
+	 even if there is a header line.  */
       this_scroll_margin = max (0, scroll_margin);
       this_scroll_margin = min (this_scroll_margin, XFASTINT (w->total_lines) / 4);
       this_scroll_margin *= FRAME_LINE_HEIGHT (it.f);
@@ -4990,17 +4998,17 @@ specifies the window to scroll.  This takes precedence over
   return Qnil;
 }
 
-DEFUN ("scroll-left", Fscroll_left, Sscroll_left, 0, 1, "P",
+DEFUN ("scroll-left", Fscroll_left, Sscroll_left, 0, 2, "P\np",
        doc: /* Scroll selected window display ARG columns left.
 Default for ARG is window width minus 2.
 Value is the total amount of leftward horizontal scrolling in
 effect after the change.
-If `automatic-hscrolling' is non-nil, the argument ARG modifies
-a lower bound for automatic scrolling, i.e. automatic scrolling
+If SET_MINIMUM is non-nil, the new scroll amount becomes the
+lower bound for automatic scrolling, i.e. automatic scrolling
 will not scroll a window to a column less than the value returned
-by this function.  */)
-     (arg)
-     register Lisp_Object arg;
+by this function.  This happens in an interactive call.  */)
+     (arg, set_minimum)
+     register Lisp_Object arg, set_minimum;
 {
   Lisp_Object result;
   int hscroll;
@@ -5014,23 +5022,23 @@ by this function.  */)
   hscroll = XINT (w->hscroll) + XINT (arg);
   result = Fset_window_hscroll (selected_window, make_number (hscroll));
 
-  if (interactive_p (0))
+  if (!NILP (set_minimum))
     w->min_hscroll = w->hscroll;
 
   return result;
 }
 
-DEFUN ("scroll-right", Fscroll_right, Sscroll_right, 0, 1, "P",
+DEFUN ("scroll-right", Fscroll_right, Sscroll_right, 0, 2, "P\np",
        doc: /* Scroll selected window display ARG columns right.
 Default for ARG is window width minus 2.
 Value is the total amount of leftward horizontal scrolling in
 effect after the change.
-If `automatic-hscrolling' is non-nil, the argument ARG modifies
-a lower bound for automatic scrolling, i.e. automatic scrolling
+If SET_MINIMUM is non-nil, the new scroll amount becomes the
+lower bound for automatic scrolling, i.e. automatic scrolling
 will not scroll a window to a column less than the value returned
-by this function.  */)
-     (arg)
-     register Lisp_Object arg;
+by this function.  This happens in an interactive call.  */)
+     (arg, set_minimum)
+     register Lisp_Object arg, set_minimum;
 {
   Lisp_Object result;
   int hscroll;
@@ -5044,7 +5052,7 @@ by this function.  */)
   hscroll = XINT (w->hscroll) - XINT (arg);
   result = Fset_window_hscroll (selected_window, make_number (hscroll));
 
-  if (interactive_p (0))
+  if (!NILP (set_minimum))
     w->min_hscroll = w->hscroll;
 
   return result;

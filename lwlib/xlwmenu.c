@@ -2054,26 +2054,26 @@ Nothing (w, ev, params, num_params)
 }
 
 static widget_value *
-find_first_selectable (mw, item, skip_no_call_data)
+find_first_selectable (mw, item, skip_titles)
      XlwMenuWidget mw;
      widget_value *item;
-     int skip_no_call_data;
+     int skip_titles;
 {
   widget_value *current = item;
   enum menu_separator separator;
 
   while (lw_separator_p (current->name, &separator, 0) || !current->enabled
-         || (skip_no_call_data && !current->call_data))
+         || (skip_titles && !current->call_data && !current->contents))
     if (current->next)
       current=current->next;
     else
-	return NULL;
+      return NULL;
 
   return current;
 }
 
 static widget_value *
-find_next_selectable (mw, item, skip_no_call_data)
+find_next_selectable (mw, item, skip_titles)
      XlwMenuWidget mw;
      widget_value *item;
 {
@@ -2082,7 +2082,7 @@ find_next_selectable (mw, item, skip_no_call_data)
 
   while (current->next && (current=current->next) &&
 	 (lw_separator_p (current->name, &separator, 0) || !current->enabled
-          || (skip_no_call_data && !current->call_data)))
+          || (skip_titles && !current->call_data && !current->contents)))
     ;
 
   if (current == item)
@@ -2093,7 +2093,8 @@ find_next_selectable (mw, item, skip_no_call_data)
 
       while (lw_separator_p (current->name, &separator, 0)
              || !current->enabled
-             || (skip_no_call_data && !current->call_data))
+             || (skip_titles && !current->call_data
+                 && !current->contents))
 	{
 	  if (current->next)
 	    current=current->next;
@@ -2108,14 +2109,14 @@ find_next_selectable (mw, item, skip_no_call_data)
 }
 
 static widget_value *
-find_prev_selectable (mw, item, skip_no_call_data)
+find_prev_selectable (mw, item, skip_titles)
      XlwMenuWidget mw;
      widget_value *item;
 {
   widget_value *current = item;
   widget_value *prev = item;
 
-  while ((current=find_next_selectable (mw, current, skip_no_call_data))
+  while ((current=find_next_selectable (mw, current, skip_titles))
          != item)
     {
       if (prev == current)
@@ -2141,8 +2142,7 @@ Down (w, ev, params, num_params)
   if (mw->menu.old_depth == mw->menu.top_depth)
     /* When <down> in the menu-bar is pressed, display the corresponding
        sub-menu and select the first selectable menu item there.
-       If this is a popup menu, skip items with zero call data (title of
-       the popup).  */
+       If this is a popup menu, skip title item of the popup.  */
     set_new_state (mw,
                    find_first_selectable (mw,
                                           selected_item->contents,
@@ -2174,8 +2174,7 @@ Up (w, ev, params, num_params)
 	 last selectable item in the list.  So we select the first
 	 selectable one and find the previous selectable item.  Is there
 	 a better way?  */
-      /* If this is a popup menu, skip items with zero call data (title of
-         the popup).  */
+      /* If this is a popup menu, skip title item of the popup.  */
       set_new_state (mw,
                      find_first_selectable (mw,
                                             selected_item->contents,

@@ -4231,7 +4231,7 @@ will re-read the catalog."
 
 
 (defvar idlwave-load-rinfo-idle-timer)
-(defun idlwave-update-routine-info (&optional arg)
+(defun idlwave-update-routine-info (&optional arg dont-concentrate)
   "Update the internal routine-info lists.
 These lists are used by `idlwave-routine-info' (\\[idlwave-routine-info])
 and by `idlwave-complete' (\\[idlwave-complete]) to provide information
@@ -4248,10 +4248,12 @@ Scans all IDLWAVE-mode buffers of the current editing session (see
 When an IDL shell is running, this command also queries the IDL program
 for currently compiled routines.
 
+???Document what DONT-CONCENTRATE means???
+
 With prefix ARG, also reload the system and library lists.
 With two prefix ARG's, also rescans the library tree.
 With three prefix args, dispatch asynchronous process to do the update."
-  (interactive "P")
+  (interactive "P\np")
   ;; Stop any idle processing
   (if (or (and (fboundp 'itimerp)
 	       (itimerp idlwave-load-rinfo-idle-timer))
@@ -4300,7 +4302,7 @@ With three prefix args, dispatch asynchronous process to do the update."
 			     idlwave-query-shell-for-routine-info)))
 
 	(if (or (not ask-shell)
-		(not (interactive-p)))
+		(not dont-concentrate))
 	    ;; 1. If we are not going to ask the shell, we need to do the
 	    ;;    concatenation now.
 	    ;; 2. When this function is called non-interactively, it means
