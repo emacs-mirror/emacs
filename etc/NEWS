@@ -761,6 +761,12 @@ appropriate for C-style escape sequences in strings.
 
 ** New modes and packages
 
+*** The package align.el will align columns within a region, using M-x
+align.  Its mode-specific rules, based on regular expressions,
+determine where the columns should be split.  In C and C++, for
+example, it will align variable names in declaration lists, or the
+equal signs of assignments.
+
 *** `paragraph-indent-minor-mode' is a new minor mode supporting
 paragraphs in the same style as `paragraph-indent-text-mode'.
 
