@@ -178,29 +178,6 @@
 (defvar speedbar-xemacs20p (and speedbar-xemacsp
 				(= emacs-major-version 20)))
 
-;; From custom web page for compatibility between versions of custom:
-(eval-and-compile
-  (condition-case ()
-      (require 'custom)
-    (error nil))
-  (if (and (featurep 'custom) (fboundp 'custom-declare-variable)
-	   ;; Some XEmacsen w/ custom don't have :set keyword.
-	   ;; This protects them against custom.
-	   (fboundp 'custom-initialize-set))
-      nil ;; We've got what we needed
-    ;; We have the old custom-library, hack around it!
-    (defmacro defgroup (&rest args)
-      nil)
-    (defmacro defface (var values doc &rest args)
-      (` (progn
-	   (defvar (, var) (quote (, var)))
-	   ;; To make colors for your faces you need to set your .Xdefaults
-	   ;; or set them up ahead of time in your .emacs file.
-	   (make-face (, var))
-	   )))
-    (defmacro defcustom (var value doc &rest args)
-      (` (defvar (, var) (, value) (, doc))))))
-
 ;; customization stuff
 (defgroup speedbar nil
   "File and tag browser frame."
