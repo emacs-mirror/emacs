@@ -2004,6 +2004,10 @@ anyone has committed to the repository since you last executed
 
 * New modes and packages in Emacs 21.4
 
+** The new package dns-mode.el add syntax highlight of DNS master files.
+The key binding C-c C-s (`dns-mode-soa-increment-serial') can be used
+to increment the SOA serial.
+
 ** The new package flymake.el does on-the-fly syntax checking of program
 source files.  See the Flymake's Info manual for more details.
 

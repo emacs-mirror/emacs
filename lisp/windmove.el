@@ -324,11 +324,11 @@ from `windmove-frame-edges' will be the list (0 0 180 75)."
   (let* ((frame (if window
 		    (window-frame window)
 		  (selected-frame)))
-	 (top-left (window-inside-edges (frame-first-window frame)))
+	 (top-left (window-edges (frame-first-window frame)))
 	 (x-min (nth 0 top-left))
 	 (y-min (nth 1 top-left))
-	 (x-max (+ x-min (frame-width frame) -1)) ; 1- for last row & col
-	 (y-max (+ x-max (frame-height frame) -1)))
+	 (x-max (1- (frame-width frame))) ; 1- for last row & col
+	 (y-max (1- (frame-height frame))))
     (list x-min y-min x-max y-max)))
 
 ;; it turns out that constraining is always a good thing, even when
@@ -406,7 +406,7 @@ Returns the wrapped coordinate."
 
 
 ;; `windmove-coordinates-of-position' is stolen and modified from the
-;; Emacs Lisp Reference Manual, section 27.2.5.  It seems to work
+;; Emacs 20 Lisp Reference Manual, section 27.2.5.  It seems to work
 ;; okay, although I am bothered by the fact that tab-offset (the cdr
 ;; of the next-to- last argument) is set to 0.  On the other hand, I
 ;; can't find a single usage of `compute-motion' anywhere that doesn't
@@ -418,28 +418,43 @@ Returns the wrapped coordinate."
 ;; the number that `window-width' gives, or continuation lines aren't
 ;; counted correctly.  I haven't seen anyone doing this before,
 ;; though.
-(defun windmove-coordinates-of-position (pos &optional window)
-  "Return the coordinates of position POS in window WINDOW.
+;;
+;; Now updated for Emacs 21, based on the Emacs 21 Lisp Reference
+;; Manual, section 30.2.5.  It is no longer necessary to subtract
+;; 1 for the usable width of the window.
+;; TODO: also handle minibuffer case, w/ `minibuffer-prompt-width'.
+(defun windmove-coordinates-of-position (pos)
+  "Return the coordinates of position POS in the current window.
 Return the window-based coodinates in a cons pair: (HPOS . VPOS),
 where HPOS and VPOS are the zero-based x and y components of the
-screen location of POS.  If WINDOW is nil, return the coordinates in
-the currently selected window.
+screen location of POS.
 As an example, if point is in the top left corner of a window, then
 the return value from `windmove-coordinates-of-position' is (0 . 0)
 regardless of the where point is in the buffer and where the window
 is placed in the frame."
-  (let* ((wind (if (null window) (selected-window) window))
-         (big-hairy-result (compute-motion
-                            (window-start)
-                            '(0 . 0)
-                            pos
-                            nil ; (window-width window-height)
-                            nil ; window-width
-                            (cons (window-hscroll)
-                                  0)    ; why zero?
-                            wind)))
-    (cons (nth 1 big-hairy-result)      ; hpos, not vpos as documented
-          (nth 2 big-hairy-result))))   ; vpos, not hpos as documented
+  (let ((big-hairy-result (compute-motion
+                           (window-start)
+                           '(0 . 0)
+                           pos
+                           nil ; (window-width window-height)
+                           nil ; window-width
+                           (cons (window-hscroll)
+                                 0)  ; why zero?
+                           (selected-window))))
+  (cons (nth 1 big-hairy-result)        ; hpos, not vpos as documented
+        (nth 2 big-hairy-result))))     ; vpos, not hpos as documented
+
+(defun windmove-coordinates-of-window-position (pos &optional window)
+  "Return the coordinates of position POS in WINDOW.
+Return the window-based coodinates in a cons pair: (HPOS . VPOS),
+where HPOS and VPOS are the zero-based x and y components of the
+screen location of POS.  If WINDOW is nil, return the coordinates in
+the currently selected window."
+  (if (null window)
+      (windmove-coordinates-of-position pos)
+    (save-selected-window
+      (select-window window)
+      (windmove-coordinates-of-position pos))))
 
 ;; This calculates the reference location in the current window: the
 ;; frame-based (x . y) of either point, the top-left, or the
@@ -467,8 +482,9 @@ supplied, if ARG is greater or smaller than zero, respectively."
        ((= effective-arg 0)
           (windmove-coord-add
              top-left
-             (windmove-coordinates-of-position (window-point window)
-                                               window)))))))
+             (windmove-coordinates-of-window-position
+              (window-point window)
+              window)))))))
 
 ;; This uses the reference location in the current window (calculated
 ;; by `windmove-reference-loc' above) to find a reference location
@@ -491,13 +507,13 @@ movement is relative to."
             (- (nth 1 edges)
                windmove-window-distance-delta))) ; (x, y0-d)
      ((eq dir 'right)
-      (cons (+ (nth 2 edges)
+      (cons (+ (1- (nth 2 edges))	; -1 to get actual max x
                windmove-window-distance-delta)
-            (cdr refpoint)))            ; (x1+d, y)
-     ((eq dir 'down)
+            (cdr refpoint)))            ; (x1+d-1, y)
+     ((eq dir 'down)			; -1 to get actual max y
       (cons (car refpoint)
-            (+ (nth 3 edges)
-               windmove-window-distance-delta))) ; (x, y1+d)
+            (+ (1- (nth 3 edges))
+               windmove-window-distance-delta))) ; (x, y1+d-1)
      (t (error "Invalid direction of movement: %s" dir)))))
 
 (defun windmove-find-other-window (dir &optional arg window)

@@ -1,9 +1,53 @@
+2004-09-15  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vc.el (annotate-time): Document point handling.
+	(vc-annotate-display-autoscale): Doc fix.
+
+2004-09-15  Miles Bader  <miles@gnu.org>
+
+	* generic.el (generic-make-keywords-list): Use symbol rather than
+	word anchors in regexp.
+
+2004-09-14  Sean O'Rourke  <sorourke@cs.ucsd.edu>
+
+	* ibuf-ext.el (define-ibuffer-filter filename): If buffer has
+	no file name consider `dired-directory'.
+
+2004-09-14  Kim F. Storm  <storm@cua.dk>
+
+	* faces.el (cursor): Add face-no-inherit property.  Doc fix.
+
+2004-09-14  Simon Josefsson  <jas@extundo.com>
+
+	* files.el (auto-mode-alist): Map .soa and .zone to dns-mode.
+
+	* textmodes/dns-mode.el: Add.
+
+2004-09-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* novice.el (disabled-command-hook): Use shorthand for obsolescence.
+	(disabled-command-function): Make the ?\  char more obvious.
+
+	* vc-arch.el (vc-arch-root, vc-arch-registered):
+	* vc-mcvs.el (vc-mcvs-root, vc-mcvs-registered): Use vc-find-root.
+
+2004-09-13  Hovav Shacham  <hovav@sha1.stanford.edu>
+
+	* windmove.el (windmove-frame-edges): Report coordinates of
+	outside edges of frame, not inside edges.
+	(windmove-coordinates-of-position): Convert into wrapper to new
+	function `windmove-coordinates-of-window-position';
+	`compute-motion' always applies to selected window.
+	(windmove-coordinates-of-position): Update documentation to refer
+	to Emacs 21 Lisp Reference Manual.
+	(windmove-find-other-window): Fix off-by-one errors for max x,y.
+
 2004-09-13  Kim F. Storm  <storm@cua.dk>
 
 	* isearch.el (isearch-resume-in-command-history): Rename from
 	isearch-resume-enabled and change default to nil.
 
-2004-09-12  Stefan  <monnier@iro.umontreal.ca>
+2004-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-ignore-dir-regexp): New var.
 	(vc-registered): Use it.
@@ -109,7 +153,7 @@
 	* desktop.el (desktop-clear-preserve-buffers):
 	Remove make-obsolete-variable.
 
-2004-09-08  Stefan  <monnier@iro.umontreal.ca>
+2004-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-arch.el (vc-arch-state): Fix parsing for `names' method.
 
@@ -196,7 +240,7 @@
 	window system if overflow-newline-into-fringe is enabled.
 	(term-mode): Don't disable overflow-newline-into-fringe.
 
-2004-09-07  Stefan  <monnier@iro.umontreal.ca>
+2004-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/xterm.el (function-key-map): Add bindings for C- and S- cursor
 	motion as seen on my Mac OS X xterms.
@@ -453,8 +497,8 @@
 
 2004-08-29  Kim F. Storm  <storm@cua.dk>
 
-	* emulation/cua-base.el (cua-auto-expand-rectangles): Remove
-	automatic rectangle padding feature; replace by non-destructive
+	* emulation/cua-base.el (cua-auto-expand-rectangles):
+	Remove automatic rectangle padding feature; replace by non-destructive
 	virtual rectangle edges feature.
 	(cua-virtual-rectangle-edges): New defcustom.
 	(cua-auto-tabify-rectangles): New defcustom.
@@ -937,8 +981,8 @@
 	key-translation-map.
 	(encoded-kbd-setup-keymap): Setup key-translation-map.
 	(saved-key-translation-map): New variable.
-	(encoded-kbd-mode): Save/restore key-translation-map.  Adjusted
-	for the change of encoded-kbd-setup-keymap.
+	(encoded-kbd-mode): Save/restore key-translation-map.
+	Adjust for the change of encoded-kbd-setup-keymap.
 
 2004-08-02  Kim F. Storm  <storm@cua.dk>
 
@@ -1101,12 +1145,11 @@
 
 	Sync with Tramp 2.0.43.
 
-	* net/tramp.el (tramp-handle-verify-visited-file-modtime): Remove
-	outdated comment.
+	* net/tramp.el (tramp-handle-verify-visited-file-modtime):
+	Remove outdated comment.
 	(tramp-locked, tramp-locker): New variables for implementing a
 	global lock.
-	(tramp-sh-file-name-handler): Use them to implement the global
-	lock.
+	(tramp-sh-file-name-handler): Use them to implement the global lock.
 
 2004-07-13  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -1141,14 +1184,15 @@
 	* emacs-lisp/testcover.el: New category "potentially-1valued" for
 	functions that are not erroneous if either 1-valued or
 	multi-valued.  Detect functions in this class.
-	(testcover-1value-functions, testcover-compose-functions,
-	testcover-progn-functions) Added some additional functions to lists.
+	(testcover-1value-functions, testcover-compose-functions)
+	(testcover-progn-functions) Added some additional functions to lists.
 	(testcover-mark): Bugfix when marking up the definition for an
 	empty function.
 
 2004-07-17  Richard M. Stallman  <rms@gnu.org>
 
-	* replace.el (occur-read-primary-args): Pass default to read-from-minibuffer.
+	* replace.el (occur-read-primary-args): Pass default to
+	read-from-minibuffer.
 
 	* mail/footnote.el (footnote-section-tag): Use defcustom.
 
@@ -1257,8 +1301,8 @@
 
 2004-07-09  John Paul Wallington  <jpw@gnu.org>
 
-	* emacs-lisp/re-builder.el (reb-update-overlays): Distinguish
-	between one and several matches in message.
+	* emacs-lisp/re-builder.el (reb-update-overlays):
+	Distinguish between one and several matches in message.
 
 2004-07-09  Richard M. Stallman  <rms@gnu.org>
 
@@ -1296,11 +1340,11 @@
 	Do not treat double clicks and triple clicks specially in the
 	scroll bar (preventing strange repositioning problems)
 
-2004-07-06  Stefan  <monnier@iro.umontreal.ca>
+2004-07-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* replace.el (query-replace-regexp-eval): Fix last change.
 
-2004-07-05  Stefan  <monnier@iro.umontreal.ca>
+2004-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* replace.el (query-replace-descr): New fun.
 	(query-replace-read-from, query-replace-read-args): Default to the

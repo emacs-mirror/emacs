@@ -1,3 +1,27 @@
+2004-09-14  Stefan  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents): Fix case of replacement in a
+	narrowed buffer.
+
+2004-09-14  Kim F. Storm  <storm@cua.dk>
+
+	* puresize.h (PURESIZE_RATIO): Define based on BITS_PER_EMACS_INT.
+
+	* xfaces.c (Qface_no_inherit): New var.
+	(syms_of_xfaces): Intern and staticpro it.
+	(Finternal_make_lisp_face, Finternal_set_lisp_face_attribute)
+	(Finternal_copy_lisp_face, update_face_from_frame_parameter):
+	Don't increment face_change_count when face has non-nil
+	face-no-inherit property.
+
+2004-09-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bytecode.c (BYTE_CODE_QUIT): Add missing AFTER_POTENTIAL_GC.
+	(Fbyte_code): Remove dead code after `wrong_type_argument'.
+
+	* alloc.c (Fgarbage_collect): Mark keyboards, gtk data, and specpdl
+	before doing the mark_stack_check_gcpros since they are not on the stack.
+
 2004-09-12  Kim F. Storm  <storm@cua.dk>
 
 	* editfns.c (Fformat): Handle format strings with multiple text
@@ -12504,7 +12528,7 @@
 
 2002-02-15  Andreas Schwab  <schwab@suse.de>
 
-	* puresize.h (BASE_PURESIZE): Increase to 9/5.
+	* puresize.h (PURESIZE_RATIO): Increase to 9/5.
 
 	* alloc.c (NSTATICS): Increase to 1280.
 

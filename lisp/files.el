@@ -1771,6 +1771,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.g\\'" . antlr-mode)
      ("\\.ses\\'" . ses-mode)
      ("\\.orig\\'" nil t)		; from patch
+     ("\\.\\(soa\\|zone\\)\\'" . dns-mode)
      ("\\.in\\'" nil t)))
   "Alist of filename patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
