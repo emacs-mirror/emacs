@@ -1,3 +1,7 @@
+2000-12-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* add-log.el (add-change-log-entry): Only expand-file-name if non-nil.
+
 2000-12-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* paths.el (Info-default-directory-list): If
