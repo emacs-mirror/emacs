@@ -47,10 +47,6 @@
 
 	* mail/emacsbug.el (report-emacs-bug): Change the "English please" msg.
 
-2002-05-13  Markus Rost  <rost@math.ohio-state.edu>
-
-	* woman.el (woman-menu): Add a comment about the last change.
-
 2002-05-13  Colin Walters  <walters@gnu.org>
 
 	* ibuf-ext.el (ibuffer-format-filter-group-data): New function.
