@@ -534,11 +534,11 @@ interval_of (position, object)
 
 DEFUN ("text-properties-at", Ftext_properties_at,
        Stext_properties_at, 1, 2, 0,
-  "Return the list of properties of the character at POSITION in OBJECT.\n\
-OBJECT is the string or buffer to look for the properties in;\n\
-nil means the current buffer.\n\
-If POSITION is at the end of OBJECT, the value is nil.")
-  (position, object)
+       doc: /* Return the list of properties of the character at POSITION in OBJECT.
+OBJECT is the string or buffer to look for the properties in;
+nil means the current buffer.
+If POSITION is at the end of OBJECT, the value is nil.  */)
+     (position, object)
      Lisp_Object position, object;
 {
   register INTERVAL i;
@@ -560,10 +560,10 @@ If POSITION is at the end of OBJECT, the value is nil.")
 }
 
 DEFUN ("get-text-property", Fget_text_property, Sget_text_property, 2, 3, 0,
-  "Return the value of POSITION's property PROP, in OBJECT.\n\
-OBJECT is optional and defaults to the current buffer.\n\
-If POSITION is at the end of OBJECT, the value is nil.")
-  (position, prop, object)
+       doc: /* Return the value of POSITION's property PROP, in OBJECT.
+OBJECT is optional and defaults to the current buffer.
+If POSITION is at the end of OBJECT, the value is nil.  */)
+     (position, prop, object)
      Lisp_Object position, object;
      Lisp_Object prop;
 {
@@ -654,14 +654,14 @@ get_char_property_and_overlay (position, prop, object, overlay)
 }
 
 DEFUN ("get-char-property", Fget_char_property, Sget_char_property, 2, 3, 0,
-  "Return the value of POSITION's property PROP, in OBJECT.\n\
-OBJECT is optional and defaults to the current buffer.\n\
-If POSITION is at the end of OBJECT, the value is nil.\n\
-If OBJECT is a buffer, then overlay properties are considered as well as\n\
-text properties.\n\
-If OBJECT is a window, then that window's buffer is used, but window-specific\n\
-overlays are considered only if they are associated with OBJECT.")
-  (position, prop, object)
+       doc: /* Return the value of POSITION's property PROP, in OBJECT.
+OBJECT is optional and defaults to the current buffer.
+If POSITION is at the end of OBJECT, the value is nil.
+If OBJECT is a buffer, then overlay properties are considered as well as
+text properties.
+If OBJECT is a window, then that window's buffer is used, but window-specific
+overlays are considered only if they are associated with OBJECT.  */)
+     (position, prop, object)
      Lisp_Object position, object;
      register Lisp_Object prop;
 {
@@ -670,15 +670,15 @@ overlays are considered only if they are associated with OBJECT.")
 
 DEFUN ("next-char-property-change", Fnext_char_property_change,
        Snext_char_property_change, 1, 2, 0,
-  "Return the position of next text property or overlay change.\n\
-This scans characters forward from POSITION till it finds a change in\n\
-some text property, or the beginning or end of an overlay, and returns\n\
-the position of that.\n\
-If none is found, the function returns (point-max).\n\
-\n\
-If the optional third argument LIMIT is non-nil, don't search\n\
-past position LIMIT; return LIMIT if nothing is found before LIMIT.")
-  (position, limit)
+       doc: /* Return the position of next text property or overlay change.
+This scans characters forward from POSITION till it finds a change in
+some text property, or the beginning or end of an overlay, and returns
+the position of that.
+If none is found, the function returns (point-max).
+
+If the optional third argument LIMIT is non-nil, don't search
+past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
+     (position, limit)
      Lisp_Object position, limit;
 {
   Lisp_Object temp;
@@ -695,15 +695,15 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
 
 DEFUN ("previous-char-property-change", Fprevious_char_property_change,
        Sprevious_char_property_change, 1, 2, 0,
-  "Return the position of previous text property or overlay change.\n\
-Scans characters backward from POSITION till it finds a change in some\n\
-text property, or the beginning or end of an overlay, and returns the\n\
-position of that.\n\
-If none is found, the function returns (point-max).\n\
-\n\
-If the optional third argument LIMIT is non-nil, don't search\n\
-past position LIMIT; return LIMIT if nothing is found before LIMIT.")
-  (position, limit)
+       doc: /* Return the position of previous text property or overlay change.
+Scans characters backward from POSITION till it finds a change in some
+text property, or the beginning or end of an overlay, and returns the
+position of that.
+If none is found, the function returns (point-max).
+
+If the optional third argument LIMIT is non-nil, don't search
+past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
+     (position, limit)
      Lisp_Object position, limit;
 {
   Lisp_Object temp;
@@ -721,16 +721,16 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
 
 DEFUN ("next-single-char-property-change", Fnext_single_char_property_change,
        Snext_single_char_property_change, 2, 4, 0,
-  "Return the position of next text property or overlay change for a specific property.\n\
-Scans characters forward from POSITION till it finds\n\
-a change in the PROP property, then returns the position of the change.\n\
-The optional third argument OBJECT is the string or buffer to scan.\n\
-The property values are compared with `eq'.\n\
-If the property is constant all the way to the end of OBJECT, return the\n\
-last valid position in OBJECT.\n\
-If the optional fourth argument LIMIT is non-nil, don't search\n\
-past position LIMIT; return LIMIT if nothing is found before LIMIT.")
-  (position, prop, object, limit)
+       doc: /* Return the position of next text property or overlay change for a specific property.
+Scans characters forward from POSITION till it finds
+a change in the PROP property, then returns the position of the change.
+The optional third argument OBJECT is the string or buffer to scan.
+The property values are compared with `eq'.
+If the property is constant all the way to the end of OBJECT, return the
+last valid position in OBJECT.
+If the optional fourth argument LIMIT is non-nil, don't search
+past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
+     (position, prop, object, limit)
      Lisp_Object prop, position, object, limit;
 {
   if (STRINGP (object))
@@ -787,16 +787,16 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
 DEFUN ("previous-single-char-property-change",
        Fprevious_single_char_property_change,
        Sprevious_single_char_property_change, 2, 4, 0,
-  "Return the position of previous text property or overlay change for a specific property.\n\
-Scans characters backward from POSITION till it finds\n\
-a change in the PROP property, then returns the position of the change.\n\
-The optional third argument OBJECT is the string or buffer to scan.\n\
-The property values are compared with `eq'.\n\
-If the property is constant all the way to the start of OBJECT, return the\n\
-first valid position in OBJECT.\n\
-If the optional fourth argument LIMIT is non-nil, don't search\n\
-back past position LIMIT; return LIMIT if nothing is found before LIMIT.")
-  (position, prop, object, limit)
+       doc: /* Return the position of previous text property or overlay change for a specific property.
+Scans characters backward from POSITION till it finds
+a change in the PROP property, then returns the position of the change.
+The optional third argument OBJECT is the string or buffer to scan.
+The property values are compared with `eq'.
+If the property is constant all the way to the start of OBJECT, return the
+first valid position in OBJECT.
+If the optional fourth argument LIMIT is non-nil, don't search
+back past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
+     (position, prop, object, limit)
      Lisp_Object prop, position, object, limit;
 {
   if (STRINGP (object))
@@ -865,15 +865,16 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.")
 
 DEFUN ("next-property-change", Fnext_property_change,
        Snext_property_change, 1, 3, 0,
-  "Return the position of next property change.\n\
-Scans characters forward from POSITION in OBJECT till it finds\n\
-a change in some text property, then returns the position of the change.\n\
-The optional second argument OBJECT is the string or buffer to scan.\n\
-Return nil if the property is constant all the way to the end of OBJECT.\n\
-If the value is non-nil, it is a position greater than POSITION, never equal.\n\n\
-If the optional third argument LIMIT is non-nil, don't search\n\
-past position LIMIT; return LIMIT if nothing is found before LIMIT.")
-  (position, object, limit)
+       doc: /* Return the position of next property change.
+Scans characters forward from POSITION in OBJECT till it finds
+a change in some text property, then returns the position of the change.
+The optional second argument OBJECT is the string or buffer to scan.
+Return nil if the property is constant all the way to the end of OBJECT.
+If the value is non-nil, it is a position greater than POSITION, never equal.
+
+If the optional third argument LIMIT is non-nil, don't search
+past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
+     (position, object, limit)
      Lisp_Object position, object, limit;
 {
   register INTERVAL i, next;
@@ -956,16 +957,17 @@ property_change_between_p (beg, end)
 
 DEFUN ("next-single-property-change", Fnext_single_property_change,
        Snext_single_property_change, 2, 4, 0,
-  "Return the position of next property change for a specific property.\n\
-Scans characters forward from POSITION till it finds\n\
-a change in the PROP property, then returns the position of the change.\n\
-The optional third argument OBJECT is the string or buffer to scan.\n\
-The property values are compared with `eq'.\n\
-Return nil if the property is constant all the way to the end of OBJECT.\n\
-If the value is non-nil, it is a position greater than POSITION, never equal.\n\n\
-If the optional fourth argument LIMIT is non-nil, don't search\n\
-past position LIMIT; return LIMIT if nothing is found before LIMIT.")
-  (position, prop, object, limit)
+       doc: /* Return the position of next property change for a specific property.
+Scans characters forward from POSITION till it finds
+a change in the PROP property, then returns the position of the change.
+The optional third argument OBJECT is the string or buffer to scan.
+The property values are compared with `eq'.
+Return nil if the property is constant all the way to the end of OBJECT.
+If the value is non-nil, it is a position greater than POSITION, never equal.
+
+If the optional fourth argument LIMIT is non-nil, don't search
+past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
+     (position, prop, object, limit)
      Lisp_Object position, prop, object, limit;
 {
   register INTERVAL i, next;
@@ -998,15 +1000,16 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
 
 DEFUN ("previous-property-change", Fprevious_property_change,
        Sprevious_property_change, 1, 3, 0,
-  "Return the position of previous property change.\n\
-Scans characters backwards from POSITION in OBJECT till it finds\n\
-a change in some text property, then returns the position of the change.\n\
-The optional second argument OBJECT is the string or buffer to scan.\n\
-Return nil if the property is constant all the way to the start of OBJECT.\n\
-If the value is non-nil, it is a position less than POSITION, never equal.\n\n\
-If the optional third argument LIMIT is non-nil, don't search\n\
-back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
-  (position, object, limit)
+       doc: /* Return the position of previous property change.
+Scans characters backwards from POSITION in OBJECT till it finds
+a change in some text property, then returns the position of the change.
+The optional second argument OBJECT is the string or buffer to scan.
+Return nil if the property is constant all the way to the start of OBJECT.
+If the value is non-nil, it is a position less than POSITION, never equal.
+
+If the optional third argument LIMIT is non-nil, don't search
+back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
+     (position, object, limit)
      Lisp_Object position, object, limit;
 {
   register INTERVAL i, previous;
@@ -1041,15 +1044,16 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
 
 DEFUN ("previous-single-property-change", Fprevious_single_property_change,
        Sprevious_single_property_change, 2, 4, 0,
-  "Return the position of previous property change for a specific property.\n\
-Scans characters backward from POSITION till it finds\n\
-a change in the PROP property, then returns the position of the change.\n\
-The optional third argument OBJECT is the string or buffer to scan.\n\
-The property values are compared with `eq'.\n\
-Return nil if the property is constant all the way to the start of OBJECT.\n\
-If the value is non-nil, it is a position less than POSITION, never equal.\n\n\
-If the optional fourth argument LIMIT is non-nil, don't search\n\
-back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
+       doc: /* Return the position of previous property change for a specific property.
+Scans characters backward from POSITION till it finds
+a change in the PROP property, then returns the position of the change.
+The optional third argument OBJECT is the string or buffer to scan.
+The property values are compared with `eq'.
+Return nil if the property is constant all the way to the start of OBJECT.
+If the value is non-nil, it is a position less than POSITION, never equal.
+
+If the optional fourth argument LIMIT is non-nil, don't search
+back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
      (position, prop, object, limit)
      Lisp_Object position, prop, object, limit;
 {
@@ -1091,13 +1095,13 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
 
 DEFUN ("add-text-properties", Fadd_text_properties,
        Sadd_text_properties, 3, 4, 0,
-  "Add properties to the text from START to END.\n\
-The third argument PROPERTIES is a property list\n\
-specifying the property values to add.\n\
-The optional fourth argument, OBJECT,\n\
-is the string or buffer containing the text.\n\
-Return t if any property value actually changed, nil otherwise.")
-  (start, end, properties, object)
+       doc: /* Add properties to the text from START to END.
+The third argument PROPERTIES is a property list
+specifying the property values to add.
+The optional fourth argument, OBJECT,
+is the string or buffer containing the text.
+Return t if any property value actually changed, nil otherwise.  */)
+     (start, end, properties, object)
      Lisp_Object start, end, properties, object;
 {
   register INTERVAL i, unchanged;
@@ -1199,12 +1203,12 @@ Return t if any property value actually changed, nil otherwise.")
 
 DEFUN ("put-text-property", Fput_text_property,
        Sput_text_property, 4, 5, 0,
-  "Set one property of the text from START to END.\n\
-The third and fourth arguments PROPERTY and VALUE\n\
-specify the property to add.\n\
-The optional fifth argument, OBJECT,\n\
-is the string or buffer containing the text.")
-  (start, end, property, value, object)
+       doc: /* Set one property of the text from START to END.
+The third and fourth arguments PROPERTY and VALUE
+specify the property to add.
+The optional fifth argument, OBJECT,
+is the string or buffer containing the text.  */)
+     (start, end, property, value, object)
      Lisp_Object start, end, property, value, object;
 {
   Fadd_text_properties (start, end,
@@ -1215,14 +1219,14 @@ is the string or buffer containing the text.")
 
 DEFUN ("set-text-properties", Fset_text_properties,
        Sset_text_properties, 3, 4, 0,
-  "Completely replace properties of text from START to END.\n\
-The third argument PROPERTIES is the new property list.\n\
-The optional fourth argument, OBJECT,\n\
-is the string or buffer containing the text.\n\
-If OBJECT is omitted or nil, it defaults to the current buffer.\n\
-If PROPERTIES is nil, the effect is to remove all properties from\n\
-the designated part of OBJECT.")
-  (start, end, properties, object)
+       doc: /* Completely replace properties of text from START to END.
+The third argument PROPERTIES is the new property list.
+The optional fourth argument, OBJECT,
+is the string or buffer containing the text.
+If OBJECT is omitted or nil, it defaults to the current buffer.
+If PROPERTIES is nil, the effect is to remove all properties from
+the designated part of OBJECT.  */)
+     (start, end, properties, object)
      Lisp_Object start, end, properties, object;
 {
   return set_text_properties (start, end, properties, object, Qt);
@@ -1369,14 +1373,14 @@ set_text_properties (start, end, properties, object, signal_after_change_p)
 
 DEFUN ("remove-text-properties", Fremove_text_properties,
        Sremove_text_properties, 3, 4, 0,
-  "Remove some properties from text from START to END.\n\
-The third argument PROPERTIES is a property list\n\
-whose property names specify the properties to remove.\n\
-\(The values stored in PROPERTIES are ignored.)\n\
-The optional fourth argument, OBJECT,\n\
-is the string or buffer containing the text.\n\
-Return t if any property was actually removed, nil otherwise.")
-  (start, end, properties, object)
+       doc: /* Remove some properties from text from START to END.
+The third argument PROPERTIES is a property list
+whose property names specify the properties to remove.
+\(The values stored in PROPERTIES are ignored.)
+The optional fourth argument, OBJECT,
+is the string or buffer containing the text.
+Return t if any property was actually removed, nil otherwise.  */)
+     (start, end, properties, object)
      Lisp_Object start, end, properties, object;
 {
   register INTERVAL i, unchanged;
@@ -1456,13 +1460,13 @@ Return t if any property was actually removed, nil otherwise.")
 
 DEFUN ("text-property-any", Ftext_property_any,
        Stext_property_any, 4, 5, 0,
-  "Check text from START to END for property PROPERTY equalling VALUE.\n\
-If so, return the position of the first character whose property PROPERTY\n\
-is `eq' to VALUE.  Otherwise return nil.\n\
-The optional fifth argument, OBJECT, is the string or buffer\n\
-containing the text.")
-  (start, end, property, value, object)
-       Lisp_Object start, end, property, value, object;
+       doc: /* Check text from START to END for property PROPERTY equalling VALUE.
+If so, return the position of the first character whose property PROPERTY
+is `eq' to VALUE.  Otherwise return nil.
+The optional fifth argument, OBJECT, is the string or buffer
+containing the text.  */)
+     (start, end, property, value, object)
+     Lisp_Object start, end, property, value, object;
 {
   register INTERVAL i;
   register int e, pos;
@@ -1492,13 +1496,13 @@ containing the text.")
 
 DEFUN ("text-property-not-all", Ftext_property_not_all,
        Stext_property_not_all, 4, 5, 0,
-  "Check text from START to END for property PROPERTY not equalling VALUE.\n\
-If so, return the position of the first character whose property PROPERTY\n\
-is not `eq' to VALUE.  Otherwise, return nil.\n\
-The optional fifth argument, OBJECT, is the string or buffer\n\
-containing the text.")
-  (start, end, property, value, object)
-       Lisp_Object start, end, property, value, object;
+       doc: /* Check text from START to END for property PROPERTY not equalling VALUE.
+If so, return the position of the first character whose property PROPERTY
+is not `eq' to VALUE.  Otherwise, return nil.
+The optional fifth argument, OBJECT, is the string or buffer
+containing the text.  */)
+     (start, end, property, value, object)
+     Lisp_Object start, end, property, value, object;
 {
   register INTERVAL i;
   register int s, e;
@@ -1964,25 +1968,25 @@ void
 syms_of_textprop ()
 {
   DEFVAR_LISP ("default-text-properties", &Vdefault_text_properties,
-   "Property-list used as default values.\n\
-The value of a property in this list is seen as the value for every\n\
-character that does not have its own value for that property.");
+	       doc: /* Property-list used as default values.
+The value of a property in this list is seen as the value for every
+character that does not have its own value for that property.  */);
   Vdefault_text_properties = Qnil;
 
   DEFVAR_LISP ("inhibit-point-motion-hooks", &Vinhibit_point_motion_hooks,
-   "If non-nil, don't run `point-left' and `point-entered' text properties.\n\
-This also inhibits the use of the `intangible' text property.");
+	       doc: /* If non-nil, don't run `point-left' and `point-entered' text properties.
+This also inhibits the use of the `intangible' text property.  */);
   Vinhibit_point_motion_hooks = Qnil;
 
   DEFVAR_LISP ("text-property-default-nonsticky",
 	       &Vtext_property_default_nonsticky,
-    "Alist of properties vs the corresponding non-stickinesses.\n\
-Each element has the form (PROPERTY . NONSTICKINESS).\n\
-\n\
-If a character in a buffer has PROPERTY, new text inserted adjacent to\n\
-the character doesn't inherit PROPERTY if NONSTICKINESS is non-nil,\n\
-inherits it if NONSTICKINESS is nil.  The front-sticky and\n\
-rear-nonsticky properties of the character overrides NONSTICKINESS.");
+	       doc: /* Alist of properties vs the corresponding non-stickinesses.
+Each element has the form (PROPERTY . NONSTICKINESS).
+
+If a character in a buffer has PROPERTY, new text inserted adjacent to
+the character doesn't inherit PROPERTY if NONSTICKINESS is non-nil,
+inherits it if NONSTICKINESS is nil.  The front-sticky and
+rear-nonsticky properties of the character overrides NONSTICKINESS.  */);
   Vtext_property_default_nonsticky = Qnil;
 
   staticpro (&interval_insert_behind_hooks);

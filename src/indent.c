@@ -328,16 +328,16 @@ check_composition (pos, pos_byte, point, len, len_byte, width)
   } while (0)
 
 DEFUN ("current-column", Fcurrent_column, Scurrent_column, 0, 0, 0,
-  "Return the horizontal position of point.  Beginning of line is column 0.\n\
-This is calculated by adding together the widths of all the displayed\n\
-representations of the character between the start of the previous line\n\
-and point.  (eg control characters will have a width of 2 or 4, tabs\n\
-will have a variable width)\n\
-Ignores finite width of frame, which means that this function may return\n\
-values greater than (frame-width).\n\
-Whether the line is visible (if `selective-display' is t) has no effect;\n\
-however, ^M is treated as end of line when `selective-display' is t.")
-  ()
+       doc: /* Return the horizontal position of point.  Beginning of line is column 0.
+This is calculated by adding together the widths of all the displayed
+representations of the character between the start of the previous line
+and point.  (eg control characters will have a width of 2 or 4, tabs
+will have a variable width)
+Ignores finite width of frame, which means that this function may return
+values greater than (frame-width).
+Whether the line is visible (if `selective-display' is t) has no effect;
+however, ^M is treated as end of line when `selective-display' is t.  */)
+     ()
 {
   Lisp_Object temp;
   XSETFASTINT (temp, current_column ());
@@ -715,10 +715,10 @@ string_display_width (string, beg, end)
 
 
 DEFUN ("indent-to", Findent_to, Sindent_to, 1, 2, "NIndent to column: ",
-  "Indent from point with tabs and spaces until COLUMN is reached.\n\
-Optional second argument MININUM says always do at least MININUM spaces\n\
-even if that goes past COLUMN; by default, MININUM is zero.")
-  (column, minimum)
+       doc: /* Indent from point with tabs and spaces until COLUMN is reached.
+Optional second argument MININUM says always do at least MININUM spaces
+even if that goes past COLUMN; by default, MININUM is zero.  */)
+     (column, minimum)
      Lisp_Object column, minimum;
 {
   int mincol;
@@ -766,11 +766,11 @@ even if that goes past COLUMN; by default, MININUM is zero.")
 static int position_indentation P_ ((int));
 
 DEFUN ("current-indentation", Fcurrent_indentation, Scurrent_indentation,
-  0, 0, 0,
-  "Return the indentation of the current line.\n\
-This is the horizontal position of the character\n\
-following any initial whitespace.")
-  ()
+       0, 0, 0,
+       doc: /* Return the indentation of the current line.
+This is the horizontal position of the character
+following any initial whitespace.  */)
+     ()
 {
   Lisp_Object val;
   int opoint = PT, opoint_byte = PT_BYTE;
@@ -889,22 +889,23 @@ indented_beyond_p (pos, pos_byte, column)
 }
 
 DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2, "p",
-  "Move point to column COLUMN in the current line.\n\
-The column of a character is calculated by adding together the widths\n\
-as displayed of the previous characters in the line.\n\
-This function ignores line-continuation;\n\
-there is no upper limit on the column number a character can have\n\
-and horizontal scrolling has no effect.\n\
-\n\
-If specified column is within a character, point goes after that character.\n\
-If it's past end of line, point goes to end of line.\n\n\
-A non-nil second (optional) argument FORCE means,\n\
-if COLUMN is in the middle of a tab character, change it to spaces.\n\
-In addition, if FORCE is t, and the line is too short\n\
-to reach column COLUMN, add spaces/tabs to get there.\n\
-\n\
-The return value is the current column.")
-  (column, force)
+       doc: /* Move point to column COLUMN in the current line.
+The column of a character is calculated by adding together the widths
+as displayed of the previous characters in the line.
+This function ignores line-continuation;
+there is no upper limit on the column number a character can have
+and horizontal scrolling has no effect.
+
+If specified column is within a character, point goes after that character.
+If it's past end of line, point goes to end of line.
+
+A non-nil second (optional) argument FORCE means,
+if COLUMN is in the middle of a tab character, change it to spaces.
+In addition, if FORCE is t, and the line is too short
+to reach column COLUMN, add spaces/tabs to get there.
+
+The return value is the current column.  */)
+     (column, force)
      Lisp_Object column, force;
 {
   register int pos;
@@ -1698,54 +1699,47 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 }
 
 
-#if 0 /* The doc string is too long for some compilers,
-	 but make-docfile can find it in this comment.  */
-DEFUN ("compute-motion", Ffoo, Sfoo, 7, 7, 0,
-  "Scan through the current buffer, calculating screen position.\n\
-Scan the current buffer forward from offset FROM,\n\
-assuming it is at position FROMPOS--a cons of the form (HPOS . VPOS)--\n\
-to position TO or position TOPOS--another cons of the form (HPOS . VPOS)--\n\
-and return the ending buffer position and screen location.\n\
-\n\
-There are three additional arguments:\n\
-\n\
-WIDTH is the number of columns available to display text;\n\
-this affects handling of continuation lines.\n\
-This is usually the value returned by `window-width', less one (to allow\n\
-for the continuation glyph).\n\
-\n\
-OFFSETS is either nil or a cons cell (HSCROLL . TAB-OFFSET).\n\
-HSCROLL is the number of columns not being displayed at the left\n\
-margin; this is usually taken from a window's hscroll member.\n\
-TAB-OFFSET is the number of columns of the first tab that aren't\n\
-being displayed, perhaps because the line was continued within it.\n\
-If OFFSETS is nil, HSCROLL and TAB-OFFSET are assumed to be zero.\n\
-\n\
-WINDOW is the window to operate on.  It is used to choose the display table;\n\
-if it is showing the current buffer, it is used also for\n\
-deciding which overlay properties apply.\n\
-Note that `compute-motion' always operates on the current buffer.\n\
-\n\
-The value is a list of five elements:\n\
-  (POS HPOS VPOS PREVHPOS CONTIN)\n\
-POS is the buffer position where the scan stopped.\n\
-VPOS is the vertical position where the scan stopped.\n\
-HPOS is the horizontal position where the scan stopped.\n\
-\n\
-PREVHPOS is the horizontal position one character back from POS.\n\
-CONTIN is t if a line was continued after (or within) the previous character.\n\
-\n\
-For example, to find the buffer position of column COL of line LINE\n\
-of a certain window, pass the window's starting location as FROM\n\
-and the window's upper-left coordinates as FROMPOS.\n\
-Pass the buffer's (point-max) as TO, to limit the scan to the end of the\n\
-visible section of the buffer, and pass LINE and COL as TOPOS.")
-  (from, frompos, to, topos, width, offsets, window)
-#endif
-
 DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 7, 7, 0,
-  0)
-  (from, frompos, to, topos, width, offsets, window)
+       doc: /* Scan through the current buffer, calculating screen position.
+Scan the current buffer forward from offset FROM,
+assuming it is at position FROMPOS--a cons of the form (HPOS . VPOS)--
+to position TO or position TOPOS--another cons of the form (HPOS . VPOS)--
+and return the ending buffer position and screen location.
+
+There are three additional arguments:
+
+WIDTH is the number of columns available to display text;
+this affects handling of continuation lines.
+This is usually the value returned by `window-width', less one (to allow
+for the continuation glyph).
+
+OFFSETS is either nil or a cons cell (HSCROLL . TAB-OFFSET).
+HSCROLL is the number of columns not being displayed at the left
+margin; this is usually taken from a window's hscroll member.
+TAB-OFFSET is the number of columns of the first tab that aren't
+being displayed, perhaps because the line was continued within it.
+If OFFSETS is nil, HSCROLL and TAB-OFFSET are assumed to be zero.
+
+WINDOW is the window to operate on.  It is used to choose the display table;
+if it is showing the current buffer, it is used also for
+deciding which overlay properties apply.
+Note that `compute-motion' always operates on the current buffer.
+
+The value is a list of five elements:
+  (POS HPOS VPOS PREVHPOS CONTIN)
+POS is the buffer position where the scan stopped.
+VPOS is the vertical position where the scan stopped.
+HPOS is the horizontal position where the scan stopped.
+
+PREVHPOS is the horizontal position one character back from POS.
+CONTIN is t if a line was continued after (or within) the previous character.
+
+For example, to find the buffer position of column COL of line LINE
+of a certain window, pass the window's starting location as FROM
+and the window's upper-left coordinates as FROMPOS.
+Pass the buffer's (point-max) as TO, to limit the scan to the end of the
+visible section of the buffer, and pass LINE and COL as TOPOS.  */)
+     (from, frompos, to, topos, width, offsets, window)
      Lisp_Object from, frompos, to, topos;
      Lisp_Object width, offsets, window;
 {
@@ -1953,27 +1947,27 @@ vmotion (from, vtarget, w)
 }
 
 DEFUN ("vertical-motion", Fvertical_motion, Svertical_motion, 1, 2, 0,
-  "Move point to start of the screen line LINES lines down.\n\
-If LINES is negative, this means moving up.\n\
-\n\
-This function is an ordinary cursor motion function\n\
-which calculates the new position based on how text would be displayed.\n\
-The new position may be the start of a line,\n\
-or just the start of a continuation line.\n\
-The function returns number of screen lines moved over;\n\
-that usually equals LINES, but may be closer to zero\n\
-if beginning or end of buffer was reached.\n\
-\n\
-The optional second argument WINDOW specifies the window to use for\n\
-parameters such as width, horizontal scrolling, and so on.\n\
-The default is to use the selected window's parameters.\n\
-\n\
-`vertical-motion' always uses the current buffer,\n\
-regardless of which buffer is displayed in WINDOW.\n\
-This is consistent with other cursor motion functions\n\
-and makes it possible to use `vertical-motion' in any buffer,\n\
-whether or not it is currently displayed in some window.")
-  (lines, window)
+       doc: /* Move point to start of the screen line LINES lines down.
+If LINES is negative, this means moving up.
+
+This function is an ordinary cursor motion function
+which calculates the new position based on how text would be displayed.
+The new position may be the start of a line,
+or just the start of a continuation line.
+The function returns number of screen lines moved over;
+that usually equals LINES, but may be closer to zero
+if beginning or end of buffer was reached.
+
+The optional second argument WINDOW specifies the window to use for
+parameters such as width, horizontal scrolling, and so on.
+The default is to use the selected window's parameters.
+
+`vertical-motion' always uses the current buffer,
+regardless of which buffer is displayed in WINDOW.
+This is consistent with other cursor motion functions
+and makes it possible to use `vertical-motion' in any buffer,
+whether or not it is currently displayed in some window.  */)
+     (lines, window)
      Lisp_Object lines, window;
 {
   struct it it;
@@ -2017,8 +2011,8 @@ void
 syms_of_indent ()
 {
   DEFVAR_BOOL ("indent-tabs-mode", &indent_tabs_mode,
-    "*Indentation can insert tabs if this is non-nil.\n\
-Setting this variable automatically makes it local to the current buffer.");
+	       doc: /* *Indentation can insert tabs if this is non-nil.
+Setting this variable automatically makes it local to the current buffer.  */);
   indent_tabs_mode = 1;
 
   defsubr (&Scurrent_indentation);

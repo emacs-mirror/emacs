@@ -523,9 +523,9 @@ print_string (string, printcharfun)
 }
 
 DEFUN ("write-char", Fwrite_char, Swrite_char, 1, 2, 0,
-  "Output character CHARACTER to stream PRINTCHARFUN.\n\
-PRINTCHARFUN defaults to the value of `standard-output' (which see).")
-  (character, printcharfun)
+       doc: /* Output character CHARACTER to stream PRINTCHARFUN.
+PRINTCHARFUN defaults to the value of `standard-output' (which see).  */)
+     (character, printcharfun)
      Lisp_Object character, printcharfun;
 {
   PRINTDECLARE;
@@ -634,23 +634,23 @@ internal_with_output_to_temp_buffer (bufname, function, args)
 
 DEFUN ("with-output-to-temp-buffer", Fwith_output_to_temp_buffer, Swith_output_to_temp_buffer,
        1, UNEVALLED, 0,
-  "Bind `standard-output' to buffer BUFNAME, eval BODY, then show that buffer.\n\
-The buffer is cleared out initially, and marked as unmodified when done.\n\
-All output done by BODY is inserted in that buffer by default.\n\
-The buffer is displayed in another window, but not selected.\n\
-The value of the last form in BODY is returned.\n\
-If BODY does not finish normally, the buffer BUFNAME is not displayed.\n\
-\n\
-The hook `temp-buffer-setup-hook' is run before BODY,\n\
-with the buffer BUFNAME temporarily current.\n\
-The hook `temp-buffer-show-hook' is run after the buffer is displayed,\n\
-with the buffer temporarily current, and the window that was used\n\
-to display it temporarily selected.\n\
-\n\
-If variable `temp-buffer-show-function' is non-nil, call it at the end\n\
-to get the buffer displayed instead of just displaying the non-selected\n\
-buffer and calling the hook.  It gets one argument, the buffer to display.")
-  (args)
+       doc: /* Bind `standard-output' to buffer BUFNAME, eval BODY, then show that buffer.
+The buffer is cleared out initially, and marked as unmodified when done.
+All output done by BODY is inserted in that buffer by default.
+The buffer is displayed in another window, but not selected.
+The value of the last form in BODY is returned.
+If BODY does not finish normally, the buffer BUFNAME is not displayed.
+
+The hook `temp-buffer-setup-hook' is run before BODY,
+with the buffer BUFNAME temporarily current.
+The hook `temp-buffer-show-hook' is run after the buffer is displayed,
+with the buffer temporarily current, and the window that was used
+to display it temporarily selected.
+
+If variable `temp-buffer-show-function' is non-nil, call it at the end
+to get the buffer displayed instead of just displaying the non-selected
+buffer and calling the hook.  It gets one argument, the buffer to display.  */)
+     (args)
      Lisp_Object args;
 {
   struct gcpro gcpro1;
@@ -681,8 +681,8 @@ static void print_preprocess_string ();
 static void print_object ();
 
 DEFUN ("terpri", Fterpri, Sterpri, 0, 1, 0,
-  "Output a newline to stream PRINTCHARFUN.\n\
-If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used.")
+       doc: /* Output a newline to stream PRINTCHARFUN.
+If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used.  */)
   (printcharfun)
      Lisp_Object printcharfun;
 {
@@ -697,28 +697,28 @@ If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used.")
 }
 
 DEFUN ("prin1", Fprin1, Sprin1, 1, 2, 0,
-  "Output the printed representation of OBJECT, any Lisp object.\n\
-Quoting characters are printed when needed to make output that `read'\n\
-can handle, whenever this is possible.\n\
-\n\
-OBJECT is any of the Lisp data types: a number, a string, a symbol,\n\
-a list, a buffer, a window, a frame, etc.\n\
-\n\
-A printed representation of an object is text which describes that object.\n\
-\n\
-Optional argument PRINTCHARFUN is the output stream, which can be one\n\
-of these:\n\
-\n\
-   - a buffer, in which case output is inserted into that buffer at point;\n\
-   - a marker, in which case output is inserted at marker's position;\n\
-   - a function, in which case that function is called once for each\n\
-     character of OBJECT's printed representation;\n\
-   - a symbol, in which case that symbol's function definition is called; or\n\
-   - t, in which case the output is displayed in the echo area.\n\
-\n\
-If PRINTCHARFUN is omitted, the value of `standard-output' (which see)\n\
-is used instead.")
-  (object, printcharfun)
+       doc: /* Output the printed representation of OBJECT, any Lisp object.
+Quoting characters are printed when needed to make output that `read'
+can handle, whenever this is possible.
+
+OBJECT is any of the Lisp data types: a number, a string, a symbol,
+a list, a buffer, a window, a frame, etc.
+
+A printed representation of an object is text which describes that object.
+
+Optional argument PRINTCHARFUN is the output stream, which can be one
+of these:
+
+   - a buffer, in which case output is inserted into that buffer at point;
+   - a marker, in which case output is inserted at marker's position;
+   - a function, in which case that function is called once for each
+     character of OBJECT's printed representation;
+   - a symbol, in which case that symbol's function definition is called; or
+   - t, in which case the output is displayed in the echo area.
+
+If PRINTCHARFUN is omitted, the value of `standard-output' (which see)
+is used instead.  */)
+     (object, printcharfun)
      Lisp_Object object, printcharfun;
 {
   PRINTDECLARE;
@@ -738,16 +738,16 @@ is used instead.")
 Lisp_Object Vprin1_to_string_buffer;
 
 DEFUN ("prin1-to-string", Fprin1_to_string, Sprin1_to_string, 1, 2, 0,
-  "Return a string containing the printed representation of OBJECT,\n\
-any Lisp object.  Quoting characters are used when needed to make output\n\
-that `read' can handle, whenever this is possible, unless the optional\n\
-second argument NOESCAPE is non-nil.\n\
-\n\
-OBJECT is any of the Lisp data types: a number, a string, a symbol,\n\
-a list, a buffer, a window, a frame, etc.\n\
-\n\
-A printed representation of an object is text which describes that object.")
-  (object, noescape)
+       doc: /* Return a string containing the printed representation of OBJECT,
+any Lisp object.  Quoting characters are used when needed to make output
+that `read' can handle, whenever this is possible, unless the optional
+second argument NOESCAPE is non-nil.
+
+OBJECT is any of the Lisp data types: a number, a string, a symbol,
+a list, a buffer, a window, a frame, etc.
+
+A printed representation of an object is text which describes that object.  */)
+     (object, noescape)
      Lisp_Object object, noescape;
 {
   PRINTDECLARE;
@@ -779,28 +779,28 @@ A printed representation of an object is text which describes that object.")
 }
 
 DEFUN ("princ", Fprinc, Sprinc, 1, 2, 0,
-  "Output the printed representation of OBJECT, any Lisp object.\n\
-No quoting characters are used; no delimiters are printed around\n\
-the contents of strings.\n\
-\n\
-OBJECT is any of the Lisp data types: a number, a string, a symbol,\n\
-a list, a buffer, a window, a frame, etc.\n\
-\n\
-A printed representation of an object is text which describes that object.\n\
-\n\
-Optional argument PRINTCHARFUN is the output stream, which can be one\n\
-of these:\n\
-\n\
-   - a buffer, in which case output is inserted into that buffer at point;\n\
-   - a marker, in which case output is inserted at marker's position;\n\
-   - a function, in which case that function is called once for each\n\
-     character of OBJECT's printed representation;\n\
-   - a symbol, in which case that symbol's function definition is called; or\n\
-   - t, in which case the output is displayed in the echo area.\n\
-\n\
-If PRINTCHARFUN is omitted, the value of `standard-output' (which see)\n\
-is used instead.")
-  (object, printcharfun)
+       doc: /* Output the printed representation of OBJECT, any Lisp object.
+No quoting characters are used; no delimiters are printed around
+the contents of strings.
+
+OBJECT is any of the Lisp data types: a number, a string, a symbol,
+a list, a buffer, a window, a frame, etc.
+
+A printed representation of an object is text which describes that object.
+
+Optional argument PRINTCHARFUN is the output stream, which can be one
+of these:
+
+   - a buffer, in which case output is inserted into that buffer at point;
+   - a marker, in which case output is inserted at marker's position;
+   - a function, in which case that function is called once for each
+     character of OBJECT's printed representation;
+   - a symbol, in which case that symbol's function definition is called; or
+   - t, in which case the output is displayed in the echo area.
+
+If PRINTCHARFUN is omitted, the value of `standard-output' (which see)
+is used instead.  */)
+     (object, printcharfun)
      Lisp_Object object, printcharfun;
 {
   PRINTDECLARE;
@@ -814,28 +814,28 @@ is used instead.")
 }
 
 DEFUN ("print", Fprint, Sprint, 1, 2, 0,
-  "Output the printed representation of OBJECT, with newlines around it.\n\
-Quoting characters are printed when needed to make output that `read'\n\
-can handle, whenever this is possible.\n\
-\n\
-OBJECT is any of the Lisp data types: a number, a string, a symbol,\n\
-a list, a buffer, a window, a frame, etc.\n\
-\n\
-A printed representation of an object is text which describes that object.\n\
-\n\
-Optional argument PRINTCHARFUN is the output stream, which can be one\n\
-of these:\n\
-\n\
-   - a buffer, in which case output is inserted into that buffer at point;\n\
-   - a marker, in which case output is inserted at marker's position;\n\
-   - a function, in which case that function is called once for each\n\
-     character of OBJECT's printed representation;\n\
-   - a symbol, in which case that symbol's function definition is called; or\n\
-   - t, in which case the output is displayed in the echo area.\n\
-\n\
-If PRINTCHARFUN is omitted, the value of `standard-output' (which see)\n\
-is used instead.")
-  (object, printcharfun)
+       doc: /* Output the printed representation of OBJECT, with newlines around it.
+Quoting characters are printed when needed to make output that `read'
+can handle, whenever this is possible.
+
+OBJECT is any of the Lisp data types: a number, a string, a symbol,
+a list, a buffer, a window, a frame, etc.
+
+A printed representation of an object is text which describes that object.
+
+Optional argument PRINTCHARFUN is the output stream, which can be one
+of these:
+
+   - a buffer, in which case output is inserted into that buffer at point;
+   - a marker, in which case output is inserted at marker's position;
+   - a function, in which case that function is called once for each
+     character of OBJECT's printed representation;
+   - a symbol, in which case that symbol's function definition is called; or
+   - t, in which case the output is displayed in the echo area.
+
+If PRINTCHARFUN is omitted, the value of `standard-output' (which see)
+is used instead.  */)
+     (object, printcharfun)
      Lisp_Object object, printcharfun;
 {
   PRINTDECLARE;
@@ -866,10 +866,10 @@ is used instead.")
 Lisp_Object Qexternal_debugging_output;
 
 DEFUN ("external-debugging-output", Fexternal_debugging_output, Sexternal_debugging_output, 1, 1, 0,
-  "Write CHARACTER to stderr.\n\
-You can call print while debugging emacs, and pass it this function\n\
-to make it write to the debugging output.\n")
-  (character)
+       doc: /* Write CHARACTER to stderr.
+You can call print while debugging emacs, and pass it this function
+to make it write to the debugging output.  */)
+     (character)
      Lisp_Object character;
 {
   CHECK_NUMBER (character, 0);
@@ -898,8 +898,8 @@ debug_print (arg)
 
 DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
        1, 1, 0,
-  "Convert an error value (ERROR-SYMBOL . DATA) to an error message.")
-  (obj)
+       doc: /* Convert an error value (ERROR-SYMBOL . DATA) to an error message.  */)
+     (obj)
      Lisp_Object obj;
 {
   struct buffer *old = current_buffer;
@@ -1978,102 +1978,103 @@ syms_of_print ()
   staticpro (&Qtemp_buffer_setup_hook);
 
   DEFVAR_LISP ("standard-output", &Vstandard_output,
-    "Output stream `print' uses by default for outputting a character.\n\
-This may be any function of one argument.\n\
-It may also be a buffer (output is inserted before point)\n\
-or a marker (output is inserted and the marker is advanced)\n\
-or the symbol t (output appears in the echo area).");
+	       doc: /* Output stream `print' uses by default for outputting a character.
+This may be any function of one argument.
+It may also be a buffer (output is inserted before point)
+or a marker (output is inserted and the marker is advanced)
+or the symbol t (output appears in the echo area).  */);
   Vstandard_output = Qt;
   Qstandard_output = intern ("standard-output");
   staticpro (&Qstandard_output);
 
   DEFVAR_LISP ("float-output-format", &Vfloat_output_format,
-    "The format descriptor string used to print floats.\n\
-This is a %-spec like those accepted by `printf' in C,\n\
-but with some restrictions.  It must start with the two characters `%.'.\n\
-After that comes an integer precision specification,\n\
-and then a letter which controls the format.\n\
-The letters allowed are `e', `f' and `g'.\n\
-Use `e' for exponential notation \"DIG.DIGITSeEXPT\"\n\
-Use `f' for decimal point notation \"DIGITS.DIGITS\".\n\
-Use `g' to choose the shorter of those two formats for the number at hand.\n\
-The precision in any of these cases is the number of digits following\n\
-the decimal point.  With `f', a precision of 0 means to omit the\n\
-decimal point.  0 is not allowed with `e' or `g'.\n\n\
-A value of nil means to use the shortest notation\n\
-that represents the number without losing information.");
+	       doc: /* The format descriptor string used to print floats.
+This is a %-spec like those accepted by `printf' in C,
+but with some restrictions.  It must start with the two characters `%.'.
+After that comes an integer precision specification,
+and then a letter which controls the format.
+The letters allowed are `e', `f' and `g'.
+Use `e' for exponential notation \"DIG.DIGITSeEXPT\"
+Use `f' for decimal point notation \"DIGITS.DIGITS\".
+Use `g' to choose the shorter of those two formats for the number at hand.
+The precision in any of these cases is the number of digits following
+the decimal point.  With `f', a precision of 0 means to omit the
+decimal point.  0 is not allowed with `e' or `g'.
+
+A value of nil means to use the shortest notation
+that represents the number without losing information.  */);
   Vfloat_output_format = Qnil;
   Qfloat_output_format = intern ("float-output-format");
   staticpro (&Qfloat_output_format);
 
   DEFVAR_LISP ("print-length", &Vprint_length,
-    "Maximum length of list to print before abbreviating.\n\
-A value of nil means no limit.  See also `eval-expression-print-length'.");
+	       doc: /* Maximum length of list to print before abbreviating.
+A value of nil means no limit.  See also `eval-expression-print-length'.  */);
   Vprint_length = Qnil;
 
   DEFVAR_LISP ("print-level", &Vprint_level,
-    "Maximum depth of list nesting to print before abbreviating.\n\
-A value of nil means no limit.  See also `eval-expression-print-level'.");
+	       doc: /* Maximum depth of list nesting to print before abbreviating.
+A value of nil means no limit.  See also `eval-expression-print-level'.  */);
   Vprint_level = Qnil;
 
   DEFVAR_BOOL ("print-escape-newlines", &print_escape_newlines,
-    "Non-nil means print newlines in strings as `\\n'.\n\
-Also print formfeeds as `\\f'.");
+	       doc: /* Non-nil means print newlines in strings as `\\n'.
+Also print formfeeds as `\\f'.  */);
   print_escape_newlines = 0;
 
   DEFVAR_BOOL ("print-escape-nonascii", &print_escape_nonascii,
-    "Non-nil means print unibyte non-ASCII chars in strings as \\OOO.\n\
-\(OOO is the octal representation of the character code.)\n\
-Only single-byte characters are affected, and only in `prin1'.");
+	       doc: /* Non-nil means print unibyte non-ASCII chars in strings as \\OOO.
+\(OOO is the octal representation of the character code.)
+Only single-byte characters are affected, and only in `prin1'.  */);
   print_escape_nonascii = 0;
 
   DEFVAR_BOOL ("print-escape-multibyte", &print_escape_multibyte,
-    "Non-nil means print multibyte characters in strings as \\xXXXX.\n\
-\(XXXX is the hex representation of the character code.)\n\
-This affects only `prin1'.");
+	       doc: /* Non-nil means print multibyte characters in strings as \\xXXXX.
+\(XXXX is the hex representation of the character code.)
+This affects only `prin1'.  */);
   print_escape_multibyte = 0;
 
   DEFVAR_BOOL ("print-quoted", &print_quoted,
-    "Non-nil means print quoted forms with reader syntax.\n\
-I.e., (quote foo) prints as 'foo, (function foo) as #'foo, and backquoted\n\
-forms print as in the new syntax.");
+	       doc: /* Non-nil means print quoted forms with reader syntax.
+I.e., (quote foo) prints as 'foo, (function foo) as #'foo, and backquoted
+forms print as in the new syntax.  */);
   print_quoted = 0;
 
   DEFVAR_LISP ("print-gensym", &Vprint_gensym,
-    "Non-nil means print uninterned symbols so they will read as uninterned.\n\
-I.e., the value of (make-symbol \"foobar\") prints as #:foobar.\n\
-When the uninterned symbol appears within a recursive data structure,\n\
-and the symbol appears more than once, in addition use the #N# and #N=\n\
-constructs as needed, so that multiple references to the same symbol are\n\
-shared once again when the text is read back.");
+	       doc: /* Non-nil means print uninterned symbols so they will read as uninterned.
+I.e., the value of (make-symbol \"foobar\") prints as #:foobar.
+When the uninterned symbol appears within a recursive data structure,
+and the symbol appears more than once, in addition use the #N# and #N=
+constructs as needed, so that multiple references to the same symbol are
+shared once again when the text is read back.  */);
   Vprint_gensym = Qnil;
 
   DEFVAR_LISP ("print-circle", &Vprint_circle,
-    "*Non-nil means print recursive structures using #N= and #N# syntax.\n\
-If nil, printing proceeds recursively and may lead to\n\
-`max-lisp-eval-depth' being exceeded or an error may occur:\n\
-\"Apparently circular structure being printed.\"  Also see\n\
-`print-length' and `print-level'.\n\
-If non-nil, shared substructures anywhere in the structure are printed\n\
-with `#N=' before the first occurrence (in the order of the print\n\
-representation) and `#N#' in place of each subsequent occurrence,\n\
-where N is a positive decimal integer.");
+	       doc: /* *Non-nil means print recursive structures using #N= and #N# syntax.
+If nil, printing proceeds recursively and may lead to
+`max-lisp-eval-depth' being exceeded or an error may occur:
+\"Apparently circular structure being printed.\"  Also see
+`print-length' and `print-level'.
+If non-nil, shared substructures anywhere in the structure are printed
+with `#N=' before the first occurrence (in the order of the print
+representation) and `#N#' in place of each subsequent occurrence,
+where N is a positive decimal integer.  */);
   Vprint_circle = Qnil;
 
   DEFVAR_LISP ("print-continuous-numbering", &Vprint_continuous_numbering,
-  "*Non-nil means number continuously across print calls.\n\
-This affects the numbers printed for #N= labels and #M# references.\n\
-See also `print-circle', `print-gensym', and `print-number-table'.\n\
-This variable should not be set with `setq'; bind it with a `let' instead.");
+	       doc: /* *Non-nil means number continuously across print calls.
+This affects the numbers printed for #N= labels and #M# references.
+See also `print-circle', `print-gensym', and `print-number-table'.
+This variable should not be set with `setq'; bind it with a `let' instead.  */);
   Vprint_continuous_numbering = Qnil;
 
   DEFVAR_LISP ("print-number-table", &Vprint_number_table,
-  "A vector used internally to produce `#N=' labels and `#N#' references.\n\
-The Lisp printer uses this vector to detect Lisp objects referenced more\n\
-than once.  When `print-continuous-numbering' is bound to t, you should\n\
-probably also bind `print-number-table' to nil.  This ensures that the\n\
-value of `print-number-table' can be garbage-collected once the printing\n\
-is done.");
+	       doc: /* A vector used internally to produce `#N=' labels and `#N#' references.
+The Lisp printer uses this vector to detect Lisp objects referenced more
+than once.  When `print-continuous-numbering' is bound to t, you should
+probably also bind `print-number-table' to nil.  This ensures that the
+value of `print-number-table' can be garbage-collected once the printing
+is done.  */);
   Vprint_number_table = Qnil;
 
   /* prin1_to_string_buffer initialized in init_buffer_once in buffer.c */

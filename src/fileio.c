@@ -323,16 +323,17 @@ Lisp_Object Qverify_visited_file_modtime;
 Lisp_Object Qset_visited_file_modtime;
 
 DEFUN ("find-file-name-handler", Ffind_file_name_handler, Sfind_file_name_handler, 2, 2, 0,
-  "Return FILENAME's handler function for OPERATION, if it has one.\n\
-Otherwise, return nil.\n\
-A file name is handled if one of the regular expressions in\n\
-`file-name-handler-alist' matches it.\n\n\
-If OPERATION equals `inhibit-file-name-operation', then we ignore\n\
-any handlers that are members of `inhibit-file-name-handlers',\n\
-but we still do run any other handlers.  This lets handlers\n\
-use the standard functions without calling themselves recursively.")
-  (filename, operation)
-    Lisp_Object filename, operation;
+       doc: /* Return FILENAME's handler function for OPERATION, if it has one.
+Otherwise, return nil.
+A file name is handled if one of the regular expressions in
+`file-name-handler-alist' matches it.
+
+If OPERATION equals `inhibit-file-name-operation', then we ignore
+any handlers that are members of `inhibit-file-name-handlers',
+but we still do run any other handlers.  This lets handlers
+use the standard functions without calling themselves recursively.  */)
+     (filename, operation)
+     Lisp_Object filename, operation;
 {
   /* This function must not munge the match data.  */
   Lisp_Object chain, inhibited_handlers;
@@ -370,13 +371,13 @@ use the standard functions without calling themselves recursively.")
 }
 
 DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory,
-  1, 1, 0,
-  "Return the directory component in file name FILENAME.\n\
-Return nil if FILENAME does not include a directory.\n\
-Otherwise return a directory spec.\n\
-Given a Unix syntax file name, returns a string ending in slash;\n\
-on VMS, perhaps instead a string ending in `:', `]' or `>'.")
-  (filename)
+       1, 1, 0,
+       doc: /* Return the directory component in file name FILENAME.
+Return nil if FILENAME does not include a directory.
+Otherwise return a directory spec.
+Given a Unix syntax file name, returns a string ending in slash;
+on VMS, perhaps instead a string ending in `:', `]' or `>'.  */)
+     (filename)
      Lisp_Object filename;
 {
   register unsigned char *beg;
@@ -448,11 +449,11 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
 
 DEFUN ("file-name-nondirectory", Ffile_name_nondirectory,
        Sfile_name_nondirectory, 1, 1, 0,
-  "Return file name FILENAME sans its directory.\n\
-For example, in a Unix-syntax file name,\n\
-this is everything after the last slash,\n\
-or the entire name if it contains no slash.")
-  (filename)
+       doc: /* Return file name FILENAME sans its directory.
+For example, in a Unix-syntax file name,
+this is everything after the last slash,
+or the entire name if it contains no slash.  */)
+     (filename)
      Lisp_Object filename;
 {
   register unsigned char *beg, *p, *end;
@@ -489,15 +490,15 @@ or the entire name if it contains no slash.")
 
 DEFUN ("unhandled-file-name-directory", Funhandled_file_name_directory,
        Sunhandled_file_name_directory, 1, 1, 0,
-  "Return a directly usable directory name somehow associated with FILENAME.\n\
-A `directly usable' directory name is one that may be used without the\n\
-intervention of any file handler.\n\
-If FILENAME is a directly usable file itself, return\n\
-\(file-name-directory FILENAME).\n\
-The `call-process' and `start-process' functions use this function to\n\
-get a current directory to run processes in.")
-  (filename)
-    Lisp_Object filename;
+       doc: /* Return a directly usable directory name somehow associated with FILENAME.
+A `directly usable' directory name is one that may be used without the
+intervention of any file handler.
+If FILENAME is a directly usable file itself, return
+\(file-name-directory FILENAME).
+The `call-process' and `start-process' functions use this function to
+get a current directory to run processes in.  */)
+     (filename)
+     Lisp_Object filename;
 {
   Lisp_Object handler;
 
@@ -600,14 +601,14 @@ file_name_as_directory (out, in)
 
 DEFUN ("file-name-as-directory", Ffile_name_as_directory,
        Sfile_name_as_directory, 1, 1, 0,
-  "Return a string representing file FILENAME interpreted as a directory.\n\
-This operation exists because a directory is also a file, but its name as\n\
-a directory is different from its name as a file.\n\
-The result can be used as the value of `default-directory'\n\
-or passed as second argument to `expand-file-name'.\n\
-For a Unix-syntax file name, just appends a slash.\n\
-On VMS, converts \"[X]FOO.DIR\" to \"[X.FOO]\", etc.")
-  (file)
+       doc: /* Return a string representing file FILENAME interpreted as a directory.
+This operation exists because a directory is also a file, but its name as
+a directory is different from its name as a file.
+The result can be used as the value of `default-directory'
+or passed as second argument to `expand-file-name'.
+For a Unix-syntax file name, just appends a slash.
+On VMS, converts \"[X]FOO.DIR\" to \"[X.FOO]\", etc.  */)
+     (file)
      Lisp_Object file;
 {
   char *buf;
@@ -790,15 +791,15 @@ directory_file_name (src, dst)
 }
 
 DEFUN ("directory-file-name", Fdirectory_file_name, Sdirectory_file_name,
-  1, 1, 0,
-  "Returns the file name of the directory named DIRECTORY.\n\
-This is the name of the file that holds the data for the directory DIRECTORY.\n\
-This operation exists because a directory is also a file, but its name as\n\
-a directory is different from its name as a file.\n\
-In Unix-syntax, this function just removes the final slash.\n\
-On VMS, given a VMS-syntax directory name such as \"[X.Y]\",\n\
-it returns a file name such as \"[X]Y.DIR.1\".")
-  (directory)
+       1, 1, 0,
+       doc: /* Returns the file name of the directory named DIRECTORY.
+This is the name of the file that holds the data for the directory DIRECTORY.
+This operation exists because a directory is also a file, but its name as
+a directory is different from its name as a file.
+In Unix-syntax, this function just removes the final slash.
+On VMS, given a VMS-syntax directory name such as \"[X.Y]\",
+it returns a file name such as \"[X]Y.DIR.1\".  */)
+     (directory)
      Lisp_Object directory;
 {
   char *buf;
@@ -962,18 +963,18 @@ make_temp_name (prefix, base64_p)
 
 
 DEFUN ("make-temp-name", Fmake_temp_name, Smake_temp_name, 1, 1, 0,
-  "Generate temporary file name (string) starting with PREFIX (a string).\n\
-The Emacs process number forms part of the result,\n\
-so there is no danger of generating a name being used by another process.\n\
-\n\
-In addition, this function makes an attempt to choose a name\n\
-which has no existing file.  To make this work,\n\
-PREFIX should be an absolute file name.\n\
-\n\
-There is a race condition between calling `make-temp-name' and creating the\n\
-file which opens all kinds of security holes.  For that reason, you should\n\
-probably use `make-temp-file' instead.")
-  (prefix)
+       doc: /* Generate temporary file name (string) starting with PREFIX (a string).
+The Emacs process number forms part of the result,
+so there is no danger of generating a name being used by another process.
+
+In addition, this function makes an attempt to choose a name
+which has no existing file.  To make this work,
+PREFIX should be an absolute file name.
+
+There is a race condition between calling `make-temp-name' and creating the
+file which opens all kinds of security holes.  For that reason, you should
+probably use `make-temp-file' instead.  */)
+     (prefix)
      Lisp_Object prefix;
 {
   return make_temp_name (prefix, 0);
@@ -982,18 +983,18 @@ probably use `make-temp-file' instead.")
 
 
 DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
-  "Convert filename NAME to absolute, and canonicalize it.\n\
-Second arg DEFAULT-DIRECTORY is directory to start with if NAME is relative\n\
- (does not start with slash); if DEFAULT-DIRECTORY is nil or missing,\n\
-the current buffer's value of default-directory is used.\n\
-File name components that are `.' are removed, and \n\
-so are file name components followed by `..', along with the `..' itself;\n\
-note that these simplifications are done without checking the resulting\n\
-file names in the file system.\n\
-An initial `~/' expands to your home directory.\n\
-An initial `~USER/' expands to USER's home directory.\n\
-See also the function `substitute-in-file-name'.")
-  (name, default_directory)
+       doc: /* Convert filename NAME to absolute, and canonicalize it.
+Second arg DEFAULT-DIRECTORY is directory to start with if NAME is relative
+ (does not start with slash); if DEFAULT-DIRECTORY is nil or missing,
+the current buffer's value of default-directory is used.
+File name components that are `.' are removed, and
+so are file name components followed by `..', along with the `..' itself;
+note that these simplifications are done without checking the resulting
+file names in the file system.
+An initial `~/' expands to your home directory.
+An initial `~USER/' expands to USER's home directory.
+See also the function `substitute-in-file-name'.  */)
+     (name, default_directory)
      Lisp_Object name, default_directory;
 {
   unsigned char *nm;
@@ -1971,16 +1972,17 @@ See also the function `substitute-in-file-name'.")
 #endif
 
 DEFUN ("substitute-in-file-name", Fsubstitute_in_file_name,
-  Ssubstitute_in_file_name, 1, 1, 0,
-  "Substitute environment variables referred to in FILENAME.\n\
-`$FOO' where FOO is an environment variable name means to substitute\n\
-the value of that variable.  The variable name should be terminated\n\
-with a character not a letter, digit or underscore; otherwise, enclose\n\
-the entire variable name in braces.\n\
-If `/~' appears, all of FILENAME through that `/' is discarded.\n\n\
-On VMS, `$' substitution is not done; this function does little and only\n\
-duplicates what `expand-file-name' does.")
-  (filename)
+       Ssubstitute_in_file_name, 1, 1, 0,
+       doc: /* Substitute environment variables referred to in FILENAME.
+`$FOO' where FOO is an environment variable name means to substitute
+the value of that variable.  The variable name should be terminated
+with a character not a letter, digit or underscore; otherwise, enclose
+the entire variable name in braces.
+If `/~' appears, all of FILENAME through that `/' is discarded.
+
+On VMS, `$' substitution is not done; this function does little and only
+duplicates what `expand-file-name' does.  */)
+     (filename)
      Lisp_Object filename;
 {
   unsigned char *nm;
@@ -2282,17 +2284,17 @@ barf_or_query_if_file_exists (absname, querystring, interactive, statptr, quick)
 }
 
 DEFUN ("copy-file", Fcopy_file, Scopy_file, 2, 4,
-  "fCopy file: \nFCopy %s to file: \np\nP",
-  "Copy FILE to NEWNAME.  Both args must be strings.\n\
-If NEWNAME names a directory, copy FILE there.\n\
-Signals a `file-already-exists' error if file NEWNAME already exists,\n\
-unless a third argument OK-IF-ALREADY-EXISTS is supplied and non-nil.\n\
-A number as third arg means request confirmation if NEWNAME already exists.\n\
-This is what happens in interactive use with M-x.\n\
-Fourth arg KEEP-TIME non-nil means give the new file the same\n\
-last-modified time as the old one.  (This works on only some systems.)\n\
-A prefix arg makes KEEP-TIME non-nil.")
-  (file, newname, ok_if_already_exists, keep_time)
+       "fCopy file: \nFCopy %s to file: \np\nP",
+       doc: /* Copy FILE to NEWNAME.  Both args must be strings.
+If NEWNAME names a directory, copy FILE there.
+Signals a `file-already-exists' error if file NEWNAME already exists,
+unless a third argument OK-IF-ALREADY-EXISTS is supplied and non-nil.
+A number as third arg means request confirmation if NEWNAME already exists.
+This is what happens in interactive use with M-x.
+Fourth arg KEEP-TIME non-nil means give the new file the same
+last-modified time as the old one.  (This works on only some systems.)
+A prefix arg makes KEEP-TIME non-nil.  */)
+     (file, newname, ok_if_already_exists, keep_time)
      Lisp_Object file, newname, ok_if_already_exists, keep_time;
 {
   int ifd, ofd, n;
@@ -2452,8 +2454,8 @@ A prefix arg makes KEEP-TIME non-nil.")
 
 DEFUN ("make-directory-internal", Fmake_directory_internal,
        Smake_directory_internal, 1, 1, 0,
-  "Create a new directory named DIRECTORY.")
-  (directory)
+       doc: /* Create a new directory named DIRECTORY.  */)
+     (directory)
      Lisp_Object directory;
 {
   unsigned char *dir;
@@ -2482,8 +2484,8 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
 }
 
 DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete directory: ",
-  "Delete the directory named DIRECTORY.")
-  (directory)
+       doc: /* Delete the directory named DIRECTORY.  */)
+     (directory)
      Lisp_Object directory;
 {
   unsigned char *dir;
@@ -2508,9 +2510,9 @@ DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete 
 }
 
 DEFUN ("delete-file", Fdelete_file, Sdelete_file, 1, 1, "fDelete file: ",
-  "Delete file named FILENAME.\n\
-If file has multiple names, it continues to exist with the other names.")
-  (filename)
+       doc: /* Delete file named FILENAME.
+If file has multiple names, it continues to exist with the other names.  */)
+     (filename)
      Lisp_Object filename;
 {
   Lisp_Object handler;
@@ -2548,14 +2550,14 @@ internal_delete_file (filename)
 }
 
 DEFUN ("rename-file", Frename_file, Srename_file, 2, 3,
-  "fRename file: \nFRename %s to file: \np",
-  "Rename FILE as NEWNAME.  Both args strings.\n\
-If file has names other than FILE, it continues to have those names.\n\
-Signals a `file-already-exists' error if a file NEWNAME already exists\n\
-unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.\n\
-A number as third arg means request confirmation if NEWNAME already exists.\n\
-This is what happens in interactive use with M-x.")
-  (file, newname, ok_if_already_exists)
+       "fRename file: \nFRename %s to file: \np",
+       doc: /* Rename FILE as NEWNAME.  Both args strings.
+If file has names other than FILE, it continues to have those names.
+Signals a `file-already-exists' error if a file NEWNAME already exists
+unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
+A number as third arg means request confirmation if NEWNAME already exists.
+This is what happens in interactive use with M-x.  */)
+     (file, newname, ok_if_already_exists)
      Lisp_Object file, newname, ok_if_already_exists;
 {
 #ifdef NO_ARG_ARRAY
@@ -2625,13 +2627,13 @@ This is what happens in interactive use with M-x.")
 }
 
 DEFUN ("add-name-to-file", Fadd_name_to_file, Sadd_name_to_file, 2, 3,
-  "fAdd name to file: \nFName to add to %s: \np",
-  "Give FILE additional name NEWNAME.  Both args strings.\n\
-Signals a `file-already-exists' error if a file NEWNAME already exists\n\
-unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.\n\
-A number as third arg means request confirmation if NEWNAME already exists.\n\
-This is what happens in interactive use with M-x.")
-  (file, newname, ok_if_already_exists)
+       "fAdd name to file: \nFName to add to %s: \np",
+       doc: /* Give FILE additional name NEWNAME.  Both args strings.
+Signals a `file-already-exists' error if a file NEWNAME already exists
+unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
+A number as third arg means request confirmation if NEWNAME already exists.
+This is what happens in interactive use with M-x.  */)
+     (file, newname, ok_if_already_exists)
      Lisp_Object file, newname, ok_if_already_exists;
 {
 #ifdef NO_ARG_ARRAY
@@ -2688,13 +2690,13 @@ This is what happens in interactive use with M-x.")
 
 #ifdef S_IFLNK
 DEFUN ("make-symbolic-link", Fmake_symbolic_link, Smake_symbolic_link, 2, 3,
-  "FMake symbolic link to file: \nFMake symbolic link to file %s: \np",
-  "Make a symbolic link to FILENAME, named LINKNAME.  Both args strings.\n\
-Signals a `file-already-exists' error if a file LINKNAME already exists\n\
-unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.\n\
-A number as third arg means request confirmation if LINKNAME already exists.\n\
-This happens for interactive use with M-x.")
-  (filename, linkname, ok_if_already_exists)
+       "FMake symbolic link to file: \nFMake symbolic link to file %s: \np",
+       doc: /* Make a symbolic link to FILENAME, named LINKNAME.  Both args strings.
+Signals a `file-already-exists' error if a file LINKNAME already exists
+unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
+A number as third arg means request confirmation if LINKNAME already exists.
+This happens for interactive use with M-x.  */)
+     (filename, linkname, ok_if_already_exists)
      Lisp_Object filename, linkname, ok_if_already_exists;
 {
 #ifdef NO_ARG_ARRAY
@@ -2768,9 +2770,9 @@ This happens for interactive use with M-x.")
 
 DEFUN ("define-logical-name", Fdefine_logical_name, Sdefine_logical_name,
        2, 2, "sDefine logical name: \nsDefine logical name %s as: ",
-  "Define the job-wide logical name NAME to have the value STRING.\n\
-If STRING is nil or a null string, the logical name NAME is deleted.")
-  (name, string)
+       doc: /* Define the job-wide logical name NAME to have the value STRING.
+If STRING is nil or a null string, the logical name NAME is deleted.  */)
+     (name, string)
      Lisp_Object name;
      Lisp_Object string;
 {
@@ -2794,7 +2796,7 @@ If STRING is nil or a null string, the logical name NAME is deleted.")
 #ifdef HPUX_NET
 
 DEFUN ("sysnetunam", Fsysnetunam, Ssysnetunam, 2, 2, 0,
-       "Open a network connection to PATH using LOGIN as the login string.")
+       doc: /* Open a network connection to PATH using LOGIN as the login string.  */)
      (path, login)
      Lisp_Object path, login;
 {
@@ -2814,8 +2816,8 @@ DEFUN ("sysnetunam", Fsysnetunam, Ssysnetunam, 2, 2, 0,
 
 DEFUN ("file-name-absolute-p", Ffile_name_absolute_p, Sfile_name_absolute_p,
        1, 1, 0,
-       "Return t if file FILENAME specifies an absolute file name.\n\
-On Unix, this is a name starting with a `/' or a `~'.")
+       doc: /* Return t if file FILENAME specifies an absolute file name.
+On Unix, this is a name starting with a `/' or a `~'.  */)
      (filename)
      Lisp_Object filename;
 {
@@ -2899,9 +2901,9 @@ check_writable (filename)
 }
 
 DEFUN ("file-exists-p", Ffile_exists_p, Sfile_exists_p, 1, 1, 0,
-  "Return t if file FILENAME exists.  (This does not mean you can read it.)\n\
-See also `file-readable-p' and `file-attributes'.")
-  (filename)
+       doc: /* Return t if file FILENAME exists.  (This does not mean you can read it.)
+See also `file-readable-p' and `file-attributes'.  */)
+     (filename)
      Lisp_Object filename;
 {
   Lisp_Object absname;
@@ -2923,11 +2925,10 @@ See also `file-readable-p' and `file-attributes'.")
 }
 
 DEFUN ("file-executable-p", Ffile_executable_p, Sfile_executable_p, 1, 1, 0,
-  "Return t if FILENAME can be executed by you.\n\
-For a directory, this means you can access files in that directory.")
-  (filename)
-    Lisp_Object filename;
-
+       doc: /* Return t if FILENAME can be executed by you.
+For a directory, this means you can access files in that directory.  */)
+     (filename)
+     Lisp_Object filename;
 {
   Lisp_Object absname;
   Lisp_Object handler;
@@ -2947,9 +2948,9 @@ For a directory, this means you can access files in that directory.")
 }
 
 DEFUN ("file-readable-p", Ffile_readable_p, Sfile_readable_p, 1, 1, 0,
-  "Return t if file FILENAME exists and you can read it.\n\
-See also `file-exists-p' and `file-attributes'.")
-  (filename)
+       doc: /* Return t if file FILENAME exists and you can read it.
+See also `file-exists-p' and `file-attributes'.  */)
+     (filename)
      Lisp_Object filename;
 {
   Lisp_Object absname;
@@ -2998,8 +2999,8 @@ See also `file-exists-p' and `file-attributes'.")
 /* Having this before file-symlink-p mysteriously caused it to be forgotten
    on the RT/PC.  */
 DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
-  "Return t if file FILENAME can be written or created by you.")
-  (filename)
+       doc: /* Return t if file FILENAME can be written or created by you.  */)
+     (filename)
      Lisp_Object filename;
 {
   Lisp_Object absname, dir, encoded;
@@ -3045,10 +3046,10 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
 }
 
 DEFUN ("access-file", Faccess_file, Saccess_file, 2, 2, 0,
-  "Access file FILENAME, and get an error if that does not work.\n\
-The second argument STRING is used in the error message.\n\
-If there is no error, we return nil.")
-  (filename, string)
+       doc: /* Access file FILENAME, and get an error if that does not work.
+The second argument STRING is used in the error message.
+If there is no error, we return nil.  */)
+     (filename, string)
      Lisp_Object filename, string;
 {
   Lisp_Object handler, encoded_filename;
@@ -3074,10 +3075,10 @@ If there is no error, we return nil.")
 }
 
 DEFUN ("file-symlink-p", Ffile_symlink_p, Sfile_symlink_p, 1, 1, 0,
-  "Return non-nil if file FILENAME is the name of a symbolic link.\n\
-The value is the name of the file to which it is linked.\n\
-Otherwise returns nil.")
-  (filename)
+       doc: /* Return non-nil if file FILENAME is the name of a symbolic link.
+The value is the name of the file to which it is linked.
+Otherwise returns nil.  */)
+     (filename)
      Lisp_Object filename;
 {
 #ifdef S_IFLNK
@@ -3136,10 +3137,10 @@ Otherwise returns nil.")
 }
 
 DEFUN ("file-directory-p", Ffile_directory_p, Sfile_directory_p, 1, 1, 0,
-  "Return t if FILENAME names an existing directory.\n\
-Symbolic links to directories count as directories.\n\
-See `file-symlink-p' to distinguish symlinks.")
-  (filename)
+       doc: /* Return t if FILENAME names an existing directory.
+Symbolic links to directories count as directories.
+See `file-symlink-p' to distinguish symlinks.  */)
+     (filename)
      Lisp_Object filename;
 {
   register Lisp_Object absname;
@@ -3162,13 +3163,13 @@ See `file-symlink-p' to distinguish symlinks.")
 }
 
 DEFUN ("file-accessible-directory-p", Ffile_accessible_directory_p, Sfile_accessible_directory_p, 1, 1, 0,
-  "Return t if file FILENAME is the name of a directory as a file,\n\
-and files in that directory can be opened by you.  In order to use a\n\
-directory as a buffer's current directory, this predicate must return true.\n\
-A directory name spec may be given instead; then the value is t\n\
-if the directory so specified exists and really is a readable and\n\
-searchable directory.")
-  (filename)
+       doc: /* Return t if file FILENAME is the name of a directory as a file,
+and files in that directory can be opened by you.  In order to use a
+directory as a buffer's current directory, this predicate must return true.
+A directory name spec may be given instead; then the value is t
+if the directory so specified exists and really is a readable and
+searchable directory.  */)
+     (filename)
      Lisp_Object filename;
 {
   Lisp_Object handler;
@@ -3195,9 +3196,9 @@ searchable directory.")
 }
 
 DEFUN ("file-regular-p", Ffile_regular_p, Sfile_regular_p, 1, 1, 0,
-  "Return t if file FILENAME is the name of a regular file.\n\
-This is the sort of file that holds an ordinary stream of data bytes.")
-  (filename)
+       doc: /* Return t if file FILENAME is the name of a regular file.
+This is the sort of file that holds an ordinary stream of data bytes.  */)
+     (filename)
      Lisp_Object filename;
 {
   register Lisp_Object absname;
@@ -3236,8 +3237,8 @@ This is the sort of file that holds an ordinary stream of data bytes.")
 }
 
 DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
-  "Return mode bits of file named FILENAME, as an integer.")
-  (filename)
+       doc: /* Return mode bits of file named FILENAME, as an integer.  */)
+     (filename)
      Lisp_Object filename;
 {
   Lisp_Object absname;
@@ -3265,8 +3266,8 @@ DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
 }
 
 DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 2, 0,
-  "Set mode bits of file named FILENAME to MODE (an integer).\n\
-Only the 12 low bits of MODE are used.")
+       doc: /* Set mode bits of file named FILENAME to MODE (an integer).
+Only the 12 low bits of MODE are used.  */)
   (filename, mode)
      Lisp_Object filename, mode;
 {
@@ -3291,10 +3292,10 @@ Only the 12 low bits of MODE are used.")
 }
 
 DEFUN ("set-default-file-modes", Fset_default_file_modes, Sset_default_file_modes, 1, 1, 0,
-    "Set the file permission bits for newly created files.\n\
-The argument MODE should be an integer; only the low 9 bits are used.\n\
-This setting is inherited by subprocesses.")
-  (mode)
+       doc: /* Set the file permission bits for newly created files.
+The argument MODE should be an integer; only the low 9 bits are used.
+This setting is inherited by subprocesses.  */)
+     (mode)
      Lisp_Object mode;
 {
   CHECK_NUMBER (mode, 0);
@@ -3305,9 +3306,9 @@ This setting is inherited by subprocesses.")
 }
 
 DEFUN ("default-file-modes", Fdefault_file_modes, Sdefault_file_modes, 0, 0, 0,
-    "Return the default file protection for created files.\n\
-The value is an integer.")
-  ()
+       doc: /* Return the default file protection for created files.
+The value is an integer.  */)
+     ()
 {
   int realmask;
   Lisp_Object value;
@@ -3326,8 +3327,8 @@ The value is an integer.")
 
 #ifdef unix
 DEFUN ("unix-sync", Funix_sync, Sunix_sync, 0, 0, "",
-  "Tell Unix to finish all pending disk updates.")
-  ()
+       doc: /* Tell Unix to finish all pending disk updates.  */)
+     ()
 {
   sync ();
   return Qnil;
@@ -3336,10 +3337,10 @@ DEFUN ("unix-sync", Funix_sync, Sunix_sync, 0, 0, "",
 #endif /* unix */
 
 DEFUN ("file-newer-than-file-p", Ffile_newer_than_file_p, Sfile_newer_than_file_p, 2, 2, 0,
-  "Return t if file FILE1 is newer than file FILE2.\n\
-If FILE1 does not exist, the answer is nil;\n\
-otherwise, if FILE2 does not exist, the answer is t.")
-  (file1, file2)
+       doc: /* Return t if file FILE1 is newer than file FILE2.
+If FILE1 does not exist, the answer is nil;
+otherwise, if FILE2 does not exist, the answer is t.  */)
+     (file1, file2)
      Lisp_Object file1, file2;
 {
   Lisp_Object absname1, absname2;
@@ -3471,31 +3472,31 @@ read_non_regular_quit ()
 
 
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
-  1, 5, 0,
-  "Insert contents of file FILENAME after point.\n\
-Returns list of absolute file name and number of bytes inserted.\n\
-If second argument VISIT is non-nil, the buffer's visited filename\n\
-and last save file modtime are set, and it is marked unmodified.\n\
-If visiting and the file does not exist, visiting is completed\n\
-before the error is signaled.\n\
-The optional third and fourth arguments BEG and END\n\
-specify what portion of the file to insert.\n\
-These arguments count bytes in the file, not characters in the buffer.\n\
-If VISIT is non-nil, BEG and END must be nil.\n\
-\n\
-If optional fifth argument REPLACE is non-nil,\n\
-it means replace the current buffer contents (in the accessible portion)\n\
-with the file contents.  This is better than simply deleting and inserting\n\
-the whole thing because (1) it preserves some marker positions\n\
-and (2) it puts less data in the undo list.\n\
-When REPLACE is non-nil, the value is the number of characters actually read,\n\
-which is often less than the number of characters to be read.\n\
-\n\
-This does code conversion according to the value of\n\
-`coding-system-for-read' or `file-coding-system-alist',\n\
-and sets the variable `last-coding-system-used' to the coding system\n\
-actually used.")
-  (filename, visit, beg, end, replace)
+       1, 5, 0,
+       doc: /* Insert contents of file FILENAME after point.
+Returns list of absolute file name and number of bytes inserted.
+If second argument VISIT is non-nil, the buffer's visited filename
+and last save file modtime are set, and it is marked unmodified.
+If visiting and the file does not exist, visiting is completed
+before the error is signaled.
+The optional third and fourth arguments BEG and END
+specify what portion of the file to insert.
+These arguments count bytes in the file, not characters in the buffer.
+If VISIT is non-nil, BEG and END must be nil.
+
+If optional fifth argument REPLACE is non-nil,
+it means replace the current buffer contents (in the accessible portion)
+with the file contents.  This is better than simply deleting and inserting
+the whole thing because (1) it preserves some marker positions
+and (2) it puts less data in the undo list.
+When REPLACE is non-nil, the value is the number of characters actually read,
+which is often less than the number of characters to be read.
+
+This does code conversion according to the value of
+`coding-system-for-read' or `file-coding-system-alist',
+and sets the variable `last-coding-system-used' to the coding system
+actually used.  */)
+     (filename, visit, beg, end, replace)
      Lisp_Object filename, visit, beg, end, replace;
 {
   struct stat st;
@@ -4523,38 +4524,37 @@ build_annotations_unwind (buf)
 }
 
 DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 7,
-  "r\nFWrite region to file: \ni\ni\ni\np",
-  "Write current region into specified file.\n\
-When called from a program, takes three arguments:\n\
-START, END and FILENAME.  START and END are buffer positions.\n\
-Optional fourth argument APPEND if non-nil means\n\
-  append to existing file contents (if any).  If it is an integer,\n\
-  seek to that offset in the file before writing.\n\
-Optional fifth argument VISIT if t means\n\
-  set the last-save-file-modtime of buffer to this file's modtime\n\
-  and mark buffer not modified.\n\
-If VISIT is a string, it is a second file name;\n\
-  the output goes to FILENAME, but the buffer is marked as visiting VISIT.\n\
-  VISIT is also the file name to lock and unlock for clash detection.\n\
-If VISIT is neither t nor nil nor a string,\n\
-  that means do not print the \"Wrote file\" message.\n\
-The optional sixth arg LOCKNAME, if non-nil, specifies the name to\n\
-  use for locking and unlocking, overriding FILENAME and VISIT.\n\
-The optional seventh arg MUSTBENEW, if non-nil, insists on a check\n\
-  for an existing file with the same name.  If MUSTBENEW is `excl',\n\
-  that means to get an error if the file already exists; never overwrite.\n\
-  If MUSTBENEW is neither nil nor `excl', that means ask for\n\
-  confirmation before overwriting, but do go ahead and overwrite the file\n\
-  if the user confirms.\n\
-Kludgy feature: if START is a string, then that string is written\n\
-to the file, instead of any buffer contents, and END is ignored.\n\
-\n\
-This does code conversion according to the value of\n\
-`coding-system-for-write', `buffer-file-coding-system', or\n\
-`file-coding-system-alist', and sets the variable\n\
-`last-coding-system-used' to the coding system actually used.")
+       "r\nFWrite region to file: \ni\ni\ni\np",
+       doc: /* Write current region into specified file.
+When called from a program, takes three arguments:
+START, END and FILENAME.  START and END are buffer positions.
+Optional fourth argument APPEND if non-nil means
+  append to existing file contents (if any).  If it is an integer,
+  seek to that offset in the file before writing.
+Optional fifth argument VISIT if t means
+  set the last-save-file-modtime of buffer to this file's modtime
+  and mark buffer not modified.
+If VISIT is a string, it is a second file name;
+  the output goes to FILENAME, but the buffer is marked as visiting VISIT.
+  VISIT is also the file name to lock and unlock for clash detection.
+If VISIT is neither t nor nil nor a string,
+  that means do not print the \"Wrote file\" message.
+The optional sixth arg LOCKNAME, if non-nil, specifies the name to
+  use for locking and unlocking, overriding FILENAME and VISIT.
+The optional seventh arg MUSTBENEW, if non-nil, insists on a check
+  for an existing file with the same name.  If MUSTBENEW is `excl',
+  that means to get an error if the file already exists; never overwrite.
+  If MUSTBENEW is neither nil nor `excl', that means ask for
+  confirmation before overwriting, but do go ahead and overwrite the file
+  if the user confirms.
+Kludgy feature: if START is a string, then that string is written
+to the file, instead of any buffer contents, and END is ignored.
 
-  (start, end, filename, append, visit, lockname, mustbenew)
+This does code conversion according to the value of
+`coding-system-for-write', `buffer-file-coding-system', or
+`file-coding-system-alist', and sets the variable
+`last-coding-system-used' to the coding system actually used.  */)
+     (start, end, filename, append, visit, lockname, mustbenew)
      Lisp_Object start, end, filename, append, visit, lockname, mustbenew;
 {
   register int desc;
@@ -5028,8 +5028,8 @@ This does code conversion according to the value of\n\
 Lisp_Object merge ();
 
 DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
-  "Return t if (car A) is numerically less than (car B).")
-  (a, b)
+       doc: /* Return t if (car A) is numerically less than (car B).  */)
+     (a, b)
      Lisp_Object a, b;
 {
   return Flss (Fcar (a), Fcar (b));
@@ -5268,10 +5268,10 @@ e_write (desc, string, start, end, coding)
 }
 
 DEFUN ("verify-visited-file-modtime", Fverify_visited_file_modtime,
-  Sverify_visited_file_modtime, 1, 1, 0,
-  "Return t if last mod time of BUF's visited file matches what BUF records.\n\
-This means that the file has not been changed since it was visited or saved.")
-  (buf)
+       Sverify_visited_file_modtime, 1, 1, 0,
+       doc: /* Return t if last mod time of BUF's visited file matches what BUF records.
+This means that the file has not been changed since it was visited or saved.  */)
+     (buf)
      Lisp_Object buf;
 {
   struct buffer *b;
@@ -5313,34 +5313,34 @@ This means that the file has not been changed since it was visited or saved.")
 }
 
 DEFUN ("clear-visited-file-modtime", Fclear_visited_file_modtime,
-  Sclear_visited_file_modtime, 0, 0, 0,
-  "Clear out records of last mod time of visited file.\n\
-Next attempt to save will certainly not complain of a discrepancy.")
-  ()
+       Sclear_visited_file_modtime, 0, 0, 0,
+       doc: /* Clear out records of last mod time of visited file.
+Next attempt to save will certainly not complain of a discrepancy.  */)
+     ()
 {
   current_buffer->modtime = 0;
   return Qnil;
 }
 
 DEFUN ("visited-file-modtime", Fvisited_file_modtime,
-  Svisited_file_modtime, 0, 0, 0,
-  "Return the current buffer's recorded visited file modification time.\n\
-The value is a list of the form (HIGH . LOW), like the time values\n\
-that `file-attributes' returns.")
-  ()
+       Svisited_file_modtime, 0, 0, 0,
+       doc: /* Return the current buffer's recorded visited file modification time.
+The value is a list of the form (HIGH . LOW), like the time values
+that `file-attributes' returns.  */)
+     ()
 {
   return long_to_cons ((unsigned long) current_buffer->modtime);
 }
 
 DEFUN ("set-visited-file-modtime", Fset_visited_file_modtime,
-  Sset_visited_file_modtime, 0, 1, 0,
-  "Update buffer's recorded modification time from the visited file's time.\n\
-Useful if the buffer was not read from the file normally\n\
-or if the file itself has been changed for some known benign reason.\n\
-An argument specifies the modification time value to use\n\
-\(instead of that of the visited file), in the form of a list\n\
-\(HIGH . LOW) or (HIGH LOW).")
-  (time_list)
+       Sset_visited_file_modtime, 0, 1, 0,
+       doc: /* Update buffer's recorded modification time from the visited file's time.
+Useful if the buffer was not read from the file normally
+or if the file itself has been changed for some known benign reason.
+An argument specifies the modification time value to use
+\(instead of that of the visited file), in the form of a list
+\(HIGH . LOW) or (HIGH LOW).  */)
+     (time_list)
      Lisp_Object time_list;
 {
   if (!NILP (time_list))
@@ -5439,16 +5439,17 @@ do_auto_save_unwind_1 (value)  /* used as unwind-protect function */
 }
 
 DEFUN ("do-auto-save", Fdo_auto_save, Sdo_auto_save, 0, 2, "",
-  "Auto-save all buffers that need it.\n\
-This is all buffers that have auto-saving enabled\n\
-and are changed since last auto-saved.\n\
-Auto-saving writes the buffer into a file\n\
-so that your editing is not lost if the system crashes.\n\
-This file is not the file you visited; that changes only when you save.\n\
-Normally we run the normal hook `auto-save-hook' before saving.\n\n\
-A non-nil NO-MESSAGE argument means do not print any message if successful.\n\
-A non-nil CURRENT-ONLY argument means save only current buffer.")
-  (no_message, current_only)
+       doc: /* Auto-save all buffers that need it.
+This is all buffers that have auto-saving enabled
+and are changed since last auto-saved.
+Auto-saving writes the buffer into a file
+so that your editing is not lost if the system crashes.
+This file is not the file you visited; that changes only when you save.
+Normally we run the normal hook `auto-save-hook' before saving.
+
+A non-nil NO-MESSAGE argument means do not print any message if successful.
+A non-nil CURRENT-ONLY argument means save only current buffer.  */)
+     (no_message, current_only)
      Lisp_Object no_message, current_only;
 {
   struct buffer *old = current_buffer, *b;
@@ -5634,10 +5635,10 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
 }
 
 DEFUN ("set-buffer-auto-saved", Fset_buffer_auto_saved,
-  Sset_buffer_auto_saved, 0, 0, 0,
-  "Mark current buffer as auto-saved with its current text.\n\
-No auto-save file will be written until the buffer changes again.")
-  ()
+       Sset_buffer_auto_saved, 0, 0, 0,
+       doc: /* Mark current buffer as auto-saved with its current text.
+No auto-save file will be written until the buffer changes again.  */)
+     ()
 {
   current_buffer->auto_save_modified = MODIFF;
   XSETFASTINT (current_buffer->save_length, Z - BEG);
@@ -5646,18 +5647,18 @@ No auto-save file will be written until the buffer changes again.")
 }
 
 DEFUN ("clear-buffer-auto-save-failure", Fclear_buffer_auto_save_failure,
-  Sclear_buffer_auto_save_failure, 0, 0, 0,
-  "Clear any record of a recent auto-save failure in the current buffer.")
-  ()
+       Sclear_buffer_auto_save_failure, 0, 0, 0,
+       doc: /* Clear any record of a recent auto-save failure in the current buffer.  */)
+     ()
 {
   current_buffer->auto_save_failure_time = -1;
   return Qnil;
 }
 
 DEFUN ("recent-auto-save-p", Frecent_auto_save_p, Srecent_auto_save_p,
-  0, 0, 0,
-  "Return t if buffer has been auto-saved since last read in or saved.")
-  ()
+       0, 0, 0,
+       doc: /* Return t if buffer has been auto-saved since last read in or saved.  */)
+     ()
 {
   return (SAVE_MODIFF < current_buffer->auto_save_modified) ? Qt : Qnil;
 }
@@ -5700,9 +5701,9 @@ double_dollars (val)
 }
 
 DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_internal,
-  3, 3, 0,
-  "Internal subroutine for read-file-name.  Do not call this.")
-  (string, dir, action)
+       3, 3, 0,
+       doc: /* Internal subroutine for read-file-name.  Do not call this.  */)
+     (string, dir, action)
      Lisp_Object string, dir, action;
   /* action is nil for complete, t for return list of completions,
      lambda for verify final value */
@@ -5775,20 +5776,20 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
 }
 
 DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 5, 0,
-  "Read file name, prompting with PROMPT and completing in directory DIR.\n\
-Value is not expanded---you must call `expand-file-name' yourself.\n\
-Default name to DEFAULT-FILENAME if user enters a null string.\n\
- (If DEFAULT-FILENAME is omitted, the visited file name is used,\n\
-  except that if INITIAL is specified, that combined with DIR is used.)\n\
-Fourth arg MUSTMATCH non-nil means require existing file's name.\n\
- Non-nil and non-t means also require confirmation after completion.\n\
-Fifth arg INITIAL specifies text to start with.\n\
-DIR defaults to current buffer's directory default.\n\
-\n\
-If this command was invoked with the mouse, use a file dialog box if\n\
-`use-dialog-box' is non-nil, and the window system or X toolkit in use\n\
-provides a file dialog box..")
-  (prompt, dir, default_filename, mustmatch, initial)
+       doc: /* Read file name, prompting with PROMPT and completing in directory DIR.
+Value is not expanded---you must call `expand-file-name' yourself.
+Default name to DEFAULT-FILENAME if user enters a null string.
+ (If DEFAULT-FILENAME is omitted, the visited file name is used,
+  except that if INITIAL is specified, that combined with DIR is used.)
+Fourth arg MUSTMATCH non-nil means require existing file's name.
+ Non-nil and non-t means also require confirmation after completion.
+Fifth arg INITIAL specifies text to start with.
+DIR defaults to current buffer's directory default.
+
+If this command was invoked with the mouse, use a file dialog box if
+`use-dialog-box' is non-nil, and the window system or X toolkit in use
+provides a file dialog box.  */)
+     (prompt, dir, default_filename, mustmatch, initial)
      Lisp_Object prompt, dir, default_filename, mustmatch, initial;
 {
   Lisp_Object val, insdef, tem;
@@ -6049,26 +6050,26 @@ syms_of_fileio ()
 #endif /* DOS_NT */
 
   DEFVAR_LISP ("file-name-coding-system", &Vfile_name_coding_system,
-    "*Coding system for encoding file names.\n\
-If it is nil, default-file-name-coding-system (which see) is used.");
+	       doc: /* *Coding system for encoding file names.
+If it is nil, default-file-name-coding-system (which see) is used.  */);
   Vfile_name_coding_system = Qnil;
 
   DEFVAR_LISP ("default-file-name-coding-system",
 	       &Vdefault_file_name_coding_system,
-    "Default coding system for encoding file names.\n\
-This variable is used only when file-name-coding-system is nil.\n\
-\n\
-This variable is set/changed by the command set-language-environment.\n\
-User should not set this variable manually,\n\
-instead use file-name-coding-system to get a constant encoding\n\
-of file names regardless of the current language environment.");
+	       doc: /* Default coding system for encoding file names.
+This variable is used only when file-name-coding-system is nil.
+
+This variable is set/changed by the command set-language-environment.
+User should not set this variable manually,
+instead use file-name-coding-system to get a constant encoding
+of file names regardless of the current language environment.  */);
   Vdefault_file_name_coding_system = Qnil;
 
   DEFVAR_LISP ("auto-save-file-format", &Vauto_save_file_format,
-    "*Format in which to write auto-save files.\n\
-Should be a list of symbols naming formats that are defined in `format-alist'.\n\
-If it is t, which is the default, auto-save files are written in the\n\
-same format as a regular save would use.");
+    doc: /* *Format in which to write auto-save files.
+Should be a list of symbols naming formats that are defined in `format-alist'.
+If it is t, which is the default, auto-save files are written in the
+same format as a regular save would use.  */);
   Vauto_save_file_format = Qt;
 
   Qformat_decode = intern ("format-decode");
@@ -6097,93 +6098,93 @@ same format as a regular save would use.");
 	build_string ("Cannot set file date"));
 
   DEFVAR_BOOL ("insert-default-directory", &insert_default_directory,
-    "*Non-nil means when reading a filename start with default dir in minibuffer.");
+	       doc: /* *Non-nil means when reading a filename start with default dir in minibuffer.  */);
   insert_default_directory = 1;
 
   DEFVAR_BOOL ("vms-stmlf-recfm", &vms_stmlf_recfm,
-    "*Non-nil means write new files with record format `stmlf'.\n\
-nil means use format `var'.  This variable is meaningful only on VMS.");
+	       doc: /* *Non-nil means write new files with record format `stmlf'.
+nil means use format `var'.  This variable is meaningful only on VMS.  */);
   vms_stmlf_recfm = 0;
 
   DEFVAR_LISP ("directory-sep-char", &Vdirectory_sep_char,
-    "Directory separator character for built-in functions that return file names.\n\
-The value should be either ?/ or ?\\ (any other value is treated as ?\\).\n\
-This variable affects the built-in functions only on Windows,\n\
-on other platforms, it is initialized so that Lisp code can find out\n\
-what the normal separator is.\n\
-\n\
-WARNING: This variable is deprecated and will be removed in the near\n\
-future.  DO NOT USE IT.");
+	       doc: /* Directory separator character for built-in functions that return file names.
+The value should be either ?/ or ?\\ (any other value is treated as ?\\).
+This variable affects the built-in functions only on Windows,
+on other platforms, it is initialized so that Lisp code can find out
+what the normal separator is.
+
+WARNING: This variable is deprecated and will be removed in the near
+future.  DO NOT USE IT.  */);
 
   DEFVAR_LISP ("file-name-handler-alist", &Vfile_name_handler_alist,
-    "*Alist of elements (REGEXP . HANDLER) for file names handled specially.\n\
-If a file name matches REGEXP, then all I/O on that file is done by calling\n\
-HANDLER.\n\
-\n\
-The first argument given to HANDLER is the name of the I/O primitive\n\
-to be handled; the remaining arguments are the arguments that were\n\
-passed to that primitive.  For example, if you do\n\
-    (file-exists-p FILENAME)\n\
-and FILENAME is handled by HANDLER, then HANDLER is called like this:\n\
-    (funcall HANDLER 'file-exists-p FILENAME)\n\
-The function `find-file-name-handler' checks this list for a handler\n\
-for its argument.");
+	       doc: /* *Alist of elements (REGEXP . HANDLER) for file names handled specially.
+If a file name matches REGEXP, then all I/O on that file is done by calling
+HANDLER.
+
+The first argument given to HANDLER is the name of the I/O primitive
+to be handled; the remaining arguments are the arguments that were
+passed to that primitive.  For example, if you do
+    (file-exists-p FILENAME)
+and FILENAME is handled by HANDLER, then HANDLER is called like this:
+    (funcall HANDLER 'file-exists-p FILENAME)
+The function `find-file-name-handler' checks this list for a handler
+for its argument.  */);
   Vfile_name_handler_alist = Qnil;
 
   DEFVAR_LISP ("set-auto-coding-function",
 	       &Vset_auto_coding_function,
-    "If non-nil, a function to call to decide a coding system of file.\n\
-Two arguments are passed to this function: the file name\n\
-and the length of a file contents following the point.\n\
-This function should return a coding system to decode the file contents.\n\
-It should check the file name against `auto-coding-alist'.\n\
-If no coding system is decided, it should check a coding system\n\
-specified in the heading lines with the format:\n\
-	-*- ... coding: CODING-SYSTEM; ... -*-\n\
-or local variable spec of the tailing lines with `coding:' tag.");
+	       doc: /* If non-nil, a function to call to decide a coding system of file.
+Two arguments are passed to this function: the file name
+and the length of a file contents following the point.
+This function should return a coding system to decode the file contents.
+It should check the file name against `auto-coding-alist'.
+If no coding system is decided, it should check a coding system
+specified in the heading lines with the format:
+	-*- ... coding: CODING-SYSTEM; ... -*-
+or local variable spec of the tailing lines with `coding:' tag.  */);
   Vset_auto_coding_function = Qnil;
 
   DEFVAR_LISP ("after-insert-file-functions", &Vafter_insert_file_functions,
-    "A list of functions to be called at the end of `insert-file-contents'.\n\
-Each is passed one argument, the number of bytes inserted.  It should return\n\
-the new byte count, and leave point the same.  If `insert-file-contents' is\n\
-intercepted by a handler from `file-name-handler-alist', that handler is\n\
-responsible for calling the after-insert-file-functions if appropriate.");
+	       doc: /* A list of functions to be called at the end of `insert-file-contents'.
+Each is passed one argument, the number of bytes inserted.  It should return
+the new byte count, and leave point the same.  If `insert-file-contents' is
+intercepted by a handler from `file-name-handler-alist', that handler is
+responsible for calling the after-insert-file-functions if appropriate.  */);
   Vafter_insert_file_functions = Qnil;
 
   DEFVAR_LISP ("write-region-annotate-functions", &Vwrite_region_annotate_functions,
-    "A list of functions to be called at the start of `write-region'.\n\
-Each is passed two arguments, START and END as for `write-region'.\n\
-These are usually two numbers but not always; see the documentation\n\
-for `write-region'.  The function should return a list of pairs\n\
-of the form (POSITION . STRING), consisting of strings to be effectively\n\
-inserted at the specified positions of the file being written (1 means to\n\
-insert before the first byte written).  The POSITIONs must be sorted into\n\
-increasing order.  If there are several functions in the list, the several\n\
-lists are merged destructively.");
+	       doc: /* A list of functions to be called at the start of `write-region'.
+Each is passed two arguments, START and END as for `write-region'.
+These are usually two numbers but not always; see the documentation
+for `write-region'.  The function should return a list of pairs
+of the form (POSITION . STRING), consisting of strings to be effectively
+inserted at the specified positions of the file being written (1 means to
+insert before the first byte written).  The POSITIONs must be sorted into
+increasing order.  If there are several functions in the list, the several
+lists are merged destructively.  */);
   Vwrite_region_annotate_functions = Qnil;
 
   DEFVAR_LISP ("write-region-annotations-so-far",
 	       &Vwrite_region_annotations_so_far,
-    "When an annotation function is called, this holds the previous annotations.\n\
-These are the annotations made by other annotation functions\n\
-that were already called.  See also `write-region-annotate-functions'.");
+	       doc: /* When an annotation function is called, this holds the previous annotations.
+These are the annotations made by other annotation functions
+that were already called.  See also `write-region-annotate-functions'.  */);
   Vwrite_region_annotations_so_far = Qnil;
 
   DEFVAR_LISP ("inhibit-file-name-handlers", &Vinhibit_file_name_handlers,
-    "A list of file name handlers that temporarily should not be used.\n\
-This applies only to the operation `inhibit-file-name-operation'.");
+	       doc: /* A list of file name handlers that temporarily should not be used.
+This applies only to the operation `inhibit-file-name-operation'.  */);
   Vinhibit_file_name_handlers = Qnil;
 
   DEFVAR_LISP ("inhibit-file-name-operation", &Vinhibit_file_name_operation,
-    "The operation for which `inhibit-file-name-handlers' is applicable.");
+	       doc: /* The operation for which `inhibit-file-name-handlers' is applicable.  */);
   Vinhibit_file_name_operation = Qnil;
 
   DEFVAR_LISP ("auto-save-list-file-name", &Vauto_save_list_file_name,
-    "File name in which we write a list of all auto save file names.\n\
-This variable is initialized automatically from `auto-save-list-file-prefix'\n\
-shortly after Emacs reads your `.emacs' file, if you have not yet given it\n\
-a non-nil value.");
+	       doc: /* File name in which we write a list of all auto save file names.
+This variable is initialized automatically from `auto-save-list-file-prefix'
+shortly after Emacs reads your `.emacs' file, if you have not yet given it
+a non-nil value.  */);
   Vauto_save_list_file_name = Qnil;
 
   defsubr (&Sfind_file_name_handler);

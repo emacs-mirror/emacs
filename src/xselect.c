@@ -1948,13 +1948,13 @@ x_handle_selection_notify (event)
 
 
 DEFUN ("x-own-selection-internal", Fx_own_selection_internal,
-  Sx_own_selection_internal, 2, 2, 0,
-  "Assert an X selection of the given TYPE with the given VALUE.\n\
-TYPE is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
-\(Those are literal upper-case symbol names, since that's what X expects.)\n\
-VALUE is typically a string, or a cons of two markers, but may be\n\
-anything that the functions on `selection-converter-alist' know about.")
-  (selection_name, selection_value)
+       Sx_own_selection_internal, 2, 2, 0,
+       doc: /* Assert an X selection of the given TYPE with the given VALUE.
+TYPE is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names, since that's what X expects.)
+VALUE is typically a string, or a cons of two markers, but may be
+anything that the functions on `selection-converter-alist' know about.  */)
+     (selection_name, selection_value)
      Lisp_Object selection_name, selection_value;
 {
   check_x ();
@@ -1970,12 +1970,12 @@ anything that the functions on `selection-converter-alist' know about.")
    will block until all of the data has arrived.  */
 
 DEFUN ("x-get-selection-internal", Fx_get_selection_internal,
-  Sx_get_selection_internal, 2, 2, 0,
-  "Return text selected from some X window.\n\
-SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
-\(Those are literal upper-case symbol names, since that's what X expects.)\n\
-TYPE is the type of data desired, typically `STRING'.")
-  (selection_symbol, target_type)
+       Sx_get_selection_internal, 2, 2, 0,
+       doc: /* Return text selected from some X window.
+SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names, since that's what X expects.)
+TYPE is the type of data desired, typically `STRING'.  */)
+     (selection_symbol, target_type)
      Lisp_Object selection_symbol, target_type;
 {
   Lisp_Object val = Qnil;
@@ -2018,10 +2018,10 @@ TYPE is the type of data desired, typically `STRING'.")
 }
 
 DEFUN ("x-disown-selection-internal", Fx_disown_selection_internal,
-  Sx_disown_selection_internal, 1, 2, 0,
-  "If we own the selection SELECTION, disown it.\n\
-Disowning it means there is no such selection.")
-  (selection, time)
+       Sx_disown_selection_internal, 1, 2, 0,
+       doc: /* If we own the selection SELECTION, disown it.
+Disowning it means there is no such selection.  */)
+     (selection, time)
      Lisp_Object selection;
      Lisp_Object time;
 {
@@ -2085,14 +2085,14 @@ x_disown_buffer_selections (buffer)
 }
 
 DEFUN ("x-selection-owner-p", Fx_selection_owner_p, Sx_selection_owner_p,
-  0, 1, 0,
-  "Whether the current Emacs process owns the given X Selection.\n\
-The arg should be the name of the selection in question, typically one of\n\
-the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
-\(Those are literal upper-case symbol names, since that's what X expects.)\n\
-For convenience, the symbol nil is the same as `PRIMARY',\n\
-and t is the same as `SECONDARY'.)")
-  (selection)
+       0, 1, 0,
+       doc: /* Whether the current Emacs process owns the given X Selection.
+The arg should be the name of the selection in question, typically one of
+the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names, since that's what X expects.)
+For convenience, the symbol nil is the same as `PRIMARY',
+and t is the same as `SECONDARY'.  */)
+     (selection)
      Lisp_Object selection;
 {
   check_x ();
@@ -2106,14 +2106,14 @@ and t is the same as `SECONDARY'.)")
 }
 
 DEFUN ("x-selection-exists-p", Fx_selection_exists_p, Sx_selection_exists_p,
-  0, 1, 0,
-  "Whether there is an owner for the given X Selection.\n\
-The arg should be the name of the selection in question, typically one of\n\
-the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
-\(Those are literal upper-case symbol names, since that's what X expects.)\n\
-For convenience, the symbol nil is the same as `PRIMARY',\n\
-and t is the same as `SECONDARY'.)")
-  (selection)
+       0, 1, 0,
+       doc: /* Whether there is an owner for the given X Selection.
+The arg should be the name of the selection in question, typically one of
+the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names, since that's what X expects.)
+For convenience, the symbol nil is the same as `PRIMARY',
+and t is the same as `SECONDARY'.  */)
+     (selection)
      Lisp_Object selection;
 {
   Window owner;
@@ -2178,9 +2178,9 @@ initialize_cut_buffers (display, window)
   }
 
 DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
-  Sx_get_cut_buffer_internal, 1, 1, 0,
-  "Returns the value of the named cut buffer (typically CUT_BUFFER0).")
-  (buffer)
+       Sx_get_cut_buffer_internal, 1, 1, 0,
+       doc: /* Returns the value of the named cut buffer (typically CUT_BUFFER0).  */)
+     (buffer)
      Lisp_Object buffer;
 {
   Window window;
@@ -2222,9 +2222,9 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
 
 
 DEFUN ("x-store-cut-buffer-internal", Fx_store_cut_buffer_internal,
-  Sx_store_cut_buffer_internal, 2, 2, 0,
-  "Sets the value of the named cut buffer (typically CUT_BUFFER0).")
-  (buffer, string)
+       Sx_store_cut_buffer_internal, 2, 2, 0,
+       doc: /* Sets the value of the named cut buffer (typically CUT_BUFFER0).  */)
+     (buffer, string)
      Lisp_Object buffer, string;
 {
   Window window;
@@ -2283,10 +2283,10 @@ DEFUN ("x-store-cut-buffer-internal", Fx_store_cut_buffer_internal,
 
 
 DEFUN ("x-rotate-cut-buffers-internal", Fx_rotate_cut_buffers_internal,
-  Sx_rotate_cut_buffers_internal, 1, 1, 0,
-  "Rotate the values of the cut buffers by the given number of step.\n\
-Positive means shift the values forward, negative means backward.")
-  (n)
+       Sx_rotate_cut_buffers_internal, 1, 1, 0,
+       doc: /* Rotate the values of the cut buffers by the given number of step.
+Positive means shift the values forward, negative means backward.  */)
+     (n)
      Lisp_Object n;
 {
   Window window;
@@ -2351,62 +2351,62 @@ syms_of_xselect ()
   staticpro (&Vselection_alist);
 
   DEFVAR_LISP ("selection-converter-alist", &Vselection_converter_alist,
-    "An alist associating X Windows selection-types with functions.\n\
-These functions are called to convert the selection, with three args:\n\
-the name of the selection (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');\n\
-a desired type to which the selection should be converted;\n\
-and the local selection value (whatever was given to `x-own-selection').\n\
-\n\
-The function should return the value to send to the X server\n\
-\(typically a string).  A return value of nil\n\
-means that the conversion could not be done.\n\
-A return value which is the symbol `NULL'\n\
-means that a side-effect was executed,\n\
-and there is no meaningful selection value.");
+	       doc: /* An alist associating X Windows selection-types with functions.
+These functions are called to convert the selection, with three args:
+the name of the selection (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');
+a desired type to which the selection should be converted;
+and the local selection value (whatever was given to `x-own-selection').
+
+The function should return the value to send to the X server
+\(typically a string).  A return value of nil
+means that the conversion could not be done.
+A return value which is the symbol `NULL'
+means that a side-effect was executed,
+and there is no meaningful selection value.  */);
   Vselection_converter_alist = Qnil;
 
   DEFVAR_LISP ("x-lost-selection-hooks", &Vx_lost_selection_hooks,
-    "A list of functions to be called when Emacs loses an X selection.\n\
-\(This happens when some other X client makes its own selection\n\
-or when a Lisp program explicitly clears the selection.)\n\
-The functions are called with one argument, the selection type\n\
-\(a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD').");
+	       doc: /* A list of functions to be called when Emacs loses an X selection.
+\(This happens when some other X client makes its own selection
+or when a Lisp program explicitly clears the selection.)
+The functions are called with one argument, the selection type
+\(a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD').  */);
   Vx_lost_selection_hooks = Qnil;
 
   DEFVAR_LISP ("x-sent-selection-hooks", &Vx_sent_selection_hooks,
-    "A list of functions to be called when Emacs answers a selection request.\n\
-The functions are called with four arguments:\n\
-  - the selection name (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');\n\
-  - the selection-type which Emacs was asked to convert the\n\
-    selection into before sending (for example, `STRING' or `LENGTH');\n\
-  - a flag indicating success or failure for responding to the request.\n\
-We might have failed (and declined the request) for any number of reasons,\n\
-including being asked for a selection that we no longer own, or being asked\n\
-to convert into a type that we don't know about or that is inappropriate.\n\
-This hook doesn't let you change the behavior of Emacs's selection replies,\n\
-it merely informs you that they have happened.");
+	       doc: /* A list of functions to be called when Emacs answers a selection request.
+The functions are called with four arguments:
+  - the selection name (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');
+  - the selection-type which Emacs was asked to convert the
+    selection into before sending (for example, `STRING' or `LENGTH');
+  - a flag indicating success or failure for responding to the request.
+We might have failed (and declined the request) for any number of reasons,
+including being asked for a selection that we no longer own, or being asked
+to convert into a type that we don't know about or that is inappropriate.
+This hook doesn't let you change the behavior of Emacs's selection replies,
+it merely informs you that they have happened.  */);
   Vx_sent_selection_hooks = Qnil;
 
   DEFVAR_LISP ("selection-coding-system", &Vselection_coding_system,
-    "Coding system for communicating with other X clients.\n\
-When sending or receiving text via cut_buffer, selection, and clipboard,\n\
-the text is encoded or decoded by this coding system.\n\
-The default value is `compound-text'.");
+	       doc: /* Coding system for communicating with other X clients.
+When sending or receiving text via cut_buffer, selection, and clipboard,
+the text is encoded or decoded by this coding system.
+The default value is `compound-text'.  */);
   Vselection_coding_system = intern ("compound-text");
 
   DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
-    "Coding system for the next communication with other X clients.\n\
-Usually, `selection-coding-system' is used for communicating with\n\
-other X clients.   But, if this variable is set, it is used for the\n\
-next communication only.   After the communication, this variable is\n\
-set to nil.");
+	       doc: /* Coding system for the next communication with other X clients.
+Usually, `selection-coding-system' is used for communicating with
+other X clients.   But, if this variable is set, it is used for the
+next communication only.   After the communication, this variable is
+set to nil.  */);
   Vnext_selection_coding_system = Qnil;
 
   DEFVAR_INT ("x-selection-timeout", &x_selection_timeout,
-    "Number of milliseconds to wait for a selection reply.\n\
-If the selection owner doesn't reply in this time, we give up.\n\
-A value of 0 means wait as long as necessary.  This is initialized from the\n\
-\"*selectionTimeout\" resource.");
+	      doc: /* Number of milliseconds to wait for a selection reply.
+If the selection owner doesn't reply in this time, we give up.
+A value of 0 means wait as long as necessary.  This is initialized from the
+\"*selectionTimeout\" resource.  */);
   x_selection_timeout = 0;
 
   QPRIMARY   = intern ("PRIMARY");	staticpro (&QPRIMARY);

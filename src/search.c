@@ -330,23 +330,23 @@ looking_at_1 (string, posix)
 }
 
 DEFUN ("looking-at", Flooking_at, Slooking_at, 1, 1, 0,
-  "Return t if text after point matches regular expression REGEXP.\n\
-This function modifies the match data that `match-beginning',\n\
-`match-end' and `match-data' access; save and restore the match\n\
-data if you want to preserve them.")
-  (regexp)
+       doc: /* Return t if text after point matches regular expression REGEXP.
+This function modifies the match data that `match-beginning',
+`match-end' and `match-data' access; save and restore the match
+data if you want to preserve them.  */)
+     (regexp)
      Lisp_Object regexp;
 {
   return looking_at_1 (regexp, 0);
 }
 
 DEFUN ("posix-looking-at", Fposix_looking_at, Sposix_looking_at, 1, 1, 0,
-  "Return t if text after point matches regular expression REGEXP.\n\
-Find the longest match, in accord with Posix regular expression rules.\n\
-This function modifies the match data that `match-beginning',\n\
-`match-end' and `match-data' access; save and restore the match\n\
-data if you want to preserve them.")
-  (regexp)
+       doc: /* Return t if text after point matches regular expression REGEXP.
+Find the longest match, in accord with Posix regular expression rules.
+This function modifies the match data that `match-beginning',
+`match-end' and `match-data' access; save and restore the match
+data if you want to preserve them.  */)
+     (regexp)
      Lisp_Object regexp;
 {
   return looking_at_1 (regexp, 1);
@@ -414,27 +414,27 @@ string_match_1 (regexp, string, start, posix)
 }
 
 DEFUN ("string-match", Fstring_match, Sstring_match, 2, 3, 0,
-  "Return index of start of first match for REGEXP in STRING, or nil.\n\
-Case is ignored if `case-fold-search' is non-nil in the current buffer.\n\
-If third arg START is non-nil, start search at that index in STRING.\n\
-For index of first char beyond the match, do (match-end 0).\n\
-`match-end' and `match-beginning' also give indices of substrings\n\
-matched by parenthesis constructs in the pattern.")
-  (regexp, string, start)
+       doc: /* Return index of start of first match for REGEXP in STRING, or nil.
+Case is ignored if `case-fold-search' is non-nil in the current buffer.
+If third arg START is non-nil, start search at that index in STRING.
+For index of first char beyond the match, do (match-end 0).
+`match-end' and `match-beginning' also give indices of substrings
+matched by parenthesis constructs in the pattern.  */)
+     (regexp, string, start)
      Lisp_Object regexp, string, start;
 {
   return string_match_1 (regexp, string, start, 0);
 }
 
 DEFUN ("posix-string-match", Fposix_string_match, Sposix_string_match, 2, 3, 0,
-  "Return index of start of first match for REGEXP in STRING, or nil.\n\
-Find the longest match, in accord with Posix regular expression rules.\n\
-Case is ignored if `case-fold-search' is non-nil in the current buffer.\n\
-If third arg START is non-nil, start search at that index in STRING.\n\
-For index of first char beyond the match, do (match-end 0).\n\
-`match-end' and `match-beginning' also give indices of substrings\n\
-matched by parenthesis constructs in the pattern.")
-  (regexp, string, start)
+       doc: /* Return index of start of first match for REGEXP in STRING, or nil.
+Find the longest match, in accord with Posix regular expression rules.
+Case is ignored if `case-fold-search' is non-nil in the current buffer.
+If third arg START is non-nil, start search at that index in STRING.
+For index of first char beyond the match, do (match-end 0).
+`match-end' and `match-beginning' also give indices of substrings
+matched by parenthesis constructs in the pattern.  */)
+     (regexp, string, start)
      Lisp_Object regexp, string, start;
 {
   return string_match_1 (regexp, string, start, 1);
@@ -2018,182 +2018,183 @@ wordify (string)
 }
 
 DEFUN ("search-backward", Fsearch_backward, Ssearch_backward, 1, 4,
-  "MSearch backward: ",
-  "Search backward from point for STRING.\n\
-Set point to the beginning of the occurrence found, and return point.\n\
-An optional second argument bounds the search; it is a buffer position.\n\
-The match found must not extend before that position.\n\
-Optional third argument, if t, means if fail just return nil (no error).\n\
- If not nil and not t, position at limit of search and return nil.\n\
-Optional fourth argument is repeat count--search for successive occurrences.\n\
-\n\
-Search case-sensitivity is determined by the value of the variable\n\
-`case-fold-search', which see.\n\
-\n\
-See also the functions `match-beginning', `match-end' and `replace-match'.")
-  (string, bound, noerror, count)
+       "MSearch backward: ",
+       doc: /* Search backward from point for STRING.
+Set point to the beginning of the occurrence found, and return point.
+An optional second argument bounds the search; it is a buffer position.
+The match found must not extend before that position.
+Optional third argument, if t, means if fail just return nil (no error).
+ If not nil and not t, position at limit of search and return nil.
+Optional fourth argument is repeat count--search for successive occurrences.
+
+Search case-sensitivity is determined by the value of the variable
+`case-fold-search', which see.
+
+See also the functions `match-beginning', `match-end' and `replace-match'.  */)
+     (string, bound, noerror, count)
      Lisp_Object string, bound, noerror, count;
 {
   return search_command (string, bound, noerror, count, -1, 0, 0);
 }
 
 DEFUN ("search-forward", Fsearch_forward, Ssearch_forward, 1, 4, "MSearch: ",
-  "Search forward from point for STRING.\n\
-Set point to the end of the occurrence found, and return point.\n\
-An optional second argument bounds the search; it is a buffer position.\n\
-The match found must not extend after that position.  nil is equivalent\n\
-  to (point-max).\n\
-Optional third argument, if t, means if fail just return nil (no error).\n\
-  If not nil and not t, move to limit of search and return nil.\n\
-Optional fourth argument is repeat count--search for successive occurrences.\n\
-\n\
-Search case-sensitivity is determined by the value of the variable\n\
-`case-fold-search', which see.\n\
-\n\
-See also the functions `match-beginning', `match-end' and `replace-match'.")
-  (string, bound, noerror, count)
+       doc: /* Search forward from point for STRING.
+Set point to the end of the occurrence found, and return point.
+An optional second argument bounds the search; it is a buffer position.
+The match found must not extend after that position.  nil is equivalent
+  to (point-max).
+Optional third argument, if t, means if fail just return nil (no error).
+  If not nil and not t, move to limit of search and return nil.
+Optional fourth argument is repeat count--search for successive occurrences.
+
+Search case-sensitivity is determined by the value of the variable
+`case-fold-search', which see.
+
+See also the functions `match-beginning', `match-end' and `replace-match'.  */)
+     (string, bound, noerror, count)
      Lisp_Object string, bound, noerror, count;
 {
   return search_command (string, bound, noerror, count, 1, 0, 0);
 }
 
 DEFUN ("word-search-backward", Fword_search_backward, Sword_search_backward, 1, 4,
-  "sWord search backward: ",
-  "Search backward from point for STRING, ignoring differences in punctuation.\n\
-Set point to the beginning of the occurrence found, and return point.\n\
-An optional second argument bounds the search; it is a buffer position.\n\
-The match found must not extend before that position.\n\
-Optional third argument, if t, means if fail just return nil (no error).\n\
-  If not nil and not t, move to limit of search and return nil.\n\
-Optional fourth argument is repeat count--search for successive occurrences.")
-  (string, bound, noerror, count)
+       "sWord search backward: ",
+       doc: /* Search backward from point for STRING, ignoring differences in punctuation.
+Set point to the beginning of the occurrence found, and return point.
+An optional second argument bounds the search; it is a buffer position.
+The match found must not extend before that position.
+Optional third argument, if t, means if fail just return nil (no error).
+  If not nil and not t, move to limit of search and return nil.
+Optional fourth argument is repeat count--search for successive occurrences.  */)
+     (string, bound, noerror, count)
      Lisp_Object string, bound, noerror, count;
 {
   return search_command (wordify (string), bound, noerror, count, -1, 1, 0);
 }
 
 DEFUN ("word-search-forward", Fword_search_forward, Sword_search_forward, 1, 4,
-  "sWord search: ",
-  "Search forward from point for STRING, ignoring differences in punctuation.\n\
-Set point to the end of the occurrence found, and return point.\n\
-An optional second argument bounds the search; it is a buffer position.\n\
-The match found must not extend after that position.\n\
-Optional third argument, if t, means if fail just return nil (no error).\n\
-  If not nil and not t, move to limit of search and return nil.\n\
-Optional fourth argument is repeat count--search for successive occurrences.")
-  (string, bound, noerror, count)
+       "sWord search: ",
+       doc: /* Search forward from point for STRING, ignoring differences in punctuation.
+Set point to the end of the occurrence found, and return point.
+An optional second argument bounds the search; it is a buffer position.
+The match found must not extend after that position.
+Optional third argument, if t, means if fail just return nil (no error).
+  If not nil and not t, move to limit of search and return nil.
+Optional fourth argument is repeat count--search for successive occurrences.  */)
+     (string, bound, noerror, count)
      Lisp_Object string, bound, noerror, count;
 {
   return search_command (wordify (string), bound, noerror, count, 1, 1, 0);
 }
 
 DEFUN ("re-search-backward", Fre_search_backward, Sre_search_backward, 1, 4,
-  "sRE search backward: ",
-  "Search backward from point for match for regular expression REGEXP.\n\
-Set point to the beginning of the match, and return point.\n\
-The match found is the one starting last in the buffer\n\
-and yet ending before the origin of the search.\n\
-An optional second argument bounds the search; it is a buffer position.\n\
-The match found must start at or after that position.\n\
-Optional third argument, if t, means if fail just return nil (no error).\n\
-  If not nil and not t, move to limit of search and return nil.\n\
-Optional fourth argument is repeat count--search for successive occurrences.\n\
-See also the functions `match-beginning', `match-end', `match-string',\n\
-and `replace-match'.")
-  (regexp, bound, noerror, count)
+       "sRE search backward: ",
+       doc: /* Search backward from point for match for regular expression REGEXP.
+Set point to the beginning of the match, and return point.
+The match found is the one starting last in the buffer
+and yet ending before the origin of the search.
+An optional second argument bounds the search; it is a buffer position.
+The match found must start at or after that position.
+Optional third argument, if t, means if fail just return nil (no error).
+  If not nil and not t, move to limit of search and return nil.
+Optional fourth argument is repeat count--search for successive occurrences.
+See also the functions `match-beginning', `match-end', `match-string',
+and `replace-match'.  */)
+     (regexp, bound, noerror, count)
      Lisp_Object regexp, bound, noerror, count;
 {
   return search_command (regexp, bound, noerror, count, -1, 1, 0);
 }
 
 DEFUN ("re-search-forward", Fre_search_forward, Sre_search_forward, 1, 4,
-  "sRE search: ",
-  "Search forward from point for regular expression REGEXP.\n\
-Set point to the end of the occurrence found, and return point.\n\
-An optional second argument bounds the search; it is a buffer position.\n\
-The match found must not extend after that position.\n\
-Optional third argument, if t, means if fail just return nil (no error).\n\
-  If not nil and not t, move to limit of search and return nil.\n\
-Optional fourth argument is repeat count--search for successive occurrences.\n\
-See also the functions `match-beginning', `match-end', `match-string',\n\
-and `replace-match'.")
-  (regexp, bound, noerror, count)
+       "sRE search: ",
+       doc: /* Search forward from point for regular expression REGEXP.
+Set point to the end of the occurrence found, and return point.
+An optional second argument bounds the search; it is a buffer position.
+The match found must not extend after that position.
+Optional third argument, if t, means if fail just return nil (no error).
+  If not nil and not t, move to limit of search and return nil.
+Optional fourth argument is repeat count--search for successive occurrences.
+See also the functions `match-beginning', `match-end', `match-string',
+and `replace-match'.  */)
+     (regexp, bound, noerror, count)
      Lisp_Object regexp, bound, noerror, count;
 {
   return search_command (regexp, bound, noerror, count, 1, 1, 0);
 }
 
 DEFUN ("posix-search-backward", Fposix_search_backward, Sposix_search_backward, 1, 4,
-  "sPosix search backward: ",
-  "Search backward from point for match for regular expression REGEXP.\n\
-Find the longest match in accord with Posix regular expression rules.\n\
-Set point to the beginning of the match, and return point.\n\
-The match found is the one starting last in the buffer\n\
-and yet ending before the origin of the search.\n\
-An optional second argument bounds the search; it is a buffer position.\n\
-The match found must start at or after that position.\n\
-Optional third argument, if t, means if fail just return nil (no error).\n\
-  If not nil and not t, move to limit of search and return nil.\n\
-Optional fourth argument is repeat count--search for successive occurrences.\n\
-See also the functions `match-beginning', `match-end', `match-string',\n\
-and `replace-match'.")
-  (regexp, bound, noerror, count)
+       "sPosix search backward: ",
+       doc: /* Search backward from point for match for regular expression REGEXP.
+Find the longest match in accord with Posix regular expression rules.
+Set point to the beginning of the match, and return point.
+The match found is the one starting last in the buffer
+and yet ending before the origin of the search.
+An optional second argument bounds the search; it is a buffer position.
+The match found must start at or after that position.
+Optional third argument, if t, means if fail just return nil (no error).
+  If not nil and not t, move to limit of search and return nil.
+Optional fourth argument is repeat count--search for successive occurrences.
+See also the functions `match-beginning', `match-end', `match-string',
+and `replace-match'.  */)
+     (regexp, bound, noerror, count)
      Lisp_Object regexp, bound, noerror, count;
 {
   return search_command (regexp, bound, noerror, count, -1, 1, 1);
 }
 
 DEFUN ("posix-search-forward", Fposix_search_forward, Sposix_search_forward, 1, 4,
-  "sPosix search: ",
-  "Search forward from point for regular expression REGEXP.\n\
-Find the longest match in accord with Posix regular expression rules.\n\
-Set point to the end of the occurrence found, and return point.\n\
-An optional second argument bounds the search; it is a buffer position.\n\
-The match found must not extend after that position.\n\
-Optional third argument, if t, means if fail just return nil (no error).\n\
-  If not nil and not t, move to limit of search and return nil.\n\
-Optional fourth argument is repeat count--search for successive occurrences.\n\
-See also the functions `match-beginning', `match-end', `match-string',\n\
-and `replace-match'.")
-  (regexp, bound, noerror, count)
+       "sPosix search: ",
+       doc: /* Search forward from point for regular expression REGEXP.
+Find the longest match in accord with Posix regular expression rules.
+Set point to the end of the occurrence found, and return point.
+An optional second argument bounds the search; it is a buffer position.
+The match found must not extend after that position.
+Optional third argument, if t, means if fail just return nil (no error).
+  If not nil and not t, move to limit of search and return nil.
+Optional fourth argument is repeat count--search for successive occurrences.
+See also the functions `match-beginning', `match-end', `match-string',
+and `replace-match'.  */)
+     (regexp, bound, noerror, count)
      Lisp_Object regexp, bound, noerror, count;
 {
   return search_command (regexp, bound, noerror, count, 1, 1, 1);
 }
 
 DEFUN ("replace-match", Freplace_match, Sreplace_match, 1, 5, 0,
-  "Replace text matched by last search with NEWTEXT.\n\
-If second arg FIXEDCASE is non-nil, do not alter case of replacement text.\n\
-Otherwise maybe capitalize the whole text, or maybe just word initials,\n\
-based on the replaced text.\n\
-If the replaced text has only capital letters\n\
-and has at least one multiletter word, convert NEWTEXT to all caps.\n\
-If the replaced text has at least one word starting with a capital letter,\n\
-then capitalize each word in NEWTEXT.\n\n\
-If third arg LITERAL is non-nil, insert NEWTEXT literally.\n\
-Otherwise treat `\\' as special:\n\
-  `\\&' in NEWTEXT means substitute original matched text.\n\
-  `\\N' means substitute what matched the Nth `\\(...\\)'.\n\
-       If Nth parens didn't match, substitute nothing.\n\
-  `\\\\' means insert one `\\'.\n\
-FIXEDCASE and LITERAL are optional arguments.\n\
-Leaves point at end of replacement text.\n\
-\n\
-The optional fourth argument STRING can be a string to modify.\n\
-This is meaningful when the previous match was done against STRING,\n\
-using `string-match'.  When used this way, `replace-match'\n\
-creates and returns a new string made by copying STRING and replacing\n\
-the part of STRING that was matched.\n\
-\n\
-The optional fifth argument SUBEXP specifies a subexpression;\n\
-it says to replace just that subexpression with NEWTEXT,\n\
-rather than replacing the entire matched text.\n\
-This is, in a vague sense, the inverse of using `\\N' in NEWTEXT;\n\
-`\\N' copies subexp N into NEWTEXT, but using N as SUBEXP puts\n\
-NEWTEXT in place of subexp N.\n\
-This is useful only after a regular expression search or match,\n\
-since only regular expressions have distinguished subexpressions.")
-  (newtext, fixedcase, literal, string, subexp)
+       doc: /* Replace text matched by last search with NEWTEXT.
+If second arg FIXEDCASE is non-nil, do not alter case of replacement text.
+Otherwise maybe capitalize the whole text, or maybe just word initials,
+based on the replaced text.
+If the replaced text has only capital letters
+and has at least one multiletter word, convert NEWTEXT to all caps.
+If the replaced text has at least one word starting with a capital letter,
+then capitalize each word in NEWTEXT.
+
+If third arg LITERAL is non-nil, insert NEWTEXT literally.
+Otherwise treat `\\' as special:
+  `\\&' in NEWTEXT means substitute original matched text.
+  `\\N' means substitute what matched the Nth `\\(...\\)'.
+       If Nth parens didn't match, substitute nothing.
+  `\\\\' means insert one `\\'.
+FIXEDCASE and LITERAL are optional arguments.
+Leaves point at end of replacement text.
+
+The optional fourth argument STRING can be a string to modify.
+This is meaningful when the previous match was done against STRING,
+using `string-match'.  When used this way, `replace-match'
+creates and returns a new string made by copying STRING and replacing
+the part of STRING that was matched.
+
+The optional fifth argument SUBEXP specifies a subexpression;
+it says to replace just that subexpression with NEWTEXT,
+rather than replacing the entire matched text.
+This is, in a vague sense, the inverse of using `\\N' in NEWTEXT;
+`\\N' copies subexp N into NEWTEXT, but using N as SUBEXP puts
+NEWTEXT in place of subexp N.
+This is useful only after a regular expression search or match,
+since only regular expressions have distinguished subexpressions.  */)
+     (newtext, fixedcase, literal, string, subexp)
      Lisp_Object newtext, fixedcase, literal, string, subexp;
 {
   enum { nochange, all_caps, cap_initial } case_action;
@@ -2597,43 +2598,43 @@ match_limit (num, beginningp)
 }
 
 DEFUN ("match-beginning", Fmatch_beginning, Smatch_beginning, 1, 1, 0,
-  "Return position of start of text matched by last search.\n\
-SUBEXP, a number, specifies which parenthesized expression in the last\n\
-  regexp.\n\
-Value is nil if SUBEXPth pair didn't match, or there were less than\n\
-  SUBEXP pairs.\n\
-Zero means the entire text matched by the whole regexp or whole string.")
-  (subexp)
+       doc: /* Return position of start of text matched by last search.
+SUBEXP, a number, specifies which parenthesized expression in the last
+  regexp.
+Value is nil if SUBEXPth pair didn't match, or there were less than
+  SUBEXP pairs.
+Zero means the entire text matched by the whole regexp or whole string.  */)
+     (subexp)
      Lisp_Object subexp;
 {
   return match_limit (subexp, 1);
 }
 
 DEFUN ("match-end", Fmatch_end, Smatch_end, 1, 1, 0,
-  "Return position of end of text matched by last search.\n\
-SUBEXP, a number, specifies which parenthesized expression in the last\n\
-  regexp.\n\
-Value is nil if SUBEXPth pair didn't match, or there were less than\n\
-  SUBEXP pairs.\n\
-Zero means the entire text matched by the whole regexp or whole string.")
-  (subexp)
+       doc: /* Return position of end of text matched by last search.
+SUBEXP, a number, specifies which parenthesized expression in the last
+  regexp.
+Value is nil if SUBEXPth pair didn't match, or there were less than
+  SUBEXP pairs.
+Zero means the entire text matched by the whole regexp or whole string.  */)
+     (subexp)
      Lisp_Object subexp;
 {
   return match_limit (subexp, 0);
 } 
 
 DEFUN ("match-data", Fmatch_data, Smatch_data, 0, 2, 0,
-  "Return a list containing all info on what the last search matched.\n\
-Element 2N is `(match-beginning N)'; element 2N + 1 is `(match-end N)'.\n\
-All the elements are markers or nil (nil if the Nth pair didn't match)\n\
-if the last match was on a buffer; integers or nil if a string was matched.\n\
-Use `store-match-data' to reinstate the data in this list.\n\
-\n\
-If INTEGERS (the optional first argument) is non-nil, always use integers\n\
-\(rather than markers) to represent buffer positions.\n\
-If REUSE is a list, reuse it as part of the value.  If REUSE is long enough\n\
-to hold all the values, and if INTEGERS is non-nil, no consing is done.")
-  (integers, reuse)
+       doc: /* Return a list containing all info on what the last search matched.
+Element 2N is `(match-beginning N)'; element 2N + 1 is `(match-end N)'.
+All the elements are markers or nil (nil if the Nth pair didn't match)
+if the last match was on a buffer; integers or nil if a string was matched.
+Use `store-match-data' to reinstate the data in this list.
+
+If INTEGERS (the optional first argument) is non-nil, always use integers
+\(rather than markers) to represent buffer positions.
+If REUSE is a list, reuse it as part of the value.  If REUSE is long enough
+to hold all the values, and if INTEGERS is non-nil, no consing is done.  */)
+     (integers, reuse)
      Lisp_Object integers, reuse;
 {
   Lisp_Object tail, prev;
@@ -2707,9 +2708,9 @@ to hold all the values, and if INTEGERS is non-nil, no consing is done.")
 
 
 DEFUN ("set-match-data", Fset_match_data, Sset_match_data, 1, 1, 0,
-  "Set internal data on last search match from elements of LIST.\n\
-LIST should have been created by calling `match-data' previously.")
-  (list)
+       doc: /* Set internal data on last search match from elements of LIST.
+LIST should have been created by calling `match-data' previously.  */)
+     (list)
      register Lisp_Object list;
 {
   register int i;
@@ -2838,8 +2839,8 @@ restore_match_data ()
 /* Quote a string to inactivate reg-expr chars */
 
 DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
-  "Return a regexp string which matches exactly STRING and nothing else.")
-  (string)
+       doc: /* Return a regexp string which matches exactly STRING and nothing else.  */)
+     (string)
      Lisp_Object string;
 {
   register unsigned char *in, *out, *end;

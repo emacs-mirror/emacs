@@ -257,10 +257,10 @@ record_property_change (beg, length, prop, value, buffer)
 }
 
 DEFUN ("undo-boundary", Fundo_boundary, Sundo_boundary, 0, 0, 0,
-  "Mark a boundary between units of undo.\n\
-An undo command will stop at this point,\n\
-but another undo command will undo to the previous boundary.")
-  ()
+       doc: /* Mark a boundary between units of undo.
+An undo command will stop at this point,
+but another undo command will undo to the previous boundary.  */)
+     ()
 {
   Lisp_Object tem;
   if (EQ (current_buffer->undo_list, Qt))
@@ -386,9 +386,9 @@ truncate_undo_list (list, minsize, maxsize)
 }
 
 DEFUN ("primitive-undo", Fprimitive_undo, Sprimitive_undo, 2, 2, 0,
-  "Undo N records from the front of the list LIST.\n\
-Return what remains of the list.")
-  (n, list)
+       doc: /* Undo N records from the front of the list LIST.
+Return what remains of the list.  */)
+     (n, list)
      Lisp_Object n, list;
 {
   struct gcpro gcpro1, gcpro2;
