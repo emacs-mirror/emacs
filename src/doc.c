@@ -392,7 +392,7 @@ translation.")
   (symbol, prop, raw)
      Lisp_Object symbol, prop, raw;
 {
-  register Lisp_Object tem;
+  Lisp_Object tem;
 
   tem = Fget (symbol, prop);
   if (INTEGERP (tem))
