@@ -492,7 +492,7 @@ detailed meanings of these arguments."
 		    (format "%d\n" (aref info 3))
 		  (format "%dx%d\n" (aref info 3) (aref info 3))))
 	(insert "the final char of ISO2022's designation sequence: ")
-	(if (aref info 8)
+	(if (>= (aref info 8) 0)
 	    (insert (format "`%c'\n" (aref info 8)))
 	  (insert "not assigned\n"))
 	(insert (format "width (how many columns on screen): %d\n"
