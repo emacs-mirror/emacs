@@ -1,3 +1,8 @@
+2001-09-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* etags.c (analyse_regex): If regex_arg is NULL, return
+	immediately after a call to free_patterns.
+
 2001-09-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ebrowse.c (SEEK_END): #define if not defined by system headers.
@@ -35,7 +40,7 @@
 	+LINE:COLUMN option.
 
 2000-07-17  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
-	
+
 	* emacsclient.c (main): Add support for +LINE:COLUMN command line
 	argument.
 
