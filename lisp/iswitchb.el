@@ -812,7 +812,7 @@ BUFFER-LIST can be list of buffers or list of strings."
           ))
        )
       (setq re-list (cdr re-list)))
-    (store-match-data data)
+    (set-match-data data)
 
     ;; return the result
     ignorep)
