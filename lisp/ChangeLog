@@ -1,3 +1,7 @@
+2003-12-29  Eric Hanchrow <offby1@blarg.net>  (tiny change)
+
+	* autorevert.el (auto-revert-interval): Doc fix.
+
 2003-12-29  Mark A. Hershberger <mah@everybody.org>
 
 	* xml.el (xml-get-attribute-or-nil): New function, like
