@@ -1,5 +1,9 @@
 2001-08-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* image.el (image-type-regexps): Make sure that the TIFF
+	pattern is only matched at the beginning of a string.
+	From Markus Rost <rost@math.ohio-state.edu>.
+
 	* international/swedish.el: Pre-Mule file removed.  From: Jonas
 	Oberg <jonas@gnu.org>.
 
