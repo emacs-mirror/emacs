@@ -200,9 +200,8 @@ struct aouthdr
 #endif /* not MSDOS */
 #endif
 
-/* Define getpagesize () if the system does not.
-   Note that this may depend on symbols defined in a.out.h
- */
+/* Define getpagesize if the system does not.
+   Note that this may depend on symbols defined in a.out.h.  */
 #include "getpagesize.h"
 
 #ifndef makedev			/* Try to detect types.h already loaded */
@@ -896,7 +895,7 @@ copy_text_and_data (new, a_out)
 
 /* Some machines count the header as part of the text segment.
    That is to say, the header appears in core
-   just before the address that start_of_text () returns.
+   just before the address that start_of_text returns.
    For them, N_TXTOFF is the place where the header goes.
    We must adjust the seek to the place after the header.
    Note that at this point hdr.a_text does *not* count
@@ -912,7 +911,7 @@ copy_text_and_data (new, a_out)
 
   /* Acorn's RISC-iX has a wacky way of initialising the position of the heap.
    * There is a little table in crt0.o that is filled at link time with
-   * the min and current brk positions, among other things.  When start()
+   * the min and current brk positions, among other things.  When start
    * runs, it copies the table to where these parameters live during
    * execution.  This data is in text space, so it cannot be modified here
    * before saving the executable, so the data is written manually.  In
