@@ -360,7 +360,8 @@ It serves as a menu to find any of the occurrences in this buffer.
 	(set-buffer standard-output)
 	;; We will insert the number of lines, and "lines", later.
 	(insert " matching ")
-	(prin1 regexp)
+	(let ((print-escape-newlines t))
+	  (prin1 regexp))
 	(insert " in buffer " (buffer-name buffer) ?. ?\n)
 	(occur-mode)
 	(setq occur-buffer buffer)
