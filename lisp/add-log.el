@@ -116,17 +116,22 @@ this variable."
     ;; Date lines, new and old styles.
     ("^\\sw.........[0-9:+ ]*"
      (0 font-lock-string-face)
-     ("\\([^<]+\\)<\\([A-Za-z0-9_.-]+@[A-Za-z0-9_.-]+\\)>" nil nil
+     ;; Name and e-mail; some people put e-mail in parens, not angles.
+     ("\\([^<(]+\\)[(<]\\([A-Za-z0-9_.-]+@[A-Za-z0-9_.-]+\\)[>)]" nil nil
       (1 font-lock-constant-face)
       (2 font-lock-variable-name-face)))
     ;;
     ;; File names.
     ("^\t\\* \\([^ ,:([\n]+\\)"
      (1 font-lock-function-name-face)
-     ("\\=, \\([^ ,:([\n]+\\)" nil nil (1 font-lock-function-name-face)))
+     ;; Possibly further names in a list:
+     ("\\=, \\([^ ,:([\n]+\\)" nil nil (1 font-lock-function-name-face))
+     ;; Possibly a parenthesized list of names:
+     ("\\= (\\([^) ,:\n]+\\)" nil nil (1 font-lock-keyword-face))
+     ("\\=, *\\([^) ,:\n]+\\)" nil nil (1 font-lock-keyword-face)))
     ;;
     ;; Function or variable names.
-    ("(\\([^) ,:\n]+\\)"
+    ("^\t(\\([^) ,:\n]+\\)"
      (1 font-lock-keyword-face)
      ("\\=, *\\([^) ,:\n]+\\)" nil nil (1 font-lock-keyword-face)))
     ;;
