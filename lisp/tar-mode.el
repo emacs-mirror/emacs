@@ -636,7 +636,7 @@ appear on disk when you save the tar-file's buffer."
 	 (make-local-variable 'local-write-file-hooks)
 	 (setq local-write-file-hooks '(tar-subfile-save-buffer))
 	 ;; turn off auto-save.
-	 (auto-save-mode nil)
+	 (auto-save-mode -1)
 	 (setq buffer-auto-save-file-name nil)
 	 (run-hooks 'tar-subfile-mode-hook))
 	(t
