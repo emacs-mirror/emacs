@@ -260,7 +260,7 @@ and `minibuffer-setup-hook'."
 	      (make-local-variable 'icomplete-eoinput))
 	  (setq icomplete-eoinput (point))
                                         ; Insert the match-status information:
-	  (if (and (> (point-max) 1)
+	  (if (and (> (point-max) (minibuffer-prompt-end))
 		   (or
 		    ;; Don't bother with delay after certain number of chars:
 		    (> (point-max) icomplete-max-delay-chars)
