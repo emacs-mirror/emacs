@@ -18,7 +18,7 @@
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
-;;; Commentary: ===========================================================
+;;; Commentary:
 ;;
 ;; This file provides routines for getting the `thing' at the location of
 ;; point, whatever that `thing' happens to be.  The `thing' is defined by
