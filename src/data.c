@@ -19,7 +19,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
 #include <signal.h>
-#include <ctype.h>
 
 #include "config.h"
 #include "lisp.h"
@@ -1456,7 +1455,7 @@ This parses both integers and floating point numbers.")
   (str)
      register Lisp_Object str;
 {
-  char *p;
+  unsigned char *p;
 
   CHECK_STRING (str, 0);
 
@@ -1464,7 +1463,7 @@ This parses both integers and floating point numbers.")
 
   /* Skip any whitespace at the front of the number.  Some versions of
      atoi do this anyway, so we might as well make Emacs lisp consistent.  */
-  while (isspace (*p))
+  while (*p == ' ' || *p == '\t')
     p++;
 
 #ifdef LISP_FLOAT_TYPE
