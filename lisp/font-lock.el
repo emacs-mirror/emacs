@@ -1740,7 +1740,7 @@ Does not move further than LIMIT.
 The expected syntax of a declaration/definition item is `word' (preceded by
 optional whitespace and `*' characters and proceeded by optional whitespace)
 optionally followed by a `('.  Everything following the item (but belonging to
-it) is expected to by skip-able by `scan-sexps', and items are expected to be
+it) is expected to be skip-able by `scan-sexps', and items are expected to be
 separated with a `,' and to be terminated with a `;'.
 
 Thus the regexp matches after point:	word (
@@ -1759,7 +1759,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
       (let ((pos (point)))
 	(skip-chars-backward " \t\n")
 	(skip-syntax-backward "w")
-	(unless (looking-at "\\(\\sw+\\)[ \t\n]*\\sw*_\\sw*[ \t\n]*\\((\\)?")
+	(unless (looking-at "\\(\\sw+\\)[ \t\n]*\\sw+[ \t\n]*\\(((?\\)?")
 	  ;; Looks like it was something else, so go back to where we
 	  ;; were and reset the match data by rematching.
 	  (goto-char pos)
