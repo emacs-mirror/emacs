@@ -1,3 +1,9 @@
+2000-12-12  Andrew Choi  <akochoi@i-cable.com>
+
+	* term/mac-win.el: Remove load for ls-lisp.
+
+	* loadup.el: Load ls-lisp for system-type macos.
+
 2000-12-12  Miles Bader  <miles@gnu.org>
 
 	* simple.el (delete-horizontal-space): Add BACKWARD-ONLY parameter.

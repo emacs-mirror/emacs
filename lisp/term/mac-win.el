@@ -100,16 +100,12 @@
 ;; Don't have this yet.
 (fset 'x-get-resource 'ignore)
 
-;; Use Lisp verison of ls instead of calling subprocess on ls (faster,
-;; don't need to write ls).
-(load "ls-lisp")
-
-(require 'dired)
-
 ;; This variable specifies the Unix program to call (as a process) to
 ;; deteremine the amount of free space on a file system (defaults to
 ;; df).  If it is not set to nil, ls-lisp will not work correctly
 ;; unless an external application df is implemented on the Mac.
+(require 'dired)
+
 (setq dired-free-space-program nil)
 
 ;; Set this so that Emacs calls subprocesses with "sh" as shell to
