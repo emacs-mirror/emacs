@@ -1156,6 +1156,144 @@ fi
 dnl checks for Unix variants
 AC_AIX
 
+#### Extract some information from the operating system and machine files.
+
+AC_CHECKING([the machine- and system-dependent files to find out
+ - which libraries the lib-src programs will want, and
+ - whether the GNU malloc routines are usable])
+
+### First figure out CFLAGS (which we use for running the compiler here)
+### and REAL_CFLAGS (which we use for real compilation).
+### The two are the same except on a few systems, where they are made
+### different to work around various lossages.  For example,
+### GCC 2.5 on GNU/Linux needs them to be different because it treats -g
+### as implying static linking.
+
+### If the CFLAGS env var is specified, we use that value
+### instead of the default.
+
+### It's not important that this name contain the PID; you can't run
+### two configures in the same directory and have anything work
+### anyway.
+tempcname="conftest.c"
+
+echo '
+#include "'${srcdir}'/src/'${opsysfile}'"
+#include "'${srcdir}'/src/'${machfile}'"
+#ifndef LIBS_MACHINE
+#define LIBS_MACHINE
+#endif
+#ifndef LIBS_SYSTEM
+#define LIBS_SYSTEM
+#endif
+#ifndef C_SWITCH_SYSTEM
+#define C_SWITCH_SYSTEM
+#endif
+#ifndef C_SWITCH_MACHINE
+#define C_SWITCH_MACHINE
+#endif
+configure___ libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
+configure___ c_switch_system=C_SWITCH_SYSTEM
+configure___ c_switch_machine=C_SWITCH_MACHINE
+
+#ifndef LIB_X11_LIB
+#define LIB_X11_LIB -lX11
+#endif
+
+#ifndef LIBX11_MACHINE
+#define LIBX11_MACHINE
+#endif
+
+#ifndef LIBX11_SYSTEM
+#define LIBX11_SYSTEM
+#endif
+configure___ LIBX=LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM
+
+#ifdef UNEXEC
+configure___ unexec=UNEXEC
+#else
+configure___ unexec=unexec.o
+#endif
+
+#ifdef SYSTEM_MALLOC
+configure___ system_malloc=yes
+#else
+configure___ system_malloc=no
+#endif
+
+#ifndef C_DEBUG_SWITCH
+#define C_DEBUG_SWITCH -g
+#endif
+
+#ifndef C_OPTIMIZE_SWITCH
+#ifdef __GNUC__
+#define C_OPTIMIZE_SWITCH -O2
+#else
+#define C_OPTIMIZE_SWITCH -O
+#endif
+#endif
+
+#ifndef LD_SWITCH_MACHINE
+#define LD_SWITCH_MACHINE
+#endif
+
+#ifndef LD_SWITCH_SYSTEM
+#define LD_SWITCH_SYSTEM
+#endif
+
+#ifndef LD_SWITCH_X_SITE_AUX
+#define LD_SWITCH_X_SITE_AUX
+#endif  
+
+configure___ ld_switch_system=LD_SWITCH_SYSTEM
+configure___ ld_switch_machine=LD_SWITCH_MACHINE
+
+#ifdef THIS_IS_CONFIGURE
+
+/* Get the CFLAGS for tests in configure.  */
+#ifdef __GNUC__
+configure___ CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH '${SPECIFIED_CFLAGS}'
+#else
+configure___ CFLAGS=C_DEBUG_SWITCH '${SPECIFIED_CFLAGS}'
+#endif
+
+#else /* not THIS_IS_CONFIGURE */
+
+/* Get the CFLAGS for real compilation.  */
+#ifdef __GNUC__
+configure___ REAL_CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH '${SPECIFIED_CFLAGS}'
+#else
+configure___ REAL_CFLAGS=C_DEBUG_SWITCH '${SPECIFIED_CFLAGS}'
+#endif
+
+#endif /* not THIS_IS_CONFIGURE */
+' > ${tempcname}
+
+# The value of CPP is a quoted variable reference, so we need to do this
+# to get its actual value...
+CPP=`eval "echo $CPP"`
+changequote(, )dnl
+eval `${CPP} -Isrc ${tempcname} \
+       | sed -n -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/p'`
+if test "x$SPECIFIED_CFLAGS" = x; then
+  eval `${CPP} -Isrc -DTHIS_IS_CONFIGURE ${tempcname} \
+	 | sed -n -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/p'`
+else
+  REAL_CFLAGS="$CFLAGS"
+fi
+changequote([, ])dnl
+rm ${tempcname}
+
+ac_link="$ac_link $ld_switch_machine $ld_switch_system"
+
+### Make sure subsequent tests use flags consistent with the build flags.
+
+if test x"${OVERRIDE_CPPFLAGS}" != x; then
+  CPPFLAGS="${OVERRIDE_CPPFLAGS}"
+else
+  CPPFLAGS="$c_switch_system $c_switch_machine $CPPFLAGS"
+fi
+
 # Sound support for GNU/Linux and the free BSDs.
 AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h)
 # Emulation library used on NetBSD.
@@ -1356,136 +1494,6 @@ if test "${opsys}" = "hpux9shr"; then
   esac
 fi
 
-#### Extract some information from the operating system and machine files.
-
-AC_CHECKING([the machine- and system-dependent files to find out
- - which libraries the lib-src programs will want, and
- - whether the GNU malloc routines are usable])
-
-### First figure out CFLAGS (which we use for running the compiler here)
-### and REAL_CFLAGS (which we use for real compilation).
-### The two are the same except on a few systems, where they are made
-### different to work around various lossages.  For example,
-### GCC 2.5 on GNU/Linux needs them to be different because it treats -g
-### as implying static linking.
-
-### If the CFLAGS env var is specified, we use that value
-### instead of the default.
-
-### It's not important that this name contain the PID; you can't run
-### two configures in the same directory and have anything work
-### anyway.
-tempcname="conftest.c"
-
-echo '
-#include "'${srcdir}'/src/'${opsysfile}'"
-#include "'${srcdir}'/src/'${machfile}'"
-#ifndef LIBS_MACHINE
-#define LIBS_MACHINE
-#endif
-#ifndef LIBS_SYSTEM
-#define LIBS_SYSTEM
-#endif
-#ifndef C_SWITCH_SYSTEM
-#define C_SWITCH_SYSTEM
-#endif
-#ifndef C_SWITCH_MACHINE
-#define C_SWITCH_MACHINE
-#endif
-configure___ libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
-configure___ c_switch_system=C_SWITCH_SYSTEM
-configure___ c_switch_machine=C_SWITCH_MACHINE
-
-#ifndef LIB_X11_LIB
-#define LIB_X11_LIB -lX11
-#endif
-
-#ifndef LIBX11_MACHINE
-#define LIBX11_MACHINE
-#endif
-
-#ifndef LIBX11_SYSTEM
-#define LIBX11_SYSTEM
-#endif
-configure___ LIBX=LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM
-
-#ifdef UNEXEC
-configure___ unexec=UNEXEC
-#else
-configure___ unexec=unexec.o
-#endif
-
-#ifdef SYSTEM_MALLOC
-configure___ system_malloc=yes
-#else
-configure___ system_malloc=no
-#endif
-
-#ifndef C_DEBUG_SWITCH
-#define C_DEBUG_SWITCH -g
-#endif
-
-#ifndef C_OPTIMIZE_SWITCH
-#ifdef __GNUC__
-#define C_OPTIMIZE_SWITCH -O2
-#else
-#define C_OPTIMIZE_SWITCH -O
-#endif
-#endif
-
-#ifndef LD_SWITCH_MACHINE
-#define LD_SWITCH_MACHINE
-#endif
-
-#ifndef LD_SWITCH_SYSTEM
-#define LD_SWITCH_SYSTEM
-#endif
-
-#ifndef LD_SWITCH_X_SITE_AUX
-#define LD_SWITCH_X_SITE_AUX
-#endif  
-
-configure___ ld_switch_system=LD_SWITCH_SYSTEM
-configure___ ld_switch_machine=LD_SWITCH_MACHINE
-
-#ifdef THIS_IS_CONFIGURE
-
-/* Get the CFLAGS for tests in configure.  */
-#ifdef __GNUC__
-configure___ CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH '${SPECIFIED_CFLAGS}'
-#else
-configure___ CFLAGS=C_DEBUG_SWITCH '${SPECIFIED_CFLAGS}'
-#endif
-
-#else /* not THIS_IS_CONFIGURE */
-
-/* Get the CFLAGS for real compilation.  */
-#ifdef __GNUC__
-configure___ REAL_CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH '${SPECIFIED_CFLAGS}'
-#else
-configure___ REAL_CFLAGS=C_DEBUG_SWITCH '${SPECIFIED_CFLAGS}'
-#endif
-
-#endif /* not THIS_IS_CONFIGURE */
-' > ${tempcname}
-
-# The value of CPP is a quoted variable reference, so we need to do this
-# to get its actual value...
-CPP=`eval "echo $CPP"`
-changequote(, )dnl
-eval `${CPP} -Isrc ${tempcname} \
-       | sed -n -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/p'`
-if test "x$SPECIFIED_CFLAGS" = x; then
-  eval `${CPP} -Isrc -DTHIS_IS_CONFIGURE ${tempcname} \
-	 | sed -n -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/p'`
-else
-  REAL_CFLAGS="$CFLAGS"
-fi
-changequote([, ])dnl
-rm ${tempcname}
-
-ac_link="$ac_link $ld_switch_machine $ld_switch_system"
-
 ### Compute the unexec source name from the object name.
 UNEXEC_SRC="`echo ${unexec} | sed 's/\.o/.c/'`"
 
@@ -1518,14 +1526,6 @@ fi
 
 if test x"${REL_ALLOC}" = x; then
   REL_ALLOC=${GNU_MALLOC}
-fi
-
-#### Add the libraries to LIBS and check for some functions.
-
-if test x"${OVERRIDE_CPPFLAGS}" != x; then
-  CPPFLAGS="${OVERRIDE_CPPFLAGS}"
-else
-  CPPFLAGS="$c_switch_system $c_switch_machine $CPPFLAGS"
 fi
 
 LIBS="$libsrc_libs $LIBS"
