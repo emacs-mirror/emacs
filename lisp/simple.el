@@ -3820,10 +3820,11 @@ With prefix argument N, move N items (negative N means move backward)."
 ;; unless it is reading a file name and CHOICE is a directory,
 ;; or completion-no-auto-exit is non-nil.
 (defun choose-completion-string (choice &optional buffer base-size)
-  (let ((buffer (or buffer completion-reference-buffer)))
+  (let ((buffer (or buffer completion-reference-buffer))
+	(mini-p (string-match "\\` \\*Minibuf-[0-9]+\\*\\'" (buffer-name buffer))))
     ;; If BUFFER is a minibuffer, barf unless it's the currently
     ;; active minibuffer.
-    (if (and (string-match "\\` \\*Minibuf-[0-9]+\\*\\'" (buffer-name buffer))
+    (if (and mini-p
 	     (or (not (active-minibuffer-window))
 		 (not (equal buffer
 			     (window-buffer (active-minibuffer-window))))))
@@ -3831,7 +3832,10 @@ With prefix argument N, move N items (negative N means move backward)."
       ;; Insert the completion into the buffer where completion was requested.
       (set-buffer buffer)
       (if base-size
-	  (delete-region (+ base-size (point-min)) (point))
+	  (delete-region (+ base-size (if mini-p
+					  (minibuffer-prompt-end)
+					(point-min)))
+			 (point))
 	(choose-completion-delete-max-match choice))
       (insert choice)
       (remove-text-properties (- (point) (length choice)) (point)
