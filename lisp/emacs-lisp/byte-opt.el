@@ -26,7 +26,7 @@
 
 ;;; ========================================================================
 ;;; "No matter how hard you try, you can't make a racehorse out of a pig.
-;;; you can, however, make a faster pig."
+;;; You can, however, make a faster pig."
 ;;;
 ;;; Or, to put it another way, the emacs byte compiler is a VW Bug.  This code
 ;;; makes it be a VW Bug with fuel injection and a turbocharger...  You're 
@@ -38,8 +38,6 @@
 ;;;
 ;;; (apply '(lambda (x &rest y) ...) 1 (foo))
 ;;;
-;;; collapse common subexpressions
-;;;
 ;;; maintain a list of functions known not to access any global variables
 ;;; (actually, give them a 'dynamically-safe property) and then
 ;;;   (let ( v1 v2 ... vM vN ) <...dynamically-safe...> )  ==>
@@ -49,8 +47,15 @@
 ;;; away, because they affect everything.
 ;;;   (put 'debug-on-error 'binding-is-magic t)
 ;;;   (put 'debug-on-abort 'binding-is-magic t)
+;;;   (put 'debug-on-next-call 'binding-is-magic t)
+;;;   (put 'mocklisp-arguments 'binding-is-magic t)
 ;;;   (put 'inhibit-quit 'binding-is-magic t)
 ;;;   (put 'quit-flag 'binding-is-magic t)
+;;;   (put 't 'binding-is-magic t)
+;;;   (put 'nil 'binding-is-magic t)
+;;; possibly also
+;;;   (put 'gc-cons-threshold 'binding-is-magic t)
+;;;   (put 'track-mouse 'binding-is-magic t)
 ;;; others?
 ;;;
 ;;; Simple defsubsts often produce forms like
@@ -68,6 +73,15 @@
 ;;; the variable foo is of type cons, and optimize based on that.
 ;;; But, this won't win much because of (you guessed it) dynamic 
 ;;; scope.  Anything down the stack could change the value.
+;;; (Another reason it doesn't work is that it is perfectly valid
+;;; to call car with a null argument.)  A better approach might
+;;; be to allow type-specification of the form
+;;;   (put 'foo 'arg-types '(float (list integer) dynamic))
+;;;   (put 'foo 'result-type 'bool)
+;;; It should be possible to have these types checked to a certain
+;;; degree.
+;;;
+;;; collapse common subexpressions
 ;;;
 ;;; It would be nice if redundant sequences could be factored out as well,
 ;;; when they are known to have no side-effects:
@@ -130,10 +144,41 @@
 ;;; Since this would be a file-local optimization, there would be no way to
 ;;; modify the interpreter to obey this (unless the loader was hacked 
 ;;; in some grody way, but that's a really bad idea.)
-;;;
-;;; Really the Right Thing is to make lexical scope the default across
-;;; the board, in the interpreter and compiler, and just FIX all of 
-;;; the code that relies on dynamic scope of non-defvarred variables.
+
+;; Other things to consider:
+
+;;;;; Associative math should recognize subcalls to identical function:
+;;;(disassemble (lambda (x) (+ (+ (foo) 1) (+ (bar) 2))))
+;;;;; This should generate the same as (1+ x) and (1- x)
+
+;;;(disassemble (lambda (x) (cons (+ x 1) (- x 1))))
+;;;;; An awful lot of functions always return a non-nil value.  If they're
+;;;;; error free also they may act as true-constants.
+
+;;;(disassemble (lambda (x) (and (point) (foo))))
+;;;;; When 
+;;;;;   - all but one arguments to a function are constant
+;;;;;   - the non-constant argument is an if-expression (cond-expression?)
+;;;;; then the outer function can be distributed.  If the guarding
+;;;;; condition is side-effect-free [assignment-free] then the other
+;;;;; arguments may be any expressions.  Since, however, the code size
+;;;;; can increase this way they should be "simple".  Compare:
+
+;;;(disassemble (lambda (x) (eq (if (point) 'a 'b) 'c)))
+;;;(disassemble (lambda (x) (if (point) (eq 'a 'c) (eq 'b 'c))))
+
+;;;;; (car (cons A B)) -> (progn B A)
+;;;(disassemble (lambda (x) (car (cons (foo) 42))))
+
+;;;;; (cdr (cons A B)) -> (progn A B)
+;;;(disassemble (lambda (x) (cdr (cons 42 (foo)))))
+
+;;;;; (car (list A B ...)) -> (progn B ... A)
+;;;(disassemble (lambda (x) (car (list (foo) 42 (bar)))))
+
+;;;;; (cdr (list A B ...)) -> (progn A (list B ...))
+;;;(disassemble (lambda (x) (cdr (list 42 (foo) (bar)))))
+
 
 ;;; Code:
 
@@ -554,8 +599,10 @@
 	form)))
 
 ;; If the function is being called with constant numeric args,
-;; evaluate as much as possible at compile-time.  This optimizer 
-;; assumes that the function is nonassociative, like - or /.
+;; evaluate as much as possible at compile-time.  This optimizer
+;; assumes that the function satisfies
+;;   (op x1 x2 ... xn) == (op ...(op (op x1 x2) x3) ...xn)
+;; like - and /.
 (defun byte-optimize-nonassociative-math (form)
   (if (or (not (numberp (car (cdr form))))
 	  (not (numberp (car (cdr (cdr form))))))
@@ -581,21 +628,44 @@
 ;;      (byte-optimize-two-args-right form)
 ;;      form))
 
+(defun byte-optimize-approx-equal (x y)
+  (< (* (abs (- x y)) 100) (abs (+ x y))))
+
+;; Collect all the constants from FORM, after the STARTth arg,
+;; and apply FUN to them to make one argument at the end.
+;; For functions that can handle floats, that optimization
+;; can be incorrect because reordering can cause an overflow
+;; that would otherwise be avoided by encountering an arg that is a float.
+;; We avoid this problem by (1) not moving float constants and
+;; (2) not moving anything if it would cause an overflow.
 (defun byte-optimize-delay-constants-math (form start fun)
   ;; Merge all FORM's constants from number START, call FUN on them
   ;; and put the result at the end.
-  (let ((rest (nthcdr (1- start) form)))
+  (let ((rest (nthcdr (1- start) form))
+	(orig form)
+	;; t means we must check for overflow.
+	(overflow (memq fun '(+ *))))
     (while (cdr (setq rest (cdr rest)))
-      (if (numberp (car rest))
+      (if (integerp (car rest))
 	  (let (constants)
 	    (setq form (copy-sequence form)
 		  rest (nthcdr (1- start) form))
 	    (while (setq rest (cdr rest))
-	      (cond ((numberp (car rest))
+	      (cond ((integerp (car rest))
 		     (setq constants (cons (car rest) constants))
 		     (setcar rest nil))))
-	    (setq form (nconc (delq nil form)
-			      (list (apply fun (nreverse constants))))))))
+	    ;; If necessary, check now for overflow
+	    ;; that might be caused by reordering.
+	    (if (and overflow
+		     ;; We have overflow if the result of doing the arithmetic
+		     ;; on floats is not even close to the result
+		     ;; of doing it on integers.
+		     (not (byte-optimize-approx-equal
+			    (apply fun (mapcar 'float constants))
+			    (float (apply fun constants)))))
+		(setq form orig)
+	      (setq form (nconc (delq nil form)
+				(list (apply fun (nreverse constants)))))))))
     form))
 
 (defun byte-optimize-plus (form)
@@ -648,7 +718,7 @@
 ;;; is not a marker or if it appears in other arithmetic).
 ;;;	((null (cdr (cdr form))) (nth 1 form))
 	((let ((last (car (reverse form))))
-	   (cond ((eq 0 last)  (list 'progn (cdr form)))
+	   (cond ((eq 0 last)  (cons 'progn (cdr form)))
 		 ((eq 1 last)  (delq 1 (copy-sequence form)))
 		 ((eq -1 last) (list '- (delq -1 (copy-sequence form))))
 		 ((and (eq 2 last)
@@ -666,8 +736,12 @@
   (let ((last (car (reverse (cdr (cdr form))))))
     (if (numberp last)
 	(cond ((= (length form) 3)
-	       ;; Don't shrink to less than two arguments--would get an error.
-	       nil)
+	       (if (and (numberp (nth 1 form))
+			(not (zerop last))
+			(condition-case nil
+			    (/ (nth 1 form) last)
+			  (error nil)))
+		   (setq form (list 'progn (/ (nth 1 form) last)))))
 	      ((= last 1)
 	       (setq form (byte-compile-butlast form)))
 	      ((numberp (nth 1 form))
@@ -695,7 +769,7 @@
 		       (delq 0 (copy-sequence form)))))
 	 ((and (eq (car-safe form) 'logior)
 	       (memq -1 form))
-	  (delq -1 (copy-sequence form)))
+	  (cons 'progn (cdr form)))
 	 (form))))
 
 
@@ -878,7 +952,13 @@
 	       (list 'if clause (nth 2 form))
 	     form))
 	  ((or (nth 3 form) (nthcdr 4 form))
-	   (list 'if (list 'not clause)
+	   (list 'if
+		 ;; Don't make a double negative;
+		 ;; instead, take away the one that is there.
+		 (if (and (consp clause) (memq (car clause) '(not null))
+			  (= (length clause) 2)) ; (not xxxx) or (not (xxxx))
+		     (nth 1 clause)
+		   (list 'not clause))
 		 (if (nthcdr 4 form)
 		     (cons 'progn (nthcdr 3 form))
 		   (nth 3 form))))
@@ -949,7 +1029,7 @@
 
 (put 'nth 'byte-optimizer 'byte-optimize-nth)
 (defun byte-optimize-nth (form)
-  (if (memq (nth 1 form) '(0 1))
+  (if (and (= (safe-length form) 3) (memq (nth 1 form) '(0 1)))
       (list 'car (if (zerop (nth 1 form))
 		     (nth 2 form)
 		   (list 'cdr (nth 2 form))))
@@ -957,11 +1037,11 @@
 
 (put 'nthcdr 'byte-optimizer 'byte-optimize-nthcdr)
 (defun byte-optimize-nthcdr (form)
-  (let ((count (nth 1 form)))
-    (if (not (memq count '(0 1 2)))
-	(byte-optimize-predicate form)
+  (if (and (= (safe-length form) 3) (not (memq (nth 1 form) '(0 1 2))))
+      (byte-optimize-predicate form)
+    (let ((count (nth 1 form)))
       (setq form (nth 2 form))
-      (while (natnump (setq count (1- count)))
+      (while (> (setq count (1- count)) 0)
 	(setq form (list 'cdr form)))
       form)))
 
