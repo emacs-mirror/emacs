@@ -6,7 +6,7 @@
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.15 2000/05/25 19:05:46 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.16 2000/06/04 22:02:11 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -70,6 +70,7 @@
 (defgroup comment nil
   "Indenting and filling of comments."
   :prefix "comment-"
+  :version "21.1"
   :group 'fill)
 
 (defvar comment-use-syntax 'undecided
@@ -176,8 +177,7 @@ makes the comment easier to read.  Default is 1.  nil means 0.")
 
 ;;;###autoload
 (defcustom comment-multi-line nil
-  "*Non-nil means \\[indent-new-comment-line] should continue same comment
-on new line, with no new terminator or starter.
+  "*Non-nil means \\[comment-indent-new-line] continues comments, with no new terminator or starter.
 This is obsolete because you might as well use \\[newline-and-indent]."
   :type 'boolean
   :group 'comment)
@@ -961,6 +961,9 @@ unless optional argument SOFT is non-nil."
 
 ;;; Change Log:
 ;; $Log: newcomment.el,v $
+;; Revision 1.16  2000/06/04 22:02:11  monnier
+;; (comment-indent): Ignore comment-indent-hook.
+;;
 ;; Revision 1.15  2000/05/25 19:05:46  monnier
 ;; Add abundant autoload cookies.
 ;; (comment-style): Be careful not to depend on runtime data at compile-time.
