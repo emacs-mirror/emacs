@@ -1,3 +1,11 @@
+2005-03-29  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debug-on-entry): Handle autoloaded
+	functions and compiled macros.
+	(debug-convert-byte-code): Handle macros too.
+	(debug-on-entry-1): Don't signal an error when trying to clear a
+	function that is not set to debug on entry.
+
 2005-03-29  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-lang.el: Add functions to math-function-table
