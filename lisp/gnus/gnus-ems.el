@@ -208,44 +208,43 @@ This function is for Emacs 21+.  See `gnus-xmas-article-display-xface'
 for XEmacs."
   ;; It might be worth converting uncompface's output in Lisp.
 
-  (unless gnus-article-xface-ring-internal ; Only load ring when needed.
-    (setq gnus-article-xface-ring-internal
-	  (make-ring gnus-article-xface-ring-size)))
-  (save-excursion
-    (let* ((cur (current-buffer))
-	   (data (buffer-substring beg end))
-	   (image (cdr-safe (assoc data (ring-elements
-					 gnus-article-xface-ring-internal)))))
-      (when (if (fboundp 'display-graphic-p)
-		(display-graphic-p))
+  (when (if (fboundp 'display-graphic-p)
+	    (display-graphic-p))
+    (unless gnus-article-xface-ring-internal ; Only load ring when needed.
+      (setq gnus-article-xface-ring-internal
+	    (make-ring gnus-article-xface-ring-size)))
+    (save-excursion
+      (let* ((cur (current-buffer))
+	     (data (buffer-substring beg end))
+	     (image (cdr-safe (assoc data (ring-elements
+					   gnus-article-xface-ring-internal))))
+	     default-enable-multibyte-characters)
 	(unless image
-	  (let ((coding-system-for-read 'binary)
-		(coding-system-for-write 'binary))
-	    (with-temp-buffer
-	      (insert data)
-	      (and (eq 0 (call-process-region (point-min) (point-max)
-					      "uncompface"
-					      'delete '(t nil)))
-		   (goto-char (point-min))
-		   (progn (insert "/* Width=48, Height=48 */\n") t)
-		   (eq 0 (call-process-region (point-min) (point-max)
-					      "icontopbm"
-					      'delete '(t nil)))
-		   ;; Miles Bader says that faces don't look right as
-		   ;; light on dark.
-		   (if (eq 'dark (cdr-safe (assq 'background-mode
-						 (frame-parameters))))
-		       (setq image (create-image (buffer-string) 'pbm t
-						 :ascent 'center
-						 :foreground "black"
-						 :background "white"))
+	  (with-temp-buffer
+	    (insert data)
+	    (and (eq 0 (call-process-region (point-min) (point-max)
+					    "uncompface"
+					    'delete '(t nil)))
+		 (goto-char (point-min))
+		 (progn (insert "/* Width=48, Height=48 */\n") t)
+		 (eq 0 (call-process-region (point-min) (point-max)
+					    "icontopbm"
+					    'delete '(t nil)))
+		 ;; Miles Bader says that faces don't look right as
+		 ;; light on dark.
+		 (if (eq 'dark (cdr-safe (assq 'background-mode
+					       (frame-parameters))))
 		     (setq image (create-image (buffer-string) 'pbm t
-					       :ascent 'center))))))
-	  (ring-insert gnus-article-xface-ring-internal (cons data image))))
-      (when image
-	(goto-char (point-min))
-	(re-search-forward "^From:" nil 'move)
-	(insert-image image)))))
+					       :ascent 'center
+					       :foreground "black"
+					       :background "white"))
+		   (setq image (create-image (buffer-string) 'pbm t
+					     :ascent 'center)))))
+	  (ring-insert gnus-article-xface-ring-internal (cons data image)))
+	(when image
+	  (goto-char (point-min))
+	  (re-search-forward "^From:" nil 'move)
+	  (insert-image image))))))
 
 (provide 'gnus-ems)
 
