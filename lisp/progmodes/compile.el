@@ -56,11 +56,11 @@ it at all.")
 (defvar compilation-old-error-list nil
   "Value of `compilation-error-list' after errors were parsed.")
 
-(defvar compilation-parse-errors-function 'compilation-parse-errors 
+(defvar compilation-parse-errors-function 'compilation-parse-errors
   "Function to call to parse error messages from a compilation.
 It takes args LIMIT-SEARCH and FIND-AT-LEAST.
 If LIMIT-SEARCH is non-nil, don't bother parsing past that location.
-If FIND-AT-LEAST is non-nil, don't bother parsing after finding that 
+If FIND-AT-LEAST is non-nil, don't bother parsing after finding that
 many new errors.
 It should read in the source files which have errors and set
 `compilation-error-list' to a list with an element for each error message
@@ -110,7 +110,7 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; 	foo.f          :16    some horrible error message
     ;; or GNU utilities with column (GNAT 1.82):
     ;;   foo.adb:2:1: Unit name does not match file name
-    ;; 
+    ;;
     ;; We'll insist that the number be followed by a colon or closing
     ;; paren, because otherwise this matches just about anything
     ;; containing a number with spaces around it.
@@ -140,7 +140,7 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; Some SGI cc version:
     ;;  cfe: Warning 835: foo.c, line 2: something
     ("\n\\(cfe\\|fort\\): [^:\n]*: \\([^ \n]*\\), line \\([0-9]+\\):" 2 3)
-    ;;  Error on line 3 of t.f: Execution error unclassifiable statement    
+    ;;  Error on line 3 of t.f: Execution error unclassifiable statement
     ;; Unknown who does this:
     ;;  Line 45 of "foo.c": bloofel undefined
     ;; Absoft FORTRAN 77 Compiler 3.1.3
@@ -157,14 +157,14 @@ of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
     ;;  File "foobar.ml", lines 5-8, characters 20-155: blah blah
     ;; Microtec mcc68k:
     ;;  "foo.c", line 32 pos 1; (E) syntax error; unexpected symbol: "lossage"
-    ;; GNAT (as of July 94): 
+    ;; GNAT (as of July 94):
     ;;  "foo.adb", line 2(11): warning: file name does not match ...
     ("\"\\([^,\" \n\t]+\\)\", lines? \\([0-9]+\\)[:., (-]" 1 2)
 
     ;; MIPS RISC CC - the one distributed with Ultrix:
     ;;	ccom: Error: foo.c, line 2: syntax error
     ;; DEC AXP OSF/1 cc
-    ;;  /usr/lib/cmplrs/cc/cfe: Error: foo.c: 1: blah blah 
+    ;;  /usr/lib/cmplrs/cc/cfe: Error: foo.c: 1: blah blah
     ("rror: \\([^,\" \n\t]+\\)[,:] \\(line \\)?\\([0-9]+\\):" 1 3)
 
     ;; IBM AIX PS/2 C version 1.1:
@@ -390,7 +390,7 @@ Returns the compilation buffer created."
     (let ((regexp-alist (or regexp-alist compilation-error-regexp-alist))
 	  (parser (or parser compilation-parse-errors-function))
 	  (thisdir default-directory)
-	  outwin) 
+	  outwin)
       (save-excursion
 	;; Clear out the compilation buffer and make it writable.
 	;; Change its default-directory to the directory where the compilation
@@ -432,7 +432,7 @@ Returns the compilation buffer created."
 	      (set-process-sentinel proc 'compilation-sentinel)
 	      (set-process-filter proc 'compilation-filter)
 	      (set-marker (process-mark proc) (point) outbuf)
-	      (setq compilation-in-progress 
+	      (setq compilation-in-progress
 		    (cons proc compilation-in-progress)))
 	  ;; No asynchronous processes available
 	  (message (format "Executing `%s'..." command))
@@ -504,6 +504,7 @@ Returns the compilation buffer created."
   "Keymap for compilation log buffers.
 `compilation-minor-mode-map' is a cdr of this.")
 
+;;;###autoload
 (defun compilation-mode ()
   "Major mode for compilation log buffers.
 \\<compilation-mode-map>To visit the source for a line-numbered error,
@@ -722,7 +723,7 @@ Does NOT find the source line like \\[next-error]."
 				  ;; Parse some more.
 				  (compile-reinitialize-errors nil nil 2)
 				  (setq errors compilation-error-list)))
-			      (error "%s is the last erring file" 
+			      (error "%s is the last erring file"
 				     (compilation-error-filedata-file-name
 				      filedata))))))
 	(setq errors (cdr errors)))
@@ -955,7 +956,7 @@ marker at the location in the source code indicated by the error message.
 Optional first arg MOVE says how many error messages to move forwards (or
 backwards, if negative); default is 1.  Optional second arg REPARSE, if
 non-nil, says to reparse the error message buffer and reset to the first
-error (plus MOVE - 1).  If optional third argument SILENT is non-nil, return 
+error (plus MOVE - 1).  If optional third argument SILENT is non-nil, return
 nil instead of raising an error if there are no more errors.
 
 The current buffer should be the desired compilation output buffer."
@@ -967,7 +968,7 @@ The current buffer should be the desired compilation output buffer."
       (save-excursion
 	(set-buffer compilation-last-buffer)
 	;; compilation-error-list points to the "current" error.
-	(setq next-errors 
+	(setq next-errors
 	      (if (> move 0)
 		  (nthcdr (1- move)
 			  compilation-error-list)
@@ -1356,7 +1357,7 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	     (if alist
 		 (setq alist (car alist))
 	       (error "compilation-parse-errors: impossible regexp match!"))
-	     
+
 	     ;; Extract the file name and line number from the error message.
 	     (let ((beginning-of-match (match-beginning 0)) ;looking-at nukes
 		   (filename (buffer-substring (match-beginning (nth 1 alist))
@@ -1383,7 +1384,7 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 		    (setq filename (concat comint-file-name-prefix filename)))
 	       (setq filename (cons filename (cons default-directory
 						   (nthcdr 4 alist))))
-				     
+
 
 	       ;; Locate the erring file and line.
 	       ;; Cons a new elt onto compilation-error-list,
