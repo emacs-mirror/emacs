@@ -1651,7 +1651,7 @@ error (m, a1, a2, a3)
 
   string = build_string (buffer);
   if (allocated)
-    free (buffer);
+    xfree (buffer);
 
   Fsignal (Qerror, Fcons (string, Qnil));
 }
