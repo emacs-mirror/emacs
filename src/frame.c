@@ -27,9 +27,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 Lisp_Object Vemacs_iconified;
 Lisp_Object Qscreenp;
+Lisp_Object Qlive_screen_p;
 Lisp_Object Vscreen_list;
 Lisp_Object Vterminal_screen;
-Lisp_Object Vglobal_minibuffer_screen;
+Lisp_Object Vdefault_minibuffer_screen;
 Lisp_Object Vdefault_screen_alist;
 
 /* A screen which is not just a minibuffer, or 0 if there are no
@@ -43,13 +44,14 @@ extern Lisp_Object get_minibuffer ();
 DEFUN ("screenp", Fscreenp, Sscreenp, 1, 1, 0,
   "Return non-nil if OBJECT is a screen.\n\
 Value is t for a termcap screen (a character-only terminal),\n\
-`x' for an Emacs screen that is really an X window.")
-  (screen)
-     Lisp_Object screen;
+`x' for an Emacs screen that is really an X window.\n\
+Also see live-screen-p.")
+  (object)
+     Lisp_Object object;
 {
-  if (XTYPE (screen) != Lisp_Screen)
+  if (XTYPE (object) != Lisp_Screen)
     return Qnil;
-  switch (XSCREEN (screen)->output_method)
+  switch (XSCREEN (object)->output_method)
     {
     case output_termcap:
       return Qt;
@@ -58,6 +60,21 @@ Value is t for a termcap screen (a character-only terminal),\n\
     default:
       abort ();
     }
+}
+
+DEFUN ("live-screen-p", Flive_screen_p, Slive_screen_p, 1, 1, 0,
+  "Return non-nil if OBJECT is a screen which has not been deleted.\n\
+Value is nil if OBJECT is not a live screen.  If object is a live\n\
+screen, the return value indicates what sort of output device it is\n\
+displayed on.  Value is t for a termcap screen (a character-only\n\
+terminal), `x' for an Emacs screen being displayed in an X window.")
+  (object)
+     Lisp_Object object;
+{
+  return ((SCREENP (object)
+	   && SCREEN_LIVE_P (XSCREEN (object)))
+	  ? Fscreenp (object)
+	  : Qnil);
 }
 
 struct screen *
@@ -175,9 +192,9 @@ make_screen_without_minibuffer (mini_window)
   /* Choose the minibuffer window to use.  */
   if (NULL (mini_window))
     {
-      if (XTYPE (Vglobal_minibuffer_screen) != Lisp_Screen)
-	error ("global-minibuffer-screen must be set to create minibufferless screens.");
-      mini_window = XSCREEN (Vglobal_minibuffer_screen)->minibuffer_window;
+      if (XTYPE (Vdefault_minibuffer_screen) != Lisp_Screen)
+	error ("default-minibuffer-screen must be set when creating minibufferless screens.");
+      mini_window = XSCREEN (Vdefault_minibuffer_screen)->minibuffer_window;
     }
   else
     {
@@ -214,7 +231,7 @@ make_minibuffer_screen ()
   s->auto_lower = 0;
   s->no_split = 1;
   s->wants_modeline = 0;
-  /* Note we leave has_minibuffer as 0.  This is a little strange.  */
+  s->has_minibuffer = 1;
 
   /* Now label the root window as also being the minibuffer.
      Avoid infinite looping on the window chain by marking next pointer
@@ -258,14 +275,13 @@ focus on that screen.")
   (screen, no_enter)
      Lisp_Object screen, no_enter;
 {
-  CHECK_SCREEN (screen, 0);
+  CHECK_LIVE_SCREEN (screen, 0);
 
   if (selected_screen == XSCREEN (screen))
     return screen;
 
   selected_screen = XSCREEN (screen);
-  if (!EQ (SCREEN_ROOT_WINDOW (selected_screen),
-	   SCREEN_MINIBUF_WINDOW (selected_screen)))
+  if (! SCREEN_MINIBUF_ONLY_P (selected_screen))
     last_nonminibuf_screen = selected_screen;
 
   Fselect_window (XSCREEN (screen)->selected_window);
@@ -309,7 +325,8 @@ DEFUN ("screen-root-window", Fscreen_root_window, Sscreen_root_window, 0, 1, 0,
 {
   if (NULL (screen))
     XSET (screen, Lisp_Screen, selected_screen);
-  CHECK_SCREEN (screen, 0);
+  else
+    CHECK_LIVE_SCREEN (screen, 0);
 
   return XSCREEN (screen)->root_window;
 }
@@ -322,7 +339,8 @@ DEFUN ("screen-selected-window", Fscreen_selected_window,
 {
   if (NULL (screen))
     XSET (screen, Lisp_Screen, selected_screen);
-  CHECK_SCREEN (screen, 0);
+  else
+    CHECK_LIVE_SCREEN (screen, 0);
 
   return XSCREEN (screen)->selected_window;
 }
@@ -336,34 +354,38 @@ DEFUN ("screen-list", Fscreen_list, Sscreen_list,
 }
 
 #ifdef MULTI_SCREEN
+
+/* Return the next screen in the screen list after SCREEN.
+   If MINIBUF is non-nil, include all screens.
+   If MINIBUF is nil, exclude minibuffer-only screens.
+   If MINIBUF is a window, include only screens using that window for
+   their minibuffer.  */
 Lisp_Object
-next_screen (screen, mini_screen)
+next_screen (screen, minibuf)
      Lisp_Object screen;
-     int mini_screen;
+     Lisp_Object minibuf;
 {
   Lisp_Object tail;
   int passed = 0;
+
+  /* There must always be at least one screen in Vscreen_list.  */
+  if (! CONSP (Vscreen_list))
+    abort ();
 
   while (1)
     for (tail = Vscreen_list; CONSP (tail); tail = XCONS (tail)->cdr)
       {
 	if (passed)
 	  {
-	    SCREEN_PTR s = XSCREEN (XCONS (tail)->car);
+	    Lisp_Object s = XCONS (tail)->car;
 
-	    if (!mini_screen
-		
-		/* Is this screen only a minibuffer?  */
-		&& EQ (SCREEN_ROOT_WINDOW (s),
-		       SCREEN_MINIBUF_WINDOW (s))
-
-		/* If we have wrapped all the way around the list (i.e.
-		   the only screen is an all-minibuffer screen), return
-		   it anyway.  */
-		&& s != XSCREEN (screen))
-	      continue;
-	    else
-	      return XCONS (tail)->car;
+	    /* Decide whether this screen is eligible to be returned,
+	       according to minibuf.  */
+	    if ((NULL (minibuf) && ! SCREEN_MINIBUF_ONLY_P (XSCREEN (s)))
+		|| XTYPE (minibuf) != Lisp_Window
+		|| EQ (SCREEN_MINIBUF_WINDOW (XSCREEN (s)), minibuf)
+		|| EQ (s, screen))
+	      return s;
 	  }
 
 	if (EQ (screen, XCONS (tail)->car))
@@ -371,34 +393,58 @@ next_screen (screen, mini_screen)
       }
 }
 
+/* Return the previous screen in the screen list before SCREEN.
+   If MINIBUF is non-nil, include all screens.
+   If MINIBUF is nil, exclude minibuffer-only screens.
+   If MINIBUF is a window, include only screens using that window for
+   their minibuffer.  */
 Lisp_Object
-prev_screen (screen, mini_screen)
+prev_screen (screen, minibuf)
      Lisp_Object screen;
-     int mini_screen;
+     Lisp_Object minibuf;
 {
   Lisp_Object tail;
   Lisp_Object prev;
 
+  /* There must always be at least one screen in Vscreen_list.  */
+  if (! CONSP (Vscreen_list))
+    abort ();
+
   prev = Qnil;
   while (1)
-    for (tail = Vscreen_list; CONSP (tail); tail = XCONS (tail)->cdr)
-      {
-	if (EQ (screen, XCONS (tail)->car))
-	  {
-	    if (!NULL (prev) && (mini_screen
-				 || !EQ (XCONS (tail)->car,
-					 Vglobal_minibuffer_screen)))
-	      return prev;
-	  }
-	prev = XCONS (tail)->car;
-      }
+    {
+      for (tail = Vscreen_list; CONSP (tail); tail = XCONS (tail)->cdr)
+	{
+	  Lisp_Object scr = XCONS (tail)->car;
+
+	  if (XTYPE (scr) != Lisp_Screen)
+	    abort ();
+
+	  if (EQ (screen, scr) && !NULL (prev))
+	    return prev;
+
+	  /* Decide whether this screen is eligible to be returned,
+	     according to minibuf.  */
+	  if ((NULL (minibuf) && ! SCREEN_MINIBUF_ONLY_P (XSCREEN (scr)))
+	      || XTYPE (minibuf) != Lisp_Window
+	      || EQ (SCREEN_MINIBUF_WINDOW (XSCREEN (scr)), minibuf))
+	    prev = scr;
+	}
+
+      if (NULL (prev))
+	/* We went through the whole screen list without finding a single
+	   acceptable screen.  Return the original screen.  */
+	prev = screen;
+    }
+	  
 }
 
-DEFUN ("next-screen", Fnext_screen, Snext_screen,
-       0, 2, 0,
-       "Return the next screen in the screen list after SCREEN.\n\
-If MINISCREEN is non-nil, include screens whose only window is a minibuffer.\n\
-If MINISCREEN is nil or omitted, these screens are skipped.")
+DEFUN ("next-screen", Fnext_screen, Snext_screen, 0, 2, 0,
+  "Return the next screen in the screen list after SCREEN.\n\
+If optional argument MINIBUF is non-nil, include all screens.  If\n\
+MINIBUF is nil or omitted, exclude minibuffer-only screens.  If\n\
+MINIBUF is a window, include only screens using that window for their\n\
+minibuffer.")
   (screen, miniscreen)
 Lisp_Object screen, miniscreen;
 {
@@ -406,16 +452,17 @@ Lisp_Object screen, miniscreen;
 
   if (NULL (screen))
     XSET (screen, Lisp_Screen, selected_screen);
-  CHECK_SCREEN (screen, 0);
+  else
+    CHECK_LIVE_SCREEN (screen, 0);
 
-  return next_screen (screen, (NULL (miniscreen) ? 0 : 1));
+  return next_screen (screen, miniscreen);
 }
 #endif /* MULTI_SCREEN */
 
-DEFUN ("delete-screen", Fdelete_screen, Sdelete_screen,
-       0, 1, "",
-       "Delete SCREEN, permanently eliminating it from use.\n\
-Default is current screen.")
+DEFUN ("delete-screen", Fdelete_screen, Sdelete_screen, 0, 1, "",
+  "Delete SCREEN, permanently eliminating it from use.\n\
+If omitted, SCREEN defaults to the selected screen.\n\
+A screen may not be deleted if its minibuffer is used by other screens.")
   (screen)
      Lisp_Object screen;
 {
@@ -433,27 +480,32 @@ Default is current screen.")
       s = XSCREEN (screen);
     }
 
+  if (! SCREEN_LIVE_P (s))
+    return;
+
   /* Are there any other screens besides this one?  */
-  if (s == selected_screen && EQ (next_screen (screen, 1), screen))
+  if (s == selected_screen && EQ (next_screen (screen, Qt), screen))
     error ("Attempt to delete the only screen");
 
   /* Does this screen have a minibuffer, and is it the surrogate
      minibuffer for any other screen?  */
-  if (EQ (screen,
-	  WINDOW_SCREEN (XWINDOW (SCREEN_MINIBUF_WINDOW (XSCREEN (screen))))))
+  if (SCREEN_HAS_MINIBUF (XSCREEN (screen)))
     {
       Lisp_Object screen2;
 
       for (screen2 = Vscreen_list; CONSP (2); screen2 = XCONS (screen2)->cdr)
 	if (! EQ (screen2, screen)
 	    && EQ (screen,
-		   WINDOW_SCREEN (XWINDOW (SCREEN_MINIBUF_WINDOW (XSCREEN (screen2))))))
+		   (WINDOW_SCREEN
+		    (XWINDOW
+		     (SCREEN_MINIBUF_WINDOW
+		      (XSCREEN (screen2)))))))
 	  error ("Attempt to delete a surrogate minibuffer screen");
     }
 
   /* Don't let the screen remain selected.  */
   if (s == selected_screen)
-    Fselect_screen (next_screen (screen, 1));
+    Fselect_screen (next_screen (screen, Qt));
 
   /* Don't allow minibuf_window to remain on a deleted screen.  */
   if (EQ (s->minibuffer_window, minibuf_window))
@@ -481,8 +533,8 @@ Default is current screen.")
 
       for (screen = Vscreen_list; CONSP (screen); screen = XCONS (screen)->cdr)
 	{
-	  s = XSCREEN (XCONS (screen)->cdr);
-	  if (!EQ (SCREEN_ROOT_WINDOW (s), SCREEN_MINIBUF_WINDOW (s)))
+	  s = XSCREEN (XCONS (screen)->car);
+	  if (!SCREEN_MINIBUF_ONLY_P (s))
 	    {
 	      last_nonminibuf_screen = s;
 	      break;
@@ -495,34 +547,26 @@ Default is current screen.")
 
 /* Return mouse position in character cell units.  */
 
-static
-read_mouse_position (screen, x, y)
-     Lisp_Object screen;
-     int *x, *y;
+DEFUN ("mouse-position", Fmouse_position, Smouse_position, 0, 0, 0,
+  "Return a list (SCREEN X . Y) giving the current mouse screen and position.\n\
+If Emacs is running on a mouseless terminal or hasn't been programmed\n\
+to read the mouse position, it returns the selected screen for SCREEN\n\
+and nil for X and Y.")
+  ()
 {
-  CHECK_SCREEN (screen, 0);
+  Lisp_Object x, y, dummy;
+  SCREEN_PTR s;
 
-  *x = 1;
-  *y = 1;
+  if (mouse_position_hook)
+    (*mouse_position_hook) (&s, &x, &y, &dummy);
+  else
+    {
+      s = selected_screen;
+      x = y = Qnil;
+    }
 
-#ifdef HAVE_X_WINDOWS
-  if (XSCREEN (screen)->output_method == output_x_window)
-    x_read_mouse_position (XSCREEN (screen), x, y);
-#endif
-}
-
-DEFUN ("read-mouse-position", Fread_mouse_position, Sread_mouse_position, 1, 1, 0,
-  "Return a cons (x . y) which represents the position of the mouse.")
-  (screen)
-     Lisp_Object screen;
-{
-  int x, y;
-  struct screen *s;
-
-  CHECK_SCREEN (screen, 0);
-
-  read_mouse_position (screen, &x, &y);
-  return Fcons (make_number (x), make_number (y));
+  XSET (dummy, Lisp_Screen, s);
+  return Fcons (dummy, Fcons (make_number (x), make_number (y)));
 }
 
 DEFUN ("set-mouse-position", Fset_mouse_position, Sset_mouse_position, 3, 3, 0,
@@ -531,7 +575,7 @@ WARNING:  If you use this under X, you should do unfocus-screen afterwards.")
   (screen, x, y)
      Lisp_Object screen, x, y;
 {
-  CHECK_SCREEN (screen, 0);
+  CHECK_LIVE_SCREEN (screen, 0);
   CHECK_NUMBER (x, 2);
   CHECK_NUMBER (y, 1);
 
@@ -556,16 +600,15 @@ This object can be given to `restore-screen-configuration'\n\
 to restore this screen configuration.")
   ()
 {
-  int x, y;
-  Lisp_Object c, screen;
-  struct screen *s;
+  Lisp_Object c, time;
   
-  c = Fmake_vector (make_number(3), Qnil);
-  XVECTOR (c)->contents[0] = screen = Fselected_screen();
-  read_mouse_position (screen, &x, &y);
-  XVECTOR (c)->contents[1] = make_number (x);
-  XVECTOR (c)->contents[2] = make_number (y);
-
+  c = Fmake_vector (make_number(4), Qnil);
+  XVECTOR (c)->contents[0] = Fselected_screen();
+  if (mouse_position_hook)
+    (*mouse_position_hook) (&XVECTOR (c)->contents[1]
+			    &XVECTOR (c)->contents[2],
+			    &XVECTOR (c)->contents[3],
+			    &time);
   return c;
 }
 
@@ -584,14 +627,14 @@ DEFUN ("restore-screen-configuration", Frestore_screen_configuration,
       error ("Wrong size vector passed to restore-screen-configuration");
     }
   screen = XVECTOR (config)->contents[0];
-  CHECK_SCREEN (screen, 0);
+  CHECK_LIVE_SCREEN (screen, 0);
 
   Fselect_screen (screen, Qnil);
 
 #if 0
   /* This seems to interfere with the screen selection mechanism. jla */
-  x_pos = XVECTOR (config)->contents[1];
-  y_pos = XVECTOR (config)->contents[2];
+  x_pos = XVECTOR (config)->contents[2];
+  y_pos = XVECTOR (config)->contents[3];
   set_mouse_position (screen, XINT (x_pos), XINT (y_pos));
 #endif
 
@@ -606,10 +649,7 @@ Also raises the screen so that nothing obscures it.")
   (screen)
      Lisp_Object screen;
 {
-  CHECK_SCREEN (screen, 0);
-
-  if (XSCREEN (screen)->display.nothing == 0)
-    error ("Cannot make a dead screen object visible");
+  CHECK_LIVE_SCREEN (screen, 0);
 
   if (XSCREEN (screen)->output_method == output_x_window)
     x_make_screen_visible (XSCREEN (screen));
@@ -623,7 +663,7 @@ DEFUN ("make-screen-invisible", Fmake_screen_invisible, Smake_screen_invisible,
   (screen)
      Lisp_Object screen;
 {
-  CHECK_SCREEN (screen, 0);
+  CHECK_LIVE_SCREEN (screen, 0);
 
   if (XSCREEN (screen)->output_method == output_x_window)
     x_make_screen_invisible (XSCREEN (screen));
@@ -637,10 +677,7 @@ DEFUN ("iconify-screen", Ficonify_screen, Siconify_screen,
   (screen)
      Lisp_Object screen;
 {
-  CHECK_SCREEN (screen, 0);
-
-  if (XSCREEN (screen)->display.nothing == 0)
-    error ("Cannot make a dead screen object iconified.");
+  CHECK_LIVE_SCREEN (screen, 0);
 
   if (XSCREEN (screen)->output_method == output_x_window)
       x_iconify_screen (XSCREEN (screen));
@@ -654,10 +691,7 @@ DEFUN ("deiconify-screen", Fdeiconify_screen, Sdeiconify_screen,
   (screen)
      Lisp_Object screen;
 {
-  CHECK_SCREEN (screen, 0);
-
-  if (XSCREEN (screen)->display.nothing == 0)
-    error ("Cannot deiconify a dead screen object.");
+  CHECK_LIVE_SCREEN (screen, 0);
 
   if (XSCREEN (screen)->output_method == output_x_window)
       x_make_screen_visible (XSCREEN (screen));
@@ -674,7 +708,7 @@ Return the symbol `icon' if window is visible only as an icon.")
   (screen)
      Lisp_Object screen;
 {
-  CHECK_SCREEN (screen, 0);
+  CHECK_LIVE_SCREEN (screen, 0);
 
   if (XSCREEN (screen)->visible)
     return Qt;
@@ -724,11 +758,12 @@ window when a screen doesn't have its own minibuffer.")
   (screen, focus_screen)
     Lisp_Object screen, focus_screen;
 {
-  CHECK_SCREEN (screen, 0);
+  CHECK_LIVE_SCREEN (screen, 0);
+
   if (NULL (focus_screen))
     focus_screen = screen;
   else
-    CHECK_SCREEN (focus_screen, 1);
+    CHECK_LIVE_SCREEN (focus_screen, 1);
 
   XSCREEN (screen)->focus_screen = focus_screen;
 
@@ -745,7 +780,7 @@ See redirect-screen-focus.")
   (screen)
     Lisp_Object screen;
 {
-  CHECK_SCREEN (screen, 0);
+  CHECK_LIVE_SCREEN (screen, 0);
   return SCREEN_FOCUS_SCREEN (XSCREEN (screen));
 }
 
@@ -820,7 +855,10 @@ The meaningful PARMs depend on the kind of screen.")
   store_in_alist (&alist, "height", make_number (s->height));
   store_in_alist (&alist, "width", make_number (s->width));
   store_in_alist (&alist, "modeline", (s->wants_modeline ? Qt : Qnil));
-  store_in_alist (&alist, "minibuffer", (s->has_minibuffer ? Qt : Qnil));
+  store_in_alist (&alist, "minibuffer",
+		  (SCREEN_HAS_MINIBUF (s)
+		   ? (SCREEN_MINIBUF_ONLY_P (s) ? intern ("only") : Qt)
+		   : Qnil));
   store_in_alist (&alist, "unsplittable", (s->no_split ? Qt : Qnil));
 
   if (s->output_method == output_x_window)
@@ -844,12 +882,9 @@ The meaningful PARMs depend on the kind of screen; undefined PARMs are ignored."
     s = selected_screen;
   else
     {
-      CHECK_SCREEN (screen, 0);
+      CHECK_LIVE_SCREEN (screen, 0);
       s = XSCREEN (screen);
     }
-
-  if (s->display.nothing == 0)
-    error ("Cannot modify parameters of a deleted screen");
 
   if (s->output_method == output_x_window)
     for (tail = alist; !EQ (tail, Qnil); tail = Fcdr (tail))
@@ -868,14 +903,14 @@ The meaningful PARMs depend on the kind of screen; undefined PARMs are ignored."
 
 DEFUN ("screen-pixel-size", Fscreen_pixel_size, 
        Sscreen_pixel_size, 1, 1, 0,
-  "Return a cons (width . height) of screen SCREEN's dimensions.")
+  "Return a cons (width . height) of SCREEN's size in pixels.")
   (screen)
      Lisp_Object screen;
 {
   register struct screen *s;
   int width, height;
 
-  CHECK_SCREEN (screen, 0);
+  CHECK_LIVE_SCREEN (screen, 0);
   s = XSCREEN (screen);
   
   return Fcons (make_number (x_pixel_width (s)),
@@ -910,7 +945,7 @@ but that the idea of the actual height of the screen should not be changed.")
     s = selected_screen;
   else
     {
-      CHECK_SCREEN (screen, 0);
+      CHECK_LIVE_SCREEN (screen, 0);
       s = XSCREEN (screen);
     }
 
@@ -937,7 +972,7 @@ but that the idea of the actual width of the screen should not be changed.")
     s = selected_screen;
   else
     {
-      CHECK_SCREEN (screen, 0);
+      CHECK_LIVE_SCREEN (screen, 0);
       s = XSCREEN (screen);
     }
 
@@ -951,8 +986,7 @@ but that the idea of the actual width of the screen should not be changed.")
   return Qnil;
 }
 
-DEFUN ("set-screen-size", Fset_screen_size, 
-       Sset_screen_size, 3, 3, 0,
+DEFUN ("set-screen-size", Fset_screen_size, Sset_screen_size, 3, 3, 0,
   "Sets size of SCREEN to COLS by ROWS, measured in characters.")
   (screen, cols, rows)
      Lisp_Object screen, cols, rows;
@@ -960,7 +994,7 @@ DEFUN ("set-screen-size", Fset_screen_size,
   register struct screen *s;
   int mask;
 
-  CHECK_SCREEN (screen, 0);
+  CHECK_LIVE_SCREEN (screen, 0);
   CHECK_NUMBER (cols, 2);
   CHECK_NUMBER (rows, 1);
   s = XSCREEN (screen);
@@ -978,14 +1012,17 @@ DEFUN ("set-screen-size", Fset_screen_size,
 
 DEFUN ("set-screen-position", Fset_screen_position, 
        Sset_screen_position, 3, 3, 0,
-  "Sets size of SCREEN in pixels to XOFFSET by YOFFSET.")
+  "Sets position of SCREEN in pixels to XOFFSET by YOFFSET.\n\
+If XOFFSET or YOFFSET are negative, they are interpreted relative to\n\
+the leftmost or bottommost position SCREEN could occupy without going\n\
+off the screen.")
   (screen, xoffset, yoffset)
      Lisp_Object screen, xoffset, yoffset;
 {
   register struct screen *s;
   int mask;
 
-  CHECK_SCREEN (screen, 0);
+  CHECK_LIVE_SCREEN (screen, 0);
   CHECK_NUMBER (xoffset, 1);
   CHECK_NUMBER (yoffset, 2);
   s = XSCREEN (screen);
@@ -994,68 +1031,6 @@ DEFUN ("set-screen-position", Fset_screen_position,
     x_set_offset (s, XINT (xoffset), XINT (yoffset));
 
   return Qt;
-}
-
-/* Test if column *x, row *y is within window *w.  If they are not,
-   return 0;  if they are on the window's modeline, return -1; if
-   they are in the window's text area (the only other alternative)
-   set *x and *y to their locations relative to the upper left
-   corner of the window, and return 1.  */
-int
-coordinates_in_window (w, x, y)
-     register struct window *w;
-     register int *x, *y;
-{
-  register int left = XINT (w->left);
-  register int width = XINT (w->width);
-  register int window_height = XINT (w->height);
-  register int top = XFASTINT (w->top);
-
-  if (*x < left || *x >= left + width
-      || *y < top || *y > top + window_height - 1)
-    return 0;
-
-  if (*y == top + window_height - 1
-      && window_height > 1)	/* 1 line => minibuffer */
-    /* in modeline */
-    return -1;
-
-  *x -= left;
-  *y -= top;
-  return 1;
-}
-
-DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
-  Scoordinates_in_window_p, 2, 2, 0,
-  "Return non-nil if COORDINATES are in WINDOW.\n\
-COORDINATES is a cons of the form (X Y), X and Y being screen-relative.\n\
-If COORDINATES are in the text portion of WINDOW, the coordinates relative\n\
-to the window are returned.  If they are in the modeline of WINDOW, t is\n\
-returned.")
-  (coordinates, window)
-     register Lisp_Object coordinates, window;
-{
-  int x, y;
-
-  CHECK_WINDOW (window, 0);
-  CHECK_CONS (coordinates, 1);
-  x = XINT (Fcar (coordinates));
-  y = XINT (Fcar (Fcdr (coordinates)));
-
-  switch (coordinates_in_window (XWINDOW (window), &x, &y))
-    {
-    case -1:			/* In modeline of window. */
-      return Qt;
-
-    case 0:			/* NOT in window at all. */
-      return Qnil;
-
-    case 1:			/* In text part of window. */
-      return Fcons (x, Fcons (y, Qnil));
-
-    default:
-      abort ();
-    }
 }
 
 #ifndef HAVE_X11
@@ -1116,6 +1091,10 @@ choose_minibuf_screen ()
 syms_of_screen ()
 {
   Qscreenp = intern ("screenp");
+  Qlive_screen_p = intern ("live_screen_p");
+
+  staticpro (&Qscreenp);
+  staticpro (&Qlive_screen_p);
 
   staticpro (&Vscreen_list);
 
@@ -1123,15 +1102,22 @@ syms_of_screen ()
     "The initial screen-object, which represents Emacs's stdout.");
 
   DEFVAR_LISP ("emacs-iconified", &Vemacs_iconified,
-    "Non-nil if all of emacs is iconified and not screen updates are needed.");
+    "Non-nil if all of emacs is iconified and screen updates are not needed.");
   Vemacs_iconified = Qnil;
 
-  DEFVAR_LISP ("global-minibuffer-screen", &Vglobal_minibuffer_screen,
-    "A screen whose minibuffer is used by minibufferless screens.\n\
-When you create a minibufferless screen, by default it will use the\n\
-minibuffer of this screen.  It is up to you to create a suitable screen\n\
-and store it in this variable.");
-  Vglobal_minibuffer_screen = Qnil;
+  DEFVAR_LISP ("default-minibuffer-screen", &Vdefault_minibuffer_screen,
+    "Minibufferless screens use this screen's minibuffer.\n\
+\n\
+Emacs cannot create minibufferless screens unless this is set to an\n\
+appropriate surrogate.\n\
+\n\
+Emacs consults this variable only when creating minibufferless\n\
+screens; once the screen is created, it sticks with its assigned\n\
+minibuffer, no matter what this variable is set to.  This means that\n\
+this variable doesn't necessarily say anything meaningful about the\n\
+current set of screens, or where the minibuffer is currently being\n\
+displayed.");
+  Vdefault_minibuffer_screen = Qnil;
 
   DEFVAR_LISP ("default-screen-alist", &Vdefault_screen_alist,
     "Alist of default values for screen creation.\n\
@@ -1145,6 +1131,7 @@ minibuffer-screen-alist.");
   Vdefault_screen_alist = Qnil;
 
   defsubr (&Sscreenp);
+  defsubr (&Slive_screen_p);
   defsubr (&Sselect_screen);
   defsubr (&Sselected_screen);
   defsubr (&Swindow_screen);
@@ -1153,7 +1140,7 @@ minibuffer-screen-alist.");
   defsubr (&Sscreen_list);
   defsubr (&Snext_screen);
   defsubr (&Sdelete_screen);
-  defsubr (&Sread_mouse_position);
+  defsubr (&Smouse_position);
   defsubr (&Sset_mouse_position);
 #if 0
   defsubr (&Sscreen_configuration);
@@ -1176,7 +1163,6 @@ minibuffer-screen-alist.");
   defsubr (&Sset_screen_width);
   defsubr (&Sset_screen_size);
   defsubr (&Sset_screen_position);
-  defsubr (&Scoordinates_in_window_p);
 #ifndef HAVE_X11
   defsubr (&Srubber_band_rectangle);
 #endif	/* HAVE_X11 */
