@@ -1,6 +1,6 @@
 # ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.2) $
+# $HopeName: MMsrc!commpost.nmk(trunk.3) $
 # Copyright(C) 1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -75,43 +75,43 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 !IFDEF VARIETY
 
 $(PFM)\$(VARIETY)\weakcv.exe: $(PFM)\$(VARIETY)\weakcv.obj \
-	$(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
-	$(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(MRGOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(DWOBJ) $(MRGOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mpmconft.exe: $(PFM)\$(VARIETY)\mpmconft.obj \
-	$(MPMOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) 
 
 $(PFM)\$(VARIETY)\mpmss.exe: $(PFM)\$(VARIETY)\mpmss.obj \
-	$(MPMOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) 
 
 $(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
-	$(MPMOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) 
 
 $(PFM)\$(VARIETY)\lockutnt.exe: $(PFM)\$(VARIETY)\lockutnt.obj \
-	$(MPMOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) 
 
 $(PFM)\$(VARIETY)\qs.exe:  $(PFM)\$(VARIETY)\qs.obj \
-	$(AMCOBJ) $(MPMOBJ) $(TESTLIBOBJ)
+	$(AMCOBJ) $(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amcss.exe:  $(PFM)\$(VARIETY)\amcss.obj \
-	$(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mpsicv.exe:  $(PFM)\$(VARIETY)\mpsicv.obj \
-	$(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\dwstress.exe:  $(PFM)\$(VARIETY)\dwstress.obj \
-	$(DWOBJ) $(MPMOBJ) $(AMCOBJ)
+	$(DWOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ)
 
 $(PFM)\$(VARIETY)\protcv.exe:  $(PFM)\$(VARIETY)\protcv.obj \
-	$(MPMOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) 
 
 $(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \
-	$(MPMOBJ) $(TESTLIBOBJ) $(PFM)\$(VARIETY)\pooln.obj
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(PFM)\$(VARIETY)\pooln.obj
 
 $(PFM)\$(VARIETY)\locv.exe:  $(PFM)\$(VARIETY)\locv.obj \
-	$(MPMOBJ) $(TESTLIBOBJ) $(LOOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ)
 
 $(PFM)\$(VARIETY)\mpm.lib: $(MPMOBJ)
 	$(ECHO) $@
@@ -155,7 +155,7 @@ $(PFM)\$(VARIETY)\poolawl.lib: $(AWLOBJ)
 # Coverage files
 {$(PFM)\$(VARIETY)}.exe{$(PFM)\$(VARIETY)}.cov:
 	$(ECHO) $@
- 	cd $(PFM)\$(VARIETY)
+	cd $(PFM)\$(VARIETY)
 	prep /nologo /lv  $(<F)
 	profile /nologo $(<B)
 	prep /nologo /m $(<B)
