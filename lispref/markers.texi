@@ -31,7 +31,7 @@ just as an integer could be used.  @xref{Positions}, for a complete
 description of positions.
 
   A marker has two attributes: the marker position, and the marker
-buffer.  The marker position is an integer which is equivalent (at a
+buffer.  The marker position is an integer that is equivalent (at a
 given time) to the marker as a position in that buffer.  But the
 marker's position value can change often during the life of the marker.
 Insertion and deletion of text in the buffer relocate the marker.  The
@@ -141,7 +141,7 @@ accessible portion of the buffer, or to the same place as another given
 marker.
 
 @defun make-marker
-This functions returns a newly allocated marker that does not point
+This functions returns a newly created marker that does not point
 anywhere.
 
 @example
@@ -309,10 +309,10 @@ in @var{buffer}.  If @var{buffer} is not provided, it defaults to
 the current buffer.
 
 If @var{position} is less than 1, @code{set-marker} moves @var{marker}
-to the beginning of the buffer.  If the value of @var{position} is
-greater than the size of the buffer, @code{set-marker} moves marker to
-the end of the buffer.  If @var{position} is @code{nil} or a marker that
-points nowhere, then @var{marker} is set to point nowhere.
+to the beginning of the buffer.  If @var{position} is greater than the
+size of the buffer, @code{set-marker} moves marker to the end of the
+buffer.  If @var{position} is @code{nil} or a marker that points
+nowhere, then @var{marker} is set to point nowhere.
 
 The value returned is @var{marker}.
 
@@ -365,16 +365,15 @@ explicitly.  @xref{Interactive Codes}.
   Each buffer has its own value of the mark that is independent of the
 value of the mark in other buffers.  When a buffer is created, the mark
 exists but does not point anywhere.  We consider this state as ``the
-absence of a mark in that buffer''.
+absence of a mark in that buffer.''
 
   Once the mark ``exists'' in a buffer, it normally never ceases to
 exist.  However, it may become @dfn{inactive}, if Transient Mark mode is
 enabled.  The variable @code{mark-active}, which is always local in all
-buffers, indicates whether the mark is active: non-@code{nil} means
-yes.  A command can request deactivation of the mark upon return to the
-editor command loop by setting @code{deactivate-mark} to a
-non-@code{nil} value (but this deactivation only follows if Transient
-Mark mode is enabled).
+buffers, indicates whether the mark is active: non-@code{nil} means yes.
+A command can request deactivation of the mark upon return to the editor
+command loop by setting @code{deactivate-mark} to a non-@code{nil} value
+(but this causes deactivation only if Transient Mark mode is enabled).
 
   The main motivation for using Transient Mark mode is that this mode
 also enables highlighting of the region when the mark is active.
@@ -399,7 +398,7 @@ this buffer.
 
 @defun mark-marker
 This function returns the current buffer's mark.  This is the very marker
-which records the mark location inside Emacs, not a copy.  Therefore,
+that records the mark location inside Emacs, not a copy.  Therefore,
 changing this marker's position will directly affect the position of the mark.
 Don't do it unless that is the effect you want.
 
@@ -505,8 +504,14 @@ inactive.
 
 @defvar deactivate-mark
 If an editor command sets this variable non-@code{nil}, then the editor
-command loop deactivates the mark after the command returns.
+command loop deactivates the mark after the command returns, but only if
+Transient Mark mode is enabled.
 @end defvar
+
+@defun deactivate-mark
+This function deactivates the mark, but only if Transient Mark mode
+is enabled.
+@end defun
 
 @defvar mark-active
 The mark is active when this variable is non-@code{nil}.  This variable
