@@ -1,6 +1,6 @@
 /* impl.c.arenacl: ARENA IMPLEMENTATION USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.3) $
+ * $HopeName: MMsrc!arenacl.c(trunk.4) $
  * 
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
@@ -41,7 +41,7 @@
 #error "Client arena not configured"
 #endif
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.3) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.4) $");
 
 Bool ArenaCheck(Arena arena)
 {
@@ -146,6 +146,7 @@ static Bool ChunkCheck(Chunk chunk)
 #define PageBase(chunk, pi) \
   AddrAdd((chunk)->pageBase, ((pi) << (chunk)->arena->pageShift))
 
+
 /* Index Types
  * 
  * PI is the type of a value used to index into a page table.
@@ -156,6 +157,23 @@ static Bool ChunkCheck(Chunk chunk)
 
 typedef Size PI;
 typedef Size BI;
+
+
+/* Base address to Page Index (within a chunk) mapping
+ *
+ */
+
+static PI ChunkPageIndexOfAddr(Chunk chunk, Addr addr)
+{
+  AVERT(Chunk, chunk);
+  AVER(chunk->pageBase <= addr);
+  AVER(addr < AddrAdd(chunk->pageBase,
+                      (Size)(chunk->pages << chunk->arena->pageShift)));
+
+  return (PI)(AddrOffset(chunk->pageBase, addr) >>
+	      chunk->arena->pageShift);
+}
+  
 
 /* ABTGet -- get a bool from a bool table
  *
@@ -246,9 +264,22 @@ static Res ChunkCreate(Chunk *chunkReturn, Addr base, Addr limit, Arena arena)
   for(i = 0; i < tablePages; ++i)
     ABTSet(chunk->freeTable, i, TRUE);
 
-  /* link to the arena */
+  /* link to the arena (in address order) */
   RingInit(&chunk->arenaRing);
-  RingAppend(&arena->chunkRing, &chunk->arenaRing);
+  {
+    Ring node;
+
+    node = RingNext(&arena->chunkRing);
+    RING_FOR(node, &arena->chunkRing) {
+      Chunk cchunk = RING_ELT(Chunk, arenaRing, node);
+      if(chunk->base < cchunk->base) {
+	goto found;
+      }
+    }
+  found:
+    RingAppend(node, &chunk->arenaRing);
+  }
+
   chunk->serial = arena->chunkSerial;
   ++ arena->chunkSerial;
 
@@ -822,23 +853,9 @@ static Seg SegSearchChunk(Chunk chunk, PI pi)
  * This is used to start an iteration over all segments in the arena.
  */
 
-Seg SegFirst(Space space)
+Bool SegFirst(Seg *segReturn, Space space)
 {
-  Arena arena;
-  Ring node;
-
-  arena = SpaceArena(space);
-  AVERT(Arena, arena);
-
-  /* must do the right thing for chunks with no pages */
-  RING_FOR(node, &arena->chunkRing) {
-    Chunk chunk = RING_ELT(Chunk, arenaRing, node);
-    Seg seg = SegSearchChunk(chunk, 0);
-    if (seg != NULL)
-      return seg;
-  }
-
-  return NULL;
+  return SegNext(segReturn, space, (Addr)0);
 }
 
 
@@ -848,32 +865,52 @@ Seg SegFirst(Space space)
  * segments in the arena.
  */
 
-Seg SegNext(Space space, Seg seg)
+Bool SegNext(Seg *segReturn, Space space, Addr addr)
 {
+  Ring node;
   Arena arena;
-  Chunk chunk;
-  PI pi;
-  Res res;
-  Seg next;
 
+  AVER(segReturn != NULL);
   AVERT(Space, space);
-  AVERT(Seg, seg);
+  AVER(AddrIsAligned(addr, ArenaAlign(space)));
 
-  AVERT(Arena, SpaceArena(space));
   arena = SpaceArena(space);
+  AVERT(Arena, arena);
 
-  res = SegChunk(&chunk, &pi, seg, arena);
-  AVER(res == ResOK);
+  /* For each chunk, search for a segment whose base is bigger than */
+  /* addr.  Chunks whose limit is less then add are not considered. */
+  /* Chunks are on the ring in address order, so this finds the first */
+  /* segment whose base is bigger than addr */
+  RING_FOR(node, &arena->chunkRing) {
+    Chunk chunk = RING_ELT(Chunk, arenaRing, node);
+    PI pi;
 
-  next = SegSearchChunk(chunk, pi+1);
+    if(addr < AddrAdd(chunk->pageBase,
+		      (Size)(chunk->pages << arena->pageShift))) {
+      Seg seg;
 
-  while (next == NULL) { /* then we've reached the end of the chunk */
-    Ring node = &chunk->arenaRing;
-    node = node->next;
-    if (node == &arena->chunkRing)
-      return NULL;
-    chunk = RING_ELT(Chunk, arenaRing, node);
-    next = SegSearchChunk(chunk,0);
+      if(addr < chunk->pageBase) {
+	/* The address is not in this chunk, so we want */
+	/* to start looking at the beginning of the chunk */
+	pi = 0;
+      } else {
+	/* The address is in this chunk, so we want */
+	/* to start looking just after the page at this address */
+	pi = ChunkPageIndexOfAddr(chunk, addr);
+	/* There are fewer pages than addresses so the page index will */
+	/* not wrap */
+	AVER(pi + 1 != 0);
+	++pi;
+      }
+      seg = SegSearchChunk(chunk, pi);
+      if(seg != NULL) {
+	AVER(addr < SegBase(space, seg));
+	*segReturn = seg;
+	return TRUE;
+      }
+    }
+    /* This chunk didn't have any more segs, so try the next one */
   }
-  return next;
+  /* if there are no more chunks, then we are done */
+  return FALSE;
 }
