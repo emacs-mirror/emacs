@@ -4858,7 +4858,7 @@ uncache_face (c, face)
    of frame F.  The face will be used to display character C.  Value
    is the ID of the face found.  If no suitable face is found, realize
    a new one.  In that case, if C is a multibyte character, BASE_FACE
-   is a face for ASCII characters that has the same attributes.  */
+   is a face that has the same attributes.  */
 
 INLINE int
 lookup_face (f, attr, c, base_face)
@@ -5759,10 +5759,10 @@ realize_named_face (f, symbol, id)
 
 /* Realize the fully-specified face with attributes ATTRS in face
    cache CACHE for character C.  If C is a multibyte character,
-   BASE_FACE is a face for ASCII characters that has the same
-   attributes.  Otherwise, BASE_FACE is ignored.  If FORMER_FACE_ID is
-   non-negative, it is an ID of face to remove before caching the new
-   face.  Value is a pointer to the newly created realized face.  */
+   BASE_FACE is a face that has the same attributes.  Otherwise,
+   BASE_FACE is ignored.  If FORMER_FACE_ID is non-negative, it is an
+   ID of face to remove before caching the new face.  Value is a
+   pointer to the newly created realized face.  */
 
 static struct face *
 realize_face (cache, attrs, c, base_face, former_face_id)
@@ -5805,12 +5805,12 @@ realize_face (cache, attrs, c, base_face, former_face_id)
 
 /* Realize the fully-specified face with attributes ATTRS in face
    cache CACHE for character C.  Do it for X frame CACHE->f.  If C is
-   a multibyte character, BASE_FACE is a face for ASCII characters
-   that has the same attributes.  Otherwise, BASE_FACE is ignored.  If
-   the new face doesn't share font with the default face, a fontname
-   is allocated from the heap and set in `font_name' of the new face,
-   but it is not yet loaded here.  Value is a pointer to the newly
-   created realized face.  */
+   a multibyte character, BASE_FACE is a face that has the same
+   attributes.  Otherwise, BASE_FACE is ignored.  If the new face
+   doesn't share font with the default face, a fontname is allocated
+   from the heap and set in `font_name' of the new face, but it is not
+   yet loaded here.  Value is a pointer to the newly created realized
+   face.  */
 
 static struct face *
 realize_x_face (cache, attrs, c, base_face)
@@ -5826,7 +5826,7 @@ realize_x_face (cache, attrs, c, base_face)
 
   xassert (FRAME_WINDOW_P (cache->f));
   xassert (SINGLE_BYTE_CHAR_P (c)
-	   || (base_face && base_face->ascii_face == base_face));
+	   || base_face);
 
   /* Allocate a new realized face.  */
   face = make_realized_face (attrs);
