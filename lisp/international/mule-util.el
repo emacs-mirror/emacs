@@ -287,6 +287,38 @@ or one is an alias of the other."
 	     (or (eq eol-type-1 eol-type-2)
 		 (and (vectorp eol-type-1) (vectorp eol-type-2)))))))
 
+;;;###autoload
+(defun find-safe-coding-system (from to)
+  "Return a list of proper coding systems to encode a text between FROM and TO.
+All coding systems in the list can safely encode any multibyte characters
+in the region.
+
+If the region contains no multibyte charcters, the returned list
+contains a single element `undecided'.
+
+Kludgy feature: if FROM is a string, then that string is the target
+for finding proper coding systems, and TO is ignored."
+  (let ((found (if (stringp from)
+		   (find-charset-string from)
+		 (find-charset-region from to)))
+	(l coding-system-list)
+	codings coding safe)
+    (if (and (= (length found) 1)
+	     (eq 'ascii (car found)))
+	'(undecided)
+      (while l
+	(setq coding (car l) l (cdr l))
+	(if (and (eq coding (coding-system-base coding))
+		 (setq safe (coding-system-get coding 'safe-charsets))
+		 (or (eq safe t)
+		     (catch 'tag
+		       (mapcar (function (lambda (x)
+					   (if (not (memq x safe))
+					       (throw 'tag nil))))
+			       found))))
+	    (setq codings (cons coding codings))))
+      codings)))
+
 
 ;;; Composite charcater manipulations.
 
