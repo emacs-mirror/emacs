@@ -626,10 +626,14 @@ This returns ARGS with the arguments that have been processed removed."
 ;;; Do the actual X Windows setup here; the above code just defines
 ;;; functions and variables that we use now.
 
-;; xterm.c depends on using interrupt-driven input.
-(set-input-mode t nil t)
 (x-open-connection (or x-display-name
 		       (setq x-display-name (getenv "DISPLAY"))))
+
+;; xterm.c depends on using interrupt-driven input, but we don't want
+;; the fcntls to apply to the terminal, so we do this after opening
+;; the display.
+(set-input-mode t nil t)
+
 (x-read-resources)
 (setq command-line-args (x-handle-args command-line-args))
 (x-pop-initial-window)
