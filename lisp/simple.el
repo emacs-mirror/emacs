@@ -2300,7 +2300,8 @@ Setting this variable automatically makes it local to the current buffer.")
   "*Regexp to match lines which should not be auto-filled.")
 
 (defun do-auto-fill ()
-  (let (fc justify bol give-up)
+  (let (fc justify bol give-up
+	   (fill-prefix fill-prefix))
     (if (or (not (setq justify (current-justification)))
 	    (null (setq fc (current-fill-column)))
 	    (and (eq justify 'left)
@@ -2312,6 +2313,26 @@ Setting this variable automatically makes it local to the current buffer.")
 	nil ;; Auto-filling not required
       (if (memq justify '(full center right))
 	  (save-excursion (unjustify-current-line)))
+
+      ;; Choose a fill-prefix automatically.
+      (if (and adaptive-fill-mode
+	       (or (null fill-prefix) (string= fill-prefix "")))
+	  (let (start end)
+	    (save-excursion
+	      (end-of-line)
+	      (setq end (point))
+	      (beginning-of-line)
+	      (setq start (point))
+	      (move-to-left-margin)
+	      ;; Don't do it if this line is a paragraph-starter line
+	      ;; because then the next line will probably also become one.
+	      ;; In text mode, when the user indents the first line of a
+	      ;; paragraph, we don't want all the lines to be indented.
+	      (and (not (looking-at paragraph-start))
+		   (re-search-forward adaptive-fill-regexp end t)
+		   (setq fill-prefix
+			 (buffer-substring-no-properties start (point)))))))
+
       (while (and (not give-up) (> (current-column) fc))
 	  ;; Determine where to split the line.
 	  (let ((fill-point
