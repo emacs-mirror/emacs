@@ -350,7 +350,7 @@ helpful to set the `DEBUGSOURCES' and `DEBUG_FILE' environment
 variables, so that one can see what LessTif was doing at this point.
 For instance
   
-  export DEBUGSOURCES="RowColumn.c MenuShell.c MenuUtil.c"
+  export DEBUGSOURCES="RowColumn.c:MenuShell.c:MenuUtil.c"
   export DEBUG_FILE=/usr/tmp/LESSTIF_TRACE
   emacs &
 
