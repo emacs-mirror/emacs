@@ -42,7 +42,7 @@ Boston, MA 02111-1307, USA.  */
 #endif /* not VMS */
 
 char *getenv (), *getwd ();
-char *getcwd ();
+char *(getcwd) ();
 
 #ifndef VERSION
 #define VERSION "unspecified"
