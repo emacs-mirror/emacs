@@ -13,7 +13,7 @@
 
 	* thumbs.el (thumbs-delete-images): Fix formatting of prompt.
 	(thumbs-show-image-num): Move assignment of
-	`thumbs-current-image-filename' within dynamic scope of `i'.
+	`thumbs-current-image-filename' within scope of `i'.
 	(thumbs-emboss-image): Don't use `evenp'.
 
 2004-04-28  Richard M. Stallman  <rms@gnu.org>
