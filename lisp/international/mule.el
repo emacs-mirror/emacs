@@ -247,6 +247,7 @@ See also the documentation of make-char."
     (and (or (= (nth 1 l) 0) (eq (nth 2 l) 0))
 	 (not (eq (car l) 'composition)))))
 
+
 ;; Coding system staffs
 
 ;; Coding system is a symbol that has the property `coding-system'.
@@ -260,92 +261,150 @@ See also the documentation of make-char."
 (defconst coding-spec-type-idx 0)
 (defconst coding-spec-mnemonic-idx 1)
 (defconst coding-spec-doc-string-idx 2)
-(defconst coding-spec-plist-idx 2)
+(defconst coding-spec-plist-idx 3)
 (defconst coding-spec-flags-idx 4)
 
-;; Coding system may have property `eol-type'.  The value of the
-;; property `eol-type' is integer 0..2 or a vector of three coding
-;; systems.  The integer value 0, 1, and 2 indicate the format of
-;; end-of-line LF, CRLF, and CR respectively.  The vector value
-;; indicates that the format of end-of-line should be detected
-;; automatically.  Nth element of the vector is the subsidiary coding
-;; system whose `eol-type' property is N.
+;; PLIST is a property list of a coding system.  A coding system has
+;; PLIST in coding-spec instead of having it in normal proper list of
+;; Lisp symbol to share PLIST among alias coding systems.  Here's a
+;; list of properties to be held in PLIST.
 ;;
-;; Coding system may also have properties `post-read-conversion' and
-;; `pre-write-conversion.  Values of these properties are functions.
+;; o coding-category
 ;;
-;; The function in `post-read-conversion' is called after some text is
-;; inserted and decoded along the coding system and before any
-;; functions in `after-insert-functions' are called.  The arguments to
-;; this function is the same as those of a function in
+;; The value is a coding category the coding system belongs to.  The
+;; function `make-coding-system' and `define-coding-system-alias' sets
+;; this value automatically.
+;;
+;; o alias-coding-systems
+;;
+;; The value is a list of coding systems of the same alias group.  The
+;; first element is the coding system made at first, which we call as
+;; `base coding system'.  The function `make-coding-system' and
+;; `define-coding-system-alias' set this value automatically.
+;;
+;; o post-read-conversion
+;;
+;; The value is a function to call after some text is inserted and
+;; decoded by the coding system itself and before any functions in
+;; `after-insert-functions' are called.  The arguments to this
+;; function is the same as those of a function in
 ;; `after-insert-functions', i.e. LENGTH of a text while putting point
 ;; at the head of the text to be decoded
 ;;
-;; The function in `pre-write-conversion' is called after all
-;; functions in `write-region-annotate-functions' and
-;; `buffer-file-format' are called, and before the text is encoded by
-;; the coding system.  The arguments to this function is the same as
-;; those of a function in `write-region-annotate-functions', i.e. FROM
-;; and TO specifying region of a text.
+;; o pre-write-conversion
+;;
+;; The value is a function to call after all functions in
+;; `write-region-annotate-functions' and `buffer-file-format' are
+;; called, and before the text is encoded by the coding system itself.
+;; The arguments to this function is the same as those of a function
+;; in `write-region-annotate-functions', i.e. FROM and TO specifying
+;; region of a text.
+;;
+;; o character-unification-table-for-decode
+;;
+;; The value is a unification table to be applied on decoding.  See
+;; the function `make-unification-table' for the format of unification
+;; table.
+;;
+;; o character-unification-table-for-encode
+;;
+;; The value is a unification table to be applied on encoding.
 
-;; Return Nth element of coding-spec of CODING-SYSTEM.
-(defun coding-system-spec-ref (coding-system n)
-  (check-coding-system coding-system)
-  (let ((vec (coding-system-spec coding-system)))
-    (and vec (aref vec n))))
+;; Return coding-spec of CODING-SYSTEM
+(defsubst coding-system-spec (coding-system)
+  (get (check-coding-system coding-system) 'coding-system))
 
 (defun coding-system-type (coding-system)
-  "Return TYPE element in coding-spec of CODING-SYSTEM."
-  (coding-system-spec-ref coding-system coding-spec-type-idx))
+  "Return the coding type of CODING-SYSTEM.
+A coding type is an integer value indicating the encoding method
+of CODING-SYSTEM.  See the function `make-coding-system' for more detail."
+  (aref (coding-system-spec coding-system) coding-spec-type-idx))
 
 (defun coding-system-mnemonic (coding-system)
-  "Return MNEMONIC element in coding-spec of CODING-SYSTEM."
-  (or (coding-system-spec-ref coding-system coding-spec-mnemonic-idx)
+  "Return the mnemonic character of CODING-SYSTEM.
+A mnemonic character of a coding system is used in mode line
+to indicate the coding system."
+  (or (aref (coding-system-spec coding-system) coding-spec-mnemonic-idx)
       ?-))
 
 (defun coding-system-doc-string (coding-system)
-  "Return DOC-STRING element in coding-spec of CODING-SYSTEM."
-  (coding-system-spec-ref coding-system coding-spec-doc-string-idx))
+  "Return the documentation string for CODING-SYSTEM."
+  (aref (coding-system-spec coding-system) coding-spec-doc-string-idx))
 
 (defun coding-system-plist (coding-system)
-  "Return PLIST element in coding-spec of CODING-SYSTEM."
-  (coding-system-spec-ref coding-system coding-spec-plist-idx))
+  "Return the property list of CODING-SYSTEM."
+  (aref (coding-system-spec coding-system) coding-spec-plist-idx))
 
 (defun coding-system-flags (coding-system)
-  "Return FLAGS element in coding-spec of CODING-SYSTEM."
-  (coding-system-spec-ref coding-system coding-spec-flags-idx))
+  "Return `flags' of CODING-SYSTEM.
+A `flags' of a coding system is a vector of length 32 indicating detailed
+information of a coding system.  See the function `make-coding-system'
+for more detail."
+  (aref (coding-system-spec coding-system) coding-spec-flags-idx))
 
-(defun coding-system-eol-type (coding-system)
-  "Return eol-type property of CODING-SYSTEM."
-  (check-coding-system coding-system)
-  (and coding-system
-       (or (get coding-system 'eol-type)
-	   (coding-system-eol-type (get coding-system 'coding-system)))))
+(defun coding-system-get (coding-system prop)
+  "Extract a value from CODING-SYSTEM's property list for property PROP."
+  (plist-get (coding-system-plist coding-system) prop))
+
+(defun coding-system-put (coding-system prop val)
+  "Change value in CODING-SYSTEM's property list PROP to VAL."
+  (let ((plist (coding-system-plist coding-system)))
+    (if plist
+	(plist-put plist prop val)
+      (aset (coding-system-spec coding-system) coding-spec-plist-idx
+	    (list prop val)))))
 
 (defun coding-system-category (coding-system)
-  "Return coding category of CODING-SYSTEM."
-  (and coding-system
-       (symbolp coding-system)
-       (or (get coding-system 'coding-category)
-	   (coding-system-category (get coding-system 'coding-system)))))
+  "Return the coding category of CODING-SYSTEM."
+  (coding-system-get coding-system 'coding-category))
 
-(defun coding-system-parent (coding-system)
-  "Return parent of CODING-SYSTEM."
-  (let ((parent (get coding-system 'parent-coding-system)))
-    (and parent
-	 (or (coding-system-parent parent)
-	     parent))))
+(defun coding-system-base (coding-system)
+  "Return the base coding system of CODING-SYSTEM.
+A base coding system is what made by `make-coding-system',
+not what made by `define-coding-system-alias'."
+  (car (coding-system-get coding-system 'alias-coding-systems)))
+
+(defalias 'coding-system-parent 'coding-system-base)
+(make-obsolete 'coding-system-parent 'coding-system-base)
+
+;; Coding system also has a property `eol-type'.
+;;
+;; This property indicates how the coding system handles end-of-line
+;; format.  The value is integer 0, 1, 2, or a vector of three coding
+;; systems.  Each integer value 0, 1, and 2 indicates the format of
+;; end-of-line LF, CRLF, and CR respectively.  A vector value
+;; indicates that the format of end-of-line should be detected
+;; automatically.  Nth element of the vector is the subsidiary coding
+;; system whose `eol-type' property is N.
+
+(defun coding-system-eol-type (coding-system)
+  "Return eol-type of CODING-SYSTEM.
+An eol-type is integer 0, 1, 2, or a vector of coding systems.
+
+Integer values 0, 1, and 2 indicate a format of end-of-line; LF,
+CRLF, and CR respectively.
+
+A vector value indicates that a format of end-of-line should be
+detected automatically.  Nth element of the vector is the subsidiary
+coding system whose eol-type is N."
+  (get coding-system 'eol-type))
 
 ;; Make subsidiary coding systems (eol-type variants) of CODING-SYSTEM.
 (defun make-subsidiary-coding-system (coding-system)
-  (let ((subsidiaries (vector (intern (format "%s-unix" coding-system))
+  (let ((coding-spec (coding-system-spec coding-system))
+	(subsidiaries (vector (intern (format "%s-unix" coding-system))
 			      (intern (format "%s-dos" coding-system))
 			      (intern (format "%s-mac" coding-system))))
-	(i 0))
+	(i 0)
+	temp)
     (while (< i 3)
-      (put (aref subsidiaries i) 'coding-system coding-system)
+      (put (aref subsidiaries i) 'coding-system coding-spec)
       (put (aref subsidiaries i) 'eol-type i)
-      (put (aref subsidiaries i) 'eol-variant t)
+      (setq coding-system-list
+	    (cons (aref subsidiaries i) coding-system-list))
+      (setq coding-system-alist
+	    (cons (list (symbol-name (aref subsidiaries i)))
+		  coding-system-alist))
       (setq i (1+ i)))
     subsidiaries))
 
@@ -354,7 +413,7 @@ See also the documentation of make-char."
   "Define a new CODING-SYSTEM (symbol).
 Remaining arguments are TYPE, MNEMONIC, DOC-STRING, and FLAGS (optional) which
 construct a coding-spec of CODING-SYSTEM in the following format:
-	[TYPE MNEMONIC DOC-STRING nil FLAGS]
+	[TYPE MNEMONIC DOC-STRING PLIST FLAGS]
 TYPE is an integer value indicating the type of coding-system as follows:
   0: Emacs internal format,
   1: Shift-JIS (or MS-Kanji) used mainly on Japanese PC,
@@ -362,8 +421,14 @@ TYPE is an integer value indicating the type of coding-system as follows:
   3: Big5 used mainly on Chinese PC,
   4: private, CCL programs provide encoding/decoding algorithm,
   5: Raw-text, which means that text contains random 8-bit codes. 
+
 MNEMONIC is a character to be displayed on mode line for the coding-system.
+
 DOC-STRING is a documentation string for the coding-system.
+
+PLIST is the propert list for CODING-SYSTEM.  This function sets
+properties coding-category and alias-coding-systems.
+
 FLAGS specifies more precise information of each TYPE.
 
   If TYPE is 2 (ISO-2022), FLAGS should be a list of:
@@ -399,17 +464,21 @@ FLAGS specifies more precise information of each TYPE.
   If TYPE is 4 (private), FLAGS should be a cons of CCL programs,
     for decoding and encoding.  See the documentation of CCL for more detail."
 
-  ;; At first, set a value of `coding-system' property.
+  (if (memq coding-system coding-system-list)
+      (error "Coding system %s already exists"))
+
+  ;; Set a value of `coding-system' property.
   (let ((coding-spec (make-vector 5 nil))
+	(no-initial-designation nil)
 	coding-category)
     (if (or (not (integerp type)) (< type 0) (> type 5))
-	(error "TYPE argument must be 0..4"))
+	(error "TYPE argument must be 0..5"))
     (if (or (not (integerp mnemonic)) (<= mnemonic ? ) (> mnemonic 127))
-	(error "MNEMONIC arguemnt must be a printable character."))
-    (aset coding-spec 0 type)
-    (aset coding-spec 1 mnemonic)
-    (aset coding-spec 2 (if (stringp doc-string) doc-string ""))
-    (aset coding-spec 3 nil)		; obsolete element
+	(error "MNEMONIC arguemnt must be an ASCII printable character."))
+    (aset coding-spec coding-spec-type-idx type)
+    (aset coding-spec coding-spec-mnemonic-idx mnemonic)
+    (aset coding-spec coding-spec-doc-string-idx
+	  (if (stringp doc-string) doc-string ""))
     (cond ((= type 0)
 	   (setq coding-category 'coding-category-emacs-mule))
 	  ((= type 1)
@@ -417,8 +486,8 @@ FLAGS specifies more precise information of each TYPE.
 	  ((= type 2)			; ISO2022
 	   (let ((i 0)
 		 (vec (make-vector 32 nil))
-		 (no-initial-designation t)
 		 (g1-designation nil))
+	     (setq no-initial-designation t)
 	     (while (< i 4)
 	       (let ((charset (car flags)))
 		 (if (and no-initial-designation
@@ -446,8 +515,6 @@ FLAGS specifies more precise information of each TYPE.
 	       (aset vec i (car flags))
 	       (setq flags (cdr flags) i (1+ i)))
 	     (aset coding-spec 4 vec)
-	     (if no-initial-designation
-		 (put coding-system 'no-initial-designation t))
 	     (setq coding-category
 		   (if (aref vec 8)	; Use locking-shift.
 		       (or (and (aref vec 7) 'coding-category-iso-7-else)
@@ -473,8 +540,14 @@ FLAGS specifies more precise information of each TYPE.
 	     (error "Invalid FLAGS argument for TYPE 4 (CCL)")))
 	  (t				; i.e. (= type 5)
 	   (setq coding-category 'coding-category-raw-text)))
+
+    (let ((plist (list 'coding-category coding-category
+		       'alias-coding-systems (list coding-system))))
+      (if no-initial-designation
+	  (setq plist (cons 'no-initial-designation
+			    (cons no-initial-designation plist))))
+      (aset coding-spec coding-spec-plist-idx plist))
     (put coding-system 'coding-system coding-spec)
-    (put coding-system 'coding-category coding-category)
     (put coding-category 'coding-systems
 	 (cons coding-system (get coding-category 'coding-systems))))
 
@@ -484,30 +557,25 @@ FLAGS specifies more precise information of each TYPE.
   (put coding-system 'eol-type
        (if (or (<= type 3) (= type 5))
 	   (make-subsidiary-coding-system coding-system)
-	 0)))
+	 0))
+
+  ;; At last, register CODING-SYSTEM in `coding-system-list' and
+  ;; `coding-system-alist'.
+  (setq coding-system-list (cons coding-system coding-system-list))
+  (setq coding-system-alist (cons (list (symbol-name coding-system))
+				  coding-system-alist)))
 
 (defun define-coding-system-alias (alias coding-system)
   "Define ALIAS as an alias for coding system CODING-SYSTEM."
-  (check-coding-system coding-system)
-  (let ((parent (coding-system-parent coding-system)))
-    (if parent
-	(setq coding-system parent)))
-  (put alias 'coding-system coding-system)
-  (put alias 'parent-coding-system coding-system)
-  (put coding-system 'alias-coding-systems
-       (cons alias (get coding-system 'alias-coding-systems)))
-  (let ((eol-variants (coding-system-eol-type coding-system))
-	subsidiaries)
-    (if (vectorp eol-variants)
-	(let ((i 0))
-	  (setq subsidiaries (make-subsidiary-coding-system alias))
-	  (while (< i 3)
-	    (put (aref subsidiaries i) 'parent-coding-system
-		 (aref eol-variants i))
-	    (put (aref eol-variants i) 'alias-coding-systems
-		 (cons (aref subsidiaries i) (get (aref eol-variants i)
-						  'alias-coding-systems)))
-	    (setq i (1+ i)))))))
+  (put alias 'coding-system (coding-system-spec coding-system))
+  (nconc (coding-system-get alias 'alias-coding-systems) (list alias))
+  (setq coding-system-list (cons alias coding-system-list))
+  (setq coding-system-alist (cons (list (symbol-name alias))
+				  coding-system-alist))
+  (let ((eol-type (coding-system-eol-type coding-system)))
+    (if (vectorp eol-type)
+	(put alias 'eol-type (make-subsidiary-coding-system alias))
+      (put alias 'eol-type eol-type))))
 
 (defun set-buffer-file-coding-system (coding-system &optional force)
   "Set the file coding-system of the current buffer to CODING-SYSTEM.
@@ -519,7 +587,7 @@ If the buffer's previous file coding-system value specifies end-of-line
 conversion, and CODING-SYSTEM does not specify one, CODING-SYSTEM is
 merged with the already-specified end-of-line conversion.
 However, if the optional prefix argument FORCE is non-nil,
-them CODING-SYSTEM is used exactly as specified."
+then CODING-SYSTEM is used exactly as specified."
   (interactive "zCoding system for visited file: \nP")
   (check-coding-system coding-system)
   (if (null force)
@@ -707,15 +775,15 @@ function by default."
       (let ((coding-system
 	     (find-new-buffer-file-coding-system last-coding-system-used))
 	    (modified-p (buffer-modified-p)))
-	(if coding-system
-	    (set-buffer-file-coding-system coding-system))
-	(if (or (eq coding-system 'no-conversion)
-		(eq (coding-system-type coding-system) 5))
-	    ;; It seems that random 8-bit codes are read.  We had
-	    ;; better edit this buffer without multibyte character
-	    ;; facility.
-	    (setq enable-multibyte-characters nil))
-	(set-buffer-modified-p modified-p)))
+	(when coding-system
+	  (set-buffer-file-coding-system coding-system)
+	  (if (or (eq coding-system 'no-conversion)
+		  (eq (coding-system-type coding-system) 5))
+	      ;; It seems that random 8-bit codes are read.  We had
+	      ;; better edit this buffer without multibyte character
+	      ;; facility.
+	      (setq enable-multibyte-characters nil))
+	  (set-buffer-modified-p modified-p))))
   nil)
 
 (setq after-insert-file-functions
@@ -745,12 +813,10 @@ Return nil if there's no need of setting new buffer-file-coding-system."
       (if (null (numberp local-eol))
 	  ;; But eol-type is not yet set.
 	  (setq local-eol nil))
-      (when (and buffer-file-coding-system
-		 (not (eq (coding-system-type buffer-file-coding-system) t)))
-	;; This is not `undecided'.
-	(setq local-coding buffer-file-coding-system)
-	(while (symbolp (get local-coding 'coding-system))
-	  (setq local-coding (get local-coding 'coding-system))))
+      (if (and buffer-file-coding-system
+	       (not (eq (coding-system-type buffer-file-coding-system) t)))
+	  ;; This is not `undecided'.
+	  (setq local-coding (coding-system-base buffer-file-coding-system)))
 
       (if (and (local-variable-p 'buffer-file-coding-system)
 	       local-eol local-coding)
@@ -762,11 +828,9 @@ Return nil if there's no need of setting new buffer-file-coding-system."
 	(if (null (numberp found-eol))
 	    ;; But eol-type is not found.
 	    (setq found-eol nil))
-	(unless (eq (coding-system-type coding) t)
-	  ;; This is not `undecided'.
-	  (setq found-coding coding)
-	  (while (symbolp (get found-coding 'coding-system))
-	    (setq found-coding (get found-coding 'coding-system))))
+	(if (not (eq (coding-system-type coding) t))
+	    ;; This is not `undecided'.
+	    (setq found-coding (coding-system-base coding)))
 
 	;; The local setting takes precedence over the found one.
 	(setq new-coding (or (and (local-variable-p 'buffer-file-coding-system)
