@@ -176,9 +176,11 @@ Fourth and fifth arg START and END specify the region to operate on."
 
 (defun map-query-replace-regexp (regexp to-strings &optional n start end)
   "Replace some matches for REGEXP with various strings, in rotation.
-The second argument TO-STRINGS contains the replacement strings, separated
-by spaces.  This command works like `query-replace-regexp' except
-that each successive replacement uses the next successive replacement string,
+The second argument TO-STRINGS contains the replacement strings,
+separated by spaces.  Third arg DELIMITED (prefix arg if interactive),
+if non-nil, means replace only matches surrounded by word boundaries.
+This command works like `query-replace-regexp' except that each
+successive replacement uses the next successive replacement string,
 wrapping around from the last such string to the first.
 
 In Transient Mark mode, if the mark is active, operate on the contents
@@ -397,8 +399,8 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (make-local-variable 'occur-command-arguments)
   (run-hooks 'occur-mode-hook))
 
-;; Handle revert-buffer for *Occur* buffers.
 (defun occur-revert-function (ignore1 ignore2)
+  "Handle revert-buffer for *Occur* buffers."
   (let ((args occur-command-arguments ))
     (save-excursion
       (set-buffer occur-buffer)
@@ -446,7 +448,7 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
       (setq r (next-single-property-change (point) 'occur-point))
       (if r
 	  (goto-char r)
-	(error "no more matches"))
+	(error "No more matches"))
       (setq n (1- n)))))
 
 
@@ -464,13 +466,13 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
       (setq r (previous-single-property-change (point) 'occur-point))
       (if r
 	  (goto-char (- r 1))
-	(error "no earlier matches"))
+	(error "No earlier matches"))
       
       (setq n (1- n)))))
 
 (defcustom list-matching-lines-default-context-lines 0
-  "*Default number of context lines to include around a `list-matching-lines'
-match.  A negative number means to include that many lines before the match.
+  "*Default number of context lines included around `list-matching-lines' matches.
+A negative number means to include that many lines before the match.
 A positive number means to include that many lines both before and after."
   :type 'integer
   :group 'matching)
@@ -478,7 +480,7 @@ A positive number means to include that many lines both before and after."
 (defalias 'list-matching-lines 'occur)
 
 (defvar list-matching-lines-face 'bold
-  "*Face used by M-x list-matching-lines to show the text that matches.
+  "*Face used by \\[list-matching-lines] to show the text that matches.
 If the value is nil, don't highlight the matching portions specially.")
 
 (defun occur (regexp &optional nlines)
@@ -519,7 +521,7 @@ the matching is case-sensitive."
 	(buffer (current-buffer))
 	(dir default-directory)
 	(linenum 1)
-	(prevpos 
+	(prevpos
 	 ;;position of most recent match
 	 (point-min))
 	(case-fold-search  (and case-fold-search
@@ -574,10 +576,10 @@ the matching is case-sensitive."
 						nlines
 					      (- nlines)))
 			      (point)))
-		     (end	
+		     (end
 		      ;; end point of text in source buffer to be put
 		      ;; into *Occur*
-		      (save-excursion 
+		      (save-excursion
 			(goto-char (match-end 0))
 			(if (> nlines 0)
 			    (forward-line (1+ nlines))
@@ -586,21 +588,21 @@ the matching is case-sensitive."
 		     (match-beg
 		      ;; Amount of context before matching text
 		      (- (match-beginning 0) start))
-		     (match-len		
+		     (match-len
 		      ;; Length of matching text
 		      (- (match-end 0) (match-beginning 0)))
 		     (tag (format "%5d" linenum))
 		     (empty (make-string (length tag) ?\ ))
-		     tem		
+		     tem
 		     insertion-start
 		     ;; Number of lines of context to show for current match.
-		     occur-marker	
+		     occur-marker
 		     ;; Marker pointing to end of match in source buffer.
 		     (text-beg
 		      ;; Marker pointing to start of text for one
 		      ;; match in *Occur*.
 		      (make-marker))
-		     (text-end 
+		     (text-end
 		      ;; Marker pointing to end of text for one match
 		      ;; in *Occur*.
 		      (make-marker))
@@ -623,7 +625,7 @@ the matching is case-sensitive."
 			   (with-current-buffer buffer
 			     (eq (char-before end) ?\n)))
 		      (insert "\n"))
-		  (set-marker final-context-start 
+		  (set-marker final-context-start
 			      (+ (- (point) (- end (match-end 0)))
 				 (if (save-excursion
 				       (set-buffer buffer)
@@ -755,15 +757,15 @@ The valid answers include `act', `skip', `act-and-show',
 (define-key query-replace-map [escape] 'exit-prefix)
 
 (defun replace-match-string-symbols (n)
-  ;; Process a list (and any sub-lists), expanding certain symbols:
-  ;; Symbol  Expands To
-  ;;   N     (match-string N)           (where N is a string of digits)
-  ;;   #N    (string-to-number (match-string N))
-  ;;   &     (match-string 0)
-  ;;   #&    (string-to-number (match-string 0))
-  ;;
-  ;; Note that these symbols must be preceeded by a backslash in order to
-  ;; type them.
+  "Process a list (and any sub-lists), expanding certain symbols.
+Symbol  Expands To
+N     (match-string N)           (where N is a string of digits)
+#N    (string-to-number (match-string N))
+&     (match-string 0)
+#&    (string-to-number (match-string 0))
+
+Note that these symbols must be preceeded by a backslash in order to
+type them."
   (while n
     (cond
      ((consp (car n))
@@ -1073,7 +1075,7 @@ which will run faster and probably do exactly what you want."
 	     (progn
 	       (setq replace-overlay (make-overlay start end))
 	       (overlay-put replace-overlay 'face
-			    (if (internal-find-face 'query-replace)
+			    (if (facep 'query-replace)
 				'query-replace 'region))))
 	 (move-overlay replace-overlay start end (current-buffer)))))
 
