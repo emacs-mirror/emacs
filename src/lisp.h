@@ -601,16 +601,6 @@ struct Lisp_Cons
   : NILP ((c)) ? Qnil				\
   : wrong_type_argument (Qlistp, (c)))
 
-/* Like a cons, but records info on where the text lives that it was read from */
-/* This is not really in use now */
-
-struct Lisp_Buffer_Cons
-  {
-    Lisp_Object car, cdr;
-    struct buffer *buffer;
-    int bufpos;
-  };
-
 /* Nonzero if STR is a multibyte string.  */
 #define STRING_MULTIBYTE(STR)  \
   (XSTRING (STR)->size_byte >= 0)
