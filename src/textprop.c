@@ -596,7 +596,7 @@ The property values are compared with `eq'.\n\
 Return nil if the property is constant all the way to the end of OBJECT.\n\
 If the value is non-nil, it is a position greater than POS, never equal.\n\n\
 If the optional fourth argument LIMIT is non-nil, don't search\n\
-past position LIMIT; fail if nothing is found before LIMIT.")
+past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   (pos, prop, object, limit)
      Lisp_Object pos, prop, object, limit;
 {
@@ -634,7 +634,7 @@ The optional second argument OBJECT is the string or buffer to scan.\n\
 Return nil if the property is constant all the way to the start of OBJECT.\n\
 If the value is non-nil, it is a position less than POS, never equal.\n\n\
 If the optional third argument LIMIT is non-nil, don't search\n\
-back past position LIMIT; fail if nothing is found before LIMIT.")
+back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
   (pos, object, limit)
      Lisp_Object pos, object, limit;
 {
@@ -676,7 +676,7 @@ The property values are compared with `eq'.\n\
 Return nil if the property is constant all the way to the start of OBJECT.\n\
 If the value is non-nil, it is a position less than POS, never equal.\n\n\
 If the optional fourth argument LIMIT is non-nil, don't search\n\
-back past position LIMIT; fail if nothing is found before LIMIT.")
+back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
      (pos, prop, object, limit)
      Lisp_Object pos, prop, object, limit;
 {
