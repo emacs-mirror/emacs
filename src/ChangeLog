@@ -1,3 +1,12 @@
+2000-04-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* term.c (TN_no_color_video): New variable.
+	(term_init): Intitialize TN_no_color_video.
+	(enum no_color_bit): New enumeration.
+	(MAY_USE_WITH_COLORS_P): New macro.
+	(turn_on_face): Use it to determine if attributes may be used
+	combined with colors.
+
 2000-04-01  Ken Raeburn  <raeburn@gnu.org>
 
 	* window.c (CURBEG, CURSIZE): Don't overload lisp object lvalues
