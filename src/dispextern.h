@@ -19,7 +19,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* New redisplay written by Gerd Moellmann <gerd@acm.org>.  */
+/* New redisplay written by Gerd Moellmann <gerd@gnu.org>.  */
 
 #ifndef DISPEXTERN_H_INCLUDED
 #define DISPEXTERN_H_INCLUDED
@@ -1663,9 +1663,12 @@ struct it
      character have been put on the previous line.  */
   unsigned starts_in_middle_of_char_p : 1;
 
+  /* If 1, saved_face_id contains the id of the face in front of text
+     skipped due to selective display.  */
+  unsigned face_before_selective_p : 1;
+
   /* The ID of the default face to use.  One of DEFAULT_FACE_ID,
-     MODE_LINE_FACE_ID, or TOOL_BAR_FACE_ID, depending on what we
-     are displaying.  */
+     MODE_LINE_FACE_ID, etc, depending on what we are displaying.  */
   int base_face_id;
 
   /* If what == IT_CHARACTER, character and length in bytes.  This is
