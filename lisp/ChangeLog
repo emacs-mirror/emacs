@@ -1,3 +1,9 @@
+2004-06-05  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-argument-name): Reintroduce face.
+	(help-default-arg-highlight): Use it, now that
+	`face-differs-from-default-p' can be trusted.
+
 2004-06-05  Matt Hodges  <matt@stchem.bham.ac.uk>  (tiny change)
 
 	* textmodes/table.el: Sentence commands added to Point Motion
