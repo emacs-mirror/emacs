@@ -9,11 +9,12 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/07/28 21:47:57 vinicius>
-;; Version:	5.2.4
+;; Time-stamp:	<2000/08/21 20:12:18 vinicius>
+;; Version:	6.0
+;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/Emacs.html
 
-(defconst ps-print-version "5.2.4"
-  "ps-print.el, v 5.2.4 <2000/07/28 vinicius>
+(defconst ps-print-version "6.0"
+  "ps-print.el, v 6.0 <2000/08/21 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -260,6 +261,18 @@ Please send all bug fixes and enhancements to
 ;; latest selected pages by using `ps-last-selected-pages' or by calling
 ;; `ps-restore-selected-pages' command (see it for documentation).
 ;;
+;; The variable `ps-even-or-odd-pages' specifies if it prints even/odd pages.
+;;
+;; Valid values are:
+;;
+;; nil		print all pages.
+;;
+;; even		print only even pages.
+;;
+;; odd		print only odd pages.
+;;
+;; Any other value is treated as nil.  The default value is nil.
+;;
 ;;
 ;; Horizontal layout
 ;; -----------------
@@ -448,8 +461,6 @@ Please send all bug fixes and enhancements to
 ;;
 ;; By default `ps-user-defined-prologue' is nil.
 ;;
-;; It's recommended to initiate and terminate the string with "\n".
-;;
 ;; It's strongly recommended only insert PostScript code and/or comments
 ;; specific for your printing system particularities.  For example, some special
 ;; initialization that only your printing system needs.
@@ -460,6 +471,13 @@ Please send all bug fixes and enhancements to
 ;; For more information about PostScript, see:
 ;;    PostScript Language Reference Manual (2nd edition)
 ;;    Adobe Systems Incorporated
+;;
+;; As an example for `ps-user-defined-prologue' setting:
+;;
+;;   ;; Setting for HP PostScript printer
+;;   (setq ps-user-defined-prologue
+;;	   (concat "<</DeferredMediaSelection true /PageSize [612 792] "
+;;		   "/MediaPosition 2 /MediaType (Plain)>> setpagedevice"))
 ;;
 ;;
 ;; PostScript Error Handler
@@ -676,7 +694,7 @@ Please send all bug fixes and enhancements to
 ;;	of `ps-line-number-step' inclusive.
 ;;
 ;;    * If `ps-line-number-step' is set to `zebra', must be between 1 and the
-;;	value of `ps-zebra-strip-height' inclusive.
+;;	value of `ps-zebra-stripe-height' inclusive.
 ;;
 ;; The default value is 1, so the line number of the first line of each interval
 ;; is printed.
@@ -896,8 +914,10 @@ Please send all bug fixes and enhancements to
 ;; The PostScript file should be sent to YOUR PostScript printer.
 ;; If you send it to ghostscript or to another PostScript printer,
 ;; you may get slightly different results.
-;; Anyway, as ghostscript fonts are autoload, you won't get
-;; much font info.
+;; Anyway, as ghostscript fonts are autoload, you won't get much font info.
+;;
+;; Note also that ps-print DOESN'T download any font to your printer, instead
+;; it uses the fonts resident in your printer.
 ;;
 ;;
 ;; How Ps-Print Deals With Faces
@@ -1080,6 +1100,9 @@ Please send all bug fixes and enhancements to
 ;;
 ;; [vinicius] Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;
+;;    20000821
+;;	 `ps-even-or-odd-pages'
+;;
 ;;    20000617
 ;;	 `ps-manual-feed', `ps-warn-paper-type', `ps-print-upside-down',
 ;;	 `ps-selected-pages', `ps-last-selected-pages',
@@ -1194,6 +1217,9 @@ Please send all bug fixes and enhancements to
 ;; Acknowledgements
 ;; ----------------
 ;;
+;; Thanks to Gord Wait <Gord_Wait@spectrumsignal.com> for
+;; `ps-user-defined-prologue' example setting for HP PostScript printer.
+;;
 ;; Thanks to Paul Furnanz <pfurnanz@synopsys.com> for XEmacs compatibility
 ;; suggestion for `ps-postscript-code-directory' variable.
 ;;
@@ -1205,7 +1231,7 @@ Please send all bug fixes and enhancements to
 ;; for XEmacs beta-tests.
 ;;
 ;; Thanks to Klaus Berndl <klaus.berndl@sdm.de> for user defined PostScript
-;; prologue code suggestion.
+;; prologue code suggestion and for odd/even printing suggestion.
 ;;
 ;; Thanks to Kein'ichi Handa <handa@etl.go.jp> for multi-byte buffer handling.
 ;;
@@ -1454,8 +1480,6 @@ prologue comments, and before ps-print PostScript prologue code section.  That
 is, this string is inserted after error handler initialization and before
 ps-print settings.
 
-It's recommended to initiate and terminate the string with \"\\n\".
-
 It's strongly recommended only insert PostScript code and/or comments specific
 for your printing system particularities.  For example, some special
 initialization that only your printing system needs.
@@ -1465,7 +1489,15 @@ handles this in a suitable way.
 
 For more information about PostScript, see:
    PostScript Language Reference Manual (2nd edition)
-   Adobe Systems Incorporated"
+   Adobe Systems Incorporated
+
+As an example for `ps-user-defined-prologue' setting:
+
+   ;; Setting for HP PostScript printer
+   (setq ps-user-defined-prologue
+	 (concat \"<</DeferredMediaSelection true /PageSize [612 792] \"
+		 \"/MediaPosition 2 /MediaType (Plain)>> setpagedevice\"))
+"
   :type '(choice :menu-tag "User Defined Prologue"
 		 :tag "User Defined Prologue"
 		 (const :tag "none" nil) string symbol)
@@ -1653,6 +1685,25 @@ it for documentation)."
 			(cons :tag "Range"
 			      (integer :tag "From")
 			      (integer :tag "To"))))
+  :group 'ps-print-page)
+
+(defcustom ps-even-or-odd-pages nil
+  "*Specify if it prints even/odd pages.
+
+Valid values are:
+
+   nil		print all pages.
+
+   `even'	print only even pages.
+
+   `odd'	print only odd pages.
+
+Any other value is treated as nil."
+  :type '(choice :menu-tag "Print Even/Odd Pages"
+		 :tag "Print Even/Odd Pages"
+		 (const :tag "All Pages" nil)
+		 (const :tag "Only Even Pages" even)
+		 (const :tag "Only Odd Pages" odd))
   :group 'ps-print-page)
 
 (defcustom ps-print-control-characters 'control-8-bit
@@ -2254,7 +2305,10 @@ To get the info for another specific font (say Helvetica), do the following:
   to get the line
 	   `3 cm 20 cm moveto  10/Helvetica ReportFontInfo  showpage'
 - add the values to `ps-font-info-database'.
-You can get all the fonts of YOUR printer using `ReportAllFontInfo'."
+You can get all the fonts of YOUR printer using `ReportAllFontInfo'.
+
+Note also that ps-print DOESN'T download any font to your printer, instead
+it uses the fonts resident in your printer."
   :type '(repeat (list :tag "Font Definition"
 		       (symbol :tag "Font Family")
 		       (cons :format "%v"
@@ -2715,6 +2769,7 @@ The table depends on the current ps-print setup."
       ps-header-font-size       %s
       ps-header-title-font-size %s
 
+      ps-even-or-odd-pages   %s
       ps-selected-pages      %s
       ps-last-selected-pages %s)
 
@@ -2775,6 +2830,7 @@ The table depends on the current ps-print setup."
    (ps-print-quote ps-header-font-family)
    (ps-print-quote ps-header-font-size)
    (ps-print-quote ps-header-title-font-size)
+   (ps-print-quote ps-even-or-odd-pages)
    (ps-print-quote ps-selected-pages)
    (ps-print-quote ps-last-selected-pages)))
 
@@ -2847,9 +2903,6 @@ The table depends on the current ps-print setup."
 
 (defvar ps-print-prologue-2 ""
   "ps-print PostScript prologue end.")
-
-(defvar ps-print-duplex-feature ""
-  "ps-print PostScript duplex feature.")
 
 ;; Start Editing Here:
 
@@ -3500,15 +3553,21 @@ page-height == bm + print-height + tm - ho - hh
 
 
 (defsubst ps-print-page-p ()
-  (cond ((null ps-first-page))
-	((<= ps-page-postscript ps-last-page)
-	 (<= ps-first-page ps-page-postscript))
-	(ps-selected-pages
-	 (ps-selected-pages)
-	 (and (<= ps-first-page ps-page-postscript)
-	      (<= ps-page-postscript ps-last-page)))
-	(t
-	 nil)))
+  (and (cond ((null ps-first-page))
+	     ((<= ps-page-postscript ps-last-page)
+	      (<= ps-first-page ps-page-postscript))
+	     (ps-selected-pages
+	      (ps-selected-pages)
+	      (and (<= ps-first-page ps-page-postscript)
+		   (<= ps-page-postscript ps-last-page)))
+	     (t
+	      nil))
+       (cond ((eq ps-even-or-odd-pages 'even)
+	      (= (logand ps-page-postscript 1) 0))
+	     ((eq ps-even-or-odd-pages 'odd)
+	      (= (logand ps-page-postscript 1) 1))
+	     (t)
+	     )))
 
 
 (defun ps-output (&rest args)
@@ -3653,7 +3712,7 @@ page-height == bm + print-height + tm - ho - hh
   (mapcar
    #'(lambda (text)
        (setq ps-background-text-count (1+ ps-background-text-count))
-       (ps-output (format "/ShowBackText-%d {\n" ps-background-text-count))
+       (ps-output (format "/ShowBackText-%d{\n" ps-background-text-count))
        (ps-output-string (nth 0 text))	; text
        (ps-output
 	"\n"
@@ -3664,7 +3723,7 @@ page-height == bm + print-height + tm - ho - hh
 	(ps-float-format (nth 5 text) 0.85) ; gray
 	(ps-float-format (nth 1 text) "0") ; x position
 	(ps-float-format (nth 2 text) "0") ; y position
-	"\nShowBackText} def\n")
+	"\nShowBackText}def\n")
        (ps-background-pages (nthcdr 7 text) ; page list
 			    (format "ShowBackText-%d\n"
 				    ps-background-text-count)))
@@ -3678,7 +3737,7 @@ page-height == bm + print-height + tm - ho - hh
 	 (when (file-readable-p image-file)
 	   (setq ps-background-image-count (1+ ps-background-image-count))
 	   (ps-output
-	    (format "/ShowBackImage-%d {\n--back-- "
+	    (format "/ShowBackImage-%d{\n--back-- "
 		    ps-background-image-count)
 	    (ps-float-format (nth 5 image) 0.0) ; rotation
 	    (ps-float-format (nth 3 image) 1.0) ; x scale
@@ -3705,7 +3764,7 @@ page-height == bm + print-height + tm - ho - hh
 			       (- (+ (/ (- (aref box 3) (aref box 1)) 2.0)
 				     (aref box 1)))))
 		      t)))))
-	   (ps-output "\nEndBackImage} def\n")
+	   (ps-output "\nEndBackImage}def\n")
 	   (ps-background-pages (nthcdr 6 image) ; page list
 				(format "ShowBackImage-%d\n"
 					ps-background-image-count)))))
@@ -3720,10 +3779,10 @@ page-height == bm + print-height + tm - ho - hh
 		     (if has-local-background
 			 (ps-output (aref range 2))
 		       (setq has-local-background t)
-		       (ps-output "/printLocalBackground {\n"
+		       (ps-output "/printLocalBackground{\n"
 				  (aref range 2)))))
 	    ps-background-pages)
-    (and has-local-background (ps-output "} def\n"))))
+    (and has-local-background (ps-output "}def\n"))))
 
 
 ;; Return a list of the distinct elements of LIST.
@@ -4272,8 +4331,6 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 						ps-spool-duplex
 					      ps-switch-header))
     (ps-output-boolean "ShowNofN          " ps-show-n-of-n)
-    (ps-output-boolean "DuplexValue       " ps-spool-duplex)
-    (ps-output-boolean "TumbleValue       " tumble)
 
     (let ((line-height (ps-line-height 'ps-font-for-text)))
       (ps-output (format "/LineHeight     %s def\n" line-height)
@@ -4332,15 +4389,15 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
     (ps-output "\n" ps-print-prologue-1)
 
-    (ps-output "\n/printGlobalBackground {\n")
+    (ps-output "\n/printGlobalBackground{\n")
     (ps-output-list ps-background-all-pages)
-    (ps-output "} def\n/printLocalBackground {\n} def\n")
+    (ps-output "}def\n/printLocalBackground{\n}def\n")
 
     ;; Header fonts
-    (ps-output (format "/h0 %s (%s) cvn DefFont\n" ; /h0 14 /Helvetica-Bold DefFont
+    (ps-output (format "/h0 %s(%s)cvn DefFont\n" ; /h0 14 /Helvetica-Bold DefFont
 		       ps-header-title-font-size-internal
 		       (ps-font 'ps-font-for-header 'bold))
-	       (format "/h1 %s (%s) cvn DefFont\n" ; /h1 12 /Helvetica DefFont
+	       (format "/h1 %s(%s)cvn DefFont\n" ; /h1 12 /Helvetica DefFont
 		       ps-header-font-size-internal
 		       (ps-font 'ps-font-for-header 'normal)))
 
@@ -4350,7 +4407,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (let ((font (ps-font-alist 'ps-font-for-text))
 	  (i 0))
       (while font
-	(ps-output (format "/f%d %s (%s) cvn DefFont\n"
+	(ps-output (format "/f%d %s(%s)cvn DefFont\n"
 			   i
 			   ps-font-size-internal
 			   (ps-font 'ps-font-for-text (car (car font)))))
@@ -4367,9 +4424,15 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 		 (ps-boolean-capitalized ps-spool-duplex)
 		 " *Tumble "
 		 (ps-boolean-capitalized tumble)
-		 "\n\n"
-		 ps-print-duplex-feature
-		 "\n%%EndFeature\n")))
+		 "\nUseSetpagedevice\n{BMark/Duplex "
+		 (ps-boolean-constant ps-spool-duplex)
+		 "/Tumble "
+		 (ps-boolean-constant tumble)
+		 " EMark setpagedevice}\n{statusdict begin "
+		 (ps-boolean-constant ps-spool-duplex)
+		 " setduplexmode "
+		 (ps-boolean-constant tumble)
+		 " settumble end}ifelse\n%%EndFeature\n")))
   (ps-output "\n%%BeginFeature: *ManualFeed "
 	     (ps-boolean-capitalized ps-manual-feed)
 	     "\nBMark /ManualFeed "
@@ -4456,11 +4519,10 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	(setq ps-postscript-code-directory
 	      (concat ps-postscript-code-directory "/"))))
   (or (equal ps-mark-code-directory ps-postscript-code-directory)
-      (setq ps-print-prologue-0     (ps-prologue-file 0)
-	    ps-print-prologue-1     (ps-prologue-file 1)
-	    ps-print-prologue-2     (ps-prologue-file 2)
-	    ps-print-duplex-feature (ps-prologue-file 3)
-	    ps-mark-code-directory  ps-postscript-code-directory))
+      (setq ps-print-prologue-0    (ps-prologue-file 0)
+	    ps-print-prologue-1    (ps-prologue-file 1)
+	    ps-print-prologue-2    (ps-prologue-file 2)
+	    ps-mark-code-directory ps-postscript-code-directory))
   ;; selected pages
   (let (new page)
     (while ps-selected-pages
