@@ -1,6 +1,6 @@
 ;;; font-lock.el --- Electric font lock mode
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 93, 94, 95, 96, 1997 Free Software Foundation, Inc.
 
 ;; Author: jwz, then rms, then sm <simon@gnu.ai.mit.edu>
 ;; Maintainer: FSF
@@ -195,7 +195,7 @@ for buffers in Rmail mode, and size is irrelevant otherwise.")
 ;; and they give users another mechanism for changing face appearance.
 ;; We now allow a FACENAME in `font-lock-keywords' to be any expression that
 ;; returns a face.  So the easiest thing is to continue using these variables,
-;; rather than sometimes evaling FACENAME and sometimes not.
+;; rather than sometimes evaling FACENAME and sometimes not.  sm.
 (defvar font-lock-comment-face		'font-lock-comment-face
   "Face to use for comments.")
 
@@ -485,7 +485,7 @@ This is normally set via `font-lock-defaults'.")
 Currently, valid mode names as `fast-lock-mode' and `lazy-lock-mode'.
 This is normally set via `font-lock-defaults'.")
 
-(defvar font-lock-mode nil)		; For the modeline.
+(defvar font-lock-mode nil)		; Whether we are turned on/modeline.
 (defvar font-lock-fontified nil)	; Whether we have fontified the buffer.
 
 ;;;###autoload
@@ -498,6 +498,10 @@ This is normally set via `font-lock-defaults'.")
   ;;
   ;; We don't do this at the top-level as we only use non-autoloaded macros.
   (require 'cl)
+  ;;
+  ;; Shut the byte-compiler up.
+  (require 'fast-lock)
+  (require 'lazy-lock)
   ;;
   ;; Borrowed from lazy-lock.el.
   ;; We use this to preserve or protect things when modifying text properties.
@@ -607,8 +611,8 @@ Turn on only if the terminal can display it."
 ;;;###autoload
 (defun font-lock-add-keywords (major-mode keywords &optional append)
   "Add highlighting KEYWORDS for MAJOR-MODE.
-MODE should be a symbol, the major mode command name, such as `c-mode' or nil.
-If nil, highlighting keywords are added for the current buffer.
+MAJOR-MODE should be a symbol, the major mode command name, such as `c-mode'
+or nil.  If nil, highlighting keywords are added for the current buffer.
 KEYWORDS should be a list; see the variable `font-lock-keywords'.
 By default they are added at the beginning of the current highlighting list.
 If optional argument APPEND is `set', they are used to replace the current
@@ -692,7 +696,7 @@ comments, and to fontify `and', `or' and `not' words as keywords."
 ;; (add-hook 'c-mode-hook 'turn-on-font-lock), would cause Font Lock mode to be
 ;; turned on everywhere.  That would not be intuitive or informative because
 ;; loading a file tells you nothing about the feature or how to control it.  It
-;; would also be contrary to the Principle of Least Surprise.
+;; would also be contrary to the Principle of Least Surprise.  sm.
 
 (defvar font-lock-buffers nil)		; For remembering buffers.
 (defvar global-font-lock-mode nil)
@@ -749,17 +753,17 @@ turned on in a buffer if its major mode is one of `font-lock-global-modes'."
   ;; the user.
   (remove-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
   (while font-lock-buffers
-    (if (buffer-live-p (car font-lock-buffers))
-	(save-excursion
-	  (set-buffer (car font-lock-buffers))
-	  (if (and (or font-lock-defaults
+    (when (buffer-live-p (car font-lock-buffers))
+      (save-excursion
+	(set-buffer (car font-lock-buffers))
+	(when (and (or font-lock-defaults
 		       (assq major-mode font-lock-defaults-alist))
 		   (or (eq font-lock-global-modes t)
 		       (if (eq (car-safe font-lock-global-modes) 'not)
 			   (not (memq major-mode (cdr font-lock-global-modes)))
 			 (memq major-mode font-lock-global-modes))))
-	      (let (inhibit-quit)
-		(turn-on-font-lock)))))
+	  (let (inhibit-quit)
+	    (turn-on-font-lock)))))
     (setq font-lock-buffers (cdr font-lock-buffers))))
 
 (add-hook 'change-major-mode-hook 'font-lock-change-major-mode)
@@ -901,7 +905,7 @@ The value of this variable is used when Font Lock mode is turned on.")
       ;; Rescan between start of lines enclosing the region.
       (font-lock-fontify-region
        (progn (goto-char beg) (beginning-of-line) (point))
-       (progn (goto-char (+ end old-len)) (forward-line 1) (point))))))
+       (progn (goto-char end) (forward-line 1) (point))))))
 
 (defun font-lock-fontify-block (&optional arg)
   "Fontify some lines the way `font-lock-fontify-buffer' would.
@@ -934,7 +938,7 @@ delimit the region to fontify."
 ;; line.  Used to make `font-lock-fontify-syntactically-region' faster.
 ;; Previously, `font-lock-cache-position' was just a buffer position.  However,
 ;; under certain situations, this occasionally resulted in mis-fontification.
-;; I think those "situations" were deletion with Lazy Lock mode's deferral.
+;; I think the "situations" were deletion with Lazy Lock mode's deferral.  sm.
 (defvar font-lock-cache-state nil)
 (defvar font-lock-cache-position nil)
 
@@ -1042,16 +1046,41 @@ START should be at the beginning of a line."
 
 ;;; Additional text property functions.
 
-;; The following three text property functions are not generally available (and
-;; it's not certain that they should be) so they are inlined for speed.
-;; The case for `fillin-text-property' is simple; it may or not be generally
-;; useful.  (Since it is used here, it is useful in at least one place.;-)
-;; However, the case for `append-text-property' and `prepend-text-property' is
-;; more complicated.  Should they remove duplicate property values or not?  If
-;; so, should the first or last duplicate item remain?  Or the one that was
-;; added?  In our implementation, the first duplicate remains.
+;; The following text property functions should be builtins.  This means they
+;; should be written in C and put with all the other text property functions.
+;; In the meantime, those that are used by font-lock.el are defined in Lisp
+;; below and given a `font-lock-' prefix.  Those that are not used are defined
+;; in Lisp below and commented out.  sm.
 
-(defsubst font-lock-fillin-text-property (start end prop value &optional object)
+(defun font-lock-prepend-text-property (start end prop value &optional object)
+  "Prepend to one property of the text from START to END.
+Arguments PROP and VALUE specify the property and value to prepend to the value
+already in place.  The resulting property values are always lists.
+Optional argument OBJECT is the string or buffer containing the text."
+  (let ((val (if (listp value) value (list value))) next prev)
+    (while (/= start end)
+      (setq next (next-single-property-change start prop object end)
+	    prev (get-text-property start prop object))
+      (put-text-property start next prop
+			 (append val (if (listp prev) prev (list prev)))
+			 object)
+      (setq start next))))
+
+(defun font-lock-append-text-property (start end prop value &optional object)
+  "Append to one property of the text from START to END.
+Arguments PROP and VALUE specify the property and value to append to the value
+already in place.  The resulting property values are always lists.
+Optional argument OBJECT is the string or buffer containing the text."
+  (let ((val (if (listp value) value (list value))) next prev)
+    (while (/= start end)
+      (setq next (next-single-property-change start prop object end)
+	    prev (get-text-property start prop object))
+      (put-text-property start next prop
+			 (append (if (listp prev) prev (list prev)) val)
+			 object)
+      (setq start next))))
+
+(defun font-lock-fillin-text-property (start end prop value &optional object)
   "Fill in one property of the text from START to END.
 Arguments PROP and VALUE specify the property and value to put where none are
 already in place.  Therefore existing property values are not overwritten.
@@ -1062,59 +1091,37 @@ Optional argument OBJECT is the string or buffer containing the text."
       (put-text-property start next prop value object)
       (setq start (text-property-any next end prop nil object)))))
 
-;; This function (from simon's unique.el) is rewritten and inlined for speed.
-;(defun unique (list function)
-;  "Uniquify LIST, deleting elements using FUNCTION.
-;Return the list with subsequent duplicate items removed by side effects.
-;FUNCTION is called with an element of LIST and a list of elements from LIST,
-;and should return the list of elements with occurrences of the element removed,
-;i.e., a function such as `delete' or `delq'.
-;This function will work even if LIST is unsorted.  See also `uniq'."
-;  (let ((list list))
-;    (while list
-;      (setq list (setcdr list (funcall function (car list) (cdr list))))))
-;  list)
+;; For completeness: this is to `remove-text-properties' as `put-text-property'
+;; is to `add-text-properties', etc.
+;(defun remove-text-property (start end property &optional object)
+;  "Remove a property from text from START to END.
+;Argument PROPERTY is the property to remove.
+;Optional argument OBJECT is the string or buffer containing the text.
+;Return t if the property was actually removed, nil otherwise."
+;  (remove-text-properties start end (list property) object))
 
-(defsubst font-lock-unique (list)
-  "Uniquify LIST, deleting elements using `delq'.
-Return the list with subsequent duplicate items removed by side effects."
-  (let ((list list))
-    (while list
-      (setq list (setcdr list (delq (car list) (cdr list))))))
-  list)
-
-;; A generalisation of `facemenu-add-face' for any property, but without the
-;; removal of inactive faces via `facemenu-discard-redundant-faces' and special
-;; treatment of `default'.  Uses `unique' to remove duplicate property values.
-(defsubst font-lock-prepend-text-property (start end prop value &optional object)
-  "Prepend to one property of the text from START to END.
-Arguments PROP and VALUE specify the property and value to prepend to the value
-already in place.  The resulting property values are always lists, and unique.
-Optional argument OBJECT is the string or buffer containing the text."
-  (let ((val (if (listp value) value (list value))) next prev)
-    (while (/= start end)
-      (setq next (next-single-property-change start prop object end)
-	    prev (get-text-property start prop object))
-      (put-text-property
-       start next prop
-       (font-lock-unique (append val (if (listp prev) prev (list prev))))
-       object)
-      (setq start next))))
-
-(defsubst font-lock-append-text-property (start end prop value &optional object)
-  "Append to one property of the text from START to END.
-Arguments PROP and VALUE specify the property and value to append to the value
-already in place.  The resulting property values are always lists, and unique.
-Optional argument OBJECT is the string or buffer containing the text."
-  (let ((val (if (listp value) value (list value))) next prev)
-    (while (/= start end)
-      (setq next (next-single-property-change start prop object end)
-	    prev (get-text-property start prop object))
-      (put-text-property
-       start next prop
-       (font-lock-unique (append (if (listp prev) prev (list prev)) val))
-       object)
-      (setq start next))))
+;; For consistency: maybe this should be called `remove-single-property' like
+;; `next-single-property-change' (not `next-single-text-property-change'), etc.
+;(defun remove-single-text-property (start end prop value &optional object)
+;  "Remove a specific property value from text from START to END.
+;Arguments PROP and VALUE specify the property and value to remove.  The
+;resulting property values are not equal to VALUE nor lists containing VALUE.
+;Optional argument OBJECT is the string or buffer containing the text."
+;  (let ((start (text-property-not-all start end prop nil object)) next prev)
+;    (while start
+;      (setq next (next-single-property-change start prop object end)
+;	    prev (get-text-property start prop object))
+;      (cond ((and (symbolp prev) (eq value prev))
+;	     (remove-text-property start next prop object))
+;	    ((and (listp prev) (memq value prev))
+;	     (let ((new (delq value prev)))
+;	       (cond ((null new)
+;		      (remove-text-property start next prop object))
+;		     ((= (length new) 1)
+;		      (put-text-property start next prop (car new) object))
+;		     (t
+;		      (put-text-property start next prop new object))))))
+;      (setq start (text-property-not-all next end prop nil object)))))
 
 ;;; Regexp fontification functions.
 
@@ -1137,16 +1144,13 @@ HIGHLIGHT should be of the form MATCH-HIGHLIGHT, see `font-lock-keywords'."
 	   (put-text-property start end 'face (eval (nth 1 highlight))))
 	  ((eq override 'prepend)
 	   ;; Prepend to existing fontification.
-	   (font-lock-prepend-text-property start end 'face
-					    (eval (nth 1 highlight))))
+	   (font-lock-prepend-text-property start end 'face (eval (nth 1 highlight))))
 	  ((eq override 'append)
 	   ;; Append to existing fontification.
-	   (font-lock-append-text-property start end 'face
-					   (eval (nth 1 highlight))))
+	   (font-lock-append-text-property start end 'face (eval (nth 1 highlight))))
 	  ((eq override 'keep)
 	   ;; Keep existing fontification.
-	   (font-lock-fillin-text-property start end 'face
-					   (eval (nth 1 highlight)))))))
+	   (font-lock-fillin-text-property start end 'face (eval (nth 1 highlight)))))))
 
 (defsubst font-lock-fontify-anchored-keywords (keywords limit)
   "Fontify according to KEYWORDS until LIMIT.
@@ -1327,13 +1331,13 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 
 ;; Colour etc. support.
 
-;; This section of code is crying out for revision.
+;; This section of code is crying out for revision.  Come on down, custom.el?
 
 ;; To begin with, `display-type' and `background-mode' are `frame-parameters'
 ;; so we don't have to calculate them here anymore.  But all the face stuff
 ;; should be frame-local (and thus display-local) anyway.  Because we're not
 ;; sure what support Emacs is going to have for general frame-local face
-;; attributes, we leave this section of code as it is.  For now.  --sm.
+;; attributes, we leave this section of code as it is.  For now.  sm.
 
 (defvar font-lock-display-type nil
   "A symbol indicating the display Emacs is running under.
@@ -1366,7 +1370,12 @@ specified here and used in `font-lock-keywords'.
 Subsequent element items should be the attributes for the corresponding
 Font Lock mode faces.  Attributes FOREGROUND and BACKGROUND should be strings
 \(default if nil), while BOLD-P, ITALIC-P, and UNDERLINE-P should specify the
-corresponding face attributes (yes if non-nil).
+corresponding face attributes (yes if non-nil).  For example:
+
+ (setq font-lock-face-attributes '((font-lock-warning-face \"HotPink\" nil t t)
+				   (font-lock-comment-face \"Red\")))
+
+in your ~/.emacs makes a garish bold-italic warning face and red comment face.
 
 Emacs uses default attributes based on display type and background brightness.
 See variables `font-lock-display-type' and `font-lock-background-mode'.
@@ -1533,9 +1542,9 @@ the face is also set; its value is the face name."
 ;;; Various regexp information shared by several modes.
 ;;; Information specific to a single mode should go in its load library.
 
-;; The C/C++/Objective-C/Java support is in cc-font.el loaded by cc-mode.el.
-;; The below function should stay in font-lock.el, since it is used by many
-;; other libraries.
+;; Font Lock support for C, C++, Objective-C and Java modes will one day be in
+;; cc-font.el (and required by cc-mode.el).  However, the below function should
+;; stay in font-lock.el, since it is used by other libraries.  sm.
 
 (defun font-lock-match-c-style-declaration-item-and-skip-to-next (limit)
   "Match, and move over, any declaration/definition item after point.
@@ -1774,7 +1783,7 @@ words (and words conforming to the Java id spec) are treated as type names.")
 ;; road.  But we know our destiny.  And our future.  For we must not rest.
 ;; There are more tokens to overload, more shoehorn, more methodologies.  But
 ;; more is a plus!  [Ha ha ha.]  And more means plus!  [Ho ho ho.]  The future
-;; is C++!  [Ohhh!]  The Third Millennium Award will be ours!  [Roar.]
+;; is C++!  [Ohhh!]  The Third Millennium Award...  Will be ours!  [Roar.]
 
 (defconst c-font-lock-keywords-1 nil
   "Subdued level highlighting for C mode.")
@@ -1925,7 +1934,7 @@ See also `c++-font-lock-extra-types'.")
   (when (looking-at (eval-when-compile
 		      (concat "[ \t*&]*\\(\\sw+\\)"
 			      "\\(<\\(\\sw+\\)[ \t*&]*>\\)?"
-			      "\\(::\\**\\(\\sw+\\)\\)?"
+			      "\\(::\\*?\\(\\sw+\\)\\)?"
 			      "[ \t]*\\((\\)?")))
     (save-match-data
       (condition-case nil
@@ -1957,7 +1966,7 @@ See also `c++-font-lock-extra-types'.")
 			 "+=" "-=" "*=" "/=" "%=" "^=" "&=" "|=" "<<" ">>"
 			 ">>=" "<<=" "==" "!=" "<=" ">=" "&&" "||" "++" "--"
 			 "->*" "," "->" "[]" "()")
-		       (function (lambda (a b) (> (length a) (length b))))))
+		       #'(lambda (a b) (> (length a) (length b)))))
 	 "\\|"))
        (c++-type-types
 ;      ("auto" "extern" "register" "static" "typedef" "struct" "union" "enum"
@@ -1977,7 +1986,7 @@ See also `c++-font-lock-extra-types'.")
 		       "v\\(irtual\\|o\\(id\\|latile\\)\\)"))	; 12 ()s deep.
 	   c++-font-lock-extra-types)
 	  "\\|"))
-       (c++-type-suffix "\\(<\\(\\sw+\\)[ \t*&]*>\\)?\\(::\\**\\(\\sw+\\)\\)?")
+       (c++-type-suffix "\\(<\\(\\sw+\\)[ \t*&]*>\\)?\\(::\\*?\\(\\sw+\\)\\)?")
        (c++-type-spec (concat "\\(\\sw+\\)\\>" c++-type-suffix))
       )
  (setq c++-font-lock-keywords-1
