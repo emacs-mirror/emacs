@@ -1,3 +1,20 @@
+2003-05-19  Richard M. Stallman  <rms@gnu.org>
+
+	* net/goto-addr.el (goto-address-fontify-maximum-size):
+	Value t means no limit.
+	(goto-address-fontify): Implement that feature.
+
+	* emacs-lisp/find-func.el (find-function-on-key): 
+	Move the call to find-function-other-window outside
+	the save-excursion.
+
+	* find-file.el (ff-special-constructs): Delete the Ada entry.
+
+	* faces.el (x-create-frame-with-faces):
+	Don't call face-set-after-frame-default.
+	(face-set-after-frame-default): Copy attrs of global `default'
+	face to FRAME's `default' face.
+
 2003-05-19  Joe Kelsey  <joek@flyingcroc.net>
 
 	* skeleton.el (skeleton-internal-1): Allow - as alternate
