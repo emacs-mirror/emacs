@@ -530,8 +530,8 @@ struct scroll_bar {
 
 /* Setting two lisp integers to the low and high words of a 32-bit C int.  */
 #define SCROLL_BAR_UNPACK(low, high, int32) \
-  (XSET ((low),  Lisp_Int,  (int32)        & 0xffff), \
-   XSET ((high), Lisp_Int, ((int32) >> 16) & 0xffff))
+  (XSETINT ((low),   (int32)        & 0xffff), \
+   XSETINT ((high), ((int32) >> 16) & 0xffff))
 
 
 /* Extract the X window id of the scroll bar from a struct scroll_bar.  */
