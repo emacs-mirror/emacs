@@ -828,7 +828,7 @@ case "${canonical}" in
   ;;
 
   ## NeXT
-  m68*-next-* )
+  m68*-next-* | i[34]86-next-* )
     machine=next opsys=mach2
   ;;
 
