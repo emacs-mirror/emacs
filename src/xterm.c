@@ -550,7 +550,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
   Window window = FRAME_X_WINDOW (f);
   int orig_left = left;
   int gidx = 0;
-  int pixel_width;
+  int i;
 
   while (n > 0)
     {
@@ -619,11 +619,6 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 
       /* LEN gets the length of the run.  */
       len = cp - buf;
-      /* PIXEL_WIDTH get the pixcel width of the run.  */
-      pixel_width
-	= (FONT_WIDTH (f->output_data.x->font)
-	   * (cmpcharp ? cmpcharp->width : len * CHARSET_WIDTH (charset)));
-
       /* Now output this run of chars, with the font and pixel values
 	 determined by the face code CF.  */
       {
@@ -631,10 +626,18 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	XFontStruct *font = NULL;
 	GC gc;
 	int stippled = 0;
+	int line_height = f->output_data.x->line_height;
+	/* Pixel width of each glyph in this run.  */
+	int glyph_width
+	  = FONT_WIDTH (f->output_data.x->font) * CHARSET_WIDTH (charset);
+	/* Overall pixel width of this run.  */
+	int run_width
+	  = (FONT_WIDTH (f->output_data.x->font)
+	     * (cmpcharp ? cmpcharp->width : len * CHARSET_WIDTH (charset)));
 	/* A flag to tell if we have already filled background.  We
 	   fill background in advance in the following cases:
 	   1) A face has stipple.
-	   2) A height of font is different from that of the current line.
+	   2) A height of font is shorter than LINE_HEIGHT.
 	   3) Drawing a composite character.
 	   4) Font has non-zero _MULE_BASELINE_OFFSET property.
 	   After filling background, we draw glyphs by XDrawString16.  */
@@ -644,6 +647,8 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	/* The property value of `_MULE_RELATIVE_COMPOSE' and
            `_MULE_DEFAULT_ASCENT'.  */
 	int relative_compose = 0, default_ascent = 0;
+	/* 1 if we find no font or a font of inappropriate size.  */
+	int require_clipping;
 
 	/* HL = 3 means use a mouse face previously chosen.  */
 	if (hl == 3)
@@ -691,12 +696,10 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	    font = (XFontStruct *) (fontp->font);
 	    gc = FACE_NON_ASCII_GC (face);
 	    XSetFont (FRAME_X_DISPLAY (f), gc, font->fid);
-	    if (font->max_byte1 != 0)
-	      baseline = (f->output_data.x->line_height
-			  + font->ascent - font->descent) / 2;
-	    else
-	      baseline = (f->output_data.x->font_baseline
-			  - fontp->baseline_offset);
+	    baseline
+	      = (font->max_byte1 != 0
+		 ? (line_height + font->ascent - font->descent) / 2
+		 : f->output_data.x->font_baseline - fontp->baseline_offset);
 	    if (cmpcharp && cmpcharp->cmp_rule == NULL)
 	      {
 		relative_compose = fontp->relative_compose;
@@ -755,10 +758,8 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	    /* The cursor overrides stippling.  */
 	    stippled = 0;
 
-	    if (!cmpcharp
-		&& (!font
-		    || font == (XFontStruct *) FACE_DEFAULT
-		    || font == f->output_data.x->font)
+	    if ((font == (XFontStruct *) FACE_DEFAULT
+		 || font == f->output_data.x->font)
 		&& face->background == f->output_data.x->background_pixel
 		&& face->foreground == f->output_data.x->foreground_pixel)
 	      {
@@ -813,28 +814,51 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	if (font == (XFontStruct *) FACE_DEFAULT)
 	  font = f->output_data.x->font;
 
+	if (font)
+	  require_clipping = (FONT_HEIGHT (font) > line_height
+			      || FONT_WIDTH (font) > glyph_width
+			      || baseline != f->output_data.x->font_baseline);
+
 	if (font && (just_foreground || (cmpcharp && gidx > 0)))
 	  background_filled = 1;
-	else if (!font
-		 || stippled
-		 || f->output_data.x->line_height != FONT_HEIGHT (font)
-		 || cmpcharp
-		 || baseline != f->output_data.x->font_baseline)
+	else if (stippled)
 	  {
-	    if (!stippled)
-	      /* This is to fill a rectangle with background color.  */
-	      XSetStipple (FRAME_X_DISPLAY (f), gc,
-			   FRAME_X_DISPLAY_INFO (f)->null_pixel);
 	    /* Turn stipple on.  */
 	    XSetFillStyle (FRAME_X_DISPLAY (f), gc, FillOpaqueStippled);
 
 	    /* Draw stipple or background color on background.  */
 	    XFillRectangle (FRAME_X_DISPLAY (f), window, gc,
-			    left, top, pixel_width,
-			    f->output_data.x->line_height);
+			    left, top, run_width, line_height);
 
 	    /* Turn stipple off.  */
 	    XSetFillStyle (FRAME_X_DISPLAY (f), gc, FillSolid);
+
+	    background_filled = 1;
+	  }
+	else if (!font
+		 || FONT_HEIGHT (font) < line_height
+		 || FONT_WIDTH (font) < glyph_width
+		 || baseline != f->output_data.x->font_baseline
+		 || cmpcharp)
+	  {
+	    /* Fill a area for the current run in background pixle of GC.  */
+	    XGCValues xgcv;
+	    unsigned long mask = GCForeground | GCBackground;
+	    unsigned long fore, back;
+
+	    /* The current code at first exchange foreground and
+	      background of GC, fill the area, then recover the
+	      original foreground and background of GC.
+	      Aren't there more smart ways?  */
+
+	    XGetGCValues (FRAME_X_DISPLAY (f), gc, mask, &xgcv);
+	    fore = xgcv.foreground, back = xgcv.background;
+	    xgcv.foreground = back, xgcv.background = fore;
+	    XChangeGC (FRAME_X_DISPLAY (f), gc, mask, &xgcv);
+	    XFillRectangle (FRAME_X_DISPLAY (f), window, gc,
+			    left, top, run_width, line_height);
+	    xgcv.foreground = fore, xgcv.background = back;
+	    XChangeGC (FRAME_X_DISPLAY (f), gc, mask, &xgcv);
 
 	    background_filled = 1;
 	    if (cmpcharp)
@@ -847,10 +871,48 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 
 	if (font)
 	  {
-	    if (cmpcharp)
+	    if (require_clipping)
+	      {
+		Region region;	/* Region used for setting clip mask to GC.  */
+		XPoint x[4];	/* Data used for creating REGION.  */
+
+		x[0].x = x[3].x = left, x[1].x = x[2].x = left + glyph_width;
+		x[0].y = x[1].y = top,  x[2].y = x[3].y = top + line_height;
+		region = XPolygonRegion (x, 4, EvenOddRule);
+		XSetRegion (FRAME_X_DISPLAY (f), gc, region);
+		XDestroyRegion (region);
+	      }
+
+	    if (!cmpcharp)
+	      {
+		if (require_clipping)
+		  for (i = 0; i < len; i++)
+		    {
+		      if (i > 0) 
+			XSetClipOrigin (FRAME_X_DISPLAY (f), gc,
+					glyph_width * i, 0);
+		      if (background_filled)
+			XDrawString16 (FRAME_X_DISPLAY (f), window, gc,
+				       left + glyph_width * i,
+				       top + baseline, buf + i, 1);
+		      else
+			XDrawImageString16 (FRAME_X_DISPLAY (f), window, gc,
+					    left + glyph_width * i,
+					    top + baseline, buf + i, 1);
+		    }
+		else
+		  {
+		    if (background_filled)
+		      XDrawString16 (FRAME_X_DISPLAY (f), window, gc,
+				     left, top + baseline, buf, len);
+		    else
+		      XDrawImageString16 (FRAME_X_DISPLAY (f), window, gc,
+					  left, top + baseline, buf, len);
+		  }
+	      }
+	    else
 	      {
 		XCharStruct *pcm; /* Pointer to per char metric info.  */
-		int i;
 
 		if ((cmpcharp->cmp_rule || relative_compose)
 		    && gidx == 0)
@@ -939,22 +1001,8 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 				   buf + i, 1);
 		  }
 	      }
-	    else if (background_filled)
-	      XDrawString16 (FRAME_X_DISPLAY (f), window, gc,
-			     left, top + baseline, buf, len);
-	    else
-	      XDrawImageString16 (FRAME_X_DISPLAY (f), window, gc,
-				  left, top + baseline, buf, len);
-
-	    /* Clear the rest of the line's height.  */
-	    if (f->output_data.x->line_height > FONT_HEIGHT (font))
-	      XClearArea (FRAME_X_DISPLAY (f), window, left,
-			  top + FONT_HEIGHT (font),
-			  FONT_WIDTH (font) * len,
-			  /* This is how many pixels of height
-			     we have to clear.  */
-			  f->output_data.x->line_height - FONT_HEIGHT (font),
-			  False);
+	    if (require_clipping)
+	      XSetClipMask (FRAME_X_DISPLAY (f), gc, None);
 
 #if 0 /* Doesn't work, because it uses FRAME_CURRENT_GLYPHS,
 	 which often is not up to date yet.  */
@@ -969,29 +1017,20 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	      }
 #endif
 	  }
-	else
+	if (!font || require_clipping)
 	  {
-	    /* There's no appropriate font for this glyph.  Just show
-               rectangles.  */
+	    /* Show rectangles to show that we found no font or a font
+               of inappropriate size.  */
 
 	    if (cmpcharp)
 	      XDrawRectangle
 		(FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-		 left, top + 1,
-		 pixel_width - 2, f->output_data.x->line_height - 3);
+		 left, top, run_width - 1, line_height - 1);
 	    else
-	      {
-		int left_offset;
-		int left_skip_step = (FONT_WIDTH (f->output_data.x->font)
-				      * CHARSET_WIDTH (charset));
-
-		for (left_offset = 0; left_offset < pixel_width;
-		     left_offset += left_skip_step)
-		  XDrawRectangle
-		    (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-		     left + left_offset, top + 1,
-		     left_skip_step - 2, f->output_data.x->line_height - 3);
-	      }
+	      for (i = 0; i < len; i++)
+		XDrawRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+				left + glyph_width * i, top,
+				glyph_width -1, line_height - 1);
 	  }
 	
 	/* We should probably check for XA_UNDERLINE_POSITION and
@@ -1004,17 +1043,17 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	     on the default font of this frame.  */
 	  int underline_position = f->output_data.x->font_baseline + 1;
 
-	  if (underline_position >= f->output_data.x->line_height)
-	    underline_position = f->output_data.x->line_height - 1;
+	  if (underline_position >= line_height)
+	    underline_position = line_height - 1;
 
 	  if (face->underline)
 	    XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    FACE_GC (face),
-			    left, top + underline_position, pixel_width, 1);
+			    left, top + underline_position, run_width, 1);
 	}
 
 	if (!cmpcharp)
-	  left += pixel_width;
+	  left += run_width;
       }
     }
 
@@ -5171,8 +5210,8 @@ x_new_font (f, fontname)
 
 /* Give frame F the fontset named FONTSETNAME as its default font, and
    return the full name of that fontset.  FONTSETNAME may be a wildcard
-   pattern; in that case, we choose some font that fits the pattern.
-   The return value shows which font we chose.  */
+   pattern; in that case, we choose some fontset that fits the pattern.
+   The return value shows which fontset we chose.  */
 
 Lisp_Object
 x_new_fontset (f, fontsetname)
@@ -6128,30 +6167,39 @@ x_list_fonts (f, pattern, size, maxnames)
      int size;
      int maxnames;
 {
-  Lisp_Object list, newlist, key;
+  Lisp_Object list, patterns = Qnil, newlist = Qnil, key, tem, second_best;
   Display *dpy = f != NULL ? FRAME_X_DISPLAY (f) : x_display_list->display;
 
-  key = Fcons (pattern, make_number (maxnames));
-
-  if (f == NULL)
-    list = Qnil;
-  else
-    /* See if we cached the result for this particular query.  */
-    list = Fassoc (key,
-		   XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->cdr);
-
-  /* Now LIST has the form (KEY . FONT-DATA-LIST), where KEY is a
-    pattern which matches font names in FONT-DATA-LIST, FONT-DATA-LIST
-    is a list of cons cells for the form (FONTNAME . FONTWIDTH).  */
-
-  if (!NILP (list))
-    list = XCONS (list)->cdr;
-  else
+  for (list = Valternative_fontname_alist; CONSP (list);
+       list = XCONS (list)->cdr)
     {
-      /* At first, put PATTERN in the cache.  */
+      tem = XCONS (list)->car;
+      if (CONSP (tem)
+	  && STRINGP (XCONS (tem)->car)
+	  && !NILP (Fstring_equal (XCONS (tem)->car, pattern)))
+	{
+	  patterns = XCONS (tem)->cdr;
+	  break;
+	}
+    }
+
+  for (patterns = Fcons (pattern, patterns); CONSP (patterns);
+       patterns = XCONS (patterns)->cdr, pattern = XCONS (patterns)->car)
+    {
       int num_fonts;
       char **names;
 
+      /* See if we cached the result for this particular query.  */
+      if (f && (tem = XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->cdr,
+		key = Fcons (pattern, make_number (maxnames)),
+		!NILP (list = Fassoc (key, tem))))
+	{
+	  list = Fcdr_safe (list);
+	  /* We have a cashed list.  Don't have to get the list again.  */
+	  goto label_cached;
+	}
+
+      /* At first, put PATTERN in the cache.  */
       BLOCK_INPUT;
       names = XListFonts (dpy, XSTRING (pattern)->data, maxnames, &num_fonts);
       UNBLOCK_INPUT;
@@ -6159,7 +6207,6 @@ x_list_fonts (f, pattern, size, maxnames)
       if (names)
 	{
 	  int i;
-	  Lisp_Object tem;
 
 	  /* Make a list of all the fonts we got back.
 	     Store that in the font cache for the display.  */
@@ -6169,10 +6216,10 @@ x_list_fonts (f, pattern, size, maxnames)
 	      int average_width = -1, dashes = 0, width = 0;
 
 	      /* Count the number of dashes in NAMES[I].  If there are
-		 14 dashes, and the field value following 12th dash
-		 (AVERAGE_WIDTH) is 0, this is a auto-scaled font
-		 which is usually too ugly to be used for editing.
-		 Let's ignore it.  */
+		14 dashes, and the field value following 12th dash
+		(AVERAGE_WIDTH) is 0, this is a auto-scaled font which
+		is usually too ugly to be used for editing.  Let's
+		ignore it.  */
 	      while (*p)
 		if (*p++ == '-')
 		  {
@@ -6192,7 +6239,7 @@ x_list_fonts (f, pattern, size, maxnames)
 			      (Vx_pixel_size_width_font_regexp, names[i])
 			      >= 0))
 			/* We can set the value of PIXEL_SIZE to the
-                           width of this font.  */
+			  width of this font.  */
 			list = Fcons (Fcons (tem, make_number (width)), list);
 		      else
 			/* For the moment, width is not known.  */
@@ -6203,31 +6250,33 @@ x_list_fonts (f, pattern, size, maxnames)
 	  XFreeFontNames (names);
 	}
 
+      /* Now store the result in the cache.  */
       if (f != NULL)
 	XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->cdr
 	  = Fcons (Fcons (key, list),
 		   XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->cdr);
-    }
 
-  if (NILP (list))
-    return Qnil;
+    label_cached:
+      if (NILP (list)) continue; /* Try the remaining alternatives.  */
 
-  newlist = Qnil;
-
-  /* Make a list of the fonts that have the right width.  */
-  for (; CONSP (list); list = XCONS (list)->cdr)
-    {
-      Lisp_Object tem = XCONS (list)->car;
-      int keeper;
-
-      if (!CONSP (tem) || NILP (XCONS (tem)->car))
-	continue;
-      if (!size)
-	keeper = 1;
-      else
+      newlist = second_best = Qnil;
+      /* Make a list of the fonts that have the right width.  */
+      for (; CONSP (list); list = XCONS (list)->cdr)
 	{
+	  tem = XCONS (list)->car;
+
+	  if (!CONSP (tem) || NILP (XCONS (tem)->car))
+	    continue;
+	  if (!size)
+	    {
+	      newlist = Fcons (XCONS (tem)->car, newlist);
+	      continue;
+	    }
+
 	  if (!INTEGERP (XCONS (tem)->cdr))
 	    {
+	      /* Since we have not yet known the size of this font, we
+		must try slow function call XLoadQueryFont.  */
 	      XFontStruct *thisinfo;
 
 	      BLOCK_INPUT;
@@ -6241,12 +6290,35 @@ x_list_fonts (f, pattern, size, maxnames)
 		  XFreeFont (dpy, thisinfo);
 		}
 	      else
+		/* For unknown reason, the previous call of XListFont had
+		  retruned a font which can't be opened.  Record the size
+		  as 0 not to try to open it again.  */
 		XCONS (tem)->cdr = make_number (0);
 	    }
-	  keeper = XINT (XCONS (tem)->cdr) == size;
+	  if (XINT (XCONS (tem)->cdr) == size)
+	    newlist = Fcons (XCONS (tem)->car, newlist);
+	  else if (NILP (second_best))
+	    second_best = tem;
+	  else if (XINT (XCONS (tem)->cdr) < size)
+	    {
+	      if (XINT (XCONS (second_best)->cdr) > size
+		  || XINT (XCONS (second_best)->cdr) < XINT (XCONS (tem)->cdr))
+		second_best = tem;
+	    }
+	  else
+	    {
+	      if (XINT (XCONS (second_best)->cdr) > size
+		  && XINT (XCONS (second_best)->cdr) > XINT (XCONS (tem)->cdr))
+		second_best = tem;
+	    }
 	}
-      if (keeper)
-	newlist = Fcons (XCONS (tem)->car, newlist);
+      if (!NILP (newlist))
+	break;
+      else if (!NILP (second_best))
+	{
+	  newlist = Fcons (XCONS (second_best)->car, Qnil);
+	  break;
+	}
     }
 
   return newlist;
@@ -6298,7 +6370,7 @@ x_load_font (f, fontname, size)
     BLOCK_INPUT;
     font = (XFontStruct *) XLoadQueryFont (FRAME_X_DISPLAY (f), fontname);
     UNBLOCK_INPUT;
-    if (!font || (size && font->max_bounds.width != size))
+    if (!font)
       return NULL;
 
     /* Do we need to create the table?  */
