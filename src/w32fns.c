@@ -576,7 +576,7 @@ x_create_bitmap_from_file (f, file)
     }
 
   /* Search bitmap-file-path for the file, if appropriate.  */
-  fd = openp (Vx_bitmap_file_path, file, Qnil, &found, 0);
+  fd = openp (Vx_bitmap_file_path, file, Qnil, &found, Qnil);
   if (fd < 0)
     return -1;
   emacs_close (fd);
@@ -9454,7 +9454,7 @@ x_find_image_file (file)
   GCPRO2 (file_found, search_path);
 
   /* Try to find FILE in data-directory, then x-bitmap-file-path.  */
-  fd = openp (search_path, file, Qnil, &file_found, 0);
+  fd = openp (search_path, file, Qnil, &file_found, Qnil);
   
   if (fd == -1)
     file_found = Qnil;
