@@ -48,7 +48,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #if defined(BSD) || defined(STRIDE)
 #include <sys/ioctl.h>
-#if !defined (O_NDELAY) && defined (HAVE_PTYS)
+#if !defined (O_NDELAY) && defined (HAVE_PTYS) && !defined(USG5)
 #include <fcntl.h>
 #endif /* HAVE_PTYS and no O_NDELAY */
 #endif /* BSD or STRIDE */
@@ -119,7 +119,6 @@ static Lisp_Object stream_process;
 #ifndef VMS
 #ifndef WAITTYPE
 #if !defined (BSD) && !defined (UNIPLUS) && !defined (STRIDE) && !(defined (HPUX) && !defined (NOMULTIPLEJOBS)) && !defined (HAVE_WAIT_HEADER)
-mis;tak-+;;:
 #define WAITTYPE int
 #define WIFSTOPPED(w) ((w&0377) == 0177)
 #define WIFSIGNALED(w) ((w&0377) != 0177 && (w&~0377) == 0)
@@ -1796,7 +1795,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  Available &= ~(ChannelMask (comm_server));
 	  create_commchan ();
 	}
-#endif vipc
+#endif /* vipc */
 
       if (! wait_proc)
 	got_some_input |= nfds > 0;
@@ -2245,10 +2244,12 @@ process_send_signal (process, signo, current_group, nomsg)
 	  ioctl (XFASTINT (p->infd), TIOCGETC, &c);
 	  send_process (proc, &c.t_quitc, 1);
 	  return Qnil;
+#ifdef SIGTSTP
 	case SIGTSTP:
 	  ioctl (XFASTINT (p->infd), TIOCGLTC, &lc);
 	  send_process (proc, &lc.t_suspc, 1);
 	  return Qnil;
+#endif /* SIGTSTP */
 	}
 #endif /* ! defined (TIOCGLTC) && defined (TIOCGETC) */
       /* It is possible that the following code would work
