@@ -121,7 +121,6 @@ set print pretty on
 
 unset environment TERMCAP
 unset environment TERM
-set environment DISPLAY :0.0
 show environment DISPLAY
 set args -q
 
