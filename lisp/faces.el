@@ -679,7 +679,7 @@ like an underlying face would be, with higher priority than underlying faces."
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility.
 Use `set-face-attribute' for finer control of the font weight."
-  (interactive (list (read-face-name "Make which face bold ")))
+  (interactive (list (read-face-name "Make which face bold")))
   (set-face-attribute face frame :weight 'bold))
 
 
@@ -687,7 +687,7 @@ Use `set-face-attribute' for finer control of the font weight."
   "Make the font of FACE be non-bold, if possible.
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility."
-  (interactive (list (read-face-name "Make which face non-bold ")))
+  (interactive (list (read-face-name "Make which face non-bold")))
   (set-face-attribute face frame :weight 'normal))
 
 
@@ -696,7 +696,7 @@ Argument NOERROR is ignored and retained for compatibility."
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility.
 Use `set-face-attribute' for finer control of the font slant."
-  (interactive (list (read-face-name "Make which face italic ")))
+  (interactive (list (read-face-name "Make which face italic")))
   (set-face-attribute face frame :slant 'italic))
 
 
@@ -704,7 +704,7 @@ Use `set-face-attribute' for finer control of the font slant."
   "Make the font of FACE be non-italic, if possible.
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility."
-  (interactive (list (read-face-name "Make which face non-italic ")))
+  (interactive (list (read-face-name "Make which face non-italic")))
   (set-face-attribute face frame :slant 'normal))
 
 
@@ -713,7 +713,7 @@ Argument NOERROR is ignored and retained for compatibility."
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility.
 Use `set-face-attribute' for finer control of font weight and slant."
-  (interactive (list (read-face-name "Make which face bold-italic: ")))
+  (interactive (list (read-face-name "Make which face bold-italic")))
   (set-face-attribute face frame :weight 'bold :slant 'italic))
 
 
@@ -828,7 +828,7 @@ If FRAME is omitted or nil, it means change face on all frames.
 If FACE specifies neither foreground nor background color,
 set its foreground and background to the background and foreground
 of the default face.  Value is FACE."
-  (interactive (list (read-face-name "Invert face ")))
+  (interactive (list (read-face-name "Invert face")))
   (let ((fg (face-attribute face :foreground frame))
 	(bg (face-attribute face :background frame)))
     (if (not (and (eq fg 'unspecified) (eq bg 'unspecified)))
@@ -847,6 +847,7 @@ of the default face.  Value is FACE."
 
 (defun read-face-name (prompt)
   "Read and return a face symbol, prompting with PROMPT.
+PROMPT should not end with a blank, since this function appends one.
 Value is a symbol naming a known face."
   (let ((face-list (mapcar #'(lambda (x) (cons (symbol-name x) x))
 			   (face-list)))
