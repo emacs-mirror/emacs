@@ -345,6 +345,10 @@ case $basic_machine in
 	hppa-next)
 		os=-nextstep3
 		;;
+	hp3k9[0-9][0-9] | hp9[0-9][0-9])
+		basic_machine=hppa1.0-hp
+		os=-mpeix
+		;;
 	i370-ibm* | ibm*)
 		basic_machine=i370-ibm
 		os=-mvs
@@ -714,7 +718,7 @@ case $os in
 	      | -ptx* | -coff* | -ecoff* | -winnt* | -domain* | -vsta* \
 	      | -udi* | -eabi* | -lites* | -ieee* | -go32* | -aux* \
 	      | -cygwin32* | -pe* | -psos* | -moss* | -proelf* | -rtems* \
-	      | -mingw32* | -linux-gnu* | -uxpv* | -beos*)
+	      | -mingw32* | -linux-gnu* | -uxpv* | -beos* | -mpeix*)
 	# Remember, each alternative MUST END IN *, to match a version number.
 		;;
 	-linux*)
@@ -918,6 +922,9 @@ case $basic_machine in
 				vendor=ibm
 				;;
 			-hpux*)
+				vendor=hp
+				;;
+			-mpeix*)
 				vendor=hp
 				;;
 			-hiux*)
