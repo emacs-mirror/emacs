@@ -620,7 +620,7 @@ If you do this twice in the same position, the selection is killed."
 	;; Don't let a subsequent kill command append to this one:
 	;; prevent setting this-command to kill-region.
 	(this-command this-command))
-    (if (> (mod mouse-selection-click-count 3) 0)
+    (if (and (mark t) (> (mod mouse-selection-click-count 3) 0))
 	(if (not (and (eq last-command 'mouse-save-then-kill)
 		      (equal click-posn
 			     (car (cdr-safe (cdr-safe mouse-save-then-kill-posn))))))
