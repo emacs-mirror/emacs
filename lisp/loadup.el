@@ -150,7 +150,7 @@
 (if (and (or (equal (nth 3 command-line-args) "dump")
 	     (equal (nth 4 command-line-args) "dump"))
 	 (not (eq system-type 'ms-dos)))
-    (let* ((base (concat "emacs-" emacs-version))
+    (let* ((base (concat "emacs-" emacs-version "."))
 	   (files (file-name-all-completions base default-directory))
 	   (versions (mapcar (function (lambda (name)
 					 (string-to-int (substring name (1+ (length base))))))
