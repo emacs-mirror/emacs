@@ -2648,7 +2648,7 @@ specbind (symbol, value)
   if (BUFFER_OBJFWDP (ovalue) || KBOARD_OBJFWDP (ovalue))
     store_symval_forwarding (symbol, ovalue, value);
   else
-    Fset (symbol, value);
+    set_internal (symbol, value, 1);
 }
 
 void
@@ -2686,7 +2686,7 @@ unbind_to (count, value)
       else if (NILP (specpdl_ptr->symbol))
 	Fprogn (specpdl_ptr->old_value);
       else
-        Fset (specpdl_ptr->symbol, specpdl_ptr->old_value);
+        set_internal (specpdl_ptr->symbol, specpdl_ptr->old_value, 1);
     }
   if (NILP (Vquit_flag) && quitf) Vquit_flag = Qt;
 
