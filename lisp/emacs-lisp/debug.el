@@ -584,10 +584,9 @@ Applies to the frame whose line point is on in the backtrace."
     (terpri))
 
   (with-current-buffer (get-buffer debugger-record-buffer)
-    (save-excursion
-      (forward-line -1)
-      (message
-       (buffer-substring (point) (progn (end-of-line) (point)))))))
+    (message "%s" 
+	     (buffer-substring (line-beginning-position 0)
+			       (line-end-position 0)))))
 
 (put 'debugger-mode 'mode-class 'special)
 
