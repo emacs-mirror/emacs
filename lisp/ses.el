@@ -52,7 +52,7 @@
   :group 'ses
   :type '(cons (integer :tag "numrows") (integer :tag "numcols")))
 
-(defcustom ses-initial-column-width 7
+(defcustom ses-initial-column-width 14
   "Initial width of columns in a new spreadsheet."
   :group 'ses
   :type '(integer :match (lambda (widget value) (> value 0))))
