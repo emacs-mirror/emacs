@@ -1315,7 +1315,10 @@ set_point (position, buffer)
     {
       toprev = to;
       to = next_interval (to);
-      position = to->position;
+      if (NULL_INTERVAL_P (to))
+	position = BUF_ZV (buffer);
+      else
+	position = to->position;
     }
 
   buffer->text.pt = position;
