@@ -1,3 +1,16 @@
+2005-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xmenu.c (ENCODE_MENU_STRING): Explicitly use string_make_unibyte.
+	(list_of_panes, list_of_items, Fx_popup_menu): Use XCAR/XCDR.
+	(digest_single_submenu, xmenu_show): Use ENCODE_MENU_STRING.
+
+	* xfns.c (xic_defaut_fontset): New constant.
+	(xic_create_fontsetname): New function.
+	Extracted from create_frame_xic.  Try to generate a slightly
+	better fontset.
+	(xic_create_xfontset): Use it.
+	(create_frame_xic): Simplify.
+
 2005-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Fmake_symbolic_link): Fix last change.
