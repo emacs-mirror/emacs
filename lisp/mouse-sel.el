@@ -209,7 +209,7 @@ mouse-sel sets the variables interprogram-cut-function and
 interprogram-paste-function to nil.
 
 - Clicking mouse-2 inserts the contents of the primary selection at
-the mouse position (or point, if mouse-yank-at-point is non-nil).
+the mouse position (or point, if `mouse-yank-at-point' is non-nil).
 
 - Pressing mouse-2 while selecting or extending copies selection
 to the kill ring.  Pressing mouse-1 or mouse-3 kills it.
@@ -302,8 +302,8 @@ primary selection and region."
 (defconst mouse-sel-selection-alist
   '((PRIMARY mouse-drag-overlay mouse-sel-primary-thing)
     (SECONDARY mouse-secondary-overlay mouse-sel-secondary-thing))
-  "Alist associating selections with variables.  Each element is of
-the form:
+  "Alist associating selections with variables.
+Each element is of the form:
 
    (SELECTION-NAME OVERLAY-SYMBOL SELECTION-THING-SYMBOL)
 
