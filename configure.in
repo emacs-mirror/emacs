@@ -1969,9 +1969,9 @@ if test "$ac_cv_lib_lockfile_maillock" = no; then
     AC_MSG_ERROR([Shared liblockfile found but can't link against it.
 This probably means that movemail could lose mail.
 There may be a \`development' package to install containing liblockfile.])
-  else AC_DEFINE(LIBMAIL, -llockfile)
-  fi
   else :
+  fi
+else AC_DEFINE(HAVE_LIBMAIL)
 fi
 AC_CHECK_FUNCS(touchlock)
 AC_CHECK_HEADERS(maillock.h)
