@@ -206,7 +206,11 @@ your own function which is called when `font-lock-mode' is toggled via
   ;; batch job) or if the buffer is invisible (the name starts with a space).
   (when (or noninteractive (eq (aref (buffer-name) 0) ?\ ))
     (setq font-lock-mode nil))
-  (funcall font-lock-function font-lock-mode))
+  (funcall font-lock-function font-lock-mode)
+  ;; Arrange to unfontify this buffer if we change major mode later.
+  (if font-lock-mode
+      (add-hook 'change-major-mode-hook 'font-lock-unfontify-buffer)
+    (remove-hook 'change-major-mode-hook 'font-lock-unfontify-buffer)))
 
 (defun font-lock-default-function (font-lock-mode)
   ;; Turn on Font Lock mode.
