@@ -1262,8 +1262,72 @@ output from the current command if that happens to be appropriate."
   gdb-info-breakpoints-custom)
 
 (defvar gdb-cdir nil "Compilation directory.")
-(defvar breakpoint-enabled-icon)
-(defvar breakpoint-disabled-icon)
+
+(defconst breakpoint-xpm-data "/* XPM */
+static char *magick[] = {
+/* columns rows colors chars-per-pixel */
+\"12 12 2 1\",
+\"  c red\",
+\"+ c None\",
+/* pixels */
+\"++++++++++++\",
+\"+++      +++\",
+\"++        ++\",
+\"+          +\",
+\"+          +\",
+\"+          +\",
+\"+          +\",
+\"+          +\",
+\"+          +\",
+\"++        ++\",
+\"+++      +++\",
+\"++++++++++++\"
+};"
+  "XPM data used for breakpoint icon.")
+
+(defconst breakpoint-enabled-pbm-data
+"P1
+12 12\",
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 1 1 1 1 1 1 0 0 0
+0 0 1 1 1 1 1 1 1 1 0 0
+0 1 1 1 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 1 1 1 0
+0 0 1 1 1 1 1 1 1 1 0 0
+0 0 0 1 1 1 1 1 1 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0"
+  "PBM data used for enabled breakpoint icon.")
+
+(defconst breakpoint-disabled-pbm-data
+"P1
+12 12\",
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 1 0 1 0 1 0 0 0 0
+0 0 1 0 1 0 1 0 1 0 0 0
+0 1 0 1 0 1 0 1 0 1 0 0
+0 0 1 0 1 0 1 0 1 0 1 0
+0 1 0 1 0 1 0 1 0 1 0 0
+0 0 1 0 1 0 1 0 1 0 1 0
+0 1 0 1 0 1 0 1 0 1 0 0
+0 0 1 0 1 0 1 0 1 0 1 0
+0 0 0 1 0 1 0 1 0 1 0 0
+0 0 0 0 1 0 1 0 1 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0"
+  "PBM data used for disabled breakpoint icon.")
+
+(defvar breakpoint-enabled-icon
+  (find-image `((:type xpm :data ,breakpoint-xpm-data)
+		(:type pbm :data ,breakpoint-enabled-pbm-data)))
+  "Icon for enabled breakpoint in display margin")
+
+(defvar breakpoint-disabled-icon
+  (find-image `((:type xpm :data ,breakpoint-xpm-data :conversion disabled)
+		(:type pbm :data ,breakpoint-disabled-pbm-data)))
+  "Icon for disabled breakpoint in display margin")
 
 ;;-put breakpoint icons in relevant margins (even those set in the GUD buffer)
 (defun gdb-info-breakpoints-custom ()
@@ -1909,36 +1973,6 @@ This arrangement depends on the value of `gdb-many-windows'."
 	 (gud-find-file (car gud-last-last-frame))
        (gud-find-file gdb-main-file)))
     (other-window 1)))
-
-(defconst breakpoint-xpm-data "/* XPM */
-static char *magick[] = {
-/* columns rows colors chars-per-pixel */
-\"12 12 2 1\",
-\"  c red\",
-\"+ c None\",
-/* pixels */
-\"+++++  +++++\",
-\"+++      +++\",
-\"++        ++\",
-\"+          +\",
-\"+          +\",
-\"            \",
-\"            \",
-\"+          +\",
-\"+          +\",
-\"++        ++\",
-\"+++      +++\",
-\"+++++  +++++\"
-};"
-  "XPM file used for breakpoint icon.")
-
-(defvar breakpoint-enabled-icon
-  (find-image `((:type xpm :data ,breakpoint-xpm-data)))
-  "Icon for enabled breakpoint in display margin")
-(defvar breakpoint-disabled-icon
-  (find-image `((:type xpm :data ,breakpoint-xpm-data
-		       :conversion laplace)))
-  "Icon for disabled breakpoint in display margin")
 
 (defun gdb-reset ()
   "Exit a debugging session cleanly by killing the gdb buffers and resetting
