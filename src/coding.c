@@ -4302,7 +4302,9 @@ decode_coding_ccl (coding)
   struct ccl_program ccl;
   int source_charbuf[1024];
   int source_byteidx[1024];
+  Lisp_Object attrs, eol_type, charset_list, valids;
 
+  CODING_GET_INFO (coding, attrs, eol_type, charset_list);
   setup_ccl_program (&ccl, CODING_CCL_DECODER (coding));
 
   while (src < src_end)
@@ -4329,7 +4331,8 @@ decode_coding_ccl (coding)
       while (source < source_end)
 	{
 	  ccl_driver (&ccl, source, charbuf,
-		      source_end - source, charbuf_end - charbuf);
+		      source_end - source, charbuf_end - charbuf,
+		      charset_list);
 	  source += ccl.consumed;
 	  charbuf += ccl.produced;
 	  if (ccl.status != CCL_STAT_SUSPEND_BY_DST)
@@ -4379,7 +4382,9 @@ encode_coding_ccl (coding)
   unsigned char *adjusted_dst_end = dst_end - 1;
   int destination_charbuf[1024];
   int i, produced_chars = 0;
+  Lisp_Object attrs, eol_type, charset_list;
 
+  CODING_GET_INFO (coding, attrs, eol_type, charset_list);
   setup_ccl_program (&ccl, CODING_CCL_ENCODER (coding));
 
   ccl.last_block = coding->mode & CODING_MODE_LAST_BLOCK;
@@ -4392,7 +4397,7 @@ encode_coding_ccl (coding)
 	dst_bytes = 1024;
 
       ccl_driver (&ccl, charbuf, destination_charbuf,
-		  charbuf_end - charbuf, dst_bytes);
+		  charbuf_end - charbuf, dst_bytes, charset_list);
       charbuf += ccl.consumed;
       if (multibytep)
 	for (i = 0; i < ccl.produced; i++)
@@ -7909,21 +7914,31 @@ usage: (define-coding-system-internal ...)  */)
       valids = Fmake_string (make_number (256), make_number (0));
       for (tail = val; !NILP (tail); tail = Fcdr (tail))
 	{
+	  int from, to;
+
 	  val = Fcar (tail);
 	  if (INTEGERP (val))
-	    ASET (valids, XINT (val), make_number (1));
+	    {
+	      from = to = XINT (val);
+	      if (from < 0 || from > 255)
+		args_out_of_range_3 (val, make_number (0), make_number (255));
+	    }
 	  else
 	    {
-	      int from, to;
-
 	      CHECK_CONS (val);
 	      CHECK_NUMBER (XCAR (val));
 	      CHECK_NUMBER (XCDR (val));
 	      from = XINT (XCAR (val));
+	      if (from < 0 || from > 255)
+		args_out_of_range_3 (XCAR (val),
+				     make_number (0), make_number (255));
 	      to = XINT (XCDR (val));
-	      for (i = from; i <= to; i++)
-		ASET (valids, i, make_number (1));
+	      if (to < from || to > 255)
+		args_out_of_range_3 (XCDR (val),
+				     XCAR (val), make_number (255));
 	    }
+	  for (i = from; i <= to; i++)
+	    XSTRING (valids)->data[i] = 1;
 	}
       ASET (attrs, coding_attr_ccl_valids, valids);
       
