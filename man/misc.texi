@@ -921,13 +921,13 @@ to the bottom before inserting.
 
 @vindex comint-scroll-show-maximum-output
   If @code{comint-scroll-show-maximum-output} is non-@code{nil}, then
-scrolling due to the arrival of output tries to place the last line of
+arrival of output when point is at the end tries to place the last line of
 text at the bottom line of the window, so as to show as much useful
 text as possible.  (This mimics the scrolling behavior of many
 terminals.)  The default is @code{nil}.
 
-@vindex comint-scroll-to-bottom-on-output
-  By setting @code{comint-scroll-to-bottom-on-output}, you can opt for
+@vindex comint-move-point-for-output
+  By setting @code{comint-move-point-for-output}, you can opt for
 having point jump to the end of the buffer whenever output arrives---no
 matter where in the buffer point was before.  If the value is
 @code{this}, point jumps in the selected window.  If the value is
