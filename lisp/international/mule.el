@@ -638,7 +638,7 @@ following formats:
 	The EOL type is detected automatically for the coding system.
 	And, according to the detected EOL type, one of the coding
 	systems in the vector is selected.  Elements of the vector
-	corresponds to Unix-liek EOL, DOS-like EOL, and Mac-like EOL
+	corresponds to Unix-like EOL, DOS-like EOL, and Mac-like EOL
 	in this order.
 
 Kludgy features for backward compatibility:
