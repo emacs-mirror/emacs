@@ -1834,6 +1834,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int retry = 0;
   int count = specpdl_ptr - specpdl;
+  int count1;
 
 #ifdef WINDOWSNT
   /* Ensure socket support is loaded if available. */
@@ -1898,6 +1899,10 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       }
     immediate_quit = 0;
   }
+
+  s = -1;
+  count1 = specpdl_ptr - specpdl;
+  record_unwind_protect (close_file_unwind, make_number (s));
 
   for (lres = res; lres; lres = lres->ai_next)
     {
@@ -1984,6 +1989,9 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   if (s < 0) 
     report_file_error ("error creating socket", Fcons (name, Qnil));
 
+  count1 = specpdl_ptr - specpdl;
+  record_unwind_protect (close_file_unwind, make_number (s));
+
   /* Kernel bugs (on Ultrix at least) cause lossage (not just EINTR)
      when connect is interrupted.  So let's not let it get interrupted.
      Note we do not turn off polling, because polling is only used
@@ -2017,6 +2025,9 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 	  goto loop;
 	}
 
+      /* Discard the unwind protect.  */
+      specpdl_ptr = specpdl + count1;
+
       close (s);
 
       if (interrupt_input)
@@ -2029,6 +2040,9 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 #endif /* ! HAVE_GETADDRINFO */
 
   immediate_quit = 0;
+
+  /* Discard the unwind protect.  */
+  specpdl_ptr = specpdl + count1;
 
 #ifdef POLL_FOR_INPUT
   unbind_to (count, Qnil);
