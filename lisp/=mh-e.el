@@ -2740,6 +2740,52 @@ Assumes that any filename that starts with '+' is a folder name."
   (if (re-search-forward "^$\\|^-+$" nil nil)
       (forward-line arg)))
 
+
+(defun mh-unshar (dir)
+  "Unshar the current message in the directory given by DIR."
+  (interactive "DUnshar in directory: ")
+  (let ((default-directory default-directory)
+        (errbuf " *Unshar Output*")
+	(curbuf (current-buffer))
+	(show-buffer mh-show-buffer)
+	start
+	)
+    (setq dir (expand-file-name dir))
+    (if (not (eq system-type 'vax-vms))
+	(setq dir (file-name-as-directory dir)))
+    (mh-show nil)		;;; force showing of current message
+    (save-excursion
+      (set-buffer show-buffer)
+      (goto-char (point-min))
+      (message "Looking for start of shar package ...")
+      (if (or (re-search-forward "^#![ \t]*/bin/sh" nil t)
+	      (and (re-search-forward "^[^a-z0-9\"]*cut here" nil t)
+		   (forward-line 1))
+	      (re-search-forward "^#" nil t)
+	      (re-search-forward "^: " nil t)
+	      )
+	  (progn
+	    (beginning-of-line)
+	    (setq start (point))
+	    (set-buffer curbuf)
+	    (pop-to-buffer errbuf)
+	    (kill-region (point-max) (point-min))
+	    (insert (format "Unsharing in directory \"%s\" ...\n\n" dir))
+	    (message "Please wait ...")
+	    (sit-for 0)
+	    (set-buffer show-buffer)
+	    (setq default-directory dir)
+	    (call-process-region start (point-max)
+				 "/bin/sh" nil errbuf t)
+	    (pop-to-buffer curbuf)
+	    (message "Unshar done")
+	    )
+	(error "Can't find start of shar file")
+	)
+      )
+    )
+  )
+
 
 
 ;;; Build the folder-mode keymap:
@@ -2762,6 +2808,7 @@ Assumes that any filename that starts with '+' is a folder name."
 (define-key mh-folder-mode-map "\ef" 'mh-visit-folder)
 (define-key mh-folder-mode-map "\ek" 'mh-kill-folder)
 (define-key mh-folder-mode-map "\el" 'mh-list-folders)
+(define-key mh-folder-mode-map "\en" 'mh-unshar)
 (define-key mh-folder-mode-map "\eo" 'mh-write-msg-to-file)
 (define-key mh-folder-mode-map "\ep" 'mh-pack-folder)
 (define-key mh-folder-mode-map "\es" 'mh-search-folder)
