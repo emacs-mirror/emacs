@@ -20,7 +20,10 @@ Boston, MA 02111-1307, USA.  */
 
 #define NO_SHORTNAMES
 #define _XOPEN_SOURCE 500	/* for cuserid */
-#include <config.h>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #if defined (BSD_SYSTEM) && !defined (BSD4_1) && !defined (USE_FAKEMAIL)
 /* This program isnot used in BSD, so just avoid loader complaints.  */
@@ -82,7 +85,7 @@ struct header_record
   struct header_record *previous;
 };
 typedef struct header_record *header;
-			
+
 struct stream_record
 {
   FILE *handle;
@@ -203,8 +206,7 @@ init_linebuffer (linebuffer)
 }
 
 /* Read a line of text from `stream' into `linebuffer'.
- * Return the length of the line.  
- */
+   Return the length of the line.  */
 
 long
 readline (linebuffer, stream)
@@ -619,13 +621,13 @@ parse_header (the_header, where)
   *where = '\0';
   return;
 }
-    
+
 /* Read lines from the input until we get a blank line.
    Create a list of `header' objects, one for each header field,
    each of which points to a list of `line_list' objects,
    one for each line in that field.
    Continuation lines are grouped in the headers they continue.  */
-   
+
 header
 read_header ()
 {
@@ -725,7 +727,7 @@ main (argc, argv)
   command_line = alloc_string (name_length + args_size (the_header));
   strcpy (command_line, mail_program_name);
   parse_header (the_header, &command_line[name_length]);
-  
+
   the_pipe = popen (command_line, "w");
   if (the_pipe == ((FILE *) NULL))
     fatal ("cannot open pipe to real mailer");
