@@ -1551,12 +1551,15 @@ and that name is still supported as an alias.
 @cindex colors on text-only terminals
 
   Emacs can display color on text-only terminals, starting with version
-21.  These terminals support only a small number of colors, and the
-computer uses small integers to select colors on the terminal.  This
+21.  These terminals usually support only a small number of colors, and
+the computer uses small integers to select colors on the terminal.  This
 means that the computer cannot reliably tell what the selected color
 looks like; instead, you have to inform your application which small
 integers correspond to which colors.  However, Emacs does know the
 standard set of colors and will try to use them automatically.
+
+  The functions described in this section control how terminal colors
+are used by Emacs.
 
 @cindex rgb value
   Several of these functions use or return @dfn{rgb values}.  An rgb
@@ -1571,6 +1574,11 @@ support more than one text-only terminal at one time; then this argument
 will specify which terminal to operate on (the default being the
 selected frame's terminal; @pxref{Input Focus}).  At present, though,
 the @var{display} argument has no effect.
+
+@defun tty-display-color-cells &optional display
+This function returns the number of distinct colors supported for
+@var{display}.
+@end defun
 
 @defun tty-color-define name number &optional rgb display
 @tindex tty-color-define
