@@ -673,7 +673,7 @@ math-polynomial-p math-recompile-eval-rules math-simplify
 math-simplify-exp math-simplify-extended math-simplify-sqrt
 math-to-simple-fraction)
 
- ("calc-alg-2" calc-Need-calc-alg-2 calcFunc-asum calcFunc-deriv
+ ("calcalg2" calc-Need-calc-alg-2 calcFunc-asum calcFunc-deriv
 calcFunc-ffinv calcFunc-finv calcFunc-fsolve calcFunc-gpoly
 calcFunc-integ calcFunc-poly calcFunc-prod calcFunc-roots
 calcFunc-solve calcFunc-sum calcFunc-table calcFunc-taylor
@@ -682,7 +682,7 @@ math-integral-rational-funcs math-lcm-denoms math-looks-evenp
 math-poly-all-roots math-prod-rec math-reject-solution math-solve-eqn
 math-solve-for math-sum-rec math-try-integral)
 
- ("calc-alg-3" calc-Need-calc-alg-3 calcFunc-efit calcFunc-fit
+ ("calcalg3" calc-Need-calc-alg-3 calcFunc-efit calcFunc-fit
 calcFunc-fitdummy calcFunc-fitparam calcFunc-fitvar
 calcFunc-hasfitparams calcFunc-hasfitvars calcFunc-maximize
 calcFunc-minimize calcFunc-ninteg calcFunc-polint calcFunc-ratint
@@ -733,7 +733,7 @@ calcFunc-random calcFunc-shuffle calcFunc-stir1 calcFunc-stir2
 calcFunc-totient math-init-random-base math-member math-prime-test
 math-random-base)
 
- ("calc-comp" calc-Need-calc-comp calcFunc-cascent calcFunc-cdescent
+ ("calccomp" calc-Need-calc-comp calcFunc-cascent calcFunc-cdescent
 calcFunc-cheight calcFunc-cwidth math-comp-ascent math-comp-descent
 math-comp-height math-comp-width math-compose-expr
 math-composition-to-string math-stack-value-offset-fancy
@@ -806,7 +806,7 @@ calcFunc-rreduced calcFunc-rreducer math-build-call
 math-calcFunc-to-var math-multi-subst math-multi-subst-rec
 math-var-to-calcFunc)
 
- ("calc-mat" calc-Need-calc-mat calcFunc-det calcFunc-lud calcFunc-tr
+ ("calc-mtx" calc-Need-calc-mat calcFunc-det calcFunc-lud calcFunc-tr
 math-col-matrix math-lud-solve math-matrix-inv-raw math-matrix-lud
 math-mul-mat-vec math-mul-mats math-row-matrix)
 
@@ -871,7 +871,7 @@ calc-preserve-point calc-replace-selections calc-replace-sub-formula
 calc-roll-down-with-selections calc-roll-up-with-selections
 calc-sel-error)
 
- ("calc-sel-2" calc-Need-calc-sel-2)
+ ("calcsel2" calc-Need-calc-sel-2)
 
  ("calc-stat" calc-Need-calc-stat calc-vector-op calcFunc-agmean
 calcFunc-vcorr calcFunc-vcount calcFunc-vcov calcFunc-vflat
