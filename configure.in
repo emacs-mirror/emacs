@@ -1147,7 +1147,7 @@ fail;
 fi
 
 # If netdb.h doesn't declare h_errno, we must declare it by hand.
-AC_MSG_CHECKING(whether netdb declarares h_errno)
+AC_MSG_CHECKING(whether netdb declares h_errno)
 AC_TRY_LINK([#include <netdb.h>],
   [return h_errno;],
   [AC_MSG_RESULT(yes)
