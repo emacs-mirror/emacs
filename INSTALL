@@ -135,6 +135,11 @@ rather than `defvar', as used by `./lisp/paths.el'.  For example,
 is how you would override the default value of the variable
 news-inews-program (which is "/usr/local/inews").
 
+Before you override a variable this way, *look at the value* that the
+variable gets by default!  Make sure you know what kind of value the
+variable should have.  If you don't pay attention to what you are
+doing, you'll make a mistake.
+
 Note that, on some systems, the code you place in site-init.el must
 not use expand-file-name or any other function which may look
 something up in the system's password and user information database.
