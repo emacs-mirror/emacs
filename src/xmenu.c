@@ -619,7 +619,7 @@ list_of_items (pane)
     }
 }
 
-DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 1, 2, 0,
+DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
   "Pop up a deck-of-cards menu and return user's selection.\n\
 POSITION is a position specification.  This is either a mouse button event\n\
 or a list ((XOFFSET YOFFSET) WINDOW)\n\
@@ -834,7 +834,7 @@ cached information about equivalent key sequences.")
   return selection;
 }
 
-DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 1, 2, 0,
+DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 2, 0,
   "Pop up a dialog box and return user's selection.\n\
 POSITION is a position specification.  This is either a mouse button event\n\
 or a list ((XOFFSET YOFFSET) WINDOW)\n\
