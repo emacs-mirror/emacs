@@ -1148,6 +1148,7 @@ extern void defsubr ();
 extern void defvar_lisp ();
 extern void defvar_bool ();
 extern void defvar_int ();
+extern void defvar_display ();
 
 /* Macros we use to define forwarded Lisp variables.
    These are used in the syms_of_FILENAME functions.  */
