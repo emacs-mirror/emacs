@@ -1,3 +1,14 @@
+2000-10-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* lisp.h (wrong_type_argument): Remove NO_RETURN, the function can
+	return with a string converted to an integer or vice versa when
+	Vmocklisp_arguments is t.
+	(Fsignal): Likewise.  The function can return for `quit'.
+	(struct gcpro): Declare member `var' to point to a volatile
+	Lisp_Object.
+
+	* eval.c (error): Prevent compiler warning.
+
 2000-09-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keymap.c (keymap_memberp): New function.
@@ -9,8 +20,8 @@
 2000-09-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* process.c (Fopen_network_stream) [HAVE_GETADDRINFO]: Use
-	 gai_strerror.  Make sure xerrno is set if connect fails.  Improve
-	 error recovery.
+	gai_strerror.  Make sure xerrno is set if connect fails.  Improve
+	error recovery.
 
 2000-09-29  Jason Rumney <jasonr@gnu.org>
 
