@@ -25,7 +25,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Gnu Emacs TAGS format and modifications by RMS?
  *	Sam Kendall added C++.
  *
- *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer. 9.8
+ *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer. 10.6
  */
 
 #ifdef MSDOS
@@ -183,10 +183,9 @@ void TEX_funcs ();
 void add_node ();
 void error ();
 void fatal ();
-void find_entries ();
+logical find_entries ();
 void free_tree ();
 void getit ();
-void getline ();
 void init ();
 void initbuffer ();
 void initbuffer ();
@@ -203,127 +202,14 @@ void takeprec ();
  *	Type *xnew (int n, Type);
  */
 #define xnew(n, Type)	((Type *) xmalloc ((n) * sizeof (Type)))
-
-
 
 /*
- *	Symbol table stuff.
- *
- * Should probably be implemented with hash table; linked list for now.
+ *	Symbol table types.
  */
-
 enum sym_type
 {
   st_none, st_C_struct, st_C_enum, st_C_define, st_C_typedef, st_C_typespec
 };
-
-struct stab_entry
-{
-  char *sym;
-  int symlen;
-  enum sym_type type;
-  struct stab_entry *next;
-};
-
-typedef struct stab_entry Stab_entry;
-typedef Stab_entry *Stab;
-
-/*
- * NAME
- *	Stab, Stab_entry, stab_create, stab_search, stab_find -- symbol table
- *
- * SYNOPSIS
- *	Types: Stab, Stab_entry, enum sym_type
- *
- *	Stab * stab_create ()
- *
- *	Stab_entry * stab_find (stab, sym)
- *	Stab *stab;
- *	char *sym;
- *
- *	Stab_entry * stab_search (stab, sym)
- *	Stab *stab;
- *	char *sym;
- *
- * DESCRIPTION
- *	stab_create creates a Stab, a symbol table object, and returns a
- *	pointer to it.  stab_find finds a symbol in a Stab; it returns a
- *	pointer to the Stab_entry if found, otherwise NULL.  stab_search
- *	is like stab_find, except that it creates a new Stab_entry,
- *	initialized with type = st_none, if one did not exist already
- *	(it never returns NULL).
- *
- *	A Stab_entry is a structure that contains at least the following
- *	members:
- *
- *		char *name;		// must not be modified
- *		enum sym_type type;	// should be set
- *
- *	The type field is initially set to st_none; it should be set to
- *	something else by the caller of stab_search.  Other possible values
- *	of an enum sym_type can be added.
- */
-
-Stab *
-stab_create ()
-{
-  Stab *sp;
-  sp = xnew (1, Stab);
-  *sp = NULL;			/* a Stab starts out as a null Stab_entry* */
-  return sp;
-}
-
-Stab_entry *
-stab_find (stab, sym, symlen)
-     Stab *stab;
-     register char *sym;
-     register int symlen;
-{
-  register Stab_entry *se;
-  for (se = *stab; se != NULL; se = se->next)
-    {
-      if (se->symlen == symlen && strneq (se->sym, sym, symlen))
-	return se;
-    }
-
-  return NULL;
-}
-
-Stab_entry *
-stab_search (stab, sym, symlen)
-     register Stab *stab;
-     char *sym;
-     int symlen;
-{
-  register Stab_entry *se;
-  se = stab_find (stab, sym, symlen);
-
-  if (se == NULL)
-    {
-      /* make a new one */
-      se = xnew (1, Stab_entry);
-      se->sym = savenstr (sym, symlen);
-      se->symlen = symlen;
-      se->type = st_none;
-      se->next = *stab;
-      *stab = se;
-    }
-
-  return se;
-}
-
-/*
- * NAME
- *	stab_type -- type of a symbol table entry
- *
- * SYNOPSIS
- *	enum sym_type stab_type (Stab_entry *se);
- *
- * WARNING
- *	May evaluate its argument more than once.
- */
-
-#define stab_type(se)	((se)==NULL ? st_none : (se)->type)
 
 
 
@@ -551,7 +437,7 @@ main (argc, argv)
 #endif
 
 #ifdef MSDOS
-  _fmode = O_BINARY;	/* all of files are treated as binary files */
+  _fmode = O_BINARY;   /* all of files are treated as binary files */
 #endif /* MSDOS */
 
   progname = argv[0];
@@ -724,11 +610,8 @@ main (argc, argv)
   for (; optind < argc; optind++)
     {
       this_file = argv[optind];
-      if (1)
-	{
 #endif
-	  /* Input file named "-" means read file names from stdin
-	     and use them.  */
+      /* Input file named "-" means read file names from stdin and use them. */
 	  if (streq (this_file, "-"))
 	    {
 	      while (!feof (stdin))
@@ -741,7 +624,6 @@ main (argc, argv)
 	  else
 	    process_file (this_file);
 	}
-    }
 
   if (emacs_tags_format)
     {
@@ -796,18 +678,20 @@ process_file (file)
 {
   struct stat stat_buf;
 
-  if (stat (file, &stat_buf) || !S_ISREG (stat_buf.st_mode))
+  if (stat (file, &stat_buf) == 0 && !S_ISREG (stat_buf.st_mode))
     {
       fprintf (stderr, "Skipping %s: it is not a regular file.\n", file);
       return;
     }
-
   if (streq (file, outfile) && !streq (outfile, "-"))
     {
       fprintf (stderr, "Skipping inclusion of %s in self.\n", file);
       return;
     }
-  find_entries (file);
+  if (!find_entries (file))
+    {
+      return;
+    }
   if (emacs_tags_format)
     {
       fprintf (outf, "\f\n%s,%d\n", file, total_size_of_entries (head));
@@ -851,7 +735,7 @@ init ()
  * This routine opens the specified file and calls the function
  * which finds the function and type definitions.
  */
-void
+logical
 find_entries (file)
      char *file;
 {
@@ -862,7 +746,7 @@ find_entries (file)
   if (inf == NULL)
     {
       perror (file);
-      return;
+      return FALSE;
     }
   curfile = savestr (file);
   cp = etags_rindex (file, '.');
@@ -902,8 +786,7 @@ find_entries (file)
 		 && string_numeric_p (cp + 1))))
     {
       Scheme_funcs (inf);
-      fclose (inf);
-      return;
+      goto close_and_return;
     }
   /* Assume that ".s" or ".a" is assembly code. -wolfgang.
      Or even ".sa". */
@@ -912,8 +795,7 @@ find_entries (file)
 	     || streq (cp + 1, "sa")))
     {
       Asm_funcs (inf);
-      fclose (inf);
-      return;
+      goto close_and_return;
     }
   /* .C or .H or .cxx or .hxx or .cc: a C++ file */
   if (cp && (streq (cp + 1, "C")
@@ -955,7 +837,7 @@ find_entries (file)
   if (cp && (streq (cp + 1, "f")
 	     || streq (cp + 1, "for")))
     {
-      PF_funcs (inf);
+      (void) PF_funcs (inf);
       goto close_and_return;
     }
   /* if not a .c or .h or .y file, try fortran */
@@ -972,6 +854,7 @@ find_entries (file)
 
 close_and_return:
   (void) fclose (inf);
+  return TRUE;
 }
 
 /* Nonzero if string STR is composed of digits.  */
@@ -1268,67 +1151,148 @@ total_size_of_entries (node)
  * The C symbol tables.
  */
 
-Stab *C_stab, *C_PLPL_stab, *C_STAR_stab;
+/* Feed stuff between (but not including) %[ and %] lines to:
+      gperf -c -k1,3 -o -p -r -t
+%[
+struct C_stab_entry { char *name; int c_ext; enum sym_type type; }
+%%
+class,  	C_PLPL,	st_C_struct
+domain, 	C_STAR,	st_C_struct
+union,  	0,	st_C_struct
+struct, 	0,	st_C_struct
+enum,    	0,	st_C_enum
+typedef, 	0,	st_C_typedef
+define,  	0,	st_C_define
+long,    	0,	st_C_typespec
+short,   	0,	st_C_typespec
+int,     	0,	st_C_typespec
+char,    	0,	st_C_typespec
+float,   	0,	st_C_typespec
+double,  	0,	st_C_typespec
+signed,  	0,	st_C_typespec
+unsigned,	0,	st_C_typespec
+auto,    	0,	st_C_typespec
+void,    	0,	st_C_typespec
+extern,  	0,	st_C_typespec
+static,  	0,	st_C_typespec
+const,   	0,	st_C_typespec
+volatile,	0,	st_C_typespec
+%]
+and replace lines between %< and %> with its output. */
+/*%<*/
+/* C code produced by gperf version 1.8.1 (K&R C version) */
+/* Command-line: gperf -c -k1,3 -o -p -r -t  */
 
+
+struct C_stab_entry { char *name; int c_ext; enum sym_type type; };
+
+#define MIN_WORD_LENGTH 3
+#define MAX_WORD_LENGTH 8
+#define MIN_HASH_VALUE 10
+#define MAX_HASH_VALUE 62
 /*
- * SYNOPSIS
- *	Stab *get_C_stab (int c_ext);
- */
-#define get_C_stab(c_ext) ((c_ext & C_STAR) ? C_STAR_stab :		\
-			   (c_ext & C_PLPL) ? C_PLPL_stab :		\
-			   C_stab)
+   21 keywords
+   53 is the maximum key range
+*/
 
-void
-add_keyword (stab, sym, type)
-     Stab *stab;
-     char *sym;
-     enum sym_type type;
+static int
+hash (str, len)
+     register char  *str;
+     register int  len;
 {
-  stab_search (stab, sym, strlen (sym))->type = type;
+  static unsigned char hash_table[] =
+    {
+     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+     62, 62, 62, 62, 62, 62, 62,  2, 62,  7,
+      6,  9, 15, 30, 62, 24, 62, 62,  1, 24,
+      7, 27, 13, 62, 19, 26, 18, 27,  1, 62,
+     62, 62, 62, 62, 62, 62, 62, 62,
+  };
+  return len + hash_table[str[2]] + hash_table[str[0]];
 }
 
-Stab *
-C_create_stab (c_ext)
+struct C_stab_entry *
+in_word_set  (str, len)
+     register char *str;
+     register int len;
+{
+
+  static struct C_stab_entry  wordlist[] =
+    {
+      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
+      {"",}, 
+      {"volatile", 	0,	st_C_typespec},
+      {"",}, 
+      {"long",     	0,	st_C_typespec},
+      {"char",     	0,	st_C_typespec},
+      {"class",   	C_PLPL,	st_C_struct},
+      {"",}, {"",}, {"",}, {"",}, 
+      {"const",    	0,	st_C_typespec},
+      {"",}, {"",}, {"",}, {"",}, 
+      {"auto",     	0,	st_C_typespec},
+      {"",}, {"",}, 
+      {"define",   	0,	st_C_define},
+      {"",}, 
+      {"void",     	0,	st_C_typespec},
+      {"",}, {"",}, {"",}, 
+      {"extern",   	0,	st_C_typespec},
+      {"static",   	0,	st_C_typespec},
+      {"",}, 
+      {"domain",  	C_STAR,	st_C_struct},
+      {"",}, 
+      {"typedef",  	0,	st_C_typedef},
+      {"double",   	0,	st_C_typespec},
+      {"enum",     	0,	st_C_enum},
+      {"",}, {"",}, {"",}, {"",}, 
+      {"int",      	0,	st_C_typespec},
+      {"",}, 
+      {"float",    	0,	st_C_typespec},
+      {"",}, {"",}, {"",}, 
+      {"struct",  	0,	st_C_struct},
+      {"",}, {"",}, {"",}, {"",}, 
+      {"union",   	0,	st_C_struct},
+      {"",}, 
+      {"short",    	0,	st_C_typespec},
+      {"",}, {"",}, 
+      {"unsigned", 	0,	st_C_typespec},
+      {"signed",   	0,	st_C_typespec},
+    };
+
+  if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
+    {
+      register int key = hash (str, len);
+
+      if (key <= MAX_HASH_VALUE && key >= MIN_HASH_VALUE)
+        {
+          register char *s = wordlist[key].name;
+
+          if (*s == *str && !strncmp (str + 1, s + 1, len - 1))
+            return &wordlist[key];
+        }
+    }
+  return 0;
+}
+/*%>*/
+
+enum sym_type
+C_symtype(str, len, c_ext)
+     char *str;
+     int len;
      int c_ext;
 {
-  Stab *stab;
+  register struct C_stab_entry *se = in_word_set(str, len);
 
-  stab = stab_create ();
-
-  /* C, C++ and C* */
-  if (c_ext & C_PLPL)
-    add_keyword (stab, "class", st_C_struct);
-  if (c_ext & C_STAR)
-    add_keyword (stab, "domain", st_C_struct);
-  add_keyword (stab, "union", st_C_struct);
-  add_keyword (stab, "struct", st_C_struct);
-  add_keyword (stab, "enum", st_C_enum);
-  add_keyword (stab, "typedef", st_C_typedef);
-  add_keyword (stab, "define", st_C_define);
-  add_keyword (stab, "long", st_C_typespec);
-  add_keyword (stab, "short", st_C_typespec);
-  add_keyword (stab, "int", st_C_typespec);
-  add_keyword (stab, "char", st_C_typespec);
-  add_keyword (stab, "float", st_C_typespec);
-  add_keyword (stab, "double", st_C_typespec);
-  add_keyword (stab, "signed", st_C_typespec);
-  add_keyword (stab, "unsigned", st_C_typespec);
-  add_keyword (stab, "auto", st_C_typespec);
-  add_keyword (stab, "void", st_C_typespec);
-  add_keyword (stab, "extern", st_C_typespec);
-  add_keyword (stab, "static", st_C_typespec);
-  add_keyword (stab, "const", st_C_typespec);
-  add_keyword (stab, "volatile", st_C_typespec);
-
-  return stab;
-}
-
-void
-C_create_stabs ()
-{
-  C_stab = C_create_stab (0);
-  C_PLPL_stab = C_create_stab (C_PLPL);
-  C_STAR_stab = C_create_stab (C_STAR | C_PLPL);
+  if (se == NULL || (se->c_ext && !(c_ext & se->c_ext)))
+    return st_none;
+  return se->type;
 }
 
  /*
@@ -1377,10 +1341,11 @@ typedef enum
 STRUCTST structdef;
 /*
  * When structdef is stagseen, scolonseen, or sinbody, structtag is the
- * struct tag, and structkey is the preceding struct-like keyword.
+ * struct tag, and structtype is the type of the preceding struct-like  
+ * keyword.
  */
 char structtag[BUFSIZ];
-Stab_entry *structkey;
+enum sym_type structtype;
 
 /*
  * Yet another little state machine to deal with preprocessor lines.
@@ -1467,7 +1432,6 @@ C_entries (c_ext)
   logical incomm, inquote, inchar, quotednl, midtoken;
   logical cplpl;
   TOKEN savetok;		/* saved token during preprocessor handling */
-  logical saveisfunc;
   char savenameb[BUFSIZ];	/* ouch! */
 
   savetok.lineno = 0;
@@ -1483,8 +1447,6 @@ C_entries (c_ext)
   cblev = 0;
   parlev = 0;
   cplpl = c_ext & C_PLPL;
-
-  C_create_stabs ();
 
   while (!feof (inf))
     {
@@ -1529,7 +1491,7 @@ C_entries (c_ext)
 	      inquote = FALSE;
 	      break;
 	    case '\0':
-	      /* Newlines inside strings, do not end macro definitions
+	      /* Newlines inside strings do not end macro definitions
 		 in traditional cpp, even though compilers don't
 		 usually accept them. */
 	      CNL_SAVE_DEFINEDEF;
@@ -1539,8 +1501,16 @@ C_entries (c_ext)
 	}
       else if (inchar)
 	{
-	  if (c == '\'')
+	  switch (c)
+	    {
+	    case '\0':
+	      /* Hmmm, something went wrong. */
+	      CNL;
+	      /* FALLTHRU */
+	    case '\'':
 	    inchar = FALSE;
+	      break;
+	    }
 	  continue;
 	}
       else 
@@ -1621,8 +1591,7 @@ C_entries (c_ext)
 		      tok.len = toklen;
 		      tok.named = FALSE;
 		      if (yacc_rules
-			  || consider_token (c, lp, &tok,
-					     c_ext, cblev, &is_func))
+			  || consider_token (c, &tok, c_ext, cblev, &is_func))
 			{
 			  if (structdef == sinbody
 			      && definedef == dnone
@@ -1838,20 +1807,8 @@ C_entries (c_ext)
 	    }
 	  break;
 	case '=':
-	case '#':
-	case '+':
-	case '-':
-	case '~':
-	case '&':
-	case '%':
-	case '/':
-	case '|':
-	case '^':
-	case '!':
-	case '<':
-	case '>':
-	case '.':
-	case '?':
+	case '#': case '+': case '-': case '~': case '&': case '%': case '/':
+	case '|': case '^': case '!': case '<': case '>': case '.': case '?':
 	  if (definedef != dnone)
 	    break;
 	  /* These surely cannot follow a function tag. */
@@ -1893,16 +1850,14 @@ C_entries (c_ext)
  */
 
 logical
-consider_token (c, lp, tokp, c_ext, cblev, is_func)
+consider_token (c, tokp, c_ext, cblev, is_func)
      register char c;		/* IN: first char after the token */
-     register char *lp;		/* IN: lp points to 2nd char after the token */
      register TOKEN *tokp;	/* IN: token pointer */
      int c_ext;			/* IN: C extensions mask */
      int cblev;			/* IN: curly brace level */
      logical *is_func;		/* OUT */
 {
-  Stab_entry *tokse = stab_find (get_C_stab (c_ext), tokp->p, tokp->len);
-  enum sym_type toktype = stab_type (tokse);
+  enum sym_type toktype = C_symtype(tokp->p, tokp->len, c_ext);
 
   /*
    * Advance the definedef state machine.
@@ -1998,13 +1953,13 @@ consider_token (c, lp, tokp, c_ext, cblev, is_func)
 	  || (typedefs_and_cplusplus && cblev == 0 && structdef == snone))
 	{
 	  structdef = skeyseen;
-	  structkey = tokse;
+	  structtype = toktype;
 	}
       return (FALSE);
     }
   if (structdef == skeyseen)
     {
-      if (stab_type (structkey) == st_C_struct)
+      if (structtype == st_C_struct)
 	{
 	  (void) strncpy (structtag, tokp->p, tokp->len);
 	  structtag[tokp->len] = '\0';	/* for struct/union/class */
@@ -2131,24 +2086,24 @@ PF_funcs (fi)
 	{
 	case 'f':
 	  if (tail ("function"))
-	    getit ();
+	    getit (fi);
 	  continue;
 	case 's':
 	  if (tail ("subroutine"))
-	    getit ();
+	    getit (fi);
 	  continue;
 	case 'e':
 	  if (tail ("entry"))
-	    getit ();
+	    getit (fi);
 	  continue;
 	case 'p':
 	  if (tail ("program"))
 	    {
-	      getit ();
+	      getit (fi);
 	      continue;
 	    }
 	  if (tail ("procedure"))
-	    getit ();
+	    getit (fi);
 	  continue;
 	}
     }
@@ -2161,14 +2116,14 @@ tail (cp)
 {
   register int len = 0;
 
-  while (*cp && (*cp & ~' ') == ((*(dbp + len)) & ~' '))
+  while (*cp && (*cp | ' ') == (dbp[len] | ' '))
     cp++, len++;
   if (*cp == 0)
     {
       dbp += len;
-      return (1);
+      return (TRUE);
     }
-  return (0);
+  return (FALSE);
 }
 
 void
@@ -2192,7 +2147,8 @@ takeprec ()
 }
 
 void
-getit ()
+getit (fi)
+     FILE *fi;
 {
   register char *cp;
   char c;
@@ -2200,19 +2156,33 @@ getit ()
 
   while (isspace (*dbp))
     dbp++;
-  if (*dbp == 0
-      || (!isalpha (*dbp)
+  if (*dbp == '\0')
+    {
+      lineno++;
+      linecharno = charno;
+      charno += readline (&lb, fi);
+      dbp = lb.buffer;
+      if (dbp[5] != '&')
+	return;
+      dbp += 6;
+      while (isspace (*dbp))
+	dbp++;
+    }
+  if (!isalpha (*dbp)
 	  && *dbp != '_'
-	  && *dbp != '$'))
+      && *dbp != '$')
     return;
-  for (cp = dbp + 1; *cp && (isalpha (*cp) || isdigit (*cp)
-			     || (*cp == '_') || (*cp == '$')); cp++)
+  for (cp = dbp + 1;
+       (*cp
+	&& (isalpha (*cp) || isdigit (*cp) || (*cp == '_') || (*cp == '$')));
+       cp++)
     continue;
-  c = cp[0];
-  cp[0] = 0;
+  c = *cp;
+  *cp = '\0';
   (void) strcpy (nambuf, dbp);
-  cp[0] = c;
-  pfnote (nambuf, TRUE, FALSE, lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+  *cp = c;
+  pfnote (nambuf, TRUE, FALSE, lb.buffer,
+	  cp - lb.buffer + 1, lineno, linecharno);
   pfcnt++;
 }
 
@@ -2240,7 +2210,7 @@ Asm_funcs (fi)
 	;
 
       if ((i > 0) && (c == ':'))
-	getit ();
+	getit (fi);
     }
 }
 
@@ -2999,10 +2969,10 @@ readline (linebuffer, stream)
 	  pend = buffer + linebuffer->size;
 	  linebuffer->buffer = buffer;
 	}
-      if (c < 0 || c == '\n')
+      if (c == EOF || c == '\n')
 	{
 	  *p = 0;
-	  newline = (c == '\n' ? 1 : 0);
+	  newline = (c == '\n') ? 1 : 0;
 	  break;
 	}
       *p++ = c;
@@ -3117,7 +3087,7 @@ concat (s1, s2, s3)
 
 char *
 xmalloc (size)
-     int size;
+     unsigned int size;
 {
   char *result = malloc (size);
   if (!result)
@@ -3128,7 +3098,7 @@ xmalloc (size)
 char *
 xrealloc (ptr, size)
      char *ptr;
-     int size;
+     unsigned int size;
 {
   char *result = realloc (ptr, size);
   if (!result)
