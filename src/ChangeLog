@@ -1,3 +1,7 @@
+2004-10-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* data.c (Flocal_variable_if_set_p): Doc fix.
+
 2004-10-19  Jason Rumney  <jasonr@gnu.org>
 
 	* w32.c (init_environment): Set emacs_dir correctly when running
@@ -10,7 +14,7 @@
 
 2004-10-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* gtkutil.h (xg_update_scrollbar_pos): Remove arguments real_left 
+	* gtkutil.h (xg_update_scrollbar_pos): Remove arguments real_left
 	and canon_width.
 	(xg_frame_cleared): Removed.
 
@@ -25,7 +29,7 @@
 	Move window clear to xterm.c.
 
 	* gtkutil.h (xg_frame_cleared): Removed.
-	
+
 	* xterm.c (x_clear_frame): Remove call to xg_frame_cleared
 	(x_scroll_bar_create, XTset_vertical_scroll_bar): Remove
 	arguments left and width to xg_update_scrollbar_pos.
