@@ -1,3 +1,49 @@
+1999-10-12  Richard Sharman  <rsharman@pobox.com>
+
+	* sh-script.el: Added support for indenting existing scripts.
+	(sh-mode-map): Added new bindings.
+	(sh-mode): Updated mode doc-string for new commands, added
+	make-local-variable calls, initialize mode-specific variables.
+	(sh-indent-line):  Renamed to sh-basic-indent-line;  sh-indent-line
+	is now a different function.
+	(sh-header-marker):  Changed docstring.
+	(sh-set-shell): Initialize mode-specific variables.
+	(sh-case, sh-for, sh-if, sh-indexed-loop, sh-repeat, sh-select)
+	(sh-tmp-file, sh-until, sh-until, sh-while, sh-while-getopts):
+	Changed these define-skeleton calls to work with user-specified
+	indentation settings.
+	(sh-basic-indent-line, sh-blink, sh-calculate-indent)
+	(sh-check-paren-in-case, sh-check-rule, sh-do-nothing)
+	(sh-electric-hash, sh-electric-less, sh-electric-rparen)
+	(sh-find-prev-matching, sh-find-prev-switch, sh-get-indent-info)
+	(sh-get-indent-var-for-line, sh-get-kw, sh-get-word)
+	(sh-goto-match-for-done, sh-goto-matching-case, sh-goto-matching-if)
+	(sh-guess-basic-offset, sh-handle-after-case-label)
+	(sh-handle-prev-case, sh-handle-prev-case-alt-end, sh-handle-prev-do)
+	(sh-handle-prev-done, sh-handle-prev-else, sh-handle-prev-esac)
+	(sh-handle-prev-fi, sh-handle-prev-if, sh-handle-prev-open)
+	(sh-handle-prev-rc-case, sh-handle-prev-then, sh-handle-this-close)
+	(sh-handle-this-do, sh-handle-this-done, sh-handle-this-else)
+	(sh-handle-this-esac, sh-handle-this-fi, sh-handle-this-rc-case)
+	(sh-handle-this-then, sh-help-string-for-variable)
+	(sh-in-comment-or-string, sh-indent-line, sh-learn-buffer-indent)
+	(sh-learn-line-indent, sh-load-style, sh-make-vars-local, sh-mark-init)
+	(sh-mark-line, sh-mkword-regexpr, sh-mkword-regexp)
+	(sh-must-be-shell-mode, sh-must-support-indent, sh-name-style)
+	(sh-prev-line, sh-prev-stmt, sh-prev-thing, sh-read-variable)
+	(sh-remove-our-text-properties, sh-rescan-buffer)
+	(sh-reset-indent-vars-to-global-values, sh-safe-backward-sexp)
+	(sh-safe-forward-sexp, sh-save-styles-to-buffer, sh-scan-buffer)
+	(sh-scan-case, sh-search-word, sh-set-char-syntax)
+	(sh-set-here-doc-region, sh-set-indent, sh-set-var-value)
+	(sh-show-indent, sh-this-is-a-continuation, sh-var-value): New 
+	functions.
+	(sh-debug, sh-electric-rparen-needed, sh-here-doc-syntax)
+	(sh-indent-supported, sh-kw, sh-kw-alist, sh-kws-for-done)
+	(sh-learned-buffer-hook, sh-make-vars-local, sh-regexp-for-done)
+	(sh-special-keywords, sh-special-syntax, sh-st-punc, sh-styles-alist)
+	(sh-var-list): New variables.
+	
 1999-10-12  Dave Pearson  <davep@hagbard.demon.co.uk>
 
         * quickurl.el (quickurl-list-insert): `count-lines' was returning
