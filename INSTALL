@@ -167,10 +167,14 @@ Emacs needs optional libraries to be able to display images (with the
 exception of PBM and XBM images whose support is built-in).
 
 On some systems, particularly on GNU/Linux, these libraries may
-already be present or available as additional packages.  If not, you
-can download and build them from sources.  None of them are vital for
-running Emacs; however, note that Emacs will not be able to use color
-icons in the toolbar if the XPM support is not available.
+already be present or available as additional packages.  Note that if
+there is a separate `devel' package, for use at compilation time
+rather than run time, you will need that as well as the corresponding
+run time package; typically the devel package will contain header
+files and a library archive.  Otherwise, you can download and build
+libraries from sources.  None of them are vital for running Emacs;
+however, note that Emacs will not be able to use colored icons in the
+toolbar if XPM support is not compiled in.
 
 Here's the list of these optional libraries, and the URLs where they
 can be found:
