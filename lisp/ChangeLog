@@ -1,3 +1,10 @@
+2000-12-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-forward-node): If the node has an
+	Info-header-line, widen the buffer before searching for "next:"
+	and "up:" pointers, and set the search limit to stay in the
+	current node.
+
 2000-12-16  Miles Bader  <miles@gnu.org>
 
 	* simple.el (delete-trailing-whitespace): Remove extraneous let.
