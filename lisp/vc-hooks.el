@@ -346,29 +346,30 @@ value of this flag.")
 	(let ((rev (buffer-substring (match-beginning 1)
 				     (match-end 1))))
 	  ;; ... and check for the locking state
-	  (if (re-search-forward 
-	       (concat "\\=[0-9]+[/-][0-9]+[/-][0-9]+ "             ; date
-		          "[0-9]+:[0-9]+:[0-9]+\\([+-][0-9:]+\\)? " ; time
-		          "[^ ]+ [^ ]+ ")                 ; author & state
-	       nil t)
-	      (cond 
-	       ;; unlocked revision
-	       ((looking-at "\\$")
-		(vc-file-setprop file 'vc-workfile-version rev)
-		(vc-file-setprop file 'vc-locking-user 'none)
-		'rev-and-lock)
-	       ;; revision is locked by some user
-	       ((looking-at "\\([^ ]+\\) \\$")
-		(vc-file-setprop file 'vc-workfile-version rev)
-		(vc-file-setprop file 'vc-locking-user 
-				 (buffer-substring (match-beginning 1)
-						   (match-end 1)))
-		'rev-and-lock)
-	       ;; everything else: false
-	       (nil))
-	    ;; unexpected information in
-	    ;; keyword string --> quit
-	    nil)))
+	  (cond 
+	   ((looking-at
+	     (concat "[0-9]+[/-][01][0-9][/-][0-3][0-9] "             ; date
+	      "[0-2][0-9]:[0-5][0-9]+:[0-6][0-9]+\\([+-][0-9:]+\\)? " ; time
+		     "[^ ]+ [^ ]+ "))                       ; author & state
+	    (goto-char (match-end 0)) ; [0-6] in regexp handles leap seconds
+	    (cond 
+	     ;; unlocked revision
+	     ((looking-at "\\$")
+	      (vc-file-setprop file 'vc-workfile-version rev)
+	      (vc-file-setprop file 'vc-locking-user 'none)
+	      'rev-and-lock)
+	     ;; revision is locked by some user
+	     ((looking-at "\\([^ ]+\\) \\$")
+	      (vc-file-setprop file 'vc-workfile-version rev)
+	      (vc-file-setprop file 'vc-locking-user 
+			       (buffer-substring (match-beginning 1)
+						 (match-end 1)))
+	      'rev-and-lock)
+	     ;; everything else: false
+	     (nil)))
+	   ;; unexpected information in
+	   ;; keyword string --> quit
+	   (nil))))
        ;; search for $Revision
        ;; --------------------
        ((re-search-forward (concat "\\$" 
