@@ -1,3 +1,20 @@
+2004-12-02  Richard M. Stallman  <rms@gnu.org>
+
+	* config.in (RE_TRANSLATE_P): If make_number is not a macro,
+	don't use it here.
+
+	* eval.c (Fcalled_interactively_p): Don't check INTERACTIVE.
+	(interactive_p): Skip Scalled_interactively_p frames
+	like Sinteractive_p frames.
+
+	* data.c (Fmake_variable_buffer_local): Doc fix.
+	(Fmake_local_variable): Doc fix.
+
+	* insdel.c (insert_from_string_before_markers)
+	(insert_from_string): Don't modify buffer on empty insertion.
+
+	* window.c (Fget_lru_window, Fget_largest_window): Doc fixes.
+
 2004-12-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macmenu.c (add_menu_item): Fallback on MacRoman if encoding

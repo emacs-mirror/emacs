@@ -113,13 +113,11 @@
 
 	* man.el (Man-fontify-manpage): Improve handling of ANSI escapes.
 
->>>>>>> 1.6708
 2004-11-30  Markus Rost  <rost@ias.edu>
 
 	* textmodes/tex-mode.el (tex-main-file): Add a compatibility with
 	AUCTeX.
 
->>>>>>> 1.6704
 2004-11-30  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-arith.el (math-possible-signs): Made stronger checks
