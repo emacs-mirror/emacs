@@ -1,7 +1,7 @@
 #
 #              GENERIC BUILD.GC MAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc/!gc.gmk(trunk.5)$
+# $HopeName: MMsrc/!gc.gmk(trunk.7)$
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -143,7 +143,7 @@ endif
 # %%TARGET: Add the target to the all dependencies.
 
 all: dwstress amcdev lockcov stdcover mpmstres std.a poolncv protcv \
-     faultcv
+     faultcv schedcv
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in all varieties.
@@ -151,7 +151,7 @@ all: dwstress amcdev lockcov stdcover mpmstres std.a poolncv protcv \
 # %%TARGET: Add a pseudo-target for the new target here.
 
 dwstress amcdev lockcov stdcover mpmstres std.a poolncv protcv \
-     faultcv: phony
+     faultcv schedcv: phony
 	$(MAKE) -f $(PFM).gmk TARGET=$@ target
 
 # "clean" removes the directory containing the build results for the platform.
@@ -213,6 +213,10 @@ $(PFM)/$(VARIETY)/protcv: $(PFM)/$(VARIETY)/protcv.o \
 $(PFM)/$(VARIETY)/faultcv: $(PFM)/$(VARIETY)/faultcv.o \
 	$(PFM)/$(VARIETY)/fault.o \
 	$(MPMOBJ) $(STDOBJ)
+
+$(PFM)/$(VARIETY)/schedcv: $(PFM)/$(VARIETY)/schedcv.o \
+	$(PFM)/$(VARIETY)/sched.o \
+	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
 	$(PFM)/$(VARIETY)/pooln.o \
