@@ -58,8 +58,7 @@ the cursor move to after the first @samp{FO}.  After another @kbd{O}, the
 cursor is after the first @samp{FOO} after the place where you started the
 search.  At each step, the buffer text that matches the search string is
 highlighted, if the terminal can do that; at each step, the current search
-string is updated in the echo area.  Multilingual text can be input by
-toggling input methods with @kbd{C-\} or @kbd{C-^}, see below.
+string is updated in the echo area.
 
   If you make a mistake in typing the search string, you can cancel
 characters with @key{DEL}.  Each @key{DEL} cancels the last character of
@@ -79,11 +78,11 @@ special within searches (@kbd{C-q}, @kbd{C-w}, @kbd{C-r}, @kbd{C-s},
 @kbd{C-y}, @kbd{M-y}, @kbd{M-r}, or @kbd{M-s}).
 
   Sometimes you search for @samp{FOO} and find it, but not the one you
-expected to find.  There was a second @samp{FOO} that you forgot about,
-before the one you were aiming for.  In this event, type another @kbd{C-s}
-to move to the next occurrence of the search string.  This can be done any
-number of times.  If you overshoot, you can cancel some @kbd{C-s}
-characters with @key{DEL}.
+expected to find.  There was a second @samp{FOO} that you forgot
+about, before the one you were aiming for.  In this event, type
+another @kbd{C-s} to move to the next occurrence of the search string.
+You can repeat this any number of times.  If you overshoot, you can
+cancel some @kbd{C-s} characters with @key{DEL}.
 
   After you exit a search, you can search for the same string again by
 typing just @kbd{C-s C-s}: the first @kbd{C-s} is the key that invokes
@@ -112,15 +111,24 @@ entirely, returning point to where it was when the search started.
 case-sensitive.  If you delete the upper-case character from the search
 string, it ceases to have this effect.  @xref{Search Case}.
 
+  To search for a newline, type @kbd{C-j}.  To search for another
+control character, such as control-S or carriage return, you must quote
+it by typing @kbd{C-q} first.  This function of @kbd{C-q} is analogous
+to its use for insertion (@pxref{Inserting Text}): it causes the
+following character to be treated the way any ``ordinary'' character is
+treated in the same context.  You can also specify a character by its
+octal code: enter @kbd{C-q} followed by a sequence of octal digits.
+
 @cindex searching for non-ASCII characters
 @cindex input method, during incremental search
-  If an input method (@pxref{Input Methods}) is turned on in the
-current buffer when you start the search, that input method is used to
-read the characters while you type the search string.  Emacs indicates
-that by including the input method mnemonic in its prompt, like this:
+  To search for non-ASCII characters, you must use an input method
+(@pxref{Input Methods}).  If an input method is turned on in the
+current buffer when you start the search, you can use it while you
+type the search string also.  Emacs indicates that by including the
+input method mnemonic in its prompt, like this:
 
 @example
- I-search [@var{im}]:
+I-search [@var{im}]:
 @end example
 
 @noindent
@@ -135,12 +143,13 @@ name of the input method.  Note that the input method you turn on
 during incremental search is turned on in the current buffer as well.
 
   If a search is failing and you ask to repeat it by typing another
-@kbd{C-s}, it starts again from the beginning of the buffer.  Repeating
-a failing reverse search with @kbd{C-r} starts again from the end.  This
-is called @dfn{wrapping around}.  @samp{Wrapped} appears in the search
-prompt once this has happened.  If you keep on going past the original
-starting point of the search, it changes to @samp{Overwrapped}, which
-means that you are revisiting matches that you have already seen.
+@kbd{C-s}, it starts again from the beginning of the buffer.
+Repeating a failing reverse search with @kbd{C-r} starts again from
+the end.  This is called @dfn{wrapping around}, and @samp{Wrapped}
+appears in the search prompt once this has happened.  If you keep on
+going past the original starting point of the search, it changes to
+@samp{Overwrapped}, which means that you are revisiting matches that
+you have already seen.
 
 @cindex quitting (in search)
   The @kbd{C-g} ``quit'' character does special things during searches;
@@ -153,14 +162,6 @@ has failed to find them---then the search string characters which have not
 been found are discarded from the search string.  With them gone, the
 search is now successful and waiting for more input, so a second @kbd{C-g}
 will cancel the entire search.
-
-  To search for a newline, type @kbd{C-j}.  To search for another
-control character, such as control-S or carriage return, you must quote
-it by typing @kbd{C-q} first.  This function of @kbd{C-q} is analogous
-to its use for insertion (@pxref{Inserting Text}): it causes the
-following character to be treated the way any ``ordinary'' character is
-treated in the same context.  You can also specify a character by its
-octal code: enter @kbd{C-q} followed by a sequence of octal digits.
 
   You can change to searching backwards with @kbd{C-r}.  If a search fails
 because the place you started was too late in the file, you should do this.
@@ -189,7 +190,7 @@ search remains case-insensitive.
 
   The character @kbd{M-y} copies text from the kill ring into the search
 string.  It uses the same text that @kbd{C-y} as a command would yank.
-@kbd{mouse-2} in the echo area does the same.
+@kbd{Mouse-2} in the echo area does the same.
 @xref{Yanking}.
 
   When you exit the incremental search, it sets the mark to where point
@@ -198,28 +199,20 @@ there.  In Transient Mark mode, incremental search sets the mark without
 activating it, and does so only if the mark is not already active.
 
 @cindex lazy search highlighting
-  By default, Isearch uses @dfn{lazy highlighting}.  All matches for
-the current search string in the buffer after the point where searching
-starts are highlighted.  The extra highlighting makes it easier to
-anticipate where the cursor will end up each time you press @kbd{C-s} or
-@kbd{C-r} to repeat a pending search.  Highlighting of these additional
-matches happens in a deferred fashion so as not to rob Isearch of its
-usual snappy response.
-@vindex isearch-lazy-highlight-cleanup
-@findex isearch-lazy-highlight-cleanup
-By default the highlighting of matches is cleared when you end the
-search.  Customize the variable @code{isearch-lazy-highlight-cleanup} to
-avoid cleaning up automatically.  The command @kbd{M-x
-isearch-lazy-highlight-cleanup} can be used to clean up manually.
 @vindex isearch-lazy-highlight
-Customize the variable @code{isearch-lazy-highlight} to turn off this
-feature.
+  When you pause for a little while during incremental search, it
+highlights all other possible matches for the search string.  This
+makes it easier to anticipate where you can get to by typing @kbd{C-s}
+or @kbd{C-r} to repeat the search.  The short delay before highlighting
+other matches helps indicate which match is the current one.
+If you don't like this feature, you can turn it off by setting
+@code{isearch-lazy-highlight} to @code{nil}.
 
 @vindex isearch-lazy-highlight-face
 @cindex faces for highlighting search matches
   You can control how does the highlighting of matches look like by
-customizing the faces @code{isearch} (highlights the current match) and
-@code{isearch-lazy-highlight-face} (highlights the other matches).
+customizing the faces @code{isearch} (used for the current match) and
+@code{isearch-lazy-highlight-face} (used for the other matches).
 
 @vindex isearch-mode-map
   To customize the special characters that incremental search understands,
@@ -239,11 +232,6 @@ on the screen.
   When you terminate the search, the single-line window is removed.
 Then Emacs redisplays the window in which the search was done, to show
 its new position of point.
-
-@ignore
-  The three dots at the end of the search string, normally used to indicate
-that searching is going on, are not displayed in slow style display.
-@end ignore
 
 @vindex search-slow-speed
   The slow terminal style of display is used when the terminal baud rate is
@@ -459,20 +447,31 @@ preceding expression either once or not at all.  For example,
 @item *?, +?, ??
 @cindex non-greedy regexp matching
 are non-greedy variants of the operators above.  The normal operators
-@samp{*}, @samp{+}, @samp{?} are @dfn{greedy} in that they match as much
-as they can, while if you append a @samp{?} after them, it makes them
-non-greedy: they will match as little as possible.
+@samp{*}, @samp{+}, @samp{?} are @dfn{greedy} in that they match as
+much as they can, as long as the overall regexp can still match.  With
+a following @samp{?}, they are non-greedy: they will match as little
+as possible.
+
+Thus, both @samp{ab*} and @samp{ab*?} can match the string @samp{a}
+and the string @samp{abbbb}; but if you try to match them both against
+the text @samp{abbb}, @samp{ab*} will match it all (the longest valid
+match), while @samp{ab*?}  will match just @samp{a} (the shortest
+valid match).
+
+@item \@{@var{n}\@}
+is a postfix operator that specifies repetition @var{n} times---that
+is, the preceding regular expression must match exactly @var{n} times
+in a row.  For example, @samp{x\@{4\@}} matches the string @samp{xxxx}
+and nothing else.
 
 @item \@{@var{n},@var{m}\@}
-is another postfix operator that specifies an interval of iteration:
-the preceding regular expression must match between @var{n} and
-@var{m} times.  If @var{m} is omitted, then there is no upper bound
-and if @samp{,@var{m}} is omitted, then the regular expression must match
-exactly @var{n} times.				@*
-@samp{\@{0,1\@}} is equivalent to @samp{?}.	@*
-@samp{\@{0,\@}} is equivalent to @samp{*}.	@*
-@samp{\@{1,\@}} is equivalent to @samp{+}.	@*
-@samp{\@{@var{n}\@}} is equivalent to @samp{\@{@var{n},@var{n}\@}}.
+is a postfix operator that specifies repetition between @var{n} and
+@var{m} times---that is, the preceding regular expression must match
+at least @var{n} times, but no more than @var{m} times.  If @var{m} is
+omitted, then there is no upper limit, but the preceding regular
+expression must match at least @var{n} times.@* @samp{\@{0,1\@}} is
+equivalent to @samp{?}. @* @samp{\@{0,\@}} is equivalent to
+@samp{*}. @* @samp{\@{1,\@}} is equivalent to @samp{+}.
 
 @item [ @dots{} ]
 is a @dfn{character set}, which begins with @samp{[} and is terminated
@@ -591,15 +590,16 @@ To record a matched substring for future reference.
 This last application is not a consequence of the idea of a
 parenthetical grouping; it is a separate feature that is assigned as a
 second meaning to the same @samp{\( @dots{} \)} construct.  In practice
-there is almost no conflict between the two meanings.
+there is usually no conflict between the two meanings; when there is
+a conflict, you can use a ``shy'' group.
 
 @item \(?: @dots{} \)
-is another grouping construct (often called ``shy'') that serves the same
-first two purposes, but not the third:
-it cannot be referred to later on by number.  This is only useful
-for mechanically constructed regular expressions where grouping
-constructs need to be introduced implicitly and hence risk changing the
-numbering of subsequent groups.
+@cindex shy group, in regexp
+specifies a ``shy'' group that does not record the matched substring;
+you can't refer back to it with @samp{\@var{d}}.  This is useful
+in mechanically combining regular expressions, so that you
+can add groups for syntactic purposes without interfering with
+the numbering of the groups that were written by the user.
 
 @item \@var{d}
 matches the same text that matched the @var{d}th occurrence of a
@@ -718,18 +718,26 @@ of times.
 enter a tab, and @kbd{C-j} to enter a newline.  You would also type
 single backslashes as themselves, instead of doubling them for Lisp syntax.
 
+@ignore
+@c I commented this out because it is missing vital information
+@c and therefore useless.  For instance, what do you do to *use* the
+@c regular expression when it is finished?  What jobs is this good for?
+@c  -- rms
+
 @findex re-builder
 @cindex authoring regular expressions
-  For easier authoring of regular expressions, you can use the @kbd{M-x
-re-builder} command.  It provides a convenient interface for creating
-regular expressions, by giving immediate visual feedback.  The buffer
-from which @code{re-builder} was invoked becomes the target for the
-regexp editor, which pops in a separate window.  Text that matches the
-regular expression you typed so far is color marked in the target
-buffer.  Each parenthesized sub-expression of the regexp is shown in a
-distinct face, which makes it easier to verify even very complex
-regexps.  (On displays that don't support colors, Emacs blinks the
-cursor around the matched text, like it does for matching parens.)
+  For convenient interactive development of regular expressions, you
+can use the @kbd{M-x re-builder} command.  It provides a convenient
+interface for creating regular expressions, by giving immediate visual
+feedback.  The buffer from which @code{re-builder} was invoked becomes
+the target for the regexp editor, which pops in a separate window.  At
+all times, all the matches in the target buffer for the current
+regular expression are highlighted.  Each parenthesized sub-expression
+of the regexp is shown in a distinct face, which makes it easier to
+verify even very complex regexps.  (On displays that don't support
+colors, Emacs blinks the cursor around the matched text, as it does
+for matching parens.)
+@end ignore
 
 @node Search Case, Replace, Regexps, Search
 @section Searching and Case
@@ -972,12 +980,15 @@ to delete the occurrence, and then enter a recursive editing level as in
 occurrence of @var{string}.  When done, exit the recursive editing level
 with @kbd{C-M-c} to proceed to the next occurrence.
 
+@item e
+to edit the replacement string in the minibuffer.  When you exit the
+minibuffer by typing @key{RET}, the minibuffer contents replace the
+current occurrence of the pattern.  They also become the new
+replacement string for any further occurrences.
+
 @item C-l
 to redisplay the screen.  Then you must type another character to
 specify what to do with this occurrence.
-
-@item e
-to let you edit the replacement string.
 
 @item C-h
 to display a message summarizing these options.  Then you must type
@@ -1005,9 +1016,10 @@ copy, or link files by replacing regexp matches in file names.
 @section Other Search-and-Loop Commands
 
   Here are some other commands that find matches for a regular
-expression.  They all operate from point to the end of the buffer, and
-all ignore case in matching, if the pattern contains no upper-case
-letters and @code{case-fold-search} is non-@code{nil}.
+expression.  They all ignore case in matching, if the pattern contains
+no upper-case letters and @code{case-fold-search} is non-@code{nil}.
+Aside from @code{occur}, all operate on the text from point to the end
+of the buffer, or on the active region in Transient Mark mode.
 
 @findex list-matching-lines
 @findex occur
@@ -1019,11 +1031,11 @@ letters and @code{case-fold-search} is non-@code{nil}.
 
 @table @kbd
 @item M-x occur @key{RET} @var{regexp} @key{RET}
-Display a list showing each line in the buffer that contains a match for
-@var{regexp}.  A numeric argument specifies the number of context lines
-to print before and after each matching line; the default is none.
-To limit the search to part of the buffer, narrow to that part
-(@pxref{Narrowing}).
+Display a list showing each line in the buffer that contains a match
+for @var{regexp}.  To limit the search to part of the buffer, narrow
+to that part (@pxref{Narrowing}).  A numeric argument @var{n}
+specifies to display @var{n} lines of context before and after each
+matching line.
 
 @kindex RET @r{(Occur mode)}
 The buffer @samp{*Occur*} containing the output serves as a menu for
@@ -1036,22 +1048,23 @@ moves point to the original of the chosen occurrence.
 Synonym for @kbd{M-x occur}.
 
 @item M-x how-many @key{RET} @var{regexp} @key{RET}
-Print the number of matches for @var{regexp} after point, or in the
-active region in Transient Mark mode.
+Print the number of matches for @var{regexp} that exist in the buffer
+after point.  In Transient Mark mode, if the region is active, the
+command operates on the region instead.
 
 @item M-x flush-lines @key{RET} @var{regexp} @key{RET}
-Delete each line after point, or in the active region in Transient Mark
-mode, that contains a match for @var{regexp}.
+Delete each line that contains a match for @var{regexp}, operating on
+the text after point.  In Transient Mark mode, if the region is
+active, the command operates on the region instead.
 
 @item M-x keep-lines @key{RET} @var{regexp} @key{RET}
-Delete each line that follows point, or is in the active region in
-Transient Mark mode, and @emph{does not} contain a match for
-@var{regexp}.
+Delete each line that @emph{does not} contain a match for
+@var{regexp}, operating on the text after point.  In Transient Mark
+mode, if the region is active, the command operates on the region
+instead.
 @end table
 
-  Searching and replacing can be performed under the control of tags
-files (@pxref{Tags Search}) and Dired (@pxref{Operating on Files}).
-
-  In addition, you can use @code{grep} from Emacs to search a collection
-of files for matches for a regular expression, then visit the matches
-either sequentially or in arbitrary order.  @xref{Grep Searching}.
+  You can also search multiple files under control of a tags table
+(@pxref{Tags Search}) or through Dired @kbd{A} command
+(@pxref{Operating on Files}), or ask the @code{grep} program to do it
+(@pxref{Grep Searching}).
