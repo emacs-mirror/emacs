@@ -724,7 +724,14 @@ text that other programs have provided for pasting.
 The function should be called with no arguments.  If the function
 returns nil, then no other program has provided such text, and the top
 of the Emacs kill ring should be used.  If the function returns a
-string, that string should be put in the kill ring as the latest kill.")
+string, that string should be put in the kill ring as the latest kill.
+
+Note that the function should return a string only if a program other
+than Emacs has provided a string for pasting; if Emacs provided the
+most recent string, the function should return nil.  If it is
+difficult to tell whether Emacs or some other program provided the
+current string, it is probably good enough to return nil if the string
+is equal (according to `string=') to the last text Emacs provided.")
 
 
 

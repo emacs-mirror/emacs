@@ -20,41 +20,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "config.h"
 
-#ifdef LOAD_AVE_TYPE
-#ifdef BSD
-/* It appears param.h defines BSD and BSD4_3 in 4.3
-   and is not considerate enough to avoid bombing out
-   if they are already defined.  */
-#undef BSD
-#ifdef BSD4_3
-#undef BSD4_3
-#define XBSD4_3 /* XBSD4_3 says BSD4_3 is supposed to be defined.  */
-#endif
-#include <sys/param.h>
-/* Now if BSD or BSD4_3 was defined and is no longer,
-   define it again.  */
-#ifndef BSD
-#define BSD
-#endif
-#ifdef XBSD4_3
-#ifndef BSD4_3
-#define BSD4_3
-#endif
-#endif /* XBSD4_3 */
-#endif /* BSD */
-#ifndef VMS
-#ifndef NLIST_STRUCT
-#include <a.out.h> 
-#else /* NLIST_STRUCT */
-#include <nlist.h>
-#endif /* NLIST_STRUCT */
-#endif /* not VMS */
-#endif /* LOAD_AVE_TYPE */
-
-#ifdef DGUX
-#include <sys/dg_sys_info.h>  /* for load average info - DJB */
-#endif
-
 /* Note on some machines this defines `vector' as a typedef,
    so make sure we don't use that name in this file.  */
 #undef vector
@@ -1226,171 +1191,27 @@ and can rub it out if not confirmed.")
   UNGCPRO;
 }
 
-/* Avoid static vars inside a function since in HPUX they dump as pure.  */
-#ifdef DGUX
-static struct dg_sys_info_load_info load_info;  /* what-a-mouthful! */
-
-#else /* Not DGUX */
-
-static int ldav_initialized;
-static int ldav_channel;
-#ifdef LOAD_AVE_TYPE
-#ifndef VMS
-static struct nlist ldav_nl[2];
-#endif /* VMS */
-#endif /* LOAD_AVE_TYPE */
-
-#define channel ldav_channel
-#define initialized ldav_initialized
-#define nl ldav_nl
-#endif /* Not DGUX */
-
 DEFUN ("load-average", Fload_average, Sload_average, 0, 0, 0,
   "Return list of 1 minute, 5 minute and 15 minute load averages.\n\
 Each of the three load averages is multiplied by 100,\n\
-then converted to integer.")
+then converted to integer.\n\
+If the 5-minute or 15-minute load averages are not available, return a\n\
+shortened list, containing only those averages which are available.")
   ()
 {
-#ifdef DGUX
-  /* perhaps there should be a "sys_load_avg" call in sysdep.c?! - DJB */
-  load_info.one_minute     = 0.0;	/* just in case there is an error */
-  load_info.five_minute    = 0.0;
-  load_info.fifteen_minute = 0.0;
-  dg_sys_info (&load_info, DG_SYS_INFO_LOAD_INFO_TYPE,
-	       DG_SYS_INFO_LOAD_VERSION_0);
+  double load_ave[3];
+  int loads = getloadavg (load_ave, 3);
+  Lisp_Object ret;
 
-  return Fcons (make_number ((int)(load_info.one_minute * 100.0)),
-		Fcons (make_number ((int)(load_info.five_minute * 100.0)),
-		       Fcons (make_number ((int)(load_info.fifteen_minute * 100.0)),
-			      Qnil)));
-#else /* not DGUX */
-#ifndef LOAD_AVE_TYPE
-  error ("load-average not implemented for this operating system");
+  if (loads < 0)
+    error ("load-average not implemented for this operating system");
 
-#else /* LOAD_AVE_TYPE defined */
+  ret = Qnil;
+  while (loads > 0)
+    ret = Fcons (make_number ((int) (load_ave[--loads] * 100.0)), ret);
 
-  LOAD_AVE_TYPE load_ave[3];
-#ifdef VMS
-#ifndef eunice
-#include <iodef.h>
-#include <descrip.h>
-#else
-#include <vms/iodef.h>
-  struct {int dsc$w_length; char *dsc$a_pointer;} descriptor;
-#endif /* eunice */
-#endif /* VMS */
-
-  /* If this fails for any reason, we can return (0 0 0) */
-  load_ave[0] = 0.0; load_ave[1] = 0.0; load_ave[2] = 0.0;
-
-#ifdef VMS
-  /*
-   *	VMS specific code -- read from the Load Ave driver
-   */
-
-  /*
-   *	Ensure that there is a channel open to the load ave device
-   */
-  if (initialized == 0)
-    {
-      /* Attempt to open the channel */
-#ifdef eunice
-      descriptor.size = 18;
-      descriptor.ptr  = "$$VMS_LOAD_AVERAGE";
-#else
-      $DESCRIPTOR(descriptor, "LAV0:");
-#endif
-      if (sys$assign (&descriptor, &channel, 0, 0) & 1)
-	initialized = 1;
-    }
-  /*
-   *	Read the load average vector
-   */
-  if (initialized)
-    {
-      if (!(sys$qiow (0, channel, IO$_READVBLK, 0, 0, 0,
-		     load_ave, 12, 0, 0, 0, 0)
-	    & 1))
-	{
-	  sys$dassgn (channel);
-	  initialized = 0;
-	}
-    }
-#else  /* not VMS */
-  /*
-   *	4.2BSD UNIX-specific code -- read _avenrun from /dev/kmem
-   */
-
-  /*
-   *	Make sure we have the address of _avenrun
-   */
-  if (nl[0].n_value == 0)
-    {
-      /*
-       *	Get the address of _avenrun
-       */
-#ifndef NLIST_STRUCT
-      strcpy (nl[0].n_name, LDAV_SYMBOL);
-      nl[1].n_zeroes = 0;
-#else /* NLIST_STRUCT */
-#ifdef convex
-      nl[0].n_un.n_name = LDAV_SYMBOL;
-      nl[1].n_un.n_name = 0;
-#else /* not convex */
-      nl[0].n_name = LDAV_SYMBOL;
-      nl[1].n_name = 0;
-#endif /* not convex */
-#endif /* NLIST_STRUCT */
-
-      nlist (KERNEL_FILE, nl);
-
-#ifdef FIXUP_KERNEL_SYMBOL_ADDR
-      FIXUP_KERNEL_SYMBOL_ADDR (nl);
-#endif /* FIXUP_KERNEL_SYMBOL_ADDR */
-    }
-  /*
-   *	Make sure we have /dev/kmem open
-   */
-  if (initialized == 0)
-    {
-      /*
-       *	Open /dev/kmem
-       */
-      channel = open ("/dev/kmem", 0);
-      if (channel >= 0) initialized = 1;
-    }
-  /*
-   *	If we can, get the load ave values
-   */
-  if ((nl[0].n_value != 0) && (initialized != 0))
-    {
-      /*
-       *	Seek to the correct address
-       */
-      lseek (channel, (long) nl[0].n_value, 0);
-      if (read (channel, load_ave, sizeof load_ave)
-	  != sizeof(load_ave))
-	{
-	  close (channel);
-	  initialized = 0;
-	}
-    }
-#endif /* not VMS */
-
-  /*
-   *	Return the list of load average values
-   */
-  return Fcons (make_number (LOAD_AVE_CVT (load_ave[0])),
-		Fcons (make_number (LOAD_AVE_CVT (load_ave[1])),
-		       Fcons (make_number (LOAD_AVE_CVT (load_ave[2])),
-			      Qnil)));
-#endif /* LOAD_AVE_TYPE */
-#endif /* not DGUX */
+  return ret;
 }
-
-#undef channel
-#undef initialized
-#undef nl
 
 Lisp_Object Vfeatures;
 

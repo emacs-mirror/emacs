@@ -410,7 +410,7 @@ DEFINEST definedef;
  * for self-documentation only.
  */
 #define LEVEL_OK_FOR_FUNCDEF()					\
-	(level==0 || c_ext && level==1 && structdef==sinbody)
+	(level==0 || (c_ext && level==1 && structdef==sinbody))
 
 /*
  * next_token_is_func
@@ -1283,7 +1283,7 @@ put_entries (node)
     fprintf (stdout, "%s %s %d\n",
 	     node->name, node->file, (node->lno + 63) / 64);
   else
-    fprintf (stdout, "%-16s%4d %-16s %s\n",
+    fprintf (stdout, "%-16s %3d %-16s %s\n",
 	     node->name, node->lno, node->file, node->pat);
 
   /* Output subentries that follow this one */
@@ -1468,7 +1468,8 @@ C_entries (c_ext)
 	{
 	  if (c == '"')
 	    inquote = FALSE;
-	  continue;
+	  else if (c == '\\')
+	    c = *lp++;
 	}
       else if (inchar)
 	{
@@ -1493,7 +1494,8 @@ C_entries (c_ext)
 	      }
 	    else if (c_ext && *lp == '/')
 	      {
-		c = 0;		/* C++ comment: skip rest of line */
+		c = 0;
+		break;
 	      }
 	    continue;
 	  case '#':
@@ -1886,7 +1888,10 @@ consider_token (c, lpp, tokp, is_func, c_ext, level)
   /* Detect GNUmacs's function-defining macros. */
   if (definedef == dnone)
     {
-      if (strneq (tokp->p, "DEF", 3))
+      if (strneq (tokp->p, "DEF", 3)
+	  || strneq (tokp->p, "ENTRY", 5)
+	  || strneq (tokp->p, "SYSCALL", 7)
+	  || strneq (tokp->p, "PSEUDO", 6))
 	{
 	  next_token_is_func = TRUE;
 	  goto badone;
@@ -2084,7 +2089,10 @@ getit ()
 
   while (isspace (*dbp))
     dbp++;
-  if (*dbp == 0 || (!isalpha (*dbp)) && (*dbp != '_') && (*dbp != '$'))
+  if (*dbp == 0
+      || (!isalpha (*dbp)
+	  && *dbp != '_'
+	  && *dbp != '$'))
     return;
   for (cp = dbp + 1; *cp && (isalpha (*cp) || isdigit (*cp)
 			     || (*cp == '_') || (*cp == '$')); cp++)

@@ -175,7 +175,6 @@
 ;; Put edebug.el in some directory in your load-path and byte-compile it.
 
 ;; Put the following forms in your .emacs file.
-;; (setq edebug-global-prefix "...whatever you want")  ; default is C-xX
 ;; (define-key emacs-lisp-mode-map "\^Xx" 'edebug-defun)
 ;; (autoload 'edebug-defun "edebug")
 ;; (autoload 'edebug-debug "edebug")
@@ -459,16 +458,31 @@ if an error occurs, point is left at the error."
     ))
 
 
-;; The standard eval-current-buffer doesn't use eval-region.
-(if (not (fboundp 'edebug-emacs-eval-current-buffer))
-    (fset 'edebug-emacs-eval-current-buffer
-	  (symbol-function 'eval-current-buffer)))
-;; (fset 'eval-current-buffer (symbol-function 'edebug-emacs-eval-current-buffer))
-
-(defun eval-current-buffer (&optional edebug-e-c-b-output)
+(defun edebug-eval-current-buffer (&optional edebug-e-c-b-output)
   "Call eval-region on the whole buffer."
   (interactive)
   (eval-region (point-min) (point-max) edebug-e-c-b-output))
+
+(defun edebug-eval-buffer (&optional buffer edebug-e-c-b-output)
+  "Call eval-region on the whole buffer."
+  (interactive "bEval buffer: ")
+  (save-excursion
+    (set-buffer buffer)
+    (eval-region (point-min) (point-max) edebug-e-c-b-output)))
+
+;; The standard eval-current-buffer doesn't use eval-region.
+(if (and (fboundp 'eval-current-buffer)
+	 (not (fboundp 'edebug-emacs-eval-current-buffer)))
+    (progn
+      (fset 'edebug-emacs-eval-current-buffer
+	    (symbol-function 'eval-current-buffer))
+      (fset 'eval-current-buffer 'edebug-eval-current-buffer)))
+(if (and (fboundp 'eval-buffer)
+	 (not (fboundp 'edebug-emacs-eval-buffer)))
+    (progn
+      (fset 'edebug-emacs-eval-buffer
+	    (symbol-function 'eval-buffer))
+      (fset 'eval-buffer 'edebug-eval-buffer)))
 
 
 
@@ -498,6 +512,7 @@ if an error occurs, point is left at the error."
 ;;; for more details.
 
 
+;;;###autoload
 (defun edebug-defun ()
   "Evaluate defun or defmacro, like eval-defun, but with edebug calls.
 Print its name in the minibuffer and leave point after any error it finds,
@@ -2416,6 +2431,7 @@ Global commands prefixed by global-edbug-prefix:
 ;; Note that debug and its utilities must be byte-compiled to work, since
 ;; they depend on the backtrace looking a certain way.
 
+;;;###autoload
 (defun edebug-debug (&rest debugger-args)
   "Replacement for debug.  
 If an error or quit occurred and we are running an edebugged function,

@@ -960,7 +960,7 @@ Does not copy symbols.")
 
 struct gcpro *gcprolist;
 
-#define NSTATICS 256
+#define NSTATICS 512
 
 Lisp_Object *staticvec[NSTATICS] = {0};
 

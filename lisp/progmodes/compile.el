@@ -1,4 +1,4 @@
-;;; compile.el --- run compiler as inferior of Emacs, and parse its error messages.
+;;; compile.el --- run compiler as inferior of Emacs, parse error messages.
 
 ;;;!!! dup removal is broken.
 
@@ -84,21 +84,24 @@ are found.")
     ("^\\([^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2)
     ;; 4.3BSD lint pass 2
     ;; strcmp: variable # of args. llib-lc(359)  ::  /usr/src/foo/foo.c(8)
-    ("[ \t:]+\\([^:( \t\n]+\\)[ \t]*[:(]+[ \t]*\\([0-9]+\\)[:) \t]*$" 1 2)
+    ("[ \t:]+\\([^:( \t\n]+\\)[ \t]*[:(]*(+[ \t]*\\([0-9]+\\))[:) \t]*$" 1 2)
     ;; 4.3BSD lint pass 3
     ;; bloofle defined( /users/wolfgang/foo.c(4) ), but never used
-    ("[ \t(]+\\([^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]+" 1 2)
+    ;; This used to be
+    ;; ("[ \t(]+\\([^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]+" 1 2)
+    ;; which is regexp Impressionism - it matches almost anything!
+    ("([ \t]*\\([^:( \t\n]+\\)[ \t]*[:(][ \t]*\\([0-9]+\\))" 1 2)
     ;; Line 45 of "foo.c": bloofel undefined (who does this?)
-    ("^[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+of[ \t]+\"\\([^\"]+\\)\":" 2 1)
+    ("^[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+of[ \t]+\"\\([^\"\n]+\\)\":" 2 1)
     ;; Apollo cc, 4.3BSD fc
     ;; "foo.f", line 3: Error: syntax error near end of statement
-    ("^\"\\([^\"]+\\)\", line \\([0-9]+\\):" 1 2)
+    ("^\"\\([^\"\n]+\\)\", line \\([0-9]+\\):" 1 2)
     ;; HP-UX 7.0 fc
     ;; foo.f          :16    some horrible error message
-    ("\\([^ \t:]+\\)[ \t]*:\\([0-9]+\\)" 1 2)
+    ("^\\([^ \t\n:]+\\)[ \t]*:\\([0-9]+\\)" 1 2)
     ;; IBM AIX PS/2 C version 1.1
     ;; ****** Error number 140 in line 8 of file errors.c ******
-    ("in line \\([0-9]+\\) of file \\([^ ]+[^. ]\\)\\.? " 2 1)
+    ("in line \\([0-9]+\\) of file \\([^ \n]+[^. \n]\\)\\.? " 2 1)
     ;; IBM AIX lint is too painful to do right this way.  File name
     ;; prefixes entire sections rather than being on each line.
     )
@@ -132,18 +135,18 @@ Typically \"grep -n\" or \"egrep -n\".
 \(The \"-n\" option tells grep to output line numbers.)")
 
 (defconst compilation-enter-directory-regexp
-  ": Entering directory `\\\(.*\\\)'$"
+  ": Entering directory `\\(.*\\)'$"
   "Regular expression for a line in the compilation log that
-changes the current directory.  This must contain one \\\(, \\\) pair
+changes the current directory.  This must contain one \\(, \\) pair
 around the directory name.
 
 The default value matches lines printed by the `-w' option of GNU Make.")
 
 (defconst compilation-leave-directory-regexp
-  ": Leaving directory `\\\(.*\\\)'$"
+  ": Leaving directory `\\(.*\\)'$"
   "Regular expression for a line in the compilation log that
 changes the current directory to a previous value.  This may
-contain one \\\(, \\\) pair around the name of the directory
+contain one \\(, \\) pair around the name of the directory
 being moved from.  If it does not, the last directory entered
 \(by a line matching `compilation-enter-directory-regexp'\) is assumed.
 
@@ -343,6 +346,8 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
 		   (setq omax (point-max)
 			 opoint (point))
 		   (goto-char omax)
+		   ;; Record where we put the message, so we can ignore it
+		   ;; later on.
 		   (insert ?\n mode-name " " msg)
 		   (forward-char -1)
 		   (insert " at " (substring (current-time-string) 0 19))

@@ -32,9 +32,12 @@ end
 
 define xwindow
 print (struct window *) ($ & 0x00ffffff)
+print ($->left)@4
+print $$
 end
 document xwindow
 Print $ as a window pointer, assuming it is an Elisp window value.
+Print the window's position as { left, top, height, width }.
 end
 
 define xmarker
@@ -46,9 +49,12 @@ end
 
 define xbuffer
 print (struct buffer *) ($ & 0x00ffffff)
+print &((struct Lisp_String *) (($->name) & 0x00ffffff))->data
+print $$
 end
 document xbuffer
-Print $ as a buffer pointer, assuming it is an Elisp buffer value.
+Set $ as a buffer pointer, assuming it is an Elisp buffer value.
+Print the name of the buffer.
 end
 
 define xsymbol

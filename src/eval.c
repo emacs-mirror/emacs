@@ -41,8 +41,9 @@ struct backtrace
     struct backtrace *next;
     Lisp_Object *function;
     Lisp_Object *args;	/* Points to vector of args. */
-    int nargs;		/* length of vector */
-	       /* if nargs is UNEVALLED, args points to slot holding list of unevalled args */
+    int nargs;		/* Length of vector.
+			   If nargs is UNEVALLED, args points to slot holding
+			   list of unevalled args */
     char evalargs;
     /* Nonzero means call value of debugger when done with this operation. */
     char debug_on_exit;
@@ -451,20 +452,33 @@ and input is currently coming from the keyboard (not in keyboard macro).")
   if (!INTERACTIVE)
     return Qnil;
 
-  /*  Unless the object was compiled, skip the frame of interactive-p itself
-      (if interpreted) or the frame of byte-code (if called from
-      compiled function).  */
   btp = backtrace_list;
-  if (XTYPE (*btp->function) != Lisp_Compiled)
-    btp = btp->next;
-  while (btp
-	 && (btp->nargs == UNEVALLED || EQ (*btp->function, Qbytecode)))
+
+  /* If this isn't a byte-compiled function, there may be a frame at
+     the top for Finteractive_p itself.  If so, skip it.  */
+  fun = Findirect_function (*btp->function);
+  if (XTYPE (fun) == Lisp_Subr
+      && (struct Lisp_Subr *) XPNTR (fun) == &Sinteractive_p)
     btp = btp->next;
 
-  /* btp now points at the frame of the innermost function
-     that DOES eval its args.
-     If it is a built-in function (such as load or eval-region)
-     return nil.  */
+  /* If we're running an Emacs 18-style byte-compiled function, there
+     may be a frame for Fbytecode.  Now, given the strictest
+     definition, this function isn't really being called
+     interactively, but because that's the way Emacs 18 always builds
+     byte-compiled functions, we'll accept it for now.  */
+  if (EQ (*btp->function, Qbytecode))
+    btp = btp->next;
+
+  /* If this isn't a byte-compiled function, then we may now be
+     looking at several frames for special forms.  Skip past them.  */
+  while (btp && 
+	 btp->nargs == UNEVALLED)
+    btp = btp->next;
+
+  /* btp now points at the frame of the innermost function that isn't
+     a special form, ignoring frames for Finteractive_p and/or
+     Fbytecode at the top.  If this frame is for a built-in function
+     (such as load or eval-region) return nil.  */
   fun = Findirect_function (*btp->function);
   if (XTYPE (fun) == Lisp_Subr)
     return Qnil;
@@ -2320,8 +2334,8 @@ See also variable `debug-on-quit'.");
 
   DEFVAR_BOOL ("debug-on-quit", &debug_on_quit,
     "*Non-nil means enter debugger if quit is signaled (C-G, for example).\n\
-Does not apply if quit is handled by a `condition-case'.
-A non-nil value is equivalent to a `debug-on-error' value containing 'quit.");
+Does not apply if quit is handled by a `condition-case'.\n\
+A non-nil value is equivalent to a `debug-on-error' value containing `quit'.");
   debug_on_quit = 0;
 
   DEFVAR_BOOL ("debug-on-next-call", &debug_on_next_call,

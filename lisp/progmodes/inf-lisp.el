@@ -100,11 +100,8 @@
 ;;; c-m-x   lisp-eval-defun         This binding is a gnu convention.
 ;;; c-c c-e lisp-eval-defun 	    Send the current defun to Lisp process.
 ;;; c-x c-e lisp-eval-last-sexp     Send the previous sexp to Lisp process.
-;;; c-c m-e lisp-eval-defun-and-go  After sending the defun, switch-to-lisp.
 ;;; c-c c-r lisp-eval-region        Send the current region to Lisp process.
-;;; c-c m-r lisp-eval-region-and-go After sending the region, switch-to-lisp.
 ;;; c-c c-c lisp-compile-defun      Compile the current defun in Lisp process.
-;;; c-c m-c lisp-compile-defun-and-go After compiling defun, switch-to-lisp.
 ;;; c-c c-z switch-to-lisp          Switch to the Lisp process buffer.
 ;;; c-c c-l lisp-load-file          (See above. In a Lisp file buffer, default
 ;;; c-c c-k lisp-compile-file        is to load/compile the current file.)
@@ -115,7 +112,6 @@
 
 ;;; cmulisp	    	    	    Fires up the Lisp process.
 ;;; lisp-compile-region     	    Compile all forms in the current region.
-;;; lisp-compile-region-and-go      After compiling region, switch-to-lisp.
 ;;;
 ;;; CMU Lisp Mode Variables:
 ;;; cmulisp-filter-regexp	    Match this => don't get saved on input hist
@@ -154,11 +150,8 @@ mode. Default is whitespace followed by 0 or 1 single-letter :keyword
 (define-key lisp-mode-map "\M-\C-x"  'lisp-eval-defun)     ; Gnu convention
 (define-key lisp-mode-map "\C-x\C-e" 'lisp-eval-last-sexp) ; Gnu convention
 (define-key lisp-mode-map "\C-c\C-e" 'lisp-eval-defun)
-(define-key lisp-mode-map "\C-c\M-e" 'lisp-eval-defun-and-go)
 (define-key lisp-mode-map "\C-c\C-r" 'lisp-eval-region)
-(define-key lisp-mode-map "\C-c\M-r" 'lisp-eval-region-and-go)
 (define-key lisp-mode-map "\C-c\C-c" 'lisp-compile-defun)
-(define-key lisp-mode-map "\C-c\M-c" 'lisp-compile-defun-and-go)
 (define-key lisp-mode-map "\C-c\C-z" 'switch-to-lisp)
 (define-key lisp-mode-map "\C-c\C-l" 'lisp-load-file)
 (define-key lisp-mode-map "\C-c\C-k" 'lisp-compile-file)  ; "kompile" file
@@ -166,6 +159,37 @@ mode. Default is whitespace followed by 0 or 1 single-letter :keyword
 (define-key lisp-mode-map "\C-c\C-d" 'lisp-describe-sym)
 (define-key lisp-mode-map "\C-c\C-f" 'lisp-show-function-documentation)
 (define-key lisp-mode-map "\C-c\C-v" 'lisp-show-variable-documentation)
+
+
+;;; This function exists for backwards compatibility.
+;;; Previous versions of this package bound commands to C-c <letter>
+;;; bindings, which is not allowed by the gnumacs standard.
+
+(defun cmulisp-install-letter-bindings ()
+  "This function binds many cmulisp commands to C-c <letter> bindings,
+where they are more accessible. C-c <letter> bindings are reserved for the
+user, so these bindings are non-standard. If you want them, you should
+have this function called by the cmulisp-load-hook:
+    (setq cmulisp-load-hook '(cmulisp-install-letter-bindings))
+You can modify this function to install just the bindings you want."
+
+  (define-key lisp-mode-map "\C-ce" 'lisp-eval-defun-and-go)
+  (define-key lisp-mode-map "\C-cr" 'lisp-eval-region-and-go)
+  (define-key lisp-mode-map "\C-cc" 'lisp-compile-defun-and-go)
+  (define-key lisp-mode-map "\C-cz" 'switch-to-lisp)
+  (define-key lisp-mode-map "\C-cl" 'lisp-load-file)
+  (define-key lisp-mode-map "\C-ck" 'lisp-compile-file)
+  (define-key lisp-mode-map "\C-ca" 'lisp-show-arglist)
+  (define-key lisp-mode-map "\C-cd" 'lisp-describe-sym)
+  (define-key lisp-mode-map "\C-cf" 'lisp-show-function-documentation)
+  (define-key lisp-mode-map "\C-cv" 'lisp-show-variable-documentation)
+
+  (define-key cmulisp-mode-map "\C-cl" 'lisp-load-file)
+  (define-key cmulisp-mode-map "\C-ck" 'lisp-compile-file)
+  (define-key cmulisp-mode-map "\C-ca" 'lisp-show-arglist)
+  (define-key cmulisp-mode-map "\C-cd" 'lisp-describe-sym)
+  (define-key cmulisp-mode-map "\C-cf" 'lisp-show-function-documentation)
+  (define-key cmulisp-mode-map "\C-cv" 'lisp-show-variable-documentation))
 
 
 (defvar inferior-lisp-program "lisp"
@@ -220,9 +244,9 @@ Lisp source.
     lisp-eval-region sends the current region to the Lisp process.
     lisp-compile-region compiles the current region.
 
-    lisp-eval-defun-and-go, lisp-compile-defun-and-go,
-        lisp-eval-region-and-go, and lisp-compile-region-and-go
-        switch to the Lisp process buffer after sending their text.
+    Prefixing the lisp-eval/compile-defun/region commands with
+    a \\[universal-argument] causes a switch to the Lisp process buffer after sending
+    the text.
 
 Commands:
 Return after the end of the process' output sends the text from the 
@@ -262,54 +286,87 @@ to continue it."
   "Don't save anything matching cmulisp-filter-regexp"
   (not (string-match cmulisp-filter-regexp str)))
 
-(defun cmulisp ()
+(defun cmulisp (cmd)
   "Run an inferior Lisp process, input and output via buffer *cmulisp*.
 If there is a process already running in *cmulisp*, just switch to that buffer.
-Takes the program name from the variable inferior-lisp-program.
+With argument, allows you to edit the command line (default is value
+of inferior-lisp-program).  Runs the hooks from cmulisp-mode-hook (after the
+comint-mode-hook is run).
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
-  (interactive)
-  (cond ((not (comint-check-proc "*cmulisp*"))
-	 (set-buffer (make-comint "cmulisp" inferior-lisp-program))
+  (interactive (list (if current-prefix-arg
+			 (read-string "Run lisp: " inferior-lisp-program)
+			 inferior-lisp-program)))
+  (if (not (comint-check-proc "*cmulisp*"))
+      (let ((cmdlist (cmulisp-args-to-list cmd)))
+	 (set-buffer (apply (function make-comint) "cmulisp" (car cmdlist) nil
+			    (cdr cmdlist)))
 	 (cmulisp-mode)))
   (setq cmulisp-buffer "*cmulisp*")
   (switch-to-buffer "*cmulisp*"))
 
-(defun lisp-eval-region (start end)
-  "Send the current region to the inferior Lisp process."
-  (interactive "r")
+;;; Break a string up into a list of arguments.
+;;; This will break if you have an argument with whitespace, as in
+;;; string = "-ab +c -x 'you lose'".
+(defun cmulisp-args-to-list (string)
+  (let ((where (string-match "[ \t]" string)))
+    (cond ((null where) (list string))
+	  ((not (= where 0))
+	   (cons (substring string 0 where)
+		 (tea-args-to-list (substring string (+ 1 where)
+					      (length string)))))
+	  (t (let ((pos (string-match "[^ \t]" string)))
+	       (if (null pos)
+		   nil
+		 (cmulsip-args-to-list (substring string pos
+						  (length string)))))))))
+
+(defun lisp-eval-region (start end &optional and-go)
+  "Send the current region to the inferior Lisp process.
+Prefix argument means switch-to-lisp afterwards."
+  (interactive "r\nP")
   (comint-send-region (cmulisp-proc) start end)
-  (comint-send-string (cmulisp-proc) "\n"))
+  (comint-send-string (cmulisp-proc) "\n")
+  (if and-go (switch-to-lisp t)))
 
-(defun lisp-eval-defun ()
-  "Send the current defun to the inferior Lisp process."
-  (interactive)
-  (save-excursion
-   (end-of-defun)
-   (let ((end (point)))
-     (beginning-of-defun)
-     (lisp-eval-region (point) end))))
-
-(defun lisp-eval-last-sexp ()
-  "Send the previous sexp to the inferior Lisp process."
-  (interactive)
-  (lisp-eval-region (save-excursion (backward-sexp) (point)) (point)))
-
-;;; CommonLisp COMPILE sux. 
-(defun lisp-compile-region (start end)
-  "Compile the current region in the inferior Lisp process."
-  (interactive "r")
-  (comint-send-string (cmulisp-proc)
-    (format "(funcall (compile nil `(lambda () (progn 'compile %s))))\n"
-	    (buffer-substring start end))))
-			 
-(defun lisp-compile-defun ()
-  "Compile the current defun in the inferior Lisp process."
-  (interactive)
+(defun lisp-eval-defun (&optional and-go)
+  "Send the current defun to the inferior Lisp process.
+Prefix argument means switch-to-lisp afterwards."
+  (interactive "P")
   (save-excursion
     (end-of-defun)
+    (skip-chars-backward " \t\n\r\f") ;  Makes allegro happy
+    (let ((end (point)))
+      (beginning-of-defun)
+      (lisp-eval-region (point) end)))
+  (if and-go (switch-to-lisp t)))
+
+(defun lisp-eval-last-sexp (&optional and-go)
+  "Send the previous sexp to the inferior Lisp process.
+Prefix argument means switch-to-lisp afterwards."
+  (interactive "P")
+  (lisp-eval-region (save-excursion (backward-sexp) (point)) (point) and-go))
+
+;;; Common Lisp COMPILE sux. 
+(defun lisp-compile-region (start end &optional and-go)
+  "Compile the current region in the inferior Lisp process.
+Prefix argument means switch-to-lisp afterwards."
+  (interactive "r\nP")
+  (comint-send-string (cmulisp-proc)
+    (format "(funcall (compile nil `(lambda () (progn 'compile %s))))\n"
+	    (buffer-substring start end)))
+  (if and-go (switch-to-lisp t)))
+			 
+(defun lisp-compile-defun (&optional and-go)
+  "Compile the current defun in the inferior Lisp process.
+Prefix argument means switch-to-lisp afterwards."
+  (interactive "P")
+  (save-excursion
+    (end-of-defun)
+    (skip-chars-backward " \t\n\r\f") ;  Makes allegro happy
     (let ((e (point)))
       (beginning-of-defun)
-      (lisp-compile-region (point) e))))
+      (lisp-compile-region (point) e)))
+  (if and-go (switch-to-lisp t)))
 
 (defun switch-to-lisp (eob-p)
   "Switch to the inferior Lisp process buffer.
@@ -322,33 +379,35 @@ With argument, positions cursor at end of buffer."
 	 (push-mark)
 	 (goto-char (point-max)))))
 
+
+;;; Now that lisp-compile/eval-defun/region takes an optional prefix arg,
+;;; these commands are redundant. But they are kept around for the user
+;;; to bind if he wishes, for backwards functionality, and because it's
+;;; easier to type C-c e than C-u C-c C-e.
+
 (defun lisp-eval-region-and-go (start end)
   "Send the current region to the inferior Lisp, 
 and switch to the process buffer."
   (interactive "r")
-  (lisp-eval-region start end)
-  (switch-to-lisp t))
+  (lisp-eval-region start end t))
 
 (defun lisp-eval-defun-and-go ()
   "Send the current defun to the inferior Lisp, 
 and switch to the process buffer."
   (interactive)
-  (lisp-eval-defun)
-  (switch-to-lisp t))
+  (lisp-eval-defun t))
 
 (defun lisp-compile-region-and-go (start end)
   "Compile the current region in the inferior Lisp, 
 and switch to the process buffer."
   (interactive "r")
-  (lisp-compile-region start end)
-  (switch-to-lisp t))
+  (lisp-compile-region start end t))
 
 (defun lisp-compile-defun-and-go ()
   "Compile the current defun in the inferior Lisp, 
 and switch to the process buffer."
   (interactive)
-  (lisp-compile-defun)
-  (switch-to-lisp t))
+  (lisp-compile-defun t))
 
 ;;; A version of the form in H. Shevis' soar-mode.el package. Less robust.
 ;(defun lisp-compile-sexp (start end)
@@ -406,7 +465,8 @@ Used by these commands to determine defaults.")
   (setq lisp-prev-l/c-dir/file (cons (file-name-directory    file-name)
 				     (file-name-nondirectory file-name)))
   (comint-send-string (cmulisp-proc)
-		      (format inferior-lisp-load-command file-name)))
+		      (format inferior-lisp-load-command file-name))
+  (switch-to-lisp t))
 
 
 (defun lisp-compile-file (file-name)
@@ -419,7 +479,8 @@ Used by these commands to determine defaults.")
 				     (file-name-nondirectory file-name)))
   (comint-send-string (cmulisp-proc) (concat "(compile-file \""
 					     file-name
-					     "\"\)\n")))
+					     "\"\)\n"))
+  (switch-to-lisp t))
 
 
 
@@ -541,7 +602,7 @@ have three inferior lisps running:
     foo		cmulisp
     bar		cmulisp<2>
     *cmulisp*   cmulisp<3>
-If you do a \\[lisp-eval-defun-and-go] command on some Lisp source code, 
+If you do a \\[lisp-eval-defun] command on some Lisp source code, 
 what process do you send it to?
 
 - If you're in a process buffer (foo, bar, or *cmulisp*), 
@@ -598,6 +659,25 @@ This is a good place to put keybindings.")
 ;;; 3/12/90 Olin
 ;;; - lisp-load-file and lisp-compile-file no longer switch-to-lisp.
 ;;;   Tale suggested this.
+;;; - Reversed this decision 7/15/91. You need the visual feedback.
+;;;
+;;; 7/25/91 Olin
+;;; Changed all keybindings of the form C-c <letter>. These are
+;;; supposed to be reserved for the user to bind. This affected
+;;; mainly the compile/eval-defun/region[-and-go] commands.
+;;; This was painful, but necessary to adhere to the gnumacs standard.
+;;; For some backwards compatibility, see the 
+;;;     cmulisp-install-letter-bindings
+;;; function.
+;;;
+;;; 8/2/91 Olin
+;;; - The lisp-compile/eval-defun/region commands now take a prefix arg,
+;;;   which means switch-to-lisp after sending the text to the Lisp process.
+;;;   This obsoletes all the -and-go commands. The -and-go commands are
+;;;   kept around for historical reasons, and because the user can bind
+;;;   them to key sequences shorter than C-u C-c C-<letter>.
+;;; - If M-x cmulisp is invoked with a prefix arg, it allows you to
+;;;   edit the command line.
 
 (provide 'cmulisp)
 

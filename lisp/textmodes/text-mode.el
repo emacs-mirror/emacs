@@ -1,12 +1,12 @@
 ;;; text-mode.el --- text mode, and its idiosyncratic commands.
 
-;; Copyright (C) 1985 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -93,18 +93,6 @@ if that value is non-nil."
   (setq mode-name "Indented Text")
   (setq major-mode 'indented-text-mode)
   (run-hooks 'text-mode-hook))
-
-(defun change-log-mode ()
-  "Major mode for editing ChangeLog files.  See M-x add-change-log-entry.
-Almost the same as Indented Text mode, but prevents numeric backups
-and sets `left-margin' to 8 and `fill-column' to 74."
-  (interactive)
-  (indented-text-mode)
-  (setq left-margin 8)
-  (setq fill-column 74)
-  (make-local-variable 'version-control)
-  (setq version-control 'never)
-  (run-hooks 'change-log-mode-hook))
 
 (defun center-paragraph ()
   "Center each nonblank line in the paragraph at or after point.

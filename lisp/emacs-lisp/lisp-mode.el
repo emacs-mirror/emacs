@@ -490,9 +490,11 @@ of the start of the containing expression."
 If optional arg ENDPOS is given, indent each line, stopping when
 ENDPOS is encountered."
   (interactive)
-  (let ((indent-stack (list nil)) (next-depth 0) last-depth bol
-	outer-loop-done inner-loop-done state this-indent
-	(last-point (point)))
+  (let ((indent-stack (list nil))
+	(next-depth 0)
+	(starting-point (point))
+	(last-point (point))
+	last-depth bol outer-loop-done inner-loop-done state this-indent)
     ;; Get error now if we don't have a complete sexp after point.
     (save-excursion (forward-sexp 1))
     (save-excursion
@@ -529,10 +531,12 @@ ENDPOS is encountered."
 		(setcar (nthcdr 5 state) nil))
 	    (setq inner-loop-done t)))
 	(and endpos
-	     (while (<= next-depth 0)
-	       (setq indent-stack (append indent-stack (list nil)))
-	       (setq next-depth (1+ next-depth))
-	       (setq last-depth (1+ last-depth))))
+	     (<= next-depth 0)
+	     (progn
+	       (setq indent-stack (append indent-stack
+					  (make-list (- next-depth) nil))
+		     last-depth (- last-depth next-depth)
+		     next-depth 0)))
 	(or outer-loop-done
 	    (setq outer-loop-done (<= next-depth 0)))
 	(if outer-loop-done
@@ -557,7 +561,7 @@ ENDPOS is encountered."
 		(setq this-indent (car indent-stack))
 	      (let ((val (calculate-lisp-indent
 			  (if (car indent-stack) (- (car indent-stack))
-			    last-point))))
+			    starting-point))))
 		(if (integerp val)
 		    (setcar indent-stack
 			    (setq this-indent val))

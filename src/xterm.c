@@ -1995,7 +1995,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    {
 		      bufp->kind = non_ascii_keystroke;
 		      XSET (bufp->code, Lisp_Int, (unsigned) keysym - 0xff50);
-		      bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
+		      bufp->screen = s;
 		      bufp->modifiers = x_convert_modifiers (modifiers);
 		      bufp->timestamp = event.xkey.time;
 		      bufp++;
@@ -2012,7 +2012,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			    *copy_buffer |= METABIT;
 			  bufp->kind = ascii_keystroke;
 			  XSET (bufp->code, Lisp_Int, *copy_buffer);
-			  bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
+			  bufp->screen = s;
 			  bufp->timestamp = event.xkey.time;
 			  bufp++;
 			}
@@ -2021,7 +2021,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			  {
 			    bufp->kind = ascii_keystroke;
 			    XSET (bufp->code, Lisp_Int, copy_buffer[i]);
-			    bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
+			    bufp->screen = s;
 			    bufp->timestamp = event.xkey.time;
 			    bufp++;
 			  }
@@ -2071,7 +2071,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    bufp->kind = ascii_keystroke;
 		    XSET (bufp->code, Lisp_Int, where_mapping[i]);
 		    XSET (bufp->time, Lisp_Int, event.xkey.time);
-		    bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
+		    bufp->screen = s;
 		    bufp++;
 		  }
 		count += nbytes;
@@ -2308,13 +2308,13 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    {
 	      bufp->kind = ascii_keystroke;
 	      bufp->code = (char) 'X' & 037; /* C-x */
-	      bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
+	      bufp->screen = s;
 	      XSET (bufp->time, Lisp_Int, event.xkey.time);
 	      bufp++;
 
 	      bufp->kind = ascii_keystroke;
 	      bufp->code = (char) 0; /* C-@ */
-	      bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
+	      bufp->screen = s;
 	      XSET (bufp->time, Lisp_Int, event.xkey.time);
 	      bufp++;
 
@@ -3606,6 +3606,9 @@ x_wm_set_size_hint (s, prompting)
   Window window = s->display.x->window_desc;
 
   size_hints.flags = PResizeInc | PMinSize | PMaxSize;
+#ifdef PBaseSize
+  size_hints.flags |= PBaseSize;
+#endif
 
   flexlines = s->height;
 

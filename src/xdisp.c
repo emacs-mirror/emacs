@@ -311,6 +311,18 @@ echo_area_display ()
       /* If desired cursor location is on this line, put it at end of text */
       if (SCREEN_CURSOR_Y (s) == vpos)
 	SCREEN_CURSOR_X (s) = s->desired_glyphs->used[vpos];
+
+      /* Fill the rest of the minibuffer window with blank lines.  */
+      {
+	int i;
+
+	for (i = vpos + 1; i < vpos + XWINDOW (minibuf_window)->height; i++)
+	  {
+	    get_display_line (s, i, 0);
+	    display_string (XWINDOW (minibuf_window), vpos,
+			    "", 0, 0, 0, SCREEN_WIDTH (s));
+	  }
+      }
     }
   else if (!EQ (minibuf_window, selected_window))
     windows_or_buffers_changed++;

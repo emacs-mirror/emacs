@@ -59,14 +59,29 @@ the section of autoloads for a file.")
 (defconst generate-autoload-section-trailer "\n;;;***\n"
   "String which indicates the end of the section of autoloads for a file.")
 
-;; Forms which have doc-strings which should be printed specially.
-;; A doc-string-elt property of ELT says that (nth ELT FORM) is
-;; the doc-string in FORM.
-;; Note: defconst and defvar should NOT be marked in this way.
-;; We don't want to produce defconsts and defvars that make-docfile can
-;; grok, because then it would grok them twice, once in foo.el (where they
-;; are given with ;;;###autoload) and once in loaddefs.el.
+;;; Forms which have doc-strings which should be printed specially.
+;;; A doc-string-elt property of ELT says that (nth ELT FORM) is
+;;; the doc-string in FORM.
+;;;
+;;; There used to be the following note here:
+;;; ;;; Note: defconst and defvar should NOT be marked in this way.
+;;; ;;; We don't want to produce defconsts and defvars that
+;;; ;;; make-docfile can grok, because then it would grok them twice,
+;;; ;;; once in foo.el (where they are given with ;;;###autoload) and
+;;; ;;; once in loaddefs.el.
+;;;
+;;; Counter-note: Yes, they should be marked in this way.
+;;; make-docfile only processes those files that are loaded into the
+;;; dumped Emacs, and those files should never have anything
+;;; autoloaded here.  The above-feared problem only occurs with files
+;;; which have autoloaded entries *and* are processed by make-docfile;
+;;; there should be no such files.
+
 (put 'autoload 'doc-string-elt 3)
+(put 'defun    'doc-string-elt 3)
+(put 'defvar   'doc-string-elt 3)
+(put 'defconst 'doc-string-elt 3)
+(put 'defmacro 'doc-string-elt 3)
 
 (defun generate-file-autoloads (file)
   "Insert at point a loaddefs autoload section for FILE.
@@ -86,6 +101,21 @@ are used."
 	(floating-output-format "%20e")
 	(done-any nil)
 	output-end)
+
+    ;; If the autoload section we create here uses an absolute
+    ;; pathname for FILE in its header, and then Emacs is installed
+    ;; under a different path on another system,
+    ;; `update-autoloads-here' won't be able to find the files to be
+    ;; autoloaded.  So, if FILE is in the same directory or a
+    ;; subdirectory of the current buffer's file, we'll make it
+    ;; relative to the current buffer's directory.
+    (setq file (expand-file-name file))
+    (if (and (< (length default-directory) (length file))
+	     (string= default-directory
+		      (substring file 0 (length default-directory))))
+	(progn
+	  (setq file (substring file (length default-directory)))))
+
     (message "Generating autoloads for %s..." file)
     (save-excursion
       (set-buffer inbuf)

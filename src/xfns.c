@@ -1043,6 +1043,10 @@ x_set_name (s, arg, oldval)
 {
   CHECK_STRING (arg, 0);
 
+  /* Don't change the name if it's already ARG.  */
+  if (! NILP (Fstring_equal (arg, s->name)))
+    return;
+
   if (s->display.x->window_desc)
     {
 #ifdef HAVE_X11
@@ -1056,7 +1060,6 @@ x_set_name (s, arg, oldval)
       XSetWMIconName (XDISPLAY s->display.x->window_desc, &prop);
       UNBLOCK_INPUT;
 #else
-      s->name = arg;
       BLOCK_INPUT;
       XStoreName (XDISPLAY s->display.x->window_desc,
 		  (char *) XSTRING (arg)->data);
@@ -1065,6 +1068,8 @@ x_set_name (s, arg, oldval)
       UNBLOCK_INPUT;
 #endif
     }
+
+  s->name = arg;
 }
 
 void
@@ -1868,8 +1873,9 @@ be shared by the new screen.")
 		      build_string ("white"), "background", string);
   x_default_parameter (s, parms, "border-width",
 		      make_number (2), "BorderWidth", number);
+  /* This defaults to 2 in order to match XTerms.  */
   x_default_parameter (s, parms, "internal-border-width",
-		      make_number (1), "InternalBorderWidth", number);
+		      make_number (2), "InternalBorderWidth", number);
 
   /* Also do the stuff which must be set before the window exists. */
   x_default_parameter (s, parms, "foreground-color",

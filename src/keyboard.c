@@ -1491,7 +1491,7 @@ kbd_buffer_store_event (event)
 	     get returned to Emacs as an event, the next event read
 	     will set Vlast_event_screen again, so this is safe to do.  */
 	  extern SIGTYPE interrupt_signal ();
-	  XSET (Vlast_event_screen, Lisp_Screen, event->screen);
+	  Vlast_event_screen = SCREEN_FOCUS_SCREEN (event->screen);
 	  last_event_timestamp = event->timestamp;
 	  interrupt_signal ();
 	  return;
@@ -1610,6 +1610,10 @@ kbd_buffer_get_event ()
     {
       if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
 	kbd_fetch_ptr = kbd_buffer;
+      /* Do the redirection specified by the focus_screen
+	 member now, before we return this event.  */
+      kbd_fetch_ptr->screen =
+	XSCREEN (SCREEN_FOCUS_SCREEN (kbd_fetch_ptr->screen));
       XSET (Vlast_event_screen, Lisp_Screen, kbd_fetch_ptr->screen);
       last_event_timestamp = kbd_fetch_ptr->timestamp;
       obj = make_lispy_event (kbd_fetch_ptr);
@@ -2765,7 +2769,7 @@ typed while in this function is treated like any other character, and\n\
   GCPRO1 (keybuf[0]);
   gcpro1.nvars = (sizeof keybuf/sizeof (keybuf[0]));
 
-  if (! NILP (continue_echo))
+  if (NILP (continue_echo))
     this_command_key_count = 0;
 
   i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
@@ -3050,7 +3054,7 @@ Actually, the value is nil only if we can be sure that no input is available.")
 }
 
 DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
-  "Return a vector of last 100 events read from terminal.")
+  "Return vector of last 100 chars read from terminal.")
   ()
 {
   Lisp_Object val;

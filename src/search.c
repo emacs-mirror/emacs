@@ -59,9 +59,10 @@ Lisp_Object last_regexp;
    able to free or re-allocate it properly.  */
 static struct re_registers search_regs;
 
-/* Nonzero if search_regs are indices in a string; 0 if in a buffer.  */
-
-static int search_regs_from_string;
+/* The buffer in which the last search was performed, or
+   Qt if the last search was done in a string;
+   Qnil if no searching has been done yet.  */
+static Lisp_Object last_thing_searched;
 
 /* error condition signalled when regexp compile_pattern fails */
 
@@ -178,7 +179,7 @@ data if you want to preserve them.")
 	search_regs.start[i] += BEGV;
 	search_regs.end[i] += BEGV;
       }
-  search_regs_from_string = 0;
+  XSET (last_thing_searched, Lisp_Buffer, current_buffer);
   immediate_quit = 0;
   return val;
 }
@@ -219,7 +220,7 @@ matched by parenthesis constructs in the pattern.")
 		   XSTRING (string)->size, s, XSTRING (string)->size - s,
 		   &search_regs);
   immediate_quit = 0;
-  search_regs_from_string = 1;
+  last_thing_searched = Qt;
   if (val == -2)
     matcher_overflow ();
   if (val < 0) return Qnil;
@@ -587,7 +588,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 		    search_regs.start[i] += j;
 		    search_regs.end[i] += j;
 		  }
-	      search_regs_from_string = 0;
+	      XSET (last_thing_searched, Lisp_Buffer, current_buffer);
 	      /* Set pos to the new position. */
 	      pos = search_regs.start[0];
 	    }
@@ -614,7 +615,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 		    search_regs.start[i] += j;
 		    search_regs.end[i] += j;
 		  }
-	      search_regs_from_string = 0;
+	      XSET (last_thing_searched, Lisp_Buffer, current_buffer);
 	      pos = search_regs.end[0];
 	    }
 	  else
@@ -804,7 +805,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 			= pos + cursor - p2 + ((direction > 0)
 					       ? 1 - len : 0);
 		      search_regs.end[0] = len + search_regs.start[0];
-		      search_regs_from_string = 0;
+		      XSET (last_thing_searched, Lisp_Buffer, current_buffer);
 		      if ((n -= direction) != 0)
 			cursor += dirlen; /* to resume search */
 		      else
@@ -878,7 +879,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 		      search_regs.start[0]
 			= pos + ((direction > 0) ? 1 - len : 0);
 		      search_regs.end[0] = len + search_regs.start[0];
-		      search_regs_from_string = 0;
+		      XSET (last_thing_searched, Lisp_Buffer, current_buffer);
 		      if ((n -= direction) != 0)
 			pos += dirlen; /* to resume search */
 		      else
@@ -1221,6 +1222,9 @@ Use `store-match-data' to reinstate the data in this list.")
   Lisp_Object *data;
   int i, len;
 
+  if (NILP (last_thing_searched))
+    error ("match-data called before any match found");
+
   data = (Lisp_Object *) alloca ((2 * search_regs.num_regs)
 				 * sizeof (Lisp_Object));
 
@@ -1230,19 +1234,26 @@ Use `store-match-data' to reinstate the data in this list.")
       int start = search_regs.start[i];
       if (start >= 0)
 	{
-	  if (search_regs_from_string)
+	  if (EQ (last_thing_searched, Qt))
 	    {
 	      XFASTINT (data[2 * i]) = start;
 	      XFASTINT (data[2 * i + 1]) = search_regs.end[i];
 	    }
-	  else
+	  else if (XTYPE (last_thing_searched) == Lisp_Buffer)
 	    {
 	      data[2 * i] = Fmake_marker ();
-	      Fset_marker (data[2 * i], make_number (start), Qnil);
+	      Fset_marker (data[2 * i],
+			   make_number (start),
+			   last_thing_searched);
 	      data[2 * i + 1] = Fmake_marker ();
 	      Fset_marker (data[2 * i + 1],
-			   make_number (search_regs.end[i]), Qnil);
+			   make_number (search_regs.end[i]), 
+			   last_thing_searched);
 	    }
+	  else
+	    /* last_thing_searched must always be Qt, a buffer, or Qnil.  */
+	    abort ();
+
 	  len = i;
 	}
       else
@@ -1263,6 +1274,10 @@ LIST should have been created by calling `match-data' previously.")
 
   if (!CONSP (list) && !NILP (list))
     list = wrong_type_argument (Qconsp, list, 0);
+
+  /* Unless we find a marker with a buffer in LIST, assume that this 
+     match data came from a string.  */
+  last_thing_searched = Qt;
 
   /* Allocate registers if they don't already exist.  */
   {
@@ -1302,9 +1317,14 @@ LIST should have been created by calling `match-data' previously.")
 	}
       else
 	{
-	  if (XTYPE (marker) == Lisp_Marker
-	      && XMARKER (marker)->buffer == 0)
-	    XFASTINT (marker) = 0;
+	  if (XTYPE (marker) == Lisp_Marker)
+	    {
+	      if (XMARKER (marker)->buffer == 0)
+		XFASTINT (marker) = 0;
+	      else
+		XSET (last_thing_searched, Lisp_Buffer,
+		      XMARKER (marker)->buffer);
+	    }
 
 	  CHECK_NUMBER_COERCE_MARKER (marker, 0);
 	  search_regs.start[i] = XINT (marker);
@@ -1382,6 +1402,9 @@ syms_of_search ()
 
   last_regexp = Qnil;
   staticpro (&last_regexp);
+
+  last_thing_searched = Qnil;
+  staticpro (&last_thing_searched);
 
   defsubr (&Sstring_match);
   defsubr (&Slooking_at);

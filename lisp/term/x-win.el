@@ -447,6 +447,11 @@ This returns ARGS with the arguments that have been processed removed."
       '(lambda ()
 	 (error "Suspending an emacs running under X makes no sense")))
 
+;;; We keep track of the last text selected here, so we can check the
+;;; current selection against it, and avoid passing back our own text
+;;; from x-cut-buffer-or-selection-value.
+(defvar x-last-selected-text nil)
+
 ;;; Make TEXT, a string, the primary and clipboard X selections.
 ;;; If you are running xclipboard, this means you can effectively
 ;;; have a window on a copy of the kill-ring.
@@ -455,14 +460,19 @@ This returns ARGS with the arguments that have been processed removed."
 (defun x-select-text (text)
   (x-own-selection text 'cut-buffer0)
   (x-own-selection text 'clipboard)
-  (x-own-selection text))
+  (x-own-selection text)
+  (setq x-last-selected-text text))
 
 ;;; Return the value of the current X selection.  For compatibility
 ;;; with older X applications, this checks cut buffer 0 before
 ;;; retrieving the value of the primary selection.
 (defun x-cut-buffer-or-selection-value ()
-  (or (x-selection-value 'cut-buffer0)
-      (x-selection-value)))
+  (let ((text (or (x-selection-value 'cut-buffer0)
+		  (x-selection-value))))
+    (if (string= text x-last-selected-text)
+	nil
+      (setq x-last-selected-text nil)
+      text)))
 
 ;;; Arrange for the kill and yank functions to set and check the clipboard.
 (setq interprogram-cut-function 'x-select-text)
