@@ -1,3 +1,7 @@
+2000-01-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* tindex.pl: New script.
+
 1999-12-03  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (MAKEINFO): New parameter.
