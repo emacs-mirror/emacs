@@ -1435,7 +1435,8 @@ make, or the user didn't cancel the call."
 		       query-replace-skip-read-only))
 		  (unless (or literal noedit)
 		    (replace-highlight (nth 0 real-match-data)
-				       (nth 1 real-match-data)))
+				       (nth 1 real-match-data)
+				       start end))
 		  (setq noedit
 			(replace-match-maybe-edit
 			 next-replacement nocasify literal
@@ -1451,7 +1452,8 @@ make, or the user didn't cancel the call."
 		;; `real-match-data'.
 		(while (not done)
 		  (set-match-data real-match-data)
-		  (replace-highlight (match-beginning 0) (match-end 0))
+		  (replace-highlight (match-beginning 0) (match-end 0)
+				     start end)
 		  ;; Bind message-log-max so we don't fill up the message log
 		  ;; with a bunch of identical messages.
 		  (let ((message-log-max nil))
@@ -1627,15 +1629,15 @@ make, or the user didn't cancel the call."
 
 (defvar replace-overlay nil)
 
-(defun replace-highlight (beg end)
+(defun replace-highlight (match-beg match-end range-beg range-end)
   (if query-replace-highlight
       (if replace-overlay
-	  (move-overlay replace-overlay beg end (current-buffer))
-	(setq replace-overlay (make-overlay beg end))
+	  (move-overlay replace-overlay match-beg match-end (current-buffer))
+	(setq replace-overlay (make-overlay match-beg match-end))
 	(overlay-put replace-overlay 'priority 1) ;higher than lazy overlays
 	(overlay-put replace-overlay 'face 'query-replace)))
-  (if query-replace-lazy-highlight
-      (isearch-lazy-highlight-new-loop)))
+  (when query-replace-lazy-highlight
+    (isearch-lazy-highlight-new-loop range-beg range-end)))
 
 (defun replace-dehighlight ()
   (when replace-overlay

@@ -2280,6 +2280,9 @@ If no buffer or file exactly matching the prompt exists, maybe create a new one.
 (defun ido-fallback-command ()
   "Fallback to non-ido version of current command."
   (interactive)
+  (let ((i (length ido-text)))
+    (while (> i 0)
+      (push (aref ido-text (setq i (1- i))) unread-command-events)))
   (setq ido-exit 'fallback)
   (exit-minibuffer))
 

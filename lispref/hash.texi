@@ -46,10 +46,10 @@ of object and are used only for recording interned symbols
 (@pxref{Creating Symbols}).
 
 @menu
-* Creating Hash::
-* Hash Access::
-* Defining Hash::
-* Other Hash::
+* Creating Hash::       Functions to create hash tables.
+* Hash Access::         Reading and writing the hash table contents.
+* Defining Hash::       Defining new comparison methods
+* Other Hash::          Miscellaneous.
 @end menu
 
 @node Creating Hash
@@ -146,11 +146,11 @@ number.
 The default value is 1.5.
 
 @item :rehash-threshold @var{threshold}
-This specifies the criterion for when the hash table is ``full.''  The
-value, @var{threshold}, should be a positive floating point number, no
-greater than 1.  The hash table is ``full'' whenever the actual number of
-entries exceeds this fraction of the nominal size.  The default for
-@var{threshold} is 0.8.
+This specifies the criterion for when the hash table is ``full'' (so
+it should be made larger).  The value, @var{threshold}, should be a
+positive floating point number, no greater than 1.  The hash table is
+``full'' whenever the actual number of entries exceeds this fraction
+of the nominal size.  The default for @var{threshold} is 0.8.
 @end table
 @end defun
 
@@ -167,7 +167,9 @@ This function is obsolete. Use @code{make-hash-table} instead.
 @section Hash Table Access
 
   This section describes the functions for accessing and storing
-associations in a hash table.
+associations in a hash table.  In general, any Lisp object can be used
+as a hash key, unless the comparison method imposes limits.  Any Lisp
+object can also be used as the value.
 
 @tindex gethash
 @defun gethash key table &optional default
@@ -210,7 +212,7 @@ table.
 This function calls @var{function} once for each of the associations in
 @var{table}.  The function @var{function} should accept two
 arguments---a @var{key} listed in @var{table}, and its associated
-@var{value}.
+@var{value}.  @code{maphash} returns @code{nil}.
 @end defun
 
 @node Defining Hash

@@ -477,8 +477,10 @@ extern char *get_emacs_configuration_options (void);
    must include config.h to pick up this pragma.  */
 
 /* Names must be < 8 bytes */
+#ifdef _MSC_VER
 #pragma data_seg("EMDATA")
 #pragma bss_seg("EMBSS")
+#endif
 
 /* #define FULL_DEBUG */
 /* #define EMACSDEBUG */

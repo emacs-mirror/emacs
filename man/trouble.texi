@@ -57,7 +57,7 @@ successive @kbd{C-g} characters to get out of a search
 like @kbd{C-g}.  The reason is that it is not feasible, on MS-DOS, to
 recognize @kbd{C-g} while a command is running, between interactions
 with the user.  By contrast, it @emph{is} feasible to recognize
-@kbd{C-@key{BREAK}} at all times.  @xref{MS-DOS Input}.
+@kbd{C-@key{BREAK}} at all times.  @xref{MS-DOS Keyboard}.
 
 @findex keyboard-quit
   @kbd{C-g} works by setting the variable @code{quit-flag} to @code{t}
@@ -66,9 +66,9 @@ frequently and quits if it is non-@code{nil}.  @kbd{C-g} is only
 actually executed as a command if you type it while Emacs is waiting for
 input.  In that case, the command it runs is @code{keyboard-quit}.
 
-  If you quit with @kbd{C-g} a second time before the first @kbd{C-g} is
-recognized, you activate the ``emergency escape'' feature and return to
-the shell.  @xref{Emergency Escape}.
+  On a text terminal, if you quit with @kbd{C-g} a second time before
+the first @kbd{C-g} is recognized, you activate the ``emergency
+escape'' feature and return to the shell.  @xref{Emergency Escape}.
 
 @cindex NFS and quitting
   There may be times when you cannot quit.  When Emacs is waiting for
@@ -237,11 +237,11 @@ back to top level.  @xref{Recursive Edit}.
 @node Screen Garbled
 @subsection Garbage on the Screen
 
-  If the data on the screen looks wrong, the first thing to do is see
-whether the text is really wrong.  Type @kbd{C-l} to redisplay the
-entire screen.  If the screen appears correct after this, the problem
-was entirely in the previous screen update.  (Otherwise, see the following
-section.)
+  If the text on a text terminal looks wrong, the first thing to do is
+see whether it is wrong in the buffer.  Type @kbd{C-l} to redisplay
+the entire screen.  If the screen appears correct after this, the
+problem was entirely in the previous screen update.  (Otherwise, see
+the following section.)
 
   Display updating problems often result from an incorrect termcap entry
 for the terminal you are using.  The file @file{etc/TERMS} in the Emacs

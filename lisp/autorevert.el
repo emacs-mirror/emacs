@@ -150,12 +150,18 @@ next editing session."
 	      (auto-revert-set-timer))))
 
 (defcustom auto-revert-stop-on-user-input t
-  "When non-nil Auto-Revert Mode stops checking files on user input."
+  "When non-nil, user input temporarily interrupts Auto-Revert Mode.
+With this setting, Auto-Revert Mode checks for user input after
+handling each buffer and does not process any further buffers
+\(until the next run of the timer) if user input is available.
+When nil, Auto-Revert Mode checks files and reverts buffers,
+with quitting disabled, without paying attention to user input.
+Thus, with this setting, Emacs might be non-responsive at times."
   :group 'auto-revert
   :type 'boolean)
 
 (defcustom auto-revert-verbose t
-  "When nil, Auto-Revert Mode will not generate any messages.
+  "When nil, Auto-Revert Mode does not generate any messages.
 When non-nil, a message is generated whenever a file is reverted."
   :group 'auto-revert
   :type 'boolean)

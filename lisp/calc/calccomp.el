@@ -35,7 +35,9 @@
   '( calcFunc-log
      calcFunc-ln calcFunc-exp
      calcFunc-sin calcFunc-cos calcFunc-tan
+     calcFunc-sec calcFunc-csc calcFunc-cot
      calcFunc-sinh calcFunc-cosh calcFunc-tanh
+     calcFunc-sech calcFunc-csch calcFunc-coth
      calcFunc-arcsin calcFunc-arccos calcFunc-arctan
      calcFunc-arcsinh calcFunc-arccosh calcFunc-arctanh))
 

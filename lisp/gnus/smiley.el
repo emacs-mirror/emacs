@@ -44,7 +44,7 @@
   :group 'gnus-visual)
 
 ;; Maybe this should go.
-(defcustom smiley-data-directory (nnheader-find-etc-directory "smilies")
+(defcustom smiley-data-directory (nnheader-find-etc-directory "images/smilies")
   "*Location of the smiley faces files."
   :type 'directory
   :group 'smiley)

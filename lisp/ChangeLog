@@ -1,3 +1,127 @@
+2005-02-18  Kenichi Handa  <handa@m17n.org>
+
+	* ps-print.el (ps-font-info-database): New entry
+	ZapfChancery-MediumItalic with correct font name.  Fix font name
+	of the entry Zapf-Chancery-MediumItalic.
+
+2005-02-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-stop-on-user-input): Further doc fix.
+
+2005-02-16  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-fallback-command): Pass user input to fallback command.
+
+2005-02-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-existing-buffers)
+	(gdb-find-file-hook): Add server prefix.
+
+2005-02-16  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (perform-replace): Pass new args to replace-highlight.
+	(replace-highlight): Take region args,
+	and pass them to isearch-lazy-highlight-new-loop.
+
+	* novice.el (disabled-command-hook): Autoload the defalias
+	and the make-obsolete-variable call.
+
+	* menu-bar.el (menu-bar-select-frame): FRAME defaults to selected.
+
+	* isearch.el (isearch-lazy-highlight-start-limit)
+	(isearch-lazy-highlight-end-limit): New variables limit
+	the region for highlighting.
+	(isearch-lazy-highlight-new-loop): New args BEG and END.
+	(isearch-lazy-highlight-search): Use the new vars.
+	(isearch-lazy-highlight-update): Likewise.
+
+	* dired.el (dired-build-subdir-alist): Bind buffer-undo-list to t.
+
+	* cus-start.el (all): Use default-boundp.
+
+2005-02-15  David Casperson  <casper@unbc.ca>  (tiny change)
+
+	* menu-bar.el (menu-bar-select-frame): Handle current frame.
+
+2005-02-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-stop-on-user-input)
+	(auto-revert-verbose): Doc fixes.
+
+2005-02-15  Benjamin Riefenstahl  <Benjamin.Riefenstahl@epost.de>
+
+	* international/mule-cmds.el (set-locale-environment): Remove call
+	to set-selection-coding-system on Windows.
+
+2005-02-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-alg.el: Add simplification rules for calcFunc-sec,
+	calcFunc-csc, calcFunc-cot, calcFunc-sech, calcFunc-csch and
+	calcFunc-coth.
+	(math-simplify-sqrt): Add simplifications.
+
+	* calc/calc-arith.el (math-real-if-arg-functions): Add functions
+	to list.
+
+	* calc/calc-ext.el: Add functions to autoloads.
+
+	* calc/calc-math.el (calc-sec, calc-csc, calc-cot, calc-sech)
+	(calc-csch, calc-coth, calcFunc-sec, calcFunc-csc, calcFunc-cot)
+	(calcFunc-sech, calcFunc-csch, calcFunc-coth, math-sec-raw)
+	(math-csc-raw, math-cot-raw): New functions.
+
+	* calc/calc-rules.el (calc-DistribRules, calc-NegateRules): Add	rules.
+
+	* calc/calc-undo.el (calc-handle-undo): Remove prefix from
+	the variable name in a message.
+
+	* calc/calc-units.el: Add simplification rules for calcFunc-sec,
+	calcFunc-csc, calcFunc-cot.
+
+	* calc/calcalg2.el: Add derivative and integration rules for
+	calcFunc-sec, calcFunc-csc, calcFunc-cot, calcFunc-sech,
+	calcFunc-csch, calcFunc-coth.
+	(math-do-integral-methods): Add to checks for when to use
+	substitutions.
+
+	* calc/calccomp.el (math-eqn-special-funcs): Add functions to list.
+
+2005-02-15  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Add
+	;;;###autoload to `outline-regexp'.  Suggested by Stefan Monnier
+	<monnier@iro.umontreal.ca>
+	(lisp-outline-level): Improve efficiency.  Suggested by David
+	Kastrup <dak@gnu.org>.
+
+2005-02-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-find-file-unhook): New variable.
+	(gdb-set-gud-minor-mode, gdb-set-gud-minor-mode-1)
+	(gdb-set-gud-minor-mode-existing-buffers): New functions.
+	(gdb-find-file-hook): New hook. Add it to find-file-hook.
+	(gdb-info-breakpoints-custom, gdb-source-info): Simplify.
+
+2005-02-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-start.el (all): Comment change.
+
+2005-02-14  Lute Kamstra  <lute@gnu.org>
+
+	* cus-start.el (all): Check if symbol is void.
+
+2005-02-14  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/reftex-cite.el (reftex-do-citation): Cleanup single
+	optional argument to \cite.
+
+2005-02-14  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-buffer-create-internal): Update help message.
+	(custom-magic-alist): Update help messages.
+
+	* cus-start.el (all): Allow a var to specify a standard value.
+
 2005-02-12  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.el (custom-theme-set-variables): Handle variable aliases.

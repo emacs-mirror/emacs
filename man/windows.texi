@@ -109,15 +109,15 @@ scroll bar, the mode line of the split window is side by side with
 your click.
 
 @vindex truncate-partial-width-windows
-  When a window is less than the full width, text lines too long to fit are
-frequent.  Continuing all those lines might be confusing.  The variable
-@code{truncate-partial-width-windows} can be set non-@code{nil} to force
-truncation in all windows less than the full width of the screen,
-independent of the buffer being displayed and its value for
-@code{truncate-lines}.  @xref{Continuation Lines}.@refill
+  When a window is less than the full width, text lines too long to
+fit are frequent.  Continuing all those lines might be confusing, so
+if the variable @code{truncate-partial-width-windows} is
+non-@code{nil}, that forces truncation in all windows less than the
+full width of the screen, independent of the buffer being displayed
+and its value for @code{truncate-lines}.  @xref{Display Custom}.
 
   Horizontal scrolling is often used in side-by-side windows.
-@xref{Display}.
+@xref{Horizontal Scrolling}.
 
 @vindex split-window-keep-point
   If @code{split-window-keep-point} is non-@code{nil}, the default,

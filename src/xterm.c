@@ -5619,8 +5619,8 @@ static struct x_display_info *next_noop_dpyinfo;
            f->output_data.x->saved_menu_event				\
 	     = (XEvent *) xmalloc (sizeof (XEvent));			\
          bcopy (&event, f->output_data.x->saved_menu_event, size);	\
-	 inev.kind = MENU_BAR_ACTIVATE_EVENT;				\
-	 XSETFRAME (inev.frame_or_window, f);				\
+	 inev.ie.kind = MENU_BAR_ACTIVATE_EVENT;			\
+	 XSETFRAME (inev.ie.frame_or_window, f);			\
        }								\
      while (0)
 
@@ -5727,7 +5727,10 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
      int *finish;
      struct input_event *hold_quit;
 {
-  struct input_event inev;
+  union {
+    struct input_event ie;
+    struct selection_input_event sie;
+  } inev;
   int count = 0;
   int do_help = 0;
   int nbytes = 0;
@@ -5737,9 +5740,9 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
   *finish = X_EVENT_NORMAL;
 
-  EVENT_INIT (inev);
-  inev.kind = NO_EVENT;
-  inev.arg = Qnil;
+  EVENT_INIT (inev.ie);
+  inev.ie.kind = NO_EVENT;
+  inev.ie.arg = Qnil;
 
   switch (event.type)
     {
@@ -5837,8 +5840,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                 if (!f)
 		  goto OTHER; /* May be a dialog that is to be removed  */
 
-		inev.kind = DELETE_WINDOW_EVENT;
-		XSETFRAME (inev.frame_or_window, f);
+		inev.ie.kind = DELETE_WINDOW_EVENT;
+		XSETFRAME (inev.ie.frame_or_window, f);
 		goto done;
               }
 
@@ -5901,7 +5904,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
         if (event.xclient.message_type
 	    == dpyinfo->Xatom_Scrollbar)
           {
-            x_scroll_bar_to_input_event (&event, &inev);
+            x_scroll_bar_to_input_event (&event, &inev.ie);
 	    *finish = X_EVENT_GOTO_OUT;
             goto done;
           }
@@ -5912,7 +5915,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	if (!f)
 	  goto OTHER;
 
-	if (x_handle_dnd_message (f, &event.xclient, dpyinfo, &inev))
+	if (x_handle_dnd_message (f, &event.xclient, dpyinfo, &inev.ie))
 	  *finish = X_EVENT_DROP;
       }
       break;
@@ -5933,11 +5936,11 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
       {
         XSelectionClearEvent *eventp = (XSelectionClearEvent *) &event;
 
-        inev.kind = SELECTION_CLEAR_EVENT;
-        SELECTION_EVENT_DISPLAY (&inev) = eventp->display;
-        SELECTION_EVENT_SELECTION (&inev) = eventp->selection;
-        SELECTION_EVENT_TIME (&inev) = eventp->time;
-        inev.frame_or_window = Qnil;
+        inev.ie.kind = SELECTION_CLEAR_EVENT;
+        SELECTION_EVENT_DISPLAY (&inev.sie) = eventp->display;
+        SELECTION_EVENT_SELECTION (&inev.sie) = eventp->selection;
+        SELECTION_EVENT_TIME (&inev.sie) = eventp->time;
+        inev.ie.frame_or_window = Qnil;
       }
       break;
 
@@ -5950,14 +5953,14 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           XSelectionRequestEvent *eventp
             = (XSelectionRequestEvent *) &event;
 
-          inev.kind = SELECTION_REQUEST_EVENT;
-          SELECTION_EVENT_DISPLAY (&inev) = eventp->display;
-          SELECTION_EVENT_REQUESTOR (&inev) = eventp->requestor;
-          SELECTION_EVENT_SELECTION (&inev) = eventp->selection;
-          SELECTION_EVENT_TARGET (&inev) = eventp->target;
-          SELECTION_EVENT_PROPERTY (&inev) = eventp->property;
-          SELECTION_EVENT_TIME (&inev) = eventp->time;
-          inev.frame_or_window = Qnil;
+          inev.ie.kind = SELECTION_REQUEST_EVENT;
+          SELECTION_EVENT_DISPLAY (&inev.sie) = eventp->display;
+          SELECTION_EVENT_REQUESTOR (&inev.sie) = eventp->requestor;
+          SELECTION_EVENT_SELECTION (&inev.sie) = eventp->selection;
+          SELECTION_EVENT_TARGET (&inev.sie) = eventp->target;
+          SELECTION_EVENT_PROPERTY (&inev.sie) = eventp->property;
+          SELECTION_EVENT_TIME (&inev.sie) = eventp->time;
+          inev.ie.frame_or_window = Qnil;
       }
       break;
 
@@ -6096,8 +6099,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
             {
               f->async_iconified = 1;
 
-              inev.kind = ICONIFY_EVENT;
-              XSETFRAME (inev.frame_or_window, f);
+              inev.ie.kind = ICONIFY_EVENT;
+              XSETFRAME (inev.ie.frame_or_window, f);
             }
         }
       goto OTHER;
@@ -6129,8 +6132,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
           if (f->iconified)
             {
-              inev.kind = DEICONIFY_EVENT;
-              XSETFRAME (inev.frame_or_window, f);
+              inev.ie.kind = DEICONIFY_EVENT;
+              XSETFRAME (inev.ie.frame_or_window, f);
             }
           else if (! NILP (Vframe_list)
                    && ! NILP (XCDR (Vframe_list)))
@@ -6296,18 +6299,18 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           orig_keysym = keysym;
 
 	  /* Common for all keysym input events.  */
-	  XSETFRAME (inev.frame_or_window, f);
-	  inev.modifiers
+	  XSETFRAME (inev.ie.frame_or_window, f);
+	  inev.ie.modifiers
 	    = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f), modifiers);
-	  inev.timestamp = event.xkey.time;
+	  inev.ie.timestamp = event.xkey.time;
 
 	  /* First deal with keysyms which have defined
 	     translations to characters.  */
 	  if (keysym >= 32 && keysym < 128)
 	    /* Avoid explicitly decoding each ASCII character.  */
 	    {
-	      inev.kind = ASCII_KEYSTROKE_EVENT;
-	      inev.code = keysym;
+	      inev.ie.kind = ASCII_KEYSTROKE_EVENT;
+	      inev.ie.code = keysym;
 	      goto done_keysym;
 	    }
 
@@ -6317,10 +6320,10 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 					 Vx_keysym_table,
 					 Qnil))))
 	    {
-	      inev.kind = (SINGLE_BYTE_CHAR_P (XFASTINT (c))
-			    ? ASCII_KEYSTROKE_EVENT
-			    : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-	      inev.code = XFASTINT (c);
+	      inev.ie.kind = (SINGLE_BYTE_CHAR_P (XFASTINT (c))
+			      ? ASCII_KEYSTROKE_EVENT
+			      : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+	      inev.ie.code = XFASTINT (c);
 	      goto done_keysym;
 	    }
 
@@ -6410,8 +6413,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	      STORE_KEYSYM_FOR_DEBUG (keysym);
 	      /* make_lispy_event will convert this to a symbolic
 		 key.  */
-	      inev.kind = NON_ASCII_KEYSTROKE_EVENT;
-	      inev.code = keysym;
+	      inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
+	      inev.ie.code = keysym;
 	      goto done_keysym;
 	    }
 
@@ -6462,18 +6465,18 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 		else
 		  c = STRING_CHAR_AND_LENGTH (copy_bufptr + i,
 					      nbytes - i, len);
-		inev.kind = (SINGLE_BYTE_CHAR_P (c)
+		inev.ie.kind = (SINGLE_BYTE_CHAR_P (c)
 			      ? ASCII_KEYSTROKE_EVENT
 			      : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-		inev.code = c;
-		kbd_buffer_store_event_hold (&inev, hold_quit);
+		inev.ie.code = c;
+		kbd_buffer_store_event_hold (&inev.ie, hold_quit);
 	      }
 
 	    /* Previous code updated count by nchars rather than nbytes,
 	       but that seems bogus to me.  ++kfs  */
 	    count += nbytes;
 
-	    inev.kind = NO_EVENT;  /* Already stored above.  */
+	    inev.ie.kind = NO_EVENT;  /* Already stored above.  */
 
 	    if (keysym == NoSymbol)
 	      break;
@@ -6500,7 +6503,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 #endif
 
     case EnterNotify:
-      x_detect_focus_change (dpyinfo, &event, &inev);
+      x_detect_focus_change (dpyinfo, &event, &inev.ie);
 
       f = x_any_window_to_frame (dpyinfo, event.xcrossing.window);
 
@@ -6530,11 +6533,11 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
       goto OTHER;
 
     case FocusIn:
-      x_detect_focus_change (dpyinfo, &event, &inev);
+      x_detect_focus_change (dpyinfo, &event, &inev.ie);
       goto OTHER;
 
     case LeaveNotify:
-      x_detect_focus_change (dpyinfo, &event, &inev);
+      x_detect_focus_change (dpyinfo, &event, &inev.ie);
 
       f = x_top_window_to_frame (dpyinfo, event.xcrossing.window);
       if (f)
@@ -6557,7 +6560,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
       goto OTHER;
 
     case FocusOut:
-      x_detect_focus_change (dpyinfo, &event, &inev);
+      x_detect_focus_change (dpyinfo, &event, &inev.ie);
       goto OTHER;
 
     case MotionNotify:
@@ -6597,8 +6600,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                     && !EQ (window, last_window)
                     && !EQ (window, selected_window))
                   {
-                    inev.kind = SELECT_WINDOW_EVENT;
-                    inev.frame_or_window = window;
+                    inev.ie.kind = SELECT_WINDOW_EVENT;
+                    inev.ie.frame_or_window = window;
                   }
 
                 last_window=window;
@@ -6757,13 +6760,13 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 			      && (int)(event.xbutton.time - ignore_next_mouse_click_timeout) > 0)
 			    {
 			      ignore_next_mouse_click_timeout = 0;
-			      construct_mouse_click (&inev, &event, f);
+			      construct_mouse_click (&inev.ie, &event, f);
 			    }
 			  if (event.type == ButtonRelease)
 			    ignore_next_mouse_click_timeout = 0;
 			}
 		      else
-			construct_mouse_click (&inev, &event, f);
+			construct_mouse_click (&inev.ie, &event, f);
 		    }
                 }
           }
@@ -6778,12 +6781,12 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                scroll bars.  */
             if (bar && event.xbutton.state & ControlMask)
               {
-                x_scroll_bar_handle_click (bar, &event, &inev);
+                x_scroll_bar_handle_click (bar, &event, &inev.ie);
                 *finish = X_EVENT_DROP;
               }
 #else /* not USE_TOOLKIT_SCROLL_BARS */
             if (bar)
-              x_scroll_bar_handle_click (bar, &event, &inev);
+              x_scroll_bar_handle_click (bar, &event, &inev.ie);
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
           }
 
@@ -6891,9 +6894,9 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
     }
 
  done:
-  if (inev.kind != NO_EVENT)
+  if (inev.ie.kind != NO_EVENT)
     {
-      kbd_buffer_store_event_hold (&inev, hold_quit);
+      kbd_buffer_store_event_hold (&inev.ie, hold_quit);
       count++;
     }
 

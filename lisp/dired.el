@@ -2128,6 +2128,7 @@ instead of `dired-actual-switches'."
   (save-excursion
     (let* ((count 0)
 	   (buffer-read-only nil)
+	   (buffer-undo-list t)
 	   (switches (or switches dired-actual-switches))
 	   new-dir-name
 	   (R-ftp-base-dir-regex

@@ -338,6 +338,7 @@ For example:
 @defvar standard-input
 This variable holds the default input stream---the stream that
 @code{read} uses when the @var{stream} argument is @code{nil}.
+The default is @code{t}, meaning use the minibuffer.
 @end defvar
 
 @node Output Streams
@@ -684,6 +685,7 @@ returns @code{"The buffer is foo"}.
 @defvar standard-output
 The value of this variable is the default output stream---the stream
 that print functions use when the @var{stream} argument is @code{nil}.
+The default is @code{t}, meaning display in the echo area.
 @end defvar
 
 @defvar print-quoted
