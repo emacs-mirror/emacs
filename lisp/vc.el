@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.217 1998/04/05 18:43:15 spiegel Exp spiegel $
+;; $Id: vc.el,v 1.218 1998/04/05 18:45:06 spiegel Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -1603,8 +1603,8 @@ is redefined as the version control prefix, so that you can type
 the file named in the current Dired buffer line.  `vv' invokes
 `vc-next-action' on this file, or on all files currently marked.
 There is a special command, `*l', to mark all files currently locked."
-  (make-local-variable 'dired-after-readin-hook)
-  (add-hook 'dired-after-readin-hook 'vc-dired-hook)
+  (make-local-hook 'dired-after-readin-hook)
+  (add-hook 'dired-after-readin-hook 'vc-dired-hook nil t)
   (setq vc-dired-mode t))
 
 (define-key vc-dired-mode-map "\C-xv" vc-prefix-map)
