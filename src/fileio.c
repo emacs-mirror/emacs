@@ -2394,7 +2394,6 @@ If VISIT is non-nil, BEG and END must be nil.")
   Lisp_Object handler, val, insval;
   Lisp_Object p;
   int total;
-  int handled = 0;
 
   val = Qnil;
   p = Qnil;
@@ -2412,7 +2411,6 @@ If VISIT is non-nil, BEG and END must be nil.")
   if (!NILP (handler))
     {
       val = call5 (handler, Qinsert_file_contents, filename, visit, beg, end);
-      handled = 1;
       goto handled;
     }
 
@@ -2544,8 +2542,11 @@ If VISIT is non-nil, BEG and END must be nil.")
       stat (XSTRING (filename)->data, &st);
 #endif
 
-      if (! handled)
-	current_buffer->modtime = st.st_mtime;
+      if (NILP (handler))
+	{
+	  current_buffer->modtime = st.st_mtime;
+	  current_buffer->filename = filename;
+	}
 
       current_buffer->save_modified = MODIFF;
       current_buffer->auto_save_modified = MODIFF;
@@ -2558,7 +2559,6 @@ If VISIT is non-nil, BEG and END must be nil.")
 	  unlock_file (filename);
 	}
 #endif /* CLASH_DETECTION */
-      current_buffer->filename = filename;
       /* If visiting nonexistent file, return nil.  */
       if (current_buffer->modtime == -1)
 	report_file_error ("Opening input file", Fcons (filename, Qnil));
