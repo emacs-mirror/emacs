@@ -1,5 +1,10 @@
 2001-01-31  Dave Love  <fx@gnu.org>
 
+	* mm-util.el (mm-mime-mule-charset-alist)
+	(mm-find-mime-charset-region): Consider mule-utf-8.
+
+2001-01-31  Dave Love  <fx@gnu.org>
+
 	* gnus-art.el (gnus-article-x-face-command)
 	(gnus-treat-display-xface, gnus-treat-display-smileys): Add
 	:version.
