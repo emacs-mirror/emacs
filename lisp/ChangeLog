@@ -1,5 +1,8 @@
 2003-12-23  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* ffap.el (ffap-read-file-or-url): Eliminate reliance of the call
+	to `completing-read' on a recently fixed bug.
+
 	* fringe.el (fringe-query-style): Suggest `?' in minibuffer prompt
 	(instead of <SPACE>) to get the list of possible fringe modes.
 	(<SPACE> only works if both `partial-completion-mode' and
