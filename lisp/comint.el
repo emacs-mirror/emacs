@@ -219,6 +219,10 @@ appears in the buffer.
 
 This variable is buffer-local.")
 
+(defvar comint-password-prompt-regexp "\\b[Pp]assword:\\s *\\'"
+  "*Regexp matching prompts for passwords in the inferior process.
+This is used by comint-watch-for-password-prompt.")
+
 ;;; Here are the per-interpreter hooks.
 (defvar comint-get-old-input (function comint-get-old-input-default)
   "Function that returns old text in comint mode.
@@ -1389,10 +1393,11 @@ Security bug: your string can still be temporarily recovered with
 (defun comint-watch-for-password-prompt (string) 
   "Prompt in the minibuffer for password and send without echoing.
 This function uses `send-invisible' to read and send a password to the buffer's
-process if STRING contains a password prompt (matches \"^[Pp]assword:\\\\s *\\\\'\").
+process if STRING contains a password prompt defined by 
+`comint-password-prompt-regexp'.
 
 This function could be in the list `comint-output-filter-functions'."
-  (if (string-match "^[Pp]assword:\\s *\\'" string)
+  (if (string-match comint-password-prompt-regexp string)
       (send-invisible nil)))
 
 ;;; Low-level process communication
