@@ -1,3 +1,8 @@
+2004-10-28  Will  <will@glozer.net>
+
+	* macterm.c: allow user to assign key modifiers to the Mac Option
+	key via a 'mac-option-modifier' variable.
+
 2004-10-28  Stefan  <monnier@iro.umontreal.ca>
 
 	* xselect.c (Vx_lost_selection_functions, Vx_sent_selection_functions):
