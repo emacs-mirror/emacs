@@ -1069,11 +1069,13 @@ x_decode_color (f, arg, def)
   if (FRAME_X_DISPLAY_INFO (f)->n_planes == 1)
     return def;
 
-  /* Ignore the return value of defined_color so that
-     we use a color close to the one requested
-     if we can't get the exact request.  */
-  defined_color (f, XSTRING (arg)->data, &cdef, 1);
-  return cdef.pixel;
+  /* defined_color is responsible for coping with failures
+     by looking for a near-miss.  */
+  if (defined_color (f, XSTRING (arg)->data, &cdef, 1))
+    return cdef.pixel;
+
+  /* defined_color failed; return an ultimate default.  */
+  return def;
 }
 
 /* Functions called only from `x_set_frame_param'
