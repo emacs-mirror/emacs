@@ -224,7 +224,7 @@ positions (integers or markers) specifying the stretch of the region."
     (goto-char (point-min))
     (while (re-search-forward viqr-regexp nil t)
       (let* ((viqr (buffer-substring (match-beginning 0) (match-end 0)))
-	     (ch (car (rassoc viet-viqr-alist viqr))))
+	     (ch (car (rassoc viqr viet-viqr-alist))))
 	(if ch
 	    (progn
 	      (delete-region (match-beginning 0) (match-end 0))
@@ -247,7 +247,7 @@ positions (integers or markers) specifying the stretch of the region."
     (goto-char (point-min))
     (while (re-search-forward "\\cv" nil t)
       (let* ((ch (preceding-char))
-	     (viqr (cdr (assoc viet-viqr-alist ch))))
+	     (viqr (cdr (assq ch viet-viqr-alist))))
 	(if viqr
 	    (progn
 	      (delete-char -1)
@@ -258,6 +258,25 @@ positions (integers or markers) specifying the stretch of the region."
   "Convert Vietnamese characaters of the current buffer to `VIQR' mnemonics."
   (interactive)
   (viet-encode-viqr-region (point-min) (point-max)))
+
+;;;###autoload
+(defun viqr-post-read-conversion (len)
+  (save-excursion
+    (save-restriction
+      (narrow-to-region (point) (+ (point) len))
+      (let ((buffer-modified-p (buffer-modified-p)))
+	(viet-decode-viqr-region (point-min) (point-max))
+	(set-buffer-modified-p buffer-modified-p)
+	(- (point-max) (point-min))))))
+
+;;;###autoload
+(defun viqr-pre-write-conversion (from to)
+  (let ((old-buf (current-buffer))
+	(work-buf (get-buffer-create " *viet-work*")))
+    (set-buffer work-buf)
+    (erase-buffer)
+    (insert-buffer-substring old-buf from to)
+    (viet-encode-viqr-region (point-min) (point-max))))
 
 ;;;
 (provide 'language/viet-util)
