@@ -445,9 +445,9 @@ struct interval
 
   unsigned char write_protect;	    /* Non-zero means can't modify.  */
   unsigned char visible;	    /* Zero means don't display. */
-  unsigned char front_hungry;	    /* Non-zero means text inserted just
+  unsigned char front_sticky;	    /* Non-zero means text inserted just
 				       before this interval goes into it. */
-  unsigned char rear_hungry;	    /* Likewise for just after it. */
+  unsigned char rear_sticky;	    /* Likewise for just after it. */
 
   Lisp_Object plist;		    /* Properties of this interval. */
 };
@@ -908,6 +908,7 @@ extern Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 extern Lisp_Object Qchar_or_string_p, Qmarkerp, Qvectorp;
 extern Lisp_Object Qinteger_or_marker_p, Qnumber_or_marker_p;
 extern Lisp_Object Qboundp, Qfboundp;
+extern Lisp_Object Qbuffer_or_string_p;
 extern Lisp_Object Qcdr;
 
 #ifdef LISP_FLOAT_TYPE
