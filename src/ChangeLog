@@ -1,3 +1,8 @@
+1999-12-24  Kenichi Handa  <handa@etl.go.jp>
+
+	* process.c (read_process_output): Fix the arg FROM to
+	update_compositions.
+
 1999-12-22  Dave Love  <fx@gnu.org>
 
 	* xfns.c (Fx_show_tip): Gcpro `timeout' too.
