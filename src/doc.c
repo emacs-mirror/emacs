@@ -553,7 +553,9 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
      or a specified local map (which means search just that and the
      global map).  If non-nil, it might come from Voverriding_local_map,
      or from a \\<mapname> construct in STR itself..  */
-  keymap = Voverriding_local_map;
+  keymap = current_kboard->Voverriding_terminal_local_map;
+  if (NILP (keymap))
+    keymap = Voverriding_local_map;
 
   bsize = XSTRING (str)->size;
   bufp = buf = (unsigned char *) xmalloc (bsize);
