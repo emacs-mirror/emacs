@@ -151,12 +151,16 @@ use the keymap as a menu.  @xref{Defining Menus}.
 
 @cindex meta characters lookup
   Keymaps do not directly record bindings for the meta characters.
-Instead, meta characters are regarded for
-purposes of key lookup as sequences of two characters, the first of
-which is @key{ESC} (or whatever is currently the value of
-@code{meta-prefix-char}).  Thus, the key @kbd{M-a} is really represented
-as @kbd{@key{ESC} a}, and its global binding is found at the slot for
-@kbd{a} in @code{esc-map} (@pxref{Prefix Keys}).
+Instead, meta characters are regarded for purposes of key lookup as
+sequences of two characters, the first of which is @key{ESC} (or
+whatever is currently the value of @code{meta-prefix-char}).  Thus, the
+key @kbd{M-a} is internally represented as @kbd{@key{ESC} a}, and its
+global binding is found at the slot for @kbd{a} in @code{esc-map}
+(@pxref{Prefix Keys}).
+
+  This conversion applies only to characters, not to function keys or
+other input events; thus, @kbd{M-@key{end}} has nothing to do with
+@kbd{@key{ESC} @key{end}}.
 
   Here as an example is the local keymap for Lisp mode, a sparse
 keymap.  It defines bindings for @key{DEL} and @key{TAB}, plus @kbd{C-c
@@ -864,9 +868,9 @@ the specific sequence @var{key}, ignoring default bindings except when
 you explicitly ask about them.  (To do this, supply @code{t} as an
 element of @var{key}; see @ref{Format of Keymaps}.)
 
-If @var{key} contains a meta character, that character is implicitly
-replaced by a two-character sequence: the value of
-@code{meta-prefix-char}, followed by the corresponding non-meta
+If @var{key} contains a meta character (not a function key), that
+character is implicitly replaced by a two-character sequence: the value
+of @code{meta-prefix-char}, followed by the corresponding non-meta
 character.  Thus, the first example below is handled by conversion into
 the second example.
 
@@ -955,12 +959,13 @@ looked up in a keymap.  For useful results, the value should be a prefix
 event (@pxref{Prefix Keys}).  The default value is 27, which is the
 @sc{ascii} code for @key{ESC}.
 
-As long as the value of @code{meta-prefix-char} remains 27, key
-lookup translates @kbd{M-b} into @kbd{@key{ESC} b}, which is normally
-defined as the @code{backward-word} command.  However, if you set
+As long as the value of @code{meta-prefix-char} remains 27, key lookup
+translates @kbd{M-b} into @kbd{@key{ESC} b}, which is normally defined
+as the @code{backward-word} command.  However, if you were to set
 @code{meta-prefix-char} to 24, the code for @kbd{C-x}, then Emacs will
 translate @kbd{M-b} into @kbd{C-x b}, whose standard binding is the
-@code{switch-to-buffer} command.  Here is an illustration:
+@code{switch-to-buffer} command.  (Don't actually do this!)  Here is an
+illustration of what would happen:
 
 @smallexample
 @group
@@ -988,6 +993,10 @@ meta-prefix-char                    ; @r{The default value.}
      @result{} 27                          ; @r{Restore the default value!}
 @end group
 @end smallexample
+
+This translation of one event into two happens only for characters, not
+for other kinds of input events.  Thus, @kbd{M-@key{F1}}, a function
+key, is not converted into @kbd{@key{ESC} @key{F1}}.
 @end defvar
 
 @node Changing Key Bindings
