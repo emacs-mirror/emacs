@@ -3077,7 +3077,7 @@ system TYPE.")
 	  (if (save-match-data
 		(string-match "^~[^/]*$" filename))
 	      ""
-	    (ange-ftp-real-file-name-nondirectory name)))
+	    (ange-ftp-real-file-name-nondirectory filename)))
       (ange-ftp-real-file-name-nondirectory name))))
 
 (defun ange-ftp-directory-file-name (dir)
