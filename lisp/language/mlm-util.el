@@ -74,6 +74,7 @@
     (malayalam-compose-region (point-min) (point-max))
     (buffer-string)))
 
+;;;###autoload
 (defun malayalam-post-read-conversion (len)
   (save-excursion
     (save-restriction
