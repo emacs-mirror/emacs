@@ -53,7 +53,7 @@ Use \\[set-gnu-bindings] to restore previous global bindings."
 	   ("\e(" backward-paragraph)
 	   ("\e)" forward-paragraph)
 	   ("\e?" apropos)
-	   ("\eh" delete-previous-word)
+	   ("\eh" backward-kill-word)
 	   ("\ej" indent-sexp)
 	   ("\eq" query-replace)
 	   ("\er" replace-string)
