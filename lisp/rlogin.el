@@ -23,7 +23,6 @@
 ;;; Commentary:
 
 ;; Support for remote logins using `rlogin'.
-;; $Id: rlogin.el,v 1.19 1994/09/19 11:47:05 pot Exp rms $
 
 ;; If you wish for rlogin mode to prompt you in the minibuffer for
 ;; passwords when a password prompt appears, just enter m-x send-invisible
@@ -58,9 +57,12 @@ a pty is being used, and errors will result from using a pipe instead.")
 
 ;;;###autoload
 (defvar rlogin-initially-track-cwd t
-  "*If non-`nil', do remote directory tracking via ange-ftp right away.
-If `nil', you can still enable directory tracking by doing 
-`M-x dirtrack-toggle'.")
+  "*Control whether and how to do directory tracking in an rlogin buffer.
+nil means don't do directory tracking.
+t means do so using an ftp remote file name.
+Any other value means do directory tracking using local file names.
+This works only if the remote machine and the local one
+share the same directories (through NFS).")
 
 ;; Initialize rlogin mode map.
 (defvar rlogin-mode-map '())
@@ -78,7 +80,7 @@ If `nil', you can still enable directory tracking by doing
 Input is sent line-at-a-time to the remote connection.
 
 Communication with the remote host is recorded in a buffer *rlogin-HOST*,
-where HOST is the first word in the string ARGS.  If a prefix argument is
+where HOST is the first word in the string INPUT-ARGS.  If a prefix argument is
 given and the buffer *rlogin-HOST* already exists, a new buffer with a
 different connection will be made.
 
@@ -86,14 +88,20 @@ The variable `rlogin-program' contains the name of the actual program to
 run.  It can be a relative or absolute path. 
 
 The variable `rlogin-explicit-args' is a list of arguments to give to
-the rlogin when starting.  They are added after any arguments given in ARGS.
+the rlogin when starting.  They are added after any arguments given in
+INPUT-ARGS.
 
-If `rlogin-initially-track-cwd' is non-nil (which is true by default),
+If `rlogin-initially-track-cwd' is t (which is true by default),
 then the default directory in that buffer is set to a remote (FTP) file name
 to access your home directory on the remote machine.  Occasionally
 this causes an error, if you cannot access the home directory on that
 machine.  This error is harmless as long as you don't try to use
-that default directory."
+that default directory.
+
+If `rlogin-initially-track-cwd' is neither t nor nil, then the default
+directory is initially set up to your (local) home directory.
+This is useful if the remote machine and your local machine
+share the same files via NFS."
   (interactive (list
 		(read-from-minibuffer "rlogin arguments (hostname first): ")
 		current-prefix-arg))
@@ -132,15 +140,15 @@ that default directory."
           (rlogin-mode)
           ;; Set the prefix for filename completion and directory tracking
           ;; to find the remote machine's files by ftp.
-          (setq comint-file-name-prefix (concat "/"
-						(and user (concat user "@"))
-						host ":"))
+	  (if (eq rlogin-initially-track-cwd t)
+	      (setq comint-file-name-prefix (concat "/"
+						    (and user (concat user "@"))
+						    host ":")))
           (and rlogin-initially-track-cwd
                ;; Presume the user will start in his remote home directory.
                ;; If this is wrong, M-x dirs will fix it.
-               (cd-absolute (concat "/"
-				    (and user (concat user "@"))
-				    host ":~/")))))))
+               (cd-absolute comint-file-name-prefix))))))
+
 (defun rlogin-mode ()
   "Set major-mode for rlogin sessions. 
 If `rlogin-mode-hook' is set, run it."
