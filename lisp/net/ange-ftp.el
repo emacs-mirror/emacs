@@ -2487,6 +2487,10 @@ away in the internal cache."
 					  (format
 					   "list data file %s not readable"
 					   temp))))
+                      ;; remove ^M inserted by the win32 ftp client
+                      (while (re-search-forward "\r$" nil t)
+                        (replace-match ""))
+                      (goto-char 1)
 		      (run-hooks 'ange-ftp-before-parse-ls-hook)
 		      (if parse
 			  (ange-ftp-set-files
@@ -3428,7 +3432,7 @@ system TYPE.")
         (let ((file-mdtm (ange-ftp-file-modtime name))
               (buf-mdtm (with-current-buffer buf (visited-file-modtime))))
           (or (zerop (car file-mdtm))
-              (< (float-time file-mdtm) (float-time buf-mdtm))))
+              (<= (float-time file-mdtm) (float-time buf-mdtm))))
       (ange-ftp-real-verify-visited-file-modtime buf))))
 
 ;;;; ------------------------------------------------------------

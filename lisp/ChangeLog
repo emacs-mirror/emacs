@@ -1,3 +1,9 @@
+2000-07-28  Sam Steingold  <sds@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-verify-visited-file-modtime):
+	use `<=', not `<' to compare times!
+	(ange-ftp-ls): remve
+
 2000-07-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* play/cookie1.el: Add explanation of how to make cookie.el

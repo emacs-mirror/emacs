@@ -975,6 +975,9 @@ sign, e.g. `/foo@bar.org#666:mumble'.  (This syntax comes from EFS.)
 *** If the new user-option `ange-ftp-try-passive-mode' is set, passive
 ftp mode will be used if the ftp client supports that.
 
+*** Ange-ftp handles the output of the w32-style clients which
+output ^M at the end of lines.
+
 ** Shell script mode changes.
 
 Shell script mode (sh-script) can now indent scripts for shells
