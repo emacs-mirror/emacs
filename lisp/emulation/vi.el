@@ -455,7 +455,7 @@ Syntax table and abbrevs while in vi mode remain as they were in Emacs."
        (vi-mode-setup))
 
    (if (eq major-mode 'vi-mode)
-       (message "Already in vi-mode." (ding))
+       (progn (ding) (message "Already in vi-mode."))
      (setq vi-mode-old-local-map (current-local-map))
      (setq vi-mode-old-mode-name mode-name)
      (setq vi-mode-old-major-mode major-mode)
@@ -703,7 +703,7 @@ use those instead of the ones saved."
 		     regexp-search-ring
 		   search-ring))))
   (if (null search-command)
-      (message "No last search command to repeat." (ding))
+      (progn (ding) (message "No last search command to repeat."))
     (funcall search-command search-string nil nil arg)))
 
 (defun vi-reverse-last-search (arg &optional search-command search-string)
@@ -718,7 +718,7 @@ If the optional search args are given, use those instead of the ones saved."
 		     regexp-search-ring
 		   search-ring))))
   (if (null search-command)
-      (message "No last search command to repeat." (ding))
+      (progn (ding) (message "No last search command to repeat."))
     (funcall (cond ((eq search-command 're-search-forward) 're-search-backward)
 		   ((eq search-command 're-search-backward) 're-search-forward)
 		   ((eq search-command 'search-forward) 'search-backward)
@@ -838,7 +838,7 @@ Goto mark '@' means jump into and pop the top mark on the mark ring."
 	(t
 	 (let ((mark (vi-get-mark mark-char)))
 	   (if (null mark)
-	       (message "Mark register undefined." (vi-ding))
+	       (progn (vi-ding) (message "Mark register undefined."))
 	     (set-mark-command nil)
 	     (goto-char mark)
 	     (if line-flag (back-to-indentation)))))))
@@ -881,7 +881,7 @@ is given, it is used instead of the saved one."
   (interactive "p")
   (if (null find-arg) (setq find-arg vi-last-find-char))
   (if (null find-arg)
-      (message "No last find char to repeat." (ding))
+      (progn (ding) (message "No last find char to repeat."))
     (vi-find-char (cons (* (car find-arg) -1) (cdr find-arg)) count))) ;6/13/86
 
 (defun vi-find-char (arg count)
@@ -909,7 +909,7 @@ it is used instead of the saved one."
   (interactive "p")
   (if (null find-arg) (setq find-arg vi-last-find-char))
   (if (null find-arg)
-      (message "No last find char to repeat." (ding))
+      (progn (ding) (message "No last find char to repeat."))
     (vi-find-char find-arg count)))
 
 (defun vi-backward-find-char (count char)
@@ -1465,7 +1465,8 @@ It assumes a `(def..' always starts at the beginning of a line."
     (goto-char (point-min))
     (if (re-search-forward (concat "^(def[unvarconst ]*" name) nil t)
 	nil
-      (message "No definition for \"%s\" in current file." name (ding))
+      (ding)
+      (message "No definition for \"%s\" in current file." name)
       (set-mark-command t))))
 
 (defun vi-split-open-line (arg)
