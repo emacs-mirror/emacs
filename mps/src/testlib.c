@@ -1,6 +1,6 @@
 /* impl.c.testlib: Test library
  *
- * $HopeName: MMsrc!testlib.c(trunk.11) $
+ * $HopeName: MMsrc!testlib.c(trunk.12) $
  * Copyright (C) 1995, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -42,6 +42,18 @@ unsigned long rnd(void)
 void die(mps_res_t res, const char *s)
 {
   if(res != MPS_RES_OK)
+  {
+    fflush(stdout); /* synchronize */
+    fprintf(stderr, "\n%s: %d\n", s, res);
+    exit(1);
+  }
+}
+
+
+/* die_expect -- Test a return code, and exit on unexpected result */
+void die_expect(mps_res_t res, mps_res_t expected, const char *s)
+{
+  if(res != expected)
   {
     fflush(stdout); /* synchronize */
     fprintf(stderr, "\n%s: %d\n", s, res);
