@@ -1,3 +1,7 @@
+2000-11-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* ps-print.el: Minor fixes from author.
+
 2000-11-16  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* vc.el (vc-version-diff): Bind inhibit-read-only when inserting text.
