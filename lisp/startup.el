@@ -236,7 +236,8 @@ This is normally copied from `default-directory' when Emacs starts.")
     ("--cursor-color" 1 x-handle-switch cursor-color)
     ("--vertical-scroll-bars" 0 x-handle-switch vertical-scroll-bars t)
     ("--line-spacing" 1 x-handle-numeric-switch line-spacing)
-    ("--border-color" 1 x-handle-switch border-width))
+    ("--border-color" 1 x-handle-switch border-width)
+    ("--smid" 1 x-handle-smid))
   "Alist of X Windows options.
 Each element has the form
   (NAME NUMARGS HANDLER FRAME-PARAM VALUE)
@@ -1028,7 +1029,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (command-line-1 (cdr command-line-args))
 
   ;; If -batch, terminate after processing the command options.
-  (if noninteractive (kill-emacs t)))
+  (if noninteractive (kill-emacs t))
+
+  ;; Run emacs-session-restore (session management) if started by
+  ;; the session manager and we have a session manager connection.
+  (if (and (stringp x-session-previous-id) (stringp x-session-id))
+      (emacs-session-restore)))
 
 (defcustom initial-scratch-message (purecopy "\
 ;; This buffer is for notes you don't want to save, and for Lisp evaluation.
