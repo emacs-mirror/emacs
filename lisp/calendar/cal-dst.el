@@ -304,7 +304,7 @@ If it starts on the first Sunday in April, you would set it to
 If the locale never uses daylight savings time, set this to nil.")
 
 ;;;###autoload
-(put 'calendar-daylight-savings-starts 'risky-local-variable t)
+(put 'calendar-daylight-savings-ends 'risky-local-variable t)
 (defvar calendar-daylight-savings-ends
   (or (car (nthcdr 5 calendar-current-time-zone-cache))
       (and (not (zerop calendar-daylight-time-offset))
