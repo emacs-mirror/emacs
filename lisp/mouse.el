@@ -697,8 +697,23 @@ Upon exit, point is at the far edge of the newly visible text."
 Highlight the drag area as you move the mouse.
 This must be bound to a button-down mouse event.
 In Transient Mark mode, the highlighting remains as long as the mark
-remains active.  Otherwise, it remains until the next input event."
+remains active.  Otherwise, it remains until the next input event.
+
+If the click is in the echo area, display the `*Messages*' buffer."
   (interactive "e")
+  (let ((w (posn-window (event-start start-event))))
+    (if (not (or (not (window-minibuffer-p w))
+		 (minibuffer-window-active-p w)))
+	(save-excursion
+	  (read-event)
+	  (set-buffer "*Messages*")
+	  (goto-char (point-max))
+	  (display-buffer (current-buffer)))
+      ;; Give temporary modes such as isearch a chance to turn off.
+      (run-hooks 'mouse-leave-buffer-hook)
+      (mouse-drag-region-1 start-event))))
+
+(defun mouse-drag-region-1 (start-event)
   (mouse-minibuffer-check start-event)
   (let* ((echo-keystrokes 0)
 	 (start-posn (event-start start-event))
