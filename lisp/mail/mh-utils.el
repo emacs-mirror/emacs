@@ -26,7 +26,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-utils.el,v 1.8 1996/01/14 07:34:30 erik Exp kwzh $
+;; $Id: mh-utils.el,v 1.9 1996/01/29 23:17:16 kwzh Exp rms $
 
 ;;; Code:
 
@@ -513,7 +513,7 @@ Non-nil third argument means not to show the message."
 	     (end-of-line)
 	     (buffer-substring start (point)))))))
 
-(defvar mua-paradigm "MH-E")		;from mua.el
+(defvar mail-user-agent 'mh-e-user-agent) ;from reporter.el 3.2
 
 (defun mh-find-path ()
   ;; Set mh-progs and mh-lib.
@@ -557,7 +557,7 @@ Non-nil third argument means not to show the message."
       (setq mh-previous-seq (mh-get-profile-field "Previous-Sequence:"))
       (if mh-previous-seq
 	  (setq mh-previous-seq (intern mh-previous-seq)))
-      (setq mua-paradigm "MH-E")
+      (setq mail-user-agent 'mh-e-user-agent)
       (run-hooks 'mh-find-path-hook))))
 
 (defun mh-find-progs ()
