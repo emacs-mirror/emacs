@@ -249,7 +249,7 @@ See also `warning-series', `warning-prefix-function' and
 (defun lwarn (group level message &rest args)
   "Display a warning message made from (format MESSAGE ARGS...).
 Aside from generating the message with `format',
-this is equivalent to `display-message'.
+this is equivalent to `display-warning'.
 
 GROUP should be a custom group name (a symbol).
 or else a list of symbols whose first element is a custom group name.
@@ -267,7 +267,7 @@ LEVEL should be either :warning, :error, or :emergency.
 (defun warn (message &rest args)
   "Display a warning message made from (format MESSAGE ARGS...).
 Aside from generating the message with `format',
-this is equivalent to `display-message', using
+this is equivalent to `display-warning', using
 `emacs' as the group and `:warning' as the level."
   (display-warning 'emacs (apply 'format message args)))
 
