@@ -23,7 +23,7 @@ SHELL = /bin/sh
 # already, the `install' targets will move or copy it there.  The
 # default definitions for the variables below are expressed in terms
 # of this one, so you may not need to change them.
-LIBROOT=/u/src/emacs/19.0
+LIBROOT=/usr/local/emacs
 
 # This is where the `install' make target should place the binaries
 # people will want to run directly (like etags and Emacs itself).
@@ -34,19 +34,19 @@ INSTALLBIN=/usr/local/bin
 # elisp files should go under DATADIR (below), since both elisp source
 # and compiled elisp are completely portable, but it's traditional to
 # give the lisp files their own subdirectory.
-LISPPATH=/u/src/emacs/19.0/lisp
+LISPPATH=/usr/local/emacs/local-lisp:/usr/local/emacs/lisp
 
 # Emacs will look here for its architecture-independent files (like
 # the tutorial and the zippy database).
-DATADIR=/u/src/emacs/19.0/share-lib
+DATADIR=/usr/local/emacs/share-lib
 
 # Emacs will look here for its architecture-dependent files, like
 # executables for its utilities.
-LIBDIR=/u/src/emacs/19.0/arch-lib
+LIBDIR=/usr/local/emacs/arch-lib
 
 # The locking directory, where the Emacs locking code keeps track of
 # which files are currently being edited.
-LOCKDIR=/u/src/emacs/19.0/lock
+LOCKDIR=/usr/local/emacs/lock
 
 # This is where the `install' make target should place the man pages
 # for the binaries it installs.

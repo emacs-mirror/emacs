@@ -1911,6 +1911,37 @@ Only the 12 low bits of MODE are used.")
   return Qnil;
 }
 
+DEFUN ("set-umask", Fset_umask, Sset_umask, 1, 1, 0,
+    "Select which permission bits to disable in newly created files.\n\
+MASK should be an integer; if a permission's bit in MASK is 1,\n\
+subsequently created files will not have that permission enabled.\n\
+Only the low 9 bits are used.\n\
+This setting is inherited by subprocesses.")
+  (mask)
+     Lisp_Object mask;
+{
+  CHECK_NUMBER (mask, 0);
+  
+  umask (XINT (mask) & 0777);
+
+  return Qnil;
+}
+
+DEFUN ("umask", Fumask, Sumask, 0, 0, 0,
+    "Return the current umask value.\n\
+The umask value determines which permissions are enabled in newly\n\
+created files.  If a permission's bit in the umask is 1, subsequently\n\
+created files will not have that permission enabled.")
+  ()
+{
+  Lisp_Object mask;
+
+  XSET (mask, Lisp_Int, umask (0));
+  umask (XINT (mask));
+
+  return mask;
+}
+
 DEFUN ("file-newer-than-file-p", Ffile_newer_than_file_p, Sfile_newer_than_file_p, 2, 2, 0,
   "Return t if file FILE1 is newer than file FILE2.\n\
 If FILE1 does not exist, the answer is nil;\n\
@@ -2842,6 +2873,8 @@ nil means use format `var'.  This variable is meaningful only on VMS.");
   defsubr (&Sfile_accessible_directory_p);
   defsubr (&Sfile_modes);
   defsubr (&Sset_file_modes);
+  defsubr (&Sset_umask);
+  defsubr (&Sumask);
   defsubr (&Sfile_newer_than_file_p);
   defsubr (&Sinsert_file_contents);
   defsubr (&Swrite_region);

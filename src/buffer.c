@@ -715,10 +715,10 @@ with `delete-process'.")
   return Qt;
 }
 
-/* Put the element for buffer BUF at the front of buffer-alist.
-   This is done when a buffer is selected "visibly".
-   It keeps buffer-alist in the order of recency of selection
-   so that other_buffer will return something nice.  */
+/* Move the assoc for buffer BUF to the front of buffer-alist.  Since
+   we do this each time BUF is selected visibly, the more recently
+   selected buffers are always closer to the front of the list.  This
+   means that other_buffer is more likely to choose a relevant buffer.  */
 
 record_buffer (buf)
      Lisp_Object buf;
@@ -733,8 +733,8 @@ record_buffer (buf)
       prev = link;
     }
 
-  /* Effectively do Vbuffer_alist = Fdelq (link, Vbuffer_alist)
-     but cannot use Fdelq here it that allows quitting.  */
+  /* Effectively do Vbuffer_alist = Fdelq (link, Vbuffer_alist);
+     we cannot use Fdelq itself here because it allows quitting.  */
 
   if (NILP (prev))
     Vbuffer_alist = XCONS (Vbuffer_alist)->cdr;
