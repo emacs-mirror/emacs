@@ -3,6 +3,7 @@
 ;; Copyright (C) 1996,1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
+;; Maintainer: bugs@gnus.org
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -156,7 +157,7 @@ All posts will be sent to the specified group.")
 
     (gcc-self (choice :tag  "GCC"
 		      :value t
-		      (const t)
+		      (const :tag "To current group" t)
 		      (const none)
 		      (string :format "%v" :hide-front-space t)) "\
 Specify default value for GCC header.
@@ -169,10 +170,18 @@ is present and a string, this string will be inserted literally as a
 rules as described later).")
 
     (banner (choice :tag "Banner"
-		    (const signature)
+		    :value nil
+		    (const :tag "Remove signature" signature)
+		    (symbol :tag "Item in `gnus-article-banner-alist'" none)
 		    regexp
 		    (const :tag "None" nil)) "\
-Regular expression matching banners to be removed from articles.")
+If non-nil, specify how to remove `banners' from articles.
+
+Symbol `signature' means to remove signatures delimited by
+`gnus-signature-separator'.  Any other symbol is used to look up a
+regular expression to match the banner in `gnus-article-banner-alist'.
+A string is used as a regular expression to match the banner
+directly.")
 
     (auto-expire (const :tag "Automatic Expire" t) "\
 All articles that are read will be marked as expirable.")
