@@ -757,7 +757,7 @@ otherwise pop it")
 	       (setcar (cdr bytes) (logand pc 255))
 	       (setcar bytes (lsh pc -8))))
 	(setq patchlist (cdr patchlist))))
-    (concat (nreverse bytes))))
+    (string-make-unibyte (concat (nreverse bytes)))))
 
 
 ;;; compile-time evaluation
