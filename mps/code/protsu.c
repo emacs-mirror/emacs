@@ -1,7 +1,7 @@
 /* impl.c.protsu: PROTECTION FOR SUNOS
  *
  * $Id$
- * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * DESIGN
  *

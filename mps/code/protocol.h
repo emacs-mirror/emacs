@@ -1,7 +1,7 @@
 /* impl.h.protocol: PROTOCOL INHERITANCE DEFINITIONS
  *
  * $Id$
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #ifndef protocol_h

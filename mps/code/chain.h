@@ -1,7 +1,7 @@
 /* impl.h.chain: GENERATION CHAINS
  *
  * $Id$
- * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #ifndef chain_h

@@ -1,7 +1,7 @@
 # impl.gmk.lii4gc: BUILD FOR LINUX/INTEL/GCC PLATFORM
 #
 # $Id$
-# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+# Copyright (c) 2001 Ravenbrook Limited.
 
 PFM = lii4gc
 

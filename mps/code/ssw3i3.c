@@ -1,7 +1,7 @@
 /* impl.c.ssw3i3: WIN32/INTEL STACK SCANNING
  *
  * $Id$
- * Copyright (C) 1999.  Harlequin Group plc.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  *  This scans the stack and fixes the registers which may contain 
  *  roots.  See design.mps.thread-manager

@@ -1,7 +1,7 @@
 /*  impl.c.than: ANSI THREADS MANAGER
  *
  *  $Id$
- *  Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ *  Copyright (c) 2001 Ravenbrook Limited.
  *
  *  This is a single-threaded implementation of the threads manager.
  *  Has stubs for thread suspension.

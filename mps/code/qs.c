@@ -1,7 +1,7 @@
 /*  impl.c.qs: QUICKSORT
  *
  *  $Id$
- *  Copyright (C) 1998 Harlequin Limited.  All rights reserved.
+ *  Copyright (c) 2001 Ravenbrook Limited.
  *
  *  The purpose of this program is to act as a "real" client of the MM.
  *  It is a test, but (hopefully) less contrived than some of the other

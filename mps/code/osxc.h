@@ -1,7 +1,7 @@
 /* impl.h.osxc: MacOS X (Carbon-compatible) system header hacks
  *
  * $Id$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This header fixes bugs in the system headers.
  */

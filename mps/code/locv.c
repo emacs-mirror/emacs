@@ -1,7 +1,7 @@
 /* impl.c.locv: LEAF OBJECT POOL CLASS COVERAGE TEST
  *
  * $Id$
- * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * This is (not much of) a coverage test for the Leaf Object
  * pool (PoolClassLO).

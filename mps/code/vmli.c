@@ -1,7 +1,7 @@
 /* impl.c.vmli: VIRTUAL MEMORY MAPPING FOR LINUX
  *
  * $Id$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This is the implementation of the virtual memory mapping 
  * interface (vm.h) for Linux.  It was created by copying vmo1.c (the 

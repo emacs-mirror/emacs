@@ -1,7 +1,7 @@
 /* impl.c.proti3: PROTECTION MUTATOR CONTEXT (INTEL 386)
  *
  * $Id$
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .design: See design.mps.prot for the generic design of the interface
  * which is implemented in this module, including the contracts for the

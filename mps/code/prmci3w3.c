@@ -1,7 +1,7 @@
 /* impl.c.prmci3w3: PROTECTION MUTATOR CONTEXT INTEL 386 (Win32)
  *
  * $Id$
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * PURPOSE
  *

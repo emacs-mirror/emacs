@@ -1,7 +1,7 @@
 /* .impl.h.poolmv: MANUAL VARIABLE POOL
  *
  * $Id$
- * Copyright (C) 1995 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This is the interface to the manual-variable pool class.
  *

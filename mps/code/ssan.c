@@ -1,7 +1,7 @@
 /* impl.c.ssan: ANSI STACK SCANNER
  *
  * $Id$
- * Copyright (C) 1996 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * This module provides zero functionality.  It exists to feed the
  * linker (prevent linker errors).

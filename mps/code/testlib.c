@@ -1,7 +1,7 @@
 /* impl.c.testlib: TEST LIBRARY
  *
  * $Id$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: A library of functions that may be of use to unit tests.
  */

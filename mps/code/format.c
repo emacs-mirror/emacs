@@ -1,7 +1,7 @@
 /* impl.c.format: OBJECT FORMATS
  *
  * $Id$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * DESIGN
  *

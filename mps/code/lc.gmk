@@ -1,7 +1,7 @@
 # impl.gmk.lc: GNUMAKEFILE FRAGMENT FOR LCC
 #
 # $Id$
-# Copyright (C) 1996,1997, 1998 Harlequin Group, all rights reserved
+# Copyright (c) 2001 Ravenbrook Limited.
 #
 # This file is included by platform makefiles that use the LCC
 # compiler.  It defines the compiler specific variables that the

@@ -1,7 +1,7 @@
 /* impl.h.mpscmv: MEMORY POOL SYSTEM CLASS "MV"
  *
  * $Id$
- * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #ifndef mpscmv_h

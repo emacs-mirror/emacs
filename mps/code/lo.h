@@ -4,7 +4,7 @@
  *
  *  $Id$
  *
- *  Copyright (C) 1996 Harlequin Group, all rights reserved
+ *  Copyright (c) 2001 Ravenbrook Limited.
  *
  *  The Leaf Object PoolClass is an automatically managed (ie garbage
  *  collected) pool for managing "leaf" objects.  Leaf objects are

@@ -1,7 +1,7 @@
 /* impl.c.abq: AVAILABLE BLOCK QUEUE
  *
  * $Id$
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: Any MPS developer
  *

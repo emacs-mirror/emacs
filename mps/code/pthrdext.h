@@ -1,7 +1,7 @@
 /*  impl.h.pthreadext: POSIX THREAD EXTENSIONS
  *
  *  $Id$
- *  Copyright (C) 2000 Harlequin Ltd, all rights reserved
+ *  Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: MM developers.
  *

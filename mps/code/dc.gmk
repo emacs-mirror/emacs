@@ -1,7 +1,7 @@
 # impl.gmk.dc: GNUMAKEFILE FRAGMENT FOR DIGITAL C COMPILER (DEC UNIX/OSF)
 #
 # $Id$
-# Copyright(C) 1997, 1998 Harlequin Group, all rights reserved
+# Copyright (c) 2001 Ravenbrook Limited.
 #
 # See design.buildsys.unix
 #

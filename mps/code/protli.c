@@ -1,7 +1,7 @@
 /*  impl.c.protli: PROTECTION FOR LINUX
  *
  *  $Id$
- *  Copyright (C) 1995,1999 Harlequin Group, all rights reserved
+ *  Copyright (c) 2001 Ravenbrook Limited.
  *
  */
 

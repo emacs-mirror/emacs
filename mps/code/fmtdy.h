@@ -1,7 +1,7 @@
 /* impl.h.fmtdy: DYLAN OBJECT FORMAT
  *
  * $Id$
- * Copyright (C) 1997 Harlequin Group, all rights reserved
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #ifndef fmtdy_h

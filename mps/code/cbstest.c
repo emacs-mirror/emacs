@@ -1,7 +1,7 @@
 /*  impl.c.cbstest: COALESCING BLOCK STRUCTURE TEST
  *
  *  $Id$
- * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #include "cbs.h"

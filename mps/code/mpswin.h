@@ -1,7 +1,7 @@
 /* impl.h.mpswin: HARLEQUIN MEMORY POOL SYSTEM WINDOWS.H INTERFACE
  *
  * $Id$
- * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: For MPS client application developers, MPS developers.
  *

@@ -1,7 +1,7 @@
 /* impl.c.global: ARENA-GLOBAL INTERFACES
  *
  * $Id$
- * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .sources: See design.mps.arena.  design.mps.thread-safety is relevant
  * to the functions ArenaEnter and ArenaLeave in this file.

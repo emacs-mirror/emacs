@@ -1,7 +1,7 @@
 /* impl.h.lock: RECURSIVE LOCKS
  *
  * $Id$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .description: [@@@@ Should be combined with design.mps.lock]
  *  This defines the type Lock, which supports simple recursive

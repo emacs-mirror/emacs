@@ -1,7 +1,7 @@
 /* impl.h.fmthe: DYLAN-LIKE OBJECT FORMAT WITH HEADERS
  *
  * $Id$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #ifndef fmthe_h

@@ -1,7 +1,7 @@
 /* impl.c.walk: OBJECT WALKER
  *
  * $Id$
- * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #include "mpm.h"

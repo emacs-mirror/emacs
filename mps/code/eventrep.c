@@ -1,5 +1,5 @@
 /* impl.c.eventrep: Allocation replayer routines
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * $Id$
  */

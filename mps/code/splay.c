@@ -1,7 +1,7 @@
 /* impl.c.splay: SPLAY TREE IMPLEMENTATION
  *
  * $Id$
- * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: Splay trees are used to manage potentially unbounded 
  * collections of ordered things.

@@ -1,7 +1,7 @@
 # impl.gmk.lippgc: BUILD FOR LINUX/POWER(32)/GCC PLATFORM
 #
 # $Id$
-# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+# Copyright (c) 2001 Ravenbrook Limited.
 #
 # This is the GNU makefile for platform.lippgc.
 

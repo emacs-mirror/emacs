@@ -1,7 +1,7 @@
 /* impl.h.table: A dictionary mapping a Word to a void*
  *
  * $Id$
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .note.good-hash: As is common in hash table implementations, we
  * assume that the hash function is good.

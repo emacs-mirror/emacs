@@ -2,7 +2,7 @@
  *
  * $Id$
  *
- * Copyright (C) 1996 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #ifndef mpsclo_h

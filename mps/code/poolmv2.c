@@ -1,7 +1,7 @@
 /* impl.c.poolmv2: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
  * $Id$
- * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: A manual-variable pool designed to take advantage of
  * placement according to predicted deathtime.

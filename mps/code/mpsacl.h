@@ -1,7 +1,7 @@
 /* impl.h.mpsacl: MEMORY POOL SYSTEM ARENA CLASS "CL"
  *
  * $Id$
- * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #ifndef mpsacl_h

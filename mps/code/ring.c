@@ -1,7 +1,7 @@
 /* impl.c.ring: RING IMPLEMENTATION
  *
  * $Id$
- * Copyright (C) 1995 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .intro: This is a portable implementation of Rings.
  *

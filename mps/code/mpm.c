@@ -1,7 +1,7 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
  * $Id$
- * Copyright (C) 1996 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: Miscellaneous support for the implementation of the MPM
  * and pool classes.

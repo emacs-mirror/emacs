@@ -1,7 +1,7 @@
 /* impl.c.lockcov: LOCK COVERAGE TEST
  *
  * $Id$
- * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #include "mpm.h"

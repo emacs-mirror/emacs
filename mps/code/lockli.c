@@ -1,7 +1,7 @@
 /* impl.c.lockli: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
  * $Id$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .linux: This implementation currently just supports LinuxThreads 
  * (platform MPS_OS_LI), Single Unix i/f.

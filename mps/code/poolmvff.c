@@ -1,7 +1,7 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
  * $Id$
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This is a pool class for manually managed objects of
  * variable size where address-ordered first fit is an appropriate

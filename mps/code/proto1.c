@@ -1,7 +1,7 @@
 /* impl.c.proto1: PROTECTION FOR DIGITAL UNIX
  *
  *  $Id$
- *  Copyright (C) 1995,1997 Harlequin Group, all rights reserved
+ *  Copyright (c) 2001 Ravenbrook Limited.
  */
 
 

@@ -1,7 +1,7 @@
 /* impl.c.mpmss: MPM STRESS TEST
  *
  * $Id$
- * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #include "mpscmv.h"

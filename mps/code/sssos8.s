@@ -4,7 +4,7 @@
 !
 !  $Id$
 !
-!  Copyright (C) 1995 Harlequin Group, all rights reserved
+!  Copyright (c) 2001 Ravenbrook Limited.
 !
 !  This scans the stack and the preserved integer registers.
 !  See design.mps.thread-manager

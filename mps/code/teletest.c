@@ -1,7 +1,7 @@
 /* impl.c.teletest: TELEMETRY TEST
  *
  * $Id$
- * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .source: The command parser here was taken and adapted from bttest.c.
  */

@@ -1,7 +1,7 @@
 # impl.gmk.ic: GNUMAKEFILE FRAGMENT FOR IRIX 6 CC (N32 or N64 ABI)
 #
 # $Id$
-# Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
+# Copyright (c) 2001 Ravenbrook Limited.
 #
 # This file is included by platform makefiles that use the IRIX 6 CC
 # compiler.  It defines the compiler specific variables that the

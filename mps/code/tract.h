@@ -1,7 +1,7 @@
 /* impl.h.tract: PAGE TABLE INTERFACE
  *
  * $Id$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 

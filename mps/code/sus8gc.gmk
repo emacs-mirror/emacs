@@ -1,7 +1,7 @@
 # impl.gmk.sus8gc: BUILD FOR SUNOS/SPARC V8/GCC PLATFORM
 #
 # $Id$
-# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+# Copyright (c) 2001 Ravenbrook Limited.
 
 PFM = sus8gc
 

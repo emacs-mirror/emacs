@@ -1,7 +1,7 @@
 /* impl.c.messtest: MESSAGE TEST
  *
  * $Id$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #include "mpm.h"

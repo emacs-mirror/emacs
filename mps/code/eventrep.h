@@ -1,5 +1,5 @@
 /* impl.h.eventrep: Allocation replayer interface
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * $Id$
  */
