@@ -9871,7 +9871,7 @@ quit_throw_to_read_char ()
   if (FRAMEP (internal_last_event_frame)
       && !EQ (internal_last_event_frame, selected_frame))
     do_switch_frame (make_lispy_switch_frame (internal_last_event_frame),
-		     Qnil, 0);
+		     0, 0);
 
   _longjmp (getcjmp, 1);
 }
