@@ -1,6 +1,6 @@
 /* impl.c.awlut: POOL CLASS AWL UNIT TEST
  *
- * $HopeName: MMsrc!awlut.c(trunk.16) $
+ * $HopeName: MMsrc!awlut.c(trunk.17) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -25,7 +25,6 @@
 #define TABLE_SLOTS 49
 #define ITERATIONS 5000
 #define CHATTER 100
-static mps_gen_param_s testChain[1] = { { 1300, 0.99 } };
 
 
 static mps_word_t bogus_class;
@@ -251,7 +250,6 @@ static void *setup(void *v, size_t s)
   mps_pool_t tablepool;
   mps_fmt_t dylanfmt;
   mps_fmt_t dylanweakfmt;
-  mps_chain_t chain;
   mps_ap_t leafap, exactap, weakap, bogusap;
   mps_root_t stack;
   mps_thr_t thr;
@@ -268,10 +266,9 @@ static void *setup(void *v, size_t s)
       "Format Create\n");
   die(mps_fmt_create_A(&dylanweakfmt, arena, dylan_fmt_A_weak()),
       "Format Create (weak)\n");
-  die(mps_chain_create(&chain, arena, 1, testChain), "chain_create");
   die(mps_pool_create(&leafpool, arena, mps_class_lo(), dylanfmt),
       "Leaf Pool Create\n");
-  die(mps_pool_create(&tablepool, arena, mps_class_awl(), dylanweakfmt, chain),
+  die(mps_pool_create(&tablepool, arena, mps_class_awl(), dylanweakfmt),
       "Table Pool Create\n");
   die(mps_ap_create(&leafap, leafpool, MPS_RANK_EXACT),
       "Leaf AP Create\n");
@@ -290,7 +287,6 @@ static void *setup(void *v, size_t s)
   mps_ap_destroy(leafap);
   mps_pool_destroy(tablepool);
   mps_pool_destroy(leafpool);
-  mps_chain_destroy(chain);
   mps_fmt_destroy(dylanweakfmt);
   mps_fmt_destroy(dylanfmt);
   mps_root_destroy(stack);
