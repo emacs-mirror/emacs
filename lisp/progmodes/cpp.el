@@ -92,7 +92,7 @@ Each entry is a list with the following elements:
 0. The name of the macro (a string).
 1. Face used for text that is `ifdef' the macro.
 2. Face used for text that is `ifndef' the macro.
-3. `t', `nil', or `both' depending on what text may be edited."
+3. t, nil, or `both' depending on what text may be edited."
   :type '(repeat (list string face face
 		       (choice (const t)
 			       (const nil)
