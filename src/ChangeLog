@@ -1,3 +1,14 @@
+1999-11-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* lisp.h (KEY_DESCRIPTION_SIZE): New macro.
+
+	* keyboard.c (echo_char): Use KEY_DESCRIPTION_SIZE to check free
+	memory for push_key_description.
+
+	* keymap.c (Fsingle_key_description): Use KEY_DESCRIPTION_SIZE to
+	allocate memory for push_key_description.
+	(describe_buffer_bindings): Likewise.
+
 1999-11-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (Fx_show_busy_cursor): Doc-fix.
