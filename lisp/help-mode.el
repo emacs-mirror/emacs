@@ -282,7 +282,7 @@ disambiguated by the preceding word(s) used in
 `help-xref-symbol-regexp'.  Faces only get cross-referenced if
 preceded or followed by the word `face'.  Variables without
 variable documentation do not get cross-referenced, unless
-preceded by the word `variable'.
+preceded by the word `variable' or `option'.
 
 If the variable `help-xref-mule-regexp' is non-nil, find also
 cross-reference information related to multilingual environment
