@@ -3549,7 +3549,7 @@ keyboard_bit_set (mask)
 {
   int fd;
 
-  for (fd = 0; fd < max_keyboard_desc; fd++)
+  for (fd = 0; fd <= max_keyboard_desc; fd++)
     if (FD_ISSET (fd, mask) && FD_ISSET (fd, &input_wait_mask)
 	&& !FD_ISSET (fd, &non_keyboard_wait_mask))
       return 1;
