@@ -1,3 +1,9 @@
+2000-10-16  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* editfns.c (Fconstrain_to_field): Check carefully for field
+	boundaries if either OLD_POS or NEW_POS has a non-nil field
+	property, even if they're the same.
+
 2000-10-16  Kenichi Handa  <handa@etl.go.jp>
 
 	* xterm.c (x_draw_box_rect): Fix the calculation of width and
