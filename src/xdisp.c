@@ -517,6 +517,7 @@ static int message_cleared_p;
    selected.  Zero means there's no cursor in such windows.  */
 
 int cursor_in_non_selected_windows;
+Lisp_Object Qcursor_in_non_selected_windows;
 
 /* A scratch glyph row with contents used for generating truncation
    glyphs.  Also used in direct_output_for_insert.  */
@@ -14655,6 +14656,8 @@ syms_of_xdisp ()
   staticpro (&Qimage);
   Qmessage_truncate_lines = intern ("message-truncate-lines");
   staticpro (&Qmessage_truncate_lines);
+  Qcursor_in_non_selected_windows = intern ("cursor-in-non-selected-windows");
+  staticpro (&Qcursor_in_non_selected_windows);
   Qgrow_only = intern ("grow-only");
   staticpro (&Qgrow_only);
   Qinhibit_menubar_update = intern ("inhibit-menubar-update");
