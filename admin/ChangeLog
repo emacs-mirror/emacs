@@ -1,6 +1,6 @@
 2002-10-14   Markus Rost  <rost@math.ohio-state.edu>
 
-	* cus-test.el (cus-test-deps): Ignore libraries in lisp/term/.
+	* cus-test.el (cus-test-opts): Call cus-test-load-libs.
 
 2002-10-13   Markus Rost  <rost@math.ohio-state.edu>
 
