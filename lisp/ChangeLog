@@ -1537,17 +1537,45 @@
 
 2003-08-11  Carsten Dominik  <dominik@sand.science.uva.nl>
 
-	* textmodes/reftex.el: Updated to version 4.21
-	* reftex-auc.el: likewise.
-	* reftex-cite.el: likewise.
-	* reftex-dcr.el: likewise.
-	* reftex-global.el: likewise.
-	* reftex-index.el: likewise.
-	* reftex-parse.el: likewise.
-	* reftex-ref.el: likewise.
-	* reftex-sel.el: likewise.
-	* reftex-toc.el: likewise.
-	* reftex-vars.el: likewise.
+	* reftex-toc.el (reftex-toc-rename-label): New function.
+	(reftex-toc-check-docstruct): New function.
+
+	* reftex.el (reftex-region-active-p): New function.
+
+	* reftex-parse.el (reftex-locate-bibliography-files): Improved the
+	regexp to find the \bibliography macro.
+
+	* reftex-vars.el (reftex-section-levels): Removed subsubparagraph,
+	which does not exist in LaTeX.
+	(reftex-cite-format-builtin): Added amsrefs support.
+	(reftex-toc-confirm-promotion): New option
+	
+	* reftex-toc.el
+	(reftex-toc): Use `reftex-toc-split-windows-fraction'.
+	(reftex-toc-demote, reftex-toc-promote)
+	(reftex-toc-do-promote, reftex-toc-promote-prepare)
+	(reftex-toc-promote-action, reftex-toc-extract-section-number)
+	(reftex-toc-newhead-from-alist)
+	(reftex-toc-load-all-files-for-promotion): New functions.
+	(reftex-toc-help): Added description of new keys.
+	(reftex-toc-split-windows-fraction): New option.
+	(reftex-recenter-toc-when-idle): Search *toc* window on all
+	visible frames.
+	(reftex-toc): Additional parameter REUSE
+	(reftex-toc-recenter): Remember current frame.  Call `reftex-toc'
+	with REUSE argument.
+	(reftex-recenter-toc-when-idle): Reset `current-prefix-arg' for
+	the call of `reftex-toc'.
+	(reftex-make-separate-toc-frame): New function .
+	(reftex-toc-recenter): When called with triple prefix arg, call
+	`reftex-make-separate-toc-frame' first.
+	(reftex-toc-toggle-dedicated-frame): New command.
+	(reftex-toc-quit): Adapted to delete frame when called in
+	dedicated frame.
+
+	* reftex-index.el (reftex-index-phrase-match-is-indexed): Check
+	all enclosing macros.
+
 
 2003-08-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
