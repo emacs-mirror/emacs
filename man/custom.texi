@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93-95, 97, 2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization, Quitting, Amusements, Top
 @chapter Customization
@@ -96,7 +96,7 @@ to keep point on the screen.  @xref{Horizontal Scrolling}.
   ISO Accents mode makes the characters @samp{`}, @samp{'}, @samp{"},
 @samp{^}, @samp{/} and @samp{~} combine with the following letter, to
 produce an accented letter in the ISO Latin-1 character set.
-@xref{Single-Byte European Support}.
+@xref{Single-Byte Character Support}.
 
   Outline minor mode provides the same facilities as the major mode
 called Outline mode; but since it is a minor mode instead, you can
@@ -492,7 +492,7 @@ invoke @samp{[State]} and select the @samp{Save for Future Sessions}
 operation.
 
   You can also restore the option to its standard value by invoking
-@samp{[State]} and selecting the @samp{Reset to Standard Settings}
+@samp{[State]} and selecting the @samp{Erase Customization}
 operation.  There are actually three reset operations:
 
 @table @samp
@@ -505,11 +505,17 @@ the actual value.
 This restores the value of the option to the last saved value,
 and updates the text accordingly.
 
-@item Reset to Standard Settings
+@item Erase Customization
 This sets the option to its standard value, and updates the text
 accordingly.  This also eliminates any saved value for the option,
 so that you will get the standard value in future Emacs sessions.
 @end table
+
+@cindex comments on customized options
+Sometimes it is useful to record a comment on the value of an option
+which you have customized.  Use the @samp{Add Comment} item from the
+@samp{[State]} menu to provide a field in which to edit a comment which
+will be saved and redisplayed if you re-customize the option later.
 
   The state of a group indicates whether anything in that group has been
 edited, set or saved.  You can select @samp{Set for Current Session},
@@ -522,13 +528,17 @@ containing several active fields:
 
 @smallexample
  [Set for Current Session] [Save for Future Sessions]
- [Reset] [Reset to Saved] [Reset to Standard]   [Bury Buffer]
+ [Reset] [Reset to Saved] [Erase Customization]   [Finish]
 @end smallexample
 
+@vindex Custom-buffer-done
 @noindent
-Invoking @samp{[Bury Buffer]} buries this customization buffer.  Each of
-the other fields performs an operation---set, save or reset---on each of
-the items in the buffer that could meaningfully be set, saved or reset.
+Invoking @samp{[Finish]} either buries or kills this customization
+buffer according to the setting of the option @code{Custom-buffer-done};
+the default is to bury the buffer.
+Each of the other fields performs an operation---set, save or reset---on
+each of the items in the buffer that could meaningfully be set, saved or
+reset.
 
 @node Face Customization
 @subsubsection Customizing Faces
@@ -1695,7 +1705,10 @@ If your keyboard has keys that send non-ASCII characters, such as
 accented letters, rebinding these keys is a bit tricky.  There are
 two solutions you can use.  One is to specify a keyboard coding system,
 using @code{set-keyboard-coding-system} (@pxref{Specify Coding}).
-Then you can bind these keys in the usual way, but writing
+Then you can bind these keys in the usual way,@footnote{Note that you
+should avoid the string syntax for binding 8-bit characters, since
+they will be interpreted as meta keys.  @xref{(elisp)Strings of
+Events}.} by writing
 
 @example
 (global-set-key [?@var{char}] 'some-function)
@@ -1720,6 +1733,9 @@ inside the vector to bind:
 @example
 (global-set-key [@var{decimal-code}] 'some-function)
 @end example
+
+If you bind 8-bit characters like this in your init file, you my find it
+convenient to specify that it is unibyte.  @xref{Enabling Multibyte}.
 
 @node Mouse Buttons
 @subsection Rebinding Mouse Buttons
