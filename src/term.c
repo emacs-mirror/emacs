@@ -1260,6 +1260,8 @@ term_get_fkeys_1 ()
   extern char *tgetstr ();
   int i;
 
+  char **address = term_get_fkeys_address;
+
   /* This can happen if CANNOT_DUMP or with strange options.  */
   if (!initialized)
     Vfunction_key_map = Fmake_sparse_keymap (Qnil);
