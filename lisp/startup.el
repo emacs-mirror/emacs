@@ -768,6 +768,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (blink-cursor-mode 1))
 
   (when (and (not noninteractive)
+	     (not (eq system-type 'ms-dos))
+	     (memq window-system '(x)))
+    (setq-default delete-key-deletes-forward (x-backspace-delete-keys-p))
+    (delete-key-deletes-forward-mode 1))
+
+  (when (and (not noninteractive)
 	     (display-graphic-p)
 	     (fboundp 'x-show-tip))
     (setq-default tooltip-mode t)
