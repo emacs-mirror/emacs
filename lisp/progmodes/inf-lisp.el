@@ -74,7 +74,7 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
 (defvar inferior-lisp-mode-map nil)
 (cond ((not inferior-lisp-mode-map)
        (setq inferior-lisp-mode-map
-	     (full-copy-sparse-keymap comint-mode-map))
+	     (copy-keymap comint-mode-map))
        (setq inferior-lisp-mode-map
 	     (nconc inferior-lisp-mode-map shared-lisp-mode-map))
        (define-key inferior-lisp-mode-map "\C-x\C-e" 'lisp-eval-last-sexp)
