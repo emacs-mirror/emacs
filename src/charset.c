@@ -358,7 +358,7 @@ int
 unibyte_char_to_multibyte (c)
      int c;
 {
-  if (c < 0400)
+  if (c < 0400 && c >= 0200)
     {
       int c_save = c;
 
