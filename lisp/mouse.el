@@ -428,8 +428,12 @@ This variable's value may be non-integral.
 Setting this to zero causes Emacs to scroll as fast as it can.")
 
 (defvar mouse-scroll-min-lines 1
-  "*The minimum number of lines scrolled at a time by dragging the mouse
-beyond the edge of a window.")
+  "*The minimum number of lines scrolled by dragging mouse out of window.
+Moving the mouse out the top or bottom edge of the window begins
+scrolling repeatedly.  The number of lines scrolled per repetition
+is normally equal to the number of lines beyond the window edge that
+the mouse has moved.  However, it always scrolls at least the number
+of lines specified by this variable.")
 
 (defun mouse-scroll-subr (window jump &optional overlay start)
   "Scroll the window WINDOW, JUMP lines at a time, until new input arrives.
