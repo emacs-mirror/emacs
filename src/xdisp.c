@@ -537,13 +537,6 @@ static int message_cleared_p;
 Lisp_Object Vcursor_in_non_selected_windows;
 Lisp_Object Qcursor_in_non_selected_windows;
 
-/* Specifies the desired cursor-type to use to show the blinking
-   cursor off state and cursor shown in non-selected windows.
-   t means to use the default.  */
-
-Lisp_Object Valternate_cursor_type;
-Lisp_Object Qalternate_cursor_type;
-
 /* How to blink the default frame cursor off.  */
 Lisp_Object Vblink_cursor_alist;
 
@@ -15362,15 +15355,8 @@ get_window_cursor_type (w, width)
 
   /* Cursor is blinked off, so determine how to "toggle" it.  */
 
-  /* First try to use alternate-cursor-type, unless it is t.  */
-  alt_cursor = Fbuffer_local_value (Qalternate_cursor_type, w->buffer);
-  if (!EQ (alt_cursor, Qt))
-    return get_specified_cursor_type (alt_cursor, width);
-
-  /* Then unless buffer's cursor-type is t (use default),
-     look for an entry matching normal cursor in blink-cursor-alist.  */
-  if (!EQ (b->cursor_type, Qt) &&
-      (alt_cursor = Fassoc (b->cursor_type, Vblink_cursor_alist), !NILP (alt_cursor)))
+  /* First look for an entry matching the buffer's cursor-type in blink-cursor-alist.  */
+  if ((alt_cursor = Fassoc (b->cursor_type, Vblink_cursor_alist), !NILP (alt_cursor)))
     return get_specified_cursor_type (XCDR (alt_cursor), width);
 
   /* Then see if frame has specified a specific blink off cursor type.  */
@@ -15499,8 +15485,6 @@ syms_of_xdisp ()
   staticpro (&Qmessage_truncate_lines);
   Qcursor_in_non_selected_windows = intern ("cursor-in-non-selected-windows");
   staticpro (&Qcursor_in_non_selected_windows);
-  Qalternate_cursor_type = intern ("alternate-cursor-type");
-  staticpro (&Qalternate_cursor_type);
   Qgrow_only = intern ("grow-only");
   staticpro (&Qgrow_only);
   Qinhibit_menubar_update = intern ("inhibit-menubar-update");
@@ -15736,11 +15720,6 @@ go back to their normal size.  */);
     doc: /* *Cursor type to display in non-selected windows.
 t means to use hollow box cursor.  See `cursor-type' for other values.  */);
   Vcursor_in_non_selected_windows = Qt;
-
-  DEFVAR_LISP ("alternate-cursor-type", &Valternate_cursor_type,
-    doc: /* *Cursor type displayed in the blinking cursor off state.
-t means to use default.  See `cursor-type' for other values.  */);
-  Valternate_cursor_type = Qt;
 
   DEFVAR_LISP ("blink-cursor-alist", &Vblink_cursor_alist,
     doc: /* Alist specifying how to blink the cursor off.
