@@ -858,11 +858,12 @@ Returns the documentation as a string, also."
 		  (save-excursion
 		    (re-search-backward 
 		     (concat "\\(" customize-label "\\)") nil t)
-		    (help-xref-button 1 #'(lambda (v)
-					    (customize-variable v))
+		    (help-xref-button 1 (lambda (v)
+					  (if help-xref-stack
+					      (pop help-xref-stack))
+					  (customize-variable v))
 				      variable
-				      "mouse-2, RET: customize variable")
-		    ))))
+				      "mouse-2, RET: customize variable")))))
 	  ;; Make a hyperlink to the library if appropriate.  (Don't
 	  ;; change the format of the buffer's initial line in case
 	  ;; anything expects the current format.)
@@ -1014,6 +1015,7 @@ Must be previously-defined."
 (defconst help-xref-symbol-regexp
   (purecopy (concat "\\(\\<\\(\\(variable\\|option\\)\\|"
 		    "\\(function\\|command\\)\\|"
+		    "\\(face\\)\\|"
 		    "\\(symbol\\)\\)\\s-+\\)?"
 		    ;; Note starting with word-syntax character:
 		    "`\\(\\sw\\(\\sw\\|\\s_\\)+\\)'"))
@@ -1077,7 +1079,7 @@ that."
               ;; Quoted symbols
               (save-excursion
                 (while (re-search-forward help-xref-symbol-regexp nil t)
-                  (let* ((data (match-string 6))
+                  (let* ((data (match-string 7))
                          (sym (intern-soft data)))
                     (if sym
                         (cond
@@ -1085,28 +1087,35 @@ that."
                           (and (boundp sym) ; `variable' doesn't ensure
                                         ; it's actually bound
                                (help-xref-button
-				6 #'describe-variable sym
+				7 #'describe-variable sym
 				"mouse-2, RET: describe this variable")))
                          ((match-string 4) ; `function' &c
                           (and (fboundp sym) ; similarly
                                (help-xref-button
-				6 #'describe-function sym
+				7 #'describe-function sym
 				"mouse-2, RET: describe this function")))
-                         ((match-string 5)) ; nothing for symbol
+			 ((match-string 5) ; `face'
+			  (and (facep sym)
+			       (help-xref-button 7 #'describe-face sym
+				"mouse-2, RET: describe this face")))
+                         ((match-string 6)) ; nothing for symbol
                          ((and (boundp sym) (fboundp sym))
                           ;; We can't intuit whether to use the
                           ;; variable or function doc -- supply both.
                           (help-xref-button
-			   6 #'help-xref-interned sym
+			   7 #'help-xref-interned sym
 			   "mouse-2, RET: describe this symbol"))
                          ((boundp sym)
 			  (help-xref-button
-			   6 #'describe-variable sym
+			   7 #'describe-variable sym
 			   "mouse-2, RET: describe this variable"))
 			 ((fboundp sym)
 			  (help-xref-button
-			   6 #'describe-function sym
-			   "mouse-2, RET: describe this function")))))))
+			   7 #'describe-function sym
+			   "mouse-2, RET: describe this function"))
+			 ((facep sym)
+			  (help-xref-button
+			   7 #'describe-face sym)))))))
               ;; An obvious case of a key substitution:
               (save-excursion              
                 (while (re-search-forward
@@ -1194,16 +1203,23 @@ If optional arg HELP-ECHO is supplied, it is used as a help string."
 
 Both variable and function documentation are extracted into a single
 help buffer."
-  (let ((fdoc (when (fboundp symbol) (describe-function symbol))))
+  (let ((fdoc (when (fboundp symbol) (describe-function symbol)))
+	(facedoc (when (facep symbol) (describe-face symbol))))
     (when (or (boundp symbol) (not fdoc))
       (describe-variable symbol)
       ;; We now have a help buffer on the variable.  Insert the function
       ;; text before it.
-      (when fdoc
+      (when (or fdoc facedoc)
 	(with-current-buffer "*Help*"
 	  (goto-char (point-min))
 	  (let ((inhibit-read-only t))
-	    (insert fdoc "\n\n" (symbol-name symbol) " is also a variable.\n\n"))
+	    (when fdoc
+	      (insert fdoc "\n\n"))
+	    (when facedoc
+	      (insert (make-string 30 ?-) "\n\n" (symbol-name symbol)
+		      " is also a " "face." "\n\n" facedoc "\n\n"))
+	    (insert (make-string 30 ?-) "\n\n" (symbol-name symbol)
+		    " is also a " "variable." "\n\n"))
 	  (help-setup-xref (list #'help-xref-interned symbol) nil))))))
 
 (defun help-xref-mode (buffer)
