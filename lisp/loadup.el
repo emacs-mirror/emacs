@@ -102,7 +102,8 @@
 (if (fboundp 'track-mouse)
     (progn
       (load "mouse")
-      (load "scroll-bar")
+      (and (boundp 'x-toolkit-scroll-bars-p)
+	   (load "scroll-bar"))
       (load "select")))
 
 (message "%s" (garbage-collect))
