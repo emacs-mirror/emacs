@@ -2579,6 +2579,19 @@ sys_write (fildes, buf, nbyte)
 
 #endif /* INTERRUPTIBLE_IO */
 
+#ifndef HAVE_VFORK
+
+/*
+ *	Substitute fork for vfork on USG flavors.
+ */
+
+vfork ()
+{
+  return (fork ());
+}
+
+#endif /* not HAVE_VFORK */
+
 #ifdef USG
 /*
  *	All of the following are for USG.
@@ -2714,19 +2727,6 @@ rename (from, to)
 }
 
 #endif
-
-#ifndef HAVE_VFORK
-
-/*
- *	Substitute fork for vfork on USG flavors.
- */
-
-vfork ()
-{
-  return (fork ());
-}
-
-#endif /* not HAVE_VFORK */
 
 #ifdef MISSING_UTIMES
 
