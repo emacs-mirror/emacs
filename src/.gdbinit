@@ -165,11 +165,10 @@ end
 set print pretty on
 set print sevenbit-strings
 
-unset environment TERMCAP
-unset environment TERM
-echo TERMCAP and TERM environment variables unset.\n
 show environment DISPLAY
-set args -q -geometry 80x40+0+0
+show environment TERM
+show environment TERMCAP
+set args -geometry 80x40+0+0
 
 # Don't let abort actually run, as it will make
 # stdio stop working and therefore the `pr' command above as well.
