@@ -264,10 +264,7 @@ use  (let ((edges (window-edges))) (- (nth 2 edges) (nth 0 edges))).")
   (window)
      Lisp_Object window;
 {
-  register struct window *w = decode_window (window);
-  register int width = XFASTINT (w->width);
-
-  return make_number (window_internal_width (w));
+  return make_number (window_internal_width (decode_window (window)));
 }
 
 DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
