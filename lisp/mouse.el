@@ -45,6 +45,18 @@ This must be bound to a mouse click."
   (interactive "e")
   (delete-window (posn-window (event-start click))))
 
+(defun mouse-select-window (click)
+  "Select the window clicked on; don't move point."
+  (interactive "e")
+  (let ((oframe (selected-frame))
+	(frame (window-frame (posn-window (event-start click)))))
+    (select-window (posn-window (event-start click)))
+    (raise-frame frame)
+    (select-frame frame)
+    (or (eq frame oframe)
+	(set-mouse-position (selected-frame) (1- (frame-width)) 0))
+    (unfocus-frame)))
+
 (defun mouse-tear-off-window (click)
   "Delete the window clicked on, and create a new frame displaying its buffer."
   (interactive "e")
@@ -1331,69 +1343,10 @@ and selects that window."
 ;; Replaced with dragging mouse-1
 ;; (global-set-key [S-mouse-1]	'mouse-set-mark)
 
-(global-set-key [mode-line mouse-1] 'mouse-delete-other-windows)
+(global-set-key [mode-line mouse-1] 'mouse-select-window)
+(global-set-key [mode-line mouse-2] 'mouse-delete-other-windows)
 (global-set-key [mode-line mouse-3] 'mouse-delete-window)
-(global-set-key [mode-line S-mouse-2] 'mouse-split-window-horizontally)
-
-;; Define the mouse help menu tree.
-
-(defvar help-menu-map '(keymap "Help"))
-(global-set-key [C-down-mouse-2] help-menu-map)
-
-(defvar help-apropos-map (make-sparse-keymap "Is there a command that..."))
-(defvar help-keys-map (make-sparse-keymap "Key Commands <==> Functions"))
-(defvar help-manual-map (make-sparse-keymap "Manual and tutorial"))
-(defvar help-misc-map (make-sparse-keymap "Odds and ends"))
-(defvar help-modes-map (make-sparse-keymap "Modes"))
-(defvar help-admin-map (make-sparse-keymap "Administrivia"))
-
-(define-key help-menu-map [apropos]
-  (cons "@Is there a command that..." help-apropos-map))
-(define-key help-menu-map [keys]
-  (cons "@Key Commands <==> Functions" help-keys-map))
-(define-key help-menu-map [manuals]
-  (cons "@Manual and tutorial" help-manual-map))
-(define-key help-menu-map [misc]
-  (cons "@Odds and ends" help-misc-map))
-(define-key help-menu-map [modes]
-  (cons "@Modes" help-modes-map))
-(define-key help-menu-map [admin]
-  (cons "@Administrivia" help-admin-map))
-
-(define-key help-apropos-map "c" '("Command Apropos" . command-apropos))
-(define-key help-apropos-map "a" '("Apropos" . apropos))
-
-(define-key help-keys-map "b"
-  '("List all keystroke commands" . describe-bindings))
-(define-key help-keys-map "c"
-  '("Describe key briefly" . describe-key-briefly))
-(define-key help-keys-map "k"
-  '("Describe key verbose" . describe-key))
-(define-key help-keys-map "f"
-  '("Describe Lisp function" . describe-function))
-(define-key help-keys-map "w"
-  '("Where is this command" . where-is))
-
-(define-key help-manual-map "i" '("Info system" . info))
-(define-key help-manual-map "t"
-  '("Invoke Emacs tutorial" . help-with-tutorial))
-
-(define-key help-misc-map "l" '("Last 100 Keystrokes" . view-lossage))
-(define-key help-misc-map "s" '("Describe syntax table" . describe-syntax))
-
-(define-key help-modes-map "m"
-  '("Describe current major mode" . describe-mode))
-(define-key help-modes-map "b"
-  '("List all keystroke commands" . describe-bindings))
-
-(define-key help-admin-map "n"
-  '("View Emacs news" . view-emacs-news))
-(define-key help-admin-map "l"
-  '("View Emacs copying conditions" . describe-copying))
-(define-key help-admin-map "d"
-  '("Describe distribution" . describe-distribution))
-(define-key help-admin-map "w"
-  '("Describe (non)warranty" . describe-no-warranty))
+(global-set-key [mode-line C-mouse-2] 'mouse-split-window-horizontally)
 
 (provide 'mouse)
 
