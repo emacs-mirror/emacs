@@ -305,6 +305,40 @@ specifies a number of lines.  If nil, don't resize.
 
 Default is 0.25.
 
+** Changes to hideshow.el
+
+Hideshow is now at version 5.x.  It uses a new algorithms for block
+selection and traversal and includes more isearch support.
+
+*** Generalized block selection and traversal
+
+A block is now recognized by three things: its start and end regexps
+(both strings), and a match-data selector (an integer) specifying
+which sub-expression in the start regexp serves as the place where a
+`forward-sexp'-like function can operate.  Hideshow always adjusts
+point to this sub-expression before calling `hs-forward-sexp-func'
+(which for most modes evaluates to `forward-sexp').
+
+If the match-data selector is not specified, it defaults to zero,
+i.e., the entire start regexp is valid, w/ no prefix.  This is
+backwards compatible with previous versions of hideshow.  Please see
+the docstring for variable `hs-special-modes-alist' for details.
+
+*** Isearch support for updating mode line
+
+During incremental search, if Hideshow minor mode is active, hidden
+blocks are temporarily shown.  The variable `hs-headline' records the
+line at the beginning of the opened block (preceding the hidden
+portion of the buffer), and the mode line is refreshed.  When a block
+is re-hidden, the variable is set to nil.
+
+To show `hs-headline' in the mode line, you may wish to include
+something like this in your .emacs.
+
+	(add-hook 'hs-minor-mode-hook
+	  (lambda ()
+	    (add-to-list 'mode-line-format 'hs-headline)))
+
 ** Changes to Change Log mode
 
 Change Log mode now adds a file's version number to change log entries
