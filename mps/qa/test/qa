@@ -16,7 +16,7 @@ $test_dir = $0;
 
 $0 = "qa testing"; # this will show up in ps
 
-$test_dir =~ s/\\/\//; # i.e. convert to unix-style separators
+$test_dir =~ s/\\/\//g; # i.e. convert to unix-style separators
 
 unless ($test_dir =~ m/\//) {
  $test_dir = "./".$test_dir;
