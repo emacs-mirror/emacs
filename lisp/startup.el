@@ -123,7 +123,7 @@
 (setq top-level '(normal-top-level))
 
 (defvar command-line-processed nil
-  "Non-nil once command line has been processed")
+  "Non-nil once command line has been processed.")
 
 (defgroup initialization nil
   "Emacs start-up procedure"
