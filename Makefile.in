@@ -442,7 +442,8 @@ install-arch-indep: mkdir info
 	-unset CDPATH; \
 	if [ -r ./lisp ] \
 	   && [ -r ./lisp/simple.el ] \
-	   && [ x`(cd ./lisp; /bin/pwd)` != x`(cd ${lispdir}; /bin/pwd)` ]; \
+	   && [ x`(cd ./lisp; /bin/pwd)` != x`(cd ${lispdir}; /bin/pwd)` ] \
+	   && [ x`(cd ${srcdir}/lisp; /bin/pwd)` != x`(cd ./lisp; /bin/pwd)` ]; \
 	then \
 	   echo "Copying lisp/*.el and lisp/*.elc to ${lispdir} ..." ; \
 	   (cd lisp; tar -chf - *.el *.elc) \
