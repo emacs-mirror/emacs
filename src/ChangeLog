@@ -14,8 +14,8 @@
 	Use :type 'datagram instead of :datagram t to create a datagram
 	socket.  This allows us to add other connection types (e.g. raw
 	sockets) later in a consistent manner.
-	(init_process) [subprocess]: Provide list of supported subfeatures
-	for feature make-network-process.
+	(init_process) [subprocess, HAVE_SOCKETS]: Provide list of
+	supported subfeatures for feature make-network-process.
 	(syms_of_process) [subprocess]: Remove QCfeature and QCdatagram.
 	Intern and staticpro QCtype and Qdatagram.
 	(syms_of_process) [!subprocess]: Intern and staticpro QCtype.

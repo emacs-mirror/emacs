@@ -1,3 +1,9 @@
+2002-03-21  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (open-network-stream, open-network-stream-nowait)
+	(open-network-stream-server): Use featurep to test for
+	supported networking features.
+
 2002-03-21  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* mail/emacsbug.el (report-emacs-bug-hook): Remove submitter
