@@ -211,6 +211,7 @@ xlwMenuActionsList [] =
   {"right",		Right},
   {"select",		Select},
   {"key",		Key},
+  {"MenuGadgetEscape",  Key},   /* Compatibility with Lesstif/Motif.  */
   {"nothing",		Nothing},
 };
 
