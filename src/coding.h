@@ -351,6 +351,12 @@ struct coding_system
   /* The following members are set by encoding/decoding routine.  */
   int produced, produced_char, consumed, consumed_char;
 
+  /* Encoding routines set this to 1 when they produce a byte sequence
+     which can be parsed as a multibyte character.  Decoding routines
+     set this to 1 when they encounter an invalid code and, as the
+     result, produce an unexpected multibyte character.  */
+  int fake_multibyte;
+
   /* The following members are all Lisp symbols.  We don't have to
      protect them from GC because the current garbage collection
      doesn't relocate Lisp symbols.  But, when it is changed, we must
