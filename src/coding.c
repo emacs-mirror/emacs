@@ -733,33 +733,14 @@ detect_coding_iso2022 (src, src_end)
 		/* Invalid designation sequence.  Just ignore.  */
 		break;
 	    }
-	  else if (c == 'N' || c == 'n')
+	  else if (c == 'N' || c == 'O')
 	    {
-	      if (shift_out == 0
-		  && (reg[1] >= 0
-		      || SHIFT_OUT_OK (CODING_CATEGORY_IDX_ISO_7_ELSE)
-		      || SHIFT_OUT_OK (CODING_CATEGORY_IDX_ISO_8_ELSE)))
-		{
-		  /* Locking shift out.  */
-		  mask &= ~CODING_CATEGORY_MASK_ISO_7BIT;
-		  mask_found |= CODING_CATEGORY_MASK_ISO_SHIFT;
-		  shift_out = 1;
-		}
-	      break;
-	    }
-	  else if (c == 'O' || c == 'o')
-	    {
-	      if (shift_out == 1)
-		{
-		  /* Locking shift in.  */
-		  mask &= ~CODING_CATEGORY_MASK_ISO_7BIT;
-		  mask_found |= CODING_CATEGORY_MASK_ISO_SHIFT;
-		  shift_out = 0;
-		}
+	      /* ESC <Fe> for SS2 or SS3.  */
+	      mask &= CODING_CATEGORY_MASK_ISO_7_ELSE;
 	      break;
 	    }
 	  else if (c == '0' || c == '1' || c == '2')
-	    /* Start/end composition.  Just ignore.  */
+	    /* ESC <Fp> for start/end composition.  Just ignore.  */
 	    break;
 	  else
 	    /* Invalid escape sequence.  Just ignore.  */
@@ -775,9 +756,13 @@ detect_coding_iso2022 (src, src_end)
 	    mask_found |= CODING_CATEGORY_MASK_ISO_7_TIGHT;
 	  else
 	    mask &= ~CODING_CATEGORY_MASK_ISO_7_TIGHT;
-	  if (! CHARSET_OK (CODING_CATEGORY_IDX_ISO_7_ELSE, charset))
+	  if (CHARSET_OK (CODING_CATEGORY_IDX_ISO_7_ELSE, charset))
+	    mask_found |= CODING_CATEGORY_MASK_ISO_7_ELSE;
+	  else
 	    mask &= ~CODING_CATEGORY_MASK_ISO_7_ELSE;
-	  if (! CHARSET_OK (CODING_CATEGORY_IDX_ISO_8_ELSE, charset))
+	  if (CHARSET_OK (CODING_CATEGORY_IDX_ISO_8_ELSE, charset))
+	    mask_found |= CODING_CATEGORY_MASK_ISO_8_ELSE;
+	  else
 	    mask &= ~CODING_CATEGORY_MASK_ISO_8_ELSE;
 	  break;
 
@@ -3623,8 +3608,7 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
     = encodep ? &coding->spec.ccl.encoder : &coding->spec.ccl.decoder;
   int result;
 
-  if (encodep)
-    ccl->last_block = coding->mode & CODING_MODE_LAST_BLOCK;
+  ccl->last_block = coding->mode & CODING_MODE_LAST_BLOCK;
 
   coding->produced = ccl_driver (ccl, source, destination,
 				 src_bytes, dst_bytes, &(coding->consumed));
