@@ -599,7 +599,7 @@ level to check it in under.  COMMENT, if specified, is the checkin comment."
     (mail-mode)
     (erase-buffer)
     (mail-setup owner (format "Stolen lock on %s" file-description) nil nil nil
-		(list (list 'vc-finish-steal file rev configuration)))
+		(list (list 'vc-finish-steal file rev)))
     (goto-char (point-max))
     (insert
      (format "I stole the lock on %s, " file-description)
@@ -610,7 +610,10 @@ level to check it in under.  COMMENT, if specified, is the checkin comment."
 ;; This is called when the notification has been sent.
 (defun vc-finish-steal (file version)
   (vc-backend-steal file version)
-  (vc-resynch-window file t t))
+  (if (get-file-buffer file)
+      (save-excursion
+	(set-buffer (get-buffer-file file))
+	(vc-resynch-window file t t))))
 
 (defun vc-checkin (file &optional rev comment)
   "Check in the file specified by FILE.
