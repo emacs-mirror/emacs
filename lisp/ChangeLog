@@ -1,5 +1,10 @@
 1999-11-29  Dave Love  <fx@gnu.org>
 
+	* cus-edit.el (custom-save-variables, custom-save-faces): Write a
+	comment warning about editing.
+
+1999-11-29  Dave Love  <fx@gnu.org>
+
 	* help.el (help-mode-hook): Define.
 
 1999-11-29  Gerd Moellmann  <gerd@gnu.org>
