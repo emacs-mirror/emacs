@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA ALLOCATION FEATURES
  *
- * $HopeName: MMsrc!arena.c(trunk.75) $
+ * $HopeName: MMsrc!arena.c(trunk.76) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  * 
  * .sources: design.mps.arena is the main design document.
@@ -15,7 +15,7 @@
 #include "poolmv.h"
 #include "mpm.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.75) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.76) $");
 
 
 /* ArenaControlPool -- get the control pool */
@@ -29,6 +29,18 @@ Reservoir ArenaReservoir(Arena arena)
 {
   AVERT(Arena, arena);
   return &arena->reservoirStruct;
+}
+
+
+/* ArenaTrivDescribe -- produce trivial description of an arena */
+
+static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
+{
+  if (!CHECKT(Arena, arena)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+
+  return WriteF(stream, 
+    "  No class-specific description available.\n", NULL);
 }
 
 
@@ -313,8 +325,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
     if (TractBase(tract) > oldLimit) {
       res = WriteF(stream,
                    "[$P, $P) $W $U   ---\n",
-                   (WriteFP)oldLimit,
-                   (WriteFP)base,
+                   (WriteFP)oldLimit, (WriteFP)base,
                    (WriteFW)AddrOffset(oldLimit, base),
                    (WriteFU)AddrOffset(oldLimit, base),
                    NULL);
@@ -323,10 +334,8 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
 
     res = WriteF(stream,
                  "[$P, $P) $W $U   $P ($S)\n",
-                 (WriteFP)base,
-                 (WriteFP)limit,
-                 (WriteFW)size,
-                 (WriteFW)size,
+                 (WriteFP)base, (WriteFP)limit,
+                 (WriteFW)size, (WriteFW)size,
                  (WriteFP)TractPool(tract),
                  (WriteFS)(TractPool(tract)->class->name),
                  NULL);
@@ -565,6 +574,19 @@ double ArenaMutatorAllocSize(Arena arena)
 }
 
 
+/* ArenaAvail -- return available memory in the arena */
+
+Size ArenaAvail(Arena arena)
+{
+  Size sSwap;
+
+  sSwap = ArenaReserved(arena);
+  if (sSwap > arena->commitLimit) sSwap = arena->commitLimit;
+  /* @@@@ sSwap should take actual paging file size into account */
+  return sSwap - arena->committed + arena->spareCommitted;
+}
+
+
 /* ArenaExtend -- Add a new chunk in the arena */
 
 Res ArenaExtend(Arena arena, Addr base, Size size)
@@ -594,16 +616,4 @@ Res ArenaNoExtend(Arena arena, Addr base, Size size)
 
   NOTREACHED;
   return ResUNIMPL;
-}
-
-
-/* ArenaTrivDescribe -- produce trivial description of an arena */
-
-Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
-{
-  AVERT(Arena, arena);
-  AVER(stream != NULL);
-
-  return WriteF(stream, 
-    "  No class-specific description available.\n", NULL);
 }
