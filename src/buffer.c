@@ -2098,11 +2098,12 @@ record_overlay_string (ssl, str, str2, pri, size)
    Returns the string length, and stores the contents indirectly through
    PSTR, if that variable is non-null.  The string may be overwritten by
    subsequent calls.  */
+
 int
 overlay_strings (pos, w, pstr)
      int pos;
      struct window *w;
-     char **pstr;
+     unsigned char **pstr;
 {
   Lisp_Object ov, overlay, window, str;
   int startpos, endpos;
