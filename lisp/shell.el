@@ -102,38 +102,6 @@
 
 ;;; Read the rest of this file for more information.
 
-;;; SHELL.EL COMPATIBILITY
-;;; Notes from when this was called cmushell, and was not the standard emacs
-;;; shell package.
-;;;============================================================================
-;;; In brief: this package should have no trouble coexisting with shell.el.
-;;; 
-;;; Most customising variables -- e.g., explicit-shell-file-name -- are the
-;;; same, so the users shouldn't have much trouble. Hooks have different
-;;; names, however, so you can customise shell mode differently from cmushell
-;;; mode. You basically just have to remember to type M-x cmushell instead of
-;;; M-x shell.
-;;; 
-;;; It would be nice if this file was completely plug-compatible with the old
-;;; shell package -- if you could just name this file shell.el, and have it
-;;; transparently replace the old one. But you can't.  Several other packages
-;;; (tex-mode, background, dbx, gdb, kermit, monkey, prolog, telnet) are also
-;;; clients of shell mode. These packages assume detailed knowledge of shell
-;;; mode internals in ways that are incompatible with cmushell mode (mostly
-;;; because of cmushell mode's greater functionality).  So, unless we are
-;;; willing to port all of these packages, we can't have this file be a
-;;; complete replacement for shell.el -- that is, we can't name this file
-;;; shell.el, and its main entry point (shell), because dbx.el will break
-;;; when it loads it in and tries to use it.
-;;; 
-;;; There are two ways to fix this. One: rewrite these other modes to use the
-;;; new package. This is a win, but can't be assumed. The other, backwards
-;;; compatible route, is to make this package non-conflict with shell.el, so
-;;; both files can be loaded in at the same time. And *that* is why some
-;;; functions and variables have different names: (cmushell),
-;;; cmushell-mode-map, that sort of thing. All the names have been carefully
-;;; chosen so that shell.el and cmushell.el won't tromp on each other.
-
 ;;; Customization and Buffer Variables
 ;;; ===========================================================================
 ;;; 
