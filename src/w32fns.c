@@ -442,6 +442,9 @@ x_create_bitmap_from_file (f, file)
   fd = openp (Vx_bitmap_file_path, file, "", &found, 0);
   if (fd < 0)
     return -1;
+  /* LoadLibraryEx won't handle special files handled by Emacs handler.  */
+  if (fd == 0)
+    return -1;
   close (fd);
 
   filename = (char *) XSTRING (found)->data;
@@ -1264,6 +1267,38 @@ w32_to_x_color (rgb)
     return (Fcar (color));
   else
     return Qnil;
+}
+
+COLORREF
+w32_color_map_lookup (colorname)
+     char *colorname;
+{
+  Lisp_Object tail, ret = Qnil;
+
+  BLOCK_INPUT;
+
+  for (tail = Vw32_color_map; !NILP (tail); tail = Fcdr (tail))
+    {
+      register Lisp_Object elt, tem;
+
+      elt = Fcar (tail);
+      if (!CONSP (elt)) continue;
+
+      tem = Fcar (elt);
+
+      if (lstrcmpi (XSTRING (tem)->data, colorname) == 0)
+	{
+	  ret = XUINT (Fcdr (elt));
+	  break;
+	}
+
+      QUIT;
+    }
+
+
+  UNBLOCK_INPUT;
+
+  return ret;
 }
 
 COLORREF
