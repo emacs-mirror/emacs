@@ -3898,8 +3898,14 @@ NEWNAME is modified by adding or incrementing <N> at the end as necessary.
 If DISPLAY-FLAG is non-nil, the new buffer is shown with `pop-to-buffer'.
 This runs the normal hook `clone-buffer-hook' in the new buffer
 after it has been set up properly in other respects."
-  (interactive (list (if current-prefix-arg (read-string "Name: "))
-		     t))
+  (interactive
+   (progn
+     (if buffer-file-name
+	 (error "Cannot clone a file-visiting buffer"))
+     (if (get major-mode 'no-clone)
+	 (error "Cannot clone a buffer in %s mode" mode-name))
+     (list (if current-prefix-arg (read-string "Name: "))
+	   t)))
   (if buffer-file-name
       (error "Cannot clone a file-visiting buffer"))
   (if (get major-mode 'no-clone)
@@ -3963,9 +3969,15 @@ This is always done when called interactively.
 
 Optional last arg NORECORD non-nil means do not put this buffer at the
 front of the list of recently selected ones."
-  (interactive (list (if current-prefix-arg
-			 (read-string "BName of indirect buffer: "))
-		     t))
+  (interactive
+   (progn
+     (if (get major-mode 'no-clone-indirect)
+	 (error "Cannot indirectly clone a buffer in %s mode" mode-name))
+     (list (if current-prefix-arg
+	       (read-string "BName of indirect buffer: "))
+	   t)))
+  (if (get major-mode 'no-clone-indirect)
+      (error "Cannot indirectly clone a buffer in %s mode" mode-name))
   (setq newname (or newname (buffer-name)))
   (if (string-match "<[0-9]+>\\'" newname)
       (setq newname (substring newname 0 (match-beginning 0))))
