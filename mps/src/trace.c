@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.62) $
+ * $HopeName: MMsrc!trace.c(trunk.63) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .sources: design.mps.tracer.
@@ -33,7 +33,7 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.62) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.63) $");
 
 /* Types
  *
@@ -247,6 +247,62 @@ Res TraceAddWhite(Trace trace, Seg seg)
   return ResOK;
 }
 
+
+/* TraceCondemnRefSet -- condemn a set of objects
+ *
+ * TraceCondemnRefSet is passed a trace in state TraceINIT,
+ * and a set of objects to condemn.
+ *
+ * @@@@ For efficiency, we ought to find the condemned set and
+ * the foundation in one search of the segment ring.  This hasn't
+ * been done because some pools still use TraceAddWhite for the
+ * condemned set.
+ *
+ * @@@@ This function would be more efficient if there were a 
+ * cheaper way to select the segments in a particular zone set.
+ */
+
+Res TraceCondemnRefSet(Trace trace, RefSet condemnedSet)
+{
+  Seg seg;
+  Arena arena;
+  Res res;
+
+  AVERT(Trace, trace);
+  AVER(condemnedSet != RefSetEMPTY);
+  AVER(trace->state == TraceINIT);
+  AVER(trace->white == RefSetEMPTY);
+
+  arena = trace->arena;
+
+  if(SegFirst(&seg, arena)) {
+    Addr base;
+    do {
+      base = SegBase(seg);
+      /* Segment should be black now. */
+      AVER(!TraceSetIsMember(SegGrey(seg), trace->ti));
+      AVER(!TraceSetIsMember(SegWhite(seg), trace->ti));
+
+      /* A segment can only be white if it is GC-able. */
+      /* This is indicated by the pool having the GC attribute */
+      /* We only condemn segments that fall entirely within */
+      /* the requested zone set.  Otherwise, we would bloat the */
+      /* foundation to no gain.  Note that this doesn't exclude */
+      /* any segments from which the condemned set was derived, */
+      if((SegPool(seg)->class->attr & AttrGC) != 0 &&
+         RefSetSuper(condemnedSet, RefSetOfSeg(arena, seg))) {
+        res = TraceAddWhite(trace, seg);
+	if(res != ResOK)
+	  return res;
+      }
+    } while(SegNext(&seg, arena, base));
+  }
+
+  /* The trace's white set must be a subset of the condemned set */
+  AVER(RefSetSuper(condemnedSet, trace->white));
+
+  return ResOK;
+}
 
 /* TraceStart -- condemn a set of objects and start collection
  *

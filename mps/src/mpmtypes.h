@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.42) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.43) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -217,6 +217,8 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 #define SegPrefHigh     ((SegPrefKind)0)
 #define SegPrefLow      ((SegPrefKind)1)
 #define SegPrefRefSet   ((SegPrefKind)2)
+#define SegPrefGen      ((SegPrefKind)3)
+#define SegPrefCollected  ((SegPrefKind)4)
 
 
 /* Rank constants -- see design.mps.type.rank */

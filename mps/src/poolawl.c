@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.33) $
+ * $HopeName: MMsrc!poolawl.c(trunk.34) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.33) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.34) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -107,6 +107,7 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   Res res;
   Size tableSize;
   Arena arena;
+  SegPrefStruct segPrefStruct;
 
   AVER(groupReturn != NULL);
   AVER(RankSetCheck(rankSet));
@@ -124,7 +125,9 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   if(size == 0) {
     return ResMEMORY;
   }
-  res = SegAlloc(&seg, SegPrefDefault(), size, pool);
+  segPrefStruct = *SegPrefDefault();
+  SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
+  res = SegAlloc(&seg, &segPrefStruct, size, pool);
   if(res != ResOK)
     goto failSegAlloc;
   res = ArenaAlloc(&v, arena, sizeof *group);
