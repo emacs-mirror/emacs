@@ -2331,10 +2331,15 @@ Setting this variable automatically makes it local to the current buffer.")
       ;; Choose a fill-prefix automatically.
       (if (and adaptive-fill-mode
 	       (or (null fill-prefix) (string= fill-prefix "")))
-	  (setq fill-prefix
-		(fill-context-prefix 
-		 (save-excursion (backward-paragraph 1) (point))
-		 (point))))
+	  (let ((prefix
+		 (fill-context-prefix
+		  (save-excursion (backward-paragraph 1) (point))
+		  (save-excursion (forward-paragraph 1) (point))
+		  ;; Don't accept a non-whitespace fill prefix
+		  ;; from the first line of a paragraph.
+		  "^[ \t]*$")))
+	    (and prefix (not (equal prefix ""))
+		 (setq fill-prefix prefix))))
 
       (while (and (not give-up) (> (current-column) fc))
 	;; Determine where to split the line.
