@@ -1761,7 +1761,7 @@ error (m, a1, a2, a3)
   abort ();
 }
 
-DEFUN ("commandp", Fcommandp, Scommandp, 1, 1, 0,
+DEFUN ("commandp", Fcommandp, Scommandp, 1, 2, 0,
        doc: /* Non-nil if FUNCTION makes provisions for interactive calling.
 This means it contains a description for how to read arguments to give it.
 The value is nil for an invalid function or a symbol with no function
@@ -1772,9 +1772,12 @@ as keyboard macros), lambda-expressions that contain a top-level call
 to `interactive', autoload definitions made by `autoload' with non-nil
 fourth argument, and some of the built-in functions of Lisp.
 
-Also, a symbol satisfies `commandp' if its function definition does so.  */)
-     (function)
-     Lisp_Object function;
+Also, a symbol satisfies `commandp' if its function definition does so.
+
+If the optional argument FOR-CALL-INTERACTIVELY is non-nil,
+then strins and vectors are not accepted.  */)
+     (function, for_call_interactively)
+     Lisp_Object function, for_call_interactively;
 {
   register Lisp_Object fun;
   register Lisp_Object funcar;
@@ -1803,7 +1806,7 @@ Also, a symbol satisfies `commandp' if its function definition does so.  */)
 	    ? Qt : Qnil);
 
   /* Strings and vectors are keyboard macros.  */
-  if (STRINGP (fun) || VECTORP (fun))
+  if (NILP (for_call_interactively) && (STRINGP (fun) || VECTORP (fun)))
     return Qt;
 
   /* Lists may represent commands.  */
