@@ -1,3 +1,9 @@
+2004-10-23  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuf-ext.el (ibuffer-jump-to-buffer): Read buffer name in
+	interactive spec rather than use `interactive-p' in body of
+	function.
+
 2004-10-22  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (translate-region): Implement it in Lisp
