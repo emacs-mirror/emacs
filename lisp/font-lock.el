@@ -2209,11 +2209,12 @@ The value of this variable is used when Font Lock mode is turned on."
   :group 'font-lock-extra-types)
 
 (defcustom java-font-lock-extra-types
-  '("[A-Z\300-\326\330-\337]\\sw*[a-zA-Z]\\sw*")
+  '("[A-Z\300-\326\330-\337]\\sw*[a-z]\\sw*" "URL")
   "*List of extra types to fontify in Java mode.
 Each list item should be a regexp not containing word-delimiters.
-For example, a value of (\"[A-Z\300-\326\330-\337]\\\\sw*[a-z]\\\\sw*\") means capitalised
-words (and words conforming to the Java id spec) are treated as type names.
+For example, a value of (\"[A-Z\300-\326\330-\337]\\\\sw*[a-z]\\\\sw*\" \"URL\") means
+capitalised words (that conform to the Java id spec) and URL are treated as
+type names.
 
 The value of this variable is used when Font Lock mode is turned on."
   :type 'font-lock-extra-types-widget
