@@ -5021,8 +5021,10 @@ quit_throw_to_read_char ()
   if (poll_suppress_count == 0)
     abort ();
 #endif
+#ifdef MULTI_FRAME
   if (XFRAME (internal_last_event_frame) != selected_frame)
     Fhandle_switch_frame (make_lispy_switch_frame (internal_last_event_frame));
+#endif
 
   _longjmp (getcjmp, 1);
 }
