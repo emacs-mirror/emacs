@@ -436,13 +436,13 @@ copy_overlays (b, list)
       old_overlay = XCAR (list);
       charpos = marker_position (OVERLAY_START (old_overlay));
       start = Fmake_marker ();
-      Fset_marker (start, charpos, buffer);
+      Fset_marker (start, make_number (charpos), buffer);
       XMARKER (start)->insertion_type
 	= XMARKER (OVERLAY_START (old_overlay))->insertion_type;
 
       charpos = marker_position (OVERLAY_END (old_overlay));
       end = Fmake_marker ();
-      Fset_marker (end, charpos, buffer);
+      Fset_marker (end, make_number (charpos), buffer);
       XMARKER (end)->insertion_type
 	= XMARKER (OVERLAY_END (old_overlay))->insertion_type;
 
