@@ -158,31 +158,31 @@ and the file name is displayed in the echo area."
 	  ;; Return the text we displayed.
 	  (buffer-string))))))
 
-(defun help-split-fundoc (doc def)
-  "Split a function docstring DOC into the actual doc and the usage info.
+(defun help-split-fundoc (docstring def)
+  "Split a function DOCSTRING into the actual doc and the usage info.
 Return (USAGE . DOC) or nil if there's no usage info.
-DEF is the function whose usage we're looking for in DOC."
+DEF is the function whose usage we're looking for in DOCSTRING."
   ;; Functions can get the calling sequence at the end of the doc string.
   ;; In cases where `function' has been fset to a subr we can't search for
   ;; function's name in the doc string so we use `fn' as the anonymous
   ;; function name instead.
-  (when (and doc (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" doc))
+  (when (and docstring (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring))
     (cons (format "(%s%s"
 		  ;; Replace `fn' with the actual function name.
 		  (if (consp def) "anonymous" def)
-		  (match-string 1 doc))
-	  (substring doc 0 (match-beginning 0)))))
+		  (match-string 1 docstring))
+	  (substring docstring 0 (match-beginning 0)))))
 
-(defun help-add-fundoc-usage (doc arglist)
-  "Add the usage info to the docstring DOC.
-If DOC already has a usage info, then just return DOC unchanged.
-The usage info is built from ARGLIST.  DOC can be nil.
-ARGLIST can also be t or a string of the form \"(fun ARG1 ARG2 ...)\"."
-  (unless (stringp doc) (setq doc "Not documented"))
-  (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" doc) (eq arglist t))
-      doc
-    (format "%s%s%S" doc
-	    (if (string-match "\n?\n\\'" doc)
+(defun help-add-fundoc-usage (docstring arglist)
+  "Add the usage info to DOCSTRING.
+If DOCSTRING already has a usage info, then just return it unchanged.
+The usage info is built from ARGLIST.  DOCSTRING can be nil.
+ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
+  (unless (stringp docstring) (setq docstring "Not documented"))
+  (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring) (eq arglist t))
+      docstring
+    (format "%s%s%S" docstring
+	    (if (string-match "\n?\n\\'" docstring)
 		(if (< (- (match-end 0) (match-beginning 0)) 2) "\n" "")
 	      "\n\n")
 	    (if (and (stringp arglist)
@@ -238,7 +238,15 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	  file)))))
 
 (defface help-argument-name '((t (:slant italic)))
-  "Face to highlight function arguments in docstrings.")
+  "Face to highlight function arguments in *Help* buffers.
+You can customize this face.  For more extensive customization,
+see variable `help-arg-highlighting-function'.")
+
+(defvar help-arg-highlighting-function
+  #'(lambda (arg) (propertize (downcase arg) 'face 'help-argument-name))
+  "Function to call to highlight function arguments in *Help* buffers.
+The function receives the argument to highlight, as a string.
+It must return the string with the desired highlighting (properties).")
 
 (defun help-do-arg-highlight (doc args)
   (with-syntax-table (make-syntax-table emacs-lisp-mode-syntax-table)
@@ -246,8 +254,17 @@ KIND should be `var' for a variable or `subr' for a subroutine."
     (while args
       (let ((arg (prog1 (car args) (setq args (cdr args)))))
         (setq doc (replace-regexp-in-string
-                   (concat "\\<\\(" arg "\\)\\(?:es\\|s\\|th\\)?\\>")
-                   (propertize arg 'face 'help-argument-name)
+                   ;; This is heuristic, but covers all common cases
+                   ;; except ARG1-ARG2
+                   (concat "\\<"                   ; beginning of word
+                           "\\(?:[a-z-]+-\\)?"     ; for xxx-ARG
+                           "\\("
+                           arg
+                           "\\)"
+                           "\\(?:es\\|s\\|th\\)?"  ; for ARGth, ARGs
+                           "\\(?:-[a-z-]+\\)?"     ; for ARG-xxx
+                           "\\>")                  ; end of word
+                   (funcall help-arg-highlighting-function arg)
                    doc t t 1))))
     doc))
 
