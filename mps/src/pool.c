@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.26) $
+ * $HopeName: MMsrc!pool.c(trunk.27) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.26) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.27) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -278,8 +278,14 @@ Res PoolScan(ScanState ss, Pool pool, Seg seg)
   AVER(pool == seg->pool);
 
   /* Should only scan for a rank for which there are references */
-  /* in the segment. */
-  AVER(RankSetIsMember(seg->rankSet, ss->rank));
+  /* in the segment.  (not true) */
+  /* We actually want to check that the rank we are scanning at */
+  /* (ss->rank) is at least as big as all the ranks in */
+  /* the segment (seg->rankSet).  It is tricky to check that, */
+  /* so we only check that either ss->rank is in the segment's */
+  /* ranks, or that ss->rank is exact. */
+  /* See impl.c.trace.scan.conservative */
+  AVER(ss->rank == RankEXACT || RankSetIsMember(seg->rankSet, ss->rank));
 
   /* Should only scan segments which contain grey objects. */
   AVER(TraceSetInter(seg->grey, ss->traces) != TraceSetEMPTY);

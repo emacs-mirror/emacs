@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.22) $
+ * $HopeName: MMsrc!trace.c(trunk.23) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.22) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.23) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -606,9 +606,12 @@ void TraceAccess(Space space, Seg seg, AccessSet mode)
     /* flipped. */
     AVER(TraceSetInter(seg->grey, space->flippedTraces) != TraceSetEMPTY);
 
-    /* design.mps.poolamc.access.multi */
+    /* scan.conservative: At the moment we scan at RankEXACT.  Really */
+    /* we should be scanning at the "phase" of the trace, which is the */
+    /* minimum rank of all grey segments. */
+    /* design.mps.poolamc.access.multi @@@@ tag correct?? */
     res = TraceScan(space->busyTraces,  /* @@@@ Should just be flipped traces? */
-                    RankEXACT,          /* @@@@ Surely this is conservative? */
+                    RankEXACT,
                     space, seg);
     AVER(res == ResOK);                 /* design.mps.poolamc.access.error */
 
