@@ -1772,9 +1772,9 @@ print_object (obj, printcharfun, escapeflag)
 
 	case Lisp_Misc_Buffer_Objfwd:
 	  strout ("#<buffer_objfwd to ", -1, -1, printcharfun, 0);
-	  print_object (*(Lisp_Object *)((char *)current_buffer
-					 + XBUFFER_OBJFWD (obj)->offset),
-		 printcharfun, escapeflag);
+	  print_object (BUFFER_LOCAL_VALUE (current_buffer,
+					    XBUFFER_OBJFWD (obj)->offset),
+			printcharfun, escapeflag);
 	  PRINTCHAR ('>');
 	  break;
 
@@ -1782,7 +1782,7 @@ print_object (obj, printcharfun, escapeflag)
 	  strout ("#<kboard_objfwd to ", -1, -1, printcharfun, 0);
 	  print_object (*(Lisp_Object *)((char *) current_kboard
 					 + XKBOARD_OBJFWD (obj)->offset),
-		 printcharfun, escapeflag);
+			printcharfun, escapeflag);
 	  PRINTCHAR ('>');
 	  break;
 
