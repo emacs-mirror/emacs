@@ -1,39 +1,15 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.63) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!trace.c(trunk.64) $
+ * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
- * .sources: design.mps.tracer.
  * .design: design.mps.trace.
- *
- * NOTES
- *
- * .exact.legal: Exact references should either point outside the arena
- * (to non-managed address space) or to an allocated segment.  Exact
- * references that are to addresses which the arena has reserved
- * but hasn't allocated memory to are illegal (the exact reference
- * couldn't possibly refer to a real object).  Depending on the
- * future semantics of PoolDestroy we might need to adjust our
- * strategy here.  See mail.dsm.1996-02-14.18-18(0) for a strategy
- * of coping gracefully with PoolDestroy.  We check that this is the
- * case in the fixer.  It may be sensible to make this check CRITICAL
- * in certain configurations.
- *
- * .fix.fixed.all:
- * ss->fixedSummary is accumulated (in the fixer) for all the pointers
- * whether or not they are genuine references.  We could accumulate fewer
- * pointers here; if a pointer fails the SegOfAddr test then we
- * know it isn't a reference, so we needn't accumulate it into the
- * fixed summary.  The design allows this, but it breaks a useful
- * post-condition on scanning.  See .scan.post-condition.  (if
- * the accumulation of ss->fixedSummary was moved the accuracy
- * of ss->fixedSummary would vary according to the "width" of the
- * white summary).
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.63) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.64) $");
+
 
 /* Types
  *
@@ -52,21 +28,27 @@ Bool ScanStateCheck(ScanState ss)
 {
   TraceId ti;
   RefSet white;
+
   CHECKS(ScanState, ss);
   CHECKL(FUNCHECK(ss->fix));
-  CHECKU(Arena, ss->arena);
-  CHECKL(TraceSetCheck(ss->traces));
-  CHECKL(TraceSetSuper(ss->arena->busyTraces, ss->traces));
+  CHECKL(ss->zoneShift == ss->arena->zoneShift);
+  CHECKL(RefSetCheck(ss->white));
   white = RefSetEMPTY;
   for(ti = 0; ti < TRACE_MAX; ++ti)
     if(TraceSetIsMember(ss->traces, ti))
       white = RefSetUnion(white, ss->arena->trace[ti].white);
   CHECKL(ss->white == white);
-  CHECKL(ss->zoneShift == ss->arena->zoneShift);
+  CHECKL(RefSetCheck(ss->unfixedSummary));
+  CHECKU(Arena, ss->arena);
+  CHECKL(TraceSetCheck(ss->traces));
+  CHECKL(TraceSetSuper(ss->arena->busyTraces, ss->traces));
   CHECKL(RankCheck(ss->rank));
   CHECKL(BoolCheck(ss->wasMarked));
+  CHECKL(RefSetCheck(ss->fixedSummary));
+  /* @@@@ checks for counts missing */
   return TRUE;
 }
+
 
 static void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
                           Rank rank, RefSet white)
@@ -142,7 +124,8 @@ Bool TraceCheck(Trace trace)
   CHECKL(TraceIdCheck(trace->ti));
   CHECKL(trace == &trace->arena->trace[trace->ti]);
   CHECKL(TraceSetIsMember(trace->arena->busyTraces, trace->ti));
-  /* Can't check trace->white -- not in O(1) anyway. */
+  CHECKL(RefSetCheck(trace->white));
+  CHECKL(RefSetCheck(trace->mayMove));
   CHECKL(RefSetSub(trace->mayMove, trace->white));
   /* Use trace->state to check more invariants. */
   switch(trace->state) {
@@ -174,8 +157,10 @@ Bool TraceCheck(Trace trace)
     NOTREACHED;
   }
   CHECKL(BoolCheck(trace->emergency));
+  /* @@@@ checks for counts missing */
   return TRUE;
 }
+
 
 static void TraceUpdateCounts(Trace trace, ScanState ss,
                               TraceAccountingPhase phase)
@@ -269,6 +254,7 @@ Res TraceCondemnRefSet(Trace trace, RefSet condemnedSet)
   Res res;
 
   AVERT(Trace, trace);
+  AVERT(RefSet, condemnedSet);
   AVER(condemnedSet != RefSetEMPTY);
   AVER(trace->state == TraceINIT);
   AVER(trace->white == RefSetEMPTY);
@@ -746,11 +732,13 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
 void ScanStateSetSummary(ScanState ss, RefSet summary)
 {
   AVERT(ScanState, ss);
+  AVERT(RefSet, summary);
 
   ss->unfixedSummary = RefSetEMPTY;
   ss->fixedSummary = summary;
   AVER(ScanStateSummary(ss) == summary);
 }
+
 
 /* ScanStateSummary -- calculate the summary of scanned references
  *
@@ -874,14 +862,12 @@ void TraceAccess(Arena arena, Seg seg, AccessSet mode)
   EVENT_PPU(TraceAccess, arena, seg, mode);
 
   if((mode & SegSM(seg) & AccessREAD) != 0) {     /* read barrier? */
+    /* Pick set of traces to scan for: */
+    TraceSet traces = arena->flippedTraces;
+
     /* .scan.conservative: At the moment we scan at RankEXACT.  Really */
     /* we should be scanning at the "phase" of the trace, which is the */
     /* minimum rank of all grey segments. */
-    /* design.mps.poolamc.access.multi @@@@ tag correct?? */
-
-    /* Pick set of traces to scan for: */
-    /* @@@@ Should just be flipped traces? */
-    TraceSet traces = arena->busyTraces;
     res = TraceScan(traces, RankEXACT, arena, seg);
     if(res != ResOK) {
       /* enter emergency tracing mode */
@@ -939,6 +925,7 @@ static Res TraceRun(Trace trace)
   return ResOK;
 }
 
+
 /* TraceExpedite -- signals an emergency on the trace and */
 /* moves it to the Finished state. */
 static void TraceExpedite(Trace trace)
@@ -961,9 +948,7 @@ static void TraceExpedite(Trace trace)
 }
 
 
-/* TraceStep -- progresses a trace by some small amount
- *
- */
+/* TraceStep -- progresses a trace by some small amount */
 
 Res TraceStep(Trace trace)
 {
@@ -1081,13 +1066,13 @@ Res TraceFix(ScanState ss, Ref *refIO)
         return res;
     }
   } else {
-    /* See .exact.legal */
+    /* See d.m.t.exact.legal */
     AVER(ss->rank < RankEXACT ||
 	 !ArenaIsReservedAddr(ss->arena, ref));
   }
 
 
-  /* See .fix.fixed.all */
+  /* See d.m.t.fix.fixed.all */
   ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, *refIO);
 
   return ResOK;
@@ -1120,12 +1105,12 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
       PoolFixEmergency(pool, ss, seg, refIO);
     }
   } else {
-    /* See .exact.legal */
+    /* See d.m.t.exact.legal */
     AVER(ss->rank < RankEXACT ||
 	 !ArenaIsReservedAddr(ss->arena, ref));
   }
 
-  /* See .fix.fixed.all */
+  /* See d.m.t.fix.fixed.all */
   ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, *refIO);
 
   return ResOK;
