@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.98.2.5 $")
+(defconst byte-compile-version "$Revision: 2.98.2.6 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -3672,14 +3672,18 @@ if LFORMINFO is nil (meaning all bindings are dynamic)."
 
 (defun byte-compile-defmacro (form)
   ;; This is not used for file-level defmacros with doc strings.
-  (let ((code (byte-compile-lambda (cons 'lambda (cdr (cdr form))))))
+  (let ((code (byte-compile-lambda (cons 'lambda (cdr (cdr form)))))
+	(for-effect nil))
     (byte-compile-push-constant (nth 1 form))
     (if (not (byte-compile-closure-code-p code))
 	;; simple lambda
-	(byte-compile-constant (cons 'macro code))
+	(byte-compile-push-constant (cons 'macro code))
       (byte-compile-push-constant 'macro)
       (byte-compile-make-closure code)
-      (byte-compile-out 'byte-cons))))
+      (byte-compile-out 'byte-cons))
+    (byte-compile-out 'byte-fset)
+    (byte-compile-discard))
+  (byte-compile-constant (nth 1 form)))
 
 (defun byte-compile-defvar (form)
   ;; This is not used for file-level defvar/consts with doc strings.
