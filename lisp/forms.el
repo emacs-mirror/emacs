@@ -289,10 +289,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.25 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.26 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.25 1996/01/14 07:34:30 erik Exp kwzh $")
+  $Id: forms.el,v 2.26 1996/01/25 00:54:17 kwzh Exp kwzh $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -669,8 +669,8 @@ Commands:                        Equivalent keys in read-only mode:
 	(insert 
 	 "GNU Emacs Forms Mode version " forms-version "\n\n"
 	 (if (file-exists-p forms-file)
-	     (concat "No records available in file \"" forms-file "\".\n\n")
-	   (format "Creating new file \"%s\"\nwith %d field%s per record.\n\n"
+	     (concat "No records available in file `" forms-file "'\n\n")
+	   (format "Creating new file `%s'\nwith %d field%s per record\n\n"
 		   forms-file forms-number-of-fields
 		   (if (= 1 forms-number-of-fields) "" "s")))
 	 "Use " (substitute-command-keys "\\[forms-insert-record]")
@@ -1724,7 +1724,7 @@ Otherwise enables edit mode if the visited file is writable."
 	      buffer-read-only)
 	    (progn
 	      (setq forms-read-only t)
-	      (message "No write access to \"%s\"" forms-file)
+	      (message "No write access to `%s'" forms-file)
 	      (beep))
 	  (setq forms-read-only nil))
 	(if (equal ro forms-read-only)
@@ -1833,7 +1833,7 @@ it is called to fill (some of) the fields with default values."
 	  (if (null (re-search-forward regexp nil t))
 	      (progn
 		(goto-char here)
-		(message "\"%s\" not found." regexp)
+		(message "\"%s\" not found" regexp)
 		nil)
 	    (setq the-record (forms--get-record))
 	    (setq the-line (1+ (count-lines (point-min) (point))))))
@@ -1865,7 +1865,7 @@ it is called to fill (some of) the fields with default values."
 	  (if (null (re-search-backward regexp nil t))
 	      (progn
 		(goto-char here)
-		(message "\"%s\" not found." regexp)
+		(message "\"%s\" not found" regexp)
 		nil)
 	    (setq the-record (forms--get-record))
 	    (setq the-line (1+ (count-lines (point-min) (point))))))
