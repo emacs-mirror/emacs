@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
-;; Maintainer:  KAWABATA, Taichi <batta@beige.ocn.ne.jp>
+;; Maintainer:  KAWABATA, Taichi <kawabata@m17n.org>
 ;; Keywords: multilingual, Devanagari
 
 ;; This file is part of GNU Emacs.
