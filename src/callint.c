@@ -145,8 +145,9 @@ check_mark ()
   Lisp_Object tem = Fmarker_buffer (current_buffer->mark);
   if (NILP (tem) || (XBUFFER (tem) != current_buffer))
     error ("The mark is not set now");
-  if (NILP (current_buffer->mark_active) && NILP (Vmark_even_if_inactive))
-    error ("The mark is not active now");
+  if (!NILP (Vtransient_mark_mode) && NILP (Vmark_even_if_inactive)
+      && NILP (current_buffer->mark_active))
+    Fsignal (Qmark_inactive, Qnil);
 }
 
 
