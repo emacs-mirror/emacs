@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "FSF 2.10")
+(defconst byte-compile-version "$Id$")
 
 ;; This file is part of GNU Emacs.
 
@@ -1390,7 +1390,8 @@ With argument, insert value in current buffer after the form."
 
 (defun byte-compile-insert-header (filename inbuffer outbuffer)
   (set-buffer inbuffer)
-  (let ((dynamic-docstrings byte-compile-dynamic-docstrings))
+  (let ((dynamic-docstrings byte-compile-dynamic-docstrings)
+	(dynamic byte-compile-dynamic))
     (set-buffer outbuffer)
     (goto-char 1)
     ;;
@@ -1409,23 +1410,25 @@ With argument, insert value in current buffer after the form."
      (if (byte-compile-version-cond byte-compile-compatibility) 18 19)
      "\000\000\000\n"
      )
-    (insert ";;; compiled by "
+    (insert ";;; Compiled by "
 	    (or (and (boundp 'user-mail-address) user-mail-address)
 		(concat (user-login-name) "@" (system-name)))
 	    " on "
 	    (current-time-string) "\n;;; from file " filename "\n")
-    (insert ";;; emacs version " emacs-version ".\n")
-    (insert ";;; bytecomp version " byte-compile-version "\n;;; "
+    (insert ";;; in Emacs version " emacs-version "\n")
+    (insert ";;; with bytecomp version " byte-compile-version "\n;;; "
 	    (cond
-	     ((eq byte-optimize 'source) "source-level optimization only")
-	     ((eq byte-optimize 'byte) "byte-level optimization only")
-	     (byte-optimize "optimization is on")
-	     (t "optimization is off"))
+	     ((eq byte-optimize 'source) "with source-level optimization only")
+	     ((eq byte-optimize 'byte) "with byte-level optimization only")
+	     (byte-optimize "with all optimizations")
+	     (t "without optimization"))
 	    (if (byte-compile-version-cond byte-compile-compatibility)
 		"; compiled with Emacs 18 compatibility.\n"
 	      ".\n"))
+    (if dynamic
+	(insert ";;; Function definitions are lazy-loaded.\n"))
     (if (not (byte-compile-version-cond byte-compile-compatibility))
-	(insert ";;; this file uses opcodes which do not exist in Emacs 18.\n"
+	(insert ";;; This file uses opcodes which do not exist in Emacs 18.\n"
 		;; Have to check if emacs-version is bound so that this works
 		;; in files loaded early in loadup.el.
 		"\n(if (and (boundp 'emacs-version)\n"
