@@ -726,8 +726,8 @@ following properties are recognized:
   The value is a function to call after all functions in
   `write-region-annotate-functions' and `buffer-file-format' are
   called, and before the text is encoded by the coding system itself.
-  The arguments to this function is the same as those of a function
-  in `write-region-annotate-functions', i.e. FROM and TO specifying
+  The arguments to this function are the same as those of a function
+  in `write-region-annotate-functions', i.e. FROM and TO, specifying
   a region of text.
  
   o translation-table-for-decode
@@ -1496,9 +1496,12 @@ or a function symbol which, when called, returns such a cons cell."
 			 network-coding-system-alist)))))))
 
 (defun make-translation-table (&rest args)
-  "Make a translation table (char table) from arguments.
-Each argument is a list of the form (FROM . TO),
-where FROM is a character to be translated to TO.
+  "Make a translation table from arguments.
+A translation table is a char table intended for for character
+translation in CCL programs.
+
+Each argument is a list of elemnts of the form (FROM . TO), where FROM
+is a character to be translated to TO.
 
 FROM can be a generic character (see `make-char').  In this case, TO is
 a generic character containing the same number of characters, or a
@@ -1576,14 +1579,15 @@ See also the variable `nonascii-translation-table'."
     table))
 
 (defun define-translation-table (symbol &rest args)
-  "Define SYMBOL as a name of translation table made by ARGS.
-Also set up information so that the table can be used for translations
-in a CCL program.
+  "Define SYMBOL as the name of translation table made by ARGS.
+This sets up information so that the table can be used for
+translations in a CCL program.
 
-If the first element of ARGS is a char-table of which purpose is
-translation-table, just define SYMBOL as the name of it.
+If the first element of ARGS is a char-table whose purpose is
+`translation-table', just define SYMBOL to name it.  (Note that this
+function does not bind SYMBOL.)
 
-In the other case, ARGS are the same as arguments to the function
+Any other ARGS should be suitable as arguments of the function
 `make-translation-table' (which see).
 
 This function sets properties `translation-table' and
