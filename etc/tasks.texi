@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate January 13, 1999
+@set lastupdate January 17, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -23,20 +23,21 @@ last updated on @value{lastupdate}.
 @end ifinfo
 
 @menu
-* Intro::
-* Highest Priority::
-* Documentation::
-* Unix-Related Projects::
-* Kernel Projects::
-* Extensions::
-* X Windows Projects::
-* Encryption Projects::
-* Other Projects::
-* Languages::
-* Games and Recreations::
+* Intro::                       
+* Highest Priority::            
+* Documentation::               
+* Unix-Related Projects::       
+* Kernel Projects::             
+* Extensions::                  
+* X Windows Projects::          
+* Network Projects::            
+* Encryption Projects::         
+* Other Projects::              
+* Languages::                   
+* Games and Recreations::       
 @end menu
 
-@node Intro
+@node Intro, Highest Priority, Top, Top
 @chapter About the GNU Task List
 
 If you did not obtain this file directly from the GNU project and
@@ -74,7 +75,7 @@ to improve performance.  Users who use the new functionality will
 appreciate it very much, if they use it; but even when they benefit from
 a performance improvement, they may not consider it very important.
 
-@node Highest Priority
+@node Highest Priority, Documentation, Intro, Top
 @chapter Highest Priority
 
 This task list mentions a large number of tasks that would be more or
@@ -150,7 +151,7 @@ or very important application that many non-programmers use on Windows,
 and which has no comparable free equivalent now.
 @end itemize
 
-@node Documentation
+@node Documentation, Unix-Related Projects, Highest Priority, Top
 @chapter Documentation
 
 We very urgently need documentation for many existing parts of the
@@ -235,7 +236,7 @@ Compiler, Make, Texinfo, Termcap, and maybe the C Library.
 Many utilities need documentation, including @code{grep} and others.
 @end itemize
 
-@node Unix-Related Projects
+@node Unix-Related Projects, Kernel Projects, Documentation, Top
 @chapter Unix-Related Projects
 
 @itemize @bullet
@@ -254,7 +255,7 @@ Less urgent: make a replacement for the ``writer's workbench'' program
 with Unix is not especially important for this programs.
 @end itemize
 
-@node Kernel Projects
+@node Kernel Projects, Extensions, Unix-Related Projects, Top
 @chapter Kernel-Related Projects
 
 @itemize @bullet
@@ -282,7 +283,7 @@ An implementation of CIFS, the ``Common Internet File System,'' for the
 HURD.  This protocol is an offshoot of SMB.
 @end itemize
 
-@node Extensions
+@node Extensions, X Windows Projects, Kernel Projects, Top
 @chapter Extensions to Existing GNU Software
 
 @itemize @bullet
@@ -340,7 +341,7 @@ about the level of @code{cxref}.)  We also could use something like
 @code{ctrace}.  (Some people are now working on this project.)
 @end itemize
 
-@node X Windows Projects
+@node X Windows Projects, Network Projects, Extensions, Top
 @chapter X Windows Projects
 
 @itemize @bullet
@@ -385,7 +386,7 @@ A program for graphic morphing of scanned photographs.
 Software for designing and printing business cards.
 @end itemize
 
-@node Network Projects
+@node Network Projects, Encryption Projects, X Windows Projects, Top
 @chapter Network Projects
 
 @itemize @bullet
@@ -402,7 +403,7 @@ A free ICQ-compatible server program.  (The ICQ server itself is not
 free software.)
 @end itemize
 
-@node Encryption Projects
+@node Encryption Projects, Other Projects, Network Projects, Top
 @chapter Encryption Projects
 
 These projects need to be written outside the US by people who are not
@@ -431,7 +432,7 @@ This too needs public key encryption.
 The projects to provide free replacements for PGP and SSH are no longer
 listed here, because projects to do those jobs are well under way.
 
-@node Other Projects
+@node Other Projects, Languages, Encryption Projects, Top
 @chapter Other Projects
 
 If you think of others that should be added, please
@@ -620,7 +621,7 @@ A program to receive data from a serial-line tap to facilitate the
 reverse-engineering of communication protocols.
 @end itemize
 
-@node Languages
+@node Languages, Games and Recreations, Other Projects, Top
 @chapter Programming Languages
 
 Volunteers are needed to write parsers/front ends for languages such as
@@ -641,7 +642,7 @@ These languages include TCL, Python, Perl, Java, Javascript, and Rexx.
 We would like to have an implementation of Clipper, perhaps a GCC front
 end, and perhaps a translator into Scheme.
 
-@node Games and Recreations
+@node Games and Recreations,  , Languages, Top
 @chapter Games and Recreations
 
 Video-oriented games that work with the X window system.
