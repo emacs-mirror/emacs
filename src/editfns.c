@@ -1609,6 +1609,306 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.")
     return Qt;
   return Qnil;
 }
+
+/* Transpose the markers in two regions of the current buffer, and
+   adjust the ones between them if necessary (i.e.: if the regions
+   differ in size).
+
+   Traverses the entire marker list of the buffer to do so, adding an
+   appropriate amount to some, subtracting from some, and leaving the
+   rest untouched.  Most of this is copied from adjust_markers in insdel.c.
+  
+   It's caller's job to see that (start1 <= end1 <= start2 <= end2),
+   and that the buffer gap will not conflict with the markers.  This
+   last requirement is odd and maybe should be taken out, but it works
+   for now because Ftranspose_regions does in fact guarantee that, in
+   addition to providing universal health-care coverage.  */
+
+void
+transpose_markers (start1, end1, start2, end2)
+     register int start1, end1, start2, end2;
+{
+  register int amt1, amt2, diff, mpos;
+  register Lisp_Object marker;
+  register struct Lisp_Marker *m;
+
+  /* Internally, marker positions take the gap into account, so if the
+   * gap is before one or both of the regions, the region's limits
+   * must be adjusted to compensate.  The caller guaranteed that the
+   * gap is not inside any of the regions, however, so this is fairly
+   * simple.
+   */
+  if (GPT < start1)
+    {
+      register int gs = GAP_SIZE;
+      start1 += gs; end1 += gs;
+      start2 += gs; end2 += gs;
+    }
+  else if (GPT < start2)
+    {
+      /* If the regions are of equal size, the gap could, in theory,
+       * be somewhere between them. */
+      register int gs = GAP_SIZE;
+      start2 += gs; end2 += gs;
+    }
+
+  /* The difference between the region's lengths */
+  diff = (end2 - start2) - (end1 - start1);
+  
+  /* For shifting each marker in a region by the length of the other
+   * region plus the distance between the regions.
+   */
+  amt1 = (end2 - start2) + (start2 - end1);
+  amt2 = (end1 - start1) + (start2 - end1);
+
+  marker = current_buffer->markers;
+
+  while (!NILP (marker))
+    {
+      m = XMARKER (marker);
+      mpos = m->bufpos;
+      if (mpos >= start1 && mpos < end1)       /* in region 1 */
+        {
+          m->bufpos += amt1;
+        }
+      else if (mpos >= start2 && mpos < end2)  /* in region 2 */
+        {
+          m->bufpos -= amt2;
+        }
+      else if (mpos >= end1 && mpos < start2)  /* between the regions */
+        {
+          m->bufpos += diff;
+        }
+      marker = m->chain;
+    }
+}
+
+DEFUN ("transpose-regions", Ftranspose_regions, Stranspose_regions, 4, 5, 0,
+       "Transpose region START1 to END1 with START2 to END2.\n\
+The regions may not be overlapping, because the size of the buffer is\n\
+never changed in a transposition.\n\
+\n\
+Optional fifth arg LEAVE_MARKERS, if non-nil, means don't transpose\n\
+any markers that happen to be located in the regions.\n\
+\n\
+Transposing beyond buffer boundaries is an error.")
+  (startr1, endr1, startr2, endr2, leave_markers)
+     Lisp_Object startr1, endr1, startr2, endr2, leave_markers;
+{
+  register int start1, end1, start2, end2,
+  gap, len1, len_mid, len2;
+  char *start1_addr, *start2_addr, *temp;
+
+#ifdef USE_TEXT_PROPERTIES
+  INTERVAL cur_intv, tmp_interval1, tmp_interval_mid, tmp_interval2;
+  cur_intv = current_buffer->intervals;
+#endif /* USE_TEXT_PROPERTIES */
+
+  validate_region (&startr1, &endr1);
+  validate_region (&startr2, &endr2);
+
+  start1 = XFASTINT (startr1);
+  end1 = XFASTINT (endr1);
+  start2 = XFASTINT (startr2);
+  end2 = XFASTINT (endr2);
+  gap = GPT;
+
+  /* Swap the regions if they're reversed.  */
+  if (start2 < end1)
+    {
+      register int glumph = start1;
+      start1 = start2;
+      start2 = glumph;
+      glumph = end1;
+      end1 = end2;
+      end2 = glumph;
+    }
+
+  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1);
+  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2);
+  len1 = end1 - start1;
+  len2 = end2 - start2;
+
+  if (start2 < end1)
+    error ("transposed regions not properly ordered");
+  else if (start1 == end1 || start2 == end2)
+    error ("transposed region may not be of length 0");
+
+  /* The possibilities are:
+     1. Adjacent (contiguous) regions, or separate but equal regions
+     (no, really equal, in this case!), or
+     2. Separate regions of unequal size.
+     
+     The worst case is usually No. 2.  It means that (aside from
+     potential need for getting the gap out of the way), there also
+     needs to be a shifting of the text between the two regions.  So
+     if they are spread far apart, we are that much slower... sigh.  */
+
+  /* It must be pointed out that the really studly thing to do would
+     be not to move the gap at all, but to leave it in place and work
+     around it if necessary.  This would be extremely efficient,
+     especially considering that people are likely to do
+     transpositions near where they are working interactively, which
+     is exactly where the gap would be found.  However, such code
+     would be much harder to write and to read.  So, if you are
+     reading this comment and are feeling squirrely, by all means have
+     a go!  I just didn't feel like doing it, so I will simply move
+     the gap the minimum distance to get it out of the way, and then
+     deal with an unbroken array.  */
+      
+  /* Hmmm... how about checking to see if the gap is large
+     enough to use as the temporary storage?  That would avoid an
+     allocation... interesting.  Later, don't fool with it now.  */
+
+  /* Working without memmove, for portability (sigh), so must be
+     careful of overlapping subsections of the array...  */
+
+  if (end1 == start2)		/* adjacent regions */
+    {
+      if ((start1 < gap) && (gap <= end2))
+        {
+          if ((gap - start1) < (end2 - gap) || (end2 == Z))
+            move_gap (start1);
+          else
+            move_gap (end2 + 1);
+        }
+      modify_region (current_buffer, start1, end2);
+      record_change (start1, len1 + len2);
+
+#ifdef USE_TEXT_PROPERTIES
+      tmp_interval1 = copy_intervals (cur_intv, start1, len1);
+      tmp_interval2 = copy_intervals (cur_intv, start2, len2);
+      Fset_text_properties (start1, end2, Qnil, Qnil);
+#endif /* USE_TEXT_PROPERTIES */
+
+      /* First region smaller than second.  */
+      if (len1 < len2)
+        {
+          temp = alloca (len2);
+          bcopy (start2_addr, temp, len2);
+          bcopy (start1_addr, start1_addr + len2, len1);
+          bcopy (temp, start1_addr, len2);
+        }
+      else
+	/* First region not smaller than second.  */
+        {
+          temp = alloca (len1);
+          bcopy (start1_addr, temp, len1);
+          bcopy (start2_addr, start1_addr, len2);
+          bcopy (temp, start1_addr + len2, len1);
+        }
+#ifdef USE_TEXT_PROPERTIES
+      graft_intervals_into_buffer (tmp_interval1, start1 + len2,
+                                   len1, current_buffer, 0);
+      graft_intervals_into_buffer (tmp_interval2, start1,
+                                   len2, current_buffer, 0);
+#endif /* USE_TEXT_PROPERTIES */
+    }
+  /* Non-adjacent regions, because end1 != start2, bleagh...  */
+  else
+    {
+      if (((start1 < gap) && (gap <= end1)) || (end2 == Z))
+        move_gap (start1);
+      else if ((start2 < gap) && (gap <= end2))
+        move_gap (end2 + 1);
+
+      if (len1 == len2)
+	/* Regions are same size, though, how nice.  */
+        {
+          modify_region (current_buffer, start1, end1);
+          modify_region (current_buffer, start2, end2);
+          record_change (start1, len1);
+          record_change (start2, len2);
+#ifdef USE_TEXT_PROPERTIES
+          tmp_interval1 = copy_intervals (cur_intv, start1, len1);
+          tmp_interval2 = copy_intervals (cur_intv, start2, len2);
+          Fset_text_properties (start1, end1, Qnil, Qnil);
+          Fset_text_properties (start2, end2, Qnil, Qnil);
+#endif /* USE_TEXT_PROPERTIES */
+
+          temp = alloca (len1);
+          bcopy (start1_addr, temp, len1);
+          bcopy (start2_addr, start1_addr, len2);
+          bcopy (temp, start2_addr, len1);
+#ifdef USE_TEXT_PROPERTIES
+          graft_intervals_into_buffer (tmp_interval1, start2,
+                                       len1, current_buffer, 0);
+          graft_intervals_into_buffer (tmp_interval2, start1,
+                                       len2, current_buffer, 0);
+#endif /* USE_TEXT_PROPERTIES */
+        }
+
+      else if (len1 < len2)	/* Second region larger than first */
+        /* Non-adjacent & unequal size, area between must also be shifted.  */
+        {
+          len_mid = start2 - end1;
+          modify_region (current_buffer, start1, end2);
+          record_change (start1, (end2 - start1));
+#ifdef USE_TEXT_PROPERTIES
+          tmp_interval1 = copy_intervals (cur_intv, start1, len1);
+          tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
+          tmp_interval2 = copy_intervals (cur_intv, start2, len2);
+          Fset_text_properties (start1, end2, Qnil, Qnil);
+#endif /* USE_TEXT_PROPERTIES */
+
+          temp = alloca (len_mid + len2); /* holds mid area & region 2 */
+          bcopy (start1_addr + len1, temp, len_mid);
+          bcopy (start2_addr, temp + len_mid, len2);
+          bcopy (start1_addr, start1_addr + len_mid + len2, len1);
+          bcopy (temp + len_mid, start1_addr, len2);
+          bcopy (temp, start1_addr + len2, len_mid);
+#ifdef USE_TEXT_PROPERTIES
+          graft_intervals_into_buffer (tmp_interval1, end2 - len1,
+                                       len1, current_buffer, 0);
+          graft_intervals_into_buffer (tmp_interval_mid, start1 + len2,
+                                       len_mid, current_buffer, 0);
+          graft_intervals_into_buffer (tmp_interval2, start1,
+                                       len2, current_buffer, 0);
+#endif /* USE_TEXT_PROPERTIES */
+        }
+      else
+	/* Second region smaller than first.  */
+        {
+          len_mid = start2 - end1;
+          record_change (start1, (end2 - start1));
+          modify_region (current_buffer, start1, end2);
+
+#ifdef USE_TEXT_PROPERTIES
+          tmp_interval1 = copy_intervals (cur_intv, start1, len1);
+          tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
+          tmp_interval2 = copy_intervals (cur_intv, start2, len2);
+          Fset_text_properties (start1, end2, Qnil, Qnil);
+#endif /* USE_TEXT_PROPERTIES */
+
+          temp = alloca (len_mid + len1); /* holds mid area & region 1 */
+          bcopy (start1_addr + len1, temp, len_mid);
+          bcopy (start1_addr, temp + len_mid, len1);
+          bcopy (start2_addr, start1_addr, len2);
+          bcopy (temp + len_mid, start1_addr + len2 + len_mid, len1);
+          bcopy (temp, start1_addr + len2, len_mid);
+#ifdef USE_TEXT_PROPERTIES
+          graft_intervals_into_buffer (tmp_interval1, end2 - len1,
+                                       len1, current_buffer, 0);
+          graft_intervals_into_buffer (tmp_interval_mid, start1 + len2,
+                                       len_mid, current_buffer, 0);
+          graft_intervals_into_buffer (tmp_interval2, start1,
+                                       len2, current_buffer, 0);
+#endif /* USE_TEXT_PROPERTIES */
+        }
+    }
+
+  /* todo: this will be slow, because for every transposition, we
+     traverse the whole friggin marker list.  Possible solutions:
+     somehow get a list of *all* the markers across multiple
+     transpositions and do it all in one swell phoop.  Or maybe modify
+     Emacs' marker code to keep an ordered list or tree.  This might
+     be nicer, and more beneficial in the long run, but would be a
+     bunch of work.  Plus the way they're arranged now is nice.  */
+  if (NILP (leave_markers))
+    transpose_markers (start1, end1, start2, end2);
+
+  return Qnil;
+}
 
 
 void
@@ -1675,4 +1975,5 @@ syms_of_editfns ()
   defsubr (&Swiden);
   defsubr (&Snarrow_to_region);
   defsubr (&Ssave_restriction);
+  defsubr (&Stranspose_regions);
 }
