@@ -943,6 +943,7 @@ command_loop_1 ()
       if (! NILP (Vlucid_menu_bar_dirty_flag))
 	call0 (Qrecompute_lucid_menubar);
 
+#if 0 /* This is done in xdisp.c now.  */
 #ifdef MULTI_FRAME
       for (tem = Vframe_list; CONSP (tem); tem = XCONS (tem)->cdr)
 	{
@@ -969,6 +970,7 @@ command_loop_1 ()
 	    }
 	}
 #endif /* MULTI_FRAME */
+#endif /* 0 */
 
       /* Read next key sequence; i gets its length.  */
       i = read_key_sequence (keybuf, (sizeof keybuf / sizeof (keybuf[0])), 0);
