@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.141 2002/07/19 13:26:11 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.142 2002/07/29 02:40:40 rms Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -685,8 +685,7 @@ Used in `find-file-not-found-hooks'."
   (if (buffer-file-name)
       (vc-file-clearprops (buffer-file-name))))
 
-;; ??? DL: why is this not done?
-;;;(add-hook 'kill-buffer-hook 'vc-kill-buffer-hook)
+(add-hook 'kill-buffer-hook 'vc-kill-buffer-hook)
 
 ;; Now arrange for (autoloaded) bindings of the main package.
 ;; Bindings for this have to go in the global map, as we'll often
