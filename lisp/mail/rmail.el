@@ -103,7 +103,7 @@
   "*List of flags to pass to movemail.
 Most commonly used to specify `-g' to enable GSS-API authentication
 or `-k' to enable Kerberos authentication."
-  :type 'list
+  :type '(repeat string)
   :group 'rmail-retrieve)
 
 (defvar rmail-pop-password-error "invalid usercode or password"
