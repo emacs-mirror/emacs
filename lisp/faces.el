@@ -335,6 +335,7 @@ to NEW-FACE on frame NEW-FRAME."
   (and (equal (face-foreground face1 frame) (face-foreground face2 frame))
        (equal (face-background face1 frame) (face-background face2 frame))
        (equal (face-font face1 frame) (face-font face2 frame))
+       (eq (face-underline-p face1 frame) (face-underline-p face2 frame))
 ;;       (equal (face-background-pixmap face1 frame)
 ;;	      (face-background-pixmap face2 frame))
        ))
