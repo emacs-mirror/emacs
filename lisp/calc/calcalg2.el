@@ -149,7 +149,7 @@
 					   (and step (list step)))))))
 
 (defun calc-solve-for (var)
-  (interactive "sVariable to solve for: ")
+  (interactive "sVariable(s) to solve for: ")
   (calc-slow-wrapper
    (let ((func (if (calc-is-inverse)
 		   (if (calc-is-hyperbolic) 'calcFunc-ffinv 'calcFunc-finv)
