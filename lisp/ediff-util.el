@@ -1631,7 +1631,7 @@ With a prefix argument, go forward that many differences."
   (ediff-barf-if-not-control-buffer)
   (if (< ediff-current-difference ediff-number-of-differences)
       (let ((n (min ediff-number-of-differences
-		    (+ ediff-current-difference arg)))
+		    (+ ediff-current-difference (or arg 1))))
 	    non-clash-skip regexp-skip)
 	    
 	(ediff-visible-region)
@@ -1670,7 +1670,7 @@ With a prefix argument, go back that many differences."
   (interactive "p")
   (ediff-barf-if-not-control-buffer)
   (if (> ediff-current-difference -1)
-      (let ((n (max -1 (- ediff-current-difference arg)))
+      (let ((n (max -1 (- ediff-current-difference (or arg 1))))
 	    non-clash-skip regexp-skip)
 	    
 	(ediff-visible-region)
