@@ -30,8 +30,8 @@
 ;;;###autoload
 (defmacro easy-menu-define (symbol maps doc menu)
   "Define a menu bar submenu in maps MAPS, according to MENU.
-SYMBOL is used as a variable to hold the menu data.  It is not evaluated.
-DOC is a doc string for that variable.
+The menu keymap is stored in symbol SYMBOL, both as its value
+and as its function definition.   DOC is used as the doc string for SYMBOL.
 
 The first element of MENU must be a string.  It is the menu bar item name.
 The rest of the elements are menu items.
