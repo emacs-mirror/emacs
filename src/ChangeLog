@@ -1,3 +1,9 @@
+2003-09-18  Dave Love  <fx@gnu.org>
+
+	* process.c (Fnetwork_interface_info): Fix type error.
+	(Fnetwork_interface_list): Doc fix.
+	(read_process_output, read_process_output): Delete unused var.
+
 2003-09-17  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (Fnetwork_interface_list, Fnetwork_interface_info):
