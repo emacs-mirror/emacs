@@ -8,6 +8,8 @@
 
 2004-02-15  Kim F. Storm  <storm@cua.dk>
 
+	* buffer.c (syms_of_buffer): Doc fix for indicate-buffer-boundaries.
+
 	* fringe.c (init_fringe_bitmap) [MAC_OS, WORDS_BIG_ENDIAN]:
 	Perform byte-swapping.
 
