@@ -1,6 +1,5 @@
 /* This file is the configuration file for the Linux operating system.
    Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
-   Some changes copyright (C) 1993 Michael K. Johnson and Rik Faith.
 
 This file is part of GNU Emacs.
 
@@ -17,6 +16,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+/* This file was put together by Michael K. Johnson and Rik Faith.  */
 
 
 /*
