@@ -715,12 +715,11 @@ you can still examine the changes via M-x ediff-files"
     (setq startup-hooks
 	  ;; this sets various vars in the meta buffer inside
 	  ;; ediff-prepare-meta-buffer
-	  (cons (` (lambda ()
-		     ;; tell what to do if the user clicks on a session record
-		     (setq ediff-session-action-function
-			   'ediff-patch-file-form-meta
-			   ediff-meta-patchbufer patch-buf)
-		     ))
+	  (cons `(lambda ()
+		   ;; tell what to do if the user clicks on a session record
+		   (setq ediff-session-action-function
+			 'ediff-patch-file-form-meta
+			 ediff-meta-patchbufer patch-buf) )
 		startup-hooks))
     (setq meta-buf (ediff-prepare-meta-buffer 
 		    'ediff-filegroup-action

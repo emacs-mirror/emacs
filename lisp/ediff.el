@@ -300,7 +300,7 @@
 	     (setq file
 		   (ediff-make-temp-file
 		    (current-buffer) temp-file-name-prefix))
-	     (set hooks-var (cons (` (lambda () (delete-file (, file))))
+	     (set hooks-var (cons `(lambda () (delete-file ,file))
 				  (symbol-value hooks-var))))
 	    ;; file processed via auto-mode-alist, a la uncompress.el
 	    ((not (equal (file-truename file)
@@ -308,7 +308,7 @@
 	     (setq file
 		   (ediff-make-temp-file
 		    (current-buffer) temp-file-name-prefix))
-	     (set hooks-var (cons (` (lambda () (delete-file (, file))))
+	     (set hooks-var (cons `(lambda () (delete-file ,file))
 				  (symbol-value hooks-var))))
 	    (t ;; plain file---just check that the file matches the buffer
 	     (ediff-verify-file-buffer))))
@@ -430,11 +430,10 @@
 		 (get-buffer buf-B) file-B
 		 (if buf-C-is-alive (get-buffer buf-C))
 		 file-C
-		 (cons (` (lambda ()
-			    (delete-file (, file-A))
-			    (delete-file (, file-B))
-			    (if (stringp (, file-C)) (delete-file (, file-C)))
-			    ))
+		 (cons `(lambda ()
+			  (delete-file ,file-A)
+			  (delete-file ,file-B)
+			  (if (stringp ,file-C) (delete-file ,file-C)))
 		       startup-hooks)
 		 (list (cons 'ediff-job-name job-name))
 		 merge-buffer-file)))
@@ -699,11 +698,11 @@ names.  Only the files that are under revision control are taken into account."
     (setq startup-hooks
 	  ;; this sets various vars in the meta buffer inside
 	  ;; ediff-prepare-meta-buffer
-	  (cons (` (lambda ()
-		     ;; tell what to do if the user clicks on a session record
-		     (setq ediff-session-action-function (quote (, action)))
-		     ;; set ediff-dir-difference-list 
-		     (setq ediff-dir-difference-list (quote (, diffs)))))
+	  (cons `(lambda ()
+		   ;; tell what to do if the user clicks on a session record
+		   (setq ediff-session-action-function (quote ,action))
+		   ;; set ediff-dir-difference-list 
+		   (setq ediff-dir-difference-list (quote ,diffs)))
 		startup-hooks))
     (setq meta-buf (ediff-prepare-meta-buffer 
 		    'ediff-filegroup-action
@@ -751,10 +750,9 @@ names.  Only the files that are under revision control are taken into account."
     (setq startup-hooks
 	  ;; this sets various vars in the meta buffer inside
 	  ;; ediff-prepare-meta-buffer
-	  (cons (` (lambda ()
-		     ;; tell what to do if the user clicks on a session record
-		     (setq ediff-session-action-function (quote (, action)))
-		     ))
+	  (cons `(lambda ()
+		   ;; tell what to do if the user clicks on a session record
+		   (setq ediff-session-action-function (quote ,action)))
 		startup-hooks))
     (setq meta-buf (ediff-prepare-meta-buffer 
 		    'ediff-filegroup-action
@@ -963,9 +961,9 @@ Continue anyway? (y/n) "))
     (ediff-setup buffer-A file-A
 		 buffer-B file-B
 		 nil nil	    ; buffer & file C
-		 (cons (` (lambda ()
-			    (delete-file (, file-A))
-			    (delete-file (, file-B))))
+		 (cons `(lambda ()
+			    (delete-file ,file-A)
+			    (delete-file ,file-B))
 		       startup-hooks)
 		 (append
 		  (list (cons 'ediff-word-mode  word-mode)

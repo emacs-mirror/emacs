@@ -57,10 +57,9 @@
       (setq rev2buf (current-buffer)
 	    file2 (buffer-file-name)))
     (setq startup-hooks
-	  (cons (` (lambda ()
-		     (delete-file (, file1))
-		     (or (, (string= rev2 "")) (delete-file (, file2)))
-		     ))
+	  (cons `(lambda ()
+		   (delete-file ,file1)
+		   (or ,(string= rev2 "") (delete-file ,file2)))
 		startup-hooks))
     (ediff-buffers
      rev1buf rev2buf
@@ -165,14 +164,14 @@
 	  (setq ancestor-buf (current-buffer))))
     (setq startup-hooks 
 	  (cons 
-	   (` (lambda () 
-		(delete-file (, (buffer-file-name buf1)))
-		(or (, (string= rev2 ""))
-		    (delete-file (, (buffer-file-name buf2))))
-		(or (, (string= ancestor-rev ""))
-		    (, (not ancestor-rev))
-		    (delete-file (, (buffer-file-name ancestor-buf))))
-		))
+	   `(lambda () 
+	      (delete-file ,(buffer-file-name buf1))
+	      (or ,(string= rev2 "")
+		  (delete-file ,(buffer-file-name buf2)))
+	      (or ,(string= ancestor-rev "")
+		  ,(not ancestor-rev)
+		  (delete-file ,(buffer-file-name ancestor-buf)))
+	      )
 	   startup-hooks))
     (if ancestor-rev
 	(ediff-merge-buffers-with-ancestor

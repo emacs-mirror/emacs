@@ -84,10 +84,10 @@ that Ediff doesn't know about.")
 ;; 
 ;; Plagiarised from `emerge-defvar-local' for XEmacs.
 (defmacro ediff-defvar-local (var value doc) 
-  (` (progn
-       (defvar (, var) (, value) (, doc))
-       (make-variable-buffer-local '(, var))
-       (put '(, var) 'permanent-local t))))
+  `(progn
+     (defvar ,var ,value ,doc)
+     (make-variable-buffer-local ',var)
+     (put ',var 'permanent-local t)))
     
 
 
@@ -114,30 +114,29 @@ that Ediff doesn't know about.")
 
 ;;; Macros
 (defmacro ediff-odd-p (arg)
-  (` (eq (logand (, arg) 1) 1)))
+  `(eq (logand ,arg 1) 1))
 
 (defmacro ediff-buffer-live-p (buf)
-  (` (and (, buf) (get-buffer (, buf)) (buffer-name (get-buffer (, buf))))))
+  `(and ,buf (get-buffer ,buf) (buffer-name (get-buffer ,buf))))
 
 (defmacro ediff-get-buffer (arg)
-  (` (cond ((eq (, arg) 'A) ediff-buffer-A)
-	   ((eq (, arg) 'B) ediff-buffer-B)
-	   ((eq (, arg) 'C) ediff-buffer-C)
-	   ((eq (, arg) 'Ancestor) ediff-ancestor-buffer)
-	   )
-  ))
+  `(cond ((eq ,arg 'A) ediff-buffer-A)
+	 ((eq ,arg 'B) ediff-buffer-B)
+	 ((eq ,arg 'C) ediff-buffer-C)
+	 ((eq ,arg 'Ancestor) ediff-ancestor-buffer)
+	 ))
   
 (defmacro ediff-get-value-according-to-buffer-type (buf-type list)
-  (` (cond ((eq (, buf-type) 'A) (nth 0 (, list)))
-	   ((eq (, buf-type) 'B) (nth 1 (, list)))
-	   ((eq (, buf-type) 'C) (nth 2 (, list))))))
+  `(cond ((eq ,buf-type 'A) (nth 0 ,list))
+	 ((eq ,buf-type 'B) (nth 1 ,list))
+	 ((eq ,buf-type 'C) (nth 2 ,list))
+	 ))
 	   
 (defmacro ediff-char-to-buftype (arg)
-  (` (cond ((memq (, arg) '(?a ?A)) 'A)
-	   ((memq (, arg) '(?b ?B)) 'B)
-	   ((memq (, arg) '(?c ?C)) 'C)
-	   )
-  ))
+  `(cond ((memq ,arg '(?a ?A)) 'A)
+	 ((memq ,arg '(?b ?B)) 'B)
+	 ((memq ,arg '(?c ?C)) 'C)
+	 ))
 
 
 ;; A-list is supposed to be of the form (A . symb) (B . symb)...)
@@ -154,11 +153,11 @@ that Ediff doesn't know about.")
     (Ancestor . ediff-difference-vector-Ancestor)))
 
 (defmacro ediff-get-difference (n buf-type)
-  (` (aref
-      (symbol-value
-       (ediff-get-symbol-from-alist
-	(, buf-type) ediff-difference-vector-alist))
-      (, n))))
+  `(aref
+    (symbol-value
+     (ediff-get-symbol-from-alist
+      ,buf-type ediff-difference-vector-alist))
+    ,n))
   
 ;; Tell if it has been previously determined that the region has
 ;; no diffs other than the white space and newlines
@@ -182,118 +181,118 @@ that Ediff doesn't know about.")
 ;; state-of-difference is A, B, C, or nil, indicating which buffer is
 ;; 	different from the other two (used only in 3-way jobs).
 (defmacro ediff-no-fine-diffs-p (n)
-  (` (aref (ediff-get-difference (, n) 'A) 2)))
+  `(aref (ediff-get-difference ,n 'A) 2))
   
 (defmacro ediff-get-diff-overlay-from-diff-record (diff-rec)
-  (` (aref (, diff-rec) 0)))
+  `(aref ,diff-rec 0))
   
 (defmacro ediff-get-diff-overlay (n buf-type)  
-  (` (ediff-get-diff-overlay-from-diff-record
-      (ediff-get-difference (, n) (, buf-type)))))
+  `(ediff-get-diff-overlay-from-diff-record
+    (ediff-get-difference ,n ,buf-type)))
 
 (defmacro ediff-get-fine-diff-vector-from-diff-record (diff-rec)
-  (` (aref (, diff-rec) 1)))
+  `(aref ,diff-rec 1))
       
 (defmacro ediff-set-fine-diff-vector (n buf-type fine-vec)
-  (` (aset (ediff-get-difference (, n) (, buf-type)) 1 (, fine-vec))))
+  `(aset (ediff-get-difference ,n ,buf-type) 1 ,fine-vec))
   
 (defmacro ediff-get-state-of-diff (n buf-type)
-  (` (if (ediff-buffer-live-p ediff-buffer-C)
-	 (aref (ediff-get-difference (, n) (, buf-type)) 3))))
+  `(if (ediff-buffer-live-p ediff-buffer-C)
+       (aref (ediff-get-difference ,n ,buf-type) 3)))
 (defmacro ediff-set-state-of-diff (n buf-type val)
-  (` (aset (ediff-get-difference (, n) (, buf-type)) 3 (, val))))
+  `(aset (ediff-get-difference ,n ,buf-type) 3 ,val))
 
 (defmacro ediff-get-state-of-merge (n)
-  (` (if ediff-state-of-merge
-	 (aref (aref ediff-state-of-merge (, n)) 0))))
+  `(if ediff-state-of-merge
+       (aref (aref ediff-state-of-merge ,n) 0)))
 (defmacro ediff-set-state-of-merge (n val)
-  (` (if ediff-state-of-merge
-	 (aset (aref ediff-state-of-merge (, n)) 0 (, val)))))
+  `(if ediff-state-of-merge
+       (aset (aref ediff-state-of-merge ,n) 0 ,val)))
 
 (defmacro ediff-get-state-of-ancestor (n)
-  (` (if ediff-state-of-merge
-	 (aref (aref ediff-state-of-merge (, n)) 1))))
+  `(if ediff-state-of-merge
+       (aref (aref ediff-state-of-merge ,n) 1)))
 
 ;; if flag is t, puts a mark on diff region saying that 
 ;; the differences are in white space only.  If flag is nil,
 ;; the region is marked as essential (i.e., differences are
 ;; not just in the white space and newlines.)
 (defmacro ediff-mark-diff-as-space-only (n flag)
-  (` (aset (ediff-get-difference (, n) 'A) 2 (, flag))))
+  `(aset (ediff-get-difference ,n 'A) 2 ,flag))
   
 (defmacro ediff-get-fine-diff-vector (n buf-type)
-  (` (ediff-get-fine-diff-vector-from-diff-record
-      (ediff-get-difference (, n) (, buf-type)))))
+  `(ediff-get-fine-diff-vector-from-diff-record
+    (ediff-get-difference ,n ,buf-type)))
   
 ;; Macro to switch to BUFFER, evaluate BODY, returns to original buffer.
 ;; Doesn't save the point and mark.
 ;; This is `with-current-buffer' with the added test for live buffers."
 (defmacro ediff-with-current-buffer (buffer &rest body)
-  (` (if (ediff-buffer-live-p (, buffer))
+  `(if (ediff-buffer-live-p ,buffer)
        (save-current-buffer
-	 (set-buffer (, buffer))
-	 (,@ body))
+	 (set-buffer ,buffer)
+	 ,@body)
      (or (eq this-command 'ediff-quit)
 	 (error ediff-KILLED-VITAL-BUFFER))
-     )))
+     ))
      
 
 (defsubst ediff-multiframe-setup-p ()
   (and (ediff-window-display-p) ediff-multiframe))
 			 
 (defmacro ediff-narrow-control-frame-p ()
-  (` (and (ediff-multiframe-setup-p)
-	  (equal ediff-help-message ediff-brief-message-string))))
+  `(and (ediff-multiframe-setup-p)
+	(equal ediff-help-message ediff-brief-message-string)))
 	  
 (defmacro ediff-3way-comparison-job ()
-  (` (memq
-      ediff-job-name
-      '(ediff-files3 ediff-buffers3))))
+  `(memq
+    ediff-job-name
+    '(ediff-files3 ediff-buffers3)))
 (ediff-defvar-local ediff-3way-comparison-job nil "")
       
 (defmacro ediff-merge-job ()
-  (` (memq
-      ediff-job-name
-      '(ediff-merge-files
-	ediff-merge-buffers
-	ediff-merge-files-with-ancestor
-	ediff-merge-buffers-with-ancestor
-	ediff-merge-revisions
-	ediff-merge-revisions-with-ancestor))))
+  `(memq
+    ediff-job-name
+    '(ediff-merge-files
+      ediff-merge-buffers
+      ediff-merge-files-with-ancestor
+      ediff-merge-buffers-with-ancestor
+      ediff-merge-revisions
+      ediff-merge-revisions-with-ancestor)))
 (ediff-defvar-local ediff-merge-job nil "")
 
 (defmacro ediff-merge-with-ancestor-job ()
-  (` (memq
-      ediff-job-name
-      '(ediff-merge-files-with-ancestor
-	ediff-merge-buffers-with-ancestor
-	ediff-merge-revisions-with-ancestor))))
+  `(memq
+    ediff-job-name
+    '(ediff-merge-files-with-ancestor
+      ediff-merge-buffers-with-ancestor
+      ediff-merge-revisions-with-ancestor)))
 (ediff-defvar-local ediff-merge-with-ancestor-job nil "")
 
 (defmacro ediff-3way-job ()
-  (` (or ediff-3way-comparison-job ediff-merge-job)))
+  `(or ediff-3way-comparison-job ediff-merge-job))
 (ediff-defvar-local ediff-3way-job nil "")
 
 ;; A diff3 job is like a 3way job, but ediff-merge doesn't require the use
 ;; of diff3.
 (defmacro ediff-diff3-job ()
-  (` (or ediff-3way-comparison-job
-	 ediff-merge-with-ancestor-job)))
+  `(or ediff-3way-comparison-job
+       ediff-merge-with-ancestor-job))
 (ediff-defvar-local ediff-diff3-job nil "")
 	 
 (defmacro ediff-windows-job ()
-  (` (memq ediff-job-name '(ediff-windows-wordwise ediff-windows-linewise))))
+  `(memq ediff-job-name '(ediff-windows-wordwise ediff-windows-linewise)))
 (ediff-defvar-local ediff-windows-job nil "")
 
 (defmacro ediff-word-mode-job ()
-  (` (memq ediff-job-name '(ediff-windows-wordwise  ediff-regions-wordwise))))
+  `(memq ediff-job-name '(ediff-windows-wordwise ediff-regions-wordwise)))
 (ediff-defvar-local ediff-word-mode-job nil "")
 
 (defmacro ediff-narrow-job ()
-  (` (memq ediff-job-name '(ediff-windows-wordwise
-			    ediff-regions-wordwise
-			    ediff-windows-linewise
-			    ediff-regions-linewise))))
+  `(memq ediff-job-name '(ediff-windows-wordwise
+			  ediff-regions-wordwise
+			  ediff-windows-linewise
+			  ediff-regions-linewise)))
 (ediff-defvar-local ediff-narrow-job nil "")
 
 ;; Note: ediff-merge-directory-revisions-with-ancestor is not treated as an
@@ -995,7 +994,7 @@ this variable represents.")
 
 ;; Some installs don't have stipple or Stipple. So, try them in turn.
 (defvar stipple-pixmap
-  (cond ((not (ediff-has-face-support-p)))
+  (cond ((not (ediff-has-face-support-p)) nil)
 	((and (boundp 'x-bitmap-file-path)
 	      (locate-library "stipple" t x-bitmap-file-path)) "stipple")
 	((and (boundp 'mswindowsx-bitmap-file-path)
@@ -1003,8 +1002,8 @@ this variable represents.")
 	(t "Stipple")))
 
 (defface ediff-even-diff-face-A
-  (` ((((class color)) (:foreground "Black" :background "light grey"))
-      (t (:italic t :stipple (, stipple-pixmap)))))
+  `((((class color)) (:foreground "Black" :background "light grey"))
+    (t (:italic t :stipple ,stipple-pixmap)))
   "Face for highlighting even-numbered non-current differences in buffer A."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1017,8 +1016,8 @@ this variable represents.")
 (ediff-hide-face 'ediff-even-diff-face-A)
 
 (defface ediff-even-diff-face-B
-  (` ((((class color)) (:foreground "White" :background "Grey"))
-      (t (:italic t :stipple (, stipple-pixmap)))))
+  `((((class color)) (:foreground "White" :background "Grey"))
+    (t (:italic t :stipple ,stipple-pixmap)))
   "Face for highlighting even-numbered non-current differences in buffer B."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1031,8 +1030,8 @@ this variable represents.")
 (ediff-hide-face 'ediff-even-diff-face-B)
 
 (defface ediff-even-diff-face-C
-  (` ((((class color)) (:foreground "Black" :background "light grey"))
-      (t (:italic t :stipple (, stipple-pixmap)))))
+  `((((class color)) (:foreground "Black" :background "light grey"))
+    (t (:italic t :stipple ,stipple-pixmap)))
   "Face for highlighting even-numbered non-current differences in buffer C."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1045,8 +1044,8 @@ this variable represents.")
 (ediff-hide-face 'ediff-even-diff-face-C)
 
 (defface ediff-even-diff-face-Ancestor
-  (` ((((class color)) (:foreground "White" :background "Grey"))
-      (t (:italic t :stipple (, stipple-pixmap)))))
+  `((((class color)) (:foreground "White" :background "Grey"))
+    (t (:italic t :stipple ,stipple-pixmap)))
   "Face for highlighting even-numbered non-current differences in the ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,

@@ -1525,14 +1525,14 @@ all marked sessions must be active."
 		ediff-session-action-function
 		ediff-metajob-name 
 		;; make it update (car info) after startup
-		(` (list (lambda () 
-			   ;; child session group should know its parent
-			   (setq ediff-parent-meta-buffer
-				 (quote (, ediff-meta-buffer))
-				 ediff-meta-session-number
-				 (, session-number))
-			   ;; and parent will know its child
-			   (setcar (quote (, info)) ediff-meta-buffer)))))))
+		`(list (lambda () 
+			 ;; child session group should know its parent
+			 (setq ediff-parent-meta-buffer
+			       (quote ,ediff-meta-buffer)
+			       ediff-meta-session-number
+			       ,session-number)
+			 ;; and parent will know its child
+			 (setcar (quote ,info) ediff-meta-buffer))))))
 
 	    ;; Do ediff-revision on a subdirectory
 	    ((and (ediff-one-filegroup-metajob)
@@ -1546,15 +1546,15 @@ all marked sessions must be active."
 		file1 regexp
 		ediff-session-action-function ediff-metajob-name
 		;; make it update (car info) after startup
-		(` (list (lambda () 
-			   ;; child session group should know its parent and
-			   ;; its number
-			   (setq ediff-parent-meta-buffer
-				 (quote (, ediff-meta-buffer))
-				 ediff-meta-session-number
-				 (, session-number))
-			   ;; and parent will know its child
-			   (setcar (quote (, info)) ediff-meta-buffer)))))))
+		`(list (lambda () 
+			 ;; child session group should know its parent and
+			 ;; its number
+			 (setq ediff-parent-meta-buffer
+			       (quote ,ediff-meta-buffer)
+			       ediff-meta-session-number
+			       ,session-number)
+			 ;; and parent will know its child
+			 (setcar (quote ,info) ediff-meta-buffer))))))
 
 	    ;; From here on---only individual session handlers
 
@@ -1571,124 +1571,121 @@ all marked sessions must be active."
 		 (ediff-merge-files
 		  file1 file2
 		  ;; provide startup hooks 
-		  (` (list (lambda () 
+		  `(list (lambda () 
 			     (add-hook
 			      'ediff-after-quit-hook-internal
 			      (lambda ()
-				(if (ediff-buffer-live-p (, (current-buffer)))
+				(if (ediff-buffer-live-p ,(current-buffer))
 				    (ediff-show-meta-buffer
-				     (, (current-buffer)) (, session-number))))
+				     ,(current-buffer) ,session-number)))
 			      nil 'local)
-			     (setq ediff-meta-buffer (, (current-buffer))
+			     (setq ediff-meta-buffer ,(current-buffer)
 				   ediff-meta-session-number
-				   (, session-number))
+				   ,session-number)
 			     (setq ediff-merge-store-file
-				   (, (if (ediff-nonempty-string-p
-					   merge-autostore-dir)
-					  (concat
-					   merge-autostore-dir
-					   "merge_"
-					   (file-name-nondirectory file1)))
+				   ,(if (ediff-nonempty-string-p
+					 merge-autostore-dir)
+					(concat
+					 merge-autostore-dir
+					 "merge_"
+					 (file-name-nondirectory file1))
 				      ))
 			     ;; make ediff-startup pass
 			     ;; ediff-control-buffer back to the meta
 			     ;; level; see below
 			     (setcar
-			      (quote (, info)) ediff-control-buffer)))))
+			      (quote ,info) ediff-control-buffer))))
 	       (error "Aborted")))
 	    ((ediff-one-filegroup-metajob) 	; needs 1 file arg
 	     (funcall ediff-session-action-function
 		      file1
 		      ;; provide startup hooks 
-		      (` (list (lambda () 
-				 (add-hook
-				  'ediff-after-quit-hook-internal
-				  (lambda ()
-				    (if (ediff-buffer-live-p
-					 (, (current-buffer)))
-					(ediff-show-meta-buffer
-					 (, (current-buffer))
-					 (, session-number))))
-				  nil 'local)
-				 (setq ediff-meta-buffer (, (current-buffer))
-				       ediff-meta-session-number
-				       (, session-number))
-				 (setq ediff-merge-store-file
-				       (, (if (ediff-nonempty-string-p
-					       merge-autostore-dir)
-					      (concat
-					       merge-autostore-dir
-					       "merge_"
-					       (file-name-nondirectory file1)))
-					  ))
-				 ;; make ediff-startup pass
-				 ;; ediff-control-buffer back to the meta
-				 ;; level; see below
-				 (setcar
-				  (quote (, info)) ediff-control-buffer))))))
+		      `(list (lambda () 
+			       (add-hook
+				'ediff-after-quit-hook-internal
+				(lambda ()
+				  (if (ediff-buffer-live-p
+				       ,(current-buffer))
+				      (ediff-show-meta-buffer
+				       ,(current-buffer)
+				       ,session-number)))
+				nil 'local)
+			       (setq ediff-meta-buffer ,(current-buffer)
+				     ediff-meta-session-number
+				     ,session-number)
+			       (setq ediff-merge-store-file
+				     ,(if (ediff-nonempty-string-p
+					   merge-autostore-dir)
+					  (concat
+					   merge-autostore-dir
+					   "merge_"
+					   (file-name-nondirectory file1))) )
+			       ;; make ediff-startup pass
+			       ;; ediff-control-buffer back to the meta
+			       ;; level; see below
+			       (setcar
+				(quote ,info) ediff-control-buffer)))))
 	    ((not (ediff-metajob3))      ; need 2 file args
 	     (funcall ediff-session-action-function
 		      file1 file2
 		      ;; provide startup hooks 
-		      (` (list (lambda () 
-				 (add-hook
-				  'ediff-after-quit-hook-internal
-				  (lambda ()
-				    (if (ediff-buffer-live-p
-					 (, (current-buffer)))
-					(ediff-show-meta-buffer
-					 (, (current-buffer))
-					 (, session-number))))
-				  nil 'local)
-				 (setq ediff-meta-buffer (, (current-buffer))
-				       ediff-meta-session-number
-				       (, session-number))
-				 (setq ediff-merge-store-file
-				       (, (if (ediff-nonempty-string-p
-					       merge-autostore-dir)
-					      (concat
-					       merge-autostore-dir
-					       "merge_"
-					       (file-name-nondirectory file1)))
-					  ))
-				 ;; make ediff-startup pass
-				 ;; ediff-control-buffer back to the meta
-				 ;; level; see below
-				 (setcar
-				  (quote (, info)) ediff-control-buffer))))))
+		      `(list (lambda () 
+			       (add-hook
+				'ediff-after-quit-hook-internal
+				(lambda ()
+				  (if (ediff-buffer-live-p
+				       ,(current-buffer))
+				      (ediff-show-meta-buffer
+				       ,(current-buffer)
+				       ,session-number)))
+				nil 'local)
+			       (setq ediff-meta-buffer ,(current-buffer)
+				     ediff-meta-session-number
+				     ,session-number)
+			       (setq ediff-merge-store-file
+				     ,(if (ediff-nonempty-string-p
+					   merge-autostore-dir)
+					  (concat
+					   merge-autostore-dir
+					   "merge_"
+					   (file-name-nondirectory file1))) )
+			       ;; make ediff-startup pass
+			       ;; ediff-control-buffer back to the meta
+			       ;; level; see below
+			       (setcar
+				(quote ,info) ediff-control-buffer)))))
 	    ((ediff-metajob3)      ; need 3 file args
 	     (funcall ediff-session-action-function
 		      file1 file2 file3
 		      ;; arrange startup hooks 
-		      (` (list (lambda () 
-				 (add-hook
-				  'ediff-after-quit-hook-internal
-				  (lambda ()
-				    (if (ediff-buffer-live-p
-					 (, (current-buffer)))
-					(ediff-show-meta-buffer
-					 (, (current-buffer))
-					 (, session-number))))
-				  nil 'local)
-				 (setq ediff-merge-store-file
-				       (, (if (ediff-nonempty-string-p
-					       merge-autostore-dir)
-					      (concat
-					       merge-autostore-dir
-					       "merge_"
-					       (file-name-nondirectory file1)))
-					  ))
-				 (setq ediff-meta-buffer (, (current-buffer))
-				       ediff-meta-session-number
-				       (, session-number))
-				 ;; this arranges that ediff-startup will pass
-				 ;; the value of ediff-control-buffer back to
-				 ;; the meta level, to the record in the meta
-				 ;; list containing the information about the
-				 ;; session associated with that
-				 ;; ediff-control-buffer
-				 (setcar
-				  (quote (, info)) ediff-control-buffer))))))
+		      `(list (lambda () 
+			       (add-hook
+				'ediff-after-quit-hook-internal
+				(lambda ()
+				  (if (ediff-buffer-live-p
+				       ,(current-buffer))
+				      (ediff-show-meta-buffer
+				       ,(current-buffer)
+				       ,session-number)))
+				nil 'local)
+			       (setq ediff-merge-store-file
+				     ,(if (ediff-nonempty-string-p
+					   merge-autostore-dir)
+					  (concat
+					   merge-autostore-dir
+					   "merge_"
+					   (file-name-nondirectory file1))) )
+			       (setq ediff-meta-buffer , (current-buffer)
+				     ediff-meta-session-number
+				     ,session-number)
+			       ;; this arranges that ediff-startup will pass
+			       ;; the value of ediff-control-buffer back to
+			       ;; the meta level, to the record in the meta
+			       ;; list containing the information about the
+			       ;; session associated with that
+			       ;; ediff-control-buffer
+			       (setcar
+				(quote ,info) ediff-control-buffer)))))
 	    ) ; cond
       ) ; eval in meta-buf
     ))

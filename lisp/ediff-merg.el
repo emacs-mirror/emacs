@@ -57,17 +57,24 @@ Valid values are the symbols `default-A', `default-B', and `combined'."
   :group 'ediff-merge)
 
 (defcustom ediff-combination-pattern 
-  '("<<<<<<<<<<<<<< variant A" ">>>>>>>>>>>>>> variant B" "======= end of combination")
+  '("<<<<<<< variant A" A ">>>>>>> variant B" B  "####### Ancestor" Ancestor "======= end")
   "*Pattern to be used for combining difference regions in buffers A and B.
-The value is (STRING1 STRING2 STRING3).  The combined text will look like this:
+The value must be a list of the form 
+(STRING1 bufspec1  STRING2 bufspec2 STRING3 bufspec3 STRING4)
+where bufspec is the symbol A, B, or Ancestor. For instance, if the value is
+'(STRING1 A  STRING2 Ancestor STRING3 B STRING4) then the
+combined text will look like this:
 
 STRING1
 diff region from variant A
 STRING2
-diff region from variant B
+diff region from the ancestor
 STRING3
+diff region from variant B
+STRING4
 "
-  :type '(list string string string)
+  :type '(choice (list string symbol string symbol string)
+		 (list string symbol string symbol string symbol string))
   :group 'ediff-merge)
 
 (defcustom ediff-show-clashes-only nil
@@ -108,20 +115,44 @@ Buffer B."
        (ediff-merge-changed-from-default-p n 'prefers-too)))
 
 
-	
-(defsubst ediff-get-combined-region (n)
-  (concat (nth 0 ediff-combination-pattern) "\n"
-	  (ediff-get-region-contents n 'A ediff-control-buffer)
-	  (nth 1 ediff-combination-pattern) "\n"
-	  (ediff-get-region-contents n 'B ediff-control-buffer)
-	  (nth 2 ediff-combination-pattern) "\n"))
+(defun ediff-get-combined-region (n)
+  (let ((pattern-list ediff-combination-pattern)
+	(combo-region "")
+	(err-msg
+	 "ediff-combination-pattern: Invalid format. Please consult the documentation")
+	diff-region region-delim region-spec)
 
-(defsubst ediff-make-combined-diff (regA regB)
-  (concat (nth 0 ediff-combination-pattern) "\n"
-	  regA
-	  (nth 1 ediff-combination-pattern) "\n"
-	  regB
-	  (nth 2 ediff-combination-pattern) "\n"))
+    (if (< (length pattern-list) 5)
+	(error err-msg))
+
+    (while (> (length pattern-list) 2)
+      (setq region-delim (nth 0 pattern-list)
+	    region-spec (nth 1 pattern-list))
+      (or (and (stringp region-delim) (memq region-spec '(A B Ancestor)))
+	  (error err-msg))
+
+      (condition-case err
+	  (setq combo-region
+		(concat combo-region
+			region-delim "\n"
+			(ediff-get-region-contents 
+			 n region-spec ediff-control-buffer)))
+	(error ""))
+      (setq pattern-list (cdr (cdr pattern-list)))
+      )
+
+    (setq region-delim (nth 0 pattern-list))
+    (or (stringp region-delim)
+	(error err-msg))
+    (setq combo-region (concat combo-region region-delim "\n"))
+  ))
+
+;;(defsubst ediff-make-combined-diff (regA regB)
+;;  (concat (nth 0 ediff-combination-pattern) "\n"
+;;	  regA
+;;	  (nth 1 ediff-combination-pattern) "\n"
+;;	  regB
+;;	  (nth 2 ediff-combination-pattern) "\n"))
 
 (defsubst ediff-set-state-of-all-diffs-in-all-buffers (ctl-buf)
   (let ((n 0))
@@ -275,10 +306,10 @@ Combining is done according to the specifications in variable
   (setq n (if (numberp n) (1- n) ediff-current-difference))
   
   (let (regA regB reg-combined)
-    (setq regA (ediff-get-region-contents n 'A ediff-control-buffer)
-	  regB (ediff-get-region-contents n 'B ediff-control-buffer))
-    
-    (setq reg-combined (ediff-make-combined-diff regA regB))
+    ;;(setq regA (ediff-get-region-contents n 'A ediff-control-buffer)
+    ;;	  regB (ediff-get-region-contents n 'B ediff-control-buffer))
+    ;;(setq reg-combined (ediff-make-combined-diff regA regB))
+    (setq reg-combined (ediff-get-combined-region n))
     
     (ediff-copy-diff n nil 'C batch-invocation reg-combined))
     (or batch-invocation (ediff-jump-to-difference (1+ n))))
@@ -286,36 +317,38 @@ Combining is done according to the specifications in variable
 
 ;; Checks if the region in buff C looks like a combination of the regions
 ;; in buffers A and B.  Return a list (reg-a-beg reg-a-end reg-b-beg reg-b-end)
-;; These refer to where the copies of region A and B start and end in buffer C
+;; These refer to where the delimiters for region A, B, Ancestor start and end
+;; in buffer C
 (defun ediff-looks-like-combined-merge (region-num)
   (if ediff-merge-job
       (let ((combined (string-match (regexp-quote "(A+B)")
 				    (or (ediff-get-state-of-diff region-num 'C)
 					"")))
-	    (reg-beg (ediff-get-diff-posn 'C 'beg region-num))
-	    (reg-end (ediff-get-diff-posn 'C 'end region-num))
-	    (pat1 (nth 0 ediff-combination-pattern))
-	    (pat2 (nth 1 ediff-combination-pattern))
-	    (pat3 (nth 2 ediff-combination-pattern))
-	    reg-a-beg reg-a-end reg-b-beg reg-b-end reg-c-beg reg-c-end)
+	    (mrgreg-beg (ediff-get-diff-posn 'C 'beg region-num))
+	    (mrgreg-end (ediff-get-diff-posn 'C 'end region-num))
+	    (pattern-list ediff-combination-pattern)
+	    delim reg-beg reg-end delim-regs-list)
 	
 	(if combined
 	    (ediff-with-current-buffer ediff-buffer-C
-	      (goto-char reg-beg)
-	      (search-forward pat1 reg-end 'noerror)
-	      (setq reg-a-beg (match-beginning 0))
-	      (setq reg-a-end (match-end 0))
-	      (search-forward pat2 reg-end 'noerror)
-	      (setq reg-b-beg (match-beginning 0))
-	      (setq reg-b-end (match-end 0))
-	      (search-forward pat3 reg-end 'noerror)
-	      (setq reg-c-beg (match-beginning 0))
-	      (setq reg-c-end (match-end 0))))
-	
-	(if (and reg-a-beg reg-a-end reg-b-beg reg-b-end)
-	    (list reg-a-beg reg-a-end reg-b-beg reg-b-end reg-c-beg reg-c-end))
-	)))
+	      (while pattern-list
+		(goto-char mrgreg-beg)
+		(setq delim (nth 0 pattern-list))
+		(search-forward delim mrgreg-end 'noerror)
+		(setq reg-beg (match-beginning 0))
+		(setq reg-end (match-end 0))
+		(if (and reg-beg reg-end)
+		    (setq delim-regs-list
+			  ;; in reverse
+			  (cons reg-end (cons reg-beg delim-regs-list))))
+		(if (> (length pattern-list) 1)
+		    (setq pattern-list (cdr (cdr pattern-list)))
+		  (setq pattern-list nil))
+		)))
 
+	(reverse delim-regs-list)
+	)))
+	
 
 ;; Check if the non-preferred merge has been modified since originally set.
 ;; This affects only the regions that are marked as default-A/B or combined.
@@ -334,7 +367,8 @@ Combining is done according to the specifications in variable
 	(and (string= state-of-merge "default-B")
 	     (not (string= reg-B reg-C)))
 	(and (string= state-of-merge "combined")
-	     (not (string= (ediff-make-combined-diff reg-A reg-B) reg-C)))
+	     ;;(not (string= (ediff-make-combined-diff reg-A reg-B) reg-C)))
+	     (not (string= (ediff-get-combined-region diff-num) reg-C)))
 	(and prefers-too
 	     (string= state-of-merge "prefer-A")
 	     (not (string= reg-A reg-C)))

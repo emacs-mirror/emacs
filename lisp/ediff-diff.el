@@ -799,20 +799,24 @@ one optional arguments, diff-number to refine.")
 	      (ediff-overlay-put overl 'priority priority))
 	    fine-diff-vector)))
      
-;; This assumes buffer C and that the region looks like a combination of
-;; regions in buffer A and C.
+;; Set overlays over the regions that denote delimiters
 (defun ediff-set-fine-overlays-for-combined-merge (diff-list reg-num)
-  (let (overlay1 overlay2 overlay3)
-    (setq overlay1 (ediff-make-bullet-proof-overlay (nth 0 diff-list)
-						    (nth 1 diff-list)
-						    ediff-buffer-C)
-	  overlay2 (ediff-make-bullet-proof-overlay (nth 2 diff-list)
-						    (nth 3 diff-list)
-						    ediff-buffer-C)
-	  overlay3 (ediff-make-bullet-proof-overlay (nth 4 diff-list)
-						    (nth 5 diff-list)
-						    ediff-buffer-C))
-    (ediff-set-fine-diff-vector reg-num 'C (vector overlay1 overlay2 overlay3))
+  (let (overlay overlay-list)
+    (while diff-list
+      (condition-case nil
+	  (setq overlay
+		(ediff-make-bullet-proof-overlay
+		 (nth 0 diff-list) (nth 1 diff-list) ediff-buffer-C))
+	(error ""))
+      (setq overlay-list (cons overlay overlay-list))
+      (if (> (length diff-list) 1)
+	  (setq diff-list (cdr (cdr diff-list)))
+	(error "ediff-set-fine-overlays-for-combined-merge: corrupt list of
+delimiter regions"))
+      )
+    (setq overlay-list (reverse overlay-list))
+    (ediff-set-fine-diff-vector
+     reg-num 'C (apply 'vector overlay-list))
     ))
 	
     
