@@ -1,3 +1,7 @@
+2004-01-08  Andreas Schwab  <schwab@suse.de>
+
+	* emacsclient.c (main): Save errno from socket_status.
+
 2004-01-04  Andreas Schwab  <schwab@suse.de>
 
 	* emacsclient.c (main): Fix socket name when using another user.
