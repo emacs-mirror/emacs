@@ -4644,7 +4644,7 @@ concat (s1, s2, s3)
 char *
 etags_getcwd ()
 {
-#ifdef HAVE_GETCWD
+#if defined (HAVE_GETCWD) || defined (WINDOWSNT)
   int bufsize = 200;
   char *path = xnew (bufsize, char);
 
