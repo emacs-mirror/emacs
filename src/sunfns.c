@@ -436,7 +436,7 @@ as a menu label.")
   
   CHECK_NUMBER(X_Position, 0);
   CHECK_NUMBER(Y_Position, 1);
-  CHECK_WINDOW(window, 2);
+  CHECK_LIVE_WINDOW(window, 2);
   CHECK_NUMBER(Button, 3);
   CHECK_VECTOR(MEnu, 4);
 

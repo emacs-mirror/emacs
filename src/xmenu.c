@@ -1,11 +1,11 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1986, 1988 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1988, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -137,7 +137,7 @@ be the return value for that line (i.e. if it is selected.")
       x = Fcar (tem);
       y = Fcdr (tem);
     }
-  CHECK_WINDOW (window, 0);
+  CHECK_LIVE_WINDOW (window, 0);
   CHECK_NUMBER (x, 0);
   CHECK_NUMBER (y, 0);
 

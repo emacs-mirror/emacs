@@ -248,7 +248,7 @@ make_frame_without_minibuffer (mini_window)
     }
   else
     {
-      CHECK_WINDOW (mini_window, 0);
+      CHECK_LIVE_WINDOW (mini_window, 0);
     }
 
   /* Make a frame containing just a root window.  */
@@ -375,7 +375,7 @@ DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
   (window)
      Lisp_Object window;
 {
-  CHECK_WINDOW (window, 0);
+  CHECK_LIVE_WINDOW (window, 0);
   return XWINDOW (window)->frame;
 }
 
