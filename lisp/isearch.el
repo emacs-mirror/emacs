@@ -1625,8 +1625,8 @@ If there is no completion possible, say so and continue searching."
 		       ;; It makes sense to append to the open
 		       ;; overlays list only if we know that this is
 		       ;; t.
-		       (setq crt-overlays (append ov-list crt-overlays))))
-		 (goto-char (next-overlay-change (point))))))
+		       (setq crt-overlays (append ov-list crt-overlays)))))
+	       (goto-char (next-overlay-change (point)))))
 	 ;; See if invisibility reaches up thru END.
 	 (if (>= (point) end)
 	     (if (and (not (null can-be-opened)) (consp crt-overlays))
