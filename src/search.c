@@ -1118,17 +1118,17 @@ DEFUN ("re-search-backward", Fre_search_backward, Sre_search_backward, 1, 4,
   "Search backward from point for match for regular expression REGEXP.\n\
 Set point to the beginning of the match, and return point.\n\
 The match found is the one starting last in the buffer\n\
-and yet ending before the place the origin of the search.\n\
+and yet ending before the origin of the search.\n\
 An optional second argument bounds the search; it is a buffer position.\n\
 The match found must start at or after that position.\n\
 Optional third argument, if t, means if fail just return nil (no error).\n\
   If not nil and not t, move to limit of search and return nil.\n\
 Optional fourth argument is repeat count--search for successive occurrences.\n\
 See also the functions `match-beginning', `match-end' and `replace-match'.")
-  (string, bound, noerror, count)
-     Lisp_Object string, bound, noerror, count;
+  (regexp, bound, noerror, count)
+     Lisp_Object regexp, bound, noerror, count;
 {
-  return search_command (string, bound, noerror, count, -1, 1);
+  return search_command (regexp, bound, noerror, count, -1, 1);
 }
 
 DEFUN ("re-search-forward", Fre_search_forward, Sre_search_forward, 1, 4,
@@ -1141,10 +1141,10 @@ Optional third argument, if t, means if fail just return nil (no error).\n\
   If not nil and not t, move to limit of search and return nil.\n\
 Optional fourth argument is repeat count--search for successive occurrences.\n\
 See also the functions `match-beginning', `match-end' and `replace-match'.")
-  (string, bound, noerror, count)
-     Lisp_Object string, bound, noerror, count;
+  (regexp, bound, noerror, count)
+     Lisp_Object regexp, bound, noerror, count;
 {
-  return search_command (string, bound, noerror, count, 1, 1);
+  return search_command (regexp, bound, noerror, count, 1, 1);
 }
 
 DEFUN ("replace-match", Freplace_match, Sreplace_match, 1, 3, 0,
