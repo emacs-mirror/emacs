@@ -280,9 +280,9 @@ way to write the space character.  If the character is @samp{\}, you
 @cindex escape
 @cindex @samp{\e}
   You can express the characters Control-g, backspace, tab, newline,
-vertical tab, formfeed, return, and escape as @samp{?\a}, @samp{?\b},
-@samp{?\t}, @samp{?\n}, @samp{?\v}, @samp{?\f}, @samp{?\r}, @samp{?\e},
-respectively.  Thus,
+vertical tab, formfeed, return, del, and escape as @samp{?\a},
+@samp{?\b}, @samp{?\t}, @samp{?\n}, @samp{?\v}, @samp{?\f},
+@samp{?\r}, @samp{?\d}, and @samp{?\e}, respectively.  Thus,
 
 @example
 ?\a @result{} 7                 ; @r{@kbd{C-g}}
