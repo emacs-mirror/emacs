@@ -24,6 +24,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <X11/Xatom.h>
 #include <X11/Xresource.h>
 
+#ifdef HAVE_X11R5
+#define HAVE_X_I18N
+#include <X11/Xlocale.h>
+#endif
+
 #ifdef USE_X_TOOLKIT
 #include <X11/StringDefs.h>
 #include <X11/IntrinsicP.h>	/* CoreP.h needs this */
@@ -481,6 +486,11 @@ struct x_output
 
   /* Nonzero means tried already to make this frame visible.  */
   char asked_for_visible;
+
+#ifdef HAVE_X_I18N
+  /* Input context (currently, this means Compose key handler setup).  */
+  XIC xic;
+#endif
 };
 
 /* Get at the computed faces of an X window frame.  */
@@ -517,6 +527,7 @@ struct x_output
 
 #define FRAME_DESIRED_CURSOR(f) ((f)->output_data.x->desired_cursor)
 
+#define FRAME_XIC(f) ((f)->display.x->xic)
 
 /* X-specific scroll bar stuff.  */
 
