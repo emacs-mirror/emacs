@@ -1,5 +1,16 @@
 2004-11-21  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (erase_phys_cursor): Clear hollow cursor inside TEXT_AREA.
+
+	* xterm.c (x_clip_to_row): Add area arg.  Callers changed.
+	(x_draw_hollow_cursor, x_draw_bar_cursor): Clip to TEXT_AREA.
+
+	* w32term.c (w32_clip_to_row): Add area arg.  Callers changed.
+	(x_draw_hollow_cursor, x_draw_bar_cursor): Clip to TEXT_AREA.
+
+	* macterm.c (x_clip_to_row): Add area arg.  Callers changed.
+	(x_draw_hollow_cursor, x_draw_bar_cursor): Clip to TEXT_AREA.
+
 	* xdisp.c (move_it_in_display_line_to, display_line): Restore
 	saved_face_id if overflow-newline-into-fringe is enabled and line
 	is continued before or in middle of element from display vector.
