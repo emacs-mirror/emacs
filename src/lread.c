@@ -958,7 +958,7 @@ static int
 complete_filename_p (pathname)
      Lisp_Object pathname;
 {
-  register unsigned char *s = SDATA (pathname);
+  register const unsigned char *s = SDATA (pathname);
   return (IS_DIRECTORY_SEP (s[0])
 	  || (SCHARS (pathname) > 2
 	      && IS_DEVICE_SEP (s[1]) && IS_DIRECTORY_SEP (s[2]))
@@ -1122,7 +1122,7 @@ openp (path, str, suffixes, storeptr, predicate)
 	    }
 	  else
 	    {
-	      char *pfn;
+	      const char *pfn;
 
 	      encoded_fn = ENCODE_FILE (string);
 	      pfn = SDATA (encoded_fn);
@@ -2973,7 +2973,6 @@ Lisp_Object initial_obarray;
 int oblookup_last_bucket_number;
 
 static int hash_string ();
-Lisp_Object oblookup ();
 
 /* Get an error if OBARRAY is not an obarray.
    If it is one, return it.  */
@@ -2997,7 +2996,7 @@ check_obarray (obarray)
 
 Lisp_Object
 intern (str)
-     char *str;
+     const char *str;
 {
   Lisp_Object tem;
   int len = strlen (str);
@@ -3174,7 +3173,7 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
 Lisp_Object
 oblookup (obarray, ptr, size, size_byte)
      Lisp_Object obarray;
-     register char *ptr;
+     register const char *ptr;
      int size, size_byte;
 {
   int hash;
@@ -3215,11 +3214,11 @@ oblookup (obarray, ptr, size, size_byte)
 
 static int
 hash_string (ptr, len)
-     unsigned char *ptr;
+     const unsigned char *ptr;
      int len;
 {
-  register unsigned char *p = ptr;
-  register unsigned char *end = p + len;
+  register const unsigned char *p = ptr;
+  register const unsigned char *end = p + len;
   register unsigned char c;
   register int hash = 0;
 
