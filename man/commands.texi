@@ -68,15 +68,17 @@ are mentioned does not matter.
 @cindex @key{ESC} replacing @key{META} key
   Some terminals have a @key{META} key, and allow you to type Meta
 characters by holding this key down.  Thus, @kbd{Meta-a} is typed by
-holding down @key{META} and pressing @kbd{a}.  The @key{META} key works
-much like the @key{SHIFT} key.  Such a key is not always labeled
-@key{META}, however, as this function is often a special option for a key
-with some other primary purpose.@refill
+holding down @key{META} and pressing @kbd{a}.  The @key{META} key
+works much like the @key{SHIFT} key.  Such a key is not always labeled
+@key{META}, however, as this function is often a special option for a
+key with some other primary purpose.  Sometimes it is labeled
+@key{ALT} or @key{EDIT}; on a Sun keyboard, it may have a diamond on
+it.
 
   If there is no @key{META} key, you can still type Meta characters
-using two-character sequences starting with @key{ESC}.  Thus, to enter
-@kbd{M-a}, you could type @kbd{@key{ESC} a}.  To enter @kbd{C-M-a}, you
-would type @kbd{@key{ESC} C-a}.  @key{ESC} is allowed on terminals with
+using two-character sequences starting with @key{ESC}.  Thus, you can enter
+@kbd{M-a} by typing @kbd{@key{ESC} a}.  You can enter @kbd{C-M-a} by
+typing @kbd{@key{ESC} C-a}.  @key{ESC} is allowed on terminals with
 @key{META} keys, too, in case you have formed a habit of using it.
   
   The X Window System provides several other modifier keys that can be
@@ -116,10 +118,11 @@ gets to see them.
 @cindex key sequence
 @cindex key
   A @dfn{key sequence} (@dfn{key}, for short) is a sequence of input
-events that are meaningful as a unit---as ``a single command.''
-Some Emacs command sequences are just one character or one event; for
-example, just @kbd{C-f} is enough to move forward one character.  But
-Emacs also has commands that take two or more events to invoke.
+events that are meaningful as a unit---as ``a single command.''  Some
+Emacs command sequences are just one character or one event; for
+example, just @kbd{C-f} is enough to move forward one character in the
+buffer.  But Emacs also has commands that take two or more events to
+invoke.
 
 @cindex complete key
 @cindex prefix key
@@ -135,23 +138,23 @@ a complete key or a prefix key.
 command bindings.  A few of them are prefix keys.  A prefix key combines
 with the following input event to make a longer key sequence, which may
 itself be complete or a prefix.  For example, @kbd{C-x} is a prefix key,
-so @kbd{C-x} and the next input event combine to make a two-character
+so @kbd{C-x} and the next input event combine to make a two-event
 key sequence.  Most of these key sequences are complete keys, including
 @kbd{C-x C-f} and @kbd{C-x b}.  A few, such as @kbd{C-x 4} and @kbd{C-x
-r}, are themselves prefix keys that lead to three-character key
+r}, are themselves prefix keys that lead to three-event key
 sequences.  There's no limit to the length of a key sequence, but in
 practice people rarely use sequences longer than four events.
 
   By contrast, you can't add more events onto a complete key.  For
-example, the two-character sequence @kbd{C-f C-k} is not a key, because
+example, the two-event sequence @kbd{C-f C-k} is not a key, because
 the @kbd{C-f} is a complete key in itself.  It's impossible to give
 @kbd{C-f C-k} an independent meaning as a command.  @kbd{C-f C-k} is two
 key sequences, not one.@refill
 
   All told, the prefix keys in Emacs are @kbd{C-c}, @kbd{C-h},
 @kbd{C-x}, @kbd{C-x @key{RET}}, @kbd{C-x @@}, @kbd{C-x a}, @kbd{C-x n}, @w{@kbd{C-x
-r}}, @kbd{C-x v}, @kbd{C-x 4}, @kbd{C-x 5}, @kbd{C-x 6}, @key{ESC},
-@kbd{M-g} and @kbd{M-j}.  But this list is not cast in concrete; it is
+r}}, @kbd{C-x v}, @kbd{C-x 4}, @kbd{C-x 5}, @kbd{C-x 6}, @key{ESC}, and
+@kbd{M-g}.  But this list is not cast in concrete; it is
 just a matter of Emacs's standard key bindings.  If you customize Emacs,
 you can make new prefix keys, or eliminate these.  @xref{Key Bindings}.
 
@@ -163,11 +166,11 @@ definition of @kbd{C-x 4}, then @kbd{C-x 4 f} (or @kbd{C-x 4
 @var{anything}}) is no longer a key.
 
   Typing the help character (@kbd{C-h} or @key{F1}) after a prefix
-character displays a list of the commands starting with that prefix.
-There are a few prefix characters for which @kbd{C-h} does not
+key displays a list of the commands starting with that prefix.
+There are a few prefix keys for which @kbd{C-h} does not
 work---for historical reasons, they have other meanings for @kbd{C-h}
 which are not easy to change.  But @key{F1} should work for all prefix
-characters.
+keys.
   
 @node Commands, Text Characters, Keys, Top
 @section Keys and Commands
