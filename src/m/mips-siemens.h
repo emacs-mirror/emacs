@@ -135,7 +135,7 @@ NOTE-END  */
 #ifdef UNEXEC
 #undef UNEXEC
 #endif
-#define UNEXEC unexelfsni.o
+#define UNEXEC unexsni.o
 
 #undef ORDINARY_LINK
 
