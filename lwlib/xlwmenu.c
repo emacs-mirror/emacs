@@ -1805,6 +1805,13 @@ XlwMenuSetValues (current, request, new)
     {
       release_drawing_gcs (newmw);
       make_drawing_gcs (newmw);
+
+      release_shadow_gcs (newmw);
+      /* Cause the shadow colors to be recalculated.  */
+      newmw->menu.top_shadow_color = -1;
+      newmw->menu.bottom_shadow_color = -1;
+      make_shadow_gcs (newmw);
+
       redisplay = True;
       
       for (i = 0; i < oldmw->menu.windows_length; i++)
