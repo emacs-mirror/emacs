@@ -1,3 +1,8 @@
+2003-11-23  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Fdefine_coding_system_internal): Fix checking of
+	ascii compatibility.
+
 2003-11-22  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (find_charsets_in_text): Delete unused locale
