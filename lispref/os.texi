@@ -710,7 +710,7 @@ SHELL=/bin/csh
 HOME=/user/lewis
 @end group
 @end example
-@end defun
+@end deffn
 
 @c Emacs 19 feature
 @deffn Command setenv variable value

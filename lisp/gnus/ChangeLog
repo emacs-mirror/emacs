@@ -1,3 +1,13 @@
+2000-10-26  Dave Love  <fx@gnu.org>
+
+	* flow-fill.el: Require cl when compiling.
+
+2000-10-26  Simon Josefsson  <simon@josefsson.org>
+
+	* flow-fill.el (fill-flowed): Don't flow "-- " lines.
+	(fill-flowed): Make "quote-depth wins" rule work when first line
+	is at level 0.
+
 2000-10-26  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-ems.el: Remove gnus-xemacs.  Autoload smiley.
