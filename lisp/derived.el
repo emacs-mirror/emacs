@@ -161,8 +161,8 @@ been generated automatically, with a reference to the keymap."
     `(progn
        (defvar ,map (make-sparse-keymap))
        (defvar ,syntax (make-syntax-table))
-       (defvar ,abbrev)
-       (define-abbrev-table ',abbrev nil)
+       (defvar ,abbrev
+	 (progn (define-abbrev-table ',abbrev nil) ,abbrev))
        (put ',child 'derived-mode-parent ',parent)
 
        (defun ,child ()
