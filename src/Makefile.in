@@ -1113,6 +1113,9 @@ textprop.o: textprop.c buffer.h window.h $(INTERVAL_SRC) $(config_h)
 intervals.o: intervals.c buffer.h $(INTERVAL_SRC) keyboard.h puresize.h $(config_h)
 composite.o: composite.c buffer.h  charset.h $(INTERVAL_SRC) $(config_h)
 
+blockinput.h: atimer.h
+atimer.h: systime.h
+
 /* System-specific programs to be made.
    OTHER_FILES and OBJECTS_MACHINE
    select which of these should be compiled.  */
