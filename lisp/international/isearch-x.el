@@ -1,7 +1,7 @@
 ;;; isearch-x.el --- extended isearch handling commands
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+;; Licensed to the Free Software Foundation.
 
 ;; Keywords: multilingual, isearch
 

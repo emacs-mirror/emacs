@@ -1,7 +1,7 @@
 ;;; cyril-util.el ---  utilities for Cyrillic scripts
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
+;; Licensed to the Free Software Foundation.
 
 ;; Keywords: mule, multilingual, Cyrillic
 

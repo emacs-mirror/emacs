@@ -1,7 +1,7 @@
 ;;; skkdic-cnv.el --- Convert a SKK dictionary for `skkdic-utl'
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+;; Licensed to the Free Software Foundation.
 
 ;; Keywords: mule, multilingual, Japanese, SKK
 

@@ -1,7 +1,7 @@
 ;;; characters.el --- set syntax and category for multibyte characters
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+;; Licensed to the Free Software Foundation.
 
 ;; Keywords: multibyte character, character set, syntax, category
 

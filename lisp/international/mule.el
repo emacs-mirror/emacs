@@ -1,6 +1,5 @@
 ;;; mule.el --- basic commands for mulitilingual environment
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 
 ;; Keywords: mule, multilingual, character set, coding system

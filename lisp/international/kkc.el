@@ -1,7 +1,7 @@
 ;;; kkc.el --- Kana Kanji converter
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+;; Licensed to the Free Software Foundation.
 
 ;; Keywords: mule, multilingual, Japanese, SKK
 

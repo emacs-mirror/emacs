@@ -1,7 +1,7 @@
 ;;; tibet-util.el --- Support for inputting Tibetan characters
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+;; Licensed to the Free Software Foundation.
 
 ;; Keywords: multilingual, Tibetan
 

@@ -1,7 +1,7 @@
 ;;; encoded-kb.el --- Handler to input multibyte characters encoded somehow
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+;; Licensed to the Free Software Foundation.
 
 ;; This file is part of GNU Emacs.
 

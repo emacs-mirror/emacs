@@ -1,9 +1,9 @@
 ;;; kinsoku.el --- `Kinsoku' processing functions.
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+;; Licensed to the Free Software Foundation.
 
-;; Keywords: kinsoku
+;; Keywords: mule, kinsoku
 
 ;; This file is part of GNU Emacs.
 
