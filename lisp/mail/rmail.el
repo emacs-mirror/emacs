@@ -190,7 +190,7 @@ Called with region narrowed to unformatted header.")
 ;;;###autoload
 (defun rmail (&optional file-name-arg)
   "Read and edit incoming mail.
-Moves messages into file named by  rmail-file-name  (a babyl format file)
+Moves messages into file named by `rmail-file-name' (a babyl format file)
  and edits that file in RMAIL Mode.
 Type \\[describe-mode] once editing that file, for a list of RMAIL commands.
 
@@ -232,7 +232,8 @@ that file, but does not copy any new mail into the file."
 	    (rmail-set-message-counters)
 	    (rmail-show-message))))
     (let ((existing-unseen (rmail-first-unseen-message)))
-      (rmail-get-new-mail)
+      (or file-name-arg
+	  (rmail-get-new-mail))
       ;; Show the first unseen message, which might be from a previous session
       ;; or might have been just read in by rmail-get-new-mail.  Must
       ;; determine already unseen messages first, as rmail-get-new-mail
@@ -927,7 +928,8 @@ argument causes us to read a file name and use that file as the inbox."
 
 ;; Delete the "From ..." line, creating various other headers with
 ;; information from it if they don't already exist.  Now puts the
-;; original line into a mail-from: header line for debugging.
+;; original line into a mail-from: header line for debugging and for
+;; use by the rmail-output function.
 (defun rmail-nuke-pinhead-header ()
   (save-excursion
     (save-restriction
@@ -990,8 +992,8 @@ argument causes us to read a file name and use that file as the inbox."
     (insert ?1)
     (forward-line 1)
     (let ((case-fold-search t))
-      (if (looking-at "Summary-line: ")
-	  (forward-line 1)))
+      (while (looking-at "Summary-line:\\|Mail-From:")
+ 	(forward-line 1)))
     (if (looking-at "\\*\\*\\* EOOH \\*\\*\\*\n")
 	(delete-region (point)
 		       (progn (forward-line 1) (point))))
@@ -1031,8 +1033,8 @@ argument causes us to read a file name and use that file as the inbox."
 	       (insert ?0)
 	       (forward-line 1)
 	       (let ((case-fold-search t))
-		 (if (looking-at "Summary-Line:")
-		     (forward-line 1)))
+ 		 (while (looking-at "Summary-Line:\\|Mail-From:")
+ 		   (forward-line 1)))
 	       (insert "*** EOOH ***\n")
 	       (forward-char -1)
 	       (search-forward "\n*** EOOH ***\n")
@@ -1330,7 +1332,9 @@ With prefix arg N, moves backward N messages, or forward if N is negative."
 (defun rmail-next-undeleted-message (n)
   "Show following non-deleted message.
 With prefix arg N, moves forward N non-deleted messages,
-or backward if N is negative."
+or backward if N is negative.
+
+Returns t if a new message is being shown, nil otherwise."
   (interactive "p")
   (rmail-maybe-set-message-counters)
   (let ((lastwin rmail-current-message)
@@ -1344,11 +1348,13 @@ or backward if N is negative."
       (if (not (rmail-message-deleted-p current))
 	  (setq lastwin current n (1+ n))))
     (if (/= lastwin rmail-current-message)
-	(rmail-show-message lastwin))
-    (if (< n 0)
-	(message "No previous nondeleted message"))
-    (if (> n 0)
-	(message "No following nondeleted message"))))
+ 	(progn (rmail-show-message lastwin)
+ 	       t)
+      (if (< n 0)
+	  (message "No previous nondeleted message"))
+      (if (> n 0)
+	  (message "No following nondeleted message"))
+      nil)))
 
 (defun rmail-previous-undeleted-message (n)
   "Show previous non-deleted message.
@@ -1566,7 +1572,9 @@ Interactively, empty argument means use same regexp used last time."
 (defun rmail-delete-forward (&optional backward)
   "Delete this message and move to next nondeleted one.
 Deleted messages stay in the file until the \\[rmail-expunge] command is given.
-With prefix argument, delete and move backward."
+With prefix argument, delete and move backward.
+
+Returns t if a new message is displayed after the delete, or nil otherwise."
   (interactive "P")
   (rmail-set-attribute "deleted" t)
   (let ((del-msg rmail-current-message))
@@ -1574,8 +1582,8 @@ With prefix argument, delete and move backward."
 	(save-excursion
 	  (set-buffer rmail-summary-buffer)
 	  (rmail-summary-mark-deleted del-msg)))
-    (rmail-next-undeleted-message (if backward -1 1))
-    (rmail-maybe-display-summary)))
+    (prog1 (rmail-next-undeleted-message (if backward -1 1))
+      (rmail-maybe-display-summary))))
 
 (defun rmail-delete-backward ()
   "Delete this message and move to previous nondeleted one.
@@ -1879,6 +1887,8 @@ typically for purposes of moderating a list."
 	  (insert "Resent-Date: " (mail-rfc822-date) "\n")
 	  ;;>> Insert resent-to: and bcc if need be.
 	  (let ((before (point)))
+	    (if mail-self-blind
+		(insert "Resent-Bcc: " (user-login-name) "\n"))
 	    (insert "Resent-To: " (if (stringp address)
 			       address
 			     (mapconcat 'identity address ",\n\t"))
@@ -1907,6 +1917,7 @@ typically for purposes of moderating a list."
 	  "^ *---+ +Returned message +---+ *$\\|"
 	  "^ *---+ +Original message +---+ *$\\|"
 	  "^ *--+ +begin message +--+ *$\\|"
+	  "^ *---+ +Original message follows +---+ *$\\|"
 	  "^|? *---+ +Message text follows: +---+ *|?$"))
 
 (defun rmail-retry-failure ()
