@@ -1,6 +1,7 @@
 /* ebrowse.c --- parsing files for the ebrowse C++ browser
 
-   Copyright (C) 1992,92,94,95,96,97,98,99,2000,2001
+   Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+	         2000, 2001
       Free Software Foundation Inc.
 
    Author: Gerd Moellmann <gerd@gnu.org>
