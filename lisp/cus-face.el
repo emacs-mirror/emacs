@@ -98,7 +98,7 @@
      (choice :tag "Weight"
 	     :help-echo "Font weight."
 	     :value normal		; default
-	     (const :tag "black" ultra_bold)
+	     (const :tag "black" ultra-bold)
 	     (const :tag "bold" bold)
 	     (const :tag "book" semi-light)
 	     (const :tag "demibold" semi-bold)
