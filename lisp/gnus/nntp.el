@@ -180,7 +180,8 @@ server there that you can connect to.  See also
 
 (defvoo nntp-connection-timeout nil
   "*Number of seconds to wait before an nntp connection times out.
-If this variable is nil, which is the default, no timers are set.")
+If this variable is nil, which is the default, no timers are set.
+NOTE: This variable is never seen to work in Emacs 20 and XEmacs 21.")
 
 ;;; Internal variables.
 
@@ -352,7 +353,10 @@ noticing asynchronous data.")
 	(error 
 	 (nnheader-report 'nntp "Couldn't open connection to %s: %s" 
 			  address err))
-	(quit nil)))))
+	(quit
+	 (message "Quit retrieving data from nntp")
+	 (signal 'quit nil)
+	 nil)))))
 
 (defsubst nntp-send-command (wait-for &rest strings)
   "Send STRINGS to server and wait until WAIT-FOR returns."
@@ -800,8 +804,9 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 	   (or passwd
 	       nntp-authinfo-password
 	       (setq nntp-authinfo-password
-		     (mail-source-read-passwd (format "NNTP (%s@%s) password: "
-						      user nntp-address))))))))))
+		     (mail-source-read-passwd
+		      (format "NNTP (%s@%s) password: "
+			      user nntp-address))))))))))
 
 (defun nntp-send-nosy-authinfo ()
   "Send the AUTHINFO to the nntp server."
@@ -873,7 +878,11 @@ password contained in '~/.nntp-authinfo'."
                     (coding-system-for-write nntp-coding-system-for-write))
 		(funcall nntp-open-connection-function pbuffer))
 	    (error nil)
-	    (quit nil))))
+	    (quit
+	     (message "Quit opening connection")
+	     (nntp-kill-buffer pbuffer)
+	     (signal 'quit nil)
+	     nil))))
     (when timer
       (nnheader-cancel-timer timer))
     (when (and (buffer-name pbuffer)
@@ -982,7 +991,7 @@ password contained in '~/.nntp-authinfo'."
       (if (memq (following-char) '(?4 ?5))
 	  ;; wants credentials?
 	  (if (looking-at "480")
-	      (nntp-handle-authinfo nntp-process-to-buffer)
+	      (nntp-handle-authinfo process)
 	    ;; report error message.
 	    (nntp-snarf-error-message)
 	    (nntp-do-callback nil))
@@ -1073,7 +1082,9 @@ password contained in '~/.nntp-authinfo'."
       (delete-char 2))
     ;; Delete status line.
     (goto-char (point-min))
-    (delete-region (point) (progn (forward-line 1) (point)))
+    (while (looking-at "[1-5][0-9][0-9] .*\n")
+      ;; For some unknown reason, there is more than one status line.
+      (delete-region (point) (progn (forward-line 1) (point))))
     ;; Remove "." -> ".." encoding.
     (while (search-forward "\n.." nil t)
       (delete-char -1))))
@@ -1272,6 +1283,7 @@ password contained in '~/.nntp-authinfo'."
 		 "nntpd" buffer nntp-telnet-command nntp-telnet-switches))
 	  (case-fold-search t))
       (when (memq (process-status proc) '(open run))
+	(nntp-wait-for-string "^r?telnet")
 	(process-send-string proc "set escape \^X\n")
 	(cond
 	 ((and nntp-open-telnet-envuser nntp-telnet-user-name)
@@ -1301,7 +1313,7 @@ password contained in '~/.nntp-authinfo'."
 	(beginning-of-line)
 	(delete-region (point-min) (point))
 	(process-send-string proc "\^]")
-	(nntp-wait-for-string "^telnet")
+	(nntp-wait-for-string "^r?telnet")
 	(process-send-string proc "mode character\n")
 	(accept-process-output proc 1)
 	(sit-for 1)
