@@ -1,3 +1,12 @@
+2000-11-21  Jason Rumney  <jasonr@gnu.org>
+
+	* w32select.c (Fw32_set_clipboard_data): Save a copy of what is
+	put on the clipboard.
+	(Fw32_get_clipboard_data): Compare data on clipboard with saved
+	copy of what Emacs last put there. If they are the same, do not
+	use the clipboard copy to avoid losing data due to coding
+	conversions. 
+
 2000-11-22  Miles Bader  <miles@gnu.org>
 
 	* minibuf.c (Vminibuffer_prompt_properties): New variable.
