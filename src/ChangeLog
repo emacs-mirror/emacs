@@ -1,5 +1,7 @@
 1999-11-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* filelock.c (Ffile_locked_p): Make FILENAME a required argument.
+
 	* buffer.c (syms_of_buffer): Extend documentation of
 	mode-line-format.
 
