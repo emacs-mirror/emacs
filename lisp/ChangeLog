@@ -1,3 +1,9 @@
+2004-05-11  Alexander Pohoyda  <alexander.pohoyda@gmx.net>  (tiny change)
+
+	* man.el (Man-getpage-in-background): Use shell-file-name
+	and shell-command-switch variables instead of hard-coded
+	values.
+
 2004-05-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* iimage.el: New file.
