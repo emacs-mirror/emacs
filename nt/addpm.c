@@ -54,12 +54,14 @@ static struct entry
 env_vars[] = 
 {
   {"emacs_dir", NULL},
-  {"EMACSLOADPATH", "%emacs_dir%/lisp;%emacs_dir%/site-lisp"},
+  {"EMACSLOADPATH", "%emacs_dir%/site-lisp;%emacs_dir%/lisp"},
   {"SHELL", "%emacs_dir/bin/cmdproxy.exe%"},
   {"EMACSDATA", "%emacs_dir%/etc"},
   {"EMACSPATH", "%emacs_dir%/bin"},
   {"EMACSLOCKDIR", "%emacs_dir%/lock"},
-  {"INFOPATH", "%emacs_dir%/info"},
+  /* We no longer set INFOPATH because Info-default-directory-list
+     is then ignored.  */
+  /*  {"INFOPATH", "%emacs_dir%/info"},  */
   {"EMACSDOC", "%emacs_dir%/etc"},
   {"TERM", "cmd"}
 };
@@ -111,7 +113,7 @@ main (argc, argv)
   HSZ ProgMan;
   char modname[MAX_PATH];
   char additem[MAX_PATH*2 + 100];
-  char *lpext;
+  char *prog_name;
   char *emacs_path;
   char *p;
 
@@ -160,19 +162,23 @@ main (argc, argv)
       }
     }
 
-  lpext = add_registry (emacs_path) ? "exe" : "bat";
+  prog_name = add_registry (emacs_path) ? "runemacs.exe" : "emacs.bat";
 
   DdeInitialize (&idDde, (PFNCALLBACK)DdeCallback, APPCMD_CLIENTONLY, 0);
 
   ProgMan = DdeCreateStringHandle (idDde, "PROGMAN", CP_WINANSI);
 
-  if (HConversation = DdeConnect (idDde, ProgMan, ProgMan, NULL))
+  HConversation = DdeConnect (idDde, ProgMan, ProgMan, NULL);
+  if (HConversation != 0)
     {
-      DdeCommand ("[CreateGroup (Gnu Emacs)]");
+      DdeCommand ("[CreateGroup (\"Gnu Emacs\")]");
       DdeCommand ("[ReplaceItem (Emacs)]");
-      sprintf (additem, "[AddItem (%s\\bin\\runemacs.%s, Emacs%c%s)]",
-	       emacs_path, lpext, (argc>2 ? ',' : ' '),
-	       (argc>2 ? argv[2] : ""));
+      if (argc > 2)
+	sprintf (additem, "[AddItem (\"%s\\bin\\%s\", Emacs, \"%s\")]",
+		 emacs_path, prog_name, argv[2]);
+      else
+	sprintf (additem, "[AddItem (\"%s\\bin\\%s\", Emacs)]",
+		 emacs_path, prog_name);
       DdeCommand (additem);
 
       DdeDisconnect (HConversation);
