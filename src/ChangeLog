@@ -1,3 +1,9 @@
+2002-09-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.c (DISCARD_FAILURE_REG_OR_COUNT): Delete.
+	(CHECK_INFINITE_LOOP): Don't pop anything: just set `cycle' to 1.
+	(re_match_2_internal): Be more careful with infinite loops.
+
 2002-09-10  Kim F. Storm  <storm@cua.dk>
 
 	* macros.c (end_kbd_macro): New function.
@@ -26,7 +32,7 @@
 	(syms_of_macros): DEFVAR_INT it  (needed by kmacro).
 
 	* macros.h (executing_macro_index): Change type to EMACS_INT.
-	
+
 2002-09-06  Richard M. Stallman  <rms@gnu.org>
 
 	* casetab.c (set_case_table): Make canon table point to eqv table.

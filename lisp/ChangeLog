@@ -5,8 +5,8 @@
 
 2002-09-09  Markus Rost  <rost@math.ohio-state.edu>
 
-	* simple.el (transient-mark-mode, line-number-mode,
-	column-number-mode): Undo previous change.
+	* simple.el (transient-mark-mode, line-number-mode)
+	(column-number-mode): Undo previous change because of bootstrapping.
 
 2002-09-10  Miles Bader  <miles@gnu.org>
 
@@ -21,13 +21,47 @@
 	nil while executing macro to avoid triggering delete-selection-mode.
 
 	* simple.el (keyboard-quit): Set defining-kbd-macro to nil to
-	cancel defining keyboard macro when applicablex.
+	cancel defining keyboard macro when applicable.
+
+2002-09-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* derived.el (define-derived-mode): Add keyword arguments.
+	(derived-mode-make-docstring): Take abbrev and syntax table names.
+
+	* font-core.el (font-lock-change-mode): Just turn off font-lock-mode.
+	(font-lock-default-function): Change arg name.
+
+	* cus-start.el (transient-mark-mode): Delete.  Done in simple.el.
+
+	* paren.el (show-paren-function): Use syntax-after.
+
+	* emacs-lisp/syntax.el (syntax-after): Delete.  Moved to subr.el.
+
+	* subr.el (symbol-file): Also work for autoloaded funcs.
+	(syntax-after): New fun moved from syntax.el.
+
+	* find-file.el (ff-pre-find-hook, ff-pre-load-hook, ff-post-load-hook)
+	(ff-not-found-hook, ff-file-created-hook): Rename from *-hooks.
+	Update callers (but still run the old hooks as well).
+
+	* emacs-lisp/find-func.el (find-library-suffixes, find-library-name)
+	(find-library): New funs.
+	(find-function-search-for-symbol): Use it.
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Don't switch buffer.
+
+	* isearch.el (isearch-cmds): Add docstring.
+	(isearch-mouse-2): Lookup binding in the proper buffer.
+	Use call-interactively and remove the now useless `arg'.
+	(isearch-search-fun-function): New var.
+	(isearch-search-fun): New fun.
+	(isearch-search, isearch-lazy-highlight-search): Use it.
 
 2002-09-09  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* simple.el (what-line): Don't hard-code 1.
-	(transient-mark-mode, line-number-mode, column-number-mode):  Use
-	define-minor-mode.
+	(transient-mark-mode, line-number-mode, column-number-mode):
+	Use define-minor-mode.
 	(do-auto-fill): Only ignore prefix if it's really empty.
 
 2002-09-09  Markus Rost  <rost@math.ohio-state.edu>
@@ -37,7 +71,7 @@
 
 2002-09-09  Richard M. Stallman  <rms@gnu.org>
 
-	* calendar/calendar.el (mouse-scroll-calendar-left) 
+	* calendar/calendar.el (mouse-scroll-calendar-left)
 	(mouse-scroll-calendar-right, mouse-calendar-other-month):
 	New commands.
 	(calendar-mode-line-format): Use them.
@@ -45,7 +79,7 @@
 	* emacs-lisp/bytecomp.el (byte-recompile-directory):
 	Set and then bind default-directory.
 
-	* startup.el (fancy-splash-head, normal-splash-screen): 
+	* startup.el (fancy-splash-head, normal-splash-screen):
 	Change the messages that explain about GNU or GNU/Linux.
 
 	* info.el (Info-search): Add (point-min) to subfile positions
@@ -57,14 +91,14 @@
 
 2002-09-09  Jari Aalto  <jari.aalto@poboxes.com>
 
-	* progmodes/cperl-mode.el (cperl-noscan-files-regexp): 
+	* progmodes/cperl-mode.el (cperl-noscan-files-regexp):
 	In addition to RCS, exclude CVS directories.
 
 	* ls-lisp.el (ls-lisp-format-time-list): New variable.
 	(ls-lisp-format-time): Use it.
 
 	* files.el (auto-mode-alist): Use sh-mode for .bash files.
-	
+
 2002-09-09  Dave Love  <d.love@dl.ac.uk>
 
 	* ps-print.el: Many doc fixes.
@@ -87,7 +121,7 @@
 	invisible newlines.  Also include entire invisible lines beyond
 	the stopping point.
 
-	* cus-edit.el (custom-save-variables, custom-save-faces): 
+	* cus-edit.el (custom-save-variables, custom-save-faces):
 	Clarify the comments written into .emacs.
 
 2002-09-08  Markus Triska  <triska@gmx.at>
@@ -122,22 +156,23 @@
 
 	* progmodes/compile.el (compile-internal): Add optional argument
 	no-async.
-	
+
 	* diff.el (diff): Add optional argument no-async, and use the
 	above argument.
-	
+
 	* files.el (diff-buffer-with-file): Call diff synchronously, so we
 	don't delete the temporary file before diff has a chance to read
 	it.
-	
-	* ibuf-ext.el (ibuffer-diff-with-file): Just call `diff-buffer-with-file'.
+
+	* ibuf-ext.el (ibuffer-diff-with-file): Just call
+	`diff-buffer-with-file'.
 
 2002-09-07  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* emacs-lisp/cl-indent.el (extended-loop-p): Doc fix.
 
-	* emacs-lisp/find-func.el (find-function-recenter-line): Add
-	custom type.  Doc fix.
+	* emacs-lisp/find-func.el (find-function-recenter-line):
+	Add custom type.  Doc fix.
 
 2002-09-06  Stefan Monnier  <monnier@cs.yale.edu>
 
