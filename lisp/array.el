@@ -103,9 +103,9 @@ to the optional arguments A-ROW and A-COLUMN."
   (interactive)
   (let ((buffer-line (current-line))
 	(buffer-column (current-column)))
-    (message (format "Array row: %s  Array column: %s" 
-		     (prin1-to-string (array-current-row))
-		     (prin1-to-string (array-current-column))))))
+    (message "Array row: %s  Array column: %s" 
+	     (prin1-to-string (array-current-row))
+	     (prin1-to-string (array-current-column)))))
 
 (defun array-display-local-variables ()
   "Display the current state of the local variables in the minibuffer."
