@@ -330,8 +330,8 @@ stat_noalias (const char *path, struct stat *buf)
   if (cipb.hFileInfo.ioFlFndrInfo.fdFlags & 0x8000)
     {
       /* identify alias files as symlinks */
-      buf->st_mode |= S_IFLNK;
       buf->st_mode &= ~S_IFREG;
+      buf->st_mode |= S_IFLNK;
     }
 
   buf->st_nlink = 1;
@@ -367,7 +367,8 @@ stat (const char *path, struct stat *sb)
   char true_pathname[MAXPATHLEN+1], fully_resolved_name[MAXPATHLEN+1];  
   int len;
   
-  if ((result = stat_noalias (path, sb)) >= 0)
+  if ((result = stat_noalias (path, sb)) >= 0 &&
+      ! (sb->st_mode & S_IFLNK))
     return result;
 
   if (find_true_pathname (path, true_pathname, MAXPATHLEN+1) == -1)
@@ -605,10 +606,14 @@ sys_open (const char *path, int oflag)
   else
     {
 #ifdef __MRC__
-      if (oflag == O_WRONLY || oflag == O_RDWR)
+      int res = open (mac_pathname, oflag);
+      /* if (oflag == O_WRONLY || oflag == O_RDWR) */
+      if (oflag & O_CREAT)
         fsetfileinfo (mac_pathname, 'EMAx', 'TEXT');
-#endif
+      return res;
+#else
       return open (mac_pathname, oflag);
+#endif
     }
 }
 
