@@ -49,8 +49,8 @@ DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
 
 DEFUN ("random", Frandom, Srandom, 0, 1, 0,
   "Return a pseudo-random number.\n\
-On most systems all integers representable in Lisp are equally likely.\n\
-  This is 24 bits' worth.\n\
+All integers representable in Lisp are equally likely.\n\
+  On most systems, this is 28 bits' worth.\n\
 With argument N, return random number in interval [0,N).\n\
 With argument t, set the random number seed from the current time and pid.")
   (limit)
@@ -64,25 +64,19 @@ With argument t, set the random number seed from the current time and pid.")
 
   if (EQ (limit, Qt))
     srandom (getpid () + time (0));
-  if (INTEGERP (limit) && XINT (limit) > 0)
+  if (NATNUMP (limit) && XFASTINT (limit) != 0)
     {
-      if (XFASTINT (limit) >= 0x40000000)
-	/* This case may occur on 64-bit machines.  */
-	val = random () % XFASTINT (limit);
-      else
-	{
-	  /* Try to take our random number from the higher bits of VAL,
-	     not the lower, since (says Gentzel) the low bits of `random'
-	     are less random than the higher ones.  We do this by using the
-	     quotient rather than the remainder.  At the high end of the RNG
-	     it's possible to get a quotient larger than limit; discarding
-	     these values eliminates the bias that would otherwise appear
-	     when using a large limit.  */
-	  denominator = (unsigned long)0x40000000 / XFASTINT (limit);
-	  do
-	    val = (random () & 0x3fffffff) / denominator;
-	  while (val >= XFASTINT (limit));
-	}
+      /* Try to take our random number from the higher bits of VAL,
+	 not the lower, since (says Gentzel) the low bits of `random'
+	 are less random than the higher ones.  We do this by using the
+	 quotient rather than the remainder.  At the high end of the RNG
+	 it's possible to get a quotient larger than limit; discarding
+	 these values eliminates the bias that would otherwise appear
+	 when using a large limit.  */
+      denominator = ((unsigned long)1 << VALBITS) / XFASTINT (limit);
+      do
+	val = (random () & (((unsigned long)1 << VALBITS) - 1)) / denominator;
+      while (val >= XFASTINT (limit));
     }
   else
     val = random ();
@@ -895,16 +889,14 @@ internal_equal (o1, o2, depth)
 #endif
 
     case Lisp_Cons:
-      {
-	if (!internal_equal (XCONS (o1)->car, XCONS (o2)->car, depth + 1))
-	  return 0;
-	o1 = XCONS (o1)->cdr;
-	o2 = XCONS (o2)->cdr;
-	goto tail_recurse;
-      }
+      if (!internal_equal (XCONS (o1)->car, XCONS (o2)->car, depth + 1))
+	return 0;
+      o1 = XCONS (o1)->cdr;
+      o2 = XCONS (o2)->cdr;
+      goto tail_recurse;
 
     case Lisp_Misc:
-      if (MISCP (o1) && XMISC (o1)->type != XMISC (o2)->type)
+      if (XMISC (o1)->type != XMISC (o2)->type)
 	return 0;
       if (OVERLAYP (o1))
 	{
@@ -926,42 +918,48 @@ internal_equal (o1, o2, depth)
       break;
 
     case Lisp_Vectorlike:
-      if ((VECTORP (o1) && VECTORP (o2))
-	  ||
-	  (COMPILEDP (o1) && COMPILEDP (o2)))
-	{
-	  register int index;
-	  if (XVECTOR (o1)->size != XVECTOR (o2)->size)
-	    return 0;
-	  for (index = 0; index < XVECTOR (o1)->size; index++)
-	    {
-	      Lisp_Object v1, v2;
-	      v1 = XVECTOR (o1)->contents [index];
-	      v2 = XVECTOR (o2)->contents [index];
-	      if (!internal_equal (v1, v2, depth + 1))
-		return 0;
-	    }
-	  return 1;
-	}
+      {
+	register int i, size;
+	size = XVECTOR (o1)->size;
+	/* Pseudovectors have the type encoded in the size field, so this test
+	   actually checks that the objects have the same type as well as the
+	   same size.  */
+	if (XVECTOR (o2)->size != size)
+	  return 0;
+	/* But only true vectors and compiled functions are actually sensible
+	   to compare, so eliminate the others now.  */
+	if (size & PSEUDOVECTOR_FLAG)
+	  {
+	    if (!(size & PVEC_COMPILED))
+	      return 0;
+	    size &= PSEUDOVECTOR_SIZE_MASK;
+	  }
+	for (i = 0; i < size; i++)
+	  {
+	    Lisp_Object v1, v2;
+	    v1 = XVECTOR (o1)->contents [i];
+	    v2 = XVECTOR (o2)->contents [i];
+	    if (!internal_equal (v1, v2, depth + 1))
+	      return 0;
+	  }
+	return 1;
+      }
       break;
 
     case Lisp_String:
-      if (STRINGP (o1))
-	{
-	  if (XSTRING (o1)->size != XSTRING (o2)->size)
-	    return 0;
-	  if (bcmp (XSTRING (o1)->data, XSTRING (o2)->data,
-		    XSTRING (o1)->size))
-	    return 0;
+      if (XSTRING (o1)->size != XSTRING (o2)->size)
+	return 0;
+      if (bcmp (XSTRING (o1)->data, XSTRING (o2)->data,
+		XSTRING (o1)->size))
+	return 0;
 #ifdef USE_TEXT_PROPERTIES
-	  /* If the strings have intervals, verify they match;
-	     if not, they are unequal.  */
-	  if ((XSTRING (o1)->intervals != 0 || XSTRING (o2)->intervals != 0)
-	      && ! compare_string_intervals (o1, o2))
-	    return 0;
+      /* If the strings have intervals, verify they match;
+	 if not, they are unequal.  */
+      if ((XSTRING (o1)->intervals != 0 || XSTRING (o2)->intervals != 0)
+	  && ! compare_string_intervals (o1, o2))
+	return 0;
 #endif
-	  return 1;
-	}
+      return 1;
     }
   return 0;
 }
