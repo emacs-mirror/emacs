@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!81.c(trunk.3) $
  summary = run out of memory while collecting
  language = c
  link = testlib.o fastfmt.o
@@ -12,11 +12,13 @@ END_HEADER
 #include "mpsavm.h"
 #include "rankfmt.h"
 
+
 void *stackpointer;
+
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_pool_t pool;
  mps_thr_t thread;
  mps_root_t root, root1;
@@ -28,37 +30,33 @@ static void test(void)
 
  int j;
 
-/* create an arena that can't grow beyond 15 M */
+ /* create an arena that can't grow beyond 15 Mb */
 
- cdie(mps_arena_create(&space, mps_arena_class_vm(), (size_t) (1024*1024*15)),
-  "create arena");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)(1024*1024*15)),
+      "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(
-  mps_root_create_reg(&root, space, MPS_RANK_AMBIG, 0, thread,
-   mps_stack_scan_ambig, stackpointer, 0),
-  "create root");
+ cdie(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+                          mps_stack_scan_ambig, stackpointer, 0),
+      "create root");
 
- cdie(
-  mps_root_create_table(&root1,space,MPS_RANK_AMBIG,0,&exfmt_root,1),
-  "create table root");
+ cdie(mps_root_create_table(&root1, arena, MPS_RANK_AMBIG, 0,
+                            (mps_addr_t*)&exfmt_root, 1),
+      "create table root");
 
- cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
-  "create format");
+ cdie(mps_fmt_create_A(&format, arena, &fmtA),
+      "create format");
 
- cdie(
-  mps_pool_create(&pool, space, mps_class_amc(), format),
-  "create pool");
+ cdie(mps_pool_create(&pool, arena, mps_class_amc(), format),
+      "create pool");
 
- cdie(
-  mps_ap_create(&ap, pool, MPS_RANK_EXACT),
-  "create ap");
+ cdie(mps_ap_create(&ap, pool, MPS_RANK_EXACT),
+      "create ap");
 
  b = allocone(ap, 100, MPS_RANK_EXACT);
 
-/* allocate at least 100 * 10K = 10M */
+ /* allocate at least 100 * 10K = 10M */
 
  for (j=0; j<100; j++)
  {
@@ -70,9 +68,9 @@ static void test(void)
   setref(b, 1, a);
  }
 
-/* now collect world. There's isn't enough space to copy everything! */
+ /* now collect world. There's isn't enough space to copy everything! */
 
- mps_arena_collect(space);
+ mps_arena_collect(arena);
 
  mps_ap_destroy(ap);
  comment("Destroyed ap.");
@@ -90,10 +88,10 @@ static void test(void)
  mps_thread_dereg(thread);
  comment("Deregistered thread.");
 
- mps_space_destroy(space);
- comment("Destroyed space.");
-
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
+
 
 int main(void)
 {
