@@ -1,3 +1,20 @@
+2003-12-28  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gud.el (gud-gdb-command-name): Set default to
+	"gdb --annotate=3".
+	(gud-gdb-marker-filter): Look out for annotations.
+	(gdb-first-pre-prompt): New variable.
+	Remove trailing white space.
+
+	* gdb-ui.el (gdb-prompt): Change filter for level 3 annotations,
+	if necessary.
+	(gdb-ann3): New function. Initialise M-x gdb as for M-x gdba if
+	annotations are detected.
+	(gud-gdba-marker-filter): Use global variable gud-marker-acc
+	instead of a local one to allow transition from
+	gud-gdb-marker-filter.
+	Remove trailing white space.
+
 2003-12-27  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el: Handle non-readable directories.
