@@ -1,6 +1,6 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000
+;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.83 $")
+(defconst byte-compile-version "$Revision: 2.84 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1406,6 +1406,13 @@ The value is t if there were no errors, nil if errors."
 	      (let ((coding-system-for-write 'no-conversion))
 		(if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
 		    (setq buffer-file-type t))
+		(when (file-exists-p target-file)
+		  ;; Remove the target before writing it, so that any
+		  ;; hard-links continue to point to the old file (this makes
+		  ;; it possible for installed files to share disk space with
+		  ;; the build tree, without causing problems when emacs-lisp
+		  ;; files in the build tree are recompiled).
+		  (delete-file target-file))
 		(write-region 1 (point-max) target-file))
 	    ;; This is just to give a better error message than
 	    ;; write-region
