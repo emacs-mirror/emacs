@@ -123,3 +123,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Tell process_send_signal to use VSUSP instead of VSWTCH.  */
 #define PREFER_VSUSP
+
+/* wjs@wang.com (William Smith) says this is needed on 3.2.4.2.  */
+#define POSIX_SIGNALS
