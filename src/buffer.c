@@ -620,9 +620,10 @@ If BUFFER is omitted or nil, some interesting buffer is returned.")
   return Fget_buffer_create (build_string ("*scratch*"));
 }
 
-DEFUN ("buffer-disable-undo", Fbuffer_disable_undo, Sbuffer_disable_undo, 1,1,
+DEFUN ("buffer-disable-undo", Fbuffer_disable_undo, Sbuffer_disable_undo, 0, 1,
 0,
-  "Make BUFFER stop keeping undo information.")
+  "Make BUFFER stop keeping undo information.\n\
+No argument or nil as argument means do this for the current buffer.")
   (buffer)
      register Lisp_Object buffer;
 {
