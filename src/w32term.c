@@ -8804,7 +8804,10 @@ w32_read_socket (sd, bufp, numchars, expected)
                     && XFASTINT (XWINDOW (f->tool_bar_window)->height))
                   {
                     Lisp_Object window;
-                    int p;
+                    int p, x, y;
+
+		    x = XFASTINT (emacs_event.x);
+		    y = XFASTINT (emacs_event.y);
 
                     /* Set x and y.  */
                     window = window_from_coordinates (f,
