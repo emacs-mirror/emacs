@@ -89,8 +89,9 @@ typedef struct
   unsigned long pid;
 } lock_info_type;
 
-/* When we read the info back, we might need this much more.  */
-#define LOCK_PID_MAX 21 /* enough for signed 64 bits plus null */
+/* When we read the info back, we might need this much more,
+   enough for decimal representation plus null.  */
+#define LOCK_PID_MAX (4 * sizeof (unsigned long))
 
 /* Free the two dynamically-allocated pieces in PTR.  */
 #define FREE_LOCK_INFO(i) do { xfree ((i).user); xfree ((i).host); } while (0)
@@ -134,7 +135,8 @@ lock_file_1 (lfname, force)
   register int err;
   char *user_name = XSTRING (Fuser_login_name (Qnil))->data;
   char *host_name = XSTRING (Fsystem_name ())->data;
-  char *lock_info_str = alloca (strlen (user_name) + strlen (host_name) + 21);
+  char *lock_info_str = alloca (strlen (user_name) + strlen (host_name)
+                                + LOCK_PID_MAX + 5);
 
   sprintf (lock_info_str, "%s@%s.%lu", user_name, host_name,
            (unsigned long) getpid ());
