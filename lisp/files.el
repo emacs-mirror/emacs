@@ -1724,7 +1724,9 @@ Optional second argument NOCONFIRM means don't ask for confirmation at
 all.
 
 If the value of `revert-buffer-function' is non-nil, it is called to
-do the work."
+do the work.
+
+The normal hook `after-revert-hook' is run at the end of `revert-buffer'."
   ;; I admit it's odd to reverse the sense of the prefix argument, but
   ;; there is a lot of code out there which assumes that the first
   ;; argument should be t to avoid consulting the auto-save file, and
@@ -1774,7 +1776,8 @@ do the work."
 		 (insert-file-contents file-name (not auto-save-p))))
 	     (goto-char (min opoint (point-max)))
 	     (after-find-file nil nil t)
-	     t)))))
+	     t))))
+  (run-hooks 'after-revert-hook))
 
 (defun recover-file (file)
   "Visit file FILE, but get contents from its last auto-save file."
