@@ -8,10 +8,11 @@
 	* electric.el (Electric-pop-up-window): Use fit-window-to-buffer
 	instead of calculating the right size.
 
-2005-01-02  Stefan  <monnier@iro.umontreal.ca>
+2005-01-02  Karl Chen  <quarl@cs.berkeley.edu>
 
 	* vc-svn.el (vc-svn-diff): Stay local if possible.
-	From Karl Chen <quarl@cs.berkeley.edu>.
+
+2005-01-02  Stefan  <monnier@iro.umontreal.ca>
 
 	* vc-arch.el (vc-arch-workfile-version): Handle the empty-branch case.
 

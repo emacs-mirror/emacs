@@ -183,22 +183,6 @@ interrupting I can get a backtrace, here's an example:
 Update: Maybe only reveals itself when compiled with GTK+
 
 
-** line-spacing and Electric-pop-up-window
-
-From: SAITO Takuya <tabmore@rivo.mediatti.net>
-Date: Mon, 31 May 2004 02:08:10 +0900 (JST)
-
-Electric-pop-up-window does not work well
-if truncate long lines disabled and/or
-`line-spacing' is set to positive integer.
-
-For example, start emacs -Q --line-spacing 1, and type M-` .
-Then, the last line of *Completions* buffer is not visible.
-
-fit-window-to-buffer works well for me, so I guess
-Electric-pop-up-window can use it.
-
-
 ** Partial highlighting of wrapped overlay
 
 From: Ralf Angeli <angeli@iwi.uni-sb.de>
