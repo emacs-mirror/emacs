@@ -1888,16 +1888,15 @@ or add these lines at the end of your @file{.emacs} file:
 @example
 (desktop-load-default)
 (desktop-read)
+(setq desktop-enable t)
 @end example
 
 @noindent
 @findex desktop-save
-The first time you save the state of the Emacs session, you must do it
-manually, with the command @kbd{M-x desktop-save}.  Once you have done
-that, exiting Emacs will save the state again---not only the present
-Emacs session, but also subsequent sessions.  You can also save the
-state at any time, without exiting Emacs, by typing @kbd{M-x
-desktop-save} again.
+The first time you exit Emacs, you will be asked whether you want to
+save your session.  Once you have done that, exiting Emacs will save
+the state again in subsequent sessions.  You can also save the state
+at any time, without exiting Emacs, by typing @kbd{M-x desktop-save}.
 
   In order for Emacs to recover the state from a previous session, you
 must start it with the same current directory as you used when you
