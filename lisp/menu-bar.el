@@ -1,6 +1,6 @@
 ;;; menu-bar.el --- define a default menu bar.
 
-;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 2000 Free Software Foundation, Inc.
 
 ;; Author: RMS
 ;; Maintainer: FSF
@@ -507,8 +507,8 @@ Do the same for the keys of the same name."
        (interactive)
        (if ,(if body `(progn . ,body)
 	      `(setq ,variable (not ,variable)))
-	   (message ,message "enabled")
-	 (message ,message "disabled")))
+  	   (message ,message "enabled")
+  	 (message ,message "disabled")))
      '(menu-item ,doc ,name
 		 :help ,help
                  :button (:toggle . (and (boundp ',variable) ,variable)))))
@@ -522,7 +522,9 @@ Do the same for the keys of the same name."
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
   (list 'menu-item "Mule (Multilingual Environment)" mule-menu-keymap
-	':visible 'default-enable-multibyte-characters
+;; Most of the MULE menu actually does make sense in unibyte mode,
+;; e.g. language selection.
+;;;	':visible 'default-enable-multibyte-characters
 	':help "Default language, encodings, input method"))
 ;(setq menu-bar-final-items (cons 'mule menu-bar-final-items))
 ;(define-key menu-bar-options-menu [preferences]
@@ -530,7 +532,7 @@ Do the same for the keys of the same name."
 ;	:help "Toggle important global options"))
 
 (define-key menu-bar-options-menu [mule-separator]
-  '("------"))
+  '("--"))
 
 (define-key menu-bar-options-menu [debug-on-quit]
   (menu-bar-make-toggle toggle-debug-on-quit debug-on-quit
@@ -579,7 +581,7 @@ Do the same for the keys of the same name."
 (define-key menu-bar-options-menu [truncate-lines]
   (menu-bar-make-toggle
    toggle-truncate-lines truncate-lines
-   "Truncate Long Lines" "Long Line Truncation %s"
+   "Truncate Long Lines in this Buffer" "Long Line Truncation %s"
    "If checked, long lines are truncated on the screen"
    (prog1 (setq truncate-lines (not truncate-lines))
      (set-buffer-modified-p (buffer-modified-p)))))
@@ -652,17 +654,17 @@ Do the same for the keys of the same name."
   '(menu-item "5x5" 5x5
 	      :help "Fill in all the squares on a 5x5 board"))
 
-(define-key menu-bar-tools-menu [calendar] 
+(define-key menu-bar-tools-menu [calendar]
   '(menu-item "Display Calendar" calendar))
 (define-key menu-bar-tools-menu [speedbar]
   '(menu-item "Display Speedbar" speedbar-frame-mode))
 (define-key menu-bar-tools-menu [directory-search]
   '(menu-item "Directory Search" eudc-tools-menu
 	      :help "Query directory servers via LDAP, CCSO PH/QI or BBDB"))
-(define-key menu-bar-tools-menu [compose-mail] 
+(define-key menu-bar-tools-menu [compose-mail]
   '(menu-item "Send Mail" compose-mail
 	      :help "Send a mail message"))
-(define-key menu-bar-tools-menu [rmail] 
+(define-key menu-bar-tools-menu [rmail]
   '(menu-item "Read Mail" read-mail-command
 	      :help "Read your mail and reply to it"))
 (define-key menu-bar-tools-menu [gnus]
@@ -739,11 +741,12 @@ Do the same for the keys of the same name."
 	      :visible default-enable-multibyte-characters
 	      :help "Keyboard layout for specific input method"))
 (define-key menu-bar-describe-menu [describe-language-environment]
-  '(menu-item "Describe Language Environment" describe-language-environment-map
-	      :visible default-enable-multibyte-characters))
+  (list 'menu-item "Describe Language Environment"
+	describe-language-environment-map
+	:help "Show multilingual settings for a specific language"))
 
 (define-key menu-bar-describe-menu [separator-desc-mule]
-  '(menu-item "--" nil :visible default-enable-multibyte-characters))
+  '("--"))
 
 (define-key menu-bar-describe-menu [list-keybindings]
   '(menu-item "List Key Bindings" describe-bindings
@@ -759,7 +762,9 @@ Do the same for the keys of the same name."
 	      :help "Display documentation of function/command"))
 (define-key menu-bar-describe-menu [describe-key]
   '(menu-item "Describe Key..." describe-key
-	      :help "Display documentation of command bound to key"))
+	      ;; Users typically don't identify keys and menu items...
+	      :help "Display documentation of command bound to a \
+key (or menu-item)"))
 (define-key menu-bar-describe-menu [apropos-variables]
   '(menu-item "Apropos Variables..." apropos-variable
 	      :help "List variables whose names match a regexp"))
@@ -778,7 +783,7 @@ Do the same for the keys of the same name."
 (define-key menu-bar-manuals-menu [sep2]
   '("--"))
 (define-key menu-bar-manuals-menu [info]
-  '(menu-item "Browse Manuals with Info" info
+  '(menu-item "Browse Manuals with Info" Info-directory
 	      :help "Read any of the installed manuals"))
 (define-key menu-bar-manuals-menu [command]
   '(menu-item "Find Command in Manual" Info-goto-emacs-command-node
@@ -818,6 +823,9 @@ Do the same for the keys of the same name."
 (define-key menu-bar-help-menu [report-emacs-bug]
   '(menu-item "Send Bug Report..." report-emacs-bug
 	      :help "Send e-mail to Emacs maintainers"))
+(define-key menu-bar-help-menu [emacs-manual]
+  '(menu-item "Read the Emacs manual"
+	      (lambda () (interactive) (info "emacs"))))
 (define-key menu-bar-help-menu [emacs-problems]
   '(menu-item "Emacs Known Problems" view-emacs-problems))
 (define-key menu-bar-help-menu [emacs-news]
@@ -830,7 +838,7 @@ Do the same for the keys of the same name."
 	      :help "Learn how to use Emacs"))
 
 (defun kill-this-buffer ()	; for the menubar
-  "Kills the current buffer."
+  "Kill the current buffer."
   (interactive)
   (kill-buffer (current-buffer)))
 
