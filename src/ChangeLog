@@ -1,3 +1,8 @@
+2004-06-14  Andreas Schwab  <schwab@suse.de>
+
+	* minibuf.c (Ftry_completion, Fall_completions, Ftest_completion):
+	Avoid calling specbind when completion-regexp-list is empty.
+
 2004-06-13  Richard M. Stallman  <rms@gnu.org>
 
 	* regex.h (CHAR_CLASS_MAX_LENGTH, re_wctype_t, re_wchar_t)
