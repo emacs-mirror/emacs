@@ -2670,7 +2670,7 @@ and (2) it puts less data in the undo list.")
       immediate_quit = 0;
       /* If the file matches the buffer completely,
 	 there's no need to replace anything.  */
-      if (same_at_start == ZV)
+      if (same_at_start == st.st_size)
 	{
 	  close (fd);
 	  specpdl_ptr--;
