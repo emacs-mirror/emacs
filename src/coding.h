@@ -291,6 +291,18 @@ struct utf_16_spec
   int surrogate;
 };
 
+struct coding_detection_info
+{
+  /* Values of these members are bitwise-OR of CATEGORY_MASK_XXXs.  */
+  /* Which categories are already checked.  */
+  int checked;
+  /* Which categories are strongly found.  */
+  int found;
+  /* Which categories are rejected.  */
+  int rejected;
+};
+
+
 struct coding_system
 {
   /* ID number of the coding system.  This is an index to
@@ -383,7 +395,8 @@ struct coding_system
 
   int default_char;
 
-  int (*detector) P_ ((struct coding_system *, int *));
+  int (*detector) P_ ((struct coding_system *,
+		       struct coding_detection_info *));
   void (*decoder) P_ ((struct coding_system *));
   int (*encoder) P_ ((struct coding_system *));
 };
@@ -394,6 +407,7 @@ struct coding_system
 #define CODING_ANNOTATION_MASK			0x00FF
 #define CODING_ANNOTATE_COMPOSITION_MASK	0x0001
 #define CODING_ANNOTATE_DIRECTION_MASK		0x0002
+#define CODING_ANNOTATE_CHARSET_MASK		0x0003
 #define CODING_FOR_UNIBYTE_MASK			0x0100
 #define CODING_REQUIRE_FLUSHING_MASK		0x0200
 #define CODING_REQUIRE_DECODING_MASK		0x0400
