@@ -4262,7 +4262,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  else
 	    Available = input_wait_mask;
 	  check_connect = (num_pending_connects > 0);
-	  check_delay = process_output_delay_count;
+ 	  check_delay = wait_channel >= 0 ? 0 : process_output_delay_count;
 	}
 
       /* If frame size has changed or the window is newly mapped,
