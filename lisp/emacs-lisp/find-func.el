@@ -55,7 +55,7 @@
   :group 'lisp)
 
 (defcustom find-function-regexp
-  "^\\s-*(def[^cgv\W]\\w+\\*?\\s-+%s\\(\\s-\\|$\\)"
+  "^\\s-*(def\\(ine-skeleton\\|[^cgv\W]\\w+\\*?\\)\\s-+%s\\(\\s-\\|$\\)"
 "The regexp used by `find-function' to search for a function
 definition.  Note it must contain a `%s' at the place where `format'
 should insert the function name.  The default value avoids `defconst',
