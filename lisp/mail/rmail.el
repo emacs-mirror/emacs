@@ -364,21 +364,6 @@ In a summary buffer, this holds the RMAIL buffer it is a summary for.")
 (defvar rmail-total-messages nil)
 (put 'rmail-total-messages 'permanent-local t)
 
-;;; mbox: deprecated. -pmr
-(defvar rmail-message-vector nil)
-(put 'rmail-message-vector 'permanent-local t)
-
-;;; mbox: deprecated. -pmr
-(defvar rmail-deleted-vector nil)
-(put 'rmail-deleted-vector 'permanent-local t)
-
-;; mbox: deprecated. -pmr
-(defvar rmail-msgref-vector nil
-  "In an Rmail buffer, a vector whose Nth element is a list (N).
-When expunging renumbers messages, these lists are modified
-by substituting the new message number into the existing list.")
-(put 'rmail-msgref-vector 'permanent-local t)
-
 (defvar rmail-overlay-list nil)
 (put 'rmail-overlay-list 'permanent-local t)
 
@@ -386,8 +371,6 @@ by substituting the new message number into the existing list.")
 
 (defvar rmail-summary-buffer nil)
 (put 'rmail-summary-buffer 'permanent-local t)
-(defvar rmail-summary-vector nil)
-(put 'rmail-summary-vector 'permanent-local t)
 
 (defvar rmail-view-buffer nil
   "Buffer which holds RMAIL message for MIME displaying.")
@@ -677,8 +660,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	  (find-file file-name)
 	  (if (and (verify-visited-file-modtime existed)
 		   (eq major-mode 'rmail-mode))
-	      (progn (rmail-forget-messages)
-		     (rmail-set-message-counters))))
+	      nil))
       (switch-to-buffer
        (let ((enable-local-variables nil))
 	 (find-file-noselect file-name))))
@@ -694,7 +676,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
       (goto-char (point-min))
       ;; If file starts like a Babyl file, reject it.
       (if (looking-at "BABYL OPTIONS:")
-	  (error "This is a BABYL file; use M-x unrmail to convert it")))
+	  (error "This is a BABYL file; use M-x unrmail to convert it"))
       (goto-char (point-max)))
     ;; As we have read a file by raw-text, the buffer is set to
     ;; unibyte.  We must make it multibyte if necessary.
@@ -738,8 +720,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 ;     list))
 
 (defun rmail-initialize-messages ()
-  "Initialize message state and process the messages in the buffer to
-  update message state."
+  "Initialize message state based on messages in the buffer."
   (setq rmail-total-messages 0
         rmail-current-message 1)
   (rmail-desc-clear-descriptors)
@@ -1033,7 +1014,6 @@ Instead, these commands are available:
 	(rmail-require-mime-maybe)
 	(goto-char (point-max))
 	(set-buffer-multibyte t)))
-    (rmail-set-message-counters)
     (rmail-show-message rmail-total-messages)
     (when finding-rmail-file
       (when rmail-display-summary
@@ -1066,19 +1046,15 @@ Instead, these commands are available:
 (defun rmail-perm-variables ()
   (make-local-variable 'rmail-last-label)
   (make-local-variable 'rmail-last-regexp)
-  (make-local-variable 'rmail-deleted-vector)
   (make-local-variable 'rmail-buffer)
   (setq rmail-buffer (current-buffer))
   (make-local-variable 'rmail-view-buffer)
   (setq rmail-view-buffer rmail-buffer)
   (make-local-variable 'rmail-summary-buffer)
-  (make-local-variable 'rmail-summary-vector)
   (make-local-variable 'rmail-current-message)
   (make-local-variable 'rmail-total-messages)
   (make-local-variable 'rmail-overlay-list)
   (setq rmail-overlay-list nil)
-  (make-local-variable 'rmail-message-vector)
-  (make-local-variable 'rmail-msgref-vector)
   (make-local-variable 'rmail-inbox-list)
   (setq rmail-inbox-list (rmail-parse-file-inboxes))
   ;; Provide default set of inboxes for primary mail file ~/RMAIL.
@@ -1225,6 +1201,7 @@ Hook `rmail-quit-hook' is run after expunging."
 	  (bury-buffer rmail-summary-buffer)))
     (quit-window)))
 
+;;;??? Fails to add descriptor for new message.
 ;;; mbox: ready
 (defun rmail-duplicate-message ()
   "Create a duplicated copy of the current message.
@@ -1238,7 +1215,6 @@ original copy."
 				  (rmail-desc-get-end rmail-current-message))))
     (goto-char (rmail-desc-get-end rmail-current-message))
     (insert string)
-    (rmail-forget-messages)
     (rmail-show-message number)
     (message "Message duplicated")))
 
@@ -2060,131 +2036,9 @@ non-nil then do not show any progress messages."
     new-message-counter))
 
 ;;; mbox: deprecated
-(defun rmail-forget-messages ()
-  (unwind-protect
-      (if (vectorp rmail-message-vector)
-	  (let* ((i 0)
-		 (v rmail-message-vector)
-		 (n (length v)))
-	    (while (< i n)
-	      (move-marker (aref v i)  nil)
-	      (setq i (1+ i)))))
-    (setq rmail-message-vector nil)
-    (setq rmail-msgref-vector nil)
-    (setq rmail-deleted-vector nil)))
-
-;;; mbox: deprecated
 (defun rmail-maybe-set-message-counters ()
-  (if (not (and rmail-deleted-vector
-		rmail-message-vector
-		rmail-current-message
-		rmail-total-messages))
-      (rmail-set-message-counters)))
+  )
 
-(defun rmail-count-new-messages (&optional nomsg)
-  (let* ((case-fold-search nil)
-	 (total-messages 0)
-	 (messages-head nil)
-	 (deleted-head nil))
-    (or nomsg (message "Counting new messages..."))
-    (goto-char (point-max))
-    ;; Put at the end of messages-head
-    ;; the entry for message N+1, which marks
-    ;; the end of message N.  (N = number of messages).
-    (search-backward "\n\^_")
-    (forward-char 1)
-    (setq messages-head (list (point-marker)))
-    (rmail-set-message-counters-counter (point-min))
-    (setq rmail-current-message (1+ rmail-total-messages))
-    (setq rmail-total-messages
-	  (+ rmail-total-messages total-messages))
-    (setq rmail-message-vector
-	  (vconcat rmail-message-vector (cdr messages-head)))
-    (aset rmail-message-vector
-	  rmail-current-message (car messages-head))
-    (setq rmail-deleted-vector
-	  (concat rmail-deleted-vector deleted-head))
-    (setq rmail-summary-vector
-	  (vconcat rmail-summary-vector (make-vector total-messages nil)))
-    (setq rmail-msgref-vector
-	  (vconcat rmail-msgref-vector (make-vector total-messages nil)))
-    ;; Fill in the new elements of rmail-msgref-vector.
-    (let ((i (1+ (- rmail-total-messages total-messages))))
-      (while (<= i rmail-total-messages)
-	(aset rmail-msgref-vector i (list i))
-	(setq i (1+ i))))
-    (goto-char (point-min))
-    (or nomsg (message "Counting new messages...done (%d)" total-messages))))
-
-;;; DEPRECATED
-(defun rmail-set-message-counters ()
-  (rmail-forget-messages)
-  (save-excursion
-    (save-restriction
-      (widen)
-      (let* ((point-save (point))
-	     (total-messages 0)
-	     (messages-after-point)
-	     (case-fold-search nil)
-	     (messages-head nil)
-	     (deleted-head nil))
-	(message "Counting messages...")
-	(goto-char (point-max))
-	;; Put at the end of messages-head
-	;; the entry for message N+1, which marks
-	;; the end of message N.  (N = number of messages).
-	(search-backward "\n\^_" nil t)
-	(if (/= (point) (point-max)) (forward-char 1))
-	(setq messages-head (list (point-marker)))
-	(rmail-set-message-counters-counter (min (point) point-save))
-	(setq messages-after-point total-messages)
-	(rmail-set-message-counters-counter)
-	(setq rmail-total-messages total-messages)
-	(setq rmail-current-message
-	      (min total-messages
-		   (max 1 (- total-messages messages-after-point))))
-	(setq rmail-message-vector
-	      (apply 'vector (cons (point-min-marker) messages-head))
-	      rmail-deleted-vector (concat "0" deleted-head)
-	      rmail-summary-vector (make-vector rmail-total-messages nil)
-	      rmail-msgref-vector (make-vector (1+ rmail-total-messages) nil))
-	(let ((i 0))
-	  (while (<= i rmail-total-messages)
-	    (aset rmail-msgref-vector i (list i))
-	    (setq i (1+ i))))
-	(message "Counting messages...done")))))
-
-;;; DEPRECATED	
-(defun rmail-set-message-counters-counter (&optional stop)
-  (let ((start (point))
-	next)
-    (while (search-backward "\n\^_\^L" stop t)
-      ;; Detect messages that have been added with DOS line endings and
-      ;; convert the line endings for such messages.
-      (setq next (point))
-      (if (looking-at "\n\^_\^L\r\n")
-	  (let ((buffer-read-only nil)
-		(buffer-undo t))
-	    (message "Counting messages...(converting line endings)")
-	    (save-excursion
-	      (goto-char start)
-	      (while (search-backward "\r\n" next t)
-		(delete-char 1)))))
-      (setq start next)
-      (forward-char 1)
-      (setq messages-head (cons (point-marker) messages-head))
-      (save-excursion
-	(setq deleted-head
-	      (cons (if (search-backward ", deleted,"
-					 (prog1 (point)
-					   (forward-line 2))
-					 t)
-			?D ?\ )
-		    deleted-head)))
-      (if (zerop (% (setq total-messages (1+ total-messages)) 20))
-	  (message "Counting messages...%d" total-messages)))))
-
-;;; DEPRECATED
 (defun rmail-beginning-of-message ()
   "Show current message starting from the beginning."
   (interactive)
@@ -2739,13 +2593,6 @@ If N is negative, go forwards instead."
 
 ;;;; *** Rmail Message Deletion Commands ***
 
-;;; mbox: ready
-(defun rmail-message-deleted-p (n)
-  (rmail-desc-deleted-p n))
-
-(defun rmail-set-message-deleted-p (n state)
-  (aset rmail-deleted-vector n (if state ?D ?\ )))
-
 (defun rmail-delete-message ()
   "Delete this message and stay on it."
   (interactive)
@@ -2795,31 +2642,18 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
   (interactive)
   (rmail-delete-forward t))
 
-;;; mbox: deprecated
-;; Compute the message number a given message would have after expunging.
-;; The present number of the message is OLDNUM.
-;; DELETEDVEC should be rmail-deleted-vector.
-;; The value is nil for a message that would be deleted.
-(defun rmail-msg-number-after-expunge (deletedvec oldnum)
-  (if (or (null oldnum) (= (aref deletedvec oldnum) ?D))
-      nil
-    (let ((i 0)
-	  (newnum 0))
-      (while (< i oldnum)
-	(if (/= (aref deletedvec i) ?D)
-	    (setq newnum (1+ newnum)))
-	(setq i (1+ i)))
-      newnum)))
-
 (defun rmail-expunge-confirmed ()
-  "Return t if deleted message should be expunged. If necessary, ask the user.
+  "Return t if deleted message should be expunged.  If necessary, ask the user.
 See also user-option `rmail-confirm-expunge'."
   (set-buffer rmail-buffer)
-  (or (not (stringp rmail-deleted-vector))
-      (not (string-match "D" rmail-deleted-vector))
-      (null rmail-confirm-expunge)
-      (funcall rmail-confirm-expunge
-	       "Erase deleted messages from Rmail file? ")))
+  (let ((some-deleted))
+    (dotimes (i rmail-total-messages)
+      (if (rmail-desc-deleted-p (1+ i))
+	  (setq some-deleted t)))
+    (or (not some-deleted)
+	(null rmail-confirm-expunge)
+	(funcall rmail-confirm-expunge
+		 "Erase deleted messages from Rmail file? "))))
 
 ;;; mbox: ready
 (defun rmail-only-expunge ()
