@@ -1,0 +1,12 @@
+#!/usr/local/bin/perl
+#
+# display all the options ever
+#
+
+&options();
+
+require "require";
+
+&displayalloptions;
+
+

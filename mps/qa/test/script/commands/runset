@@ -1,0 +1,19 @@
+#!/usr/local/bin/perl -w
+#
+# run a set of tests specified in a test-set file
+#
+
+&options(
+ "MPS_INCLUDE_DIR",
+ "MPS_LINK_OBJ",
+ "INTERFACE_VERSION",
+ "PLATFORM",
+ "LOG_DIR"
+);
+
+require "require";
+
+$testset = $qa_args[0];
+
+&run_testset($testset, "$LOG_DIR/summ.log", "$LOG_DIR/res.log", "$LOG_DIR/full.log");
+
