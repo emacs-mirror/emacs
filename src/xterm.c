@@ -423,8 +423,6 @@ dumpglyphs (f, left, top, gp, n, hl)
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
   Window window = FRAME_X_WINDOW (f);
 
-  extern struct face *intern_face (/* FRAME_PTR, struct face * */);
-
   while (n > 0)
     {
       /* Get the face-code of the next GLYPH.  */
@@ -492,30 +490,37 @@ dumpglyphs (f, left, top, gp, n, hl)
 #define FACE_DEFAULT (~0)
 
 	/* Now override that if the cursor's on this character.  */
-	if (hl == 2 && (defaulted
-			|| !(face->font && (int) face->font != FACE_DEFAULT)))
+	if (hl == 2)
 	  {
-	    gc = f->display.x->cursor_gc;
-	  }
-	/* Cursor on non-default face: must merge.  */
-	else if (hl == 2)
-	  {
-	    XGCValues xgcv;
-	    unsigned long mask;
+	    if (defaulted
+		|| !face->font
+		|| (int) face->font == FACE_DEFAULT)
+	      {
+		gc = f->display.x->cursor_gc;
+	      }
+	    /* Cursor on non-default face: must merge.  */
+	    else
+	      {
+		XGCValues xgcv;
+		unsigned long mask;
 
-	    xgcv.background = f->display.x->cursor_pixel;
-	    xgcv.foreground = f->display.x->cursor_foreground_pixel;
-	    xgcv.font = face->font->fid;
-	    xgcv.graphics_exposures = 0;
-	    mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
-	    gc = XCreateGC (x_current_display, FRAME_X_WINDOW (f),
-			    mask, &xgcv);
+		xgcv.background = f->display.x->cursor_pixel;
+		xgcv.foreground = f->display.x->cursor_foreground_pixel;
+		xgcv.font = face->font->fid;
+		xgcv.graphics_exposures = 0;
+		mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
+		gc = XCreateGC (x_current_display, FRAME_X_WINDOW (f),
+				mask, &xgcv);
 #if 0
-	    if (face->stipple && face->stipple != FACE_DEFAULT)
-	      XSetStipple (x_current_display, gc, face->stipple);
+		if (face->stipple && face->stipple != FACE_DEFAULT)
+		  XSetStipple (x_current_display, gc, face->stipple);
 #endif
-	    gc_temporary = 1;
+		gc_temporary = 1;
+	      }
 	  }
+
+	if ((int) font == FACE_DEFAULT)
+	  font = f->display.x->font;
 
 	XDrawImageString (x_current_display, window, gc,
 			  left, top + FONT_BASE (font), buf, len);
@@ -3891,11 +3896,11 @@ static int x_font_table_size;
    0 <= n_fonts <= x_font_table_size.  */
 static int n_fonts;
 
+Lisp_Object
 x_new_font (f, fontname)
      struct frame *f;
      register char *fontname;
 {
-  XFontStruct *temp;
   int already_loaded;
   int n_matching_fonts;
   XFontStruct *font_info;
@@ -3911,7 +3916,7 @@ x_new_font (f, fontname)
   /* If the server couldn't find any fonts whose named matched fontname,
      return an error code.  */
   if (n_matching_fonts == 0)
-    return 1;
+    return Qnil;
 
   /* See if we've already loaded a matching font. */
   {
@@ -3923,6 +3928,7 @@ x_new_font (f, fontname)
 	if (x_font_table[i]->fid == font_info[j].fid)
 	  {
 	    already_loaded = i;
+	    fontname = font_names[j];
 	    goto found_font;
 	  }
   }
@@ -3949,13 +3955,13 @@ x_new_font (f, fontname)
 #endif
 
       if (i >= n_matching_fonts)
-	return 2;
+	return Qt;
       else
 	fontname = font_names[i];
 
       font = (XFontStruct *) XLoadQueryFont (x_current_display, fontname);
       if (! font)
-	return 1;
+	return Qnil;
 
       /* Do we need to create the table?  */
       if (x_font_table_size == 0)
@@ -3978,10 +3984,6 @@ x_new_font (f, fontname)
       f->display.x->font = x_font_table[n_fonts++] = font;
     }
   
-  /* Free the information from XListFontsWithInfo.  The data
-     we actually retain comes from XLoadQueryFont.  */
-  XFreeFontInfo (font_names, font_info, n_matching_fonts);
-
   /* Now make the frame display the given font.  */
   if (FRAME_X_WINDOW (f) != 0)
     {
@@ -3991,12 +3993,20 @@ x_new_font (f, fontname)
 		f->display.x->font->fid);
       XSetFont (x_current_display, f->display.x->cursor_gc,
 		f->display.x->font->fid);
-      init_frame_faces (f);
 
       x_set_window_size (f, f->width, f->height);
     }
 
-  return 0;
+  {
+    Lisp_Object lispy_name = build_string (fontname);
+
+
+    /* Free the information from XListFontsWithInfo.  The data
+       we actually retain comes from XLoadQueryFont.  */
+    XFreeFontInfo (font_names, font_info, n_matching_fonts);
+
+    return lispy_name;
+  }
 }
 #else /* ! defined (HAVE_X11) */
 x_new_font (f, newname)
