@@ -655,7 +655,7 @@ adjust_intervals_for_insertion (tree, position, length)
       /* If both intervals are sticky here, then default to the
          left-most one.  But perhaps we should create a new
 	 interval here instead... */
-      if (END_STICKY (prev))
+      if (END_STICKY_P (prev))
 	i = prev;
     }
 
@@ -1167,7 +1167,7 @@ graft_intervals_into_buffer (source, position, buffer)
       /* First interval -- none precede it. */
       if (position == 1)
 	{
-	  if (! FRONT_STICKY (under))
+	  if (! FRONT_STICKY_P (under))
 	    /* The inserted string keeps its own properties. */
 	    while (! NULL_INTERVAL_P (over))
 	    {
@@ -1195,9 +1195,9 @@ graft_intervals_into_buffer (source, position, buffer)
 	  if (NULL_INTERVAL_P (prev))
 	    abort ();
 
-	  if (END_STICKY (prev))
+	  if (END_STICKY_P (prev))
 	    {
-	      if (FRONT_STICKY (under))
+	      if (FRONT_STICKY_P (under))
 		/* The intervals go inbetween as the two sticky
 		   properties cancel each other.  Should we change
 		   this policy? */
@@ -1222,7 +1222,7 @@ graft_intervals_into_buffer (source, position, buffer)
 	    }
 	  else
 	    {
-	      if (FRONT_STICKY (under))
+	      if (FRONT_STICKY_P (under))
 		/* The inserted text "sticks" to the interval `under',
 		   which means it gets those properties. */
 		while (! NULL_INTERVAL_P (over))
@@ -1507,7 +1507,7 @@ balance_intervals (tree)
 /* Produce an interval tree reflecting the intervals in
    TREE from START to START + LENGTH. */
 
-static INTERVAL
+INTERVAL
 copy_intervals (tree, start, length)
      INTERVAL tree;
      int start, length;
