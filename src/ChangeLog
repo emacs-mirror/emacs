@@ -1,3 +1,8 @@
+2001-12-09  Andreas Schwab  <schwab@suse.de>
+
+	* xdisp.c (display_mode_element): Don't read past end of string if
+	it ends with '%'.
+
 2001-12-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xterm.c (x_free_frame_resources) [USE_X_TOOLKIT]: Remove all the

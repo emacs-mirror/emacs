@@ -13595,6 +13595,8 @@ display_mode_element (it, depth, field_width, precision, elt)
 			  }
 		      }
 		  }
+		else /* c == 0 */
+		  break;
 	      }
 	  }
       }
