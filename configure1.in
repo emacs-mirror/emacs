@@ -638,6 +638,17 @@ case "${configuration}" in
   i[34]86-intsys-sysv* )
     machine=is386 opsys=usg5-2-2
   ;;
+
+  ## Prime EXL
+  i386-prime-sysv* )
+    machine=i386 opsys=usg5-3
+  ;;
+
+  ## Sequent Symmetry
+  i386-sequent-bsd* )
+    machine=symmetry opsys=bsd4-3
+  ;;
+
   ## Intel 386 machines where we don't care about the manufacturer
   i[34]86-*-* )
     machine=intel386
@@ -745,11 +756,6 @@ case "${configuration}" in
     machine=plexus opsys=usg5-2
   ;;
 
-  ## Prime EXL
-  i386-prime-sysv* )
-    machine=i386 opsys=usg5-3
-  ;;
-
   ## Pyramid machines
   ## I don't really have any idea what sort of processor the Pyramid has,
   ## so I'm assuming it is its own architecture.
@@ -763,10 +769,6 @@ case "${configuration}" in
   ;;
   ns32k-sequent-bsd4.3 )
     machine=sequent opsys=bsd4-3
-  ;;
-  ## Sequent Symmetry
-  i386-sequent-bsd* )
-    machine=symmetry opsys=bsd4-3
   ;;
 
   ## SONY machines
