@@ -2454,7 +2454,7 @@ format1 (string1)
   args[2] = arg2;
   args[3] = arg3;
   args[4] = arg4;
-  doprnt (buf, sizeof buf, string1, (char *)0, 5, args);
+  doprnt (buf, sizeof buf, string1, (char *)0, 5, (char **) args);
 #else
   doprnt (buf, sizeof buf, string1, (char *)0, 5, &string1 + 1);
 #endif
