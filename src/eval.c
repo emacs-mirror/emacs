@@ -562,7 +562,7 @@ unconditionally for that argument.  (`p' is a good way to do this.)  */)
 }
 
 
-DEFUN ("called-interactively-p", Fcall_interactive_p, Scall_interactive_p, 0, 0, 0,
+DEFUN ("called-interactively-p", Fcalled_interactively_p, Scalled_interactively_p, 0, 0, 0,
        doc: /* Return t if the function using this was called with call-interactively.
 This is used for implementing advice and other function-modifying
 features of Emacs.
@@ -3470,6 +3470,7 @@ The value the function returns is not used.  */);
   defsubr (&Scondition_case);
   defsubr (&Ssignal);
   defsubr (&Sinteractive_p);
+  defsubr (&Scalled_interactively_p);
   defsubr (&Scommandp);
   defsubr (&Sautoload);
   defsubr (&Seval);
