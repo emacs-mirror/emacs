@@ -65,7 +65,8 @@ even if it is active."
 				       count)))
 		       (setq newsizes
 			     (cons (cons w (* size (- newbot newtop)))
-				   newsizes))))))
+				   newsizes)))))
+		  'nomini)
     (walk-windows (function (lambda (w)
 			      (select-window w)
 			      (let ((newsize (cdr (assq w newsizes))))
