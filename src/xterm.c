@@ -5161,6 +5161,12 @@ x_destroy_window (f)
   free_frame_faces (f);
   XFlushQueue ();
 
+  FRAME_X_SCREEN (f)->reference_count--;
+#if 0
+  if (FRAME_X_SCREEN (f)->reference_count == 0)
+    free (FRAME_X_SCREEN (f));
+#endif
+
   xfree (f->display.x);
   f->display.x = 0;
   if (f == x_focus_frame)
