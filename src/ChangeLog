@@ -1,7 +1,7 @@
 2000-11-18  Gerd Moellmann  <gerd@gnu.org>
 
-	* xdisp.c (resize_mini_window): Change to the mini-window's 
-	buffer if necessary.
+	* xdisp.c (resize_mini_window): Temporarily change to the
+	mini-window's buffer if necessary.
 
 	* xfns.c (Fx_show_tip): Use default y-offset of -10 so that
 	the tooltip obscures less text under it.
