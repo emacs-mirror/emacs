@@ -115,6 +115,7 @@ and Sending Mail and Registers and Minibuffer.
 
 @menu
 * Distrib::	        How to get the latest Emacs distribution.
+* Acknowledgements::    Contributors to GNU Emacs.
 * Copying::	        The GNU General Public License gives you permission
 			  to redistribute GNU Emacs on certain terms;
 			  it also explains that there is no warranty.
@@ -901,7 +902,7 @@ all GNU Emacs features.  We don't try to describe VMS usage in this
 manual.  @xref{MS-DOS}, for information about using Emacs on MS-DOS.
 @end iftex
 
-@node Distrib, Copying, Top, Top
+@node Distrib, Acknowledgements, Top, Top
 @unnumbered Distribution
 
 GNU Emacs is @dfn{free software}; this means that everyone is free to
@@ -928,9 +929,9 @@ redistribute the GNU Emacs received from them under the usual terms of the
 General Public License.  In other words, the program must be free for you
 when you get it, not just free for the manufacturer.
 
-You can also order copies of GNU Emacs from the Free Software Foundation
-on CD-ROM@.  This is a convenient and reliable way to get a copy; it is
-also a good way to help fund our work.  (The Foundation has always
+You can also order copies of GNU Emacs from the Free Software
+Foundation.  This is a convenient and reliable way to get a copy; it
+is also a good way to help fund our work.  (The Foundation has always
 received most of its funds in this way.)  An order form is included in
 the file @file{etc/ORDERS} in the Emacs distribution, and on our web
 site in @url{http://www.gnu.org/order/order.html}.  For further
@@ -955,7 +956,9 @@ company policy is unsympathetic to the idea of donating to charity, you
 might instead suggest ordering a CD-ROM from the Foundation
 occasionally, or subscribing to periodic updates.
 
-@iftex
+@node Acknowledgements, Copying, Distrib, Top
+@section Acknowledgements
+
 Contributors to GNU Emacs include Per Abrahamsen, Jay K. Adams, Joe
 Arceneaux, Boaz Ben-Zvi, Jim Blandy, Terrence Brannon, Frank Bresz,
 Peter Breton, Kevin Broadey, Vincent Broman, David M. Brown, Bill
@@ -997,9 +1000,8 @@ Warsaw, Morten Welinder, Joseph Brian Wells, Rodney Whitby, Ed
 Wilkinson, Mike Williams, Steven A. Wood, Dale R. Worley, Felix
 S. T. Wu, Tom Wurgler, Eli Zaretskii, Jamie Zawinski, Ian T. Zimmermann,
 Reto Zimmermann, and Neal Ziring.
-@end iftex
 
-@node Copying, GNU Free Documentation License, Distrib, Top
+@node Copying, GNU Free Documentation License, Acknowledgements, Top
 @unnumbered GNU GENERAL PUBLIC LICENSE
 @center Version 2, June 1991
 
