@@ -321,6 +321,11 @@ Options}.
 Used to initialize the variable @code{data-directory} used to locate the
 architecture-independent files that come with Emacs.  Setting this
 variable overrides the setting in @file{paths.h} when Emacs was built.
+@item EMACSDOC
+Used to initialize the variable @code{doc-directory} where Emacs looks
+for its documentation string file @file{DOC-@var{version}}
+(@var{version} is the Emacs version).  Setting this variable overrides
+the setting in @file{paths.h} when Emacs was built.
 @item EMACSLOADPATH
 A colon-separated list of directories from which to load Emacs Lisp
 files.  Setting this variable overrides the setting in @file{paths.h}
