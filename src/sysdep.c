@@ -30,6 +30,24 @@ Boston, MA 02111-1307, USA.  */
 #include "blockinput.h"
 #undef NULL
 
+#ifdef macintosh
+#ifdef __MRC__
+__sigfun sys_signal (int signal, __sigfun signal_func);
+#elif __MWERKS__
+__signal_func_ptr sys_signal (int signal, __signal_func_ptr signal_func);
+#else
+You lose!!!
+#endif
+#ifndef subprocesses
+/* Nonzero means delete a process right away if it exits (process.c).  */
+static int delete_exited_processes;
+#endif
+#ifndef HAVE_X_WINDOWS
+/* Search path for bitmap files (xfns.c).  */
+Lisp_Object Vx_bitmap_file_path;
+#endif
+#endif  /* macintosh */
+
 #define min(x,y) ((x) > (y) ? (y) : (x))
 
 /* In this file, open, read and write refer to the system calls,
@@ -152,7 +170,7 @@ extern int errno;
 #undef TIOCSWINSZ
 #endif
 
-#if defined(USG) || defined(DGUX)
+#if defined (USG) || defined (DGUX)
 #include <sys/utsname.h>
 #include <string.h>
 #ifndef MEMORY_IN_STRING_H
@@ -709,7 +727,7 @@ sys_suspend ()
     }
   return -1;
 #else
-#if defined(SIGTSTP) && !defined(MSDOS)
+#if defined (SIGTSTP) && !defined (MSDOS)
 
   {
     int pgrp = EMACS_GETPGRP (0);
@@ -738,6 +756,9 @@ sys_suspend ()
 void
 sys_subshell ()
 {
+#ifdef macintosh
+    error ("Can't spawn subshell");
+#else
 #ifndef VMS
 #ifdef DOS_NT	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
   int st;
@@ -854,6 +875,7 @@ sys_subshell ()
   restore_signal_handlers (saved_handlers);
   synch_process_alive = 0;
 #endif /* !VMS */
+#endif /* !macintosh */
 }
 
 static void
@@ -971,11 +993,11 @@ request_sigio ()
   if (read_socket_hook)
     return;
 
-  sigemptyset(&st);
-  sigaddset(&st, SIGIO);
+  sigemptyset (&st);
+  sigaddset (&st, SIGIO);
   ioctl (input_fd, FIOASYNC, &on);
   interrupts_deferred = 0;
-  sigprocmask(SIG_UNBLOCK, &st, (sigset_t *)0);
+  sigprocmask (SIG_UNBLOCK, &st, (sigset_t *)0);
 }
 
 void
@@ -1139,7 +1161,7 @@ emacs_set_tty (fd, settings, flushp)
   int i;
   /* We have those nifty POSIX tcmumbleattr functions.
      William J. Smith <wjs@wiis.wang.com> writes:
-     "POSIX 1003.1 defines tcsetattr() to return success if it was
+     "POSIX 1003.1 defines tcsetattr to return success if it was
      able to perform any of the requested actions, even if some
      of the requested actions could not be performed.
      We must read settings back to ensure tty setup properly.
@@ -1168,7 +1190,7 @@ emacs_set_tty (fd, settings, flushp)
 	    && new.c_oflag == settings->main.c_oflag
 	    && new.c_cflag == settings->main.c_cflag
 	    && new.c_lflag == settings->main.c_lflag
-	    && memcmp(new.c_cc, settings->main.c_cc, NCCS) == 0)
+	    && memcmp (new.c_cc, settings->main.c_cc, NCCS) == 0)
 	  break;
 	else
 	  continue;
@@ -1263,6 +1285,26 @@ void
 init_sys_modes ()
 {
   struct emacs_tty tty;
+
+#ifdef macintosh
+  Vwindow_system = intern ("mac");
+  Vwindow_system_version = make_number (1);
+
+/* cus-start.el complains if delete-exited-processes and x-bitmap-file-path not defined */
+#ifndef subprocesses
+  DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
+    "*Non-nil means delete processes immediately when they exit.\n\
+nil means don't delete them until `list-processes' is run.");
+  delete_exited_processes = 0;
+#endif
+
+#ifndef HAVE_X_WINDOWS
+  DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
+    "List of directories to search for bitmap files for X.");
+  Vx_bitmap_file_path = decode_env_path ((char *) 0, ".");
+#endif
+
+#endif /* not macintosh */
 
 #ifdef VMS
 #if 0
@@ -2196,7 +2238,7 @@ start_of_data ()
    */
   extern char **environ;
 
-  return((char *) &environ);
+  return ((char *) &environ);
 #else
   extern int data_start;
   return ((char *) &data_start);
@@ -3485,7 +3527,7 @@ char *sys_siglist[NSIG + 1] =
 
 #include <dirent.h>
 
-#if defined(BROKEN_CLOSEDIR) || !defined(HAVE_CLOSEDIR)
+#if defined (BROKEN_CLOSEDIR) || !defined (HAVE_CLOSEDIR)
 
 int
 closedir (dirp)
@@ -3730,7 +3772,7 @@ mkdir (dpath, dmode)
 		 */
       status = umask (0);	/* Get current umask */
       status = umask (status | (0777 & ~dmode));	/* Set for mkdir */
-      fd = sys_open("/dev/null", 2);
+      fd = sys_open ("/dev/null", 2);
       if (fd >= 0)
         {
 	  dup2 (fd, 0);
@@ -3776,7 +3818,7 @@ rmdir (dpath)
       return (-1);		/* Errno is set already */
 
     case 0:			/* Child process */
-      fd = sys_open("/dev/null", 2);
+      fd = sys_open ("/dev/null", 2);
       if (fd >= 0)
         {
 	  dup2 (fd, 0);
@@ -5099,7 +5141,7 @@ hft_init ()
      there's no way to determine the old mapping, so in reset_sys_modes
      we need to assume that the normal map had been present.  Of course, this
      code also doesn't help if on a terminal emulator which doesn't understand
-     HFT VTD's. */
+     HFT VTD's.  */
   {
     struct hfbuf buf;
     struct hfkeymap keymap;
@@ -5130,7 +5172,7 @@ hft_init ()
   line_ins_del_ok = char_ins_del_ok = 0;
 }
 
-/* Reset the rubout key to backspace. */
+/* Reset the rubout key to backspace.  */
 
 void
 hft_reset ()
@@ -5277,3 +5319,1569 @@ bcmp (b1, b2, length)	/* This could be a macro! */
 }
 #endif /* no bcmp */
 #endif /* not BSTRING */
+
+/* All the Macintosh stuffs go here */
+
+#ifdef macintosh
+
+#include <Files.h>
+#include <MacTypes.h>
+#include <TextUtils.h>
+#include <Folders.h>
+
+#include <dirent.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <pwd.h>
+#include <sys/param.h>
+
+/* Convert a Mac pathname to Unix form.  A Mac full pathname is one
+   that does not begin with a ':' and contains at least one ':'. A Mac
+   full pathname causes an '/' to be prepended to the Unix pathname.
+   The algorithm for the rest of the pathname is as follows:
+     For each segment between two ':',
+       if it is non-null, copy as is and then add a '/' at the end,
+       otherwise, insert a "../" into the Unix pathname.
+   Returns 1 if successful; 0 if fails.  */
+   
+int
+Mac2UnixPathname (const char *mfn, char *ufn, int ufnbuflen)
+{
+  const char *p, *q, *pe;
+	
+  strcpy (ufn, "");
+	
+  if (*mfn == '\0')
+    return 1;
+	
+  p = strchr (mfn, ':');
+  if (p != 0 && p != mfn)  /* full pathname */
+    strcat (ufn, "/");
+		
+  p = mfn;
+  if (*p == ':')
+    p++;
+
+  pe = mfn + strlen (mfn);
+  while (p < pe)
+    {
+      q = strchr (p, ':');
+      if (q)
+	{
+	  if (q == p)
+	    {  /* two consecutive ':' */
+	      if (strlen (ufn) + 3 >= ufnbuflen)
+		return 0;
+	      strcat (ufn, "../");
+	    }
+	  else
+	    {
+	      if (strlen (ufn) + (q - p) + 1 >= ufnbuflen)
+		return 0;
+	      strncat (ufn, p, q - p);
+	      strcat (ufn, "/");
+	    }
+	  p = q + 1;
+	}
+      else
+	{
+	  if (strlen (ufn) + (pe - p) >= ufnbuflen)
+	    return 0;
+	  strncat (ufn, p, pe - p);  /* no separator for last one */
+	  p = pe;
+	}
+    }
+	
+  return 1;
+}
+
+extern char *GetTempDirName ();
+
+/* Convert a Unix pathname to Mac form.  Approximately reverse of the
+   above in algorithm.  */
+int
+Unix2MacPathname (const char *ufn, char *mfn, int mfnbuflen)
+{
+  const char *p, *q, *pe;
+  char expandedPathname[MAXPATHLEN+1];
+	
+  strcpy (mfn, "");
+	
+  if (*ufn == '\0')
+    return 1;
+
+  p = ufn;
+  
+  /* Check for and handle volume names.  Last comparison: strangely
+     somewhere `/.emacs' is passed.  A temporary fix for now.  */
+  if (*p == '/' && strchr (p+1, '/') == NULL && strcmp (p, "/.emacs") != 0)
+    {
+      if (strlen (p) + 1 > mfnbuflen)
+	return 0;
+      strcpy (mfn, p+1);
+      strcat (mfn, ":");
+      return 1;
+    }
+
+  if (strncmp (p, "~emacs/", 7) == 0)
+    {  /* expand to emacs dir found by InitEmacsPasswdDir */
+      struct passwd *pw = getpwnam ("emacs");
+      p += 7;
+      if (strlen (pw->pw_dir) + strlen (p) > MAXPATHLEN)
+	return 0;
+      strcpy (expandedPathname, pw->pw_dir);
+      strcat (expandedPathname, p);
+      p = expandedPathname;
+      /* Now p points to the pathname with emacs dir prefix.  */
+    }
+  else if (strncmp (p, "/tmp/", 5) == 0)
+    {
+      char *t = GetTempDirName ();
+      p += 5;
+      if (strlen (t) + strlen (p) > MAXPATHLEN)
+	return 0;
+      strcpy (expandedPathname, t);
+      strcat (expandedPathname, p);
+      p = expandedPathname;
+      /* Now p points to the pathname with emacs dir prefix.  */
+    }    
+  else if (*p != '/')  /* relative pathname */
+    strcat (mfn, ":");
+		
+  if (*p == '/')
+    p++;
+
+  pe = p + strlen (p);
+  while (p < pe)
+    {
+      q = strchr (p, '/');
+      if (q)
+	{
+	  if (q - p == 2 && *p == '.' && *(p+1) == '.')
+	    {
+	      if (strlen (mfn) + 1 >= mfnbuflen)
+		return 0;
+	      strcat (mfn, ":");
+	    }
+	  else
+	    {
+	      if (strlen (mfn) + (q - p) + 1 >= mfnbuflen)
+		return 0;
+	      strncat (mfn, p, q - p);
+	      strcat (mfn, ":");
+	    }
+	  p = q + 1;
+	}
+      else
+	{
+	  if (strlen (mfn) + (pe - p) >= mfnbuflen)
+	    return 0;
+	  strncat (mfn, p, pe - p);
+	  p = pe;
+	}
+    }
+	
+  return 1;
+}
+
+/* The following functions with "sys_" prefix are stubs to Unix
+   functions that have already been implemented by CW or MPW.  The
+   calls to them in Emacs source course are #define'd to call the sys_
+   versions by the header files s-mac.h.  In these stubs pathnames are
+   converted between their Unix and Mac forms.  */
+/* Unix Epoch is Jan 1, 1970 while Mac Epoch is Jan 1, 1904: 66 years
+   + 17 leap days */
+#define MAC_UNIX_EPOCH_DIFF  ((365L * 66 + 17) * 24 * 60 * 60)
+
+/* CW Epoch is Jan 1, 1900 (aaarghhhhh!); remember, 1900 is not a leap
+   year! */
+#define CW_UNIX_EPOCH_DIFF ((365L * 70 + 17) * 24 * 60 * 60)
+
+/* Define our own stat function for both MrC and CW.  The reason for
+   doing this: "stat" is both the name of a struct and function name:
+   can't use the same trick like that for sys_open, sys_close, etc. to
+   redirect Emacs's calls to our own version that converts Unix style
+   filenames to Mac style filename because all sorts of compilation
+   errors will be generated if stat is #define'd to be sys_stat.  */
+
+int
+stat (const char *path, struct stat *buf)
+{
+  char MacPathname[MAXPATHLEN+1];
+  CInfoPBRec cipb;
+	
+  if (Unix2MacPathname (path, MacPathname, MAXPATHLEN+1) == 0)
+    return -1;
+
+  c2pstr (MacPathname);
+  cipb.hFileInfo.ioNamePtr = MacPathname;
+  cipb.hFileInfo.ioVRefNum = 0;
+  cipb.hFileInfo.ioDirID = 0;
+  cipb.hFileInfo.ioFDirIndex = 0;  /* set to 0 to get information about specific dir or file */
+  
+  errno = PBGetCatInfo (&cipb, false);
+  if (errno == -43) /* -43: fnfErr defined in Errors.h */
+    errno = ENOENT;
+  if (errno != noErr)
+    return -1;
+
+  if (cipb.hFileInfo.ioFlAttrib & 0x10)
+    {  /* bit 4 = 1 for directories */
+      buf->st_mode = S_IFDIR | S_IREAD | S_IEXEC;
+      if (!(cipb.hFileInfo.ioFlAttrib & 0x1))  /* bit 1 = 1 for locked files/directories */
+	buf->st_mode |= S_IWRITE;
+      buf->st_ino = cipb.dirInfo.ioDrDirID;
+      buf->st_dev = cipb.dirInfo.ioVRefNum;
+      buf->st_size = cipb.dirInfo.ioDrNmFls;  /* size of dir = number of files and dirs */
+      buf->st_atime = buf->st_mtime = cipb.dirInfo.ioDrMdDat - MAC_UNIX_EPOCH_DIFF;
+      buf->st_ctime = cipb.dirInfo.ioDrCrDat - MAC_UNIX_EPOCH_DIFF;
+    }
+  else
+    {
+      buf->st_mode = S_IFREG | S_IREAD;
+      if (!(cipb.hFileInfo.ioFlAttrib & 0x1))  /* bit 1 = 1 for locked files/directories */
+	buf->st_mode |= S_IWRITE;
+      if (cipb.hFileInfo.ioFlFndrInfo.fdType == 'APPL')
+	buf->st_mode |= S_IEXEC;
+      buf->st_ino = cipb.hFileInfo.ioDirID;
+      buf->st_dev = cipb.hFileInfo.ioVRefNum;
+      buf->st_size = cipb.hFileInfo.ioFlLgLen;
+      buf->st_atime = buf->st_mtime = cipb.hFileInfo.ioFlMdDat - MAC_UNIX_EPOCH_DIFF;
+      buf->st_ctime = cipb.hFileInfo.ioFlCrDat - MAC_UNIX_EPOCH_DIFF;
+    }
+  buf->st_nlink = 1;
+  buf->st_uid = getuid ();
+  buf->st_gid = getgid ();
+  buf->st_rdev = 0;
+
+  return 0;
+}
+
+#if __MRC__
+
+/* CW defines fstat in stat.mac.c while MPW does not provide this
+   function.  Without the information of how to get from a file
+   descriptor in MPW StdCLib to a Mac OS file spec, it should be hard
+   to implement this function.  Fortunately, there is only one place
+   where this function is called in our configuration: in fileio.c,
+   where only the st_dev and st_ino fields are used to determine
+   whether two fildes point to different i-nodes to prevent copying
+   a file onto itself equal.  What we have here probably needs
+   improvement.  */
+int
+fstat (int fildes, struct stat *buf)
+{
+  buf->st_dev = 0;
+  buf->st_ino = fildes;
+  return 0;  /* success */
+}
+
+#endif  /* __MRC__ */
+
+/* From Think Reference code example */
+int
+mkdir (const char *dirname, int mode)
+{
+#pragma unused (mode)
+
+  HFileParam hfpb;
+  char MacPathname[MAXPATHLEN+1];
+	
+  if (Unix2MacPathname (dirname, MacPathname, MAXPATHLEN+1) == 0)
+    return -1;
+
+  c2pstr (MacPathname);
+  hfpb.ioNamePtr = MacPathname;
+  hfpb.ioVRefNum = 0; /*ignored unless name is invalid */
+  hfpb.ioDirID = 0;  /*parent is the root */
+  
+  /* Just return the Mac OSErr code for now.  */
+  errno = PBDirCreate ((HParmBlkPtr) &hfpb, false);
+  return errno == noErr ? 0 : -1;
+}
+
+int
+rmdir (const char *dirname)
+{
+  HFileParam hfpb;
+  char MacPathname[MAXPATHLEN+1];
+	
+  if (Unix2MacPathname (dirname, MacPathname, MAXPATHLEN+1) == 0)
+    return -1;
+
+  c2pstr (MacPathname);
+  hfpb.ioNamePtr = MacPathname;
+  hfpb.ioVRefNum = 0; /*ignored unless name is invalid */
+  hfpb.ioDirID = 0;  /*parent is the root */
+  
+  errno = PBHDelete ((HParmBlkPtr) &hfpb, false);
+  return errno == noErr ? 0 : -1;
+}
+
+#ifdef __MRC__
+
+/* No implementation yet. */
+int
+execvp (const char *path, ...)
+{
+  return -1;
+}
+
+#endif /* __MRC__ */
+
+int
+utime (const char *path, const struct utimbuf *times)
+{
+  char MacPathname[MAXPATHLEN+1];
+  CInfoPBRec cipb;
+	
+  if (Unix2MacPathname (path, MacPathname, MAXPATHLEN+1) == 0)
+    return -1;
+
+  c2pstr (MacPathname);
+  cipb.hFileInfo.ioNamePtr = MacPathname;
+  cipb.hFileInfo.ioVRefNum = 0;
+  cipb.hFileInfo.ioDirID = 0;
+  /* Set to 0 to get information about specific dir or file.  */
+  cipb.hFileInfo.ioFDirIndex = 0;
+  
+  errno = PBGetCatInfo (&cipb, false);
+  if (errno != noErr)
+    return -1;
+
+  if (cipb.hFileInfo.ioFlAttrib & 0x10)
+    {  /* bit 4 = 1 for directories */
+      if (times)
+	cipb.dirInfo.ioDrMdDat = times->modtime + MAC_UNIX_EPOCH_DIFF;
+      else
+	GetDateTime (&cipb.dirInfo.ioDrMdDat);
+    }
+  else
+    {
+      if (times)
+	cipb.hFileInfo.ioFlMdDat = times->modtime + MAC_UNIX_EPOCH_DIFF;
+      else
+	GetDateTime (&cipb.hFileInfo.ioFlMdDat);
+    }
+
+  errno = PBSetCatInfo (&cipb, false);
+  return errno == noErr ? 0 : -1;
+}
+
+#define F_OK 0
+#define X_OK 1
+#define W_OK 2
+
+/* Like stat, but test for access mode in hfpb.ioFlAttrib.  */
+int
+access (const char *path, int mode)
+{
+  char MacPathname[MAXPATHLEN+1];
+  CInfoPBRec cipb;
+	
+  if (Unix2MacPathname (path, MacPathname, MAXPATHLEN+1) == 0)
+    return -1;
+
+  c2pstr (MacPathname);
+  cipb.hFileInfo.ioNamePtr = MacPathname;
+  cipb.hFileInfo.ioVRefNum = 0;
+  cipb.hFileInfo.ioDirID = 0;
+  cipb.hFileInfo.ioFDirIndex = 0;  /* set to 0 to get information about specific dir or file */
+  
+  errno = PBGetCatInfo (&cipb, false);
+  if (errno != noErr)
+    return -1;
+
+  if (mode == F_OK)  /* got this far, file exists */
+    return 0;
+
+  if (mode & X_OK)
+    if (cipb.hFileInfo.ioFlAttrib & 0x10)  /* path refers to a directory */
+      return 0;
+    else
+      {
+	if (cipb.hFileInfo.ioFlFndrInfo.fdType == 'APPL')
+	  return 0;
+	else
+	  return -1;
+      }
+
+  if (mode & W_OK)
+    return (cipb.hFileInfo.ioFlAttrib & 0x1) ? -1 : 0;  /* don't allow if lock bit on */
+
+  return -1;
+}
+
+#define DEV_NULL_FD 0x10000
+
+#undef open
+int
+sys_open (const char *path, int oflag)
+{
+  char MacPathname[MAXPATHLEN+1];
+	
+  if (strcmp (path, "/dev/null") == 0)
+    return DEV_NULL_FD;  /* some bogus fd to be ignored in write */
+
+  if (Unix2MacPathname (path, MacPathname, MAXPATHLEN+1) == 0)
+    return -1;
+  else
+    return open (MacPathname, oflag);
+}
+
+#undef creat
+int
+sys_creat (const char *path, mode_t mode)
+{
+  char MacPathname[MAXPATHLEN+1];
+	
+  if (Unix2MacPathname (path, MacPathname, MAXPATHLEN+1) == 0)
+    return -1;
+  else
+    return creat (MacPathname, mode);
+}
+
+#undef unlink
+int
+sys_unlink (const char *path)
+{
+  char MacPathname[MAXPATHLEN+1];
+	
+  if (Unix2MacPathname (path, MacPathname, MAXPATHLEN+1) == 0)
+    return -1;
+  else
+    return unlink (MacPathname);
+}
+
+#undef read
+int
+sys_read (int fildes, char *buf, int count)
+{
+  if (fildes == 0)
+    {  /* if stdin, call (non-echoing) "getch" in console.h */
+      if (MacKeyPending ())
+	{  /* don't wait for a key if none has been pressed */
+	  *buf = MacGetChar ();
+	  return 1;
+	}
+      else
+	return 0;
+    }
+  else
+    return read (fildes, buf, count);
+}
+
+#undef write
+int
+sys_write (int fildes, char *buf, int count)
+{
+  if (fildes == DEV_NULL_FD)
+    return count;
+  else
+    return write (fildes, buf, count);
+}
+
+#undef rename
+int
+sys_rename (const char * old_name, const char * new_name)
+{
+  char MacOldName[MAXPATHLEN+1], MacNewName[MAXPATHLEN+1];
+	
+  if (strcmp (old_name, new_name) == 0)
+    return 0;
+
+  if (Unix2MacPathname (old_name, MacOldName, MAXPATHLEN+1) == 0)
+    return 1;
+		
+  if (Unix2MacPathname (new_name, MacNewName, MAXPATHLEN+1) == 0)
+    return 1;
+
+  return rename (MacOldName, MacNewName);
+}
+
+#undef fopen
+extern FILE *fopen (const char *name, const char *mode);
+FILE 
+sys_fopen (const char *name, const char *mode)
+{
+  char MacPathname[MAXPATHLEN+1];
+	
+  if (Unix2MacPathname (name, MacPathname, MAXPATHLEN+1) == 0)
+    return 0;
+  else
+    return fopen (MacPathname, mode);
+}
+
+#include <Events.h>
+
+long targetTicks = 0;
+
+#ifdef __MRC__
+__sigfun alarm_signal_func = (__sigfun) 0;
+#elif __MWERKS__
+__signal_func_ptr alarm_signal_func = (__signal_func_ptr) 0;
+#else
+You lose!!!
+#endif
+
+/* These functions simulate SIG_ALRM.  The stub for function signal
+   stores the signal handler function in alarm_signal_func if a
+   SIG_ALRM is encountered.  CheckAlarm is called in mac_read_socket,
+   which emacs calls periodically.  A pending alarm is represented by
+   a non-zero targetTicks value.  CheckAlarm calls the handler
+   function pointed to by alarm_signal_func if one has been set up and
+   an alarm is pending.  */
+void
+CheckAlarm ()
+{
+  if (targetTicks && TickCount () > targetTicks)
+    {
+      targetTicks = 0;
+      if (alarm_signal_func)
+	(*alarm_signal_func)(SIGALRM);
+    }
+}
+
+/* Called in sys_select to wait for an alarm signal to arrive.  */
+int
+pause ()
+{
+  unsigned long finalTick;
+  
+  if (!targetTicks)  /* no alarm pending */
+    return -1;
+
+  while (TickCount () <= targetTicks)
+    Delay (1UL, &finalTick);  /* wait for 1/60 second before trying again */
+  
+  targetTicks = 0;
+  if (alarm_signal_func)
+    (*alarm_signal_func)(SIGALRM);
+  
+  return 0;
+}
+
+int
+alarm (int seconds)
+{
+  long remaining = targetTicks ? (TickCount () - targetTicks) / 60 : 0;
+	
+  targetTicks = seconds ? TickCount () + 60 * seconds : 0;
+	
+  return (remaining < 0) ? 0 : (unsigned int) remaining;
+}
+
+#undef signal
+#ifdef __MRC__
+extern __sigfun signal (int signal, __sigfun signal_func);
+__sigfun
+sys_signal (int signal_num, __sigfun signal_func)
+#elif __MWERKS__
+extern __signal_func_ptr signal (int signal, __signal_func_ptr signal_func);
+__signal_func_ptr
+sys_signal (int signal_num, __signal_func_ptr signal_func)
+#else
+     You lose!!!
+#endif
+{
+  if (signal_num != SIGALRM)
+    return signal (signal_num, signal_func);
+  else
+    {
+#ifdef __MRC__
+      __sigfun old_signal_func;		
+#elif __MWERKS__
+      __signal_func_ptr old_signal_func;		
+#else
+      You lose!!!
+#endif
+	old_signal_func = alarm_signal_func;
+      alarm_signal_func = signal_func;
+      return old_signal_func;
+    }
+}
+
+/* The time functions adjust time values according to the difference
+   between the Unix and CW epoches. */
+
+#undef gmtime
+extern struct tm *gmtime (const time_t *);
+struct tm 
+sys_gmtime (const time_t *timer)
+{
+  time_t unixTime = *timer + CW_UNIX_EPOCH_DIFF;
+  
+  return gmtime (&unixTime);
+}
+
+#undef localtime
+extern struct tm *localtime (const time_t *);
+struct tm *
+sys_localtime (const time_t *timer)
+{
+  time_t unixTime = *timer + CW_UNIX_EPOCH_DIFF;
+  
+  return localtime (&unixTime);
+}
+
+#undef ctime
+extern char *ctime (const time_t *);
+char *
+sys_ctime (const time_t *timer)
+{
+  time_t unixTime = *timer + CW_UNIX_EPOCH_DIFF;
+  
+  return ctime (&unixTime);
+}
+
+#undef time
+extern time_t time (time_t *);
+time_t
+sys_time (time_t *timer)
+{
+  time_t macTime = time (NULL) - CW_UNIX_EPOCH_DIFF;
+
+  if (timer)
+    *timer = macTime;
+    
+  return macTime;
+}
+
+/* no subprocesses, empty wait */
+int
+wait (int pid)
+{
+  return 0;
+}
+
+void
+croak (char *badfunc)
+{
+  printf ("%s not yet implemented\r\n", badfunc);
+  exit (1);
+}
+
+char *
+index (const char * str, int chr)
+{
+  return strchr (str, chr);
+}
+
+char *e[] = { 0 };
+char **environ = &e[0];
+
+char *
+mktemp (char *template)
+{
+  int len, k;
+  static seqnum = 0;
+  
+  len = strlen (template);
+  k = len - 1;
+  while (k >= 0 && template[k] == 'X')
+    k--;
+  
+  k++;  /* make k index of first 'X' */
+  
+  if (k < len)
+    {
+      /* Zero filled, number of digits equal to the number of X's.  */
+      sprintf (&template[k], "%0*d", len-k, seqnum++);
+  
+      return template;
+    }
+  else
+    return 0;  
+}
+
+/* Emulate getpwuid, getpwnam and others.  */
+
+#define PASSWD_FIELD_SIZE 256
+
+static char myPasswdName[PASSWD_FIELD_SIZE];
+static char myPasswdDir[MAXPATHLEN+1];
+
+static struct passwd myPasswd = 
+{
+  myPasswdName,
+  myPasswdDir,
+};
+
+/* Initialized by main () in macterm.c to pathname of emacs directory.  */
+char emacsPasswdDir[MAXPATHLEN+1];
+
+void
+InitEmacsPasswdDir ()
+{
+  int found = false;
+
+  if (getwd (emacsPasswdDir) && getwd (myPasswdDir))
+    {  
+      /* Need pathname of first ancestor that begins with `emacs' since
+	 Mac emacs application is somewhere in the emacs-20.3 tree.  */
+      int len = strlen (emacsPasswdDir);
+      /* J points to the "/" following the directory name being compared.  */
+      int j = len - 1;
+      int i = j - 1;
+      while (i >= 0 && !found)
+	{
+	  while (i >= 0 && emacsPasswdDir[i] != '/')
+	    i--;
+	  if (emacsPasswdDir[i] == '/' && i+5 < len)
+	    found = (strncmp (&(emacsPasswdDir[i+1]), "emacs", 5) == 0);
+	  if (found)
+	    emacsPasswdDir[j+1] = '\0';
+	  else
+	    {
+	      j = i;
+	      i = j - 1;
+	    }
+	}
+    }
+  
+  if (!found)
+    {  /* setting to "/" probably won't work,
+	  but set it to something anyway.  */
+      strcpy (emacsPasswdDir, "/");
+      strcpy (myPasswdDir, "/");
+    }
+}
+
+static struct passwd emacsPasswd = 
+{
+  "emacs",
+  emacsPasswdDir,
+};
+
+static int myPasswdInited = 0;
+
+static void
+InitMyPasswd ()
+{
+  char **ownerName;
+
+  /* Note: myPasswdDir initialized in InitEmacsPasswdDir to directory
+     where Emacs was started. */
+
+  ownerName = (char **) GetResource ('STR ',-16096);
+  if (ownerName)
+    {
+      HLock (ownerName);
+      BlockMove ((unsigned char *) *ownerName,
+		 (unsigned char *) myPasswdName, *ownerName[0] + 1);
+      HUnlock (ownerName);
+      p2cstr ((unsigned char *) myPasswdName);
+    }
+  else
+    myPasswdName[0] = 0;
+}
+
+struct passwd *
+getpwuid (uid_t uid)
+{
+  if (!myPasswdInited)
+    {  
+      InitMyPasswd ();
+      myPasswdInited = 1;
+    }
+  
+  return &myPasswd;
+}
+
+struct passwd *
+getpwnam (const char *name)
+{
+  if (strcmp (name, "emacs") == 0)
+  	return &emacsPasswd;
+
+  if (!myPasswdInited)
+    {  
+      InitMyPasswd ();
+      myPasswdInited = 1;
+    }
+  
+  return &myPasswd;
+}
+
+/* The functions fork, kill, sigsetmask, sigblock, request_sigio,
+   setpgrp, setpriority, and unrequest_sigio are defined to be empty
+   as in msdos.c.  */
+
+int
+fork ()
+{
+  return -1;
+}
+
+int
+kill (int x, int y)
+{
+  return -1;
+}
+
+int
+sigsetmask (int x)
+{
+  return 0;
+}
+
+int
+sigblock (int mask)
+{
+  return 0;
+} 
+
+void
+request_sigio (void)
+{
+}
+
+int
+setpgrp ()
+{
+  return 0;
+}
+
+void
+unrequest_sigio (void)
+{
+}
+
+/* djgpp does not implement pipe either.  */
+int
+pipe (int _fildes[2])
+{
+  errno = EACCES;
+  return -1;
+}
+
+/* Hard and symbolic links.  */
+int
+symlink (const char *name1, const char *name2)
+{
+  errno = ENOENT;
+  return -1;
+}
+
+int
+link (const char *name1, const char *name2)
+{
+  errno = ENOENT;
+  return -1;
+}
+
+int
+lstat (const char *path, struct stat *sb)
+{
+  return stat (path, sb);
+}
+
+int
+readlink (const char *path, char *buf, int bufsiz)
+{
+  errno = ENOENT;
+  return -1;
+}
+
+mode_t
+umask (mode_t numask)
+{
+  static mode_t mask = 022;
+  mode_t oldmask = mask;
+  mask = numask;
+  return oldmask;
+}
+
+int
+chmod (const char *path, mode_t mode)
+{
+  /* say it always succeed for now */
+  return 0;
+}
+
+int
+dup (int oldd)
+{
+#ifdef __MRC__
+  return fcntl (oldd, F_DUPFD, 0);
+#elif __MWERKS__
+  /* current implementation of fcntl in fcntl.mac.c simply returns old
+     descriptor */
+  return fcntl (oldd, F_DUPFD);
+#else
+You lose!!!
+#endif
+}
+
+/* This is from the original sysdep.c.  Emulate BSD dup2.  First close
+   newd if it already exists.  Then, attempt to dup oldd.  If not
+   successful, call dup2 recursively until we are, then close the
+   unsuccessful ones.  */
+int
+dup2 (int oldd, int newd)
+{
+  int fd, ret;
+  
+  close (newd);
+
+  fd = dup (oldd);
+  if (fd == -1)
+    return -1;
+  if (fd == newd)
+    return newd;
+  ret = dup2 (oldd, newd);
+  close (fd);
+  return ret;
+}
+
+/* let it fail for now */
+char *
+sbrk (int incr)
+{
+  return (char *) -1;
+}
+
+int
+fsync (int fd)
+{
+  return 0;
+}
+
+int
+ioctl (int d, int request, void *argp)
+{
+  return -1;
+}
+
+#ifdef __MRC__
+int
+isatty (int fildes)
+{
+  if (fildes >=0 && fildes <= 2)
+    return 1;
+  else
+    return 0;
+}
+
+int
+getgid ()
+{
+  return 100;
+}
+
+int
+getegid ()
+{
+  return 100;
+}
+
+int
+getuid ()
+{
+  return 200;
+}
+
+int
+geteuid ()
+{
+  return 200;
+}
+
+unsigned int
+sleep (unsigned int seconds)
+{
+  unsigned long finalTick;
+
+  Delay (seconds * 60UL, &finalTick);
+  return (0);
+}
+#endif /* __MRC__ */
+
+#ifdef __MWERKS__
+#undef getpid
+int
+getpid ()
+{
+  return 9999;
+}
+#endif /* __MWERKS__ */
+
+/* Return the path to the directory in which Emacs can create
+   temporary files.  The MacOS "temporary items" directory cannot be
+   used because it removes the file written by a process when it
+   exits.  In that sense it's more like "/dev/null" than "/tmp" (but
+   again not exactly).  And of course Emacs needs to read back the
+   files written by its subprocesses.  So here we write the files to a
+   directory "Emacs" in the Preferences Folder.  This directory is
+   created if it does not exist.  */
+static char *
+GetTempDirName ()
+{
+  static char *TempDirName = NULL;
+  short vRefNum;
+  long dirID;
+  OSErr err;
+  Str255 dirName, fullPath;
+  CInfoPBRec cpb;
+  char unixDirName[MAXPATHLEN+1];
+  DIR *dir;
+  
+  /* Cache directory name with pointer TempDirName.
+     Look for it only the first time.  */
+  if (!TempDirName)
+    {
+      err = FindFolder (kOnSystemDisk, kPreferencesFolderType,
+			kCreateFolder, &vRefNum, &dirID);
+      if (err != noErr)
+	return NULL;
+
+      *fullPath = '\0';
+      cpb.dirInfo.ioNamePtr = dirName;
+      cpb.dirInfo.ioDrParID = dirID;
+    
+      /* Standard ref num to full path name loop */
+      do {
+	cpb.dirInfo.ioVRefNum = vRefNum;
+	cpb.dirInfo.ioFDirIndex = -1;
+	cpb.dirInfo.ioDrDirID = cpb.dirInfo.ioDrParID;
+      
+	err = PBGetCatInfo (&cpb, false);
+      
+	p2cstr (dirName);
+	strcat (dirName, ":");
+	if (strlen (fullPath) + strlen (dirName) <= MAXPATHLEN)
+	  {
+	    strcat (dirName, fullPath);
+	    strcpy (fullPath, dirName);
+	  }
+	else
+	  return NULL;
+      }
+      while (cpb.dirInfo.ioDrDirID != fsRtDirID && err == noErr);
+
+      if (strlen (fullPath) + 6 <= MAXPATHLEN)
+	strcat (fullPath, "Emacs:");
+      else
+	return NULL;
+
+      if (Mac2UnixPathname (fullPath, unixDirName, MAXPATHLEN+1) == 0)
+	return NULL;
+    
+      dir = opendir (unixDirName);  /* check whether temp directory exists */
+      if (dir)
+	closedir (dir);
+      else if (mkdir (unixDirName, 0700) != 0)  /* create it if not */
+	return NULL;
+
+      TempDirName = (char *) malloc (strlen (unixDirName) + 1);
+      strcpy (TempDirName, unixDirName);
+    }
+
+  return TempDirName;
+}
+
+char *
+getenv (const char * name)
+{
+  if (strcmp (name, "TERM") == 0)
+    return "vt100";
+  else if (strcmp (name, "TERMCAP") == 0)
+    /* for debugging purpose when code was still outputting to dumb terminal */
+    return "d0|vt100|vt100-am|vt100am|dec vt100:do=[do]:co#100:li#32:cl=[cl]:sf=[sf]:km:\
+:le=[le]:bs:am:cm=[cm-%d,%d]:nd=[nd]:up=[up]:ce=[ce]:cd=[cd]:so=[so]:se=[se]:\
+:us=[us]:ue=[ue]:md=[md]:mr=[mr]:mb=[mb]:me=[me]:is=[is]:\
+:rf=/usr/share/lib/tabset/vt100:rs=[rs]:ks=[ks]:ke=[ke]:\
+:ku=\\036:kd=\\037:kr=\\035:kl=\\034:kb=[kb]:ho=[ho]:k1=[k1]:k2=[k2]:k3=[k3]:k4=[k4]:\
+:pt:sr=[sr]:vt#3:xn:sc=[sc]:rc=[rc]:cs=[cs-%d,%d]";
+  else if (strcmp (name, "TMPDIR") == 0)
+    return GetTempDirName ();
+  else
+    return (NULL);
+}
+
+#ifdef __MRC__
+/* see Interfaces&Libraries:Interfaces:CIncludes:signal.h */
+char *sys_siglist[] =
+{
+  "Zero is not a signal!!!",
+  "Abort",  /* 1 */
+  "Interactive user interrupt",  /* 2 */  "BAD",
+  "Floating point exception",  /* 4 */  "BAD", "BAD", "BAD",
+  "Illegal instruction",  /* 8 */  "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD",
+  "Segment violation",  /* 16 */  "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD",
+  "Terminal"  /* 32 */
+};
+#elif __MWERKS__
+char *sys_siglist[] =
+{
+  "Zero is not a signal!!!",
+  "Abort",
+  "Floating point exception",
+  "Illegal instruction",
+  "Interactive user interrupt",
+  "Segment violation",
+  "Terminal"
+};
+#else
+You lose!!!
+#endif
+
+#ifdef __MRC__
+#include <utsname.h>
+
+int
+uname (struct utsname *name)
+{
+  char **systemName;
+  systemName = GetString (-16413);  /* IM - Resource Manager Reference */
+  if (systemName)
+    {
+      BlockMove (*systemName, name->nodename, (*systemName)[0]+1);
+      p2cstr (name->nodename);
+    }
+  else
+    return -1;
+}
+#endif
+
+#include <Processes.h>
+#include <EPPC.h>
+
+/* Event class of HLE sent to subprocess.  */
+const OSType kEmacsSubprocessSend = 'ESND';
+/* Event class of HLE sent back from subprocess.  */
+const OSType kEmacsSubprocessReply = 'ERPY';
+
+char *
+mystrchr (char *s, char c)
+{
+  while (*s && *s != c)
+    {
+      if (*s == '\\')
+	s++;
+      s++;
+    }
+
+  if (*s)
+    {
+      *s = '\0';
+      return s;
+    }
+  else
+    return NULL;
+}
+
+char *
+mystrtok (char *s)
+{	
+  while (*s)
+    s++;
+
+  return s + 1;
+}
+
+void
+mystrcpy (char *to, char *from)
+{
+  while (*from)
+    {
+      if (*from == '\\')
+	from++;
+      *to++ = *from++;
+    }
+  *to = '\0';
+}
+
+/* Start a Mac subprocess.  Arguments for it is passed in argv (null
+   terminated).  The process should run with the default directory
+   "workdir", read input from "infn", and write output and error to
+   "outfn" and "errfn", resp.  The Process Manager call
+   LaunchApplication is used to start the subprocess.  We use high
+   level events as the mechanism to pass arguments to the subprocess
+   and to make Emacs wait for the subprocess to terminate and pass
+   back a result code.  The bulk of the code here packs the arguments
+   into one message to be passed together with the high level event.
+   Emacs also sometimes starts a subprocess using a shell to perform
+   wildcard filename expansion.  Since we don't really have a shell on
+   the Mac, this case is detected and the starting of the shell is
+   by-passed.  We really need to add code here to do filename
+   expansion to support such functionality. */
+int
+run_mac_command (argv, workdir, infn, outfn, errfn)
+     unsigned char **argv;
+     const char *workdir;
+     const char *infn, *outfn, errfn;
+{
+  char macappname[MAXPATHLEN+1], macworkdir[MAXPATHLEN+1];
+  char macinfn[MAXPATHLEN+1], macoutfn[MAXPATHLEN+1], macerrfn[MAXPATHLEN+1];
+  int paramlen, argc, newargc, j, retries;
+  char **newargv, *param, *p;
+  OSErr iErr;
+  FSSpec spec;
+  LaunchParamBlockRec lpbr;
+  EventRecord sendEvent, replyEvent;
+  RgnHandle cursorRegionHdl;
+  TargetID targ;
+  unsigned long refCon, len;
+ 	
+  if (Unix2MacPathname (workdir, macworkdir, MAXPATHLEN+1) == 0)
+    return -1;
+  if (Unix2MacPathname (infn, macinfn, MAXPATHLEN+1) == 0)
+    return -1;
+  if (Unix2MacPathname (outfn, macoutfn, MAXPATHLEN+1) == 0)
+    return -1;
+  if (Unix2MacPathname (errfn, macerrfn, MAXPATHLEN+1) == 0)
+    return -1;
+  
+  paramlen = strlen (macworkdir) + strlen (macinfn) + strlen (macoutfn) + strlen (macerrfn) + 4;
+  /* count nulls at end of strings */
+
+  argc = 0;
+  while (argv[argc])
+    argc++;
+
+  if (argc == 0)
+    return -1;
+
+  /* If a subprocess is invoked with a shell, we receive 3 arguments of the form:
+     "<path to emacs bins>/sh" "-c" "<path to emacs bins>/<command> <command args>" */
+  j = strlen (argv[0]);
+  if (j >= 3 && strcmp (argv[0]+j-3, "/sh") == 0 && argc == 3 && strcmp (argv[1], "-c") == 0)
+    {
+      char *command, *t, tempmacpathname[MAXPATHLEN+1];
+    
+      /* The arguments for the command in argv[2] are separated by spaces.  Count them and put
+	 the count in newargc.  */
+      command = (char *) alloca (strlen (argv[2])+2);
+      strcpy (command, argv[2]);
+      if (command[strlen (command) - 1] != ' ')
+	strcat (command, " ");
+    
+      t = command;
+      newargc = 0;
+      t = mystrchr (t, ' ');
+      while (t)
+	{
+	  newargc++;
+	  t = mystrchr (t+1, ' ');
+	}
+    
+      newargv = (char **) alloca (sizeof (char *) * newargc);
+    
+      t = command;
+      for (j = 0; j < newargc; j++)
+	{
+	  newargv[j] = (char *) alloca (strlen (t) + 1);
+	  mystrcpy (newargv[j], t);
+
+	  t = mystrtok (t);
+	  paramlen += strlen (newargv[j]) + 1;
+	}
+    
+      if (strncmp (newargv[0], "~emacs/", 7) == 0)
+	{
+	  if (Unix2MacPathname (newargv[0], tempmacpathname, MAXPATHLEN+1) == 0)
+	    return -1;
+	}
+      else
+	{  /* sometimes Emacs call "sh" without a path for the command */
+#if 0
+	  char *t = (char *) alloca (strlen (newargv[0]) + 7 + 1);
+	  strcpy (t, "~emacs/");
+	  strcat (t, newargv[0]);
+#endif
+	  Lisp_Object path;
+	  openp (Vexec_path, build_string (newargv[0]), EXEC_SUFFIXES, &path, 1);
+
+	  if (NILP (path))
+	    return -1;
+	  if (Unix2MacPathname (XSTRING (path)->data, tempmacpathname, MAXPATHLEN+1) == 0)
+	    return -1;
+	}
+      strcpy (macappname, tempmacpathname);
+    }
+  else
+    {      
+      if (Unix2MacPathname (argv[0], macappname, MAXPATHLEN+1) == 0)
+	return -1;
+
+      newargv = (char **) alloca (sizeof (char *) * argc);
+      newargc = argc;  
+      for (j = 1; j < argc; j++)
+	{
+	  if (strncmp (argv[j], "~emacs/", 7) == 0)
+	    {
+	      char *t = strchr (argv[j], ' ');
+	      if (t)
+		{
+		  char tempcmdname[MAXPATHLEN+1], tempmaccmdname[MAXPATHLEN+1];
+		  strncpy (tempcmdname, argv[j], t-argv[j]);
+		  tempcmdname[t-argv[j]] = '\0';
+		  if (Unix2MacPathname (tempcmdname, tempmaccmdname, MAXPATHLEN+1) == 0)
+		    return -1;
+		  newargv[j] = (char *) alloca (strlen (tempmaccmdname) + strlen (t) + 1);
+		  strcpy (newargv[j], tempmaccmdname);
+		  strcat (newargv[j], t);
+		}
+	      else
+		{
+		  char tempmaccmdname[MAXPATHLEN+1];
+		  if (Unix2MacPathname (argv[j], tempmaccmdname, MAXPATHLEN+1) == 0)
+		    return -1;
+		  newargv[j] = (char *) alloca (strlen (tempmaccmdname)+1);
+		  strcpy (newargv[j], tempmaccmdname);
+		}
+	    }
+	  else
+	    newargv[j] = argv[j];  
+	  paramlen += strlen (newargv[j]) + 1;
+	}
+    }
+
+  /* After expanding all the arguments, we now know the length of the parameter block to be
+     sent to the subprocess as a message attached to the HLE. */
+  param = (char *) malloc (paramlen + 1);
+  if (!param)
+    return -1;
+
+  p = param;
+  *p++ = newargc;  /* first byte of message contains number of arguments for command */
+  strcpy (p, macworkdir);
+  p += strlen (macworkdir);
+  *p++ = '\0';  /* null terminate strings sent so it's possible to use strcpy over there */
+  strcpy (p, macinfn);
+  p += strlen (macinfn);
+  *p++ = '\0';  
+  strcpy (p, macoutfn);
+  p += strlen (macoutfn);
+  *p++ = '\0';  
+  strcpy (p, macerrfn);
+  p += strlen (macerrfn);
+  *p++ = '\0';  
+  for (j = 1; j < newargc; j++) {
+    strcpy (p, newargv[j]);
+    p += strlen (newargv[j]);
+    *p++ = '\0';  
+  }
+  
+  c2pstr (macappname);
+  
+  iErr = FSMakeFSSpec (0, 0, macappname, &spec);
+  
+  if (iErr != noErr) {
+    free (param);
+    return -1;
+  }
+
+  lpbr.launchBlockID = extendedBlock;
+  lpbr.launchEPBLength = extendedBlockLen;
+  lpbr.launchControlFlags = launchContinue + launchNoFileFlags;
+  lpbr.launchAppSpec = &spec;
+  lpbr.launchAppParameters = NULL;
+
+  iErr = LaunchApplication (&lpbr);  /* call the subprocess */
+  if (iErr != noErr) {
+    free (param);
+    return -1;
+  }
+
+  sendEvent.what = kHighLevelEvent;
+  sendEvent.message = kEmacsSubprocessSend;  /* Event ID stored in "where" unused */
+
+  retries = 3;
+  do {  /* OS may think current subprocess has terminated if previous one terminated recently */
+    iErr = PostHighLevelEvent (&sendEvent, &lpbr.launchProcessSN, 0, param, paramlen + 1, receiverIDisPSN);
+  }
+  while (iErr == sessClosedErr && retries-- > 0);
+
+  if (iErr != noErr) {
+    free (param);
+    return -1;
+  }
+
+  cursorRegionHdl = NewRgn ();
+	
+  /* Wait for the subprocess to finish, when it will send us a ERPY high level event */
+  while (1)
+    if (WaitNextEvent (highLevelEventMask, &replyEvent, 180, cursorRegionHdl) && replyEvent.message == kEmacsSubprocessReply)
+      break;
+  
+  /* The return code is sent through the refCon */
+  iErr = AcceptHighLevelEvent (&targ, &refCon, NULL, &len);
+  if (iErr != noErr) {
+    DisposeHandle ((Handle) cursorRegionHdl);
+    free (param);
+    return -1;
+  }
+  
+  DisposeHandle ((Handle) cursorRegionHdl);
+  free (param);
+
+  return refCon;
+}
+
+DIR *
+opendir (const char *dirname)
+{
+  char MacPathname[MAXPATHLEN+1];
+  DIR *dirp;
+  CInfoPBRec cipb;
+  int len;
+
+  dirp = (DIR *) malloc (sizeof (DIR));
+  if (!dirp)
+    return 0;
+
+  /* Handle special case when dirname is "/": sets up for readir to
+     get all mount volumes. */
+  if (strcmp (dirname, "/") == 0) {
+    dirp->getting_volumes = 1;  /* special all mounted volumes DIR struct */
+    dirp->current_index = 1;  /* index for first volume */
+    return dirp;
+  }
+
+  /* Handle typical cases: not accessing all mounted volumes. */
+  if (Unix2MacPathname (dirname, MacPathname, MAXPATHLEN+1) == 0)
+    return 0;
+
+  /* Emacs calls opendir without the trailing '/', Mac needs trailing ':' */
+  len = strlen (MacPathname);
+  if (MacPathname[len - 1] != ':' && len < MAXPATHLEN)
+    strcat (MacPathname, ":");
+
+  c2pstr (MacPathname);
+  cipb.hFileInfo.ioNamePtr = MacPathname;  /* using full pathname so vRefNum and dirID ignored */
+  cipb.hFileInfo.ioVRefNum = 0;
+  cipb.hFileInfo.ioDirID = 0;
+  cipb.hFileInfo.ioFDirIndex = 0;  /* set to 0 to get information about specific dir or file */
+  
+  errno = PBGetCatInfo (&cipb, false);
+  if (errno != noErr) {
+    errno = ENOENT;
+    return 0;
+  }
+
+  if (!(cipb.hFileInfo.ioFlAttrib & 0x10))  /* bit 4 = 1 for directories */
+    return 0;  /* not a directory */
+
+  dirp->dir_id = cipb.dirInfo.ioDrDirID;  /* used later in readdir */
+  dirp->getting_volumes = 0;
+  dirp->current_index = 1;  /* index for first file/directory */
+  
+  return dirp;
+}
+
+int
+closedir (DIR *dp)
+{
+  free (dp);
+
+  return 0;
+}
+
+struct dirent *
+readdir (DIR *dp)
+{
+  HParamBlockRec HPBlock;
+  CInfoPBRec cipb;
+  static struct dirent s_dirent;
+  static Str255 s_name;
+  int done;
+
+  /* Handle the root directory containing the mounted volumes.  Call
+     PBHGetVInfo specifying an index to obtain the info for a volume.
+     PBHGetVInfo returns an error when it receives an index beyond the
+     last volume, at which time we should return a nil dirent struct
+     pointer. */
+  if (dp->getting_volumes) {
+    HPBlock.volumeParam.ioNamePtr = s_name;
+    HPBlock.volumeParam.ioVRefNum = 0;
+    HPBlock.volumeParam.ioVolIndex = dp->current_index;
+                
+    errno = PBHGetVInfo (&HPBlock, false);
+    if (errno != noErr) {
+      errno = ENOENT;
+      return 0;
+    }
+                        
+    p2cstr (s_name);
+    strcat (s_name, "/");  /* need "/" for stat to work correctly */
+
+    dp->current_index++;
+
+    s_dirent.d_ino = cipb.dirInfo.ioDrDirID;
+    s_dirent.d_name = s_name;
+  
+    return &s_dirent;
+  }
+  else {
+    cipb.hFileInfo.ioVRefNum = 0;
+    cipb.hFileInfo.ioNamePtr = s_name;  /* location to receive filename returned */
+
+    /* return only visible files */
+    done = false;
+    while (!done) {
+      cipb.hFileInfo.ioDirID = dp->dir_id;  /* directory ID found by opendir */
+      cipb.hFileInfo.ioFDirIndex = dp->current_index;
+
+      errno = PBGetCatInfo (&cipb, false);
+      if (errno != noErr) {
+        errno = ENOENT;
+        return 0;
+      }
+
+      /* insist on an visibile entry */
+      if (cipb.hFileInfo.ioFlAttrib & 0x10)  /* directory? */
+        done = !(cipb.dirInfo.ioDrUsrWds.frFlags & fInvisible);
+      else
+        done = !(cipb.hFileInfo.ioFlFndrInfo.fdFlags & fInvisible);
+
+      dp->current_index++;
+    }
+
+    p2cstr (s_name);
+
+    s_dirent.d_ino = cipb.dirInfo.ioDrDirID;  /* value unimportant: non-zero for valid file */
+    s_dirent.d_name = s_name;
+  
+    return &s_dirent;
+  }
+}
+
+char *
+getwd (char *path)
+{
+  char MacPathname[MAXPATHLEN+1];
+  Str255 directoryName;
+  OSErr errno;
+  CInfoPBRec cipb;
+
+  MacPathname[0] = '\0';
+  directoryName[0] = '\0';
+  cipb.dirInfo.ioDrParID = 0;
+  cipb.dirInfo.ioNamePtr = directoryName;  /* empty string = default directory */
+
+  do {
+    cipb.dirInfo.ioVRefNum = 0;
+    cipb.dirInfo.ioFDirIndex = -1;
+    cipb.dirInfo.ioDrDirID = cipb.dirInfo.ioDrParID;  /* go up to parent each time */
+
+    errno = PBGetCatInfo (&cipb, false);
+    if (errno != noErr) {
+      errno = ENOENT;
+      return 0;
+    }
+
+    p2cstr (directoryName);
+    strcat (directoryName, ":");
+    strcat (directoryName, MacPathname);  /* attach to front since going up directory tree */
+    strcpy (MacPathname, directoryName);
+  } while (cipb.dirInfo.ioDrDirID != fsRtDirID);  /* until volume's root directory */
+
+  if (Mac2UnixPathname (MacPathname, path, MAXPATHLEN+1) == 0)
+    return 0;
+  else
+    return path;
+}
+
+#endif /* macintosh */
