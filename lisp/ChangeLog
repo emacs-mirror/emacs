@@ -1,5 +1,7 @@
 2003-03-26  Kenichi Handa  <handa@etlken2>
 
+	* files.el (recode-file-name): New function.
+
 	* international/characters.el: Setup categories for Indian
 	characters.
 

@@ -138,6 +138,9 @@ to alter the file.)
 ** The new command `revert-buffer-with-coding-system' (C-x RET r)
 revisits the current file using a coding system that you specify.
 
+** The new command `recode-file-name' changes the encoding of the name
+of a file.
+
 ---
 ** `ps-print' can now print characters from the mule-unicode charsets.
 
