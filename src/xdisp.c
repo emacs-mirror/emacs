@@ -1206,7 +1206,7 @@ redisplay_internal (preserve_echo_area)
 				 1 << (BITS_PER_SHORT - 1),
 				 window_internal_width (w) - 1,
 				 XINT (w->hscroll), 0, w);
-	  SET_PT_BOTH (opoint, opoint_byte);
+	  TEMP_SET_PT_BOTH (opoint, opoint_byte);
 	  if (val.hpos != this_line_start_hpos)
 	    goto cancel;
 
@@ -2698,13 +2698,13 @@ try_window_id (window)
 
   /* Find first visible newline after which no more is changed.  */
   opoint = PT, opoint_byte = PT_BYTE;
-  SET_PT (Z - max (end_unchanged, Z - ZV));
+  TEMP_SET_PT (Z - max (end_unchanged, Z - ZV));
   scan_newline (PT, PT_BYTE, ZV, ZV_BYTE, 1, 1);
   if (selective > 0)
     while (PT < ZV - 1 && indented_beyond_p (PT, PT_BYTE, selective))
       scan_newline (PT, PT_BYTE, ZV, ZV_BYTE, 1, 1);
   tem = PT;
-  SET_PT_BOTH (opoint, opoint_byte);
+  TEMP_SET_PT_BOTH (opoint, opoint_byte);
 
   /* Compute the cursor position after that newline.  */
   ep = *compute_motion (pos, vpos, val.hpos, did_motion, tem,
@@ -3668,7 +3668,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 		  pos--;
 		  pos_byte--;
 		}
-	      SET_PT_BOTH (opoint, opoint_byte);
+	      TEMP_SET_PT_BOTH (opoint, opoint_byte);
 	    }
 	  if (invis && selective_rlen > 0 && p1 >= leftmargin)
 	    {
@@ -3744,7 +3744,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 	  int opoint = PT, opoint_byte = PT_BYTE;
 	  scan_newline (pos, pos_byte, ZV, ZV_BYTE, 1, 1);
 	  pos = PT, pos_byte = PT_BYTE;
-	  SET_PT_BOTH (opoint, opoint_byte);
+	  TEMP_SET_PT_BOTH (opoint, opoint_byte);
 
 	  if (FETCH_BYTE (pos_byte - 1) == '\n')
 	    pos--, pos_byte--;
@@ -3962,7 +3962,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 	  int opoint = PT, opoint_byte = PT_BYTE;
 
 	  /* If stopped due to a newline, start next line after it */
-	  SET_PT_BOTH (pos + 1, pos_byte + 1);
+	  TEMP_SET_PT_BOTH (pos + 1, pos_byte + 1);
 
 	  val.tab_offset = 0;
 	  /* Check again for hidden lines, in case the newline occurred exactly
@@ -3972,7 +3972,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 	    scan_newline (PT, PT_BYTE, ZV, ZV_BYTE, 1, 1);
 
 	  pos = PT, pos_byte = PT_BYTE;
-	  SET_PT_BOTH (opoint, opoint_byte);
+	  TEMP_SET_PT_BOTH (opoint, opoint_byte);
 	}
       else
 	/* Stopped due to right margin of window */
@@ -3981,7 +3981,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 	    {
 	      int opoint = PT, opoint_byte = PT_BYTE;
 
-	      SET_PT_BOTH (pos, pos_byte);
+	      TEMP_SET_PT_BOTH (pos, pos_byte);
 	      *p1++ = fix_glyph (f, truncator, 0);
 	      /* Truncating => start next line after next newline,
 		 and point is on this line if it is before the newline,
@@ -3992,7 +3992,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 		     && indented_beyond_p (PT, PT_BYTE, selective));
 	      pos = PT, pos_byte = PT_BYTE;
 	      val.hpos = XINT (w->hscroll) ? 1 - XINT (w->hscroll) : 0;
-	      SET_PT_BOTH (opoint, opoint_byte);
+	      TEMP_SET_PT_BOTH (opoint, opoint_byte);
 
 	      lastpos = pos - (FETCH_BYTE (pos_byte - 1) == '\n');
 	      lastpos_byte = CHAR_TO_BYTE (lastpos);
