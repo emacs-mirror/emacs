@@ -1388,7 +1388,7 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
      int inherit;
 {
   register Lisp_Object temp;
-  int chunk;
+  int chunk, chunk_expanded;
   int from_byte = buf_charpos_to_bytepos (buf, from);
   int to_byte = buf_charpos_to_bytepos (buf, from + nchars);
   int incoming_nbytes = to_byte - from_byte;
@@ -1403,10 +1403,31 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
   if (NILP (current_buffer->enable_multibyte_characters))
     outgoing_nbytes = nchars;
   else if (NILP (buf->enable_multibyte_characters))
-    outgoing_nbytes
-      = count_size_as_multibyte (BUF_BYTE_ADDRESS (buf, from_byte),
-				 incoming_nbytes);
+    {
+      int outgoing_before_gap = 0;
+      int outgoing_after_gap = 0;
 
+      if (from < BUF_GPT (buf))
+	{
+	  chunk =  BUF_GPT_BYTE (buf) - from_byte;
+	  if (chunk > incoming_nbytes)
+	    chunk = incoming_nbytes;
+	  outgoing_before_gap
+	    = count_size_as_multibyte (BUF_BYTE_ADDRESS (buf, from_byte),
+				       chunk);
+	}
+      else
+	chunk = 0;
+
+      if (chunk < incoming_nbytes)
+	outgoing_after_gap
+	  = count_size_as_multibyte (BUF_BYTE_ADDRESS (buf, 
+						       from_byte + chunk),
+				     incoming_nbytes - chunk);
+
+      outgoing_nbytes = outgoing_before_gap + outgoing_after_gap;
+    }
+  
   /* Make sure point-max won't overflow after this insertion.  */
   XSETINT (temp, outgoing_nbytes + Z);
   if (outgoing_nbytes + Z != XINT (temp))
@@ -1427,16 +1448,20 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
       chunk = BUF_GPT_BYTE (buf) - from_byte;
       if (chunk > incoming_nbytes)
 	chunk = incoming_nbytes;
-      copy_text (BUF_BYTE_ADDRESS (buf, from_byte),
-		 GPT_ADDR, chunk,
-		 ! NILP (buf->enable_multibyte_characters),
-		 ! NILP (current_buffer->enable_multibyte_characters));
+      /* Record number of output bytes, so we know where
+	 to put the output from the second copy_text.  */
+      chunk_expanded
+	= copy_text (BUF_BYTE_ADDRESS (buf, from_byte),
+		     GPT_ADDR, chunk,
+		     ! NILP (buf->enable_multibyte_characters),
+		     ! NILP (current_buffer->enable_multibyte_characters));
     }
   else
-    chunk = 0;
+    chunk_expanded = chunk = 0;
+
   if (chunk < incoming_nbytes)
     copy_text (BUF_BYTE_ADDRESS (buf, from_byte + chunk),
-	       GPT_ADDR + chunk, incoming_nbytes - chunk,
+	       GPT_ADDR + chunk_expanded, incoming_nbytes - chunk,
 	       ! NILP (buf->enable_multibyte_characters),
 	       ! NILP (current_buffer->enable_multibyte_characters));
 
