@@ -1,5 +1,9 @@
 2000-11-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (pos_visible_p): Handle case that we reach ZV without
+	knowing the line's height; use the default font's height in that
+	case.
+
 	* xfaces.c (weight_table): Add `demi' with the same meaning as
 	`demibold'.
 
