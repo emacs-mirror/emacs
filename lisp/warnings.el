@@ -30,16 +30,17 @@
 ;;; Code:
 
 (defvar warning-levels
-  '((:emergency "Emergency: " ding)
-    (:error "Error: ")
-    (:warning "Warning: ")
-    (:debug "Debug: "))
+  '((:emergency "Emergency%s: " ding)
+    (:error "Error%s: ")
+    (:warning "Warning%s: ")
+    (:debug "Debug%s: "))
   "List of severity level definitions for `define-warnings'.
 Each element looks like (LEVEL STRING FUNCTION) and
 defines LEVEL as a severity level.  STRING is the description
 to use in the buffer, and FUNCTION (which may be omitted)
 if non-nil is a function to call with no arguments
-to get the user's attention.
+to get the user's attention.  STRING should use `%s' to
+specify where to put the warning group information.
 
 :debug level is ignored by default (see `warning-minimum-level').")
 (put 'warning-levels 'risky-local-variable t)
@@ -78,7 +79,7 @@ the warning is completely ignored."
   :version "21.4")
 (defvaralias 'log-warning-minimum-level 'warning-minimum-log-level)
 
-(defcustom warning-suppress-log nil
+(defcustom warning-suppress-log-types nil
   "List of warning types that should not be logged.
 If any element of this list matches the GROUP argument to `display-warning',
 the warning is completely ignored.
@@ -91,7 +92,7 @@ so only the element (FOO) will match it."
   :type '(repeat (repeat symbol))
   :version "21.4")
 
-(defcustom warning-suppress nil
+(defcustom warning-suppress-types nil
   "Custom groups for warnings not to display immediately.
 If any element of this list matches the GROUP argument to `display-warning',
 the warning is logged nonetheless, but the warnings buffer is
@@ -101,7 +102,7 @@ Thus, (foo bar) as an element matches (foo bar)
 or (foo bar ANYTHING...) as GROUP.
 If GROUP is a symbol FOO, that is equivalent to the list (FOO),
 so only the element (FOO) will match it.
-See also `warning-suppress-log'."
+See also `warning-suppress-log-types'."
   :group 'warnings
   :type '(repeat (repeat symbol))
   :version "21.4")
@@ -132,6 +133,11 @@ also call that function before the next warning.")
 
 (defvar warning-fill-prefix nil
   "Non-nil means fill each warning text using this string as `fill-prefix'.")
+
+(defvar warning-group-format " (%s)"
+  "Format for displaying the warning group in the warning message.
+The result of formatting the group this way gets included in the
+message under the control of the string in `warning-levels'.")
 
 (defun warning-suppress-p (group suppress-list)
   "Non-nil if a warning with group GROUP should be suppressed.
@@ -191,7 +197,7 @@ See also `warning-series', `warning-prefix-function' and
       (setq level (cdr (assq level warning-level-aliases))))
   (or (< (warning-numeric-level level)
 	 (warning-numeric-level warning-minimum-log-level))
-      (warning-suppress-p group warning-suppress-log)
+      (warning-suppress-p group warning-suppress-log-types)
       (let* ((groupname (if (consp group) (car group) group))
 	     (buffer (get-buffer-create (or buffer-name "*Warnings*")))
 	     (level-info (assq level warning-levels))
@@ -209,7 +215,9 @@ See also `warning-series', `warning-prefix-function' and
 	  (if warning-prefix-function
 	      (setq level-info (funcall warning-prefix-function
 					level level-info)))
-	  (insert (nth 1 level-info) message)
+	  (setq group-string (format warning-group-format groupname))
+	  (insert (format (nth 1 level-info) group-string)
+		  message)
 	  (newline)
 	  (when (and warning-fill-prefix (not (string-match "\n" message)))
 	    (let ((fill-prefix warning-fill-prefix)
@@ -231,7 +239,7 @@ See also `warning-series', `warning-prefix-function' and
 	  ;; immediate display.
 	  (or (< (warning-numeric-level level)
 		 (warning-numeric-level warning-minimum-level)) 
-	      (warning-suppress-p group warning-suppress)
+	      (warning-suppress-p group warning-suppress-types)
 	      (let ((window (display-buffer buffer)))
 		(when warning-series
 		  (set-window-start window warning-series))
