@@ -754,7 +754,7 @@ Else `t'."
 (provide 'sgml-mode)
 
 (defvar html-quick-keys sgml-quick-keys
-    "Use C-c X combinations for quick insertion of frequent tags when non-nil.
+  "Use C-c X combinations for quick insertion of frequent tags when non-nil.
 This defaults to `sgml-quick-keys'.
 This takes effect when first loading the library.")
 
