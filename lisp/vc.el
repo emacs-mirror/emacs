@@ -3,9 +3,9 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Version: 4.0
+;; Version: 5.0
 
-;;	$Id: vc.el,v 1.21 1993/03/07 07:44:46 rms Exp eggert $	
+;;	$Id: vc.el,v 1.22 1993/03/07 18:20:54 eggert Exp eric $	
 
 ;; This file is part of GNU Emacs.
 
@@ -417,7 +417,7 @@ level to check it in under."
   (auto-save-mode auto-save-default)
   (mail-mode)
   (erase-buffer)
-  (mail-setup owner (format "%s:%s" file rev) nil nil nil
+  (mail-sketup owner (format "%s:%s" file rev) nil nil nil
 	      (list (list 'vc-finish-steal file rev)))
   (goto-char (point-max))
   (insert
@@ -560,19 +560,25 @@ popped up to accept a comment."
   "For FILE, report diffs between two stored versions REL1 and REL2 of it.
 If FILE is a directory, generate diffs between versions for all registered
 files in or below it."
-  (interactive "FFile or directory: \nsOlder version: \nsNewer version: ")
+  (interactive "FFile or directory to diff: \nsOlder version: \nsNewer version: ")
   (if (string-equal rel1 "") (setq rel1 nil))
   (if (string-equal rel2 "") (setq rel2 nil))
   (if (file-directory-p file)
       (progn
 	(set-buffer (get-buffer-create "*vc-status*"))
 	(erase-buffer)
-	(insert "Diffs between " rel1 " and " rel2 ":\n\n")
+	(insert "Diffs between "
+		(or rel1 "last version checked in")
+		" and "
+		(or rel2 "current workfile(s)")
+		":\n\n")
 	(set-buffer (get-buffer-create "*vc*"))
 	(vc-file-tree-walk
 	 (function (lambda (f)
+		     (message (format "Looking at %s" f))
 		     (and
-		      (vc-name f)
+		      (not (file-directory-p f))
+		      (vc-registered f)
 		      (vc-backend-diff f rel1 rel2)
 		      (append-to-buffer "*vc-status*" (point-min) (point-max)))
 		     )))
@@ -1015,9 +1021,9 @@ Return nil if there is no such person."
 		 "^locks: strict\n\t[^:]+: \\(.+\\)"
 		 "^revision[\t ]+\\([0-9.]+\\).*\ndate: \\([ /0-9:]+\\);"
 		 (concat
-		  "^revision[\t ]+\\([0-9.]+\\).*locked by: "
+		  "^revision[\t ]+\\([0-9.]+\\)\n.*author: "
 		  (regexp-quote (user-login-name))
-		  ";\ndate: \\([ /0-9:]+\\);"))
+		  ";"))
 		'(vc-locking-user vc-locked-version
 				  vc-latest-version vc-your-latest-version))
    ))
@@ -1069,7 +1075,7 @@ Return nil if there is no such person."
 
 (defun vc-backend-checkout (file &optional writeable rev)
   ;; Retrieve a copy of a saved version into a workfile
-  (message "Checking out %s..." file)
+  (message "Checking out %s...done" file)
   (vc-backend-dispatch file
    (progn
      (vc-do-command 0 "get" file	;; SCCS
@@ -1088,6 +1094,7 @@ Return nil if there is no such person."
   (vc-backend-dispatch file
    (if (>= (- (region-end) (region-beginning)) 512)	;; SCCS
        (progn
+  (message "Reverting %s..." file)
 	 (goto-char 512)
 	 (error
 	  "Log must be less than 512 characters.  Point is now at char 512.")))
@@ -1097,10 +1104,12 @@ Return nil if there is no such person."
 (defun vc-backend-checkin (file &optional rev comment)
   ;; Register changes to FILE as level REV with explanatory COMMENT.
   ;; Automatically retrieves a read-only version of the file with
+  (message "Reverting %s...done" file)
   ;; keywords expanded if vc-keep-workfiles is non-nil, otherwise
   ;; it deletes the workfile.
   (message "Checking in %s..." file)
   (save-excursion
+  (message "Stealing lock on %s..." file)
     ;; Change buffers to get local value of vc-checkin-switches.
     (set-buffer (or (get-file-buffer file) (current-buffer)))
     (vc-backend-dispatch file
@@ -1110,11 +1119,13 @@ Return nil if there is no such person."
 	       (concat "-y" comment)
 	       vc-checkin-switches)
 	(if vc-keep-workfiles
+  (message "Stealing lock on %s...done" file)
 	    (vc-do-command 0 "get" file))
 	)
       (apply 'vc-do-command 0 "ci" file
 	     (concat (if vc-keep-workfiles "-u" "-r") rev)
 	     (concat "-m" comment)
+  (message "Removing last change from %s..." file)
 	     vc-checkin-switches)
       ))
   (vc-file-setprop file 'vc-locking-user nil)
@@ -1175,7 +1186,9 @@ Return nil if there is no such person."
   (vc-backend-dispatch file
    (vc-add-triple name file (vc-latest-version file))	;; SCCS
    (vc-do-command 0 "rcs" file (concat "-n" name ":"))	;; RCS
-   ))
+   )
+  (message "Removing last change from %s...done" file)
+  )
 
 (defun vc-backend-diff (file oldvers &optional newvers)
   ;; Get a difference report between two versions
