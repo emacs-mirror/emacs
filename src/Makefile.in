@@ -655,12 +655,14 @@ lisp= \
 	${lispsource}isearch.elc \
 	${lispsource}loadup.el \
 	${lispsource}loaddefs.el \
+	${lispsource}bindings.el \
 	${lispsource}map-ynp.elc \
 	${lispsource}menu-bar.elc \
 	${lispsource}international/mule.elc \
 	${lispsource}international/mule-conf.el \
 	${lispsource}international/mule-cmds.elc \
 	${lispsource}international/characters.elc \
+	${lispsource}case-table.elc \
 	${lispsource}language/chinese.elc \
 	${lispsource}language/cyrillic.elc \
 	${lispsource}language/devanagari.elc \
@@ -716,11 +718,13 @@ shortlisp= \
 	../lisp/isearch.elc \
 	../lisp/loadup.el \
 	../lisp/loaddefs.el \
+	../lisp/bindings.el \
 	../lisp/map-ynp.elc \
 	../lisp/international/mule.elc \
 	../lisp/international/mule-conf.el \
 	../lisp/international/mule-cmds.elc \
 	../lisp/international/characters.elc \
+	../lisp/case-table.elc \
 	../lisp/language/chinese.elc \
 	../lisp/language/cyrillic.elc \
 	../lisp/language/devanagari.elc \
