@@ -38,15 +38,15 @@
 ;;; =============
 
 ;;; Eval-region may be installed, after loading, by calling:
-;;; (install-eval-region).  Installation can be undone with:
-;;; (uninstall-eval-region).
+;;; (elisp-eval-region-install).  Installation can be undone with:
+;;; (elisp-eval-region-uninstall).
 
 '(defpackage "elisp-eval-region"
    (:nicknames "elisp")
    (:use "elisp")
    (:export
-    install-elisp-eval-region
-    uninstall-elisp-eval-region
+    elisp-eval-region-install
+    elisp-eval-region-uninstall
     elisp-eval-region-level
     with-elisp-eval-region
     ))
@@ -70,16 +70,16 @@ Callers of elisp-eval-region should increment elisp-eval-region-level
 while the Lisp version should be used.  Installing elisp-eval-region
 increments it once, and uninstalling decrements it.")
 
-;; These two should always be used in pairs, or just install once and
-;; never uninstall. 
-(defun install-elisp-eval-region ()
+;; Installing and uninstalling should always be used in pairs, 
+;; or just install once and never uninstall. 
+(defun elisp-eval-region-install ()
   (interactive)
   (defalias 'eval-region 'elisp-eval-region)
   (defalias 'eval-buffer 'elisp-eval-buffer)
   (defalias 'eval-current-buffer 'elisp-eval-current-buffer)
   (setq elisp-eval-region-level (1+ elisp-eval-region-level)))
 
-(defun uninstall-elisp-eval-region ()
+(defun elisp-eval-region-uninstall ()
   (interactive)
   (if (> 1 elisp-eval-region-level)
       (setq elisp-eval-region-level (1- elisp-eval-region-level))
@@ -99,7 +99,7 @@ increments it once, and uninstalling decrements it.")
 The effect of decrementing all the way to zero is that `eval-region'
 will use the original eval-region, which may be the Emacs subr or some
 previous redefinition.  Before calling this macro, this package should
-already have been installed, using `install-elisp-eval-region', which
+already have been installed, using `elisp-eval-region-install', which
 increments the count once.  So if another package still requires the
 elisp version of the code, the count will still be non-zero.
 
