@@ -2115,7 +2115,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	  goto done;
 	}
       /* Don't bother trying redisplay with same start;
-	we already know it will lose */
+	 we already know it will lose.  */
     }
   /* If current starting point was originally the beginning of a line
      but no longer is, find a new starting point.  */
@@ -2204,11 +2204,15 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 
   /* Try to scroll by specified few lines */
 
-  if (scroll_conservatively && !current_buffer->clip_changed
+  if ((scroll_conservatively || scroll_step)
+      && !current_buffer->clip_changed
       && startp >= BEGV && startp <= ZV)
     {
       int this_scroll_margin = scroll_margin;
       int scroll_margin_pos, scroll_margin_bytepos;
+      int scroll_max = scroll_step;
+      if (scroll_conservatively)
+	scroll_max = scroll_conservatively;
 
       /* Don't use a scroll margin that is negative or too large.  */
       if (this_scroll_margin < 0)
@@ -2236,10 +2240,12 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 				 pos_tab_offset (w, scroll_margin_pos,
 						 scroll_margin_bytepos),
 				 w);
-	  if (pos.vpos > scroll_conservatively)
+	  if (pos.vpos >= scroll_max)
 	    goto scroll_fail_1;
 
-	  pos = *vmotion (startp, pos.vpos + 1, w);
+	  pos = *vmotion (startp,
+			  scroll_conservatively ? pos.vpos + 1 : scroll_step,
+			  w);
 
 	  if (! NILP (Vwindow_scroll_functions))
 	    {
@@ -2275,10 +2281,12 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 				 XFASTINT (w->width), XFASTINT (w->hscroll),
 				 pos_tab_offset (w, PT, PT_BYTE),
 				 w);
-	  if (pos.vpos > scroll_conservatively)
+	  if (pos.vpos > scroll_max)
 	    goto scroll_fail_1;
 
-	  pos = *vmotion (startp, -pos.vpos, w);
+	  pos = *vmotion (startp,
+			  scroll_conservatively ? -pos.vpos : - scroll_step,
+			  w);
 
 	  if (! NILP (Vwindow_scroll_functions))
 	    {
@@ -2302,17 +2310,21 @@ redisplay_window (window, just_this_one, preserve_echo_area)
     scroll_fail_1: ;
     }
 
-  if (scroll_step && !current_buffer->clip_changed
+#if 0
+  if (scroll_step && ! scroll_margin && !current_buffer->clip_changed
       && startp >= BEGV && startp <= ZV)
     {
-      if (PT > startp)
+      if (margin_call == 0)
+	margin_call = (PT > startp ? 1 : -1);
+      if (margin_call > 0)
 	{
 	  pos = *vmotion (Z - XFASTINT (w->window_end_pos), scroll_step, w);
 	  if (pos.vpos >= height)
 	    goto scroll_fail;
 	}
 
-      pos = *vmotion (startp, (PT < startp ? - scroll_step : scroll_step), w);
+      pos = *vmotion (startp, (margin_call < 0 ? - scroll_step : scroll_step),
+		      w);
 
       if (PT >= pos.bufpos)
 	{
@@ -2337,6 +2349,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	}
     scroll_fail: ;
     }
+#endif
 
   /* Finally, just choose place to start which centers point */
 
