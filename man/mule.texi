@@ -793,17 +793,19 @@ explicitly in the file, that overrides
 
 @vindex auto-coding-alist
 @vindex auto-coding-regexp-alist
-  The variables @code{auto-coding-alist} and
-@code{auto-coding-regexp-alist} are the strongest way to specify the
-coding system for certain patterns of file names, or for files
-containing certain patterns; these variables even override
-@samp{-*-coding:-*-} tags in the file itself.  Emacs uses
-@code{auto-coding-alist} for tar and archive files, to prevent it
+@vindex auto-coding-functions
+  The variables @code{auto-coding-alist},
+@code{auto-coding-regexp-alist} and @code{auto-coding-functions} are
+the strongest way to specify the coding system for certain patterns of
+file names, or for files containing certain patterns; these variables
+even override @samp{-*-coding:-*-} tags in the file itself.  Emacs
+uses @code{auto-coding-alist} for tar and archive files, to prevent it
 from being confused by a @samp{-*-coding:-*-} tag in a member of the
 archive and thinking it applies to the archive file as a whole.
 Likewise, Emacs uses @code{auto-coding-regexp-alist} to ensure that
-RMAIL files, whose names in general don't match any particular pattern,
-are decoded correctly.
+RMAIL files, whose names in general don't match any particular
+pattern, are decoded correctly.  One of the builtin
+@code{auto-coding-functions} detects the encoding for XML files.
 
   If Emacs recognizes the encoding of a file incorrectly, you can
 reread the file using the correct coding system by typing @kbd{C-x
