@@ -90,6 +90,7 @@ where SECTION is the desired section of the manual, as in `tty(4)'."
       (nuke-nroff-bs)
       (set-buffer-modified-p nil)
       (setq buffer-read-only t)
+      (view-mode nil 'bury-buffer)
       (message ""))))
 
 ;; Hint: BS stands form more things than "back space"
