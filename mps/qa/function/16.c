@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!16.c(trunk.5) $
  summary = regression test for scan of invalid obj after I=A
  language = c
  link = testlib.o newfmt.o
@@ -9,19 +9,29 @@ END_HEADER
 
 #include "testlib.h"
 #include "mpscamc.h"
+#include "mpsavm.h"
 #include "newfmt.h"
+
+
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
 
 void *stackpointer;
 
+
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_pool_t pool;
  mps_thr_t thread;
  mps_root_t root;
 
  mps_ap_t apA, apB;
  mps_fmt_t format;
+ mps_chain_t chain;
 
  mycell *ambigref;
 
@@ -31,22 +41,20 @@ static void test(void)
 
  mps_word_t i;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE),
+      "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(
-  mps_root_create_reg(&root, space, MPS_RANK_AMBIG, 0, thread,
-   mps_stack_scan_ambig, stackpointer, 0),
-  "create root");
+ cdie(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+                          mps_stack_scan_ambig, stackpointer, 0),
+      "create root");
 
- cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
-  "create format");
+ cdie(mps_fmt_create_A(&format, arena, &fmtA), "create format");
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- cdie(
-  mps_pool_create(&pool, space, mps_class_amc(), format),
-  "create pool");
+ cdie(mmqa_pool_create_chain(&pool, arena, mps_class_amc(), format, chain),
+      "create pool");
 
  die(mps_ap_create(&apA, pool, MPS_RANK_EXACT), "create apA");
  die(mps_ap_create(&apB, pool, MPS_RANK_EXACT), "create apB");
@@ -63,17 +71,15 @@ static void test(void)
  ambigref->data.numrefs = 0;
  ambigref->data.size = bytes;
 
- i = mps_collections(space)+2;
+ i = mps_collections(arena)+2;
 
- while ((unsigned) mps_collections(space)<i)
- {
+ while ((unsigned) mps_collections(arena) < i) {
   allocdumb(apA, 1024*256);
  }
 
  apB->init = apB->alloc;
 
- while (mps_collections(space)<i+2)
- {
+ while (mps_collections(arena) < i+2) {
   allocdumb(apA, 1024*256);
  }
 
@@ -86,20 +92,14 @@ static void test(void)
  mps_ap_destroy(apB);
 
  mps_pool_destroy(pool);
- comment("Destroyed pool.");
-
+ mps_chain_destroy(chain);
  mps_fmt_destroy(format);
- comment("Destroyed format.");
-
  mps_root_destroy(root);
- comment("Destroyed root.");
-
  mps_thread_dereg(thread);
- comment("Deregistered thread.");
-
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
+
 
 int main(void)
 {
