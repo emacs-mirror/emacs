@@ -1899,7 +1899,7 @@ The value of this variable is used when Font Lock mode is turned on."
   :group 'font-lock-extra-types)
 
 (defcustom c++-font-lock-extra-types
-  '("\\sw+_t\\(?:ype\\)?"
+  '("\\sw+_t"
 
     "string" "rope"
 
