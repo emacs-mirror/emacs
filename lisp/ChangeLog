@@ -1,3 +1,7 @@
+2001-01-05  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/cl-seq.el (remove, remq): Remove.
+
 2001-01-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* mouse-drag.el (mouse-drag-safe-scroll): Bind
