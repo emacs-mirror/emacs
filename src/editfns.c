@@ -1606,6 +1606,15 @@ make_buffer_string_both (start, start_byte, end, end_byte, props)
 {
   Lisp_Object result, tem, tem1;
 
+#if !NO_PROMPT_IN_BUFFER
+  if (INTEGERP (current_buffer->minibuffer_prompt_length))
+    {
+      int len = XFASTINT (current_buffer->minibuffer_prompt_length);
+      start = min (end, max (len, start));
+      start_byte = CHAR_TO_BYTE (start);
+    }
+#endif
+
   if (start < GPT && GPT < end)
     move_gap (start);
 
@@ -2339,20 +2348,7 @@ minibuffer contents show.")
     {
       register Lisp_Object val;
       val = Fformat (nargs, args);
-      /* Copy the data so that it won't move when we GC.  */
-      if (! message_text)
-	{
-	  message_text = (char *)xmalloc (80);
-	  message_length = 80;
-	}
-      if (STRING_BYTES (XSTRING (val)) > message_length)
-	{
-	  message_length = STRING_BYTES (XSTRING (val));
-	  message_text = (char *)xrealloc (message_text, message_length);
-	}
-      bcopy (XSTRING (val)->data, message_text, STRING_BYTES (XSTRING (val)));
-      message2 (message_text, STRING_BYTES (XSTRING (val)),
-		STRING_MULTIBYTE (val));
+      message3 (val, STRING_BYTES (XSTRING (val)), STRING_MULTIBYTE (val));
       return val;
     }
 }
@@ -2436,6 +2432,9 @@ DEFUN ("current-message", Fcurrent_message, Scurrent_message, 0, 0, 0,
   "Return the string currently displayed in the echo area, or nil if none.")
   ()
 {
+  if (STRINGP (echo_area_message))
+    return make_string (XSTRING (echo_area_message)->data,
+			echo_area_glyphs_length);
   return (echo_area_glyphs
 	  ? make_string (echo_area_glyphs, echo_area_glyphs_length)
 	  : Qnil);
@@ -2485,6 +2484,10 @@ Use %% to put a single % into the output.")
   unsigned char *this_format;
   int longest_format;
   Lisp_Object val;
+  struct info
+  {
+    int start, end;
+  } *info = 0;
 
   extern char *index ();
 
@@ -2679,6 +2682,7 @@ Use %% to put a single % into the output.")
 	      int padding, nbytes;
 	      int width = strwidth (XSTRING (args[n])->data,
 				    STRING_BYTES (XSTRING (args[n])));
+	      int start = nchars;
 
 	      /* If spec requires it, pad on right with spaces.  */
 	      padding = minlen - width;
@@ -2707,6 +2711,21 @@ Use %% to put a single % into the output.")
 		    *p++ = ' ';
 		    nchars++;
 		  }
+
+	      /* If this argument has text properties, record where
+		 in the result string it appears.  */
+	      if (XSTRING (args[n])->intervals)
+		{
+		  if (!info)
+		    {
+		      int nbytes = nargs * sizeof *info;
+		      info = (struct info *) alloca (nbytes);
+		      bzero (info, nbytes);
+		    }
+		  
+		  info[n].start = start;
+		  info[n].end = nchars;
+		}
 	    }
 	  else if (INTEGERP (args[n]) || FLOATP (args[n]))
 	    {
@@ -2763,6 +2782,43 @@ Use %% to put a single % into the output.")
   /* If we allocated BUF with malloc, free it too.  */
   if (total >= 1000)
     xfree (buf);
+
+  /* If the format string has text properties, or any of the string
+     arguments has text properties, set up text properties of the
+     result string.  */
+  
+  if (XSTRING (args[0])->intervals || info)
+    {
+      Lisp_Object len, new_len, props;
+      struct gcpro gcpro1;
+      
+      /* Add text properties from the format string.  */
+      len = make_number (XSTRING (args[0])->size);
+      props = text_property_list (args[0], make_number (0), len, Qnil);
+      GCPRO1 (props);
+      
+      if (CONSP (props))
+	{
+	  new_len = make_number (XSTRING (val)->size);
+	  extend_property_ranges (props, len, new_len);
+	  add_text_properties_from_list (val, props, make_number (0));
+	}
+
+      /* Add text properties from arguments.  */
+      if (info)
+	for (n = 1; n < nargs; ++n)
+	  if (info[n].end)
+	    {
+	      len = make_number (XSTRING (args[n])->size);
+	      new_len = make_number (info[n].end - info[n].start);
+	      props = text_property_list (args[n], make_number (0), len, Qnil);
+	      extend_property_ranges (props, len, new_len);
+	      add_text_properties_from_list (val, props,
+					     make_number (info[n].start));
+	    }
+
+      UNGCPRO;
+    }
 
   return val;
 }
