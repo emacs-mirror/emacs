@@ -1,3 +1,8 @@
+2002-03-01  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in (HAVE_JPEG): Turn it off if libjpeg version < 6b.
+	(HAVE_GIF): Don't use old libungif versions that crash.
+
 2002-02-26  Richard M. Stallman  <rms@gnu.org>
 
 	* configure.in <making srcdir absolute>: Verify that PWD is correct,
