@@ -17,6 +17,10 @@
 
 	* faces.el (minibuffer-prompt): Special face definition for MS-DOS.
 
+2002-01-09  Richard M. Stallman  <rms@gnu.org>
+
+	* startup.el (fancy-splash-screens): Set tab-width in correct buffer.
+
 2002-01-09  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* viper.el (viper-set-hooks): zap viper-unfriendly bindings in
