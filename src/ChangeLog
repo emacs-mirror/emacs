@@ -1,3 +1,8 @@
+2000-12-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* editfns.c (Fformat): Prevent a buffer overrun when the format
+	specifies a precision.
+
 2000-12-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (Fmsdos_set_mouse_buttons): Signal an error if the

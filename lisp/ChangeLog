@@ -1,3 +1,7 @@
+2000-12-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/lisp-mnt.el: Change maintainer to FSF.
+
 2000-12-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.el (show-cursor-in-non-selected-windows): Doc fix.
@@ -10,7 +14,7 @@
 	* simple.el (delete-key-deletes-forward): New user-option.
 	(delete-key-deletes-forward-mode): New function.
 
-	* bindings.el (ctl-x-map): Bind `delete' to backward-delete-char.
+	* bindings.el: Bind `delete' to backward-delete-char.
 
 	* emacs-lisp/easymenu.el (easy-menu-current-active-maps): Test
 	if symbol is bound before getting its value.
