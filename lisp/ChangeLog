@@ -1,3 +1,7 @@
+2002-02-25  Jason Rumney  <jasonr@gnu.org>
+
+	* language/japanese.el (iso-2022-jp-2): Add init-bol flag.
+
 2002-02-25  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-diff-switches-list): Fix prev change, making the macro
