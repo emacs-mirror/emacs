@@ -114,14 +114,14 @@ emacs = EMACSLOADPATH=$(lisp) $(EMACS) $(EMACSOPT)
 
 setwins=subdirs=`find $$wd -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* | */calc ) ;; \
+	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done
 
 finder_setwins=subdirs=`find $$wd -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* | */obsolete | */term | */calc ) ;; \
+	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* | */obsolete | */term ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done
@@ -205,6 +205,12 @@ compile-files: subdirs.el doit
 	els=`echo $$elpat $(DONTCOMPILE) $(COMPILE_FIRST) | \
 		tr '	 ' '\012\012' | sort | uniq -u`; \
 	for el in $(COMPILE_FIRST) $$els; do \
+	  echo Compiling $$el; \
+	  $(emacs) -f batch-byte-compile $$el || exit 1; \
+	done
+
+compile-calc: 
+	for el in $(find $(lisp)/calc -name '*.el'); do \
 	  echo Compiling $$el; \
 	  $(emacs) -f batch-byte-compile $$el || exit 1; \
 	done
