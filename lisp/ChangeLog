@@ -1,5 +1,22 @@
 2001-11-19  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* textmodes/fill.el (fill-delete-prefix, fill-delete-newlines):
+	New functions, extracted from fill-region-as-paragraph.
+	(fill-region-as-paragraph): Use them.
+	Use an end marker instead of eob.
+	Ignore whitespace-only fill-prefixes when indenting according to mode.
+	Simply the loop that searches for spaces backwards.
+
+	* textmodes/picture.el (picture-vertical-step)
+	(picture-horizontal-step): Don't use defconst for variables.
+
+	* mail/mail-extr.el: Use backquote/dolist/mapc/when.  Docstring fixes.
+	(mail-extract-address-components): Downcase domain names.
+	(mail-extr-delete-char): Remove.  Use delete-char instead.
+
+	* emulation/pc-select.el: Doc string fixes.
+	(pc-selection-mode): Don't treat macos as a tty.
+
 	* emacs-lisp/lisp.el (mark-sexp): Mark more if repeated.
 
 	* progmodes/cc-engine.el (c-parse-state): Typo. From Martin Stjernholm.
