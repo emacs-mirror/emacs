@@ -76,6 +76,7 @@
     (tamil-compose-region (point-min) (point-max))
     (buffer-string)))
 
+;;;###autoload
 (defun tamil-post-read-conversion (len)
   (save-excursion
     (save-restriction
