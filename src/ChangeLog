@@ -1,3 +1,22 @@
+2000-12-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* keymap.c (current_minor_maps): Use malloc.  Prevent a leak.
+
+	* tparam.c (tparam1): Change the way buffers are reallocated to be
+	portable and less obfuscated.
+
+	* termcap.c (tgetent): Change the way buffers are reallocated to
+	be portable and less obfuscated.
+
+	* macros.c (store_kbd_macro_char): Change the way buffers are
+	reallocated to be portable and less obfuscated.
+
+	* lread.c (read1): Change the way buffers are reallocated to be
+	portable and less obfuscated.
+
+	* doc.c (Fsubstitute_command_keys): Change the way buffers
+	are reallocated so that it is portable.
+
 2000-12-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dosfns.c (Ffile_system_info): New function.
