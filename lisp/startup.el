@@ -1306,6 +1306,7 @@ where FACE is a valid face specification, as it can be used with
 	     ;; clicks the menu bar during the sit-for.
 	     (when (= (buffer-size) 0)
 	       (let ((buffer-undo-list t)
+		     (tab-width 8)
 		     (wait-for-input t))
 		 (unwind-protect
 		     (when (not (input-pending-p))
