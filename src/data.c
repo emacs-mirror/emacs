@@ -873,6 +873,8 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
      register Lisp_Object valcontents, newval;
      struct buffer *buf;
 {
+  int offset;
+
   switch (SWITCH_ENUM_CAST (XTYPE (valcontents)))
     {
     case Lisp_Misc:
@@ -892,6 +894,36 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 
 	case Lisp_Misc_Objfwd:
 	  *XOBJFWD (valcontents)->objvar = newval;
+
+	  /* If this variable is a default for something stored
+	     in the buffer itself, such as default-fill-column,
+	     find the buffers that don't have local values for it
+	     and update them.  */
+	  if (XOBJFWD (valcontents)->objvar > (Lisp_Object *) &buffer_defaults
+	      && XOBJFWD (valcontents)->objvar < (Lisp_Object *) (&buffer_defaults + 1))
+	    {
+	      int offset = ((char *) XOBJFWD (valcontents)->objvar
+			    - (char *) &buffer_defaults);
+	      int idx = PER_BUFFER_IDX (offset);
+
+	      Lisp_Object tail, buf;
+
+	      if (idx <= 0)
+		break;
+
+	      for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
+		{
+		  Lisp_Object buf;
+		  struct buffer *b;
+
+		  buf = Fcdr (XCAR (tail));
+		  if (!BUFFERP (buf)) continue;
+		  b = XBUFFER (buf);
+
+		  if (! PER_BUFFER_VALUE_P (b, idx))
+		    PER_BUFFER_VALUE (b, offset) = newval;
+		}
+	    }
 	  break;
 
 	case Lisp_Misc_Buffer_Objfwd:
