@@ -3220,8 +3220,14 @@ set_lface_from_font_name (f, lface, fontname, force_p, may_fail_p)
 
   /* If FONTNAME is actually a fontset name, get ASCII font name of it.  */
   fontset = fs_query_fontset (fontname, 0);
-  if (fontset >= 0)
+  if (fontset > 0)
     font_name = XSTRING (fontset_ascii (fontset))->data;
+  else if (fontset == 0)
+    {
+      if (may_fail_p)
+	return 0;
+      abort ();
+    }
 
   /* Check if FONT_NAME is surely available on the system.  Usually
      FONT_NAME is already cached for the frame F and FS_LOAD_FONT
@@ -4156,7 +4162,7 @@ FRAME 0 means change the face on all frames, and change the default
 	  if (!NILP (tmp))
 	    value = tmp;
 	  else if (EQ (attr, QCfontset))
-	    error ("Invalid fontset", XSTRING (value)->data);
+	    signal_error ("Invalid fontset name", value);
 
 	  if (EQ (attr, QCfont))
 	    {
