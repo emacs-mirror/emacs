@@ -1,5 +1,7 @@
 1999-10-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (echo_area_display): Put previous change in #if 0.
+
 	* emacs.c (standard_args): Add `file' as synonym for `visit',
 	`execute' as synonym for `eval'.
 	(main): Add new options to usage message.
