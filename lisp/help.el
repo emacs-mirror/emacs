@@ -1072,7 +1072,8 @@ Must be previously-defined."
   (purecopy (concat "\\(\\<\\(\\(variable\\|option\\)\\|"
 		    "\\(function\\|command\\)\\|"
 		    "\\(face\\)\\|"
-		    "\\(symbol\\)\\)\\s-+\\)?"
+		    "\\(symbol\\)\\|"
+		    "\\(source \\(?:code \\)?\\(?:of\\|for\\)\\)\\)\\s-+\\)?"
 		    ;; Note starting with word-syntax character:
 		    "`\\(\\sw\\(\\sw\\|\\s_\\)+\\)'"))
   "Regexp matching doc string references to symbols.
@@ -1187,7 +1188,7 @@ that."
               ;; Quoted symbols
               (save-excursion
                 (while (re-search-forward help-xref-symbol-regexp nil t)
-                  (let* ((data (match-string 7))
+                  (let* ((data (match-string 8))
                          (sym (intern-soft data)))
                     (if sym
                         (cond
@@ -1195,35 +1196,45 @@ that."
                           (and (boundp sym) ; `variable' doesn't ensure
                                         ; it's actually bound
                                (help-xref-button
-				7 #'describe-variable sym
+				8 #'describe-variable sym
 				"mouse-2, RET: describe this variable")))
                          ((match-string 4) ; `function' &c
                           (and (fboundp sym) ; similarly
                                (help-xref-button
-				7 #'describe-function sym
+				8 #'describe-function sym
 				"mouse-2, RET: describe this function")))
 			 ((match-string 5) ; `face'
 			  (and (facep sym)
-			       (help-xref-button 7 #'describe-face sym
+			       (help-xref-button 8 #'describe-face sym
 				"mouse-2, RET: describe this face")))
-                         ((match-string 6)) ; nothing for symbol
+                         ((match-string 6)) ; nothing for `symbol'
+			 ((match-string 7)
+			  (help-xref-button
+			   8
+			   #'(lambda (arg)
+			       (let ((location
+				      (find-function-noselect arg)))
+				 (pop-to-buffer (car location))
+				 (goto-char (cdr location))))
+			   sym
+			   "mouse-2, RET: find function's definition"))
                          ((and (boundp sym) (fboundp sym))
                           ;; We can't intuit whether to use the
                           ;; variable or function doc -- supply both.
                           (help-xref-button
-			   7 #'help-xref-interned sym
+			   8 #'help-xref-interned sym
 			   "mouse-2, RET: describe this symbol"))
                          ((boundp sym)
 			  (help-xref-button
-			   7 #'describe-variable sym
+			   8 #'describe-variable sym
 			   "mouse-2, RET: describe this variable"))
 			 ((fboundp sym)
 			  (help-xref-button
-			   7 #'describe-function sym
+			   8 #'describe-function sym
 			   "mouse-2, RET: describe this function"))
 			 ((facep sym)
 			  (help-xref-button
-			   7 #'describe-face sym)))))))
+			   8 #'describe-face sym)))))))
               ;; An obvious case of a key substitution:
               (save-excursion
                 (while (re-search-forward
