@@ -512,24 +512,38 @@ the matching is case-sensitive."
 		(setq input default))
 	   input)
 	 current-prefix-arg))
-  (let ((nlines (if nlines
-		    (prefix-numeric-value nlines)
-		  list-matching-lines-default-context-lines))
-	(first t)
-	;;flag to prevent printing separator for first match
-	(occur-num-matches 0)
-	(buffer (current-buffer))
-	(dir default-directory)
-	(linenum 1)
-	(prevpos
-	 ;;position of most recent match
-	 (point-min))
-	(case-fold-search  (and case-fold-search
-				(isearch-no-upper-case-p regexp t)))
-	(final-context-start
-	 ;; Marker to the start of context immediately following
-	 ;; the matched text in *Occur*.
-	 (make-marker)))
+  (let* ((nlines (if nlines
+		     (prefix-numeric-value nlines)
+		   list-matching-lines-default-context-lines))
+	 (current-tab-width tab-width)
+	 ;; Minimum width of line number plus trailing colon.
+	 (min-line-number-width 6)
+	 ;; Actual width of line number prefix.  Choose a width that's
+	 ;; a multiple of `tab-width' in the original buffer so that
+	 ;; lines in *Occur* appear right.
+	 (line-number-width (* (/ (- (+ min-line-number-width
+					tab-width)
+				     1)
+				  tab-width)
+			       tab-width))
+	 ;; Format string for line numbers.
+	 (line-number-format (format "%%%dd" line-number-width))
+	 (empty (make-string line-number-width ?\ ))
+	 (first t)
+	 ;;flag to prevent printing separator for first match
+	 (occur-num-matches 0)
+	 (buffer (current-buffer))
+	 (dir default-directory)
+	 (linenum 1)
+	 (prevpos
+	  ;;position of most recent match
+	  (point-min))
+	 (case-fold-search  (and case-fold-search
+				 (isearch-no-upper-case-p regexp t)))
+	 (final-context-start
+	  ;; Marker to the start of context immediately following
+	  ;; the matched text in *Occur*.
+	  (make-marker)))
 ;;;	(save-excursion
 ;;;	  (beginning-of-line)
 ;;;	  (setq linenum (1+ (count-lines (point-min) (point))))
@@ -567,32 +581,27 @@ the matching is case-sensitive."
 		(setq linenum (+ linenum (count-lines prevpos (point)))))
 	      (setq prevpos (point))
 	      (goto-char (match-end 0))
-	      (let* ((start
-		      ;;start point of text in source buffer to be put
-		      ;;into *Occur*
-		      (save-excursion
+	      (let* (;;start point of text in source buffer to be put
+		     ;;into *Occur*
+		     (start (save-excursion
 			      (goto-char (match-beginning 0))
 			      (forward-line (if (< nlines 0)
 						nlines
 					      (- nlines)))
 			      (point)))
-		     (end
 		      ;; end point of text in source buffer to be put
 		      ;; into *Occur*
-		      (save-excursion
-			(goto-char (match-end 0))
-			(if (> nlines 0)
-			    (forward-line (1+ nlines))
-			  (forward-line 1))
-			(point)))
-		     (match-beg
+		     (end (save-excursion
+			    (goto-char (match-end 0))
+			    (if (> nlines 0)
+				(forward-line (1+ nlines))
+			      (forward-line 1))
+			    (point)))
 		      ;; Amount of context before matching text
-		      (- (match-beginning 0) start))
-		     (match-len
+		     (match-beg (- (match-beginning 0) start))
 		      ;; Length of matching text
-		      (- (match-end 0) (match-beginning 0)))
-		     (tag (format "%5d" linenum))
-		     (empty (make-string (length tag) ?\ ))
+		     (match-len (- (match-end 0) (match-beginning 0)))
+		     (tag (format line-number-format linenum))
 		     tem
 		     insertion-start
 		     ;; Number of lines of context to show for current match.
@@ -605,8 +614,7 @@ the matching is case-sensitive."
 		     (text-end
 		      ;; Marker pointing to end of text for one match
 		      ;; in *Occur*.
-		      (make-marker))
-		     )
+		      (make-marker)))
 		(save-excursion
 		  (setq occur-marker (make-marker))
 		  (set-marker occur-marker (point))
@@ -615,6 +623,9 @@ the matching is case-sensitive."
 		  (or first (zerop nlines)
 		      (insert "--------\n"))
 		  (setq first nil)
+		  (save-excursion
+		    (set-buffer "*Occur*")
+		    (setq tab-width current-tab-width))
 
 		  ;; Insert matching text including context lines from
 		  ;; source buffer into *Occur*
@@ -667,7 +678,7 @@ the matching is case-sensitive."
 		  (let ((this-linenum linenum))
 		    (while (< (point) final-context-start)
 		      (if (null tag)
-			  (setq tag (format "%5d" this-linenum)))
+			  (setq tag (format line-number-format this-linenum)))
 		      (insert tag ?:)
 		      (forward-line 1)
 		      (setq tag nil)
