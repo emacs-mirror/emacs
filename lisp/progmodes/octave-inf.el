@@ -52,7 +52,7 @@ startup."
 		 file)
   :group 'octave-inferior)
 
-(defcustom inferior-octave-startup-args '("-i" "--no-line-editing")
+(defcustom inferior-octave-startup-args nil
   "*List of command line arguments for the inferior Octave process.
 For example, for suppressing the startup message and using `traditional'
 mode, set this to (\"-q\" \"--traditional\")."
@@ -182,7 +182,8 @@ startup file, `~/.emacs-octave'."
 	       (substring inferior-octave-buffer 1 -1)
 	       inferior-octave-buffer
 	       inferior-octave-program
-	       inferior-octave-startup-args)))
+	       (append (list "-i" "--no-line-editing")
+		       inferior-octave-startup-args))))
     (set-process-filter proc 'inferior-octave-output-digest)
     (setq comint-ptyp process-connection-type
 	  inferior-octave-process proc
