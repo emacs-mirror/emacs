@@ -1362,11 +1362,18 @@ Value is what BODY returns."
 	      (cons 'progn body)
 	      '(set-match-data save-match-data-internal))))
 
-(defun copy-without-properties (string)
-  "Return a copy of STRING with no text properties."
-  (setq string (concat string))
-  (set-text-properties 0 (length string) nil string)
-  string)
+(defun substring-no-properties (string &optional from to)
+  "Return a substring of STRING, with no text properties.
+The substring starts at index FROM and ends before TO.
+If FROM is nil or omitted, it defaults to the beginning of STRING.
+If TO is nil or omitted, it defaults to the end of STRING.
+If FROM or TO is negative, it counts from the end.
+
+Simply (substring-no-properties STRING) copies a string without
+its properties."
+  (let ((str (substring string (or from 0) to)))
+    (set-text-properties 0 (length str) nil str)
+    str))
 
 (defun match-string (num &optional string)
   "Return string of text matched by last search.
