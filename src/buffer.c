@@ -1932,7 +1932,10 @@ selected window if it is displayed there.  */)
       XSETCDR (link, Qnil);
       Vbuffer_alist = nconc2 (Vbuffer_alist, link);
 
-      frames_bury_buffer (buffer);
+      /* Removing BUFFER from frame-specific lists
+	 has the effect of putting BUFFER at the end
+	 of the combined list in each frame.  */
+      frames_discard_buffer (buffer);
     }
 
   return Qnil;
