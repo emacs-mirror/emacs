@@ -1,6 +1,10 @@
-;; Calculator for GNU Emacs, part I
+;;; calc.el --- 
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
+;; Keywords: convenience, extensions
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +23,7 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
-
+;;; Commentary:
 
 ;;; Calc is split into many files.  This file is the main entry point.
 ;;; This file includes autoload commands for various other basic Calc
@@ -64,15 +68,11 @@
 ;;; "report-calc-bug", and "defmath".  User-accessible variables begin
 ;;; with "var-".
 
+;;; Code:
 
 
 (provide 'calc)
 (require 'calc-macs)
-
-(defun calc-record-compilation-date ()
-  (calc-record-compilation-date-macro))
-(calc-record-compilation-date)
-
 
 ;;; The "###autoload" comment will be used by Emacs version 19 for
 ;;; maintaining the loaddefs.el file automatically.
@@ -82,8 +82,8 @@
   "*File name in which to look for the Calculator's Info documentation.")
 
 ;;;###autoload
-(defvar calc-settings-file "~/.emacs"
-  "*File in which to record permanent settings; default is \"~/.emacs\".")
+(defvar calc-settings-file user-init-file
+  "*File in which to record permanent settings; default is `user-init-file'.")
 
 ;;;###autoload
 (defvar calc-autoload-directory nil
@@ -104,10 +104,8 @@ This can safely be nil as long as the Calc files are on the load-path.")
 (defvar calc-gnuplot-print-command "lp %s"
   "*Name of command for printing GNUPLOT output; %s = file name to print.")
 
-
 ;; Address of the author of Calc, for use by report-calc-bug.
-(defvar calc-bug-address "daveg@synaptics.com")
-
+(defvar calc-bug-address "walters@debian.org")
 
 ;; If T, scan keymaps to find all DEL-like keys.
 ;; If NIL, only DEL itself is mapped to calc-pop.
@@ -116,7 +114,6 @@ This can safely be nil as long as the Calc files are on the load-path.")
 
 
 (defvar calc-extensions-loaded nil)
-
 
 
 ;;; IDEAS:
@@ -736,8 +733,7 @@ This can safely be nil as long as the Calc files are on the load-path.")
   (mapcar (function (lambda (v) (or (boundp v) (set v nil))))
 	  calc-local-var-list)
 
-  (if (boundp 'calc-mode-map)
-      nil
+  (unless (boundp 'calc-mode-map)
     (setq calc-mode-map (make-keymap))
     (suppress-keymap calc-mode-map t)
     (define-key calc-mode-map "+" 'calc-plus)
@@ -919,10 +915,7 @@ calc-help calc-info calc-info-summary calc-inv calc-last-args-stub
 calc-missing-key calc-mod calc-other-window calc-over calc-percent
 calc-pop-above calc-power calc-roll-down calc-roll-up
 calc-shift-Y-prefix-help calc-tutorial calcDigit-letter
-report-calc-bug)
-
-))
-)
+report-calc-bug))))
 
 (calc-init-base)
 
@@ -931,7 +924,7 @@ report-calc-bug)
 
 ;;;###autoload
 (defun calc-dispatch (&optional arg)
-  "Invoke the GNU Emacs Calculator.  See calc-dispatch-help for details."
+  "Invoke the GNU Emacs Calculator.  See `calc-dispatch-help' for details."
   (interactive "P")
   (sit-for echo-keystrokes)
   (condition-case err   ; look for other keys bound to calc-dispatch
@@ -948,6 +941,7 @@ report-calc-bug)
     (error nil))
   (calc-do-dispatch arg))
 
+(defvar calc-dispatch-help nil)
 (defun calc-do-dispatch (arg)
   (let ((key (calc-read-key-sequence
 	      (if calc-dispatch-help
@@ -962,7 +956,6 @@ report-calc-bug)
 	  (or (commandp key) (calc-extensions))
 	  (call-interactively key))
       (beep))))
-(setq calc-dispatch-help nil)
 
 (defun calc-read-key-sequence (prompt map)
   (let ((prompt2 (format "%s " (key-description (this-command-keys))))
@@ -1035,6 +1028,7 @@ Notations:  3.14e6     3.14 * 10^6
 								1 nil))))))
   (setq calc-stack-top (- (length calc-stack) calc-stack-top -1))
   (or calc-loaded-settings-file
+      (null calc-settings-file)
       (string-match "\\.emacs" calc-settings-file)
       (progn
 	(setq calc-loaded-settings-file t)
@@ -1063,6 +1057,7 @@ Notations:  3.14e6     3.14 * 10^6
 	(calc-set-mode-line)))
   (calc-check-defines))
 
+(defvar calc-check-defines 'calc-check-defines)  ; suitable for run-hooks
 (defun calc-check-defines ()
   (if (symbol-plist 'calc-define)
       (let ((plist (copy-sequence (symbol-plist 'calc-define))))
@@ -1080,7 +1075,6 @@ Notations:  3.14e6     3.14 * 10^6
 	      ;; See if this has added any more calc-define properties.
 	      (calc-check-defines))
 	  (setplist 'calc-define nil)))))
-(setq calc-check-defines 'calc-check-defines)  ; suitable for run-hooks
 
 (defun calc-trail-mode (&optional buf)
   "Calc Trail mode.
@@ -1107,8 +1101,7 @@ commands given here will actually operate on the *Calculator* stack."
 	(setq calc-main-buffer buf)))
   (if (= (buffer-size) 0)
       (let ((buffer-read-only nil))
-	(insert "Emacs Calculator v" calc-version " by Dave Gillespie, "
-		"installed " calc-installed-date "\n")))
+	(insert "Emacs Calculator v" calc-version " by Dave Gillespie\n")))
   (run-hooks 'calc-trail-mode-hook))
 
 (defun calc-create-buffer ()
@@ -1172,7 +1165,7 @@ commands given here will actually operate on the *Calculator* stack."
 	  (and calc-display-trail
 	       (= (window-width) (frame-width))
 	       (calc-trail-display 1 t)))
-	(message "Welcome to the GNU Emacs Calculator!  Press `?' or `h' for help, `q' to quit.")
+	(message "Welcome to the GNU Emacs Calculator!  Press `?' or `h' for help, `q' to quit")
 	(run-hooks 'calc-start-hook)
 	(and (windowp full-display)
 	     (window-point full-display)
@@ -1221,8 +1214,8 @@ commands given here will actually operate on the *Calculator* stack."
 	       calc-embedded-info
 	       (eq (current-buffer) (aref calc-embedded-info 0)))
 	  (calc-embedded nil)
-	(or (eq major-mode 'calc-mode)
-	    (calc-create-buffer))
+	(unless (eq major-mode 'calc-mode)
+	  (calc-create-buffer))
 	(run-hooks 'calc-end-hook)
 	(setq calc-undo-list nil calc-redo-list nil)
 	(mapcar (function (lambda (v) (set-default v (symbol-value v))))
@@ -1276,6 +1269,8 @@ See calc-keypad for details."
   (calc-do-keypad t (interactive-p)))
 
 
+(defvar calc-aborted-prefix nil)
+(defvar calc-start-time nil)
 ;;; Note that modifications to this function may break calc-pass-errors.
 (defun calc-do (do-body &optional do-slow)
   (calc-check-defines)
@@ -1295,27 +1290,26 @@ See calc-keypad for details."
 	      (and (eq calc-algebraic-mode 'total)
 		   (calc-extensions)
 		   (use-local-map calc-alg-map))
-	      (and do-slow calc-display-working-message
-		   (progn
-		     (message "Working...")
-		     (calc-set-command-flag 'clear-message)))
+	      (when (and do-slow calc-display-working-message)
+		(message "Working...")
+		(calc-set-command-flag 'clear-message))
 	      (funcall do-body)
 	      (setq calc-aborted-prefix nil)
-	      (and (memq 'renum-stack calc-command-flags)
-		   (calc-renumber-stack))
-	      (and (memq 'clear-message calc-command-flags)
-		   (message "")))
+	      (when (memq 'renum-stack calc-command-flags)
+		(calc-renumber-stack))
+	      (when (memq 'clear-message calc-command-flags)
+		(message "")))
 	  (error
 	   (if (and (eq (car err) 'error)
 		    (stringp (nth 1 err))
 		    (string-match "max-specpdl-size\\|max-lisp-eval-depth"
 				  (nth 1 err)))
-	       (error "Computation got stuck or ran too long.  Type `M' to increase the limit.")
+	       (error "Computation got stuck or ran too long.  Type `M' to increase the limit")
 	     (setq calc-aborted-prefix nil)
 	     (signal (car err) (cdr err)))))
       (setq calc-old-aborted-prefix calc-aborted-prefix)
-      (and calc-aborted-prefix
-	   (calc-record "<Aborted>" calc-aborted-prefix))
+      (when calc-aborted-prefix
+	(calc-record "<Aborted>" calc-aborted-prefix))
       (and calc-start-time
 	   (let* ((calc-internal-prec 12)
 		  (calc-date-format nil)
@@ -1340,25 +1334,23 @@ See calc-keypad for details."
 	       (calc-select-buffer)
 	       (goto-line calc-final-point-line)
 	       (move-to-column calc-final-point-column))))
-      (or (memq 'keep-flags calc-command-flags)
-	  (save-excursion
-	    (calc-select-buffer)
-	    (setq calc-inverse-flag nil
-		  calc-hyperbolic-flag nil
-		  calc-keep-args-flag nil)))
-      (and (memq 'do-edit calc-command-flags)
-	   (switch-to-buffer (get-buffer-create "*Calc Edit*")))
+      (unless (memq 'keep-flags calc-command-flags)
+	(save-excursion
+	  (calc-select-buffer)
+	  (setq calc-inverse-flag nil
+		calc-hyperbolic-flag nil
+		calc-keep-args-flag nil)))
+      (when (memq 'do-edit calc-command-flags)
+	(switch-to-buffer (get-buffer-create "*Calc Edit*")))
       (calc-set-mode-line)
-      (and calc-embedded-info
-	   (calc-embedded-finish-command))))
+      (when calc-embedded-info
+	(calc-embedded-finish-command))))
   (identity nil))  ; allow a GC after timing is done
 
-(setq calc-aborted-prefix nil)
-(setq calc-start-time nil)
 
 (defun calc-set-command-flag (f)
-  (if (not (memq f calc-command-flags))
-      (setq calc-command-flags (cons f calc-command-flags))))
+  (unless (memq f calc-command-flags)
+    (setq calc-command-flags (cons f calc-command-flags))))
 
 (defun calc-select-buffer ()
   (or (eq major-mode 'calc-mode)
@@ -3332,10 +3324,8 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
      ( ":="    calcFunc-assign 51 50 )
      ( "::"    calcFunc-condition 45 46 )
      ( "=>"    calcFunc-evalto 40 41 )
-     ( "=>"    calcFunc-evalto 40 -1 )
-))
-(setq math-expr-opers math-standard-opers)
-
+     ( "=>"    calcFunc-evalto 40 -1 )))
+(defvar math-expr-opers math-standard-opers)
 
 ;;;###autoload
 (defun calc-grab-region (top bot arg)
