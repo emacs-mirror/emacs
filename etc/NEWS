@@ -88,6 +88,8 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** The URL package is now part of Emacs.
+
 ** M-x compile has become more robust and reliable
 
 Quite a few more kinds of messages are recognized.  Messages that are

@@ -1,3 +1,7 @@
+2004-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url: Import the URL package from its repository.
+
 2004-04-03  Andreas Schwab  <schwab@suse.de>
 
 	* diff-mode.el (diff-mode): Fix missing quote.
@@ -10,8 +14,8 @@
 
 2004-04-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* x-dnd.el (x-dnd-handle-moz-url, x-dnd-insert-utf16-text): Use
-	utf-16le on little endian machines and utf-16be otherwise.
+	* x-dnd.el (x-dnd-handle-moz-url, x-dnd-insert-utf16-text):
+	Use utf-16le on little endian machines and utf-16be otherwise.
 
 2004-04-02  David Kastrup  <dak@gnu.org>
 
