@@ -46,12 +46,12 @@ Boston, MA 02111-1307, USA.  */
 #include <conio.h>	 /* for cputs */
 #endif
 
-#include "dosfns.h"
 #include "msdos.h"
 #include "systime.h"
 #include "termhooks.h"
 #include "termchar.h"
 #include "dispextern.h"
+#include "dosfns.h"
 #include "termopts.h"
 #include "charset.h"
 #include "coding.h"
@@ -658,29 +658,54 @@ IT_ring_bell (void)
     }
 }
 
+/* Given a face id FACE, extract the face parameters to be used for
+   display until the face changes.  The face parameters (actually, its
+   color) are used to construct the video attribute byte for each
+   glyph during the construction of the buffer that is then blitted to
+   the video RAM.  */
 static void
 IT_set_face (int face)
 {
-  struct face *fp;
-  extern struct face *intern_face (/* FRAME_PTR, struct face * */);
+  struct face *fp = FACE_FROM_ID (selected_frame, face);
+  unsigned long fg, bg;
 
-  if (face == 1 || (face == 0 && highlight))
-    fp = FRAME_MODE_LINE_FACE (foo);
-  else if (face <= 0 || face >= FRAME_N_COMPUTED_FACES (foo))
-    fp = FRAME_DEFAULT_FACE (foo);
-  else
-    fp = intern_face (selected_frame, FRAME_COMPUTED_FACES (foo)[face]);
-  if (termscript)
-    fprintf (termscript, "<FACE %d: %d/%d>",
-	     face, FACE_FOREGROUND (fp), FACE_BACKGROUND (fp));
+  if (!fp)
+    fp = FACE_FROM_ID (selected_frame, DEFAULT_FACE_ID);
   screen_face = face;
-  ScreenAttrib = (FACE_BACKGROUND (fp) << 4) | FACE_FOREGROUND (fp);
+  fg = fp->foreground;
+  bg = fp->background;
+
+  /* Don't use invalid colors.  In particular, a color of -1 means use
+     the colors of the default face, except that if highlight is on,
+     invert the foreground and the background.  Note that we assume
+     all 16 colors to be available for the background, since Emacs
+     switches on this mode (and loses the blinking attribute) at
+     startup.  */
+  if (fg == (unsigned long)-1)
+    fg = highlight ? FRAME_BACKGROUND_PIXEL (selected_frame)
+		   : FRAME_FOREGROUND_PIXEL (selected_frame);
+  if (bg == (unsigned long)-1)
+    bg = highlight ? FRAME_FOREGROUND_PIXEL (selected_frame)
+		   : FRAME_BACKGROUND_PIXEL (selected_frame);
+  if (termscript)
+    fprintf (termscript, "<FACE %d%s: %d/%d>",
+	     face, highlight ? "H" : "", fp->foreground, fp->background);
+  if (fg >= 0 && fg < 16)
+    {
+      ScreenAttrib &= 0xf0;
+      ScreenAttrib |= fg;
+    }
+  if (bg >= 0 && bg < 16)
+    {
+      ScreenAttrib &= 0x0f;
+      ScreenAttrib |= ((bg & 0x0f) << 4);
+    }
 }
 
 Lisp_Object Vdos_unsupported_char_glyph;
 
 static void
-IT_write_glyphs (GLYPH *str, int str_len)
+IT_write_glyphs (struct glyph *str, int str_len)
 {
   unsigned char *screen_buf, *screen_bp, *screen_buf_end, *bp;
   int unsupported_face = FAST_GLYPH_FACE (Vdos_unsupported_char_glyph);
@@ -710,9 +735,10 @@ IT_write_glyphs (GLYPH *str, int str_len)
   terminal_coding.mode &= ~CODING_MODE_LAST_BLOCK;
   while (sl)
     {
-      int cf, ch, chlen, enclen;
+      int cf, chlen, enclen;
       unsigned char workbuf[4], *buf;
-      register GLYPH g = *str;
+      unsigned ch;
+      register GLYPH g = GLYPH_FROM_CHAR_GLYPH (*str);
 
       /* Find the actual glyph to display by traversing the entire
 	 aliases chain for this glyph.  */
@@ -721,7 +747,7 @@ IT_write_glyphs (GLYPH *str, int str_len)
       /* Glyphs with GLYPH_MASK_PADDING bit set are actually there
 	 only for the redisplay code to know how many columns does
          this character occupy on the screen.  Skip padding glyphs.  */
-      if ((g & GLYPH_MASK_PADDING))
+      if (CHAR_GLYPH_PADDING_P (*str))
 	{
 	  str++;
 	  sl--;
@@ -740,7 +766,7 @@ IT_write_glyphs (GLYPH *str, int str_len)
 	    ch = unibyte_char_to_multibyte (ch);
 
 	  /* Invalid characters are displayed with a special glyph.  */
-	  if (ch > MAX_CHAR)
+	  if (! GLYPH_CHAR_VALID_P (ch))
 	    {
 	      g = !NILP (Vdos_unsupported_char_glyph)
 		? Vdos_unsupported_char_glyph
@@ -773,8 +799,7 @@ IT_write_glyphs (GLYPH *str, int str_len)
 	      buf = GLYPH_STRING (tbase, g);
 	    }
 
-	  /* If the character is not multibyte, don't bother converting it.
-	     FIXME: what about "emacs --unibyte"  */
+	  /* If the character is not multibyte, don't bother converting it.  */
 	  if (chlen == 1)
 	    {
 	      *conversion_buffer = (unsigned char)ch;
@@ -1054,7 +1079,7 @@ IT_reassert_line_highlight (int new, int vpos)
 }
 
 static void
-IT_change_line_highlight (int new_highlight, int vpos, int first_unused_hpos)
+IT_change_line_highlight (int new_highlight, int y, int vpos, int first_unused_hpos)
 {
   highlight = new_highlight;
   IT_set_face (0); /* To possibly clear the highlighting.  */
@@ -1075,15 +1100,55 @@ IT_update_end (struct frame *foo)
 {
 }
 
-/* Insert and delete characters.  These are not supposed to be used
-   because we are supposed to turn off the feature of using them by
-   setting char_ins_del_ok to zero (see internal_terminal_init).  */
+/* Copy LEN glyphs displayed on a single line whose vertical position
+   is YPOS, beginning at horizontal position XFROM to horizontal
+   position XTO, by moving blocks in the video memory.  Used by
+   functions that insert and delete glyphs.  */
+static void
+IT_copy_glyphs (int xfrom, int xto, size_t len, int ypos)
+{
+  /* The offsets of source and destination relative to the
+     conventional memorty selector.  */
+  int from = 2 * (xfrom + screen_size_X * ypos) + ScreenPrimary;
+  int to = 2 * (xto + screen_size_X * ypos) + ScreenPrimary;
+
+  if (from == to || len <= 0)
+    return;
+
+  _farsetsel (_dos_ds);
+
+  /* The source and destination might overlap, so we need to move
+     glyphs non-destructively.  */
+  if (from > to)
+    {
+      for ( ; len; from += 2, to += 2, len--)
+	_farnspokew (to, _farnspeekw (from));
+    }
+  else
+    {
+      from += (len - 1) * 2;
+      to += (len - 1) * 2;
+      for ( ; len; from -= 2, to -= 2, len--)
+	_farnspokew (to, _farnspeekw (from));
+    }
+  if (screen_virtual_segment)
+    dosv_refresh_virtual_screen (ypos * screen_size_X * 2, screen_size_X);
+}
+
+/* Insert and delete glyphs.  */
 static void
 IT_insert_glyphs (start, len)
-     register char *start;
+     register struct glyph *start;
      register int len;
 {
-  abort ();
+  int shift_by_width = screen_size_X - (new_pos_X + len);
+
+  /* Shift right the glyphs from the nominal cursor position to the
+     end of this line.  */
+  IT_copy_glyphs (new_pos_X, new_pos_X + len, shift_by_width, new_pos_Y);
+
+  /* Now write the glyphs to be inserted.  */
+  IT_write_glyphs (start, len);
 }
 
 static void
@@ -1265,7 +1330,7 @@ IT_set_terminal_window (int foo)
 
 void
 IT_set_frame_parameters (f, alist)
-     FRAME_PTR f;
+     struct frame *f;
      Lisp_Object alist;
 {
   Lisp_Object tail;
@@ -1276,7 +1341,10 @@ IT_set_frame_parameters (f, alist)
   Lisp_Object *values
     = (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
   int redraw;
-  extern unsigned long load_color ();
+  struct face *dflt = NULL;
+
+  if (FRAME_FACE_CACHE (f))
+    dflt = FACE_FROM_ID (f, DEFAULT_FACE_ID);
 
   redraw = 0;
 
@@ -1302,10 +1370,14 @@ IT_set_frame_parameters (f, alist)
 
       if (EQ (prop, Qforeground_color))
 	{
-	  unsigned long new_color = load_color (f, val);
+	  unsigned long new_color = load_color (f, NULL, val,
+						LFACE_FOREGROUND_INDEX);
 	  if (new_color != ~0)
 	    {
+	      if (!dflt)
+		abort ();
 	      FRAME_FOREGROUND_PIXEL (f) = new_color;
+	      dflt->foreground = new_color;
 	      redraw = 1;
 	      if (termscript)
 		fprintf (termscript, "<FGCOLOR %lu>\n", new_color);
@@ -1313,10 +1385,14 @@ IT_set_frame_parameters (f, alist)
 	}
       else if (EQ (prop, Qbackground_color))
 	{
-	  unsigned long new_color = load_color (f, val);
+	  unsigned long new_color = load_color (f, NULL, val,
+						LFACE_BACKGROUND_INDEX);
 	  if (new_color != ~0)
 	    {
+	      if (!dflt)
+		abort ();
 	      FRAME_BACKGROUND_PIXEL (f) = new_color;
+	      dflt->background = new_color;
 	      redraw = 1;
 	      if (termscript)
 		fprintf (termscript, "<BGCOLOR %lu>\n", new_color);
@@ -1332,8 +1408,12 @@ IT_set_frame_parameters (f, alist)
 	{
 	  unsigned long fg = FRAME_FOREGROUND_PIXEL (f);
 
-	  FRAME_FOREGROUND_PIXEL (f) = FRAME_BACKGROUND_PIXEL (f);
+	  if (!dflt)
+	    abort ();
+	  FRAME_FOREGROUND_PIXEL (f) = FRAME_BACKGROUND_PIXEL (f); /* FIXME! */
 	  FRAME_BACKGROUND_PIXEL (f) = fg;
+	  dflt->foreground = FRAME_FOREGROUND_PIXEL (f);
+	  dflt->foreground = fg;
 	  if (termscript)
 	    fprintf (termscript, "<INVERSE-VIDEO>\n");
 	}
@@ -1343,9 +1423,6 @@ IT_set_frame_parameters (f, alist)
 
   if (redraw)
     {
-      extern void recompute_basic_faces (FRAME_PTR);
-      extern void redraw_frame (FRAME_PTR);
-
       recompute_basic_faces (f);
       if (f == selected_frame)
 	redraw_frame (f);
@@ -1433,8 +1510,7 @@ internal_terminal_init ()
   set_terminal_modes_hook = IT_set_terminal_modes;
   reset_terminal_modes_hook = IT_reset_terminal_modes;
   set_terminal_window_hook = IT_set_terminal_window;
-
-  char_ins_del_ok = 0;		/* just as fast to write the line */
+  char_ins_del_ok = 0;
 #endif
 }
 
@@ -2409,14 +2485,14 @@ static void
 IT_menu_display (XMenu *menu, int y, int x, int *faces)
 {
   int i, j, face, width;
-  GLYPH *text, *p;
+  struct glyph *text, *p;
   char *q;
   int mx, my;
   int enabled, mousehere;
   int row, col;
 
   width = menu->width;
-  text = (GLYPH *) xmalloc ((width + 2) * sizeof (GLYPH));
+  text = (struct glyph *) xmalloc ((width + 2) * sizeof (struct glyph));
   ScreenGetCursor (&row, &col);
   mouse_get_xy (&mx, &my);
   IT_update_begin (selected_frame);
@@ -2428,22 +2504,30 @@ IT_menu_display (XMenu *menu, int y, int x, int *faces)
       mousehere = (y + i == my && x <= mx && mx < x + width + 2);
       face = faces[enabled + mousehere * 2];
       p = text;
-      *p++ = FAST_MAKE_GLYPH (' ', face);
+      SET_CHAR_GLYPH (*p, ' ', face, 0);
+      p++;
       for (j = 0, q = menu->text[i]; *q; j++)
 	{
 	  if (*q > 26)
-	    *p++ = FAST_MAKE_GLYPH (*q++, face);
+	    {
+	      SET_CHAR_GLYPH (*p, *q++, face, 0);
+	      p++;
+	    }
 	  else	/* make '^x' */
 	    {
-	      *p++ = FAST_MAKE_GLYPH ('^', face);
+	      SET_CHAR_GLYPH (*p, '^', face, 0);
+	      p++;
 	      j++;
-	      *p++ = FAST_MAKE_GLYPH (*q++ + 64, face);
+	      SET_CHAR_GLYPH (*p, *q++ + 64, face, 0);
+	      p++;
 	    }
 	}
 	    
-      for (; j < width; j++)
-	*p++ = FAST_MAKE_GLYPH (' ', face);
-      *p++ = FAST_MAKE_GLYPH (menu->submenu[i] ? 16 : ' ', face);
+      for (; j < width; j++, p++)
+	SET_CHAR_GLYPH (*p, ' ', face, 0);
+
+      SET_CHAR_GLYPH (*p, menu->submenu[i] ? 16 : ' ', face, 0);
+      p++;
       IT_write_glyphs (text, width + 2);
     }
   IT_update_end (selected_frame);
@@ -2561,7 +2645,8 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   int statecount;
   int x, y, i, b;
   int screensize;
-  int faces[4], selectface;
+  int faces[4];
+  Lisp_Object selectface;
   int leave, result, onepane;
   int title_faces[4];		/* face to display the menu title */
   int buffers_num_deleted = 0;
@@ -2583,21 +2668,16 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   state = alloca (menu->panecount * sizeof (struct IT_menu_state));
   screensize = screen_size * 2;
   faces[0]
-    = compute_glyph_face (selected_frame,
-			  face_name_id_number
-			  (selected_frame,
-			   intern ("msdos-menu-passive-face")),
-			  0);
+    = lookup_derived_face (selected_frame, intern ("msdos-menu-passive-face"),
+			   CHARSET_ASCII, DEFAULT_FACE_ID);
   faces[1]
-    = compute_glyph_face (selected_frame,
-			  face_name_id_number
-			  (selected_frame,
-			   intern ("msdos-menu-active-face")),
-			  0);
-  selectface
-    = face_name_id_number (selected_frame, intern ("msdos-menu-select-face"));
-  faces[2] = compute_glyph_face (selected_frame, selectface, faces[0]);
-  faces[3] = compute_glyph_face (selected_frame, selectface, faces[1]);
+    = lookup_derived_face (selected_frame, intern ("msdos-menu-active-face"),
+			   CHARSET_ASCII, DEFAULT_FACE_ID);
+  selectface = intern ("msdos-menu-select-face");
+  faces[2] = lookup_derived_face (selected_frame, selectface,
+				  CHARSET_ASCII, faces[0]);
+  faces[3] = lookup_derived_face (selected_frame, selectface,
+				  CHARSET_ASCII, faces[1]);
 
   /* Make sure the menu title is always displayed with
      `msdos-menu-active-face', no matter where the mouse pointer is.  */
