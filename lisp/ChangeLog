@@ -1,3 +1,10 @@
+2002-01-22  Richard M. Stallman  <rms@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-canonize-filename): Avoid duplicate
+	slash if DIR is just slash.
+
+	* textmodes/ispell.el (ispell-help): Clean up echo area if user quits.
+
 2002-01-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/quail.el (quail-start-translation)

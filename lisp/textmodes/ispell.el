@@ -1886,14 +1886,16 @@ SPC:   Accept word this time.
 	      (insert (concat help-1 "\n" help-2 "\n" help-3))
 	      (sit-for 5)
 	      (kill-buffer "*Ispell Help*"))
-	  (select-window (minibuffer-window))
-	  (erase-buffer)
-	  (if (not version18p) (message nil))
-	  ;;(set-minibuffer-window (selected-window))
-	  (enlarge-window 2)
-	  (insert (concat help-1 "\n" help-2 "\n" help-3))
-	  (sit-for 5)
-	  (erase-buffer))))))
+	  (unwind-protect
+	      (progn
+		(select-window (minibuffer-window))
+		(erase-buffer)
+		(if (not version18p) (message nil))
+		;;(set-minibuffer-window (selected-window))
+		(enlarge-window 2)
+		(insert (concat help-1 "\n" help-2 "\n" help-3))
+		(sit-for 5))
+	    (erase-buffer)))))))
 
 
 (defun lookup-words (word &optional lookup-dict)
