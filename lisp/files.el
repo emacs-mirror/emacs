@@ -314,7 +314,10 @@ The truename of a file name is found by chasing symbolic links
 both at the level of the file and at the level of the directories
 containing it, until no links are left at any level."
   (if (string= filename "~")
-      (setq filename (expand-file-name filename)))
+      (progn
+	(setq filename (expand-file-name filename))
+	(if (string= filename "")
+	    (setq filename "/"))))
   (let ((handler (find-file-name-handler filename)))
     ;; For file name that has a special handler, call handler.
     ;; This is so that ange-ftp can save time by doing a no-op.
@@ -575,7 +578,8 @@ The buffer is not selected, just returned to the caller."
 	  ;; Find the file's truename, and maybe use that as visited name.
 	  (setq buffer-file-truename (abbreviate-file-name truename))
 	  (setq buffer-file-number number) 
-	  (if find-file-visit-truename (setq filename buffer-file-truename))
+	  (if find-file-visit-truename
+	      (setq buffer-file-name (setq filename buffer-file-truename)))
 	  ;; Set buffer's default directory to that of the file.
 	  (setq default-directory (file-name-directory filename))
 	  ;; Turn off backup files for certain file names.  Since
