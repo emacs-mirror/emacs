@@ -73,11 +73,8 @@ Boston, MA 02111-1307, USA.  */
    for displaying the correspnding character.
 
    All single byte charaters (ASCII and 8bit-unibyte) share the same
-   element in a fontset.  The element is stored in `defalt' slot of
-   the fontset.  And this slot is never used as a default value of
-   multibyte characters.  That means that the first 256 elements of a
-   fontset are always nil (as this is not efficient, we may implement
-   a fontset in a different way in the future).
+   element in a fontset.  The element is stored in the first element
+   of the fontset.
 
    To access or set each element, use macros FONTSET_REF and
    FONTSET_SET respectively for efficiency.
@@ -201,7 +198,7 @@ static Lisp_Object font_family_registry P_ ((Lisp_Object));
 #define FONTSET_ID(fontset)		XCHAR_TABLE (fontset)->extras[0]
 #define FONTSET_NAME(fontset)		XCHAR_TABLE (fontset)->extras[1]
 #define FONTSET_FRAME(fontset)		XCHAR_TABLE (fontset)->extras[2]
-#define FONTSET_ASCII(fontset)		XCHAR_TABLE (fontset)->defalt
+#define FONTSET_ASCII(fontset)		XCHAR_TABLE (fontset)->contents[0]
 #define FONTSET_BASE(fontset)		XCHAR_TABLE (fontset)->parent
 
 #define BASE_FONTSET_P(fontset)		NILP (FONTSET_BASE(fontset))
@@ -257,6 +254,8 @@ fontset_ref_via_base (fontset, c)
     return FONTSET_ASCII (fontset);
 
   elt = FONTSET_REF (FONTSET_BASE (fontset), *c);
+  if (NILP (elt) && ! EQ (fontset, Vdefault_fontset))
+    elt = FONTSET_REF (Vdefault_fontset, *c);
   if (NILP (elt))
     return Qnil;
 
@@ -343,10 +342,7 @@ make_fontset (frame, name, base)
       Vfontset_table = tem;
     }
 
-  if (NILP (base))
-    fontset = Fcopy_sequence (Vdefault_fontset);
-  else
-    fontset = Fmake_char_table (Qfontset, Qnil);
+  fontset = Fmake_char_table (Qfontset, Qnil);
 
   FONTSET_ID (fontset) = make_number (id);
   FONTSET_NAME (fontset) = name;
@@ -545,7 +541,7 @@ fontset_font_pattern (f, id, c)
       fontset = FONTSET_BASE (fontset);
       elt = FONTSET_REF (fontset, c);
     }
-  else
+  if (NILP (elt))
     elt = FONTSET_REF (Vdefault_fontset, c);
 
   if (!CONSP (elt))
@@ -1190,6 +1186,8 @@ accumulate_font_info (arg, character, elt)
 {
   Lisp_Object last, last_char, last_elt, tmp;
 
+  if (!CONSP (elt) && !SINGLE_BYTE_CHAR_P (XINT (character)))
+    elt = FONTSET_REF (Vdefault_fontset, XINT (character));
   if (!CONSP (elt))
     return;
   last = XCAR (arg);
@@ -1208,13 +1206,12 @@ accumulate_font_info (arg, character, elt)
 	      return;
 	    }
 	}
-      else
+      else if (XINT (last_char) == XINT (character))
+	return;
+      else if (this_charset == CHAR_CHARSET (XINT (last_char)))
 	{
-	  if (this_charset == CHAR_CHARSET (XINT (last_char)))
-	    {
-	      XCAR (XCAR (last)) = Fcons (last_char, character);
-	      return;
-	    }
+	  XCAR (XCAR (last)) = Fcons (last_char, character);
+	  return;
 	}
     }
   XCDR (last) = Fcons (Fcons (character, Fcons (elt, Qnil)), Qnil);
@@ -1257,7 +1254,7 @@ If FRAME is omitted, it defaults to the currently selected frame.")
   CHECK_LIVE_FRAME (frame, 1);
   f = XFRAME (frame);
 
-  /* Recodeq realized fontsets whose base is FONTSET in the table
+  /* Recode realized fontsets whose base is FONTSET in the table
      `realized'.  */
   realized = (Lisp_Object *) alloca (sizeof (Lisp_Object)
 				     * ASIZE (Vfontset_table));
@@ -1281,7 +1278,7 @@ If FRAME is omitted, it defaults to the currently selected frame.")
   val = XCDR (val);
 
   /* For each FONT-INFO, if CHAR_OR_RANGE (car part) is a generic
-     character for a charset, replace it wiht the charset symbol.  If
+     character for a charset, replace it with the charset symbol.  If
      fonts are opened for FONT-SPEC, append the names of the fonts to
      FONT-SPEC.  */
   for (tail = val; CONSP (tail); tail = XCDR (tail))
