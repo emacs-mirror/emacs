@@ -4,7 +4,6 @@
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Created: 15 Dec 1992
-;; Version: trace.el,v 2.0 1993/05/18 00:41:16 hans Exp
 ;; Keywords: tools, lisp
 
 ;; This file is part of GNU Emacs.
@@ -163,13 +162,6 @@
 ;;; Code:
 
 (require 'advice)
-
-;; For the odd case that ``' does not have an autoload definition in some
-;; Emacs we autoload it here. It is only needed for compilation, hence,
-;; I don't want to unconditionally `require' it:
-(if (not (fboundp '`)) (autoload '` "backquote"))
-
-(defconst trace-version "2.0")
 
 ;;;###autoload
 (defvar trace-buffer "*trace-output*"
