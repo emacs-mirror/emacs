@@ -323,7 +323,13 @@ to NEW-FACE on frame NEW-FRAME."
       (setq old-face (internal-get-face old-face frame))
       (setq new-face (or (internal-find-face new-face new-frame)
 			 (make-face new-face)))
-      (set-face-font new-face (face-font old-face frame) new-frame)
+      (condition-case nil
+	  ;; A face that has a global symbolic font modifier such as `bold'
+	  ;; might legitimately get an error here.
+	  ;; Use the frame's default font in that case.
+	  (set-face-font new-face (face-font old-face frame) new-frame)
+	(error
+	 (set-face-font new-face nil new-frame)))
       (set-face-foreground new-face (face-foreground old-face frame) new-frame)
       (set-face-background new-face (face-background old-face frame) new-frame)
 ;;;      (set-face-background-pixmap
