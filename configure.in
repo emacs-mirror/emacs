@@ -673,6 +673,11 @@ case "${canonical}" in
     machine=tower32v3 opsys=usg5-3
   ;;
 
+  ## NEC EWS4800
+  mips-nec-sysv4*)
+  machine=ews4800 opsys=ux4800
+  ;;
+
   ## Nixdorf Targon 31
   m68*-nixdorf-sysv* )
     machine=targon31 opsys=usg5-2-2
