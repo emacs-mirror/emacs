@@ -841,6 +841,11 @@ update:
 
   /* Change frame size now if a change is pending.  */
   do_pending_window_change ();
+
+  /* If we just did a pending size change, redisplay again
+     for the new size.  */
+  if (windows_or_buffers_changed)
+    redisplay ();
 }
 
 /* Redisplay, but leave alone any recent echo area message
