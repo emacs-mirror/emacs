@@ -1,10 +1,15 @@
+2001-10-29  Sam Steingold  <sds@gnu.org>
+
+	* w32-fns.el (convert-standard-filename): Handle cygwin-specific
+	"/cygdrive/LETTER/" pathnames.
+
 2001-10-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* faces.el (invert-face): Check for 'unspecified, not for nil,
 	when testing whether face colors are not specified.  From
 	David.Kastrup@t-online.de (David Kastrup).
 	(read-face-name): Doc fix.
-	(make-face-bold, make-face-unbold, make-face-italic) 
+	(make-face-bold, make-face-unbold, make-face-italic)
 	(make-face-unitalic, make-face-bold-italic, invert-face): Remove
 	trailing blank from the prompt passed to read-face-name.
 

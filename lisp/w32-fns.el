@@ -43,7 +43,7 @@
 ;; Ignore case on file-name completion
 (setq completion-ignore-case t)
 
-;; Map all versions of a filename (8.3, longname, mixed case) to the 
+;; Map all versions of a filename (8.3, longname, mixed case) to the
 ;; same buffer.
 (setq find-file-visit-truename t)
 
@@ -72,7 +72,7 @@ numbers, and the build number."
 
 (defun w32-system-shell-p (shell-name)
   (and shell-name
-       (member (downcase (file-name-nondirectory shell-name)) 
+       (member (downcase (file-name-nondirectory shell-name))
 	       w32-system-shells)))
 
 (defun w32-shell-dos-semantics ()
@@ -98,15 +98,15 @@ has configured the shell with inappropriate settings."
     (erase-buffer)
     (if (w32-system-shell-p (getenv "ESHELL"))
 	(insert (format "Warning! The ESHELL environment variable uses %s.
-You probably want to change it so that it uses cmdproxy.exe instead.\n\n" 
+You probably want to change it so that it uses cmdproxy.exe instead.\n\n"
 			(getenv "ESHELL"))))
     (if (w32-system-shell-p (getenv "SHELL"))
 	(insert (format "Warning! The SHELL environment variable uses %s.
-You probably want to change it so that it uses cmdproxy.exe instead.\n\n" 
+You probably want to change it so that it uses cmdproxy.exe instead.\n\n"
 			(getenv "SHELL"))))
     (if (w32-system-shell-p shell-file-name)
 	(insert (format "Warning! shell-file-name uses %s.
-You probably want to change it so that it uses cmdproxy.exe instead.\n\n" 
+You probably want to change it so that it uses cmdproxy.exe instead.\n\n"
 			shell-file-name)))
     (if (and (boundp 'explicit-shell-file-name)
 	     (w32-system-shell-p explicit-shell-file-name))
@@ -212,7 +212,7 @@ You should set this to t when using a non-system shell.\n\n"))))
 	 (dir1 (expand-file-name "../info/" instdir))
 	 (dir2 (expand-file-name "../../../info/" instdir)))
     (if (file-exists-p dir1)
-	(setq Info-default-directory-list 
+	(setq Info-default-directory-list
 	      (append Info-default-directory-list (list dir1)))
       (if (file-exists-p dir2)
 	  (setq Info-default-directory-list
@@ -230,9 +230,9 @@ You should set this to t when using a non-system shell.\n\n"))))
 ;;; source-directory, set it to something that is a reasonable approximation
 ;;; on the user's machine.
 
-;(add-hook 'before-init-hook 
+;(add-hook 'before-init-hook
 ;	  '(lambda ()
-;	     (setq source-directory (file-name-as-directory 
+;	     (setq source-directory (file-name-as-directory
 ;				     (expand-file-name ".." exec-directory)))))
 
 ;; Avoid creating auto-save file names containing invalid characters.
@@ -255,7 +255,11 @@ See also `auto-save-file-name-p'."
 This function's standard definition is trivial; it just returns the argument.
 However, on some systems, the function is redefined
 with a definition that really does change some file names."
-  (let ((name (copy-sequence filename))
+  (let ((name
+         (save-match-data
+           (if (string-match "\\`/cygdrive/\\([a-zA-Z]\\)/" filename)
+               (replace-match "\\1:/" t nil filename)
+             (copy-sequence filename))))
 	(start 0))
     ;; leave ':' if part of drive specifier
     (if (and (> (length name) 1)
@@ -438,7 +442,7 @@ clipboard as well. Optional PUSH is ignored on Windows."
   (if x-select-enable-clipboard
       (w32-set-clipboard-data text))
   (setq x-last-selected-text text))
-    
+
 (defun x-get-selection-value ()
   "Return the value of the current selection.
 Consult the selection, then the cut buffer.  Treat empty strings as if
