@@ -30,7 +30,6 @@
 #define HAVE_SETITIMER 1\
 #undef HAVE_SELECT\
 #undef _LIBC\
-#define HAVE_VFORK 1\
 #define HAVE_STRUCT_UTIMBUF 1\
 #define LOCALTIME_CACHE 1\
 #define HAVE_TZSET 1\
