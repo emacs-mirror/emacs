@@ -726,8 +726,8 @@ create_process (process, new_argv)
   /* Record this as an active process, with its channels.
      As a result, child_setup will close Emacs's side of the pipes.  */
   chan_process[inchannel] = process;
-  XFASTINT (XPROCESS (process)->infd) = inchannel;
-  XFASTINT (XPROCESS (process)->outfd) = outchannel;
+  XSETFASTINT (XPROCESS (process)->infd, inchannel);
+  XSETFASTINT (XPROCESS (process)->outfd, outchannel);
   XPROCESS (process)->status = Qrun
 
   /* Delay interrupts until we have a chance to store
@@ -742,7 +742,7 @@ create_process (process, new_argv)
     */
   write_to_vms_process (vs, NO_ECHO, strlen (NO_ECHO));
 
-  XFASTINT (XPROCESS (process)->pid) = pid;
+  XSETFASTINT (XPROCESS (process)->pid, pid);
   sys$setast (1);
 }
 
