@@ -269,14 +269,14 @@ fontset_id_valid_p (id)
 #define FONTSET_NAME(fontset)		XCHAR_TABLE (fontset)->extras[1]
 #define FONTSET_ASCII(fontset)		XCHAR_TABLE (fontset)->extras[4]
 
-#define BASE_FONTSET_P(fontset)		STRINGP (FONTSET_NAME (fontset))
-
 /* Macros to access special values of (realized) FONTSET.  */
 #define FONTSET_BASE(fontset)		XCHAR_TABLE (fontset)->extras[2]
 #define FONTSET_FRAME(fontset)		XCHAR_TABLE (fontset)->extras[3]
 #define FONTSET_NOFONT_FACE(fontset)	XCHAR_TABLE (fontset)->extras[5]
 #define FONTSET_REPERTORY(fontset)	XCHAR_TABLE (fontset)->extras[6]
 #define FONTSET_FALLBACK(fontset)	XCHAR_TABLE (fontset)->extras[7]
+
+#define BASE_FONTSET_P(fontset)		(NILP (FONTSET_BASE (fontset)))
 
 
 /* Return the element of FONTSET for the character C.  If FONTSET is a
@@ -372,6 +372,8 @@ fontset_add (fontset, range, elt, add)
   to = XINT (XCDR (range));
   do {
     elt1 = char_table_ref_and_range (fontset, from, &from1, &to1);
+    if (to < to1)
+      to1 = to;
     if (NILP (elt1))
       elt1 = Fmake_vector (make_number (1), elt);
     else
@@ -386,7 +388,7 @@ fontset_add (fontset, range, elt, add)
 	  ASET (new, i0, AREF (elt1, i));
 	elt1 = new;
       }
-    char_table_set_range (fontset, from, to1, elt1);    
+    char_table_set_range (fontset, from, to1, elt1);
     from = to1 + 1;
   } while (from < to);
   return Qnil;
@@ -620,7 +622,6 @@ fontset_face (fontset, c, face)
   if (! EQ (base_fontset, Vdefault_fontset))
     return fontset_face (FONTSET_FALLBACK (fontset), c, face);
 
- font_not_found:
   /* We have tried all the fonts for C, but none of them can be opened
      nor can display C.  */
   if (NILP (FONTSET_NOFONT_FACE (fontset)))
@@ -1608,8 +1609,10 @@ fontset.  The format is the same as abobe.  */)
 	{
 	  this_fontset = Vdefault_fontset;
 	  this_table = XCHAR_TABLE (table)->extras[0];
+#if 0
 	  for (i = 0; i < n_realized; i++)
 	    realized[i] = FONTSET_FALLBACK (realized[i]);
+#endif
 	}
       for (c = 0; c <= MAX_5_BYTE_CHAR; )
 	{
@@ -1813,4 +1816,27 @@ at the vertical center of lines.  */);
   defsubr (&Sfontset_info);
   defsubr (&Sfontset_font);
   defsubr (&Sfontset_list);
+}
+
+Lisp_Object
+dump_fontset (fontset)
+     Lisp_Object fontset;
+{
+  Lisp_Object val;
+  
+  if (NILP (FONTSET_FALLBACK (fontset)))
+    val = Fcons (Fcons (intern ("fallback-id"), Qnil), Qnil);
+  else
+    val = Fcons (Fcons (intern ("fallback-id"),
+			FONTSET_ID (FONTSET_FALLBACK (fontset))),
+		 Qnil);
+  if (NILP (FONTSET_BASE (fontset)))
+    val = Fcons (Fcons (intern ("base"), Qnil), val);
+  else
+    val = Fcons (Fcons (intern ("base"),
+			FONTSET_NAME (FONTSET_BASE (fontset))),
+		 val);
+  val = Fcons (Fcons (intern ("name"), FONTSET_NAME (fontset)), val);
+  val = Fcons (Fcons (intern ("id"), FONTSET_ID (fontset)), val);
+  return val;
 }
