@@ -1611,61 +1611,44 @@ Buffers menu is regenerated."
     (list 'menu-item "Enter" 'exit-minibuffer
 	  :help "Terminate input and exit minibuffer")))
 
-(defcustom menu-bar-mode t
-  "Toggle display of a menu bar on each frame.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `menu-bar-mode'."
-  :set (lambda (symbol value)
-	 (menu-bar-mode (or value 0)))
-  :initialize 'custom-initialize-default
-  :type 'boolean
-  :group 'frames)
+;;;###autoload
+;; This comment is taken from toolbar/tool-bar.el near
+;; (put 'tool-bar-mode ...)
+;; We want to pretend the menu bar by standard is on, as this will make
+;; customize consider disabling the menu bar a customization, and save
+;; that.  We could do this for real by setting :init-value below, but
+;; that would overwrite disabling the tool bar from X resources.
+(put 'menu-bar-mode 'standard-value '(t))
 
-(defun menu-bar-mode (&optional flag)
+;;;###autoload
+(define-minor-mode menu-bar-mode
   "Toggle display of a menu bar on each frame.
 This command applies to all frames that exist and frames to be
 created in the future.
 With a numeric argument, if the argument is positive,
 turn on menu bars; otherwise, turn off menu bars."
-  (interactive "P")
-
+  :init-value nil
+  :global t
+  :group 'frames
   ;; Make menu-bar-mode and default-frame-alist consistent.
-  (let ((default (assq 'menu-bar-lines default-frame-alist)))
-    (if default
-	(setq menu-bar-mode (not (eq (cdr default) 0)))
-      (setq default-frame-alist
-	    (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
-		  default-frame-alist))))
+  (let ((lines (if menu-bar-mode 1 0)))
+    ;; Alter existing frames...
+    (mapc (lambda (frame)
+	    (modify-frame-parameters frame
+				     (list (cons 'menu-bar-lines lines))))
+	  (frame-list))
+    ;; ...and future ones.
+    (let ((elt (assq 'menu-bar-lines default-frame-alist)))
+      (if elt
+	  (setcdr elt lines)
+	(add-to-list 'default-frame-alist (cons 'menu-bar-lines lines)))))
 
-  ;; Toggle or set the mode, according to FLAG.
-  (setq menu-bar-mode (if (null flag) (not menu-bar-mode)
-			(> (prefix-numeric-value flag) 0)))
-
-  ;; Apply it to default-frame-alist.
-  (let ((parameter (assq 'menu-bar-lines default-frame-alist)))
-    (if (consp parameter)
-	(setcdr parameter (if menu-bar-mode 1 0))
-      (setq default-frame-alist
-	    (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
-		  default-frame-alist))))
-
-  ;; Apply it to existing frames.
-  (let ((frames (frame-list)))
-    (while frames
-      (let ((height (cdr (assq 'height (frame-parameters (car frames))))))
-	(modify-frame-parameters (car frames)
-				 (list (cons 'menu-bar-lines
-					     (if menu-bar-mode 1 0))))
-	(modify-frame-parameters (car frames)
-				 (list (cons 'height height))))
-      (setq frames (cdr frames))))
-
-  (when (interactive-p)
-    (if menu-bar-mode
-	(message "Menu-bar mode enabled.")
-      (message "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear."))
-    (customize-mark-as-set 'menu-bar-mode))
-
+  ;; Make the message appear when Emacs is idle.  We can not call message
+  ;; directly.  The minor-mode message "Menu-bar mode disabled" comes
+  ;; after this function returns, overwriting any message we do here.
+  (when (and (interactive-p) (not menu-bar-mode))
+    (run-with-idle-timer 0 nil 'message
+			 "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear."))
   menu-bar-mode)
 
 (provide 'menu-bar)

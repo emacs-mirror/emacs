@@ -807,7 +807,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (unless (or noninteractive
               (and (memq window-system '(x w32))
                    (<= (frame-parameter nil 'menu-bar-lines) 0)))
-    (menu-bar-mode t))
+    (menu-bar-mode 1))
 
   ;; If frame was created with a tool bar, switch tool-bar-mode on.
   (unless (or noninteractive
