@@ -2191,8 +2191,9 @@ scan_lists (from, count, depth, sexpflag)
 		  if (from >= stop) goto lose;
 		  UPDATE_SYNTAX_TABLE_FORWARD (from);
 		  c = FETCH_CHAR (from_byte);
-		  if (code == Sstring 
-		      ? c == stringterm
+		  if (code == Sstring
+		      ? (c == stringterm
+			 && SYNTAX_WITH_MULTIBYTE_CHECK (c) == Sstring)
 		      : SYNTAX_WITH_MULTIBYTE_CHECK (c) == Sstring_fence)
 		    break;
 
@@ -2369,7 +2370,8 @@ scan_lists (from, count, depth, sexpflag)
 		    temp_pos--;
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
 		  if (!char_quoted (from - 1, temp_pos)
-		      && stringterm == FETCH_CHAR (temp_pos))
+		      && stringterm == (c = FETCH_CHAR (temp_pos))
+		      && SYNTAX_WITH_MULTIBYTE_CHECK (c) == Sstring)
 		    break;
 		  DEC_BOTH (from, from_byte);
 		}
@@ -2942,7 +2944,7 @@ init_syntax_once ()
   Qchar_table_extra_slots = intern ("char-table-extra-slots");
 
   /* Create objects which can be shared among syntax tables.  */
-  Vsyntax_code_object = Fmake_vector (make_number (13), Qnil);
+  Vsyntax_code_object = Fmake_vector (make_number (Smax), Qnil);
   for (i = 0; i < XVECTOR (Vsyntax_code_object)->size; i++)
     XVECTOR (Vsyntax_code_object)->contents[i]
       = Fcons (make_number (i), Qnil);
