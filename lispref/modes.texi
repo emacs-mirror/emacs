@@ -59,6 +59,11 @@ Modes}).  For example, Rmail Edit mode, which is in
 Text mode except that it provides two additional commands.  Its
 definition is distinct from that of Text mode, but uses that of Text mode.
 
+  Even if the new mode is not an obvious derivative of any other mode,
+it can be convenient to define it as a derivative of
+@code{fundamental-mode}, so that @code{define-derived-mode} can
+automatically enforce the most important coding conventions for you.
+
   Rmail Edit mode offers an example of changing the major mode
 temporarily for a buffer, so it can be edited in a different way (with
 ordinary Emacs commands rather than Rmail commands).  In such cases, the

@@ -57,8 +57,11 @@ it is started up is as follows:
 
 @enumerate
 @item
-It adds subdirectories to @code{load-path}, by running the file
-named @file{subdirs.el} in each directory that is listed.
+It adds subdirectories to @code{load-path}, by running the file named
+@file{subdirs.el} in each directory in the list.  Normally this file
+adds the directory's subdirectories to the list, and these will be
+scanned in their turn.  The files @file{subdirs.el} are normally
+generated automatically by Emacs installation.
 
 @item
 It sets the language environment and the terminal coding system,
