@@ -1987,7 +1987,7 @@ ERROR is t, otherwise just returns nil."
           (save-excursion
             (re-search-backward "[^*]")
             (if (looking-at ".\\*\\*")
-                (list month starred-day year)
+                (list month calendar-starred-day year)
               (if error (error "Not on a date!"))))
         (if error (error "Not on a date!"))))))
 
