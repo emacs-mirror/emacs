@@ -1593,12 +1593,11 @@ Type \\[describe-distribution] for information on getting the latest version."))
 			     (goto-line line))
 			 (setq line 0))))))))
       ;; If 3 or more files visited, and not all visible,
-      ;; show user what they all are.
+      ;; show user what they all are.  But leave the last one current.
       (and (> file-count 2)
 	   (not noninteractive)
 	   (or (get-buffer-window first-file-buffer)
-	       (progn (other-window 1)
-		      (buffer-menu)))))))
+	       (list-buffers))))))
 
 
 (defun command-line-normalize-file-name (file)
