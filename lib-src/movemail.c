@@ -483,8 +483,8 @@ main (argc, argv)
 	  close (open (inname, O_CREAT | O_TRUNC | O_RDWR, 0666));
 #else
 	  ftruncate (indesc, 0L);
-	}
 #endif /* STRIDE or XENIX */
+	}
 #endif /* MAIL_USE_SYSTEM_LOCK */
 
 #ifdef MAIL_USE_MMDF
