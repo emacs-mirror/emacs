@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.2) $
+ * $HopeName: MMsrc!poolams.c(trunk.3) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  * 
  * NOTES
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mpscams.h"
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.2) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.3) $");
 
 /* These two BT utility functions should be in the BT module.
  * See design.mps.poolams.bt.utilities */
@@ -94,13 +94,13 @@ static Bool AMSCheck(AMS ams);
 
 /* design.mps.poolams.addr-index.slow */
 
-#define AMSGroupSpace(group)      PoolSpace(AMSPool((group)->ams))
+#define AMSGroupArena(group)      PoolArena(AMSPool((group)->ams))
 
 #define AMSGrains(ams,size)       ((size) >> (ams)->grainShift)
 
-#define AMSGroupBase(group)       SegBase(AMSGroupSpace(group), (group)->seg)
+#define AMSGroupBase(group)       SegBase(AMSGroupArena(group), (group)->seg)
 
-#define AMSGroupLimit(group)      SegLimit(AMSGroupSpace(group), (group)->seg)
+#define AMSGroupLimit(group)      SegLimit(AMSGroupArena(group), (group)->seg)
 
 #define AMSGroupShift(group)      ((group)->ams->grainShift)
 
@@ -125,10 +125,10 @@ static Bool AMSGroupCheck(AMSGroup group)
 
   /* do the grains check both ways, to avoid rounding and overflow errors */
   CHECKL(group->grains ==
-         (SegSize(PoolSpace(AMSPool(group->ams)), group->seg) >>
+         (SegSize(PoolArena(AMSPool(group->ams)), group->seg) >>
           group->ams->grainShift));
   CHECKL((group->grains << group->ams->grainShift) ==
-         SegSize(PoolSpace(AMSPool(group->ams)), group->seg));
+         SegSize(PoolArena(AMSPool(group->ams)), group->seg));
   
   if (SegWhite(group->seg) != TraceSetEMPTY) {
     CHECKL(TraceSetSingle(SegWhite(group->seg)));
@@ -194,17 +194,17 @@ static int AMSGrainColour(AMSGroup group, Index index)
 
 /* AMSBTCreate -- allocate a BT from the control pool */
 
-static Res AMSBTCreate(BT *btReturn, Space space, Count length)
+static Res AMSBTCreate(BT *btReturn, Arena arena, Count length)
 {
   Res res;
   BT bt;
   void *p;
 
   AVER(btReturn != NULL);
-  AVERT(Space, space);
+  AVERT(Arena, arena);
   AVER(length > 0);
 
-  res = ArenaAlloc(&p, space, BTSize(length));
+  res = ArenaAlloc(&p, arena, BTSize(length));
   if(res != ResOK)
     return res;
   bt = (BT)p;
@@ -217,13 +217,13 @@ static Res AMSBTCreate(BT *btReturn, Space space, Count length)
 
 /* AMSBTDestroy -- free a BT to the control pool */
 
-static void AMSBTDestroy(BT bt, Space space, Count length)
+static void AMSBTDestroy(BT bt, Arena arena, Count length)
 {
   AVER(bt != NULL);
-  AVERT(Space, space);
+  AVERT(Arena, arena);
   AVER(length > 0);
   
-  ArenaFree(space, bt, BTSize(length));
+  ArenaFree(arena, bt, BTSize(length));
 }
 
 static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
@@ -232,7 +232,7 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   AMSGroup group;               /* the group */
   AMS ams;
   Res res;
-  Space space;
+  Arena arena;
   Seg seg;
   void *p;
   
@@ -244,18 +244,18 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   ams = PoolPoolAMS(pool);
   AVERT(AMS,ams);
   
-  space = PoolSpace(pool);
+  arena = PoolArena(pool);
   
-  size = SizeAlignUp(size, ArenaAlign(space));
+  size = SizeAlignUp(size, ArenaAlign(arena));
   if (size == 0)
     return ResMEMORY;
   
-  res = ArenaAlloc(&p, space, (Size)sizeof(AMSGroupStruct));
+  res = ArenaAlloc(&p, arena, (Size)sizeof(AMSGroupStruct));
   if (res != ResOK)
     goto failGroup;
   group = (AMSGroup)p;
 
-  res = PoolSegAlloc(&seg, SegPrefDefault(), pool, size);
+  res = SegAlloc(&seg, SegPrefDefault(), arena, size, pool);
   if (res != ResOK)
     goto failSeg;
   
@@ -268,15 +268,15 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   group->grains = size >> ams->grainShift;
   group->marked = FALSE; /* design.mps.poolams.marked.unused */
 
-  res = AMSBTCreate(&group->allocTable, space, group->grains);
+  res = AMSBTCreate(&group->allocTable, arena, group->grains);
   if (res != ResOK)
     goto failAlloc;
 
-  res = AMSBTCreate(&group->markTable, space, group->grains);
+  res = AMSBTCreate(&group->markTable, arena, group->grains);
   if (res != ResOK)
     goto failMark;
 
-  res = AMSBTCreate(&group->scanTable, space, group->grains);
+  res = AMSBTCreate(&group->scanTable, arena, group->grains);
   if (res != ResOK)
     goto failScan;
   
@@ -292,13 +292,13 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   return ResOK;
   
 failScan:
-  AMSBTDestroy(group->markTable, space, group->grains);
+  AMSBTDestroy(group->markTable, arena, group->grains);
 failMark:
-  AMSBTDestroy(group->allocTable, space, group->grains);
+  AMSBTDestroy(group->allocTable, arena, group->grains);
 failAlloc:
-  PoolSegFree(pool, seg);
+  SegFree(arena, seg);
 failSeg:
-  ArenaFree(space, group, (Size)sizeof(AMSGroupStruct));
+  ArenaFree(arena, group, (Size)sizeof(AMSGroupStruct));
 failGroup:
   return res;
 }
@@ -306,26 +306,26 @@ failGroup:
 static void AMSGroupDestroy(AMSGroup group)
 {
   AMS ams;
-  Space space;
+  Arena arena;
 
   AVERT(AMSGroup, group);
   ams = group->ams;
   AVERT(AMS, ams);
-  space = PoolSpace(AMSPool(ams));
-  AVERT(Space, space);
+  arena = PoolArena(AMSPool(ams));
+  AVERT(Arena, arena);
 
-  AVER(ams->size >= SegSize(space, group->seg));
+  AVER(ams->size >= SegSize(arena, group->seg));
 
-  ams->size -= SegSize(space, group->seg);
+  ams->size -= SegSize(arena, group->seg);
   ams->lastReclaimed = ams->size;
 
   group->sig = SigInvalid;
 
-  AMSBTDestroy(group->allocTable, space, group->grains);
-  AMSBTDestroy(group->markTable, space, group->grains);
-  AMSBTDestroy(group->scanTable, space, group->grains);
-  PoolSegFree(AMSPool(ams), group->seg);
-  ArenaFree(space, group, (Size)sizeof(AMSGroupStruct));
+  AMSBTDestroy(group->allocTable, arena, group->grains);
+  AMSBTDestroy(group->markTable, arena, group->grains);
+  AMSBTDestroy(group->scanTable, arena, group->grains);
+  SegFree(arena, group->seg);
+  ArenaFree(arena, group, (Size)sizeof(AMSGroupStruct));
 }  
   
 static Res AMSInit(Pool pool, va_list arg)
@@ -574,7 +574,7 @@ static Res AMSCondemn(Pool pool, Trace trace, Seg seg, Action action)
 }
 
 static Res AMSScanGroupOnce(ScanState ss, AMS ams, AMSGroup group,
-                            Seg seg, Space space, Bool scanAllObjects)
+                            Seg seg, Arena arena, Bool scanAllObjects)
 {
   Res res;
   Format format;
@@ -582,11 +582,11 @@ static Res AMSScanGroupOnce(ScanState ss, AMS ams, AMSGroup group,
   Addr p;
   Addr limit;
 
-  limit = SegLimit(space, seg);
+  limit = SegLimit(arena, seg);
   format = ams->format;
   alignment = AMSPool(ams)->alignment;
 
-  p = SegBase(space, seg);
+  p = SegBase(arena, seg);
   while (p < limit) {
     Addr next;
     Buffer buffer = SegBuffer(seg);
@@ -626,7 +626,7 @@ static Res AMSScan(ScanState ss, Pool pool, Seg seg)
 {
   Res res;
   AMS ams;
-  Space space;
+  Arena arena;
   AMSGroup group;
   Bool scanOnce;
   Bool scanAllObjects;
@@ -638,7 +638,7 @@ static Res AMSScan(ScanState ss, Pool pool, Seg seg)
   AVERT(Pool, pool);
   ams = PoolPoolAMS(pool);
   AVERT(AMS, ams);
-  space = PoolSpace(pool);
+  arena = PoolArena(pool);
 
   AVER(SegCheck(seg));
   group = AMSSegGroup(seg);
@@ -655,7 +655,7 @@ static Res AMSScan(ScanState ss, Pool pool, Seg seg)
 
     Bool wasMarked = group->marked; /* for checking */
     group->marked = FALSE;          /* for checking */
-    res = AMSScanGroupOnce(ss, ams, group, seg, space, scanAllObjects);
+    res = AMSScanGroupOnce(ss, ams, group, seg, arena, scanAllObjects);
     AVER(!group->marked);
     group->marked = wasMarked;      /* restore marked flag */
     if (res != ResOK)
@@ -666,7 +666,7 @@ static Res AMSScan(ScanState ss, Pool pool, Seg seg)
     AVER(group->marked);
     do { /* design.mps.poolams.marked.scan */
       group->marked = FALSE; 
-      res = AMSScanGroupOnce(ss, ams, group, seg, space, scanAllObjects);
+      res = AMSScanGroupOnce(ss, ams, group, seg, arena, scanAllObjects);
       if (res != ResOK) {
         group->marked = TRUE; /* design.mps.poolams.marked.scan.fail */
         return res;
@@ -692,7 +692,7 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
   AMS ams;
   AMSGroup group;
-  Space space;
+  Arena arena;
   Index i;
   Ref ref;
   int colour;
@@ -708,7 +708,7 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   group = AMSSegGroup(seg);
   AVERT(AMSGroup, group);
   
-  space = PoolSpace(pool);
+  arena = PoolArena(pool);
 
   ref = *refIO;
   i = AMSAddrIndex(group, ref);
@@ -739,7 +739,8 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
         /* design.mps.poolams.fix.to-black */
         if (RefSetInter(SegSummary(seg), ss->white) != RefSetEMPTY) {
-          TraceSegGreyen(space, seg, ss->traces); /* turn this segment grey */
+          /* turn this segment grey */
+          SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
           group->marked = TRUE; /* design.mps.poolams.marked.fix */
         } else {
           BTSet(group->scanTable, i); /* turn this object black */
@@ -758,7 +759,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
 {
   AMS ams;
   AMSGroup group;
-  Space space;
+  Arena arena;
   Format format;
   Addr p;
   Addr limit;
@@ -773,11 +774,11 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
 
   AVER(group->marked == FALSE); /* design.mps.poolams.marked.reclaim */
   
-  space = PoolSpace(pool);
-  limit = SegLimit(space, seg);
+  arena = PoolArena(pool);
+  limit = SegLimit(arena, seg);
   format = ams->format;
   buffer = SegBuffer(seg);
-  p = SegBase(space, seg);
+  p = SegBase(arena, seg);
   anySurvivors = FALSE;
 
   while (p < limit) {
