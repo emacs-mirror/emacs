@@ -22,7 +22,9 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include "lisp.h"
 #include "syntax.h"
+#include "category.h"
 #include "buffer.h"
+#include "charset.h"
 #include "region-cache.h"
 #include "commands.h"
 #include "blockinput.h"
@@ -105,15 +107,19 @@ matcher_overflow ()
    If it is 0, we should compile the pattern not to record any
    subexpression bounds.
    POSIX is nonzero if we want full backtracking (POSIX style)
-   for this pattern.  0 means backtrack only enough to get a valid match.  */
+   for this pattern.  0 means backtrack only enough to get a valid match.
+   MULTIBYTE is nonzero if we want to handle multibyte characters in
+   PATTERN.  0 means all multibyte characters are recognized just as
+   sequences of binary data.  */
 
 static void
-compile_pattern_1 (cp, pattern, translate, regp, posix)
+compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
      struct regexp_cache *cp;
      Lisp_Object pattern;
      Lisp_Object *translate;
      struct re_registers *regp;
      int posix;
+     int multibyte;
 {
   CONST char *val;
   reg_syntax_t old;
@@ -121,6 +127,7 @@ compile_pattern_1 (cp, pattern, translate, regp, posix)
   cp->regexp = Qnil;
   cp->buf.translate = translate;
   cp->posix = posix;
+  cp->buf.multibyte = multibyte;
   BLOCK_INPUT;
   old = re_set_syntax (RE_SYNTAX_EMACS
 		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
@@ -153,6 +160,9 @@ compile_pattern (pattern, regp, translate, posix)
      int posix;
 {
   struct regexp_cache *cp, **cpp;
+  /* Should we check it here, or add an argument `multibyte' to this
+     function?  */
+  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
 
   for (cpp = &searchbuf_head; ; cpp = &cp->next)
     {
@@ -160,13 +170,14 @@ compile_pattern (pattern, regp, translate, posix)
       if (XSTRING (cp->regexp)->size == XSTRING (pattern)->size
 	  && !NILP (Fstring_equal (cp->regexp, pattern))
 	  && cp->buf.translate == translate
-	  && cp->posix == posix)
+	  && cp->posix == posix
+	  && cp->buf.multibyte == multibyte)
 	break;
 
       /* If we're at the end of the cache, compile into the last cell.  */
       if (cp->next == 0)
 	{
-	  compile_pattern_1 (cp, pattern, translate, regp, posix);
+	  compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte);
 	  break;
 	}
     }
@@ -369,6 +380,29 @@ fast_string_match (regexp, string)
   immediate_quit = 0;
   return val;
 }
+
+/* Match REGEXP against STRING, searching all of STRING ignoring case,
+   and return the index of the match, or negative on failure.
+   This does not clobber the match data.  */
+
+extern Lisp_Object Vascii_downcase_table;
+
+int
+fast_string_match_ignore_case (regexp, string)
+     Lisp_Object regexp;
+     char *string;
+{
+  int val;
+  struct re_pattern_buffer *bufp;
+  int len = strlen (string);
+
+  bufp = compile_pattern (regexp, 0,
+			  XCHAR_TABLE (Vascii_downcase_table)->contents, 0);
+  immediate_quit = 1;
+  val = re_search (bufp, string, len, 0, len, 0);
+  immediate_quit = 0;
+  return val;
+}
 
 /* max and min.  */
 
@@ -502,8 +536,8 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
 
         {
           /* The termination address of the dumb loop.  */ 
-          register unsigned char *ceiling_addr = &FETCH_CHAR (ceiling) + 1;
-          register unsigned char *cursor = &FETCH_CHAR (start);
+          register unsigned char *ceiling_addr = POS_ADDR (ceiling) + 1;
+          register unsigned char *cursor = POS_ADDR (start);
           unsigned char *base = cursor;
 
           while (cursor < ceiling_addr)
@@ -566,8 +600,8 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
 
         {
           /* The termination address of the dumb loop.  */
-          register unsigned char *ceiling_addr = &FETCH_CHAR (ceiling);
-          register unsigned char *cursor = &FETCH_CHAR (start - 1);
+          register unsigned char *ceiling_addr = POS_ADDR (ceiling);
+          register unsigned char *cursor = POS_ADDR (start - 1);
           unsigned char *base = cursor;
 
           while (cursor >= ceiling_addr)
@@ -693,7 +727,18 @@ skip_chars (forwardp, syntaxp, string, lim)
 {
   register unsigned char *p, *pend;
   register unsigned char c;
+  register int ch;
   unsigned char fastmap[0400];
+  /* If SYNTAXP is 0, STRING may contain multi-byte form of characters
+     of which codes don't fit in FASTMAP.  In that case, we set the
+     first byte of multibyte form (i.e. base leading-code) in FASTMAP
+     and set the actual ranges of characters in CHAR_RANGES.  In the
+     form "X-Y" of STRING, both X and Y must belong to the same
+     character set because a range striding across character sets is
+     meaningless.  */
+  int *char_ranges
+    = (int *) alloca (XSTRING (string)->size * (sizeof (int)) * 2);
+  int n_char_ranges = 0;
   int negate = 0;
   register int i;
 
@@ -724,11 +769,13 @@ skip_chars (forwardp, syntaxp, string, lim)
 
   /* Find the characters specified and set their elements of fastmap.
      If syntaxp, each character counts as itself.
-     Otherwise, handle backslashes and ranges specially  */
+     Otherwise, handle backslashes and ranges specially.  */
 
   while (p != pend)
     {
-      c = *p++;
+      c = *p;
+      ch = STRING_CHAR (p, pend - p);
+      p += BYTES_BY_CHAR_HEAD (*p);
       if (syntaxp)
 	fastmap[syntax_spec_code[c]] = 1;
       else
@@ -740,25 +787,49 @@ skip_chars (forwardp, syntaxp, string, lim)
 	    }
 	  if (p != pend && *p == '-')
 	    {
+	      unsigned int ch2;
+
 	      p++;
 	      if (p == pend) break;
-	      while (c <= *p)
+	      if (SINGLE_BYTE_CHAR_P (ch))
+		while (c <= *p)
+		  {
+		    fastmap[c] = 1;
+		    c++;
+		  }
+	      else
 		{
-		  fastmap[c] = 1;
-		  c++;
+		  fastmap[c] = 1; /* C is the base leading-code.  */
+		  ch2 = STRING_CHAR (p, pend - p);
+		  if (ch <= ch2)
+		    char_ranges[n_char_ranges++] = ch,
+		    char_ranges[n_char_ranges++] = ch2;
 		}
-	      p++;
+	      p += BYTES_BY_CHAR_HEAD (*p);
 	    }
 	  else
-	    fastmap[c] = 1;
+	    {
+	      fastmap[c] = 1;
+	      if (!SINGLE_BYTE_CHAR_P (ch))
+		char_ranges[n_char_ranges++] = ch,
+		char_ranges[n_char_ranges++] = ch;
+	    }
 	}
     }
 
-  /* If ^ was the first character, complement the fastmap. */
+  /* If ^ was the first character, complement the fastmap.  In
+     addition, as all multibyte characters have possibility of
+     matching, set all entries for base leading codes, which is
+     harmless even if SYNTAXP is 1.  */
 
   if (negate)
     for (i = 0; i < sizeof fastmap; i++)
-      fastmap[i] ^= 1;
+      {
+	if (!BASE_LEADING_CODE_P (i))
+	  fastmap[i] ^= 1;
+	else
+	  fastmap[i] = 1;
+      }
 
   {
     int start_point = PT;
@@ -771,26 +842,76 @@ skip_chars (forwardp, syntaxp, string, lim)
 	  {
 	    while (pos < XINT (lim)
 		   && fastmap[(int) SYNTAX (FETCH_CHAR (pos))])
-	      pos++;
+	      INC_POS (pos);
 	  }
 	else
 	  {
-	    while (pos > XINT (lim)
-		   && fastmap[(int) SYNTAX (FETCH_CHAR (pos - 1))])
-	      pos--;
+	    while (pos > XINT (lim))
+	      {
+		DEC_POS (pos);
+		if (!fastmap[(int) SYNTAX (FETCH_CHAR (pos))])
+		  {
+		    INC_POS (pos);
+		    break;
+		  }
+	      }
 	  }
       }
     else
       {
 	if (forwardp)
 	  {
-	    while (pos < XINT (lim) && fastmap[FETCH_CHAR (pos)])
-	      pos++;
+	    while (pos < XINT (lim) && fastmap[(c = FETCH_BYTE (pos))])
+	      {
+		if (!BASE_LEADING_CODE_P (c))
+		  pos++;
+		else if (n_char_ranges)
+		  {
+		    /* We much check CHAR_RANGES for a multibyte
+                       character.  */
+		    ch = FETCH_MULTIBYTE_CHAR (pos);
+		    for (i = 0; i < n_char_ranges; i += 2)
+		      if ((ch >= char_ranges[i] && ch <= char_ranges[i + 1]))
+			break;
+		    if (!(negate ^ (i < n_char_ranges)))
+		      break;
+
+		    INC_POS (pos);
+		  }
+		else
+		  {
+		    if (!negate) break;
+		    INC_POS (pos);
+		  }
+	      }
 	  }
 	else
 	  {
-	    while (pos > XINT (lim) && fastmap[FETCH_CHAR (pos - 1)])
-	      pos--;
+	    while (pos > XINT (lim))
+	      {
+		DEC_POS (pos);
+		if (fastmap[(c = FETCH_BYTE (pos))])
+		  {
+		    if (!BASE_LEADING_CODE_P (c))
+		      ;
+		    else if (n_char_ranges)
+		      {
+			/* We much check CHAR_RANGES for a multibyte
+                           character.  */
+			ch = FETCH_MULTIBYTE_CHAR (pos);
+			for (i = 0; i < n_char_ranges; i += 2)
+			  if (ch >= char_ranges[i] && ch <= char_ranges[i + 1])
+			    break;
+			if (!(negate ^ (i < n_char_ranges)))
+			  break;
+		      }
+		    else
+		      if (!negate)
+			break;
+		  }
+		else
+		  break;
+	      }
 	  }
       }
     SET_PT (pos);
@@ -890,6 +1011,7 @@ trivial_regexp_p (regexp)
 	    case '|': case '(': case ')': case '`': case '\'': case 'b':
 	    case 'B': case '<': case '>': case 'w': case 'W': case 's':
 	    case 'S': case '=':
+	    case 'c': case 'C':	/* for categoryspec and notcategoryspec */
 	    case '1': case '2': case '3': case '4': case '5':
 	    case '6': case '7': case '8': case '9':
 	      return 0;
@@ -1165,8 +1287,8 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 		   : max (lim, max (limit, pos - 20000)));
 	  if ((limit - pos) * direction > 20)
 	    {
-	      p_limit = &FETCH_CHAR (limit);
-	      p2 = (cursor = &FETCH_CHAR (pos));
+	      p_limit = POS_ADDR (limit);
+	      p2 = (cursor = POS_ADDR (pos));
 	      /* In this loop, pos + cursor - p2 is the surrogate for pos */
 	      while (1)		/* use one cursor setting as long as i can */
 		{
@@ -1256,7 +1378,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 		  /* (the reach is at most len + 21, and typically */
 		  /* does not exceed len) */    
 		  while ((limit - pos) * direction >= 0)
-		    pos += BM_tab[FETCH_CHAR(pos)];
+		    pos += BM_tab[FETCH_BYTE (pos)];
 		  /* now run the same tests to distinguish going off the */
 		  /* end, a match or a phony match. */
 		  if ((pos - limit) * direction <= len)
@@ -1269,8 +1391,8 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 		    {
 		      pos -= direction;
 		      if (pat[i] != (trt != 0
-				     ? trt[FETCH_CHAR(pos)]
-				     : FETCH_CHAR (pos)))
+				     ? trt[FETCH_BYTE (pos)]
+				     : FETCH_BYTE (pos)))
 			break;
 		    }
 		  /* Above loop has moved POS part or all the way
@@ -1599,7 +1721,7 @@ since only regular expressions have distinguished subexpressions.")
       for (pos = search_regs.start[sub]; pos < last; pos++)
 	{
 	  if (NILP (string))
-	    c = FETCH_CHAR (pos);
+	    c = FETCH_BYTE (pos);
 	  else
 	    c = XSTRING (string)->data[pos];
 
