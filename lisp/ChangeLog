@@ -1,3 +1,8 @@
+2001-12-26  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compile-internal):
+	Set TERM variable in process-environment.
+
 2001-12-25  Richard M. Stallman  <rms@gnu.org>
 
 	* help-mode.el (help-xref-on-pp): Catch and ignore errors in scanning
