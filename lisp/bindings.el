@@ -421,15 +421,15 @@ is okay.  See `mode-line-format'.")
 ;; making it more likely you will get a unique match.
 (setq completion-ignored-extensions
       (append
-       (cond ((or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
-	      '(".o" "~" ".bin" ".bak" ".obj" ".map"
-		".a" ".ln" ".blg" ".bbl"))
+       (cond ((memq system-type '(ms-dos windows-nt))
+	      '(".o" "~" ".bin" ".bak" ".obj" ".map" ".ico" ".pif" ".lnk"
+		".a" ".ln" ".blg" ".bbl" ".dll" ".drv" ".vxd" ".386"))
 	     ((eq system-type 'vax-vms)
 	      '(".obj" ".exe" ".bin" ".lbin" ".sbin"
 		".brn" ".rnt" ".lni" ".lis"
 		".olb" ".tlb" ".mlb" ".hlb"))
 	     (t
-	      '(".o" "~" ".bin" ".lbin"
+	      '(".o" "~" ".bin" ".lbin" ".so"
 		".a" ".ln" ".blg" ".bbl")))
        '(".elc" ".lof"
 	 ".glo" ".idx" ".lot"
