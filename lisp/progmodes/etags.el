@@ -939,12 +939,6 @@ See documentation of variable `tags-file-name'."
       (push-mark)
       (funcall goto-func tag-info)
       
-      ;; Give this buffer a local value of tags-file-name.
-      ;; The next time visit-tags-table-buffer is called,
-      ;; it will use the same tags table that found a match in this buffer.
-      (make-local-variable 'tags-file-name)
-      (setq tags-file-name tags-table-file)
-      
       ;; Return the buffer where the tag was found.
       (current-buffer))))
 
