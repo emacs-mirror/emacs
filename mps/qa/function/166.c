@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!166.c(trunk.1) $
  summary = MVFF with AP split allocate from SW log (af_six)
  language = c
  link = testlib.o
@@ -60,7 +60,7 @@ static void test(void)
   if (event.type == EVENT_ALLOC) {
    id = event.alloc.id;
    asserts(id < MAXOBJS, "MAXOBJS too small");
-   size = (event.alloc.size|(ALIGN-1))^(ALIGN-1);
+   size = ((event.alloc.size + ALIGN-1)|(ALIGN-1))^(ALIGN-1);
    ap = (size < SPLIT1) ? ap1 : (size < SPLIT2) ? ap2 : ap3;
    do {
     MPS_RESERVE_BLOCK(res, objs[id], ap, size);
