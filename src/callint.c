@@ -370,7 +370,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
   /* Note that `+' is reserved for user extensions.  */
   while (1)
     {
-      if (*string = '+')
+      if (*string == '+')
 	error ("`+' is not used in `interactive' for ordinary commands");
       else if (*string == '*')
 	{
