@@ -427,8 +427,16 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     register int nread;
     int first = 1;
 
-    while ((nread = read (fd[0], buf, sizeof buf)) > 0)
+    while ((nread = read (fd[0], buf, sizeof buf)) != 0)
       {
+	if (nread < 0)
+	  {
+#if defined (__osf__) && defined (__alpha)
+	    continue;		/* Work around bug in DEC OSF/1 V3.0.  */
+#else
+	    break;
+#endif
+	  }
 	immediate_quit = 0;
 	if (!NILP (buffer))
 	  insert (buf, nread);
