@@ -1,3 +1,7 @@
+2003-02-17  Klaus Zeitler  <kzeitler@lucent.com>
+
+	* configure.in: Set new hpux10-20.h as "major" include for 10.20.
+
 2002-12-09  Dave Love  <fx@gnu.org>
 
 	* configure.in (*-sunos5.8*, *-solaris2.8*): Delete configurations.

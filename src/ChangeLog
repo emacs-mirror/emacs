@@ -1,3 +1,17 @@
+2003-02-17  Klaus Zeitler  <kzeitler@lucent.com>
+
+	* s/hpux10.h (POLL_INTERRUPTED_SYS_CALL): Defined.
+
+	* s/hpux11.h: Include hpux10-20.h instead of hpux10.h.
+
+	* s/hpux10-20.h: New file.
+
+	* process.c (wait_reading_process_input): Make the 2 patches in
+	wait_reading_process_input for HP-UX 10.10 from AlainF invalid for
+	HP-UX 10.20 and higher.  Nevertheless add the stop_polling call to
+	AlainF's patch in wait_reading_process_input so that the code can
+	work under 10.10.
+
 2003-02-04  Juanma Barranquero  <lektu@terra.es>
 
 	* window.c (Fdisplay_buffer): Fix docstring.
