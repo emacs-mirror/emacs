@@ -108,9 +108,9 @@ low-level libraries that are described in the next chapter.
 
 Standards change, and so programs have to change to fit in the new
 mold.  For instance, RFC2045 describes a syntax for the
-@code{Content-Type} header that only allows ASCII characters in the
+@code{Content-Type} header that only allows @sc{ascii} characters in the
 parameter list.  RFC2231 expands on RFC2045 syntax to provide a scheme
-for continuation headers and non-ASCII characters.
+for continuation headers and non-@sc{ascii} characters.
 
 The traditional way to deal with this is just to update the library
 functions to parse the new syntax.  However, this is sometimes the wrong
@@ -132,17 +132,15 @@ handles new standards.
 
 The following functions are defined by this library:
 
-@table @code
-@item mail-header-parse-content-type
-@findex mail-header-parse-content-type
-Parse a @code{Content-Type} header and return a list on the following
-format:
+@defun mail-header-parse-content-type string
+Parse @var{string}, a @code{Content-Type} header, and return a
+content-type list in the following format:
 
 @lisp
 ("type/subtype"
  (attribute1 . value1)
  (attribute2 . value2)
- ...)
+ @dots{})
 @end lisp
 
 Here's an example:
@@ -152,75 +150,77 @@ Here's an example:
  "image/gif; name=\"b980912.gif\"")
 @result{} ("image/gif" (name . "b980912.gif"))
 @end example
+@end defun
 
-@item mail-header-parse-content-disposition
-@findex mail-header-parse-content-disposition
-Parse a @code{Content-Disposition} header and return a list on the same
-format as the function above.
+@defun mail-header-parse-content-disposition string
+Parse @var{string}, a @code{Content-Disposition} header, and return a
+content-type list in the format above.
+@end defun
 
-@item mail-content-type-get
+@defun mail-content-type-get ct attribute
 @findex mail-content-type-get
-Takes two parameters---a list on the format above, and an attribute.
-Returns the value of the attribute.
+Returns the value of the given @var{attribute} from the content-type
+list @var{ct}.
 
 @example
 (mail-content-type-get
  '("image/gif" (name . "b980912.gif")) 'name)
 @result{} "b980912.gif"
 @end example
+@end defun
 
-@item mail-header-encode-parameter
-@findex mail-header-encode-parameter
-Takes a parameter string and returns an encoded version of the string.
-This is used for parameters in headers like @code{Content-Type} and
-@code{Content-Disposition}.
+@defun mail-header-encode-parameter param value
+Takes a parameter string @samp{@var{param}=@var{value}} and returns an
+encoded version of it.  This is used for parameters in headers like
+@samp{Content-Type} and @samp{Content-Disposition}.
+@end defun
 
-@item mail-header-remove-comments
-@findex mail-header-remove-comments
-Return a comment-free version of a header.
+@defun mail-header-remove-comments string
+Return a comment-free version of @var{string}.
 
 @example
 (mail-header-remove-comments
  "Gnus/5.070027 (Pterodactyl Gnus v0.27) (Finnish Landrace)")
 @result{} "Gnus/5.070027  "
 @end example
+@end defun
 
-@item mail-header-remove-whitespace
-@findex mail-header-remove-whitespace
-Remove linear white space from a header.  Space inside quoted strings
-and comments is preserved.
+@defun mail-header-remove-whitespace string
+Remove linear white space from @var{string}.  Space inside quoted
+strings and comments is preserved.
 
 @example
 (mail-header-remove-whitespace
  "image/gif; name=\"Name with spaces\"")
 @result{} "image/gif;name=\"Name with spaces\""
 @end example
+@end defun
 
-@item mail-header-get-comment
-@findex mail-header-get-comment
-Return the last comment in a header.
+@defun mail-header-get-comment string
+Return the last comment in @var{string}.
 
 @example
 (mail-header-get-comment
  "Gnus/5.070027 (Pterodactyl Gnus v0.27) (Finnish Landrace)")
 @result{} "Finnish Landrace"
 @end example
+@end defun
 
-@item mail-header-parse-address
-@findex mail-header-parse-address
-Parse an address and return a list containing the mailbox and the
-plaintext name.
+
+@defun mail-header-parse-address string
+Parse an address string @var{string} and return a list containing the
+mailbox and the plaintext name.
 
 @example
 (mail-header-parse-address
  "Hrvoje Niksic <hniksic@@srce.hr>")
 @result{} ("hniksic@@srce.hr" . "Hrvoje Niksic")
 @end example
+@end defun
 
-@item mail-header-parse-addresses
-@findex mail-header-parse-addresses
-Parse a string with list of addresses and return a list of elements like
-the one described above.
+@defun mail-header-parse-addresses string
+Parse @var{string} as a list of addresses and return a list of elements
+like the one described above.
 
 @example
 (mail-header-parse-addresses
@@ -228,55 +228,55 @@ the one described above.
 @result{} (("hniksic@@srce.hr" . "Hrvoje Niksic")
      ("sb@@metis.no" . "Steinar Bang"))
 @end example
+@end defun
 
-@item mail-header-parse-date
-@findex mail-header-parse-date
-Parse a date string and return an Emacs time structure.
+@defun mail-header-parse-date string
+Parse a date @var{string} and return an Emacs time structure.
+@end defun
 
-@item mail-narrow-to-head
-@findex mail-narrow-to-head
+@defun mail-narrow-to-head
 Narrow the buffer to the header section of the buffer.  Point is placed
 at the beginning of the narrowed buffer.
+@end defun
 
-@item mail-header-narrow-to-field
-@findex mail-header-narrow-to-field
+@defun mail-header-narrow-to-field
 Narrow the buffer to the header under point.
+@end defun
 
-@item mail-encode-encoded-word-region
-@findex mail-encode-encoded-word-region
-Encode the non-ASCII words in the region.  For instance,
-@samp{Naïve} is encoded as @samp{=?iso-8859-1?q?Na=EFve?=}.
+@defun mail-encode-encoded-word-region start end
+Encode the non-@sc{ascii} words in the region @var{start}to @var{end}.  For
+instance, @samp{Naïve} is encoded as @samp{=?iso-8859-1?q?Na=EFve?=}.
+@end defun
 
-@item mail-encode-encoded-word-buffer
-@findex mail-encode-encoded-word-buffer
-Encode the non-ASCII words in the current buffer.  This function is
-meant to be called narrowed to the headers of a message.
+@defun mail-encode-encoded-word-buffer
+Encode the non-@sc{ascii} words in the current buffer.  This function is
+meant to be called with the buffer narrowed to the headers of a message.
+@end defun
 
-@item mail-encode-encoded-word-string
-@findex mail-encode-encoded-word-string
-Encode the words that need encoding in a string, and return the result.
+@defun mail-encode-encoded-word-string string
+Encode the words that need encoding in @var{string}, and return the
+result.
 
 @example
 (mail-encode-encoded-word-string
  "This is naïve, baby")
 @result{} "This is =?iso-8859-1?q?na=EFve,?= baby"
 @end example
+@end defun
 
-@item mail-decode-encoded-word-region
-@findex mail-decode-encoded-word-region
-Decode the encoded words in the region.
+@defun mail-decode-encoded-word-region start end
+Decode the encoded words in the region @var{start}to @var{end}.
+@end defun
 
-@item mail-decode-encoded-word-string
-@findex mail-decode-encoded-word-string
-Decode the encoded words in the string and return the result.
+@defun mail-decode-encoded-word-string string
+Decode the encoded words in @var{string} and return the result.
 
 @example
 (mail-decode-encoded-word-string
  "This is =?iso-8859-1?q?na=EFve,?= baby")
 @result{} "This is naïve, baby"
 @end example
-
-@end table
+@end defun
 
 Currently, @code{mail-parse} is an abstraction over @code{ietf-drums},
 @code{rfc2047}, @code{rfc2045} and @code{rfc2231}.  These are documented
@@ -304,7 +304,7 @@ on.  High-level functionality is dealt with in the next chapter
 * binhex::       Binhex decoding.
 * uudecode::     Uuencode decoding.
 * rfc1843::      Decoding HZ-encoded text.
-* mailcap::      How parts are displayed is specified by the @file{.mailcap} file
+* mailcap::      How parts are displayed is specified by mailcap files
 @end menu
 
 
@@ -318,19 +318,19 @@ RFCs.
 
 So @file{rfc2045.el} has only a single function:
 
-@table @code
-@item rfc2045-encode-string
+@defun rfc2045-encode-string parameter value
 @findex rfc2045-encode-string
-Takes a parameter and a value and returns a @samp{PARAM=VALUE} string.
-@var{value} will be quoted if there are non-safe characters in it.
-@end table
+Takes a @var{parameter} and a @var{value} and returns a
+@samp{@var{param}=@var{value}} string.  @var{value} will be quoted if
+there are non-safe characters in it.
+@end defun
 
 
 @node rfc2231
 @section rfc2231
 
-RFC2231 defines a syntax for the @code{Content-Type} and
-@code{Content-Disposition} headers.  Its snappy name is @dfn{MIME
+RFC2231 defines a syntax for the @samp{Content-Type} and
+@samp{Content-Disposition} headers.  Its snappy name is @dfn{MIME
 Parameter Value and Encoded Word Extensions: Character Sets, Languages,
 and Continuations}.
 
@@ -347,11 +347,9 @@ They usually aren't this bad, though.
 
 The following functions are defined by this library:
 
-@table @code
-@item rfc2231-parse-string
-@findex rfc2231-parse-string
-Parse a @code{Content-Type} header and return a list describing its
-elements.
+@defun rfc2231-parse-string string
+Parse a @samp{Content-Type} header @var{string} and return a list
+describing its elements.
 
 @example
 (rfc2231-parse-string
@@ -362,19 +360,17 @@ elements.
 @result{} ("application/x-stuff"
     (title . "This is even more ***fun*** isn't it!"))
 @end example
+@end defun
 
-@item rfc2231-get-value
-@findex rfc2231-get-value
-Takes one of the lists on the format above and returns
-the value of the specified attribute.
+@defun rfc2231-get-value ct attribute
+Takes a list @var{ct} of the format above and returns the value of the
+specified @var{attribute}.
+@end defun
 
-@item rfc2231-encode-string
-@findex rfc2231-encode-string
-Encode a parameter in headers likes @code{Content-Type} and
-@code{Content-Disposition}.
-
-@end table
-
+@defun rfc2231-encode-string parameter value
+Encode the string @samp{@var{parameter}=@var{value}} for inclusion in
+headers likes @samp{Content-Type} and @samp{Content-Disposition}.
+@end defun
 
 @node ietf-drums
 @section ietf-drums
@@ -384,61 +380,57 @@ for RFC822.
 
 The functions provided by this library include:
 
-@table @code
-@item ietf-drums-remove-comments
-@findex ietf-drums-remove-comments
-Remove the comments from the argument and return the results.
+@defun ietf-drums-remove-comments string
+Remove the comments from @var{string} and return the result.
+@end defun
 
-@item ietf-drums-remove-whitespace
-@findex ietf-drums-remove-whitespace
-Remove linear white space from the string and return the results.
+@defun ietf-drums-remove-whitespace string
+Remove linear white space from @var{string} and return the result.
 Spaces inside quoted strings and comments are left untouched.
+@end defun
 
-@item ietf-drums-get-comment
-@findex ietf-drums-get-comment
-Return the last most comment from the string.
+@defun ietf-drums-get-comment string
+Return the last most comment from @var{string}.
+@end defun
 
-@item ietf-drums-parse-address
-@findex ietf-drums-parse-address
-Parse an address string and return a list that contains the mailbox and
-the plain text name.
+@defun ietf-drums-parse-address string
+Parse an address @var{string} and return a list of the mailbox and the
+plain text name.
+@end defun
 
-@item ietf-drums-parse-addresses
-@findex ietf-drums-parse-addresses
-Parse a string that contains any number of comma-separated addresses and
-return a list that contains mailbox/plain text pairs.
+@defun ietf-drums-parse-addresses string
+Parse @var{string}, containing any number of comma-separated addresses,
+and return a list of mailbox/plain text pairs.
+@end defun
 
-@item ietf-drums-parse-date
-@findex ietf-drums-parse-date
-Parse a date string and return an Emacs time structure.
+@defun ietf-drums-parse-date string
+Parse the date @var{string} and return an Emacs time structure.
+@end defun
 
-@item ietf-drums-narrow-to-header
-@findex ietf-drums-narrow-to-header
+@defun ietf-drums-narrow-to-header
 Narrow the buffer to the header section of the current buffer.
-
-@end table
+@end defun
 
 
 @node rfc2047
 @section rfc2047
 
 RFC2047 (Message Header Extensions for Non-ASCII Text) specifies how
-non-ASCII text in headers are to be encoded.  This is actually rather
+non-@sc{ascii} text in headers are to be encoded.  This is actually rather
 complicated, so a number of variables are necessary to tweak what this
 library does.
 
 The following variables are tweakable:
 
-@table @code
-@item rfc2047-default-charset
-@vindex rfc2047-default-charset
+@defvar rfc2047-default-charset
 Characters in this charset should not be decoded by this library.
-This defaults to @code{iso-8859-1}.
+This defaults to @samp{iso-8859-1}.
+@end defvar
 
-@item rfc2047-header-encoding-list
-@vindex rfc2047-header-encoding-list
+@defvar rfc2047-header-encoding-list
 This is an alist of header / encoding-type pairs.  Its main purpose is
 to prevent encoding of certain headers.
+@end defvar
 
 The keys can either be header regexps, or @code{t}.
 
@@ -446,75 +438,83 @@ The values can be either @code{nil}, in which case the header(s) in
 question won't be encoded, or @code{mime}, which means that they will be
 encoded.
 
-@item rfc2047-charset-encoding-alist
-@vindex rfc2047-charset-encoding-alist
+@defvar rfc2047-charset-encoding-alist
 RFC2047 specifies two forms of encoding---@code{Q} (a
 Quoted-Printable-like encoding) and @code{B} (base64).  This alist
 specifies which charset should use which encoding.
+@end defvar
 
-@item rfc2047-encoding-function-alist
-@vindex rfc2047-encoding-function-alist
+@defvar rfc2047-encoding-function-alist
 This is an alist of encoding / function pairs.  The encodings are
 @code{Q}, @code{B} and @code{nil}.
+@end defvar
 
-@item rfc2047-q-encoding-alist
-@vindex rfc2047-q-encoding-alist
+@defvar rfc2047-q-encoding-alist
 The @code{Q} encoding isn't quite the same for all headers.  Some
 headers allow a narrower range of characters, and that is what this
-variable is for.  It's an alist of header regexps / allowable character
+variable is for.  It's an alist of header regexps and allowable character
 ranges.
+@end defvar
 
-@item rfc2047-encoded-word-regexp
-@vindex rfc2047-encoded-word-regexp
+@defvar rfc2047-encoded-word-regexp
 When decoding words, this library looks for matches to this regexp.
+@end defvar
 
-@end table
+Those were the variables, and these are the functions:
 
-Those were the variables, and these are this functions:
-
-@table @code
-@item rfc2047-narrow-to-field
-@findex rfc2047-narrow-to-field
+@defun rfc2047-narrow-to-field
 Narrow the buffer to the header on the current line.
+@end defun
 
-@item rfc2047-encode-message-header
-@findex rfc2047-encode-message-header
+@defun rfc2047-encode-message-header
 Should be called narrowed to the header of a message.  Encodes according
 to @code{rfc2047-header-encoding-alist}.
+@end defun
 
-@item rfc2047-encode-region
-@findex rfc2047-encode-region
-Encodes all encodable words in the region specified.
+@defun rfc2047-encode-region start end
+Encodes all encodable words in the region @var{start} to @var{end}.
+@end defun
 
-@item rfc2047-encode-string
-@findex rfc2047-encode-string
-Encode a string and return the results.
+@defun rfc2047-encode-string string
+Encode @var{string} and return the result.
+@end defun
 
-@item rfc2047-decode-region
-@findex rfc2047-decode-region
-Decode the encoded words in the region.
+@defun rfc2047-decode-region start end
+Decode the encoded words in the region @var{start} to @var{end}.
+@end defun
 
-@item rfc2047-decode-string
-@findex rfc2047-decode-string
-Decode a string and return the results.
+@defun rfc2047-decode-string string
+Decode @var{string} and return the result.
+@end defun
 
-@end table
 
 
 @node time-date
 @section time-date
 
 While not really a part of the @sc{mime} library, it is convenient to
-document this library here.  It deals with parsing @code{Date} headers
+document this library here.  It deals with parsing @samp{Date} headers
 and manipulating time.  (Not by using tesseracts, though, I'm sorry to
 say.)
 
-These functions convert between five formats: A date string, an Emacs
-time structure, a decoded time list, a second number, and a day number.
+These functions convert between five formats: a date string, an Emacs
+time structure, a decoded time list, a number of seconds, and a day number.
 
 The functions have quite self-explanatory names, so the following just
 gives an overview of which functions are available.
 
+@findex parse-time-string
+@findex date-to-time
+@findex time-to-seconds
+@findex seconds-to-time
+@findex time-to-day
+@findex days-to-time
+@findex time-since
+@findex time-less-p
+@findex subtract-time
+@findex days-between
+@findex date-leap-year-p
+@findex time-to-day-in-year
 @example
 (parse-time-string "Sat Sep 12 12:21:54 1998 +0200")
 @result{} (54 21 12 12 9 1998 6 nil 7200)
@@ -552,9 +552,9 @@ gives an overview of which functions are available.
 
 (time-to-day-in-year '(13818 19266))
 @result{} 255
-
 @end example
 
+@findex safe-date-to-time
 And finally, we have @code{safe-date-to-time}, which does the same as
 @code{date-to-time}, but returns a zero time if the date is
 syntactically malformed.
@@ -611,16 +611,14 @@ encoding is very resistant to mangling during transit.  @xref{Base
 @cindex Apple
 @cindex Macintosh
 
-@code{binhex} is an encoding that originated in Macintosh environments.
+Binhex is an encoding that originated in Macintosh environments.
 The following function is supplied to deal with these:
 
-@table @code
-@item binhex-decode-region
-@findex binhex-decode-region
-Decode the encoded text in the region.  If given a third parameter, only
-decode the @code{binhex} header and return the filename.
-
-@end table
+@defun binhex-decode-region start end &optional header-only
+Decode the encoded text in the region @var{start} to @var{end}.  If
+@var{header-only} is non-@code{nil}, only decode the @samp{binhex}
+header and return the filename.
+@end defun
 
 
 @node uudecode
@@ -628,16 +626,15 @@ decode the @code{binhex} header and return the filename.
 @cindex uuencode
 @cindex uudecode
 
-@code{uuencode} is probably still the most popular encoding of binaries
-used on Usenet, although @code{base64} rules the mail world.
+Uuencoding is probably still the most popular encoding of binaries
+used on Usenet, although Base64 rules the mail world.
 
 The following function is supplied by this package:
 
-@table @code
-@item uudecode-decode-region
-@findex uudecode-decode-region
-Decode the text in the region.
-@end table
+@defun uudecode-decode-region start end &optional file-name
+Decode the text in the region @var{start} to @var{end}.  If
+@var{file-name} is non-@code{nil}, save the result to @var{file-name}.
+@end defun
 
 
 @node rfc1843
@@ -646,8 +643,8 @@ Decode the text in the region.
 @cindex HZ
 @cindex Chinese
 
-RFC1843 deals with mixing Chinese and ASCII characters in messages.  In
-essence, RFC1843 switches between ASCII and Chinese by doing this:
+RFC1843 deals with mixing Chinese and @sc{ascii} characters in messages.  In
+essence, RFC1843 switches between @sc{ascii} and Chinese by doing this:
 
 @example
 This sentence is in ASCII.
@@ -658,54 +655,133 @@ Simple enough, and widely used in China.
 
 The following functions are available to handle this encoding:
 
-@table @code
-@item rfc1843-decode-region
-Decode HZ-encoded text in the region.
+@defun rfc1843-decode-region start end
+Decode HZ-encoded text in the region @var{start} to @var{end}.
+@end defun
 
-@item rfc1843-decode-string
-Decode a HZ-encoded string and return the result.
-
-@end table
+@defun rfc1843-decode-string string
+Decode the HZ-encoded @var{string} and return the result.
+@end defun
 
 
 @node mailcap
 @section mailcap
 
-The @file{~/.mailcap} file is parsed by most @sc{mime}-aware message
-handlers and describes how elements are supposed to be displayed.
-Here's an example file:
+As specified by RFC 1524, @sc{mime}-aware message handlers parse
+@dfn{mailcap} files from a default list, which can be overridden by the
+@code{MAILCAP} environment variable.  These describe how elements are
+supposed to be displayed.  Here's an example file:
 
 @example
 image/*; gimp -8 %s
 audio/wav; wavplayer %s
 @end example
 
-This says that all image files should be displayed with @code{gimp}, and
-that realaudio files should be played by @code{rvplayer}.
+This says that all image files should be displayed with @command{gimp},
+and that realaudio files should be played by @command{rvplayer}.
 
-The @code{mailcap} library parses this file, and provides functions for
+The @code{mailcap} library parses such files, and provides functions for
 matching types.
 
-@table @code
-@item mailcap-mime-data
-@vindex mailcap-mime-data
-This variable is an alist of alists containing backup viewing rules.
+@defvar mailcap-mime-data
+This variable is an alist of alists containing backup viewing rules for
+@sc{mime} types.  These are overridden by rules for a type found in
+mailcap files.  The outer alist is keyed on the major content-type and
+the inner alists are keyed on the minor content-type (which can be a
+regular expression).
 
-@end table
+@c Fixme: document this properly!
+For example:
+@example
+(("application"
+  ("octet-stream"
+   (viewer . mailcap-save-binary-file)
+   (non-viewer . t)
+   (type . "application/octet-stream"))
+  ("plain"
+   (viewer . view-mode)
+   (test fboundp 'view-mode)
+   (type . "text/plain")))
+@end example
+@end defvar
+
+@defopt mailcap-default-mime-data
+This variable is the default value of @code{mailcap-mime-data}.  It
+exists to allow setting the value using Custom.  It is merged with
+values from mailcap files by @code{mailcap-parse-mailcaps}.
+@end defopt
+
+Although it is not specified by the RFC, @sc{mime} tools normally use a
+common means of associating file extensions with defualt @sc{mime} types
+in the absence of other information about the type of a file.  The
+information is found in per-user files @file{~/.mime.types} and system
+@file{mime.types} files found in quasi-standard places.  Here is an
+example:
+
+@example
+application/x-dvi	dvi
+audio/mpeg		mpga mpega mp2 mp3
+image/jpeg		jpeg jpg jpe
+@end example
+
+
+@defvar mailcap-mime-extensions
+This variable is an alist @sc{mime} types keyed by file extensions.
+This is overridden by entries found in @file{mime.types} files.
+@end defvar
+
+@defopt mailcap-default-mime-extensions
+This variable is the default value of @code{mailcap-mime-extensions}.
+It exists to allow setting the value using Custom.  It is merged with
+values from mailcap files by @code{mailcap-parse-mimetypes}.
+@end defopt
 
 Interface functions:
 
-@table @code
-@item mailcap-parse-mailcaps
-@findex mailcap-parse-mailcaps
-Parse the @code{~/.mailcap} file.
+@defun mailcap-parse-mailcaps &optional path force
+Parse all the mailcap files specified in a path string @var{path} and
+merge them with the values from @code{mailcap-mime-data}.  Components of
+@var{path} are separated by the @code{path-separator} character
+appropriate for the system.  If @var{force} is non-@code{nil}, the files
+are re-parsed even if they have been parsed already.  If @var{path} is
+omitted, use the value of environment variable @code{MAILCAPS} if it is
+set; otherwise (on Unix) use the path defined in RFC 1524, plus
+@file{/usr/local/etc/mailcap}.
+@end defun
 
-@item mailcap-mime-info
-Takes a @sc{mime} type as its argument and returns the matching viewer.
+@defun mailcap-parse-mimetypes &optional path force
+Parse all the mimetypes specified in a Unix-style path string @var{path}
+and merge them with the values from @code{mailcap-mime-extensions}.
+Components of @var{path} are separated by the @code{path-separator}
+character appropriate for the system.  If @var{path} is omitted, use the
+value of environment variable @code{MIMETYPES} if set; otherwise use a
+default path consistent with that used by @code{mailcap-parse-mailcaps}.
+If @var{force} is non-@code{nil}, the files are re-parsed even if they
+have been parsed already.
+@end defun
 
-@end table
+@defun mailcap-mime-info string &optional request
+Gets the viewer command for content-type @var{string}.  @code{nil} is
+returned if none is found.  Expects @var{string} to be a complete
+content-type header line.
 
+If @var{request} is non-@code{nil} it specifies what information to
+return.  If it is nil or the empty string, the viewer (second field of
+the mailcap entry) will be returned.  If it is a string, then the
+mailcap field corresponding to that string will be returned
+(@samp{print}, @samp{description}, whatever).  If it is a number, all
+the information for this viewer is returned.  If it is @code{all}, then
+all possible viewers for this type is returned.
+@end defun
 
+@defun mailcap-mime-types
+This function returns a list of all the defined media types.
+@end defun
+
+@defun mailcap-extension-to-mime extension
+This function returns the content type defined for a file with the given
+@var{extension}.
+@end defun
 
 
 @node Decoding and Viewing
@@ -739,95 +815,102 @@ descend the message, following the structure, and return a tree of
 @node Handles
 @section Handles
 
-A @sc{mime} handle is a list that fully describes a @sc{mime}
-component.
+A @sc{mime} handle is a list that fully describes a @sc{mime} component.
 
-The following macros can be used to access elements in a handle:
+The following macros can be used to access elements from the
+@var{handle} argument:
 
-@table @code
-@item mm-handle-buffer
-@findex mm-handle-buffer
+@defmac mm-handle-buffer handle
 Return the buffer that holds the contents of the undecoded @sc{mime}
 part.
+@end defmac
 
-@item mm-handle-type
-@findex mm-handle-type
-Return the parsed @code{Content-Type} of the part.
+@defmac mm-handle-type handle
+Return the parsed @samp{Content-Type} of the part.
+@end defmac
 
-@item mm-handle-encoding
-@findex mm-handle-encoding
-Return the @code{Content-Transfer-Encoding} of the part.
+@defmac mm-handle-encoding handle
+Return the @samp{Content-Transfer-Encoding} of the part.
+@end defmac
 
-@item mm-handle-undisplayer
-@findex mm-handle-undisplayer
-Return the object that can be used to remove the displayed part (if it
+@defmac mm-handle-undisplayer handle
+Return the function that can be used to remove the displayed part (if it
 has been displayed).
+@end defmac
 
-@item mm-handle-set-undisplayer
-@findex mm-handle-set-undisplayer
-Set the undisplayer object.
+@defmac mm-handle-set-undisplayer handle function
+Set the undisplayer function for the part to function.
+@end defmac
 
-@item mm-handle-disposition
-@findex mm-handle-disposition
-Return the parsed @code{Content-Disposition} of the part.
+@defmac mm-handle-disposition
+Return the parsed @samp{Content-Disposition} of the part.
+@end defmac
 
-@item mm-handle-disposition
-@findex mm-handle-disposition
+@defmac mm-handle-disposition
 Return the description of the part.
+@end defmac
 
-@item mm-get-content-id
-Returns the handle(s) referred to by @code{Content-ID}.
-
-@end table
+@defmac mm-get-content-id id
+Returns the handle(s) referred to by @var{id}, the @samp{Content-ID} of
+the part.
+@end defmac
 
 
 @node Display
 @section Display
 
-Functions for displaying, removing and saving.
+Functions for displaying, removing and saving.  In the descriptions
+below, `the part' means the @sc{mime} part represented by the
+@var{handle} argument.
 
-@table @code
-@item mm-display-part
-@findex mm-display-part
-Display the part.
+@defun mm-display-part handle &optional no-default
+Display the part.  Return @code{nil} if the part is removed,
+@code{inline} if it is displayed inline or @code{external} if it is
+displayed externally.  If @var{no-default} is non-@code{nil}, the part
+is not displayed unless the @sc{mime} type of @var{handle} is defined to
+be displayed inline or there is an display method defined for it; i.e.@:
+no default external method will be used.
+@end defun
 
-@item mm-remove-part
-@findex mm-remove-part
-Remove the part (if it has been displayed).
+@defun mm-remove-part handle
+Remove the part if it has been displayed.
+@end defun
 
-@item mm-inlinable-p
-@findex mm-inlinable-p
-Say whether a @sc{mime} type can be displayed inline.
+@defun mm-inlinable-p handle
+Return non-@code{nil} if the part can be displayed inline.
+@end defun
 
-@item mm-automatic-display-p
-@findex mm-automatic-display-p
-Say whether a @sc{mime} type should be displayed automatically.
+@defun mm-automatic-display-p handle
+Return non-@code{nil} if the user has requested automatic display of the
+@sc{mime} type of the part.
+@end defun
 
-@item mm-destroy-part
-@findex mm-destroy-part
-Free all resources occupied by a part.
+@defun mm-destroy-part handle
+Free all the resources used by the part.
+@end defun
 
-@item mm-save-part
-@findex mm-save-part
-Offer to save the part in a file.
+@defun mm-save-part handle
+Save the part to a file.  The user is prompted for a file name to use.
+@end defun
 
-@item mm-pipe-part
-@findex mm-pipe-part
-Offer to pipe the part to some process.
+@defun mm-pipe-part handle
+Pipe the part through a shell command.  The user is prompted for the
+command to use.
+@end defun
 
-@item mm-interactively-view-part
-@findex mm-interactively-view-part
-Prompt for a mailcap method to use to view the part.
-
-@end table
+@defun mm-interactively-view-part handle
+Prompt for a mailcap method to use to view the part and display it
+externally using that method.
+@end defun
 
 
 @node Customization
 @section Customization
 
-@table @code
+The display of @sc{mime} types may be customized with the following
+options.
 
-@item mm-inline-media-tests
+@defopt mm-inline-media-tests
 This is an alist where the key is a @sc{mime} type, the second element
 is a function to display the part @dfn{inline} (i.e., inside Emacs), and 
 the third element is a form to be @code{eval}ed to say whether the part
@@ -836,24 +919,28 @@ can be displayed inline.
 This variable specifies whether a part @emph{can} be displayed inline,
 and, if so, how to do it.  It does not say whether parts are
 @emph{actually} displayed inline.
+@end defopt
 
-@item mm-inlined-types
+@defopt mm-inlined-types
 This, on the other hand, says what types are to be displayed inline, if
 they satisfy the conditions set by the variable above.  It's a list of
 @sc{mime} media types.
+@end defopt
 
-@item mm-automatic-display
+@defopt mm-automatic-display
 This is a list of types that are to be displayed ``automatically'', but
 only if the above variable allows it.  That is, only inlinable parts can
 be displayed automatically.
+@end defopt
 
-@item mm-attachment-override-types
+@defopt mm-attachment-override-types
 Some @sc{mime} agents create parts that have a content-disposition of
 @samp{attachment}.  This variable allows overriding that disposition and 
 displaying the part inline.  (Note that the disposition is only
 overridden if we are able to, and want to, display the part inline.)
+@end defopt
 
-@item mm-discouraged-alternatives
+@defopt mm-discouraged-alternatives
 List of @sc{mime} types that are discouraged when viewing
 @samp{multipart/alternative}.  Viewing agents are supposed to view the
 last possible part of a message, as that is supposed to be the richest.
@@ -865,8 +952,9 @@ then the value of this variable should be set to:
 @lisp
 ("text/html" "text/richtext")
 @end lisp
+@end defopt
 
-@item mm-inline-large-images-p
+@defopt mm-inline-large-images-p
 When displaying inline images that are larger than the window, XEmacs
 does not enable scrolling, which means that you cannot see the whole
 image.  To prevent this, the library tries to determine the image size
@@ -875,8 +963,9 @@ library will display it externally (e.g. with @samp{ImageMagick} or
 @samp{xv}).  Setting this variable to @code{t} disables this check and
 makes the library display all inline images as inline, regardless of
 their size.
+@end defopt
 
-@item mm-inline-override-p
+@defopt mm-inline-override-p
 @code{mm-inlined-types} may include regular expressions, for example to
 specify that all @samp{text/.*} parts be displayed inline.  If a user
 prefers to have a type that matches such a regular expression be treated
@@ -884,14 +973,13 @@ as an attachment, that can be accomplished by setting this variable to a
 list containing that type.  For example assuming @code{mm-inlined-types}
 includes @samp{text/.*}, then including @samp{text/html} in this
 variable will cause @samp{text/html} parts to be treated as attachments.
-
-@end table
+@end defopt
 
 
 @node New Viewers
 @section New Viewers
 
-Here's an example viewer for displaying @code{text/enriched} inline:
+Here's an example viewer for displaying @samp{text/enriched} inline:
 
 @lisp
 (defun mm-display-enriched-inline (handle)
@@ -937,7 +1025,7 @@ string containing the @sc{mime} message.
 * Simple MML Example::             An example MML document.
 * MML Definition::                 All valid MML elements.
 * Advanced MML Example::           Another example MML document.
-* Charset Translation::            How charsets are mapped from @sc{mule} to MIME.
+* Charset Translation::            How charsets are mapped from Mule to MIME.
 * Conversion::                     Going from @sc{mime} to MML and vice versa.
 @end menu
 
@@ -1004,42 +1092,42 @@ header it will be used in.
 
 @table @samp
 @item type
-The @sc{mime} type of the part (@code{Content-Type}).
+The @sc{mime} type of the part (@samp{Content-Type}).
 
 @item filename
 Use the contents of the file in the body of the part
-(@code{Content-Disposition}).
+(@samp{Content-Disposition}).
 
 @item charset
 The contents of the body of the part are to be encoded in the character
-set speficied (@code{Content-Type}).
+set speficied (@samp{Content-Type}).
 
 @item name
 Might be used to suggest a file name if the part is to be saved
-to a file (@code{Content-Type}).
+to a file (@samp{Content-Type}).
 
 @item disposition
 Valid values are @samp{inline} and @samp{attachment}
-(@code{Content-Disposition}).
+(@samp{Content-Disposition}).
 
 @item encoding
 Valid values are @samp{7bit}, @samp{8bit}, @samp{quoted-printable} and
-@samp{base64} (@code{Content-Transfer-Encoding}).
+@samp{base64} (@samp{Content-Transfer-Encoding}).
 
 @item description
-A description of the part (@code{Content-Description}).
+A description of the part (@samp{Content-Description}).
 
 @item creation-date
-RFC822 date when the part was created (@code{Content-Disposition}).
+RFC822 date when the part was created (@samp{Content-Disposition}).
 
 @item modification-date
-RFC822 date when the part was modified (@code{Content-Disposition}).
+RFC822 date when the part was modified (@samp{Content-Disposition}).
 
 @item read-date
-RFC822 date when the part was read (@code{Content-Disposition}).
+RFC822 date when the part was read (@samp{Content-Disposition}).
 
 @item size
-The size (in octets) of the part (@code{Content-Disposition}).
+The size (in octets) of the part (@samp{Content-Disposition}).
 
 @end table
 
@@ -1048,7 +1136,7 @@ Parameters for @samp{application/octet-stream}:
 @table @samp
 @item type
 Type of the part; informal---meant for human readers
-(@code{Content-Type}).
+(@samp{Content-Type}).
 @end table
 
 Parameters for @samp{message/external-body}:
@@ -1057,18 +1145,18 @@ Parameters for @samp{message/external-body}:
 @item access-type
 A word indicating the supported access mechanism by which the file may
 be obtained.  Values include @samp{ftp}, @samp{anon-ftp}, @samp{tftp},
-@samp{localfile}, and @samp{mailserver}.  (@code{Content-Type}.)
+@samp{localfile}, and @samp{mailserver}.  (@samp{Content-Type}.)
 
 @item expiration
 The RFC822 date after which the file may no longer be fetched.
-(@code{Content-Type}.)
+(@samp{Content-Type}.)
 
 @item size
-The size (in octets) of the file.  (@code{Content-Type}.)
+The size (in octets) of the file.  (@samp{Content-Type}.)
 
 @item permission
 Valid values are @samp{read} and @samp{read-write}
-(@code{Content-Type}).
+(@samp{Content-Type}).
 
 @end table
 
@@ -1164,38 +1252,37 @@ This plain text part is an attachment.
 @cindex charsets
 
 During translation from MML to @sc{mime}, for each @sc{mime} part which
-has been composed inside Emacs, an appropriate charset has to be chosen.
+has been composed inside Emacs, an appropriate @sc{mime} charset has to
+be chosen.
 
 @vindex mail-parse-charset
-If you are running a non-@sc{mule} Emacs, this process is simple: If the
-part contains any non-ASCII (8-bit) characters, the @sc{mime} charset
+If you are running a non-Mule Emacs, this process is simple: if the part
+contains any non-@sc{ascii} (8-bit) characters, the @sc{mime} charset
 given by @code{mail-parse-charset} (a symbol) is used.  (Never set this
 variable directly, though.  If you want to change the default charset,
 please consult the documentation of the package which you use to process
-@sc{mime} messages.
-@xref{Various Message Variables, , Various Message Variables, message, 
-      Message Manual}, for example.)
-If there are only ASCII characters, the @sc{mime} charset US-ASCII is
-used, of course.
+@sc{mime} messages.  @xref{Various Message Variables, , Various Message
+Variables, message, Message Manual}, for example.)  If there are only
+@sc{ascii} characters, the @sc{mime} charset @samp{US-ASCII} is used, of
+course.
 
-@cindex MULE
+@cindex Mule
 @cindex UTF-8
 @cindex Unicode
 @vindex mm-mime-mule-charset-alist
-Things are slightly more complicated when running Emacs with @sc{mule}
-support.  In this case, a list of the @sc{mule} charsets used in the
-part is obtained, and the @sc{mule} charsets are translated to @sc{mime}
-charsets by consulting the variable @code{mm-mime-mule-charset-alist}.
-If this results in a single @sc{mime} charset, this is used to encode
-the part.  But if the resulting list of @sc{mime} charsets contains more
-than one element, two things can happen: If it is possible to encode the
-part via UTF-8, this charset is used.  (For this, Emacs must support
-the @code{utf-8} coding system, and the part must consist entirely of
-characters which have Unicode counterparts.)  If UTF-8 is not available
-for some reason, the part is split into several ones, so that each one
-can be encoded with a single @sc{mime} charset.  The part can only be
-split at line boundaries, though---if more than one @sc{mime} charset is
-required to encode a single line, it is not possible to encode the part.
+Things are slightly more complicated when running Emacs with Mule
+support.  In this case, a list of the Mule charsets used in the part is
+obtained, and the corresponding @sc{mime} charsets are determined.  If
+this results in a single @sc{mime} charset, this is used to encode the
+part.  But if the resulting list of @sc{mime} charsets contains more
+than one element, two things can happen: if it is possible to encode the
+part via UTF-8, this charset is used.  (For this, Emacs must support the
+@code{utf-8} coding system, and the part must consist entirely of
+characters which have Unicode counterparts.)  If UTF-8 is not available,
+the part is split into several, so that each one can be encoded with a
+single @sc{mime} charset.  The part can only be split at line
+boundaries, though---if more than one @sc{mime} charset is required to
+encode a single line, it is not possible to encode the part.
 
 @node Conversion
 @section Conversion
@@ -1241,6 +1328,10 @@ Standard for the Format of ARPA Internet Text Messages.
 @item RFC1036
 Standard for Interchange of USENET Messages
 
+@item RFC1524
+A User Agent Configuration Mechanism For Multimedia Mail Format
+Information
+
 @item RFC2045
 Format of Internet Message Bodies
 
@@ -1284,6 +1375,7 @@ Content-Disposition Header Field
 @node Index
 @chapter Index
 @printindex cp
+@printindex fn
 
 @summarycontents
 @contents
