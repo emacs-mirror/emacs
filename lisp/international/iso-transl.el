@@ -37,7 +37,7 @@
   '((?\' . mute-acute)
     (?\` . mute-grave)
     (?\" . mute-diaeresis)
-    (?\^ . mute-asciicircum)
+    (?^ . mute-asciicircum)  ;; Don't use \, since \^ is special.
     (?\~ . mute-asciitilde))
   "Mapping of ASCII characters to their corresponding dead-key symbols.")
 
