@@ -104,7 +104,7 @@ is nil, raise an error."
 		       ((fboundp x)
 			(fmakunbound x)
 			(let ((aload (get x 'autoload)))
-			  (if aload (fset x aload))))))
+			  (if aload (fset x (cons 'autoload aload)))))))
 	       )
      (cdr flist))))
 
