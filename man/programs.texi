@@ -181,6 +181,10 @@ delimiter from starting a defun.  Here's an example:
 ")
 @end example
 
+  To help you catch violations of this convention, Font Lock mode
+highlights confusing opening delimiters (those that ought to be
+quoted) in bold red.
+
   In the earliest days, the original Emacs found defuns by moving
 upward a level of parentheses or braces until there were no more
 levels to go up.  This always required scanning all the way back to
