@@ -1070,7 +1070,7 @@ detect_coding_iso2022 (src, src_end)
 /* Allocate a memory block for storing information about compositions.
    The block is chained to the already allocated blocks.  */
 
-static void
+void
 coding_allocate_composition_data (coding, char_offset)
      struct coding_system *coding;
      int char_offset;
@@ -1118,49 +1118,50 @@ coding_allocate_composition_data (coding, char_offset)
 
 /* Handle compositoin start sequence ESC 0, ESC 2, ESC 3, or ESC 4.  */
 
-#define DECODE_COMPOSITION_START(c1)					\
-  do {									\
-    if (coding->composing == COMPOSITION_DISABLED)			\
-      {									\
-      	*dst++ = ISO_CODE_ESC;						\
-	*dst++ = c1 & 0x7f;						\
-	coding->produced_char += 2;					\
-      }									\
-    else if (!COMPOSING_P (coding))					\
-      {									\
-	/* This is surely the start of a composition.  We must be sure	\
-           that coding->cmp_data has enough space to store the		\
-           information about the composition.  If not, terminate the	\
-           current decoding loop, allocate one more memory block for	\
-           coding->cmp_data in the calller, then start the decoding	\
-           loop again.  We can't allocate memory here directly because	\
-           it may cause buffer/string relocation.  */			\
-	if (coding->cmp_data->used + COMPOSITION_DATA_MAX_BUNCH_LENGTH	\
-	    >= COMPOSITION_DATA_SIZE)					\
-	  {								\
-	    coding->result = CODING_FINISH_INSUFFICIENT_CMP;		\
-	    goto label_end_of_loop;					\
-	  }								\
-	coding->composing = (c1 == '0' ? COMPOSITION_RELATIVE		\
-			     : c1 == '2' ? COMPOSITION_WITH_RULE	\
-			     : c1 == '3' ? COMPOSITION_WITH_ALTCHARS	\
-			     : COMPOSITION_WITH_RULE_ALTCHARS);		\
-	CODING_ADD_COMPOSITION_START (coding, coding->produced_char,	\
-				      coding->composing);		\
-	coding->composition_rule_follows = 0;				\
-      }									\
-    else								\
-      {									\
-	/* We are already handling a composition.  If the method is	\
-           the following two, the codes following the current escape	\
-           sequence are actual characters stored in a buffer.  */	\
-	if (coding->composing == COMPOSITION_WITH_ALTCHARS		\
-	    || coding->composing == COMPOSITION_WITH_RULE_ALTCHARS)	\
-	  {								\
-	    coding->composing = COMPOSITION_RELATIVE;			\
-	    coding->composition_rule_follows = 0;			\
-	  }								\
-      }									\
+#define DECODE_COMPOSITION_START(c1)					   \
+  do {									   \
+    if (coding->composing == COMPOSITION_DISABLED)			   \
+      {									   \
+      	*dst++ = ISO_CODE_ESC;						   \
+	*dst++ = c1 & 0x7f;						   \
+	coding->produced_char += 2;					   \
+      }									   \
+    else if (!COMPOSING_P (coding))					   \
+      {									   \
+	/* This is surely the start of a composition.  We must be sure	   \
+           that coding->cmp_data has enough space to store the		   \
+           information about the composition.  If not, terminate the	   \
+           current decoding loop, allocate one more memory block for	   \
+           coding->cmp_data in the calller, then start the decoding	   \
+           loop again.  We can't allocate memory here directly because	   \
+           it may cause buffer/string relocation.  */			   \
+	if (!coding->cmp_data						   \
+	    || (coding->cmp_data->used + COMPOSITION_DATA_MAX_BUNCH_LENGTH \
+		>= COMPOSITION_DATA_SIZE))				   \
+	  {								   \
+	    coding->result = CODING_FINISH_INSUFFICIENT_CMP;		   \
+	    goto label_end_of_loop;					   \
+	  }								   \
+	coding->composing = (c1 == '0' ? COMPOSITION_RELATIVE		   \
+			     : c1 == '2' ? COMPOSITION_WITH_RULE	   \
+			     : c1 == '3' ? COMPOSITION_WITH_ALTCHARS	   \
+			     : COMPOSITION_WITH_RULE_ALTCHARS);		   \
+	CODING_ADD_COMPOSITION_START (coding, coding->produced_char,	   \
+				      coding->composing);		   \
+	coding->composition_rule_follows = 0;				   \
+      }									   \
+    else								   \
+      {									   \
+	/* We are already handling a composition.  If the method is	   \
+           the following two, the codes following the current escape	   \
+           sequence are actual characters stored in a buffer.  */	   \
+	if (coding->composing == COMPOSITION_WITH_ALTCHARS		   \
+	    || coding->composing == COMPOSITION_WITH_RULE_ALTCHARS)	   \
+	  {								   \
+	    coding->composing = COMPOSITION_RELATIVE;			   \
+	    coding->composition_rule_follows = 0;			   \
+	  }								   \
+      }									   \
   } while (0)
 
 /* Handle compositoin end sequence ESC 1.  */
@@ -4468,7 +4469,7 @@ coding_save_composition (coding, from, to, obj)
    CODING->cmp_data points to a memory block for the informaiton.  OBJ
    is a buffer or a string, defaults to the current buffer.  */
 
-static void
+void
 coding_restore_composition (coding, obj)
      struct coding_system *coding;
      Lisp_Object obj;
