@@ -32,6 +32,7 @@ Emacs
 * CL: (cl).		Partial Common Lisp support for Emacs Lisp.
 * Dired-X: (dired-x).   Dired Extra Features.
 * Ediff: (ediff).	A visual interface for comparing and merging programs.
+* Emacs-Xtra: (emacs-xtra).    Specialized Emacs features.
 * PCL-CVS: (pcl-cvs).	Emacs front-end to CVS.
 * Speedbar: (speedbar).	File/Tag summarizing utility.
 
