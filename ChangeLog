@@ -6,6 +6,8 @@
 
 	* configure.in: Don't print anything special about gamedir.
 
+	* configure.in: Delete nonstandard --with-game-user option.
+	
 2002-07-21  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (gamedir, localstatedir): New variables.

@@ -1,3 +1,26 @@
+2002-07-28  Richard M. Stallman  <rms@gnu.org>
+
+	* bindings.el (mode-line-format): Handle vc-mode specially.
+	Move mode-line-position to after global-mode-string.
+	(mode-line-modes): Move the starting 3 spaces out of here.
+	(mode-line-position): Separate with a space, not dashes.
+
+	* vc-hooks.el: Don't add to minor-mode-alist.
+
+	* emacs-lisp/edebug.el (edebug-debugger):
+	If inside redisplay, just return.
+
+	* emacs-lisp/debug.el (debug): If inside redisplay, just return.
+
+	* info.el (Info-find-index-name): Improve last change.
+
+2002-07-27  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (file-name-sans-extension): Avoid expanding DIRECTORY.
+
+	* calendar/cal-hebrew.el (diary-rosh-hodesh): Cons mark on
+	in the third case.
+
 2002-07-27  Markus Rost  <rost@math.ohio-state.edu>
 
 	* ps-print.el: Update copyright year.
