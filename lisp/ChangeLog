@@ -1,3 +1,7 @@
+1999-12-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* version.el: Put the version info into binary on MS-DOS as well.
+
 1999-12-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/debug.el (debugger-continue): Don't continue if
