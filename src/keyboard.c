@@ -35,6 +35,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "disptab.h"
 #include "dispextern.h"
 #include "keyboard.h"
+#include "intervals.h"
 #include <setjmp.h>
 #include <errno.h>
 
@@ -3223,7 +3224,11 @@ read_key_sequence (keybuf, bufsize, prompt)
 	nmaps_allocated = nmaps;
       }
     bcopy (maps, submaps, (nmaps - 2) * sizeof (submaps[0]));
-    submaps[nmaps-2] = current_buffer->keymap;
+#ifdef USE_TEXT_PROPERTIES
+    submaps[nmaps-2] = get_local_map (PT, current_buffer);
+#else
+    submaps[nmaps-2] = current_buffer->local_map;
+#endif
     submaps[nmaps-1] = global_map;
   }
 
