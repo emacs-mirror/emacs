@@ -1798,8 +1798,11 @@ Or, for optional MON, YR."
     (calendar-cursor-to-visible-date
      (if today-visible today (list displayed-month 1 displayed-year)))
     (set-buffer-modified-p nil)
-    (unless (or (one-window-p t)
-		(/= (frame-width) (window-width)))
+    (if (or (one-window-p t) (/= (frame-width) (window-width)))
+	;; Don't mess with the window size, but ensure that the first
+	;; line is fully visible
+	(set-window-vscroll nil 0)
+      ;; Adjust the window to exactly fit the displayed calendar
       (fit-window-to-buffer))
     (sit-for 0)
     (and mark-holidays-in-calendar
