@@ -378,6 +378,7 @@ otherwise put the new binding last in MENU.
 BEFORE can be either a string (menu item name) or a symbol
 \(the fake function key for the menu item).
 KEY does not have to be a symbol, and comparison is done with equal."
+  (if (symbolp menu) (setq menu (indirect-function menu)))
   (let ((inserted (null item))		; Fake already inserted.
 	tail done)
     (while (not done)
