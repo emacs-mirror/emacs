@@ -659,10 +659,11 @@ fill-single-word-nobreak-p and fill-french-nobreak-p.
 When this option is enabled, M-x add-change-log-entry will always
 start a new record regardless of when the last record is.
 
-** New user option `sgml-xml'.
+** SGML mode has indentation and supports XML syntax.
+The new variable `sgml-xml-mode' tells SGML mode to use XML syntax.
 When this option is enabled, SGML tags are inserted in XML style,
 i.e., there is always a closing tag.
-When not customized, it becomes buffer-local when it can be inferred
+By default, its setting is inferred on a buffer-by-buffer basis
 from the file name or buffer contents.
 
 ** `xml-mode' is now an alias for `smgl-mode', which has XML support.
@@ -882,6 +883,13 @@ mode-lines in inverse-video.
 
 
 * Lisp Changes in Emacs 21.4
+
+** Renamed file hooks to follow the convention:
+find-file-hooks to find-file-hook,
+find-file-not-found-hooks to find-file-not-found-functions,
+write-file-hooks to write-file-functions,
+write-contents-hooks to write-contents-functions.
+Marked local-write-file-hooks as obsolete (use the LOCAL arg of `add-hook').
 
 ** The `read-file-name' function now takes an additional argument which
 specifies a predicate which the file name read must satify.  The
