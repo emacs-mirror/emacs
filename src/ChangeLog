@@ -1,5 +1,11 @@
 2002-02-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* msdos.c (x_autoselect_window_p): New variable.
+	(syms_of_msdos): Defvar it.
+	(dos_rawgetc): If x_autoselect_window_p is set, select the window
+	in which the last mouse movement occured, unless it is already
+	selected.
+
 	* xdisp.c (automatic_hscroll_margin, Vautomatic_hscroll_step): New
 	variables.
 	(syms_of_xdisp): DEVFAR them.
