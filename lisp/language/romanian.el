@@ -41,6 +41,7 @@
 	      (input-method . "latin-2-postfix")
 	      (unibyte-syntax . "latin-2")
 	      (unibyte-display . iso-8859-2)
+	      (tutorial . "TUTORIAL.ro")
 	      (sample-text . "Bunã ziua, bine aþi venit!")
 	      (documentation . t))
  '("European"))
