@@ -1444,14 +1444,13 @@ From now on the default value will apply in this buffer.")
 
 DEFUN ("make-variable-frame-local", Fmake_variable_frame_local, Smake_variable_frame_local,
   1, 1, "vMake Variable Frame Local: ",
-  "Make VARIABLE have a separate value for each buffer.\n\
-At any time, the value for the current buffer is in effect.\n\
-There is also a default value which is seen in any buffer which has not yet\n\
-set its own value.\n\
-Using `set' or `setq' to set the variable causes it to have a separate value\n\
-for the current buffer if it was previously using the default value.\n\
-The function `default-value' gets the default value and `set-default' sets it.")
-  (variable)
+  "Enable VARIABLE to have frame-local bindings.\n\
+When a frame-local binding exists in the current frame,\n\
+it is in effect whenever the current buffer has no buffer-local binding.\n\
+A frame-local binding is actual a frame parameter value;\n\
+thus, any given frame has a local binding for VARIABLE\n\
+if it has a value for the frame parameter named VARIABLE.\n\
+See `modify-frame-parameters'.")
      register Lisp_Object variable;
 {
   register Lisp_Object tem, valcontents, newval;
