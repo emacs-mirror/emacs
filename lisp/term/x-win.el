@@ -578,13 +578,13 @@ This is in addition to the primary selection.")
     ;; Don't die if x-get-selection signals an error.
     (condition-case c
 	(setq text (x-get-selection 'PRIMARY))
-      (error (message "%s" c)))
+      (error nil))
     (if (string= text "") (setq text nil))
 
     (if x-select-enable-clipboard
 	(condition-case c
 	    (setq text (x-get-selection 'CLIPBOARD))
-	  (error (message "%s" c))))
+	  (error nil)))
     (if (string= text "") (setq text nil))
     (or text (setq text (x-get-cut-buffer 0)))
     (if (string= text "") (setq text nil))
