@@ -136,8 +136,9 @@ A subsequent \\[yank] yanks the choice just selected."
 	    (current-kill 0))))))
 (put 'mouse-menu-choose-yank 'menu-enable 'kill-ring)
 
-(define-key menu-bar-edit-menu [choose-selection]
-  '("Choose Pasting Selection" . mouse-menu-choose-yank))
+(define-key-after menu-bar-edit-menu [choose-selection]
+  '("Choose Pasting Selection" . mouse-menu-choose-yank)
+  'paste)
 
 (define-key global-map [menu-bar buffer] '("Buffers" . mouse-menu-bar-buffers))
 
