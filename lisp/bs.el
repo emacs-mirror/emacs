@@ -136,6 +136,7 @@
 
 (defgroup bs nil
   "Buffer Selection: Maintaining buffers by buffer menu."
+  :version "21.1"
   :group 'convenience)
 
 (defgroup bs-appearence nil
@@ -1357,7 +1358,7 @@ ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
 (defun bs--get-file-name (start-buffer all-buffers)
   "Return string for column 'File' in Buffer Selection Menu.
 This is the variable `buffer-file-name' of current buffer.
-If current mode is `dired-mode' or shell-mode it returns the
+If current mode is `dired-mode' or `shell-mode' it returns the
 default directory.
 START-BUFFER is the buffer where we started buffer selection.
 ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
