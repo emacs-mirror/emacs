@@ -1359,11 +1359,18 @@ update_frame (f, force, inhibit_hairy_id)
 		}
 	      while (row > top && col == 0);
 
-	      if (col >= FRAME_WINDOW_WIDTH (f))
+	      /* Make sure COL is not out of range.  */
+	      if (col >= FRAME_WIDTH (f) + FRAME_LEFT_SCROLL_BAR_WIDTH (f))
 		{
-		  col = 0;
+		  /* If we have another row, advance cursor into it.  */
 		  if (row < FRAME_HEIGHT (f) - 1)
-		    row++;
+		    {
+		      col = FRAME_LEFT_SCROLL_BAR_WIDTH (f);
+		      row++;
+		    }
+		  /* Otherwise move it back in range.  */
+		  else
+		    col = FRAME_WIDTH (f) + FRAME_LEFT_SCROLL_BAR_WIDTH (f);
 		}
 	    }
 
