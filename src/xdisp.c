@@ -603,7 +603,8 @@ echo_area_display ()
       display_string (XWINDOW (mini_window), vpos,
 		      echo_area_glyphs ? echo_area_glyphs : "",
 		      echo_area_glyphs ? echo_area_glyphs_length : -1,
-		      0, 0, 0, 0, FRAME_WIDTH (f));
+		      FRAME_LEFT_SCROLL_BAR_WIDTH (f),
+		      0, 0, 0, FRAME_WIDTH (f));
 
 #if 0 /* This just gets in the way.  update_frame does the job.  */
       /* If desired cursor location is on this line, put it at end of text */
@@ -622,7 +623,9 @@ echo_area_display ()
 	  {
 	    get_display_line (f, i, 0);
 	    display_string (XWINDOW (mini_window), vpos,
-			    "", 0, 0, 0, 0, 0, FRAME_WIDTH (f));
+			    "", 0, 
+                            FRAME_LEFT_SCROLL_BAR_WIDTH (f),
+			    0, 0, 0, FRAME_WIDTH (f));
 	  }
       }
     }
@@ -987,7 +990,7 @@ redisplay_internal (preserve_echo_area)
 	      if (this_line_vpos + 1
 		  < XFASTINT (w->top) + window_internal_height (w))
 		{
-		  int left = XFASTINT (w->left);
+		  int left = WINDOW_LEFT_MARGIN (w);
 		  int *charstart_next_line
 		    = FRAME_CURRENT_GLYPHS (XFRAME (WINDOW_FRAME (w)))->charstarts[this_line_vpos + 1];
 		  int adjust;
@@ -1005,7 +1008,7 @@ redisplay_internal (preserve_echo_area)
 		  adjust_window_charstarts (w, this_line_vpos, adjust);
 		}
 
-	      if (XFASTINT (w->width) != FRAME_WIDTH (XFRAME (WINDOW_FRAME (w))))
+	      if (!WINDOW_FULL_WIDTH_P (w))
 		preserve_other_columns (w);
 	      goto update;
 	    }
@@ -1045,7 +1048,7 @@ redisplay_internal (preserve_echo_area)
 	    {
 	      int width = window_internal_width (w) - 1;
 	      FRAME_CURSOR_X (selected_frame)
-		= XFASTINT (w->left) + minmax (0, pos.hpos, width);
+		= WINDOW_LEFT_MARGIN (w) + minmax (0, pos.hpos, width);
 	      FRAME_CURSOR_Y (selected_frame) = this_line_vpos;
 	      goto update;
 	    }
@@ -1104,7 +1107,7 @@ redisplay_internal (preserve_echo_area)
   else if (FRAME_VISIBLE_P (selected_frame))
     {
       redisplay_window (selected_window, 1, preserve_echo_area);
-      if (XFASTINT (w->width) != FRAME_WIDTH (selected_frame))
+      if (!WINDOW_FULL_WIDTH_P (w))
 	preserve_other_columns (w);
     }
 
@@ -1182,7 +1185,7 @@ update:
 	 may be null, so preserve_other_columns won't be able to
 	 preserve all the vertical-bar separators.  So, avoid using it
 	 in that case.  */
-      if (XFASTINT (w->width) != FRAME_WIDTH (selected_frame))
+      if (!WINDOW_FULL_WIDTH_P (w))
 	update_mode_lines = 1;
     }
 
@@ -1478,7 +1481,9 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	  for (i = 0; i < height; i++)
 	    {
 	      get_display_line (f, vpos + i, 0);
-	      display_string (w, vpos + i, "", 0, 0, 0, 1, 0, width);
+	      display_string (w, vpos + i, "", 0, 
+			      FRAME_LEFT_SCROLL_BAR_WIDTH (f),
+			      0, 1, 0, width);
 	    }
 	  
 	  goto finish_scroll_bars;
@@ -1619,7 +1624,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	    {
 	      if (current_buffer == old)
 		lpoint = PT;
-	      FRAME_CURSOR_X (f) = (XFASTINT (w->left)
+	      FRAME_CURSOR_X (f) = (WINDOW_LEFT_MARGIN (w)
 				    + minmax (0, pos.hpos, width));
 	      FRAME_CURSOR_Y (f) = pos.vpos + XFASTINT (w->top);
 	    }
@@ -1648,7 +1653,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
   if (XFASTINT (w->last_modified) >= MODIFF
       && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF
       && PT >= startp && !current_buffer->clip_changed
-      && (just_this_one || XFASTINT (w->width) == FRAME_WIDTH (f))
+      && (just_this_one || WINDOW_FULL_WIDTH_P (w))
       /* If force-mode-line-update was called, really redisplay;
 	 that's how redisplay is forced after e.g. changing
 	 buffer-invisibility-spec.  */
@@ -1671,7 +1676,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	  if (w == XWINDOW (FRAME_SELECTED_WINDOW (f)))
 	    {
 	      /* These variables are supposed to be origin 1 */
-	      FRAME_CURSOR_X (f) = (XFASTINT (w->left)
+	      FRAME_CURSOR_X (f) = (WINDOW_LEFT_MARGIN (w)
 				    + minmax (0, pos.hpos, width));
 	      FRAME_CURSOR_Y (f) = pos.vpos + XFASTINT (w->top);
 	    }
@@ -1679,7 +1684,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	     this one must be redisplayed, this does nothing because there
 	     is nothing in DesiredFrame yet, and then the other window is
 	     redisplayed, making likes that are empty in this window's columns.
-	     if (XFASTINT (w->width) != FRAME_WIDTH (f))
+	     if (WINDOW_FULL_WIDTH_P (w))
 	     preserve_my_columns (w);
 	     */
 	  goto done;
@@ -1703,7 +1708,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	   && ! EQ (w->window_end_valid, Qnil)
 	   && do_id && !current_buffer->clip_changed
 	   && !blank_end_of_window
-	   && XFASTINT (w->width) == FRAME_WIDTH (f)
+	   && WINDOW_FULL_WIDTH_P (w)
 	   /* Can't use this case if highlighting a region.  */
 	   && !(!NILP (Vtransient_mark_mode)
 		&& !NILP (current_buffer->mark_active))
@@ -1827,7 +1832,7 @@ done:
   if ((update_mode_line
        /* If window not full width, must redo its mode line
 	  if the window to its side is being redone */
-       || (!just_this_one && width < FRAME_WIDTH (f) - 1)
+       || (!just_this_one && !WINDOW_FULL_WIDTH_P (w))
        || INTEGERP (w->base_line_pos)
        || (!NILP (w->column_number_displayed)
 	   && XFASTINT (w->column_number_displayed) != current_column ()))
@@ -2140,7 +2145,7 @@ try_window_id (window)
 	  if (pp.bufpos < PT || pp.vpos == height)
 	    return 0;
 	  cursor_vpos = pp.vpos + top;
-	  cursor_hpos = XFASTINT (w->left) + minmax (0, pp.hpos, width);
+	  cursor_hpos = WINDOW_LEFT_MARGIN (w) + minmax (0, pp.hpos, width);
 	}
 
       if (stop_vpos - scroll_amount >= height
@@ -2351,7 +2356,7 @@ try_window_id (window)
 	  return 0;
 	}
       cursor_vpos = val.vpos + top;
-      cursor_hpos = XFASTINT (w->left) + minmax (0, val.hpos, width);
+      cursor_hpos = WINDOW_LEFT_MARGIN (w) + minmax (0, val.hpos, width);
     }
 
   FRAME_CURSOR_X (f) = cursor_hpos;
@@ -2500,7 +2505,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
   int hscroll = XINT (w->hscroll);
   int truncate = (hscroll
 		  || (truncate_partial_width_windows
-		      && XFASTINT (w->width) < FRAME_WIDTH (f))
+		      && !WINDOW_FULL_WIDTH_P (w))
 		  || !NILP (current_buffer->truncate_lines));
 
   /* 1 if we should highlight the region.  */
@@ -2551,8 +2556,8 @@ display_text_line (w, start, vpos, hpos, taboffset)
   XSETFASTINT (default_invis_vector[2], '.');
   default_invis_vector[0] = default_invis_vector[1] = default_invis_vector[2];
 
-  hpos += XFASTINT (w->left);
-  get_display_line (f, vpos, XFASTINT (w->left));
+  hpos += WINDOW_LEFT_MARGIN (w);
+  get_display_line (f, vpos, WINDOW_LEFT_MARGIN (w));
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
   /* Show where to highlight the region.  */
@@ -2634,8 +2639,8 @@ display_text_line (w, start, vpos, hpos, taboffset)
   p1start = p1;
   charstart = desired_glyphs->charstarts[vpos] + hpos;
   /* In case we don't ever write anything into it...  */
-  desired_glyphs->charstarts[vpos][XFASTINT (w->left)] = -1;
-  leftmargin = desired_glyphs->glyphs[vpos] + XFASTINT (w->left);
+  desired_glyphs->charstarts[vpos][WINDOW_LEFT_MARGIN (w)] = -1;
+  leftmargin = desired_glyphs->glyphs[vpos] + WINDOW_LEFT_MARGIN (w);
   endp = leftmargin + width;
 
   /* Arrange the overlays nicely for our purposes.  Usually, we call
@@ -3084,7 +3089,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
     {
       if (cursor_hpos < 0) cursor_hpos = 0;
       if (cursor_hpos > width) cursor_hpos = width;
-      cursor_hpos += XFASTINT (w->left);
+      cursor_hpos += WINDOW_LEFT_MARGIN (w);
       if (w == XWINDOW (FRAME_SELECTED_WINDOW (f)))
 	{
 	  if (!(cursor_in_echo_area && FRAME_HAS_MINIBUF_P (f)
@@ -3098,7 +3103,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	    {
 	      /* Line is not continued and did not start
 		 in middle of character */
-	      if ((hpos - XFASTINT (w->left)
+	      if ((hpos - WINDOW_LEFT_MARGIN (w)
 		   == (XINT (w->hscroll) ? 1 - XINT (w->hscroll) : 0))
 		  && val.vpos)
 		{
@@ -3122,7 +3127,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	p1 = leftmargin + 1;
     }
 
-  if (XFASTINT (w->width) + XFASTINT (w->left) != FRAME_WIDTH (f))
+  if (!WINDOW_RIGHTMOST_P (w))
     {
       endp++;
       if (p1 < leftmargin) p1 = leftmargin;
@@ -3132,13 +3137,13 @@ display_text_line (w, start, vpos, hpos, taboffset)
          covered up by the scroll bars, and it's distracting to see
          them when the scroll bar windows are flickering around to be
          reconfigured.  */
-      if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
+      if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
 	{
 	  int i;
 	  for (i = 0; i < FRAME_SCROLL_BAR_COLS (f); i++)
 	    *p1++ = SPACEGLYPH;
 	}
-      else
+      else if (!FRAME_HAS_VERTICAL_SCROLL_BARS (f))
 	*p1++ = (dp && INTEGERP (DISP_BORDER_GLYPH (dp))
 		 ? DISP_BORDER_GLYPH (dp)
 		 : '|');
@@ -3268,8 +3273,8 @@ display_mode_line (w)
      struct window *w;
 {
   register int vpos = XFASTINT (w->height) + XFASTINT (w->top) - 1;
-  register int left = XFASTINT (w->left);
-  register int right = XFASTINT (w->width) + left;
+  register int left = WINDOW_LEFT_MARGIN (w);
+  register int right = WINDOW_RIGHT_MARGIN (w);
   register FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
 
   line_number_displayed = 0;
@@ -3289,17 +3294,11 @@ display_mode_line (w)
 
   FRAME_DESIRED_GLYPHS (f)->bufp[vpos] = 0;
 
-  /* Make the mode line inverse video if the entire line
-     is made of mode lines.
-     I.e. if this window is full width,
-     or if it is the child of a full width window
-     (which implies that that window is split side-by-side
-     and the rest of this line is mode lines of the sibling windows).  */
-  if (XFASTINT (w->width) == FRAME_WIDTH (f)
-      || XFASTINT (XWINDOW (w->parent)->width) == FRAME_WIDTH (f))
-    FRAME_DESIRED_GLYPHS (f)->highlight[vpos] = mode_line_inverse_video;
+  /* Put the mode line in inverse video.
+     Use faces if possible, since that lets us handle
+     partial-width windows and avoid inverting the scroll bar columns.  */
 #ifdef HAVE_FACES
-  else if (! FRAME_TERMCAP_P (f) && mode_line_inverse_video)
+  if (! FRAME_TERMCAP_P (f) && mode_line_inverse_video)
     {
       /* For a partial width window, explicitly set face of each glyph. */
       int i;
@@ -3308,6 +3307,16 @@ display_mode_line (w)
 	ptr[i] = FAST_MAKE_GLYPH (FAST_GLYPH_CHAR (ptr[i]), 1);
     }
 #endif
+
+  /* Make the mode line inverse video if the entire line
+     is made of mode lines.
+     I.e. if this window is full width,
+     or if it is the child of a full width window
+     (which implies that that window is split side-by-side
+     and the rest of this line is mode lines of the sibling windows).  */
+  else if (WINDOW_FULL_WIDTH_P (w)
+	   || WINDOW_FULL_WIDTH_P (XWINDOW (w->parent)))
+    FRAME_DESIRED_GLYPHS (f)->highlight[vpos] = mode_line_inverse_video;
 }
 
 /* Contribute ELT to the mode line for window W.
@@ -4089,16 +4098,16 @@ display_string (w, vpos, string, length, hpos, truncate,
     {
       end = start + window_width - (truncate != 0);
 
-      if ((window_width + XFASTINT (w->left)) != FRAME_WIDTH (f))
+      if (!WINDOW_RIGHTMOST_P (w))
 	{
-	  if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
+	  if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
 	    {
 	      int i;
 
 	      for (i = 0; i < FRAME_SCROLL_BAR_COLS (f); i++)
 		*end-- = ' ';
 	    }
-	  else
+	  else if (!FRAME_HAS_VERTICAL_SCROLL_BARS (f))
 	    *end-- = '|';
 	}
     }
