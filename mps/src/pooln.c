@@ -2,7 +2,7 @@
  *
  *                         NULL POOL
  *
- *  $HopeName$
+ *  $HopeName: MMsrc/!pooln.c(trunk.1)$
  *
  *  Copyright(C) 1995 Harlequin Group, all rights reserved
  *
@@ -22,6 +22,7 @@
 #include "ref.h"
 #include "space.h"
 #include "trace.h"
+#include "prot.h"
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -42,6 +43,7 @@ static Error scan(Pool pool, Trace trace, RefRank rank);
 static Error fix(Pool pool, Trace trace, RefRank rank,
                  Arena arena, Ref *refIO);
 static void reclaim(Pool pool, Trace trace);
+static void access(Pool pool, Addr seg, ProtMode mode);
 
 
 /*  Class Structure  */
@@ -51,14 +53,15 @@ static PoolClassStruct PoolClassNStruct;
 PoolClass PoolClassN(void)
 {
   PoolClassInit(&PoolClassNStruct,
-		"N",
-		sizeof(PoolNStruct), offsetof(PoolNStruct, poolStruct),
-		create, destroy,
-		alloc, free_,
-		bufferCreate, bufferDestroy,
-		condemn, mark, scan,
-		fix, reclaim,
-		describe);
+                "N",
+                sizeof(PoolNStruct), offsetof(PoolNStruct, poolStruct),
+                create, destroy,
+                alloc, free_,
+                bufferCreate, bufferDestroy,
+                condemn, mark, scan,
+                fix, reclaim,
+                access,
+                describe);
   return &PoolClassNStruct;
 }
 
@@ -269,7 +272,7 @@ static Error scan(Pool pool, Trace trace, RefRank rank)
 }
 
 static Error fix(Pool pool, Trace trace, RefRank rank,
-		 Arena arena, Ref *refIO)
+                 Arena arena, Ref *refIO)
 {
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassNStruct);
@@ -284,7 +287,7 @@ static Error fix(Pool pool, Trace trace, RefRank rank,
   UNUSED(refIO);
 #endif /* DEBUG_ASSERT */
   NOTREACHED;  /* since we don't allocate any objects, should never
-	        * be called upon to fix a reference */
+                * be called upon to fix a reference */
   return ErrFAILURE;
 }
 
@@ -298,4 +301,16 @@ static void reclaim(Pool pool, Trace trace)
   UNUSED(trace);
 #endif
   /* all unmarked and condemned objects reclaimed */
+}
+
+static void access(Pool pool, Addr seg, ProtMode mode)
+{
+  AVER(ISVALID(Pool, pool));
+  AVER(pool->class == &PoolClassNStruct);
+  UNUSED(seg);
+  UNUSED(mode);
+#ifndef DEBUG_ASSERT
+  UNUSED(pool);
+#endif
+  /* deal with access to segment */
 }
