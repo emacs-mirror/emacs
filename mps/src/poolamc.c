@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.7) $
+ * $HopeName: MMsrc!poolamc.c(trunk.8) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -10,7 +10,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.7) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.8) $");
 
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailBoard */
@@ -671,7 +671,7 @@ static double AMCBenefit(Pool pool, Action action)
 }
 
 
-/* AMCWhiten -- turn the segment white for the traces
+/* AMCWhiten -- condemn the segment for the trace
  *
  * If the segment has a mutator buffer on it, we nail the buffer,
  * because we can't scan or reclaim uncommitted buffers.
@@ -727,10 +727,15 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
           /* Nail it for this trace as well. */
           SegSetNailed(seg, TraceSetAdd(SegNailed(seg), trace->ti));
         }
+        /* We didn't condemn the buffer, subtract it from the count. */
+        /* @@@@ We could subtract all the nailed grains. */
+        trace->condemned -= AddrOffset(BufferScanLimit(buffer),
+                                       BufferLimit(buffer));
       }
     }
   }
 
+  trace->condemned += SegSize(seg);
   SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
 
   gen = AMCSegGen(seg);
