@@ -297,7 +297,6 @@ to read a file name from the minibuffer."
 					 (file-attributes (car elt))))
 			       Info-dir-file-attributes))))
       (insert Info-dir-contents)
-    (recursive-edit)
     (let ((dirs Info-directory-list)
 	  buffers buffer others nodes dirs-done)
 
