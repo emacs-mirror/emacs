@@ -1,10 +1,14 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!90.c(trunk.2) $
  summary = various EPVM functional tests
  language = c
  link = testlib.o epvmfmt.o
 END_HEADER
+*/
+
+/* This test used to use ambiguous roots, but then EPVM was changed
+   so as not to "support" them.
 */
 
 #include "testlib.h"
@@ -28,7 +32,6 @@ static void test(void)
  mps_fmt_t format;
 
  mps_pool_t pool1;
- mps_epvm_save_level_t lev1;
  mps_ap_t ap1s, ap1p;
  
  unsigned int i, j, k;
@@ -42,7 +45,7 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_table(&root, arena, MPS_RANK_AMBIG, 0, &a[0], RT_SIZE),
+ cdie(mps_root_create_table(&root, arena, MPS_RANK_EXACT, 0, &a[0], RT_SIZE),
   "create root");
 
  cdie(mps_fmt_create_A(&format, arena, &fmtepvm), "create format");
