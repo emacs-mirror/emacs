@@ -877,7 +877,8 @@ Key bindings:
   (while vars
     (let ((var (car vars)))
       (make-variable-buffer-local var)
-      (put var 'permanent-local t))))
+      (put var 'permanent-local t))
+    (setq vars (cdr vars))))
 
 ;;---------------------------------------------------------------------------
 ;; that's it
