@@ -1,3 +1,10 @@
+2002-06-21  Kim F. Storm  <storm@filanet.dk>
+
+	* emulation/cua-base.el (cua--prefix-arg): Make register prefixes
+	work again. Corrected error in check for C-u initiated prefix.
+
+	* emulation/keypad.el (keypad-setup): Handle kp-begin like kp-space.
+
 2002-06-21  Richard M. Stallman  <rms@gnu.org>
 
 	* net/browse-url.el (browse-url-at-mouse): Don't pass an arg
