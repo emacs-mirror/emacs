@@ -257,7 +257,7 @@ If a string, that string is inserted.
   which is the standard way to delimit a signature in a message.)
 Otherwise, it should be an expression; it is evaluated
 and should insert whatever you want to insert."
-  :type '(choice (const "None" nil)
+  :type '(choice (const :tag "None" nil)
 		 (const :tag "Use `.signature' file" t)
 		 (string :tag "String to insert")
 		 (sexp :tag "Expression to evaluate"))
@@ -267,6 +267,14 @@ and should insert whatever you want to insert."
 (defcustom mail-signature-file "~/.signature"
   "*File containing the text inserted at end of mail buffer."
   :type 'file
+  :group 'sendmail)
+
+;;;###autoload
+(defcustom mail-default-directory "~/"
+  "*Directory for mail buffers.
+Value of `default-directory' for mail buffers.
+This directory is used for auto-save files of mail buffers."
+  :type '(directory :tag "Directory")
   :group 'sendmail)
 
 (defvar mail-reply-action nil)
@@ -1513,10 +1521,11 @@ The seventh argument ACTIONS is a list of actions to take
 ;;;	      (message "Auto save file for draft message exists; consider M-x mail-recover"))
 ;;;          t))
   (pop-to-buffer "*mail*")
-  ;; Put the auto-save file in the home dir
-  ;; to avoid any danger that it can't be written.
-  (if (file-exists-p (expand-file-name "~/"))
-      (setq default-directory (expand-file-name "~/")))
+  ;; Avoid danger that the auto-save file can't be written.
+  (let ((dir (expand-file-name
+	      (file-name-as-directory mail-default-directory))))
+    (if (file-exists-p dir)
+	(setq default-directory dir)))
   ;; Only call auto-save-mode if necessary, to avoid changing auto-save file.
   (if (or (and auto-save-default (not buffer-auto-save-file-name))
           (and (not auto-save-default) buffer-auto-save-file-name))
@@ -1563,7 +1572,6 @@ The seventh argument ACTIONS is a list of actions to take
     (setq non-random-len
 	  (- (length file-name) (length (make-temp-name "")) 1))
     (setq wildcard (concat (substring file-name 0 non-random-len) "*"))
-    (debug)
     (if (null (file-expand-wildcards wildcard))
 	(message "There are no auto-saved drafts to recover")
       ;; Bind dired-trivial-filenames to t because all auto-save file
@@ -1633,8 +1641,10 @@ you can move to one of them and type C-c C-c to recover that one."
   (switch-to-buffer "*mail*")
   ;; If *mail* didn't exist, set its directory, so that auto-saved
   ;; drafts will be found.
-  (if (file-exists-p (expand-file-name "~/"))
-      (setq default-directory "~/"))
+  (let ((dir (expand-file-name
+	      (file-name-as-directory mail-default-directory))))
+    (if (file-exists-p dir)
+	(setq default-directory dir)))
   (or (eq major-mode 'mail-mode)
       (mail-mode))
   (let ((file-name buffer-auto-save-file-name))
