@@ -50,8 +50,7 @@
 (add-hook 'shell-mode-hook 
 	  '(lambda () (setq comint-completion-addsuffix '("\\" . " "))))
 
-;;; Avoid creating auto-save file names containing invalid characters
-;;; (primarily "*", eg. for the *mail* buffer).
+;; Avoid creating auto-save file names containing invalid characters.
 (fset 'original-make-auto-save-file-name
       (symbol-function 'make-auto-save-file-name))
 
@@ -62,8 +61,11 @@ before calling this function.  You can redefine this for customization.
 See also `auto-save-file-name-p'."
   (let ((name (original-make-auto-save-file-name))
 	(start 0))
-    ;; destructively replace occurences of * or ? with $
-    (while (string-match "[?*]" name start)
+    ;; Skip drive letter if present.
+    (if (string-match "^[\/]?[a-zA-`]:" name)
+	(setq start (- (match-end 0) (match-beginning 0))))
+    ;; Destructively replace occurrences of *?"<>|: with $
+    (while (string-match "[?*\"<>|:]" name start)
       (aset name (match-beginning 0) ?$)
       (setq start (1+ (match-end 0))))
     name))
