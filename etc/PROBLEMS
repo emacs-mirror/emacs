@@ -51,6 +51,30 @@ This currently doesn't work with scroll-bar widgets (and we don't know
 a good way of implementing it with widgets).  If Emacs is configured
 --without-toolkit-scroll-bars, C-mouse-2 on the scroll bar does work.
 
+* Problems in Emacs built with LessTif.
+
+The problems seem to depend on the version of LessTif and the Motif
+emulation for which it is set up.
+
+To the best of our knowledge, only the Motif 1.2 emulation seemed to
+be stable enough in LessTif.  Lesstif 0.92-17's Motif 1.2 emulation
+seems to work okay on FreeBSD.  On GNU/Linux systems, lesstif-0.92.6
+configured with "./configure --enable-build-12 --enable-default-12" is
+reported to be the most successful.  By contrast,
+lesstif-0.92.0-1.i386.rpm was reported to have problems with menu
+placement, and should probably be avoided.
+
+On some systems, even with Motif 1.2 emulation, Emacs occasionally
+locks up, grabbing all mouse and keyboard events.  The mouse still
+moves, but will not go outside of the Emacs window (so you can't get
+it over the frame title barm, for instance).  None of the menus are
+responsive.  In addition, the keyboard will not respond.  Keypresses
+are totally ignored, including Ctrl-Alt-F1 to Ctrl-Alt-F6.  This means
+you can not even get to the virtual console.
+
+We still don't know what causes these problems; they are not
+reproducible on some systems, notably those used by Emacs developers.
+
 * Some accented ISO-8859-1 characters or umlauts are displayed as | or _.
 
 Try other font set sizes (S-mouse-1).  If the problem persists with
