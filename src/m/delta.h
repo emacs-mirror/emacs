@@ -153,7 +153,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef KERNEL_FILE
 #define KERNEL_FILE "/sysv68"
 #undef LDAV_SYMBOL
-#define SYSTEM_MALLOC
 #ifdef SIGIO
  /* R3V7 has SIGIO, but interrupt input does not work yet.
     Let's go on with cbreak code. */
