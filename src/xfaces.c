@@ -5494,7 +5494,7 @@ lookup_derived_face (f, symbol, c, face_id)
 
 DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
        Sface_attributes_as_vector, 1, 1, 0,
-       doc: /* Return a vector of face attributes corresponding to PLIST. */)
+       doc: /* Return a vector of face attributes corresponding to PLIST.  */)
      (plist)
      Lisp_Object plist;
 {
