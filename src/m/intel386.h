@@ -179,15 +179,6 @@ NOTE-END */
 #define HAVE_ALLOCA
 #endif
 
-#ifdef USG
-#ifdef __STDC__
-#ifndef DONT_DEFINE_SIGNAL
-/* Cast the function argument to avoid warnings.  */
-#define signal(sig, func) (signal (sig, (void (*) (int)) (func)))
-#endif
-#endif
-#endif
-
 #ifdef USG5_4
 #define DATA_SEG_BITS 0x08000000
 #endif
