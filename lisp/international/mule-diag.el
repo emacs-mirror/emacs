@@ -674,8 +674,8 @@ No input method is avairable, perhaps because you have not yet
 installed LEIM (Libraries of Emacs Input Method).
 
 LEIM is avairable from the same ftp directory as Emacs.  For instance,
-if there exists an archive file emacs-20.2.tar.gz, there should also
-be a file leim-20.2.tar.gz.  When you extract this file, LEIM files
+if there exists an archive file emacs-20.N.tar.gz, there should also
+be a file leim-20.N.tar.gz.  When you extract this file, LEIM files
 are put under the subdirectory emacs-20.2/leim.  When you install
 Emacs again, you should be able to use various input methods."))
       (princ "LANGUAGE\n  NAME (`TITLE' in mode line)\n")
