@@ -1137,11 +1137,13 @@ Similarly for Soar, Scheme, etc."
 	    (while functions
 	      (funcall (car functions) (concat input "\n"))
 	      (setq functions (cdr functions))))
-	  (funcall comint-input-sender proc input)
 	  (setq comint-input-ring-index nil)
+	  ;; Update the markers before we send the input
+	  ;; in case we get output amidst sending the input.
 	  (set-marker comint-last-input-start pmark)
 	  (set-marker comint-last-input-end (point))
 	  (set-marker (process-mark proc) (point))
+	  (funcall comint-input-sender proc input)
 	  (comint-output-filter proc "")))))
 
 ;; The purpose of using this filter for comint processes
