@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.161 2004/03/15 03:53:05 monnier Exp $
+;; $Id: vc-hooks.el,v 1.162 2004/03/21 15:44:39 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -765,14 +765,17 @@ Used in `find-file-not-found-functions'."
   ;; When a file does not exist, ignore cached info about it
   ;; from a previous visit.
   (vc-file-clearprops buffer-file-name)
-  (if (and (vc-backend buffer-file-name)
-	   (yes-or-no-p
-	    (format "File %s was lost; check out from version control? "
-		    (file-name-nondirectory buffer-file-name))))
-    (save-excursion
-      (require 'vc)
-      (setq default-directory (file-name-directory buffer-file-name))
-      (not (vc-error-occurred (vc-checkout buffer-file-name))))))
+  (let ((backend (vc-backend buffer-file-name)))
+    (if backend (vc-call-backend backend find-file-not-found-hook))))
+
+(defun vc-default-find-file-not-found-hook (backend)
+  (if (yes-or-no-p
+       (format "File %s was lost; check out from version control? "
+	       (file-name-nondirectory buffer-file-name)))
+      (save-excursion
+	(require 'vc)
+	(setq default-directory (file-name-directory buffer-file-name))
+	(not (vc-error-occurred (vc-checkout buffer-file-name))))))
 
 (add-hook 'find-file-not-found-functions 'vc-file-not-found-hook)
 
