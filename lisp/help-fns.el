@@ -176,9 +176,9 @@ DEF is the function whose usage we're looking for in DOC."
   "Add the usage info to the docstring DOC.
 If DOC already has a usage info, then just return DOC unchanged.
 The usage info is built from ARGLIST.  DOC can be nil.
-ARGLIST can also be nil or a string of the form \"(fun ARG1 ARG2 ...)\"."
+ARGLIST can also be t or a string of the form \"(fun ARG1 ARG2 ...)\"."
   (unless (stringp doc) (setq doc "Not documented"))
-  (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" doc) (not arglist))
+  (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" doc) (eq arglist t))
       doc
     (format "%s%s%s" doc
 	    (if (string-match "\n?\n\\'" doc)
