@@ -4444,7 +4444,7 @@ and `quit-flag' is not set.\n\
 If the key sequence starts with a mouse click, then the sequence is read\n\
 using the keymaps of the buffer of the window clicked in, not the buffer\n\
 of the selected window as normal.\n\
-\n\
+""\n\
 `read-key-sequence' drops unbound button-down events, since you normally\n\
 only care about the click or drag events which follow them.  If a drag\n\
 or multi-click event is unbound, but the corresponding click event would\n\
