@@ -1,3 +1,43 @@
+2004-02-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ebnf-abn.el: New file, implements an ABNF parser.
+
+	* ebnf2ps.el: Doc fix.  Accept ABNF (Augmented BNF).  New arrow shapes:
+	semi-up-hollow, semi-up-full, semi-down-hollow and semi-down-full.  Fix
+	a bug on productions like test = {"test"}* | ( "tt" ["test"] ).
+	Reported by Markus Dreyer <mdreyer@ix.urz.uni-heidelberg.de>.
+	(ebnf-version): New version number (4.0).
+	(ebnf-print-directory, ebnf-print-file, ebnf-spool-directory)
+	(ebnf-spool-file, ebnf-eps-directory, ebnf-eps-file)
+	(ebnf-delete-style): New commands.
+	(ebnf-directory, ebnf-file): New funs.
+	(ebnf-special-show-delimiter, ebnf-file-suffix-regexp)
+	(ebnf-production-name-p, ebnf-stop-on-error): New options.
+	(ebnf-syntax-alist): New var.
+	(ebnf-element-width): New fun replacing ebnf-list-width.
+	(ebnf-arrow-shape, ebnf-syntax): Custom fix.
+	(ebnf-style-custom-list, ebnf-style-database, ebnf-arrow-shape-alist)
+	(ebnf-prologue): Adjust vars.
+	(ebnf-setup, ebnf-insert-style, ebnf-merge-style, ebnf-apply-style)
+	(ebnf-reset-style, ebnf-push-style, ebnf-pop-style)
+	(ebnf-check-style-values, ebnf-generate-production)
+	(ebnf-generate-region, ebnf-production-dimension, ebnf-justify-list)
+	(ebnf-make-terminal1, ebnf-make-or-more1, ebnf-make-repeat)
+	(ebnf-token-repeat): Code fix.
+
+	* ebnf-yac.el: Doc fix.  Handle Bison pragmas %nonassoc, %right, %left
+	and %prec.  Suggested by Matthew K. Junker <junker@alum.mit.edu>.
+	(ebnf-yac-definitions, ebnf-yac-lex): Code fix.
+
+	* ebnf-iso.el: Doc fix.
+	(ebnf-iso-token-table, ebnf-iso-non-terminal-chars): Adjust vars.
+	(ebnf-iso-lex): Code fix.
+
+	* ebnf-bnf.el: Doc fix.
+	(ebnf-bnf-lex): Code fix.
+
+	* ebnf-otz.el: Doc fix.
+
 2004-02-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* abbrev.el (write-abbrev-file): Make argument optional.  Doc fix.
