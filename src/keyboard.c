@@ -7509,10 +7509,21 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      keytran_next = keytran_map;
 
 	    keytran_next
-	      = get_keyelt (access_keymap (keytran_next, key, 1, 0), 0);
+	      = get_keyelt (access_keymap (keytran_next, key, 1, 0), 1);
 
+	    if (SYMBOLP (keytran_next) && ! NILP (Ffboundp (keytran_next))
+		&& CONSP (XSYMBOL (keytran_next)->function)
+		&& EQ (XCONS (XSYMBOL (keytran_next)->function)->car, Qautoload))
+	      do_autoload (XSYMBOL (keytran_next)->function,
+			   keytran_next);
+
+	    /* Handle a symbol whose function definition is a keymap.  */
+	    if (SYMBOLP (keytran_next) && ! NILP (Ffboundp (keytran_next))
+		&& !NILP (Fkeymapp (XSYMBOL (keytran_next)->function)))
+	      keytran_next = XSYMBOL (keytran_next)->function;
+	    
 	    /* If the key translation map gives a function, not an
-	       array, then call the function with no args and use
+	       array, then call the function with one arg and use
 	       its value instead.  */
 	    if (SYMBOLP (keytran_next) && ! NILP (Ffboundp (keytran_next))
 		&& keytran_end == t)
