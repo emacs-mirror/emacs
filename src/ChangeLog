@@ -1,5 +1,47 @@
 1999-12-27  Kenichi Handa  <handa@etl.go.jp>
 
+	The following changes are to use more bits for face IDs.
+
+	* lisp.h (GLYPH): Defined as `int', not `unsigned int'.  Now the
+	lowest 8 bits are single byte character code, the bits above are
+	face ID.
+	(GLYPH_MASK_FACE) (GLYPH_MASK_CHAR): Adjusted for the change
+	above.
+	(FAST_MAKE_GLYPH) (FSST_GLYPH_FACE): Likewise.
+	(GLYPH_MASK_REV_DIR) (GLYPH_MASK_PADDING): Macros deleted.
+
+	* charset.h (CHAR_BYTES): Use ((1 << CHARACTERBITS) - 1) instead
+	of GLYPH_MASK_CHAR.
+
+	* charset.c (char_bytes): Use ((1 << CHARACTERBITS) - 1) instead
+	of GLYPH_MASK_CHAR.
+
+	* dispextern.h (struct glyph): Make face_id and padding_p the top
+	level members.  Change members in union `u'.
+	(GLYPH_EQUAL_P): Check also members face_id and padding_p.
+	(GLYPH_CHAR_AND_FACE_EQUAL_P): New macro.
+	(SET_CHAR_GLYPH): Adjusted for the change of struct glyph.
+	(CHAR_GLYPH_PADDING_P): Likewise.
+	(GLYPH_FROM_CHAR_GLYPH): Likewise.  Always return -1 for multibyte
+	characters.
+
+	* dispnew.c (line_hash_code) (direct_output_for_insert): Adjusted
+	for the change of struct glyph.
+	(line_draw_cost): Adjusted for the change of
+	GLYPH_FROM_CHAR_GLYPH.
+	(count_match): Use macro GLYPH_CHAR_AND_FACE_EQUAL_P.
+
+	* term.c (encode_terminal_code): Adjusted for the change of struct
+	glyph and GLYPH_FROM_CHAR_GLYPH.
+	(write_glyphs) (insert_glyphs) (append_glyph): Adjusted for the
+	change of struct glyph.
+
+	* xdisp.c: All codes adjusted for the change of struct glyph.
+
+	* xterm.c: All codes adjusted for the change of struct glyph.
+
+1999-12-27  Kenichi Handa  <handa@etl.go.jp>
+
 	* composite.h (struct composition): Change the order of declaring
 	members to reduce the byte size of the structure.
 
