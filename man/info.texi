@@ -4,6 +4,7 @@
 @settitle Info 1.0
 @comment %**end of header 
 
+@dircategory Emacs
 @direntry
 * Info: (info).		Documentation browsing system.
 @end direntry
@@ -961,7 +962,7 @@ function @code{Info-directory} is called.
 file; @code{texinfo-format-region} and @code{texinfo-format-buffer} are
 GNU Emacs functions that do the same.
 
-@xref{Create an Info File, , Creating an Info File, texinfo, the Texinfo
+@xref{Creating an Info File, , Creating an Info File, texinfo, the Texinfo
 Manual}, to learn how to create an Info file from a Texinfo file.
 
 @xref{Top,, Overview of Texinfo, texinfo, Texinfo: The GNU Documentation
