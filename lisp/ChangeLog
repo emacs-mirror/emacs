@@ -269,7 +269,7 @@
 	* mail/smtpmail.el (smtpmail-send-queued-mail): Use
 	with-temp-buffer instead of find-file-noselect, and bind
 	coding-system-for-read to no-conversion when reading the queued
-	messages.
+	messages.  (Simon's code modified slightly by Eli Zaretskii.)
 
 2001-12-20  Werner Lemberg  <wl@gnu.org>
 
