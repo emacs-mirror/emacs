@@ -1,5 +1,5 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1837,7 +1837,11 @@ Thus, (funcall 'cons 'x 'y) returns (x . y).")
 	  goto done;
 
 	default:
-	  error ("funcall: this number of args not handled.");
+
+	  /* If a subr takes more than 6 arguments without using MANY
+	     or UNEVALLED, we need to extend this function to support it. 
+	     Until this is done, there is no way to call the function.  */
+	  abort ();
 	}
     }
   if (XTYPE (fun) == Lisp_Compiled)

@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985, 1986, 1987, 1988 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -344,10 +344,13 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
      and scan through it again.  */
   if (!NILP (force) && col > goal && c == '\t' && prev_col < goal)
     {
+      int old_point;
+
       del_range (point - 1, point);
-      Findent_to (make_number (col - 1));
-      insert_char (' ');
-      goto retry;
+      Findent_to (make_number (goal), Qnil);
+      old_point = point;
+      Findent_to (make_number (col), Qnil);
+      SET_PT (old_point);
     }
 
   /* If line ends prematurely, add space to the end.  */

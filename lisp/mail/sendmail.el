@@ -1,5 +1,5 @@
 ;; Mail sending commands for Emacs.
-;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -173,6 +173,7 @@ C-c C-v  mail-sent-via (add a sent-via field for each To or CC)."
   (define-key mail-mode-map "\C-c?" 'describe-mode)
   (define-key mail-mode-map "\C-c\C-f\C-t" 'mail-to)
   (define-key mail-mode-map "\C-c\C-f\C-b" 'mail-bcc)
+  (define-key mail-mode-map "\C-c\C-f\C-f" 'mail-fcc)
   (define-key mail-mode-map "\C-c\C-f\C-c" 'mail-cc)
   (define-key mail-mode-map "\C-c\C-f\C-s" 'mail-subject)
   (define-key mail-mode-map "\C-c\C-t" 'mail-text)
@@ -436,11 +437,19 @@ the user from the mailer."
       (progn (mail-position-on-field "to")
 	     (insert "\nBCC: "))))
 
+(defun mail-fcc ()
+  "Add a new FCC field, with file name completion."
+  (interactive)
+  (expand-abbrev)
+  (or (mail-position-on-field "fcc" t)	;Put new field after exiting FCC.
+      (mail-position-on-field "to"))
+  (insert "\nFCC: " (read-file-name "Folder carbon copy: ")))
+
 (defun mail-position-on-field (field &optional soft)
   (let (end
 	(case-fold-search t))
     (goto-char (point-min))
-    (search-forward (concat "\n" mail-header-separator "\n"))
+    (search-forward (concat "^" mail-header-separator "\n"))
     (setq end (match-beginning 0))
     (goto-char (point-min))
     (if (re-search-forward (concat "^" (regexp-quote field) ":") end t)
