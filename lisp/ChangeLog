@@ -1,5 +1,9 @@
 2004-11-02  Kim F. Storm  <storm@cua.dk>
 
+	* files.el (set-auto-mode-0): Don't rely on dynamic binding of
+	keep-mode-if-same variable.  Add it as optional arg instead.
+	(set-auto-mode): Call set-auto-mode-0 with keep-mode-if-same.
+
 	* ehelp.el (electric-help-map): Reorder Q/q and R/r entries so
 	substitute-command-keys will select lower-case bindings like those
 	used in the static help texts.
