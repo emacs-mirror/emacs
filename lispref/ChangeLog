@@ -1,3 +1,10 @@
+2004-04-05  Jesper Harder  <harder@ifa.au.dk>
+
+	* variables.texi (Variable Aliases): Mention
+	cyclic-variable-indirection.
+
+	* errors.texi (Standard Errors): Ditto.
+
 2004-04-04  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* backups.texi:  Various small changes in addition to:
