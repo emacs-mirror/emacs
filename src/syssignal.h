@@ -71,7 +71,7 @@ sigset_t sys_sigsetmask (sigset_t new_mask);
 #ifdef USG5_4
 
 #ifndef sigblock
-#define sigblock(sig) (sigprocmask (SIG_BLOCK, SIGEMPTYMASK & sig, NULL))
+#define sigblock(sig) (sigprocmask (SIG_BLOCK, SIGEMPTYMASK | sig, NULL))
 #endif
 
 #define sigunblock(sig) (sigprocmask (SIG_SETMASK, SIGFULLMASK & ~(sig), NULL))
