@@ -1,3 +1,8 @@
+2002-04-16  Jason Rumney  <jasonr@gnu.org>
+
+	* international/mule-cmds.el (locale-preferred-coding-systems):
+	Add "jpn".
+
 2002-04-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term.el (term-emulate-terminal): Fix last change.

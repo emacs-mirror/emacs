@@ -1,3 +1,9 @@
+2002-04-16  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fx_file_dialog): Decode file name before using.
+
+	* w32term.c (construct_drag_n_drop): Likewise.
+	
 2002-04-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* puresize.h (BASE_PURESIZE): Increase to 830000, since we now
