@@ -764,10 +764,6 @@ The following keys take effect only when multibyte characters are
 globally disabled, i.e. the value of `default-enable-multibyte-characters'
 is nil.
 
-  unibyte-syntax     value is a library name to load to set
-			unibyte 8-bit character syntaxes for this
-			language environment.
-
   unibyte-display    value is a coding system to encode characters
 			for the terminal.  Characters in the range
 			of 160 to 255 display not as octal escapes,
