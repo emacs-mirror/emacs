@@ -1,3 +1,11 @@
+2000-05-18  Dave Love  <fx@gnu.org>
+
+	* info.el (Info-fontify-node): Add intangible property as well as
+	invisible.
+
+	* calendar/appt.el (appt-make-list): Match all lines of entry.
+	From "Stefan M. Walther (SMW)" <walther@netz.klinik.uni-mainz.de>
+
 2000-05-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-diag.el (describe-char-after): Call
