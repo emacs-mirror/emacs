@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.100 $")
+(defconst byte-compile-version "$Revision: 2.101 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -327,9 +327,11 @@ If it is 'byte, then only byte-level optimizations will be logged."
   :type 'boolean)
 
 (defconst byte-compile-warning-types
-  '(redefine callargs free-vars unresolved obsolete noruntime))
+  '(redefine callargs free-vars unresolved obsolete noruntime cl-functions)
+  "The list of warning types used when `byte-compile-warnings' is t.")
 (defcustom byte-compile-warnings t
   "*List of warnings that the byte-compiler should issue (t for all).
+
 Elements of the list may be be:
 
   free-vars   references to variables not in the current lexical scope.
@@ -337,13 +339,17 @@ Elements of the list may be be:
   callargs    lambda calls with args that don't match the definition.
   redefine    function cell redefined from a macro to a lambda or vice
               versa, or redefined to take a different number of arguments.
-  obsolete    obsolete variables and functions."
+  obsolete    obsolete variables and functions.
+  noruntime   functions that may not be defined at runtime (typically
+              defined only under `eval-when-compile').
+  cl-functions    calls to runtime functions from the CL package (as 
+		  distinguished from macros and aliases)."
   :group 'bytecomp
-  :type '(choice (const :tag "All" t)
+  :type `(choice (const :tag "All" t)
 		 (set :menu-tag "Some"
 		      (const free-vars) (const unresolved)
-		      (const callargs) (const redefined)
-		      (const obsolete) (const noruntime))))
+		      (const callargs) (const redefine)
+		      (const obsolete) (const noruntime) (const cl-functions))))
 
 (defcustom byte-compile-generate-call-tree nil
   "*Non-nil means collect call-graph information when compiling.
@@ -411,7 +417,7 @@ This list lives partly on the stack.")
 				 (byte-compile-eval (byte-compile-top-level
 						     (cons 'progn body))))))
     (eval-and-compile . (lambda (&rest body)
-			  (eval (cons 'progn body))
+			  (byte-compile-eval-before-compile (cons 'progn body))
 			  (cons 'progn body))))
   "The default macro-environment passed to macroexpand by the compiler.
 Placing a macro here will cause a macro to have different semantics when
@@ -790,6 +796,17 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 	      (when (symbolp s)
 		(put s 'byte-compile-noruntime t)))))))))
 
+(defun byte-compile-eval-before-compile (form)
+  "Evaluate FORM for `eval-and-compile'."
+  (let ((hist-nil-orig current-load-list))
+    (prog1 (eval form)
+      ;; (eval-and-compile (require 'cl) turns off warnings for cl functions.
+      (let ((tem current-load-list))
+	(while (not (eq tem hist-nil-orig))
+	  (when (equal (car tem) '(require . cl))
+	    (setq byte-compile-warnings
+		  (remq 'cl-functions byte-compile-warnings)))
+	  (setq tem (cdr tem)))))))
 
 ;;; byte compiler messages
 
@@ -1174,6 +1191,27 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 	      (setq byte-compile-unresolved-functions
 		    (delq calls byte-compile-unresolved-functions)))))
       )))
+
+(defun byte-compile-cl-warn (form)
+  "Warn if FORM is a call of a function from the CL package."
+  (let* ((func (car-safe form))
+	 (library
+	  (if func
+	      (cond ((eq (car-safe func) 'autoload)
+		     (nth 1 func))
+		    ((symbol-file func))))))
+    (if (and library
+	     (string-match "^cl\\>" library)
+	     ;; Aliases which won't have been expended at this point.
+	     ;; These aren't all aliases of subrs, so not trivial to
+	     ;; avoid hardwiring the list.
+	     (not (memq func
+			'(cl-block-wrapper cl-block-throw values values-list
+			  multiple-value-list multiple-value-call nth-value
+			  copy-seq first second rest endp cl-member))))
+	(byte-compile-warn "Function `%s' from cl package called at runtime"
+			   func)))
+  form)
 
 (defun byte-compile-print-syms (str1 strn syms)
   (when syms
@@ -1970,7 +2008,15 @@ list that represents a doc string reference.
 
 (put 'require 'byte-hunk-handler 'byte-compile-file-form-eval-boundary)
 (defun byte-compile-file-form-eval-boundary (form)
-  (eval form)
+  (let ((old-load-list current-load-list))
+    (eval form)
+    ;; (require 'cl) turns off warnings for cl functions.
+    (let ((tem current-load-list))
+      (while (not (eq tem old-load-list))
+	(when (equal (car tem) '(require . cl))
+	  (setq byte-compile-warnings
+		(remq 'cl-functions byte-compile-warnings)))
+	(setq tem (cdr tem)))))
   (byte-compile-keep-pending form 'byte-compile-normal-call))
 
 (put 'progn 'byte-hunk-handler 'byte-compile-file-form-progn)
@@ -2521,7 +2567,9 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	       (funcall handler form)
 	     (if (memq 'callargs byte-compile-warnings)
 		 (byte-compile-callargs-warn form))
-	     (byte-compile-normal-call form))))
+	     (byte-compile-normal-call form))
+	   (if (memq 'cl-functions byte-compile-warnings)
+	       (byte-compile-cl-warn form))))
 	((and (or (byte-code-function-p (car form))
 		  (eq (car-safe (car form)) 'lambda))
 	      ;; if the form comes out the same way it went in, that's
