@@ -61,6 +61,23 @@ get_time ()
   return time_string;
 }
 
+#if ! defined (HAVE_GETTIMEOFDAY) && defined (HAVE_TIMEVAL)
+ 
+/* ARGSUSED */
+gettimeofday (tp, tzp)
+     struct timeval *tp;
+     struct timezone *tzp;
+{
+  extern long time ();
+
+  tp->tv_sec = time ((long *)0);    
+  tp->tv_usec = 0;
+  if (tzp != 0)
+    tzp->tz_minuteswest = -1;
+}
+ 
+#endif
+
 void
 main ()
 {
