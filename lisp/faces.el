@@ -1206,7 +1206,6 @@ If FRAME is nil, the current FRAME is used."
       (let* ((visibility-spec (assq 'visibility parameters))
 	     success faces rest)
 	(setq frame (x-create-frame (cons '(visibility . nil) parameters)))
-	(frame-set-background-mode frame)
 	(unwind-protect
 	    (progn
 
@@ -1246,6 +1245,8 @@ If FRAME is nil, the current FRAME is used."
 		    (if (equal bg (cdr (assq 'cursor-color params)))
 			(modify-frame-parameters frame
 						 (list (cons 'cursor-color fg))))))
+
+	      (frame-set-background-mode frame)
 
 	      ;; Set up faces from the defface information
 	      (mapcar (lambda (symbol)
