@@ -511,7 +511,8 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 		   (eq major-mode 'rmail-mode))
 	      (progn (rmail-forget-messages)
 		     (rmail-set-message-counters))))
-      (find-file file-name))
+      (let ((enable-local-variables nil))
+	(find-file file-name)))
     (if (eq major-mode 'rmail-edit-mode)
 	(error "Exit Rmail Edit mode before getting new mail"))
     (if (and existed (> (buffer-size) 0))
@@ -528,16 +529,14 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
       (if (and rmail-enable-multibyte
 	       (not enable-multibyte-characters))
 	  (set-buffer-multibyte t))
-      (goto-char (point-max))
-      (if (null rmail-inbox-list)
-	  (progn
-	    (rmail-set-message-counters)
-	    (rmail-show-message)
-	    (setq msg-shown t))))
+      (goto-char (point-max)))
+    ;; Unconditionally rescan to find all the messages.
+    ;; It is useful to have M-x rmail as a way to do that.
+    (rmail-set-message-counters)
     (unwind-protect
-	(or (and (null file-name-arg)
-		 (rmail-get-new-mail))
-	    (or msg-shown (rmail-show-message (rmail-first-unseen-message))))
+	(unless (and (not file-name-arg)
+		     (rmail-get-new-mail))
+	  (rmail-show-message (rmail-first-unseen-message)))
       (progn
 	(if rmail-display-summary (rmail-summary))
 	(rmail-construct-io-menu)
