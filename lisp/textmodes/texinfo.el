@@ -558,7 +558,7 @@ value of `texinfo-mode-hook'."
   (setq imenu-case-fold-search nil)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults
-	'(texinfo-font-lock-keywords nil nil nil nil
+	'(texinfo-font-lock-keywords nil nil nil backward-paragraph
 				     (font-lock-syntactic-keywords
 				      . texinfo-font-lock-syntactic-keywords)))
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
