@@ -1,6 +1,6 @@
 /* impl.c.finalcv: FINALIZATION COVERAGE TEST
  *
- * $HopeName: MMsrc!finalcv.c(trunk.8) $
+ * $HopeName: MMsrc!finalcv.c(trunk.9) $
  * Copyright (C) 1996,1997, 1998 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -28,19 +28,21 @@
 /* What does the next line mean? @@@@ */
 /* .hack.order.1, .hack.order.2 */
 
+#include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "testlib.h"
 #include "mps.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "fmtdy.h"
-
+#include "mpstd.h"
+#ifdef MPS_OS_W3
+#include "mpsw3.h"
+#endif
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif
-
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
 
 
 #define testArenaSIZE   ((size_t)16<<20)

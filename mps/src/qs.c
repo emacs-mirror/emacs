@@ -1,8 +1,8 @@
-/*  impl.c.qs:                QUICKSORT
+/*  impl.c.qs: QUICKSORT
  *
- *  $HopeName: MMsrc!qs.c(trunk.12) $
+ *  $HopeName: MMsrc!qs.c(trunk.13) $
  *
- *  Copyright (C) 1995,1996, 1998 Harlequin Group, all rights reserved
+ *  Copyright (C) 1995, 1996, 1998 Harlequin Group, all rights reserved
  *
  *  The purpose of this program is to act as a "real" client of the MM.
  *  It is a test, but (hopefully) less contrived than some of the other
@@ -19,21 +19,23 @@
  *  list length 1000 makes 40404 conses (by experiment).
  *
  *  Some registers are not nulled out when they could be.
- *
  */
 
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "testlib.h"
 #include "mps.h"
 #include "mpsavm.h"
 #include "mpscamc.h"
 #include "mpscmv.h"
+#include "mpstd.h"
+#ifdef MPS_OS_W3
+#include "mpsw3.h"
+#endif
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif
-
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 
 #define testArenaSIZE   ((size_t)16<<20)
@@ -548,5 +550,6 @@ int main(void)
   mps_tramp(&r, &go, NULL, 0);
   mps_arena_destroy(arena);
 
+  fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
   return 0;
 }
