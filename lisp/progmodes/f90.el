@@ -1215,9 +1215,14 @@ Return (type name) or nil if not found."
       (message "No end found.")
       nil)))
 
+(defvar f90-mark-subprogram-overlay nil
+  "Used internally by `f90-mark-subprogram' to highlight the subprogram.")
+(make-variable-buffer-local 'f90-mark-subprogram-overlay)
+
 (defun f90-mark-subprogram ()
-  "Put mark at end of F90 subprogram, point at beginning.
-Marks are pushed and highlight (grey shadow) is turned on."
+  "Put mark at end of F90 subprogram, point at beginning, push marks.
+If called interactively, highlight the subprogram with the face `highlight'.
+Call again to remove the highlighting."
   (interactive)
   (let ((pos (point)) program)
     (f90-end-of-subprogram)
@@ -1228,7 +1233,14 @@ Marks are pushed and highlight (grey shadow) is turned on."
     (if f90-xemacs-flag
 	(zmacs-activate-region)
       (setq mark-active t
-            deactivate-mark nil))
+            deactivate-mark nil)
+      (if (interactive-p)
+	  (if (overlayp f90-mark-subprogram-overlay)
+	      (if (overlay-buffer f90-mark-subprogram-overlay)
+		  (delete-overlay f90-mark-subprogram-overlay)
+		(move-overlay f90-mark-subprogram-overlay (point) (mark)))
+	    (setq f90-mark-subprogram-overlay (make-overlay (point) (mark)))
+	    (overlay-put f90-mark-subprogram-overlay 'face 'highlight))))
     program))
 
 (defun f90-comment-region (beg-region end-region)
