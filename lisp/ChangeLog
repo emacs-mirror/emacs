@@ -1,3 +1,15 @@
+2001-03-22  Rajesh Vaidheeswarran  <rv@gnu.org>
+
+	* whitespace.el: Add buffer local variables to toggle testing of
+	whitespaces in buffers without affecting the default values.
+
+	Added defuns (whitespace-toggle-ateol-check,
+	whitespace-toggle-leading-check, whitespace-toggle-trailing-check,
+	whitespace-toggle-indent-check and whitespace-toggle-spacetab-check)
+
+	Bump version to 3.0 to account for a few other changes.
+	
+
 2001-03-21  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* obsolete/cplus-md.el: Moved from progmodes/cplus-md.el.

@@ -38,7 +38,7 @@
 
 ;;; Code:
 
-(defvar whitespace-version "2.8" "Version of the whitespace library.")
+(defvar whitespace-version "3.0" "Version of the whitespace library.")
 
 (defvar whitespace-all-buffer-files nil
   "An associated list of buffers and files checked for whitespace cleanliness.
@@ -59,6 +59,31 @@ visited by the buffers.")
   "String to display in the mode line for Whitespace mode.")
 (make-variable-buffer-local 'whitespace-mode-line)
 (put 'whitespace-mode-line 'permanent-local nil)
+
+(defvar whitespace-check-buffer-leading nil
+  "Test leading whitespace for file in current buffer if t")
+(make-variable-buffer-local 'whitespace-check-buffer-leading)
+(put 'whitespace-check-buffer-leading 'permanent-local nil)
+
+(defvar whitespace-check-buffer-trailing nil
+  "Test trailing whitespace for file in current buffer if t")
+(make-variable-buffer-local 'whitespace-check-buffer-trailing)
+(put 'whitespace-check-buffer-trailing 'permanent-local nil)
+
+(defvar whitespace-check-buffer-indent nil
+  "Test indentation whitespace for file in current buffer if t")
+(make-variable-buffer-local 'whitespace-check-buffer-indent)
+(put 'whitespace-check-buffer-indent 'permanent-local nil)
+
+(defvar whitespace-check-buffer-spacetab nil
+  "Test Space-followed-by-TABS whitespace for file in current buffer if t")
+(make-variable-buffer-local 'whitespace-check-buffer-spacetab)
+(put 'whitespace-check-buffer-spacetab 'permanent-local nil)
+
+(defvar whitespace-check-buffer-ateol nil
+  "Test end-of-line whitespace for file in current buffer if t")
+(make-variable-buffer-local 'whitespace-check-buffer-ateol)
+(put 'whitespace-check-buffer-ateol 'permanent-local nil)
 
 ;; For flavors of Emacs which don't define `defgroup' and `defcustom'.
 (eval-when-compile
@@ -85,17 +110,23 @@ don't define defcustom"
   :group 'convenience))
 
 (defcustom whitespace-check-leading-whitespace t
-  "Flag to check leading whitespace."
+  "Flag to check leading whitespace. This is the global for the system.
+It can be overriden by setting a buffer local variable
+`whitespace-check-buffer-leading'"
   :type 'boolean
   :group 'whitespace)
 
 (defcustom whitespace-check-trailing-whitespace t
-  "Flag to check trailing whitespace."
+  "Flag to check trailing whitespace. This is the global for the system.
+It can be overriden by setting a buffer local variable
+`whitespace-check-buffer-trailing'"
   :type 'boolean
   :group 'whitespace)
 
 (defcustom whitespace-check-spacetab-whitespace t
-  "Flag to check space followed by a TAB."
+  "Flag to check space followed by a TAB. This is the global for the system.
+It can be overriden by setting a buffer local variable
+`whitespace-check-buffer-spacetab'"
   :type 'boolean
   :group 'whitespace)
 
@@ -105,7 +136,9 @@ don't define defcustom"
   :group 'whitespace)
 
 (defcustom whitespace-check-indent-whitespace t
-  "Flag to check indentation whitespace."
+  "Flag to check indentation whitespace. This is the global for the system.
+It can be overriden by setting a buffer local variable
+`whitespace-check-buffer-indent'"
   :type 'boolean
   :group 'whitespace)
 
@@ -115,7 +148,9 @@ don't define defcustom"
   :group 'whitespace)
 
 (defcustom whitespace-check-ateol-whitespace t
-  "Flag to check end-of-line whitespace."
+  "Flag to check end-of-line whitespace. This is the global for the system.
+It can be overriden by setting a buffer local variable
+`whitespace-check-buffer-ateol'"
   :type 'boolean
   :group 'whitespace)
 
@@ -191,6 +226,17 @@ To disable timer scans, set this to zero."
     (setq minor-mode-alist (cons '(whitespace-mode whitespace-mode-line)
 				 minor-mode-alist)))
 
+(set-default 'whitespace-check-buffer-leading
+	     whitespace-check-leading-whitespace)
+(set-default 'whitespace-check-buffer-trailing
+	     whitespace-check-trailing-whitespace)
+(set-default 'whitespace-check-buffer-indent
+	     whitespace-check-indent-whitespace)
+(set-default 'whitespace-check-buffer-spacetab
+	     whitespace-check-spacetab-whitespace)
+(set-default 'whitespace-check-buffer-ateol
+	     whitespace-check-ateol-whitespace)
+
 (defun whitespace-check-whitespace-mode (&optional arg)
   "Test and set the whitespace-mode in qualifying buffers."
   (if (null whitespace-mode)
@@ -198,6 +244,61 @@ To disable timer scans, set this to zero."
 	    (if (or arg (member major-mode whitespace-modes))
 		t
 	      nil))))
+
+;;;###autoload
+(defun whitespace-toggle-leading-check ()
+  "Toggle the check for leading space in the local buffer."
+  (interactive)
+  (let ((current-val whitespace-check-buffer-leading))
+    (setq whitespace-check-buffer-leading (not current-val))
+    (message "Will%s check for leading space in buffer."
+	     (if whitespace-check-buffer-leading "" " not"))
+    (if whitespace-check-buffer-leading (whitespace-buffer-leading))))
+
+;;;###autoload
+(defun whitespace-toggle-trailing-check ()
+  "Toggle the check for trailing space in the local buffer."
+  (interactive)
+  (let ((current-val whitespace-check-buffer-trailing))
+    (setq whitespace-check-buffer-trailing (not current-val))
+    (message "Will%s check for trailing space in buffer."
+	     (if whitespace-check-buffer-trailing "" " not"))
+    (if whitespace-check-buffer-trailing (whitespace-buffer-trailing))))
+
+;;;###autoload
+(defun whitespace-toggle-indent-check ()
+  "Toggle the check for indentation space in the local buffer."
+  (interactive)
+  (let ((current-val whitespace-check-buffer-indent))
+    (setq whitespace-check-buffer-indent (not current-val))
+    (message "Will%s check for indentation space in buffer."
+	     (if whitespace-check-buffer-indent "" " not"))
+    (if whitespace-check-buffer-indent
+	(whitespace-buffer-search whitespace-indent-regexp))))
+
+;;;###autoload
+(defun whitespace-toggle-spacetab-check ()
+  "Toggle the check for space-followed-by-TABs in the local buffer."
+  (interactive)
+  (let ((current-val whitespace-check-buffer-spacetab))
+    (setq whitespace-check-buffer-spacetab (not current-val))
+    (message "Will%s check for space-followed-by-TABs in buffer."
+	     (if whitespace-check-buffer-spacetab "" " not"))
+    (if whitespace-check-buffer-spacetab
+	(whitespace-buffer-search whitespace-spacetab-regexp))))
+
+
+;;;###autoload
+(defun whitespace-toggle-ateol-check ()
+  "Toggle the check for end-of-line space in the local buffer."
+  (interactive)
+  (let ((current-val whitespace-check-buffer-ateol))
+    (setq whitespace-check-buffer-ateol (not current-val))
+    (message "Will%s check for end-of-line space in buffer."
+	     (if whitespace-check-buffer-ateol "" " not"))
+    (if whitespace-check-buffer-ateol
+	(whitespace-buffer-search whitespace-ateol-regexp))))
+
 
 ;;;###autoload
 (defun whitespace-buffer (&optional quiet)
@@ -225,21 +326,21 @@ and:
 		  (if (not quiet)
 		      (message "Can't cleanup: %s is read-only" (buffer-name)))
 		(whitespace-cleanup))
-	    (let ((whitespace-leading (if whitespace-check-leading-whitespace
+	    (let ((whitespace-leading (if whitespace-check-buffer-leading
 					  (whitespace-buffer-leading)
 					nil))
-		  (whitespace-trailing (if whitespace-check-trailing-whitespace
+		  (whitespace-trailing (if whitespace-check-buffer-trailing
 					   (whitespace-buffer-trailing)
 					 nil))
-		  (whitespace-indent (if whitespace-check-indent-whitespace
+		  (whitespace-indent (if whitespace-check-buffer-indent
 					 (whitespace-buffer-search
 					  whitespace-indent-regexp)
 				       nil))
-		  (whitespace-spacetab (if whitespace-check-spacetab-whitespace
+		  (whitespace-spacetab (if whitespace-check-buffer-spacetab
 					   (whitespace-buffer-search
 					    whitespace-spacetab-regexp)
 					 nil))
-		  (whitespace-ateol (if whitespace-check-ateol-whitespace
+		  (whitespace-ateol (if whitespace-check-buffer-ateol
 					(whitespace-buffer-search
 					 whitespace-ateol-regexp)
 				      nil))
@@ -330,31 +431,31 @@ whitespace problems."
 	;; they are displayed.
 	(setq tab-width whitespace-tabwith)
 
-	(if (and whitespace-check-leading-whitespace
+	(if (and whitespace-check-buffer-leading
 		 (whitespace-buffer-leading))
 	    (progn
 	      (whitespace-buffer-leading-cleanup)
 	      (setq whitespace-any t)))
 
-	(if (and whitespace-check-trailing-whitespace
+	(if (and whitespace-check-buffer-trailing
 		 (whitespace-buffer-trailing))
 	    (progn
 	      (whitespace-buffer-trailing-cleanup)
 	      (setq whitespace-any t)))
 
-	(if (and whitespace-check-indent-whitespace
+	(if (and whitespace-check-buffer-indent
 		 (whitespace-buffer-search whitespace-indent-regexp))
 	    (progn
 	      (whitespace-indent-cleanup)
 	      (setq whitespace-any t)))
 
-	(if (and whitespace-check-spacetab-whitespace
+	(if (and whitespace-check-buffer-spacetab
 		 (whitespace-buffer-search whitespace-spacetab-regexp))
 	    (progn
 	      (whitespace-buffer-cleanup whitespace-spacetab-regexp "\t")
 	      (setq whitespace-any t)))
 
-	(if (and whitespace-check-ateol-whitespace
+	(if (and whitespace-check-buffer-ateol
 		 (whitespace-buffer-search whitespace-ateol-regexp))
 	    (progn
 	      (whitespace-buffer-cleanup whitespace-ateol-regexp "")
@@ -484,14 +585,14 @@ whitespace problems."
 
 (defun whitespace-unchecked-whitespaces ()
   "Return the list of whitespaces whose testing has been suppressed."
-  (let ((whitespace-this-modeline
-	 (concat (if (not whitespace-check-ateol-whitespace) "e")
-		 (if (not whitespace-check-indent-whitespace) "i")
-		 (if (not whitespace-check-leading-whitespace) "l")
-		 (if (not whitespace-check-spacetab-whitespace) "s")
-		 (if (not whitespace-check-trailing-whitespace) "t"))))
-    (if (not (equal whitespace-this-modeline ""))
-	whitespace-this-modeline
+  (let ((unchecked-spaces
+	 (concat (if (not whitespace-check-buffer-ateol) "e")
+		 (if (not whitespace-check-buffer-indent) "i")
+		 (if (not whitespace-check-buffer-leading) "l")
+		 (if (not whitespace-check-buffer-spacetab) "s")
+		 (if (not whitespace-check-buffer-trailing) "t"))))
+    (if (not (equal unchecked-spaces ""))
+	unchecked-spaces
       nil)))
 
 (defun whitespace-update-modeline (&optional whitespace-err)
