@@ -8921,8 +8921,8 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 5, 0,
 DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
        Sread_key_sequence_vector, 1, 5, 0,
   "Like `read-key-sequence' but always return a vector.")
-  (prompt, continue_echo, dont_downcase_last, can_return_switch_frame,
-   command_loop)
+     /* Don't break the following line for documentation's sake.  */
+  (prompt, continue_echo, dont_downcase_last, can_return_switch_frame, command_loop)
      Lisp_Object prompt, continue_echo, dont_downcase_last;
      Lisp_Object can_return_switch_frame, command_loop;
 {
