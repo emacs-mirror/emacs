@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later.
 
-;; Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997 Free Software Foundation
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -99,12 +99,19 @@ maintainers to avoid version confusion.")
 
 ;;; User Variables
 
-(defvar bookmark-use-annotations nil
+(defgroup bookmark nil
+  "Setting, annotation and jumping to bookmarks"
+  :group 'matching)
+
+
+(defcustom bookmark-use-annotations nil
   "*If non-nil, saving a bookmark will query for an annotation in a
-buffer.")
+buffer."
+  :type 'boolean
+  :group 'bookmark)
 
 
-(defvar bookmark-save-flag t
+(defcustom bookmark-save-flag t
   "*Controls when Emacs saves bookmarks to a file.
 --> Nil means never save bookmarks, except when `bookmark-save' is
     explicitly called \(\\[bookmark-save]\).
@@ -120,7 +127,9 @@ bookmark is to set this variable to 1 \(or 0, which produces the same
 behavior.\)
 
 To specify the file in which to save them, modify the variable
-bookmark-default-file, which is `~/.emacs.bmk' by default.")
+bookmark-default-file, which is `~/.emacs.bmk' by default."
+  :type '(choice (const nil) (const t) integer)
+  :group 'bookmark)
 
 
 (defconst bookmark-old-default-file "~/.emacs-bkmrks"
@@ -131,51 +140,67 @@ bookmark-default-file, which is `~/.emacs.bmk' by default.")
 (defvar bookmark-file nil
   "Old name for `bookmark-default-file'.")
 
-(defvar bookmark-default-file
+(defcustom bookmark-default-file
   (if bookmark-file
       ;; In case user set `bookmark-file' in her .emacs:
       bookmark-file
     (convert-standard-filename "~/.emacs.bmk"))
-  "*File in which to save bookmarks by default.")
+  "*File in which to save bookmarks by default."
+  :type 'file
+  :group 'bookmark)
 
 
-(defvar bookmark-version-control 'nospecial
+(defcustom bookmark-version-control 'nospecial
   "*Whether or not to make numbered backups of the bookmark file.
 It can have four values: t, nil, `never', and `nospecial'.
 The first three have the same meaning that they do for the
 variable `version-control', and the final value `nospecial' means just
-use the value of `version-control'.")
+use the value of `version-control'."
+  :type '(choice (const t) (const nil) (const never) (const nospecial))
+  :group 'bookmark)
 
 
-(defvar bookmark-completion-ignore-case t
-  "*Non-nil means bookmark functions ignore case in completion.")
+(defcustom bookmark-completion-ignore-case t
+  "*Non-nil means bookmark functions ignore case in completion."
+  :type 'boolean
+  :group 'bookmark)
 
 
-(defvar bookmark-sort-flag t
+(defcustom bookmark-sort-flag t
   "*Non-nil means that bookmarks will be displayed sorted by bookmark
 name.  Otherwise they will be displayed in LIFO order (that is, most
-recently set ones come first, oldest ones come last).")
+recently set ones come first, oldest ones come last)."
+  :type 'boolean
+  :group 'bookmark)
 
 
-(defvar bookmark-automatically-show-annotations t
-  "*Nil means don't show annotations when jumping to a bookmark.")
+(defcustom bookmark-automatically-show-annotations t
+  "*Nil means don't show annotations when jumping to a bookmark."
+  :type 'boolean
+  :group 'bookmark)
 
 
-(defvar bookmark-bmenu-file-column 30
+(defcustom bookmark-bmenu-file-column 30
   "*Column at which to display filenames in a buffer listing bookmarks.
-You can toggle whether files are shown with \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-toggle-filenames].")
+You can toggle whether files are shown with \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-toggle-filenames]."
+  :type 'integer
+  :group 'bookmark)
 
 
-(defvar bookmark-bmenu-toggle-filenames t
+(defcustom bookmark-bmenu-toggle-filenames t
   "*Non-nil means show filenames when listing bookmarks.
 This may result in truncated bookmark names.  To disable this, put the
 following in your .emacs:
 
-\(setq bookmark-bmenu-toggle-filenames nil\)")
+\(setq bookmark-bmenu-toggle-filenames nil\)"
+  :type 'boolean
+  :group 'bookmark)
 
 
-(defvar bookmark-menu-length 70
-  "*Maximum length of a bookmark name displayed on a popup menu.")
+(defcustom bookmark-menu-length 70
+  "*Maximum length of a bookmark name displayed on a popup menu."
+  :type 'integer
+  :group 'boolean)
 
 
 ;;; No user-serviceable parts beyond this point.

@@ -104,13 +104,20 @@
 ;; ----------------------------------------------------------------------------
 ;; USER OPTIONS -- settings you might want to play with.
 ;; ----------------------------------------------------------------------------
+
+(defgroup desktop nil
+  "Save status of Emacs when you exit."
+  :group 'frames)
+
 (defconst desktop-basefilename
   (convert-standard-filename ".emacs.desktop")
   "File for Emacs desktop, not including the directory name.")
 
-(defvar desktop-missing-file-warning nil
+(defcustom desktop-missing-file-warning nil
   "*If non-nil then desktop warns when a file no longer exists.
-Otherwise it simply ignores that file.")
+Otherwise it simply ignores that file."
+  :type 'boolean
+  :group 'desktop)
 
 (defvar desktop-globals-to-save
   (list 'desktop-missing-file-warning
@@ -146,29 +153,39 @@ The variables are saved only when they really are local.")
 ;; We skip .log files because they are normally temporary.
 ;;         (ftp) files because they require passwords and whatnot.
 ;;         TAGS files to save time (tags-file-name is saved instead).
-(defvar desktop-buffers-not-to-save
+(defcustom desktop-buffers-not-to-save
  "\\(^nn\\.a[0-9]+\\|\\.log\\|(ftp)\\|^tags\\|^TAGS\\)$"
- "Regexp identifying buffers that are to be excluded from saving.")
+ "Regexp identifying buffers that are to be excluded from saving."
+ :type 'regexp
+ :group 'desktop)
 
 ;; Skip ange-ftp files
-(defvar desktop-files-not-to-save
+(defcustom desktop-files-not-to-save
   "^/[^/:]*:"
-  "Regexp identifying files whose buffers are to be excluded from saving.")
+  "Regexp identifying files whose buffers are to be excluded from saving."
+  :type 'regexp
+  :group 'desktop)
 
-(defvar desktop-buffer-major-mode nil
-  "When desktop creates a buffer, this holds the desired Major mode.")
+(defcustom desktop-buffer-major-mode nil
+  "When desktop creates a buffer, this holds the desired Major mode."
+  :type 'symbol
+  :group 'desktop)
 
-(defvar desktop-buffer-file-name nil
-  "When desktop creates a buffer, this holds the file name to visit.")
+(defcustom desktop-buffer-file-name nil
+  "When desktop creates a buffer, this holds the file name to visit."
+  :type '(choice file (const nil))
+  :group 'desktop)
 
-(defvar desktop-buffer-name nil
-  "When desktop creates a buffer, this holds the desired buffer name.")
+(defcustom desktop-buffer-name nil
+  "When desktop creates a buffer, this holds the desired buffer name."
+  :type '(choice string (const nil))
+  :group 'desktop)
 
 (defvar desktop-buffer-misc nil
   "When desktop creates a buffer, this holds a list of misc info.
 It is used by the `desktop-buffer-handlers' functions.")
 
-(defvar desktop-buffer-handlers
+(defcustom desktop-buffer-handlers
   '(desktop-buffer-dired
     desktop-buffer-rmail
     desktop-buffer-mh
@@ -179,14 +196,18 @@ The functions are called without explicit parameters but can use the
 variables `desktop-buffer-major-mode', `desktop-buffer-file-name',
 `desktop-buffer-name'.
 If one function returns non-nil, no further functions are called.
-If the function returns t then the buffer is considered created.")
+If the function returns t then the buffer is considered created."
+  :type '(repeat function)
+  :group 'desktop)
 
 (defvar desktop-create-buffer-form "(desktop-create-buffer 205"
   "Opening of form for creation of new buffers.")
 
-(defvar desktop-save-hook nil
+(defcustom desktop-save-hook nil
   "Hook run before saving the desktop to allow you to cut history lists and
-the like shorter.")
+the like shorter."
+  :type 'hook
+  :group 'desktop)
 ;; ----------------------------------------------------------------------------
 (defvar desktop-dirname nil
   "The directory in which the current desktop file resides.")

@@ -1,6 +1,6 @@
 ;;; jka-compr.el --- reading/writing/loading compressed files
 
-;; Copyright (C) 1993, 1994  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1997  Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Keywords: data
@@ -99,19 +99,29 @@
 
 ;;; Code:
 
-(defvar jka-compr-shell "sh"
+(defgroup compression nil
+  "Data compression utilities"
+  :group 'data)
+
+(defgroup jka-compr nil
+  "jka-compr customization"
+  :group 'compression)
+
+
+(defcustom jka-compr-shell "sh"
   "*Shell to be used for calling compression programs.
 The value of this variable only matters if you want to discard the
 stderr of a compression/decompression program (see the documentation
-for `jka-compr-compression-info-list').")
-
+for `jka-compr-compression-info-list')."
+  :type 'string
+  :group 'jka-compr)
 
 (defvar jka-compr-use-shell t)
 
 
 ;;; I have this defined so that .Z files are assumed to be in unix
 ;;; compress format; and .gz files, in gzip format.
-(defvar jka-compr-compression-info-list
+(defcustom jka-compr-compression-info-list
   ;;[regexp
   ;; compr-message  compr-prog  compr-args
   ;; uncomp-message uncomp-prog uncomp-args
@@ -160,7 +170,21 @@ APPEND-FLAG EXTENSION], where:
 
 Because of the way `call-process' is defined, discarding the stderr output of
 a program adds the overhead of starting a shell each time the program is
-invoked.")
+invoked."
+  :type '(repeat (vector regexp
+			 (choice :tag "Compress Message"
+				 (string :format "%v")
+				 (const :tag "No Message" nil))
+			 (string :tag "Compress Program")
+			 (repeat :tag "Compress Arguments" string)
+			 (choice :tag "Uncompress Message"
+				 (string :format "%v")
+				 (const :tag "No Message" nil))
+			 (string :tag "Uncompress Program")
+			 (repeat :tag "Uncompress Arguments" string)
+			 (boolean :tag "Append")
+			 (boolean :tag "Auto Mode")))
+  :group 'jka-compr)
 
 (defvar jka-compr-mode-alist-additions
   (list (cons "\\.tgz\\'" 'tar-mode))
@@ -312,11 +336,12 @@ to keep: LEN chars starting BEG chars from the beginning."
 ;;; Support for temp files.  Much of this was inspired if not lifted
 ;;; from ange-ftp.
 
-(defvar jka-compr-temp-name-template
+(defcustom jka-compr-temp-name-template
   (expand-file-name "jka-com"
 		    (or (getenv "TMPDIR") "/tmp/"))
-  "Prefix added to all temp files created by jka-compr.
-There should be no more than seven characters after the final `/'")
+There should be no more than seven characters after the final `/'."
+  :type 'string
+  :group 'jka-compr)
 
 (defvar jka-compr-temp-name-table (make-vector 31 nil))
 

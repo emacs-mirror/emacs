@@ -97,40 +97,60 @@
 ;;----------------------------------------------------------------
 ;; Customization variables
 ;;----------------------------------------------------------------
-(defvar dabbrev-backward-only nil
-  "*If non-nil, `dabbrev-expand' only looks backwards.")
 
-(defvar dabbrev-limit nil
-  "*Limits region searched by `dabbrev-expand' to this many chars away.")
+(defgroup dabbrev nil
+  "Dynamic Abbreviations"
+  :tag "Dynamic Abbreviations"
+  :group 'abbrev)
 
-(defvar dabbrev-abbrev-skip-leading-regexp nil
+(defcustom dabbrev-backward-only nil
+  "*If non-nil, `dabbrev-expand' only looks backwards."
+  :type 'boolean
+  :group 'dabbrev)
+
+(defcustom dabbrev-limit nil
+  "*Limits region searched by `dabbrev-expand' to this many chars away."
+  :type '(choice (const :tag "off" nil)
+		 integer)
+  :group 'dabbrev)
+
+(defcustom dabbrev-abbrev-skip-leading-regexp nil
   "*Regexp for skipping leading characters of an abbreviation.
 
 Example: Set this to \"\\\\$\" for programming languages
 in which variable names may appear with or without a leading `$'.
-\(For example, in Makefiles.)
+\(For example, in Makefiles.
+  :type 'regexp
+  :group 'dabbrev))
 
-Set this to nil if no characters should be skipped.")
+Set this to nil if no characters should be skipped."
+  :type '(choice regexp
+		 (const :tag "off" nil))
+  :group 'dabbrev)
 
 ;; I recommend that you set this to nil.
-(defvar dabbrev-case-fold-search 'case-fold-search
+(defcustom dabbrev-case-fold-search 'case-fold-search
   "*Non-nil if dabbrev searches should ignore case.
 A value of nil means case is significant.
 
 The value of this variable is an expression; it is evaluated
 and the resulting value determines the decision.
 For example: setting this to `case-fold-search' means evaluate that
-variable to see whether its value is nil.")
+variable to see whether its value is nil."
+  :type 'sexp
+  :group 'dabbrev)
 
-(defvar dabbrev-upcase-means-case-search nil
+(defcustom dabbrev-upcase-means-case-search nil
   "*The significance of an uppercase character in an abbreviation.
 nil means case fold search, non-nil means case sensitive search.
 
 This variable has an effect only when the value of
-`dabbrev-case-fold-search' evaluates to t.")
+`dabbrev-case-fold-search' evaluates to t."
+  :type 'boolean
+  :group 'dabbrev)
 
 ;; I recommend that you set this to nil.
-(defvar dabbrev-case-replace 'case-replace
+(defcustom dabbrev-case-replace 'case-replace
   "*Non-nil means dabbrev should preserve case when expanding the abbreviation.
 More precisely, it preserves the case pattern of the abbreviation as you
 typed it--as opposed to the case pattern of the expansion that is copied.
@@ -140,9 +160,11 @@ For example, setting this to `case-replace' means evaluate that
 variable to see if its value is t or nil.
 
 This variable has an effect only when the value of
-`dabbrev-case-fold-search' evaluates to t.")
+`dabbrev-case-fold-search' evaluates to t."
+  :type 'sexp
+  :group 'dabbrev)
 
-(defvar dabbrev-abbrev-char-regexp nil
+(defcustom dabbrev-abbrev-char-regexp nil
   "*Regexp to recognize a character in an abbreviation or expansion.
 This regexp will be surrounded with \\\\( ... \\\\) when actually used.
 
@@ -162,9 +184,12 @@ starting with or containing `no-'.  If you set this variable to
 expanding `yes-or-no-' signals an error because `-' is not part of a word;
 but expanding `yes-or-no' looks for a word starting with `no'.
 
-The recommended value is \"\\\\sw\\\\|\\\\s_\".")
+The recommended value is \"\\\\sw\\\\|\\\\s_\"."
+  :type '(choice (const nil)
+		 regexp)
+  :group 'dabbrev)
 
-(defvar dabbrev-check-all-buffers t
+(defcustom dabbrev-check-all-buffers t
   "*Non-nil means dabbrev package should search *all* buffers.
 
 Dabbrev always searches the current buffer first.  Then, if
@@ -172,9 +197,11 @@ Dabbrev always searches the current buffer first.  Then, if
 designated by `dabbrev-select-buffers-function'.
 
 Then, if `dabbrev-check-all-buffers' is non-nil, dabbrev searches
-all the other buffers.")
+all the other buffers."
+  :type 'boolean
+  :group 'dabbrev)
 
-(defvar dabbrev-check-other-buffers t
+(defcustom dabbrev-check-other-buffers t
   "*Should \\[dabbrev-expand] look in other buffers?\
 
 nil: Don't look in other buffers.
@@ -184,7 +211,11 @@ Anything else: When we can't find any more expansions in
 the current buffer, then ask the user whether to look in other
 buffers too.
 
-The default value is t.")
+The default value is t."
+  :type '(choice (const :tag "off" nil)
+		 (const :tag "on" t)
+		 (const :tag "ask" other))
+  :group 'dabbrev)
 
 ;; I guess setting this to a function that selects all C- or C++-
 ;; mode buffers would be a good choice for a debugging buffer,
@@ -197,7 +228,7 @@ an example.
 
 A mode setting this variable should make it buffer local.")
 
-(defvar dabbrev-friend-buffer-function 'dabbrev--same-major-mode-p
+(defcustom dabbrev-friend-buffer-function 'dabbrev--same-major-mode-p
   "*A function to decide whether dabbrev should search OTHER-BUFFER.
 The function should take one argument, OTHER-BUFFER, and return
 non-nil if that buffer should be searched.  Have a look at
@@ -207,9 +238,11 @@ The value of `dabbrev-friend-buffer-function' has an effect only if
 the value of `dabbrev-select-buffers-function' uses it.  The function
 `dabbrev--select-buffers' is one function you can use here.
 
-A mode setting this variable should make it buffer local.")
+A mode setting this variable should make it buffer local."
+  :type 'function
+  :group 'dabbrev)
 
-(defvar dabbrev-search-these-buffers-only nil
+(defcustom dabbrev-search-these-buffers-only nil
   "If non-nil, a list of buffers which dabbrev should search.
 If this variable is non-nil, dabbrev will only look in these buffers.
 It will not even look in the current buffer if it is not a member of
