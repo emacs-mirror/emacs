@@ -1504,8 +1504,8 @@ It returns t if it got any new messages."
 		(if (and (featurep 'rmail-spam-filter)
 			 rmail-use-spam-filter
 			 (> rsf-number-of-spam 0))
-		    (progn (if rmail-spam-filter-beep (beep t))
-			   (sleep-for rmail-spam-sleep-after-message)))
+		    (progn (if rsf-beep (beep t))
+			   (sleep-for rsf-sleep-after-message)))
 
 		;; Move to the first new message
 		;; unless we have other unseen messages before it.
