@@ -331,8 +331,8 @@ mkbom ${tempparentfull} Emacs.pkg/Contents/Resources/Emacs.bom
 echo "Generating sizes file"
 sizesfile=Emacs.pkg/Contents/Resources/Emacs.sizes
 
-numFiles=`du -a ${tmpparent} | wc -l`
-installedSize=`du -s ${tmpparent} | cut -f1`
+numFiles=`du -a ${tempparent} | wc -l`
+installedSize=`du -s ${tempparent} | cut -f1`
 compressedSize=`du -s Emacs.pkg | cut -f1`
 
 echo "NumFiles ${numFiles}" > ${sizesfile}
