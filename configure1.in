@@ -59,50 +59,20 @@ progname="`echo $0 | sed 's:^\./\./:\./:'`"
 
 #### Usage messages.
 
-short_usage="Type \`${progname} --usage' for more information about options."
-
-long_usage="Usage: ${progname} CONFIGURATION [-OPTION[=VALUE] ...]
+short_usage="Usage: ${progname} CONFIGURATION [-OPTION[=VALUE] ...]
 
 Set compilation and installation parameters for GNU Emacs, and report.
 CONFIGURATION specifies the machine and operating system to build for.
-For example:
-        ${progname} sparc-sun-sunos4.1
-configures Emacs to build on a Sun Sparc machine running SunOS 4.1, and 
-        ${progname} decstation
-configures Emacs to run on a DECstation running Ultrix.  See \`etc/MACHINES'.
-
-The --with-x, --with-x11 and --with-x10 options specify what window
-	system to use; if all are omitted, use X11 if present.  If you
-	don't want X, specify \`--with-x=no'.
-
-The --x-includes=DIR option tells the build process where to search
-	for the X Windows header files.  DIR should have a
-	subdirectory called \`X11' which contains \`X.h', \`Xlib.h', and
-	the rest of the header files; DIR should not contain \`X11'
-	itself.  If this option is omitted, the build process assumes
-	they exist in a directory the compiler checks by default.
-
-The --x-libraries=DIR option tells the build process where to look for
-	the X windows libraries.  If this option is omitted, the build
-	process assumes they are in a directory the compiler checks by
-	default.
-
-The --with-gcc option says that the build process should use GCC to
-	compile Emacs.  If you have GCC but don't want to use it,
-	specify \`--with-gcc=no'.  \`configure' tries to guess whether
-	or not you have GCC by searching your executable path, but if
-	it guesses incorrectly, you may need to use this.
-
-The --run-in-place option sets up default values for the path
-	variables in \`./Makefile' so that Emacs will expect to find
-	its data files (lisp libraries, runnable programs, and the
-	like) in the same locations they occupy while Emacs builds.
-	This means that you don't have to install Emacs in order to
-	run it; it uses its data files as they were unpacked.
-
-The --srcdir=DIR option specifies that the configuration and build
-	processes should look for the Emacs source code in DIR, when
-	DIR is not the current directory.
+--with-x		Support the X Window System.
+--with-x=no		Don't support the X Window System.
+--x-includes=DIR 	Search for X Window System header files in DIR.
+--x-libraries=DIR	Search for X Window System libraries in DIR.
+--with-gcc		Use GCC to compile Emacs.
+--with-gcc=no		Don't use GCC to compile Emacs.
+--run-in-place		Use libraries and data files directly out of the 
+			source tree.
+--srcdir=DIR		Look for source in DIR.
+--prefix=DIR		Install files below dir.
 
 If successful, ${progname} leaves its status in config.status.  If
 unsuccessful after disturbing the status quo, it removes config.status."
@@ -118,6 +88,9 @@ arguments="$@"
 ### configuration or the run-in-place configuration.
 rip_paths='#disabled# '
 inst_paths=''
+
+### Establish some default values.
+prefix='/usr/local'
 
 while [ $# != 0 ]; do
   arg="$1"
@@ -239,9 +212,25 @@ Set it to either \`yes' or \`no'."
 	  inst_paths='#disabled# '
 	;;
 
+	## Has the user specifiec an installation prefix?
+	"prefix" )
+	  ## If the value was omitted, get it from the next argument.
+	  if [ "${valomitted}" = "yes" ]; then
+	    ## Get the next argument from the argument list, if there is one.
+            if [ $# = 1 ]; then
+	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
+    \`--${optname}=FOO'."
+	       echo "${short_usage}") >&2
+	      exit 1
+	    fi
+	    shift; val="$1"
+	  fi
+	  prefix="${val}"
+        ;;
+
 	## Has the user asked for some help?
 	"usage" | "help" )
-	  echo "${long_usage}" | more
+	  echo "${short_usage}" | more
 	  exit
 	;;
 
@@ -1016,6 +1005,7 @@ AC_SUBST(inst_paths)
 AC_SUBST(LD_SWITCH_X_SITE)
 AC_SUBST(C_SWITCH_X_SITE)
 AC_SUBST(CFLAGS)
+AC_SUBST(prefix)
 
 AC_DEFINE_UNQUOTED(config_machfile,  "\"${machfile}\"")
 AC_DEFINE_UNQUOTED(config_opsysfile, "\"${opsysfile}\"")
