@@ -953,17 +953,17 @@ direct_output_forward_char (n)
 
   XFASTINT (position) = point;
   if (XFASTINT (position) < ZV
-      && ! NILP (Fget_text_property (position,
+      && ! NILP (Fget_char_property (position,
 				     Qinvisible,
-				     Fcurrent_buffer ())))
-    return;
+				     selected_window)))
+    return 0;
 
   XFASTINT (position) = point - 1;
   if (XFASTINT (position) >= BEGV
-      && ! NILP (Fget_text_property (position,
+      && ! NILP (Fget_char_property (position,
 				     Qinvisible,
-				     Fcurrent_buffer ())))
-    return;
+				     selected_window)))
+    return 0;
 #endif
 
   FRAME_CURSOR_X (frame) += n;
