@@ -1,3 +1,14 @@
+2004-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* macterm.c (x_set_mouse_face_gc): Call FACE_FOR_CHAR with POS and
+	OBJECT args.
+
+	* xdisp.c (x_produce_glyphs): Call FACE_FOR_CHAR with POS and
+	OBJECT args for composition too.
+
+	* w32term.c (x_set_mouse_face_gc): Call FACE_FOR_CHAR with POS and
+	OBJECT args.
+
 2004-01-13  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (FACE_FOR_CHAR): New args POS and OBJECT.
