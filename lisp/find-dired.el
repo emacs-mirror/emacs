@@ -72,6 +72,8 @@ On other systems, the closest you can come is to use `-l'."
 ;; History of find-args values entered in the minibuffer.
 (defvar find-args-history nil)
 
+(defvar dired-sort-inhibit)
+
 ;;;###autoload
 (defun find-dired (dir args)
   "Run `find' and go into Dired mode on a buffer of the output.
@@ -121,6 +123,8 @@ as the final argument."
 		       (car find-ls-option)))
     ;; The next statement will bomb in classic dired (no optional arg allowed)
     (dired-mode dir (cdr find-ls-option))
+    (make-local-variable 'dired-sort-inhibit)
+    (setq dired-sort-inhibit t)
     (set (make-local-variable 'revert-buffer-function)
 	 `(lambda (ignore-auto noconfirm)
 	    (find-dired ,dir ,find-args)))
