@@ -1,3 +1,8 @@
+2003-07-08  Kim F. Storm  <storm@cua.dk>
+
+	* international/mule-cmds.el (set-display-table-and-terminal-coding-system):
+	Don't break bootstrap if standard-display-table isn't setup yet.
+
 2003-07-07  Richard M. Stallman  <rms@gnu.org>
 
 	* ehelp.el (ehelp-command): Use defalias to define ehelp-command.
