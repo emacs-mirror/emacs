@@ -461,9 +461,9 @@ Value is non-nil if this function handled the tip."
 
 
 
-;;; Do this after all functions have been defined that are called
-;;; from `tooltip-mode'.
-
+;;; Do this after all functions have been defined that are called from
+;;; `tooltip-mode'.  The actual default value of `tooltip-mode' is set
+;;; in startup.el.
 
 ;;;###autoload
 (defcustom tooltip-mode nil
