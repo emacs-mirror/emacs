@@ -12,6 +12,11 @@
 	(notice_overwritten_cursor): Consider the cursor image erased if
 	the output area intersects the cursor image in y-direction.
 
+2002-04-23  Simon Marshall  <simon@gnu.org>
+
+	* xfns.c (x_set_mouse_color): Change default for cross_cursor
+	to XC_hand2.
+
 2002-04-23  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xdisp.c: Remove unused global variable
