@@ -952,10 +952,13 @@ where FACE is a valid face specification, as it can be used with
 	  (insert-image img (propertize "xxx" 'help-echo help-echo
 					'keymap map)))
 	(insert "\n"))))
-  (when (eq system-type 'gnu/linux)
+  (if (eq system-type 'gnu/linux)
+      (fancy-splash-insert
+       :face '(variable-pitch :foreground "red")
+       "GNU Emacs is one component of a Linux-based GNU system.")
     (fancy-splash-insert
      :face '(variable-pitch :foreground "red")
-     "GNU Emacs is one component of a Linux-based GNU system."))
+     "GNU Emacs is one component of the GNU operating system."))
   (insert "\n"))
 
 
