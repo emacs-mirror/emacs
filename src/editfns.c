@@ -2385,7 +2385,7 @@ Each function is called with two arguments which specify the range\n\
 of the buffer being accessed.");
   Vbuffer_access_fontify_functions = Qnil;
 
-  DEFVAR_LISP ("buffer_access_fontified_property",
+  DEFVAR_LISP ("buffer-access-fontified-property",
 	       &Vbuffer_access_fontified_property,
        "Property which (if non-nil) indicates text has been fontified.\n\
 `buffer-substring' need not call the `buffer-access-fontify-functions'\n\
