@@ -23,35 +23,7 @@
 
 ;;; Commentary:
 
-;; How to install ws-mode.el:
-;;
-;; either you
-;; put the following line into your default.el (usually
-;; /usr/local/emacs/lisp/default.el):
-;;     (autoload 'wordstar-mode "ws-mode.el" "WordStar emulation mode." t)
-;; put ws-mode.el into a directory in your Emacs load-path (usually
-;; /usr/local/emacs/local/lisp).
-;;
-;; or you
-;; put ws-mode.el into your directory $HOME/lib/emacs (or something
-;; like that)
-;; put the following two lines into your file $HOME/.emacs
-;;     (autoload 'wordstar-mode (expand-file-name "~/lib/emacs/ws-mode.el")
-;;               "WordStar emulation mode." t)
-;;
-;; You can then invoke wordstar-mode for a buffer by typing
-;;     M-x wordstar-mode
-;;
-;; If you want to use Emacs in wordstar-mode by default, put the 
-;; following line in addition into your file $HOME/.emacs :
-;;     (setq default-major-mode 'wordstar-mode)
-;;
-;; If you want to use Emacs *always* in wordstar-mode, even when the
-;; file type would indicate another mode, put the follwoing line in
-;; addition into your file $HOME/.emacs :
-;;     (setq auto-mode-alist nil)
-;;
-;; Enjoy!
+;; This emulates WordStar, with a major mode.
 
 ;;; Code:
 
