@@ -170,7 +170,7 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   cp->posix = posix;
   cp->buf.multibyte = multibyte;
   BLOCK_INPUT;
-  old = re_set_syntax (RE_SYNTAX_EMACS
+  old = re_set_syntax (RE_SYNTAX_EMACS | RE_CHAR_CLASSES
 		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
   val = (char *) re_compile_pattern ((char *)raw_pattern,
 				     raw_pattern_size, &cp->buf);
