@@ -36,7 +36,7 @@
 ;; computers as slow as mine.
 
 ;; THANKS: Christopher Mayer, Scott Flinchbaugh, Rachel Kalmar,
-;;         Max Froumentin.
+;;         Max Froumentin, Juri Linkov, Luigi Panzeri.
 
 ;;; Code:
 
