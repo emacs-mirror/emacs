@@ -142,10 +142,7 @@
 	     (suggest-key-bindings keyboard (choice (const :tag "off" nil)
 						    (integer :tag "time" 2)
 						    (other :tag "on")))
-	     ;; lread.c
-	     (recursive-load-depth-limit limits (choice (const :tag "off" nil)
-							integer))
-						 
+
 ;; This is not good news because it will use the wrong
 ;; version-specific directories when you upgrade.  We need
 ;; customization of the front of the list, maintaining the standard
