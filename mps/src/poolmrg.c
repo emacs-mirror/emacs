@@ -2,7 +2,7 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.17) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.18) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -26,7 +26,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.17) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.18) $");
 
 
 /* Types */
@@ -446,18 +446,19 @@ static Res MRGGroupScan(ScanState ss, MRGGroup group, MRG mrg)
     for(i=0; i < nGuardians; ++i) {
       refPart = refPartOfIndex(group, i);
 
-      /* Not worth checking whether the reference is free, because */
-      /* the zone check will discard that case cheaply. */
-
-      /* .ref.direct: We can access the reference directly */
-      /* because we are in a scan and the shield is exposed. */
-      if(TRACE_FIX1(ss, refPart->ref)) {
-        res = TRACE_FIX2(ss, &(refPart->ref));
-        if(res != ResOK) 
-          return res;
-      
-        if(ss->rank == RankFINAL && !ss->wasMarked) { /* .improve.rank */
-          MRGFinalize(arena, group, i);
+      /* free guardians are not scanned */
+      if(MRGLinkOfRefPart(refPart, arena)->state != MRGGuardianFREE) {
+	ss->wasMarked = TRUE;
+	/* .ref.direct: We can access the reference directly */
+	/* because we are in a scan and the shield is exposed. */
+	if(TRACE_FIX1(ss, refPart->ref)) {
+	  res = TRACE_FIX2(ss, &(refPart->ref));
+	  if(res != ResOK) 
+	    return res;
+	
+	  if(ss->rank == RankFINAL && !ss->wasMarked) { /* .improve.rank */
+	    MRGFinalize(arena, group, i);
+	  }
 	}
       }
     }

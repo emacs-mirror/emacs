@@ -1,6 +1,6 @@
 /* impl.c.awlut: POOL CLASS AWL UNIT TEST
  *
- * $HopeName: MMsrc!awlut.c(trunk.7) $
+ * $HopeName: MMsrc!awlut.c(trunk.8) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -40,8 +40,9 @@ static mps_word_t bogus_class;
 static mps_word_t wrapper_wrapper[] = {
   (mps_word_t)wrapper_wrapper,	/* wrapper */
   (mps_word_t)&bogus_class,	/* class */
-  3<<2|2,			/* F */
-  1<<(MPS_WORD_WIDTH - 8),	/* V */
+  0,                            /* Extra word */
+  4<<2|2,			/* F */
+  2<<(MPS_WORD_WIDTH - 8),	/* V */
   1<<2|1,			/* VL */
   1				/* patterns */
 };
@@ -50,16 +51,18 @@ static mps_word_t wrapper_wrapper[] = {
 static mps_word_t string_wrapper[] = {
   (mps_word_t)wrapper_wrapper,	/* wrapper */
   (mps_word_t)&bogus_class,	/* class */
+  0,                            /* extra word */
   0,				/* F */
-  1<<(MPS_WORD_WIDTH - 8)|3<<3|4,	/* V */
+  2<<(MPS_WORD_WIDTH - 8)|3<<3|4,	/* V */
   1				/* VL */
 };
 
 static mps_word_t table_wrapper[] = {
   (mps_word_t)wrapper_wrapper,  /* wrapper */
   (mps_word_t)&bogus_class,	/* class */
+  0,                            /* extra word */
   1<<2|1,			/* F */
-  1<<(MPS_WORD_WIDTH - 8)|2,	/* V */
+  2<<(MPS_WORD_WIDTH - 8)|2,	/* V */
   1				/* VL */
 };
 
@@ -104,7 +107,7 @@ static mps_word_t *alloc_table(unsigned long n, mps_ap_t ap)
   size_t objsize;
   void *p;
   mps_word_t *object;
-  objsize = (3 + n) * sizeof(mps_word_t);
+  objsize = (4 + n) * sizeof(mps_word_t);
   objsize = (objsize + MPS_PF_ALIGN-1)/MPS_PF_ALIGN*MPS_PF_ALIGN;
   do {
     unsigned long i;
