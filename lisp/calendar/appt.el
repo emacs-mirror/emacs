@@ -526,7 +526,7 @@ They specify the range of dates that the diary is being processed for."
 					       (cadr (car entry-list))) 1 -1)))
 
 		  (while (string-match
-			  "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?.*" 
+			  "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?\\(.*\n\\)*.*"
 			  time-string)
 		    (let* ((appt-time-string (match-string 0 time-string)))
 
