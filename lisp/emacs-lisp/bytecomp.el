@@ -1258,7 +1258,7 @@ With argument, insert value in current buffer after the form."
 	 ;;	 (emacs-lisp-mode)
 	 (setq case-fold-search nil)
 
-	 ;; This is a kludge.  Some operating systems (OS/2) need to
+	 ;; This is a kludge.  Some operating systems (OS/2, DOS) need to
 	 ;; write files containing binary information specially.
 	 ;; Under most circumstances, such files will be in binary
 	 ;; overwrite mode, so those OS's use that flag to guess how
