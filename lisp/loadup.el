@@ -52,7 +52,12 @@
 (load "window")
 (garbage-collect)
 (if (fboundp 'delete-frame)
-    (load "frame"))
+    (progn
+      (load "frame")
+      (load "mouse")
+      (garbage-collect)
+      (load "scroll-bar")
+      (load "select")))
 (garbage-collect)
 (load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
 (garbage-collect)
