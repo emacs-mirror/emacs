@@ -450,10 +450,7 @@ Point is moved to just past the fill prefix on the first line."
   (subst-char-in-region from to ?\n ?\ )
   (if (and nosqueeze (not (eq justify 'full)))
       nil
-    (canonically-space-region (or squeeze-after (point)) to)
-    (goto-char to)
-    (delete-horizontal-space)
-    (insert-and-inherit " "))
+    (canonically-space-region (or squeeze-after (point)) to))
   (goto-char from))
 
 (defun fill-move-to-break-point (linebeg)
