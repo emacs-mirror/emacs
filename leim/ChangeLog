@@ -1,3 +1,9 @@
+2002-01-01  Dave Love  <fx@gnu.org>
+
+	* quail/indian.el (quail-define-indian-trans-package): Unquote
+	lambda.
+	(quail-define-inscript-package): Avoid mapcar*.
+
 2001-12-20  Dave Love  <fx@gnu.org>
 
 	* quail/latin-ltx.el: Fix un-doubled backslashes.
