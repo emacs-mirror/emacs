@@ -1,3 +1,7 @@
+2000-12-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: AC_CHECK_FUNC XkbGetKeyboard.
+
 2000-12-11  Dave Love  <fx@gnu.org>
 
 	* configure.in <alpha*-dec-osf*>: Use full path for NON_GNU_CPP.

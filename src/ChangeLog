@@ -1,3 +1,10 @@
+2000-12-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (Fx_backspace_delete_keys_p): New function.
+	(syms_of_xfns): Defsubr it.
+
+	* config.in (HAVE_XKBGETKEYBOARD): Add.
+
 2000-12-14  Kenichi Handa  <handa@etl.go.jp>
 
 	* keyboard.c (echo_prompt): Argument type changed to Lisp_Object.
