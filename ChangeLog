@@ -1,3 +1,8 @@
+2001-04-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* make-dist: Handle leim/MISC-DIC.  Only include
+	`[a-zA-Z]*.{el,elc}' from leim/quail.
+
 2001-04-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (install-arch-indep): Remove .cvsignore files.
