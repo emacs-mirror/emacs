@@ -972,7 +972,7 @@ The sample text is a string that comes from the variable
 	  (concat
 	   "Use "
 	   (if (display-mouse-p) "\\[help-follow-mouse] or ")
-	   "\\[help-follow] or on a face name to customize it\n"
+	   "\\[help-follow] on a face name to customize it\n"
 	   "or on its sample text for a decription of the face.\n\n")))
 	(setq help-xref-stack nil)
 	(while faces
