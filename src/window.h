@@ -188,6 +188,40 @@ struct window
 
 #define MINI_WINDOW_P(W)  (!EQ ((W)->mini_p, Qnil))
 
+/* Return the frame column at which the text in window W starts.
+   This is different from the `left' field because it does not include
+   a left-hand scroll bar if any.  */
+   
+#define WINDOW_LEFT_MARGIN(W) \
+     (XFASTINT ((W)->left) \
+      + FRAME_LEFT_SCROLL_BAR_WIDTH (XFRAME (WINDOW_FRAME (W))))
+
+/* Return the frame column before window W ends.
+   This includes a right-hand scroll bar, if any.  */
+
+#define WINDOW_RIGHT_EDGE(W) \
+     (XFASTINT ((W)->left) + XFASTINT ((W)->width))
+
+/* Return the frame column before which the text in window W ends.
+   This is different from WINDOW_RIGHT_EDGE because it does not include
+   a right-hand scroll bar if any.  */
+
+#define WINDOW_RIGHT_MARGIN(W) \
+     (WINDOW_RIGHT_EDGE (W) \
+      - (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (XFRAME (WINDOW_FRAME (W))) \
+	 ? FRAME_SCROLL_BAR_COLS (XFRAME (WINDOW_FRAME (W))) \
+	 : 0))
+
+/* 1 if window W takes up the full width of its frame.  */ 
+
+#define WINDOW_FULL_WIDTH_P(W) \
+     (XFASTINT ((W)->width) == FRAME_WINDOW_WIDTH (XFRAME (WINDOW_FRAME (W))))
+
+/* 1 if window W's has no other windows to its right in its frame.  */ 
+
+#define WINDOW_RIGHTMOST_P(W) \
+     (WINDOW_RIGHT_EDGE (W) == FRAME_WINDOW_WIDTH (XFRAME (WINDOW_FRAME (W))))
+     
 /* This is the window in which the terminal's cursor should
    be left when nothing is being done with it.  This must
    always be a leaf window, and its buffer is selected by
