@@ -193,6 +193,7 @@ set_marker_restricted (marker, pos, buffer)
    so we must be careful to ignore and preserve mark bits,
    including those in chain fields of markers.  */
 
+void
 unchain_marker (marker)
      register Lisp_Object marker;
 {
@@ -340,6 +341,7 @@ DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
   return Qnil;
 }
 
+void
 syms_of_marker ()
 {
   defsubr (&Smarker_position);
