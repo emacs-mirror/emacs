@@ -325,9 +325,9 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		  (type (server-unquote-arg (match-string 2 request))))
 	      (setq request (substring request (match-end 0)))
 	      (condition-case err
-		  (progn
-		    (make-terminal-frame `((tty . ,pty) (tty-type . ,type)))
-		    (process-send-string proc (concat (number-to-string (emacs-pid)) "\n")))
+		  (let ((frame (make-terminal-frame `((tty . ,pty) (tty-type . ,type)))))
+		    (process-send-string proc (concat (number-to-string (emacs-pid)) "\n"))
+		    (select-frame frame))
 		(error (process-send-string proc (nth 1 err))
 		       (setq request "")))))
 	   ;; ARG is a line number option.

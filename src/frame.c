@@ -1381,6 +1381,26 @@ The functions are run with one arg, the frame to be deleted.  */)
     x_destroy_window (f);
 #endif
 
+  if (FRAME_TERMCAP_P (f))
+    {
+      /* See if the terminal needs to be closed. */
+      Lisp_Object tail, frame1;
+      int delete = 1;
+      
+      FOR_EACH_FRAME (tail, frame1)
+        {
+          if (!FRAME_LIVE_P (XFRAME (frame1)) &&
+              FRAME_TERMCAP_P (XFRAME (frame1)) &&
+              FRAME_TTY (XFRAME (frame1)) == FRAME_TTY (f))
+            {
+              delete = 0;
+              break;
+            }
+        }
+      if (delete)
+        delete_tty (FRAME_TTY (f));
+    }
+      
   f->output_data.nothing = 0;
 
   /* If we've deleted the last_nonminibuf_frame, then try to find

@@ -180,6 +180,11 @@ DIARY OF CHANGES
    initialization.  There is a memory corruption error around this
    somewhere.)
 
+-- Implement automatic deletion of terminals when the last frame on
+   that terminal is closed.
+
+   (Done.)
+
 
 THINGS TO DO
 ------------
@@ -200,15 +205,15 @@ THINGS TO DO
    Update: yes it does, although it is much rarer.  Or maybe it's
    another bug.
 
-** C-g should work on secondary terminals.
+** Change emacsclient/server.el to support the -h argument better,
+   i.e. automatically close the socket when the frame is closed.
 
-** Implement automatic deletion of terminals when the last frame on
-   that terminal is closed.
+** Export delete_tty to the Lisp environment, for emacsclient.
+
+** C-g should work on secondary terminals.
 
 ** Make parts of struct tty_output accessible from Lisp.  The device
    name and the type is sufficient.
-
-** Export delete_tty to the Lisp environment, for emacsclient.
 
 ** Implement support for starting an interactive Emacs session without
    an initial frame.  (The user would connect to it and open frames
