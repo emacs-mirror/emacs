@@ -312,7 +312,7 @@ string and the cdr the value to be inserted.")
     (define-key km "\C-c$"   'ispell-bibtex-entry)
     (define-key km "\M-\C-a"   'beginning-of-bibtex-entry)
     (define-key km "\M-\C-e"   'end-of-bibtex-entry)
-    (define-key km "\C-ce"   'bibtex-entry)
+    (define-key km "\C-c\C-b"   'bibtex-entry)
 ;    (define-key km "\C-cn" 'narrow-to-bibtex-entry)
 
     (define-key km "\C-c\C-e\C-a" 'bibtex-Article)
