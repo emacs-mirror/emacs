@@ -1,3 +1,7 @@
+2002-10-26  Richard M. Stallman  <rms@gnu.org>
+
+	* editfns.c (Fformat): Detect invalid format letters for floats.
+
 2002-10-25  Kenichi Handa  <handa@m17n.org>
 
 	* xfns.c (x_set_name): Encode by Qcompound_text unconditionally.

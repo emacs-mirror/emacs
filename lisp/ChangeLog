@@ -1,3 +1,41 @@
+2002-10-26  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/make-mode.el (makefile-cleanup-continuations):
+	Default for variable is nil.
+	(makefile-warn-continuations): New function.
+	(makefile-mode): Put it on write-file-functions.
+
+	* international/mule-cmds.el (select-safe-coding-system):
+	Delete debugging setq.
+
+	* shell.el (shell): Look for .emacs_SHELL under ~/.emacs.d
+	after looking in ~. 
+
+	* startup.el (command-line): Look for .emacs under ~/.emacs.d
+	after looking in ~.
+
+	* simple.el (toggle-truncate-lines): When turning off truncation,
+	clear out the hscroll value in this buffer's windows.
+
+	* simple.el (display-message-or-buffer): Don't display empty
+	output in the echo area.
+
+	* man.el (Man-default-man-entry): Don't look for all word chars,
+	look only for characters that are normally part of a shell command.
+
+	* gud.el (gdb): Pass default-directory to GDB via -cd option.
+
+	* font-lock.el (c++-font-lock-keywords...): Add `restrict' keyword.
+
+	* find-file.el (ff-find-related-file): Fix autoload cookie.
+
+	* emacs-lisp/unsafep.el (unsafep-variable): Pass second arg to
+	risky-local-variable-p.
+
+	* files.el (risky-local-variable-p): VAL=nil has special meaning.
+
+	* Makefile.in (compile-always): Avoid error in old Bash versions.
+
 2002-10-27  Kim F. Storm  <storm@cua.dk>
 
 	* pcvs.el (cvs-checkout): Use read-directory-name.
@@ -18,6 +56,12 @@
 
 	* textmodes/outline.el (outline-minor-mode): Add customization group.
 	Patch from Matthew Swift <swift@alum.mit.edu>.
+
+2002-10-23  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (risky-local-variable-p): New arg VAL.
+	(compile-command): Use `stringp' for `safe-local-variable' prop.
+	(hack-one-local-variable): Pass VAL to `risky-local-variable-p'.
 
 2002-10-23  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
 
