@@ -814,7 +814,7 @@ If the argument is left out or nil, then the current buffer is considered."
 (defun msb--toggle-menu-type ()
   (interactive)
   (setq msb-files-by-directory (not msb-files-by-directory))
-  (menu-bar-update-buffers t))
+  (menu-bar-update-buffers))
 
 (defun mouse-select-buffer (event)
   "Pop up several menus of buffers, for selection with the mouse.
