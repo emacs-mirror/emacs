@@ -1,5 +1,7 @@
 2000-03-01  Dave Love  <fx@gnu.org>
 
+	* help.el (help-xref-go-back): Don't try to set position.
+
 	* international/mule-diag.el (list-character-sets): Call
 	help-setup-xref.  Add help-echo to xrefs.
 	(list-character-sets-1): Add help-echo to xrefs.
