@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; This really has nothing to do with list-command-history per se, but
-;; its a nice alternative to C-x ESC (repeat-complex-command) and
+;; its a nice alternative to C-x ESC ESC (repeat-complex-command) and
 ;; functions as a lister if given no pattern.  It's not important
 ;; enough to warrant a file of its own.
 
@@ -39,19 +39,16 @@ command history is offered.  The form is placed in the minibuffer for
 editing and the result is evaluated."
   (interactive "sRedo Command (regexp): ")
   (if pattern
-      (if (equal (setq pattern
-		       (substring pattern
-				  (or (string-match "[ \t]*[^ \t]" pattern)
-				      (length pattern))))
-		 "")
-	  (setq pattern nil)))
+      (if (string-match "[^ \t]" pattern)
+	  (setq pattern (substring pattern (match-beginning 0)))
+	(setq pattern nil)))
   (let ((history command-history)
 	(temp)
 	(what))
     (while (and history (not what))
       (setq temp (car history))
       (if (and (or (not pattern) (string-match pattern (symbol-name (car temp))))
-	       (y-or-n-p (format "Redo %s? " (setq temp (prin1-to-string temp)))))
+	       (y-or-n-p (format "Redo %S? " temp)))
 	  (setq what (car history))
 	(setq history (cdr history))))
     (if (not what)
@@ -65,13 +62,15 @@ editing and the result is evaluated."
   '(command-history-mode
     list-command-history
     electric-command-history)
-  "*A list of symbols.  If `default-list-command-history-filter' is
-given a list whose car is an element of this list, then it will return
-non-nil (indicating the list should be discarded from the history).
+  "*A list of symbols to be ignored by `default-command-history-filter'.
+It that function is given a list whose car is an element of this list,
+then it will return non-nil (indicating the list should be discarded from
+the history).
 Initially, all commands related to the command history are discarded.")
 
 (defvar list-command-history-filter 'default-command-history-filter
-  "If non-nil, should be the name of a function of one argument.
+  "Predicate to test which commands should be excluded from the history listing.
+If non-nil, should be the name of a function of one argument.
 It is passed each element of the command history when
 \\[list-command-history] is called.  If the filter returns non-nil for
 some element, that element is excluded from the history listing.  The
@@ -84,8 +83,7 @@ from the command history."
       (memq (car frob) default-command-history-filter-garbage)))
 
 (defvar list-command-history-max 32
-  "*If non-nil, should be a positive number which specifies the maximum
-length of the Command History listing produced by `list-command-history'.")
+  "*If non-nil, maximum length of the listing produced by `list-command-history'.")
 
 ;;;###autoload
 (defun list-command-history ()
