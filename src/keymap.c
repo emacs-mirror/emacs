@@ -1398,16 +1398,20 @@ then the value includes only maps for prefixes that start with PREFIX.")
 	     we don't have to deal with the possibility of a string.  */
 	  if (STRINGP (prefix))
 	    {
-	      int i;
+	      int i, i_byte, c;
 	      Lisp_Object copy;
 
 	      copy = Fmake_vector (make_number (XSTRING (prefix)->size), Qnil);
-	      for (i = 0; i < XSTRING (prefix)->size; i++)
+	      for (i = 0, i_byte; i < XSTRING (prefix)->size;)
 		{
-		  int c = XSTRING (prefix)->data[i];
+		  int i_before = i;
+		  if (STRING_MULTIBYTE (prefix))
+		    FETCH_STRING_CHAR_ADVANCE (c, prefix, i, i_byte);
+		  else
+		    c = XSTRING (prefix)->data[i++];
 		  if (c & 0200)
 		    c ^= 0200 | meta_modifier;
-		  XVECTOR (copy)->contents[i] = make_number (c);
+		  XVECTOR (copy)->contents[i_before] = make_number (c);
 		}
 	      prefix = copy;
 	    }
@@ -1622,7 +1626,7 @@ spaces are put between sequence elements, etc.")
      Lisp_Object keys;
 {
   int len;
-  int i;
+  int i, i_byte;
   Lisp_Object sep;
   Lisp_Object *args;
 
@@ -1630,14 +1634,21 @@ spaces are put between sequence elements, etc.")
     {
       Lisp_Object vector;
       vector = Fmake_vector (Flength (keys), Qnil);
-      for (i = 0; i < XSTRING (keys)->size; i++)
+      for (i = 0; i < XSTRING (keys)->size; )
 	{
-	  if (XSTRING (keys)->data[i] & 0x80)
-	    XSETFASTINT (XVECTOR (vector)->contents[i],
-			 meta_modifier | (XSTRING (keys)->data[i] & ~0x80));
+	  int c;
+	  int i_before;
+
+	  if (STRING_MULTIBYTE (keys))
+	    FETCH_STRING_CHAR_ADVANCE (c, keys, i, i_byte);
 	  else
+	    c = XSTRING (keys)->data[i++];
+
+	  if (c & 0x80)
 	    XSETFASTINT (XVECTOR (vector)->contents[i],
-			 XSTRING (keys)->data[i]);
+			 meta_modifier | (c & ~0x80));
+	  else
+	    XSETFASTINT (XVECTOR (vector)->contents[i_before], c);
 	}
       keys = vector;
     }
@@ -1839,7 +1850,7 @@ Control characters turn into \"^char\", etc.")
       unsigned char *str;
       int len = non_ascii_char_to_string (XFASTINT (character), tem, &str);
 
-      return make_string (str, len);
+      return make_multibyte_string (str, 1, len);
     }
 
   *push_text_char_description (XINT (character) & 0377, tem) = 0;
@@ -2756,8 +2767,6 @@ describe_vector (vector, elt_prefix, elt_describer,
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   /* Range of elements to be handled.  */
   int from, to;
-  /* Flag to tell if we should handle multibyte characters.  */
-  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   /* A flag to tell if a leaf in this level of char-table is not a
      generic character (i.e. a complete multibyte character).  */
   int complete_char;
@@ -2932,7 +2941,8 @@ describe_vector (vector, elt_prefix, elt_describer,
 	      insert_string ("<");
 	      tem2 = CHARSET_TABLE_INFO (i - 128, CHARSET_SHORT_NAME_IDX);
 	      if (STRINGP (tem2))
-		insert_from_string (tem2, 0 , XSTRING (tem2)->size, 0);
+		insert_from_string (tem2, 0, 0, XSTRING (tem2)->size,
+				    XSTRING (tem2)->size_byte, 0);
 	      else
 		insert ("?", 1);
 	      insert (">", 1);
@@ -2946,7 +2956,7 @@ describe_vector (vector, elt_prefix, elt_describer,
       /* If we find a sub char-table within a char-table,
 	 scan it recursively; it defines the details for
 	 a character set or a portion of a character set.  */
-      if (multibyte && CHAR_TABLE_P (vector) && SUB_CHAR_TABLE_P (definition))
+      if (CHAR_TABLE_P (vector) && SUB_CHAR_TABLE_P (definition))
 	{
 	  insert ("\n", 1);
 	  describe_vector (definition, elt_prefix, elt_describer,
