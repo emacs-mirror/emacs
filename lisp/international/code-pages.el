@@ -95,26 +95,15 @@ See `make-coding-system'."
     (nreverse pairs)))
 
 (defun cp-fix-safe-chars (cs)
-  "Remove `char-coding-system-table' entries from previous definition of CS.
-CS is a base coding system or alias."
-  (when (coding-system-p cs)
-    (let ((chars (coding-system-get cs 'safe-chars)))
-      (map-char-table
-       (lambda (k v)
-	 (if (and v (not (eq v t)))
-	     (aset char-coding-system-table
-		   k
-		   (remq cs (aref char-coding-system-table k)))))
-       chars))))
+  "This is an obsolete function.  
+It exists just for backward compatibility, and it does nothing.")
+(make-obsolete 'cp-fix-safe-chars
+	       "Unnecessary function.  Calling it has no effect."
+	       "21.3")
 
 ;; Fix things that have been, or might be, done by codepage.el.
 (eval-after-load "codepage"
   '(progn
-
-     (dolist (cs '(cp857 cp861 cp1253 cp852 cp866 cp437 cp855 cp869 cp775
-		   cp862 cp864 cp1250 cp863 cp865 cp1251 cp737 cp1257 cp850
-		   cp860 cp851 720))
-       (cp-fix-safe-chars cs))
 
 ;; Semi-dummy version for the stuff in codepage.el which we don't
 ;; define here.  (Used by mule-diag.)
@@ -198,7 +187,6 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
        (define-translation-table ',decoder translation-table)
        (define-translation-table ',encoder
 	 (char-table-extra-slot translation-table 0))
-       (cp-fix-safe-chars ',name)
        (make-coding-system
 	',name 4 ,(or mnemonic ?*)
 	(or ,doc-string (format "%s encoding" ',name))
