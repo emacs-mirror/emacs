@@ -1,3 +1,12 @@
+2004-11-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (dedicated-switch-to-buffer): New function.
+	(gdb-ann3, gdb-setup-windows, gdb-restore-windows): Dedicate
+	gdb-related windows.
+	(gdb-display-buffer): Dedicate gdb-related windows. Don't grab
+	other frames.
+	(gdb-reset): Remove dedicated property after debugging.
+
 2004-11-24  Jay Belanger <belanger@truman.edu>
 
 	* calc/calc-sel.el: Add comment.
