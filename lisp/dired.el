@@ -2120,22 +2120,21 @@ Command symbols are `byte-compile', `chgrp', `chmod', `chown', `compress',
 `uncompress'.")
 
 (defun dired-mark-pop-up (bufname op-symbol files function &rest args)
-  ;;"Args BUFNAME OP-SYMBOL FILES FUNCTION &rest ARGS.
-  ;;Return FUNCTION's result on ARGS after popping up a window (in a buffer
-  ;;named BUFNAME, nil gives \" *Marked Files*\") showing the marked
-  ;;files.  Uses function `dired-pop-to-buffer' to do that.
-  ;; FUNCTION should not manipulate files.
-  ;; It should only read input (an argument or confirmation).
-  ;;The window is not shown if there is just one file or
-  ;; OP-SYMBOL is a member of the list in `dired-no-confirm'.
-  ;;FILES is the list of marked files."
+  "Args BUFNAME OP-SYMBOL FILES FUNCTION &rest ARGS.
+Return FUNCTION's result on ARGS after popping up a window (in a buffer
+named BUFNAME, nil gives \" *Marked Files*\") showing the marked
+files.  Uses function `dired-pop-to-buffer' to do that.
+ FUNCTION should not manipulate files.
+ It should only read input (an argument or confirmation).
+The window is not shown if there is just one file or
+ OP-SYMBOL is a member of the list in `dired-no-confirm'.
+FILES is the list of marked files."
   (or bufname (setq bufname  " *Marked Files*"))
   (if (or (eq dired-no-confirm t)
 	  (memq op-symbol dired-no-confirm)
 	  (= (length files) 1))
       (apply function args)
-    (save-excursion
-      (set-buffer (get-buffer-create bufname))
+    (with-current-buffer (get-buffer-create bufname)
       (erase-buffer)
       (dired-format-columns-of-files files)
       (remove-text-properties (point-min) (point-max) '(mouse-face)))
