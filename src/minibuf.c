@@ -269,6 +269,11 @@ get_minibuffer (depth)
     {
       sprintf (name, " *Minibuf-%d*", depth);
       buf = Fget_buffer_create (build_string (name));
+
+      /* Although the buffer's name starts with a space, undo should be
+	 enabled in it.  */
+      Fbuffer_enable_undo (buf);
+
       XCONS (tail)->car = buf;
     }
   else
