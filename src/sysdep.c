@@ -2694,8 +2694,8 @@ getwd (pathname)
 #ifndef HAVE_RENAME
 
 rename (from, to)
-     char *from;
-     char *to;
+     const char *from;
+     const char *to;
 {
   if (access (from, 0) == 0)
     {
