@@ -1,6 +1,6 @@
 ;;; time.el --- display time and load in mode line of Emacs.
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 93, 94, 96, 2000 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -142,14 +142,20 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
   :group 'display-time)
 
 (defcustom display-time-string-forms
-  '((if (and (not display-time-format) display-time-day-and-date)
+  `((if (and (not display-time-format) display-time-day-and-date)
 	(format-time-string "%a %b %e " now)
       "")
     (format-time-string (or display-time-format
 			    (if display-time-24hr-format "%H:%M" "%-I:%M%p"))
 			now)
     load
-    (if mail " Mail" ""))
+    (if mail ,(propertize " Mail"
+			  'help-echo "mouse-2: Read mail"
+			  'local-map (make-mode-line-mouse2-map
+				      (lambda (e)
+					(interactive "e")
+					(funcall read-mail-command))))
+      ""))
   "*A list of expressions governing display of the time in the mode line.
 For most purposes, you can control the time format using `display-time-format'
 which is a more standard interface.
@@ -204,8 +210,12 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
 	 (time (current-time-string now))
          (load (condition-case ()
                    (if (zerop (car (load-average))) ""
+		     ;; The load average number is myterious, so
+		     ;; propvide some help.
                      (let ((str (format " %03d" (car (load-average)))))
-                       (concat (substring str 0 -2) "." (substring str -2))))
+		       (propertize
+			(concat (substring str 0 -2) "." (substring str -2))
+			'help-echo "Load average")))
                  (error "")))
          (mail-spool-file (or display-time-mail-file
                               (getenv "MAIL")
