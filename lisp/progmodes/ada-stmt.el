@@ -2,8 +2,9 @@
 
 ;; Copyright (C) 1987, 1993, 1994, 1996, 1997 Free Software Foundation, Inc.
 
-;; Authors: Daniel Pfeiffer <occitan@esperanto.org>, Markus Heritsch,
-;;   Rolf Ebert <ebert@waporo.muc.de>
+;; Ada Core Technologies's version:   $Revision: 1.10 $ 
+
+;; Authors: Daniel Pfeiffer, Markus Heritsch, Rolf Ebert <ebert@waporo.muc.de>
 ;; Maintainer: Rolf Ebert <ebert@waporo.muc.de>
 ;; Keywords: languages, ada
 ;; Rolf Ebert's version: 2.26
@@ -60,32 +61,63 @@
 
 ;;; Code:
 
-(require 'ada-mode)
-(require 'skeleton)
+(eval-when-compile
+  (condition-case nil  (require 'skeleton)
+    (error nil)))
 (require 'easymenu)
 
-(defgroup ada-stmt nil
-  "Extension to Ada mode for inserting statement templates"
-  :group 'ada)
+(defun ada-stmt-add-to-ada-menu ()
+  "Add a new submenu to the Ada menu"
+  (interactive)
+  (let ((menu  '(["Header" ada-header t]
+		 ["-" nil nil]
+		 ["Package Body" ada-package-body t]
+		 ["Package Spec" ada-package-spec t]
+		 ["Function Spec" ada-function-spec t]
+		 ["Procedure Spec" ada-procedure-spec t]
+		 ["Proc/func Body" ada-subprogram-body t]
+		 ["Task Body" ada-task-body t]
+		 ["Task Spec" ada-task-spec t]
+		 ["Declare Block" ada-declare-block t]
+		 ["Exception Block" ada-exception-block t]
+		 ["--" nil nil]
+		 ["Entry" ada-entry t]
+		 ["Entry family" ada-entry-family t]
+		 ["Select" ada-select t]
+		 ["Accept" ada-accept t]
+		 ["Or accept" ada-or-accep t]
+		 ["Or delay" ada-or-delay t]
+		 ["Or terminate" ada-or-terminate t]
+		 ["---" nil nil]
+		 ["Type" ada-type t]
+		 ["Private" ada-private t]
+		 ["Subtype" ada-subtype t]
+		 ["Record" ada-record t]
+		 ["Array" ada-array t]
+		 ["----" nil nil]
+		 ["If" ada-if t]
+		 ["Else" ada-else t]
+		 ["Elsif" ada-elsif t]
+		 ["Case" ada-case t]
+		 ["-----" nil nil]
+		 ["While Loop" ada-while-loop t]
+		 ["For Loop" ada-for-loop t]
+		 ["Loop" ada-loop t]
+		 ["------" nil nil]
+		 ["Exception" ada-exception t]
+		 ["Exit" ada-exit t]
+		 ["When" ada-when t])))
+    (if ada-xemacs
+	(progn
+	  (add-to-list 'menu "Statements")
+	  (add-submenu '("Ada") menu))
 
-(defcustom ada-stmt-use-debug t
-  "*Toggle to insert ada debug code parts."
-  :type 'boolean
-  :group 'ada-stmt)
+      (define-key-after (lookup-key ada-mode-map [menu-bar Ada]) [Statements]
+	(cons "Statements" (easy-menu-create-menu "Statements" menu)) t))
+    ))
 
 
-(defcustom ada-debug-call-str "pragma Debug (%s);"
-  "*Debug call code to insert."
-  :type 'string
-  :group 'ada-stmt)
 
-
-(defcustom ada-debug-exception-str "pragma Debug (%s);"
-  "*Debug exception code to insert."
-  :type 'string
-  :group 'ada-stmt)
-
-  
 
 (defun ada-func-or-proc-name ()
   ;; Get the name of the current function or procedure."
@@ -95,61 +127,37 @@
 	  (buffer-substring (match-beginning 2) (match-end 2))
 	"NAME?"))))
 
-
-(defun ada-toggle-debugging ()
-  "Toggles behaviour of `ada-debug-info-insertion'."
-  (interactive)
-  (setq ada-stmt-use-debug (not ada-stmt-use-debug))
-  (if ada-stmt-use-debug
-      (message "Debugging enabled")
-    (message "Debugging disabled")))
-
-
 (defvar ada-template-map nil
   "Keymap used in Ada mode for smart template operations.")
 
-
-(let ((ada-mp (make-sparse-keymap)))
-  (define-key ada-mp "h" 'ada-header)
-;  (define-key ada-mp "p" 'ada-toggle-prompt-pseudo)
-  (define-key ada-mp "(" 'insert-parentheses)
-  (define-key ada-mp "\C-a" 'ada-array)
-  (define-key ada-mp "b" 'ada-exception-block)
-  (define-key ada-mp "d" 'ada-declare-block)
-  (define-key ada-mp "c" 'ada-case)
-  (define-key ada-mp "\C-e" 'ada-elsif)
-  (define-key ada-mp "e" 'ada-else)
-  (define-key ada-mp "\C-k" 'ada-package-spec)
-  (define-key ada-mp "k" 'ada-package-body)
-  (define-key ada-mp "\C-p" 'ada-procedure-spec)
-  (define-key ada-mp "\C-f" 'ada-function-spec)
-  (define-key ada-mp "p" 'ada-subprogram-body)
-  (define-key ada-mp "f" 'ada-for-loop)
-  (define-key ada-mp "i" 'ada-if)
-  (define-key ada-mp "l" 'ada-loop)
-  (define-key ada-mp "\C-r" 'ada-record)
-  (define-key ada-mp "\C-s" 'ada-subtype)
-  (define-key ada-mp "S" 'ada-tabsize)
-  (define-key ada-mp "\C-t" 'ada-task-spec)
-  (define-key ada-mp "t" 'ada-task-body)
-  (define-key ada-mp "\C-y" 'ada-type)
-  (define-key ada-mp "\C-v" 'ada-private)
-  (define-key ada-mp "u" 'ada-use)
-  (define-key ada-mp "\C-u" 'ada-with)
-  (define-key ada-mp "\C-w" 'ada-when)
-  (define-key ada-mp "w" 'ada-while-loop)
-  (define-key ada-mp "\C-x" 'ada-exception)
-  (define-key ada-mp "x" 'ada-exit)
-  (setq ada-template-map ada-mp))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Place the templates into Ada Mode.  They may be inserted under any key.
-;; C-c C-t will be the default.  If you use templates alot, you
-;; may want to consider moving the binding to another key in your .emacs
-;; file.  Be sure to (require 'ada-stmt) first.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;(define-key ada-mode-map "\C-ct" ada-template-map)
-(define-key ada-mode-map "\C-c\C-t" ada-template-map)
+(define-key ada-mode-map "\C-cth" 'ada-header)
+(define-key ada-mode-map "\C-ct\C-a" 'ada-array)
+(define-key ada-mode-map "\C-ctb" 'ada-exception-block)
+(define-key ada-mode-map "\C-ctd" 'ada-declare-block)
+(define-key ada-mode-map "\C-ctc" 'ada-case)
+(define-key ada-mode-map "\C-ct\C-e"  'ada-elsif)
+(define-key ada-mode-map "\C-cte"      'ada-else)
+(define-key ada-mode-map "\C-ct\C-k"   'ada-package-spec)
+(define-key ada-mode-map "\C-ctk"      'ada-package-body)
+(define-key ada-mode-map "\C-ct\C-p"   'ada-procedure-spec)
+(define-key ada-mode-map "\C-ctp"      'ada-subprogram-body)
+(define-key ada-mode-map "\C-ct\C-f"   'ada-function-spec)
+(define-key ada-mode-map "\C-ctf"      'ada-for-loop)
+(define-key ada-mode-map "\C-cti"      'ada-if)
+(define-key ada-mode-map "\C-ctl"      'ada-loop)
+(define-key ada-mode-map "\C-ct\C-r"   'ada-record)
+(define-key ada-mode-map "\C-ct\C-s"   'ada-subtype)
+(define-key ada-mode-map "\C-ctS"      'ada-tabsize)
+(define-key ada-mode-map "\C-ct\C-t"   'ada-task-spec)
+(define-key ada-mode-map "\C-ctt"      'ada-task-body)
+(define-key ada-mode-map "\C-ct\C-y"   'ada-type)
+(define-key ada-mode-map "\C-ct\C-v"   'ada-private)
+(define-key ada-mode-map "\C-ctu"      'ada-use)
+(define-key ada-mode-map "\C-ct\C-u"   'ada-with)
+(define-key ada-mode-map "\C-ct\C-w"   'ada-when)
+(define-key ada-mode-map "\C-ctw"      'ada-while-loop)
+(define-key ada-mode-map "\C-ct\C-x"   'ada-exception)
+(define-key ada-mode-map "\C-ctx"      'ada-exit)
 
 ;;; ---- statement skeletons ------------------------------------------
 
@@ -221,7 +229,7 @@ Indent for the first line of code."
   (ada-exit-1)
   | -1 ?\;)
 
-
+;;;###autoload
 (defun ada-header ()
   "Insert a descriptive header at the top of the file."
   (interactive "*")
@@ -381,27 +389,24 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
   ()
   ;; Remove `;' from subprogram decl
   (save-excursion
-    (ada-search-ignore-string-comment ada-subprog-start-re t nil)
-    (ada-search-ignore-string-comment "(" nil nil t)
-    (backward-char 1)
-    (forward-sexp 1)
+    (let ((pos (1+ (point))))
+      (ada-search-ignore-string-comment ada-subprog-start-re t nil)
+      (if (ada-search-ignore-string-comment "(" nil pos t 'search-forward)
+	  (progn
+	    (backward-char 1)
+	    (forward-sexp 1)))
+      )
     (if (looking-at ";")
         (delete-char 1)))
-  < "is" \n
-  > _ \n
-  < "begin" \n
-  > (if ada-stmt-use-debug
-	(format ada-debug-call-str (ada-func-or-proc-name))) \n
-  > \n
-  < (if ada-stmt-use-debug
-      "exception") & \n
-  > (if ada-stmt-use-debug
-      "when others =>") & \n
-  > (if ada-stmt-use-debug
-      (format ada-debug-exception-str (ada-func-or-proc-name))) \n
-  < < "end "
+  " is" \n
+   _ \n
+   < "begin" \n
+   \n
+   < "exception" \n
+   "when others => null;" \n
+   < < "end "
   (ada-func-or-proc-name)
-  ?\;)
+  ";" \n)
 
 
 (define-skeleton ada-separate
@@ -571,70 +576,14 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
        (progn (goto-char beg) (forward-word -1) (point)) 
        (goto-char aa-end))
       )))
-
-
-;; ---- add menu 'Statements' in Ada mode (MH)
-(defun ada-add-statement-menu ()
-  "Adds the menu 'Statements' to the menu bar in Ada mode."
-  (easy-menu-define ada-stmt-menu ada-mode-map
-		    "Menu for statement templates in Ada."
-		    '("Statements"
-;		      ["Toggle Prompt/Pseudo Code" toggle-skeleton-no-prompt t]
-		      ["Toggle: Debugging" ada-toggle-debugging t]
-;		      ["-------" nil nil]
-		      ["Header" (ada-header) t]
-		      ["-------" nil nil]
-		      ["package Body" (ada-package-body) t]
-		      ["package Spec" (ada-package-spec) t]
-		      ["function Spec" (ada-function-spec) t]
-		      ["procedure Spec" (ada-procedure-spec) t]
-		      ["proc/func Body" (ada-subprogram-body) t]
-		      ["task Body" (ada-task-body) t]
-		      ["task Spec" (ada-task-spec) t]
-		      ["declare Block" (ada-declare-block) t]
-		      ["exception Block" (ada-exception-block) t]
-		      ["------" nil nil]
-		      ["entry" (ada-entry) t]
-		      ["entry family" (ada-entry-family) t]
-		      ["select" (ada-select) t]
-		      ["accept" (ada-accept) t]
-		      ["or accept" (ada-or-accept) t]
-		      ["or delay" (ada-or-delay) t]
-		      ["or terminate" (ada-or-terminate) t]
-		      ["-----" nil nil]
-		      ["type" (ada-type) t]
-		      ["private" (ada-private) t]
-		      ["subtype" (ada-subtype) t]
-		      ["record" (ada-record) t]
-		      ["array" (ada-array) t]
-		      ["------" nil nil]
-		      ["if" (ada-if) t]
-		      ["else" (ada-else) t]
-		      ["elsif" (ada-elsif) t]
-		      ["case" (ada-case) t]
-		      ["-----" nil nil]
-		      ["while Loop" (ada-while-loop) t]
-		      ["for Loop" (ada-for-loop) t]
-		      ["loop" (ada-loop) t]
-		      ["---" nil nil]
-		      ["exception" (ada-exception) t]
-		      ["exit" (ada-exit) t]
-		      ["when" (ada-when) t]
-		      ))
-    (if (ada-xemacs) 
-	(progn
-	  (easy-menu-add ada-stmt-menu)
-	  (setq mode-popup-menu (cons "Ada Mode" ada-stmt-menu)))))
-
-
-
-(add-hook 'ada-mode-hook 'ada-add-statement-menu)
 (add-hook 'ada-mode-hook '(lambda ()
                             (setq skeleton-further-elements 
                                   '((< '(backward-delete-char-untabify
                                          (min ada-indent (current-column))))))
                             (add-hook 'skeleton-end-hook
                                       'ada-adjust-case-skeleton)))
+
+(add-hook 'ada-mode-hook 'ada-stmt-add-to-ada-menu)
 
 (provide 'ada-stmt)
 
