@@ -1,6 +1,6 @@
 ;;; edmacro.el --- keyboard macro editor
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2004 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Maintainer: Dave Gillespie <daveg@synaptics.com>
@@ -28,7 +28,7 @@
 
 ;;; Usage:
 ;;
-;; The `C-x C-k' (`edit-kbd-macro') command edits a keyboard macro
+;; The `C-x C-k e' (`edit-kbd-macro') command edits a keyboard macro
 ;; in a special buffer.  It prompts you to type a key sequence,
 ;; which should be one of:
 ;;
@@ -266,7 +266,8 @@ or nil, use a compact 80-column format."
 			    (and b (commandp b) (not (arrayp b))
 				 (not (kmacro-extract-lambda b))
 				 (or (not (fboundp b))
-				     (not (arrayp (symbol-function b))))
+				     (not (or (arrayp (symbol-function b))
+					      (get b 'kmacro))))
 				 (not (y-or-n-p
 				       (format "Key %s is already defined; %s"
 					       (edmacro-format-keys key 1)
@@ -655,7 +656,7 @@ The string represents the same events; Meta is indicated by bit 7.
 This function assumes that the events can be stored in a string."
   (setq seq (copy-sequence seq))
   (loop for i below (length seq) do
-        (when (< (aref seq i) 0)
+        (when (logand (aref seq i) 128)
           (setf (aref seq i) (logand (aref seq i) 127))))
   seq)
 
