@@ -14,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.48 2003/02/10 21:48:38 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.49 2003/03/16 01:09:05 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2042,7 +2042,10 @@ With prefix argument, prompt for cvs flags."
 (defvar cvs-tag-name "")
 (defun-cvs-mode (cvs-mode-tag . SIMPLE) (tag &optional flags)
   "Run `cvs tag TAG' on all selected files.
-With prefix argument, prompt for cvs flags."
+With prefix argument, prompt for cvs flags.
+By default this can only be used on directories.
+Use \\[cvs-mode-force-command] or change `cvs-force-dir-tag' if you need
+to use it on individual files."
   (interactive
    (list (setq cvs-tag-name
 	       (cvs-query-read cvs-tag-name "Tag name: " cvs-qtypedesc-tag))
