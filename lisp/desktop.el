@@ -191,7 +191,7 @@ If the function returns t then the buffer is considered created.")
 ;; ----------------------------------------------------------------------------
 (defun desktop-internal-v2s (val)
   "Convert VALUE to a pair (quote . txt) where txt is a string that when read
-and evaluated yields value.  quote may be 'may (value may be quoted), 
+and evaluated yields value.  quote may be 'may (value may be quoted),
 'must (values must be quoted), or nil (value may not be quoted)."
   (cond
    ((or (numberp val) (stringp val) (null val) (eq t val))
@@ -222,13 +222,13 @@ and evaluated yields value.  quote may be 'may (value may be quoted),
 	  (cdr-q.txt (desktop-internal-v2s (cdr val))))
       (cond
        ((or (null (car car-q.txt)) (null (car cdr-q.txt)))
-	(cons nil (concat "(cons " 
-			  (if (eq (car car-q.txt) 'must) "'")			      
+	(cons nil (concat "(cons "
+			  (if (eq (car car-q.txt) 'must) "'")
 			  (cdr car-q.txt) " "
-			  (if (eq (car cdr-q.txt) 'must) "'")			      
+			  (if (eq (car cdr-q.txt) 'must) "'")
 			  (cdr cdr-q.txt) ")")))
        ((consp (cdr val))
-	(cons 'must (concat "(" (cdr car-q.txt) 
+	(cons 'must (concat "(" (cdr car-q.txt)
 			    " " (substring (cdr cdr-q.txt) 1 -1) ")")))
        ((null (cdr val))
 	(cons 'must (concat "(" (cdr car-q.txt) ")")))
@@ -246,7 +246,7 @@ and evaluated yields value.  quote may be 'may (value may be quoted),
 			" (list 'lambda '() (list 'set-marker mk "
 			pos " (get-buffer " buf ")))) mk)"))))
    (t					; save as text
-    (prin1-to-string (prin1-to-string val)))))
+    (cons nil (prin1-to-string (prin1-to-string val))))))
 
 (defun desktop-value-to-string (val)
   "Convert VALUE to a string that when read evaluates to the same value.  Not
