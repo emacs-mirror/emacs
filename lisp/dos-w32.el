@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 
-;; Maintainer: Geoff Voelker (voelker@cs.washington.edu)
+;; Maintainer: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
 
 ;; This file is part of GNU Emacs.

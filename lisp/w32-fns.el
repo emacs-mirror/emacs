@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
-;; Author: Geoff Voelker (voelker@cs.washington.edu)
+;; Author: Geoff Voelker <voelker@cs.washington.edu>
 
 ;; This file is part of GNU Emacs.
 
