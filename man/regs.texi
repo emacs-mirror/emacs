@@ -5,10 +5,11 @@
 @chapter Registers
 @cindex registers
 
-  Emacs @dfn{registers} are places you can save text or positions for
-later use.  Once you save text or a rectangle in a register, you can
-copy it into the buffer once or many times; you can move point to a
-position saved in a register once or many times.
+  Emacs @dfn{registers} are compartments where you can save text,
+rectangles, positions, and other things for later use.  Once you save
+text or a rectangle in a register, you can copy it into the buffer
+once or many times; you can move point to a position saved in a
+register once or many times.
 
 @findex view-register
   Each register has a name which is a single character.  A register can
@@ -154,21 +155,23 @@ the number in the buffer in decimal, and to increment it.  These commands
 can be useful in keyboard macros (@pxref{Keyboard Macros}).
 
 @table @kbd
-@item C-u @var{number} C-x r n @var{reg}
+@item C-u @var{number} C-x r n @var{r}
 @kindex C-x r n
 @findex number-to-register
-Store @var{number} into register @var{reg} (@code{number-to-register}).
-@item C-u @var{number} C-x r + @var{reg}
+Store @var{number} into register @var{r} (@code{number-to-register}).
+@item C-u @var{number} C-x r + @var{r}
 @kindex C-x r +
 @findex increment-register
-Increment the number in register @var{reg} by @var{number}
+Increment the number in register @var{r} by @var{number}
 (@code{increment-register}).
-@item C-x r g @var{reg}
-Insert the number from register @var{reg} into the buffer.
+@item C-x r g @var{r}
+Insert the number from register @var{r} into the buffer.
 @end table
 
-  @kbd{C-x r g} is the same command used to insert any other
-sort of register contents into the buffer.
+  @kbd{C-x r g} is the same command used to insert any other sort of
+register contents into the buffer.  @kbd{C-x r +} with no numeric
+argument increments the register value by 1; @kbd{C-x r n} with no
+numeric argument stores zero in the register.
 
 @node RegFiles
 @section Keeping File Names in Registers
