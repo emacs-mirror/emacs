@@ -7935,11 +7935,18 @@ tool_bar_item_info (f, glyph, prop_idx)
 {
   Lisp_Object prop;
   int success_p;
+  int charpos;
+
+  /* This function can be called asynchronously, which means we must
+     exclude any possibility that Fget_text_property signals an
+     error.  */
+  charpos = min (XSTRING (f->current_tool_bar_string)->size, glyph->charpos);
+  charpos = max (0, charpos);
   
   /* Get the text property `menu-item' at pos. The value of that
      property is the start index of this item's properties in
      F->tool_bar_items.  */
-  prop = Fget_text_property (make_number (glyph->charpos),
+  prop = Fget_text_property (make_number (charpos),
 			     Qmenu_item, f->current_tool_bar_string);
   if (INTEGERP (prop))
     {
