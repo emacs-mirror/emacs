@@ -1,5 +1,8 @@
 2001-08-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* tar-mode.el (tar-extract): Avoid generating a new buffer
+	for each file visited.  From Markus Rost <rost@math.ohio-state.edu>.
+
 	* textmodes/paragraphs.el (forward-sentence): Avoid building
 	a regexp from sentence-end.  From Kenichi Handa <handa@etl.go.jp>.
 
