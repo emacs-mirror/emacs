@@ -1,3 +1,34 @@
+2001-11-11  Colin Walters  <walters@verbum.org>
+
+	The following changes are based on patches from
+	Eli Zaretskii <eliz@is.elta.co.il>, Kai Gro,A_(Bjohann
+	<Kai.Grossjohann@CS.Uni-Dortmund.DE>, and others.
+
+	* calc/calc.el (toplevel): Require calc-macs.
+	(calc-minibuffer-size): New.
+	(calcDigit-nondigit): Use it instead of `buffer-size'.
+	(calcDigit-backspace): Likewise.
+	(calcDigit-nondigit): Use `minibuffer-contents' instead of
+	`buffer-string'.
+	(calc-minibuffer-contains): Use `minibuffer-prompt-end' instead of
+	`point-min'.
+	(calcDigit-key): Use `calc-minibuffer-contains' instead of a
+	`save-excursion'.
+
+	* calc/calc-macs.el (calc-record-compilation-date-macro): Return a
+	simple `setq' form.
+
+	* calc/calc-ext.el: (toplevel): Require calc.
+	(calc-fancy-prefix-map): New.
+	(calc-fancy-prefix): Use it.
+	(calc-fancy-prefix-other-key): New.
+
+	* calc/calc-aent.el (toplevel): Require calc-macs during compilation.
+	(calc-do-quick-calc): Use `frame-width' instead of `screen-width'.
+	(calcAlg-edit): Use `minibuffer-contents' instead of `buffer-string'.
+	(calcAlg-enter): Likewise.
+	(calcAlg-enter): Use `minibuffer-prompt-end' instead of `point-min'.
+
 2001-11-10  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/compile.el (compile-goto-error): Fix previous change
