@@ -38,7 +38,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "frame.h"
 #include "window.h"
@@ -175,9 +175,7 @@ usage: (char-to-string CHAR)  */)
 
   CHECK_NUMBER (character);
 
-  len = (SINGLE_BYTE_CHAR_P (XFASTINT (character))
-	 ? (*str = (unsigned char)(XFASTINT (character)), 1)
-	 : char_to_string (XFASTINT (character), str));
+  len = CHAR_STRING (XFASTINT (character), str);
   return make_string_from_bytes (str, 1, len);
 }
 
