@@ -1,4 +1,6 @@
-/* Copyright (C) 1991,92,93,94,95,96,97,98,99,2000 Free Software Foundation, Inc.
+/* Copyright (C) 1991,92,93,94,95,96,97,98,99,2000,2003
+             Free Software Foundation, Inc.
+
    This file is part of the GNU Emacs.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -198,7 +200,6 @@ my_strftime_gmtime_r (t, tp)
   *tp = *l;
   return tp;
 }
-# endif /* ! HAVE_TM_GMTOFF */
 
 static struct tm *my_strftime_localtime_r __P ((const time_t *, struct tm *));
 static struct tm *
@@ -212,6 +213,8 @@ my_strftime_localtime_r (t, tp)
   *tp = *l;
   return tp;
 }
+# endif /* ! HAVE_TM_GMTOFF */
+
 #endif /* ! defined _LIBC */
 
 
