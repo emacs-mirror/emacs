@@ -1,6 +1,6 @@
-;;; tty-color.el --- color support for character terminals
+;;; tty-colors.el --- color support for character terminals
 
-;; Copyright (C) 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii <eliz@is.elta.co.il>
 ;; Maintainer: FSF
