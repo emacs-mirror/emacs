@@ -1,3 +1,17 @@
+2000-05-20  NIIBE Yutaka  <gniibe@mri.co.jp>
+	
+	* s/gnu-linux.h (UNIX98_PTYS) [HAVE_GRANDPT]: Define.
+	(PTY_ITERATION, PTY_NAME_SPRINTF, PTY_OPEN, PTY_TTY_NAME_SPRINTF)
+	[HAVE_GRANDPT]: Define.
+	(C_SWITCH_SYSTEM): Add -D_XOPEN_SOURCE.
+
+	* sysdep.c (setup_pty): Treat case that UNIX98_PTYS is defined
+	like SYSV_PTYS.
+
+	* config.in (HAVE_GRANDPT, HAVE_GETPT): New defines.
+
+	* process.c (toplevel) [UNIX98_PTYS]: Include stdlib.h.
+
 2000-05-20  Kenichi Handa  <handa@etl.go.jp>
 
 	The following changes are to handle 8-bit characters in a

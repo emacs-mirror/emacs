@@ -1,3 +1,7 @@
+2000-05-20  NIIBE Yutaka  <gniibe@mri.co.jp>
+
+	* configure.in: Check for grandpt and getpt.
+
 2000-05-09  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (install-arch-indep): Filter CVS as well as RCS.
@@ -42,7 +46,7 @@
 
 2000-03-26  Gerd Moellmann  <gerd@gnu.org>
 
-	* Makefile.in (bootstrap-lisp-1, bootstrap-list, bootstrap-src):
+	* Makefile.in (bootstrap-lisp-1, bootstrap-lisp, bootstrap-src):
 	New targets.
 	(bootstrap): Rewritten in terms of the new targets above.  Make
 	info files, too.
