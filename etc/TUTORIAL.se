@@ -21,7 +21,8 @@ här att använda följande förkortningar:
 Viktigt: För att avsluta Emacs trycker du C-x C-c (två tecken).
 Tecknen ">>" i vänstermarginalen anger att du kan prova ett
 kommando. Till exempel:
-<<Tomma rader sätts in här när help-with-tutorial aktiveras>>
+<<Tomma rader sätts in runt nästa rad när help-with-tutorial aktiveras>>
+[Tomma rader av pedagogiska skäl. Texten fortsätter nedanför.]
 >> Tryck C-v (View next screen) för att hoppa till nästa skärmbild.
         Prova nu. Håll ned kontrolltangenten och tryck v.
         Från och med nu bör du göra detta när du är färdig med en
