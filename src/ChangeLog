@@ -1,3 +1,7 @@
+2005-03-07  Andreas Schwab  <schwab@suse.de>
+
+	* blockinput.h (UNBLOCK_INPUT_TO): Always call UNBLOCK_INPUT.
+
 2005-03-06  Richard M. Stallman  <rms@gnu.org>
 
 	* keyboard.c (Ftop_level): Let Fthrow deal with UNBLOCK_INPUT.
