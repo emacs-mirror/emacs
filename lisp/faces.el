@@ -308,7 +308,7 @@ Otherwise it applies to each frame separately."
     new-face))
 
 (defun face-equal (face1 face2 &optional frame)
-  "True if the faces FACE1 and FACE2 display in the the same way."
+  "True if the faces FACE1 and FACE2 display in the same way."
   (setq face1 (internal-get-face face1 frame)
 	face2 (internal-get-face face2 frame))
   (and (equal (face-foreground face1 frame) (face-foreground face2 frame))
