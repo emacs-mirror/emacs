@@ -1060,6 +1060,11 @@ done:
       int start, end, whole;
 
       /* Calculate the start and end positions for the current window.
+	 At some point, it would be nice to choose between scrollbars
+	 which reflect the whole buffer size, with special markers
+	 indicating narrowing, and scrollbars which reflect only the
+	 visible region.
+
 	 Note that minibuffers sometimes aren't displaying any text.  */
       if (! MINI_WINDOW_P (w)
 	  || (w == XWINDOW (minibuf_window) && ! echo_area_glyphs))
@@ -1068,7 +1073,10 @@ done:
 	  /* I don't think this is guaranteed to be right.  For the
 	     moment, we'll pretend it is.  */
 	  end = Z - XINT (w->window_end_pos);
-	  whole = Z - BEG;
+	  whole = ZV - BEGV;
+
+	  if (end < start) end = start;
+	  if (whole > (end - start)) whole = end - start;
 	}
       else
 	start = end = whole = 0;
