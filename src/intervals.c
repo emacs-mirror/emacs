@@ -1544,7 +1544,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 /* Get the value of property PROP from PLIST,
    which is the plist of an interval.
    We check for direct properties, for categories with property PROP, 
-   and for PROP appearing on the default-properties list.  */
+   and for PROP appearing on the default-text-properties list.  */
 
 Lisp_Object
 textget (plist, prop)
@@ -1570,30 +1570,11 @@ textget (plist, prop)
 
   if (! NILP (fallback))
     return fallback;
-  if (CONSP (Vdefault_properties))
-    return textget_direct (Vdefault_properties, prop);
+  if (CONSP (Vdefault_text_properties))
+    return Fplist_get (Vdefault_text_properties, prop);
   return Qnil;
 }
 
-/* Get the value of property PROP from PLIST,
-   which is the plist of an interval.
-   We check for direct properties only! */
-
-Lisp_Object
-textget_direct (plist, prop)
-     Lisp_Object plist;
-     register Lisp_Object prop;
-{
-  register Lisp_Object tail;
-
-  for (tail = plist; !NILP (tail); tail = Fcdr (Fcdr (tail)))
-    {
-      if (EQ (prop, Fcar (tail)))
-	return Fcar (Fcdr (tail));
-    }
-
-  return Qnil;
-}
 
 /* Set point in BUFFER to POSITION.  If the target position is 
    before an intangible character, move to an ok place.  */
@@ -1890,7 +1871,7 @@ verify_interval_modification (buf, start, end)
 
 		      tem = textget (i->plist, Qfront_sticky);
 		      if (TMEM (Qread_only, tem)
-			  || (NILP (textget_direct (i->plist, Qread_only))
+			  || (NILP (Fplist_get (i->plist, Qread_only))
 			      && TMEM (Qcategory, tem)))
 			error ("Attempt to insert within read-only text");
 		    }
@@ -1910,7 +1891,7 @@ verify_interval_modification (buf, start, end)
 
 		      tem = textget (prev->plist, Qrear_nonsticky);
 		      if (! TMEM (Qread_only, tem)
-			  && (! NILP (textget_direct (prev->plist,Qread_only))
+			  && (! NILP (Fplist_get (prev->plist,Qread_only))
 			      || ! TMEM (Qcategory, tem)))
 			error ("Attempt to insert within read-only text");
 		    }
@@ -1929,13 +1910,13 @@ verify_interval_modification (buf, start, end)
 
 		  tem = textget (i->plist, Qfront_sticky);
 		  if (TMEM (Qread_only, tem)
-		      || (NILP (textget_direct (i->plist, Qread_only))
+		      || (NILP (Fplist_get (i->plist, Qread_only))
 			  && TMEM (Qcategory, tem)))
 		    error ("Attempt to insert within read-only text");
 
 		  tem = textget (prev->plist, Qrear_nonsticky);
 		  if (! TMEM (Qread_only, tem)
-		      && (! NILP (textget_direct (prev->plist, Qread_only))
+		      && (! NILP (Fplist_get (prev->plist, Qread_only))
 			  || ! TMEM (Qcategory, tem)))
 		    error ("Attempt to insert within read-only text");
 		}
