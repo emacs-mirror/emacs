@@ -1,3 +1,17 @@
+2001-04-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* calendar/calendar.el (diary-entry-marker)
+	(calendar-today-marker, calendar-holiday-marker): Use
+	display-color-p instead of window-system.
+	(calendar-mode-map, calendar-mode): Use display-popup-menus-p
+	instead of window-system.
+	(calendar-hide-window): Use display-multi-frame-p instead of
+	window-system.
+
+	* calendar/cal-x.el (calendar-two-frame-setup)
+	(calendar-only-one-frame-setup, calendar-one-frame-setup): Use
+	display-multi-frame-p instead of window-system.
+
 2001-04-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* play/fortune.el (fortune-from-region): Use `eq' instead of `eql'.
