@@ -6025,8 +6025,9 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
   }
 
   adjust_glyphs (f);
-  SET_FRAME_GARBAGED (f);
   calculate_costs (f);
+  SET_FRAME_GARBAGED (f);
+  f->resized_p = 1;
 
   UNBLOCK_INPUT;
 
