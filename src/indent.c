@@ -221,7 +221,7 @@ skip_invisible (pos, next_boundary_p, to, window)
 {
   Lisp_Object prop, position, overlay_limit, proplimit;
   Lisp_Object buffer;
-  int end;
+  int end, inv_p;
 
   XSETFASTINT (position, pos);
   XSETBUFFER (buffer, current_buffer);
@@ -266,11 +266,13 @@ skip_invisible (pos, next_boundary_p, to, window)
     }
   /* if the `invisible' property is set, we can skip to
      the next property change */
-  if (!NILP (window) && EQ (XWINDOW (window)->buffer, buffer))
-    prop = Fget_char_property (position, Qinvisible, window);
-  else
-    prop = Fget_char_property (position, Qinvisible, buffer);
-  if (TEXT_PROP_MEANS_INVISIBLE (prop) > NILP (window))
+  prop = Fget_char_property (position, Qinvisible,
+			     (!NILP (window)
+			      && EQ (XWINDOW (window)->buffer, buffer))
+			     ? window : buffer);
+  inv_p = TEXT_PROP_MEANS_INVISIBLE (prop);
+  /* When counting columns (window == nil), don't skip over ellipsis text.  */
+  if (NILP (window) ? inv_p == 1 : inv_p)
     return *next_boundary_p;
   return pos;
 }
