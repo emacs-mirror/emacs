@@ -1379,10 +1379,19 @@ create_process (process, new_argv, current_dir)
     }
 #else /* not SKTPAIR */
     {
-      pipe (sv);
+      int tem;
+      tem = pipe (sv);
+      if (tem < 0)
+	report_file_error ("Creating pipe", Qnil);
       inchannel = sv[0];
       forkout = sv[1];
-      pipe (sv);
+      tem = pipe (sv);
+      if (tem < 0)
+	{
+	  close (inchannel);
+	  close (forkout);
+	  report_file_error ("Creating pipe", Qnil);
+	}
       outchannel = sv[1];
       forkin = sv[0];
     }
