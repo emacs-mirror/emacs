@@ -2553,9 +2553,6 @@ unrequest_sigio () {}
 #include "sysselect.h"
 
 static struct time last_time  = {120, 120, 120, 120};
-static int modeline_time_displayed = 0;
-
-Lisp_Object Vdos_display_time;
 
 static void
 check_timer (t)
@@ -2575,39 +2572,6 @@ check_timer (t)
       && sec == last_time.ti_sec)
     return;
 
-  if (!NILP (Vdos_display_time))
-    {
-      int interval;
-      Lisp_Object dti = XSYMBOL (Fintern_soft (build_string ("display-time-interval"), Qnil))->value;
-      int delta_time  = ((hour - last_time.ti_hour) * 3600
-			 + (min  - last_time.ti_min) * 60
-			 + (sec  - last_time.ti_sec));
-
-      /* Who knows what the user may put into `display-time-interval'?  */
-      if (!INTEGERP (dti) || (interval = XINT (dti)) <= 0)
-	interval = 60;
-
-      /* When it's time to renew the display, fake a `wakeup' call.  */
-      if (!modeline_time_displayed	/* first time */
-	  || delta_time >= interval	/* or if we were busy for a long time */
-	  || interval == 1		/* and every `interval' seconds hence */
-	  || interval == 60 && sec == 0	/* (usual cases first) */
-	  || (hour * 3600 + min * 60 + sec) % interval == 0)
-	call2 (intern ("display-time-filter"), Qnil,
-	       build_string ("Wake up!\n"));
-
-      modeline_time_displayed = 1;
-    }
-  else if (modeline_time_displayed)
-    {
-      modeline_time_displayed = 0;
-      Fset (intern ("display-time-string"), build_string (""));
-
-      /* Force immediate redisplay of modelines.  */
-      update_mode_lines++;
-      redisplay_preserve_echo_area ();
-    }
-  
   last_time  = *t;
 }
 
@@ -2776,10 +2740,6 @@ syms_of_msdos ()
   staticpro (&recent_doskeys);
 
   defsubr (&Srecent_doskeys);
-
-  DEFVAR_LISP ("dos-display-time", &Vdos_display_time,
-    "*When non-nil, `display-time' is in effect on DOS systems.");
-  Vdos_display_time = Qnil;
 }
 
 #endif /* MSDOS */
