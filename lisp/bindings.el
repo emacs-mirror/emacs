@@ -52,15 +52,54 @@ Return a keymap with single entry for mouse-2 on mode line.
 This is defined to run function F with no args in the buffer
 corresponding to the mode line clicked."
   (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line mouse-2]
-      `(lambda (e)
-	 (interactive "e")
-	 (save-selected-window
-	   (select-window
-	    (posn-window (event-start e)))
-	   (,f)
-	   (force-mode-line-update))))
+    (define-key map [mode-line mouse-2] f)
     map))
+
+
+(defun mode-line-toggle-read-only (event)
+  "Like `toggle-read-only', for the mode-line."
+  (interactive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (toggle-read-only)
+    (force-mode-line-update)))
+
+
+(defun mode-line-toggle-modified (event)
+  "Toggle the buffer-modified flag from the mode-line."
+  (interacive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (set-buffer-modified-p (not (buffer-modified-p)))
+    (force-mode-line-update)))
+
+
+(defun mode-line-widen (event)
+  "Widen a buffer from the mode-line."
+  (interacive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (widen)
+    (force-mode-line-update)))
+
+
+(defun mode-line-abbrev-mode (event)
+  "Turn off `abbrev-mode' from the mode-line."
+  (interacive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (abbrev-mode)
+    (force-mode-line-update)))
+
+
+(defun mode-line-auto-fill-mode (event)
+  "Turn off `auto-fill-mode' from the mode-line."
+  (interacive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (auto-fill-mode)
+    (force-mode-line-update)))
+
 
 (defvar mode-line-input-method-map
   (let ((map (make-sparse-keymap)))
@@ -143,7 +182,8 @@ Normally nil in most modes, since there is no process to display.")
 					  (if buffer-read-only
 					      "R"
 					    "Not r")))))
-	 'local-map (purecopy (make-mode-line-mouse2-map #'toggle-read-only)))
+	 'local-map (purecopy (make-mode-line-mouse2-map
+			       #'mode-linetoggle-read-only)))
 	(propertize
 	 "%1+"
 	 'help-echo  (purecopy (lambda (window object point)
@@ -154,10 +194,7 @@ Normally nil in most modes, since there is no process to display.")
 					     "M"
 					   "Not m")))))
 	 'local-map (purecopy (make-mode-line-mouse2-map
-			       (lambda ()
-				 (interactive)
-				 (set-buffer-modified-p
-				  (not (buffer-modified-p))))))))
+			       #'mode-line-toggle-modified))))
   "Mode-line control for displaying whether current buffer is modified.")
 
 (make-variable-buffer-local 'mode-line-modified)
@@ -182,7 +219,7 @@ Normally nil in most modes, since there is no process to display.")
      (propertize "   %[(" 'help-echo help-echo)
      '(:eval (mode-line-mode-name)) 'mode-line-process 'minor-mode-alist
      (propertize "%n" 'help-echo "mouse-2: widen"
-		 'local-map (make-mode-line-mouse2-map #'widen))
+		 'local-map (make-mode-line-mouse2-map #'mode-line-widen))
      (propertize ")%]--" 'help-echo help-echo)
      `(which-func-mode ("" which-func-format ,dashes))
      `(line-number-mode ("L%l" ,dashes))
@@ -205,14 +242,14 @@ is okay.  See `mode-line-format'.")
 			 'help-echo (purecopy
 				     "mouse-2: turn off Abbrev mode")
 			 'local-map (purecopy (make-mode-line-mouse2-map
-					       #'abbrev-mode))))
+					       #'mode-line-abbrev-mode))))
        '(overwrite-mode overwrite-mode)
        (list 'auto-fill-function
 	     (propertize " Fill"
 			 'help-echo (purecopy
 				     "mouse-2: turn off Autofill mode")
 			 'local-map (purecopy (make-mode-line-mouse2-map
-					       #'auto-fill-mode))))
+					       #'mode-line-auto-fill-mode))))
        ;; not really a minor mode...
        '(defining-kbd-macro " Def")))
 
