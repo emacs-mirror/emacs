@@ -69,7 +69,8 @@ static int window_fixed_size_p P_ ((struct window *, int, int));
 static void enlarge_window P_ ((Lisp_Object, int, int));
 static Lisp_Object window_list P_ ((void));
 static int add_window_to_list P_ ((struct window *, Lisp_Object *));
-static int candidate_window_p P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+static int candidate_window_p P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+				   Lisp_Object));
 static Lisp_Object next_window P_ ((Lisp_Object, Lisp_Object,
 				    Lisp_Object, int));
 static void decode_next_window_args P_ ((Lisp_Object *, Lisp_Object *,
@@ -1226,24 +1227,23 @@ window_list ()
 }
 
 
-/* Value is non-zero if WINODW satisfies the constraints given by
-   MINIBUF and ALL_FRAMES.
+/* Value is non-zero if WINDOW satisfies the constraints given by
+   OWINDOW, MINIBUF and ALL_FRAMES.
 
-   MINIBUF t means WINDOW may be a minibuffer window.
-   MINIBUF `lambda' means it may not be a minibuffer window.
-   MINIBUF being a window means WINDOW must be equal to MINIBUF.
+   MINIBUF	t means WINDOW may be minibuffer windows.
+		`lambda' means WINDOW may not be a minibuffer window.
+		a window means a specific minibuffer window
 
-   ALL_FRAMES t means WINDOW may be on any frame.
-   ALL_FRAMES nil means WINDOW must not be on a minibuffer-only frame.
-   ALL_FRAMES `visible' means WINDOW must be on a visible frame.
-   ALL_FRAMES 0 means WINDOW must be on a visible or iconified frame.
-   ALL_FRAMES being a frame means WINDOW must be on that frame.
-   ALL_FRAMES being a window means WINDOW must be on a frame using
-   the same minibuffer as ALL_FRAMES.  */
+   ALL_FRAMES	t means search all frames,
+		nil means search just current frame,
+		`visible' means search just visible frames,
+		0 means search visible and iconified frames,
+		a window means search the frame that window belongs to,
+		a frame means consider windows on that frame, only.  */
 
 static int
-candidate_window_p (window, minibuf, all_frames)
-     Lisp_Object window, minibuf, all_frames;
+candidate_window_p (window, owindow, minibuf, all_frames)
+     Lisp_Object window, owindow, minibuf, all_frames;
 {
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
@@ -1259,8 +1259,13 @@ candidate_window_p (window, minibuf, all_frames)
          If it is a window, consider only that one.  */
       candidate_p = 0;
     }
+  else if (EQ (all_frames, Qt))
+    candidate_p = 1;
   else if (NILP (all_frames))
-    candidate_p = !FRAME_MINIBUF_ONLY_P (f);
+    {
+      xassert (WINDOWP (owindow));
+      candidate_p = EQ (w->frame, XWINDOW (owindow)->frame);
+    }
   else if (EQ (all_frames, Qvisible))
     {
       FRAME_SAMPLE_VISIBILITY (f);
@@ -1271,12 +1276,12 @@ candidate_window_p (window, minibuf, all_frames)
       FRAME_SAMPLE_VISIBILITY (f);
       candidate_p = FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f);
     }
-  else if (FRAMEP (all_frames))
-    candidate_p = EQ (all_frames, w->frame);
   else if (WINDOWP (all_frames))
     candidate_p = (EQ (FRAME_MINIBUF_WINDOW (f), all_frames)
 		   || EQ (XWINDOW (all_frames)->frame, w->frame)
 		   || EQ (XWINDOW (all_frames)->frame, FRAME_FOCUS_FRAME (f)));
+  else if (FRAMEP (all_frames))
+    candidate_p = EQ (all_frames, w->frame);
 
   return candidate_p;
 }
@@ -1356,7 +1361,7 @@ next_window (window, minibuf, all_frames, next_p)
       /* Scan forward from WINDOW to the end of the window list.  */
       if (CONSP (list))
 	for (list = XCDR (list); CONSP (list); list = XCDR (list))
-	  if (candidate_window_p (XCAR (list), minibuf, all_frames))
+	  if (candidate_window_p (XCAR (list), window, minibuf, all_frames))
 	    break;
 
       /* Scan from the start of the window list up to WINDOW.  */
@@ -1364,7 +1369,7 @@ next_window (window, minibuf, all_frames, next_p)
 	for (list = Vwindow_list;
 	     CONSP (list) && !EQ (XCAR (list), window);
 	     list = XCDR (list))
-	  if (candidate_window_p (XCAR (list), minibuf, all_frames))
+	  if (candidate_window_p (XCAR (list), window, minibuf, all_frames))
 	    break;
 
       if (CONSP (list))
@@ -1386,7 +1391,8 @@ next_window (window, minibuf, all_frames, next_p)
 	      if (WINDOWP (candidate))
 		break;
 	    }
-	  else if (candidate_window_p (XCAR (list), minibuf, all_frames))
+	  else if (candidate_window_p (XCAR (list), window, minibuf,
+				       all_frames))
 	    candidate = XCAR (list);
 	}
 
@@ -1507,7 +1513,7 @@ argument ALL_FRAMES is non-nil, cycle through all frames.")
 
 
 DEFUN ("window-list", Fwindow_list, Swindow_list, 0, 3, 0,
-  "Return a list windows in canonical ordering.\n\
+  "Return a list of windows in canonical ordering.\n\
 Arguments are like for `next-window'.")
   (window, minibuf, all_frames)
      Lisp_Object minibuf, all_frames;
@@ -1518,10 +1524,10 @@ Arguments are like for `next-window'.")
   list = Qnil;
   
   for (tail = window_list (); CONSP (tail); tail = XCDR (tail))
-    if (candidate_window_p (XCAR (tail), minibuf, all_frames))
+    if (candidate_window_p (XCAR (tail), window, minibuf, all_frames))
       list = Fcons (XCAR (tail), list);
   
-  return list;
+  return Fnreverse (list);
 }
 
 
@@ -1550,32 +1556,30 @@ enum window_loop
 static Lisp_Object
 window_loop (type, obj, mini, frames)
      enum window_loop type;
-     register Lisp_Object obj, frames;
+     Lisp_Object obj, frames;
      int mini;
 {
-  register Lisp_Object w;
-  register Lisp_Object best_window;
-  register Lisp_Object next_window;
-  register Lisp_Object last_window;
-  FRAME_PTR frame;
-  Lisp_Object frame_arg;
-  frame_arg = Qt;
-
+  Lisp_Object window, windows, best_window, frame_arg;
+  struct frame *f;
+  
   /* If we're only looping through windows on a particular frame,
      frame points to that frame.  If we're looping through windows
      on all frames, frame is 0.  */
   if (FRAMEP (frames))
-    frame = XFRAME (frames);
+    f = XFRAME (frames);
   else if (NILP (frames))
-    frame = SELECTED_FRAME ();
+    f = SELECTED_FRAME ();
   else
-    frame = 0;
-  if (frame)
+    f = NULL;
+  
+  if (f)
     frame_arg = Qlambda;
   else if (XFASTINT (frames) == 0)
     frame_arg = frames;
   else if (EQ (frames, Qvisible))
     frame_arg = frames;
+  else
+    frame_arg = Qt;
 
   /* frame_arg is Qlambda to stick to one frame,
      Qvisible to consider all visible frames,
@@ -1583,11 +1587,11 @@ window_loop (type, obj, mini, frames)
 
   /* Pick a window to start with.  */
   if (WINDOWP (obj))
-    w = obj;
-  else if (frame)
-    w = FRAME_SELECTED_WINDOW (frame);
+    window = obj;
+  else if (f)
+    window = FRAME_SELECTED_WINDOW (f);
   else
-    w = FRAME_SELECTED_WINDOW (SELECTED_FRAME ());
+    window = FRAME_SELECTED_WINDOW (SELECTED_FRAME ());
 
   /* Figure out the last window we're going to mess with.  Since
      Fnext_window, given the same options, is guaranteed to go in a
@@ -1596,178 +1600,162 @@ window_loop (type, obj, mini, frames)
      We can't just wait until we hit the first window again, because
      it might be deleted.  */
 
-  last_window = Fprevious_window (w, mini ? Qt : Qnil, frame_arg);
-
+  windows = Fwindow_list (window, mini ? Qt : Qnil, frame_arg);
+  GCPRO1 (windows);
   best_window = Qnil;
-  for (;;)
-    {
-      /* Pick the next window now, since some operations will delete
-	 the current window.  */
-      next_window = Fnext_window (w, mini ? Qt : Qnil, frame_arg);
 
-      /* Note that we do not pay attention here to whether
-	 the frame is visible, since Fnext_window skips non-visible frames
-	 if that is desired, under the control of frame_arg.  */
-      if (! MINI_WINDOW_P (XWINDOW (w))
+  for (; CONSP (windows); windows = CDR (windows))
+    {
+      struct window *w;
+      
+      window = XCAR (windows);
+      w = XWINDOW (window);
+      
+      /* Note that we do not pay attention here to whether the frame
+	 is visible, since Fwindow_list skips non-visible frames if
+	 that is desired, under the control of frame_arg.  */
+      if (!MINI_WINDOW_P (w)
 	  /* For UNSHOW_BUFFER, we must always consider all windows.  */
 	  || type == UNSHOW_BUFFER
 	  || (mini && minibuf_level > 0))
 	switch (type)
 	  {
 	  case GET_BUFFER_WINDOW:
-	    if (XBUFFER (XWINDOW (w)->buffer) == XBUFFER (obj)
+	    if (EQ (w->buffer, obj)
 		/* Don't find any minibuffer window
 		   except the one that is currently in use.  */
-		&& (MINI_WINDOW_P (XWINDOW (w))
-		    ? EQ (w, minibuf_window) : 1))
-	      return w;
+		&& (MINI_WINDOW_P (w)
+		    ? EQ (window, minibuf_window)
+		    : 1))
+	      {
+		UNGCPRO;
+		return window;
+	      }
 	    break;
 
 	  case GET_LRU_WINDOW:
 	    /* t as arg means consider only full-width windows */
-	    if (!NILP (obj) && !WINDOW_FULL_WIDTH_P (XWINDOW (w)))
+	    if (!NILP (obj) && !WINDOW_FULL_WIDTH_P (w))
 	      break;
 	    /* Ignore dedicated windows and minibuffers.  */
-	    if (MINI_WINDOW_P (XWINDOW (w))
-		|| !NILP (XWINDOW (w)->dedicated))
+	    if (MINI_WINDOW_P (w) || !NILP (w->dedicated))
 	      break;
 	    if (NILP (best_window)
 		|| (XFASTINT (XWINDOW (best_window)->use_time)
-		    > XFASTINT (XWINDOW (w)->use_time)))
-	      best_window = w;
+		    > XFASTINT (w->use_time)))
+	      best_window = window;
 	    break;
 
 	  case DELETE_OTHER_WINDOWS:
-	    if (XWINDOW (w) != XWINDOW (obj))
-	      Fdelete_window (w);
+	    if (!EQ (window, obj))
+	      Fdelete_window (window);
 	    break;
 
 	  case DELETE_BUFFER_WINDOWS:
-	    if (EQ (XWINDOW (w)->buffer, obj))
+	    if (EQ (w->buffer, obj))
 	      {
-		FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (w)));
+		struct frame *f = XFRAME (WINDOW_FRAME (w));
 
 		/* If this window is dedicated, and in a frame of its own,
 		   kill the frame.  */
-		if (EQ (w, FRAME_ROOT_WINDOW (f))
-		    && !NILP (XWINDOW (w)->dedicated)
+		if (EQ (window, FRAME_ROOT_WINDOW (f))
+		    && !NILP (w->dedicated)
 		    && other_visible_frames (f))
 		  {
 		    /* Skip the other windows on this frame.
 		       There might be one, the minibuffer!  */
-		    if (! EQ (w, last_window))
-		      while (f == XFRAME (WINDOW_FRAME (XWINDOW (next_window))))
-			{
-			  /* As we go, check for the end of the loop.
-			     We mustn't start going around a second time.  */
-			  if (EQ (next_window, last_window))
-			    {
-			      last_window = w;
-			      break;
-			    }
-			  next_window = Fnext_window (next_window,
-						      mini ? Qt : Qnil,
-						      frame_arg);
-			}
+		    while (CONSP (XCDR (windows))
+			   && EQ (XWINDOW (XCAR (windows))->frame,
+				  XWINDOW (XCAR (XCDR (windows)))->frame))
+		      windows = XCDR (windows);
+		    
 		    /* Now we can safely delete the frame.  */
-		    Fdelete_frame (WINDOW_FRAME (XWINDOW (w)), Qnil);
+		    Fdelete_frame (w->frame, Qnil);
+		  }
+		else if (NILP (w->parent))
+		  {
+		    /* If we're deleting the buffer displayed in the
+		       only window on the frame, find a new buffer to
+		       display there.  */
+		    Lisp_Object buffer;
+		    buffer = Fother_buffer (obj, Qnil, w->frame);
+		    if (NILP (buffer))
+		      buffer = Fget_buffer_create (build_string ("*scratch*"));
+		    Fset_window_buffer (window, buffer);
+		    if (EQ (window, selected_window))
+		      Fset_buffer (w->buffer);
 		  }
 		else
-		  /* If we're deleting the buffer displayed in the only window
-		     on the frame, find a new buffer to display there.  */
-		  if (NILP (XWINDOW (w)->parent))
-		    {
-		      Lisp_Object new_buffer;
-		      new_buffer = Fother_buffer (obj, Qnil,
-						  XWINDOW (w)->frame);
-		      if (NILP (new_buffer))
-			new_buffer
-			  = Fget_buffer_create (build_string ("*scratch*"));
-		      Fset_window_buffer (w, new_buffer);
-		      if (EQ (w, selected_window))
-			Fset_buffer (XWINDOW (w)->buffer);
-		    }
-		  else
-		    Fdelete_window (w);
+		  Fdelete_window (window);
 	      }
 	    break;
 
 	  case GET_LARGEST_WINDOW:
-	    /* Ignore dedicated windows and minibuffers.  */
-	    if (MINI_WINDOW_P (XWINDOW (w))
-		|| !NILP (XWINDOW (w)->dedicated)
-		|| NILP (best_window))
-	      break;
 	    {
-	      struct window *best_window_ptr = XWINDOW (best_window);
-	      struct window *w_ptr = XWINDOW (w);
+	      struct window *b;
+	      
+	      /* Ignore dedicated windows and minibuffers.  */
+	      if (MINI_WINDOW_P (w)
+		  || !NILP (w->dedicated)
+		  || NILP (best_window))
+		break;
+	      
+	      b = XWINDOW (best_window);
 	      if (NILP (best_window)
-		  || (XFASTINT (w_ptr->height) * XFASTINT (w_ptr->width)
-		      > (XFASTINT (best_window_ptr->height)
-			 * XFASTINT (best_window_ptr->width))))
-		best_window = w;
+		  || (XFASTINT (w->height) * XFASTINT (w->width)
+		      > (XFASTINT (b->height) * XFASTINT (b->width))))
+		best_window = window;
 	    }
 	    break;
 
 	  case UNSHOW_BUFFER:
-	    if (EQ (XWINDOW (w)->buffer, obj))
+	    if (EQ (w->buffer, obj))
 	      {
+		Lisp_Object buffer;
+		struct frame *f = XFRAME (w->frame);
+		
 		/* Find another buffer to show in this window.  */
-		Lisp_Object another_buffer;
-		FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (w)));
-		another_buffer = Fother_buffer (obj, Qnil, XWINDOW (w)->frame);
-		if (NILP (another_buffer))
-		  another_buffer
-		    = Fget_buffer_create (build_string ("*scratch*"));
+		buffer = Fother_buffer (obj, Qnil, w->frame);
+		if (NILP (buffer))
+		  buffer = Fget_buffer_create (build_string ("*scratch*"));
+		
 		/* If this window is dedicated, and in a frame of its own,
 		   kill the frame.  */
-		if (EQ (w, FRAME_ROOT_WINDOW (f))
-		    && !NILP (XWINDOW (w)->dedicated)
+		if (EQ (window, FRAME_ROOT_WINDOW (f))
+		    && !NILP (w->dedicated)
 		    && other_visible_frames (f))
 		  {
 		    /* Skip the other windows on this frame.
 		       There might be one, the minibuffer!  */
-		    if (! EQ (w, last_window))
-		      while (f == XFRAME (WINDOW_FRAME (XWINDOW (next_window))))
-			{
-			  /* As we go, check for the end of the loop.
-			     We mustn't start going around a second time.  */
-			  if (EQ (next_window, last_window))
-			    {
-			      last_window = w;
-			      break;
-			    }
-			  next_window = Fnext_window (next_window,
-						      mini ? Qt : Qnil,
-						      frame_arg);
-			}
+		    while (CONSP (XCDR (windows))
+			   && EQ (XWINDOW (XCAR (windows))->frame,
+				  XWINDOW (XCAR (XCDR (windows)))->frame))
+		      windows = XCDR (windows);
+		    
 		    /* Now we can safely delete the frame.  */
-		    Fdelete_frame (WINDOW_FRAME (XWINDOW (w)), Qnil);
+		    Fdelete_frame (w->frame, Qnil);
 		  }
 		else
 		  {
 		    /* Otherwise show a different buffer in the window.  */
-		    XWINDOW (w)->dedicated = Qnil;
-		    Fset_window_buffer (w, another_buffer);
-		    if (EQ (w, selected_window))
-		      Fset_buffer (XWINDOW (w)->buffer);
+		    w->dedicated = Qnil;
+		    Fset_window_buffer (window, buffer);
+		    if (EQ (window, selected_window))
+		      Fset_buffer (w->buffer);
 		  }
 	      }
 	    break;
 
 	    /* Check for a window that has a killed buffer.  */
 	  case CHECK_ALL_WINDOWS:
-	    if (! NILP (XWINDOW (w)->buffer)
-		&& NILP (XBUFFER (XWINDOW (w)->buffer)->name))
+	    if (! NILP (w->buffer)
+		&& NILP (XBUFFER (w->buffer)->name))
 	      abort ();
+	    break;
 	  }
-
-      if (EQ (w, last_window))
-	break;
-
-      w = next_window;
     }
 
+  UNGCPRO;
   return best_window;
 }
 
