@@ -8,7 +8,7 @@
 	* makefile.nt (lisp): Synchronize with src/Makefile.in.
 	* makefile.w32-in (lisp): Ditto.
 
-2001-07-25  Juanma Barranquero  <jbarranquero@peoplecall.com>
+2001-07-25  Juanma Barranquero  <lektu@terra.es>
 
 	* grep-changelog (parse_changelog): Remove unused local variable.
 
@@ -25,8 +25,9 @@
 	* grep-changelog (parse_changelog): Add tests for defined values
 	to quiet warning from Perl 5.005 or above.
 	(entry_match_p, header_match_p): Fix handling of null or empty
-	argument to prevent duplicate headers.  * grep-changelog
-	(main, parse_changelog): Make "use strict"-clean.
+	argument to prevent duplicate headers.
+
+	* grep-changelog (main, parse_changelog): Make "use strict"-clean.
 
 2001-07-17  Jan Nieuwenhuizen  <janneke@gnu.org>
 
