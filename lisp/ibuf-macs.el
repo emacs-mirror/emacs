@@ -93,14 +93,8 @@ change its definition, you should explicitly call
 `ibuffer-recompile-formats'."
   (let* ((sym (intern (concat "ibuffer-make-column-"
 			      (symbol-name symbol))))
-	 (bod-2 `(with-current-buffer buffer
+	 (bod-1 `(with-current-buffer buffer
 		   ,@body))
-	 (bod-1 (if summarizer
-		    `(car
-		      (push ,bod-2
-			    ,(intern (format "ibuffer-summary-for-column-%s"
-					     name))))
-		  bod-2))
 	 (bod (if props
 		 `(propertize
 		   ,bod-1
@@ -116,12 +110,13 @@ change its definition, you should explicitly call
 		 name
 	       (capitalize (symbol-name symbol))))
        ,(if summarizer
+	    ;; Store the name of the summarizing function.
 	    `(put (quote ,sym) 'ibuffer-column-summarizer
 		  (quote ,summarizer)))
        ,(if summarizer
-	    `(defvar ,(intern (format "ibuffer-summary-for-column-%s"
-				      name))
-	       nil))
+	    ;; This will store the actual values of the column
+	    ;; summary.
+	    `(put (quote ,sym) 'ibuffer-column-summary nil))
        :autoload-end)))
 ;; (put 'define-ibuffer-column 'lisp-indent-function 'defun)
 
