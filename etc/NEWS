@@ -131,7 +131,7 @@ new command M-x strokes-list-strokes.
 
 +++
 ** New command M-x describe-character-set reads a character set name
-and displayes information about that.
+and displays information about that.
 
 ** When an error is signaled during the loading of the user's init
 file, Emacs now pops up the *Messages* buffer.
@@ -153,7 +153,6 @@ interpreted by the interpreter matched by the second group of the
 regular expression.  The mode is then determined as the mode
 associated with that interpreter in `interpreter-mode-alist'.
 
-+++
 ** C-down-mouse-3 is bound differently.  Now if the menu bar is not
 displayed it pops up a menu containing the items which would be on the
 menu bar.  If the menu bar is displayed, it pops up the major mode
