@@ -89,7 +89,16 @@ thus showing a page other than the one point was originally in."
     (if (> arg 0)
 	(forward-page arg)
       (if (< arg 0)
-	  (forward-page (1- arg))))
+	  (let ((adjust 0)
+		(opoint (point)))
+	    ;; If we are not now at the beginning of a page,
+	    ;; move back one extra time, to get to the start of this page.
+	    (save-excursion
+	      (beginning-of-line)
+	      (or (and (looking-at page-delimiter)
+		       (eq (match-end 0) opoint))
+		  (setq adjust 1)))
+	    (forward-page (- arg adjust)))))
     ;; Find the end of the page.
     (forward-page)
     ;; If we stopped due to end of buffer, stay there.
