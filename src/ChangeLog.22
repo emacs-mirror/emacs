@@ -1,3 +1,8 @@
+2003-11-15  Kenichi Handa  <handa@m17n.org>
+
+	* syntax.c (skip_chars): Be sure to alloca char_ranges when
+	necessary.
+
 2003-11-14  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (set_lface_from_font_name): Fix for the case that
