@@ -1,5 +1,8 @@
 2001-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* facemenu.el (facemenu-set-face, facemenu-set-face-from-menu):
+	Doc fix.
+
 	* simple.el (transient-mark-mode): Document the fact that many
 	commands act on the region when mark is active.
 
