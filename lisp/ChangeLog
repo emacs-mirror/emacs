@@ -1,3 +1,7 @@
+2004-04-09  Jesper Harder  <harder@ifa.au.dk>
+
+	* info.el (info-apropos): Improve menu item regexp.
+
 2004-04-09  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el: Add comment, based on report by
