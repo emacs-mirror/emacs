@@ -163,8 +163,9 @@ FONT-SRC is a font source: builtin, ps-bdf, vflib, or nil.
 
   If FONT-SRC is builtin, FONT-NAME is a buitin PostScript font name.
 
-  If FONT-SRC is bdf, FONT-NAME is a BDF font file name.  To use this font,
-  the external library `ps-bdf' is required.
+  If FONT-SRC is bdf, FONT-NAME is a BDF font file name, or a list of
+  alternative font names.  To use this font, the external library `ps-bdf'
+  is required.
 
   If FONT-SRC is vflib, FONT-NAME is the name of a font that VFlib knows.
   To use this font, the external library `vflib' is required.
@@ -213,36 +214,36 @@ Currently, data for Japanese and Korean PostScript printers are listed.")
 
 (defconst ps-mule-font-info-database-bdf
   '((ascii
-     (normal bdf "etl24-latin1.bdf" nil 1)
-     (bold bdf "etl16b-latin1.bdf" iso-latin-1 1)
-     (italic bdf "etl16i-latin1.bdf" iso-latin-1 1)
-     (bold-italic bdf "etl16bi-latin1.bdf" iso-latin-1 1))
+     (normal bdf ("lt1-24-etl.bdf" "etl24-latin1.bdf") nil 1)
+     (bold bdf ("lt1-16b-etl.bdf" "etl16b-latin1.bdf") iso-latin-1 1)
+     (italic bdf ("lt1-16i-etl.bdf" "etl16i-latin1.bdf") iso-latin-1 1)
+     (bold-italic bdf ("lt1-16bi-etl.bdf" "etl16bi-latin1.bdf") iso-latin-1 1))
     (latin-iso8859-1
-     (normal bdf "etl24-latin1.bdf" iso-latin-1 1)
-     (bold bdf "etl16b-latin1.bdf" iso-latin-1 1)
-     (italic bdf "etl16i-latin1.bdf" iso-latin-1 1)
-     (bold-italic bdf "etl16bi-latin1.bdf" iso-latin-1 1))
+     (normal bdf ("lt1-24-etl.bdf" "etl24-latin1.bdf") nil 1)
+     (bold bdf ("lt1-16b-etl.bdf" "etl16b-latin1.bdf") iso-latin-1 1)
+     (italic bdf ("lt1-16i-etl.bdf" "etl16i-latin1.bdf") iso-latin-1 1)
+     (bold-italic bdf ("lt1-16bi-etl.bdf" "etl16bi-latin1.bdf") iso-latin-1 1))
     (latin-iso8859-2
-     (normal bdf "etl24-latin2.bdf" iso-latin-2 1))
+     (normal bdf ("lt2-24-etl.bdf" "etl24-latin2.bdf") iso-latin-2 1))
     (latin-iso8859-3
-     (normal bdf "etl24-latin3.bdf" iso-latin-3 1))
+     (normal bdf ("lt3-24-etl.bdf" "etl24-latin3.bdf") iso-latin-3 1))
     (latin-iso8859-4
-     (normal bdf "etl24-latin4.bdf" iso-latin-4 1))
+     (normal bdf ("lt4-24-etl.bdf" "etl24-latin4.bdf") iso-latin-4 1))
     (thai-tis620
-     (normal bdf "thai-24.bdf" thai-tis620 1))
+     (normal bdf ("thai24.bdf" "thai-24.bdf") thai-tis620 1))
     (greek-iso8859-7
-     (normal bdf "etl24-greek.bdf" greek-iso-8bit 1))
+     (normal bdf ("grk24-etl.bdf" "etl24-greek.bdf") greek-iso-8bit 1))
     ;; (arabic-iso8859-6	nil) ; not yet available
     (hebrew-iso8859-8
-     (normal bdf "etl24-hebrew.bdf" hebrew-iso-8bit 1))
+     (normal bdf ("heb24-etl.bdf" "etl24-hebrew.bdf") hebrew-iso-8bit 1))
     (katakana-jisx0201
      (normal bdf "12x24rk.bdf" ps-mule-encode-8bit 1))
     (latin-jisx0201
      (normal bdf "12x24rk.bdf" ps-mule-encode-7bit 1))
     (cyrillic-iso8859-5
-     (normal bdf "etl24-cyrillic.bdf" cyrillic-iso-8bit 1))
+     (normal bdf ("cyr24-etl.bdf" "etl24-cyrillic.bdf") cyrillic-iso-8bit 1))
     (latin-iso8859-9
-     (normal bdf "etl24-latin5.bdf" iso-latin-5 1))
+     (normal bdf ("lt5-24-etl.bdf" "etl24-latin5.bdf") iso-latin-5 1))
     (japanese-jisx0208-1978
      (normal bdf "jiskan24.bdf" ps-mule-encode-7bit 2))
     (chinese-gb2312
@@ -252,54 +253,54 @@ Currently, data for Japanese and Korean PostScript printers are listed.")
     (korean-ksc5601
      (normal bdf "hanglm24.bdf" ps-mule-encode-7bit 2))
     (japanese-jisx0212
-     (normal bdf "jisksp40.bdf" ps-mule-encode-7bit 2))
+     (normal bdf ("jksp40.bdf" "jisksp40.bdf") ps-mule-encode-7bit 2))
     (chinese-cns11643-1
-     (normal bdf "cns-1-40.bdf" ps-mule-encode-7bit 2))
+     (normal bdf ("cns1-40.bdf" "cns-1-40.bdf") ps-mule-encode-7bit 2))
     (chinese-cns11643-2
-     (normal bdf "cns-2-40.bdf" ps-mule-encode-7bit 2))
+     (normal bdf ("cns2-40.bdf" "cns-2-40.bdf") ps-mule-encode-7bit 2))
     (chinese-big5-1
      (normal bdf "taipei24.bdf" chinese-big5 2))
     (chinese-big5-2
      (normal bdf "taipei24.bdf" chinese-big5 2))
     (chinese-sisheng
-     (normal bdf "etl24-sisheng.bdf" ps-mule-encode-8bit 1))
+     (normal bdf ("sish24-etl.bdf" "etl24-sisheng.bdf") ps-mule-encode-8bit 1))
     (ipa
-     (normal bdf "etl24-ipa.bdf" ps-mule-encode-8bit 1))
+     (normal bdf ("ipa24-etl.bdf" "etl24-ipa.bdf") ps-mule-encode-8bit 1))
     (vietnamese-viscii-lower
-     (normal bdf "etl24-viscii.bdf" vietnamese-viscii 1))
+     (normal bdf ("visc24-etl.bdf" "etl24-viscii.bdf") vietnamese-viscii 1))
     (vietnamese-viscii-upper
-     (normal bdf "etl24-viscii.bdf" vietnamese-viscii 1))
+     (normal bdf ("visc24-etl.bdf" "etl24-viscii.bdf") vietnamese-viscii 1))
     (arabic-digit
-     (normal bdf "etl24-arabic0.bdf" ps-mule-encode-7bit 1))
+     (normal bdf ("arab24-0-etl.bdf" "etl24-arabic0.bdf") ps-mule-encode-7bit 1))
     (arabic-1-column
-     (normal bdf "etl24-arabic1.bdf" ps-mule-encode-7bit 1))
+     (normal bdf ("arab24-1-etl.bdf" "etl24-arabic1.bdf") ps-mule-encode-7bit 1))
     ;; (ascii-right-to-left nil) ; not yet available
     (lao
-     (normal bdf "mule-lao-24.bdf" lao 1))
+     (normal bdf ("lao24-mule.bdf" "mule-lao-24.bdf") lao 1))
     (arabic-2-column
-     (normal bdf "etl24-arabic2.bdf" ps-mule-encode-7bit 1))
+     (normal bdf ("arab24-2-etl.bdf" "etl24-arabic2.bdf") ps-mule-encode-7bit 1))
     (indian-is13194
-     (normal bdf "mule-iscii-24.bdf" ps-mule-encode-7bit 1))
+     (normal bdf ("isci24-etl.bdf" "mule-iscii-24.bdf") ps-mule-encode-7bit 1))
     (indian-1-column
-     (normal bdf "mule-indian-1col-24.bdf" ps-mule-encode-7bit 2))
+     (normal bdf ("ind1c24-mule.bdf" "mule-indian-1col-24.bdf") ps-mule-encode-7bit 2))
     (tibetan-1-column
-     (normal bdf "mule-tibmdx-1col-24.bdf" ps-mule-encode-7bit 2))
+     (normal bdf ("tib1c24-mule.bdf" "mule-tibmdx-1col-24.bdf") ps-mule-encode-7bit 2))
     (ethiopic
-     (normal bdf "ethiomx24f-uni.bdf" ps-mule-encode-ethiopic 2))
+     (normal bdf ("ethio24f-uni.bdf" "ethiomx24f-uni.bdf") ps-mule-encode-ethiopic 2))
     (chinese-cns11643-3
-     (normal bdf "cns-3-40.bdf" ps-mule-encode-7bit 2))
+     (normal bdf ("cns3-40.bdf" "cns-3-40.bdf") ps-mule-encode-7bit 2))
     (chinese-cns11643-4
-     (normal bdf "cns-4-40.bdf" ps-mule-encode-7bit 2))
+     (normal bdf ("cns4-40.bdf" "cns-4-40.bdf") ps-mule-encode-7bit 2))
     (chinese-cns11643-5
-     (normal bdf "cns-5-40.bdf" ps-mule-encode-7bit 2))
+     (normal bdf ("cns5-40.bdf" "cns-5-40.bdf") ps-mule-encode-7bit 2))
     (chinese-cns11643-6
-     (normal bdf "cns-6-40.bdf" ps-mule-encode-7bit 2))
+     (normal bdf ("cns6-40.bdf" "cns-6-40.bdf") ps-mule-encode-7bit 2))
     (chinese-cns11643-7
-     (normal bdf "cns-7-40.bdf" ps-mule-encode-7bit 2))
+     (normal bdf ("cns7-40.bdf" "cns-7-40.bdf") ps-mule-encode-7bit 2))
     (indian-2-column
-     (normal bdf "mule-indian-24.bdf" ps-mule-encode-7bit 2))
+     (normal bdf ("ind24-mule.bdf" "mule-indian-24.bdf") ps-mule-encode-7bit 2))
     (tibetan
-     (normal bdf "mule-tibmdx-24.bdf" ps-mule-encode-7bit 2)))
+     (normal bdf ("tib24-mule.bdf" "mule-tibmdx-24.bdf") ps-mule-encode-7bit 2)))
   "Sample setting of the `ps-mule-font-info-database' to use BDF fonts.
 BDF (Bitmap Distribution Format) is a format used for distributing X's font
 source file.
@@ -461,10 +462,10 @@ See the documentation of `ps-mule-get-font-spec' for FONT-SPEC's meaning."
 
 (defun ps-mule-generate-font (font-spec charset)
   "Generate PostScript codes to define a new font in FONT-SPEC for CHARSET."
-  (let* ((font-cache (assoc (ps-mule-font-spec-name font-spec)
-			    ps-mule-font-cache))
+  (let* ((font-name (ps-mule-font-spec-name font-spec))
+	 (font-name (if (consp font-name) (car font-name) font-name))
+	 (font-cache (assoc font-name ps-mule-font-cache))
 	 (font-src (ps-mule-font-spec-src font-spec))
-	 (font-name (ps-mule-font-spec-name font-spec))
 	 (func (nth 4 (assq font-src ps-mule-external-libraries)))
 	 (scaled-font-name
 	  (if (eq charset 'ascii)
@@ -504,8 +505,9 @@ current font (using PostScript procedure `FM').
 
 If optional arg NO-SETFONT is non-nil, don't generate the code for setting the
 current font."
-  (let ((font-cache (assoc (ps-mule-font-spec-name font-spec)
-			   ps-mule-font-cache)))
+  (let* ((font-name (ps-mule-font-spec-name font-spec))
+	 (font-name (if (consp font-name) (car font-name) font-name))
+	 (font-cache (assoc font-name ps-mule-font-cache)))
     (or (and font-cache (assq ps-current-font (nth 1 font-cache)))
 	(setq font-cache (ps-mule-generate-font font-spec charset)))
     (or no-setfont
