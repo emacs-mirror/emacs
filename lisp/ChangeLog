@@ -1,3 +1,12 @@
+2005-03-11  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/calendar.el (calendar-redrawing): New internal
+	variable.
+	(redraw-calendar): Remove bogus save-excursion from previous
+	change.  Bind calendar-redrawing to t for mark-diary-entries.
+	* calendar/diary-lib.el (mark-diary-entries): No need to redraw
+	calendar if that is why we were called.
+
 2005-03-11  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (make-coding-system): Set property
