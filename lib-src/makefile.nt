@@ -54,9 +54,8 @@ ALL	        = $(BLD)\make-docfile.exe \
 
 LIBS	      =	$(SYS_LIB_DIR)\setargv.obj	\
 		$(SYS_LIB_DIR)\kernel32.lib	\
-		$(SYS_LIB_DIR)\libc.lib
-
-#		$(SYS_LIB_DIR)\advapi32.lib	\
+		$(SYS_LIB_DIR)\libc.lib		\
+		$(COMPAT_LIB)
 
 $(BLD)\make-docfile.exe: 	$(LIBS) $(BLD)\make-docfile.obj
 $(BLD)\hexl.exe:		$(LIBS) $(BLD)\hexl.obj
@@ -76,7 +75,7 @@ ETAGSOBJ      = $(BLD)\etags.obj \
 		$(BLD)\ntlib.obj
 
 $(BLD)\etags.exe: 		$(LIBS) $(ETAGSOBJ)
-	link32 -out:$@ -debug:PARTIAL -machine:$(ARCH) -align:0x1000 -subsystem:console -entry:mainCRTStartup $(ETAGSOBJ) $(LIBS)
+		$(LINK) -out:$@ $(LINK_FLAGS) $(ETAGSOBJ) $(LIBS)
 
 #
 # don't know what to do with these yet...
@@ -99,7 +98,7 @@ $(BLD)\etags.exe: 		$(LIBS) $(ETAGSOBJ)
 #
 # From ..\makefile.nt, with .obj changed to .o
 #
-obj = abbrev.o alloc.o alloca.o buffer.o bytecode.o callint.o callproc.o casefiddle.o cm.o cmds.o data.o dired.o dispnew.o doc.o  doprnt.o editfns.o eval.o fileio.o filelock.o filemode.o fns.o  indent.o insdel.o keyboard.o keymap.o lastfile.o lread.o macros.o marker.o minibuf.o xfaces.o mocklisp.o nt.o ntheap.o ntinevt.o ntproc.o ntterm.o print.o process.o regex.o scroll.o search.o syntax.o sysdep.o term.o termcap.o tparam.o undo.o unexnt.o window.o xdisp.o casetab.o floatfns.o frame.o gmalloc.o intervals.o ralloc.o textprop.o vm-limit.o
+obj = abbrev.o alloc.o alloca.o buffer.o bytecode.o callint.o callproc.o casefiddle.o cm.o cmds.o data.o dired.o dispnew.o doc.o  doprnt.o editfns.o eval.o fileio.o filelock.o filemode.o fns.o  indent.o insdel.o keyboard.o keymap.o lastfile.o lread.o macros.o marker.o minibuf.o xfaces.o mocklisp.o nt.o ntheap.o ntinevt.o ntproc.o ntterm.o print.o process.o regex.o scroll.o search.o syntax.o sysdep.o term.o termcap.o tparam.o undo.o unexnt.o window.o xdisp.o casetab.o floatfns.o frame.o gmalloc.o intervals.o ralloc.o textprop.o vm-limit.o region-cache.o strftime.o
 
 lispdir = ..\lisp
 
@@ -114,6 +113,7 @@ lisp= \
 	$(lispdir)\simple.elc \
 	$(lispdir)\help.elc \
 	$(lispdir)\files.elc \
+	$(lispdir)\format.elc \
 	$(lispdir)\indent.elc \
 	$(lispdir)\window.elc \
 	$(lispdir)\frame.elc \
@@ -135,6 +135,7 @@ lisp= \
 	$(lispdir)\replace.elc \
 	$(lispdir)\abbrev.elc \
 	$(lispdir)\buff-menu.elc \
+	$(lispdir)\ls-lisp.elc \
 	$(lispdir)\winnt.elc \
 	$(lispdir)\float-sup.elc \
 	$(lispdir)\vc-hooks.elc \
@@ -145,10 +146,10 @@ $(DOC):		$(BLD)\make-docfile.exe
 		- rm -f $(DOC)
 		$(BLD)\make-docfile -d ..\src $(obj) > $(DOC)
 		$(BLD)\make-docfile -d ..\src $(lisp) >> $(DOC)
-		$(CP) $(DOC) ..\etc
+		$(CP) $(DOC) ..\etc\DOC-X
 		- mkdir ..\src\$(OBJDIR)
 		- mkdir ..\src\$(OBJDIR)\etc
-		$(CP) $(DOC) ..\src\$(OBJDIR)\etc
+		$(CP) $(DOC) ..\src\$(OBJDIR)\etc\DOC-X
 
 {$(BLD)}.obj{$(BLD)}.exe:
 		$(LINK) -out:$@ $(LINK_FLAGS) $*.obj $(LIBS)
@@ -178,17 +179,17 @@ install:	$(INSTALL_FILES)
 # Maintenance
 # 
 clean:;		- del /q *~
-		- delnode /q deleted
-		- delnode /q obj
+		- $(DEL_TREE) deleted
+		- $(DEL_TREE) obj
 		- del /q DOC
 
 #
 # Headers we would preprocess if we could.
 #
-..\src\config.h:	..\nt\src\config.h
-			cp ..\nt\src\config.h ..\src\config.h
-..\src\paths.h:		..\nt\src\paths.h
-			cp ..\nt\src\paths.h ..\src\paths.h
+..\src\config.h:	..\nt\config.h
+			cp ..\nt\config.h ..\src\config.h
+..\src\paths.h:		..\nt\paths.h
+			cp ..\nt\paths.h ..\src\paths.h
 
 ### DEPENDENCIES ###
 
