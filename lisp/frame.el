@@ -84,19 +84,25 @@ These supersede the values given in `default-frame-alist'.")
 ;; Display BUFFER in its own frame, reusing an existing window if any.
 ;; Return the window chosen.
 ;; Currently we do not insist on selecting the window within its frame.
-(defun special-display-popup-frame (buffer &optional params)
-  (let ((window (get-buffer-window buffer t)))
-    (if window
-	;; If we have a window already, make it visible.
-	(let ((frame (window-frame window)))
-	  (make-frame-visible frame)
-	  (raise-frame frame)
-	  window)
-      ;; If no window yet, make one in a new frame.
-      (let ((frame (make-frame (append params special-display-frame-alist))))
-	(set-window-buffer (frame-selected-window frame) buffer)
-	(set-window-dedicated-p (frame-selected-window frame) t)
-	(frame-selected-window frame)))))
+;; If ARGS is an alist, use it as a list of frame parameter specs.
+;; If ARGS is a list whose car is a symbol.
+;; use (car ARGS) as a function to do the work.
+;; Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args.
+(defun special-display-popup-frame (buffer &optional args)
+  (if (and args (symbolp (car args)))
+      (apply (car args) buffer (cdr args))
+    (let ((window (get-buffer-window buffer t)))
+      (if window
+	  ;; If we have a window already, make it visible.
+	  (let ((frame (window-frame window)))
+	    (make-frame-visible frame)
+	    (raise-frame frame)
+	    window)
+	;; If no window yet, make one in a new frame.
+	(let ((frame (make-frame (append args special-display-frame-alist))))
+	  (set-window-buffer (frame-selected-window frame) buffer)
+	  (set-window-dedicated-p (frame-selected-window frame) t)
+	  (frame-selected-window frame))))))
 
 (setq special-display-function 'special-display-popup-frame)
 
