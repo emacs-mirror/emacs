@@ -382,13 +382,14 @@ BEFORE, if provided, is the name of a menu before which this menu should
 (defvar put-buffer-names-in-file-menu t)
 
 
-(let ((frames (frame-list)))
-  (while frames
-    (modify-frame-parameters (car frames) '((menu-bar-lines . 1)))
-    (setq frames (cdr frames))))
-(or (assq 'menu-bar-lines default-frame-alist)
-    (setq default-frame-alist
-	  (cons '(menu-bar-lines . 1) default-frame-alist)))
+;; Don't unconditionally enable menu bars; leave that up to the user.
+;;(let ((frames (frame-list)))
+;;  (while frames
+;;    (modify-frame-parameters (car frames) '((menu-bar-lines . 1)))
+;;    (setq frames (cdr frames))))
+;;(or (assq 'menu-bar-lines default-frame-alist)
+;;    (setq default-frame-alist
+;;	  (cons '(menu-bar-lines . 1) default-frame-alist)))
 
 (set-menubar default-menubar)
 
