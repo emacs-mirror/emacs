@@ -402,6 +402,11 @@ that form should be displayed.")
 	 (aset expr-string (1- expr-start) ?\n)
 	 )
 
+	((string-match "^//" expr-string expr-start)
+	 (string-match "$" expr-string expr-start)
+	 (setq expr-start (match-end 0))
+	 )
+
 	((string-match hif-token-regexp expr-string expr-start)
 	  (let ((token (substring expr-string expr-start (match-end 0))))
 	    (setq expr-start (match-end 0))
