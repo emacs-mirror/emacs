@@ -231,6 +231,11 @@ void gettimeofday (struct timeval *, struct timezone *);
 #define HAVE_MOUSE		1
 #define HAVE_TZNAME		1
 
+#ifdef HAVE_NTGUI
+#define HAVE_WINDOW_SYSTEM
+#define HAVE_FACES
+#endif
+
 #define MODE_LINE_BINARY_TEXT(_b_) (NILP ((_b_)->buffer_file_type) ? "T" : "B")
 
 /* These have to be defined because our compilers treat __STDC__ as being
@@ -267,6 +272,10 @@ void gettimeofday (struct timeval *, struct timezone *);
 #define signal  win32_signal
 #define rindex  strrchr
 #define ctime	nt_ctime	/* Place a wrapper around ctime (see nt.c).  */
+
+#ifdef HAVE_NTGUI
+#define abort	win32_abort
+#endif
 
 /* Defines that we need that aren't in the standard signal.h  */
 #define SIGHUP  1               /* Hang up */
@@ -326,6 +335,15 @@ struct nt_stat
 #else
 #define NULL	((void *)0)
 #endif
+#endif
+
+/* For proper declaration of environ.  */
+#include <stdlib.h>
+
+/* Emacs takes care of ensuring that these are defined.  */
+#ifdef max
+#undef max
+#undef min
 #endif
 
 /* ============================================================ */
