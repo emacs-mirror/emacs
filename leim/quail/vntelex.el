@@ -42,7 +42,7 @@
 
 Vowels with circumflex:
 
-  aa -> ,Ab(B, EE -> ,AJ(B, etc.
+  aa -> ,1b(B, EE -> ,2j(B, etc.
 
 Other diacritics:
 
@@ -52,9 +52,9 @@ Other diacritics:
   horn          w      ow -> ,1=(B
 
   acute         s      as -> ,1a(B
-  grave         f      af -> ,A`(B
+  grave         f      af -> ,1`(B
   hook above    r      ar -> ,1d(B
-  tilde         x      ,Ac(B  -> ,Ac(B
+  tilde         x      ax  -> ,1c(B
   dot below     j      aj -> ,1U(B
 
   d bar                dd -> ,1p(B
@@ -65,7 +65,7 @@ Combinations:
 
 Alternatives:
 
-  EE = Ee -> ,AJ(B, AWF = Awf -> ,2"(B, etc.
+  EE = Ee -> ,2j(B, AWF = Awf -> ,2"(B, etc.
 
 Doubling the postfix (but not in combinations) separates the letter
 and postfix: Eee -> Ee, ajj -> aj, etc.
@@ -83,63 +83,63 @@ and postfix: Eee -> Ee, ajj -> aj, etc.
  t)                              ; SIMPLE
 
 (quail-define-rules
- ("af" ?,A`(B)	; LATIN SMALL LETTER A WITH GRAVE
- ("AF" ?,A@(B)	; LATIN CAPITAL LETTER A WITH GRAVE
- ("Af" ?,A@(B)
- ("as" ?,Aa(B)	; LATIN SMALL LETTER A WITH ACUTE
- ("AS" ?,AA(B)	; LATIN CAPITAL LETTER A WITH ACUTE
- ("As" ?,AA(B)
- ("aa" ?,Ab(B)	; LATIN SMALL LETTER A WITH CIRCUMFLEX
- ("AA" ?,AB(B)	; LATIN CAPITAL LETTER A WITH CIRCUMFLEX
- ("Aa" ?,AB(B)
- ("ax" ?,Ac(B)	; LATIN SMALL LETTER A WITH TILDE
- ("AX" ?,AC(B)	; LATIN CAPITAL LETTER A WITH TILDE
- ("Ax" ?,AC(B)
- ("ef" ?,Ah(B)	; LATIN SMALL LETTER E WITH GRAVE
- ("EF" ?,AH(B)	; LATIN CAPITAL LETTER E WITH GRAVE
- ("Ef" ?,AH(B)
- ("es" ?,Ai(B)	; LATIN SMALL LETTER E WITH ACUTE
- ("ES" ?,AI(B)	; LATIN CAPITAL LETTER E WITH ACUTE
- ("Es" ?,AI(B)
- ("ee" ?,Aj(B)	; LATIN SMALL LETTER E WITH CIRCUMFLEX
- ("EE" ?,AJ(B)	; LATIN CAPITAL LETTER E WITH CIRCUMFLEX
- ("Ee" ?,AJ(B)
- ("if" ?,Al(B)	; LATIN SMALL LETTER I WITH GRAVE
- ("IF" ?,AL(B)	; LATIN CAPITAL LETTER I WITH GRAVE
- ("If" ?,AL(B)
- ("is" ?,Am(B)	; LATIN SMALL LETTER I WITH ACUTE
- ("IS" ?,AM(B)	; LATIN CAPITAL LETTER I WITH ACUTE
- ("Is" ?,AM(B)
- ("of" ?,Ar(B)	; LATIN SMALL LETTER O WITH GRAVE
- ("OF" ?,AR(B)	; LATIN CAPITAL LETTER O WITH GRAVE
- ("Of" ?,AR(B)
- ("os" ?,As(B)	; LATIN SMALL LETTER O WITH ACUTE
- ("OS" ?,AS(B)	; LATIN CAPITAL LETTER O WITH ACUTE
- ("Os" ?,AS(B)
- ("oo" ?,At(B)	; LATIN SMALL LETTER O WITH CIRCUMFLEX
- ("OO" ?,AT(B)	; LATIN CAPITAL LETTER O WITH CIRCUMFLEX
- ("Oo" ?,AT(B)
- ("ox" ?,Au(B)	; LATIN SMALL LETTER O WITH TILDE
- ("OX" ?,AU(B)	; LATIN CAPITAL LETTER O WITH TILDE
- ("Ox" ?,AU(B)
- ("uf" ?,Ay(B)	; LATIN SMALL LETTER U WITH GRAVE
- ("UF" ?,AY(B)	; LATIN CAPITAL LETTER U WITH GRAVE
- ("Uf" ?,AY(B)
- ("us" ?,Az(B)	; LATIN SMALL LETTER U WITH ACUTE
- ("US" ?,AZ(B)	; LATIN CAPITAL LETTER U WITH ACUTE
- ("Us" ?,AZ(B)
- ("ys" ?,A}(B)	; LATIN SMALL LETTER Y WITH ACUTE
- ("YS" ?,A](B)	; LATIN CAPITAL LETTER Y WITH ACUTE
- ("Ys" ?,A](B)
- ("aw" ?,Bc(B)	; LATIN SMALL LETTER A WITH BREVE
- ("AW" ?,BC(B)	; LATIN CAPITAL LETTER A WITH BREVE
- ("Aw" ?,BC(B)
- ("ix" ?,D5(B)	; LATIN SMALL LETTER I WITH TILDE
- ("IX" ?,D%(B)	; LATIN CAPITAL LETTER I WITH TILDE
- ("Ix" ?,D%(B)
- ("ux" ?,D}(B)	; LATIN SMALL LETTER U WITH TILDE
- ("UX" ?,D](B)	; LATIN CAPITAL LETTER U WITH TILDE
- ("Ux" ?,D](B)
+ ("af" ?,1`(B)	; LATIN SMALL LETTER A WITH GRAVE
+ ("AF" ?,2`(B)	; LATIN CAPITAL LETTER A WITH GRAVE
+ ("Af" ?,2`(B)
+ ("as" ?,1a(B)	; LATIN SMALL LETTER A WITH ACUTE
+ ("AS" ?,2a(B)	; LATIN CAPITAL LETTER A WITH ACUTE
+ ("As" ?,2a(B)
+ ("aa" ?,1b(B)	; LATIN SMALL LETTER A WITH CIRCUMFLEX
+ ("AA" ?,2b(B)	; LATIN CAPITAL LETTER A WITH CIRCUMFLEX
+ ("Aa" ?,2b(B)
+ ("ax" ?,1c(B)	; LATIN SMALL LETTER A WITH TILDE
+ ("AX" ?,2c(B)	; LATIN CAPITAL LETTER A WITH TILDE
+ ("Ax" ?,2c(B)
+ ("ef" ?,1h(B)	; LATIN SMALL LETTER E WITH GRAVE
+ ("EF" ?,2h(B)	; LATIN CAPITAL LETTER E WITH GRAVE
+ ("Ef" ?,2h(B)
+ ("es" ?,1i(B)	; LATIN SMALL LETTER E WITH ACUTE
+ ("ES" ?,2i(B)	; LATIN CAPITAL LETTER E WITH ACUTE
+ ("Es" ?,2i(B)
+ ("ee" ?,1j(B)	; LATIN SMALL LETTER E WITH CIRCUMFLEX
+ ("EE" ?,2j(B)	; LATIN CAPITAL LETTER E WITH CIRCUMFLEX
+ ("Ee" ?,2j(B)
+ ("if" ?,1l(B)	; LATIN SMALL LETTER I WITH GRAVE
+ ("IF" ?,2l(B)	; LATIN CAPITAL LETTER I WITH GRAVE
+ ("If" ?,2l(B)
+ ("is" ?,1m(B)	; LATIN SMALL LETTER I WITH ACUTE
+ ("IS" ?,2m(B)	; LATIN CAPITAL LETTER I WITH ACUTE
+ ("Is" ?,2m(B)
+ ("of" ?,1r(B)	; LATIN SMALL LETTER O WITH GRAVE
+ ("OF" ?,2r(B)	; LATIN CAPITAL LETTER O WITH GRAVE
+ ("Of" ?,2r(B)
+ ("os" ?,1s(B)	; LATIN SMALL LETTER O WITH ACUTE
+ ("OS" ?,2s(B)	; LATIN CAPITAL LETTER O WITH ACUTE
+ ("Os" ?,2s(B)
+ ("oo" ?,1t(B)	; LATIN SMALL LETTER O WITH CIRCUMFLEX
+ ("OO" ?,2t(B)	; LATIN CAPITAL LETTER O WITH CIRCUMFLEX
+ ("Oo" ?,2t(B)
+ ("ox" ?,1u(B)	; LATIN SMALL LETTER O WITH TILDE
+ ("OX" ?,2u(B)	; LATIN CAPITAL LETTER O WITH TILDE
+ ("Ox" ?,2u(B)
+ ("uf" ?,1y(B)	; LATIN SMALL LETTER U WITH GRAVE
+ ("UF" ?,2y(B)	; LATIN CAPITAL LETTER U WITH GRAVE
+ ("Uf" ?,2y(B)
+ ("us" ?,1z(B)	; LATIN SMALL LETTER U WITH ACUTE
+ ("US" ?,2z(B)	; LATIN CAPITAL LETTER U WITH ACUTE
+ ("Us" ?,2z(B)
+ ("ys" ?,1}(B)	; LATIN SMALL LETTER Y WITH ACUTE
+ ("YS" ?,2}(B)	; LATIN CAPITAL LETTER Y WITH ACUTE
+ ("Ys" ?,2}(B)
+ ("aw" ?,1e(B)	; LATIN SMALL LETTER A WITH BREVE
+ ("AW" ?,2e(B)	; LATIN CAPITAL LETTER A WITH BREVE
+ ("Aw" ?,2e(B)
+ ("ix" ?,1n(B)	; LATIN SMALL LETTER I WITH TILDE
+ ("IX" ?,2n(B)	; LATIN CAPITAL LETTER I WITH TILDE
+ ("Ix" ?,2n(B)
+ ("ux" ?,1{(B)	; LATIN SMALL LETTER U WITH TILDE
+ ("UX" ?,2{(B)	; LATIN CAPITAL LETTER U WITH TILDE
+ ("Ux" ?,2{(B)
  ("ow" ?,1=(B)	; LATIN SMALL LETTER O WITH HORN
  ("OW" ?,2=(B)	; LATIN CAPITAL LETTER O WITH HORN
  ("Ow" ?,2=(B)
@@ -281,10 +281,10 @@ and postfix: Eee -> Ee, ajj -> aj, etc.
  ("yx" ?,1[(B)	; LATIN SMALL LETTER Y WITH TILDE
  ("YX" ?,2[(B)	; LATIN CAPITAL LETTER Y WITH TILDE
  ("Yx" ?,2[(B)
- ("dd" ?,Bp(B)	; LATIN SMALL LETTER D WITH STROKE
- ("DD" ?,BP(B)	; LATIN CAPITAL LETTER D WITH STROKE
- ("Dd" ?,BP(B)
-;("$$" ?$,1tK(B)	; U+20AB DONG SIGN
+ ("dd" ?,1p(B)	; LATIN SMALL LETTER D WITH STROKE
+ ("DD" ?,2p(B)	; LATIN CAPITAL LETTER D WITH STROKE
+ ("Dd" ?,2p(B)
+;("$$" ?$,1tK(B)	; U+20AB DONG SIGN (#### check)
 
  ("aff" ["aff"])
  ("AFF" ["AF"])
