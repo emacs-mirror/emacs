@@ -657,6 +657,9 @@ Underlined faces are displayed underlined if possible.  Other face
 attributes such as `overline', `strike-through', and `box' are ignored
 on terminals.
 
+The command-line options `-fg COLOR', `-bg COLOR', and `-rv' are now
+supported on character terminals.
+
 ** Sound support
 
 Emacs supports playing sound files on GNU/Linux and FreeBSD (Voxware
