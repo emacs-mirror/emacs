@@ -36,9 +36,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* True if an interval pointer is null, or is a Lisp_Buffer or
    Lisp_String pointer (meaning it points to the owner of this
    interval tree). */
-#define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL                       \
-			    || XTYPE ((Lisp_Object)(i)) == Lisp_Buffer \
-			    || XTYPE ((Lisp_Object)(i)) == Lisp_String)
+#define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL           \
+			    || BUFFERP ((Lisp_Object)(i)) \
+			    || STRINGP ((Lisp_Object)(i)))
 
 /* True if this interval has no right child. */
 #define NULL_RIGHT_CHILD(i) ((i)->right == NULL_INTERVAL)
