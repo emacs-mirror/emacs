@@ -358,23 +358,13 @@ qq:	toggle between `japanese-hankaku-kana' and `japanese-ascii'
 
 ;; Update Quail translation region while converting Hiragana to Katakana.
 (defun quail-japanese-katakana-update-translation (control-flag)
-  (cond ((eq control-flag t)
-	 (insert (japanese-katakana quail-current-str))
-	 (quail-terminate-translation))
-	((null control-flag)
-	 (insert (if quail-current-str
-		     (japanese-katakana quail-current-str)
-		   quail-current-key)))
-	(t				; i.e. (numberp control-flag)
-	 (cond ((= (aref quail-current-key 0) ?n)
-		(insert ?ン))
-	       ((= (aref quail-current-key 0) (aref quail-current-key 1))
-		(insert ?ッ))
-	       (t
-		(insert (aref quail-current-key 0))))
-	 (setq unread-command-events
-	       (list (aref quail-current-key control-flag)))
-	 (quail-terminate-translation))))
+  (setq control-flag
+	(quail-japanese-update-translation control-flag))
+  (if (or (and (stringp quail-current-str)
+	       (> (length quail-current-str) 0))
+	  (integerp quail-current-str))
+      (setq quail-current-str (japanese-katakana quail-current-str)))
+  control-flag)
 
 (quail-define-package 
  "japanese-katakana" "Japanese" "ア"
