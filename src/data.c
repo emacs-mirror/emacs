@@ -73,7 +73,7 @@ wrong_type_argument (predicate, value)
       value = Fsignal (Qwrong_type_argument, Fcons (predicate, Fcons (value, Qnil)));
       tem = call1 (predicate, value);
     }
-  while (NULL (tem));
+  while (NILP (tem));
   return value;
 }
 
@@ -140,7 +140,7 @@ DEFUN ("null", Fnull, Snull, 1, 1, 0, "T if OBJECT is nil.")
   (obj)
      Lisp_Object obj;
 {
-  if (NULL (obj))
+  if (NILP (obj))
     return Qt;
   return Qnil;
 }
@@ -167,7 +167,7 @@ DEFUN ("listp", Flistp, Slistp, 1, 1, 0, "T if OBJECT is a list.  This includes 
   (obj)
      Lisp_Object obj;
 {
-  if (XTYPE (obj) == Lisp_Cons || NULL (obj))
+  if (XTYPE (obj) == Lisp_Cons || NILP (obj))
     return Qt;
   return Qnil;
 }
@@ -176,7 +176,7 @@ DEFUN ("nlistp", Fnlistp, Snlistp, 1, 1, 0, "T if OBJECT is not a list.  Lists i
   (obj)
      Lisp_Object obj;
 {
-  if (XTYPE (obj) == Lisp_Cons || NULL (obj))
+  if (XTYPE (obj) == Lisp_Cons || NILP (obj))
     return Qnil;
   return Qt;
 }
@@ -222,7 +222,7 @@ DEFUN ("sequencep", Fsequencep, Ssequencep, 1, 1, 0,
   (obj)
      register Lisp_Object obj;
 {
-  if (CONSP (obj) || NULL (obj) ||
+  if (CONSP (obj) || NILP (obj) ||
       XTYPE (obj) == Lisp_Vector || XTYPE (obj) == Lisp_String)
     return Qt;
   return Qnil;
@@ -463,7 +463,7 @@ DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0, "Make SYMBOL's value be 
      register Lisp_Object sym;
 {
   CHECK_SYMBOL (sym, 0);
-  if (NULL (sym) || EQ (sym, Qt))
+  if (NILP (sym) || EQ (sym, Qt))
     return Fsignal (Qsetting_constant, Fcons (sym, Qnil));
   Fset (sym, Qunbound);
   return sym;
@@ -514,7 +514,7 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
      register Lisp_Object sym, newdef;
 {
   CHECK_SYMBOL (sym, 0);
-  if (!NULL (Vautoload_queue) && !EQ (XSYMBOL (sym)->function, Qunbound))
+  if (!NILP (Vautoload_queue) && !EQ (XSYMBOL (sym)->function, Qunbound))
     Vautoload_queue = Fcons (Fcons (sym, XSYMBOL (sym)->function),
 			     Vautoload_queue);
   XSYMBOL (sym)->function = newdef;
@@ -589,7 +589,7 @@ store_symval_forwarding (sym, valcontents, newval)
       break;
 
     case Lisp_Boolfwd:
-      *XINTPTR (valcontents) = NULL(newval) ? 0 : 1;
+      *XINTPTR (valcontents) = NILP(newval) ? 0 : 1;
       break;
 
     case Lisp_Objfwd:
@@ -635,12 +635,12 @@ swap_in_symval_forwarding (sym, valcontents)
   register Lisp_Object tem1;
   tem1 = XCONS (XCONS (valcontents)->cdr)->car;
 
-  if (NULL (tem1) || current_buffer != XBUFFER (tem1))
+  if (NILP (tem1) || current_buffer != XBUFFER (tem1))
     {
       tem1 = XCONS (XCONS (XCONS (valcontents)->cdr)->cdr)->car;
       Fsetcdr (tem1, do_symval_forwarding (XCONS (valcontents)->car));
       tem1 = assq_no_quit (sym, current_buffer->local_var_alist);
-      if (NULL (tem1))
+      if (NILP (tem1))
 	tem1 = XCONS (XCONS (valcontents)->cdr)->cdr;
       XCONS (XCONS (XCONS (valcontents)->cdr)->cdr)->car = tem1;
       XSET (XCONS (XCONS (valcontents)->cdr)->car, Lisp_Buffer, current_buffer);
@@ -716,7 +716,7 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
 #endif /* RTPC_REGISTER_BUG */
 
   CHECK_SYMBOL (sym, 0);
-  if (NULL (sym) || EQ (sym, Qt))
+  if (NILP (sym) || EQ (sym, Qt))
     return Fsignal (Qsetting_constant, Fcons (sym, Qnil));
   valcontents = XSYMBOL (sym)->value;
 
@@ -753,7 +753,7 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
           Fsetcdr (current_alist_element, do_symval_forwarding (XCONS (valcontents)->car));
 
 	  tem1 = Fassq (sym, current_buffer->local_var_alist);
-	  if (NULL (tem1))
+	  if (NILP (tem1))
 	    /* This buffer sees the default value still.
 	       If type is Lisp_Some_Buffer_Local_Value, set the default value.
 	       If type is Lisp_Buffer_Local_Value, give this buffer a local value
@@ -917,7 +917,7 @@ not have their own values for this variable.")
   register Lisp_Object val, sym;
   struct gcpro gcpro1;
 
-  if (NULL (args))
+  if (NILP (args))
     return Qnil;
 
   args_left = args;
@@ -930,7 +930,7 @@ not have their own values for this variable.")
       Fset_default (sym, val);
       args_left = Fcdr (Fcdr (args_left));
     }
-  while (!NULL (args_left));
+  while (!NILP (args_left));
 
   UNGCPRO;
   return val;
@@ -1014,7 +1014,7 @@ just as if the variable were set.")
     }
   /* Make sure this buffer has its own value of sym */
   tem = Fassq (sym, current_buffer->local_var_alist);
-  if (NULL (tem))
+  if (NILP (tem))
     {
       current_buffer->local_var_alist
         = Fcons (Fcons (sym, XCONS (XCONS (XCONS (XSYMBOL (sym)->value)->cdr)->cdr)->cdr),
@@ -1069,7 +1069,7 @@ From now on the default value will apply in this buffer.")
   /* Get rid of this buffer's alist element, if any */
 
   tem = Fassq (sym, current_buffer->local_var_alist);
-  if (!NULL (tem))
+  if (!NILP (tem))
     current_buffer->local_var_alist = Fdelq (tem, current_buffer->local_var_alist);
 
   /* Make sure symbol does not think it is set up for this buffer;
@@ -1933,6 +1933,7 @@ syms_of_data ()
   defsubr (&Slognot);
 }
 
+SIGTYPE
 arith_error (signo)
      int signo;
 {

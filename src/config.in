@@ -25,14 +25,14 @@ and this notice must be preserved on all copies.  */
    See the file ../share-lib/MACHINES for a list of systems and
    the names of the s- files to use for them.
    See s-template.h for documentation on writing s- files.  */
-#include "opsystem.h"
+#include "@opsystem@"
 
 /* The configuration script links machine.h to a m- file that
    describes the machine and system you use.
    See the file ../share-lib/MACHINES for a list of machines and
    the names of the m- files to use for them.
    See m-template.h for info on what m- files should define.  */
-#include "machine.h"
+#include "@machine@"
 
 /* Load in the conversion definitions if this system
    needs them and the source file being compiled has not
@@ -105,12 +105,6 @@ and this notice must be preserved on all copies.  */
 /* #define HIGHPRI */
 #endif
 
-/* support `getenv' and `setenv' in Emacs (unix only) */
-
-#ifndef MAINTAIN_ENVIRONMENT
-/* #define MAINTAIN_ENVIRONMENT */
-#endif
-
 /* Define LISP_FLOAT_TYPE if you want emacs to support floating-point
    numbers. */
 
@@ -169,4 +163,14 @@ and this notice must be preserved on all copies.  */
 #define GLYPH unsigned short
 #else
 #define GLYPH unsigned char
+#endif
+
+/* Define the return type of signal handlers if the s-xxx file
+   did not already do so.  */
+#ifndef SIGTYPE
+#ifdef __STDC__
+#define SIGTYPE void
+#else
+#define SIGTYPE int
+#endif
 #endif

@@ -213,3 +213,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Enable support for shared libraries in unexec.  */
 
 #define USG_SHARED_LIBRARIES
+
+/* On USG systems signal handlers return void */
+
+#define SIGTYPE void
+
