@@ -702,7 +702,9 @@ to get different commands to edit and resubmit."
 	  (or (equal newcmd (car command-history))
 	      (setq command-history (cons newcmd command-history)))
 	  (eval newcmd))
-      (ding))))
+      (if command-history
+	  (error "Argument %d is beyond length of command history" arg)
+	(error "There are no previous complex commands to repeat")))))
 
 (defvar minibuffer-history nil
   "Default minibuffer history list.
