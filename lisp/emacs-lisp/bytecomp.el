@@ -1330,7 +1330,7 @@ With argument, insert value in current buffer after the form."
        (erase-buffer)
        ;;	 (emacs-lisp-mode)
        (setq case-fold-search nil)
-       (and filename (byte-compile-insert-header filename))
+       (and filename (byte-compile-insert-header filename inbuffer outbuffer))
 
        ;; This is a kludge.  Some operating systems (OS/2, DOS) need to
        ;; write files containing binary information specially.
@@ -1361,59 +1361,61 @@ With argument, insert value in current buffer after the form."
 	(setq byte-compile-unresolved-functions nil))))
     outbuffer))
 
-(defun byte-compile-insert-header (filename)
-  (set-buffer outbuffer)
-  (goto-char 1)
-  ;;
-  ;; The magic number of .elc files is ";ELC", or 0x3B454C43.  After that is
-  ;; the file-format version number (18 or 19) as a byte, followed by some
-  ;; nulls.  The primary motivation for doing this is to get some binary
-  ;; characters up in the first line of the file so that `diff' will simply
-  ;; say "Binary files differ" instead of actually doing a diff of two .elc
-  ;; files.  An extra benefit is that you can add this to /etc/magic:
-  ;;
-  ;; 0	string		;ELC		GNU Emacs Lisp compiled file,
-  ;; >4	byte		x		version %d
-  ;;
-  (insert
-   ";ELC"
-   (if (byte-compile-version-cond byte-compile-compatibility) 18 19)
-   "\000\000\000\n"
-   )
-  (insert ";;; compiled by "
-	  (or (and (boundp 'user-mail-address) user-mail-address)
-	      (concat (user-login-name) "@" (system-name)))
-	  " on "
-	  (current-time-string) "\n;;; from file " filename "\n")
-  (insert ";;; emacs version " emacs-version ".\n")
-  (insert ";;; bytecomp version " byte-compile-version "\n;;; "
-	  (cond
-	   ((eq byte-optimize 'source) "source-level optimization only")
-	   ((eq byte-optimize 'byte) "byte-level optimization only")
-	   (byte-optimize "optimization is on")
-	   (t "optimization is off"))
-	  (if (byte-compile-version-cond byte-compile-compatibility)
-	      "; compiled with Emacs 18 compatibility.\n"
-	    ".\n"))
-  (if (not (byte-compile-version-cond byte-compile-compatibility))
-      (insert ";;; this file uses opcodes which do not exist in Emacs 18.\n"
-	      ;; Have to check if emacs-version is bound so that this works
-	      ;; in files loaded early in loadup.el.
-	      "\n(if (and (boundp 'emacs-version)\n"
-	      "\t (or (and (boundp 'epoch::version) epoch::version)\n"
-	      (if byte-compile-dynamic-docstrings
-		  "\t     (string-lessp emacs-version \"19.28.90\")))\n"
-		"\t     (string-lessp emacs-version \"19\")))\n")
-	      "    (error \"`"
-	      ;; prin1-to-string is used to quote backslashes.
-	      (substring (prin1-to-string (file-name-nondirectory filename))
-			 1 -1)
-	      (if byte-compile-dynamic-docstrings
-		  "' was compiled for Emacs 19.29 or later\"))\n\n"
-		"' was compiled for Emacs 19\"))\n\n"))
-    (insert "(or (boundp 'current-load-list) (setq current-load-list nil))\n"
-	    "\n")
-    ))
+(defun byte-compile-insert-header (filename inbuffer outbuffer)
+  (set-buffer inbuffer)
+  (let ((dynamic-docstrings byte-compile-dynamic-docstrings))
+    (set-buffer outbuffer)
+    (goto-char 1)
+    ;;
+    ;; The magic number of .elc files is ";ELC", or 0x3B454C43.  After that is
+    ;; the file-format version number (18 or 19) as a byte, followed by some
+    ;; nulls.  The primary motivation for doing this is to get some binary
+    ;; characters up in the first line of the file so that `diff' will simply
+    ;; say "Binary files differ" instead of actually doing a diff of two .elc
+    ;; files.  An extra benefit is that you can add this to /etc/magic:
+    ;;
+    ;; 0	string		;ELC		GNU Emacs Lisp compiled file,
+    ;; >4	byte		x		version %d
+    ;;
+    (insert
+     ";ELC"
+     (if (byte-compile-version-cond byte-compile-compatibility) 18 19)
+     "\000\000\000\n"
+     )
+    (insert ";;; compiled by "
+	    (or (and (boundp 'user-mail-address) user-mail-address)
+		(concat (user-login-name) "@" (system-name)))
+	    " on "
+	    (current-time-string) "\n;;; from file " filename "\n")
+    (insert ";;; emacs version " emacs-version ".\n")
+    (insert ";;; bytecomp version " byte-compile-version "\n;;; "
+	    (cond
+	     ((eq byte-optimize 'source) "source-level optimization only")
+	     ((eq byte-optimize 'byte) "byte-level optimization only")
+	     (byte-optimize "optimization is on")
+	     (t "optimization is off"))
+	    (if (byte-compile-version-cond byte-compile-compatibility)
+		"; compiled with Emacs 18 compatibility.\n"
+	      ".\n"))
+    (if (not (byte-compile-version-cond byte-compile-compatibility))
+	(insert ";;; this file uses opcodes which do not exist in Emacs 18.\n"
+		;; Have to check if emacs-version is bound so that this works
+		;; in files loaded early in loadup.el.
+		"\n(if (and (boundp 'emacs-version)\n"
+		"\t (or (and (boundp 'epoch::version) epoch::version)\n"
+		(if dynamic-docstrings
+		    "\t     (string-lessp emacs-version \"19.29\")))\n"
+		  "\t     (string-lessp emacs-version \"19\")))\n")
+		"    (error \"`"
+		;; prin1-to-string is used to quote backslashes.
+		(substring (prin1-to-string (file-name-nondirectory filename))
+			   1 -1)
+		(if dynamic-docstrings
+		    "' was compiled for Emacs 19.29 or later\"))\n\n"
+		  "' was compiled for Emacs 19\"))\n\n"))
+      (insert "(or (boundp 'current-load-list) (setq current-load-list nil))\n"
+	      "\n")
+      )))
 
 
 (defun byte-compile-output-file-form (form)
