@@ -101,11 +101,7 @@ such as `edebug-defun' to work with such inputs."
 This variable is buffer-local.")
 
 (defvar ielm-header 
-  (concat
-   "*** Welcome to IELM version "
-   (substring "$Revision: 1.14 $" 11 -2)
-   " ***  Type (describe-mode) for help.\n"
-   "IELM has ABSOLUTELY NO WARRANTY; type (describe-no-warranty) for details.\n")
+  "*** Welcome to IELM ***  Type (describe-mode) for help.\n"
   "Message to display when IELM is started.")
 
 (defvar ielm-map nil)
