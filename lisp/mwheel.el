@@ -93,7 +93,7 @@ set to the event sent when clicking on the mouse wheel button."
 (defcustom mouse-wheel-inhibit-click-time 0.35
   "Time in seconds to inhibit clicking on mouse wheel button after scroll."
   :group 'mouse
-  :type 'float)
+  :type 'number)
 
 (defcustom mouse-wheel-scroll-amount '(5 ((shift) . 1) ((control) . nil))
   "Amount to scroll windows by when spinning the mouse wheel.
