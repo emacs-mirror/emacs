@@ -2,11 +2,12 @@
 
 	* w32fns.c (DrawText): Kludge to avoid a redefinition on Windows
 	when including gif_lib.h.
-	(init_gif_functions): New function.
-	(gif_load): Sync with xfns.c version. Adjust colors for
-	Windows. Disable color table lookups. Call gif library functions
+	(init_gif_functions, init_tiff_functions): New functions.
+	(gif_load, tiff_load): Sync with xfns.c version. Adjust colors for
+	Windows. Disable color table lookups. Call library functions
 	through pointers determined at runtime.
-	(init_external_image_libraries): Try to load libungif.dll.
+	(init_external_image_libraries): Try to load libungif.dll and
+	libtiff.dll.
 
 2003-01-31  Kenichi Handa  <handa@m17n.org>
 
