@@ -186,7 +186,8 @@ codes for apostrophe and space.
 With prefix argument, enable European character display iff arg is positive.
 
 Normally, this function turns off `enable-multibyte-characters'
-for all Emacs buffers, because users who call this function
+for subsequently created Emacs buffers, and for `*scratch*.
+This is because users who call this function
 probably want to edit European characters in single-byte mode."
 
   ;; If the optional argument AUTO is non-nil, this function
@@ -206,8 +207,12 @@ probably want to edit European characters in single-byte mode."
 	  (set-terminal-coding-system nil)))
     ;; If the user does this explicitly,
     ;; turn off multibyte chars for more compatibility.
-    (or auto
-	(setq-default enable-multibyte-characters nil))
+    (unless auto
+      (setq-default enable-multibyte-characters nil)
+      (if (get-buffer "*scratch*")
+	  (with-current-buffer "*scratch*"
+	    (set-buffer-multibyte nil)
+	    (load "latin-1"))))
     (standard-display-8bit 160 255)
     (unless (or noninteractive (eq window-system 'x))
       ;; Send those codes literally to a non-X terminal.
