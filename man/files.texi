@@ -1344,7 +1344,7 @@ and create a branch from it.  @xref{Branches}.)
 
 @findex vc-diff
 @kindex C-x v =
-  But usually it is more convenient to compare two versions of the file,
+  It is usually more convenient to compare two versions of the file,
 with the command @kbd{C-x v =} (@code{vc-diff}).  Plain @kbd{C-x v =}
 compares the current buffer contents (saving them in the file if
 necessary) with the last checked-in version of the file.  @kbd{C-u C-x v
