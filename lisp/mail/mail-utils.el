@@ -75,7 +75,11 @@ Return a modified address list."
 	       (forward-char -1)
 	       (skip-chars-backward " \t")
 	       (delete-region (point)
-			      (save-excursion (forward-sexp 1) (point))))
+			      (save-excursion
+				(condition-case ()
+				    (forward-sexp 1)
+				  (error (goto-char (point-max))))
+				  (point))))
 	     (setq address (buffer-string))
 	     (erase-buffer))
 	 ;; Strip non-nested comments an easier way.
