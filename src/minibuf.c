@@ -332,7 +332,7 @@ Return (point-min) if current buffer is not a mini-buffer.  */)
 {
   /* This function is written to be most efficient when there's a prompt.  */
   Lisp_Object beg = make_number (BEGV);
-  Lisp_Object end = Ffield_end (beg, Qnil);
+  Lisp_Object end = Ffield_end (beg, Qnil, Qnil);
   
   if (XINT (end) == ZV && NILP (Fget_char_property (beg, Qfield, Qnil)))
     return beg;
