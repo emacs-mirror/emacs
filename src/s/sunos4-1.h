@@ -16,10 +16,11 @@
 
 /* Some systems do not run the Network Information Service, but have
    modified the shared C library to include resolver support without
-   also changing the C archive library (/usr/lib/libc.a).  To deal
-   with this, you may need to link with the resolver library; to do
-   that, copy the following definition to config.h.  */
-/* #define LIBS_SYSTEM -lresolv */
+   also changing the C archive library (/usr/lib/libc.a).  If we detect
+   the presence of res_init, use -lresolv to supplement libc.a.  */
+#ifdef HAVE_RES_INIT
+#define LIBS_SYSTEM -lresolv
+#endif
 
 /* Tell GNU malloc to compensate for a bug in localtime.  */
 #define SUNOS_LOCALTIME_BUG
