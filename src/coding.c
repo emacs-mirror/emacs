@@ -7599,8 +7599,7 @@ usage: (define-coding-system-internal ...)  */)
 	{
 	  int id = XINT (AREF (initial, 1));
 
-	  category = (((i & (CODING_ISO_FLAG_LOCKING_SHIFT
-			     | CODING_ISO_FLAG_SINGLE_SHIFT))
+	  category = (((i & CODING_ISO_FLAG_LOCKING_SHIFT)
 		       || EQ (args[coding_arg_charset_list], Qiso_2022)
 		       || id < 0)
 		      ? coding_category_iso_8_else
