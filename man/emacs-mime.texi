@@ -1,6 +1,6 @@
 \input texinfo                  @c -*-texinfo-*-
 
-@setfilename emacs-mime
+@setfilename ../emacs-mime
 @settitle Emacs MIME Manual
 @synindex fn cp
 @synindex vr cp
