@@ -245,7 +245,7 @@ msgcatch ()
 
 main ()
 {
-  int s, infd, fromlen;
+  int s, infd, fromlen, ioproc;
   key_t key;
   struct msgbuf * msgp =
     (struct msgbuf *) malloc (sizeof *msgp + BUFSIZ);
@@ -302,7 +302,25 @@ main ()
 	}
     }
 
-  /* This is executed in the child made by forking above.  */
+  /* This is executed in the child made by forking above.
+     Call it c1.  Make another process, ioproc.  */
+
+  ioproc = fork ();
+  if (ioproc == 0)
+    {
+      /* In process ioproc, wait for text from Emacs,
+	 and send it to the process c1.
+	 This way, c1 only has to wait for one source of input.  */
+      while (fgets (msgp->mtext, BUFSIZ, stdin))
+	{
+	  msgp->mtype = 1;
+	  msgsnd (s, msgp, strlen (msgp->mtext) + 1, 0);
+	}
+      exit (1);
+    }
+
+  /* In the process c1,
+     listen for messages from clients and pass them to Emacs.  */
   while (1)
     {
       if ((fromlen = msgrcv (s, msgp, BUFSIZ - 1, 1, 0)) < 0)
@@ -313,17 +331,30 @@ main ()
       else
         {
 	  msgctl (s, IPC_STAT, &msg_st);
+
+	  /* Distinguish whether the message came from a client, or from
+	     ioproc.  */
+	  if (msg_st.msg_lspid == ioproc)
+	    {
+	      char code[BUFSIZ];
+	      int inproc;
+
+	      /* Message from ioproc: tell a client we are done.  */
+	      msgp->mtext[strlen (msgp->mtext)-1] = 0;
+	      sscanf (msgp->mtext, "%s %d", code, &inproc);
+	      msgp->mtype = inproc;
+	      msgsnd (s, msgp, strlen (msgp->mtext) + 1, 0);
+	      continue;
+	    }
+
+	  /* This is a request from a client: copy to stdout
+	     so that Emacs will get it.  Include msg_lspid
+	     so server.el can tell us where to send the reply.  */
 	  strncpy (string, msgp->mtext, fromlen);
 	  string[fromlen] = 0;	/* make sure */
 	  /* Newline is part of string.. */
-	  printf ("Client: %d %s", s, string); 
+	  printf ("Client: %d %s", msg_st.msg_lspid, string);
 	  fflush (stdout);
-	  /* Now, wait for a wakeup */
-	  fgets (msgp->mtext, BUFSIZ, stdin);
-	  msgp->mtext[strlen (msgp->mtext)-1] = 0;
-	  /*	  strcpy (msgp->mtext, "done");*/
-	  msgp->mtype = msg_st.msg_lspid;
-	  msgsnd (s, msgp, strlen (msgp->mtext)+1, 0);
 	}
     }
 }
