@@ -163,6 +163,22 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
   (if (eq major-mode 'hexl-mode)
       (error "You are already in hexl mode")
 
+    (let ((modified (buffer-modified-p))
+	  (inhibit-read-only t)
+	  (original-point (1- (point)))
+	  max-address)
+      (and (eobp) (not (bobp))
+	   (setq original-point (1- original-point)))
+      (if (not (or (eq arg 1) (not arg)))
+	  ;; if no argument then we guess at hexl-max-address
+          (setq max-address (+ (* (/ (1- (buffer-size)) 68) 16) 15))
+        (setq max-address (1- (buffer-size)))
+        (hexlify-buffer)
+        (set-buffer-modified-p modified))
+      (make-local-variable 'hexl-max-address)
+      (setq hexl-max-address max-address)
+      (hexl-goto-address original-point))
+
     ;; We do not turn off the old major mode; instead we just
     ;; override most of it.  That way, we can restore it perfectly.
     (make-local-variable 'hexl-mode-old-local-map)
@@ -197,21 +213,7 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
 
     (make-local-hook 'change-major-mode-hook)
     (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t)
-
-    (make-local-variable 'hexl-max-address)
-
-    (let ((modified (buffer-modified-p))
-	  (inhibit-read-only t)
-	  (original-point (1- (point))))
-      (and (eobp) (not (bobp))
-	   (setq original-point (1- original-point)))
-      (if (not (or (eq arg 1) (not arg)))
-	  ;; if no argument then we guess at hexl-max-address
-          (setq hexl-max-address (+ (* (/ (1- (buffer-size)) 68) 16) 15))
-        (setq hexl-max-address (1- (buffer-size)))
-        (hexlify-buffer)
-        (set-buffer-modified-p modified)
-        (hexl-goto-address original-point)))))
+))
 
 (defun hexl-after-revert-hook ()
   (hexlify-buffer)
