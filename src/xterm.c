@@ -412,7 +412,6 @@ static void set_output_cursor P_ ((struct cursor_pos *));
 static struct glyph *x_y_to_hpos_vpos P_ ((struct window *, int, int,
 					   int *, int *, int *));
 static void note_mode_line_highlight P_ ((struct window *, int, int));
-static void x_check_font P_ ((struct frame *, XFontStruct *));
 static void note_mouse_highlight P_ ((struct frame *, int, int));
 static void note_tool_bar_highlight P_ ((struct frame *f, int, int));
 static void x_handle_tool_bar_click P_ ((struct frame *, XButtonEvent *));
@@ -1187,7 +1186,7 @@ x_per_char_metric (font, char2b)
     }
 
   return ((pcm == NULL
-	   || pcm->width == 0 && (pcm->rbearing - pcm->lbearing) == 0)
+	   || (pcm->width == 0 && (pcm->rbearing - pcm->lbearing) == 0))
 	  ? NULL : pcm);
 }
 
@@ -1613,7 +1612,10 @@ x_produce_stretch_glyph (it)
      struct it *it;
 {
   /* (space :width WIDTH :height HEIGHT.  */
-  extern Lisp_Object QCwidth, QCheight, QCascent, Qspace;
+#if GLYPH_DEBUG
+  extern Lisp_Object Qspace;
+#endif
+  extern Lisp_Object QCwidth, QCheight, QCascent;
   extern Lisp_Object QCrelative_width, QCrelative_height;
   extern Lisp_Object QCalign_to;
   Lisp_Object prop, plist;
@@ -2850,8 +2852,6 @@ x_get_glyph_overhangs (glyph, f, left, right)
      struct frame *f;
      int *left, *right;
 {
-  int c;
-  
   *left = *right = 0;
   
   if (glyph->type == CHAR_GLYPH)
@@ -3154,21 +3154,20 @@ x_draw_composite_glyph_string_foreground (s)
 
 #ifdef USE_X_TOOLKIT
 
-/* Allocate the color COLOR->pixel on the screen and display of
-   widget WIDGET in colormap CMAP.  If an exact match cannot be
-   allocated, try the nearest color available.  Value is non-zero
-   if successful.  This is called from lwlib.  */
+static struct frame *x_frame_of_widget P_ ((Widget));
 
-int
-x_alloc_nearest_color_for_widget (widget, cmap, color)
+
+/* Return the frame on which widget WIDGET is used.. Abort if frame
+   cannot be determined.  */
+
+struct frame *
+x_frame_of_widget (widget)
      Widget widget;
-     Colormap cmap;
-     XColor *color;
 {
-  struct frame *f;
   struct x_display_info *dpyinfo;
   Lisp_Object tail;
-
+  struct frame *f;
+  
   dpyinfo = x_display_info_for_display (XtDisplay (widget));
   
   /* Find the top-level shell of the widget.  Note that this function
@@ -3186,10 +3185,27 @@ x_alloc_nearest_color_for_widget (widget, cmap, color)
 	    (f->output_data.nothing != 1
 	     && FRAME_X_DISPLAY_INFO (f) == dpyinfo))
 	&& f->output_data.x->widget == widget)
-      return x_alloc_nearest_color (f, cmap, color);
+      return f;
 
   abort ();
 }
+
+
+/* Allocate the color COLOR->pixel on the screen and display of
+   widget WIDGET in colormap CMAP.  If an exact match cannot be
+   allocated, try the nearest color available.  Value is non-zero
+   if successful.  This is called from lwlib.  */
+
+int
+x_alloc_nearest_color_for_widget (widget, cmap, color)
+     Widget widget;
+     Colormap cmap;
+     XColor *color;
+{
+  struct frame *f = x_frame_of_widget (widget);
+  return x_alloc_nearest_color (f, cmap, color);
+}
+
 
 #endif /* USE_X_TOOLKIT */
 
@@ -3270,6 +3286,30 @@ x_copy_color (f, pixel)
   BLOCK_INPUT;
   XQueryColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), &color);
   XAllocColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), &color);
+  UNBLOCK_INPUT;
+#ifdef DEBUG_X_COLORS
+  register_color (pixel);
+#endif
+  return color.pixel;
+}
+
+
+/* Allocate color PIXEL on display DPY.  PIXEL must already be allocated.
+   It's necessary to do this instead of just using PIXEL directly to
+   get color reference counts right.  */
+
+unsigned long
+x_copy_dpy_color (dpy, cmap, pixel)
+     Display *dpy;
+     Colormap cmap;
+     unsigned long pixel;
+{
+  XColor color;
+
+  color.pixel = pixel;
+  BLOCK_INPUT;
+  XQueryColor (dpy, cmap, &color);
+  XAllocColor (dpy, cmap, &color);
   UNBLOCK_INPUT;
 #ifdef DEBUG_X_COLORS
   register_color (pixel);
@@ -3364,8 +3404,6 @@ x_setup_relief_color (f, relief, factor, delta, default_pixel)
   if (relief->gc
       && relief->allocated_p)
     {
-      /* If display has an immutable color map, freeing colors is not
-	 necessary and some servers don't allow it.  So don't do it.  */
       x_free_colors (f, &relief->pixel, 1);
       relief->allocated_p = 0;
     }
@@ -4383,7 +4421,7 @@ x_set_glyph_string_background_width (s, start, last_x)
 #define BUILD_CHAR_GLYPH_STRINGS(W, ROW, AREA, START, END, HEAD, TAIL, HL, X, LAST_X, OVERLAPS_P) \
      do									   \
        {								   \
-	 int c, charset, face_id;					   \
+	 int c, face_id;						   \
 	 XChar2b *char2b;						   \
 									   \
 	 c = (ROW)->glyphs[AREA][START].u.ch;				   \
@@ -6131,7 +6169,7 @@ x_y_to_hpos_vpos (w, x, y, hpos, vpos, area)
      int *hpos, *vpos, *area;
 {
   struct glyph *glyph, *end;
-  struct glyph_row *row;
+  struct glyph_row *row = NULL;
   int x0, i, left_area_width;
 
   /* Find row containing Y.  Give up if some row is not enabled.  */
@@ -7885,7 +7923,7 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
 	  {
 #ifdef HAVE_XAW3D
 	    ScrollbarWidget sb = (ScrollbarWidget) widget;
-	    int scroll_mode;
+	    int scroll_mode = 0;
 	    
 	    /* `scroll_mode' only exists with Xaw3d + ARROW_SCROLLBAR.  */
 	    if (xaw3d_arrow_scroll)
@@ -10967,7 +11005,6 @@ x_new_fontset (f, fontsetname)
 {
   int fontset = fs_query_fontset (build_string (fontsetname), 0);
   Lisp_Object result;
-  char *fontname;
 
   if (fontset < 0)
     return Qnil;
@@ -11678,6 +11715,7 @@ x_make_frame_visible (f)
 	    /* It could be confusing if a real alarm arrives while
 	       processing the fake one.  Turn it off and let the
 	       handler reset it.  */
+	    extern void poll_for_input_1 P_ ((void));
 	    int old_poll_suppress_count = poll_suppress_count;
 	    poll_suppress_count = 1;
 	    poll_for_input_1 ();
@@ -11909,6 +11947,21 @@ x_destroy_window (f)
       free_frame_menubar (f);
 #endif /* USE_X_TOOLKIT */
 
+      unload_color (f, f->output_data.x->foreground_pixel);
+      unload_color (f, f->output_data.x->background_pixel);
+      unload_color (f, f->output_data.x->cursor_pixel);
+      unload_color (f, f->output_data.x->cursor_foreground_pixel);
+      unload_color (f, f->output_data.x->border_pixel);
+      unload_color (f, f->output_data.x->mouse_pixel);
+      if (f->output_data.x->scroll_bar_background_pixel != -1)
+	unload_color (f, f->output_data.x->scroll_bar_background_pixel);
+      if (f->output_data.x->scroll_bar_foreground_pixel != -1)
+	unload_color (f, f->output_data.x->scroll_bar_foreground_pixel);
+      if (f->output_data.x->white_relief.allocated_p)
+	unload_color (f, f->output_data.x->white_relief.pixel);
+      if (f->output_data.x->black_relief.allocated_p)
+	unload_color (f, f->output_data.x->black_relief.pixel);
+      
       free_frame_faces (f);
       XFlush (FRAME_X_DISPLAY (f));
     }
@@ -12226,7 +12279,7 @@ x_list_fonts (f, pattern, size, maxnames)
   for (; CONSP (patterns); patterns = XCDR (patterns))
     {
       int num_fonts;
-      char **names;
+      char **names = NULL;
 
       pattern = XCAR (patterns);
       /* See if we cached the result for this particular query.
