@@ -1,5 +1,5 @@
 ;;; reftex-parse.el - Parser Functions for RefTeX
-;;; Version: 4.5
+;;; Version: 4.6
 ;;;
 ;;; See main file reftex.el for licensing information
 
@@ -355,8 +355,11 @@ of master file."
   ;; Carefull: This function expects the match-data to be still in place!
   (let* ((marker (set-marker (make-marker) (1- (match-beginning 3))))
          (macro (reftex-match-string 3))
-         (level (cdr (assoc macro reftex-section-levels-all)))
-         (star (= ?* (char-after (match-end 3))))
+	 (level-exp (cdr (assoc macro reftex-section-levels-all)))
+         (level (if (symbolp level-exp)
+		    (save-match-data (funcall level-exp))
+		  level-exp))
+	 (star (= ?* (char-after (match-end 3))))
 	 (unnumbered (or star (< level 0)))
 	 (level (abs level))
          (section-number (reftex-section-number level unnumbered))
@@ -927,7 +930,7 @@ of master file."
 				    (min (+ (point) 150) (point-max))))))
 
 ;; Variable holding the vector with section numbers
-(defvar reftex-section-numbers [0 0 0 0 0 0 0 0])
+(defvar reftex-section-numbers (make-vector reftex-max-section-depth 0))
 
 (defun reftex-init-section-numbers (&optional toc-entry appendix)
   ;; Initialize the section numbers with zeros or with what is found
