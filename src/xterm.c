@@ -161,7 +161,7 @@ static FONT_TYPE *icon_font_info;
 /* Stuff for dealing with the main icon title. */
 
 extern Lisp_Object Vcommand_line_args;
-char *hostname, *id_name, *invocation_name;
+Lisp_Object invocation_name;
 
 /* This is the X connection that we are using.  */
 
@@ -1525,50 +1525,45 @@ static char *events[] =
   "0: ERROR!",
   "1: REPLY",
   "KeyPress",
-   "KeyRelease",
-   "ButtonPress",
-   "ButtonRelease",
-   "MotionNotify",
-   "EnterNotify",
-   "LeaveNotify",
-   "FocusIn",
-   "FocusOut",
-   "KeymapNotify",
-   "Expose",
-   "GraphicsExpose",
-   "NoExpose",
-   "VisibilityNotify",
-   "CreateNotify",
-   "DestroyNotify",
-   "UnmapNotify",
-   "MapNotify",
-   "MapRequest",
-   "ReparentNotify",
-   "ConfigureNotify",
-   "ConfigureRequest",
-   "GravityNotify",
-   "ResizeRequest",
-   "CirculateNotify",
-   "CirculateRequest",
-   "PropertyNotify",
-   "SelectionClear",
-   "SelectionRequest",
-   "SelectionNotify",
-   "ColormapNotify",
-   "ClientMessage",
-   "MappingNotify",
-   "LASTEvent"
+  "KeyRelease",
+  "ButtonPress",
+  "ButtonRelease",
+  "MotionNotify",
+  "EnterNotify",
+  "LeaveNotify",
+  "FocusIn",
+  "FocusOut",
+  "KeymapNotify",
+  "Expose",
+  "GraphicsExpose",
+  "NoExpose",
+  "VisibilityNotify",
+  "CreateNotify",
+  "DestroyNotify",
+  "UnmapNotify",
+  "MapNotify",
+  "MapRequest",
+  "ReparentNotify",
+  "ConfigureNotify",
+  "ConfigureRequest",
+  "GravityNotify",
+  "ResizeRequest",
+  "CirculateNotify",
+  "CirculateRequest",
+  "PropertyNotify",
+  "SelectionClear",
+  "SelectionRequest",
+  "SelectionNotify",
+  "ColormapNotify",
+  "ClientMessage",
+  "MappingNotify",
+  "LASTEvent"
 };
 #else  /* X10 */
 #define XEvent XKeyPressedEvent
 #endif /* HAVE_X11 */ 
 
 /* Symbols returned in the input stream to indicate various X events.  */
-Lisp_Object Qmapped_screen;
-Lisp_Object Qunmapped_screen;
-Lisp_Object Qexited_scrollbar;
-Lisp_Object Qexited_window;
-Lisp_Object Qredraw_screen;
 Lisp_Object Qmouse_click;
 Lisp_Object Qscrollbar_click;
 
@@ -1804,12 +1799,17 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 				      &keysym,
 				      &status);
 
+	      /* Strip off the vendor-specific keysym bit, and take a shot
+		 at recognizing the codes.  HP servers have extra keysyms
+		 that fit into the MiscFunctionKey category.  */
+	      keysym &= ~(1<<28);
+
 	      if (numchars > 1)
 		{
-		  if (IsCursorKey (keysym)          /* >= 0xff50  < 0xff60 */
-		      || IsMiscFunctionKey (keysym) /* >= 0xff60  < 0xff80 */
-		      || IsKeypadKey (keysym) /* >= 0xff80  <= 0xffbd */
-		      || IsFunctionKey (keysym)) /* >= 0xffbe  <= 0xffe0 */
+		  if (IsCursorKey (keysym)          /* 0xff50 <= x < 0xff60 */
+		      || IsMiscFunctionKey (keysym) /* 0xff60 <= x < 0xff80 */
+		      || IsKeypadKey (keysym)       /* 0xff80 <= x < 0xffbe */
+		      || IsFunctionKey (keysym))    /* 0xffbe <= x < 0xffe1 */
 		    {
 		      bufp->kind = non_ascii_keystroke;
 		      bufp->code = (unsigned) keysym - 0xff50;
@@ -2647,10 +2647,6 @@ x_text_icon (s, icon_name)
   char *X_DefaultValue;
   Bitmap b1;
 
-#if 0  /* This doesn't seem to be used, but I can't quite believe it.  */
-  static Pixmap grey_pixmap;
-#endif
-
 #ifndef WhitePixel
 #define WhitePixel 1
 #endif
@@ -2665,7 +2661,9 @@ x_text_icon (s, icon_name)
 
   if (icon_font_info == 0)
     icon_font_info
-      = XGetFont (XGetDefault (XDISPLAY invocation_name, "BodyFont"));
+      = XGetFont (XGetDefault (XDISPLAY
+			       (char *) XSTRING (invocation_name)->data,
+			       "BodyFont"));
 
 #ifdef HAVE_X11
   if (icon_name)
@@ -3566,19 +3564,6 @@ x_wm_set_icon_position (s, icon_x, icon_y)
 }
 
 
-static void
-init_input_symbols ()
-{
-  Qmapped_screen = intern ("mapped-screen");
-  Qunmapped_screen = intern ("unmapped-screen");
-  Qexited_scrollbar = intern ("exited-scrollbar");
-  Qexited_window = intern ("exited-window");
-  Qredraw_screen = intern ("redraw-screen");
-  Qmouse_moved = intern ("mouse-moved");
-  Qmouse_click = intern ("mouse-click");
-  Qscrollbar_click = intern ("scrollbar-click");
-}
-
 void
 x_term_init (display_name)
      char *display_name;
@@ -3598,37 +3583,11 @@ x_term_init (display_name)
 
 #ifdef HAVE_X11
   {
-    int hostname_size = MAXHOSTNAMELEN + 1;
-
-    hostname = (char *) xmalloc (hostname_size);
-
 #if 0
     XSetAfterFunction (x_current_display, x_trace_wire);
 #endif
 
-    invocation_name = (char *)
-      XSTRING (Ffile_name_nondirectory (Fcar (Vcommand_line_args)))->data;
-
-    /* Try to get the host name; if the buffer is too short, try
-       again.  Apparently, the only indication gethostname gives of
-       whether the buffer was large enough is the presence or absence
-       of a '\0' in the string.  Eech.  */
-    for (;;)
-      {
-	gethostname (hostname, hostname_size - 1);
-	hostname[hostname_size - 1] = '\0';
-
-	/* Was the buffer large enough for gethostname to store the '\0'?  */
-	if (strlen (hostname) < hostname_size - 1)
-	  break;
-
-	hostname_size <<= 1;
-	hostname = (char *) xrealloc (hostname, hostname_size);
-      }
-    id_name = (char *) xmalloc (strlen (invocation_name)
-				+ strlen (hostname)
-				+ 2);
-    sprintf (id_name, "%s@%s", invocation_name, hostname);
+    invocation_name = Ffile_name_nondirectory (Fcar (Vcommand_line_args));
   }
   
   dup2 (ConnectionNumber (x_current_display), 0);
@@ -3692,8 +3651,6 @@ x_term_init (display_name)
 				   off the bottom */
   baud_rate = 19200;
 
-  init_input_symbols ();
-
   XHandleError (x_error_handler);
   XHandleIOError (x_error_handler);
 
@@ -3703,6 +3660,17 @@ x_term_init (display_name)
 #endif /* SIGWINCH */
 
   signal (SIGPIPE, x_error_handler);
+}
+
+void
+syms_of_xterm ()
+{
+  staticpro (&invocation_name);
+  invocation_name = Qnil;
+
+  Qmouse_moved = intern ("mouse-moved");
+  Qmouse_click = intern ("mouse-click");
+  Qscrollbar_click = intern ("scrollbar-click");
 }
 #endif /* HAVE_X11 */
 #endif /* HAVE_X_WINDOWS */
