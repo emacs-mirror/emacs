@@ -1,5 +1,7 @@
 2001-04-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* fns.c (Fcompare_strings): Fix return values.
+
 	* window.c (window_scroll): Change the meaning of N to mean
 	N screen-fulls or N lines.
 	(window_scroll_pixel_based, window_scroll_line_based)
