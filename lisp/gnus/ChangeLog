@@ -1,3 +1,7 @@
+2000-11-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* gnus-win.el (gnus-configure-windows): switch-to-buffer -> set-buffer.
+
 2000-11-21  Dave Love  <fx@gnu.org>
 
 	* gnus-art.el (gnus-mime-button-map): Don't inherit from
