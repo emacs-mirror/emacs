@@ -1527,7 +1527,6 @@ int
 emacs_mule_char (coding, src, nbytes, nchars)
      struct coding_system *coding;
      unsigned char *src;
-     int composition;
      int *nbytes, *nchars;
 {
   unsigned char *src_end = coding->source + coding->src_bytes;
