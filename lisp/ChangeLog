@@ -1,5 +1,7 @@
 2001-11-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* help-fns.el: Renamed from help-funs.el.
+
 	* startup.el (command-line-1): Don't try to call process-list if
 	it is not fboundp.
 
