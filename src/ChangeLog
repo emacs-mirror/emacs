@@ -7,6 +7,12 @@
 
 2000-12-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (update_window): If do_mouse_tracking is non-nil,
+	don't interrupt the update for pending input initially, i.e.
+	update at least some lines.
+
+	* keyboard.c (do_mouse_tracking): Make externally visible.
+	
 	* xterm.c (x_term_init): Declare gray_bitmap_bits as `extern char *'.
 
 	* xfns.c (gray_bitmap_bits): Declare `char *'.
