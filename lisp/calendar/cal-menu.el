@@ -120,7 +120,7 @@
 (define-key calendar-mode-map [menu-bar goto beginning-of-week]
   '("Beginning of week" . calendar-beginning-of-week))
 (define-key calendar-mode-map [menu-bar goto today]
-  '("Today" . calendar-current-month))
+  '("Today" . calendar-goto-today))
 
 
 (define-key calendar-mode-map [menu-bar goto mayan prev-rnd]
