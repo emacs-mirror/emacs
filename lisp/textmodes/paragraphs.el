@@ -156,9 +156,9 @@ to which the end of the previous line belongs, or the end of the buffer."
 				   (equal ?^ (aref paragraph-start 0)))
 			      (substring paragraph-start 1)
 			    paragraph-start))
-	 (paragraph-separate (if (and (not (equal "" paragraph-start))
+	 (paragraph-separate (if (and (not (equal "" paragraph-separate))
 				      (equal ?^ (aref paragraph-separate 0)))
-			      (substring paragraph-separate 1)
+				 (substring paragraph-separate 1)
 			    paragraph-separate))
 	 (paragraph-separate
 	  (if fill-prefix-regexp
