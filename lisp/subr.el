@@ -708,8 +708,9 @@ Like the function `insert' except that any argument that is a number
 is converted into a string by expressing it in decimal."
   (dolist (el args)
     (insert (if (integerp el) (number-to-string el) el))))
-
-(make-obsolete 'insert-string 'insert "21.3")
+(make-obsolete 'insert-string 'insert "21.4")
+(defun makehash (&optional test) (make-hash-table :test (or test 'eql)))
+(make-obsolete 'makehash 'make-hash-table "21.4")
 
 ;; Some programs still use this as a function.
 (defun baud-rate ()
