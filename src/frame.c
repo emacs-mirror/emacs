@@ -2189,6 +2189,7 @@ but that the idea of the actual height of the frame should not be changed.")
     {
       if (XINT (lines) != f->height)
 	x_set_window_size (f, 1, f->width, XINT (lines));
+      do_pending_window_change ();
     }
   else
 #endif
@@ -2219,6 +2220,7 @@ but that the idea of the actual width of the frame should not be changed.")
     {
       if (XINT (cols) != f->width)
 	x_set_window_size (f, 1, XINT (cols), f->height);
+      do_pending_window_change ();
     }
   else
 #endif
@@ -2246,6 +2248,7 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
       if (XINT (rows) != f->height || XINT (cols) != f->width
 	  || FRAME_NEW_HEIGHT (f) || FRAME_NEW_WIDTH (f))
 	x_set_window_size (f, 1, XINT (cols), XINT (rows));
+      do_pending_window_change ();
     }
   else
 #endif
