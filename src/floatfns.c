@@ -673,7 +673,7 @@ This is the same as the exponent of a float.")
      Lisp_Object arg;
 {
   Lisp_Object val;
-  int value;
+  EMACS_INT value;
   double f = extract_float (arg);
 
   if (f == 0.0)
