@@ -212,6 +212,35 @@ Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
   exit (0);
 }
 
+/* Like malloc but get fatal error if memory is exhausted.  */
+
+long *
+xmalloc (size)
+     unsigned int size;
+{
+  long *result = (long *) malloc (size);
+  if (result == NULL)
+    {
+      perror ("malloc");
+      exit (1);
+    }
+  return result;
+}
+
+/* Like strdup but get a fatal error if memory is exhausted. */
+
+char *
+xstrdup (const char *s)
+{
+  char *result = strdup (s);
+  if (result == NULL)
+    {
+      perror ("strdup");
+      exit (1);
+    }
+  return result;
+}
+
 /* In STR, insert a & before each &, each space, each newline, and
    any initial -.  Change spaces to underscores, too, so that the
    return value never contains a space.
@@ -223,7 +252,7 @@ quote_argument (str, stream)
      char *str;
      FILE *stream;
 {
-  char *copy = (char *) malloc (strlen (str) * 2 + 1);
+  char *copy = (char *) xmalloc (strlen (str) * 2 + 1);
   char *p, *q;
 
   p = str;
@@ -291,20 +320,6 @@ unquote_argument (str)
   return str;
 }
 
-/* Like malloc but get fatal error if memory is exhausted.  */
-
-long *
-xmalloc (size)
-     unsigned int size;
-{
-  long *result = (long *) malloc (size);
-  if (result == NULL)
-  {
-    perror ("malloc");
-    exit (1);
-  }
-  return result;
-}
 
 /*
   Try to run a different command, or --if no alternate editor is
@@ -610,11 +625,11 @@ main (argc, argv)
 	 /* `stat' failed */
 	 if (saved_errno == ENOENT)
 	   fprintf (stderr,
-		    "%s: Can't find socket; have you started the server?\n\
+		    "%s: can't find socket; have you started the server?\n\
 To start the server in Emacs, type \"M-x server-start\".\n",
 		    argv[0]);
 	 else
-	   fprintf (stderr, "%s: Can't stat %s: %s\n",
+	   fprintf (stderr, "%s: can't stat %s: %s\n",
 		    argv[0], server.sun_path, strerror (saved_errno));
 	 fail ();
 	 break;
@@ -629,7 +644,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
       fail ();
     }
 
-  /* We use the stream OUT to send our command to the server.  */
+  /* We use the stream OUT to send our commands to the server.  */
   if ((out = fdopen (s, "r+")) == NULL)
     {
       fprintf (stderr, "%s: ", argv[0]);
@@ -637,7 +652,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
       fail ();
     }
 
-  /* We use the stream IN to read the response.
+  /* We use the stream IN to read the responses.
      We used to use just one stream for both output and input
      on the socket, but reversing direction works nonportably:
      on some systems, the output appears as the first input;
@@ -660,7 +675,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
 
 #ifdef HAVE_GETCWD
       fprintf (stderr, "%s: %s (%s)\n", argv[0],
-	       "Cannot get current working directory", strerror (errno));
+	       "cannot get current working directory", strerror (errno));
 #else
       fprintf (stderr, "%s: %s (%s)\n", argv[0], string, strerror (errno));
 #endif
@@ -669,6 +684,28 @@ To start the server in Emacs, type \"M-x server-start\".\n",
 
   /* First of all, send our version number for verification. */
   fprintf (out, "-version %s ", VERSION);
+
+  /* Send over our environment. */
+  {
+    extern char **environ;
+    int i;
+    for (i = 0; environ[i]; i++)
+      {
+        char *name = xstrdup (environ[i]);
+        char *value = strchr (name, '=');
+        if (value && strlen (value) > 1)
+          {
+            *value++ = 0;
+            fprintf (out, "-env ");
+            quote_argument (name, out);
+            fprintf (out, " ");
+            quote_argument (value, out);
+            fprintf (out, " ");
+            fflush (out);
+          }
+        free (name);
+      }
+  }
 
   if (nowait)
     fprintf (out, "-nowait ");
