@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.216 1998/04/04 05:22:37 rms Exp spiegel $
+;; $Id: vc.el,v 1.217 1998/04/05 18:43:15 spiegel Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -387,6 +387,10 @@ If nil, VC itself computes this value when it is first needed."
 (defun vc-trunk-p (rev)
   ;; return t if REV is a revision on the trunk
   (not (eq nil (string-match "\\`[0-9]+\\.[0-9]+\\'" rev))))
+
+(defun vc-branch-p (rev)
+  ;; return t if REV is a branch revision
+  (not (eq nil (string-match "\\`[0-9]+\\(\\.[0-9]+\\.[0-9]+\\)*\\'" rev))))
 
 (defun vc-branch-part (rev)
   ;; return the branch part of a revision number REV
@@ -1457,7 +1461,51 @@ the variable `vc-header-alist'."
     (vc-restore-buffer-context context)))
 
 ;;;###autoload
-(defun vc-resolve-conflicts ()
+(defun vc-merge ()
+  (interactive)
+  (vc-ensure-vc-buffer)
+  (vc-buffer-sync)
+  (let* ((file buffer-file-name)
+	 (backend (vc-backend file))
+	 first-version second-version locking-user)
+    (if (eq backend 'SCCS)
+	(error "Sorry, merging is not implemented for SCCS")
+      (setq locking-user (vc-locking-user file))
+      (if (eq (vc-checkout-model file) 'manual)
+	  (if (not locking-user)
+	      (if (not (y-or-n-p 
+			(format "File must be %s for merging.  %s now? "
+				(if (eq backend 'RCS) "locked" "writable")
+				(if (eq backend 'RCS) "Lock" "Check out"))))
+		  (error "Merge aborted")
+		(vc-checkout file t))
+	    (if (not (string= locking-user (vc-user-login-name)))
+		(error "File is locked by %s" locking-user))))
+      (setq first-version (read-string "Branch or version to merge from: "))
+      (if (and (>= (elt first-version 0) ?0)
+	       (<= (elt first-version 0) ?9))
+	  (if (not (vc-branch-p first-version))
+	      (setq second-version 
+		    (read-string "Second version: " 
+				 (concat (vc-branch-part first-version) ".")))
+	    ;; We want to merge an entire branch.  Set versions
+	    ;; accordingly, so that vc-backend-merge understands us.
+	    (setq second-version first-version)
+	    ;; first-version must be the starting point of the branch
+	    (setq first-version (vc-branch-part first-version))))
+      (let ((status (vc-backend-merge file first-version second-version)))
+	(if (and (eq (vc-checkout-model file) 'implicit)
+		 (not (vc-locking-user file)))
+	    (vc-file-setprop file 'vc-locking-user nil))
+	(vc-resynch-buffer file t t)
+	(if (not (zerop status))
+	    (if (y-or-n-p "Conflicts detected.  Resolve them now? ")
+		(vc-resolve-conflicts "WORKFILE" "MERGE SOURCE")
+	      (message "File contains conflict markers"))
+	  (message "Merge successful"))))))
+
+;;;###autoload
+(defun vc-resolve-conflicts (&optional name-A name-B)
   "Invoke ediff to resolve conflicts in the current buffer.
 The conflicts must be marked with rcsmerge conflict markers."
   (interactive)
@@ -1465,9 +1513,11 @@ The conflicts must be marked with rcsmerge conflict markers."
   (let* ((found nil)
          (file-name (file-name-nondirectory buffer-file-name))
 	 (your-buffer   (generate-new-buffer 
-                         (concat "*" file-name " WORKFILE*")))
+                         (concat "*" file-name 
+				 " " (or name-A "WORKFILE") "*")))
 	 (other-buffer  (generate-new-buffer 
-                         (concat "*" file-name " CHECKED-IN*")))
+                         (concat "*" file-name 
+				 " " (or name-B "CHECKED-IN") "*")))
          (result-buffer (current-buffer)))
     (save-excursion 
       (set-buffer your-buffer)
@@ -2801,6 +2851,32 @@ THRESHOLD, nil otherwise"
            (pop-to-buffer "*vc*")
            (error "Couldn't analyze cvs update result"))))
     (message "Merging changes into %s...done" file)))
+
+(defun vc-backend-merge (file first-version &optional second-version)
+  ;; Merge the changes between FIRST-VERSION and SECOND-VERSION into
+  ;; the current working copy of FILE.  It is assumed that FILE is
+  ;; locked and writable (vc-merge ensures this).
+  (vc-backend-dispatch file
+   ;; SCCS
+   (error "Sorry, merging is not implemented for SCCS")
+   ;; RCS
+   (vc-do-command nil 1 "rcsmerge" file 'MASTER
+		  "-kk" ;; ignore keyword conflicts
+		  (concat "-r" first-version)
+		  (if second-version (concat "-r" second-version)))
+   ;; CVS
+   (progn
+     (vc-do-command nil 0 "cvs" file 'WORKFILE
+		    "update" "-kk"
+		    (concat "-j" first-version)
+		    (concat "-j" second-version))
+     (save-excursion
+       (set-buffer (get-buffer "*vc*"))
+       (goto-char (point-min))
+       (if (re-search-forward "conflicts during merge" nil t)
+	   1  ;; signal error
+	 0  ;; signal success
+	 )))))
 
 (defun vc-check-headers ()
   "Check if the current file has any headers in it."
