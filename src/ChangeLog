@@ -1,3 +1,8 @@
+2004-12-23  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c (__WIN32__) [HAVE_NTGUI]: Define for correct behaviour
+	of JPEG library.
+
 2004-12-22  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs.c (main): If batch mode, set Vundo_outer_limit to nil.
