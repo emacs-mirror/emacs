@@ -89,3 +89,11 @@ Boston, MA 02111-1307, USA.  */
 #if (defined (__NetBSD__) || defined (__OpenBSD__)) && defined (__ELF__)
 #define HAVE_TEXT_START
 #endif
+
+/* NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says this is needed
+   For MkLinux/LinuxPPC.  */
+
+#ifdef LINUX
+#define LINKER $(CC) -nostdlib
+#define LD_SWITCH_MACHINE -Xlinker -m -Xlinker elf32ppc
+#endif
