@@ -153,7 +153,7 @@ echo "Making links to \`src'."
  echo "  (If we can't link gmalloc.c, that's okay.)"
  ln [a-zA-Z]*.c ../${tempdir}/src
  ## Might be a symlink to a file on another filesystem.
- test -f ../${tempdir}/src || cp gmalloc.c ../${tempdir}/src
+ test -f ../${tempdir}/src/gmalloc.c || cp gmalloc.c ../${tempdir}/src
  ln [a-zA-Z]*.h ../${tempdir}/src
  ln [a-zA-Z]*.s ../${tempdir}/src
  ln README Makefile.in ymakefile ChangeLog config.h.in paths.h.in \
