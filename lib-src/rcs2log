@@ -2,7 +2,7 @@
 
 # RCS to ChangeLog generator
 
-# Generate a change log prefix from RCS/* and the existing ChangeLog (if any).
+# Generate a change log prefix from RCS files and the ChangeLog (if any).
 # Output the new prefix to standard output.
 # You can edit this prefix by hand, and then prepend it to ChangeLog.
 
@@ -12,7 +12,7 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.13 1993/08/09 22:06:00 eggert Exp eggert $
+# $Id: rcs2log,v 1.13.1.1 1993/09/24 00:54:33 eggert Exp $
 
 # Copyright 1992, 1993 Free Software Foundation, Inc.
 
@@ -36,17 +36,41 @@ nl='
 # Parse options.
 
 # defaults
+: ${TMPDIR=/tmp}
+hostname= # name of local host (if empty, will deduce it later)
 indent=8 # indent of log line
+initialize_fullname= # awk assignments to set up fullname array
+initialize_mailaddr= # awk assignments to set up mailaddr array
 length=79 # suggested max width of log line
+logins= # login names for people we know fullnames and mailaddresses of
+loginsout= # temporary file holding sorted logins
+rlog_options= # options to pass to rlog
 tabwidth=8 # width of horizontal tab
 
 while :
 do
 	case $1 in
 	-i)	indent=${2?};;
+	-h)	hostname=${2?};;
 	-l)	length=${2?};;
+	-n)	logins=$logins$nl${2?}
+		loginsout=$TMPDIR/rcs2log$$l
+		case $2${3?}${4?} in
+		*\"* | *\\* | *"$nl"*)
+			echo >&2 "$0: -n '$2' '$3' '$4': special characters not allowed"
+			exit 1
+		esac
+		initialize_fullname="$initialize_fullname
+			fullname[\"$2\"] = \"$3\""
+		initialize_mailaddr="$initialize_mailaddr
+			mailaddr[\"$2\"] = \"$4\""
+		shift; shift;;
+	-r)	rlog_options=$rlog_options$nl${2?};;
 	-t)	tabwidth=${2?};;
-	-*)	echo >&2 "$0: usage: $0 [-i indent] [-l length] [-t tabwidth] [file ...]"
+	-*)	echo >&2 "$0: usage: $0 [options] [file ...]
+Options:
+	[-h hostname] [-i indent] [-l length] [-n login fullname mailaddr]...
+	[-r rlog_option]... [-t tabwidth]"
 		exit 1;;
 	*)	break
 	esac
@@ -120,13 +144,13 @@ datearg="-d>$date"
 case $# in
 0)
 	files=
-	for file in RCS/.* RCS/*
+	for file in RCS/.* RCS/* .*,v *,v
 	do
 		case $file in
-		RCS/. | RCS/..) ;;
-		RCS/.\* | RCS/\*) test -f "$file" && files=$files$nl$file;;
-		*) files=$files$nl$file
+		RCS/. | RCS/..) continue;;
+		RCS/.\* | RCS/\* | .\*,v | \*,v) test -f "$file" || continue
 		esac
+		files=$files$nl$file
 	done
 	case $files in
 	'') exit 0
@@ -137,11 +161,11 @@ case $# in
 	IFS=$oldIFS
 esac
 
-rlogout=/tmp/chg$$
+rlogout=$TMPDIR/rcs2log$$r
 trap exit 1 2 13 15
-trap 'rm -f $rlogout; exit 1' 0
+trap "rm -f $loginsout $rlogout; exit 1" 0
 
-rlog "$datearg" "$@" >$rlogout || exit
+rlog "$datearg" $rlog_options "$@" >$rlogout || exit
 
 
 # Get the full name of each author the logs mention, and set initialize_fullname
@@ -149,10 +173,17 @@ rlog "$datearg" "$@" >$rlogout || exit
 # Warning: foreign authors (i.e. not known in the passwd file) are mishandled;
 # you have to fix the resulting output by hand.
 
-initialize_fullname=
+case $loginsout in
+?*) sort -u -o $loginsout <<EOF || exit
+$logins
+EOF
+esac
 authors=`
 	sed -n 's|^date: *[0-9]*/[0-9][0-9]/[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]; *author: *\([^; ]*\).*|\1|p' <$rlogout |
-	sort -u
+	case $loginsout in
+	'') sort -u;;
+	?*) sort -u | comm -23 - $loginsout
+	esac
 `
 case $authors in
 ?*)
@@ -163,7 +194,6 @@ case $authors in
 			author[\"$author\"] = 1
 		"
 	done
-
 	awkscript='
 		BEGIN {
 			alphabet = "abcdefghijklmnopqrstuvwxyz"
@@ -200,7 +230,7 @@ case $authors in
 	initialize_fullname=`
 		(cat /etc/passwd; ypmatch $authors passwd) 2>/dev/null |
 		awk -F: "$awkscript"
-	`
+	`$initialize_fullname
 esac
 
 
@@ -235,12 +265,15 @@ printlogline='{
 	}
 }'
 
-hostname=`(
-	hostname || cat /etc/whoami || uuname -l || uname -n
-) 2>/dev/null` || {
-	echo >&2 "$0: cannot deduce hostname"
-	exit 1
-}
+case $hostname in
+'')
+	hostname=`(
+		hostname || uname -n || uuname -l || cat /etc/whoami
+	) 2>/dev/null` || {
+		echo >&2 "$0: cannot deduce hostname"
+		exit 1
+	}
+esac
 
 
 # Process the rlog output, generating ChangeLog style entries.
@@ -278,8 +311,9 @@ awk '
 		# put a carriage return directly in the file.
 		CR="" # <-- There is a single CR between the " chars here.
 
-		# Initialize the fullname associative array.
+		# Initialize the fullname and mailaddr associative arrays.
 		'"$initialize_fullname"'
+		'"$initialize_mailaddr"'
 
 		# Initialize indent string.
 		indent_string = ""
@@ -360,15 +394,18 @@ awk '
 			if (2 < month && year%4 == 0 && (year%100 != 0 || year%400 == 0)) leap = 1
 			days_since_Sunday_before_epoch = EPOCH_WEEKDAY + year * 365 + int((year + 3) / 4) - int((year + 99) / 100) + int((year + 399) / 400) + mo[month-1] + leap + day - 1
 
-			# Print "date  fullname  (email address)" if the fullname is known;
-			# print "date  author" otherwise.
-			# Get the fullname from the associative array.
-			# The email address is just author@thishostname.
-			printf "%s %s %2d %s %d  ", w[days_since_Sunday_before_epoch%7], m[month-1], day, $3, year
+			# Print "date  fullname  (email address)".
+			# Get fullname and email address from associative arrays;
+			# default to author and author@hostname if not in arrays.
 			if (fullname[author])
-				printf "%s  (%s@%s)\n\n", fullname[author], author, "'"$hostname"'"
+				auth = fullname[author]
 			else
-				printf "%s\n\n", author
+				auth = author
+			printf "%s %s %2d %s %d  %s  ", w[days_since_Sunday_before_epoch%7], m[month-1], day, $3, year, auth
+			if (mailaddr[author])
+				printf "(%s)\n\n", mailaddr[author]
+			else
+				printf "(%s@%s)\n\n", author, "'"$hostname"'"
 		}
 		if (! filesknown[$1]) {
 			filesknown[$1] = 1
@@ -388,4 +425,4 @@ awk '
 
 # Exit successfully.
 
-exec rm -f $rlogout
+exec rm -f $loginsout $rlogout
