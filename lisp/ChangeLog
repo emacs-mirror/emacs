@@ -7,6 +7,15 @@
 	(shell-command-on-region): If there is output an an error,
 	add "...Shell command failed" to the output.
 
+2001-12-13  David Ponce  <david@dponce.com>
+
+	* ruler-mode.el: Version 1.4.
+	(ruler-mode-left-fringe-cols): Variable removed.
+	(ruler-mode-left-fringe-cols): Function replaced by more efficient
+	implementation `ruler-mode-extra-left-cols'.
+	(ruler-mode-ruler): Use above new function.  Take into account
+	that the fringe areas can now be resized.
+
 2001-12-12  Richard M. Stallman  <rms@gnu.org>
 
 	* international/characters.el (Unicode): Comment out
