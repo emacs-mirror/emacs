@@ -1,3 +1,9 @@
+2002-01-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* enriched.el (enriched-handle-display-prop): Remove unused
+	variables.
+	(enriched-mode): Doc fix.
+
 2002-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/ucs-tables.el (ucs-8859-8-alist): Comment away
@@ -22811,7 +22817,7 @@
 2000-02-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* format.el (format-annotate-single-property-change):
-	Handle properties.with dotted-list values.
+	Handle properties with dotted-list values.
 	(format-proper-list-p): New function.
 
 	* enriched.el (enriched-face-ans): Handle '(foreground-color
