@@ -1418,8 +1418,6 @@ skip_chars (forwardp, string, lim)
   string_multibyte = SBYTES (string) > SCHARS (string);
 
   bzero (fastmap, sizeof fastmap);
-  if (multibyte)
-    char_ranges = (int *) alloca (SCHARS (string) * (sizeof (int)) * 2);
 
   str = SDATA (string);
   size_byte = SBYTES (string);
@@ -1502,6 +1500,7 @@ skip_chars (forwardp, string, lim)
 	  fastmap[CHAR_LEADING_CODE (c)] = 1;
 	  range_start_byte = i;
 	  range_start_char = c;
+	  char_ranges = (int *) alloca (sizeof (int) * 128 * 2);
 	  for (i = 129; i < 0400; i++)
 	    {
 	      c = unibyte_char_to_multibyte (i);
@@ -1520,8 +1519,10 @@ skip_chars (forwardp, string, lim)
 					  + range_start_char);
 	}
     }
-  else
+  else				/* STRING is multibyte */
     {
+      char_ranges = (int *) alloca (sizeof (int) * SCHARS (string) * 2);
+
       while (i_byte < size_byte)
 	{
 	  unsigned char leading_code;
@@ -1564,6 +1565,8 @@ skip_chars (forwardp, string, lim)
 		  i_byte += len;
 		}
 
+	      if (c > c2)
+		continue;
 	      if (ASCII_CHAR_P (c))
 		{
 		  while (c <= c2 && c < 0x80)
