@@ -3905,17 +3905,18 @@ If FACE is not a valid face name, it is used default face."
 	  (and ps-razzle-dazzle (message "Saving..."))
 	  (set-buffer ps-spool-buffer)
 	  (setq filename (expand-file-name filename))
-	  (write-region (point-min) (point-max) filename)
+	  (let ((coding-system-for-write 'raw-text-unix))
+	    (write-region (point-min) (point-max) filename))
 	  (and ps-razzle-dazzle (message "Wrote %s" filename)))
       ;; Else, spool to the printer
       (and ps-razzle-dazzle (message "Printing..."))
       (save-excursion
 	(set-buffer ps-spool-buffer)
-	(if (and (eq system-type 'ms-dos)
-		 (stringp (symbol-value 'dos-ps-printer)))
-	    (write-region (point-min) (point-max)
-			  (symbol-value 'dos-ps-printer) t 0)
-	  (let ((binary-process-input t)) ; for MS-DOS
+	(let ((coding-system-for-write 'raw-text-unix))
+	  (if (and (eq system-type 'ms-dos)
+		   (stringp (symbol-value 'dos-ps-printer)))
+	      (write-region (point-min) (point-max)
+			    (symbol-value 'dos-ps-printer) t 0)
 	    (apply 'call-process-region
 		   (point-min) (point-max) ps-lpr-command nil
 		   (and (fboundp 'start-process) 0)
