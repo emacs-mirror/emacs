@@ -64,6 +64,7 @@ separated by a space.")
   (define-key sgml-mode-map "/" 'sgml-slash)
   (define-key sgml-mode-map "\C-c\C-v" 'sgml-validate))
 
+;;;###autoload
 (defun sgml-mode ()
   "Major mode for editing SGML.
 Makes > display the matching <.  Makes / display matching /.
@@ -125,8 +126,7 @@ Any terminating > or / is not matched.")
   (modify-syntax-entry ?\' "\"" sgml-mode-markup-syntax-table))
 
 (defconst sgml-angle-distance 4000
-  "*If non-nil, is the maximum distance to search for matching <
-when > is inserted.")
+  "*If non-nil, is the maximum distance to search for matching <.")
 
 (defun sgml-close-angle (arg)
   "Insert > and display matching <."
@@ -202,8 +202,7 @@ when > is inserted.")
 ;;; I doubt that null end tags are used much for large elements,
 ;;; so use a small distance here.
 (defconst sgml-slash-distance 1000
-  "*If non-nil, is the maximum distance to search for matching /
-when / is inserted.")
+  "*If non-nil, is the maximum distance to search for matching /.")
 
 (defun sgml-slash (arg)
   "Insert / and display any previous matching /.
@@ -263,6 +262,6 @@ and move to the line in the SGML document that caused it."
 				    (and name
 					 (file-name-nondirectory name))))))))
   (setq sgml-saved-validate-command command)
-  (compile1 command "No more errors"))
+  (compile-internal command "No more errors"))
 
 ;;; sgml-mode.el ends here
