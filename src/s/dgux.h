@@ -398,3 +398,7 @@ CC=gcc
    of expediency. */
 
 #define LIB_X11_LIB -lX11
+
+/* Process groups work in the traditional BSD manner.  */
+
+#define BSD_PGRPS

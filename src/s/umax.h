@@ -180,3 +180,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* (Assume) we do have vfork.  */
 
 #define HAVE_VFORK
+
+/* Process groups work in the traditional BSD manner.  */
+
+#define BSD_PGRPS
