@@ -606,6 +606,14 @@ Faces `compilation-error-face', `compilation-warning-face',
 		       2)))
     (compilation-internal-error-properties file line end-line col end-col type fmt)))
 
+(defun compilation-move-to-column (col screen)
+  "Go to column COL on the current line.
+If SCREEN is non-nil, columns are screen columns, otherwise, they are
+just char-counts."
+  (if screen
+      (move-to-column col)
+    (goto-char (min (+ (line-beginning-position) col) (line-end-position)))))
+
 (defun compilation-internal-error-properties (file line end-line col end-col type fmt)
   "Get the meta-info that will be added as text-properties.
 LINE, END-LINE, COL, END-COL are integers or nil.
@@ -640,17 +648,15 @@ FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME) or nil."
 	    (beginning-of-line (- (or end-line line) marker-line -1))
 	    (if (or (null end-col) (< end-col 0))
 		(end-of-line)
-	      (if compilation-error-screen-columns
-		  (move-to-column end-col)
-		(forward-char end-col)))
+	      (compilation-move-to-column
+	       end-col compilation-error-screen-columns))
 	    (setq end-marker (list (point-marker))))
 	  (beginning-of-line (if end-line
 				 (- line end-line -1)
 			       (- loc marker-line -1)))
 	  (if col
-	      (if compilation-error-screen-columns
-		  (move-to-column col)
-		(forward-char col))
+	      (compilation-move-to-column
+	       col compilation-error-screen-columns)
 	    (forward-to-indentation 0))
 	  (setq marker (list (point-marker))))))
 
@@ -1491,10 +1497,7 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
 	      (if (car col)
 		  (if (eq (car col) -1)	; special case for range end
 		      (end-of-line)
-		    (if columns
-			(move-to-column (car col))
-		      (beginning-of-line)
-		      (forward-char (car col))))
+		    (compilation-move-to-column (car col) columns))
 		(beginning-of-line)
 		(skip-chars-forward " \t"))
 	      (if (nth 3 col)
