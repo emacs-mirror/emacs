@@ -1,3 +1,7 @@
+2002-07-11  Markus Rost  <rost@math.ohio-state.edu>
+
+	* keymap.c (Fkey_binding): Fix typo.
+
 2002-07-11  Richard M. Stallman  <rms@gnu.org>
 
 	* s/hpux11.h (BROKEN_SA_RESTART): Defined.
