@@ -1473,6 +1473,25 @@ Initialize colors of certain faces from frame parameters."
 	  (set-face-attribute face frame attr value)))
       (setq params (cdr params)))))
 
+(defun tty-handle-reverse-video (frame parameters)
+  "Handle the reverse-video frame parameter for terminal frames."
+  (when (cdr (or (assq 'reverse parameters)
+		 (assq 'reverse default-frame-alist)))
+    (if (null window-system)
+	(setq inverse-video t))
+    (let* ((params (frame-parameters frame))
+	   (bg (cdr (assq 'foreground-color params)))
+	   (fg (cdr (assq 'background-color params))))
+      (modify-frame-parameters frame
+			       (list (cons 'foreground-color fg)
+				     (cons 'background-color bg)))
+      (if (equal bg (cdr (assq 'mouse-color params)))
+	  (modify-frame-parameters frame
+				   (list (cons 'mouse-color fg))))
+      (if (equal bg (cdr (assq 'cursor-color params)))
+	  (modify-frame-parameters frame
+				   (list (cons 'cursor-color fg)))))))
+
 
 (defun tty-create-frame-with-faces (&optional parameters)
   "Create a frame from optional frame parameters PARAMETERS.
@@ -1484,6 +1503,7 @@ created."
 	success)
     (unwind-protect
 	(progn
+	  (tty-handle-reverse-video frame (frame-parameters frame))
 	  (frame-set-background-mode frame)
 	  (face-set-after-frame-default frame)
 	  (setq success t))
