@@ -1,5 +1,7 @@
 2004-02-12  Kenichi Handa  <handa@m17n.org>
 
+	* charsets/.cvsignore: New file.
+
 	* charsets/mapconv: Add code for handling KANJI-DATABASE format.
 
 	* charsets/Makefile (all): Rename target from charsets.  Depend on

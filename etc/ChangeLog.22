@@ -1,3 +1,7 @@
+2004-02-12  Kenichi Handa  <handa@m17n.org>
+
+	* charsets/CNS-[234567].map: Regenerated.
+
 2004-01-28  Kenichi Handa  <handa@m17n.org>
 
 	* charsets/JISX2131.map: Regenerated.
