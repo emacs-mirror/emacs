@@ -1506,13 +1506,13 @@ where they were found."
 ;; exact file name match, i.e. searched tag must match complete file
 ;; name including directories parts if there are some.
 (defun tag-exact-file-name-match-p (tag)
-  (and (looking-at ",[0-9]\\|\n")
+  (and (looking-at ",[0-9\n]")
        (save-excursion (backward-char (+ 2 (length tag)))
 		       (looking-at "\f\n"))))
 ;; file name match as above, but searched tag must match the file
 ;; name not including the directories if there are some.
 (defun tag-file-name-match-p (tag)
-  (and (looking-at ",[0-9]\\|\n")
+  (and (looking-at ",[0-9\n]")
        (save-excursion (backward-char (1+ (length tag)))
 		       (looking-at "/"))))
 ;; this / to detect we are after a directory separator is ok for unix,
@@ -1523,7 +1523,7 @@ where they were found."
 ;; partial file name match, i.e. searched tag must match a substring
 ;; of the file name (potentially including a directory separator).
 (defun tag-partial-file-name-match-p (tag)
-  (and (looking-at ".*,[0-9]\\|\n")
+  (and (looking-at ".*,[0-9\n]")
        (save-excursion (beginning-of-line)
                        (backward-char 2)
   		       (looking-at "\f\n"))))
