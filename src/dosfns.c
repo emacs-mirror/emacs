@@ -222,10 +222,10 @@ Return nil if startup screen is not available.")
     {
       for (j = 0; j < cols; j++)
 	{
-	  insert_char (*s, 1);
+	  insert_char (*s);
 	  s += 2;
 	}
-      insert_char ('\n', 1);
+      insert_char ('\n');
     }
 
   return Qt;
