@@ -1881,13 +1881,21 @@ the language name that would otherwise be used for this locale.")
 The first element whose locale regexp matches the start of a downcased locale
 specifies the coding system to prefer when using that locale.")
 
+(defconst standard-keyboard-coding-systems
+  (purecopy
+   '(iso-latin-1 iso-latin-2 iso-latin-3 iso-latin-4 iso-latin-5
+     iso-latin-6 iso-latin-7 iso-latin-8 iso-latin-9))
+  "Coding systems that are commonly used for keyboards.
+`set-locale-environment' will set the `keyboard-coding-system' if the
+coding-system specified by the locale setting is a member of this list.")
+
 (defun locale-name-match (key alist)
   "Search for KEY in ALIST, which should be a list of regexp-value pairs.
 Return the value corresponding to the first regexp that matches the
 start of KEY, or nil if there is no match."
   (let (element)
     (while (and alist (not element))
-      (if (string-match (concat "^\\(" (car (car alist)) "\\)") key)
+      (if (string-match (concat "\\`\\(?:" (car (car alist)) "\\)") key)
 	  (setq element (car alist)))
       (setq alist (cdr alist)))
     (cdr element)))
@@ -1987,6 +1995,13 @@ See also `locale-charset-language-names', `locale-language-names',
 	  ;; so the display table and terminal coding system are irrelevant.
 	  (when default-enable-multibyte-characters
 	    (set-display-table-and-terminal-coding-system language-name))
+
+	  ;; Set the `keyboard-coding-system' if appropriate.
+	  (let ((kcs (or coding-system
+			 (car (get-language-info language-name
+						 'coding-system)))))
+	    (if (memq kcs standard-keyboard-coding-systems)
+		(set-keyboard-coding-system kcs)))
 
 	  (setq locale-coding-system
 		(car (get-language-info language-name 'coding-priority))))
