@@ -20,7 +20,7 @@
 (defun manual-entry (topic &optional section)
   "Display the Unix manual entry for TOPIC.
 TOPIC is either the title of the entry, or has the form TITLE(SECTION)
-where SECTION is the desired section of the manual, as in `tty(4)'."
+where SECTION is the desired section of the manual, as in \"tty(4)\"."
   (interactive "sManual entry (topic): ")
   (if (= (length topic) 0)
       (error "Must specify topic"))
@@ -93,7 +93,7 @@ where SECTION is the desired section of the manual, as in `tty(4)'."
       (view-mode nil 'bury-buffer)
       (message ""))))
 
-;; Hint: BS stands form more things than "back space"
+;; Hint: BS stands for more things than "back space"
 (defun nuke-nroff-bs ()
   (interactive "*")
   ;; Nuke headers: "MORE(1) UNIX Programmer's Manual MORE(1)"
