@@ -176,10 +176,6 @@ NOTE-END  */
    ((int)(type) << VALBITS)						\
    + (((unsigned) (ptr) << (INTBITS-VALBITS)) >> (INTBITS-VALBITS)))
 
-#define XSETINT(a, b)  XSET(a, XTYPE(a), b)
-#define XSETUINT(a, b) XSET(a, XTYPE(a), b)
-#define XSETPNTR(a, b) XSET(a, XTYPE(a), b)
-
 #define XUNMARK(a)							\
   ((a) =								\
    (((unsigned)(a) << (INTBITS-GCTYPEBITS-VALBITS))			\

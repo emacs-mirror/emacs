@@ -141,9 +141,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define XSET(var, type, ptr) \
    ((var) = ((int)(type) << VALBITS) + (((unsigned) (ptr) << INTBITS-VALBITS) >> INTBITS-VALBITS))
 
-#define XSETINT(a, b)  XSET(a, XTYPE(a), b)
-#define XSETUINT(a, b) XSET(a, XTYPE(a), b)
-#define XSETPNTR(a, b) XSET(a, XTYPE(a), b)
 #define XMARKBIT(a) ((a) < 0)
 #define XSETMARKBIT(a,b) ((a) = ((b) ? (a)|MARKBIT : (a) & ~MARKBIT))
 
