@@ -63,7 +63,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef TRUE
 #define TRUE 1
 #define FALSE 0
-#endif TRUE
+#endif /* TRUE */
 
 #ifdef HAVE_X11
 extern Display *x_current_display;

@@ -1080,7 +1080,7 @@ dumprectangle (f, left, top, cols, rows)
 	|| right > intborder + f->width * FONT_WIDTH (f->display.x->font))
       dumpborder (f, 0);
   }
-#endif /* HAVE_X11		/* Window manger does this for X11. */ */
+#endif /* HAVE_X11		Window manger does this for X11. */
   
   /* Convert rectangle edges in pixels to edges in chars.
      Round down for left and top, up for right and bottom.  */
