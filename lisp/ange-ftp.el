@@ -851,7 +851,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.46 $")
+(defconst ange-ftp-version "$Revision: 1.47 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1774,6 +1774,9 @@ on the gateway machine to do the ftp instead."
     proc))
 
 (defun internal-ange-ftp-mode ()
+  "Major mode for interacting with the FTP process.
+
+\\{comint-mode-map}"
   (interactive)
   (comint-mode)
   (setq major-mode 'internal-ange-ftp-mode)
@@ -1797,7 +1800,11 @@ on the gateway machine to do the ftp instead."
     (make-local-variable 'ange-ftp-last-percent)
     (setq ange-ftp-hash-mark-count 0)
     (setq ange-ftp-xfer-size 0)
-    (setq ange-ftp-process-result-line "")))
+    (setq ange-ftp-process-result-line "")
+
+    (setq comint-prompt-regexp "^ftp> ")
+    (make-local-variable 'paragraph-start)
+    (setq paragraph-start comint-prompt-regexp)))
 
 (defun ange-ftp-smart-login (host user pass account proc)
   "Connect to the FTP-server on HOST as USER using PASSWORD and ACCOUNT.
