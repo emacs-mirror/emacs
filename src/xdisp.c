@@ -176,6 +176,7 @@ Boston, MA 02111-1307, USA.  */
 #include "termchar.h"
 #include "dispextern.h"
 #include "buffer.h"
+#include "character.h"
 #include "charset.h"
 #include "indent.h"
 #include "commands.h"
@@ -4231,9 +4232,9 @@ get_next_display_element (it)
 	  else if ((it->c < ' '
 		    && (it->area != TEXT_AREA
 			|| (it->c != '\n' && it->c != '\t')))
-		   || (it->c >= 127
-		       && it->len == 1)
-		   || !CHAR_PRINTABLE_P (it->c))
+		   || (it->multibyte_p ? CHAR_BYTE8_P (it->c) : it->c >= 127)
+		   || (it->c != '\n' && it->c != '\t'
+		       && !CHAR_PRINTABLE_P (it->c)))
 	    {
 	      /* IT->c is a control character which must be displayed
 		 either as '\003' or as `^C' where the '\\' and '^'
@@ -4279,24 +4280,28 @@ get_next_display_element (it)
 		  else
 		    escape_glyph = FAST_MAKE_GLYPH ('\\', 0);
 
-		  if (SINGLE_BYTE_CHAR_P (it->c))
-		    str[0] = it->c, len = 1;
+		  if (CHAR_BYTE8_P (it->c))
+		    {
+		      str[0] = CHAR_TO_BYTE8 (it->c);
+		      len = 1;
+		    }
+		  else if (it->c < 256)
+		    {
+		      str[0] = it->c;
+		      len = 1;
+		    }
 		  else
 		    {
-		      len = CHAR_STRING_NO_SIGNAL (it->c, str);
-		      if (len < 0)
-			{
-			  /* It's an invalid character, which
-			     shouldn't happen actually, but due to
-			     bugs it may happen.  Let's print the char
-			     as is, there's not much meaningful we can
-			     do with it.  */
-			  str[0] = it->c;
-			  str[1] = it->c >> 8;
-			  str[2] = it->c >> 16;
-			  str[3] = it->c >> 24;
-			  len = 4;
-			}
+		      /* It's an invalid character, which
+			 shouldn't happen actually, but due to
+			 bugs it may happen.  Let's print the char
+			 as is, there's not much meaningful we can
+			 do with it.  */
+		      str[0] = it->c;
+		      str[1] = it->c >> 8;
+		      str[2] = it->c >> 16;
+		      str[3] = it->c >> 24;
+		      len = 4;
 		    }
 
 		  for (i = 0; i < len; i++)
@@ -9235,36 +9240,25 @@ disp_char_vector (dp, c)
      struct Lisp_Char_Table *dp;
      int c;
 {
-  int code[4], i;
   Lisp_Object val;
 
-  if (SINGLE_BYTE_CHAR_P (c))
-    return (dp->contents[c]);
-  
-  SPLIT_CHAR (c, code[0], code[1], code[2]);
-  if (code[1] < 32)
-    code[1] = -1;
-  else if (code[2] < 32)
-    code[2] = -1;
-  
-  /* Here, the possible range of code[0] (== charset ID) is
-     128..max_charset.  Since the top level char table contains data
-     for multibyte characters after 256th element, we must increment
-     code[0] by 128 to get a correct index.  */
-  code[0] += 128;
-  code[3] = -1;		/* anchor */
-
-  for (i = 0; code[i] >= 0; i++, dp = XCHAR_TABLE (val))
+  if (ASCII_CHAR_P (c))
     {
-      val = dp->contents[code[i]];
-      if (!SUB_CHAR_TABLE_P (val))
-	return (NILP (val) ? dp->defalt : val);
+      val = dp->ascii;
+      if (SUB_CHAR_TABLE_P (val))
+	val = XSUB_CHAR_TABLE (val)->contents[c];
     }
-  
-  /* Here, val is a sub char table.  We return the default value of
-     it.  */
-  return (dp->defalt);
-}
+  else
+    {
+      Lisp_Object table;
+
+      XSETCHAR_TABLE (table, dp);
+      val = char_table_ref (table, c);
+    }
+  if (NILP (val))
+    val = dp->defalt;
+  return val;
+}  
 
 
 
@@ -13946,7 +13940,7 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
   /* The EOL conversion we are using.  */
   Lisp_Object eoltype;
 
-  val = Fget (coding_system, Qcoding_system);
+  val = CODING_SYSTEM_SPEC (coding_system);
   eoltype = Qnil;
 
   if (!VECTORP (val))		/* Not yet decided.  */
@@ -13959,12 +13953,14 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
     }
   else
     {
+      Lisp_Object attrs;
       Lisp_Object eolvalue;
 
-      eolvalue = Fget (coding_system, Qeol_type);
+      attrs = AREF (val, 0);
+      eolvalue = AREF (val, 2);
 
       if (multibyte)
-	*buf++ = XFASTINT (AREF (val, 1));
+	*buf++ = XFASTINT (CODING_ATTR_MNEMONIC (attrs));
 
       if (eol_flag)
 	{
@@ -13974,10 +13970,10 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 	    eoltype = eol_mnemonic_undecided;
 	  else if (VECTORP (eolvalue)) /* Not yet decided.  */
 	    eoltype = eol_mnemonic_undecided;
-	  else			/* INTEGERP (eolvalue) -- 0:LF, 1:CRLF, 2:CR */
-	    eoltype = (XFASTINT (eolvalue) == 0
+	  else			/* eolvalue is Qunix, Qdos, or Qmac.  */
+	    eoltype = (EQ (eolvalue, Qunix)
 		       ? eol_mnemonic_unix
-		       : (XFASTINT (eolvalue) == 1
+		       : (EQ (eolvalue, Qdos) == 1
 			  ? eol_mnemonic_dos : eol_mnemonic_mac));
 	}
     }
@@ -14339,8 +14335,10 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
 	  {
 	    /* No need to mention EOL here--the terminal never needs
 	       to do EOL conversion.  */
-	    p = decode_mode_spec_coding (keyboard_coding.symbol, p, 0);
-	    p = decode_mode_spec_coding (terminal_coding.symbol, p, 0);
+	    p = decode_mode_spec_coding (CODING_ID_NAME (keyboard_coding.id),
+					 p, 0);
+	    p = decode_mode_spec_coding (CODING_ID_NAME (terminal_coding.id),
+					 p, 0);
 	  }
 	p = decode_mode_spec_coding (b->buffer_file_coding_system,
 				     p, eol_flag);
