@@ -37,6 +37,9 @@
 (require 'easymenu)
 (eval-when-compile (require 'cl))
 
+(or (fboundp 'custom-face-display-set)
+    (defalias 'custom-face-display-set 'face-spec-set))
+
 (condition-case nil
     (require 'cus-load)
   (error nil))
@@ -841,7 +844,7 @@ Push RET or click mouse-2 on the word ")
   (widget-create 'info-link 
 		 :tag "help"
 		 :help-echo "Read the online help."
-		 "(custom)The Customization Buffer")
+		 "(emacs)Easy Customization")
   (widget-insert " for more information.\n\n")
   (setq custom-options 
 	(if (= (length options) 1)
