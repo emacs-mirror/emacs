@@ -149,7 +149,7 @@ the associated section number.")
       "-e '/^ *Page [0-9]*.*(printed [0-9\\/]*)$/d'"
       "-e '/^Printed [0-9].*[0-9]$/d'"
       "-e '/^[ \\t]*X Version 1[01].*Release [0-9]/d'"
-      "-e '/^Sun Microsystems.*Last change:/d'"
+      "-e '/^[A-za-z].*Last change:/d'"
       "-e '/^Sun Release [0-9].*[0-9]$/d'"
       "-e '/^\\n$/D'"
       ))
@@ -420,8 +420,9 @@ Universal argument ARG, is passed to `Man-getpage-in-background'."
     ;; Recognize the subject(section) syntax.
     (setq man-args (Man-translate-references man-args))
 
-    (if Man-downcase-section-letters-p
-	(setq man-args (Man-downcase man-args)))
+    ;; This is apparently already done correctly via Man-translate-references.
+    ;; (if Man-downcase-section-letters-p
+    ;;    (setq man-args (Man-downcase man-args)))
     (Man-getpage-in-background man-args (consp arg))
     ))
 
