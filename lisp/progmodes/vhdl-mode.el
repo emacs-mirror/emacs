@@ -6120,17 +6120,17 @@ stops due to beginning or end of buffer."
     (vhdl-keep-region-active)
     foundp))
 
-(defun vhdl-beginning-of-statement (&optional count lim)
+(defun vhdl-beginning-of-statement (&optional count lim interactive)
   "Go to the beginning of the innermost VHDL statement.
 With prefix arg, go back N - 1 statements.  If already at the
 beginning of a statement then go to the beginning of the preceding
 one.  If within a string or comment, or next to a comment (only
 whitespace between), move by sentences instead of statements.
 
-When called from a program, this function takes 2 optional args: the
+When called from a program, this function takes 3 optional args: the
 prefix arg, and a buffer position limit which is the farthest back to
-search."
-  (interactive "p")
+search, and something whose meaning I don't understand."
+  (interactive "p\np")
   (let ((count (or count 1))
 	(case-fold-search t)
 	(lim (or lim (point-min)))
@@ -6139,7 +6139,7 @@ search."
     (save-excursion
       (goto-char lim)
       (setq state (parse-partial-sexp (point) here nil nil)))
-    (if (and (interactive-p)
+    (if (and interactive
 	     (or (nth 3 state)
 		 (nth 4 state)
 		 (looking-at (concat "[ \t]*" comment-start-skip))))
@@ -7531,10 +7531,10 @@ buffer."
 
 (defun vhdl-fill-region (beg end &optional arg)
   "Fill lines for a region of code."
-  (interactive "r")
+  (interactive "r\np")
   (save-excursion
     (goto-char beg)
-    (let ((margin (if (interactive-p) (current-indentation) (current-column))))
+    (let ((margin (if interactive (current-indentation) (current-column))))
       (goto-char end)
       (setq end (point-marker))
       ;; remove inline comments, newlines and whitespace

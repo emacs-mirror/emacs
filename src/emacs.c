@@ -306,7 +306,6 @@ Display options:\n\
 --fullscreen, -fs               make first frame fullscreen\n\
 --fullwidth, -fw                make the first frame wide as the screen\n\
 --geometry, -g GEOMETRY         window geometry\n\
---horizontal-scroll-bars, -hb   enable horizontal scroll bars\n\
 --icon-type, -i                 use picture of gnu for Emacs icon\n\
 --iconic                        start Emacs in iconified state\n\
 --internal-border, -ib WIDTH    width between text and main border\n\

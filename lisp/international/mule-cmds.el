@@ -1368,12 +1368,14 @@ If INPUT-METHOD is nil, deactivate any current input method."
 	      current-input-method-title nil)
 	(force-mode-line-update)))))
 
-(defun set-input-method (input-method)
+(defun set-input-method (input-method &optional interactive)
   "Select and activate input method INPUT-METHOD for the current buffer.
 This also sets the default input method to the one you specify.
 If INPUT-METHOD is nil, this function turns off the input method, and
 also causes you to be prompted for a name of an input method the next
 time you invoke \\[toggle-input-method].
+When called interactively, the optional arg INTERACTIVE is non-nil,
+which marks the variable `default-input-method' as set for Custom buffers.
 
 To deactivate the input method interactively, use \\[toggle-input-method].
 To deactivate it programmatically, use \\[inactivate-input-method]."
@@ -1381,14 +1383,15 @@ To deactivate it programmatically, use \\[inactivate-input-method]."
    (let* ((default (or (car input-method-history) default-input-method)))
      (list (read-input-method-name
 	    (if default "Select input method (default %s): " "Select input method: ")
-	    default t))))
+	    default t)
+	   t)))
   (activate-input-method input-method)
   (setq default-input-method input-method)
-  (when (interactive-p)
+  (when interactive
     (customize-mark-as-set 'default-input-method))
   default-input-method)
 
-(defun toggle-input-method (&optional arg)
+(defun toggle-input-method (&optional arg interactive)
   "Enable or disable multilingual text input method for the current buffer.
 Only one input method can be enabled at any time in a given buffer.
 
@@ -1401,9 +1404,12 @@ minibuffer.
 
 With a prefix argument, read an input method name with the minibuffer
 and enable that one.  The default is the most recent input method specified
-\(not including the currently active input method, if any)."
+\(not including the currently active input method, if any).
 
-  (interactive "P")
+When called interactively, the optional arg INTERACTIVE is non-nil,
+which marks the variable `default-input-method' as set for Custom buffers."
+
+  (interactive "P\np")
   (if (and current-input-method (not arg))
       (inactivate-input-method)
     (let ((default (or (car input-method-history) default-input-method)))
@@ -1420,7 +1426,7 @@ and enable that one.  The default is the most recent input method specified
       (unless default-input-method
 	(prog1
 	    (setq default-input-method current-input-method)
-	  (when (interactive-p)
+	  (when interactive
 	    (customize-mark-as-set 'default-input-method)))))))
 
 (defun describe-input-method (input-method)

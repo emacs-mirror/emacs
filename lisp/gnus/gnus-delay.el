@@ -41,6 +41,7 @@
 ;;;###autoload
 (defgroup gnus-delay nil
   "Arrange for sending postings later."
+  :version "21.4"
   :group 'gnus)
 
 (defcustom gnus-delay-group "delayed"

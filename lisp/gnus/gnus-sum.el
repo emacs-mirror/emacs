@@ -469,6 +469,7 @@ this variable specifies group names."
 
 (defcustom gnus-spam-mark ?$
   "*Mark used for spam articles."
+  :version "21.4"
   :group 'gnus-summary-marks
   :type 'character)
 
@@ -505,6 +506,7 @@ this variable specifies group names."
 
 (defcustom gnus-recent-mark ?N
   "*Mark used for articles that are recent."
+  :version "21.4"
   :group 'gnus-summary-marks
   :type 'character)
 
@@ -552,6 +554,7 @@ this variable specifies group names."
 
 (defcustom gnus-undownloaded-mark ?-
   "*Mark used for articles that weren't downloaded."
+  :version "21.4"
   :group 'gnus-summary-marks
   :type 'character)
 
@@ -890,16 +893,19 @@ automatically when it is selected."
 
 (defcustom gnus-summary-article-move-hook nil
   "*A hook called after an article is moved, copied, respooled, or crossposted."
+  :version "21.4"
   :group 'gnus-summary
   :type 'hook)
 
 (defcustom gnus-summary-article-delete-hook nil
   "*A hook called after an article is deleted."
+  :version "21.4"
   :group 'gnus-summary
   :type 'hook)
 
 (defcustom gnus-summary-article-expire-hook nil
   "*A hook called after an article is expired."
+  :version "21.4"
   :group 'gnus-summary
   :type 'hook)
 
@@ -9178,6 +9184,7 @@ If nil, use to the current newsgroup method."
   "If non-nil, show and update the summary buffer as it's being built.
 If the value is t, update the buffer after every line is inserted.  If
 the value is an integer (N), update the display every N lines."
+  :version "21.4"
   :group 'gnus-thread
   :type '(choice (const :tag "off" nil)
 		 number

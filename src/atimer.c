@@ -397,7 +397,8 @@ alarm_signal_handler (signo)
       EMACS_GET_TIME (now);
     }
 
-  set_alarm ();
+  if (! pending_atimers)
+    set_alarm ();
 }
 
 

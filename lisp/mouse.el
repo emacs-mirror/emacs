@@ -1068,8 +1068,7 @@ If MODE is 2 then do the same for lines."
     (unless ignore
       ;; For certain special keys, delete the region.
       (if (member key mouse-region-delete-keys)
-	  (delete-region (overlay-start mouse-drag-overlay)
-			 (overlay-end mouse-drag-overlay))
+	  (delete-region (mark t) (point))
 	;; Otherwise, unread the key so it gets executed normally.
 	(setq unread-command-events
 	      (nconc events unread-command-events))))
@@ -1112,7 +1111,7 @@ and set mark at the beginning.
 Prefix arguments are interpreted as with \\[yank].
 If `mouse-yank-at-point' is non-nil, insert at point
 regardless of where you click."
-  (interactive "*e\nP")
+  (interactive "e\nP")
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
   (or mouse-yank-at-point (mouse-set-point click))
@@ -1414,7 +1413,7 @@ The function returns a non-nil value if it creates a secondary selection."
 Move point to the end of the inserted text.
 If `mouse-yank-at-point' is non-nil, insert at point
 regardless of where you click."
-  (interactive "*e")
+  (interactive "e")
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
   (or mouse-yank-at-point (mouse-set-point click))

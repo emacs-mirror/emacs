@@ -1,3 +1,206 @@
+2004-11-05  Kim F. Storm  <storm@cua.dk>
+
+	* fileio.c (Ffile_modes): Doc fix.
+	(auto_save_1): Check for Ffile_modes nil value.
+
+2004-11-05  Kim F. Storm  <storm@cua.dk>
+
+	* xselect.c (struct selection_event_queue, selection_queue)
+	(x_queue_selection_requests, x_queue_event)
+	(x_start_queuing_selection_requests)
+	(x_stop_queuing_selection_requests): Add new queue for selection
+	input events to replace previous XEvent queue in xterm.c.
+	(queue_selection_requests_unwind): Adapt to new queue.
+	(x_reply_selection_request): Adapt to new queue.  Unexpect
+	wait_object in case of x errors (memory leak).
+	(x_handle_selection_request, x_handle_selection_clear): Make static.
+	(x_handle_selection_event): New function.  May queue selection events.
+	(wait_for_property_change_unwind): Use save_value instead of cons.
+	Clear property_change_reply_object.
+	(wait_for_property_change): Abort if already waiting.
+	Use save_value instead of cons for unwind data.
+	(x_handle_property_notify): Skip events already arrived, but don't
+	free them, as "arrived" field is checked by wait_for_property_change,
+	and it will be freed by unwind or explicit unexpect_property_change.
+	(x_get_foreign_selection): Add to new queue.
+	(receive_incremental_selection): Don't unexpect wait_object when done
+	as it has already been freed by previous wait_for_property_change.
+
+	* xterm.h (x_start_queuing_selection_requests)
+	(x_stop_queuing_selection_requests, x_handle_selection_request)
+	(x_handle_selection_clear): Remove prototypes.
+	(x_handle_selection_event): Add prototype.
+
+	* xterm.c (handle_one_xevent): Don't queue X selection events
+	here, it may be too late if we start queuing after we have already
+	stored some selection events into the kbd buffer.
+	(struct selection_event_queue, queue, x_queue_selection_requests)
+	(x_queue_event, x_unqueue_events, x_start_queuing_selection_requests)
+	(x_stop_queuing_selection_requests): Remove/move to xselect.c.
+	(x_catch_errors_unwind): Block input around final XSync.
+
+	* keyboard.h (kbd_buffer_unget_event): Add prototype.
+
+	* keyboard.c (kbd_buffer_store_event_hold): Remove obsolete code.
+	(kbd_buffer_unget_event): New function.
+	(kbd_buffer_get_event, swallow_events): Combine SELECTION events
+	and use x_handle_selection_event.
+	(mark_kboards): Don't mark x and y of SELECTION_CLEAR_EVENT.
+
+2004-11-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xselect.c (TRACE3): New debug macro.
+	(x_reply_selection_request): Use it.
+	(receive_incremental_selection): In call to TRACE0, the name of
+	a symbol is in xname.
+
+2004-11-05  Kim F. Storm  <storm@cua.dk>
+
+	* fontset.c (fontset_pattern_regexp): Use unsigned char.
+
+2004-11-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* fileio.c (Fnext_read_file_uses_dialog_p): New function.
+
+	* gtkutil.h: Declare use_old_gtk_file_dialog.
+
+	* gtkutil.c: Make use_old_gtk_file_dialog non-static.
+	(xg_initialize): Moved DEFVAR_BOOL for use_old_gtk_file_dialog ...
+	* xfns.c (syms_of_xfns): ... to here.
+
+	* gtkutil.c (xg_get_file_with_chooser): Expand DEFAULT_FILENAME if
+	it doesn't start with /.
+
+2004-11-04  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_pattern_regexp): If '*' is preceded by '\',
+	treat it as a literal character.
+
+2004-11-03  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (ppt): New function.
+
+2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_window_to_scroll_bar): Only call
+	xg_get_scroll_id_for_window if toolkit scroll bars are used.
+
+	* gtkutil.c (xg_get_file_with_chooser): Use GTK_STOCK_OK instead
+	of save.
+
+2004-11-02  Andreas Schwab  <schwab@suse.de>
+
+	* window.c (Fscroll_right): Fix last change.
+
+2004-11-02  Kim F. Storm  <storm@cua.dk>
+
+	* Makefile.in (callproc.o): Depend on blockinput.h atimer.h systime.h.
+
+2004-11-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* callproc.c (Fcall_process): Block input around vfork.
+
+2004-11-02  Kim F. Storm  <storm@cua.dk>
+
+	* eval.c (Fcalled_interactively_p): Rename from Fcall_interactive_p.
+	(syms_of_eval): Defsubr it.
+
+2004-11-02  Richard M. Stallman  <rms@gnu.org>
+
+	* insdel.c (replace_range_2): New function.
+
+	* casefiddle.c (casify_region): Handle changes in byte-length
+	using replace_range_2.
+
+	* emacs.c (USAGE3): Delete --horizontal-scroll-bars, -hb.
+
+	* xdisp.c (back_to_previous_visible_line_start):
+	Subtract 1 from pos when checking previous newline for invisibility.
+
+	* window.c (window_scroll_pixel_based): Update preserve_y
+	for header line if any.
+	(Fscroll_left, Fscroll_right): Don't call interactive_p;
+	use a new second argument instead.
+
+	* eval.c (Fcall_interactive_p): New function.
+	(interactive_p): Don't test INTERACTIVE here.
+	(Finteractive_p): Doc fix.
+
+	* eval.c (Feval): Abort if INPUT_BLOCKED_P.
+
+2004-11-02  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
+
+	* w32fns.c (w32_font_match): Use fast_string_match_ignore_case for
+	comparing font names.
+
+2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* fileio.c (Fread_file_name): Pass Qt as fifth parameter to
+	Fx_file_dialog if only directories should be read.
+
+	* lisp.h: Fx_file_dialog takes 5 parameters.
+
+	* xfns.c (Fx_file_dialog): Both Motif and GTK version:  Add
+	parameter only_dir_p.
+	In Motif version, don't put DEFAULT_FILENAME in filter part of the
+	dialog, just text field part.  Do not add DEFAULT_FILENAME
+	to list of files if it isn't there.
+	In GTK version, pass only_dir_p parameter to xg_get_file_name.
+
+	* macfns.c (Fx_file_dialog): Add parameter only_dir_p.  Check
+	only_dir_p instead of comparing prompt to "Dired".  When using
+	a save dialog, add option kNavDontConfirmReplacement, change title
+	to "Enter name", change text for save button to "Ok".
+
+	* w32fns.c (Fx_file_dialog): Add parameter only_dir_p.  Check
+	only_dir_p instead of comparing prompt to "Dired".
+
+	* gtkutil.c (xg_get_file_with_chooser)
+	(xg_get_file_with_selection): New functions, only defined ifdef
+	HAVE_GTK_FILE_CHOOSER_DIALOG_NEW and HAVE_GTK_FILE_SELECTION_NEW
+	respectively.
+	(xg_get_file_name): Add parameter only_dir_p.
+	Call xg_get_file_with_chooser or xg_get_file_with_selection
+	depending on HAVE_GTK_FILE* and the value of use_old_gtk_file_dialog.
+	(xg_initialize): New DEFVAR_BOOL use_old_gtk_file_dialog.
+
+	* gtkutil.h (xg_get_file_name): Add parameter only_dir_p.
+
+	* config.in: Rebuild (added HAVE_GTK_FILE_*).
+
+2004-11-01  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (connect_wait_mask, num_pending_connects): Only
+	declare and use them if NON_BLOCKING_CONNECT is defined.
+	(init_process): Initialize them if NON_BLOCKING_CONNECT defined.
+	(IF_NON_BLOCKING_CONNECT): New helper macro.
+	(wait_reading_process_output): Only declare and use local vars
+	Connecting and check_connect when NON_BLOCKING_CONNECT is defined.
+
+2004-11-01  Andy Petrusenco  <Igrek@star-sw.com>  (tiny change)
+
+	* w32term.c (x_scroll_run): Delete region objects after use.
+
+2004-10-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c: Add prototypes for forward function declarations.
+	(popup_get_selection): Remove parameter do_timers, remove call to
+	timer_check.
+	(create_and_show_popup_menu, create_and_show_dialog): Remove
+	parameter do_timers from call to popup_get_selection.
+
+	* xdisp.c (update_tool_bar): Pass a copy of f->tool_bar_items to
+	tool_bar_items and assign the result to f->tool_bar_items if
+	not equal.  Move BLOCK/UNBLOCK_INPUT from around call to
+	tool_bar_items to assignment of result.
+
+	* atimer.c (alarm_signal_handler): Do not call set_alarm if
+	pending_atmers is non-zero.
+
+2004-10-31  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (margin_glyphs_to_reserve): Don't use ncols_scale_factor.
+
 2004-10-28  Will  <will@glozer.net>
 
 	* macterm.c: allow user to assign key modifiers to the Mac Option
@@ -387,7 +590,7 @@
 	compositions to encode.
 	(encode_coding_string): Likewise.  Free composition data.
 
-2004-09-30  Florian Weimer <fw@deneb.enyo.de>	(tiny change)
+2004-09-30  Florian Weimer <fw@deneb.enyo.de>
 
 	* coding.c (code_convert_region): Free composition data.
 
@@ -961,7 +1164,7 @@
 	(Fsave_window_excursion, Fset_window_vscroll)
 	(syms_of_window) <window-size-fixed>: Doc fixes.
 
-2004-07-19  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
+2004-07-19  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
 
 	* w32fns.c (Fx_file_dialog): Use ENCODE_FILE instead of
 	ENCODE_SYSTEM for filenames.
@@ -1020,7 +1223,7 @@
 
 	* buffer.c (syms_of_buffer) <transient-mark-mode>: Doc fix.
 
-2004-07-15  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
+2004-07-15  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
 
 	* w32fns.c (Fx_file_dialog): Encode strings in system coding
 	system before passing them to OS functions for display.
@@ -1684,7 +1887,7 @@
 	before actually accepting connection in case it has already been
 	accepted due to recursion.
 
-2004-05-23  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>  (tiny change)
+2004-05-23  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
 
 	* coding.c (Fset_safe_terminal_coding_system_internal):
 	Set suppress_error in safe_terminal_coding, not terminal_coding.
@@ -1998,7 +2201,7 @@
 	* w32fns.c (Vw32_ansi_code_page): New Lisp variable.
 	(globals_of_w32fns): Set it.
 
-2004-05-09  Piet van Oostrum  <piet@cs.uu.nl>  (tiny change)
+2004-05-09  Piet van Oostrum  <piet@cs.uu.nl>
 
 	* data.c (Fquo): Simplify.
 
@@ -2047,7 +2250,7 @@
 
 	* emacs.c (main) [VMS]: Fix var ref.
 
-2004-05-06  Romain Francoise  <romain@orebokech.com>  (tiny change)
+2004-05-06  Romain Francoise  <romain@orebokech.com>
 
 	* data.c (Fsetq_default): Fix docstring.
 
@@ -2087,7 +2290,7 @@
 
 	* Makefile.in (region-cache.o): Depend on config.h.
 
-2004-05-02  Romain Francoise  <romain@orebokech.com>  (tiny change)
+2004-05-02  Romain Francoise  <romain@orebokech.com>
 
 	* indent.c (compute_motion): Save vpos in prev_vpos when dealing
 	with continuation lines, too.
@@ -3330,7 +3533,7 @@
 	entries that were used before we return.
 	(init_keyboard): Initialize read_avail_input_buf here.
 
-2004-02-16  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+2004-02-16  Jesper Harder  <harder@ifa.au.dk>
 
 	* cmds.c (Fend_of_line): Doc fix.
 
@@ -3998,7 +4201,7 @@
 	to the definition of `signal' in the Elisp manual.
 	* eval.c (Fsignal): Ditto.
 
-2003-12-29  James Clark  <jjc@jclark.com>  (tiny change)
+2003-12-29  James Clark  <jjc@jclark.com>
 
 	* fns.c (internal_equal): Return t for two NaN arguments.
 
@@ -5058,7 +5261,7 @@
 	* fileio.c (Fwrite_region): Fix conditional expression to issue
 	the right message.
 
-2003-08-16  Juri Linkov  <juri@jurta.org>  (tiny change)
+2003-08-16  Juri Linkov  <juri@jurta.org>
 
 	* syntax.c (Fforward_word): Argument changed to optional.
 	Set default value to 1.
@@ -5117,7 +5320,7 @@
 	* fns.c (Fclear_string): New function.
 	(syms_of_fns): defsubr it.
 
-2003-07-28  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp> (tiny change)
+2003-07-28  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
 
 	* xfns.c (xic_set_preeditarea): Add the left fringe width to spot.x.
 
@@ -5345,7 +5548,7 @@
 
 	* alloc.c (Fgarbage_collect): Doc fix.
 
-2003-07-07  Nozomu Ando  <nand@mac.com>  (tiny change)
+2003-07-07  Nozomu Ando  <nand@mac.com>
 
 	* buffer.c (Fkill_buffer): Clear charpos cache if necessary.
 
@@ -6555,7 +6758,7 @@
 	* alloc.c (Fgarbage_collect): Cast pointers into specpdl
 	to avoid GCC warning.
 
-2003-05-16  Ralph Schleicher  <rs@nunatak.allgaeu.org>  (tiny change)
+2003-05-16  Ralph Schleicher  <rs@nunatak.allgaeu.org>
 
 	* fileio.c (Fdelete_file): Handle symlinks pointing to directories.
 
@@ -8278,7 +8481,7 @@
 	(w32_init_class): Use it.
 	(x_put_x_image): Declare all args.
 
-2003-01-21  Richard Dawe  <rich@phekda.freeserve.co.uk>  (tiny change)
+2003-01-21  Richard Dawe  <rich@phekda.freeserve.co.uk>
 
 	* Makefile.in (ALL_CFLAGS): Include MYCPPFLAGS, not MYCPPFLAG.
 
@@ -8650,7 +8853,7 @@
 	in direct action cases for Qforward_char and Qbackward_char.
 	Set already_adjusted so it won't be done twice.
 
-2002-12-30  Richard Dawe  <rich@phekda.freeserve.co.uk>  (tiny change)
+2002-12-30  Richard Dawe  <rich@phekda.freeserve.co.uk>
 
 	* src/config.in (!HAVE_SIZE_T): Fix order of arguments in
 	type definition of size_t.
@@ -8748,7 +8951,7 @@
 	* dired.c (file_name_completion): Fix that change.
 	Delete special quit-handling code; just use QUIT.
 
-2002-12-21  Tak Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
+2002-12-21  Tak Ota  <Takaaki.Ota@am.sony.com>
 
 	* dired.c (file_name_completion): Close directory on error
 	just as in directory_files_internal.
@@ -10088,8 +10291,8 @@
 
 2002-08-26  Kim F. Storm  <storm@cua.dk>
 
-	* frame.c (make_terminal_frame) [CANNOT_DUMP]: Initialize foreground
-	and background colors.  From Joe Buehler (tiny change).
+	* frame.c (make_terminal_frame) [CANNOT_DUMP]: Initialize
+	foreground and background colors.  From Joe Buehler.
 
 2002-08-26  Miles Bader  <miles@gnu.org>
 

@@ -66,6 +66,7 @@
 
 (defgroup gnus-registry nil
   "The Gnus registry."
+  :version "21.4"
   :group 'gnus)
 
 (defvar gnus-registry-hashtb nil

@@ -1,3 +1,15 @@
+2004-11-02  Masatake YAMATO  <jet@gyve.org>
+
+	* url-imap.el (url-imap-open-host): Don't use
+	`string-to-int'. The port returned by `url-port'
+	is expected to be an integer.
+
+	* url-irc.el (url-irc): Ditto.
+
+	* url-news.el (url-news-open-host): Ditto.
+
+	* url-nfs.el (url-nfs-build-filename): Ditto.
+
 2004-10-20  John Paul Wallington  <jpw@gnu.org>
 
 	* url-gw.el (url-gateway-nslookup-host):

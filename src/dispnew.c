@@ -566,7 +566,7 @@ margin_glyphs_to_reserve (w, total_glyphs, margin)
       int width = XFASTINT (w->total_cols);
       double d = max (0, XFLOATINT (margin));
       d = min (width / 2 - 1, d);
-      n = (int) ((double) total_glyphs / width * d) * w->ncols_scale_factor;
+      n = (int) ((double) total_glyphs / width * d);
     }
   else
     n = 0;

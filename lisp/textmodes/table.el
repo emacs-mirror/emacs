@@ -645,7 +645,8 @@ See `table-insert' for examples about how to use."
   :group 'editing
   :group 'wp
   :group 'paragraphs
-  :group 'fill)
+  :group 'fill
+  :version "21.4")
 
 (defgroup table-hooks nil
   "Hooks for table manipulation utilities"

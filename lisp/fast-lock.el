@@ -26,7 +26,7 @@
 
 ;;; Commentary:
 
-;; Lazy Lock mode is a Font Lock support mode.
+;; Fast Lock mode is a Font Lock support mode.
 ;; It makes visiting a file in Font Lock mode faster by restoring its face text
 ;; properties from automatically saved associated Font Lock cache files.
 ;;

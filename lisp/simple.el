@@ -1,7 +1,7 @@
 ;;; simple.el --- basic editing commands for Emacs
 
 ;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 99,
-;;               2000, 01, 02, 03, 04
+;;               2000, 01, 02, 03, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -3920,6 +3920,8 @@ During execution of Lisp code, this character causes a quit directly.
 At top-level, as an editor command, this simply beeps."
   (interactive)
   (deactivate-mark)
+  (if (fboundp 'kmacro-keyboard-quit)
+      (kmacro-keyboard-quit))
   (setq defining-kbd-macro nil)
   (signal 'quit nil))
 

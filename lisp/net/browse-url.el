@@ -596,10 +596,11 @@ for use in `interactive'."
 	(not (eq (null browse-url-new-window-flag)
 		 (null current-prefix-arg)))))
 
-;; interactive-p needs to be called at a function's top-level, hence
-;; the macro.
+;; called-interactive-p needs to be called at a function's top-level, hence
+;; this macro.  We use that rather than interactive-p because
+;; use in a keyboard macro should not change this behavior.
 (defmacro browse-url-maybe-new-window (arg)
-  `(if (not (interactive-p))
+  `(if (or noninteractive (not (called-interactively-p)))
        ,arg
      browse-url-new-window-flag))
 

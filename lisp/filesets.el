@@ -295,7 +295,8 @@ key is supported."
 (defgroup filesets nil
   "The fileset swapper."
   :prefix "filesets-"
-  :group 'convenience)
+  :group 'convenience
+  :version "21.4")
 
 (defcustom filesets-menu-name "Filesets"
   "*Filesets' menu name."

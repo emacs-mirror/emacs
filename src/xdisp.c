@@ -4554,7 +4554,8 @@ back_to_previous_visible_line_start (it)
 	{
 	  Lisp_Object prop;
 
-	  prop = Fget_char_property (make_number (IT_CHARPOS (*it)),
+	  /* Check the newline before point for invisibility.  */
+	  prop = Fget_char_property (make_number (IT_CHARPOS (*it) - 1),
 				     Qinvisible, it->window);
 	  if (TEXT_PROP_MEANS_INVISIBLE (prop))
 	    visible_p = 0;
@@ -8414,7 +8415,8 @@ update_tool_bar (f, save_match_data)
 	{
 	  struct buffer *prev = current_buffer;
 	  int count = SPECPDL_INDEX ();
-	  Lisp_Object old_tool_bar;
+	  Lisp_Object new_tool_bar;
+          int new_n_tool_bar;
 	  struct gcpro gcpro1;
 
 	  /* Set current_buffer to the buffer of the selected
@@ -8433,18 +8435,24 @@ update_tool_bar (f, save_match_data)
 	      specbind (Qoverriding_local_map, Qnil);
 	    }
 
-	  old_tool_bar = f->tool_bar_items;
-	  GCPRO1 (old_tool_bar);
+	  GCPRO1 (new_tool_bar);
 
 	  /* Build desired tool-bar items from keymaps.  */
-          BLOCK_INPUT;
-	  f->tool_bar_items
-	    = tool_bar_items (f->tool_bar_items, &f->n_tool_bar_items);
-          UNBLOCK_INPUT;
+          new_tool_bar = tool_bar_items (Fcopy_sequence (f->tool_bar_items),
+                                         &new_n_tool_bar);
 
 	  /* Redisplay the tool-bar if we changed it.  */
-	  if (! NILP (Fequal (old_tool_bar, f->tool_bar_items)))
-	    w->update_mode_line = Qt;
+	  if (NILP (Fequal (new_tool_bar, f->tool_bar_items)))
+            {
+              /* Redisplay that happens asynchronously due to an expose event
+                 may access f->tool_bar_items.  Make sure we update both
+                 variables within BLOCK_INPUT so no such event interrupts.  */
+              BLOCK_INPUT;
+              f->tool_bar_items = new_tool_bar;
+              f->n_tool_bar_items = new_n_tool_bar;
+              w->update_mode_line = Qt;
+              UNBLOCK_INPUT;
+            }
 
 	  UNGCPRO;
 

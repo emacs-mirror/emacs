@@ -643,14 +643,17 @@ version 4.7 or newer, compiles to Info pages with embedded images.
 
 ** BibTeX mode:
 *** The new command bibtex-url browses a URL for the BibTeX entry at
-point (bound to C-c C-l and mouse-2 on clickable fields).
+point (bound to C-c C-l and mouse-2, RET on clickable fields).
+
 *** The new command bibtex-entry-update (bound to C-c C-u) updates
 an existing BibTeX entry.
+
 *** New `bibtex-entry-format' option `required-fields', enabled by default.
+
 *** bibtex-maintain-sorted-entries can take values `plain',
 `crossref', and `entry-class' which control the sorting scheme used
-for BibTeX entries. `bibtex-sort-entry-class' controls the sorting
-scheme `entry-class'. TAB completion for reference keys and
+for BibTeX entries.  `bibtex-sort-entry-class' controls the sorting
+scheme `entry-class'.  TAB completion for reference keys and
 automatic detection of duplicates does not require anymore that
 bibtex-maintain-sorted-entries is non-nil.
 
@@ -667,10 +670,21 @@ types for which fields are filled automatically (if possible).
 point according to context (bound to M-tab).
 
 *** The new commands bibtex-find-entry and bibtex-find-crossref
-locate entries and crossref'd entries.
+locate entries and crossref'd entries.  Crossref fields are clickable
+(bound to mouse-2, RET).
 
 *** In BibTeX mode the command fill-paragraph (bound to M-q) fills
 individual fields of a BibTeX entry.
+
+*** The new command bibtex-validate-globally checks for duplicate keys
+in multiple BibTeX files.  See also the new variables bibtex-files
+and bibtex-file-path.
+
+*** The new command bibtex-find-entry-globally searches BibTeX entries
+in multiple BibTeX files.
+
+*** The new command bibtex-copy-summary-as-kill pushes summary
+of BibTeX entry to kill ring (bound to C-c C-t).
 
 ** When display margins are present in a window, the fringes are now
 displayed between the margins and the buffer's text area, rather than
@@ -917,14 +931,25 @@ amount of text shown any more (only a crude approximation of it).
 
 ---
 ** The pop up menus for Lucid now stay up if you do a fast click and can
-be navigated with the arrow keys (like Gtk+ and W32).
+be navigated with the arrow keys (like Gtk+, Mac and W32).
 
 ---
-** Dialogs for Lucid/Athena and Lesstif/Motif pops down when pressing ESC.
+** Dialogs for Lucid/Athena and Lesstif/Motif now pops down when pressing
+ESC, like they do for Gtk+, Mac and W32.
+
+---
+** The menu item "Open File..." has been split into two items, "New File..."
+and "Open File...".  "Open File..." now opens only existing files.  This is
+to support existing GUI file selection dialogs better.
 
 +++
-** The file selection dialog for Gtk+, W32 and Motif/Lesstif can be
+** The file selection dialog for Gtk+, Mac, W32 and Motif/Lesstif can be
 disabled by customizing the variable `use-file-dialog'.
+
++++
+** For Gtk+ version 2.4, you can make Emacs use the old file dialog
+by setting the variable `use-old-gtk-file-dialog' to t.  Default is to use
+the new dialog.
 
 +++
 ** Emacs can produce an underscore-like (horizontal bar) cursor.
@@ -2297,6 +2322,13 @@ timing measurements of code (including the garbage collection component).
 configuration files.
 
 * Lisp Changes in Emacs 21.4
+
++++
+** The new function `called-interactively-p' does what many people
+have mistakenly believed `interactively-p' did: it returns t if the
+calling function was called through `call-interactively'.
+This should only be used when you cannot add a new "interactively"
+argument to the command.
 
 +++
 ** An interactive specification may now use the code letter 'U' to get

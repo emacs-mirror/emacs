@@ -5130,27 +5130,26 @@ file_dialog_unmap_cb (widget, client_data, call_data)
 }
 
 
-DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 4, 0,
+DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
-Use a file selection dialog.
-Select DEFAULT-FILENAME in the dialog's file selection box, if
-specified.  Don't let the user enter a file name in the file
-selection dialog's entry field, if MUSTMATCH is non-nil.  */)
-     (prompt, dir, default_filename, mustmatch)
-     Lisp_Object prompt, dir, default_filename, mustmatch;
+Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
+selection box, if specified.  If MUSTMATCH is non-nil, the returned file
+or directory must exist.  ONLY-DIR-P is ignored."  */)
+  (prompt, dir, default_filename, mustmatch, only_dir_p)
+     Lisp_Object prompt, dir, default_filename, mustmatch, only_dir_p;
 {
   int result;
   struct frame *f = SELECTED_FRAME ();
   Lisp_Object file = Qnil;
-  Widget dialog, text, list, help;
+  Widget dialog, text, help;
   Arg al[10];
   int ac = 0;
   extern XtAppContext Xt_app_con;
   XmString dir_xmstring, pattern_xmstring;
   int count = SPECPDL_INDEX ();
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
 
-  GCPRO5 (prompt, dir, default_filename, mustmatch, file);
+  GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, file);
   CHECK_STRING (prompt);
   CHECK_STRING (dir);
 
@@ -5183,9 +5182,9 @@ selection dialog's entry field, if MUSTMATCH is non-nil.  */)
   XtAddCallback (dialog, XmNunmapCallback, file_dialog_unmap_cb,
 		 (XtPointer) &result);
 
-  /* Disable the help button since we can't display help.  */
+  /* Remove the help button since we can't display help.  */
   help = XmFileSelectionBoxGetChild (dialog, XmDIALOG_HELP_BUTTON);
-  XtSetSensitive (help, False);
+  XtUnmanageChild (help);
 
   /* Mark OK button as default.  */
   XtVaSetValues (XmFileSelectionBoxGetChild (dialog, XmDIALOG_OK_BUTTON),
@@ -5207,30 +5206,30 @@ selection dialog's entry field, if MUSTMATCH is non-nil.  */)
   /* Manage the dialog, so that list boxes get filled.  */
   XtManageChild (dialog);
 
-  /* Select DEFAULT_FILENAME in the files list box.  DEFAULT_FILENAME
-     must include the path for this to work.  */
-  list = XmFileSelectionBoxGetChild (dialog, XmDIALOG_LIST);
   if (STRINGP (default_filename))
     {
       XmString default_xmstring;
-      int item_pos;
+      Widget wtext = XmFileSelectionBoxGetChild (dialog, XmDIALOG_TEXT);
+      Widget list = XmFileSelectionBoxGetChild (dialog, XmDIALOG_LIST);
 
-      default_xmstring
-	= XmStringCreateLocalized (SDATA (default_filename));
+      XmTextPosition last_pos = XmTextFieldGetLastPosition (wtext);
+      XmTextFieldReplace (wtext, 0, last_pos,
+                          (SDATA (Ffile_name_nondirectory (default_filename))));
 
-      if (!XmListItemExists (list, default_xmstring))
-	{
-	  /* Add a new item if DEFAULT_FILENAME is not in the list.  */
-	  XmListAddItem (list, default_xmstring, 0);
-	  item_pos = 0;
-	}
-      else
-	item_pos = XmListItemPos (list, default_xmstring);
+      /* Select DEFAULT_FILENAME in the files list box.  DEFAULT_FILENAME
+         must include the path for this to work.  */
+
+      default_xmstring = XmStringCreateLocalized (SDATA (default_filename));
+
+      if (XmListItemExists (list, default_xmstring))
+        {
+          int item_pos = XmListItemPos (list, default_xmstring);
+          /* Select the item and scroll it into view.  */
+          XmListSelectPos (list, item_pos, True);
+          XmListSetPos (list, item_pos);
+        }
+
       XmStringFree (default_xmstring);
-
-      /* Select the item and scroll it into view.  */
-      XmListSelectPos (list, item_pos, True);
-      XmListSetPos (list, item_pos);
     }
 
   /* Process events until the user presses Cancel or OK.  */
@@ -5274,23 +5273,23 @@ selection dialog's entry field, if MUSTMATCH is non-nil.  */)
 
 #ifdef USE_GTK
 
-DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 4, 0,
-  "Read file name, prompting with PROMPT in directory DIR.\n\
-Use a file selection dialog.\n\
-Select DEFAULT-FILENAME in the dialog's file selection box, if\n\
-specified.  Don't let the user enter a file name in the file\n\
-selection dialog's entry field, if MUSTMATCH is non-nil.")
-  (prompt, dir, default_filename, mustmatch)
-     Lisp_Object prompt, dir, default_filename, mustmatch;
+DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
+       doc: /* Read file name, prompting with PROMPT in directory DIR.
+Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
+selection box, if specified.  If MUSTMATCH is non-nil, the returned file
+or directory must exist.  If ONLY-DIR-P is non-nil, the user can only select
+directories.  */)
+  (prompt, dir, default_filename, mustmatch, only_dir_p)
+     Lisp_Object prompt, dir, default_filename, mustmatch, only_dir_p;
 {
   FRAME_PTR f = SELECTED_FRAME ();
   char *fn;
   Lisp_Object file = Qnil;
   int count = specpdl_ptr - specpdl;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   char *cdef_file;
 
-  GCPRO5 (prompt, dir, default_filename, mustmatch, file);
+  GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, file);
   CHECK_STRING (prompt);
   CHECK_STRING (dir);
 
@@ -5304,7 +5303,9 @@ selection dialog's entry field, if MUSTMATCH is non-nil.")
   else
     cdef_file = SDATA (dir);
 
-  fn = xg_get_file_name (f, SDATA (prompt), cdef_file, ! NILP (mustmatch));
+  fn = xg_get_file_name (f, SDATA (prompt), cdef_file,
+                         ! NILP (mustmatch),
+                         ! NILP (only_dir_p));
 
   if (fn)
     {
@@ -5579,6 +5580,14 @@ Chinese, Japanese, and Korean.  */);
      accepts --with-x-toolkit=gtk.  */
   Fprovide (intern ("x-toolkit"), Qnil);
   Fprovide (intern ("gtk"), Qnil);
+
+#ifdef HAVE_GTK_FILE_BOTH
+  DEFVAR_BOOL ("use-old-gtk-file-dialog", &use_old_gtk_file_dialog,
+    doc: /* *Non-nil means that the old GTK file selection dialog is used.
+If nil the new GTK file chooser is used instead.  To turn off
+all file dialogs set the variable `use-file-dialog'.  */);
+  use_old_gtk_file_dialog = 0;
+#endif
 
   DEFVAR_LISP ("gtk-version-string", &Vgtk_version_string,
                doc: /* Version info for GTK+.  */);

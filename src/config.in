@@ -217,6 +217,15 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if using GTK. */
 #undef HAVE_GTK
 
+/* Define to 1 if GTK has both file selection and chooser dialog. */
+#undef HAVE_GTK_FILE_BOTH
+
+/* Define to 1 if you have the `gtk_file_chooser_dialog_new' function. */
+#undef HAVE_GTK_FILE_CHOOSER_DIALOG_NEW
+
+/* Define to 1 if you have the `gtk_file_selection_new' function. */
+#undef HAVE_GTK_FILE_SELECTION_NEW
+
 /* Define to 1 if GTK can handle more than one display. */
 #undef HAVE_GTK_MULTIDISPLAY
 

@@ -56,7 +56,7 @@
 (defun flymake-makehash(&optional test)
     (cond
 	((equal flymake-emacs 'xemacs)  (if test (make-hash-table :test test) (make-hash-table)))
-	(t                              (makehash test))
+	(t                              (makehash test))	
     )
 )
 
@@ -370,8 +370,8 @@
     (let* ((init-f  (nth 0 (flymake-get-file-name-mode-and-masks file-name))))
 	;(flymake-log 0 "calling %s" init-f)
 	;(funcall init-f (current-buffer))
+	  init-f
     )
-    (nth 0 (flymake-get-file-name-mode-and-masks file-name))
 )
 
 (defun flymake-get-cleanup-function(file-name)
@@ -846,7 +846,7 @@ Whenether a buffer for master-file-name exists, use it as a source instead of re
 			 (set-buffer source-buffer)
 
 			 (flymake-parse-residual source-buffer)
-			 (flymake-post-syntax-check source-buffer)
+			 (flymake-post-syntax-check source-buffer exit-status command)
 			 (flymake-set-buffer-is-running source-buffer nil)
 		   )
 		)
@@ -863,7 +863,7 @@ Whenether a buffer for master-file-name exists, use it as a source instead of re
    )
 )
 
-(defun flymake-post-syntax-check(source-buffer)
+(defun flymake-post-syntax-check(source-buffer exit-status command)
     ""
    (flymake-set-buffer-err-info source-buffer (flymake-get-buffer-new-err-info source-buffer))
    (flymake-set-buffer-new-err-info source-buffer nil)
@@ -1220,7 +1220,33 @@ Whenether a buffer for master-file-name exists, use it as a source instead of re
     )
 )
 
-(eval-when-compile (require 'compile))
+(defun flymake-reformat-err-line-patterns-from-compile-el(original-list)
+    "grab error line patterns from original list in compile.el format, convert to flymake internal format"
+	(let* ((converted-list '()))
+	(mapcar
+	    (lambda (item)
+			(setq item (cdr item))
+			(let ((regexp (nth 0 item))
+				  (file (nth 1 item))
+				  (line (nth 2 item))
+				  (col (nth 3 item))
+				  end-line)
+			  (if (consp file)	(setq file (car file)))
+			  (if (consp line)	(setq end-line (cdr line) line (car line)))
+			  (if (consp col)	(setq col (car col)))
+
+			  (when (not (functionp line))
+				  (setq converted-list (cons (list regexp file line col) converted-list))
+			  )
+		   )
+		)
+		original-list
+	)
+	converted-list
+   )
+)
+
+(require 'compile)
 (defvar flymake-err-line-patterns  ; regexp file-idx line-idx col-idx (optional) text-idx(optional), match-end to end of string is error text
     (append
      '(
@@ -1243,9 +1269,9 @@ Whenether a buffer for master-file-name exists, use it as a source instead of re
 	   (" *\\(\\[javac\\]\\)? *\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)\:\\([0-9]+\\)\:[ \t\n]*\\(.+\\)"
 	2 4 nil 5)
       )
-     ;; compilation-error-regexp-alist)
-     (mapcar (lambda (x) (cdr x)) compilation-error-regexp-alist-alist)) 
-    "patterns for matching error/warning lines, (regexp file-idx line-idx err-text-idx)"
+	 ;; compilation-error-regexp-alist)
+     (flymake-reformat-err-line-patterns-from-compile-el compilation-error-regexp-alist-alist)) 
+    "patterns for matching error/warning lines, (regexp file-idx line-idx err-text-idx). Use flymake-reformat-err-line-patterns-from-compile-el to add patterns from compile.el"
 )
 ;(defcustom flymake-err-line-patterns
 ;  '(
@@ -1452,7 +1478,7 @@ Whenether a buffer for master-file-name exists, use it as a source instead of re
 	    (let* ((dir (nth idx include-dirs)))
 		(setq full-file-name  (concat dir "/" rel-file-name))
 		(when (file-exists-p full-file-name)
-		    (setq done t)
+		    (setq found t)
 		)
 	    )
 	    (setq idx (1+ idx))
@@ -1574,7 +1600,7 @@ Whenether a buffer for master-file-name exists, use it as a source instead of re
 		process
 	    )
 	    (error
-		(let ((err-str (format "Failed to launch syntax check process '%s' with args %s: %s"
+		(let* ((err-str (format "Failed to launch syntax check process '%s' with args %s: %s"
 			     cmd args (error-message-string err)))
 		      (source-file-name (buffer-file-name buffer))
 		      (cleanup-f        (flymake-get-cleanup-function source-file-name)))
@@ -1905,7 +1931,8 @@ Whenether a buffer for master-file-name exists, use it as a source instead of re
 (defun flymake-mode(&optional arg)
     "toggle flymake-mode"
     (interactive)
-    (let ((old-flymake-mode flymake-mode))
+    (let ((old-flymake-mode flymake-mode)
+		  (turn-on nil))
 
 	(setq turn-on
 	    (if (null arg)

@@ -89,12 +89,12 @@ and past information to determine the current status of a file.
 The value can also be a regular expression or list of regular
 expressions to match against the host name of a repository; then VC
 only stays local for hosts that match it.  Alternatively, the value
-can be a list of regular expressions where the first element is the 
-symbol `except'; then VC always stays local except for hosts matched 
+can be a list of regular expressions where the first element is the
+symbol `except'; then VC always stays local except for hosts matched
 by these regular expressions."
   :type '(choice (const :tag "Always stay local" t)
                 (const :tag "Don't stay local" nil)
-                 (list :format "\nExamine hostname and %v" :tag "Examine hostname ..." 
+                 (list :format "\nExamine hostname and %v" :tag "Examine hostname ..."
                        (set :format "%v" :inline t (const :format "%t" :tag "don't" except))
                        (regexp :format " stay local,\n%t: %v" :tag "if it matches")
                        (repeat :format "%v%i\n" :inline t (regexp :tag "or"))))
@@ -151,12 +151,6 @@ See also variable `vc-cvs-sticky-date-format-string'."
 ;;;
 ;;; Internal variables
 ;;;
-
-(defvar vc-cvs-local-month-numbers
-  '(("Jan" . 1) ("Feb" .  2) ("Mar" .  3) ("Apr" .  4)
-    ("May" . 5) ("Jun" .  6) ("Jul" .  7) ("Aug" .  8)
-    ("Sep" . 9) ("Oct" . 10) ("Nov" . 11) ("Dec" . 12))
-  "Local association list of month numbers.")
 
 
 ;;;
@@ -590,7 +584,11 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 (defun vc-cvs-annotate-command (file buffer &optional version)
   "Execute \"cvs annotate\" on FILE, inserting the contents in BUFFER.
 Optional arg VERSION is a version to annotate from."
-  (vc-cvs-command buffer 0 file "annotate" (if version (concat "-r" version))))
+  (vc-cvs-command buffer 0 file "annotate" (if version (concat "-r" version)))
+  (with-current-buffer buffer
+    (goto-char (point-min))
+    (re-search-forward "^[0-9]")
+    (delete-region (point-min) (1- (point)))))
 
 (defun vc-cvs-annotate-current-time ()
   "Return the current time, based at midnight of the current day, and
@@ -601,29 +599,36 @@ encoded as fractional days."
 (defun vc-cvs-annotate-time ()
   "Return the time of the next annotation (as fraction of days)
 systime, or nil if there is none."
-  (let ((time-stamp
-	 "^\\S-+\\s-+\\S-+\\s-+\\([0-9]+\\)-\\(\\sw+\\)-\\([0-9]+\\)): "))
-    (if (looking-at time-stamp)
-      (progn
-	(let* ((day (string-to-number (match-string 1)))
-		 (month (cdr (assoc (match-string 2)
-				    vc-cvs-local-month-numbers)))
-	       (year-tmp (string-to-number (match-string 3)))
-	       ;; Years 0..68 are 2000..2068.
-	       ;; Years 69..99 are 1969..1999.
-	       (year (+ (cond ((> 69 year-tmp) 2000)
-			      ((> 100 year-tmp) 1900)
-			      (t 0))
-			year-tmp)))
-	  (goto-char (match-end 0)) ; Position at end makes for nicer overlay result
-	    (vc-annotate-convert-time (encode-time 0 0 0 day month year))))
-    ;; If we did not look directly at an annotation, there might be
-    ;; some further down.  This is the case if we are positioned at
-    ;; the very top of the buffer, for instance.
-      (if (re-search-forward time-stamp nil t)
-	(progn
-	  (beginning-of-line nil)
-	    (vc-cvs-annotate-time))))))
+  (let* ((bol (point))
+         (cache (get-text-property bol 'vc-cvs-annotate-time))
+         buffer-read-only)
+    (cond
+     (cache)
+     ((looking-at
+       "^\\S-+\\s-+\\S-+\\s-+\\([0-9]+\\)-\\(\\sw+\\)-\\([0-9]+\\)): ")
+      (let ((day (string-to-number (match-string 1)))
+            (month (cdr (assq (intern (match-string 2))
+                              '((Jan .  1) (Feb .  2) (Mar .  3)
+                                (Apr .  4) (May .  5) (Jun .  6)
+                                (Jul .  7) (Aug .  8) (Sep .  9)
+                                (Oct . 10) (Nov . 11) (Dec . 12)))))
+            (year (let ((tmp (string-to-number (match-string 3))))
+                    ;; Years 0..68 are 2000..2068.
+                    ;; Years 69..99 are 1969..1999.
+                    (+ (cond ((> 69 tmp) 2000)
+                             ((> 100 tmp) 1900)
+                             (t 0))
+                       tmp))))
+        (put-text-property
+         bol (1+ bol) 'vc-cvs-annotate-time
+         (setq cache (cons
+                      ;; Position at end makes for nicer overlay result.
+                      (match-end 0)
+                      (vc-annotate-convert-time
+                       (encode-time 0 0 0 day month year))))))))
+    (when cache
+      (goto-char (car cache))           ; fontify from here to eol
+      (cdr cache))))                    ; days (float)
 
 (defun vc-cvs-annotate-extract-revision-at-line ()
   (save-excursion
@@ -839,7 +844,7 @@ CVS/Entries should only be accessed through this function."
   (let ((coding-system-for-read (or file-name-coding-system
                                     default-file-name-coding-system)))
     (vc-insert-file (expand-file-name "CVS/Entries" dir))))
-     
+
 (defun vc-cvs-valid-symbolic-tag-name-p (tag)
   "Return non-nil if TAG is a valid symbolic tag name."
   ;; According to the CVS manual, a valid symbolic tag must start with
@@ -929,7 +934,7 @@ is non-nil."
 	     "\\(.*\\)"))		;Sticky tag
     (vc-file-setprop file 'vc-workfile-version (match-string 1))
     (vc-file-setprop file 'vc-cvs-sticky-tag
-		     (vc-cvs-parse-sticky-tag (match-string 4) 
+		     (vc-cvs-parse-sticky-tag (match-string 4)
                                               (match-string 5)))
     ;; Compare checkout time and modification time.
     ;; This is intentionally different from the algorithm that CVS uses

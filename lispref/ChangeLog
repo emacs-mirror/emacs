@@ -1,3 +1,7 @@
+2004-11-01  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Interactive Call): Add called-interactively-p.
+
 2004-10-29  Simon Josefsson  <jas@extundo.com>
 
 	* minibuf.texi (Reading a Password): Revert.

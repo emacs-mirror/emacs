@@ -2763,9 +2763,13 @@ x_scroll_run (w, run)
     /* If the dirty region is not what we expected, redraw the entire frame.  */
     if (!EqualRgn (combined, expect_dirty))
       SET_FRAME_GARBAGED (f);
+
+    DeleteObject (dirty);
+    DeleteObject (combined);
   }
 
   UNBLOCK_INPUT;
+  DeleteObject (expect_dirty);
 }
 
 

@@ -1,3 +1,10 @@
+2004-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xlwmenu.c (find_first_selectable, find_next_selectable)
+	(find_prev_selectable): Rename parameter skip_no_call_data to
+	skip_titles.  Recognize titles as having no call_data and no contents.
+	(Down, Up): Comment update.
+
 2004-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* lwlib.h (_widget_value): Added lname and lkey.

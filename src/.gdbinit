@@ -70,6 +70,34 @@ Print the argument as an emacs s-expression
 Works only when an inferior emacs is executing.
 end
 
+# Print out current buffer point and boundaries
+define ppt
+  set $b = current_buffer
+  set $t = $b->text
+  printf "BUF PT: %d", $b->pt
+  if ($b->pt != $b->pt_byte)
+    printf "[%d]", $b->pt_byte
+  end
+  printf " of 1..%d", $t->z
+  if ($t->z != $t->z_byte)
+    printf "[%d]", $t->z_byte
+  end
+  if ($b->begv != 1 || $b->zv != $t->z)
+    printf " NARROW=%d..%d", $b->begv, $b->zv
+    if ($b->begv != $b->begv_byte || $b->zv != $b->zv_byte)
+      printf " [%d..%d]", $b->begv_byte, $b->zv_byte
+    end
+  end
+  printf " GAP: %d", $t->gpt
+  if ($t->gpt != $t->gpt_byte)
+    printf "[%d]", $t->gpt_byte
+  end
+  printf " SZ=%d\n", $t->gap_size
+end
+document ppt
+Print point, beg, end, narrow, and gap for current buffer.
+end
+
 define xtype
   xgettype $
   output $type

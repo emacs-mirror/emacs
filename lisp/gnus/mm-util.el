@@ -123,13 +123,16 @@
 
 (defun mm-coding-system-p (cs)
   "Return non-nil if CS is a symbol naming a coding system.
-In XEmacs, also return non-nil if CS is a coding system object."
+In XEmacs, also return non-nil if CS is a coding system object.
+If CS is available, return CS itself in Emacs, and return a coding
+system object in XEmacs."
   (if (fboundp 'find-coding-system)
       (find-coding-system cs)
     (if (fboundp 'coding-system-p)
-	(coding-system-p cs)
+	(when (coding-system-p cs)
+	  cs)
       ;; Is this branch ever actually useful?
-      (memq cs (mm-get-coding-system-list)))))
+      (car (memq cs (mm-get-coding-system-list))))))
 
 (defvar mm-charset-synonym-alist
   `(
@@ -219,12 +222,12 @@ In XEmacs, also return non-nil if CS is a coding system object."
     (big5 chinese-big5-1 chinese-big5-2)
     (tibetan tibetan)
     (thai-tis620 thai-tis620)
+    (windows-1251 cyrillic-iso8859-5)
     (iso-2022-7bit ethiopic arabic-1-column arabic-2-column)
     (iso-2022-jp-2 latin-iso8859-1 greek-iso8859-7
 		   latin-jisx0201 japanese-jisx0208-1978
 		   chinese-gb2312 japanese-jisx0208
-		   korean-ksc5601 japanese-jisx0212
-		   katakana-jisx0201)
+		   korean-ksc5601 japanese-jisx0212)
     (iso-2022-int-1 latin-iso8859-1 greek-iso8859-7
 		    latin-jisx0201 japanese-jisx0208-1978
 		    chinese-gb2312 japanese-jisx0208
@@ -239,6 +242,9 @@ In XEmacs, also return non-nil if CS is a coding system object."
 		    chinese-cns11643-3 chinese-cns11643-4
 		    chinese-cns11643-5 chinese-cns11643-6
 		    chinese-cns11643-7)
+    (iso-2022-jp-3 latin-jisx0201 japanese-jisx0208-1978 japanese-jisx0208
+		   japanese-jisx0213-1 japanese-jisx0213-2)
+    (shift_jis latin-jisx0201 katakana-jisx0201 japanese-jisx0208)
     ,(if (or (not (fboundp 'charsetp)) ;; non-Mule case
 	     (charsetp 'unicode-a)
 	     (not (mm-coding-system-p 'mule-utf-8)))
@@ -249,24 +255,47 @@ In XEmacs, also return non-nil if CS is a coding system object."
 		       (coding-system-get 'mule-utf-8 'safe-charsets)))))
   "Alist of MIME-charset/MULE-charsets.")
 
-;; Correct by construction, but should be unnecessary:
-;; XEmacs hates it.
-(when (and (not (featurep 'xemacs))
-	   (fboundp 'coding-system-list)
-	   (fboundp 'sort-coding-systems))
-  (setq mm-mime-mule-charset-alist
-	(apply
-	 'nconc
-	 (mapcar
-	  (lambda (cs)
-	    (when (and (or (coding-system-get cs :mime-charset)	; Emacs 22
-			   (coding-system-get cs 'mime-charset))
-		       (not (eq t (coding-system-get cs 'safe-charsets))))
-	      (list (cons (or (coding-system-get cs :mime-charset)
-			      (coding-system-get cs 'mime-charset))
-			  (delq 'ascii
-				(coding-system-get cs 'safe-charsets))))))
-	  (sort-coding-systems (coding-system-list 'base-only))))))
+(defun mm-enrich-utf-8-by-mule-ucs ()
+  "Make the `utf-8' MIME charset usable by the Mule-UCS package.
+This function will run when the `un-define' module is loaded under
+XEmacs, and fill the `utf-8' entry in `mm-mime-mule-charset-alist'
+with Mule charsets.  It is completely useless for Emacs."
+  (unless (cdr (delete '(mm-enrich-utf-8-by-mule-ucs)
+		       (assoc "un-define" after-load-alist)))
+    (setq after-load-alist
+	  (delete '("un-define") after-load-alist)))
+  (when (boundp 'unicode-basic-translation-charset-order-list)
+    (condition-case nil
+	(let ((val (delq
+		    'ascii
+		    (copy-sequence
+		     (symbol-value
+		      'unicode-basic-translation-charset-order-list))))
+	      (elem (assq 'utf-8 mm-mime-mule-charset-alist)))
+	  (if elem
+	      (setcdr elem val)
+	    (setq mm-mime-mule-charset-alist
+		  (nconc mm-mime-mule-charset-alist
+			 (list (cons 'utf-8 val))))))
+      (error))))
+
+;; Correct by construction, but should be unnecessary for Emacs:
+(if (featurep 'xemacs)
+    (eval-after-load "un-define" '(mm-enrich-utf-8-by-mule-ucs))
+  (when (and (fboundp 'coding-system-list)
+	     (fboundp 'sort-coding-systems))
+    (let ((css (sort-coding-systems (coding-system-list 'base-only)))
+	  cs mime mule alist)
+      (while css
+	(setq cs (pop css)
+	      mime (or (coding-system-get cs :mime-charset) ; Emacs 22
+		       (coding-system-get cs 'mime-charset)))
+	(when (and mime
+		   (not (eq t (setq mule
+				    (coding-system-get cs 'safe-charsets))))
+		   (not (assq mime alist)))
+	  (push (cons mime (delq 'ascii mule)) alist)))
+      (setq mm-mime-mule-charset-alist (nreverse alist)))))
 
 (defvar mm-hack-charsets '(iso-8859-15 iso-2022-jp-2)
   "A list of special charsets.
@@ -332,16 +361,20 @@ mail with multiple parts is preferred to sending a Unicode one.")
   "Return the MIME charset corresponding to the given Mule CHARSET."
   (if (and (fboundp 'find-coding-systems-for-charsets)
 	   (fboundp 'sort-coding-systems))
-      (let (mime)
-	(dolist (cs (sort-coding-systems
-		     (copy-sequence
-		      (find-coding-systems-for-charsets (list charset)))))
-	  (unless mime
-	    (when cs
-	      (setq mime (or (coding-system-get cs :mime-charset)
-			     (coding-system-get cs 'mime-charset))))))
+      (let ((css (sort (sort-coding-systems
+			(find-coding-systems-for-charsets (list charset)))
+		       'mm-sort-coding-systems-predicate))
+	    cs mime)
+	(while (and (not mime)
+		    css)
+	  (when (setq cs (pop css))
+	    (setq mime (or (coding-system-get cs :mime-charset)
+			   (coding-system-get cs 'mime-charset)))))
 	mime)
-    (let ((alist mm-mime-mule-charset-alist)
+    (let ((alist (mapcar (lambda (cs)
+			   (assq cs mm-mime-mule-charset-alist))
+			 (sort (mapcar 'car mm-mime-mule-charset-alist)
+			       'mm-sort-coding-systems-predicate)))
 	  out)
       (while alist
 	(when (memq charset (cdar alist))
@@ -534,11 +567,14 @@ This affects whether coding conversion should be attempted generally."
   (let ((priorities
 	 (mapcar (lambda (cs)
 		   ;; Note: invalid entries are dropped silently
-		   (and (coding-system-p cs)
+		   (and (setq cs (mm-coding-system-p cs))
 			(coding-system-base cs)))
 		 mm-coding-system-priorities)))
-    (> (length (memq a priorities))
-       (length (memq b priorities)))))
+    (and (setq a (mm-coding-system-p a))
+	 (if (setq b (mm-coding-system-p b))
+	     (> (length (memq (coding-system-base a) priorities))
+		(length (memq (coding-system-base b) priorities)))
+	   t))))
 
 (defun mm-find-mime-charset-region (b e &optional hack-charsets)
   "Return the MIME charsets needed to encode the region between B and E.

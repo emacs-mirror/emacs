@@ -338,6 +338,7 @@
   "Switch between files using substrings."
   :group 'extensions
   :group 'convenience
+  :version "21.4"
   :link '(emacs-commentary-link :tag "Commentary" "ido.el")
   :link '(emacs-library-link :tag "Lisp File" "ido.el"))
 
@@ -359,7 +360,6 @@ use either \\[customize] or the function `ido-mode'."
   :require 'ido
   :link '(emacs-commentary-link "ido.el")
   :set-after '(ido-save-directory-list-file)
-  :version "21.4"
   :type '(choice (const :tag "Turn on only buffer" buffer)
                  (const :tag "Turn on only file" file)
                  (const :tag "Turn on both buffer and file" both)

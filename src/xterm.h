@@ -52,7 +52,7 @@ typedef GtkWidget *xt_or_gtk_widget;
 #undef XSync
 #define XSync(d, b) do { gdk_window_process_all_updates (); \
                          XSync (d, b);  } while (0)
-     
+
 
 #endif /* USE_GTK */
 
@@ -976,8 +976,6 @@ int x_alloc_nearest_color P_ ((struct frame *, Colormap, XColor *));
 
 extern void cancel_mouse_face P_ ((struct frame *));
 extern void x_scroll_bar_clear P_ ((struct frame *));
-extern void x_start_queuing_selection_requests P_ ((Display *));
-extern void x_stop_queuing_selection_requests P_ ((Display *));
 extern int x_text_icon P_ ((struct frame *, char *));
 extern int x_bitmap_icon P_ ((struct frame *, Lisp_Object));
 extern int x_catch_errors P_ ((Display *));
@@ -1013,8 +1011,7 @@ extern int x_dispatch_event P_ ((XEvent *, Display *));
 
 extern void x_handle_property_notify P_ ((XPropertyEvent *));
 extern void x_handle_selection_notify P_ ((XSelectionEvent *));
-extern void x_handle_selection_request P_ ((struct input_event *));
-extern void x_handle_selection_clear P_ ((struct input_event *));
+extern void x_handle_selection_event P_ ((struct input_event *));
 extern void x_clear_frame_selections P_ ((struct frame *));
 
 extern int x_handle_dnd_message P_ ((struct frame *,

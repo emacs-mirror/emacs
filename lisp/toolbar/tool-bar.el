@@ -223,7 +223,8 @@ MAP must contain appropriate binding for `[menu-bar]' which holds a keymap."
   ;; might inadvertently click that button.
   ;;(tool-bar-add-item-from-menu 'save-buffers-kill-emacs "exit")
   (tool-bar-add-item-from-menu 'find-file "new")
-  (tool-bar-add-item-from-menu 'dired "open")
+  (tool-bar-add-item-from-menu 'find-file-existing "open")
+  (tool-bar-add-item-from-menu 'dired "diropen")
   (tool-bar-add-item-from-menu 'kill-this-buffer "close")
   (tool-bar-add-item-from-menu 'save-buffer "save" nil
 			       :visible '(or buffer-file-name

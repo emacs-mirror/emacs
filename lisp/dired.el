@@ -546,8 +546,14 @@ Optional third argument FILTER, if non-nil, is a function to select
 	    (if current-prefix-arg
 		(read-string "Dired listing switches: "
 			     dired-listing-switches))
-	    (read-file-name (format "Dired %s(directory): " str)
-			    nil default-directory nil))))
+	    ;; If a dialog is about to be used, call read-directory-name so
+	    ;; the dialog code knows we want directories.  Some dialogs can
+	    ;; only select directories or files when popped up, not both.
+	    (if (next-read-file-uses-dialog-p)
+		(read-directory-name (format "Dired %s(directory): " str)
+				     nil default-directory nil)
+	      (read-file-name (format "Dired %s(directory): " str)
+			      nil default-directory nil)))))
 
 ;;;###autoload (define-key ctl-x-map "d" 'dired)
 ;;;###autoload

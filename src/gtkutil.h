@@ -126,13 +126,18 @@ typedef struct _widget_value
   struct _widget_value *free_list;
 } widget_value;
 
+#ifdef HAVE_GTK_FILE_BOTH
+extern int use_old_gtk_file_dialog;
+#endif
+
 extern widget_value *malloc_widget_value P_ ((void));
 extern void free_widget_value P_ ((widget_value *));
 
 extern char *xg_get_file_name P_ ((FRAME_PTR f,
                                    char *prompt,
                                    char *default_filename,
-                                   int mustmatch_p));
+                                   int mustmatch_p,
+                                   int only_dir_p));
 
 extern GtkWidget *xg_create_widget P_ ((char *type,
                                         char *name,

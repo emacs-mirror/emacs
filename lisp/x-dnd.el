@@ -47,6 +47,7 @@ The function shall return nil to reject the drop or a cons with two values,
 the wanted action as car and the wanted type as cdr.  The wanted action
 can be copy, move, link, ask or private.
 The default value for this variable is `x-dnd-default-test-function'."
+  :version "21.4"
   :type 'symbol
   :group 'x)
 
@@ -69,6 +70,7 @@ Insertion of text is not handeled by these functions, see `x-dnd-types-alist'
 for that.
 The function shall return the action done (move, copy, link or private)
 if some action was made, or nil if the URL is ignored."
+  :version "21.4"
   :type 'alist
   :group 'x)
 
@@ -96,11 +98,13 @@ this drop (copy, move, link, private or ask) as determined by a previous
 call to `x-dnd-test-function'.  DATA is the drop data.
 The function shall return the action used (copy, move, link or private) if drop
 is successful, nil if not."
+  :version "21.4"
   :type 'alist
   :group 'x)
 
 (defcustom x-dnd-open-file-other-window nil
   "If non-nil, always use find-file-other-window to open dropped files."
+  :version "21.4"
   :type 'boolean
   :group 'x)
 
@@ -120,6 +124,7 @@ is successful, nil if not."
     )
   "The types accepted by default for dropped data.
 The types are chosen in the order they appear in the list."
+  :version "21.4"
   :type '(repeat string)
   :group 'x
 )
