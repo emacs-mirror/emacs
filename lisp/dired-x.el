@@ -1611,10 +1611,10 @@ to test if that file exists.  Use minibuffer after snatching filename."
   ;; preference for looking backward when not directly on a symbol.  Not
   ;; perfect - point must be in middle of or end of filename.
 
-  (let ((filename-chars ".a-zA-Z0-9---_/:$+")
+  (let ((filename-chars ".a-zA-Z0-9---_/:$+@")
         (bol (save-excursion (beginning-of-line) (point)))
         (eol (save-excursion (end-of-line) (point)))
-        start end filename)
+        start end filename prefix)
 
     (save-excursion
       ;; First see if just past a filename.
@@ -1630,6 +1630,11 @@ to test if that file exists.  Use minibuffer after snatching filename."
           (progn
             (skip-chars-backward filename-chars)
             (setq start (point))
+	    (setq prefix
+		  (and (string-match "^\\w+@" 
+				     (buffer-substring start eol))
+		       "/"))
+            (goto-char start)
             (if (string-match "[/~]" (char-to-string (preceding-char)))
                 (setq start (1- start)))
             (skip-chars-forward filename-chars))
@@ -1637,7 +1642,7 @@ to test if that file exists.  Use minibuffer after snatching filename."
         (error "No file found around point!"))
 
       ;; Return string.
-      (expand-file-name (buffer-substring start (point))))))
+      (expand-file-name (concat prefix (buffer-substring start (point)))))))
 
 (defun read-filename-at-point (prompt)
   ;;; Returns filename prompting with PROMPT with completion.  If
