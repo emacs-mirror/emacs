@@ -1,3 +1,8 @@
+2000-10-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* keyboard.c (syms_of_keyboard): Change DEFVAR_LISP of
+	update_menu_bindings to DEFVAR_BOOL.
+
 2000-10-30  Kenichi Handa  <handa@etl.go.jp>
 
 	* search.c (Fset_match_data): Be sure to make search_regs always
