@@ -1,6 +1,6 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
-   Copyright (C) 1985,86,87,93,94,95,96,97,1998,2000
+   Copyright (C) 1985,86,87,93,94,95,96,97,1998,2000, 2001
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -81,6 +81,10 @@ static int foreach_window_1 P_ ((struct window *,
 				 int (* fn) (struct window *, void *),
 				 void *));
 static Lisp_Object window_list_1 P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+
+/* The value of `window-size-fixed'.  */
+
+int window_size_fixed;
 
 /* This is the window in which the terminal's cursor should
    be left when nothing is being done with it.  This must
@@ -5805,6 +5809,14 @@ If there is only one window, it is split regardless of this value.");
     "Functions to call when window configuration changes.\n\
 The selected frame is the one whose configuration has changed.");
   Vwindow_configuration_change_hook = Qnil;
+
+  DEFVAR_BOOL ("window-size-fixed", &window_size_fixed,
+    "Non-nil in a buffer means windows displaying the buffer are fixed-size.\n\
+Emacs won't change the size of any window displaying that buffer,\n\
+unless you explicitly change the size, or Emacs has no other choice.\n\
+This variable automatically becomes buffer-local when set.");
+  Fmake_variable_buffer_local (Qwindow_size_fixed);
+  window_size_fixed = 0;
 
   defsubr (&Sselected_window);
   defsubr (&Sminibuffer_window);
