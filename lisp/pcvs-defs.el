@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-defs.el,v 1.10 2000/12/18 03:17:31 monnier Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.11 2001/03/07 00:18:27 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -329,6 +329,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ;; marking
     ("m" .	cvs-mode-mark)
     ("M" .	cvs-mode-mark-all-files)
+    ("S" .	cvs-mode-mark-on-state)
     ("u" .	cvs-mode-unmark)
     ("\C-?".	cvs-mode-unmark-up)
     ("%" .	cvs-mode-mark-matching-files)
@@ -377,6 +378,8 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ;; mouse bindings
     ([mouse-2] . cvs-mode-find-file)
     ([(down-mouse-3)] . cvs-menu)
+    ;; dired-like bindings
+    ("\C-o" .   cvs-mode-display-file)
     ;; Emacs-21 toolbar
     ;;([tool-bar item1] . (menu-item "Examine" cvs-examine :image (image :file "/usr/share/icons/xpaint.xpm" :type xpm)))
     ;;([tool-bar item2] . (menu-item "Update" cvs-update :image (image :file "/usr/share/icons/mail1.xpm" :type xpm)))
@@ -390,6 +393,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
   '("CVS"
     ["Open file.."		cvs-mode-find-file	t]
     [" ..other window"		cvs-mode-find-file-other-window	t]
+    ["Display in other window"  cvs-mode-display-file   t]
     ["Interactive merge"	cvs-mode-imerge		t]
     ("View diff"
      ["Interactive diff"	cvs-mode-idiff		t]
@@ -412,6 +416,8 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ["Add ChangeLog"		cvs-mode-add-change-log-entry-other-window t]
     "----"
     ["Mark all"			cvs-mode-mark-all-files	t]
+    ["Mark by regexp..."        cvs-mode-mark-matching-files t]
+    ["Mark by state..."         cvs-mode-mark-on-state t]
     ["Unmark all"		cvs-mode-unmark-all-files t]
     ["Hide handled"		cvs-mode-remove-handled	t]
     "----"
