@@ -54,9 +54,9 @@
    inet_addr, gethostbyname, socket, connect, ...  But if we are not
    compiling with X support, it's not needed.  */
 #ifdef HAVE_X_WINDOWS
-#define LIBS_SYSTEM -linet LIBS_STANDARD_1
+#define LIBS_SYSTEM -linet LIB_STANDARD_1
 #else
-#define LIBS_SYSTEM LIBS_STANDARD_1
+#define LIBS_SYSTEM LIB_STANDARD_1
 #endif
 
 /* This system has job control.  */
