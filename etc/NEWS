@@ -1740,6 +1740,17 @@ text area).
 +++
 *** New function `posn-actual-col-row' returns actual glyph coordinates.
 
++++
+*** Mouse events may now include image object in addition to string object.
+
++++
+*** Mouse events include relative x and y pixel coordinates relative to
+the top left corner of the object (image or character) clicked on.  
+
+*** New functions 'posn-object' and 'posn-object-x-y' return the image
+or string object of a mouse click, and the x and y pixel coordinates
+relative to the top left corner of that object.
+
 ** New function `force-window-update' can initiate a full redisplay of
 one or all windows.  Normally, this is not needed as changes in window
 contents are detected automatically.  However, certain implicit
