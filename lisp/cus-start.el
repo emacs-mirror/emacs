@@ -175,7 +175,7 @@
 	     (same-window-buffer-names windows (repeat (string :format "%v")))
 	     (same-window-regexps windows (repeat (regexp :format "%v")))
 	     (pop-up-windows windows boolean)
-	     (next-screen-context-lines windows boolean)
+	     (next-screen-context-lines windows integer)
 	     (split-height-threshold windows integer)
 	     (window-min-height windows integer)
 	     (window-min-width windows integer)
