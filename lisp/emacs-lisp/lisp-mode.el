@@ -82,11 +82,11 @@
 (defvar lisp-imenu-generic-expression
       '(
 	(nil 
-	 "^\\s-*(def\\(un\\|subst\\|macro\\|advice\\)\\s-+\\([-A-Za-z0-9+]+\\)" 2)
+	 "^\\s-*(def\\(un\\|subst\\|macro\\|advice\\)\\s-+\\([-A-Za-z0-9+*|:]+\\)" 2)
 	("Variables" 
-	 "^\\s-*(def\\(var\\|const\\)\\s-+\\([-A-Za-z0-9+]+\\)" 2)
+	 "^\\s-*(def\\(var\\|const\\)\\s-+\\([-A-Za-z0-9+*|:]+\\)" 2)
 	("Types" 
-	 "^\\s-*(def\\(type\\|struct\\|class\\|ine-condition\\)\\s-+\\([-A-Za-z0-9+]+\\)" 
+	 "^\\s-*(def\\(type\\|struct\\|class\\|ine-condition\\)\\s-+\\([-A-Za-z0-9+*|:]+\\)" 
 	 2))
 
   "Imenu generic expression for Lisp mode.  See `imenu-generic-expression'.")
