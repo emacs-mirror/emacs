@@ -28,6 +28,7 @@
 ;;; Todo:
 
 ;; - facemenu support.
+;; - command completion. 
 
 ;;; Commentary:
 
@@ -265,22 +266,22 @@ chapter."
 
 (defvar texinfo-section-list
   '(("top" 1)
-    ("majorheading" 2)
     ("chapter" 2)
-    ("unnumbered" 2)
-    ("appendix" 2)
-    ("chapheading" 2)
     ("section" 3)
-    ("unnumberedsec" 3)
-    ("appendixsec" 3)
-    ("heading" 3)
     ("subsection" 4)
-    ("unnumberedsubsec" 4)
-    ("appendixsubsec" 4)
-    ("subheading" 4)
     ("subsubsection" 5)
+    ("unnumbered" 2)
+    ("unnumberedsec" 3)
+    ("unnumberedsubsec" 4)
     ("unnumberedsubsubsec" 5)
+    ("appendix" 2)
+    ("appendixsec" 3)
+    ("appendixsubsec" 4)
     ("appendixsubsubsec" 5)
+    ("majorheading" 2)
+    ("chapheading" 2)
+    ("heading" 3)
+    ("subheading" 4)
     ("subsubheading" 5))
   "Alist of sectioning commands and their relative level.")
 
@@ -383,19 +384,6 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
 	  (when (looking-at
 		 (concat (regexp-quote (buffer-substring start end)) "\\>"))
 	    (text-clone-create start end 'spread "\\w*")))))))
-
-(defun texinfo-outline-level ()
-  ;; Calculate level of current texinfo outline heading.
-  (save-excursion
-    (if (bobp)
-        0
-      (forward-char 1)
-      (let* ((word (buffer-substring-no-properties
-                    (point) (progn (forward-word 1) (point))))
-             (entry (assoc word texinfo-section-list)))
-        (if entry
-            (nth 1 entry)
-          5)))))
 
 
 ;;; Keybindings
@@ -613,11 +601,17 @@ value of `texinfo-mode-hook'."
 				     (font-lock-syntactic-keywords
 				      . texinfo-font-lock-syntactic-keywords)))
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
-  (make-local-variable 'outline-regexp)
-  (setq outline-regexp
-        (concat "@" (regexp-opt (mapcar 'car texinfo-section-list) t) "\\>"))
-  (make-local-variable 'outline-level)
-  (setq outline-level 'texinfo-outline-level)
+
+  ;; Outline settings.
+  (set (make-local-variable 'outline-heading-alist)
+       ;; We should merge outline-heading-alist and texinfo-section-list
+       ;; but in the mean time, let's just generate one from the other.
+       (mapcar (lambda (x) (cons (concat "@" (car x)) (cadr x)))
+	       texinfo-section-list))
+  (set (make-local-variable 'outline-regexp)
+       (concat (regexp-opt (mapcar 'car outline-heading-alist) t)
+	       "\\>"))
+
   (make-local-variable 'tex-start-of-header)
   (setq tex-start-of-header "%\\*\\*start")
   (make-local-variable 'tex-end-of-header)
@@ -646,7 +640,7 @@ value of `texinfo-mode-hook'."
 Puts point on a blank line between them."
   (setq texinfo-block-default
 	(completing-read (format "Block name [%s]: " texinfo-block-default)
-			 (mapcar 'list texinfo-environments)
+			 texinfo-environments
 			 nil nil nil nil texinfo-block-default))
   \n "@" str \n _ \n "@end " str \n)
 
@@ -672,6 +666,8 @@ Puts point on a blank line between them."
     (and (re-search-backward (concat "@\\(end\\s +\\)?" env) bound t)
 	 (not (match-end 1)))))
 
+(defvar texinfo-enable-quote-macros '("@\\(code\\|samp\\|kbd\\)\\>"))
+(defvar texinfo-enable-quote-envs '("example\\>" "lisp\\>"))
 (defun texinfo-insert-quote (&optional arg)
   "Insert the appropriate quote mark for TeXinfo.
 Usually inserts the value of `texinfo-open-quote' (normally ``) or
@@ -688,9 +684,11 @@ With prefix argument or inside @code or @example, inserts a plain \"."
 			(looking-at texinfo-close-quote))
 		(delete-char (length texinfo-open-quote))
 		t))
-	    (texinfo-inside-macro-p "@\\(code\\|samp\\|kbd\\)\\>" top)
-	    (texinfo-inside-env-p "example\\>" top)
-	    (texinfo-inside-env-p "lisp\\>" top))
+	    (texinfo-inside-macro-p texinfo-enable-quote-macros top)
+	    (let ((in-env nil))
+	      (dolist (env texinfo-enable-quote-envs in-env)
+		(if (texinfo-inside-env-p env top)
+		    (setq in-env t)))))
 	(self-insert-command (prefix-numeric-value arg))
       (insert
        (if (memq (char-syntax (preceding-char)) '(?\( ?> ?\ ))
