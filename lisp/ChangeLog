@@ -1,3 +1,9 @@
+2000-08-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/cust-print.el, emacs-lisp/cl-specs.el
+	* emacs-lisp/edebug.el, progmodes/hideif.el: Change authors' 
+	mail address.
+
 2000-08-15  Miles Bader  <miles@gnu.org>
 
 	* textmodes/ispell.el (ispell-graphic-p): New constant.

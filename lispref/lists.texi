@@ -663,6 +663,31 @@ x
 @end example
 @end defun
 
+@defun remq object list
+This function returns a copy of @var{list}, with all elements removed
+which are @code{eq} to @var{object}.  The letter @samp{q} in @code{remq}
+says that it uses @code{eq} to compare @var{object} against the elements
+of @code{list}.
+
+@example
+@group
+(setq sample-list '(a b c a b c))
+     @result{} (a b c a b c)
+@end group
+@group
+(remq 'a sample-list)
+     @result{} (b c b c)
+@end group
+@group
+sample-list
+     @result{} (a b c a b c)
+@end group
+@end example
+@noindent
+The function @code{delq} offers a way to perform this operation
+destructively.  See @ref{Sets And Lists}.
+@end defun
+
 @node Modifying Lists
 @section Modifying Existing List Structure
 @cindex destructive list operations
@@ -1162,7 +1187,7 @@ compare @var{object} against the elements of the list.  For example:
 This function destructively removes all elements @code{eq} to
 @var{object} from @var{list}.  The letter @samp{q} in @code{delq} says
 that it uses @code{eq} to compare @var{object} against the elements of
-the list, like @code{memq}.
+the list, like @code{memq} and @code{remq}.
 @end defun
 
 When @code{delq} deletes elements from the front of the list, it does so
@@ -1252,25 +1277,54 @@ Compare this with @code{memq}:
 @end example
 @end defun
 
-@defun delete object list
-This function destructively removes all elements @code{equal} to
-@var{object} from @var{list}.  It is to @code{delq} as @code{member} is
-to @code{memq}: it uses @code{equal} to compare elements with
-@var{object}, like @code{member}; when it finds an element that matches,
-it removes the element just as @code{delq} would.  For example:
+@defun delete object sequence
+If @code{sequence} is a list, this function destructively removes all
+elements @code{equal} to @var{object} from @var{sequence}.  For lists,
+@code{delete} is to @code{delq} as @code{member} is to @code{memq}: it
+uses @code{equal} to compare elements with @var{object}, like
+@code{member}; when it finds an element that matches, it removes the
+element just as @code{delq} would.
+
+If @code{sequence} is a vector or string, @code{delete} returns a copy
+of @code{sequence} with all elements @code{equal} to @code{object}
+removed.
+
+For example:
 
 @example
 @group
 (delete '(2) '((2) (1) (2)))
      @result{} ((1))
 @end group
+@group
+(delete '(2) [(2) (1) (2)])
+     @result{} [(1)]
+@end group
+@end example
+@end defun
+
+@defun remove object sequence
+This function is the non-destructive counterpart of @code{delete}.  If
+returns a copy of @code{sequence}, a list, vector, or string, with
+elements @code{equal} to @code{object} removed.  For example:
+
+@example
+@group
+(remove '(2) '((2) (1) (2)))
+     @result{} ((1))
+@end group
+@group
+(remove '(2) [(2) (1) (2)])
+     @result{} [(1)]
+@end group
 @end example
 @end defun
 
 @quotation
-@b{Common Lisp note:} The functions @code{member} and @code{delete} in
-GNU Emacs Lisp are derived from Maclisp, not Common Lisp.  The Common
-Lisp versions do not use @code{equal} to compare elements.
+@b{Common Lisp note:} The functions @code{member}, @code{delete} and
+@code{remove} in GNU Emacs Lisp are derived from Maclisp, not Common
+Lisp.  The Common Lisp versions do not use @code{equal} to compare
+elements.
 @end quotation
 
   See also the function @code{add-to-list}, in @ref{Setting Variables},
