@@ -125,7 +125,7 @@ for the regexp; the part that matches gets displayed in this font."
   "Alist of symbols already found in current apropos run.")
 
 (defvar apropos-item ()
-  "Current item in or for apropos-accumulator.")
+  "Current item in or for `apropos-accumulator'.")
 
 ;;;###autoload
 (defun apropos-mode ()
@@ -142,7 +142,7 @@ for the regexp; the part that matches gets displayed in this font."
 ;;;###autoload
 (defun apropos-variable (regexp &optional do-all)
   "Show user variables that match REGEXP.
-With optional prefix ARG or if `apropos-do-all' is non-nil, also show
+With optional prefix DO-ALL or if `apropos-do-all' is non-nil, also show
 normal variables."
   (interactive (list (read-string
                       (concat "Apropos "
@@ -163,8 +163,8 @@ normal variables."
 (fset 'command-apropos 'apropos-command)
 ;;;###autoload
 (defun apropos-command (apropos-regexp &optional do-all var-predicate)
-  "Show commands (interactively callable functions) that match REGEXP.
-With optional prefix ARG, or if `apropos-do-all' is non-nil, also show
+  "Show commands (interactively callable functions) that match APROPOS-REGEXP.
+With optional prefix DO-ALL, or if `apropos-do-all' is non-nil, also show
 noninteractive functions.
 
 If VAR-PREDICATE is non-nil, show only variables, and only those that
@@ -213,10 +213,10 @@ satisfy the predicate VAR-PREDICATE."
 
 ;;;###autoload
 (defun apropos (apropos-regexp &optional do-all)
-  "Show all bound symbols whose names match REGEXP.
-With optional prefix ARG or if `apropos-do-all' is non-nil, also show unbound
-symbols and key bindings, which is a little more time-consuming.
-Returns list of symbols and documentation found."
+  "Show all bound symbols whose names match APROPOS-REGEXP.
+With optional prefix DO-ALL or if `apropos-do-all' is non-nil, also
+show unbound symbols and key bindings, which is a little more
+time-consuming.  Returns list of symbols and documentation found."
   (interactive "sApropos symbol (regexp): \nP")
   (setq apropos-accumulator
 	(apropos-internal apropos-regexp
@@ -280,8 +280,8 @@ Returns list of symbols and documentation found."
 
 ;;;###autoload
 (defun apropos-value (apropos-regexp &optional do-all)
-  "Show all symbols whose value's printed image matches REGEXP.
-With optional prefix ARG or if `apropos-do-all' is non-nil, also looks
+  "Show all symbols whose value's printed image matches APROPOS-REGEXP.
+With optional prefix DO-ALL or if `apropos-do-all' is non-nil, also looks
 at the function and at the names and values of properties.
 Returns list of symbols and values found."
   (interactive "sApropos value (regexp): \nP")
@@ -305,8 +305,8 @@ Returns list of symbols and values found."
 
 ;;;###autoload
 (defun apropos-documentation (apropos-regexp &optional do-all)
-  "Show symbols whose documentation contain matches for REGEXP.
-With optional prefix ARG or if `apropos-do-all' is non-nil, also use
+  "Show symbols whose documentation contain matches for APROPOS-REGEXP.
+With optional prefix DO-ALL or if `apropos-do-all' is non-nil, also use
 documentation that is not stored in the documentation file and show key
 bindings.
 Returns list of symbols and documentation found."
@@ -471,7 +471,7 @@ Returns list of symbols and documentation found."
 
 
 (defun apropos-safe-documentation (function)
-  "Like documentation, except it avoids calling `get_doc_string'.
+  "Like `documentation', except it avoids calling `get_doc_string'.
 Will return nil instead."
   (while (and function (symbolp function))
     (setq function (if (fboundp function)
@@ -563,7 +563,7 @@ alphabetically by symbol name; but this function also sets
 		   (insert
 		    (mapconcat
 		     (lambda (key)
-		       (setq key (condition-case () 
+		       (setq key (condition-case ()
 				     (key-description key)
 				   (error)))
 		       (if apropos-keybinding-face
