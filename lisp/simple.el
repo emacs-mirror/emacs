@@ -34,7 +34,7 @@ With arg N, insert N newlines."
   (let* ((do-fill-prefix (and fill-prefix (bolp)))
 	 (loc (point)))
     (while (> arg 0)
-      (if do-fill-prefix (insert fill-prefix))
+      (if do-fill-prefix (insert-and-inherit fill-prefix))
       (newline 1)
       (setq arg (1- arg)))
     (goto-char loc))
@@ -170,7 +170,7 @@ On nonblank line, delete any immediately following blank lines."
 Indentation is done using the value of `indent-line-function'.
 In programming language modes, this is the same as TAB.
 In some text modes, where TAB inserts a tab, this command indents to the
-column specified by the variable `left-margin'."
+column specified by the function `current-left-margin'."
   (interactive "*")
   (delete-region (point) (progn (skip-chars-backward " \t") (point)))
   (newline)
@@ -182,7 +182,7 @@ Indentation of both lines is done according to the current major mode,
 which means calling the current value of `indent-line-function'.
 In programming language modes, this is the same as TAB.
 In some text modes, where TAB inserts a tab, this indents to the
-column specified by the variable `left-margin'."
+column specified by the function `current-left-margin'."
   (interactive "*")
   (save-excursion
     (delete-region (point) (progn (skip-chars-backward " \t") (point)))
@@ -2162,18 +2162,31 @@ Setting this variable automatically makes it local to the current buffer.")
   "*Regexp to match lines which should not be auto-filled.")
 
 (defun do-auto-fill ()
-  (let (give-up)
-    (or (and auto-fill-inhibit-regexp
-	     (save-excursion (beginning-of-line)
-			     (looking-at auto-fill-inhibit-regexp)))
-	(while (and (not give-up) (> (current-column) fill-column))
+  (let (fc justify bol give-up)
+    (if (or (not (setq justify (justification)))
+	    (and (setq fc (current-fill-column)) ; make sure this gets set
+		 (eq justify 'left)
+		 (<= (current-column) (setq fc (current-fill-column))))
+	    (save-excursion (beginning-of-line) 
+			    (setq bol (point))
+			    (and auto-fill-inhibit-regexp
+				 (looking-at auto-fill-inhibit-regexp))))
+	nil ;; Auto-filling not required
+      ;; Remove justification-introduced whitespace before filling
+      (cond ((eq 'left justify) nil)
+	    ((eq 'full justify) ; full justify: remove extra spaces
+	     (canonically-space-region
+	      (point) (save-excursion (end-of-line) (point))))
+	    ;; right or center justify: remove extra indentation.
+	    (t (save-excursion (indent-according-to-mode))))
+      (while (and (not give-up) (> (current-column) fc))
 	  ;; Determine where to split the line.
 	  (let ((fill-point
 		 (let ((opoint (point))
 		       bounce
 		       (first t))
 		   (save-excursion
-		     (move-to-column (1+ fill-column))
+		     (move-to-column (1+ fc))
 		     ;; Move back to a word boundary.
 		     (while (or first
 				;; If this is after period and a single space,
@@ -2214,18 +2227,25 @@ Setting this variable automatically makes it local to the current buffer.")
 		    (save-excursion
 		      (goto-char fill-point)
 		      (indent-new-comment-line t)))
+		  ;; Now do justification, if required
+		  (if (not (eq justify 'left))
+		      (save-excursion 
+			(end-of-line 0)
+			(justify-current-line justify nil t)))
 		  ;; If making the new line didn't reduce the hpos of
 		  ;; the end of the line, then give up now;
 		  ;; trying again will not help.
 		  (if (>= (current-column) prev-column)
 		      (setq give-up t)))
 	      ;; No place to break => stop trying.
-	      (setq give-up t)))))))
+	      (setq give-up t))))
+      ;; justify last line
+      (justify-current-line justify t t)))) 
 
 (defun auto-fill-mode (&optional arg)
   "Toggle auto-fill mode.
 With arg, turn Auto-Fill mode on if and only if arg is positive.
-In Auto-Fill mode, inserting a space at a column beyond `fill-column'
+In Auto-Fill mode, inserting a space at a column beyond `current-fill-column'
 automatically breaks the line at a previous space."
   (interactive "P")
   (prog1 (setq auto-fill-function
@@ -2275,7 +2295,7 @@ unless optional argument SOFT is non-nil."
     (delete-region (point)
 		   (progn (skip-chars-forward " \t")
 			  (point)))
-    (if soft (insert ?\n) (newline 1))
+    (if soft (insert-and-inherit ?\n) (newline 1))
     (if (not comment-multi-line)
 	(save-excursion
 	  (if (and comment-start-skip
@@ -2314,7 +2334,7 @@ unless optional argument SOFT is non-nil."
 	       )
 	  (if (not (eolp))
 	      (setq comment-end ""))
-	  (insert ?\n)
+	  (insert-and-inherit ?\n)
 	  (forward-char -1)
 	  (indent-for-comment)
 	  (save-excursion
@@ -2322,7 +2342,7 @@ unless optional argument SOFT is non-nil."
 	    (end-of-line)
 	    (delete-char 1)))
       (if fill-prefix
-	  (insert fill-prefix)
+	  (insert-and-inherit fill-prefix)
 	(indent-according-to-mode)))))
 
 (defun set-selective-display (arg)
