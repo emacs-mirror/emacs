@@ -114,15 +114,6 @@ wrong_type_argument (predicate, value)
   register Lisp_Object tem;
   do
     {
-      if (!EQ (Vmocklisp_arguments, Qt))
-	{
-	 if (STRINGP (value) &&
-	     (EQ (predicate, Qintegerp) || EQ (predicate, Qinteger_or_marker_p)))
-	   return Fstring_to_number (value, Qnil);
-	 if (INTEGERP (value) && EQ (predicate, Qstringp))
-	   return Fnumber_to_string (value);
-	}
-
       /* If VALUE is not even a valid Lisp object, abort here
 	 where we can get a backtrace showing where it came from.  */
       if ((unsigned int) XGCTYPE (value) >= Lisp_Type_Limit)
