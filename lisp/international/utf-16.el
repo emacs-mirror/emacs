@@ -411,7 +411,7 @@ after translation through the translation-table named
 Others are encoded as U+FFFD.")
 
 (define-ccl-program ccl-encode-mule-utf-16le-with-signature
-  `(4
+  `(2
     ((write #xFF)
      (write #xFE)
      ,@utf-16le-encode-loop))
@@ -423,7 +423,7 @@ after translation through the translation-table of name
 Others are encoded as U+FFFD.")
 
 (define-ccl-program ccl-encode-mule-utf-16be-with-signature
-  `(4
+  `(2
     ((write #xFE)
      (write #xFF)
      ,@utf-16be-encode-loop))
