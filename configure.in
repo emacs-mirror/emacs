@@ -516,7 +516,7 @@ case "${canonical}" in
   ## Sequent Symmetry running ptx 4, which is a modified SVR4.
   i[3456]86-sequent-ptx4* | i[3456]86-sequent-sysv4* )
     machine=sequent-ptx opsys=ptx4
-    NON_GNU_CPP=/usr/lib/cpp
+    NON_GNU_CPP=/lib/cpp
   ;;
 
   ## Sequent Symmetry running DYNIX/ptx
