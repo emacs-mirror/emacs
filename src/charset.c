@@ -1619,12 +1619,22 @@ DEFUN ("string", Fstring, Sstring, 1, MANY, 0,
   unsigned char *buf = (unsigned char *) alloca (MAX_MULTIBYTE_LENGTH * n);
   unsigned char *p = buf;
   int c;
+  int multibyte = 0;
 
   for (i = 0; i < n; i++)
     {
       CHECK_NUMBER (args[i], 0);
+      if (!multibyte && !SINGLE_BYTE_CHAR_P (XFASTINT (args[i])))
+	multibyte = 1;
+    }
+
+  for (i = 0; i < n; i++)
+    {
       c = XINT (args[i]);
-      p += CHAR_STRING (c, p);
+      if (multibyte)
+	p += CHAR_STRING (c, p);
+      else
+	*p++ += c;
     }
 
   return make_string_from_bytes (buf, n, p - buf);
