@@ -1284,14 +1284,17 @@ GNU_MALLOC=yes
 doug_lea_malloc=yes
 AC_CHECK_FUNC(malloc_get_state, ,doug_lea_malloc=no)
 AC_CHECK_FUNC(malloc_set_state, ,doug_lea_malloc=no)
-if test "$doug_lea_malloc" = "yes" ; then
-  GNU_MALLOC_reason="
-    (Using new Doug Lea's new malloc from the GNU C Library.)"
-  AC_DEFINE(DOUG_LEA_MALLOC)
-elif test "${system_malloc}" = "yes"; then
+if test "${system_malloc}" = "yes"; then
   GNU_MALLOC=no
   GNU_MALLOC_reason="
     (The GNU allocators don't work with this system configuration.)"
+fi
+if test "$doug_lea_malloc" = "yes" ; then
+  if test "$GNU_MALLOC" = yes ; then
+    GNU_MALLOC_reason="
+      (Using new Doug Lea's new malloc from the GNU C Library.)"
+  fi
+  AC_DEFINE(DOUG_LEA_MALLOC)
 fi
 
 if test x"${REL_ALLOC}" = x; then
