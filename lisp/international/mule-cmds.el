@@ -2187,8 +2187,9 @@ See also `locale-charset-language-names', `locale-language-names',
       ;; Use the first of these three environment variables
       ;; that has a nonempty value.
       (let ((vars '("LC_ALL" "LC_CTYPE" "LANG")))
-	(while (and vars (not (setq locale (getenv (car vars)))))
-	  (setq vars (cdr vars)))))
+	(while (and vars
+		    (= 0 (length locale))) ; nil or empty string
+	  (setq locale (getenv (pop vars))))))
 
     (when locale
 
