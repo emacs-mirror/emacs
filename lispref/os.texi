@@ -1754,11 +1754,21 @@ sound file.  We recommend using a unibyte string.
 This specifies how loud to play the sound.  It should be a number in the
 range of 0 to 1.  The default is to use whatever volume has been
 specified before.
+
+@item :device @var{device}
+This specifies the system device on which to play the sound, as a
+string.  The default device is system-dependent.
 @end table
 
 Before actually playing the sound, @code{play-sound}
 calls the functions in the list @code{play-sound-functions}.
 Each function is called with one argument, @var{sound}.
+@end defun
+
+@defun play-sound-file file &optional volume device
+@tindex play-sound-file
+This function is an alternative interface to playing a sound @var{file}
+specifying an optional @var{volume} and @var{device}.
 @end defun
 
 @tindex play-sound-functions
