@@ -563,7 +563,7 @@ influence what they will use as the envelope."
 (defcustom feedmail-x-mailer-line-user-appendage nil
   "*See feedmail-x-mailer-line."
   :group 'feedmail-headers
-  :type '(choice (const nil) string)
+  :type '(choice (const nil) (const t) string)
   )
 
 
@@ -701,7 +701,8 @@ variable feedmail-fiddle-plex-blurb.  In contrast to some other fiddle-plex
 manipulation functions, in this context, it makes no sense to have an element
 which is nil, t, or a simple string."
   :group 'feedmail-header
-  :type 'list
+  :type '(repeat (choice function)
+		 sexp) ; too complex to be described accurately
   )
 
 
@@ -777,7 +778,7 @@ appropriately; (5) send the message with feedmail-enable-spray set
 non-nil; (6) stand back and watch co-workers wonder at how efficient
 you are at accomplishing inherently inefficient things."
   :group 'feedmail-spray
-  :type 'list
+  :type 'sexp ; too complex to be described accurately
   )
 
 
@@ -924,7 +925,7 @@ in the user alist with a value of nil." )
 (defcustom feedmail-prompt-before-queue-user-alist nil
   "See feedmail-prompt-before-queue-standard-alist."
   :group 'feedmail-queue
-  :type 'alist
+  :type '(repeat (cons character function))
   )
 
 
@@ -938,7 +939,7 @@ and the prompt itself can be changed.  If this variable is set to a string
 value, that string is written to the help buffer after the standard info.
 It may contain embedded line breaks.  It will be printed via princ."
   :group 'feedmail-queue
-  :type 'string
+  :type '(choice (const nil) string)
   )
 
 
@@ -950,7 +951,13 @@ It may contain embedded line breaks.  It will be printed via princ."
     (on-demand . feedmail-run-the-queue-global-prompt))
   "See feedmail-queue-reminder."
   :group 'feedmail-queue
-  :type 'alist
+  :type '(repeat (cons (choice :tag "Event"
+			       (const on-demand)
+			       (const after-immediate)
+			       (const after-queue)
+			       (const after-draft)
+			       (const after-run))
+		       function))
   )
 
 
@@ -1062,7 +1069,7 @@ Filename completion is available so that you can inspect what's already been
 used, but feedmail will do further manipulation on the string you return, so
 it's not expected to be a complete filename."
   :group 'feedmail-queue
-  :type 'string
+  :type '(choice (const :tag "Default" t) string function (const ask))
   )
 
 
@@ -1215,7 +1222,7 @@ of `mail-header-separator'.  If it can't find that, it will temporarily
 set `mail-header-separator' to the value of
 feedmail-queue-alternative-mail-header-separator and try again."
   :group 'feedmail-queue
-  :type 'string
+  :type '(choice (const nil) string)
   )
 
 
