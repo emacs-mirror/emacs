@@ -4585,7 +4585,7 @@ x_error_quitter (display, error)
      original error handler.  */
 
   XGetErrorText (display, error->error_code, buf, sizeof (buf));
-  sprintf (buf1, "X protocol error: %s on protocol request %d",
+  sprintf (buf1, "X protocol error: %s on protocol request %d\n",
 	   buf, error->request_code);
   x_connection_closed (display, buf1);
 }
