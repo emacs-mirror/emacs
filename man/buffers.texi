@@ -133,7 +133,8 @@ selected buffer.  Here is an example of a buffer list:@refill
 @noindent
 Note that the buffer @samp{*Help*} was made by a help request; it is not
 visiting any file.  The buffer @code{man} was made by Dired on the
-directory @file{/u2/emacs/man/}.
+directory @file{/u2/emacs/man/}.  You can list buffers visiting files
+only by giving the command a prefix, i.e. type @kbd{C-u C-x C-b}.
 
 @need 2000
 @node Misc Buffer

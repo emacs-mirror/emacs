@@ -1,3 +1,7 @@
+2000-03-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* eval.c (call_debugger): Cancel busy-cursor.
+
 2000-03-28  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (analyse_first): New function obtained by ripping out most
