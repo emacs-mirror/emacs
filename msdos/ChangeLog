@@ -1,3 +1,8 @@
+2003-08-24  Eli Zaretskii  <eliz@elta.co.il>
+
+	* sed2v2.inp: (HAVE_DIFFTIME, HAVE_MEMCMP, HAVE_MEMMOVE)
+	(HAVE_SIZE_T): Define.
+
 2002-04-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sed2v2.inp: New file.
