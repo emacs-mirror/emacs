@@ -21,6 +21,10 @@
 # BEGIN CONFIGURATION
 #
 
+# Define the following to build the GUI version
+#
+NTGUI=1
+
 # Set INSTALL_DIR to be the directory into which you want emacs installed.
 #
 !ifndef INSTALL_DIR
@@ -130,6 +134,9 @@ CFLAGS_COMMON	= -nologo $(INC) $(ARCH_CFLAGS) $(LOCAL_FLAGS) -DWIN32_LEAN_AND_ME
 CFLAGS          = $(CFLAGS_COMMON) -D_CRTAPI1=_cdecl
 !else
 CFLAGS          = $(CFLAGS_COMMON) 
+!endif
+!ifdef NTGUI
+CFLAGS          = $(CFLAGS) -DHAVE_NTGUI=1
 !endif
 
 OBJDIR          = obj
