@@ -2528,7 +2528,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (INTEGERP (c)
       && ! NILP (Vinput_method_function)
       && (unsigned) XINT (c) >= ' '
-      && (unsigned) XINT (c) < 127)
+      && (unsigned) XINT (c) != 127
+      && (unsigned) XINT (c) < 256)
     {
       previous_echo_area_message = Fcurrent_message ();
       Vinput_method_previous_message = previous_echo_area_message;
@@ -2552,7 +2553,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	 after the first event of the key sequence.  */
       && NILP (prev_event)
       && (unsigned) XINT (c) >= ' '
-      && (unsigned) XINT (c) < 127)
+      && (unsigned) XINT (c) != 127
+      && (unsigned) XINT (c) < 256)
     {
       Lisp_Object keys; 
       int key_count;
