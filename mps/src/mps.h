@@ -1,21 +1,28 @@
-/* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM INTERFACE */
+/*  impl.h.mps:
+ *
+ *           HARLEQUIN MEMORY POOL SYSTEM INTERFACE
+ *
+ *  $HopeName$
+ *
+ *  Copyright (C) 1996 Harlequin Group, all rights reserved
+ */
 
 #ifndef mps_h
 #define mps_h
 
-#include "mpstd.h"		/* detect platform */
+#include "mpstd.h"              /* detect platform */
 #include <stddef.h>
 #include <stdarg.h>
 #include <limits.h>
 #ifdef MPS_PF_W3I3MV
-#include <windows.h>		/* needed for SEH filter type */
+#include <windows.h>            /* needed for SEH filter type */
 #endif /* MPS_PF_W3I3MV */
 
 
 /* Macro Support */
 
-#define MPS_BEGIN	do {
-#define MPS_END		} while(0)
+#define MPS_BEGIN       do {
+#define MPS_END         } while(0)
 
 
 /* Abstract Types
@@ -30,9 +37,9 @@ typedef struct mps_pool_s   *mps_pool_t;   /* pool */
 typedef struct mps_form_s   *mps_form_t;   /* object format */
 typedef struct mps_root_s   *mps_root_t;   /* root */
 typedef struct mps_class_s  *mps_class_t;  /* pool class */
-typedef struct mps_thr_s    *mps_thr_t;	   /* thread registration */
-typedef struct mps_ap_s     *mps_ap_t;	   /* allocation point */
-typedef struct mps_ld_s     *mps_ld_t;	   /* location dependency */
+typedef struct mps_thr_s    *mps_thr_t;    /* thread registration */
+typedef struct mps_ap_s     *mps_ap_t;     /* allocation point */
+typedef struct mps_ld_s     *mps_ld_t;     /* location dependency */
 typedef struct mps_reg_s    *mps_reg_t;    /* register file */
 typedef struct mps_ss_s     *mps_ss_t;     /* scan state */
 
@@ -44,14 +51,14 @@ typedef struct mps_ss_s     *mps_ss_t;     /* scan state */
  * The boolean type can be used as int, etc.
  */
 
-typedef MPS_T_WORD mps_word_t;	/* machine word (target dep.) */
-typedef int mps_bool_t;		/* boolean (int) */
-typedef int mps_res_t;		/* result code (int) */
-typedef unsigned mps_shift_t;	/* shift amount (unsigned int) */
-typedef void *mps_addr_t;	/* managed address (void *) */
-typedef int mps_mc_t;		/* message code (int) */
-typedef size_t mps_align_t;	/* alignment (size_t) */
-typedef unsigned mps_rm_t;	/* root mode */
+typedef MPS_T_WORD mps_word_t;  /* machine word (target dep.) */
+typedef int mps_bool_t;         /* boolean (int) */
+typedef int mps_res_t;          /* result code (int) */
+typedef unsigned mps_shift_t;   /* shift amount (unsigned int) */
+typedef void *mps_addr_t;       /* managed address (void *) */
+typedef int mps_mc_t;           /* message code (int) */
+typedef size_t mps_align_t;     /* alignment (size_t) */
+typedef unsigned mps_rm_t;      /* root mode */
 
 
 /* Result Code Type
@@ -65,13 +72,13 @@ typedef unsigned mps_rm_t;	/* root mode */
 
 enum
 {
-  MPS_RES_OK = 0,		/* success */
-  MPS_RES_FAIL,			/* unspecified failure */
-  MPS_RES_RESOURCE,		/* unable to obtain resources */
-  MPS_RES_MEMORY,		/* unable to obtain memory */
-  MPS_RES_LIMIT,		/* internal limitation reached */
-  MPS_RES_UNIMPL,		/* unimplemented facility */
-  MPS_RES_IO			/* system I/O error */
+  MPS_RES_OK = 0,               /* success */
+  MPS_RES_FAIL,                 /* unspecified failure */
+  MPS_RES_RESOURCE,             /* unable to obtain resources */
+  MPS_RES_MEMORY,               /* unable to obtain memory */
+  MPS_RES_LIMIT,                /* internal limitation reached */
+  MPS_RES_UNIMPL,               /* unimplemented facility */
+  MPS_RES_IO                    /* system I/O error */
 };
 
 
@@ -86,10 +93,10 @@ enum
 typedef int mps_rank_t;
 enum
 {
-  MPS_RANK_AMBIG = 0,		/* ambiguous reference */
-  MPS_RANK_EXACT = 1,		/* exact reference */
-  MPS_RANK_WEAK = 2,		/* weak reference */
-  MPS_RANK_FINAL = 3		/* final reference */
+  MPS_RANK_AMBIG = 0,           /* ambiguous reference */
+  MPS_RANK_EXACT = 1,           /* exact reference */
+  MPS_RANK_WEAK = 2,            /* weak reference */
+  MPS_RANK_FINAL = 3            /* final reference */
 };
 
 
@@ -106,8 +113,8 @@ enum
  * .rm: Keep in sync with impl.h.mpmty.rm
  */
 
-#define MPS_RM_CONST	((mps_rm_t)1)
-#define MPS_RM_PROT	((mps_rm_t)2)
+#define MPS_RM_CONST    ((mps_rm_t)1)
+#define MPS_RM_PROT     ((mps_rm_t)2)
 
 
 /* Allocation Point
@@ -119,11 +126,11 @@ enum
  * .ap: Keep in sync with impl.h.mpmty.ap
  */
 
-typedef struct mps_ap_s		/* allocation point descriptor */
+typedef struct mps_ap_s         /* allocation point descriptor */
 {
-  mps_addr_t init;		/* limit of initialized memory */
-  mps_addr_t alloc;		/* limit of reserved memory */
-  mps_addr_t limit;		/* limit of buffered memory */
+  mps_addr_t init;              /* limit of initialized memory */
+  mps_addr_t alloc;             /* limit of reserved memory */
+  mps_addr_t limit;             /* limit of buffered memory */
 } mps_ap_s;
 
 
@@ -134,7 +141,7 @@ typedef struct mps_ap_s		/* allocation point descriptor */
  * in-line it into other structures, such as pointer hash-tables.
  */
 
-typedef struct mps_ld_s		/* location dependency descriptor */
+typedef struct mps_ld_s         /* location dependency descriptor */
 {
   mps_word_t ld1;
   mps_word_t ld2;
