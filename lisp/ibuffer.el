@@ -1161,7 +1161,8 @@ become unmarked."
   (let ((inhibit-read-only t))
     (ibuffer-set-mark-1 mark)
     (setq ibuffer-did-modification t)
-    (ibuffer-redisplay-current)))
+    (ibuffer-redisplay-current)
+    (beginning-of-line)))
 
 (defun ibuffer-set-mark-1 (mark)
   (let ((beg (line-beginning-position))
@@ -1951,8 +1952,8 @@ Do not display messages if SILENT is non-nil."
 			    bmarklist)))
 		     ;; perhaps reverse the sorted buffer list
 		     (if ibuffer-sorting-reversep
-			 result
-		       (nreverse result))))))
+			 (nreverse result)
+		       result)))))
 	    (dolist (entry entries)
 	      (ibuffer-insert-buffer-line
 	       (car entry)
