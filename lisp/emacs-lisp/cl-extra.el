@@ -3,7 +3,6 @@
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
-;; Version: 2.02
 ;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.
@@ -32,15 +31,10 @@
 ;; This package was written by Dave Gillespie; it is a complete
 ;; rewrite of Cesar Quiroz's original cl.el package of December 1986.
 ;;
-;; This package works with Emacs 18, Emacs 19, and Lucid Emacs 19.
-;;
 ;; Bug reports, comments, and suggestions are welcome!
 
 ;; This file contains portions of the Common Lisp extensions
 ;; package which are autoloaded since they are relatively obscure.
-
-;; See cl.el for Change Log.
-
 
 ;;; Code:
 
@@ -54,9 +48,6 @@
 (defmacro cl-push (x place) (list 'setq place (list 'cons x place)))
 (defmacro cl-pop (place)
   (list 'car (list 'prog1 place (list 'setq place (list 'cdr place)))))
-
-(defvar cl-emacs-type)
-
 
 ;;; Type coercion.
 
@@ -655,28 +646,16 @@ PROPLIST is a list of the sort returned by `symbol-plist'."
 
 (defun cl-make-hash-table (&rest cl-keys)
   "Make an empty Common Lisp-style hash-table.
-If :test is `eq', this can use Lucid Emacs built-in hash-tables.
-In non-Lucid Emacs, or with non-`eq' test, this internally uses a-lists.
 Keywords supported:  :test :size
 The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
   (let ((cl-test (or (car (cdr (memq ':test cl-keys))) 'eql))
 	(cl-size (or (car (cdr (memq ':size cl-keys))) 20)))
-    (if (and (eq cl-test 'eq) (fboundp 'make-hashtable))
-	(funcall 'make-hashtable cl-size)
-      (list 'cl-hash-table-tag cl-test
-	    (if (> cl-size 1) (make-vector cl-size 0)
-	      (let ((sym (make-symbol "--hashsym--"))) (set sym nil) sym))
-	    0))))
-
-(defvar cl-lucid-hash-tag
-  (if (and (fboundp 'make-hashtable) (vectorp (make-hashtable 1)))
-      (aref (make-hashtable 1) 0) (make-symbol "--cl-hash-tag--")))
+    (make-hash-table :size cl-size :test cl-size)))
 
 (defun cl-hash-table-p (x)
   "Return t if OBJECT is a hash table."
-  (or (eq (car-safe x) 'cl-hash-table-tag)
-      (and (vectorp x) (= (length x) 4) (eq (aref x 0) cl-lucid-hash-tag))
-      (and (fboundp 'hashtablep) (funcall 'hashtablep x))))
+  (or (hash-table-p x)
+      (eq (car-safe x) 'cl-hash-table-tag)))
 
 (defun cl-not-hash-table (x &optional y &rest z)
   (signal 'wrong-type-argument (list 'cl-hash-table-p (or y x))))
@@ -782,7 +761,9 @@ The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
 (defun cl-hash-table-count (table)
   "Return the number of entries in HASH-TABLE."
   (or (cl-hash-table-p table) (cl-not-hash-table table))
-  (if (consp table) (nth 3 table) (funcall 'hashtable-fullness table)))
+  (if (consp table)
+      (nth 3 table)
+    (hash-table-count table)))
 
 
 ;;; Some debugging aids.
