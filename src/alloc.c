@@ -754,17 +754,20 @@ lisp_align_malloc (nbytes, type)
 #ifdef HAVE_POSIX_MEMALIGN
       {
 	int err = posix_memalign (&base, BLOCK_ALIGN, ABLOCKS_BYTES);
-	abase = err ? (base = NULL) : base;
+	if (err)
+	  base = NULL;
+	abase = base;
       }
 #else
       base = malloc (ABLOCKS_BYTES);
       abase = ALIGN (base, BLOCK_ALIGN);
+#endif
+
       if (base == 0)
 	{
 	  UNBLOCK_INPUT;
 	  memory_full ();
 	}
-#endif
 
       aligned = (base == abase);
       if (!aligned)
