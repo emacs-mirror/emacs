@@ -1,3 +1,16 @@
+2004-02-20  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c: Undo 2004-02-16 and 2004-02-17 changes.
+	The following changes are relative to the 2004-01-21 revision.
+	(NREAD_INPUT_EVENTS): Define as max number of input events to read
+	in one call to read_socket_hook.  Value is 8.
+	(read_avail_input): Separate and rework handling of read_socket_hook
+	and non-read_socket_hook cases.  Use smaller input_event buffer
+	in read_socket_hook case, and repeat if full buffer is read.  Use
+	new local variable 'discard' to skip input after C-g. 
+	In non-read_socket_hook case, just use a single input_event, and
+	call kbd_buffer_store_event on the fly for each character.
+
 2004-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (union Lisp_Object): Give a more precise type for `type'.
