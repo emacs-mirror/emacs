@@ -1,3 +1,10 @@
+1999-10-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* ps-mode.el: New file.
+
+	* files.el (auto-mode-alist): Add ps-mode for .eps and .ps,
+	case insensitive.
+
 1999-10-12  Richard Sharman  <rsharman@pobox.com>
 
 	* sh-script.el: Added support for indenting existing scripts.
