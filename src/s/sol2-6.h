@@ -7,10 +7,5 @@
 #define UNEXEC unexsol.o
 #endif
 
-/* "Dennis McRitchie" <dmcr@Princeton.EDU> reported failures
-   with GNU ld without this.  */
-
-#define LD_SWITCH_SYSTEM_TEMACS -znocombreloc
-
 /* arch-tag: 71ea3857-89dc-4395-9623-77964e6ed3ca
    (do not change this comment) */
