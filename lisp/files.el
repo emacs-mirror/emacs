@@ -3014,7 +3014,7 @@ non-nil, it is called instead of rereading visited file contents."
 		   (let ((coding-system-for-read
 			  ;; Auto-saved file shoule be read without
 			  ;; any code conversion.
-			  (if auto-save-p 'no-conversion
+			  (if auto-save-p 'emacs-mule-unix
 			    coding-system-for-read)))
 		     ;; Note that this preserves point in an intelligent way.
 		     (insert-file-contents file-name (not auto-save-p)
@@ -3065,7 +3065,7 @@ non-nil, it is called instead of rereading visited file contents."
 		 ;; Keep the current buffer-file-coding-system.
 		 (coding-system buffer-file-coding-system)
 		 ;; Auto-saved file shoule be read without any code conversion.
-		 (coding-system-for-read 'no-conversion))
+		 (coding-system-for-read 'emacs-mule-unix))
 	     (erase-buffer)
 	     (insert-file-contents file-name nil)
 	     (set-buffer-file-coding-system coding-system))
