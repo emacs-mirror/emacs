@@ -531,15 +531,6 @@ struct buffer
      displaying this buffer.  */
   unsigned prevent_redisplay_optimizations_p : 1;
 
-  /* Changes in the buffer are recorded here for undo.
-     t means don't record anything.
-     This information belongs to the base buffer of an indirect buffer,
-     But we can't store it in the  struct buffer_text
-     because local variables have to be right in the  struct buffer.
-     So we copy it around in set_buffer_internal.
-     This comes before `name' because it is marked in a special way.  */
-  Lisp_Object undo_list;
-
   /* Everything from here down must be a Lisp_Object.  */
 
   /* The name of this buffer.  */
@@ -579,6 +570,15 @@ struct buffer
   Lisp_Object mode_name;
   /* Mode line element that controls format of mode line.  */
   Lisp_Object mode_line_format;
+
+  /* Changes in the buffer are recorded here for undo.
+     t means don't record anything.
+     This information belongs to the base buffer of an indirect buffer,
+     But we can't store it in the  struct buffer_text
+     because local variables have to be right in the  struct buffer.
+     So we copy it around in set_buffer_internal.
+     This comes before `name' because it is marked in a special way.  */
+  Lisp_Object undo_list;
     
   /* Analogous to mode_line_format for the line displayed at the top
      of windows.  Nil means don't display that line.  */
