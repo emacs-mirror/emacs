@@ -285,6 +285,8 @@ message_dolog (m, len, nlflag)
       struct buffer *oldbuf;
       int oldpoint, oldbegv, oldzv;
       int old_windows_or_buffers_changed = windows_or_buffers_changed;
+      int point_at_end = 0;
+      int zv_at_end = 0;
 
       oldbuf = current_buffer;
       Fset_buffer (Fget_buffer_create (build_string ("*Messages*")));
@@ -295,12 +297,48 @@ message_dolog (m, len, nlflag)
       BEGV = BEG;
       ZV = Z;
       if (oldpoint == Z)
-	oldpoint += len + nlflag;
+	point_at_end = 1;
       if (oldzv == Z)
-	oldzv += len + nlflag;
+	zv_at_end = 1;
       TEMP_SET_PT (Z);
-      if (len)
+
+      /* Insert the string--maybe converting multibyte to single byte
+	 or vice versa, so that all the text fits the buffer.  */
+      if (! NILP (oldbuf->enable_multibyte_characters)
+	  && NILP (current_buffer->enable_multibyte_characters))
+	{
+	  int c, i = 0, nbytes;
+	  /* Convert a multibyte string to single-byte
+	     for the *Message* buffer.  */
+	  while (i < len)
+	    {
+	      c = STRING_CHAR (m + i, len - i);
+	      i += XFASTINT (Fchar_bytes (make_number (c)));
+	      /* Truncate the character to its last byte--we can only hope
+		 the user is happy with the character he gets,
+		 since if it isn't right, there is no way to do it right.  */
+	      c &= 0xff;
+	      insert_char (c);
+	    }
+	}
+      else if (NILP (oldbuf->enable_multibyte_characters)
+	       && ! NILP (current_buffer->enable_multibyte_characters))
+	{
+	  int c, i = 0;
+	  /* Convert a single-byte string to multibyte
+	     for the *Message* buffer.  */
+	  while (i < len)
+	    {
+	      c = m[i++];
+	      /* Convert non-ascii chars as if for self-insert.  */
+	      if (c >= 0200 && c <= 0377)
+		c += nonascii_insert_offset;
+	      insert_char (c);
+	    }
+	}
+      else if (len)
 	insert_1 (m, len, 1, 0);
+
       if (nlflag)
 	{
 	  int this_bol, prev_bol, dup;
@@ -350,8 +388,14 @@ message_dolog (m, len, nlflag)
 	    }
 	}
       BEGV = oldbegv;
-      ZV = oldzv;
-      TEMP_SET_PT (oldpoint);
+      if (zv_at_end)
+	ZV = Z;
+      else
+	ZV = oldzv;
+      if (point_at_end)
+	TEMP_SET_PT (Z);
+      else
+	TEMP_SET_PT (oldpoint);
       set_buffer_internal (oldbuf);
       windows_or_buffers_changed = old_windows_or_buffers_changed;
       message_log_need_newline = !nlflag;
