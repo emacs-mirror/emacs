@@ -45,6 +45,13 @@ extern struct scroll_bar *x_window_to_scroll_bar ();
 /* The colormap for converting color names to RGB values */
 Lisp_Object Vwin32_color_map;
 
+/* Non nil if alt key presses are passed on to Windows.  */
+Lisp_Object Vwin32_pass_alt_to_system;
+
+/* Non nil if left window, right window, and application key events
+   are passed on to Windows.  */
+Lisp_Object Vwin32_pass_optional_keys_to_system;
+
 /* The name we're using in resource queries.  */
 Lisp_Object Vx_resource_name;
 
@@ -2553,6 +2560,17 @@ record_keyup (unsigned int wparam, unsigned int lparam)
   modifiers[i] = 0;
 }
 
+/* Emacs can lose focus while a modifier key has been pressed.  When
+   it regains focus, be conservative and clear all modifiers since 
+   we cannot reconstruct the left and right modifier state.  */
+static void
+reset_modifiers ()
+{
+  if (!modifiers_recorded)
+    return;
+  bzero (modifiers, sizeof (modifiers));
+}
+
 static int
 modifier_set (int vkey)
 {
@@ -2598,6 +2616,29 @@ construct_modifiers (unsigned int wparam, unsigned int lparam)
   mods |= (modifier_set (VK_RMENU)) ? RIGHT_ALT_PRESSED : 0;
 
   return mods;
+}
+
+static unsigned int
+map_keypad_keys (unsigned int wparam, unsigned int lparam)
+{
+  unsigned int extended = (lparam & 0x1000000L);
+
+  if (wparam < VK_CLEAR || wparam > VK_DELETE)
+    return wparam;
+
+  if (wparam == VK_RETURN)
+    return (extended ? VK_NUMPAD_ENTER : VK_RETURN);
+
+  if (wparam >= VK_PRIOR && wparam <= VK_DOWN)
+    return (!extended ? (VK_NUMPAD_PRIOR + (wparam - VK_PRIOR)) : wparam);
+
+  if (wparam == VK_INSERT || wparam == VK_DELETE)
+    return (!extended ? (VK_NUMPAD_INSERT + (wparam - VK_INSERT)) : wparam);
+
+  if (wparam == VK_CLEAR)
+    return (!extended ? VK_NUMPAD_CLEAR : wparam);
+
+  return wparam;
 }
 
 /* Main window procedure */
@@ -2673,24 +2714,42 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
     case WM_SYSKEYDOWN:
       record_keydown (wParam, lParam);
 
+      wParam = map_keypad_keys (wParam, lParam);
+      
       switch (wParam) {
-      case VK_CONTROL: case VK_CAPITAL: case VK_MENU: case VK_SHIFT:
+      case VK_LWIN:
+      case VK_RWIN:
+      case VK_APPS:
+	/* More support for these keys will likely be necessary.  */
+	if (!NILP (Vwin32_pass_optional_keys_to_system))
+	  goto dflt;
+	break;
+      case VK_MENU:
+	if (NILP (Vwin32_pass_alt_to_system)) 
+	  return 0;
+	else 
+	  goto dflt;
+      case VK_CONTROL: 
+      case VK_CAPITAL: 
+      case VK_SHIFT:
+	/* Pass on to Windows.  */
 	goto dflt;
       default:
+	/* If not defined as a function key, change it to a WM_CHAR message. */
+	if (lispy_function_keys[wParam] == 0)
+	  msg = WM_CHAR;
 	break;
       }
-
-      if (lispy_function_keys[wParam] == 0)
-	msg = WM_CHAR;
 
       /* Fall through */
       
     case WM_SYSCHAR:
     case WM_CHAR:
       wmsg.dwModifiers = construct_modifiers (wParam, lParam);
-      
+
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       break;
+
     case WM_LBUTTONDOWN:
     case WM_LBUTTONUP:
     case WM_MBUTTONDOWN:
@@ -2711,10 +2770,12 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
       
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       goto dflt;
+
+    case WM_SETFOCUS:
+      reset_modifiers ();
     case WM_MOUSEMOVE:
     case WM_MOVE:
     case WM_SIZE:
-    case WM_SETFOCUS:
     case WM_KILLFOCUS:
     case WM_CLOSE:
     case WM_VSCROLL:
@@ -4322,6 +4383,18 @@ syms_of_win32fns ()
   DEFVAR_LISP ("win32-color-map", &Vwin32_color_map,
 	       "A array of color name mappings for windows.");
   Vwin32_color_map = Qnil;
+
+  DEFVAR_LISP ("win32-pass-alt-to-system", &Vwin32_pass_alt_to_system,
+	       "Non-nil if alt key presses are passed on to Windows.\n\
+When non-nil, for example, alt pressed and released and then space will\n\
+open the System menu.  When nil, Emacs silently swallows alt key events.");
+  Vwin32_pass_alt_to_system = Qnil;
+
+  DEFVAR_LISP ("win32-pass-optional-keys-to-system", 
+	       &Vwin32_pass_optional_keys_to_system,
+	       "Non-nil if the 'optional' keys (left window, right window,\n\
+and application keys) are passed on to Windows.");
+  Vwin32_pass_optional_keys_to_system = Qnil;
 
   init_x_parm_symbols ();
 
