@@ -1521,10 +1521,12 @@ The current buffer should be the desired compilation output buffer."
 			    ;; Look for the next error.
 			    t)
 			;; We found the file.  Get a marker for this error.
-			;; compilation-old-error-list is a buffer-local
-			;; variable, so we must be careful to extract its value
+			;; compilation-old-error-list and
+			;; compilation-error-screen-columns are buffer-local
+			;; so we must be careful to extract their value
 			;; before switching to the source file buffer.
 			(let ((errors compilation-old-error-list)
+			      (columns compilation-error-screen-columns)
 			      (last-line (nth 1 (cdr next-error)))
 			      (column (nth 2 (cdr next-error))))
 			  (set-buffer buffer)
@@ -1534,7 +1536,7 @@ The current buffer should be the desired compilation output buffer."
 			      (goto-line last-line)
 			      (if (and column (> column 0))
 				  ;; Columns in error msgs are 1-origin.
-				  (if compilation-error-screen-columns
+				  (if columns
 				      (move-to-column (1- column))
 				    (forward-char (1- column)))
 				(beginning-of-line))
@@ -1560,7 +1562,7 @@ The current buffer should be the desired compilation output buffer."
 								lines))
 					 (forward-line lines))
 				       (if (and column (> column 1))
-					   (if compilation-error-screen-columns
+					   (if columns
 					       (move-to-column (1- column))
 					     (forward-char (1- column)))
 					 (beginning-of-line))
