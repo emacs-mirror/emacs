@@ -3,7 +3,7 @@
 ;; Copyright (C) 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/rmailsort.el,v 1.14 1993/05/26 20:28:11 rms Exp rms $
+;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/rmailsort.el,v 1.15 1993/06/22 05:55:41 rms Exp rms $
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -115,66 +115,69 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
   "Sort messages of current Rmail file.
 If 1st argument REVERSE is non-nil, sort them in reverse order.
 2nd argument KEYFUN is called with a message number, and should return a key."
-  (let ((buffer-read-only nil)
-	(predicate nil)			;< or string-lessp
-	(sort-lists nil))
-    (message "Finding sort keys...")
-    (widen)
-    (let ((msgnum 1))
-      (while (>= rmail-total-messages msgnum)
-	(setq sort-lists
-	      (cons (list (funcall keyfun msgnum) ;Make sorting key
-			  (eq rmail-current-message msgnum) ;True if current
-			  (aref rmail-message-vector msgnum)
-			  (aref rmail-message-vector (1+ msgnum)))
-		    sort-lists))
-	(if (zerop (% msgnum 10))
-	    (message "Finding sort keys...%d" msgnum))
-	(setq msgnum (1+ msgnum))))
-    (or reverse (setq sort-lists (nreverse sort-lists)))
-    ;; Decide predicate: < or string-lessp
-    (if (numberp (car (car sort-lists))) ;Is a key numeric?
-	(setq predicate (function <))
-      (setq predicate (function string-lessp)))
-    (setq sort-lists
-	  (sort sort-lists
-		(function
-		 (lambda (a b)
-		   (funcall predicate (car a) (car b))))))
-    (if reverse (setq sort-lists (nreverse sort-lists)))
-    ;; Now we enter critical region.  So, keyboard quit is disabled.
-    (message "Reordering messages...")
-    (let ((inhibit-quit t)		;Inhibit quit
-	  (current-message nil)
-	  (msgnum 1)
-	  (msginfo nil))
-      ;; There's little hope that we can easily undo after that.
-      (buffer-flush-undo (current-buffer))
-      (goto-char (rmail-msgbeg 1))
-      ;; To force update of all markers.
-      (insert-before-markers ?Z)
-      (backward-char 1)
-      ;; Now reorder messages.
-      (while sort-lists
-	(setq msginfo (car sort-lists))
-	;; Swap two messages.
-	(insert-buffer-substring
-	 (current-buffer) (nth 2 msginfo) (nth 3 msginfo))
-	(delete-region  (nth 2 msginfo) (nth 3 msginfo))
-	;; Is current message?
-	(if (nth 1 msginfo)
-	    (setq current-message msgnum))
-	(setq sort-lists (cdr sort-lists))
-	(if (zerop (% msgnum 10))
-	    (message "Reordering messages...%d" msgnum))
-	(setq msgnum (1+ msgnum)))
-      ;; Delete the garbage inserted before.
-      (delete-char 1)
-      (setq quit-flag nil)
-      (buffer-enable-undo)
-      (rmail-set-message-counters)
-      (rmail-show-message current-message))
-    ))
+  (save-excursion
+    ;; If we are in a summary buffer, operate on the Rmail buffer.
+    (if (eq major-mode 'rmail-summary-mode)
+	(set-buffer rmail-buffer))
+    (let ((buffer-read-only nil)
+	  (predicate nil)			;< or string-lessp
+	  (sort-lists nil))
+      (message "Finding sort keys...")
+      (widen)
+      (let ((msgnum 1))
+	(while (>= rmail-total-messages msgnum)
+	  (setq sort-lists
+		(cons (list (funcall keyfun msgnum) ;Make sorting key
+			    (eq rmail-current-message msgnum) ;True if current
+			    (aref rmail-message-vector msgnum)
+			    (aref rmail-message-vector (1+ msgnum)))
+		      sort-lists))
+	  (if (zerop (% msgnum 10))
+	      (message "Finding sort keys...%d" msgnum))
+	  (setq msgnum (1+ msgnum))))
+      (or reverse (setq sort-lists (nreverse sort-lists)))
+      ;; Decide predicate: < or string-lessp
+      (if (numberp (car (car sort-lists))) ;Is a key numeric?
+	  (setq predicate (function <))
+	(setq predicate (function string-lessp)))
+      (setq sort-lists
+	    (sort sort-lists
+		  (function
+		   (lambda (a b)
+		     (funcall predicate (car a) (car b))))))
+      (if reverse (setq sort-lists (nreverse sort-lists)))
+      ;; Now we enter critical region.  So, keyboard quit is disabled.
+      (message "Reordering messages...")
+      (let ((inhibit-quit t)		;Inhibit quit
+	    (current-message nil)
+	    (msgnum 1)
+	    (msginfo nil))
+	;; There's little hope that we can easily undo after that.
+	(buffer-flush-undo (current-buffer))
+	(goto-char (rmail-msgbeg 1))
+	;; To force update of all markers.
+	(insert-before-markers ?Z)
+	(backward-char 1)
+	;; Now reorder messages.
+	(while sort-lists
+	  (setq msginfo (car sort-lists))
+	  ;; Swap two messages.
+	  (insert-buffer-substring
+	   (current-buffer) (nth 2 msginfo) (nth 3 msginfo))
+	  (delete-region  (nth 2 msginfo) (nth 3 msginfo))
+	  ;; Is current message?
+	  (if (nth 1 msginfo)
+	      (setq current-message msgnum))
+	  (setq sort-lists (cdr sort-lists))
+	  (if (zerop (% msgnum 10))
+	      (message "Reordering messages...%d" msgnum))
+	  (setq msgnum (1+ msgnum)))
+	;; Delete the garbage inserted before.
+	(delete-char 1)
+	(setq quit-flag nil)
+	(buffer-enable-undo)
+	(rmail-set-message-counters)
+	(rmail-show-message current-message)))))
 
 (defun rmail-fetch-field (msg field)
   "Return the value of the header FIELD of MSG.
