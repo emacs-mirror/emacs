@@ -1531,6 +1531,7 @@ extern Lisp_Object internal_condition_case_1 ();
 extern Lisp_Object unbind_to ();
 extern void error ();
 extern Lisp_Object un_autoload ();
+extern Lisp_Object Ffetch_bytecode ();
 
 /* Defined in editfns.c */
 extern Lisp_Object Fgoto_char ();
