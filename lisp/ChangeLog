@@ -1,3 +1,10 @@
+2002-02-19  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* facemenu.el (describe-text-mode-map): Removed bootstrap kludge.
+
+	* toolbar/tool-bar.el (tool-bar-mode): Made the standard value t.
+	* menu-bar.el (menu-bar-mode): Ditto.
+
 2002-02-18  Andreas Schwab  <schwab@suse.de>
 
 	* replace.el (query-replace-regexp-eval): Doc fix.

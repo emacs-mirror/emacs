@@ -1438,7 +1438,7 @@ key (or menu-item)"))
     (list 'menu-item "Enter" 'exit-minibuffer
 	  :help "Terminate input and exit minibuffer")))
 
-(defcustom menu-bar-mode nil
+(defcustom menu-bar-mode t
   "Toggle display of a menu bar on each frame.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `menu-bar-mode'."
@@ -1447,12 +1447,6 @@ use either \\[customize] or the function `menu-bar-mode'."
   :initialize 'custom-initialize-default
   :type 'boolean
   :group 'frames)
-
-;;; `menu-bar-mode' doesn't really have a standard value, as it depend
-;;; on where and how Emacs was started.  By removing the standard
-;;; value, we ensure that customize will always save it.
-;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
-(put 'menu-bar-mode 'standard-value nil)
 
 (defun menu-bar-mode (&optional flag)
   "Toggle display of a menu bar on each frame.

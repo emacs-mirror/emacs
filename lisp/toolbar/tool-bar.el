@@ -47,6 +47,7 @@ With numeric ARG, display the tool bar if and only if ARG is positive.
 
 See `tool-bar-add-item' and `tool-bar-add-item-from-menu' for
 conveniently adding tool bar items."
+  :init-value t
   :global t
   :group 'mouse
   :group 'frames
@@ -66,12 +67,6 @@ conveniently adding tool bar items."
 		(display-graphic-p)
 		(= 1 (length (default-value 'tool-bar-map)))) ; not yet setup
 	   (tool-bar-setup))))
-
-;;; `tool-bar-mode' doesn't really have a standard value, as it depend
-;;; on where and how Emacs was started.  By removing the standard
-;;; value, we ensure that customize will always save it.
-;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
-(put 'tool-bar-mode 'standard-value nil)
 
 (defvar tool-bar-map (make-sparse-keymap)
   "Keymap for the tool bar.

@@ -478,18 +478,7 @@ These special properties include `invisible', `intangible' and `read-only'."
 
 (defvar describe-text-mode-map 
   (let ((map (make-sparse-keymap)))
-    (if (boundp 'widget-keymap)
-	(set-keymap-parent map widget-keymap)
-      ;; Copy from wid-edit.el if widget-keymap isn't in loaddefs.el
-      ;; Needed for bootstrap purposes, can hopefully be removed when 
-      ;; loaddefs.el is updated.
-      ;; -- Per Abrahamsen <abraham@dina.kvl.dk>, 2002-02-14.
-      (define-key map "\t" 'widget-forward)
-      (define-key map [(shift tab)] 'widget-backward)
-      (define-key map [backtab] 'widget-backward)
-      (define-key map [down-mouse-2] 'widget-button-click)
-      (define-key map "\C-m" 'widget-button-press))
-    (define-key map "q" 'describe-text-done)
+    (set-keymap-parent map widget-keymap)
     map)
   "Keymap for `describe-text-mode'.")
   
