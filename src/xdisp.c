@@ -3774,17 +3774,48 @@ handle_auto_composed_prop (it)
 {
   enum prop_handled handled = HANDLED_NORMALLY;
 
-  if (! NILP (Vauto_composition_function))
+  if (FUNCTIONP (Vauto_composition_function))
     {
       Lisp_Object val;
-      int pos;
+      EMACS_INT pos, this_pos;
 
       if (STRINGP (it->string))
 	pos = IT_STRING_CHARPOS (*it);
       else
 	pos = IT_CHARPOS (*it);
+      this_pos = pos;
 
       val =Fget_char_property (make_number (pos), Qauto_composed, it->string);
+      if (! NILP (val))
+	{
+	  Lisp_Object next;
+
+	  next = (Fnext_single_property_change
+		     (make_number (pos), Qauto_composed, it->string, Qnil));
+	  if (INTEGERP (next))
+	    {
+	      /* The current point is auto-composed, but there exist
+		 characers not yet composed beyond the auto-compused
+		 region.  There's a possiblity that the last
+		 characters in the region may be newly composed.  */
+	      int charpos = XINT (next) - 1, bytepos, c;
+
+	      if (STRINGP (it->string))
+		{
+		  bytepos = string_char_to_byte (it->string, charpos);
+		  c = SDATA (it->string)[bytepos];
+		}
+	      else
+		{
+		  bytepos = CHAR_TO_BYTE (charpos);
+		  c = FETCH_BYTE (bytepos);
+		}
+	      if (c != '\n')
+		/* If the last character is not newline, it may be
+		   composed with the following characters.  */
+		val = Qnil, pos = charpos + 1;
+	    }
+	}
       if (NILP (val))
 	{
 	  int count = SPECPDL_INDEX ();
@@ -3798,7 +3829,7 @@ handle_auto_composed_prop (it)
 	  unbind_to (count, Qnil);
 
 	  val = Fget_char_property (args[1], Qauto_composed, it->string);
-	  if (! NILP (val))
+	  if (! NILP (val) && this_pos == pos)
 	    handled = HANDLED_RECOMPUTE_PROPS;
 	}
     }
@@ -3814,7 +3845,7 @@ handle_composition_prop (it)
      struct it *it;
 {
   Lisp_Object prop, string;
-  EMACS_INT pos, pos_byte, end;
+  EMACS_INT pos, pos_byte, start, end;
   enum prop_handled handled = HANDLED_NORMALLY;
 
   if (STRINGP (it->string))
@@ -3833,11 +3864,20 @@ handle_composition_prop (it)
   /* If there's a valid composition and point is not inside of the
      composition (in the case that the composition is from the current
      buffer), draw a glyph composed from the composition components.  */
-  if (find_composition (pos, -1, &pos, &end, &prop, string)
-      && COMPOSITION_VALID_P (pos, end, prop)
-      && (STRINGP (it->string) || (PT <= pos || PT >= end)))
+  if (find_composition (pos, -1, &start, &end, &prop, string)
+      && COMPOSITION_VALID_P (start, end, prop)
+      && (STRINGP (it->string) || (PT <= start || PT >= end)))
     {
-      int id = get_composition_id (pos, pos_byte, end - pos, prop, string);
+      int id;
+
+      if (start != pos)
+	{
+	  if (STRINGP (it->string))
+	    pos_byte = string_char_to_byte (it->string, start);
+	  else
+	    pos_byte = CHAR_TO_BYTE (start);
+	}
+      id = get_composition_id (start, pos_byte, end - start, prop, string);
 
       if (id >= 0)
 	{
