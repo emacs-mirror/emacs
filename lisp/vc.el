@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.229 1998/06/05 12:46:29 spiegel Exp spiegel $
+;; $Id: vc.el,v 1.230 1998/06/11 15:33:13 spiegel Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -1761,7 +1761,11 @@ There is a special command, `*l', to mark all files currently locked."
               (goto-char pos)
               (dired-kill-line)))
            (vc-dired-terse-mode
-            (dired-kill-line))
+            ;; Don't show directories in terse mode.  Don't use
+            ;; dired-kill-line to remove it, because in recursive listings,
+            ;; that would remove the directory contents as well.
+            (delete-region (progn (beginning-of-line) (point))
+                           (progn (forward-line 1) (point))))
            ((string-match "\\`\\.\\.?\\'" (file-name-nondirectory filename))
             (dired-kill-line))
            (t
@@ -1785,8 +1789,9 @@ There is a special command, `*l', to mark all files currently locked."
   (message "Getting version information... done")
   (save-restriction
     (widen)
-    (if (eq (count-lines (point-min) (point-max)) 2)
-        (message "No files locked under %s" default-directory))))
+    (cond ((eq (count-lines (point-min) (point-max)) 1)
+           (goto-char (point-min))
+           (message "No files locked under %s" default-directory)))))
 
 (defun vc-dired-purge ()
   ;; Remove empty subdirs
@@ -1800,6 +1805,10 @@ There is a special command, `*l', to mark all files currently locked."
         (forward-line -2)
         (if (not (string= (dired-current-directory) default-directory))
             (dired-do-kill-lines t "")
+          ;; We cannot remove the top level directory.
+          ;; Just make it look a little nicer.
+          (forward-line 1)
+          (kill-line)
           (if (not (dired-next-subdir 1 t))
               (goto-char (point-max))))))
     (goto-char (point-min))))
