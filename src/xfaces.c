@@ -413,6 +413,10 @@ Lisp_Object Vscalable_fonts_allowed, Qscalable_fonts_allowed;
 
 Lisp_Object Vface_ignored_fonts;
 
+/* Alist of font name patterns vs the resizing factor.  */
+
+Lisp_Object Vface_resizing_fonts;
+
 /* Maximum number of fonts to consider in font_list.  If not an
    integer > 0, DEFAULT_FONT_LIST_LIMIT is used instead.  */
 
@@ -1878,6 +1882,11 @@ struct font_name
      split_font_name for which these are.  */
   int numeric[XLFD_LAST];
 
+  /* If the original name matches one of Vface_resizing_fonts, the
+     value is the corresponding resizing ratio.  Otherwise, the value
+     is 1.0.  */
+  double resizing_ratio;
+
   /* Lower value mean higher priority.  */
   int registry_priority;
 };
@@ -2281,6 +2290,30 @@ pixel_point_size (f, pixel)
 }
 
 
+/* Return a resizing ratio of a font of NAME.  */
+
+static INLINE double
+font_resizing_ratio (char *name)
+{
+  Lisp_Object tail, elt;  
+
+  if (CONSP (Vface_resizing_fonts))
+    {
+      for (tail = Vface_resizing_fonts; CONSP (tail); tail = XCDR (tail))
+	{
+	  elt = XCAR (tail);
+	  if (STRINGP (XCAR (elt)) && FLOATP (XCDR (elt))
+	      && fast_c_string_match_ignore_case (XCAR (elt), name) >= 0)
+	    {
+	      fprintf (stderr, "resized: %s\n", name);
+	      return XFLOAT_DATA (XCDR (elt));
+	    }
+	}
+    }
+  return 1.0;
+}
+
+
 /* Split XLFD font name FONT->name destructively into NUL-terminated,
    lower-case fields in FONT->fields.  NUMERIC_P non-zero means
    compute numeric values for fields XLFD_POINT_SIZE, XLFD_SWIDTH,
@@ -2297,6 +2330,10 @@ split_font_name (f, font, numeric_p)
 {
   int i = 0;
   int success_p;
+  double resizing_ratio = 1.0;
+
+  if (numeric_p && CONSP (Vface_resizing_fonts))
+    resizing_ratio = font_resizing_ratio (font->name);
 
   if (*font->name == '-')
     {
@@ -2356,6 +2393,7 @@ split_font_name (f, font, numeric_p)
       font->numeric[XLFD_WEIGHT] = xlfd_numeric_weight (font);
       font->numeric[XLFD_SWIDTH] = xlfd_numeric_swidth (font);
       font->numeric[XLFD_AVGWIDTH] = atoi (font->fields[XLFD_AVGWIDTH]);
+      font->resizing_ratio = resizing_ratio;
     }
 
   /* Initialize it to zero.  It will be overridden by font_list while
@@ -5821,12 +5859,23 @@ better_font_p (values, font1, font2, compare_pt_p, avgwidth)
 
       if (compare_pt_p || xlfd_idx != XLFD_POINT_SIZE)
 	{
-	  int delta1 = abs (values[i] - font1->numeric[xlfd_idx]);
-	  int delta2 = abs (values[i] - font2->numeric[xlfd_idx]);
+	  int delta1, delta2;
 
-	  if (xlfd_idx == XLFD_POINT_SIZE
-	      && abs (delta1 - delta2) < FONT_POINT_SIZE_QUANTUM)
-	    continue;
+	  if (xlfd_idx == XLFD_POINT_SIZE)
+	    {
+	      delta1 = abs (values[i] - (font1->numeric[xlfd_idx]
+					 / font1->resizing_ratio));
+	      delta2 = abs (values[i] - (font2->numeric[xlfd_idx]
+					 / font2->resizing_ratio));
+	      if (abs (delta1 - delta2) < FONT_POINT_SIZE_QUANTUM)
+		continue;
+	    }
+	  else
+	    {
+	      delta1 = abs (values[i] - font1->numeric[xlfd_idx]);
+	      delta2 = abs (values[i] - font2->numeric[xlfd_idx]);
+	    }
+
 	  if (delta1 > delta2)
 	    return 0;
 	  else if (delta1 < delta2)
@@ -5909,16 +5958,21 @@ build_scalable_font_name (f, font, specified_pt)
       pt = specified_pt;
       pixel_value = resy / (PT_PER_INCH * 10.0) * pt;
     }
-
-  /* Set point size of the font.  */
-  sprintf (point_size, "%d", (int) pt);
-  font->fields[XLFD_POINT_SIZE] = point_size;
-  font->numeric[XLFD_POINT_SIZE] = pt;
+  /* We may need a font of the different size.  */
+  pixel_value *= font->resizing_ratio;
 
   /* Set pixel size.  */
   sprintf (pixel_size, "%d", pixel_value);
   font->fields[XLFD_PIXEL_SIZE] = pixel_size;
   font->numeric[XLFD_PIXEL_SIZE] = pixel_value;
+
+  /* We don't have to change POINT_SIZE, RESX, and RESY of the font
+     name.  */
+#if 0
+  /* Set point size of the font.  */
+  sprintf (point_size, "%d", (int) pt);
+  font->fields[XLFD_POINT_SIZE] = point_size;
+  font->numeric[XLFD_POINT_SIZE] = pt;
 
   /* If font doesn't specify its resolution, use the
      resolution of the display.  */
@@ -5938,6 +5992,7 @@ build_scalable_font_name (f, font, specified_pt)
       font->fields[XLFD_RESX] = buffer;
       font->numeric[XLFD_RESX] = resx;
     }
+#endif
 
   return build_font_name (font);
 }
@@ -6125,7 +6180,7 @@ try_alternative_families (f, family, registry, fonts)
 	}
       
       /* Try scalable fonts before giving up.  */
-      if (nfonts == 0 && NILP (Vscalable_fonts_allowed))
+      if (nfonts == 0 && ! EQ (Vscalable_fonts_allowed, Qt))
 	{
 	  int count = BINDING_STACK_SIZE ();
 	  specbind (Qscalable_fonts_allowed, Qt);
@@ -7505,6 +7560,14 @@ other font of the appropriate family and registry is available.  */);
 Each element is a regular expression that matches names of fonts to
 ignore.  */);
   Vface_ignored_fonts = Qnil;
+
+  DEFVAR_LISP ("face-resizing-fonts", &Vface_resizing_fonts,
+	       doc: /* Alist of fonts vs the resizing factors.
+Each element is a cons (FONT-NAME-PATTERN . RESIZING-RATIO), where
+FONT-NAME-PATTERN is a regular expression matching a font name, and
+RESIZING-RATIO is a floating point number to specify how much larger
+\(or smaller) font we should use.  For instance, if a face requests
+a font of 10 point, we actually use a font of 10 * RESIZING-FACE points.  */);
 
 #ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sbitmap_spec_p);
