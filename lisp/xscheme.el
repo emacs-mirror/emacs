@@ -456,8 +456,8 @@ waiting for input.  Otherwise, it is busy evaluating something.")
 
 (defconst xscheme-control-g-synchronization-p t
   "If non-nil, insert markers in the scheme input stream to indicate when
-control-g interrupts were signalled.  Do not allow more control-g's to be
-signalled until the scheme process acknowledges receipt.")
+control-g interrupts were signaled.  Do not allow more control-g's to be
+signaled until the scheme process acknowledges receipt.")
 
 (defvar xscheme-control-g-disabled-p nil
   "This variable, if non-nil, indicates that a control-g is being processed
