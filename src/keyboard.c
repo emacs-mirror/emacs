@@ -4168,16 +4168,27 @@ read_key_sequence (keybuf, bufsize, prompt)
 		 function key map and it's a suffix of the current
 		 sequence (i.e. fkey_end == t), replace it with
 		 the binding and restart with fkey_start at the end. */
-	      if (XTYPE (fkey_next) == Lisp_Vector
+	      if ((VECTORP (fkey_next) || STRINGP (fkey_next))
 		  && fkey_end == t)
 		{
-		  t = fkey_start + XVECTOR (fkey_next)->size;
+		  int len = Flength (fkey_next);
+
+		  t = fkey_start + len;
 		  if (t >= bufsize)
 		    error ("key sequence too long");
 
-		  bcopy (XVECTOR (fkey_next)->contents,
-			 keybuf + fkey_start,
-			 (t - fkey_start) * sizeof (keybuf[0]));
+		  if (VECTORP (fkey_next))
+		    bcopy (XVECTOR (fkey_next)->contents,
+			   keybuf + fkey_start,
+			   (t - fkey_start) * sizeof (keybuf[0]));
+		  else if (STRINGP (fkey_next))
+		    {
+		      int i;
+
+		      for (i = 0; i < len; i++)
+			XFASTINT (keybuf[fkey_start + i]) =
+			  XSTRING (fkey_next)->data[i];
+		    }
 		  
 		  mock_input = t;
 		  fkey_start = fkey_end = t;
@@ -4585,7 +4596,7 @@ On such systems, Emacs starts a subshell instead of suspending.")
      with a window system; but suspend should be disabled in that case.  */
   get_frame_size (&width, &height);
   if (width != old_width || height != old_height)
-    change_frame_size (0, height, width, 0, 0);
+    change_frame_size (selected_frame, height, width, 0, 0);
 
   /* Run suspend-resume-hook.  */
   if (!NILP (Vrun_hooks))
