@@ -55,7 +55,9 @@ in paths.el.")
 
 (defvar Info-directory-list
   (let ((path (getenv "INFOPATH"))
-	(sep (if (eq system-type 'ms-dos) ";" ":"))
+	(sep (if (or (eq system-type 'ms-dos) 
+		     (eq system-type 'windows-nt))
+		 ";" ":"))
 	(sibling (expand-file-name "../info/" (invocation-directory))))
     (if path
 	(let ((list nil)
@@ -68,9 +70,9 @@ in paths.el.")
 	  (nreverse list))
       (if (or (member sibling Info-default-directory-list)
 	      (not (file-exists-p sibling))
-	      ;; On MS-DOS, we use movable executables always,
+	      ;; On DOS/NT, we use movable executables always,
 	      ;; and we must always find the Info dir at run time.
-	      (if (eq system-type 'ms-dos)
+	      (if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
 		  nil
 		;; Use invocation-directory for Info only if we used it for
 		;; exec-directory also.
