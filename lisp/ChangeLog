@@ -1,3 +1,21 @@
+2000-11-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* ps-print.el (ps-end-job): Bind case-fold-search only after
+	switching to ps-spool-buffer.
+
+2000-11-30  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Line number font customization.  PostScript: Lines and
+	PageCount are initialized on each page.  Doc Fix.
+	(ps-print-version): New version number (6.3.2).
+	(ps-lpr-switches, ps-font-info-database, ps-font-size)
+	(ps-header-font-size, ps-header-title-font-size, ps-left-header)
+	(ps-right-header): Customization fix.
+	(ps-setup, ps-select-font, ps-begin-file, ps-header-sheet, ps-end-job):
+	Fix code.
+	(ps-end-with-control-d, ps-line-number-font, ps-line-number-font-size):
+	New vars.
+
 2000-11-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* bs.el: Undo mistaken change of 2000-11-28.  Update copyright.

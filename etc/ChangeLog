@@ -1,3 +1,7 @@
+2000-11-30  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-prin1.ps: Eliminated the line number font predefinition.
+
 2000-11-19  Jason Rumney  <jasonr@gnu.org>
 
 	* PROBLEMS: Added note about subprocesses on Windows 9x.
