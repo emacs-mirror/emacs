@@ -1,3 +1,13 @@
+2000-08-22  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* comint.el (comint-output-filter): Compare end of
+	comint-last-output-overlay with the start of the newly inserted
+	text, not the end, when deciding whether to extend it.
+	Set saved-point's insertion type to advance after insertion.  
+
+	* shell.el (shell-font-lock-keywords): Remove prompt highlighting,
+	since this is now done independently of font-lock mode.
+
 2000-08-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* server.el (server-kill-new-buffers): New user option.

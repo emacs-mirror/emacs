@@ -1499,6 +1499,9 @@ This variable is permanent-local.")
 	      ;; fiddle with the point
 	      (saved-point (point-marker)))
 
+	  ;; The point should float after any insertion we do
+	  (set-marker-insertion-type saved-point t)
+
 	  ;; We temporarly remove any buffer narrowing, in case the
 	  ;; process mark is outside of the restriction
 	  (save-restriction
@@ -1516,7 +1519,7 @@ This variable is permanent-local.")
 	      ;; adjacent to the new input, and if so, just extend it.
 	      (if (and comint-last-output-overlay
 		       (equal (overlay-end comint-last-output-overlay)
-			      (point)))
+			      (marker-position comint-last-output-start)))
 		  ;; Extend comint-last-output-overlay to include the
 		  ;; most recent output
 		  (move-overlay comint-last-output-overlay
