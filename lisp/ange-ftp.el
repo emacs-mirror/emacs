@@ -3826,10 +3826,11 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 
 ;;; This regexp takes care of real ange-ftp file names (with a slash
 ;;; and colon).
+;;; Don't allow the host name to end in a period--some systems use /.:
 ;;;###autoload
-(or (assoc "^/[^/:]*[^/:]:" file-name-handler-alist)
+(or (assoc "^/[^/:]*[^/:.]:" file-name-handler-alist)
     (setq file-name-handler-alist
-	  (cons '("^/[^/:]*[^/:]:" . ange-ftp-hook-function)
+	  (cons '("^/[^/:]*[^/:.]:" . ange-ftp-hook-function)
 		file-name-handler-alist)))
 
 ;;; This regexp recognizes and absolute filenames with only one component,
