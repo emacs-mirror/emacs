@@ -186,32 +186,7 @@ set_canon (case_table, range, elt)
   int from, to;
 
   if (NATNUMP (elt))
-    {
-      if (CONSP (range))
-	{
-	  from = XINT (XCAR (range));
-	  to = XINT (XCDR (range));
-	}
-      else
-	from = to = XINT (range);
-
-      for (; from <= to; from++)
-	{
-	  Lisp_Object val1, val2;
-
-	  val1 = Faref (up, elt);
-	  if (EQ (val1, Qt))
-	    val1 = elt;
-	  else if (! NATNUMP (val1))
-	    continue;
-	  val2 = Faref (case_table, val1);
-	  if (EQ (val2, Qt))
-	    val2 = val1;
-	  else if (! NATNUMP (val2))
-	    continue;
-	  Faset (canon, make_number (from), val2);
-	}
-    }
+    Fset_char_table_range (canon, range, Faref (case_table, Faref (up, elt)));
 }
 
 /* Set elements of char-table TABLE for characters in RANGE to
@@ -222,8 +197,21 @@ static void
 set_identity (table, range, elt)
      Lisp_Object table, range, elt;
 {
-  if (EQ (elt, Qt) || NATNUMP (elt))
-    Fset_char_table_range (table, range, Qt);
+  int from, to;
+
+  if (NATNUMP (elt))
+    {
+      if (CONSP (range))
+	{
+	  from = XINT (XCAR (range));
+	  to = XINT (XCDR (range));
+	}
+      else
+	from = to = XINT (range);
+
+      for (; from <= to; from++)
+	CHAR_TABLE_SET (table, from, make_number (from));
+    }
 }
 
 /* Permute the elements of TABLE (which is initially an identity
@@ -239,7 +227,7 @@ shuffle (table, range, elt)
 
   if (NATNUMP (elt))
     {
-      Lisp_Object tem;
+      Lisp_Object tem = Faref (table, elt);
 
       if (CONSP (range))
 	{
@@ -252,9 +240,6 @@ shuffle (table, range, elt)
       for (; from <= to; from++)
 	if (from != XINT (elt))
 	  {
-	    tem = Faref (table, elt);
-	    if (EQ (tem, Qt))
-	      tem = elt;
 	    Faset (table, elt, make_number (from));
 	    Faset (table, make_number (from), tem);
 	  }
