@@ -121,6 +121,10 @@ Lisp_Object Vafter_insert_file_functions;
 /* Functions to be called to create text property annotations for file.  */
 Lisp_Object Vwrite_region_annotate_functions;
 
+/* During build_annotations, each time an annotation function is called,
+   this holds the annotations made by the previous functions.  */
+Lisp_Object Vwrite_region_annotations_so_far;
+
 /* File name in which we write a list of all our auto save files.  */
 Lisp_Object Vauto_save_list_file_name;
 
@@ -2927,6 +2931,23 @@ and (2) it puts less data in the undo list.")
 
 static Lisp_Object build_annotations ();
 
+/* If build_annotations switched buffers, switch back to BUF.
+   Kill the temporary buffer that was selected in the meantime.  */
+
+static Lisp_Object 
+build_annotations_unwind (buf)
+     Lisp_Object buf;
+{
+  Lisp_Object tembuf;
+
+  if (XBUFFER (buf) == current_buffer)
+    return Qnil;
+  tembuf = Fcurrent_buffer ();
+  Fset_buffer (buf);
+  Fkill_buffer (tembuf);
+  return Qnil;
+}
+
 DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 5,
   "r\nFWrite region to file: ",
   "Write current region into specified file.\n\
@@ -2954,6 +2975,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   struct stat st;
   int tem;
   int count = specpdl_ptr - specpdl;
+  int count1;
 #ifdef VMS
   unsigned char *fname = 0;	/* If non-0, original filename (must rename) */
 #endif /* VMS */
@@ -2962,6 +2984,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   Lisp_Object annotations;
   int visiting, quietly;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  struct buffer *given_buffer;
 #ifdef MSDOS
   int buffer_file_type
     = NILP (current_buffer->buffer_file_type) ? O_TEXT : O_BINARY;
@@ -3013,7 +3036,16 @@ to the file, instead of any buffer contents, and END is ignored.")
       XFASTINT (end) = Z;
     }
 
+  record_unwind_protect (build_annotations_unwind, Fcurrent_buffer ());
+  count1 = specpdl_ptr - specpdl;
+
+  given_buffer = current_buffer;
   annotations = build_annotations (start, end);
+  if (current_buffer != given_buffer)
+    {
+      start = BEGV;
+      end = ZV;
+    }
 
 #ifdef CLASH_DETECTION
   if (!auto_saving)
@@ -3215,8 +3247,10 @@ to the file, instead of any buffer contents, and END is ignored.")
 #ifndef FOO
   stat (fn, &st);
 #endif
-  /* Discard the unwind protect */
-  specpdl_ptr = specpdl + count;
+  /* Discard the unwind protect for close_file_unwind.  */
+  specpdl_ptr = specpdl + count1;
+  /* Restore the original current buffer.  */
+  unbind_to (count);
 
 #ifdef CLASH_DETECTION
   if (!auto_saving)
@@ -3260,7 +3294,11 @@ DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
 
 /* Build the complete list of annotations appropriate for writing out
    the text between START and END, by calling all the functions in
-   write-region-annotate-functions and merging the lists they return.  */
+   write-region-annotate-functions and merging the lists they return.
+   If one of these functions switches to a different buffer, we assume
+   that buffer contains altered text.  Therefore, the caller must
+   make sure to restore the current buffer in all cases,
+   as save-excursion would do.  */
 
 static Lisp_Object
 build_annotations (start, end)
@@ -3275,7 +3313,21 @@ build_annotations (start, end)
   GCPRO2 (annotations, p);
   while (!NILP (p))
     {
+      struct buffer *given_buffer = current_buffer;
+      Vwrite_region_annotations_so_far = annotations;
       res = call2 (Fcar (p), start, end);
+      /* If the function makes a different buffer current,
+	 assume that means this buffer contains altered text to be output.
+	 Reset START and END from the buffer bounds
+	 and discard all previous annotations because they should have
+	 been dealt with by this function.  */
+      if (current_buffer != given_buffer)
+	{
+	  Lisp_Object tem;
+	  start = BEGV;
+	  end = ZV;
+	  annotations = Qnil;
+	}
       Flength (res);   /* Check basic validity of return value */
       annotations = merge (annotations, res, Qcar_less_than_car);
       p = Fcdr (p);
@@ -4073,6 +4125,13 @@ insert before the first byte written).  The POSITIONs must be sorted into\n\
 increasing order.  If there are several functions in the list, the several\n\
 lists are merged destructively.");
   Vwrite_region_annotate_functions = Qnil;
+
+  DEFVAR_LISP ("write-region-annotations-so-far",
+	       &Vwrite_region_annotations_so_far,
+    "When an annotation function is called, this holds the previous annotations.\n\
+These are the annotations made by other annotation functions\n\
+that were already called.  See also `write-region-annotate-functions'.");
+  Vwrite_region_annotations_so_far = Qnil;
 
   DEFVAR_LISP ("inhibit-file-name-handlers", &Vinhibit_file_name_handlers,
     "A list of file name handlers that temporarily should not be used.\n\
