@@ -3433,7 +3433,7 @@ Each alist element is a list that starts with a file name,\n\
 except for one element (optional) that starts with nil and describes\n\
 definitions evaluated from buffers not visiting files.\n\
 The remaining elements of each list are symbols defined as functions\n\
-or variables, and cons cells `(provide . FEATURE)', `(require . FEATURE)',
+or variables, and cons cells `(provide . FEATURE)', `(require . FEATURE)',\n\
 and `(autoload . SYMBOL)'.");
   Vload_history = Qnil;
 
