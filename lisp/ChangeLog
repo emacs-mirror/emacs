@@ -7,6 +7,25 @@
 	trying to `load' the symbol of an autoload instead of the file
 	recorded in the autoload.  Fix error messages.
 
+2000-03-30  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: PostScript programming fix for ghostview, doc fix.
+	(ps-print-version): New version number (5.1.3).
+	(ps-begin-file, ps-begin-job, ps-set-color, ps-do-despool, ps-setup)
+	(ps-insert-file, ps-output-boolean, ps-plot-with-face)
+	(ps-generate-postscript-with-faces): Code fix.
+	(ps-color-values): XEmacs compatibility.
+	(ps-print-background-image, ps-print-background-text, ps-printer-name)
+	(ps-default-fg, ps-default-bg): Adjust customization.
+	(ps-zebra-color): Adjust customization, renaming old ps-zebra-gray var.
+	(ps-color-scale): Renaming old ps-color-value fun.
+	(ps-print-headers): Replace ps-print-header group to avoid conflict
+	with ps-print-header variable.
+	(ps-print-miscellany): New group.
+	(ps-format-color, ps-rgb-color): New funs.
+	(ps-default-foreground): New var.
+	(ps-printer-name-option): New const.
+	
 2000-03-30  Peter Breton  <pbreton@ne.mediaone.net>
 
 	* net/net-utils.el:
