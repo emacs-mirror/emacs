@@ -1,3 +1,10 @@
+2002-10-06  Jan D.  <jan.h.d@swipnet.se>
+
+	* xterm.c (XTread_socket): Fix from 2002-10-03 didn't cover all
+	cases.  The correct fix is to pass ReparentNotify to Xt.
+	The shell widget interprets ConfigureNotify differently depending
+	on if it has been reparented or not.
+
 2002-10-05  Markus Rost  <rost@math.ohio-state.edu>
 
 	* editfns.c (Fformat_time_string): Doc fix.

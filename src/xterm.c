@@ -10443,6 +10443,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		  x_real_positions (f, &x, &y);
 		  f->output_data.x->left_pos = x;
 		  f->output_data.x->top_pos = y;
+                  goto OTHER;
 		}
 	      break;
 
@@ -11173,32 +11174,6 @@ XTread_socket (sd, bufp, numchars, expected)
 		      f->output_data.x->win_gravity = NorthWestGravity;
 		      x_wm_set_size_hint (f, (long) 0, 0);
 		    }
-#ifdef USE_MOTIF
-		  /* Some window managers pass (0,0) as the location of
-		     the window, and the Motif event handler stores it
-		     in the emacs widget, which messes up Motif menus.  */
-		  if (event.xconfigure.x == 0 && event.xconfigure.y == 0)
-		    {
-                      Window child;
-		      int count;
-
-		      /* We can get a ConfigureNotify because of a resize,
-			 so we can't just take x and y from the widget.
-			 Since this event may come on something else than
-			 the top level window,  we can't use x_real_position
-			 either.  So we get the root window x/y for 0/0 in
-			 the window in the event. */
-		      count = x_catch_errors (FRAME_X_DISPLAY (f));
-                      XTranslateCoordinates (FRAME_X_DISPLAY (f),
-                                             event.xconfigure.window,
-                                             FRAME_X_DISPLAY_INFO (f)->root_window,
-                                             0, 0,
-                                             &event.xconfigure.x,
-                                             &event.xconfigure.y,
-                                             &child);
-		      x_uncatch_errors (FRAME_X_DISPLAY (f), count);
-		    }
-#endif /* USE_MOTIF */
 		}
 	      goto OTHER;
 
