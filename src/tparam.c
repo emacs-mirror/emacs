@@ -24,9 +24,6 @@ Boston, MA 02111-1307, USA.  */
 #ifdef emacs
 #include "lisp.h"		/* for xmalloc */
 #else
-#if defined(HAVE_STRING_H) || defined(STDC_HEADERS)
-#define bcopy(s, d, n) memcpy ((d), (s), (n))
-#endif
 
 #ifdef STDC_HEADERS
 #include <stdlib.h>
@@ -34,6 +31,11 @@ Boston, MA 02111-1307, USA.  */
 #else
 char *malloc ();
 char *realloc ();
+#endif
+
+/* Do this after the include, in case string.h prototypes bcopy.  */
+#if (defined(HAVE_STRING_H) || defined(STDC_HEADERS)) && !defined(bcopy)
+#define bcopy(s, d, n) memcpy ((d), (s), (n))
 #endif
 
 #endif /* not emacs */
