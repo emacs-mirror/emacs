@@ -894,7 +894,10 @@ A non-nil FLAG means mark the buffer modified.")
   XSETBUFFER (buffer, current_buffer);
   window = Fget_buffer_window (buffer, Qt);
   if (WINDOWP (window))
-    update_mode_lines++;
+    {
+      ++update_mode_lines;
+      current_buffer->prevent_redisplay_optimizations_p = 1;
+    }
   
   return flag;
 }
