@@ -21,13 +21,12 @@ Boston, MA 02111-1307, USA.  */
 #ifndef __NTINEVT_H__
 #define __NTINEVT_H__
 
-int w32_console_read_socket (/* int sd, struct input_event *bufp, int numchars,
-				int waitp, int expected */);
-void w32_mouse_position (/* FRAME_PTR *f,
-			      Lisp_Object *bar_window,
-			      enum scroll_bar_part *part,
-			      Lisp_Object *x,
-			      Lisp_Object *y,
-			      unsigned long *time */);
+extern int w32_console_read_socket (int sd, struct input_event *bufp, 
+				    int numchars, int expected);
+extern void w32_console_mouse_position (FRAME_PTR *f, int insist, 
+					Lisp_Object *bar_window, 
+					enum scroll_bar_part *part, 
+					Lisp_Object *x, Lisp_Object *y, 
+					unsigned long *time);
 
 #endif
