@@ -39,7 +39,7 @@
 
 (defgroup dired nil
   "Directory editing."
-  :group 'environment)
+  :group 'files)
 
 (defgroup dired-mark nil
   "Handling marks in Dired."
@@ -1471,16 +1471,23 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
      ((and (eq localp 'no-dir) already-absolute)
       (file-name-nondirectory file))
      (already-absolute
-      (if (find-file-name-handler file nil)
-	  (concat "/:" file)
-	file))
+      (let ((handler (find-file-name-handler file nil)))
+	;; check for safe-magic property so that we won't
+	;; put /: for names that don't really need them.
+	(if (and handler (not (get handler 'safe-magic)))
+	    (concat "/:" file)
+	  file)))
      ((eq localp 'no-dir)
       file)
      ((equal (dired-current-directory) "/")
       (setq file (concat (dired-current-directory localp) file))
-      (if (find-file-name-handler file nil)
-	  (concat "/:" file)
-	file))
+      (let ((handler (find-file-name-handler file nil)))
+	;; check for safe-magic property so that we won't
+	;; put /: for names that don't really need them.
+	;; For instance, .gz files when auto-compression-mode is on.
+	(if (and handler (not (get handler 'safe-magic)))
+	    (concat "/:" file)
+	  file)))
      (t
       (concat (dired-current-directory localp) file)))))
 
