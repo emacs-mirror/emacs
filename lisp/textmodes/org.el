@@ -1,23 +1,23 @@
 ;; org.el --- Outline-based notes management and organizer 
 
-;; Copyright (c) 2004 Free Software Foundation
+;; Copyright (c) 2003, 2004 Free Software Foundation
 
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
 ;; Version: 3.03  (internal CVS version is $Revision: 1.104 $)
 
-;; This file is part of GNU Emacs
+;; This file is part of GNU Emacs.
 
-;; This program is free software you can redistribute it and/or modify it
-;; under the terms of the GNU General Public License as published by the Free
-;; Software Foundation; either version 2 of the License, or (at your option)
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-;; or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-;; for more details.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
