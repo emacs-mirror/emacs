@@ -898,6 +898,12 @@ Each element in the list should be a list of strings or pairs
 		 (file :tag "File")))
 
 
+;; These are temporary storage areas for the splash screen display.
+
+(defvar fancy-current-text nil)
+(defvar fancy-splash-help-echo nil)
+
+
 (defun fancy-splash-insert (&rest args)
   "Insert text into the current buffer, with faces.
 Arguments from ARGS should be either strings or pairs `:face FACE',
@@ -907,7 +913,9 @@ where FACE is a valid face specification, as it can be used with
     (while args
       (if (eq (car args) :face)
 	  (setq args (cdr args) current-face (car args))
-	(insert (propertize (car args) 'face current-face)))
+	(insert (propertize (car args)
+			    'face current-face
+			    'help-echo fancy-splash-help-echo)))
       (setq args (cdr args)))))
 
 
@@ -921,12 +929,28 @@ where FACE is a valid face specification, as it can be used with
 	 (window-width (window-width (selected-window))))
     (when img
       (when (> window-width image-width)
+	;; Center the image in the window.
 	(let ((pos (/ (- window-width image-width) 2)))
 	  (insert (propertize " " 'display `(space :align-to ,pos))))
+
+	;; Change the color of the XPM version of the splash image
+	;; so that it is visible with a dark frame background.
 	(when (and (memq 'xpm img)
 		   (eq (frame-parameter nil 'background-mode) 'dark))
 	  (setq img (append img '(:color-symbols (("#000000" . "gray"))))))
-	(insert-image img)
+
+	;; Insert the image with a help-echo and a keymap.
+	(let ((map (make-sparse-keymap))
+	      (help-echo "mouse-2: browse http://www.gnu.org"))
+	  (define-key map [mouse-2]
+	    (lambda ()
+	      (interactive)
+	      (browse-url "http://www.gnu.org")
+	      (throw 'exit nil)))
+	  (define-key map [down-mouse-2] 'ignore)
+	  (define-key map [up-mouse-2] 'ignore)
+	  (insert-image img (propertize "xxx" 'help-echo help-echo
+					'keymap map)))
 	(insert "\n"))))
   (when (eq system-type 'gnu/linux)
     (fancy-splash-insert
@@ -947,35 +971,77 @@ where FACE is a valid face specification, as it can be used with
 			 "Copyright (C) 2000 Free Software Foundation, Inc.")))
 
 
+(defun fancy-splash-screens-1 (buffer)
+  "Timer function displaying a splash screen."
+  (unless fancy-current-text
+    (setq fancy-current-text fancy-splash-text))
+  (let ((text (car fancy-current-text)))
+    (set-buffer buffer)
+    (erase-buffer)
+    (fancy-splash-head)
+    (apply #'fancy-splash-insert text)
+    (fancy-splash-tail)
+    (unless (current-message)
+      (message fancy-splash-help-echo))
+    (set-buffer-modified-p nil)
+    (force-mode-line-update)
+    (setq fancy-current-text (cdr fancy-current-text))))
+
+
+(defun fancy-splash-default-action ()
+  "Default action for events in the splash screen buffer."
+  (interactive)
+  (push last-command-event unread-command-events)
+  (throw 'exit nil))
+
+
 (defun fancy-splash-screens ()
-  "Display splash screens when Emacs starts."
-  (let* ((old-cursor-type cursor-type)
-	 stop)
-    (unwind-protect
-	(progn
-	  (setq cursor-type nil)
-	  (while (not stop)
-	    (let ((texts fancy-splash-text))
-	      (while (and texts (not stop))
-		(erase-buffer)
-		(fancy-splash-head)
-		(apply #'fancy-splash-insert (car texts))
-		(fancy-splash-tail)
-		(display-startup-echo-area-message)
-		(goto-char (point-min))
-		(set-buffer-modified-p nil)
-		(force-mode-line-update)
-		(setq texts (cdr texts))
-		(setq stop (not (sit-for fancy-splash-delay)))))))
-      (setq cursor-type old-cursor-type))
-    (erase-buffer)))
+  "Display fancy splash screens when Emacs starts."
+  (let ((old-buffer (current-buffer)))
+    (setq fancy-splash-help-echo (startup-echo-area-message))
+    (switch-to-buffer "GNU Emacs")
+    (let ((old-local-map (current-local-map))
+	  (old-global-map (current-global-map))
+	  (old-busy-cursor display-busy-cursor)
+	  (splash-buffer (current-buffer))
+	  (show-help-function nil)
+	  (fontification-functions nil)
+	  timer)
+      (unwind-protect
+	  (let ((map (make-sparse-keymap)))
+	    (setq map (nconc map '((t . fancy-splash-default-action))))
+	    (define-key map [mouse-movement] 'ignore)
+	    (define-key map [menu-bar] (lookup-key old-global-map [menu-bar]))
+	    (define-key map [tool-bar] (lookup-key old-global-map [tool-bar]))
+	    (use-global-map map)
+	    (use-local-map nil)
+	    (setq cursor-type nil
+		  display-busy-cursor nil
+		  mode-line-format
+		  (propertize "---- %b %-" 'face '(:weight bold)))
+	    (setq timer (run-with-timer 0 5 #'fancy-splash-screens-1
+					splash-buffer))
+	    (recursive-edit))
+	(use-local-map old-local-map)
+	(use-global-map old-global-map)
+	(cancel-timer timer)
+	(switch-to-buffer old-buffer)
+	(kill-buffer splash-buffer)
+	(erase-buffer)
+	(setq display-busy-cursor old-busy-cursor)))))
+
+
+(defun startup-echo-area-message ()
+  (if (eq (key-binding "\C-h\C-p") 'describe-project)
+      "For information about the GNU Project and its goals, type C-h C-p."
+    (substitute-command-keys
+     "For information about the GNU Project and its goals, type \
+\\[describe-project].")))
 
 
 (defun display-startup-echo-area-message ()
-  (message (if (eq (key-binding "\C-h\C-p") 'describe-project)
-	       "For information about the GNU Project and its goals, type C-h C-p."
-	     (substitute-command-keys
-	      "For information about the GNU Project and its goals, type \\[describe-project]."))))
+  (message (startup-echo-area-message)))
+
 
 (defun command-line-1 (command-line-args-left)
   (or noninteractive (input-pending-p) init-file-had-error
@@ -1150,7 +1216,8 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		       (goto-char (point-min))
 
 		       (set-buffer-modified-p nil)
-		       (sit-for 120))
+		       (sit-for 120)
+		       )
 		   (with-current-buffer (get-buffer "*scratch*")
 		     (erase-buffer)
 		     (and initial-scratch-message
