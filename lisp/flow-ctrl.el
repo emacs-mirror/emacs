@@ -95,14 +95,10 @@ With arg, enable flow control mode if arg is positive, otherwise disable."
     ;; Swap C-q and C-^
     (aset keyboard-translate-table flow-control-c-q-replacement ?\^q)
     (aset keyboard-translate-table ?\^q flow-control-c-q-replacement)
-    (message (concat 
-	      "XON/XOFF adjustment for " 
-	      (getenv "TERM") 
-	      ": use "
-	      (single-key-description flow-control-c-s-replacement)
-	      " for C-s, and use "
-	      (single-key-description flow-control-c-q-replacement)
-	      " for C-q"))
+    (message "XON/XOFF adjustment for %s: use %s for C-s, and use %s for C-q"
+	     (getenv "TERM") 
+	     (single-key-description flow-control-c-s-replacement)
+	     (single-key-description flow-control-c-q-replacement))
     (sleep-for 2)))			; Give user a chance to see message.
 
 ;;;###autoload
