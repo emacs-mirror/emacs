@@ -1716,10 +1716,12 @@ If END is omitted, it defaults to the length of LIST."
 				:prompt-internal prompt initial history)))
       (widget-apply widget :value-to-external answer))))
 
+(defvar widget-edit-hook nil)
+
 (defun widget-field-action (widget &optional event)
   ;; Move to next field.
   (widget-forward 1)
-  (message "To set the value, invoke [State] and choose the Set operation"))
+  (run-hooks 'widget-edit-hook))
 
 (defun widget-field-validate (widget)
   ;; Valid if the content matches `:valid-regexp'.
@@ -1915,7 +1917,7 @@ when he invoked the menu."
 				      (widget-get current :value)))
       (widget-setup)
       (widget-apply widget :notify widget event)))
-  (message "To set the value, invoke [State] and choose the Set operation"))
+  (run-hooks 'widget-edit-hook))
 
 (defun widget-choice-validate (widget)
   ;; Valid if we have made a valid choice.
@@ -1971,7 +1973,7 @@ when he invoked the menu."
   ;; Toggle value.
   (widget-value-set widget (not (widget-value widget)))
   (widget-apply widget :notify widget event)
-  (message "To set the value, invoke [State] and choose the Set operation"))
+  (run-hooks 'widget-edit-hook))
 
 ;;; The `checkbox' Widget.
 
@@ -2630,16 +2632,6 @@ when he invoked the menu."
     (if (widget-value widget)
 	(widget-glyph-insert widget on "down" "down-pushed")
       (widget-glyph-insert widget off "right" "right-pushed"))))
-
-(define-widget 'group-visibility 'visibility
-  "An indicator and manipulator for hidden group contents."
-  :create 'widget-group-visibility-create)
-
-(defun widget-group-visibility-create (widget)
-  (let ((visible (widget-value widget)))
-    (if visible
-	(insert "--------")))
-  (widget-default-create widget))
 
 ;;; The `documentation-link' Widget.
 ;;
