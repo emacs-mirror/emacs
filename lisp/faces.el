@@ -953,6 +953,38 @@ selected frame."
       (setq rest (cdr rest)))
     frame)))
 
+;; Update the colors of FACE, after FRAME's own colors have been changed.
+;; This applies only to faces with global color specifications
+;; that are not simple constants.
+(defun frame-update-face-colors (frame)
+  (let ((faces global-face-data))
+    (while faces
+      (condition-case nil
+	  (let* ((data (cdr (car faces)))
+		 (face (car (car faces)))
+		 (foreground (face-foreground data))
+		 (background (face-background data)))
+	    ;; If the global spec is a specific color,
+	    ;; which doesn't depend on the frame's attributes,
+	    ;; we don't need to recalculate it now.
+	    (or (listp foreground)
+		(setq foreground nil))
+	    (or (listp background)
+		(setq background nil))
+	    ;; If we are going to frob this face at all,
+	    ;; reinitialize it first.
+	    (if (or foreground background)
+		(progn (set-face-foreground face nil frame)
+		       (set-face-background face nil frame)))
+	    (if foreground
+		(face-try-color-list 'set-face-foreground
+				     face foreground frame))
+	    (if background
+		(face-try-color-list 'set-face-background
+				     face background frame)))
+	(error nil))
+      (setq faces (cdr faces)))))
+
 ;; Fill in the face FACE from frame-independent face data DATA.
 ;; DATA should be the non-frame-specific ("global") face vector
 ;; for the face.  FACE should be a face name or face object.
