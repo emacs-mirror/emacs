@@ -60,6 +60,7 @@
 #define gethostname    sys_gethostname
 #define gethostbyname  sys_gethostbyname
 #define getservbyname  sys_getservbyname
+#define shutdown       sys_shutdown
 
 int sys_socket(int af, int type, int protocol);
 int sys_bind (int s, const struct sockaddr *addr, int namelen);
@@ -70,6 +71,7 @@ unsigned long sys_inet_addr (const char * cp);
 int sys_gethostname (char * name, int namelen);
 struct hostent * sys_gethostbyname(const char * name);
 struct servent * sys_getservbyname(const char * name, const char * proto);
+int sys_shutdown (int socket, int how);
 
 /* we are providing a real h_errno variable */
 #undef h_errno
