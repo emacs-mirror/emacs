@@ -2030,6 +2030,10 @@ The match found must not extend before that position.\n\
 Optional third argument, if t, means if fail just return nil (no error).\n\
  If not nil and not t, position at limit of search and return nil.\n\
 Optional fourth argument is repeat count--search for successive occurrences.\n\
+\n\
+Search case-sensitivity is determined by the value of the variable\n\
+`case-fold-search', which see.\n\
+\n\
 See also the functions `match-beginning', `match-end' and `replace-match'.")
   (string, bound, noerror, count)
      Lisp_Object string, bound, noerror, count;
@@ -2046,6 +2050,10 @@ The match found must not extend after that position.  nil is equivalent\n\
 Optional third argument, if t, means if fail just return nil (no error).\n\
   If not nil and not t, move to limit of search and return nil.\n\
 Optional fourth argument is repeat count--search for successive occurrences.\n\
+\n\
+Search case-sensitivity is determined by the value of the variable\n\
+`case-fold-search', which see.\n\
+\n\
 See also the functions `match-beginning', `match-end' and `replace-match'.")
   (string, bound, noerror, count)
      Lisp_Object string, bound, noerror, count;
