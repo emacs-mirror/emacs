@@ -1,3 +1,16 @@
+2003-06-04  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el (desktop-create-buffer): Undo last change.
+	(desktop-kill, desktop-save, desktop-remove): Use expand-directory
+	rather than concat to construct desktop filename.
+	(desktop-kill, desktop-read, desktop-change-dir): Ensure
+	desktop-dirname is a directory name.
+	(desktop-change-dir): Fix bug when DIR was relative.
+
+2003-06-04  Alex Coventry  <alex_c@mit.edu>  (tiny change)
+
+	* files.el (after-find-file): Fix arguments of call to `sit-for'.
+
 2003-06-03  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
 	* cus-edit.el (custom-get-fresh-buffer): Test for nonexistence buffer.
