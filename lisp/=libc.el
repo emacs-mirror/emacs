@@ -44,8 +44,11 @@
   "Basename of the Info file of the GNU C Library Reference Manual.")
 
 (defvar libc-highlight-face 'highlight
-  "*Face for highlighting looked up symbol names in the Info buffer;
+  "*Face for highlighting looked up symbol names in the Info buffer.
 `nil' disables highlighting.")
+
+(defvar libc-highlight-overlay nil
+  "Overlay object used for highlighting.")
 
 (defconst libc-symbol-completions nil
   "Alist of documented C symbols.")
@@ -232,9 +235,15 @@ not `nil'."
 		   ;; occurence of ITEM will be highlighted.
 		   (save-excursion
 		     (re-search-forward (regexp-quote item))
-		     (put-text-property
-		      (match-beginning 0) (match-end 0)
-		      'face libc-highlight-face)))
+		     (let ((start (match-beginning 0))
+			   (end (match-end 0)))
+		       (if (overlayp libc-highlight-overlay)
+			   (move-overlay libc-highlight-overlay
+					 start end (current-buffer))
+			 (setq libc-highlight-overlay
+			       (make-overlay start end))))
+		     (overlay-put libc-highlight-overlay
+				  'face libc-highlight-face)))
 	      (beginning-of-line)))
 	item)
     (error nil)))
