@@ -142,25 +142,26 @@ ${archlibdir}: all
 
 # We don't need to install `wakeup' explicitly, because it will be copied when
 # this whole directory is copied.
+# We use .n, not .new as before, to avoid exceeding the 14-character limit.
 install: ${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
 	for file in ${INSTALLABLES} ; do \
-	  cp $${file} ${bindir}/$${file}.new ; \
-	  chmod 755 ${bindir}/$${file}.new ; \
+	  cp $${file} ${bindir}/$${file}.n ; \
+	  chmod 755 ${bindir}/$${file}.n ; \
 	done
 	for file in ${INSTALLABLE_SCRIPTS} ; do \
-	  cp ${srcdir}/$${file} ${bindir}/$${file}.new ; \
-	  chmod 755 ${bindir}/$${file}.new ; \
+	  cp ${srcdir}/$${file} ${bindir}/$${file}.n ; \
+	  chmod 755 ${bindir}/$${file}.n ; \
 	done
 	@echo
 	@echo "Changing the owner and group of utility programs to \`bin'."
 	@echo "(You may ignore errors here if you don't care about this.)"
 	-for file in ${INSTALLABLES}  ${INSTALLABLE_SCRIPTS} ; do \
-	  chgrp bin ${bindir}/$${file}.new ; \
-	  chown bin ${bindir}/$${file}.new ; \
+	  chgrp bin ${bindir}/$${file}.n ; \
+	  chown bin ${bindir}/$${file}.n ; \
 	  rm -f ${bindir}/$${file} ; \
-	  mv ${bindir}/$${file}.new ${bindir}/$${file} ; \
+	  mv ${bindir}/$${file}.n ${bindir}/$${file} ; \
 	done
 
 uninstall:
