@@ -1,4 +1,4 @@
-2004-06-12  Karl Chen <quarl@hkn.eecs.berkeley.edu>  (tiny change)
+2004-06-12  Karl Chen  <quarl@hkn.eecs.berkeley.edu>  (tiny change)
 
 	* progmodes/python.el (python-open-block-statement-p): Fix
 	indentation after a block opening that contains a comment.
