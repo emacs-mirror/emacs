@@ -474,7 +474,8 @@ new value.")
   (if (symbolp widget)
       (get widget 'widget-type)
     (and (consp widget)
-	 (get (widget-type widget) 'widget-type))))
+	 (symbolp (car widget))
+	 (get (car widget) 'widget-type))))
 
 (defun widget-get-indirect (widget property)
   "In WIDGET, get the value of PROPERTY.
