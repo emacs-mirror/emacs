@@ -5247,7 +5247,7 @@ unless you set it to something else.");
 	       &Vx_pixel_size_width_font_regexp,
      "Regexp matching a font name whose width is the same as `PIXEL_SIZE'.\n\
 \n\
-Since Emacs gets width of a font which this regexp maches from\n\
+Since Emacs gets width of a font matching with this regexp from\n\
 PIXEL_SIZE field of the name, font finding mechanism gets faster for\n\
 such a font.  This is especially effective for such large fonts as\n\
 Chinese, Japanese, and Korean.");
