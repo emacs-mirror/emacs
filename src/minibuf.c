@@ -60,6 +60,10 @@ Lisp_Object last_minibuf_string;
    invoke recursive minibuffers (to read arguments, or whatever) */
 int enable_recursive_minibuffers;
 
+/* Nonzero means don't ignore text properties
+   in Fread_from_minibuffer.  */
+int minibuffer_allow_text_properties;
+
 /* help-form is bound to this while in the minibuffer.  */
 
 Lisp_Object Vminibuffer_help_form;
@@ -179,11 +183,13 @@ static Lisp_Object read_minibuf ();
    match the front of that history list exactly.  The value is pushed onto
    the list as the string that was read.
 
-   DEFALT specifies te default value for the sake of history commands.  */
+   DEFALT specifies te default value for the sake of history commands.
+
+   If ALLOW_PROPS is nonzero, we do not throw away text properties.  */
 
 static Lisp_Object
 read_minibuf (map, initial, prompt, backup_n, expflag,
-	      histvar, histpos, defalt)
+	      histvar, histpos, defalt, allow_props)
      Lisp_Object map;
      Lisp_Object initial;
      Lisp_Object prompt;
@@ -362,9 +368,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       update_frame (selected_frame, 1, 1);
     }
 
-  /* Make minibuffer contents into a string */
+  /* Make minibuffer contents into a string.  */
   Fset_buffer (minibuffer);
-  val = make_buffer_string (1, Z, 1);
+  val = make_buffer_string (1, Z, allow_props);
 #if 0  /* make_buffer_string should handle the gap.  */
   bcopy (GAP_END_ADDR, XSTRING (val)->data + GPT - BEG, Z - GPT);
 #endif
@@ -570,7 +576,9 @@ Fifth arg HIST, if non-nil, specifies a history list\n\
 Sixth arg DEFAULT-VALUE is the default value.  If non-nil, it is used\n\
  for history commands, and as the value to return if the user enters\n\
  the empty string.\n\
-*/
+If the variable `minibuffer-allow-text-properties is non-nil,\n\
+ then the string which is returned includes whatever text properties\n\
+ were present in the minibuffer.  Otherwise the value has no text properties.  */
 
 DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 6, 0,
   0 /* See immediately above */)
@@ -627,7 +635,8 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 
   GCPRO1 (default_value);
   val = read_minibuf (keymap, initial_contents, prompt,
 		      make_number (pos), !NILP (read),
-		      histvar, histpos, default_value);
+		      histvar, histpos, default_value,
+		      minibuffer_allow_text_properties);
   if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (default_value))
     val = default_value;
   UNGCPRO;
@@ -646,7 +655,7 @@ is a string to insert in the minibuffer before reading.")
     CHECK_STRING (initial_contents, 1);
   return read_minibuf (Vminibuffer_local_map, initial_contents,
 		       prompt, Qnil, 1, Qminibuffer_history,
-		       make_number (0), Qnil);
+		       make_number (0), Qnil, 0);
 }
 
 DEFUN ("eval-minibuffer", Feval_minibuffer, Seval_minibuffer, 1, 2, 0,
@@ -685,7 +694,7 @@ Prompt with PROMPT, and provide INIT as an initial value of the input string.")
     CHECK_STRING (init, 1);
 
   return read_minibuf (Vminibuffer_local_ns_map, init, prompt, Qnil,
-		       0, Qminibuffer_history, make_number (0), Qnil);
+		       0, Qminibuffer_history, make_number (0), Qnil, 0);
 }
 
 DEFUN ("read-command", Fread_command, Sread_command, 1, 2, 0,
@@ -1190,7 +1199,7 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 7, 0,
 		      ? Vminibuffer_local_completion_map
 		      : Vminibuffer_local_must_match_map,
 		      init, prompt, make_number (pos), 0,
-		      histvar, histpos, def);
+		      histvar, histpos, def, 0);
   if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (def))
     val = def;
   return unbind_to (count, val);
@@ -1982,6 +1991,14 @@ Some uses of the echo area also raise that frame (since they use it too).");
   DEFVAR_LISP ("completion-regexp-list", &Vcompletion_regexp_list,
     "List of regexps that should restrict possible completions.");
   Vcompletion_regexp_list = Qnil;
+
+  DEFVAR_BOOL ("minibuffer-allow-text-properties",
+	       &minibuffer_allow_text_properties,
+    "Non-nil means `read-from-miniffer' should not discard text properties.\n\
+This also affects `read-string', but it does not affect `read-minibuffer',\n\
+`read-no-blanks-input', or any of the functions that do minibuffer input\n\
+with completion; they always discard text properties.")
+  minibuffer_allow_text_properties = 0;
 
   defsubr (&Sset_minibuffer_window);
   defsubr (&Sread_from_minibuffer);
