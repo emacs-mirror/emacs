@@ -1209,7 +1209,7 @@ argument implies the value @code{full} for @var{justify}.
 This command fills the paragraph at or after point.  If
 @var{justify} is non-@code{nil}, each line is justified as well.
 It uses the ordinary paragraph motion commands to find paragraph
-boundaries.  @xref{Paragraphs,,, emacs, The Emacs Manual}.
+boundaries.  @xref{Paragraphs,,, emacs, The GNU Emacs Manual}.
 @end deffn
 
 @deffn Command fill-region start end &optional justify nosqueeze to-eop
@@ -2824,8 +2824,8 @@ function called to display help strings.  These may be @code{help-echo}
 properties, menu help strings (@pxref{Simple Menu Items},
 @pxref{Extended Menu Items}), or tool bar help strings (@pxref{Tool
 Bar}).  The specified function is called with one argument, the help
-string to display.  Tooltip mode (@pxref{(emacs)Tooltips}) provides an
-example.
+string to display.  Tooltip mode (@pxref{Tooltips,,, emacs, The GNU Emacs
+Manual}) provides an example.
 @end defvar
 
 @node Format Properties

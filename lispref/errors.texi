@@ -98,7 +98,7 @@ This is a subcategory of @code{file-error}.@*
 @item ftp-error
 This is a subcategory of @code{file-error}, which results from problems
 in accessing a remote file using ftp.@*
-@xref{Remote Files,,, emacs, The Emacs Manual}.
+@xref{Remote Files,,, emacs, The GNU Emacs Manual}.
 
 @item invalid-function
 @code{"Invalid function"}@*
