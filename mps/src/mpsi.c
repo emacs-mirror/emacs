@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.15) $
+ * $HopeName: MMsrc!mpsi.c(trunk.16) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * PURPOSE
@@ -60,7 +60,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.15) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.16) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -135,7 +135,7 @@ static Bool mpsi_check(void)
   CHECKL(CHECKFIELD(mps_ss_s, w2, ScanStateStruct, summary));
 
   /* Check ld_s/LDStruct compatibility by hand */
-  /* .check.ld: See also impl.h.ld.struct */
+  /* .check.ld: See also impl.h.mpmst.ld.struct and impl.h.mps.ld */
   CHECKL(sizeof(mps_ld_s) == sizeof(LDStruct));
   CHECKL(CHECKFIELD(mps_ld_s, w0, LDStruct, epoch));
   CHECKL(CHECKFIELD(mps_ld_s, w1, LDStruct, rs));
