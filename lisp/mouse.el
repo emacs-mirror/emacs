@@ -485,8 +485,8 @@ Upon exit, point is at the far edge of the newly visible text."
   "Set the region to the text that the mouse is dragged over.
 Highlight the drag area as you move the mouse.
 This must be bound to a button-down mouse event.
-In Transient Mark mode, the highlighting remains once you
-release the mouse button.  Otherwise, it does not."
+In Transient Mark mode, the highlighting remains as long as the mark
+remains active.  Otherwise, it remains until the next input event."
   (interactive "e")
   (mouse-minibuffer-check start-event)
   (let* ((echo-keystrokes 0)
