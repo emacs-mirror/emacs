@@ -625,7 +625,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj) $(LIBO
 
 #ifdef WINDOWSNT
 #define WINNT_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}w32-fns.elc \
-  ${lispsource}dos-w32.elc
+  ${lispsource}dos-w32.elc ${lispsource}w32-vars.elc
 #else
 #define WINNT_SUPPORT
 #endif
