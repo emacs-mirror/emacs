@@ -27,6 +27,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 Lisp_Object Qsyntax_table_p;
 
+static void scan_sexps_forward ();
+static int char_quoted ();
+
 int words_include_escapes;
 
 /* This is the internal form of the parse state used in parse-partial-sexp.  */
@@ -328,6 +331,7 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
 
 /* Dump syntax table to buffer in human-readable format */
 
+static void
 describe_syntax (value)
     Lisp_Object value;
 {
@@ -444,7 +448,7 @@ describe_syntax (value)
   insert_string ("\n");
 }
 
-Lisp_Object
+static Lisp_Object
 describe_syntax_1 (vector)
      Lisp_Object vector;
 {
@@ -805,7 +809,7 @@ between them, return t; otherwise return nil.")
 		       last passed a comment starter.  */
 		    struct lisp_parse_state state;
 		    scan_sexps_forward (&state, find_defun_start (comment_end),
-					comment_end - 1, -10000, 0, Qnil, 1);
+					comment_end - 1, -10000, 0, Qnil, 0);
 		    if (state.incomment)
 		      from = state.comstart;
 		    else
@@ -1192,7 +1196,7 @@ scan_lists (from, count, depth, sexpflag)
 		       last passed a comment starter.  */
 		    struct lisp_parse_state state;
 		    scan_sexps_forward (&state, find_defun_start (comment_end),
-					comment_end - 1, -10000, 0, Qnil, 1);
+					comment_end - 1, -10000, 0, Qnil, 0);
 		    if (state.incomment)
 		      from = state.comstart;
 		    else
@@ -1238,6 +1242,7 @@ scan_lists (from, count, depth, sexpflag)
   /* NOTREACHED */
 }
 
+static int
 char_quoted (pos)
      register int pos;
 {
@@ -1321,6 +1326,7 @@ This includes chars with \"quote\" or \"prefix\" syntax (' or p).")
    If STOPBEFORE is nonzero, stop at the start of an atom.
    If COMMENTSTOP is nonzero, stop at the start of a comment.  */
 
+static void
 scan_sexps_forward (stateptr, from, end, targetdepth,
 		    stopbefore, oldstate, commentstop)
      struct lisp_parse_state *stateptr;
