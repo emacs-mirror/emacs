@@ -1942,11 +1942,22 @@ kbd_buffer_get_event ()
 #ifdef HAVE_X11
       else if (event->kind == delete_window_event)
 	{
-	  Lisp_Object value;
+	  Lisp_Object tail, frame;
+	  struct frame *f;
+	
+	  /* If the user destroys the only frame, Emacs should exit.
+	     Count visible frames and iconified frames.  */
+	  for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
+	    {
+	      frame = XCONS (tail)->car;
+	      if (XTYPE (frame) != Lisp_Frame || EQ (frame, event->frame_or_window))
+		continue;
+	      f = XFRAME (frame);
+	      if (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f))
+		break;
+	    }
 
-	  /* If the user destroys the only frame, Emacs should exit.  */
-	  value = Fvisible_frame_list ();
-	  if (! CONSP (value) || ! CONSP (XCONS (value)->cdr))
+	  if (! CONSP (tail))
 	    kill (getpid (), SIGHUP);
 
 	  Fdelete_frame (event->frame_or_window, Qt);
