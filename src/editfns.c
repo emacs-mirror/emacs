@@ -442,7 +442,8 @@ find_field (pos, merge_at_boundary, beg, end)
 	   also eat insertions here, but then they will overlap, and
 	   there's not much we can do.  */
 	stickiness = -1;
-      else if (aop && XMARKER(OVERLAY_END(after_overlay))->insertion_type == 0)
+      else if (aop
+	       && XMARKER (OVERLAY_START (after_overlay))->insertion_type == 0)
 	/* after_field is from an overlay, which expand to contain
 	   start-insertions.  */
 	stickiness = 1;
