@@ -814,11 +814,8 @@ To start the server in Emacs, type \"M-x server-start\".\n",
   fflush (out);
   fsync (fileno (out));
 
-  /* Maybe wait for an answer.   */
-  if (nowait)
-    return EXIT_SUCCESS;
-
-  if (!eval && !tty)
+  /* Wait for an answer. */
+  if (!eval && !tty && !nowait)
     {
       printf ("Waiting for Emacs...");
       needlf = 2;

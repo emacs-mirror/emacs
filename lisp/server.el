@@ -679,8 +679,8 @@ so don't mark these buffers specially, just visit them normally."
 	(unless nowait
 	  ;; When the buffer is killed, inform the clients.
 	  (add-hook 'kill-buffer-hook 'server-kill-buffer nil t)
-	  (push (car client) server-buffer-clients))
-	(push (current-buffer) client-record)))
+	  (push (car client) server-buffer-clients)
+	  (push (current-buffer) client-record))))
     (server-client-set
      client 'buffers
      (nconc (server-client-get client 'buffers) client-record))))
