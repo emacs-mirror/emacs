@@ -13906,7 +13906,7 @@ fontify a region starting at POS in the current buffer, and give\n\
 fontified regions the property `fontified'.\n\
 This variable automatically becomes buffer-local when set.");
   Vfontification_functions = Qnil;
-  Fmake_local_variable (Qfontification_functions);
+  Fmake_variable_buffer_local (Qfontification_functions);
 
   DEFVAR_BOOL ("unibyte-display-via-language-environment",
                &unibyte_display_via_language_environment,
