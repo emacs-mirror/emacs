@@ -39,9 +39,14 @@
 ;;(setq smtpmail-code-conv-from nil)
 ;;(setq user-full-name "YOUR NAME HERE")
 
+;; To queue mail, set smtpmail-queue-mail to t and use 
+;; smtpmail-send-queued-mail to send.
+
+
 ;;; Code:
 
 (require 'sendmail)
+(require 'time-stamp)
 
 ;;;
 (defgroup smtpmail nil
@@ -81,6 +86,25 @@ don't define this value."
   "*smtpmail code convert from this code to *internal*..for tiny-mime.."
   :type 'boolean
   :group 'smtpmail)
+
+(defcustom smtpmail-queue-mail nil 
+  "*Specify if mail is queued (if t) or sent immediately (if nil).
+If queued, it is stored in the directory `smtpmail-queue-dir'
+and sent with `smtpmail-send-queued-mail'."
+  :type 'boolean
+  :group 'smtpmail)
+
+(defcustom smtpmail-queue-dir "~/Mail/queued-mail/"
+  "*Directory where `smtpmail.el' stores queued mail."
+  :type 'directory
+  :group 'smtpmail)
+
+(defvar smtpmail-queue-index-file "index"
+  "File name of queued mail index,
+This is relative to `smtpmail-queue-dir'.")
+
+(defvar smtpmail-queue-index (concat smtpmail-queue-dir
+				     smtpmail-queue-index-file))
 
 ;;;
 ;;;
@@ -218,18 +242,77 @@ don't define this value."
 		(or resend-to-addresses
 		    (smtpmail-deduce-address-list tembuf (point-min) delimline)))
 	  (kill-buffer smtpmail-address-buffer)
-
+	  
 	  (smtpmail-do-bcc delimline)
-
-	  (if (not (null smtpmail-recipient-address-list))
-	      (if (not (smtpmail-via-smtp smtpmail-recipient-address-list tembuf))
-		  (error "Sending failed; SMTP protocol error"))
-	    (error "Sending failed; no recipients"))
-	  )
+	  ; Send or queue
+	  (if (not smtpmail-queue-mail)
+	      (if (not (null smtpmail-recipient-address-list))
+		  (if (not (smtpmail-via-smtp 
+			    smtpmail-recipient-address-list tembuf))
+		      (error "Sending failed; SMTP protocol error"))
+		(error "Sending failed; no recipients"))
+	    (let* ((file-data (concat 
+			       smtpmail-queue-dir
+			       (time-stamp-strftime 
+				"%02y%02m%02d-%02H%02M%02S")))
+		   (file-elisp (concat file-data ".el"))
+		   (buffer-data (create-file-buffer file-data))
+		   (buffer-elisp (create-file-buffer file-elisp))
+		   (buffer-scratch "*queue-mail*"))
+	      (save-excursion
+		(set-buffer buffer-data)
+		(erase-buffer)
+		(insert-buffer tembuf)
+		(write-file file-data)
+		(set-buffer buffer-elisp)
+		(erase-buffer)
+		(insert (concat
+			 "(setq smtpmail-recipient-address-list '"
+			 (prin1-to-string smtpmail-recipient-address-list)
+			 ")\n"))	    	    
+		(write-file file-elisp)
+		(set-buffer (generate-new-buffer buffer-scratch))
+		(insert (concat file-data "\n"))
+		(append-to-file (point-min) 
+				(point-max) 
+				smtpmail-queue-index)
+		)
+	      (kill-buffer buffer-scratch)
+	      (kill-buffer buffer-data)
+	      (kill-buffer buffer-elisp))))
       (kill-buffer tembuf)
       (if (bufferp errbuf)
 	  (kill-buffer errbuf)))))
 
+(defun smtpmail-send-queued-mail ()
+  "Send mail that was queued as a result of setting `smtpmail-queue-mail'."
+  (interactive)
+  ;;; Get index, get first mail, send it, get second mail, etc...
+  (let ((buffer-index (find-file-noselect smtpmail-queue-index))
+	(file-msg "")
+	(tembuf nil))
+    (save-excursion
+      (set-buffer buffer-index)
+      (beginning-of-buffer)
+      (while (not (eobp))
+	(setq file-msg (buffer-substring (point) (save-excursion
+						   (end-of-line)
+						   (point))))
+	(load file-msg)
+	(setq tembuf (find-file-noselect file-msg))
+	(if (not (null smtpmail-recipient-address-list))
+	    (if (not (smtpmail-via-smtp smtpmail-recipient-address-list 
+					tembuf))
+		(error "Sending failed; SMTP protocol error"))
+	  (error "Sending failed; no recipients"))  
+	(delete-file file-msg)
+	(delete-file (concat file-msg ".el"))
+	(kill-buffer tembuf)
+	(kill-line 1))      
+      (set-buffer buffer-index)
+      (save-buffer smtpmail-queue-index)
+      (kill-buffer buffer-index)
+      )))
 
 ;(defun smtpmail-via-smtp (host,port,sender,destination,smtpmail-text-buffer)
 
