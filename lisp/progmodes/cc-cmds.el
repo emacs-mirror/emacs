@@ -2073,26 +2073,32 @@ Optional prefix ARG means justify paragraph as well."
 		    (let ((ender-start (progn
 					 (goto-char (cdr lit-limits))
 					 (skip-syntax-backward "^w ")
-					 (point))))
+					 (point)))
+			  spaces)
 		      (goto-char (cdr lit-limits))
 		      (setq tmp-post (point-marker))
 		      (insert ?\n)
 		      (set-marker end (point))
 		      (forward-line -1)
-		      (if (and (looking-at (concat "[ \t]*\\("
+		      (if (and (looking-at (concat "[ \t]*\\(\\("
 						   c-comment-prefix-regexp
-						   "\\)[ \t]*"))
+						   "\\)[ \t]*\\)"))
 			       (eq ender-start (match-end 0)))
 			  ;; The comment ender is prefixed by nothing
 			  ;; but a comment line prefix.  Remove it
 			  ;; along with surrounding ws.
-			  nil
+			  (setq spaces (- (match-end 1) (match-end 2)))
 			(goto-char ender-start))
-		      ;(skip-chars-backward " \t\r\n")
+		      (skip-chars-backward " \t\r\n")
 		      (when (/= (point) ender-start)
-			(insert ?x)	; Insert first to keep marks right.
-			(delete-region (point) (1+ ender-start))
-			(setq hang-ender-stuck t)))))
+			;; Keep one or two spaces between the text and
+			;; the ender, depending on how many there are now.
+			(unless spaces (setq spaces (- ender-start (point))))
+			(setq spaces (max (min spaces 2) 1))
+			; Insert the filler first to keep marks right.
+			(insert (make-string spaces ?x))
+			(delete-region (point) (+ ender-start spaces))
+			(setq hang-ender-stuck spaces)))))
 		(when (<= beg (car lit-limits))
 		  ;; The region to be filled includes the comment starter.
 		  (goto-char (car lit-limits))
@@ -2187,9 +2193,9 @@ Warning: `c-comment-prefix-regexp' doesn't match the comment prefix %S"
 	    (delete-char 1)
 	    (when hang-ender-stuck
 	      (skip-syntax-backward "^w ")
-	      (forward-char -1)
-	      (insert ?\ )
-	      (delete-char 1))
+	      (forward-char (- hang-ender-stuck))
+	      (insert (make-string hang-ender-stuck ?\ ))
+	      (delete-char hang-ender-stuck))
 	    (set-marker tmp-post nil)))))
     (set-marker end nil))
   ;; Always return t.  This has the effect that if filling isn't done
