@@ -1917,7 +1917,11 @@ Lisp_Object
 print_help (object)
      Lisp_Object object;
 {
+  struct buffer *old = current_buffer;
   Fprinc (object, Qnil);
+  set_buffer_internal (XBUFFER (Vstandard_output));
+  call0 (intern ("help-mode"));
+  set_buffer_internal (old);
   return Qnil;
 }
 
