@@ -180,10 +180,6 @@ of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
     ;; GNU messages with program name and optional column number.
     ("\n[^0-9 \n\t:]+:[ \t]*\\([^ \n\t:]+\\):\
 \\([0-9]+\\):\\(\\([0-9]+\\)[: \t]\\)?" 1 2 4)
-
-    ;; SGI Irix 5.2 compiler warnings
-    ;; cfe: Warning 835: vpr_tiff.c, line 65: No prototype for the call to rint
-    ("ning [0-9]+: \\([^,\" \n\t]+\\)[,:] \\(line \\)?\\([0-9]+\\):" 1 3)
     )
   "Alist that specifies how to match errors in compiler output.
 Each elt has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX FILE-FORMAT...])
