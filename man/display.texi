@@ -163,7 +163,7 @@ font of LessTif/Motif menus is currently not supported; attempts to set
 the font are ignored in this case.
 @item trailing-whitespace
 The face for highlighting trailing whitespace when
-@code{show-trailing-whitespace} is non-nil; see @ref{Trailing Whitespace}.
+@code{show-trailing-whitespace} is non-nil; see @ref{Useless Whitespace}.
 @item variable-pitch
 The basic variable-pitch face.
 @end table
