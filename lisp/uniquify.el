@@ -194,32 +194,29 @@ file name elements.  Arguments cause only a subset of buffers to be renamed."
 	(newbuffile-nd (and newbuffile
 			    (uniquify-file-name-nondirectory newbuffile))))
     (dolist (buffer (buffer-list))
-      (let* ((bfn (if (eq buffer newbuf)
-		      (and newbuffile
-			   (expand-file-name
-			    (if (file-directory-p newbuffile)
-				(directory-file-name newbuffile)
-			      newbuffile)))
-		    (uniquify-buffer-file-name buffer)))
-	     (rawname (and bfn (uniquify-file-name-nondirectory bfn)))
-	     (bufname (buffer-name buffer))
-	     (deserving (and rawname
-			     (not (string= bufname " **lose**"))
-			     (not (and uniquify-ignore-buffers-re
-				       (string-match uniquify-ignore-buffers-re
-						     bufname)))
-			     (or (not newbuffile)
-				 (equal rawname newbuffile-nd))))
-	     (min-proposed (if deserving
-			       (uniquify-get-proposed-name
-				rawname bfn uniquify-min-dir-content))))
-	(if deserving
+      (let ((bufname (buffer-name buffer))
+	    bfn rawname min-proposed)
+	(if (and (not (string= " **lose**" bufname))
+		 (not (and uniquify-ignore-buffers-re
+			   (string-match uniquify-ignore-buffers-re
+					 bufname)))
+		 (setq bfn (if (eq buffer newbuf)
+			       (when newbuffile
+				 (expand-file-name
+				  (if (file-directory-p newbuffile)
+				      (directory-file-name newbuffile)
+				    newbuffile)))
+			     (uniquify-buffer-file-name buffer)))
+		 (setq rawname (uniquify-file-name-nondirectory bfn))
+		 (or (not newbuffile)
+		     (equal rawname newbuffile-nd))
+		 (setq min-proposed (uniquify-get-proposed-name
+				     rawname bfn uniquify-min-dir-content)))
 	    (push (list rawname bfn buffer min-proposed) fix-list)
 	  (push (list bufname) uniquify-non-file-buffer-names))))
     ;; selects buffers whose names may need changing, and others that
     ;; may conflict.
-    (setq fix-list
-	  (sort fix-list 'uniquify-item-lessp))
+    (setq fix-list (sort fix-list 'uniquify-item-lessp))
     ;; bringing conflicting names together
     (uniquify-rationalize-a-list fix-list uniquify-min-dir-content)))
 
