@@ -1414,6 +1414,8 @@ extern void defvar_kboard P_ ((char *, int));
 
 #define DEFVAR_LISP(lname, vname, doc) defvar_lisp (lname, vname)
 #define DEFVAR_LISP_NOPRO(lname, vname, doc) defvar_lisp_nopro (lname, vname)
+/* For each DEFVAR_BOOL there needs to be an entry in
+   `byte-boolean-vars' in byte-opt.el.  */
 #define DEFVAR_BOOL(lname, vname, doc) defvar_bool (lname, vname)
 #define DEFVAR_INT(lname, vname, doc) defvar_int (lname, vname)
 #define DEFVAR_PER_BUFFER(lname, vname, type, doc)  \
