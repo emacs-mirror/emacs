@@ -600,12 +600,12 @@ In some cases we use that to select between the local and global maps."
 	    ;; Prefer a map that already contains the to-be-modified entry.
 	    (when to-modify
 	      (dolist (map maps)
-		(when (and map (not (integerp map))
+		(when (and (keymapp map)
 			   (easy-menu-get-map-look-for-name to-modify map))
 		  (throw 'found map))))
 	    ;; Use the first valid map.
 	    (dolist (map maps)
-	      (when (and map (not (integerp map)))
+	      (when (keymapp map)
 		(throw 'found map)))
 	    ;; Otherwise, make one up.
 	    ;; Hardcoding current-local-map is lame, but it's difficult
