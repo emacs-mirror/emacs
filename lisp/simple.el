@@ -777,22 +777,24 @@ In either case, the output is inserted after point (leaving mark after it)."
       (set-buffer obuf))))
 
 (defun shell-command-on-region (start end command
-				      &optional output-buffer interactive)
+				      &optional output-buffer replace)
   "Execute string COMMAND in inferior shell with region as input.
 Normally display output (if any) in temp buffer `*Shell Command Output*';
 Prefix arg means replace the region with it.
-Noninteractive args are START, END, COMMAND, FLAG.
-Noninteractively FLAG means insert output in place of text from START to END,
+
+The noninteractive arguments are START, END, COMMAND, OUTPUT-BUFFER, REPLACE.
+If REPLACE is non-nil, that means insert the output
+in place of text from START to END,
 and put point at the end, but don't alter the mark.
 
 If the output is one line, it is displayed in the echo area,
 but it is nonetheless available in buffer `*Shell Command Output*'
-even though that buffer is not automatically displayed.  If there is no output
-or output is inserted in the current buffer then `*Shell Command Output*' is
-deleted.
+even though that buffer is not automatically displayed.
+If there is no output. or ifoutput is inserted in the current buffer,
+then `*Shell Command Output*' is deleted.
 
-The optional second argument OUTPUT-BUFFER, if non-nil,
-says to put the output in some other buffer.
+If the optional fourth argument OUTPUT-BUFFER is non-nil,
+that says to put the output in some other buffer.
 If OUTPUT-BUFFER is a buffer or buffer name, put the output there.
 If OUTPUT-BUFFER is not a buffer and not nil,
 insert output in the current buffer.
@@ -811,16 +813,16 @@ In either case, the output is inserted after point (leaving mark after it)."
   (if (and output-buffer
 	   (not (or (bufferp output-buffer) (stringp output-buffer))))
       ;; Replace specified region with output from command.
-      (let ((swap (and interactive (< (point) (mark)))))
+      (let ((swap (and replace (< (point) (mark)))))
 	;; Don't muck with mark
 	;; unless called interactively.
-	(and interactive (push-mark))
+	(and replace (push-mark))
 	(call-process-region start end shell-file-name t t nil
 			     shell-command-switch command)
 	(let ((shell-buffer (get-buffer "*Shell Command Output*")))
 	  (and shell-buffer (not (eq shell-buffer (current-buffer)))
 	       (kill-buffer shell-buffer)))
-	(and interactive swap (exchange-point-and-mark)))
+	(and replace swap (exchange-point-and-mark)))
     ;; No prefix argument: put the output in a temp buffer,
     ;; replacing its entire contents.
     (let ((buffer (get-buffer-create
