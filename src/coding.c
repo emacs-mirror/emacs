@@ -6397,30 +6397,10 @@ highest priority.  */)
 			       STRING_MULTIBYTE (string));
 }
 
-static int coding_system_accept_latin_extra_p P_ ((Lisp_Object));
-
-static int
-coding_system_accept_latin_extra_p (coding_system)
-     Lisp_Object coding_system;
-{
-  Lisp_Object coding_spec, coding_type, flags;
-
-  coding_spec = Fget (coding_system, Qcoding_system);
-  if (! VECTORP (coding_spec)
-      || ASIZE (coding_spec) != 5)
-    return 0;
-  coding_type = AREF (coding_spec, 0);
-  if (! EQ (coding_type, make_number (2)))
-    return 0;
-  flags = AREF (coding_spec, 4);
-  return (VECTORP (flags)
-	  && ! NILP (AREF (flags, CODING_FLAG_ISO_LATIN_EXTRA)));
-}  
-
 /*  Subroutine for Fsafe_coding_systems_region_internal.
 
     Return a list of coding systems that safely encode the multibyte
-    text between P and PEND.  SAFE_CODINGS, if non-nil, is a list of
+    text between P and PEND.  SAFE_CODINGS, if non-nil, is an alist of
     possible coding systems.  If it is nil, it means that we have not
     yet found any coding systems.
 
@@ -6450,7 +6430,9 @@ find_safe_codings (p, pend, safe_codings, work_table, single_byte_char_found)
       if (SINGLE_BYTE_CHAR_P (c))
 	*single_byte_char_found = 1;
       if (NILP (safe_codings))
-	/* Already all coding systems are excluded.  */
+	/* Already all coding systems are excluded.  But, we can't
+	   terminate the loop here because non-ASCII single-byte char
+	   must be found.  */
 	continue;
       /* Check the safe coding systems for C.  */
       ch = make_number (c);
@@ -6463,12 +6445,69 @@ find_safe_codings (p, pend, safe_codings, work_table, single_byte_char_found)
 
       for (prev = tail = safe_codings; CONSP (tail); tail = XCDR (tail))
 	{
-	  val = XCAR (tail);
-	  if (NILP (Faref (XCDR (val), ch))
-	      && !(SINGLE_BYTE_CHAR_P (c)
-		   && VECTORP (Vlatin_extra_code_table)
-		   && ! NILP (AREF (Vlatin_extra_code_table, c))
-		   && coding_system_accept_latin_extra_p (XCAR (val))))
+	  Lisp_Object elt, translation_table, hash_table, accept_latin_extra;
+	  int encodable;
+
+	  elt = XCAR (tail);
+	  if (CONSP (XCDR (elt)))
+	    {
+	      /* This entry has this format now:
+		 ( CODING SAFE-CHARS TRANSLATION-TABLE HASH-TABLE
+		          ACCEPT-LATIN-EXTRA ) */
+	      val = XCDR (elt);
+	      encodable = ! NILP (Faref (XCAR (val), ch));
+	      if (! encodable)
+		{
+		  val = XCDR (val);
+		  translation_table = XCAR (val);
+		  hash_table = XCAR (XCDR (val));
+		  accept_latin_extra = XCAR (XCDR (XCDR (val)));
+		}
+	    }
+	  else
+	    {
+	      /* This entry has this format now: ( CODING . SAFE-CHARS) */
+	      encodable = ! NILP (Faref (XCDR (elt), ch));
+	      if (! encodable)
+		{
+		  /* Transform the format to:
+		     ( CODING SAFE-CHARS TRANSLATION-TABLE HASH-TABLE
+		       ACCEPT-LATIN-EXTRA )  */
+		  val = Fget (XCAR (elt), Qcoding_system);
+		  translation_table
+		    = Fplist_get (AREF (val, 3),
+				  Qtranslation_table_for_encode);
+		  if (SYMBOLP (translation_table))
+		    translation_table = Fget (translation_table,
+					      Qtranslation_table);
+		  hash_table
+		    = (CHAR_TABLE_P (translation_table)
+		       ? XCHAR_TABLE (translation_table)->extras[1]
+		       : Qnil);
+		  accept_latin_extra
+		    = ((EQ (AREF (val, 0), make_number (2))
+			&& VECTORP (AREF (val, 4)))
+		       ? AREF (AREF (val, 4), CODING_FLAG_ISO_LATIN_EXTRA)
+		       : Qnil);
+		  XSETCAR (tail, list5 (XCAR (elt), XCDR (elt),
+					translation_table, hash_table,
+					accept_latin_extra));
+		}
+	    }
+	      
+	  if (! encodable
+	      && ((CHAR_TABLE_P (translation_table)
+		   && ! NILP (Faref (translation_table, ch)))
+		  || (HASH_TABLE_P (hash_table)
+		      && ! NILP (Fgethash (ch, hash_table, Qnil)))
+		  || (SINGLE_BYTE_CHAR_P (c)
+		      && ! NILP (accept_latin_extra)
+		      && VECTORP (Vlatin_extra_code_table)
+		      && ! NILP (AREF (Vlatin_extra_code_table, c)))))
+	    encodable = 1;
+	  if (encodable)
+	    prev = tail;
+	  else
 	    {
 	      /* Exclued this coding system from SAFE_CODINGS.  */
 	      if (EQ (tail, safe_codings))
@@ -6476,8 +6515,6 @@ find_safe_codings (p, pend, safe_codings, work_table, single_byte_char_found)
 	      else
 		XSETCDR (prev, XCDR (tail));
 	    }
-	  else
-	    prev = tail;
 	}
     }
   return safe_codings;
@@ -7398,7 +7435,7 @@ syms_of_coding ()
 
   Qtranslation_table = intern ("translation-table");
   staticpro (&Qtranslation_table);
-  Fput (Qtranslation_table, Qchar_table_extra_slots, make_number (1));
+  Fput (Qtranslation_table, Qchar_table_extra_slots, make_number (2));
 
   Qtranslation_table_id = intern ("translation-table-id");
   staticpro (&Qtranslation_table_id);
