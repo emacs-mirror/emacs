@@ -1,5 +1,11 @@
 2000-05-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* speedbar.el (speedbar-use-images, speedbar-update-flag)
+	(speedbar-easymenu-definition-base): Use display-graphic-p where
+	available, instead of window-system.
+
+2000-05-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* international/codepage.el (cp-coding-system-for-codepage-1): Add
 	eight-bit-graphic and eight-bit-control to safe charsets for cpNNN
 	coding systems.

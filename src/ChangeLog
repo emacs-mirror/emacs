@@ -1,3 +1,8 @@
+2000-05-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* charset.c (syms_of_charset): Set width of character sets
+	eight-bit-control and eight-bit-graphic to 1 column.
+
 2000-05-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* config.in (HAVE_SPEED_T): New define.
