@@ -1,5 +1,5 @@
 #!/usr/local/perl -w
-# $HopeName: MMQA_harness!script:optproc(trunk.10) $
+# $HopeName: MMQA_harness!script:optproc(trunk.11) $
 #
 # subroutines for processing options to qa commands
 # Each command can specify which options it requires,
@@ -54,16 +54,15 @@ sub parseoptions {
     $qa_opt_val = shift(@ARGV);
     &setonceoption($qa_options{$1}, $qa_opt_val);
    } else {
+    $flag = $1;
     if ($1 =~ /^no/) { # prefix "no" negates any flag
-     $flag = $1;
      $flag =~ s/^no//;
      $qa_opt_val = "off";
     } else {
      $qa_opt_val = "on";
-     $flag = $1;
     }
     unless ($qa_flags{$flag}) {
-     die "Unrecognized option or flag: $1.\n";
+     die "Unrecognized option or flag: $flag.\n";
     }
     &setonceoption($qa_flags{$flag}, $qa_opt_val);
    }
@@ -176,7 +175,7 @@ sub explainoptions {
  write;
  print "\n";
 
- foreach $key (@keys) {
+ foreach $key (sort @keys) {
   $optname = "MMQA_$key";
   if (&optioncode($key)) {
    $optcode = "-".&optioncode($key)." <val>";
