@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.98.2.6 $")
+(defconst byte-compile-version "$Revision: 2.98.2.7 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -3798,9 +3798,10 @@ if LFORMINFO is nil (meaning all bindings are dynamic)."
 (defun byte-compile-stack-adjustment (op operand)
   "Return the amount by which an operation adjusts the stack.
 OP and OPERAND are as passed to `byte-compile-out'."
-  (if (eq op 'byte-call)
+  (if (memq op '(byte-call byte-discardN byte-discardN-preserve-tos))
       ;; For calls, OPERAND is the number of args, so we pop OPERAND + 1
-      ;; elements, and the push the result, for a total of -OPERAND
+      ;; elements, and the push the result, for a total of -OPERAND.
+      ;; For discardN*, of course, we just pop OPERAND elements.
       (- operand)
     (or (aref byte-stack+-info (symbol-value op))
 	;; Ops with a nil entry in `byte-stack+-info' are byte-codes
