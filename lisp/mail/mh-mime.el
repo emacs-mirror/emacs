@@ -28,7 +28,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-mime.el,v 1.5 1995/11/03 02:29:49 kwzh Exp erik $
+;; $Id: mh-mime.el,v 1.6 1996/01/14 07:34:30 erik Exp rms $
 
 ;;; Code:
 
@@ -66,20 +66,24 @@ MH profile.")
     ("video/mpeg"))
   "Legal MIME content types.  See documentation for \\[mh-edit-mhn].")
 
-(defun mh-mhn-compose-insertion (pathname type description)
+(defun mh-mhn-compose-insertion (filename type description attributes)
   "Add a directive to insert a MIME message part from a file.
 This is the typical way to insert non-text parts in a message.
-Arguments are PATHNAME, which tells where to find the file, TYPE, the
+Arguments are FILENAME, which tells where to find the file, TYPE, the
 MIME content type, and DESCRIPTION, a line of text for the
 Content-description header.  See also \\[mh-edit-mhn]."
-  (interactive (list
-		(read-file-name "Insert contents of: ")
-		(completing-read "Content-type: "
+  (interactive (let ((filename (read-file-name "Insert contents of: "))) 
+		 (list
+		  filename
+		  (completing-read "Content-type: "
 				 mh-mime-content-types nil nil nil)
-		(read-string "Content-description: ")))
-  (mh-mhn-compose-type pathname type description))
+		  (read-string "Content-description: ")
+		  (read-string "Content-Attributes: " 
+			       (concat "name=" 
+				       (file-name-nondirectory filename))))))
+  (mh-mhn-compose-type filename type description attributes ))
 
-(defun mh-mhn-compose-type (pathname type
+(defun mh-mhn-compose-type (filename type
 			    &optional description attributes comment)
   (beginning-of-line)
   (insert "#" type)
@@ -90,45 +94,45 @@ Content-description header.  See also \\[mh-edit-mhn]."
   (insert " [")
   (and description
        (insert description))
-  (insert "] " (expand-file-name pathname))
+  (insert "] " (expand-file-name filename))
   (insert "\n"))
 
 
-(defun mh-mhn-compose-anon-ftp (host pathname type description)
+(defun mh-mhn-compose-anon-ftp (host filename type description)
   "Add a directive for a MIME anonymous ftp external body part.
 This directive tells MH to include a reference to a
 message/external-body part retrievable by anonymous FTP.  Arguments
-are HOST and PATHNAME, which tell where to find the file, TYPE, the
+are HOST and FILENAME, which tell where to find the file, TYPE, the
 MIME content type, and DESCRIPTION, a line of text for the
 Content-description header.  See also \\[mh-edit-mhn]."
   (interactive (list
 		(read-string "Remote host: ")
-		(read-string "Remote pathname: ")
+		(read-string "Remote filename: ")
 		(completing-read "External Content-type: "
 				 mh-mime-content-types nil nil nil)
 		(read-string "External Content-description: ")))
-  (mh-mhn-compose-external-type "anon-ftp" host pathname
+  (mh-mhn-compose-external-type "anon-ftp" host filename
 				type description))
 
-(defun mh-mhn-compose-external-compressed-tar (host pathname description)
+(defun mh-mhn-compose-external-compressed-tar (host filename description)
   "Add a directive to include a MIME reference to a compressed tar file.
 The file should be available via anonymous ftp.  This directive
 tells MH to include a reference to a message/external-body part.
-Arguments are HOST and PATHNAME, which tell where to find the file, and
+Arguments are HOST and FILENAME, which tell where to find the file, and
 DESCRIPTION, a line of text for the Content-description header.
 See also \\[mh-edit-mhn]."
   (interactive (list
 		(read-string "Remote host: ")
-		(read-string "Remote pathname: ")
+		(read-string "Remote filename: ")
 		(read-string "Tar file Content-description: ")))
-  (mh-mhn-compose-external-type "anon-ftp" host pathname
+  (mh-mhn-compose-external-type "anon-ftp" host filename
 				"application/octet-stream"
 				description
 				"type=tar; conversions=x-compress"
 				"mode=image"))
 
 
-(defun mh-mhn-compose-external-type (access-type host pathname type
+(defun mh-mhn-compose-external-type (access-type host filename type
 				     &optional description
 				     attributes extra-params comment)
   (beginning-of-line)
@@ -143,8 +147,8 @@ See also \\[mh-edit-mhn]."
   (insert "] ")
   (insert "access-type=" access-type "; ")
   (insert "site=" host)
-  (insert "; name=" (file-name-nondirectory pathname))
-  (insert "; directory=\"" (file-name-directory pathname) "\"")
+  (insert "; name=" (file-name-nondirectory filename))
+  (insert "; directory=\"" (file-name-directory filename) "\"")
   (and extra-params
        (insert "; " extra-params))
   (insert "\n"))
