@@ -1,5 +1,10 @@
 1999-11-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* textmodes/text-mode.el (text-mode): Contruct paragraph-start so
+	that the leading `^' is at the start.  This is necessary because
+	paragraphs.el tries to remove anchors, but can find them only if
+	they are the first character.
+
 	* progmodes/antlr-mode.el: New file.
 
 	* calendar/calendar.el: Fix autoload for
