@@ -653,8 +653,8 @@ This is *not* a user option, since Emerge uses it for its own processing.")
    (shell-command
     (format "%s %s %s %s %s"
 	    emerge-diff3-program emerge-diff-options
-	    (emerge-protect-metachars file-ancestor)
 	    (emerge-protect-metachars file-A)
+	    (emerge-protect-metachars file-ancestor)
 	    (emerge-protect-metachars file-B))
     t))
   (emerge-prepare-error-list emerge-diff3-ok-lines-regexp)
@@ -671,17 +671,17 @@ This is *not* a user option, since Emerge uses it for its own processing.")
        (beginning-of-line 2)
        (let ((agreement (buffer-substring (match-beginning 1) (match-end 1))))
 	 ;; if the A and B files are the same, ignore the difference
-	 (if (not (string-equal agreement "1"))
+	 (if (not (string-equal agreement "2"))
 	     (setq list
 		   (cons 
-		    (let (group-2 group-3 pos)
+		    (let (group-1 group-3 pos)
 		      (setq pos (point))
-		      (setq group-2 (emerge-get-diff3-group "2"))
+		      (setq group-1 (emerge-get-diff3-group "1"))
 		      (goto-char pos)
 		      (setq group-3 (emerge-get-diff3-group "3"))
-		      (vector (car group-2) (car (cdr group-2))
+		      (vector (car group-1) (car (cdr group-1))
 			      (car group-3) (car (cdr group-3))
-			      (cond ((string-equal agreement "2") 'prefer-A)
+			      (cond ((string-equal agreement "1") 'prefer-A)
 				    ((string-equal agreement "3") 'prefer-B)
 				    (t 'default-A))))
 		    list))))))
@@ -1374,7 +1374,7 @@ These characteristics are restored by `emerge-restore-buffer-characteristics'."
 (defun emerge-handle-local-variables ()
   (if emerge-process-local-variables
       (condition-case err
-	  (hack-local-variables t)
+	  (hack-local-variables)
 	(error (message "Local-variables error in merge buffer: %s"
 			(prin1-to-string err))))))
 
