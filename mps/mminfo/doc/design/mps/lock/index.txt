@@ -1,0 +1,143 @@
+                     THE DESIGN OF THE LOCK MODULE
+                            design.mps.lock
+                              draft design
+                             dsm 1995-11-21
+
+PURPOSE
+
+.purpose: Support the locking needs of the thread-safe design. In particular:
+- Recursive locks
+- Binary locks
+- Recursive "global" lock that need not be allocated or initialized by the 
+client
+- Binary "global" lock that need not be allocated or initialized by the client
+
+.context: The MPS has to be able to operate in a multi-threaded environment.  
+The thread-safe design (design.mps.thread-safety) requires client-allocatable 
+binary locks, a global binary lock and a global recursive lock.  An interface 
+to client-allocatable recursive locks is also present to support any potential 
+use, because of historic requirements, and because the implementation will 
+presumably be necessary anyway for the global recursive lock. 
+
+
+BACKGROUND
+
+.need: In an environment where multiple threads are accessing shared data.  The 
+threads which access data which is shared with other threads need to cooperate 
+with those threads to maintain consistency.  Locks provide a simple mechanism 
+for doing this.
+
+.ownership: A lock is an object which may be "owned" by a single thread at a 
+time.  By claiming ownership of a lock before executing some piece of code a 
+thread can guarantee that no other thread owns the lock during execution of 
+that code.  If some other thread holds a claim on a lock, the thread trying to 
+claim the lock will suspend until the lock is released by the owning thread.
+
+.data: A simple way of using this behaviour is to associate a lock with a 
+shared data structure.  By claiming that lock around accesses to the data, a 
+consistent view of the structure can be seen by the accessing thread.  More 
+generally any set of operations which are required to be mutally exclusive may 
+be performed so by using locks.
+
+
+OVERVIEW
+
+.adt: There is an ADT "Lock" which points to a locking structure "LockStruct".  
+This structure is opaque to any client, although an interface is provided to 
+supply the size of the structure for any client wishing to make a new lock.  
+The lock is not allocated by the module as allocation itself may require 
+locking.  LockStruct is implementation specific.
+
+.simple-lock: There are facilities for claiming and releasing locks.  "Lock" is 
+used for both binary and recursive locking.
+
+.global-locks: "Global" locks are so called because they are used to protect 
+data in a global location (such as a global variable). The lock module provides 
+2 global locks; one recursive and one binary.  There are facilities for 
+claiming and releasing both of these locks. These global locks have the 
+advantage that they need not be allocated or atomically initialized by the 
+client, so they may be used for locking the initialization of the allocator 
+itself.  The binary global lock is intended to protect mutable data, possibly 
+in conjunction with other local locking strategies.  The recursive global lock 
+is intended to protect static read-only data during one-off initialization.  
+See design.mps.thread-safety.
+
+.deadlock: This module does not provide any deadlock protection.  Clients are 
+responsible for avoiding deadlock by using traditional strategies such as 
+ordering of locks.  (See design.mps.thread-safety.deadlock.)
+
+.single-thread: In the single-threaded configuration, locks are not needed and 
+the claim/release interfaces defined to be no-ops.
+
+
+DETAILED DESIGN
+
+.interface: The interface comprises the following functions:
+
+- LockSize
+  Return the size of a LockStruct for allocation purposes.
+
+- LockInit / LockFinish
+  After initialisation the lock is not owned by any thread.  This must also be 
+the case before finalisation.
+[ref convention?]
+
+- LockClaim / LockRelease
+  LockClaim: claims ownership of a lock that was previously not held by current 
+thread.
+  LockRelease: releases ownership of a lock that is currently owned.
+
+- LockClaimRecursive / LockReleaseRecursive
+  LockClaimRecursive: remembers the previous state of the lock with respect to 
+the current thread and claims the lock (if not already held).
+  LockReleaseRecursive: restores the previous state of the lock stored by 
+corresponding LockClaimRecursive call.
+
+- LockClaimGlobal / LockReleaseGlobal
+  LockClaimGlobal: claims ownership of the binary global lock which was 
+previously not held by current thread.
+  LockReleaseGlobal: releases ownership of the binary global lock that is 
+currently owned.
+
+- LockClaimGlobalRecursive / LockReleaseGlobalRecursive
+  LockClaimGlobalRecursive: remembers the previous state of the recursive 
+global lock with respect to the current thread and claims the lock (if not 
+already held).
+  LockReleaseGlobalRecursive: restores the previous state of the recursive 
+global lock stored by corresponding LockClaimGlobalRecursive call.
+
+.impl.recursive: For recursive claims, the list of previous states can be 
+simply implemented by keeping a count of the number of claims made by the 
+current thread so far.  In multi-threaded implementation below this is handled 
+by the operating system.  A count is still kept and used to check correctness.
+
+.impl.global: The binary and recursive global locks may actually be implemented 
+using the same mechanism as normal locks.
+
+.impl.ansi: Single-Threaded Generic Implementation
+- single-thread
+- no need for locking
+- locking structure contains count
+- provides checking in debug version
+- otherwise does nothing except keep count of claims
+
+.impl.win32: Win32 Implementation
+- supports Win32's threads
+- uses Critical Sections [ref?]
+- locking structure contains a Critical Section
+- both recursive and non-recursive calls use same Windows function
+- also performs checking
+
+.impl.linux: LinuxThreads Implementation (possibly suitable for all PThreads 
+implementations)
+- supports LinuxThreads threads, which are an implementation of PThreads. (see 
+<URL:http://pauillac.inria.fr/~xleroy/linuxthreads/>)
+- locking structure contains a mutex, initialized to check for recursive locking
+- locking structure contains a count of the number of active claims
+- non-recursive locking calls pthread_mutex_lock and expects success
+- recursive locking calls pthread_mutex_lock and expects either success or 
+EDEADLK (indicating a recursive claim).
+- also performs checking
+
+
+

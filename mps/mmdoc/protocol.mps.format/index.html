@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+ <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
+  <head>
+   <title>MPS Format Protocol</title>
+  </head>
+  <body bgcolor='#FFFFFF' text='#000000' link='#000099' vlink='#660066' alink='#FF0000'>
+   <div align='center'>
+    <h1>MPS Format Protocol</h1>
+    <p>incomplete</p>
+    <address>lmb, 1997-05-14</address>
+   </div>
+   <h2>
+    <a id='section-introduction' name='section-introduction'>Introduction</a>
+   </h2>
+   <p>This document describes the MPS format protocol.  The protocol provides a framework for communication between a client application and the MPS regarding the details of client object formats.  The protocol gives the client application a high degree of freedom in how the client objects are represented in memory, the primary concerns being the location of references in an object and the representation of references.</p>
+   <h2>
+    <a id='section-overview' name='section-overview'>Overview</a>
+   </h2>
+   <p>The need for some means of describing client objects comes from tracing.  When a client object is scanned, all the references in the object are scanned (the MPS provides a function that scans a single reference).  Additionally, as part of a tracing process, the MPS may move objects; this movement entails adjusting all the references to each moved object.  This adjustment takes place when each reference is scanned.</p>
+   <p>In general, only the client application can say which fields in an object are references, and only the client application knows how references are represented in that object.  The format protocol provides a means by which this information can be communicated to the MPS.</p>
+   <p>The layout of client objects is described by a format.  In the MPS C interface, a format is represented by an object of type "mps_fmt_t" (an opaque type).</p>
+   <p>A format is a collection of methods and other (usually scalar) values which together describe programatically the layout of client objects.  Details are given below.  Some typical methods might be to:</p>
+   <p>
+    <br />
+    - calculate an object's length.
+    <br />
+    - locate all the references in an object.
+    <br />
+    - adjust the value of each reference in an object.
+- make a copy of an object.
+    <br />
+    - delete an object and replace it with a "broken heart".  The client application must set up a broken heart so that it can be distinguished from ordinary client objects and contains a reference to an object.  
+   </p>
+   <p>Formats are used only by certain pool classes.  Typically a pool class that is collected or scanned will use a format.</p>
+   <p>Different pool classes will use formats in different ways.  For example, a copying garbage-collected pool may need methods to: </p>
+   <p>- calculate the length of an object.</p>
+   <p>- copy an object.</p>
+   <p>- scan an object.</p>
+   <p>- replace an object with a broken heart.</p>
+   <p>A non-moving mark-and-sweep pool, on the other hand, may only need methods to calculate the length of an object and to scan an object.</p>
+   <p>To accommodate this variance in pool classes' needs, it is possible to construct formats from different collections of methods and values.  A specific collection of methods and values is called a format variant.  A format is constructed from a format variant.  A format variant is a transparent type; in the C interface, a format variant is an object of a particular structure type.  The client application must allocate store for, initialize, and destroy the format variant [confusion between a variant and a variant instance, too specific for overview.  Pekka 1997-10-27].  See "Variants", below, for more details.</p>
+   <h2>
+    <a id='section-usage' name='section-usage'>Usage</a>
+   </h2>
+   <p>If a pool class needs a format (in order to create a pool) then you must create a format using one of the creation methods, each of which creates a format from a specific variant.  The methods and values in a variant must be defined by the client application and must be defined prior to the creation of a variant.  The format must not be destroyed until all pools using that format have been destroyed; if the format is destroyed too early, undefined behavior will result.</p>
+   <p>Here's a linear "diagram" of format usage:  Time increases down the page.  Ellipses represent time lapses.</p>
+   <p>- Create methods required for the variant, such as scan, skip, copy.  Typically these will be created statically (for example, compiled C code).</p>
+   <p>
+    - Create other values required for the variant.  Typically these will be created statically.
+    <br />
+    ...
+- Create a variant [instance].
+    <br />
+    - Initialize the variant with the methods and values defined earlier.
+...
+   </p>
+   <p>
+    - Create a format from the variant.
+    <br />
+    - Create a pool that uses the format (after this point the methods that you defined may get called by the MPS at any time).
+...
+    <br />
+    - Use the pool (the methods you defined are called by the MPS).
+    <br />
+    ...
+    <br />
+    - Destroy the pool.
+- Destroy the format.
+    <br />
+   </p>
+   <p>Creating and Destroying Formats</p>
+   <p>An object of type "mps_fmt_t" can be created using any one of a number of create methods.  Each create method's name begins with "mps_fmt_create_".  Each create method corresponds to a certain collection of different methods and values.</p>
+   <p>An object of type "mps_fmt_t" can be destroyed using "mps_fmt_destroy".  This works regardless of how the object format was created.</p>
+   <p>The lifetime of an object format is determined by what use the object format is put to.  Where the object format is the argument to a pool class's create method, then typically the lifetime of the object format must be at least the lifetime of the corresponding pool -- that is, the format must be created before the pool is created and destroyed after the pool is destroyed.</p>
+   <p>Variants</p>
+   <p>
+    Variants A and B 
+    are similar and both suited for a pool with a copying garbage collection and allocation points.  They differ in that variant B has an extra method, class, for determining the class of an object
+    .  These are represented in the MPS interface by the types mps_fmt_A_s and mps_fmt_B_s respectively.
+   </p>
+   <p>
+    Variant auto_header is suited for 
+    automatic memory management for objects with headers.  See 
+    <code>mps_fmt_auto_header_s</code>
+    .
+   </p>
+   <p>Other formats may be implemented later.</p>
+   <h2>
+    <a id='section-the-fields' name='section-the-fields'>The Fields</a>
+   </h2>
+   <p>
+    The MPS calls the methods in a format when it needs to perform an operation on an object.  Note that methods usually take and return client pointers
+    , because that is how 
+    <br />
+    the client application usually deals with its objects.  Only when that doesn't make sense, does the MPS deal with base pointers (allocation is the main instance of this)
+    .  See the documentation for the type of each method for details.
+   </p>
+   <p>Skip</p>
+   <p>The skip method should skip a pointer over an object.  It takes a pointer to (the beginning of) the object and returns a pointer to the next object (that is, just after the end of this object, whether the next block in memory is allocated or not).</p>
+   <p>Copy</p>
+   <p>
+    The copy method should make a copy of the object in another location.  It takes pointers to the old and new locations.  Objects are usually copied byte by byte, but some uncommon object formats might contain relative pointers that have to be fixed up when the object is moved.  
+    If that is the case, a valid Copy method must be specified and the objects must be allocated in a pool that supports Copy methods (most pools will just ignore Copy methods).
+   </p>
+   <p>Pad</p>
+   <p>
+    The pad method should create a dummy object.  It takes a pointer and a size, and fills in the block of memory with a dummy object.  The fake object should work just like a real one in all the other methods, but it shall contain no data.  This method is used by the MPS to fill in odd corners that need to be scannable.  The size is a multiple of the alignment set by the Align slot in the format, and might be equal to it.
+      Note that the other methods, except Copy and Fwd, might be called on a dummy object.
+   </p>
+   <p>Fwd/Isfwd</p>
+   <p>
+    The fwd method should replace an object with a forwarding marker.  It is used when the MPS has moved an object to a new location in memory.  
+     Fwd takes a pointer to the o
+    bject (at its old location)
+    and a forwarding address.  It must replace the object at the old location with a "broken heart" of the same size, in which is stored the forwarding address.  Since any object
+     (except a dummy padding object)
+     may be forwarded, the format must be able to create a broken heart of the same size as any object.
+      Note that other format methods (except Copy) may be called on a broken heart.
+   </p>
+   <p>
+    The isfwd method 
+    lets MPS distinguish between a broken heart and a real object.  It takes a pointer to the object and returns "moved" or "not moved"; if the object is, in fact, a broken heart, then isfwd returns a pointer to the new location, as well.  This new location is the same as the new location that was passed to fwd when the broken heart was created.
+   </p>
+   <p>Scan</p>
+   <p>
+    The scan method should locate all references in an object and telling the MPS where they are.  Scan takes 
+    a scan state and 
+    two pointers, and scans the objects between the pointers.  Note that Scan methods are sometimes called on pad objects (in which case they should do nothing) and broken hearts (they should fix the forwarding pointer).  For more information on scanning, see Scanning Protocol.
+   </p>
+   <p>Align</p>
+   <p>This integer value defines the alignment of objects allocated with this format.  It should be large enough to satisfy the alignment requirements of any field in the objects, and it cannot be larger than the arena alignment.</p>
+   <p>HeaderSize</p>
+   <p>This integer value is the size of the header, i.e., the offset of a client pointer from the base of the memory block.</p>
+   <h2>
+    <a id='section-notes' name='section-notes'>Notes</a>
+   </h2>
+   <p>Restrictions on All Format Methods</p>
+   <p>It is guaranteed that format methods have exclusive access to the object for the duration of the call.  This guarantee may entail suspending arbitrary threads.  The methods that manipulate the object must not perform any sort of inter-thread locking or communication.</p>
+   <p>Format methods may be called during an exception handler or a signal handler.  For example, the MPS may protect the memory, in which case the client program cannot see it.  This causes an exception; the MPS handles the exception, finishes its work, and removes the protection.  Therefore, the format code should be able to be run at any time, including in parallel with the main program. </p>
+   <p>Format methods must be reentrant.</p>
+   <p>Format methods can access the memory they've been asked to look at and memory not managed by the MPS; they cannot in general access other objects managed by the MPS (unless they are unprotectable).</p>
+   <p>Format methods can't call library code, perform a non-local exit, or do any MM operations (apart from fixing in Scan methods).</p>
+   <h2>
+    <a id='section-A' name='section-A'>A. References</a>
+   </h2>
+   <h2>
+    <a id='section-B' name='section-B'>B. Document History</a>
+   </h2>
+   <table>
+    <tr valign='top'>
+     <td>1997-05-14 13:44:36 -04</td>
+     <td />
+     <td>New document saved</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-05-14 13:45:09 -04</td>
+     <td />
+     <td>Imported; did half the reformatting</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-05-14 13:48:10 -04</td>
+     <td />
+     <td>Finished reformatting</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-05-14 14:37:31 -04</td>
+     <td />
+     <td>Proofread; added Note at beginning</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-05-14 15:01:01 -04</td>
+     <td />
+     <td>Edited Note at beginning</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-05-28 15:40:05 +01</td>
+     <td />
+     <td>Changed title.</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-06-10 11:34:46 -04</td>
+     <td />
+     <td>Changed title; added DRJ's work</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-06-10 11:49:34 -04</td>
+     <td />
+     <td>Edited my bit.</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-06-10 12:07:45 -04</td>
+     <td />
+     <td>Edited my bit.</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-06-20 16:34:54 -04</td>
+     <td />
+     <td>Restructured somewhat to merge DRJ's and Leah's material</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-06-20 17:05:32 -04</td>
+     <td />
+     <td>Some editing.</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-06-21 17:12:35 -04</td>
+     <td />
+     <td>Some restructuring; moved Description section of mps_fmt_t to this document.</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-09-25 15:05:06 -04</td>
+     <td />
+     <td>Made revisions based on DRJ's comments in meeting.doc.1997-01-17.format.</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-09-25 15:08:20 -04</td>
+     <td />
+     <td>Interim save</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-09-30 16:16:03 -04</td>
+     <td />
+     <td>Added some questions.</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-10-06 15:53:33 -04</td>
+     <td />
+     <td>Finished adding edits</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-10-10 11:09:08 +00</td>
+     <td />
+     <td>added comments</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-10-21 18:27:06 +01</td>
+     <td />
+     <td>fix formatting</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-10-22 12:20:27 -04</td>
+     <td />
+     <td>Deleted some of DRJ's explanations</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-10-22 16:42:14 -04</td>
+     <td />
+     <td>Made some edits</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-10-27 15:51:13 +00</td>
+     <td />
+     <td>added description of Align, some comments, and fixed some errors</td>
+    </tr>
+    <tr valign='top'>
+     <td>1998-01-13 14:30:06 +00</td>
+     <td>pekka</td>
+     <td>Wrote examples for all kinds of fix interfaces; improved some method descriptions</td>
+    </tr>
+    <tr valign='top'>
+     <td>1998-01-19 20:11:08 +00</td>
+     <td>pekka</td>
+     <td>Corrections and additions</td>
+    </tr>
+    <tr valign='top'>
+     <td>1998-01-20 13:54:28 +00</td>
+     <td>pekka</td>
+     <td>Improve Fwd following Richard's suggestion; fix bugs in examples</td>
+    </tr>
+    <tr valign='top'>
+     <td>1998-01-27 19:52:51 +00</td>
+     <td>pekka</td>
+     <td>Split scanning off to a separate protocol</td>
+    </tr>
+    <tr valign='top'>
+     <td>1999-05-10 16:26:08 +00</td>
+     <td>drj</td>
+     <td>now more variants</td>
+    </tr>
+    <tr valign='top'>
+     <td>2000-05-22 16:08:34 +01</td>
+     <td>pekka</td>
+     <td>clean up</td>
+    </tr>
+    <tr valign='top'>
+     <td>2000-05-23 16:29:58 +01</td>
+     <td>pekka</td>
+     <td>explain Copy methods</td>
+    </tr>
+    <tr valign='top'>
+     <td>2000-07-19 18:11:14 +01</td>
+     <td>pekka</td>
+     <td>Add headersize; clean up tags; reorganize headings</td>
+    </tr>
+    <tr valign='top'>
+     <td>2000-07-19 20:22:32 +01</td>
+     <td>pekka</td>
+     <td>improve</td>
+    </tr>
+    <tr valign='top'>
+     <td>2001-09-26</td>
+     <td>
+      <a href='mailto:ndl@ravenbrook.com'>NDL</a>
+     </td>
+     <td>Converted from xml to html (second pass).</td>
+    </tr>
+   </table>
+   <hr />
+   <p>
+    <small>Copyright &copy; 2001 Ravenbrook Limited.  This document is provided "as is", without any express or implied warranty.  In no event will the authors be held liable for any damages arising from the use of this document.  You may not duplicate or reproduce this document in any form without the express permission of the copyright holder.</small>
+   </p>
+   <div align='center'>
+    <p>
+     <code>$Id$</code>
+    </p>
+   </div>
+  </body>
+ </html>

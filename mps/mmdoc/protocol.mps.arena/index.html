@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+ <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
+  <head>
+   <title>MPS Arena Protocol</title>
+  </head>
+  <body bgcolor='#FFFFFF' text='#000000' link='#000099' vlink='#660066' alink='#FF0000'>
+   <div align='center'>
+    <h1>MPS Arena Protocol</h1>
+    <p>incomplete</p>
+    <address>pekka, 1997-09-29</address>
+   </div>
+   <h2>
+    <a id='section-introduction' name='section-introduction'>Introduction</a>
+   </h2>
+   <p>
+    <strong>.intro:</strong>
+     This document describes the arena protocol in MPS.
+   </p>
+   <h2>
+    <a id='section-overview' name='section-overview'>Overview</a>
+   </h2>
+   <p>
+    <strong>.over.arena:</strong>
+     The arena is an object that represents the state of the MPS, and tells it where to get the memory it manages.
+   </p>
+   <p>
+    <strong>.over.session:</strong>
+     You typically start a session with the MPS by making an arena and end the session by destroying it.  The only function you might need to call before making an arena is mps_telemetry_control
+    .  Indeed, there are very few functions that you even could call without creating an arena.  
+    <strong>.over.destroy:</strong>
+     If you do not destroy an arena before terminating your program, the operating system will probably still reclaim the memory and other resources the arena was managing; but it is better to destroy it, to finish off properly.  
+   </p>
+   <h2>
+    <a id='section-b' name='section-b'>B</a>
+   </h2>
+   <p>
+    efore destroying an arena, you must first destroy all objects and data in it, as usual for 
+    abstract data types in the MPS
+    .  If you can't destroy the arena properly, you might want to call mps_telemetry_flush
+     explicitly.
+   </p>
+   <p>
+    <strong>.over.other:</strong>
+     Other types of objects are created "in the arena".  They are part of the world within the arena, and may interact and affect each other.
+   </p>
+   <p>
+    <strong>.over.multiple:</strong>
+     The MPS allows creation of multiple arenas.  It can be useful to have two active arenas and to try different things out in them.
+      Arenas do not interact.  However, they compete with each other for resources.
+      It is not efficient to have multiple arenas containing garbage-collected objects.  Using multiple arenas is an advanced technique.  For more information, see [something in the User Guide].
+   </p>
+   <h2>
+    <a id='section-arena-classes' name='section-arena-classes'>Arena Classes</a>
+   </h2>
+   <p>
+    <strong>.class:</strong>
+     There are several classes of arena.  These differ mainly in the way that they acquire the memory to be managed.
+      See the documentation of each arena class in symbol.mps.c.mps_arena_class_*.
+      The class is chosen when the arena is created 
+    (see
+    symbol.mps.c.mps_arena_create
+    )
+    , in a way identical to pool classes
+    .
+   </p>
+   <h2>
+    <a id='section-A' name='section-A'>A. References</a>
+   </h2>
+   <h2>
+    <a id='section-B' name='section-B'>B. Document History</a>
+   </h2>
+   <table>
+    <tr valign='top'>
+     <td>1997-09-29 14:20:24 +01</td>
+     <td>pekka</td>
+     <td>New document saved</td>
+    </tr>
+    <tr valign='top'>
+     <td>1997-10-21 11:30:02 +01</td>
+     <td>pekka</td>
+     <td>Xref arena class doc</td>
+    </tr>
+    <tr valign='top'>
+     <td>1998-10-30 20:36:59 +00</td>
+     <td>pekka</td>
+     <td>Note telemetry reqs; don't promise anything if not destroyed</td>
+    </tr>
+    <tr valign='top'>
+     <td>2000-05-22 16:02:48 +01</td>
+     <td>pekka</td>
+     <td>Fix title</td>
+    </tr>
+    <tr valign='top'>
+     <td>2001-09-26</td>
+     <td>
+      <a href='mailto:ndl@ravenbrook.com'>NDL</a>
+     </td>
+     <td>Converted from xml to html (second pass).</td>
+    </tr>
+   </table>
+   <hr />
+   <p>
+    <small>Copyright &copy; 2001 Ravenbrook Limited.  This document is provided "as is", without any express or implied warranty.  In no event will the authors be held liable for any damages arising from the use of this document.  You may not duplicate or reproduce this document in any form without the express permission of the copyright holder.</small>
+   </p>
+   <div align='center'>
+    <p>
+     <code>$Id$</code>
+    </p>
+   </div>
+  </body>
+ </html>

@@ -1,0 +1,7 @@
+                          MPS MESSAGE PROTOCOL
+                          protocol.mps.message
+                             incomplete doc
+                            pekka 1999-12-23
+
+[placeholder]
+

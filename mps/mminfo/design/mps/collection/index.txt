@@ -1,0 +1,11 @@
+        THE DESIGN OF THE MEMORY POOL SYSTEM COLLECTION PROCESS
+                         design.mps.collection
+                            obsolete design
+                           richard 1995-08-25
+
+
+ARCHITECTURE:
+
+.flip: The flip is the point at which a read barrier is enforced on the 
+mutator.  This is mostly a placeholder.
+

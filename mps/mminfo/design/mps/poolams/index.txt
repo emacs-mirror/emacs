@@ -1,0 +1,383 @@
+         THE DESIGN OF THE AUTOMATIC MARK-AND-SWEEP POOL CLASS
+                           design.mps.poolams
+                              draft design
+                            nickb 1997-08-14
+
+
+INTRODUCTION:
+
+This is the design of the AMS pool class.
+
+.readership: MM developers.
+
+.source: design.mps.buffer, design.mps.trace, design.mps.scan, 
+design.mps.action and design.mps.class-interface [none of these were actually 
+used  -- pekka 1998-04-21].  No requirements doc [we need a req.mps that 
+captures the commonalities between the products  -- pekka 1998-01-27].
+
+
+Document History
+
+.hist.0: Nick Barnes wrote down some notes on the implementation 1997-08-14.  
+Pekka P. Pirinen wrote the first draft design 1998-01-27.
+
+.hist.1: Pekka edited on the basis of review.design.mps.poolams.0, and 
+redesigned the colour representation (results mostly in 
+analysis.non-moving-colour(0)).
+
+.hist.2: Described subclassing and allocation policy.  pekka 1999-01-04
+
+
+
+OVERVIEW:
+
+This document describes the design of the AMS pool class.  The AMS pool is a 
+proof-of-concept design for a mark-sweep pool in the MPS.  It's not meant to be 
+efficient, but it could serve as a model for an implementation of a more 
+advanced pool (such as EPVM).
+
+
+REQUIREMENTS:
+
+.req.mark-sweep: The pool must use a mark-and-sweep GC algorithm.
+
+.req.colour: The colour representation should be as efficient as possible.
+
+.req.incremental: The pool must support incremental GC.
+
+.req.ambiguous: The pool must support ambiguous references to objects in it 
+(but ambiguous references into the middle of an object do not preserve the 
+object).
+
+.req.format: The pool must be formatted, for generality.
+
+.req.correct: The design and the implementation should be simple enough to be 
+seen to be correct.
+
+.req.simple: Features not related to mark-and-sweep GC should initially be 
+implemented as simply as possible, in order to save development effort.
+
+.not-req.grey: We haven't figured out how buffers ought to work with a grey 
+mutator, so we use .req.correct to allow us to design a pool that doesn't work 
+in that phase.  This is acceptable as long as we haven't actually implemented 
+grey mutator collection.
+
+
+ARCHITECTURE:
+
+Subclassing
+
+.subclass: Since we expect to have many mark-and-sweep pools, we build in some 
+protocol for subclasses to modify various aspects of the behaviour.  Notably 
+there's a subclassable segment class, and a protocol for performing iteration.  
+
+
+Allocation
+
+.align: We divide the segments in grains, each the size of the format 
+alignment.  .alloc-bit-table: We keep track of allocated grains using a bit 
+table.  This allows a simple implementation of allocation and freeing using the 
+bit table operators, satisfying .req.simple, and can simplify the GC routines.  
+Eventually, this should use some sophisticated allocation technique suitable 
+for non-moving automatic pools.
+
+.buffer: We use buffered allocation, satisfying .req.incremental.  The AMC 
+buffer technique is reused, although it is not suitable for non-moving pools, 
+but req.simple allows us to do that for now.
+
+.extend: If there's no space in any existing segment, a new segment is 
+allocated.  The actual class is allowed to decide the size of the new segment.
+
+.no-alloc: Do not support PoolAlloc, because we can't support one-phase 
+allocation for a scannable pool (unless we disallow incremental collection).  
+For exact details, see design.mps.buffer.
+
+.no-free: Do not support PoolFree, because automatic pools don't need explicit 
+free and having it encourages clients to use it (and therefore to have dangling 
+pointers, double frees, &c.)
+
+
+Colours
+
+.colour: Objects in a segment which is _not_ condemned (for some trace) take 
+their colour (for this trace) from the segment.  .colour.object: Since we need 
+to implement a non-copying GC, we keep track of the colour of each object in a 
+condemned segment separately.  For this, we use bit tables with a bit for each 
+grain.  This format is fast to access, has better locality than mark bits in 
+the objects themselves, and allows cheap interoperation with the allocation bit 
+table.  As to the details, we follow analysis.non-moving-colour(0), with the 
+the analysis.non-moving-colour.free.black option [why?].  .colour.alloc-table: 
+We choose to keep a separate allocation table, for generality.
+
+.ambiguous.middle: We will allow ambiguous references into the middle of an 
+object (as required by .req.ambiguous), using the trick in 
+analysis.non-moving-colour.interior.ambiguous-only to speed up scanning.  
+.interior-pointer: Note that non-ambiguous interior pointers are outlawed.
+
+.colour.alloc: Objects are allocated black.  This is the most efficient 
+alternative for traces in the black mutator phase, and .not-req.grey means 
+that's sufficient.  [Some day, we need to think about allocating grey or white 
+during the grey mutator phase.]
+
+
+Scanning
+
+.scan.segment: The tracer protocol requires (for segment barrier hits) that 
+there is a method for scanning a segment and turning all grey objects on it 
+black.  This cannot be achieved with a single sequential sweep over the 
+segment, since objects that the sweep has already passed may become grey as 
+later objects are scanned.  .scan.graph: For a non-moving GC, it is more 
+efficient to trace along the reference graph than segment by segment [it would 
+also allow passing type information from fix to scan].  Currently, the tracer 
+doesn't offer this option when it's polling for work.
+
+.scan.stack: Tracing along the reference graph cannot be done by recursive 
+descent, because we can't guarantee that the stack won't overflow.  We can, 
+however, maintain an explicit stack of things to trace, and fall back on 
+iterative methods (.scan.iter) when it overflows and can't be extended.
+
+.scan.iter: As discussed in .scan.segment, when scanning a segment, we need to 
+ensure that there are no grey objects in the segment when the scan method 
+returns.  We can do this by iterating a sequential scan over the segment until 
+nothing is grey (see .marked.scan for details).  .scan.iter.only: Some 
+iterative method is needed as a fallback for the more advanced methods, and as 
+this is the simplest way of implementing the current tracer protocol, we will 
+start by implementing it as the only scanning method.
+
+.scan.buffer: We do not scan between ScanLimit and Limit of a buffer (see 
+.iteration.buffer), as usual [design.mps.buffer should explain why this works, 
+but doesn't.  Pekka 1998-02-11].
+
+.fix.to-black: When fixing a reference to a white object, if the segment does 
+not refer to the white set, the object cannot refer to the white set, and can 
+therefore be marked as black immediately (rather than grey).
+
+
+
+ANALYSIS:
+
+[This section intentionally left blank.]
+
+
+IDEAS:
+
+[This section intentionally left blank.]
+
+
+IMPLEMENTATION:
+
+Colour
+
+.colour.determine: Following the plan in .colour, if SegWhite(seg) includes the 
+trace, the colour of an object is given by the bit tables.  Otherwise if 
+SegGrey(seg) includes the trace, all the objects are grey.  Otherwise all the 
+objects are black.
+
+.colour.bits: As we only have searches for runs of zero bits, we use two bit 
+tables, the non-grey and non-white tables, but this is hidden beneath a layer 
+of macros talking about grey and white in positive terms.
+
+.colour.single: We have only implemented a single set of mark and scan tables, 
+so we can only condemn a segment for one trace at a time.  This is checked for 
+in condemnation.  If we want to do overlapping white sets, each trace needs its 
+own set of tables.
+
+.colour.check: The grey&white state is illegal, and free objects must be not 
+grey and not white as explained in analysis.non-moving-colour.free.black.
+
+
+Iteration
+
+.iteration: Scan, reclaim and other operations need to iterate over all objects 
+in a segment.  We abstract this into a single iteration function, even though 
+we no longer use it for reclaiming and rarely for scanning.
+
+.iteration.buffer: Iteration skips directly from ScanLimit to Limit of a 
+buffer.  This is because this area may contain partially-initialized and 
+uninitialized data, which cannot be processed.  [ScanLimit is used for reasons 
+which are not documented in design.mps.buffer.]  Since the iteration skips the 
+buffer, callers need to take the appropriate action, if any, on it.
+
+
+Scanning Algorithm
+
+.marked: Each segment has a 'marksChanged' flag, indicating whether anything in 
+it has been made grey since the last scan iteration (.scan.iter) started.  This 
+flag only concerns the colour of objects with respect to the trace for which 
+the segment is condemned, as this is the only trace for which objects in the 
+segment are being made grey by fixing.  Note that this flag doesn't imply that 
+there are grey objects in the segment, because the grey objects might have been 
+subsequently scanned and blackened.
+
+.marked.fix: The marksChanged flag is set TRUE by AMSFix when an object is made 
+grey.
+
+.marked.scan: AMSScan must blacken all grey objects on the segment, so it must 
+iterate over the segment until all grey objects have been seen.  Scanning an 
+object in the segment might grey another one (.marked.fix), so the scanner 
+iterates until this flag is FALSE, setting it to FALSE before each scan.  It is 
+safe to scan the segment even if it contains nothing grey.
+
+.marked.scan.fail: If the format scanner returns failure (see 
+protocol.mps.scanning [is that the best reference?]), we abort the scan in the 
+middle of a segment.  So in this case the marksChanged flag is set back to 
+TRUE, because we may not have blackened all grey objects.
+
+.marked.unused: The marksChanged flag is meaningless unless the segment is 
+condemned.  We make it FALSE in these circumstances.
+
+.marked.condemn: Condemnation makes all objects in a segment either black or 
+white, leaving nothing grey, so it doesn't need to set the marksChanged flag 
+which must already be FALSE.
+
+.marked.reclaim: When a segment is reclaimed, it can contain nothing marked as 
+grey, so the marksChanged flag must already be FALSE.
+
+.marked.blacken: When the tracer decides not to scan, but to call PoolBlacken, 
+we know that any greyness can be removed.  AMSBlacken does this and resets the 
+marksChanged flag, if it finds that the segment has been condemned.
+
+.marked.clever: AMS could be clever about not setting the marksChanged flag, if 
+the fixed object is ahead of the current scan pointer.  It could also keep low- 
+and high-water marks of grey objects, but we don't need to implement these 
+improvements at first.
+
+
+Allocation
+
+.buffer-init: We take one init arg to set the Rank on the buffer, just to see 
+how it's done.
+
+.no-bit: As an optimization, we won't use the alloc bit table until the first 
+reclaim on the segment.  Before that, we just keep a high-water mark.
+
+.fill: AMSBufferFill takes the simplest approach: it iterates over the segments 
+in the pool, looking for one which can be used to refill the buffer.  
+.fill.colour: The objects allocated from the new buffer must be black for all 
+traces (.colour.alloc), so putting it on a black segment (meaning one where 
+neither SegWhite(seg) nor SegGrey(seg) include the trace, see 
+.colour.determine) is obviously OK.  White segments (where SegWhite(seg) 
+includes the trace) are also fine, as we can use the colour tables to make it 
+black (we don't actually have to adjust the tables, since free grains have the 
+same colour table encoding as black, see .colour.object).  At first glance, it 
+seems we can't put it on a segment that is grey for some trace (one where where 
+SegWhite(seg) doesn't include the trace, but SegGrey(seg) does), because the 
+new objects would become grey as the buffer's ScanLimit advanced.  We could 
+switch the segment over to using colour tables, but this becomes very hairy 
+when multiple traces are happening, so in that case, we'd be better off either 
+not attaching to grey segments or allowing grey allocation, wasteful as it is 
+[@@@@ decide which].
+
+.fill.slow: AMSBufferFill gets progressively slower as more segments fill up, 
+as it laboriously checks whether the buffer can be refilled from each segment, 
+by inspecting the allocation bitmap.  This is helped a bit by keeping count of 
+free grains in each segment, but it still spends a lot of time iterating over 
+all the full segments checking the free size.  Obviously, this can be much 
+improved (we could keep track of the largest free block in the segment and in 
+the pool, or we could keep the segments in some more efficient structure, or we 
+could have a real free list structure).
+
+.fill.extend: If there's no space in any existing segment, the segSize method 
+is called to decide the size of the new segment to allocate.  If that fails, 
+the code tries to allocate a segment that's just large enough to satisfy the 
+request.
+
+.empty: AMSBufferEmpty makes the unused space free, since there's no reason not 
+to.  We don't have to adjust the colour tables, since free grains have the same 
+colour table encoding as black, see .colour.object.
+
+.reclaim.empty.buffer: Segments which after reclaim only contain a buffer could 
+be destroyed by trapping the buffer, but there's no point to this.
+
+
+Initialization
+
+.init: The initialization method AMSInit() takes one additional argument: the 
+format of objects allocated in the pool.  The pool alignment is set equal to 
+the format alignment (see design.mps.align).
+
+.init.internal: Subclasses call AMSInitInternal() to avoid the problems of 
+sharing va_list and emitting a superfluous PoolInitAMS event.
+
+
+Condemnation
+
+.action: We use PoolCollectAct to condemn the whole pool (except the buffers) 
+at once.
+
+.condemn.buffer: Buffers are not condemned, instead they are coloured black, to 
+make sure that the objects allocated will be black, following .colour.alloc 
+(or, if you wish, because buffers are ignored like free space, so need the same 
+encoding).
+
+.benefit.guess: The benefit computation is pulled out of a hat; any real pool 
+class will need a real benefit computation.  It will return a positive value 
+when the allocated size of the pool is over one megabyte and more than twice 
+what it was when the last segment in this pool was reclaimed (we call this 
+lastReclaimedSize).  
+
+.benefit.repeat: We reset lastReclaimedSize when starting a trace in order to 
+avoid repeat condemnation (i.e., the next AMSBenefit returning 1.0 for the same 
+reason as the last).  In the future we need to do better here.
+
+
+Segment Merging and Splitting
+
+.split-merge: We provide methods for splitting and merging AMS segments. The 
+pool implementation doesn't cause segments to be split or merged - but a 
+subclass might want to do this (see .stress.split-merge). The methods serve as 
+an example of how to implement this facility. 
+
+.split-merge.constrain: There are some additional constraints on what segments 
+may be split or merged: 
+
+.split-merge.constrain.align: Segments may only be split or merged at an 
+address which is aligned to the pool alignment as well as to the arena 
+alignment. .split-merge.constrain.align.justify: This constraint is implied by 
+the design of allocation and colour tables, which cannot represent segments 
+starting at unaligned addresses. The constraint only arises if the pool 
+alignment is larger than the arena alignment. There's no requirement to split 
+segments at unaligned addresses.
+
+.split-merge.constrain.empty: The higher segment must be empty. I.e. the higher 
+segment passed to SegMerge must be empty, and the higher segment returned by 
+SegSplit must be empty. .split-merge.constrain.empty.justify: This constraint 
+makes the code significantly simpler. There's no requirement for a more complex 
+solution at the moment (as the purpose is primarily pedagogic).
+
+.split-merge.fail: The split and merge methods are not proper anti-methods for 
+each other (see design.mps.seg.split-merge.fail.anti.no). Methods will not 
+reverse the side-effects of their counterparts if the allocation of the colour 
+and allocation bit tables should fail. Client methods which over-ride split and 
+merge should not be written in such a way that they might detect failure after 
+calling the next method, unless they have reason to know that the bit table 
+allocations will not fail.
+
+
+
+
+
+TESTING:
+
+.stress: There's a stress test, MMsrc!amsss.c, that does 800 KB of allocation, 
+enough for about three GCs.  It uses a modified Dylan format, and checks for 
+corruption by the GC.  Both ambiguous and exact roots are tested.
+
+.stress.split-merge: There's also a stress test for segment splitting and 
+merging, MMsrc!segsmss.c. This is similar to amsss.c - but it defines a 
+subclass of AMS, and causes segments to be split and merged. Both buffered and 
+non-buffered segments are split / merged.
+
+
+TEXT:
+
+.addr-index.slow: Translating from an address to and from a grain index in a 
+segment uses macros such as AMSAddrIndex and AMSIndexAddr.  These are slow 
+because they call SegBase on every translation.
+
+.grey-mutator: To enforce the restriction set in .not-req.grey we check that 
+all the traces are flipped in AMSScan.  It would be good to check in AMSFix as 
+well, but we can't do that, because it's called during the flip, and we can't 
+tell the difference between the flip and the grey mutator phases with the 
+current tracer interface.
+

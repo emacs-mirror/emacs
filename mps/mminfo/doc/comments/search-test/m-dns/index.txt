@@ -1,0 +1,7 @@
+                           SEARCH-TEST M-DNS
+                       comments.search-test.m-dns
+                              obsolete doc
+                          richardk 1998-10-22
+
+malign .notes
+

@@ -1,0 +1,97 @@
+                         VM DESIGN FOR SOLARIS
+                            design.mps.vmso
+                             incomplete doc
+                             drj 1998-05-08
+
+INTRODUCTION
+
+.intro: This is the design for the VM implementation on Solaris 2.x (see os.so 
+for OS details).  The implementation is in MMsrc!vmso.c (impl.c.vm).  The 
+design follows the design for and implements the contract of the generic VM 
+interface (design.mps.vm).  To summarize: The VM module provides a mechanism to 
+reserve large (relative to the amount of RAM) amounts of address space, and 
+functions to map (back with RAM) and unmap portions of this address space.
+
+.source: Much of the implementation (and hence the design) was inherited from 
+the SunOS4 implementation.  Not that there's any design for that.  You'll find 
+the mmap(2) (for the system call mmap) and the zero(7d) (for the device 
+/dev/zero) man pages useful as well.  The generic interface and some generic 
+design is in design.mps.vm.
+
+
+DEFINITIONS
+
+.def: See design.mps.vm.def.* for definitions common to all VMs.
+
+
+OVERVIEW
+
+.over: The system calls mmap and munmap are used to access the underlying 
+functionality.  They are used in slightly unusual ways, typically to overcome 
+baroque features or implementation details of the OS.  .over.reserve: In order 
+to reserve address space, a mapping to a file (/etc/passwd as it happens) is 
+created with no protection allowed.  .over.map: In order to map memory, a 
+mapping to /dev/zero is created.  .over.destroy: When the VM is destroyed, 
+munmap is used to remove all the mappings previously created.
+
+
+IMPLEMENTATION
+
+.impl.create: VMCreate
+
+.impl.create.vmstruct: Enough pages to hold the VMStruct are allocated by 
+creating a mapping to /dev/zero (a read/write private mapping), and using 
+initializing the memory as a VMStruct.  .impl.create.reserve: The size 
+parameter is rounded up to page size and this amount of address space is 
+reserved.  The address space is reserved by creating a shared mapping to 
+/etc/passwd with no access allowed (prot argument is PROT_NONE, flags argument 
+is MAP_SHARED).  .impl.create.reserve.mmap.justify: mmap gives us a flexible 
+way to allocate address space without interfering with any other component in 
+the process.  Because we don't specify MAP_FIXED we are guaranteed to get a 
+range of addresses that are not in use.  Other components must cooperate by not 
+attempting to create mappings specifying MAP_FIXED and an address in the range 
+that the MPS has reserved.  .impl.create.reserve.passwd.justify: Mapping 
+/etc/passwd like this worked on SunOS4 (so this implementation inherited it).  
+Mapping /dev/zero with prot=PROT_NONE and flags=MAP_PRIVATE does not work 
+because Solaris gratuitously allocates swap (even though you can't use the 
+memory).  .impl.create.reserve.improve: However, it would appears that ORing in 
+MAP_NORESERVE mapping /dev/zero will reserve address space without allocating 
+swap, so this might be worth trying.  I.e., with prot=PROT_NONE, 
+flags=MAP_PRIVATE|MAP_NORESERVE.  However the following caveat comes from the 
+original implementation: "Experiments have shown that attempting to reserve 
+address space by mapping /dev/zero results in swap being reserved.  This 
+appears to be a bug, so we work round it by using /etc/passwd, the only file we 
+can think of which is pretty much guaranteed to be around."  So that might not 
+work after all.
+
+.impl.map: VMMap
+
+.impl.map.zero: A mapping to /dev/zero is created at the relevant addresses 
+(overriding the map to /etc/passwd that was previously in place for those 
+addresses).  The prot argument is specified as PROT_READ|PROT_WRITE|PROT_EXEC 
+(so that any access is allowed), the flags argument as MAP_PRIVATE|MAP_FIXED 
+(MAP_PRIVATE means that the mapping is not shared with child processes (child 
+processes will have a mapping, but changes to the memory will not be shared).  
+MAP_FIXED guarantees that we get the mapping at the specified address).  The 
+zero(7d) man page documents this as a way to create a "zero-initialized unnamed 
+memory object".  .impl.map.error: If there's not enough swap space for the 
+mapping, mmap will return EAGAIN, not ENOMEM, although you might not think so 
+from the man page.
+
+
+.impl.unmap: VMUnmap
+
+.impl.unmap.reserve: The relevant addresses are returned to the reserved state 
+by creating a mapping to /etc/passwd (overriding the map /dev/zero that was 
+previously in place for those addresses).  As for VMCreate (see 
+.impl.create.reserve above) the prot argument is PROT_NONE, but the flags 
+argument has the addition MAP_FIXED flags (so is MAP_SHARED|MAP_FIXED).  
+.impl.unmap.reserve.offset: The offset argument is specified to be the offset 
+of the addresses being unmapped from the base of the reserved VM area.  
+.impl.unmap.reserve.offset.justify: Not specifying the offset like this makes 
+Solaris create a separate mapping (in the kernel) each time Unmap is used, 
+eventually the call to mmap will fail.  Specifying offset like this does not 
+cause Solaris to create any extra mappings, the existing mapping to /etc/passwd 
+gets reused.
+
+

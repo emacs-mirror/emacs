@@ -1,0 +1,4 @@
+          THE DESIGN OF THE MEMORY POOL SYSTEM RUN-TIME ERRORS
+                            design.mps.error
+                           incomplete design
+                           richard 1995-08-25

@@ -1,0 +1,10 @@
+                         REQUIREMENTS SOLICITOR
+                           role.req.solicitor
+                               draft role
+                             drj 1995-10-25
+
+
+Description:
+
+Responsible for obtaining requirements from the group's clients.
+

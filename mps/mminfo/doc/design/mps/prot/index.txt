@@ -1,0 +1,85 @@
+                GENERIC DESIGN OF THE PROTECTION MODULE
+                            design.mps.prot
+                             incomplete doc
+                             drj 1997-04-02
+
+INTRODUCTION
+
+.readership: Any MPS developer.
+
+.intro: This is the generic design of the Protection Module.  The protection 
+module provides protection services to other parts of the MPS.  It is expected 
+that different operating systems will have different implementations of this 
+module.
+
+
+INTERFACE
+
+.if.setup:
+
+void ProtSetup(void);
+
+ProtSetup will be called exactly once (per process).  It will be called as part 
+of the initialization of the first space that is created.  It should arrange 
+for the setup and initialization of any datastructures or services that are 
+necessary in order to implement the protection module.  (On UNIX it expected 
+that it will install a signal handler, on Windows it will do nothing)
+
+.if.set:
+
+void ProtSet(Addr base, Addr limit, AccessSet mode)
+
+ProtSet should set the protection of the memory between base and limit, 
+including base, but not including limit (ie the half-open interval 
+[base,limit)) to that specified by mode.
+The mode parameter should have the AccessWrite bit set if write accesses to the 
+page are to be forbidden, and should have the AccessRead bit set if read 
+accesses to the page are to be forbidden.  A request to forbid read accesses 
+(ie AccessRead is set) may also forbid write accesses, but read accesses will 
+not be forbidden unless AccessRead is set.
+
+.if.tramp:
+
+void ProtTramp(void **resultReturn, void *(*f)(void *, size_t), void *p, size_t 
+s);
+
+.if.sync:
+
+void ProtSync(Space space);
+
+ProtSync is called to ensure that the actual protection of each segment (as 
+determined by the OS) is in accordance with the segments's pm field.
+
+.if.context-type:
+
+typedef struct MutatorFaultContextStruct *MutatorFaultContext;
+
+This abstract type is implemented by the protection module (impl.c.prot*).  It 
+represents the continuation of the mutator which is restored after a mutator 
+fault has been handled.  The functions ProtCanStepInstruction (.if.canstep 
+below) and ProtStepInstruction (.if.step below) inspect and manipulate the 
+context.
+
+.if.canstep:
+
+Bool ProtCanStepInstruction(MutatorFaultContext context);
+
+Examines the context to determine whether the protection module can single-step 
+the instruction which is causing the fault. Should return TRUE if and only if 
+the instruction can be single-stepped (ie ProtStepInstruction can be called).
+
+.if.step:
+
+Bool Res ProtStepInstruction(MutatorFaultContext context);
+
+Single-steps the instruction which is causing the fault.  This function should 
+only be called if ProtCanStepInstruction applied to
+the context returned TRUE.  It should return ResUNIMPL if the instruction 
+cannot be single-stepped.  It should return ResOK if the
+instruction is single-stepped.
+
+The mutator context will be updated by the emulation/execution of the 
+instruction such that resuming the mutator will not cause the
+instruction which was causing the fault to be executed.
+
+

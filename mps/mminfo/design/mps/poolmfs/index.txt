@@ -1,0 +1,16 @@
+         THE DESIGN OF THE MANUAL FIXED SMALL MEMORY POOL CLASS
+                           design.mps.poolmfs
+                           incomplete design
+                           richard 1996-11-07
+
+
+OVERVIEW:
+
+MFS stands for "Manual Fixed Small".  The MFS Pool Class manages objects that 
+are of a fixed size.  It is intended to only manage small objects efficiently.  
+Storage is recycled manually by the client programmer.
+
+A particular instance of an MFS Pool can manage objects only of a single size, 
+but different instances can manage objects of different sizes.  The size of 
+object that an instance can manage is declared when the instance is created.
+

@@ -1,0 +1,7 @@
+                           SEARCH-TEST MCCNS
+                       comments.search-test.mccns
+                              obsolete doc
+                          richardk 1998-10-22
+
+malign::notes
+

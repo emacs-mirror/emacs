@@ -1,0 +1,10 @@
+                              IMPLEMENTOR
+                            role.implementor
+                               draft role
+                             drj 1995-10-25
+
+
+Description:
+
+Responsible for taking a design and producing an implementation.
+

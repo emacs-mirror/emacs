@@ -1,0 +1,10 @@
+                             ADMINISTRATOR
+                           role.administrator
+                            incomplete role
+                             drj 1995-10-23
+
+
+Description:
+
+General administration.  Need more definition here.
+

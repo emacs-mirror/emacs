@@ -1,0 +1,363 @@
+                     MPS TO CLIENT MESSAGE PROTOCOL
+                           design.mps.message
+                             incomplete doc
+                             drj 1997-02-13
+
+INTRODUCTION
+
+.readership: Any MPS developer.
+
+.intro: The MCMP provides a means by which clients can receive messages from 
+the MPS asynchronously.  Typical messages may be low memory notification (or in 
+general low utility), finalization notification, soft-failure notification.  
+There is a general assumption that it should not be disastrous for the MPS 
+client to ignore messages, but that it is probably in the clients best interest 
+to not ignore messages.  The justification for this is that the MPS cannot 
+force the MPS client to read and act on messages, so no message should be 
+critical [bogus, since we cannot force clients to check error codes either - 
+Pekka 1997-09-17].
+
+.contents: This document describes the design of the external and internal 
+interfaces and concludes with a sketch of an example design of an internal 
+client.  The example is that of implementing finalization using PoolMRG.
+
+
+REQUIREMENTS
+
+.req: The MPS/Client message protocol will be used for implementing 
+finalization (see design.mps.finalize and req.dylan.fun.final).  It will also 
+be used for implementing the notification of various conditions (possibly 
+req.dylan.prot.consult is relevant here).
+
+
+INTERFACE
+
+
+External Interface
+
+.if.queue:
+
+Messages are presented as a single queue per arena.  Various functions are 
+provided to inspect the queue and inspect messages in it (see below).
+
+
+Functions
+
+.if.fun:
+
+The following functions are provided:
+
+.if.fun.poll: Poll.  Sees whether there are any messages pending.
+
+mps_bool_t mps_message_poll(mps_arena_t arena);
+
+Returns 1 only if there is a message on the queue of arena.  Returns 0 
+otherwise.
+
+.if.fun.enable: Enable.  Enables the flow of messages of a certain type.
+
+void mps_message_type_enable(mps_arena_t arena, mps_message_type_t type);
+
+Enables the specified message type.  The queue of messages of a arena will 
+contain only messages whose types have been enabled.  Initially all message 
+types are disabled.  Effectively this function allows the client to declare to 
+the MPS what message types the client understands.  The MPS does not generate 
+any messages of a type that hasn't been enabled.  This allows the MPS to add 
+new message types (in subsequent releases of a memory manager) without 
+confusing the client.  The client will only be receiving the messages if they 
+have explicitly enabled them (and the client presumably only enables message 
+types when they have written the code to handle them).
+
+.if.fun.disable: Disable.  Disables the flow of messages of a certain type.
+
+void mps_message_type_disable(mps_arena_t arena, mps_message_type_t type);
+
+The antidote to mps_message_type_enable.  Disables the specified message type.  
+Flushes any existing messages of that type on the queue, and stops any further 
+generation of messages of that type. This permits clients to dynamically 
+decline interest in a message type, which may help to avoid a memory leak or 
+bloated queue when the messages are only required temporarily. 
+
+.if.fun.get: begins a message "transaction".
+
+mps_bool_t mps_message_get(mps_message_t *message_return, mps_arena_t arena, 
+mps_message_type_t type);
+
+If there is a message of the specified type on the queue then the first such 
+message will be removed from the queue and a handle to it will be returned to 
+the client in *messageReturn; in this case the function will return TRUE.  
+Otherwise it will return FALSE.  Having obtained a handle on a message in this 
+way, the client can use the type-specific accessors to find out about the 
+message.  When the client is done with the message the client should call 
+mps_message_discard; failure to do so will result in a resource leak.
+
+.if.fun.discard: ends a message "transaction".
+
+void mps_message_discard(mps_arena_t arena, mps_message_t message);
+
+Indicates to the MPS that the client is done with this message and its 
+resources may be reclaimed.
+
+.if.fun.type.any: Determines the type of a message in the queue
+
+mps_bool_t mps_message_queue_type(mps_message_type_t *type_return, mps_arena_t 
+arena);
+
+Returns 1 only if there is a message on the queue of arena, and in this case 
+updates *type_return to be the type of a message in the queue.  Otherwise 
+returns 0.
+
+.if.fun.type: Determines the type of a message (that has already been got).
+
+mps_message_type_t mps_message_type(mps_arena_t arena, mps_message_t message)
+
+Return the type of the message.  Only legal when inside a message transaction 
+(i.e. after mps_message_get and before mps_message_discard).  Note that the 
+type will be the same as the type that the client passed in the call to 
+mps_message_get.
+
+
+Types of messages
+
+.type: The type governs the "shape" and meaning of the message.
+
+.type.int: Types themselves will just be a scalar quantity, an integer.
+
+.type.semantics: A type indicates the semantics of the message.  
+.type.semantics.interpret: The semantics of a message are interpreted by the 
+client by calling various accessor methods on the message.  .type.accessor: The 
+type of a message governs which accessor methods are legal to apply to the 
+message.
+
+.type.example: Some example types:
+
+.type.finalization: There will be a finalization type.  The type is abstractly: 
+FinalizationMessage(Ref).
+
+.type.finalization.semantics: A finalization message indicates that an object 
+has been discovered to be finalizable (see design.mps.poolmrg.def.final.object 
+for a definition of finalizable).  .type.finalization.ref: There is an accessor 
+to get the reference of the finalization message (i.e. a reference to the 
+object which is finalizable) called mps_message_finalization_ref.  
+.type.finalization.ref.scan: Note that the reference returned should be stored 
+in scanned memory.
+
+
+.compatibility:
+
+Compatibility issues
+
+.compatibility.future.type-new: Notice that message of a type that the client 
+doesn't understand are not placed on the queue, therefore the MPS can introduce 
+new types of message and existing client will still function and will not leak 
+resources.  This has been achieved by getting the client to declare the types 
+that the client understands (with mps_message_type_enable, .if.fun.enable).
+
+.compatibility.future.type-extend: The information available in a message of a 
+given type can be extended by providing more accessor methods.  Old clients 
+won't get any of this information but that's okay.
+
+
+Internal Interface
+
+
+.message.instance: Messages are instances of Message Classes.  
+.message.concrete: Concretely a Message is represented by a MessageStruct.  A 
+MessageStruct has the usual signature field (see design.mps.sig).  A 
+MessageStruct has a type field which defines its type, a ring node, which is 
+used to attach the message to the queue of pending messages, a class field, 
+which identifies a MessageClass object.  .message.intent: The intention is that 
+a MessageStruct will be embedded in some richer object which contains 
+information relevant to that specific type of message.
+
+.message.type:
+
+typedef struct MessageStruct *Message;
+
+.message.struct:
+
+struct MessageStruct {
+  Sig sig;
+  MessageType type;
+  MessageClass class;
+  RingStruct node;
+} MessageStruct;
+
+
+.class: A message class is an encapsulation of methods.  It encapsulates 
+methods that are applicable to all types of messages (generic) and methods that 
+are applicable to messages only of a certain type (type-specific).  
+.class.concrete: Concretely a message class is represented by a 
+MessageClassStruct (a struct).  Clients of the Message module are expected to 
+allocate storage for and initialise the MessageClassStruct.  It is expected 
+that such storage will be allocated and initialised statically.
+
+.class.not-type: Note that message classes and message types are distinct.  
+.class.not-type.why: (see also mail.drj.1997-07-15.10-33(0) from which this is 
+derived)  This allows two different implementations (ie classes) of messages 
+with the same meaning (ie type).  This may be necessary because the (memory) 
+management of the messages may be different in the two implemtations (which is 
+bogus).  The case of having one class implement two types is not expected to be 
+so useful.  .class.not-type.why.not: It's all pretty feeble justification 
+anyway.
+
+.class.methods.generic: The generic methods are:
+
+delete - used when the message is destroyed (by the client calling 
+mps_message_discard).  The class implementation should finish the message (by 
+calling MessageFinish) and storage for the message should be reclaimed (if 
+applicable).
+
+.class.methods.specific: 
+
+The type specific methods are:
+
+.class.methods.specific.finalization:
+
+Specific to MessageTypeFinalization
+
+finalizationRef - returns a reference to the finalizable object represented by 
+this message.
+
+.class.methods.specific.collectionstats:
+
+Specific to MessageTypeCollectionStats
+
+collectionStatsLiveSize - returns the number of bytes (of objects) that were 
+condemned but survived.
+
+collectionStatsCondemnedSize - returns the number of bytes condemned in the 
+collection.
+
+collectionStatsNotCondemnedSize - returns the the number of bytes (of objects) 
+that are subject to a GC policy (ie collectable) but were not condemned in the 
+collection.
+
+
+.class.type:
+
+typedef struct MessageClassStruct *MessageClass;
+
+.class.sig.double: The MessageClassStruct has a signature field at both ends.  
+This is so that if the MessageClassStruct changes size (by adding extra methods 
+for example) then any static initializers will generate errors from the 
+compiler (there will be a type error causes by initialising a non-sig type 
+field with a sig) unless the static initializers are changed as well.
+
+.class.struct:
+
+typedef struct MessageClassStruct {
+  Sig sig;                      /* design.mps.sig */
+  const char *name;             /* Human readable Class name */
+
+  /* generic methods */
+  MessageDeleteMethod delete;   /* terminates a message */
+
+  /* methods specific to MessageTypeFinalization */
+  MessageFinalizationRefMethod finalizationRef;
+
+  /* methods specific to MessageTypeCollectionStats */
+  MessageCollectionStatsLiveSizeMethod collectionStatsLiveSize;
+  MessageCollectionStatsCondemnedSizeMethod collectionStatsCondemnedSize;
+  MessageCollectionStatsNotCondemnedSizeMethod collectionStatsNotCondemnedSize;
+
+  Sig endSig;                   /* design.mps.message.class.sig.double */
+} MessageClassStruct;
+
+
+.space.queue: The arena structure is augmented with a structure for managing 
+for queue of pending messages.  This is a ring in the ArenaStruct.
+
+struct ArenaStruct
+{
+  ...
+  RingStruct messageRing;
+  ...
+}
+
+
+Functions
+
+.fun.init:
+/* Initializes a message */
+void MessageInit(Arena arena, Message message, MessageClass class);
+
+Initializes the MessageStruct pointed to by message.  The caller of this 
+function is expected to manage the store for the MessageStruct.
+
+.fun.finish:
+/* Finishes a message */
+void MessageFinish(Message message);
+
+Finishes the MessageStruct pointed to by message.  The caller of this function 
+is expected to manage the store for the MessageStruct.
+
+.fun.post:
+/* Places a message on the client accessible queue */
+void MessagePost(Arena arena, Message message);
+
+This function places a message on the queue of a arena.  .fun.post.precondition
+: Prior to calling the function the node field of the message must be a 
+singleton.  After the call to the function the message will be available for 
+MPS client to access.  After the call to the function the message fields must 
+not be manipulated except from the message's class's method functions (i.e., 
+you mustn't poke about with the node field in particular).
+
+.fun.empty:
+void MessageEmpty(Arena arena);
+
+Empties the message queue.  This function has the same effect as discarding all 
+the messages on the queue.  After calling this function there will be no 
+messages on the queue.  .fun.empty.internal-only: This functionality is not 
+exposed to clients.  We might want to expose this functionality to our clients 
+in the future.
+
+
+
+
+Message Life Cycle
+
+.life: A message will be allocated by a client of the message module, it will 
+be initialised by calling MessageInit.  The client will eventually post the 
+message on the external queue (in fact most clients will create a message and 
+then immediately post it).  The message module may then apply any of the 
+methods to the message.  The message module will eventually destroy the message 
+by applying the Delete method to it.
+
+
+EXAMPLES
+
+
+Finalization
+
+[possibly out of date, see design.mps.finalize and design.mps.poolmrg instead 
+-- drj 1997-08-28]
+
+This subsection is a sketch of how PoolMRG will use Messages for finalization 
+(see design.mps.poolmrg).
+
+PoolMRG has guardians (see design.mps.poolmrg.guardian), guardians are used to 
+manage final references and detect when an object is finalizable.
+
+The link part of a guardian will be expanded to include a MessageStruct; in 
+fact the link part of a guardian will be expanded so that it is exactly a 
+MessageStruct (or rather a structure with a single member that has the type 
+MessageStruct).
+
+The MessageStruct is allocated when the final reference is created (which is 
+when the referred to object is registered for finalization).  This avoids 
+allocating at the time when the message gets posted (which might be a tricky, 
+undesirable, or impossible, time to allocate).
+
+The two queues of PoolMRG (the entry queue, and the exit queue) will use the 
+MessageStruct ring node.  Before the object (referred to by the guardian) is 
+finalizable the MessageStruct is not needed by the Message system (there is no 
+message to send yet!), so it is okay to use the Message's ring node to attach 
+the guardian to the entry queue (see 
+design.mps.poolmrg.guardian.two-part.justify).  The exit queue of MRG will 
+simply be the external message queue.
+
+MRG Message class
+
+del - frees both the link part and the reference part of the guardian.
+
