@@ -397,7 +397,7 @@ doubt, use whitespace."
     (when (stringp macro)
       (loop for i below (length macro) do
 	    (when (>= (aref rest-mac i) 128)
-	      (incf (aref rest-mac i) (- (lsh 1 23) 128)))))
+	      (incf (aref rest-mac i) (- ?\M-\^@ 128)))))
     (while (not (eq (aref rest-mac 0) 'end-macro))
       (let* ((prefix
 	      (or (and (integerp (aref rest-mac 0))
@@ -494,8 +494,9 @@ doubt, use whitespace."
 			       ((integerp ch)
 				(concat
 				 (loop for pf across "ACHMsS"
-				       for bit in '(18 22 20 23 19 21)
-				       when (/= (logand ch (lsh 1 bit)) 0)
+				       for bit in '(?\A-\^@ ?\C-\^@ ?\H-\^@
+						    ?\M-\^@ ?\s-\^@ ?\S-\^@)
+				       when (/= (logand ch bit) 0)
 				       concat (format "%c-" pf))
 				 (let ((ch2 (logand ch (1- (lsh 1 18)))))
 				   (cond ((<= ch2 32)
@@ -602,14 +603,14 @@ doubt, use whitespace."
 	      (t
 	       (let ((orig-word word) (prefix 0) (bits 0))
 		 (while (string-match "^[ACHMsS]-." word)
-		   (incf bits (lsh 1 (cdr (assq (aref word 0)
-						'((?A . 18) (?C . 22)
-						  (?H . 20) (?M . 23)
-						  (?s . 19) (?S . 21))))))
+		   (incf bits (cdr (assq (aref word 0)
+					 '((?A . ?\A-\^@) (?C . ?\C-\^@)
+					   (?H . ?\H-\^@) (?M . ?\M-\^@)
+					   (?s . ?\s-\^@) (?S . ?\S-\^@)))))
 		   (incf prefix 2)
 		   (callf substring word 2))
 		 (when (string-match "^\\^.$" word)
-		   (incf bits (lsh 1 22))
+		   (incf bits ?\C-\^@)
 		   (incf prefix)
 		   (callf substring word 1))
 		 (let ((found (assoc word '(("NUL" . "\0") ("RET" . "\r")
@@ -623,15 +624,15 @@ doubt, use whitespace."
 			 finally do (setq word (vector n))))
 		 (cond ((= bits 0)
 			(setq key word))
-		       ((and (= bits (lsh 1 23)) (stringp word)
+		       ((and (= bits ?\M-\^@) (stringp word)
 			     (string-match "^-?[0-9]+$" word))
 			(setq key (loop for x across word collect (+ x bits))))
 		       ((/= (length word) 1)
 			(error "%s must prefix a single character, not %s"
 			       (substring orig-word 0 prefix) word))
-		       ((and (/= (logand bits (lsh 1 22)) 0) (stringp word)
+		       ((and (/= (logand bits ?\C-\^@) 0) (stringp word)
 			     (string-match "[@-_.a-z?]" word))
-			(setq key (list (+ bits (- (lsh 1 22))
+			(setq key (list (+ bits (- ?\C-\^@)
 					   (if (equal word "?") 127
 					     (logand (aref word 0) 31))))))
 		       (t
@@ -647,10 +648,10 @@ doubt, use whitespace."
     (if (and (not need-vector)
 	     (loop for ch across res
 		   always (and (integerp ch)
-			       (let ((ch2 (logand ch (lognot (lsh 1 23)))))
+			       (let ((ch2 (logand ch (lognot ?\M-\^@))))
 				 (and (>= ch2 0) (<= ch2 127))))))
 	(concat (loop for ch across res
-		      collect (if (= (logand ch (lsh 1 23)) 0)
+		      collect (if (= (logand ch ?\M-\^@) 0)
 				  ch (+ ch 128))))
       res)))
 
