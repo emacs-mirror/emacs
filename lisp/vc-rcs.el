@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.3 2000/09/07 20:02:38 fx Exp $
+;; $Id: vc-rcs.el,v 1.4 2000/09/09 00:48:40 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -132,7 +132,11 @@ For a description of possible values, see `vc-check-master-templates'."
                    (not (vc-mistrust-permissions file)))
               (cond
                ((string-match ".rw..-..-." (nth 8 (file-attributes file)))
-                (vc-file-setprop file 'vc-checkout-model 'implicit))
+                (vc-file-setprop file 'vc-checkout-model 'implicit)
+		(setq state 
+		      (if (vc-rcs-workfile-is-newer file) 
+			  'edited 
+			'up-to-date)))
                ((string-match ".r-..-..-." (nth 8 (file-attributes file)))
                 (vc-file-setprop file 'vc-checkout-model 'locking))))
           state)
@@ -144,14 +148,28 @@ For a description of possible values, see `vc-check-master-templates'."
                    (vc-file-setprop file 'vc-checkout-model 'locking)
                    'up-to-date)
                   ((string-match ".rw..-..-." permissions)
-                   (if (file-ownership-preserved-p file)
-                       'edited
-                     (vc-user-login-name owner-uid)))
+		   (if (eq (vc-checkout-model file) 'locking)
+		       (if (file-ownership-preserved-p file)
+			   'edited
+			 (vc-user-login-name owner-uid))
+		     (if (vc-rcs-workfile-is-newer file) 
+			 'edited
+		       'up-to-date)))
                   (t
                    ;; Strange permissions.  Fall through to
                    ;; expensive state computation.
                    (vc-rcs-state file))))
         (vc-rcs-state file)))))
+
+(defun vc-rcs-workfile-is-newer (file)
+  "Return non-nil if FILE is newer than its RCS master.
+This likely means that FILE has been changed with respect
+to its master version."
+  (let ((file-time (nth 5 (file-attributes file)))
+	(master-time (nth 5 (file-attributes (vc-name file)))))
+    (or (> (nth 0 file-time) (nth 0 master-time))
+	(and (= (nth 0 file-time) (nth 0 master-time))
+	     (> (nth 1 file-time) (nth 1 master-time))))))
 
 (defun vc-rcs-workfile-version (file)
   "RCS-specific version of `vc-workfile-version'."
@@ -182,7 +200,8 @@ For a description of possible values, see `vc-check-master-templates'."
 	(when (< latest-rev rev)
 	  (setq latest-rev rev)
 	  (setq value (match-string 1)))))
-    value))
+    (or value
+	(vc-rcs-branch-part branch))))
 
 (defun vc-rcs-fetch-master-state (file &optional workfile-version)
   "Compute the master file's idea of the state of FILE.
@@ -234,7 +253,12 @@ file."
           (if (or workfile-is-latest
                   (vc-rcs-latest-on-branch-p file workfile-version))
               ;; workfile version is latest on branch
-              'up-to-date
+              (if (eq (vc-checkout-model file) 'locking)
+		  'up-to-date
+		(require 'vc)
+		(if (vc-workfile-unchanged-p file)
+		    'up-to-date
+		  'edited))
             ;; workfile version is not latest on branch
             'needs-patch))
 	 ;; locked by the calling user
@@ -565,6 +589,10 @@ CVS releases are handled reasonably, too \(1.3 < 1.4* < 1.5\)."
 	     (and (vc-rcs-release-p "5.6.4") "-j")
 	     (concat (if vc-keep-workfiles "-u" "-r") rev)
 	     (concat "-m" comment)
+	     ;; allow creation of branches with no changes;
+	     ;; this is used by vc-rcs-receive-file if the
+	     ;; base version cannot be found
+	     (if (string-match ".1.1$" rev) "-f")
 	     switches)
       (vc-file-setprop file 'vc-workfile-version nil)
 
@@ -679,6 +707,61 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
                               "^initial revision: \\([0-9.]+\\).*\n"
                               nil t)
                              (match-string 1))))))
+
+(defun vc-rcs-unregister (file)
+  "Unregister FILE from RCS.
+If this leaves the RCS subdirectory empty, ask the user
+whether to remove it."
+  (let* ((master (vc-name file))
+	 (dir (file-name-directory master)))
+    (delete-file master)
+    (and (string= (file-name-nondirectory (directory-file-name dir)) "RCS")
+	 ;; check whether RCS dir is empty, i.e. it does not
+	 ;; contain any files except "." and ".."
+	 (not (directory-files dir nil 
+			       "^\\([^.]\\|\\.[^.]\\|\\.\\.[^.]\\).*"))
+	 (yes-or-no-p (format "Directory %s is empty; remove it? " dir))
+	 (delete-directory dir))))
+
+(defun vc-rcs-receive-file (file move)
+  "Implementation of receive-file for RCS."
+  (let ((old-backend (vc-backend file))
+	(rev (vc-workfile-version file))
+	(state (vc-state file))
+	(checkout-model (vc-checkout-model file))
+	(comment (and move
+		      (vc-find-backend-function old-backend 'comment-history)
+		      (vc-call 'comment-history file))))
+    (if move (vc-unregister file old-backend))
+    (vc-file-clearprops file)
+    (if (not (vc-rcs-registered file))
+	(progn
+	  (with-vc-properties 
+	   file
+	   ;; TODO: If the file was 'edited under the old backend,
+	   ;; this should actually register the version 
+	   ;; it was based on.
+	   (vc-rcs-register file rev "")
+	   `((vc-backend ,backend)))
+	  (if (eq checkout-model 'implicit)
+	      (vc-rcs-set-non-strict-locking file))
+	  (if (not move)
+	      (vc-do-command nil 0 "rcs" file (concat "-b" rev ".1"))))
+      (vc-file-setprop file 'vc-backend backend)
+      (vc-file-setprop file 'vc-state 'edited)
+      (set-file-modes file
+		      (logior (file-modes file) 128)))
+    (when (or move (eq state 'edited))
+      (vc-file-setprop file 'vc-state 'edited)
+      ;; TODO: The comment history should actually become the
+      ;; initial contents of the log entry buffer.
+      (and comment (ring-insert vc-comment-ring comment))
+      (vc-checkin file (concat rev ".1.1")))))
+
+(defun vc-rcs-set-non-strict-locking (file)
+  (vc-do-command nil 0 "rcs" file "-U")
+  (vc-file-setprop file 'vc-checkout-model 'implicit)
+  (set-file-modes file (logior (file-modes file) 128)))
 
 (defun vc-rcs-checkout (file &optional writable rev workfile)
   "Retrieve a copy of a saved version of FILE into a workfile."
