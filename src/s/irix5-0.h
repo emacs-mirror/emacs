@@ -59,11 +59,6 @@ char *_getpty();
 /* We need only try once to open a pty.  */
 #define PTY_ITERATION
 /* Here is how to do it.  */
-/* It is necessary to prevent SIGCHLD signals within _getpty.
-   So we block them. But since all of Emacs uses classic SYSV signal()
-   signals, there is no reliable way to do this (unlike BSD sighold or
-   POSIX sigaction).  On Irix 5.* systems, the implementation of
-   sigaction is as close as you can get to a universal. */
 #define PTY_OPEN					    \
 {							    \
   struct sigaction ocstat, cstat;			    \
@@ -82,6 +77,10 @@ char *_getpty();
     return -1;						    \
   strcpy (pty_name, name);				    \
 }
+
+/* Since we use POSIX constructs in PTY_OPEN, we must force POSIX
+   throughout. */
+#define POSIX_SIGNALS  
 
 /* jpff@maths.bath.ac.uk reports `struct exception' is not defined
    on this system, so inhibit use of matherr.  */
