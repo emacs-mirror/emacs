@@ -220,6 +220,7 @@ This is a minor mode that affects only the current buffer.
 Use `global-auto-revert-mode' to automatically revert all buffers."
   (interactive "P")
   (make-local-variable 'auto-revert-mode)
+  (put 'auto-revert-mode 'permanent-local t)
   (setq auto-revert-mode
 	(if (null arg)
 	    (not auto-revert-mode)
