@@ -316,6 +316,13 @@
 
 	* net/password.el: Add.
 
+2004-10-14  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/gud.el (gdb-script-beginning-of-defun): New function.
+	(gdb-script-end-of-defun): New function.
+	(gdb-script-mode): Use `gdb-script-beginning-of-defun' and
+	`gdb-script-end-of-defun' as *-of-defun-function.
+
 2004-10-13  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* button.el (button-activate): Allow a marker to display as an action.
@@ -324,13 +331,6 @@
 
 	* help.el (describe-mode): Use it to make minor mode list into
 	hyperlinks.
-
-2004-10-14  Masatake YAMATO  <jet@gyve.org>
-
-	* progmodes/gud.el (gdb-script-beginning-of-defun): New function.
-	(gdb-script-end-of-defun): New function.
-	(gdb-script-mode): Use `gdb-script-beginning-of-defun' and
-	`gdb-script-end-of-defun' as *-of-defun-function.
 
 2004-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -635,15 +635,6 @@
 	* diff-mode.el (diff-file-header-re): Tighten up regexp a tiny bit.
 	(diff-fixup-modifs): Catch unified-diff file-headers.
 
-2004-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* dired.el (dired-view-command-alist): Use more efficient regexps.
-	Remove dubious arguments.
-	(dired-align-file): New function.
-	(dired-insert-directory): Use it.
-	(dired-move-to-end-of-filename): Make the " -> " search more specific.
-	(dired-buffers-for-dir): Remove unused var `pattern'.
-
 2004-09-29  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/gdb-ui.el (breakpoint): Define as fringe bitmap.
@@ -652,6 +643,15 @@
 
 	* fringe.el (fringe-bitmap-p): New macro.
 	(fringe-bitmaps): Add standard fringe bitmaps on load.
+
+2004-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.el (dired-view-command-alist): Use more efficient regexps.
+	Remove dubious arguments.
+	(dired-align-file): New function.
+	(dired-insert-directory): Use it.
+	(dired-move-to-end-of-filename): Make the " -> " search more specific.
+	(dired-buffers-for-dir): Remove unused var `pattern'.
 
 2004-09-28  Matthew Mundell  <matt@mundell.ukfsn.org>  (tiny change)
 
@@ -791,7 +791,7 @@
 
 	* calc/calc-graph.el (calc-graph-add-curve): Moved the call to
 	`calc-graph-set-styles' so the gnuplot buffer will appear in a
-	separate window. 
+	separate window.
 
 2004-09-21  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -808,7 +808,7 @@
 	fixed.
 
 2004-09-21  Jay Belanger  <belanger@truman.edu>
-	
+
 	* calc/calc.el (calc-mode-var-list): Removed unnecessary quotes.
 
 2004-09-20  Luc Teirlinck  <teirllm@auburn.edu>
@@ -899,8 +899,8 @@
 2004-09-17  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc-mode-var-list): Fixed the value of
-	`calc-matrix-brackets'. 
-	
+	`calc-matrix-brackets'.
+
 2004-09-17  Romain Francoise  <romain@orebokech.com>
 
 	* ibuf-ext.el (define-ibuffer-filter filename):
