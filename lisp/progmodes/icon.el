@@ -46,7 +46,6 @@
     (define-key icon-mode-map "\e\C-e" 'end-of-icon-defun)
     (define-key icon-mode-map "\e\C-q" 'indent-icon-exp)
     (define-key icon-mode-map "\177" 'backward-delete-char-untabify)
-    (define-key icon-mode-map "\t" 'icon-indent-command)
   
     (define-key icon-mode-map [menu-bar] (make-sparse-keymap "Icon"))
     (define-key icon-mode-map [menu-bar icon]
@@ -187,8 +186,8 @@ with no args, if that value is non-nil."
   (setq comment-start-skip "# *")
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'icon-comment-indent)
+  (set (make-local-variable 'indent-line-function) 'icon-indent-line)
   ;; font-lock support
-  (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults  
 	'((icon-font-lock-keywords
 	   icon-font-lock-keywords-1 icon-font-lock-keywords-2)
@@ -211,12 +210,7 @@ with no args, if that value is non-nil."
 ;; This is used by indent-for-comment to decide how much to
 ;; indent a comment in Icon code based on its context.
 (defun icon-comment-indent ()
-  (if (looking-at "^#")
-      0	
-    (save-excursion
-      (skip-chars-backward " \t")
-      (max (if (bolp) 0 (1+ (current-column)))
-	   comment-column))))
+  (if (looking-at "^#") 0 comment-column))
 
 (defun electric-icon-brace (arg)
   "Insert character and correct line's indentation."
@@ -624,25 +618,20 @@ Returns nil if line starts inside a string, t if in a comment."
    (eval-when-compile
      (list
       ;; Fontify all type specifiers.
-      (cons 
-       (concat 
-	"\\<" (regexp-opt  '("null" "string" "co-expression" "table" "integer" 
-			     "cset"  "set" "real" "file" "list") t) 
-	"\\>") 
+      (cons
+       (regexp-opt  '("null" "string" "co-expression" "table" "integer"
+		      "cset"  "set" "real" "file" "list") 'words)
        'font-lock-type-face)
       ;; Fontify all keywords.
       ;;
       (cons 
-       (concat 
-	"\\<" 
-	(regexp-opt 
-	 '("break" "do" "next" "repeat" "to" "by" "else" "if" "not" "return" 
-	   "until" "case" "of" "while" "create" "every" "suspend" "default" 
-	   "fail" "record" "then") t)
-	"\\>")
+       (regexp-opt 
+	'("break" "do" "next" "repeat" "to" "by" "else" "if" "not" "return" 
+	  "until" "case" "of" "while" "create" "every" "suspend" "default" 
+	  "fail" "record" "then") 'words)
        'font-lock-keyword-face)
       ;; "end" "initial" 
-      (cons (concat "\\<" (regexp-opt '("end" "initial") t) "\\>")
+      (cons (regexp-opt '("end" "initial") 'words)
 	    'font-lock-builtin-face)
       ;; Fontify all system variables.
       (cons 
