@@ -806,7 +806,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		    carryover = nread;
 		    /* This is to make the above condition always
 		       fails in the future.  */
-		    saved_coding.type = coding_type_no_conversion;
+		    saved_coding.common_flags
+		      &= ~CODING_REQUIRE_DETECTION_MASK;
 		    continue;
 		  }
 
