@@ -1,6 +1,6 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
- * $HopeName: MMsrc!poolmvff.c(trunk.8) $
+ * $HopeName: MMsrc!poolmvff.c(trunk.9) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -17,7 +17,7 @@
 #include "mpscmvff.h"
 #include "dbgpool.h"
 
-SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.8) $");
+SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.9) $");
 
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */
@@ -140,6 +140,10 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
   /* but the CBS doesn't provide that facility. */
 
   arena = PoolArena(MVFFPool(mvff));
+
+  if(AddrOffset(base, limit) < ArenaAlign(arena))
+    return; /* no whole pages -> no entire segments */
+
   b = SegOfAddr(&seg, arena, base);
   AVER(b);
 
