@@ -1,3 +1,12 @@
+2001-07-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (compute_line_metrics): On ttys, subtract continuation
+	glyphs and truncation glyphs at the end of a row from its pixel
+	width.
+	(dump_glyph_row): Print row's continuation_lines_width.
+	(try_window_id): Take the shortcut if ZV is visible in the
+	window, but there are actually no changes at ZV.
+
 2001-07-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.h (x_free_dpy_colors): Add prototype.
