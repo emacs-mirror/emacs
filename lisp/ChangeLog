@@ -1,8 +1,10 @@
-2003-02-11  Kenichi Handa  <handa@m17n.org>
+2003-02-11  KAWABATA, Taichi  <kawabata@m17n.org>
 
 	* Makefile.in (DONTCOMPILE): Add malayalam.el and tamil.el.
 
 	* language/devan-util.el: Maintainer's mail address changed.
+	(devanagari-composable-pattern): Add DANDA character.
+	(dev-char-glyph): Add an entry for DANDA.
 
 	* language/devanagari.el: Maintainer's mail address changed.
 

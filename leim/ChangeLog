@@ -1,3 +1,13 @@
+2003-02-11  Kenichi Handa  <handa@m17n.org>
+
+	* quail/indian.el (punjabi-itrans, gujarati-itrans, oriya-itrans)
+	(bengali-itrans, assamese-itrans, telugu-itrans kannada-itrans)
+	(malayalam-itrans, tamil-itrans): New ITRANS based input methods.
+	(punjabi-inscript, gujarati-inscript, oriya-inscript)
+	(bengali-inscript, assamese-inscript, telugu-inscript)
+	(kannada-inscript, malayalam-inscript, tamil-inscript): New
+	INSCRIPT based input methods.
+
 2003-02-07  Kenichi Handa  <handa@m17n.org>
 
 	* quail/cyrillic.el: Update quail-package-alist (not
