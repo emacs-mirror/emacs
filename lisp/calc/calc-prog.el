@@ -1344,22 +1344,12 @@
 (defun calc-kbd-report (msg)
   (interactive "sMessage: ")
   (calc-wrapper
-   (let ((executing-kbd-macro nil)
-	 (defining-kbd-macro nil))
-     (math-working msg (calc-top-n 1)))))
+   (math-working msg (calc-top-n 1))))
 
 (defun calc-kbd-query (msg)
   (interactive "sPrompt: ")
   (calc-wrapper
-   (let ((executing-kbd-macro nil)
-	 (defining-kbd-macro nil))
-     (calc-alg-entry nil (and (not (equal msg "")) msg)))))
-
-
-
-
-
-
+   (calc-alg-entry nil (and (not (equal msg "")) msg))))
 
 ;;;; Logical operations.
 
