@@ -131,20 +131,31 @@ allocate_heap (void)
      size could be roughly double, so if we allow 4MB for the executable
      we will have plenty of room for expansion.
 
-     Thus we set the malloc heap base to 20MB.  Since Emacs now leaves
+     Thus we would like to set the malloc heap base to 20MB.  However,
+     Win95 refuses to allocate the heap starting at this address, so we
+     set the base to 27MB to make it happy.  Since Emacs now leaves
      28 bits available for pointers, this lets us use the remainder of
-     the region below the 256MB line for our malloc arena - 236MB is
-     still a pretty decent arena to play in! */
+     the region below the 256MB line for our malloc arena - 229MB is
+     still a pretty decent arena to play in!  */
 
-  unsigned long base = 0x01400000; /* 20MB */
+  unsigned long base = 0x01B00000;   /*  27MB */
   unsigned long end  = 1 << VALBITS; /* 256MB */
+  void *ptr = NULL;
 
-  reserved_heap_size = end - base;
-
-  return VirtualAlloc ((void *) base,
-		       get_reserved_heap_size (),
-		       MEM_RESERVE,
-		       PAGE_NOACCESS);
+#ifdef NTHEAP_PROBE_BASE
+  while (!ptr && (base < end))
+    {
+#endif
+      reserved_heap_size = end - base;
+      ptr = VirtualAlloc ((void *) base,
+			  get_reserved_heap_size (),
+			  MEM_RESERVE,
+			  PAGE_NOACCESS);
+#ifdef NTHEAP_PROBE_BASE
+      base += 0x00100000;  /* 1MB increment */
+    }
+#endif
+  return ptr;
 }
 
 
