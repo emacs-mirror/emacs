@@ -1854,7 +1854,17 @@ IT_menu_display (XMenu *menu, int y, int x, int *faces)
       p = text;
       *p++ = FAST_MAKE_GLYPH (' ', face);
       for (j = 0, q = menu->text[i]; *q; j++)
-	*p++ = FAST_MAKE_GLYPH (*q++, face);
+	{
+	  if (*q > 26)
+	    *p++ = FAST_MAKE_GLYPH (*q++, face);
+	  else	/* make '^x' */
+	    {
+	      *p++ = FAST_MAKE_GLYPH ('^', face);
+	      j++;
+	      *p++ = FAST_MAKE_GLYPH (*q++ + 64, face);
+	    }
+	}
+	    
       for (; j < width; j++)
 	*p++ = FAST_MAKE_GLYPH (' ', face);
       *p++ = FAST_MAKE_GLYPH (menu->submenu[i] ? 16 : ' ', face);
@@ -1891,6 +1901,7 @@ int
 XMenuAddPane (Display *foo, XMenu *menu, char *txt, int enable)
 {
   int len;
+  char *p;
 
   if (!enable)
     abort ();
@@ -1900,8 +1911,16 @@ XMenuAddPane (Display *foo, XMenu *menu, char *txt, int enable)
   menu->text[menu->count] = txt;
   menu->panenumber[menu->count] = ++menu->panecount;
   menu->count++;
-  if ((len = strlen (txt)) > menu->width)
+
+  /* Adjust length for possible control characters (which will
+     be written as ^x).  */
+  for (len = strlen (txt), p = txt; *p; p++)
+    if (*p < 27)
+      len++;
+
+  if (len > menu->width)
     menu->width = len;
+
   return menu->panecount;
 }
 
@@ -1912,6 +1931,7 @@ XMenuAddSelection (Display *bar, XMenu *menu, int pane,
 		   int foo, char *txt, int enable)
 {
   int len;
+  char *p;
 
   if (pane)
     if (!(menu = IT_menu_search_pane (menu, pane)))
@@ -1921,8 +1941,16 @@ XMenuAddSelection (Display *bar, XMenu *menu, int pane,
   menu->text[menu->count] = txt;
   menu->panenumber[menu->count] = enable;
   menu->count++;
-  if ((len = strlen (txt)) > menu->width)
+
+  /* Adjust length for possible control characters (which will
+     be written as ^x).  */
+  for (len = strlen (txt), p = txt; *p; p++)
+    if (*p < 27)
+      len++;
+
+  if (len > menu->width)
     menu->width = len;
+
   return XM_SUCCESS;
 }
 
