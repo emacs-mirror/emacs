@@ -2522,7 +2522,8 @@ x_set_tool_bar_lines (f, value, oldval)
      struct frame *f;
      Lisp_Object value, oldval;
 {
-  int delta, nlines;
+  int delta, nlines, root_height;
+  Lisp_Object root_window;
 
   /* Use VALUE only if an integer >= 0.  */
   if (INTEGERP (value) && XINT (value) >= 0)
@@ -2534,10 +2535,51 @@ x_set_tool_bar_lines (f, value, oldval)
   ++windows_or_buffers_changed;
 
   delta = nlines - FRAME_TOOL_BAR_LINES (f);
+
+  /* Don't resize the tool-bar to more than we have room for.  */
+  root_window = FRAME_ROOT_WINDOW (f);
+  root_height = XINT (XWINDOW (root_window)->height);
+  if (root_height - delta < 1)
+    {
+      delta = root_height - 1;
+      nlines = FRAME_TOOL_BAR_LINES (f) + delta;
+    }
+
   FRAME_TOOL_BAR_LINES (f) = nlines;
-  x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
-  do_pending_window_change (0);
+  x_change_window_heights (root_window, delta);
   adjust_glyphs (f);
+
+  /* We also have to make sure that the internal border at the top of
+     the frame, below the menu bar or tool bar, is redrawn when the
+     tool bar disappears.  This is so because the internal border is
+     below the tool bar if one is displayed, but is below the menu bar
+     if there isn't a tool bar.  The tool bar draws into the area
+     below the menu bar.  */
+  if (FRAME_W32_WINDOW (f) && FRAME_TOOL_BAR_LINES (f) == 0)
+    {
+      updating_frame = f;
+      clear_frame ();
+      clear_current_matrices (f);
+      updating_frame = NULL;
+    }
+
+  /* If the tool bar gets smaller, the internal border below it
+     has to be cleared.  It was formerly part of the display
+     of the larger tool bar, and updating windows won't clear it.  */
+  if (delta < 0)
+    {
+      int height = FRAME_INTERNAL_BORDER_WIDTH (f);
+      int width = PIXEL_WIDTH (f);
+      int y = nlines * CANON_Y_UNIT (f);
+
+      BLOCK_INPUT;
+      {
+        HDC hdc = get_frame_dc (f);
+        w32_clear_area (f, hdc, 0, y, width, height);
+        release_frame_dc (f, hdc);
+      }
+      UNBLOCK_INPUT;
+    }
 }
 
 
