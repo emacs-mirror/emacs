@@ -2264,17 +2264,8 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
       item_name[255] = 0;
 #if TARGET_API_MAC_CARBON
       {
-	CFStringRef string =
-	  CFStringCreateWithCString (NULL, item_name, kCFStringEncodingUTF8);
+	CFStringRef string = cfstring_create_with_utf8_cstring (item_name);
 
- 	if (string == NULL)
- 	  {
- 	    /* Failed to interpret as UTF8.  Fall back to Mac Roman.
- 	       Maybe wv->name is corrupted?  */
- 	    string = CFStringCreateWithCString (NULL, item_name,
- 						kCFStringEncodingMacRoman);
- 	  }
-	
 	SetMenuItemTextWithCFString (menu, pos, string);
 	CFRelease (string);
       }

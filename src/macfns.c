@@ -1932,8 +1932,7 @@ x_set_name (f, name, explicit)
       {
 #if TARGET_API_MAC_CARBON
 	CFStringRef windowTitle =
-	  CFStringCreateWithCString (NULL, SDATA (name),
-				     kCFStringEncodingUTF8);
+	  cfstring_create_with_utf8_cstring (SDATA (name));
 
 	SetWindowTitleWithCFString (FRAME_MAC_WINDOW (f), windowTitle);
 	CFRelease (windowTitle);
@@ -2015,8 +2014,7 @@ x_set_title (f, name, old_name)
       {
 #if TARGET_API_MAC_CARBON
 	CFStringRef windowTitle =
-	  CFStringCreateWithCString (NULL, SDATA (name),
-				     kCFStringEncodingUTF8);
+	  cfstring_create_with_utf8_cstring (SDATA (name));
 
 	SetWindowTitleWithCFString (FRAME_MAC_WINDOW (f), windowTitle);
 	CFRelease (windowTitle);
@@ -4246,8 +4244,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
     NavDialogRef dialogRef;
     NavTypeListHandle fileTypes = NULL;
     NavUserAction userAction;
-    CFStringRef message=NULL, client=NULL, saveName = NULL, ok = NULL;
-    CFStringRef title = NULL;
+    CFStringRef message=NULL, saveName = NULL;
     
     BLOCK_INPUT;
     /* No need for a callback function because we are modal */
@@ -4259,15 +4256,11 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
     options.optionFlags |= kNavSelectAllReadableItem;
     if (!NILP(prompt))
       {
-	message = CFStringCreateWithCStringNoCopy(NULL, SDATA(prompt),
-						  kCFStringEncodingUTF8, 
-						  kCFAllocatorNull);
+	message = cfstring_create_with_utf8_cstring (SDATA (prompt));
 	options.message = message;
       }
     /* Don't set the application, let it use default.
-    client = CFStringCreateWithCStringNoCopy(NULL, "Emacs", 
-					     kCFStringEncodingMacRoman, NULL);
-    options.clientName = client;
+    options.clientName = CFSTR ("Emacs");
     */
 
     if (!NILP (only_dir_p))
@@ -4276,17 +4269,14 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
     else if (NILP (mustmatch)) 
       { 
 	/* This is a save dialog */
-	ok = CFStringCreateWithCString (NULL, "Ok", kCFStringEncodingUTF8);
-	title = CFStringCreateWithCString (NULL, "Enter name",
-	                                   kCFStringEncodingUTF8);
 	options.optionFlags |= kNavDontConfirmReplacement;
-	options.actionButtonLabel = ok;
-	options.windowTitle = title;
+	options.actionButtonLabel = CFSTR ("Ok");
+	options.windowTitle = CFSTR ("Enter name");
 
 	if (!NILP(default_filename))
 	  {
-	    saveName = CFStringCreateWithCString(NULL, SDATA(default_filename),
-						 kCFStringEncodingUTF8);
+	    saveName =
+	      cfstring_create_with_utf8_cstring (SDATA (default_filename));
 	    options.saveFileName = saveName;
 	    options.optionFlags |= kNavSelectDefaultLocation;
 	  }
@@ -4320,10 +4310,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
     }
 
     if (saveName) CFRelease(saveName);
-    if (client) CFRelease(client);
     if (message) CFRelease(message);
-    if (ok) CFRelease(ok);
-    if (title) CFRelease(title);
 
     if (status == noErr) {
       userAction = NavDialogGetUserAction(dialogRef);

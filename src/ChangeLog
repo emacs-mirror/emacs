@@ -1,3 +1,17 @@
+2004-12-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.h (cfstring_create_with_utf8_cstring): Added prototype.
+	* image.c (image_load_quartz2d): Use
+	cfstring_create_with_utf8_cstring
+	* macmenu.c (add_menu_item): Use
+	cfstring_create_with_utf8_cstring
+	* macfns.c (x_set_name, x_set_title): Use
+	cfstring_create_with_utf8_cstring
+	(Fx_file_dialog): Use cfstring_create_with_utf8_cstring and use
+	constant CFRefs instead of creating them each time for labels.
+	* mac.c (cfstring_create_with_utf8_cstring): Added to prevent
+	crashes with invalid characters.
+
 2004-12-02  Richard M. Stallman  <rms@gnu.org>
 
 	* config.in (RE_TRANSLATE_P): If make_number is not a macro,
