@@ -1267,6 +1267,10 @@ enum face_id
   TOOL_BAR_FACE_ID,
   BITMAP_AREA_FACE_ID,
   HEADER_LINE_FACE_ID,
+  SCROLL_BAR_FACE_ID,
+  BORDER_FACE_ID,
+  CURSOR_FACE_ID,
+  MOUSE_FACE_ID,
   BASIC_FACE_ID_SENTINEL
 };
 
@@ -2076,6 +2080,8 @@ void init_sigio P_ ((int));
 
 /* Defined in xface.c */
 
+void update_face_from_frame_parameter P_ ((struct frame *, Lisp_Object,
+					   Lisp_Object));
 char *x_charset_registry P_ ((int));
 void clear_face_cache P_ ((int));
 unsigned long load_color P_ ((struct frame *, struct face *, Lisp_Object,
