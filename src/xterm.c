@@ -6786,7 +6786,14 @@ x_load_font (f, fontname, size)
       fontp->full_name = fontp->name;
 
     fontp->size = font->max_bounds.width;
-    fontp->height = font->max_bounds.ascent + font->max_bounds.descent;
+    fontp->height = FONT_HEIGHT (font);
+    {
+      /* For some font, ascent and descent in max_bounds field is
+	 larger than the above value.  */
+      int max_height = font->max_bounds.ascent + font->max_bounds.descent;
+      if (max_height > fontp->height)
+	fontp->height > max_height;
+    }
 
     if (NILP (font_names))
       {
