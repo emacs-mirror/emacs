@@ -1,3 +1,10 @@
+1999-12-10  Jonathan Kamens <jik@kamens.brookline.ma.us>
+
+	* rmail.texi: POP server may be specified as part of the mailbox
+	name.
+
+	* gnus.texi: POP server may be specified in nnmail-spool-file.
+
 1999-11-24  Michael Kifer <kifer@cs.sunysb.edu>
 	
 	* ediff.texi: Describe the new format for

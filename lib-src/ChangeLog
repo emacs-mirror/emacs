@@ -1,3 +1,8 @@
+1999-12-10  Jonathan Kamens <jik@kamens.brookline.ma.us>
+
+	* movemail.c (popmail): Allow mailbox specifications of the
+	form `po:username:hostname'.
+
 1999-11-19  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
 
 	* etags.c (_GNU_SOURCE): Define only if undefined.
