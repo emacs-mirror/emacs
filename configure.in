@@ -2139,6 +2139,8 @@ if test "${HAVE_CARBON}" = "yes"; then
       * ) carbon_appdir=${carbon_appdir_x} ;;
     esac
   fi
+  # We also have mouse menus.
+  HAVE_MENUS=yes
 fi
 
 ### Use session management (-lSM -lICE) if available
@@ -2604,7 +2606,6 @@ AH_BOTTOM([
 #ifdef HAVE_CARBON
 #define HAVE_WINDOW_SYSTEM
 #define HAVE_MOUSE
-#define HAVE_MENUS
 #endif
 
 /* Define USER_FULL_NAME to return a string
