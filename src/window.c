@@ -2897,7 +2897,7 @@ unless the window is the selected window and the optional second\n\
 argument NOT-THIS-WINDOW is non-nil (interactively, with prefix arg).\n\
 If `pop-up-frames' is non-nil, make a new frame if no window shows BUFFER.\n\
 Returns the window displaying BUFFER.\n\
-If `display-reuse-frames' is non-nil, and another frame is currently\n\
+If `display-buffer-reuse-frames' is non-nil, and another frame is currently\n\
 displaying BUFFER, then simply raise that frame.\n\
 \n\
 The variables `special-display-buffer-names', `special-display-regexps',\n\
