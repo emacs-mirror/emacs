@@ -1,3 +1,9 @@
+2000-07-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/kkc.el (kkc-after-update-conversion-functions):
+	New variable.
+	(kkc-update-conversion): Run functions in it at the tail.
+
 2000-07-16  John Wiegley  <johnw@gnu.org.
 
 	* lisp/align.el (align-newline-and-indent): Adding new function
