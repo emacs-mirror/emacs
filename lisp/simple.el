@@ -667,6 +667,9 @@ then call `undo-more' one or more times to undo them."
 (defvar shell-command-history nil
   "History list for some commands that read shell commands.")
 
+(defvar shell-command-switch "-c"
+  "Switch used to have the shell execute its command line argument.")
+
 (defun shell-command (command &optional output-buffer)
   "Execute string COMMAND in inferior shell; display output, if any.
 If COMMAND ends in ampersand, execute it asynchronously.
@@ -691,7 +694,7 @@ In either case, the output is inserted after point (leaving mark after it)."
 	     ;; non-interactively.  Besides, if someone wants their other
 	     ;; aliases for shell commands then they can still have them.
 	     (call-process shell-file-name nil t nil
-			   "-c" command)
+			   shell-command-switch command)
 	     ;; This is like exchange-point-and-mark, but doesn't activate the mark.
 	     ;; It is cleaner to avoid activation, even though the command
 	     ;; loop would deactivate the mark because we inserted text.
@@ -722,7 +725,8 @@ In either case, the output is inserted after point (leaving mark after it)."
 		  (display-buffer buffer)
 		  (setq default-directory directory)
 		  (setq proc (start-process "Shell" buffer 
-					    shell-file-name "-c" command))
+					    shell-file-name 
+					    shell-command-switch command))
 		  (setq mode-line-process '(":%s"))
 		  (set-process-sentinel proc 'shell-command-sentinel)
 		  (set-process-filter proc 'shell-command-filter)
@@ -800,7 +804,7 @@ In either case, the output is inserted after point (leaving mark after it)."
 	;; unless called interactively.
 	(and interactive (push-mark))
 	(call-process-region start end shell-file-name t t nil
-			     "-c" command)
+			     shell-command-switch command)
 	(let ((shell-buffer (get-buffer "*Shell Command Output*")))
 	  (and shell-buffer (not (eq shell-buffer (current-buffer)))
 	       (kill-buffer shell-buffer)))
@@ -820,7 +824,7 @@ In either case, the output is inserted after point (leaving mark after it)."
 		     (delete-region (point-min) start)
 		     (call-process-region (point-min) (point-max)
 					  shell-file-name t t nil
-					  "-c" command)
+					  shell-command-switch command)
 		     (setq success t))
 	    ;; Clear the output buffer, then run the command with output there.
 	    (save-excursion
@@ -829,7 +833,7 @@ In either case, the output is inserted after point (leaving mark after it)."
 	      (erase-buffer))
 	    (call-process-region start end shell-file-name
 				 nil buffer nil
-				 "-c" command)
+				 shell-command-switch command)
 	    (setq success t))
 	;; Report the amount of output.
 	(let ((lines (save-excursion
