@@ -1655,7 +1655,7 @@ selection_data_to_lisp_data (display, data, size, type, format)
 
 	  if (SYMBOLP (coding.post_read_conversion)
 	      && !NILP (Ffboundp (coding.post_read_conversion)))
-	    str = run_pre_post_conversion_on_str (str, coding, 0);
+	    str = run_pre_post_conversion_on_str (str, &coding, 0);
 	  Vlast_coding_system_used = coding.symbol;
 	}
       compose_chars_in_text (0, XSTRING (str)->size, str);
