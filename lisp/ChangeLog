@@ -5,22 +5,28 @@
 	(describe-minor-mode-completion-table-for-indicator)
 	(describe-minor-mode-completion-table-for-symbol): New functions.
 	minor-mode-list is used here.
-	(describe-minor-mode-from-symbol): renamed
-	from (old) describe-minor-mode. Use 
-	describe-minor-mode-completion-table-for-symbol.
+	(describe-minor-mode-from-symbol):
+	Renamed from (old) describe-minor-mode.
+	Use describe-minor-mode-completion-table-for-symbol.
 	Don't use eval. Just use symbol-name.
 	(describe-minor-mode-from-indicator): Document is updated.
-	Use `format-mode-line'. Use
-	describe-minor-mode-from-symbol instead of
-	describe-minor-mode. 
+	Use `format-mode-line'.
+	Use describe-minor-mode-from-symbol instead of describe-minor-mode.
 	Use describe-minor-mode-completion-table-for-indicator.
-	(expand-minor-mode-indicator-object): removed.
-	(lookup-minor-mode-from-indicator): remove the fist white
+	(expand-minor-mode-indicator-object): Remove.
+	(lookup-minor-mode-from-indicator): Remove the fist white
 	space from both indicator and anindicator before comparing them.
 
 	* bindings.el (mode-line-major-mode-keymap)
-	(mode-line-minor-mode-keymap): defined keys for the maps
+	(mode-line-minor-mode-keymap): Define keys for the maps
 	here in `defvar'.
+
+2003-04-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* server.el (server-socket-name): Use new safe location for socket.
+	(server-ensure-safe-dir): New fun.
+	(server-start): Use it and letf.
+	(server-process-filter): Re-enable the -eval feature.
 
 2003-04-12  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
@@ -41,6 +47,10 @@
 	* help-fns.el (help-add-fundoc-usage): Pass an empty string to
 	`format' if no newlines are necessary.
 
+2003-04-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* bindings.el (global-map): Bind [select-window].
+
 2003-04-11  John Paul Wallington  <jpw@gnu.org>
 
 	* type-break.el (type-break-warning-countdown-string): Doc fix.
@@ -52,22 +62,19 @@
 
 2003-04-11  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/etags.el (select-tags-table-mode-map): 
+	* progmodes/etags.el (select-tags-table-mode-map):
 	Don't create new keymap. Instead copy from button-buffer-map.
 	Bind push-button to `t' instead of binding
 	select-tags-table-select directly
-	
-	* (tags-select-tags-table): New button.
-
- 	* progmodes/etags.el (select-tags-table): Put
-	a button for each selections.
+	(tags-select-tags-table): New button.
+	(select-tags-table): Put a button for each selections.
 
 2003-04-11  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule.el: Don't set
-	after-insert-file-adjust-coding-function.
-	(after-insert-file-set-coding): Renamed from
-	after-insert-file-set-buffer-file-coding-system.
+	* international/mule.el:
+	Don't set after-insert-file-adjust-coding-function.
+	(after-insert-file-set-coding):
+	Renamed from after-insert-file-set-buffer-file-coding-system.
 
 2003-04-11  Kenichi Handa  <handa@m17n.org>
 
@@ -78,8 +85,8 @@
 	(quail-kill-guidance-buf): Delete this function.
 	(quail-activate): Add/remove quail-show-guidance to/from
 	post-command-hook.
-	(quail-input-method): Don't setup quail-guidance-buf.  Initialize
-	quail-guidance-str to "".
+	(quail-input-method): Don't setup quail-guidance-buf.
+	Initialize quail-guidance-str to "".
 	(quail-start-translation): Call quail-show-guidance at first.
 	(quail-start-conversion): Likewise.
 	(quail-terminate-translation): Don't erase quail-guidance-buf.
@@ -88,13 +95,12 @@
 	(quail-update-current-translations): Check the width of the
 	current window, not the width of quail-guidance-win.
 	(quail-make-guidance-frame): Delete the arg BUF.  Fix position
-	calculation.  Don't set the window buffer, just return the new
-	frame.
+	calculation.  Don't set the window buffer, just return the new frame.
 	(quail-minibuffer-message): New function.
-	(quail-show-guidance): Renamed from quail-show-guidance-buf.  Use
-	message and quail-minibuffer-message to display the guidance.
-	(quail-hide-guidance): Renamed from quail-hide-guidance-buf.  Only
-	delete quail-guidance-frame.
+	(quail-show-guidance): Renamed from quail-show-guidance-buf.
+	Use message and quail-minibuffer-message to display the guidance.
+	(quail-hide-guidance): Renamed from quail-hide-guidance-buf.
+	Only delete quail-guidance-frame.
 	(quail-update-guidance): Just update quail-guidance-str, not
 	display it.
 	(quail-get-translations): Renamed from quail-show-translations.
@@ -117,8 +123,8 @@
 
 2003-04-10  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule.el: Set
-	after-insert-file-adjust-coding-function to
+	* international/mule.el:
+	Set after-insert-file-adjust-coding-function to
 	after-insert-file-set-buffer-file-coding-system instead of adding
 	it to after-insert-file-functions.
 
@@ -146,8 +152,7 @@
 
 2003-04-09  Kenichi Handa  <handa@m17n.org>
 
-	* international/fontset.el: Specify rescale ratio 1.3 for CDAC
-	fonts.
+	* international/fontset.el: Specify rescale ratio 1.3 for CDAC fonts.
 
 	* international/mule-conf.el: Register ?\221 and ?\226 in
 	latin-extra-code-table.
@@ -171,10 +176,10 @@
 
 2003-04-09  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-diag.el (print-coding-system-briefly): If
-	DOC-STRING is `tightly', print the doc-string tightly.
-	(list-coding-systems-1): Sort coding systems.  Call
-	print-coding-system-briefly with the arg DOC-STRING `tightly'.
+	* international/mule-diag.el (print-coding-system-briefly):
+	If DOC-STRING is `tightly', print the doc-string tightly.
+	(list-coding-systems-1): Sort coding systems.
+	Call print-coding-system-briefly with the arg DOC-STRING `tightly'.
 
 2003-04-08  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
@@ -190,8 +195,7 @@
 
 2003-04-08  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-conf.el: Register ?\225 in
-	latin-extra-code-table.
+	* international/mule-conf.el: Register ?\225 in latin-extra-code-table.
 
 	* international/utf-16.el (utf-16-le-decode-loop)
 	(utf-16-be-decode-loop): New temporary variables.
@@ -254,7 +258,7 @@
 	file format.
 	(desktop-create-buffer-form): Variable deleted.
 	(desktop-save): New customizable variable.
-	(desktop-kill): Changed to use `desktop-save'.
+	(desktop-kill): Use `desktop-save'.
 	(desktop-file-name-format): New option: format in
 	which desktop file names should be saved.
 	(desktop-file-name): New function to convert a filename to the
@@ -269,19 +273,19 @@
 	ro     -> desktop-buffer-read-only
 	locals -> desktop-buffer-locals
 	(desktop-buffer-major-mode, desktop-buffer-file-name)
-	(desktop-buffer-name): Unused customizable variables deleted.
-	(desktop-buffer-misc): Unused variable deleted.
+	(desktop-buffer-name): Delete unused customizable variables.
+	(desktop-buffer-misc): Delete unused variable.
 	(desktop-save, desktop-buffer-dired-misc-data):
 	Use `desktop-file-name'.
 	(desktop-path): New customizable variable.  List of directories in
-	which to lookup the desktop file. Replaces hardcoded list.
+	which to lookup the desktop file.  Replaces hardcoded list.
 	(desktop-globals-to-clear): New variable replaces hardcoded list.
 	(desktop-clear-preserve-buffers-regexp): New customizable variable.
 	(desktop-after-read-hook): New hook run after a desktop is read.
 	(desktop-no-desktop-file-hook): New hook when no desktop file found.
 	(desktop-change-dir): New function.
-	(desktop-save-in-load-dir): New function. Save desktop in
-	directory from witch it was loaded.
+	(desktop-save-in-load-dir): New function.  Save desktop in
+	directory from which it was loaded.
 	(desktop-revert): New function. Revert to the last loaded desktop.
 
 2003-04-06  Masatake YAMATO  <jet@gyve.org>
@@ -289,8 +293,8 @@
 	* progmodes/etags.el (tag-find-file-of-tag): Renamed from
 	find-file-of-tag to avoid name space pollution.
 	(tag-find-file-of-tag-noselect): Likewise.
-	(etags-list-tags, etags-tags-apropos): Use
-	tag-find-file-of-tag instead of find-file-of-tag.
+	(etags-list-tags, etags-tags-apropos):
+	Use tag-find-file-of-tag instead of find-file-of-tag.
 
 2003-04-06  Masatake YAMATO  <jet@gyve.org>
 
