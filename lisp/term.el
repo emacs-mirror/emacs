@@ -4,7 +4,7 @@
 
 ;;; Author: Per Bothner <bothner@cygnus.com>
 ;;; Based on comint mode written by: Olin Shivers <shivers@cs.cmu.edu>
-;;; Keyword: processes
+;;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
 
@@ -393,6 +393,8 @@
 ;; so it is important to increase it if there are protocol-relevant changes.
 (defconst term-protocol-version "0.95")
 
+(eval-when-compile
+  (require 'ange-ftp))
 (require 'ring)
 (require 'ehelp)
 
