@@ -315,8 +315,9 @@ This should be bound to a mouse drag event."
     (if (numberp (posn-point posn))
 	(goto-char (posn-point posn)))
     ;; If mark is highlighted, no need to bounce the cursor.
-    (or (and transient-mark-mode
-	     (framep (selected-frame)))
+    ;; On X, we highlight while dragging, thus once again no need to bounce.
+    (or transient-mark-mode
+	(eq (framep (selected-frame)) 'x)
 	(sit-for 1))
     (push-mark)
     (set-mark (point))
