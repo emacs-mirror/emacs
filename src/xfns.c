@@ -2517,6 +2517,20 @@ x_set_name (f, name, explicit)
 	int bytes, stringp;
 	Lisp_Object coding_system;
 
+	/* Note: Encoding strategy
+
+	   We encode NAME by compound-text and use "COMPOUND-TEXT" in
+	   text.encoding.  But, there are non-internationalized window
+	   managers which don't support that encoding.  So, if NAME
+	   contains only ASCII and 8859-1 characters, encode it by
+	   iso-latin-1, and use "STRING" in text.encoding hoping that
+	   such window manager at least analize this format correctly,
+	   i.e. treat 8-bit bytes as 8859-1 characters.
+
+	   We may also be able to use "UTF8_STRING" in text.encoding
+	   in the feature which can encode all Unicode characters.
+	   But, for the moment, there's no way to know that the
+	   current window manager supports it or not.  */
 	coding_system = Qcompound_text;
 	text.value = x_encode_text (name, coding_system, 0, &bytes, &stringp);
 	text.encoding = (stringp ? XA_STRING
@@ -2530,6 +2544,7 @@ x_set_name (f, name, explicit)
 	  }
 	else
 	  {
+	    /* See the above comment "Note: Encoding strategy".  */
 	    icon.value = x_encode_text (f->icon_name, coding_system, 0,
 					&bytes, &stringp);
 	    icon.encoding = (stringp ? XA_STRING
@@ -2630,6 +2645,7 @@ x_set_title (f, name, old_name)
 	Lisp_Object coding_system;
 
 	coding_system = Qcompound_text;
+	/* See the comment "Note: Encoding strategy" in x_set_name.  */
 	text.value = x_encode_text (name, coding_system, 0, &bytes, &stringp);
 	text.encoding = (stringp ? XA_STRING
 			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
@@ -2642,6 +2658,7 @@ x_set_title (f, name, old_name)
 	  }
 	else
 	  {
+	    /* See the comment "Note: Encoding strategy" in x_set_name.  */
 	    icon.value = x_encode_text (f->icon_name, coding_system, 0,
 					&bytes, &stringp);
 	    icon.encoding = (stringp ? XA_STRING
