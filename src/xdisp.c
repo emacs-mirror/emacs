@@ -17923,8 +17923,11 @@ compute_overhangs_and_x (s, x, backward_p)
 		 abort ();						   \
 	       }							   \
 									   \
-             set_glyph_string_background_width (s, START, LAST_X);	   \
-	     (X) += s->width;						   \
+	     if (s)							   \
+	       {							   \
+		 set_glyph_string_background_width (s, START, LAST_X);	   \
+	         (X) += s->width;					   \
+	       }							   \
             }								   \
        }								   \
      while (0)
@@ -18819,7 +18822,12 @@ x_produce_glyphs (it)
 	 here we check only the font of the first glyph.  This leads
 	 to incorrect display, but it's very rare, and C-l (recenter)
 	 can correct the display anyway.  */
-      if (cmp->font != (void *) font)
+      if (cmp->glyph_len == 0)
+	{
+	  cmp->lbearing = cmp->rbearing = 0;
+	  cmp->pixel_width = cmp->ascent = cmp->descent = 0;
+	}
+      else if (cmp->font != (void *) font)
 	{
 	  /* Ascent and descent of the font of the first character of
 	     this composition (adjusted by baseline offset).  Ascent
