@@ -520,8 +520,10 @@ The way to display the cursor.  The legitimate values are @code{bar},
 @code{box}, and @code{(bar . @var{width})}.  The symbol @code{box}
 specifies an ordinary black box overlaying the character after point;
 that is the default.  The symbol @code{bar} specifies a vertical bar
-between characters as the cursor.  @code{(bar . @var{width})} specifies
-a bar @var{width} pixels wide.
+between characters as the cursor.  @code{(bar . @var{width})}
+specifies a bar @var{width} pixels wide.  The symbol @code{hbar}
+specifies a horizontal bar, an underscore-like cursor.  @code{(hbar .
+@var{width})} specifiles a horizontal bar @var{width} pixels high.
 
 @vindex cursor-type
 The buffer-local variable @code{cursor-type} overrides the value of
