@@ -546,7 +546,7 @@ Faces are supported on terminals that can display color or fonts.
 These terminal capabilities are auto-detected.  Details can be found
 under Lisp changes, below.
 
-** New default font is Courier 12pt.
+** New default font is Courier 12pt under X.
 
 +++
 ** When using a windowing terminal, each Emacs window now has a cursor
