@@ -1,5 +1,11 @@
 2004-10-04  Kim F. Storm  <storm@cua.dk>
 
+	* xterm.c (XTset_vertical_scroll_bar): Improve handling of scroll
+	bars with fractional column width.  If scroll bar separates two
+	windows, move it towards the window it belongs to.  Only update
+	the padding area below the scroll bar widget when necessary,
+	i.e. when scroll bar widget is created, moved, or resized.
+
 	* xdisp.c (define_frame_cursor1): Do not change frame cursor
 	while tracking/dragging mouse.
 	(x_draw_vertical_border): Do not draw line if frame has scroll bars.
