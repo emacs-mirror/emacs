@@ -274,8 +274,16 @@ Loading an abbrev file sets this to t."
   :group 'abbrev)
 
 (defcustom find-file-run-dired t
-  "*Non-nil says run dired if `find-file' is given the name of a directory."
+  "*Non-nil means allow `find-file' to visit directories.
+To visit the directory, `find-file' runs `find-directory-functions'."
   :type 'boolean
+  :group 'find-file)
+
+(defcustom find-directory-functions '(cvs-dired-noselect dired-noselect)
+  "*List of functions to try in sequence to visit a directory.
+Each function is called with the directory name as the sole argument
+and should return either a buffer or nil."
+  :type '(hook :options (cvs-dired-noselect dired-noselect))
   :group 'find-file)
 
 ;;;It is not useful to make this a local variable.
@@ -936,11 +944,13 @@ that are visiting the various files."
 	(abbreviate-file-name
 	 (expand-file-name filename)))
   (if (file-directory-p filename)
-      (if find-file-run-dired
-	  (dired-noselect (if find-file-visit-truename
-			      (abbreviate-file-name (file-truename filename))
-			    filename))
-	(error "%s is a directory" filename))
+      (or (and find-file-run-dired
+	       (run-hook-with-args-until-success
+		'find-directory-functions
+		(if find-file-visit-truename
+		    (abbreviate-file-name (file-truename filename))
+		  filename)))
+	  (error "%s is a directory" filename))
     (if (and wildcards
 	     find-file-wildcards
 	     (not (string-match "\\`/:" filename))
