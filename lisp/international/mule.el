@@ -202,7 +202,14 @@ A generic character can be used to index a char table (e.g. syntax-table)."
 
 (defmacro charset-list ()
   "Return list of charsets ever defined."
-  charset-list)
+  'charset-list)
+
+(defsubst generic-char-p (char)
+  "Return t if and only if CHAR is a generic character.
+See also the documentation of make-char."
+  (let ((l (split-char char)))
+    (and (or (= (nth 1 l) 0) (eq (nth 2 l) 0))
+	 (not (eq (car l) 'composition)))))
 
 ;; Coding-system staffs
 
@@ -512,7 +519,7 @@ is set to the returned value.
 		;; But eol-type is not yet set.
 		(setq local-eol nil))
 	    (if (null (eq (coding-system-type buffer-file-coding-system) t))
-		;; This is not automatic-conversion.
+		;; This is not `undecided'.
 		(progn
 		  (setq local-coding buffer-file-coding-system)
 		  (while (symbolp (get local-coding 'coding-system))
@@ -529,8 +536,8 @@ is set to the returned value.
 	    ;; But eol-type is not found.
 	    (setq found-eol nil))
 	(if (eq (coding-system-type coding) t)
-	    ;; This is automatic-conversion, which means nothing found
-	    ;; except for eol-type.
+	    ;; This is `undecided', which means nothing found except
+	    ;; for eol-type.
 	    (setq coding nil))
 
 	;; The local setting takes precedence over the found one.
@@ -544,27 +551,43 @@ is set to the returned value.
 
 (defun make-unification-table (&rest args)
   "Make a unification table (char table) from arguments.
-Each argument is a list of cons cells of characters.
-While unifying characters in the unification table, a character of
-the car part is unified to a character of the corresponding cdr part.
+Each argument is a list of the form (FROM . TO),
+where FROM is a character to be unified to TO.
 
-A characters can be a generic characters (see make-char).  In this case,
-all characters belonging to a generic character of the car part
-are unified to characters beloging to a generic characters of the
-corresponding cdr part without changing their position code(s)."
+FROM can be a generic character (see make-char).  In this case, TO is
+a generic character containing the same number of charcters or a
+oridinal character.  If FROM and TO are both generic characters, all
+characters belonging to FROM are unified to characters belonging to TO
+without changing their position code(s)."
   (let ((table (make-char-table 'character-unification-table))
 	revlist)
     (while args
       (let ((elts (car args)))
 	(while elts
-	  (let ((from (car (car elts)))
-		(to (cdr (car elts))))
-	    (if (or (not (integerp from)) (not (integerp to)))
-		(error "Invalid character pair (%s . %s)" from to))
-	    ;; If we have already unified TO to some char, FROM should
-	    ;; also be unified to the same char.
-	    (setq to (or (aref table to) to))
-	    (aset table from to)
+	  (let* ((from (car (car elts)))
+		 (from-i 0)		; degree of freedom of FROM
+		 (from-rev (nreverse (split-char from)))
+		 (to (cdr (car elts)))
+		 (to-i 0)		; degree of freedom of TO
+		 (to-rev (nreverse (split-char to))))
+	    ;; Check numbers of heading 0s in FROM-REV and TO-REV.
+	    (while (eq (car from-rev) 0)
+	      (setq from-i (1+ from-i) from-rev (cdr from-rev)))
+	    (while (eq (car to-rev) 0)
+	      (setq to-i (1+ to-i) to-rev (cdr to-rev)))
+	    (if (and (/= from-i to-i) (/= to-i 0))
+		(error "Invalid character pair (%d . %d)" from to))
+	    ;; If we have already unified TO to TO-ALT, FROM should
+	    ;; also be unified to TO-ALT.  But, this is only if TO is
+	    ;; a generic character or TO-ALT is not a generic
+	    ;; character.
+	    (let ((to-alt (aref table to)))
+	      (if (and to-alt
+		       (or (> to-i 0) (not (generic-char-p to-alt))))
+		  (setq to to-alt)))
+	    (if (> from-i 0)
+		(set-char-table-default table from to)
+	      (aset table from to))
 	    ;; If we have already unified some chars to FROM, they
 	    ;; should also be unified to TO.
 	    (let ((l (assq from revlist)))
