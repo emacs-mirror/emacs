@@ -6001,8 +6001,8 @@ run_pre_post_conversion_on_str (str, coding, encodep)
   buf->read_only = Qnil;
   buf->filename = Qnil;
   buf->undo_list = Qt;
-  buf->overlays_before = Qnil;
-  buf->overlays_after = Qnil;
+  buf->overlays_before = NULL;
+  buf->overlays_after = NULL;
 
   set_buffer_internal (buf);
   /* We must insert the contents of STR as is without
