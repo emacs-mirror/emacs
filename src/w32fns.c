@@ -9867,7 +9867,7 @@ w32_create_pixmap_from_bitmap_data (int width, int height, char *data)
 
   w1 = (width + 7) / 8;         /* nb of 8bits elt in X bitmap */
   w2 = ((width + 15) / 16) * 2; /* nb of 16bits elt in W32 bitmap */
-  bits = (char *) xmalloc (height * w2);
+  bits = (char *) alloca (height * w2);
   bzero (bits, height * w2);
   for (i = 0; i < height; i++)
     {
@@ -9876,7 +9876,6 @@ w32_create_pixmap_from_bitmap_data (int width, int height, char *data)
         *p++ = reflect_byte(*data++);
     }
   bmp = CreateBitmap (width, height, 1, 1, bits);
-  xfree (bits);
 
   return bmp;
 }
@@ -10292,7 +10291,17 @@ static int xpm_image_p P_ ((Lisp_Object object));
 static int xpm_load P_ ((struct frame *f, struct image *img));
 static int xpm_valid_color_symbols_p P_ ((Lisp_Object));
 
+/* Indicate to xpm.h that we don't have Xlib.  */
+#define FOR_MSW
+/* simx.h in xpm defines XColor and XImage differently than Emacs.  */
+#define XColor xpm_XColor
+#define XImage xpm_XImage
+#define PIXEL_ALREADY_TYPEDEFED
 #include "X11/xpm.h"
+#undef FOR_MSW
+#undef XColor
+#undef XImage
+#undef PIXEL_ALREADY_TYPEDEFED
 
 /* The symbol `xpm' identifying XPM-format images.  */
 
@@ -10346,6 +10355,26 @@ static struct image_type xpm_type =
 };
 
 
+/* XPM library details.  */
+
+DEF_IMGLIB_FN (XpmFreeAttributes);
+DEF_IMGLIB_FN (XpmCreateImageFromBuffer);
+DEF_IMGLIB_FN (XpmReadFileToImage);
+DEF_IMGLIB_FN (XImageFree);
+
+
+static int
+init_xpm_functions (library)
+     HMODULE library;
+{
+  LOAD_IMGLIB_FN (library, XpmFreeAttributes);
+  LOAD_IMGLIB_FN (library, XpmCreateImageFromBuffer);
+  LOAD_IMGLIB_FN (library, XpmReadFileToImage);
+  LOAD_IMGLIB_FN (library, XImageFree);
+
+  return 1;
+}
+
 /* Value is non-zero if COLOR_SYMBOLS is a valid color symbols list
    for XPM images.  Such a list must consist of conses whose car and
    cdr are strings.  */
@@ -10394,17 +10423,23 @@ xpm_load (f, img)
      struct frame *f;
      struct image *img;
 {
-  int rc, i;
+  HDC hdc;
+  int rc;
   XpmAttributes attrs;
   Lisp_Object specified_file, color_symbols;
+  xpm_XImage * xpm_image, * xpm_mask;
 
   /* Configure the XPM lib.  Use the visual of frame F.  Allocate
      close colors.  Return colors allocated.  */
   bzero (&attrs, sizeof attrs);
+  xpm_image = xpm_mask = NULL;
+
+#if 0
   attrs.visual = FRAME_X_VISUAL (f);
   attrs.colormap = FRAME_X_COLORMAP (f);
   attrs.valuemask |= XpmVisual;
   attrs.valuemask |= XpmColormap;
+#endif
   attrs.valuemask |= XpmReturnAllocPixels;
 #ifdef XpmAllocCloseColors
   attrs.alloc_close_colors = 1;
@@ -10452,34 +10487,71 @@ xpm_load (f, img)
 
   /* Create a pixmap for the image, either from a file, or from a
      string buffer containing data in the same format as an XPM file.  */
-  BLOCK_INPUT;
+
   specified_file = image_spec_value (img->spec, QCfile, NULL);
+  
+  {
+    HDC frame_dc = get_frame_dc (f);
+    hdc = CreateCompatibleDC (frame_dc);
+    release_frame_dc (f, frame_dc);
+  }
+
   if (STRINGP (specified_file))
     {
       Lisp_Object file = x_find_image_file (specified_file);
       if (!STRINGP (file))
 	{
 	  image_error ("Cannot find image file `%s'", specified_file, Qnil);
-          UNBLOCK_INPUT;
 	  return 0;
 	}
 
-      rc = XpmReadFileToPixmap (NULL, FRAME_W32_WINDOW (f),
-				SDATA (file), &img->pixmap, &img->mask,
-				&attrs);
+      /* XpmReadFileToPixmap is not available in the Windows port of
+	 libxpm.  But XpmReadFileToImage almost does what we want.  */
+      rc = fn_XpmReadFileToImage (&hdc, SDATA (file),
+				  &xpm_image, &xpm_mask,
+				  &attrs);
     }
   else
     {
       Lisp_Object buffer = image_spec_value (img->spec, QCdata, NULL);
-      rc = XpmCreatePixmapFromBuffer (NULL, FRAME_W32_WINDOW (f),
-				      SDATA (buffer),
-				      &img->pixmap, &img->mask,
-				      &attrs);
+      /* XpmCreatePixmapFromBuffer is not available in the Windows port
+	 of libxpm.  But XpmCreateImageFromBuffer almost does what we want.  */
+      rc = fn_XpmCreateImageFromBuffer (&hdc, SDATA (buffer),
+					&xpm_image, &xpm_mask,
+					&attrs);
     }
-  UNBLOCK_INPUT;
 
   if (rc == XpmSuccess)
     {
+      int i;
+
+      /* W32 XPM uses XImage to wrap what W32 Emacs calls a Pixmap,
+	 plus some duplicate attributes.  */
+      if (xpm_image && xpm_image->bitmap)
+	{
+	  img->pixmap = xpm_image->bitmap;
+	  /* XImageFree in libXpm frees XImage struct without destroying
+	     the bitmap, which is what we want.  */
+	  fn_XImageFree (xpm_image);
+	}
+      if (xpm_mask && xpm_mask->bitmap)
+	{	  
+	  /* The mask appears to be inverted compared with what we expect.
+	     TODO: invert our expectations.  See other places where we
+	     have to invert bits because our idea of masks is backwards.  */
+	  HGDIOBJ old_obj;
+	  old_obj = SelectObject (hdc, xpm_mask->bitmap);
+
+	  PatBlt (hdc, 0, 0, xpm_mask->width, xpm_mask->height, DSTINVERT);
+	  SelectObject (hdc, old_obj);
+
+	  img->mask = xpm_mask->bitmap;
+	  fn_XImageFree (xpm_mask);	  
+	  DeleteDC (hdc);
+	}
+
+      DeleteDC (hdc);
+
       /* Remember allocated colors.  */
       img->ncolors = attrs.nalloc_pixels;
       img->colors = (unsigned long *) xmalloc (img->ncolors
@@ -10492,12 +10564,12 @@ xpm_load (f, img)
       xassert (img->width > 0 && img->height > 0);
 
       /* The call to XpmFreeAttributes below frees attrs.alloc_pixels.  */
-      BLOCK_INPUT;
-      XpmFreeAttributes (&attrs);
-      UNBLOCK_INPUT;
+      fn_XpmFreeAttributes (&attrs);
     }
   else
     {
+      DeleteDC (hdc);
+
       switch (rc)
 	{
 	case XpmOpenFailed:
@@ -15734,7 +15806,12 @@ init_external_image_libraries ()
   HINSTANCE library;
 
 #if HAVE_XPM
-  define_image_type (&xpm_type);
+  if ((library = LoadLibrary ("libXpm.dll")))
+    {
+      if (init_xpm_functions (library))
+	define_image_type (&xpm_type);
+    }
+
 #endif
 
 #if HAVE_JPEG
