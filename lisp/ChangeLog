@@ -1,3 +1,19 @@
+2000-10-04  Peter Breton  <pbreton@ne.mediaone.net>
+
+	* find-lisp.el (find-lisp-find-files-internal): 
+	Make sure directory name ends with "/".
+
+	* generic-x.el (apache-conf-generic-mode): 
+	Regexp now allows leading whitespace.
+	(rc-generic-mode): Added eval-when-compile
+	around generic-make-keywords-list.
+	Deleted duplicate regexp
+	(rul-generic-mode): Added eval-when-compile
+	around generic-make-keywords-list.
+	(etc-fstab-generic-mode): New generic mode.
+	(rul-generic-mode): Removed one eval-when-compile
+	which caused a max-specpdl-size exceeded error.	
+
 2000-10-04  Miles Bader  <miles@gnu.org>
 
 	* simple.el (minibuffer-temporary-goal-position): New variable.
