@@ -749,9 +749,11 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; terminal init file.
   (or (memq window-system '(x w32))
       (not (tty-display-color-p))
-      (let* ((colors (if (eq window-system 'pc)
-			 msdos-color-values
-		       tty-standard-colors))
+      (let* ((colors (cond ((eq window-system 'pc)
+                            msdos-color-values)
+                           ((eq system-type 'windows-nt)
+                            w32-tty-standard-colors)
+                           (t tty-standard-colors)))
 	     (color (car colors)))
 	(while colors
 	  (tty-color-define (car color) (cadr color) (cddr color))
