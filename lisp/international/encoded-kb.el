@@ -177,7 +177,7 @@ The following key sequence may cause multilingual text insertion."
 	       ((= last-command-char ?\217)
 		(aset encoded-kbd-iso2022-invocations 2 3))
 
-	       ((> last-command-char ?\240)
+	       ((>= last-command-char ?\240)
 		(encoded-kbd-self-insert-iso2022-8bit))
 
 	       (t
