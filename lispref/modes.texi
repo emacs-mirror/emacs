@@ -283,7 +283,7 @@ If this mode is appropriate only for specially-prepared text, then the
 major mode command symbol should have a property named @code{mode-class}
 with value @code{special}, put on as follows:
 
-@cindex @code{mode-class} property
+@kindex mode-class @r{(property)}
 @cindex @code{special}
 @example
 (put 'funny-mode 'mode-class 'special)
