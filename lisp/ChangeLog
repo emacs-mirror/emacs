@@ -1,3 +1,9 @@
+2002-02-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* ielm.el (ielm-match-data): New var.
+	(inferior-emacs-lisp-mode): Make it buffer-local.
+	(ielm-eval-input): Use it to preserve match-data between inputs.
+
 2002-02-24  Juanma Barranquero  <jbarranquero@peoplecall.com>
 
 	* ielm.el (inferior-emacs-lisp-mode): Use hexl for the dummy process.
@@ -18,8 +24,7 @@
 
 2002-02-23  Colin Walters  <walters@debian.org>
 
-	* calc/calcalg3.el (calc-invent-variables): Convert integer to
-	string.
+	* calc/calcalg3.el (calc-invent-variables): Convert integer to string.
 	* calc/calcalg2.el (math-solve-get-sign): Ditto.
 
 	* ibuffer.el (ibuffer-compile-format): Don't uselessly bind `pt'
@@ -28,8 +33,7 @@
 	* ibuf-ext.el (ibuffer-old-time): Change to hours.
 	(ibuffer-mark-old-buffers): Handle it.
 
-	* shell.el (shell-pcomplete, shell-pcomplete-reverse): New
-	functions.
+	* shell.el (shell-pcomplete, shell-pcomplete-reverse): New functions.
 	(toplevel): Bind them.
 	(shell-mode): Don't set `comint-dynamic-complete-functions'; it is
 	not necessary now that we use pcomplete.
@@ -47,14 +51,14 @@
 
 2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* progmodes/etags.el (find-tag-noselect, find-tag) 
+	* progmodes/etags.el (find-tag-noselect, find-tag)
 	(find-tag-other-window, find-tag-other-frame, find-tag-regexp):
 	Fix a typo in doc strings.
 
 2002-02-20  Deepak Goel  <deego@glue.umd.edu>
 
 	* play/snake.el (snake-velocity-queue, snake-update-velocity)
-	(snake-final-x-velocity, snake-final-y-velocity): 
+	(snake-final-x-velocity, snake-final-y-velocity):
 	New variable and functions.  Store user's keypresses
 	into a queue and pop from the queue each subsequent turn.
 	(snake-update-game, snake-move-left)
@@ -62,7 +66,7 @@
 	(snake-start-game): Use that queue.
 	(snake-use-glyphs-flag): Renamed from snake-use-glyphs.
 	(snake-use-color-flag): Likewise.
-	(snake-mode): Rename uses of those variables.  
+	(snake-mode): Rename uses of those variables.
 
 2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -73,25 +77,23 @@
 	(compount-text-no-extensions): Renamed from compound-text.
 	(x-ctext-no-extensions, ctext-no-extensions): Aliases for
 	compound-text-no-extensions.
-	(compound-text): Redefined using post-read and pre-write
-	conversions.
+	(compound-text): Redefined using post-read and pre-write conversions.
 
 	* international/mule.el (non-standard-icccm-encodings-alist)
 	(non-standard-designations-alist): New variables.
-	(ctext-post-read-conversion, ctext-pre-write-conversion): New
-	functions.
+	(ctext-post-read-conversion, ctext-pre-write-conversion):
+	New functions.
 
 2002-02-21  Andre Spiegel  <spiegel@gnu.org>
 
 	Patch by Jonathan Kamens <jik@kamens.brookline.ma.us>.
-	
+
 	* vc.el (vc-default-init-version): Update documentation to
 	indicate that the backend can override the default init version.
 	(vc-register): Use the backend init-version function, if it
 	exists, to determine the initial version of a file.
 	(vc-diff-switches-list): Don't symbol-quote backend, since it's
-	already a symbol.  Don't fail if vc-BACKEND-diff-switches isn't
-	bound.
+	already a symbol.  Don't fail if vc-BACKEND-diff-switches isn't bound.
 
 	* vc-hooks.el (vc-mode-line): Set vc-mode to nil if the file is
 	not version-controlled.  This is necessary, e.g., if the file has
@@ -102,7 +104,7 @@
 2002-02-21  Andre Spiegel  <spiegel@gnu.org>
 
 	Patch by Martin.Lorentzson@telia.com.
-	
+
 	* vc-cvs.el (vc-cvs-sticky-date-format-string): New variable.
 	(vc-cvs-sticky-tag-display): New variable.
 	(vc-cvs-mode-line-string): Add sticky-tag to the mode-line.
@@ -387,8 +389,8 @@
 
 	* register.el (describe-register-1): Access register contents here.
 
-	* textmodes/text-mode.el (text-mode-hook-identify): Restore
-	previous definition.  Add to text-mode-hook again.
+	* textmodes/text-mode.el (text-mode-hook-identify):
+	Restore previous definition.  Add to text-mode-hook again.
 
 	* mail/mailabbrev.el (define-mail-abbrev): Define as system abbrev.
 	(mail-abbrev-in-expansion-header-p): Copy the code of mail-header-end
@@ -405,14 +407,13 @@
 
 2002-02-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* progmodes/pascal.el (pascal-imenu-generic-expression): Add
-	menu-title and fix parentheses.
+	* progmodes/pascal.el (pascal-imenu-generic-expression):
+	Add menu-title and fix parentheses.
 
 2002-02-12  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* menu-bar.el (menu-bar-options-save): Removed `truncate-lines'.
-	(menu-bar-options-menu): Don't set default value for
-	`truncate-lines'.
+	(menu-bar-options-menu): Don't set default value for `truncate-lines'.
 
 2002-02-12  Per Abrahamsen  <abraham@dina.kvl.dk>
 
@@ -421,10 +422,10 @@
 	marked as customized.
 
 	* international/mule-cmds.el
-	(setup-specified-language-environment): Mark
-	`current-language-environment' as customized.
-	(set-input-method): Mark
-	`default-input-method' as customized when called interactively.
+	(setup-specified-language-environment):
+	Mark `current-language-environment' as customized.
+	(set-input-method): Mark `default-input-method' as customized when
+	called interactively.
 	(toggle-input-method): Ditto.
 
 2002-02-11  Colin Walters  <walters@verbum.org>
@@ -448,7 +449,7 @@
 	(menu-bar-showhide-menu): Ditto.
 	(menu-bar-options-menu): Ditto.
 	(menu-bar-scroll-bar-right, menu-bar-scroll-bar-left)
-	(menu-bar-scroll-bar-none): Removed.
+	(menu-bar-scroll-bar-none): Remove.
 	(menu-bar-showhide-scroll-bar-menu): Use customize aware lambda
 	expressions instead.
 
@@ -456,7 +457,7 @@
 	(customize-set-variable): Ditto.
 	(customize-save-variable): Ditto.
 	(customize-set-variable): Load dependencies before setting value.
-        (custom-load-symbol): Autoload it.
+	(custom-load-symbol): Autoload it.
 	(customize-mark-as-set): New function.
 
 2002-02-11  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -471,9 +472,8 @@
 	(strokes-help): Do not use doubled with-output-to-temp-buffer.
 	Fix the help string.
 	(strokes-prompt-user-save-strokes): Fix typo.
-	(strokes-list-strokes): Use proper exit-actionargument for
-	view-buffer.
-	Update copyright notice.
+	(strokes-list-strokes): Use proper exit-action argument for
+	view-buffer.  Update copyright notice.
 
 	* international/mule-diag.el: Various doc and message fixes.
 	(non-iso-charset-alist): Add mac-roman.  Don't add entries for
@@ -492,27 +492,26 @@
 
 2002-02-10  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* menu-bar.el (menu-bar-showhide-menu): Rename functions for
-	toggling.
+	* menu-bar.el (menu-bar-showhide-menu): Rename functions for toggling.
 
 2002-02-10  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-util.el (viper-read-key-sequence): fixed so it'll read
+	* viper-util.el (viper-read-key-sequence): Fix so it'll read
 	fast key sequences in emacs native mode
-	(viper-events-to-keys): deleted
+	(viper-events-to-keys): Delete.
 
-	* viper.el (describe-key, describe-key-briefly): get rid of
+	* viper.el (describe-key, describe-key-briefly): Get rid of
 	viper-events-to-keys.
 
 	* ediff-init.el (ediff-has-gutter-support): Steven Turnbull's patch.
 
-	* ediff-wind.el (ediff-setup-control-frame): Use
-	ediff-has-gutter-support.
+	* ediff-wind.el (ediff-setup-control-frame):
+	Use ediff-has-gutter-support.
 
 	* ediff-util.el (ediff-dispose-of-variant-according-to-user):
 	check if buff is alive.
 
-	* ediff.el: typo in comment.
+	* ediff.el: Typo in comment.
 
 2002-02-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
