@@ -841,7 +841,7 @@ DEFUN ("set-process-window-size", Fset_process_window_size,
   CHECK_NATNUM (height, 0);
   CHECK_NATNUM (width, 0);
   if (set_window_size (XINT (XPROCESS (process)->infd),
-		       XINT (height), XINT(width)) <= 0)
+		       XINT (height), XINT (width)) <= 0)
     return Qnil;
   else
     return Qt;
@@ -1815,15 +1815,22 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 {
   Lisp_Object proc;
   register int i;
+
+#ifndef HAVE_GETADDRINFO
   struct sockaddr_in address;
   struct servent *svc_info;
   struct hostent *host_info_ptr, host_info;
   char *(addr_list[2]);
   IN_ADDR numeric_addr;
-  int s, outch, inch;
-  char errstring[80];
-  int port;
   struct hostent host_info_fixed;
+  int port;
+#else /* ! HAVE_GETADDRINFO */
+  struct addrinfo hints, *res, *lres;
+  int ret = 0;
+  int xerrno = 0;
+  char *portstring, portbuf [128];
+#endif /* ! HAVE_GETADDRINFO */
+  int s, outch, inch;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int retry = 0;
   int count = specpdl_ptr - specpdl;
@@ -1836,6 +1843,23 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   GCPRO4 (name, buffer, host, service);
   CHECK_STRING (name, 0);
   CHECK_STRING (host, 0);
+
+#ifdef HAVE_GETADDRINFO
+  /*
+   * SERVICE can either be a string or int.
+   * Convert to a C string for later use by getaddrinfo.
+   */
+  if (INTEGERP (service))
+    {
+      sprintf (portbuf, "%d", XINT (service));
+      portstring = portbuf;
+    }
+  else
+    {
+      CHECK_STRING (service, 0);
+      portstring = XSTRING (service)->data;
+    }
+#else /* ! HAVE_GETADDRINFO */
   if (INTEGERP (service))
     port = htons ((unsigned short) XINT (service));
   else
@@ -1846,6 +1870,8 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 	error ("Unknown service \"%s\"", XSTRING (service)->data);
       port = svc_info->s_port;
     }
+#endif /* ! HAVE_GETADDRINFO */
+
 
   /* Slow down polling to every ten seconds.
      Some kernels have a bug which causes retrying connect to fail
@@ -1855,6 +1881,91 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 #endif
 
 #ifndef TERM
+#ifdef HAVE_GETADDRINFO
+  {
+    immediate_quit = 1;
+    QUIT;
+    memset (&hints, 0, sizeof (hints));
+    hints.ai_flags = AI_NUMERICHOST;
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = 0;
+    ret = getaddrinfo (XSTRING (host)->data, portstring, &hints, &res);
+    if (!ret)	  /* numeric */
+      {
+	freeaddrinfo (res);
+	hints.ai_flags = AI_CANONNAME;
+      }
+    else	  /* non-numeric */
+      {
+	hints.ai_flags = 0;
+      }
+    ret = getaddrinfo (XSTRING (host)->data, portstring, &hints, &res);
+    if (ret)
+      {
+	error ("%s/%s %s", XSTRING (host)->data, portstring,
+	      gai_strerror (ret));
+      }
+    immediate_quit = 0;
+  }
+
+  for (lres = res; lres ; lres = lres->ai_next)
+    {
+      s = socket (lres->ai_family, lres->ai_socktype, lres->ai_protocol);
+      if (s < 0) 
+	report_file_error ("error creating socket", Fcons (name, Qnil));
+
+      /* Kernel bugs (on Ultrix at least) cause lossage (not just EINTR)
+	 when connect is interrupted.  So let's not let it get interrupted.
+	 Note we do not turn off polling, because polling is only used
+	 when not interrupt_input, and thus not normally used on the systems
+	 which have this bug.  On systems which use polling, there's no way
+	 to quit if polling is turned off.  */
+      if (interrupt_input)
+	unrequest_sigio ();
+
+  loop:
+
+      immediate_quit = 1;
+      QUIT;
+
+      ret = connect (s, lres->ai_addr, lres->ai_addrlen);
+
+      if (ret == -1 && errno != EISCONN)
+	{
+	  xerrno = errno;
+
+	  immediate_quit = 0;
+
+	  if (errno == EINTR)
+	    goto loop;
+	  if (errno == EADDRINUSE && retry < 20)
+	    {
+	      /* A delay here is needed on some FreeBSD systems,
+		 and it is harmless, since this retrying takes time anyway
+		 and should be infrequent.  */
+	      Fsleep_for (make_number (1), Qnil);
+	      retry++;
+	      goto loop;
+	    }
+
+	  close (s);
+	}
+      if (ret == 0)		/* We got a valid connect */
+	break;
+  } /* address loop */
+  freeaddrinfo (res);
+  if (ret != 0)
+    {
+      if (interrupt_input)
+	request_sigio ();
+
+      errno = xerrno;
+      report_file_error ("connection failed",
+			 Fcons (host, Fcons (name, Qnil)));
+    }
+#else /* ! HAVE_GETADDRINFO */
+
   while (1)
     {
 #ifdef TRY_AGAIN
@@ -1945,6 +2056,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       report_file_error ("connection failed",
 			 Fcons (host, Fcons (name, Qnil)));
     }
+#endif /* ! HAVE_GETADDRINFO */
 
   immediate_quit = 0;
 
@@ -2807,7 +2919,7 @@ read_process_output (proc, channel)
   if (vs)
     {
       if (!vs->iosb[0])
-	return(0);		/* Really weird if it does this */
+	return (0);		/* Really weird if it does this */
       if (!(vs->iosb[0] & 1))
 	return -1;		/* I/O error */
     }
