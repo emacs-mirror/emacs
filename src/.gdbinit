@@ -115,17 +115,17 @@ document xobjfwd
 Print $ as an object forwarding pointer, assuming it is an Emacs Lisp Misc value.
 end
 
-define xbuffer_objfwd
+define xbufobjfwd
 print (struct Lisp_Buffer_Objfwd *) (($ & 0x0fffffff) | $data_seg_bits)
 end
-document xbuffer_objfwd
+document xbufobjfwd
 Print $ as a buffer-local object forwarding pointer, assuming it is an Emacs Lisp Misc value.
 end
 
-define xbuffer_local_value
+define xbuflocal
 print (struct Lisp_Buffer_Local_Value *) (($ & 0x0fffffff) | $data_seg_bits)
 end
-document xbuffer_local_value
+document xbuflocal
 Print $ as a buffer-local-value pointer, assuming it is an Emacs Lisp Misc value.
 end
 
@@ -176,10 +176,10 @@ document xframe
 Print $ as a frame pointer, assuming it is an Emacs Lisp frame value.
 end
 
-define xwindow_configuration
+define xwinconfig
 print (struct save_window_data *) (($ & 0x0fffffff) | $data_seg_bits)
 end
-document xwindow_configuration
+document xwinconfig
 Print $ as a window configuration pointer, assuming it is an Emacs Lisp window configuration value.
 end
 
