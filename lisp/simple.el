@@ -530,7 +530,7 @@ code is shown in hex.  If the character is encoded into more than one
 byte, just \"...\" is shown.
 
 In addition, with prefix argument, show details about that character
-in *Help* buffer.  See also the command `describe-char-after'."
+in *Help* buffer.  See also the command `describe-char'."
   (interactive "P")
   (let* ((char (following-char))
 	 (beg (point-min))
@@ -570,7 +570,7 @@ in *Help* buffer.  See also the command `describe-char-after'."
 		  (format "(0%o, %d, 0x%x)" char char char))))
 	(if detail
 	    ;; We show the detailed information about CHAR.
-	    (describe-char-after (point)))
+	    (describe-char (point)))
 	(if (or (/= beg 1) (/= end (1+ total)))
 	    (message "Char: %s %s point=%d of %d (%d%%) <%d - %d> column %d %s"
 		     (if (< char 256)
