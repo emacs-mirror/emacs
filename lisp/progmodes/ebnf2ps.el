@@ -5,8 +5,9 @@
 ;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:   wp, ebnf, PostScript
-;; Time-stamp: <99/12/11 21:41:24 vinicius>
-;; Version:    3.1
+;; Time-stamp: <2000/07/29 13:09:47 vinicius>
+;; Version:    3.2
+;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/Emacs.html
 
 ;; This file is part of GNU Emacs.
 
@@ -25,8 +26,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-(defconst ebnf-version "3.1"
-  "ebnf2ps.el, v 3.1 <99/12/11 vinicius>
+(defconst ebnf-version "3.2"
+  "ebnf2ps.el, v 3.2 <2000/07/29 vinicius>
 
 Vinicius's last change version.  When reporting bugs, please also
 report the version of Emacs, if any, that ebnf2ps was running with.
@@ -49,8 +50,9 @@ Please send all bug fixes and enhancements to
 ;;
 ;;        (require 'ebnf2ps)
 ;;
-;; ebnf2ps uses ps-print package (version 3.05.1 or later), so see ps-print to
-;; know how to set options like landscape printing, page headings, margins, etc.
+;; ebnf2ps uses ps-print package (version 5.2.3 or later), so see ps-print to
+;; know how to set options like landscape printing, page headings, margins,
+;; etc.
 ;;
 ;; NOTE: ps-print zebra stripes and line number options doesn't have effect on
 ;;       ebnf2ps, they behave as it's turned off.
@@ -67,15 +69,15 @@ Please send all bug fixes and enhancements to
 ;; Using ebnf2ps
 ;; -------------
 ;;
-;; ebnf2ps provides six commands for generating PostScript syntatic chart images
-;; of Emacs buffers:
+;; ebnf2ps provides six commands for generating PostScript syntatic chart
+;; images of Emacs buffers:
 ;;
-;;        ebnf-print-buffer
-;;        ebnf-print-region
-;;        ebnf-spool-buffer
-;;        ebnf-spool-region
-;;        ebnf-eps-buffer
-;;        ebnf-eps-region
+;;	ebnf-print-buffer
+;;	ebnf-print-region
+;;	ebnf-spool-buffer
+;;	ebnf-spool-region
+;;	ebnf-eps-buffer
+;;	ebnf-eps-region
 ;;
 ;; These commands all perform essentially the same function: they generate
 ;; PostScript syntatic chart images suitable for printing on a PostScript
@@ -85,14 +87,14 @@ Please send all bug fixes and enhancements to
 ;; The word "print", "spool" and "eps" in the command name determines when the
 ;; PostScript image is sent to the printer (or file):
 ;;
-;;        print  - The PostScript image is immediately sent to the printer;
+;;	print  - The PostScript image is immediately sent to the printer;
 ;;
-;;        spool  - The PostScript image is saved temporarily in an Emacs buffer.
-;;                 Many images may be spooled locally before printing them.  To
-;;                 send the spooled images to the printer, use the command
-;;                 `ebnf-despool'.
+;;	spool  - The PostScript image is saved temporarily in an Emacs buffer.
+;;		 Many images may be spooled locally before printing them.  To
+;;		 send the spooled images to the printer, use the command
+;;		 `ebnf-despool'.
 ;;
-;;        eps    - The PostScript image is immediately sent to a EPS file.
+;;	eps    - The PostScript image is immediately sent to a EPS file.
 ;;
 ;; The spooling mechanism is the same as used by ps-print and was designed for
 ;; printing lots of small files to save paper that would otherwise be wasted on
@@ -105,24 +107,24 @@ Please send all bug fixes and enhancements to
 ;; won't accidentally quit from Emacs while you have unprinted PostScript
 ;; waiting in the spool buffer.  If you do attempt to exit with spooled
 ;; PostScript, you'll be asked if you want to print it, and if you decline,
-;; you'll be asked to confirm the exit; this is modeled on the confirmation that
-;; Emacs uses for modified buffers.
+;; you'll be asked to confirm the exit; this is modeled on the confirmation
+;; that Emacs uses for modified buffers.
 ;;
 ;; The word "buffer" or "region" in the command name determines how much of the
 ;; buffer is printed:
 ;;
-;;        buffer  - Print the entire buffer.
+;;	buffer  - Print the entire buffer.
 ;;
-;;        region  - Print just the current region.
+;;	region  - Print just the current region.
 ;;
 ;; Two ebnf- command examples:
 ;;
-;;        ebnf-print-buffer  - translate and print the entire buffer, and send
-;;                             it immediately to the printer.
+;;	ebnf-print-buffer  - translate and print the entire buffer, and send it
+;;			     immediately to the printer.
 ;;
-;;        ebnf-spool-region  - translate and print just the current region, and
-;;                             spool the image in Emacs to send to the printer
-;;                             later.
+;;	ebnf-spool-region  - translate and print just the current region, and
+;;			     spool the image in Emacs to send to the printer
+;;			     later.
 ;;
 ;; Note that `ebnf-eps-buffer' and `ebnf-eps-region' never spool the EPS image,
 ;; so they don't use the ps-print spooling mechanism.  See section "Actions in
@@ -257,8 +259,8 @@ Please send all bug fixes and enhancements to
 ;;    Logical  Expression		non-terminal
 ;;    "("  OR  AND  "XOR"  ")"		terminal
 ;;
-;; The line comment is controlled by `ebnf-lex-comment-char'.  The default value
-;; is ?\; (character `;').
+;; The line comment is controlled by `ebnf-lex-comment-char'.  The default
+;; value is ?\; (character `;').
 ;;
 ;; The end of production is controlled by `ebnf-lex-eop-char'.  The default
 ;; value is ?. (character `.').
@@ -332,8 +334,8 @@ Please send all bug fixes and enhancements to
 ;; Form Feed
 ;; ---------
 ;;
-;; You may use form feed (^L \014) to force a production to start on a new page,
-;; for example:
+;; You may use form feed (^L \014) to force a production to start on a new
+;; page, for example:
 ;;
 ;;    a) A = B | C.
 ;;	 ^L
@@ -362,9 +364,9 @@ Please send all bug fixes and enhancements to
 ;;
 ;;    ;[EPS	open a new EPS file.  The EPS file name has the form:
 ;;			<PREFIX><NAME>.eps
-;;		where <PREFIX> is given by variable `ebnf-eps-prefix' and <NAME>
-;;		is the string given by ;[ action comment, this string is mapped
-;;		to form a valid file name (see documentation for
+;;		where <PREFIX> is given by variable `ebnf-eps-prefix' and
+;;		<NAME> is the string given by ;[ action comment, this string is
+;;		mapped to form a valid file name (see documentation for
 ;;		`ebnf-eps-buffer' or `ebnf-eps-region').
 ;;		It has effect only during `ebnf-eps-buffer' or
 ;;		`ebnf-eps-region' execution.
@@ -406,7 +408,8 @@ Please send all bug fixes and enhancements to
 ;; Note that if ascending production sort is used, the productions A and B will
 ;; be drawn in the same line instead of C and B.
 ;;
-;; If consecutive actions occur, only the last one takes effect, so if you have:
+;; If consecutive actions occur, only the last one takes effect, so if you
+;; have:
 ;;
 ;;    A = X.
 ;;    ;<
@@ -521,8 +524,8 @@ Please send all bug fixes and enhancements to
 ;; `ebnf-production-horizontal-space'	Specify horizontal space in points
 ;;					between productions.
 ;;
-;; `ebnf-production-vertical-space'	Specify vertical space in points between
-;;					productions.
+;; `ebnf-production-vertical-space'	Specify vertical space in points
+;;					between productions.
 ;;
 ;; `ebnf-justify-sequence'		Specify justification of terms in a
 ;;					sequence inside alternatives.
@@ -550,8 +553,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ebnf-non-terminal-shape'		Specify non-terminal box shape.
 ;;
-;; `ebnf-non-terminal-shadow'		Non-nil means non-terminal box will have
-;;					a shadow.
+;; `ebnf-non-terminal-shadow'		Non-nil means non-terminal box will
+;;					have a shadow.
 ;;
 ;; `ebnf-non-terminal-border-width'	Specify border width for non-terminal
 ;;					box.
@@ -604,15 +607,16 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ebnf-line-color'			Specify flow line color.
 ;;
-;; `ebnf-user-arrow'			Specify a user arrow shape (a PostScript
-;;					code).
+;; `ebnf-user-arrow'			Specify a user arrow shape (a
+;;					PostScript code).
 ;;
 ;; `ebnf-debug-ps'			Non-nil means to generate PostScript
 ;;					debug procedures.
 ;;
 ;; `ebnf-lex-comment-char'		Specify the line comment character.
 ;;
-;; `ebnf-lex-eop-char'			Specify the end of production character.
+;; `ebnf-lex-eop-char'			Specify the end of production
+;;					character.
 ;;
 ;; `ebnf-syntax'			Specify syntax to be recognized.
 ;;
@@ -633,8 +637,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ebnf-ignore-empty-rule'		Non-nil means ignore empty rules.
 ;;
-;; `ebnf-optimize'			Non-nil means optimize syntatic chart of
-;;					rules.
+;; `ebnf-optimize'			Non-nil means optimize syntatic chart
+;;					of rules.
 ;;
 ;; To set the above options you may:
 ;;
@@ -705,10 +709,10 @@ Please send all bug fixes and enhancements to
 ;; and name this group.  So when you wish to apply these settings it's only
 ;; needed to give the name.
 ;;
-;; There is also a notion of simple inheritance of style; so if you declare that
-;; a style A inherits from a style B, all settings of B is applied first and
-;; then the settings of A is applied.  This is useful when you wish to modify
-;; some aspects of an existing style, but at same time wish to keep it
+;; There is also a notion of simple inheritance of style; so if you declare
+;; that a style A inherits from a style B, all settings of B is applied first
+;; and then the settings of A is applied.  This is useful when you wish to
+;; modify some aspects of an existing style, but at same time wish to keep it
 ;; unmodified.
 ;;
 ;; See documentation for `ebnf-style-database'.
@@ -723,8 +727,8 @@ Please send all bug fixes and enhancements to
 ;;    font height	is given by:
 ;;			(terminal font height + non-terminal font height) / 2
 ;;
-;;    entry		is the vertical position used to know where it should be
-;;			drawn the flow line in the current element.
+;;    entry		is the vertical position used to know where it should
+;;			be drawn the flow line in the current element.
 ;;
 ;;
 ;;    * SPECIAL, TERMINAL and NON-TERMINAL
@@ -929,14 +933,14 @@ Please send all bug fixes and enhancements to
 ;;
 ;; ebnf2ps has two passes.  The first pass does a lexical and syntatic analysis
 ;; of current buffer and generates an intermediate representation.  The second
-;; pass uses the intermediate representation to generate the PostScript syntatic
-;; chart.
+;; pass uses the intermediate representation to generate the PostScript
+;; syntatic chart.
 ;;
 ;; The intermediate representation is a list of vectors, the vector element
 ;; represents a syntatic chart element.  Below is a vector representation for
 ;; each syntatic chart element.
 ;;
-;; [production   WIDTH-FUN DIM-FUN ENTRY HEIGHT WIDTH NAME    PRODUCTION ACTION]
+;; [production   WIDTH-FUN DIM-FUN ENTRY HEIGHT WIDTH NAME   PRODUCTION ACTION]
 ;; [alternative  WIDTH-FUN DIM-FUN ENTRY HEIGHT WIDTH LIST]
 ;; [sequence     WIDTH-FUN DIM-FUN ENTRY HEIGHT WIDTH LIST]
 ;; [terminal     WIDTH-FUN DIM-FUN ENTRY HEIGHT WIDTH NAME    DEFAULT]
@@ -1000,24 +1004,8 @@ Please send all bug fixes and enhancements to
 
 (require 'ps-print)
 
-(and (string< ps-print-version "3.05.1")
-     (error "`ebnf2ps' requires `ps-print' package version 3.05.1 or later"))
-
-
-;; temporary fix for ps-print
-(or (fboundp 'set-buffer-multibyte)
-    (defun set-buffer-multibyte (arg)
-      (setq enable-multibyte-characters arg)))
-
-(or (fboundp 'string-as-unibyte)
-    (defun string-as-unibyte (arg) arg))
-
-(or (fboundp 'string-as-multibyte)
-    (defun string-as-multibyte (arg) arg))
-
-(or (fboundp 'charset-after)
-    (defun charset-after (&optional arg)
-      (char-charset (char-after arg))))
+(and (string< ps-print-version "5.2.3")
+     (error "`ebnf2ps' requires `ps-print' package version 5.2.3 or later"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1539,10 +1527,10 @@ The anatomy of a right arrow is:
    :               } hT2  }
    :.......................
 
-Where `hT', `hT2' and `hT4' are predefined PostScript variable names that can be
-used to generate your own arrow.  As these variables are used along PostScript
-execution, *DON'T* modify the values of them.  Instead, copy the values, if you
-need to modify them.
+Where `hT', `hT2' and `hT4' are predefined PostScript variable names that can
+be used to generate your own arrow.  As these variables are used along
+PostScript execution, *DON'T* modify the values of them.  Instead, copy the
+values, if you need to modify them.
 
 The relation between these variables is: hT = 2 * hT2 = 4 * hT4.
 
@@ -2158,8 +2146,8 @@ Each element has the following form:
 CUSTOM is a symbol name style.
 INHERITS is a symbol name style from which the current style inherits the
 context.  If INHERITS is nil, means that there is no inheritance.
-VAR is a valid ebnf2ps symbol custom variable.  See `ebnf-style-custom-list' for
-valid symbol variable.
+VAR is a valid ebnf2ps symbol custom variable.  See `ebnf-style-custom-list'
+for valid symbol variable.
 VALUE is a sexp which it'll be evaluated to set the value to VAR.  So, don't
 forget to quote symbols and constant lists.  See `default' style for an
 example.
@@ -3598,7 +3586,7 @@ end
 
 (defun ebnf-format-color (format-str color default)
   (let* ((the-color (or color default))
-	 (rgb (mapcar 'ps-color-value (ps-color-values the-color))))
+	 (rgb (ps-color-scale the-color)))
     (format format-str
 	    (concat "["
 		    (ebnf-format-float (nth 0 rgb) (nth 1 rgb) (nth 2 rgb))
@@ -3729,7 +3717,8 @@ end
 		    prod-name   (ebnf-node-name prod)
 		    prod-width  (ebnf-max-width prod)
 		    prod-height (ebnf-node-height prod)
-		    horizontal  (memq (ebnf-node-action prod) ebnf-action-list))
+		    horizontal  (memq (ebnf-node-action prod)
+				      ebnf-action-list))
 	      ;; generate production in EPS buffer
 	      (save-excursion
 		(set-buffer eps-buffer)
@@ -4273,7 +4262,7 @@ end
 
 
 (defun ebnf-begin-job ()
-  (ps-printing-region nil)
+  (ps-printing-region nil nil)
   (if ebnf-use-float-format
       (setq ebnf-format-float  "%1.3f"
 	    ebnf-message-float "%3.2f")
@@ -4914,7 +4903,9 @@ Otherwise, it is treated as an empty string."
 ;; [sequence width-fun dim-fun entry height width list]
 (defun ebnf-sequence-width (sequence width)
   (ebnf-node-list sequence
-		  (ebnf-justify-list sequence (ebnf-node-list sequence) width)))
+		  (ebnf-justify-list sequence
+				     (ebnf-node-list sequence)
+				     width)))
 
 
 (defun ebnf-justify-list (node seq width)
@@ -5217,7 +5208,8 @@ Otherwise, it is treated as an empty string."
 		;; ( A | B | EMPTY )-  ==> A | B
 		((and (null exception)
 		      (eq kind 'ebnf-generate-alternative)
-		      (eq (ebnf-node-kind (car (last (ebnf-node-list element))))
+		      (eq (ebnf-node-kind
+			   (car (last (ebnf-node-list element))))
 			  'ebnf-generate-empty))
 		 (let ((elt (ebnf-node-list element))
 		       bef)
