@@ -3476,7 +3476,7 @@ arg XRM_STRING is a string of resources in xrdb format.")
   if (!EQ (xrm_string, Qnil))
     {
       CHECK_STRING (xrm_string, 1);
-      xrm_option = (unsigned char *) XSTRING (xrm_string);
+      xrm_option = (unsigned char *) XSTRING (xrm_string)->data;
     }
   else
     xrm_option = (unsigned char *) 0;
