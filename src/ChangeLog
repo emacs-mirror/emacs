@@ -8,6 +8,8 @@
 
 	* lread.c (Fintern_soft): Use string macros instead of
 	Lisp_String fields.
+	* keyboard.c (echo_char, parse_modifiers_uncached):
+	(parse_solitary_modifier, Fexecute_extended_command): Likewise.
 	* textprop.c (validate_interval_range, interval_of): Likewise.
 
 	* fontset.c (Fset_fontset_font): Use SDATA instead of
