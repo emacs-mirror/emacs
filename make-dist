@@ -226,7 +226,7 @@ for subdir in lisp external-lisp src lib-src info shortnames; do
   if [ -f ${tempdir}/${subdir}/COPYING ]; then
     rm ${tempdir}/${subdir}/COPYING
   fi
-  cp ../etc/COPYING ${tempdir}/${subdir}
+  cp etc/COPYING ${tempdir}/${subdir}
 done
 
 if [ "${newer}" ]; then
