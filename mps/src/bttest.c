@@ -1,6 +1,6 @@
 /*  impl.c.bttest: BIT TABLE TEST
  *
- *  $HopeName$
+ *  $HopeName: MMsrc!bttest.c(trunk.1) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -13,17 +13,23 @@
 #include "mpm.h"
 #include "mps.h"
 #include "mpsaan.h" /* ANSI arena for BTCreate and BTDestroy */
+#include "testlib.h"
 
-SRCID(bttest, "$HopeName$");
+
+SRCID(bttest, "$HopeName: MMsrc!bttest.c(trunk.1) $");
+
 
 static BT bt; /* the BT which we will use */
 static Size btSize; /* the size of the current BT */
 static Arena arena; /* the ANSI arena which we use to allocate the BT */
 
+
 #define MAX_ARGS 3
+
 
 static Word args[MAX_ARGS];
 static Count argCount;
+
 
 static Bool argInRange(Index arg)
 {
@@ -37,6 +43,7 @@ static Bool argInRange(Index arg)
   }
   return TRUE;
 }
+
 
 static Bool checkDefaultRange(Index arg)
 {
@@ -64,10 +71,12 @@ static Bool checkDefaultRange(Index arg)
   return TRUE; /* explicit valid range */
 }    
 
+
 static void quit(void)
 {
   exit(0);
 }
+
 
 static void destroy(void)
 {
@@ -97,17 +106,20 @@ static void create(void)
   }
 }
 
+
 static void set(void)
 {
   if (argInRange(0))
     (BTSet)(bt, args[0]);
 }
 
+
 static void reset(void)
 {
   if (argInRange(0))
     (BTRes)(bt, args[0]);
 }
+
 
 static void get(void)
 {
@@ -117,17 +129,20 @@ static void get(void)
   }
 }
 
+
 static void setRange(void)
 {
   if (checkDefaultRange(0))
     BTSetRange(bt, args[0], args[1]);
 }
 
+
 static void resetRange(void)
 {
   if (checkDefaultRange(0))
     BTResRange(bt, args[0], args[1]);
 }
+
 
 static void isSetRange(void)
 {
@@ -137,6 +152,7 @@ static void isSetRange(void)
   }
 }
 
+
 static void isResRange(void)
 {
   if (checkDefaultRange(0)) {
@@ -144,6 +160,7 @@ static void isResRange(void)
     printf(b ? "TRUE\n" : "FALSE\n");
   }
 }
+
 
 static void findShortResRange(void)
 {
@@ -161,6 +178,7 @@ static void findShortResRange(void)
     }
   }
 }
+
 
 static void findShortResRangeHigh(void)
 {
@@ -196,6 +214,7 @@ static void findLongResRange(void)
   }
 }
 
+
 static void help(void)
 {
   printf("c <s>             create a BT of size 's'\n"
@@ -215,6 +234,7 @@ static void help(void)
 	 "\n"
 	 "No way of testing BTSize, BTRangesSame, or BTCopyInvertRange.\n");
 }
+
 
 static struct commandShapeStruct {
   char *name;
@@ -239,7 +259,9 @@ static struct commandShapeStruct {
   { NULL, 0, 0, NULL}
 };
 
+
 typedef struct commandShapeStruct *commandShape;
+
 
 static void obeyCommand(char *command)
 {
@@ -280,6 +302,12 @@ static void obeyCommand(char *command)
   help();
 }
 
+
+#ifdef MPS_BUILD_MV
+/* disable "conversion from int to char" */
+#pragma warning(disable: 4244)
+#endif
+
 static void showBT(void) {
   Index i;
   char c;
@@ -288,7 +316,7 @@ static void showBT(void) {
   i = 0;
   while((i < btSize) && (i < 50)) {
     if (i % 10 == 0)
-      c = ((i / 10) % 10) + '0';
+      c = (char)((i / 10) % 10) + '0';
     else
       c = ' ';
     putchar(c);
@@ -297,7 +325,7 @@ static void showBT(void) {
   putchar('\n');
   i = 0;
   while((i < btSize) && (i < 50)) {
-    c = (i % 10) +'0';
+    c = (char)(i % 10) +'0';
     putchar(c);
     ++ i;
   }
@@ -315,6 +343,11 @@ static void showBT(void) {
   }
   putchar('\n');
 }
+
+#ifdef MPS_BUILD_MV
+/* disable "conversion from int to char" */
+#pragma warning(default: 4244)
+#endif
       
 
 extern int main(int argc, char *argv[])
@@ -322,6 +355,9 @@ extern int main(int argc, char *argv[])
   mps_res_t res;
   bt = NULL;
   btSize = 0;
+
+  testlib_unused(argc); testlib_unused(argv);
+
   res = mps_arena_create((mps_arena_t *)&arena,
 			 mps_arena_class_an());
   if (res != MPS_RES_OK) {
@@ -340,5 +376,3 @@ extern int main(int argc, char *argv[])
     }
   }
 }
-		     
-	       
