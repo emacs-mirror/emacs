@@ -195,9 +195,6 @@ See backquote.el for details"
 ;;; This maintains the invariant that (cons state tailmaker) is the
  ;;; maker for the elements of the tail we've eaten so far.
 (defun bq-iterative-list-builder (form)
-  "Adds a new item form to tailmaker changing state if need be, so tailmaker
-and state constitute a recipe for making the list so far.  Called by
-`bq-make-maker'."
   (cond ((atom form)
 	 (funcall (bq-cadr (assq state bq-quotefns)) form))
 	((memq (car form) backquote-unquote)
