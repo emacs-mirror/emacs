@@ -2,11 +2,11 @@
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
-;; Author: Stephen Eglen <stephen@cns.ed.ac.uk>
-;; Maintainer: Stephen Eglen <stephen@cns.ed.ac.uk>
+;; Author: Stephen Eglen <stephen@anc.ed.ac.uk>
+;; Maintainer: Stephen Eglen <stephen@anc.ed.ac.uk>
 ;; Created: 22 Jan 1997
 ;; Keywords: mail
-;; location: http://www.cns.ed.ac.uk/people/stephen/emacs/
+;; location: http://www.anc.ed.ac.uk/~stephen/emacs/
 
 ;; This file is part of GNU Emacs.
 
