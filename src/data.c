@@ -823,39 +823,29 @@ store_symval_forwarding (symbol, valcontents, newval)
 }
 
 /* Set up the buffer-local symbol SYMBOL for validity in the current buffer.
-   VALCONTENTS is the contents of its value cell.
-   Return the value forwarded one step past the buffer-local indicator.  */
+   VALCONTENTS is the contents of its value cell,
+   which points to a struct Lisp_Buffer_Local_Value.
+
+   Return the value forwarded one step past the buffer-local stage.
+   This could be another forwarding pointer.  */
 
 static Lisp_Object
 swap_in_symval_forwarding (symbol, valcontents)
      Lisp_Object symbol, valcontents;
 {
-  /* valcontents is a pointer to a struct resembling the cons
-     (REALVALUE BUFFER CURRENT-ALIST-ELEMENT . DEFAULT-VALUE)).
-
-     CURRENT-ALIST-ELEMENT is a pointer to an element of BUFFER's
-     local_var_alist, that being the element whose car is this
-     variable.  Or it can be a pointer to the
-     (CURRENT-ALIST-ELEMENT . DEFAULT-VALUE), if BUFFER does not have
-     an element in its alist for this variable.
-
-     If the current buffer is not BUFFER, we store the current
-     REALVALUE value into CURRENT-ALIST-ELEMENT, then find the
-     appropriate alist element for the buffer now current and set up
-     CURRENT-ALIST-ELEMENT.  Then we set REALVALUE out of that
-     element, and store into BUFFER.
-
-     Note that REALVALUE can be a forwarding pointer. */
-
   register Lisp_Object tem1;
   tem1 = XBUFFER_LOCAL_VALUE (valcontents)->buffer;
 
-  if (NILP (tem1) || current_buffer != XBUFFER (tem1)
-      || !EQ (selected_frame, XBUFFER_LOCAL_VALUE (valcontents)->frame))
+  if (NILP (tem1)
+      || current_buffer != XBUFFER (tem1)
+      || (XBUFFER_LOCAL_VALUE (valcontents)->check_frame
+	  && ! EQ (selected_frame, XBUFFER_LOCAL_VALUE (valcontents)->frame)))
     {
+      /* Unload the previously loaded binding.  */
       tem1 = XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
       Fsetcdr (tem1,
 	       do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
+      /* Choose the new binding.  */
       tem1 = assq_no_quit (symbol, current_buffer->local_var_alist);
       XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame = 0;
       XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer = 0;
@@ -871,6 +861,7 @@ swap_in_symval_forwarding (symbol, valcontents)
       else
 	XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer = 1;
 
+      /* Load the new binding.  */
       XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr) = tem1;
       XSETBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer, current_buffer);
       XBUFFER_LOCAL_VALUE (valcontents)->frame = selected_frame;
@@ -1015,56 +1006,32 @@ set_internal (symbol, newval, buf, bindflag)
   else if (BUFFER_LOCAL_VALUEP (valcontents)
 	   || SOME_BUFFER_LOCAL_VALUEP (valcontents))
     {
-      /* valcontents is actually a pointer to a struct resembling a cons,
-	 with contents something like:
-	 (REALVALUE BUFFER CURRENT-ALIST-ELEMENT . DEFAULT-VALUE).
+      /* valcontents is a struct Lisp_Buffer_Local_Value.   */
 
-	 BUFFER is the last buffer for which this symbol's value was
-	 made up to date.
-
-	 CURRENT-ALIST-ELEMENT is a pointer to an element of BUFFER's
-	 local_var_alist, that being the element whose car is this
-	 variable.  Or it can be a pointer to the
-	 (CURRENT-ALIST-ELEMENT . DEFAULT-VALUE), if BUFFER does not
-	 have an element in its alist for this variable (that is, if
-	 BUFFER sees the default value of this variable).
-
-	 If we want to examine or set the value and BUFFER is current,
-	 we just examine or set REALVALUE. If BUFFER is not current, we
-	 store the current REALVALUE value into CURRENT-ALIST-ELEMENT,
-	 then find the appropriate alist element for the buffer now
-	 current and set up CURRENT-ALIST-ELEMENT.  Then we set
-	 REALVALUE out of that element, and store into BUFFER.
-
-	 If we are setting the variable and the current buffer does
-	 not have an alist entry for this variable, an alist entry is
-	 created.
-
-	 Note that REALVALUE can be a forwarding pointer.  Each time
-	 it is examined or set, forwarding must be done.  */
-
-      /* What value are we caching right now?  */
+      /* What binding is loaded right now?  */
       current_alist_element
 	= XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
 
       /* If the current buffer is not the buffer whose binding is
-	 currently cached, or if it's a Lisp_Buffer_Local_Value and
-	 we're looking at the default value, the cache is invalid; we
-	 need to write it out, and find the new CURRENT-ALIST-ELEMENT.  */
-      if (XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame
-	  ? !EQ (selected_frame, XBUFFER_LOCAL_VALUE (valcontents)->frame)
-	  : (buf != XBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer)
-	     || (BUFFER_LOCAL_VALUEP (valcontents)
-		 && EQ (XCAR (current_alist_element),
-			current_alist_element))))
+	 loaded, or if there may be frame-local bindings and the frame
+	 isn't the right one, or if it's a Lisp_Buffer_Local_Value and
+	 the default binding is loaded, the loaded binding may be the
+	 wrong one.  */
+      if (buf != XBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer)
+	  || (XBUFFER_LOCAL_VALUE (valcontents)->check_frame
+	      && !EQ (selected_frame, XBUFFER_LOCAL_VALUE (valcontents)->frame))
+	  || (BUFFER_LOCAL_VALUEP (valcontents)
+	      && EQ (XCAR (current_alist_element),
+		     current_alist_element)))
 	{
-	  /* Write out the cached value for the old buffer; copy it
-	     back to its alist element.  This works if the current
-	     buffer only sees the default value, too.  */
+	  /* The currently loaded binding is not necessarily valid.
+	     We need to unload it, and choose a new binding.  */
+
+	  /* Write out `realvalue' to the old loaded binding.  */
           Fsetcdr (current_alist_element,
 		   do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
 
-	  /* Find the new value for CURRENT-ALIST-ELEMENT.  */
+	  /* Find the new binding.  */
 	  tem1 = Fassq (symbol, buf->local_var_alist);
 	  XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer = 1;
 	  XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame = 0;
@@ -1097,7 +1064,7 @@ set_internal (symbol, newval, buf, bindflag)
 		 and we're not within a let that was made for this buffer,
 		 create a new buffer-local binding for the variable.
 		 That means, give this buffer a new assoc for a local value
-		 and set CURRENT-ALIST-ELEMENT to point to that.  */
+		 and load that binding.  */
 	      else
 		{
 		  tem1 = Fcons (symbol, Fcdr (current_alist_element));
@@ -1106,11 +1073,11 @@ set_internal (symbol, newval, buf, bindflag)
 		}
 	    }
 
-	  /* Cache the new buffer's assoc in CURRENT-ALIST-ELEMENT.  */
+	  /* Record which binding is now loaded.  */
 	  XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr)
 	    = tem1;
 
-	  /* Set BUFFER and FRAME for binding now loaded.  */
+	  /* Set `buffer' and `frame' slots for thebinding now loaded.  */
 	  XSETBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer, buf);
 	  XBUFFER_LOCAL_VALUE (valcontents)->frame = selected_frame;
 	}
@@ -1157,7 +1124,7 @@ default_value (symbol)
     {
       /* If var is set up for a buffer that lacks a local value for it,
 	 the current value is nominally the default value.
-	 But the current value slot may be more up to date, since
+	 But the `realvalue' slot may be more up to date, since
 	 ordinary setq stores just that slot.  So use that.  */
       Lisp_Object current_alist_element, alist_element_car;
       current_alist_element
@@ -1240,10 +1207,10 @@ for this variable.")
       && !SOME_BUFFER_LOCAL_VALUEP (valcontents))
     return Fset (symbol, value);
 
-  /* Store new value into the DEFAULT-VALUE slot */
+  /* Store new value into the DEFAULT-VALUE slot.  */
   XCDR (XBUFFER_LOCAL_VALUE (valcontents)->cdr) = value;
 
-  /* If that slot is current, we must set the REALVALUE slot too */
+  /* If the default binding is now loaded, set the REALVALUE slot too.  */
   current_alist_element
     = XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
   alist_element_buffer = Fcar (current_alist_element);
@@ -1296,12 +1263,14 @@ of previous SYMs.")
 
 DEFUN ("make-variable-buffer-local", Fmake_variable_buffer_local, Smake_variable_buffer_local,
   1, 1, "vMake Variable Buffer Local: ",
-  "Make VARIABLE have a separate value for each buffer.\n\
-At any time, the value for the current buffer is in effect.\n\
-There is also a default value which is seen in any buffer which has not yet\n\
-set its own value.\n\
-Using `set' or `setq' to set the variable causes it to have a separate value\n\
-for the current buffer if it was previously using the default value.\n\
+  "Make VARIABLE become buffer-local whenever it is set.\n\
+At any time, the value for the current buffer is in effect,\n\
+unless the variable has never been set in this buffer,\n\
+in which case the default value is in effect.\n\
+Note that binding the variable with `let', or setting it while\n\
+a `let'-style binding made in this buffer is in effect,\n\
+does not make the variable buffer-local.\n\
+\n\
 The function `default-value' gets the default value and `set-default' sets it.")
   (variable)
      register Lisp_Object variable;
@@ -1330,7 +1299,7 @@ The function `default-value' gets the default value and `set-default' sets it.")
   XBUFFER_LOCAL_VALUE (newval)->realvalue = XSYMBOL (variable)->value;
   XBUFFER_LOCAL_VALUE (newval)->buffer = Fcurrent_buffer ();
   XBUFFER_LOCAL_VALUE (newval)->frame = Qnil;
-  XBUFFER_LOCAL_VALUE (newval)->found_for_buffer = 1;
+  XBUFFER_LOCAL_VALUE (newval)->found_for_buffer = 0;
   XBUFFER_LOCAL_VALUE (newval)->found_for_frame = 0;
   XBUFFER_LOCAL_VALUE (newval)->check_frame = 0;
   XBUFFER_LOCAL_VALUE (newval)->cdr = tem;
@@ -1376,7 +1345,7 @@ Use `make-local-hook' instead.")
       Fset (variable, (EQ (tem, Qt) ? Fsymbol_value (variable) : Qunbound));
       return variable;
     }
-  /* Make sure symbol is set up to hold per-buffer values */
+  /* Make sure symbol is set up to hold per-buffer values.  */
   if (!SOME_BUFFER_LOCAL_VALUEP (valcontents))
     {
       Lisp_Object newval;
@@ -1393,7 +1362,7 @@ Use `make-local-hook' instead.")
       XBUFFER_LOCAL_VALUE (newval)->cdr = tem;
       XSYMBOL (variable)->value = newval;
     }
-  /* Make sure this buffer has its own value of symbol */
+  /* Make sure this buffer has its own value of symbol.  */
   tem = Fassq (variable, current_buffer->local_var_alist);
   if (NILP (tem))
     {
@@ -1407,7 +1376,7 @@ Use `make-local-hook' instead.")
 		 current_buffer->local_var_alist);
 
       /* Make sure symbol does not think it is set up for this buffer;
-	 force it to look once again for this buffer's value */
+	 force it to look once again for this buffer's value.  */
       {
 	Lisp_Object *pvalbuf;
 
@@ -1420,10 +1389,10 @@ Use `make-local-hook' instead.")
       }
     }
 
-  /* If the symbol forwards into a C variable, then swap in the
-     variable for this buffer immediately.  If C code modifies the
-     variable before we swap in, then that new value will clobber the
-     default value the next time we swap.  */
+  /* If the symbol forwards into a C variable, then load the binding
+     for this buffer now.  If C code modifies the variable before we
+     load the binding in, then that new value will clobber the default
+     binding the next time we unload it.  */
   valcontents = XBUFFER_LOCAL_VALUE (XSYMBOL (variable)->value)->realvalue;
   if (INTFWDP (valcontents) || BOOLFWDP (valcontents) || OBJFWDP (valcontents))
     swap_in_symval_forwarding (variable, XSYMBOL (variable)->value);
@@ -1463,16 +1432,16 @@ From now on the default value will apply in this buffer.")
       && !SOME_BUFFER_LOCAL_VALUEP (valcontents))
     return variable;
 
-  /* Get rid of this buffer's alist element, if any */
+  /* Get rid of this buffer's alist element, if any.  */
 
   tem = Fassq (variable, current_buffer->local_var_alist);
   if (!NILP (tem))
     current_buffer->local_var_alist
       = Fdelq (tem, current_buffer->local_var_alist);
 
-  /* If the symbol is set up for the current buffer, recompute its
-     value.  We have to do it now, or else forwarded objects won't
-     work right. */
+  /* If the symbol is set up with the current buffer's binding
+     loaded, recompute its value.  We have to do it now, or else
+     forwarded objects won't work right.  */
   {
     Lisp_Object *pvalbuf;
     valcontents = XSYMBOL (variable)->value;
@@ -1513,7 +1482,10 @@ See `modify-frame-parameters'.")
 
   if (BUFFER_LOCAL_VALUEP (valcontents)
       || SOME_BUFFER_LOCAL_VALUEP (valcontents))
-    return variable;
+    {
+      XBUFFER_LOCAL_VALUE (valcontents)->check_frame = 1;
+      return variable;
+    }
 
   if (EQ (valcontents, Qunbound))
     XSYMBOL (variable)->value = Qnil;
