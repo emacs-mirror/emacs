@@ -474,7 +474,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
       while (pos == next_invisible && pos < to)
 	{
 	  XFASTINT (position) = pos;
-	  prop = Fget_text_property (position,
+	  prop = Fget_char_property (position,
 				     Qinvisible,
 				     Fcurrent_buffer ());
 	  {
@@ -663,9 +663,9 @@ vmotion (from, vtarget, width, hscroll, window)
 		      && indented_beyond_p (prevline, selective))
 #ifdef USE_TEXT_PROPERTIES
 		     /* watch out for newlines with `invisible' property */
-		     || ! NILP (Fget_text_property (XFASTINT (prevline),
+		     || ! NILP (Fget_char_property (XFASTINT (prevline),
 						    Qinvisible,
-						    Fcurrent_buffer ()))
+						    window))
 #endif
 		 ))
 	    prevline = find_next_newline (prevline - 1, -1);
@@ -700,9 +700,9 @@ vmotion (from, vtarget, width, hscroll, window)
 		   || ! indented_beyond_p (prevline, selective))
 #ifdef USE_TEXT_PROPERTIES
 		  /* watch out for newlines with `invisible' property */
-		  && NILP (Fget_text_property (XFASTINT (prevline),
+		  && NILP (Fget_char_property (XFASTINT (prevline),
 					       Qinvisible,
-					       Fcurrent_buffer ()))
+					       window))
 #endif
 		  ))
 	    break;
