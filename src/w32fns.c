@@ -587,7 +587,7 @@ x_set_frame_parameters (f, alist)
   /* If both of these parameters are present, it's more efficient to
      set them both at once.  So we wait until we've looked at the
      entire list before we set them.  */
-  Lisp_Object width, height;
+  int width, height;
 
   /* Same here.  */
   Lisp_Object left, top;
@@ -622,8 +622,12 @@ x_set_frame_parameters (f, alist)
       i++;
     }
 
-  width = height = top = left = Qunbound;
+  top = left = Qunbound;
   icon_left = icon_top = Qunbound;
+
+  /* Provide default values for HEIGHT and WIDTH.  */
+  width = FRAME_WIDTH (f);
+  height = FRAME_HEIGHT (f);
 
   /* Now process them in reverse of specified order.  */
   for (i--; i >= 0; i--)
@@ -633,10 +637,10 @@ x_set_frame_parameters (f, alist)
       prop = parms[i];
       val = values[i];
 
-      if (EQ (prop, Qwidth))
-	width = val;
-      else if (EQ (prop, Qheight))
-	height = val;
+      if (EQ (prop, Qwidth) && NUMBERP (val))
+	width = XFASTINT (val);
+      else if (EQ (prop, Qheight) && NUMBERP (val))
+	height = XFASTINT (val);
       else if (EQ (prop, Qtop))
 	top = val;
       else if (EQ (prop, Qleft))
@@ -693,12 +697,6 @@ x_set_frame_parameters (f, alist)
 	XSETINT (icon_top, 0);
     }
 
-  /* Don't die if just one of these was set.  */
-  if (EQ (width, Qunbound))
-    XSETINT (width, FRAME_WIDTH (f));
-  if (EQ (height, Qunbound))
-    XSETINT (height, FRAME_HEIGHT (f));
-
   /* Don't set these parameters unless they've been explicitly
      specified.  The window might be mapped or resized while we're in
      this function, and we don't want to override that unless the lisp
@@ -714,9 +712,9 @@ x_set_frame_parameters (f, alist)
 
     XSETFRAME (frame, f);
 
-    if ((NUMBERP (width) && XINT (width) != FRAME_WIDTH (f))
-	|| (NUMBERP (height) && XINT (height) != FRAME_HEIGHT (f)))
-      Fset_frame_size (frame, width, height);
+    if (XINT (width) != FRAME_WIDTH (f)
+	|| XINT (height) != FRAME_HEIGHT (f))
+      Fset_frame_size (frame, make_number (width), make_number (height));
 
     if ((!NILP (left) || !NILP (top))
 	&& ! (left_no_change && top_no_change)
