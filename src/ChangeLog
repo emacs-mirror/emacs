@@ -1,3 +1,9 @@
+2001-02-06  Andrew Innes  <andrewi@gnu.org>
+
+	* w32xfns.c (select_palette): Do nothing if palette hasn't yet
+	been created.  It seems we can get sent window messages such as
+	WM_ERASEBKGND before we properly update a frame.
+
 2001-02-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (update_frame_line): Rename parameter FRAME to F.
