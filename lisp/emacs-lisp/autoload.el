@@ -52,11 +52,21 @@ Returns nil if FORM is not a defun, define-skeleton, defmacro or defcustom."
 		(or (eq car 'define-skeleton)
 		    (eq (car-safe (car form)) 'interactive))
 		(if macrop (list 'quote 'macro) nil)))
+      ;; Convert defcustom to a simpler (and less space-consuming) defvar,
+      ;; but add some extra stuff if it uses :require.
       (if (eq car 'defcustom)
 	  (let ((varname (car-safe (cdr-safe form)))
 		(init (car-safe (cdr-safe (cdr-safe form))))
-		(doc (car-safe (cdr-safe (cdr-safe (cdr-safe form))))))
-	    (list 'defvar varname init doc))
+		(doc (car-safe (cdr-safe (cdr-safe (cdr-safe form)))))
+		(rest (cdr-safe (cdr-safe (cdr-safe (cdr-safe form))))))
+	    (if (not (plist-get rest :require))
+		`(defvar ,varname ,init ,doc)
+	      `(progn
+		 (defvar ,varname ,init ,doc)
+		 (custom-add-to-group ,(plist-get rest :group)
+				      ',varname 'custom-variable)
+		 (custom-add-load ',varname
+				  ,(plist-get rest :require)))))
 	nil))))
 
 (put 'define-skeleton 'doc-string-elt 3)
