@@ -67,7 +67,7 @@ whenever this expression's value is non-nil.
 
 NAME is a string; the name of an argument to CALLBACK.
 
-   :style 
+   :style STYLE
    
 STYLE is a symbol describing the type of menu item.  The following are
 defined:  
