@@ -23,7 +23,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; $Id: rlogin.el,v 1.31 1996/01/14 07:34:30 erik Exp friedman $
+;; $Id: rlogin.el,v 1.32 1996/05/08 00:52:30 friedman Exp rms $
 
 ;;; Commentary:
 
@@ -109,7 +109,10 @@ this variable is set from that.")
 
 ;;;###autoload
 (defun rlogin (input-args &optional buffer)
-  "Open a network login connection to HOST via the `rlogin' program.
+  "Open a network login connection via `rlogin' with args INPUT-ARGS.
+INPUT-ARGS should start with a host name; it may also contain
+other arguments for `rlogin'.
+
 Input is sent line-at-a-time to the remote connection.
 
 Communication with the remote host is recorded in a buffer `*rlogin-HOST*'
@@ -117,8 +120,8 @@ Communication with the remote host is recorded in a buffer `*rlogin-HOST*'
 If a prefix argument is given and the buffer `*rlogin-HOST*' already exists,
 a new buffer with a different connection will be made.
 
-When called from a program, if the optional second argument is a string or
-buffer, it names the buffer to use.
+When called from a program, if the optional second argument BUFFER is
+a string or buffer, it specifies the buffer to use.
 
 The variable `rlogin-program' contains the name of the actual program to
 run.  It can be a relative or absolute path.
