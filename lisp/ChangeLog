@@ -1,3 +1,9 @@
+2004-09-07  Kim F. Storm  <storm@cua.dk>
+
+	* term.el (term-window-width): Only use full window width on
+	window system if overflow-newline-into-fringe is enabled.
+	(term-mode): Don't disable overflow-newline-into-fringe.
+
 2004-09-07  Stefan  <monnier@iro.umontreal.ca>
 
 	* newcomment.el (uncomment-region-default, comment-region-default):
