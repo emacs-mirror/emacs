@@ -1,6 +1,6 @@
 /* impl.c.ld: LOCATION DEPENDENCY IMPLEMENTATION
  *
- * $HopeName$
+ * $HopeName: MMsrc!ld.c(trunk.1) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .def: A location dependency records the fact that the bit-patterns
@@ -45,7 +45,7 @@
 #include "ld.h"
 #include "ref.h"
 
-SRCID("$HopeName$");
+SRCID("$HopeName: MMsrc!ld.c(trunk.1) $");
 
 
 /* LDReset -- reset a dependency to empty
@@ -67,6 +67,15 @@ void LDReset(LD ld, Space space)
 
 /* LDAdd -- add a reference to a dependency
  *
+ * .add.lock-free:  This function is thread safe with respect to the
+ * (rest of the) mps.  It is unnecessary to claim locks before calling
+ * this function.
+ *
+ * .add.user-serial:
+ * However, this function is _not_ thread safe with respect to itself.
+ * Users should ensure that calls to LDAdd operating on the same LD are
+ * serialized.
+ *
  * .add.sync: Add must take place _before_ the location of the
  * reference is depended on.  If the reference changes between
  * adding and depending it will show up as moved because the
@@ -78,7 +87,8 @@ void LDReset(LD ld, Space space)
 void LDAdd(LD ld, Space space, Addr addr)
 {
   AVER(ld->epoch <= space->epoch);
-  AVER(ISVALID(Space, space));
+  /* .add.lock-free
+   * AVER(ISVALID(Space, space)); */
 
   ld->rs = RefSetAdd(space, ld->rs, addr);
 }
@@ -86,11 +96,20 @@ void LDAdd(LD ld, Space space, Addr addr)
 
 /* LDIsStale -- check whether a dependency is stale
  *
+ * .stale.thread-safe: This function is thread safe.  It will return a
+ * correct (but possibly conservative) answer regardless of the number
+ * of calls to LDAge anywhere during the function. Update with care.
+ *
  * .stale.current: If the dependency's epoch is the current epoch,
  * nothing can have moved since it was initialized.
  *
  * .stale.recent: If the dependency is recent, see if it intersects
  * with everything which has moved since it was initialized.
+ *
+ * .stale.recent.conservative: The refset from the history table is
+ * loaded before we check whether ld->epoch is "recent" with respect to
+ * the current epoch.  This means that we may (conservatively) decide
+ * to use the prehistory instead.
  *
  * .stale.old: Otherwise, if the dependency is older than the length
  * of the history, check it against all movement that has ever occured.
@@ -103,16 +122,21 @@ Bool LDIsStale(LD ld, Space space, Addr addr)
   UNUSED(addr);
 
   AVER(ld->epoch <= space->epoch);
-  AVER(ISVALID(Space, space));
+  /* .stale.thread-safe
+   * AVER(ISVALID(Space, space)); */
 
   if(space->epoch == ld->epoch)	/* .stale.current */
     return FALSE;
 
-  if(space->epoch - ld->epoch <= SPACE_LD_LENGTH) {
-    /* .stale.recent */
-    rs = space->history[ld->epoch % SPACE_LD_LENGTH];
-  } else
+  /* Load the history refset, _then_ check to see if it's recent.
+   * This may in fact load an okay refset, which we decide to throw
+   * away and use the pre-history instead. */
+  rs = space->history[ld->epoch % SPACE_LD_LENGTH];
+  /* .stale.recent */
+  /* .stale.recent.conservative */
+  if(space->epoch - ld->epoch > SPACE_LD_LENGTH) {
     rs = space->prehistory;	/* .stale.old */
+  }
 
   return RefSetInter(ld->rs, rs) != RefSetEmpty;
 }
