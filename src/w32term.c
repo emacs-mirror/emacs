@@ -3334,36 +3334,6 @@ static Time enter_timestamp;
 int temp_index;
 short temp_buffer[100];
 
-extern int key_event (KEY_EVENT_RECORD *, struct input_event *, int *isdead);
-
-/* Map a W32 WM_CHAR message into a KEY_EVENT_RECORD so that
-   we can use the same routines to handle input in both console
-   and window modes.  */
-
-static void
-convert_to_key_event (W32Msg *msgp, KEY_EVENT_RECORD *eventp)
-{
-  eventp->bKeyDown = TRUE;
-  eventp->wRepeatCount = 1;
-  eventp->wVirtualKeyCode = msgp->msg.wParam;
-  eventp->wVirtualScanCode = (msgp->msg.lParam & 0xFF0000) >> 16;
-  eventp->uChar.AsciiChar = 0;
-  eventp->dwControlKeyState = msgp->dwModifiers;
-}
-
-/* Return nonzero if the virtual key is a dead key.  */
-
-static int
-is_dead_key (int wparam)
-{
-  unsigned int code = MapVirtualKey (wparam, 2);
-
-  /* Windows 95 returns 0x8000, NT returns 0x80000000.  */
-  if ((code & 0x8000) || (code & 0x80000000))
-    return 1;
-  else
-    return 0;
-}
 
 /* Read events coming from the W32 shell.
    This routine is called by the SIGIO handler.
@@ -3469,6 +3439,25 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      }
 	  break;
 
+	case WM_INPUTLANGCHANGE:
+	  /* Generate a language change event.  */
+	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+
+	  if (f)
+	    {
+	      if (numchars == 0)
+		abort ();
+	  
+	      bufp->kind = language_change_event;
+	      XSETFRAME (bufp->frame_or_window, f);
+	      bufp->code = msg.msg.wParam;
+	      bufp->modifiers = msg.msg.lParam & 0xffff;
+	      bufp++;
+	      count++;
+	      numchars--;
+	    }
+	  break;
+
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
@@ -3480,8 +3469,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      temp_buffer[temp_index++] = msg.msg.wParam;
 	      bufp->kind = non_ascii_keystroke;
 	      bufp->code = msg.msg.wParam;
-	      bufp->modifiers = w32_kbd_mods_to_emacs (msg.dwModifiers,
-                                                         msg.msg.wParam);
+	      bufp->modifiers = msg.dwModifiers;
 	      XSETFRAME (bufp->frame_or_window, f);
 	      bufp->timestamp = msg.msg.time;
 	      bufp++;
@@ -3496,41 +3484,17 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  
 	  if (f && !f->iconified)
 	    {
-	      if (numchars > 1) 
-		{
-		  int add;
-		  int isdead = 0;
-		  KEY_EVENT_RECORD key, *keyp = &key;
-
-		  if (temp_index == sizeof temp_buffer / sizeof (short))
-		    temp_index = 0;
-		  
-		  convert_to_key_event (&msg, keyp);
-		  add = key_event (keyp, bufp, &isdead);
-		  XSETFRAME (bufp->frame_or_window, f);
-		  if (add == -1)
-		    {
-		      /* The key pressed generated two characters, most likely
-			 an accent character and a key that could not be
-			 combined with it.  Prepend the message on the queue
-			 again to process the second character (which is
-			 being held internally in key_event), and process
-			 the first character now.  */
-		      prepend_msg (&msg);
-		      add = 1;
-		    }
-
-		  if (isdead)
-		    break;
-
-		  bufp += add;
-		  numchars -= add;
-		  count += add;
-		} 
-	      else 
-		{
-		  abort ();
-		}
+	      if (temp_index == sizeof temp_buffer / sizeof (short))
+		temp_index = 0;
+	      temp_buffer[temp_index++] = msg.msg.wParam;
+	      bufp->kind = ascii_keystroke;
+	      bufp->code = msg.msg.wParam;
+	      bufp->modifiers = msg.dwModifiers;
+	      XSETFRAME (bufp->frame_or_window, f);
+	      bufp->timestamp = msg.msg.time;
+	      bufp++;
+	      numchars--;
+	      count++;
 	    }
 	  break;
 
@@ -3818,7 +3782,8 @@ w32_read_socket (sd, bufp, numchars, expected)
 
 	  if (f)
 	    {
-	      extern void menubar_selection_callback (FRAME_PTR f, void * client_data);
+	      extern void menubar_selection_callback
+		(FRAME_PTR f, void * client_data);
 	      menubar_selection_callback (f, (void *)msg.msg.wParam);
 	    }
 
