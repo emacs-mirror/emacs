@@ -1,3 +1,8 @@
+2000-12-19  Carsten Dominik  <dominik@strw.leidenuniv.nl>
+
+	* textmodes/reftex-dcr.el (reftex-view-crossref): added SPACE and
+	TAB as key separators.
+
 2000-12-19  Alex Schroeder  <alex@gnu.org>
 
 	* sql.el (sql-sybase-options): New option.
