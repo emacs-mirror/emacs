@@ -70,7 +70,12 @@
 This includes bindings inherited from a parent keymap.
 FUNCTION receives two arguments each time it is called:
 the character (more generally, the event type) that is bound,
-and the binding it has."
+and the binding it has.
+
+Note that passing the event type directly to `define-key' does not work
+in Emacs 19.  We do not emulate that particular feature of Lucid Emacs.
+If your code does that, modify it to make a vector containing the event
+type that you get.  That will work in both versions of Emacs."
   (if sort-first
       (let (list)
 	(map-keymap (function (lambda (a b)
