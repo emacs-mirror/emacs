@@ -487,8 +487,10 @@ typedef struct interval *INTERVAL;
 
 #define ECHOBUFSIZE 300
 /* All of the per-display objects, packaged together in a struct.  */
-typedef struct
+typedef struct PERDISPLAY PERDISPLAY;
+struct PERDISPLAY
   {
+    PERDISPLAY *next_perdisplay;
     Lisp_Object Vprefix_arg;
     Lisp_Object Vcurrent_prefix_arg;
     Lisp_Object this_command_keys;
@@ -560,17 +562,22 @@ typedef struct
     /* The text we're echoing in the modeline - partial key sequences,
        usually.  '\0'-terminated.  This really shouldn't have a fixed size.  */
     char echobuf[ECHOBUFSIZE];
-  } PERDISPLAY;
+  };
+
 #ifdef MULTI_PERDISPLAY
 /* The perdisplay object associated with a particular frame.  */
 extern PERDISPLAY *get_perdisplay ();
 
 /* The perdisplay object associated with the currently executing command.  */
 extern PERDISPLAY *current_perdisplay;
+
+/* A list of all perdisplay objects, linked through next_perdisplay.  */
+extern PERDISPLAY *all_perdisplays;
 #else
 extern PERDISPLAY the_only_perdisplay;
-#define current_perdisplay (&the_only_perdisplay)
 #define get_perdisplay(f) (&the_only_perdisplay)
+#define current_perdisplay (&the_only_perdisplay)
+#define all_perdisplays (&the_only_perdisplay)
 #endif
 
 /* In a cons, the markbit of the car is the gc mark bit */
