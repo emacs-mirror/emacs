@@ -2,7 +2,7 @@
 source ^\.(gdbinit|dbxinit)$
 
 # Auto-generated files, which ignore
-precious ^(config\.stamp|config\.h|epaths\.h)$
+precious ^(config\.stamp|config\.h|epaths\.h|TAGS-LISP)$
 
 backup ^(stamp-oldxmenu|prefix-args|temacs|emacs|emacs-[0-9.]*)$
 
