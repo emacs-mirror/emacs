@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName$
+# $HopeName: MMsrc!comm.gmk(trunk.33) $
 # Copyright (C) 1997.  Harlequin Group plc.  All rights reserved.
 #
 # DESCRIPTION
@@ -73,8 +73,8 @@ endif
 ifndef PFM
 error "comm.gmk: PFM not defined"
 endif
-ifndef MPM
-error "comm.gmk: MPM not defined"
+ifndef MPMPF
+error "comm.gmk: MPMPF not defined"
 endif
 
 
