@@ -1551,12 +1551,12 @@ typedef unsigned char UCHAR;
 #if (!defined (__STDC__) && !defined (PROTOTYPES)) \
     || defined (USE_NONANSI_DEFUN)
 
-#define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, args)	\
+#define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc)	\
   Lisp_Object fnname ();						\
   struct Lisp_Subr sname =						\
     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
       fnname, minargs, maxargs, lname, prompt, 0};			\
-  Lisp_Object fnname args
+  Lisp_Object fnname
 
 #else
 
