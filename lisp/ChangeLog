@@ -1,5 +1,8 @@
 2001-09-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* comint.el (comint-send-input): Change help-echo.
+	From "Dr Francis J. Wright" <F.J.Wright@qmw.ac.uk>.
+	
 	* bookmark.el (bookmark-write-file): Bind print-length and
 	print-level to nil.  From Tom Capey <tomc@edina.co.uk>.
 
