@@ -1095,7 +1095,7 @@ is added, provided that matches some possible completion.")
 
 DEFUN ("display-completion-list", Fdisplay_completion_list, Sdisplay_completion_list,
        1, 1, 0,
-  "Display in a buffer the list of completions, COMPLETIONS.\n\
+  "Display the list of completions, COMPLETIONS, using `standard-output'.\n\
 Each element may be just a symbol or string\n\
 or may be a list of two strings to be printed as if concatenated.")
   (completions)
@@ -1103,17 +1103,18 @@ or may be a list of two strings to be printed as if concatenated.")
 {
   register Lisp_Object tail, elt;
   register int i;
-  struct buffer *old = current_buffer;
+  int column = 0;
   /* No GCPRO needed, since (when it matters) every variable
      points to a non-string that is pointed to by COMPLETIONS.  */
-
-  set_buffer_internal (XBUFFER (Vstandard_output));
+  struct buffer *old = current_buffer;
+  if (XTYPE (Vstandard_output) == Lisp_Buffer)
+    set_buffer_internal (XBUFFER (Vstandard_output));
 
   if (NILP (completions))
-    insert_string ("There are no possible completions of what you have typed.");
+    write_string ("There are no possible completions of what you have typed.", -1);
   else
     {
-      insert_string ("Possible completions are:");
+      write_string ("Possible completions are:", -1);
       for (tail = completions, i = 0; !NILP (tail); tail = Fcdr (tail), i++)
 	{
 	  /* this needs fixing for the case of long completions
@@ -1121,20 +1122,52 @@ or may be a list of two strings to be printed as if concatenated.")
 	  /* Sadly, the window it will appear in is not known
 	     until after the text has been made. */
 	  if (i & 1)
-	    Findent_to (make_number (35), make_number (1));
+	    {
+	      if (XTYPE (Vstandard_output) == Lisp_Buffer)
+		Findent_to (make_number (35), make_number (1));
+	      else
+		{
+		  do
+		    {
+		      write_string (" ", -1);
+		      column++;
+		    }
+		  while (column < 35);
+		}
+	    }
 	  else
-	    Fterpri (Qnil);
+	    {
+	      Fterpri (Qnil);
+	      column = 0;
+	    }
 	  elt = Fcar (tail);
 	  if (CONSP (elt))
 	    {
+	      if (XTYPE (Vstandard_output) != Lisp_Buffer)
+		{
+		  tem = Flength (Fcar (elt));
+		  column += XINT (tem);
+		  tem = Flength (Fcar (Fcdr (elt)));
+		  column += XINT (tem);
+		}
 	      Fprinc (Fcar (elt), Qnil);
 	      Fprinc (Fcar (Fcdr (elt)), Qnil);
 	    }
 	  else
-	    Fprinc (elt, Qnil);
+	    {
+	      if (XTYPE (Vstandard_output) != Lisp_Buffer)
+		{
+		  Lisp_Object tem;
+		  tem = Flength (elt, Qt);
+		  column += XINT (tem);
+		}
+	      Fprinc (elt, Qnil);
+	    }
 	}
     }
-  set_buffer_internal (old);
+
+  if (XTYPE (Vstandard_output) == Lisp_Buffer)
+    set_buffer_internal (old);
   return Qnil;
 }
 

@@ -1227,7 +1227,8 @@ do the work."
 		 (with-output-to-temp-buffer "*Directory*"
 		   (buffer-disable-undo standard-output)
 		   (call-process "ls" nil standard-output nil
-				 "-l" file file-name)))
+				 (if (file-symlink-p file) "-lL" "-l")
+				 file file-name)))
 	     (yes-or-no-p (format "Recover auto save file %s? " file-name)))
 	   (switch-to-buffer (find-file-noselect file t))
 	   (let ((buffer-read-only nil))
