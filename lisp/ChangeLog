@@ -1,5 +1,10 @@
 2004-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* paren.el (show-paren-function): Fix last change (2004-12-02).
+
+	* international/mule-util.el (char-displayable-p): Return nil for
+	unibyte mode.
+
 	* subr.el (subregexp-context-p): New function.
 
 	* isearch.el (isearch-quote-char): Use it.
@@ -48,6 +53,12 @@
 	* cus-edit.el (custom-file): Doc fix.
 
 	* progmodes/sh-script.el (sh-indent-for-then): Change default.
+
+2004-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (blink-matching-open):
+	* textmodes/tex-mode.el (tex-validate-region):
+	Obey syntax-table text properties.
 
 2004-12-02  Per Abrahamsen  <abraham@dina.kvl.dk>
 
@@ -114,7 +125,7 @@
 	(xml-substitute-special): Fix validity error messages to
 	actually show the unexpandable entity.  Added validity error if &
 	isn't followed by an entity.
-	(xml-parse-tag): Concatnate any string following the a
+	(xml-parse-tag): Concatenate any string following the a
 	<![CDATA[]]> section to the parsed CDATA.
 	(xml-parse-dtd): Skip parameter entity declarations and use of
 	parameter entities.
