@@ -1,5 +1,10 @@
 ;;; blackbox.el --- blackbox game in Emacs Lisp
 
+;; Author: F. Thomas May <uw-nsr!uw-warp!tom@beaver.cs.washington.edu>
+;; Last-Modified: 24 Jun 1992
+;; Adapted-By: ESR
+;; Keywords: games
+
 ;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,9 +23,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
 ; by F. Thomas May <uw-nsr!uw-warp!tom@beaver.cs.washington.edu>
 ; doc comment by Root Boy Jim <rbj@dsys.icst.nbs.gov>, 27 Apr 89
-; interface improvements by Eric Raymond <eric@snark.thyrsus.com>, Dec 5 1991.
+; interface improvements by ESR, Dec 5 1991.
 
 ; The object of the game is to find four hidden balls by shooting rays
 ; into the black box.  There are four possibilities: 1) the ray will
@@ -58,6 +65,8 @@
 ; At the end of the game, if you've placed guesses for as many balls as
 ; there are in the box, the true board position will be revealed.  Each
 ; `x' is an incorrect guess of yours; `o' is the true location of a ball.
+
+;;; Code:
 
 (defvar blackbox-mode-map nil "")
 

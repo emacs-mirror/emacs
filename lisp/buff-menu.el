@@ -1,5 +1,8 @@
 ;;; buff-menu.el --- buffer menu main function and support functions.
 
+;; Maintainer: FSF
+;; Last-Modified: 09 Jul 1992
+
 ;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,6 +21,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Code:
 
 ; Put buffer *Buffer List* into proper mode right away
 ; so that from now on even list-buffers is enough to get a buffer menu.
