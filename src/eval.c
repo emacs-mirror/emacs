@@ -1218,8 +1218,9 @@ See also the function `condition-case'.")
   Lisp_Object string;
   Lisp_Object real_error_symbol;
   Lisp_Object combined_data;
+  extern int display_busy_cursor_p;
+  extern int redisplaying_p;
 
-  quit_error_check ();
   immediate_quit = 0;
   if (gc_in_progress || waiting_for_input)
     abort ();
@@ -1230,6 +1231,12 @@ See also the function `condition-case'.")
     real_error_symbol = Fcar (data);
   else
     real_error_symbol = error_symbol;
+
+#ifdef HAVE_X_WINDOWS
+  if (display_busy_cursor_p)
+    Fx_hide_busy_cursor (Qt);
+#endif
+  redisplaying_p = 0;
 
   /* This hook is used by edebug.  */
   if (! NILP (Vsignal_hook_function))
@@ -1696,6 +1703,11 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
   struct backtrace backtrace;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
+  /* Since Fsignal resets this to 0, it had better be 0 now
+     or else we have a potential bug.  */
+  if (interrupt_input_blocked != 0)
+    abort ();
+  
   if (SYMBOLP (form))
     {
       if (EQ (Vmocklisp_arguments, Qt))
