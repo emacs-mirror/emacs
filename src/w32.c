@@ -3486,7 +3486,7 @@ sys_pipe (int * phandles)
 }
 
 /* From ntproc.c */
-extern Lisp_Object Vw32_pipe_read_delay;
+extern int w32_pipe_read_delay;
 
 /* Function to do blocking read of one byte, needed to implement
    select.  It is only allowed on sockets and pipes. */
@@ -3526,7 +3526,7 @@ _sys_read_ahead (int fd)
 	 shell on NT is very slow if we don't do this. */
       if (rc > 0)
 	{
-	  int wait = XINT (Vw32_pipe_read_delay);
+	  int wait = w32_pipe_read_delay;
 
 	  if (wait > 0)
 	    Sleep (wait);
