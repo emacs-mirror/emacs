@@ -259,3 +259,16 @@ extern void r_alloc_free ();
 
 #endif /* not THIS_IS_YMAKEFILE */
 #endif /* not NOT_C_CODE */
+
+#define PTY_ITERATION		for (i = 0; i < 1; i++) /* ick */
+#define PTY_NAME_SPRINTF	/* none */
+#define PTY_TTY_NAME_SPRINTF	/* none */
+#define PTY_OPEN					\
+  do							\
+    {							\
+      int dummy;					\
+      if (-1 == openpty (&fd, &dummy, pty_name, 0, 0))	\
+	fd = -1;					\
+      close (dummy);					\
+    }							\
+  while (0)
