@@ -281,7 +281,8 @@ check_composition (pos, pos_byte, point, len, len_byte, width)
   int id;
 
   if (! find_composition (pos, -1, &start, &end, &prop, Qnil)
-      || pos != start || point < end)
+      || pos != start || point < end
+      || !COMPOSITION_VALID_P (start, end, prop))
     return 0;
   if ((id = get_composition_id (pos, pos_byte, end - pos, prop, Qnil)) < 0)
     return 0;
