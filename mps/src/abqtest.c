@@ -1,10 +1,15 @@
 /* impl.c.abqtest: AVAILABLE BLOCK QUEUE TEST
  *
- * $HopeName: MMsrc!abqtest.c(MMdevel_gavinm_splay.2) $
+ * $HopeName: MMsrc!abqtest.c(trunk.2) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
-
+#include "abq.h"
+#include "cbs.h"
+#include "mpm.h"
+#include "mps.h"
+#include "mpsaan.h"             /* ANSI arena for ABQCreate and ABQDestroy */
+#include "testlib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -12,15 +17,8 @@
 #include <math.h>
 
 
-#include "mpm.h"
-#include "mps.h"
-#include "mpsaan.h"             /* ANSI arena for ABQCreate and ABQDestroy */
-#include "testlib.h"
+SRCID(abqtest, "$HopeName: MMsrc!abqtest.c(trunk.2) $");
 
-
-SRCID(abqtest, "$HopeName: MMsrc!abqtest.c(MMdevel_gavinm_splay.2) $");
-
-#include "abq.h"
 
 static ABQStruct abq; /* the ABQ which we will use */
 static Size abqSize; /* the size of the current ABQ */
@@ -68,7 +66,7 @@ static CBSBlock CreateCBSBlock(int no)
   b->id = no;
   b->cbsBlockStruct.base = 0;
   b->cbsBlockStruct.limit = 0;
-  
+
   testBlocks = b;
 
   return TestCBSBlock(b);
@@ -83,14 +81,14 @@ static void DestroyCBSBlock(CBSBlock c)
     testBlocks = b->next;
   else {
     Test prev;
-    
+  
     for (prev = testBlocks; prev != 0; prev = prev->next)
       if (prev->next == b) {
         prev->next = b->next;
         break;
       }
   }
-  
+
   free(b);
 }
 
@@ -99,7 +97,7 @@ static void step(void)
 {
   Res res;
   CBSBlock a;
-  
+
   switch (random(9)) {
     case 0: case 1: case 2: case 3:
   push:
@@ -126,7 +124,7 @@ static void step(void)
     default:
       if (!deleted & (pushee > popee)) {
         Test b;
-        
+      
         deleted = random (pushee - popee) + popee;
         for (b = testBlocks; b != NULL; b = b->next)
           if (b->id == deleted)
@@ -142,18 +140,16 @@ extern int main(void)
 {
   mps_res_t res;
   mps_arena_t arena;
-
   int i;
-  
+
   abqSize = 0;
-  
-  res = mps_arena_create(&arena,
-			 mps_arena_class_an());
+
+  res = mps_arena_create(&arena, mps_arena_class_an());
   if (res != MPS_RES_OK) {
     printf("failed to create ANSI arena.\n");
     return 1;
   }
-  
+
   res = ABQInit((Arena)arena, &abq, ABQ_SIZE);
   if (res == ResOK) {
     abqSize = ABQ_SIZE;
@@ -165,8 +161,7 @@ extern int main(void)
   for (i = 0; i < TEST_ITER; i++) {
     step();
   }
-  
+
   printf("All tests passed.\n");
-  
   return 0;
 }
