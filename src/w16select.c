@@ -248,7 +248,7 @@ set_clipboard_data (Format, Data, Size, Raw)
   unsigned char *dp = Data, *dstart = dp;
 
   if (Format != CF_OEMTEXT)
-    return 0;
+    return 3;
 
   /* need to know final size after '\r' chars are inserted (the
      standard CF_OEMTEXT clipboard format uses CRLF line endings,
@@ -266,10 +266,10 @@ set_clipboard_data (Format, Data, Size, Raw)
     }
 
   if (clipboard_compact (truelen) < truelen)
-    return 0;
+    return 1;
 
   if ((xbuf_addr = alloc_xfer_buf (truelen)) == 0)
-    return 0;
+    return 1;
 
   /* Move the buffer into the low memory, convert LF into CR-LF if needed.  */
   if (Raw)
@@ -333,8 +333,8 @@ set_clipboard_data (Format, Data, Size, Raw)
   if (regs.x.ax == 0)
     *last_clipboard_text = '\0';
 
-  /* Zero means success, otherwise (1 or 2) it's an error.  */
-  return regs.x.ax > 0 ? 0 : 1;
+  /* Zero means success, otherwise (1, 2, or 3) it's an error.  */
+  return regs.x.ax > 0 ? 0 : 3;
 }
 
 /* Return the size of the clipboard data of format FORMAT.  */
@@ -477,6 +477,8 @@ static char no_mem_msg[] =
   "(Not enough DOS memory to put saved text into clipboard.)";
 static char binary_msg[] =
   "(Binary characters in saved text; clipboard data not set.)";
+static char system_error_msg[] =
+  "(Clipboard interface failure; clipboard data not set.)";
 
 DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_data, 1, 2, 0,
        "This sets the clipboard data to the given text.")
@@ -576,6 +578,9 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 	    break;
 	  case 2:
 	    message2 (binary_msg, sizeof (binary_msg) - 1, 0);
+	    break;
+	  case 3:
+	    message2 (system_error_msg, sizeof (system_error_msg) - 1, 0);
 	    break;
 	}
       sit_for (2, 0, 0, 1, 1);
