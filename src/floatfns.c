@@ -862,7 +862,7 @@ With optional DIVISOR, return the nearest integer to ARG/DIVISOR.\n\
 Rounding a value equidistant between two integers may choose the\n\
 integer closer to zero, or it may prefer an even integer, depending on\n\
 your machine.  For example, \(round 2.5\) can return 3 on some\n\
-systems, but 3 on others.")
+systems, but 2 on others.")
   (arg, divisor)
      Lisp_Object arg, divisor;
 {
