@@ -2148,7 +2148,7 @@ xlfd_point_size (f, font)
 	  start = end;
 	}
 
-      pixel = matrix[3] / 10.0;
+      pixel = matrix[3];
     }
   else
     pixel = atoi (pixel_field);
