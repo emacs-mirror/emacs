@@ -1,5 +1,10 @@
 2002-05-13  Colin Walters  <walters@gnu.org>
 
+	* ibuf-ext.el (ibuffer-format-filter-group-data): New function.
+
+	* ibuffer.el (ibuffer-insert-filter-group): New argument filter-string.
+	(ibuffer-redisplay-engine): Handle it.
+
 	* add-log.el (add-log-mailing-address): Can be a list, too.
 	(add-change-log-entry): If `add-log-mailing-address' is a list,
 	then handle it.
