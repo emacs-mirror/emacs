@@ -1270,7 +1270,7 @@ if the file was newly read in, the value is the filename."
 	       ;; list later returned by (tags-table-files).
 	       (if tail
 		   (setcdr tail (copy-sequence (tags-table-files)))
-		 (setq next-file-list (copy-sequence (tags-table-files)))))))
+		 (setq next-file-list (copy-sequence (tags-table-files))))))))
 	(t
 	 ;; Initialize the list by evalling the argument.
 	 (setq next-file-list (eval initialize))))
