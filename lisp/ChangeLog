@@ -1,3 +1,11 @@
+2000-10-25  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* comint.el (comint-mode): Locally set `next-line-add-newlines' to nil.
+	(comint-mode-map): Reverse order of `comint-write-output' and
+	`comint-append-output-to-file'.
+	(comint-append-output-to-file): Reinstate this function, for the
+	benefit of the menu.
+
 2000-10-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* vc.el (vc-version-other-window): Bind `file'.
