@@ -659,7 +659,7 @@ DEFUN ("ceiling", Fceiling, Sceiling, 1, 1, 0,
   CHECK_NUMBER_OR_FLOAT (arg, 0);
 
   if (XTYPE (arg) == Lisp_Float)
-    IN_FLOAT (XSET (arg, Lisp_Int, ceil (XFLOAT (arg)->data)), "celing", arg);
+    IN_FLOAT (XSET (arg, Lisp_Int, ceil (XFLOAT (arg)->data)), "ceiling", arg);
 
   return arg;
 }
