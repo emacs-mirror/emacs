@@ -2088,10 +2088,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
  non_reread:
 
-  /* Now that we have read an event, Emacs is not idle--
-     unless the event was a timer event (not used now).  */
-  if (! CONSP (c))
-    timer_stop_idle ();
+  timer_stop_idle ();
 
   start_polling ();
 
