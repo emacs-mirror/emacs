@@ -2652,7 +2652,7 @@ EXFUN (Fbyte_code, 3);
 extern void syms_of_bytecode P_ ((void));
 extern struct byte_stack *byte_stack_list;
 extern void mark_byte_stack P_ ((void));
-extern void relocate_byte_pcs P_ ((void));
+extern void unmark_byte_stack P_ ((void));
 
 /* defined in macros.c */
 extern Lisp_Object Qexecute_kbd_macro;
