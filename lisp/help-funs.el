@@ -453,17 +453,7 @@ it is displayed along with the global value."
 ;;   l)
 (defconst help-manyarg-func-alist
   (purecopy
-   '((encode-time
-      . "(encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)")
-     (insert . "(insert &rest ARGS)")
-     (insert-and-inherit . "(insert-and-inherit &rest ARGS)")
-     (insert-before-markers . "(insert-before-markers &rest ARGS)")
-     (message . "(message STRING &rest ARGUMENTS)")
-     (message-box . "(message-box STRING &rest ARGUMENTS)")
-     (message-or-box . "(message-or-box STRING &rest ARGUMENTS)")
-     (propertize . "(propertize STRING &rest PROPERTIES)")
-     (format . "(format STRING &rest OBJECTS)")
-     (apply . "(apply FUNCTION &rest ARGUMENTS)")
+   '((apply . "(apply FUNCTION &rest ARGUMENTS)")
      (run-hooks . "(run-hooks &rest HOOKS)")
      (run-hook-with-args . "(run-hook-with-args HOOK &rest ARGS)")
      (run-hook-with-args-until-failure
@@ -471,13 +461,6 @@ it is displayed along with the global value."
      (run-hook-with-args-until-success
       . "(run-hook-with-args-until-success HOOK &rest ARGS)")
      (funcall . "(funcall FUNCTION &rest ARGUMENTS)")
-     (append . "(append &rest SEQUENCES)")
-     (concat . "(concat &rest SEQUENCES)")
-     (vconcat . "(vconcat &rest SEQUENCES)")
-     (nconc . "(nconc &rest LISTS)")
-     (widget-apply . "(widget-apply WIDGET PROPERTY &rest ARGS)")
-     (make-hash-table . "(make-hash-table &rest KEYWORD-ARGS)")
-     (insert-string . "(insert-string &rest ARGS)")
      (start-process . "(start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)")
      (setq-default . "(setq-default SYMBOL VALUE [SYMBOL VALUE...])")
      (save-excursion . "(save-excursion &rest BODY)")
@@ -504,16 +487,11 @@ it is displayed along with the global value."
      (unwind-protect . "(unwind-protect BODYFORM UNWINDFORMS...)")
      (condition-case . "(condition-case VAR BODYFORM HANDLERS...)")
      (track-mouse . "(track-mouse BODY ...)")
-     (ml-if . "(ml-if COND THEN ELSE...)")
-     (ml-provide-prefix-argument . "(ml-provide-prefix-argument ARG1 ARG2)")
-     (ml-prefix-argument-loop . "(ml-prefix-argument-loop ...)")
      (with-output-to-temp-buffer
 	 . "(with-output-to-temp-buffer BUFFNAME BODY ...)")
      (save-window-excursion . "(save-window-excursion BODY ...)")
      (find-operation-coding-system
-      . "(find-operation-coding-system OPERATION ARGUMENTS ...)")
-     (insert-before-markers-and-inherit
-      . "(insert-before-markers-and-inherit &rest ARGS)"))))
+      . "(find-operation-coding-system OPERATION ARGUMENTS ...)"))))
 
 
 (provide 'help-funs)
