@@ -1,7 +1,7 @@
 #
 #              GENERIC BUILD.GC MAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!gc.gmk(trunk.13) $
+# $HopeName: !gc.gmk(trunk.14) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -146,16 +146,14 @@ endif
 # "all" builds all varieties of all targets
 # %%TARGET: Add the target to the all dependencies.
 
-all: mpmss amcss lockcov stdcover mpmstres std.a poolncv \
-     qs
+all: mpmss amcss dwstress lockcov stdcover std.a poolncv lo.a locv qs
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in all varieties.
 #
 # %%TARGET: Add a pseudo-target for the new target here.
 
-mpmss amcss dwstress amcdev lockcov stdcover mpmstres std.a poolncv \
-     lo.a locv qs: phony
+mpmss amcss dwstress lockcov stdcover std.a poolncv lo.a locv qs: phony
 	$(MAKE) -f $(PFM).gmk TARGET=$@ target
 
 # "clean" removes the directory containing the build results for the
@@ -204,9 +202,6 @@ $(PFM)/$(VARIETY)/stdcover: $(PFM)/$(VARIETY)/stdcover.o \
 	$(STDOBJ)
 
 $(PFM)/$(VARIETY)/mpmss: $(PFM)/$(VARIETY)/mpmss.o \
-	$(MPMOBJ) $(STDOBJ)
-
-$(PFM)/$(VARIETY)/mpmstres: $(PFM)/$(VARIETY)/mpmstres.o \
 	$(MPMOBJ) $(STDOBJ)
 
 $(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
