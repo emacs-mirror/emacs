@@ -137,6 +137,11 @@ variable value, a subcommand, or even the result of a Lisp form."
   :type 'boolean
   :group 'eshell-var)
 
+(defcustom eshell-modify-global-environment nil
+  "*If non-nil, using `export' changes Emacs's global environment."
+  :type 'boolean
+  :group 'eshell-var)
+
 (defcustom eshell-variable-name-regexp "[A-Za-z0-9_-]+"
   "*A regexp identifying what constitutes a variable name reference.
 Note that this only applies for '$NAME'.  If the syntax '$<NAME>' is
@@ -199,7 +204,9 @@ function), and the arguments passed to this function would be the list
   "Initialize the variable handle code."
   ;; Break the association with our parent's environment.  Otherwise,
   ;; changing a variable will affect all of Emacs.
-  (set (make-local-variable 'process-environment) (eshell-copy-environment))
+  (unless eshell-modify-global-environment
+    (set (make-local-variable 'process-environment)
+	 (eshell-copy-environment)))
 
   (define-key eshell-command-map [(meta ?v)] 'eshell-insert-envvar)
 
