@@ -92,6 +92,7 @@
 		  (symbol :tag "Property")
 		  (sexp :tag "Value")))))
 
+;;;###autoload
 (defcustom read-file-name-electric-shadow-properties
   '(face read-file-name-electric-shadow field shadow)
   "Properties given to the `shadowed' part of a filename in the minibuffer.
@@ -101,6 +102,7 @@ If emacs is not running under a window system,
   :type read-file-name-electric-shadow-properties-custom-type
   :group 'minibuffer)
 
+;;;###autoload
 (defcustom read-file-name-electric-shadow-tty-properties
   '(before-string "{" after-string "} " field shadow)
   "Properties given to the `shadowed' part of a filename in the minibuffer.
@@ -110,6 +112,7 @@ system, `read-file-name-electric-shadow-properties' is used instead."
   :type read-file-name-electric-shadow-properties-custom-type
   :group 'minibuffer)
 
+;;;###autoload
 (defface read-file-name-electric-shadow
   '((((background dark))
      :foreground "grey50")
