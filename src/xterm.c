@@ -7766,12 +7766,30 @@ x_connection_closed (dpy, error_message)
   error ("%s", error_msg);
 }
 
+/* This is the first-level handler for X protocol errors.
+   It calls x_error_quitter or x_error_catcher.  */
+
+static int
+x_error_handler (display, error)
+     Display *display;
+     XErrorEvent *error;
+{
+  if (! NILP (x_error_message_string))
+    x_error_catcher (display, error);
+  else
+    x_error_quitter (display, error);
+  return 0;
+}
 
 /* This is the usual handler for X protocol errors.
    It kills all frames on the display that we got the error for.
    If that was the only one, it prints an error message and kills Emacs.  */
 
-static void
+/* This is not static because we want to put a breakpoint on it.
+   It is after x_error_handler so that it won't get inlined in
+   x_error_handler.  */
+
+void
 x_error_quitter (display, error)
      Display *display;
      XErrorEvent *error;
@@ -7787,21 +7805,6 @@ x_error_quitter (display, error)
   x_connection_closed (display, buf1);
 }
 
-
-/* This is the first-level handler for X protocol errors.
-   It calls x_error_quitter or x_error_catcher.  */
-
-static int
-x_error_handler (display, error)
-     Display *display;
-     XErrorEvent *error;
-{
-  if (! NILP (x_error_message_string))
-    x_error_catcher (display, error);
-  else
-    x_error_quitter (display, error);
-  return 0;
-}
 
 /* This is the handler for X IO errors, always.
    It kills all frames on the display that we lost touch with.
