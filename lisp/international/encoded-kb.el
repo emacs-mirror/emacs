@@ -285,7 +285,8 @@ The following key sequence may cause multilingual text insertion."
       (while (< i 256)
 	(define-key key-translation-map
 	  (vector i) 'encoded-kbd-self-insert-utf-8)
-	(setq i (1+ i)))))
+	(setq i (1+ i))))
+    8)
 
    (t
     nil)))
