@@ -644,6 +644,12 @@ x_reply_selection_request (event, format, data, size, type)
 		       PropModeReplace, data, 0);
     }
 
+  /* The window we're communicating with may have been deleted
+     in the meantime (that's a real situation from a bug report).
+     In this case, there may be events in the event queue still
+     refering to the deleted window, and we'll get a BadWindow error
+     in XTread_socket when processing the events.  I don't have
+     an idea how to fix that.  gerd, 2001-01-98.   */
   XFlush (display);
   x_uncatch_errors (display, count);
   UNBLOCK_INPUT;
