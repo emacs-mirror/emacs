@@ -37,8 +37,7 @@
 (defun dired-diff (file &optional switches)
   "Compare file at point with file FILE using `diff'.
 FILE defaults to the file at the mark.
-The prompted-for file is the first file given to `diff'.
-Prefix arg lets you edit the diff switches.  See the command `diff'."
+The prompted-for file is the first file given to `diff'."
   (interactive
    (let ((default (if (mark)
 		      (save-excursion (goto-char (mark))
@@ -60,43 +59,12 @@ Prefix arg lets you edit the diff switches.  See the command `diff'."
   "Diff this file with its backup file or vice versa.
 Uses the latest backup, if there are several numerical backups.
 If this file is a backup, diff it with its original.
-The backup file is the first file given to `diff'.
-Prefix arg lets you edit the diff switches.  See the command `diff'."
+The backup file is the first file given to `diff'."
   (interactive (list (if (fboundp 'diff-read-switches)
 			 (diff-read-switches "Diff with switches: "))))
-  (let (bak ori (file (dired-get-filename)))
-    (if (backup-file-name-p file)
-	(setq bak file
-	      ori (file-name-sans-versions file))
-      (setq bak (or (dired-latest-backup-file file)
-		    (error "No backup found for %s" file))
-	    ori file))
-    (if switches
-	(diff bak ori switches)
-      (diff bak ori))))
-
-(defun dired-latest-backup-file (fn)	; actually belongs into files.el
-  "Return the latest existing backup of FILE, or nil."
-  ;; First try simple backup, then the highest numbered of the
-  ;; numbered backups.
-  ;; Ignore the value of version-control because we look for existing
-  ;; backups, which maybe were made earlier or by another user with
-  ;; a different value of version-control.
-  (setq fn (expand-file-name fn))
-  (or
-   (let ((bak (make-backup-file-name fn)))
-     (if (file-exists-p bak) bak))
-   (let* ((dir (file-name-directory fn))
-	  (base-versions (concat (file-name-nondirectory fn) ".~"))
-	  (bv-length (length base-versions)))
-     (concat dir
-	     (car (sort
-		   (file-name-all-completions base-versions dir)
-		   ;; bv-length is a fluid var for backup-extract-version:
-		   (function
-		    (lambda (fn1 fn2)
-		      (> (backup-extract-version fn1)
-			 (backup-extract-version fn2))))))))))
+  (if switches
+      (diff-backup (dired-get-filename) switches)
+    (diff-backup (dired-get-filename))))
 
 (defun dired-do-chxxx (attribute-name program op-symbol arg)
   ;; Change file attributes (mode, group, owner) of marked files and

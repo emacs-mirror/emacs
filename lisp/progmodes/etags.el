@@ -1098,6 +1098,8 @@ see the doc of that variable if you want to add names to the list."
   (or (one-window-p)
       (delete-window)))  
 
+;;;###autoload (define-key esc-map "\t" 'complete-tag)
+
 ;;;###autoload
 (defun complete-tag ()
   "Perform tags completion on the text around point.

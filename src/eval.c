@@ -1127,32 +1127,21 @@ static int
 wants_debugger (list, conditions)
      Lisp_Object list, conditions;
 {
-  static int looking = 0;
-
-  if (looking)
-    {
-      /* We got an error while looking in LIST.  */
-      looking = 0;
-      return 1;
-    }
-
   if (NILP (list))
     return 0;
   if (! CONSP (list))
     return 1;
 
-  looking = 1;
-  while (!NILP (conditions))
+  while (CONSP (conditions))
     {
-      Lisp_Object tem;
-      tem = Fmemq (XCONS (conditions)->car, list);
-      if (! NILP (tem))
-	{
-	  looking = 0;
+      Lisp_Object this, tail;
+      this = XCONS (conditions)->car;
+      for (tail = list; CONSP (tail); tail = XCONS (tail)->cdr)
+	if (EQ (XCONS (tail)->car, this))
 	  return 1;
-	}
       conditions = XCONS (conditions)->cdr;
     }
+  return 0;
 }
 
 /* Value of Qlambda means we have called debugger and user has continued.
@@ -1174,8 +1163,8 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
       if (wants_debugger (Vstack_trace_on_error, conditions))
 	internal_with_output_to_temp_buffer ("*Backtrace*", Fbacktrace, Qnil);
       if (!entering_debugger
-	  && ((EQ (sig, Qquit) && debug_on_quit)
-	      || wants_debugger (Vdebug_on_error, conditions)))
+	  && (EQ (sig, Qquit) ? debug_on_quit
+	      : wants_debugger (Vdebug_on_error, conditions)))
 	{
 	  int count = specpdl_ptr - specpdl;
 	  specbind (Qdebug_on_error, Qnil);

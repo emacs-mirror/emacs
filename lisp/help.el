@@ -304,10 +304,12 @@ C-w print information on absence of warranty for GNU Emacs."
 		   ((eq (car-safe def) 'mocklisp)
 		    "a mocklisp function.")
 		   ((eq (car-safe def) 'autoload)
-		    (format "%sLisp %s to autoload from `%s'."
+		    (format "%sautoloaded Lisp %s."
 			    beg
 			    (if (nth 4 def) "macro" "function")
-			    (nth 1 def)))
+;;; Including the file name made this line too long.
+;;;			    (nth 1 def)
+			    ))
 		   (t "")))
       (terpri))
     (if (documentation function)
@@ -365,7 +367,7 @@ documentation found."
   (let ((message
 	 (let ((standard-output (get-buffer-create "*Help*")))
 	   (print-help-return-message 'identity))))
-    (apropos string 'commandp)
+    (apropos string t 'commandp)
     (and message (message message))))
 
 (defun locate-library (library &optional nosuffix)

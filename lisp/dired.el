@@ -1,10 +1,9 @@
 ;; dired.el --- directory-browsing commands
 
+;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
+
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Version: 5.234
-;; Last-Modified: 14 Jul 1992
-
-;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -29,12 +28,6 @@
 ;; Finished up by rms in 1992.
 
 ;;; Code:
-
-;; compatibility package when using Emacs 18.55
-(defvar dired-emacs-19-p (equal (substring emacs-version 0 2) "19"))
-;;;>>> install (is there a better way to test for Emacs 19?)
-(or dired-emacs-19-p
-    (require 'emacs-19))
 
 ;;; Customizable variables
 
@@ -156,10 +149,14 @@ This is what the `do' commands look for and what the `mark' commands store.")
   "Character used to flag files for deletion.")
 
 (defvar dired-shrink-to-fit
-  (if (fboundp 'baud-rate) (> (baud-rate) search-slow-speed) t)
+  t
+;; I see no reason ever to make this nil -- rms.
+;;  (> baud-rate search-slow-speed)
   "Non-nil means Dired shrinks the display buffer to fit the marked files.")
 
 (defvar dired-flagging-regexp nil);; Last regexp used to flag files.
+
+(defvar dired-file-version-alist)
 
 (defvar dired-directory nil
   "The directory name or shell wildcard that was used as argument to `ls'.
@@ -686,6 +683,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   (define-key dired-mode-map "m" 'dired-mark)
   (define-key dired-mode-map "n" 'dired-next-line)
   (define-key dired-mode-map "o" 'dired-find-file-other-window)
+  (define-key dired-mode-map "\C-o" 'dired-display-file)
   (define-key dired-mode-map "p" 'dired-previous-line)
   (define-key dired-mode-map "q" 'dired-quit)
   (define-key dired-mode-map "s" 'dired-sort-toggle-or-edit)
@@ -900,6 +898,11 @@ otherwise, display it in another buffer."
   "In dired, visit this file or directory in another window."
   (interactive)
   (find-file-other-window (dired-get-filename)))
+
+(defun dired-display-file ()
+  "In dired, display this file or directory in another window."
+  (interactive)
+  (display-buffer (find-file-noselect (dired-get-filename))))
 
 ;;; Functions for extracting and manipulating file names in dired buffers.
 
@@ -1335,7 +1338,7 @@ Optional argument means return a file name relative to `default-directory'."
 		      ;; (and (file-directory-p fn) (not (file-symlink-p fn)))
 		      ;; but more efficient
 		      (if (eq t (car (file-attributes fn)))
-			  (remove-directory fn)
+			  (delete-directory fn)
 			(delete-file fn))
 		      ;; if we get here, removing worked
 		      (setq succ (1+ succ))
@@ -1711,17 +1714,17 @@ with a prefix argument."
   (setq keep (if keep (prefix-numeric-value keep) dired-kept-versions))
   (let ((early-retention (if (< keep 0) (- keep) kept-old-versions))
 	(late-retention (if (<= keep 0) dired-kept-versions keep))
-	(file-version-assoc-list ()))
+	(dired-file-version-alist ()))
     (message "Cleaning numerical backups (keeping %d late, %d old)..."
 	     late-retention early-retention)
     ;; Look at each file.
     ;; If the file has numeric backup versions,
-    ;; put on file-version-assoc-list an element of the form
+    ;; put on dired-file-version-alist an element of the form
     ;; (FILENAME . VERSION-NUMBER-LIST)
     (dired-map-dired-file-lines (function dired-collect-file-versions))
     ;; Sort each VERSION-NUMBER-LIST,
     ;; and remove the versions not to be deleted.
-    (let ((fval file-version-assoc-list))
+    (let ((fval dired-file-version-alist))
       (while fval
 	(let* ((sorted-v-list (cons 'q (sort (cdr (car fval)) '<)))
 	       (v-count (length sorted-v-list)))
@@ -1766,8 +1769,8 @@ with a prefix argument."
 			   (file-name-directory fn)))
 	   (versions (mapcar 'backup-extract-version possibilities)))
       (if versions
-	  (setq file-version-assoc-list (cons (cons fn versions)
-					      file-version-assoc-list)))))
+	  (setq dired-file-version-alist (cons (cons fn versions)
+					       dired-file-version-alist)))))
 
 (defun dired-trample-file-versions (fn)
   (let* ((start-vn (string-match "\\.~[0-9]+~$" fn))
@@ -1775,7 +1778,7 @@ with a prefix argument."
     (and start-vn
 	 (setq base-version-list	; there was a base version to which
 	       (assoc (substring fn 0 start-vn)	; this looks like a
-		      file-version-assoc-list))	; subversion
+		      dired-file-version-alist))	; subversion
 	 (not (memq (string-to-int (substring fn (+ 2 start-vn)))
 		    base-version-list))	; this one doesn't make the cut
 	 (progn (beginning-of-line)
@@ -1923,16 +1926,14 @@ With a prefix argument you can edit the current listing switches instead."
 (autoload 'dired-diff "dired-aux"
   "Compare file at point with file FILE using `diff'.
 FILE defaults to the file at the mark.
-The prompted-for file is the first file given to `diff'.
-Prefix arg lets you edit the diff switches.  See the command `diff'."
+The prompted-for file is the first file given to `diff'."
   t)
 
 (autoload 'dired-backup-diff "dired-aux"
   "Diff this file with its backup file or vice versa.
 Uses the latest backup, if there are several numerical backups.
 If this file is a backup, diff it with its original.
-The backup file is the first file given to `diff'.
-Prefix arg lets you edit the diff switches.  See the command `diff'."
+The backup file is the first file given to `diff'."
   t)
 
 (autoload 'dired-do-chmod "dired-aux"

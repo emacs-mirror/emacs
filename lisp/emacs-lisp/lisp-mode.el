@@ -113,6 +113,7 @@ All commands in shared-lisp-mode-map are inherited by this map.")
     ()
   (setq emacs-lisp-mode-map
 	(nconc (make-sparse-keymap) shared-lisp-mode-map))
+  (define-key emacs-lisp-mode-map "\e\t" 'lisp-complete-symbol)
   (define-key emacs-lisp-mode-map "\e\C-x" 'eval-defun))
 
 (defun emacs-lisp-mode ()
@@ -178,6 +179,7 @@ All commands in `shared-lisp-mode-map' are inherited by this map.")
   (setq lisp-interaction-mode-map
 	(nconc (make-sparse-keymap) shared-lisp-mode-map))
   (define-key lisp-interaction-mode-map "\e\C-x" 'eval-defun)
+  (define-key lisp-interaction-mode-map "\e\t" 'lisp-complete-symbol)
   (define-key lisp-interaction-mode-map "\n" 'eval-print-last-sexp))
 
 (defun lisp-interaction-mode ()
