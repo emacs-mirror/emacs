@@ -222,6 +222,37 @@ This is like `strokes-global-set-stroke', but it allows you to bind
 the stroke directly to a string to insert.  This is convenient for
 using strokes as an input method.
 
++++
+** Desktop package
+
+*** Desktop saving is now a minor mode, desktop-save-mode. Variable
+desktop-enable is obsolete. Customize desktop-save-mode to enable desktop
+saving.
+
+*** Buffers are saved in the desktop file in the same order as that in the
+buffer list.
+
+*** New commands:
+  - desktop-revert reverts to the last loaded desktop.
+  - desktop-change-dir kills current desktop and loads a new.
+  - desktop-save-in-desktop-dir saves desktop in the directory from which
+    it was loaded.
+
+*** New customizable variables:
+  - desktop-save. Determins whether the desktop should be saved when it is
+    killed.
+  - desktop-file-name-format.
+  - desktop-path. List of directories in which to lookup the desktop file.
+  - desktop-locals-to-save.
+  - desktop-globals-to-clear.
+  - desktop-clear-preserve-buffers-regexp.
+
+*** New command line option --no-desktop
+
+*** New hooks:
+  - desktop-after-read-hook run after a desktop is loaded.
+  - desktop-no-desktop-file-hook run when no desktop file is found.
+
 ---
 ** The saveplace.el package now filters out unreadable files.
 When you exit Emacs, the saved positions in visited files no longer
@@ -429,6 +460,14 @@ what external viewers to use and when.
 
 *** In Dired, the w command now copies the current line's file name
 into the kill ring.
+
++++
+** Dired-x:
+
+*** Omitting files is now a minor mode, dired-omit-mode. The mode toggling
+command is bound to M-o. A new command dired-mark-omitted, bound to M-O,
+marks omitted files. The variable dired-omit-files-p is obsoleted, use the
+mode toggling function instead.
 
 ** Info mode:
 +++
