@@ -1,3 +1,8 @@
+2002-06-23  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-do-auto-fill): Respect the value of
+	comment-auto-fill-only-comments.
+
 2002-06-21  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/ange-ftp.el (backup-buffer): Delete `ange-ftp' property.
