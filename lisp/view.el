@@ -137,6 +137,7 @@ subtracted from by `view-mode-exit' when finished viewing the buffer.
 See RETURN-TO-ALIST argument of function `view-mode-exit' for the format of
 `view-return-to-alist'.")
 (make-variable-buffer-local 'view-return-to-alist)
+(put 'view-return-to-alist 'permanent-local t)
 
 (defvar view-exit-action nil
   "nil or a function with one argument (a buffer) called when finished viewing.
