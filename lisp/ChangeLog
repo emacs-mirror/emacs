@@ -1,3 +1,8 @@
+2003-07-22  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/hideshow.el (hs-special-modes-alist):
+	Clarify MDATA-SELECTOR doc; nfc.
+
 2003-07-21  Markus Rost  <rost@math.ohio-state.edu>
 
 	* progmodes/idlwave.el (idlwave-comment-indent-char): Fix default
@@ -1823,7 +1828,7 @@
 2003-06-26  Stephen Eglen  <stephen@gnu.org>
 
 	* iswitchb.el (iswitchb-read-buffer): Remove redundant variable
-	iswitchb-prepost-hooks. 
+	iswitchb-prepost-hooks.
 	(iswitchb-xemacs): Delete variable and use (featurep 'xemacs)
 	and fboundp instead.
 	(iswitchb-completions): Remove two redundant arguments and local
