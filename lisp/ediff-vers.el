@@ -36,7 +36,13 @@
      (eval-when-compile
        (load "pcl-cvs" 'noerror)
        (load "rcs" 'noerror)
-       (load "generic-sc" 'noerror)
+       ;; On 8+3 MS-DOS filesystems, generic-x.el is loaded
+       ;; instead of (the missing) generic-sc.el.  Since the
+       ;; version of Emacs which supports MS-DOS doesn't have
+       ;; generic-sc, we simply avoid loading it.
+       (or (and (fboundp 'msdos-long-file-names)
+		(not (msdos-long-file-names)))
+	   (load "generic-sc" 'noerror))
        (load "vc" 'noerror)))
 ;; end pacifier
       
