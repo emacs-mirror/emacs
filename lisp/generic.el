@@ -309,7 +309,7 @@ Some generic modes are defined in `generic-x.el'."
 		    (concat comment-start-skip "\\|" (regexp-quote start) "+\\s-*")))
 	  ;; First comment-style
 	  (setq comment-start start)
-	  (setq comment-end (unless (string-equal end "\n") end))
+	  (setq comment-end (if (string-equal end "\n") "" end))
 	  (setq comment-start-skip (concat (regexp-quote start) "+\\s-*")))
 
        ;; Reuse comstyles if necessary
