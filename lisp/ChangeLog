@@ -1,3 +1,16 @@
+2002-10-12  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* ediff-init.el (ediff-frame-char-height): use frame-selected-window.
+	
+	* ediff-util.el (ediff-file-checked-in-p): changed progn with and
+	
+	* ediff-wind.el (ediff-skip-unsuitable-frames): distinguish selected
+	frame from frame of selected window
+	(ediff-frame-has-dedicated-windows): don't select any frames to avoid
+	changing selected windows
+	(ediff-setup-control-frame): make sure auto-rase is properly set for
+	the control frame
+	
 2002-10-10  Simon Josefsson  <jas@extundo.com>
 
 	* browse-url.el (browse-url-mozilla): Doc fix.

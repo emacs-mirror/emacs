@@ -157,7 +157,7 @@ In this case, Ediff will use those frames to display these buffers."
    '(scrollbar-width . 0)         ; XEmacs only
    '(menu-bar-lines . 0)          ; Emacs only
    '(tool-bar-lines . 0)          ; Emacs 21+ only
-   ;; don't lower and auto-raise
+   ;; don't lower but auto-raise
    '(auto-lower . nil)
    '(auto-raise . t)
    '(visibility . nil)
@@ -821,7 +821,7 @@ into icons, regardless of the window manager."
       (setq ediff-window-A wind-A
 	    ediff-window-B wind-B
 	    ediff-window-C wind-C)
-      
+
       (setq frame-A (window-frame ediff-window-A)
 	    designated-minibuffer-frame
 	    (window-frame (minibuffer-window frame-A))))
@@ -840,44 +840,38 @@ into icons, regardless of the window manager."
 ;; create a new splittable frame if none is found
 (defun ediff-skip-unsuitable-frames (&optional ok-unsplittable)
   (if (ediff-window-display-p)
-      ;;(let (last-window)
-      (let (seen-windows)
-	;; (memq ... seen-windows) has quadratic behavior,
-	;; but (eq ... last-window) runs into an emacs bug where next-window
-	;; gets stuck in a loop if the only frame is the minibuffer.
-	;;
-	;;(while (and (not (eq (selected-window) last-window))
+      (let ((wind-frame (window-frame (selected-window)))
+	     seen-windows)
 	(while (and (not (memq (selected-window) seen-windows))
 		    (or
-		     (ediff-frame-has-dedicated-windows (selected-frame))
-		     (ediff-frame-iconified-p (selected-frame))
+		     (ediff-frame-has-dedicated-windows wind-frame)
+		     (ediff-frame-iconified-p wind-frame)
 		     ;; skip small windows
-		     (< (frame-height (selected-frame))
+		     (< (frame-height wind-frame)
 			(* 3 window-min-height))
 		     (if ok-unsplittable
 			 nil
-		       (ediff-frame-unsplittable-p (selected-frame)))))
-	  ;; remember where started
-	  ;;(or last-window (setq last-window (selected-window)))
+		       (ediff-frame-unsplittable-p wind-frame))))
+	  ;; remember history
 	  (setq seen-windows (cons (selected-window) seen-windows))
 	  ;; try new window
-	  (other-window 1 t))
-	;;(if (eq (selected-window) last-window)
+	  (other-window 1 t)
+	  (setq wind-frame (window-frame (selected-window)))
+	  )
 	(if (memq (selected-window) seen-windows)
-	    ;; fed up, no appropriate frame
-	    (progn
-	      (select-frame (make-frame '((unsplittable)))))))))
+	    ;; fed up, no appropriate frames
+	    (setq wind-frame (make-frame '((unsplittable)))))
+
+	(select-frame wind-frame)
+	)))
 
 (defun ediff-frame-has-dedicated-windows (frame)
-  (let ((cur-fr (selected-frame))
-	ans)
-    (select-frame frame)
+  (let (ans)
     (walk-windows 
      (lambda (wind) (if (window-dedicated-p wind)
 			(setq ans t)))
      'ignore-minibuffer
      frame)
-    (select-frame cur-fr)
     ans))
 
 ;; window is ok, if it is only one window on the frame, not counting the
@@ -961,9 +955,13 @@ into icons, regardless of the window manager."
 	   (cons 'width fwidth)
 	   (cons 'height fheight))
 	  )
-    (if ediff-use-long-help-message
-	(setq adjusted-parameters
-	      (cons '(auto-raise . nil) adjusted-parameters)))
+
+    ;; adjust autoraise
+    (setq adjusted-parameters
+	  (cons (if ediff-use-long-help-message
+		    '(auto-raise . nil)
+		  '(auto-raise . t))
+		adjusted-parameters))
     
     ;; In XEmacs, buffer menubar needs to be killed before frame parameters
     ;; are changed.

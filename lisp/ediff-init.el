@@ -1550,7 +1550,7 @@ This default should work without changes."
 
 (defsubst ediff-frame-char-height (frame)
   (ediff-cond-compile-for-xemacs-or-emacs 
-   (glyph-height ediff-H-glyph (selected-window frame)) ; xemacs cse
+   (glyph-height ediff-H-glyph (frame-selected-window frame)) ; xemacs case
    (frame-char-height frame) ; emacs case
    )
   )
