@@ -1,5 +1,7 @@
 2005-03-26  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* textmodes/sgml-mode.el (html-mode): Doc update.
+
 	* autorevert.el (auto-revert-check-vc-info): Minor doc fix.
 
 2005-03-26  Dan Nicolaescu  <dann@ics.uci.edu>
