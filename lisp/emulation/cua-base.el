@@ -889,7 +889,8 @@ With a double \\[universal-argument] prefix argument, unconditionally set mark."
    ((eq last-command 'pop-to-mark-command)
     (setq this-command 'pop-to-mark-command)
     (pop-to-mark-command))
-   ((and (eq last-command 'pop-global-mark) (not arg))
+   ((and pop-global-mark-quick-repeat
+	 (eq last-command 'pop-global-mark) (not arg))
     (setq this-command 'pop-global-mark)
     (pop-global-mark))
    (arg
