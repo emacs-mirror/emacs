@@ -297,7 +297,7 @@ Then bury it, and return a suggested buffer to select next."
  	  (function
  	   (lambda ()
 	     (or (not server-clients)
-		 (yes-or-no-p "Server buffers are still have clients; exit anyway? ")))))
+		 (yes-or-no-p "Server buffers still have clients; exit anyway? ")))))
 
 (defun server-edit (&optional arg)
   "Switch to next server editing buffer; say \"Done\" for current buffer.
