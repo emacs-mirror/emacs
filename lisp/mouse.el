@@ -99,24 +99,7 @@
 		(setq submap (car tail))))
 	  (setq tail (cdr tail)))
 	(if (eq submap t)
-	    ;; We have more than one submap, so we want to
-	    ;; return a keymap just like menubar.
-	    ;; But first copy the top level structure of the menu,
-	    ;; enough so that adding equiv-keys to this copy
-	    ;; won't alter menubar itself.
-	    ;; This is a kludge, and next version
-	    ;; we'll change the menu bar code not to mind
-	    ;; if there are X equiv keys there.
-	    (let ((newmap (copy-sequence menubar)))
-	      (setq menubar newmap)
-	      (while newmap
-		(if (consp (car newmap))
-		    (setcar newmap (cons (car (car newmap))
-					 (cons (nth 1 (car newmap))
-					       (nthcdr 2 (car newmap))))))
-		(setq newmap (cdr newmap)))
-	      (setq mouse-major-mode-menu-prefix nil)
-	      menubar)
+	    menubar
 	  (setq mouse-major-mode-menu-prefix (list (car submap)))
 	  (cdr (cdr submap))))))
 
