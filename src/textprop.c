@@ -725,8 +725,8 @@ Scans characters forward from POSITION till it finds\n\
 a change in the PROP property, then returns the position of the change.\n\
 The optional third argument OBJECT is the string or buffer to scan.\n\
 The property values are compared with `eq'.\n\
-Return nil if the property is constant all the way to the end of OBJECT.\n\
-If the value is non-nil, it is a position greater than POSITION, never equal.\n\n\
+If the property is constant all the way to the end of OBJECT, return the\n\
+last valid position in OBJECT.\n\
 If the optional fourth argument LIMIT is non-nil, don't search\n\
 past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   (position, prop, object, limit)
@@ -791,8 +791,8 @@ Scans characters backward from POSITION till it finds\n\
 a change in the PROP property, then returns the position of the change.\n\
 The optional third argument OBJECT is the string or buffer to scan.\n\
 The property values are compared with `eq'.\n\
-Return nil if the property is constant all the way to the start of OBJECT.\n\
-If the value is non-nil, it is a position less than POSITION, never equal.\n\n\
+If the property is constant all the way to the start of OBJECT, return the\n\
+first valid position in OBJECT.\n\
 If the optional fourth argument LIMIT is non-nil, don't search\n\
 back past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   (position, prop, object, limit)
