@@ -6854,7 +6854,13 @@ a special event, so ignore the prefix argument and don't clear it.")
       final = Findirect_function (cmd);
 
       if (CONSP (final) && (tem = Fcar (final), EQ (tem, Qautoload)))
-	do_autoload (final, cmd);
+	{
+	  struct gcpro gcpro1, gcpro2;
+
+	  GCPRO2 (cmd, prefixarg);
+	  do_autoload (final, cmd);
+	  UNGCPRO;
+	}
       else
 	break;
     }
