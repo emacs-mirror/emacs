@@ -3233,21 +3233,21 @@ buffer that was in action when the last article was fetched."
 	  (goto-char (point-min))
 	  (setq pos (list (cons 'unread
 				(and (search-forward
-				      (string-as-multibyte "\200") nil t)
+				      (mm-string-as-multibyte "\200") nil t)
 				     (- (point) (point-min) 1)))))
 	  (goto-char (point-min))
 	  (push (cons 'replied (and (search-forward
-				     (string-as-multibyte "\201") nil t)
+				     (mm-string-as-multibyte "\201") nil t)
 				    (- (point) (point-min) 1)))
 		pos)
 	  (goto-char (point-min))
 	  (push (cons 'score (and (search-forward
-				   (string-as-multibyte "\202") nil t)
+				   (mm-string-as-multibyte "\202") nil t)
 				  (- (point) (point-min) 1)))
 		pos)
 	  (goto-char (point-min))
 	  (push (cons 'download (and (search-forward
-				      (string-as-multibyte "\203") nil t)
+				      (mm-string-as-multibyte "\203") nil t)
 				     (- (point) (point-min) 1)))
 		pos)))
       (setq gnus-summary-mark-positions pos))))

@@ -1,5 +1,11 @@
 2004-10-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-group.el (gnus-update-group-mark-positions):
+	* gnus-sum.el (gnus-update-summary-mark-positions):
+	* message.el (message-check-news-body-syntax):
+	* gnus-msg.el (gnus-debug): Use mm-string-as-multibyte instead
+	of string-as-multibyte.
+
 	* gnus-sum.el (gnus-summary-insert-subject): Remove redundant setq.
 
 2004-10-05  Juri Linkov  <juri@jurta.org>

@@ -1047,7 +1047,7 @@ The following commands are available:
       (goto-char (point-min))
       (setq gnus-group-mark-positions
 	    (list (cons 'process (and (search-forward
-				       (string-as-multibyte "\200") nil t)
+				       (mm-string-as-multibyte "\200") nil t)
 				      (- (point) 2))))))))
 
 (defun gnus-mouse-pick-group (e)
