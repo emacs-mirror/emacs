@@ -79,6 +79,7 @@ lisppath='${locallisppath}:${lispdir}'
 etcdir='${datadir}/emacs/${version}/etc'
 lockdir='${statedir}/emacs/lock'
 archlibdir='${libdir}/emacs/${version}/${configuration}'
+CC=
 
 # We cannot use this variable in the case statement below, because many
 # /bin/sh's have broken semantics for "case".  Unfortunately, you must
@@ -710,7 +711,7 @@ case "${canonical}" in
   ;;
 
   ## Intel 860
-  i860-*-sysvr4* )
+  i860-*-sysv4* )
     machine=i860 opsys=usg5-4
   ;;
 
@@ -760,6 +761,7 @@ case "${canonical}" in
   ;;
   mips-mips-riscos4* )
     machine=mips4 opsys=bsd4-3
+    NON_GNU_CC="cc -systype bsd43"
   ;;
   mips-mips-bsd* )
     machine=mips opsys=bsd4-3
@@ -851,7 +853,14 @@ case "${canonical}" in
       *-sunos4.0*	  ) opsys=sunos4-0 ;;
       *-sunos4.1.3*	  ) opsys=sunos4-1-3 ;;
       *-sunos4* | *-sunos ) opsys=sunos4-1 ;;
-      *-sunos5* | *-solaris* ) opsys=sol2 ;;
+      *-sunos5.3* | *-solaris2.3* )
+		opsys=sol2-3
+		NON_GNU_CPP=/usr/ccs/lib/cpp
+		;;
+      *-sunos5* | *-solaris* )
+		opsys=sol2
+		NON_GNU_CPP=/usr/ccs/lib/cpp
+		;;
       *			  ) opsys=bsd4-2   ;;
     esac
   ;;
@@ -992,10 +1001,28 @@ AC_CONFIG_HEADER(src/config.h)
 #### Choose a compiler.
 case ${with_gcc} in
   "yes" ) CC="gcc" GCC=1 ;;
-  "no"  ) CC="cc"        ;;
+  "no"  ) CC=${CC:-"cc"} ;;
   * )
     ] AC_PROG_CC [
 esac
+
+#### Some systems specify a CPP to use unless we are using GCC.
+#### Now that we know whether we are using GCC, we can decide whether
+#### to use that one.
+if [ x$NON_GNU_CPP = x ] || [ x$GCC = x1 ]
+then true
+else
+  CPP=$NON_GNU_CPP
+fi
+
+#### Some systems specify a CC to use unless we are using GCC.
+#### Now that we know whether we are using GCC, we can decide whether
+#### to use that one.
+if [ x$NON_GNU_CC = x ] || [ x$GCC = x1 ]
+then true
+else
+  CC=$NON_GNU_CC
+fi
 
 #### Some other nice autoconf tests.  If you add a test here which
 #### should make an entry in src/config.h, don't forget to add an
@@ -1239,7 +1266,7 @@ fi
 if test "${HAVE_X11}" = "yes"; then
   DEFS="$C_SWITCH_X_SITE $DEFS"
   LIBS="$LD_SWITCH_X_SITE $LIBX $LIBS"
-  AC_HAVE_FUNCS(XrmSetDatabase XScreenResourceString XScreenNumberOfScreen)
+  AC_HAVE_FUNCS(XrmSetDatabase XScreenResourceString XScreenNumberOfScreen XSetWMProtocols)
 fi
 
 AC_ALLOCA
