@@ -1376,7 +1376,8 @@ create_process (process, new_argv, current_dir)
 #endif /* not BSD4_1 */
 #endif /* SIGCHLD */
 
-	child_setup_tty (xforkout);
+	if (pty_flag)
+	  child_setup_tty (xforkout);
 	child_setup (xforkin, xforkout, xforkout,
 		     new_argv, 1, current_dir);
       }
