@@ -1,6 +1,6 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter
 
-;; Copyright (C) 1989, 1994, 1998, 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1994, 1998, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
 ;; Maintainer: FSF
@@ -742,7 +742,7 @@ and their encoded form is inserted byte by byte."
 
 CH must be a unibyte character whose value is between 0 and 255."
   (if (or (< ch 0) (> ch 255))
-      (error "Invalid character 0x%x -- must be in the range [0..255]"))
+      (error "Invalid character 0x%x -- must be in the range [0..255]" ch))
   (let ((address (hexl-current-address t)))
     (while (> num 0)
       (let ((hex-position
