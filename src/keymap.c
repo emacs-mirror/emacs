@@ -812,9 +812,9 @@ current_minor_maps (modeptr, mapptr)
   for (alist = Vminor_mode_map_alist;
        CONSP (alist);
        alist = XCONS (alist)->cdr)
-    if (CONSP (assoc = XCONS (alist)->car)
-	&& SYMBOLP (var = XCONS (assoc)->car)
-	&& ! EQ ((val = find_symbol_value (var)), Qunbound)
+    if ((assoc = XCONS (alist)->car, CONSP (assoc))
+	&& (var = XCONS (assoc)->car, SYMBOLP (var))
+	&& (val = find_symbol_value (var), ! EQ (val, Qunbound))
 	&& ! NILP (val))
       {
 	if (i >= cmm_size)
