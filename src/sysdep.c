@@ -226,6 +226,9 @@ static int baud_convert[] =
   };
 #endif
 
+#if defined (HAVE_LIBNCURSES) && ! defined (NCURSES_OSPEED_T)
+extern short ospeed;
+#else
 #if defined (HAVE_TERMIOS_H) && defined (LINUX)
 #include <termios.h>
 /* HJL's version of libc is said to need this on the Alpha.
@@ -233,6 +236,7 @@ static int baud_convert[] =
 extern speed_t ospeed;
 #else
 extern short ospeed;
+#endif
 #endif
 
 /* The file descriptor for Emacs's input terminal.

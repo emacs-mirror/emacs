@@ -101,6 +101,9 @@ struct cm
 extern struct cm Wcm;		/* Terminal capabilities */
 extern char PC;			/* Pad character */
 
+#if defined (HAVE_LIBNCURSES) && ! defined (NCURSES_OSPEED_T)
+extern short ospeed;
+#else
 #if defined (HAVE_TERMIOS_H) && defined (LINUX)
 #include <termios.h>
 /* HJL's version of libc is said to need this on the Alpha.
@@ -108,6 +111,7 @@ extern char PC;			/* Pad character */
 extern speed_t ospeed;
 #else
 extern short ospeed;		/* Output speed (from sg_ospeed) */
+#endif
 #endif
 
 /* Shorthand */

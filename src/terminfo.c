@@ -26,6 +26,9 @@ Boston, MA 02111-1307, USA.  */
 
 char *UP, *BC, PC;
 
+#if defined (HAVE_LIBNCURSES) && ! defined (NCURSES_OSPEED_T)
+short ospeed;
+#else
 #if defined (HAVE_TERMIOS_H) && defined (LINUX)
 #include <termios.h>
 /* HJL's version of libc is said to need this on the Alpha.
@@ -33,6 +36,7 @@ char *UP, *BC, PC;
 speed_t ospeed;
 #else
 short ospeed;
+#endif
 #endif
 
 static buffer[512];
