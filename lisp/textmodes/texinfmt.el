@@ -66,6 +66,7 @@ If optional argument HERE is non-nil, insert info at point."
 (defvar texinfo-node-names)
 (defvar texinfo-enclosure-list)
 (defvar texinfo-alias-list)
+(defvar texinfo-fold-nodename-case nil)
 
 (defvar texinfo-command-start)
 (defvar texinfo-command-end)
@@ -1117,7 +1118,7 @@ Leave point after argument."
          (up (nth 3 args)))
     (texinfo-discard-command)
     (setq texinfo-last-node name)
-    (let ((tem (downcase name)))
+    (let ((tem (if texinfo-fold-nodename-case (downcase name) name)))
       (if (assoc tem texinfo-node-names)
           (error "Duplicate node name: %s" name)
         (setq texinfo-node-names (cons (list tem) texinfo-node-names))))
@@ -2268,6 +2269,27 @@ This command is executed when texinfmt sees @item inside @multitable."
                 beginning-delimiter
                 end-delimiter))
          texinfo-enclosure-list))))
+
+
+;;; @alias
+
+(put 'alias 'texinfo-format 'texinfo-alias)
+(defun texinfo-alias ()
+  (let ((start (1- (point)))
+        args)
+    (skip-chars-forward " ")
+    (save-excursion (end-of-line) (setq texinfo-command-end (point)))
+    (if (not (looking-at "\\([^=]+\\)=\\(.*\\)"))
+	(error "Invalid alias command")
+      (setq texinfo-alias-list
+	    (cons
+	     (cons
+	      (buffer-substring (match-beginning 1) (match-end 1))
+	      (buffer-substring (match-beginning 2) (match-end 2)))
+	     texinfo-alias-list))
+      (texinfo-discard-command))
+    )
+  )
 
 
 ;;; @var, @code and the like
