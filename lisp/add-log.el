@@ -1,6 +1,7 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985, 86, 88, 93, 94, 97, 98, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 88, 93, 94, 97, 98, 2000, 2003
+;;           Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: tools
@@ -248,7 +249,11 @@ Note: The search is conducted only within 10%, at the beginning of the file."
      2 'change-log-acknowledgement-face))
   "Additional expressions to highlight in Change Log mode.")
 
-(defvar change-log-mode-map (make-sparse-keymap)
+(defvar change-log-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [?\C-c ?\C-p] 'add-log-edit-prev-comment)
+    (define-key map [?\C-c ?\C-n] 'add-log-edit-next-comment)
+    map)
   "Keymap for Change Log major mode.")
 
 (defvar change-log-time-zone-rule nil
@@ -288,6 +293,31 @@ If nil, use local time.")
       (if (eq system-type 'vax-vms)
 	  "$CHANGE_LOG$.TXT"
 	"ChangeLog")))
+
+(defun add-log-edit-prev-comment (arg)
+  "Cycle backward through Log-Edit mode comment history.
+With a numeric prefix ARG, go back ARG comments."
+  (interactive "*p")
+  (save-restriction
+    (narrow-to-region (point)
+		      (if (memq last-command '(add-log-edit-prev-comment
+					       add-log-edit-next-comment))
+			  (mark) (point)))
+    (when (fboundp 'log-edit-previous-comment)
+      (log-edit-previous-comment arg)
+      (indent-region (point-min) (point-max))
+      (goto-char (point-min))
+      (unless (save-restriction (widen) (bolp))
+	(delete-region (point) (progn (skip-chars-forward " \t\n") (point))))
+      (set-mark (point-min))
+      (goto-char (point-max))
+      (delete-region (point) (progn (skip-chars-backward " \t\n") (point))))))
+
+(defun add-log-edit-next-comment (arg)
+  "Cycle forward through Log-Edit mode comment history.
+With a numeric prefix ARG, go back ARG comments."
+  (interactive "*p")
+  (add-log-edit-prev-comment (- arg)))
 
 ;;;###autoload
 (defun prompt-for-change-log-name ()
@@ -611,13 +641,16 @@ the change log file in another window."
     (if (> pos (point)) (goto-char pos))))
 
 
+(defvar smerge-resolve-function)
+
 ;;;###autoload
 (define-derived-mode change-log-mode text-mode "Change Log"
   "Major mode for editing change logs; like Indented Text Mode.
 Prevents numeric backups and sets `left-margin' to 8 and `fill-column' to 74.
 New log entries are usually made with \\[add-change-log-entry] or \\[add-change-log-entry-other-window].
 Each entry behaves as a paragraph, and the entries for one day as a page.
-Runs `change-log-mode-hook'."
+Runs `change-log-mode-hook'.
+\\{change-log-mode-map}"
   (setq left-margin 8
 	fill-column 74
 	indent-tabs-mode t
