@@ -386,7 +386,7 @@ Return the result of evaluation."
 	       ;; Skipping to the end of the specified region
 	       ;; will make eval-region return.
 	       (goto-char ,end)
-	       ,form)))))
+	       ',form)))))
   ;; The result of evaluation has been put onto VALUES.  So return it.
   (car values))
 
