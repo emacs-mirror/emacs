@@ -197,7 +197,7 @@ converted to Info is stored in a temporary buffer."
                 
                 ;; Copy header  
                 (setq header-text
-                      (buffer-substring
+                      (buffer-substring-no-properties
                        (min header-beginning region-beginning)
                        header-end))))))
 
@@ -603,7 +603,7 @@ Do not append @refill to paragraphs containing @w{TEXT} or @*."
       ;; 2. Skip over @example and similar no-refill environments.
       (if (looking-at texinfo-no-refill-regexp)
           (let ((environment
-                 (buffer-substring (match-beginning 1) (match-end 1))))
+                 (buffer-substring-no-properties (match-beginning 1) (match-end 1))))
             (progn (re-search-forward (concat "^@end " environment) nil t)
                    (forward-line 1)))
         ;; Else
@@ -903,7 +903,7 @@ lower types.")
       (setq texinfo-command-name
             (let (trial
                   (cmdname 
-                   (buffer-substring
+                   (buffer-substring-no-properties
                     (1+ texinfo-command-start) texinfo-command-end)))
               (while (setq trial (assoc cmdname texinfo-alias-list))
                 (setq cmdname (cdr trial)))
@@ -965,7 +965,7 @@ Leave point after argument."
            (forward-char -1))
           (t
            (error "Invalid texinfo command arg format")))
-    (prog1 (buffer-substring start (point))
+    (prog1 (buffer-substring-no-properties start (point))
            (if (eolp) (forward-char 1)))))
 
 (defun texinfo-parse-expanded-arg ()
@@ -988,7 +988,7 @@ Leave point after argument."
     (texinfo-format-expand-region start (point))
     (setq texinfo-command-end (marker-position marker))
     (move-marker marker nil)
-    (prog1 (buffer-substring start (point))
+    (prog1 (buffer-substring-no-properties start (point))
            (if (eolp) (forward-char 1)))))
 
 (defun texinfo-format-expand-region (start end)
@@ -1035,7 +1035,7 @@ Leave point after argument."
       (forward-char -1)
       (skip-chars-backward " ")
       (setq end (point))
-      (setq args (cons (if (> end beg) (buffer-substring beg end))
+      (setq args (cons (if (> end beg) (buffer-substring-no-properties beg end))
                        args))
       (goto-char next)
       (skip-chars-forward " "))
@@ -1068,7 +1068,7 @@ Leave point after argument."
              (goto-char beg)
              (while (search-forward "\n" end t)
                (replace-match " "))))
-      (setq args (cons (if (> end beg) (buffer-substring beg end))
+      (setq args (cons (if (> end beg) (buffer-substring-no-properties beg end))
                        args))
       (goto-char next))
     ;;(if (eolp) (forward-char 1))
@@ -1098,7 +1098,7 @@ Leave point after argument."
                (re-search-forward "[\n ]")
                (forward-char -1)
                (setq end (point))))
-        (setq args (cons (buffer-substring beg end) args))
+        (setq args (cons (buffer-substring-no-properties beg end) args))
         (skip-chars-forward " "))
       (forward-char 1)
       (nreverse args))))
@@ -1443,7 +1443,7 @@ The node is constructed automatically."
             (match-end 0)))
          (node-name
           (save-excursion
-            (buffer-substring
+            (buffer-substring-no-properties
              (progn (goto-char node-name-beginning) ; skip over node command
                     (skip-chars-forward " \t")  ; and over spaces
                     (point))
@@ -1467,7 +1467,7 @@ The node is constructed automatically."
     ;; the text of the  footnote.
 
     (if (save-excursion
-         (re-search-backward
+         (search-backward
           (concat node-name "-Footnotes, Up: ")
           node-name-beginning
           t))
@@ -2016,7 +2016,7 @@ Cells within rows are separated by @tab."
                      (skip-chars-backward " ")
                      ;; remove whitespace at end of argument
                      (delete-region (point) end)
-                     (buffer-substring start (point)))))
+                     (buffer-substring-no-properties start (point)))))
     (delete-region texinfo-command-start end)
     row))
 
@@ -2328,8 +2328,8 @@ This command is executed when texinfmt sees @item inside @multitable."
       (setq texinfo-alias-list
 	    (cons
 	     (cons
-	      (buffer-substring (match-beginning 1) (match-end 1))
-	      (buffer-substring (match-beginning 2) (match-end 2)))
+	      (buffer-substring-no-properties (match-beginning 1) (match-end 1))
+	      (buffer-substring-no-properties (match-beginning 2) (match-end 2)))
 	     texinfo-alias-list))
       (texinfo-discard-command))
     )
@@ -2868,7 +2868,7 @@ Default is to leave paragraph indentation as is."
 ;; At start of a line, return a string to sort the line under.
 (defun texinfo-sort-startkeyfun ()
   (let ((line
-         (buffer-substring (point) (save-excursion (end-of-line) (point)))))
+         (buffer-substring-no-properties (point) (save-excursion (end-of-line) (point)))))
     ;; Canonicalize whitespace and eliminate funny chars.
     (while (string-match "[ \t][ \t]+\\|[^a-z0-9 ]+" line)
       (setq line (concat (substring line 0 (match-beginning 0))
@@ -3957,7 +3957,7 @@ the @ifeq command."
            (setq start (point))
            (search-forward "," stop t)
            (skip-chars-backward ", ")
-           (buffer-substring start (point))))
+           (buffer-substring-no-properties start (point))))
         (arg2
          (progn
            (search-forward "," stop t)
@@ -3965,7 +3965,7 @@ the @ifeq command."
            (setq start (point))
            (search-forward "," stop t)
            (skip-chars-backward ", ")
-           (buffer-substring start (point))))
+           (buffer-substring-no-properties start (point))))
         (texinfo-command
          (progn
            (search-forward "," stop t)
@@ -3973,7 +3973,7 @@ the @ifeq command."
            (setq start (point))
            (goto-char (1- stop))
            (skip-chars-backward " ")
-           (buffer-substring start (point)))))
+           (buffer-substring-no-properties start (point)))))
     (delete-region texinfo-command-start stop)
     (if (equal arg1 arg2)
         (insert texinfo-command))
@@ -4149,7 +4149,7 @@ the @ifeq command."
 
 (defun texinfo-unsupported ()
   (error "%s is not handled by texinfo"
-         (buffer-substring texinfo-command-start texinfo-command-end)))
+         (buffer-substring-no-properties texinfo-command-start texinfo-command-end)))
 
 ;;; Batch formatting
 
@@ -4200,7 +4200,7 @@ For example, invoke
           (error
            (message ">> Error: %s" (prin1-to-string err))
            (message ">>  point at")
-           (let ((s (buffer-substring (point)
+           (let ((s (buffer-substring-no-properties (point)
                                       (min (+ (point) 100)
                                            (point-max))))
                  (tem 0))
