@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1988, 1994 Free Software Foundation, Inc.
 
-;; Author: Phillippe Schnoebelen <phs@lifia.imag.fr>
+;; Author: Philippe Schnoebelen <phs@lifia.imag.fr>
 ;; Adapted-By: ESR
 ;; Keywords: games
 
