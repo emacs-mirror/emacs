@@ -1223,7 +1223,6 @@ and selects that window."
 		(cons "Buffer Menu" (nreverse sublists)))
 	    ;; Few buffers--put them all in one pane.
 	    (list "Buffer Menu" (cons "Select Buffer" buffers)))))
-    (setq foo menu)
     (let ((buf (x-popup-menu event menu))
 	  (window (posn-window (event-start event))))
       (if buf
