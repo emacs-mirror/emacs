@@ -1625,7 +1625,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 	  it->continuation_pixel_width = it->pixel_width;
 	}
 
-      /* Reset these values to zero becaue the produce_special_glyphs
+      /* Reset these values to zero because the produce_special_glyphs
 	 above has changed them.  */
       it->pixel_width = it->ascent = it->descent = 0;
       it->phys_ascent = it->phys_descent = 0;
