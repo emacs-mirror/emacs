@@ -1,3 +1,24 @@
+2000-01-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_window): Call lw_create_widget with new parameter
+	list.
+
+	* widget.c (EmacsFrameSetCharSize): Change size of children first
+	because of problems with main window geometry management under
+	Lesstif.
+
+	* xmenu.c (enum menu_item_idx): New enumeration replacing defines
+	MENU_ITEMS_ITEM_.*.
+	(MENU_ITEMS_ITEM_HELP): New enumerator.
+	(push_menu_item): Add parameter HELP.  Record help in menu_items.
+	(single_menu_item, single_submenu, list_of_items): Call
+	push_menu_item with new parameter.
+	(single_submenu): Set help string in widget value.
+	(menu_highlight_callback): New function.
+	(set_frame_menubar): Call lw_create_widget with new
+	parameter list.
+	(xmenu_show, xdialog_show): Ditto.
+
 2000-01-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* sound.c (Fplay_sound): Improve doc string.
