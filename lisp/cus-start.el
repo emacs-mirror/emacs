@@ -118,7 +118,7 @@
 	     (auto-save-interval auto-save integer)
 	     (auto-save-timeout auto-save (choice (const :tag "off" nil)
 						  (integer :format "%v")))
-	     (echo-keystrokes minibuffer integer)
+	     (echo-keystrokes minibuffer number)
 	     (polling-period keyboard integer)
 	     (double-click-time mouse (restricted-sexp
 				       :match-alternatives (integerp 'nil 't)))
