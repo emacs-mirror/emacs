@@ -218,6 +218,11 @@ cd man
 sed -f ../msdos/sed6.inp < Makefile.in > Makefile
 cd ..
 rem   ----------------------------------------------------------------------
+Echo Configuring the ELisp manual directory...
+cd lispref
+sed -f ../msdos/sed6.inp < Makefile.in > Makefile
+cd ..
+rem   ----------------------------------------------------------------------
 Echo Configuring the lisp directory...
 cd lisp
 sed -f ../msdos/sedlisp.inp < Makefile.in > Makefile
