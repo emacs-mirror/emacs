@@ -58,9 +58,6 @@ int memory_below_frame;		/* Terminal remembers lines
 				   scrolled off bottom */
 int fast_clear_end_of_line;	/* Terminal has a `ce' string */
 
-int dont_calculate_costs;	/* Nonzero means don't bother computing */
-				/* various cost tables; we won't use them.  */
-
 /* Nonzero means no need to redraw the entire frame on resuming
    a suspended Emacs.  This is useful on terminals with multiple pages,
    where one page is used for Emacs and another for all else. */
@@ -1087,12 +1084,11 @@ extern do_line_insertion_deletion_costs ();
 calculate_costs (frame)
      FRAME_PTR frame;
 {
-  register char *f = TS_set_scroll_region ?
-                       TS_set_scroll_region
-		     : TS_set_scroll_region_1;
+  register char *f = (TS_set_scroll_region
+		      ? TS_set_scroll_region
+		      : TS_set_scroll_region_1);
 
-  if (dont_calculate_costs)
-    return;
+  FRAME_COST_BAUD_RATE (frame) = baud_rate;
 
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (frame))
@@ -1390,7 +1386,6 @@ term_init (terminal_type)
   initialize_win_nt_display ();
 
   Wcm_clear ();
-  dont_calculate_costs = 0;
 
   area = (char *) malloc (2044);
 
@@ -1423,7 +1418,6 @@ term_init (terminal_type)
 #endif /* WINDOWSNT */
 
   Wcm_clear ();
-  dont_calculate_costs = 0;
 
   status = tgetent (buffer, terminal_type);
   if (status < 0)
