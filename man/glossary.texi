@@ -41,7 +41,8 @@ punctuation characters: @samp{!@@#$%^& *()_-+=|\~` @{@}[]:;"' <>,.?/}.
 
 @item Auto Fill Mode
 Auto Fill mode is a minor mode in which text that you insert is
-automatically broken into lines of fixed width.  @xref{Filling}.
+automatically broken into lines of a given maximum width.
+@xref{Filling}.
 
 @item Auto Saving
 Auto saving is the practice of saving the contents of an Emacs buffer in
@@ -177,7 +178,7 @@ See `minibuffer history.'
 @item Command Name
 A command name is the name of a Lisp symbol which is a command
 (@pxref{Commands}).  You can invoke any command by its name using
-@kbd{M-x} (@pxref{M-x}).
+@kbd{M-x} (@pxref{M-x,M-x,Running Commands by Name}).
 
 @item Comment
 A comment is text in a program which is intended only for humans reading
@@ -188,12 +189,12 @@ for creating, aligning and killing comments.  @xref{Comments}.
 @item Common Lisp
 Common Lisp is a dialect of Lisp (q.v.@:) much larger and more powerful
 than Emacs Lisp.  Emacs provides a subset of Common Lisp in the CL
-package.  @xref{, Common Lisp, , cl, Common Lisp Extensions}.
+package.  @xref{Common Lisp,,, cl, Common Lisp Extensions}.
 
 @item Compilation
 Compilation is the process of creating an executable program from source
 code.  Emacs has commands for compiling files of Emacs Lisp code
-(@pxref{Byte Compilation,, Byte Compilation, elisp, the Emacs Lisp
+(@pxref{Byte Compilation,,, elisp, the Emacs Lisp
 Reference Manual}) and programs in C and other languages
 (@pxref{Compilation}).
 
@@ -303,7 +304,7 @@ Deletion means erasing text without copying it into the kill ring
 
 @item Deletion of Files
 Deleting a file means erasing it from the file system.
-@xref{Misc File Ops}.
+@xref{Misc File Ops,Misc File Ops,Miscellaneous File Operations}.
 
 @item Deletion of Messages
 Deleting a message means flagging it to be eliminated from your mail
@@ -363,7 +364,7 @@ more newlines in addition to self-insertion.
 
 @item End Of Line
 End of line is a character or characters which signal an end of a text
-line.  On GNU and Unix systems, this is a newline (.q.v.@:), but other
+line.  On GNU and Unix systems, this is a newline (q.v.@:), but other
 systems have other conventions.  @xref{Coding Systems,end-of-line}.
 Emacs can recognize several end-of-line conventions in files and convert
 between them.
@@ -411,7 +412,7 @@ features to associate specific faces with portions of buffer text, in
 order to display that text as specified by the face attributes.
 
 @item File Locking
-Emacs used file locking to notice when two different users
+Emacs uses file locking to notice when two different users
 start to edit one file at the same time.  @xref{Interlocking}.
 
 @item File Name
@@ -599,8 +600,8 @@ or from some other place in Emacs.
 
 @item Interlocking
 Interlocking is a feature for warning when you start to alter a file
-that someone else is already editing.  @xref{Interlocking,,Simultaneous
-Editing}.
+that someone else is already editing.
+@xref{Interlocking,Interlocking,Simultaneous Editing}.
 
 @item Isearch
 See `incremental search.'
@@ -710,7 +711,7 @@ typing @key{ESC} and then typing the corresponding Control character.
 @item @kbd{M-x}
 @kbd{M-x} is the key sequence which is used to call an Emacs command by
 name.  This is how you run commands that are not bound to key sequences.
-@xref{M-x}.
+@xref{M-x,M-x,Running Commands by Name}.
 
 @item Mail
 Mail means messages sent from one user to another through the computer
@@ -804,7 +805,7 @@ using multibyte characters (q.v.@:).  @xref{International}.
 A multibyte character is a character that takes up several bytes in a
 buffer.  Emacs uses multibyte characters to represent non-ASCII text,
 since the number of non-ASCII characters is much more than 256.
-@xref{International Intro}.
+@xref{International Chars, International Characters}.
 
 @item Named Mark
 A named mark is a register (q.v.@:) in its role of recording a
@@ -858,7 +859,7 @@ end of a word or expression.  @xref{Syntax}.
 Point is the place in the buffer at which insertion and deletion
 occur.  Point is considered to be between two characters, not at one
 character.  The terminal's cursor (q.v.@:) indicates the location of
-point.  @xref{Basic,Point}.
+point.  @xref{Basic,Point,Basic Editing}.
 	
 @item Prefix Argument
 See `numeric argument.'
@@ -1052,8 +1053,9 @@ block or a parenthesized expression in C.  @xref{Lists,Sexps}.
 @item Simultaneous Editing
 Simultaneous editing means two users modifying the same file at once.
 Simultaneous editing if not detected can cause one user to lose his
-work.  Emacs detects all cases of simultaneous editing and warns one of
-the users to investigate.  @xref{Interlocking,,Simultaneous Editing}.
+work.  Emacs detects all cases of simultaneous editing and warns one
+of the users to investigate.
+@xref{Interlocking,Interlocking,Simultaneous Editing}.
 
 @item Speedbar
 Speedbar is a special tall frame that provides fast access to Emacs
@@ -1118,8 +1120,9 @@ Two meanings (@pxref{Text}):
 @itemize @bullet
 @item
 Data consisting of a sequence of characters, as opposed to binary
-numbers, images, graphics commands, executable programs, and the like.
-The contents of an Emacs buffer are always text in this sense.
+numbers, executable programs, and the like.  The basic contents of an
+Emacs buffer (aside from the text properties, q.v.@:) are always text
+in this sense.
 @item
 Data consisting of written human language, as opposed to programs,
 or following the stylistic conventions of human language.
@@ -1130,6 +1133,11 @@ A text-only terminal is a display that is limited to displaying text in
 character units.  Such a terminal cannot control individual pixels it
 displays.  Emacs supports a subset of display features on text-only
 terminals.
+
+@item Text Properties
+Text properties are annotations recorded for particular characters in
+the buffer.  Images in the buffer are recorded as text properties;
+they also specify formatting information.  @xref{Editing Format Info}.
 
 @item Tool Bar
 The tool bar is a line (sometimes multiple lines) of icons at the top
@@ -1179,7 +1187,8 @@ Emacs uses some variables for internal purposes, and has others (known
 as `user options' (q.v.@:)) just so that you can set their values to
 control the behavior of Emacs.  The variables used in Emacs that you
 are likely to be interested in are listed in the Variables Index in
-this manual.  @xref{Variables}, for information on variables.
+this manual (@pxref{Variable Index}).  @xref{Variables}, for
+information on variables.
 
 @item Version Control
 Version control systems keep track of multiple versions of a source file.
