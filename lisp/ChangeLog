@@ -1,3 +1,10 @@
+2005-02-21  Stefan  <monnier@iro.umontreal.ca>
+
+	* term/mac-win.el (function-key-map): Use char-names more consistently.
+	(file-name-coding-system): Only set it for MacOS-9.  The other case is
+	already handled in mule-cmds.el (where it also works when mac-win.el
+	is not used).
+
 2005-02-21  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (ctext-pre-write-conversion): Always use
@@ -11,7 +18,7 @@
 
 2005-02-20  Jonathan Yavner  <jyavner@member.fsf.org>
 
-	* ses.el (undo-more): restore defadvice, but only the part that
+	* ses.el (undo-more): Restore defadvice, but only the part that
 	allows changes outside the restricted area of the buffer.
 
 2005-02-20  Kim F. Storm  <storm@cua.dk>
