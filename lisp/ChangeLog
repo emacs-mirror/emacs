@@ -1,3 +1,7 @@
+2002-10-10  Markus Rost  <rost@math.ohio-state.edu>
+
+	* international/encoded-kb.el:  Add `provide' call.
+
 2002-10-09  David Kastrup  <David.Kastrup@t-online.de>
 
 	* calc/calc-alg.el (calcFunc-ln): In symbolic manipulations,
