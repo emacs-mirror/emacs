@@ -1136,6 +1136,7 @@ than the logical beginning of line."
   (save-excursion
     (let ((toend (- (line-end-position) (point)))
 	  (start (comint-line-beginning-position)))
+      (goto-char start)
       (while (progn
 	       (skip-chars-forward "^!^" (- (line-end-position) toend))
 	       (< (point) (- (line-end-position) toend)))
