@@ -58,6 +58,7 @@
 
 (defgroup fortran nil
   "Fortran mode for Emacs"
+  :link '(custom-manual "(emacs)Fortran")
   :group 'languages)
 
 (defgroup fortran-indent nil
@@ -1059,7 +1060,7 @@ Doesn't push a mark."
 	message)
     (if (save-excursion (beginning-of-line)
 			(skip-chars-forward " \t0-9")
-			(looking-at "end[ \t]*if\\b"))
+			(looking-at "e\\(nd[ \t]*if\\|lse\\([ \t]*if\\)?\\)\\b"))
 	(progn
           (if (not (setq matching-if (fortran-beginning-if)))
               (setq message "No matching if.")
@@ -1694,7 +1695,8 @@ automatically breaks the line at a previous space."
 
 (defun fortran-fill ()
   (interactive)
-  (let* ((opoint (point))
+  (let* ((auto-fill-function #'fortran-do-auto-fill)
+	 (opoint (point))
 	 (bol (save-excursion (beginning-of-line) (point)))
 	 (eol (save-excursion (end-of-line) (point)))
 	 (bos (min eol (+ bol (fortran-current-line-indentation))))
@@ -1867,25 +1869,26 @@ Intended as the value of `fill-paragraph-function'."
 (defun fortran-fill-statement ()
   "Fill a fortran statement up to `fill-column'."
   (interactive)
-  (if (not (save-excursion
-             (beginning-of-line)
-             (or (looking-at "[ \t]*$")
-                 (looking-at comment-line-start-skip)
-                 (and comment-start-skip
-                      (looking-at (concat "[ \t]*" comment-start-skip))))))
-      (save-excursion
-        ;; Find beginning of statement.
-        (fortran-next-statement)
-        (fortran-previous-statement)
-        ;; Re-indent initially.
-        (fortran-indent-line)
-        ;; Replace newline plus continuation field plus indentation with
-        ;; single space.
-        (while (progn
-                 (forward-line)
-                 (fortran-remove-continuation)))
-        (fortran-previous-statement)))
-    (fortran-indent-line))
+  (let ((auto-fill-function #'fortran-do-auto-fill))
+    (if (not (save-excursion
+	       (beginning-of-line)
+	       (or (looking-at "[ \t]*$")
+		   (looking-at comment-line-start-skip)
+		   (and comment-start-skip
+			(looking-at (concat "[ \t]*" comment-start-skip))))))
+	(save-excursion
+	  ;; Find beginning of statement.
+	  (fortran-next-statement)
+	  (fortran-previous-statement)
+	  ;; Re-indent initially.
+	  (fortran-indent-line)
+	  ;; Replace newline plus continuation field plus indentation with
+	  ;; single space.
+	  (while (progn
+		   (forward-line)
+		   (fortran-remove-continuation)))
+	  (fortran-previous-statement)))
+    (fortran-indent-line)))
 
 (provide 'fortran)
 
