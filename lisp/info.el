@@ -3445,7 +3445,8 @@ Preserve text properties."
            (fontify-visited-p ; visited nodes need to be re-fontified
             (and Info-fontify-visited-nodes
                  ;; Don't take time to refontify visited nodes in huge nodes
-                 (< (- (point-max) (point-min)) Info-fontify-maximum-menu-size))))
+                 (< (- (point-max) (point-min)) Info-fontify-maximum-menu-size)))
+           rbeg rend)
 
       ;; Fontify header line
       (goto-char (point-min))
@@ -3570,39 +3571,48 @@ Preserve text properties."
                              "mouse-2: go to this node")
                 'mouse-face 'highlight)))
             (when (or not-fontified-p fontify-visited-p)
-              (add-text-properties
-               (match-beginning 2) (match-end 2)
-               (list
-                'font-lock-face
-                ;; Display visited nodes in a different face
-                (if (and Info-fontify-visited-nodes
-                         (save-match-data
-                           (let* ((node (replace-regexp-in-string
-                                         "^[ \t]+" ""
-                                         (replace-regexp-in-string
-                                          "[ \t\n]+" " "
-                                          (or (match-string 5)
-                                              (and (not (equal (match-string 4) ""))
-                                                   (match-string 4))
-                                              (match-string 2)))))
-                                  (file (file-name-nondirectory
-                                         Info-current-file))
-                                  (hl Info-history-list)
-                                  res)
-                             (if (string-match "(\\([^)]+\\))\\([^)]*\\)" node)
-                                 (setq file (file-name-nondirectory
-                                             (match-string 1 node))
-                                       node (if (equal (match-string 2 node) "")
-                                                "Top"
-                                              (match-string 2 node))))
-                             (while hl
-                               (if (and (string-equal node (nth 1 (car hl)))
-                                        (string-equal file
-                                                      (file-name-nondirectory
-                                                       (nth 0 (car hl)))))
-                                   (setq res (car hl) hl nil)
-                                 (setq hl (cdr hl))))
-                             res))) 'info-xref-visited 'info-xref))))
+              (setq rbeg (match-beginning 2)
+                    rend (match-end 2))
+              (put-text-property
+               rbeg rend
+               'font-lock-face
+               ;; Display visited nodes in a different face
+               (if (and Info-fontify-visited-nodes
+                        (save-match-data
+                          (let* ((node (replace-regexp-in-string
+                                        "^[ \t]+" ""
+                                        (replace-regexp-in-string
+                                         "[ \t\n]+" " "
+                                         (or (match-string 5)
+                                             (and (not (equal (match-string 4) ""))
+                                                  (match-string 4))
+                                             (match-string 2)))))
+                                 (file (file-name-nondirectory
+                                        Info-current-file))
+                                 (hl Info-history-list)
+                                 res)
+                            (if (string-match "(\\([^)]+\\))\\([^)]*\\)" node)
+                                (setq file (file-name-nondirectory
+                                            (match-string 1 node))
+                                      node (if (equal (match-string 2 node) "")
+                                               "Top"
+                                             (match-string 2 node))))
+                            (while hl
+                              (if (and (string-equal node (nth 1 (car hl)))
+                                       (string-equal file
+                                                     (file-name-nondirectory
+                                                      (nth 0 (car hl)))))
+                                  (setq res (car hl) hl nil)
+                                (setq hl (cdr hl))))
+                            res))) 'info-xref-visited 'info-xref))
+              ;; For multiline ref, unfontify newline and surrounding whitespace
+              (save-excursion
+                (goto-char rbeg)
+                (save-match-data
+                  (while (re-search-forward "\\s-*\n\\s-*" rend t nil)
+                    (remove-text-properties (match-beginning 0)
+                                            (match-end 0)
+                                            '(font-lock-face t))))))
             (when not-fontified-p
               (when (memq Info-hide-note-references '(t hide))
                 (add-text-properties (match-beginning 3) (match-end 3)
