@@ -181,6 +181,8 @@
   (define-key wordstar-C-q-map "\C-y" 'ws-kill-eol)
   (define-key wordstar-C-q-map "\177" 'ws-kill-bol))
 
+(put 'wordstar-mode 'mode-class 'special)
+
 ;;;###autoload
 (defun wordstar-mode ()
   "Major mode with WordStar-like key bindings.
