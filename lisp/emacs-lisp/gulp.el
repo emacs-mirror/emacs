@@ -33,72 +33,103 @@
 (defvar gulp-discard "^;+ *Maintainer: *FSF *$"
   "*The regexp matching the packages not requiring the request for updates.")
 
-(defvar gulp-tmp-buffer " *gulp*" "The name of the temporary buffer.")
+(defvar gulp-tmp-buffer "*gulp*" "The name of the temporary buffer.")
 
 (defvar gulp-max-len 2000
   "*Distance into a Lisp source file to scan for keywords.")
 
 (defvar gulp-request-header
-  "This message was created automatically.
-Apparently, you are the maintainer of the following package(s):\n\n"
-  "*Text to use at the start of a message sent to request updates.")
+  (concat
+   "This message was created automatically.
+A new version of GNU Emacs, "
+   (format "%d.%d" emacs-major-version (+ emacs-minor-version 1))
+   ", is entering the pretest state,
+and it is high time to submit the updates to the various emacs packages.
+You're listed as the maintainer of the following package(s):\n\n")
+  "*The starting text of a gulp message.")
 
 (defvar gulp-request-end
-  "\nIf your copy is newer than mine, please email me the patches ASAP.\n\n"
-  "*Text to add at the end of a message sent to request updates.")
+  (concat
+   "\nIf you have any changes since the version in the previous release ("
+   (format "%d.%d" emacs-major-version emacs-minor-version)
+   "),
+please send them to me ASAP.
 
-(defun gulp-send-requests (dir)
+Thanks.")
+  "*The closing text in a gulp message.")
+
+(defun gulp-send-requests (dir &optional time)
   "Send requests for updates to the authors of Lisp packages in directory DIR.
-The prepared message consists of `gulp-request-header', followed by the
-list of packages with modification times, concluded with `gulp-request-end'.
-You can't edit the message, but you can confirm whether to send it.
-The list of rejected addresses will be put into `gulp-tmp-buffer'."
-  (interactive "DRequest updates for Lisp directory: ")
-  (let ((m-p-alist (gulp-create-m-p-alist
-		    (directory-files dir nil "\\.el$" t)))
-	mail-setup-hook msg node)
-    (while (setq node (car m-p-alist))
-      (setq msg (gulp-create-message (cdr node)))
-      (setq mail-setup-hook '(lambda () (goto-char (point-max)) (insert msg)))
-      (mail nil (car node))
-      (if (y-or-n-p "Send? ") (mail-send)
-	(kill-this-buffer)
-	(set-buffer gulp-tmp-buffer)
-	(insert (format "%s\n\n" node)))
-      (setq m-p-alist (cdr m-p-alist)))))
+For each maintainer, the message consists of `gulp-request-header',
+followed by the list of packages (with modification times if the optional
+prefix argument TIME is non-nil), concluded with `gulp-request-end'.
 
-(defun gulp-create-message (rec)
+You can't edit the messages, but you can confirm whether to send each one.
+
+The list of addresses for which you decided not to send mail
+is left in the `*gulp*' buffer at the end."
+  (interactive "DRequest updates for Lisp directory: \nP")
+  (save-excursion
+    (set-buffer (get-buffer-create gulp-tmp-buffer))
+    (let ((m-p-alist (gulp-create-m-p-alist
+		      (directory-files dir nil "^[^=].*\\.el$" t)
+		      dir))
+	  ;; Temporarily inhibit undo in the *gulp* buffer.
+	  (buffer-undo-list t)
+	  mail-setup-hook msg node)
+      (while (setq node (car m-p-alist))
+	(setq msg (gulp-create-message (cdr node) time))
+	(setq mail-setup-hook
+	      '(lambda () 
+		 (mail-subject)
+		 (insert "It's time for Emacs updates again")
+		 (goto-char (point-max))
+		 (insert msg)))
+	(mail nil (car node))
+	(if (y-or-n-p "Send? ") (mail-send)
+	  (kill-this-buffer)
+	  (set-buffer gulp-tmp-buffer)
+	  (insert (format "%s\n\n" node)))
+	(setq m-p-alist (cdr m-p-alist))))
+    (set-buffer gulp-tmp-buffer)
+    (setq buffer-undo-list nil)))
+
+
+(defun gulp-create-message (rec time)
   "Return the message string for REC, which is a list like (FILE TIME)."
   (let (node (str gulp-request-header))
     (while (setq node (car rec))
-      (setq str (concat str "\t" (car node) "\tLast modified:\t" (cdr node) "\n"))
+      (setq str (concat str "\t" (car node)
+			(if time (concat "\tLast modified:\t" (cdr node)))
+			"\n"))
       (setq rec (cdr rec)))
     (concat str gulp-request-end)))
 
-(defun gulp-create-m-p-alist (flist)
-  "Create the maintainer/package alist for files in FLIST.
-List of elements (MAINTAINER . (LIST of PACKAGES))"
-  (let (mplist filen node fl-tm)
-    (get-buffer-create gulp-tmp-buffer)
-    (while flist
-      (setq fl-tm (gulp-maintainer (setq filen (car flist))))
-      (if (setq mnt (car fl-tm));; there is a definite maintainer
-	  (if (setq node (assoc mnt mplist));; this is not a new maintainer
-	      (setq mplist (cons (cons (car node)
-				       (cons (cons filen (cdr fl-tm))
-					     (cdr node)))
-				 (delete node mplist)))
-	    (setq mplist (cons (list mnt (cons filen (cdr fl-tm))) mplist))))
-      (message "%s -- %s" filen fl-tm)
-      (setq flist (cdr flist)))
-    (set-buffer gulp-tmp-buffer)
-    (erase-buffer)
-    mplist))
 
-(defun gulp-maintainer (filenm)
-  "Return a list (MAINTAINER TIMESTAMP) for the package FILENM."
+(defun gulp-create-m-p-alist (flist dir)
+  "Create the maintainer/package alist for files in FLIST in DIR.
+That is a list of elements, each of the form (MAINTAINER PACKAGES...)."
   (save-excursion
-    (let* ((fl (concat gulp-search-path filenm)) mnt
+    (let (mplist filen node mnt-tm mnt tm)
+      (get-buffer-create gulp-tmp-buffer)
+      (set-buffer gulp-tmp-buffer)
+      (setq buffer-undo-list t)
+      (while flist
+	(setq fl-tm (gulp-maintainer (setq filen (car flist)) dir))
+	(if (setq tm (cdr fl-tm) mnt (car fl-tm));; there is a definite maintainer
+	    (if (setq node (assoc mnt mplist));; this is not a new maintainer
+		(setq mplist (cons (cons mnt (cons (cons filen tm) (cdr node)))
+				   (delete node mplist)))
+	      (setq mplist (cons (list mnt (cons filen (cdr fl-tm))) mplist))))
+	(message "%s -- %s" filen fl-tm)
+	(setq flist (cdr flist)))
+      (erase-buffer)
+      mplist)))
+
+(defun gulp-maintainer (filenm dir)
+  "Return a list (MAINTAINER TIMESTAMP) for the package FILENM in directory DIR."
+  (save-excursion
+    (let* ((fl (concat dir filenm)) mnt
 	   (timest (format-time-string "%Y-%m-%d %a %T %Z"
 				       (elt (file-attributes fl) 5))))
       (set-buffer gulp-tmp-buffer)
