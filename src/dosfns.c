@@ -51,14 +51,14 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 DEFUN ("int86", Fint86, Sint86, 2, 2, 0,
-  "Call specific MSDOS interrupt number INTERRUPT with REGISTERS.\n\
-Return the updated REGISTER vector.\n\
-\n\
-INTERRUPT should be an integer in the range 0 to 255.\n\
-REGISTERS should be a vector produced by `make-register' and\n\
-`set-register-value'.")
-  (interrupt, registers)
-  Lisp_Object interrupt, registers;
+       doc: /* Call specific MSDOS interrupt number INTERRUPT with REGISTERS.
+Return the updated REGISTER vector.
+
+INTERRUPT should be an integer in the range 0 to 255.
+REGISTERS should be a vector produced by `make-register' and
+`set-register-value'.  */)
+     (interrupt, registers)
+     Lisp_Object interrupt, registers;
 {
   register int i;
   int no;
@@ -97,10 +97,10 @@ REGISTERS should be a vector produced by `make-register' and\n\
 }
 
 DEFUN ("msdos-memget", Fdos_memget, Sdos_memget, 2, 2, 0,
-  "Read DOS memory at offset ADDRESS into VECTOR.\n\
-Return the updated VECTOR.")
-  (address, vector)
-  Lisp_Object address, vector;
+       doc: /* Read DOS memory at offset ADDRESS into VECTOR.
+Return the updated VECTOR.  */)
+     (address, vector)
+     Lisp_Object address, vector;
 {
   register int i;
   int offs, len;
@@ -123,9 +123,9 @@ Return the updated VECTOR.")
 }
 
 DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
-  "Write DOS memory at offset ADDRESS from VECTOR.")
-  (address, vector)
-  Lisp_Object address, vector;
+       doc: /* Write DOS memory at offset ADDRESS from VECTOR.  */)
+     (address, vector)
+     Lisp_Object address, vector;
 {
   register int i;
   int offs, len;
@@ -151,12 +151,12 @@ DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
 }
 
 DEFUN ("msdos-set-keyboard", Fmsdos_set_keyboard, Smsdos_set_keyboard, 1, 2, 0,
-  "Set keyboard layout according to COUNTRY-CODE.\n\
-If the optional argument ALLKEYS is non-nil, the keyboard is mapped for\n\
-all keys; otherwise it is only used when the ALT key is pressed.\n\
-The current keyboard layout is available in dos-keyboard-code.")
-  (country_code, allkeys)
-  Lisp_Object country_code;
+       doc: /* Set keyboard layout according to COUNTRY-CODE.
+If the optional argument ALLKEYS is non-nil, the keyboard is mapped for
+all keys; otherwise it is only used when the ALT key is pressed.
+The current keyboard layout is available in dos-keyboard-code.  */)
+     (country_code, allkeys)
+     Lisp_Object country_code;
 {
   CHECK_NUMBER (country_code);
   if (!dos_set_keyboard (XINT (country_code), !NILP (allkeys)))
@@ -168,8 +168,8 @@ The current keyboard layout is available in dos-keyboard-code.")
 /* Later we might want to control the mouse interface with this function,
    e.g., with respect to non-80 column screen modes.  */
 
-DEFUN ("msdos-mouse-p", Fmsdos_mouse_p, Smsdos_mouse_p, 0, 0, 0, "\
-Report whether a mouse is present.")
+DEFUN ("msdos-mouse-p", Fmsdos_mouse_p, Smsdos_mouse_p, 0, 0, 0,
+       doc: /* Report whether a mouse is present.  */)
      ()
 {
   if (have_mouse)
@@ -181,8 +181,8 @@ Report whether a mouse is present.")
 
 
 DEFUN ("msdos-mouse-init", Fmsdos_mouse_init, Smsdos_mouse_init, 0, 0, "",
-  "Initialize and enable mouse if available.")
-  ()
+       doc: /* Initialize and enable mouse if available.  */)
+     ()
 {
   if (have_mouse)
     {
@@ -194,8 +194,8 @@ DEFUN ("msdos-mouse-init", Fmsdos_mouse_init, Smsdos_mouse_init, 0, 0, "",
 }
 
 DEFUN ("msdos-mouse-enable", Fmsdos_mouse_enable, Smsdos_mouse_enable, 0, 0, "",
-  "Enable mouse if available.")
-  ()
+       doc: /* Enable mouse if available.  */)
+     ()
 {
   if (have_mouse)
     {
@@ -206,18 +206,18 @@ DEFUN ("msdos-mouse-enable", Fmsdos_mouse_enable, Smsdos_mouse_enable, 0, 0, "",
 }
 
 DEFUN ("msdos-mouse-disable", Fmsdos_mouse_disable, Smsdos_mouse_disable, 0, 0, "",
-  "Disable mouse if available.")
-  ()
+       doc: /* Disable mouse if available.  */)
+     ()
 {
   mouse_off ();
   if (have_mouse) have_mouse = -1;
   return Qnil;
 }
 
-DEFUN ("insert-startup-screen", Finsert_startup_screen, Sinsert_startup_screen, 0, 0, "", "\
-Insert copy of screen contents prior to starting emacs.\n\
-Return nil if startup screen is not available.")
-  ()
+DEFUN ("insert-startup-screen", Finsert_startup_screen, Sinsert_startup_screen, 0, 0, "",
+       doc: /* Insert copy of screen contents prior to starting emacs.
+Return nil if startup screen is not available.  */)
+     ()
 {
   char *s;
   int rows, cols;
@@ -513,13 +513,13 @@ x_set_title (f, name)
 #endif /* !HAVE_X_WINDOWS */
 
 DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
-  "Return storage information about the file system FILENAME is on.\n\
-Value is a list of floats (TOTAL FREE AVAIL), where TOTAL is the total\n\
-storage of the file system, FREE is the free storage, and AVAIL is the\n\
-storage available to a non-superuser.  All 3 numbers are in bytes.\n\
-If the underlying system call fails, value is nil.")
-  (filename)
-  Lisp_Object filename;
+       doc: /* Return storage information about the file system FILENAME is on.
+Value is a list of floats (TOTAL FREE AVAIL), where TOTAL is the total
+storage of the file system, FREE is the free storage, and AVAIL is the
+storage available to a non-superuser.  All 3 numbers are in bytes.
+If the underlying system call fails, value is nil.  */)
+     (filename)
+     Lisp_Object filename;
 {
   struct statfs stfs;
   Lisp_Object encoded, value;
@@ -572,84 +572,85 @@ syms_of_dosfns ()
 #endif
 
   DEFVAR_INT ("dos-country-code", &dos_country_code,
-    "The country code returned by Dos when Emacs was started.\n\
-Usually this is the international telephone prefix.");
+	      doc: /* The country code returned by Dos when Emacs was started.
+Usually this is the international telephone prefix.  */);
 
   DEFVAR_INT ("dos-codepage", &dos_codepage,
-    "The codepage active when Emacs was started.\n\
-The following are known:\n\
-	437	United States\n\
-	850	Multilingual (Latin I)\n\
-	852	Slavic (Latin II)\n\
-	857	Turkish\n\
-	860	Portugal\n\
-	861	Iceland\n\
-	863	Canada (French)\n\
-	865	Norway/Denmark");
+	      doc: /* The codepage active when Emacs was started.
+The following are known:
+	437	United States
+	850	Multilingual (Latin I)
+	852	Slavic (Latin II)
+	857	Turkish
+	860	Portugal
+	861	Iceland
+	863	Canada (French)
+	865	Norway/Denmark  */);
 
   DEFVAR_INT ("dos-timezone-offset", &dos_timezone_offset,
-    "The current timezone offset to UTC in minutes.\n\
-Implicitly modified when the TZ variable is changed.");
+	      doc: /* The current timezone offset to UTC in minutes.
+Implicitly modified when the TZ variable is changed.  */);
   
   DEFVAR_LISP ("dos-version", &Vdos_version,
-    "The (MAJOR . MINOR) Dos version (subject to modification with setver).");
+	       doc: /* The (MAJOR . MINOR) Dos version (subject to modification with setver).  */);
 
 #ifndef HAVE_X_WINDOWS
   DEFVAR_LISP ("dos-windows-version", &Vdos_windows_version,
-    "The (MAJOR . MINOR) Windows version for DOS session on MS-Windows.");
+	       doc: /* The (MAJOR . MINOR) Windows version for DOS session on MS-Windows.  */);
 #endif
 
   DEFVAR_LISP ("dos-display-scancodes", &Vdos_display_scancodes,
-    "*Controls whether DOS raw keyboard events are displayed as you type.\n\
-When non-nil, the keyboard scan-codes are displayed at the bottom right\n\
-corner of the display (typically at the end of the mode line).\n\
-The output format is: scan code:char code*modifiers.");
+	       doc: /* *Controls whether DOS raw keyboard events are displayed as you type.
+When non-nil, the keyboard scan-codes are displayed at the bottom right
+corner of the display (typically at the end of the mode line).
+The output format is: scan code:char code*modifiers.  */);
+
   Vdos_display_scancodes = Qnil;
   
   DEFVAR_INT ("dos-hyper-key", &dos_hyper_key,
-    "*If set to 1, use right ALT key as hyper key.\n\
-If set to 2, use right CTRL key as hyper key.");
+	      doc: /* *If set to 1, use right ALT key as hyper key.
+If set to 2, use right CTRL key as hyper key.  */);
   dos_hyper_key = 0;
   
   DEFVAR_INT ("dos-super-key", &dos_super_key,
-    "*If set to 1, use right ALT key as super key.\n\
-If set to 2, use right CTRL key as super key.");
+	      doc: /* *If set to 1, use right ALT key as super key.
+If set to 2, use right CTRL key as super key.  */);
   dos_super_key = 0;
   
   DEFVAR_INT ("dos-keypad-mode", &dos_keypad_mode,
-    "*Controls what key code is returned by a key in the numeric keypad.\n\
-The `numlock ON' action is only taken if no modifier keys are pressed.\n\
-The value is an integer constructed by adding the following bits together:\n\
- \n\
-  0x00	Digit key returns digit    (if numlock ON)\n\
-  0x01	Digit key returns kp-digit (if numlock ON)\n\
-  0x02	Digit key returns M-digit  (if numlock ON)\n\
-  0x03	Digit key returns edit key (if numlock ON)\n\
- \n\
-  0x00	Grey key returns char      (if numlock ON)\n\
-  0x04	Grey key returns kp-key    (if numlock ON)\n\
- \n\
-  0x00	Digit key returns digit    (if numlock OFF)\n\
-  0x10	Digit key returns kp-digit (if numlock OFF)\n\
-  0x20	Digit key returns M-digit  (if numlock OFF)\n\
-  0x30	Digit key returns edit key (if numlock OFF)\n\
- \n\
-  0x00	Grey key returns char      (if numlock OFF)\n\
-  0x40	Grey key returns kp-key    (if numlock OFF)\n\
- \n\
-  0x200	ALT-0..ALT-9 in top-row produces shifted codes.");
+	      doc: /* *Controls what key code is returned by a key in the numeric keypad.
+The `numlock ON' action is only taken if no modifier keys are pressed.
+The value is an integer constructed by adding the following bits together:
+
+  0x00	Digit key returns digit    (if numlock ON)
+  0x01	Digit key returns kp-digit (if numlock ON)
+  0x02	Digit key returns M-digit  (if numlock ON)
+  0x03	Digit key returns edit key (if numlock ON)
+
+  0x00	Grey key returns char      (if numlock ON)
+  0x04	Grey key returns kp-key    (if numlock ON)
+
+  0x00	Digit key returns digit    (if numlock OFF)
+  0x10	Digit key returns kp-digit (if numlock OFF)
+  0x20	Digit key returns M-digit  (if numlock OFF)
+  0x30	Digit key returns edit key (if numlock OFF)
+
+  0x00	Grey key returns char      (if numlock OFF)
+  0x40	Grey key returns kp-key    (if numlock OFF)
+
+  0x200	ALT-0..ALT-9 in top-row produces shifted codes.  */);
   dos_keypad_mode = 0x75;
   
   DEFVAR_INT ("dos-keyboard-layout", &dos_keyboard_layout,
-    "Contains the country code for the current keyboard layout.\n\
-Use msdos-set-keyboard to select another keyboard layout.");
+	      doc: /* Contains the country code for the current keyboard layout.
+Use msdos-set-keyboard to select another keyboard layout.  */);
   dos_keyboard_layout = 1;	/* US */
   
   DEFVAR_INT ("dos-decimal-point", &dos_decimal_point,
-    "The character to produce when kp-decimal key is pressed.\n\
-If non-zero, this variable contains the character to be returned when the\n\
-decimal point key in the numeric keypad is pressed when Num Lock is on.\n\
-If zero, the decimal point key returns the country code specific value.");
+	      doc: /* The character to produce when kp-decimal key is pressed.
+If non-zero, this variable contains the character to be returned when the
+decimal point key in the numeric keypad is pressed when Num Lock is on.
+If zero, the decimal point key returns the country code specific value.  */);
   dos_decimal_point = 0;
 }
 #endif /* MSDOS */
