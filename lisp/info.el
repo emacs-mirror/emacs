@@ -391,10 +391,10 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	      (let (beg nodename end)
 		(forward-line 1)
 		(setq beg (point))
-		(search-backward "\n")
+		(search-backward "\n\^_")
 		(search-forward "Node: ")
 		(setq nodename (Info-following-node-name))
-		(search-forward "\n" nil 'move)
+		(search-forward "\n\^_" nil 'move)
 		(beginning-of-line)
 		(setq end (point))
 		(setq nodes (cons (list nodename other beg end) nodes))))))
@@ -405,7 +405,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
       (let ((menu-items '("top"))
 	    (nodes nodes)
 	    (case-fold-search t)
-	    (end (save-excursion (search-forward "" nil t) (point))))
+	    (end (save-excursion (search-forward "\^_" nil t) (point))))
 	(while nodes
 	  (let ((nodename (car (car nodes))))
 	    (or (member (downcase nodename) menu-items)
@@ -421,16 +421,16 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	(let ((nodename (car (car nodes))))
 	  (goto-char (point-min))
 	  ;; Find the like-named node in the main buffer.
-	  (if (re-search-forward (concat "\n.*\n.*Node: "
+	  (if (re-search-forward (concat "\n\^_.*\n.*Node: "
 					 (regexp-quote nodename)
 					 "[,\n\t]")
 				 nil t)
 	      (progn
-		(search-forward "\n" nil 'move)
+		(search-forward "\n\^_" nil 'move)
 		(beginning-of-line))
 	    ;; If none exists, add one.
 	    (goto-char (point-max))
-	    (insert "\nFile: dir\tnode: " nodename "\n\n* Menu:\n\n"))
+	    (insert "\^_\nFile: dir\tnode: " nodename "\n\n* Menu:\n\n"))
 	  ;; Merge the text from the other buffer's menu
 	  ;; into the menu in the like-named node in the main buffer.
 	  (apply 'insert-buffer-substring (cdr (car nodes)))
