@@ -493,6 +493,21 @@ function, it is changed to a list of functions."
 	       (nconc (symbol-value hook) (list function))
 	     (cons function (symbol-value hook))))))
 
+(defun remove-hook (hook function)
+  "Remove from the value of HOOK the function FUNCTION.
+HOOK should be a symbol, and FUNCTION may be any valid function.  If
+FUNCTION isn't the value of HOOK, or, if FUNCTION doesn't appear in the
+list of hooks to run in HOOK, then nothing is done.  See add-hook."
+  (if (or (not (boundp hook))		;unbound symbol, or
+	  (null (symbol-value hook))	;value is nil, or
+	  (null function))		;function is nil, then
+      nil				;Do nothing.
+    (let ((hook-value (symbol-value hook)))
+      (if (consp hook-value)
+	  (setq hook-value (delete function hook-value))
+	(if (eq hook-value function)
+	    (setq hook-value nil)))
+      (set hook hook-value))))
 
 ;;;; Specifying things to do after certain files are loaded.
 
