@@ -136,29 +136,29 @@ delete any existing frames that the frame configuration doesn't mention.
 
 (add-hook 'kill-buffer-hook 'register-swap-out)
 
-(defun number-to-register (arg char)
+(defun number-to-register (number register)
   "Store a number in a register.
 Two args, NUMBER and REGISTER (a character, naming the register).
 If NUMBER is nil, a decimal number is read from the buffer starting
 at point, and point moves to the end of that number.
 Interactively, NUMBER is the prefix arg (none means nil)."
   (interactive "P\ncNumber to register: ")
-  (set-register char 
-		(if arg
-		    (prefix-numeric-value arg)
+  (set-register register 
+		(if number
+		    (prefix-numeric-value number)
 		  (if (looking-at "\\s-*-?[0-9]+")
 		      (progn
 			(goto-char (match-end 0))
 			(string-to-int (match-string 0)))
 		    0))))
 
-(defun increment-register (arg char)
+(defun increment-register (number register)
   "Add NUMBER to the contents of register REGISTER.
-Interactively, NUMBER is the prefix arg (none means nil)." 
+Interactively, NUMBER is the prefix arg."
   (interactive "p\ncIncrement register: ")
-  (or (numberp (get-register char))
+  (or (numberp (get-register register))
       (error "Register does not contain a number"))
-  (set-register char (+ arg (get-register char))))
+  (set-register register (+ number (get-register register))))
 
 (defun view-register (register)
   "Display what is contained in register named REGISTER.
