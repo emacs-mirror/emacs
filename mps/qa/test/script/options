@@ -35,7 +35,6 @@ if ($ENV{"OS"} eq "Windows_NT") {
 );
 
 %qa_defaults = (
- "INTERFACE_VERSION", "MO",
  "PLATFORM", $platform_class
 );
 
