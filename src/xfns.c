@@ -2325,27 +2325,21 @@ x_window (f, window_prompting, minibuffer_only)
   Widget shell_widget;
   Widget pane_widget;
   Widget frame_widget;
-  char* name;
   Arg al [25];
   int ac;
 
   BLOCK_INPUT;
 
-  if (STRINGP (f->name))
-    {
-      /* This is a storage leak, but unless people create
-	 thousands of frames, that's ok.
-	 Fix it later by making a new slot in the frame to hold this.  */
-      name = (char *) xmalloc (XSTRING (f->name)->size + 1);
-      bcopy (XSTRING (f->name)->data, name, XSTRING (f->name)->size + 1);
-    }
-  else
-    name = "emacs";
+  {
+    char *str = (STRINGP (f->name) ? XSTRING (f->name)->data : "emacs");
+    f->namebuf = (char *) xrealloc (f->namebuf, strlen (str) + 1);
+    strcpy (f->namebuf, str);
+  }
 
   ac = 0;
   XtSetArg (al[ac], XtNallowShellResize, 1); ac++;
   XtSetArg (al[ac], XtNinput, 1); ac++;
-  shell_widget = XtAppCreateShell (name, EMACS_CLASS,
+  shell_widget = XtAppCreateShell (f->namebuf, EMACS_CLASS,
 				   topLevelShellWidgetClass,
 				   FRAME_X_DISPLAY (f), al, ac);
 
@@ -2373,7 +2367,7 @@ x_window (f, window_prompting, minibuffer_only)
   XtSetArg (al[ac], XtNallowResize, 1); ac++;
   XtSetArg (al[ac], XtNresizeToPreferred, 1); ac++;
   XtSetArg (al[ac], XtNemacsFrame, f); ac++;
-  frame_widget = XtCreateWidget (name,
+  frame_widget = XtCreateWidget (f->namebuf,
 				  emacsFrameClass,
 				  pane_widget, al, ac);
   lw_set_main_areas (pane_widget, f->display.x->menubar_widget, frame_widget);
