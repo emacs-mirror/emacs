@@ -1,3 +1,8 @@
+2005-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.el (blink-cursor-mode): `emacs-quick-startup' may not be
+	bound yet.
+
 2005-03-02  Romain Francoise  <romain@orebokech.com>
 
 	* ibuf-ext.el (ibuffer-filter-disable): Move back to the current
@@ -52,8 +57,7 @@
 	(debugger-setup-buffer): Delete one more frame line in case of
 	debug on entry.
 	(debugger-frame-number): Update to use the new text introduced by
-	the 1999-11-03 change.  Skip one more frame in case of debug on
-	entry.
+	the 1999-11-03 change.  Skip one more frame in case of debug on entry.
 
 2005-02-28  Kim F. Storm  <storm@cua.dk>
 

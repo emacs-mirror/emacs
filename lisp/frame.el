@@ -1270,7 +1270,7 @@ Note that this command is effective only when Emacs
 displays through a window system, because then Emacs does its own
 cursor display.  On a text-only terminal, this is not implemented."
   :init-value (not (or noninteractive
-		       emacs-quick-startup
+		       (if (boundp 'emacs-quick-startup) emacs-quick-startup)
 		       (eq system-type 'ms-dos)
 		       (not (memq window-system '(x w32)))))
   :group 'cursor
