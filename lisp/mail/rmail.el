@@ -1789,11 +1789,15 @@ use \\[mail-yank-original] to yank the original message into it."
                    ;; Message-ID is sufficiently informative
                    message-id
                    (concat message-id " (" tem ")"))
-               ;; Use prin1 to fake RFC822 quoting
-               (let ((field (prin1-to-string tem)))
-                 (if date
-                     (concat field "'s message of " date)
-                     field)))))
+	     ;; Copy TEM, discarding text properties.
+	     (setq tem (copy-sequence tem))
+	     (set-text-properties 0 (length tem) nil tem)
+	     (setq tem (copy-sequence tem))
+	     ;; Use prin1 to fake RFC822 quoting
+	     (let ((field (prin1-to-string tem)))
+	       (if date
+		   (concat field "'s message of " date)
+		   field)))))
         ((let* ((foo "[^][\000-\037\177-\377()<>@,;:\\\" ]+")
                 (bar "[^][\000-\037\177-\377()<>@,;:\\\"]+"))
            ;; Can't use format because format loses on \000 (unix *^&%*^&%$!!)
