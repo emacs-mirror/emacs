@@ -1,3 +1,11 @@
+2000-06-20  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* syntax.c (describe_syntax): Recognize the `n'estable bit.
+	(Fforward_comment, scan_lists):
+	Check the comstyle of single-char comment-starters.
+	(scan_sexps_forward): Don't try to recognize `half comment-enders' if
+	we're just at the beginning of the comment (f.ex with (*) ... (*)).
+
 2000-06-20  Dave Love  <fx@gnu.org>
 
 	* fns.c (make_hash_table, maybe_resize_hash_table): Cast arg of
