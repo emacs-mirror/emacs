@@ -1,3 +1,8 @@
+2001-11-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* language/devan-util.el (dev-char-glyph): Escape `"' in
+	string literals.
+
 2001-11-26  Richard M. Stallman  <rms@gnu.org>
 
 	* window.el (save-selected-window): No error if saved window is dead.
