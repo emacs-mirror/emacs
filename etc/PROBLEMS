@@ -108,8 +108,9 @@ When Emacs runs on MS-DOS or MS-Windows systems, it always supports
 colors, so the above is only relevant for Unix and GNU/Linux systems.
 
 Some editing modes do not use colors unless you turn on the Font-lock
-mode.  One easy way of doing that is by typing "M-x
-global-font-lock-mode RET".
+mode.  Some people have long ago set their `~/.emacs' files to turn
+on Font-lock on X only, so they won't see colors on a tty.  One easy
+way of turning on Font-lock is by typing "M-x global-font-lock-mode RET".
 
 * Problems in Emacs built with LessTif.
 
