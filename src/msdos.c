@@ -1,5 +1,5 @@
-/* MS-DOS specific C utilities.  Coded by Morten Welinder 1993
-   Copyright (C) 1993 Free Software Foundation, Inc.
+/* MS-DOS specific C utilities.
+   Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,6 +16,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+/* Contributed by Morten Welinder */
 
 /* Note: some of the stuff here was taken from end of sysdep.c in demacs. */
 
@@ -258,6 +260,9 @@ dos_rawgetc ()
   int86 (0x16, &regs, &regs);
   ctrl_p = ((regs.h.al & 4) != 0);
   shift_p = ((regs.h.al & 3) != 0);
+  /* Please be very careful here not to break international keyboard support.
+     When Keyb.Com is loaded, the key marked `Alt Gr' is used for accessing
+     characters like { and } if their positions are overlaid.  */
   alt_p = ((extended_kbd ? (regs.h.ah & 2) : (regs.h.al & 8)) != 0);
 
   while (kbhit ())
@@ -274,6 +279,11 @@ dos_rawgetc ()
       /* Determine from the scan code if a keypad key was pressed.  */
       if (c >= '0' && c <= '9' && sc > 0xb)
 	sc = (c == '0') ? 0xb : (c - '0' + 1), c = 0;
+      else if (sc == 0x53 && c != 0xe0)
+	{
+	  code = 0xffae; /* Keypad decimal point/comma.  */
+	  goto nonascii;
+	}
       else if (sc == 0xe0)
 	{
 	  switch (c)
@@ -281,10 +291,6 @@ dos_rawgetc ()
 	    case 10: /* Ctrl Enter */
 	    case 13:
 	      sc = 0x1c;
-	      break;
-	    case '.': /* Decimal point or decimal comma */
-	    case ',':
-	      sc = 0x53;
 	      break;
 	    case '/':
 	      sc = 0x35;
@@ -313,15 +319,26 @@ dos_rawgetc ()
 	  {
 	    if (code >= 0x100)
 	      {
+	      nonascii:
 		event.kind = non_ascii_keystroke;
 		event.code = (code & 0xff) + 0xff00;
 	      }
 	    else
 	      {
-		/* Don't return S- if we don't have to.  */
-		if (code >= 'a' && code <= 'z')
+		/* Don't return S- if we don't have to.  `shifted' is
+		   supposed to be the shifted versions of the characters
+		   in `unshifted'.  Unfortunately, this is only true for
+		   US keyboard layout.  If anyone knows how to do this
+		   right, please tell us.  */
+		static char *unshifted
+		  = "abcdefghijklmnopqrstuvwxyz,./=;[\\]'-`0123456789";
+		static char *shifted
+		  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ<>?+:{|}\"_~)!@#$%^&*(";
+		char *pos;
+
+		if (shift_p && (pos = strchr (unshifted, code)))
 		  {
-		    c = shift_p ? toupper (code) : code;
+		    c = shifted[pos - unshifted];
 		    shift_p = 0;
 		  }
 		else
@@ -330,9 +347,9 @@ dos_rawgetc ()
 		event.code = c;
 	      }
 	    event.modifiers
-	      = (shift_p ? shift_modifier : 0
-		 + (ctrl_p ? ctrl_modifier : 0
-		    + (alt_p ? meta_modifier : 0)));
+	      = (shift_p ? shift_modifier : 0)
+		+ (ctrl_p ? ctrl_modifier : 0)
+		  + (alt_p ? meta_modifier : 0);
 	    /* EMACS == Enter Meta Alt Control Shift */
 	    event.frame_or_window = selected_frame;
 	    gettimeofday (&tv, NULL);
@@ -362,10 +379,10 @@ dos_rawgetc ()
 		event.kind = mouse_click;
 		event.code = but;
 		event.modifiers
-		  = (shift_p ? shift_modifier : 0
-		     + (ctrl_p ? ctrl_modifier : 0
-			+ (alt_p ? meta_modifier : 0
-			   + (press ? down_modifier : up_modifier))));
+		  = (shift_p ? shift_modifier : 0)
+		    + (ctrl_p ? ctrl_modifier : 0)
+		      + (alt_p ? meta_modifier : 0)
+			+ (press ? down_modifier : up_modifier);
 		event.x = x;
 		event.y = y;
 		event.frame_or_window = selected_frame;
