@@ -1041,15 +1041,15 @@ In the right of ,Fk(B key is a combination key, where
  ,F((B diaresis
 
 e.g.
- ,Fa(B + ,F4(B -> ,F\(B
- ,Fi(B + ,F((B -> ,Fz(B
- ,Fi(B + ,F((B + ,F4(B -> ,F@(B"
+ ,F4(B + ,Fa(B -> ,F\(B
+ ,F((B + ,Fi(B -> ,Fz(B
+ ,F((B + ,F4(B + ,Fi(B -> ,F@(B"
  nil t t t t nil nil nil nil nil t)
 
 ;; 1!  2@  3#  4$  5%  6^  7&  8*  9(  0)  -_  =+  `~
-;;  ,F7/(B  ,FrS(B  ,FeE(B  ,FqQ(B  ,FtT(B  ,FuU(B  ,FhH(B  ,FiI(B  ,FoO(B  ,FpP(B  [{  ]}
+;;  ;:  ,FrS(B  ,FeE(B  ,FqQ(B  ,FtT(B  ,FuU(B  ,FhH(B  ,FiI(B  ,FoO(B  ,FpP(B  [{  ]}
 ;;   ,FaA(B  ,FsS(B  ,FdD(B  ,FvV(B  ,FcC(B  ,FgG(B  ,FnN(B  ,FjJ(B  ,FkK(B  ,F4((B  '"  \|
-;;    ,FfF(B  ,FwW(B  ,FxX(B  ,FyY(B  ,FbB(B  ,FmM(B  ,FlL(B  ,;  .:  /?  
+;;    ,FfF(B  ,FwW(B  ,FxX(B  ,FyY(B  ,FbB(B  ,FmM(B  ,FlL(B  ,<  .>  /?  
 
 (quail-define-rules
  ("1" ?1)
@@ -1065,7 +1065,7 @@ e.g.
  ("-" ?-)
  ("=" ?=)
  ("`" ?`)
- ("q" ?,F7(B)
+ ("q" ?\;)
  ("w" ?,Fr(B)
  ("e" ?,Fe(B)
  ("r" ?,Fq(B)
@@ -1113,7 +1113,7 @@ e.g.
  ("_" ?_)
  ("+" ?+)
  ("~" ?~)
- ("Q" ?,F/(B)
+ ("Q" ?:)
  ("W" ?,FS(B)
  ("E" ?,FE(B)
  ("R" ?,FQ(B)
@@ -1144,8 +1144,148 @@ e.g.
  ("B" ?,FB(B)
  ("N" ?,FM(B)
  ("M" ?,FL(B)
- ("<" ?\;)
- (">" ?:)
+ ("<" ?<)
+ (">" ?>)
+ ("?" ??)
+ 
+ (";a" ?,F\(B)
+ (";e" ?,F](B)
+ (";h" ?,F^(B)
+ (";i" ?,F_(B)
+ (";o" ?,F|(B)
+ (";y" ?,F}(B)
+ (";v" ?,F~(B)
+ (";A" ?,F6(B)
+ (";E" ?,F8(B)
+ (";H" ?,F9(B)
+ (";I" ?,F:(B)
+ (";O" ?,F<(B)
+ (";Y" ?,F>(B)
+ (";V" ?,F?(B)
+ (":i" ?,Fz(B)
+ (":y" ?,F{(B)
+ (":I" ?,FZ(B)
+ (":Y" ?,F[(B)
+ (";:i" ?,F@(B)
+ (":;i" ?,F@(B)
+ (";:y" ?,F`(B)
+ (":;y" ?,F`(B))
+
+(quail-define-package
+ "greek-postfix" "GreekPost" ",FX(B" nil
+ ",FEkkgmij\(B: Greek keyboard layout with postfix accents (ISO 8859-7)
+--------------
+
+In the right of ,Fk(B key is a combination key, where
+ ,F4(B acute
+ ,F((B diaresis
+
+e.g.
+ ,Fa(B + ,F4(B -> ,F\(B
+ ,Fi(B + ,F((B -> ,Fz(B
+ ,Fi(B + ,F((B + ,F4(B -> ,F@(B"
+ nil t t t t nil nil nil nil nil t)
+
+;; 1!  2@  3#  4$  5%  6^  7&  8*  9(  0)  -_  =+  `~
+;;  ,F7/(B  ,FrS(B  ,FeE(B  ,FqQ(B  ,FtT(B  ,FuU(B  ,FhH(B  ,FiI(B  ,FoO(B  ,FpP(B  [{  ]}
+;;   ,FaA(B  ,FsS(B  ,FdD(B  ,FvV(B  ,FcC(B  ,FgG(B  ,FnN(B  ,FjJ(B  ,FkK(B  ,F4((B  '"  \|
+;;    ,FfF(B  ,FwW(B  ,FxX(B  ,FyY(B  ,FbB(B  ,FmM(B  ,FlL(B  ,;  .:  /?  
+
+(quail-define-rules
+ ("1" ?1)
+ ("2" ?2)
+ ("3" ?3)
+ ("4" ?4)
+ ("5" ?5)
+ ("6" ?6)
+ ("7" ?7)
+ ("8" ?8)
+ ("9" ?9)
+ ("0" ?0)
+ ("-" ?-)
+ ("=" ?=)
+ ("`" ?`)
+ ("q" ?\;)
+ ("w" ?,Fr(B)
+ ("e" ?,Fe(B)
+ ("r" ?,Fq(B)
+ ("t" ?,Ft(B)
+ ("y" ?,Fu(B)
+ ("u" ?,Fh(B)
+ ("i" ?,Fi(B)
+ ("o" ?,Fo(B)
+ ("p" ?,Fp(B)
+ ("[" ?\[)
+ ("]" ?\])
+ ("a" ?,Fa(B)
+ ("s" ?,Fs(B)
+ ("d" ?,Fd(B)
+ ("f" ?,Fv(B)
+ ("g" ?,Fc(B)
+ ("h" ?,Fg(B)
+ ("j" ?,Fn(B)
+ ("k" ?,Fj(B)
+ ("l" ?,Fk(B)
+ (";" ?,F4(B)
+ ("'" ?')
+ ("\\" ?\\)
+ ("z" ?,Ff(B)
+ ("x" ?,Fw(B)
+ ("c" ?,Fx(B)
+ ("v" ?,Fy(B)
+ ("b" ?,Fb(B)
+ ("n" ?,Fm(B)
+ ("m" ?,Fl(B)
+ ("," ?,)
+ ("." ?.)
+ ("/" ?/)
+ 
+ ("!" ?!)
+ ("@" ?@)
+ ("#" ?#)
+ ("$" ?$)
+ ("%" ?%)
+ ("^" ?^)
+ ("&" ?&)
+ ("*" ?*)
+ ("(" ?\()
+ (")" ?\))
+ ("_" ?_)
+ ("+" ?+)
+ ("~" ?~)
+ ("Q" ?:)
+ ("W" ?,FS(B)
+ ("E" ?,FE(B)
+ ("R" ?,FQ(B)
+ ("T" ?,FT(B)
+ ("Y" ?,FU(B)
+ ("U" ?,FH(B)
+ ("I" ?,FI(B)
+ ("O" ?,FO(B)
+ ("P" ?,FP(B)
+ ("{" ?{)
+ ("}" ?})
+ ("A" ?,FA(B)
+ ("S" ?,FS(B)
+ ("D" ?,FD(B)
+ ("F" ?,FV(B)
+ ("G" ?,FC(B)
+ ("H" ?,FG(B)
+ ("J" ?,FN(B)
+ ("K" ?,FJ(B)
+ ("L" ?,FK(B)
+ (":" ?,F((B)
+ ("\"" ?\")
+ ("|" ?|)
+ ("Z" ?,FF(B)
+ ("X" ?,FW(B)
+ ("C" ?,FX(B)
+ ("V" ?,FY(B)
+ ("B" ?,FB(B)
+ ("N" ?,FM(B)
+ ("M" ?,FL(B)
+ ("<" ?<)
+ (">" ?>)
  ("?" ??)
  
  ("a;" ?,F\(B)
@@ -1167,6 +1307,9 @@ e.g.
  ("I:" ?,FZ(B)
  ("Y:" ?,F[(B)
  ("i:;" ?,F@(B)
- ("y:;" ?,F`(B))
+ ("i;:" ?,F@(B)
+ ("y:;" ?,F`(B)
+ ("y;:" ?,F`(B))
+
 
 ;;; greek.el ends here
