@@ -1,3 +1,10 @@
+2004-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff.el (diff-switches): New fun.
+	(diff, diff-backup): Use it.
+	(diff): Clean up the args construction.  Use backquote.
+	Use listp instead of consp to avoid putting a nil arg.
+
 2004-02-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-types-alist): Add COMPOUND_TEXT,  FILE_NAME
