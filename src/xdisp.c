@@ -1789,9 +1789,7 @@ in_ellipses_for_invisible_text_p (pos, w)
     {
       prop = Fget_char_property (make_number (charpos - 1), Qinvisible,
 				 window);
-      if (TEXT_PROP_MEANS_INVISIBLE (prop)
-	  && TEXT_PROP_MEANS_INVISIBLE_WITH_ELLIPSIS (prop))
-	ellipses_p = 1;
+      ellipses_p = 2 == TEXT_PROP_MEANS_INVISIBLE (prop);
     }
 
   return ellipses_p;
@@ -2567,7 +2565,7 @@ handle_invisible_prop (it)
     }
   else
     {
-      int visible_p, newpos, next_stop, start_charpos;
+      int invis_p, newpos, next_stop, start_charpos;
       Lisp_Object pos, prop, overlay;
 
       /* First of all, is there invisible text at this position?  */
@@ -2575,15 +2573,14 @@ handle_invisible_prop (it)
       pos = make_number (IT_CHARPOS (*it));
       prop = get_char_property_and_overlay (pos, Qinvisible, it->window,
 					    &overlay);
-      
+      invis_p = TEXT_PROP_MEANS_INVISIBLE (prop);
+
       /* If we are on invisible text, skip over it.  */
-      if (TEXT_PROP_MEANS_INVISIBLE (prop)
-	  && IT_CHARPOS (*it) < it->end_charpos)
+      if (invis_p && IT_CHARPOS (*it) < it->end_charpos)
 	{
 	  /* Record whether we have to display an ellipsis for the
 	     invisible text.  */
-	  int display_ellipsis_p
-	    = TEXT_PROP_MEANS_INVISIBLE_WITH_ELLIPSIS (prop);
+	  int display_ellipsis_p = invis_p == 2;
 
 	  handled = HANDLED_RECOMPUTE_PROPS;
 	  
@@ -2603,26 +2600,26 @@ handle_invisible_prop (it)
 		 text in the first place.  If everything to the end of
 		 the buffer was skipped, end the loop.  */
 	      if (newpos == IT_CHARPOS (*it) || newpos >= ZV)
-		visible_p = 1;
+		invis_p = 0;
 	      else
 		{
 		  /* We skipped some characters but not necessarily
 		     all there are.  Check if we ended up on visible
 		     text.  Fget_char_property returns the property of
 		     the char before the given position, i.e. if we
-		     get visible_p = 1, this means that the char at
+		     get invis_p = 0, this means that the char at
 		     newpos is visible.  */
 		  pos = make_number (newpos);
 		  prop = Fget_char_property (pos, Qinvisible, it->window);
-		  visible_p = !TEXT_PROP_MEANS_INVISIBLE (prop);
+		  invis_p = TEXT_PROP_MEANS_INVISIBLE (prop);
 		}
 	      
 	      /* If we ended up on invisible text, proceed to
 		 skip starting with next_stop.  */
-	      if (!visible_p)
+	      if (invis_p)
 		IT_CHARPOS (*it) = next_stop;
 	    }
-	  while (!visible_p);
+	  while (invis_p);
 
 	  /* The position newpos is now either ZV or on visible text.  */
 	  IT_CHARPOS (*it) = newpos;
