@@ -363,6 +363,10 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     (".*\"\\([^,\" \n\t]+\\)\", lines? \
 \\([0-9]+\\)\\([\(.]\\([0-9]+\\)\)?\\)?[:., (-]" 1 2 4)
 
+    ;; Python:
+    ;;  File "foobar.py", line 5, blah blah
+   ("^File \"\\([^,\" \n\t]+\\)\", line \\([0-9]+\\)," 1 2)
+
     ;; Caml compiler:
     ;;  File "foobar.ml", lines 5-8, characters 20-155: blah blah
    ("^File \"\\([^,\" \n\t]+\\)\", lines? \\([0-9]+\\)[-0-9]*, characters? \\([0-9]+\\)" 1 2 3)
