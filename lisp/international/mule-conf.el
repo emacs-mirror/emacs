@@ -410,7 +410,7 @@ is treated as a character."
    (composition . t)))
 
 (make-coding-system
- 'compound-text-no-extensions 2 ?x
+ 'compound-text 2 ?x
  "Compound text based generic encoding for decoding unknown messages.
 
 This coding system does not support ICCCM Extended Segments."
@@ -421,28 +421,26 @@ This coding system does not support ICCCM Extended Segments."
    (mime-charset . x-ctext)
    (composition . t)))
 
-(define-coding-system-alias
-  'x-ctext-no-extensions 'compound-text-no-extensions)
-(define-coding-system-alias
-  'ctext-no-extensions 'compound-text-no-extensions)
+(define-coding-system-alias  'x-ctext 'compound-text)
+(define-coding-system-alias  'ctext 'compound-text)
 
-;; Same as compound-text-no-extensions, but doesn't produce composition
-;; escape sequences.  Used in post-read and pre-write conversions of
-;; compound-text, see mule.el.
+;; Same as compound-text, but doesn't produce composition escape
+;; sequences.  Used in post-read and pre-write conversions of
+;; compound-text-with-extensions, see mule.el.  Note that this should
+;; not have a mime-charset property, to prevent it from showing up
+;; close to the beginning of coding systems ordered by priority.
 (make-coding-system
  'ctext-no-compositions 2 ?x
  "Compound text based generic encoding for decoding unknown messages.
 
-Like `compound-text-no-extensions', but does not produce escape sequences
-for compositions."
+Like `compound-text', but does not produce escape sequences for compositions."
  '((ascii t) (latin-iso8859-1 katakana-jisx0201 t) t t
    nil ascii-eol ascii-cntl nil locking-shift single-shift nil nil nil
    init-bol nil nil)
- '((safe-charsets . t)
-   (mime-charset . x-ctext)))
+ '((safe-charsets . t)))
 
 (make-coding-system
- 'compound-text 5 ?x
+ 'compound-text-with-extensions 5 ?x
  "Compound text encoding with ICCCM Extended Segment extensions.
 
 This coding system should be used only for X selections.  It is inappropriate
@@ -451,8 +449,10 @@ for decoding and encoding files, process I/O, etc."
  '((post-read-conversion . ctext-post-read-conversion)
    (pre-write-conversion . ctext-pre-write-conversion)))
 
-(define-coding-system-alias 'x-ctext 'compound-text)
-(define-coding-system-alias 'ctext 'compound-text)
+(define-coding-system-alias
+  'x-ctext-with-extensions 'compound-text-with-extensions)
+(define-coding-system-alias
+  'ctext-with-extensions 'compound-text-with-extensions)
 
 (make-coding-system
  'iso-safe 2 ?-
