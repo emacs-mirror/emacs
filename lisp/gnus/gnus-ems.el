@@ -26,22 +26,16 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl)
-  (require 'ring))
+(eval-when-compile (require 'cl))
 
 ;;; Function aliases later to be redefined for XEmacs usage.
-
-(eval-and-compile
-  (defvar gnus-xemacs (featurep 'xemacs)
-    "Non-nil if running under XEmacs."))
 
 (defvar gnus-mouse-2 [mouse-2])
 (defvar gnus-down-mouse-3 [down-mouse-3])
 (defvar gnus-down-mouse-2 [down-mouse-2])
 (defvar gnus-widget-button-keymap nil)
 (defvar gnus-mode-line-modified
-  (if (or gnus-xemacs
+  (if (or (featurep 'xemacs)
 	  (< emacs-major-version 20))
       '("--**-" . "-----")
     '("**" "--")))
@@ -51,7 +45,18 @@
   (autoload 'gnus-xmas-redefine "gnus-xmas")
   (autoload 'appt-select-lowest-window "appt"))
 
-(autoload 'gnus-smiley-display "smiley-ems") ; override XEmacs version
+(if (featurep 'xemacs)
+    (autoload 'gnus-smiley-display "smiley")
+  (autoload 'gnus-smiley-display "smiley-ems") ; override XEmacs version
+)
+
+(defun gnus-kill-all-overlays ()
+  "Delete all overlays in the current buffer."
+  (let* ((overlayss (overlay-lists))
+	 (buffer-read-only nil)
+	 (overlays (delq nil (nconc (car overlayss) (cdr overlayss)))))
+    (while overlays
+      (delete-overlay (pop overlays)))))
 
 ;;; Mule functions.
 
@@ -64,7 +69,7 @@
        valstr)))
 
 (eval-and-compile
-  (if gnus-xemacs
+  (if (featurep 'xemacs)
       (gnus-xmas-define)
     (defvar gnus-mouse-face-prop 'mouse-face
       "Property used for highlighting mouse regions.")))
