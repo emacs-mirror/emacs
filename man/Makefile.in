@@ -58,6 +58,7 @@ ENVADD = TEXINPUTS="$(srcdir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
 
 EMACSSOURCES= \
 	${srcdir}/emacs.texi \
+	${srcdir}/doclicense.texi \
 	${srcdir}/screen.texi \
 	${srcdir}/commands.texi \
 	${srcdir}/entering.texi \
@@ -81,6 +82,7 @@ EMACSSOURCES= \
 	${srcdir}/text.texi \
 	${srcdir}/programs.texi \
 	${srcdir}/building.texi \
+	${srcdir}/maintaining.texi \
 	${srcdir}/abbrevs.texi \
 	${srcdir}/picture.texi \
 	${srcdir}/sending.texi \
@@ -91,7 +93,9 @@ EMACSSOURCES= \
 	${srcdir}/custom.texi \
 	${srcdir}/trouble.texi \
 	${srcdir}/cmdargs.texi \
+	${srcdir}/xresources.texi \
 	${srcdir}/anti.texi \
+	${srcdir}/macos.texi \
 	${srcdir}/msdog.texi \
 	${srcdir}/gnu.texi \
 	${srcdir}/glossary.texi \
