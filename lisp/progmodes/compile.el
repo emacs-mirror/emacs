@@ -367,26 +367,25 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
 		    ;; Write something in the compilation buffer
 		    ;; and hack its mode line.
 		    (set-buffer buffer)
-		    (setq buffer-read-only nil)
-		    (setq omax (point-max)
-			  opoint (point))
-		    (goto-char omax)
-		    ;; Record where we put the message, so we can ignore it
-		    ;; later on.
-		    (insert ?\n mode-name " " msg)
-		    (forward-char -1)
-		    (insert " at " (substring (current-time-string) 0 19))
-		    (forward-char 1)
-		    (setq mode-line-process
-			  (concat ": "
-				  (symbol-name (process-status proc))))
-		    ;; Since the buffer and mode line will show that the
-		    ;; process is dead, we can delete it now.  Otherwise it
-		    ;; will stay around until M-x list-processes.
-		    (delete-process proc)
-		    ;; Force mode line redisplay soon.
-		    (set-buffer-modified-p (buffer-modified-p))
-		    (setq buffer-read-only t) ;I think is this wrong --roland
+		    (let ((buffer-read-only nil))
+		      (setq omax (point-max)
+			    opoint (point))
+		      (goto-char omax)
+		      ;; Record where we put the message, so we can ignore it
+		      ;; later on.
+		      (insert ?\n mode-name " " msg)
+		      (forward-char -1)
+		      (insert " at " (substring (current-time-string) 0 19))
+		      (forward-char 1)
+		      (setq mode-line-process
+			    (concat ": "
+				    (symbol-name (process-status proc))))
+		      ;; Since the buffer and mode line will show that the
+		      ;; process is dead, we can delete it now.  Otherwise it
+		      ;; will stay around until M-x list-processes.
+		      (delete-process proc)
+		      ;; Force mode line redisplay soon.
+		      (set-buffer-modified-p (buffer-modified-p)))
 		    (if (and opoint (< opoint omax))
 			(goto-char opoint))
 		    (if compilation-finish-function
