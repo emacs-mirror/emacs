@@ -344,45 +344,44 @@ and should return either a buffer or nil."
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-not-found-hooks 'permanent-local t)
-(defvar find-file-not-found-hooks nil
+(defvar find-file-not-found-functions nil
   "List of functions to be called for `find-file' on nonexistent file.
 These functions are called as soon as the error is detected.
 Variable `buffer-file-name' is already set up.
 The functions are called in the order given until one of them returns non-nil.")
+(defvaralias 'find-file-not-found-hooks 'find-file-not-found-functions)
+(make-obsolete-variable
+ 'find-file-not-found-hooks 'find-file-not-found-functions "21.4")
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-hooks 'permanent-local t)
-(defvar find-file-hooks nil
+(defvar find-file-hook nil
   "List of functions to be called after a buffer is loaded from a file.
 The buffer's local variables (if any) will have been processed before the
 functions are called.")
+(defvaralias 'find-file-hooks 'find-file-hook)
+(make-obsolete-variable 'find-file-hooks 'find-file-hook "21.4")
 
-(defvar write-file-hooks nil
+(defvar write-file-functions nil
   "List of functions to be called before writing out a buffer to a file.
 If one of them returns non-nil, the file is considered already written
 and the rest are not called.
 These hooks are considered to pertain to the visited file.
-So any buffer-local binding of `write-file-hooks' is
-discarded if you change the visited file name with \\[set-visited-file-name].
+So any buffer-local binding of this variable is discarded if you change
+the visited file name with \\[set-visited-file-name], but not when you
+change the major mode.
 
-Don't make this variable buffer-local; instead, use `local-write-file-hooks'.
-See also `write-contents-hooks'.")
-;;; However, in case someone does make it local...
-(put 'write-file-hooks 'permanent-local t)
+See also `write-contents-functions'.")
+(put 'write-file-functions 'permanent-local t)
+(defvaralias 'write-file-hooks 'write-file-functions)
+(make-obsolete-variable 'write-file-hooks 'write-file-functions "21.4")
 
-(defvar local-write-file-hooks nil
-  "Just like `write-file-hooks', except intended for per-buffer use.
-The functions in this list are called before the ones in
-`write-file-hooks'.
-
-This variable is meant to be used for hooks that have to do with a
-particular visited file.  Therefore, it is a permanent local, so that
-changing the major mode does not clear it.  However, calling
-`set-visited-file-name' does clear it.")
+(defvar local-write-file-hooks nil)
 (make-variable-buffer-local 'local-write-file-hooks)
 (put 'local-write-file-hooks 'permanent-local t)
+(make-obsolete-variable 'local-write-file-hooks 'write-file-functions "21.4")
 
-(defvar write-contents-hooks nil
+(defvar write-contents-functions nil
   "List of functions to be called before writing out a buffer to a file.
 If one of them returns non-nil, the file is considered already written
 and the rest are not called.
@@ -392,12 +391,10 @@ buffer's contents, not to the particular visited file; thus,
 `set-visited-file-name' does not clear this variable; but changing the
 major mode does clear it.
 
-This variable automatically becomes buffer-local whenever it is set.
-If you use `add-hook' to add elements to the list, use nil for the
-LOCAL argument.
-
-See also `write-file-hooks'.")
-(make-variable-buffer-local 'write-contents-hooks)
+See also `write-file-functions'.")
+(make-variable-buffer-local 'write-contents-functions)
+(defvaralias 'write-contents-hooks 'write-contents-functions)
+(make-obsolete-variable 'write-contents-hooks 'write-contents-functions "21.4")
 
 (defcustom enable-local-variables t
   "*Control use of local variables in files you visit.
@@ -602,9 +599,10 @@ PATH-AND-SUFFIXES is a pair of lists (DIRECTORIES . SUFFIXES)."
 	    (when (string-match suffix file)
 	      (setq file (substring file 0 (match-beginning 0)))
 	      (push (if string-dir (concat string-dir file) file) names)))))
-      (if action
-	  (all-completions string (mapcar 'list names))
-	(try-completion string (mapcar 'list names))))))
+      (cond
+       ((eq action t) (all-completions string names))
+       ((null action) (try-completion string names))
+       (t (test-completion string names))))))
 
 (defun load-library (library)
   "Load the library named LIBRARY.
@@ -1256,7 +1254,7 @@ that are visiting the various files."
 	     (signal 'file-error (list "File is not readable"
 				       filename)))
 	   ;; Run find-file-not-found-hooks until one returns non-nil.
-	   (or (run-hook-with-args-until-success 'find-file-not-found-hooks)
+	   (or (run-hook-with-args-until-success 'find-file-not-found-functions)
 	       ;; If they fail too, set error.
 	       (setq error t)))))
       ;; Record the file's truename, and maybe use that as visited name.
@@ -1299,7 +1297,7 @@ that are visiting the various files."
   "Like `insert-file-contents', but only reads in the file literally.
 A buffer may be modified in several ways after reading into the buffer,
 to Emacs features such as format decoding, character code
-conversion, `find-file-hooks', automatic uncompression, etc.
+conversion, `find-file-hook', automatic uncompression, etc.
 
 This function ensures that none of these modifications will take place."
   (let ((format-alist nil)
@@ -1372,7 +1370,7 @@ NOAUTO means don't mess with auto-save mode.
 Fourth arg AFTER-FIND-FILE-FROM-REVERT-BUFFER non-nil
  means this call was from `revert-buffer'.
 Fifth arg NOMODES non-nil means don't alter the file's modes.
-Finishes by calling the functions in `find-file-hooks'
+Finishes by calling the functions in `find-file-hook'
 unless NOMODES is non-nil."
   (setq buffer-read-only (not (file-writable-p buffer-file-name)))
   (if noninteractive
@@ -1426,7 +1424,7 @@ unless NOMODES is non-nil."
 	       view-read-only
 	       (not (eq (get major-mode 'mode-class) 'special)))
       (view-mode-enter))
-    (run-hooks 'find-file-hooks)))
+    (run-hooks 'find-file-hook)))
 
 (defun normal-mode (&optional find-file)
   "Choose the major mode for this buffer automatically.
@@ -2169,10 +2167,10 @@ the old visited file has been renamed to the new name FILENAME."
 	  (if filename
 	      (nthcdr 10 (file-attributes buffer-file-name))
 	      nil)))
-  ;; write-file-hooks is normally used for things like ftp-find-file
+  ;; write-file-functions is normally used for things like ftp-find-file
   ;; that visit things that are not local files as if they were files.
   ;; Changing to visit an ordinary local file instead should flush the hook.
-  (kill-local-variable 'write-file-hooks)
+  (kill-local-variable 'write-file-functions)
   (kill-local-variable 'local-write-file-hooks)
   (kill-local-variable 'revert-buffer-function)
   (kill-local-variable 'backup-inhibited)
@@ -2746,9 +2744,9 @@ in such cases.")
 
 (defun basic-save-buffer ()
   "Save the current buffer in its visited file, if it has been modified.
-The hooks `write-contents-hooks', `local-write-file-hooks' and
-`write-file-hooks' get a chance to do the job of saving; if they do not,
-then the buffer is saved in the visited file file in the usual way.
+The hooks `write-contents-functions' and `write-file-functions' get a chance
+to do the job of saving; if they do not, then the buffer is saved in
+the visited file file in the usual way.
 After saving the buffer, this function runs `after-save-hook'."
   (interactive)
   (save-current-buffer
@@ -2790,7 +2788,7 @@ After saving the buffer, this function runs `after-save-hook'."
 	  (save-restriction
 	    (widen)
 	    (save-excursion
-	      (and (> (point-max) 1)
+	      (and (> (point-max) (point-min))
 		   (not find-file-literally)
 		   (/= (char-after (1- (point-max))) ?\n)
 		   (not (and (eq selective-display t)
@@ -2805,9 +2803,9 @@ After saving the buffer, this function runs `after-save-hook'."
 		     (insert ?\n))))
 	    ;; Support VC version backups.
 	    (vc-before-save)
-	    (or (run-hook-with-args-until-success 'write-contents-hooks)
+	    (or (run-hook-with-args-until-success 'write-contents-functions)
 		(run-hook-with-args-until-success 'local-write-file-hooks)
-		(run-hook-with-args-until-success 'write-file-hooks)
+		(run-hook-with-args-until-success 'write-file-functions)
 		;; If a hook returned t, file is already "written".
 		;; Otherwise, write it the usual way now.
 		(setq setmodes (basic-save-buffer-1)))
@@ -2833,7 +2831,7 @@ After saving the buffer, this function runs `after-save-hook'."
 
 ;; This does the "real job" of writing a buffer into its visited file
 ;; and making a backup file.  This is what is normally done
-;; but inhibited if one of write-file-hooks returns non-nil.
+;; but inhibited if one of write-file-functions returns non-nil.
 ;; It returns a value to store in setmodes.
 (defun basic-save-buffer-1 ()
   (if save-buffer-coding-system
@@ -2899,7 +2897,7 @@ After saving the buffer, this function runs `after-save-hook'."
 	    ;; Since we have created an entirely new file
 	    ;; and renamed it, make sure it gets the
 	    ;; right permission bits set.
-	    (setq setmodes (file-modes buffer-file-name))
+	    (setq setmodes (or setmodes (file-modes buffer-file-name)))
 	    ;; We succeeded in writing the temp file,
 	    ;; so rename it.
 	    (rename-file tempname buffer-file-name t))
