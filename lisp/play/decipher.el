@@ -2,7 +2,7 @@
 ;;
 ;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 ;;
-;; Author: Christopher J. Madsen <ac608@yfn.ysu.edu>
+;; Author: Christopher J. Madsen <chris_madsen@geocities.com>
 ;; Keywords: games
 ;;
 ;; This file is part of GNU Emacs.
