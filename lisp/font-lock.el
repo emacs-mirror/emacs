@@ -714,7 +714,7 @@ buffer local value for `font-lock-defaults', via its mode hook."
 (defun turn-on-font-lock ()
   "Turn on Font Lock mode conditionally.
 Turn on only if the terminal can display it."
-  (when (and (not font-lock-mode) window-system)
+  (when (and (not font-lock-mode) (or window-system (tty-display-color-p)))
     (font-lock-mode)))
 
 ;;;###autoload
