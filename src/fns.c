@@ -1130,6 +1130,7 @@ Also accepts Space to mean yes, or Delete to mean no.")
 
   while (1)
     {
+#ifdef HAVE_X_MENU
       if (NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
 	{
 	  Lisp_Object pane, menu;
@@ -1141,16 +1142,14 @@ Also accepts Space to mean yes, or Delete to mean no.")
 	  answer = !NILP (obj);
 	  break;
 	}
-      else
-	{
-	  cursor_in_echo_area = 1;
-	  message ("%s(y or n) ", XSTRING (xprompt)->data);
+#endif
+      cursor_in_echo_area = 1;
+      message ("%s(y or n) ", XSTRING (xprompt)->data);
 
-	  obj = read_filtered_event (1, 0, 0);
-	  cursor_in_echo_area = 0;
-	  /* If we need to quit, quit with cursor_in_echo_area = 0.  */
-	  QUIT;
-	}
+      obj = read_filtered_event (1, 0, 0);
+      cursor_in_echo_area = 0;
+      /* If we need to quit, quit with cursor_in_echo_area = 0.  */
+      QUIT;
 
       key = Fmake_vector (make_number (1), obj);
       def = Flookup_key (map, key);
@@ -1232,6 +1231,7 @@ and can edit it until it as been confirmed.")
 
   CHECK_STRING (prompt, 0);
 
+#ifdef HAVE_X_MENU
   if (NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
     {
       Lisp_Object pane, menu, obj;
@@ -1244,6 +1244,7 @@ and can edit it until it as been confirmed.")
       UNGCPRO;
       return obj;
     }
+#endif
 
   args[0] = prompt;
   args[1] = build_string ("(yes or no) ");
