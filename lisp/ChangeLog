@@ -1,3 +1,7 @@
+2003-04-29  John Paul Wallington  <jpw@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-cl-warn): Use `string-match'.
+
 2003-04-28  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-cl-warn): Avoid cl warnings
