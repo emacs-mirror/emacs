@@ -2281,12 +2281,7 @@ sort_fonts (f, fonts, nfonts, cmpfn)
 
    For all fonts found, set FONTS[i].name to the name of the font,
    allocated via xmalloc, and split font names into fields.  Ignore
-   fonts that we can't parse.  Value is the number of fonts found.
-
-   This is similar to x_list_fonts.  The differences are:
-
-   1. It avoids consing.
-   2. It never calls XLoadQueryFont.  */
+   fonts that we can't parse.  Value is the number of fonts found.  */
 
 static int
 x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
@@ -2307,13 +2302,13 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
   lpattern = build_string (pattern);
 
   /* Get the list of fonts matching PATTERN.  */
-  BLOCK_INPUT;
 #ifdef WINDOWSNT
+  BLOCK_INPUT;
   lfonts = w32_list_fonts (f, lpattern, 0, nfonts);
-#else
-  lfonts = x_list_fonts (f, lpattern, -1, nfonts);
-#endif
   UNBLOCK_INPUT;
+#else
+  lfonts = x_list_fonts (f, lpattern, scalable_fonts_p ? -1 : 0, nfonts);
+#endif
 
   /* Make a copy of the font names we got from X, and
      split them into fields.  */
