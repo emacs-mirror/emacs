@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001, 2002
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -1714,11 +1714,16 @@ created."
   :group 'basic-faces)
 
 (defface mode-line-inactive
-  '((((type x w32 mac) (class color))
+  '((((type x w32 mac) (background light) (class color))
      :inherit mode-line
      :weight light
      :box (:line-width -1 :color "grey75" :style nil)
      :foreground "grey20" :background "grey90")
+    (((type x w32 mac) (background dark) (class color))
+     :inherit mode-line
+     :weight light
+     :box (:line-width -1 :color "grey40" :style nil)
+     :foreground "grey80" :background "grey30")
     (t
      :inverse-video t))
   "Basic mode line face for non-selected windows."
