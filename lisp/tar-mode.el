@@ -4,7 +4,6 @@
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Created: 04 Apr 1990
-;; Version: 1.21bis (some cleanup by ESR)
 ;; Keywords: unix
 
 ;;; This file is part of GNU Emacs.
@@ -889,10 +888,11 @@ for this to be permanent."
 
 (defun tar-clear-modification-flags ()
   "Remove the stars at the beginning of each line."
+  (interactive)
   (save-excursion
-    (goto-char 0)
+    (goto-char 1)
     (while (< (point) tar-header-offset)
-      (if (looking-at "*")
+      (if (not (eq (following-char) ?\ ))
 	  (progn (delete-char 1) (insert " ")))
       (forward-line 1))))
 
