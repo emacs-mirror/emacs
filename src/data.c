@@ -617,8 +617,7 @@ DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0, "Make SYMBOL's value be 
   CHECK_SYMBOL (symbol, 0);
   if (NILP (symbol) || EQ (symbol, Qt)
       || (XSYMBOL (symbol)->name->data[0] == ':'
-	  && keyword_symbols_constant_flag
-	  && ! EQ (XSYMBOL (symbol)->value, symbol)))
+	  && keyword_symbols_constant_flag))
     return Fsignal (Qsetting_constant, Fcons (symbol, Qnil));
   Fset (symbol, Qunbound);
   return symbol;
@@ -969,8 +968,7 @@ set_internal (symbol, newval, bindflag)
   CHECK_SYMBOL (symbol, 0);
   if (NILP (symbol) || EQ (symbol, Qt)
       || (XSYMBOL (symbol)->name->data[0] == ':'
-	  && keyword_symbols_constant_flag
-	  && ! EQ (XSYMBOL (symbol)->value, symbol)))
+	  && keyword_symbols_constant_flag && ! EQ (newval, symbol)))
     return Fsignal (Qsetting_constant, Fcons (symbol, Qnil));
   valcontents = XSYMBOL (symbol)->value;
 
