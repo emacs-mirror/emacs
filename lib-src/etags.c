@@ -35,6 +35,13 @@ char pot_etags_version[] = "@(#) pot revision number is 10.32";
 #include <sys/param.h>
 #endif /* MSDOS */
 
+#ifdef WINDOWSNT
+#include <stdlib.h>
+#include <fcntl.h>
+#include <string.h>
+#define MAXPATHLEN _MAX_PATH
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include <../src/config.h>
 /* On some systems, Emacs defines static as nothing
@@ -410,9 +417,9 @@ main (argc, argv)
   extern char *massage_name ();
 #endif
  
-#ifdef MSDOS
+#ifdef DOS_NT
   _fmode = O_BINARY;   /* all of files are treated as binary files */
-#endif /* MSDOS */
+#endif /* DOS_NT */
 
   progname = argv[0];
 
@@ -3171,7 +3178,7 @@ concat (s1, s2, s3)
   return result;
 }
 
-#ifdef MSDOS
+#ifdef DOS_NT
 char *
 etags_getcwd ()
 {
@@ -3185,7 +3192,7 @@ etags_getcwd ()
       *p++ = tolower (*p);
   return strdup (cwd);
 }
-#else /* not MSDOS */
+#else /* not DOS_NT */
 /* Does the same work as the system V getcwd, but does not need to
    guess buffer size in advance.  Included mostly for compatibility. */
 char *
@@ -3228,7 +3235,7 @@ etags_getcwd ()
   buf[strlen (buf) - 1] = '\0';
   return buf;
 }
-#endif /* not MSDOS */
+#endif /* not DOS_NT */
 
 /* Return a newly allocated string containing the filename
    of FILE relative to the absolute directory DIR (which
