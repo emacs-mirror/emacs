@@ -337,7 +337,6 @@ defaults to the current buffer.")
      Lisp_Object pos, object;
 {
   register INTERVAL i;
-  register int p;
 
   if (NILP (object))
     XSET (object, Lisp_Buffer, current_buffer);
@@ -349,15 +348,48 @@ defaults to the current buffer.")
   return i->plist;
 }
 
+DEFUN ("get-text-property", Fget_text_property, Sget_text_property, 2, 3, 0,
+  "Return the value of position POS's property PROP, in OBJECT.
+OBJECT is optional and defaults to the current buffer.")
+  (pos, prop, object)
+     Lisp_Object sym, object;
+     register Lisp_Object prop;
+{
+  register INTERVAL i;
+  register Lisp_Object tail;
+
+  if (NILP (object))
+    XSET (object, Lisp_Buffer, current_buffer);
+
+  i = validate_interval_range (object, &pos, &pos, soft);
+  if (NULL_INTERVAL_P (i))
+    return Qnil;
+
+  for (tail = i->plist; !NILP (tail); tail = Fcdr (Fcdr (tail)))
+    {
+      register Lisp_Object tem;
+      tem = Fcar (tail);
+      if (EQ (prop, tem))
+	return Fcar (Fcdr (tail));
+    }
+  return Qnil;
+}
+
 DEFUN ("next-property-change", Fnext_property_change,
-       Snext_property_change, 2, 2, 0,
-  "Return the position after POSITION in OBJECT which has properties\n\
-different from those at POSITION.  OBJECT may be a string or buffer.\n\
-Returns nil if unsuccessful.")
+       Snext_property_change, 1, 2, 0,
+  "Return the position of next property change.\n\
+Scans characters forward from POS in OBJECT till it finds\n\
+a change in some text property, then returns the position of the change.\n\
+The optional second argument OBJECT is the string or buffer to scan.\n\
+Return nil if the property is constant all the way to the end of OBJECT.\n\
+If the value is non-nil, it is a position greater than POS, never equal.")
   (pos, object)
      Lisp_Object pos, object;
 {
   register INTERVAL i, next;
+
+  if (NILP (object))
+    XSET (object, Lisp_Buffer, current_buffer);
 
   i = validate_interval_range (object, &pos, &pos, soft);
   if (NULL_INTERVAL_P (i))
@@ -374,14 +406,21 @@ Returns nil if unsuccessful.")
 }
 
 DEFUN ("next-single-property-change", Fnext_single_property_change,
-       Snext_single_property_change, 3, 3, 0,
-       "Return the position after POSITION in OBJECT which has a different\n\
-value for PROPERTY than the text at POSITION.  OBJECT may be a string or\n\
-buffer.  Returns nil if unsuccessful.")
-     (pos, object, prop)
+       Snext_single_property_change, 1, 3, 0,
+  "Return the position of next property change for a specific property.\n\
+Scans characters forward from POS till it finds\n\
+a change in the PROP property, then returns the position of the change.\n\
+The optional third argument OBJECT is the string or buffer to scan.\n\
+Return nil if the property is constant all the way to the end of OBJECT.\n\
+If the value is non-nil, it is a position greater than POS, never equal.")
+  (pos, prop, object)
+     Lisp_Object pos, prop, object;
 {
   register INTERVAL i, next;
   register Lisp_Object here_val;
+
+  if (NILP (object))
+    XSET (object, Lisp_Buffer, current_buffer);
 
   i = validate_interval_range (object, &pos, &pos, soft);
   if (NULL_INTERVAL_P (i))
@@ -399,14 +438,20 @@ buffer.  Returns nil if unsuccessful.")
 }
 
 DEFUN ("previous-property-change", Fprevious_property_change,
-       Sprevious_property_change, 2, 2, 0,
-  "Return the position preceding POSITION in OBJECT which has properties\n\
-different from those at POSITION.  OBJECT may be a string or buffer.\n\
-Returns nil if unsuccessful.")
+       Sprevious_property_change, 1, 2, 0,
+  "Return the position of previous property change.\n\
+Scans characters backwards from POS in OBJECT till it finds\n\
+a change in some text property, then returns the position of the change.\n\
+The optional second argument OBJECT is the string or buffer to scan.\n\
+Return nil if the property is constant all the way to the start of OBJECT.\n\
+If the value is non-nil, it is a position less than POS, never equal.")
   (pos, object)
      Lisp_Object pos, object;
 {
   register INTERVAL i, previous;
+
+  if (NILP (object))
+    XSET (object, Lisp_Buffer, current_buffer);
 
   i = validate_interval_range (object, &pos, &pos, soft);
   if (NULL_INTERVAL_P (i))
@@ -422,14 +467,21 @@ Returns nil if unsuccessful.")
 }
 
 DEFUN ("previous-single-property-change", Fprevious_single_property_change,
-       Sprevious_single_property_change, 3, 3, 0,
-       "Return the position preceding POSITION in OBJECT which has a\n\
-different value for PROPERTY than the text at POSITION.  OBJECT may be\n\
-a string or buffer.  Returns nil if unsuccessful.")
-     (pos, object, prop)
+       Sprevious_single_property_change, 2, 3, 0,
+  "Return the position of previous property change for a specific property.\n\
+Scans characters backward from POS till it finds\n\
+a change in the PROP property, then returns the position of the change.\n\
+The optional third argument OBJECT is the string or buffer to scan.\n\
+Return nil if the property is constant all the way to the start of OBJECT.\n\
+If the value is non-nil, it is a position less than POS, never equal.")
+     (pos, prop, object)
+     Lisp_Object pos, prop, object;
 {
   register INTERVAL i, previous;
   register Lisp_Object here_val;
+
+  if (NILP (object))
+    XSET (object, Lisp_Buffer, current_buffer);
 
   i = validate_interval_range (object, &pos, &pos, soft);
   if (NULL_INTERVAL_P (i))
@@ -447,12 +499,15 @@ a string or buffer.  Returns nil if unsuccessful.")
 }
 
 DEFUN ("add-text-properties", Fadd_text_properties,
-       Sadd_text_properties, 4, 4, 0,
-  "Add the PROPERTIES, a property list, to the text of OBJECT,\n\
-a string or buffer, in the range START to END.  Returns t if any change\n\
-was made, nil otherwise.")
-  (object, start, end, properties)
-     Lisp_Object object, start, end, properties;
+       Sadd_text_properties, 3, 4, 0,
+  "Add properties to the text from START to END.\n\
+The third argument PROPS is a property list\n\
+specifying the property values to add.\n\
+The optional fourth argument, OBJECT,\n\
+is the string or buffer containing the text.\n\
+Return t if any property value actually changed, nil otherwise.")
+  (start, end, properties, object)
+     Lisp_Object start, end, properties, object;
 {
   register INTERVAL i, unchanged;
   register int s, len, modified;
@@ -460,6 +515,9 @@ was made, nil otherwise.")
   properties = validate_plist (properties);
   if (NILP (properties))
     return Qnil;
+
+  if (NILP (object))
+    XSET (object, Lisp_Buffer, current_buffer);
 
   i = validate_interval_range (object, &start, &end, hard);
   if (NULL_INTERVAL_P (i))
@@ -530,22 +588,24 @@ was made, nil otherwise.")
 }
 
 DEFUN ("set-text-properties", Fset_text_properties,
-       Sset_text_properties, 4, 4, 0,
-  "Make the text of OBJECT, a string or buffer, have precisely\n\
-PROPERTIES, a list of properties, in the range START to END.\n\
-\n\
-If called with a valid property list, return t (text was changed).\n\
-Otherwise return nil.")
-  (object, start, end, properties)
-     Lisp_Object object, start, end, properties;
+       Sset_text_properties, 3, 4, 0,
+  "Completely replace properties of text from START to END.\n\
+The third argument PROPS is the new property list.\n\
+The optional fourth argument, OBJECT,\n\
+is the string or buffer containing the text.")
+  (start, end, props, object)
+     Lisp_Object start, end, props, object;
 {
   register INTERVAL i, unchanged;
   register INTERVAL prev_changed = NULL_INTERVAL;
   register int s, len;
 
-  properties = validate_plist (properties);
-  if (NILP (properties))
+  props = validate_plist (props);
+  if (NILP (props))
     return Qnil;
+
+  if (NILP (object))
+    XSET (object, Lisp_Buffer, current_buffer);
 
   i = validate_interval_range (object, &start, &end, hard);
   if (NULL_INTERVAL_P (i))
@@ -558,7 +618,7 @@ Otherwise return nil.")
     {
       unchanged = i;
       i = split_interval_right (unchanged, s - unchanged->position + 1);
-      set_properties (properties, i);
+      set_properties (props, i);
 
       if (LENGTH (i) > len)
 	{
@@ -584,7 +644,7 @@ Otherwise return nil.")
 	    i = split_interval_left (i, len + 1);
 
 	  if (NULL_INTERVAL_P (prev_changed))
-	    set_properties (properties, i);
+	    set_properties (props, i);
 	  else
 	    merge_interval_left (i);
 	  return Qt;
@@ -593,7 +653,7 @@ Otherwise return nil.")
       len -= LENGTH (i);
       if (NULL_INTERVAL_P (prev_changed))
 	{
-	  set_properties (properties, i);
+	  set_properties (props, i);
 	  prev_changed = i;
 	}
       else
@@ -606,15 +666,22 @@ Otherwise return nil.")
 }
 
 DEFUN ("remove-text-properties", Fremove_text_properties,
-       Sremove_text_properties, 4, 4, 0,
-  "Remove the PROPERTIES, a property list, from the text of OBJECT,\n\
-a string or buffer, in the range START to END.  Returns t if any change\n\
-was made, nil otherwise.")
-  (object, start, end, properties)
-     Lisp_Object object, start, end, properties;
+       Sremove_text_properties, 3, 4, 0,
+  "Remove some properties from text from START to END.\n\
+The third argument PROPS is a property list\n\
+whose property names specify the properties to remove.\n\
+\(The values stored in PROPS are ignored.)\n\
+The optional fourth argument, OBJECT,\n\
+is the string or buffer containing the text.\n\
+Return t if any property was actually removed, nil otherwise.")
+  (start, end, props, object)
+     Lisp_Object start, end, props, object;
 {
   register INTERVAL i, unchanged;
   register int s, len, modified;
+
+  if (NILP (object))
+    XSET (object, Lisp_Buffer, current_buffer);
 
   i = validate_interval_range (object, &start, &end, soft);
   if (NULL_INTERVAL_P (i))
@@ -627,7 +694,7 @@ was made, nil otherwise.")
     {
       /* No properties on this first interval -- return if
          it covers the entire region. */
-      if (! interval_has_some_properties (properties, i))
+      if (! interval_has_some_properties (props, i))
 	{
 	  int got = (LENGTH (i) - (s - i->position));
 	  if (got >= len)
@@ -645,11 +712,11 @@ was made, nil otherwise.")
 	    {
 	      i = split_interval_left (i, len + 1);
 	      copy_properties (unchanged, i);
-	      remove_properties (properties, i);
+	      remove_properties (props, i);
 	      return Qt;
 	    }
 
-	  remove_properties (properties, i);
+	  remove_properties (props, i);
 	  modified = 1;
 	  len -= LENGTH (i);
 	  i = next_interval (i);
@@ -661,38 +728,44 @@ was made, nil otherwise.")
     {
       if (LENGTH (i) >= len)
 	{
-	  if (! interval_has_some_properties (properties, i))
+	  if (! interval_has_some_properties (props, i))
 	    return modified ? Qt : Qnil;
 
 	  if (LENGTH (i) == len)
 	    {
-	      remove_properties (properties, i);
+	      remove_properties (props, i);
 	      return Qt;
 	    }
 
 	  /* i has the properties, and goes past the change limit */
 	  unchanged = split_interval_right (i, len + 1);
 	  copy_properties (unchanged, i);
-	  remove_properties (properties, i);
+	  remove_properties (props, i);
 	  return Qt;
 	}
 
       len -= LENGTH (i);
-      modified += remove_properties (properties, i);
+      modified += remove_properties (props, i);
       i = next_interval (i);
     }
 }
 
+#if 0 /* You can use set-text-properties for this.  */
+
 DEFUN ("erase-text-properties", Ferase_text_properties,
-       Serase_text_properties, 3, 3, 0,
-  "Remove all text properties from OBJECT (a string or buffer), in the\n\
-range START to END. Returns t if any change was made, nil otherwise.")
-  (object, start, end)
-     Lisp_Object object, start, end;
+       Serase_text_properties, 2, 3, 0,
+  "Remove all properties from the text from START to END.\n\
+The optional third argument, OBJECT,\n\
+is the string or buffer containing the text.")
+  (start, end, object)
+     Lisp_Object start, end, object;
 {
   register INTERVAL i;
   register INTERVAL prev_changed = NULL_INTERVAL;
   register int s, len, modified;
+
+  if (NILP (object))
+    XSET (object, Lisp_Buffer, current_buffer);
 
   i = validate_interval_range (object, &start, &end, soft);
   if (NULL_INTERVAL_P (i))
@@ -783,6 +856,7 @@ range START to END. Returns t if any change was made, nil otherwise.")
 
   return modified ? Qt : Qnil;
 }
+#endif /* 0 */
 
 void
 syms_of_textprop ()
@@ -823,6 +897,7 @@ percentage by which the left interval tree should not differ from the right.");
   Qmodification = intern ("modification");
 
   defsubr (&Stext_properties_at);
+  defsubr (&Sget_text_property);
   defsubr (&Snext_property_change);
   defsubr (&Snext_single_property_change);
   defsubr (&Sprevious_property_change);
@@ -830,7 +905,7 @@ percentage by which the left interval tree should not differ from the right.");
   defsubr (&Sadd_text_properties);
   defsubr (&Sset_text_properties);
   defsubr (&Sremove_text_properties);
-  defsubr (&Serase_text_properties);
+/*  defsubr (&Serase_text_properties); */
 }
 
 #else
