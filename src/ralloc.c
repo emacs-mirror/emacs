@@ -28,6 +28,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 #include "lisp.h"		/* Needed for VALBITS.  */
+#include "blockinput.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
