@@ -1,5 +1,8 @@
 2001-10-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* minibuf.c (read_minibuf): Remove unused external declaration of
+	variable `Qread_only'.
+
 	* keymap.c (access_keymap): Remove unused variable `charset'.
 
 2001-10-28  Miles Bader  <miles@gnu.org>
