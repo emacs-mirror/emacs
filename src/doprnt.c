@@ -62,6 +62,7 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
   char *fmtcpy;
   int minlen;
   int size;			/* Field width factor; e.g., %90d */
+  char charbuf[2];		/* Used for %c.  */
 
   if (format_end == 0)
     format_end = format + strlen (format);
@@ -154,6 +155,7 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 	      /* Copy string into final output, truncating if no room.  */
 	    doit:
 	      tem = strlen (string);
+	    doit1:
 	      if (minlen > 0)
 		{
 		  while (minlen > tem && bufsize > 0)
@@ -184,9 +186,12 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 	    case 'c':
 	      if (cnt == nargs)
 		error ("not enough arguments for format string");
-	      *bufptr++ = (int) args[cnt++];
-	      bufsize--;
-	      continue;
+	      *charbuf = (int) args[cnt++];
+	      string = charbuf;
+	      tem = 1;
+	      if (fmtcpy[1] != 'c')
+		minlen = atoi (&fmtcpy[1]);
+	      goto doit1;
 
 	    case '%':
 	      fmt--;    /* Drop thru and this % will be treated as normal */
