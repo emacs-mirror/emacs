@@ -1,7 +1,7 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 1999, 2001, 03, 2004
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2001, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
 ;;	    Daniel Pfeiffer <occitan@esperanto.org>
@@ -638,14 +638,14 @@ FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME) or nil."
 	  (goto-char (marker-position marker))
 	  (when (or end-col end-line)
 	    (beginning-of-line (- (or end-line line) marker-line -1))
-	    (if (< end-col 0)
+	    (if (or (null end-col) (< end-col 0))
 		(end-of-line)
 	      (if compilation-error-screen-columns
 		  (move-to-column end-col)
 		(forward-char end-col)))
 	    (setq end-marker (list (point-marker))))
 	  (beginning-of-line (if end-line
-				 (- end-line line -1)
+				 (- line end-line -1)
 			       (- loc marker-line -1)))
 	  (if col
 	      (if compilation-error-screen-columns
