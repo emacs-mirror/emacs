@@ -5544,26 +5544,30 @@ get_translation_table (attrs, encodep, max_lookup)
 				       Fcons (standard, Qnil));
 	}
     }
-  *max_lookup = 1;
-  if (CHAR_TABLE_P (translation_table)
-      && CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (translation_table)) > 1)
-    {
-      val = XCHAR_TABLE (translation_table)->extras[1];
-      if (NATNUMP (val) && *max_lookup < XFASTINT (val))
-	*max_lookup = XFASTINT (val);
-    }
-  else if (CONSP (translation_table))
-    {
-      Lisp_Object tail, val;
 
-      for (tail = translation_table; CONSP (tail); tail = XCDR (tail))
-	if (CHAR_TABLE_P (XCAR (tail))
-	    && CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (XCAR (tail))) > 1)
-	  {
-	    val = XCHAR_TABLE (XCAR (tail))->extras[1];
-	    if (NATNUMP (val) && *max_lookup < XFASTINT (val))
-	      *max_lookup = XFASTINT (val);
-	  }
+  if (max_lookup)
+    {
+      *max_lookup = 1;
+      if (CHAR_TABLE_P (translation_table)
+	  && CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (translation_table)) > 1)
+	{
+	  val = XCHAR_TABLE (translation_table)->extras[1];
+	  if (NATNUMP (val) && *max_lookup < XFASTINT (val))
+	    *max_lookup = XFASTINT (val);
+	}
+      else if (CONSP (translation_table))
+	{
+	  Lisp_Object tail, val;
+
+	  for (tail = translation_table; CONSP (tail); tail = XCDR (tail))
+	    if (CHAR_TABLE_P (XCAR (tail))
+		&& CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (XCAR (tail))) > 1)
+	      {
+		val = XCHAR_TABLE (XCAR (tail))->extras[1];
+		if (NATNUMP (val) && *max_lookup < XFASTINT (val))
+		  *max_lookup = XFASTINT (val);
+	      }
+	}
     }
   return translation_table;
 }
@@ -6002,7 +6006,6 @@ decode_coding (coding)
   Lisp_Object undo_list;
   Lisp_Object translation_table;
   int carryover;
-  int max_lookup;
   int i;
 
   if (BUFFERP (coding->src_object)
@@ -6031,7 +6034,7 @@ decode_coding (coding)
   ALLOC_CONVERSION_WORK_AREA (coding);
 
   attrs = CODING_ID_ATTRS (coding->id);
-  translation_table = get_translation_table (attrs, 0, &max_lookup);
+  translation_table = get_translation_table (attrs, 0, NULL);
 
   carryover = 0;
   do
@@ -7354,7 +7357,7 @@ DEFUN ("find-coding-systems-region-internal",
 	    && ! EQ (CODING_ATTR_TYPE (attrs), Qundecided))
 	  {
 	    ASET (attrs, coding_attr_trans_tbl,
-		  get_translation_table (attrs, 1));
+		  get_translation_table (attrs, 1, NULL));
 	    coding_attrs_list = Fcons (attrs, coding_attrs_list);
 	  }
       }
@@ -7449,7 +7452,7 @@ to the string.  */)
     return Qnil;
   ascii_compatible = ! NILP (CODING_ATTR_ASCII_COMPAT (attrs));
   charset_list = CODING_ATTR_CHARSET_LIST (attrs);
-  translation_table = get_translation_table (attrs, 1);
+  translation_table = get_translation_table (attrs, 1, NULL);
 
   if (NILP (string))
     {
@@ -7592,7 +7595,8 @@ buffer positions.  END is ignored.  */)
     {
       elt = XCAR (tail);
       attrs = AREF (CODING_SYSTEM_SPEC (elt), 0);
-      ASET (attrs, coding_attr_trans_tbl, get_translation_table (attrs, 1));
+      ASET (attrs, coding_attr_trans_tbl,
+	    get_translation_table (attrs, 1, NULL));
       list = Fcons (Fcons (elt, Fcons (attrs, Qnil)), list);
     }
 
