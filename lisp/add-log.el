@@ -449,7 +449,20 @@ non-nil, otherwise in local time."
 		    (beginning-of-line 1)
 		    (looking-at "\\s *$"))
 	    (insert ?\ ))
-	  (insert "(" defun "): ")
+	  ;; See if the prev function name has a message yet or not
+	  ;; If not, merge the two entries.
+	  (let ((pos (point-marker)))
+	    (if (and (skip-syntax-backward " ")
+		     (skip-chars-backward "):")
+		     (looking-at "):")
+		     (progn (delete-region (+ 1 (point)) (+ 2 (point))) t)
+		     (> fill-column (+ (current-column) (length defun) 3)))
+		(progn (delete-region (point) pos)
+		       (insert ", "))
+	      (goto-char pos)
+	      (insert "("))
+	    (set-marker pos nil))
+	  (insert defun "): ")
 	  (if version
 	      (insert version ?\ )))
       ;; No function name, so put in a colon unless we have just a star.
