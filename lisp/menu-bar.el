@@ -45,6 +45,8 @@
 (define-key menu-bar-file-menu [open-file] '("Open File..." . find-file))
 (define-key menu-bar-file-menu [new-frame] '("New Frame" . new-frame))
 
+
+(define-key menu-bar-edit-menu [spell] '("Spell..." . ispell-menu-map))
 (define-key menu-bar-edit-menu [fill] '("Fill" . fill-region))
 (define-key menu-bar-edit-menu [clear] '("Clear" . delete-region))
 (define-key menu-bar-edit-menu [choose-next-paste]
@@ -62,6 +64,8 @@
 (put 'undo 'menu-enable '(if (eq last-command 'undo)
 			     pending-undo-list
 			   (consp buffer-undo-list)))
+
+(autoload 'ispell-menu-map "ispell" nil t 'keymap)
 
 (define-key menu-bar-help-menu [emacs-tutorial]
   '("Emacs Tutorial" . help-with-tutorial))
