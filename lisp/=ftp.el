@@ -74,6 +74,7 @@
 	  (substring s (match-beginning 2) (match-end 2)))))
 
 
+;;;###autoload
 (defun ftp-find-file (host file &optional user password)
   "FTP to HOST to get FILE, logging in as USER with password PASSWORD.
 Interactively, HOST and FILE are specified by reading a string with
@@ -87,6 +88,7 @@ USER and PASSWORD are defaulted from the values used when
 		(list nil (not (null current-prefix-arg)))))
   (ftp-find-file-or-directory host file t user password))
 
+;;;###autoload
 (defun ftp-list-directory (host file &optional user password)
   "FTP to HOST to list DIRECTORY, logging in as USER with password PASSWORD.
 Interactively, HOST and FILE are specified by reading a string with
@@ -143,12 +145,13 @@ we prompt for the user name and password."
 	(error "Ftp %s:%s lost" host file)))))
 
 
+;;;###autoload
 (defun ftp-write-file (host file &optional user password)
   "FTP to HOST to write FILE, logging in as USER with password PASSWORD.
 Interactively, HOST and FILE are specified by reading a string with colon
 separating the host from the filename.
 USER and PASSWORD are defaulted from the values used when
- last ftping from HOST (unless password-remembering is disabled).
+ last ftping from HOST (unless `password-remembering' is disabled).
  Supply a password of the symbol `t' to override this default
  (interactively, this is done by giving a prefix arg)"
   (interactive
@@ -176,7 +179,7 @@ USER and PASSWORD are defaulted from the values used when
 	(message "Opening file %s:%s..." host file)
 	(if (ftp-command process
 			 (format "send \"%s\" \"%s\"\nquit\n" tmp file)
-			 "150.*\n"
+			 "\\(150\\|125\\).*\n"
 			 "200.*\n")
 	    (progn (forward-line 1)
 		   (setq foo1 (current-buffer))
@@ -236,12 +239,18 @@ USER and PASSWORD are defaulted from the values used when
   (let ((p 1))
     (while (numberp p)
       (cond ;((not (bolp)))
+	    ((looking-at "^[0-9]+-")
+	     (while (not (re-search-forward "^[0-9]+ " nil t))
+	       (save-excursion
+		 (accept-process-output process)))
+	     (beginning-of-line))
 	    ((looking-at win)
 	     (goto-char (point-max))
 	     (setq p t))
 	    ((looking-at "^ftp> \\|^\n")
 	     (goto-char (match-end 0)))
 	    ((looking-at ignore)
+	     ;; Ignore status messages whose codes indicate no problem.
 	     (forward-line 1))
 	    ((not (search-forward "\n" nil t))
 	     ;; the way asynchronous process-output works with (point)
@@ -251,6 +260,9 @@ USER and PASSWORD are defaulted from the values used when
 		 (accept-process-output process)
 	       (error nil))
 	     (goto-char p))
+	    ((looking-at "^[a-z]")
+	     ;; Ignore any lines that don't have error codes.
+	     (forward-line 1))
 	    (t
 	     (setq p nil))))
     p))
@@ -275,25 +287,24 @@ USER and PASSWORD are defaulted from the values used when
 	   (set-buffer (process-buffer process))
 	   (let (msg
 		 (r (if input "[0-9]+ bytes received in [0-9]+\\.[0-9]+ seconds.*$" "[0-9]+ bytes sent in [0-9]+\\.[0-9]+ seconds.*$")))
-	     (let ((buffer-read-only nil))
-	       (goto-char (point-max))
-	       (search-backward "226 ")
-	       (if (looking-at r)
-		   (search-backward "226 "))
-	       (let ((p (point)))
-		 (setq msg (concat (format "ftp %s %s:%s done"
-					   (if input "read" "write")
-					   ftp-host ftp-file)
-				   (if (re-search-forward r nil t)
-				       (concat ": " (buffer-substring
-						      (match-beginning 0)
-						      (match-end 0)))
-				       "")))
-		 (delete-region p (point-max))
-		 (save-excursion
-		   (set-buffer (get-buffer-create "*ftp log*"))
-		   (let ((buffer-read-only nil))
-		     (insert msg ?\n)))))
+	     (goto-char (point-max))
+	     (search-backward "226 ")
+	     (if (looking-at r)
+		 (search-backward "226 "))
+	     (let ((p (point)))
+	       (setq msg (concat (format "ftp %s %s:%s done"
+					 (if input "read" "write")
+					 ftp-host ftp-file)
+				 (if (re-search-forward r nil t)
+				     (concat ": " (buffer-substring
+						   (match-beginning 0)
+						   (match-end 0)))
+				   "")))
+	       (delete-region p (point-max))
+	       (save-excursion
+		 (set-buffer (get-buffer-create "*ftp log*"))
+		 (let ((buffer-read-only nil))
+		   (insert msg ?\n))))
 	     ;; Note the preceding let must end here
 	     ;; so it doesn't cross the (kill-buffer (current-buffer)).
 	     (if (not input)
