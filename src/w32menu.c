@@ -399,7 +399,8 @@ keymap_panes (keymaps, nmaps, notreal)
      But don't make a pane that is empty--ignore that map instead.
      P is the number of panes we have made so far.  */
   for (mapno = 0; mapno < nmaps; mapno++)
-    single_keymap_panes (keymaps[mapno], Qnil, Qnil, notreal, 10);
+    single_keymap_panes (keymaps[mapno],
+                         map_prompt (keymaps[mapno]), Qnil, notreal, 10);
 
   finish_menu_items ();
 }
@@ -1733,6 +1734,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 #endif
       wv_title->name = (char *) XSTRING (title)->data;
       wv_title->enabled = True;
+      wv_title->title = True;
       wv_title->button_type = BUTTON_TYPE_NONE;
       wv_title->next = wv_sep;
       first_wv->contents = wv_title;
@@ -2157,11 +2159,17 @@ popup_activated ()
 void
 w32_menu_display_help (HMENU menu, UINT item, UINT flags)
 {
+  int pane = 0; /* NTEMACS_TODO: Set this to pane number.  */
+
   HMODULE user32 = GetModuleHandle ("user32.dll");
   FARPROC get_menu_item_info = GetProcAddress (user32, "GetMenuItemInfoA");
 
   if (get_menu_item_info)
     {
+      extern Lisp_Object Qmenu_item;
+      Lisp_Object *first_item;
+      Lisp_Object pane_name;
+      Lisp_Object menu_object;
       MENUITEMINFO info;
 
       bzero (&info, sizeof (info));
@@ -2169,9 +2177,23 @@ w32_menu_display_help (HMENU menu, UINT item, UINT flags)
       info.fMask = MIIM_DATA;
       get_menu_item_info (menu, item, FALSE, &info);
 
+      first_item = XVECTOR (menu_items)->contents;
+      if (EQ (first_item[0], Qt))
+        pane_name = first_item[MENU_ITEMS_PANE_NAME];
+      else if (EQ (first_item[0], Qquote))
+        /* This shouldn't happen, see w32_menu_show.  */
+        pane_name = build_string ("");
+      else
+        pane_name = first_item[MENU_ITEMS_ITEM_NAME];
+
+      /* (menu-item MENU-NAME PANE-NUMBER)  */
+      menu_object = Fcons (Qmenu_item,
+                           Fcons (pane_name,
+                                  Fcons (make_number (pane), Qnil)));
+
       show_help_echo (info.dwItemData ?
 		      build_string ((char *) info.dwItemData) : Qnil,
-                      Qnil, -1, 1);
+                      Qnil, menu_object, make_number (item), 1);
     }
 }
 
