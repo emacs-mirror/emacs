@@ -171,7 +171,9 @@ nil means don't match invisible text.
 If the value is `open', if the text matched is made invisible by
 an overlay having an `invisible' property and that overlay has a property
 `isearch-open-invisible', then incremental search will show the contents.
-\(This applies when using `outline.el' and `hideshow.el'.)"
+\(This applies when using `outline.el' and `hideshow.el'.)
+See also `reveal-mode' if you want overlays to automatically be opened
+whenever point is in one of them."
   :type '(choice (const :tag "Match hidden text" t)
 		 (const :tag "Open overlays" open)
 		 (const :tag "Don't match hidden text" nil))
@@ -354,6 +356,7 @@ Default value, nil, means edit the string instead."
 (defvar isearch-forward nil)	; Searching in the forward direction.
 (defvar isearch-regexp nil)	; Searching for a regexp.
 (defvar isearch-word nil)	; Searching for words.
+(defvar isearch-hidden nil) ; Non-nil if the string exists but is invisible.
 
 (defvar isearch-cmds nil
   "Stack of search status sets.
@@ -1093,7 +1096,7 @@ Otherwise invoke whatever mouse-2 is bound to outside of Isearch."
     (if (and (window-minibuffer-p w)
 	     (not (minibuffer-window-active-p w))) ; in echo area
 	(isearch-yank-x-selection)
-      (when binding
+      (when (functionp binding)
 	(call-interactively binding)))))
 
 
@@ -1132,7 +1135,7 @@ might return the position of the end of the line."
 (defun isearch-yank-line ()
   "Pull rest of line from buffer into search string."
   (interactive)
-  (isearch-yank-internal (lambda () (line-end-position))))
+  (isearch-yank-internal 'line-end-position)))
 
 
 (defun isearch-search-and-update ()
@@ -1141,7 +1144,10 @@ might return the position of the end of the line."
 	    ;; unsuccessful regexp search may become
 	    ;;  successful by addition of characters which
 	    ;;  make isearch-string valid
-	    isearch-regexp)
+	    isearch-regexp
+	    ;; If the string was found but was completely invisible,
+	    ;; it might now be partly visible, so try again.
+	    (prog1 isearch-hidden (setq isearch-hidden nil)))
     ;; In reverse search, adding stuff at
     ;; the end may cause zero or many more chars to be
     ;; matched, in the string following point.
@@ -1767,68 +1773,67 @@ Can be changed via `isearch-search-fun-function' for special needs."
 
 (defun isearch-range-invisible (beg end)
   "Return t if all the text from BEG to END is invisible."
-  (and (/= beg end)
-       ;; Check that invisibility runs up to END.
-       (save-excursion
-	 (goto-char beg)
-	 (let (
-	       ;; can-be-opened keeps track if we can open some overlays.
-	       (can-be-opened (eq search-invisible 'open))
-	       ;; the list of overlays that could be opened
-	       (crt-overlays nil))
-	   (when (and can-be-opened isearch-hide-immediately) 
-	     (isearch-close-unnecessary-overlays beg end))
-	   ;; If the following character is currently invisible,
-	   ;; skip all characters with that same `invisible' property value.
-	   ;; Do that over and over.
-	   (while (and (< (point) end)
-		       (let ((prop
-			      (get-char-property (point) 'invisible)))
-			 (if (eq buffer-invisibility-spec t)
-			     prop
-			   (or (memq prop buffer-invisibility-spec)
-			       (assq prop buffer-invisibility-spec)))))
-	     (if (get-text-property (point) 'invisible)
-		 (progn 
-		   (goto-char (next-single-property-change (point) 'invisible
-							   nil end))
-		   ;; if text is hidden by an `invisible' text property
-		   ;; we cannot open it at all.
-		   (setq can-be-opened nil))
-	       (unless (null can-be-opened)
-		 (let ((overlays (overlays-at (point)))
-		       ov-list
-		       o
-		       invis-prop)
-		   (while overlays
-		     (setq o (car overlays)
-			   invis-prop (overlay-get o 'invisible))
-		     (if (if (eq buffer-invisibility-spec t)
-			     invis-prop
-			   (or (memq invis-prop buffer-invisibility-spec)
-			       (assq invis-prop buffer-invisibility-spec)))
-			 (if (overlay-get o 'isearch-open-invisible)
-			     (setq ov-list (cons o ov-list))
-			   ;; We found one overlay that cannot be
-			   ;; opened, that means the whole chunk
-			   ;; cannot be opened.
-			   (setq can-be-opened nil)))
-		     (setq overlays (cdr overlays)))
-		   (if can-be-opened 
-		       ;; It makes sense to append to the open
-		       ;; overlays list only if we know that this is
-		       ;; t.
-		       (setq crt-overlays (append ov-list crt-overlays)))))
-	       (goto-char (next-overlay-change (point)))))
-	 ;; See if invisibility reaches up thru END.
-	 (if (>= (point) end)
-	     (if (and (not (null can-be-opened)) (consp crt-overlays))
-		 (progn
-		   (setq isearch-opened-overlays
-			 (append isearch-opened-overlays crt-overlays))
-		   (mapc 'isearch-open-overlay-temporary crt-overlays)
-		   nil)
-	       t))))))
+  (when (/= beg end)
+    ;; Check that invisibility runs up to END.
+    (save-excursion
+      (goto-char beg)
+      (let (;; can-be-opened keeps track if we can open some overlays.
+	    (can-be-opened (eq search-invisible 'open))
+	    ;; the list of overlays that could be opened
+	    (crt-overlays nil))
+	(when (and can-be-opened isearch-hide-immediately)
+	  (isearch-close-unnecessary-overlays beg end))
+	;; If the following character is currently invisible,
+	;; skip all characters with that same `invisible' property value.
+	;; Do that over and over.
+	(while (and (< (point) end)
+		    (let ((prop
+			   (get-char-property (point) 'invisible)))
+		      (if (eq buffer-invisibility-spec t)
+			  prop
+			(or (memq prop buffer-invisibility-spec)
+			    (assq prop buffer-invisibility-spec)))))
+	  (if (get-text-property (point) 'invisible)
+	      (progn
+		(goto-char (next-single-property-change (point) 'invisible
+							nil end))
+		;; if text is hidden by an `invisible' text property
+		;; we cannot open it at all.
+		(setq can-be-opened nil))
+	    (when can-be-opened
+	      (let ((overlays (overlays-at (point)))
+		    ov-list
+		    o
+		    invis-prop)
+		(while overlays
+		  (setq o (car overlays)
+			invis-prop (overlay-get o 'invisible))
+		  (if (if (eq buffer-invisibility-spec t)
+			  invis-prop
+			(or (memq invis-prop buffer-invisibility-spec)
+			    (assq invis-prop buffer-invisibility-spec)))
+		      (if (overlay-get o 'isearch-open-invisible)
+			  (setq ov-list (cons o ov-list))
+			;; We found one overlay that cannot be
+			;; opened, that means the whole chunk
+			;; cannot be opened.
+			(setq can-be-opened nil)))
+		  (setq overlays (cdr overlays)))
+		(if can-be-opened
+		    ;; It makes sense to append to the open
+		    ;; overlays list only if we know that this is
+		    ;; t.
+		    (setq crt-overlays (append ov-list crt-overlays)))))
+	    (goto-char (next-overlay-change (point)))))
+	;; See if invisibility reaches up thru END.
+	(if (>= (point) end)
+	    (if (and can-be-opened (consp crt-overlays))
+		(progn
+		  (setq isearch-opened-overlays
+			(append isearch-opened-overlays crt-overlays))
+		  (mapc 'isearch-open-overlay-temporary crt-overlays)
+		  nil)
+	      (setq isearch-hidden t)))))))
 
 
 ;; Highlighting
