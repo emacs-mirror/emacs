@@ -265,19 +265,19 @@ write-date, checksum, link-type, and link-name."
 	   (if (and (null link-p) (string-match "/$" name)) (setq link-p 5)) ; directory
 	   (make-tar-header
 	     name
-	     (tar-parse-octal-integer string tar-mode-offset (1- tar-uid-offset))
-	     (tar-parse-octal-integer string tar-uid-offset (1- tar-gid-offset))
-	     (tar-parse-octal-integer string tar-gid-offset (1- tar-size-offset))
-	     (tar-parse-octal-integer string tar-size-offset (1- tar-time-offset))
-	     (tar-parse-octal-long-integer string tar-time-offset (1- tar-chk-offset))
-	     (tar-parse-octal-integer string tar-chk-offset (1- tar-linkp-offset))
+	     (tar-parse-octal-integer string tar-mode-offset tar-uid-offset)
+	     (tar-parse-octal-integer string tar-uid-offset tar-gid-offset)
+	     (tar-parse-octal-integer string tar-gid-offset tar-size-offset)
+	     (tar-parse-octal-integer string tar-size-offset tar-time-offset)
+	     (tar-parse-octal-long-integer string tar-time-offset tar-chk-offset)
+	     (tar-parse-octal-integer string tar-chk-offset tar-linkp-offset)
 	     link-p
 	     linkname
 	     uname-valid-p
 	     (and uname-valid-p (substring string tar-uname-offset uname-end))
 	     (and uname-valid-p (substring string tar-gname-offset gname-end))
-	     (tar-parse-octal-integer string tar-dmaj-offset (1- tar-dmin-offset))
-	     (tar-parse-octal-integer string tar-dmin-offset (1- tar-end-offset))
+	     (tar-parse-octal-integer string tar-dmaj-offset tar-dmin-offset)
+	     (tar-parse-octal-integer string tar-dmin-offset tar-end-offset)
 	     )))
 	(t 'empty-tar-block)))
 
