@@ -1,3 +1,8 @@
+2002-10-13  Andreas Schwab  <schwab@suse.de>
+
+	* dired.el (dired-insert-directory): When looking for existing
+	indentation, goto OPOINT instead of beginning of buffer.
+
 2002-10-12  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* ediff-init.el (ediff-frame-char-height): Use frame-selected-window.
