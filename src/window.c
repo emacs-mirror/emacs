@@ -1929,9 +1929,21 @@ set_window_height (window, height, nodelete)
 
   check_min_window_sizes ();
 
+  /* If the window has been "too small" at one point,
+     don't delete it for being "too small" in the future.
+     Preserve it as long as that is at all possible.  */
+  if (oheight < window_min_height)
+    w->too_small_ok = Qt;
+
   if (!nodelete && !NILP (w->parent))
     {
-      int min_height = window_min_size (w, 0);
+      int min_height;
+
+      if (!MINI_WINDOW_P (w) && !NILP (w->too_small_ok))
+	min_height = MIN_SAFE_WINDOW_HEIGHT;
+      else
+	min_height = window_min_size (w, 0);
+      
       if (height < min_height)
 	{
 	  delete_window (window);
@@ -1998,7 +2010,16 @@ set_window_width (window, width, nodelete)
   int left, pos, lastright, opos, lastoright;
   Lisp_Object child;
 
-  if (!nodelete && width < window_min_width && !NILP (w->parent))
+  /* If the window has been "too small" at one point,
+     don't delete it for being "too small" in the future.
+     Preserve it as long as that is at all possible.  */
+  if (owidth < window_min_width)
+    w->too_small_ok = Qt;
+
+  if (!nodelete && !NILP (w->parent)
+      && (! NILP (w->too_small_ok)
+	  ? width < MIN_SAFE_WINDOW_WIDTH
+	  : width < window_min_width))
     {
       delete_window (window);
       return;
