@@ -413,9 +413,7 @@ For use on, eg, `kill-buffer-hook', to rationalize *after* buffer deletion."
   (if (and uniquify-buffer-name-style
 	   uniquify-after-kill-buffer-p)
       (add-hook 'post-command-hook
-		'delayed-uniquify-rationalize-file-buffer-names)
-    (remove-hook 'kill-buffer-hook
-		 'delay-uniquify-rationalize-file-buffer-names)))
+		'delayed-uniquify-rationalize-file-buffer-names)))
 
 (defun delayed-uniquify-rationalize-file-buffer-names ()
   "Rerationalize buffer names and remove self from `post-command-hook'.
