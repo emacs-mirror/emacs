@@ -1,5 +1,16 @@
 2003-05-05  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* uniquify.el (uniquify-buffer-name-style)
+	(uniquify-after-kill-buffer-p, uniquify-ask-about-buffer-names-p)
+	(uniquify-ignore-buffers-re, uniquify-min-dir-content)
+	(uniquify-separator, uniquify-trailing-separator-p): Remove redundant
+	group specification.
+	(uniquify-file-name-nondirectory): Delete.
+	(uniquify-rationalize-file-buffer-names): Simplify.
+	Use directory names as `filename' component of uniquify-item.
+	(uniquify-get-proposed-name): Adjust now that `filename' does not
+	include `base'.
+
 	* vc-svn.el: New file.
 
 2003-05-05  John Paul Wallington  <jpw@gnu.org>
