@@ -1,5 +1,5 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993, 1994, 1995, 1997, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -597,7 +597,7 @@ overlays are considered only if they are associated with OBJECT.")
       overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
 
       noverlays = overlays_at (posn, 0, &overlay_vec, &len,
-			       &next_overlay, NULL);
+			       &next_overlay, NULL, 0);
 
       /* If there are more than 40,
 	 make enough space for all, and try again.  */
@@ -606,7 +606,7 @@ overlays are considered only if they are associated with OBJECT.")
 	  len = noverlays;
 	  overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
 	  noverlays = overlays_at (posn, 0, &overlay_vec, &len,
-				   &next_overlay, NULL);
+				   &next_overlay, NULL, 0);
 	}
       noverlays = sort_overlays (overlay_vec, noverlays, w);
 
