@@ -405,6 +405,7 @@ is @var{base-buffer}.
 @findex clone-indirect-buffer
 @item M-x clone-indirect-buffer @key{RET}
 Create an indirect buffer that is a twin copy of the current buffer.
+@item C-x 4 c
 @kindex C-x 4 c
 @findex clone-indirect-buffer-other-window
 Create an indirect buffer that is a twin copy of the current buffer, and
