@@ -2406,9 +2406,11 @@ do { prev_from = from;				\
   else if (start_quoted)
     goto startquoted;
 
+#if 0 /* This seems to be redundant with the identical code above.  */
   SETUP_SYNTAX_TABLE (prev_from, 1);
   prev_from_syntax = SYNTAX_WITH_FLAGS (FETCH_CHAR (prev_from_byte));
   UPDATE_SYNTAX_TABLE_FORWARD (from);
+#endif
 
   while (from < end)
     {
@@ -2578,10 +2580,15 @@ do { prev_from = from;				\
 
 		if (from >= end) goto done;
 		c = FETCH_CHAR (from_byte);
-		if (nofence && c == state.instring) break;
-
 		/* Some compilers can't handle this inside the switch.  */
 		temp = SYNTAX (c);
+
+		/* Check TEMP here so that if the char has
+		   a syntax-table property which says it is NOT
+		   a string character, it does not end the string.  */
+		if (nofence && c == state.instring && temp == Sstring)
+		  break;
+
 		switch (temp)
 		  {
 		  case Sstring_fence:
