@@ -911,7 +911,8 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
   if (combined_before_bytes)
     record_delete (PT - 1, 1);
 
-  record_insert (PT - !!combined_before_bytes, nchars);
+  record_insert (PT - !!combined_before_bytes,
+		 nchars - combined_before_bytes + !!combined_before_bytes);
   MODIFF++;
 
   bcopy (string, GPT_ADDR, nbytes);
@@ -1081,7 +1082,8 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
   if (combined_before_bytes)
     record_delete (PT - 1, 1);
 
-  record_insert (PT - !!combined_before_bytes, nchars);
+  record_insert (PT - !!combined_before_bytes,
+		 nchars - combined_before_bytes + !!combined_before_bytes);
   MODIFF++;
 
   GAP_SIZE -= outgoing_nbytes;
@@ -1236,7 +1238,8 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
   if (combined_before_bytes)
     record_delete (PT - 1, 1);
 
-  record_insert (PT - !!combined_before_bytes, nchars);
+  record_insert (PT - !!combined_before_bytes,
+		 nchars - combined_before_bytes + !!combined_before_bytes);
   MODIFF++;
 
   GAP_SIZE -= outgoing_nbytes;
@@ -1333,7 +1336,8 @@ adjust_after_replace (from, from_byte, to, to_byte, len, len_byte)
     move_gap_both (GPT + combined_after_bytes,
 		   GPT_BYTE + combined_after_bytes);
 
-  record_insert (from - !!combined_before_bytes, len);
+  record_insert (from - !!combined_before_bytes,
+		 len - combined_before_bytes + !!combined_before_bytes);
   adjust_overlays_for_insert (from, len);
   adjust_markers_for_insert (from, from_byte,
 			     from + len, from_byte + len_byte,
@@ -1500,7 +1504,8 @@ replace_range (from, to, new, prepare, inherit)
   if (combined_before_bytes)
     record_delete (PT - 1, 1);
 
-  record_insert (from, inschars);
+  record_insert (PT - !!combined_before_bytes,
+		 inschars - combined_before_bytes + !!combined_before_bytes);
 
   GAP_SIZE -= outgoing_insbytes;
   GPT += inschars;
@@ -1695,13 +1700,17 @@ del_range_2 (from, from_byte, to, to_byte)
   if (to < GPT)
     gap_left (to, to_byte, 0);
 
+  combined_after_bytes
+    = count_combining_before (GAP_END_ADDR, ZV_BYTE - GPT_BYTE, PT, PT_BYTE);
+
   /* Relocate all markers pointing into the new, larger gap
      to point at the end of the text before the gap.
      Do this before recording the deletion,
      so that undo handles this after reinserting the text.  */
   adjust_markers_for_delete (from, from_byte, to, to_byte);
 
-  record_delete (from, nchars_del);
+  record_delete (from - !!combined_after_bytes,
+		 nchars_del + combined_after_bytes + !!combined_after_bytes);
   MODIFF++;
 
   /* Relocate point as if it were a marker.  */
@@ -1725,6 +1734,10 @@ del_range_2 (from, from_byte, to, to_byte)
   GPT_BYTE = from_byte;
   *(GPT_ADDR) = 0;		/* Put an anchor.  */
 
+  if (combined_after_bytes)
+    move_gap_both (GPT + combined_after_bytes,
+		   GPT_BYTE + combined_after_bytes);
+
   if (GPT_BYTE < GPT)
     abort ();
 
@@ -1733,15 +1746,11 @@ del_range_2 (from, from_byte, to, to_byte)
   if (Z - GPT < end_unchanged)
     end_unchanged = Z - GPT;
 
-  combined_after_bytes
-    = count_combining_before (GAP_END_ADDR, ZV_BYTE - GPT_BYTE, PT, PT_BYTE);
-
-  if (combined_after_bytes)
-    move_gap_both (GPT + combined_after_bytes,
-		   GPT_BYTE + combined_after_bytes);
-
   if (combined_after_bytes)
     combine_bytes (PT, PT_BYTE, combined_after_bytes);
+
+  if (combined_after_bytes)
+    record_insert (GPT - 1, 1);
 
   evaporate_overlays (from);
   signal_after_change (from, nchars_del, 0);
