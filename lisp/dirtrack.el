@@ -186,7 +186,7 @@ be on a single line."
 (defcustom dirtrack-directory-change-hook nil
   "Hook that is called when a directory change is made."
   :group 'dirtrack
-  :type 'function
+  :type 'hook
   )
 
 
