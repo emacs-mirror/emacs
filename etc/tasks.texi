@@ -239,6 +239,10 @@ component-oriented operations.  @code{xpaint} exists, but isn't very
 usable.
 
 @item
+A vector-based drawing program in the spirit of Adobe Illustrator
+and Corel Draw.
+
+@item
 An interactive 3D modeling utility with rendering/raytracing capabilities.
 
 @item
