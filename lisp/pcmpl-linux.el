@@ -1,4 +1,4 @@
-;;; pcmpl-linux --- functions for dealing with cvs completions
+;;; pcmpl-linux --- functions for dealing with GNU/Linux completions
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 
