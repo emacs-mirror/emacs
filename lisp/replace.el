@@ -464,7 +464,7 @@ end of the buffer."
   "Arguments to pass to `occur-1' to revert an Occur mode buffer.
 See `occur-revert-function'.")
 
-(defcustom occur-mode-hook '(turn-on-font-lock)
+(defcustom occur-hook '(turn-on-font-lock)
   "Hooks run when `occur' is called."
   :type 'hook
   :group 'matching)
@@ -482,8 +482,7 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (setq major-mode 'occur-mode)
   (setq mode-name "Occur")
   (set (make-local-variable 'revert-buffer-function) 'occur-revert-function)
-  (make-local-variable 'occur-revert-arguments)
-  (run-hooks 'occur-mode-hook))
+  (make-local-variable 'occur-revert-arguments))
 
 (defun occur-revert-function (ignore1 ignore2)
   "Handle `revert-buffer' for Occur mode buffers."
@@ -631,7 +630,7 @@ If the value is nil, don't highlight the buffer names specially."
 Here `original-buffer-name' is the buffer name were occur was originally run.
 When given the prefix argument, the renaming will not clobber the existing
 buffer(s) of that name, but use `generate-new-buffer-name' instead.
-You can add this to `occur-mode-hook' if you always want a separate *Occur*
+You can add this to `occur-hook' if you always want a separate *Occur*
 buffer for each buffer where you invoke `occur'."
   (interactive "P")
   (with-current-buffer
@@ -749,7 +748,8 @@ See also `multi-occur'."
 	      buffer-read-only t)
 	(if (> count 0)
 	    (display-buffer occur-buf)
-	  (kill-buffer occur-buf))))))
+	  (kill-buffer occur-buf)))
+      (run-hooks 'occur-hook))))
 
 (defun occur-engine-add-prefix (lines)
   (mapcar
