@@ -153,12 +153,20 @@ Lisp_Object Vchar_unified_charset_table;
 
 
 
-/* Set to 1 when a charset map is loaded to warn that a buffer text
-   and a string data may be relocated.  */
+/* Set to 1 to warn that a charset map is loaded and thus a buffer
+   text and a string data may be relocated.  */
 int charset_map_loaded;
 
-/* Parse the mapping vector MAP which has this form:
-	[CODE0 CHAR0 CODE1 CHAR1 ... ]
+struct charset_map_entries
+{
+  struct {
+    unsigned from, to;
+    int c;
+  } entry[0x10000];
+  struct charset_map_entries *next;
+};
+
+/* Load the mapping information for CHARSET from ENTRIES.
 
    If CONTROL_FLAG is 0, setup CHARSET->min_char and CHARSET->max_char.
 
@@ -170,9 +178,10 @@ int charset_map_loaded;
    setup it too.  */
 
 static void
-parse_charset_map (charset, map, control_flag)
+load_charset_map (charset, entries, n_entries, control_flag)
   struct charset *charset;
-  Lisp_Object map;
+  struct charset_map_entries *entries;
+  int n_entries;
   int control_flag;
 {
   Lisp_Object vec, table;
@@ -180,12 +189,14 @@ parse_charset_map (charset, map, control_flag)
   unsigned max_code = CHARSET_MAX_CODE (charset);
   int ascii_compatible_p = charset->ascii_compatible_p;
   int min_char, max_char, nonascii_min_char;
-  int size;
   int i;
   int first;
   unsigned char *fast_map = charset->fast_map;
 
-  if (control_flag)
+  if (n_entries <= 0)
+    return;
+
+  if (control_flag > 0)
     {
       int n = CODE_POINT_TO_INDEX (charset, max_code) + 1;
       unsigned invalid_code = CHARSET_INVALID_CODE (charset);
@@ -199,37 +210,53 @@ parse_charset_map (charset, map, control_flag)
       charset_map_loaded = 1;
     }
 
-  size = ASIZE (map);
+  min_char = max_char = entries->entry[0].c;
   nonascii_min_char = MAX_CHAR;
-  CHARSET_COMPACT_CODES_P (charset) = 1;
-  for (first = 1, i = 0; i < size; i += 2)
+  for (i = 0; i < n_entries; i++)
     {
-      Lisp_Object val;
-      unsigned code;
+      unsigned from, to;
       int c, char_index;
+      int idx = i % 0x10000;
 
-      val = AREF (map, i);
-      CHECK_NATNUM (val);
-      code = XFASTINT (val);
-      val = AREF (map, i + 1);
-      CHECK_NATNUM (val);
-      c = XFASTINT (val);
+      if (i > 0 && idx == 0)
+	entries = entries->next;
+      from = entries->entry[idx].from;
+      to = entries->entry[idx].to;
+      c = entries->entry[idx].c;
 
-      if (code < min_code || code > max_code)
-	continue;
-      char_index = CODE_POINT_TO_INDEX (charset, code);
-      if (char_index < 0
-	  || c > MAX_CHAR)
-	continue;
-	
       if (control_flag < 2)
 	{
-	  if (first)
+	  if (control_flag == 1)
 	    {
-	      min_char = max_char = c;
-	      first = 0;
+	      unsigned code = from;
+	      int from_index, to_index;
+
+	      from_index = CODE_POINT_TO_INDEX (charset, from);
+	      if (from == to)
+		to_index = from_index;
+	      else
+		to_index = CODE_POINT_TO_INDEX (charset, to);
+	      if (from_index < 0 || to_index < 0)
+		continue;
+	      if (CHARSET_COMPACT_CODES_P (charset))
+		while (1)
+		  {
+		    ASET (vec, from_index, make_number (c));
+		    CHAR_TABLE_SET (table, c, make_number (code));
+		    if (from_index == to_index)
+		      break;
+		    from_index++, c++;
+		    code = INDEX_TO_CODE_POINT (charset, from_index);
+		  }
+	      else
+		for (; from_index <= to_index; from_index++, c++)
+		  {
+		    ASET (vec, from_index, make_number (c));
+		    CHAR_TABLE_SET (table, c, make_number (from_index));
+		  }
 	    }
-	  else if (c > max_char)
+
+	  if (c > max_char)
 	    max_char = c;
 	  else if (c < min_char)
 	    min_char = c;
@@ -239,27 +266,12 @@ parse_charset_map (charset, map, control_flag)
 
 	  CHARSET_FAST_MAP_SET (c, fast_map);
 	}
-
-      if (control_flag)
+      else
 	{
-	  if (control_flag == 1)
+	  for (; from <= to; from++)
 	    {
-	      if (char_index >= ASIZE (vec))
-		abort ();
-	      ASET (vec, char_index, make_number (c));
-	      if (code > 0x7FFFFFF)
-		{
-		  CHAR_TABLE_SET (table, c,
-				  Fcons (make_number (code >> 16),
-					 make_number (code & 0xFFFF)));
-		  CHARSET_COMPACT_CODES_P (charset) = 0;
-		}
-	      else
-		CHAR_TABLE_SET (table, c, make_number (code));
-	    }
-	  else
-	    {
-	      int c1 = DECODE_CHAR (charset, code);
+	      int c1 = DECODE_CHAR (charset, from);
+
 	      if (c1 >= 0)
 		{
 		  CHAR_TABLE_SET (table, c, make_number (c1));
@@ -277,7 +289,7 @@ parse_charset_map (charset, map, control_flag)
       CHARSET_MIN_CHAR (charset) = (ascii_compatible_p
 				    ? nonascii_min_char : min_char);
       CHARSET_MAX_CHAR (charset) = max_char;
-      if (control_flag)
+      if (control_flag == 1)
 	{
 	  CHARSET_DECODER (charset) = vec;
 	  CHARSET_ENCODER (charset) = table;
@@ -325,36 +337,43 @@ read_hex (fp, eof)
   else
     while ((c = getc (fp)) != EOF && isdigit (c))
       n = (n * 10) + c - '0';
+  if (c != EOF)
+    ungetc (c, fp);
   return n;
 }
 
 
 /* Return a mapping vector for CHARSET loaded from MAPFILE.
-   Each line of MAPFILE has this form:
-	0xAAAA 0xBBBB
-   where 0xAAAA is a code-point and 0xBBBB is the corresponding
-   character code.
+   Each line of MAPFILE has this form
+	0xAAAA 0xCCCC
+   where 0xAAAA is a code-point and 0xCCCC is the corresponding
+   character code, or this form
+	0xAAAA-0xBBBB 0xCCCC
+   where 0xAAAA and 0xBBBB are code-points specifying a range, and
+   0xCCCC is the first character code of the range.
+
    The returned vector has this form:
 	[ CODE1 CHAR1 CODE2 CHAR2 .... ]
-*/
+   where CODE1 is a code-point or a cons of code-points specifying a
+   range.  */
 
 extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
 
-static Lisp_Object
-load_charset_map (charset, mapfile)
+static void
+load_charset_map_from_file (charset, mapfile, control_flag)
      struct charset *charset;
      Lisp_Object mapfile;
+     int control_flag;
 {
+  unsigned min_code = CHARSET_MIN_CODE (charset);
+  unsigned max_code = CHARSET_MAX_CODE (charset);
   int fd;
   FILE *fp;
-  int num;
-  unsigned *numbers_table[256];
-  int numbers_table_used;
-  unsigned *numbers;
   int eof;
   Lisp_Object suffixes;
-  Lisp_Object vec;
   int i;
+  struct charset_map_entries *head, *entries;
+  int n_entries;
 
   suffixes = Fcons (build_string (".map"),
 		    Fcons (build_string (".TXT"), Qnil));
@@ -365,42 +384,114 @@ load_charset_map (charset, mapfile)
       || ! (fp = fdopen (fd, "r")))
     {
       add_to_log ("Failure in loading charset map: %S", mapfile, Qnil);
-      return Qnil;
+      return;
     }
 
-  numbers_table_used = 0;
-  num = 0;
+  head = entries = ((struct charset_map_entries *)
+		    alloca (sizeof (struct charset_map_entries)));
+  n_entries = 0;
   eof = 0;
   while (1)
     {
-      unsigned n = read_hex (fp, &eof);
+      unsigned from, to;
+      int c;
+      int idx;
 
+      from = read_hex (fp, &eof);
       if (eof)
 	break;
-      if ((num % 0x10000) == 0)
+      if (getc (fp) == '-')
+	to = read_hex (fp, &eof);
+      else
+	to = from;
+      c = (int) read_hex (fp, &eof);
+
+      if (from < min_code || to > max_code || from > to || c > MAX_CHAR)
+	continue;
+
+      if (n_entries > 0 && (n_entries % 0x10000) == 0)
 	{
-	  if (numbers_table_used == 256)
-	    break;
-	  numbers = (unsigned *) alloca (sizeof (unsigned) * 0x10000);
-	  numbers_table[numbers_table_used++] = numbers;	  
+	  entries->next = ((struct charset_map_entries *)
+			   alloca (sizeof (struct charset_map_entries)));
+	  entries = entries->next;
 	}
-      *numbers++ = n;
-      num++;
+      idx = n_entries % 0x10000;
+      entries->entry[idx].from = from;
+      entries->entry[idx].to = to;
+      entries->entry[idx].c = c;
+      n_entries++;
     }
   fclose (fp);
   close (fd);
 
-  vec = Fmake_vector (make_number (num), Qnil);
-  for (i = 0; i < num; i++, numbers++)
+  load_charset_map (charset, head, n_entries, control_flag);
+}
+
+static void
+load_charset_map_from_vector (charset, vec, control_flag)
+     struct charset *charset;
+     Lisp_Object vec;
+     int control_flag;
+{
+  unsigned min_code = CHARSET_MIN_CODE (charset);
+  unsigned max_code = CHARSET_MAX_CODE (charset);
+  struct charset_map_entries *head, *entries;
+  int n_entries;
+  int len = ASIZE (vec);
+  int i;
+
+  if (len % 2 == 1)
     {
-      if ((i % 0x10000) == 0)
-	numbers = numbers_table[i / 0x10000];
-      ASET (vec, i, make_number (*numbers));
+      add_to_log ("Failure in loading charset map: %V", vec, Qnil);
+      return;
     }
 
-  charset_map_loaded = 1;
+  head = entries = ((struct charset_map_entries *)
+		    alloca (sizeof (struct charset_map_entries)));
+  n_entries = 0;
+  for (i = 0; i < len; i += 2)
+    {
+      Lisp_Object val, val2;
+      unsigned from, to;
+      int c;
+      int idx;
 
-  return vec;
+      val = AREF (vec, i);
+      if (CONSP (val))
+	{
+	  val2 = XCDR (val);
+	  val = XCAR (val);
+	  CHECK_NATNUM (val);
+	  CHECK_NATNUM (val2);
+	  from = XFASTINT (val);
+	  to = XFASTINT (val2);
+	}
+      else
+	{
+	  CHECK_NATNUM (val);
+	  from = to = XFASTINT (val);
+	}
+      val = AREF (vec, i + 1);
+      CHECK_NATNUM (val);
+      c = XFASTINT (val);
+
+      if (from < min_code || to > max_code || from > to || c > MAX_CHAR)
+	continue;
+
+      if ((n_entries % 0x10000) == 0)
+	{
+	  entries->next = ((struct charset_map_entries *)
+			   alloca (sizeof (struct charset_map_entries)));
+	  entries = entries->next;
+	}
+      idx = n_entries % 0x10000;
+      entries->entry[idx].from = from;
+      entries->entry[idx].to = to;
+      entries->entry[idx].c = c;
+      n_entries++;
+    }
+
+  load_charset_map (charset, head, n_entries, control_flag);
 }
 
 static void
@@ -413,8 +504,9 @@ load_charset (charset)
 
       map = CHARSET_MAP (charset);
       if (STRINGP (map))
-	map = load_charset_map (charset, map);
-      parse_charset_map (charset, map, 1);
+	load_charset_map_from_file (charset, map, 1);
+      else
+	load_charset_map_from_vector (charset, map, 1);
       CHARSET_METHOD (charset) = CHARSET_METHOD_MAP;
     }
 }
@@ -621,6 +713,8 @@ DEFUN ("define-charset-internal", Fdefine_charset_internal,
 		      | (charset.code_space[9] << 16)
 		      | (charset.code_space[13] << 24));
 
+  charset.compact_codes_p = charset.max_code < 0x1000000;
+
   val = args[charset_arg_invalid_code];
   if (NILP (val))
     {
@@ -708,9 +802,9 @@ DEFUN ("define-charset-internal", Fdefine_charset_internal,
       val = args[charset_arg_map];
       ASET (attrs, charset_map, val);
       if (STRINGP (val))
-	val = load_charset_map (&charset, val);
-      CHECK_VECTOR (val);
-      parse_charset_map (&charset, val, 0);
+	load_charset_map_from_file (&charset, val, 0);
+      else
+	load_charset_map_from_vector (&charset, val, 0);
       charset.method = CHARSET_METHOD_MAP_DEFERRED;
     }
   else if (! NILP (args[charset_arg_parents]))
@@ -901,8 +995,9 @@ DEFUN ("unify-charset", Funify_charset, Sunify_charset, 1, 2, 0,
   if (NILP (unify_map))
     unify_map = CHARSET_UNIFY_MAP (cs);
   if (STRINGP (unify_map))
-    unify_map = load_charset_map (cs, unify_map);
-  parse_charset_map (cs, unify_map, 2);
+    load_charset_map_from_file (cs, unify_map, 2);
+  else
+    load_charset_map_from_vector (cs, unify_map, 2);
   CHARSET_UNIFIED_P (cs) = 1;
   return Qnil;
 }
@@ -1277,10 +1372,9 @@ encode_char (charset, c)
       if (! CHAR_TABLE_P (CHARSET_ENCODER (charset)))
 	return CHARSET_INVALID_CODE (charset);
       val = CHAR_TABLE_REF (encoder, c);
-      if (CONSP (val))
-	code = (XINT (XCAR (val)) << 16) | XINT (XCDR (val));
-      else
-	code = XINT (val);
+      code = XINT (val);
+      if (! CHARSET_COMPACT_CODES_P (charset))
+	code = INDEX_TO_CODE_POINT (charset, code);
     }
   else
     {
