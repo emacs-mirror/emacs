@@ -9869,7 +9869,8 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
   /* Let the tip disappear after timeout seconds.  */
   tip_timer = call3 (intern ("run-at-time"), timeout, Qnil,
 		     intern ("x-hide-tip"));
-  
+
+  UNGCPRO;
   return unbind_to (count, Qnil);
 }
 
