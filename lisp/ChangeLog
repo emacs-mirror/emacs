@@ -1,3 +1,7 @@
+2000-01-09  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* cus-edit.el (custom-hook-convert-widget): Fix comment.
+
 2000-01-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/cperl-mode.el: Replace ^F with ^L.
