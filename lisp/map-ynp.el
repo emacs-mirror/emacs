@@ -34,7 +34,6 @@
 
 ;;; Code:
 
-;;;###autoload
 (defun map-y-or-n-p (prompter actor list &optional help action-alist
 			      no-cursor-in-echo-area)
   "Ask a series of boolean questions.
@@ -79,6 +78,8 @@ are meaningful here.
 Returns the number of actions taken."
   (let* ((actions 0)
 	 user-keys mouse-event map prompt char elt tail def
+	 ;; Non-nil means we should use mouse menus to ask.
+	 use-menus
 	 delayed-switch-frame
 	 (next (if (or (and list (symbolp list))
 		       (subrp list)
@@ -108,6 +109,7 @@ Returns the number of actions taken."
 				      (cons (capitalize (nth 2 elt))
 					    (vector (nth 1 elt))))
 				    action-alist))))
+		use-menus t
 		mouse-event last-nonmenu-event))			       
       (setq user-keys (if action-alist
 			  (concat (mapconcat (function
@@ -134,8 +136,8 @@ Returns the number of actions taken."
 	    (cond ((stringp prompt)
 		   ;; Prompt the user about this object.
 		   (setq quit-flag nil)
-		   (if mouse-event
-		       (setq def (or (x-popup-dialog mouse-event
+		   (if use-menus
+		       (setq def (or (x-popup-dialog (or mouse-event use-menus)
 						     (cons prompt map))
 				     'quit))
 		     ;; Prompt in the echo area.
