@@ -1,6 +1,6 @@
 /*  ==== POOLS ====
  *
- *  $HopeName: MMsrc!pool.c(trunk.7) $
+ *  $HopeName: MMsrc!pool.c(trunk.8) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -23,7 +23,7 @@
 #include <stddef.h>
 #include <stdarg.h>
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 
 static SigStruct PoolSigStruct;
