@@ -188,6 +188,7 @@ speedbar."
 (defun gud-watch ()
   "Watch expression at point."
   (interactive)
+  (require 'tooltip)
   (let ((expr (tooltip-identifier-from-point (point))))
     (if (and (string-equal gdb-current-language "c")
 	     gdb-use-colon-colon-notation)
@@ -214,6 +215,7 @@ speedbar."
 			 (match-string 3)
 			 nil nil)))
 	  (push var gdb-var-list)
+	  (setq speedbar-update-flag t)
 	  (speedbar 1)
 	  (if (equal (nth 2 var) "0")
 	      (gdb-enqueue-input
@@ -304,26 +306,28 @@ speedbar."
   (gdb-set-pending-triggers
    (delq 'gdb-var-update (gdb-get-pending-triggers))))
 
-(defun gdb-var-delete (text token indent)
-  "Delete watched expression."
+(defun gdb-var-delete ()
+  "Delete watched expression from the speedbar."
   (interactive)
-  (when (eq indent 0)
-    (string-match "\\(\\S-+\\)" text)
-    (let* ((expr (match-string 1 text))
-	   (var (assoc expr gdb-var-list))
-	   (varnum (cadr var)))
-      (gdb-enqueue-input
-       (list (concat "server interpreter mi \"-var-delete " varnum "\"\n")
-	     'ignore))
-      (setq gdb-var-list (delq var gdb-var-list))
-      (dolist (varchild gdb-var-list)
-	(if (string-match (concat (nth 1 var) "\\.") (nth 1 varchild))
-	    (setq gdb-var-list (delq varchild gdb-var-list)))))
-    (setq gdb-var-changed t)))
+  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+      (let ((text (speedbar-line-text)))
+	(string-match "\\(\\S-+\\)" text)
+	(let* ((expr (match-string 1 text))
+	       (var (assoc expr gdb-var-list))
+	       (varnum (cadr var)))
+	  (unless (string-match "\\." varnum)
+	    (gdb-enqueue-input
+	     (list (concat "server interpreter mi \"-var-delete "
+			   varnum "\"\n")
+		   'ignore))
+	    (setq gdb-var-list (delq var gdb-var-list))
+	    (dolist (varchild gdb-var-list)
+	      (if (string-match (concat (nth 1 var) "\\.") (nth 1 varchild))
+		  (setq gdb-var-list (delq varchild gdb-var-list))))
+	    (setq gdb-var-changed t))))))
 
 (defun gdb-edit-value (text token indent)
   "Assign a value to a variable displayed in the speedbar"
-  (interactive)
   (let* ((var (nth (- (count-lines (point-min) (point)) 2) gdb-var-list))
 	 (varnum (cadr var)) (value))
     (setq value (read-string "New value: "))
