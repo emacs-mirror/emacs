@@ -158,6 +158,8 @@ extern void _XEditResCheckMessages ();
 
 #define abs(x)	((x) < 0 ? -(x) : (x))
 
+/* Default to using XIM if available.  */
+int use_xim = 1;
 
 
 /* Non-nil means Emacs uses toolkit scroll bars.  */
@@ -6461,7 +6463,7 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
                     require = decoding_buffer_size (&coding, nbytes);
                     p = (unsigned char *) alloca (require);
                     coding.mode |= CODING_MODE_LAST_BLOCK;
-                    /* We explicitely disable composition
+                    /* We explicitly disable composition
                        handling because key data should
                        not contain any composition
                        sequence.  */
@@ -8025,31 +8027,33 @@ xim_open_dpy (dpyinfo, resource_name)
      struct x_display_info *dpyinfo;
      char *resource_name;
 {
-#ifdef USE_XIM
   XIM xim;
 
-  xim = XOpenIM (dpyinfo->display, dpyinfo->xrdb, resource_name, EMACS_CLASS);
-  dpyinfo->xim = xim;
-
-  if (xim)
+  if (use_xim)
     {
+      xim = XOpenIM (dpyinfo->display, dpyinfo->xrdb, resource_name,
+		     EMACS_CLASS);
+      dpyinfo->xim = xim;
+
+      if (xim)
+	{
 #ifdef HAVE_X11R6
-      XIMCallback destroy;
+	  XIMCallback destroy;
 #endif
 
-      /* Get supported styles and XIM values.  */
-      XGetIMValues (xim, XNQueryInputStyle, &dpyinfo->xim_styles, NULL);
+	  /* Get supported styles and XIM values.  */
+	  XGetIMValues (xim, XNQueryInputStyle, &dpyinfo->xim_styles, NULL);
 
 #ifdef HAVE_X11R6
-      destroy.callback = xim_destroy_callback;
-      destroy.client_data = (XPointer)dpyinfo;
-      XSetIMValues (xim, XNDestroyCallback, &destroy, NULL);
+	  destroy.callback = xim_destroy_callback;
+	  destroy.client_data = (XPointer)dpyinfo;
+	  XSetIMValues (xim, XNDestroyCallback, &destroy, NULL);
 #endif
+	}
     }
 
-#else /* not USE_XIM */
-  dpyinfo->xim = NULL;
-#endif /* not USE_XIM */
+  else
+    dpyinfo->xim = NULL;
 }
 
 
@@ -8123,32 +8127,33 @@ xim_initialize (dpyinfo, resource_name)
      struct x_display_info *dpyinfo;
      char *resource_name;
 {
-#ifdef USE_XIM
+  if (use_xim)
+    {
 #ifdef HAVE_X11R6_XIM
-  struct xim_inst_t *xim_inst;
-  int len;
+      struct xim_inst_t *xim_inst;
+      int len;
 
-  dpyinfo->xim = NULL;
-  xim_inst = (struct xim_inst_t *) xmalloc (sizeof (struct xim_inst_t));
-  xim_inst->dpyinfo = dpyinfo;
-  len = strlen (resource_name);
-  xim_inst->resource_name = (char *) xmalloc (len + 1);
-  bcopy (resource_name, xim_inst->resource_name, len + 1);
-  XRegisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
-				  resource_name, EMACS_CLASS,
-				  xim_instantiate_callback,
-				  /* Fixme: This is XPointer in
-				     XFree86 but (XPointer *) on
-				     Tru64, at least.  */
-				  (XPointer) xim_inst);
+      dpyinfo->xim = NULL;
+      xim_inst = (struct xim_inst_t *) xmalloc (sizeof (struct xim_inst_t));
+      xim_inst->dpyinfo = dpyinfo;
+      len = strlen (resource_name);
+      xim_inst->resource_name = (char *) xmalloc (len + 1);
+      bcopy (resource_name, xim_inst->resource_name, len + 1);
+      XRegisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
+				      resource_name, EMACS_CLASS,
+				      xim_instantiate_callback,
+				      /* Fixme: This is XPointer in
+					 XFree86 but (XPointer *) on
+					 Tru64, at least.  */
+				      (XPointer) xim_inst);
 #else /* not HAVE_X11R6_XIM */
-  dpyinfo->xim = NULL;
-  xim_open_dpy (dpyinfo, resource_name);
+      dpyinfo->xim = NULL;
+      xim_open_dpy (dpyinfo, resource_name);
 #endif /* not HAVE_X11R6_XIM */
 
-#else /* not USE_XIM */
-  dpyinfo->xim = NULL;
-#endif /* not USE_XIM */
+    }
+  else
+    dpyinfo->xim = NULL;
 }
 
 
@@ -8158,18 +8163,19 @@ static void
 xim_close_dpy (dpyinfo)
      struct x_display_info *dpyinfo;
 {
-#ifdef USE_XIM
+  if (use_xim)
+    {
 #ifdef HAVE_X11R6_XIM
-  if (dpyinfo->display)
-    XUnregisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
-				      NULL, EMACS_CLASS,
-				      xim_instantiate_callback, NULL);
+      if (dpyinfo->display)
+	XUnregisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
+					  NULL, EMACS_CLASS,
+					  xim_instantiate_callback, NULL);
 #endif /* not HAVE_X11R6_XIM */
-  if (dpyinfo->display)
-    XCloseIM (dpyinfo->xim);
-  dpyinfo->xim = NULL;
-  XFree (dpyinfo->xim_styles);
-#endif /* USE_XIM */
+      if (dpyinfo->display)
+	XCloseIM (dpyinfo->xim);
+      dpyinfo->xim = NULL;
+      XFree (dpyinfo->xim_styles);
+    }
 }
 
 #endif /* not HAVE_X11R6_XIM */
@@ -10535,6 +10541,18 @@ x_term_init (display_name, xrm_option, resource_name)
 	&& (!strcmp (SDATA (value), "true")
 	    || !strcmp (SDATA (value), "on")))
       XSynchronize (dpyinfo->display, True);
+  }
+  
+  {
+    Lisp_Object value;
+    value = display_x_get_resource (dpyinfo,
+				    build_string ("useXIM"),
+				    build_string ("UseXIM"),
+				    Qnil, Qnil);
+    if (STRINGP (value)
+	&& (!strcmp (XSTRING (value)->data, "false")
+	    || !strcmp (XSTRING (value)->data, "off")))
+      use_xim = 0;
   }
 
   UNBLOCK_INPUT;
