@@ -1,5 +1,9 @@
 2001-01-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (size_window): Set the window's orig_top to nil when
+	changing heights, so that a future shrink_mini_window won't
+	restore a bogus height.
+
 	* frame.c (do_switch_frame): If selected frame has a mini-window,
 	resize that to exact size.
 
