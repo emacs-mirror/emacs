@@ -1,3 +1,8 @@
+2000-11-15  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (locale-charset-language-names):
+	Match @euro.
+
 2000-11-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* faces.el (face-set-after-frame-default): If
