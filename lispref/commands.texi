@@ -360,6 +360,9 @@ until a command (or undefined command) is found in the current key
 maps.  The key sequence argument is represented as a string or vector.
 The cursor does not move into the echo area.  Prompt.
 
+If the key sequence is a down-event, the following up-event is discarded,
+but can be read via the @code{U} code character.
+
 This kind of input is used by commands such as @code{describe-key} and
 @code{global-set-key}.
 
@@ -415,6 +418,11 @@ An interned symbol whose name is read in the minibuffer.  Any whitespace
 character terminates the input.  (Use @kbd{C-q} to include whitespace in
 the string.)  Other characters that normally terminate a symbol (e.g.,
 parentheses and brackets) do not do so here.  Prompt.
+
+@item U
+A key sequence or nil.  May be used after a @code{k} or @code{K}
+argument to get the up-event that was discarded in case the key
+sequence read for that argument was a down-event.  No I/O.
 
 @item v
 A variable declared to be a user option (i.e., satisfying the
