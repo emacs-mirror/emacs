@@ -1,18 +1,18 @@
 1999-12-18  Dave Love  <fx@gnu.org>
 
-	* cl-macs.el: Remove conditional definition of eval-when-compile.
-	Don't specify abs, expt, gethash, hash-table-count, hash-table-p
-	as side-effect-free here.
+	* emacs-lisp/cl-macs.el: Remove conditional definition of
+	eval-when-compile.  Don't specify abs, expt, gethash,
+	hash-table-count, hash-table-p as side-effect-free here.
 	(cl-emacs-type): Don't declare.
 	(cl-compile-time-init): Remove Emacs 18 compiler patch.
 	(cl-parse-loop-clause): Remove compatibility code.
 
-	* byte-opt.el: Don't put optimization info on `eql'.
+	* emacs-lisp/byte-opt.el: Don't put optimization info on `eql'.
 	(side-effect-free-fns): Add gethash, hash-table-count.
 	(side-effect-and-error-free-fns): Add hash-table-p.
 
-	* cl.el: Remove Emacs 18 compatibility code.  Prepend `cl-' to
-	autoload names for some hash functions.  Don't autoload
+	* emacs-lisp/cl.el: Remove Emacs 18 compatibility code.  Prepend
+	`cl-' to autoload names for some hash functions.  Don't autoload
 	eval-when-compile.  Don't provide mini-cl.
 	(cl-emacs-type): Remove.
 	(cl-map-extents): Remove compatibility code.
@@ -31,7 +31,7 @@
 
 	* custom.el (custom-declare-variable): Purecopy value.
 
-	* bytecomp.el (byte-compile-bound-variables): Doc fix.
+	* emacs-lisp/bytecomp.el (byte-compile-bound-variables): Doc fix.
 	(byte-extrude-byte-code-vectors): Use remprop.
 	(byte-compile-lambda): Check that arg is a lambda.
 
@@ -579,8 +579,8 @@
 
 1999-12-12  Dave Love  <fx@gnu.org>
 
-	* footnote.el: Require cl when compiling.  Don't autoload keymap
-	and minor-mode-alist stuff.  Don't set zmacs-region-stays.
+	* mail/footnote.el: Require cl when compiling.  Don't autoload
+	keymap and minor-mode-alist stuff.  Don't set zmacs-region-stays.
 	(footnote-insert-text-marker, Footnote-insert-pointer-marker):
 	Avoid `acons'.
 	(footnote-mode-line-string, Footnote-add-footnote): Remove
@@ -899,7 +899,7 @@
 
 1999-11-30  Dave Love  <fx@gnu.org>
 
-	* fortran.el (fortran-strip-sequence-nos): New command.
+	* progmodes/fortran.el (fortran-strip-sequence-nos): New command.
 
 	* autoinsert.el: Minor doc fixes.
 	(auto-insert): Return nil.
@@ -1056,7 +1056,7 @@
 
 1999-11-23  Dave Love  <fx@gnu.org>
 
-	* fortran.el (fortran-comment-line-start): Renamed from
+	* progmodes/fortran.el (fortran-comment-line-start): Renamed from
 	comment-line-start.
 	(fortran-comment-line-start-skip): Renamed from
 	comment-line-start-skip.
@@ -1082,8 +1082,8 @@
 	(fortran-break-line): Simplified.
 	(fortran-analyze-file-format): Use char-after, not looking-at.
 
-	* find-func.el (find-function-regexp): Use `define-minor-mode'
-	after easy-menu change.
+	* emacs-lisp/find-func.el (find-function-regexp): Use
+	`define-minor-mode' after easy-menu change.
 
 1999-11-23  Gerd Moellmann  <gerd@gnu.org>
 
@@ -2605,7 +2605,7 @@
 
 1999-09-09  Dave Love  <fx@gnu.org>
 
-	* byte-opt.el (byte-optimize-backward-char):
+	* emacs-lisp/byte-opt.el (byte-optimize-backward-char):
 	(byte-optimize-backward-word): New optimizations.
 	(side-effect-free-fns, side-effect-and-error-free-fns): Add
 	entries.
@@ -2743,7 +2743,7 @@
 
 	* isearch.el (isearch-mode-map): Add mouse-2.
 
-	* rmail.el (rmail-read-password): Deleted.
+	* mail/rmail.el (rmail-read-password): Deleted.
 	(rmail-get-pop-password): Use read-password.
 
 	* quickurl.el: Don't conditionally define caddr.
@@ -2783,7 +2783,8 @@
 
 1999-09-06  Dave Love  <fx@gnu.org>
 
-	* byte-opt.el (byte-boolean-vars): Removed.  (Now primitive.)
+	* emacs-lisp/byte-opt.el (byte-boolean-vars): Removed.  (Now
+	primitive.)
 
 1999-09-05  Richard Stallman  <rms@gnu.org>
 
@@ -2884,8 +2885,8 @@
 	* help.el (help-make-xrefs): Don't lose on non-empty blank line
 	after key table.
 
-	* byte-opt.el (byte-boolean-vars): Add several w32 and redisplay
-	variables.
+	* emacs-lisp/byte-opt.el (byte-boolean-vars): Add several w32 and
+	redisplay variables.
 
 	* subr.el (push): Fix typo.
 
