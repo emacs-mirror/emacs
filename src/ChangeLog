@@ -1,5 +1,11 @@
 2001-09-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* Makefile.in (xterm.o): Remove references to sink.h and sinkmask.h.
+
+	* sink11.h, sink11mask.h, sink.h, sinkmask.h: Removed.
+
+	* xterm.c (toplevel): Remove includes in #if 0.
+
 	* process.c (sigchld_handler) [LINUX]: Don't return from
 	the signal handler at the end of the loop.
 
