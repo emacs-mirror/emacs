@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.8 2000/10/01 11:17:42 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.9 2000/10/01 19:35:24 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -215,29 +215,30 @@ This function sets the properties `vc-workfile-version' and
 file."
   (with-temp-buffer
     (vc-insert-file (vc-name file) "^[0-9]")
-    (let ((workfile-is-latest nil))
+    (let ((workfile-is-latest nil)
+	  (default-branch (vc-parse-buffer "^branch[ \t\n]+\\([^;]*\\);" 1)))
+      (vc-file-setprop file 'vc-rcs-default-branch default-branch)
       (unless workfile-version
-	(let ((default-branch (vc-parse-buffer "^branch[ \t\n]+\\([^;]*\\);" 1)))
-	  ;; Workfile version not known yet.  Determine that first.  It
-	  ;; is either the head of the trunk, the head of the default
-	  ;; branch, or the "default branch" itself, if that is a full
-	  ;; revision number.
-	  (cond
-	   ;; no default branch
-	   ((or (not default-branch) (string= "" default-branch))
+	;; Workfile version not known yet.  Determine that first.  It
+	;; is either the head of the trunk, the head of the default
+	;; branch, or the "default branch" itself, if that is a full
+	;; revision number.
+	(cond
+	 ;; no default branch
+	 ((or (not default-branch) (string= "" default-branch))
+	  (setq workfile-version
+		(vc-parse-buffer "^head[ \t\n]+\\([^;]+\\);" 1))
+	  (setq workfile-is-latest t))
+	 ;; default branch is actually a revision
+	 ((string-match "^[0-9]+\\.[0-9]+\\(\\.[0-9]+\\.[0-9]+\\)*$"
+			default-branch)
+	  (setq workfile-version default-branch))
+	 ;; else, search for the head of the default branch
+	 (t (vc-insert-file (vc-name file) "^desc")
 	    (setq workfile-version
-		  (vc-parse-buffer "^head[ \t\n]+\\([^;]+\\);" 1))
-	    (setq workfile-is-latest t))
-	   ;; default branch is actually a revision
-	   ((string-match "^[0-9]+\\.[0-9]+\\(\\.[0-9]+\\.[0-9]+\\)*$"
-			  default-branch)
-	    (setq workfile-version default-branch))
-	   ;; else, search for the head of the default branch
-	   (t (vc-insert-file (vc-name file) "^desc")
-	      (setq workfile-version
-		    (vc-rcs-find-most-recent-rev default-branch))
-	      (setq workfile-is-latest t)))
-	  (vc-file-setprop file 'vc-workfile-version workfile-version)))
+		  (vc-rcs-find-most-recent-rev default-branch))
+	    (setq workfile-is-latest t)))
+	(vc-file-setprop file 'vc-workfile-version workfile-version))
       ;; Check strict locking
       (goto-char (point-min))
       (vc-file-setprop file 'vc-checkout-model
@@ -528,8 +529,7 @@ WRITABLE non-nil means previous version should be locked."
 	       (goto-char (point-min))
 	       (if (search-forward "no side branches present for" nil t)
 		   (progn (setq previous (vc-branch-part previous))
-			  (vc-do-command nil 0 "rcs" (vc-name file)
-					 (concat "-b" previous))
+			  (vc-rcs-set-default-branch file previous)
 			  ;; vc-do-command popped up a window with
 			  ;; the error message.  Get rid of it, by
 			  ;; restoring the old window configuration.
@@ -586,16 +586,21 @@ CVS releases are handled reasonably, too \(1.3 < 1.4* < 1.5\)."
   (let ((switches (if (stringp vc-checkin-switches)
 		      (list vc-checkin-switches)
 		    vc-checkin-switches)))
-    (let ((old-version (vc-workfile-version file)) new-version)
+    (let ((old-version (vc-workfile-version file)) new-version
+	  (default-branch (vc-file-getprop file 'vc-rcs-default-branch)))
+      ;; Force branch creation if an appropriate 
+      ;; default branch has been set.
+      (and (not rev)
+	   default-branch
+	   (string-match (concat "^" (regexp-quote old-version) "\\.")
+			 default-branch)
+	   (setq rev default-branch)
+	   (setq switches (cons "-f" switches)))
       (apply 'vc-do-command nil 0 "ci" (vc-name file)
 	     ;; if available, use the secure check-in option
 	     (and (vc-rcs-release-p "5.6.4") "-j")
 	     (concat (if vc-keep-workfiles "-u" "-r") rev)
 	     (concat "-m" comment)
-	     ;; allow creation of branches with no changes;
-	     ;; this is used by vc-rcs-receive-file if the
-	     ;; base version cannot be found
-	     (if (and (stringp rev) (string-match ".1.1$" rev)) "-f")
 	     switches)
       (vc-file-setprop file 'vc-workfile-version nil)
 
@@ -615,9 +620,9 @@ CVS releases are handled reasonably, too \(1.3 < 1.4* < 1.5\)."
        ((and old-version new-version
 	     (not (string= (vc-rcs-branch-part old-version)
 			   (vc-rcs-branch-part new-version))))
-	(vc-do-command nil 0 "rcs" (vc-name file)
-		       (if (vc-rcs-trunk-p new-version) "-b"
-			 (concat "-b" (vc-rcs-branch-part new-version))))
+	(vc-rcs-set-default-branch file 
+				   (if (vc-rcs-trunk-p new-version) nil
+				     (vc-rcs-branch-part new-version)))
 	;; If this is an old RCS release, we might have
 	;; to remove a remaining lock.
 	(if (not (vc-rcs-release-p "5.6.2"))
@@ -767,6 +772,10 @@ whether to remove it."
   (vc-file-setprop file 'vc-checkout-model 'implicit)
   (set-file-modes file (logior (file-modes file) 128)))
 
+(defun vc-rcs-set-default-branch (file branch)
+  (vc-do-command nil 0 "rcs" (vc-name file) (concat "-b" branch))
+  (vc-file-setprop file 'vc-rcs-default-branch branch))
+
 (defun vc-rcs-checkout (file &optional writable rev workfile)
   "Retrieve a copy of a saved version of FILE into a workfile."
   (let ((filename (or workfile file))
@@ -814,7 +823,7 @@ whether to remove it."
 	      ;; if we should go to the head of the trunk,
 	      ;; clear the default branch first
 	      (and rev (string= rev "")
-		   (vc-do-command nil 0 "rcs" (vc-name file) "-b"))
+		   (vc-rcs-set-default-branch file nil))
 	      ;; now do the checkout
 	      (apply 'vc-do-command
 		     nil 0 "co" (vc-name file)
@@ -836,13 +845,12 @@ whether to remove it."
 	      (vc-file-setprop file 'vc-workfile-version new-version)
 	      ;; if necessary, adjust the default branch
 	      (and rev (not (string= rev ""))
-		   (vc-do-command
-		    nil 0 "rcs" (vc-name file)
-		    (concat "-b"
-			    (if (vc-rcs-latest-on-branch-p file new-version)
-				(if (vc-rcs-trunk-p new-version) nil
-				  (vc-rcs-branch-part new-version))
-			      new-version)))))))
+		   (vc-rcs-set-default-branch 
+		    file
+		    (if (vc-rcs-latest-on-branch-p file new-version)
+			(if (vc-rcs-trunk-p new-version) nil
+			  (vc-rcs-branch-part new-version))
+		      new-version))))))
 	(message "Checking out %s...done" filename)))))
 
 (provide 'vc-rcs)
