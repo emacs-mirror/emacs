@@ -1,3 +1,17 @@
+2000-03-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.c (REGEX_FREE_STACK, RESET_FAIL_STACK): Make them usable as
+	an expression.
+	(enum re_opcode_t): Update description of succeed_n.
+	(PATFETCH): Always define.
+	(regex_compile): Use lookahead rather than PATUNFETCH (for repetition
+	operators, char classes, shy-groups and intervals).
+	Optimize special cases of intervals so as to only use succeed_n and
+	jump_n when really needed.
+	(re_compile_fastmap): Simplify handling of jump_n and succeed_n now
+	that we don't have to handle the special cases any more.
+	Simplify on_failure_jump handling as well.
+
 2000-03-28  Jason Rumney  <jasonr@gnu.org>
 
 	* lread.c (Fload): Move safe_p definition to above #ifdef DOS_NT.
