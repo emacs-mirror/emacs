@@ -128,6 +128,10 @@ int noninteractive;
    but nothing terrible happens if user sets this one.  */
 
 int noninteractive1;
+
+/* Save argv and argc.  */
+char **initial_argv;
+int initial_argc;
 
 /* Signal code for the fatal signal that was received */
 int fatal_error_code;
@@ -191,6 +195,9 @@ init_cmdargs (argc, argv, skip_args)
 {
   register int i;
   Lisp_Object name, dir;
+
+  initial_argv = argv;
+  initial_argc = argc;
 
   Vinvocation_name = Ffile_name_nondirectory (build_string (argv[0]));
   Vinvocation_directory = Ffile_name_directory (build_string (argv[0]));
