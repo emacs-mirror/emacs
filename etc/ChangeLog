@@ -1,3 +1,7 @@
+2003-04-12  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Change "Hindi" to more common characters.
+
 2003-02-12  Dave Love  <fx@gnu.org>
 
 	* charsets/georgian-academy.map, charsets/big5-hkscs.map: New.
