@@ -1,3 +1,9 @@
+1999-10-17  Sam Steingold  <sds@ksp.com>
+
+	* bindings.el (completion-ignored-extensions): Added ".sparcf"
+	for CMUCL on sparc and ".ufsl" for LispWorks.
+	(bound-and-true-p): Bugfix: free variable `v'.
+
 1999-10-16  Dave Love  <d.love@dl.ac.uk>
 
 	* emacs-lisp/edebug.el (edebug-install-read-eval-functions)
