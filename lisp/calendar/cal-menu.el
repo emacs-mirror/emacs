@@ -37,6 +37,8 @@
 
 ;;; Code:
 
+(require 'calendar)
+
 (define-key calendar-mode-map [menu-bar edit] 'undefined)
 (define-key calendar-mode-map [menu-bar search] 'undefined)
 

@@ -36,6 +36,8 @@
 
 ;;; Code:
 
+(require 'calendar)
+
 (defun calendar-goto-today ()
   "Reposition the calendar window so the current date is visible."
   (interactive)
