@@ -1,3 +1,8 @@
+2001-07-30  Andreas Schwab  <schwab@suse.de>
+
+	* menu-bar.el (toggle-highlight-paren-mode): Use
+	`(show-paren-mode)' as body.
+
 2001-07-30  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-checkout-hook): New hook.
