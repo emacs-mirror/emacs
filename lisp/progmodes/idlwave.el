@@ -6,7 +6,7 @@
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: Carsten Dominik <dominik@strw.leidenuniv.nl>
 ;; Version: 3.11
-;; Date: $Date: 1999/12/16 10:42:46 $
+;; Date: $Date: 1999/12/20 11:10:02 $
 ;; Keywords: languages
 
 ;; This file is part of the GNU Emacs.
@@ -48,7 +48,7 @@
 ;; lines to your .emacs file:
 ;;
 ;; (autoload 'idlwave-mode "idlwave" "IDLWAVE Mode" t)
-;; (autoload 'idlwave-shell "idlwave-shell" "IDLWAVE Shell" t)
+;; (autoload 'idlwave-shell "idlw-shell" "IDLWAVE Shell" t)
 ;; (setq auto-mode-alist (cons '("\\.pro\\'" . idlwave-mode) auto-mode-alist))
 ;;
 ;;
@@ -1274,10 +1274,10 @@ Capitalize system variables - action only
 (define-key idlwave-mode-map "\C-c\C-w" 'idlwave-while)
 (define-key idlwave-mode-map "\C-c\C-s" 'idlwave-shell)
 (define-key idlwave-mode-map "\C-c\C-l" 'idlwave-shell-recenter-shell-window)
-(autoload 'idlwave-shell-send-command "idlwave-shell")
-(autoload 'idlwave-shell-recenter-shell-window "idlwave-shell"
+(autoload 'idlwave-shell-send-command "idlw-shell")
+(autoload 'idlwave-shell-recenter-shell-window "idlw-shell"
   "Run `idlwave-shell' and switch back to current window" t)
-(autoload 'idlwave-shell-save-and-run "idlwave-shell"
+(autoload 'idlwave-shell-save-and-run "idlw-shell"
   "Save and run buffer under the shell." t)
 (define-key idlwave-mode-map "\C-c\C-v"   'idlwave-find-module)
 (define-key idlwave-mode-map "\C-c?"      'idlwave-routine-info)

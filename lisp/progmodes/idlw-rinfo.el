@@ -1,4 +1,4 @@
-;;; idlwave-rinfo.el --- Routine Information for IDLWAVE
+;;; idlw-rinfo.el --- Routine Information for IDLWAVE
 ;; Copyright (c) 1999 Carsten Dominik
 ;; Copyright (c) 1999 Free Software Foundation
 
@@ -1276,6 +1276,6 @@
   "1226 builtin routines with 5230 keywords for IDL version 5.3.")
 
 
-(provide 'idlwave-rinfo)
+(provide 'idlw-rinfo)
 
-;;; idlwave-rinfo.el ends here
+;;; idlw-rinfo.el ends here
