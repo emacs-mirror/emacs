@@ -1,5 +1,11 @@
 2004-08-21  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* kmacro.texi (Keyboard Macro Ring): Rename section.
+	Emacs treats the head of the macro ring as the `last keyboard macro'.
+	(Keyboard Macro Counter): Minor change.
+	(Save Keyboard Macro): Some clarifications.
+	(Edit Keyboard Macro): Rename section.
+
 	* buffers.texi (Buffers): Maximum buffer size is now 256M on
 	32-bit machines.
 	(Several Buffers): Clarify which buffer is selected if `2' is
