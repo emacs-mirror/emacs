@@ -1038,7 +1038,7 @@ on your terminal, using the @dfn{glyph table}.
 @node Display Table Format
 @subsection Display Table Format
 
-  A display table is actually an array of 261 elements.
+  A display table is actually an array of 262 elements.
 
 @defun make-display-table
 This creates and returns a display table.  The table initially has
@@ -1053,7 +1053,7 @@ the usual display conventions (@pxref{Usual Display}).  Note that the
 display table has no effect on the tab and newline characters; they are
 always displayed as whitespace in their usual special fashion.
 
-  The remaining five elements of a display table serve special purposes,
+  The remaining six elements of a display table serve special purposes,
 and @code{nil} means use the default stated below.
 
 @table @asis
@@ -1070,6 +1070,9 @@ The glyph for indicating a control character (the default is @samp{^}).
 @item 260
 A vector of glyphs for indicating the presence of invisible lines (the
 default is @samp{...}).  @xref{Selective Display}.
+@item 261
+The glyph used to draw the border between side-by-side windows (the
+default is @samp{|}).  @xref{Splitting Windows}.
 @end table
 
   For example, here is how to construct a display table that mimics the
