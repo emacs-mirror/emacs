@@ -401,6 +401,7 @@ This should be bound to a mouse drag event."
     ;; On X, we highlight while dragging, thus once again no need to bounce.
     (or transient-mark-mode
 	(eq (framep (selected-frame)) 'x)
+	(eq (framep (selected-frame)) 'pc)
 	(sit-for 1))
     (push-mark)
     (set-mark (point))
@@ -543,10 +544,14 @@ release the mouse button.  Otherwise, it does not."
 		 ((null mouse-row))
 		 ((< mouse-row top)
 		  (mouse-scroll-subr start-window (- mouse-row top)
-				     mouse-drag-overlay start-point))
+				     mouse-drag-overlay start-point)
+		  ;; Without this, point tends to jump back to the starting
+		  ;; position where the mouse button was pressed down.
+		  (setq end-of-range (overlay-start mouse-drag-overlay)))
 		 ((>= mouse-row bottom)
 		  (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
-				     mouse-drag-overlay start-point)))))))))
+				     mouse-drag-overlay start-point)
+		  (setq end-of-range (overlay-end mouse-drag-overlay))))))))))
       (if (consp event)
 	  (let ((fun (key-binding (vector (car event)))))
 	    ;; Run the binding of the terminating up-event, if possible.
