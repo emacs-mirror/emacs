@@ -521,6 +521,13 @@ struct x_output
   /* Width of bar cursor (if we are using that).  */
   int cursor_width;
 
+  /* What kind of text cursor should we draw when the cursor blinks off?
+     This can be filled_box_cursor or bar_cursor or no_cursor.  */
+  enum text_cursor_kinds blink_off_cursor;
+
+  /* Width of bar cursor (if we are using that) for blink-off state.  */
+  int blink_off_cursor_width;
+
   /* These are the current window manager hints.  It seems that
      XSetWMHints, when presented with an unset bit in the `flags'
      member of the hints structure, does not leave the corresponding
@@ -695,7 +702,9 @@ enum
 #define PIXEL_HEIGHT(f) ((f)->output_data.x->pixel_height)
 
 #define FRAME_DESIRED_CURSOR(f) ((f)->output_data.x->desired_cursor)
+#define FRAME_BLINK_OFF_CURSOR(f) ((f)->output_data.x->blink_off_cursor)
 #define FRAME_CURSOR_WIDTH(f) ((f)->output_data.x->cursor_width)
+#define FRAME_BLINK_OFF_CURSOR_WIDTH(f) ((f)->output_data.x->blink_off_cursor_width)
 
 #define FRAME_XIC(f) ((f)->output_data.x->xic)
 #define FRAME_X_XIM(f) (FRAME_X_DISPLAY_INFO (f)->xim)
