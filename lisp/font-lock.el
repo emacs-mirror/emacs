@@ -497,25 +497,27 @@ the face is also set; its value is the face name."
 
 ;;; Fontifying arbitrary patterns
 
-(defun font-lock-compile-keywords ()
+(defun font-lock-compile-keywords (&optional keywords)
   ;; Compile `font-lock-keywords' into the form (t KEYWORD ...) where KEYWORD
   ;; is the (MATCHER HIGHLIGHT ...) shown in the variable's doc string.
-  (setq font-lock-keywords
-   (cons t
-    (mapcar (function
-	     (lambda (item)
-	       (cond ((nlistp item)
-		      (list item '(0 font-lock-keyword-face)))
-		     ((numberp (cdr item))
-		      (list (car item) (list (cdr item)
-					     'font-lock-keyword-face)))
-		     ((symbolp (cdr item))
-		      (list (car item) (list 0 (cdr item))))
-		     ((nlistp (nth 1 item))
-		      (list (car item) (cdr item)))
-		     (t
-		      item))))
-	    font-lock-keywords))))
+  (let ((keywords (or keywords font-lock-keywords)))
+    (setq font-lock-keywords 
+     (if (eq (car-safe keywords) t)
+	 keywords
+       (cons t
+	(mapcar
+	 (function (lambda (item)
+	    (cond ((nlistp item)
+		   (list item '(0 font-lock-keyword-face)))
+		  ((numberp (cdr item))
+		   (list (car item) (list (cdr item) 'font-lock-keyword-face)))
+		  ((symbolp (cdr item))
+		   (list (car item) (list 0 (cdr item))))
+		  ((nlistp (nth 1 item))
+		   (list (car item) (cdr item)))
+		  (t
+		   item))))
+	 keywords))))))
 
 (defsubst font-lock-apply-highlight (highlight)
   "Apply HIGHLIGHT following a match.  See `font-lock-keywords'."
