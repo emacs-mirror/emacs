@@ -1614,6 +1614,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 {
   register Lisp_Object c;
   int count;
+  jmp_buf local_getcjmp;
   jmp_buf save_jump;
   int key_already_recorded = 0;
   Lisp_Object also_record;
@@ -1687,21 +1688,45 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       goto reread_first;
     }
 
-  /* Don't bother updating menu bars while doing mouse tracking.
-     We get events very rapidly then, and the menu bar won't be changing.
-     We do update the menu bar once on entry to Ftrack_mouse.  */
-  if (commandflag > 0 && !input_pending && !detect_input_pending ())
-    prepare_menu_bars ();
-
-  /* Save outer setjmp data, in case called recursively.  */
-  save_getcjmp (save_jump);
-
-  stop_polling ();
-
   if (commandflag >= 0 && !input_pending && !detect_input_pending ())
     redisplay ();
 
-  if (_setjmp (getcjmp))
+  /* Message turns off echoing unless more keystrokes turn it on again. */
+  if (echo_area_glyphs && *echo_area_glyphs
+      && echo_area_glyphs != current_kboard->echobuf)
+    cancel_echoing ();
+  else
+    /* If already echoing, continue.  */
+    echo_dash ();
+
+  /* Try reading a character via menu prompting in the minibuf.
+     Try this before the sit-for, because the sit-for
+     would do the wrong thing if we are supposed to do
+     menu prompting. If EVENT_HAS_PARAMETERS then we are reading
+     after a mouse event so don't try a minibuf menu. */
+  c = Qnil;
+  if (nmaps > 0 && INTERACTIVE
+      && !NILP (prev_event) && ! EVENT_HAS_PARAMETERS (prev_event)
+      /* Don't bring up a menu if we already have another event.  */
+      && NILP (Vunread_command_events)
+      && unread_command_char < 0
+      && !detect_input_pending ())
+    {
+      c = read_char_minibuf_menu_prompt (commandflag, nmaps, maps);
+      if (! NILP (c))
+	{
+	  key_already_recorded = 1;
+	  goto non_reread_1;
+	}
+    }
+
+  /* Make a longjmp point for quits to use, but don't alter getcjmp just yet.
+     We will do that below, temporarily for short sections of code,
+     when appropriate.  local_getcjmp must be in effect
+     around any call to sit_for or kbd_buffer_get_event;
+     it *must not* be in effect when we call redisplay.  */
+
+  if (_setjmp (local_getcjmp))
     {
       XSETINT (c, quit_char);
 #ifdef MULTI_FRAME
@@ -1736,37 +1761,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       goto non_reread;
     }
 
-  /* Message turns off echoing unless more keystrokes turn it on again. */
-  if (echo_area_glyphs && *echo_area_glyphs
-      && echo_area_glyphs != current_kboard->echobuf)
-    cancel_echoing ();
-  else
-    /* If already echoing, continue.  */
-    echo_dash ();
-
-  /* Try reading a character via menu prompting in the minibuf.
-     Try this before the sit-for, because the sit-for
-     would do the wrong thing if we are supposed to do
-     menu prompting. If EVENT_HAS_PARAMETERS then we are reading
-     after a mouse event so don't try a minibuf menu. */
-  c = Qnil;
-  if (nmaps > 0 && INTERACTIVE
-      && !NILP (prev_event) && ! EVENT_HAS_PARAMETERS (prev_event)
-      /* Don't bring up a menu if we already have another event.  */
-      && NILP (Vunread_command_events)
-      && unread_command_char < 0
-      && !detect_input_pending ())
-    {
-      c = read_char_minibuf_menu_prompt (commandflag, nmaps, maps);
-      if (! NILP (c))
-	{
-	  key_already_recorded = 1;
-	  goto non_reread;
-	}
-    }
-
   /* If in middle of key sequence and minibuffer not active,
      start echoing if enough time elapses.  */
+
   if (minibuf_level == 0 && !current_kboard->immediate_echo
       && this_command_key_count > 0
       && ! noninteractive
@@ -1782,31 +1779,32 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	echo ();
       else
 	{
+	  save_getcjmp (save_jump);
+	  restore_getcjmp (local_getcjmp);
 	  tem0 = sit_for (echo_keystrokes, 0, 1, 1);
+	  restore_getcjmp (save_jump);
 	  if (EQ (tem0, Qt))
 	    echo ();
 	}
     }
 
-  /* Maybe auto save due to number of keystrokes or idle time.  */
+  /* Maybe auto save due to number of keystrokes.  */
 
   if (commandflag != 0
       && auto_save_interval > 0
       && num_nonmacro_input_chars - last_auto_save > max (auto_save_interval, 20)
       && !detect_input_pending ())
     {
-      jmp_buf temp;
-      save_getcjmp (temp);
       Fdo_auto_save (Qnil, Qnil);
       /* Hooks can actually change some buffers in auto save.  */
       redisplay ();
-      restore_getcjmp (temp);
     }
 
   /* Try reading using an X menu.
      This is never confused with reading using the minibuf
      because the recursive call of read_char in read_char_minibuf_menu_prompt
      does not pass on any keymaps.  */
+
   if (nmaps > 0 && INTERACTIVE
       && !NILP (prev_event) && EVENT_HAS_PARAMETERS (prev_event)
       /* Don't bring up a menu if we already have another event.  */
@@ -1814,12 +1812,14 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       && unread_command_char < 0)
     c = read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu);
 
-  /* Slow down auto saves logarithmically in size of current buffer,
-     and garbage collect while we're at it.  */
+  /* Maybe autosave and/or garbage collect due to idleness.  */
+
   if (INTERACTIVE && NILP (c))
     {
       int delay_level, buffer_size;
 
+      /* Slow down auto saves logarithmically in size of current buffer,
+	 and garbage collect while we're at it.  */
       if (! MINI_WINDOW_P (XWINDOW (selected_window)))
 	last_non_minibuf_size = Z - BEG;
       buffer_size = (last_non_minibuf_size >> 8) + 1;
@@ -1838,13 +1838,15 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	{
 	  Lisp_Object tem0;
 	  int delay = delay_level * XFASTINT (Vauto_save_timeout) / 4;
+
+	  save_getcjmp (save_jump);
+	  restore_getcjmp (local_getcjmp);
 	  tem0 = sit_for (delay, 0, 1, 1);
+	  restore_getcjmp (save_jump);
+
 	  if (EQ (tem0, Qt))
 	    {
-	      jmp_buf temp;
-	      save_getcjmp (temp);
 	      Fdo_auto_save (Qnil, Qnil);
-	      restore_getcjmp (temp);
 
 	      /* If we have auto-saved and there is still no input
 		 available, garbage collect if there has been enough
@@ -1852,17 +1854,16 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	      if (!detect_input_pending ()
 		  && consing_since_gc > gc_cons_threshold / 2)
 		Fgarbage_collect ();
-	      /* prepare_menu_bars isn't safe here, but it should
-		 also be unnecessary.  */
+
 	      redisplay ();
 	    }
 	}
     }
 
+  /* Read something from current KBOARD's side queue, if possible.  */
+
   if (NILP (c))
     {
-      /* Primary consideration goes to current_kboard's side queue.  */
-
       if (current_kboard->kbd_queue_has_data)
 	{
 	  if (!CONSP (current_kboard->kbd_queue))
@@ -1903,27 +1904,26 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     }
 #endif
 
+ wrong_kboard:
+
+  stop_polling ();
+
   /* Finally, we read from the main queue,
      and if that gives us something we can't use yet, we put it on the
      appropriate side queue and try again.  */
+
   if (NILP (c))
     {
       KBOARD *kb;
 
-    wrong_kboard:
-
       /* Actually read a character, waiting if necessary.  */
-      while (c = kbd_buffer_get_event (&kb), NILP (c))
-	{
-	  if (commandflag >= 0
-	      && !input_pending && !detect_input_pending ())
-	    {
-	      prepare_menu_bars ();
-	      redisplay ();
-	    }
-	}
+      save_getcjmp (save_jump);
+      restore_getcjmp (local_getcjmp);
+      c = kbd_buffer_get_event (&kb);
+      restore_getcjmp (save_jump);
+
 #ifdef MULTI_KBOARD
-      if (kb != current_kboard)
+      if (! NILP (c) && (kb != current_kboard))
 	{
 	  Lisp_Object *tailp = &kb->kbd_queue;
 	  while (CONSP (*tailp))
@@ -1960,9 +1960,18 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
  non_reread:
 
-  restore_getcjmp (save_jump);
-
   start_polling ();
+
+  if (NILP (c))
+    {
+      if (commandflag >= 0
+	  && !input_pending && !detect_input_pending ())
+	redisplay ();
+
+      goto wrong_kboard;
+    }
+
+ non_reread_1:
 
   /* Buffer switch events are only for internal wakeups
      so don't show them to the user.  */
@@ -2057,7 +2066,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       while (BUFFERP (c));
       /* Remove the help from the frame */
       unbind_to (count, Qnil);
-      prepare_menu_bars ();
+
       redisplay ();
       if (EQ (c, make_number (040)))
 	{
@@ -2147,7 +2156,6 @@ restore_getcjmp (temp)
 {
   bcopy (temp, getcjmp, sizeof getcjmp);
 }
-
 
 #ifdef HAVE_MOUSE
 
@@ -2168,7 +2176,6 @@ tracking_off (old_value)
 	 redisplay.  */
       if (!readable_events ())
 	{
-	  prepare_menu_bars ();
 	  redisplay_preserve_echo_area ();
 	  get_input_pending (&input_pending);
 	}
@@ -2187,9 +2194,6 @@ Normally, mouse motion is ignored.")
   Lisp_Object val;
 
   record_unwind_protect (tracking_off, do_mouse_tracking);
-
-  if (!input_pending && !detect_input_pending ())
-    prepare_menu_bars ();
 
   XSETFRAME (do_mouse_tracking, selected_frame);
 
@@ -2377,7 +2381,8 @@ kbd_buffer_store_event (event)
    We always read and discard one event.  */
 
 static Lisp_Object
-kbd_buffer_get_event (KBOARD **kbp)
+kbd_buffer_get_event (kbp)
+     KBOARD **kbp;
 {
   register int c;
   Lisp_Object obj;
