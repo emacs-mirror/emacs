@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 92, 93, 94 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -925,7 +925,7 @@ If `enable-local-variables' is nil, this function does not check for a
 			(setq mode (cdr (car alist))
 			      keep-going nil)))
 		  (setq alist (cdr alist)))
-		(if mode (funcall mode))))))))))
+		(if mode (funcall mode)))))))))
 
 (defun hack-local-variables-prop-line ()
   ;; Set local variables specified in the -*- line.
