@@ -1,9 +1,9 @@
 ;;; battery.el --- display battery status information.
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@purple.UL.BaWue.DE>
-;; Keywords: local hardware
+;; Keywords: hardware
 
 ;; This file is part of GNU Emacs.
 
@@ -126,8 +126,8 @@ seconds."
 	  " 0x\\([0-9a-f]+\\)"		; AC line status.
 	  " 0x\\([0-9a-f]+\\)"		; Battery status.
 	  " 0x\\([0-9a-f]+\\)"		; Battery flags.
-	  " \\([0-9]+\\)%"		; Load percentage.
-	  " \\([0-9]+\\)"		; Remaining time.
+	  " \\(-?[0-9]+\\)%"		; Load percentage.
+	  " \\(-?[0-9]+\\)"		; Remaining time.
 	  " \\(.*\\)"			; Time unit.
 	  "$")
   "Regular expression matching contents of `/proc/apm'.")
@@ -193,17 +193,17 @@ The following %-sequences are provided:
 	      (setq remaining-time
 		    (format "%d:%02d" hours (- minutes (* 60 hours)))))))
       (and buffer (kill-buffer buffer)))
-    (list (cons ?v driver-version)
-	  (cons ?V bios-version)
-	  (cons ?I bios-interface)
-	  (cons ?L line-status)
-	  (cons ?B battery-status)
-	  (cons ?b battery-status-symbol)
-	  (cons ?p load-percentage)
-	  (cons ?s (and seconds (number-to-string seconds)))
-	  (cons ?m (and minutes (number-to-string minutes)))
-	  (cons ?h (and hours (number-to-string hours)))
-	  (cons ?t remaining-time))))
+    (list (cons ?v (or driver-version "N/A"))
+	  (cons ?V (or bios-version "N/A"))
+	  (cons ?I (or bios-interface "N/A"))
+	  (cons ?L (or line-status "N/A"))
+	  (cons ?B (or battery-status "N/A"))
+	  (cons ?b (or battery-status-symbol ""))
+	  (cons ?p (or load-percentage "N/A"))
+	  (cons ?s (or (and seconds (number-to-string seconds)) "N/A"))
+	  (cons ?m (or (and minutes (number-to-string minutes)) "N/A"))
+	  (cons ?h (or (and hours (number-to-string hours)) "N/A"))
+	  (cons ?t (or remaining-time "N/A")))))
 
 
 ;;; Private functions.
