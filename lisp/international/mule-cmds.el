@@ -332,7 +332,8 @@ This also sets the following values:
 	(or (local-variable-p 'buffer-file-coding-system buffer)
 	    (ucs-set-table-for-input buffer))))
 
-  (if default-enable-multibyte-characters
+  (if (and default-enable-multibyte-characters (not (eq system-type 'darwin)))
+      ;; The file-name coding system on Darwin systems is always utf-8.
       (setq default-file-name-coding-system coding-system))
   ;; If coding-system is nil, honor that on MS-DOS as well, so
   ;; that they could reset the terminal coding system.
@@ -1647,6 +1648,8 @@ The default status is as follows:
 
   (set-default-coding-systems nil)
   (setq default-sendmail-coding-system 'iso-latin-1)
+  ;; On Darwin systems, this should be utf-8, but when this file is loaded
+  ;; utf-8 is not yet defined, so we set it in set-locale-environment instead.
   (setq default-file-name-coding-system 'iso-latin-1)
   ;; Preserve eol-type from existing default-process-coding-systems.
   ;; On non-unix-like systems in particular, these may have been set
@@ -2410,6 +2413,10 @@ system codeset `%s' for this locale." coding-system codeset))))))))
 	  (set-selection-coding-system code-page-coding)
 	  (set-keyboard-coding-system code-page-coding)
 	  (set-terminal-coding-system code-page-coding))))
+
+    ;; On Darwin, file names are always encoded in utf-8, no matter the locale.
+    (when (eq system-type 'darwin)
+      (setq default-file-name-coding-system 'utf-8))
 
     ;; Default to A4 paper if we're not in a C, POSIX or US locale.
     ;; (See comments in Flocale_info.)

@@ -2858,7 +2858,7 @@ select_and_poll_event (n, rfds, wfds, efds, timeout)
   return r;
 }
 
-#ifndef MAC_OS_X_VERSION_10_2
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1020
 #undef SELECT_INVALIDATE_CFSOCKET
 #endif
 

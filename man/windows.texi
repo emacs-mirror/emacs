@@ -60,8 +60,8 @@ only one mark position.
 
   Each window has its own mode line, which displays the buffer name,
 modification status and major and minor modes of the buffer that is
-displayed in the window.  @xref{Mode Line}, for full details on the mode
-line.
+displayed in the window.  The selected window's mode line appears in a
+different color.  @xref{Mode Line}, for full details on the mode line.
 
 @iftex
 @break
@@ -322,9 +322,14 @@ except for the echo area.
 @kbd{Mouse-3}, and delete all the windows in a frame except one window
 by clicking on that window's mode line with @kbd{Mouse-2}.
 
-  The easiest way to adjust window heights is with a mouse.  If you
-press @kbd{Mouse-1} on a mode line, you can drag that mode line up or
-down, changing the heights of the windows above and below it.
+  You can also adjust window heights and widths with the mouse.  If
+you press @kbd{Mouse-1} on a mode line, you can drag that mode line up
+or down, changing the heights of the windows above and below it.  If
+you press it on the divider between two consecutive mode lines, you
+can drag that divider right or left, changing the widths of the
+windows to either side.  Note that changing heights and widths with
+the mouse never deletes windows, it just refuses to make any window
+smaller than it can be.
 
 @kindex C-x ^
 @findex enlarge-window

@@ -1,5 +1,5 @@
 /* xfaces.c -- "Face" primitives.
-   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
    Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -738,7 +738,7 @@ x_free_gc (f, gc)
      GC gc;
 {
   BLOCK_INPUT;
-  xassert (--ngcs >= 0);
+  IF_DEBUG (xassert (--ngcs >= 0));
   XFreeGC (FRAME_X_DISPLAY (f), gc);
   UNBLOCK_INPUT;
 }
@@ -771,7 +771,7 @@ x_free_gc (f, gc)
      GC gc;
 {
   BLOCK_INPUT;
-  xassert (--ngcs >= 0);
+  IF_DEBUG (xassert (--ngcs >= 0));
   xfree (gc);
   UNBLOCK_INPUT;
 }
@@ -1511,7 +1511,7 @@ face_color_supported_p (f, color_name, background_p)
 
   XSETFRAME (frame, f);
   return
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
     FRAME_WINDOW_P (f)
     ? (!NILP (Fxw_display_color_p (frame))
        || xstricmp (color_name, "black") == 0

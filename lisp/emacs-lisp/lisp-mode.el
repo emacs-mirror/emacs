@@ -881,11 +881,11 @@ which has a non-nil property `lisp-indent-function',
 that specifies how to do the indentation.  The property value can be
 * `defun', meaning indent `defun'-style;
 * an integer N, meaning indent the first N arguments specially
-like ordinary function arguments and then indent any further
-aruments like a body;
+  like ordinary function arguments and then indent any further
+  arguments like a body;
 * a function to call just as this function was called.
-If that function returns nil, that means it doesn't specify
-the indentation.
+  If that function returns nil, that means it doesn't specify
+  the indentation.
 
 This function also returns nil meaning don't specify the indentation."
   (let ((normal-indent (current-column)))
@@ -921,7 +921,7 @@ This function also returns nil meaning don't specify the indentation."
 	       (lisp-indent-specform method state
 				     indent-point normal-indent))
 	      (method
-		(funcall method state indent-point)))))))
+		(funcall method indent-point state)))))))
 
 (defvar lisp-body-indent 2
   "Number of columns to indent the second line of a `(def...)' form.")

@@ -731,7 +731,7 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
      int nchars, mode, bytes_per_char;
 {
   SetPortWindowPort (w);
-#ifdef MAC_OS_X_VERSION_10_2
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
   UInt32 textFlags, savedFlags;
   if (!NILP(Vmac_use_core_graphics)) {
     textFlags = kQDUseCGTextRendering;
@@ -748,7 +748,7 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 
   MoveTo (x, y);
   DrawText (buf, 0, nchars * bytes_per_char);
-#ifdef MAC_OS_X_VERSION_10_2
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
   if (!NILP(Vmac_use_core_graphics))
     SwapQDTextFlags(savedFlags);
 #endif
@@ -5468,7 +5468,7 @@ x_make_frame_visible (f)
 	  else
 	    RepositionWindow (FRAME_MAC_WINDOW (f),
 			      FRAME_MAC_WINDOW (sf),
-#ifdef MAC_OS_X_VERSION_10_2
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
 			      kWindowCascadeStartAtParentWindowScreen
 #else
 			      kWindowCascadeOnParentWindowScreen

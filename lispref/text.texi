@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999,
-@c 2000, 2001, 2004
+@c 2000, 2001, 2004, 2005
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/text
@@ -720,10 +720,11 @@ This has too many spaces at the start of (this list)
 @end smallexample
 @end deffn
 
-@deffn Command just-one-space
+@deffn Command just-one-space &optional n
 @comment !!SourceFile simple.el
 This command replaces any spaces and tabs around point with a single
-space.  It returns @code{nil}.
+space, or @var{n} spaces if @var{n} is specified.  It returns
+@code{nil}.
 @end deffn
 
 @deffn Command delete-blank-lines
@@ -1218,7 +1219,8 @@ This kind of element records a change that can be undone by evaluating
 and @var{end} is buffer positions of the range affected by this change
 and @var{delta} is an integer value which is the number of bytes added
 or deleted in that range by this change.  This kind of element
-supports undo in an active region
+enables undo limited to a region to determine whether the element
+pertains to that region.
 
 @item (@var{marker} . @var{adjustment})
 This kind of element records the fact that the marker @var{marker} was
@@ -1303,7 +1305,6 @@ You cannot specify any other buffer.
 @end deffn
 
 @deffn Command buffer-disable-undo &optional buffer-or-name
-@deffnx Command buffer-flush-undo &optional buffer-or-name
 @cindex disable undo
 This function discards the undo list of @var{buffer-or-name}, and disables
 further recording of undo information.  As a result, it is no longer
@@ -1312,9 +1313,6 @@ the undo list of @var{buffer-or-name} is already disabled, this function
 has no effect.
 
 This function returns @code{nil}.
-
-The name @code{buffer-flush-undo} is not considered obsolete, but the
-preferred name is @code{buffer-disable-undo}.
 @end deffn
 
   As editing continues, undo lists get longer and longer.  To prevent
@@ -1339,8 +1337,8 @@ change group is only discarded if it exceeds @code{undo-outer-limit}.
 
 @defopt undo-outer-limit
 If at garbage collection time the undo info for the current command
-exceeds this limit, Emacs discards the info and prints a warning
-message.  This is a last ditch limit to prevent memory overflow.
+exceeds this limit, Emacs discards the info and displays a warning.
+This is a last ditch limit to prevent memory overflow.
 @end defopt
 
 @node Filling
@@ -1915,19 +1913,27 @@ is useful for sorting tables.
 
 @deffn Command sort-numeric-fields field start end
 This command sorts lines in the region between @var{start} and
-@var{end}, comparing them numerically by the @var{field}th field of each
-line.  The specified field must contain a number in each line of the
-region.  Fields are separated by whitespace and numbered starting from
-1.  If @var{field} is negative, sorting is by the
-@w{@minus{}@var{field}th} field from the end of the line.  This command
-is useful for sorting tables.
+@var{end}, comparing them numerically by the @var{field}th field of
+each line.  Fields are separated by whitespace and numbered starting
+from 1.  The specified field must contain a number in each line of the
+region.  Numbers starting with 0 are treated as octal, and numbers
+starting with @samp{0x} are treated as hexadecimal.
+
+If @var{field} is negative, sorting is by the
+@w{@minus{}@var{field}th} field from the end of the line.  This
+command is useful for sorting tables.
 @end deffn
+
+@defopt sort-numeric-base
+This variable specifies the default radix for
+@code{sort-numeric-fields} to parse numbers.
+@end defopt
 
 @deffn Command sort-columns reverse &optional beg end
 This command sorts the lines in the region between @var{beg} and
-@var{end}, comparing them alphabetically by a certain range of columns.
-The column positions of @var{beg} and @var{end} bound the range of
-columns to sort on.
+@var{end}, comparing them alphabetically by a certain range of
+columns.  The column positions of @var{beg} and @var{end} bound the
+range of columns to sort on.
 
 If @var{reverse} is non-@code{nil}, the sort is in reverse order.
 
@@ -3119,8 +3125,9 @@ are used for representing formatted text.  @xref{Filling}, and
 @item hard
 If a newline character has this property, it is a ``hard'' newline.
 The fill commands do not alter hard newlines and do not move words
-across them.  However, this property takes effect only if the variable
-@code{use-hard-newlines} is non-@code{nil}.
+across them.  However, this property takes effect only if the
+@code{use-hard-newlines} minor mode is enabled.  @xref{Hard and Soft
+Newlines,, Hard and Soft Newlines, emacs, The GNU Emacs Manual}.
 
 @item right-margin
 This property specifies an extra right margin for filling this part of the

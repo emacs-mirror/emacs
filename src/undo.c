@@ -560,12 +560,13 @@ Return what remains of the list.  */)
 		    }
 		  cdr = Fcdr (cdr);
 		  apply1 (car, cdr);
+
 		  /* Make sure this produces at least one undo entry,
 		     so the test in `undo' for continuing an undo series
 		     will work right.  */
 		  if (EQ (oldlist, current_buffer->undo_list))
 		    current_buffer->undo_list
-		      = Fcons (list2 (Qcdr, Qnil), current_buffer->undo_list);
+		      = Fcons (list3 (Qapply, Qcdr, Qnil), current_buffer->undo_list);
 		}
 	      else if (STRINGP (car) && INTEGERP (cdr))
 		{

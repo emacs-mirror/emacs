@@ -4354,7 +4354,16 @@ are decompressed."
 	  (setq charset
 		(or (cdr (assq arg
 			       gnus-summary-show-article-charset-alist))
-		    (mm-read-coding-system "Charset: ")))))
+		    (mm-read-coding-system "Charset: "))))
+	 (t
+	  (if (mm-handle-undisplayer handle)
+	      (mm-remove-part handle))
+	  (setq contents
+		(if (fboundp 'string-to-multibyte)
+		    (string-to-multibyte contents)
+		  (mapconcat
+		   (lambda (ch) (mm-string-as-multibyte (char-to-string ch)))
+		   contents "")))))
 	(forward-line 2)
 	(mm-insert-inline handle
 			  (if (and charset

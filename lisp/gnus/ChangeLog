@@ -1,3 +1,8 @@
+2005-02-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-inline-part): Show the raw contents if a
+	prefix arg is neither nil nor a number, as info specifies.
+
 2005-01-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-art.el (gnus-article-mode): Turn off the "\ " non-break space.

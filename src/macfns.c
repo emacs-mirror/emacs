@@ -2527,9 +2527,11 @@ unwind_create_frame (frame)
 
       x_free_frame_resources (f);
 
+#if GLYPH_DEBUG
       /* Check that reference counts are indeed correct.  */
       xassert (dpyinfo->reference_count == dpyinfo_refcount);
       xassert (dpyinfo->image_cache->refcount == image_cache_refcount);
+#endif
       return Qt;
     }
 
@@ -3880,7 +3882,7 @@ x_create_tip_frame (dpyinfo, parms, text)
     SetRect (&r, 0, 0, 1, 1);
 #if TARGET_API_MAC_CARBON
     if (CreateNewWindow (kHelpWindowClass,
-#ifdef MAC_OS_X_VERSION_10_2
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
 			 kWindowIgnoreClicksAttribute |
 #endif
 			 kWindowNoUpdatesAttribute |

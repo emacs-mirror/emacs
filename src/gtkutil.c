@@ -1905,7 +1905,7 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
 
       if (deactivate_cb)
         g_signal_connect (G_OBJECT (wmenu),
-                          "deactivate", deactivate_cb, 0);
+                          "selection-done", deactivate_cb, 0);
 
       g_signal_connect (G_OBJECT (wmenu),
                         "grab-notify", G_CALLBACK (menu_grab_callback), 0);

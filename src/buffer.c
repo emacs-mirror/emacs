@@ -1953,6 +1953,7 @@ DEFUN ("bury-buffer", Fbury_buffer, Sbury_buffer, 0, 1, "",
        doc: /* Put BUFFER at the end of the list of all buffers.
 There it is the least likely candidate for `other-buffer' to return;
 thus, the least likely buffer for \\[switch-to-buffer] to select by default.
+You can specify a buffer name as BUFFER, or an actual buffer object.
 If BUFFER is nil or omitted, bury the current buffer.
 Also, if BUFFER is nil or omitted, remove the current buffer from the
 selected window if it is displayed there.  */)

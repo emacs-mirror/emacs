@@ -1,3 +1,82 @@
+2005-02-05  Andreas Schwab  <schwab@suse.de>
+
+	* sysdep.c (sys_subshell): Properly terminate execlp argument
+	list.
+
+2005-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xselect.c (Fx_send_client_event, x_handle_dnd_message): Handle
+	the longs in a XClientMessageEvent correctly when long is 64 bits.
+
+2005-02-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfaces.c (face_color_supported_p): Use HAVE_WINDOW_SYSTEM
+	instead of HAVE_X_WINDOWS, for non-X windowed sessions.
+
+2005-02-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (menubar_selection_callback): Force out GTK buffered
+	events so the menu event comes after them.  This is to prevent sit-for
+	from exiting on buffered events directly after a menu selection,
+	lisp code for Help => About Emacs uses sit-for.
+
+	* gtkutil.c (create_menus): Connect selection-done event instead of
+	the deactivate event to deactivate_cb.  This will make the last
+	leave event come before the call to deactivate_cb, so the leave
+	event does not make sit-for exit after a menu selection.
+
+2005-02-03  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (build_frame_matrix_from_leaf_window)
+	 [!GLYPH_DEBUG]: Fix xassert.
+
+	* xfaces.c (x_free_gc) [!GLYPH_DEBUG]: Fix xassert.
+
+	* xfns.c (unwind_create_frame) [!GLYPH_DEBUG]: Fix xassert.
+
+2005-02-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c: Use MAC_OS_X_VERSION_MAX_ALLOWED to conditionalize by
+	the compiling OS version.
+
+	* macfns.c (x_create_tip_frame): Likewise.
+
+	* macterm.c (mac_draw_string_common, x_make_frame_visible):
+	Likewise.
+
+2005-02-03  Richard M. Stallman  <rms@gnu.org>
+
+	* xterm.c (x_error_quitter): On GCC 3 and up, specify noinline.
+
+	* xdisp.c (echo_area_display): Clear echo_message_buffer.
+
+	* buffer.c (Fbury_buffer): Doc fix.
+
+2005-02-02  Steven Tamm  <steventamm@mac.com>
+
+	* macfns.c (unwind_create_frame): Fixing compile error due to
+	xassert being uncondition, but predicate is.
+	* dispnew.c (update_window): Fixing compile error due to
+	xassert being uncondition, but predicate is.
+
+2005-02-02  Miles Bader  <miles@gnu.org>
+
+	* dispextern.h (xassert): Enable unconditionally.
+
+2005-02-02  Kim F. Storm  <storm@cua.dk>
+
+	* undo.c (Fprimitive_undo): Fix dummy apply undo entry.
+
+2005-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* casefiddle.c (casify_object): Enable changing characters of
+	different byte length.
+	(casify_region): Fix loop condition, args to replace_range_2, and
+	update opoint_byte.
+
+	* insdel.c (replace_range_2): Fix bugs in adjusting markers and
+	point.
+
 2005-02-01  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (back_to_previous_visible_line_start): Reset iterator

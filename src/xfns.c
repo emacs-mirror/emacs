@@ -1,6 +1,6 @@
 /* Functions for the X window system.
-   Copyright (C) 1989, 92, 93, 94, 95, 96, 97, 98, 99, 2000,01,02,03,04
-     Free Software Foundation.
+   Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
+     2001, 2002, 2003, 2004, 2005  Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -2843,9 +2843,11 @@ unwind_create_frame (frame)
 
       x_free_frame_resources (f);
 
+#if GLYPH_DEBUG
       /* Check that reference counts are indeed correct.  */
       xassert (dpyinfo->reference_count == dpyinfo_refcount);
       xassert (dpyinfo->image_cache->refcount == image_cache_refcount);
+#endif
       return Qt;
     }
 
@@ -4071,7 +4073,7 @@ Value is VALUE.  */)
 
   if (! NILP (outer_p)) w = FRAME_OUTER_WINDOW (f);
   else w = FRAME_X_WINDOW (f);
- 
+
   XChangeProperty (FRAME_X_DISPLAY (f), w,
 		   prop_atom, target_type, element_format, PropModeReplace,
 		   data, nelements);
@@ -5240,7 +5242,7 @@ or directory must exist.  ONLY-DIR-P is ignored."  */)
           if (keysym == XK_g && (event.xkey.state & ControlMask) != 0)
             XtUnmanageChild (dialog);
         }
-  
+
       (void) x_dispatch_event (&event, FRAME_X_DISPLAY (f));
     }
 
