@@ -1,3 +1,17 @@
+2000-12-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* window.c (delete_window, Fsplit_window) 
+	(Fset_window_configuration): Calls to ensure_frame_matrix removed.
+
+	* dispextern.h (ensure_frame_matrix): Function declaration removed.
+
+	* dispnew.c (ensure_frame_matrix): Removed.
+	(save_frame_matrix, restore_frame_matrix): New functions.
+	(adjust_frame_glyphs_for_frame_redisplay): Use them.
+
+	* xdisp.c (dump_glyph_row, dump_glyph_matrix, Fdump_glyph_matrix)
+	[GLYPH_DEBUG]: Extended to dump glyphs in short form.
+
 2000-12-21  Andrew Innes  <andrewi@gnu.org>
 
 	* w32term.c (x_update_begin): Regenerate the palette here, rather
