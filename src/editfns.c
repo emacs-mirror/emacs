@@ -43,7 +43,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 Lisp_Object Vsystem_name;
 Lisp_Object Vuser_real_name;	/* login name of current user ID */
 Lisp_Object Vuser_full_name;	/* full name of current user */
-Lisp_Object Vuser_name;		/* user name from USER or LOGNAME.  */
+Lisp_Object Vuser_name;		/* user name from LOGNAME or USER */
 
 void
 init_editfns ()
@@ -76,9 +76,9 @@ init_editfns ()
 
   /* Get the effective user name, by consulting environment variables,
      or the effective uid if those are unset.  */
-  user_name = (char *) getenv ("USER");
+  user_name = (char *) getenv ("LOGNAME");
   if (!user_name)
-    user_name = (char *) getenv ("LOGNAME");
+    user_name = (char *) getenv ("USER");
   if (!user_name)
     {
       pw = (struct passwd *) getpwuid (geteuid ());
@@ -483,7 +483,7 @@ If POS is out of range, the value is nil.")
 DEFUN ("user-login-name", Fuser_login_name, Suser_login_name, 0, 0, 0,
   "Return the name under which the user logged in, as a string.\n\
 This is based on the effective uid, not the real uid.\n\
-Also, if the environment variable USER or LOGNAME is set,\n\
+Also, if the environment variable LOGNAME or USER is set,\n\
 that determines the value of this function.")
   ()
 {
