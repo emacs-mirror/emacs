@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.15 2002/03/18 17:20:43 spiegel Exp $
+;; $Id: vc-sccs.el,v 1.16 2002/10/08 15:35:03 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -211,7 +211,9 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 	 (and rev
 	      (concat "-r"
 		      (vc-sccs-lookup-triple file rev)))
-	 vc-checkout-switches))
+	 (if (stringp vc-checkout-switches)
+	     (list vc-checkout-switches)
+	   vc-checkout-switches)))
 
 (defun vc-sccs-checkout (file &optional editable rev)
   "Retrieve a copy of a saved version of SCCS controlled FILE.
