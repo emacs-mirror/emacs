@@ -1,6 +1,6 @@
 /* impl.c.mpsicv: MPSI COVERAGE TEST
  *
- * $HopeName$
+ * $HopeName: MMsrc!mpsicv.c(trunk.1) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -105,7 +105,7 @@ static void *test(void *arg, size_t s)
   mps_root_t exact_root, ambig_root;
   mps_root_t single_root, fmt_root;
   mps_word_t i;
-  unsigned collections;
+  mps_word_t collections;
   mps_pool_t mv;
   mps_addr_t alloced_obj;
   size_t asize = 32;  /* size of alloced obj */
@@ -179,7 +179,7 @@ static void *test(void *arg, size_t s)
     unsigned c;
     size_t r;
 
-    c = mps_amc_collections((mps_pool_t)amcpool);
+    c = mps_collections(space);
 
     if(collections != c) {
       collections = c;
