@@ -247,7 +247,7 @@ echo "Making links to \`src'."
  ln .gdbinit .dbxinit ../${tempdir}/src
  ln *.opt vms-pp.trans ../${tempdir}/src
  cd ../${tempdir}/src
- rm -f config.h paths.h Makefile
+ rm -f config.h paths.h Makefile Makefile.c
  rm -f =* TAGS)
 
 echo "Making links to \`src/bitmaps'."
@@ -269,7 +269,7 @@ echo "Making links to \`lib-src'."
  ln ChangeLog Makefile.in README testfile vcdiff ../${tempdir}/lib-src
  ln emacs.csh rcs2log rcs-checkin makefile.nt ../${tempdir}/lib-src
  cd ../${tempdir}/lib-src
- rm -f getdate.tab.c y.tab.c y.tab.h
+ rm -f getdate.tab.c y.tab.c y.tab.h Makefile.c
  rm -f =* TAGS)
 
 echo "Making links to \`nt'."
@@ -316,7 +316,7 @@ echo "Making links to \`etc'."
 echo "Making links to \`etc/e'."
 (cd etc/e
  ln `ls -d * | grep -v 'RCS'` ../../${tempdir}/etc/e
- cd ../../${tempdir}/etc
+ cd ../../${tempdir}/etc/e
  rm -f *~ \#*\# *,v =* core)
 
 echo "Making links to \`cpp'."
