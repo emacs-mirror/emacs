@@ -1,3 +1,11 @@
+1999-10-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* fns.c (Flength): Unroll loop over lists.
+
+	* xdisp.c (append_space): Return non-zero if space was appended.
+	(display_line): Set charpos of first glyph to -1 only if that
+	glyph is the space added by append_glyph.
+
 1999-10-29  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (code_convert_region): Update `dst' correctly.
