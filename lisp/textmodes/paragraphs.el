@@ -134,7 +134,8 @@ This is desirable in modes where blank lines are the paragraph delimiters.")
 
 (defun forward-paragraph (&optional arg)
   "Move forward to end of paragraph.
-With arg N, do it N times; negative arg -N means move backward N paragraphs.
+With argument ARG, do it ARG times;
+a negative argument ARG = -N means move backward N paragraphs.
 
 A line which `paragraph-start' matches either separates paragraphs
 \(if `paragraph-separate' matches it also) or is the first line of a paragraph.
@@ -265,7 +266,8 @@ to which the end of the previous line belongs, or the end of the buffer."
 
 (defun backward-paragraph (&optional arg)
   "Move backward to start of paragraph.
-With arg N, do it N times; negative arg -N means move forward N paragraphs.
+With argument ARG, do it ARG times;
+a negative argument ARG = -N means move forward N paragraphs.
 
 A paragraph start is the beginning of a line which is a
 `first-line-of-paragraph' or which is ordinary text and follows a
