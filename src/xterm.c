@@ -3634,6 +3634,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  unsigned char copy_buffer[81];
 		  int modifiers;
 
+#if 0 /* This was how we made f10 work in Motif.
+	 The drawback is, you can't type at Emacs when the
+	 the mouse is in the menu bar.  So it is better to
+	 turn off f10 in Motif and let Emacs handle it.  */
 #ifdef USE_MOTIF
                   if (lw_window_is_in_menubar (event.xkey.window,
                                                f->output_data.x->menubar_widget
@@ -3643,6 +3647,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
                       break;
                     }
 #endif /* USE_MOTIF */
+#endif /* 0 */
 
 		  event.xkey.state
 		    |= x_emacs_to_x_modifiers (FRAME_X_DISPLAY_INFO (f),
