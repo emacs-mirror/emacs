@@ -1166,12 +1166,10 @@ by typing \\[beginning-of-line] \\[kill-line]."
 If ARG is negative, move backward -ARG lines.
 If ARG is zero, move to the beginning of the current line."
   (condition-case nil
-      (if (>= arg 0)
-	  (while (>= arg 0)
-	    (if (zerop arg)
-		(beginning-of-line)
-	      (or (zerop (forward-line 1))
-		  (signal 'end-of-buffer nil)))
+      (if (> arg 0)
+	  (while (> arg 0)
+	    (or (zerop (forward-line 1))
+		(signal 'end-of-buffer nil))
 	    ;; If the following character is currently invisible,
 	    ;; skip all characters with that same `invisible' property value,
 	    ;; then find the next newline.
@@ -1188,22 +1186,26 @@ If ARG is zero, move to the beginning of the current line."
 	      (or (zerop (forward-line 1))
 		  (signal 'end-of-buffer nil)))
 	    (setq arg (1- arg)))
-	(while (< arg 0)
-	  (or (zerop (forward-line -1))
-	      (signal 'beginning-of-buffer nil))
-	  (while (and (not (bobp))
-		      (let ((prop
-			     (get-char-property (1- (point)) 'invisible)))
-			(if (eq buffer-invisibility-spec t)
-			    prop
-			  (or (memq prop buffer-invisibility-spec)
-			      (assq prop buffer-invisibility-spec)))))
-	    (if (get-text-property (1- (point)) 'invisible)
-		(goto-char (previous-single-property-change (point) 'invisible))
-	      (goto-char (previous-overlay-change (point))))
-	    (or (zerop (forward-line -1))
-		(signal 'beginning-of-buffer nil)))
-	  (setq arg (1+ arg))))
+	(let ((first t))
+	  (while (or first (< arg 0))
+	    (if (zerop arg)
+		(beginning-of-line)
+	      (or (zerop (forward-line -1))
+		  (signal 'beginning-of-buffer nil)))
+	    (while (and (not (bobp))
+			(let ((prop
+			       (get-char-property (1- (point)) 'invisible)))
+			  (if (eq buffer-invisibility-spec t)
+			      prop
+			    (or (memq prop buffer-invisibility-spec)
+				(assq prop buffer-invisibility-spec)))))
+	      (if (get-text-property (1- (point)) 'invisible)
+		  (goto-char (previous-single-property-change (point) 'invisible))
+		(goto-char (previous-overlay-change (point))))
+	      (or (zerop (forward-line -1))
+		  (signal 'beginning-of-buffer nil)))
+	    (setq first nil)
+	    (setq arg (1+ arg)))))
     ((beginning-of-buffer end-of-buffer)
      nil)))
 
