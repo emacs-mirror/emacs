@@ -1428,9 +1428,17 @@ scrolling (frame)
 	return 0;
       old_hash[i] = line_hash_code (current_frame, i);
       if (! desired_frame->enable[i])
-	new_hash[i] = old_hash[i];
+	{
+	  /* This line cannot be redrawn, so don't let scrolling mess it.  */
+	  new_hash[i] = old_hash[i];
+#define INFINITY 1000000	/* Taken from scroll.c */
+	  draw_cost[i] = INFINITY;
+	}
       else
-	new_hash[i] = line_hash_code (desired_frame, i);
+	{
+	  new_hash[i] = line_hash_code (desired_frame, i);
+	  draw_cost[i] = line_draw_cost (desired_frame, i);
+	}
 
       if (old_hash[i] != new_hash[i])
 	{
@@ -1439,7 +1447,6 @@ scrolling (frame)
 	}
       else if (i == unchanged_at_top)
 	unchanged_at_top++;
-      draw_cost[i] = line_draw_cost (desired_frame, i);
       old_draw_cost[i] = line_draw_cost (current_frame, i);
     }
 
