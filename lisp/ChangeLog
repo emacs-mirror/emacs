@@ -1,3 +1,10 @@
+2000-05-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/sh-script.el (sh-while-getopts) <sh>: Handle case that
+	user-specified option string is empty.
+
+	* mouse.el (mouse-yank-at-click): Doc fix.
+
 2000-05-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term/internal.el (IT-character-translations): More updates of
