@@ -1,5 +1,60 @@
 2002-07-16  Ken Raeburn  <raeburn@gnu.org>
 
+	* alloc.c (xstrdup, make_string, make_unibyte_string)
+	(make_multibyte_string, build_string): String pointer args now
+	point to const.
+	* charset.c (find_charset_in_text, c_string_width):
+	(chars_in_text, multibyte_chars_in_text, parse_str_as_multibyte):
+	* fileio.c (report_file_error):
+	* insdel.c (copy_text, count_size_as_multibyte, insert_1):
+	(count_combining_before, count_combining_after, insert_1_both):
+	(insert, insert_and_inherit, insert_string):
+	(insert_before_markers, insert_before_markers_and_inherit):
+	* lread.c (intern, oblookup, hash_string):
+	* minibuf.c (temp_echo_area_glyphs):
+	* search.c (fast_c_string_match_ignore_case):
+	* sysdep.c (emacs_open, set_file_times):
+	* xfaces.c (xstricmp):
+	* xdisp.c (store_frame_title, string_char_and_length):
+	(message_dolog, message2, message2_nolog, set_message): Likewise.
+	(set_message_1): Cast message string argument to const pointer.
+	* editfns.c (general_insert_function): Insertion function now
+	takes pointer to const for input data.
+	* charset.h (find_charset_in_text, c_string_width):
+	(parse_str_as_multibyte): Declarations updated.
+	* dispextern.h (xstricmp): Declaration updated.
+	* lisp.h (chars_in_text, multibyte_chars_in_text, copy_text):
+	(count_size_as_multibyte, count_combining_before):
+	(count_combining_after, insert_1, insert_1_both, message_dolog):
+	(insert, insert_and_inherit, insert_before_markers)
+	(insert_before_markers_and_inherit, set_message, message2):
+	(message2_dolog, build_string, make_string, make_unibyte_string):
+	(make_multibyte_string, intern, oblookup, report_file_error):
+	(fast_c_string_match_ignore_case, temp_echo_area_glyphs):
+	(emacs_open, xstrdup): Declarations updated.
+	* systime.h (set_file_times): Declaration updated.
+
+	* charset.c (find_charset_in_text, lisp_string_width): Use const
+	for pointer to lisp string data.
+	* charset.h (FETCH_STRING_CHAR_ADVANCE):
+	(FETCH_STRING_CHAR_ADVANCE_NO_CHECK):
+	* coding.c (Ffind_coding_systems_region_interval):
+	* fileio.c (Ffile_name_directory, Ffile_name_nondirectory):
+	(Fmake_directory_internal, Fdelete_directory):
+	(Ffile_name_absolute_p, Fwrite_region, double_dollars):
+	* fontset.c (font_family_registry, fs_query_fontset):
+	(list_fontsets):
+	* frame.c (Fframe_parameter):
+	* keyboard.c (cmd_error_internal):
+	* keymap.c (Fdescribe_buffer_bindings):
+	* lread.c (complete_filename_p, openp):
+	* minibuf.c (Fminibuffer_complete_word):
+	* xdisp.c (string_pos_nchars_ahead, init_from_display_pos):
+	(face_before_or_after_it_pos, next_element_from_string):
+	(get_overlay_arrow_glyph_row, display_mode_element):
+	(decode_mode_spec_coding):
+	* xterm.c (same_x_server): Likewise.
+
 	* buffer.c (reset_buffer_local_variables): Delete "#if 0"
 	settings of non-existent fields.
 
