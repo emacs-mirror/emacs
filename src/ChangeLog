@@ -1,3 +1,15 @@
+2001-01-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (build_desired_tool_bar_string, syms_of_xdisp): Use
+	DEFAULT_TOOL_BAR_BUTTON_MARGIN and DEFAULT_TOOL_BAR_BUTTON_RELIEF.
+
+	* dispextern.h (Vtool_bar_button_margin:): Declare extern.
+	(DEFAULT_TOOL_BAR_BUTTON_MARGIN, DEFAULT_TOOL_BAR_BUTTON_RELIEF) 
+	(DEFAULT_TOOL_BAR_IMAGE_HEIGHT): New defines.
+
+	* xfns.c (Fx_create_frame): Add the tool bar height to the frame
+	height.
+
 2001-01-30  Dave Love  <fx@gnu.org>
 
 	* bytecode.c (Fbyte_code) <Bgeq>: Add BEFORE_POTENTIAL_GC and
