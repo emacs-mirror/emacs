@@ -2257,7 +2257,7 @@ See also `c-font-lock-extra-types'.")
 	   (,@ (eval-when-compile
 		 (regexp-opt
 		  '("char" "short" "int" "long" "signed" "unsigned"
-		    "float" "double" "void"))))
+		    "float" "double" "void" "complex"))))
 	   c-font-lock-extra-types)
 	  "\\|"))
        (c-type-names-depth
