@@ -99,9 +99,9 @@ and `current-time-string' are two valid values."
     ("\\[!?\\([^]\n]+\\)\\]\\(:\\| (\\)" (1 font-lock-variable-name-face))
     ;;
     ;; Acknowledgements.
-    ("^\t\\(From\\|Patch\\(es\\)? by\\|Reported by\\)"
+    ("^\t\\(From\\|Patch\\(es\\)? by\\|Report\\(ed by\\| from\\)\\|Suggest\\(ed by\\|ion from\\)\\)"
      1 font-lock-comment-face)
-    ("  \\(From\\|Patch\\(es\\)? by\\|Reported by\\)"
+    ("  \\(From\\|Patch\\(es\\)? by\\|Report\\(ed by\\| from\\)\\|Suggest\\(ed by\\|ion from\\)\\)"
      1 font-lock-comment-face))
   "Additional expressions to highlight in Change Log mode.")
 
