@@ -297,11 +297,12 @@ Value is a list of offsets of the words into the string."
 (defun apropos-score-str (str)
   "Return apropos score for string STR."
   (if str
-      (let ((score 0)
-	    (l (length str))
+      (let* (
+	     (l (length str))
+	     (score (- (/ l 10)))
 	    i)
 	(dolist (s (apropos-calc-scores str apropos-all-words) score)
-	  (setq score (+ score 1000 (- (/ l 10)) (/ (* (- l s) 1000) l)))))
+	  (setq score (+ score 1000 (/ (* (- l s) 1000) l)))))
       0))
 
 (defun apropos-score-doc (doc)
