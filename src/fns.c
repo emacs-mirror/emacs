@@ -40,8 +40,6 @@ Boston, MA 02111-1307, USA.  */
 #define NULL (void *)0
 #endif
 
-#define DEFAULT_NONASCII_INSERT_OFFSET 0x800
-
 /* Nonzero enables use of dialog boxes for questions
    asked by mouse commands.  */
 int use_dialog_box;
@@ -573,9 +571,9 @@ concat (nargs, args, target_type, last_special)
 	      break;
 	    else if (STRINGP (this))
 	      {
+		int c;
 		if (STRING_MULTIBYTE (this))
 		  {
-		    int c;
 		    FETCH_STRING_CHAR_ADVANCE (c, this,
 					       thisindex,
 					       thisindex_byte);
@@ -583,21 +581,11 @@ concat (nargs, args, target_type, last_special)
 		  }
 		else
 		  {
-		    unsigned char c;
 		    XSETFASTINT (elt, XSTRING (this)->data[thisindex++]);
 		    if (some_multibyte && XINT (elt) >= 0200
 			&& XINT (elt) < 0400)
 		      {
-			c = XINT (elt);
-
-			if (! NILP (Vnonascii_translate_table))
-			  c = XINT (Faref (Vnonascii_translate_table,
-					   make_number (c)));
-			else if (nonascii_insert_offset > 0)
-			  c += nonascii_insert_offset;
-			else
-			  c += DEFAULT_NONASCII_INSERT_OFFSET;
-
+			c = unibyte_char_to_multibyte (XINT (elt));
 			XSETINT (elt, c);
 		      }
 		  }
@@ -793,7 +781,7 @@ string_byte_to_char (string, byte_index)
 }
 
 /* Convert STRING to a multibyte string.
-   Single-byte characters 0200 through 0377 are converted
+   Single-byte characters 0240 through 0377 are converted
    by adding nonascii_insert_offset to each.  */
 
 Lisp_Object
