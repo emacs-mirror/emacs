@@ -142,7 +142,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define ORDINARY_LINK
 /* sfreed@unm.edu says add -bI:/usr/lpp/X11/bin/smt.exp for AIX 3.2.4.  */
 /* marc@sti.com (Marc Pawliger) says ibmrs6000.inp is needed to avoid
-   linker error for X11R5 library, which references pthread library
+   linker error for updated X11R5 libraries, which references pthread library
    which most machines don't have.  We use the name .inp instead of .imp
    because .inp is a better convention to use in make-dist for naming
    random input files.  */
