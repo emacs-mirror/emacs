@@ -1,7 +1,7 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!mps.h(trunk.63) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
  * .sources: design.mps.interface.c.
@@ -22,6 +22,7 @@ typedef struct mps_arena_s  *mps_arena_t;  /* arena */
 typedef mps_arena_t          mps_space_t;  /* space, for backward comp. */
 typedef struct mps_arena_class_s *mps_arena_class_t;  /* arena class */
 typedef struct mps_pool_s   *mps_pool_t;   /* pool */
+typedef struct mps_chain_s  *mps_chain_t;  /* chain */
 typedef struct mps_fmt_s    *mps_fmt_t;    /* object format */
 typedef struct mps_root_s   *mps_root_t;   /* root */
 typedef struct mps_class_s  *mps_class_t;  /* pool class */
@@ -137,8 +138,6 @@ typedef struct mps_sac_classes_s {
   size_t mps_cached_count;
   unsigned mps_frequency;
 } mps_sac_classes_s;
-
-typedef mps_sac_classes_s mps_sac_classes_t[MPS_SAC_CLASS_LIMIT];
 
 
 /* Location Dependency */
@@ -287,9 +286,18 @@ extern mps_res_t mps_pool_create_v(mps_pool_t *, mps_arena_t,
                                    mps_class_t, va_list);
 extern void mps_pool_destroy(mps_pool_t);
 
+/* .gen-param: This structure must match impl.h.chain.gen-param. */
+typedef struct mps_gen_param_s {
+  size_t mps_capacity;
+  double mps_mortality;
+} mps_gen_param_s;
+
+extern mps_res_t mps_chain_create(mps_chain_t *, mps_arena_t,
+                                  size_t, mps_gen_param_s *);
+extern void mps_chain_destroy(mps_chain_t);
+
 extern mps_res_t mps_alloc(mps_addr_t *, mps_pool_t, size_t, ...);
-extern mps_res_t mps_alloc_v(mps_addr_t *, mps_pool_t, size_t,
-                             va_list);
+extern mps_res_t mps_alloc_v(mps_addr_t *, mps_pool_t, size_t, va_list);
 extern void mps_free(mps_pool_t, mps_addr_t, size_t);
 
 
@@ -322,7 +330,7 @@ extern mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t);
 /* Segregated-fit Allocation Caches */
 
 extern mps_res_t mps_sac_create(mps_sac_t *, mps_pool_t, size_t,
-                                mps_sac_classes_t);
+                                mps_sac_classes_s *);
 extern void mps_sac_destroy(mps_sac_t);
 extern mps_res_t mps_sac_alloc(mps_addr_t *, mps_sac_t, size_t, mps_bool_t);
 extern void mps_sac_free(mps_sac_t, mps_addr_t, size_t);
