@@ -12268,22 +12268,22 @@ options are available; @pxref{Mode Settings in Embedded Mode}.
 @kindex m F
 @pindex calc-settings-file-name
 The @kbd{m F} (@code{calc-settings-file-name}) command allows you to
-choose a different place than your @file{.emacs} file for @kbd{m m},
-@kbd{Z P}, and similar commands to save permanent information.
+choose a different file than the current value of @code{calc-settings-file}
+for @kbd{m m}, @kbd{Z P}, and similar commands to save permanent information.
 You are prompted for a file name.  All Calc modes are then reset to
 their default values, then settings from the file you named are loaded
 if this file exists, and this file becomes the one that Calc will
 use in the future for commands like @kbd{m m}.  The default settings
-file name is @file{~/.emacs}.  You can see the current file name by
+file name is @file{~/.calc.el}.  You can see the current file name by
 giving a blank response to the @kbd{m F} prompt.  See also the
 discussion of the @code{calc-settings-file} variable; @pxref{Installation}.
 
-If the file name you give contains the string @samp{.emacs} anywhere
-inside it, @kbd{m F} will not automatically load the new file.  This
-is because you are presumably switching to your @file{~/.emacs} file,
-which may contain other things you don't want to reread.  You can give
+If the file name you give is your user init file (typically
+@file{~/.emacs}), @kbd{m F} will not automatically load the new file.  This
+is because your user init file may contain other things you don't want
+to reread.  You can give 
 a numeric prefix argument of 1 to @kbd{m F} to force it to read the
-file no matter what its name.  Conversely, an argument of @mathit{-1} tells
+file no matter what.  Conversely, an argument of @mathit{-1} tells
 @kbd{m F} @emph{not} to read the new file.  An argument of 2 or @mathit{-2}
 tells @kbd{m F} not to reset the modes to their defaults beforehand,
 which is useful if you intend your new file to have a variant of the
@@ -34497,8 +34497,8 @@ the same side, best if you plan to be binding single-sided pages.
 Another variable you might want to set is @code{calc-settings-file},
 which holds the file name in which commands like @kbd{m m} and @kbd{Z P}
 store ``permanent'' definitions.  The default value for this variable
-is @code{"~/.emacs"}.  If @code{calc-settings-file} does not contain
-@code{".emacs"} as a substring, and if the variable
+is @code{"~/.calc.el"}.  If @code{calc-settings-file} is not your user
+init file (typically @file{~/.emacs}) and if the variable
 @code{calc-loaded-settings-file} is @code{nil}, then Calc will
 automatically load your settings file (if it exists) the first time
 Calc is invoked.
