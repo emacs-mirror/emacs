@@ -126,6 +126,7 @@ The value should look like the `cdr' of an item in `font-lock-defaults-alist'.")
     (latex-mode .		(tex-font-lock-keywords))
     (lisp-mode .		(lisp-font-lock-keywords))
     (plain-tex-mode .		(tex-font-lock-keywords))
+    (scheme-mode .		(lisp-font-lock-keywords))
     (slitex-mode .		(tex-font-lock-keywords))
     (tex-mode .			(tex-font-lock-keywords)))
   "*Alist of default major mode and Font Lock defaults.
