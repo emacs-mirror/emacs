@@ -1,3 +1,10 @@
+2002-03-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* process.c (Fmake_network_process): Remove unused variable `sa'.
+	Doc fix.  Add usage:.
+	(set_socket_options): Remove unused variables `optnum' and
+	`opttype'.
+
 2002-03-17  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (cursor_type_changed): New variable.
