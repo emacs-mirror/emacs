@@ -2609,7 +2609,7 @@ fast_find_position (window, pos, columnp, rowp)
       else if (charstarts[left + i] > pos)
 	break;
       else if (charstarts[left + i] > 0)
-	lastcol = left + i;
+	lastcol = left + i + 1;
     }
 
   /* If we're looking for the end of the buffer,
@@ -5834,7 +5834,7 @@ x_make_frame_visible (f)
     /* This must come after we set COUNT.  */
     UNBLOCK_INPUT;
 
-    /* Arriving X events are processed here.  */
+    /* We unblock here so that arriving X events are processed.  */
 
     /* Now move the window back to where it was "supposed to be".
        But don't do it if the gravity is negative.
@@ -5849,15 +5849,27 @@ x_make_frame_visible (f)
 	&& f->output_data.x->win_gravity == NorthWestGravity
 	&& previously_visible)
       {
+	Drawable rootw;
+	int x, y;
+	unsigned int width, height, border, depth;
+
 	BLOCK_INPUT;
 
-#ifdef USE_X_TOOLKIT
-	XMoveWindow (FRAME_X_DISPLAY (f), XtWindow (f->output_data.x->widget),
-		     original_left, original_top);
-#else /* not USE_X_TOOLKIT */
-	XMoveWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		     original_left, original_top);
-#endif /* not USE_X_TOOLKIT */
+	/* On some window managers (Such as FVWM) moving an existing window,
+	   even to the same place, causes the window manager to introduce
+	   an offset.  This can cause the window to move to an unexpected
+	   location.  Check the geometry (A little slow here) and then verify
+	   that the window is in the right place.  If the window is not in
+	   the right place, move it there, and take the potential window
+	   manager hit. */
+
+	XGetGeometry (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+		      &rootw, &x, &y, &width, &height, &border, &depth);
+
+	if (original_left != x || original_top != y)
+	  XMoveWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+		       original_left, original_top);
+
 	UNBLOCK_INPUT;
       }
 
@@ -6485,6 +6497,7 @@ x_list_fonts (f, pattern, size, maxnames)
 	    }
 	  else
 	    try_XLoadQueryFont = 0;
+	  XFreeFont (font);
 	}
 
       if (!try_XLoadQueryFont)
