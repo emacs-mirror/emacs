@@ -1,0 +1,25 @@
+# impl.gmk.iam4cc: BUILD FOR IRIX 6 N32/MIPS IV/CC PLATFORM
+#
+#  $HopeName$
+#
+#  Copyright (C) 1997 Harlequin Group, all rights reserved
+#
+#  This is the GNU makefile for platform.iam4cc.
+
+PFM = iam4cc
+PFMDEFS = 
+
+MPM = assert.c ring.c mpsliban.c mpm.c \
+      arenavm.c space.c pool.c poolmfs.c \
+      poolmv.c root.c format.c buffer.c lockan.c ref.c \
+      trace.c than.c protan.c shield.c mpsi.c ld.c vman.c ssan.c
+SW = assert.c ring.c mpm.c arenacl.c space.c pool.c poolmfs.c \
+     poolmv.c root.c format.c buffer.c lockan.c ref.c \
+     trace.c than.c protsw.c shield.c mpsisw.c ld.c ssan.c poolepdl.c
+
+LIBS = -lm
+
+LINKFLAGS = -n32
+CFLAGS_ABI_HACK = -n32
+
+include i6cc.gmk
