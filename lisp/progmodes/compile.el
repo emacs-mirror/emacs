@@ -550,9 +550,8 @@ See `compilation-mode'."
 		      (insert " at " (substring (current-time-string) 0 19))
 		      (forward-char 1)
 		      (setq mode-line-process
-			    (concat ":"
-				    (symbol-name (process-status proc))
-				    " [" (process-exit-status proc) "]"))
+			    (format ":%s [%d]" (process-status proc)
+				    (process-exit-status proc)))
 		      ;; Since the buffer and mode line will show that the
 		      ;; process is dead, we can delete it now.  Otherwise it
 		      ;; will stay around until M-x list-processes.
