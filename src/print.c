@@ -700,7 +700,7 @@ DEFUN ("prin1", Fprin1, Sprin1, 1, 2, 0,
 Quoting characters are printed when needed to make output that `read'\n\
 can handle, whenever this is possible.\n\
 \n\
-OBJECT is any of the Lisp data types: a number, a a string, a symbol,\n\
+OBJECT is any of the Lisp data types: a number, a string, a symbol,\n\
 a list, a buffer, a window, a frame, etc.\n\
 \n\
 A printed representation of an object is text which describes that object.\n\
@@ -742,7 +742,7 @@ any Lisp object.  Quoting characters are used when needed to make output\n\
 that `read' can handle, whenever this is possible, unless the optional\n\
 second argument NOESCAPE is non-nil.\n\
 \n\
-OBJECT is any of the Lisp data types: a number, a a string, a symbol,\n\
+OBJECT is any of the Lisp data types: a number, a string, a symbol,\n\
 a list, a buffer, a window, a frame, etc.\n\
 \n\
 A printed representation of an object is text which describes that object.")
@@ -782,7 +782,7 @@ DEFUN ("princ", Fprinc, Sprinc, 1, 2, 0,
 No quoting characters are used; no delimiters are printed around\n\
 the contents of strings.\n\
 \n\
-OBJECT is any of the Lisp data types: a number, a a string, a symbol,\n\
+OBJECT is any of the Lisp data types: a number, a string, a symbol,\n\
 a list, a buffer, a window, a frame, etc.\n\
 \n\
 A printed representation of an object is text which describes that object.\n\
@@ -817,7 +817,7 @@ DEFUN ("print", Fprint, Sprint, 1, 2, 0,
 Quoting characters are printed when needed to make output that `read'\n\
 can handle, whenever this is possible.\n\
 \n\
-OBJECT is any of the Lisp data types: a number, a a string, a symbol,\n\
+OBJECT is any of the Lisp data types: a number, a string, a symbol,\n\
 a list, a buffer, a window, a frame, etc.\n\
 \n\
 A printed representation of an object is text which describes that object.\n\
