@@ -24,7 +24,7 @@
 ;; If these settings are not right, override them with `setq'
 ;; in site-init.el.  Do not change this file.
 
-(defvar Info-directory-list
+(defvar Info-default-directory-list
   (list "/usr/local/lib/info/"
 	(expand-file-name "../info/" exec-directory))
   "List of directories to search for Info documentation files.")
