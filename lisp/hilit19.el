@@ -974,35 +974,12 @@ the entire buffer is forced."
 		     vm-preview-message-hook
 		     vm-show-message-hook
 
-		     gnus-article-prepare-hook
-		     gnus-summary-prepare-hook
-		     gnus-group-prepare-hook
-
 		     rmail-show-message-hook
 		     mail-setup-hook 
 		     mh-show-mode-hook
 
 		     dired-after-readin-hook
 		     ))
-
-	   ;; rehighlight only visible part of summary buffer for speed.
-	   (add-hook 'gnus-mark-article-hook
-		     (function
-		      (lambda ()
-			(or (memq gnus-current-article gnus-newsgroup-marked)
-			    (gnus-summary-mark-as-read gnus-current-article))
-			(gnus-summary-set-current-mark)
-			(save-excursion
-			  (set-buffer gnus-summary-buffer)
-			  (hilit-rehighlight-region (window-start)
-						    (window-end) t)
-			  ))))
-	   ;; only need prepare article hook
-	   ;;
-	   ;;	(add-hook 'gnus-select-article-hook
-	   ;;		  '(lambda () (save-excursion
-	   ;;				(set-buffer gnus-article-buffer)
-	   ;;				(hilit-rehighlight-buffer))))
 	   )
        (error (message "Error loading highlight hooks: %s" c)
 	      (ding) (sit-for 1))))
@@ -1330,20 +1307,10 @@ number of backslashes."
 
 (hilit-set-mode-patterns
  'gnus-group-mode
- '(("^U.*$" nil gnus-group-unsubscribed)
-   ("^ +[01]?[0-9]:.*$" nil gnus-group-empty)
+ '(("^ U.*$" nil gnus-group-unsubscribed)
+   ("^\\*? +[01]?[0-9]:.*$" nil gnus-group-empty)
    ("^ +[2-9][0-9]:.*$" nil gnus-group-full)
    ("^ +[0-9][0-9][0-9]+:.*$" nil gnus-group-overflowing)))
-
-(hilit-set-mode-patterns
- 'gnus-summary-mode
- '(("^D +[0-9]+: \\[.*$" nil summary-seen)
-   ("^K +[0-9]+: \\[.*$" nil summary-killed)
-   ("^X +[0-9]+: \\[.*$" nil summary-Xed)
-   ("^- +[0-9]+: \\[.*$" nil summary-unread)
-   ("^. +[0-9]+:\\+\\[.*$" nil summary-current)
-   ("^  +[0-9]+: \\[.*$" nil summary-new)
-   ))
 
 (hilit-set-mode-patterns
  'vm-summary-mode
