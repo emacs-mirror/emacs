@@ -4,7 +4,6 @@
 
 ;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
 ;; Keywords: strings, regexps
-;; Version: 1.05.01
 
 ;; This file is part of GNU Emacs.
 
@@ -84,9 +83,9 @@
 ;;;###autoload
 (defun regexp-opt (strings &optional paren)
   "Return a regexp to match a string in STRINGS.
-Each string should be unique in STRINGS and should not contain any regexps.
-If optional PAREN non-nil, ensure that the returned regexp is enclosed by at
-least one regexp grouping construct.
+Each string should be unique in STRINGS and should not contain any regexps,
+quoted or not.  If optional PAREN is non-nil, ensure that the returned regexp
+is enclosed by at least one regexp grouping construct.
 The returned regexp is typically more efficient than the equivalent regexp:
 
  (let ((open-paren (if PAREN \"\\\\(\" \"\")) (close-paren (if PAREN \"\\\\)\" \"\")))
