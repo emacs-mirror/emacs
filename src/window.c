@@ -4426,7 +4426,7 @@ Default for ARG is window width minus 2.")
   hscroll = XINT (w->hscroll) + XINT (arg);
   result = Fset_window_hscroll (selected_window, make_number (hscroll));
 
-  if (!NILP (Finteractive_p ()))
+  if (interactive_p (0))
     w->min_hscroll = w->hscroll;
 
   return result;
@@ -4450,7 +4450,7 @@ Default for ARG is window width minus 2.")
   hscroll = XINT (w->hscroll) - XINT (arg);
   result = Fset_window_hscroll (selected_window, make_number (hscroll));
   
-  if (!NILP (Finteractive_p ()))
+  if (interactive_p (0))
     w->min_hscroll = w->hscroll;
 
   return result;
