@@ -377,10 +377,9 @@ Used to decide whether to save completions.")
   "True iff the current window is the minibuffer."
   (window-minibuffer-p (selected-window)))
 
+;; This used to be `(eval form)'.  Eval FORM at run time now.
 (defmacro cmpl-read-time-eval (form)
-  ;; Like the #. reader macro
-  (eval form))
-
+  form)
 
 ;;;-----------------------------------------------
 ;;; String case coercion
@@ -444,8 +443,9 @@ Used to decide whether to save completions.")
 
 (defun cmpl-hours-since-origin ()
   (let ((time (current-time)))
-    (+ (* (/ (car time) 3600.0) (lsh 1 16))
-       (/ (nth 2 time) 3600.0))))
+    (truncate
+     (+ (* (/ (car time) 3600.0) (lsh 1 16))
+	(/ (nth 2 time) 3600.0)))))
 
 ;;;---------------------------------------------------------------------------
 ;;; "Symbol" parsing functions
@@ -1579,7 +1579,8 @@ STRING must be longer than `completion-prefix-min-length'."
   (if completion-to-accept (accept-completion))
   (setq cmpl-starting-possibilities
 	(cmpl-prefix-entry-head
-	  (find-cmpl-prefix-entry (downcase (substring string 0 3))))
+	  (find-cmpl-prefix-entry
+	   (downcase (substring string 0 completion-prefix-min-length))))
 	cmpl-test-string string
 	cmpl-test-regexp (concat (regexp-quote string) "."))
   (completion-search-reset-1)
