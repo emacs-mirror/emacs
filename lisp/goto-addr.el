@@ -130,22 +130,26 @@ and `goto-address-fontify-p'."
       (if (< (- (point-max) (point)) goto-address-fontify-maximum-size)
 	  (progn
 	    (while (re-search-forward goto-address-url-regexp nil t)
-              (let ((s (match-beginning 0))
-                    (e (match-end 0)))
+              (let* ((s (match-beginning 0))
+                     (e (match-end 0))
+                     (this-overlay (make-overlay s e)))
 		(and goto-address-fontify-p
-		     (put-text-property s e 'face goto-address-url-face))
-		(put-text-property s e 'mouse-face goto-address-url-mouse-face)
-		(put-text-property
-		 s e 'local-map goto-address-highlight-keymap)))
+                     (overlay-put this-overlay 'face goto-address-url-face))
+		(overlay-put this-overlay
+                             'mouse-face goto-address-url-mouse-face)
+		(overlay-put this-overlay
+                             'local-map goto-address-highlight-keymap)))
 	    (goto-char (point-min))
 	    (while (re-search-forward goto-address-mail-regexp nil t)
-              (let ((s (match-beginning 0))
-                    (e (match-end 0)))
+              (let* ((s (match-beginning 0))
+                     (e (match-end 0))
+                     (this-overlay (make-overlay s e)))
 		(and goto-address-fontify-p
-		     (put-text-property s e 'face goto-address-mail-face))
-		(put-text-property s e 'mouse-face goto-address-mail-mouse-face)
-		(put-text-property
-		 s e 'local-map goto-address-highlight-keymap)))))
+                     (overlay-put this-overlay 'face goto-address-mail-face))
+                (overlay-put this-overlay 'mouse-face
+                             goto-address-mail-mouse-face)
+                (overlay-put this-overlay
+                             'local-map goto-address-highlight-keymap)))))
       (and (buffer-modified-p)
 	   (not modified)
 	   (set-buffer-modified-p nil)))))
