@@ -537,7 +537,7 @@ read_emacs_mule_char (c, readbyte, readcharfun)
 
   if (len == 2)
     {
-      charset = emacs_mule_charset[buf[0];
+      charset = emacs_mule_charset[buf[0]];
       code = buf[1] & 0x7F;
     }
   else if (len == 3)
