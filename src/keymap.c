@@ -522,7 +522,7 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 
     /* t_binding is where we put a default binding that applies,
        to use in case we do not find a binding specifically
-       for this key sequence.
+       for this key sequence.  */
 
     Lisp_Object t_binding;
     t_binding = Qnil;
