@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate February  2, 1999
+@set lastupdate February 13, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -602,13 +602,6 @@ and all the other standard project progress reports.
 
 @item
 Grammar and style checking programs.
-
-@item
-A program to calculate nutritional information from recipes.
-
-There is a free (unambiguously public domain) database of nutritional
-information compiled by the USDA at
-@url{http://www.nal.usda.gov/fnic/foodcomp}.
 
 @item
 A fast emulator for the i386, which would make it possible
