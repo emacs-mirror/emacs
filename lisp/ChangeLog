@@ -1,3 +1,16 @@
+2001-05-04  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-electric-delete, c-electric-delete-forward): Split
+	`c-electric-delete' into two functions where
+	`c-electric-delete-forward' always deletes forward and
+	`c-electric-delete' only contains the code necessary for XEmacs to
+	choose between backward and forward deletion.
+	
+	* cc-mode.el: `c-electric-delete-forward' is now bound to C-d to
+	get the electric behavior on that key too.
+	(c-fill-paragraph): Fixed bogus direct use of
+	c-comment-prefix-regexp, which caused an error when it's a list.
+
 2001-05-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dired-aux.el (dired-diff): Doc fix.
