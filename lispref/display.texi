@@ -1049,7 +1049,9 @@ This creates and returns a display table.  The table initially has
 element says how to display the character code @var{n}.  The value
 should be @code{nil} or a vector of glyph values (@pxref{Glyphs}).  If
 an element is @code{nil}, it says to display that character according to
-the usual display conventions (@pxref{Usual Display}).
+the usual display conventions (@pxref{Usual Display}).  Note that the
+display table has no effect on the tab and newline characters; they are
+always displayed as whitespace in their usual special fashion.
 
   The remaining five elements of a display table serve special purposes,
 and @code{nil} means use the default stated below.
