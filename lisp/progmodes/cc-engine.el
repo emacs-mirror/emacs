@@ -265,7 +265,7 @@
 ;; situations to speed up recognition; it isn't mandatory that font
 ;; locking is in use.  This variable is extended with the face in
 ;; `c-doc-face-name' when fontification is activated in cc-fonts.el.
-(defconst c-literal-faces
+(defvar c-literal-faces
   '(font-lock-comment-face font-lock-string-face))
 
 
