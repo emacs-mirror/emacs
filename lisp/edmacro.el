@@ -698,8 +698,7 @@ If START or END is negative, it counts from the end."
 			     ;; and C-? is not used (we use DEL instead).
 			     (string-match "[@-_a-z]" word))
 			(setq key (list (+ bits (- ?\C-\^@)
-					   (if (equal word "?") 127
-					     (logand (aref word 0) 31))))))
+					   (logand (aref word 0) 31)))))
 		       (t
 			(setq key (list (+ bits (aref word 0)))))))))
 	(when key
