@@ -483,7 +483,7 @@ value is @code{t}, so that Emacs does write backup files.
 Control}), the variable @code{vc-make-backup-files} determines whether
 to make backup files.  By default, it is @code{nil}, since backup files
 are redundant when you store all the previous versions in a version
-control system.  @xref{VC Workfile Handling}.
+control system.  @xref{General VC Options}.
 
 @vindex backup-enable-predicate
 @vindex temporary-file-directory
@@ -1061,8 +1061,9 @@ file just once.  Version control systems also record history information
 such as the creation time of each version, who created it, and a 
 description of what was changed in that version.
 
-  The Emacs version control interface is called VC.  Its commands work
-with three version control systems---RCS, CVS and SCCS.  The GNU
+  The Emacs version control interface is called VC.  It allows you to
+use various version control systems from within
+Emacs---currently, it supports RCS, CVS, and SCCS.  The GNU
 project recommends RCS and CVS, which are free software and available
 from the Free Software Foundation.  We also have free software to
 replace SCCS, known as CSSC; if you are using SCCS and don't want to
@@ -1075,6 +1076,7 @@ make the incompatible change to RCS or CVS, you can switch to CSSC.
 * Old Versions::        Examining and comparing old versions.
 * Secondary VC Commands::    The commands used a little less frequently.
 * Branches::            Multiple lines of development.
+* Remote Repositories:: Efficient access to remote CVS servers.
 * Snapshots::           Sets of file versions treated as a unit.
 * Miscellaneous VC::    Various other commands and features of VC.
 * Customizing VC::      Variables that change VC's behavior.
@@ -1178,7 +1180,7 @@ permitted; check-in is still the way to record a new version.
   CVS normally allows each user to modify his own copy of the work file
 at any time, but requires merging with changes from other users at
 check-in time.  However, CVS can also be set up to require locking.
-(@pxref{Backend Options}).
+(@pxref{CVS Options}).
 
 @node VC Mode Line
 @subsection Version Control and the Mode Line
@@ -1224,6 +1226,7 @@ RCS normally use locking; CVS normally does not use locking.
 @menu
 * VC with Locking::     RCS in its default mode, SCCS, and optionally CVS.
 * Without Locking::     Without locking: default mode for CVS.
+* Extended Actions::    Avanced features available with a prefix argument.
 * Log Buffer::          Features available in log entry buffers.
 @end menu
                
@@ -1273,8 +1276,10 @@ work file.
 @item
 If some other user has checked in changes into the master file,
 Emacs asks you whether you want to merge those changes into your own
-work file (@pxref{Merging}).  You must do this before you can check in
-your own changes.
+work file.  You must do this before you can check in
+your own changes.  (To pick up any recent changes from the master file
+@emph{without} trying to commit your own changes, type @kbd{C-x v m RET}.)
+@xref{Merging}.
 
 @item
 If there are no new changes in the master file, but you have made
@@ -1300,6 +1305,31 @@ with RCS in a future Emacs version.
   In addition, locking is possible with RCS even in this mode, although
 it is not required; @kbd{C-x C-q} with an unmodified file locks the
 file, just as it does with RCS in its normal (locking) mode.
+
+@node Extended Actions
+@subsubsection Calling @code{vc-next-action} with a Prefix Argument
+
+When you give a prefix argument to @code{vc-next-action} (@kbd{C-u C-x
+C-q}), it still performs the next logical version control operation, but
+in an extended sense.
+
+@itemize @bullet
+@item If the file is modified (or locked), you can specify the version
+number that should be used for check-in.  This is also one way to create
+a new branch (@pxref{Branches}).
+
+@item If the file is not modified (and unlocked), you can specify a new
+version to go to; this lets you start working from an older version, or
+on another branch.  If you do not enter any version, that takes you to
+the highest version on the current branch; therefore @kbd{C-u C-x C-q
+RET} is a convenient way to get the latest version of a file from the
+repository.
+
+@item Regardless of the state of the file, you can also enter the name
+of another version control system instead of a version number.  This
+lets you use more than one version control system for a file
+(@pxref{Local Version Control}).
+@end itemize
 
 @node Log Buffer
 @subsubsection Features of the Log Entry Buffer
@@ -1376,14 +1406,21 @@ specifies the current contents of the work file (which may be different
 from all the checked-in versions).  You can also specify a snapshot name
 (@pxref{Snapshots}) instead of one or both version numbers.
 
-  This command works by running the @code{diff} utility, getting the
-options from the variable @code{diff-switches}.  It displays the output
-in a special buffer in another window.  Unlike the @kbd{M-x diff}
-command, @kbd{C-x v =} does not try to locate the changes in the old and
-new versions.  This is because normally one or both versions do not
-exist as files when you compare them; they exist only in the records of
-the master file.  @xref{Comparing Files}, for more information about
-@kbd{M-x diff}.
+@vindex diff-switches
+@vindex vc-diff-switches
+  This command works by running a variant of the @code{diff} utility
+that is specific to the version control system in use.  Emacs passes the
+contents of the variable @code{diff-switches} to that utility; you can
+define specific options for version control in @code{vc-diff-switches},
+and there are similar variables for each specific system,
+e.g. @code{vc-rcs-diff-switches}, and the like.
+
+  The output of the @code{diff} command is displayed in a special buffer
+in another window.  Unlike the @kbd{M-x diff} command, @kbd{C-x v =}
+does not try to locate the changes in the old and new versions.  This is
+because normally one or both versions do not exist as files when you
+compare them; they exist only in the records of the master file.
+@xref{Comparing Files}, for more information about @kbd{M-x diff}.
 
 @findex vc-annotate
 @kindex C-x v g
@@ -1421,14 +1458,20 @@ then typing @w{@kbd{C-x v i}} (@code{vc-register}).
 Register the visited file for version control.
 @end table
 
-@vindex vc-default-back-end
   To register the file, Emacs must choose which version control system
-to use for it.  You can specify your choice explicitly by setting
-@code{vc-default-back-end} to @code{RCS}, @code{CVS} or @code{SCCS}.
-Otherwise, if there is a subdirectory named @file{RCS}, @file{SCCS}, or
-@file{CVS}, Emacs uses the corresponding version control system.  In the
-absence of any specification, the default choice is RCS if RCS is
-installed, otherwise SCCS.
+to use for it.  If the file's directory already contains files
+registered in a version control system, Emacs uses that system.  If
+there is more than one system in use for a directory, Emacs uses the one
+that appears first in @var{vc-handled-backends} (@pxref{Customizing VC}).
+On the other hand, if there are no files already registered,
+Emacs uses the first system from @var{vc-handled-backends} that could
+register the file---for example, you cannot register a file under CVS if
+its directory is not already part of a CVS tree.
+
+  With the default value of @var{vc-handled-backends}, this means that
+Emacs uses RCS if there are any files under RCS control, and CVS if
+there are any files under CVS.  If there are no files under version
+control, RCS is used.
 
   If locking is in use, @kbd{C-x v i} leaves the file unlocked and
 read-only.  Type @kbd{C-x C-q} if you wish to start editing it.  After
@@ -1679,7 +1722,7 @@ locked.
 
   You can omit the minor version number, thus giving only the branch
 number; this takes you to the head version on the chosen branch.  If you
-only type @key{RET}, Emacs goes to the highest version on the trunk.
+only type @kbd{RET}, Emacs goes to the highest version on the trunk.
 
   After you have switched to any branch (including the main branch), you
 stay on it for subsequent VC commands, until you explicitly select some
@@ -1736,10 +1779,17 @@ Merge changes into the work file.
 @kindex C-x v m
 @findex vc-merge
   @kbd{C-x v m} (@code{vc-merge}) takes a set of changes and merges it
-into the current version of the work file.  It first asks you for a
-branch number or a pair of version numbers in the minibuffer.  Then it
-finds the changes from that branch, or between the two versions you
-specified, and merges them into the current version of the current file.
+into the current version of the work file.  It firsts asks you in the
+minibuffer where the changes should come from.  If you just type
+@kbd{RET}, Emacs merges any changes that were made on the same branch
+since you checked the file out (we call this @dfn{merging the news}).
+This is the common way to pick up recent changes from the repository,
+regardless of whether you have already changed the file yourself.
+
+  You can also enter a branch number or a pair of version numbers in
+the minibuffer.  Then it finds the changes from that branch, or between
+the two versions you specified, and merges them into the current version
+of the current file.
 
   As an example, suppose that you have finished a certain feature on
 branch 1.3.1.  In the meantime, development on the trunk has proceeded
@@ -1812,6 +1862,166 @@ explicitly in each session which branch you are working on.  To do this,
 first find the file, then type @kbd{C-u C-x C-q} and specify the correct
 branch number.  This ensures that Emacs knows which branch it is using
 during this particular editing session.
+
+@node Remote Repositories
+@subsection Remote Repositories
+@cindex remote repositories (CVS)
+
+Many projects set up a central CVS repository somewhere in the Internet,
+and let each user check out a personal working copy of the files to
+his local machine.  Committing changes to the repository, and picking
+up changes from other users into one's own working area, then works by
+direct interactions with the CVS server.  
+
+The problem is that access to the CVS server is often slow, and that
+developers might need to work offline as well.  VC therefore offers
+some features that allow you to keep network interactions to a
+minimum.
+
+@menu
+* Version Backups::        Keeping local copies of repository versions.
+* Local Version Control::  Using another version system for local editing.
+@end menu
+
+@node Version Backups
+@subsubsection Version Backups
+@cindex version backups
+
+When VC sees that the CVS repository for a file is on a remote machine,
+it automatically makes local backups of unmodified versions of the file.
+This means that you can compare the file to the repository version
+(@kbd{C-x v =}), or revert to that version (@kbd{C-x v u}), without any
+network interactions.
+
+The local copy of the unmodified file is called a @dfn{version backup}.
+This is to indicate that it corresponds exactly to a version that is
+stored in the repository.  Note that version backups are related to,
+but distinct from the other kinds of backups that Emacs can make:
+single backups and numbered backups (@pxref{Backup}).
+
+@vindex vc-cvs-stay-local
+For a file that comes from a remote CVS repository, VC makes a version
+backup whenever you save the first changes to the file, and removes it
+after you have committed your modified version to the repository.  (You
+can switch this off by setting the variable @code{vc-cvs-stay-local} to
+@code{nil}.)
+
+@cindex automatic version backups
+@cindex manual version backups
+The name of a version backup for a file named @var{file}, with version
+@var{version}, is @code{@var{file}.~@var{version}.~}.  Note that this
+naming convention is almost the same as that used by @kbd{C-x v ~}
+(@pxref{Old Versions}), the only difference being the additional dot
+(@samp{.}) after the version number.  This similarity is intentional,
+because both kinds of files store the same kind of information.  To
+distinguish between them, we speak of @dfn{automatic version backups}
+(those created by the mechanism described here) and @dfn{manual version
+backups} (created by @kbd{C-x v ~}).  Their primary difference is that
+Emacs deletes automatic version backups when you commit to the
+repository (this is why the trailing dot is needed to identify them),
+while manual version backups are never deleted automatically.
+
+Each of the two mechanisms can use the files created by the other one.
+For example, if you changed a file outside of Emacs, so that no
+automatic version backup was created, you can create a manual backup of
+that version using @kbd{C-x v ~}.  Emacs will then use that file for
+local diff and revert operations.
+
+@node Local Version Control
+@subsubsection Local Version Control
+@cindex local version control
+@cindex local back end (version control)
+
+When you make many changes to a file that comes from a remote
+repository, it can be convenient to have version control on your local
+machine as well.  You can then record intermediate versions, revert to
+a previous state, etc., before you actually commit your changes to the
+remote server.
+
+VC lets you do this by putting a file under a second, local version
+control system, so that the file is effectively registered in two
+systems at the same time.  For the description here, we will assume
+that the remote system is CVS, and you use RCS locally, although the
+mechanism works with any combination of version control systems
+(@dfn{back ends}).
+
+To make it work with other back ends, you must make sure that the "more
+local" back end comes before the "more remote" back end in the setting
+of @var{vc-handled-backends} (@pxref{Customizing VC}).  By default, this
+variable is set up correctly so that you can use RCS and CVS as
+described here.
+
+To start using local RCS for a file that comes from a remote CVS server,
+you must @dfn{commit the file to RCS}, by typing @kbd{C-u C-x v v rcs
+RET}.  (In other words, @code{vc-next-action}, when called with a prefix
+argument, accepts a back end name in place of the version to commit to.)
+VC then registers the file under RCS.
+
+You can commit to RCS at any time; it does not matter whether you have
+already modified the file with respect to the version in the CVS
+repository.  If possible, VC tries to make the RCS master start with
+the unmodified repository version, then checking in any local changes
+as a new version.  This works if you have not made any changes yet,
+or if the unmodified repository version exists locally as a version
+backup (@pxref{Version Backups}).  If the unmodified version is not
+available locally, the RCS master starts with the modified version;
+the only problem with this is that you cannot compare your changes
+locally to what is stored in the repository.
+
+The version number of the RCS master is derived from the current CVS
+version, starting a branch from it.  For example, if the current CVS
+version is 1.23, the local RCS branch will be 1.23.1.  Version 1.23 in
+the RCS master will be identical to version 1.23 under CVS; your first
+changes are checked in as 1.23.1.1.  (If the unmodified file is not
+available locally, VC will check-in the modified file twice, both as
+1.23 and 1.23.1.1, to make the revision numbers consistent.)
+
+If you do not use locking under CVS (the default), locking is also
+switched off under RCS, so that editing under RCS works exactly as
+under CVS.  
+
+When you are done with your edits, you can commit the final version back
+to the CVS repository, typing @kbd{C-u C-x v v cvs RET}.  Emacs will
+initialize the log entry buffer (@pxref{Log Buffer}) to contain all the
+check-in comments you have made in the RCS master; you can make changes
+to these comments as needed and then commit to CVS by typing @kbd{C-c
+C-c}.  If the commit is successful, VC finally removes the RCS master,
+so that the file becomes once again registered under CVS only.  (The RCS
+master is not actually deleted, but renamed by adding a @samp{~} to its
+name, so that you can get back to it later if you want.)
+
+While you are working with a local RCS master, you might still want to
+pick up recent changes from the CVS repository into your local file,
+or you might want to commit some of your changes back to CVS, without
+actually switching back to CVS completely.  VC lets you do this by
+switching to another backend temporarily.
+
+@table @kbd
+@item C-x v b
+Switch to any other back end that the current file is registered
+under (@code{vc-switch-backend}).
+@end table
+
+@kindex{C-x v b}
+@findex vc-switch-backend
+If the current file is registered in more than one back end, typing
+@kbd{C-x v b} lets you ``cycle'' through these back ends.  (With a prefix
+argument, it asks for the back end to use in the minibuffer.)  This
+command does not change any files, it only changes VC's perspective of
+the file.  Any other VC commands that you use on a file will operate on
+the back end that is currently selected.
+
+Thus, if you have a file under local RCS, and you want to pick up some
+recent changes from CVS, type @kbd{C-x v b} to switch to CVS, and then
+@kbd{C-x v m RET} to merge the news (@pxref{Merging}).  You can then switch
+back to RCS by typing @kbd{C-x v b} again, and continue to edit locally.
+
+Note though, that if you do this, the revision numbers in the RCS
+master no longer correspond to those of CVS in a meaningful way.
+Technically, this is not a problem, but it might be more difficult for
+you to keep track of what is in the repository and what is not.  So we
+suggest that, frequently, you commit your changes back to CVS
+completely using @kbd{C-u C-x v v cvs RET}.
 
 @node Snapshots
 @subsection Snapshots
@@ -2167,67 +2377,28 @@ headers.
 @node Customizing VC
 @subsection Customizing VC
 
-  There are many ways of customizing VC.  The options you can set fall
-into four categories, described in the following sections.
+@vindex vc-handled-backends
+The variable @var{vc-handled-backends} determines which version
+control systems VC should handle.  The default value is @code{(RCS CVS
+SCCS)}, so it contains all three version systems that are currently
+supported.  If you want VC to ignore one or more of these systems,
+exclude its name from the list.
+
+The order of systems in the list is significant: when you visit a file
+is registered in more than one system (@pxref{Local Version Control}),
+VC uses the system that comes first in @var{vc-handled-backends} by
+default.  The order is also significant when you register a file for
+the first time, @pxref{Registering} for details.
 
 @menu
-* Backend Options::       Customizing the back-end to your needs.
-* VC Workfile Handling::  Various options concerning working files.
-* VC Status Retrieval::   How VC finds the version control status of a file,
-                            and how to customize this.
-* VC Command Execution::  Which commands VC should run, and how.
+* General VC Options::  Options not specific for any back end system.
+* RCS Options::         Options for RCS.
+* CVS Options::         Options for CVS.
+* SCCS Options::        Options for SCCS.
 @end menu
 
-@node Backend Options
-@subsubsection Options for VC Backends
-
-@vindex vc-handled-backends
-  By default, VC detects automatically which files are managed by RCS,
-which by CVS, and which by SCCS, and it tries to do the right thing in
-all three cases.  If you want VC to ignore one or more of these
-backends, set @code{vc-handled-backends} to the list of backends that
-@emph{should} be handled.
-
-@cindex backend options (VC)
-@cindex locking under version control
-  You can tell RCS and CVS whether to use locking for a file or not
-(@pxref{VC Concepts}, for a description of locking).  VC automatically
-recognizes what you have chosen, and behaves accordingly.
-
-@cindex non-strict locking (RCS)
-@cindex locking, non-strict (RCS)
-  For RCS, the default is to use locking, but there is a mode called
-@dfn{non-strict locking} in which you can check-in changes without
-locking the file first.  Use @samp{rcs -U} to switch to non-strict
-locking for a particular file, see the @samp{rcs} manpage for details.
-
-@cindex locking (CVS)
-  Under CVS, the default is not to use locking; anyone can change a work
-file at any time.  However, there are ways to restrict this, resulting
-in behavior that resembles locking.
-
-@cindex CVSREAD environment variable (CVS)
-  For one thing, you can set the @env{CVSREAD} environment variable to
-an arbitrary value.  If this variable is defined, CVS makes your work
-files read-only by default.  In Emacs, you must type @kbd{C-x C-q} to
-make the file writeable, so that editing works in fact similar as if
-locking was used.  Note however, that no actual locking is performed, so
-several users can make their files writeable at the same time.  When
-setting @env{CVSREAD} for the first time, make sure to check out all
-your modules anew, so that the file protections are set correctly.
-
-@cindex cvs watch feature
-@cindex watching files (CVS)
-  Another way to achieve something similar to locking is to use the
-@dfn{watch} feature of CVS.  If a file is being watched, CVS makes it
-read-only by default, and you must also use @kbd{C-x C-q} in Emacs to
-make it writable.  VC calls @code{cvs edit} to make the file writeable,
-and CVS takes care to notify other developers of the fact that you
-intend to change the file.  See the CVS documentation for details on
-using the watch feature.
-
-@node VC Workfile Handling
-@subsubsection VC Workfile Handling
+@node General VC Options
+@subsubsection General Options
 
 @vindex vc-make-backup-files
   Emacs normally does not save backup files for source files that are
@@ -2257,42 +2428,6 @@ follows the link, and visits the real file instead, telling you about
 this in the echo area.  If the value is @code{ask} (the default), VC
 asks you each time whether to follow the link.
 
-@node VC Status Retrieval
-@subsubsection VC Status Retrieval
-@c There is no need to tell users about vc-master-templates.
-
-  When deducing the locked/unlocked state of a file, VC first looks for
-an RCS version header string in the file (@pxref{Version Headers}).  If
-there is no header string, or if you are using SCCS, VC normally looks
-at the file permissions of the work file; this is fast.  But there might
-be situations when the file permissions cannot be trusted.  In this case
-the master file has to be consulted, which is rather expensive.  Also
-the master file can only tell you @emph{if} there's any lock on the
-file, but not whether your work file really contains that locked
-version.
-
-@vindex vc-consult-headers
-  You can tell VC not to use version headers to determine lock status by
-setting @code{vc-consult-headers} to @code{nil}.  VC then always uses
-the file permissions (if it can trust them), or else checks the master
-file.
-
-@vindex vc-mistrust-permissions
-  You can specify the criterion for whether to trust the file
-permissions by setting the variable @code{vc-mistrust-permissions}.  Its
-value can be @code{t} (always mistrust the file permissions and check
-the master file), @code{nil} (always trust the file permissions), or a
-function of one argument which makes the decision.  The argument is the
-directory name of the @file{RCS}, @file{CVS} or @file{SCCS}
-subdirectory.  A non-@code{nil} value from the function says to mistrust
-the file permissions.  If you find that the file permissions of work
-files are changed erroneously, set @code{vc-mistrust-permissions} to
-@code{t}.  Then VC always checks the master file to determine the file's
-status.
-
-@node VC Command Execution
-@subsubsection VC Command Execution
-
 @vindex vc-suppress-confirm
   If @code{vc-suppress-confirm} is non-@code{nil}, then @kbd{C-x C-q}
 and @kbd{C-x v i} can save the current buffer without asking, and
@@ -2311,6 +2446,109 @@ additional messages when the commands finish.
 programs by setting the variable @code{vc-path}.  These directories are
 searched before the usual search path.  But the proper files are usually
 found automatically.
+
+@node RCS Options
+@subsubsection Options specific for RCS
+
+@cindex non-strict locking (RCS)
+@cindex locking, non-strict (RCS)
+  By default, RCS uses locking to coordinate the activities of several
+users, but there is a mode called @dfn{non-strict locking} in which
+you can check-in changes without locking the file first.  Use
+@samp{rcs -U} to switch to non-strict locking for a particular file,
+see the @samp{rcs(1)} manpage for details.
+
+  When deducing the version control state of a file, VC first looks
+for an RCS version header string in the file (@pxref{Version
+Headers}).  If there is no header string, VC normally looks at the
+file permissions of the work file; this is fast.  But there might be
+situations when the file permissions cannot be trusted.  In this case
+the master file has to be consulted, which is rather expensive.  Also
+the master file can only tell you @emph{if} there's any lock on the
+file, but not whether your work file really contains that locked
+version.
+
+@vindex vc-consult-headers
+  You can tell VC not to use version headers to determine the file
+status by setting @code{vc-consult-headers} to @code{nil}.  VC then
+always uses the file permissions (if it can trust them), or else
+checks the master file.
+
+@vindex vc-mistrust-permissions
+  You can specify the criterion for whether to trust the file
+permissions by setting the variable @code{vc-mistrust-permissions}.
+Its value can be @code{t} (always mistrust the file permissions and
+check the master file), @code{nil} (always trust the file
+permissions), or a function of one argument which makes the decision.
+The argument is the directory name of the @file{RCS} subdirectory.  A
+non-@code{nil} value from the function says to mistrust the file
+permissions.  If you find that the file permissions of work files are
+changed erroneously, set @code{vc-mistrust-permissions} to @code{t}.
+Then VC always checks the master file to determine the file's status.
+
+@node CVS Options
+@subsubsection Options specific for CVS
+
+@cindex locking (CVS)
+  By default, CVS does not use locking to coordinate the activities of
+several users; anyone can change a work file at any time.  However,
+there are ways to restrict this, resulting in behavior that resembles
+locking.
+
+@cindex CVSREAD environment variable (CVS)
+  For one thing, you can set the @env{CVSREAD} environment variable to
+an arbitrary value.  If this variable is defined, CVS makes your work
+files read-only by default.  In Emacs, you must type @kbd{C-x C-q} to
+make the file writeable, so that editing works in fact similar as if
+locking was used.  Note however, that no actual locking is performed, so
+several users can make their files writeable at the same time.  When
+setting @env{CVSREAD} for the first time, make sure to check out all
+your modules anew, so that the file protections are set correctly.
+
+@cindex cvs watch feature
+@cindex watching files (CVS)
+  Another way to achieve something similar to locking is to use the
+@dfn{watch} feature of CVS.  If a file is being watched, CVS makes it
+read-only by default, and you must also use @kbd{C-x C-q} in Emacs to
+make it writable.  VC calls @code{cvs edit} to make the file writeable,
+and CVS takes care to notify other developers of the fact that you
+intend to change the file.  See the CVS documentation for details on
+using the watch feature.
+
+@vindex vc-cvs-stay-local
+@cindex remote repositories (CVS)
+  When a file's repository is on a remote machine, VC tries to keep
+network interactions to a minimum.  This is controlled by the variable
+@var{vc-cvs-stay-local}.  If it is @code{t}, then VC uses only the
+entry in the local CVS subdirectory to determine the file's state (and
+possibly information returned by previous CVS commands).  One
+consequence of this is that when you have modified a file, and
+somebody else has already checked in other changes to the file, you
+are not notified of it until you actually try to commit.  (But you can
+try to pick up any recent changes from the repository first, using
+@kbd{C-x v m RET}, @pxref{Merging}).
+
+  When @var{vc-cvs-stay-local} is @code{t}, VC also makes local
+version backups, so that simple diff and revert operations are
+completely local (@pxref{Version Backups}).
+
+  On the other hand, if you set @var{vc-cvs-stay-local} to @code{nil},
+then VC queries the remote repository @emph{before} it decides what to
+do in @code{vc-next-action} (@kbd{C-x v v}), just as it does for local
+repositories.  It also does not make any version backups.
+
+  You can also set @var{vc-cvs-stay-local} to a regexp that is matched
+against the repository hostname; VC then stays local only for
+repositories from hosts that match the pattern.
+
+@node SCCS Options
+@subsubsection Options specific for SCCS
+
+VC determines the version control state of files under SCCS similar as
+under RCS.  It does not consider SCCS version headers, though.  Thus,
+the variable @var{vc-mistrust-permissions} is used in the same way as
+under RCS, @pxref{RCS Options} for details.
+
 
 @node Directories
 @section File Directories
