@@ -1,3 +1,9 @@
+2000-11-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-file-writable-p) 
+	(ange-ftp-file-readable-p, ange-ftp-file-executable-p): Bind
+	ange-ftp-process-verbose to nil.
+
 2000-11-15  Dave Love  <fx@gnu.org>
 
 	* wid-edit.el (widget-specify-field, widget-specify-button): If
@@ -19,7 +25,7 @@
 2000-11-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* faces.el (face-set-after-frame-default): If
-	`inhibit-default-face-x-resources' is bound, don't intiialize the
+	`inhibit-default-face-x-resources' is bound, don't intialize the
 	default face from X resources.
 
 2000-11-15  Eli Zaretskii  <eliz@is.elta.co.il>
