@@ -1,4 +1,4 @@
-                                                                   -*-text-*-
+                                                   -*-text; coding: latin-1;-*-
 
 Problems, fixmes and other issues in the emacs-unicode branch
 -------------------------------------------------------------
@@ -15,12 +15,13 @@ existing support and the extra stuff at
 (Editing support is mostly orthogonal to the internal representation.)
 
  * SINGLE_BYTE_CHAR_P returns true for Latin-1 characters, which has
-   undesirable effects.
+   undesirable effects.  E.g.:
+   (multibyte-string-p (let ((s "x")) (aset s 0 ?£) s)) => nil
+   (multibyte-string-p (concat [?£])) => nil
+   (text-char-description ?£) => "M-#"
 
  * Rationalize character syntax and its relationship to the Unicode
-   database.  Specifically, the latin-N.el files aren't consistent for
-   common characters (and obviously have redundancies except in
-   unibyte mode).
+   database.  (Applies mainly to symbol an punctuation syntax.)
 
  * Fontset handling and customization needs work.  We want to relate
    fonts to scripts, probably based on the Unicode blocks.  The
@@ -42,19 +43,15 @@ existing support and the extra stuff at
 
  * What to do with the old coding categories stuff?
 
- * Syntax for symbols &c in characters.el needs looking at.
-
  * The preferred-coding-system property of charsets should probably be
    junked unless it can be made more useful now.
 
- * find-coding-systems-for-charsets needs re-writing or removing.
-
  * find-multibyte-characters needs looking at.
 
- * Implement Korean cp949/UHC and any other important missing
+ * Implement Korean cp949/UHC, BIG5-HKSCS and any other important missing
    charsets.
 
- * Check up on definitions of tcvn and alternativnj.
+ * Check up on definition of alternativnj.
 
  * Lazy-load tables for unify-charset somehow?
 
@@ -88,9 +85,6 @@ existing support and the extra stuff at
 
  * Need multibyte text in menus, e.g. for the above.  (Not specific to
    Unicode.)
-
- * Still can't have case pairs which have different byte lengths --
-   can that be fixed for Turkish, at least?
 
  * There's currently no support for Unicode normalization.
 

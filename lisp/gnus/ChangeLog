@@ -1,3 +1,8 @@
+2002-10-09  Dave Love  <fx@gnu.org>
+
+	* qp.el (quoted-printable-encode-region): Fix non-multibyte search
+	for Emacs 22.
+
 2002-10-07  Dave Love  <fx@gnu.org>
 
 	* qp.el (quoted-printable-encode-region): Go to start of range
