@@ -1845,20 +1845,27 @@ be interpreted by the interpreter matched by the second group of the
 regular expression.  The mode is then determined as the mode associated
 with that interpreter in `interpreter-mode-alist'.")
 
-(defvar xml-based-modes '(html-mode)
-  "Modes that override an XML declaration.
-When `set-auto-mode' sees an <?xml or <!DOCTYPE declaration, that
-buffer will be in some XML mode.  If `auto-mode-alist' associates
-the file with one of the modes in this list, that mode will be
-used.  Else `xml-mode' or `sgml-mode' is used.")
+(defvar magic-mode-alist
+  '(;; The < comes before the groups (but the first) to reduce backtracking.
+    ;; Is there a nicer way of getting . including \n?
+    ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
+    ("\\(?:<\\?xml\\s +[^>]*>\\)?\\s *<\\(?:!--\\(?:.\\|\n\\)*?-->\\s *<\\)*\\(?:!DOCTYPE\\s +[^>]*>\\s *<\\)?\\s *\\(?:!--\\(?:.\\|\n\\)*?-->\\s *<\\)*[Hh][Tt][Mm][Ll]" . html-mode)
+    ;; These two must come after html, because they are more general:
+    ("<\\?xml " . xml-mode)
+    ("\\s *<\\(?:!--\\(?:.\\|\n\\)*?-->\\s *<\\)*!DOCTYPE " . sgml-mode)
+    ("%![^V]" . ps-mode))
+  "Alist of buffer beginnings vs corresponding major mode functions.
+Each element looks like (REGEXP . FUNCTION).  FUNCTION will be
+called, unless it is nil.")
 
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
+
 This checks for a -*- mode tag in the buffer's text, checks the
 interpreter that runs this file against `interpreter-mode-alist',
-looks for an <?xml or <!DOCTYPE declaration (see
-`xml-based-modes'), or compares the filename against the entries
-in `auto-mode-alist'.
+compares the buffer beginning against `magic-mode-alist',
+or compares the filename against the entries in
+`auto-mode-alist'.
 
 It does not check for the `mode:' local variable in the
 Local Variables section of the file; for that, use `hack-local-variables'.
@@ -1917,32 +1924,33 @@ only set the major mode, if that would change it."
 	    ;; Map interpreter name to a mode, signalling we're done at the
 	    ;; same time.
 	    done (assoc (file-name-nondirectory mode)
-			interpreter-mode-alist))
-      ;; If we found an interpreter mode to use, invoke it now.
-      (if done (set-auto-mode-0 (cdr done) keep-mode-if-same)))
-    (if (and (not done) buffer-file-name)
-	(let ((name buffer-file-name))
-	  ;; Remove backup-suffixes from file name.
-	  (setq name (file-name-sans-versions name))
-	  (while name
-	    ;; Find first matching alist entry.
-	    (let ((case-fold-search
-		   (memq system-type '(vax-vms windows-nt cygwin))))
-	      (if (and (setq mode (assoc-default name auto-mode-alist
+			interpreter-mode-alist)))
+    ;; If we found an interpreter mode to use, invoke it now.
+    (if done
+	(set-auto-mode-0 (cdr done) keep-mode-if-same)
+      (if (setq done (save-excursion
+		       (goto-char (point-min))
+		       (assoc-default nil magic-mode-alist
+				      (lambda (re dummy)
+					(looking-at re)))))
+	  (set-auto-mode-0 done keep-mode-if-same)
+	(if buffer-file-name
+	    (let ((name buffer-file-name))
+	      ;; Remove backup-suffixes from file name.
+	      (setq name (file-name-sans-versions name))
+	      (while name
+		;; Find first matching alist entry.
+		(let ((case-fold-search
+		       (memq system-type '(vax-vms windows-nt cygwin))))
+		  (if (and (setq mode (assoc-default name auto-mode-alist
 						 'string-match))
-		       (consp mode)
-		       (cadr mode))
-		  (setq mode (car mode)
-			name (substring name 0 (match-beginning 0)))
-		(setq name)))
-	    (when mode
-	      (if xml (or (memq mode xml-based-modes)
-			  (setq mode 'xml-mode)))
-	      (set-auto-mode-0 mode keep-mode-if-same)
-	      (setq done t)))))
-    (and xml
-	 (not done)
-	 (set-auto-mode-0 'xml-mode keep-mode-if-same))))
+			   (consp mode)
+			   (cadr mode))
+		      (setq mode (car mode)
+			    name (substring name 0 (match-beginning 0)))
+		    (setq name)))
+		(when mode
+		  (set-auto-mode-0 mode keep-mode-if-same)))))))))
 
 
 ;; When `keep-mode-if-same' is set, we are working on behalf of
