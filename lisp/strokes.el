@@ -793,7 +793,7 @@ Optional EVENT is acceptable as the starting event of the stroke"
 			(when point
 			  (goto-char point)
 			  (subst-char-in-region point (1+ point)
-						?\ strokes-character))
+						?\  strokes-character))
 			(push (cdr (mouse-pixel-position))
 			      pix-locs)))
 		  (setq event (read-event)))
