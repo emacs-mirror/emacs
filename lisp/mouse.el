@@ -651,6 +651,31 @@ If DIR is positive skip forward; if negative, skip backward."
 		 (backward-sexp 1)
 		 (point))
 	       (1+ start)))
+	((and (= mode 1)
+              (= start end)
+	      (char-after start)
+              (= (char-syntax (char-after start)) ?\"))
+	 (let ((open (or (eq start (point-min))
+			 (save-excursion
+			   (goto-char (- start 1))
+			   (looking-at "\\s(\\|\\s \\|\\s>")))))
+	   (if open
+	       (list start
+		     (save-excursion
+		       (condition-case nil
+			   (progn 
+			     (goto-char start)
+			     (forward-sexp 1)
+			     (point))
+			 (error end))))
+	     (list (1+ start)
+		   (save-excursion
+		     (condition-case nil
+			 (progn
+			   (goto-char (1+ start))
+			   (backward-sexp 1)
+			   (point))
+		       (error end)))))))
         ((= mode 1)
 	 (list (save-excursion
 		 (goto-char start)
