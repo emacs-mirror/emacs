@@ -35,8 +35,20 @@ Boston, MA 02111-1307, USA.  */
 
 #endif /* not emacs */
 
+/* Where is stored translation tables for CCL program.  */
+Lisp_Object Vccl_translation_table_vector;
+
 /* Alist of fontname patterns vs corresponding CCL program.  */
 Lisp_Object Vfont_ccl_encoder_alist;
+
+/* This symbol is property which assocate with ccl program vector. e.g.
+   (get 'ccl-big5-encoder 'ccl-program) returns ccl program vector */
+Lisp_Object Qccl_program;
+
+/* These symbol is properties whish associate with ccl translation table and its id
+   respectively.  */
+Lisp_Object Qccl_translation_table;
+Lisp_Object Qccl_translation_table_id;
 
 /* Vector of CCL program names vs corresponding program data.  */
 Lisp_Object Vccl_program_table;
@@ -269,7 +281,8 @@ Lisp_Object Vccl_program_table;
 					write (reg[RRR] OPERATION reg[Rrr]);
 					*/
 
-#define CCL_Call		0x13 /* Write a constant:
+#define CCL_Call		0x13 /* Call the CCL program whose ID is
+					(CC..C).
 					1:CCCCCCCCCCCCCCCCCCCC000XXXXX
 					------------------------------
 					call (CC..C)
@@ -399,6 +412,129 @@ Lisp_Object Vccl_program_table;
 					extended_command (rrr,RRR,Rrr,ARGS)
 				      */
 
+/* 
+   From here, Extended CCL Instruction.
+   Bit length of extended command is 14.
+   Therefore the instruction code begins from 0 to 16384(0x3fff).
+ */
+
+#define CCL_ReadMultibyteCharacter  0x00 /* Read Multibyte Character
+					    1:ExtendedCOMMNDRrrRRRrrrXXXXX
+
+					    Read a multibyte characeter.
+					    A code point is stored
+					    into rrr register. 
+					    A charset ID is stored
+					    into RRR register.
+					 */
+#define CCL_WriteMultibyteCharacter 0x01 /* Write Multibyte Character
+					    1:ExtendedCOMMNDRrrRRRrrrXXXXX
+
+					    Write a multibyte character.
+					    Write a character whose code point
+					    is in rrr register, and its charset ID
+					    is in RRR charset.
+					 */
+#define CCL_UnifyCharacter          0x02 /* Unify Multibyte Character
+					    1:ExtendedCOMMNDRrrRRRrrrXXXXX
+
+					    Unify a character where its code point
+					    is in rrr register, and its charset ID
+					    is in RRR register with the table of
+					    the unification table ID
+					    in Rrr register.
+
+					    Return a unified character where its
+					    code point is in rrr register, and its
+					    charset ID is in RRR register.
+					 */
+#define CCL_UnifyCharacterConstTbl  0x03 /* Unify Multibyte Character
+					    1:ExtendedCOMMNDRrrRRRrrrXXXXX
+					    2:ARGUMENT(Unification Table ID)
+
+					    Unify a character where its code point
+					    is in rrr register, and its charset ID
+					    is in RRR register with the table of
+					    the unification table ID
+					    in 2nd argument.
+
+					    Return a unified character where its
+					    code point is in rrr register, and its
+					    charset ID is in RRR register.
+					 */
+#define CCL_IterateMultipleMap      0x10 /* Iterate Multiple Map
+					    1:ExtendedCOMMNDXXXRRRrrrXXXXX
+					    2:NUMBER of TABLES
+					    3:TABLE-ID1
+					    4:TABLE-ID2
+					    ...
+					    
+					    iterate to lookup tables from a number
+					    until finding a value.
+
+					    Each table consists of a vector
+					    whose element is number or
+					    nil or t or lambda.
+					    If the element is nil,
+					    its table is neglected.
+					    In the case of t or lambda,
+					    return the original value.
+					    
+					  */
+#define CCL_TranslateMultipleMap    0x11 /* Translate Multiple Map
+					    1:ExtendedCOMMNDXXXRRRrrrXXXXX
+					    2:NUMBER of TABLE-IDs and SEPARATERs
+					    (i.e. m1+m2+m3+...mk+k-1)
+					    3:TABLE-ID 1,1
+					    4:TABLE-ID 1,2
+					    ...
+					    m1+2:TABLE-ID 1,m1
+					    m1+3: -1     (SEPARATOR)
+					    m1+4:TABLE-ID 2,1
+					    ...
+					    m1+m2+4:TABLE-ID 2,m2
+					    m1+m2+5: -1
+					    ...
+					    m1+m2+...+mk+k+1:TABLE-ID k,mk
+					    
+					    Translate the code point in
+					    rrr register by tables.
+					    Translation starts from the table
+					    where RRR register points out.
+
+					    We translate the given value
+					    from the tables which are separated
+					    by -1.
+					    When each translation is failed to find
+					    any values, we regard the traslation
+					    as identity.
+
+					    We iterate to traslate by using each
+					    table set(tables separated by -1)
+					    until lookup the last table except
+					    lookup lambda.
+
+					    Each table consists of a vector
+					    whose element is number
+					    or nil or t or lambda.
+					    If the element is nil,
+					    it is neglected and use the next table.
+					    In the case of t,
+					    it is translated to the original value.
+					    In the case of lambda,
+					    it cease the translation and return the
+					    current value.
+
+					  */
+#define CCL_TranslateSingleMap       0x12 /* Translate Single Map
+					    1:ExtendedCOMMNDXXXRRRrrrXXXXX
+					    2:TABLE-ID
+					    
+					    Translate a number in rrr register.
+					    If it is not found any translation,
+					    set RRR register -1 but rrr register
+					    is not changed.
+					  */
 
 /* CCL arithmetic/logical operators. */
 #define CCL_PLUS	0x00	/* X = Y + Z */
@@ -426,14 +562,6 @@ Lisp_Object Vccl_program_table;
 #define CCL_DECODE_SJIS 0x17	/* X = HIGHER_BYTE (DE-SJIS (Y, Z))
 				   r[7] = LOWER_BYTE (DE-SJIS (Y, Z)) */
 
-/* Macros for exit status of CCL program.  */
-#define CCL_STAT_SUCCESS	0 /* Terminated successfully.  */
-#define CCL_STAT_SUSPEND	1 /* Terminated because of empty input
-				     buffer or full output buffer.  */
-#define CCL_STAT_INVALID_CMD	2 /* Terminated because of invalid
-				     command.  */
-#define CCL_STAT_QUIT		3 /* Terminated because of quit.  */
-
 /* Terminate CCL program successfully.  */
 #define CCL_SUCCESS		   	\
   do {				   	\
@@ -445,11 +573,11 @@ Lisp_Object Vccl_program_table;
 /* Suspend CCL program because of reading from empty input buffer or
    writing to full output buffer.  When this program is resumed, the
    same I/O command is executed.  */
-#define CCL_SUSPEND		 	\
-  do {				 	\
-    ic--;			 	\
-    ccl->status = CCL_STAT_SUSPEND;	\
-    goto ccl_finish;		 	\
+#define CCL_SUSPEND(stat)	\
+  do {				\
+    ic--;			\
+    ccl->status = stat;		\
+    goto ccl_finish;		\
   } while (0)
 
 /* Terminate CCL program because of invalid command.  Should not occur
@@ -462,22 +590,22 @@ Lisp_Object Vccl_program_table;
 
 /* Encode one character CH to multibyte form and write to the current
    output buffer.  If CH is less than 256, CH is written as is.  */
-#define CCL_WRITE_CHAR(ch)		      	\
-  do {					      	\
-    if (!dst)				      	\
-      CCL_INVALID_CMD;			      	\
-    else				      	\
-      {					      	\
-	unsigned char work[4], *str;	      	\
-	int len = CHAR_STRING (ch, work, str);	\
-	if (dst + len <= dst_end)	      	\
-	  {				      	\
-	    bcopy (str, dst, len);	      	\
-	    dst += len;			      	\
-	  }				      	\
-	else				      	\
-	  CCL_SUSPEND;			      	\
-      }					      	\
+#define CCL_WRITE_CHAR(ch)				\
+  do {							\
+    if (!dst)						\
+      CCL_INVALID_CMD;					\
+    else						\
+      {							\
+	unsigned char work[4], *str;			\
+	int len = CHAR_STRING (ch, work, str);		\
+	if (dst + len <= (dst_bytes ? dst_end : src))	\
+	  {						\
+	    bcopy (str, dst, len);			\
+	    dst += len;					\
+	  }						\
+	else						\
+	  CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);	\
+      }							\
   } while (0)
 
 /* Write a string at ccl_prog[IC] of length LEN to the current output
@@ -486,28 +614,28 @@ Lisp_Object Vccl_program_table;
   do {							\
     if (!dst)						\
       CCL_INVALID_CMD;					\
-    else if (dst + len <= dst_end)			\
+    else if (dst + len <= (dst_bytes ? dst_end : src))	\
       for (i = 0; i < len; i++)				\
 	*dst++ = ((XFASTINT (ccl_prog[ic + (i / 3)]))	\
 		  >> ((2 - (i % 3)) * 8)) & 0xFF;	\
     else						\
-      CCL_SUSPEND;					\
+      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);		\
   } while (0)
 
 /* Read one byte from the current input buffer into Rth register.  */
-#define CCL_READ_CHAR(r)	\
-  do {				\
-    if (!src)			\
-      CCL_INVALID_CMD;		\
-    else if (src < src_end)	\
-      r = *src++;		\
-    else if (ccl->last_block)	\
-      {				\
-        ic = ccl->eof_ic;	\
-        goto ccl_finish;	\
-      }				\
-    else			\
-      CCL_SUSPEND;		\
+#define CCL_READ_CHAR(r)			\
+  do {						\
+    if (!src)					\
+      CCL_INVALID_CMD;				\
+    else if (src < src_end)			\
+      r = *src++;				\
+    else if (ccl->last_block)			\
+      {						\
+        ic = ccl->eof_ic;			\
+        goto ccl_finish;			\
+      }						\
+    else					\
+      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_SRC);	\
   } while (0)
 
 
@@ -584,6 +712,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 #define RRR (field1 & 7)
 #define Rrr ((field1 >> 3) & 7)
 #define ADDR field1
+#define EXCMD (field1 >> 6)
 
       switch (code & 0x1F)
 	{
@@ -881,6 +1010,387 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	    ic = jump_address;
 	  break;
 
+	case CCL_Extention:
+	  switch (EXCMD)
+	    {
+	    case CCL_ReadMultibyteCharacter:
+	      if (!src)
+		CCL_INVALID_CMD;
+	      do {
+		if (src >= src_end)
+		  goto ccl_read_multibyte_character_suspend;
+	      
+		i = *src++;
+		if (i == LEADING_CODE_COMPOSITION)
+		  {
+		    if (src >= src_end)
+		      goto ccl_read_multibyte_character_suspend;
+		    if (*src == 0xFF)
+		      {
+			ccl->private_state = COMPOSING_WITH_RULE_HEAD;
+			src++;
+		      }
+		    else
+		      ccl->private_state = COMPOSING_NO_RULE_HEAD;
+		  }
+		if (ccl->private_state != 0)
+		  {
+		    /* composite character */
+		    if (*src < 0xA0)
+		      ccl->private_state = 0;
+		    else
+		      {
+			if (i == 0xA0)
+			  {
+			    if (src >= src_end)
+			      goto ccl_read_multibyte_character_suspend;
+			    i = *src++ & 0x7F;
+			  }
+			else
+			  i -= 0x20;
+
+			if (COMPOSING_WITH_RULE_RULE == ccl->private_state)
+			  {
+			    ccl->private_state = COMPOSING_WITH_RULE_HEAD;
+			    continue;
+			  }
+			else if (COMPOSING_WITH_RULE_HEAD == ccl->private_state)
+			  ccl->private_state = COMPOSING_WITH_RULE_RULE;
+		      }
+		  }
+		if (i < 0x80)
+		  {
+		    /* ASCII */
+		    reg[rrr] = i;
+		    reg[RRR] = CHARSET_ASCII;
+		  }
+		else if (i <= MAX_CHARSET_OFFICIAL_DIMENSION1)
+		  {
+		    if (src >= src_end)
+		      goto ccl_read_multibyte_character_suspend;
+		    reg[RRR] = i;
+		    reg[rrr] = (*src++ & 0x7F);
+		  }
+		else if (i <= MAX_CHARSET_OFFICIAL_DIMENSION2)
+		  {
+		    if ((src + 1) >= src_end)
+		      goto ccl_read_multibyte_character_suspend;
+		    reg[RRR] = i;
+		    i = (*src++ & 0x7F);
+		    reg[rrr] = ((i << 7) | (*src & 0x7F));
+		    src++;
+		  }
+		else if ((i == LEADING_CODE_PRIVATE_11) ||
+			 (i == LEADING_CODE_PRIVATE_12))
+		  {
+		    if ((src + 1) >= src_end)
+		      goto ccl_read_multibyte_character_suspend;
+		    reg[RRR] = *src++;
+		    reg[rrr] = (*src++ & 0x7F);
+		  }
+		else if ((i == LEADING_CODE_PRIVATE_21) ||
+			 (i == LEADING_CODE_PRIVATE_22))
+		  {
+		    if ((src + 2) >= src_end)
+		      goto ccl_read_multibyte_character_suspend;
+		    reg[RRR] = *src++;
+		    i = (*src++ & 0x7F);
+		    reg[rrr] = ((i << 7) | (*src & 0x7F));
+		    src++;
+		  }
+		else
+		  {
+		    /* INVALID CODE 
+		       Returned charset is -1.*/
+		    reg[RRR] = -1;
+		  }
+	      } while (0);
+	      break;
+
+	    ccl_read_multibyte_character_suspend:
+	      src--;
+	      if (ccl->last_block)
+		{
+		  ic = ccl->eof_ic;
+		  goto ccl_finish;
+		}
+	      else
+		CCL_SUSPEND (CCL_STAT_SUSPEND_BY_SRC);
+
+	      break;
+
+	    case CCL_WriteMultibyteCharacter:
+	      i = reg[RRR]; /* charset */
+	      if (i == CHARSET_ASCII)
+		i = reg[rrr] & 0x7F;
+	      else if (i == CHARSET_COMPOSITION)
+		i = MAKE_COMPOSITE_CHAR (reg[rrr]);
+	      else if (CHARSET_DIMENSION (i) == 1)
+		i = ((i - 0x70) << 7) | (reg[rrr] & 0x7F);
+	      else if (i < MIN_CHARSET_PRIVATE_DIMENSION2)
+		i = ((i - 0x8F) << 14) | reg[rrr];
+	      else
+		i = ((i - 0xE0) << 14) | reg[rrr];
+
+	      CCL_WRITE_CHAR (i);
+
+	      break;
+
+	    case CCL_UnifyCharacter:
+	      i = reg[RRR]; /* charset */
+	      if (i == CHARSET_ASCII)
+		i = reg[rrr] & 0x7F;
+	      else if (i == CHARSET_COMPOSITION)
+		{
+		  reg[RRR] = -1;
+		  break;
+		}
+	      else if (CHARSET_DIMENSION (i) == 1)
+		i = ((i - 0x70) << 7) | (reg[rrr] & 0x7F);
+	      else if (i < MIN_CHARSET_PRIVATE_DIMENSION2)
+		i = ((i - 0x8F) << 14) | (reg[rrr] & 0x3FFF);
+	      else
+		i = ((i - 0xE0) << 14) | (reg[rrr] & 0x3FFF);
+
+	      op = unify_char (UNIFICATION_ID_TABLE (reg[Rrr]), i, -1, 0, 0);
+	      SPLIT_CHAR (op, reg[RRR], i, j);
+	      if (j != -1)
+		i = (i << 7) | j;
+	      
+	      reg[rrr] = i;
+	      break;
+
+	    case CCL_UnifyCharacterConstTbl:
+	      op = XINT (ccl_prog[ic]); /* table */
+	      ic++;
+	      i = reg[RRR]; /* charset */
+	      if (i == CHARSET_ASCII)
+		i = reg[rrr] & 0x7F;
+	      else if (i == CHARSET_COMPOSITION)
+		{
+		  reg[RRR] = -1;
+		  break;
+		}
+	      else if (CHARSET_DIMENSION (i) == 1)
+		i = ((i - 0x70) << 7) | (reg[rrr] & 0x7F);
+	      else if (i < MIN_CHARSET_PRIVATE_DIMENSION2)
+		i = ((i - 0x8F) << 14) | (reg[rrr] & 0x3FFF);
+	      else
+		i = ((i - 0xE0) << 14) | (reg[rrr] & 0x3FFF);
+
+	      op = unify_char (UNIFICATION_ID_TABLE (op), i, -1, 0, 0);
+	      SPLIT_CHAR (op, reg[RRR], i, j);
+	      if (j != -1)
+		i = (i << 7) | j;
+	      
+	      reg[rrr] = i;
+	      break;
+
+	    case CCL_IterateMultipleMap:
+	      {
+		Lisp_Object table, content, attrib, value;
+		int point, size, fin_ic;
+
+		j = XINT (ccl_prog[ic++]); /* number of tables. */
+		fin_ic = ic + j;
+		op = reg[rrr];
+		if ((j > reg[RRR]) && (j >= 0))
+		  {
+		    ic += reg[RRR];
+		    i = reg[RRR];
+		  }
+		else
+		  {
+		    reg[RRR] = -1;
+		    ic = fin_ic;
+		    break;
+		  }
+
+		for (;i < j;i++)
+		  {
+
+		    size = XVECTOR (Vccl_translation_table_vector)->size;
+		    point = ccl_prog[ic++];
+		    if (point >= size) continue;
+		    table = XVECTOR (Vccl_translation_table_vector)->
+		      contents[point];
+		    if (!CONSP (table)) continue;
+		    table = XCONS(table)->cdr;
+		    if (!VECTORP (table)) continue;
+		    size = XVECTOR (table)->size;
+		    if (size <= 1) continue;
+		    point = XUINT (XVECTOR (table)->contents[0]);
+		    point = op - point + 1;
+		    if (!((point >= 1) && (point < size))) continue;
+		    content = XVECTOR (table)->contents[point];
+
+		    if (NILP (content))
+		      continue;
+		    else if (NUMBERP (content))
+		      {
+			reg[RRR] = i;
+			reg[rrr] = XUINT(content);
+			break;
+		      }
+		    else if (EQ (content, Qt) || EQ (content, Qlambda))
+		      {
+			reg[RRR] = i;
+			break;
+		      }
+		    else if (CONSP (content))
+		      {
+			attrib = XCONS (content)->car;
+			value = XCONS (content)->cdr;
+			if (!NUMBERP (attrib) || !NUMBERP (value))
+			  continue;
+			reg[RRR] = i;
+			reg[rrr] = XUINT(value);
+			break;
+		      }
+		  }
+		if (i == j)
+		  reg[RRR] = -1;
+		ic = fin_ic;
+	      }
+	      break;
+	      
+	    case CCL_TranslateMultipleMap:
+	      {
+		Lisp_Object table, content, attrib, value;
+		int point, size, table_vector_size;
+		int skip_to_next, fin_ic;
+
+		j = XINT (ccl_prog[ic++]); /* number of tables and separators. */
+		fin_ic = ic + j;
+		if ((j > reg[RRR]) && (j >= 0))
+		  {
+		    ic += reg[RRR];
+		    i = reg[RRR];
+		  }
+		else
+		  {
+		    ic = fin_ic;
+		    reg[RRR] = -1;
+		    break;
+		  }
+		op = reg[rrr];
+		reg[RRR] = -1;
+		skip_to_next = 0;
+		table_vector_size = XVECTOR (Vccl_translation_table_vector)->size;
+		for (;i < j;i++)
+		  {
+		    point = ccl_prog[ic++];
+		    if (XINT(point) == -1)
+		      {
+			skip_to_next = 0;
+			continue;
+		      }
+		    if (skip_to_next) continue;
+		    if (point >= table_vector_size) continue;
+		    table = XVECTOR (Vccl_translation_table_vector)->
+		      contents[point];
+		    if (!CONSP (table)) continue;
+		    table = XCONS (table)->cdr;
+		    if (!VECTORP (table)) continue;
+		    size = XVECTOR (table)->size;
+		    if (size <= 1) continue;
+		    point = XUINT (XVECTOR (table)->contents[0]);
+		    point = op - point + 1;
+		    if (!((point >= 1) && (point < size))) continue;
+		    content = XVECTOR (table)->contents[point];
+
+		    if (NILP (content))
+		      continue;
+		    else if (NUMBERP (content))
+		      {
+			op = XUINT (content);
+			reg[RRR] = i;
+			skip_to_next = 1;
+		      }
+		    else if (CONSP (content))
+		      {
+			attrib = XCONS (content)->car;
+			value = XCONS (content)->cdr;
+			if (!NUMBERP (attrib) || !NUMBERP (value))
+			  continue;
+			reg[RRR] = i;
+			op = XUINT (value);
+		      
+		      }
+		    else if (EQ (content, Qt))
+		      {
+			reg[RRR] = i;
+			op = reg[rrr];
+			skip_to_next = 1;
+		      }
+		    else if (EQ (content, Qlambda))
+		      break;
+		  }
+		ic = fin_ic;
+	      }
+	      reg[rrr] = op;
+	      break;
+
+	    case CCL_TranslateSingleMap:
+	      {
+		Lisp_Object table, attrib, value, content;
+		int size, point;
+		j = XINT (ccl_prog[ic++]); /* table_id */
+		op = reg[rrr];
+		if (j >= XVECTOR (Vccl_translation_table_vector)->size)
+		  {
+		    reg[RRR] = -1;
+		    break;
+		  }
+		table = XVECTOR (Vccl_translation_table_vector)->
+		  contents[j];
+		if (!CONSP (table))
+		  {
+		    reg[RRR] = -1;
+		    break;
+		  }
+		table = XCONS(table)->cdr;
+		if (!VECTORP (table))
+		  {
+		    reg[RRR] = -1;
+		    break;
+		  }
+		size = XVECTOR (table)->size;
+		point = XUINT (XVECTOR (table)->contents[0]);
+		point = op - point + 1;
+		reg[RRR] = 0;
+		if ((size <= 1) ||
+		    (!((point >= 1) && (point < size))))
+		  reg[RRR] = -1;
+		else
+		  {
+		    content = XVECTOR (table)->contents[point];
+		    if (NILP (content))
+		      reg[RRR] = -1;
+		    else if (NUMBERP (content))
+		      reg[rrr] = XUINT (content);
+		    else if (EQ (content, Qt))
+		      reg[RRR] = i;
+		    else if (CONSP (content))
+		      {
+			attrib = XCONS (content)->car;
+			value = XCONS (content)->cdr;
+			if (!NUMBERP (attrib) || !NUMBERP (value))
+			  continue;
+			reg[rrr] = XUINT(value);
+			break;
+		      }
+		    else
+		      reg[RRR] = -1;
+		  }
+	      }
+	      break;
+	      
+	    default:
+	      CCL_INVALID_CMD;
+	    }
+	  break;
+
 	default:
 	  CCL_INVALID_CMD;
 	}
@@ -906,7 +1416,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	    int j;
 
 	    msglen = strlen (msg);
-	    if (dst + msglen <= dst_end)
+	    if (dst + msglen <= (dst_bytes ? dst_end : src))
 	      {
 		bcopy (msg, dst, msglen);
 		dst += msglen;
@@ -919,7 +1429,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  break;
 		sprintf(msg, " %d", ccl_backtrace_table[i]);
 		msglen = strlen (msg);
-		if (dst + msglen > dst_end)
+		if (dst + msglen > (dst_bytes ? dst_end : src))
 		  break;
 		bcopy (msg, dst, msglen);
 		dst += msglen;
@@ -937,7 +1447,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	}
 
       msglen = strlen (msg);
-      if (dst + msglen <= dst_end)
+      if (dst + msglen <= (dst_bytes ? dst_end : src))
 	{
 	  bcopy (msg, dst, msglen);
 	  dst += msglen;
@@ -967,6 +1477,7 @@ setup_ccl_program (ccl, vec)
   for (i = 0; i < 8; i++)
     ccl->reg[i] = 0;
   ccl->last_block = 0;
+  ccl->private_state = 0;
   ccl->status = 0;
 }
 
@@ -1069,7 +1580,8 @@ CCL-PROGRAM on exit.")
   free (outbuf);
   QUIT;
   if (ccl.status != CCL_STAT_SUCCESS
-      && ccl.status != CCL_STAT_SUSPEND)
+      && ccl.status != CCL_STAT_SUSPEND_BY_SRC
+      && ccl.status != CCL_STAT_SUSPEND_BY_DST)
     error ("Error in CCL program at %dth code", ccl.ic);
 
   return val;
@@ -1084,7 +1596,7 @@ Return index number of the registered CCL program.")
      Lisp_Object name, ccl_prog;
 {
   int len = XVECTOR (Vccl_program_table)->size;
-  int i, idx;
+  int i;
 
   CHECK_SYMBOL (name, 0);
   if (!NILP (ccl_prog))
@@ -1119,10 +1631,85 @@ Return index number of the registered CCL program.")
   return make_number (i);
 }
 
+/* register CCL translation table.
+   CCL translation table consists of numbers and Qt and Qnil and Qlambda.
+   The first element is start code point.
+   The rest elements are translated numbers.
+   Qt shows that an original number before translation.
+   Qnil shows that an empty element.
+   Qlambda makes translation stopped.
+*/
+
+DEFUN ("register-ccl-translation-table", Fregister_ccl_translation_table,
+       Sregister_ccl_translation_table,
+       2, 2, 0,
+  "Register CCL translation table.\n\
+TABLE should be a vector. SYMBOL is used for pointing the translation table out.\n\
+Return index number of the registered translation table.")
+  (symbol, table)
+     Lisp_Object symbol, table;
+{
+  int len = XVECTOR (Vccl_translation_table_vector)->size;
+  int i;
+  Lisp_Object index;
+
+  CHECK_SYMBOL (symbol, 0);
+  CHECK_VECTOR (table, 1);
+  
+  for (i = 0; i < len; i++)
+    {
+      Lisp_Object slot = XVECTOR (Vccl_translation_table_vector)->contents[i];
+
+      if (!CONSP (slot))
+	break;
+
+      if (EQ (symbol, XCONS (slot)->car))
+	{
+	  index = make_number (i);
+	  XCONS (slot)->cdr = table;
+	  Fput (symbol, Qccl_translation_table, table);
+	  Fput (symbol, Qccl_translation_table_id, index);
+	  return index;
+	}
+    }
+
+  if (i == len)
+    {
+      Lisp_Object new_vector = Fmake_vector (make_number (len * 2), Qnil);
+      int j;
+
+      for (j = 0; j < len; j++)
+	XVECTOR (new_vector)->contents[j]
+	  = XVECTOR (Vccl_translation_table_vector)->contents[j];
+      Vccl_translation_table_vector = new_vector;
+    }
+
+  index = make_number (i);
+  Fput (symbol, Qccl_translation_table, table);
+  Fput (symbol, Qccl_translation_table_id, index);
+  XVECTOR (Vccl_translation_table_vector)->contents[i] = Fcons (symbol, table);
+  return index;
+}
+
+
 syms_of_ccl ()
 {
   staticpro (&Vccl_program_table);
   Vccl_program_table = Fmake_vector (make_number (32), Qnil);
+
+  Qccl_program = intern("ccl-program");
+  staticpro(&Qccl_program);
+
+  Qccl_translation_table = intern ("ccl-translation-table");
+  staticpro (&Qccl_translation_table);
+
+  Qccl_translation_table_id = intern ("ccl-translation-table-id");
+  staticpro (&Qccl_translation_table_id);
+
+  DEFVAR_LISP ("ccl-translation-table-vector", &Vccl_translation_table_vector,
+    "Where is stored translation tables for CCL program.\n\
+Because CCL program can't access these tables except by the index of the vector.");
+  Vccl_translation_table_vector = Fmake_vector (XFASTINT (16), Qnil);
 
   DEFVAR_LISP ("font-ccl-encoder-alist", &Vfont_ccl_encoder_alist,
     "Alist of fontname patterns vs corresponding CCL program.\n\
@@ -1140,6 +1727,7 @@ If the font is single-byte font, the register R2 is not used.");
   defsubr (&Sccl_execute);
   defsubr (&Sccl_execute_on_string);
   defsubr (&Sregister_ccl_program);
+  defsubr (&Sregister_ccl_translation_table);
 }
 
 #endif  /* emacs */
