@@ -106,4 +106,4 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Insist on using cc when compiling this.  GCC may have been
    configured to use GAS syntax, which causes problems.  */
-#define CRT0_COMPILE cc -c
+#define CRT0_COMPILE cc -c -O -Demacs
