@@ -348,9 +348,11 @@ nil for FUNCTION means all messages."
 			       (skip-chars-backward " \t")
 			       (point)))))
                      len mch lo)
-		(if (string-match (concat "^"
+		(if (string-match (concat "^\\("
 					  (regexp-quote (user-login-name))
-					  "\\($\\|@\\)")
+					  "\\($\\|@\\)\\|"
+					  (regexp-quote user-mail-address)
+					  "\\>\\)")
 				  from)
 		    (save-excursion
 		      (goto-char (point-min))
