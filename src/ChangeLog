@@ -1,5 +1,12 @@
 2002-04-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (update_text_area): Set phys_cursor_on_p to 0 in the
+	case of writing a whole row, more or less analogous to the case of
+	writing only parts of a row.
+
+	* xterm.c (x_display_and_set_cursor): Set phys_cursor_width to
+	0 for NO_CURSOR.
+	
 	* xterm.c (notice_overwritten_cursor): Fix an off by 1 error.
 
 2002-04-23  Colin Walters  <walters@verbum.org>
