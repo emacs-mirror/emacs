@@ -24,11 +24,9 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Commentary:
-
 ;;; Code:
 
-(require 'octave)
+(require 'octave-mod)
 (require 'comint)
 
 (defvar inferior-octave-program "octave"

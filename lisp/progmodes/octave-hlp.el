@@ -34,7 +34,7 @@
 
 ;;; Code:
 
-(require 'octave)
+(require 'octave-mod)
 (require 'info)
 
 (defvar octave-help-files '("octave")
