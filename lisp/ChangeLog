@@ -2,8 +2,8 @@
 
 	* international/utf-16.el: Don't provide utf-16.
 
-	* international/utf-8.el (ccl-decode-mule-utf-8): Remove
-	unnecessary line.
+	* international/utf-8.el (ccl-decode-mule-utf-8):
+	Remove unnecessary line.
 
 2002-09-30  Kenichi Handa  <handa@m17n.org>
 
@@ -33,14 +33,13 @@
 	utf-8-fragment-on-decoding.  Correctly handle the case that
 	unify-8859-on-encoding-mode is off.  Handle mule-utf-16-le and
 	mule-utf-16-be too.
-	(utf-translate-cjk): Renamed from utf-8-translate-cjk.  Handle
-	mule-utf-16-le and mule-utf-16-be too.
+	(utf-translate-cjk): Renamed from utf-8-translate-cjk.
+	Handle mule-utf-16-le and mule-utf-16-be too.
 	(ccl-decode-mule-utf-8): Refer to utf-translation-table-for-decode
 	and utf-subst-table-for-decode.
 	(ccl-encode-mule-utf-8): Refer to utf-translation-table-for-encode
 	and utf-subst-table-for-encode.
-	(mule-utf-8): Fix `safe-charsets' property, put `dependency'
-	property.
+	(mule-utf-8): Fix `safe-charsets' property, put `dependency' property.
 
 	* international/utf-8-subst.el: Setup ucs-unicode-to-mule-cjk and
 	ucs-mule-cjk-to-unicode, not utf-8-subst-table and
@@ -53,13 +52,11 @@
 	utf-translation-table-for-decode.
 	(ccl-decode-mule-utf-16-be): Likewise.
 	(ccl-encode-mule-utf-16-le): Look up utf-subst-table-for-encode
-	at first.  Translate characters by
-	utf-translation-table-for-encode.
+	at first.  Translate characters by utf-translation-table-for-encode.
 	(ccl-encode-mule-utf-16-be): Likewise.
 	(mule-utf-16-le, mule-utf-16-be): Add `dependency' property.
 
-	* loadup.el: Preload international/utf-16.  Don't call
-	ucs-unify-8859.
+	* loadup.el: Preload international/utf-16.  Don't call ucs-unify-8859.
 
 	* international/ucs-tables.el: Don't bind
 	utf-8-translation-table-for-decode while setting up
@@ -81,9 +78,9 @@
 	(unify-8859-on-encoding-mode): Call ucs-unify-8859 and
 	ucs-fragment-8859 with fixed arguments.  Set the version to 21.3.
 	(unify-8859-on-decoding-mode): Likewise.  Remove dependency.
-	(ccl-encode-unicode-font): Deleted, 
-	(ucs-tables-unload-hook): Deleted.
-	
+	(ccl-encode-unicode-font): Delete.
+	(ucs-tables-unload-hook): Delete.
+
 	* international/mule.el (decode-char): Refer to the translation
 	hash table named utf-subst-table-for-decode.  Refer to the
 	translation table named utf-translation-table-for-decode instead
@@ -93,11 +90,10 @@
 	utf-translation-table-for-encode instead of
 	utf-8-translation-table-for-encode.
 
-	* international/mule-diag.el (describe-coding-system): Describe
-	`dependency' property.
+	* international/mule-diag.el (describe-coding-system):
+	Describe `dependency' property.
 
-	* international/mule-conf.el (emacs-mule): Add property
-	`composition'.
+	* international/mule-conf.el (emacs-mule): Add property `composition'.
 
 	* international/fontset.el (ucs-mule-to-mule-unicode): Define this
 	translation table name here.
@@ -117,13 +113,13 @@
 	* calc/calc-ext.el (calc-reset): Don't bind `executing-kbd-macro'.
 	Call `calc-flush-caches' with inhibit-msg arg.
 	(calc-change-mode): Remove extra arg for `calc-save-modes'.
-	
-	* calc/calc-mode.el (calc-save-modes): Remove `quiet' arg; Don't bind `executing-kbd-macro'.
+
+	* calc/calc-mode.el (calc-save-modes): Remove `quiet' arg.
+	Don't bind `executing-kbd-macro'.
 
 2002-09-29  Noah Friedman  <friedman@splode.com>
 
-	* subr.el (read-key): Use read-key-auxiliary-map, not
-	read-key-aux-map.
+	* subr.el (read-key): Use read-key-auxiliary-map, not read-key-aux-map.
 
 2002-09-29  Richard M. Stallman  <rms@gnu.org>
 
@@ -136,9 +132,9 @@
 	* net/tramp.el: Version 2.0.24 released.
 	(tramp-methods, tramp-completion-function-alist):
 	Rename "*-old" methods to "*_old".  From Michael Albinus.
-	(tramp-completion-function-alist): Use
-	`tramp-completion-function-alist-ssh' for the "fcp" method.  From
-	Michael Albinus.
+	(tramp-completion-function-alist):
+	Use `tramp-completion-function-alist-ssh' for the "fcp" method.
+	From Michael Albinus.
 	(tramp-default-method-alist): Use "su" for "root@localhost".
 	(tramp-host-regexp): Allow "#" for "host#port" kludge.
 	(tramp-ange-ftp-file-name-p): If METHOD is nil, find the right
@@ -166,8 +162,7 @@
 
 2002-09-29  Mike Williams  <mdub@bigfoot.com>
 
-	* textmodes/sgml-mode.el (sgml-guess-indent): Handle
-	tabs correctly.
+	* textmodes/sgml-mode.el (sgml-guess-indent): Handle tabs correctly.
 
 2002-09-29  Richard M. Stallman  <rms@gnu.org>
 
@@ -181,7 +176,7 @@
 2002-09-28  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* subr.el (remove-yank-excluded-properties): Fix bugs in
-        handling of category properties.
+	handling of category properties.
 
 2002-09-28  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
@@ -190,7 +185,7 @@
 	Value can no longer be `lucid'.
 	(ps-print-version): New version number (6.5.8).
 	(faces): Never do (require 'faces).
-	
+
 2002-09-28  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Only negotiate starttls on
@@ -208,6 +203,42 @@
 	(m4-m4-region): Doc fixes.
 
 2002-09-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/cl-macs.el: Use the new usage-in-docstring syntax.
+	(cl-push, cl-pop): Remove.
+	Use pop and push throughout the file instead.
+	(cl-transform-lambda): Add usage info to docstring if the arglist
+	is complex.
+
+	* emacs-lisp/autoload.el (make-autoload): Add usage info to docstring.
+	(autoload-print-form): Also quote open-[-in-column 0.
+
+	* help-fns.el (help-with-tutorial): Use minibuffer-completion-help.
+	(help-split-fundoc): Don't support old syntax any more.
+	(help-add-fundoc-usage): New fun.
+
+	* emacs-lisp/cl-extra.el (cl-push, cl-pop): Remove.
+	Use pop and push throughout the file instead.
+	(cl-hash-lookup): Remove.
+	(cl-make-hash-table, cl-hash-table-p, cl-gethash, cl-puthash)
+	(cl-remhash, cl-clrhash, cl-maphash, cl-hash-table-count): Simplify.
+
+	* emacs-lisp/cl-seq.el (cl-push, cl-pop): Remove.
+	Use pop and push throughout the file instead.
+
+	* emacs-lisp/edebug.el: Don't precompute menu shortcuts during
+	loading since the current keymaps might be all weird.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Don't add properties
+	to the name since they're added by mode-line-format already.
+	(define-minor-mode): Run (,mode -1) when needed.
+
+	* tar-mode.el (tar-untar-buffer): Handle dir-entries.
+	(tar-summarize-buffer, tar-mode, tar-extract, tar-copy, tar-expunge)
+	(tar-alter-one-field, tar-subfile-save-buffer, tar-mode-write-file):
+	Don't hardcode 1 == point-min.
+
+	* abbrev.el (write-abbrev-file): Don't hardcode point-min == 1.
 
 	* subr.el (read-key-auxiliary-map): New var.
 	(read-key): Use it.
@@ -230,6 +261,7 @@
 	Add server-kill-buffer to kill-buffer-hook.
 	(kill-buffer-hook): Don't modify globally.
 	(server-switch-buffer): Be a bit more careful with multiple displays.
+	(server-socket-name): Always use /tmp and non-qualified hostname.
 
 	* uniquify.el (uniquify-rationalize-file-buffer-names):
 	Add to kill-buffer-hook for buffers with conflict.
