@@ -1,0 +1,17 @@
+This file describes the CVS branch in which it is maintained.
+Everything below the line is branch-specific.
+________________________________________________________________________
+
+This is the "ttn-vms-21-3-stash" branch.  Its primary purpose is to
+accumulate changes based on the Emacs 21.3 release that support building
+Emacs 21.3 under OpenVMS 7.3-1, aka simply "VMS".  You probably invoked
+the command "cvs checkout -r ttn-vms-21-3-stash", otherwise you wouldn't
+be reading this.
+
+The plans for this branch are to continue updating it with the results
+of an ongoing porting effort, until enough changes are included so that
+Emacs 21.3 for VMS can be built "out of the box".  (This file will be
+then amended to indicate no further plans for the branch.)
+
+This branch will not be integrated with the trunk (or with any other
+branch, for that matter).
