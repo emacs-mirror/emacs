@@ -22,6 +22,10 @@ Boston, MA 02111-1307, USA.  */
 
 #include <stdio.h>
 #include "lisp.h"
+#include "charset.h"
+#ifdef HAVE_WINDOW_SYSTEM
+#include "fontset.h"
+#endif
 #include "frame.h"
 #include "termhooks.h"
 #include "window.h"
@@ -359,6 +363,10 @@ make_frame (mini_p)
   /* Make sure this window seems more recently used than
      a newly-created, never-selected window.  */
   XSETFASTINT (XWINDOW (f->selected_window)->use_time, ++window_select_count);
+
+#ifdef HAVE_WINDOW_SYSTEM
+  f->fontset_data = alloc_fontset_data ();
+#endif
 
   return f;
 }
@@ -1151,6 +1159,11 @@ but if the second optional argument FORCE is non-nil, you may do so.")
     free (FRAME_INSERTN_COST (f));
   if (FRAME_DELETE_COST (f))
     free (FRAME_DELETE_COST (f));
+
+#ifdef HAVE_WINDOW_SYSTEM
+  /* Free all fontset data.  */
+  free_fontset_data (FRAME_FONTSET_DATA (f));
+#endif
 
   /* Since some events are handled at the interrupt level, we may get
      an event for f at any time; if we zero out the frame's display
