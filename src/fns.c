@@ -37,7 +37,7 @@ extern Lisp_Object Flookup_key ();
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 Lisp_Object Qyes_or_no_p_history;
 
-static Lisp_Object internal_equal ();
+static int internal_equal ();
 
 DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
   "Return the argument unchanged.")
@@ -868,65 +868,72 @@ Symbols must match exactly.")
   (o1, o2)
      register Lisp_Object o1, o2;
 {
-  return internal_equal (o1, o2, 0);
+  return internal_equal (o1, o2, 0) ? Qt : Qnil;
 }
 
-static Lisp_Object
+static int
 internal_equal (o1, o2, depth)
      register Lisp_Object o1, o2;
      int depth;
 {
   if (depth > 200)
     error ("Stack overflow in equal");
-do_cdr:
+ tail_recurse:
   QUIT;
-  if (EQ (o1, o2)) return Qt;
+  if (EQ (o1, o2)) return 1;
 #ifdef LISP_FLOAT_TYPE
   if (FLOATP (o1) && FLOATP (o2))
-    return (extract_float (o1) == extract_float (o2)) ? Qt : Qnil;
+    return (extract_float (o1) == extract_float (o2));
 #endif
-  if (XTYPE (o1) != XTYPE (o2)) return Qnil;
-  if (MISCP (o1) && XMISC (o1)->type != XMISC (o2)->type) return Qnil;
-  if (CONSP (o1) || OVERLAYP (o1))
+  if (XTYPE (o1) != XTYPE (o2)) return 0;
+  if (MISCP (o1) && XMISC (o1)->type != XMISC (o2)->type) return 0;
+  if (CONSP (o1))
     {
-      Lisp_Object v1;
-      v1 = internal_equal (Fcar (o1), Fcar (o2), depth + 1);
-      if (NILP (v1))
-	return v1;
-      o1 = Fcdr (o1), o2 = Fcdr (o2);
-      goto do_cdr;
+      if (!internal_equal (XCONS (o1)->car, XCONS (o2)->car, depth + 1))
+	return 0;
+      o1 = XCONS (o1)->cdr;
+      o2 = XCONS (o2)->cdr;
+      goto tail_recurse;
+    }
+  if (OVERLAYP (o1))
+    {
+      if (!internal_equal (OVERLAY_START (o1), OVERLAY_START (o1), depth + 1)
+	  || !internal_equal (OVERLAY_END (o1), OVERLAY_END (o1), depth + 1))
+	return 0;
+      o1 = XOVERLAY (o1)->plist;
+      o2 = XOVERLAY (o2)->plist;
+      goto tail_recurse;
     }
   if (MARKERP (o1))
     {
-      return ((XMARKER (o1)->buffer == XMARKER (o2)->buffer
+      return (XMARKER (o1)->buffer == XMARKER (o2)->buffer
 	      && (XMARKER (o1)->buffer == 0
-		  || XMARKER (o1)->bufpos == XMARKER (o2)->bufpos))
-	      ? Qt : Qnil);
+		  || XMARKER (o1)->bufpos == XMARKER (o2)->bufpos));
     }
   if (VECTORP (o1) || COMPILEDP (o1))
     {
       register int index;
       if (XVECTOR (o1)->size != XVECTOR (o2)->size)
-	return Qnil;
+	return 0;
       for (index = 0; index < XVECTOR (o1)->size; index++)
 	{
-	  Lisp_Object v, v1, v2;
+	  Lisp_Object v1, v2;
 	  v1 = XVECTOR (o1)->contents [index];
 	  v2 = XVECTOR (o2)->contents [index];
-	  v = internal_equal (v1, v2, depth + 1);
-	  if (NILP (v)) return v;
+	  if (!internal_equal (v1, v2, depth + 1))
+	    return 0;
 	}
-      return Qt;
+      return 1;
     }
   if (STRINGP (o1))
     {
       if (XSTRING (o1)->size != XSTRING (o2)->size)
-	return Qnil;
+	return 0;
       if (bcmp (XSTRING (o1)->data, XSTRING (o2)->data, XSTRING (o1)->size))
-	return Qnil;
-      return Qt;
+	return 0;
+      return 1;
     }
-  return Qnil;
+  return 0;
 }
 
 DEFUN ("fillarray", Ffillarray, Sfillarray, 2, 2, 0,
