@@ -1,3 +1,9 @@
+2005-03-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (mode-require-final-newline): Make Custom correctly
+	report a nil value and allow to set it to nil via Custom.
+	Doc fix.
+
 2005-04-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Enable the correct case setting for
