@@ -1372,7 +1372,7 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
   /* Gerd Moellmann <gerd@acm.org> says this makes profiling work on
      FreeBSD.  It might work on some other systems too.
      Give it a try and tell me if it works on your system.  */
-#ifdef __FreeBSD__
+#if defined (__FreeBSD__) || defined (__linux)
 #ifdef PROFILING
   if (initialized)
     {
