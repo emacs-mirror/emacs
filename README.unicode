@@ -31,9 +31,6 @@ orthogonal to the internal representation.
 
  * What to do with the old coding categories stuff?
 
- * Something's wrong with categories, e.g. the result of C-u C-x e on
-   Lao in HELLO.
-
  * Syntax for symbols &c in characters needs looking at.
 
  * The preferred-coding-system property of charsets should probably be
