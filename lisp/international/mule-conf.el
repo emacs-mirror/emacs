@@ -397,9 +397,9 @@
 ;; Tar files are not decoded at all, but we treat them as raw bytes.
 
 (setq file-coding-system-alist
-      '(("\\.elc$" . (emacs-mule . emacs-mule))
-	("\\(\\`\\|/\\)loaddefs.el$" . (no-conversion . no-conversion))
-	("\\.tar$" . (no-conversion . no-conversion))
+      '(("\\.elc\\'" . (emacs-mule . emacs-mule))
+	("\\(\\`\\|/\\)loaddefs.el\\'" . (no-conversion . no-conversion))
+	("\\.tar\\'" . (no-conversion . no-conversion))
 	("" . (undecided . nil))))
 
 
