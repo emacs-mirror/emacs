@@ -354,6 +354,14 @@ case "${srcdir}" in
   *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
 esac
 
+#### Make sure that the source directory doesn't already have a
+#### configured system in it.
+if [ -f "${srcdir}/src/config.h" ] ; then
+  (echo "${progname}: the directory tree \`${srcdir}' is being used as a build"
+   echo "  directory right now; it has been configured in its own right."
+   echo "  You can't use srcdir in this situation.") >&2
+  exit 1
+fi
 
 ### Make the necessary directories, if they don't exist.
 if [ ! -d ./src ]; then
