@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:epvmfmt.c(trunk.3) $
+/* $HopeName: MMQA_harness!testlib:epvmfmt.c(trunk.4) $
 */
 
 #include "mps.h"
@@ -21,8 +21,11 @@ static void epvmpad(mps_addr_t base, size_t size);
 static mps_res_t epvmscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit);
 
 mps_addr_t epvmskip(mps_addr_t object) {
- error("skip called on EPVM object: %p", object);
- return NULL;
+/* error("skip called on EPVM object: %p", object);
+*/
+ asserts(((unsigned long) object & 7) == 0,
+  "epvmskip called on unaligned object %p", object);
+ return (mps_addr_t) ((char *)object + 8);
 }
 
 void epvmfwd(mps_addr_t object, mps_addr_t to) {
