@@ -1,3 +1,7 @@
+2000-12-20  Dave Love  <fx@gnu.org>
+
+	* s/osf5-0.h (NSIG): Don't redefine.
+
 2000-12-20  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keymap.c (where_is_internal): Check ascii_sequence_p rather than
