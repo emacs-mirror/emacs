@@ -2935,8 +2935,12 @@ char *sys_siglist[NSIG + 1] =
   "exceeded file size limit",		    /* 31 SIGXFSZ */
   "process's lwps are blocked",	    /*  32 SIGWAITING */
   "special signal used by thread library", /* 33 SIGLWP */
+#ifdef SIGFREEZE
   "Special Signal Used By CPR",	    /* 34 SIGFREEZE */
+#endif
+#ifdef SIGTHAW
   "Special Signal Used By CPR",	    /* 35 SIGTHAW */
+#endif
 #endif /* sun */
 #endif /* not AIX */
   0
