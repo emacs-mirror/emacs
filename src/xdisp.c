@@ -2670,7 +2670,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      if (pos < ZV || !zv_strings_seen++)
 		{
 		  int ovlen;
-		  char *ovstr;
+		  unsigned char *ovstr;
 		  ovlen = overlay_strings (pos, w, &ovstr);
 		  for (; ovlen; ovlen--, ovstr++)
 		    {
