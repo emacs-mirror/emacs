@@ -968,8 +968,7 @@ If the game is finished, this command requests for another game."
 	  (format ": Won %d, lost %d"
 		  gomoku-number-of-human-wins
 		  gomoku-number-of-emacs-wins))))
-  ;; Then a (standard) kludgy line will force update of mode line.
-  (set-buffer-modified-p (buffer-modified-p)))
+  (force-mode-line-update))
 
 (defun gomoku-switch-to-window ()
   "Find or create the Gomoku buffer, and display it."
