@@ -17,6 +17,3 @@
 #endif
 
 #undef  m88k                       /* It sure is NOT a Motorola machine */
-
-/* INTEL DG/UX needs some extra libs (-lelf ?) */
-#define LIBS_MACHINE -lsocket -lnsl
