@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.28) $
+ * $HopeName: MMsrc!amcss.c(trunk.29) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  */
 
@@ -23,7 +23,7 @@
 
 
 #define testArenaSIZE     ((size_t)64<<20)
-#define avLEN             4
+#define avLEN             3
 #define exactRootsCOUNT   300
 #define ambigRootsCOUNT   50
 #define collectionsCOUNT  18
