@@ -49,7 +49,6 @@
 
 	* textmodes/ispell.el (ispell): Doc fix.
 
->>>>>>> 1.1667
 2000-12-08  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-insert-decode-map): Check the
