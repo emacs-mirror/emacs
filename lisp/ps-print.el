@@ -9,11 +9,11 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/06/21 14:10:51 vinicius>
-;; Version:	5.2.3
+;; Time-stamp:	<2000/07/28 21:47:57 vinicius>
+;; Version:	5.2.4
 
-(defconst ps-print-version "5.2.3"
-  "ps-print.el, v 5.2.3 <2000/06/21 vinicius>
+(defconst ps-print-version "5.2.4"
+  "ps-print.el, v 5.2.4 <2000/07/28 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1091,47 +1091,47 @@ Please send all bug fixes and enhancements to
 ;;	 PostScript error handler.
 ;;	 `ps-user-defined-prologue' and `ps-error-handler-message'.
 ;;
-;;    991211
+;;    19991211
 ;;	 `ps-print-customize'.
 ;;
-;;    990703
+;;    19990703
 ;;	 Better customization.
 ;;	 `ps-banner-page-when-duplexing' and `ps-zebra-color'.
 ;;
-;;    990513
+;;    19990513
 ;;	 N-up printing.
 ;;	 Hook: `ps-print-begin-sheet-hook'.
 ;;
-;; [keinichi] 990509 Kein'ichi Handa <handa@etl.go.jp>
+;; [keinichi] 19990509 Kein'ichi Handa <handa@etl.go.jp>
 ;;
 ;; `ps-print-region-function'
 ;;
 ;; [vinicius] Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;
-;;    990301
+;;    19990301
 ;;	 PostScript tumble and setpagedevice.
 ;;
-;;    980922
+;;    19980922
 ;;	 PostScript prologue header comment insertion.
 ;;	 Skip invisible text better.
 ;;
-;; [keinichi] 980819 Kein'ichi Handa <handa@etl.go.jp>
+;; [keinichi] 19980819 Kein'ichi Handa <handa@etl.go.jp>
 ;;
 ;; Multi-byte buffer handling.
 ;;
 ;; [vinicius] Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;
-;;    980306
+;;    19980306
 ;;	 Skip invisible text.
 ;;
-;;    971130
+;;    19971130
 ;;	 Hooks: `ps-print-hook', `ps-print-begin-page-hook' and
 ;;	 `ps-print-begin-column-hook'.
 ;;	 Put one header per page over the columns.
 ;;	 Better database font management.
 ;;	 Better control characters handling.
 ;;
-;;    971121
+;;    19971121
 ;;	 Dynamic evaluation at print time of `ps-lpr-switches'.
 ;;	 Handle control characters.
 ;;	 Face remapping.
@@ -1140,7 +1140,7 @@ Please send all bug fixes and enhancements to
 ;;	 Zebra stripes.
 ;;	 Text and/or image on background.
 ;;
-;; [jack] 960517 Jacques Duthen <duthen@cegelec-red.fr>
+;; [jack] 19960517 Jacques Duthen <duthen@cegelec-red.fr>
 ;;
 ;; Font family and float size for text and header.
 ;; Landscape mode.
@@ -1282,6 +1282,9 @@ Please send all bug fixes and enhancements to
 
 (or (fboundp 'string-as-multibyte)
     (defun string-as-multibyte (arg) arg))
+
+(or (fboundp 'char-charset)
+    (defun char-charset (arg) 'ascii))
 
 (or (fboundp 'charset-after)
     (defun charset-after (&optional arg)
@@ -2346,7 +2349,7 @@ You can get all the fonts of YOUR printer using `ReportAllFontInfo'."
   :group 'ps-print-color)
 
 (defcustom ps-auto-font-detect t
-  "*Non-nil means automatically detect bold/italic face attributes.
+  "*Non-nil means automatically detect bold/italic/underline face attributes.
 If nil, we rely solely on the lists `ps-bold-faces', `ps-italic-faces',
 and `ps-underlined-faces'."
   :type 'boolean
@@ -3200,22 +3203,31 @@ which long lines wrap around."
   "Display the correspondence between a line length and a font size,
 using the current ps-print setup.
 Try: pr -t file | awk '{printf \"%3d %s\n\", length($0), $0}' | sort -r | head"
-  (let ((buf (get-buffer-create "*Line-lengths*"))
-	(ifs ps-font-size-internal)	; initial font size
-	(icw (ps-avg-char-width 'ps-font-for-text)) ; initial character width
-	(print-width (progn (ps-get-page-dimensions)
-			    ps-print-width))
-	(ps-setup (ps-setup))		; setup for the current buffer
-	(fs-min 5)			; minimum font size
-	cw-min				; minimum character width
-	nb-cpl-max			; maximum nb of characters per line
-	(fs-max 14)			; maximum font size
-	cw-max				; maximum character width
-	nb-cpl-min			; minimum nb of characters per line
-	fs				; current font size
-	cw				; current character width
-	nb-cpl				; current nb of characters per line
-	)
+  (let* ((ps-font-size-internal
+	  (or ps-font-size-internal
+	      (ps-get-font-size 'ps-font-size)))
+	 (ps-header-font-size-internal
+	  (or ps-header-font-size-internal
+	      (ps-get-font-size 'ps-header-font-size)))
+	 (ps-header-title-font-size-internal
+	  (or ps-header-title-font-size-internal
+	      (ps-get-font-size 'ps-header-title-font-size)))
+	 (buf (get-buffer-create "*Line-lengths*"))
+	 (ifs ps-font-size-internal)	; initial font size
+	 (icw (ps-avg-char-width 'ps-font-for-text)) ; initial character width
+	 (print-width (progn (ps-get-page-dimensions)
+			     ps-print-width))
+	 (ps-setup (ps-setup))		; setup for the current buffer
+	 (fs-min 5)			; minimum font size
+	 cw-min				; minimum character width
+	 nb-cpl-max			; maximum nb of characters per line
+	 (fs-max 14)			; maximum font size
+	 cw-max				; maximum character width
+	 nb-cpl-min			; minimum nb of characters per line
+	 fs				; current font size
+	 cw				; current character width
+	 nb-cpl				; current nb of characters per line
+	 )
     (setq cw-min     (/ (* icw fs-min) ifs)
 	  nb-cpl-max (floor (/ print-width cw-min))
 	  cw-max     (/ (* icw fs-max) ifs)
@@ -3223,13 +3235,13 @@ Try: pr -t file | awk '{printf \"%3d %s\n\", length($0), $0}' | sort -r | head"
 	  nb-cpl     nb-cpl-min)
     (set-buffer buf)
     (goto-char (point-max))
-    (or (bolp) (insert "\n"))
+    (or (bobp) (insert "\n" (make-string 75 ?\;) "\n"))
     (insert ps-setup
-	    "nb char per line / font size\n")
+	    "\nnb char per line / font size\n")
     (while (<= nb-cpl nb-cpl-max)
       (setq cw (/ print-width (float nb-cpl))
 	    fs (/ (* ifs cw) icw))
-      (insert (format "%3s %s\n" nb-cpl fs))
+      (insert (format "%16d   %s\n" nb-cpl fs))
       (setq nb-cpl (1+ nb-cpl)))
     (insert "\n")
     (display-buffer buf 'not-this-window)))
@@ -3238,25 +3250,34 @@ Try: pr -t file | awk '{printf \"%3d %s\n\", length($0), $0}' | sort -r | head"
   "Display correspondence between font size and the number of pages.
 The correspondence is based on having NB-LINES lines of text,
 and on the current ps-print setup."
-  (let ((buf (get-buffer-create "*Nb-Pages*"))
-	(ifs ps-font-size-internal)	; initial font size
-	(ilh (ps-line-height 'ps-font-for-text)) ; initial line height
-	(page-height (progn (ps-get-page-dimensions)
-			    ps-print-height))
-	(ps-setup (ps-setup))		; setup for the current buffer
-	(fs-min 4)			; minimum font size
-	lh-min				; minimum line height
-	nb-lpp-max			; maximum nb of lines per page
-	nb-page-min			; minimum nb of pages
-	(fs-max 14)			; maximum font size
-	lh-max				; maximum line height
-	nb-lpp-min			; minimum nb of lines per page
-	nb-page-max			; maximum nb of pages
-	fs				; current font size
-	lh				; current line height
-	nb-lpp				; current nb of lines per page
-	nb-page				; current nb of pages
-	)
+  (let* ((ps-font-size-internal
+	  (or ps-font-size-internal
+	      (ps-get-font-size 'ps-font-size)))
+	 (ps-header-font-size-internal
+	  (or ps-header-font-size-internal
+	      (ps-get-font-size 'ps-header-font-size)))
+	 (ps-header-title-font-size-internal
+	  (or ps-header-title-font-size-internal
+	      (ps-get-font-size 'ps-header-title-font-size)))
+	 (buf (get-buffer-create "*Nb-Pages*"))
+	 (ifs ps-font-size-internal)	; initial font size
+	 (ilh (ps-line-height 'ps-font-for-text)) ; initial line height
+	 (page-height (progn (ps-get-page-dimensions)
+			     ps-print-height))
+	 (ps-setup (ps-setup))		; setup for the current buffer
+	 (fs-min 4)			; minimum font size
+	 lh-min				; minimum line height
+	 nb-lpp-max			; maximum nb of lines per page
+	 nb-page-min			; minimum nb of pages
+	 (fs-max 14)			; maximum font size
+	 lh-max				; maximum line height
+	 nb-lpp-min			; minimum nb of lines per page
+	 nb-page-max			; maximum nb of pages
+	 fs				; current font size
+	 lh				; current line height
+	 nb-lpp				; current nb of lines per page
+	 nb-page			; current nb of pages
+	 )
     (setq lh-min      (/ (* ilh fs-min) ifs)
 	  nb-lpp-max  (floor (/ page-height lh-min))
 	  nb-page-min (ceiling (/ (float nb-lines) nb-lpp-max))
@@ -3266,15 +3287,15 @@ and on the current ps-print setup."
 	  nb-page     nb-page-min)
     (set-buffer buf)
     (goto-char (point-max))
-    (or (bolp) (insert "\n"))
+    (or (bobp) (insert "\n" (make-string 75 ?\;) "\n"))
     (insert ps-setup
-	    (format "%d lines\n" nb-lines)
+	    (format "\nThere are %d lines.\n\n" nb-lines)
 	    "nb page / font size\n")
     (while (<= nb-page nb-page-max)
       (setq nb-lpp (ceiling (/ nb-lines (float nb-page)))
 	    lh     (/ page-height nb-lpp)
 	    fs     (/ (* ifs lh) ilh))
-      (insert (format "%s %s\n" nb-page fs))
+      (insert (format "%7d   %s\n" nb-page fs))
       (setq nb-page (1+ nb-page)))
     (insert "\n")
     (display-buffer buf 'not-this-window)))
@@ -4775,8 +4796,7 @@ EndDSCPage\n")
 	     ((= match ?\f)		; form feed
 	      ;; do not skip page if previous character is NEWLINE and
 	      ;; it is a beginning of page.
-	      (or (and (> match-point 1)
-		       (= (char-after (1- match-point)) ?\n)
+	      (or (and (equal (char-after (1- match-point)) ?\n)
 		       (= ps-height-remaining ps-print-height))
 		  (ps-next-page)))
 
@@ -4884,14 +4904,23 @@ If FACE is not in `ps-print-face-extension-alist' or in
 return the attribute vector.
 
 If FACE is not a valid face name, it is used default face."
-  (cdr (or (assq face ps-print-face-extension-alist)
-	   (assq face ps-print-face-alist)
-	   (let* ((the-face (if (facep face) face 'default))
-		  (new-face (ps-screen-to-bit-face the-face)))
-	     (or (and (eq the-face 'default)
-		      (assq the-face ps-print-face-alist))
-		 (setq ps-print-face-alist (cons new-face ps-print-face-alist)))
-	     new-face))))
+  (cond
+   ((symbolp face)
+    (cdr (or (assq face ps-print-face-extension-alist)
+	     (assq face ps-print-face-alist)
+	     (let* ((the-face (if (facep face) face 'default))
+		    (new-face (ps-screen-to-bit-face the-face)))
+	       (or (and (eq the-face 'default)
+			(assq the-face ps-print-face-alist))
+		   (setq ps-print-face-alist
+			 (cons new-face ps-print-face-alist)))
+	       new-face))))
+   ((eq (car face) 'foreground-color)
+    (vector 0 (cdr face) nil))
+   ((eq (car face) 'background-color)
+    (vector 0 nil (cdr face)))
+   (t
+    (vector 0 nil nil))))
 
 
 (defun ps-face-background (face background)
@@ -4899,13 +4928,16 @@ If FACE is not a valid face name, it is used default face."
 	   (cond ((symbolp face)
 		  (memq face ps-use-face-background))
 		 ((listp face)
-		  (let (ok)
-		    (while face
-		      (if (memq (car face) ps-use-face-background)
-			  (setq face nil
-				ok   t)
-			(setq face (cdr face))))
-		    ok))
+		  (or (memq (car face) '(foreground-color background-color))
+		      (let (ok)
+			(while face
+			  (if (or (memq (car face) ps-use-face-background)
+				  (memq (car face)
+					'(foreground-color background-color)))
+			      (setq face nil
+				    ok   t)
+			    (setq face (cdr face))))
+			ok)))
 		 (t
 		  nil)
 		 ))
@@ -4913,21 +4945,29 @@ If FACE is not a valid face name, it is used default face."
 
 
 (defun ps-face-attribute-list (face-or-list)
-  (if (listp face-or-list)
-      ;; list of faces
-      (let ((effects 0)
-	    foreground background face-attr face)
-	(while face-or-list
-	  (setq face         (car face-or-list)
-		face-or-list (cdr face-or-list)
-		face-attr    (ps-face-attributes face)
-		effects      (logior effects (aref face-attr 0)))
-	  (or foreground (setq foreground (aref face-attr 1)))
-	  (or background
-	      (setq background (ps-face-background face (aref face-attr 2)))))
-	(vector effects foreground background))
-    ;; simple face
-    (ps-face-attributes face-or-list)))
+  (cond
+   ;; simple face
+   ((not (listp face-or-list))
+    (ps-face-attributes face-or-list))
+   ;; only foreground color, not a `real' face
+   ((eq (car face-or-list) 'foreground-color)
+    (vector 0 (cdr face-or-list) nil))
+   ;; only background color, not a `real' face
+   ((eq (car face-or-list) 'background-color)
+    (vector 0 nil (cdr face-or-list)))
+   ;; list of faces
+   (t
+    (let ((effects 0)
+	  foreground background face-attr face)
+      (while face-or-list
+	(setq face         (car face-or-list)
+	      face-or-list (cdr face-or-list)
+	      face-attr    (ps-face-attributes face)
+	      effects      (logior effects (aref face-attr 0)))
+	(or foreground (setq foreground (aref face-attr 1)))
+	(or background
+	    (setq background (ps-face-background face (aref face-attr 2)))))
+      (vector effects foreground background)))))
 
 
 (defconst ps-font-type (vector nil 'bold 'italic 'bold-italic))
