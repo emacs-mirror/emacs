@@ -1171,6 +1171,9 @@ clean: mostlyclean
 /**/# Do not use it on development directories!
 distclean: clean
 	rm -f epaths.h config.h Makefile Makefile.c config.stamp stamp-oldxmenu ../etc/DOC-*
+	mv ./.gdbinit ./.gdbinit.save
+	if test -f "${srcdir}/.gdbinit"; then rm -f ./.gdbinit.save; \
+	else mv ./.gdbinit.save ./.gdbinit; fi
 maintainer-clean: distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
