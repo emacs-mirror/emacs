@@ -117,9 +117,9 @@ extern long timezone;
 }
 
 #define EMACS_TIME_NEG_P(time)					\
-  ((time).tv_sec < 0						\
+  ((long)(time).tv_sec < 0					\
    || ((time).tv_sec == 0					\
-       && (time).tv_usec < 0))
+       && (long)(time).tv_usec < 0))
 
 #else /* ! defined (HAVE_TIMEVAL) */
 
