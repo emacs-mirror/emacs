@@ -1358,13 +1358,14 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	  {
 	    /* Try matching at position POS.  */
 	    int this_pos = pos - len;
-	    int this_pos_byte = pos_byte - len_byte;
+	    int this_pos_byte;
 	    int this_len = len;
 	    int this_len_byte = len_byte;
 	    unsigned char *p = pat;
 
 	    if (pos - len < lim)
 	      goto stop;
+	    this_pos_byte = CHAR_TO_BYTE (this_pos);
 
 	    while (this_len > 0)
 	      {
