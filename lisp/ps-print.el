@@ -2798,7 +2798,7 @@ which long lines wrap around."
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp>
 
 (eval-and-compile
-  (if (fboundp 'set-buffer-multibyte)
+  (if (not (string< mule-version "4.0"))
       (progn
 	(defalias 'ps-mule-next-point '1+)
 	(defalias 'ps-mule-chars-in-string 'length)
