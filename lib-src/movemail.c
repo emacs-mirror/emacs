@@ -479,7 +479,7 @@ popmail (user, outfile)
   FILE *mbf;
   char *getenv ();
   int mbx_write ();
-  PopServer server;
+  popserver server;
   extern char *strerror ();
 
   server = pop_open (0, user, 0, POP_NO_GETPASS);
@@ -579,7 +579,7 @@ popmail (user, outfile)
 }
 
 pop_retr (server, msgno, action, arg)
-     PopServer server;
+     popserver server;
      int (*action)();
 {
   extern char *strerror ();
