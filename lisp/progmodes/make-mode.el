@@ -1,6 +1,6 @@
 ;;; makefile.el --- makefile editing commands for Emacs
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
@@ -14,11 +14,10 @@
 ;; via M-TAB completion, not by preempting insertion of references.
 ;; Also, the doc strings need fixing: the first line doesn't stand alone,
 ;; and other usage is not high quality.  Symbol names don't have `...'.
-;; The Mode names is written as makefile-mode instead of Makefile mode.
 
 ;; So, for the meantime, this is not the default mode for makefiles.
 
-;; $Id: makefile.el,v 1.11 1994/01/06 09:59:12 rms Exp rms $
+;; $Id: makefile.el,v 1.16 1994/02/28 18:05:55 tom Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -74,7 +73,7 @@
 ;;; Configurable stuff
 ;;; ------------------------------------------------------------
 
-(defconst makefile-mode-name "makefile"
+(defconst makefile-mode-name "Makefile"
   "The \"pretty name\" of makefile-mode, as it appears in the modeline.")
 
 (defvar makefile-browser-buffer-name "*Macros and Targets*"
@@ -319,7 +318,7 @@ using makefile-pickup-macros.")
     ("foreach" "Variable" "List" "Text")
     ("origin" "Variable")
     ("shell" "Command"))
-  "A list of GNU make 3.62 function names associated with
+  "A list of GNU make function names associated with
 the prompts for each function.
 This is used in the function makefile-insert-gmake-function .")
 
@@ -410,14 +409,14 @@ makefile-special-targets-list:
    at the beginning of a line in makefile-mode."
   (interactive)
   (kill-all-local-variables)
-  (if (not (memq 'makefile-cleanup-continuations write-file-hooks))
-      (setq write-file-hooks
-	    (append write-file-hooks (list 'makefile-cleanup-continuations))))
-  (make-variable-buffer-local 'makefile-target-table)
-  (make-variable-buffer-local 'makefile-macro-table)
-  (make-variable-buffer-local 'makefile-has-prereqs)
-  (make-variable-buffer-local 'makefile-need-target-pickup)
-  (make-variable-buffer-local 'makefile-need-macro-pickup)
+  (make-local-file 'local-write-file-hooks)
+  (setq local-write-file-hooks
+	'(makefile-cleanup-continuations 'makefile-warn-suspicious-lines))
+  (make-local-variable 'makefile-target-table)
+  (make-local-variable 'makefile-macro-table)
+  (make-local-variable 'makefile-has-prereqs)
+  (make-local-variable 'makefile-need-target-pickup)
+  (make-local-variable 'makefile-need-macro-pickup)
   (make-local-variable 'comment-start)
   (make-local-variable 'comment-end)
   (make-local-variable 'comment-start-skip)
@@ -430,6 +429,7 @@ makefile-special-targets-list:
   ;; activate keymap
   (use-local-map makefile-mode-map)
   (set-syntax-table makefile-mode-syntax-table)
+  (setq indent-tabs-mode t)		;real TABs are important in makefiles
   (run-hooks 'makefile-mode-hook))  
 
 (defun makefile-next-dependency ()
@@ -502,8 +502,8 @@ Anywhere else just insert a dot."
       (completing-read "Refer to macro: " makefile-macro-table nil nil nil))))
    (if (not (zerop (length macro-name)))
        (if (assoc macro-name makefile-runtime-macros-list)
-	   (insert (format "$%s " macro-name))
-	 (insert (makefile-format-macro-ref macro-name) " "))))
+	   (insert (format "$%s" macro-name))
+	 (insert (makefile-format-macro-ref macro-name)))))
 
 (defun makefile-insert-target (target-name)
   "Prepare definition of a new target (dependency line)."
@@ -924,6 +924,28 @@ and generates the overview, one line per target name."
 	    (while (re-search-forward "\\\\[ \t]+$" (point-max) t)
 	      (replace-match "\\" t t))))))
 
+
+;;; ------------------------------------------------------------
+;;; Warn of suspicious lines
+;;; ------------------------------------------------------------
+
+(defun makefile-warn-suspicious-lines ()
+  (let ((dont-save nil))
+    (if (eq major-mode 'makefile-mode)
+	(let ((suspicious
+	       (save-excursion
+		 (goto-char (point-min))
+		 (re-search-forward
+		  "\\(^[\t]+$\\)\\|\\(^[ ]+[\t]\\)" (point-max) t))))
+	  (if suspicious
+	      (let ((line-nr (count-lines (point-min) suspicious)))
+		(setq dont-save
+		      (not (y-or-n-p
+			    (format "Suspicious line %d. Save anyway "
+				    line-nr))))))))
+    dont-save))
+	  
+
 ;;; ------------------------------------------------------------
 ;;; GNU make function support
 ;;; ------------------------------------------------------------
@@ -1016,9 +1038,12 @@ This accts according to the value of makefile-tab-after-target-colon ."
 (defun makefile-format-macro-ref (macro-name)
   "Format a macro reference according to the value of the
 configuration variable makefile-use-curly-braces-for-macros-p ."
-  (if makefile-use-curly-braces-for-macros-p
-      (format "${%s}" macro-name)
-    (format "$(%s)" macro-name)))
+  (if (or (char-equal ?\( (string-to-char macro-name))
+	  (char-equal ?\{ (string-to-char macro-name)))
+      (format "$%s" macro-name)
+    (if makefile-use-curly-braces-for-macros-p
+	(format "${%s}" macro-name)
+      (format "$(%s)" macro-name))))
 
 (defun makefile-browser-get-state-for-line (n)
   (aref makefile-browser-selection-vector (1- n)))
