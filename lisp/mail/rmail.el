@@ -454,6 +454,9 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	       (setq rmail-enable-mime nil))))
   (let* ((file-name (expand-file-name (or file-name-arg rmail-file-name)))
 	 (existed (get-file-buffer file-name))
+	 ;; This binding is necessary because we much decide if we
+	 ;; need code conversion while the buffer is unibyte
+	 ;; (i.e. enable-multibyte-characters is nil).
 	 (rmail-enable-multibyte (default-value 'enable-multibyte-characters))
 	 ;; Since the file may contain messages of different encodings
 	 ;; at the tail (non-BYBYL part), we can't decode them at once
@@ -606,9 +609,9 @@ Note:    it means the file has no messages in it.\n\^_")))
 	    (goto-char (point))
 	    (setq from (point))
 	    (if (= (% count 10) 0)
-		(message "Decoding messages (%d)..." count))
+		(message "Decoding messages...%d" count))
 	    (setq count (1+ count)))
-	  (message "Decoding messages (%d)...done" count)
+	  (message "Decoding messages...done")
 	  (set-buffer-file-coding-system rmail-file-coding-system)
 	  (set-buffer-modified-p modifiedp)))))
 
