@@ -211,6 +211,10 @@ This is obsolete because you might as well use \\[newline-and-indent]."
 
 ;;;###autoload
 (defun comment-normalize-vars (&optional noerror)
+  "Check and setup the variables needed by other commenting functions.
+Functions autoloaded from newcomment.el, being entry points, should call
+this function before any other, so the rest of the code can assume that
+the variables are properly set."
   (if (not comment-start)
       (unless noerror
 	(set (make-local-variable 'comment-start)
