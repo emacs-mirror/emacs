@@ -1,3 +1,8 @@
+2002-11-08  Juanma Barranquero  <lektu@terra.es>
+
+	* w32term.c (w32_draw_fringe_bitmap): Remove unused local variable
+	window.
+
 2002-11-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* process.c (Fformat_network_address): Removed unused locals p,
