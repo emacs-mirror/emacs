@@ -258,13 +258,16 @@ memory_warning_signal (sig)
 #endif
 
 /* We define abort, rather than using it from the library,
-   so that GDB can return from a breakpoint here.  */
+   so that GDB can return from a breakpoint here.
+   MSDOS has its own definition on msdos.c  */
 
+#ifndef MSDOS
 void
 abort ()
 {
   kill (getpid (), SIGABRT);
 }
+#endif
 
 
 /* Code for dealing with Lisp access to the Unix command line */
