@@ -196,6 +196,15 @@ chapter."
   (modify-syntax-entry ?} "){" texinfo-mode-syntax-table)
   (modify-syntax-entry ?\' "w" texinfo-mode-syntax-table))
 
+;; Written by Wolfgang Bangerth <zcg51122@rpool1.rus.uni-stuttgart.de>
+;; To overide this example, set either `imenu-generic-expression'
+;; or `imenu-create-index-function'.
+(defvar texinfo-imenu-generic-expression
+  '((nil "^@node[ \t]+\\([^,\n]*\\)" 1)
+    ("Chapters" "^@chapter[ \t]+\\(.*\\)$" 1))
+
+  "Imenu generic expression for TexInfo mode.  See `imenu-generic-expression'.")
+
 (defvar texinfo-font-lock-keywords
   (list
    '("^\\(@c\\|@comment\\)[ \t].*" . font-lock-comment-face)	;comments
@@ -384,6 +393,8 @@ value of texinfo-mode-hook."
   (setq comment-start-skip "@c +")
   (make-local-variable 'words-include-escapes)
   (setq words-include-escapes t)
+  (make-local-variable 'imenu-generic-expression)
+  (setq imenu-generic-expression texinfo-imenu-generic-expression)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(texinfo-font-lock-keywords))
   (make-local-variable 'tex-start-of-header)
