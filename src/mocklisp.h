@@ -22,4 +22,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  with the unevaluated argument list */
 
 extern Lisp_Object ml_apply ();
-
+extern Lisp_Object Fml_if ();
+extern Lisp_Object Fml_nargs ();
+extern Lisp_Object Fml_arg ();
+extern Lisp_Object Fml_interactive ();
+extern Lisp_Object Fml_provide_prefix_argument ();
+extern Lisp_Object Fml_prefix_argument_loop ();
+extern Lisp_Object FInsStr ();
