@@ -508,12 +508,12 @@ it says do not attempt further (recursive) error recovery."
 (defun Info-on-current-buffer (&optional nodename)
   "Use the `Info-mode' to browse the current info buffer.
 If a prefix arg is provided, it queries for the NODENAME which
-else defaults to `Top'."
+else defaults to \"Top\"."
   (interactive
    (list (if current-prefix-arg
 	     (completing-read "Node name: " (Info-build-node-completions)
-			      nil t "Top")
-	   "Top")))
+			      nil t "Top"))))
+  (unless nodename (setq nodename "Top"))
   (info-initialize)
   (Info-mode)
   (set (make-local-variable 'Info-current-file) t)
