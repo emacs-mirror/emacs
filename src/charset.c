@@ -141,6 +141,9 @@ non_ascii_char_to_string (c, workbuf, str)
 {
   int charset, c1, c2;
 
+  if (c < 0)
+    invalid_character (c);
+
   if (COMPOSITE_CHAR_P (c))
     {
       int cmpchar_id = COMPOSITE_CHAR_ID (c);
