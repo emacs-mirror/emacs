@@ -2144,13 +2144,15 @@ barf_or_query_if_file_exists (absname, querystring, interactive, statptr, quick)
      struct stat *statptr;
      int quick;
 {
-  register Lisp_Object tem;
+  register Lisp_Object tem, encoded_filename;
   struct stat statbuf;
   struct gcpro gcpro1;
 
+  encoded_filename = ENCODE_FILE (absname);
+
   /* stat is a good way to tell whether the file exists,
      regardless of what access permissions it has.  */
-  if (stat (XSTRING (absname)->data, &statbuf) >= 0)
+  if (stat (XSTRING (encoded_filename)->data, &statbuf) >= 0)
     {
       if (! interactive)
 	Fsignal (Qfile_already_exists,
@@ -3762,7 +3764,14 @@ This does code conversion according to the value of\n\
 	 we are taking from the file.  */
       inserted -= (Z_BYTE - same_at_end) + (same_at_start - BEG_BYTE);
       del_range_byte (same_at_start, same_at_end, 0);
-      SET_PT_BOTH (GPT, GPT_BYTE);
+      if (same_at_end != same_at_start)
+	SET_PT_BOTH (GPT, GPT_BYTE);
+      else
+	{
+	  /* Insert from the file at the proper position.  */
+	  temp = BYTE_TO_CHAR (same_at_start);
+	  SET_PT_BOTH (temp, same_at_start);
+	}
 
       insert_1 (conversion_buffer + same_at_start - BEG_BYTE, inserted,
 		0, 0, 0);
