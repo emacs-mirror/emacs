@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.110 $")
+(defconst byte-compile-version "$Revision: 2.111 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -274,7 +274,7 @@ t means do all optimizations.
 		 (const :tag "source-level" source)
 		 (const :tag "byte-level" byte)))
 
-(defcustom byte-compile-delete-errors t
+(defcustom byte-compile-delete-errors nil
   "*If non-nil, the optimizer may delete forms that may signal an error.
 This includes variable references and calls to functions such as `car'."
   :group 'bytecomp
