@@ -1,3 +1,8 @@
+2001-04-05  Dave Love  <fx@gnu.org>
+
+	* emacsclient.c (fail): Don't return a value.
+	(main): Cast uid values for sprintf. 
+
 2001-04-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacsclient.c (fail, main): Don't use implicit int return type.
