@@ -1,3 +1,8 @@
+2003-02-04  Juanma Barranquero  <lektu@terra.es>
+
+	* international/characters.el: Restore missing space and put a
+	comment to protect it from being deleted as trailing whitespace.
+
 2003-02-04  Richard M. Stallman  <rms@gnu.org>
 
 	* term.el (term-raw-map): Set it up at load time.
