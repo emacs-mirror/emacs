@@ -1,3 +1,16 @@
+2000-06-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* language/tibet-util.el: Convert all tibetan-1-column characters
+	to the corresponding tibetan characters.
+	(tibetan-add-components): Delete code for the special treatment of
+	'a chung.
+
+	* language/tibetan.el (tibetan-composable-pattern): Fix previous
+	change.
+	(tibetan-vowel-transcription-alist): More rules added.
+	(tibetan-composite-vowel-alist): New variable.
+	(tibetan-precomposition-rule-alist): More rules added.
+
 2000-06-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* startup.el (command-line): Only call menu-bar-mode if interactive.
