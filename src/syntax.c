@@ -197,7 +197,7 @@ unsigned char syntax_spec_code[0400] =
     0377, 0377, 0377, 0377, 0377, 0377, 0377, 0377,
     0377, 0377, 0377, 0377,
 	(char) Scomment, 0377, (char) Sendcomment, 0377,
-    0377, 0377, 0377, 0377, 0377, 0377, 0377, 0377,   /* @, A, ... */
+    (char) Sinherit, 0377, 0377, 0377, 0377, 0377, 0377, 0377,   /* @, A ... */
     0377, 0377, 0377, 0377, 0377, 0377, 0377, 0377,
     0377, 0377, 0377, 0377, 0377, 0377, 0377, (char) Sword,
     0377, 0377, 0377, 0377, (char) Sescape, 0377, 0377, (char) Ssymbol,
@@ -209,9 +209,9 @@ unsigned char syntax_spec_code[0400] =
 
 /* Indexed by syntax code, give the letter that describes it. */
 
-char syntax_code_spec[13] =
+char syntax_code_spec[14] =
   {
-    ' ', '.', 'w', '_', '(', ')', '\'', '\"', '$', '\\', '/', '<', '>'
+    ' ', '.', 'w', '_', '(', ')', '\'', '\"', '$', '\\', '/', '<', '>', '@'
   };
 
 DEFUN ("char-syntax", Fchar_syntax, Schar_syntax, 1, 1, 0,
@@ -241,7 +241,7 @@ The first character of S should be one of the following:\n\
   \"           string quote.         \\   escape.\n\
   $           paired delimiter.     '   expression quote or prefix operator.\n\
   <           comment starter.      >   comment ender.\n\
-  /           character-quote.\n\
+  /           character-quote.      @   inherit from `standard-syntax-table'.\n\
 \n\
 Only single-character comment start and end sequences are represented thus.\n\
 Two-character sequences are represented as described below.\n\
@@ -420,6 +420,8 @@ describe_syntax (value)
       insert_string ("comment"); break;
     case Sendcomment:
       insert_string ("endcomment"); break;
+    case Sinherit:
+      insert_string ("inherit"); break;
     default:
       insert_string ("invalid");
       return;
