@@ -445,7 +445,7 @@ install-arch-indep: mkdir info
 	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
 	then \
 	   echo "Copying etc/DOC-* to ${docdir} ..." ; \
-	   (cd ./etc; tar -chf - DOC*) \
+	   (cd ./etc; tar -chf - DOC* compilation.txt) \
 	     |(cd ${docdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
 	   (cd $(docdir); chown $${LOGNAME:-$$USERNAME} DOC*; chmod a+r DOC*; \
 	    if test "`echo DOC-*`" != "DOC-*"; then rm DOC; fi); \
