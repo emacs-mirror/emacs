@@ -906,7 +906,16 @@ x_draw_row_bitmaps (w, row)
 
       if (top_line_height < 0)
 	top_line_height = WINDOW_DISPLAY_TOP_LINE_HEIGHT (w);
-      XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->background);
+      
+      /* In case the same realized face is used for bitmap areas and
+	 for something displayed in the text (e.g. face `region' on
+	 mono-displays, the fill style may have been changed to
+	 FillSolid in x_draw_glyph_string_background.  */
+      if (face->stipple)
+	XSetFillStyle (FRAME_X_DISPLAY (f), face->gc, FillOpaqueStippled);
+      else
+	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->background);
+      
       XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		      face->gc,
 		      (left
@@ -916,7 +925,8 @@ x_draw_row_bitmaps (w, row)
 						       row->y)),
 		      FRAME_X_FLAGS_AREA_WIDTH (f) - border,
 		      row->visible_height);
-      XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->foreground);
+      if (!face->stipple)
+	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->foreground);
     }
 
   /* Draw the left bitmap.  */
@@ -941,7 +951,15 @@ x_draw_row_bitmaps (w, row)
 
       if (top_line_height < 0)
 	top_line_height = WINDOW_DISPLAY_TOP_LINE_HEIGHT (w);
-      XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->background);
+
+      /* In case the same realized face is used for bitmap areas and
+	 for something displayed in the text (e.g. face `region' on
+	 mono-displays, the fill style may have been changed to
+	 FillSolid in x_draw_glyph_string_background.  */
+      if (face->stipple)
+	XSetFillStyle (FRAME_X_DISPLAY (f), face->gc, FillOpaqueStippled);
+      else
+	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->background);
       XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		      face->gc,
 		      right,
@@ -949,7 +967,8 @@ x_draw_row_bitmaps (w, row)
 						       row->y)),
 		      FRAME_X_FLAGS_AREA_WIDTH (f),
 		      row->visible_height);
-      XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->foreground);
+      if (!face->stipple)
+	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->foreground);
     }
 
   /* Draw the right bitmap.  */
@@ -3029,6 +3048,8 @@ x_setup_relief_color (f, relief, factor, delta, default_pixel)
   unsigned long pixel;
   unsigned long background = di->relief_background;
   Colormap cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display *dpy = FRAME_X_DISPLAY (f);
 
   xgcv.graphics_exposures = False;
   xgcv.line_width = 1;
@@ -3041,19 +3062,19 @@ x_setup_relief_color (f, relief, factor, delta, default_pixel)
     {
       /* If display has an immutable color map, freeing colors is not
 	 necessary and some servers don't allow it.  So don't do it.  */
-      int class = FRAME_X_DISPLAY_INFO (f)->visual->class;
+      int class = dpyinfo->visual->class;
       if (class != StaticColor
 	  && class != StaticGray
 	  && class != TrueColor)
-	XFreeColors (FRAME_X_DISPLAY (f), cmap, &relief->pixel, 1, 0);
+	XFreeColors (dpy, cmap, &relief->pixel, 1, 0);
       relief->allocated_p = 0;
     }
 
   /* Allocate new color.  */
   xgcv.foreground = default_pixel;
   pixel = background;
-  if (x_alloc_lighter_color (f, FRAME_X_DISPLAY (f), cmap, &pixel,
-			     factor, delta))
+  if (dpyinfo->n_planes != 1
+      && x_alloc_lighter_color (f, dpy, cmap, &pixel, factor, delta))
     {
       relief->allocated_p = 1;
       xgcv.foreground = relief->pixel = pixel;
@@ -3061,13 +3082,12 @@ x_setup_relief_color (f, relief, factor, delta, default_pixel)
   
   if (relief->gc == 0)
     {
-      xgcv.stipple = FRAME_X_DISPLAY_INFO (f)->gray;
+      xgcv.stipple = dpyinfo->gray;
       mask |= GCStipple;
-      relief->gc = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			      mask, &xgcv);
+      relief->gc = XCreateGC (dpy, FRAME_X_WINDOW (f), mask, &xgcv);
     }
   else
-    XChangeGC (FRAME_X_DISPLAY (f), relief->gc, mask, &xgcv);
+    XChangeGC (dpy, relief->gc, mask, &xgcv);
 }
 
 
