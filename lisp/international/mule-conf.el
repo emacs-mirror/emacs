@@ -34,9 +34,18 @@
 
 ;;; Code:
 
+;;; Remarks
+
 ;; The ISO-IR registry is at http://www.itscj.ipsj.or.jp/ISO-IR/.
 ;; Standards docs equivalent to iso-2022 and iso-8859 are at
 ;; http://www.ecma.ch/.
+
+;; FWIW, :http://www.microsoft.com/globaldev/reference/ lists the
+;; following for MS Windows, which are presumbaly the only charsets we
+;; really need to worry about on such systems:
+;; `OEM codepages': 437, 720, 737, 775, 850, 852, 855, 857, 858, 862, 866
+;; `Windows codepages': 1250, 1251, 1252, 1253, 1254, 1255, 1256, 1257,
+;;                      1258, 874, 932, 936, 949, 950
 
 ;;; Definitions of character sets.
 
@@ -234,6 +243,7 @@
   :code-space [#x40 #xFE #x81 #xFE]
   :code-offset #x150000
   :unify-map "gbk")
+(define-charset-alias 'cp936 'chinese-gbk)
 
 (define-charset 'chinese-cns11643-1
   "CNS11643 Plane 1 Chinese traditional: ISO-IR-171"
@@ -306,6 +316,9 @@
   :code-space [#x40 #xFE #xA1 #xFE]
   :code-offset #x130000
   :unify-map "big5")
+;; Fixme: AKA cp950 according to
+;; <URL:http://www.microsoft.com/globaldev/reference/WinCP.asp>.  Is
+;; that correct?
 
 (define-charset 'chinese-big5-1
   "Frequently used part (A141-C67E) of Big5 (Chinese traditional)"
@@ -381,6 +394,8 @@
   :emacs-mule-id 147
   :code-space [33 126 33 126]
   :map "ksc5601-1987")
+
+;; Fixme: Korean cp949/UHC
 
 (define-charset 'chinese-sisheng
   "SiSheng characters for PinYin/ZhuYin"
@@ -480,7 +495,7 @@
 (define-charset-alias 'cp1250 'windows-1250)
 
 (define-charset 'windows-1251
-  "WINDOWS-1251"
+  "WINDOWS-1251 (Cyrillic)"
   :short-name "WINDOWS-1251"
   :ascii-compatible-p t
   :code-space [0 255]
@@ -488,7 +503,7 @@
 (define-charset-alias 'cp1251 'windows-1251)
 
 (define-charset 'windows-1252
-  "WINDOWS-1252 (Greek)"
+  "WINDOWS-1252 (Latin I)"
   :short-name "WINDOWS-1252"
   :ascii-compatible-p t
   :code-space [0 255]
@@ -496,7 +511,7 @@
 (define-charset-alias 'cp1252 'windows-1252)
 
 (define-charset 'windows-1253
-  "WINDOWS-1253"
+  "WINDOWS-1253 (Greek)"
   :short-name "WINDOWS-1253"
   :ascii-compatible-p t
   :code-space [0 255]
@@ -504,7 +519,7 @@
 (define-charset-alias 'cp1253 'windows-1253)
 
 (define-charset 'windows-1254
-  "WINDOWS-1254"
+  "WINDOWS-1254 (Turkish)"
   :short-name "WINDOWS-1254"
   :ascii-compatible-p t
   :code-space [0 255]
@@ -536,7 +551,7 @@
 (define-charset-alias 'cp1257 'windows-1257)
 
 (define-charset 'windows-1258
-  "WINDOWS-1258"
+  "WINDOWS-1258 (Viet Nam)"
   :short-name "WINDOWS-1258"
   :ascii-compatible-p t
   :code-space [0 255]
@@ -560,14 +575,21 @@
 (define-charset-alias 'cp866u 'cp1125)
 
 (define-charset 'cp437
-  "CP437"
+  "CP437 (US)"
   :short-name "CP437"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp437")
 
+(define-charset 'cp720
+  "CP720 (Arabic)"
+  :short-name "CP720"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp720")
+
 (define-charset 'cp737
-  "CP737"
+  "CP737 (Greek)"
   :short-name "CP737"
   :code-space [0 255]
   :ascii-compatible-p t
@@ -588,25 +610,32 @@
   :map "cp851")
 
 (define-charset 'cp852
-  "CP852"
+  "CP852 (Latin II)"
   :short-name "CP852"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp852")
 
 (define-charset 'cp855
-  "CP855"
+  "CP855 (Cyrillic)"
   :short-name "CP855"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp855")
 
 (define-charset 'cp857
-  "CP857"
+  "CP857 (Turkish)"
   :short-name "CP857"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp857")
+
+(define-charset 'cp858
+  "CP858 (Multilingual Latin I + Euro)"
+  :short-name "CP858"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp858")
 
 (define-charset 'cp860
   "CP860"
@@ -623,7 +652,7 @@
   :map "cp861")
 
 (define-charset 'cp862
-  "CP862"
+  "CP862 (Hebrew)"
   :short-name "CP862"
   :code-space [0 255]
   :ascii-compatible-p t
@@ -658,7 +687,7 @@
   :map "cp869")
 
 (define-charset 'cp874
-  "CP874"
+  "CP874 (Thai)"
   :short-name "CP874"
   :code-space [0 255]
   :ascii-compatible-p t
