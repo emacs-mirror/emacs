@@ -1027,6 +1027,14 @@ list is the regular expression, and the rest of the list says how to
 create the frame.  See above, under @code{special-display-buffer-names}.
 @end defopt
 
+@defun special-display-p buffer-name
+This function returns non-@code{nil} if displaying a buffer
+named @var{buffer-name} with @code{display-buffer} would
+create a special frame.  The value is @code{t} if it would
+use the default frame paramaters, or else the specified list
+of frame parameters.
+@end defun
+
 @defvar special-display-function
 This variable holds the function to call to display a buffer specially.
 It receives the buffer as an argument, and should return the window in
@@ -1074,6 +1082,12 @@ displayed in the selected window.  If the buffer's name matches any of
 the regular expressions in this list, @code{display-buffer} handles the
 buffer by switching to it in the selected window.
 @end defopt
+
+@defun same-window-p buffer-name
+This function returns @code{t} if displaying a buffer
+named @var{buffer-name} with @code{display-buffer} would
+put it in the selected window.
+@end defun
 
 @c Emacs 19 feature
 @defvar display-buffer-function
@@ -2163,10 +2177,15 @@ regards configurations as unequal if they differ in any respect, even a
 saved point or mark.
 @end defun
 
-  Primitives to look inside of window configurations would make sense,
-but none are implemented.  It is not clear they are useful enough to
-be worth implementing.  See the file @file{winner.el} for some more
-operations on windows configurations.
+@defun window-configuration-frame config
+This function returns the frame for which the window configuration
+@var{config} was made.
+@end defun
+
+  Other primitives to look inside of window configurations would make
+sense, but are not implemented because we did not need them.  See the
+file @file{winner.el} for some more operations on windows
+configurations.
 
 @node Window Hooks
 @section Hooks for Window Scrolling and Changes
