@@ -84,13 +84,14 @@ record_insert (beg, length)
 }
 
 /* Record that a deletion is about to take place,
-   for LENGTH characters at location BEG.  */
+   of the characters in STRING, at location BEG.  */
 
 void
-record_delete (beg, length)
-     int beg, length;
+record_delete (beg, string)
+     int beg;
+     Lisp_Object string;
 {
-  Lisp_Object lbeg, lend, sbeg;
+  Lisp_Object sbeg;
   int at_boundary;
 
   if (EQ (current_buffer->undo_list, Qt))
@@ -110,12 +111,10 @@ record_delete (beg, length)
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
 
-  if (PT == beg + length)
+  if (PT == beg + XSTRING (string)->size)
     XSETINT (sbeg, -beg);
   else
     XSETFASTINT (sbeg, beg);
-  XSETFASTINT (lbeg, beg);
-  XSETFASTINT (lend, beg + length);
 
   /* If we are just after an undo boundary, and 
      point wasn't at start of deleted range, record where it was.  */
@@ -126,8 +125,7 @@ record_delete (beg, length)
       = Fcons (make_number (last_point_position), current_buffer->undo_list);
 
   current_buffer->undo_list
-    = Fcons (Fcons (Fbuffer_substring (lbeg, lend), sbeg),
-	     current_buffer->undo_list);
+    = Fcons (Fcons (string, sbeg), current_buffer->undo_list);
 }
 
 /* Record the fact that MARKER is about to be adjusted by ADJUSTMENT.
@@ -158,13 +156,13 @@ record_marker_adjustment (marker, adjustment)
 
 /* Record that a replacement is about to take place,
    for LENGTH characters at location BEG.
-   The replacement does not change the number of characters.  */
+   The replacement must not change the number of characters.  */
 
 void
 record_change (beg, length)
      int beg, length;
 {
-  record_delete (beg, length);
+  record_delete (beg, make_buffer_string (beg, beg + length, 1));
   record_insert (beg, length);
 }
 
