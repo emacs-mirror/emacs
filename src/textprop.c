@@ -871,7 +871,8 @@ Return t if any property value actually changed, nil otherwise.")
 	}
     }
 
-  modify_region (XBUFFER (object), XINT (start), XINT (end));
+  if (BUFFERP (object))
+    modify_region (XBUFFER (object), XINT (start), XINT (end));
 
   /* We are at the beginning of interval I, with LEN chars to scan.  */
   for (;;)
@@ -888,8 +889,9 @@ Return t if any property value actually changed, nil otherwise.")
 
 	  if (interval_has_all_properties (properties, i))
 	    {
-	      signal_after_change (XINT (start), XINT (end) - XINT (start),
-				   XINT (end) - XINT (start));
+	      if (BUFFERP (object))
+		signal_after_change (XINT (start), XINT (end) - XINT (start),
+				     XINT (end) - XINT (start));
 
 	      return modified ? Qt : Qnil;
 	    }
@@ -897,8 +899,9 @@ Return t if any property value actually changed, nil otherwise.")
 	  if (LENGTH (i) == len)
 	    {
 	      add_properties (properties, i, object);
-	      signal_after_change (XINT (start), XINT (end) - XINT (start),
-				   XINT (end) - XINT (start));
+	      if (BUFFERP (object))
+		signal_after_change (XINT (start), XINT (end) - XINT (start),
+				     XINT (end) - XINT (start));
 	      return Qt;
 	    }
 
@@ -907,8 +910,9 @@ Return t if any property value actually changed, nil otherwise.")
 	  i = split_interval_left (unchanged, len);
 	  copy_properties (unchanged, i);
 	  add_properties (properties, i, object);
-	  signal_after_change (XINT (start), XINT (end) - XINT (start),
-			       XINT (end) - XINT (start));
+	  if (BUFFERP (object))
+	    signal_after_change (XINT (start), XINT (end) - XINT (start),
+				 XINT (end) - XINT (start));
 	  return Qt;
 	}
 
@@ -968,10 +972,7 @@ is the string or buffer containing the text.")
       if (! XSTRING (object)->intervals)
 	return Qt;
 
-      modify_region (XBUFFER (object), XINT (start), XINT (end));
       XSTRING (object)->intervals = 0;
-      signal_after_change (XINT (start), XINT (end) - XINT (start),
-			   XINT (end) - XINT (start));
       return Qt;
     }
 
@@ -997,7 +998,8 @@ is the string or buffer containing the text.")
   s = XINT (start);
   len = XINT (end) - s;
 
-  modify_region (XBUFFER (object), XINT (start), XINT (end));
+  if (BUFFERP (object))
+    modify_region (XBUFFER (object), XINT (start), XINT (end));
 
   if (i->position != s)
     {
@@ -1009,8 +1011,9 @@ is the string or buffer containing the text.")
 	  copy_properties (unchanged, i);
 	  i = split_interval_left (i, len);
 	  set_properties (properties, i, object);
-	  signal_after_change (XINT (start), XINT (end) - XINT (start),
-			       XINT (end) - XINT (start));
+	  if (BUFFERP (object))
+	    signal_after_change (XINT (start), XINT (end) - XINT (start),
+				 XINT (end) - XINT (start));
 
 	  return Qt;
 	}
@@ -1019,8 +1022,9 @@ is the string or buffer containing the text.")
 
       if (LENGTH (i) == len)
 	{
-	  signal_after_change (XINT (start), XINT (end) - XINT (start),
-			       XINT (end) - XINT (start));
+	  if (BUFFERP (object))
+	    signal_after_change (XINT (start), XINT (end) - XINT (start),
+				 XINT (end) - XINT (start));
 
 	  return Qt;
 	}
@@ -1047,8 +1051,9 @@ is the string or buffer containing the text.")
 	  set_properties (properties, i, object);
 	  if (!NULL_INTERVAL_P (prev_changed))
 	    merge_interval_left (i);
-	  signal_after_change (XINT (start), XINT (end) - XINT (start),
-			       XINT (end) - XINT (start));
+	  if (BUFFERP (object))
+	    signal_after_change (XINT (start), XINT (end) - XINT (start),
+				 XINT (end) - XINT (start));
 	  return Qt;
 	}
 
@@ -1066,8 +1071,9 @@ is the string or buffer containing the text.")
       i = next_interval (i);
     }
 
-  signal_after_change (XINT (start), XINT (end) - XINT (start),
-		       XINT (end) - XINT (start));
+  if (BUFFERP (object))
+    signal_after_change (XINT (start), XINT (end) - XINT (start),
+			 XINT (end) - XINT (start));
   return Qt;
 }
 
@@ -1118,7 +1124,8 @@ Return t if any property was actually removed, nil otherwise.")
 	}
     }
 
-  modify_region (XBUFFER (object), XINT (start), XINT (end));
+  if (BUFFERP (object))
+    modify_region (XBUFFER (object), XINT (start), XINT (end));
 
   /* We are at the beginning of an interval, with len to scan */
   for (;;)
@@ -1134,8 +1141,9 @@ Return t if any property was actually removed, nil otherwise.")
 	  if (LENGTH (i) == len)
 	    {
 	      remove_properties (properties, i, object);
-	      signal_after_change (XINT (start), XINT (end) - XINT (start),
-				   XINT (end) - XINT (start));
+	      if (BUFFERP (object))
+		signal_after_change (XINT (start), XINT (end) - XINT (start),
+				     XINT (end) - XINT (start));
 	      return Qt;
 	    }
 
@@ -1144,8 +1152,9 @@ Return t if any property was actually removed, nil otherwise.")
 	  i = split_interval_left (i, len);
 	  copy_properties (unchanged, i);
 	  remove_properties (properties, i, object);
-	  signal_after_change (XINT (start), XINT (end) - XINT (start),
-			       XINT (end) - XINT (start));
+	  if (BUFFERP (object))
+	    signal_after_change (XINT (start), XINT (end) - XINT (start),
+				 XINT (end) - XINT (start));
 	  return Qt;
 	}
 
