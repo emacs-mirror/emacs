@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = zero maxSize for pool_create (MV)
  language = c
  link = testlib.o

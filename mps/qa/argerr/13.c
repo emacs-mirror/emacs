@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = UNALIGNED 2nd arg to pool_create
  language = c
  link = testlib.o newfmt.o
