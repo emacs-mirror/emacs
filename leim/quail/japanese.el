@@ -311,24 +311,13 @@ qh:	use `japanese' package, \"qz\" puts you back to `japanese-zenkaku'
 )
 
 (defun quail-japanese-hankaku-update-translation (control-flag)
-  (cond ((eq control-flag t)
-	 (insert (japanese-hankaku quail-current-str))
-	 (quail-terminate-translation))
-	((null control-flag)
-	 (insert (if quail-current-str
-		     (japanese-hankaku quail-current-str)
-		   quail-current-key)))
-	(t				; i.e. (numberp control-flag)
-	 (cond ((= (aref quail-current-key 0) ?n)
-		(insert ?ﾝ))
-	       ((= (aref quail-current-key 0) (aref quail-current-key 1))
-		(insert ?ｯ))
-	       (t
-		(insert (aref quail-current-key 0))))
-	 (setq unread-command-events
-	       (list (aref quail-current-key control-flag)))
-	 (quail-terminate-translation))))
-
+  (setq control-flag
+	(quail-japanese-update-translation control-flag))
+  (if (or (and (stringp quail-current-str)
+	       (> (length quail-current-str) 0))
+	  (integerp quail-current-str))
+      (setq quail-current-str (japanese-hankaku quail-current-str)))
+  control-flag)
 
 (quail-define-package
  "japanese-hankaku-kana"
