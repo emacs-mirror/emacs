@@ -520,15 +520,17 @@ If POSITION is at the end of OBJECT, the value is nil.")
 }
 
 DEFUN ("next-property-change", Fnext_property_change,
-       Snext_property_change, 1, 2, 0,
+       Snext_property_change, 1, 3, 0,
   "Return the position of next property change.\n\
 Scans characters forward from POS in OBJECT till it finds\n\
 a change in some text property, then returns the position of the change.\n\
 The optional second argument OBJECT is the string or buffer to scan.\n\
 Return nil if the property is constant all the way to the end of OBJECT.\n\
-If the value is non-nil, it is a position greater than POS, never equal.")
-  (pos, object)
-     Lisp_Object pos, object;
+If the value is non-nil, it is a position greater than POS, never equal.\n\n\
+If the optional third argument LIMIT is non-nil, don't search\n\
+past position LIMIT; return LIMIT if nothing is found before LIMIT.")
+  (pos, object, limit)
+     Lisp_Object pos, object, limit;
 {
   register INTERVAL i, next;
 
@@ -537,14 +539,17 @@ If the value is non-nil, it is a position greater than POS, never equal.")
 
   i = validate_interval_range (object, &pos, &pos, soft);
   if (NULL_INTERVAL_P (i))
-    return Qnil;
+    return limit;
 
   next = next_interval (i);
-  while (! NULL_INTERVAL_P (next) && intervals_equal (i, next))
+  while (! NULL_INTERVAL_P (next) && intervals_equal (i, next)
+	 && (NILP (limit) || next->position < XFASTINT (limit)))
     next = next_interval (next);
 
   if (NULL_INTERVAL_P (next))
-    return Qnil;
+    return limit;
+  if (! NILP (limit) && !(next->position < XFASTINT (limit)))
+    return limit;
 
   return next->position - (XTYPE (object) == Lisp_String);
 }
@@ -582,16 +587,18 @@ property_change_between_p (beg, end)
 }
 
 DEFUN ("next-single-property-change", Fnext_single_property_change,
-       Snext_single_property_change, 1, 3, 0,
+       Snext_single_property_change, 2, 4, 0,
   "Return the position of next property change for a specific property.\n\
 Scans characters forward from POS till it finds\n\
 a change in the PROP property, then returns the position of the change.\n\
 The optional third argument OBJECT is the string or buffer to scan.\n\
 The property values are compared with `eq'.\n\
 Return nil if the property is constant all the way to the end of OBJECT.\n\
-If the value is non-nil, it is a position greater than POS, never equal.")
-  (pos, prop, object)
-     Lisp_Object pos, prop, object;
+If the value is non-nil, it is a position greater than POS, never equal.\n\n\
+If the optional fourth argument LIMIT is non-nil, don't search\n\
+past position LIMIT; fail if nothing is found before LIMIT.")
+  (pos, prop, object, limit)
+     Lisp_Object pos, prop, object, limit;
 {
   register INTERVAL i, next;
   register Lisp_Object here_val;
@@ -601,30 +608,35 @@ If the value is non-nil, it is a position greater than POS, never equal.")
 
   i = validate_interval_range (object, &pos, &pos, soft);
   if (NULL_INTERVAL_P (i))
-    return Qnil;
+    return limit;
 
   here_val = textget (i->plist, prop);
   next = next_interval (i);
   while (! NULL_INTERVAL_P (next) 
-	 && EQ (here_val, textget (next->plist, prop)))
+	 && EQ (here_val, textget (next->plist, prop))
+	 && (NILP (limit) || next->position < XFASTINT (limit)))
     next = next_interval (next);
 
   if (NULL_INTERVAL_P (next))
-    return Qnil;
+    return limit;
+  if (! NILP (limit) && !(next->position < XFASTINT (limit)))
+    return limit;
 
   return next->position - (XTYPE (object) == Lisp_String);
 }
 
 DEFUN ("previous-property-change", Fprevious_property_change,
-       Sprevious_property_change, 1, 2, 0,
+       Sprevious_property_change, 1, 3, 0,
   "Return the position of previous property change.\n\
 Scans characters backwards from POS in OBJECT till it finds\n\
 a change in some text property, then returns the position of the change.\n\
 The optional second argument OBJECT is the string or buffer to scan.\n\
 Return nil if the property is constant all the way to the start of OBJECT.\n\
-If the value is non-nil, it is a position less than POS, never equal.")
-  (pos, object)
-     Lisp_Object pos, object;
+If the value is non-nil, it is a position less than POS, never equal.\n\n\
+If the optional third argument LIMIT is non-nil, don't search\n\
+back past position LIMIT; fail if nothing is found before LIMIT.")
+  (pos, object, limit)
+     Lisp_Object pos, object, limit;
 {
   register INTERVAL i, previous;
 
@@ -633,29 +645,36 @@ If the value is non-nil, it is a position less than POS, never equal.")
 
   i = validate_interval_range (object, &pos, &pos, soft);
   if (NULL_INTERVAL_P (i))
-    return Qnil;
+    return limit;
 
   previous = previous_interval (i);
-  while (! NULL_INTERVAL_P (previous) && intervals_equal (previous, i))
+  while (! NULL_INTERVAL_P (previous) && intervals_equal (previous, i)
+	 && (NILP (limit)
+	     || previous->position + LENGTH (previous) > XFASTINT (limit)))
     previous = previous_interval (previous);
   if (NULL_INTERVAL_P (previous))
-    return Qnil;
+    return limit;
+  if (!NILP (limit)
+      && !(previous->position + LENGTH (previous) > XFASTINT (limit)))
+    return limit;
 
-  return (previous->position + LENGTH (previous) - 1
+  return (previous->position + LENGTH (previous)
 	  - (XTYPE (object) == Lisp_String));
 }
 
 DEFUN ("previous-single-property-change", Fprevious_single_property_change,
-       Sprevious_single_property_change, 2, 3, 0,
+       Sprevious_single_property_change, 2, 4, 0,
   "Return the position of previous property change for a specific property.\n\
 Scans characters backward from POS till it finds\n\
 a change in the PROP property, then returns the position of the change.\n\
 The optional third argument OBJECT is the string or buffer to scan.\n\
 The property values are compared with `eq'.\n\
 Return nil if the property is constant all the way to the start of OBJECT.\n\
-If the value is non-nil, it is a position less than POS, never equal.")
-     (pos, prop, object)
-     Lisp_Object pos, prop, object;
+If the value is non-nil, it is a position less than POS, never equal.\n\n\
+If the optional fourth argument LIMIT is non-nil, don't search\n\
+back past position LIMIT; fail if nothing is found before LIMIT.")
+     (pos, prop, object, limit)
+     Lisp_Object pos, prop, object, limit;
 {
   register INTERVAL i, previous;
   register Lisp_Object here_val;
@@ -665,17 +684,22 @@ If the value is non-nil, it is a position less than POS, never equal.")
 
   i = validate_interval_range (object, &pos, &pos, soft);
   if (NULL_INTERVAL_P (i))
-    return Qnil;
+    return limit;
 
   here_val = textget (i->plist, prop);
   previous = previous_interval (i);
   while (! NULL_INTERVAL_P (previous)
-	 && EQ (here_val, textget (previous->plist, prop)))
+	 && EQ (here_val, textget (previous->plist, prop))
+	 && (NILP (limit)
+	     || previous->position + LENGTH (previous) > XFASTINT (limit)))
     previous = previous_interval (previous);
   if (NULL_INTERVAL_P (previous))
-    return Qnil;
+    return limit;
+  if (!NILP (limit)
+      && !(previous->position + LENGTH (previous) > XFASTINT (limit)))
+    return limit;
 
-  return (previous->position + LENGTH (previous) - 1
+  return (previous->position + LENGTH (previous)
 	  - (XTYPE (object) == Lisp_String));
 }
 
@@ -986,7 +1010,7 @@ containing the text.")
     XSET (object, Lisp_Buffer, current_buffer);
   i = validate_interval_range (object, &start, &end, soft);
   if (NULL_INTERVAL_P (i))
-    return (NILP (value) || EQ (start, end)) ? Qt : Qnil;
+    return (NILP (value) || EQ (start, end)) ? Qnil : Qt;
   s = XINT (start);
   e = XINT (end);
 
