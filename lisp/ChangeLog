@@ -1,3 +1,18 @@
+2000-10-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* loadup.el (toplevel): Load `loaddefs' before `help' because the
+	latter needs the autoloaded define-minor-mode macro during the
+	bootstrap.
+
+	* startup.el (command-line): For now, activate tool-bar-mode only
+	if XPM images are supported.
+
+	* mouse.el (mouse-drag-header-line): Don't allow resizing a
+	window by dragging a header-line at the top of the frame; that's
+	confusing because the header-lien doesn't move.
+	(mouse-drag-mode-line-1): Use event-* and posn-* functions instead
+	of treating the event as a list.  Some cleanup.
+
 2000-10-06  Miles Bader  <miles@gnu.org>
 
 	* simple.el (display-message-or-buffer): New function.
