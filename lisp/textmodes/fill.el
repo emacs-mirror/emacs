@@ -130,24 +130,36 @@ Remove indentation from each line."
 		(re-search-forward "[.?!][])}\"']*$" end t))
       (insert-and-inherit ? ))))
 
-(defun fill-context-prefix (from to)
+(defun fill-context-prefix (from to &optional first-line-regexp)
   "Compute a fill prefix from the text between FROM and TO.
-This uses the variables `adapive-fill-prefix' and `adaptive-fill-function'."
+This uses the variables `adapive-fill-prefix' and `adaptive-fill-function'.
+If FIRST-LINE-REGEXP is non-nil, then when taking a prefix from the
+first line, insist it must match FIRST-LINE-REGEXP."
   (save-excursion
     (goto-char from)
     (if (eolp) (forward-line 1))
     ;; Move to the second line unless there is just one.
-    (let ((firstline (point)))
+    (let ((firstline (point))
+	  ;; Non-nil if we are on the second line.
+	  at-second
+	  result)
       (forward-line 1)
       (if (>= (point) to)
-	  (goto-char firstline)))
-    (move-to-left-margin)
-    (let ((start (point))
-	  (eol (save-excursion (end-of-line) (point))))
-      (if (not (looking-at paragraph-start))
-	  (cond ((and adaptive-fill-regexp (looking-at adaptive-fill-regexp))
-		 (buffer-substring-no-properties start (match-end 0)))
-		(adaptive-fill-function (funcall adaptive-fill-function)))))))
+	  (goto-char firstline)
+	(setq at-second t))
+      (move-to-left-margin)
+      (let ((start (point))
+	    (eol (save-excursion (end-of-line) (point))))
+	(setq result
+	      (if (not (looking-at paragraph-start))
+		  (cond ((and adaptive-fill-regexp (looking-at adaptive-fill-regexp))
+			 (buffer-substring-no-properties start (match-end 0)))
+			(adaptive-fill-function (funcall adaptive-fill-function)))))
+	(and result
+	     (or at-second
+		 (null first-line-regexp)
+		 (string-match first-line-regexp result))
+	     result)))))
 
 (defun fill-region-as-paragraph (from to &optional justify nosqueeze)
   "Fill the region as one paragraph.
