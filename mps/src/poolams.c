@@ -1,7 +1,7 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.14) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!poolams.c(trunk.15) $
+ * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  * 
  * .readership: any MPS developer.
  * 
@@ -17,7 +17,7 @@
 #include "mpm.h"
 #include "mpscams.h"
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.14) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.15) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -392,7 +392,7 @@ static Bool AMSGroupAlloc(Index *baseReturn, Index *limitReturn,
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
-  AVERT(AMSGroup, group);
+  /* group has already been checked, in AMSBufferFill. */
 
   ams = group->ams;
   AVERT(AMS, ams);
@@ -631,13 +631,16 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
 /* AMSObjectFunction is the type of the function which AMSIterate
  * applies to each object in a group. See design.mps.poolams.iter */
 
-typedef Res
-(*AMSObjectFunction)(AMSGroup group, /* the group */
-		     Index i,        /* the object grain index */
-		     Addr p,         /* the object address */
-		     Addr next,      /* the address after the object */
-		     int colour,     /* the object colour */
-		     void *closure); /* the iteration closure */
+typedef Res (*AMSObjectFunction)(
+              AMSGroup group, /* the group */
+              Index i,        /* the object grain index */
+              Addr p,         /* the object address */
+              Addr next,      /* the address after the object */
+              int colour,     /* the object colour */
+              void *closure); /* the iteration closure */
+
+#define AMSObjectFunctionCheck(f) \
+  ((f) != NULL) /* that's the best we can do */
 
 
 /* AMSIterate -- applies a function to each object in a group
@@ -654,6 +657,13 @@ static Res AMSIterate(AMS ams, AMSGroup group, Seg seg, Arena arena,
   Align alignment;
   Addr p;
   Addr limit;
+
+  AVERT(AMS, ams);
+  AVERT(AMSGroup, group);
+  AVERT(Seg, seg);
+  AVERT(Arena, arena);
+  AVERT(AMSObjectFunction, f);
+  /* Can't check closure */
 
   format = ams->format;
   alignment = PoolAlignment(AMSPool(ams));
@@ -714,7 +724,7 @@ static Res AMSBlackenObject(AMSGroup group,
 			    Index i, Addr p, Addr next, int colour,
 			    void *clos)
 {
-  AVERT(AMSGroup, group);
+  /* group has already been checked, in AMSIterate. */
   AVER(i < group->grains);
   AVER(p != 0);
   AVER(p < next);
@@ -728,6 +738,7 @@ static Res AMSBlackenObject(AMSGroup group,
 
   return ResOK;
 }
+
 
 /* AMSBlacken -- the pool class segment blackening method
  *
@@ -786,7 +797,7 @@ static Res AMSScanObject(AMSGroup group,
   Format format;
   AMSScanClosure closure;
 
-  AVERT(AMSGroup, group);
+  /* group has already been checked, in AMSIterate. */
   AVER(i < group->grains);
   AVER(p != 0);
   AVER(p < next);
@@ -960,7 +971,7 @@ static Res AMSReclaimObject(AMSGroup group,
   Bool *anySurvivorsP;      /* update to true if the object survives */
   Index j;                  /* one more than the last grain index */
 
-  AVERT(AMSGroup, group);
+  /* group has already been checked, in AMSIterate. */
   AVER(i < group->grains);
   AVER(p != 0);
   AVER(p < next);
