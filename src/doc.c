@@ -41,6 +41,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 Lisp_Object Vdoc_file_name;
 
+extern char *index ();
+
 extern Lisp_Object Voverriding_local_map;
 
 /* For VMS versions with limited file name syntax,
@@ -67,29 +69,65 @@ munge_doc_file_name (name)
 #endif /* VMS */
 }
 
-Lisp_Object
+/* Extract a doc string from a file.  FILEPOS says where to get it.
+   If it is an integer, use that position in the standard DOC-... file.
+   If it is (FILE . INTEGER), use FILE as the file name
+   and INTEGER as the position in that file.  */
+
+static Lisp_Object
 get_doc_string (filepos)
-     long filepos;
+     Lisp_Object filepos;
 {
   char buf[512 * 32 + 1];
+  char *buffer;
+  int buffer_size;
+  int free_it;
+  char *from, *to;
   register int fd;
   register char *name;
   register char *p, *p1;
-  register int count;
   int minsize;
-  extern char *index ();
+  int position;
+  Lisp_Object file, tem;
 
-  if (!STRINGP (Vdoc_directory) || !STRINGP (Vdoc_file_name))
+  if (INTEGERP (filepos))
+    {
+      file = Vdoc_file_name;
+      position = XINT (filepos);
+    }
+  else if (CONSP (filepos))
+    {
+      file = XCONS (filepos)->car;
+      position = XINT (XCONS (filepos)->cdr);
+    }
+  else
     return Qnil;
 
-  minsize = XSTRING (Vdoc_directory)->size;
-  /* sizeof ("../etc/") == 8 */
-  if (minsize < 8)
-    minsize = 8;
-  name = (char *) alloca (minsize + XSTRING (Vdoc_file_name)->size + 8);
-  strcpy (name, XSTRING (Vdoc_directory)->data);
-  strcat (name, XSTRING (Vdoc_file_name)->data);
-  munge_doc_file_name (name);
+  if (!STRINGP (Vdoc_directory))
+    return Qnil;
+
+  if (!STRINGP (file))
+    return Qnil;
+    
+  /* Put the file name in NAME as a C string.
+     If it is relative, combine it with Vdoc_directory.  */
+
+  tem = Ffile_name_absolute_p (file);
+  if (NILP (tem))
+    {
+      minsize = XSTRING (Vdoc_directory)->size;
+      /* sizeof ("../etc/") == 8 */
+      if (minsize < 8)
+	minsize = 8;
+      name = (char *) alloca (minsize + XSTRING (file)->size + 8);
+      strcpy (name, XSTRING (Vdoc_directory)->data);
+      strcat (name, XSTRING (file)->data);
+      munge_doc_file_name (name);
+    }
+  else
+    {
+      name = XSTRING (file)->data;
+    }
 
   fd = open (name, O_RDONLY, 0);
   if (fd < 0)
@@ -100,7 +138,7 @@ get_doc_string (filepos)
 	  /* Preparing to dump; DOC file is probably not installed.
 	     So check in ../etc. */
 	  strcpy (name, "../etc/");
-	  strcat (name, XSTRING (Vdoc_file_name)->data);
+	  strcat (name, XSTRING (file)->data);
 	  munge_doc_file_name (name);
 
 	  fd = open (name, O_RDONLY, 0);
@@ -111,18 +149,58 @@ get_doc_string (filepos)
 	error ("Cannot open doc string file \"%s\"", name);
     }
 
-  if (0 > lseek (fd, filepos, 0))
+  if (0 > lseek (fd, position, 0))
     {
       close (fd);
       error ("Position %ld out of range in doc string file \"%s\"",
-	     filepos, name);
+	     position, name);
     }
+
+  /* Read the doc string into a buffer.
+     Use the fixed buffer BUF if it is big enough;
+     otherwise allocate one and set FREE_IT.
+     We store the buffer in use in BUFFER and its size in BUFFER_SIZE.  */
+
+  buffer = buf;
+  buffer_size = sizeof buf;
+  free_it = 0;
   p = buf;
-  while (p != buf + sizeof buf - 1)
+  while (1)
     {
-      count = read (fd, p, 512);
-      p[count] = 0;
-      if (!count)
+      int space_left = buffer_size - (p - buffer);
+      int nread;
+
+      /* Switch to a bigger buffer if we need one.  */
+      if (space_left == 0)
+	{
+	  if (free_it)
+	    {
+	      int offset = p - buffer;
+	      buffer = (char *) xrealloc (buffer,
+					  buffer_size *= 2);
+	      p = buffer + offset;
+	    }
+	  else
+	    {
+	      buffer = (char *) xmalloc (buffer_size *= 2);
+	      bcopy (buf, buffer, p - buf);
+	      p = buffer + (p - buf);
+	    }
+	  free_it = 1;
+	  space_left = buffer_size - (p - buffer);
+	}
+
+      /* Don't read too too much at one go.  */
+      if (space_left > 1024 * 8)
+	space_left = 1024 * 8;
+      nread = read (fd, p, space_left);
+      if (nread < 0)
+	{
+	  close (fd);
+	  error ("Read error on documentation file");
+	}
+      p[nread] = 0;
+      if (!nread)
 	break;
       p1 = index (p, '\037');
       if (p1)
@@ -131,10 +209,51 @@ get_doc_string (filepos)
 	  p = p1;
 	  break;
 	}
-      p += count;
+      p += nread;
     }
   close (fd);
-  return make_string (buf, p - buf);
+
+  /* Scan the text and perform quoting with ^A (char code 1).
+     ^A^A becomes ^A, ^A0 becomes a null char, and ^A_ becomes a ^_.  */
+  from = buffer;
+  to = buffer;
+  while (from != p)
+    {
+      if (*from == 1)
+	{
+	  int c;
+
+	  from++;
+	  c = *from++;
+	  if (c == 1)
+	    *to++ = c;
+	  else if (c == '0')
+	    *to++ = 0;
+	  else if (c == '_')
+	    *to++ = 037;
+	  else
+	    error ("Invalid data in documentation file -- ^A followed by code 0%o", c);
+	}
+      else
+	*to++ = *from++;
+    }
+
+  tem = make_string (buffer, to - buffer);
+  if (free_it)
+    free (buffer);
+
+  return tem;
+}
+
+/* Get a string from position FILEPOS and pass it through the Lisp reader.
+   We use this for fetching the bytecode string and constants vector
+   of a compiled function from the .elc file.  */
+
+Lisp_Object
+read_doc_string (filepos)
+     Lisp_Object filepos;
+{
+  return Fread (get_doc_string (filepos));
 }
 
 DEFUN ("documentation", Fdocumentation, Sdocumentation, 1, 2, 0,
@@ -156,7 +275,7 @@ string is passed through `substitute-command-keys'.")
       if ((EMACS_INT) XSUBR (fun)->doc >= 0)
 	doc = build_string (XSUBR (fun)->doc);
       else
-	doc = get_doc_string (- (EMACS_INT) XSUBR (fun)->doc);
+	doc = get_doc_string (make_number (- (EMACS_INT) XSUBR (fun)->doc));
     }
   else if (COMPILEDP (fun))
     {
@@ -165,8 +284,8 @@ string is passed through `substitute-command-keys'.")
       tem = XVECTOR (fun)->contents[COMPILED_DOC_STRING];
       if (STRINGP (tem))
 	doc = tem;
-      else if (NATNUMP (tem))
-	doc = get_doc_string (XFASTINT (tem));
+      else if (NATNUMP (tem) || CONSP (tem))
+	doc = get_doc_string (tem);
       else
 	return Qnil;
     }
@@ -188,8 +307,8 @@ subcommands.)");
 	  tem = Fcar (Fcdr (Fcdr (fun)));
 	  if (STRINGP (tem))
 	    doc = tem;
-	  else if (NATNUMP (tem))
-	    doc = get_doc_string (XFASTINT (tem));
+	  else if (NATNUMP (tem) || CONSP (tem))
+	    doc = get_doc_string (tem);
 	  else
 	    return Qnil;
 	}
@@ -230,7 +349,9 @@ translation.")
 
   tem = Fget (sym, prop);
   if (INTEGERP (tem))
-    tem = get_doc_string (XINT (tem) > 0 ? XINT (tem) : - XINT (tem));
+    tem = get_doc_string (XINT (tem) > 0 ? tem : make_number (- XINT (tem)));
+  else if (CONSP (tem))
+    tem = get_doc_string (tem);
   if (NILP (raw) && STRINGP (tem))
     return Fsubstitute_command_keys (tem);
   return tem;
