@@ -1,3 +1,8 @@
+2002-05-20  Dave Love  <fx@gnu.org>
+
+	* charsets/symbol.map, charsets/stdenc.map:
+	* charsets/hp-roman8.map: New file.
+
 2002-05-19  Dave Love  <fx@gnu.org>
 
 	* charsets/cp437.map, charsets/cp737.map, charsets/cp775.map:

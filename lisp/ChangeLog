@@ -1,3 +1,26 @@
+2002-05-20  Dave Love  <fx@gnu.org>
+
+	* cus-start.el: Add charset-map-directory.
+
+	* international/fontset.el (font-encoding-alist): Add
+	adobe-symbol.
+
+	* format.el (format-alist): Remove ibm, mac, hp entries (available
+	natively).
+
+	* language/romanian.el (iso-latin-10): Add :mime-charset.
+	("Romanian"): Add doc.
+
+	* international/mule-conf.el (iso-8859-10, symbol)
+	(adobe-standard-encoding, ibm850): New charsets.
+	(iso-8859-13): Fix IR number, final char.
+	(file-coding-system-alist): Add .xml.
+
+	* language/european.el (iso-latin-6, iso-8859-10, latin-6)
+	(iso-latin-7, iso-8859-13, latin-7, hp-roman8, roman8)
+	(adobe-standard-encoding, cp850, ibm850): New coding systems.
+	("Latin-6", "Latin-7"): New language environments.
+
 2002-05-19  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (DONTCOMPILE): Remove ucs-tables, utf-8,
