@@ -1,3 +1,8 @@
+2003-10-07  Andreas Schwab  <schwab@suse.de>
+
+	* log-edit.el (log-edit-changelog-entries): Prefer local value of
+	change-log-default-name in the buffer visiting the file.
+
 2003-10-06  Dave Love  <fx@gnu.org>
 
 	* files.el (find-file-hook): Customize.
