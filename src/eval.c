@@ -1331,7 +1331,11 @@ error (m, a1, a2, a3)
       size *= 2;
       if (allocated)
 	buffer = (char *) xrealloc (buffer, size);
-      buffer = (char *) xmalloc (size);
+      else
+	{
+	  buffer = (char *) xmalloc (size);
+	  allocated = 1;
+	}
     }
 
   string = build_string (buf);
