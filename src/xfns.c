@@ -4946,6 +4946,9 @@ or when you set the mouse color.");
 #ifdef USE_X_TOOLKIT
   Fprovide (intern ("x-toolkit"));
 #endif
+#ifdef USE_MOTIF
+  Fprovide (intern ("motif"));
+#endif
 
   defsubr (&Sx_get_resource);
 #if 0
