@@ -5,7 +5,7 @@
 ;; Author: Dave Pearson <davep@hagbard.demon.co.uk>
 ;; Maintainer: Dave Pearson <davep@hagbard.demon.co.uk>
 ;; Created: 1998-10-03
-;; Version: $Revision: 1.15 $
+;; Version: $Revision: 1.1 $
 ;; Keywords: games puzzles
 
 ;; This file is part of GNU Emacs.
@@ -35,7 +35,7 @@
 ;; o The code for updating the grid needs to be re-done. At the moment it
 ;;   simply re-draws the grid every time a move is made.
 ;;
-;; o Look into starting up the display with colour. gamegrid.el looks
+;; o Look into tarting up the display with colour. gamegrid.el looks
 ;;   interesting, perhaps that is the way to go?
 
 ;;; Thanks:
