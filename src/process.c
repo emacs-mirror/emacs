@@ -2961,6 +2961,7 @@ read_process_output (proc, channel)
       Lisp_Object obuffer, okeymap;
       Lisp_Object text;
       int outer_running_asynch_code = running_asynch_code;
+      int waiting = waiting_for_user_input_p;
 
       /* No need to gcpro these, because all we do with them later
 	 is test them for EQness, and none of them should be a string.  */
@@ -3001,6 +3002,10 @@ read_process_output (proc, channel)
 
       /* Handling the process output should not deactivate the mark.  */
       Vdeactivate_mark = odeactivate;
+
+      /* Restore waiting_for_user_input_p as it was
+	 when we were called, in case the filter clobbered it.  */
+      waiting_for_user_input_p = waiting;
 
 #if 0 /* Call record_asynch_buffer_change unconditionally,
 	 because we might have changed minor modes or other things
@@ -4114,6 +4119,7 @@ exec_sentinel (proc, reason)
   register struct Lisp_Process *p = XPROCESS (proc);
   int count = specpdl_ptr - specpdl;
   int outer_running_asynch_code = running_asynch_code;
+  int waiting = waiting_for_user_input_p;
 
   /* No need to gcpro these, because all we do with them later
      is test them for EQness, and none of them should be a string.  */
@@ -4160,6 +4166,11 @@ exec_sentinel (proc, reason)
   running_asynch_code = outer_running_asynch_code;
 
   Vdeactivate_mark = odeactivate;
+
+  /* Restore waiting_for_user_input_p as it was
+     when we were called, in case the filter clobbered it.  */
+  waiting_for_user_input_p = waiting;
+
 #if 0
   if (! EQ (Fcurrent_buffer (), obuffer)
       || ! EQ (current_buffer->keymap, okeymap))
