@@ -61,6 +61,11 @@
 (defvar gamegrid-score-file-length 50
   "Number of high scores to keep")
 
+(defvar gamegrid-user-score-file-directory "~/.emacs.d/games"
+  "A directory for game scores which can't be shared.
+If Emacs was built without support for shared game scores, then this
+directory will be used.")
+
 (make-variable-buffer-local 'gamegrid-use-glyphs)
 (make-variable-buffer-local 'gamegrid-use-color)
 (make-variable-buffer-local 'gamegrid-font)
@@ -421,8 +426,9 @@ static char *noname[] = {
 						 exec-directory))
 			      #o4000))))
 	 (target (if have-shared-game-dir
-		     (expand-file-name file game-score-directory)
-		   (let ((f (expand-file-name game-score-directory)))
+		     (expand-file-name file shared-game-score-directory)
+		   (let ((f (expand-file-name
+			     gamegrid-user-score-file-directory)))
 		     (when (file-writable-p f)
 		       (unless (eq (car-safe (file-attributes f))
 				   t)
@@ -439,7 +445,10 @@ static char *noname[] = {
 	 (expand-file-name "update-game-score" exec-directory)
 	 nil errbuf nil
 	 "-m" (int-to-string gamegrid-score-file-length)
-	 "-d" (expand-file-name game-score-directory) file
+	 "-d" (if have-shared-game-dir
+		  (expand-file-name shared-game-score-directory)
+		(file-name-directory target))
+	 file
 	 (int-to-string score)
 	 (concat
 	  (user-full-name)
