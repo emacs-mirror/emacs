@@ -1,3 +1,10 @@
+2002-02-25  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-diff-switches-list): Fix prev change, making the macro
+	consistent with the others that take a backend name as a symbol.
+
+	* vc-{cvs,rcs,sccs}.el: Update callers to the above.
+
 2002-02-25  Kim F. Storm  <no-spam@cua.dk>
 
 	* comint.el (comint-replace-by-expanded-filename): Do nothing if
