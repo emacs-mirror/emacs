@@ -53,6 +53,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "systty.h"
 #include "systime.h"
 
+/* This is to get the definitions of the XK_ symbols.  */
+#ifdef HAVE_X_WINDOWS
+#include "xterm.h"
+#endif
+
 extern int errno;
 
 /* Variables for blockinput.h: */
