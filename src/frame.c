@@ -488,7 +488,6 @@ do_switch_frame (frame, no_enter, track)
     last_nonminibuf_frame = selected_frame;
 
   Fselect_window (XFRAME (frame)->selected_window);
-  choose_minibuf_frame ();
 
   /* We want to make sure that the next event generates a frame-switch
      event to the appropriate frame.  This seems kludgy to me, but
@@ -1875,13 +1874,13 @@ the rightmost or bottommost possible position (that stays within the screen).")
 }
 
 
+/* Put minibuf on currently selected frame's minibuffer.
+   We do this whenever the user starts a new minibuffer
+   or when a minibuffer exits.  */
+
 choose_minibuf_frame ()
 {
-  /* For lowest-level minibuf, put it on currently selected frame
-     if frame has a minibuffer.  */
-
-  if (minibuf_level == 0
-      && selected_frame != 0
+  if (selected_frame != 0
       && !EQ (minibuf_window, selected_frame->minibuffer_window))
     {
       /* I don't think that any frames may validly have a null minibuffer
