@@ -52,6 +52,7 @@
     (set-keyboard-coding-system-internal 'iso-2022-7bit))
 
   (setq default-input-method "japanese")
+  (setq-default default-input-method "japanese")
 
   (setq sendmail-coding-system 'iso-2022-jp
 	rmail-file-coding-system 'iso-2022-jp)
