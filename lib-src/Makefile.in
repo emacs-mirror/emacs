@@ -42,10 +42,11 @@ bindir=${exec_prefix}/bin
 # data.  ${archlibdir} is usually below this.
 libdir=${exec_prefix}/lib
 
-# Where to find the source code.  The source code for Emacs's C kernel is
-# expected to be in ${srcdir}/src, and the source code for Emacs's
-# utility programs is expected to be in ${srcdir}/lib-src.  This is
+# Where to find the source code.  This is
 # set by the configure script's `--srcdir' option.
+# However, the value of ${srcdir} in this makefile
+# is not identical to what was specified with --srcdir.
+# The variable here has `/lib-src' added at the end.
 srcdir=@srcdir@/lib-src
 VPATH=@srcdir@/lib-src
 
@@ -102,7 +103,7 @@ SOURCES = COPYING ChangeLog Makefile.in README aixcc.lex emacs.csh \
 ### Some other files - those shared with other GNU utilities - need
 ### HAVE_CONFIG_H #defined before they know they can take advantage of
 ### the information in ../src/config.h.
-ALL_CFLAGS = ${C_SWITCH_SYSTEM} -Demacs -DHAVE_CONFIG_H -I../src ${CFLAGS}
+ALL_CFLAGS = ${C_SWITCH_SYSTEM} -Demacs -DHAVE_CONFIG_H -I${srcdir}/../src ${CFLAGS}
 .c.o:
 	${CC} -c ${CPPFLAGS} ${ALL_CFLAGS} $<
 
@@ -137,7 +138,7 @@ ${archlibdir}: all
 install: ${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
-	for file in ${INSTALLABLES} ${INSTALLABLE_SCRIPTS} ; do \
+	for file in ${INSTALLABLES} ; do \
 	  cp $${file} ${bindir}/$${file}.new ; \
 	  chmod 755 ${bindir}/$${file}.new ; \
         done
@@ -147,6 +148,7 @@ install: ${archlibdir}
 	-for file in emacsclient etags ctags b2m ; do \
 	  chgrp bin ${bindir}/$${file}.new ; \
 	  chown bin ${bindir}/$${file}.new ; \
+	  rm -f ${bindir}/$${file} ; \
 	  mv ${bindir}/$${file}.new ${bindir}/$${file} ; \
         done
 
