@@ -640,8 +640,10 @@ x_handle_selection_request (event)
       unsigned int size;
       int format;
       Atom type;
+      int nofree;
+
       lisp_data_to_selection_data (reply.display, converted_selection,
-				   &data, &type, &size, &format);
+				   &data, &type, &size, &format, &nofree);
       
       x_reply_selection_request (event, format, data, size, type);
       successful_p = Qt;
@@ -649,7 +651,8 @@ x_handle_selection_request (event)
       /* Indicate we have successfully processed this event.  */
       x_selection_current_request = 0;
 
-      xfree (data);
+      if (!nofree)
+	xfree (data);
     }
   unbind_to (count, Qnil);
 
@@ -1310,15 +1313,20 @@ selection_data_to_lisp_data (display, data, size, type, format)
 
 static void
 lisp_data_to_selection_data (display, obj,
-			     data_ret, type_ret, size_ret, format_ret)
+			     data_ret, type_ret, size_ret,
+			     format_ret, nofree_ret)
      Display *display;
      Lisp_Object obj;
      unsigned char **data_ret;
      Atom *type_ret;
      unsigned int *size_ret;
      int *format_ret;
+     int *nofree_ret;
 {
   Lisp_Object type = Qnil;
+
+  *nofree_ret = 0;
+
   if (CONSP (obj) && SYMBOLP (XCONS (obj)->car))
     {
       type = XCONS (obj)->car;
@@ -1338,8 +1346,8 @@ lisp_data_to_selection_data (display, obj,
     {
       *format_ret = 8;
       *size_ret = XSTRING (obj)->size;
-      *data_ret = (unsigned char *) xmalloc (*size_ret);
-      memcpy (*data_ret, (char *) XSTRING (obj)->data, *size_ret);
+      *data_ret = XSTRING (obj)->data;
+      *nofree_ret = 1;
       if (NILP (type)) type = QSTRING;
     }
   else if (SYMBOLP (obj))
