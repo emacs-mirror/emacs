@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:clib(trunk.5) $
+# $HopeName: MMQA_harness!script:clib(trunk.6) $
 #
 # subroutines to compile test libraries, and check whether they
 # need to be compiled
@@ -228,18 +228,18 @@ sub scrutinize {
  } else {
   $comobj = "";
  }
- $command = &convdirseps(
-  "$cc_command $cc_opts $comobj $cc_exe$obj_dir/symtest".
-  " $obj_dir/symtest.c $MPS_LINK_OBJ $cc_link_opts |");
+ $comout = "$obj_dir/symtest.out";
 
- &debug("OPEN >>$command<<");
-
- unless (open(LINKTEST, $command)) {
-  die "Failed link test.";
+ if (&mysystem("$cc_command $cc_opts $comobj $cc_exe$obj_dir/symtest"
+               . " $obj_dir/symtest.c $MPS_LINK_OBJ $cc_link_opts "
+               . sprintf($stdboth_red, $comout))
+     == 127) {
+  die "Failed link test";
  }
 
  %mps_linkable = %mps_symbols;
 
+ open(LINKTEST, $comout);
  while (<LINKTEST>) {
   while (s/((mps|MPS)_\w+)/ /) {
    delete $mps_linkable{$1};
@@ -250,10 +250,10 @@ sub scrutinize {
 
  if (exists $mps_linkable{"MPS_MMQA_DUMMY_SYMBOL"}) {
   print "Failed to determine symbols defined in MPS libraries -- exiting.\n";
-  die "[Complain to rit about this.]\n";
+  die "[Complain to mm-qa about this.]\n";
  } elsif ((scalar(keys %mps_symbols)) == 0) {
   print "Couldn't determine which symbols are defined in MPS libraries -- exiting.\n";
-  die "[Complain to rit about this.]\n";
+  die "[Complain to mm-qa about this.]\n";
  }
  
  delete $mps_symbols{"MPS_MMQA_DUMMY_SYMBOL"};
@@ -330,7 +330,7 @@ sub readSymbols {
  close(SYM);
 
  unless (open(SYM, "$testlib_dir/assumed")) {
-  die "Couldn't read assumed symbol list. Complain to rit.\n";
+  die "Couldn't read assumed symbol list. Complain to mm-qa.\n";
  }
 
  while (<SYM>) {
