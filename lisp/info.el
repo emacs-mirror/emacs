@@ -1149,8 +1149,8 @@ Bind this in case the user sets it to nil."
 	(let ((bound (point)))
 	  (forward-line 1)
 	  (cond ((re-search-backward (concat name ":") bound t)
-	    (goto-char (match-end 0))
-	    (Info-following-node-name))
+		 (goto-char (match-end 0))
+		 (Info-following-node-name))
 		((not (eq errorname t))
 		 (error "Node has no %s"
 			(capitalize (or errorname name))))))))))
