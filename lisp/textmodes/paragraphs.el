@@ -1,6 +1,7 @@
 ;;; paragraphs.el --- paragraph and sentence parsing.
 
-;; Copyright (C) 1985, 86, 87, 91, 94, 95, 96 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 91, 94, 95, 96, 1997
+;;    Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -29,9 +30,16 @@
 
 ;;; Code:
 
-(defvar use-hard-newlines nil
+(defgroup paragraphs nil
+  "Paragraph and sentence parsing."
+  :group 'editing)
+
+(defcustom use-hard-newlines nil
     "Non-nil means to distinguish hard and soft newlines.
-See documentation for the `use-hard-newlines' function.")
+See documentation for the `use-hard-newlines' function."
+    :set '(lambda (symbol value) (use-hard-newlines (or value 0)))
+    :group 'paragraphs
+    :type 'boolean)
 (make-variable-buffer-local 'use-hard-newlines)
 
 (defun use-hard-newlines (&optional arg insert)
@@ -85,7 +93,7 @@ to paragraphs.  The fill functions insert and delete only soft newlines."
 			       (point) (1+ (point))))))))))))
     (setq use-hard-newlines t)))
 
-(defvar paragraph-start "[ \t\n\f]" "\
+(defcustom paragraph-start "[ \t\n\f]" "\
 *Regexp for beginning of a line that starts OR separates paragraphs.
 This regexp should match lines that separate paragraphs
 and should also match lines that start a paragraph
@@ -100,7 +108,9 @@ The variable `paragraph-separate' specifies how to distinguish
 lines that start paragraphs from lines that separate them.
 
 If the variable `use-hard-newlines' is nonnil, then only lines following a
-hard newline are considered to match.")
+hard newline are considered to match."
+  :group 'paragraphs
+  :type 'regexp)
 
 ;; paragraph-start requires a hard newline, but paragraph-separate does not:
 ;; It is assumed that paragraph-separate is distinctive enough to be believed
@@ -108,29 +118,37 @@ hard newline are considered to match.")
 ;; something very minimal, even including "." (which makes every hard newline
 ;; start a new paragraph).
 
-(defvar paragraph-separate "[ \t\f]*$" "\
-*Regexp for beginning of a line that separates paragraphs.
+(defcustom paragraph-separate "[ \t\f]*$"
+  "*Regexp for beginning of a line that separates paragraphs.
 If you change this, you may have to change paragraph-start also.
 
 This is matched against the text at the left margin, which is not necessarily
 the beginning of the line, so it should not use \"^\" as an anchor.  This
 ensures that the paragraph functions will work equally within a region of
-text indented by a margin setting.")
+text indented by a margin setting."
+  :group 'paragraphs
+  :type 'regexp)
 
-(defvar sentence-end (purecopy "[.?!][]\"')}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*") "\
-*Regexp describing the end of a sentence.
+(defcustom sentence-end (purecopy "[.?!][]\"')}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*")
+  "*Regexp describing the end of a sentence.
 All paragraph boundaries also end sentences, regardless.
 
 In order to be recognized as the end of a sentence, the ending period,
 question mark, or exclamation point must be followed by two spaces,
-unless it's inside some sort of quotes or parenthesis.")
+unless it's inside some sort of quotes or parenthesis."
+  :group 'paragraphs
+  :type 'regexp)
 
-(defvar page-delimiter "^\014" "\
-*Regexp describing line-beginnings that separate pages.")
+(defcustom page-delimiter "^\014"
+  "*Regexp describing line-beginnings that separate pages."
+  :group 'paragraphs
+  :type 'regexp)
 
-(defvar paragraph-ignore-fill-prefix nil "\
-Non-nil means the paragraph commands are not affected by `fill-prefix'.
-This is desirable in modes where blank lines are the paragraph delimiters.")
+(defcustom paragraph-ignore-fill-prefix nil
+  "*Non-nil means the paragraph commands are not affected by `fill-prefix'.
+This is desirable in modes where blank lines are the paragraph delimiters."
+  :group 'paragraphs
+  :type 'boolean)
 
 (defun forward-paragraph (&optional arg)
   "Move forward to end of paragraph.

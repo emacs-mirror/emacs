@@ -35,12 +35,19 @@
 
 ;;; Code:
 
+(defgroup nroff nil
+  "Nroff mode."
+  :group 'editing
+  :prefix "nroff-")
+
 (defvar nroff-mode-abbrev-table nil
   "Abbrev table used while in nroff mode.")
 (define-abbrev-table 'nroff-mode-abbrev-table ())
 
-(defvar nroff-electric-mode nil
-  "*Non-nil means automatically closing requests when you insert an open.")
+(defcustom nroff-electric-mode nil
+  "*Non-nil means automatically closing requests when you insert an open."
+  :group 'nroff
+  :type 'boolean)
 
 (defvar nroff-mode-map nil
      "Major mode keymap for nroff mode.")
@@ -57,7 +64,7 @@
 (defvar nroff-mode-syntax-table nil
   "Syntax table used while in nroff mode.")
 
-(defvar nroff-font-lock-keywords
+(defcustom nroff-font-lock-keywords
   (list
    ;; Directives are . or ' at start of line, followed by
    ;; optional whitespace, then command (which my be longer than
@@ -78,7 +85,9 @@
                       ) "\\|")
          "\\)")
    )
-  "Font-lock highlighting control in nroff-mode.")
+  "Font-lock highlighting control in nroff-mode."
+  :group 'nroff
+  :type '(repeat regexp))
 
 ;;;###autoload
 (defun nroff-mode ()
