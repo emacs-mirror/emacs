@@ -1,6 +1,6 @@
 /* impl.c.dbgpool: POOL DEBUG MIXIN
  *
- * $HopeName: MMsrc!dbgpool.c(trunk.4) $
+ * $HopeName: MMsrc!dbgpool.c(trunk.5) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .source: design.mps.object-debug
@@ -470,7 +470,8 @@ void mps_pool_check_fenceposts(mps_pool_t mps_pool)
   Pool pool = (Pool)mps_pool;
   Arena arena;
   
-  AVERT(Pool, pool);
+  /* CHECKT not AVERT, see design.mps.interface.c.check.space */
+  AVER(CHECKT(Pool, pool));
   arena = PoolArena(pool);
 
   ArenaEnter(arena);
