@@ -11,6 +11,11 @@
 	(add-release-logs): Use the same methods as add-log.el for writing
 	the date and the user's name and address
 
+2003-01-07  Miles Bader  <miles@gnu.org>
+
+	* quick-install-emacs: Unset LANG etc. to avoid non-standard
+	command output from non-C locales.
+
 2002-10-16  Markus Rost  <rost@math.ohio-state.edu>
 
 	* cus-test.el: Extended and reorganized.  There are now 4 tests
