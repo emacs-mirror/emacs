@@ -48,9 +48,6 @@ Lisp_Object meta_map;		/* The keymap used for globally bound
 Lisp_Object control_x_map;	/* The keymap used for globally bound
 				   C-x-prefixed default commands */
 
-/* Alist of elements like (DEL . "\d").  */
-Lisp_Object exclude_keys;
-
 /* was MinibufLocalMap */
 Lisp_Object Vminibuffer_local_map;
 				/* The keymap used by the minibuf for local
@@ -93,6 +90,9 @@ Lisp_Object Vkey_translation_map;
 Lisp_Object Vdefine_key_rebound_commands;
 
 Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii, Qmenu_item;
+
+/* Alist of elements like (DEL . "\d").  */
+static Lisp_Object exclude_keys;
 
 /* A char with the CHAR_META bit set in a vector or the 0200 bit set
    in a string key sequence is equivalent to prefixing with this
