@@ -1,5 +1,7 @@
 2000-01-19  Dave Love  <fx@gnu.org>
 
+	* files.el (user-init-file): Don't declare here -- is primitive.
+
 	* startup.el (command-line): Check for compiled user-init-file and
 	set to uncompiled version if necessary.
 
