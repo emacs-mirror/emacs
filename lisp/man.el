@@ -421,7 +421,9 @@ This command is the top-level command in the man package.  It runs a Un*x
 command to retrieve and clean a manpage in the background and places the
 results in a Man mode (manpage browsing) buffer.  See variable
 `Man-notify' for what happens when the buffer is ready.
-Universal argument ARG, is passed to `Man-getpage-in-background'."
+Normally, if a buffer already exists for this man page, it will display
+immediately; either a prefix argument or a nil value to `Man-reuse-okay-p'
+overrides this and forces the man page to be regenerated."
   (interactive "P")
   (let* ((default-entry (Man-default-man-entry))
 	 (man-args
