@@ -305,7 +305,11 @@ LIBW= -lXm
 LIBW= -lXol
 #endif
 
-LIBXT= $(LIBW) -lXt -lXmu -lXext
+#ifdef HAVE_X11R6
+LIBXTR6 = -lSM -lICE
+#endif
+
+LIBXT= $(LIBW) -lXt $(LIBXTR6) -lXmu -lXext
 #else
 LIBXT=
 #endif
