@@ -20,6 +20,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* The following line tells the configuration script what sort of 
    operating system this machine is likely to run.
    USUAL-OPSYS="Solaris2.5.1 Windows/NT AIX 4.1.2"
+*/
 
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
