@@ -228,7 +228,7 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   (set (make-local-variable 'font-lock-defaults)
        '(outline-font-lock-keywords t nil nil backward-paragraph))
   (setq imenu-generic-expression
-	(list (list nil (concat outline-regexp ".*$") 0)))
+	(list (list nil (concat "^\\(?:" outline-regexp "\\).*$") 0)))
   (add-hook 'change-major-mode-hook 'show-all nil t))
 
 (defcustom outline-minor-mode-prefix "\C-c@"
