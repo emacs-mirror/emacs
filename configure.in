@@ -1082,7 +1082,7 @@ AC_HEADER_TIME
 AC_DECL_SYS_SIGLIST
 
 dnl Some systems have utime.h but don't declare the struct anyplace.
-AC_MSG_CHECKING(for struct utimbuf)
+AC_CACHE_CHECK(for struct utimbuf, emacs_cv_struct_utimbuf,
 AC_TRY_COMPILE([#ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>
@@ -1096,14 +1096,15 @@ AC_TRY_COMPILE([#ifdef TIME_WITH_SYS_TIME
 #ifdef HAVE_UTIME_H
 #include <utime.h>
 #endif], [static struct utimbuf x; x.actime = x.modtime;],
-  [AC_MSG_RESULT(yes)
-   AC_DEFINE(HAVE_STRUCT_UTIMBUF)],
-  AC_MSG_RESULT(no))
+  emacs_cv_struct_utimbuf=yes, emacs_cv_struct_utimbuf=no))
+if test $emacs_cv_struct_utimbuf = yes; then
+  AC_DEFINE(HAVE_STRUCT_UTIMBUF)
+fi
 
 dnl checks for typedefs
 AC_TYPE_SIGNAL
 
-AC_MSG_CHECKING(for struct timeval)
+AC_CACHE_CHECK(for struct timeval, emacs_cv_struct_timeval,
 AC_TRY_COMPILE([#ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>
@@ -1114,11 +1115,11 @@ AC_TRY_COMPILE([#ifdef TIME_WITH_SYS_TIME
 #include <time.h>
 #endif
 #endif], [static struct timeval x; x.tv_sec = x.tv_usec;],
-  [AC_MSG_RESULT(yes)
-   HAVE_TIMEVAL=yes
-   AC_DEFINE(HAVE_TIMEVAL)],
-  [AC_MSG_RESULT(no)
-   HAVE_TIMEVAL=no])
+  emacs_cv_struct_timeval=yes, emacs_cv_struct_timeval=no))
+HAVE_TIMEVAL=$emacs_cv_struct_timeval
+if test $emacs_cv_struct_timeval = yes; then
+  AC_DEFINE(HAVE_TIMEVAL)
+fi
 
 dnl checks for structure members
 AC_STRUCT_TM
@@ -1357,11 +1358,14 @@ GNU_MALLOC=yes
 doug_lea_malloc=yes
 AC_CHECK_FUNC(malloc_get_state, ,doug_lea_malloc=no)
 AC_CHECK_FUNC(malloc_set_state, ,doug_lea_malloc=no)
-AC_MSG_CHECKING(whether __after_morecore_hook exists)
+AC_CACHE_CHECK(whether __after_morecore_hook exists,
+	       emacs_cv_var___after_morecore_hook,
 AC_TRY_LINK([extern void (* __after_morecore_hook)();],[__after_morecore_hook = 0],
-  [AC_MSG_RESULT(yes)],
-  [AC_MSG_RESULT(no)
-   doug_lea_malloc=no])
+  emacs_cv_var___after_morecore_hook=yes,
+  emacs_cv_var___after_morecore_hook=no))
+if test $emacs_cv_var___after_morecore_hook = no; then
+  doug_lea_malloc=no
+fi
 if test "${system_malloc}" = "yes"; then
   GNU_MALLOC=no
   GNU_MALLOC_reason="
@@ -1472,27 +1476,36 @@ fi
 
 if test "${window_system}" = "x11"; then
   AC_MSG_CHECKING(X11 version 6)
+  AC_CACHE_VAL(emacs_cv_x11_version_6,
   AC_TRY_LINK([#include <X11/Xlib.h>],
 [#if XlibSpecificationRelease < 6
 fail;
 #endif
-], [AC_MSG_RESULT(6 or newer)
-    AC_DEFINE(HAVE_X11R6)],
-   [AC_MSG_RESULT(before 6)])
+], emacs_cv_x11_version_6=yes, emacs_cv_x11_version_6=no))
+  if test $emacs_cv_x11_version_6 = yes; then
+    AC_MSG_RESULT(6 or newer)
+    AC_DEFINE(HAVE_X11R6)
+  else
+    AC_MSG_RESULT(before 6)
+  fi
 fi
 
 if test "${window_system}" = "x11"; then
   AC_MSG_CHECKING(X11 version 5)
+  AC_CACHE_VAL(emacs_cv_x11_version_5,
   AC_TRY_LINK([#include <X11/Xlib.h>],
 [#if XlibSpecificationRelease < 5
 fail;
 #endif
-], [AC_MSG_RESULT(5 or newer)
+], emacs_cv_x11_version_5=yes, emacs_cv_x11_version_5=no))
+  if test $emacs_cv_x11_version_5 = yes; then
+    AC_MSG_RESULT(5 or newer)
     HAVE_X11R5=yes
-    AC_DEFINE(HAVE_X11R5)],
-   [
+    AC_DEFINE(HAVE_X11R5)
+  else
     HAVE_X11R5=no
-    AC_MSG_RESULT(before 5)])
+    AC_MSG_RESULT(before 5)
+  fi
 fi
 
 dnl Do not put whitespace before the #include statements below.
@@ -1500,14 +1513,20 @@ dnl Older compilers (eg sunos4 cc) choke on it.
 if test x"${USE_X_TOOLKIT}" = xmaybe; then
   if test x"${HAVE_X11R5}" = xyes; then
     AC_MSG_CHECKING(X11 version 5 with Xaw)
+    AC_CACHE_VAL(emacs_cv_x11_version_5_with_xaw,
     AC_TRY_LINK([
 #include <X11/Intrinsic.h>
 #include <X11/Xaw/Simple.h>],
       [],
-      [AC_MSG_RESULT(5 or newer, with Xaw; use toolkit by default)
-       USE_X_TOOLKIT=LUCID],
-      [AC_MSG_RESULT(before 5 or no Xaw; do not use toolkit by default)
-       USE_X_TOOLKIT=none])
+      emacs_cv_x11_version_5_with_xaw=yes,
+      emacs_cv_x11_version_5_with_xaw=no))
+    if test $emacs_cv_x11_version_5_with_xaw = yes; then
+      AC_MSG_RESULT([5 or newer, with Xaw; use toolkit by default])
+      USE_X_TOOLKIT=LUCID
+    else
+      AC_MSG_RESULT(before 5 or no Xaw; do not use toolkit by default)
+      USE_X_TOOLKIT=none
+    fi
   else
     USE_X_TOOLKIT=none
   fi
@@ -1517,15 +1536,19 @@ X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 
 if test "${USE_X_TOOLKIT}" != "none"; then
   AC_MSG_CHECKING(X11 toolkit version)
+  AC_CACHE_VAL(emacs_cv_x11_toolkit_version_6,
   AC_TRY_LINK([#include <X11/Intrinsic.h>],
 [#if XtSpecificationRelease < 6
 fail;
 #endif
-], [AC_MSG_RESULT(6 or newer)
-    HAVE_X11XTR6=yes
-    AC_DEFINE(HAVE_X11XTR6)],
-   [AC_MSG_RESULT(before 6)
-    HAVE_X11XTR6=no])
+], emacs_cv_x11_toolkit_version_6=yes, emacs_cv_x11_toolkit_version_6=no))
+  HAVE_X11XTR6=$emacs_cv_x11_toolkit_version_6
+  if test $emacs_cv_x11_toolkit_version_6 = yes; then
+    AC_MSG_RESULT(6 or newer)
+    AC_DEFINE(HAVE_X11XTR6)
+  else
+    AC_MSG_RESULT(before 6)
+  fi
 
 dnl If using toolkit, check whether libXmu.a exists.
 dnl tranle@intellicorp.com says libXmu.a can need XtMalloc in libXt.a to link.
@@ -1540,27 +1563,29 @@ dnl tranle@intellicorp.com says libXmu.a can need XtMalloc in libXt.a to link.
 fi
 
 if test "${USE_X_TOOLKIT}" = "MOTIF"; then
-  AC_MSG_CHECKING(for Motif version 2.1)
+  AC_CACHE_CHECK(for Motif version 2.1, emacs_cv_motif_version_2_1,
   AC_TRY_COMPILE([#include <Xm/Xm.h>],
     [#if XmVERSION > 2 || (XmVERSION == 2 && XmREVISION >= 1)
 int x = 5;
 #else
 Motif version prior to 2.1.
 #endif],
-    [AC_MSG_RESULT(yes)
-     HAVE_MOTIF_2_1=yes
-     AC_DEFINE(HAVE_MOTIF_2_1)],
-    [AC_MSG_RESULT(no)
-     HAVE_MOTIF_2_1=no])
+    emacs_cv_motif_version_2_1=yes, emacs_cv_motif_version_2_1=no))
+  HAVE_MOTIF_2_1=$emacs_cv_motif_version_2_1
+  if test $emacs_cv_motif_version_2_1 = yes; then
+    AC_DEFINE(HAVE_MOTIF_2_1)
+  fi
 fi
 
 # If netdb.h doesn't declare h_errno, we must declare it by hand.
-AC_MSG_CHECKING(whether netdb declares h_errno)
+AC_CACHE_CHECK(whether netdb declares h_errno,
+	       emacs_cv_netdb_declares_h_errno,
 AC_TRY_LINK([#include <netdb.h>],
   [return h_errno;],
-  [AC_MSG_RESULT(yes)
-   AC_DEFINE(HAVE_H_ERRNO)],
-  [AC_MSG_RESULT(no)])
+  emacs_cv_netdb_declares_h_errno=yes, emacs_cv_netdb_declares_h_errno=no))
+if test $emacs_cv_netdb_declares_h_errno = yes; then
+  AC_DEFINE(HAVE_H_ERRNO)
+fi
 
 AC_FUNC_ALLOCA
 
@@ -1663,7 +1688,8 @@ if test $emacs_cv_localtime_cache = yes; then
 fi
 
 if test "x$HAVE_TIMEVAL" = xyes; then
-AC_MSG_CHECKING(whether gettimeofday can accept two arguments)
+AC_CACHE_CHECK(whether gettimeofday can accept two arguments,
+	       emacs_cv_gettimeofday_two_arguments,
 AC_TRY_LINK([
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
@@ -1681,9 +1707,11 @@ AC_TRY_LINK([
   struct timezone dummy;
   gettimeofday (&time, &dummy);
 ],
-  [AC_MSG_RESULT(yes)],
-  [AC_MSG_RESULT(no)
-   AC_DEFINE(GETTIMEOFDAY_ONE_ARGUMENT)])
+  emacs_cv_gettimeofday_two_arguments=yes,
+  emacs_cv_gettimeofday_two_arguments=no))
+  if test $emacs_cv_gettimeofday_two_arguments = no; then
+    AC_DEFINE(GETTIMEOFDAY_ONE_ARGUMENT)
+  fi
 fi
 
 ok_so_far=yes
