@@ -70,7 +70,8 @@ first comment line visible (if point is in a comment)."
 	       (repos-count-screen-lines-signed
 		;; the beginning of the preceding comment
 		(save-excursion
-		  (forward-char 1) (end-of-defun -1) 
+		  (if (not (eobp)) (forward-char 1))
+		  (end-of-defun -1) 
 		  ;; Skip whitespace, newlines, and form feeds.
 		  (re-search-forward "[^\\s \n\014]")
 		  (backward-char 1)
