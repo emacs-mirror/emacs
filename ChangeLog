@@ -1,3 +1,7 @@
+2000-02-12  Dave Love  <fx@gnu.org>
+
+	* configure.in: Use AC_FUNC_VFORK.
+
 2000-02-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* make-dist: Various fixes for new development tree.
