@@ -1,3 +1,17 @@
+2001-09-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* display.texi (Font Lookup, Attribute Functions)
+	(Image Descriptors): Add cross-references to the definition of
+	selected frame.
+
+	* buffers.texi (The Buffer List): Add cross-references to the
+	definition of selected frame.
+
+	* frames.texi (Input Focus): Clarify which frame is _the_ selected
+	frame at any given time.
+	(Multiple Displays, Size and Position): Add a cross-reference to
+	the definition of the selected frame.
+
 2001-09-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* strings.texi (String Conversion) <string-to-number>: Document
