@@ -1095,7 +1095,8 @@ redisplay_window (window, just_this_one)
 	    Fset_marker (w->pointm, make_number (point), Qnil);
 	  else
 	    {
-	      lpoint = point;
+	      if (current_buffer == old)
+		lpoint = point;
 	      FRAME_CURSOR_X (f) = max (0, pos.hpos) + XFASTINT (w->left);
 	      FRAME_CURSOR_Y (f) = pos.vpos + XFASTINT (w->top);
 	    }
