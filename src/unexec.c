@@ -171,6 +171,9 @@ pointer looks like an int) but not on all machines.
 
 #ifndef CANNOT_DUMP  /* all rest of file!  */
 
+#ifdef COFF
+#include <coff.h>
+#else
 #ifdef COFF_ENCAPSULATE
 int need_coff_header = 1;
 #include <coff-encap/a.out.encap.h> /* The location might be a poor assumption */
@@ -205,6 +208,7 @@ struct aouthdr
 #include <a.out.h>
 #endif /* not MSDOS */
 #endif
+#endif /* not COFF */
 
 /* Define getpagesize if the system does not.
    Note that this may depend on symbols defined in a.out.h.  */
