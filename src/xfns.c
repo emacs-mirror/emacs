@@ -1414,9 +1414,6 @@ x_set_background_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  Pixmap temp;
-  int mask;
-
   unsigned long pixel
     = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
 
@@ -1673,9 +1670,6 @@ x_set_border_pixel (f, pix)
 
   if (FRAME_X_WINDOW (f) != 0 && f->output_data.x->border_width > 0)
     {
-      Pixmap temp;
-      int mask;
-
       BLOCK_INPUT;
       XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			(unsigned long)pix);
@@ -1934,7 +1928,9 @@ x_set_menu_bar_lines (f, value, oldval)
      Lisp_Object value, oldval;
 {
   int nlines;
+#ifndef USE_X_TOOLKIT
   int olines = FRAME_MENU_BAR_LINES (f);
+#endif
 
   /* Right now, menu bars don't work properly in minibuf-only frames;
      most of the commands try to apply themselves to the minibuffer
@@ -2865,8 +2861,6 @@ x_figure_window_size (f, parms)
      Lisp_Object parms;
 {
   register Lisp_Object tem0, tem1, tem2;
-  int height, width, left, top;
-  register int geometry;
   long window_prompting = 0;
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
@@ -3144,7 +3138,6 @@ x_window (f, window_prompting, minibuffer_only)
 	 ? (f->output_data.x->menubar_widget->core.height
 	    + f->output_data.x->menubar_widget->core.border_width)
 	 : 0);
-    extern char *lwlib_toolkit_type;
 
 #if 0 /* Experimentally, we now get the right results
 	 for -geometry -0-0 without this.  24 Aug 96, rms.  */
@@ -6077,8 +6070,6 @@ lookup_image (f, spec)
   /* If not found, create a new image and cache it.  */
   if (img == NULL)
     {
-      extern Lisp_Object QCenable, QCselect;
-      Lisp_Object tem;
       int loading_failed_p;
       
       img = make_image (spec, hash);
@@ -6346,7 +6337,6 @@ static int xbm_load_image_from_file P_ ((struct frame *f, struct image *img,
 static int xbm_image_p P_ ((Lisp_Object object));
 static int xbm_read_bitmap_file_data P_ ((char *, int *, int *,
 					  unsigned char **));
-static int xbm_read_hexint P_ ((FILE *));
 
 
 /* Indices of image specification fields in xbm_format, below.  */
@@ -6645,8 +6635,6 @@ xbm_read_bitmap_file_data (file, width, height, data)
   /* Parse defines for width, height and hot-spots.  */
   while (LA1 == '#')
     {
-      char *p;
-
       match ();
       expect_ident ("define");
       expect (XBM_TK_IDENT);
@@ -7528,7 +7516,6 @@ x_build_heuristic_mask (f, file, img, how)
      Lisp_Object how;
 {
   Display *dpy = FRAME_X_DISPLAY (f);
-  Window win = FRAME_X_WINDOW (f);
   XImage *ximg, *mask_img;
   int x, y, rc, look_at_corners_p;
   unsigned long bg;
@@ -7741,7 +7728,7 @@ pbm_load (f, img)
   FILE *fp;
   char magic[2];
   int raw_p, x, y;
-  int width, height, max_color_idx = 0, value;
+  int width, height, max_color_idx = 0;
   XImage *ximg;
   Lisp_Object file, specified_file;
   enum {PBM_MONO, PBM_GRAY, PBM_COLOR} type;
@@ -8041,7 +8028,7 @@ png_load (f, img)
      struct image *img;
 {
   Lisp_Object file, specified_file;
-  int rc, x, y, i;
+  int x, y, i;
   XImage *ximg, *mask_img = NULL;
   struct gcpro gcpro1;
   png_struct *png_ptr = NULL;
@@ -8454,7 +8441,7 @@ jpeg_load (f, img)
   JSAMPARRAY buffer;
   int row_stride, x, y;
   XImage *ximg = NULL;
-  int rc, value;
+  int rc;
   unsigned long *colors;
   int width, height;
   struct gcpro gcpro1;
@@ -8866,7 +8853,6 @@ gif_load (f, img)
   struct gcpro gcpro1;
   Lisp_Object image;
   int ino, image_left, image_top, image_width, image_height;
-  int bg;
 
   specified_file = image_spec_value (img->spec, QCfile, NULL);
   file = x_find_image_file (specified_file);
@@ -9528,11 +9514,10 @@ x_create_tip_frame (dpyinfo, parms)
   struct frame *f;
   Lisp_Object frame, tem;
   Lisp_Object name;
-  int minibuffer_only = 0;
   long window_prompting = 0;
   int width, height;
   int count = specpdl_ptr - specpdl;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  struct gcpro gcpro1, gcpro2, gcpro3;
   struct kboard *kb;
 
   check_x ();
@@ -9770,7 +9755,6 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
   struct frame *f;
   struct window *w;
   Window root, child;
-  struct it it;
   Lisp_Object buffer;
   struct buffer *old_buffer;
   struct text_pos pos;
