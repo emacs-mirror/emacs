@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:options(trunk.12) $
+# $HopeName: MMQA_harness!script:options(trunk.13) $
 #
 
 # global options for qa commands
@@ -34,6 +34,7 @@ if (($ENV{"OS"} || "") eq "Windows_NT") {
  "i", "MPS_INCLUDE_DIR",
  "l", "MPS_LINK_OBJ",
  "p", "PLATFORM",
+ "data", "DATA_DIR",
  "g", "LOG_DIR"
 );
 
@@ -44,6 +45,7 @@ if (($ENV{"OS"} || "") eq "Windows_NT") {
 %qa_defaults = (
  "PLATFORM", $platform_class."__".$platform_phylum,
  "DEBUG_INFO", "off",
+ "DATA_DIR", "$test_dir/../data",
  "LOG_DIR", "$test_dir/log",
  "INTERFACE_VERSION", "BQ"
 );
