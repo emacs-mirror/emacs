@@ -14,12 +14,14 @@
 
 2004-02-14  Jonathan Yavner  <jyavner@member.fsf.org>
 
-	* ses.el: Delete function ses-build-load-map and distribute its
-	functions to defconst's for the three maps.  Add menus.  Use
-	"ses--" prefixes for buffer-local variables.  Use (point-min)
-	instead of 1, even when we know the buffer is unnarrowed.  New
-	function ses-read-number duplicates some code from interactive "N"
-	spec.
+	* ses.el: Use "ses--" prefixes for buffer-local variables.
+	Use (point-min) instead of 1, even when we know the buffer
+	is unnarrowed.
+	(ses-build-load-map): Delete.  Distribute its content to defconst's for
+	the three maps.
+	(ses-menu, ses-header-line-menu): New menus.
+	(ses-mode-map): Use them.
+	(ses-read-number) New fun.  Duplicates code from interactive "N" spec.
 
 2004-02-14  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -28,15 +30,18 @@
 
 2004-02-13  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* simple.el (kill-new): Put yank-handler property on the entire
-	string.
+	* simple.el (kill-new): Put yank-handler property on the entire string.
+
+2004-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-defs.el (cvs-menu): Add `tag'.
 
 2004-02-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* simple.el (kill-append): Doc fix.
 
-	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Adapt
-	outline-regexp to the new conventions for commenting out code.
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	Adapt outline-regexp to the new conventions for commenting out code.
 
 2004-02-11  John Paul Wallington  <jpw@gnu.org>
 
@@ -201,6 +206,12 @@
 
 	* simple.el (line-number-at-pos): Rename from line-at-pos.
 	Uses changed (what-line and vc-annotate-warp-version).
+
+2004-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-file-regexp-alist, diff-error-regexp-alist)
+	(diff-mode): Remove aborted attempt at support for compile.el.
+	(diff-mode, diff-minor-mode): Avoid obsolete write-contents-hooks.
 
 2004-02-06  Andreas Schwab  <schwab@suse.de>
 
