@@ -656,6 +656,7 @@ before the current command."
 	(= flyspell-pre-point (+ (point) 1)))
     nil)
    ((and (symbolp this-command)
+	 (not executing-kbd-macro)
 	 (or (get this-command 'flyspell-delayed)
 	     (and (get this-command 'flyspell-deplacement)
 		  (eq flyspell-previous-command this-command)))
