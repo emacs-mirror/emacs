@@ -3,6 +3,7 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
+;; Author: Richard Mlynarik
 ;; Keywords: games
 
 ;; This file is part of GNU Emacs.
