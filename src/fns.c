@@ -2352,10 +2352,11 @@ See also the documentation of make-char.")
 	XCHAR_TABLE (char_table)->contents[charset + 128] = value;
       return value;
     }
-  char_table = temp;
-  if (! SUB_CHAR_TABLE_P (char_table))
+  if (SUB_CHAR_TABLE_P (temp))
+    char_table = temp;
+  else
     char_table = (XCHAR_TABLE (char_table)->contents[charset + 128]
-	    = make_sub_char_table (temp));
+		  = make_sub_char_table (temp));
   temp = XCHAR_TABLE (char_table)->contents[code1];
   if (SUB_CHAR_TABLE_P (temp))
     XCHAR_TABLE (temp)->defalt = value;
