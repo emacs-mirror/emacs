@@ -1,3 +1,8 @@
+2002-06-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (file_dialog_callback): New function.
+	(Fx_file_dialog): Allow selecting directories as well as files.
+
 2002-06-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* m/pmax.h (START_FILES): Define START_FILES for NetBSD and
