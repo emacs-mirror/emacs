@@ -2847,11 +2847,17 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (CONSP (c) && EQ (XCAR (c), Qhelp_echo))
     {
       /* (help-echo FRAME HELP WINDOW OBJECT POS).  */
-      Lisp_Object help, object, position, window;
-      help = Fnth (make_number (2), c);
-      window = Fnth (make_number (3), c);
-      object = Fnth (make_number (4), c);
-      position = Fnth (make_number (5), c);
+      Lisp_Object help, object, position, window, tem;
+
+      tem = Fcdr (XCDR (c));
+      help = Fcar (tem);
+      tem = Fcdr (tem);
+      window = Fcar (tem);
+      tem = Fcdr (tem);
+      object = Fcar (tem);
+      tem = Fcdr (tem);
+      position = Fcar (tem);
+
       show_help_echo (help, window, object, position, 0);
 
       /* We stopped being idle for this event; undo that.  */
@@ -2983,7 +2989,7 @@ record_char (c)
     {
       Lisp_Object help;
 
-      help = Fnth (make_number (2), c);
+      help = Fcar (Fcdr (XCDR (c)));
       if (STRINGP (help))
 	{
 	  int last_idx;
@@ -2996,7 +3002,7 @@ record_char (c)
 	  
 	  if (!CONSP (last_c)
 	      || !EQ (XCAR (last_c), Qhelp_echo)
-	      || (last_help = Fnth (make_number (2), last_c),
+	      || (last_help = Fcar (Fcdr (XCDR (last_c))),
 		  !EQ (last_help, help)))
 	    {
 	      total_keys++;
@@ -4984,32 +4990,27 @@ make_lispy_event (event)
 	    else
 #endif
 	      {
-		/* The third element of every position should be the (x,y)
-		   pair.  */
 		Lisp_Object down;
+		EMACS_INT xdiff = double_click_fuzz, ydiff = double_click_fuzz;
 
-		down = Fnth (make_number (2), start_pos);
-		if (EQ (event->x, XCAR (down)) && EQ (event->y, XCDR (down)))
-		  /* Mouse hasn't moved.  */
+		/* The third element of every position
+		   should be the (x,y) pair.  */
+		down = Fcar (Fcdr (Fcdr (start_pos)));
+		if (CONSP (down))
+		  {
+		    xdiff = event->x - XCAR (down);
+		    ydiff = event->y - XCDR (down);
+		  }
+
+		if (xdiff < double_click_fuzz && xdiff > - double_click_fuzz
+		    && ydiff < double_click_fuzz
+		    && ydiff > - double_click_fuzz)
+		  /* Mouse hasn't moved (much).  */
 		  event->modifiers |= click_modifier;
 		else
 		  {
-		    Lisp_Object window1, window2, posn1, posn2;
-
-		    /* Avoid generating a drag event if the mouse
-		       hasn't actually moved off the buffer position.  */
-		    window1 = Fnth (make_number (0), position);
-		    posn1 = Fnth (make_number (1), position);
-		    window2 = Fnth (make_number (0), start_pos);
-		    posn2 = Fnth (make_number (1), start_pos);
-
-		    if (EQ (window1, window2) && EQ (posn1, posn2))
-		      event->modifiers |= click_modifier;
-		    else
-		      {
-			button_down_time = 0;
-			event->modifiers |= drag_modifier;
-		      }
+		    button_down_time = 0;
+		    event->modifiers |= drag_modifier;
 		  }
 		
 		/* Don't check is_double; treat this as multiple
