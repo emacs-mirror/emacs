@@ -4892,6 +4892,7 @@ mark_kboards ()
       mark_object (&kb->Vsystem_key_alist);
       mark_object (&kb->system_key_syms);
       mark_object (&kb->Vdefault_minibuffer_frame);
+      mark_object (&kb->echo_string);
     }
 }
 
