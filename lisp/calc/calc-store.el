@@ -482,7 +482,7 @@
 			     (setq rp nil)))
 		       (not rp)))))
      (calc-unread-command ?\C-a)
-     (setq decl (read-string (format "Declare: %s  to be: " var)
+     (setq decl (read-string (format "Declare: %s  to be: " (calc-var-name var))
 			     (and rp
 				  (math-format-flat-expr (nth 2 (car dp)) 0))))
      (setq decl (and (string-match "[^ \t]" decl)
