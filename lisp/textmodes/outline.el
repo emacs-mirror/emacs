@@ -426,7 +426,7 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 		(move-overlay o (overlay-start o) beg))
 	    (if (> (overlay-end o) end)
 		(move-overlay o end (overlay-end o))
-	      (delete-overlay o))))))))
+	      (delete-overlay o)))))))
 
 ;; Make a copy of overlay O, with the same beginning, end and properties.
 (defun outline-copy-overlay (o)
