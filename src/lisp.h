@@ -257,7 +257,31 @@ Lisp_Object;
 #define VALMASK ((1<<VALBITS) - 1)
 #endif
 #define GCTYPEMASK ((1<<GCTYPEBITS) - 1)
+
+/* Two flags that are set during GC.  On some machines, these flags
+   are defined differently by the m- file.  */
+
+/* This is set in the car of a cons and in the plist slot of a symbol
+   to indicate it is marked.  Likewise in the plist slot of an interval,
+   the chain slot of a marker, the type slot of a float, and the name
+   slot of a buffer.
+
+   In strings, this bit in the size field indicates that the string
+   is a "large" one, one which was separately malloc'd
+   rather than being part of a string block.  */
+
 #define MARKBIT (1 << (VALBITS + GCTYPEBITS))
+
+/* In the size word of a vector, this bit means the vector has been marked.
+   In the size word of a large string, likewise.  */
+
+#ifndef ARRAY_MARK_FLAG
+#define ARRAY_MARK_FLAG ((MARKBIT >> 1) & ~MARKBIT)
+#endif /* no ARRAY_MARK_FLAG */
+
+#if ARRAY_MARK_FLAG == MARKBIT
+you lose
+#endif
 
 #endif /* NO_UNION_TYPE */
 
@@ -1175,6 +1199,9 @@ extern Lisp_Object Qautoload, Qexit, Qinteractive, Qcommandp, Qdefun, Qmacro;
 extern Lisp_Object Vinhibit_quit, Qinhibit_quit, Vquit_flag;
 extern Lisp_Object Vmocklisp_arguments, Qmocklisp, Qmocklisp_arguments;
 extern Lisp_Object Vautoload_queue;
+/* To run a normal hook, do
+   if (!NILP (Vrun_hooks))
+     call1 (Vrun_hooks, Qmy_funny_hook);  */
 extern Lisp_Object Vrun_hooks;
 extern Lisp_Object Fand (), For (), Fif (), Fprogn (), Fprog1 (), Fprog2 ();
 extern Lisp_Object Fsetq (), Fquote ();
