@@ -1,3 +1,7 @@
+2002-10-15  Dave Love  <fx@gnu.org>
+
+	* man.el (Man-getpage-in-background): Set width in environment.
+
 2002-10-15  Kenichi Handa  <handa@m17n.org>
 
 	* mail/sendmail.el (sendmail-send-it): Call
