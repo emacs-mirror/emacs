@@ -2078,7 +2078,7 @@ If no reference to follow, moves to the next node, or up if none."
 
 
 ;; Info mode is suitable only for specially formatted data.
-(put 'info-mode 'mode-class 'special)
+(put 'Info-mode 'mode-class 'special)
 
 (defun Info-mode ()
   "Info mode provides commands for browsing through the Info documentation tree.
@@ -2178,7 +2178,7 @@ Advanced commands:
   (define-key Info-edit-map "\C-c\C-c" 'Info-cease-edit))
 
 ;; Info-edit mode is suitable only for specially formatted data.
-(put 'info-edit-mode 'mode-class 'special)
+(put 'Info-edit-mode 'mode-class 'special)
 
 (defun Info-edit-mode ()
   "Major mode for editing the contents of an Info node.
