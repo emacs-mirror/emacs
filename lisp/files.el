@@ -1165,6 +1165,8 @@ run `normal-mode' explicitly."
     ("\\.clo\\'" . latex-mode)		;LaTeX 2e class option
     ("\\.bbl\\'" . latex-mode)
     ("\\.bib\\'" . bibtex-mode)
+    ("\\.m4\\'" . m4-mode)
+    ("\\.mc\\'" . m4-mode)
     ("\\.mf\\'" . metafont-mode)
     ("\\.mp\\'" . metapost-mode)
     ("\\.article\\'" . text-mode)
