@@ -1,5 +1,5 @@
 /* Generic frame functions.
-   Copyright (C) 1993, 1994, 1995 Free Software Foundation.
+   Copyright (C) 1993, 1994, 1995, 1997 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -83,6 +83,7 @@ Lisp_Object Qw32;
 Lisp_Object Qpc;
 Lisp_Object Qvisible;
 Lisp_Object Qbuffer_predicate;
+Lisp_Object Qbuffer_list;
 Lisp_Object Qtitle;
 
 Lisp_Object Vterminal_frame;
@@ -124,6 +125,8 @@ syms_of_frame_1 ()
   staticpro (&Qvisible);
   Qbuffer_predicate = intern ("buffer-predicate");
   staticpro (&Qbuffer_predicate);
+  Qbuffer_list = intern ("buffer-list");
+  staticpro (&Qbuffer_list);
   Qtitle = intern ("title");
   staticpro (&Qtitle);
 
@@ -294,6 +297,7 @@ make_frame (mini_p)
   f->menu_bar_vector = Qnil;
   f->menu_bar_items_used = 0;
   f->buffer_predicate = Qnil;
+  f->buffer_list = Qnil;
 #ifdef MULTI_KBOARD
   f->kboard = initial_kboard;
 #endif
@@ -347,6 +351,8 @@ make_frame (mini_p)
     if (XSTRING (Fbuffer_name (buf))->data[0] == ' ')
       buf = Fother_buffer (buf, Qnil);
     Fset_window_buffer (root_window, buf);
+
+    f->buffer_list = Fcons (buf, Qnil);
   }
 
   if (mini_p)
@@ -1678,6 +1684,38 @@ frame_buffer_predicate ()
   return selected_frame->buffer_predicate;
 }
 
+/* Return the buffer-list of the selected frame.  */
+
+Lisp_Object
+frame_buffer_list ()
+{
+  return selected_frame->buffer_list;
+}
+
+/* Set the buffer-list of the selected frame.  */
+
+void
+set_frame_buffer_list (list)
+     Lisp_Object list;
+{
+  selected_frame->buffer_list = list;
+}
+
+/* Discard BUFFER from the buffer-list of each frame.  */
+
+void
+frames_discard_buffer (buffer)
+     Lisp_Object buffer;
+{
+  Lisp_Object frame, tail;
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      XFRAME (frame)->buffer_list
+	= Fdelq (buffer, XFRAME (frame)->buffer_list);
+    }
+}
+
 /* Modify the alist in *ALISTPTR to associate PROP with VAL.
    If the alist already has an element for PROP, we change it.  */
 
@@ -1701,6 +1739,12 @@ store_frame_param (f, prop, val)
      Lisp_Object prop, val;
 {
   register Lisp_Object tem;
+
+  if (EQ (prop, Qbuffer_list))
+    {
+      f->buffer_list = val;
+      return;
+    }
 
   tem = Fassq (prop, f->param_alist);
   if (EQ (tem, Qnil))
@@ -1780,6 +1824,7 @@ If FRAME is omitted, return information on the currently selected frame.")
 		   : FRAME_MINIBUF_ONLY_P (f) ? Qonly
 		   : FRAME_MINIBUF_WINDOW (f)));
   store_in_alist (&alist, Qunsplittable, (FRAME_NO_SPLIT_P (f) ? Qt : Qnil));
+  store_in_alist (&alist, Qbuffer_list, frame_buffer_list ());
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
