@@ -1,3 +1,7 @@
+2001-04-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (Qinhibit_eval_during_redisplay): Make it a Lisp_Object.
+
 2001-04-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* sysdep.c (getwd) [!HAVE_GETWD]: Unblock input before returning.
