@@ -1,5 +1,14 @@
 2004-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
+	* mac.c (sys_select): Block input around call to
+	ReceiveNextEvent to prevent breakage.  Correctly handle
+	blocking on event queue only by calling ReceiveNextEvent
+	instead of select (since GUI events aren't on an fd).
+	(sys_read): Remove function
+	* sysdep.c: Remove redefine of read to sys_read if HAVE_CARBON
+
+2004-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
 	* mac.c (sys_select): Redo sys_select to use alarm-based
 	polling instead of 1 sec timeouts (like solaris).  
 
