@@ -1,5 +1,5 @@
 /* Generic frame functions.
-   Copyright (C) 1993, 1994, 1995, 1997, 1999 Free Software Foundation.
+   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -103,6 +103,7 @@ Lisp_Object Qtitle;
 
 Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
+Lisp_Object Vmouse_position_function;
 
 static void
 syms_of_frame_1 ()
@@ -1375,13 +1376,15 @@ The position is given in character cells, where (0, 0) is the\n\
 upper-left corner.\n\
 If Emacs is running on a mouseless terminal or hasn't been programmed\n\
 to read the mouse position, it returns the selected frame for FRAME\n\
-and nil for X and Y.")
+and nil for X and Y.\n\
+Runs the abnormal hook `mouse-position-function' with the normal return\n\
+value as argument.")
   ()
 {
   FRAME_PTR f;
   Lisp_Object lispy_dummy;
   enum scroll_bar_part party_dummy;
-  Lisp_Object x, y;
+  Lisp_Object x, y, retval;
   int col, row;
   unsigned long long_dummy;
 
@@ -1405,7 +1408,14 @@ and nil for X and Y.")
     }
 #endif
   XSETFRAME (lispy_dummy, f);
-  return Fcons (lispy_dummy, Fcons (x, y));
+  retval = Fcons (lispy_dummy, Fcons (x, y));
+  if (!NILP (Vmouse_position_function))
+    {
+      struct gcpro gcpro1, gcpro2;
+      GCPRO2 (x, y);
+      RETURN_UNGCPRO (call1 (Vmouse_position_function, retval));
+    }
+  return retval;
 }
 
 DEFUN ("mouse-pixel-position", Fmouse_pixel_position,
@@ -2343,6 +2353,12 @@ syms_of_frame ()
   DEFVAR_LISP ("emacs-iconified", &Vemacs_iconified,
     "Non-nil if all of emacs is iconified and frame updates are not needed.");
   Vemacs_iconified = Qnil;
+
+  DEFVAR_LISP ("mouse-position-function", &Vmouse_position_function,
+    "If non-nil, function applied to the normal result of `mouse-position'.\n\
+This abnormal hook exists for the benefit of packages like XTerm-mouse\n\
+which need to do mouse handling at the Lisp level.");
+  Vmouse_position_function = Qnil;
 
   DEFVAR_KBOARD ("default-minibuffer-frame", Vdefault_minibuffer_frame,
     "Minibufferless frames use this frame's minibuffer.\n\
