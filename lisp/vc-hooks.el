@@ -373,38 +373,43 @@ Returns t if checkout was successful, nil otherwise."
       (define-key vc-prefix-map "=" 'vc-diff)
       (define-key vc-prefix-map "~" 'vc-version-other-window)))
 
-;;;(define-key vc-menu-map [show-files]
-;;;  '("Show Files under VC" . (vc-directory t)))
-(define-key vc-menu-map [vc-directory] '("Show Locked Files" . vc-directory))
-(define-key vc-menu-map [separator1] '("----"))
-(define-key vc-menu-map [vc-rename-file] '("Rename File" . vc-rename-file))
-(define-key vc-menu-map [vc-version-other-window]
-  '("Show Other Version" . vc-version-other-window))
-(define-key vc-menu-map [vc-diff] '("Compare with Last Version" . vc-diff))
-(define-key vc-menu-map [vc-update-change-log]
-  '("Update ChangeLog" . vc-update-change-log))
-(define-key vc-menu-map [vc-print-log] '("Show History" . vc-print-log))
-(define-key vc-menu-map [separator2] '("----"))
-(define-key vc-menu-map [undo] '("Undo Last Check-In" . vc-cancel-version))
-(define-key vc-menu-map [vc-revert-buffer]
-  '("Revert to Last Version" . vc-revert-buffer))
-(define-key vc-menu-map [vc-insert-header]
-  '("Insert Header" . vc-insert-headers))
-(define-key vc-menu-map [vc-menu-check-in] '("Check In" . vc-next-action))
-(define-key vc-menu-map [vc-check-out] '("Check Out" . vc-toggle-read-only))
-(define-key vc-menu-map [vc-register] '("Register" . vc-register))
-
-(put 'vc-rename-file 'menu-enable 'vc-mode)
-(put 'vc-version-other-window 'menu-enable 'vc-mode)
-(put 'vc-diff 'menu-enable 'vc-mode)
-(put 'vc-update-change-log 'menu-enable '(eq (vc-backend-deduce (buffer-file-name)) 'RCS))
-(put 'vc-print-log 'menu-enable 'vc-mode)
-(put 'vc-cancel-version 'menu-enable 'vc-mode)
-(put 'vc-revert-buffer 'menu-enable 'vc-mode)
-(put 'vc-insert-headers 'menu-enable 'vc-mode)
-(put 'vc-next-action 'menu-enable '(and vc-mode (not buffer-read-only)))
-(put 'vc-toggle-read-only 'menu-enable '(and vc-mode buffer-read-only))
-(put 'vc-register 'menu-enable '(not vc-mode))
+(if (not (boundp 'vc-menu-map))
+    ;; Don't do the menu bindings if menu-bar.el wasn't loaded to defvar
+    ;; vc-menu-map.
+    ()
+  ;;(define-key vc-menu-map [show-files]
+  ;;  '("Show Files under VC" . (vc-directory t)))
+  (define-key vc-menu-map [vc-directory] '("Show Locked Files" . vc-directory))
+  (define-key vc-menu-map [separator1] '("----"))
+  (define-key vc-menu-map [vc-rename-file] '("Rename File" . vc-rename-file))
+  (define-key vc-menu-map [vc-version-other-window]
+    '("Show Other Version" . vc-version-other-window))
+  (define-key vc-menu-map [vc-diff] '("Compare with Last Version" . vc-diff))
+  (define-key vc-menu-map [vc-update-change-log]
+    '("Update ChangeLog" . vc-update-change-log))
+  (define-key vc-menu-map [vc-print-log] '("Show History" . vc-print-log))
+  (define-key vc-menu-map [separator2] '("----"))
+  (define-key vc-menu-map [undo] '("Undo Last Check-In" . vc-cancel-version))
+  (define-key vc-menu-map [vc-revert-buffer]
+    '("Revert to Last Version" . vc-revert-buffer))
+  (define-key vc-menu-map [vc-insert-header]
+    '("Insert Header" . vc-insert-headers))
+  (define-key vc-menu-map [vc-menu-check-in] '("Check In" . vc-next-action))
+  (define-key vc-menu-map [vc-check-out] '("Check Out" . vc-toggle-read-only))
+  (define-key vc-menu-map [vc-register] '("Register" . vc-register))
+  (put 'vc-rename-file 'menu-enable 'vc-mode)
+  (put 'vc-version-other-window 'menu-enable 'vc-mode)
+  (put 'vc-diff 'menu-enable 'vc-mode)
+  (put 'vc-update-change-log 'menu-enable
+       '(eq (vc-backend-deduce (buffer-file-name)) 'RCS))
+  (put 'vc-print-log 'menu-enable 'vc-mode)
+  (put 'vc-cancel-version 'menu-enable 'vc-mode)
+  (put 'vc-revert-buffer 'menu-enable 'vc-mode)
+  (put 'vc-insert-headers 'menu-enable 'vc-mode)
+  (put 'vc-next-action 'menu-enable '(and vc-mode (not buffer-read-only)))
+  (put 'vc-toggle-read-only 'menu-enable '(and vc-mode buffer-read-only))
+  (put 'vc-register 'menu-enable '(not vc-mode))
+  )
 
 (provide 'vc-hooks)
 
