@@ -1,3 +1,9 @@
+2003-11-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* intervals.h: Add EXFUN for Fget_char_property_and_overlay.
+	* textprop.c (Fget_char_property_and_overlay): New function.
+	(syms_of_textprop): Defsubr it.
+
 2003-11-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* dispnew.c (buffer_posn_from_coords): Add ifdef HAVE_WINDOW_SYSTEM

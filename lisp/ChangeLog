@@ -1,3 +1,11 @@
+2003-11-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help.el (help-map): Bind `display-local-help' to `C-h .'.
+	(help-for-help): Add `C-h .' to the listed Help options.
+	Remove trailing whitespace.
+
+	* help-at-pt.el: New file.
+
 2003-11-30  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* subr.el (noreturn, 1value): New macros for test coverage.  See
@@ -51,7 +59,7 @@
 
 2003-11-25  Kim F. Storm  <storm@cua.dk>
 
-	* emulation/cua-base.el (cua--standard-movement-commands): 
+	* emulation/cua-base.el (cua--standard-movement-commands):
 	Add forward-sentence and backward-sentence.
 
 2003-11-25  Stephen Eglen  <stephen@gnu.org>
@@ -117,7 +125,7 @@
 
 	* mouse.el: Bind mouse-1 on left-fringe and right-fringe to
 	mouse-set-point so that hscroll still works now that clicks on
-	fringes generate specific mouse events.  
+	fringes generate specific mouse events.
 	(mouse-set-point): Note that it now works in fringes and margins
 	too due to new semantics of posn-point in fringes and margins.
 
