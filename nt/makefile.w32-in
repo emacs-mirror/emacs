@@ -196,7 +196,18 @@ clean-other-dirs-gmake:
 	$(MAKE) $(MFLAGS) -C ../lisp clean
 	$(MAKE) $(MFLAGS) -C ../leim clean
 
-cleanall: clean
+cleanall-other-dirs-nmake:
+	cd ..\lib-src
+	$(MAKE) $(MFLAGS) cleanall
+	cd ..\src
+	$(MAKE) $(MFLAGS) cleanall
+	cd ..\nt
+
+cleanall-other-dirs-gmake:
+	$(MAKE) $(MFLAGS) -C ../lib-src cleanall
+	$(MAKE) $(MFLAGS) -C ../src cleanall
+
+cleanall: clean cleanall-other-dirs-$(MAKETYPE)
 	 - $(DEL_TREE) obj
 	 - $(DEL_TREE) obj-spd
 	 - $(DEL_TREE) oo
