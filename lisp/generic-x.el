@@ -301,11 +301,11 @@ you must reload generic-x to enable the specified modes."
      ;; Make this one first in the list, otherwise comments will
      ;; be over-written by other variables
      (list "^[@ \t]*\\([rR][eE][mM][^\n\r]*\\)" 1 'font-lock-comment-face t)
-     (list "^[ \t]*\\(::-.*\\)"		        1 'font-lock-comment-face t)
+     (list "^[ \t]*\\(::.*\\)"		        1 'font-lock-comment-face t)
      (list
       "^[@ \t]*\\([bB][rR][eE][aA][kK]\\|[vV][eE][rR][iI][fF][yY]\\)[ \t]+\\([oO]\\([nN]\\|[fF][fF]\\)\\)"
       '(1 font-lock-builtin-face)
-      '(2 font-lock-constant-face 'append t))
+      '(2 font-lock-constant-face t t))
      ;; Any text (except ON/OFF) following ECHO is a string.
      (list
       "^[@ \t]*\\([eE][cC][hH][oO]\\)[ \t]+\\(\\([oO]\\([nN]\\|[fF][fF]\\)\\)\\|\\([^>|\r\n]+\\)\\)"
@@ -319,15 +319,8 @@ you must reload generic-x to enable the specified modes."
      ;; case-insensitive
      (generic-make-keywords-list
       (list
-       "call"
-       "echo"
        "for"
        "if"
-       "path"
-       "pause"
-       "prompt"
-       "set"
-       "start"
        )
       'font-lock-keyword-face "^[@ \t]*")
      ;; These keywords can be anywhere on a line
@@ -335,6 +328,7 @@ you must reload generic-x to enable the specified modes."
      ;; case-insensitive
      (generic-make-keywords-list
       (list
+       "do"
        "exist"
        "errorlevel"
        "goto"
