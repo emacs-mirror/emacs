@@ -1152,7 +1152,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
       if (vpos > tovpos || vpos == tovpos && hpos >= tohpos)
 	{
 	  if (contin_hpos && prev_hpos == 0
-	      && (contin_hpos == width || wide_column))
+	      && ((hpos > tohpos && contin_hpos == width) || wide_column))
 	    { /* Line breaks because we can't put the character at the
 		 previous line any more.  It is not the multi-column
 		 character continued in middle.  Go back to previous
