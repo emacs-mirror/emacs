@@ -279,6 +279,10 @@ Entry to this mode runs the hooks on comint-mode-hook"
 ; (define-key comint-mode-map "\eP" 'comint-msearch-input)
 ; (define-key comint-mode-map "\eN" 'comint-psearch-input)
 ; (define-key comint-mode-map "\C-cR" 'comint-msearch-input-matching)
+  (define-key comint-mode-map "\C-c\C-n" 'comint-next-prompt)
+  (define-key comint-mode-map "\C-c\C-p" 'comint-prev-prompt)
+  (define-key comint-mode-map "\C-c\C-d" 'comint-send-eof)
+  (define-key comint-mode-map "\C-c\C-y" 'comint-previous-input) ;v18 binding
   )
 
 
@@ -899,8 +903,29 @@ Useful if you accidentally suspend the top-level process."
       (process-send-eof)
       (delete-char arg)))
 
+(defun comint-send-eof ()
+  "Send an EOF to the current buffer's process."
+  (interactive)
+  (process-send-eof))
 
+(defun comint-next-prompt (n)
+  "\
+Move to end of next prompt in the buffer (with prefix arg, Nth next).
+See `comint-prompt-regexp'."
+  (interactive "p")
+  (re-search-forward comint-prompt-regexp nil nil n))
 
+(defun comint-prev-prompt (n)
+  "\
+Move to end of previous prompt in the buffer (with prefix arg, Nth previous).
+See `comint-prompt-regexp'."
+  (interactive "p")
+  (if (= (save-excursion (re-search-backward comint-prompt-regexp nil t)
+			 (match-end 0))
+	 (point))
+      (setq n (1+ n)))
+  (re-search-backward comint-prompt-regexp nil nil n)
+  (goto-char (match-end 0)))
 
 ;;; Support for source-file processing commands.
 ;;;============================================================================
