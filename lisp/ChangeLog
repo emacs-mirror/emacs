@@ -1,3 +1,9 @@
+2002-11-13  Kenichi Handa  <handa@m17n.org>
+
+	* replace.el (occur-engine): Set buffer-file-coding-system of
+	  OUT-BUF to that of one of BUFFERS if they locally bind that
+	  variable.
+
 2002-11-13   Markus Rost  <rost@math.ohio-state.edu>
 
 	* custom.el (custom-handle-all-keywords): Fix arg passed to
