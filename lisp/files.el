@@ -534,10 +534,29 @@ colon-separated list of directories when resolving a relative directory name."
 		       (read-file-name "Load file: "))))
   (load (expand-file-name file) nil nil t))
 
+(defun load-completion (string predicate action)
+  (if (file-name-absolute-p string)
+      (read-file-name-internal string predicate action)
+    (let ((names nil)
+	  (suffix (concat (regexp-opt load-suffixes t) "\\'"))
+	  (string-dir (file-name-directory string)))
+      (dolist (dir load-path)
+	(if string-dir (setq dir (expand-file-name string-dir dir)))
+	(when (file-directory-p dir)
+	  (dolist (file (file-name-all-completions
+			 (file-name-nondirectory string) dir))
+	    (push (if string-dir (concat string-dir file) file) names)
+	    (when (string-match suffix file)
+	      (setq file (substring file 0 (match-beginning 0)))
+	      (push (if string-dir (concat string-dir file) file) names)))))
+      (if action
+	  (all-completions string (mapcar 'list names) predicate)
+	(try-completion string (mapcar 'list names) predicate)))))
+
 (defun load-library (library)
   "Load the library named LIBRARY.
 This is an interface to the function `load'."
-  (interactive "sLoad library: ")
+  (interactive (list (completing-read "Load library: " 'load-completion)))
   (load library))
 
 (defun file-local-copy (file)
