@@ -37,7 +37,7 @@
 ;; change this variable, or use `format-write-file'.
 ;;
 ;; Auto-save files are normally created in the same format as the visited
-;; file, but the variable `auto-save-file-format' can be set to a
+;; file, but the variable `buffer-auto-save-file-format' can be set to a
 ;; particularly fast or otherwise preferred format to be used for
 ;; auto-saving (or nil to do no encoding on auto-save files, but then you
 ;; risk losing any text-properties in the buffer).
@@ -62,6 +62,7 @@
 ;;; Code:
 
 (put 'buffer-file-format 'permanent-local t)
+(put 'buffer-auto-save-file-format 'permanent-local t)
 
 (defvar format-alist
   '((text/enriched "Extended MIME text/enriched format."
