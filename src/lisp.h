@@ -316,7 +316,7 @@ you lose
 /* For integers known to be positive, XFASTINT provides fast retrieval
    and XSETFASTINT provides fast storage.  This takes advantage of the
    fact that Lisp_Int is 0.  */
-#define XFASTINT(a) (a)
+#define XFASTINT(a) ((a) + 0)
 #define XSETFASTINT(a, b) ((a) = (b))
 
 /* Extract the value of a Lisp_Object as a signed integer.  */
@@ -400,7 +400,7 @@ extern int pure_size;
 /* For integers known to be positive, XFASTINT provides fast retrieval
    and XSETFASTINT provides fast storage.  This takes advantage of the
    fact that Lisp_Int is 0.  */
-#define XFASTINT(a) ((a).i)
+#define XFASTINT(a) ((a).i + 0)
 #define XSETFASTINT(a, b) ((a).i = (b))
 
 #ifdef EXPLICIT_SIGN_EXTEND
