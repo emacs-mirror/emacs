@@ -1,5 +1,7 @@
 2000-11-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* hi-lock.el: Update from author.
+
 	* hscroll.el: Add hints to `automatic-hscrolling' to doc strings.
 
 	* dired-aux.el (dired-do-create-files): Construct default file
