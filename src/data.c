@@ -1350,9 +1350,15 @@ ARRAY may be a vector or a string, or a byte-code object.  INDEX starts at 0.")
     }
   else
     {
-      if (!VECTORP (array) && !COMPILEDP (array))
-	array = wrong_type_argument (Qarrayp, array);
-      if (idxval < 0 || idxval >= XVECTOR (array)->size)
+      int size;
+      if (VECTORP (array))
+	size = XVECTOR (array)->size;
+      else if (COMPILEDP (array))
+	size = XVECTOR (array)->size & PSEUDOVECTOR_SIZE_MASK;
+      else
+	wrong_type_argument (Qarrayp, array);
+
+      if (idxval < 0 || idxval >= size)
 	args_out_of_range (array, idx);
       return XVECTOR (array)->contents[idxval];
     }
