@@ -26,7 +26,7 @@
 
 ;;; Code:
 
-(require 'comint)
+(require 'shell)
 (require 'compile)
 
 ;;;###autoload
@@ -814,7 +814,7 @@ line numbers for the errors."
     (let ((proc (get-process "tex-shell")))
       (set-process-sentinel proc 'tex-shell-sentinel)
       (process-kill-without-query proc)
-      (setq tex-shell-map (copy-keymap comint-mode-map))
+      (setq tex-shell-map (copy-keymap shell-mode-map))
       (tex-define-common-keys tex-shell-map)
       (use-local-map tex-shell-map)
       (run-hooks 'tex-shell-hook)
