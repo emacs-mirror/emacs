@@ -1318,8 +1318,7 @@ create_process (process, new_argv, current_dir)
 	  {
 	    /* Use new line discipline.  */
 	    int ldisc = NTTYDISC;
-	    if (ioctl (xforkin, TIOCSETD, &ldisc) < 0)
-	      write (1, "create_process/TIOCSETD failed\n", 31);
+	    ioctl (xforkin, TIOCSETD, &ldisc);
 	  }
 #endif
 #endif
