@@ -1830,6 +1830,14 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 ;; Keep in mind that the country abbreviations follow ISO-3166.  There is
 ;; a U.S. FIPS that specifies a different set of two-letter country
 ;; abbreviations.
+;;
+;; Updated by the RIPE Network Coordination Centre.
+;;
+;; Source: ISO 3166 Maintenance Agency
+;; http://www.iso.org/iso/en/prods-services/iso3166ma/02iso-3166-code-lists/list-en1-semic.txt
+;; http://www.iana.org/domain-names.htm
+;; http://www.iana.org/cctld/cctld-whois.htm
+;; Latest change: Mon Jul  8 14:21:59 CEST 2002
 
 (defconst mail-extr-all-top-level-domains
   (let ((ob (make-vector 739 0)))
@@ -1879,7 +1887,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
        ("bz" "Belize")
        ("ca" "Canada")
        ("cc" "Cocos (Keeling) Islands")
-       ("cd" "The Democratic Republic of The Congo")
+       ("cd" "Congo"            "The Democratic Republic of the %s")
        ("cf" "Central African Republic")
        ("cg" "Congo")
        ("ch" "Switzerland"	"The Swiss Confederation")
@@ -1927,13 +1935,13 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
        ("gp" "Guadeloupe (Fr.)")
        ("gq" "Equatorial Guinea")
        ("gr" "Greece"		"The Hellenic Republic (%s)")
-       ("gs" "South Georgia And The South Sandwich Islands")
+       ("gs" "South Georgia and The South Sandwich Islands")
        ("gt" "Guatemala")
        ("gu" "Guam (U.S.)")
        ("gw" "Guinea-Bissau")
        ("gy" "Guyana")
        ("hk" "Hong Kong")
-       ("hm" "Heard Island And Mcdonald Islands")
+       ("hm" "Heard Island and Mcdonald Islands")
        ("hn" "Honduras")
        ("hr" "Croatia"		"Croatia (Hrvatska)")
        ("ht" "Haiti")
@@ -1961,7 +1969,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
        ("kr" "Korea (South)"	"Republic of Korea")
        ("kw" "Kuwait")
        ("ky" "Cayman Islands")
-       ("kz" "Kazakstan")
+       ("kz" "Kazakhstan")
        ("la" "Lao People's Democratic Republic")
        ("lb" "Lebanon")
        ("lc" "Saint Lucia")
@@ -1982,7 +1990,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
        ("ml" "Mali")
        ("mm" "Myanmar")
        ("mn" "Mongolia")
-       ("mo" "Macau")
+       ("mo" "Macao")
        ("mp" "Northern Mariana Islands")
        ("mq" "Martinique")
        ("mr" "Mauritania")
@@ -1992,7 +2000,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
        ("mv" "Maldives")
        ("mw" "Malawi")
        ("mx" "Mexico"		"The United Mexican States")
-       ("my" "Malaysia"		"%s (changed to Myanmar?)")		;???
+       ("my" "Malaysia")
        ("mz" "Mozambique")
        ("na" "Namibia")
        ("nc" "New Caledonia (Fr.)")
@@ -2009,7 +2017,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
        ("om" "Oman")
        ("pa" "Panama")
        ("pe" "Peru")
-       ("pf" "Polynesia (Fr.)")
+       ("pf" "French Polynesia")
        ("pg" "Papua New Guinea")
        ("ph" "Philippines"	"The Republic of the %s")
        ("pk" "Pakistan")
@@ -2041,18 +2049,19 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
        ("sn" "Senegal")
        ("so" "Somalia")
        ("sr" "Suriname")
-       ("st" "Sao Tome And Principe")
+       ("st" "Sao Tome and Principe")
        ("su" "U.S.S.R." "The Union of Soviet Socialist Republics")
        ("sv" "El Salvador")
        ("sy" "Syrian Arab Republic")
        ("sz" "Swaziland")
-       ("tc" "Turks And Caicos Islands")
+       ("tc" "Turks and Caicos Islands")
        ("td" "Chad")
        ("tf" "French Southern Territories")
        ("tg" "Togo")
        ("th" "Thailand"		"The Kingdom of %s")
        ("tj" "Tajikistan")
        ("tk" "Tokelau")
+       ("tl" "East Timor")
        ("tm" "Turkmenistan")
        ("tn" "Tunisia")
        ("to" "Tonga")
@@ -2070,7 +2079,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
        ("uy" "Uruguay"		"The Eastern Republic of %s")
        ("uz" "Uzbekistan")
        ("va" "Holy See (Vatican City State)")
-       ("vc" "St. Vincent and the Grenadines")
+       ("vc" "Saint Vincent and the Grenadines")
        ("ve" "Venezuela"	"The Republic of %s")
        ("vg" "Virgin Islands, British")
        ("vi" "Virgin Islands, U.S.")
@@ -2084,20 +2093,26 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
        ("za" "South Africa"	"The Republic of %s")
        ("zm" "Zambia")
        ("zw" "Zimbabwe"		"Republic of %s")
-       ;; Special top-level domains:
-       ("arpa" t		"Advanced Research Projects Agency (U.S. DoD)")
-       ("bitnet" t		"Because It's Time NET")
+       ;; Generic Domains:
+       ("aero" t                "Air Transport Industry")
+       ("biz" t                 "Businesses")
        ("com" t			"Commercial")
-       ("edu" t			"Educational")
-       ("gov" t			"Government (U.S.)")
-       ("int" t			"International (NATO)")
-       ("mil" t			"Military (U.S.)")
-       ("nato" t		"North Atlantic Treaty Organization")
+       ("coop" t                "Cooperative Associations")
+       ("info" t                "Info")
+       ("museum" t              "Museums")
+       ("name" t                "Individuals")
        ("net" t			"Network")
        ("org" t			"Non-profit Organization")
-       ;;("unter-dom" t		"? (Ger.)")
+       ;;("pro" t                 "Credentialed professionals")
+       ;;("bitnet" t		"Because It's Time NET")
+       ("gov" t			"United States Government")
+       ("edu" t			"Educational")
+       ("mil" t			"United States Military")
+       ("int" t			"International Treaties")
+       ;;("nato" t		"North Atlantic Treaty Organization")
        ("uucp" t		"Unix to Unix CoPy")
-       ;;("fipnet" nil		"?")
+       ;; Infrastructure Domains:
+       ("arpa" t		"Advanced Research Projects Agency (U.S. DoD)")
        ))
     ob))
 
