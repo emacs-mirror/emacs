@@ -1,5 +1,6 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1901,7 +1902,7 @@ verify_interval_modification (buf, start, end)
 	interval_insert_in_front_hooks
 	  = textget (i->plist, Qinsert_in_front_hooks);
     }
-  else
+  else if (!inhibit_modification_hooks)
     {
       /* Loop over intervals on or next to START...END,
 	 collecting their hooks.  */
