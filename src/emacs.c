@@ -196,7 +196,7 @@ handle_USR1_signal (sig)
 
   buf.kind = user_signal;
   buf.code = 0;
-  buf.frame_or_window = Fselected_frame ();
+  buf.frame_or_window = selected_frame;
   buf.modifiers = 0;
   buf.timestamp = 0;
 
@@ -213,7 +213,7 @@ handle_USR2_signal (sig)
 
   buf.kind = user_signal;
   buf.code = 1;
-  buf.frame_or_window = Fselected_frame ();
+  buf.frame_or_window = selected_frame;
   buf.modifiers = 0;
   buf.timestamp = 0;
 
