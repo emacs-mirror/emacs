@@ -1067,6 +1067,7 @@ init_fringe_bitmap (which, fb, once_p)
 
 #if defined (MAC_OS) && defined (WORDS_BIG_ENDIAN)
       unsigned short *bits = fb->bits;
+      int j;
       for (j = 0; j < fb->height; j++)
 	{
 	  unsigned short b = *bits;
