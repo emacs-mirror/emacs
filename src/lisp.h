@@ -499,12 +499,27 @@ struct PERDISPLAY
     /* Unread events specific to this display.  */
     Lisp_Object kbd_queue;
 
+    /* Non-nil while a kbd macro is being defined.  */
+    Lisp_Object defining_kbd_macro;
+
+    /* The start of storage for the current keyboard macro.  */
+    Lisp_Object *kbd_macro_buffer;
+
+    /* Where to store the next keystroke of the macro.  */
+    Lisp_Object *kbd_macro_ptr;
+
+    /* The finalized section of the macro starts at kbd_macro_buffer and
+       ends before this.  This is not the same as kbd_macro_ptr, because
+       we advance this to kbd_macro_pointer when a key's command is complete.
+       This way, the keystrokes for "end-kbd-macro" are not included in the
+       macro.  */
+    Lisp_Object *kbd_macro_end;
+
+    /* Allocated size of kbd_macro_buffer.  */
+    int kbd_macro_bufsize;
+
     /* Placeholder for future vars that will be moved here.  */
-    Lisp_Object unused[23];
-
-    Lisp_Object this_command_keys;
-
-    int this_command_key_count;
+    Lisp_Object unused[20];
 
     /* Nonzero means echo each character as typed.  */
     int immediate_echo;
