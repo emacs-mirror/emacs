@@ -300,7 +300,7 @@ MODE-LINE-P non-nil means a mode line is dragged."
 		       (enlarge-window (- growth))
 		       (select-window start-event-window))
 		   ;; no.  grow/shrink the selected window
-		   (message "growth = %d" growth)
+		   ;; (message "growth = %d" growth)
 		   (enlarge-window growth))
 		 
 		 ;; if this window's growth caused another
