@@ -14,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.41 2002/09/13 19:09:45 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.42 2002/10/01 18:48:35 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -893,7 +893,7 @@ and run `cvs-mode' on it.
 With a prefix argument, prompt for cvs FLAGS to use."
   (interactive
    (list (cvs-string->strings (read-string "Module(s): " (cvs-get-module)))
-	 (read-file-name "CVS Checkout Directory: "
+	 (read-directory-name "CVS Checkout Directory: "
 			 nil default-directory nil)
 	 (cvs-add-branch-prefix
 	  (cvs-flags-query 'cvs-checkout-flags "cvs checkout flags"))))
@@ -920,7 +920,7 @@ With a prefix argument, prompt for cvs FLAGS to use."
 	   (not current-prefix-arg)
 	   (not (eq last-command-char ?\r)))
       default-directory
-    (read-file-name msg nil default-directory nil)))
+    (read-directory-name msg nil default-directory nil)))
 
 ;;;###autoload
 (defun cvs-quickdir (dir &optional flags noshow)
