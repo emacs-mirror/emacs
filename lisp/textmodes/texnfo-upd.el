@@ -1,6 +1,6 @@
 ;;; texnfo-upd.el --- utilities for updating nodes and menus in Texinfo files
 
-;; Copyright (C) 1989, 1990, 1991, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1990, 1991, 1992, 2001 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Maintainer: bug-texinfo@gnu.org
@@ -290,7 +290,10 @@ of the node if one is found; else do not move point."
 	       "\\(^@node\\).*\n"         ; match node line
 	       "\\(\\(\\(^@c\\).*\n\\)"   ; match comment line, if any
 	       "\\|"                      ; or
-	       "\\(^@ifinfo[ ]*\n\\)\\)?" ; ifinfo line, if any
+	       "\\(^@ifinfo[ ]*\n\\)"     ; ifinfo line, if any
+               "\\|"                      ; or
+               "\\(^@ifnottex[ ]*\n\\)"   ; ifnottex line, if any
+               "\\)?"                     ; end of expression
 	       (eval (cdr (assoc level texinfo-update-menu-lower-regexps))))
 	      ;; the next higher level node marks the end of this
 	      ;; section, and no lower level node will be found beyond
@@ -320,7 +323,10 @@ if the match is found there, the value is t and point does not move."
 	    "\\(^@node\\).*\n"              ; match node line
 	    "\\(\\(\\(^@c\\).*\n\\)"        ; match comment line, if any
 	    "\\|"                           ; or
-	    "\\(^@ifinfo[ ]*\n\\)\\)?"      ; ifinfo line, if any
+	    "\\(^@ifinfo[ ]*\n\\)"          ; ifinfo line, if any
+            "\\|"                           ; or
+            "\\(^@ifnottex[ ]*\n\\)"        ; ifnottex line, if any
+            "\\)?"                          ; end of expression
 	    (eval (cdr (assoc level texinfo-update-menu-higher-regexps))))
 	   region-end t)
 	  (progn (beginning-of-line) t))))))
@@ -368,7 +374,10 @@ The function finds entries of the same type.  Thus `subsections' and
 	  "\\(^@node\\).*\n"              ; match node line
 	  "\\(\\(\\(^@c\\).*\n\\)"        ; match comment line, if any
 	  "\\|"                           ; or
-	  "\\(^@ifinfo[ ]*\n\\)\\)?"      ; ifinfo line, if any
+	  "\\(^@ifinfo[ ]*\n\\)"          ; ifinfo line, if any
+	  "\\|"                           ; or
+	  "\\(^@ifnottex[ ]*\n\\)"        ; ifnottex line, if any
+          "\\)?"                          ; end of expression
 	  (eval
 	   (cdr (assoc level texinfo-update-menu-same-level-regexps))))
 	 search-end
@@ -538,7 +547,7 @@ Signal an error if not end of menu."
   (save-excursion
     (if (re-search-forward "^@end menu" nil t)
 	(point)
-      (error "Menu does not have an end"))))
+      (error "Menu does not have an end."))))
 
 (defun texinfo-delete-old-menu (beginning first)
   "Delete the old menu.  Point must be in or after menu.
@@ -626,7 +635,7 @@ complements the node name rather than repeats it as a title does."
 	;; "Double colon" entry line; menu entry and node name are the same,
        ((search-forward "::" (save-excursion (end-of-line) (point)) t)
 	(if (looking-at "[ \t]*[^ \t\n]+")
-	    (error "Descriptive text already exists"))
+	    (error "Descriptive text already exists."))
 	(skip-chars-backward ": \t")
 	(setq node-name (buffer-substring beginning (point))))
 
@@ -639,7 +648,7 @@ complements the node name rather than repeats it as a title does."
 			       (save-excursion (forward-line 1) (point)) t)
 	    (progn
 	      (if (looking-at "[ \t]*[^ \t\n]+")
-		  (error "Descriptive text already exists"))
+		  (error "Descriptive text already exists."))
 	      (skip-chars-backward "., \t")
 	      (setq node-name (buffer-substring beginning (point))))
 	  ;; Menu entry line ends in a return.
@@ -648,9 +657,9 @@ complements the node name rather than repeats it as a title does."
 	  (skip-chars-backward " \t\n")
 	  (setq node-name (buffer-substring beginning (point)))
 	  (if (= 0 (length node-name))
-	      (error "No node name on this line")
+	      (error "No node name on this line.")
 	    (insert "."))))
-       (t (error "No node name on this line")))
+       (t (error "No node name on this line.")))
       ;; Search for node that matches node name, and copy the section title.
       (if (re-search-forward
 	   (concat
@@ -661,6 +670,9 @@ complements the node name rather than repeats it as a title does."
 	    "\\(\\(^@c \\|^@comment\\).*\n\\)" ; match comment line, if any
 	    "\\|"                              ; or
 	    "\\(^@ifinfo[ ]*\n\\)"             ; ifinfo line, if any
+            "\\|"                              ; or
+            "\\(^@ifnottex[ ]*\n\\)"           ; ifnottex line, if any
+            "\\)?"                             ; end of expression
 	    "\\)?")
 	   nil t)
 	  (progn
@@ -674,7 +686,7 @@ complements the node name rather than repeats it as a title does."
 		   (progn (end-of-line)
 			  (skip-chars-backward " \t")
 			  (point)))))
-	(error "Cannot find node to match node name in menu entry")))
+	(error "Cannot find node to match node name in menu entry.")))
     ;; Return point to the menu and insert the title.
     (end-of-line)
     (delete-region
@@ -990,7 +1002,7 @@ and leave point on the line before the `@end menu' line."
 		      (goto-char end-of-menu)
 		      ;; handle multi-line description
 		      (if (not (re-search-backward "^\\* " nil t))
-			  (error "No entries in menu"))
+			  (error "No entries in menu."))
 		      (point))))
     (while (< (point) last-entry)
       (if (re-search-forward  "^\\* " end-of-menu t)
@@ -1071,7 +1083,10 @@ Only argument is a string of the general type of section."
 	  "\\(^@node\\).*\n"              ; match node line
 	  "\\(\\(\\(^@c\\).*\n\\)"        ; match comment line, if any
 	  "\\|"                           ; or
-	  "\\(^@ifinfo[ ]*\n\\)\\)?"      ; ifinfo line, if any
+	  "\\(^@ifinfo[ ]*\n\\)"          ; ifinfo line, if any
+	  "\\|"                           ; or
+	  "\\(^@ifnottex[ ]*\n\\)"        ; ifnottex line, if any
+          "\\)?"                          ; end of expression
 	  (eval
 	   (cdr (assoc level texinfo-update-menu-higher-regexps))))
 	 nil
@@ -1091,7 +1106,10 @@ string of the general type of section."
 	    "\\(^@node\\).*\n"            ; match node line
 	    "\\(\\(\\(^@c\\).*\n\\)"      ; match comment line, if any
 	    "\\|"                         ; or
-	    "\\(^@ifinfo[ ]*\n\\)\\)?"    ; ifinfo line, if any
+            "\\(^@ifinfo[ ]*\n\\)"        ; ifinfo line, if any
+            "\\|"                         ; or
+            "\\(^@ifnottex[ ]*\n\\)"      ; ifnottex line, if any
+            "\\)?"                        ; end of expression
 	    (eval
 	     ;; Never finds end of level above chapter so goes to end.
 	     (cdr (assoc level texinfo-update-menu-higher-regexps))))
@@ -1355,12 +1373,19 @@ will be at some level higher in the Texinfo file.  The fourth argument
 	   ;; Search for section commands accompanied by node lines;
 	   ;; ignore section commands in the middle of nodes.
 	   (if (re-search-forward
-		;; A `Top' node is never a next pointer, so won't find it.
+                ;; A `Top' node is never a next pointer, so won't find it.
 		(concat
 		 ;; Match node line.
 		 "\\(^@node\\).*\n"
-		 ;; Match comment or ifinfo line, if any
-		 "\\(\\(\\(^@c\\).*\n\\)\\|\\(^@ifinfo[ ]*\n\\)\\)?"
+		 ;; Match comment, ifinfo, ifnottex line, if any
+		 (concat
+                  "\\(\\("
+                  "\\(^@c\\).*\n\\)"
+                  "\\|"
+                  "\\(^@ifinfo[ ]*\n\\)"
+                  "\\|"
+                  "\\(^@ifnottex[ ]*\n\\)"
+                  "\\)?")
 		 (eval
 		  (cdr (assoc level texinfo-update-menu-same-level-regexps))))
 		end
@@ -1373,15 +1398,29 @@ will be at some level higher in the Texinfo file.  The fourth argument
 		 "\\("
 		 ;; Match node line.
 		 "\\(^@node\\).*\n"
-		 ;; Match comment or ifinfo line, if any
-		 "\\(\\(\\(^@c\\).*\n\\)\\|\\(^@ifinfo[ ]*\n\\)\\)?"
+		 ;; Match comment, ifinfo, ifnottex line, if any
+		 (concat
+                  "\\(\\("
+                  "\\(^@c\\).*\n\\)"
+                  "\\|"
+                  "\\(^@ifinfo[ ]*\n\\)"
+                  "\\|"
+                  "\\(^@ifnottex[ ]*\n\\)"
+                  "\\)?")
 		 (eval
 		  (cdr (assoc level texinfo-update-menu-same-level-regexps)))
 		 "\\|"
 		 ;; Match node line.
 		 "\\(^@node\\).*\n"
-		 ;; Match comment or ifinfo line, if any
-		 "\\(\\(\\(^@c\\).*\n\\)\\|\\(^@ifinfo[ ]*\n\\)\\)?"
+		 ;; Match comment, ifinfo, ifnottex line, if any
+		 (concat
+                  "\\(\\("
+                  "\\(^@c\\).*\n\\)"
+                  "\\|"
+                  "\\(^@ifinfo[ ]*\n\\)"
+                  "\\|"
+                  "\\(^@ifnottex[ ]*\n\\)"
+                  "\\)?")
 		 (eval
 		  (cdr (assoc level texinfo-update-menu-higher-regexps)))
 		 "\\|"
@@ -1398,8 +1437,15 @@ will be at some level higher in the Texinfo file.  The fourth argument
 		 "\\("
 		 ;; Match node line.
 		 "\\(^@node\\).*\n"
-		 ;; Match comment or ifinfo line, if any
-		 "\\(\\(\\(^@c\\).*\n\\)\\|\\(^@ifinfo[ ]*\n\\)\\)?"
+		 ;; Match comment, ifinfo, ifnottex line, if any
+		 (concat
+                  "\\(\\("
+                  "\\(^@c\\).*\n\\)"
+                  "\\|"
+                  "\\(^@ifinfo[ ]*\n\\)"
+                  "\\|"
+                  "\\(^@ifnottex[ ]*\n\\)"
+                  "\\)?")
 		 (eval (cdr (assoc level texinfo-update-menu-higher-regexps)))
 		 "\\|"
 		 ;; Handle `Top' node specially.
@@ -1487,7 +1533,7 @@ Info `g*' command is inadequate."
       ;; update a single node
       (let ((auto-fill-function nil) (auto-fill-hook nil))
 	(if (not (re-search-backward "^@node" (point-min) t))
-	    (error "Node line not found before this position"))
+	    (error "Node line not found before this position."))
 	(texinfo-sequentially-update-the-node)
 	(message
 	 "Done...sequentially updated the node .  You may save the buffer."))
