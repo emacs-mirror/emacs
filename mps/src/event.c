@@ -1,6 +1,6 @@
 /* impl.c.event: EVENT LOGGING
  *
- * $HopeName: MMsrc!event.c(trunk.8) $
+ * $HopeName: MMsrc!event.c(trunk.9) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -26,7 +26,7 @@
 #include "event.h"
 #include "mpsio.h"
 
-SRCID(event, "$HopeName: MMsrc!event.c(trunk.8) $");
+SRCID(event, "$HopeName: MMsrc!event.c(trunk.9) $");
 
 #ifdef EVENT /* .trans.ifdef */
 
@@ -143,7 +143,7 @@ void (EventFinish)(void)
   NOOP;
 }
 
-Word EventControl(Word resetMask, Word flipMask)
+Word (EventControl)(Word resetMask, Word flipMask)
 {
   UNUSED(resetMask);
   UNUSED(flipMask);
@@ -151,14 +151,14 @@ Word EventControl(Word resetMask, Word flipMask)
   return (Word)0;
 }
 
-Word EventInternString(const char *label)
+Word (EventInternString)(const char *label)
 {
   UNUSED(label);
 
   return (Word)0;
 }
 
-void EventLabelAddr(Addr addr, Word id)
+void (EventLabelAddr)(Addr addr, Word id)
 {
   UNUSED(addr);
   UNUSED(id);
