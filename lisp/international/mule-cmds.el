@@ -1585,8 +1585,11 @@ The default status is as follows:
   bound to each category are as follows
 	coding category			coding system
 	--------------------------------------------------
-	coding-category-iso-8-2		iso-latin-1
 	coding-category-iso-8-1		iso-latin-1
+	coding-category-iso-8-2		iso-latin-1
+	coding-category-utf-8		mule-utf-8
+	coding-category-utf-16-be	mule-utf-16-be-with-signature
+	coding-category-utf-16-le	mule-utf-16-le-with-signature
 	coding-category-iso-7-tight	iso-2022-jp
 	coding-category-iso-7		iso-2022-7bit
 	coding-category-iso-7-else	iso-2022-7bit-lock
@@ -1596,10 +1599,7 @@ The default status is as follows:
 	coding-category-sjis		japanese-shift-jis
 	coding-category-big5		chinese-big5
 	coding-category-ccl		nil
-	coding-category-binary		no-conversion
-	coding-category-utf-16-be	nil
-	coding-category-utf-16-le	nil
-	coding-category-utf-8		mule-utf-8"
+	coding-category-binary		no-conversion"
   (interactive)
   ;; This function formerly set default-enable-multibyte-characters to t,
   ;; but that is incorrect.  It should not alter the unibyte/multibyte choice.
@@ -1614,8 +1614,8 @@ The default status is as follows:
 	coding-category-raw-text	'raw-text
 	coding-category-sjis		'japanese-shift-jis
 	coding-category-big5		'chinese-big5
-	coding-category-utf-16-be       nil
-	coding-category-utf-16-le       nil
+	coding-category-utf-16-be       'mule-utf-16-be-with-signature
+	coding-category-utf-16-le       'mule-utf-16-le-with-signature
 	coding-category-utf-8           'mule-utf-8
 	coding-category-ccl		nil
 	coding-category-binary		'no-conversion)
@@ -1623,6 +1623,9 @@ The default status is as follows:
   (set-coding-priority
    '(coding-category-iso-8-1
      coding-category-iso-8-2
+     coding-category-utf-8
+     coding-category-utf-16-be
+     coding-category-utf-16-le
      coding-category-iso-7-tight
      coding-category-iso-7
      coding-category-iso-7-else
@@ -1632,10 +1635,7 @@ The default status is as follows:
      coding-category-sjis
      coding-category-big5
      coding-category-ccl
-     coding-category-binary
-     coding-category-utf-16-be
-     coding-category-utf-16-le
-     coding-category-utf-8))
+     coding-category-binary))
 
   (update-coding-systems-internal)
 
