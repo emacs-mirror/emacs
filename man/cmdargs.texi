@@ -472,9 +472,6 @@ environment and coding system.  @xref{Language Environments}.
 The user's login name.  See also @env{USER}.
 @item MAIL
 The name of the user's system mail inbox.
-@item MAILRC
-Name of file containing mail aliases.  (The default is
-@file{~/.mailrc}.)
 @item MH
 Name of setup file for the mh system.  (The default is @file{~/.mh_profile}.)
 @item NAME
