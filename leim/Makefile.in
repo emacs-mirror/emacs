@@ -155,13 +155,16 @@ install: all
 	  rm -rf ${INSTALLDIR}/quail ${INSTALLDIR}/skk ; \
 	  echo "Copying leim files to ${INSTALLDIR} ..." ; \
 	  cp leim-list.el ${INSTALLDIR} ; \
-	  tar -cf - leim-list.el ${SUBDIRS} \
+	  if [ x`(cd ${srcdir}; /bin/pwd)` == x`(/bin/pwd)` ] ; then \
+	    tar -cf - leim-list.el quail skk \
 		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
-	  if [ x`(cd ${srcdir}; /bin/pwd)` != x`(/bin/pwd)` ] ; then \
+	  else \
+	    tar -cf - leim-list.el quail \
+		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
 	    cd ${srcdir}; \
-	    tar -cf - ${SUBDIRS} \
+	    tar -cf - quail skk \
 		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
-	  else true; fi; \
+	  fi; \
 	else true; fi
 
 clean mostlyclean:
