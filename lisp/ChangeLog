@@ -1,3 +1,11 @@
+2000-10-08  Miles Bader  <miles@gnu.org>
+
+	* jka-compr.el (auto-compression-mode): Move to the end of the
+	file, because `define-minor-mode' actually calls the mode-function
+	if the associated variable is non-nil, which requires that all
+	needed functions be already defined.
+	(with-auto-compression-mode): Add autoload cookie.
+
 2000-10-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (find-backup-file-name) [ms-dos]: If support for long
