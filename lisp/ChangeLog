@@ -1,5 +1,39 @@
 2004-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/sql.el (sql-product-alist): Rename variable
+	`sql-product-support'.  Add Postgres login parameters.
+	(sql-set-product, sql-product-feature): Update with renamed
+	variable.
+	(sql-connect-postgres): Add username prompt.
+	(sql-imenu-generic-expression, sql-mode-font-lock-object-name):
+	Make patterns less product specific.
+	(sql-xemacs-p, sql-emacs19-p): Add flags for emacs variants.
+	(sql-mode-abbrev-table): Modify initialization.
+	(sql-builtin-face): Add variable.
+	(sql-keywords-re): Add macro.
+	(sql-mode-ansi-font-lock-keywords): Update for ANSI-92.
+	(sql-mode-oracle-font-lock-keywords): Update for Oracle 9i.
+	(sql-mode-postgres-font-lock-keywords): Update for Postgres 7.3.
+	(sql-mode-mysql-font-lock-keywords): Update for MySql 4.0.
+	(sql-mode-linter-font-lock-keywords)
+	(sql-mode-ms-font-lock-keywords): Use `sql-keywords-re' macro.
+	(sql-mode-sybase-font-lock-keywords)
+	(sql-mode-informix-font-lock-keywords)
+	(sql-mode-interbase-font-lock-keywords)
+	(sql-mode-ingres-font-lock-keywords)
+	(sql-mode-solid-font-lock-keywords)
+	(sql-mode-sqlite-font-lock-keywords)
+	(sql-mode-db2-font-lock-keywords): Default to nil.
+	(sql-product-font-lock): Always highlight ANSI keywords.
+	(sql-add-product-keywords): Made similar to
+	`font-lock-add-keywords'.
+	(sql-send-string): Add function.
+
+	* progmodes/python.el (python-send-command): New fun.
+	(python-send-region, python-load-file): Use it.
+
+	* progmodes/compile.el (compilation-last-buffer): Add var alias.
+
 	* help-fns.el (help-C-file-name): Use new subr-name.
 	Prepend `src/' to the file name.
 	(help-C-source-directory, help-subr-name, help-find-C-source): Remove.
@@ -13,6 +47,15 @@
 	* emacs-lisp/find-func.el (find-function-C-source-directory): New var.
 	(find-function-C-source): New fun.
 	(find-function-search-for-symbol): Use it.
+
+2004-03-15  Michael Mauger  <mmaug@yahoo.com>
+
+2004-04-29  Dave Love <fx@gnu.org>
+
+	* progmodes/cfengine.el (cfengine-beginning-of-defun)
+	(cfengine-end-of-defun): Ensure progress through buffer.
+
+	* info-look.el (cfengine-mode): Accept a terminal ().
 
 2004-04-29  Juri Linkov  <juri@jurta.org>
 
