@@ -8962,7 +8962,14 @@ DEFUN ("clear-this-command-keys", Fclear_this_command_keys,
   "Clear out the vector that `this-command-keys' returns.")
   ()
 {
+  int i;
+  
   this_command_key_count = 0;
+
+  for (i = 0; i < XVECTOR (recent_keys)->size; ++i)
+    XVECTOR (recent_keys)->contents[i] = Qnil;
+  total_keys = 0;
+  recent_keys_index = 0;
   return Qnil;
 }
 
