@@ -2757,6 +2757,7 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes)
 	  else
 	    EMIT_ONE_BYTE (c);
 	}
+      src_base = src;
     label_end_of_loop:
     }
   else
