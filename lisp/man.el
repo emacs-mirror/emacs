@@ -147,6 +147,7 @@ the associated section number.")
       "-e '/^ *\\([A-Za-z][A-Za-z.]*([0-9A-Za-z][-0-9A-Za-z+]*)\\).*\\1$/d'"
       "-e '/^[ \\t]*Hewlett-Packard Company[ \\t]*- [0-9]* -.*$/d'"
       "-e '/^[ \\t]*Hewlett-Packard[ \\t]*- [0-9]* -.*$/d'"
+      "-e '/^  *- [0-9]* - *Formatted:.*[0-9]$/d'"
       "-e '/^ *Page [0-9]*.*(printed [0-9\\/]*)$/d'"
       "-e '/^Printed [0-9].*[0-9]$/d'"
       "-e '/^[ \\t]*X Version 1[01].*Release [0-9]/d'"
