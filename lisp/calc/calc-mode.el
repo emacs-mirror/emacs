@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-mode.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -320,13 +320,18 @@
      (run-hooks 'calc-mode-save-hook)
      (insert ";;; End of mode settings\n")
      (if quiet
-	 (let ((executing-macro ""))   ; what a kludge!
+	 ;; FIXME: why is this here? -cgw 2001.11.12
+	 (let ((executing-kbd-macro ""))   ; what a kludge!
 	   (save-buffer))
        (save-buffer))))
 )
 
 (defun calc-settings-file-name (name &optional arg)
-  (interactive "sSettings file name (normally ~/.emacs): \nP")
+  (interactive
+   (list (read-file-name (format "Settings file name (normally %s): "
+				 (abbreviate-file-name (or user-init-file
+							   "~/.emacs"))))
+	 current-prefix-arg))
   (calc-wrapper
    (setq arg (if arg (prefix-numeric-value arg) 0))
    (if (equal name "")
@@ -336,13 +341,14 @@
 	   (while list
 	     (set (car (car list)) (nth 1 (car list)))
 	     (setq list (cdr list)))))
+     ;; FIXME: we should use ~/.calc or so in order to avoid
+     ;; reexecuting ~/.emacs (it's not always idempotent) -cgw 2001.11.12
      (setq calc-settings-file name)
      (or (and (string-match "\\.emacs" calc-settings-file)
 	      (> arg 0))
 	 (< arg 0)
 	 (load name t)
-	 (message "New file"))))
-)
+	 (message "New file")))))
 
 (defun math-get-modes-vec ()
   (list 'vec
