@@ -823,8 +823,7 @@ See documentation of variable `tags-file-name'."
   ;; Save the current buffer's value of `find-tag-hook' before
   ;; selecting the tags table buffer.  For the same reason, save value
   ;; of `tags-file-name' in case it has a buffer-local value.
-  (let ((local-find-tag-hook find-tag-hook)
-	(tags-file-name tags-file-name))
+  (let ((local-find-tag-hook find-tag-hook))
     (if (eq '- next-p)
 	;; Pop back to a previous location.
 	(if (ring-empty-p tags-location-ring)
