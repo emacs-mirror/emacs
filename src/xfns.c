@@ -1753,6 +1753,8 @@ x_set_font (f, arg, oldval)
   else
     abort ();
 
+  do_pending_window_change ();
+
   /* Don't call `face-set-after-frame-default' when faces haven't been
      initialized yet.  This is the case when called from
      Fx_create_frame.  In that case, the X widget or window doesn't
@@ -1803,14 +1805,9 @@ x_set_internal_border_width (f, arg, oldval)
 
   if (FRAME_X_WINDOW (f) != 0)
     {
-      BLOCK_INPUT;
       x_set_window_size (f, 0, f->width, f->height);
-#if 0
-      x_set_resize_hint (f);
-#endif
-      XFlush (FRAME_X_DISPLAY (f));
-      UNBLOCK_INPUT;
       SET_FRAME_GARBAGED (f);
+      do_pending_window_change ();
     }
 }
 
@@ -2228,6 +2225,7 @@ x_set_vertical_scroll_bars (f, arg, oldval)
 	 call x_set_window_size.  */
       if (FRAME_X_WINDOW (f))
 	x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+      do_pending_window_change ();
     }
 }
 
@@ -2257,6 +2255,7 @@ x_set_scroll_bar_width (f, arg, oldval)
 
       if (FRAME_X_WINDOW (f))
         x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+      do_pending_window_change ();
     }
   else if (INTEGERP (arg) && XINT (arg) > 0
 	   && XFASTINT (arg) != FRAME_SCROLL_BAR_PIXEL_WIDTH (f))
