@@ -2026,10 +2026,13 @@ If the offending word is in a piece of quoted text, then it is skipped."
 			     (not (checkdoc-in-example-string-p begin end))
 			     (not (save-excursion
 				    (goto-char (match-beginning 1))
-				    (forward-sexp -1)
-				    ;; piece of an abbreviation
-				    (looking-at "\\([a-z]\\|[ie]\\.?g\\)\\.")
-				    )))
+				    (condition-case nil
+					(progn
+					  (forward-sexp -1)
+					  ;; piece of an abbreviation
+					  (looking-at
+					   "\\([a-z]\\|[iI]\\.?e\\|[eE]\\.?g\\)\\."))
+				      (error t)))))
 			(if (checkdoc-autofix-ask-replace
 			     b e
 			     "There should be two spaces after a period.  Fix? "
