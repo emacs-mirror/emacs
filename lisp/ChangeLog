@@ -1,3 +1,42 @@
+2004-11-13  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.  Insert :version tag into all defcustom.
+	Handle interactive-p as is recommended in Emacs Lisp Reference.  Set
+	the file permission bits for newly created files.  Reported by Glenn
+	Morris <gmorris+emacs@ast.cam.ac.uk>.  The printing menu
+	specification (in `pr-menu-spec') was merged.  Suggested by Stefan
+	Monnier <monnier@iro.umontreal.ca>.
+	(pr-version): New version number (6.8.3).
+	(pr-file-modes): New option.
+	(pr-interactive-p): New var.
+	(pr-save-interactive, pr-save-file-modes): New macros.
+	(pr-setup): Code fix.
+	(pr-menu-spec): Menu specification merged.
+	(pr-call-process, pr-text2ps): Set file permission bits.
+	(pr-despool-print): Set file permission bits.  Handle interactive-p as
+	is recommended.
+	(pr-interface, pr-ps-directory-preview)
+	(pr-ps-directory-using-ghostscript, pr-ps-directory-print)
+	(pr-ps-directory-ps-print, pr-ps-buffer-preview)
+	(pr-ps-buffer-using-ghostscript, pr-ps-buffer-print)
+	(pr-ps-buffer-ps-print, pr-ps-region-preview)
+	(pr-ps-region-using-ghostscript, pr-ps-region-print)
+	(pr-ps-region-ps-print, pr-ps-mode-preview)
+	(pr-ps-mode-using-ghostscript, pr-ps-mode-print, pr-ps-mode-ps-print)
+	(pr-printify-directory, pr-txt-directory, pr-despool-preview)
+	(pr-despool-using-ghostscript, pr-despool-ps-print)
+	(pr-ps-file-up-preview, pr-ps-file-using-ghostscript)
+	(pr-ps-file-up-ps-print, pr-toggle-file-duplex, pr-toggle-file-tumble)
+	(pr-toggle-file-landscape, pr-toggle-ghostscript, pr-toggle-faces)
+	(pr-toggle-spool, pr-toggle-duplex, pr-toggle-tumble)
+	(pr-toggle-landscape, pr-toggle-upside-down, pr-toggle-line)
+	(pr-toggle-zebra, pr-toggle-header, pr-toggle-header-frame)
+	(pr-toggle-lock, pr-toggle-region, pr-toggle-mode, pr-ps-name)
+	(pr-txt-name, pr-ps-utility, pr-ps-fast-fire, pr-txt-fast-fire)
+	(pr-menu-lock, pr-update-menus, pr-ps-utility-args)
+	(pr-set-outfilename, pr-interface-ps-print, pr-interface-preview):
+	Handle interactive-p as is recommended.
+
 2004-11-13  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/cc-mode.el (c-basic-common-initc-font-lock-init)
