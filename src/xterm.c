@@ -5432,7 +5432,7 @@ x_new_fontset (f, fontsetname)
   /* Since x_new_font doesn't update any fontset information, do it now.  */
   f->output_data.x->fontset = fontset;
   FS_LOAD_FONT (f, FRAME_X_FONT_TABLE (f),
-		CHARSET_ASCII, XSTRING (result)->data, fontset);
+		CHARSET_ASCII, fontsetp->fontname[CHARSET_ASCII], fontset);
 
   return build_string (fontsetname);
 }
