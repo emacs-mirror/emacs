@@ -675,13 +675,13 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
 #endif
       )
     {
-      sigblockx (SIGHUP);
+      sigblock (sigmask (SIGHUP));
       /* In --batch mode, don't catch SIGHUP if already ignored.
 	 That makes nohup work.  */
       if (! noninteractive
 	  || signal (SIGHUP, SIG_IGN) != SIG_IGN)
 	signal (SIGHUP, fatal_error_signal);
-      sigunblockx (SIGHUP);
+      sigunblock (sigmask (SIGHUP));
     }
 
   if (
