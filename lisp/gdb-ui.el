@@ -179,7 +179,7 @@ The following interactive lisp functions help control operation :
   ;;
   (run-hooks 'gdba-mode-hook))
 
-(defcustom gdb-use-colon-colon-notation t
+(defcustom gdb-use-colon-colon-notation nil
   "Non-nil means use FUNCTION::VARIABLE format to display variables in the
 speedbar."
   :type 'boolean
@@ -1622,13 +1622,13 @@ the source buffer."
   (other-window 1)
   (switch-to-buffer (gdb-locals-buffer-name))
   (other-window 1)
-  (if (and gdb-view-source
-	   (eq gdb-selected-view 'source))
-      (switch-to-buffer
+  (switch-to-buffer
+   (if (and gdb-view-source
+	    (eq gdb-selected-view 'source))
        (if gud-last-last-frame
 	   (gud-find-file (car gud-last-last-frame))
-	 (gud-find-file gdb-main-file)))
-    (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer)))
+	 (gud-find-file gdb-main-file))
+     (gdb-get-create-buffer 'gdb-assembler-buffer)))
   (setq gdb-source-window (get-buffer-window (current-buffer)))
   (split-window-horizontally)
   (other-window 1)
@@ -1668,13 +1668,13 @@ This arrangement depends on the value of `gdb-many-windows'."
     (delete-other-windows)
     (split-window)
     (other-window 1)
-    (if (and gdb-view-source
-	   (eq gdb-selected-view 'source))
-	(switch-to-buffer
+    (switch-to-buffer
+     (if (and gdb-view-source
+	      (eq gdb-selected-view 'source))
 	 (if gud-last-last-frame
 	     (gud-find-file (car gud-last-last-frame))
-	   (gud-find-file gdb-main-file)))
-      (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer)))
+	   (gud-find-file gdb-main-file))
+       (gdb-get-create-buffer 'gdb-assembler-buffer)))
     (setq gdb-source-window (get-buffer-window (current-buffer)))
     (other-window 1)))
 
@@ -1721,12 +1721,10 @@ buffers."
     (delete-other-windows)
     (split-window)
     (other-window 1)
-    (if gdb-view-source
-      (switch-to-buffer
-       (if gud-last-last-frame
-	   (gud-find-file (car gud-last-last-frame))
-	 (gud-find-file gdb-main-file)))
-      (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer)))
+    (switch-to-buffer
+     (if gdb-view-source
+	 (gud-find-file gdb-main-file)
+       (gdb-get-create-buffer 'gdb-assembler-buffer)))
     (setq gdb-source-window (get-buffer-window (current-buffer)))
     (other-window 1)))
 
