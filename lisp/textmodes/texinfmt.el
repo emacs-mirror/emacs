@@ -1737,7 +1737,7 @@ Used by @refill indenting command to avoid indenting within lists, etc.")
 ;;
 ;; Using the Emacs Lisp formatter, texinfmt.el, 
 ;; the whitespace between columns can be increased by setting
-;; `extra-inter-column-width' to a value greater than 0.  By default,
+;; `texinfo-extra-inter-column-width' to a value greater than 0.  By default,
 ;; there is at least one blank space between columns.
 ;;
 ;; The Emacs Lisp formatter, texinfmt.el, ignores the following four
@@ -1787,12 +1787,11 @@ Used by @refill indenting command to avoid indenting within lists, etc.")
 ;; Note that @tab, the cell separators, are not treated as independent
 ;; Texinfo commands.
 
-(defvar extra-inter-column-width 0
-"*Insert NUMBER of additional columns of whitespace between entries of
-a multi-column table.")
+(defvar texinfo-extra-inter-column-width 0
+  "*Number of extra spaces between entries (columns) in @multitable.")
 
-(defvar multitable-temp-buffer-name "*multitable-temporary-buffer*")
-(defvar multitable-temp-rectangle-name "texinfo-multitable-temp-")
+(defvar texinfo-multitable-buffer-name "*multitable-temporary-buffer*")
+(defvar texinfo-multitable-rectangle-name "texinfo-multitable-temp-")
 
 ;; These commands are defined in texinfo.tex for printed output.
 (put 'multitableparskip 'texinfo-format 'texinfo-discard-line-with-args)
@@ -1801,6 +1800,7 @@ a multi-column table.")
 (put 'multitablelinespace 'texinfo-format 'texinfo-discard-line-with-args)
 
 (put 'multitable 'texinfo-format 'texinfo-multitable)
+
 (defun texinfo-multitable ()
   "Produce multi-column tables.
 
@@ -1829,7 +1829,7 @@ Long lines of text are filled within columns.
 
 Using the Emacs Lisp formatter, texinfmt.el, 
 the whitespace between columns can be increased by setting
-`extra-inter-column-width' to a value greater than 0.  By default,
+`texinfo-extra-inter-column-width' to a value greater than 0.  By default,
 there is at least one blank space between columns.
 
 The Emacs Lisp formatter, texinfmt.el, ignores the following four
@@ -1918,7 +1918,7 @@ commands that are defined in texinfo.tex for printed output.
             ;; between column spaces
             (length texinfo-multitable-width-list)
             ;; additional between column spaces, if any
-            extra-inter-column-width
+            texinfo-extra-inter-column-width
             ;; sum of spaces for each entry
             (apply '+ texinfo-multitable-width-list))))
       (if (> desired-columns fill-column)
@@ -1964,7 +1964,7 @@ This command is executed when texinfmt sees @item inside @multitable."
         ;; extract-row command deletes the source line in the table.
         (unformated-row (texinfo-multitable-extract-row)))
     ;; Use a temporary buffer
-    (set-buffer (get-buffer-create multitable-temp-buffer-name))
+    (set-buffer (get-buffer-create texinfo-multitable-buffer-name))
     (delete-region (point-min) (point-max))
     (insert unformated-row)
     (goto-char (point-min))
@@ -1991,7 +1991,7 @@ This command is executed when texinfmt sees @item inside @multitable."
                   (point)))
       ;; Set fill-column *wider* than needed to produce inter-column space
       (setq fill-column (+ 1
-                           extra-inter-column-width
+                           texinfo-extra-inter-column-width
                            (nth table-column table-widths)))
       (narrow-to-region start end)
       ;; Remove whitespace before and after entry.
@@ -2023,7 +2023,7 @@ This command is executed when texinfmt sees @item inside @multitable."
                  (if (> needed-whitespace 0) needed-whitespace 1)
                  ? )))
       ;; now, put formatted cell into a rectangle
-      (set (intern (concat multitable-temp-rectangle-name
+      (set (intern (concat texinfo-multitable-rectangle-name
                            (int-to-string table-column)))
            (extract-rectangle (point-min) (point)))
       (delete-region (point-min) (point))
@@ -2046,12 +2046,12 @@ This command is executed when texinfmt sees @item inside @multitable."
         (setq here (point))
         (insert-rectangle
          (eval (intern
-                (concat multitable-temp-rectangle-name
+                (concat texinfo-multitable-rectangle-name
                         (int-to-string column-number)))))
         (goto-char here)
         (end-of-line)
         (setq column-number (1+ column-number))))
-    (kill-buffer multitable-temp-buffer-name)
+    (kill-buffer texinfo-multitable-buffer-name)
     (setq fill-column existing-fill-column)))
 
 
@@ -2251,8 +2251,9 @@ This command is executed when texinfmt sees @item inside @multitable."
 
 (put 'email 'texinfo-format 'texinfo-format-key)
 (put 'key 'texinfo-format 'texinfo-format-key)
+;; I've decided not want to have angle brackets around these -- rms.
 (defun texinfo-format-key ()
-  (insert "<" (texinfo-parse-arg-discard) ">")
+  (insert (texinfo-parse-arg-discard))
   (goto-char texinfo-command-start))
 
 (put 'bullet 'texinfo-format 'texinfo-format-bullet)
@@ -3744,7 +3745,7 @@ The command  `@value{foo}'  expands to the value."
 
 (put 'ifeq 'texinfo-format 'texinfo-format-ifeq)
 (defun texinfo-format-ifeq ()
-  "If ARG1 and ARG2 caselessly string compare to same string, performs COMMAND.
+  "If ARG1 and ARG2 caselessly string compare to same string, perform COMMAND.
 Otherwise produces no output.
 
 Thus:
