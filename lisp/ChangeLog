@@ -1,3 +1,7 @@
+2002-02-17  Kim F. Storm  <storm@cua.dk>
+
+	* cus-start.el: Add mouse-highlight.
+
 2002-02-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (DONTCOMPILE): Remove cus-start.el.
