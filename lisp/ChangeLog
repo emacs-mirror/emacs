@@ -1,3 +1,8 @@
+2001-09-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* menu-bar.el (top-level): Minor fixes for text of help-echo in
+	some items of the Options menu.
+
 2001-09-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* pcvs-parse.el (cvs-parse-commit): Remove the temp files used by VC.
