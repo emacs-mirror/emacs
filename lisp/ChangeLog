@@ -34,8 +34,8 @@
 	* eshell/esh-cmd.el (eshell/which):
 	Use `eshell-explicit-command-char' instead of ?*.
 
-	* eshell/em-cmpl.el (eshell-completion-command-name,
-	eshell-complete-commands-list): Use `eshell-explicit-command-char'
+	* eshell/em-cmpl.el (eshell-completion-command-name)
+	(eshell-complete-commands-list): Use `eshell-explicit-command-char'
 	instead of ?*.
 
 2001-05-18  Gerd Moellmann  <gerd@gnu.org>
