@@ -40,6 +40,18 @@ one of its parent directories.  A single @file{ChangeLog} file can
 record changes for all the files in its directory and all its
 subdirectories.
 
+  You should put a copyright notice and permission notice at the
+end of the change log file.  Here is an example:
+
+@example
+Copyright 1997, 1998 Free Software Foundation, Inc.
+Copying and distribution of this file, with or without modification, are
+permitted provided the copyright notice and this notice are preserved.
+@end example
+
+@noindent
+Of course, you should substitute the proper years and copyright holder.
+
   A change log entry starts with a header line that contains the
 current date, your name, and your email address (taken from the
 variable @code{user-mail-address}).  Aside from these header lines,
