@@ -120,13 +120,4 @@ to future sessions."
    (insert "(put '" (symbol-name command) " 'disabled t)\n")
    (save-buffer)))
 
-;;;###autoload
-(defun enable-and-notify (&rest args)
-  "A novice hook for non-novices."
-  (put this-command 'disabled nil)
-  (message "You typed %s.  %s was disabled.  It's enabled now."
-	   (key-description (this-command-keys)) this-command)
-  (sit-for 0)
-  (call-interactively this-command))
-
 ;;; novice.el ends here
