@@ -903,7 +903,8 @@ Returns the compilation buffer created."
 		   (proc (start-process-shell-command (downcase mode-name)
 						      outbuf
 						      command)))
-	      ;; Set the terminal type
+	      ;; Set the terminal type.
+	      ;; There is similar code in comint.el.
 	      (setq process-environment
 		    (if (and (boundp 'system-uses-terminfo)
 			     system-uses-terminfo)

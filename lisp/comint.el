@@ -728,6 +728,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	  ;; and there is no way for us to define it here.
 	  ;; Some programs that use terminfo get very confused
 	  ;; if TERM is not a valid terminal type.
+	  ;; ;; There is similar code in compile.el.
 	  (if (and (boundp 'system-uses-terminfo) system-uses-terminfo)
 	      (list "TERM=dumb" "TERMCAP="
 		    (format "COLUMNS=%d" (window-width)))
