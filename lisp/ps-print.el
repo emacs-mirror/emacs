@@ -22,8 +22,7 @@ Emacs without changes to the version number.  When reporting bugs, please also
 report the version of Emacs, if any, that ps-print was distributed with.
 
 Please send all bug fixes and enhancements to
-	Vinicius Jose Latorre <vinicius@cpqd.com.br>.
-")
+	Vinicius Jose Latorre <vinicius@cpqd.com.br>.")
 
 ;; This file is part of GNU Emacs.
 
@@ -1653,8 +1652,7 @@ As an example for `ps-user-defined-prologue' setting:
    ;; Setting for HP PostScript printer
    (setq ps-user-defined-prologue
 	 (concat \"<</DeferredMediaSelection true /PageSize [612 792] \"
-		 \"/MediaPosition 2 /MediaType (Plain)>> setpagedevice\"))
-"
+		 \"/MediaPosition 2 /MediaType (Plain)>> setpagedevice\"))"
   :type '(choice :menu-tag "User Defined Prologue"
 		 :tag "User Defined Prologue"
 		 (const :tag "none" nil) string symbol)
@@ -1673,7 +1671,7 @@ more requirements put them first in `ps-print-prologue-header' using the
 \"%%+\" comment.  For example, if you need to set numcopies to 3 and jog on
 requirements and set %%LanguageLevel: to 2, do:
 
-(setq ps-print-prologue-header
+ (setq ps-print-prologue-header
       \"%%+ numcopies(3) jog\\n%%LanguageLevel: 2\\n\")
 
 The duplex requirement is inserted by ps-print (see `ps-spool-duplex').
@@ -1729,16 +1727,16 @@ See also `ps-printer-name-option' for documentation."
 	 "-P" ))
   "*Option for `ps-printer-name' variable (see it).
 
-On Unix-like systems, if it's been used lpr utility, it should be the string
-\"-P\"; if it's been used lp utility, it should be the string \"-d\".
+On Unix-like systems, if `lpr' is in use, this should be the string
+\"-P\"; if `lp' is in use, this should be the string \"-d\".
 
-On MS-DOS and MS-Windows systems, if it's been used print utility, it should be
+On MS-DOS and MS-Windows systems, if `print' is in use, this should be
 the string \"/D:\".
 
-For any other printing utility, see the proper manual or documentation.
+For any other printing utility, see its documentation.
 
-Set to \"\" or nil, if the utility given by `ps-lpr-command' needs an empty
-option printer name option.
+Set this to \"\" or nil, if the utility given by `ps-lpr-command' needs an empty
+printer name option.
 
 Any other value is treated as nil, that is, an empty printer name option.
 
@@ -1858,7 +1856,7 @@ It's used when `ps-spool-config' is set to `setpagedevice'."
   :group 'ps-print-page)
 
 (defcustom ps-print-upside-down nil
-  "*Non-nil means print upside-down (that is, it's rotated by 180 grades)."
+  "*Non-nil means print upside-down (that is, rotated by 180 degrees)."
   :type 'boolean
   :version "21.1"
   :group 'ps-print-page)
@@ -1866,19 +1864,19 @@ It's used when `ps-spool-config' is set to `setpagedevice'."
 (defcustom ps-selected-pages nil
   "*Specify which pages to print.
 
-If it's nil, all pages are printed.
+If nil, print all pages.
 
-If it's a list, the list element may be an integer or a cons cell (FROM . TO)
+If a list, the lists element may be an integer or a cons cell (FROM . TO)
 designating FROM page to TO page; any invalid element is ignored, that is, an
-integer lesser than one or if FROM is greater than TO.
+integer less than one or if FROM is greater than TO.
 
 Otherwise, it's treated as nil.
 
-After ps-print processing `ps-selected-pages' is set to nil.  But the latest
-`ps-selected-pages' is saved in `ps-last-selected-pages' (see it for
-documentation).  So you can restore the latest selected pages by using
-`ps-last-selected-pages' or by calling `ps-restore-selected-pages' command (see
-it for documentation).
+After ps-print processing `ps-selected-pages' is set to nil.  But the
+latest `ps-selected-pages' is saved in `ps-last-selected-pages' (which
+see).  So you can restore the latest selected pages by using
+`ps-last-selected-pages' or with the `ps-restore-selected-pages'
+command (which see).
 
 See also `ps-even-or-odd-pages'."
   :type '(repeat :tag "Selected Pages"
@@ -2035,7 +2033,7 @@ Any other value is treated as `left-top'."
   :group 'ps-print-n-up)
 
 (defcustom ps-number-of-columns (if ps-landscape-mode 2 1)
-  "*Specify the number of columns"
+  "*Specify the number of columns."
   :type 'number
   :group 'ps-print-miscellany)
 
@@ -2195,7 +2193,7 @@ page.
 If PAGES is nil, print background image on all pages.
 
 X, Y, XSCALE, YSCALE and ROTATION may be a floating point number, an integer
-number or a string. If it is a string, the string should contain PostScript
+number or a string.  If it is a string, the string should contain PostScript
 programming that returns a float or integer value.
 
 For example, if you wish to print an EPS image on all pages do:
@@ -2245,7 +2243,7 @@ page.
 If PAGES is nil, print background text on all pages.
 
 X, Y, FONTSIZE, GRAY and ROTATION may be a floating point number, an integer
-number or a string. If it is a string, the string should contain PostScript
+number or a string.  If it is a string, the string should contain PostScript
 programming that returns a float or integer value.
 
 For example, if you wish to print text \"Preliminary\" on all pages do:
@@ -2320,8 +2318,9 @@ For example, if you wish to print text \"Preliminary\" on all pages do:
   :group 'ps-print-vertical)
 
 (defcustom ps-header-line-pad 0.15
-  "*Portion of a header title line height to insert between the header frame
-and the text it contains, both in the vertical and horizontal directions."
+  "*Portion of a header title line height to insert.
+The insertion is done between the header frame and the text it contains,
+both in the vertical and horizontal directions."
   :type 'number
   :group 'ps-print-vertical)
 
@@ -2331,8 +2330,9 @@ and the text it contains, both in the vertical and horizontal directions."
   :group 'ps-print-vertical)
 
 (defcustom ps-footer-line-pad 0.15
-  "*Portion of a footer title line height to insert between the footer frame
-and the text it contains, both in the vertical and horizontal directions."
+  "*Portion of a footer title line height to insert.
+The insertion is done between the footer frame and the text it contains,
+both in the vertical and horizontal directions."
   :type 'number
   :group 'ps-print-vertical)
 
@@ -2582,7 +2582,7 @@ WARNING: The setpagedevice PostScript operator affects ghostview utility when
 	 specified by setpagedevice, your printing will be aborted.
 	 So, if you need to use setpagedevice, set `ps-spool-config' to
 	 `setpagedevice', generate a test file and send it to your printer; if
-	 the printed file isn't ok, set `ps-spool-config' to nil."
+	 the printed file isn't OK, set `ps-spool-config' to nil."
   :type '(choice :menu-tag "Spool Config"
 		 :tag "Spool Config"
 		 (const lpr-switches) (const setpagedevice)
@@ -2718,7 +2718,8 @@ It has effect only when `ps-spool-duplex' is non-nil."
      (space-width . 2.2)
      (avg-char-width . 4.10811))
     )
-  "*Font info database: font family (the key), name, bold, italic, bold-italic,
+  "*Font info database.
+Each element comprises: font family (the key), name, bold, italic, bold-italic,
 reference size, line height, space width, average character width.
 To get the info for another specific font (say Helvetica), do the following:
 - create a new buffer
@@ -3040,7 +3041,7 @@ There are the following basic functions implemented:
    `ps-time-stamp-mon-dd-yyyy'		Return date as \"Jun 18 2001\".
 
 You can also create your own time stamp function by using `format-time-string'
-(which see)."
+\(which see)."
   :type '(repeat (choice :menu-tag "Right Header"
 			 :tag "Right Header"
 			 string symbol))
@@ -3087,7 +3088,7 @@ There are the following basic functions implemented:
    `ps-time-stamp-mon-dd-yyyy'		Return date as \"Jun 18 2001\".
 
 You can also create your own time stamp function by using `format-time-string'
-(which see)."
+\(which see)."
   :version "21.1"
   :type '(repeat (choice :menu-tag "Right Footer"
 			 :tag "Right Footer"
@@ -3249,7 +3250,7 @@ See `ps-begin-cut-regexp' for more information."
 (defun ps-print-buffer (&optional filename)
   "Generate and print a PostScript image of the buffer.
 
-Interactively, when you use a prefix argument (C-u), the command prompts the
+Interactively, when you use a prefix argument (\\[universal-argument]), the command prompts the
 user for a file name, and saves the PostScript image in that file instead of
 sending it to the printer.
 
@@ -3336,7 +3337,7 @@ Use the command `ps-despool' to send the spooled images to the printer."
 (defun ps-despool (&optional filename)
   "Send the spooled PostScript to the printer.
 
-Interactively, when you use a prefix argument (C-u), the command prompts the
+Interactively, when you use a prefix argument (\\[universal-argument]), the command prompts the
 user for a file name, and saves the spooled PostScript image in that file
 instead of sending it to the printer.
 
@@ -3348,8 +3349,8 @@ image in a file with that name."
 
 ;;;###autoload
 (defun ps-line-lengths ()
-  "Display the correspondence between a line length and a font size, using the
-current ps-print setup.
+  "Display the correspondence between a line length and a font size.
+Done using the current ps-print setup.
 Try: pr -t file | awk '{printf \"%3d %s\n\", length($0), $0}' | sort -r | head"
   (interactive)
   (ps-line-lengths-internal))
@@ -3729,7 +3730,7 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 
 
 (defun ps-prologue-file (filenumber)
-  "If prologue FILENUMBER exists and is readable, returns contents as string.
+  "If prologue FILENUMBER exists and is readable, return contents as string.
 
 Note: No major/minor-mode is activated and no local variables are evaluated for
       FILENUMBER, but proper EOL-conversion and character interpretation is
@@ -3845,7 +3846,7 @@ This is in units of points (1/72 inch).")
 (defvar ps-black-white-faces-alist nil
   "Alist of symbolic faces used for black/white PostScript printers.
 An element of this list has the same form as `ps-print-face-extension-alist'
-(which see).
+\(which see).
 
 Don't change this list directly; instead,
 use `ps-extend-face' and `ps-extend-face-list'.
@@ -4140,8 +4141,8 @@ which long lines wrap around."
   (get font-sym 'avg-char-width))
 
 (defun ps-line-lengths-internal ()
-  "Display the correspondence between a line length and a font size,
-using the current ps-print setup.
+  "Display the correspondence between a line length and a font size.
+Done using the current ps-print setup.
 Try: pr -t file | awk '{printf \"%3d %s\n\", length($0), $0}' | sort -r | head"
   (let* ((ps-font-size-internal
 	  (or ps-font-size-internal
