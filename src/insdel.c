@@ -478,8 +478,8 @@ adjust_markers_for_insert (from, from_byte, to, to_byte,
 	{
 	  if (m->insertion_type || before_markers)
 	    {
-	      m->bytepos += nbytes + combined_after_bytes;
-	      m->charpos += nchars + !!combined_after_bytes;
+	      m->bytepos = to_byte + combined_after_bytes;
+	      m->charpos = to - combined_before_bytes;
 	      /* Point the marker before the combined character,
 		 so that undoing the insertion puts it back where it was.  */
 	      if (combined_after_bytes)
@@ -493,11 +493,7 @@ adjust_markers_for_insert (from, from_byte, to, to_byte,
 		 but don't leave it pointing in the middle of a character.
 		 Point the marker after the combined character,
 		 so that undoing the insertion puts it back where it was.  */
-
-	      /* Here we depend on the fact that the gap is after
-		 all of the combining bytes that we are going to skip over.  */
-	      DEC_BOTH (m->charpos, m->bytepos);
-	      INC_BOTH (m->charpos, m->bytepos);
+	      m->bytepos += combined_before_bytes;
 	    }
 	}
       /* If a marker was pointing into the combining bytes
@@ -508,7 +504,7 @@ adjust_markers_for_insert (from, from_byte, to, to_byte,
 	{
 	  /* Put it after the combining bytes.  */
 	  m->bytepos = to_byte + combined_after_bytes;
-	  m->charpos = to + 1;
+	  m->charpos = to - combined_before_bytes;
 	  /* Now move it back before the combined character,
 	     so that undoing the insertion will put it where it was.  */
 	  DEC_BOTH (m->charpos, m->bytepos);
@@ -516,7 +512,7 @@ adjust_markers_for_insert (from, from_byte, to, to_byte,
       else if (m->bytepos > from_byte)
 	{
 	  m->bytepos += nbytes;
-	  m->charpos += nchars;
+	  m->charpos += nchars - combined_after_bytes - combined_before_bytes;
 	}
 
       marker = m->chain;
@@ -945,7 +941,7 @@ count_combining_after (string, length, pos, pos_byte)
 
   if (NILP (current_buffer->enable_multibyte_characters))
     return 0;
-  if (length == 0 || ASCII_BYTE_P (string[length - 1]))
+  if (length > 0 && ASCII_BYTE_P (string[length - 1]))
     return 0;
   i = length - 1;
   while (i >= 0 && ! CHAR_HEAD_P (string[i]))
@@ -1149,6 +1145,8 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
     if (combined_before_bytes)
       combine_bytes (pos, pos_byte, combined_before_bytes);
   }
+
+  CHECK_MARKERS ();
 }
 
 /* Insert the part of the text of STRING, a Lisp object assumed to be
@@ -1558,6 +1556,12 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
     = count_combining_after (GPT_ADDR, len_byte, from, from_byte);
   int nchars_del = 0, nbytes_del = 0;
 
+  if (STRINGP (prev_text))
+    {
+      nchars_del = XSTRING (prev_text)->size;
+      nbytes_del = STRING_BYTES (XSTRING (prev_text));
+    }
+
   if (combined_after_bytes)
     {
       Lisp_Object deletion;
@@ -1574,10 +1578,11 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
 					from_byte + combined_after_bytes);
 
       if (! EQ (current_buffer->undo_list, Qt))
-	record_delete (from + len, deletion);
+	record_delete (from + nchars_del, deletion);
     }
 
-  if (combined_before_bytes)
+  if (combined_before_bytes
+      || len_byte == 0 && combined_after_bytes > 0)
     {
       Lisp_Object deletion;
       deletion = Qnil;
@@ -1598,22 +1603,29 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
   GPT += len; GPT_BYTE += len_byte;
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor. */
 
+  /* The gap should be at character boundary.  */
   if (combined_after_bytes)
     move_gap_both (GPT + combined_after_bytes,
 		   GPT_BYTE + combined_after_bytes);
 
-  if (STRINGP (prev_text))
-    {
-      nchars_del = XSTRING (prev_text)->size;
-      nbytes_del = STRING_BYTES (XSTRING (prev_text));
-    }
   adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
 			      len, len_byte,
 			      combined_before_bytes, combined_after_bytes);
-  if (STRINGP (prev_text))
-    record_delete (from - !!combined_before_bytes, prev_text);
-  record_insert (from - !!combined_before_bytes,
-		 len - combined_before_bytes + !!combined_before_bytes);
+  if (! EQ (current_buffer->undo_list, Qt))
+    {
+      /* This flag tells if we combine some bytes with a character
+	 before FROM.  This happens even if combined_before_bytes is
+	 zero.  */
+      int combine_before = (combined_before_bytes
+			    || (len == 0 && combined_after_bytes));
+
+      if (nchars_del > 0)
+	record_delete (from - combine_before, prev_text);
+      if (combine_before)
+	record_insert (from - 1, len - combined_before_bytes + 1);
+      else
+	record_insert (from, len);
+    }
 
   if (len > nchars_del)
     adjust_overlays_for_insert (from, len - nchars_del);
@@ -1633,13 +1645,7 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
       adjust_point (len - nchars_del, len_byte - nbytes_del);
 
     if (combined_after_bytes)
-      {
-	if (combined_before_bytes)
-	  combined_before_bytes += combined_after_bytes;
-	else
-	  combine_bytes (from + len, from_byte + len_byte,
-			 combined_after_bytes);
-      }
+      combine_bytes (from + len, from_byte + len_byte, combined_after_bytes);
 
     if (combined_before_bytes)
       combine_bytes (from, from_byte, combined_before_bytes);
@@ -1815,13 +1821,14 @@ replace_range (from, to, new, prepare, inherit, markers)
       if (! EQ (current_buffer->undo_list, Qt))
 	deletion = make_buffer_string_both (from, from_byte,
 					    from + combined_after_bytes,
-					    from_byte + combined_after_bytes, 1);
+					    from_byte + combined_after_bytes,
+					    1);
 
       adjust_markers_for_record_delete (from, from_byte,
 					from + combined_after_bytes,
 					from_byte + combined_after_bytes);
       if (! EQ (current_buffer->undo_list, Qt))
-	record_delete (from + inschars, deletion);
+	record_delete (from + nchars_del, deletion);
     }
 
   if (combined_before_bytes)
@@ -1889,13 +1896,8 @@ replace_range (from, to, new, prepare, inherit, markers)
 		   - (PT_BYTE < to_byte ? PT_BYTE : to_byte)));
 
   if (combined_after_bytes)
-    {
-      if (combined_before_bytes)
-	combined_before_bytes += combined_after_bytes;
-      else
-	combine_bytes (from + inschars, from_byte + outgoing_insbytes,
-		       combined_after_bytes);
-    }
+    combine_bytes (from + inschars, from_byte + outgoing_insbytes,
+		   combined_after_bytes);
   if (combined_before_bytes)
     combine_bytes (from, from_byte, combined_before_bytes);
 
@@ -2131,6 +2133,11 @@ del_range_2 (from, from_byte, to, to_byte)
 
   if (combined_after_bytes)
     {
+      /* Adjust markers for byte combining.  As we have already
+         adjuted markers without concerning byte combining, here we
+         must concern only byte combining.  */
+      adjust_markers_for_replace (from, from_byte, 0, 0, 0, 0,
+				  0, combined_after_bytes);
       combine_bytes (from, from_byte, combined_after_bytes);
 
       record_insert (GPT - 1, 1);
