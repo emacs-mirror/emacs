@@ -166,7 +166,7 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
     }
 
   cp->regexp = Qnil;
-  cp->buf.translate = (! NILP (translate) ? translate : 0);
+  cp->buf.translate = (! NILP (translate) ? translate : make_number (0));
   cp->posix = posix;
   cp->buf.multibyte = multibyte;
   BLOCK_INPUT;
@@ -206,7 +206,7 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
       cp = *cpp;
       if (XSTRING (cp->regexp)->size == XSTRING (pattern)->size
 	  && !NILP (Fstring_equal (cp->regexp, pattern))
-	  && cp->buf.translate == (! NILP (translate) ? translate : 0)
+	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
 	  && cp->posix == posix
 	  && cp->buf.multibyte == multibyte)
 	break;
