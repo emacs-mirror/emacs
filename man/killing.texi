@@ -323,7 +323,7 @@ and digits, specifies an earlier kill to yank (@pxref{Earlier Kills}).
 @cindex yanking and text properties
 @vindex yank-excluded-properties
   The yank commands discard certain text properties from the text that
-is thanked, those that might lead to annoying results.  For instance,
+is yanked, those that might lead to annoying results.  For instance,
 they discard text properties that respond to the mouse or specify key
 bindings.  The variable @code{yank-excluded-properties} specifies the
 properties to discard.  Yanking of register contents and rectangles
