@@ -283,7 +283,8 @@ init_casetab_once ()
   XCHAR_TABLE (down)->purpose = Qcase_table;
 
   for (i = 0; i < 128; i++)
-    CHAR_TABLE_SET (down, i, (i >= 'A' && i <= 'Z') ? i + ('a' - 'A') : i);
+    CHAR_TABLE_SET (down, i,
+		    make_number ((i >= 'A' && i <= 'Z') ? i + ('a' - 'A') : i));
 
   XCHAR_TABLE (down)->extras[1] = Fcopy_sequence (down);
 
@@ -291,11 +292,11 @@ init_casetab_once ()
   XCHAR_TABLE (down)->extras[0] = up;
 
   for (i = 0; i < 128; i++)
-    CHAR_TABLE_SET (up, i, ((i >= 'A' && i <= 'Z')
-			    ? i + ('a' - 'A')
-			    : ((i >= 'a' && i <= 'z')
-			       ? i + ('A' - 'a')
-			       : i)));
+    CHAR_TABLE_SET (up, i, make_number ((i >= 'A' && i <= 'Z')
+					? i + ('a' - 'A')
+					: ((i >= 'a' && i <= 'z')
+					   ? i + ('A' - 'a')
+					   : i)));
 
   XCHAR_TABLE (down)->extras[2] = Fcopy_sequence (up);
 }
