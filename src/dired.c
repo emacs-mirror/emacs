@@ -68,6 +68,9 @@ extern struct direct *readdir ();
 
 #include "regex.h"
 
+/* A search buffer, with a fastmap allocated and ready to go.  */
+extern struct re_pattern_buffer searchbuf;
+
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
 /* if system does not have symbolic links, it does not have lstat.
