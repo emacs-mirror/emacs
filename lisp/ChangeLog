@@ -1,3 +1,9 @@
+2002-09-16  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* xscheme.el (scheme-interaction-mode): Doc fix.
+
+	* net/eudc.el (eudc-plist-get): Doc fix.
+
 2002-09-16  Kim F. Storm  <storm@cua.dk>
 
 	* menu-bar.el (menu-bar-last-search-type): New var.

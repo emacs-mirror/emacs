@@ -134,7 +134,7 @@
 (defun eudc-plist-get (plist prop &optional default)
   "Extract a value from a property list.
 PLIST is a property list, which is a list of the form
-(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
+\(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
 corresponding to the given PROP, or DEFAULT if PROP is not
 one of the properties on the list."
   (if (eudc-plist-member plist prop)
