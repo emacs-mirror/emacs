@@ -999,7 +999,14 @@ Bind this in case the user sets it to nil."
 	(if Info-enable-active-nodes (eval active-expression))
 	(Info-fontify-node)
 	(if Info-use-header-line
-	    (Info-setup-header-line)
+	    (progn
+	      (setq Info-header-line
+		    (get-text-property (point-min) 'header-line))
+	      (setq header-line-format 'Info-header-line)
+;;; It is useful to be able to copy the links line out of the buffer
+;;; with M-w.
+;;;           (narrow-to-region (1+ header-end) (point-max))
+	      )
 	  (setq Info-header-line nil)
 	  (setq header-line-format nil)) ; so the header line isn't displayed
 	(run-hooks 'Info-selection-hook)))))
@@ -1015,29 +1022,6 @@ Bind this in case the user sets it to nil."
 			   (or buffer-file-name "")))
 			") "
 			(or Info-current-node ""))))))
-
-;; Skip the node header and make it into a header-line.  This function
-;; should be called when the node is already narrowed.
-(defun Info-setup-header-line ()
-  (goto-char (point-min))
-  (let* ((case-fold-search t)
-	 (header-end (save-excursion (forward-line 1) (1- (point))))
-	 ;; If we find neither Next: nor Prev: link, show the entire
-	 ;; node header.  Otherwise, don't show the File: and Node:
-	 ;; parts, to avoid wasting precious space on information that
-	 ;; is available in the mode line.
-	 (header-beg (if (re-search-forward
-			  "\\(next\\|prev[ious]*\\): "
-			  header-end t)
-			 (match-beginning 1)
-		       (point))))
-    (set (make-local-variable 'Info-header-line)
-	 (buffer-substring header-beg header-end))
-    (setq header-line-format 'Info-header-line)
-;;; It is useful to be able to copy the links line out of the buffer
-;;; with M-w.
-;;;    (narrow-to-region (1+ header-end) (point-max))
-    ))
 
 ;; Go to an info node specified with a filename-and-nodename string
 ;; of the sort that is found in pointers in nodes.
@@ -2345,6 +2329,7 @@ Advanced commands:
   (setq Info-tag-table-buffer nil)
   (make-local-variable 'Info-history)
   (make-local-variable 'Info-index-alternatives)
+  (make-local-variable 'Info-header-line)
   (set (make-local-variable 'tool-bar-map) info-tool-bar-map)
   ;; This is for the sake of the invisible text we use handling titles.
   (make-local-variable 'line-move-ignore-invisible)
@@ -2599,15 +2584,8 @@ the variable `Info-file-list-for-emacs'."
   ;; Only fontify the node if it hasn't already been done.  [We pass in
   ;; LIMIT arg to `next-property-change' because it seems to search past
   ;; (point-max).]
-  (unless (and (< (next-property-change (point-min) nil (point-max))
-		  (point-max))
-	       ;; But do put the text properties if the local-map property
-	       ;; is inconsistent with Info-use-header-line's value.
-	       (eq
-		(= (next-single-property-change
-		    (point-min) 'local-map nil (point-max))
-		   (point-max))
-		(null Info-use-header-line)))
+  (unless (< (next-property-change (point-min) nil (point-max))
+	     (point-max))
     (save-excursion
       (let ((buffer-read-only nil)
 	    (case-fold-search t))
@@ -2628,24 +2606,34 @@ the variable `Info-file-list-for-emacs'."
 				   'help-echo
 				   (concat "Go to node "
 					   (buffer-substring nbeg nend)))
-		;; Don't bind mouse events on the header line if we
-		;; aren't going to display the header line.
-		(when Info-use-header-line
-		  (let ((fun (cdr (assoc tag '(("Prev" . Info-prev)
-					       ("Next" . Info-next)
-					       ("Up" . Info-up))))))
-		    (when fun
-		      (let ((keymap (make-sparse-keymap)))
-			(define-key keymap [header-line mouse-1] fun)
-			(define-key keymap [header-line mouse-2] fun)
-			(put-text-property tbeg nend 'local-map keymap)))))
-		(if (not Info-use-header-line)
-		    ;; In case they switched Info-use-header-line off
-		    ;; in the middle of an Info session, some text
-		    ;; properties may have been left lying around from
-		    ;; past visits of this node.  Remove them.
-		    (remove-text-properties tbeg nend '(local-map nil)))
-		  ))))
+		;; Always set up the text property keymap.
+		;; It will be used either in the buffer
+		;; or copied in the header line.
+		(let ((fun (cdr (assoc tag '(("Prev" . Info-prev)
+					     ("Next" . Info-next)
+					     ("Up" . Info-up))))))
+		  (when fun
+		    (let ((keymap (make-sparse-keymap)))
+		      (define-key keymap [header-line mouse-1] fun)
+		      (define-key keymap [header-line mouse-2] fun)
+		      (define-key keymap [header-line down-mouse-1] 'ignore)
+		      (define-key keymap [mouse-2] fun)
+		      (put-text-property tbeg nend 'keymap keymap))))
+		  )))
+	  (goto-char (point-min))
+	  (let* ((header-end (save-excursion (end-of-line) (point)))
+		 ;; If we find neither Next: nor Prev: link, show the entire
+		 ;; node header.  Otherwise, don't show the File: and Node:
+		 ;; parts, to avoid wasting precious space on information that
+		 ;; is available in the mode line.
+		 (header-beg (if (re-search-forward
+				  "\\(next\\|prev[ious]*\\): "
+				  header-end t)
+				 (match-beginning 1)
+			       (point))))
+	    (put-text-property (point-min) (1+ (point-min))
+			       'header-line
+			       (buffer-substring header-beg header-end))))
 	(goto-char (point-min))
 	(while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*+\\|=+\\|-+\\|\\.+\\)$"
 				  nil t)
