@@ -1,5 +1,23 @@
 2004-06-13  Andreas Schwab  <schwab@suse.de>
 
+	* print.c (print_object): Always use %ld for printing EMACS_INT.
+
+	* keyboard.c (cancel_hourglass_unwind): Return a value.
+	(modify_event_symbol): Always use %ld for printing EMACS_INT.
+	(Fexecute_extended_command): Likewise.
+
+	* syntax.h (SYNTAX_ENTRY_FOLLOW_PARENT): Rename local variable to
+	avoid clashes.
+	(SYNTAX): Likewise.
+	(SYNTAX_WITH_FLAGS): Likewise.
+	(SYNTAX_MATCH): Likewise.
+
+	* syntax.c (char_quoted): Avoid warning about undefined operation.
+	(find_defun_start): Likewise.
+	(scan_lists): Likewise.
+	(INC_FROM): Likewise.
+	(scan_sexps_forward): Likewise.
+
 	* image.c: Include <ctype.h>.
 
 	* xfaces.c (face_attr_equal_p): Declare parameters.
