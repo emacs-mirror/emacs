@@ -111,8 +111,18 @@ When a buffer is marked as \"done\", it is removed from this list.")
 Each element is (CLIENTID TTY) where CLIENTID is a string
 that can be given to the server process to identify a client.
 TTY is the name of the tty device.
-When all the buffers of the client are marked as \"done\", 
-the frame is deleted.")
+
+When all frames on the device are deleted, the server quits the
+connection to the client, and vice versa.")
+
+(defvar server-frames nil
+  "List of current window-system frames used by the server.
+Each element is (CLIENTID FRAME) where CLIENTID is a string
+that can be given to the server process to identify a client.
+FRAME is the frame that was opened by the client.
+
+When the frame is deleted, the server closes the connection to
+the client, and vice versa.")
 
 (defvar server-buffer-clients nil
   "List of client ids for clients requesting editing of current buffer.")
@@ -211,13 +221,27 @@ are done with it in the server.")
   (server-log (format "Status changed to %s" (process-status proc)) proc))
 
 (defun server-handle-delete-tty (tty)
-  "Delete the client connection when the emacsclient frame is deleted."
+  "Delete the client connection when the emacsclient terminal device is closed."
   (dolist (entry server-ttys)
     (let ((proc (nth 0 entry))
 	  (term (nth 1 entry)))
       (when (equal term tty)
 	(let ((client (assq proc server-clients)))
 	  (setq server-ttys (delq entry server-ttys))
+	  (delete-process (car client))
+	  (when (assq proc server-clients)
+	    ;; This seems to be necessary to handle
+	    ;; `emacsclient -t -e '(delete-frame)'' correctly.
+	    (setq server-clients (delq client server-clients))))))))
+
+(defun server-handle-delete-frame (frame)
+  "Delete the client connection when the emacsclient frame is deleted."
+  (dolist (entry server-frames)
+    (let ((proc (nth 0 entry))
+	  (f (nth 1 entry)))
+      (when (equal frame f)
+	(let ((client (assq proc server-clients)))
+	  (setq server-frames (delq entry server-frames))
 	  (delete-process (car client))
 	  (when (assq proc server-clients)
 	    ;; This seems to be necessary to handle
@@ -235,14 +259,14 @@ are done with it in the server.")
     ;; and select it.
     (unless (equal (frame-parameter (selected-frame) 'display) display)
       (select-frame
-       (make-frame-on-display
-	display
+       (make-frame-on-display display)))))
 	;; This frame is only there in place of an actual "current display"
 	;; setting, so we want it to be as unobtrusive as possible.  That's
 	;; what the invisibility is for.  The minibuffer setting is so that
 	;; we don't end up displaying a buffer in it (which noone would
 	;; notice).
-	'((visibility . nil) (minibuffer . only)))))))
+        ;; XXX I have found this behaviour to be surprising and annoying. -- Lorentey
+	;; '((visibility . nil) (minibuffer . only)))))))
 
 (defun server-unquote-arg (arg)
   (replace-regexp-in-string
@@ -301,6 +325,7 @@ Prefix arg means just kill any existing server communications subprocess."
 	(server-log (message "Restarting server")))
     (letf (((default-file-modes) ?\700))
       (add-to-list 'delete-tty-after-functions 'server-handle-delete-tty)
+      (add-to-list 'delete-frame-functions 'server-handle-delete-frame)
       (setq server-process
 	    (make-network-process
 	     :name "server" :family 'local :server t :noquery t
@@ -324,6 +349,17 @@ Server mode runs a process that accepts commands from the
   ;; nothing if there is one (for multiple Emacs sessions)?
   (server-start (not server-mode)))
 
+(defmacro server-with-errors-reported (&rest forms)
+  "Evaluate FORMS; if an error occurs, report it to the client
+and return nil.  Otherwise, return the result of the last form.
+For use in server-process-filter only."
+  `(condition-case err
+       (progn ,@forms)
+     (error (ignore-errors
+	      (process-send-string
+	       proc (concat "-error " (error-message-string err)))
+	      (setq request "")))))
+
 (defun server-process-filter (proc string)
   "Process a request from the server to edit some files.
 PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
@@ -339,7 +375,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	  (coding-system (and default-enable-multibyte-characters
 			      (or file-name-coding-system
 				  default-file-name-coding-system)))
-	  client nowait eval newframe
+	  client nowait eval newframe display
 	  registered	; t if the client is already added to server-clients.
 	  (files nil)
 	  (lineno 1)
@@ -353,37 +389,53 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	  (cond
 	   ((equal "-nowait" arg) (setq nowait t))
 	   ((equal "-eval" arg) (setq eval t))
+
 	   ((and (equal "-display" arg) (string-match "\\([^ ]*\\) " request))
-	    (let ((display (server-unquote-arg (match-string 1 request))))
-	      (setq request (substring request (match-end 0)))
-	      (condition-case err
-		  (server-select-display display)
-		(error (process-send-string proc (nth 1 err))
-		       (setq request "")))))
-	   ;; Open a new frame at the client.  ARG is the name of the pseudo tty.
+	    (setq display (match-string 1 request)
+		  request (substring request (match-end 0))))
+
+	   ;; Open a new X frame.
+	   ((equal "-window-system" arg)
+	    (server-with-errors-reported
+	     (let ((frame (make-frame-on-display
+			   (or display
+			       (frame-parameter nil 'display)
+			       (getenv "DISPLAY")
+			       (error "Please specify display")))))
+	       (push (list proc frame) server-frames)
+	       (select-frame frame)
+	       ;; This makes sure that `emacsclient -w -e '(delete-frame)'' works right.
+	       (push client server-clients)
+	       (setq registered t
+		     newframe t))))
+
+	   ;; Open a new tty frame at the client.  ARG is the name of the pseudo tty.
 	   ((and (equal "-tty" arg) (string-match "\\([^ ]*\\) \\([^ ]*\\) " request))
 	    (let ((tty (server-unquote-arg (match-string 1 request)))
 		  (type (server-unquote-arg (match-string 2 request))))
 	      (setq request (substring request (match-end 0)))
-	      (condition-case err
-		  (let ((frame (make-frame-on-tty tty type)))
-		    (setq server-ttys (cons (list (car client) (frame-tty-name frame)) server-ttys))
-		    (process-send-string proc (concat "emacs-pid " (number-to-string (emacs-pid)) "\n"))
-		    (select-frame frame)
-		    ;; This makes sure that `emacsclient -t -e '(delete-frame)'' works right.
-		    (push client server-clients)
-		    (setq registered t
-			  newframe t))
-		(error (process-send-string proc (concat (nth 1 err) "\n"))
-		       (setq request "")))))
+	      (server-with-errors-reported
+	       (let ((frame (make-frame-on-tty tty type)))
+		 (push (list (car client) (frame-tty-name frame)) server-ttys)
+		 (process-send-string proc (concat "-emacs-pid " (number-to-string (emacs-pid)) "\n"))
+		 (select-frame frame)
+		 ;; This makes sure that `emacsclient -t -e '(delete-frame)'' works right.
+		 (push client server-clients)
+		 (setq registered t
+		       newframe t)))))
+
 	   ;; ARG is a line number option.
 	   ((string-match "\\`\\+[0-9]+\\'" arg)
 	    (setq lineno (string-to-int (substring arg 1))))
+
 	   ;; ARG is line number:column option.
-	   ((string-match "\\`+\\([0-9]+\\):\\([0-9]+\\)\\'" arg)
+	   ((string-match "\\`\\+\\([0-9]+\\):\\([0-9]+\\)\\'" arg)
 	    (setq lineno (string-to-int (match-string 1 arg))
 		  columnno (string-to-int (match-string 2 arg))))
+
+	   ;; ARG is a filename or a Lisp expression.
 	   (t
+
 	    ;; Undo the quoting that emacsclient does
 	    ;; for certain special characters.
 	    (setq arg (server-unquote-arg arg))
@@ -391,17 +443,14 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	    (if coding-system
 		(setq arg (decode-coding-string arg coding-system)))
 	    (if eval
-		(condition-case err
-		    (let ((v (eval (car (read-from-string arg)))))
-		      (when (and (not newframe) v)
-			(with-temp-buffer
-			  (let ((standard-output (current-buffer)))
-			    (pp v)
-			    (process-send-region proc (point-min) (point-max))))))
-		  (error
-		   (ignore-errors
-		     (process-send-string
-		      proc (concat "*Error* " (error-message-string err))))))
+		(server-with-errors-reported
+		 (let ((v (eval (car (read-from-string arg)))))
+		   (when (and (not newframe) v)
+		     (with-temp-buffer
+		       (let ((standard-output (current-buffer)))
+			 (pp v)
+			 (process-send-string proc "-print ")
+			 (process-send-region proc (point-min) (point-max)))))))
 
 	      ;; ARG is a file name.
 	      ;; Collapse multiple slashes to single slashes.
@@ -409,6 +458,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	      (push (list arg lineno columnno) files))
 	    (setq lineno 1)
 	    (setq columnno 0)))))
+
       (when files
 	(run-hooks 'pre-command-hook)
 	(server-visit-files files client nowait)
@@ -506,15 +556,17 @@ FOR-KILLING if non-nil indicates that we are called from `kill-buffer'."
 	;; If client now has no pending buffers,
 	;; tell it that it is done, and forget it entirely.
 	(unless (cdr client)
-	  (let ((tty (assq (car client) server-ttys)))
-	    (if tty
-		;; Be careful, if we delete the process before the
-		;; tty, then the terminal modes will not be restored
-		;; correctly.
-		(delete-tty (cadr tty))
-	      (delete-process (car client))
-	      (server-log "Close" (car client))
-	      (setq server-clients (delq client server-clients))))))
+	  (let ((tty (cadr (assq (car client) server-ttys)))
+		(frame (cadr (assq (car client) server-frames))))
+	    (cond
+	     ;; Be careful, if we delete the process before the
+	     ;; tty, then the terminal modes will not be restored
+	     ;; correctly.
+	     (tty (delete-tty tty))
+	     (frame (delete-frame frame))
+	     (t (delete-process (car client))
+		(server-log "Close" (car client))
+		(setq server-clients (delq client server-clients)))))))
       (setq old-clients (cdr old-clients)))
     (if (and (bufferp buffer) (buffer-name buffer))
 	;; We may or may not kill this buffer;

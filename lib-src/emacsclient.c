@@ -70,11 +70,14 @@ int nowait = 0;
 /* Nonzero means args are expressions to be evaluated.  --eval.  */
 int eval = 0;
 
+/* Nonzero means open a new graphical frame. */
+int window_system = 0;
+
 /* The display on which Emacs should work.  --display.  */
 char *display = NULL;
 
 /* Nonzero means open a new Emacs frame on the current terminal. */
-int frame = 0;
+int tty = 0;
 
 /* If non-NULL, the name of an editor to fallback to if the server
    is not running.  --alternate-editor.   */
@@ -92,6 +95,7 @@ struct option longopts[] =
   { "help",	no_argument,	   NULL, 'H' },
   { "version",	no_argument,	   NULL, 'V' },
   { "tty",	no_argument,       NULL, 't' },
+  { "window-system", no_argument,  NULL, 'w' },
   { "alternate-editor", required_argument, NULL, 'a' },
   { "socket-name",	required_argument, NULL, 's' },
   { "display",	required_argument, NULL, 'd' },
@@ -107,11 +111,12 @@ decode_options (argc, argv)
      char **argv;
 {
   alternate_editor = getenv ("ALTERNATE_EDITOR");
+  display = getenv ("DISPLAY");
 
   while (1)
     {
       int opt = getopt_long (argc, argv,
-			     "VHnea:s:d:t", longopts, 0);
+			     "VHnea:s:d:tw", longopts, 0);
 
       if (opt == EOF)
 	break;
@@ -149,7 +154,13 @@ decode_options (argc, argv)
 	  break;
 
         case 't':
-          frame = 1;
+          tty = 1;
+          window_system = 0;
+          break;
+
+        case 'w':
+          window_system = 1;
+          tty = 0;
           break;
           
 	case 'H':
@@ -163,11 +174,10 @@ decode_options (argc, argv)
 	}
     }
 
-  if (frame) {
+  if (tty) {
     nowait = 0;
     display = 0;
   }
-  
 }
 
 void
@@ -182,6 +192,7 @@ The following OPTIONS are accepted:\n\
 -V, --version           Just print a version info and return\n\
 -H, --help              Print this usage information message\n\
 -t, --tty               Open a new Emacs frame on the current terminal\n\
+-w, --window-system	Open a new graphical Emacs frame\n\
 -n, --no-wait           Don't wait for the server to return\n\
 -e, --eval              Evaluate the FILE arguments as ELisp expressions\n\
 -d, --display=DISPLAY   Visit the file in the given display\n\
@@ -271,16 +282,6 @@ fail (void)
 }
 
 int emacs_pid;
-
-#ifdef nec_ews_svr4
-extern char *_sobuf ;
-#else
-#if defined (USG) || defined (DGUX)
-unsigned char _sobuf[BUFSIZ+8];
-#else
-char _sobuf[BUFSIZ];
-#endif
-#endif
 
 /* A signal handler that passes the signal to the Emacs process.
    Useful for SIGWINCH.  */
@@ -395,7 +396,7 @@ main (argc, argv)
   /* Process options.  */
   decode_options (argc, argv);
 
-  if ((argc - optind < 1) && !eval && !frame)
+  if ((argc - optind < 1) && !eval && !tty && !window_system)
     {
       fprintf (stderr, "%s: file name or argument required\n", progname);
       fprintf (stderr, "Try `%s --help' for more information\n", progname);
@@ -574,7 +575,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
       fprintf (out, " ");
     }
 
-  if (frame)
+  if (tty)
     {
       char *tty_name = ttyname (fileno (stdin));
       if (! tty_name)
@@ -588,6 +589,9 @@ To start the server in Emacs, type \"M-x server-start\".\n",
       quote_file_name (getenv("TERM"), out);
       fprintf (out, " ");
     }
+
+  if (window_system)
+    fprintf (out, "-window-system ");
   
   if ((argc - optind > 0))
     {
@@ -617,7 +621,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
     }
   else
     {
-      if (!frame)
+      if (!tty && !window_system)
         {
           while ((str = fgets (string, BUFSIZ, stdin)))
             {
@@ -636,7 +640,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
       return 0;
     }
 
-  if (!eval && !frame)
+  if (!eval && !tty)
     {
       printf ("Waiting for Emacs...");
       needlf = 2;
@@ -646,18 +650,29 @@ To start the server in Emacs, type \"M-x server-start\".\n",
   /* Now, wait for an answer and print any messages.  */
   while ((str = fgets (string, BUFSIZ, in)))
     {
-      if (frame)
+      if (strprefix ("-emacs-pid ", str))
         {
-          if (strprefix ("emacs-pid ", str))
-            {
-              emacs_pid = strtol (string + strlen ("emacs-pid"), NULL, 10);
-            }
+          emacs_pid = strtol (string + strlen ("-emacs-pid"), NULL, 10);
+        }
+      else if (strprefix ("-print ", str))
+        {
+          if (needlf == 2)
+            printf ("\n");
+          printf ("%s", str + strlen ("-print "));
+          needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';         
+        }
+      else if (strprefix ("-error ", str))
+        {
+          if (needlf == 2)
+            printf ("\n");
+          printf ("*ERROR*: %s", str + strlen ("-print "));
+          needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';         
         }
       else
         {
           if (needlf == 2)
             printf ("\n");
-          printf ("%s", str);
+          printf ("*ERROR*: Unknown message: %s", str);
           needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
         }
     }
