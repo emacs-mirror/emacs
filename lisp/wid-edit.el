@@ -1539,10 +1539,11 @@ If that does not exists, call the value of `widget-complete-field'."
 
 (defun widget-default-active (widget)
   "Return t iff this widget active (user modifiable)."
-  (and (not (widget-get widget :inactive))
-       (let ((parent (widget-get widget :parent)))
-	 (or (null parent) 
-	     (widget-apply parent :active)))))
+  (or (widget-get widget :always-active)
+      (and (not (widget-get widget :inactive))
+	   (let ((parent (widget-get widget :parent)))
+	     (or (null parent) 
+		 (widget-apply parent :active))))))
 
 (defun widget-default-deactivate (widget)
   "Make WIDGET inactive for user modifications."
@@ -2860,6 +2861,7 @@ link for that string."
 		 widget 'visibility
 		 :help-echo "Show or hide rest of the documentation."
 		 :off "More"
+		 :always-active t
 		 :action 'widget-parent-action
 		 shown)
 		buttons)
