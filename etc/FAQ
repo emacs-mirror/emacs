@@ -5,7 +5,7 @@ about GNU Emacs 20 with answers.  Some of the answers are not valid for GNU
 Emacs 18 or 19.
 
 [This version has been somewhat edited from the last-posted version
-(as of January 1999) for inclusion in the Emacs distribution.]
+(as of February 1999) for inclusion in the Emacs distribution.]
 
 The FAQ is posted (in five parts) to reduce the noise level in the
 gnu.emacs.help newsgroup (which is also the help-gnu-emacs mailing list)
@@ -275,7 +275,7 @@ The FAQ is posted in five parts; if you are missing a section or would
 prefer to read the FAQ in a single file, see question 22.
 
 ------------------------------------------------------------
-  Time-stamp: <1998-11-15 12:37:16 reuven>
+  Time-stamp: <1999-02-10 18:44:04 reuven>
 
 
 Notation Used in FAQ
@@ -632,7 +632,7 @@ On-line Help, Printed Manuals, Other Sources of Help
   format.  Texinfo source for the manual (along with pregenerated Info
   files) is available at
 
-    ftp://gnudist.gnu.org/pub/gnu/elisp-manual-20-2.5.tar.gz
+    ftp://gnudist.gnu.org/pub/gnu/emacs/elisp-manual-20-2.5.tar.gz
 
   and all mirrors of gnudist.gnu.org (See question 92 for a list).  See
   question 17 if you want to install the Info files, or question 18 if you
@@ -649,7 +649,7 @@ On-line Help, Printed Manuals, Other Sources of Help
   using the stand-alone "makeinfo" program, available as part of the latest
   Texinfo package at
 
-    ftp://gnudist.gnu.org/pub/gnu/texinfo-3.12.tar.gz
+    ftp://gnudist.gnu.org/pub/gnu/texinfo/texinfo-3.12.tar.gz
 
   and all mirrors of gnudist.gnu.org (see question 92 for a list).
 
@@ -741,7 +741,7 @@ On-line Help, Printed Manuals, Other Sources of Help
   * Xinfo, a stand-alone version of the Info program that runs under X
     Windows.  You can get it at
 
-      ftp://gnudist.gnu.org/pub/gnu/xinfo-1.01.01.tar.gz
+      ftp://gnudist.gnu.org/pub/gnu/xinfo/xinfo-1.01.01.tar.gz
 
     and all mirrors of gnudist.gnu.org (See question 92 for a list).
 
@@ -834,11 +834,9 @@ On-line Help, Printed Manuals, Other Sources of Help
     release has been part of the Emacs distribution as etc/FAQ (see
     question 4).
 
-  * Via the World Wide Web.  Point your favorite Web browser at:
+  * Via the World Wide Web.  A hypertext version is available at
 
-    http://www.geek-girl.com/emacs/faq/index.html
-
-    This is an old version, but it works.
+    http://www.lerner.co.il/emacs/
 
   * Via anonymous ftp and e-mail from rtfm.mit.edu (and its mirror in
     Europe), the main repository for FAQs and other items posted to
@@ -2160,13 +2158,13 @@ Difficulties Building/Installing/Porting Emacs
     available.  On gnudist.gnu.org, the main GNU distribution site, sources are
     available at
 
-      ftp://gnudist.gnu.org/pub/gnu/emacs-20.4.tar.gz
+      ftp://gnudist.gnu.org/pub/gnu/emacs/emacs-20.3.tar.gz
 
     The above will obviously change as new versions of Emacs come out.  For
     instance, when Emacs 20.5 is released, it will most probably be
     available at
 
-      ftp://gnudist.gnu.org/pub/gnu/emacs-20.5.tar.gz
+      ftp://gnudist.gnu.org/pub/gnu/emacs/emacs-20.4.tar.gz
 
     Again, you should use one of the mirror sites in question 92 (and
     adjust the URL accordingly) so as to reduce load on gnudist.gnu.org.
@@ -2391,7 +2389,7 @@ Finding/Getting Emacs and Related Packages
   The lispdir.el package has a function named submit-lcd-entry which will
   help you with this.
 
-  See question 90 regarding non-maintenance of the archive. 
+ Note that maintenance of the archive is currently very slow. 
 
 92:  Where can I get other up-to-date GNU stuff?
 
@@ -2402,61 +2400,9 @@ Finding/Getting Emacs and Related Packages
 
   Read the files etc/DISTRIB and etc/FTP for more information.
 
-  The following sites are all mirror images of the GNU distribution area:
+  A list of sites mirroring gnudist.gnu.org can be found at
 
-    ASIA: ftp://cair.kaist.ac.kr/pub/gnu,
-          ftp://ftp.nectec.or.th/pub/mirrors/gnu,
-          ftp://utsun.s.u-tokyo.ac.jp/ftpsync/prep,
-          ftp://ftp.cs.titech.ac.jp/pub/gnu
-
-    AUSTRALIA: ftp://archie.au/gnu (archie.oz or archie.oz.au for ACSnet)
-
-    AFRICA: ftp://ftp.sun.ac.za/pub/gnu
-
-    EUROPE: ftp://ftp.denet.dk/pub/gnu,
-            ftp://ftp.funet.fi/pub/gnu,
-            ftp://ftp.informatik.rwth-aachen.de/pub/gnu,
-            ftp://ftp.informatik.tu-muenchen.de/pub/comp/gnu,
-            ftp://ftp.luth.se/pub/unix/gnu,
-            ftp://ftp.stacken.kth.se/pub/gnu,
-            ftp://ftp.win.tue.nl/pub/gnu,
-            ftp://isy.liu.se/pub/gnu,
-            ftp://nic.switch.ch/mirror/gnu,
-            ftp://archive.eu.net/pub/gnu,
-            ftp://ftp.eunet.ch/software/gnu,
-            ftp://ftp.ieunet.ie/pub/gnu,
-            ftp://ftp.mcc.ac.uk/pub/gnu,
-            ftp://ftp.sunet.se:/pub/gnu,
-            ftp://ftp.univ-lyon1.fr/pub/gnu,
-            ftp://irisa.irisa.fr/pub/gnu,
-            ftp://src.doc.ic.ac.uk/gnu,
-            ftp://unix.hensa.ac.uk/pub/uunet/systems/gnu
-
-    SOUTH AMERICA: ftp.unicamp.br:/pub/gnu
-
-    WESTERN CANADA: ftp.cs.ubc.ca:/mirror2/gnu
-
-    USA: ftp://col.hp.com/mirrors/gnu,
-         ftp://f.ms.uky.edu/pub3/gnu,
-         ftp://ftp.cs.columbia.edu/archives/gnu/prep,
-         ftp://ftp.digex.net/pub/gnu,
-         ftp://ftp.hawaii.edu/mirrors/gnu,
-         ftp://ftp.kpc.com/pub/mirror/gnu,
-         ftp://ftp.uu.net/systems/gnu,
-         ftp://gatekeeper.dec.com/pub/GNU,
-         ftp://jaguar.utah.edu/gnustuff,
-         ftp://labrea.stanford.edu/pub/gnu,
-         ftp://mrcnext.cso.uiuc.edu/pub/gnu,
-         ftp://vixen.cso.uiuc.edu/gnu,
-         ftp://wuarchive.wustl.edu/systems/gnu
-
-  The directory at ftp.uu.net is a mirror of gnudist.gnu.org except that files
-  larger than one megabyte are split into multiple parts.  If you have
-  trouble transferring large files, you should try that site.  A file
-  normally named "XXX" is split into files XXX-split/part[0-9][0-9], and
-  there will be a file named XXX-split/README which contains the list of
-  parts (especially helpful when FTP-ing by e-mail), their checksums, and
-  reassembly instructions.
+    http://www.gnu.org/order/ftp.html
 
 93:  What is the difference between Emacs and XEmacs (formerly "Lucid
      Emacs")?
@@ -2494,12 +2440,10 @@ Finding/Getting Emacs and Related Packages
 
         ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2gnu/emacs.README
 
-  And the binary itself is available in the files
+  And the binary itself is available in the files em1934*.zip in the
+  directory
 
-        ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2gnu/em1934*.zip
-
-  where * indicates that you should retrieve all of the files beginning
-  with "em1934" and ending with "zip".
+        ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2gnu/
 
   If you prefer to compile Emacs for yourself, you will need a 386 (or
   better) processor, and are running MS-DOS 3.0 or later.  According to Eli
@@ -2542,7 +2486,7 @@ Finding/Getting Emacs and Related Packages
     ftp://rtfm.mit.edu/pub/usenet/comp.emacs/
 
   Note that while many of these programs look similar to Emacs, they often
-  lack certain features, particularly as the Emacs Lisp extension language.
+  lack certain features, particularly the Emacs Lisp extension language.
 
 95:  Where can I get Emacs for Microsoft Windows, Windows 9x, or Windows
      NT?
@@ -2576,7 +2520,7 @@ Finding/Getting Emacs and Related Packages
 
   Emacs 19.33 is ported for emx on OS/2 2.0 or 2.1, and is available at:
 
-    ftp://hobbes.nmsu.edu/os2/unix/apps/emacs/v.19.33/
+    ftp://hobbes.nmsu.edu/pub/os2/apps/editors/emacs/v19.33/
 
 97:  Where can I get Emacs for my Atari ST?
 
@@ -2657,7 +2601,7 @@ Finding/Getting Emacs and Related Packages
   Java code.  You can get the latest version from the Emacs Lisp Archive;
   see question 90 for details.  A FAQ for cc-mode is available at
 
-      http://www.python.org/ftp/emacs/cc-mode.html/Top.html
+      http://www.python.org/emacs/cc-mode/
 
 103: What is the IP address of XXX.YYY.ZZZ?
 
@@ -2688,9 +2632,9 @@ Major Emacs Lisp Packages, Emacs Extensions, and Related Programs
 104: VM (View Mail) -- another mail reader within Emacs, with MIME support
 
   Author: Kyle Jones <kyle@uunet.uu.net>
-  Latest version: 6.62
+  Latest version: 6.67
   Anonymous FTP:
-    ftp://ftp.uu.net/networking/mail/vm/vm.tar.gz
+    ftp://ftp.wonderworks.com/pub/vm/vm.tar.gz
   Newsgroups and mailing lists:
     Informational newsgroup/mailing list:
       gnu.emacs.vm.info (newsgroup)
@@ -2721,7 +2665,7 @@ Major Emacs Lisp Packages, Emacs Extensions, and Related Programs
   Author: Dave Gillespie <daveg@csvax.cs.caltech.edu>
   Latest version: 2.02f
   Anonymous FTP:
-    ftp://gnudist.gnu.org/pub/gnu/calc-2.02f.tar.gz
+    ftp://gnudist.gnu.org/pub/gnu/calc/calc-2.02f.tar.gz
   NOTE: Unlike Wolfram Research, Dave has never threatened to sue
         anyone for having a program with a similar command language to
         Calc.  :-)
@@ -2754,7 +2698,7 @@ Major Emacs Lisp Packages, Emacs Extensions, and Related Programs
     auc-tex@iesd.auc.dk (for submissions)
     auc-tex_mgr@iesd.auc.dk (auc-tex development team)
   World Wide Web:
-    http://www.iesd.auc.dk/~amanda/auctex/
+    http://sunsite.auc.dk/auctex/
 
 109: BBDB -- personal Info Rolodex integrated with mail/news readers
 
@@ -2789,7 +2733,7 @@ Major Emacs Lisp Packages, Emacs Extensions, and Related Programs
 111: W3-mode -- A World Wide Web browser inside of Emacs
 
   Author: Bill Perry <wmperry@spry.com>
-  Latest version: 4.0pre.31
+  Latest version: 4.0pre.39
   Anonymous FTP:
     ftp://ftp.cs.indiana.edu/pub/elisp/w3/.betas/w3.tar.gz
   Mailing lists:
@@ -3277,10 +3221,6 @@ Using Emacs with Alternate Character Sets
   Emacs 20 now includes many of the features of MULE, the Multilingual
   Enhancement of Emacs.  See question 84 for information on where to find
   and download Emacs.
-
-  The original MULE is available at
-
-    ftp://sh.wide.ad.jp/JAPAN/mule/mule-19.33-delta.tar.gz
 
 137: Where is an Emacs that can handle Semitic (right-to-left) alphabets?
 
