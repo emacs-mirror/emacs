@@ -37,6 +37,15 @@ LOCAL_FLAGS     = -Demacs=1 -DWINDOWSNT -DDOS_NT -DHAVE_CONFIG_H -I..\nt\inc
 LOCAL_FLAGS     = $(LOCAL_FLAGS) -DHAVE_NTGUI=1
 !endif
 
+# From MSVC 5.0 onwards, it seem base relocation information is not included,
+# at least in release builds.  We need to ensure the reloc info is included
+# in order to use the MSVC profiler.
+!IF ($(_NMAKE_VER) == $(_NMAKE_VER_4))
+EXTRA_LINK      =
+!ELSE
+EXTRA_LINK      = -profile
+!ENDIF
+
 EMACS           = $(BLD)\emacs.exe
 TEMACS          = $(BLD)\temacs.exe
 TEMACS_TMP      = $(BLD)\temacs.bin
@@ -61,7 +70,7 @@ TLASTLIB	= $(BLD)\lastfile.lib
 !if "$(BUILD_TYPE)" == "spd"
 LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -pdb:$(BLD)\temacs.pdb -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map -swaprun:net -swaprun:cd
 !else
-LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -pdb:none -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map -swaprun:net -swaprun:cd
+LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -debugtype:both -pdb:none -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map -swaprun:net -swaprun:cd $(EXTRA_LINK)
 !endif
 
 #
@@ -197,7 +206,6 @@ emacs:          $(EMACS)
 $(EMACS):       $(PREPARED_HEADERS) $(DOC) $(TEMACS)
 		cd $(BLD)
 		$(MAKEDIR)\$(BLD)\temacs.exe -batch -l loadup dump
-		copy temacs.map emacs.map
 		cd ..\..
 
 #
@@ -210,7 +218,6 @@ temacs:         $(BLD) $(TEMACS)
 $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIB2) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES)
 		$(LINK) -out:$(TEMACS_TMP) $(LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
 		..\nt\$(BLD)\addsection $(TEMACS_TMP) $(TEMACS) EMHEAP 16
-		del $(TEMACS_TMP)
 
 #
 # The resource file.  NT 3.10 requires the use of cvtres; even though
