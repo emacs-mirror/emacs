@@ -1095,8 +1095,8 @@ in BODY."
 The syntax table of the current buffer is saved, BODY is evaluated, and the
 saved table is restored, even in case of an abnormal exit.
 Value is what BODY returns."
-  (let ((old-table (gensym))
-	(old-buffer (gensym)))
+  (let ((old-table (make-symbol "table"))
+	(old-buffer (make-symbol "buffer")))
     `(let ((,old-table (syntax-table))
 	   (,old-buffer (current-buffer)))
        (unwind-protect
