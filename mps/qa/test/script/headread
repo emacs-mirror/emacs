@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# $HopeName: MMQA_harness!script:headread(trunk.11) $
+# $HopeName: MMQA_harness!script:headread(trunk.12) $
 #
 # subroutines to assist in
 #  1. reading test headers
@@ -58,9 +58,9 @@ sub readheader {
   $header = $1;
   $outspec = $2;
  } else {
-  &debug("No output specification -- assuming result=pass required.");
+  &debug("No output specification -- assuming completed=yes required.");
   $header = $line;
-  $outspec = "result=pass";
+  $outspec = "completed = yes";
  }
 
  &readvals($header, "=");
@@ -73,6 +73,31 @@ sub readheader {
  close(IN);
  if ($parms) {
   &get_parmdefs();
+ }
+ if (! exists $test_header{"id"}) {
+  $test_header{"id"} = "<none given>";
+ }
+ if (! exists $test_header{"harness"}) {
+  $test_header{"harness"} = "1.0";
+ }
+ if (-w $infile) {
+  $test_header{"id"} .= " (but the file is writeable)";
+ }
+#
+# Compatibility with old tests
+# -- convert result=pass to completed=yes
+#
+ if (vleq($test_header{"harness"}, "1.0") && exists $spec_output{"result"}) {
+  if ($spec_output{"result"} eq "pass") {
+   $spec_output{"completed"} = "yes";
+  } elsif ($spec_output{"result"} eq "fail") {
+   $spec_output{"completed"} = "no";
+  } else {
+   $spec_output{"completed"} = $spec_output{"result"};
+  }
+  $spec_rel{"completed"} = $spec_rel{"result"};
+  delete $spec_output{"result"};
+  delete $spec_rel{"result"};
  }
 }
 
@@ -130,6 +155,20 @@ sub read_results {
   }
  }
  close(LOGFILE);
+#
+# Compatibility with old tests
+# -- convert result=pass/fail to completed=yes/no
+#
+ if (vleq($test_header{"harness"}, "1.0") && exists $real_output{"result"}) {
+  if ($real_output{"result"} eq "pass") {
+   $real_output{"completed"} = "yes";
+  } elsif ($real_output{"result"} eq "fail") {
+   $real_output{"completed"} = "no";
+  } else {
+   $real_output{"completed"} = $real_output{"result"};
+  }
+  delete $real_output{"result"};
+ }
 }
 
 #
