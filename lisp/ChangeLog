@@ -1,3 +1,11 @@
+2000-05-30  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-fns.el (w32-charset-info-alist): Add each charset separately.
+
+	* term/w32-win.el: Doc changes to reduce diffs with x-win.el.
+	Reenable code to create initial fontsets.
+	Use set-fontset-font in place of put-charset-property.
+
 2000-05-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/perl-mode.el (perl-indent-line): When looking for a
