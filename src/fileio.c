@@ -2334,6 +2334,22 @@ A prefix arg makes KEEP-TIME non-nil.")
   else if (stat (XSTRING (encoded_newname)->data, &out_st) < 0)
     out_st.st_mode = 0;
 
+#ifdef WINDOWSNT
+  if (!CopyFile (XSTRING (encoded_file)->data,
+		 XSTRING (encoded_newname)->data, 
+		 FALSE))
+    report_file_error ("Copying file", Fcons (file, Fcons (newname, Qnil)));
+  else if (NILP (keep_time))
+    {
+      EMACS_TIME now;
+      EMACS_GET_TIME (now);
+      if (set_file_times (XSTRING (encoded_newname)->data,
+			  now, now))
+	Fsignal (Qfile_date_error,
+		 Fcons (build_string ("Cannot set file date"),
+			Fcons (newname, Qnil)));
+    }
+#else /* not WINDOWSNT */
   ifd = emacs_open (XSTRING (encoded_file)->data, O_RDONLY, 0);
   if (ifd < 0)
     report_file_error ("Opening input file", Fcons (file, Qnil));
@@ -2423,6 +2439,7 @@ A prefix arg makes KEEP-TIME non-nil.")
     }
 
   emacs_close (ifd);
+#endif /* WINDOWSNT */
 
   /* Discard the unwind protects.  */
   specpdl_ptr = specpdl + count;
