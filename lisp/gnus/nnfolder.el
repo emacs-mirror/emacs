@@ -740,7 +740,9 @@ time saver for large mailboxes.")
           (if oldgroup
               (nnheader-message 5 "Refreshing group %s..." file)
             (nnheader-message 5 "Adding group %s..." file))
-          (setq nnfolder-group-alist (remove oldgroup nnfolder-group-alist))
+	  (if oldgroup
+	      (setq nnfolder-group-alist
+		    (delq oldgroup (copy-sequence nnfolder-group-alist))))
           (push (list file (cons 1 0)) nnfolder-group-alist)
           (nnfolder-possibly-change-folder file)
           (nnfolder-possibly-change-group file)
