@@ -1,3 +1,7 @@
+2000-07-18  Dave Love  <fx@gnu.org>
+
+	* window.c (Fwindow_list): Declare arg `window'.
+
 2000-07-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (setup_coding_system): Don't override the explicitly
@@ -71,7 +75,7 @@
 
 2000-07-14  Dave Love  <fx@gnu.org>
 
-	* syntax.c (back_comment): Add null default in switch for pcc.
+	* syntax.c (back_comment): Add null default in switch (for pcc).
 
 2000-07-14  Kenichi Handa  <handa@etl.go.jp>
 
