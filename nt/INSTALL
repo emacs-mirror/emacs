@@ -108,6 +108,7 @@
   1.1.8, you may need to specify some extra compiler flags like so:
 
     configure --with-gcc --cflags -mwin32 --cflags -D__MSVCRT__
+      --ldflags -mwin32
 
   We will attempt to auto-detect the need for these flags in a future
   release.
