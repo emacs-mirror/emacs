@@ -1,3 +1,11 @@
+2003-03-22  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-mode): Remove unused NOBIND arg. Fix doc string
+	accordingly.
+	(ido-define-mode-map): Bind C-l for both file and dir modes.
+	(ido-wide-find-file, ido-wide-find-dir, ido-make-directory): 
+	Let-bind enable-recursive-minibuffers to t around read-string.
+	
 2003-03-22  Kenichi Handa  <handa@etlken2>
 
 	* international/fontset.el (setup-default-fontset): Use
