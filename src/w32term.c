@@ -8916,6 +8916,36 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  check_visibility = 1;
 	  break;
 
+	case WM_MOUSELEAVE:
+	  f = x_any_window_to_frame (dpyinfo, msg.msg.hwnd);
+	  if (f)
+	    {
+	      if (f == dpyinfo->mouse_face_mouse_frame)
+		{
+		  /* If we move outside the frame, then we're
+		     certainly no longer on any text in the frame.  */
+		  clear_mouse_face (dpyinfo);
+		  dpyinfo->mouse_face_mouse_frame = 0;
+		}
+
+	      /* Generate a nil HELP_EVENT to cancel a help-echo.
+		 Do it only if there's something to cancel.
+		 Otherwise, the startup message is cleared when
+		 the mouse leaves the frame.  */
+	      if (any_help_event_p)
+		{
+		  Lisp_Object frame;
+		  int n;
+
+		  XSETFRAME (frame, f);
+		  help_echo = Qnil;
+		  n = gen_help_event (bufp, numchars,
+				      Qnil, frame, Qnil, Qnil, 0);
+		  bufp += n, count += n, numchars -= n;
+		}
+	    }
+	  break;
+	      
 	case WM_SETFOCUS:
 	  f = x_any_window_to_frame (dpyinfo, msg.msg.hwnd);
 
