@@ -811,7 +811,10 @@ strwidth (str, len)
 	  int c = STRING_CHAR (str, endp - str);
 
 	  /* Get the way the display table would display it.  */
-	  disp = DISP_CHAR_VECTOR (dp, c);
+	  if (dp)
+	    disp = DISP_CHAR_VECTOR (dp, c);
+	  else
+	    disp = Qnil;
 
 	  if (VECTORP (disp))
 	    thiswidth = XVECTOR (disp)->size;
