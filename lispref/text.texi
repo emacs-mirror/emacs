@@ -3128,8 +3128,9 @@ buffer.
 
   A field is a range of consecutive characters in the buffer that are
 identified by having the same value (comparing with @code{eq}) of the
-@code{field} property.  This section describes special functions that
-are available for operating on fields.
+@code{field} property (either a text-property or an overlay property).
+This section describes special functions that are available for
+operating on fields.
 
   You specify a field with a buffer position, @var{pos}.  We think of
 each field as containing a range of buffer positions, so the position
@@ -3158,20 +3159,21 @@ value of point is used by default.
 @tindex field-beginning
 This function returns the beginning of the field specified by @var{pos}.
 
-If @var{pos} is at the end of a field, and @var{escape-from-edge} is
-non-@code{nil}, then the return value is always the beginning of the
-field that @emph{ends} at @var{pos}, regardless of the stickiness of the
-@code{field} properties around @var{pos}.
+If @var{pos} is at the beginning of its field, and
+@var{escape-from-edge} is non-@code{nil}, then the return value is
+always the beginning of the preceding field that @emph{ends} at @var{pos},
+regardless of the stickiness of the @code{field} properties around
+@var{pos}.
 @end defun
 
 @defun field-end &optional pos escape-from-edge
 @tindex field-end
 This function returns the end of the field specified by @var{pos}.
 
-If @var{pos} is at the beginning of a field, and @var{escape-from-edge}
-is non-@code{nil}, then the return value is always the end of the field
-that @emph{begins} at @var{pos}, regardless of the stickiness of the
-@code{field} properties around @var{pos}.
+If @var{pos} is at the end of its field, and @var{escape-from-edge} is
+non-@code{nil}, then the return value is always the end of the following
+field that @emph{begins} at @var{pos}, regardless of the stickiness of
+the @code{field} properties around @var{pos}.
 @end defun
 
 @defun field-string &optional pos
@@ -3191,23 +3193,7 @@ as a string, discarding text properties.
 This function deletes the text of the field specified by @var{pos}.
 @end defun
 
-@deffn beginning-of-line-or-field &optional count
-@tindex beginning-of-line-or-field
-Like @code{beginning-of-line}, except that this function does not move
-across a field boundary (@pxref{Fields}), unless it moves to another
-line beyond the one that contains the field boundary.  Therefore, if
-@var{count} is zero, and point is initially at a field boundary, point
-does not move.
-@end deffn
-
-@deffn end-of-line-or-field &optional count
-@tindex end-of-line-or-field
-Like @code{end-of-line}, except that this function does not move
-across a field boundary (@pxref{Fields}), unless it moves to another
-line beyond the one that contains the field boundary.
-@end deffn
-
-@defun constrain-to-field new-pos old-pos &optional escape-from-edge only-in-line
+@defun constrain-to-field new-pos old-pos &optional escape-from-edge only-in-line inhibit-capture-property
 @tindex constrain-to-field
 This function ``constrains'' @var{new-pos} to the field that
 @var{old-pos} belongs to---in other words, it returns the position
@@ -3220,11 +3206,14 @@ If @var{old-pos} is at the boundary of two fields, then the acceptable
 positions for @var{new-pos} depend on the value of the optional argument
 @var{escape-from-edge}.  If @var{escape-from-edge} is @code{nil}, then
 @var{new-pos} is constrained to the field that has the same @code{field}
-text-property that new characters inserted at @var{old-pos} would get.
-(This depends on the stickiness of the @code{field} property for the
-characters before and after @var{old-pos}.)  If @var{escape-from-edge}
-is non-@code{nil}, @var{new-pos} is constrained to the union of the two
-adjacent fields.
+property (either a text-property or an overlay property) that new
+characters inserted at @var{old-pos} would get.  (This depends on the
+stickiness of the @code{field} property for the characters before and
+after @var{old-pos}.)  If @var{escape-from-edge} is non-@code{nil},
+@var{new-pos} is constrained to the union of the two adjacent fields.
+Additionally, if two fields are separated by another field with the
+special value @code{boundary}, then any point within this special field
+is also considered to be ``on the boundary.''
 
 If the optional argument @var{only-in-line} is non-@code{nil}, and
 constraining @var{new-pos} in the usual way would move it to a different
@@ -3232,6 +3221,14 @@ line, @var{new-pos} is returned unconstrained.  This used in commands
 that move by line, such as @code{next-line} and
 @code{beginning-of-line}, so that they respect field boundaries only in
 the case where they can still move to the right line.
+
+If the optional argument @var{inhibit-capture-property} is
+non-@code{nil}, and @var{old-pos} has a non-@code{nil} property of that
+name, then any field boundaries are ignored.
+
+You can cause @code{constrain-to-field} to ignore all field boundaries
+(and so never constrain anything) by binding the variable
+@code{inhibit-field-text-motion} to a non-nil value.
 @end defun
 
 @node Not Intervals
