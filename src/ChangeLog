@@ -1,3 +1,8 @@
+2002-04-17  Juanma Barranquero  <lektu@terra.es>
+
+	* indent.c (Fmove_to_column): Remove unused local variable
+	`end_byte'.
+
 2002-04-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* window.c (coordinates_in_window): Don't report on margin area
