@@ -385,7 +385,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  if (EVENT_HAS_PARAMETERS (event)
 	      && (event = XCONS (event)->cdr, CONSP (event))
 	      && (event = XCONS (event)->car, CONSP (event))
-	      && (event = XCONS (event)->car), WINDOWP (event))
+	      && (event = XCONS (event)->car, WINDOWP (event))
 	    {
 	      if (MINI_WINDOW_P (XWINDOW (event))
 		  && ! (minibuf_level > 0 && EQ (event, minibuf_window)))
