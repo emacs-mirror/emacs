@@ -902,9 +902,15 @@ to temp files when Ediff needs to find fine differences."
 
 
 (defface ediff-current-diff-face-A
-  '((((type tty))    (:foreground "blue3" :background "yellow3"))
-    (((class color)) (:foreground "firebrick" :background "pale green"))
-    (t	     	     (:inverse-video t)))
+  (if ediff-emacs-p
+      '((((class color) (min-colors 16))
+	 (:foreground "firebrick" :background "pale green"))
+	(((class color))
+	 (:foreground "blue3" :background "yellow3"))
+	(t		     (:inverse-video t)))
+    '((((type tty))    (:foreground "blue3" :background "yellow3"))
+      (((class color)) (:foreground "firebrick" :background "pale green"))
+      (t	     	     (:inverse-video t))))
   "Face for highlighting the selected difference in buffer A."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -925,10 +931,17 @@ this variable represents.")
 
 
 (defface ediff-current-diff-face-B
-  '((((type tty))    (:foreground "magenta3" :background "yellow3"
-				  :weight bold))
-    (((class color)) (:foreground "DarkOrchid" :background "Yellow"))
-    (t	     	     (:inverse-video t)))
+  (if ediff-emacs-p
+      '((((class color) (min-colors 16))
+	 (:foreground "DarkOrchid" :background "Yellow"))
+	(((class color))
+	 (:foreground "magenta3" :background "yellow3"
+		      :weight bold))
+	(t		     (:inverse-video t)))
+    '((((type tty))    (:foreground "magenta3" :background "yellow3"
+				    :weight bold))
+      (((class color)) (:foreground "DarkOrchid" :background "Yellow"))
+      (t	     	     (:inverse-video t))))
   "Face for highlighting the selected difference in buffer B."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -948,9 +961,15 @@ this variable represents.")
 
 
 (defface ediff-current-diff-face-C
-  '((((type tty))    (:foreground "cyan3" :background "yellow3" :weight bold))
-    (((class color)) (:foreground "Navy" :background "Pink"))
-    (t	     	     (:inverse-video t)))
+  (if ediff-emacs-p
+      '((((class color) (min-colors 16))
+	 (:foreground "Navy" :background "Pink"))
+	(((class color))
+	 (:foreground "cyan3" :background "yellow3" :weight bold))
+	(t		     (:inverse-video t)))
+    '((((type tty))    (:foreground "cyan3" :background "yellow3" :weight bold))
+      (((class color)) (:foreground "Navy" :background "Pink"))
+      (t	     	     (:inverse-video t))))
   "Face for highlighting the selected difference in buffer C."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -970,9 +989,15 @@ this variable represents.")
 
 
 (defface ediff-current-diff-face-Ancestor
-  '((((type tty))    (:foreground "black" :background "magenta3"))
-    (((class color)) (:foreground "Black" :background "VioletRed"))
-    (t (:inverse-video t)))
+  (if ediff-emacs-p
+      '((((class color) (min-colors 16))
+	 (:foreground "Black" :background "VioletRed"))
+	(((class color))
+	 (:foreground "black" :background "magenta3"))
+	(t (:inverse-video t)))
+    '((((type tty))    (:foreground "black" :background "magenta3"))
+      (((class color)) (:foreground "Black" :background "VioletRed"))
+      (t (:inverse-video t))))
   "Face for highlighting the selected difference in buffer Ancestor."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -992,9 +1017,15 @@ this variable represents.")
 
 
 (defface ediff-fine-diff-face-A
-  '((((type tty))    (:foreground "white" :background "sky blue" :weight bold))
-    (((class color)) (:foreground "Navy" :background "sky blue"))
-    (t (:underline t :stipple "gray3")))
+  (if ediff-emacs-p
+      '((((class color) (min-colors 16))
+	 (:foreground "Navy" :background "sky blue"))
+	(((class color))
+	 (:foreground "white" :background "sky blue" :weight bold))
+	(t (:underline t :stipple "gray3")))
+    '((((type tty))    (:foreground "white" :background "sky blue" :weight bold))
+      (((class color)) (:foreground "Navy" :background "sky blue"))
+      (t (:underline t :stipple "gray3"))))
   "Face for highlighting the refinement of the selected diff in buffer A."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1007,9 +1038,15 @@ this variable represents.")
 (ediff-hide-face 'ediff-fine-diff-face-A)
 
 (defface ediff-fine-diff-face-B
-  '((((type tty))    (:foreground "magenta3" :background "cyan3"))
-    (((class color)) (:foreground "Black" :background "cyan"))
-    (t	     	     (:underline t :stipple "gray3")))
+  (if ediff-emacs-p
+      '((((class color) (min-colors 16))
+	 (:foreground "Black" :background "cyan"))
+	(((class color))
+	 (:foreground "magenta3" :background "cyan3"))
+	(t		     (:underline t :stipple "gray3")))
+    '((((type tty))    (:foreground "magenta3" :background "cyan3"))
+      (((class color)) (:foreground "Black" :background "cyan"))
+      (t	     	     (:underline t :stipple "gray3"))))
   "Face for highlighting the refinement of the selected diff in buffer B."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1022,11 +1059,20 @@ this variable represents.")
 (ediff-hide-face 'ediff-fine-diff-face-B)
 
 (defface ediff-fine-diff-face-C
-  '((((type tty))    (:foreground "yellow3" :background "Turquoise"
-				  :weight bold))
-    (((type pc))     (:foreground "white" :background "Turquoise"))
-    (((class color)) (:foreground "Black" :background "Turquoise"))
-    (t (:underline t :stipple "gray3")))
+  (if ediff-emacs-p
+      '((((type pc))
+	 (:foreground "white" :background "Turquoise"))
+	(((class color) (min-colors 16))
+	 (:foreground "Black" :background "Turquoise"))
+	(((class color))
+	 (:foreground "yellow3" :background "Turquoise"
+		      :weight bold))
+	(t (:underline t :stipple "gray3")))
+    '((((type tty))    (:foreground "yellow3" :background "Turquoise"
+				    :weight bold))
+      (((type pc))     (:foreground "white" :background "Turquoise"))
+      (((class color)) (:foreground "Black" :background "Turquoise"))
+      (t (:underline t :stipple "gray3"))))
   "Face for highlighting the refinement of the selected diff in buffer C."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1039,9 +1085,15 @@ this variable represents.")
 (ediff-hide-face 'ediff-fine-diff-face-C)
 
 (defface ediff-fine-diff-face-Ancestor
-  '((((type tty))    (:foreground "red3" :background "green"))
-    (((class color)) (:foreground "Black" :background "Green"))
-    (t	     	     (:underline t :stipple "gray3")))
+  (if ediff-emacs-p
+      '((((class color) (min-colors 16))
+	 (:foreground "Black" :background "Green"))
+	(((class color))
+	 (:foreground "red3" :background "green"))
+	(t		     (:underline t :stipple "gray3")))
+    '((((type tty))    (:foreground "red3" :background "green"))
+      (((class color)) (:foreground "Black" :background "Green"))
+      (t	     	     (:underline t :stipple "gray3"))))
   "Face for highlighting the refinement of the selected diff in the ancestor buffer.
 At present, this face is not used and no fine differences are computed for the
 ancestor buffer."
@@ -1065,11 +1117,20 @@ this variable represents.")
 	(t "Stipple")))
 
 (defface ediff-even-diff-face-A
-  `((((type tty))    (:foreground "red3" :background "light grey"
-				  :weight bold))
-    (((type pc))     (:foreground "green3" :background "light grey"))
-    (((class color)) (:foreground "Black" :background "light grey"))
-    (t	     	     (:italic t :stipple ,stipple-pixmap)))
+  (if ediff-emacs-p
+      `((((type pc))
+	 (:foreground "green3" :background "light grey"))
+	(((class color) (min-colors 16))
+	 (:foreground "Black" :background "light grey"))
+	(((class color))
+	 (:foreground "red3" :background "light grey"
+		      :weight bold))
+	(t		     (:italic t :stipple ,stipple-pixmap)))
+    `((((type tty))    (:foreground "red3" :background "light grey"
+				    :weight bold))
+      (((type pc))     (:foreground "green3" :background "light grey"))
+      (((class color)) (:foreground "Black" :background "light grey"))
+      (t	     	     (:italic t :stipple ,stipple-pixmap))))
   "Face for highlighting even-numbered non-current differences in buffer A."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1082,9 +1143,15 @@ this variable represents.")
 (ediff-hide-face 'ediff-even-diff-face-A)
 
 (defface ediff-even-diff-face-B
-  `((((type tty))    (:foreground "blue3" :background "Grey" :weight bold))
-    (((class color)) (:foreground "White" :background "Grey"))
-    (t	     	     (:italic t :stipple ,stipple-pixmap)))
+  (if ediff-emacs-p
+      `((((class color) (min-colors 16)) 
+	 (:foreground "White" :background "Grey"))
+	(((class color))    
+	 (:foreground "blue3" :background "Grey" :weight bold))
+	(t		     (:italic t :stipple ,stipple-pixmap)))
+    `((((type tty))    (:foreground "blue3" :background "Grey" :weight bold))
+      (((class color)) (:foreground "White" :background "Grey"))
+      (t	     	     (:italic t :stipple ,stipple-pixmap))))
   "Face for highlighting even-numbered non-current differences in buffer B."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1097,11 +1164,20 @@ this variable represents.")
 (ediff-hide-face 'ediff-even-diff-face-B)
 
 (defface ediff-even-diff-face-C
-  `((((type tty))    (:foreground "yellow3" :background "light grey"
-				  :weight bold))
-    (((type pc))     (:foreground "yellow3" :background "light grey"))
-    (((class color)) (:foreground "Black" :background "light grey"))
-    (t	     	     (:italic t :stipple ,stipple-pixmap)))
+  (if ediff-emacs-p
+      `((((type pc))
+	 (:foreground "yellow3" :background "light grey"))
+	(((class color) (min-colors 16))
+	 (:foreground "Black" :background "light grey"))
+	(((class color))
+	 (:foreground "yellow3" :background "light grey"
+		      :weight bold))
+	(t		     (:italic t :stipple ,stipple-pixmap)))
+    `((((type tty))    (:foreground "yellow3" :background "light grey"
+				    :weight bold))
+      (((type pc))     (:foreground "yellow3" :background "light grey"))
+      (((class color)) (:foreground "Black" :background "light grey"))
+      (t	     	     (:italic t :stipple ,stipple-pixmap))))
   "Face for highlighting even-numbered non-current differences in buffer C."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1114,11 +1190,20 @@ this variable represents.")
 (ediff-hide-face 'ediff-even-diff-face-C)
 
 (defface ediff-even-diff-face-Ancestor
-  `((((type tty))    (:foreground "cyan3" :background "light grey"
-				  :weight bold))
-    (((type pc))     (:foreground "cyan3" :background "light grey"))
-    (((class color)) (:foreground "White" :background "Grey"))
-    (t (:italic t :stipple ,stipple-pixmap)))
+  (if ediff-emacs-p
+      `((((type pc))
+	 (:foreground "cyan3" :background "light grey"))
+	(((class color) (min-colors 16))
+	 (:foreground "White" :background "Grey"))
+	(((class color))
+	 (:foreground "cyan3" :background "light grey"
+		      :weight bold))
+	(t (:italic t :stipple ,stipple-pixmap)))
+    `((((type tty))    (:foreground "cyan3" :background "light grey"
+				    :weight bold))
+      (((type pc))     (:foreground "cyan3" :background "light grey"))
+      (((class color)) (:foreground "White" :background "Grey"))
+      (t (:italic t :stipple ,stipple-pixmap))))
   "Face for highlighting even-numbered non-current differences in the ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1138,10 +1223,18 @@ this variable represents.")
     (Ancestor . ediff-even-diff-face-Ancestor)))
 
 (defface ediff-odd-diff-face-A
-  '((((type tty))    (:foreground "red3" :background "black" :weight bold))
-    (((type pc))     (:foreground "green3" :background "gray40"))
-    (((class color)) (:foreground "White" :background "Grey"))
-    (t	     	     (:italic t :stipple "gray1")))
+  (if ediff-emacs-p
+      '((((type pc))
+	 (:foreground "green3" :background "gray40"))
+	(((class color) (min-colors 16))
+	 (:foreground "White" :background "Grey"))
+	(((class color))
+	 (:foreground "red3" :background "black" :weight bold))
+	(t		     (:italic t :stipple "gray1")))
+    '((((type tty))    (:foreground "red3" :background "black" :weight bold))
+      (((type pc))     (:foreground "green3" :background "gray40"))
+      (((class color)) (:foreground "White" :background "Grey"))
+      (t	     	     (:italic t :stipple "gray1"))))
   "Face for highlighting odd-numbered non-current differences in buffer A."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1155,10 +1248,18 @@ this variable represents.")
 
 
 (defface ediff-odd-diff-face-B
-  '((((type tty))    (:foreground "cyan3" :background "black" :weight bold))
-    (((type pc))     (:foreground "White" :background "gray40"))
-    (((class color)) (:foreground "Black" :background "light grey"))
-    (t	     	     (:italic t :stipple "gray1")))
+  (if ediff-emacs-p
+      '((((type pc))
+	 (:foreground "White" :background "gray40"))
+	(((class color) (min-colors 16))
+	 (:foreground "Black" :background "light grey"))
+	(((class color))
+	 (:foreground "cyan3" :background "black" :weight bold))
+	(t		     (:italic t :stipple "gray1")))
+    '((((type tty))    (:foreground "cyan3" :background "black" :weight bold))
+      (((type pc))     (:foreground "White" :background "gray40"))
+      (((class color)) (:foreground "Black" :background "light grey"))
+      (t	     	     (:italic t :stipple "gray1"))))
   "Face for highlighting odd-numbered non-current differences in buffer B."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1171,10 +1272,18 @@ this variable represents.")
 (ediff-hide-face 'ediff-odd-diff-face-B)
 
 (defface ediff-odd-diff-face-C
-  '((((type tty))    (:foreground "yellow3" :background "black" :weight bold))
-    (((type pc))     (:foreground "yellow3" :background "gray40"))
-    (((class color)) (:foreground "White" :background "Grey"))
-    (t	     	     (:italic t :stipple "gray1")))
+  (if ediff-emacs-p
+      '((((type pc))
+	 (:foreground "yellow3" :background "gray40"))
+	(((class color) (min-colors 16))
+	 (:foreground "White" :background "Grey"))
+	(((class color))
+	 (:foreground "yellow3" :background "black" :weight bold))
+	(t		     (:italic t :stipple "gray1")))
+    '((((type tty))    (:foreground "yellow3" :background "black" :weight bold))
+      (((type pc))     (:foreground "yellow3" :background "gray40"))
+      (((class color)) (:foreground "White" :background "Grey"))
+      (t	     	     (:italic t :stipple "gray1"))))
   "Face for highlighting odd-numbered non-current differences in buffer C."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1187,9 +1296,15 @@ this variable represents.")
 (ediff-hide-face 'ediff-odd-diff-face-C)
 
 (defface ediff-odd-diff-face-Ancestor
-  '((((type tty))    (:foreground "green3" :background "black" :weight bold))
-    (((class color)) (:foreground "cyan3" :background "gray40"))
-    (t	     	     (:italic t :stipple "gray1")))
+  (if ediff-emacs-p
+      '((((class color) (min-colors 16))
+	 (:foreground "cyan3" :background "gray40"))
+	(((class color))
+	 (:foreground "green3" :background "black" :weight bold))
+	(t		     (:italic t :stipple "gray1")))
+    '((((type tty))    (:foreground "green3" :background "black" :weight bold))
+      (((class color)) (:foreground "cyan3" :background "gray40"))
+      (t	     	     (:italic t :stipple "gray1"))))
   "Face for highlighting odd-numbered non-current differences in the ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
