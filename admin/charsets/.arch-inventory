@@ -1,0 +1,4 @@
+# Unlike most emacs dirs, admin/charsets has a simple non-autoconf-generated makefile
+source ^(Makefile)$
+
+# arch-tag: ee36cfe3-96f8-4e91-aec4-008c80a85e6b
