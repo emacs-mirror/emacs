@@ -1,5 +1,5 @@
 /* Declarations having to do with GNU Emacs syntax tables.
-   Copyright (C) 1985, 93, 94, 97, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1985, 93, 94, 97, 1998, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -110,6 +110,7 @@ enum syntaxcode
       ? XCDR (temp)						\
       : Qnil); })
 #else
+extern Lisp_Object syntax_temp;
 #define SYNTAX(c)							\
   (syntax_temp = SYNTAX_ENTRY ((c)),					\
    (CONSP (syntax_temp)							\
