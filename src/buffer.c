@@ -73,8 +73,8 @@ static Lisp_Object Vbuffer_defaults;
    The value has only one nonzero bit.
 
    When a buffer has its own local value for a slot,
-   the bit for that slot (found in the same slot in this structure)
-   is turned on in the buffer's local_var_flags slot.
+   the entry for that slot (found in the same slot in this structure)
+   is turned on in the buffer's local_flags array.
 
    If a slot in this structure is -1, then even though there may
    be a DEFVAR_PER_BUFFER for the slot, there is no default value for it;
@@ -112,7 +112,11 @@ struct buffer buffer_local_types;
 
 /* Flags indicating which built-in buffer-local variables
    are permanent locals.  */
-static int buffer_permanent_local_flags;
+static char buffer_permanent_local_flags[MAX_BUFFER_LOCAL_VARS];
+
+/* Number of per-buffer variables used.  */
+
+int max_buffer_local_idx;
 
 Lisp_Object Fset_buffer ();
 void set_buffer_internal ();
@@ -556,13 +560,7 @@ reset_buffer_local_variables (b, permanent_too)
      int permanent_too;
 {
   register int offset;
-  int dont_reset;
-
-  /* Decide which built-in local variables to reset.  */
-  if (permanent_too)
-    dont_reset = 0;
-  else
-    dont_reset = buffer_permanent_local_flags;
+  int i;
 
   /* Reset the major mode to Fundamental, together with all the
      things that depend on the major mode.
@@ -597,22 +595,24 @@ reset_buffer_local_variables (b, permanent_too)
 
   /* Reset all (or most) per-buffer variables to their defaults.  */
   b->local_var_alist = Qnil;
-  b->local_var_flags &= dont_reset;
+  for (i = 0; i < max_buffer_local_idx; ++i)
+    if (permanent_too || buffer_permanent_local_flags[i] == 0)
+      SET_BUFFER_HAS_LOCAL_VALUE_P (b, i, 0);
 
   /* For each slot that has a default value,
      copy that into the slot.  */
 
-  for (offset = (char *)&buffer_local_flags.name - (char *)&buffer_local_flags;
-       offset < sizeof (struct buffer);
-       offset += sizeof (Lisp_Object)) /* sizeof EMACS_INT == sizeof Lisp_Object */
+  for (offset = BUFFER_LOCAL_VAR_OFFSET (name);
+       offset < sizeof *b;
+       offset += sizeof (Lisp_Object))
     {
-      int flag = XINT (*(Lisp_Object *)(offset + (char *)&buffer_local_flags));
-      if ((flag > 0
-	   /* Don't reset a permanent local.  */
-	   && ! (dont_reset & flag))
-	  || flag == -2)
-	*(Lisp_Object *)(offset + (char *)b)
-	  = *(Lisp_Object *)(offset + (char *)&buffer_defaults);
+      int idx = BUFFER_LOCAL_IDX (offset);
+      if ((idx > 0
+	   && (permanent_too
+	       || buffer_permanent_local_flags[idx] == 0))
+	  /* Is -2 used anywhere?  */
+	  || idx == -2)
+	BUFFER_LOCAL_VALUE (b, offset) = BUFFER_LOCAL_DEFAULT_VALUE (offset);
     }
 }
 
@@ -757,20 +757,19 @@ No argument or nil as argument means use current buffer as BUFFER.")
 
   /* Add on all the variables stored in special slots.  */
   {
-    register int offset, mask;
+    int offset, idx;
 
-    for (offset = (char *)&buffer_local_symbols.name - (char *)&buffer_local_symbols;
+    for (offset = BUFFER_LOCAL_VAR_OFFSET (name);
 	 offset < sizeof (struct buffer);
-	 offset += (sizeof (EMACS_INT))) /* sizeof EMACS_INT == sizeof Lisp_Object */
+	 /* sizeof EMACS_INT == sizeof Lisp_Object */
+	 offset += (sizeof (EMACS_INT)))
       {
-	mask = XINT (*(Lisp_Object *)(offset + (char *)&buffer_local_flags));
-	if (mask == -1 || (buf->local_var_flags & mask))
-	  if (SYMBOLP (*(Lisp_Object *)(offset
-					+ (char *)&buffer_local_symbols)))
-	    result = Fcons (Fcons (*((Lisp_Object *)
-				     (offset + (char *)&buffer_local_symbols)),
-				   *(Lisp_Object *)(offset + (char *)buf)),
-			    result);
+	idx = BUFFER_LOCAL_IDX (offset);
+	if ((idx == -1 || BUFFER_HAS_LOCAL_VALUE_P (buf, idx))
+	    && SYMBOLP (BUFFER_LOCAL_SYMBOL (offset)))
+	  result = Fcons (Fcons (BUFFER_LOCAL_SYMBOL (offset),
+				 BUFFER_LOCAL_VALUE (buf, offset)),
+			  result);
       }
   }
 
@@ -3822,25 +3821,37 @@ buffer_slot_type_mismatch (offset)
 {
   Lisp_Object sym;
   char *type_name;
-  sym = *(Lisp_Object *)(offset + (char *)&buffer_local_symbols);
-  switch (XINT (*(Lisp_Object *)(offset + (char *)&buffer_local_types)))
+  
+  switch (XINT (BUFFER_LOCAL_TYPE (offset)))
     {
-    case Lisp_Int:	type_name = "integers";  break;
-    case Lisp_String:	type_name = "strings";   break;
-    case Lisp_Symbol:	type_name = "symbols";   break;
-
+    case Lisp_Int:
+      type_name = "integers";
+      break;
+      
+    case Lisp_String:
+      type_name = "strings";
+      break;
+      
+    case Lisp_Symbol:
+      type_name = "symbols";
+      break;
+      
     default:
       abort ();
     }
 
+  sym = BUFFER_LOCAL_SYMBOL (offset);
   error ("Only %s should be stored in the buffer-local variable %s",
 	 type_name, XSYMBOL (sym)->name->data);
 }
+
 
 void
 init_buffer_once ()
 {
-  buffer_permanent_local_flags = 0;
+  int idx;
+
+  bzero (buffer_permanent_local_flags, sizeof buffer_permanent_local_flags);
 
   /* Make sure all markable slots in buffer_defaults
      are initialized reasonably, so mark_buffer won't choke.  */
@@ -3927,40 +3938,46 @@ init_buffer_once ()
   XSETINT (buffer_local_flags.display_time, -1);
   XSETINT (buffer_local_flags.enable_multibyte_characters, -1);
 
-  XSETFASTINT (buffer_local_flags.mode_line_format, 1);
-  XSETFASTINT (buffer_local_flags.abbrev_mode, 2);
-  XSETFASTINT (buffer_local_flags.overwrite_mode, 4);
-  XSETFASTINT (buffer_local_flags.case_fold_search, 8);
-  XSETFASTINT (buffer_local_flags.auto_fill_function, 0x10);
-  XSETFASTINT (buffer_local_flags.selective_display, 0x20);
+  idx = 1;
+  XSETFASTINT (buffer_local_flags.mode_line_format, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.abbrev_mode, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.overwrite_mode, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.case_fold_search, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.auto_fill_function, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.selective_display, idx); ++idx;
 #ifndef old
-  XSETFASTINT (buffer_local_flags.selective_display_ellipses, 0x40);
+  XSETFASTINT (buffer_local_flags.selective_display_ellipses, idx); ++idx;
 #endif
-  XSETFASTINT (buffer_local_flags.tab_width, 0x80);
-  XSETFASTINT (buffer_local_flags.truncate_lines, 0x100);
-  XSETFASTINT (buffer_local_flags.ctl_arrow, 0x200);
-  XSETFASTINT (buffer_local_flags.fill_column, 0x400);
-  XSETFASTINT (buffer_local_flags.left_margin, 0x800);
-  XSETFASTINT (buffer_local_flags.abbrev_table, 0x1000);
-  XSETFASTINT (buffer_local_flags.display_table, 0x2000);
+  XSETFASTINT (buffer_local_flags.tab_width, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.truncate_lines, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.ctl_arrow, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.fill_column, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.left_margin, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.abbrev_table, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.display_table, idx); ++idx;
 #ifdef DOS_NT
-  XSETFASTINT (buffer_local_flags.buffer_file_type, 0x4000);
+  XSETFASTINT (buffer_local_flags.buffer_file_type, idx);
   /* Make this one a permanent local.  */
-  buffer_permanent_local_flags |= 0x4000;
+  buffer_permanent_local_flags[idx++] = 1;
 #endif
-  XSETFASTINT (buffer_local_flags.syntax_table, 0x8000);
-  XSETFASTINT (buffer_local_flags.cache_long_line_scans, 0x10000);
-  XSETFASTINT (buffer_local_flags.category_table, 0x20000);
-  XSETFASTINT (buffer_local_flags.direction_reversed, 0x40000);
-  XSETFASTINT (buffer_local_flags.buffer_file_coding_system, 0x80000);
+  XSETFASTINT (buffer_local_flags.syntax_table, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.cache_long_line_scans, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.category_table, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.direction_reversed, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.buffer_file_coding_system, idx); 
   /* Make this one a permanent local.  */
-  buffer_permanent_local_flags |= 0x80000;
-  XSETFASTINT (buffer_local_flags.left_margin_width, 0x100000);
-  XSETFASTINT (buffer_local_flags.right_margin_width, 0x200000);
-  XSETFASTINT (buffer_local_flags.indicate_empty_lines, 0x400000);
-  XSETFASTINT (buffer_local_flags.scroll_up_aggressively, 0x800000);
-  XSETFASTINT (buffer_local_flags.scroll_down_aggressively, 0x1000000);
-  XSETFASTINT (buffer_local_flags.header_line_format, 0x2000000);
+  buffer_permanent_local_flags[idx++] = 1;
+  XSETFASTINT (buffer_local_flags.left_margin_width, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.right_margin_width, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.indicate_empty_lines, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.scroll_up_aggressively, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.scroll_down_aggressively, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.header_line_format, idx); ++idx;
+
+  /* Need more room? */
+  if (idx >= MAX_BUFFER_LOCAL_VARS)
+    abort ();
+  max_buffer_local_idx = idx;
   
   Vbuffer_alist = Qnil;
   current_buffer = 0;
