@@ -2245,9 +2245,9 @@ and NOWAIT."
       (setq cmd1 (funcall fix-name-func cmd1)))
 
      ;; Second argument is the remote name
-     ((memq cmd0 '(append put chmod))
+     ((or (memq cmd0 '(append put chmod))
+          (and (eq cmd0 'quote) (string= cmd1 "mdtm")))
       (setq cmd2 (funcall fix-name-func cmd2)))
-
      ;; Both arguments are remote names
      ((eq cmd0 'rename)
       (setq cmd1 (funcall fix-name-func cmd1)
