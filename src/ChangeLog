@@ -1,3 +1,9 @@
+2004-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (XINT) [EXPLICIT_SIGN_EXTEND && !NO_UNION_TYPE]:
+	Don't make assumptions about the relative place of i and val.
+	(EQ) [!NO_UNION_TYPE]: Don't forget to check the type match as well.
+
 2004-04-21  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (struct glyph_slice): New struct.

@@ -2,6 +2,34 @@
 
 	* net/telnet.el (telnet): Add optional port arg.
 
+2004-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Minor sanity check on the `hyperlink' slot.
+
+	* Makefile.in (recompile): Compile new files.
+
+	* emacs-lisp/bytecomp.el (batch-byte-recompile-directory):
+	Add byte-recompile-directory's optional `arg'.
+
+	* cvs-status.el (cvs-tree-use-charset): New var.
+	(cvs-tree-char-space, cvs-tree-char-hbar, cvs-tree-char-vbar)
+	(cvs-tree-char-branch, cvs-tree-char-eob, cvs-tree-char-bob)
+	(cvs-status-cvstrees): Use it.
+
+	* emacs-lisp/checkdoc.el (checkdoc-output-mode):
+	Make it a normal major mode.
+	(checkdoc-buffer-label): Make sure the file name is meaningful.
+	(checkdoc-output-to-error-buffer): Remove.
+	(checkdoc-error, checkdoc-start-section): Rewrite.
+
+	* info.el (info-node, info-menu-5, info-xref, info-header-node)
+	(Info-title-1-face, Info-title-2-face, Info-title-3-face)
+	(Info-title-4-face): Use new syntax.
+	(info-xref-visited): Inherit from info-xref.
+
+	* progmodes/python.el (python-maybe-jython): Don't assume point-min==1.
+
 2004-04-21  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* simple.el (next-error-last-buffer, next-error-function):
@@ -38,12 +66,12 @@
 
 2004-04-21  Lars Hansen  <larsh@math.ku.dk>
 
-	* desktop.el (desktop-buffer-mode-handlers): New variable.  Alist
-	of major mode specific functions to restore a desktop buffer.
+	* desktop.el (desktop-buffer-mode-handlers): New variable.
+	Alist of major mode specific functions to restore a desktop buffer.
 	(desktop-buffer-handlers): Make variable obsolete.
-	(desktop-create-buffer): Use desktop-buffer-mode-handlers.  Catch
-	errors signaled in handlers.  Update buffer count.  Evaluate
-	desktop-buffer-point.
+	(desktop-create-buffer): Use desktop-buffer-mode-handlers.
+	Catch errors signaled in handlers.  Update buffer count.
+	Evaluate desktop-buffer-point.
 	(desktop-buffer-dired): Rename to dired-restore-desktop-buffer and
 	move to dired.el.
 	(desktop-buffer-info): Rename to Info-restore-desktop-buffer and
@@ -63,8 +91,7 @@
 	dired-desktop-buffer-misc-data and move to dired.el.
 	(desktop-buffer-info-misc-data): Rename to
 	Info-desktop-buffer-misc-data and move to info.el.
-	(desktop-read): Add message about number of buffers
-	restored/failed.
+	(desktop-read): Add message about number of buffers restored/failed.
 	* dired.el (dired-restore-desktop-buffer) Move from desktop.el.
 	Add parameters.  Pause to display error only when
 	desktop-missing-file-warning is non-nil.
