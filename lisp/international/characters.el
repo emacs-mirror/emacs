@@ -140,6 +140,9 @@
 (modify-syntax-entry ?\$A!:(B "($A!;(B")
 (modify-syntax-entry ?\$A!<(B "($A!=(B")
 (modify-syntax-entry ?\$A!>(B "($A!?(B")
+(modify-syntax-entry ?\$A#((B "($A#)(B")
+(modify-syntax-entry ?\$A#{(B "($A#}(B")
+(modify-syntax-entry ?\$A#[(B "($A#](B")
 (modify-syntax-entry ?\$A!3(B ")$A!2(B")
 (modify-syntax-entry ?\$A!5(B ")$A!4(B")
 (modify-syntax-entry ?\$A!7(B ")$A!6(B")
@@ -147,6 +150,9 @@
 (modify-syntax-entry ?\$A!;(B ")$A!:(B")
 (modify-syntax-entry ?\$A!=(B ")$A!<(B")
 (modify-syntax-entry ?\$A!?(B ")$A!>(B")
+(modify-syntax-entry ?\$A#)(B ")$A#((B")
+(modify-syntax-entry ?\$A#}(B ")$A#{(B")
+(modify-syntax-entry ?\$A#](B ")$A#[(B")
 ;; Unicode equivalents of above
 (modify-syntax-entry ?\$,2=T(B "($,2=U(B")
 (modify-syntax-entry ?\$,2=H(B "($,2=I(B")
@@ -163,6 +169,10 @@
 (modify-syntax-entry ?\$,2=W(B ")$,2=V(B")
 (modify-syntax-entry ?\$,2=Q(B ")$,2=P(B")
 
+(let ((chars "$A#,!"!##.!$#;#:#?#!!C!-!'#|#_!.!/!0!1#"!e#`!d(B"))
+  (dotimes (i (length chars))
+    (modify-syntax-entry (aref chars i) ".")))
+
 (modify-category-entry (make-char 'chinese-gb2312) ?c)
 (modify-category-entry (make-char 'chinese-gb2312) ?\|)
 (modify-category-entry (make-char 'chinese-gb2312 35) ?A)
@@ -176,6 +186,32 @@
     (setq row (1+ row))))
 
 ;; Chinese character set (BIG5)
+
+
+
+(let ((from (decode-big5-char #xA141))
+      (to (decode-big5-char #xA15D)))
+  (while (< from to)
+    (modify-syntax-entry from ".")
+    (setq from (1+ from))))
+(let ((from (decode-big5-char #xA1A5))
+      (to (decode-big5-char #xA1AD)))
+  (while (< from to)
+    (modify-syntax-entry from ".")
+    (setq from (1+ from))))
+(let ((from (decode-big5-char #xA1AD))
+      (to (decode-big5-char #xA2AF)))
+  (while (< from to)
+    (modify-syntax-entry from "_")
+    (setq from (1+ from))))
+
+(let ((parens "$(0!>!?!@!A!B!C!D!E!F!G!H!I!J!K!L!M!N!O!P!Q!R!S!T!U!V!W!X!Y!Z![!\!]!^!_!`!a!b!c(B")
+      open close)
+  (dotimes (i (/ (length parens) 2))
+    (setq open (aref parens (* i 2))
+	  close (aref parens (1+ (* i 2))))
+    (modify-syntax-entry open (format "(%c" close))
+    (modify-syntax-entry close (format ")%c" open))))
 
 (let ((generic-big5-1-char (make-char 'chinese-big5-1))
       (generic-big5-2-char (make-char 'chinese-big5-2)))
