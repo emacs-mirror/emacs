@@ -627,65 +627,61 @@ space does not end a sentence, so don't break a line there."
 		   (string-match "\\`[ \t]*\\'" fill-prefix))
 	  (setq fill-prefix nil)))
 
-      (save-restriction
-	(goto-char from)
-	(beginning-of-line)
+      (goto-char from)
+      (beginning-of-line)
 
-	(if (not justify)	  ; filling disabled: just check indentation
-	    (progn
-	      (goto-char from)
-	      (while (< (point) to)
-		(if (and (not (eolp))
-			 (< (current-indentation) (current-left-margin)))
-		    (fill-indent-to-left-margin))
-		(forward-line 1)))
-
-	  (if use-hard-newlines
-	      (remove-list-of-text-properties from to '(hard)))
-	  ;; Make sure first line is indented (at least) to left margin...
-	  (if (or (memq justify '(right center))
-		  (< (current-indentation) (current-left-margin)))
-	      (fill-indent-to-left-margin))
-	  ;; Delete the fill-prefix from every line.
-	  (fill-delete-prefix from to fill-prefix)
-	  (setq from (point))
-
-	  ;; FROM, and point, are now before the text to fill,
-	  ;; but after any fill prefix on the first line.
-
-	  (fill-delete-newlines from to justify nosqueeze squeeze-after)
-
-	  ;; This is the actual filling loop.
-	  (goto-char from)
-	  (let (linebeg)
+      (if (not justify)	  ; filling disabled: just check indentation
+	  (progn
+	    (goto-char from)
 	    (while (< (point) to)
-	      (setq linebeg (point))
-	      (move-to-column (1+ (current-fill-column)))
-	      (if (when (< (point) to)
-		    ;; Find the position where we'll break the line.
-		    (fill-move-to-break-point linebeg)
-		    ;; Check again to see if we got to the end of
-		    ;; the paragraph.
-		    (skip-chars-forward " \t")
-		    (< (point) to))
-		  ;; Found a place to cut.
-		  (progn
-		    (fill-newline)
-		    (when justify
-		      ;; Justify the line just ended, if desired.
-		      (save-excursion
-			(forward-line -1)
-			(justify-current-line justify nil t))))
+	      (if (and (not (eolp))
+		       (< (current-indentation) (current-left-margin)))
+		  (fill-indent-to-left-margin))
+	      (forward-line 1)))
 
-		(goto-char to)
-		(if (and (eolp) (or (not nosqueeze) justify))
-		    (delete-horizontal-space))
-		;; Justify this last line, if desired.
-		(if justify (justify-current-line justify t t))))))
-	;; Leave point after final newline.
-	(goto-char to))
-      (unless (eobp)
-	(forward-char 1))
+	(if use-hard-newlines
+	    (remove-list-of-text-properties from to '(hard)))
+	;; Make sure first line is indented (at least) to left margin...
+	(if (or (memq justify '(right center))
+		(< (current-indentation) (current-left-margin)))
+	    (fill-indent-to-left-margin))
+	;; Delete the fill-prefix from every line.
+	(fill-delete-prefix from to fill-prefix)
+	(setq from (point))
+
+	;; FROM, and point, are now before the text to fill,
+	;; but after any fill prefix on the first line.
+
+	(fill-delete-newlines from to justify nosqueeze squeeze-after)
+
+	;; This is the actual filling loop.
+	(goto-char from)
+	(let (linebeg)
+	  (while (< (point) to)
+	    (setq linebeg (point))
+	    (move-to-column (1+ (current-fill-column)))
+	    (if (when (< (point) to)
+		  ;; Find the position where we'll break the line.
+		  (fill-move-to-break-point linebeg)
+		  ;; Check again to see if we got to the end of
+		  ;; the paragraph.
+		  (skip-chars-forward " \t")
+		  (< (point) to))
+		;; Found a place to cut.
+		(progn
+		  (fill-newline)
+		  (when justify
+		    ;; Justify the line just ended, if desired.
+		    (save-excursion
+		      (forward-line -1)
+		      (justify-current-line justify nil t))))
+
+	      (goto-char to)
+	      ;; Justify this last line, if desired.
+	      (if justify (justify-current-line justify t t))))))
+      ;; Leave point after final newline.
+      (goto-char to)
+      (unless (eobp) (forward-char 1))
       ;; Return the fill-prefix we used
       fill-prefix)))
 
@@ -748,7 +744,6 @@ If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
 	  (if (not (zerop (forward-paragraph)))
 	      ;; There's no paragraph at or after point: give up.
 	      (setq fill-pfx "")
-	    (or (bolp) (newline 1))
 	    (let ((end (point))
 		  (beg (progn (backward-paragraph) (point))))
 	      (goto-char before)
@@ -828,19 +823,14 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 		   (paragraph-ignore-fill-prefix nil)
 		   (fill-prefix comment-fill-prefix)
 		   (after-line (if has-code-and-comment
-				   (line-beginning-position 2)))
-		   )
-	      (setq end (progn
-			  (forward-paragraph)
-			  (or (bolp) (newline 1))
-			  (point)))
+				   (line-beginning-position 2))))
+	      (setq end (progn (forward-paragraph) (point)))
 	      ;; If this comment starts on a line with code,
 	      ;; include that line in the filling.
 	      (setq beg (progn (backward-paragraph)
 			       (if (eq (point) after-line)
 				   (forward-line -1))
-			       (point))))
-	    )
+			       (point)))))
 
 	  ;; Find the fill-prefix to use.
 	  (cond
