@@ -130,9 +130,9 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 		 "Now using full screen for Calc"
 	       "Now using partial screen for Calc"))))
 
-(defun calc-other-window ()
+(defun calc-other-window (&optional interactive)
   "Invoke the Calculator in another window."
-  (interactive)
+  (interactive "p")
   (if (memq major-mode '(calc-mode calc-trail-mode))
       (progn
 	(other-window 1)
@@ -141,7 +141,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
     (if (get-buffer-window "*Calculator*")
 	(calc-quit)
       (let ((win (selected-window)))
-	(calc nil win (interactive-p))))))
+	(calc nil win interactive)))))
 
 (defun another-calc ()
   "Create another, independent Calculator buffer."
