@@ -1523,6 +1523,7 @@ BUFFER can be a buffer or buffer name.")
     }
 
   w->buffer = buffer;
+  w->hscroll = 0;
   Fset_marker (w->pointm,
 	       make_number (BUF_PT (XBUFFER (buffer))),
 	       buffer);
