@@ -116,7 +116,7 @@
 ;;; Code:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Variables
+;; Internal Variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (make-variable-buffer-local
@@ -158,20 +158,33 @@ Each entry in the list looks like this:
 Do not add entries to this list directly; use `define-generic-mode' 
 instead (which see).")
 
-(defvar generic-use-find-file-hook t
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Customization Variables
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defcustom generic-use-find-file-hook t
   "*If non-nil, add a hook to enter default-generic-mode automatically
 if the first few lines of a file in fundamental mode start with a hash 
-comment character.")
+comment character."
+  :group 'generic
+  :type  'boolean
+  )
 
-(defvar generic-lines-to-scan 3
+(defcustom generic-lines-to-scan 3
   "*Number of lines that `generic-mode-find-file-hook' looks at 
 when deciding whether to enter generic-mode automatically. 
-This variable should be set to a small positive number.")
+This variable should be set to a small positive number."
+  :group 'generic
+  :type  'integer
+  )
 
-(defvar generic-find-file-regexp "#.*\n\\(.*\n\\)?"
+(defcustom generic-find-file-regexp "#.*\n\\(.*\n\\)?"
   "*Regular expression used by `generic-mode-find-file-hook'
 to determine if files in fundamental mode should be put into
-`default-generic-mode' instead.")
+`default-generic-mode' instead."
+  :group 'generic
+  :type  'regexp
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Inline functions
@@ -189,7 +202,7 @@ to determine if files in fundamental mode should be put into
 (defsubst generic-mode-sanity-check (name comment-list   keyword-list   
 					  font-lock-list auto-mode-list  
 					  function-list  &optional description)
-  (if (not (symbolp name))
+  (and (not (symbolp name))
       (error "%s is not a symbol" (princ name)))
 
   (mapcar '(lambda (elt) 
@@ -198,7 +211,7 @@ to determine if files in fundamental mode should be put into
 	  (list comment-list   keyword-list font-lock-list 
 		auto-mode-list function-list))
 
-  (if (not (or (null description) (stringp description)))
+  (and (not (or (null description) (stringp description)))
       (error "Description must be a string or nil"))
 )
 
@@ -273,12 +286,12 @@ non-nil, prepends entries to auto-mode-alist; otherwise, appends them."
       (error "%s is not a list" (princ auto-mode-list)))
 
   (let ((new-mode (intern (symbol-name mode))))
-    (if remove-old
-	(let ((auto-mode-entry))
-	  (while (setq auto-mode-entry (rassq new-mode auto-mode-alist))
-	    (setq auto-mode-alist
-		  (delq auto-mode-entry
-			auto-mode-alist)))))
+    (and remove-old
+	 (let ((auto-mode-entry))
+	   (while (setq auto-mode-entry (rassq new-mode auto-mode-alist))
+	     (setq auto-mode-alist
+		   (delq auto-mode-entry
+			 auto-mode-alist)))))
 
     (mapcar '(lambda (entry) 
 	       (generic-add-auto-mode-entry new-mode entry prepend))
@@ -310,9 +323,9 @@ If DESCRIPTION is provided, it is used as the docstring."
 	 (generic-mode-list  (assoc type generic-mode-alist))
 	 )
 
-    (if (not generic-mode-list)
-	(error "Can't find generic-mode information for type %s"
-	       (princ generic-mode-name)))
+    (and (not generic-mode-list)
+	 (error "Can't find generic-mode information for type %s"
+		(princ generic-mode-name)))
 
     ;; Put this after the point where we read generic-mode-name!
     (kill-all-local-variables)
@@ -339,8 +352,8 @@ If DESCRIPTION is provided, it is used as the docstring."
     (setq font-lock-defaults (list 'generic-font-lock-defaults nil))
 
     ;; Call a list of functions
-    (if generic-mode-function-list
-	(mapcar 'funcall generic-mode-function-list))
+    (and generic-mode-function-list
+	 (mapcar 'funcall generic-mode-function-list))
     )
   )
 
@@ -382,8 +395,8 @@ Some generic modes are defined in `generic-x.el'."
 		    comment))
 	    )
 	 (generic-mode-set-comment-char comment)))
-  (if (consp comment)
-      (generic-mode-set-comment-pair comment)))
+  (and (consp comment)
+       (generic-mode-set-comment-pair comment)))
 
 (defun generic-mode-set-comment-char (comment-char)
   "Set the given character as a comment character for generic mode."
@@ -439,11 +452,11 @@ Some generic modes are defined in `generic-x.el'."
      )
 
     ;; Sanity checks
-    (if (not (and (stringp generic-comment-start)
-		  (stringp generic-comment-end)))
-	(error "Elements of cons pair must be strings"))
-    (if (not (and (equal (length generic-comment-start) 2)
-		  (equal (length generic-comment-end) 2)))
+    (and (not (and (stringp generic-comment-start)
+		   (stringp generic-comment-end)))
+	 (error "Elements of cons pair must be strings"))
+    (and (not (and (equal (length generic-comment-start) 2)
+		   (equal (length generic-comment-end) 2)))
 	(error "Start and end must be exactly two characters long"))
 
     (let ((first   (elt generic-comment-start 0))
@@ -482,7 +495,7 @@ Some generic modes are defined in `generic-x.el'."
   "Set up font-lock functionality for generic mode."
   (let ((generic-font-lock-expressions))
     ;; Keywords
-    (if keywords
+    (and keywords
 	(setq
 	 generic-font-lock-expressions
 	 (append
@@ -495,14 +508,13 @@ Some generic modes are defined in `generic-x.el'."
 	    1 'font-lock-keyword-face))
 	  generic-font-lock-expressions)))
     ;; Other font-lock expressions
-    (if font-lock-expressions
+    (and font-lock-expressions
 	(setq generic-font-lock-expressions
 	      (append
 	       font-lock-expressions
 	       generic-font-lock-expressions)))
-    (if (not (or font-lock-expressions keywords))
-	nil
-      (setq generic-font-lock-defaults generic-font-lock-expressions))
+    (and (or font-lock-expressions keywords)
+	 (setq generic-font-lock-defaults generic-font-lock-expressions))
     ))
 
 ;; Support for [KEYWORD] constructs found in INF, INI and Samba files
@@ -526,10 +538,10 @@ comment character. This hook will be installed if the variable
 determines the number of lines to look at."
   (if (not (eq major-mode 'fundamental-mode))
       nil
-    (if (or (> 1  generic-lines-to-scan)
-	    (< 50 generic-lines-to-scan))
-	(error "Variable `generic-lines-to-scan' should be set to a small"
-	       " positive number"))
+    (and (or (> 1  generic-lines-to-scan)
+	     (< 50 generic-lines-to-scan))
+	 (error "Variable `generic-lines-to-scan' should be set to a small"
+		" positive number"))
     (let ((comment-regexp "")
 	  (count 0)
 	  )
@@ -539,19 +551,18 @@ determines the number of lines to look at."
 	(setq count (1+ count)))
       (save-excursion
 	(goto-char (point-min))
-	(if (looking-at comment-regexp)
-	    (generic-mode-with-type 'default-generic-mode))))))
+	(and (looking-at comment-regexp)
+	     (generic-mode-with-type 'default-generic-mode))))))
 
 (defun generic-mode-ini-file-find-file-hook ()
   "Hook to enter default-generic-mode automatically 
 if the first few lines of a file in fundamental-mode look like an INI file.
 This hook is NOT installed by default." 
-  (if (not (eq major-mode 'fundamental-mode))
-      nil
-    (save-excursion
-      (goto-char (point-min))
-      (if (looking-at "^\\s-*\\[.*\\]")
-	  (generic-mode-with-type 'ini-generic-mode)))))
+  (and (eq major-mode 'fundamental-mode)
+       (save-excursion
+	 (goto-char (point-min))
+	 (and (looking-at "^\\s-*\\[.*\\]")
+	      (generic-mode-with-type 'ini-generic-mode)))))
 
 (and generic-use-find-file-hook
     (add-hook 'find-file-hooks 'generic-mode-find-file-hook))
@@ -563,8 +574,8 @@ The regexp is highlighted with FACE."
   ;; Don't check here; face may not be defined yet
   ;;   (if (not (facep face))
   ;;       (error "Face %s is not defined" (princ face)))
-  (if (not (listp keywords-list))
-      (error "Keywords argument must be a list of strings"))
+  (and (not (listp keywords-list))
+       (error "Keywords argument must be a list of strings"))
   (list
    (concat 
     (or prefix "")
