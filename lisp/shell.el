@@ -287,7 +287,7 @@ Otherwise, one argument `-i' is passed to the shell.
 ;;; changes the current directory of the shell buffer accordingly.
 ;;;
 ;;; This is basically a fragile hack, although it's more accurate than
-;;; the released version in shell.el. It has the following failings:
+;;; the version in Emacs 18's shell.el. It has the following failings:
 ;;; 1. It doesn't know about the cdpath shell variable.
 ;;; 2. It only spots the first command in a command sequence. E.g., it will
 ;;;    miss the cd in "ls; cd foo"
