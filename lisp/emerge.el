@@ -28,25 +28,25 @@
 
 ;;;###autoload
 (define-key menu-bar-emerge-menu [emerge-merge-directories]
-  '("Merge Directories ..." . emerge-merge-directories))
+  '("Merge Directories..." . emerge-merge-directories))
 ;;;###autoload
 (define-key menu-bar-emerge-menu [emerge-revisions-with-ancestor]
-  '("Revisions with Ancestor ..." . emerge-revisions-with-ancestor))
+  '("Revisions with Ancestor..." . emerge-revisions-with-ancestor))
 ;;;###autoload
 (define-key menu-bar-emerge-menu [emerge-revisions]
-  '("Revisions ..." . emerge-revisions))
+  '("Revisions..." . emerge-revisions))
 ;;;###autoload
 (define-key menu-bar-emerge-menu [emerge-files-with-ancestor]
-  '("Files with Ancestor ..." . emerge-files-with-ancestor))
+  '("Files with Ancestor..." . emerge-files-with-ancestor))
 ;;;###autoload
 (define-key menu-bar-emerge-menu [emerge-files]
-  '("Files ..." . emerge-files))
+  '("Files..." . emerge-files))
 ;;;###autoload
 (define-key menu-bar-emerge-menu [emerge-buffers-with-ancestor]
-  '("Buffers with Ancestor ..." . emerge-buffers-with-ancestor))
+  '("Buffers with Ancestor..." . emerge-buffers-with-ancestor))
 ;;;###autoload
 (define-key menu-bar-emerge-menu [emerge-buffers]
-  '("Buffers ..." . emerge-buffers))
+  '("Buffers..." . emerge-buffers))
 
 ;;; Macros
 
