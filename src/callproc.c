@@ -776,15 +776,13 @@ init_callproc ()
   register char * sh;
   Lisp_Object tempdir;
 
-  if (initialized && !NILP (Vinvocation_directory))
+  if (initialized && !NILP (Vinstallation_directory))
     {
-      /* Add to the path the ../lib-src dir of the Emacs executable,
-	 if that dir exists.  */
-      Lisp_Object tem, tem1;
-      tem = Fexpand_file_name (build_string ("../lib-src"),
-			       Vinvocation_directory);
-      tem1 = Ffile_exists_p (tem);
-      if (!NILP (tem1) && NILP (Fmember (tem, Vexec_path)))
+      /* Add to the path the lib-src subdir of the installation dir.  */
+      Lisp_Object tem;
+      tem = Fexpand_file_name (build_string ("lib-src"),
+			       Vinstallation_directory);
+      if (NILP (Fmember (tem, Vexec_path)))
 	{
 	  Vexec_path = nconc2 (Vexec_path, Fcons (tem, Qnil));
 	  Vexec_directory = Ffile_name_as_directory (tem);
@@ -793,13 +791,9 @@ init_callproc ()
 	     Do so if ../etc exists and has our DOC-... file in it.  */
 	  if (data_dir == 0)
 	    {
-	      Lisp_Object tem, tem2, tem3;
-	      tem = Fexpand_file_name (build_string ("../etc"),
-				       Vinvocation_directory);
-	      tem2 = Fexpand_file_name (Vdoc_file_name, tem);
-	      tem3 = Ffile_exists_p (tem2);
-	      if (!NILP (tem3))
-		Vdata_directory = Ffile_name_as_directory (tem);
+	      tem = Fexpand_file_name (build_string ("etc"),
+				       Vinstallation_directory);
+	      Vdata_directory = Ffile_name_as_directory (tem);
 	    }
 	}
     }
