@@ -75,6 +75,7 @@ XtAppContext Xt_app_con;
 Widget Xt_app_shell;
 
 extern void free_frame_menubar ();
+extern void free_frame_menubar ();
 #endif /* USE_X_TOOLKIT */
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
@@ -2134,6 +2135,9 @@ be shared by the new frame.")
      And the frame needs to be on Vframe_list
      or making it visible won't work.  */
   Vframe_list = Fcons (frame, Vframe_list);
+
+  /* Compute the size of the menubar and display it.  */
+  initialize_frame_menubar (f);
 
   /* Make the window appear on the frame and enable display,
      unless the caller says not to.  */
