@@ -141,8 +141,10 @@
 ;; Seeing all the matching buffers
 ;;
 ;; If you have many matching buffers, they may not all fit onto one
-;; line of the minibuffer.  In this case, you should use rsz-mini
-;; (resize-minibuffer-mode).  You can also limit iswitchb so that it
+;; line of the minibuffer.  In Emacs 21, the variable
+;; `resize-mini-windows' controls how many lines of the minibuffer can
+;; be seen.  For older versions of emacs, you can use
+;; `resize-minibuffer-mode'.  You can also limit iswitchb so that it
 ;; only shows a certain number of lines -- see the documentation for
 ;; `iswitchb-minibuffer-setup-hook'.
 
