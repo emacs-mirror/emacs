@@ -15969,14 +15969,13 @@ store_mode_line_string (string, lisp_string, copy_string, field_width, precision
 
 
 DEFUN ("format-mode-line", Fformat_mode_line, Sformat_mode_line,
-       0, 4, 0,
+       1, 4, 0,
        doc: /* Return the mode-line of selected window as a string.
-First optional arg FORMAT specifies the mode line format (see
-`mode-line-format' for details) to use.  If FORMAT is t, return
-the buffer's header-line.  Second optional arg WINDOW specifies a
-different window to use as the context for the formatting.
-If third optional arg NO-PROPS is non-nil, string is not propertized.
-Fourth optional arg BUFFER specifies which buffer to use.  */)
+First arg FORMAT specifies the mode line format (see `mode-line-format' for
+details) to use.  Second optional arg WINDOW specifies a different window to
+use as the context for the formatting.  If third optional arg NO-PROPS is
+non-nil, string is not propertized.  Fourth optional arg BUFFER specifies
+which buffer to use.  */)
   (format, window, no_props, buffer)
      Lisp_Object format, window, no_props, buffer;
 {
@@ -16000,16 +15999,6 @@ Fourth optional arg BUFFER specifies which buffer to use.  */)
     {
       old_buffer = current_buffer;
       set_buffer_internal_1 (XBUFFER (buffer));
-    }
-
-  if (NILP (format) || EQ (format, Qt))
-    {
-      face_id = (NILP (format)
-		 ? CURRENT_MODE_LINE_FACE_ID (w)
-		 : HEADER_LINE_FACE_ID);
-      format = (NILP (format)
-		? current_buffer->mode_line_format
-		: current_buffer->header_line_format);
     }
 
   init_iterator (&it, w, -1, -1, NULL, face_id);
