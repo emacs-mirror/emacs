@@ -201,14 +201,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define EMACS_GET_TZ_OFFSET(offset)					\
   do {									\
     tzset ();								\
-    (offset) = timezone;						\
-  }
+    *(offset) = timezone;						\
+  } while (0)
 #endif
 
 /* The following sane systems have a tzname array.  The timezone() function
    is a stupid idea; timezone names can only be determined geographically,
    not by Greenwich offset.  */
-#if defined (ultrix) || defined (hpux) || defined (_AIX)
+#if defined (ultrix) || defined (hpux) || defined (_AIX) || defined (USG)
 
 #define EMACS_GET_TZ_NAMES(standard, savings)				\
   do {									\
