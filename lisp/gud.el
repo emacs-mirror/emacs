@@ -1,4 +1,4 @@
-;;; gud.el --- Grand Unified Debugger mode for gdb, dbx, etc. under Emacs
+;;; gud.el --- Grand Unified Debugger mode for gdb, sdb, dbx, xdb or perldb
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
