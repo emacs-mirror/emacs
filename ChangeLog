@@ -1,3 +1,8 @@
+2002-03-03  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (install-arch-indep): Use umask 022 for DOC* and lisp/.
+	Run chown $${LOGNAME} on files installed by tar xvf.
+
 2002-03-03  Kim F. Storm  <storm@cua.dk>
 
 	* configure.in: Test for getpeername.
