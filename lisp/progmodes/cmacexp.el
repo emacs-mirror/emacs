@@ -265,10 +265,7 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 	(startstat ())
 	(startmarker "")
 	(exit-status 0)
-	(tempname (make-temp-name (concat
-				   (or (getenv "TMPDIR") (getenv "TEMP")
-				       (getenv "TMP") "/tmp")
-				   "/"))))
+	(tempname (make-temp-name (file-name-directory system-tmp-directory))))
     (unwind-protect
 	(save-excursion
 	  (save-restriction
