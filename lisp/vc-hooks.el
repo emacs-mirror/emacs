@@ -3,9 +3,9 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Version: 4.0
+;; Version: 5.0
 
-;;	$Id: vc-hooks.el,v 1.6 1992/10/24 20:07:08 rms Exp rms $	
+;;	$Id: vc-hooks.el,v 1.48 1993/03/15 21:42:57 esr Exp $	
 
 ;; This file is part of GNU Emacs.
 
@@ -51,6 +51,9 @@ the make-backup-files variable.  Otherwise, prevents backups being made.")
 ;; control state of a file is expensive to derive --- we don't
 ;; want to recompute it even on every find.
 
+(defmacro vc-error-occurred (&rest body)
+  (list 'condition-case nil (cons 'progn (append body '(nil))) '(error t)))
+
 (defvar vc-file-prop-obarray [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
   "Obarray for per-file properties.")
 
@@ -65,40 +68,29 @@ the make-backup-files variable.  Otherwise, prevents backups being made.")
 ;;; actual version-control code starts here
 
 (defun vc-registered (file)
-  (let (handler handlers)
-    (if (boundp 'file-name-handler-alist)
-	(save-match-data
-	  (setq handlers file-name-handler-alist)
-	  (while (and (consp handlers) (null handler))
-	    (if (and (consp (car handlers))
-		     (stringp (car (car handlers)))
-		     (string-match (car (car handlers)) file))
-		(setq handler (cdr (car handlers))))
-	    (setq handlers (cdr handlers)))))
-    (if handler
-	(funcall handler 'vc-registered file)
-      ;; Search for a master corresponding to the given file
-      (let ((dirname (or (file-name-directory file) ""))
-	    (basename (file-name-nondirectory file)))
-	(catch 'found
-	  (mapcar
-	   (function (lambda (s)
-	      (let ((trial (format (car s) dirname basename)))
-		(if (and (file-exists-p trial)
-			 ;; Make sure the file we found with name
-			 ;; TRIAL is not the source file itself.
-			 ;; That can happen with RCS-style names
-			 ;; if the file name is truncated
-			 ;; (e.g. to 14 chars).  See if either
-			 ;; directory or attributes differ.
-			 (or (not (string= dirname
-					   (file-name-directory trial)))
-			     (not (equal
-				   (file-attributes file)
-				   (file-attributes trial)))))
-		    (throw 'found (cons trial (cdr s)))))))
-	   vc-master-templates)
-	  nil)))))
+  ;; Search for a master corresponding to the given file
+  (let ((dirname (or (file-name-directory file) ""))
+	(basename (file-name-nondirectory file)))
+    (catch 'found
+      (mapcar
+       (function (lambda (s)
+	  (let ((trial (format (car s) dirname basename)))
+	    (if (and (file-exists-p trial)
+		     ;; Make sure the file we found with name
+		     ;; TRIAL is not the source file itself.
+		     ;; That can happen with RCS-style names
+		     ;; if the file name is truncated
+		     ;; (e.g. to 14 chars).  See if either
+		     ;; directory or attributes differ.
+		     (or (not (string= dirname
+				       (file-name-directory trial)))
+			 (not (equal
+			       (file-attributes file)
+			       (file-attributes trial)))))
+		(throw 'found (cons trial (cdr s)))))))
+       vc-master-templates)
+      nil)
+    ))
 
 (defun vc-backend-deduce (file)
   "Return the version-control type of a file, nil if it is not registered"
@@ -107,7 +99,7 @@ the make-backup-files variable.  Otherwise, prevents backups being made.")
 	   (vc-file-setprop file 'vc-backend (cdr (vc-registered file))))))
 
 (defun vc-toggle-read-only ()
-  "If the file in the current buffer is under version control, perform the
+  "If the file in the current buffer id under version control, perform the
 logical next version-control action; otherwise, just toggle the buffer's
 read-only flag."
   (interactive)
@@ -119,7 +111,6 @@ read-only flag."
   "Set `vc-mode-string' to display type of version control for FILE.
 The value is set in the current buffer, which should be the buffer
 visiting FILE."
-  (interactive (list buffer-file-name nil))
   (let ((vc-type (vc-backend-deduce file)))
     (if vc-type
 	(progn
@@ -134,9 +125,6 @@ visiting FILE."
 
 ;;; install a call to the above as a find-file hook
 (defun vc-find-file-hook ()
-  ;; Recompute whether file is version controlled,
-  ;; if user has killed the buffer and revisited.
-  (vc-file-setprop buffer-file-name 'vc-backend nil)
   (if (and (vc-mode-line buffer-file-name) (not vc-make-backup-files))
       (progn
 	(make-local-variable 'make-backup-files)
@@ -170,7 +158,7 @@ Returns t if checkout was successful, nil otherwise."
       (define-key global-map "\C-xv" vc-prefix-map)
       (define-key vc-prefix-map "a" 'vc-update-change-log)
       (define-key vc-prefix-map "c" 'vc-cancel-version)
-      (define-key vc-prefix-map "d" 'vc-directory)
+      (define-key vc-prefix-map "=" 'vc-diff)
       (define-key vc-prefix-map "h" 'vc-insert-headers)
       (define-key vc-prefix-map "i" 'vc-register)
       (define-key vc-prefix-map "l" 'vc-print-log)
@@ -178,9 +166,10 @@ Returns t if checkout was successful, nil otherwise."
       (define-key vc-prefix-map "s" 'vc-create-snapshot)
       (define-key vc-prefix-map "u" 'vc-revert-buffer)
       (define-key vc-prefix-map "v" 'vc-next-action)
-      (define-key vc-prefix-map "=" 'vc-diff)
+      (define-key vc-prefix-map "d" 'vc-directory)
       ))
 
 (provide 'vc-hooks)
 
 ;;; vc-hooks.el ends here
+
