@@ -860,6 +860,13 @@ If there is no such live buffer, return nil."
 		 (setq list (cdr list))))
 	  found))))
 
+(defcustom find-file-wildcards t
+  "*Non-nil means file-visiting commands should handle wildcards.
+For example, if you specify `*.c', that would visit all the files
+whose names match the pattern."
+  :group 'files
+  :type 'boolean)
+
 (defun find-file-noselect (filename &optional nowarn rawfile)
   "Read file FILENAME into a buffer and return the buffer.
 If a buffer exists visiting FILENAME, return that one, but
@@ -876,91 +883,97 @@ Optional second arg RAWFILE non-nil means the file is read literally."
 			      (abbreviate-file-name (file-truename filename))
 			    filename))
 	(error "%s is a directory" filename))
-    (let* ((buf (get-file-buffer filename))
-	   (truename (abbreviate-file-name (file-truename filename)))
-	   (number (nthcdr 10 (file-attributes truename)))
-	   ;; Find any buffer for a file which has same truename.
-	   (other (and (not buf) (find-buffer-visiting filename))))
-      ;; Let user know if there is a buffer with the same truename.
-      (if other
-	  (progn
-	    (or nowarn
-		(string-equal filename (buffer-file-name other))
-		(message "%s and %s are the same file"
-			 filename (buffer-file-name other)))
-	    ;; Optionally also find that buffer.
-	    (if (or find-file-existing-other-name find-file-visit-truename)
-		(setq buf other))))
-      (if buf
-	  ;; We are using an existing buffer.
-	  (progn
-	    (or nowarn
-		(verify-visited-file-modtime buf)
-		(cond ((not (file-exists-p filename))
-		       (error "File %s no longer exists!" filename))
-		      ;; Certain files should be reverted automatically
-		      ;; if they have changed on disk and not in the buffer.
-		      ((and (not (buffer-modified-p buf))
-			    (let ((tail revert-without-query)
-				  (found nil))
-			      (while tail
-				(if (string-match (car tail) filename)
-				    (setq found t))
-				(setq tail (cdr tail)))
-			      found))
-		       (with-current-buffer buf
-			 (message "Reverting file %s..." filename)
-			 (revert-buffer t t)
-			 (message "Reverting file %s...done" filename)))
-		      ((yes-or-no-p
-			(if (string= (file-name-nondirectory filename)
-				     (buffer-name buf))
+    (if (and find-file-wildcards
+	     (string-match "[[*?]" filename))
+	(let ((files (file-expand-wildcards filename t))
+	      (find-file-wildcards nil))
+	  (car (mapcar #'(lambda (fn) (find-file-noselect fn))
+		       files)))
+      (let* ((buf (get-file-buffer filename))
+	     (truename (abbreviate-file-name (file-truename filename)))
+	     (number (nthcdr 10 (file-attributes truename)))
+	     ;; Find any buffer for a file which has same truename.
+	     (other (and (not buf) (find-buffer-visiting filename))))
+	;; Let user know if there is a buffer with the same truename.
+	(if other
+	    (progn
+	      (or nowarn
+		  (string-equal filename (buffer-file-name other))
+		  (message "%s and %s are the same file"
+			   filename (buffer-file-name other)))
+	      ;; Optionally also find that buffer.
+	      (if (or find-file-existing-other-name find-file-visit-truename)
+		  (setq buf other))))
+	(if buf
+	    ;; We are using an existing buffer.
+	    (progn
+	      (or nowarn
+		  (verify-visited-file-modtime buf)
+		  (cond ((not (file-exists-p filename))
+			 (error "File %s no longer exists!" filename))
+			;; Certain files should be reverted automatically
+			;; if they have changed on disk and not in the buffer.
+			((and (not (buffer-modified-p buf))
+			      (let ((tail revert-without-query)
+				    (found nil))
+				(while tail
+				  (if (string-match (car tail) filename)
+				      (setq found t))
+				  (setq tail (cdr tail)))
+				found))
+			 (with-current-buffer buf
+			   (message "Reverting file %s..." filename)
+			   (revert-buffer t t)
+			   (message "Reverting file %s...done" filename)))
+			((yes-or-no-p
+			  (if (string= (file-name-nondirectory filename)
+				       (buffer-name buf))
+			      (format
+			       (if (buffer-modified-p buf)
+				   "File %s changed on disk.  Discard your edits? "
+				 "File %s changed on disk.  Reread from disk? ")
+			       (file-name-nondirectory filename))
 			    (format
 			     (if (buffer-modified-p buf)
-				 "File %s changed on disk.  Discard your edits? "
-			       "File %s changed on disk.  Reread from disk? ")
-			     (file-name-nondirectory filename))
-			  (format
-			   (if (buffer-modified-p buf)
-			       "File %s changed on disk.  Discard your edits in %s? "
-			     "File %s changed on disk.  Reread from disk into %s? ")
-			   (file-name-nondirectory filename)
-			   (buffer-name buf))))
-		       (with-current-buffer buf
-			 (revert-buffer t t)))))
-	    (with-current-buffer buf
-	      (when (not (eq (not (null rawfile))
-			     (not (null find-file-literally))))
-		(if (buffer-modified-p)
-		    (if (y-or-n-p (if rawfile
-				      "Save file and revisit literally? "
-				    "Save file and revisit non-literally? "))
-			(progn
-			  (save-buffer)
-			  (find-file-noselect-1 buf filename nowarn
-						rawfile truename number))
+				 "File %s changed on disk.  Discard your edits in %s? "
+			       "File %s changed on disk.  Reread from disk into %s? ")
+			     (file-name-nondirectory filename)
+			     (buffer-name buf))))
+			 (with-current-buffer buf
+			   (revert-buffer t t)))))
+	      (with-current-buffer buf
+		(when (not (eq (not (null rawfile))
+			       (not (null find-file-literally))))
+		  (if (buffer-modified-p)
 		      (if (y-or-n-p (if rawfile
-					"Discard your edits and revisit file literally? "
-				      "Discard your edits and revisit file non-literally? "))
-			  (find-file-noselect-1 buf filename nowarn
-						rawfile truename number)
-			(error (if rawfile "File already visited non-literally"
-				 "File already visited literally"))))
-		  (if (y-or-n-p (if rawfile
-				    "Revisit file literally? "
-				  "Revisit file non-literally? "))
-		      (find-file-noselect-1 buf filename nowarn
-					    rawfile truename number)
-		    (error (if rawfile "File already visited non-literally"
-			     "File already visited literally"))))))
-	    ;; Return the buffer we are using.
-	    buf)
-	;; Create a new buffer.
-	(setq buf (create-file-buffer filename))
-	(set-buffer-major-mode buf)
-	;; find-file-noselect-1 may use a different buffer.
-	(find-file-noselect-1 buf filename nowarn
-			      rawfile truename number)))))
+					"Save file and revisit literally? "
+				      "Save file and revisit non-literally? "))
+			  (progn
+			    (save-buffer)
+			    (find-file-noselect-1 buf filename nowarn
+						  rawfile truename number))
+			(if (y-or-n-p (if rawfile
+					  "Discard your edits and revisit file literally? "
+					"Discard your edits and revisit file non-literally? "))
+			    (find-file-noselect-1 buf filename nowarn
+						  rawfile truename number)
+			  (error (if rawfile "File already visited non-literally"
+				   "File already visited literally"))))
+		    (if (y-or-n-p (if rawfile
+				      "Revisit file literally? "
+				    "Revisit file non-literally? "))
+			(find-file-noselect-1 buf filename nowarn
+					      rawfile truename number)
+		      (error (if rawfile "File already visited non-literally"
+			       "File already visited literally"))))))
+	      ;; Return the buffer we are using.
+	      buf)
+	  ;; Create a new buffer.
+	  (setq buf (create-file-buffer filename))
+	  (set-buffer-major-mode buf)
+	  ;; find-file-noselect-1 may use a different buffer.
+	  (find-file-noselect-1 buf filename nowarn
+				rawfile truename number))))))
 
 (defun find-file-noselect-1 (buf filename nowarn rawfile truename number)
   (let ((inhibit-read-only t)
@@ -3026,6 +3039,12 @@ by `sh' are supported."
   "*Switches for list-directory to pass to `ls' for verbose listing,"
   :type 'string
   :group 'dired)
+
+(defun file-expand-wildcards (pattern &optional full)
+  "Expand wildcard pattern PATTERN.
+This returns a list of file names which match the pattern."
+  (directory-files (file-name-directory pattern) full
+		   (wildcard-to-regexp (file-name-nondirectory pattern))))
 
 (defun list-directory (dirname &optional verbose)
   "Display a list of files in or matching DIRNAME, a la `ls'.
