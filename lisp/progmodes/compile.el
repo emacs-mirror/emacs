@@ -303,6 +303,11 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;; Error 24 at (2:progran.f90) : syntax error
     ("Error [0-9]+ at (\\([0-9]*\\):\\([^)\n]+\\))" 2 1)
 
+    ;; SGI IRIX MipsPro compilers:
+    ;; cc-1070 cc: ERROR File = linkl.c, Line = 38
+    (".*: ERROR File = \\(.+\\), Line = \\([0-9]+\\)" 1 2)
+    (".*: WARNING File = \\(.+\\), Line = \\([0-9]+\\)" 1 2)
+
     ;; Sun F90 error messages:
     ;; cf90-113 f90comp: ERROR NSE, File = Hoved.f90, Line = 16, Column = 3 
     (".* ERROR [a-zA-Z0-9 ]+, File = \\(.+\\), Line = \\([0-9]+\\), Column = \\([0-9]+\\)"
