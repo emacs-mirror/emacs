@@ -82,13 +82,10 @@
 (defvar font-lock-reference-face 'font-lock-reference-face
   "Face to use for references.")
 
-(defvar font-lock-no-comments nil
-  "Non-nil means Font Lock should not fontify comments or strings.")
-
 (make-variable-buffer-local 'font-lock-keywords)
 (defvar font-lock-keywords nil
-  "*The keywords to highlight.
-Elements should be of the form:
+  "*A list of the keywords to highlight.
+Each element should be of the form:
 
  MATCHER
  (MATCHER . MATCH)
@@ -119,60 +116,100 @@ the wrong pattern can dramatically slow things down!")
 The value should look like the `cdr' of an item in `font-lock-defaults-alist'.")
 
 (defvar font-lock-defaults-alist
-  (let ((tex-mode-defaults '(tex-font-lock-keywords nil nil ((?$ . "\""))))
+  (let (
+	;; For C and Lisp modes we use `beginning-of-defun', rather than nil,
+	;; for SYNTAX-BEGIN.  Thus the calculation of the cache is faster but
+	;; not infallible, so we risk mis-fontification.  --sm
 	(c-mode-defaults
 	 '((c-font-lock-keywords c-font-lock-keywords-1 c-font-lock-keywords-2)
-	   nil nil ((?_ . "w"))))
+	   nil nil ((?\_ . "w")) beginning-of-defun))
 	(c++-mode-defaults
 	 '((c++-font-lock-keywords c++-font-lock-keywords-1 
 				   c++-font-lock-keywords-2)
-	   nil nil ((?_ . "w"))))
+	   nil nil ((?\_ . "w")) beginning-of-defun))
 	(lisp-mode-defaults
 	 '((lisp-font-lock-keywords lisp-font-lock-keywords-1
 				    lisp-font-lock-keywords-2)
-	   nil nil ((?: . "w") (?- . "w") (?* . "w")))))
+	   nil nil ((?\: . "w") (?\- . "w") (?\* . "w"))
+	   beginning-of-defun))
+	(scheme-mode-defaults
+	 '(scheme-font-lock-keywords
+	   nil nil ((?\: . "w") (?\- . "w") (?\* . "w") (?\/ . "w"))
+	   beginning-of-defun))
+	;; For TeX modes we could use `backward-paragraph' for the same reason.
+	(tex-mode-defaults '(tex-font-lock-keywords nil nil ((?\$ . "\""))))
+	)
     (list
-     (cons 'bibtex-mode		tex-mode-defaults)
-     (cons 'c++-c-mode		c-mode-defaults)
-     (cons 'c++-mode		c++-mode-defaults)
-     (cons 'c-mode		c-mode-defaults)
-     (cons 'emacs-lisp-mode	lisp-mode-defaults)
-     (cons 'latex-mode		tex-mode-defaults)
-     (cons 'lisp-mode		lisp-mode-defaults)
-     (cons 'plain-tex-mode	tex-mode-defaults)
-     (cons 'scheme-mode		lisp-mode-defaults)
-     (cons 'slitex-mode		tex-mode-defaults)
-     (cons 'tex-mode		tex-mode-defaults)))
+     (cons 'bibtex-mode			tex-mode-defaults)
+     (cons 'c++-c-mode			c-mode-defaults)
+     (cons 'c++-mode			c++-mode-defaults)
+     (cons 'c-mode			c-mode-defaults)
+     (cons 'emacs-lisp-mode		lisp-mode-defaults)
+     (cons 'inferior-scheme-mode	scheme-mode-defaults)
+     (cons 'latex-mode			tex-mode-defaults)
+     (cons 'lisp-mode			lisp-mode-defaults)
+     (cons 'lisp-interaction-mode	lisp-mode-defaults)
+     (cons 'plain-tex-mode		tex-mode-defaults)
+     (cons 'scheme-mode			scheme-mode-defaults)
+     (cons 'scheme-interaction-mode	scheme-mode-defaults)
+     (cons 'slitex-mode			tex-mode-defaults)
+     (cons 'tex-mode			tex-mode-defaults)))
   "*Alist of default major mode and Font Lock defaults.
 Each item should be a list of the form:
- (MAJOR-MODE . (FONT-LOCK-KEYWORDS KEYWORDS-ONLY CASE-FOLD FONT-LOCK-SYNTAX))
-where MAJOR-MODE is a symbol, and FONT-LOCK-KEYWORDS may be a symbol or a list
-of symbols.  If KEYWORDS-ONLY is non-nil, syntactic fontification (strings and
+
+ (MAJOR-MODE . (KEYWORDS KEYWORDS-ONLY CASE-FOLD SYNTAX-ALIST SYNTAX-BEGIN))
+
+where MAJOR-MODE is a symbol, and KEYWORDS may be a symbol or a list of
+symbols.  If KEYWORDS-ONLY is non-nil, syntactic fontification (strings and
 comments) is not performed.  If CASE-FOLD is non-nil, the case of the keywords
-is ignored when fontifying.  FONT-LOCK-SYNTAX should be a list of cons pairs of
-the form (CHAR . STRING), it is used to set the local Font Lock syntax table
-for keyword fontification.")
+is ignored when fontifying.  If SYNTAX-ALIST is non-nil, it should be a list of
+cons pairs of the form (CHAR . STRING) used to set the local Font Lock syntax
+table for keyword and syntactic fontification.  (See `modify-syntax-entry'.)
+
+SYNTAX-BEGIN should be a function, it is called with no args to move outside of
+a syntactic block for syntactic fontification.  Typical values are nil
+\(equivalent to `beginning-of-buffer'), `beginning-of-line' (i.e., the start of
+the line is known to be outside a syntactic block), or `beginning-of-defun' for
+programming modes or `backward-paragraph' for textual modes (i.e., the
+mode-dependent function is known to move outside a syntactic block).
+
+These item elements are used by Font Lock mode to set the variables
+`font-lock-keywords', `font-lock-no-comments',
+`font-lock-keywords-case-fold-search', `font-lock-syntax-table' and
+`font-lock-beginning-of-syntax-function', respectively.")
+
+(defvar font-lock-no-comments nil
+  "*Non-nil means Font Lock should not fontify comments or strings.
+This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-keywords-case-fold-search nil
-  "*Non-nil means the patterns in `font-lock-keywords' are case-insensitive.")
+  "*Non-nil means the patterns in `font-lock-keywords' are case-insensitive.
+This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-syntax-table nil
   "Non-nil means use this syntax table for fontifying.
-If this is nil, the major mode's syntax table is used.")
+If this is nil, the major mode's syntax table is used.
+This is normally set via `font-lock-defaults'.")
+
+(defvar font-lock-beginning-of-syntax-function nil
+  "*Non-nil means use this function to move outside of a syntactic block.
+If this is nil, `beginning-of-buffer' is used.
+This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-verbose t
   "*Non-nil means `font-lock-fontify-buffer' should print status messages.")
 
 ;;;###autoload
 (defvar font-lock-maximum-decoration nil
-  "Non-nil means use the maximum decoration for fontifying.
+  "*If non-nil, the maximum decoration for fontifying.
 If nil, use the default decoration (typically the minimum available).
 If t, use the maximum decoration available.
 If a number, use that level of decoration (or if not available the maximum).")
 
+;;;###autoload
 (defvar font-lock-maximum-size
   (if font-lock-maximum-decoration (* 150 1024) (* 300 1024))
-  "*If non-nil, the maximum size for buffers.
+  "*If non-nil, the maximum size for buffers for fontifying.
 Only buffers less than this can be fontified when Font Lock mode is turned on.
 If nil, means size is irrelevant.")
 
@@ -305,14 +342,21 @@ See `font-lock-make-face' and `list-faces-display'."
 		       (font-lock-type-face "PaleGreen")
 		       (font-lock-reference-face "Aquamarine")))))))
   ;; Now make the faces if we have to.
-  (mapcar (function (lambda (face-attributes)
+  (mapcar (function
+	   (lambda (face-attributes)
 	     (let ((face (nth 0 face-attributes)))
-               (if override
-                   (font-lock-make-face face-attributes)
-                 (if (not (and (boundp face) (facep (symbol-value face))))
-                     (if (facep face)
-                         (set face face)
-                       (font-lock-make-face face-attributes)))))))
+	       (cond (override
+		      ;; We can stomp all over it anyway.  Get outta my face!
+		      (font-lock-make-face face-attributes))
+		     ((and (boundp face) (facep (symbol-value face)))
+		      ;; The variable exists and is already bound to a face.
+		      nil)
+		     ((facep face)
+		      ;; We already have a face so we bind the variable to it.
+		      (set face face))
+		     (t
+		      ;; No variable or no face.
+		      (font-lock-make-face face-attributes))))))
 	  font-lock-face-attributes))
 
 (defun font-lock-make-face (face-attributes)
@@ -366,7 +410,8 @@ the face is also set; its value is the face name."
       (goto-char start)
       (beginning-of-line)
       (if loudly (message "Fontifying %s... (syntactically...)" (buffer-name)))
-      (let ((inhibit-read-only t) (buffer-undo-list t) (buffer-file-name)
+      (let ((inhibit-read-only t) (buffer-undo-list t)
+	    buffer-file-name buffer-file-truename
 	    (modified (buffer-modified-p))
 	    (old-syntax (syntax-table))
 	    (synstart (if comment-start-skip
@@ -379,20 +424,36 @@ the face is also set; its value is the face name."
 	    state prev prevstate)
 	(unwind-protect
 	    (progn
+	      ;;
+	      ;; Use the fontification syntax table, if any.
 	      (if font-lock-syntax-table
 		  (set-syntax-table font-lock-syntax-table))
-	      ;; Find the state at the line-beginning before START.
+	      ;;
+	      ;; Find the state at the `beginning-of-line' before `start'.
 	      (if (eq startline font-lock-cache-position)
+		  ;; Use the cache for the state of `startline'.
 		  (setq state font-lock-cache-state)
-		;; Find outermost containing sexp.
-		(beginning-of-defun)
-		;; Find the state at STARTLINE.
-		(while (< (point) startline)
-		  (setq state (parse-partial-sexp (point) startline 0)))
+		;; Find the state of `startline'.
+		(if (null font-lock-beginning-of-syntax-function)
+		    ;; Use the state at the previous cache position, if any, or
+		    ;; otherwise calculate from `point-min'.
+		    (if (or (null font-lock-cache-position)
+			    (< startline font-lock-cache-position))
+			(setq state (parse-partial-sexp
+				     (point-min) startline))
+		      (setq state (parse-partial-sexp
+				   font-lock-cache-position startline
+				   nil nil font-lock-cache-state)))
+		  ;; Call the function to move outside any syntactic block.
+		  (funcall font-lock-beginning-of-syntax-function)
+		  (setq state (parse-partial-sexp (point) startline)))
+		;; Cache the state and position of `startline'.
 		(setq font-lock-cache-state state
-		      font-lock-cache-position (point)))
-	      ;; Now find the state precisely at START.
-	      (setq state (parse-partial-sexp (point) start nil nil state))
+		      font-lock-cache-position startline))
+	      ;;
+	      ;; Now find the state at `start' based on that of `startline'.
+	      (setq state (parse-partial-sexp startline start nil nil state))
+	      ;;
 	      ;; If the region starts inside a string, show the extent of it.
 	      (if (nth 3 state)
 		  (let ((beg (point)))
@@ -402,6 +463,7 @@ the face is also set; its value is the face name."
 		    (put-text-property beg (point) 'face font-lock-string-face)
 		    (setq state (parse-partial-sexp beg (point)
 						    nil nil state))))
+	      ;;
 	      ;; Likewise for a comment.
 	      (if (or (nth 4 state) (nth 7 state))
 		  (let ((beg (point)))
@@ -419,7 +481,8 @@ the face is also set; its value is the face name."
 				       font-lock-comment-face)
 		    (setq state (parse-partial-sexp beg (point)
 						    nil nil state))))
-	      ;; Find each interesting place between here and END.
+	      ;;
+	      ;; Find each interesting place between here and `end'.
 	      (while (and (< (point) end)
 			  (setq prev (point) prevstate state)
 			  (re-search-forward synstart end t)
@@ -432,6 +495,7 @@ the face is also set; its value is the face name."
 							    nil nil state))))
 		(let ((here (point)))
 		  (if (or (nth 4 state) (nth 7 state))
+		      ;;
 		      ;; We found a real comment start.
 		      (let ((beg (match-beginning 0)))
 			(goto-char beg)
@@ -449,6 +513,8 @@ the face is also set; its value is the face name."
 			(setq state (parse-partial-sexp here (point)
 							nil nil state)))
 		    (if (nth 3 state)
+			;;
+			;; We found a real string start.
 			(let ((beg (match-beginning 0)))
 			  (while (and (re-search-forward "\\s\"" end 'move)
 				      (nth 3 (parse-partial-sexp
@@ -457,20 +523,23 @@ the face is also set; its value is the face name."
 					     font-lock-string-face)
 			  (setq state (parse-partial-sexp here (point)
 							  nil nil state))))))
-		;; Make sure PREV is non-nil after the loop
+		;;
+		;; Make sure `prev' is non-nil after the loop
 		;; only if it was set on the very last iteration.
 		(setq prev nil)))
+	  ;;
+	  ;; Clean up.
 	  (set-syntax-table old-syntax)
 	  (and prev
 	       (remove-text-properties prev end '(face nil)))
 	  (and (buffer-modified-p)
 	       (not modified)
 	       (set-buffer-modified-p nil)))))))
-	  
 
 (defun font-lock-unfontify-region (beg end)
   (let ((modified (buffer-modified-p))
-	(buffer-undo-list t) (inhibit-read-only t) (buffer-file-name))
+	(buffer-undo-list t) (inhibit-read-only t)
+	buffer-file-name buffer-file-truename)
     (remove-text-properties beg end '(face nil))
     (and (buffer-modified-p)
 	 (not modified)
@@ -562,12 +631,13 @@ the face is also set; its value is the face name."
 			   font-lock-keywords
 			 (font-lock-compile-keywords))))
 	(count 0)
-	(inhibit-read-only t) (buffer-undo-list t) (buffer-file-name)
+	(inhibit-read-only t) (buffer-undo-list t)
+	buffer-file-name buffer-file-truename
 	(modified (buffer-modified-p))
 	(old-syntax (syntax-table))
 	(bufname (buffer-name)))
     (unwind-protect
-	(let (keyword matcher highlights)
+	(let (keyword matcher highlights lowdarks)
 	  (if loudly (message "Fontifying %s... (regexps...)" bufname))
 	  (if font-lock-syntax-table (set-syntax-table font-lock-syntax-table))
 	  (while keywords
@@ -577,7 +647,12 @@ the face is also set; its value is the face name."
 	    (while (if (stringp matcher)
                        (re-search-forward matcher end t)
                      (funcall matcher end))
-	      (mapcar 'font-lock-apply-highlight highlights))
+	      ;; An explicit `while' loop is slightly faster than a `mapcar'.
+	      ;(mapcar 'font-lock-apply-highlight highlights)
+	      (setq lowdarks highlights)
+	      (while lowdarks
+		(font-lock-apply-highlight (car lowdarks))
+		(setq lowdarks (cdr lowdarks))))
 	    (if loudly (message "Fontifying %s... (regexps...%s)" bufname
 				(make-string (setq count (1+ count)) ?.)))))
       (set-syntax-table old-syntax)
@@ -717,23 +792,79 @@ size, you can use \\[font-lock-fontify-buffer]."
 	 (not modified)
 	 (set-buffer-modified-p nil))
     (font-lock-after-fontify-buffer)))
+
+(defun font-lock-choose-keywords (keywords level)
+  ;; Return LEVELth element of KEYWORDS.  A LEVEL of nil is equal to a
+  ;; LEVEL of 0, a LEVEL of t is equal to (1- (length KEYWORDS)).
+  (cond ((symbolp keywords)
+	 keywords)
+	((numberp level)
+	 (or (nth level keywords) (car (reverse keywords))))
+	((eq level t)
+	 (car (reverse keywords)))
+	(t
+	 (car keywords))))
+
+(defun font-lock-set-defaults ()
+  "Set fontification defaults appropriately for this mode.
+Sets `font-lock-keywords', `font-lock-no-comments', `font-lock-syntax-table'
+and `font-lock-keywords-case-fold-search' using `font-lock-defaults' (or, if
+nil, using `font-lock-defaults-alist') and `font-lock-maximum-decoration'."
+  ;; Set face defaults.
+  (font-lock-make-faces)
+  ;; Set fontification defaults.
+  (or font-lock-keywords
+      (let ((defaults (or font-lock-defaults
+			  (cdr (assq major-mode font-lock-defaults-alist)))))
+	;; Keywords?
+	(setq font-lock-keywords
+	      (font-lock-compile-keywords
+	       (eval (font-lock-choose-keywords (nth 0 defaults)
+		      font-lock-maximum-decoration))))
+	;; Syntactic?
+	(if (nth 1 defaults)
+	    (set (make-local-variable 'font-lock-no-comments) t))
+	;; Case fold?
+	(if (nth 2 defaults)
+	    (set (make-local-variable 'font-lock-keywords-case-fold-search) t))
+	;; Syntax table?
+	(if (nth 3 defaults)
+	    (let ((slist (nth 3 defaults)))
+	      (set (make-local-variable 'font-lock-syntax-table)
+		   (copy-syntax-table (syntax-table)))
+	      (while slist
+		(modify-syntax-entry (car (car slist)) (cdr (car slist))
+				     font-lock-syntax-table)
+		(setq slist (cdr slist)))))
+	;; Syntactic cache function?
+	(if (nth 4 defaults)
+	    (set (make-local-variable 'font-lock-beginning-of-syntax-function)
+		 (nth 4 defaults))))))
 
 ;;; Various information shared by several modes.
 ;;; Information specific to a single mode should go in its load library.
 
 (defconst lisp-font-lock-keywords-1
   (list
-   ;; highlight defining forms.  This doesn't work too nicely for
-   ;; (defun (setf foo) ...) but it does work for (defvar foo) which
-   ;; is more important.
-   (list (concat "^(\\(def\\(const\\|ine-key\\(\\|-after\\)\\|var\\)\\)\\>"
-		 "[ \t']*\\([^ \t\n\(\)]+\\)?")
-	 '(1 font-lock-keyword-face) '(4 font-lock-variable-name-face nil t))
-   (list (concat "^(\\(def[^ \t\n\(\)]+\\|eval-"
-		 "\\(a\\(fter-load\\|nd-compile\\)\\|when-compile\\)\\)\\>"
-		 "[ \t']*\\([^ \t\n\(\)]+\\)?")
-	 '(1 font-lock-keyword-face) '(4 font-lock-function-name-face nil t))
-   )
+   ;; Everything not a variable or type declaration is fontified as a function.
+   ;; It would be cleaner to allow preceding whitespace, but it would also be
+   ;; about five times slower.
+   (list (concat "^(\\(def\\("
+		 ;; Variable declarations.
+		 "\\(const\\(\\|ant\\)\\|ine-key\\(\\|-after\\)\\|var\\)\\|"
+		 ;; Structure declarations.
+		 "\\(class\\|struct\\|type\\)\\|"
+		 ;; Everything else is a function declaration.
+		 "\\([^ \t\n\(\)]+\\)"
+		 "\\)\\)\\>"
+		 ;; Any whitespace and declared object.
+		 "[ \t'\(]*"
+		 "\\([^ \t\n\)]+\\)?")
+	 '(1 font-lock-keyword-face)
+	 '(8 (cond ((match-beginning 3) font-lock-variable-name-face)
+		   ((match-beginning 6) font-lock-type-face)
+		   (t font-lock-function-name-face))
+	     nil t)))
  "Subdued level highlighting Lisp modes.")
 
 (defconst lisp-font-lock-keywords-2
@@ -742,19 +873,22 @@ size, you can use \\[font-lock-fontify-buffer]."
      (list
       ;;
       ;; Control structures.  ELisp and CLisp combined.
-;    ("cond" "if" "while" "let\\*?" "prog[nv12*]?" "catch" "throw"
-;     "save-restriction" "save-excursion" "save-window-excursion"
-;     "save-selected-window" "save-match-data" "unwind-protect"
-;     "condition-case" "track-mouse"
-;     "when" "unless" "do" "flet" "labels" "return" "return-from")
+;      (make-regexp
+;       '("cond" "if" "while" "let\\*?" "prog[nv12*]?" "catch" "throw"
+;	 "save-restriction" "save-excursion" "save-window-excursion"
+;	 "save-selected-window" "save-match-data" "unwind-protect"
+;	 "condition-case" "track-mouse"
+;	 "eval-after-load" "eval-and-compile" "eval-when-compile"
+;	 "when" "unless" "do" "flet" "labels" "return" "return-from"))
       (cons
        (concat
 	"(\\("
-	"c\\(atch\\|ond\\(\\|ition-case\\)\\)\\|do\\|flet\\|if\\|"
-	"l\\(abels\\|et\\*?\\)\\|prog[nv12*]?\\|return\\(\\|-from\\)\\|"
-	"save-\\(excursion\\|match-data\\|restriction\\|"
-	"selected-window\\|window-excursion\\)\\|t\\(hrow\\|rack-mouse\\)\\|"
-	"un\\(less\\|wind-protect\\)\\|wh\\(en\\|ile\\)"
+	"\\(c\\(atch\\|ond\\(\\|ition-case\\)\\)\\|do\\|"
+	"eval-\\(a\\(fter-load\\|nd-compile\\)\\|when-compile\\)\\|flet\\|"
+	"if\\|l\\(abels\\|et\\*?\\)\\|prog[nv12*]?\\|return\\(\\|-from\\)\\|"
+	"save-\\(excursion\\|match-data\\|restriction\\|selected-window\\|"
+	"window-excursion\\)\\|t\\(hrow\\|rack-mouse\\)\\|"
+	"un\\(less\\|wind-protect\\)\\|wh\\(en\\|ile\\)\\)"
 	"\\)\\>") 1)
       ;;
       ;; Function names in emacs-lisp docstrings (in the syntax that
@@ -776,6 +910,32 @@ size, you can use \\[font-lock-fontify-buffer]."
 
 (defvar lisp-font-lock-keywords lisp-font-lock-keywords-1
   "Default expressions to highlight in Lisp modes.")
+
+
+(defvar scheme-font-lock-keywords
+  (list
+   ;;
+   ;; Declarations.
+   '("^[ \t]*(\\(define\\)\\>[ \t]*(?\\([^ \t\n\)]+\\)?"
+     (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
+   ;;
+   ;; Control structures.
+;(make-regexp '("begin" "call-with-current-continuation" "call/cc"
+;	       "call-with-input-file" "call-with-output-file" "case" "cond"
+;	       "define-syntax" "do" "else" "for-each" "if" "lambda"
+;	       "let-syntax" "let\\*?" "letrec" "letrec-syntax"
+;	       ;; Stefan Monnier <stefan.monnier@epfl.ch> says don't bother.
+;	       ;;"quasiquote" "quote" "unquote" "unquote-splicing"
+;	       "map" "syntax" "syntax-rules"))
+   (cons
+    (concat "(\\("
+	    "begin\\|c\\(a\\(ll\\(-with-\\(current-continuation\\|"
+	    "input-file\\|output-file\\)\\|/cc\\)\\|se\\)\\|ond\\)\\|"
+	    "d\\(efine-syntax\\|o\\)\\|else\\|for-each\\|if\\|"
+	    "l\\(ambda\\|et\\(-syntax\\|\\*?\\|rec\\(\\|-syntax\\)\\)\\)\\|"
+	    "map\\|syntax\\(\\|-rules\\)"
+	    "\\)\\>") 1))
+  "Default expressions to highlight in Scheme modes.")
 
 
 (defconst c-font-lock-keywords-1 nil
@@ -886,14 +1046,14 @@ size, you can use \\[font-lock-fontify-buffer]."
     (cons (concat "\\<\\(" c++-type-types "\\)\\>") 'font-lock-type-face)
     (list (concat "\\<\\(" c++-type-types "\\)[ \t*&]+"
 		  "\\(" ctoken "[ \t*&]+\\)*"
-		  "\\(" ctoken "\\)[ \t]*\\((\\)?")
+		  "\\(" ctoken "\\)[ \t<>=!+-]*\\((\\)?")
 	  14
 	  '(if (match-beginning 15)
 	       font-lock-function-name-face
 	     font-lock-variable-name-face))
     (list (concat "^" ctoken "[ \t*]+"
 		  "\\(" ctoken "[ \t*]+\\)*"
-		  "\\(" ctoken "\\)[ \t]*\\((\\)?")
+		  "\\(" ctoken "\\)[ \t<>=!+-]*\\((\\)?")
 	  2
 	  '(if (match-beginning 3)
 	       font-lock-function-name-face
@@ -911,64 +1071,38 @@ size, you can use \\[font-lock-fontify-buffer]."
 (defvar c++-font-lock-keywords c++-font-lock-keywords-1
   "Default expressions to highlight in C++ mode.")
 
+
 (defvar tex-font-lock-keywords
-  ;; Regexps updated with help from Ulrik Dickow <dickow@nbi.dk>.
+;  ;; Regexps updated with help from Ulrik Dickow <dickow@nbi.dk>.
+;  '(("\\\\\\(begin\\|end\\|newcommand\\){\\([a-zA-Z0-9\\*]+\\)}"
+;     2 font-lock-function-name-face)
+;    ("\\\\\\(cite\\|label\\|pageref\\|ref\\){\\([^} \t\n]+\\)}"
+;     2 font-lock-reference-face)
+;    ;; It seems a bit dubious to use `bold' and `italic' faces since we might
+;    ;; not be able to display those fonts.
+;    ("{\\\\bf\\([^}]+\\)}" 1 'bold keep)
+;    ("{\\\\\\(em\\|it\\|sl\\)\\([^}]+\\)}" 2 'italic keep)
+;    ("\\\\\\([a-zA-Z@]+\\|.\\)" . font-lock-keyword-face)
+;    ("^[ \t\n]*\\\\def[\\\\@]\\(\\w+\\)" 1 font-lock-function-name-face keep))
+  ;; Rewritten and extended for LaTeX2e by Ulrik Dickow <dickow@nbi.dk>.
   '(("\\\\\\(begin\\|end\\|newcommand\\){\\([a-zA-Z0-9\\*]+\\)}"
      2 font-lock-function-name-face)
     ("\\\\\\(cite\\|label\\|pageref\\|ref\\){\\([^} \t\n]+\\)}"
      2 font-lock-reference-face)
+    ("^[ \t]*\\\\def\\\\\\(\\(\\w\\|@\\)+\\)" 1 font-lock-function-name-face)
+    ("\\\\\\([a-zA-Z@]+\\|.\\)" . font-lock-keyword-face)
     ;; It seems a bit dubious to use `bold' and `italic' faces since we might
     ;; not be able to display those fonts.
-    ("{\\\\bf\\([^}]+\\)}" 1 'bold keep)
-    ("{\\\\\\(em\\|it\\|sl\\)\\([^}]+\\)}" 2 'italic keep)
-    ("\\\\\\([a-zA-Z@]+\\|.\\)" . font-lock-keyword-face)
-    ("^[ \t\n]*\\\\def[\\\\@]\\(\\w+\\)" 1 font-lock-function-name-face keep))
-  "Additional expressions to highlight in TeX mode.")
-
-(defun font-lock-choose-keywords (keywords level)
-  ;; Return evaled LEVELth element of KEYWORDS.  A LEVEL of nil is equal to a
-  ;; LEVEL of 0, a LEVEL of t is equal to (1- (length KEYWORDS)).
-  (cond ((symbolp keywords)
-	 keywords)
-	((numberp level)
-	 (or (nth level keywords) (car (reverse keywords))))
-	((eq level t)
-	 (car (reverse keywords)))
-	(t
-	 (car keywords))))
-
-(defun font-lock-set-defaults ()
-  "Set fontification defaults appropriately for this mode.
-Sets `font-lock-keywords', `font-lock-no-comments', `font-lock-syntax-table'
-and `font-lock-keywords-case-fold-search' using `font-lock-defaults' (or, if
-nil, using `font-lock-defaults-alist') and `font-lock-maximum-decoration'."
-  ;; Set face defaults.
-  (font-lock-make-faces)
-  ;; Set fontification defaults.
-  (or font-lock-keywords
-      (let ((defaults (or font-lock-defaults
-			  (cdr (assq major-mode font-lock-defaults-alist)))))
-	;; Keywords?
-	(setq font-lock-keywords
-	      (font-lock-compile-keywords
-	       (eval (font-lock-choose-keywords (nth 0 defaults)
-		      font-lock-maximum-decoration))))
-	;; Syntactic?
-	(if (nth 1 defaults)
-	    (set (make-local-variable 'font-lock-no-comments) t))
-	;; Case fold?
-	(if (nth 2 defaults)
-	    (set (make-local-variable 'font-lock-keywords-case-fold-search) t))
-	;; Syntax table?
-	(if (nth 3 defaults)
-	    (let ((slist (nth 3 defaults)))
-	      (set (make-local-variable 'font-lock-syntax-table)
-		   (copy-syntax-table (syntax-table)))
-	      (while slist
-		(modify-syntax-entry (car (car slist)) (cdr (car slist))
-				     font-lock-syntax-table)
-		(setq slist (cdr slist))))))))
-
+    ;; LaTeX2e: \emph{This is emphasized}.
+    ("\\\\emph{\\([^}]+\\)}" 1 'italic keep)
+    ;; LaTeX2e: \textbf{This is bold}, \textit{...}, \textsl{...}
+    ("\\\\text\\(\\(bf\\)\\|it\\|sl\\){\\([^}]+\\)}"
+     3 (if (match-beginning 2) 'bold 'italic) keep)
+    ;; Old-style bf/em/it/sl. Stop at `\\' and un-escaped `&', for good tables.
+    ("\\\\\\(\\(bf\\)\\|em\\|it\\|sl\\)\\>\\(\\([^}&\\]\\|\\\\[^\\]\\)+\\)"
+     3 (if (match-beginning 2) 'bold 'italic) keep))
+  "Additional expressions to highlight in TeX modes.")
+
 ;; Install ourselves:
 
 (or (assq 'font-lock-mode minor-mode-alist)
