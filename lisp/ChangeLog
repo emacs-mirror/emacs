@@ -1,3 +1,8 @@
+2002-04-22  Richard M. Stallman  <rms@gnu.org>
+
+	* dired.el (dired-mouse-find-file-other-window):
+	Handle events that move out of the window.
+
 2002-04-23  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-cmds.el (c-mask-comment): Fixed bug where point
