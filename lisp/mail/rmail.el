@@ -67,10 +67,14 @@ value is the user's name.)
 It is useful to set this variable in the site customization file.")
 
 ;;;###autoload
-(defvar rmail-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^status:\\|\
+(defvar rmail-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:\\|^\\(resent-\\|\\)message-id:\\|^summary-line:" "\
 ^received:\\|^x400-originator:\\|^x400-recipients:\\|^x400-received:\\|\
 ^x400-mts-identifier:\\|^x400-content-type:\\|^message-id:\\|^summary-line:"
   "*Regexp to match Header fields that Rmail should normally hide.")
+
+;;;###autoload
+(defvar rmail-retry-ignored-headers nil "\
+*Headers that should be stripped when retrying a failed message.")
 
 ;;;###autoload
 (defvar rmail-highlighted-headers "^From:\\|^Subject:" "\
@@ -96,10 +100,6 @@ and the value of the environment variable MAIL overrides it).")
 ;;;###autoload
 (defvar rmail-mail-new-frame nil
   "*Non-nil means Rmail makes a new frame for composing outgoing mail.")
-
-;;;###autoload
-(defvar rmail-retry-setup-hook nil
-  "Hook that `rmail-retry-failure' uses in place of `mail-setup-hook'.")
 
 ;;;###autoload
 (defvar rmail-secondary-file-directory "~/"
@@ -1165,14 +1165,15 @@ This function runs `rmail-get-new-mail-hook' before saving the updated file."
     (if rmail-ignored-headers (rmail-clear-headers))
     (if rmail-message-filter (funcall rmail-message-filter))))
 
-(defun rmail-clear-headers ()
+(defun rmail-clear-headers (&optional ignored-headers)
+  (or ignored-headers (setq ignored-headers rmail-ignored-headers))
   (if (search-forward "\n\n" nil t)
       (save-restriction
-        (narrow-to-region (point-min) (point))
+	(narrow-to-region (point-min) (point))
 	(let ((buffer-read-only nil))
 	  (while (let ((case-fold-search t))
 		   (goto-char (point-min))
-		   (re-search-forward rmail-ignored-headers nil t))
+		   (re-search-forward ignored-headers nil t))
 	    (beginning-of-line)
 	    (delete-region (point)
 			   (progn (re-search-forward "\n[^ \t]")
@@ -2150,10 +2151,12 @@ typically for purposes of moderating a list."
 For a message rejected by the mail system, extract the interesting headers and
 the body of the original message.
 The variable `mail-unsent-separator' should match the string that
-delimits the returned original message."
+delimits the returned original message.
+The variable `rmail-retry-ignored-headers' is a regular expression
+specifying headers which should not be copied into the new message."
   (interactive)
   (require 'mail-utils)
-  (let (to subj irp2 cc orig-message)
+  (let (mail-buffer bounce-start bounce-end resending)
     (save-excursion
       ;; Narrow down to just the quoted original message
       (rmail-beginning-of-message)
@@ -2170,33 +2173,39 @@ delimits the returned original message."
 	      (progn
 		(search-forward "\n\n")
 		(skip-chars-forward "\n")))
+	  (beginning-of-line)
 	  (narrow-to-region (point) (point-max))
-	  (goto-char (point-min))
-	  (search-forward "\n\n")
-	  (narrow-to-region (point-min) (point))
-	  ;; Now mail-fetch-field will get from headers of the original message,
-	  ;; not from the headers of the rejection.
-	  (setq to   (mail-fetch-field "To")
-		subj (mail-fetch-field "Subject")
-		irp2 (mail-fetch-field "In-reply-to")
-		cc   (mail-fetch-field "Cc"))
-	  ;; Get the entire text (not headers) of the original message.
-	  (goto-char (point-max))
-	  (widen)
-	  (setq orig-message
-		(buffer-substring (point) old-end)))))
+	  (setq mail-buffer (current-buffer)
+		bounce-start (point)
+		bounce-end (point-max))
+	  (or (search-forward "\n\n" nil t)
+	      (error "Cannot find end of header in failed message")))))
     ;; Start sending a new message; default header fields from the original.
     ;; Turn off the usual actions for initializing the message body
     ;; because we want to get only the text from the failure message.
-    (let (mail-signature
-	  (mail-setup-hook rmail-retry-setup-hook))
-      (if (rmail-start-mail nil to subj irp2 cc (current-buffer))
+    (let (mail-signature mail-setup-hook)
+      (if (rmail-start-mail nil nil nil nil nil mail-buffer)
 	  ;; Insert original text as initial text of new draft message.
 	  (progn
-	    (goto-char (point-max))
-	    (insert orig-message)
+	    (erase-buffer)
+	    (insert-buffer-substring mail-buffer bounce-start bounce-end)
 	    (goto-char (point-min))
-	    (end-of-line))))))
+	    (rmail-clear-headers rmail-retry-ignored-headers)
+	    (rmail-clear-headers "^sender:")
+	    (goto-char (point-min))
+	    (save-restriction
+	      (search-forward "\n\n")
+	      (forward-line -1)
+	      (narrow-to-region (point-min) (point))
+	      (setq resending (mail-fetch-field "resent-to"))
+	      (if mail-self-blind
+		  (if resending
+		      (insert "Resent-Bcc: " (user-login-name) "\n")
+		    (insert "BCC: " (user-login-name) "\n"))))
+	    (insert mail-header-separator)
+	    (mail-position-on-field (if resending "Resent-To" "To") t)
+	    (set-buffer mail-buffer)
+	    (rmail-beginning-of-message))))))
 
 (defun rmail-bury ()
   "Bury current Rmail buffer and its summary buffer."
