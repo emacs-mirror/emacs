@@ -133,7 +133,9 @@
 			     files)))
       (setq emacs-version (format "%s.%d"
 				  emacs-version
-				  (1+ (apply 'max versions))))))
+				  (if versions
+				      (1+ (apply 'max versions))
+				    1)))))
 
 ;; Note: all compiled Lisp files loaded above this point
 ;; must be among the ones parsed by make-docfile
