@@ -47,7 +47,7 @@ description of aspects specific to the Mac.
 group.
 
 ** The user option `backward-delete-char-untabify-method' controls the
-behaviour of `backward-delete-char-untabify'.  [This change was made
+behavior of `backward-delete-char-untabify'.  [This change was made
 in Emacs 20.3 but not mentioned then.]
 
 ** The new user-option `confirm-kill-emacs' can be customized to
@@ -795,7 +795,7 @@ number, Emacs chooses a new window start so that point ends up that
 fraction of the window's height from the top of the window.
 
 When scrolling down because point is below the window end, if the
-value of the buffer-local variable `scroll-down-aggessively' is a
+value of the buffer-local variable `scroll-down-aggressively' is a
 number, Emacs chooses a new window start so that point ends up that
 fraction of the window's height from the bottom of the window.
 
@@ -956,7 +956,7 @@ entries if user-option `change-log-version-info-enabled' is non-nil.
 +++
 *** Unless the file is under version control the search for a file's
 version number is performed based on regular expressions from
-`change-log-version-number-regexp-list' which can be cutomized.
+`change-log-version-number-regexp-list' which can be customized.
 Version numbers are only found in the first 10 percent of a file.
 
 *** Change Log mode now defines its own faces for font-lock highlighting.
@@ -971,7 +971,7 @@ Version numbers are only found in the first 10 percent of a file.
 *** The new function `font-lock-remove-keywords' can be used to remove
 font-lock keywords from the current buffer or from a specific major mode.
 
-*** Multiline patterns are now supported.  Modes using this, should
+*** Multi-line patterns are now supported.  Modes using this, should
 set font-lock-multiline to t in their font-lock-defaults.
 
 *** `font-lock-syntactic-face-function' allows major-modes to choose
@@ -1441,7 +1441,7 @@ output ^M at the end of lines.
 ** Shell script mode changes.
 
 Shell script mode (sh-script) can now indent scripts for shells
-derived from sh and rc.  The indentation style is customizeable, and
+derived from sh and rc.  The indentation style is customizable, and
 sh-script can attempt to "learn" the current buffer's style.
 
 ** Etags changes.
@@ -1830,7 +1830,7 @@ separate Texinfo file.
 by visiting a CVS administrative directory (with a prefix argument)
 provides an alternative interface to VC-dired for CVS.  It comes with
 `log-view-mode' to view RCS and SCCS logs and `log-edit-mode' used to
-enter checkin log messages.
+enter check-in log messages.
 
 +++
 *** The new package called `woman' allows to browse Unix man pages
@@ -2032,8 +2032,8 @@ filter function to change the menu appearance. For example, the recent
 file list can be displayed:
 
 - organized by major modes, directories or user defined rules.
-- sorted by file pathes, file names, ascending or descending.
-- showing pathes relative to the current default-directory
+- sorted by file paths, file names, ascending or descending.
+- showing paths relative to the current default-directory
 
 The `recentf-filter-changer' menu filter function allows to
 dynamically change the menu appearance.
@@ -2232,12 +2232,12 @@ were added
 
 - Function: remove ELT SEQ
 
-Return a copy of SEQ with all occurences of ELT removed.  SEQ must be
+Return a copy of SEQ with all occurrences of ELT removed.  SEQ must be
 a list, vector, or string.  The comparison is done with `equal'.
 
 - Function: remq ELT LIST
 
-Return a copy of LIST with all occurences of ELT removed.  The
+Return a copy of LIST with all occurrences of ELT removed.  The
 comparison is done with `eq'.
 
 +++
@@ -2488,7 +2488,7 @@ lines, due to line breaking, display table, etc.
 Optional arguments BEG and END default to `point-min' and `point-max'
 respectively.
 
-If region ends with a newline, ignore it unless optinal third argument
+If region ends with a newline, ignore it unless optional third argument
 COUNT-FINAL-NEWLINE is non-nil.
 
 The optional fourth argument WINDOW specifies the window used for
@@ -2639,7 +2639,7 @@ what BODY returns.
 +++
 ** Regular expressions now support intervals \{n,m\} as well as
 Perl's shy-groups \(?:...\) and non-greedy *? +? and ?? operators.
-Also backreferences like \2 are now considered as an error if the
+Also back-references like \2 are now considered as an error if the
 corresponding subgroup does not exist (or is not closed yet).
 Previously it would have been silently turned into `2' (ignoring the `\').
 
@@ -3270,10 +3270,10 @@ alternative font families to try if a family specified by a face
 doesn't exist.
 
 Setting `face-font-registry-alternatives' allows the user to specify
-all alternative font registry names to try for a face speciying a
+all alternative font registry names to try for a face specifying a
 registry.
 
-Please note that the iterpretations of the above two variables are
+Please note that the interpretations of the above two variables are
 slightly different.
 
 Setting face-ignored-fonts allows the user to ignore specific fonts.
@@ -3548,7 +3548,7 @@ To disallow this completely (like previous versions of emacs), customize
 the variable `minibuffer-prompt-properties', and turn on the
 `Inviolable' option.
 
-The function minubuffer-prompt-end returns the current position of the
+The function minibuffer-prompt-end returns the current position of the
 end of the minibuffer prompt, if the minibuffer is current.
 Otherwise, it returns zero.
 
@@ -3734,7 +3734,7 @@ If MASK is `heuristic' or `(heuristic BG)', build a clipping mask for
 the image, so that the background of a frame is visible behind the
 image.  If BG is not specified, or if BG is t, determine the
 background color of the image by looking at the 4 corners of the
-image, assuming the most frequently occuring color from the corners is
+image, assuming the most frequently occurring color from the corners is
 the background color of the image.  Otherwise, BG must be a list `(RED
 GREEN BLUE)' specifying the color to assume for the background of the
 image.
@@ -3861,7 +3861,7 @@ Additional image properties supported are:
 `:index INDEX'
 
 INDEX must be an integer >= 0.  Load image number INDEX from a
-multi-image GIF file.  An error is signalled if INDEX is too large.
+multi-image GIF file.  An error is signaled if INDEX is too large.
 
 This could be used to implement limited support for animated GIFs.
 For example, the following function displays a multi-image GIF file
@@ -4305,7 +4305,7 @@ amount of raising or lowering is computed without taking account of the
 All display specifications can be conditionalized.  If a specification
 has the form `(:when CONDITION . SPEC)', the specification SPEC
 applies only when CONDITION yields a non-nil value when evaluated.
-During evaluattion, point is temporarily set to the end position of
+During evaluation, point is temporarily set to the end position of
 the text having the `display' property.
 
 The normal specification consisting of SPEC only is equivalent to
@@ -4744,7 +4744,7 @@ limit.
 If you used this function in your initialization files, you must
 rewrite them to use `face-spec-set' instead.
 
-*** Cancelling now uses the current select method.  Symbolic prefix
+*** Canceling now uses the current select method.  Symbolic prefix
 `a' forces normal posting method.
 
 *** New command to translate M******** sm*rtq**t*s into proper text
@@ -4917,7 +4917,7 @@ file names and attributes are returned.
 
 ** The new function file-attributes-lessp is a helper function for
 sorting the list generated by directory-files-and-attributes.  It
-accepts two arguments, each a list of a file name and its atttributes.
+accepts two arguments, each a list of a file name and its attributes.
 It compares the file names of each according to string-lessp and
 returns the result.
 
@@ -4973,7 +4973,7 @@ If you want to know how many bytes a specific multibyte character
 region is preceded or followed by non-ASCII codes, inserting or
 deleting at the head or the end of the region may signal this error:
 
-    Byte combining across boundary of accessible buffer text inhibitted
+    Byte combining across boundary of accessible buffer text inhibited
 
 This is to avoid some bytes being combined together into a character
 across the boundary.
@@ -5621,7 +5621,7 @@ Editing group once the package is loaded.
 
 *** Loading vcursor now does not define keys by default, as this is
 generally a bad side effect.  Use M-x customize to set
-vcursor-key-bindings to t to restore the old behaviour.
+vcursor-key-bindings to t to restore the old behavior.
 
 *** vcursor-auto-disable can be `copy', which turns off copying from the
 vcursor, but doesn't disable it, after any non-vcursor command.
@@ -5689,7 +5689,7 @@ The `x' key also works in the table of contents buffer.
 
 *** Many more labeled LaTeX environments are recognized by default.
 
-The builtin command list now covers all the standard LaTeX commands,
+The built-in command list now covers all the standard LaTeX commands,
 and all of the major packages included in the LaTeX distribution.
 
 Also, RefTeX now understands the \appendix macro and changes

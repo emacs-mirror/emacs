@@ -33,8 +33,8 @@
 % This is a bit of a dirty hack on the GNU Emacs reference card
 % to produce a Dired reference card instead.
 
-% I (Evgeny Roubinchtein, eroubinc@u.washington.edu) put this together 
-% because I wanted a Dired reference card, 
+% I (Evgeny Roubinchtein, eroubinc@u.washington.edu) put this together
+% because I wanted a Dired reference card,
 % but couldn't find anything on the 'net.
 % Based mostly off Dired's describe-mode.
 
@@ -73,7 +73,7 @@ Foundation, Inc., 675 Massachusetts Ave, Cambridge MA 02139.
 
 \def\ncolumns{\the\columnsperpage}
 
-\message{[\ncolumns\space 
+\message{[\ncolumns\space
   column\if 1\ncolumns\else s\fi\space per page]}
 
 \def\scaledmag#1{ scaled \magstep #1}
@@ -151,7 +151,7 @@ Foundation, Inc., 675 Massachusetts Ave, Cambridge MA 02139.
   \def\bye{\par\vfill\supereject
     \if a\abc \else\null\vfill\eject\fi
     \if a\abc \else\null\vfill\eject\fi
-    \end}  
+    \end}
 \fi
 
 % we won't be using math mode much, so redefine some of the characters
@@ -239,7 +239,7 @@ Foundation, Inc., 675 Massachusetts Ave, Cambridge MA 02139.
 
 % I cannot figure out how to make all dired-x
 % commands fit on a page in two-column format
-\def\dx{\bf (DX)}
+\def\dx{{\bf (DX)}}
 
 %**end of header
 
@@ -260,11 +260,11 @@ Foundation, Inc., 675 Massachusetts Ave, Cambridge MA 02139.
 % "flag" files for deletion or "mark" files for later commands, either one
 % file at a time or by all files matching certain criteria (e.g., files that
 % match a certain regexp).
- 
+
 % You move throughout the buffer using the usual cursor motion commands.
 % Letters no longer insert themselves, but execute commands instead.  The
 % digits (0-9) are prefix arguments.
- 
+
 % Most commands operate either on all marked files or on the current file if
 % no files are marked.  Use a numeric prefix argument to operate on the next
 % ARG files (or previous ARG if ARG $<$ 0).  Use the prefix argument `1' to
@@ -272,14 +272,14 @@ Foundation, Inc., 675 Massachusetts Ave, Cambridge MA 02139.
 % which run a sub-process on a group of files will display a list of files
 % for which the sub-process failed.  Typing y will try to tell
 % you what went wrong.
- 
+
 % When editing several directories in one buffer, each directory acts as a
 % page, so C-x [ and C-x ] can be used to move between directories.
 
 \section{Entering and Exiting Dired}
 
 \key{run dired}{C-x d}
-\key{dired the directory of the file you are editing}{C-x C-j\dx}
+\key{dired the directory of the file you are editing}{C-x C-j \dx}
 \key{quit dired}{q}
 
 \section{Motion Commands}
@@ -297,7 +297,7 @@ Foundation, Inc., 675 Massachusetts Ave, Cambridge MA 02139.
 
 \section{Mouse Commands}
 \metax{visit file}{Mouse_Button_2}
-\metax{popup menu}{Control-Mouse_Button_3} 
+\metax{popup menu}{Control-Mouse_Button_3}
 
 \section{Immediate Actions on Files}
 
@@ -322,12 +322,12 @@ Foundation, Inc., 675 Massachusetts Ave, Cambridge MA 02139.
 \key{mark all files in the current subdir}{* s}
 \key{mark file names matching a regular expression}{* \%}
 \key{change the marks to a different character}{* c}
-\key{mark files for which Elisp expression returns t}{* (\dx}
+\key{mark files for which Elisp expression returns t}{* ( \dx}
 
 \section{Getting Help}
 
 \key{dired help}{h}
-\key{dired summary(short help) and error log}{?}
+\key{dired summary (short help) and error log}{?}
 
 \section{Commands on Files Marked or Specified by the Prefix}
 
@@ -342,7 +342,7 @@ Foundation, Inc., 675 Massachusetts Ave, Cambridge MA 02139.
 \key{delete marked (as opposed to flagged) files}{X}
 \key{uuencode or uudecode file(s)}{U}
 \key{compress or uncompress file(s)}{Z}
-\key{run info on file}{I\dx}
+\key{run info on file}{I \dx}
 \key{make symbolic link(s)}{S}
 \key{make relative symbolic links}{Y}
 \key{make  hard link(s)}{H}
