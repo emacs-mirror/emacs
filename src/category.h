@@ -104,17 +104,11 @@ extern Lisp_Object _temp_category_set;
 	      && NILP (temp = XCHAR_TABLE (table)->defalt))		     \
 	 table = XCHAR_TABLE (table)->parent;				     \
      else								     \
-       temp = Faref (table,						     \
-		     make_number (COMPOSITE_CHAR_P (c)			     \
-				  ? cmpchar_component ((c), 0, 1) : (c)));   \
+       temp = Faref (table, make_number (c));				     \
      temp; })
 #else
-#define CATEGORY_SET(c)							     \
-  ((c) < CHAR_TABLE_SINGLE_BYTE_SLOTS					     \
-   ? Faref (current_buffer->category_table, make_number ((unsigned char) c)) \
-   : Faref (current_buffer->category_table,				     \
-	    make_number (COMPOSITE_CHAR_P (c)				     \
-			 ? cmpchar_component ((c), 0, 1) : (c))))
+#define CATEGORY_SET(c) \
+  Faref (current_buffer->category_table, make_number (c))
 #endif   
 
 /* Return the doc string of CATEGORY in category table TABLE.  */
