@@ -1,6 +1,7 @@
 ;;; lazy-lock.el --- Lazy demand-driven fontification for fast Font Lock mode.
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 2001
+;;   Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF
@@ -844,6 +845,8 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 				 (lazy-lock-percent-fontified) (buffer-name))
 		      (message "Fontifying stealthily...")
 		      (setq message t)))
+		  ;; Current buffer may have changed during `sit-for'.
+		  (set-buffer (car buffers))
 		  (lazy-lock-fontify-chunk)
 		  (setq continue (sit-for (or lazy-lock-stealth-nice 0)))))))
 	  (setq buffers (cdr buffers)))))))
