@@ -1,3 +1,7 @@
+2005-03-25  Karl Chen  <quarl@cs.berkeley.edu>  (tiny change)
+
+	* files.el (save-some-buffers): Doc fix.
+
 2005-03-25  Werner Lemberg  <wl@gnu.org>
 
 	* complete.el, thumbs.el: Replace `legal' with `valid'.
