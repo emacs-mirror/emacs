@@ -113,7 +113,7 @@
 (defconst pascal-declaration-re "\\<\\(const\\|label\\|type\\|var\\)\\>")
 (defconst pascal-defun-re       "\\<\\(function\\|procedure\\|program\\)\\>")
 (defconst pascal-sub-block-re   "\\<\\(if\\|else\\|for\\|while\\|with\\)\\>")
-(defconst pascal-noindent-re    "\\<\\(begin\\|end\\|until\\)\\>")
+(defconst pascal-noindent-re    "\\<\\(begin\\|end\\|until\\|else\\)\\>")
 (defconst pascal-nosemi-re      "\\<\\(begin\\|repeat\\|then\\|do\\|else\\)\\>")
 (defconst pascal-autoindent-lines-re
   "\\<\\(label\\|var\\|type\\|const\\|until\\|end\\|begin\\|repeat\\|else\\)\\>")
@@ -668,7 +668,8 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
   (save-excursion
     (let* ((oldpos (point))
 	   (state (save-excursion (parse-partial-sexp (point-min) (point))))
-	   (nest 0) (par 0) (complete nil) (blocked nil)
+	   (nest 0) (par 0) (complete nil)
+	   (elsed (looking-at "[ \t]*else\\>"))
 	   (type (catch 'nesting
 		   ;; Check if inside a string, comment or parenthesis
 		   (cond ((nth 3 state) (throw 'nesting 'string))
@@ -683,15 +684,16 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 			    (looking-at pascal-beg-block-re)
 			    (if (= nest 0)
 				(cond ((looking-at "case\\>")
-				       (setq blocked t)
 				       (throw 'nesting 'case))
 				      ((looking-at "record\\>")
 				       (throw 'nesting 'declaration))
-				      (t (setq blocked t)
-					 (throw 'nesting 'block)))
+				      (t (throw 'nesting 'block)))
 			      (setq nest (1- nest))))
 			   (;--Nest block inwards
 			    (looking-at pascal-end-block-re)
+			    (if (and (looking-at "end\\s ")
+				     elsed (not complete))
+				(throw 'nesting 'block))
 			    (setq complete t
 				  nest (1+ nest)))
 			   (;--Defun (or parameter list)
@@ -710,11 +712,10 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 				  (throw 'nesting 'paramlist)))))
 			   (;--Declaration part
 			    (looking-at pascal-declaration-re)
-			    (if (or blocked
-				    (save-excursion
-				      (goto-char oldpos)
-				      (forward-line -1)
-				      (looking-at "^[ \t]*$")))
+			    (if (save-excursion
+				  (goto-char oldpos)
+				  (forward-line -1)
+				  (looking-at "^[ \t]*$"))
 				(throw 'nesting 'unknown)
 			      (throw 'nesting 'declaration)))
 			   (;--If, else or while statement
