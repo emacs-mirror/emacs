@@ -992,7 +992,7 @@ this variable represents.")
 
 (defface ediff-even-diff-face-A
   '((((class color)) (:foreground "Black" :background "light grey"))
-    (t (:italic t :stipple "Stipple")))
+    (t (:italic t :stipple "stipple")))
   "Face for highlighting even-numbered non-current differences in buffer A."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
@@ -1006,7 +1006,7 @@ this variable represents.")
 
 (defface ediff-even-diff-face-B
   '((((class color)) (:foreground "White" :background "Grey"))
-    (t (:italic t :stipple "Stipple")))
+    (t (:italic t :stipple "stipple")))
   "Face for highlighting even-numbered non-current differences in buffer B."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
@@ -1020,7 +1020,7 @@ this variable represents.")
 
 (defface ediff-even-diff-face-C
   '((((class color)) (:foreground "Black" :background "light grey"))
-    (t (:italic t :stipple "Stipple")))
+    (t (:italic t :stipple "stipple")))
   "Face for highlighting even-numbered non-current differences in buffer C."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
@@ -1034,7 +1034,7 @@ this variable represents.")
 
 (defface ediff-even-diff-face-Ancestor
   '((((class color)) (:foreground "White" :background "Grey"))
-    (t (:italic t :stipple "Stipple")))
+    (t (:italic t :stipple "stipple")))
   "Face for highlighting even-numbered non-current differences in the ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
