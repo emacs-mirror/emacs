@@ -10381,7 +10381,7 @@ redisplay_internal (preserve_echo_area)
    This is useful in situations where you need to redisplay but no
    user action has occurred, making it inappropriate for the message
    area to be cleared.  See tracking_off and
-   wait_reading_process_input for examples of these situations.
+   wait_reading_process_output for examples of these situations.
 
    FROM_WHERE is an integer saying from where this function was
    called.  This is useful for debugging.  */

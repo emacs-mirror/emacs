@@ -6174,7 +6174,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
       f = x_top_window_to_frame (dpyinfo, event.xmap.window);
       if (f)
         {
-          /* wait_reading_process_input will notice this and update
+          /* wait_reading_process_output will notice this and update
              the frame's display structures.
              If we where iconified, we should not set garbaged,
              because that stops redrawing on Expose events.  This looks

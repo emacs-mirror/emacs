@@ -1109,8 +1109,8 @@ wait_for_property_change (location)
       secs = x_selection_timeout / 1000;
       usecs = (x_selection_timeout % 1000) * 1000;
       TRACE2 ("  Waiting %d secs, %d usecs", secs, usecs);
-      wait_reading_process_input (secs, usecs, 0, 0,
-				  property_change_reply, NULL, 0);
+      wait_reading_process_output (secs, usecs, 0, 0,
+				   property_change_reply, NULL, 0);
 
       if (NILP (XCAR (property_change_reply)))
 	{
@@ -1289,8 +1289,8 @@ x_get_foreign_selection (selection_symbol, target_type, time_stamp)
   secs = x_selection_timeout / 1000;
   usecs = (x_selection_timeout % 1000) * 1000;
   TRACE1 ("  Start waiting %d secs for SelectionNotify", secs);
-  wait_reading_process_input (secs, usecs, 0, 0,
-			      reading_selection_reply, NULL, 0);
+  wait_reading_process_output (secs, usecs, 0, 0,
+			       reading_selection_reply, NULL, 0);
   TRACE1 ("  Got event = %d", !NILP (XCAR (reading_selection_reply)));
 
   BLOCK_INPUT;

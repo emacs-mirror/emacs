@@ -3899,7 +3899,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	break;
 #endif
       {
-	wait_reading_process_input (0, 0, -1, 1, Qnil, NULL, 0);
+	wait_reading_process_output (0, 0, -1, 1, Qnil, NULL, 0);
 
 	if (!interrupt_input && kbd_fetch_ptr == kbd_store_ptr)
 	  /* Pass 1 for EXPECT since we just waited to have input.  */
@@ -9917,7 +9917,7 @@ clear_input_pending ()
 }
 
 /* Return nonzero if there are pending requeued events.
-   This isn't used yet.  The hope is to make wait_reading_process_input
+   This isn't used yet.  The hope is to make wait_reading_process_output
    call it, and return if it runs Lisp code that unreads something.
    The problem is, kbd_buffer_get_event needs to be fixed to know what
    to do in that case.  It isn't trivial.  */
