@@ -195,7 +195,7 @@
     )
   )
 
-;;;### autoload
+;;;###autoload
 (defun locate-with-filter (search-string filter)
   "Run the locate command with a filter."
   (interactive

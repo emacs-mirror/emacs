@@ -224,7 +224,7 @@ to determine if files in fundamental mode should be put into
 ;; Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;### autoload
+;;;###autoload
 (defun define-generic-mode (name comment-list    keyword-list   font-lock-list 
 				 auto-mode-list  function-list  
 				 &optional description)
