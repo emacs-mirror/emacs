@@ -843,7 +843,9 @@ syms_of_composite ()
     args[0] = QCtest;
     args[1] = Qequal;
     args[2] = QCweakness;
-    args[3] = Qt;
+    /* Fixme: It seems that a weak hash table leads to segfault in GC,
+       but I have not yet found why.  -- handa@m17n.org */
+    args[3] = Qnil;
     args[4] = QCsize;
     args[5] = make_number (311);
     composition_hash_table = Fmake_hash_table (6, args);
