@@ -33,16 +33,22 @@
 ;;; Code:
 
 (defvar Info-default-directory-list
-  (let ((start (list "/usr/local/lib/info/"
-		     ;; This comes second so that, if it is the same
-		     ;; as configure-info-directory (which is usually true)
-		     ;; and Emacs has been installed (also usually true)
-		     ;; then the list will end with two copies of this;
-		     ;; which means that the last dir file Info-insert-dir
-		     ;; finds will be the one in this directory.
-		     "/usr/local/info/"))
-	(configdir (file-name-as-directory configure-info-directory)))
-    (setq start (nconc start (list configdir)))
+  (let* ((start (list "/usr/local/lib/info/"
+		      ;; This comes second so that, if it is the same
+		      ;; as configure-info-directory (which is usually true)
+		      ;; and Emacs has been installed (also usually true)
+		      ;; then the list will end with two copies of this;
+		      ;; which means that the last dir file Info-insert-dir
+		      ;; finds will be the one in this directory.
+		      "/usr/local/info/"))
+	 ;; Typically on a GNU system, installed info files are found
+	 ;; in /usr/info, but the default prefix is /usr/local.
+	 (usrdir "/usr/info")
+	 (sysdir (and (file-directory-p usrdir)
+		      (not (string= configure-info-directory usrdir))
+		      (list usrdir)))
+	 (configdir (file-name-as-directory configure-info-directory)))
+    (setq start (nconc sysdir start (list configdir)))
     start)
   "Default list of directories to search for Info documentation files.
 They are searched in the order they are given in the list.
