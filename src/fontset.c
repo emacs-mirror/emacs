@@ -756,6 +756,11 @@ free_realized_fontsets (base)
 {
   int id;
 
+#if 0
+  /* For the moment, this doesn't work because free_realized_face
+     doesn't remove FACE from a cache.  Until we find a solution, we
+     suppress this code, and simply use Fclear_face_cache even though
+     that is not efficient.  */
   BLOCK_INPUT;
   for (id = 0; id < ASIZE (Vfontset_table); id++)
     {
@@ -778,6 +783,9 @@ free_realized_fontsets (base)
 	}
     }
   UNBLOCK_INPUT;
+#else  /* not 0 */
+  Fclear_face_cache (Qt);
+#endif /* not 0 */
 }
 
 
