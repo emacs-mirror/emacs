@@ -180,14 +180,37 @@ static char *float_error_fn_name;
 #define IN_FLOAT2(d, name, num, num2) (in_float = 1, (d), in_float = 0)
 #endif
 
+/* Convert float to Lisp_Int if it fits, else signal a range error
+   using the given arguments.  */
+#define FLOAT_TO_INT(x, i, name, num)					\
+  do									\
+    {									\
+      if ((x) >= (1 << (VALBITS-1)) || (x) <= - (1 << (VALBITS-1)) - 1)	\
+	range_error (name, num);					\
+      XSET (i, Lisp_Int,  (int)(x));					\
+    }									\
+  while (0)
+#define FLOAT_TO_INT2(x, i, name, num1, num2)				\
+  do									\
+    {									\
+      if ((x) >= (1 << (VALBITS-1)) || (x) <= - (1 << (VALBITS-1)) - 1)	\
+	range_error2 (name, num1, num2);				\
+      XSET (i, Lisp_Int,  (int)(x));					\
+    }									\
+  while (0)
+
 #define arith_error(op,arg) \
   Fsignal (Qarith_error, Fcons (build_string ((op)), Fcons ((arg), Qnil)))
 #define range_error(op,arg) \
   Fsignal (Qrange_error, Fcons (build_string ((op)), Fcons ((arg), Qnil)))
+#define range_error2(op,a1,a2) \
+  Fsignal (Qrange_error, Fcons (build_string ((op)), \
+				Fcons ((a1), Fcons ((a2), Qnil))))
 #define domain_error(op,arg) \
   Fsignal (Qdomain_error, Fcons (build_string ((op)), Fcons ((arg), Qnil)))
 #define domain_error2(op,a1,a2) \
-  Fsignal (Qdomain_error, Fcons (build_string ((op)), Fcons ((a1), Fcons ((a2), Qnil))))
+  Fsignal (Qdomain_error, Fcons (build_string ((op)), \
+				 Fcons ((a1), Fcons ((a2), Qnil))))
 
 /* Extract a Lisp number as a `double', or signal an error.  */
 
@@ -703,7 +726,12 @@ DEFUN ("ceiling", Fceiling, Sceiling, 1, 1, 0,
   CHECK_NUMBER_OR_FLOAT (arg, 0);
 
   if (XTYPE (arg) == Lisp_Float)
-    IN_FLOAT (XSET (arg, Lisp_Int, ceil (XFLOAT (arg)->data)), "ceiling", arg);
+    {
+      double d;
+
+      IN_FLOAT (d = ceil (XFLOAT (arg)->data), "ceiling", arg);
+      FLOAT_TO_INT (d, arg, "ceiling", arg);
+    }
 
   return arg;
 }
@@ -736,8 +764,8 @@ With optional DIVISOR, return the largest integer no greater than ARG/DIVISOR.")
 	  if (f2 == 0)
 	    Fsignal (Qarith_error, Qnil);
 
-	  IN_FLOAT2 (XSET (arg, Lisp_Int, floor (f1 / f2)),
-		     "floor", arg, divisor);
+	  IN_FLOAT2 (f1 = floor (f1 / f2), "floor", arg, divisor);
+	  FLOAT_TO_INT2 (f1, arg, "floor", arg, divisor);
 	  return arg;
 	}
 #endif
@@ -760,7 +788,11 @@ With optional DIVISOR, return the largest integer no greater than ARG/DIVISOR.")
 
 #ifdef LISP_FLOAT_TYPE
   if (XTYPE (arg) == Lisp_Float)
-    IN_FLOAT (XSET (arg, Lisp_Int, floor (XFLOAT (arg)->data)), "floor", arg);
+    {
+      double d;
+      IN_FLOAT (d = floor (XFLOAT (arg)->data), "floor", arg);
+      FLOAT_TO_INT (d, arg, "floor", arg);
+    }
 #endif
 
   return arg;
@@ -776,8 +808,13 @@ DEFUN ("round", Fround, Sround, 1, 1, 0,
   CHECK_NUMBER_OR_FLOAT (arg, 0);
 
   if (XTYPE (arg) == Lisp_Float)
-    /* Screw the prevailing rounding mode.  */
-    IN_FLOAT (XSET (arg, Lisp_Int, rint (XFLOAT (arg)->data)), "round", arg);
+    {
+      double d;
+
+      /* Screw the prevailing rounding mode.  */
+      IN_FLOAT (d = rint (XFLOAT (arg)->data), "round", arg);
+      FLOAT_TO_INT (d, arg, "round", arg);
+    }
 
   return arg;
 }
@@ -791,7 +828,12 @@ Rounds the value toward zero.")
   CHECK_NUMBER_OR_FLOAT (arg, 0);
 
   if (XTYPE (arg) == Lisp_Float)
-    XSET (arg, Lisp_Int, (int) XFLOAT (arg)->data);
+    {
+      double d;
+
+      d = XFLOAT (arg)->data;
+      FLOAT_TO_INT (d, arg, "truncate", arg);
+    }
 
   return arg;
 }
