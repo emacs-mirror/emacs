@@ -1,3 +1,8 @@
+2003-09-07  Andreas Schwab  <schwab@suse.de>
+
+	* alloc.c: Use long instead of int when casting ABLOCKS_BUSY to
+	avoid warning.
+
 2003-09-07  Eli Zaretskii  <eliz@elta.co.il>
 
 	* editfns.c (region_limit): Support any non-zero value of
