@@ -16,15 +16,28 @@ set -e
 
 clean_up=yes
 make_tar=yes
+newer=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    "--no-clean_up" )
+    # This option tells make-dist not to delete the staging directory
+    # after it's done making the tar file.
+    "--no-clean-up" )
       clean_up=no
     ;;
+    # This option tells make-dist not to make a tar file.  Since it's 
+    # rather pointless to build the whole staging directory and then
+    # nuke it, using this option also selects '--no-clean-up'.
     "--no-tar" )
       make_tar=no
       clean_up=no
+    ;;
+    # This option tells make-dist to make the distribution normally, then
+    # remove all files newer than the given timestamp file.  This is useful
+    # for creating incremental or patch distributions
+    "--newer")
+      newer=$2
+      shift
     ;;
     * )
       echo "${progname}: Unrecognized argument: $1" >&2
@@ -36,7 +49,8 @@ done
 
 # Make sure we're running in the right place.
 if [ ! -d src -o ! -f src/lisp.h -o ! -d lisp -o ! -f lisp/version.el ]; then
-  echo "${progname}: must run in the top directory of the Emacs" >&2
+  echo "${progname}: Can't find \`src/lisp.h' and \`lisp/version.el'." >&2
+  echo "${progname} must be run in the top directory of the Emacs" >&2
   echo "distribution tree.  Cd to that directory and try again." >&2
   exit 1
 fi
@@ -45,62 +59,71 @@ fi
 version=`grep 'defconst[	 ]*emacs-version' lisp/version.el \
 	 | sed -e 's/^.*"\([0-9]+\.[0-9]+\)\..*$/\1/'`
 if [ ! "${version}" ]; then
-  echo "${progname}: can't find current emacs version in ./lisp/version.el." >&2
+  echo "${progname}: can't find current emacs version in \`./lisp/version.el'." >&2
   exit 1
 fi
 
 # Make sure the subdirectory is available.
-tempparent="make-dist.$$"
+tempparent="make-dist.tmp.$$"
 if [ -d ${tempparent} ]; then
-  echo "${progname}: staging directory ${tempparent} already exists.
-Perhaps a previous invocation of ${progname} failed to clean up
-after itself.  Check that directories whose names are of the form
-make-dist.NNNNN don't contain any important information, remove them,
-and try again." >&2
+  echo "${progname}: staging directory \`${tempparent}' already exists.
+Perhaps a previous invocation of \`${progname}' failed to clean up after
+itself.  Check that directories whose names are of the form
+\`make-dist.tmp.NNNNN' don't contain any important information, remove
+them, and try again." >&2
   exit 1
 fi
 
-echo "Creating staging directory: ${tempparent}"
+echo "Creating staging directory: \`${tempparent}'"
 mkdir ${tempparent}
 emacsname="emacs-${version}"
 tempdir="${tempparent}/${emacsname}"
 
-echo "Creating top directory: ${tempdir}"
+echo "Creating top directory: \`${tempdir}'"
 mkdir ${tempdir}
 
 # We copy in the top-level files before creating the subdirectories in
 # hopes that this will make the top-level files appear first in the
 # tar file; this means that people can start reading the INSTALL and
 # README while the rest of the tar file is still unpacking.  Whoopee.
-echo "Copying top-level files." 
-ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README ${tempdir}
+echo "Making links to top-level files." 
+ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README move-if-change ${tempdir}
 ln ChangeLog Makefile.in build-install.in configure make-dist ${tempdir}
 
 echo "Creating subdirectories."
-for subdir in lisp lisp/term src src/m src/s lib-src oldXMenu \
-	      etc lock local-lisp arch-lib cpp info man shortnames; do
+for subdir in lisp lisp/term local-lisp external-lisp \
+	      src src/m src/s lib-src oldXMenu \
+	      etc lock arch-lib cpp info man shortnames; do
   mkdir ${tempdir}/${subdir}
 done
 
-echo "Copying lisp."
+echo "Making links to \`lisp'."
 # Don't distribute =*.el files, site-init.el, or site-load.el.
 (cd lisp
  ln [a-zA-Z]*.el ../${tempdir}/lisp
  ln [a-zA-Z]*.elc ../${tempdir}/lisp
- ln [a-zA-Z]*.defns ../${tempdir}/lisp
+ # simula.el doesn't keep abbreviations in simula.defns any more.
+ # ln [a-zA-Z]*.defns ../${tempdir}/lisp
  ln ChangeLog README ../${tempdir}/lisp
  cd ../${tempdir}/lisp
  rm -f site-init site-init.el site-init.elc
  rm -f site-load site-load.el site-load.elc)
 
-echo "Copying lisp/term."
+echo "Making links to \`lisp/term'."
 # Don't distribute =*.el files.
 (cd lisp/term
  ln [a-zA-Z]*.el ../../${tempdir}/lisp/term
  ln [a-zA-Z]*.elc ../../${tempdir}/lisp/term
  ln README ../../${tempdir}/lisp/term)
 
-echo "Copying src."
+echo "Making links to \`external-lisp'."
+# Don't distribute =*.el files.
+(cd external-lisp
+ ln [a-zA-Z]*.el ../${tempdir}/external-lisp
+ ln [a-zA-Z]*.elc ../${tempdir}/external-lisp
+ ln ChangeLog README ../${tempdir}/external-lisp)
+
+echo "Making links to \`src'."
 # Don't distribute =*.[ch] files, or the configured versions of
 # config.h.in, paths.h.in, or Makefile.in.
 (cd src
@@ -112,28 +135,31 @@ echo "Copying src."
  ln .gdbinit .dbxinit ../${tempdir}/src
  ln *.com *.opt vms-pp.trans vmsbuild ../${tempdir}/src
  cd ../${tempdir}/src
+ rm -f config.h paths.h Makefile
  etags *.h *.c ../lisp/*.el)
 
-echo "Copying src/m."
+echo "Making links to \`src/m'."
 (cd src/m
  ln README *.h ../../${tempdir}/src/m)
 
-echo "Copying src/s."
+echo "Making links to \`src/s'."
 (cd src/s
  ln README *.h ../../${tempdir}/src/s)
 
-echo "Copying lib-src."
+echo "Making links to \`lib-src'."
 (cd lib-src
  ln [a-zA-Z]*.c [a-zA-Z]*.h [a-zA-Z]*.y [a-zA-Z]*.lex ../${tempdir}/lib-src
- ln ChangeLog Makefile.in README testfile ../${tempdir}/lib-src)
+ ln ChangeLog Makefile.in README testfile vcdiff rcs2log ../${tempdir}/lib-src
+ cd ../${tempdir}/lib-src
+ rm -f getdate.c getdate.tab.c y.tab.c y.tab.h)
 
-echo "Copying oldXMenu."
+echo "Making links to \`oldXMenu'."
 (cd oldXMenu
  ln *.c *.h ../${tempdir}/oldXMenu
  ln README Makefile Imakefile ChangeLog ../${tempdir}/oldXMenu)
 
-echo "Copying etc."
-# Don't distribute DOC files, backups, autosaves, or tex litter.
+echo "Making links to \`etc'."
+# Don't distribute TAGS, DOC files, backups, autosaves, or tex litter.
 (cd etc
  ln [0-9a-zA-Z]* ../${tempdir}/etc
  cd ../${tempdir}/etc
@@ -141,14 +167,14 @@ echo "Copying etc."
  for dummy in DOC-dummy dummy~ \#dummy\# dummy.dvi dummy.log; do
    ln MACHINES ${dummy}
  done
- rm -f DOC* *~ \#*\# *.dvi *.log core)
+ rm -f TAGS DOC* *~ \#*\# *.dvi *.log core)
 
 # For now, we comment these out, since I'm not changing them any.
-#!! echo "Copying cpp."
+#!! echo "Making links to \`cpp'."
 #!! (cd cpp
 #!!  ln cccp.c cexp.y Makefile README ../${tempdir}/cpp)
 #!! 
-#!! echo "Copying info."
+#!! echo "Making links to \`info'."
 #!! # Don't distribute backups or autosaves.
 #!! (cd info
 #!!  ln [a-zA-Z]* ../${tempdir}/info
@@ -157,28 +183,34 @@ echo "Copying etc."
 #!!  ln emacs dummy~ ; ln emacs \#dummy\#
 #!!  rm -f *~ \#*\# core)
 #!! 
-#!! echo "Copying man."
+#!! echo "Making links to \`man'."
 #!! (cd man
 #!!  ln *.tex *.texinfo *.texi *.aux *.cps *.fns *.kys *.vrs ../${tempdir}/man
 #!!  ln *.c ../${tempdir}/man
 #!!  ln ChangeLog Makefile README split-man ../${tempdir}/man)
 
-echo "Copying shortnames."
+echo "Making links to \`shortnames'."
 (cd shortnames
  ln *.c ../${tempdir}/shortnames
  ln Makefile reserved special ../${tempdir}/shortnames)
 
-echo "Making sure copying notices are symlinks."
-if [ -f ${tempdir}/etc/COPYING ]; then
-  rm ${tempdir}/etc/COPYING
-  ln etc/COPYING ${tempdir}/etc/COPYING
-fi
-for subdir in lisp src lib-src info shortnames; do
+echo "Making sure copying notices are all symlinks to \`etc/COPYING'."
+rm -f ${tempdir}/etc/COPYING
+cp etc/COPYING ${tempdir}/etc/COPYING
+for subdir in lisp external-lisp src lib-src info shortnames; do
   if [ -f ${tempdir}/${subdir}/COPYING ]; then
     rm ${tempdir}/${subdir}/COPYING
   fi
   ln -s ../etc/COPYING ${tempdir}/${subdir}
 done
+
+if [ "${newer}" ]; then
+  echo "Removing files older than $newer."
+  # We remove .elc files unconditionally, on the theory that anyone picking
+  # up an incremental distribution already has a running Emacs to byte-compile
+  # them with.
+  find ${tempparent} \( -name '*.elc' -o ! -newer ${newer} \) -exec rm -f {} \;
+fi
 
 if [ "${make_tar}" = yes ]; then
   echo "Creating tar file."
