@@ -4,6 +4,7 @@
 
 ;; Author: James Clark <jjc@jclark.com>
 ;; Adapted-By: ESR; Daniel.Pfeiffer@Informatik.START.dbp.de
+;;             F.Potorti@cnuce.cnr.it
 ;; Keywords: wp, hypermedia, comm, languages
 
 ;; This file is part of GNU Emacs.
@@ -34,6 +35,14 @@
 (defgroup sgml nil
   "SGML editing mode"
   :group 'languages)
+
+(defcustom sgml-transformation nil
+  "*Default value for `skeleton-transformation' (which see) in SGML mode."
+  :type 'function
+  :group sgml)
+
+(put 'sgml-transformation 'variable-interactive
+     "aTransformation function: ")
 
 ;; As long as Emacs' syntax can't be complemented with predicates to context
 ;; sensitively confirm the syntax of characters, we have to live with this
@@ -136,7 +145,7 @@ This takes effect when first loading the library.")
    nil nil nil nil nil nil nil nil
    nil nil nil nil nil nil nil nil
    nil nil nil nil nil nil nil nil
-   "ensp" "excl" "quot" "num" "dollar" "percnt" "amp" "apos"
+   "nbsp" "excl" "quot" "num" "dollar" "percnt" "amp" "apos"
    "lpar" "rpar" "ast" "plus" "comma" "hyphen" "period" "sol"
    nil nil nil nil nil nil nil nil
    nil nil "colon" "semi" "lt" "eq" "gt" "quest"
@@ -262,18 +271,6 @@ an optional alist of possible values."
 		       (string :tag "Description")))
   :group 'sgml)
 
-
-;; put read-only last to enable setting this even when read-only enabled
-(or (get 'sgml-tag 'invisible)
-    (setplist 'sgml-tag
-	      (append '(invisible t
-			rear-nonsticky t
-			point-entered sgml-point-entered
-			read-only t)
-		      (symbol-plist 'sgml-tag))))
-
-
-
 (defun sgml-mode-common (sgml-tag-face-alist sgml-display-text)
   "Common code for setting up `sgml-mode' and derived modes.
 SGML-TAG-FACE-ALIST is used for calculating `sgml-font-lock-keywords-1'.
@@ -321,7 +318,7 @@ varables of same name)."
 	;; This will allow existing comments within declarations to be
 	;; recognized.
 	comment-start-skip "--[ \t]*"
-	skeleton-transformation 'identity
+	skeleton-transformation sgml-transformation
 	skeleton-further-elements '((completion-ignore-case t))
 	skeleton-end-hook (lambda ()
 			    (or (eolp)
@@ -357,9 +354,17 @@ Makes > match <.  Makes / blink matching /.
 Keys <, &, SPC within <>, \" and ' can be electric depending on
 `sgml-quick-keys'.
 
-Do \\[describe-variable] sgml- SPC to see available variables.
+An argument of N to a tag-inserting command means that the next N
+words should be wrapped.  When the region is highlighted, N defaults
+to -1, which means the current region.
+
+If you like upcased tags, put (setq skeleton-transformation 'upcase) in
+sgml-mode-hook. 
 
 Use \\[sgml-validate] to validate your document with an SGML parser.
+
+Do \\[describe-variable] sgml- SPC to see available variables.
+Do \\[describe-key] on the following bindings to discover what they do.
 \\{sgml-mode-map}"
   (interactive)
   (sgml-mode-common sgml-tag-face-alist sgml-display-text)
@@ -662,18 +667,28 @@ With prefix ARG, repeat that many times."
 	(goto-char open)
 	(kill-sexp 1)))
     (setq arg (1- arg))))
-
-
+
+;; Put read-only last to enable setting this even when read-only enabled.
+(or (get 'sgml-tag 'invisible)
+    (setplist 'sgml-tag
+	      (append '(invisible t
+			intangible t
+			point-entered sgml-point-entered
+			rear-nonsticky t
+			read-only t)
+		      (symbol-plist 'sgml-tag))))
 
 (defun sgml-tags-invisible (arg)
   "Toggle visibility of existing tags."
   (interactive "P")
   (let ((modified (buffer-modified-p))
 	(inhibit-read-only t)
-	(point (point-min))
+	;; This is needed in case font lock gets called,
+	;; since it moves point and might call sgml-point-entered.
+	(inhibit-point-motion-hooks t)
 	symbol)
     (save-excursion
-      (goto-char point)
+      (goto-char (point-min))
       (if (setq sgml-tags-invisible
 		(if arg
 		    (>= (prefix-numeric-value arg) 0)
@@ -687,12 +702,12 @@ With prefix ARG, repeat that many times."
 		 (overlay-put (make-overlay (point)
 					    (match-beginning 1))
 			      'category symbol))
-	    (put-text-property (setq point (point)) (forward-list)
-			       'intangible (point))			
-	    (put-text-property point (point)
+	    (put-text-property (point)
+			       (progn (forward-list) (point))
 			       'category 'sgml-tag))
-	(while (< (setq point (next-overlay-change point)) (point-max))
-	  (delete-overlay (car (overlays-at point))))
+	(let ((pos (point)))
+	  (while (< (setq pos (next-overlay-change pos)) (point-max))
+	    (delete-overlay (car (overlays-at pos)))))
 	(remove-text-properties (point-min) (point-max)
 				'(category sgml-tag intangible t))))
     (set-buffer-modified-p modified)
@@ -712,8 +727,7 @@ With prefix ARG, repeat that many times."
 			     (eq (preceding-char) ?>)))
 		    (backward-list)
 		  (forward-list)))))))
-
-
+
 (autoload 'compile-internal "compile")
 
 (defun sgml-validate (command)
@@ -767,12 +781,11 @@ Else `t'."
 	      (setq alist (skeleton-read '(completing-read
 					   "[Value]: " (cdr alist))))
 	      (if (string< "" alist)
-		  (insert (funcall skeleton-transformation alist) ?\")
+		  (insert alist ?\")
 		(delete-backward-char 2))))
       (insert "=\"")
       (if alist
-	  (insert (funcall skeleton-transformation
-			   (skeleton-read '(completing-read "Value: " alist)))))
+	  (insert (skeleton-read '(completing-read "Value: " alist))))
       (insert ?\"))))
 
 (provide 'sgml-mode)
@@ -1167,13 +1180,14 @@ do:
 
 (define-skeleton html-href-anchor
   "HTML anchor tag with href attribute."
-  nil
-  "<a href=\"http:" _ "\"></a>")
+  "URL: "
+  '(setq input "http:")
+  "<a href=\"" str "\">" _ "</a>")
 
 (define-skeleton html-name-anchor
   "HTML anchor tag with name attribute."
-  nil
-  "<a name=\"" _ "\"></a>")
+  "Name: "
+  "<a name=\"" str "\">" _ "</a>")
 
 (define-skeleton html-headline-1
   "HTML level 1 headline tags."
@@ -1213,7 +1227,7 @@ do:
 (define-skeleton html-image
   "HTML image tag."
   nil
-  "<img src=\"http:" _ "\">")
+  "<img src=\"" _ "\">")
 
 (define-skeleton html-line
   "HTML line break tag."
@@ -1223,14 +1237,14 @@ do:
 (define-skeleton html-ordered-list
   "HTML ordered list tags."
   nil
-  ?< "ol>" \n
+  "<ol>" \n
   "<li>" _ \n
   "</ol>")
 
 (define-skeleton html-unordered-list
   "HTML unordered list tags."
   nil
-  ?< "ul>" \n
+  "<ul>" \n
   "<li>" _ \n
   "</ul>")
 
@@ -1249,24 +1263,36 @@ do:
 (define-skeleton html-checkboxes
   "Group of connected checkbox inputs."
   nil
-  '(setq v1 (eval str))			; allow passing name as argument
-  ("Value & Text: "
-   "<input type=\"checkbox\" name=\""
-   (or v1 (setq v1 (skeleton-read "Name: ")))
+  '(setq v1 nil
+	 v2 nil)
+  ("Value: "
+   "<input type=\"" (identity "checkbox")
+   "\" name=\"" (or v1 (setq v1 (skeleton-read "Name: ")))
    "\" value=\"" str ?\"
-   (if v2 "" " checked") ?> str
-   (or v2 (setq v2 (if (y-or-n-p "Newline? ") "<br>" ""))) \n))
+   (if (y-or-n-p "Set \"checked\" attribute? ")
+        (funcall skeleton-transformation " checked")) ">"
+   (skeleton-read "Text: " (capitalize str))
+   (or v2 (setq v2 (if (y-or-n-p "Newline after text? ")
+		       (funcall skeleton-transformation "<br>")
+		     "")))
+   \n))
 
 (define-skeleton html-radio-buttons
   "Group of connected radio button inputs."
   nil
-  '(setq v1 (eval str))			; allow passing name as argument
-  ("Value & Text: "
-   "<input type=\"radio\" name=\""
-   (or v1 (setq v1 (skeleton-read "Name: ")))
+  '(setq v1 nil
+	 v2 (cons nil nil))
+  ("Value: "
+   "<input type=\"" (identity "radio")
+   "\" name=\"" (or (car v2) (setcar v2 (skeleton-read "Name: ")))
    "\" value=\"" str ?\"
-   (if v2 "" " checked") ?> str
-   (or v2 (setq v2 (if (y-or-n-p "Newline? ") "<br>" ""))) \n))
+   (if (and (not v1) (setq v1 (y-or-n-p "Set \"checked\" attribute? ")))
+       (funcall skeleton-transformation " checked") ">")
+   (skeleton-read "Text: " (capitalize str))
+   (or (cdr v2) (setcdr v2 (if (y-or-n-p "Newline after text? ")
+			       (funcall skeleton-transformation "<br>")
+			     "")))
+   \n))
 
 
 (defun html-autoview-mode (&optional arg)
