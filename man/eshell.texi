@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.1 2000/10/13 09:47:34 johnw Exp $"
+@c "@(#)$Name:  $:$Id: eshell.texi,v 1.2 2000/10/13 10:32:23 johnw Exp $"
 
 @c Documentation for Eshell: The Emacs Shell.
 @c Copyright (C) 1999-2000  Free Software Foundation, Inc.
@@ -26,7 +26,7 @@
 @settitle Eshell: The Emacs Shell
 @c %**end of header
 
-@c @dircategory Emacs
+@dircategory Emacs
 @direntry
 * Eshell: (eshell).	A command shell implemented in Emacs Lisp.
 @end direntry
@@ -103,6 +103,8 @@ permission notice may be included in translations approved by the Free
 Software Foundation instead of in the original English.
 @end titlepage
 
+@contents
+
 @c ================================================================
 @c                   The real text starts here
 @c ================================================================
@@ -122,14 +124,19 @@ most of the tasks accomplished by such tools.
 
 @menu
 * What is Eshell?::             A brief introduction to the Emacs Shell.
+* Installation::                
 * Bugs and ideas::              
+* Concept Index::
+* Function and Variable Index::
+* Key Index::
 @end menu
 
-@node What is Eshell?, Bugs and ideas, Top, Top
+@node What is Eshell?, Installation, Top, Top
 @chapter What is Eshell?
-@cindex What is Eshell?
+@cindex what is Eshell?
+@cindex Eshell, what it is
 
-Eshell is a command shell written using Emacs Lisp.  All of what it does
+Eshell is a @dfn{command shell} written using Emacs Lisp.  All of what it does
 it uses Emacs' facilities to do.  This means Eshell is as portable as
 Emacs itself.  It also means that cooperation with other Lisp code is
 natural and seamless.
@@ -142,10 +149,11 @@ clicking with a mouse on certain parts of the screen.  But that is only
 one form of command input.
 
 By far the most versatile way to express what you want the computer to
-do is using an abbreviated language, called script.  In script, instead
+do is using an abbreviated language, called @dfn{a script}.  In a
+script, instead
 of telling the computer, ``list my files, please'', we write just
 ``list''.  In fact, this command is so commonly used that we abbreviate
-it to ``ls''.  Typing @code{ls} in a command shell is a script way of
+it to ``ls''.  Typing @kbd{ls} in a command shell is a script way of
 telling the computer to list your files.  This is comparable to viewing
 the contents of a folder using a graphical display.
 
@@ -180,13 +188,12 @@ As of Emacs 21, Eshell is part of the standard Emacs distribution.
 
 @menu
 * Contributors to Eshell::      
-* Installation::                
 @end menu
 
-@node Contributors to Eshell, Installation, What is Eshell?, What is Eshell?
+@node Contributors to Eshell, , What is Eshell?, What is Eshell?
 @section Contributors to Eshell
-@cindex Contributors
-@cindex Authors
+@cindex contributors
+@cindex authors
 
 Contributions to Eshell are welcome.  I have limited time to work on
 this project, but I will gladly add any code you contribute to me to
@@ -217,16 +224,15 @@ before overwriting files.@refill
 
 @item
 Sudish Joseph helped with some XEmacs compatibility issues.@refill
-
 @end itemize
 
 Apart from these, a lot of people have sent suggestions, ideas,
 requests, bug reports and encouragement.  Thanks a lot!  Without you
 there would be no new releases of Eshell.
 
-@node Installation,  , Contributors to Eshell, What is Eshell?
-@section Installation
-@cindex Installation
+@node Installation,  Bugs and ideas, What is Eshell?, Top
+@chapter Installation
+@cindex installation
 
 As mentioned above, Eshell comes preinstalled since Emacs 21.  If you're
 using Emacs 20.4 or later, or XEmacs 21, you can download the most
@@ -235,55 +241,86 @@ recent version of Eshell from
 
 If you are using Emacs 21, please skip this section.
 
-@subsection Short Form
+@section Short Form
 
 Here's exactly what to do, with no explanation why:
 
 @enumerate
-@item @samp{M-x load-file RET eshell-auto.el RET}
-@item @samp{ESC : (add-to-list 'load-path "<path where Eshell resides>") RET}
-@item @samp{ESC : (add-to-list 'load-path "<path where Pcomplete resides>") RET}
-@item @samp{M-x eshell RET}
+@item
+@samp{M-x load-file RET eshell-auto.el RET}.
+
+@item
+@samp{ESC : (add-to-list 'load-path "<path where Eshell resides>") RET}.
+
+@item
+@samp{ESC : (add-to-list 'load-path "<path where Pcomplete resides>") RET}.
+
+@item
+@samp{M-x eshell RET}.
 
 You should see a version banner displayed.
 
-@item @samp{ls RET}
+@item
+@samp{ls RET}.
 
 Confirm that you see a file listing.
 
-@item @samp{eshell-test RET}
+@item
+@samp{eshell-test RET}.
 
-Confirm that everything runs correctly.  Use `M-x eshell-report-bug' if
+Confirm that everything runs correctly.  Use @kbd{M-x eshell-report-bug} if
 not.
 
-@item @samp{cd $@{dirname (locate-library "eshell-auto")@} RET}
-@item @samp{find-file Makefile RET}
-@item Edit the Makefile to reflect your site.
-@item @samp{M-x eshell RET}
-@item @samp{make install RET}
-@item @samp{find-file $user-init-file RET}
-@item Add the following lines to your @file{.emacs} file:
+@item
+@samp{cd $@{dirname (locate-library "eshell-auto")@} RET}.
+
+@item
+@samp{find-file Makefile RET}.
+
+@item
+Edit the Makefile to reflect your site.
+
+@item
+@samp{M-x eshell RET}.
+
+@item
+@samp{make install RET}.
+
+@item
+@samp{find-file $user-init-file RET}.
+
+@item
+Add the following lines to your @file{.emacs} file:
 
 @example
 (add-to-list 'load-path "<directory where you install Eshell>")
 (load "eshell-auto")
 @end example
 
-@item @samp{M-x eshell RET}
-@item @samp{customize-option #'eshell-modules-list RET}
-@item Select the extension modules you prefer.
-@item Restart Emacs!
-@item @samp{M-x info RET m Eshell RET}
+@item
+@samp{M-x eshell RET}.
+
+@item
+@samp{customize-option #'eshell-modules-list RET}.
+
+@item
+Select the extension modules you prefer.
+
+@item
+Restart Emacs!
+
+@item
+@samp{M-x info RET m Eshell RET}.
 
 Read the manual and enjoy!
 @end enumerate
 
-@subsection Long Form
+@section Long Form
 
 @enumerate
 @item
 Before building and installing Eshell, it is important to test that it
-will work properly on your system.  To do this, first load
+will work properly on your system.  To do this, first load the file
 @file{eshell-auto}, which will define certain autoloads required to run
 Eshell.  This can be done using the command @kbd{M-x load-file}, and
 then selecting the file @file{eshell-auto.el}.
@@ -304,11 +341,11 @@ typing @kbd{M-x eshell}.
 
 @item
 Verify that Eshell is functional by typing @command{ls} followed by
-@kbd{RET}.  You should have already seen a version banner announcing the
+@key{RET}.  You should have already seen a version banner announcing the
 version number of this release, followed by a prompt.
 
 @item
-Run the test suite by typing @command{eshell-test} followed by @kbd{RET}
+Run the test suite by typing @command{eshell-test} followed by @key{RET}
 in the Eshell buffer.  It is important that Emacs be left alone while
 the tests are running, since extraneous command input may cause some of
 the tests to fail (they were never intended to run in the background).
@@ -324,14 +361,15 @@ site.  The only things you really have to change are the definitions of
 @code{lispdir}, and the info file to @code{infodir}.
 
 @item
-Type @code{make install} in the directory containing the Eshell sources.
-This will byte-compile all of the @file{.el} files and copy both the
+Type @kbd{make install} in the directory containing the Eshell sources.
+This will byte-compile all of the @file{*.el} files and copy both the
 source and compiled versions to the directories specified in the
 previous step.  It will also copy the info file, and add a corresponding
-entry to your @file{dir} file----if @file{install-info} can be found.
+entry to your @file{dir} file----if the program @code{install-info} can
+be found on your system.
 
 If you only want to create the compiled elisp files, but don't want to
-install them, you can type just @command{make} instead.
+install them, you can type just @kbd{make} instead.
 
 @item
 Add the directory into which Eshell was installed to your
@@ -360,21 +398,26 @@ Restart Emacs.  After restarting, customize the variable
 @code{eshell-modules-list}.  This variable selects which Eshell
 extension modules you want to use.  You will find documentation on each
 of those modules in the Info manual.
-
 @end enumerate
 
+@cindex documentation, printed version
+@cindex printed version of documentation
 If you have @TeX{} installed at your site, you can make a typeset manual
 from @file{eshell.texi}.
 
 @enumerate
 @item
-Run @TeX{} by typing @samp{texi2dvi eshell.texi}.
+Run @TeX{} by typing @kbd{texi2dvi eshell.texi}.  (With Emacs 21.1 or
+later, typing @kbd{make eshell.dvi} in the @file{man/} subdirectory of
+the Emacs source distribution will do that.)
+
 @item
 Convert the resulting device independent file @file{eshell.dvi} to a
 form which your printer can output and print it.  If you have a
-postscript printer there is a program, @code{dvi2ps}, which does.  There
+postscript printer, there is a program, @code{dvi2ps}, which does that; there
 is also a program which comes together with @TeX{}, @code{dvips}, which
-you can use.
+you can use.  For other printers, use a suitable DVI driver,
+e.g., @code{dvilj4} for LaserJet-compatible printers.
 @end enumerate
 
 @c @node Forming commands, Known problems, What is Eshell?, Top
@@ -427,19 +470,17 @@ you can use.
 @c arguments requires some special typing, because the computer needs
 @c very specific directions to understand what you mean.
 
-@node Bugs and ideas,  , What is Eshell?, Top
+@node Bugs and ideas,  Concept Index, Installation, Top
 @chapter Bugs and ideas
-@cindex Reporting bugs and ideas
-@cindex Bugs, how to report them
-@cindex Author, how to reach
-@cindex Email to the author
-@cindex Known bugs
-@cindex Bugs, known
+@cindex reporting bugs and ideas
+@cindex bugs, how to report them
+@cindex author, how to reach
+@cindex email to the author
 @cindex FAQ
-@cindex Problems, list of common
+@cindex problems, list of common
 
 If you find a bug or misfeature, don't hesitate to let me know!  Send
-email to @samp{johnw@@gnu.org}.  Feature requests should also be sent
+email to @email{johnw@@gnu.org}.  Feature requests should also be sent
 there.  I prefer discussing one thing at a time.  If you find several
 unrelated bugs, please report them separately.
 
@@ -453,9 +494,11 @@ find this package useful!
 
 @node Known problems,  , Bugs and ideas, Bugs and ideas
 @section Known problems
+@cindex known bugs
+@cindex bugs, known
 
 Below is a partial list of currently known problems with Eshell version
-2.3.2, which is the version distribution with Emacs 21.1.
+2.3.2, which is the version distributed with Emacs 21.1.
 
 @table @asis
 @item @samp{for i in 1 2 3 @{ grep -q a b && *echo has it @} | wc -l} fails
@@ -469,7 +512,7 @@ structured command thing is too complicated at present.
 @item Error with @command{bc} in @code{eshell-test}
 
 On some XEmacs system, the subprocess interaction test fails
-inexplicably, since @command{bc} works fine at the command prompt.
+inexplicably, although @command{bc} works fine at the command prompt.
 
 @item @command{ls} in remote directories sometimes fails
 
@@ -483,8 +526,8 @@ multiple instances of the @file{*Help*} buffer can exist.
 
 @item Pcomplete sometimes gets stuck
 
-When @kbd{TAB}, no completions appear, even though the directory has
-them.  This behavior is rare.
+You press @key{TAB}, but no completions appear, even though the
+directory has matching files.  This behavior is rare.
 
 @item @samp{grep python $<rpm -qa>} doesn't work, but using @samp{*grep} does
 
@@ -782,19 +825,18 @@ See the entry above.
 @c Since it keeps the cursor up where the command was invoked.
 @end table
 
-@unnumbered Function and Variable Index
-
-@printindex fn
-
+@node Concept Index, Function and Variable Index, Bugs and ideas, Top
 @unnumbered Concept Index
 
 @printindex cp
 
+@node Function and Variable Index, Key Index, Concept Index, Top
+@unnumbered Function and Variable Index
+
+@printindex fn
+
+@node Key Index, , Function and Variable Index, Top
 @unnumbered Key Index
 
 @printindex ky
-
-@setchapternewpage odd
-@summarycontents
-@contents
 @bye
