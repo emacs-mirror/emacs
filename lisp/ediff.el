@@ -343,10 +343,10 @@
 ;;
 ;; Many Ediff commands take numeric prefix arguments.  For instance, if you
 ;; hit a number, n, and then 'j' (ediff-jump-to-difference), Ediff will
-;; take you to n-th difference.  Hitting a number, n, and then 'ab'
-;; (ediff-diff-to-diff) will copy n-th difference from buffer A to buffer B.
+;; take you to Nth difference.  Hitting a number, n, and then 'ab'
+;; (ediff-diff-to-diff) will copy Nth difference from buffer A to buffer B.
 ;; Hitting 'ba' does copying in the other direction.
-;; Likewise, a number, n, followed by 'ra' will restore the n-th difference
+;; Likewise, a number, n, followed by 'ra' will restore the Nth difference
 ;; region in buffer A (if it was previously saved as a result of copying
 ;; from B to A). 
 ;;
@@ -600,16 +600,16 @@
 (defun ediff-mode ()
   "Ediff mode is used by the Ediff file-difference package.
 It is entered only through one of the following commands:
-	``ediff''
-	``ediff-files''
-	``ediff-buffers''
-	``epatch''
-	``ediff-patch-file''
-	``ediff-patch-buffer''
-	``vc-ediff''
-	``rcs-ediff''
+	`ediff'
+	`ediff-files'
+	`ediff-buffers'
+	`epatch'
+	`ediff-patch-file'
+	`ediff-patch-buffer'
+	`vc-ediff'
+	`rcs-ediff'
 or through a non-interactive Emacs Lisp function	
-	``ediff-files-remote''
+	`ediff-files-remote'
 
 Commands:
 \\{ediff-mode-map}"
@@ -633,9 +633,10 @@ When called interactively, displays the version."
 ;; Hook variables
 
 (defvar ediff-before-setup-windows-hooks nil
-  "* Hooks to run before Ediff sets its own window config.  This can be used
-to save the previous window config, which can be restored on ediff-quit or
-ediff-suspend.") 
+  "* Hooks to run before Ediff sets its own window config.
+This can be used to save the previous window config, which can be
+restored by `ediff-quit' or `ediff-suspend'.")
+
 (defvar ediff-startup-hooks nil
   "*Hooks to run in the control buffer after Ediff has been set up.")
 (defvar ediff-select-hooks nil
@@ -645,14 +646,12 @@ ediff-suspend.")
 (defvar ediff-prepare-buffer-hooks  nil
   "*Hooks called after buffers A and B are set up.")
 (defvar ediff-load-hooks nil
-  "* Hook run after Ediff is loaded.  Can be used to change defaults.")
+  "*Hook run after Ediff is loaded.  Can be used to change defaults.")
 
 (defvar ediff-suspend-hooks 'ediff-default-suspend-hook
-  "* Hooks to run in the Ediff control buffer each time Ediff is
-suspended.")
+  "*Hooks to run in the Ediff control buffer when Ediff is suspended.")
 (defvar ediff-quit-hooks 'ediff-default-quit-hook
-  "* Hooks to run in the Ediff control buffer after the ediff has been
-finished.") 
+  "*Hooks to run in the Ediff control buffer after finishing Ediff.") 
 
 (make-variable-buffer-local 'local-write-file-hooks)
 (make-variable-buffer-local 'before-change-function)
@@ -671,32 +670,33 @@ wa/wb - save buf A/B    A/B - toggle read-only buf A/B        ? - toggle help")
 "   	    	    	   ? - toggle help window")			  
 
 (defvar ediff-help-message ediff-help-message-long
-  "* The actual help message.")
+  "*The actual help message.")
  
  
 (defvar ediff-diff-program "diff"
-  "* Name of the program that compares two files.")
+  "*Name of the program that compares two files.")
 (defvar ediff-diff-options ""  
-  "* Options to pass to ``ediff-diff-program''.")
+  "*Options to pass to `ediff-diff-program'.")
   
 
 ;; Support for patches 
 
 (defvar ediff-patch-program "patch"
-  "* Name of the program that applies patches.")
+  "*Name of the program that applies patches.")
 (defvar ediff-patch-options ""
-  "* Options to pass to ediff-patch-program.")
+  "*Options to pass to ediff-patch-program.")
   
 (defvar ediff-shell "sh"
-  "* The shell used to run diff and patch.  If user's .profile or
-.cshrc files are set up correctly, any shell will do.  However, some people
-set $prompt or other things incorrectly, which leads to undesirable output
-messages.  These may cause Ediff to fail.  In such a case, set ediff-shell
-to a shell that you are not using or, better, fix your shell's startup file.")
-  
+  "*The shell used to run diff and patch.
+If user's .profile or .cshrc files are set up correctly, any shell will do.
+However, some people set `$prompt' or other things incorrectly, which
+leads to undesirable output messages.  These may cause Ediff to fail.
+In such a case, set `ediff-shell' to a shell that you are not using or,
+better, fix your shell's startup file.")
+
 (defvar ediff-diff-ok-lines-regexp  
   "^\\([0-9,]+[acd][0-9,]+$\\|[<>] \\|---\\|Warning:\\)"
-  "*Regexp that matches normal output lines from ``ediff-diff-program''.
+  "*Regexp that matches normal output lines from `ediff-diff-program'.
 This is mostly lifted from Emerge, except that Ediff also considers the
 'Missing newline' message to be 'normal output.'
 Lines that do not match are assumed to be error messages.")
@@ -714,31 +714,31 @@ Lines that do not match are assumed to be error messages.")
 ;; Copying diffs betw buffers.    
 
 (emerge-defvar-local ediff-killed-diffs-alist nil
-  "A list of killed diffs.  A diff is saved here if it is replaced by a diff
+  "A list of killed diffs.
+A diff is saved here if it is replaced by a diff
 from another buffer.  This alist has the form:
-((num (A . diff) (B . diff)) ...), where A or B parts may be missing.")
+\((num (A . diff) (B . diff)) ...),
+where A or B parts may be missing.")
 
 
 ;; Highlighting
 (defvar ediff-before-flag-bol
   ;"vvvvvvvvvvvvvvvv---- ediff ----vvvvvvvvvvvvvvv\n"
   ">>--->>>\n"
-  "*Flag placed above the highlighted block of differences.  Must end with
-newline.  Must be set before Ediff is loaded.  If set to nil, the flags from
-emerge.el are used.")
+  "*Flag placed above the highlighted block of differences.
+Must end with newline.  Must be set before Ediff is loaded.
+nil means use a default flag string.")
 (defvar ediff-after-flag-bol
   ;"^^^^^^^^^^^^^^^^---- ediff ----^^^^^^^^^^^^^^^\n"
   "<<<---<<\n"
-  "*Flag placed below the highlighted block of differences.  Must end with
-newline.  Must be set before Ediff is loaded.  If set to nil, the flags from
-emerge.el are used.")
+  "*Flag placed below the highlighted block of differences.
+Must end with newline.  Must be set before Ediff is loaded.
+nil means use a default flag string.")
 
 (defvar ediff-before-flag-mol ">>--->>>"
-  "*This is like ediff-before-flag, except it is used when a difference
-region starts in the middle of a line.")
+  "*Like ediff-before-flag, used when a difference starts in mid-line.")
 (defvar ediff-after-flag-mol "<<<---<<"
-  "*This is like ediff-after-flag, except it is used when a difference
-region starts in the middle of a line.")
+  "*Like ediff-after-flag, used when a difference starts in mid-line.")
 
 (emerge-defvar-local ediff-before-flag-A nil
   "This is the actual ASCII before-flag in effect in buffer A.
@@ -763,8 +763,8 @@ or at the beginning of a line.")
 
   
 (emerge-defvar-local ediff-want-faces t
-  "If t, differences will be highlighted using faces on a window
-system.  If nil, they will be highlighted using ASCII flags, ediff-before-flag
+  "If t, differences are highlighted using faces on a window system.
+If nil, they are highlighted using ASCII flags, ediff-before-flag
 and ediff-after-flag.  On a non-window system, differences are always
 highlighted using ASCII flags.
 
@@ -773,14 +773,14 @@ interactively, using ediff-toggle-hilit.")
 
 (emerge-defvar-local ediff-highlight-selected-only nil
   "If t, only the selected differences are highlighted.
-
-This is not a user option.  Can be set either in .emacs or toggled
-interactively, using ediff-toggle-hilit.")
+This is not a user option.  Can be set either in `.emacs' or toggled
+interactively, using `ediff-toggle-hilit'.")
 
 (emerge-defvar-local ediff-highlighting-style nil
-  "A var local to each ediff-control buffer.  Indicates highlighting style
-in effect for this buffer: 'face, 'ascii, nil -- temporarily unhighlighted,
-'off -- turned off \(on a dumb terminal only\).")
+  "A var local to each ediff-control buffer.
+Indicates highlighting style in effect for this buffer: `face', `ascii',
+nil -- temporarily unhighlighted, `off' -- turned off \(on a dumb
+terminal only\).")
 
   
 
@@ -813,11 +813,11 @@ in effect for this buffer: 'face, 'ascii, nil -- temporarily unhighlighted,
   "Remembers ediff-saved-variables for ediff-B-buffer as they were at setup.")
 
 (emerge-defvar-local ediff-difference-vector nil
-  "Vector of differences between the variants.  Each difference is
-represented by a vector of two overlays.  The first overlays the difference
-section in the A buffer and the second overlays the diff in the B buffer.
-If a difference section is empty, the corresponding overlay's endpoints
-councide. ")
+  "Vector of differences between the variants.
+Each difference is represented by a vector of two overlays.  The first
+overlays the difference section in the A buffer and the second
+overlays the diff in the B buffer.  If a difference section is empty,
+the corresponding overlay's endpoints councide. ")
 
 (emerge-defvar-local ediff-current-difference -1
   "The difference that is currently selected.")
@@ -830,12 +830,10 @@ councide. ")
   "Buffer containing the output of diff, when diff returns errors.")
   
 (emerge-defvar-local ediff-this-buffer-control-sessions  nil
-  "Keeps the list of ediff-control buffers associated with each buffer A/B
-involved in an ediff session.")
+  "List of ediff-control buffers associated with each buffer A/B.")
 
 (defvar ediff-disturbed-overlays nil
-  "A list of difference overlays that were disturbed by copying or recovery
-of the current diff.")
+  "List of difference overlays disturbed by working with the current diff.")
   
 (defvar ediff-shaded-overlay-priority 
   (if (ediff-if-lucid)
@@ -1049,8 +1047,8 @@ the Ediff display")
 ;;; Misc
 
 (defvar ediff-split-window-function 'split-window-vertically
-  "* The function to be called to divide the main window between buffer-A
-and buffer-B.  You can set it to be split horizontally instead of the
+  "*The function to split the main window between buffer-A and buffer-B.
+You can set it to be split horizontally instead of the
 default verstical split by setting this variable to
 'split-window-horizontally.  You can also have your own function for fancy
 splits.  This variable has no effect when buffer-A and buffer-B are shown in
@@ -1060,19 +1058,17 @@ these buffers.")
 (defconst ediff-saved-variables
   '(buffer-read-only
     buffer-auto-save-file-name)
-  "Variables and properties of a buffer which are saved, modified and restored
-during an Ediff session.")
+  "Buffer-local variables saved and restored during an Ediff session.")
 
 (defconst ediff-working-values '(nil nil)
-  "Values to be assigned to ediff-saved-variables during diff.")
+  "Values to be assigned to `ediff-saved-variables' during diff.")
   
 (defvar ediff-use-last-dir nil
-  "* If t, Ediff will use last directory it had seen as a default
-directory when prompting for file names.")
+  "*If t, Ediff uses previous directory as default when reading file name.")
   
 (defvar ediff-nix-help-in-control-buffer nil
-  "*Don't want C-h to invoke Emacs help.  Instead, C-h will jump to previous
-difference.")
+  "*Non-nil mean C-h should not to invoke Emacs help.
+Instead, C-h jumps to previous difference.")
   
 (defvar ediff-temp-file-prefix
   (let ((env (getenv "TMPDIR"))
@@ -1308,7 +1304,7 @@ Else, read patch file into a new buffer."
 
 ;;;###autoload
 (defun ediff-patch-file (file-to-patch &optional startup-hooks)
-  "Run Ediff by patching FILE-TP-PATCH."
+  "Run Ediff by patching FILE-TO-PATCH."
   (interactive "fFile to patch: ")
   
   (ediff-get-patch-buffer (file-name-directory file-to-patch))
@@ -1614,9 +1610,9 @@ With prefix argument, prompts for revision name."
   (ediff-set-keys))
 
 (defun ediff-before-change-guard (start end)
-  "If buffer is highlighted with ASCII flags, remove highlighting before
-changing buf. Arguments, START and END are not used, but are provided
-because this is required by ``before-change-function''."
+  "If buffer is highlighted with ASCII flags, remove highlighting.
+Arguments, START and END are not used, but are provided
+because this is required by `before-change-function'."
   (let (notify)
     (save-window-excursion
       (mapcar
@@ -1640,10 +1636,10 @@ because this is required by ``before-change-function''."
 
 (defun ediff-remember-buffer-characteristics (&optional arg)
   "Record certain properties of the buffers being compared.
-Must be called in the control buffer.  Saves ``read-only'', ``modified'',
-and ``auto-save'' properties in buffer local variables.  Turns off
-``auto-save-mode''.  These properties are restored via a call to
-``ediff-restore-buffer-characteristics''."
+Must be called in the control buffer.  Saves `read-only', `modified',
+and `auto-save' properties in buffer local variables.  Turns off
+`auto-save-mode'.  These properties are restored via a call to
+`ediff-restore-buffer-characteristics'."
 
   ;; remember and alter buffer characteristics
   (set  (if arg 'ediff-A-buffer-values-setup 'ediff-A-buffer-values)
@@ -1662,7 +1658,7 @@ and ``auto-save'' properties in buffer local variables.  Turns off
 				     ediff-working-values)))))
 
 (defun ediff-restore-buffer-characteristics (&optional arg)
-  "Restores properties saved by ``ediff-remember-buffer-characteristics''."
+  "Restores properties saved by `ediff-remember-buffer-characteristics'."
   (let ((A-values (if arg ediff-A-buffer-values-setup ediff-A-buffer-values))
 	(B-values (if arg ediff-B-buffer-values-setup ediff-B-buffer-values)))
     (emerge-eval-in-buffer ediff-A-buffer
@@ -2081,7 +2077,7 @@ the width of the A and B windows."
 	   default-amount))))))
 
 (defun ediff-position-region (beg end pos)
-  "This is a variation on ``emerge-position-region''. 
+  "This is a variation on `emerge-position-region'.
 The difference is that it always tries to align difference regions in
 buffer-A and buffer-B, so that it will be easier to compare them."
   (set-window-start (selected-window) beg)
@@ -2137,7 +2133,7 @@ With a prefix argument, go back that many differences."
 (defun ediff-jump-to-difference-at-point ()
   "Go to the difference closest to the point in buffer A or B.
 If this command is invoked via `ja' or `ga' then the point in buffer A is
-used. Otherwise, buffer B is used."
+used.  Otherwise, buffer B is used."
   (interactive)
   (let ((buffer-read-only nil)
 	(buf-type (if (eq last-command-char ?a) 'A  'B)))
@@ -2172,7 +2168,7 @@ used. Otherwise, buffer B is used."
 (defun ediff-diff-to-diff (arg)
   "Copy buffer-A'th diff to buffer B.
 If numerical prefix argument, copy this diff specified in the arg.
-Otherwise, copy the difference given by ``ediff-current-difference''." 
+Otherwise, copy the difference given by `ediff-current-difference'." 
   (interactive "P")
   (if arg
       (ediff-jump-to-difference arg))
@@ -2182,7 +2178,7 @@ Otherwise, copy the difference given by ``ediff-current-difference''."
 
 
 (defun ediff-copy-diff (n buf-type)
-  "Copy diff N from BUF-TYPE \(given as 'A or 'B\)."
+  "Copy diff N from BUF-TYPE \(given as `A' or `B'\)."
   (let* ((other-buf (if (eq buf-type 'A) 
 			ediff-B-buffer ediff-A-buffer))
 	 (buf (if (eq buf-type 'A) 
@@ -2251,9 +2247,10 @@ Otherwise, copy the difference given by ``ediff-current-difference''."
     ))
      
 (defun ediff-save-diff-region (n buf-type reg)
-  "Save N-th diff of buffer BUF-TYPE \('A or 'B\) on the
-``ediff-killed-diffs-alist''.  REG is the region to save.
-It is redundant here,but is passed anyway, for convenience."
+  "Save Nth diff of buffer BUF-TYPE \(`A' or `B'\).
+That is to say, the Nth diff on the `ediff-killed-diffs-alist'.  REG
+is the region to save.  It is redundant here,but is passed anyway, for
+convenience."
 
   (let* ((n-th-diff-saved (assoc n ediff-killed-diffs-alist))
 	 (this-buf-n-th-diff-saved (assoc buf-type (cdr n-th-diff-saved))))
@@ -2271,7 +2268,7 @@ It is redundant here,but is passed anyway, for convenience."
 	     (1+ n) buf-type (if (eq buf-type 'A) "ra" "rb"))))
     
 (defun ediff-test-save-region (n buf-type)
-  "Test if saving N-th difference region of buffer BUF-TYPE is possible."
+  "Test if saving Nth difference region of buffer BUF-TYPE is possible."
   (let* ((n-th-diff-saved (assoc n ediff-killed-diffs-alist))
 	 (this-buf-n-th-diff-saved (assoc buf-type (cdr n-th-diff-saved))))
 	 
@@ -2285,7 +2282,7 @@ It is redundant here,but is passed anyway, for convenience."
       t)))
 	  
 (defun ediff-pop-diff (n buf-type)
-  "Pop last killed N-th diff region from buffer BUF-TYPE."
+  "Pop last killed Nth diff region from buffer BUF-TYPE."
   (let* ((n-th-record (assoc n ediff-killed-diffs-alist))
 	 (saved-rec (assoc buf-type (cdr n-th-record)))
 	 (buf (if (eq buf-type 'A) ediff-A-buffer ediff-B-buffer))
@@ -2336,8 +2333,8 @@ It is redundant here,but is passed anyway, for convenience."
     ))
       
 (defun ediff-restore-diff  (arg)
-  "Restore ARG-th diff from ediff-killed-diffs-alist.
-ARG is a prefix argument.  If ARG is `nil', restore current-difference."
+  "Restore ARGth diff from `ediff-killed-diffs-alist'.
+ARG is a prefix argument.  If ARG is nil, restore current-difference."
   (interactive "P")
   (if arg
       (ediff-jump-to-difference arg))
@@ -2437,8 +2434,9 @@ flags of the compared file buffers, kills Ediff buffers for this session
      
      
 (defun ediff-suspend ()
-  "Suspend Ediff.  To resume, switch to the appropriate ``*ediff-control*''
-buffer and then hit ``\\[ediff-recenter]''.  Ediff will automatically set
+  "Suspend Ediff.
+To resume, switch to the appropriate `*ediff-control*'
+buffer and then type \\[ediff-recenter].  Ediff will automatically set
 up an appropriate window config."
   (interactive)
   (run-hooks 'ediff-suspend-hooks)
@@ -2448,7 +2446,7 @@ up an appropriate window config."
 
 (defun ediff-file-names ()
   "Show the names of the buffers or files being operated on by Ediff.
-Hit ``\\[ediff-recenter]'' to reset the windows afterward."
+Hit \\[ediff-recenter] to reset the windows afterward."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
     (emerge-eval-in-buffer ediff-A-buffer
@@ -2538,10 +2536,10 @@ This function displays the line numbers of the points in the A, B."
 ;; unselected, but the next one is not selected.  If NO-RECENTER is non-nil,
 ;; don't recenter buffers after selecting/unselecting.
 ;; 
-;; Don't use ``ediff-select-difference'' and ``ediff-unselect-difference''
+;; Don't use `ediff-select-difference' and `ediff-unselect-difference'
 ;; directly,;; since this will screw up the undo info in the presence of
 ;; ASCII flags. 
-;; Instead, use ``ediff-unselect-and-select-difference'' with appropriate
+;; Instead, use `ediff-unselect-and-select-difference' with appropriate
 ;; flags.
 
 (defun ediff-unselect-and-select-difference (n &optional flag no-recenter)
@@ -2620,7 +2618,7 @@ This function displays the line numbers of the points in the A, B."
 
 	 
 (defun ediff-read-file-name (prompt default-dir default-file A-file)
-; This is a modified version of a similar function in ``emerge.el''.
+; This is a modified version of a similar function in `emerge.el'.
 ; PROMPT should not have trailing ': ', so that it can be modified
 ; according to context.
 ; If both A-FILE and default-dir are set, the file constructed our of
@@ -2747,10 +2745,10 @@ them before they disappear."
     
 
        
+;; Essentially `emerge-remove-flags-in-buffer', modified to allow deletion
+;; of read-only flags.
 (defun ediff-remove-flags-from-buffer (buffer before-posn after-posn
 					      before-flag after-flag)
-  "Essentially ``emerge-remove-flags-in-buffer'', modified to allow deletion
-of read-only flags."
   (emerge-eval-in-buffer
    buffer
    (let ((buffer-read-only nil)
@@ -2787,14 +2785,14 @@ of read-only flags."
      )))
 
 
+;; This is a modified `emerge-place-flags-in-buffer'.
 (defun ediff-place-flags-in-buffer (buf-type buffer ctl-buffer difference)
-  "This is a modified ``emerge-place-flags-in-buffer''."
   (emerge-eval-in-buffer
    buffer
    (ediff-place-flags-in-buffer1 buf-type ctl-buffer difference)))
 
+;; Modified `emerge-place-flags-in-buffer1'.
 (defun ediff-place-flags-in-buffer1 (buf-type ctl-buffer difference)
-  "Modified ``emerge-place-flags-in-buffer1''."
   (let ((buffer-read-only nil)
 	(inhibit-read-only t)
 	(before-change-function nil)
@@ -2847,13 +2845,15 @@ of read-only flags."
 
   
 (defun ediff-get-diff-posn (buf-type pos &optional n control-buf)
-  "Returns positions of difference sectors in the buffer denoted BUF-TYPE
-\('A or 'B\). 
-POS is either 'beg or 'end.  Specifies whether you want the position at the
-beginning of a difference of at the end.  Optional N says which difference
-\(default: ``ediff-current-difference''\).  Optional CONTROL-BUF says which
-control buffer is in effect in case it is not the current buffer."
+  "Returns positions of difference sectors in the BUF-TYPE buffer.
+BUF-TYPE should be a symbol--either `A' or `B'. 
+POS is either `beg' or `end'--it specifies whether you want the position at the
+beginning of a difference of at the end.
 
+The optional argument N says which difference \(default:
+`ediff-current-difference'\).  The optional argument CONTROL-BUF says
+which control buffer is in effect in case it is not the current
+buffer."
   (let (diff-overlay)
     (or control-buf
 	(setq control-buf (current-buffer)))
@@ -2972,8 +2972,8 @@ control buffer is in effect in case it is not the current buffer."
 
 	  
 (defun ediff-operate-on-flags (action)
-  "Re/unhighlights buffers A and B with all flags from all active Ediff
-sessions that involve these buffers.  This is usually needed only when a
+  "Re/unhighlights buffers A and B with all flags from all Ediff sessions.
+This is usually needed only when a
 buffer is involved in multiple Ediff sessions."
   (let* ((A-sessions (emerge-eval-in-buffer
 		      ediff-A-buffer
@@ -3001,7 +3001,7 @@ buffer is involved in multiple Ediff sessions."
 The result list contains all items that appear in either LIST1 or LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
-This is a slightly simplified version from ``cl-seq.el''.  Added here to
+This is a slightly simplified version from `cl-seq.el'.  Added here to
 avoid loading cl-*."
   (cond ((null list1) list2) ((null list2) list1)
 	((equal list1 list2) list1)
