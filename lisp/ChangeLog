@@ -1,3 +1,7 @@
+2002-04-07  Sam Steingold  <sds@gnu.org>
+
+	* vc-cvs.el (vc-cvs-checkin): Pass the required argument to `error'.
+
 2002-04-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* files.el (display-time-string): Fix last change.

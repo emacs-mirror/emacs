@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.37 2002/03/22 23:10:01 monnier Exp $
+;; $Id: vc-cvs.el,v 1.38 2002/03/28 14:27:30 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -114,7 +114,7 @@ Here's an example that will display the formatted date for sticky
 dates and the word \"Sticky\" for sticky tag names and revisions.
 
   (lambda (tag type)
-    (cond ((eq type 'date) (format-time-string 
+    (cond ((eq type 'date) (format-time-string
                               vc-cvs-sticky-date-format-string tag))
           ((eq type 'revision-number) \"Sticky\")
           ((eq type 'symbolic-name) \"Sticky\")))
@@ -127,11 +127,11 @@ displayed.  Date and time is displayed for sticky dates.
    (lambda (tag type)
      (cond ((eq type 'date) (format-time-string \"%Y%m%d %H:%M\" tag))
            ((eq type 'revision-number) \"Sticky\")
-           ((eq type 'symbolic-name) 
+           ((eq type 'symbolic-name)
             (condition-case nil
                 (progn
                   (string-match \"\\\\([^-]*\\\\)\\\\(.*\\\\)\" tag)
-                  (concat (substring (match-string 1 tag) 0 1) \":\" 
+                  (concat (substring (match-string 1 tag) 0 1) \":\"
                           (substring (match-string 2 tag) 1 nil)))
               (error tag)))))       ; Fall-back to given tag name.
 
@@ -328,13 +328,13 @@ This is only possible if CVS is responsible for FILE's directory."
                             (concat "-m" comment)
                             switches))
       (if (not (vc-cvs-valid-symbolic-tag-name-p rev))
-          (error "%s is not a valid symbolic tag name")
+          (error "%s is not a valid symbolic tag name" rev)
         ;; If the input revison is a valid symbolic tag name, we create it
-        ;; as a branch, commit and switch to it.       
+        ;; as a branch, commit and switch to it.
         (apply 'vc-cvs-command nil 0 file "tag" "-b" (list rev))
         (apply 'vc-cvs-command nil 0 file "update" "-r" (list rev))
         (setq status (apply 'vc-cvs-command nil 1 file
-                            "ci" 
+                            "ci"
                             (concat "-m" comment)
                             switches))
         (vc-file-setprop file 'vc-cvs-sticky-tag rev)))
@@ -634,12 +634,12 @@ encoded as fractional days."
 (defun vc-cvs-annotate-time ()
   "Return the time of the next annotation (as fraction of days)
 systime, or nil if there is none."
-  (let ((time-stamp 
+  (let ((time-stamp
 	 "^\\S-+\\s-+\\S-+\\s-+\\([0-9]+\\)-\\(\\sw+\\)-\\([0-9]+\\)): "))
     (if (looking-at time-stamp)
       (progn
 	(let* ((day (string-to-number (match-string 1)))
-		 (month (cdr (assoc (match-string 2) 
+		 (month (cdr (assoc (match-string 2)
 				    vc-cvs-local-month-numbers)))
 	       (year-tmp (string-to-number (match-string 3)))
 	       ;; Years 0..68 are 2000..2068.
@@ -731,7 +731,7 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
 The difference to vc-do-command is that this function always invokes `cvs',
 and that it passes `vc-cvs-global-switches' to it before FLAGS."
   (apply 'vc-do-command buffer okstatus "cvs" file
-         (if (stringp vc-cvs-global-switches) 
+         (if (stringp vc-cvs-global-switches)
              (cons vc-cvs-global-switches flags)
            (append vc-cvs-global-switches
                    flags))))
@@ -782,7 +782,7 @@ essential information."
 \[\t ]+\\([0-9.]+\\)"
                     nil t))
               (vc-file-setprop file 'vc-latest-version (match-string 2)))
-          (vc-file-setprop 
+          (vc-file-setprop
            file 'vc-state
            (cond
             ((string-match "Up-to-date" status)
@@ -815,10 +815,10 @@ essential information."
   ;; lowercase letters, digits, `-', and `_'.
   (and (string-match "^[a-zA-Z]" tag)
        (not (string-match "[^a-z0-9A-Z-_]" tag))))
-      
+
 
 (defun vc-cvs-parse-sticky-tag (match-type match-tag)
-  "Parse and return the sticky tag as a string.  
+  "Parse and return the sticky tag as a string.
 `match-data' is protected."
   (let ((data (match-data))
 	(tag)
@@ -830,11 +830,11 @@ essential information."
 		    (t nil))))
     (unwind-protect
 	(progn
-	  (cond 
+	  (cond
 	   ;; Sticky Date tag.  Convert to to a proper date value (`encode-time')
 	   ((eq type 'date)
-	    (string-match 
-	     "\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)" 
+	    (string-match
+	     "\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)"
 	     match-tag)
 	    (let* ((year-tmp (string-to-number (match-string 1 match-tag)))
 		   (month    (string-to-number (match-string 2 match-tag)))
@@ -856,13 +856,13 @@ essential information."
 	   (t nil))
 	  (cond ((eq vc-cvs-sticky-tag-display nil) nil)
 		((eq vc-cvs-sticky-tag-display t)
-		 (cond ((eq type 'date) (format-time-string 
+		 (cond ((eq type 'date) (format-time-string
 					 vc-cvs-sticky-date-format-string
 					 tag))
 		       ((eq type 'symbolic-name) tag)
 		       ((eq type 'revision-number) tag)
 		       (t nil)))
-		((functionp vc-cvs-sticky-tag-display) 
+		((functionp vc-cvs-sticky-tag-display)
 		 (funcall vc-cvs-sticky-tag-display tag type))
 		(t nil)))
 
@@ -905,7 +905,7 @@ is non-nil."
 	    (t
 	     (vc-file-setprop file 'vc-checkout-time 0)
 	     (if set-state (vc-file-setprop file 'vc-state 'edited))))))))
-           
+
 (provide 'vc-cvs)
 
 ;;; vc-cvs.el ends here
