@@ -1,5 +1,5 @@
 ;;; mule-cmds.el --- commands for mulitilingual environment
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+;; Copyright (C) 1995, 2003 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 ;; Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
@@ -631,7 +631,8 @@ The candidates of coding systems which can safely encode a text
 between FROM and TO are shown in a popup window.  Among them, the most
 proper one is suggested as the default.
 
-The list of `buffer-file-coding-system' of the current buffer and the
+The list of `buffer-file-coding-system' of the current buffer,
+the `default-buffer-file-coding-system', and the
 most preferred coding system (if it corresponds to a MIME charset) is
 treated as the default coding system list.  Among them, the first one
 that safely encodes the text is normally selected silently and
@@ -648,8 +649,8 @@ Optional 3rd arg DEFAULT-CODING-SYSTEM specifies a coding system or a
 list of coding systems to be prepended to the default coding system
 list.  However, if DEFAULT-CODING-SYSTEM is a list and the first
 element is t, the cdr part is used as the defualt coding system list,
-i.e. `buffer-file-coding-system' and the most prepended coding system
-is not used.
+i.e. `buffer-file-coding-system', `default-buffer-file-coding-system',
+and the most preferred coding system are not used.
 
 Optional 4th arg ACCEPT-DEFAULT-P, if non-nil, is a function to
 determine the acceptability of the silently selected coding system.
@@ -679,6 +680,9 @@ and TO is ignored."
 	  (mapcar (function (lambda (x) (cons x (coding-system-base x))))
 		  default-coding-system))
 
+    ;; From now on, the list of defaults is reversed.
+    (setq default-coding-system (nreverse default-coding-system))
+
     (unless no-other-defaults
       ;; If buffer-file-coding-system is not nil nor undecided, append it
       ;; to the defaults.
@@ -686,24 +690,30 @@ and TO is ignored."
 	  (let ((base (coding-system-base buffer-file-coding-system)))
 	    (or (eq base 'undecided)
 		(rassq base default-coding-system)
-		(setq default-coding-system
-		      (append default-coding-system
-			      (list (cons buffer-file-coding-system base)))))))
+		(push (cons buffer-file-coding-system base)
+		      default-coding-system))))
+
+      ;; If default-buffer-file-coding-system is not nil nor undecided,
+      ;; append it to the defaults.
+      (if default-buffer-file-coding-system
+	  (let ((base (coding-system-base default-buffer-file-coding-system)))
+	    (or (eq base 'undecided)
+		(rassq base default-coding-system)
+		(push (cons default-buffer-file-coding-system base)
+		      default-coding-system))))
 
       ;; If the most preferred coding system has the property mime-charset,
       ;; append it to the defaults.
       (let ((tail coding-category-list)
 	    preferred base)
-	(while (and tail
-		    (not (setq preferred (symbol-value (car tail)))))
+	(while (and tail (not (setq preferred (symbol-value (car tail)))))
 	  (setq tail (cdr tail)))
 	(and (coding-system-p preferred)
 	     (setq base (coding-system-base preferred))
 	     (coding-system-get preferred 'mime-charset)
 	     (not (rassq base default-coding-system))
-	     (setq default-coding-system
-		   (append default-coding-system
-			   (list (cons preferred base))))))))
+	     (push (cons preferred base)
+		   default-coding-system)))))
 
   (if select-safe-coding-system-accept-default-p
       (setq accept-default-p select-safe-coding-system-accept-default-p))
@@ -724,7 +734,7 @@ and TO is ignored."
 	      (push (car elt) safe))
 	  (push (car elt) unsafe)))
       (if safe
-	  (setq coding-system (car (last safe)))))
+	  (setq coding-system (car safe))))
 
     ;; If all the defaults failed, ask a user.
     (when (not coding-system)
