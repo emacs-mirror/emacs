@@ -1,3 +1,11 @@
+2002-12-26  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* data.c (Fmakunbound, Ffmakunbound, Fmake_variable_buffer_local)
+	(Fsetq_default, Fmake_local_variable, Fkill_local_variable)
+	(Fmake_variable_frame_local, Faset, Fnumber_to_string)
+	(Fstring_to_number, Fminus): Mention the returned value in the doc
+	strings.
+
 2002-12-23  Richard M. Stallman  <rms@gnu.org>
 
 	* buffer.c (syms_of_buffer) <scroll-up-aggressively>
@@ -13,7 +21,7 @@
 
 2002-12-22  Steven Tamm  <steventamm@mac.com>
 
-	* macmenu.c (MIN_POPUP_SUBMENU_ID): Added 
+	* macmenu.c (MIN_POPUP_SUBMENU_ID): Added
 	(mac_menu_show): Added support for hierarchical popup menus
 	(add_menu_item): Removed indentation support
 	(fill_submenu, fill_menu): Now creates hierarchical menus
@@ -55,7 +63,7 @@
 	* Errors and throws work right with interrupt blocking.
 	* eval.c (struct catchtag): New elt interrupt_input_blocked.
 	(unwind_to_catch): Restore interrupt_input_blocked from saved value.
-	(internal_catch, Fcondition_case, internal_condition_case) 
+	(internal_catch, Fcondition_case, internal_condition_case)
 	(internal_condition_case_1, internal_condition_case_2): Save it.
 	(Fsignal): Don't do TOTALLY_UNBLOCK_INPUT.
 
@@ -77,10 +85,10 @@
 2002-12-17  Ben Key <bkey1@tampabay.rr.com>
 
 	* Revisited my earlier fix for the following entry in
-	etc/PROBLEMS: 
+	etc/PROBLEMS:
 	"Emacs built on Windows 9x/ME crashes at startup on Windows XP,
 	or Emacs builtpart of on XP crashes at startup on Windows 9x/ME."
-	
+
 	These changes were in part based upon suggestions made by Peter
 	'Luna' Runestig [peter@runestig.com].
 
@@ -105,13 +113,13 @@
 	* w32.c (open_process_token): Perform initialization only if
 	g_b_init_open_process_token is equal to 0.  On initialization set
 	g_b_init_open_process_token equal to 1.
-	
+
 	* w32.c (get_token_information): Perform initialization only if
 	g_b_init_get_token_information is equal to 0.  On initialization
 	set g_b_init_get_token_information equal to 1.
-	
+
 	* w32.c (lookup_account_sid): Perform initialization only if
-	g_b_init_lookup_account_sid is equal to 0.  On initialization 
+	g_b_init_lookup_account_sid is equal to 0.  On initialization
 	set g_b_init_lookup_account_sid equal to 1.
 
 	* w32.c (get_sid_identifier_authority): Perform initialization
@@ -159,7 +167,7 @@
 	detected by BoundsChecker.  Test to determine if
 	w32_system_caret_hwnd is NULL prior to attempting to use
 	SendMessage to send the WM_EMACS_SHOW_CARET message to it.
-	
+
 2002-12-17  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (coding_system_require_warning): New variable.
