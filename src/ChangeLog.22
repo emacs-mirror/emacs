@@ -1,3 +1,8 @@
+2003-11-22  Kenichi Handa  <handa@m17n.org>
+
+	* keymap.c (store_in_keymap): Pay attention to the case that idx
+	is a cons specifying a character range.
+
 2003-11-18  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (update_compositions): Bind inhibit-read-only, etc
