@@ -1813,7 +1813,7 @@ init_charset_once ()
   bzero (cmpchar_hash_table, sizeof cmpchar_hash_table);
   cmpchar_table_size = n_cmpchars = 0;
 
-  for (i = 0; i < 128; i++)
+  for (i = 0; i < 256; i++)
     BYTES_BY_CHAR_HEAD (i) = 1;
   for (i = MIN_CHARSET_OFFICIAL_DIMENSION1;
        i <= MAX_CHARSET_OFFICIAL_DIMENSION1; i++)
