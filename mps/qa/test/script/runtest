@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(trunk.8) $
+# $HopeName: MMQA_harness!script:runtest(trunk.9) $
 #
 # provides subroutines to run tests and testsets
 #
@@ -39,7 +39,7 @@ sub clib {
  &logcomment("Compiling test libraries from $testlib_dir.");
 
  open(MANIFEST, "$testlib_dir/manifest");
- &compiler_settings;
+
  while ($tlfile = <MANIFEST>) {
   unless ($tlfile =~ /^%/) {
    chop($tlfile);
@@ -64,6 +64,11 @@ sub run_test {
 
  &readheader($testfile, 1);
 
+ unless (vleq($test_header{"harness"}, $HARNESS_VERSION)) {
+  die "This test requires version $test_header{harness} or later of the MMQA harness.
+(You are using version $HARNESS_VERSION.)\n";
+ }
+
  for $lang ($test_header{"language"}) {
 
   if ($lang =~ /^c$/) {
@@ -75,9 +80,9 @@ sub run_test {
    }
    $testlogfile = "$obj_dir/tmp_log.log";
    &run_exe($objfile, $interact, $stdin);
-   open(LOG_RESULTS, ">".$logfile);
    &describe_test($report_type);
-   &describe_test($report_type, LOG_RESULTS);
+   open(LOG_RESULTS, ">".$logfile);
+   &describe_test("verbose", LOG_RESULTS);
    close(LOG_RESULTS);
    last;
   };
@@ -96,11 +101,14 @@ sub run_from_testset {
  local ($testfile) = @_;
 
  &readheader($testfile, 1);
- unless ($test_header{"language"} eq "c") {
+ if ($test_header{"language"} ne "c") {
   &logcomment("Skipping test $testfile: don't know how to run it in batch mode.");
   $testsetresults{$testfile}="/";
+ } elsif (!vleq($test_header{"harness"}, $HARNESS_VERSION)) {
+  &logcomment("Skipping test $testfile: needs newer harness.");
+  $testsetresults{$testfile}="/";
  } else {
-  $stdin = $setstdin;
+  $stdin = &setstdin;
   $linkfiles = $test_header{"link"};
   $objfile = "$obj_dir/tmp_test";
   $testlogfile = "$obj_dir/tmp_log.log";
@@ -119,6 +127,11 @@ sub run_from_testset {
    } else {
     $testsetresults{$testfile}="*";
    }
+   open(LOG_VERBOSE, ">$LOG_DIR/last.log");
+   &describe_test("verbose", LOG_VERBOSE);
+   close(LOG_VERBOSE);
+   &mailfile("$LOG_DIR/last.log",
+    "MMQA-log: ".$testconclusion."ED test $testfile (runset)");
   }
  }
 }
