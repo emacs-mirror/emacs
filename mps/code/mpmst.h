@@ -1,4 +1,4 @@
-/* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
+/* mpmst.h: MEMORY POOL MANAGER DATA STRUCTURES
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -8,7 +8,7 @@
  * document.
  *
  * .structure: Most structures have already been declared as incomplete
- * types in impl.h.mpmtypes.  Most of the structures are the underlying
+ * types in <code/mpmtypes.h>.  Most of the structures are the underlying
  * aggregate types for an abstract data type.  See
  * guide.impl.c.naming.type.adt-aggregate.relate.
  *
@@ -35,7 +35,7 @@
  * .class: The pool class structure is defined by each pool class
  * implementation in order to provide an interface between the MPM
  * and the class (see <design/class-interface/>) via generic
- * functions (see impl.c.pool).  A class XXX defines a function
+ * functions (see <code/pool.c>).  A class XXX defines a function
  * PoolClassXXX() returning a PoolClass pointing to a PoolClassStruct
  * of methods which implement the memory management policy.
  *
@@ -85,7 +85,7 @@ typedef struct PoolClassStruct {
  * holds the generic part of the pool's state.  Each pool class defines
  * a "subclass" of the pool structure (the "outer structure") which
  * contains PoolStruct as a a field.  The outer structure holds the
- * class-specific part of the pool's state.  See impl.c.pool,
+ * class-specific part of the pool's state.  See <code/pool.c>,
  * <design/pool/>.  */
 
 #define PoolSig         ((Sig)0x519B0019) /* SIGnature POOL */
@@ -111,7 +111,7 @@ typedef struct PoolStruct {     /* generic structure */
 
 /* MFSStruct -- MFS (Manual Fixed Small) pool outer structure
  *
- * .mfs: See impl.c.poolmfs, <design/poolmfs/>.
+ * .mfs: See <code/poolmfs.c>, <design/poolmfs/>.
  *
  * The MFS outer structure is declared here because it is inlined
  * in the control pool structure which is inlined in the arena.  Normally,
@@ -136,7 +136,7 @@ typedef struct MFSStruct {      /* MFS outer structure */
 
 /* MVStruct -- MV (Manual Variable) pool outer structure
  *
- * .mv: See impl.c.poolmv, <design/poolmv/>.
+ * .mv: See <code/poolmv.c>, <design/poolmv/>.
  *
  * The MV pool outer structure is declared here because it is the
  * control pool structure which is inlined in the arena.  Normally,
@@ -160,7 +160,7 @@ typedef struct MVStruct {       /* MV pool outer structure */
 
 /* ReservoirStruct -- Reservoir structure
  *
- * .reservoir: See impl.c.reserv, <design/reservoir/>.
+ * .reservoir: See <code/reserv.c>, <design/reservoir/>.
  *
  * The Reservoir structure is declared here because it is in-lined in
  * the arena for storing segments for the low-memory reservoir.  It is
@@ -257,14 +257,14 @@ typedef struct SegClassStruct {
 #define SegSig      ((Sig)0x5195E999) /* SIGnature SEG  */
 
 typedef struct SegStruct {      /* segment structure */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* <code/misc.h#sig> */
   SegClass class;               /* segment class structure */
   Tract firstTract;             /* first tract of segment */
   RingStruct poolRing;          /* link in list of segs in pool */
   Addr limit;                   /* limit of segment */
-  unsigned depth : ShieldDepthWIDTH; /* see impl.c.shield.def.depth */
-  AccessSet pm : AccessSetWIDTH; /* protection mode, impl.c.shield */
-  AccessSet sm : AccessSetWIDTH; /* shield mode, impl.c.shield */
+  unsigned depth : ShieldDepthWIDTH; /* see <code/shield.c#def.depth> */
+  AccessSet pm : AccessSetWIDTH; /* protection mode, <code/shield.c> */
+  AccessSet sm : AccessSetWIDTH; /* shield mode, <code/shield.c> */
   TraceSet grey : TraceLIMIT;   /* traces for which seg is grey */
   TraceSet white : TraceLIMIT;  /* traces for which seg is white */
   TraceSet nailed : TraceLIMIT; /* traces for which seg has nailed objects */
@@ -299,7 +299,7 @@ typedef struct GCSegStruct {    /* GC segment structure */
 #define SegPrefSig      ((Sig)0x5195E9B6) /* SIGnature SEG PRef */
 
 typedef struct SegPrefStruct {  /* segment placement preferences */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* <code/misc.h#sig> */
   Bool high;                    /* high or low */
   ZoneSet zones;                /* preferred zones */
   Bool isCollected;             /* whether segment will be collected */
@@ -344,8 +344,8 @@ typedef struct BufferClassStruct {
  * The allocation point is exported to the client code so that it can
  * do in-line buffered allocation.
  *
- * .ap: This structure must match impl.h.mps.ap.  See also
- * impl.c.mpsi.check.ap.  */
+ * .ap: This structure must match <code/mps.h#ap>.  See also
+ * <code/mpsi.c#check.ap>.  */
 
 typedef struct APStruct {
   Addr init;                    /* limit of initialized area */
@@ -359,7 +359,7 @@ typedef struct APStruct {
 
 /* BufferStruct -- allocation buffer structure
  *
- * See impl.c.buffer, <design/buffer/>.
+ * See <code/buffer.c>, <design/buffer/>.
  *
  * The buffer contains an AP which may be exported to the client.  */
 
@@ -381,7 +381,7 @@ typedef struct BufferStruct {
   APStruct apStruct;            /* the allocation point */
   Addr poolLimit;               /* the pool's idea of the limit */
   Align alignment;              /* allocation alignment */
-  unsigned rampCount;           /* see impl.c.buffer.ramp.hack */
+  unsigned rampCount;           /* see <code/buffer.c#ramp.hack> */
 } BufferStruct;
 
 
@@ -402,7 +402,7 @@ typedef struct SegBufStruct {
 
 /* FormatStruct -- object format structure
  *
- * See design.mps.format-interface, impl.c.format.
+ * See design.mps.format-interface, <code/format.c>.
  *
  * .single: In future, when more variants are added, FormatStruct should
  * really be replaced by a collection of format classes.  */
@@ -429,11 +429,11 @@ typedef struct FormatStruct {
 
 /* LDStruct -- location dependency structure
  *
- * See design.mps.ld, and impl.c.ld.
+ * See design.mps.ld, and <code/ld.c>.
  *
  * A version of this structure is exported to the client.  .ld.struct:
- * This must be kept in sync with impl.h.mps.ld.  See also
- * impl.c.mpsi.check.ld.  */
+ * This must be kept in sync with <code/mps.h#ld>.  See also
+ * <code/mpsi.c#check.ld>.  */
 
 typedef struct LDStruct {
   Epoch epoch;          /* epoch when ld was last reset / init'ed */
@@ -443,7 +443,7 @@ typedef struct LDStruct {
 
 /* ScanState
  *
- * .ss: See impl.c.trace.
+ * .ss: See <code/trace.c>.
  *
  * .ss: The first four fields of the trace structure must match the
  * external scan state structure (mps_ss_s) thus:
@@ -451,7 +451,7 @@ typedef struct LDStruct {
  *   ss->zoneShift      mps_ss->w0
  *   ss->white          mps_ss->w1
  *   ss->unfixedSummary mps_ss->w2
- * See impl.h.mps.ss and impl.c.mpsi.check.ss.  This is why the Sig
+ * See <code/mps.h#ss> and <code/mpsi.c#check.ss>.  This is why the Sig
  * field is in the middle of this structure.  .ss.zone: The zoneShift
  * field is therefore declared as Word rather than Shift.  */
 
@@ -575,11 +575,11 @@ typedef struct ArenaClassStruct {
 typedef struct GlobalsStruct {
   Sig sig;
 
-  /* general fields (impl.c.global) */
+  /* general fields (<code/global.c>) */
   RingStruct globalRing;        /* node in global ring of arenas */
   Lock lock;                    /* arena's lock */
 
-  /* polling fields (impl.c.global) */
+  /* polling fields (<code/global.c>) */
   double pollThreshold;         /* <design/arena/#poll> */
   Bool insidePoll;
   Bool clamped;                 /* prevent background activity */
@@ -589,17 +589,17 @@ typedef struct GlobalsStruct {
   double fillInternalSize;      /* total bytes filled, internal buffers */
   double emptyInternalSize;     /* total bytes emptied, internal buffers */
 
-  /* version field (impl.c.version) */
+  /* version field (<code/version.c>) */
   const char *mpsVersionString; /* MPSVersion() */
 
-  /* buffer fields (impl.c.buffer) */
+  /* buffer fields (<code/buffer.c>) */
   Bool bufferLogging;           /* <design/buffer/#logging.control> */
 
-  /* pool fields (impl.c.pool) */
+  /* pool fields (<code/pool.c>) */
   RingStruct poolRing;          /* ring of pools in arena */
   Serial poolSerial;            /* serial of next created pool */
 
-  /* root fields (impl.c.root) */
+  /* root fields (<code/root.c>) */
   RingStruct rootRing;          /* ring of roots attached to arena */
   Serial rootSerial;            /* serial of next root */
 } GlobalsStruct;
@@ -607,7 +607,7 @@ typedef struct GlobalsStruct {
 
 /* ArenaStruct -- generic arena
  *
- * See impl.c.arena.  */
+ * See <code/arena.c>.  */
 
 #define ArenaSig        ((Sig)0x519A6E4A) /* SIGnature ARENA */
 
@@ -628,7 +628,7 @@ typedef struct ArenaStruct {
   Size spareCommitted;          /* Amount of memory in hysteresis fund */
   Size spareCommitLimit;        /* Limit on spareCommitted */
 
-  Shift zoneShift;              /* see also impl.c.ref */
+  Shift zoneShift;              /* see also <code/ref.c> */
   Align alignment;              /* minimum alignment of tracts */
 
   Tract lastTract;              /* most recently allocated tract */
@@ -639,26 +639,26 @@ typedef struct ArenaStruct {
   Serial chunkSerial;           /* next chunk number */
   ChunkCacheEntryStruct chunkCache; /* just one entry */
 
-  /* locus fields (impl.c.locus) */
+  /* locus fields (<code/locus.c>) */
   GenDescStruct topGen;         /* generation descriptor for dynamic gen */
 
-  /* format fields (impl.c.format) */
+  /* format fields (<code/format.c>) */
   RingStruct formatRing;        /* ring of formats attached to arena */
   Serial formatSerial;          /* serial of next format */
 
-  /* message fields (<design/message/>, impl.c.message) */
+  /* message fields (<design/message/>, <code/message.c>) */
   RingStruct messageRing;       /* ring of pending messages */
   BT enabledMessageTypes;       /* map of which types are enabled */
 
-  /* finalization fields (<design/finalize/>), impl.c.poolmrg */
+  /* finalization fields (<design/finalize/>), <code/poolmrg.c> */
   Bool isFinalPool;             /* indicator for finalPool */
   Pool finalPool;               /* either NULL or an MRG pool */
 
-  /* thread fields (impl.c.thread) */
+  /* thread fields (<code/thread.c>) */
   RingStruct threadRing;        /* ring of attached threads */
   Serial threadSerial;          /* serial of next thread */
  
-  /* shield fields (impl.c.shield) */
+  /* shield fields (<code/shield.c>) */
   Bool insideShield;             /* TRUE if and only if inside shield */
   Seg shCache[ShieldCacheSIZE];  /* Cache of unsynced segs */
   Size shCacheI;                 /* index into cache */
@@ -666,7 +666,7 @@ typedef struct ArenaStruct {
   Size shDepth;                  /* sum of depths of all segs */
   Bool suspended;                /* TRUE iff mutator suspended */
 
-  /* trace fields (impl.c.trace) */
+  /* trace fields (<code/trace.c>) */
   TraceSet busyTraces;          /* set of running traces */
   TraceSet flippedTraces;       /* set of running and flipped traces */
   TraceStruct trace[TraceLIMIT]; /* trace structures.  See
@@ -675,7 +675,7 @@ typedef struct ArenaStruct {
   STATISTIC_DECL(Count writeBarrierHitCount); /* write barrier hits */
   RingStruct chainRing;         /* ring of chains */
 
-  /* location dependency fields (impl.c.ld) */
+  /* location dependency fields (<code/ld.c>) */
   Epoch epoch;                     /* <design/arena/#ld.epoch> */
   RefSet prehistory;               /* <design/arena/#ld.prehistory> */
   RefSet history[LDHistoryLENGTH]; /* <design/arena/#ld.history> */

@@ -1,4 +1,4 @@
-/* impl.c.poolmfs: MANUAL FIXED SMALL UNIT POOL
+/* poolmfs.c: MANUAL FIXED SMALL UNIT POOL
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.c.prmci3li: PROTECTION MUTATOR CONTEXT INTEL 386 (LINUX)
+/* prmci3li.c: PROTECTION MUTATOR CONTEXT INTEL 386 (LINUX)
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

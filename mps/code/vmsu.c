@@ -1,4 +1,4 @@
-/* impl.c.vmsu: VIRTUAL MEMORY MAPPING FOR SUNOS 4
+/* vmsu.c: VIRTUAL MEMORY MAPPING FOR SUNOS 4
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -66,8 +66,8 @@ extern int getpagesize(void);
 /* The names of zero_fd and none_fd are transgressions, see .fildes.name */
 typedef struct VMStruct {
   Sig sig;                      /* <design/sig/> */
-  int zero_fd;                  /* fildes for mmap, see impl.c.vms{o,u} */
-  int none_fd;                  /* fildes for mmap, see impl.c.vms{o,u} */
+  int zero_fd;                  /* fildes for mmap, see <code/vmso.c> and <code/vmsu.c> */
+  int none_fd;                  /* fildes for mmap, see <code/vmso.c> and <code/vmsu.c> */
   Align align;                  /* page size */
   Addr base, limit;             /* boundaries of reserved space */
   Size reserved;                /* total reserved address space */

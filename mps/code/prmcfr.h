@@ -1,4 +1,4 @@
-/* impl.h.prmcfr:  PROTECTION MUTATOR CONTEXT (FREEBSD)
+/* prmcfr.h:  PROTECTION MUTATOR CONTEXT (FREEBSD)
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
+/* poolamc.c: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -42,7 +42,7 @@ typedef struct amcGenStruct {
   RingStruct amcRing;           /* link in list of gens in pool */
   Buffer forward;               /* forwarding buffer */
   Count segs;                   /* number of segs in gen */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* <code/misc.h#sig> */
 } amcGenStruct;
 
 #define amcGenAMC(amcgen) Pool2AMC((amcgen)->pgen.pool)
@@ -87,7 +87,7 @@ typedef struct amcSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   int *segTypeP;            /* .segtype */
   Bool new;                 /* allocated since last GC */
-  Sig sig;                  /* impl.h.misc.sig */
+  Sig sig;                  /* <code/misc.h#sig> */
 } amcSegStruct;
 
 #define Seg2amcSeg(seg)             ((amcSeg)(seg))

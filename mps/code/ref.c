@@ -1,4 +1,4 @@
-/* impl.c.ref: REFERENCES
+/* ref.c: REFERENCES
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -18,7 +18,7 @@ SRCID(ref, "$Id$");
 Bool RankCheck(Rank rank)
 {
   CHECKL(rank < RankLIMIT);
-  UNUSED(rank); /* impl.c.mpm.check.unused */
+  UNUSED(rank); /* <code/mpm.c#check.unused> */
   return TRUE;
 }
 
@@ -28,7 +28,7 @@ Bool RankCheck(Rank rank)
 Bool RankSetCheck(RankSet rankSet)
 {
   CHECKL(rankSet < (1uL << RankLIMIT));
-  UNUSED(rankSet); /* impl.c.mpm.check.unused */
+  UNUSED(rankSet); /* <code/mpm.c#check.unused> */
   return TRUE;
 }
 

@@ -1,4 +1,4 @@
-/* impl.c.lockli: RECURSIVE LOCKS FOR POSIX SYSTEMS
+/* lockli.c: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

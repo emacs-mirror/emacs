@@ -1,4 +1,4 @@
-/* impl.c.fmtdytst: DYLAN FORMAT TEST CODE
+/* fmtdytst.c: DYLAN FORMAT TEST CODE
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

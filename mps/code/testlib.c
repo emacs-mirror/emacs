@@ -1,4 +1,4 @@
-/* impl.c.testlib: TEST LIBRARY
+/* testlib.c: TEST LIBRARY
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

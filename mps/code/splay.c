@@ -1,4 +1,4 @@
-/* impl.c.splay: SPLAY TREE IMPLEMENTATION
+/* splay.c: SPLAY TREE IMPLEMENTATION
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

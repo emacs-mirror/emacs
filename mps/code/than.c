@@ -1,4 +1,4 @@
-/*  impl.c.than: ANSI THREADS MANAGER
+/* than.c: ANSI THREADS MANAGER
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -9,7 +9,7 @@
  *
  *  .single: We only expect at most one thread on the ring.
  *
- *  This supports the impl.h.th
+ *  This supports the <code/th.h>
  */
 
 #include "mpm.h"

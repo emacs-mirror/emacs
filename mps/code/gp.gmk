@@ -1,11 +1,11 @@
-# impl.gmk.gp: GNUMAKEFILE FRAGMENT FOR GNU CC/GPROF
+# gp.gmk: GNUMAKEFILE FRAGMENT FOR GNU CC/GPROF
 #
 # $Id$
 # Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 #
 # This file is included by platform makefiles that use the GNU CC
 # compiler with gprof.  It defines the compiler specific variables
-# that the common makefile fragment (impl.gmk.comm) requires.
+# that the common makefile fragment (<code/comm.gmk>) requires.
 
 
 CC = gcc

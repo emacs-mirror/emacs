@@ -1,4 +1,4 @@
-/* impl.h.osxc: MacOS X (Carbon-compatible) system header hacks
+/* osxc.h: MacOS X (Carbon-compatible) system header hacks
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/*  impl.c.protso: PROTECTION FOR SOLARIS
+/* protso.c: PROTECTION FOR SOLARIS
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

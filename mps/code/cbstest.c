@@ -1,4 +1,4 @@
-/*  impl.c.cbstest: COALESCING BLOCK STRUCTURE TEST
+/* cbstest.c: COALESCING BLOCK STRUCTURE TEST
  *
  *  $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

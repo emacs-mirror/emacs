@@ -1,4 +1,4 @@
-/* impl.h.mpsacl: MEMORY POOL SYSTEM ARENA CLASS "CL"
+/* mpsacl.h: MEMORY POOL SYSTEM ARENA CLASS "CL"
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

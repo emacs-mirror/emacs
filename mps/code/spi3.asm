@@ -1,4 +1,4 @@
-;  impl.asm.spi3: STACK PROBE
+;  spi3.asm: STACK PROBE
 ;
 ;  $Id$
 ;  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
+/* mpm.h: MEMORY POOL MANAGER DEFINITIONS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -30,7 +30,7 @@
 extern Bool MPMCheck(void);
 
 
-/* Miscellaneous Checks -- see impl.c.mpm */
+/* Miscellaneous Checks -- see <code/mpm.c> */
 
 /* <design/type/#bool.check> */
 #define BoolCheck(b) ((unsigned)(b) <= 1)
@@ -43,7 +43,7 @@ extern Bool AttrCheck(Attr attr);
 extern Bool RootVarCheck(RootVar rootVar);
 
 
-/* Address/Size Interface -- see impl.c.mpm */
+/* Address/Size Interface -- see <code/mpm.c> */
 
 extern Bool AlignCheck(Align align);
 
@@ -53,7 +53,7 @@ extern Bool (WordIsAligned)(Word word, Align align);
 extern Word (WordAlignUp)(Word word, Align align);
 #define WordAlignUp(w, a)       (((w) + (a) - 1) & ~((Word)(a) - 1))
 
-/* Rounds w up to a multiple of r, see impl.c.mpm for exact behaviour */
+/* Rounds w up to a multiple of r, see <code/mpm.c> for exact behaviour */
 extern Word (WordRoundUp)(Word word, Size round);
 #define WordRoundUp(w, r)       (((w)+(r)-1) - ((w)+(r)-1)%(r))
 
@@ -139,12 +139,12 @@ extern Shift SizeLog2(Size size);
 extern Shift SizeFloorLog2(Size size);
 
 
-/* Formatted Output -- see <design/writef/>, impl.c.mpm */
+/* Formatted Output -- see <design/writef/>, <code/mpm.c> */
 
 extern Res WriteF(mps_lib_FILE *stream, ...);
 
 
-/* Miscellaneous support -- see impl.c.mpm */
+/* Miscellaneous support -- see <code/mpm.c> */
 
 extern size_t StringLength(const char *s);
 
@@ -211,7 +211,7 @@ extern void BTCopyOffsetRange(BT fromBT, BT toBT,
                               Index toBase, Index toLimit);
 
 
-/* Pool Interface -- see impl.c.pool */
+/* Pool Interface -- see <code/pool.c> */
 
 extern Res PoolInit(Pool pool, Arena arena, PoolClass class, ...);
 extern Res PoolInitV(Pool pool, Arena arena, PoolClass class, va_list args);
@@ -308,7 +308,7 @@ extern BufferClass PoolNoBufferClass(void);
   ((PoolClass)ProtocolClassSuperclassPoly((pool)->class))
 
 
-/* Abstract Pool Classes Interface -- see impl.c.poolabs */
+/* Abstract Pool Classes Interface -- see <code/poolabs.c> */
 extern void PoolClassMixInAllocFree(PoolClass class);
 extern void PoolClassMixInBuffer(PoolClass class);
 extern void PoolClassMixInScan(PoolClass class);
@@ -370,7 +370,7 @@ extern Size MessageNoGCCondemnedSize(Message message);
 extern Size MessageNoGCNotCondemnedSize(Message message);
 
 
-/* Trace Interface -- see impl.c.trace */
+/* Trace Interface -- see <code/trace.c> */
 
 #define TraceSetSingle(trace)       BS_SINGLE(TraceSet, (trace)->ti)
 #define TraceSetIsSingle(ts)        BS_IS_SINGLE(ts)
@@ -421,7 +421,7 @@ extern double TraceTopGenMortality;
 extern double TraceWorkFactor;
 
 
-/* Equivalent to impl.h.mps MPS_SCAN_BEGIN */
+/* Equivalent to <code/mps.h> MPS_SCAN_BEGIN */
 
 #define TRACE_SCAN_BEGIN(ss) \
   BEGIN \
@@ -431,24 +431,24 @@ extern double TraceWorkFactor;
     Word SCANt; \
     {
 
-/* Equivalent to impl.h.mps MPS_FIX1 */
+/* Equivalent to <code/mps.h> MPS_FIX1 */
 
 #define TRACE_FIX1(ss, ref) \
   (SCANt = (Word)1 << ((Word)(ref) >> SCANzoneShift & (MPS_WORD_WIDTH-1)), \
    SCANsummary |= SCANt, \
    SCANwhite & SCANt)
 
-/* Equivalent to impl.h.mps MPS_FIX2 */
+/* Equivalent to <code/mps.h> MPS_FIX2 */
 
 #define TRACE_FIX2(ss, refIO) \
   ((*(ss)->fix)(ss, refIO))
 
-/* Equivalent to impl.h.mps MPS_FIX */
+/* Equivalent to <code/mps.h> MPS_FIX */
 
 #define TRACE_FIX(ss, refIO) \
   (TRACE_FIX1(ss, *(refIO)) ? TRACE_FIX2(ss, refIO) : ResOK)
 
-/* Equivalent to impl.h.mps MPS_SCAN_END */
+/* Equivalent to <code/mps.h> MPS_SCAN_END */
 
 #define TRACE_SCAN_END(ss) \
     } \
@@ -463,7 +463,7 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
                                Seg seg, Ref *refIO);
 
 
-/* Arena Interface -- see impl.c.arena */
+/* Arena Interface -- see <code/arena.c> */
 
 /* DEFINE_ARENA_CLASS
  *
@@ -683,7 +683,7 @@ extern Addr (SegLimit)(Seg seg);
 #define SegSetNailed(seg, ts)   ((void)((seg)->nailed = (ts)))
 
 
-/* Buffer Interface -- see impl.c.buffer */
+/* Buffer Interface -- see <code/buffer.c> */
 
 extern Res BufferCreate(Buffer *bufferReturn, BufferClass class,
                         Pool pool, Bool isMutator, ...);
@@ -695,7 +695,7 @@ extern Bool SegBufCheck(SegBuf segbuf);
 extern Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream);
 extern Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
                          Bool withReservoirPermit);
-/* macro equivalent for BufferReserve, keep in sync with impl.c.buffer */
+/* macro equivalent for BufferReserve, keep in sync with <code/buffer.c> */
 #define BUFFER_RESERVE(pReturn, buffer, size, withReservoirPermit) \
   (AddrAdd(BufferAlloc(buffer), size) > BufferAlloc(buffer) && \
    AddrAdd(BufferAlloc(buffer), size) <= BufferAP(buffer)->limit ? \
@@ -708,7 +708,7 @@ extern Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
                       Bool withReservoirPermit);
 
 extern Bool BufferCommit(Buffer buffer, Addr p, Size size);
-/* macro equivalent for BufferCommit, keep in sync with impl.c.buffer */
+/* macro equivalent for BufferCommit, keep in sync with <code/buffer.c> */
 #define BUFFER_COMMIT(buffer, p, size) \
   (BufferAP(buffer)->init = BufferAlloc(buffer), \
    BufferAP(buffer)->limit != 0 || BufferTrip(buffer, p, size))
@@ -776,7 +776,7 @@ extern AllocPattern AllocPatternRamp(void);
 extern AllocPattern AllocPatternRampCollectAll(void);
 
 
-/* Format Interface -- see impl.c.format */
+/* Format Interface -- see <code/format.c> */
 
 extern Bool FormatCheck(Format format);
 extern Res FormatCreate(Format *formatReturn, Arena arena,
@@ -795,7 +795,7 @@ extern Arena FormatArena(Format format);
 extern Res FormatDescribe(Format format, mps_lib_FILE *stream);
 
 
-/* Reference Interface -- see impl.c.ref */
+/* Reference Interface -- see <code/ref.c> */
 
 extern Bool RankCheck(Rank rank);
 extern Bool RankSetCheck(RankSet rankSet);
@@ -837,7 +837,7 @@ extern ZoneSet ZoneSetOfRange(Arena arena, Addr base, Addr limit);
 extern ZoneSet ZoneSetOfSeg(Arena arena, Seg seg);
 
 
-/* Shield Interface -- see impl.c.shield */
+/* Shield Interface -- see <code/shield.c> */
 
 extern void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode);
 extern void (ShieldLower)(Arena arena, Seg seg, AccessSet mode);
@@ -872,7 +872,7 @@ extern void (ShieldFlush)(Arena arena);
  * the contracts for these functions.
  *
  * This interface has several different implementations, typically one
- * per platform, see impl.c.prot* for the various implementations, and
+ * per platform, see <code/prot.c>* for the various implementations, and
  * <design/prot/>* for the corresponding designs. */
 
 extern void ProtSetup(void);
@@ -885,7 +885,7 @@ extern Bool ProtCanStepInstruction(MutatorFaultContext context);
 extern Res ProtStepInstruction(MutatorFaultContext context);
 
 
-/* Location Dependency -- see impl.c.ld */
+/* Location Dependency -- see <code/ld.c> */
 
 extern void LDReset(LD ld, Arena arena);
 extern void LDAdd(LD ld, Arena arena, Addr addr);
@@ -894,7 +894,7 @@ extern void LDAge(Arena arena, RefSet moved);
 extern void LDMerge(LD ld, Arena arena, LD from);
 
 
-/* Root Interface -- see impl.c.root */
+/* Root Interface -- see <code/root.c> */
 
 extern Res RootCreateTable(Root *rootReturn, Arena arena,
                            Rank rank, RootMode mode,
@@ -931,7 +931,7 @@ typedef Res (*RootIterateFn)(Root root, void *p);
 extern Res RootsIterate(Globals arena, RootIterateFn f, void *p);
 
 
-/* VM Interface -- see impl.c.vm* */
+/* VM Interface -- see <code/vm.c>* */
 
 extern Align VMAlign(VM vm);
 extern Bool VMCheck(VM vm);

@@ -1,4 +1,4 @@
-/* impl.c.vmso: VIRTUAL MEMORY MAPPING FOR SOLARIS 2.x
+/* vmso.c: VIRTUAL MEMORY MAPPING FOR SOLARIS 2.x
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

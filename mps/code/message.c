@@ -1,4 +1,4 @@
-/* impl.c.message: MPS/CLIENT MESSAGES
+/* message.c: MPS/CLIENT MESSAGES
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -48,7 +48,7 @@ static Bool MessageOnQueue(Message message)
 Bool MessageTypeCheck(MessageType type)
 {
   CHECKL(type < MessageTypeLIMIT);
-  UNUSED(type); /* impl.c.mpm.check.unused */
+  UNUSED(type); /* <code/mpm.c#check.unused> */
 
   return TRUE;
 }

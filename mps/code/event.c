@@ -1,4 +1,4 @@
-/* impl.c.event: EVENT LOGGING
+/* event.c: EVENT LOGGING
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -37,8 +37,8 @@ static char eventBuffer[EventBufferSIZE];
 static Count eventUserCount;
 static Serial EventInternSerial;
 
-EventUnion EventMould; /* Used by macros in impl.h.event */
-char *EventNext, *EventLimit; /* Used by macros in impl.h.event */
+EventUnion EventMould; /* Used by macros in <code/event.h> */
+char *EventNext, *EventLimit; /* Used by macros in <code/event.h> */
 Word EventKindControl; /* Bit set used to control output. */
 
 

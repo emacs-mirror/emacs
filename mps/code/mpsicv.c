@@ -1,4 +1,4 @@
-/* impl.c.mpsicv: MPSI COVERAGE TEST
+/* mpsicv.c: MPSI COVERAGE TEST
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/*  impl.c.protfr: PROTECTION FOR FreeBSD
+/* protfr.c: PROTECTION FOR FreeBSD
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

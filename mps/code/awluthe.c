@@ -1,4 +1,4 @@
-/* impl.c.awluthe: POOL CLASS AWL UNIT TEST WITH OBJECT HEADERS
+/* awluthe.c: POOL CLASS AWL UNIT TEST WITH OBJECT HEADERS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

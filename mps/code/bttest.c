@@ -1,4 +1,4 @@
-/* impl.c.bttest: BIT TABLE TEST
+/* bttest.c: BIT TABLE TEST
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/*  impl.c.protw3: PROTECTION FOR WIN32
+/* protw3.c: PROTECTION FOR WIN32
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -6,7 +6,7 @@
 
 #include "mpm.h"
 /* prmcw3.h needed to share MutatorFaultContextStruct declation */
-/* with impl.c.prmcw3i3 */
+/* with <code/prmcw3i3.c> */
 #include "prmcw3.h"
 
 #ifndef MPS_OS_W3
@@ -98,7 +98,7 @@ LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
   } else {
     /* Access on last sizeof(Addr) (ie 4 on this platform) bytes */
     /* in memory.  We assume we can't get this page anyway (see */
-    /* impl.c.vmw3.assume.not-last) so it can't be our fault. */
+    /* <code/vmw3.c#assume.not-last>) so it can't be our fault. */
     action = EXCEPTION_CONTINUE_SEARCH;
   }
 

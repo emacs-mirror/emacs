@@ -1,4 +1,4 @@
-/* impl.c.mv2test: POOLMVT STRESS TEST
+/* mv2test.c: POOLMVT STRESS TEST
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

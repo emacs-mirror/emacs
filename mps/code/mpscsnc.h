@@ -1,4 +1,4 @@
-/* impl.h.mpscsnc: MEMORY POOL SYSTEM CLASS "SNC"
+/* mpscsnc.h: MEMORY POOL SYSTEM CLASS "SNC"
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

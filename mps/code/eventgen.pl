@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-# impl.pl.eventgen: GENERATOR FOR impl.h.eventgen
+# impl.pl.eventgen: GENERATOR FOR <code/eventgen.h>
 #
 # $Id$
 # Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -42,7 +42,7 @@ close(C);
 
 open(H, ">eventgen.h") || die "Can't open eventgen.h for output";
 
-print H "/* impl.h.eventgen -- Automatic event header
+print H "/* <code/eventgen.h> -- Automatic event header
  *
  * \$Id\$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.c.thw3i3: WIN32 THREAD MANAGER
+/* thw3i3.c: WIN32 THREAD MANAGER
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -6,7 +6,7 @@
  * Implements thread registration, suspension, and stack
  * scanning.  See design.mps.thread-manager
  *
- * This supports the impl.h.th
+ * This supports the <code/th.h>
  *
  * .thread.id: The thread id is used to identify the current thread.
  * .thread.handle: The thread handle needs the enough access to
@@ -89,7 +89,7 @@ typedef struct ThreadStruct {   /* Win32 thread structure */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* threads attached to arena */
   HANDLE handle;                /* Handle of thread, see
-                                 * impl.c.thnti3.thread.handle */
+                                 * <code/thnti3.c#thread.handle> */
   DWORD id;                     /* Thread id of thread */
 } ThreadStruct;
 

@@ -1,4 +1,4 @@
-/* impl.c.amcss: POOL CLASS AMC STRESS TEST
+/* amcss.c: POOL CLASS AMC STRESS TEST
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

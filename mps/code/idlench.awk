@@ -1,5 +1,5 @@
 #!/bin/nawk -f
-# impl.awk.idlench: IDENTIFIER LENGTH CHECK
+# idlench.awk: IDENTIFIER LENGTH CHECK
 # $Id$
 # Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 #

@@ -1,4 +1,4 @@
-/* impl.h.pooln: NULL POOL
+/* pooln.h: NULL POOL
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

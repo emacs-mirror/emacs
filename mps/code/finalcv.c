@@ -1,4 +1,4 @@
-/* impl.c.finalcv: FINALIZATION COVERAGE TEST
+/* finalcv.c: FINALIZATION COVERAGE TEST
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -14,7 +14,7 @@
  *
  * NOTES
  *
- * This code was created by first copying impl.c.weakcv
+ * This code was created by first copying <code/weakcv.c>
  */
 
 #include "testlib.h"

@@ -1,4 +1,4 @@
-/* impl.c.dumper: Simple Event Dumper
+/* dumper.c: Simple Event Dumper
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.c.poolmrg: MANUAL RANK GUARDIAN POOL
+/* poolmrg.c: MANUAL RANK GUARDIAN POOL
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -114,7 +114,7 @@ typedef struct MRGStruct {
   RingStruct freeRing;      /* <design/poolmrg/#poolstruct.free> */
   RingStruct refRing;       /* <design/poolmrg/#poolstruct.refring> */
   Size extendBy;            /* <design/poolmrg/#extend> */
-  Sig sig;                  /* impl.h.mps.sig */
+  Sig sig;                  /* <code/mps.h#sig> */
 } MRGStruct;
 
 #define Pool2MRG(pool) PARENT(MRGStruct, poolStruct, pool)
@@ -145,14 +145,14 @@ typedef struct MRGRefSegStruct *MRGRefSeg;
 typedef struct MRGLinkSegStruct {
   SegStruct segStruct;      /* superclass fields must come first */
   MRGRefSeg refSeg;         /* <design/poolmrg/#mrgseg.link.refseg> */
-  Sig sig;                  /* impl.h.misc.sig */
+  Sig sig;                  /* <code/misc.h#sig> */
 } MRGLinkSegStruct;
 
 typedef struct MRGRefSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   RingStruct mrgRing;       /* <design/poolmrg/#mrgseg.ref.segring> */
   MRGLinkSeg linkSeg;       /* <design/poolmrg/#mrgseg.ref.linkseg> */
-  Sig sig;                  /* impl.h.misc.sig */
+  Sig sig;                  /* <code/misc.h#sig> */
 } MRGRefSegStruct;
 
 /* macros to get between child and parent seg structures */
@@ -666,7 +666,7 @@ static void MRGFinish(Pool pool)
   /* Guardians are in the FINAL state and hence on the Arena Message */
   /* Queue.  We are guaranteed this because MRGFinish is only called */
   /* from ArenaDestroy, and the message queue has been emptied prior */
-  /* to the call.  See impl.c.arena.message.queue.empty */
+  /* to the call.  See <code/arena.c#message.queue.empty> */
 
   if (!RingIsSingle(&mrg->entryRing)) {
     RingRemove(&mrg->entryRing);

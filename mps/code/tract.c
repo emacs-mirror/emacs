@@ -1,4 +1,4 @@
-/* impl.c.tract: PAGE TABLES
+/* tract.c: PAGE TABLES
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

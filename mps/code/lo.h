@@ -1,4 +1,4 @@
-/*  impl.h.lo
+/*  <code/lo.h>
  *
  *                   LEAF OBJECT POOL CLASS
  *

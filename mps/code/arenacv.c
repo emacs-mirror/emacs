@@ -1,4 +1,4 @@
-/* impl.c.arenacv: ARENA COVERAGE TEST
+/* arenacv.c: ARENA COVERAGE TEST
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.c.locv: LEAF OBJECT POOL CLASS COVERAGE TEST
+/* locv.c: LEAF OBJECT POOL CLASS COVERAGE TEST
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-@rem impl.bat.proddw
+@rem proddw.bat
 @rem Script that automates building and collating a dylan product
 @rem $Id$
 @rem Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

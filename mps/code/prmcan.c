@@ -1,4 +1,4 @@
-/* impl.c.prmcan: PROTECTION MUTATOR CONTEXT (ANSI)
+/* prmcan.c: PROTECTION MUTATOR CONTEXT (ANSI)
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

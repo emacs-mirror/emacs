@@ -1,4 +1,4 @@
-/* impl.c.root: ROOT IMPLEMENTATION
+/* root.c: ROOT IMPLEMENTATION
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -62,7 +62,7 @@ typedef struct RootStruct {
 
 /* RootVarCheck -- check a Root union discriminator
  *
- * .rootvarcheck: Synchronize with impl.h.mpmtypes.rootvar */
+ * .rootvarcheck: Synchronize with <code/mpmtypes.h#rootvar> */
 
 Bool RootVarCheck(RootVar rootVar)
 {
@@ -91,7 +91,7 @@ Bool RootModeCheck(RootMode mode)
 
 /* RootCheck -- check the consistency of a root structure
  *
- * .rootcheck: Keep synchonized with impl.h.mpmst.root. */
+ * .rootcheck: Keep synchonized with <code/mpmst.h#root>. */
 
 Bool RootCheck(Root root)
 {

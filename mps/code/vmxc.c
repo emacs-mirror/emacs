@@ -1,4 +1,4 @@
-/* impl.c.vmxc: VIRTUAL MEMORY MAPPING FOR MacOS X
+/* vmxc.c: VIRTUAL MEMORY MAPPING FOR MacOS X
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

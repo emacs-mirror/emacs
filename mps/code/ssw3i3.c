@@ -1,4 +1,4 @@
-/* impl.c.ssw3i3: WIN32/INTEL STACK SCANNING
+/* ssw3i3.c: WIN32/INTEL STACK SCANNING
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
