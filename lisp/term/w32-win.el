@@ -300,15 +300,24 @@ the last file dropped is selected."
 
 (defun x-handle-geometry (switch)
   "Handle the \"-geometry\" SWITCH."
-  (let ((geo (x-parse-geometry (car x-invocation-args))))
-    (setq initial-frame-alist
-	  (append initial-frame-alist
-		  (if (or (assq 'left geo) (assq 'top geo))
-		      '((user-position . t)))
-		  (if (or (assq 'height geo) (assq 'width geo))
-		      '((user-size . t)))
-		  geo)
-	  x-invocation-args (cdr x-invocation-args))))
+  (let* ((geo (x-parse-geometry (car x-invocation-args)))
+	 (left (assq 'left geo))
+	 (top (assq 'top geo))
+	 (height (assq 'height geo))
+	 (width (assq 'width geo)))
+    (if (or height width)
+	(setq default-frame-alist
+	      (append default-frame-alist
+		      '((user-size . t))
+		      (if height (list height))
+		      (if width (list width)))))
+    (if (or left top)
+	(setq initial-frame-alist
+	      (append initial-frame-alist
+		      '((user-position . t))
+		      (if left (list left))
+		      (if top (list top)))))
+    (setq x-invocation-args (cdr x-invocation-args))))
 
 (defun x-handle-name-rn-switch (switch)
   "Handle a \"-name\" or \"-rn\" SWITCH."
