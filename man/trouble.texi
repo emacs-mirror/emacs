@@ -700,9 +700,12 @@ are debugging a running process (not with a core dump).
 To make Lisp errors stop Emacs and return to GDB, put a breakpoint at
 @code{Fsignal}.
 
-To find out which Lisp functions are running, using GDB, move up the
-stack, and each time you get to a frame for the function
-@code{Ffuncall}, type these GDB commands:
+For a short listing of Lisp functions running, type the GDB
+command @code{xbacktrace}.  
+
+If you want to examine Lisp function arguments, move up the stack, and
+each time you get to a frame for the function @code{Ffuncall}, type
+these GDB commands:
 
 @example
 p *args

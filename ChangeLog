@@ -1,3 +1,7 @@
+2000-02-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Remove LISP_FLOAT_TYPE.
+
 2000-02-12  Dave Love  <fx@gnu.org>
 
 	* configure.in: Use AC_FUNC_VFORK.

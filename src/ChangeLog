@@ -1,5 +1,9 @@
 2000-02-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* alloc.c, bytecode.c, data.c, dispnew.c, ecrt0.c, editfns.c,
+	emacs.c, floatfns.c, fns.c, lread.c, print.c, config.in, lisp.h,
+	Makefile.in: Remove `LISP_FLOAT_TYPE' and `standalone'.
+
 	* frame.c (make_frame): Set frame initiallly to `garbaged'.
 	
 2000-02-17  Kenichi Handa  <handa@etl.go.jp>
