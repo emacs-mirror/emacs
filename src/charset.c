@@ -539,8 +539,8 @@ CHARSET should be defined by `defined-charset' in advance.")
 
 int
 find_charset_in_str (str, len, charsets, table)
-     unsigned char *str, *charsets;
-     int len;
+     unsigned char *str;
+     int len, *charsets;
      Lisp_Object table;
 {
   int num = 0;
@@ -584,7 +584,7 @@ Optional arg TABLE if non-nil is a unification table to look up.")
   (beg, end, table)
      Lisp_Object beg, end, table;
 {
-  char charsets[MAX_CHARSET + 1];
+  int charsets[MAX_CHARSET + 1];
   int from, to, stop, i;
   Lisp_Object val;
 
@@ -593,7 +593,7 @@ Optional arg TABLE if non-nil is a unification table to look up.")
   stop = to = XFASTINT (end);
   if (from < GPT && GPT < to)
     stop = GPT;
-  bzero (charsets, MAX_CHARSET + 1);
+  bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
   while (1)
     {
       find_charset_in_str (POS_ADDR (from), stop - from, charsets, table);
