@@ -4722,7 +4722,7 @@ display_string (w, vpos, string, length, hpos, truncate,
   GLYPH *p1start = desired_glyphs->glyphs[vpos] + hpos;
   int window_width = XFASTINT (w->width);
   /* If 1, we must display multibyte characters.  */
-  int multibyte = !NILP (XBUFFER (w->buffer)->enable_multibyte_characters);
+  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
 
   /* Use the standard display table, not the window's display table.
      We don't want the mode line in rot13.  */
