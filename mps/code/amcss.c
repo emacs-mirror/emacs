@@ -50,7 +50,7 @@ static void enable(mps_arena_t arena)
 static void report(mps_arena_t arena)
 {
     mps_message_t message;
-
+    
     while (mps_message_get(&message, arena, mps_message_type_gc())) {
         size_t live, condemned, not_condemned;
 
@@ -156,10 +156,23 @@ static void *test(void *arg, size_t s)
       collections = c;
       printf("\nCollection %lu, %lu objects.\n",
              c, objs);
+      do {
+          mps_addr_t p = (mps_addr_t)rnd();
+          if (mps_arena_has_addr(arena, p)) {
+              printf("0x%08x is in arena\n", (int)p);
+              break;
+          }
+      } while(1);
+    
       report(arena);
       for(r = 0; r < exactRootsCOUNT; ++r)
-        cdie(exactRoots[r] == objNULL || dylan_check(exactRoots[r]),
+        cdie(exactRoots[r] == objNULL ||
+             (dylan_check(exactRoots[r]) &&
+              mps_arena_has_addr(arena, exactRoots[r])),
              "all roots check");
+      cdie(!mps_arena_has_addr(arena, NULL),
+           "NULL in arena");
+
       if(collections == collectionsCOUNT / 2) {
         unsigned long object_count = 0;
         mps_arena_park(arena);
