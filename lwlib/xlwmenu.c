@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
+Alongalong with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Created by devin@lucid.com */
@@ -24,6 +24,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/types.h>
 #include <X11/Xos.h>
 #include <X11/IntrinsicP.h>
+#include <X11/ObjectP.h>
 #include <X11/StringDefs.h>
 #include <X11/cursorfont.h>
 #include <X11/bitmaps/gray>
@@ -1383,8 +1384,8 @@ Select (w, ev, params, num_params)
     {
       mw->menu.popped_up = False;
       XtUngrabPointer ((Widget)mw, ev->xmotion.time);
-      if (XtIsShell (XtParent (mw)))
-	XtPopdown (XtParent (mw));
+      if (XtIsShell (XtParent ((Widget) mw)))
+	XtPopdown (XtParent ((Widget) mw));
       else
 	{
 	  XtRemoveGrab ((Widget) mw);
@@ -1414,7 +1415,7 @@ pop_up_menu (mw, event)
 
   XtCallCallbackList ((Widget)mw, mw->menu.open, NULL);
 
-  if (XtIsShell (XtParent (mw)))
+  if (XtIsShell (XtParent ((Widget)mw)))
     size_menu (mw, 0);
 
   w = mw->menu.windows [0].width;
@@ -1432,11 +1433,11 @@ pop_up_menu (mw, event)
     y = HeightOfScreen (screen) - h - 2 * borderwidth;
 
   mw->menu.popped_up = True;
-  if (XtIsShell (XtParent (mw)))
+  if (XtIsShell (XtParent ((Widget)mw)))
     {
-      XtConfigureWidget (XtParent (mw), x, y, w, h,
-			 XtParent (mw)->core.border_width);
-      XtPopup (XtParent (mw), XtGrabExclusive);
+      XtConfigureWidget (XtParent ((Widget)mw), x, y, w, h,
+			 XtParent ((Widget)mw)->core.border_width);
+      XtPopup (XtParent ((Widget)mw), XtGrabExclusive);
       display_menu (mw, 0, False, NULL, NULL, NULL, NULL, NULL);
       mw->menu.windows [0].x = x + borderwidth;
       mw->menu.windows [0].y = y + borderwidth;
