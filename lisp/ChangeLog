@@ -199,6 +199,30 @@
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
+2004-04-10  Miles Bader  <miles@gnu.org>
+
+	RCS keyword removal (only non-comment changes are enumerated here):
+
+	* emacs-lisp/bytecomp.el (byte-compile-version): Variable removed.
+	(byte-compile-insert-header): Don't use `byte-compile-version'.
+	* url/url-vars.el (url-version): Use the constant string "Emacs"
+	instead of calculating something from the RCS `State' keyword
+	[the latter is almost entirely useless anyway].
+	* forms.el (forms-version): Variable removed.
+	(forms-mode): Don't use `forms-version'.
+	* recentf.el (recentf-version): Variable removed.
+	* progmodes/delphi.el (delphi-version): Variable removed.
+	* progmodes/ada-mode.el (ada-mode): RCS keyword removed from docstring.
+
+2004-04-09  Jesper Harder  <harder@ifa.au.dk>
+
+	* info.el (info-apropos): Improve menu item regexp.
+
+2004-04-09  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el: Add comment, based on report by
+	kdc@rcn.com (Kevin D. Clark).
+
 2004-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-mode-font-lock-keywords):

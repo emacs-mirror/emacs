@@ -198,7 +198,7 @@ clean mostlyclean:
 	- $(DEL) leim-list.el
 
 distclean clean:
-	if exist stamp-subdir $(DELTREE) $(SUBDIRS)
+	- $(DELTREE) $(SUBDIRS)
 	- $(DEL) stamp-subdir
 
 maintainer-clean: distclean

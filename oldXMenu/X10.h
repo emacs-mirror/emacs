@@ -1,4 +1,3 @@
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/X10.h,v 1.3 2003/09/01 15:45:47 miles Exp $ */
 /*
  * Copyright 1985, 1986, 1987 by the Massachusetts Institute of Technology
  *

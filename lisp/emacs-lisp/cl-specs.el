@@ -7,7 +7,6 @@
 ;; LCD Archive Entry:
 ;; cl-specs.el|Daniel LaLiberte|liberte@holonexus.org
 ;; |Edebug specs for cl.el
-;; |$Date: 2003/09/01 15:45:20 $|1.1|
 
 ;; This file is part of GNU Emacs.
 

@@ -1,6 +1,7 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
-;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004
+;;   Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Simon Josefsson <simon@josefsson.org>
@@ -44,6 +45,8 @@
 ;;      '(("YOUR SMTP HOST" 25 "username" "password")))
 ;;(setq smtpmail-starttls-credentials
 ;;      '(("YOUR SMTP HOST" 25 "~/.my_smtp_tls.key" "~/.my_smtp_tls.cert")))
+;; Where the 25 equals the value of `smtpmail-smtp-service', it can be an
+;; integer or a string, just as long as they match (eq).
 
 ;; To queue mail, set smtpmail-queue-mail to t and use
 ;; smtpmail-send-queued-mail to send.

@@ -1,4 +1,3 @@
-/* $XConsortium: XLookAssoc.c,v 10.16 91/01/06 12:09:24 rws Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*

@@ -4,7 +4,6 @@
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: languages
-;; $Revision: 1.6 $
 
 ;; This file is part of GNU Emacs.
 

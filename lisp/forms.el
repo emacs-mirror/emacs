@@ -301,11 +301,6 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.49 $" 11 -2)
-  "The version number of forms-mode (as string).  The complete RCS id is:
-
-  $Id: forms.el,v 2.49 2003/09/01 15:45:12 miles Exp $")
-
 (defcustom forms-mode-hook nil
   "Hook run upon entering Forms mode."
   :group 'forms
@@ -694,7 +689,7 @@ Commands:                        Equivalent keys in read-only mode:
       ;;(message "forms: proceeding setup (new file)...")
       (progn
 	(insert
-	 "GNU Emacs Forms Mode version " forms-version "\n\n"
+	 "GNU Emacs Forms Mode\n\n"
 	 (if (file-exists-p forms-file)
 	     (concat "No records available in file `" forms-file "'\n\n")
 	   (format "Creating new file `%s'\nwith %d field%s per record\n\n"
