@@ -32,7 +32,7 @@
 
 ;; Cyrillic (general)
 
-;; ISO-8859-5 staff
+;; ISO-8859-5 stuff
 
 (define-coding-system 'cyrillic-iso-8bit
   "ISO 2022 based 8-bit encoding for Cyrillic script (MIME:ISO-8859-5)."
@@ -55,7 +55,7 @@
 		  (documentation . "Support for Cyrillic ISO-8859-5."))
  '("Cyrillic"))
 
-;; KOI-8 staff
+;; KOI-8 stuff
 
 (define-coding-system 'cyrillic-koi8
   "KOI8 8-bit encoding for Cyrillic (MIME: KOI8-R)."
@@ -83,7 +83,7 @@
 		   (documentation . "Support for Cyrillic KOI8-R."))
  '("Cyrillic"))
 
-;;; ALTERNATIVNYJ staff
+;;; ALTERNATIVNYJ stuff
 
 (define-coding-system 'cyrillic-alternativnyj
   "ALTERNATIVNYJ 8-bit encoding for Cyrillic."
@@ -106,6 +106,37 @@
 		  (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
 		  (documentation . "Support for Cyrillic ALTERNATIVNYJ."))
  '("Cyrillic"))
+
+(define-coding-system 'koi8-u
+  "KOI8-U 8-bit encoding for Cyrillic (MIME: KOI8-U)"
+  :coding-type 'charset
+  :mnemonic ?U
+  :charset-list '(koi8-u)
+  :mime-charset 'koi8-u)
+
+(define-coding-system 'koi8-t
+  "KOI8-T 8-bit encoding for Cyrillic (MIME: KOI8-T)"
+  :coding-type 'charset
+  :mnemonic ?*
+  :charset-list '(koi8-t)
+  :mime-charset 'koi8-t)
+
+(define-coding-system 'windows-1251
+  "windows-1251 8-bit encoding for Cyrillic (MIME: WINDOWS-1251)"
+  :coding-type 'charset
+  :mnemonic ?b
+  :charset-list '(windows-1251)
+  :mime-charset 'windows-1251)
+(define-coding-system-alias 'cp1251 'windows-1251)
+
+(define-coding-system 'cp1125
+  "cp1125 8-bit encoding for Cyrillic (MIME: CP1125)"
+  :coding-type 'charset
+  :mnemonic ?*
+  :charset-list '(cp1125))
+(define-coding-system-alias 'ruscii 'cp1125)
+;; Original name for cp1125, says Serhii Hlodin <hlodin@lutsk.bank.gov.ua>
+(define-coding-system-alias 'cp866u 'cp1125)
 
 (provide 'cyrillic)
 
