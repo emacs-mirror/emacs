@@ -1,3 +1,7 @@
+2004-12-31  Richard M. Stallman  <rms@gnu.org>
+
+	* os.texi (Timers): Update previous change.
+
 2004-12-30  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Line Height): Total line-height is now specified
