@@ -1,3 +1,21 @@
+2000-08-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* syntax.c (back_comment): Detect cases where a comment-starter is
+	actually inside another comment as in:   /* a // b */ c // d \n.
+	Make it clear that `comstart_pos' is unused for nested comments.
+
+	* keymap.c (store_in_keymap, fix_submap_inheritance): New prototypes.
+	(KEYMAPP): New macro.
+	(Fkeymap_parent, Fset_keymap_parent): Use it.
+	(fix_submap_inheritance): Mark it static.
+	(define_as_prefix, describe_buffer_bindings, describe_command)
+	(describe_translation, describe_map): Complete prototypes.
+
+	* lisp.h (store_in_keymap, fix_submap_inheritance): Remove.
+
+	* keyboard.c (menu_bar_item): Detect duplicate entries for all items
+	to better match the key-lookup behavior.
+
 2000-08-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (lface_fully_specified_p): Handle :inherit.
