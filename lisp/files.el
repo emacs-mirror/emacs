@@ -1429,6 +1429,13 @@ we do not remove backup version numbers, only true file version numbers."
 			 (string-match "~\\'" name)
 			 (length name))))))))
 
+(defun file-ownership-preserved-p (file)
+  "Returns t if deleting FILE and rewriting it would preserve the owner."
+  (let ((handler (find-file-name-handler file 'file-ownership-preserved-p)))
+    (if handler
+	(funcall handler 'file-ownership-preserved-p file)
+      (= (nth 2 (file-attributes file)) (user-uid)))))
+
 (defun file-name-sans-extension (filename)
   "Return FILENAME sans final \"extension\".
 The extension, in a file name, is the part that follows the last `.'."
