@@ -519,8 +519,11 @@ run_msdos_command (argv, dir, tempin, tempout)
   /* Build the environment array.  */
   {
     extern Lisp_Object Vprocess_environment;
-    Lisp_Object tmp, lst = Vprocess_environment;
-    int i, len = XFASTINT (Flength (lst));
+    Lisp_Object tmp, lst;
+    int i, len;
+
+    lst = Vprocess_environment;
+    len = XFASTINT (Flength (lst));
 
     envv = alloca ((len + 1) * sizeof (char *));
     for (i = 0; i < len; i++)
