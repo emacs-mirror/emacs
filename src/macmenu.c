@@ -89,6 +89,7 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 
 #define POPUP_SUBMENU_ID 235
+#define MIN_POPUP_SUBMENU_ID 512
 #define MIN_MENU_ID 256
 #define MIN_SUBMENU_ID 1
 
@@ -173,7 +174,7 @@ typedef struct _widget_value
 #define TRUE 1
 #define FALSE 0
 #endif /* no TRUE */
-
+  
 Lisp_Object Vmenu_updating_frame;
 
 Lisp_Object Qdebug_on_next_call;
@@ -205,7 +206,7 @@ static void single_menu_item ();
 static void list_of_panes ();
 static void list_of_items ();
 
-static void fill_submenu (MenuHandle, widget_value *, int);
+static void fill_submenu (MenuHandle, widget_value *);
 static void fill_menubar (widget_value *);
 
 
@@ -266,6 +267,9 @@ static int menu_items_submenu_depth;
 /* Flag which when set indicates a dialog or menu has been posted by
    Xt on behalf of one of the widget sets.  */
 static int popup_activated_flag;
+
+/* Index of the next submenu */
+static int submenu_id;
 
 static int next_menubar_widget_id;
 
@@ -1605,6 +1609,8 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
      char **error;
 {
   int i;
+  UInt32 refcon;
+  int menu_item_choice;
   int menu_item_selection;
   MenuHandle menu;
   Point pos;
@@ -1798,7 +1804,8 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 
   /* Actually create the menu.  */
   menu = NewMenu (POPUP_SUBMENU_ID, "\p");
-  fill_submenu (menu, first_wv->contents, 0);
+  submenu_id = MIN_POPUP_SUBMENU_ID;
+  fill_submenu (menu, first_wv->contents);
 
   /* Adjust coordinates to be root-window-relative.  */
   pos.h = x;
@@ -1813,14 +1820,23 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   LocalToGlobal (&pos);
 
   /* No selection has been chosen yet.  */
+  menu_item_choice = 0;
   menu_item_selection = 0;
 
   InsertMenu (menu, -1);
 
   /* Display the menu.  */
-  menu_item_selection = LoWord (PopUpMenuSelect (menu, pos.v, pos.h, 0));
+  menu_item_choice = PopUpMenuSelect (menu, pos.v, pos.h, 0);
+  menu_item_selection = LoWord (menu_item_choice);
 
-  DeleteMenu (POPUP_SUBMENU_ID);
+  /* Get the refcon to find the correct item*/
+  if (menu_item_selection) 
+    {
+      menu = GetMenuHandle (HiWord (menu_item_choice));
+      if (menu) {
+	GetMenuItemRefCon (menu, menu_item_selection, &refcon);
+      }
+    }
   
 #if 0
   /* Clean up extraneous mouse events which might have been generated
@@ -1832,6 +1848,19 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
      contents.  */
   free_menubar_widget_value_tree (first_wv);
 
+  /* delete all menus */
+  {
+    int i = MIN_POPUP_SUBMENU_ID;
+    MenuHandle submenu = GetMenuHandle (i);
+    while (menu != NULL)
+      {
+	DeleteMenu (i);
+	DisposeMenu (menu);
+	menu = GetMenuHandle (++i);
+      }
+  }
+
+  DeleteMenu (POPUP_SUBMENU_ID);
   DisposeMenu (menu);
 
   /* Find the selected item, and its pane, to return
@@ -1839,7 +1868,6 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   if (menu_item_selection != 0)
     {
       Lisp_Object prefix, entry;
-      int j = 1;
 
       prefix = entry = Qnil;
       i = 0;
@@ -1861,7 +1889,6 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 	      prefix
 		= XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
 	      i += MENU_ITEMS_PANE_LENGTH;
-	      j += 2;
 	    }
 	  /* Ignore a nil in the item list.
 	     It's meaningful only for dialog boxes.  */
@@ -1871,7 +1898,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 	    {
 	      entry
 		= XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_VALUE];
-	      if (menu_item_selection == j)
+	      if ((int) (EMACS_INT) refcon == i)
 		{
 		  if (keymaps != 0)
 		    {
@@ -1887,7 +1914,6 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 		  return entry;
 		}
 	      i += MENU_ITEMS_ITEM_LENGTH;
-	      j++;
 	    }
 	}
     }
@@ -2206,7 +2232,7 @@ name_is_separator (name)
 }
 
 static void
-add_menu_item (MenuHandle menu, widget_value *wv, int submenu, int indent,
+add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
 	       int force_disable)
 {
   Str255 item_name;
@@ -2225,8 +2251,6 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu, int indent,
 #endif
 
       strcpy (item_name, "");
-      for (i = 0; i < indent; i++)
-	strncat (item_name, "    ", 255);
       strncat (item_name, wv->name, 255);
       if (wv->key != NULL)
 	{
@@ -2266,22 +2290,22 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu, int indent,
     SetMenuItemHierarchicalID (menu, pos, submenu);
 }
 
-static int submenu_id;
-  
 /* Construct native Mac OS menubar based on widget_value tree.  */
 
 static void
-fill_submenu (MenuHandle menu, widget_value *wv, int indent)
+fill_submenu (MenuHandle menu, widget_value *wv)
 {
   for ( ; wv != NULL; wv = wv->next)
     if (wv->contents)
       {
-        add_menu_item (menu, wv, NULL, indent, 1);
-        
-        fill_submenu (menu, wv->contents, indent + 1);
+	int cur_submenu = submenu_id++;
+        MenuHandle submenu = NewMenu (cur_submenu, "\pX");
+        fill_submenu (submenu, wv->contents);
+        InsertMenu (submenu, -1);
+        add_menu_item (menu, wv, cur_submenu, 0);
       }
     else
-      add_menu_item (menu, wv, NULL, indent, 0);
+      add_menu_item (menu, wv, NULL, 0);
 }
 
 
@@ -2293,14 +2317,14 @@ fill_menu (MenuHandle menu, widget_value *wv)
   for ( ; wv != NULL; wv = wv->next)
     if (wv->contents)
       {
-        MenuHandle submenu = NewMenu (submenu_id, "\pX");
-        fill_submenu (submenu, wv->contents, 0);
+	int cur_submenu = submenu_id++;
+        MenuHandle submenu = NewMenu (cur_submenu, "\pX");
+        fill_submenu (submenu, wv->contents);
         InsertMenu (submenu, -1);
-        add_menu_item (menu, wv, submenu_id, 0, 0);
-        submenu_id++;
+        add_menu_item (menu, wv, cur_submenu, 0);
       }
     else
-      add_menu_item (menu, wv, NULL, 0, 0);
+      add_menu_item (menu, wv, NULL, 0);
 }
 
 /* Construct native Mac OS menubar based on widget_value tree.  */

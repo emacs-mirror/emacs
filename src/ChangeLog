@@ -1,3 +1,11 @@
+2002-12-22  Steven Tamm  <steventamm@mac.com>
+
+	* macmenu.c (MIN_POPUP_SUBMENU_ID): Added 
+	(mac_menu_show): Added support for hierarchical popup menus
+	(add_menu_item): Removed indentation support
+	(fill_submenu, fill_menu): Now creates hierarchical menus
+	instead of using indentation
+
 2002-12-22  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (try_cursor_movement): Don't call try_window here.
