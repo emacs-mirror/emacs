@@ -6,6 +6,8 @@
 ;;;
 ;;;
 ;;; Authors         : Ken Stevens <k.stevens@ieee.org>
+;;; Note: version numbers and time stamp are not updated
+;;;   when this file is edited for release with GNU Emacs.
 ;;; Last Modified On: Mon Feb  6 17:39:38 EST 1995
 ;;; Update Revision : 2.36
 ;;; Syntax          : emacs-lisp
@@ -1545,9 +1547,14 @@ scrolling the current window.  Leave the new window selected."
     (accept-process-output ispell-process) ; Get version ID line
     (cond ((null ispell-filter)
 	   (error "%s did not output version line" ispell-program-name))
-	  ((and (null (cdr ispell-filter))
-		(stringp (car ispell-filter))
-		(string-match "^@(#) " (car ispell-filter)))
+	  ((and
+	    (stringp (car ispell-filter))
+	    (if (string-match "warning: " (car ispell-filter))
+		(progn
+		  (accept-process-output ispell-process 5) ; 1st was warn msg.
+		  (stringp (car ispell-filter)))
+	      (null (cdr ispell-filter)))
+	    (string-match "^@(#) " (car ispell-filter)))
 	   ;; got the version line as expected (we already know it's the right
 	   ;; version, so don't bother checking again.)
 	   nil)
