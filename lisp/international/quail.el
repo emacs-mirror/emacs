@@ -1189,12 +1189,12 @@ sequence counting from the head."
   (if quail-current-translations
       (let ((indices (car quail-current-translations)))
 	(if (= (1+ (car indices)) (length (cdr quail-current-translations)))
-	    ;; We are alread at the tail.
+	    ;; We are already at the tail.
 	    (beep)
 	  (setcar indices (1+ (car indices)))
 	  (quail-update-current-translations)
 	  (quail-update-translation nil)))
-    (beep)))
+    (quail-execute-non-quail-command)))
 
 (defun quail-prev-translation ()
   "Select previous translation in the current batch of candidates."
@@ -1207,7 +1207,7 @@ sequence counting from the head."
 	  (setcar indices (1- (car indices)))
 	  (quail-update-current-translations)
 	  (quail-update-translation nil)))
-    (beep)))
+    (quail-execute-non-quail-command)))
 
 (defun quail-next-translation-block ()
   "Select from the next block of translations."
@@ -1221,7 +1221,7 @@ sequence counting from the head."
 	  (setcar indices (+ (nth 2 indices) offset))
 	  (quail-update-current-translations)
 	  (quail-update-translation nil)))
-    (beep)))
+    (quail-execute-non-quail-command)))
 
 (defun quail-prev-translation-block ()
   "Select the previous batch of 10 translation candidates."
@@ -1239,7 +1239,7 @@ sequence counting from the head."
 		(setcar indices (+ (nth 1 indices) offset))
 		(quail-update-current-translations)))
 	  (quail-update-translation nil)))
-    (beep)))
+    (quail-execute-non-quail-command)))
 
 (defun quail-abort-translation ()
   "Abort translation and delete the current Quail key sequence."
