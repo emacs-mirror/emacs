@@ -1,4 +1,4 @@
-#include "hpux10.h"
+#include "hpux10-20.h"
 
 #define HPUX11
 
