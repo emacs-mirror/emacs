@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997, 1998 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.20) $
+ * $HopeName: MMsrc!config.h(trunk.21) $
  *
  * .readership: MPS developers.
  */
@@ -208,6 +208,13 @@
 
 #define EVENT_BUFFER_SIZE       ((Count)4096)
 #define EVENT_HEADER_SIZE       ((Count)3)
+
+
+/* Assert Buffer
+ *
+ * The Assert Buffer lives in assert.c */
+
+#define ASSERT_BUFFER_SIZE      ((Size)512)
 
 
 /* memcpy configuration

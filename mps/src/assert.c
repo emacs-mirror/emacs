@@ -1,16 +1,16 @@
 /* impl.c.assert: ASSERTION IMPLEMENTATION
  *
- * $HopeName: MMsrc!assert.c(trunk.7) $
+ * $HopeName: MMsrc!assert.c(trunk.8) $
  *
  * This source provides the AssertFail function which is
  * invoked by the assertion macros (see impl.h.assert).
  * It also provides for user-installed assertion failure handlers.
  *
- * Notes
  *
- * 3. To be really solid, assert should write the information into a
- * buffer before reaching the handler, so that it can be recovered
- * even if printing fails.  richard 1994-11-15
+ * NOTES
+ *
+ * .note.assert-buffer: The Assertion Buffer is not used.  In the future
+ * we probably ought to use it. (see .buffer.* below)
  */
 
 #include "mpm.h"
@@ -23,6 +23,20 @@
  */
 
 Word CheckLevel = CheckSHALLOW;
+
+
+/* Assertion buffer
+ *
+ * .buffer.purpose: the assertion buffer serves two purposes:
+ * .buffer.purpose.modify: assertion strings are picked apart and
+ * modified before being passed to assertion handlers, this
+ * buffer is used to do that.
+ * .buffer.purpose.store: Debuggers, post-mortem dumps, etc, can retrieve the
+ * assertion text even if for some reason printing the text out failed.
+ * [note this is not used, see .note.buffer]
+ */
+
+char AssertBuffer[ASSERT_BUFFER_SIZE];
 
 static void AssertLib(const char *cond, const char *id,
                       const char *file, unsigned line)
@@ -63,9 +77,8 @@ AssertHandler AssertInstall(AssertHandler new)
  * handler returns the progam continues.
  */
 
-void AssertFail(const char *cond, const char *id,
-                const char *file, unsigned line)
+void AssertFail1(const char *s)
 {
   if(handler != NULL)
-    (*handler)(cond, id, file, line);
+    (*handler)(s, "", "", 0);
 }
