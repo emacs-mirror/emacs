@@ -3235,9 +3235,9 @@ and (2) it puts less data in the undo list.")
   }
 
   if (NILP (visit) && total > 0)
-    prepare_to_modify_buffer (point, point);
+    prepare_to_modify_buffer (PT, PT);
 
-  move_gap (point);
+  move_gap (PT);
   if (GAP_SIZE < total)
     make_gap (total - GAP_SIZE);
 
@@ -3257,7 +3257,7 @@ and (2) it puts less data in the undo list.")
       /* Allow quitting out of the actual I/O.  */
       immediate_quit = 1;
       QUIT;
-      this = read (fd, &FETCH_CHAR (point + inserted - 1) + 1, trytry);
+      this = read (fd, &FETCH_CHAR (PT + inserted - 1) + 1, trytry);
       immediate_quit = 0;
 
       if (this <= 0)
@@ -3283,7 +3283,7 @@ and (2) it puts less data in the undo list.")
     if (NILP (current_buffer->buffer_file_type))
       {
 	int reduced_size
-	  = inserted - crlf_to_lf (inserted, &FETCH_CHAR (point - 1) + 1);
+	  = inserted - crlf_to_lf (inserted, &FETCH_CHAR (PT - 1) + 1);
 	ZV -= reduced_size;
 	Z -= reduced_size;
 	GPT -= reduced_size;
@@ -3295,10 +3295,10 @@ and (2) it puts less data in the undo list.")
 
   if (inserted > 0)
     {
-      record_insert (point, inserted);
+      record_insert (PT, inserted);
 
       /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-      offset_intervals (current_buffer, point, inserted);
+      offset_intervals (current_buffer, PT, inserted);
       MODIFF++;
     }
 
@@ -3359,7 +3359,7 @@ and (2) it puts less data in the undo list.")
     }
 
   if (inserted > 0 && NILP (visit) && total > 0)
-    signal_after_change (point, 0, inserted);
+    signal_after_change (PT, 0, inserted);
 
   if (inserted > 0)
     {
