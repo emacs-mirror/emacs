@@ -657,7 +657,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (while (and (not done) args)
       (let* ((longopts '(("--no-init-file") ("--no-site-file") ("--user")
                          ("--debug-init") ("--iconic") ("--icon-type")
-			 ("--no-blinking-cursor")))
+			 ("--no-blinking-cursor") ("--bare-bones")))
              (argi (pop args))
              (orig-argi argi)
              argval)
@@ -677,7 +677,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		(setq argval nil
                       argi orig-argi)))))
 	(cond
-	 ((equal argi "-Q")
+	 ((member argi '("-Q" "-bare-bones"))
 	  (setq init-file-user nil
 		site-run-file nil
 		no-blinking-cursor t
