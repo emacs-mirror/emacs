@@ -96,14 +96,14 @@ for dir in ${copydests}; do
   case "${dir}" in
     ${emacsdir}/* )
       if [ ! -d ${emacsdir} ]; then
-	-mkdir ${emacsdir}
-	-chmod 777 ${emacsdir}
+	mkdir ${emacsdir}
+	chmod 777 ${emacsdir}
       fi
     ;;
     ${statedir}/* )
       if [ ! -d ${statedir} ]; then
-	-mkdir ${statedir}
-	-chmod 777 ${statedir}
+	mkdir ${statedir}
+	chmod 777 ${statedir}
       fi
     ;;
   esac
