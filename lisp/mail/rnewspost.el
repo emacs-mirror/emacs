@@ -25,7 +25,7 @@
 ;;; Change Log:
 
 ;; moved posting and mail code from rnews.el
-;;	tower@prep.ai.mit.edu Wed Oct 29 1986
+;;	tower@gnu.org Wed Oct 29 1986
 ;; brought posting code almost up to the revision of RFC 850 for News 2.11
 ;; - couldn't see handling the special meaning of the Keyword: poster
 ;; - not worth the code space to support the old A news Title: (which

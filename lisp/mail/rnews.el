@@ -29,7 +29,7 @@
 ;; finito except pdl.... Sat Mar 16,1985 at 06:43:44
 ;; lets keep the summary stuff out until we get it working ..
 ;;	sundar@hermes.ai.mit.edu Wed Apr 10,1985 at 16:32:06
-;; hack slash maim. mly@prep.ai.mit.edu Thu 18 Apr, 1985 06:11:14
+;; hack slash maim. mly@gnu.org Thu 18 Apr, 1985 06:11:14
 ;; modified to correct reentrance bug, to not bother with groups that
 ;;   received no new traffic since last read completely, to find out
 ;;   what traffic a group has available much more quickly when
@@ -38,7 +38,7 @@
 ;;	KING@KESTREL.arpa, Thu Mar 13 09:03:28 1986
 ;; made news-{next,previous}-group skip groups with no new messages; and
 ;; added checking for unsubscribed groups to news-add-news-group
-;;	tower@prep.ai.mit.edu Jul 18 1986
+;;	tower@gnu.org Jul 18 1986
 ;; bound rmail-output to C-o; and changed header-field commands binding to
 ;; agree with the new C-c C-f usage in sendmail
 ;; 	tower@prep Sep  3 1986
@@ -921,7 +921,7 @@ FName to link to message: ")
 		 news-current-message-number))
    newname))
 
-;;; caesar-region written by phr@prep.ai.mit.edu  Nov 86
+;;; caesar-region written by phr@gnu.org  Nov 86
 ;;; modified by tower@prep Nov 86
 (defun caesar-region (&optional n)
   "Caesar rotation of region by N, default 13, for decrypting netnews."
@@ -959,7 +959,7 @@ FName to link to message: ")
 	  (insert str)))))
 
 ;;; news-caesar-buffer-body written by paul@media-lab.mit.edu  Wed Oct 1, 1986
-;;; hacked further by tower@prep.ai.mit.edu
+;;; hacked further by tower@gnu.org
 (defun news-caesar-buffer-body (&optional rotnum)
   "Caesar rotates all letters in the current buffer by 13 places.
 Used to encode/decode possibly offensive messages (commonly in net.jokes).
