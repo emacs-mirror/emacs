@@ -7,7 +7,7 @@
 ;;	Mark Shapiro <shapiro@corto.inria.fr>
 ;;	Mike Newton <newton@gumby.cs.caltech.edu>
 ;;	Aaron Larson <alarson@src.honeywell.com>
-;; Maintainer: none right now
+;; Maintainer: Dirk Herrmann <D.Herrmann@tu-bs.de>
 ;; Keywords: BibTeX, LaTeX, TeX
 
 ;; This file is part of GNU Emacs.
@@ -820,7 +820,7 @@ the value of `bibtex-text-indentation', minus 2."
 ;; Bug Reporting
 
 (defconst
-  bibtex-maintainer-address "Stefan Schoef <schoef@offis.uni-oldenburg.de>")
+  bibtex-maintainer-address "Dirk Herrmann <D.Herrmann@tu-bs.de>")
 ;; current maintainer
 
 
@@ -2619,8 +2619,8 @@ non-nil.
             ;; user variables which shouldn't cause any errors
             )
            nil nil
-           (concat "Hi Stefan,
- 
+           (concat "To the bibtex.el maintainer:
+
 I want to report a bug on Emacs BibTeX mode.
 I've read the `Bugs' section in the `Emacs' info page, so I know how
 to make a clear and unambiguous report. I have started a fresh Emacs
