@@ -106,7 +106,7 @@ of text indented by a margin setting.
 The variable `paragraph-separate' specifies how to distinguish
 lines that start paragraphs from lines that separate them.
 
-If the variable `use-hard-newlines' is nonnil, then only lines following a
+If the variable `use-hard-newlines' is non-nil, then only lines following a
 hard newline are considered to match."
   :group 'paragraphs
   :type 'regexp)
@@ -200,7 +200,7 @@ to which the end of the previous line belongs, or the end of the buffer."
 	(while (and (not (bobp))
 		    (progn (move-to-left-margin)
 			   (looking-at paragraph-separate)))
-	  (forward-line -1)) 
+	  (forward-line -1))
 	(if (bobp)
 	    nil
 	  ;; Go to end of the previous (non-separating) line.
@@ -213,8 +213,8 @@ to which the end of the previous line belongs, or the end of the buffer."
 				(progn (move-to-left-margin)
 				       (not (looking-at paragraph-separate)))
 				(looking-at fill-prefix-regexp))
-		      (if (not (= (point) start))
-			  (setq multiple-lines t))
+		      (unless (= (point) start)
+			(setq multiple-lines t))
 		      (forward-line -1))
 		    (move-to-left-margin)
 ;;; This deleted code caused a long hanging-indent line
