@@ -4303,19 +4303,18 @@ This does code conversion according to the value of\n\
 	   If it is not set locally, we anyway have to convert EOL
 	   format if the default value of `buffer-file-coding-system'
 	   tells that it is not Unix-like (LF only) format.  */
+	int using_default_coding = 0;
+	int force_raw_text = 0;
+
 	val = current_buffer->buffer_file_coding_system;
 	if (NILP (val)
 	    || NILP (Flocal_variable_p (Qbuffer_file_coding_system, Qnil)))
 	  {
-	    if (NILP (current_buffer->enable_multibyte_characters))
-	      {
-		setup_coding_system (Fcheck_coding_system (val), &coding);
-		setup_raw_text_coding_system (&coding);
-		goto done_setup_coding;
-	      }
 	    val = Qnil;
+	    if (NILP (current_buffer->enable_multibyte_characters))
+	      force_raw_text = 1;
 	  }
-
+	
 	if (NILP (val))
 	  {
 	    /* Check file-coding-system-alist.  */
@@ -4329,16 +4328,46 @@ This does code conversion according to the value of\n\
 	      val = XCONS (coding_systems)->cdr;
 	  }
 
-	if (NILP (val))
-	  /* If we still have not decided a coding system, use the
-	     default value of buffer-file-coding-system.  */
-	  val = current_buffer->buffer_file_coding_system;
+	if (NILP (val)
+	    && !NILP (current_buffer->buffer_file_coding_system))
+	  {
+	    /* If we still have not decided a coding system, use the
+	       default value of buffer-file-coding-system.  */
+	    val = current_buffer->buffer_file_coding_system;
+	    using_default_coding = 1;
+	  }
 	    
-	if (! NILP (val)
+	if (!force_raw_text
 	    && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
 	  /* Confirm that VAL can surely encode the current region.  */
 	  val = call3 (Vselect_safe_coding_system_function, start, end, val);
+
+	setup_coding_system (Fcheck_coding_system (val), &coding);
+	if (coding.eol_type == CODING_EOL_UNDECIDED
+	    && !using_default_coding)
+	  {
+	    if (! EQ (default_buffer_file_coding.symbol,
+		      buffer_defaults.buffer_file_coding_system))
+	      setup_coding_system (buffer_defaults.buffer_file_coding_system,
+				   &default_buffer_file_coding);
+	    if (default_buffer_file_coding.eol_type != CODING_EOL_UNDECIDED)
+	      {
+		Lisp_Object subsidiaries;
+
+		coding.eol_type = default_buffer_file_coding.eol_type;
+		subsidiaries = Fget (coding.symbol, Qeol_type);
+		if (VECTORP (subsidiaries)
+		    && XVECTOR (subsidiaries)->size == 3)
+		  coding.symbol
+		    = XVECTOR (subsidiaries)->contents[coding.eol_type];
+	      }
+	  }
+
+	if (force_raw_text)
+	  setup_raw_text_coding_system (&coding);
+	goto done_setup_coding;
       }
+
     setup_coding_system (Fcheck_coding_system (val), &coding);
 
   done_setup_coding:
