@@ -40,9 +40,11 @@ The lispdir.el package will help you search for useful packages in the
 LCD-datafile, which is a list of the archive constants.  It will even
 fetch them for you on command.
 
-* A project previously meant to replace the LCD is at
-  <URL:http://www.emacs.org/> but also seems to have maintenance
-  problems at present.
+* <URL:http://www.emacs.org/> emacs.org is a site that hosts a number
+  of Internet services for the purpose of supporting GNU Emacs,
+  research and examine in depth "What is Emacs?", and a project that
+  assists the contributed Emacs Lisp distribution with widely
+  re-useable metadata that is backward compatible with the LCD.
 
 * The `Emacs Lisp List' at
   <URL:http://www.anc.ed.ac.uk/%7Estephen/emacs/ell.html> has pointers
