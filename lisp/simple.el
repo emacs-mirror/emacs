@@ -2638,12 +2638,17 @@ Outline mode sets this."
       ;; Set REPEAT to t to repeat the whole thing.
       (setq repeat nil)
 
-      ;; Move to the desired column.
-      (line-move-to-column column)
-
-      (let ((new (point))
+      (let (new
 	    (line-beg (save-excursion (beginning-of-line) (point)))
-	    (line-end (save-excursion (end-of-line) (point))))
+	    (line-end
+	     ;; Compute the end of the line
+	     ;; ignoring effectively intangible newlines.
+	     (let ((inhibit-point-motion-hooks nil))
+	       (save-excursion (end-of-line) (point)))))
+
+	;; Move to the desired column.
+	(line-move-to-column column)
+	(setq new (point))
 
 	;; Process intangibility within a line.
 	;; Move to the chosen destination position from above,
@@ -2656,7 +2661,15 @@ Outline mode sets this."
 	  ;; If intangibility moves us to a different (later) place
 	  ;; in the same line, use that as the destination.
 	  (if (<= (point) line-end)
-	      (setq new (point))))
+	      (setq new (point))
+	    ;; If that position is "too late",
+	    ;; try the previous allowable position.
+	    ;; See if it is ok.
+	    (backward-char)
+	    (if (<= (point) line-end)
+		(setq new (point))
+	      ;; As a last resort, use the end of the line.
+	      (setq new line-end))))
 
 	;; Now move to the updated destination, processing fields
 	;; as well as intangibility.
@@ -2666,7 +2679,7 @@ Outline mode sets this."
 	   (constrain-to-field new opoint nil t
 			       'inhibit-line-move-field-capture)))
 
-	;; If intangibility processing moved us to a different line,
+	;; If all this moved us to a different line,
 	;; retry everything within that new line.
 	(when (or (< (point) line-beg) (> (point) line-end))
 	  ;; Repeat the intangibility and field processing.
