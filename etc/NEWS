@@ -103,6 +103,12 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 22.1
 
+** C-u M-x goto-line now switches to the most recent previous buffer,
+and goes to the specified line in that buffer.
+
+When goto-line starts to execute, if there's a number in the buffer at
+point then it acts as the default argument for the minibuffer.
+
 ** Emacs now responds to mouse-clicks on the mode-line, header-line and
 display margin, when run in an xterm.
 

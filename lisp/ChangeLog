@@ -1,3 +1,8 @@
+2005-03-05  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (goto-line): Use a number at point as the default.
+	With C-u as arg, switch buffers.
+
 2005-03-05  Juri Linkov  <juri@jurta.org>
 
 	* frame.el (blink-cursor-mode): Replace `emacs-quick-startup'
