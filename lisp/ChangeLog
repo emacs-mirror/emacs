@@ -1,3 +1,18 @@
+2000-03-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/mh-e.el: Change maintainer to `none'.
+
+	* recentf.el (recentf-keep-non-readable-files-p): Quote args
+	to remove-hook and add-hook.
+
+2000-03-07  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+
+	* sendmail.el (mail-send-nonascii): Add a new value 'mime and use
+	it as the default.
+	(mail-send): Test mail-send-nonascii also for the new 'mime value.
+	(sendmail-send-it): Conditionaly add MIME headers specifying the
+	used character set.
+	
 2000-03-07  Dave Love  <fx@gnu.org>
 
 	* winner.el: Fix keywords, autoload cookies.  Split
