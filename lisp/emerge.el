@@ -1554,8 +1554,8 @@ With an argument, reestablish the default three-window display."
       (let* ((merge-buffer emerge-merge-buffer)
 	     (buffer-A emerge-A-buffer)
 	     (buffer-B emerge-B-buffer)
-	     (window-A (get-buffer-window buffer-A))
-	     (window-B (get-buffer-window buffer-B))
+	     (window-A (get-buffer-window buffer-A 'visible))
+	     (window-B (get-buffer-window buffer-B 'visible))
 	     (merge-window (get-buffer-window merge-buffer))
 	     (diff-vector
 	      (aref emerge-difference-list emerge-current-difference)))
@@ -1599,8 +1599,8 @@ With an argument, reestablish the default three-window display."
   (let* ((merge-buffer emerge-merge-buffer)
 	 (buffer-A emerge-A-buffer)
 	 (buffer-B emerge-B-buffer)
-	 (window-A (get-buffer-window buffer-A))
-	 (window-B (get-buffer-window buffer-B))
+	 (window-A (get-buffer-window buffer-A 'visible))
+	 (window-B (get-buffer-window buffer-B 'visible))
 	 (merge-window (get-buffer-window merge-buffer)))
     (if window-A (progn
 		   (select-window window-A)
