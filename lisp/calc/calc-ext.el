@@ -1849,10 +1849,10 @@ calc-kill calc-kill-region calc-yank))))
 	(last-prec (intern (concat (symbol-name name) "-last-prec")))
 	(last-val (intern (concat (symbol-name name) "-last"))))
     (list 'progn
-	  (list 'setq cache-prec (if init (math-numdigs (nth 1 init)) -100))
-	  (list 'setq cache-val (list 'quote init))
-	  (list 'setq last-prec -100)
-	  (list 'setq last-val nil)
+	  (list 'defvar cache-prec (if init (math-numdigs (nth 1 init)) -100))
+	  (list 'defvar cache-val (list 'quote init))
+	  (list 'defvar last-prec -100)
+	  (list 'defvar last-val nil)
 	  (list 'setq 'math-cache-list
 		(list 'cons
 		      (list 'quote cache-prec)
