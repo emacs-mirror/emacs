@@ -35,7 +35,7 @@ See `set-case-table' for more information on these data structures.")
   (table)
      Lisp_Object table;
 {
-  Lisp_Object down, up, canon, eqv;
+  Lisp_Object up, canon, eqv;
 
   if (! CHAR_TABLE_P (table))
     return Qnil;
@@ -68,8 +68,6 @@ DEFUN ("current-case-table", Fcurrent_case_table, Scurrent_case_table, 0, 0, 0,
   "Return the case table of the current buffer.")
   ()
 {
-  Lisp_Object down, up, canon, eqv;
-  
   return current_buffer->downcase_table;
 }
 
@@ -119,7 +117,7 @@ set_case_table (table, standard)
      Lisp_Object table;
      int standard;
 {
-  Lisp_Object down, up, canon, eqv;
+  Lisp_Object up, canon, eqv;
 
   check_case_table (table);
 
@@ -130,7 +128,7 @@ set_case_table (table, standard)
   if (NILP (up))
     {
       up = Fmake_char_table (Qcase_table, Qnil);
-      compute_trt_inverse (XCHAR_TABLE (down), XCHAR_TABLE (up));
+      compute_trt_inverse (XCHAR_TABLE (table), XCHAR_TABLE (up));
       XCHAR_TABLE (table)->extras[0] = up;
     }
 
@@ -138,9 +136,9 @@ set_case_table (table, standard)
     {
       register int i;
       Lisp_Object *upvec = XCHAR_TABLE (up)->contents;
-      Lisp_Object *downvec = XCHAR_TABLE (down)->contents;
+      Lisp_Object *downvec = XCHAR_TABLE (table)->contents;
 
-      up = Fmake_char_table (Qcase_table, Qnil);
+      canon = Fmake_char_table (Qcase_table, Qnil);
 
       /* Set up the CANON vector; for each character,
 	 this sequence of upcasing and downcasing ought to
@@ -154,13 +152,13 @@ set_case_table (table, standard)
     {
       eqv = Fmake_char_table (Qcase_table, Qnil);
       compute_trt_inverse (XCHAR_TABLE (canon), XCHAR_TABLE (eqv));
-      XCHAR_TABLE (table)->extras[0] = eqv;
+      XCHAR_TABLE (table)->extras[2] = eqv;
     }
 
   if (standard)
-    Vascii_downcase_table = down;
+    Vascii_downcase_table = table;
   else
-    current_buffer->downcase_table = down;
+    current_buffer->downcase_table = table;
 
   return table;
 }
@@ -206,7 +204,7 @@ init_casetab_once ()
 
   /* Now we are ready to set up this property, so we can
      create char tables.  */
-  Fput (Qcase_table, Qchar_table_extra_slots, make_number (4));
+  Fput (Qcase_table, Qchar_table_extra_slots, make_number (3));
 
   down = Fmake_char_table (Qcase_table, Qnil);
   Vascii_downcase_table = down;
