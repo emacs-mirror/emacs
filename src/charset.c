@@ -727,6 +727,44 @@ DEFUN ("iso-charset", Fiso_charset, Siso_charset, 3, 3, 0,
   return CHARSET_SYMBOL (charset);
 }
 
+/* If GENERICP is nonzero, return nonzero iff C is a valid normal or
+   generic character.  If GENERICP is zero, return nonzero iff C is a
+   valid normal character.  Do not call this function directly,
+   instead use macro CHAR_VALID_P.  */
+int
+char_valid_p (c, genericp)
+     int c, genericp;
+{
+  int charset, c1, c2;
+
+  if (c < 0)
+    return 0;
+  if (SINGLE_BYTE_CHAR_P (c))
+    return 1;
+  SPLIT_NON_ASCII_CHAR (c, charset, c1, c2);
+  if (!CHARSET_VALID_P (charset))
+    return 0;
+  return (c < MIN_CHAR_COMPOSITION
+	  ? ((c & CHAR_FIELD1_MASK) /* i.e. dimension of C is two.  */
+	     ? (genericp && c1 == 0 && c2 == 0
+		|| c1 >= 32 && c2 >= 32)
+	     : (genericp && c1 == 0
+		|| c1 >= 32))
+	  : c < MIN_CHAR_COMPOSITION + n_cmpchars);
+}
+
+DEFUN ("char-valid-p", Fchar_valid_p, Schar_valid_p, 1, 2, 0,
+  "Return t if OBJECT is a valid normal character.
+If optional arg GENERICP is non-nil, also return t if OBJECT is
+a valid generic character.")
+  (object, genericp)
+     Lisp_Object object, genericp;
+{
+  if (! NATNUMP (object))
+    return Qnil;
+  return (CHAR_VALID_P (XFASTINT (object), !NILP (genericp)) ? Qt : Qnil);
+}
+
 DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
   "Return byte length of multi-byte form of CHAR.")
   (ch)
@@ -1584,6 +1622,7 @@ syms_of_charset ()
   defsubr (&Ssplit_char);
   defsubr (&Schar_charset);
   defsubr (&Siso_charset);
+  defsubr (&Schar_valid_p);
   defsubr (&Schar_bytes);
   defsubr (&Schar_width);
   defsubr (&Sstring_width);
