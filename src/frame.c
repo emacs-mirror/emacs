@@ -1387,6 +1387,7 @@ value as argument.")
   Lisp_Object x, y, retval;
   int col, row;
   unsigned long long_dummy;
+  struct gcpro gcpro1;
 
   f = SELECTED_FRAME ();
   x = y = Qnil;
@@ -1409,13 +1410,10 @@ value as argument.")
 #endif
   XSETFRAME (lispy_dummy, f);
   retval = Fcons (lispy_dummy, Fcons (x, y));
+  GCPRO1 (retval);
   if (!NILP (Vmouse_position_function))
-    {
-      struct gcpro gcpro1, gcpro2;
-      GCPRO2 (x, y);
-      RETURN_UNGCPRO (call1 (Vmouse_position_function, retval));
-    }
-  return retval;
+    retval = call1 (Vmouse_position_function, retval);
+  RETURN_UNGCPRO (retval);
 }
 
 DEFUN ("mouse-pixel-position", Fmouse_pixel_position,
