@@ -851,7 +851,7 @@ alternative fontnames are tried.");
      "*Non-nil means highlight characters shown in wrong size fonts somehow.\n\
 The way to highlight them depends on window system on which Emacs runs.\n\
 On X window, a rectangle is shown around each such character.");
-  Vhighlight_wrong_size_font = Qt;
+  Vhighlight_wrong_size_font = Qnil;
 
   DEFVAR_LISP ("clip-large-size-font", &Vclip_large_size_font,
      "*Non-nil means characters shown in large size fonts are clipped.\n\
