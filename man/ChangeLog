@@ -1,3 +1,7 @@
+2000-07-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* dired.texi (Dired Visiting): Describe dired-find-alternate-file.
+
 2000-07-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* cc-mode.texi: Remove duplicate @direntry.

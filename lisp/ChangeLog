@@ -1,5 +1,7 @@
 2000-07-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* bindings.el: Bind ´[delete]' to delete-char.
+
 	* dired.el (dired-find-alternate-file): New function.
 	(dired-mode-map): Bind `a' to dired-find-alternate-file.
 	(toplevel): Require dired-aux when compiling.
@@ -10,6 +12,13 @@
 	(Info-search): New Info-search-history.
 
 	* battery.el, info-look.el: Change author's mail address.
+
+2000-07-07  Jonathan I. Kamens  <jik@kamens.brookline.ma.us>
+	
+	* mail/rmail.el (rmail-clear-headers): Don't throw an error
+	if rmail-ignored-headers is nil.
+	(rmail-retry-failure): Bind rmail-ignored-headers and
+	rmail-displayed-headers to nil.
 
 2000-07-06  Gerd Moellmann  <gerd@gnu.org>
 
