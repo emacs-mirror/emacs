@@ -31,13 +31,17 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` (F.Potorti@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is $Revision: 11.84 $";
+char pot_etags_version[] = "@(#) pot revision number is 11.85";
 
 #define	TRUE	1
 #define	FALSE	0
 
 #ifndef DEBUG
 # define DEBUG FALSE
+#endif
+
+#ifndef TeX_named_tokens
+# define TeX_named_tokens FALSE
 #endif
 
 #ifdef MSDOS
@@ -245,10 +249,13 @@ NODE *head;			/* the head of the binary tree of tags */
  * A `struct linebuffer' is a structure which holds a line of text.
  * `readline' reads a line from a stream into a linebuffer and works
  * regardless of the length of the line.
+ * SIZE is the size of BUFFER, LEN is the length of the string in
+ * BUFFER after readline reads it.
  */
 struct linebuffer
 {
   long size;
+  int len;
   char *buffer;
 };
 
@@ -1206,7 +1213,8 @@ find_entries (file, inf)
     }
 
   /* Look for sharp-bang as the first two characters. */
-  if (readline_internal (&lb, inf) > 2
+  if (readline_internal (&lb, inf)
+      && lb.len >= 2
       && lb.buffer[0] == '#'
       && lb.buffer[1] == '!')
     {
@@ -3114,7 +3122,7 @@ Pascal_functions (inf)
 	    continue;
 
 	  /* save all values for later tagging */
-	  grow_linebuffer (&tline, strlen (lb.buffer) + 1);
+	  grow_linebuffer (&tline, lb.len + 1);
 	  strcpy (tline.buffer, lb.buffer);
 	  save_lineno = lineno;
 	  save_lcno = linecharno;
@@ -3341,9 +3349,7 @@ char *TEX_defenv = "\
 void TEX_mode ();
 struct TEX_tabent *TEX_decode_env ();
 int TEX_Token ();
-#if TeX_named_tokens
-void TEX_getit ();
-#endif
+static void TEX_getit ();
 
 char TEX_esc = '\\';
 char TEX_opgrp = '{';
@@ -3387,10 +3393,9 @@ TeX_functions (inf)
 	  if (0 <= i)
 	    {
 	      pfnote ((char *)NULL, TRUE,
-		      lb.buffer, strlen (lb.buffer), lineno, linecharno);
-#if TeX_named_tokens
-	      TEX_getit (lasthit, TEX_toktab[i].len);
-#endif
+		      lb.buffer, lb.len, lineno, linecharno);
+	      if (TeX_named_tokens)
+		TEX_getit (lasthit, TEX_toktab[i].len);
 	      break;		/* We only save a line once */
 	    }
 	}
@@ -3485,11 +3490,10 @@ TEX_decode_env (evarname, defenv)
   return tab;
 }
 
-#if TeX_named_tokens
 /* Record a tag defined by a TeX command of length LEN and starting at NAME.
    The name being defined actually starts at (NAME + LEN + 1).
    But we seem to include the TeX command in the tag name.  */
-void
+static void
 TEX_getit (name, len)
      char *name;
      int len;
@@ -3503,9 +3507,8 @@ TEX_getit (name, len)
   while (*p && *p != TEX_clgrp)
     p++;
   pfnote (savenstr (name, p-name), TRUE,
-	  lb.buffer, strlen (lb.buffer), lineno, linecharno);
+	  lb.buffer, lb.len, lineno, linecharno);
 }
-#endif
 
 /* If the text at CP matches one of the tag-defining TeX command names,
    return the pointer to the first occurrence of that command in TEX_toktab.
@@ -4015,6 +4018,7 @@ add_regex (regexp_pattern)
   patbuf->buffer = NULL;
   patbuf->allocated = 0;
 
+  re_syntax_options = RE_INTERVALS;
   err = re_compile_pattern (regexp_pattern, strlen (regexp_pattern), patbuf);
   if (err != NULL)
     {
@@ -4044,38 +4048,43 @@ substitute (in, out, regs)
      struct re_registers *regs;
 {
   char *result, *t;
-  int size, i;
+  int size, dig, diglen;
 
   result = NULL;
   size = strlen (out);
 
-  /* Pass 1: figure out how much size to allocate. */
-  if (out[strlen (out) - 1] == '\\')
-    fatal ("pattern error in %s", out);
-  for (t = out; *t != '\0'; ++t)
-    if (*t == '\\' && isdigit (*++t))
+  /* Pass 1: figure out how much to allocate by finding all \N strings. */
+  if (out[size - 1] == '\\')
+    fatal ("pattern error in \"%s\"", out);
+  for (t = etags_strchr (out, '\\');
+       t != NULL;
+       t = etags_strchr (t + 2, '\\'))
+    if (isdigit (t[1]))
       {
-	int dig = *t - '0';
-	size += regs->end[dig] - regs->start[dig] - 2;
+	dig = t[1] - '0';
+	diglen = regs->end[dig] - regs->start[dig];
+	size += diglen - 2;
       }
+    else
+      size -= 1;
 
   /* Allocate space and do the substitutions. */
   result = xnew (size + 1, char);
-  for (i = 0; *out != '\0'; ++out)
-    {
-      if (*out == '\\' && isdigit (*++out))
-	{
-	  /* Using "dig2" satisfies my debugger.  Bleah. */
-	  int dig2 = *out - '0';
-	  int diglen = regs->end[dig2] - regs->start[dig2];
-	  strncpy (result + i, in + regs->start[dig2], diglen);
-	  i += diglen;
-	}
-      else
-	result[i++] = *out;
-    }
-  result[i] = '\0';
-  if (DEBUG && i > size)
+
+  for (t = result; *out != '\0'; out++)
+    if (*out == '\\' && isdigit (*++out))
+      {
+	/* Using "dig2" satisfies my debugger.  Bleah. */
+	dig = *out - '0';
+	diglen = regs->end[dig] - regs->start[dig];
+	strncpy (t, in + regs->start[dig], diglen);
+	t += diglen;
+      }
+    else
+      *t++ = *out;
+  *t = '\0';
+
+  if (DEBUG && (t > result + size || t - result != strlen (result)))
     abort ();
 
   return result;
@@ -4129,7 +4138,7 @@ readline_internal (linebuffer, stream)
 	{
 	  if (p > buffer && p[-1] == '\r')
 	    {
-	      *--p = '\0';
+	      p -= 1;
 #ifdef DOS_NT
 	     /* Assume CRLF->LF translation will be performed by Emacs
 		when loading this file, so CRs won't appear in the buffer.
@@ -4143,20 +4152,21 @@ readline_internal (linebuffer, stream)
 	    }
 	  else
 	    {
-	      *p = '\0';
 	      chars_deleted = 1;
 	    }
+	  *p = '\0';
 	  break;
 	}
       *p++ = c;
     }
+  linebuffer->len = p - buffer;
 
-  return p - buffer + chars_deleted;
+  return linebuffer->len + chars_deleted;
 }
 
 /*
- * Like readline_internal, above, but try to match the input
- * line against any existing regular expressions.
+ * Like readline_internal, above, but in addition try to match the
+ * input line against any existing regular expressions.
  */
 long
 readline (linebuffer, stream)
@@ -4169,46 +4179,47 @@ readline (linebuffer, stream)
   int i;
 
   /* Match against all listed patterns. */
-  for (i = 0; i < num_patterns; ++i)
-    {
-      int match = re_match (patterns[i].pattern, linebuffer->buffer,
-			    (int)result, 0, &patterns[i].regs);
-      switch (match)
-	{
-	case -2:
-	  /* Some error. */
-	  if (!patterns[i].error_signaled)
-	    {
-	      error ("error while matching pattern %d", i);
-	      patterns[i].error_signaled = TRUE;
-	    }
-	  break;
-	case -1:
-	  /* No match. */
-	  break;
-	default:
-	  /* Match occurred.  Construct a tag. */
-	  if (patterns[i].name_pattern[0] != '\0')
-	    {
-	      /* Make a named tag. */
-	      char *name = substitute (linebuffer->buffer,
-				       patterns[i].name_pattern,
-				       &patterns[i].regs);
-	      if (name != NULL)
-		pfnote (name, TRUE,
+  if (linebuffer->len > 0)
+    for (i = 0; i < num_patterns; ++i)
+      {
+	int match = re_match (patterns[i].pattern, linebuffer->buffer,
+			      linebuffer->len, 0, &patterns[i].regs);
+	switch (match)
+	  {
+	  case -2:
+	    /* Some error. */
+	    if (!patterns[i].error_signaled)
+	      {
+		error ("error while matching pattern %d", i);
+		patterns[i].error_signaled = TRUE;
+	      }
+	    break;
+	  case -1:
+	    /* No match. */
+	    break;
+	  default:
+	    /* Match occurred.  Construct a tag. */
+	    if (patterns[i].name_pattern[0] != '\0')
+	      {
+		/* Make a named tag. */
+		char *name = substitute (linebuffer->buffer,
+					 patterns[i].name_pattern,
+					 &patterns[i].regs);
+		if (name != NULL)
+		  pfnote (name, TRUE,
+			  linebuffer->buffer, match, lineno, linecharno);
+	      }
+	    else
+	      {
+		/* Make an unnamed tag. */
+		pfnote ((char *)NULL, TRUE,
 			linebuffer->buffer, match, lineno, linecharno);
-	    }
-	  else
-	    {
-	      /* Make an unnamed tag. */
-	      pfnote ((char *)NULL, TRUE,
-		      linebuffer->buffer, match, lineno, linecharno);
-	    }
-	  break;
-	}
-    }
+	      }
+	    break;
+	  }
+      }
 #endif /* ETAGS_REGEXPS */
-
+  
   return result;
 }
 
