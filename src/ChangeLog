@@ -1,3 +1,8 @@
+2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* sound.c: Include <sys/ioctl.h> also on systems without
+        <soundcard.h>.
+
 2001-10-15  Sam Steingold  <sds@gnu.org>
 
 	* fns.c (Vafter_load_alist): Declare extern (w32 build problem).
