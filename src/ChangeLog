@@ -67,6 +67,29 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-04-14  Kim F. Storm  <storm@cua.dk>
+
+	* editfns.c (Fformat): Fix allocation size of precision array.
+
+	* dispnew.c (update_window): Only set changed_p if
+	scrolling_window actually did scroll.
+	(scrolling_window): Only return 1 if we actually did scroll.
+
+	* xdisp.c (get_glyph_string_clip_rect): Fix reduction of cursor
+	height to glyph height when cursor row is not fully visible.
+	(make_cursor_line_fully_visible): Add FORCE_P arg to return
+	failure in case row is higher than window.  Callers changed.
+	(try_scrolling): Fix loop in scrolling if last_line_misfit (from Gerd).
+	Try to scroll partially visible, higher-than-window cursor row.
+	(redisplay_window): Always try to scroll partially visible,
+	higher-than-window cursor row - both initially and again with
+	centering_position = 0.
+	Clear desired matrix before retrying with centering_position = 0.
+
+2004-04-13  Joe Buehler  <jbuehler@hekimian.com>
+
+	* sheap.c, unexcw.c: New files.
+
 2004-04-12  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buffer.c (Fmake_indirect_buffer): Throw an error if the intended
@@ -100,6 +123,10 @@
 
 	* buffer.c (fix_start_end_in_overlays): Make overlays
 	empty if they are backwards.
+
+2004-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xfaces.c (face_color_supported_p): Fix compilation without X11.
 
 2004-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 

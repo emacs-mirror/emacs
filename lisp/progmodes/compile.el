@@ -675,10 +675,10 @@ Faces `compilation-error-face', `compilation-warning-face',
 	      (col (nth 3 item))
 	      (type (nth 4 item))
 	      end-line end-col fmt)
-	  (if (consp file) (setq fmt (cdr file)	  file (car file)))
-	  (if (consp line) (setq end-line (cdr line) line (car line)))
+	  (if (consp file)	(setq fmt (cdr file)	  file (car file)))
+	  (if (consp line)	(setq end-line (cdr line) line (car line)))
 	  (if (consp col)	(setq end-col (cdr col)	  col (car col)))
-	  
+
 	  (if (functionp line)
 	      ;; The old compile.el had here an undocumented hook that
 	      ;; allowed `line' to be a function that computed the actual
@@ -690,7 +690,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 					   ',(nthcdr 4 item))
 			     ,(if col `(match-string ,col)))))
 		(,file compilation-error-face t))
-		    
+
 	    `(,(nth 0 item)
 
 	      ,@(when (integerp file)
@@ -1131,6 +1131,7 @@ The global commands next/previous/first-error/goto-error use this.")
   "Prepare the buffer for the compilation parsing commands to work."
   (make-local-variable 'compilation-current-error)
   (make-local-variable 'compilation-error-screen-columns)
+  (make-local-variable 'overlay-arrow-position)
   (setq compilation-last-buffer (current-buffer))
   (set (make-local-variable 'font-lock-extra-managed-props)
        '(directory message help-echo mouse-face debug))
@@ -1192,8 +1193,7 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
 		  (cons msg exit-status)))
 	(omax (point-max))
 	(opoint (point)))
-    ;; Record where we put the message, so we can ignore it
-    ;; later on.
+    ;; Record where we put the message, so we can ignore it later on.
     (goto-char omax)
     (insert ?\n mode-name " " (car status))
     (if (and (numberp compilation-window-height)
@@ -1221,24 +1221,22 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
 ;; Called when compilation process changes state.
 (defun compilation-sentinel (proc msg)
   "Sentinel for compilation buffers."
-  (let ((buffer (process-buffer proc)))
-    (if (memq (process-status proc) '(signal exit))
-	(progn
-	  (if (null (buffer-name buffer))
-	      ;; buffer killed
-	      (set-process-buffer proc nil)
-	    (with-current-buffer buffer
-	      ;; Write something in the compilation buffer
-	      ;; and hack its mode line.
-	      (compilation-handle-exit (process-status proc)
-				       (process-exit-status proc)
-				       msg)
-	      ;; Since the buffer and mode line will show that the
-	      ;; process is dead, we can delete it now.  Otherwise it
-	      ;; will stay around until M-x list-processes.
-	      (delete-process proc)))
-	  (setq compilation-in-progress (delq proc compilation-in-progress))
-	  ))))
+  (if (memq (process-status proc) '(exit signal))
+      (let ((buffer (process-buffer proc)))
+	(if (null (buffer-name buffer))
+	    ;; buffer killed
+	    (set-process-buffer proc nil)
+	  (with-current-buffer buffer
+	    ;; Write something in the compilation buffer
+	    ;; and hack its mode line.
+	    (compilation-handle-exit (process-status proc)
+				     (process-exit-status proc)
+				     msg)
+	    ;; Since the buffer and mode line will show that the
+	    ;; process is dead, we can delete it now.  Otherwise it
+	    ;; will stay around until M-x list-processes.
+	    (delete-process proc)))
+	(setq compilation-in-progress (delq proc compilation-in-progress)))))
 
 (defun compilation-filter (proc string)
   "Process filter for compilation buffers.
@@ -1293,13 +1291,11 @@ Does NOT find the source line like \\[next-error]."
 						 'message)))
 	  (setq pt (previous-single-property-change pt 'message nil
 						    (line-beginning-position)))
-	  (if pt	 ; FIXME: `pt' can never be nil here anyway.  --stef
-	      (setq msg (get-text-property (max (1- pt) (point-min)) 'message))
+	  (unless (setq msg (get-text-property (max (1- pt) (point-min)) 'message))
 	    (setq pt (next-single-property-change pt 'message nil
 						  (line-end-position)))
-	    (if pt	 ; FIXME: `pt' can never be nil here anyway.  --stef
-		(setq msg (get-text-property pt 'message))
-	      (setq pt (point)))))
+	    (or (setq msg (get-text-property pt 'message))
+		(setq pt (point)))))
       (setq last (nth 2 (car msg)))
       (if (>= n 0)
 	  (compilation-loop > next-single-property-change 1-
@@ -1368,16 +1364,14 @@ Prefix arg N says how many files to move backwards (or forwards, if negative)."
   "Visit the source for the error message at point.
 Use this command in a compilation log buffer.  Sets the mark at point there."
   (interactive (list last-input-event))
+  (mouse-set-point event)
   (or (compilation-buffer-p (current-buffer))
       (error "Not in a compilation buffer"))
-  (let* ((loc (event-end event))
-	 (pos (posn-point loc)))
-    (with-selected-window (posn-window loc)
-      (if (get-text-property pos 'directory)
-	  (dired-other-window (car (get-text-property pos 'directory)))
-	(push-mark)
-	(setq compilation-current-error pos)
-	(next-error 0)))))
+  (if (get-text-property (point) 'directory)
+      (dired-other-window (car (get-text-property (point) 'directory)))
+    (push-mark)
+    (setq compilation-current-error (point))
+    (next-error 0)))
 
 ;; Return a compilation buffer.
 ;; If the current buffer is a compilation buffer, return it.
@@ -1437,6 +1431,12 @@ See variable `compilation-error-regexp-alist' for customization ideas."
 	 (end-loc (nth 2 loc))
 	 (marker (point-marker)))
     (setq compilation-current-error (point-marker)
+	  overlay-arrow-position
+	    (if (bolp)
+		compilation-current-error
+	      (save-excursion
+		(beginning-of-line)
+		(point-marker)))
 	  loc (car loc))
     ;; If loc contains no marker, no error in that file has been visited.  If
     ;; the marker is invalid the buffer has been killed.  So, recalculate all
@@ -1734,11 +1734,10 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
 (defun compilation-forget-errors ()
   ;; In case we hit the same file/line specs, we want to recompute a new
   ;; marker for them, so flush our cache.
-  (set (make-local-variable 'compilation-locs)
-       (make-hash-table :test 'equal :weakness 'value))
+  (setq compilation-locs (make-hash-table :test 'equal :weakness 'value))
   ;; FIXME: the old code reset the directory-stack, so maybe we should
   ;; put a `directory change' marker of some sort, but where?  -stef
-  ;; 
+  ;;
   ;; FIXME: The old code moved compilation-current-error (which was
   ;; virtually represented by a mix of compilation-parsing-end and
   ;; compilation-error-list) to point-min, but that was only meaningful for
@@ -1747,10 +1746,7 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
   ;; something equivalent to point-max.  So we speculatively move
   ;; compilation-current-error to point-max (since the external package
   ;; won't know that it should do it).  --stef
-  (setq compilation-current-error (point-max))
-  ;; FIXME the old code removed the mouse-face and help-echo properties.
-  ;; Should we font-lock-fontify-buffer?  --stef
-  )
+  (setq compilation-current-error (point-max)))
 
 (provide 'compile)
 

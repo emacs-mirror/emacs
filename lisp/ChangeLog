@@ -218,6 +218,75 @@
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
+2004-04-14  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-setup): Localize
+	overlay-arrow-position.
+	(compilation-sentinel): Restructure code equivalently.
+	(compilation-next-error): Find message on same line after point if
+	not found before point.
+	(compile-mouse-goto-error): Restore function so that compilation
+	buffer need not be current and use compile-goto-error.
+	(compile-goto-error): Restore function.
+	(next-error): Set overlay-arrow-position.
+	(compilation-forget-errors): Don't localize already local
+	compilation-locs and remove FIXME about refontifying.
+
+2004-04-14  Kim F. Storm  <storm@cua.dk>
+
+	* startup.el (emacs-quick-startup): New defvar (set by -Q).
+	(command-line): New option -Q.  Like -q --no-site-file, but
+	in addition it also disables menu-bar, tool-bar, scroll-bars,
+	tool-tips, and the blinking cursor.
+	(command-line-1): Skip startup screen if -Q.
+	(fancy-splash-head): Use :align-to center prop to center splash image.
+
+	* emulation/cua-base.el (cua-read-only-cursor-color)
+	(cua-overwrite-cursor-color, cua-global-mark-cursor-color): Doc fix.
+
+2004-04-13  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el: Doc fixes.  Changes for compiler warnings.
+	(syntax): Don't require.
+	(python) <defgroup>: Add :version.
+	(python-quote-syntax): Re-written.
+	(inferior-python-mode): Move stuff here from run-python and add
+	some more.
+	(python-preoutput-continuation, python-preoutput-result)
+	(python-dotty-syntax-table): New.
+	(python-describe-symbol): Use them.
+	(run-python): Move stuff to inferior-python-mode.  Modify code
+	loaded into Python.
+	(python-send-region): Use python-proc, python-send-string.
+	(python-send-string): Send newlines too.  Callers changed.
+	(python-load-file): Re-written.
+	(python-eldoc-function): New.
+	(info-look): Don't require.
+	(python-after-info-look): New.  A modified version of former
+	top-level code for use with eval-after-load.
+	(python-maybe-jython, python-guess-indent): Use widened buffer.
+	(python-fill-paragraph): Re-written.
+	(python-mode): Fix outline-regexp.  Set outline-heading-end-regexp,
+	eldoc-print-current-symbol-info-function.  Add to eldoc-mode-hook.
+
+2004-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (run-python): Use compilation-shell-minor-mode.
+	Set compilation-error-regexp-alist earlier.
+
+2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compile-goto-error): Select the buffer/window
+	corresponding to the event.
+
+	* url/url.el (url-retrieve): Use with-current-buffer.
+
+	* url/url-http.el (url-http-parse-headers, url-http-file-exists-p):
+	Remove unused var `version'.
+
+	* url/url-handlers.el (url-handler-mode): New minor mode.
+	(url-setup-file-name-handlers): Remove.
+
 2004-04-12  Joe Buehler  <jbuehler@hekiman.com>
 
 	* loadup.el: Add cygwin to system-type list, for unexec() support.
@@ -346,6 +415,10 @@
 	* recentf.el (recentf-version): Variable removed.
 	* progmodes/delphi.el (delphi-version): Variable removed.
 	* progmodes/ada-mode.el (ada-mode): RCS keyword removed from docstring.
+
+2004-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easymenu.el (easy-menu-add): Make it work in non-X Emacs.
 
 2004-04-09  Jesper Harder  <harder@ifa.au.dk>
 

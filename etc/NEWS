@@ -88,6 +88,12 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** New command line option -Q.
+
+This is like using -q --no-site-file, but in addition it also disables
+the menu-bar, the tool-bar, the scroll-bars, tool tips, the blinking
+cursor, and the fancy startup screen.
+
 ** C-h v and C-h f commands now include a hyperlink to the C source for
 variables and functions defined in C (if the C source is available).
 
