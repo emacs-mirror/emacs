@@ -3779,7 +3779,10 @@ read_key_sequence (keybuf, bufsize, prompt)
      we put it off for later.  While we're reading, we keep the event here.  */
   Lisp_Object delayed_switch_frame;
 
+  /* See the comment below... */
+#if defined (GOBBLE_FIRST_EVENT)
   Lisp_Object first_event;
+#endif
 
   int junk;
 
@@ -3813,14 +3816,16 @@ read_key_sequence (keybuf, bufsize, prompt)
     echo_start = echo_length ();
   keys_start = this_command_key_count;
 
-#if 0 /* This doesn't quite work, because some of the things
-	 that read_char does cannot safely be bypassed.
-	 It seems too risky to try to make this work right.  */ 
+#if defined (GOBBLE_FIRST_EVENT)
+  /* This doesn't quite work, because some of the things that read_char
+     does cannot safely be bypassed.  It seems too risky to try to make
+     this work right.  */ 
+
   /* Read the first char of the sequence specially, before setting
      up any keymaps, in case a filter runs and switches buffers on us.  */
   first_event = read_char (!prompt, 0, submaps, last_nonmenu_event,
 			   &junk);
-#endif
+#endif /* GOBBLE_FIRST_EVENT */
 
   /* We jump here when the key sequence has been thoroughly changed, and
      we need to rescan it starting from the beginning.  When we jump here,
@@ -4549,7 +4554,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 
   /* Prompt with buf, and then read a string, completing from and
      restricting to the set of all defined commands.  Don't provide
-     any initial input.  Save the command read on the extended-comman
+     any initial input.  Save the command read on the extended-command
      history list. */
   function = Fcompleting_read (build_string (buf),
 			       Vobarray, Qcommandp,
