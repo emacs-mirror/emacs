@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/04/23 07:31:14 $|$Revision: 1.31 $
+;; |$Date: 1993/05/14 18:02:55 $|$Revision: 1.32 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -92,8 +92,12 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /home/fsf/rms/e19/lisp/RCS/isearch.el,v 1.31 1993/04/23 07:31:14 eric Exp rms $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch.el,v 1.32 1993/05/14 18:02:55 rms Exp rms $
 ;;; $Log: isearch.el,v $
+; Revision 1.32  1993/05/14  18:02:55  rms
+; (isearch-mode-map): Handle any length vector in keymap.
+; (isearch-char-to-string): Handle non-character events properly.
+;
 ; Revision 1.31  1993/04/23  07:31:14  eric
 ; Replaced all fsets with defaliases.
 ;
@@ -676,6 +680,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
     (if (/= (point) isearch-opoint)
 	(progn
 	  (push-mark isearch-opoint t)
+	  (if transient-mark-mode
+	      (setq mark-active nil))
 	  (or executing-macro (> (minibuffer-depth) 0)
 	      (message "Mark saved where search started")))
       ;; (message "") why is this needed?
