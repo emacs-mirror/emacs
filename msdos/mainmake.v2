@@ -62,10 +62,10 @@ src: FRC
 	          '/environment *TERM/s/^.*/set environment TERM internal/' \
 	          '/x_error_quitter/s/^.*/set environment NAME root/' >gdb.sed
 	sed -f gdb.sed _gdbinit >gdb.tmp
-	djecho -a -s 'set environment USER root' \
-	             'set environment EMACSPATH $(top_srcdir)/bin' \
-	             'set environment SHELL $(subst \,/,$(COMSPEC))' \
-	             'set environment PATH $(subst \,/,$(PATH))' >>gdb.tmp 
+	djecho -a gdb.tmp -s 'set environment USER root' \
+	                     'set environment EMACSPATH $(top_srcdir)/bin' \
+	                     'set environment SHELL $(subst \,/,$(COMSPEC))' \
+	                     'set environment PATH $(subst \,/,$(PATH))'
 	update gdb.tmp gdb.ini
 	rm -f gdb.tmp gdb.sed
 	cd ..
