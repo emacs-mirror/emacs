@@ -1994,7 +1994,15 @@ init_display ()
      with an error message if that doesn't work.  */
 
 #ifdef HAVE_X_WINDOWS
-  if (!inhibit_window_system && (display_arg || getenv ("DISPLAY")))
+  if (! display_arg)
+    {
+#ifdef VMS
+      display_arg = getenv ("DECW$DISPLAY");
+#else
+      display_arg = getenv ("DISPLAY");
+#endif
+
+  if (!inhibit_window_system && display_arg)
     {
       Vwindow_system = intern ("x");
 #ifdef HAVE_X11
