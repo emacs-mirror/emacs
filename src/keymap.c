@@ -2170,6 +2170,14 @@ indirect definition itself.")
       last_is_meta = (XINT (last) >= 0
 		      && EQ (Faref (this, last), meta_prefix_char));
 
+      if (nomenus && XINT (last) >= 0)
+	{ /* If no menu entries should be returned, skip over the
+	     keymaps bound to `menu-bar' and `tool-bar'.  */
+	  Lisp_Object tem = Faref (this, 0);
+	  if (EQ (tem, Qmenu_bar) || EQ (tem, Qtool_bar))
+	    continue;
+	}
+
       QUIT;
 
       while (CONSP (map))
@@ -2328,29 +2336,7 @@ where_is_internal_1 (binding, key, definition, noindirect, keymap, this, last,
 
   /* Search through indirections unless that's not wanted.  */
   if (NILP (noindirect))
-    {
-      if (nomenus)
-	{
-	  while (1)
-	    {
-	      Lisp_Object map, tem;
-	      /* If the contents are (KEYMAP . ELEMENT), go indirect.  */
-	      map = get_keymap_1 (Fcar_safe (definition), 0, 0);
-	      tem = Fkeymapp (map);
-	      if (!NILP (tem))
-		definition = access_keymap (map, Fcdr (definition), 0, 0);
-	      else
-		break;
-	    }
-	  /* If the contents are (menu-item ...) or (STRING ...), reject.  */
-	  if (CONSP (definition)
-	      && (EQ (XCAR (definition),Qmenu_item)
-		  || STRINGP (XCAR (definition))))
-	    return Qnil;
-	}
-      else
-	binding = get_keyelt (binding, 0);
-    }
+    binding = get_keyelt (binding, 0);
 
   /* End this iteration if this element does not match
      the target.  */
