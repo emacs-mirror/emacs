@@ -204,13 +204,13 @@ function, variable or type) that is to appear in the menu.
 The variable is buffer-local.
 
 The variable `imenu-case-fold-search' determines whether or not the
-regexp matches are case sensitive. and `imenu-syntax-alist' can be
+regexp matches are case sensitive, and `imenu-syntax-alist' can be
 used to alter the syntax table for the search.
 
 For example, see the value of `lisp-imenu-generic-expression' used by
-`lisp-mode' and `emacs-lisp-mode' with `imenu-syntax-alist' set
-locally to give the characters which normally have \"punctuation\"
-syntax \"word\" syntax during matching.")
+`fortran-mode' with `imenu-syntax-alist' set locally to give the
+characters which normally have \"symbol\" syntax \"word\" syntax
+during matching.")
 
 ;;;###autoload
 (make-variable-buffer-local 'imenu-generic-expression)
