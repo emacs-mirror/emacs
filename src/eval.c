@@ -635,7 +635,7 @@ DEFUN ("user-variable-p", Fuser_variable_p, Suser_variable_p, 1, 1, 0,
   "Returns t if VARIABLE is intended to be set and modified by users.\n\
 \(The alternative is a variable used internally in a Lisp program.)\n\
 Determined by whether the first character of the documentation\n\
-for the variable is \"*\"")
+for the variable is `*'.")
   (variable)
      Lisp_Object variable;
 {
@@ -644,8 +644,14 @@ for the variable is \"*\"")
   documentation = Fget (variable, Qvariable_documentation);
   if (INTEGERP (documentation) && XINT (documentation) < 0)
     return Qt;
-  if ((STRINGP (documentation)) &&
-      ((unsigned char) XSTRING (documentation)->data[0] == '*'))
+  if (STRINGP (documentation)
+      && ((unsigned char) XSTRING (documentation)->data[0] == '*'))
+    return Qt;
+  /* If it is (STRING . INTEGER), a negative integer means a user variable.  */
+  if (CONSP (documentation)
+      && STRINGP (XCONS (documentation)->car)
+      && INTEGERP (XCONS (documentation)->cdr)
+      && XINT (XCONS (documentation)->cdr) < 0)
     return Qt;
   return Qnil;
 }  
