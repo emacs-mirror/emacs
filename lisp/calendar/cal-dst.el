@@ -281,6 +281,8 @@ For example, \"EST\" in New York City, \"PST\" for Los Angeles.")
   "*Abbreviated name of daylight-savings time zone at `calendar-location-name'.
 For example, \"EDT\" in New York City, \"PDT\" for Los Angeles.")
   
+;;;###autoload
+(put 'calendar-daylight-savings-starts 'risky-local-variable t)
 (defvar calendar-daylight-savings-starts
   (or (car (nthcdr 4 calendar-current-time-zone-cache))
       (and (not (zerop calendar-daylight-time-offset))
@@ -302,6 +304,8 @@ If it starts on the first Sunday in April, you would set it to
 
 If the locale never uses daylight savings time, set this to nil.")
 
+;;;###autoload
+(put 'calendar-daylight-savings-starts 'risky-local-variable t)
 (defvar calendar-daylight-savings-ends
   (or (car (nthcdr 5 calendar-current-time-zone-cache))
       (and (not (zerop calendar-daylight-time-offset))
