@@ -322,8 +322,9 @@ to face NEW-NAME on frame NEW-FRAME."
   (and (equal (face-foreground face1 frame) (face-foreground face2 frame))
        (equal (face-background face1 frame) (face-background face2 frame))
        (equal (face-font face1 frame) (face-font face2 frame))
-       (equal (face-background-pixmap face1 frame)
-	      (face-background-pixmap face2 frame))))
+;;       (equal (face-background-pixmap face1 frame)
+;;	      (face-background-pixmap face2 frame))
+       ))
 
 (defun face-differs-from-default-p (face &optional frame)
   "True if face FACE displays differently from the default face, on FRAME.
