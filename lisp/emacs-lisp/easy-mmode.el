@@ -51,71 +51,67 @@
 
 ;;; Code:
 
-(defmacro easy-mmode-define-toggle (mode &optional doc &rest body)
-  "Define a one arg toggle mode MODE function and associated hooks.
-MODE is the so defined function that toggles the mode.
-optional DOC is its associated documentation.
-BODY is executed after the toggling and before running MODE-hook."
-  (let* ((mode-name (symbol-name mode))
-	 (pretty-name (easy-mmode-derive-name mode-name))
-	 (hook (intern (concat mode-name "-hook")))
-	 (hook-on (intern (concat mode-name "-on-hook")))
-	 (hook-off (intern (concat mode-name "-off-hook")))
-	 (toggle-doc (or doc
-			 (format "With no argument, toggle %s.
-With universal prefix ARG turn mode on.
-With zero or negative ARG turn mode off.
-\\{%s}" pretty-name (concat mode-name "-map")))))
-    `(progn
-       (defcustom ,hook  nil
-	 ,(format "Hook called at the end of function `%s'." mode-name)
-	 :type 'hook)
-
-       (defun ,mode (&optional arg)
-	 ,toggle-doc
-	 (interactive "P")
-	 (setq ,mode
-	       (if arg
-		   (> (prefix-numeric-value arg) 0)
-		 (not ,mode)))
-	 ,@body
-	 ;; The on/off hooks are here for backward compatibility.
-	 (run-hooks ',hook (if ,mode ',hook-on ',hook-off))
-	 ;; Return the new setting.
-	 (if (interactive-p)
-	     (message ,(format "%s %%sabled" pretty-name)
-		      (if ,mode "en" "dis")))
-	 ,mode))))
-
-(defun easy-mmode-derive-name (mode)
-  (replace-regexp-in-string
-   "-Mode" " mode" (capitalize (symbol-name mode)) t))
+(defun easy-mmode-pretty-mode-name (mode &optional lighter)
+  "Turn the symbol MODE into a string intended for the user.
+If provided LIGHTER will be used to help choose capitalization."
+  (let* ((case-fold-search t)
+	 (name (concat (capitalize (replace-regexp-in-string
+				    "-mode\\'" "" (symbol-name mode)))
+		       " mode")))
+    (if (not (stringp lighter)) name
+      (setq lighter (replace-regexp-in-string "\\`\\s-+\\|\\-s+\\'" "" lighter))
+      (replace-regexp-in-string lighter lighter name t t))))
 
 ;;;###autoload
 (defalias 'easy-mmode-define-minor-mode 'define-minor-mode)
 ;;;###autoload
 (defmacro define-minor-mode (mode doc &optional init-value lighter keymap &rest body)
   "Define a new minor mode MODE.
-This function defines the associated control variable, keymap,
-toggle command, and hooks (see `easy-mmode-define-toggle').
+This function defines the associated control variable MODE, keymap MODE-map,
+toggle command MODE, and hook MODE-hook.
 
 DOC is the documentation for the mode toggle command.
 Optional INIT-VALUE is the initial value of the mode's variable.
-  By default, the variable is made buffer-local.  This can be overridden
-  by specifying an initial value of (global . INIT-VALUE).
 Optional LIGHTER is displayed in the modeline when the mode is on.
 Optional KEYMAP is the default (defvar) keymap bound to the mode keymap.
-If it is a list, it is passed to `easy-mmode-define-keymap'
-in order to build a valid keymap.
+  If it is a list, it is passed to `easy-mmode-define-keymap'
+  in order to build a valid keymap.
 BODY contains code that will be executed each time the mode is (dis)activated.
-It will be executed after any toggling but before running the hooks."
+  It will be executed after any toggling but before running the hooks.
+  BODY can start with a list of CL-style keys specifying additional arguments.
+  Currently two such keyword arguments are supported:
+:group followed by the group name to use for any generated `defcustom'.
+:global if non-nil specifies that the minor mode is not meant to be
+  buffer-local.  By default, the variable is made buffer-local."
   (let* ((mode-name (symbol-name mode))
+	 (pretty-name (easy-mmode-pretty-mode-name mode lighter))
 	 (globalp nil)
+	 ;; We might as well provide a best-guess default group.
+	 (group (intern (replace-regexp-in-string "-mode\\'" "" mode-name)))
 	 (keymap-sym (intern (concat mode-name "-map")))
-	 (keymap-doc (format "Keymap for `%s'." mode-name)))
-    ;; Check if the mode should be global.
+	 (hook (intern (concat mode-name "-hook")))
+	 (hook-on (intern (concat mode-name "-on-hook")))
+	 (hook-off (intern (concat mode-name "-off-hook"))))
+
+    ;; FIXME: compatibility that should be removed.
     (when (and (consp init-value) (eq (car init-value) 'global))
       (setq init-value (cdr init-value) globalp t))
+
+    ;; Check keys.
+    (while
+	(case (car body)
+	  (:global (setq body (cdr body)) (setq globalp (pop body)))
+	  (:group (setq body (cdr body)) (setq group (pop body)))))
+
+    ;; Add default properties to LIGHTER.
+    (unless (or (not (stringp lighter)) (get-text-property 0 'local-map lighter)
+		(get-text-property 0 'keymap lighter))
+      (setq lighter
+	    (apply 'propertize lighter
+		   'local-map (make-mode-line-mouse2-map mode)
+		   (unless (get-text-property 0 'help-echo lighter)
+		     (list 'help-echo
+			   (format "mouse-2: turn off %s" pretty-name))))))
 
     `(progn
        ;; Define the variable to enable or disable the mode.
@@ -124,13 +120,14 @@ It will be executed after any toggling but before running the hooks."
 	       ,(format "Toggle %s.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `%s'."
-			(easy-mmode-derive-name mode) mode)
+			pretty-name mode)
 	       :set (lambda (symbol value) (funcall symbol (or value 0)))
 	       :initialize 'custom-initialize-default
+	       :group ',group
 	       :type 'boolean)
 	  `(progn
-	     (defvar ,mode ,init-value ,(format "Non-nil if mode is enabled.
-Use the function `%s' to change this variable." mode))
+	     (defvar ,mode ,init-value ,(format "Non-nil if %s is enabled.
+Use the function `%s' to change this variable." pretty-name mode))
 	     (make-variable-buffer-local ',mode)))
 
        ;; Define the minor-mode keymap.
@@ -141,11 +138,36 @@ Use the function `%s' to change this variable." mode))
 		   ((listp ,keymap)
 		    (easy-mmode-define-keymap ,keymap))
 		   (t (error "Invalid keymap %S" ,keymap)))
-	     ,keymap-doc))
+	     ,(format "Keymap for `%s'." mode-name)))
 
-       ;; Define the toggle and the hooks.
-       (easy-mmode-define-toggle ,mode ,doc ,@body)
-       (add-minor-mode ',mode ,lighter
+       ;; The toggle's hook.
+       (defcustom ,hook  nil
+	 ,(format "Hook run at the end of function `%s'." mode-name)
+	 :group ',group
+	 :type 'hook)
+
+       ;; The actual function.
+       (defun ,mode (&optional arg)
+	 ,(or doc
+	      (format "With no argument, toggle %s.
+With universal prefix ARG turn mode on.
+With zero or negative ARG turn mode off.
+\\{%s}" pretty-name keymap-sym))
+	 (interactive "P")
+	 (setq ,mode
+	       (if arg
+		   (> (prefix-numeric-value arg) 0)
+		 (not ,mode)))
+	 ,@body
+	 ;; The on/off hooks are here for backward compatibility only.
+	 (run-hooks ',hook (if ,mode ',hook-on ',hook-off))
+	 ;; Return the new setting.
+	 (if (interactive-p)
+	     (message ,(format "%s %%sabled" pretty-name)
+		      (if ,mode "en" "dis")))
+	 ,mode)
+
+       (add-minor-mode ',mode ',lighter
 		       (if (boundp ',keymap-sym) (symbol-value ',keymap-sym)))
        
        ;; If the mode is global, call the function according to the default.
@@ -381,6 +403,8 @@ ENDFUN should return the end position (with or without moving point)."
 	 (next-sym (intern (concat base-name "-next"))))
     (unless name (setq name (symbol-name base-name)))
     `(progn
+       (add-to-list 'debug-ignored-errors
+		    ,(concat "^No \\(previous\\|next\\) " (regexp-quote name)))
        (defun ,next-sym (&optional count)
 	 ,(format "Go to the next COUNT'th %s." name)
 	 (interactive)
