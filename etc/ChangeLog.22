@@ -1,5 +1,7 @@
 2004-01-27  Kenichi Handa  <handa@m17n.org>
 
+	* charsets/JISX213A.map: New file.
+
 	* charsets/JISX0208.map: Regenerated.
 
 2004-01-26  Kenichi Handa  <handa@m17n.org>

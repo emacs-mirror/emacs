@@ -5,6 +5,8 @@
 	(cp51932.el): New target. 
 	(eucjp-ms.el): New target.
 	(install): Include ${TRANS_TABLE}.
+	(CJK): Include JISX213A.map.
+	(JISX213A.map): New target.
 
 	* charsets/eucjp-ms.awk: New file.
 
