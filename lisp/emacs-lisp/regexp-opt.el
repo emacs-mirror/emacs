@@ -122,7 +122,7 @@ in REGEXP."
 			   regexp start)
 	(setq count (1+ count)
 	      ;; Go back 2 chars (one for [^?] and one for [^\\]).
-	      start (- (match-end 0) 2))
+	      start (- (match-end 0) 2)))
       count)))
 
 ;;; Workhorse functions.
