@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!109.c(trunk.4) $
+ id = $HopeName: MMQA_test_function!109.c(trunk.5) $
  summary = finalization tests with AMC, AWL and AMCZ
  language = c
  link = testlib.o rankfmt.o
@@ -157,8 +157,8 @@ static void test(void)
  cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format),
       "create pool(awl)");
 
- cdie(mps_pool_create(&poollo, arena, mps_class_amcz(), format),
-      "create pool(amcz)");
+ cdie(mmqa_pool_create_chain(&poollo, arena, mps_class_amcz(), format, chain),
+     "create pool(amcz)");
 
  cdie(mps_ap_create(&apawl, poolawl, MPS_RANK_WEAK),
       "create ap(awl)");
