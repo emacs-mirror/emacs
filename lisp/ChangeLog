@@ -4,7 +4,7 @@
 
 2000-05-11  Dave Love  <fx@gnu.org>
 
-	* todo-mode.el: New file.
+	* calendar/todo-mode.el: New file.
 
 2000-05-11  Gerd Moellmann  <gerd@gnu.org>
 
