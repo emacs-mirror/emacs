@@ -1,7 +1,7 @@
 /* impl.h.eventpro: Interface for event processing routines
  * Copyright (C) 1999 Harlequin Group plc.  All rights reserved.
  *
- * $HopeName: MMsrc!eventpro.h(trunk.1) $
+ * $HopeName: MMsrc!eventpro.h(trunk.2) $
  */
 
 #ifndef eventpro_h
@@ -13,31 +13,32 @@
 
 #include "eventcom.h"
 #include "mpmtypes.h"
-#include <stdio.h>
-#include "mpstd.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
 
 
 typedef EventUnion *Event;
+
+
+typedef struct EventProcStruct *EventProc;
+typedef Res (*EventProcReader)(void *, void *, size_t);
 
 
 extern EventCode EventName2Code(char *name);
 extern char *EventCode2Name(EventCode code);
 extern EventCode EventGetCode(Event event);
 extern char *EventCode2Format(EventCode code);
+extern Bool EventCodeIsValid(EventCode code);
 
-extern Word AddrLabel(Addr addr);
-extern EventString LabelText(Word label);
+extern Word AddrLabel(EventProc proc, Addr addr);
+extern EventString LabelText(EventProc proc, Word label);
 
-extern Res EventRead(Event *eventOut, FILE *input);
-extern void EventDestroy(Event event);
+extern Res EventRead(Event *eventReturn, EventProc proc);
+extern void EventDestroy(EventProc proc, Event event);
 
-extern void EventRecord(Event event, Word etime);
+extern Res EventRecord(EventProc proc, Event event, Word etime);
 
-extern void EventProcInit(Bool partial);
-extern void EventProcFinish(void);
+extern Res EventProcInit(EventProc *procReturn, Bool partial,
+                          EventProcReader reader, void *readerP);
+extern void EventProcFinish(EventProc proc);
 
 
 #endif /* eventpro_h */
