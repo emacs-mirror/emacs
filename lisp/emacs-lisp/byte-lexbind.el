@@ -657,10 +657,12 @@ slots, is preserved, so it will be on the top of the stack after all
 binding slots have been popped."
   ;; Unbind dynamic variables
   (let ((num-dynamic-bindings 0))
-    (dolist (clause clauses)
-      (unless (assq (if (consp clause) (car clause) clause)
-		    (byte-compile-lforminfo-vars lforminfo))
-	(setq num-dynamic-bindings (1+ num-dynamic-bindings))))
+    (if lforminfo
+	(dolist (clause clauses)
+	  (unless (assq (if (consp clause) (car clause) clause)
+			(byte-compile-lforminfo-vars lforminfo))
+	    (setq num-dynamic-bindings (1+ num-dynamic-bindings))))
+      (setq num-dynamic-bindings (length clauses)))
     (unless (zerop num-dynamic-bindings)
       (byte-compile-out 'byte-unbind num-dynamic-bindings)))
   ;; Pop lexical variables off the stack, possibly preserving the
