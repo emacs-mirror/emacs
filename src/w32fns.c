@@ -5123,8 +5123,6 @@ unless you set it to something else.");
   defsubr (&Sx_display_save_under);
   defsubr (&Sx_parse_geometry);
   defsubr (&Sx_create_frame);
-  defsubr (&Sfocus_frame);
-  defsubr (&Sunfocus_frame);
   defsubr (&Sx_open_connection);
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
