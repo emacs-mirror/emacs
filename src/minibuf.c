@@ -774,8 +774,9 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
    Return -1 if strings match,
    else number of chars that match at the beginning.  */
 
+int
 scmp (s1, s2, len)
-     register char *s1, *s2;
+     register unsigned char *s1, *s2;
      int len;
 {
   register int l = len;
@@ -792,7 +793,8 @@ scmp (s1, s2, len)
     }
   if (l == 0)
     return -1;
-  else return len - l;
+  else
+    return len - l;
 }
 
 DEFUN ("all-completions", Fall_completions, Sall_completions, 2, 3, 0,
