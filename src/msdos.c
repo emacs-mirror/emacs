@@ -802,6 +802,12 @@ dos_set_keyboard (code, always)
      int always;
 {
   int i;
+
+  /* Initialize to US settings, for countries that don't have their own.  */
+  keyboard = keyboard_layout_list[0].keyboard_map;
+  keyboard_map_all = always;
+  dos_keyboard_layout = 1;
+  
   for (i = 0; i < (sizeof (keyboard_layout_list)/sizeof (struct keyboard_layout_list)); i++)
     if (code == keyboard_layout_list[i].country_code)
       {
