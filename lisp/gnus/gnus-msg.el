@@ -4,6 +4,7 @@
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
+;; Maintainer: bugs@gnus.org
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -276,7 +277,11 @@ the Gcc: header for archiving purposes."
 
 (defun gnus-inews-add-send-actions (winconf buffer article)
   (make-local-hook 'message-sent-hook)
-  (add-hook 'message-sent-hook 'gnus-inews-do-gcc nil t)
+  (add-hook 'message-sent-hook (if gnus-agent 'gnus-agent-possibly-do-gcc
+				 'gnus-inews-do-gcc) nil t)
+  (when gnus-agent
+    (make-local-hook 'message-header-hook)
+    (add-hook 'message-header-hook 'gnus-agent-possibly-save-gcc nil t))
   (setq message-post-method
 	`(lambda (arg)
 	   (gnus-post-method arg ,gnus-newsgroup-name)))
@@ -1037,6 +1042,21 @@ this is a reply."
 
 ;;; Gcc handling.
 
+(defun gnus-inews-group-method (group)
+  (cond ((and (null (gnus-get-info group))
+	      (eq (car gnus-message-archive-method)
+		  (car
+		   (gnus-server-to-method
+		    (gnus-group-method group)))))
+	 ;; If the group doesn't exist, we assume
+	 ;; it's an archive group...
+	 gnus-message-archive-method)
+	;; Use the method.
+	((gnus-info-method (gnus-get-info group))
+	 (gnus-info-method (gnus-get-info group)))
+	;; Find the method.
+	(t (gnus-group-method group))))
+
 ;; Do Gcc handling, which copied the message over to some group.
 (defun gnus-inews-do-gcc (&optional gcc)
   (interactive)
@@ -1055,21 +1075,7 @@ this is a reply."
 	    ;; Copy the article over to some group(s).
 	    (while (setq group (pop groups))
 	      (gnus-check-server
-	       (setq method
-		     (cond ((and (null (gnus-get-info group))
-				 (eq (car gnus-message-archive-method)
-				     (car
-				      (gnus-server-to-method
-				       (gnus-group-method group)))))
-			    ;; If the group doesn't exist, we assume
-			    ;; it's an archive group...
-			    gnus-message-archive-method)
-			   ;; Use the method.
-			   ((gnus-info-method (gnus-get-info group))
-			    (gnus-info-method (gnus-get-info group)))
-			   ;; Find the method.
-			   (t (gnus-group-method group)))))
-	      (gnus-check-server method)
+	       (setq method (gnus-inews-group-method group)))
 	      (unless (gnus-request-group group t method)
 		(gnus-request-create-group group method))
 	      (save-excursion
