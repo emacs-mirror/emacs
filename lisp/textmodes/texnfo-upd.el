@@ -1280,7 +1280,7 @@ which menu descriptions are indented. Its default value is 32."
   (interactive)
   (save-excursion
     (texinfo-update-node (point-min) (point-max))
-    (message "Done...updated every node.       You may save the buffer.")))
+    (message "Done...updated every node.  You may save the buffer.")))
 
 (defun texinfo-update-the-node ()
   "Update one node.  Point must be at the beginning of node line.
