@@ -33,6 +33,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #include "dispextern.h"
 #include "xscrollbar.h"
+#include "keyboard.h"
 
 #ifdef HAVE_X_WINDOWS
 extern void abort ();
@@ -214,22 +215,6 @@ x_window_to_screen (wdesc)
     }
   return 0;
 }
-
-/* A symbol indicating which part of the screen the mouse is in. */
-Lisp_Object Vmouse_screen_part;
-
-Lisp_Object Qtext_part;
-Lisp_Object Qmodeline_part;
-
-Lisp_Object Qvscrollbar_part;
-Lisp_Object Qvslider_part;
-Lisp_Object Qvthumbup_part;
-Lisp_Object Qvthumbdown_part;
-
-Lisp_Object Qhscrollbar_part;
-Lisp_Object Qhslider_part;
-Lisp_Object Qhthumbleft_part;
-Lisp_Object Qhthumbright_part;
 
 /* Map an X window that implements a scroll bar to the Emacs screen it
    belongs to.  Also store in *PART a symbol identifying which part of
@@ -2708,7 +2693,7 @@ adjust_scrollbars (s)
   int chars_in_buffer, buffer_size;
   struct window *w = XWINDOW (SCREEN_SELECTED_WINDOW (s));
 
-  if (s->output_method != output_x_window)
+  if (! SCREEN_IS_X (s))
     return;
 
   if (s->display.x->v_scrollbar != 0)
@@ -3924,7 +3909,7 @@ DEFUN ("x-store-cut-buffer", Fx_store_cut_buffer, Sx_store_cut_buffer,
   int mask;
 
   CHECK_STRING (string, 1);
-  if (selected_screen->output_method != output_x_window)
+  if (SCREEN_IS_X (selected_screen))
     error ("Selected screen does not understand X protocol.");
 
   BLOCK_INPUT;
@@ -4175,17 +4160,6 @@ arg XRM_STRING is a string of resources in xrdb format.")
      This also initializes many symbols, such as those used for input. */
   x_term_init (XSTRING (display)->data);
 
-  Qtext_part = intern ("text-part");
-  Qmodeline_part = intern ("modeline-part");
-  Qvscrollbar_part = intern ("vscrollbar-part");
-  Qvslider_part = intern ("vslider-part");
-  Qvthumbup_part = intern ("vthumbup-part");
-  Qvthumbdown_part = intern ("vthumbdown-part");
-  Qhscrollbar_part = intern ("hscrollbar-part");
-  Qhslider_part = intern ("hslider-part");
-  Qhthumbleft_part = intern ("hthumbleft-part");
-  Qhthumbright_part = intern ("hthumbright-part");
-
 #ifdef HAVE_X11
   XFASTINT (Vwindow_system_version) = 11;
 
@@ -4335,10 +4309,6 @@ syms_of_xfns ()
   DEFVAR_INT ("mouse-buffer-offset", &mouse_buffer_offset,
 	      "The buffer offset of the character under the pointer.");
   mouse_buffer_offset = Qnil;
-
-  DEFVAR_LISP ("mouse-screen-part", &Vmouse_screen_part,
-	      "A symbol indicating the part of the screen the mouse is in.");
-  Vmouse_screen_part = Qnil;
 
   DEFVAR_INT ("x-pointer-shape", &Vx_pointer_shape,
 	      "The shape of the pointer when over text.");
