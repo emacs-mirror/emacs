@@ -1,3 +1,17 @@
+2002-10-23  Juanma Barranquero  <lektu@terra.es>
+
+	Patch suggested by Jay Finger <jay_finger@hotmail.com>.
+
+	* w32term.c (w32_term_init): Pass XColor to w32_define_color, not
+	COLORREF.
+
+	* macgui.h:
+	* w32gui.h: Add definition of XColor.
+
+	* macfns.c:
+	* w32fns.c:
+	* xfaces.c: Remove definition of XColor.
+
 2002-10-21  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* casefiddle.c (casify_region): Don't treat a prefix char as part
