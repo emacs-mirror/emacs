@@ -1,3 +1,14 @@
+2003-11-10  Kenichi Handa  <handa@m17n.org>
+
+	* language/kannada.el ("Kannada"): Add sample-text.
+
+	* language/knd-util.el (kannada-compose-region)
+	(kannada-compose-string, kannada-post-read-conversion): Add
+	autoload cookie.
+
+	* international/quail.el (quail-completion): Change the message
+	"corresponding translations" to "corresponding characters".
+
 2003-11-09  Markus Rost  <rost@mathematik.uni-bielefeld.de>
 
 	* descr-text.el (describe-char): Fix typo.

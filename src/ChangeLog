@@ -1,3 +1,7 @@
+2003-11-11  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.c (x_list_fonts): Fix excluding of auto-scaled fonts.
+
 2003-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_window): Set XtNx and XtNy in shell widget for
