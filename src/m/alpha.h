@@ -28,14 +28,7 @@ NOTE-END
 
 */
 
-/* The following three symbols give information on
- the size of various data types.  */
-
-#define SHORTBITS 16		/* Number of bits in a short */
-
-#define INTBITS 32		/* Number of bits in an int */
-
-#define LONGBITS 64		/* Number of bits in a long */
+#define BITS_PER_LONG 64
 
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
@@ -206,7 +199,7 @@ NOTE-END
 
 /* Define XINT and XUINT so that they can take arguments of type int */
 
-#define XINT(a)  (((long) (a) << (LONGBITS - VALBITS)) >> (LONGBITS - VALBITS))
+#define XINT(a)  (((long) (a) << (BITS_PER_LONG - VALBITS)) >> (BITS_PER_LONG - VALBITS))
 #define XUINT(a) ((long) (a) & VALMASK)
 
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */

@@ -18,15 +18,6 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
-/* The following three symbols give information on
- the size of various data types.  */
-
-#define SHORTBITS 16		/* Number of bits in a short */
-
-#define INTBITS 32		/* Number of bits in an int */
-
-#define LONGBITS 32		/* Number of bits in a long */
-
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
 
@@ -177,14 +168,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* The standard definitions of these macros would work ok,
    but these are faster because the constants are short.  */
 
-#define XUINT(a) (((unsigned)(a) << INTBITS-VALBITS) >> INTBITS-VALBITS)
+#define XUINT(a) (((unsigned)(a) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS)
 
 #define XSET(var, type, ptr) \
-   ((var) = ((int)(type) << VALBITS) + (((unsigned) (ptr) << INTBITS-VALBITS) >> INTBITS-VALBITS))
+   ((var) = ((int)(type) << VALBITS) + (((unsigned) (ptr) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS))
 
 #define XMARKBIT(a) ((a) < 0)
 #define XSETMARKBIT(a,b) ((a) = ((a) & ~MARKBIT) | ((b) ? MARKBIT : 0))
-#define XUNMARK(a) ((a) = (((unsigned)(a) << INTBITS-GCTYPEBITS-VALBITS) >> INTBITS-GCTYPEBITS-VALBITS))
+#define XUNMARK(a) ((a) = (((unsigned)(a) << BITS_PER_INT-GCTYPEBITS-VALBITS) >> BITS_PER_INT-GCTYPEBITS-VALBITS))
 
 #ifndef __GNUC__
 /* Turn off some "helpful" error checks for type mismatches

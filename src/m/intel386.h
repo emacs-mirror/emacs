@@ -48,25 +48,6 @@ Prime EXL (-machine=intel386 -opsystem=usg5-3)
   Minor changes merged in 19.1.
 NOTE-END */
 
-/* The following three symbols give information on
- the size of various data types.  */
-
-
-/* Linux defines these in <values.h>, but they can't be used in #if's.
-   #include it now so we know we've overridden it once and for all.  */
-#ifdef linux
-#include <values.h>
-#undef SHORTBITS
-#undef INTBITS
-#undef LONGBITS
-#endif
-  
-#define SHORTBITS 16		/* Number of bits in a short */
-
-#define INTBITS 32		/* Number of bits in an int */
-
-#define LONGBITS 32		/* Number of bits in a long */
-
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
 

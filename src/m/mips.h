@@ -27,15 +27,6 @@ Use m-mips4.h for RISCOS version 4; use s-bsd4-3.h with the BSD world.
 Note that the proper m- file for the Decstation is m-pmax.h.
 NOTE-END  */
 
-/* The following three symbols give information on
- the size of various data types.  */
-
-#define SHORTBITS 16		/* Number of bits in a short */
-
-#define INTBITS 32		/* Number of bits in an int */
-
-#define LONGBITS 32		/* Number of bits in a long */
-
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
 
@@ -169,17 +160,17 @@ NOTE-END  */
 /* The standard definitions of these macros would work ok,
    but these are faster because the constants are short.  */
 
-#define XUINT(a) (((unsigned)(a) << (INTBITS-VALBITS)) >> (INTBITS-VALBITS))
+#define XUINT(a) (((unsigned)(a) << (BITS_PER_INT-VALBITS)) >> (BITS_PER_INT-VALBITS))
 
 #define XSET(var, type, ptr)						\
   ((var) =								\
    ((int)(type) << VALBITS)						\
-   + (((unsigned) (ptr) << (INTBITS-VALBITS)) >> (INTBITS-VALBITS)))
+   + (((unsigned) (ptr) << (BITS_PER_INT-VALBITS)) >> (BITS_PER_INT-VALBITS)))
 
 #define XUNMARK(a)							\
   ((a) =								\
-   (((unsigned)(a) << (INTBITS-GCTYPEBITS-VALBITS))			\
-    >> (INTBITS-GCTYPEBITS-VALBITS)))
+   (((unsigned)(a) << (BITS_PER_INT-GCTYPEBITS-VALBITS))		\
+    >> (BITS_PER_INT-GCTYPEBITS-VALBITS)))
 
 #ifndef NEWSOS5
 #ifdef USG

@@ -22,15 +22,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    operating system this machine is likely to run.
    USUAL-OPSYS="bsd4-3"  */
 
-/* The following three symbols give information on
- the size of various data types.  */
-
-#define SHORTBITS 16		/* Number of bits in a short */
-
-#define INTBITS 32		/* Number of bits in an int */
-
-#define LONGBITS 32		/* Number of bits in a long */
-
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
 
@@ -115,7 +106,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* #define NO_REMAP */
 
 /* Addresses on the Convex have the high bit set.  */
-#define DATA_SEG_BITS (1 << (INTBITS-1))
+#define DATA_SEG_BITS (1 << (BITS_PER_INT-1))
 
 /* Right shift is logical shift.
    And the usual way of handling such machines, which involves
