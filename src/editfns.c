@@ -380,7 +380,12 @@ DEFUN ("save-excursion", Fsave_excursion, Ssave_excursion, 0, UNEVALLED, 0,
 Executes BODY just like `progn'.\n\
 The values of point, mark and the current buffer are restored\n\
 even in case of abnormal exit (throw or error).\n\
-The state of activation of the mark is also restored.")
+The state of activation of the mark is also restored.\n\
+\n\
+This construct does not save `deactivate-mark', and therefore\n\
+functions that change the buffer will still cause deactivation\n\
+of the mark at the end of the command.  To prevent that, bind\n\
+`deactivate-mark' with `let'.")
   (args)
      Lisp_Object args;
 {
@@ -555,19 +560,21 @@ If `enable-multibyte-characters' is nil or POS is not at character boundary,\n\
   register Lisp_Object val;
 
   if (NILP (pos))
-    return make_number (FETCH_CHAR (PT_BYTE));
-
-  if (MARKERP (pos))
-    pos_byte = marker_byte_position (pos);
+    pos_byte = PT_BYTE;
+  else if (MARKERP (pos))
+    {
+      pos_byte = marker_byte_position (pos);
+      if (pos_byte < BEGV_BYTE || pos_byte >= ZV_BYTE)
+	return Qnil;
+    }
   else
     {
       CHECK_NUMBER_COERCE_MARKER (pos, 0);
+      if (pos < BEGV || pos >= ZV)
+	return Qnil;
       
       pos_byte = CHAR_TO_BYTE (XINT (pos));
     }
-
-  if (pos_byte < BEGV_BYTE || pos_byte >= ZV_BYTE)
-    return Qnil;
 
   return make_number (FETCH_CHAR (pos_byte));
 }
@@ -588,12 +595,18 @@ is returned as a character.")
   if (NILP (pos))
     pos_byte = PT_BYTE;
   else if (MARKERP (pos))
-    pos_byte = marker_byte_position (pos);
-  else if (pos <= BEGV || pos > ZV)
-    return Qnil;
+    {
+      pos_byte = marker_byte_position (pos);
+
+      if (pos_byte <= BEGV_BYTE || pos_byte > ZV_BYTE)
+	return Qnil;
+    }
   else
     {
       CHECK_NUMBER_COERCE_MARKER (pos, 0);
+
+      if (pos <= BEGV || pos > ZV)
+	return Qnil;
 
       pos_byte = CHAR_TO_BYTE (XINT (pos));
     }
