@@ -38,6 +38,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "charset.h"
 #include "coding.h"
+#include "frame.h"
 #include "window.h"
 
 #include "systime.h"
@@ -2915,15 +2916,11 @@ use `save-excursion' outermost:\n\
   return unbind_to (count, val);
 }
 
-#ifndef HAVE_MENUS
-
-/* Buffer for the most recent text displayed by Fmessage.  */
+/* Buffer for the most recent text displayed by Fmessage_box.  */
 static char *message_text;
 
 /* Allocated length of that buffer.  */
 static int message_length;
-
-#endif /* not HAVE_MENUS */
 
 DEFUN ("message", Fmessage, Smessage, 1, MANY, 0,
   "Print a one-line message at the bottom of the screen.\n\
@@ -2972,6 +2969,10 @@ minibuffer contents show.")
       register Lisp_Object val;
       val = Fformat (nargs, args);
 #ifdef HAVE_MENUS
+      /* The MS-DOS frames support popup menus even though they are
+	 not FRAME_WINDOW_P.  */
+      if (FRAME_WINDOW_P (XFRAME (selected_frame))
+	  || FRAME_MSDOS_P (XFRAME (selected_frame)))
       {
 	Lisp_Object pane, menu, obj;
 	struct gcpro gcpro1;
@@ -2982,7 +2983,7 @@ minibuffer contents show.")
 	UNGCPRO;
 	return val;
       }
-#else /* not HAVE_MENUS */
+#endif /* HAVE_MENUS */
       /* Copy the data so that it won't move when we GC.  */
       if (! message_text)
 	{
@@ -2998,7 +2999,6 @@ minibuffer contents show.")
       message2 (message_text, STRING_BYTES (XSTRING (val)),
 		STRING_MULTIBYTE (val));
       return val;
-#endif /* not HAVE_MENUS */
     }
 }
 #ifdef HAVE_MENUS
