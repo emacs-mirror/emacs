@@ -31,7 +31,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` (pot@gnu.org) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 13.38";
+char pot_etags_version[] = "@(#) pot revision number is 13.44";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -40,7 +40,7 @@ char pot_etags_version[] = "@(#) pot revision number is 13.38";
 # define DEBUG FALSE
 #endif
 
-#if defined (__STDC__) && __STDC__
+#if defined(__STDC__) && (__STDC__ || defined(__SUNPRO_C))
 # define P_(proto) proto
 #else
 # define P_(proto) ()
@@ -60,6 +60,7 @@ char pot_etags_version[] = "@(#) pot revision number is 13.38";
 #endif
 
 #ifdef MSDOS
+# undef MSDOS
 # define MSDOS TRUE
 # include <fcntl.h>
 # include <sys/param.h>
@@ -100,7 +101,7 @@ char pot_etags_version[] = "@(#) pot revision number is 13.38";
 # include <unistd.h>
 #else
 # if defined (HAVE_GETCWD) && !WINDOWSNT
-    extern char *getcwd ();
+    extern char *getcwd (char *buf, size_t size);
 # endif
 #endif /* HAVE_UNISTD_H */
 
@@ -189,7 +190,7 @@ char pot_etags_version[] = "@(#) pot revision number is 13.38";
 
 typedef int bool;
 
-typedef void Lang_function ();
+typedef void Lang_function P_((FILE *));
 
 typedef struct
 {
@@ -234,76 +235,80 @@ typedef struct
 /* Many compilers barf on this:
 	Lang_function Ada_funcs;
    so let's write it this way */
-static void Ada_funcs P_((FILE *inf));
-static void Asm_labels P_((FILE *inf));
-static void C_entries P_((int c_ext, FILE *inf));
-static void default_C_entries P_((FILE *inf));
-static void plain_C_entries P_((FILE *inf));
-static void Cjava_entries P_((FILE *inf));
-static void Cobol_paragraphs P_((FILE *inf));
-static void Cplusplus_entries P_((FILE *inf));
-static void Cstar_entries P_((FILE *inf));
-static void Erlang_functions P_((FILE *inf));
-static void Fortran_functions P_((FILE *inf));
-static void Yacc_entries P_((FILE *inf));
-static void Lisp_functions P_((FILE *inf));
-static void Pascal_functions P_((FILE *inf));
-static void Perl_functions P_((FILE *inf));
-static void Postscript_functions P_((FILE *inf));
-static void Prolog_functions P_((FILE *inf));
-static void Python_functions P_((FILE *inf));
-static void Scheme_functions P_((FILE *inf));
-static void TeX_functions P_((FILE *inf));
-static void just_read_file P_((FILE *inf));
+static void Ada_funcs P_((FILE *));
+static void Asm_labels P_((FILE *));
+static void C_entries P_((int c_ext, FILE *));
+static void default_C_entries P_((FILE *));
+static void plain_C_entries P_((FILE *));
+static void Cjava_entries P_((FILE *));
+static void Cobol_paragraphs P_((FILE *));
+static void Cplusplus_entries P_((FILE *));
+static void Cstar_entries P_((FILE *));
+static void Erlang_functions P_((FILE *));
+static void Fortran_functions P_((FILE *));
+static void Yacc_entries P_((FILE *));
+static void Lisp_functions P_((FILE *));
+static void Pascal_functions P_((FILE *));
+static void Perl_functions P_((FILE *));
+static void Postscript_functions P_((FILE *));
+static void Prolog_functions P_((FILE *));
+static void Python_functions P_((FILE *));
+static void Scheme_functions P_((FILE *));
+static void TeX_functions P_((FILE *));
+static void just_read_file P_((FILE *));
 
-static compressor *get_compressor_from_suffix P_((char *file, char **extptr));
-static language *get_language_from_name P_((char *name));
-static language *get_language_from_interpreter P_((char *interpreter));
-static language *get_language_from_suffix P_((char *file));
-static int total_size_of_entries P_((register node *np));
-static long readline P_((linebuffer *lbp, FILE *stream));
-static long readline_internal P_((linebuffer *lbp, register FILE *stream));
-static void get_tag P_((register char *bp));
+static void print_language_names P_((void));
+static void print_version P_((void));
+static void print_help P_((void));
+int main P_((int, char **));
+static int number_len P_((long));
+
+static compressor *get_compressor_from_suffix P_((char *, char **));
+static language *get_language_from_name P_((char *));
+static language *get_language_from_interpreter P_((char *));
+static language *get_language_from_suffix P_((char *));
+static int total_size_of_entries P_((node *));
+static long readline P_((linebuffer *, FILE *));
+static long readline_internal P_((linebuffer *, FILE *));
+static void get_tag P_((char *));
 
 #ifdef ETAGS_REGEXPS
-static void analyse_regex P_((char *regex_arg, bool ignore_case));
-static void add_regex P_((char *regexp_pattern, bool ignore_case, language *lan));
+static void analyse_regex P_((char *, bool));
+static void add_regex P_((char *, bool, language *));
 static void free_patterns P_((void));
 #endif /* ETAGS_REGEXPS */
-static void error P_((const char *s1, const char *s2));
+static void error P_((const char *, const char *));
 static void suggest_asking_for_help P_((void));
-static void fatal P_((char *s1, char *s2));
-static void pfatal P_((char *s1));
-static void add_node P_((node *np, node **cur_node_p));
+static void fatal P_((char *, char *));
+static void pfatal P_((char *));
+static void add_node P_((node *, node **));
 
 static void init P_((void));
-static void initbuffer P_((linebuffer *lbp));
-static void find_entries P_((char *file, FILE *inf));
-static void free_tree P_((register node *np));
-static void pfnote P_((char *name, bool is_func, char *linestart,
-		       int linelen, int lno, long int cno));
-static void new_pfnote P_((char *name, int namelen, bool is_func,
-			   char *linestart, int linelen, int lno, long int cno));
-static void process_file P_((char *file));
-static void put_entries P_((register node *np));
+static void initbuffer P_((linebuffer *));
+static void find_entries P_((char *, FILE *));
+static void free_tree P_((node *));
+static void pfnote P_((char *, bool, char *, int, int, long));
+static void new_pfnote P_((char *, int, bool, char *, int, int, long));
+static void process_file P_((char *));
+static void put_entries P_((node *));
 static void takeprec P_((void));
 
-static char *concat P_((char *s1, char *s2, char *s3));
-static char *skip_spaces P_((char *cp));
-static char *skip_non_spaces P_((char *cp));
-static char *savenstr P_((char *cp, int len));
-static char *savestr P_((char *cp));
-static char *etags_strchr P_((const char *sp, int c));
-static char *etags_strrchr P_((const char *sp, int c));
+static char *concat P_((char *, char *, char *));
+static char *skip_spaces P_((char *));
+static char *skip_non_spaces P_((char *));
+static char *savenstr P_((char *, int));
+static char *savestr P_((char *));
+static char *etags_strchr P_((const char *, int));
+static char *etags_strrchr P_((const char *, int));
 static char *etags_getcwd P_((void));
-static char *relative_filename P_((char *file, char *dir));
-static char *absolute_filename P_((char *file, char *dir));
-static char *absolute_dirname P_((char *file, char *dir));
-static bool filename_is_absolute P_((char *fn));
-static void canonicalize_filename P_((register char *fn));
-static void grow_linebuffer P_((linebuffer *lbp, int toksize));
-static long *xmalloc P_((unsigned int size));
-static long *xrealloc P_((char *ptr, unsigned int size));
+static char *relative_filename P_((char *, char *));
+static char *absolute_filename P_((char *, char *));
+static char *absolute_dirname P_((char *, char *));
+static bool filename_is_absolute P_((char *f));
+static void canonicalize_filename P_((char *));
+static void grow_linebuffer P_((linebuffer *, int));
+static long *xmalloc P_((unsigned int));
+static long *xrealloc P_((char *, unsigned int));
 
 
 char searchar = '/';		/* use /.../ searches */
@@ -336,7 +341,7 @@ struct
 bool _wht[CHARS], _nin[CHARS], _itk[CHARS], _btk[CHARS], _etk[CHARS];
 char
   /* white chars */
-  *white = " \f\t\n\r",
+  *white = " \f\t\n\r\v",
   /* not in a name */
   *nonam = " \f\t\n\r(=,[;",
   /* token ending chars */
@@ -1473,13 +1478,12 @@ init ()
     iswhite(i) = notinname(i) = begtoken(i) = intoken(i) = endtoken(i) = FALSE;
   for (sp = white; *sp != '\0'; sp++) iswhite (*sp) = TRUE;
   for (sp = nonam; *sp != '\0'; sp++) notinname (*sp) = TRUE;
-  for (sp = begtk; *sp != '\0'; sp++) begtoken (*sp) = TRUE;
-  for (sp = midtk; *sp != '\0'; sp++) intoken (*sp) = TRUE;
-  for (sp = endtk; *sp != '\0'; sp++) endtoken (*sp) = TRUE;
-  iswhite('\0') = iswhite('\n');
   notinname('\0') = notinname('\n');
+  for (sp = begtk; *sp != '\0'; sp++) begtoken (*sp) = TRUE;
   begtoken('\0') = begtoken('\n');
+  for (sp = midtk; *sp != '\0'; sp++) intoken (*sp) = TRUE;
   intoken('\0') = intoken('\n');
+  for (sp = endtk; *sp != '\0'; sp++) endtoken (*sp) = TRUE;
   endtoken('\0') = endtoken('\n');
 }
 
@@ -1893,6 +1897,10 @@ enum sym_type
   st_C_struct, st_C_extern, st_C_enum, st_C_define, st_C_typedef, st_C_typespec
 };
 
+static unsigned int hash P_((const char *, unsigned int));
+static struct C_stab_entry * in_word_set P_((const char *, unsigned int));
+static enum sym_type C_symtype P_((char *, int, int));
+
 /* Feed stuff between (but not including) %[ and %] lines to:
       gperf -c -k 1,3 -o -p -r -t
 %[
@@ -2254,6 +2262,9 @@ bool yacc_rules;
  */
 int methodlen;
 
+static bool consider_token P_((char *, int, int, int, int, int, bool *));
+static void make_C_tag P_((bool));
+
 /*
  * consider_token ()
  *	checks to see if the current token is at the start of a
@@ -2276,7 +2287,7 @@ static bool
 consider_token (str, len, c, c_ext, cblev, parlev, is_func_or_var)
      register char *str;	/* IN: token pointer */
      register int len;		/* IN: token length */
-     register char c;		/* IN: first char after the token */
+     register int c;		/* IN: first char after the token */
      int c_ext;			/* IN: C extensions mask */
      int cblev;			/* IN: curly brace level */
      int parlev;		/* IN: parenthesis level */
@@ -2828,7 +2839,7 @@ C_entries (c_ext, inf)
 			      if (*lp != '\0')
 				lp += 1;
 			      while (*lp != '\0'
-				     && !isspace (*lp) && *lp != '(')
+				     && !iswhite (*lp) && *lp != '(')
 				lp += 1;
 			      c = *lp++;
 			      toklen += lp - oldlp;
@@ -3354,6 +3365,10 @@ just_read_file (inf)
 
 /* Fortran parsing */
 
+static bool tail P_((char *));
+static void takeprec P_((void));
+static void getit P_((FILE *));
+
 static bool
 tail (cp)
      char *cp;
@@ -3497,6 +3512,9 @@ Fortran_functions (inf)
  * Philippe Waroquiers <philippe.waroquiers@eurocontrol.be>, 1998-04-24
  * Ada parsing
  */
+
+static void adagetit P_((FILE *, char *));
+
 /* Once we are positioned after an "interesting" keyword, let's get
    the real tag value necessary. */
 static void
@@ -3679,7 +3697,7 @@ Asm_labels (inf)
 	  cp++;
  	  while (isalnum (*cp) || *cp == '_' || *cp == '.' || *cp == '$')
  	    cp++;
- 	  if (*cp == ':' || isspace (*cp))
+ 	  if (*cp == ':' || iswhite (*cp))
  	    {
  	      /* Found end of label, so copy it and add it to the table. */
  	      pfnote (savenstr(lb.buffer, cp-lb.buffer), TRUE,
@@ -3705,14 +3723,14 @@ Perl_functions (inf)
     {
       if (*cp++ == 's'
 	  && *cp++ == 'u'
-	  && *cp++ == 'b' && isspace (*cp++))
+	  && *cp++ == 'b' && iswhite (*cp++))
 	{
 	  cp = skip_spaces (cp);
  	  if (*cp != '\0')
  	    {
 	      char *sp = cp;
  	      while (*cp != '\0'
-		     && !isspace (*cp) && *cp != '{' && *cp != '(')
+		     && !iswhite (*cp) && *cp != '{' && *cp != '(')
 		cp++;
 	      pfnote (savenstr (sp, cp-sp), TRUE,
  		      lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
@@ -3728,7 +3746,7 @@ Perl_functions (inf)
 			&& *cp++ == 'c'
 			&& *cp++ == 'a'
 			&& *cp++ == 'l'))
-		&& (*cp == '(' || isspace (*cp)))
+		&& (*cp == '(' || iswhite (*cp)))
  	{
  	  /* After "my" or "local", but before any following paren or space. */
  	  char *varname = NULL;
@@ -3771,10 +3789,10 @@ Python_functions (inf)
     {
       if (*cp++ == 'd'
 	  && *cp++ == 'e'
-	  && *cp++ == 'f' && isspace (*cp++))
+	  && *cp++ == 'f' && iswhite (*cp++))
 	{
 	  cp = skip_spaces (cp);
-	  while (*cp != '\0' && !isspace (*cp) && *cp != '(' && *cp != ':')
+	  while (*cp != '\0' && !iswhite (*cp) && *cp != '(' && *cp != ':')
 	    cp++;
 	  pfnote (NULL, TRUE,
 		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
@@ -3785,10 +3803,10 @@ Python_functions (inf)
 	  && *cp++ == 'l'
 	  && *cp++ == 'a'
 	  && *cp++ == 's'
-	  && *cp++ == 's' && isspace (*cp++))
+	  && *cp++ == 's' && iswhite (*cp++))
 	{
 	  cp = skip_spaces (cp);
-	  while (*cp != '\0' && !isspace (*cp) && *cp != '(' && *cp != ':')
+	  while (*cp != '\0' && !iswhite (*cp) && *cp != '(' && *cp != ':')
 	    cp++;
 	  pfnote (NULL, TRUE,
 		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
@@ -4011,6 +4029,11 @@ Pascal_functions (inf)
  * lisp tag functions
  *  look for (def or (DEF, quote or QUOTE
  */
+
+static int L_isdef P_((char *));
+static int L_isquote P_((char *));
+static void L_getit P_((void));
+
 static int
 L_isdef (strp)
      register char *strp;
@@ -4029,7 +4052,7 @@ L_isquote (strp)
 	  && (*++strp == 'o' || *strp == 'O')
 	  && (*++strp == 't' || *strp == 'T')
 	  && (*++strp == 'e' || *strp == 'E')
-	  && isspace (*++strp));
+	  && iswhite (*++strp));
 }
 
 static void
@@ -4049,7 +4072,7 @@ L_getit ()
   }
 
   for (cp = dbp /*+1*/;
-       *cp != '\0' && *cp != '(' && !isspace(*cp) && *cp != ')';
+       *cp != '\0' && *cp != '(' && !iswhite(*cp) && *cp != ')';
        cp++)
     continue;
   if (cp == dbp)
@@ -4078,7 +4101,7 @@ Lisp_functions (inf)
 	      /* Check for (foo::defmumble name-defined ... */
 	      do
 		dbp++;
-	      while (*dbp != '\0' && !isspace (*dbp)
+	      while (*dbp != '\0' && !iswhite (*dbp)
 		     && *dbp != ':' && *dbp != '(' && *dbp != ')');
 	      if (*dbp == ':')
 		{
@@ -4155,7 +4178,7 @@ Scheme_functions (inf)
 	{
 	  bp = skip_non_spaces (bp);
 	  /* Skip over open parens and white space */
-	  while (isspace (*bp) || *bp == '(')
+	  while (iswhite (*bp) || *bp == '(')
 	    bp++;
 	  get_tag (bp);
 	}
@@ -4164,7 +4187,7 @@ Scheme_functions (inf)
 	  && (bp[2] == 'E' || bp[2] == 'e')
 	  && (bp[3] == 'T' || bp[3] == 't')
 	  && (bp[4] == '!' || bp[4] == '!')
-	  && (isspace (bp[5])))
+	  && (iswhite (bp[5])))
 	{
 	  bp = skip_non_spaces (bp);
 	  bp = skip_spaces (bp);
@@ -4193,9 +4216,9 @@ char *TEX_defenv = "\
 :chapter:section:subsection:subsubsection:eqno:label:ref:cite:bibitem\
 :part:appendix:entry:index";
 
-static void TEX_mode P_((FILE *inf));
-static struct TEX_tabent *TEX_decode_env P_((char *evarname, char *defenv));
-static int TEX_Token P_((char *cp));
+static void TEX_mode P_((FILE *));
+static struct TEX_tabent *TEX_decode_env P_((char *, char *));
+static int TEX_Token P_((char *));
 
 char TEX_esc = '\\';
 char TEX_opgrp = '{';
@@ -4361,9 +4384,9 @@ TEX_Token (cp)
  * Assumes that the predicate starts at column 0.
  * Only the first clause of a predicate is added.
  */
-static int prolog_pred P_((char *s, char *last));
-static void prolog_skip_comment P_((linebuffer *plb, FILE *inf));
-static int prolog_atom P_((char *s, int pos));
+static int prolog_pred P_((char *, char *));
+static void prolog_skip_comment P_((linebuffer *, FILE *));
+static int prolog_atom P_((char *, int));
 
 static void
 Prolog_functions (inf)
@@ -4381,7 +4404,7 @@ Prolog_functions (inf)
     {
       if (cp[0] == '\0')	/* Empty line */
 	continue;
-      else if (isspace (cp[0])) /* Not a predicate */
+      else if (iswhite (cp[0])) /* Not a predicate */
 	continue;
       else if (cp[0] == '/' && cp[1] == '*')	/* comment. */
 	prolog_skip_comment (&lb, inf);
@@ -4527,9 +4550,9 @@ prolog_atom (s, pos)
  *
  * Assumes that Erlang functions start at column 0.
  */
-static int erlang_func P_((char *s, char *last));
-static void erlang_attribute P_((char *s));
-static int erlang_atom P_((char *s, int pos));
+static int erlang_func P_((char *, char *));
+static void erlang_attribute P_((char *));
+static int erlang_atom P_((char *, int));
 
 static void
 Erlang_functions (inf)
@@ -4547,7 +4570,7 @@ Erlang_functions (inf)
     {
       if (cp[0] == '\0')	/* Empty line */
 	continue;
-      else if (isspace (cp[0])) /* Not function nor attribute */
+      else if (iswhite (cp[0])) /* Not function nor attribute */
 	continue;
       else if (cp[0] == '%')	/* comment */
 	continue;
@@ -4698,6 +4721,11 @@ erlang_atom (s, pos)
 }
 
 #ifdef ETAGS_REGEXPS
+
+static char *scan_separators P_((char *));
+static void analyse_regex P_((char *, bool));
+static void add_regex P_((char *, bool, language *));
+static char *substitute P_((char *, char *, struct re_registers *));
 
 /* Take a string like "/blah/" and turn it into "blah", making sure
    that the first and last characters are the same, and handling
@@ -4941,7 +4969,7 @@ get_tag (bp)
     return;
   /* Go till you get to white space or a syntactic break */
   for (cp = bp + 1;
-       *cp != '\0' && *cp != '(' && *cp != ')' && !isspace (*cp);
+       *cp != '\0' && *cp != '(' && *cp != ')' && !iswhite (*cp);
        cp++)
     continue;
   pfnote (savenstr (bp, cp-bp), TRUE,
@@ -5164,7 +5192,7 @@ static char *
 skip_spaces (cp)
      char *cp;
 {
-  while (isspace (*cp))		/* isspace('\0')==FALSE */
+  while (iswhite (*cp))
     cp++;
   return cp;
 }
@@ -5174,7 +5202,7 @@ static char *
 skip_non_spaces (cp)
      char *cp;
 {
-  while (!iswhite (*cp))	/* iswhite('\0')==TRUE */
+  while (*cp != '\0' && !iswhite (*cp))
     cp++;
   return cp;
 }
