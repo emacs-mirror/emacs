@@ -1,3 +1,7 @@
+2003-09-18  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/ebrowse.el: Fix broken magic autoload comments.
+
 2003-09-17  Mario Lang  <mlang@delysid.org> (tiny change)
 
 	* progmodes/gud.el (perldb): Change gud-print from just "%e" to 
