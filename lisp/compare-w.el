@@ -283,7 +283,8 @@ on third call it again advances points to the next difference and so on."
 ;; to be used when this function is called on second window.
 (defun compare-windows-sync-default-function ()
   (if (not compare-windows-sync-point)
-      (let* ((w2 (next-window (selected-window)))
+      (let* ((w1 (selected-window))
+             (w2 (next-window w1))
              (b2 (window-buffer w2))
              (point-max2 (with-current-buffer b2 (point-max)))
              (op2 (window-point w2))
@@ -326,7 +327,8 @@ on third call it again advances points to the next difference and so on."
           ;; use closest matching points (i.e. points with minimal sum)
           (setq p12 (cdr (assq (apply 'min (mapcar 'car p12s)) p12s)))
           (goto-char (car p12))
-          (compare-windows-highlight op1 (car p12) op2 (cadr p12) b2))
+          (compare-windows-highlight op1 (car p12) (current-buffer) w1
+                                     op2 (cadr p12) b2 w2))
         (setq compare-windows-sync-point (or (cadr p12) t)))
     ;; else set point in the second window to the pre-calculated value
     (if (numberp compare-windows-sync-point)
@@ -334,18 +336,20 @@ on third call it again advances points to the next difference and so on."
     (setq compare-windows-sync-point nil)))
 
 ;; Highlight differences
-(defun compare-windows-highlight (beg1 end1 beg2 end2 buf2)
+(defun compare-windows-highlight (beg1 end1 b1 w1 beg2 end2 b2 w2)
   (when compare-windows-highlight
     (if compare-windows-overlay1
-        (move-overlay compare-windows-overlay1 beg1 end1 (current-buffer))
-      (setq compare-windows-overlay1 (make-overlay beg1 end1 (current-buffer)))
+        (move-overlay compare-windows-overlay1 beg1 end1 b1)
+      (setq compare-windows-overlay1 (make-overlay beg1 end1 b1))
       (overlay-put compare-windows-overlay1 'face 'compare-windows-face)
       (overlay-put compare-windows-overlay1 'priority 1))
+    (overlay-put compare-windows-overlay1 'window w1)
     (if compare-windows-overlay2
-        (move-overlay compare-windows-overlay2 beg2 end2 buf2)
-      (setq compare-windows-overlay2 (make-overlay beg2 end2 buf2))
+        (move-overlay compare-windows-overlay2 beg2 end2 b2)
+      (setq compare-windows-overlay2 (make-overlay beg2 end2 b2))
       (overlay-put compare-windows-overlay2 'face 'compare-windows-face)
       (overlay-put compare-windows-overlay2 'priority 1))
+    (overlay-put compare-windows-overlay2 'window w2)
     ;; Remove highlighting before next command is executed
     (add-hook 'pre-command-hook 'compare-windows-dehighlight)))
 
