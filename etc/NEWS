@@ -20,6 +20,19 @@ installed programs.
 
 * Changes in Emacs 21.3
 
+** Controlling the left and right fringe widths.
+
+The left and right fringe widths can now be controlled by setting the
+`left-fringe' and `right-fringe' frame parameters to an integer value
+specifying the width in pixels.  The default is 8 pixels.  Setting the
+width to 0 effectively removes the corresponding fringe.
+The actual fringe widths may deviate from the specified widths, since
+the combined fringe widths must match an integral number of columns.
+The extra width is distributed evenly between the left and right fringe.
+For force a specific fringe width, specify the width as a negative
+integer (if both widths are negative, only the left fringe gets the
+specified width). 
+
 ** hide-ifdef-mode now uses overlays rather than selective-display
 to hide its text.  This should be mostly transparent but slightly
 changes the behavior of motion commands line C-e and C-p.
