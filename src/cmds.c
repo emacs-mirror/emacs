@@ -436,7 +436,7 @@ internal_self_insert (c, noautofill)
 	  Lisp_Object prop;
 	  prop = Fget (XSYMBOL (sym)->function, intern ("no-self-insert"));
 	  if (! NILP (prop))
-	    return Qnil;
+	    return 1;
 	}
 
       if (MODIFF != modiff)
