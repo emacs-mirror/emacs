@@ -43,10 +43,7 @@ site-init."
 	  (or (= (preceding-char) ?\n)
 	      (insert ?\n))
 	  ;; Change header-delimiter to be what post-mail expects.
-	  (goto-char (point-min))
-	  (search-forward (concat "\n" mail-header-separator "\n"))
-	  (replace-match "\n\n")
-	  (backward-char 1)
+	  (mail-sendmail-undelimit-header)
 	  (setq delimline (point-marker))
 	  (if mail-aliases
 	      (expand-mail-aliases (point-min) delimline))
