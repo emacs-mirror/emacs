@@ -1,3 +1,10 @@
+2004-05-15  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/esh-io.el (eshell-get-target): whitespace changes.
+	(eshell-output-object-to-target): Improve output speed 20% by not
+	calling `eshell-stringify' if something is already known to be a
+	string.
+
 2004-05-15  Alex Ott  <ott@jet.msk.su>
 
 	* textmodes/ispell.el (ispell-local-dictionary-alist): Add
