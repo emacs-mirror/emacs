@@ -1264,10 +1264,10 @@ of the terminal-emulator"
 (defun te-create-terminfo ()
   "Create and compile a terminfo entry for the virtual terminal. This is kept
 in the directory specified by `te-terminfo-directory'."
-  (if (and system-uses-terminfo
-	   (not (file-exists-p (concat  te-terminfo-directory
-					(substring te-terminal-name-prefix 0 1)
-					"/" te-terminal-name))))
+  (when (and system-uses-terminfo
+	     (not (file-exists-p (concat te-terminfo-directory
+					 (substring te-terminal-name-prefix 0 1)
+					 "/" te-terminal-name))))
     (let ( (terminfo
 	    (concat
 	     ;; The first newline avoids trouble with ncurses.
@@ -1278,24 +1278,30 @@ in the directory specified by `te-terminfo-directory'."
 	     "dch=^Pd%p1%'\\s'%+%c, dch1=^Pd!, dl=^P^K%p1%'\\s'%+%c,"
 	     "dl1=^P^K!, ed=^PC, el=^Pc, home=^P=\\s\\s,"
 	     "ich=^P_%p1%'\\s'%+%c, ich1=^P_!, il=^P^O%p1%'\\s'%+%c,"
+	     ;; The last newline avoids trouble with ncurses.
 	     "il1=^P^O!, ind=^P\\n, nel=\\n,\n"))
-	   ;; The last newline avoids trouble with ncurses.
+	   ;; This is the desired name for the source file.
 	   (file-name (concat te-terminfo-directory te-terminal-name ".tif")) )
       (make-directory te-terminfo-directory t)
-      (save-excursion
-	(set-buffer (create-file-buffer file-name))
-	(insert terminfo)
-	(write-file file-name)
-	(kill-buffer nil)
-	)
-      (let ( (process-environment
-	      (cons (concat "TERMINFO="
-			    (directory-file-name te-terminfo-directory))
-		    process-environment)) )
+      (let ((temp-file
+	     (make-temp-file (expand-file-name "tif" te-terminfo-directory))))
+	;; Store the source file under a random temp name.
+	(with-temp-file temp-file
+	  (insert terminfo))
+	;; Rename it to the desired name.
+	;; We use this roundabout approach
+	;; to avoid any risk of writing a name that
+	;; was michievouslyt set up as a symlink.
+	(rename-file temp-file file-name))
+      ;; Now compile that source to make the binary that the
+      ;; programs actually use.
+      (let ((process-environment
+	     (cons (concat "TERMINFO="
+			   (directory-file-name te-terminfo-directory))
+		   process-environment)))
 	(set-process-sentinel (start-process "tic" nil "tic" file-name)
 			      'te-tic-sentinel))))
-    (directory-file-name te-terminfo-directory)
-)
+    (directory-file-name te-terminfo-directory))
 
 (defun te-create-termcap ()
   "Create a termcap entry for the virtual terminal"
