@@ -344,12 +344,13 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 		       (insert-file-contents user-init-file)
 		       (re-search-forward
 			(concat
-			 "(setq inhibit-startup-echo-area-message[ \t]+"
-			 (prin1-to-string
-			  (if (string= init-file-user "")
-			      (user-login-name)
-			    init-file-user))
-			 "[ \t]*)")
+			 "(setq inhibit-startup-echo-area-message[ \t\n]+"
+			 (regexp-quote
+			  (prin1-to-string
+			   (if (string= init-file-user "")
+			       (user-login-name)
+			     init-file-user)))
+			 "[ \t\n]*)")
 			nil t))
 		   (error nil))
 	       (kill-buffer buffer))))
