@@ -172,22 +172,16 @@ The options are `begin', `after' or `end'."
     (set (make-local-variable 'eshell-scroll-to-bottom-on-input) nil)
     (set (make-local-variable 'eshell-scroll-show-maximum-output) t)
 
-    (make-local-hook 'window-scroll-functions)
     (add-hook 'window-scroll-functions 'eshell-smart-scroll-window nil t)
     (add-hook 'window-configuration-change-hook 'eshell-refresh-windows)
 
-    (make-local-hook 'eshell-output-filter-functions)
     (add-hook 'eshell-output-filter-functions 'eshell-refresh-windows t t)
 
-    (make-local-hook 'pre-command-hook)
-    (make-local-hook 'after-change-functions)
     (add-hook 'after-change-functions 'eshell-disable-after-change nil t)
 
-    (make-local-hook 'eshell-input-filter-functions)
     (add-hook 'eshell-input-filter-functions 'eshell-smart-display-setup nil t)
 
     (make-local-variable 'eshell-smart-command-done)
-    (make-local-hook 'eshell-post-command-hook)
     (add-hook 'eshell-post-command-hook
 	      (function
 	       (lambda ()
