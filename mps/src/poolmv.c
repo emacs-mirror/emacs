@@ -1,6 +1,6 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName$
+ * $HopeName: MMsrc!poolmv.c(trunk.33) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -30,7 +30,7 @@
 #include "poolmfs.h"
 #include "mpm.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.32) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.33) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
@@ -48,7 +48,6 @@ Pool (MVPool)(MV mv)
 typedef struct MVDebugStruct {
   MVStruct MVStruct;             /* MV structure */
   PoolDebugMixinStruct debug;    /* debug mixin */
-  Sig sig;
 } MVDebugStruct;
 
 typedef MVDebugStruct *MVDebug;
