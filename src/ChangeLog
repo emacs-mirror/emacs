@@ -1,3 +1,15 @@
+2003-06-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* alloc.c (VECTOR_MARK, VECTOR_UNMARK, VECTOR_MARKED_P): New macros.
+	(GC_STRING_BYTES): Don't mask markbit (it's only used on `size').
+	(allocate_buffer): Move.
+	(string_bytes): Don't mask markbit of `size_byte'.
+	(mark_maybe_object, mark_maybe_pointer, Fgarbage_collect)
+	(mark_object, mark_buffer, survives_gc_p, gc_sweep):
+	Use the `size' field of buffers (rather than the `name' field) for
+	the mark bit, as is done for all other vectorlike objects.
+	Use the new macros to access the mark bit of vectorlike objects.
+
 2003-06-26  Richard M. Stallman  <rms@gnu.org>
 
 	* puresize.h (BASE_PURESIZE): Increment base size.
