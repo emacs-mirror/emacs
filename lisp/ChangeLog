@@ -1,3 +1,8 @@
+2005-01-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (insert-directory): Take care of empty directory,
+	listed without -a switch.
+
 2005-01-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/w32-win.el: Simplify code.
