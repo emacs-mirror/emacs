@@ -84,13 +84,13 @@
     (cond ((fboundp 'make-face)
 	   `(make-face (quote ,arg)))
 	  (t
-	   `(defconst ,arg (quote ,arg) ,descr))))
+	   `(defvar ,arg (quote ,arg) ,descr))))
   (defmacro cperl-force-face (arg descr) ; Takes unquoted arg
     `(progn
        (or (cperl-is-face (quote ,arg))
 	   (cperl-make-face ,arg ,descr))
        (or (boundp (quote ,arg))	; We use unquoted variants too
-	   (defconst ,arg (quote ,arg) ,descr))))
+	   (defvar ,arg (quote ,arg) ,descr))))
   (if cperl-xemacs-p
       (defmacro cperl-etags-snarf-tag (file line)
 	`(progn
@@ -994,7 +994,7 @@ the faces: please specify bold, italic, underline, shadow and box.)
 (defvar cperl-syntax-state nil)
 (defvar cperl-syntax-done-to nil)
 (defvar cperl-emacs-can-parse (> (length (save-excursion
-					   (parse-partial-sexp 1 1))) 9))
+					   (parse-partial-sexp (point) (point)))) 9))
 
 ;; Make customization possible "in reverse"
 (defsubst cperl-val (symbol &optional default hairy)
@@ -3997,7 +3997,7 @@ Returns some position at the last line."
       ;; Looking at:
       ;; } foreach my $var ()    {
       (if (looking-at 
-	     "[ \t]*\\(}[ \t]*\\)?\\<\\(\\els\\(e\\|if\\)\\|continue\\|if\\|unless\\|while\\|for\\(each\\)?\\(\\([ t]+\\(my\\|local\\|our\\)\\)?[ \t]*\\$[_a-zA-Z0-9]+\\)?\\|until\\)\\>\\([ \t]*(\\|[ \t\n]*{\\)\\|[ \t]*{")
+	     "[ \t]*\\(}[ \t]*\\)?\\<\\(\\els\\(e\\|if\\)\\|continue\\|if\\|unless\\|while\\|for\\(each\\)?\\(\\([ \t]+\\(my\\|local\\|our\\)\\)?[ \t]*\\$[_a-zA-Z0-9]+\\)?\\|until\\)\\>\\([ \t]*(\\|[ \t\n]*{\\)\\|[ \t]*{")
 	  (progn
 	    (setq ml (match-beginning 8))
 	    (re-search-forward "[({]")
