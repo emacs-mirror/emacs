@@ -1,3 +1,8 @@
+2002-01-09  Jason Rumney  <jasonr@gnu.org>
+
+	* xdisp.c (x_consider_frame_title): Don't count the tooltip frame
+	when checking for multiple frames.
+
 2002-01-08  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (delete_window): Rewrite the code for changing the
