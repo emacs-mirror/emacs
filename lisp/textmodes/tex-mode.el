@@ -693,6 +693,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
     (define-key map "\C-c\C-r" 'tex-region)
     (define-key map "\C-c\C-b" 'tex-buffer)
     (define-key map "\C-c\C-f" 'tex-file)
+    (define-key map "\C-c\C-c" 'tex-compile)
     (define-key map "\C-c\C-i" 'tex-bibtex-file)
     (define-key map "\C-c\C-o" 'latex-insert-block)
     (define-key map "\C-c\C-e" 'latex-close-block)
@@ -1524,6 +1525,53 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 
 (add-hook 'kill-emacs-hook 'tex-delete-last-temp-files)
 
+;;
+;; Machinery to guess the command that the user wants to execute.
+;;
+
+(defvar tex-compile-history nil)
+
+(defvar tex-input-files-re
+  (eval-when-compile
+    (concat "\\." (regexp-opt '("tex" "texi" "texinfo"
+				"bbl" "ind" "sty" "cls") t)
+	    ;; Include files with no dots (for directories).
+	    "\\'\\|\\`[^.]+\\'")))
+
+(defcustom tex-use-reftex t
+  "If non-nil, use RefTeX's list of files to determine what command to use."
+  :type 'boolean)
+
+(defvar tex-compile-commands
+  '(((concat "pdf" tex-command
+	     " " (shell-quote-argument tex-start-commands) " %f")
+     t "%r.pdf")
+    ((concat tex-command
+	     " " (shell-quote-argument tex-start-commands) " %f")
+     t "%r.dvi")
+    ("xdvi %r &" "%r.dvi")
+    ("advi %r &" "%r.dvi")
+    ("bibtex %r" "%r.aux" "%r.bbl")
+    ("makeindex %r" "%r.idx" "%r.ind")
+    ("texindex %r.??")
+    ("dvipdfm %r" "%r.dvi" "%r.pdf")
+    ("dvipdf %r" "%r.dvi" "%r.pdf")
+    ("dvips %r" "%r.dvi" "%r.ps")
+    ("gv %r.ps &" "%r.ps")
+    ("gv %r.pdf &" "%r.pdf")
+    ("xpdf %r.pdf &" "%r.pdf")
+    ("lpr %r.ps" "%r.ps"))
+  "List of commands for `tex-compile'.
+Each element should be of the form (FORMAT IN OUT) where
+FORMAT is an expression that evaluates to a string that can contain
+  - `%r' the main file name without extension.
+  - `%f' the main file name.
+IN can be either a string (with the same % escapes in it) indicating
+  the name of the input file, or t to indicate that the input is all
+  the TeX files of the document, or nil if we don't know.
+OUT describes the output file and is either a %-escaped string
+  or nil to indicate that there is no output file.")
+
 (defun tex-guess-main-file (&optional all)
   "Find a likely `tex-main-file'.
 Looks for hints in other buffers in the same directory or in
@@ -1574,6 +1622,165 @@ ALL other buffers."
 			    buffer-file-name)))))))
     (if (file-exists-p file) file (concat file ".tex"))))
 
+(defun tex-summarize-command (cmd)
+  (if (not (stringp cmd)) ""
+    (mapconcat 'identity
+	       (mapcar (lambda (s) (car (split-string s)))
+		       (split-string cmd "\\s-*\\(?:;\\|&&\\)\\s-*"))
+	       "&")))
+
+(defun tex-uptodate-p (file)
+  "Return non-nil if FILE is not uptodate w.r.t the document source files.
+FILE is typically the output DVI or PDF file."
+  ;; We should check all the files included !!!
+  (and
+   ;; Clearly, the target must exist.
+   (file-exists-p file)
+   ;; And the last run must not have asked for a rerun.
+   ;; FIXME: this should check that the last run was done on the same file.
+   (let ((buf (condition-case nil (tex-shell-buf) (error nil))))
+     (when buf
+       (with-current-buffer buf
+	 (save-excursion
+	   (goto-char (point-max))
+	   (and (re-search-backward
+		 "(see the transcript file for additional information)" nil t)
+		(> (save-excursion
+		     (or (re-search-backward "\\[[0-9]+\\]" nil t)
+			 (point-min)))
+		   (save-excursion
+		     (or (re-search-backward "Rerun" nil t)
+			 (point-min)))))))))
+   ;; And the input files must not have been changed in the meantime.
+   (let ((files (if (and tex-use-reftex
+			 (fboundp 'reftex-scanning-info-available-p)
+			 (reftex-scanning-info-available-p))
+		    (reftex-all-document-files)
+		  (list (file-name-directory (expand-file-name file)))))
+	 (ignored-dirs-re
+	  (concat
+	   (regexp-opt
+	    (delq nil (mapcar (lambda (s) (if (eq (aref s (1- (length s))) ?/)
+					 (substring s 0 (1- (length s)))))
+			      completion-ignored-extensions))
+	    t) "\\'"))
+	 (uptodate t))
+     (while (and files uptodate)
+       (let ((f (pop files)))
+	 (if (file-directory-p f)
+	     (unless (string-match ignored-dirs-re f)
+	       (setq files (nconc
+			    (directory-files f t tex-input-files-re)
+			    files)))
+	   (when (file-newer-than-file-p f file)
+	     (setq uptodate nil)))))
+     uptodate)))
+    
+
+(autoload 'format-spec "format-spec")
+
+(defvar tex-executable-cache nil)
+(defun tex-executable-exists-p (name)
+  "Like `executable-find' but with a cache."
+  (let ((cache (assoc name tex-executable-cache)))
+    (if cache (cdr cache)
+      (let ((executable (executable-find name)))
+	(push (cons name executable) tex-executable-cache)
+	executable))))
+
+(defun tex-command-executable (cmd)
+  (let ((s (if (stringp cmd) cmd (eval (car cmd)))))
+    (substring s 0 (string-match "[ \t]\\|\\'" s))))
+
+(defun tex-command-active-p (cmd fspec)
+  "Return non-nil if the CMD spec might need to be run."
+  (let ((in (nth 1 cmd))
+	(out (nth 2 cmd)))
+    (if (stringp in)
+	(let ((file (format-spec in fspec)))
+	  (when (file-exists-p file)
+	    (or (not out)
+		(file-newer-than-file-p
+		 file (format-spec out fspec)))))
+      (when (and (eq in t) (stringp out))
+	(not (tex-uptodate-p (format-spec out fspec)))))))
+
+(defun tex-compile-default (dir fspec)
+  "Guess a default command in DIR given the format-spec FSPEC."
+  ;; TODO: Learn to do latex+dvips!
+  (let ((cmds nil)
+	(unchanged-in nil))
+    ;; Only consider active commands.
+    (dolist (cmd tex-compile-commands)
+      (when (tex-executable-exists-p (tex-command-executable cmd))
+	(if (tex-command-active-p cmd fspec)
+	    (push cmd cmds)
+	  (push (nth 1 cmd) unchanged-in))))
+    ;; Remove those commands whose input was considered stable for
+    ;; some other command (typically if (t . "%.pdf") is inactive
+    ;; then we're using pdflatex and the fact that the dvi file
+    ;; is inexistent doesn't matter).
+    (let ((tmp nil))
+      (dolist (cmd cmds)
+	(unless (member (nth 1 cmd) unchanged-in)
+	  (push cmd tmp)))
+      (if tmp (setq cmds tmp)))
+    ;; remove commands whose input is not uptodate either.
+    (let ((outs (delq nil (mapcar (lambda (x) (nth 2 x)) cmds))))
+      (dolist (cmd (prog1 cmds (setq cmds nil)))
+	(unless (member (nth 1 cmd) outs)
+	  (push cmd cmds))))
+    ;; Select which file we're going to operate on (the latest).
+    (let ((latest (nth 1 (car cmds))))
+      (dolist (cmd (prog1 (cdr cmds) (setq cmds (list (car cmds)))))
+	(if (equal latest (nth 1 cmd))
+	    (push cmd cmds)
+	  (unless (eq latest t)		;Can't beat that!
+	    (if (or (not (stringp latest))
+		    (eq (nth 1 cmd) t)
+		    (and (stringp (nth 1 cmd))
+			 (file-newer-than-file-p
+			  (format-spec (nth 1 cmd) fspec)
+			  (format-spec latest fspec))))
+		(setq latest (nth 1 cmd) cmds (list cmd)))))))
+    ;; Expand the command spec into the actual text.
+    (dolist (cmd (prog1 cmds (setq cmds nil)))
+      (push (cons (eval (car cmd)) (cdr cmd)) cmds))
+    ;; Select the favorite command from the history.
+    (let ((hist tex-compile-history)
+	  re)
+      (while hist
+	(setq re (concat "\\`"
+			 (regexp-quote (tex-command-executable (pop hist)))
+			 "\\([ \t]\\|\\'\\)"))
+	(dolist (cmd cmds)
+	  (if (string-match re (car cmd))
+	      (setq hist nil cmds (list cmd))))))
+    ;; Substitute and return.
+    (format-spec (caar cmds) fspec)))
+
+(defun tex-compile (dir cmd)
+  "Run a command CMD on current TeX buffer's file in DIR."
+  ;; FIXME: Use time-stamps on files to decide the next op.
+  (interactive
+   (let* ((file (tex-main-file))
+	  (root (file-name-sans-extension file))
+	  (dir (file-name-directory (expand-file-name file)))
+	  (fspec (list (cons ?r (comint-quote-filename root))
+		       (cons ?f (comint-quote-filename file))))
+	  (default (tex-compile-default dir fspec)))
+     (list dir
+	   (completing-read
+	    (format "Command [%s]: " (tex-summarize-command default))
+	    (mapcar (lambda (x)
+		      (list (format-spec (eval (car x)) fspec)))
+		    tex-compile-commands)
+	    nil nil nil 'tex-compile-history default))))
+  (save-some-buffers (not compilation-ask-about-save) nil)
+  (if (tex-shell-running)
+      (tex-kill-job)
+    (tex-start-shell))
+  (tex-send-tex-command cmd dir))
 
 (defun tex-start-tex (command file &optional dir)
   "Start a TeX run, using COMMAND on FILE."
