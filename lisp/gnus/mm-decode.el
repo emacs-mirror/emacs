@@ -828,7 +828,7 @@ external if displayed external."
 
 (defun mm-valid-and-fit-image-p (format handle)
   "Say whether FORMAT can be displayed natively and HANDLE fits the window."
-  (and window-system
+  (and (display-graphic-p)
        (mm-valid-image-format-p format)
        (mm-image-fit-p handle)))
 
