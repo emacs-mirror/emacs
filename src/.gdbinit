@@ -3,7 +3,7 @@ set main
 
 # Find lwlib source files too.
 dir ../lwlib
-dir /gd/gnu/lesstif-0.89.9/lib/Xm
+#dir /gd/gnu/lesstif-0.89.9/lib/Xm
 
 # Don't enter GDB when user types C-g to quit.
 # This has one unfortunate effect: you can't type C-c
