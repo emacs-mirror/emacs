@@ -1,3 +1,11 @@
+2004-12-16  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* play/zone.el (zone): Fix omission bug: Use a self-disabling
+	one-shot thunk for uniform (error, quit, normal) recovery.
+	Reported by John Paul Wallington.
+	(zone-pgm-random-life): Fix bug:
+	Recognize empty initial field by lack of "@" chars.
+
 2004-12-16  Juri Linkov  <juri@jurta.org>
 
 	* help.el (function-called-at-point):
