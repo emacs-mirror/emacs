@@ -1,3 +1,12 @@
+2000-08-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* w16select.c (set_clipboard_data): If there's not enough memory
+	to put text into clipboard, return 1, as Fw16_set_clipboard_data
+	expects.  In case of other failures, return 3.
+	(system_error_msg): New error message.
+	(Fw16_set_clipboard_data): If set_clipboard_data returns 3, print
+	system_error_msg.
+
 2000-08-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* term.c (write_glyphs): Also turn off inverse video after turning
