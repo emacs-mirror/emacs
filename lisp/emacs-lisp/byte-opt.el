@@ -252,7 +252,6 @@
 (defun byte-inline-lapcode (lap)
   (setq byte-compile-output (nconc (nreverse lap) byte-compile-output)))
 
-
 (defun byte-compile-inline-expand (form)
   (let* ((name (car form))
 	 (fn (or (cdr (assq name byte-compile-function-environment))
@@ -1127,6 +1126,7 @@
       form)))
 
 ;; Avoid having to write forward-... with a negative arg for speed.
+;; Fixme: don't be limited to constant args.
 (put 'backward-char 'byte-optimizer 'byte-optimize-backward-char)
 (defun byte-optimize-backward-char (form)
   (cond ((and (= 2 (safe-length form))
@@ -1152,6 +1152,16 @@
 	((= 1 (safe-length form))
 	 '(char-after (1- (point))))
 	(t form)))
+
+;; Fixme: delete-char -> delete-region (byte-coded)
+;; optimize string-as-unibyte, string-as-multibyte, string-make-unibyte,
+;; string-make-multibyte for constant args.
+
+(put 'featurep 'byte-optimizer 'byte-optimize-featurep)
+(defun byte-optimize-featurep (form)
+  (if (equal '((quote xemacs)) (cdr-safe form))
+      nil
+    form))
 
 ;;; enumerating those functions which need not be called if the returned 
 ;;; value is not used.  That is, something like
