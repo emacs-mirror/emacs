@@ -54,14 +54,16 @@ When t this still needs to be initialized.")
   "^\\(Resent-\\)?\\(To\\|From\\|CC\\|BCC\\|Reply-to\\):")
 
 (defcustom mail-complete-alist
-  `((,mail-address-field-regexp mail-get-names pattern)
-    ("Newsgroups:" . (if (boundp 'gnus-active-hashtb)
-			 gnus-active-hashtb
-		       (if (boundp news-group-article-assoc)
-			   news-group-article-assoc)))
-    ("Followup-To:" . (mail-sentto-newsgroups))
-    ;;("Distribution:" ???)
-    )
+  ;; Don't use backquote here; we don't want backquote to get loaded
+  ;; just because of loading this file.
+  (cons (cons mail-address-field-regexp '(mail-get-names pattern))
+	'(("Newsgroups:" . (if (boundp 'gnus-active-hashtb)
+			       gnus-active-hashtb
+			     (if (boundp news-group-article-assoc)
+				 news-group-article-assoc)))
+	  ("Followup-To:" . (mail-sentto-newsgroups))
+	  ;;("Distribution:" ???)
+	  ))
   "*Alist of header field and expression to return alist for completion.
 The expression may reference the variable `pattern'
 which will hold the string being completed.
