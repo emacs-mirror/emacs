@@ -1,6 +1,6 @@
 /* impl.c.event: EVENT LOGGING
  *
- * $HopeName: MMsrc!event.c(trunk.3) $
+ * $HopeName: MMsrc!event.c(trunk.4) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -26,7 +26,7 @@
 #include "event.h"
 #include "mpsio.h"
 
-SRCID(event, "$HopeName: MMsrc!event.c(trunk.3) $");
+SRCID(event, "$HopeName: MMsrc!event.c(trunk.4) $");
 
 #ifdef EVENT /* .trans.ifdef */
 
@@ -49,9 +49,8 @@ Res EventFlush(void)
   res = (Res)mps_io_write(eventIO,
                           (void *)eventBuffer,
                           EventNext - eventBuffer);
-  if(res != ResOK) return res;
-
   EventNext = eventBuffer;
+  if(res != ResOK) return res;
 
   return ResOK;
 }
