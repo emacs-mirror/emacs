@@ -1,3 +1,14 @@
+2005-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* menu-bar.el (showhide-date-time): Remove.
+	(menu-bar-showhide-menu): Use menu-bar-make-mm-toggle.
+	(menu-bar-make-mm-toggle): Simplify.
+
+2005-03-22  JUAN-LEON Lahoz Garcia <juanleon1@gmail.com>
+
+	* progmodes/perl-mode.el (perl-font-lock-keywords-2):
+	Accept qualified variable and function names.
+
 2005-03-22  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* bindings.el (completion-ignored-extensions):
