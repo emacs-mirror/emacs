@@ -20,6 +20,13 @@
 
 2000-10-23  Dave Love  <fx@gnu.org>
 
+	* toolbar/tool-bar.el (tool-bar-add-item-from-menu)
+	(tool-bar-add-item): Set foreground and background for XBM icons.
+
+	* international/latin1-disp.el (latin1-char-displayable-p): New
+	function (from Handa).
+	(latin1-display-check-font): Use it.
+
 	* imenu.el (imenu--create-keymap-2): Build menu with menu-item
 	using :key-sequence, making it much more usable.  Use nconc, not
 	append.
