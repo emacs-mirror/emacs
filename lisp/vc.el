@@ -100,15 +100,18 @@ If FORM3 is `RCS', use FORM2 for CVS as well as RCS.
 (defvar vc-suppress-confirm nil
   "*If non-nil, treat user as expert; suppress yes-no prompts on some things.")
 (defvar vc-initial-comment nil
-  "*Prompt for initial comment when a file is registered.")
+  "*If non-nil, prompt for initial comment when a file is registered.")
 (defvar vc-command-messages nil
-  "*Display run messages from back-end commands.")
+  "*If non-nil, display run messages from back-end commands.")
 (defvar vc-checkin-switches nil
-  "*Extra switches passed to the checkin program by \\[vc-checkin].")
+  "*A string or list of strings specifying extra switches passed 
+to the checkin program by \\[vc-checkin].")
 (defvar vc-checkout-switches nil
-  "*Extra switches passed to the checkout program by \\[vc-checkout].")
+  "*A string or list of strings specifying extra switches passed 
+to the checkout program by \\[vc-checkout].")
 (defvar vc-directory-exclusion-list '("SCCS" "RCS" "CVS")
-  "*Directory names ignored by functions that recursively walk file trees.")
+  "*A list of directory names ignored by functions that recursively 
+walk file trees.")
 
 (defconst vc-maximum-comment-ring-size 32
   "Maximum number of saved comments in the comment ring.")
@@ -131,7 +134,10 @@ farms to gold trees.")
 
 (defvar vc-header-alist
   '((SCCS "\%W\%") (RCS "\$Id\$") (CVS "\$Id\$"))
-  "*Header keywords to be inserted when `vc-insert-headers' is executed.")
+  "*Header keywords to be inserted by `vc-insert-headers'.
+Must be a list of two-element lists, the first element of each must
+be `RCS', `CVS', or `SCCS'.  The second element is the string to
+be inserted for this particular backend.")
 (defvar vc-static-header-alist
   '(("\\.c$" .
      "\n#ifndef lint\nstatic char vcid[] = \"\%s\";\n#endif /* lint */\n"))
@@ -161,7 +167,7 @@ If nil, VC itself computes this value when it is first needed.")
 If nil, VC itself computes this value when it is first needed.")
 
 (defvar vc-cvs-release nil
-  "*The release number of your SCCS installation, as a string.
+  "*The release number of your CVS installation, as a string.
 If nil, VC itself computes this value when it is first needed.")
 
 ;; Variables the user doesn't need to know about.
@@ -1119,7 +1125,7 @@ and two version designators specifying which versions to compare."
       (vc-buffer-sync not-urgent)
       (setq unchanged (vc-workfile-unchanged-p buffer-file-name))
       (if unchanged
-	  (message "No changes to %s since latest version." file)
+	  (message "No changes to %s since latest version" file)
 	(vc-backend-diff file)
 	;; Ideally, we'd like at this point to parse the diff so that
 	;; the buffer effectively goes into compilation mode and we
@@ -1128,12 +1134,13 @@ and two version designators specifying which versions to compare."
 	;; problem is that the `old' file doesn't exist to be
 	;; visited.  This plays hell with numerous assumptions in
 	;; the diff.el and compile.el machinery.
-	(pop-to-buffer "*vc-diff*")
+	(set-buffer "*vc-diff*")
 	(setq default-directory (file-name-directory file))
 	(if (= 0 (buffer-size))
 	    (progn
 	      (setq unchanged t)
-	      (message "No changes to %s since latest version." file))
+	      (message "No changes to %s since latest version" file))
+          (pop-to-buffer "*vc-diff*")
 	  (goto-char (point-min))
 	  (shrink-window-if-larger-than-buffer)))
       (not unchanged))))
@@ -1610,29 +1617,55 @@ A prefix argument means do not revert the buffer afterwards."
   (while vc-parent-buffer
     (pop-to-buffer vc-parent-buffer))
   (cond 
-   ((eq (vc-backend (buffer-file-name)) 'CVS)
+   ((not (vc-registered (buffer-file-name)))
+    (vc-registration-error (buffer-file-name))
+    (eq (vc-backend (buffer-file-name)) 'CVS)
     (error "Unchecking files under CVS is dangerous and not supported in VC"))
    ((vc-locking-user (buffer-file-name))
     (error "This version is locked; use vc-revert-buffer to discard changes"))
    ((not (vc-latest-on-branch-p (buffer-file-name)))
     (error "This is not the latest version--VC cannot cancel it")))
-  (let ((target (vc-workfile-version (buffer-file-name))))
-    (if (null (yes-or-no-p "Remove this version from master? "))
+  (let* ((target (vc-workfile-version (buffer-file-name)))
+         (recent (if (vc-trunk-p target) "" (vc-branch-part target)))
+         (config (current-window-configuration)) done)
+    (if (null (yes-or-no-p (format "Remove version %s from master? " target)))
 	nil
       (setq norevert (or norevert (not 
            (yes-or-no-p "Revert buffer to most recent remaining version? "))))
       (vc-backend-uncheck (buffer-file-name) target)
-      (if (not norevert)
-	  (vc-checkout (buffer-file-name) nil)
-	;; If norevert, lock the most recent remaining version, 
-        ;; and mark the buffer modified.
-	(if (eq (vc-backend (buffer-file-name)) 'RCS)
-	    (progn (setq buffer-read-only nil)
-		   (vc-clear-headers)))
-	(vc-backend-checkout (buffer-file-name) t (vc-branch-part target))
-	(set-visited-file-name (buffer-file-name))
-	(vc-mode-line (buffer-file-name)))
-      (message "Version %s has been removed from the master." target)
+      ;; Check out the most recent remaining version.  If it fails, because
+      ;; the whole branch got deleted, do a double-take and check out the
+      ;; version where the branch started.
+      (while (not done)
+        (condition-case err
+            (progn
+              (if norevert
+                  ;; Check out locked, but only to disc, and keep 
+                  ;; modifications in the buffer.
+                  (vc-backend-checkout (buffer-file-name) t recent)
+                ;; Check out unlocked, and revert buffer.
+                (vc-checkout (buffer-file-name) nil recent))
+              (setq done t))
+          (error (set-buffer "*vc*")
+                 (goto-char (point-min))
+                 (if (re-search-forward "no side branches present for" nil t)
+                     (progn (setq recent (vc-branch-part recent))
+                            (set-window-configuration config))
+                   ;; No, it was some other error: re-signal it.
+                   (signal (car err) (cdr err))))))
+      ;; If norevert, clear version headers and mark the buffer modified.
+      (if norevert
+          (progn
+            (set-visited-file-name (buffer-file-name))
+            (if (not vc-make-backup-files)
+                ;; inhibit backup for this buffer
+                (progn (make-local-variable 'backup-inhibited)
+                       (setq backup-inhibited t)))
+            (if (eq (vc-backend (buffer-file-name)) 'RCS)
+                (progn (setq buffer-read-only nil)
+                       (vc-clear-headers)))
+            (vc-mode-line (buffer-file-name))))
+      (message "Version %s has been removed from the master" target)
       )))
 
 ;;;###autoload
@@ -1818,41 +1851,45 @@ From a program, any arguments are passed to the `rcs2log' script."
       ;; the file in the right place. The old value is restored below.
       (setq default-directory (file-name-directory filename))
       (vc-backend-dispatch file
-	(if workfile;; SCCS
-	    ;; Some SCCS implementations allow checking out directly to a
-	    ;; file using the -G option, but then some don't so use the
-	    ;; least common denominator approach and use the -p option
-	    ;; ala RCS.
-	    (let ((vc-modes (logior (file-modes (vc-name file))
-				    (if writable 128 0)))
-		  (failed t))
-	      (unwind-protect
-		  (progn
-		    (apply 'vc-do-command
-			   nil 0 "/bin/sh" file 'MASTER "-c"
-			   ;; Some shells make the "" dummy argument into $0
-			   ;; while others use the shell's name as $0 and
-			   ;; use the "" as $1.  The if-statement
-			   ;; converts the latter case to the former.
-			   (format "if [ x\"$1\" = x ]; then shift; fi; \
+        (progn  ;; SCCS
+          (and rev (string= rev "") (setq rev nil))
+          (if workfile  
+              ;; Some SCCS implementations allow checking out directly to a
+              ;; file using the -G option, but then some don't so use the
+              ;; least common denominator approach and use the -p option
+              ;; ala RCS.
+              (let ((vc-modes (logior (file-modes (vc-name file))
+                                      (if writable 128 0)))
+                    (failed t))
+                (unwind-protect
+                    (progn
+                      (apply 'vc-do-command
+                             nil 0 "/bin/sh" file 'MASTER "-c"
+                             ;; Some shells make the "" dummy argument into $0
+                             ;; while others use the shell's name as $0 and
+                             ;; use the "" as $1.  The if-statement
+                             ;; converts the latter case to the former.
+                             (format "if [ x\"$1\" = x ]; then shift; fi; \
 			       umask %o; exec >\"$1\" || exit; \
 			       shift; umask %o; exec get \"$@\""
 				   (logand 511 (lognot vc-modes))
 				   (logand 511 (lognot (default-file-modes))))
-			   ""		; dummy argument for shell's $0
-			   filename 
-			   (if writable "-e")
-			   "-p" (and rev
-				     (concat "-r" (vc-lookup-triple file rev)))
-			   switches)
-		    (setq failed nil))
-		(and failed (file-exists-p filename) (delete-file filename))))
-	  (apply 'vc-do-command nil 0 "get" file 'MASTER   ;; SCCS
-		 (if writable "-e")
-		 (and rev (concat "-r" (vc-lookup-triple file rev)))
-		 switches)
-	  (vc-file-setprop file 'vc-workfile-version nil))
-	(if workfile  ;; RCS
+                             ""		; dummy argument for shell's $0
+                             filename 
+                             (if writable "-e")
+                             "-p" 
+                             (and rev
+                                  (concat "-r" (vc-lookup-triple file rev)))
+                             switches)
+                      (setq failed nil))
+                  (and failed (file-exists-p filename) 
+                       (delete-file filename))))
+            (apply 'vc-do-command nil 0 "get" file 'MASTER   ;; SCCS
+                   (if writable "-e")
+                   (and rev (concat "-r" (vc-lookup-triple file rev)))
+                   switches)
+            (vc-file-setprop file 'vc-workfile-version nil)))
+        (if workfile  ;; RCS
 	    ;; RCS doesn't let us check out into arbitrary file names directly.
 	    ;; Use `co -p' and make stdout point to the correct file.
 	    (let ((vc-modes (logior (file-modes (vc-name file))
