@@ -878,4 +878,6 @@ the remaining input.")
 		     (if (nth 2 state) 'many 'one)))))
 	(set-syntax-table old-syntax-table)))))
 
+(provide 'xscheme)
+
 ;;; xscheme.el ends here
