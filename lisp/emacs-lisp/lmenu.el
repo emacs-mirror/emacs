@@ -393,6 +393,6 @@ BEFORE, if provided, is the name of a menu before which this menu should
 
 (set-menubar default-menubar)
 
-(provide 'menubar)
+(provide 'lmenu)
 
 ;;; lmenu.el ends here
