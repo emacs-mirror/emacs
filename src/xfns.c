@@ -760,6 +760,8 @@ x_set_frame_parameters (f, alist)
   int left_no_change = 0, top_no_change = 0;
   int icon_left_no_change = 0, icon_top_no_change = 0;
 
+  struct gcpro gcpro1, gcpro2;
+
   i = 0;
   for (tail = alist; CONSP (tail); tail = Fcdr (tail))
     i++;
@@ -779,7 +781,15 @@ x_set_frame_parameters (f, alist)
       values[i] = Fcdr (elt);
       i++;
     }
+  /* TAIL and ALIST are not used again below here.  */
+  alist = tail = Qnil;
 
+  GCPRO2 (*parms, *values);
+  gcpro1.nvars = i;
+  gcpro2.nvars = i;
+
+  /* There is no need to gcpro LEFT, TOP, ICON_LEFT, or ICON_TOP,
+     because their values appear in VALUES and strings are not valid.  */
   top = left = Qunbound;
   icon_left = icon_top = Qunbound;
 
@@ -951,6 +961,8 @@ x_set_frame_parameters (f, alist)
 	&& ! (icon_left_no_change && icon_top_no_change))
       x_wm_set_icon_position (f, XINT (icon_left), XINT (icon_top));
   }
+
+  UNGCPRO;
 }
 
 /* Store the screen positions of frame F into XPTR and YPTR.
