@@ -186,7 +186,7 @@ SEQ must be a list, vector, or string.  The comparison is done with `equal'."
     (delete elt (copy-sequence seq))))
 
 (defun remq (elt list)
-  "Return a copy of LIST with all occurences of ELT removed.
+  "Return a copy of LIST with all occurrences of ELT removed.
 The comparison is done with `eq'."
   (if (memq elt list)
       (delq elt (copy-sequence list))
@@ -244,7 +244,7 @@ Unibyte strings are converted to multibyte for comparison."
 
 (defun assoc-ignore-representation (key alist)
   "Like `assoc', but ignores differences in text representation.
-KEY must be a string.  
+KEY must be a string.
 Unibyte strings are converted to multibyte for comparison."
   (let (element)
     (while (and alist (not element))
@@ -291,7 +291,7 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 
 ;Moved to keymap.c
 ;(defun copy-keymap (keymap)
-;  "Return a copy of KEYMAP"  
+;  "Return a copy of KEYMAP"
 ;  (while (not (keymapp keymap))
 ;    (setq keymap (signal 'wrong-type-argument (list 'keymapp keymap))))
 ;  (if (vectorp keymap)
@@ -309,7 +309,7 @@ in KEYMAP as NEWDEF those keys which are defined as OLDDEF in OLDMAP."
   ;; Don't document PREFIX in the doc string because we don't want to
   ;; advertise it.  It's meant for recursive calls only.  Here's its
   ;; meaning
-  
+
   ;; If optional argument PREFIX is specified, it should be a key
   ;; prefix, a string.  Redefined bindings will then be bound to the
   ;; original key, with PREFIX added at the front.
@@ -503,7 +503,7 @@ and then modifies one entry in it."
   (aset keyboard-translate-table from to))
 
 
-;;;; The global keymap tree.  
+;;;; The global keymap tree.
 
 ;;; global-map, esc-map, and ctl-x-map have their values set up in
 ;;; keymap.c; we just give them docstrings here.
@@ -1041,7 +1041,7 @@ does not use these function."
 (defun process-kill-without-query (process &optional flag)
   "Say no query needed if PROCESS is running when Emacs is exited.
 Optional second argument if non-nil says to require a query.
-Value is t if a query was formerly required.  
+Value is t if a query was formerly required.
 New code should not use this function; use `process-query-on-exit-flag'
 or `set-process-query-on-exit-flag' instead."
   (let ((old (process-query-on-exit-flag process)))
@@ -1056,7 +1056,7 @@ or `set-process-query-on-exit-flag' instead."
 Legitimate radix values are 8, 10 and 16.")
 
 (custom-declare-variable-early
- 'read-quoted-char-radix 8 
+ 'read-quoted-char-radix 8
  "*Radix for \\[quoted-insert] and other uses of `read-quoted-char'.
 Legitimate radix values are 8, 10 and 16."
   :type '(choice (const 8) (const 10) (const 16))
@@ -1247,7 +1247,7 @@ This finishes the change group by reverting all of its changes."
   (dolist (elt handle)
     (with-current-buffer (car elt)
       (setq elt (cdr elt))
-      (let ((old-car 
+      (let ((old-car
 	     (if (consp elt) (car elt)))
 	    (old-cdr
 	     (if (consp elt) (cdr elt))))
@@ -2172,7 +2172,7 @@ clone should be incorporated in the clone."
   ;; where the clone is reduced to the empty string (we want the overlay to
   ;; stay when the clone's content is the empty string and we want to use
   ;; `evaporate' to make sure those overlays get deleted when needed).
-  ;; 
+  ;;
   (let* ((pt-end (+ (point) (- end start)))
   	 (start-margin (if (or (not spreadp) (bobp) (<= start (point-min)))
 			   0 1))
@@ -2189,7 +2189,7 @@ clone should be incorporated in the clone."
     ;;(overlay-put ol1 'face 'underline)
     (overlay-put ol1 'evaporate t)
     (overlay-put ol1 'text-clones dups)
-    ;; 
+    ;;
     (overlay-put ol2 'modification-hooks '(text-clone-maintain))
     (when spreadp (overlay-put ol2 'text-clone-spreadp t))
     (when syntax (overlay-put ol2 'text-clone-syntax syntax))
