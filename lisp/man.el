@@ -504,8 +504,20 @@ This is necessary if one wants to dump man.el with Emacs."
 				       (error "Malformed Man-filter-list"))
 				   phrase)
 				 pargs " ")))
-	(setq flist (cdr flist))))
+        (setq flist (cdr flist))))
     command))
+
+
+(defun Man-translate-cleanup (string)
+  "Strip leading, trailing and middle spaces."
+  (when (stringp string)
+    ;;  Strip leading and trailing
+    (if (string-match "^[ \t\f\r\n]*\\(.+[^ \t\f\r\n]\\)" string)
+        (setq string (match-string 1 string)))
+    ;; middle spaces
+    (setq string (replace-regexp-in-string "[\t\r\n]" " " string))
+    (setq string (replace-regexp-in-string "  +" " " string))
+    string))
 
 (defun Man-translate-references (ref)
   "Translates REF from \"chmod(2V)\" to \"2v chmod\" style.
@@ -513,8 +525,9 @@ Leave it as is if already in that style.  Possibly downcase and
 translate the section (see the Man-downcase-section-letters-flag
 and the Man-section-translations-alist variables)."
   (let ((name "")
-	(section "")
-	(slist Man-section-translations-alist))
+        (section "")
+        (slist Man-section-translations-alist))
+    (setq ref (Man-translate-cleanup ref))
     (cond
      ;; "chmod(2V)" case ?
      ((string-match (concat "^" Man-reference-regexp "$") ref)
@@ -577,6 +590,7 @@ This guess is based on the text surrounding the cursor."
 ;; For compatibility with older versions.
 ;;;###autoload
 (defalias 'manual-entry 'man)
+
 
 ;;;###autoload
 (defun man (man-args)
