@@ -1,7 +1,11 @@
+2002-05-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easymenu.el (easy-menu-make-symbol):
+	Don't treat (lambda () ...) as an expression.
+
 2002-05-15  John Paul Wallington <jpw@shootybangbang.com>
 
-	* replace.el (occur-read-primary-args): Handle a bare 'C-u'
-	correctly.
+	* replace.el (occur-read-primary-args): Handle a bare 'C-u' correctly.
 
 2002-05-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -20,7 +24,7 @@
 
 2002-05-14  Kim F. Storm  <storm@cua.dk>
 
-	* emulation/cua-rect.el (cua--rectangle-operation): 
+	* emulation/cua-rect.el (cua--rectangle-operation):
 	Don't highlight empty lines in rectangles.
 
 	* emulation/keypad.el: Improved commentary.

@@ -1,3 +1,9 @@
+2002-05-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keyboard.c (read_char_x_menu_prompt): Use an equivalent but more
+	meaningful test.
+	(read_char_minibuf_menu_prompt): Fix typo.
+
 2002-05-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* eval.c (Fcommandp): Doc fix.
