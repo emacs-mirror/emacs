@@ -2,8 +2,9 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2002 Free Software Foundation, Inc.
 
-;; Keywords: multilingual, Vietnamese
+;; Keywords: multilingual, Vietnamese, i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -55,12 +56,6 @@
 
 (define-coding-system-alias 'viqr 'vietnamese-viqr)
 
-(setq font-ccl-encoder-alist
-      (cons '("viscii" . ccl-encode-viscii-font) font-ccl-encoder-alist))
-
-(setq font-ccl-encoder-alist
-      (cons '("vscii" . ccl-encode-vscii-font) font-ccl-encoder-alist))
-
 (set-language-info-alist
  "Vietnamese" `((charset viscii)
 		(coding-system vietnamese-viscii vietnamese-vscii
@@ -77,6 +72,14 @@ They can be decoded from and encoded to VISCII, VSCII, and VIQR.
 Current setting put higher priority to the coding system VISCII than VSCII.
 If you prefer VSCII, please do: (prefer-coding-system 'vietnamese-vscii)")
 		))
+
+(define-coding-system 'windows-1258
+  "windows-1258 encoding for Vietnamese (MIME: WINDOWS-1258)"
+  :coding-type 'charset
+  :mnemonic ?*
+  :charset-list '(windows-1258)
+  :mime-charset 'windows-1258)
+(define-coding-system-alias 'cp1258 'windows-1258)
 
 (provide 'vietnamese)
 
