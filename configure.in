@@ -1212,6 +1212,17 @@ configure___ system_malloc=no
 #define C_OPTIMIZE_SWITCH -O
 #endif
 
+#ifndef LD_SWITCH_MACHINE
+#define LD_SWITCH_MACHINE
+#endif
+
+#ifndef LD_SWITCH_SYSTEM
+#define LD_SWITCH_SYSTEM
+#endif
+
+configure___ ld_switch_system=LD_SWITCH_SYSTEM
+configure___ ld_switch_maldhine=LD_SWITCH_MACHINE
+
 #ifdef THIS_IS_CONFIGURE
 
 /* Get the CFLAGS for tests in configure.  */
@@ -1247,6 +1258,8 @@ else
 fi
 changequote([, ])dnl
 rm ${tempcname}
+
+ac_link="$ac_link $ld_switch_machine $ld_switch_system"
 
 ### Compute the unexec source name from the object name.
 UNEXEC_SRC="`echo ${unexec} | sed 's/\.o/.c/'`"
