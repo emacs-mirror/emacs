@@ -224,7 +224,7 @@ See `vip-surrounding-word' for the definition of a word in this case."
 	 (vip-multiclick-p)
 	 ;; This trick checks if there is a pending mouse event
 	 ;; if so, we use this latter event and discard the current mouse click
-	 ;; If the next panding event is not a mouse event, we execute
+	 ;; If the next pending event is not a mouse event, we execute
 	 ;; the current mouse event
 	 (progn
 	   (setq interrupting-event (vip-read-event))
