@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.35 1998/09/29 18:20:36 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.36 1999/03/17 11:10:29 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -117,7 +117,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.35 1998/09/29 18:20:36 os10000 Exp os10000 $
+;;      $Id: todo-mode.el,v 1.36 1999/03/17 11:10:29 os10000 Exp os10000 $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -292,6 +292,27 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.36  1999/03/17 11:10:29  os10000
+;; Alastair Burt <alastair.burt@dfki.de> sent in a patch on 17.Mar.98
+;; which removes duplicates from the category list and saves the buffer
+;; after category addition.  Thanks.
+;;
+;; Uwe Brauer <oub@sunma4.mat.ucm.es> sent in a request on 3.Apr.98 to
+;; implement a "move-between-categories" function.  I haven't done that
+;; yet.  Thanks.
+;;
+;; "Edward S. Hirgelt" <ehirgelt@directinterfaces.com> fixed a problem
+;; with multi-line editing 29.Oct.98.  Thanks.
+;;
+;; tom <tom@pixelpark.com> sent in a replacement for the outmoded
+;; time-format that I had been using on 13.Nov.98.  Thanks.
+;;
+;; Jerome Thebert <thebertj@felixstowe.rms.slb.com> sent in a binding to
+;; show/hide continuation lines using the space bar on 11.Jan.99.
+;; Instead of leaving it as a hook, I integrated it.  Thanks.
+;;
+;; Sorry again to everybody.  I sat on your patches for a year.
+;;
 ;; Revision 1.35  1998/09/29 18:20:36  os10000
 ;; Alex Schroeder startup description added.
 ;;
@@ -786,7 +807,7 @@ Use `todo-categories' instead.")
     (todo-edit-mode)
     (narrow-to-region (todo-item-start) (todo-item-end))))
 
-;;;### autoload
+;;;###autoload
 (defun todo-add-category (cat)
   "Add new category CAT to the TODO list."
   (interactive "sCategory: ")
@@ -811,7 +832,7 @@ Use `todo-categories' instead.")
     (save-buffer))
   0)
 
-;;;### autoload
+;;;###autoload
 (defun todo-add-item-non-interactively (new-item category)
   "Insert NEW-ITEM in TODO list as a new entry in CATEGORY."
   (save-excursion
@@ -847,7 +868,7 @@ Use `todo-categories' instead.")
     (todo-save)
     (message "")))
 
-;;;### autoload
+;;;###autoload
 (defun todo-insert-item (ARG)
   "Insert new TODO list entry.
 With a prefix argument solicit the category, otherwise use the current
@@ -874,7 +895,7 @@ category."
 
 (defalias 'todo-cmd-inst 'todo-insert-item)
 
-;;;### autoload
+;;;###autoload
 (defun todo-insert-item-here ()
   "Insert new TODO list entry under the cursor."
   (interactive "")
@@ -1202,7 +1223,7 @@ If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
                     ))
 
 ;; As calendar reads .todo-do before todo-mode is loaded.
-;;;### autoload
+;;;###autoload
 (defun todo-mode () "Major mode for editing TODO lists.\n\n\\{todo-mode-map}"
   (interactive)
   (setq major-mode 'todo-mode)
@@ -1218,7 +1239,7 @@ If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
   (run-hooks 'todo-mode-hook))
 
 ;; Read about this function in the setup instructions above!
-;;;### autoload
+;;;###autoload
 (defun todo-cp ()
   "Make a diary entry appear only in the current date's diary"
   (if (equal (calendar-current-date) date)
@@ -1232,7 +1253,7 @@ If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
   (setq mode-name "TODO Edit")
   (run-hooks 'todo-edit-mode-hook))
 
-;;;### autoload
+;;;###autoload
 (defun todo-show () "Show TODO list."
   (interactive)
   (if (file-exists-p todo-file-do)
