@@ -53,35 +53,45 @@
 (defvar chinese-calendar-terrestrial-branch
   ["Zi" "Chou" "Yin" "Mao" "Chen" "Si" "Wu" "Wei" "Shen" "You" "Xu" "Hai"])
 
-(defvar chinese-calendar-time-zone 
+(defcustom chinese-calendar-time-zone 
   '(if (< year 1928)
        (+ 465 (/ 40.0 60.0))
      480)
   "*Number of minutes difference between local standard time for Chinese
 calendar and Coordinated Universal (Greenwich) Time.  Default is for Beijing.
 This is an expression in `year' since it changed at 1928-01-01 00:00:00 from
-UT+7:45:40 to UT+8.")
+UT+7:45:40 to UT+8."
+  :type 'number
+  :group 'chinese-calendar)
 
-(defvar chinese-calendar-location-name "Beijing"
-  "*Name of location used for calculation of Chinese calendar.")
+(defcustom chinese-calendar-location-name "Beijing"
+  "*Name of location used for calculation of Chinese calendar."
+  :type 'string
+  :group 'chinese-calendar)
 
-(defvar chinese-calendar-daylight-time-offset 0
+(defcustom chinese-calendar-daylight-time-offset 0
 ; The correct value is as follows, but the Chinese calendrical
 ; authorities do NOT use DST in determining astronomical events:
 ;  60
   "*Number of minutes difference between daylight savings and standard time
-for Chinese calendar.  Default is for no daylight savings time.")
+for Chinese calendar.  Default is for no daylight savings time."
+  :type 'integer
+  :group 'chinese-calendar)
 
-(defvar chinese-calendar-standard-time-zone-name
+(defcustom chinese-calendar-standard-time-zone-name
   '(if (< year 1928)
        "PMT"
      "CST")
-  "*Abbreviated name of standard time zone used for Chinese calendar.")
+  "*Abbreviated name of standard time zone used for Chinese calendar."
+  :type 'string
+  :group 'chinese-calendar)
 
-(defvar chinese-calendar-daylight-time-zone-name "CDT"
-  "*Abbreviated name of daylight-savings time zone used for Chinese calendar.")
+(defcustom chinese-calendar-daylight-time-zone-name "CDT"
+  "*Abbreviated name of daylight-savings time zone used for Chinese calendar."
+  :type 'string
+  :group 'chinese-calendar)
 
-(defvar chinese-calendar-daylight-savings-starts nil
+(defcustom chinese-calendar-daylight-savings-starts nil
 ; The correct value is as follows, but the Chinese calendrical
 ; authorities do NOT use DST in determining astronomical events:
 ;  '(cond ((< 1986 year) (calendar-nth-named-day 1 0 4 year 10))
@@ -89,23 +99,31 @@ for Chinese calendar.  Default is for no daylight savings time.")
 ;         (t nil))
   "*Sexp giving the date on which daylight savings time starts for Chinese
 calendar.  Default is for no daylight savings time.  See documentation of
-`calendar-daylight-savings-starts'.")
+`calendar-daylight-savings-starts'."
+  :type 'sexp
+  :group 'chinese-calendar)
 
-(defvar chinese-calendar-daylight-savings-ends nil
+(defcustom chinese-calendar-daylight-savings-ends nil
 ; The correct value is as follows, but the Chinese calendrical
 ; authorities do NOT use DST in determining astronomical events:
 ;  '(if (<= 1986 year) (calendar-nth-named-day 1 0 9 year 11))
   "*Sexp giving the date on which daylight savings time ends for Chinese
 calendar.  Default is for no daylight savings time.  See documentation of
-`calendar-daylight-savings-ends'.")
+`calendar-daylight-savings-ends'."
+  :type 'sexp
+  :group 'chinese-calendar)
 
-(defvar chinese-calendar-daylight-savings-starts-time 0
+(defcustom chinese-calendar-daylight-savings-starts-time 0
   "*Number of minutes after midnight that daylight savings time starts for
-Chinese calendar.  Default is for no daylight savings time.")
+Chinese calendar.  Default is for no daylight savings time."
+  :type 'integer
+  :group 'chinese-calendar)
 
-(defvar chinese-calendar-daylight-savings-ends-time 0
+(defcustom chinese-calendar-daylight-savings-ends-time 0
   "*Number of minutes after midnight that daylight savings time ends for
-Chinese calendar.  Default is for no daylight savings time.")
+Chinese calendar.  Default is for no daylight savings time."
+  :type 'integer
+  :group 'chinese-calendar)
 
 (defun chinese-zodiac-sign-on-or-after (d)
   "Absolute date of first new Zodiac sign on or after absolute date d.

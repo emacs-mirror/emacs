@@ -123,39 +123,55 @@
 (provide 'appt)
 
 ;;;###autoload
-(defvar appt-issue-message t
+(defcustom appt-issue-message t
   "*Non-nil means check for appointments in the diary buffer.
 To be detected, the diary entry must have the time
-as the first thing on a line.")
+as the first thing on a line."
+  :type 'boolean
+  :group 'appt)
 
 ;;;###autoload
-(defvar appt-message-warning-time 12
-  "*Time in minutes before an appointment that the warning begins.")
+(defcustom appt-message-warning-time 12
+  "*Time in minutes before an appointment that the warning begins."
+  :type 'integer
+  :group 'appt)
 
 ;;;###autoload
-(defvar appt-audible t
-  "*Non-nil means beep to indicate appointment.")
+(defcustom appt-audible t
+  "*Non-nil means beep to indicate appointment."
+  :type 'boolean
+  :group 'appt)
 
 ;;;###autoload
-(defvar appt-visible t
-  "*Non-nil means display appointment message in echo area.")
+(defcustom appt-visible t
+  "*Non-nil means display appointment message in echo area."
+  :type 'boolean
+  :group 'appt)
 
 ;;;###autoload
-(defvar appt-display-mode-line t
-  "*Non-nil means display minutes to appointment and time on the mode line.")
+(defcustom appt-display-mode-line t
+  "*Non-nil means display minutes to appointment and time on the mode line."
+  :type 'boolean
+  :group 'appt)
 
 ;;;###autoload
-(defvar appt-msg-window t
-  "*Non-nil means display appointment message in another window.")
+(defcustom appt-msg-window t
+  "*Non-nil means display appointment message in another window."
+  :type 'boolean
+  :group 'appt)
 
 ;;;###autoload
-(defvar appt-display-duration 10
-  "*The number of seconds an appointment message is displayed.")
+(defcustom appt-display-duration 10
+  "*The number of seconds an appointment message is displayed."
+  :type 'integer
+  :group 'appt)
 
 ;;;###autoload
-(defvar appt-display-diary t
+(defcustom appt-display-diary t
   "*Non-nil means to display the next days diary on the screen. 
-This will occur at midnight when the appointment list is updated.")
+This will occur at midnight when the appointment list is updated."
+  :type 'boolean
+  :group 'appt)
 
 (defvar appt-time-msg-list nil
   "The list of appointments for today.
@@ -166,8 +182,10 @@ The number before each time/message is the time in minutes from midnight.")
 (defconst max-time 1439
   "11:59pm in minutes - number of minutes in a day minus 1.")
 
-(defvar appt-display-interval 3
-  "*Number of minutes to wait between checking the appointment list.")
+(defcustom appt-display-interval 3
+  "*Number of minutes to wait between checking the appointment list."
+  :type 'integer
+  :group 'appt)
   
 (defvar appt-buffer-name " *appt-buf*"
   "Name of the appointments buffer.")
