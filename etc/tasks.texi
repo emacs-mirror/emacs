@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 28 April 1997
+@set lastupdate 15 May 1997
 @c %**end of header
 
 @setchapternewpage off
@@ -180,6 +180,11 @@ HURD.  This protocol is an offshoot of SMB.
 @item
 Enhance GCC.  See files @file{PROJECTS} and @file{PROBLEMS} in the GCC
 distribution.
+
+@item
+Interface GDB to Guile, so that users can write debugging commands in
+Scheme.  This would also make it possible to write, in Scheme, a
+graphical interface that uses Tk and is tightly integrated into GDB.
 
 @item
 Rewrite GNU @code{sed} completely, to make it cleaner.
