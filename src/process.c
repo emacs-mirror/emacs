@@ -3760,7 +3760,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 #ifdef MAC_OSX
           /* On Mac OS X, the SELECT system call always says input is
              present (for reading) at stdin, even when none is.  This
-             causes the the call to SELECT below to return 1 and
+             causes the call to SELECT below to return 1 and
              status_notify not to be called.  As a result output of
              subprocesses are incorrectly discarded.  */
           FD_CLR (0, &Atemp);

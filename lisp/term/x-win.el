@@ -1268,7 +1268,7 @@ as returned by (x-server-vendor)."
 ;;; current selection against it, and avoid passing back our own text
 ;;; from x-cut-buffer-or-selection-value.  We track all three
 ;;; seperately in case another X application only sets one of them
-;;; (say the the cut buffer) we aren't fooled by the PRIMARY or
+;;; (say the cut buffer) we aren't fooled by the PRIMARY or
 ;;; CLIPBOARD selection staying the same.
 (defvar x-last-selected-text-clipboard nil
   "The value of the CLIPBOARD X selection last time we selected or

@@ -25,7 +25,7 @@
 ;;; Acknowledgements
 
 ;; The rectangle handling and display code borrows from the standard
-;; GNU emacs rect.el package and the the rect-mark.el package by Rick
+;; GNU emacs rect.el package and the rect-mark.el package by Rick
 ;; Sladkey <jrs@world.std.com>.
 
 ;;; Commentary:

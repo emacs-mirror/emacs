@@ -4,7 +4,7 @@
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: John-David Smith <jdsmith@astro.cornell.edu>
 ;; Version: 4.7
-;; Date: $Date: 2001/12/31 20:42:10 $
+;; Date: $Date: 2002/02/16 12:53:42 $
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -1309,7 +1309,7 @@ blocks starting with a BEGIN statement.  The matches must have associations
 
 (defconst idlwave-statement-match
   (list
-   ;; "endif else" is the the only possible "end" that can be
+   ;; "endif else" is the only possible "end" that can be
    ;; followed by a statement on the same line.
    '(endelse . ("end\\(\\|if\\)\\s +else" "end\\(\\|if\\)\\s +else"))
    ;; all other "end"s can not be followed by a statement.
@@ -3021,7 +3021,7 @@ ignored."
           ;; No hang. Instead find minimum indentation of paragraph
           ;; after first line.
           ;; For the following while statement, since START is at the
-          ;; beginning of line and END is at the the end of line
+          ;; beginning of line and END is at the end of line
           ;; point is greater than START at least once (which would
           ;; be the case for a single line paragraph).
           (while (> (point) start)
@@ -3325,7 +3325,7 @@ constants - a double quote followed by an octal digit."
 	    ;; string act as an
 	    ;; escape for the delimiter in the string.
 	    ;; Two consecutive delimiters alone (i.e., not after the
-	    ;; start of a string) is the the null string.
+	    ;; start of a string) is the null string.
 	    (progn
 	      ;; Move to position after quote
 	      (goto-char (1+ (match-beginning 0)))
