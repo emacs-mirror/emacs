@@ -217,7 +217,7 @@ sentence, together with the whitespace following the sentence.  Its
 normal value is
 
 @example
-"[.?!][]\"')]*\\($\\|\t\\|  \\)[ \t\n]*"
+"[.?!][]\"')]*\\($\\| $\\|\t\\|  \\)[ \t\n]*"
 @end example
 
 @noindent
