@@ -88,6 +88,8 @@
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'paragraph-ignore-fill-prefix)
   (setq paragraph-ignore-fill-prefix t)
+  (make-local-variable 'fill-paragraph-function)
+  (setq fill-paragraph-function 'lisp-fill-paragraph)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'lisp-indent-line)
   (make-local-variable 'indent-region-function)
@@ -112,7 +114,6 @@
     ()
    (setq shared-lisp-mode-map (make-sparse-keymap))
    (define-key shared-lisp-mode-map "\e\C-q" 'indent-sexp)
-   (define-key shared-lisp-mode-map "\M-q" 'lisp-fill-paragraph)
    (define-key shared-lisp-mode-map "\177" 'backward-delete-char-untabify)
    (define-key shared-lisp-mode-map "\t" 'lisp-indent-line))
 
