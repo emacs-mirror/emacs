@@ -199,7 +199,7 @@ are left in ARGS."
 	     (let* ((key (car key-resname-default))
 		    (tail (assq key screen-default-alist))
 		    (value
-		     (or (x-get-default (nth 2 key-resname-default))
+		     (or (x-get-resource (nth 2 key-resname-default))
 			 (nth 3 key-resname-default))))
 	       (if tail (setcdr tail value)
 		 (setq screen-default-alist
