@@ -1239,8 +1239,8 @@ and nil is returned.")
   /* If in a mini-buffer and moving backwards, stop at the end of the
      prompt.  This prevents accidentially moving into the read-only
      prompt.  */
-  if (INTEGERP (current_buffer->minibuffer_prompt_length)
-      && (prompt_end = XINT (current_buffer->minibuffer_prompt_length),
+  if (INTEGERP (current_buffer->prompt_end_charpos)
+      && (prompt_end = XINT (current_buffer->prompt_end_charpos),
 	  ((PT > prompt_end && val < prompt_end)
 	   || (PT < prompt_end && val > prompt_end))))
     val = prompt_end;
