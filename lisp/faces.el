@@ -327,8 +327,8 @@ specifies an invalid attribute."
 	(dolist (entry (cdr definition))
 	  (set-face-attribute-from-resource face attribute (car entry)
 					    (cdr entry) frame))))))
-    
-  
+
+
 (defun make-face-x-resource-internal (face &optional frame)
   "Fill frame-local FACE on FRAME from X resources.
 FRAME nil or not specified means do it for all frames."
@@ -363,7 +363,7 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
   (let ((value (internal-get-lisp-face-attribute face :foreground frame)))
     (if (eq value 'unspecified)
-	nil 
+	nil
       value)))
 
 
@@ -426,7 +426,7 @@ If FRAME is omitted or nil, use the selected frame.
 Use `face-attribute' for finer control."
   (let ((italic (face-attribute face :slant frame)))
     (memq italic '(italic oblique))))
-    
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -603,7 +603,7 @@ Argument NOERROR is ignored and retained for compatibility."
   (interactive (list (read-face-name "Make which face non-bold ")))
   (set-face-attribute face frame :weight 'normal))
 
-  
+
 (defun make-face-italic (face &optional frame noerror)
   "Make the font of FACE be italic, if possible.
 FRAME nil or not specified means change face on all frames.
@@ -620,7 +620,7 @@ Argument NOERROR is ignored and retained for compatibility."
   (interactive (list (read-face-name "Make which face non-italic ")))
   (set-face-attribute face frame :slant 'normal))
 
-  
+
 (defun make-face-bold-italic (face &optional frame noerror)
   "Make the font of FACE be bold and italic, if possible.
 FRAME nil or not specified means change face on all frames.
@@ -781,50 +781,48 @@ and colors.  If it is nil or not specified, the selected frame is
 used.  Value is an alist of (NAME . VALUE) if ATTRIBUTE expects a value
 out of a set of discrete values.  Value is `integerp' if ATTRIBUTE expects
 an integer value."
-  (let (valid)
-    (setq valid
-	  (case attribute
-	    (:family
-	     (if window-system
-		 (mapcar #'(lambda (x) (cons (car x) (car x)))
-			 (x-font-family-list))
-	       ;; Only one font on TTYs.
-	       (list (cons "default" "default"))))
-	    ((:width :weight :slant :inverse-video)
-	     (mapcar #'(lambda (x) (cons (symbol-name x) x))
-		     (internal-lisp-face-attribute-values attribute)))
-	    ((:underline :overline :strike-through :box)
-	     (if window-system
-		 (nconc (mapcar #'(lambda (x) (cons (symbol-name x) x))
-				(internal-lisp-face-attribute-values attribute))
-			(mapcar #'(lambda (c) (cons c c))
-				(x-defined-colors frame)))
-	       (mapcar #'(lambda (x) (cons (symbol-name x) x))
-		       (internal-lisp-face-attribute-values attribute))))
-	    ((:foreground :background)
-	     (mapcar #'(lambda (c) (cons c c))
-		     (defined-colors frame)))
-	    ((:height)
-	     'integerp)
-	    (:stipple
-	     (and (memq window-system '(x w32 mac))
-		  (mapcar #'list
-			  (apply #'nconc
-				 (mapcar (lambda (dir)
-					   (and (file-readable-p dir)
-						(file-directory-p dir)
-						(directory-files dir)))
-					 x-bitmap-file-path)))))
-	    (:inherit
-	     (cons '("none" . nil)
-		   (mapcar #'(lambda (c) (cons (symbol-name c) c))
-			   (face-list))))
-	    (t
-	     (error "Internal error"))))
+  (let ((valid
+         (case attribute
+           (:family
+            (if window-system
+                (mapcar #'(lambda (x) (cons (car x) (car x)))
+                        (x-font-family-list))
+	      ;; Only one font on TTYs.
+	      (list (cons "default" "default"))))
+           ((:width :weight :slant :inverse-video)
+            (mapcar #'(lambda (x) (cons (symbol-name x) x))
+                    (internal-lisp-face-attribute-values attribute)))
+           ((:underline :overline :strike-through :box)
+            (if window-system
+                (nconc (mapcar #'(lambda (x) (cons (symbol-name x) x))
+                               (internal-lisp-face-attribute-values attribute))
+                       (mapcar #'(lambda (c) (cons c c))
+                               (x-defined-colors frame)))
+	      (mapcar #'(lambda (x) (cons (symbol-name x) x))
+		      (internal-lisp-face-attribute-values attribute))))
+           ((:foreground :background)
+            (mapcar #'(lambda (c) (cons c c))
+                    (defined-colors frame)))
+           ((:height)
+            'integerp)
+           (:stipple
+            (and (memq window-system '(x w32 mac))
+                 (mapcar #'list
+                         (apply #'nconc
+                                (mapcar (lambda (dir)
+                                          (and (file-readable-p dir)
+                                               (file-directory-p dir)
+                                               (directory-files dir)))
+                                        x-bitmap-file-path)))))
+           (:inherit
+            (cons '("none" . nil)
+                  (mapcar #'(lambda (c) (cons (symbol-name c) c))
+                          (face-list))))
+           (t
+            (error "Internal error")))))
     (if (and (listp valid) (not (memq attribute '(:inherit))))
 	(nconc (list (cons "unspecified" 'unspecified)) valid)
       valid)))
-	       
 
 
 (defvar face-attribute-name-alist
@@ -965,7 +963,6 @@ Value is a property list of attribute names and new values."
 			 (cons (read-face-attribute face (car attribute) frame)
 			       result))))))
 
-    
 (defun modify-face (&optional face foreground background stipple
 			      bold-p italic-p underline-p inverse-p frame)
   "Modify attributes of faces interactively.
@@ -1154,7 +1151,7 @@ VALUE is the specified value of that attribute."
 	     (value (face-attribute face attribute)))
 	(unless (eq value 'unspecified)
 	  (setq result (nconc (list attribute value) result)))))))
-    
+
 
 (defun face-spec-set-match-display (display frame)
   "Non-nil if DISPLAY matches FRAME.
@@ -1245,7 +1242,7 @@ If SPEC is nil, do nothing."
 	  (:bold (setq attribute :weight value (if value 'bold 'normal)))
 	  (:italic (setq attribute :slant value (if value 'italic 'normal)))
 	  ((:foreground :background)
-	   ;; Compatibility with 20.x.  Some bogus face specs seem to 
+	   ;; Compatibility with 20.x.  Some bogus face specs seem to
 	   ;; exist containing things like `:foreground nil'.
 	   (if (null value) (setq value 'unspecified)))
 	  (t (unless (assq attribute face-x-resources)
@@ -1588,7 +1585,7 @@ created."
   (let ((frame (selected-frame)))
     (frame-set-background-mode frame)
     (face-set-after-frame-default frame)))
-  
+
 
 
 

@@ -1,5 +1,8 @@
 2001-05-29  Sam Steingold  <sds@gnu.org>
 
+	* faces.el (face-valid-attribute-values): Bind `valid' directly
+	instead of using `setq'.
+
 	* textmodes/tex-mode.el (tex-feed-input, tex-display-shell):
 	Use `tex-shell-buf'.
 	(tex-shell-proc): Use `tex-shell-running'.
