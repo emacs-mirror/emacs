@@ -54,11 +54,11 @@ You might find bug-fixes or enhancements in these places.
 
  * EShell: <URL:http://www.gci-net.com/users/j/johnw/emacs.html>
 
+ * Etags: <URL:ftp://pot.potorti.it/pub/software/unix/etags.tar.gz>
+
  * EUDC: <URL:http://lspwww.epfl.ch/%7Efigueire/Software/eudc/>
 
  * Expand: <URL:http://w3.teaser.fr/%7Eflepied/expand.el.gz>
-
- * Etags: <URL:ftp://fly.cnuce.cnr.it/pub/>
 
  * Find Func:
    <URL:http://www.kurims.kyoto-u.ac.jp/%7Epetersen/emacs/find-func.el>
@@ -141,7 +141,7 @@ Several are for Debian GNU/Linux in particular.
  * Dismal: spreadsheet:
    <URL:http://www.psychology.nottingham.ac.uk/staff/ritter/papers/dismal/
    dismal.html>
-	  
+
  * EDB: database:
    <URL:http://sdg.lcs.mit.edu/%7Emernst/software/edb-mrp.tar.gz>
    Not maintained?
