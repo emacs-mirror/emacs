@@ -160,7 +160,9 @@ its contents are not allowed.  The mode line indicates read-only buffers
 with @samp{%%} or @samp{%*} near the left margin.  Read-only buffers are
 usually made by subsystems such as Dired and Rmail that have special
 commands to operate on the text; also by visiting a file whose access
-control says you cannot write it.
+control says you cannot write it.  However, if the variable
+@code{kill-read-only-ok} is set to a non-@code{nil} value, you can kill
+(a.k.a.@: cut) read-only text, see @ref{Killing}.
 
   If you wish to make changes in a read-only buffer, use the command
 @kbd{C-x C-q} (@code{vc-toggle-read-only}).  It makes a read-only buffer
