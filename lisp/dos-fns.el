@@ -27,20 +27,10 @@
 
 ;;; Code:
 
-(setq-default mode-line-format
-  (list (purecopy "")
-   'mode-line-modified
-   'mode-line-buffer-identification
-   (purecopy "   ")
-   'global-mode-string
-   (purecopy "   %[(")
-   (purecopy "%t:")
-   'mode-name 'mode-line-process 'minor-mode-alist
-   (purecopy "%n")
-   (purecopy ")%]--")
-   (purecopy '(line-number-mode "L%l--"))
-   (purecopy '(-3 . "%p"))
-   (purecopy "-%-")))
+;;; Add %t: into the mode line format just after the open-paren.
+(let ((tail (assoc "   %[(" mode-line-format)))
+  (setcdr tail (cons (purecopy "%t:")
+		     (cdr tail))))
 
 ;; Use ";" instead of ":" as a path separator (from files.el).
 (setq path-separator ";")
