@@ -2009,7 +2009,9 @@ The variable `ispell-highlight-face' selects the face to use for highlighting."
    (xemacsp
     (ispell-highlight-spelling-error-xemacs start end highlight))
    ((and (not version18p)
-	 (featurep 'faces) window-system)
+	 (featurep 'faces)
+	 (or (and (fboundp 'display-color-p) (display-color-p))
+	     window-system))
     (ispell-highlight-spelling-error-overlay start end highlight))
    (t (ispell-highlight-spelling-error-generic start end highlight refresh))))
 
