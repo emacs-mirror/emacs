@@ -727,11 +727,10 @@ struct Lisp_Marker
   /* For markers that point somewhere,
      this is used to chain of all the markers in a given buffer.  */
   Lisp_Object chain;
-  /* This is the byte position, translated by the gap:
-     if it is after the gap, the gap size is included.  */
-  int bufpos;
   /* This is the char position where the marker points.  */
   int charpos;
+  /* This is the byte position.  */
+  int bytepos;
 };
 
 /* Forwarding pointer to an int variable.
