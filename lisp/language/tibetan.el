@@ -99,14 +99,19 @@
 	     (features tibet-util)
 	     (documentation . t)
 	     (sample-text .
-"Tibetan (4$(7"7r'"]0"7"]14"20"21!;4%P0"G#!"Q14"20"21!;(B) $(7!4!5!5!>4"70"714$P0"!#C"Q1!;4"Er'"S0"E"S14"G0"G1!;4"70"714"2r'"[0"2"[1!;4"Dr'"[0"D"[14"#0"#14"G0"G1!>4"Ir'"]r'"_0"I"]"_1!;4"90"9"Q1!;4"/r'"S0"/"S1!;4"50"5"Q1#2#9"[!;4"Hx!"Rx!"Ur'"c0"H"A"U"c1!>(B")))
+"Tibetan (4$(7"7r'"]0"7"]14"20"21!;4%P0"G#!"Q14"20"21!;(B) $(7!4!5!5!>4"70"714$P0"!#C"Q1!;4"Er'"S0"E"S14"G0"G1!;4"70"714"2r'"[0"2"[1!;4"Dr'"[0"D"[14"#0"#14"G0"G1!>4"Ir'"]r'"_0"I"]"_1!;4"90"9"Q1!;4"/r'"S0"/"S1!;4"50"5"Q14#2x!#9r'"[0"2#9"[1!;4"Hx!"Rx!"Ur'"c0"H"A"U"c1!>(B")))
 
 
 ;; `$(7"A(B' is included in the pattern for subjoined consonants because we
 ;; treat it specially in tibetan-add-components.
 ;; modified by Tomabechi 1999/12/10
+;; modified by Tomabechi 2000/06/08
+;;          To allow infinite addition of vowels/modifiers
+;;          as specified in Unicode v.3
+;; $(7"A(B is removed from the class of subjoined. Tomabechi 2000/06/08
+;; (for Unicode support)
 (defconst tibetan-composable-pattern
-  "[$(7"!(B-$(7"J"K(B][$(7"A#!(B-$(7#J#K#L#M(B]*$(7"R(B?[$(7"Q"S(B-$(7"^"a"e(B]?[$(7"_"c"d"g(B-$(7"l!I!e!g(B]*"
+  "[$(7"!(B-$(7"J"K(B][$(7#!(B-$(7#J#K#L#M(B]*[$(7"Q"R"S(B-$(7"^"a"b"e(B]*[$(7"_"c"d"g(B-$(7"l!I!e!g(B]*"
   "Regexp matching a composable sequence of Tibetan characters.")
 
 ;; Register a function to compose Tibetan characters.
@@ -169,7 +174,19 @@
 
 
 (defconst tibetan-vowel-transcription-alist
-  '(("ai" . "$(7"\(B")
+  '(
+    ;; Composite Vowels
+    ;; Added by Tomabechi 2000/06/08
+    ("frr" . "$(7"X(B")
+    ("fll" . "$(7"Z(B")
+    ("fa" . "$(7"R(B")
+    ("fi" . "$(7"T(B")
+    ("fu" . "$(7"V(B")
+    ("fr" . "$(7"W(B")
+    ("fl" . "$(7"Y(B")
+    ("fI" . "$(7"b(B")
+    ;; Normal Vowels
+    ("ai" . "$(7"\(B")
     ("au" . "$(7"^(B")
     ("ee" . "$(7"\(B")
     ("oo" . "$(7"^(B")
@@ -408,6 +425,30 @@
     ;; Added by Tomabechi 1999/12/10
     ("$(7"K(B" . "$(7#M(B") ;; Fixed form RA (224B->234D)
     ))
+
+;;; alist for Tibetan composite vowels (long i, vocalic r, etc.)
+;;; New varialble. created by Tomabechi 2000/06/08
+(defconst tibetan-composite-vowel-alist
+  '(;; LONG A
+    ;; ("$(7"R(B" . ((bc . tc) ?$(7"R(B))
+    ;; LONG I
+    ("$(7"T(B" . (?$(7"R(B (tc . bc) ?$(7"S(B))
+    ;; LONG U
+    ("$(7"V(B" . (?$(7"R(B (bc . tc) ?$(7"U(B))
+    ;; VOCALIC R
+    ("$(7"W(B" . (?$(7#C(B (tc . bc) ?$(7"a(B))
+    ;; LONG VOCALIC R
+    ("$(7"X(B" . (?$(7#C(B (bc . tc) ?$(7"R(B (tc . bc) ?$(7"a(B))
+    ;; VOCALIC L
+    ("$(7"Y(B" . (?$(7#D(B (tc . bc) ?$(7"a(B))
+    ;;$(7!;(BLONG VOCALIC L
+    ("$(7"Z(B" . (?$(7#D(B (bc . tc) ?$(7"R(B (tc . bc) ?$(7"a(B))
+    ;; LONG REVERSE I
+    ("$(7"b(B" . (?$(7"R(B (tc . bc) ?$(7"a(B))
+    ))
+
+
+
 ;;;
 ;;; alist for Tibetan consonantic components <-> precomposed glyph conversion.
 ;;; (includes some punctuation conversion rules)
@@ -493,6 +534,7 @@
     ("$(7"C#9(B" . "$(7%*(B")
     ("$(7"D#!(B" . "$(7%@(B")
     ("$(7"D##(B" . "$(7%A(B")
+    ("$(7"D#4(B" . "$(7!!(B") ; dummy 0x2121 added 2000/06/08 for transition l -> lng
     ("$(7"D#&(B" . "$(7%C(B")
     ("$(7"D#((B" . "$(7%D(B")
     ("$(7"D#0(B" . "$(7%E(B")
