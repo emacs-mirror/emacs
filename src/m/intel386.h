@@ -197,7 +197,7 @@ NOTE-END */
 
 /* Paul Abrahams <abrahams@acm.org> says that
    Unixware does not have alloca when using cc.  */
-#if ! (defined (USG5_4) && ! defined (__GNUC__))
+#if ! (defined (USG5_4) && ! defined (SOLARIS2) && ! defined (__GNUC__))
 #define HAVE_ALLOCA
 #endif
 
