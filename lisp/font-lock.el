@@ -1631,7 +1631,8 @@ LIMIT can be modified by the value of its PRE-MATCH-FORM."
   "Fontify according to `font-lock-keywords' between START and END.
 START should be at the beginning of a line."
   (unless (eq (car font-lock-keywords) t)
-    (setq font-lock-keywords (font-lock-compile-keywords font-lock-keywords)))
+    (setq font-lock-keywords
+	  (font-lock-compile-keywords font-lock-keywords t)))
   (let ((case-fold-search font-lock-keywords-case-fold-search)
 	(keywords (cdr font-lock-keywords))
 	(bufname (buffer-name)) (count 0)
@@ -1677,13 +1678,33 @@ START should be at the beginning of a line."
 
 ;; Various functions.
 
-(defun font-lock-compile-keywords (keywords)
+(defun font-lock-compile-keywords (keywords &optional regexp)
   "Compile KEYWORDS into the form (t KEYWORD ...).
 Here KEYWORD is of the form (MATCHER HIGHLIGHT ...) as shown in the
-`font-lock-keywords' doc string."
+`font-lock-keywords' doc string.
+If REGEXP is non-nil, it means these keywords are used for
+`font-lock-keywords' rather than for `font-lock-syntactic-keywords'."
   (if (eq (car-safe keywords) t)
       keywords
-    (cons t (mapcar 'font-lock-compile-keyword keywords))))
+    (setq keywords (cons t (mapcar 'font-lock-compile-keyword keywords)))
+    (if (and regexp
+	     (eq (or syntax-begin-function
+		     font-lock-beginning-of-syntax-function)
+		 'beginning-of-defun)
+	     (not beginning-of-defun-function))
+	;; Try to detect when a string or comment contains something that
+	;; looks like a defun and would thus confuse font-lock.
+	(nconc keywords
+	       `((,(if defun-prompt-regexp
+		       (concat "^\\(?:" defun-prompt-regexp "\\)?\\s(")
+		     "^\\s(")
+		  (0
+		   (if (memq (get-text-property (point) 'face)
+			     '(font-lock-string-face font-lock-doc-face
+			       font-lock-comment-face))
+		       font-lock-warning-face)
+		   prepend)))))
+    keywords))
 
 (defun font-lock-compile-keyword (keyword)
   (cond ((nlistp keyword)			; MATCHER
@@ -1753,15 +1774,6 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 	   (local (cdr (assq major-mode font-lock-keywords-alist)))
 	   (removed-keywords
 	    (cdr-safe (assq major-mode font-lock-removed-keywords-alist))))
-      ;; Regexp fontification?
-      (set (make-local-variable 'font-lock-keywords)
-	   (font-lock-compile-keywords (font-lock-eval-keywords keywords)))
-      ;; Local fontification?
-      (while local
-	(font-lock-add-keywords nil (car (car local)) (cdr (car local)))
-	(setq local (cdr local)))
-      (when removed-keywords
-	(font-lock-remove-keywords nil removed-keywords))
       ;; Syntactic fontification?
       (when (nth 1 defaults)
 	(set (make-local-variable 'font-lock-keywords-only) t))
@@ -1785,7 +1797,18 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 	     (nth 4 defaults)))
       ;; Variable alist?
       (dolist (x (nthcdr 5 defaults))
-	(set (make-local-variable (car x)) (cdr x))))))
+	(set (make-local-variable (car x)) (cdr x)))
+      ;; Setup `font-lock-keywords' last because its value might depend
+      ;; on other settings (e.g. font-lock-compile-keywords uses
+      ;; font-lock-beginning-of-syntax-function).
+      (set (make-local-variable 'font-lock-keywords)
+	   (font-lock-compile-keywords (font-lock-eval-keywords keywords) t))
+      ;; Local fontification?
+      (while local
+	(font-lock-add-keywords nil (car (car local)) (cdr (car local)))
+	(setq local (cdr local)))
+      (when removed-keywords
+	(font-lock-remove-keywords nil removed-keywords)))))
 
 ;;; Colour etc. support.
 
@@ -2344,7 +2367,10 @@ The value of this variable is used when Font Lock mode is turned on."
     ;; Anders Lindgren <andersl@andersl.com> points out that it is quicker
     ;; to use MATCH-ANCHORED to effectively anchor the regexp on the left.
     ;; This must come after the one for keywords and targets.
-    '(":" ("\\(\\sw+\\)[ \t]*:"
+    ;; Note: the lack of `:' in the first char-range prevents `bar' from being
+    ;; highlighted in "foo: bar:".  But adding `:' would break cases like
+    ;; "test1 ? test2 ? foo : bar : baz".
+    '(":" ("\\(?:^\\|[{};]\\)[ \t]*\\(\\sw+\\)[ \t]*:"
 	   (beginning-of-line) (end-of-line)
 	   (1 font-lock-constant-face)))
     ))
@@ -2362,47 +2388,47 @@ The value of this variable is used when Font Lock mode is turned on."
       (list (concat "\\<\\(" ,c-type-names "\\)\\>"
 		    "\\([ \t*&]+\\sw+\\>\\)*")
 	    ;; Fontify each declaration item.
-	    (list 'font-lock-match-c-style-declaration-item-and-skip-to-next
-		  ;; Start with point after all type specifiers.
-		  (list 'goto-char (list 'or
-					 (list 'match-beginning
-					       (+ ,c-type-names-depth 2))
-					 '(match-end 1)))
-		  ;; Finish with point after first type specifier.
-		  '(goto-char (match-end 1))
-		  ;; Fontify as a variable or function name.
-		  '(1 (if (match-beginning 2)
-			  font-lock-function-name-face
-			font-lock-variable-name-face)))))
+	    `(font-lock-match-c-style-declaration-item-and-skip-to-next
+	      ;; Start with point after all type specifiers.
+	      (prog1 (progn (skip-chars-forward "^;{}") (point))
+		(goto-char (or (match-beginning
+				,(+ ,c-type-names-depth 2))
+			       (match-end 1))))
+	      ;; Finish with point after first type specifier.
+	      (goto-char (match-end 1))
+	      ;; Fontify as a variable or function name.
+	      (1 (if (match-beginning 2)
+		     font-lock-function-name-face
+		   font-lock-variable-name-face)))))
     ;;
     ;; Fontify all storage specs and types, plus their items.
-    `(eval .
-      (list (concat "\\<\\(" ,c-type-specs "\\)\\>"
-		    "[ \t]*\\(\\sw+\\)?")
-	    (list 1 'font-lock-keyword-face)
-	    (list ,(+ c-type-specs-depth 2) 'font-lock-type-face nil t)
-	    (list 'font-lock-match-c-style-declaration-item-and-skip-to-next
-		  nil
-		  ;; Finish with point after the variable name if
-		  ;; there is one.
-		  `(if (match-end 2)
-		       (goto-char (match-end 2)))
-		  ;; Fontify as a variable or function name.
-		  '(1 (if (match-beginning 2)
-			  font-lock-function-name-face
-			font-lock-variable-name-face) nil t))))
+    `(,(concat "\\<\\(" c-type-specs "\\)\\>" "[ \t]*\\(\\sw+\\)?")
+      (1 font-lock-keyword-face)
+      (,(+ c-type-specs-depth 2) font-lock-type-face nil t)
+      (font-lock-match-c-style-declaration-item-and-skip-to-next
+       (save-excursion (skip-chars-forward "^;{}") (point))
+       ;; Finish with point after the variable name if
+       ;; there is one.
+       (if (match-end 2)
+	   (goto-char (match-end 2)))
+       ;; Fontify as a variable or function name.
+       (1 (if (match-beginning 2)
+	      font-lock-function-name-face
+	    font-lock-variable-name-face) nil t)))
     ;;
     ;; Fontify structures, or typedef names, plus their items.
     '("\\(}\\)[ \t*]*\\sw"
       (font-lock-match-c-style-declaration-item-and-skip-to-next
-       (goto-char (match-end 1)) nil
+       (prog1 (progn (skip-chars-forward "^;{}") (point))
+	 (goto-char (match-end 1))) nil
        (1 font-lock-type-face)))
     ;;
     ;; Fontify anything at beginning of line as a declaration or definition.
     '("^\\(\\sw+\\)\\>\\([ \t*]+\\sw+\\>\\)*"
       (1 font-lock-type-face)
       (font-lock-match-c-style-declaration-item-and-skip-to-next
-       (goto-char (or (match-beginning 2) (match-end 1))) nil
+       (prog1 (progn (skip-chars-forward "^;{}") (point))
+	 (goto-char (or (match-beginning 2) (match-end 1)))) nil
        (1 (if (match-beginning 2)
 	      font-lock-function-name-face
 	    font-lock-variable-name-face))))
@@ -2441,13 +2467,13 @@ See also `c-font-lock-extra-types'.")
   (when (looking-at (eval-when-compile
 		      (concat
 		       ;; Skip any leading whitespace.
-		       "[ \t*&]*"
+		       "[ \t\n*&]*"
 		       ;; This is `c++-type-spec' from below.  (Hint hint!)
 		       "\\(\\sw+\\)"				; The instance?
-		       "\\([ \t]*<\\(\\(?:[^<>\n]\\|<[^>\n]+>\\)+\\)[ \t*&]*>\\)?"	; Or template?
-		       "\\([ \t]*::[ \t*~]*\\(\\sw+\\)\\)*"	; Or member?
+		       "\\([ \t\n]*<\\(\\(?:[^<>]\\|<[^>]+>\\)+\\)[ \t\n*&]*>\\)?"	; Or template?
+		       "\\([ \t\n]*::[ \t\n*~]*\\(\\sw+\\)\\)*"	; Or member?
 		       ;; Match any trailing parenthesis.
-		       "[ \t]*\\((\\)?")))
+		       "[ \t\n]*\\((\\)?")))
     (save-match-data
       (condition-case nil
 	  (save-restriction
@@ -2455,7 +2481,7 @@ See also `c-font-lock-extra-types'.")
 	    (narrow-to-region (point-min) limit)
 	    (goto-char (match-end 1))
 	    ;; Move over any item value, etc., to the next item.
-	    (while (not (looking-at "[ \t]*\\(\\(,\\)\\|;\\|$\\)"))
+	    (while (not (looking-at "[ \t\n]*\\(\\(,\\)\\|;\\|\\'\\)"))
 	      (goto-char (or (scan-sexps (point) 1) (point-max))))
 	    (goto-char (match-end 2)))
 	(error t)))))
@@ -2609,74 +2635,75 @@ See also `c++-font-lock-extra-types'.")
       (list (concat "\\<\\(" ,c++-type-names "\\)\\>" ,c++-type-suffix
 		    "\\([ \t*&]+" ,c++-type-spec "\\)*")
 	    ;; The name of any template type.
-	    (list (+ ,c++-type-names-depth 3) 'font-lock-type-face nil t)
+	    `(,(+ ,c++-type-names-depth 3) font-lock-type-face nil t)
 	    ;; Fontify each declaration item.
-	    (list 'font-lock-match-c++-style-declaration-item-and-skip-to-next
-		  ;; Start with point after all type specifiers.
-		  (list 'goto-char (list 'or (list 'match-beginning
-						   (+ ,c++-type-depth 2))
-					 '(match-end 1)))
-		  ;; Finish with point after first type specifier.
-		  '(goto-char (match-end 1))
-		  ;; Fontify as a variable or function name.
-		  '(1 (cond ((or (match-beginning 2) (match-beginning 4))
-			     font-lock-type-face)
-			    ((and (match-beginning 6) (c-at-toplevel-p))
-			     font-lock-function-name-face)
-			    (t
-			     font-lock-variable-name-face)))
-		  '(3 font-lock-type-face nil t)
-		  '(5 (if (match-beginning 6)
-			  font-lock-function-name-face
-			font-lock-variable-name-face) nil t))))
+	    `(font-lock-match-c++-style-declaration-item-and-skip-to-next
+	      ;; Start with point after all type specifiers.
+	      (prog1 (progn (skip-chars-forward "^;{}") (point))
+		(goto-char (or (match-beginning
+				,(+ ,c++-type-depth 2))
+			       (match-end 1))))
+	      ;; Finish with point after first type specifier.
+	      (goto-char (match-end 1))
+	      ;; Fontify as a variable or function name.
+	      (1 (cond ((or (match-beginning 2) (match-beginning 4))
+			font-lock-type-face)
+		       ((and (match-beginning 6) (c-at-toplevel-p))
+			font-lock-function-name-face)
+		       (t
+			font-lock-variable-name-face)))
+	      (3 font-lock-type-face nil t)
+	      (5 (if (match-beginning 6)
+		     font-lock-function-name-face
+		   font-lock-variable-name-face) nil t))))
     ;;
     ;; Fontify all storage specs and types, plus their items.
-    `(eval .
-      (list (concat "\\<" ,c++-type-specs "\\>" ,c++-type-suffix
-		    "[ \t]*\\(" ,c++-type-spec "\\)?")
-	    ;; The name of any template type.
-	    (list ,(+ c++-type-specs-depth 2) 'font-lock-type-face nil t)
-	    ;; The name of any type.
-	    (list (+ ,c++-type-specs-depth ,c++-type-suffix-depth 2)
-		  'font-lock-type-face nil t)
-	    ;; Fontify each declaration item.
-	    (list 'font-lock-match-c++-style-declaration-item-and-skip-to-next
-		  ;; Start with point after all type specifiers.
-		  nil
-		  ;; Finish with point after first type specifier.
-		  nil
-		  ;; Fontify as a variable or function name.
-		  '(1 (cond ((or (match-beginning 2) (match-beginning 4))
-			     font-lock-type-face)
-			    ((and (match-beginning 6) (c-at-toplevel-p))
-			     font-lock-function-name-face)
-			    (t
-			     font-lock-variable-name-face)))
-		  '(3 font-lock-type-face nil t)
-		  '(5 (if (match-beginning 6)
-			  font-lock-function-name-face
-			font-lock-variable-name-face) nil t))
-	    ))
+    `(,(concat "\\<" c++-type-specs "\\>" c++-type-suffix
+	       "[ \t]*\\(" c++-type-spec "\\)?")
+      ;; The name of any template type.
+      (,(+ c++-type-specs-depth 2) 'font-lock-type-face nil t)
+      ;; The name of any type.
+      (,(+ c++-type-specs-depth c++-type-suffix-depth 2)
+       font-lock-type-face nil t)
+      ;; Fontify each declaration item.
+      (font-lock-match-c++-style-declaration-item-and-skip-to-next
+       ;; Start with point after all type specifiers.
+       (save-excursion (skip-chars-forward "^;{}") (point))
+       ;; Finish with point after first type specifier.
+       nil
+       ;; Fontify as a variable or function name.
+       (1 (cond ((or (match-beginning 2) (match-beginning 4))
+		 font-lock-type-face)
+		((and (match-beginning 6) (c-at-toplevel-p))
+		 font-lock-function-name-face)
+		(t
+		 font-lock-variable-name-face)))
+       (3 font-lock-type-face nil t)
+       (5 (if (match-beginning 6)
+	      font-lock-function-name-face
+	    font-lock-variable-name-face) nil t)))
     ;;
     ;; Fontify structures, or typedef names, plus their items.
     '("\\(}\\)[ \t*]*\\sw"
       (font-lock-match-c++-style-declaration-item-and-skip-to-next
-       (goto-char (match-end 1)) nil
+       (prog1 (progn (skip-chars-forward "^;{}") (point))
+	 (goto-char (match-end 1))) nil
        (1 font-lock-type-face)))
     ;;
     ;; Fontify anything at beginning of line as a declaration or definition.
-    (list (concat "^\\(" c++-type-spec "[ \t*&]*\\)+")
-	  '(font-lock-match-c++-style-declaration-item-and-skip-to-next
-	    (goto-char (match-beginning 1))
-	    (goto-char (match-end 1))
-	    (1 (cond ((or (match-beginning 2) (match-beginning 4))
-		      font-lock-type-face)
-		     ((match-beginning 6) font-lock-function-name-face)
-		     (t font-lock-variable-name-face)))
-	    (3 font-lock-type-face nil t)
-	    (5 (if (match-beginning 6)
-		   font-lock-function-name-face
-		 font-lock-variable-name-face) nil t)))
+    `(,(concat "^\\(" c++-type-spec "[ \t*&]*\\)+")
+      (font-lock-match-c++-style-declaration-item-and-skip-to-next
+       (prog1 (progn (skip-chars-forward "^;{}") (point))
+	 (goto-char (match-beginning 1)))
+       (goto-char (match-end 1))
+       (1 (cond ((or (match-beginning 2) (match-beginning 4))
+		 font-lock-type-face)
+		((match-beginning 6) font-lock-function-name-face)
+		(t font-lock-variable-name-face)))
+       (3 font-lock-type-face nil t)
+       (5 (if (match-beginning 6)
+	      font-lock-function-name-face
+	    font-lock-variable-name-face) nil t)))
     ;;
     ;; Fontify constructors and destructors inside class declarations.
     '(font-lock-match-c++-structor-declaration
@@ -2791,45 +2818,44 @@ See also `objc-font-lock-extra-types'.")
       (list (concat "\\<\\(" ,objc-type-names "\\)\\>"
 		    "\\([ \t*&]+\\sw+\\>\\)*")
 	    ;; Fontify each declaration item.
-	    (list 'font-lock-match-c-style-declaration-item-and-skip-to-next
-		  ;; Start with point after all type specifiers.
-		  (list 'goto-char
-			(list 'or (list 'match-beginning
-					(+ ,objc-type-names-depth 2))
-			      '(match-end 1)))
-		  ;; Finish with point after first type specifier.
-		  '(goto-char (match-end 1))
-		  ;; Fontify as a variable or function name.
-		  '(1 (if (match-beginning 2)
-			  font-lock-function-name-face
-			font-lock-variable-name-face)))))
+	    `(font-lock-match-c-style-declaration-item-and-skip-to-next
+	      ;; Start with point after all type specifiers.
+	      (prog1 (progn (skip-chars-forward "^;{}") (point))
+		(goto-char (or (match-beginning
+				,(+ ,objc-type-names-depth 2))
+			       (match-end 1))))
+	      ;; Finish with point after first type specifier.
+	      (goto-char (match-end 1))
+	      ;; Fontify as a variable or function name.
+	      (1 (if (match-beginning 2)
+		     font-lock-function-name-face
+		   font-lock-variable-name-face)))))
     ;;
     ;; Fontify all storage specs and types, plus their items.
-    `(eval .
-      (list (concat "\\<\\(" ,objc-type-specs "[ \t]*\\)+\\>"
-		    "[ \t]*\\(\\sw+\\)?")
-	    ;; The name of any type.
-	    (list ,(+ objc-type-specs-depth 2) 'font-lock-type-face nil t)
-	    ;; Fontify each declaration item.
-	    (list 'font-lock-match-c++-style-declaration-item-and-skip-to-next
-		  nil nil
-		  ;; Fontify as a variable or function name.
-		  '(1 (if (match-beginning 2)
-			  font-lock-function-name-face
-			font-lock-variable-name-face)))
-	    ))
+    `(,(concat "\\<\\(" objc-type-specs "[ \t]*\\)+\\>" "[ \t]*\\(\\sw+\\)?")
+      ;; The name of any type.
+      (,(+ objc-type-specs-depth 2) font-lock-type-face nil t)
+      ;; Fontify each declaration item.
+      (font-lock-match-c++-style-declaration-item-and-skip-to-next
+       (save-excursion (skip-chars-forward "^;{}") (point)) nil
+       ;; Fontify as a variable or function name.
+       (1 (if (match-beginning 2)
+	      font-lock-function-name-face
+	    font-lock-variable-name-face))))
     ;;
     ;; Fontify structures, or typedef names, plus their items.
     '("\\(}\\)[ \t*]*\\sw"
       (font-lock-match-c-style-declaration-item-and-skip-to-next
-       (goto-char (match-end 1)) nil
+       (prog1 (progn (skip-chars-forward "^;{}") (point))
+	 (goto-char (match-end 1))) nil
        (1 font-lock-type-face)))
     ;;
     ;; Fontify anything at beginning of line as a declaration or definition.
     '("^\\(\\sw+\\)\\>\\([ \t*]+\\sw+\\>\\)*"
       (1 font-lock-type-face)
       (font-lock-match-c-style-declaration-item-and-skip-to-next
-       (goto-char (or (match-beginning 2) (match-end 1))) nil
+       (prog1 (progn (skip-chars-forward "^;{}") (point))
+	 (goto-char (or (match-beginning 2) (match-end 1)))) nil
        (1 (if (match-beginning 2)
 	      font-lock-function-name-face
 	    font-lock-variable-name-face))))
@@ -2949,32 +2975,32 @@ See also `java-font-lock-extra-types'.")
 		    "\\([ \t]*\\[[ \t]*\\]\\)*"
 		    "\\([ \t]*\\sw\\)")
 	    ;; Fontify each declaration item.
-	    (list 'font-lock-match-c-style-declaration-item-and-skip-to-next
-		  ;; Start and finish with point after the type specifier.
-		  (list 'goto-char (list 'match-beginning
-					 (+ ,java-type-names-depth 3)))
-		  (list 'goto-char (list 'match-beginning
-					 (+ ,java-type-names-depth 3)))
-		  ;; Fontify as a variable or function name.
-		  '(1 (if (match-beginning 2)
-			  font-lock-function-name-face
-			font-lock-variable-name-face)))))
+	    `(font-lock-match-c-style-declaration-item-and-skip-to-next
+	      ;; Start and finish with point after the type specifier.
+	      (prog1 (progn (skip-chars-forward "^;{}") (point))
+		(goto-char (match-beginning ,(+ ,java-type-names-depth 3))))
+	      (goto-char (match-beginning ,(+ ,java-type-names-depth 3)))
+	      ;; Fontify as a variable or function name.
+	      (1 (if (match-beginning 2)
+		     font-lock-function-name-face
+		   font-lock-variable-name-face)))))
     ;;
     ;; Fontify those that are eventually followed by an item or items.
-    (list (concat "\\<\\(" java-type-specs "\\)\\>"
-		  "\\([ \t]+\\sw+\\>"
-		  "\\([ \t]*\\[[ \t]*\\]\\)*"
-		  "\\)*")
-	  ;; Fontify each declaration item.
-	  '(font-lock-match-c-style-declaration-item-and-skip-to-next
-	    ;; Start with point after all type specifiers.
-	    (goto-char (or (match-beginning 5) (match-end 1)))
-	    ;; Finish with point after first type specifier.
-	    (goto-char (match-end 1))
-	    ;; Fontify as a variable or function name.
-	    (1 (if (match-beginning 2)
-		   font-lock-function-name-face
-		 font-lock-variable-name-face))))
+    `(,(concat "\\<\\(" java-type-specs "\\)\\>"
+	       "\\([ \t]+\\sw+\\>"
+	       "\\([ \t]*\\[[ \t]*\\]\\)*"
+	       "\\)*")
+      ;; Fontify each declaration item.
+      (font-lock-match-c-style-declaration-item-and-skip-to-next
+       ;; Start with point after all type specifiers.
+       (prog1 (progn (skip-chars-forward "^;{}") (point))
+	 (goto-char (or (match-beginning 5) (match-end 1))))
+       ;; Finish with point after first type specifier.
+       (goto-char (match-end 1))
+       ;; Fontify as a variable or function name.
+       (1 (if (match-beginning 2)
+	      font-lock-function-name-face
+	    font-lock-variable-name-face))))
     ))
   "Gaudy level highlighting for Java mode.
 See also `java-font-lock-extra-types'.")
