@@ -1877,6 +1877,11 @@ in milliseconds.  If the value is @code{nil}, double clicks are not
 detected at all.  If the value is @code{t}, then there is no time
 limit.
 
+@vindex double-click-fuzz
+  The variable @code{double-click-fuzz} specifies how much the mouse
+may be moved between clicks that are recognized as a pair.  Its value
+is measured in pixels.
+
   The symbols for mouse events also indicate the status of the modifier
 keys, with the usual prefixes @samp{C-}, @samp{M-}, @samp{H-},
 @samp{s-}, @samp{A-} and @samp{S-}.  These always precede @samp{double-}

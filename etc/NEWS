@@ -2202,6 +2202,10 @@ It is automatically turned on for files whose names have the extension
 ** Refill minor mode provides preliminary support for keeping
 paragraphs filled as you modify them.
 
+** The variable `double-click-fuzz' specifies how much the mouse
+may be moved between clicks that are recognized as a pair.  Its value
+is measured in pixels.
+
 +++
 ** The new global minor mode `auto-image-file-mode' allows image files
 to be visited as images.
