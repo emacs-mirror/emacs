@@ -380,6 +380,12 @@ and ignores this variable."
 	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
   "The directory for writing temporary files.")
 
+(defvar small-temporary-file-directory
+  (if (eq system-type 'ms-dos) (getenv "TMPDIR") temporary-file-directory)
+  "The directory for writing small temporary files.
+This is for systems that have fast storage with limited space,
+such as a RAM disk.")
+
 ;; The system null device. (Should reference NULL_DEVICE from C.)
 (defvar null-device "/dev/null" "The system null device.")
 
