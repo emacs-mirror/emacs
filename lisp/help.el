@@ -1,6 +1,6 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; This code implements GNU Emacs' on-line help system, the one invoked by
-;;`M-x help-for-help'.
+;; `M-x help-for-help'.
 
 ;;; Code:
 
@@ -1050,7 +1050,7 @@ that."
                     (while
                         ;; Ignore single blank lines in table, but not
                         ;; double ones, which should terminate it.
-                        (and (not (looking-at "\n\n"))
+                        (and (not (looking-at "\n\\s-*\n"))
                              (progn
 			       (and (eolp) (forward-line))
 			       (end-of-line)
