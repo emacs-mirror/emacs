@@ -3622,7 +3622,7 @@ than 988 characters long, and if they are not, trim them until they are."
   (when message-auto-save-directory
     (unless (file-directory-p
 	     (directory-file-name message-auto-save-directory))
-      (make-directory message-auto-save-directory))
+      (gnus-make-directory message-auto-save-directory))
     (if (gnus-alive-p)
 	(setq message-draft-article
 	      (nndraft-request-associate-buffer "drafts"))
