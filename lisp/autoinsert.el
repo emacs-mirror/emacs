@@ -178,6 +178,9 @@ If this contains a %s, that will be replaced by the matching rule."
 
 
 
+\(provide '"
+       (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))
+       ")
 ;;; " (file-name-nondirectory (buffer-file-name)) " ends here"))
   "A list specifying text to insert by default into a new file.
 Elements look like (CONDITION . ACTION) or ((CONDITION . DESCRIPTION) . ACTION).
