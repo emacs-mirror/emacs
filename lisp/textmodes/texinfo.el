@@ -1,6 +1,7 @@
 ;;; texinfo.el --- major mode for editing Texinfo files
 
-;; Copyright (C) 1985-2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985, '88, '89, '90, '91,
+;;                '92, '93, '96, '97, 2000 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Date:   [See date below for texinfo-version]
@@ -32,6 +33,8 @@
 (or (fboundp 'defcustom)
     (defmacro defcustom (var value doc &rest ignore)
       `(defvar ,var ,value ,doc)))
+
+(eval-when-compile (require 'tex-mode))
 
 (defgroup texinfo nil
   "Texinfo Mode"
@@ -90,15 +93,15 @@ marked region.
 The functions for creating or updating nodes and menus, and their
 keybindings, are:
 
-    texinfo-update-node (&optional region-p)    \\[texinfo-update-node]
-    texinfo-every-node-update ()                \\[texinfo-every-node-update]
-    texinfo-sequential-node-update (&optional region-p)
+    `texinfo-update-node' (&optional region-p)    \\[texinfo-update-node]
+    `texinfo-every-node-update' ()                \\[texinfo-every-node-update]
+    `texinfo-sequential-node-update' (&optional region-p)
 
-    texinfo-make-menu (&optional region-p)      \\[texinfo-make-menu]
-    texinfo-all-menus-update ()                 \\[texinfo-all-menus-update]
-    texinfo-master-menu ()
+    `texinfo-make-menu' (&optional region-p)      \\[texinfo-make-menu]
+    `texinfo-all-menus-update' ()                 \\[texinfo-all-menus-update]
+    `texinfo-master-menu' ()
 
-    texinfo-indent-menu-description (column &optional region-p)
+    `texinfo-indent-menu-description' (column &optional region-p)
 
 The `texinfo-column-for-description' variable specifies the column to
 which menu descriptions are indented. Its default value is 32."
@@ -298,7 +301,7 @@ chapter."
 ;; To override this example, set either `imenu-generic-expression'
 ;; or `imenu-create-index-function'.
 (defvar texinfo-imenu-generic-expression
-  '((nil "^@node[ \t]+\\([^,\n]*\\)" 1)
+  '((nil "^@\\(node\\|anchor\\)[ \t]+\\([^,\n]*\\)" 2)
     ("Chapters" "^@chapter[ \t]+\\(.*\\)$" 1))
   "Imenu generic expression for TexInfo mode.  See `imenu-generic-expression'.")
 
@@ -321,13 +324,13 @@ chapter."
     ("@\\([a-zA-Z]+\\|[^ \t\n]\\)" 1 font-lock-keyword-face) ;commands
     ("^\\*\\(.*\\)[\t ]*$" 1 font-lock-function-name-face t) ;menu items
     ("@\\(emph\\|strong\\|b\\|i\\|sc\\){\\([^}]+\\)" 2 font-lock-comment-face)
-    ("@\\(file\\|kbd\\|key\\|url\\|email\\){\\([^}]+\\)" 2 font-lock-string-face)
+    ("@\\(file\\|kbd\\|key\\|url\\|uref\\|email\\){\\([^}]+\\)" 2 font-lock-string-face)
     ("@\\(samp\\|code\\|var\\|math\\|env\\|command\\|option\\){\\([^}]+\\)"
      2 font-lock-variable-name-face)
     ("@\\(cite\\|[ux]?ref\\|pxref\\){\\([^}]+\\)" 2 font-lock-constant-face)
     ("@\\(end\\|itemx?\\) +\\(.+\\)" 2 font-lock-function-name-face keep)
     (,(concat "^@" (regexp-opt (mapcar 'car texinfo-section-list) t)
-	      ".*\n") 0 texinfo-heading-face t))
+	       ".*\n") 0 texinfo-heading-face t))
   "Additional expressions to highlight in TeXinfo mode.")
 
 (defun texinfo-outline-level ()
@@ -650,17 +653,19 @@ Puts point on a blank line between them."
 
 (defun texinfo-inside-macro-p (macro &optional bound)
   "Non-nil if inside a macro matching the regexp MACRO."
-  (ignore-errors
-    (save-excursion
-      (save-restriction
-	(narrow-to-region bound (point))
-	(while (progn
-		 (up-list -1)
-		 (not (ignore-errors
-			(save-excursion
-			  (backward-sexp 1)
-			  (looking-at macro))))))
-	t))))
+  (condition-case nil
+      (save-excursion
+	(save-restriction
+	  (narrow-to-region bound (point))
+	  (while (progn
+		   (up-list -1)
+		   (not (condition-case nil
+			    (save-excursion
+			      (backward-sexp 1)
+			      (looking-at macro))
+			  (error nil)))))
+	  t))
+    (error nil)))
 
 (defun texinfo-inside-env-p (env &optional bound)
   "Non-nil if inside an environment matching the regexp @ENV."
@@ -678,7 +683,11 @@ With prefix argument or inside @code or @example, inserts a plain \"."
 		 (point-min))))
     (if (or arg
 	    (texinfo-inside-env-p "example\\>" top)
-	    (texinfo-inside-macro-p "@code\\>" top))
+	    (texinfo-inside-env-p "lisp\\>" top)
+	    (texinfo-inside-macro-p "@code\\>" top)
+	    (texinfo-inside-macro-p "@samp\\>" top)
+	    (texinfo-inside-macro-p "@kbd\\>" top)
+	    (texinfo-inside-macro-p "@kbd\\>" top))
 	(self-insert-command (prefix-numeric-value arg))
       (insert
        (cond ((= (preceding-char) ?\\) ?\")
@@ -840,7 +849,7 @@ The default is not to surround any existing words with the braces."
   (texinfo-insert-@-with-arg "var" arg))
 
 (defun texinfo-insert-@uref (&optional arg)
-  "Insert a `@url{}' command in a Texinfo buffer.
+  "Insert a `@uref{}' command in a Texinfo buffer.
 A numeric argument says how many words the braces should surround.
 The default is not to surround any existing words with the braces."
   (interactive "P")
