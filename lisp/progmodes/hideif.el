@@ -867,9 +867,6 @@ to redo on a recursive entry."
   "*Non-nil if `hide-ifdefs' should be called when Hide-Ifdef mode
 is first activated.")
 
-(defvar hide-ifdef-hiding nil
-  "Non-nil if text might be hidden.")
-
 ;;;###autoload
 (defvar hide-ifdef-read-only nil
   "*Set to non-nil if you want buffer to be read-only while hiding text.")
