@@ -1,3 +1,13 @@
+1999-12-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.c (regex_compile): Recognize *?, +? and ?? as non-greedy
+	operators and handle them properly.
+	* regex.h (RE_ALL_GREEDY): New option.
+	(RE_UNMATCHED_RIGHT_PAREN_ORD): Moved to the end where alphabetic
+	sorting would put it.
+	(RE_SYNTAX_AWK, RE_SYNTAX_GREP, RE_SYNTAX_EGREP)
+	(_RE_SYNTAX_POSIX_COMMON): Use the new option to keep old behavior.
+
 1999-12-04  Dave Love  <d.love@dl.ac.uk>
 
 	* m/arm.h: New file.
