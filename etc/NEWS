@@ -83,6 +83,10 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** Under XFree86 4, the display table is modified so that `' is
+displayed as balanced quotes, not the ASCII glyphs whose shape has
+been changed generally in the XFree86 fonts.
+
 ** sql changes.
 
 *** The variable `sql-product' controls the highlightng of different
@@ -1657,6 +1661,12 @@ a match if part of it has a read-only property.
 ** The new Lisp library fringe.el controls the apperance of fringes.
 
 * Lisp Changes in Emacs 21.4
+
+** `latin1-char-displayable-p' is obsoleted by `char-displayable-p'.
+
+** New coding system property `mime-text-unsuitable' indicates that
+the coding system's `mime-charset' is not suitable for MIME text
+parts, e.g. utf-16.
 
 ** The argument to forward-word, backward-word, forward-to-indentation
 and backward-to-indentation is now optional, and defaults to 1.

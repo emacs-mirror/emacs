@@ -1,3 +1,23 @@
+2003-09-01  Dave Love  <fx@gnu.org>
+
+	* mouse.el (mouse-popup-menubar, mouse-skip-word): Doc fix.
+
+	* menu-bar.el (menu-bar-showhide-menu): Amend date and time label
+	and :help; also line and column numbers labels.
+
+	* international/mule-util.el (char-displayable-p): Moved from
+	latin1-disp, renamed and autoloaded.
+
+	* international/latin1-disp.el (latin1-char-displayable-p): Now
+	obsolete alias.  Replace uses with char-displayable-p.
+	(latin1-display-ucs-per-lynx): Fix last change.
+
+	* international/mule-cmds.el (standard-display-european-internal):
+	Don't use char code for Latin-1 NBSP.
+	<XFree86 4>: Unfrob NBSP display table.  Set display table to use
+	U+2018, U+2019 for `'.
+	(select-safe-coding-system): Message fix.
+
 2003-09-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (setup-default-fontset): For Thai
