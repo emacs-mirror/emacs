@@ -737,7 +737,9 @@ copy_text (from_addr, to_addr, nbytes,
 	  unsigned char workbuf[4], *str;
 	  int len;
 
-	  if ((c >= 0240 || !NILP (Vnonascii_translation_table)) && c < 0400)
+	  if (c < 0400
+	      && (c >= 0240
+		  || (c >= 0200 && !NILP (Vnonascii_translation_table))))
 	    {
 	      c = unibyte_char_to_multibyte (c);
 	      len = CHAR_STRING (c, workbuf, str);
@@ -769,7 +771,7 @@ count_size_as_multibyte (ptr, nbytes)
     {
       unsigned int c = *ptr++;
 
-      if (c < 0240 && NILP (Vnonascii_translation_table))
+      if (c < 0200 || (c < 0240 && NILP (Vnonascii_translation_table)))
 	outgoing_nbytes++;
       else
 	{
