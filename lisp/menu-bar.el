@@ -673,6 +673,9 @@ Do the same for the keys of the same name."
   '("--"))
 
 (defvar vc-menu-map (make-sparse-keymap "Version Control"))
+(define-key menu-bar-tools-menu [pcl-cvs]
+  `(menu-item "PCL-CVS" ,cvs-global-menu
+	      :help "Module-level interface to CVS"))
 (define-key menu-bar-tools-menu [vc]
   (list 'menu-item "Version Control" vc-menu-map
 	:help "Interface to RCS, CVS, SCCS"))
