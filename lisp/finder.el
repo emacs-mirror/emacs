@@ -52,6 +52,7 @@
     (calendar	. "calendar and time management support")
     (comm	. "communications, networking, remote access to files")
     (data	. "support editing files of data")
+    (debugging	. "support for debugging programs")
     (docs	. "support for Emacs documentation")
     (emulations	. "emulations of other editors")
     (extensions	. "Emacs Lisp language extensions")
