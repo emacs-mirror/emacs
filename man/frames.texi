@@ -31,8 +31,8 @@ so that you can use many of the features described in this chapter.
 
 @cindex MS Windows
   Emacs compiled for MS Windows mostly supports the same features as
-under X.  However, images, tool bars, and tooltips are not yet
-available in Emacs version 21.1 on MS-Windows.
+under X.  However, images and tool bars are not yet available in Emacs
+version 21.3 on MS-Windows.
 
 @menu
 * Mouse Commands::      Moving, cutting, and pasting, with the mouse.
@@ -849,9 +849,6 @@ menu items too.
 tooltip-mode}.  The customization group @code{tooltip} controls
 various aspects of how tooltips work.  When Tooltip mode is disabled,
 the help text is displayed in the echo area instead.
-
-  As of Emacs 21.1, tooltips are not supported on MS-Windows,
-so on that system the help text always appears in the echo area.
 
   @xref{X Resources}, for information on customizing the windows
 that display tooltips.
