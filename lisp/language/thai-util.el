@@ -164,6 +164,25 @@ positions (integers or markers) specifying the region."
 	(set-category-table current-ctbl)))))
 
 ;;;###autoload
+(defun thai-compose-string (string)
+  "Compose Thai characters in STRING and return the resulting string."
+  (let ((current-ctbl (category-table)))
+    (set-category-table thai-category-table)
+    (unwind-protect
+	(let ((idx 0)
+	      (new ""))
+	  (while (string-match "\\c+\\c-+" string idx)
+	    (if (< idx (match-beginning 0))
+		(setq new
+		      (concat new (substring string idx (match-beginning 0)))))
+	    (setq new (concat new (compose-string (match-string 0 string))))
+	    (setq idx (match-end 0)))
+	  (if (< idx (length string))
+	      (setq new (concat new (substring string idx))))
+	  new)
+      (set-category-table current-ctbl))))
+      
+;;;###autoload
 (defun thai-compose-buffer ()
   "Compose Thai characters in the current buffer."
   (interactive)
