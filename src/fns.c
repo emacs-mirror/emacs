@@ -1439,11 +1439,11 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
     }
   else
     {
-      i = 32;
+      i = 0;
       to = SUB_CHAR_TABLE_ORDINARY_SLOTS;
     }
 
-  for (i; i < to; i++)
+  for (; i < to; i++)
     {
       Lisp_Object elt = XCHAR_TABLE (subtable)->contents[i];
 
@@ -1453,8 +1453,7 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
 	{
 	  if (depth >= 3)
 	    error ("Too deep char table");
-	  map_char_table (c_function, function, elt, arg,
-			  depth + 1, indices);
+	  map_char_table (c_function, function, elt, arg, depth + 1, indices);
 	}
       else
 	{
@@ -1476,15 +1475,16 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
 
 DEFUN ("map-char-table", Fmap_char_table, Smap_char_table,
   2, 2, 0,
-  "Call FUNCTION for each range of like characters in CHAR-TABLE.\n\
+  "Call FUNCTION for each (normal and generic) characters in CHAR-TABLE.\n\
 FUNCTION is called with two arguments--a key and a value.\n\
-The key is always a possible RANGE argument to `set-char-table-range'.")
+The key is always a possible IDX argument to `aref'.")
   (function, char_table)
      Lisp_Object function, char_table;
 {
-  Lisp_Object keyvec;
   /* The depth of char table is at most 3. */
-  Lisp_Object *indices = (Lisp_Object *) alloca (3 * sizeof (Lisp_Object));
+  Lisp_Object indices[3];
+
+  CHECK_CHAR_TABLE (char_table, 1);
 
   map_char_table (NULL, function, char_table, char_table, 0, indices);
   return Qnil;
