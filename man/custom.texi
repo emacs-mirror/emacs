@@ -1304,11 +1304,11 @@ sequence, and so on.
 @kbd{C-x @key{SELECT}} is meaningful.  If you make @key{SELECT} a prefix
 key, then @kbd{@key{SELECT} C-n} makes sense.  You can even mix mouse
 events with keyboard events, but we recommend against it, because such
-sequences are inconvenient to type in.
+key sequences are inconvenient to use.
 
-  As a user, you can redefine any key; but it might be best to stick to
-key sequences that consist of @kbd{C-c} followed by a letter.  These
-keys are ``reserved for users,'' so they won't conflict with any
+  As a user, you can redefine any key; but it is usually best to stick
+to key sequences that consist of @kbd{C-c} followed by a letter.
+These keys are ``reserved for users,'' so they won't conflict with any
 properly designed Emacs extension.  The function keys @key{F5} through
 @key{F9} are also reserved for users.  If you redefine some other key,
 your definition may be overridden by certain extensions or major modes
@@ -1574,6 +1574,15 @@ probably causes an error; it certainly isn't what you want.
 (global-set-key "\C-xl" 'make-symbolic-link)
 @end example
 
+  To put @key{TAB}, @key{RET}, @key{ESC}, or @key{DEL} in the
+string, you can use the Emacs Lisp escape sequences, @samp{\t},
+@samp{\r}, @samp{\e}, and @samp{\d}.  Here is an example which binds
+@kbd{C-x @key{TAB}}:
+
+@example
+(global-set-key "\C-x\t" 'indent-rigidly)
+@end example
+
   When the key sequence includes function keys or mouse button events,
 or non-ASCII characters such as @code{C-=} or @code{H-a}, you must use
 the more general method of rebinding, which uses a vector to specify the
@@ -1599,12 +1608,14 @@ keyboard-modified mouse button):
 @end example
 
   You can use a vector for the simple cases too.  Here's how to rewrite
-the first two examples, above, to use vectors:
+the first three examples, above, using vectors:
 
 @example
 (global-set-key [?\C-z] 'shell)
 
 (global-set-key [?\C-x ?l] 'make-symbolic-link)
+
+(global-set-key [?\C-x ?\t] 'indent-rigidly)
 @end example
 
 @node Function Keys
