@@ -1,3 +1,48 @@
+2002-05-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* buffer.c (Fset_buffer_multibyte): Fix 8-bit char handling.
+
+	* callproc.c (Fcall_process): Be sure to give the current buffer
+	to decode_coding_c_string.  Update PT and PT_BYTE after the
+	insertion.
+
+	* charset.c (struct charset_map_entries): New struct.
+	(load_charset_map): Renamed from parse_charset_map.  New args
+	entries and n_entries.  Caller changed.
+	(load_charset_map_from_file): Renamed from load_charset_map.
+	Caller changed.  New arg control_flag.  Call load_charset_map at
+	the tail.
+	(load_charset_map_from_vector): New function.
+	(Fdefine_charset_internal): Setup charset.compact_codes_p.
+	(encode_char): If the charset is compact, change a character index
+	to a code point.
+
+	* coding.c (coding_alloc_by_making_gap): Check the case that the
+	source and destination are the same correctly.
+	(decode_coding_raw_text): Set coding->consumed_char and
+	coding->consumed to 0.
+	(produce_chars): If coding->chars_at_source is nonzero, update
+	coding->consumed_char and coding->consumed before calling
+	alloc_destination.
+	(Fdefine_coding_system_alias): Register ALIAS in
+	Vcoding_system_alist.
+	(syms_of_coding): Define `no-convesion' coding system at the tail.
+
+	* fileio.c (Finsert_file_contents): Set coding_system instead of
+	val.  If the current buffer is multibyte, always call
+	decode_coding_gap.
+
+	* xfaces.c (try_font_list): Give higher priority to fontset's
+	family than face's family.
+
+2002-04-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* callproc.c (Fcall_process): Be sure to give the current buffer
+	to decode_coding_c_string.
+
+	* xfaces.c (try_font_list): Give a family specified in a fontset
+	higher priority than a family specified in a face.
+
 2002-04-09  Kenichi Handa  <handa@etl.go.jp>
 
 	* fileio.c (Finsert_file_contents): Fix calculation of `inserted'.
