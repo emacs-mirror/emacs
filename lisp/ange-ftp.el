@@ -3,8 +3,8 @@
 ;;; Copyright (C) 1989, 1990, 1991, 1992  Free Software Foundation, Inc.
 ;;; ??? Waiting for papers from several people.
 ;;;
-;;; Author: Andy Norman (ange@hplb.hpl.hp.com)
-;;; Keywords: comm
+;; Author: Andy Norman (ange@hplb.hpl.hp.com)
+;; Keywords: comm
 ;;;
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -859,7 +859,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.14 $")
+(defconst ange-ftp-version "$Revision: 1.15 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
