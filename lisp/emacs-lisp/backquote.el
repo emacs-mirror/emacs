@@ -90,7 +90,7 @@ For example (backquote-list* 'a 'b 'c) => (a b . c)"
   "*Symbol used to represent an unquote (e.g. `,') inside a backquote.")
 
 (defvar backquote-splice-symbol ',@
-  "*Symbol used to represent a splice (e.g. `,'@) inside a backquote.")
+  "*Symbol used to represent a splice (e.g. `,@') inside a backquote.")
 
 ;;;###autoload
 (defmacro backquote (arg)
