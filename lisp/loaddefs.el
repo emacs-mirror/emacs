@@ -119,7 +119,7 @@ Insert a descriptive header at the top of the file." t nil)
 ;;;### (autoloads (change-log-redate change-log-merge add-log-current-defun
 ;;;;;;  change-log-mode add-change-log-entry-other-window add-change-log-entry
 ;;;;;;  find-change-log prompt-for-change-log-name add-log-mailing-address
-;;;;;;  add-log-full-name) "add-log" "add-log.el" (15223 37886))
+;;;;;;  add-log-full-name) "add-log" "add-log.el" (15294 47094))
 ;;; Generated autoloads from add-log.el
 
 (defvar add-log-full-name nil "\
@@ -150,27 +150,30 @@ current buffer to the complete file name.
 Optional arg BUFFER-FILE overrides `buffer-file-name'." nil nil)
 
 (autoload (quote add-change-log-entry) "add-log" "\
-Find change log file and add an entry for today.
+Find change log file, and add an entry for today and an item for this file.
 Optional arg WHOAMI (interactive prefix) non-nil means prompt for user
 name and site.
 
-Second arg is FILE-NAME of change log.  If nil, uses `change-log-default-name'.
+Second arg FILE-NAME is file name of the change log.
+If nil, use the value of `change-log-default-name'.
+
 Third arg OTHER-WINDOW non-nil means visit in other window.
+
 Fourth arg NEW-ENTRY non-nil means always create a new entry at the front;
 never append to an existing entry.  Option `add-log-keep-changes-together'
 otherwise affects whether a new entry is created.
+
+The change log file can start with a copyright notice and a copying
+permission notice.  The first blank line indicates the end of these
+notices.
 
 Today's date is calculated according to `change-log-time-zone-rule' if
 non-nil, otherwise in local time." t nil)
 
 (autoload (quote add-change-log-entry-other-window) "add-log" "\
-Find change log file in other window and add an entry for today.
-Optional arg WHOAMI (interactive prefix) non-nil means prompt for user
-name and site.
-Second optional arg FILE-NAME is file name of change log.
-If nil, use `change-log-default-name'.
-
-Affected by the same options as `add-change-log-entry'." t nil)
+Find change log file in other window and add entry and item.
+This is just like `add-change-log-entry' except that it displays
+the change log file in another window." t nil)
  (define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
 
 (autoload (quote change-log-mode) "add-log" "\
@@ -533,8 +536,8 @@ They specify the range of dates that the diary is being processed for." nil nil)
 ;;;***
 
 ;;;### (autoloads (apropos-documentation apropos-value apropos apropos-command
-;;;;;;  apropos-variable apropos-mode) "apropos" "apropos.el" (15292
-;;;;;;  25967))
+;;;;;;  apropos-variable apropos-mode) "apropos" "apropos.el" (15298
+;;;;;;  59296))
 ;;; Generated autoloads from apropos.el
 
 (autoload (quote apropos-mode) "apropos" "\
@@ -1400,7 +1403,7 @@ a reflection." t nil)
 ;;;;;;  bookmark-load bookmark-save bookmark-write bookmark-delete
 ;;;;;;  bookmark-insert bookmark-rename bookmark-insert-location
 ;;;;;;  bookmark-relocate bookmark-jump bookmark-set) "bookmark"
-;;;;;;  "bookmark.el" (15254 8040))
+;;;;;;  "bookmark.el" (15296 35571))
 ;;; Generated autoloads from bookmark.el
  (define-key ctl-x-map "rb" 'bookmark-jump)
  (define-key ctl-x-map "rm" 'bookmark-set)
@@ -1908,10 +1911,82 @@ name of buffer configuration." t nil)
 
 ;;;***
 
+;;;### (autoloads (insert-text-button make-text-button insert-button
+;;;;;;  make-button define-button-type) "button" "button.el" (15298
+;;;;;;  53572))
+;;; Generated autoloads from button.el
+
+(defvar button-map (let ((map (make-sparse-keymap))) (define-key map "" (quote push-button)) (define-key map [mouse-2] (quote push-button)) map) "\
+Keymap used by buttons.")
+
+(defvar button-buffer-map (let ((map (make-sparse-keymap))) (define-key map [9] (quote forward-button)) (define-key map [backtab] (quote backward-button)) map) "\
+Keymap useful for buffers containing buttons.
+Mode-specific keymaps may want to use this as their parent keymap.")
+
+(autoload (quote define-button-type) "button" "\
+Define a `button type' called NAME.
+The remaining arguments form a sequence of PROPERTY VALUE pairs,
+specifying properties to use as defaults for buttons with this type
+\(a button's type may be set by giving it a `type' property when
+creating the button).
+
+The property `supertype' may be used to specify a button-type from which
+NAME inherits its default property values (however, the inheritance
+happens only when NAME is defined; subsequent changes to a supertype are
+not reflected in its subtypes)." nil nil)
+
+(autoload (quote make-button) "button" "\
+Make a button from BEG to END in the current buffer.
+The remaining arguments form a sequence of PROPERTY VALUE pairs,
+specifying properties to add to the button.  In particular, the `type'
+property may be used to specify a button-type from which to inherit
+other properties; see `define-button-type'.
+
+Also see `make-text-button', `insert-button'." nil nil)
+
+(autoload (quote insert-button) "button" "\
+Insert a button with the label LABEL.
+The remaining arguments form a sequence of PROPERTY VALUE pairs,
+specifying properties to add to the button.  In particular, the `type'
+property may be used to specify a button-type from which to inherit
+other properties; see `define-button-type'.
+
+Also see `insert-text-button', `make-button'." nil nil)
+
+(autoload (quote make-text-button) "button" "\
+Make a button from BEG to END in the current buffer.
+The remaining arguments form a sequence of PROPERTY VALUE pairs,
+specifying properties to add to the button.  In particular, the `type'
+property may be used to specify a button-type from which to inherit
+other properties; see `define-button-type'.
+
+This function is like `make-button', except that the button is actually
+part of the text instead of being a property of the buffer.  Creating
+large numbers of buttons can also be somewhat faster using
+`make-text-button'.
+
+Also see `insert-text-button'." nil nil)
+
+(autoload (quote insert-text-button) "button" "\
+Insert a button with the label LABEL.
+The remaining arguments form a sequence of PROPERTY VALUE pairs,
+specifying properties to add to the button.  In particular, the `type'
+property may be used to specify a button-type from which to inherit
+other properties; see `define-button-type'.
+
+This function is like `insert-button', except that the button is
+actually part of the text instead of being a property of the buffer.
+Creating large numbers of buttons can also be somewhat faster using
+`insert-text-button'.
+
+Also see `make-text-button'." nil nil)
+
+;;;***
+
 ;;;### (autoloads (batch-byte-recompile-directory batch-byte-compile
 ;;;;;;  display-call-tree byte-compile compile-defun byte-compile-file
 ;;;;;;  byte-recompile-directory byte-force-recompile) "bytecomp"
-;;;;;;  "emacs-lisp/bytecomp.el" (15293 42341))
+;;;;;;  "emacs-lisp/bytecomp.el" (15297 12856))
 ;;; Generated autoloads from emacs-lisp/bytecomp.el
 
 (autoload (quote byte-force-recompile) "bytecomp" "\
@@ -3109,7 +3184,7 @@ and runs the normal hook `command-history-hook'." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "cl" "emacs-lisp/cl.el" (15054 32554))
+;;;### (autoloads nil "cl" "emacs-lisp/cl.el" (15295 53549))
 ;;; Generated autoloads from emacs-lisp/cl.el
 
 (defvar custom-print-functions nil "\
@@ -3214,7 +3289,7 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal." t nil)
 ;;;### (autoloads (comint-redirect-results-list-from-process comint-redirect-results-list
 ;;;;;;  comint-redirect-send-command-to-process comint-redirect-send-command
 ;;;;;;  comint-run make-comint make-comint-in-buffer) "comint" "comint.el"
-;;;;;;  (15263 18995))
+;;;;;;  (15298 53573))
 ;;; Generated autoloads from comint.el
 
 (autoload (quote make-comint-in-buffer) "comint" "\
@@ -4626,7 +4701,7 @@ Decompose Devanagari characters in the region to IS 13194 characters." t nil)
 ;;;***
 
 ;;;### (autoloads (diary-mail-entries diary) "diary-lib" "calendar/diary-lib.el"
-;;;;;;  (15192 12221))
+;;;;;;  (15293 58088))
 ;;; Generated autoloads from calendar/diary-lib.el
 
 (autoload (quote diary) "diary-lib" "\
@@ -4650,7 +4725,7 @@ emacs -batch \\
 -eval \"(setq diary-mail-days 3 \\
              european-calendar-style t \\
              diary-mail-addr \\\"user@host.name\\\" )\" \\
--l diary-lib -f diary-mail-entries 
+-l diary-lib -f diary-mail-entries
 at -f diary-rem.sh 0200 tomorrow
 
 You may have to tweak the syntax of the `at' command to suit your
@@ -8312,6 +8387,60 @@ to be updated." t nil)
 
 ;;;***
 
+;;;### (autoloads (describe-mode) "help" "help.el" (15298 55781))
+;;; Generated autoloads from help.el
+
+(autoload (quote describe-mode) "help" "\
+Display documentation of current major mode and minor modes.
+The major mode description comes first, followed by the minor modes,
+each on a separate page.
+For this to work correctly for a minor mode, the mode's indicator variable
+\(listed in `minor-mode-alist') must also be a function whose documentation
+describes the minor mode." t nil)
+
+;;;***
+
+;;;### (autoloads (describe-variable variable-at-point describe-function
+;;;;;;  locate-library help-with-tutorial) "help-funs" "help-funs.el"
+;;;;;;  (15298 55608))
+;;; Generated autoloads from help-funs.el
+
+(autoload (quote help-with-tutorial) "help-funs" "\
+Select the Emacs learn-by-doing tutorial.
+If there is a tutorial version written in the language
+of the selected language environment, that version is used.
+If there's no tutorial in that language, `TUTORIAL' is selected.
+With arg, you are asked to choose which language." t nil)
+
+(autoload (quote locate-library) "help-funs" "\
+Show the precise file name of Emacs library LIBRARY.
+This command searches the directories in `load-path' like `M-x load-library'
+to find the file that `M-x load-library RET LIBRARY RET' would load.
+Optional second arg NOSUFFIX non-nil means don't add suffixes `.elc' or `.el'
+to the specified name LIBRARY.
+
+If the optional third arg PATH is specified, that list of directories
+is used instead of `load-path'.
+
+When called from a program, the file name is normaly returned as a
+string.  When run interactively, the argument INTERACTIVE-CALL is t,
+and the file name is displayed in the echo area." t nil)
+
+(autoload (quote describe-function) "help-funs" "\
+Display the full documentation of FUNCTION (a symbol)." t nil)
+
+(autoload (quote variable-at-point) "help-funs" "\
+Return the bound variable symbol found around point.
+Return 0 if there is no such symbol." nil nil)
+
+(autoload (quote describe-variable) "help-funs" "\
+Display the full documentation of VARIABLE (a symbol).
+Returns the documentation as a string, also.
+If VARIABLE has a buffer-local value in BUFFER (default to the current buffer),
+it is displayed along with the global value." t nil)
+
+;;;***
+
 ;;;### (autoloads (three-step-help) "help-macro" "help-macro.el"
 ;;;;;;  (15192 12211))
 ;;; Generated autoloads from help-macro.el
@@ -8322,6 +8451,66 @@ The three steps are simple prompt, prompt with all options,
 and window listing and describing the options.
 A value of nil means skip the middle step, so that
 \\[help-command] \\[help-command] gives the window that lists the options.")
+
+;;;***
+
+;;;### (autoloads (help-xref-on-pp help-insert-xref-button help-xref-button
+;;;;;;  help-make-xrefs help-setup-xref help-mode-finish help-mode-setup
+;;;;;;  help-mode) "help-mode" "help-mode.el" (15298 54621))
+;;; Generated autoloads from help-mode.el
+
+(autoload (quote help-mode) "help-mode" "\
+Major mode for viewing help text and navigating references in it.
+Entry to this mode runs the normal hook `help-mode-hook'.
+Commands:
+\\{help-mode-map}" t nil)
+
+(autoload (quote help-mode-setup) "help-mode" nil nil nil)
+
+(autoload (quote help-mode-finish) "help-mode" nil nil nil)
+
+(autoload (quote help-setup-xref) "help-mode" "\
+Invoked from commands using the \"*Help*\" buffer to install some xref info.
+
+ITEM is a (FUNCTION . ARGS) pair appropriate for recreating the help
+buffer after following a reference.  INTERACTIVE-P is non-nil if the
+calling command was invoked interactively.  In this case the stack of
+items for help buffer \"back\" buttons is cleared." nil nil)
+
+(autoload (quote help-make-xrefs) "help-mode" "\
+Parse and hyperlink documentation cross-references in the given BUFFER.
+
+Find cross-reference information in a buffer and, if
+`help-highlight-p' is non-nil, highlight it with face defined by
+`help-highlight-face'; activate such cross references for selection
+with `help-follow'.  Cross-references have the canonical form `...'
+and the type of reference may be disambiguated by the preceding
+word(s) used in `help-xref-symbol-regexp'.
+
+If the variable `help-xref-mule-regexp' is non-nil, find also
+cross-reference information related to multilingual environment
+\(e.g., coding-systems).  This variable is also used to disambiguate
+the type of reference as the same way as `help-xref-symbol-regexp'.
+
+A special reference `back' is made to return back through a stack of
+help buffers.  Variable `help-back-label' specifies the text for
+that." t nil)
+
+(autoload (quote help-xref-button) "help-mode" "\
+Make a hyperlink for cross-reference text previously matched.
+MATCH-NUMBER is the subexpression of interest in the last matched
+regexp.  TYPE is the type of button to use.  Any remaining arguments are
+passed to the button's help-function when it is invoked.
+See `help-make-xrefs'." nil nil)
+
+(autoload (quote help-insert-xref-button) "help-mode" "\
+Insert STRING and make a hyperlink from cross-reference text on it.
+TYPE is the type of button to use.  Any remaining arguments are passed
+to the button's help-function when it is invoked.
+See `help-make-xrefs'." nil nil)
+
+(autoload (quote help-xref-on-pp) "help-mode" "\
+Add xrefs for symbols in `pp's output between FROM and TO." nil nil)
 
 ;;;***
 
@@ -13530,7 +13719,7 @@ Clear out the file used for transmitting args when Emacs resumes." nil nil)
 
 ;;;### (autoloads (read-file-name-electric-shadow-mode read-file-name-electric-shadow-tty-properties
 ;;;;;;  read-file-name-electric-shadow-properties) "rfn-eshadow"
-;;;;;;  "rfn-eshadow.el" (15293 57160))
+;;;;;;  "rfn-eshadow.el" (15298 53573))
 ;;; Generated autoloads from rfn-eshadow.el
 
 (defvar read-file-name-electric-shadow-properties (quote (face read-file-name-electric-shadow field shadow)) "\
@@ -14660,7 +14849,7 @@ Prefix arg means just kill any existing server communications subprocess." t nil
 ;;;***
 
 ;;;### (autoloads (html-mode sgml-mode) "sgml-mode" "textmodes/sgml-mode.el"
-;;;;;;  (15192 12248))
+;;;;;;  (15293 58088))
 ;;; Generated autoloads from textmodes/sgml-mode.el
 
 (autoload (quote sgml-mode) "sgml-mode" "\
@@ -18446,7 +18635,7 @@ With arg, turn Winner mode on if and only if arg is positive." t nil)
 ;;;***
 
 ;;;### (autoloads (woman-find-file woman-dired-find-file woman) "woman"
-;;;;;;  "woman.el" (15192 12220))
+;;;;;;  "woman.el" (15296 19686))
 ;;; Generated autoloads from woman.el
 
 (autoload (quote woman) "woman" "\
@@ -18645,111 +18834,111 @@ Zone-mode does two things:
 
 ;;;***
 
-;;;### (autoloads nil nil ("simple.el" "abbrev.el" "abbrevlist.el"
-;;;;;;  "allout.el" "buff-menu.el" "byte-run.el" "case-table.el"
-;;;;;;  "cdl.el" "cus-dep.el" "cus-load.el" "cus-start.el" "custom.el"
-;;;;;;  "dos-fns.el" "dos-vars.el" "dos-w32.el" "ediff-diff.el" "ediff-init.el"
-;;;;;;  "ediff-merg.el" "ediff-ptch.el" "ediff-vers.el" "ediff-wind.el"
-;;;;;;  "electric.el" "emacs-lock.el" "finder-inf.el" "float-sup.el"
-;;;;;;  "foldout.el" "format.el" "forms-d2.el" "forms-pass.el" "frame.el"
-;;;;;;  "generic-x.el" "help.el" "indent.el" "kermit.el" "loadup.el"
-;;;;;;  "map-ynp.el" "menu-bar.el" "misc.el" "mouse-copy.el" "mouse-drag.el"
-;;;;;;  "mouse.el" "patcomp.el" "paths.el" "pcvs-info.el" "pcvs-parse.el"
-;;;;;;  "pcvs-util.el" "regi.el" "register.el" "replace.el" "s-region.el"
-;;;;;;  "saveplace.el" "scroll-bar.el" "select.el" "soundex.el" "subdirs.el"
-;;;;;;  "tcp.el" "tempo.el" "timezone.el" "unused.el" "vc-hooks.el"
-;;;;;;  "vcursor.el" "version.el" "vms-patch.el" "vmsproc.el" "vt-control.el"
-;;;;;;  "vt100-led.el" "w32-fns.el" "widget.el" "window.el" "xml.el"
-;;;;;;  "xscheme.el" "international/characters.el" "international/iso-ascii.el"
-;;;;;;  "international/iso-insert.el" "international/iso-swed.el"
-;;;;;;  "international/ja-dic-cnv.el" "international/ja-dic-utl.el"
-;;;;;;  "international/latin-1.el" "international/latin-2.el" "international/latin-3.el"
-;;;;;;  "international/latin-4.el" "international/latin-5.el" "international/latin-8.el"
-;;;;;;  "international/latin-9.el" "international/mule-cmds.el" "international/mule-conf.el"
-;;;;;;  "international/mule.el" "international/ogonek.el" "international/swedish.el"
-;;;;;;  "international/utf-8.el" "net/eudc-vars.el" "net/eudcb-bbdb.el"
-;;;;;;  "net/eudcb-ldap.el" "net/eudcb-ph.el" "net/ldap.el" "calendar/cal-china.el"
-;;;;;;  "calendar/cal-coptic.el" "calendar/cal-french.el" "calendar/cal-islam.el"
-;;;;;;  "calendar/cal-iso.el" "calendar/cal-julian.el" "calendar/cal-mayan.el"
-;;;;;;  "calendar/cal-menu.el" "calendar/cal-move.el" "calendar/cal-persia.el"
-;;;;;;  "calendar/cal-tex.el" "calendar/cal-x.el" "emacs-lisp/assoc.el"
-;;;;;;  "emacs-lisp/authors.el" "emacs-lisp/byte-opt.el" "emacs-lisp/cl-compat.el"
-;;;;;;  "emacs-lisp/cl-extra.el" "emacs-lisp/cl-seq.el" "emacs-lisp/cl-specs.el"
-;;;;;;  "emacs-lisp/cust-print.el" "emacs-lisp/ewoc.el" "emacs-lisp/find-gc.el"
-;;;;;;  "emacs-lisp/float.el" "emacs-lisp/gulp.el" "emacs-lisp/levents.el"
-;;;;;;  "emacs-lisp/lisp.el" "emacs-lisp/lmenu.el" "emacs-lisp/lucid.el"
-;;;;;;  "emacs-lisp/sregex.el" "emulation/edt-lk201.el" "emulation/edt-mapper.el"
-;;;;;;  "emulation/edt-pc.el" "emulation/edt-vt100.el" "emulation/mlsupport.el"
-;;;;;;  "emulation/tpu-mapper.el" "emulation/viper-cmd.el" "emulation/viper-ex.el"
-;;;;;;  "emulation/viper-init.el" "emulation/viper-keym.el" "emulation/viper-macs.el"
-;;;;;;  "emulation/viper-mous.el" "emulation/viper-util.el" "eshell/em-alias.el"
-;;;;;;  "eshell/em-banner.el" "eshell/em-basic.el" "eshell/em-cmpl.el"
-;;;;;;  "eshell/em-dirs.el" "eshell/em-glob.el" "eshell/em-hist.el"
-;;;;;;  "eshell/em-ls.el" "eshell/em-pred.el" "eshell/em-prompt.el"
-;;;;;;  "eshell/em-rebind.el" "eshell/em-script.el" "eshell/em-smart.el"
-;;;;;;  "eshell/em-term.el" "eshell/em-unix.el" "eshell/em-xtra.el"
-;;;;;;  "eshell/esh-arg.el" "eshell/esh-cmd.el" "eshell/esh-ext.el"
-;;;;;;  "eshell/esh-groups.el" "eshell/esh-io.el" "eshell/esh-maint.el"
-;;;;;;  "eshell/esh-module.el" "eshell/esh-opt.el" "eshell/esh-proc.el"
-;;;;;;  "eshell/esh-util.el" "eshell/esh-var.el" "gnus/flow-fill.el"
-;;;;;;  "gnus/format-spec.el" "gnus/gnus-async.el" "gnus/gnus-bcklg.el"
-;;;;;;  "gnus/gnus-cite.el" "gnus/gnus-cus.el" "gnus/gnus-demon.el"
-;;;;;;  "gnus/gnus-draft.el" "gnus/gnus-dup.el" "gnus/gnus-eform.el"
-;;;;;;  "gnus/gnus-ems.el" "gnus/gnus-gl.el" "gnus/gnus-int.el" "gnus/gnus-logic.el"
-;;;;;;  "gnus/gnus-mh.el" "gnus/gnus-nocem.el" "gnus/gnus-range.el"
-;;;;;;  "gnus/gnus-salt.el" "gnus/gnus-score.el" "gnus/gnus-setup.el"
-;;;;;;  "gnus/gnus-srvr.el" "gnus/gnus-sum.el" "gnus/gnus-topic.el"
-;;;;;;  "gnus/gnus-undo.el" "gnus/gnus-util.el" "gnus/gnus-uu.el"
-;;;;;;  "gnus/gnus-vm.el" "gnus/ietf-drums.el" "gnus/imap.el" "gnus/mail-parse.el"
-;;;;;;  "gnus/mail-prsvr.el" "gnus/mail-source.el" "gnus/mailcap.el"
-;;;;;;  "gnus/messcompat.el" "gnus/mm-bodies.el" "gnus/mm-decode.el"
-;;;;;;  "gnus/mm-encode.el" "gnus/mm-util.el" "gnus/mm-view.el" "gnus/mml.el"
-;;;;;;  "gnus/nnagent.el" "gnus/nnbabyl.el" "gnus/nndir.el" "gnus/nndraft.el"
-;;;;;;  "gnus/nneething.el" "gnus/nngateway.el" "gnus/nnheader.el"
-;;;;;;  "gnus/nnimap.el" "gnus/nnlistserv.el" "gnus/nnmail.el" "gnus/nnmbox.el"
-;;;;;;  "gnus/nnmh.el" "gnus/nnoo.el" "gnus/nnslashdot.el" "gnus/nnspool.el"
-;;;;;;  "gnus/nntp.el" "gnus/nnultimate.el" "gnus/nnvirtual.el" "gnus/nnwarchive.el"
-;;;;;;  "gnus/nnweb.el" "gnus/parse-time.el" "gnus/pop3.el" "gnus/qp.el"
-;;;;;;  "gnus/rfc1843.el" "gnus/rfc2045.el" "gnus/rfc2047.el" "gnus/rfc2104.el"
-;;;;;;  "gnus/rfc2231.el" "gnus/starttls.el" "gnus/utf7.el" "gnus/webmail.el"
-;;;;;;  "language/chinese.el" "language/cyrillic.el" "language/czech.el"
-;;;;;;  "language/devanagari.el" "language/english.el" "language/ethiopic.el"
-;;;;;;  "language/european.el" "language/greek.el" "language/hebrew.el"
-;;;;;;  "language/indian.el" "language/japanese.el" "language/korean.el"
-;;;;;;  "language/lao.el" "language/misc-lang.el" "language/romanian.el"
-;;;;;;  "language/slovak.el" "language/thai.el" "language/tibetan.el"
-;;;;;;  "language/vietnamese.el" "mail/blessmail.el" "mail/mailheader.el"
-;;;;;;  "mail/mailpost.el" "mail/mh-funcs.el" "mail/mh-pick.el" "mail/mh-seq.el"
-;;;;;;  "mail/mspools.el" "mail/rfc2368.el" "mail/rfc822.el" "mail/uce.el"
-;;;;;;  "mail/vms-pmail.el" "obsolete/c-mode.el" "obsolete/cplus-md.el"
-;;;;;;  "obsolete/hilit19.el" "obsolete/ooutline.el" "obsolete/profile.el"
-;;;;;;  "obsolete/rnews.el" "obsolete/sc.el" "obsolete/sun-curs.el"
-;;;;;;  "obsolete/sun-fns.el" "obsolete/uncompress.el" "obsolete/x-apollo.el"
-;;;;;;  "obsolete/x-menu.el" "play/gamegrid.el" "play/gametree.el"
-;;;;;;  "play/meese.el" "progmodes/ada-prj.el" "progmodes/ada-xref.el"
-;;;;;;  "progmodes/cc-align.el" "progmodes/cc-bytecomp.el" "progmodes/cc-cmds.el"
-;;;;;;  "progmodes/cc-compat.el" "progmodes/cc-defs.el" "progmodes/cc-engine.el"
-;;;;;;  "progmodes/cc-menus.el" "progmodes/ebnf-bnf.el" "progmodes/ebnf-iso.el"
-;;;;;;  "progmodes/ebnf-otz.el" "progmodes/ebnf-yac.el" "progmodes/idlw-rinfo.el"
-;;;;;;  "progmodes/idlw-toolbar.el" "progmodes/mantemp.el" "term/AT386.el"
-;;;;;;  "term/apollo.el" "term/bg-mouse.el" "term/bobcat.el" "term/internal.el"
-;;;;;;  "term/iris-ansi.el" "term/keyswap.el" "term/linux.el" "term/lk201.el"
-;;;;;;  "term/mac-win.el" "term/news.el" "term/pc-win.el" "term/sun-mouse.el"
-;;;;;;  "term/sun.el" "term/sup-mouse.el" "term/tty-colors.el" "term/tvi970.el"
-;;;;;;  "term/vt100.el" "term/vt102.el" "term/vt125.el" "term/vt200.el"
-;;;;;;  "term/vt201.el" "term/vt220.el" "term/vt240.el" "term/vt300.el"
-;;;;;;  "term/vt320.el" "term/vt400.el" "term/vt420.el" "term/w32-win.el"
-;;;;;;  "term/wyse50.el" "term/x-win.el" "term/xterm.el" "textmodes/bib-mode.el"
-;;;;;;  "textmodes/fill.el" "textmodes/makeinfo.el" "textmodes/page-ext.el"
-;;;;;;  "textmodes/page.el" "textmodes/paragraphs.el" "textmodes/refbib.el"
-;;;;;;  "textmodes/refer.el" "textmodes/reftex-auc.el" "textmodes/reftex-dcr.el"
-;;;;;;  "textmodes/reftex-global.el" "textmodes/reftex-parse.el"
-;;;;;;  "textmodes/reftex-ref.el" "textmodes/reftex-sel.el" "textmodes/reftex-toc.el"
-;;;;;;  "textmodes/reftex-vars.el" "textmodes/texnfo-upd.el" "textmodes/text-mode.el"
-;;;;;;  "bindings.el" "env.el" "faces.el" "files.el" "isearch.el"
-;;;;;;  "startup.el" "subr.el" "uniquify.el" "emacs-lisp/cl-macs.el"
-;;;;;;  "emacs-lisp/lisp-mnt.el" "emacs-lisp/lisp-mode.el" "emacs-lisp/lselect.el")
-;;;;;;  (15293 57174 471791))
+;;;### (autoloads nil nil ("emacs-lisp/lselect.el" "emacs-lisp/lisp-mode.el"
+;;;;;;  "emacs-lisp/lisp-mnt.el" "emacs-lisp/cl-macs.el" "uniquify.el"
+;;;;;;  "startup.el" "isearch.el" "files.el" "env.el" "bindings.el"
+;;;;;;  "textmodes/text-mode.el" "textmodes/texnfo-upd.el" "textmodes/reftex-vars.el"
+;;;;;;  "textmodes/reftex-toc.el" "textmodes/reftex-sel.el" "textmodes/reftex-ref.el"
+;;;;;;  "textmodes/reftex-parse.el" "textmodes/reftex-global.el"
+;;;;;;  "textmodes/reftex-dcr.el" "textmodes/reftex-auc.el" "textmodes/refer.el"
+;;;;;;  "textmodes/refbib.el" "textmodes/paragraphs.el" "textmodes/page.el"
+;;;;;;  "textmodes/page-ext.el" "textmodes/makeinfo.el" "textmodes/fill.el"
+;;;;;;  "textmodes/bib-mode.el" "term/xterm.el" "term/x-win.el" "term/wyse50.el"
+;;;;;;  "term/w32-win.el" "term/vt420.el" "term/vt400.el" "term/vt320.el"
+;;;;;;  "term/vt300.el" "term/vt240.el" "term/vt220.el" "term/vt201.el"
+;;;;;;  "term/vt200.el" "term/vt125.el" "term/vt102.el" "term/vt100.el"
+;;;;;;  "term/tvi970.el" "term/tty-colors.el" "term/sup-mouse.el"
+;;;;;;  "term/sun.el" "term/sun-mouse.el" "term/pc-win.el" "term/news.el"
+;;;;;;  "term/mac-win.el" "term/lk201.el" "term/linux.el" "term/keyswap.el"
+;;;;;;  "term/iris-ansi.el" "term/internal.el" "term/bobcat.el" "term/bg-mouse.el"
+;;;;;;  "term/apollo.el" "term/AT386.el" "progmodes/mantemp.el" "progmodes/idlw-toolbar.el"
+;;;;;;  "progmodes/idlw-rinfo.el" "progmodes/ebnf-yac.el" "progmodes/ebnf-otz.el"
+;;;;;;  "progmodes/ebnf-iso.el" "progmodes/ebnf-bnf.el" "progmodes/cc-menus.el"
+;;;;;;  "progmodes/cc-engine.el" "progmodes/cc-defs.el" "progmodes/cc-compat.el"
+;;;;;;  "progmodes/cc-cmds.el" "progmodes/cc-bytecomp.el" "progmodes/cc-align.el"
+;;;;;;  "progmodes/ada-xref.el" "progmodes/ada-prj.el" "play/meese.el"
+;;;;;;  "play/gametree.el" "play/gamegrid.el" "obsolete/x-menu.el"
+;;;;;;  "obsolete/x-apollo.el" "obsolete/uncompress.el" "obsolete/sun-fns.el"
+;;;;;;  "obsolete/sun-curs.el" "obsolete/sc.el" "obsolete/rnews.el"
+;;;;;;  "obsolete/profile.el" "obsolete/ooutline.el" "obsolete/hilit19.el"
+;;;;;;  "obsolete/cplus-md.el" "obsolete/c-mode.el" "mail/vms-pmail.el"
+;;;;;;  "mail/uce.el" "mail/rfc822.el" "mail/rfc2368.el" "mail/mspools.el"
+;;;;;;  "mail/mh-seq.el" "mail/mh-pick.el" "mail/mh-funcs.el" "mail/mailpost.el"
+;;;;;;  "mail/mailheader.el" "mail/blessmail.el" "language/vietnamese.el"
+;;;;;;  "language/tibetan.el" "language/thai.el" "language/slovak.el"
+;;;;;;  "language/romanian.el" "language/misc-lang.el" "language/lao.el"
+;;;;;;  "language/korean.el" "language/japanese.el" "language/indian.el"
+;;;;;;  "language/hebrew.el" "language/greek.el" "language/european.el"
+;;;;;;  "language/ethiopic.el" "language/english.el" "language/devanagari.el"
+;;;;;;  "language/czech.el" "language/cyrillic.el" "language/chinese.el"
+;;;;;;  "gnus/webmail.el" "gnus/utf7.el" "gnus/starttls.el" "gnus/rfc2231.el"
+;;;;;;  "gnus/rfc2104.el" "gnus/rfc2047.el" "gnus/rfc2045.el" "gnus/rfc1843.el"
+;;;;;;  "gnus/qp.el" "gnus/pop3.el" "gnus/parse-time.el" "gnus/nnweb.el"
+;;;;;;  "gnus/nnwarchive.el" "gnus/nnvirtual.el" "gnus/nnultimate.el"
+;;;;;;  "gnus/nntp.el" "gnus/nnspool.el" "gnus/nnslashdot.el" "gnus/nnoo.el"
+;;;;;;  "gnus/nnmh.el" "gnus/nnmbox.el" "gnus/nnmail.el" "gnus/nnlistserv.el"
+;;;;;;  "gnus/nnimap.el" "gnus/nnheader.el" "gnus/nngateway.el" "gnus/nneething.el"
+;;;;;;  "gnus/nndraft.el" "gnus/nndir.el" "gnus/nnbabyl.el" "gnus/nnagent.el"
+;;;;;;  "gnus/mml.el" "gnus/mm-view.el" "gnus/mm-util.el" "gnus/mm-encode.el"
+;;;;;;  "gnus/mm-decode.el" "gnus/mm-bodies.el" "gnus/messcompat.el"
+;;;;;;  "gnus/mailcap.el" "gnus/mail-source.el" "gnus/mail-prsvr.el"
+;;;;;;  "gnus/mail-parse.el" "gnus/imap.el" "gnus/ietf-drums.el"
+;;;;;;  "gnus/gnus-vm.el" "gnus/gnus-uu.el" "gnus/gnus-util.el" "gnus/gnus-undo.el"
+;;;;;;  "gnus/gnus-topic.el" "gnus/gnus-sum.el" "gnus/gnus-srvr.el"
+;;;;;;  "gnus/gnus-setup.el" "gnus/gnus-score.el" "gnus/gnus-salt.el"
+;;;;;;  "gnus/gnus-range.el" "gnus/gnus-nocem.el" "gnus/gnus-mh.el"
+;;;;;;  "gnus/gnus-logic.el" "gnus/gnus-int.el" "gnus/gnus-gl.el"
+;;;;;;  "gnus/gnus-ems.el" "gnus/gnus-eform.el" "gnus/gnus-dup.el"
+;;;;;;  "gnus/gnus-draft.el" "gnus/gnus-demon.el" "gnus/gnus-cus.el"
+;;;;;;  "gnus/gnus-cite.el" "gnus/gnus-bcklg.el" "gnus/gnus-async.el"
+;;;;;;  "gnus/format-spec.el" "gnus/flow-fill.el" "eshell/esh-var.el"
+;;;;;;  "eshell/esh-util.el" "eshell/esh-proc.el" "eshell/esh-opt.el"
+;;;;;;  "eshell/esh-module.el" "eshell/esh-maint.el" "eshell/esh-io.el"
+;;;;;;  "eshell/esh-groups.el" "eshell/esh-ext.el" "eshell/esh-cmd.el"
+;;;;;;  "eshell/esh-arg.el" "eshell/em-xtra.el" "eshell/em-unix.el"
+;;;;;;  "eshell/em-term.el" "eshell/em-smart.el" "eshell/em-script.el"
+;;;;;;  "eshell/em-rebind.el" "eshell/em-prompt.el" "eshell/em-pred.el"
+;;;;;;  "eshell/em-ls.el" "eshell/em-hist.el" "eshell/em-glob.el"
+;;;;;;  "eshell/em-dirs.el" "eshell/em-cmpl.el" "eshell/em-basic.el"
+;;;;;;  "eshell/em-banner.el" "eshell/em-alias.el" "emulation/viper-util.el"
+;;;;;;  "emulation/viper-mous.el" "emulation/viper-macs.el" "emulation/viper-keym.el"
+;;;;;;  "emulation/viper-init.el" "emulation/viper-ex.el" "emulation/viper-cmd.el"
+;;;;;;  "emulation/tpu-mapper.el" "emulation/mlsupport.el" "emulation/edt-vt100.el"
+;;;;;;  "emulation/edt-pc.el" "emulation/edt-mapper.el" "emulation/edt-lk201.el"
+;;;;;;  "emacs-lisp/sregex.el" "emacs-lisp/lucid.el" "emacs-lisp/lmenu.el"
+;;;;;;  "emacs-lisp/lisp.el" "emacs-lisp/levents.el" "emacs-lisp/gulp.el"
+;;;;;;  "emacs-lisp/float.el" "emacs-lisp/find-gc.el" "emacs-lisp/ewoc.el"
+;;;;;;  "emacs-lisp/cust-print.el" "emacs-lisp/cl-specs.el" "emacs-lisp/cl-seq.el"
+;;;;;;  "emacs-lisp/cl-extra.el" "emacs-lisp/cl-compat.el" "emacs-lisp/byte-opt.el"
+;;;;;;  "emacs-lisp/authors.el" "emacs-lisp/assoc.el" "calendar/cal-x.el"
+;;;;;;  "calendar/cal-tex.el" "calendar/cal-persia.el" "calendar/cal-move.el"
+;;;;;;  "calendar/cal-menu.el" "calendar/cal-mayan.el" "calendar/cal-julian.el"
+;;;;;;  "calendar/cal-iso.el" "calendar/cal-islam.el" "calendar/cal-french.el"
+;;;;;;  "calendar/cal-coptic.el" "calendar/cal-china.el" "net/ldap.el"
+;;;;;;  "net/eudcb-ph.el" "net/eudcb-ldap.el" "net/eudcb-bbdb.el"
+;;;;;;  "net/eudc-vars.el" "international/utf-8.el" "international/swedish.el"
+;;;;;;  "international/ogonek.el" "international/mule.el" "international/mule-conf.el"
+;;;;;;  "international/mule-cmds.el" "international/latin-9.el" "international/latin-8.el"
+;;;;;;  "international/latin-5.el" "international/latin-4.el" "international/latin-3.el"
+;;;;;;  "international/latin-2.el" "international/latin-1.el" "international/ja-dic-utl.el"
+;;;;;;  "international/ja-dic-cnv.el" "international/iso-swed.el"
+;;;;;;  "international/iso-insert.el" "international/iso-ascii.el"
+;;;;;;  "international/characters.el" "xscheme.el" "xml.el" "window.el"
+;;;;;;  "widget.el" "w32-fns.el" "vt100-led.el" "vt-control.el" "vmsproc.el"
+;;;;;;  "vms-patch.el" "version.el" "vcursor.el" "vc-hooks.el" "unused.el"
+;;;;;;  "timezone.el" "tempo.el" "tcp.el" "subdirs.el" "soundex.el"
+;;;;;;  "select.el" "scroll-bar.el" "saveplace.el" "s-region.el"
+;;;;;;  "replace.el" "register.el" "regi.el" "pcvs-util.el" "pcvs-parse.el"
+;;;;;;  "pcvs-info.el" "paths.el" "patcomp.el" "mouse.el" "mouse-drag.el"
+;;;;;;  "mouse-copy.el" "misc.el" "menu-bar.el" "map-ynp.el" "kermit.el"
+;;;;;;  "indent.el" "generic-x.el" "frame.el" "forms-pass.el" "forms-d2.el"
+;;;;;;  "format.el" "foldout.el" "float-sup.el" "finder-inf.el" "emacs-lock.el"
+;;;;;;  "electric.el" "ediff-wind.el" "ediff-vers.el" "ediff-ptch.el"
+;;;;;;  "ediff-merg.el" "ediff-init.el" "ediff-diff.el" "dos-w32.el"
+;;;;;;  "dos-vars.el" "dos-fns.el" "custom.el" "cus-start.el" "cus-load.el"
+;;;;;;  "cus-dep.el" "cdl.el" "case-table.el" "byte-run.el" "buff-menu.el"
+;;;;;;  "allout.el" "abbrevlist.el" "abbrev.el" "simple.el" "faces.el"
+;;;;;;  "loadup.el" "subr.el") (15298 59409 341466))
 
 ;;;***
 

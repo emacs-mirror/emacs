@@ -1,5 +1,33 @@
 2001-10-09  Miles Bader  <miles@gnu.org>
 
+	* help-funs.el: New file, contents mostly from `help.el'.
+	(describe-variable): Use `condition-case' instead of `ignore-errors'.
+	* help-mode.el: New file, contents mostly from `help.el'.
+	* help.el: Don't require `view' when compiling.
+	(help-with-tutorial, describe-function, describe-function-1)
+	(variable-at-point, describe-variable, locate-library):
+	Functions moved into `help-funs.el'.
+	(help-manyarg-func-alist): Variable moved into `help-funs.el'.
+	(help-mode, help-mode-setup, help-mode-finish, help-button-action)
+	(help-setup-xref, help-xref-following, help-make-xrefs)
+	(help-xref-button, help-insert-xref-button, help-xref-interned)
+	(help-xref-go-back, help-go-back, help-do-xref, help-follow)
+	(help-xref-on-pp): Functions moved into `help-mode.el'
+	(help-mode-map, help-xref-stack, help-xref-stack-item)
+	(help-highlight-p, help-highlight-face, help-back-label)
+	(help-xref-symbol-regexp, help-xref-mule-regexp)
+	(help-xref-info-regexp): Variables moved into `help-mode.el'.
+	(help-symbol, help-back, help-info, help-customize-variable)
+	(help-function-def, help-variable-def):
+	Button-types moved into `help-mode.el'.
+	(load-symbol-file-load-history, symbol-file):
+	Functions moved into `subr.el'.
+	(symbol-file-load-history-loaded): Variable moved into `subr.el'.
+	(view-lossage): Call `help-setup-xref' instead of doing it manually.
+	* subr.el (symbol-file-load-history-loaded) 
+	(load-symbol-file-load-history, symbol-file): Moved from `help.el'.
+	* loadup.el ("button"): Load removed.
+
 	* button.el (define-button-type): Respect any `supertype' property.
 	(button-type-subtype-p, button-has-type-p): New functions.
 
