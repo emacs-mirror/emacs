@@ -1,9 +1,7 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.28) $
- * Copyright (C) 1996.  Harlequin Group plc.  All rights reserved.
- *
- * .readership: MM developers.
+ * $HopeName: MMsrc!mpm.c(trunk.29) $
+ * Copyright (C) 1996 Harlequin Limited.  All rights reserved.
  *
  * .purpose: Miscellaneous support for the implementation of the MPM
  * and pool classes.
@@ -17,7 +15,7 @@
 #include <float.h>
 
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.28) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.29) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -77,11 +75,12 @@ Bool MPMCheck(void)
  *
  * See design.mps.type.bool.check.
  * We expect this to be inlined (by the macro in impl.h.mpm).
- * See design.mps.type.bool.check.inline. */
+ * See design.mps.type.bool.check.inline.
+ */
 
 Bool (BoolCheck)(Bool b)
 {
-  AVER(b == TRUE || b == FALSE);
+  CHECKL(BoolCheck(b));
   return TRUE;
 }
 
@@ -90,7 +89,7 @@ Bool (BoolCheck)(Bool b)
 
 Bool FunCheck(Fun f)
 {
-  AVER(f != NULL);
+  CHECKL(f != NULL);
   /* Could assert various platform-specific things here. */
   return TRUE;
 }
@@ -100,7 +99,7 @@ Bool FunCheck(Fun f)
 
 Bool ShiftCheck(Shift shift)
 {
-  AVER(shift < MPS_WORD_WIDTH);         /* standard.ansic 6.3.7 */
+  CHECKL(shift < MPS_WORD_WIDTH);         /* standard.ansic 6.3.7 */
   return TRUE;
 }
 
@@ -109,7 +108,7 @@ Bool ShiftCheck(Shift shift)
 
 Bool AttrCheck(Attr attr)
 {
-  AVER(((attr) & ~AttrMASK) == 0);
+  CHECKL((attr & ~AttrMASK) == 0);
   /* Could check for legal combinations of attributes. */
   return TRUE;
 }
@@ -198,7 +197,6 @@ Shift SizeFloorLog2(Size size)
 Shift SizeLog2(Size size)
 {
   AVER(SizeIsP2(size));
-
   return SizeFloorLog2(size);
 }
 
@@ -281,6 +279,7 @@ size_t (PointerOffset)(void *base, void *limit)
   return PointerOffset(base, limit);
 }
 
+
 /* PointerAlignUp -- align a pointer up */
 
 extern void *(PointerAlignUp)(void *p, size_t align)
@@ -304,9 +303,11 @@ Bool ResIsAllocFailure(Res res)
 }
 
 
-/* WriteWord -- output a textual representation of a word to a stream */
-/* as an unsigned value in the given base (2-16), */
-/* padded to the given width */
+/* WriteWord -- output a textual representation of a word to a stream
+ *
+ * as an unsigned value in the given base (2-16),
+ * padded to the given width.
+ */
 
 static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base, 
                      unsigned width)
@@ -348,8 +349,8 @@ static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base,
   return ResOK;
 }
 
-/*
- * WriteDouble -- write a double float to a stream
+
+/* WriteDouble -- write a double float to a stream
  *
  * Cf.: Guy L. Steele, Jr. and Jon L. White, "How to print
  * floating-point numbers accurately", ACM SIGPLAN Notices, Vol. 25,
