@@ -4000,7 +4000,7 @@ lists are merged destructively.");
 
   DEFVAR_LISP ("inhibit-file-name-handlers", &Vinhibit_file_name_handlers,
     "A list of file names for which handlers should not be used.\n\
-This applies only to the operation `inhibit-file-name-handlers'.");
+This applies only to the operation `inhibit-file-name-operation'.");
   Vinhibit_file_name_handlers = Qnil;
 
   DEFVAR_LISP ("inhibit-file-name-operation", &Vinhibit_file_name_operation,
