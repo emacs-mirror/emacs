@@ -1143,9 +1143,10 @@ command_loop_1 ()
 		       && XTYPE (last_command_char) == Lisp_Int)
 		{
 		  unsigned char c = XINT (last_command_char);
+		  int value;
 
-		  if (NILP (Vexecuting_macro) &&
-		      !EQ (minibuf_window, selected_window))
+		  if (NILP (Vexecuting_macro)
+		      && !EQ (minibuf_window, selected_window))
 		    {
 		      if (!nonundocount || nonundocount >= 20)
 			{
@@ -1154,21 +1155,23 @@ command_loop_1 ()
 			}
 		      nonundocount++;
 		    }
-		  lose = (XFASTINT (XWINDOW (selected_window)->last_modified)
-			  < MODIFF)
-		    || (XFASTINT (XWINDOW (selected_window)->last_point) != PT)
-		    || MODIFF <= current_buffer->save_modified
-		    || windows_or_buffers_changed
-		    || !EQ (current_buffer->selective_display, Qnil)
-		    || detect_input_pending ()
-		    || !NILP (Vexecuting_macro);
-		  if (internal_self_insert (c, 0))
-		    {
-		      lose = 1;
-		      nonundocount = 0;
-		    }
-		  if (!lose &&
-		      (PT == ZV || FETCH_CHAR (PT) == '\n'))
+		  lose = ((XFASTINT (XWINDOW (selected_window)->last_modified)
+			   < MODIFF)
+			  || (XFASTINT (XWINDOW (selected_window)->last_point)
+			      != PT)
+			  || MODIFF <= current_buffer->save_modified
+			  || windows_or_buffers_changed
+			  || !EQ (current_buffer->selective_display, Qnil)
+			  || detect_input_pending ()
+			  || !NILP (Vexecuting_macro));
+		  value = internal_self_insert (c, 0);
+		  if (value)
+		    lose = 1;
+		  if (value == 2)
+		    nonundocount = 0;
+
+		  if (!lose
+		      && (PT == ZV || FETCH_CHAR (PT) == '\n'))
 		    {
 		      struct Lisp_Vector *dp
 			= window_display_table (XWINDOW (selected_window));
