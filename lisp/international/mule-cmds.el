@@ -2385,7 +2385,11 @@ given locale."
 	;; we are using single-byte characters,
 	;; so the display table and terminal coding system are irrelevant.
 	(when default-enable-multibyte-characters
-	  (set-display-table-and-terminal-coding-system language-name))
+	  ;; Override default-terminal-coding-system in case the
+	  ;; display coding can not be derived from the language
+	  ;; environment.
+	  (let ((default-terminal-coding-system coding-system))
+	    (set-display-table-and-terminal-coding-system language-name)))
 
 	;; Set the `keyboard-coding-system' if appropriate (tty
 	;; only).  At least X and MS Windows can generate
