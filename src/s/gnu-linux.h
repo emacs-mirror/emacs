@@ -224,6 +224,7 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_NCURSES
 #define TERMINFO
+#define LIBS_TERMCAP -lncurses
 #endif
 
 #define HAVE_SYSVIPC
