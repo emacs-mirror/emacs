@@ -2439,7 +2439,7 @@ since only regular expressions have distinguished subexpressions.  */)
 		{
 		  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, newtext,
 						      pos, pos_byte);
-		  if (!buf_multibyte && !SINGLE_BYTE_CHAR_P (c))
+		  if (!buf_multibyte && !ASCII_CHAR_P (c))
 		    c = multibyte_char_to_unibyte (c, rev_tbl);
 		}
 	      else
