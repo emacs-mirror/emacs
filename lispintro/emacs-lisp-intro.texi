@@ -235,10 +235,10 @@ Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2001, 2002 Free Software
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Section being the Preface, with the Front-Cover Texts being
-``A GNU Manual'', and with the Back-Cover Texts as in (a) below.  A
-copy of the license is included in the section entitled ``GNU Free
+any later version published by the Free Software Foundation; there
+being no Invariant Section, with the Front-Cover Texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of
+the license is included in the section entitled ``GNU Free
 Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have freedom to copy and
@@ -282,10 +282,10 @@ ISBN-1882114-41-8
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Section being the Preface, with the Front-Cover Texts being
-``A GNU Manual'', and with the Back-Cover Texts as in (a) below.  A
-copy of the license is included in the section entitled ``GNU Free
+any later version published by the Free Software Foundation; there
+being no Invariant Section, with the Front-Cover Texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of
+the license is included in the section entitled ``GNU Free
 Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have freedom to copy and
