@@ -644,7 +644,7 @@ by \"Save Options\" in Custom buffers.")
     (dolist (elt '(scroll-bar-mode
 		   debug-on-quit debug-on-error menu-bar-mode tool-bar-mode
 		   save-place uniquify-buffer-name-style fringe-mode
-		   case-fold-search 
+		   fringe-indicators case-fold-search
 		   display-time-mode auto-compression-mode
 		   current-language-environment default-input-method
 		   ;; Saving `text-mode-hook' is somewhat questionable,
@@ -715,6 +715,87 @@ by \"Save Options\" in Custom buffers.")
 			      (frame-visible-p
 			       (symbol-value 'speedbar-frame))))))
 
+
+(defvar menu-bar-showhide-fringe-ind-menu (make-sparse-keymap "Indicators"))
+
+;; The real definition is in fringe.el.
+;; This is to prevent errors in the :radio conditions below.
+(setq fringe-indicators nil)
+
+(defun menu-bar-showhide-fringe-ind-empty ()
+  "Display empty line indicators in the left or right fringe."
+  (interactive)
+  (require 'fringe)
+  (customize-set-variable 'fringe-indicators 'empty))
+
+(define-key menu-bar-showhide-fringe-ind-menu [empty]
+  '(menu-item "Empty lines only" menu-bar-showhide-fringe-ind-empty
+	      :help "Show empty line indicators in fringe"
+	      :visible (display-graphic-p)
+	      :button (:radio . (eq fringe-indicators 'empty))))
+
+(defun menu-bar-showhide-fringe-ind-mixed ()
+  "Display top and bottom indicators in opposite fringes, arrow in right."
+  (interactive)
+  (require 'fringe)
+  (customize-set-variable 'fringe-indicators 'mixed))
+
+(define-key menu-bar-showhide-fringe-ind-menu [mixed]
+  '(menu-item "Opposite, arrows right" menu-bar-showhide-fringe-ind-mixed
+	      :help "Show top/bottom indicators in opposite fringes, arrows in right"
+	      :visible (display-graphic-p)
+	      :button (:radio . (eq fringe-indicators 'mixed))))
+
+(defun menu-bar-showhide-fringe-ind-box ()
+  "Display top and bottom indicators in opposite fringes."
+  (interactive)
+  (require 'fringe)
+  (customize-set-variable 'fringe-indicators 'box))
+
+(define-key menu-bar-showhide-fringe-ind-menu [box]
+  '(menu-item "Opposite, no arrows" menu-bar-showhide-fringe-ind-box
+	      :help "Show top/bottom indicators in opposite fringes, no arrows"
+	      :visible (display-graphic-p)
+	      :button (:radio . (eq fringe-indicators 'box))))
+
+(defun menu-bar-showhide-fringe-ind-right ()
+  "Display fringe indicators in the right fringe."
+  (interactive)
+  (require 'fringe)
+  (customize-set-variable 'fringe-indicators 'right))
+
+(define-key menu-bar-showhide-fringe-ind-menu [right]
+  '(menu-item "In right fringe" menu-bar-showhide-fringe-ind-right
+	      :help "Show indicators in right fringe"
+	      :visible (display-graphic-p)
+	      :button (:radio . (eq fringe-indicators 'right))))
+
+(defun menu-bar-showhide-fringe-ind-left ()
+  "Display fringe indicators in the left fringe."
+  (interactive)
+  (require 'fringe)
+  (customize-set-variable 'fringe-indicators 'left))
+
+(define-key menu-bar-showhide-fringe-ind-menu [left]
+  '(menu-item "In left fringe" menu-bar-showhide-fringe-ind-left
+	      :help "Show indicators in left fringe"
+	      :visible (display-graphic-p)
+	      :button (:radio . (eq fringe-indicators 'left))))
+
+(defun menu-bar-showhide-fringe-ind-none ()
+  "Do not display any fringe indicators."
+  (interactive)
+  (require 'fringe)
+  (customize-set-variable 'fringe-indicators nil))
+
+(define-key menu-bar-showhide-fringe-ind-menu [none]
+  '(menu-item "No indicators" menu-bar-showhide-fringe-ind-none
+	      :help "Hide all fringe indicators"
+	      :visible (display-graphic-p)
+	      :button (:radio . (eq fringe-indicators nil))))
+
+
+
 (defvar menu-bar-showhide-fringe-menu (make-sparse-keymap "Fringe"))
 
 (defun menu-bar-showhide-fringe-menu-customize ()
@@ -731,6 +812,11 @@ by \"Save Options\" in Custom buffers.")
   "Reset the fringe mode: display fringes on both sides of a window."
   (interactive)
   (customize-set-variable 'fringe-mode nil))
+
+(define-key menu-bar-showhide-fringe-menu [showhide-fringe-ind]
+  (list 'menu-item "Indicators" menu-bar-showhide-fringe-ind-menu
+	:visible `(display-graphic-p)
+	:help "Select fringe mode"))
 
 ;; The real definition is in fringe.el.
 ;; This is to prevent errors in the :radio conditions below.
