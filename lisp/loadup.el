@@ -40,8 +40,8 @@
 (garbage-collect)
 (load "window")
 (garbage-collect)
-(if (fboundp 'delete-screen)
-    (load "screen"))
+(if (fboundp 'delete-frame)
+    (load "frame"))
 (garbage-collect)
 (load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
 (garbage-collect)

@@ -76,7 +76,7 @@ altering command-line-args-left to remove them.")
 
 (defvar before-init-hook nil
   "Functions to call after handling urgent options but before loading init file.
-The screen system uses this to open screens to display messages while
+The frame system uses this to open frames to display messages while
 Emacs loads the user's initialization file.")
 
 (defvar after-init-hook nil

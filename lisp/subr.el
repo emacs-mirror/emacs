@@ -28,19 +28,19 @@ even if it is active."
     (eq base-window
 	(next-window base-window (if nomini 'arg)))))
 
-(defun walk-windows (proc &optional minibuf all-screens)
+(defun walk-windows (proc &optional minibuf all-frames)
   "Cycle through all visible windows, calling PROC for each one.
 PROC is called with a window as argument.
 Optional second arg MINIBUF t means count the minibuffer window
 even if not active.  If MINIBUF is neither t nor nil it means
 not to count the minibuffer even if it is active.
-Optional third arg ALL-SCREENS t means include all windows in all screens;
-otherwise cycle within the selected screen."
+Optional third arg ALL-FRAMES t means include all windows in all frames;
+otherwise cycle within the selected frame."
   (let* ((walk-windows-start (selected-window))
 	 (walk-windows-current walk-windows-start))
     (while (progn
 	     (setq walk-windows-current
-		   (next-window walk-windows-current minibuf all-screens))
+		   (next-window walk-windows-current minibuf all-frames))
 	     (funcall proc walk-windows-current)
 	     (not (eq walk-windows-current walk-windows-start))))))
 
@@ -205,7 +205,7 @@ The normal global definition of the character C-x indirects to this keymap.")
 (define-key ctl-x-map "4" 'ctl-x-4-prefix)
 
 (defvar ctl-x-5-map (make-sparse-keymap)
-  "Keymap for screen commands.")
+  "Keymap for frame commands.")
 (fset 'ctl-x-5-prefix ctl-x-5-map)
 (define-key ctl-x-map "5" 'ctl-x-5-prefix)
 

@@ -48,12 +48,12 @@ With an argument N, move to the Nth line from the bottom of the window."
 (defun wyse-50-toggle-screen-width ()
   "Alternate between 80 and 132 columns."
   (interactive)
-  (if (<= (screen-width) 80)
+  (if (<= (frame-width) 80)
       (progn
 	(send-string-to-terminal "\e`;")
-	(set-screen-width 131))
+	(set-frame-width 131))
     (send-string-to-terminal "\e`:")
-    (set-screen-width 79)))
+    (set-frame-width 79)))
 
 
 ;;; Define the escape sequences for the function keys.
@@ -162,7 +162,7 @@ With an argument N, move to the Nth line from the bottom of the window."
 (setq kill-emacs-hook
       (function (lambda () (interactive)
 		  (send-string-to-terminal
-		   (concat "\ea23R" (1+ (screen-width)) "C\eG0")))))
+		   (concat "\ea23R" (1+ (frame-width)) "C\eG0")))))
 
 (defun enable-arrow-keys ()
   "To be called by term-setup-hook. Overrides 6 Emacs standard keys

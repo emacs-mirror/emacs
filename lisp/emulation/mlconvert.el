@@ -248,8 +248,8 @@
 (ml-expansion 'file-modified-time "you-lose-on-file-modified-time")
 (ml-expansion 'needs-checkpointing "you-lose-on-needs-checkpointing")
 
-(ml-expansion 'lines-on-screen "set-screen-height")
-(ml-expansion 'columns-on-screen "set-screen-width")
+(ml-expansion 'lines-on-screen "set-frame-height")
+(ml-expansion 'columns-on-screen "set-frame-width")
 
 (ml-expansion 'dumped-emacs "t")
 

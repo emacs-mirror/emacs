@@ -40,7 +40,7 @@ even if it is active."
     (walk-windows (function (lambda (w)
 			      (setq count (+ count 1))))
 		  'nomini)
-    (let ((size (/ (screen-height) count)))
+    (let ((size (/ (frame-height) count)))
       (walk-windows (function (lambda (w)
 				(select-window w)
 				(enlarge-window (- size (window-height)))))

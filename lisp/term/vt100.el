@@ -49,7 +49,7 @@ but only if you give this command."
 					   	   
 
 ;;; Controlling the screen width.
-(defconst vt100-wide-mode (= (screen-width) 132)
+(defconst vt100-wide-mode (= (frame-width) 132)
   "t if vt100 is in 132-column mode.")
 
 (defun vt100-wide-mode (&optional arg)
@@ -59,4 +59,4 @@ but only if you give this command."
 	(if (null arg) (not vt100-wide-mode)
 	  (> (prefix-numeric-value arg) 0)))
  (send-string-to-terminal (if vt100-wide-mode "\e[?3h" "\e[?3l"))
- (set-screen-width (if vt100-wide-mode 132 80)))
+ (set-frame-width (if vt100-wide-mode 132 80)))

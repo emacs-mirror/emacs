@@ -218,7 +218,7 @@ Handles wrapped and horizontally scrolled lines correctly."
 
 (defun minibuffer-window-p (window)
   "True iff this WINDOW is minibuffer."
-  (= (screen-height)
+  (= (frame-height)
      (nth 3 (window-edges window))	; The bottom edge.
      ))
 
@@ -336,11 +336,11 @@ Returns list (window x y) where x and y are relative to window."
 	      (te (nth 1 we))
 	      (re (nth 2 we))
 	      (be (nth 3 we)))
-	  (if (= re (screen-width))
+	  (if (= re (frame-width))
 	      ;; include the continuation column with this window
 	      (setq re (1+ re)))
-	  (if (= be (screen-height))
-	      ;; include partial line at bottom of screen with this window
+	  (if (= be (frame-height))
+	      ;; include partial line at bottom of frame with this window
 	      ;; id est, if window is not multple of char size.
 	      (setq be (1+ be)))
 
@@ -375,7 +375,7 @@ Returns one of (text scrollbar modeline minibuffer)"
 
 (defun window-line-end (w x y)
   "Return WINDOW column (ignore X) containing end of line Y"
-  (eval-in-window w (save-excursion (move-to-loc (screen-width) y))))
+  (eval-in-window w (save-excursion (move-to-loc (frame-width) y))))
 
 ;;;
 ;;; The encoding of mouse events into a mousemap.

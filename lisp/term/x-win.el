@@ -61,7 +61,7 @@
 (if (not (eq window-system 'x))
     (error "Loading x-win.el but not compiled for X"))
 	 
-(require 'screen)
+(require 'frame)
 (require 'mouse)
 
 (setq command-switch-alist
@@ -118,34 +118,34 @@
   (let ((aelt (assoc switch x-switch-definitions)))
     (if aelt
 	(if (nth 2 aelt)
-	    (setq default-screen-alist
+	    (setq default-frame-alist
 		  (cons (cons (nth 1 aelt) (nth 2 aelt))
-			default-screen-alist))
-	  (setq default-screen-alist
+			default-frame-alist))
+	  (setq default-frame-alist
 		(cons (cons (nth 1 aelt)
 			    (car x-invocation-args))
-		      default-screen-alist)
+		      default-frame-alist)
 		x-invocation-args (cdr x-invocation-args))))))
 
 ;; Handler for switches of the form "-switch n"
 (defun x-handle-numeric-switch (switch)
   (let ((aelt (assoc switch x-switch-definitions)))
     (if aelt
-	(setq default-screen-alist
+	(setq default-frame-alist
 	      (cons (cons (nth 1 aelt)
 			  (string-to-int (car x-invocation-args)))
-		    default-screen-alist)
+		    default-frame-alist)
 	      x-invocation-args
 	      (cdr x-invocation-args)))))
 
 ;; Handle the geometry option
 (defun x-handle-geometry (switch)
-  (setq initial-screen-alist (append initial-screen-alist
+  (setq initial-frame-alist (append initial-frame-alist
 				     (x-geometry (car x-invocation-args)))
 	x-invocation-args (cdr x-invocation-args)))
 
 (defvar x-display-name nil
-  "The X display name specifying server and X screen.")
+  "The X display name specifying server and X frame.")
 
 (defun x-handle-display (switch)
   (setq x-display-name (car x-invocation-args)
@@ -442,7 +442,7 @@ This returns ARGS with the arguments that have been processed removed."
 ;;; the display.
 (set-input-mode t nil t)
 
-(setq screen-creation-function 'x-create-screen)
+(setq frame-creation-function 'x-create-frame)
 (setq suspend-hook
       '(lambda ()
 	 (error "Suspending an emacs running under X makes no sense")))

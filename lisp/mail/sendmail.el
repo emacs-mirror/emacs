@@ -647,10 +647,10 @@ The seventh argument ACTIONS is a list of actions to take
   (mail noerase to subject in-reply-to cc replybuffer sendactions))
 
 ;;;###autoload
-(defun mail-other-screen (&optional noerase to subject in-reply-to cc replybuffer sendactions)
-  "Like `mail' command, but display mail buffer in another screen."
+(defun mail-other-frame (&optional noerase to subject in-reply-to cc replybuffer sendactions)
+  "Like `mail' command, but display mail buffer in another frame."
   (interactive "P")
-  (let ((pop-up-screens t))
+  (let ((pop-up-frames t))
     (pop-to-buffer "*mail*"))
   (mail noerase to subject in-reply-to cc replybuffer sendactions))
 
@@ -659,7 +659,7 @@ The seventh argument ACTIONS is a list of actions to take
 (define-key ctl-x-4-map "m" 'mail-other-window)
 
 ;;;###autoload
-(define-key ctl-x-5-map "m" 'mail-other-screen)
+(define-key ctl-x-5-map "m" 'mail-other-frame)
 
 
 ;;; Do not add anything but external entries on this page.

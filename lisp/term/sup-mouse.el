@@ -75,7 +75,7 @@ on modeline		    on \"scroll bar\"	in minibuffer
        (window (sup-pos-to-window x y))
        (edges (window-edges window))
        (old-window (selected-window))
-       (in-minibuf-p (eq y (1- (screen-height))))
+       (in-minibuf-p (eq y (1- (frame-height))))
        (same-window-p (and (not in-minibuf-p) (eq window old-window)))
        (in-modeline-p (eq y (1- (nth 3 edges))))
        (in-scrollbar-p (>= x (1- (nth 2 edges)))))
@@ -190,8 +190,8 @@ X and Y are 0-based character positions in the window."
   )
 
 (defun sup-pos-to-window (x y)
-  "Find window corresponding to screen coordinates.
-X and Y are 0-based character positions on the screen."
+  "Find window corresponding to frame coordinates.
+X and Y are 0-based character positions on the frame."
   (let ((edges (window-edges))
 	(window nil))
     (while (and (not (eq window (selected-window)))
