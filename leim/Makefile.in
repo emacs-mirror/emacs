@@ -150,13 +150,25 @@ ${SUBDIRS}:
 	mkdir $@
 	touch stamp-subdir
 
+# The rule which generates ${TIT} files creates them all in one go.
+# So we need to prevent parallel execution for that target, otherwise
+# Emacs complains about files being locked.  .NOTPARALLEL is for GNU
+# Make, .NO_PARALLEL is for other Make's.
+.NOTPARALLEL: ${TIT}
+
+.NO_PARALLEL: ${TIT}
+
 # Rule to generate quail/*.el from CXTERM-DIC/*.tit.
+# The "if [ -f $@ ]; then true; " part prevents parallel Make's
+# which don't honor .NOTPARALLEL, such as SGI's Make.
 ${TIT}:
 	if [ -d quail ]; then true; else make quail; fi
-	${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
-	    --eval '(batch-titdic-convert t)' -dir quail ${srcdir}/CXTERM-DIC
-	${RUN-EMACS}  -l ${buildlisppath}/international/quail \
-	    -f batch-byte-compile ${TIT:.elc=.el}
+	if [ -f $@ ]; then true; else \
+	 ${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
+	  --eval '(batch-titdic-convert t)' -dir quail ${srcdir}/CXTERM-DIC; fi
+	if [ -f $@ ]; then true; else \
+	  ${RUN-EMACS}  -l ${buildlisppath}/international/quail \
+	   -f batch-byte-compile ${TIT:.elc=.el}; fi
 
 leim-list.el: ${SUBDIRS} ${WORLD}
 	if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
