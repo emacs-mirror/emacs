@@ -1,5 +1,5 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985,86,87,93,94,95, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,93,94,95,97,1998 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1616,6 +1616,7 @@ EXFUN (Fdecode_coding_string, 3);
 EXFUN (Fchar_bytes, 1);
 extern int chars_in_text P_ ((unsigned char *, int));
 extern int multibyte_chars_in_text P_ ((unsigned char *, int));
+extern int unibyte_char_to_multibyte P_ ((int));
 
 /* Defined in syntax.c */
 EXFUN (Fforward_word, 1);
@@ -1954,6 +1955,7 @@ extern Lisp_Object Vbuffer_alist, Vinhibit_read_only;
 EXFUN (Fget_buffer, 1);
 EXFUN (Fget_buffer_create, 1);
 EXFUN (Fset_buffer, 1);
+EXFUN (set_buffer_if_live, 1);
 EXFUN (Fbarf_if_buffer_read_only, 0);
 EXFUN (Fcurrent_buffer, 0);
 EXFUN (Fswitch_to_buffer, 2);

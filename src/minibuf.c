@@ -1,5 +1,5 @@
 /* Minibuffer input and completion.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997
+   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998
          Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

@@ -1,5 +1,5 @@
 /* Header for multilingual character handler.
-   Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
+   Copyright (C) 1995, 1997, 1998 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
 
 This file is part of GNU Emacs.
