@@ -167,3 +167,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* This affects child_setup.  */
 
 #define SETPGRP_RELEASES_CTTY
+
+/* This was formerly in LIBS_MACHINE in iris4d.h,
+   but it is not needed for newer system versions.  */
+#define LIBS_SYSTEM -lsun
