@@ -510,106 +510,70 @@ else defaults to `Top'."
 			 "\\) *[,\t\n\177]"))
 		(nodepos nil))
 
-            ;; First, search a tag table, if any
-            (if (marker-position Info-tag-table-marker)
-		(let ((found-in-tag-table t)
-		      found-anchor
-		      found-mode
-		      (m Info-tag-table-marker))
-                  (save-excursion
-                    (set-buffer (marker-buffer m))
-                    (goto-char m)
-                    (beginning-of-line) ; so re-search will work.
+	    (catch 'foo
+	      ;; First, search a tag table, if any
+	      (if (marker-position Info-tag-table-marker)
+		  (let (found-in-tag-table
+			found-anchor
+			found-mode
+			(m Info-tag-table-marker))
+		    (save-excursion
+		      (set-buffer (marker-buffer m))
+		      (goto-char m)
+		      (beginning-of-line) ; so re-search will work.
 
-                    ;; Search tag table
-		    (catch 'foo
-		      (while (re-search-forward regexp nil t)
-			(setq found-anchor
-			      (string-equal "Ref:" (match-string 1)))
-			(or nodepos (setq nodepos (point))
-			(if (string-equal (match-string 2) nodename)
-			    (throw 'foo t))))
-		      (if nodepos
-			  (goto-char nodepos)
-			(setq found-in-tag-table nil)))
-                    (if found-in-tag-table
-                        (setq guesspos (1+ (read (current-buffer)))))
-                    (setq found-mode major-mode))
+		      ;; Search tag table
+		      (setq found-in-tag-table
+ 			    (re-search-forward regexp nil t)
+ 			    found-anchor
+ 			    (string-equal "Ref:" (match-string 1)))
+		      (if found-in-tag-table
+			  (setq guesspos (1+ (read (current-buffer)))))
+		      (setq found-mode major-mode))
 
-                  ;; Indirect file among split files
-                  (if found-in-tag-table
-                      (progn
-                        ;; If this is an indirect file, determine
-                        ;; which file really holds this node and
-                        ;; read it in.
-                        (if (not (eq found-mode 'Info-mode))
-                            ;; Note that the current buffer must be
-                            ;; the *info* buffer on entry to
-                            ;; Info-read-subfile.  Thus the hackery
-                            ;; above.
-                            (setq guesspos (Info-read-subfile guesspos)))))
+		    ;; Indirect file among split files
+		    (if found-in-tag-table
+			(progn
+			  ;; If this is an indirect file, determine
+			  ;; which file really holds this node and
+			  ;; read it in.
+			  (if (not (eq found-mode 'Info-mode))
+			      ;; Note that the current buffer must be
+			      ;; the *info* buffer on entry to
+			      ;; Info-read-subfile.  Thus the hackery
+			      ;; above.
+			      (setq guesspos (Info-read-subfile guesspos)))))
 
-                  ;; Handle anchor
-                  (if found-anchor
-		      (goto-char (setq anchorpos guesspos))
+		    ;; Handle anchor
+		    (if found-anchor
+			(progn
+			  (goto-char (setq anchorpos guesspos))
+			  (throw 'foo t)))))
 
-                    ;; Else we may have a node, which we search for:
-		    (let ((guesschar
-			   (or (byte-to-position guesspos)
-			       (if (< (position-bytes (point-max)) guesspos)
-				   (point-max)
-				 (point-min)))))
-		      (goto-char (max (point-min)
-				      (- guesschar 1000))))
-                    ;; Now search from our advised position
-                    ;; (or from beg of buffer)
-                    ;; to find the actual node.
-		    ;; First, check whether the node is right
-		    ;; where we are, in case the buffer begins
-		    ;; with a node.
-		    (setq nodepos nil)
-		    (or (Info-node-at-bob-matching regexp)
-			(catch 'foo
-			  (while (search-forward "\n\^_" nil t)
-			    (forward-line 1)
-			    (let ((beg (point)))
-			      (forward-line 1)
-			      (if (re-search-backward regexp beg t)
-				  (if (string-equal (match-string 2) nodename)
-				      (progn
-					(beginning-of-line)
-					(throw 'foo t))
-				    (or nodepos
-				      (setq nodepos (point)))))))
-			  (if nodepos
-			      (progn
-				(goto-char nodepos)
-				(beginning-of-line))
-			    (error
-			     "No such anchor in tag table or node in tag table or file: %s"
-			     nodename))))))
-	      (goto-char (max (point-min) (- guesspos 1000)))
-	      ;; Now search from our advised position (or from beg of buffer)
+	      ;; Else we may have a node, which we search for:
+	      (goto-char (max (point-min)
+			      (- (byte-to-position guesspos) 1000)))
+	      ;; Now search from our advised position
+	      ;; (or from beg of buffer)
 	      ;; to find the actual node.
-	      ;; First, check whether the node is right where we are, in case
-	      ;; the buffer begins with a node.
-	      (setq nodepos nil)
+	      ;; First, check whether the node is right
+	      ;; where we are, in case the buffer begins
+	      ;; with a node.
 	      (or (Info-node-at-bob-matching regexp)
-		  (catch 'foo
-		    (while (search-forward "\n\^_" nil t)
+		  (while (search-forward "\n\^_" nil t)
+		    (forward-line 1)
+		    (let ((beg (point)))
 		      (forward-line 1)
-		      (let ((beg (point)))
-			(forward-line 1)
-			(if (re-search-backward regexp beg t)
-			    (if (string-equal (match-string 2) nodename)
-				(throw 'foo t)
-			      (or nodepos
-				  (setq nodepos (point)))))))
-		    (if nodepos
-			(goto-char nodepos)
-		      (error "No such node: %s" nodename))))))
-          (Info-select-node)
-	  (goto-char (or anchorpos (point-min)))))
+		      (if (re-search-backward regexp beg t)
+			  (progn
+			    (beginning-of-line)
+			    (throw 'foo t)))))
+		  (error
+		   "No such anchor in tag table or node in tag table or file: %s"
+		   nodename)))
+
+	    (Info-select-node)
+	    (goto-char (or anchorpos (point-min))))))
     ;; If we did not finish finding the specified node,
     ;; go back to the previous one.
     (or Info-current-node no-going-back (null Info-history)
