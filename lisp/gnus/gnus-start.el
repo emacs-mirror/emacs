@@ -197,6 +197,7 @@ Gnus always reads its own startup file, which is called
 be readily understood by other newsreaders.  If you don't plan on
 using other newsreaders, set this variable to nil to save some time on
 entry."
+  :version "21.1"
   :group 'gnus-newsrc
   :type 'boolean)
 
