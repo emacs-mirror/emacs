@@ -1,6 +1,6 @@
 ;;; outline.el --- outline mode commands for Emacs
 
-;; Copyright (C) 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -196,6 +196,10 @@ See the command `outline-mode' for more information on this mode."
 	(run-hooks 'outline-minor-mode-hook))
     (setq selective-display nil)))
 
+(defvar outline-level 'outline-level
+  "Function of no args to compute a header's nesting level in an outline.
+It can assume point is at the beginning of a header line.")
+
 (defun outline-level ()
   "Return the depth to which a statement is nested in the outline.
 Point must be at the beginning of a header line.  This is actually
@@ -337,9 +341,9 @@ while if FLAG is `\\^M' (control-M) the text is hidden."
   (outline-back-to-heading)
   (let ((opoint (point))
 	(first t)
-	(level (outline-level)))
+	(level (funcall outline-level)))
     (while (and (not (eobp))
-		(or first (> (outline-level) level)))
+		(or first (> (funcall outline-level) level)))
       (setq first nil)
       (outline-next-heading))
     (forward-char -1)
@@ -360,13 +364,13 @@ Default is enough to cause the following heading to appear."
 	(if level (prefix-numeric-value level)
 	  (save-excursion
 	    (beginning-of-line)
-	    (let ((start-level (outline-level)))
+	    (let ((start-level (funcall outline-level)))
 	      (outline-next-heading)
-	      (max 1 (- (outline-level) start-level))))))
+	      (max 1 (- (funcall outline-level) start-level))))))
   (save-excursion
    (save-restriction
     (beginning-of-line)
-    (setq level (+ level (outline-level)))
+    (setq level (+ level (funcall outline-level)))
     (narrow-to-region (point)
 		      (progn (outline-end-of-subtree) (1+ (point))))
     (goto-char (point-min))
@@ -374,7 +378,7 @@ Default is enough to cause the following heading to appear."
 		(progn
 		 (outline-next-heading)
 		 (not (eobp))))
-      (if (<= (outline-level) level)
+      (if (<= (funcall outline-level) level)
 	  (save-excursion
 	    (outline-flag-region (save-excursion
 				   (forward-char -1)
@@ -389,13 +393,13 @@ Default is enough to cause the following heading to appear."
 With argument, move up ARG levels."
   (interactive "p")
   (outline-back-to-heading)
-  (if (eq (outline-level) 1)
+  (if (eq (funcall outline-level) 1)
       (error ""))
-    (while (and (> (outline-level) 1)
+    (while (and (> (funcall outline-level) 1)
 		(> arg 0)
 		(not (bobp)))
-      (let ((present-level (outline-level)))
-	(while (not (< (outline-level) present-level))
+      (let ((present-level (funcall outline-level)))
+	(while (not (< (funcall outline-level) present-level))
 	  (outline-previous-visible-heading 1))
 	(setq arg (- arg 1)))))
 
@@ -418,12 +422,12 @@ present one. It stops at the first and last subheadings of a superior heading."
 (defun outline-get-next-sibling ()
   "Position the point at the next heading of the same level, 
 and return that position or nil if it cannot be found."
-  (let ((level (outline-level)))
+  (let ((level (funcall outline-level)))
     (outline-next-visible-heading 1)
-    (while (and (> (outline-level) level)
+    (while (and (> (funcall outline-level) level)
 		(not (eobp)))
       (outline-next-visible-heading 1))
-    (if (< (outline-level) level)
+    (if (< (funcall outline-level) level)
 	nil
       (point))))
 	
@@ -446,12 +450,12 @@ present one. It stops at the first and last subheadings of a superior heading."
 (defun outline-get-last-sibling ()
   "Position the point at the previous heading of the same level, 
 and return that position or nil if it cannot be found."
-  (let ((level (outline-level)))
+  (let ((level (funcall outline-level)))
     (outline-previous-visible-heading 1)
-    (while (and (> (outline-level) level)
+    (while (and (> (funcall outline-level) level)
 		(not (bobp)))
       (outline-previous-visible-heading 1))
-    (if (< (outline-level) level)
+    (if (< (funcall outline-level) level)
 	nil
         (point))))
 
