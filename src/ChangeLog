@@ -1,3 +1,9 @@
+1999-10-07  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* process.c (wait_reading_process_input): When trying to suck
+	input from one process, for accept-process-output,
+	exit that loop if we get EAGAIN or EWOULDBLOCK.
+
 1999-10-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (Qbitmap_spec_p): Replaces Qpixmap_spec_p.
