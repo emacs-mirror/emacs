@@ -1,5 +1,7 @@
 2000-09-03  Andrew Innes  <andrewi@gnu.org>
 
+	* makefile.w32-in: Change to DOS line endings.
+
 	* s/ms-w32.h (ORDINARY_LINK): New define.
 
 	* w32.c (_ANONYMOUS_UNION) [__GNUC__]: New define

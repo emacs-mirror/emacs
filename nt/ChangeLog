@@ -1,5 +1,7 @@
 2000-09-03  Andrew Innes  <andrewi@gnu.org>
 
+	* makefile.w32-in: Change to DOS line endings.
+
 	* configure.bat: Change to DOS line endings.
 
 	* addsection.c (_ANONYMOUS_UNION) [__GNUC__]: New define.

@@ -1,3 +1,7 @@
+2000-09-03  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in: Change to DOS line endings.
+
 2000-09-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* movemail.c (toplevel): Remove redundant fcntl.h.
