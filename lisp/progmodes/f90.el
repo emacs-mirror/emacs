@@ -143,9 +143,6 @@
 
 ;;; Code:
 
-(defconst bug-f90-mode "T.Einarsson@clab.ericsson.se"
-  "Address of mailing list for F90 mode bugs.")
-
 ;; User options
 
 (defgroup f90 nil
@@ -1472,14 +1469,14 @@ If run in the middle of a line, the line is not broken."
   (interactive)
   (let (ctype)
     (cond ((f90-in-string)
-	   (insert "&") (newline) (insert "&"))
+	   (insert "&\n&"))
 	  ((f90-in-comment)
 	   (setq ctype (f90-get-present-comment-type))
-	   (newline)
+	   (newline 1)
 	   (insert ctype))
 	  (t (insert "&")
 	     (if (not no-update) (f90-update-line))
-	     (newline)
+	     (newline 1)
 	     (if f90-beginning-ampersand (insert "&")))))
   (f90-indent-line))
   

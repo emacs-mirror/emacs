@@ -1,3 +1,8 @@
+2001-12-18  Dave Love  <fx@gnu.org>
+
+	* progmodes/f90.el (f90-break-line): Avoid infinite recursion
+	calling `newline'.
+
 2001-12-14  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-checkout-model, vc-state, vc-workfile-version):
