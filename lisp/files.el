@@ -201,6 +201,26 @@ If the buffer is visiting a new file, the value is nil.")
   "Non-nil if visited file was read-only when visited.")
 (make-variable-buffer-local 'buffer-file-read-only)
 
+(defvar temporary-file-directory
+  (file-name-as-directory
+   (cond ((memq system-type '(ms-dos windows-nt))
+	  (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
+	 ((memq system-type '(vax-vms axp-vms))
+	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "SYS$SCRATCH:"))
+	 (t
+	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
+  "The directory for writing temporary files.")
+
+(defvar small-temporary-file-directory
+  (if (eq system-type 'ms-dos) (getenv "TMPDIR"))
+  "The directory for writing small temporary files.
+If non-nil, this directory is used instead of `temporary-file-directory'
+by programs that create small temporary files.  This is for systems that
+have fast storage with limited space, such as a RAM disk.")
+
+;; The system null device. (Should reference NULL_DEVICE from C.)
+(defvar null-device "/dev/null" "The system null device.")
+
 (defvar file-name-invalid-regexp
   (cond ((and (eq system-type 'ms-dos) (not (msdos-long-file-names)))
 	 (concat "^\\([^A-Z[-`a-z]\\|..+\\)?:\\|" ; colon except after drive
@@ -427,26 +447,6 @@ and ignores this variable."
 
 (defvar view-read-only nil
   "*Non-nil means buffers visiting files read-only, do it in view mode.")
-
-(defvar temporary-file-directory
-  (file-name-as-directory
-   (cond ((memq system-type '(ms-dos windows-nt))
-	  (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
-	 ((memq system-type '(vax-vms axp-vms))
-	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "SYS$SCRATCH:"))
-	 (t
-	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
-  "The directory for writing temporary files.")
-
-(defvar small-temporary-file-directory
-  (if (eq system-type 'ms-dos) (getenv "TMPDIR"))
-  "The directory for writing small temporary files.
-If non-nil, this directory is used instead of `temporary-file-directory'
-by programs that create small temporary files.  This is for systems that
-have fast storage with limited space, such as a RAM disk.")
-
-;; The system null device. (Should reference NULL_DEVICE from C.)
-(defvar null-device "/dev/null" "The system null device.")
 
 (defun ange-ftp-completion-hook-function (op &rest args)
   "Provides support for ange-ftp host name completion.
