@@ -209,7 +209,7 @@ Unless `PC-disable-includes' is non-nil, the \"<...>\" sequence is interpreted
 specially in \\[find-file].  For example,
 \\[find-file] <sys/time.h> RET finds the file /usr/include/sys/time.h.
 See also the variable `PC-include-file-path'."
-  nil nil nil :global t :group 'partial-completion
+  :global t :group 'partial-completion
   ;; Deal with key bindings...
   (PC-bindings partial-completion-mode)
   ;; Deal with include file feature...
