@@ -458,6 +458,9 @@ If DIR is positive skip forward; if negative, skip backward."
 Display cursor at that position for a second.
 This must be bound to a mouse click."
   (interactive "e")
+  (mouse-minibuffer-check click)
+  (select-window (posn-window (event-start click)))
+  ;; We don't use save-excursion because that preserves the mark too.
   (let ((point-save (point)))
     (unwind-protect
 	(progn (mouse-set-point click)
