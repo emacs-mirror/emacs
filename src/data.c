@@ -2029,12 +2029,14 @@ bool-vector.  IDX starts at 0.  */)
     }
   else if (STRING_MULTIBYTE (array))
     {
-      int idxval_byte, prev_bytes, new_bytes;
+      int idxval_byte, prev_bytes, new_bytes, nbytes;
       unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
 
       if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
       CHECK_NUMBER (newelt);
+
+      nbytes = SBYTES (array);
 
       idxval_byte = string_char_to_byte (array, idxval);
       p1 = SDATA (array) + idxval_byte;
@@ -2044,7 +2046,6 @@ bool-vector.  IDX starts at 0.  */)
 	{
 	  /* We must relocate the string data.  */
 	  int nchars = SCHARS (array);
-	  int nbytes = SBYTES (array);
 	  unsigned char *str;
 
 	  str = (nbytes <= MAX_ALLOCA
