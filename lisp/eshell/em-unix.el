@@ -641,13 +641,12 @@ Concatenate FILE(s), or standard input, to standard output.")
 (defun eshell-occur-mode-mouse-goto (event)
   "In Occur mode, go to the occurrence whose line you click on."
   (interactive "e")
-  (let (buffer pos)
+  (let (pos)
     (save-excursion
       (set-buffer (window-buffer (posn-window (event-end event))))
       (save-excursion
 	(goto-char (posn-point (event-end event)))
-	(setq pos (occur-mode-find-occurrence))
-	(setq buffer occur-buffer)))
+	(setq pos (occur-mode-find-occurrence))))
     (pop-to-buffer (marker-buffer pos))
     (goto-char (marker-position pos))))
 
@@ -683,7 +682,6 @@ available..."
 		(if string (insert string))
 		(setq string nil
 		      files (cdr files)))))
-	  (setq occur-buffer (current-buffer))
 	  (local-set-key [mouse-2] 'eshell-occur-mode-mouse-goto)
 	  (local-set-key [(control ?c) (control ?c)]
 			 'eshell-occur-mode-goto-occurrence)
