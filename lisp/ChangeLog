@@ -1,3 +1,7 @@
+2001-08-14  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* frame.el (show-trailing-whitespace): Doc fix.
+
 2001-08-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* desktop.el (desktop-save): Insert the coding: tag before
