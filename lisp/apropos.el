@@ -140,18 +140,35 @@ This looks good, but slows down the commands several times."
 	mode-name "Apropos"))
 
 ;;;###autoload
-(defun apropos-variable (regexp)
-  (interactive (list (read-string "Apropos variable (regexp): ")))
-  (apropos-command regexp nil t))
+(defun apropos-variable (regexp &optional do-all)
+  "Show user variables that match REGEXP.
+With optional prefix ARG or if `apropos-do-all' is non-nil, also show
+normal variables."
+  (interactive (list (read-string
+                      (concat "Apropos "
+                              (if (or current-prefix-arg apropos-do-all)
+				  "variable"
+				"user option")
+                              " (regexp): "))
+                     current-prefix-arg))
+  (apropos-command regexp nil
+		   (if arg 
+		       #'(lambda (symbol)
+			   (and (boundp symbol)
+				(get symbol 'variable-documentation)))
+		     'user-variable-p)))
 
 ;; For auld lang syne:
 ;;;###autoload
 (fset 'command-apropos 'apropos-command)
 ;;;###autoload
-(defun apropos-command (apropos-regexp &optional do-all just-vars)
+(defun apropos-command (apropos-regexp &optional do-all var-predicate)
   "Show commands (interactively callable functions) that match REGEXP.
 With optional prefix ARG, or if `apropos-do-all' is non-nil, also show
-variables.  If JUST-VARS is non-nil, show only variables."
+user option variables.
+
+If VAR-PREDICATE is non-nil, show only variables that
+satisfy the predicate VAR-PREDICATE."
   (interactive (list (read-string (concat
 				   "Apropos command "
 				   (if (or current-prefix-arg
@@ -168,8 +185,9 @@ variables.  If JUST-VARS is non-nil, show only variables."
 			    (if do-all
 				(lambda (symbol) (or (commandp symbol)
 						     (user-variable-p symbol)))
-			      (if just-vars 'user-variable-p
-				'commandp))))
+			      (or var-predicate 'commandp))))
+    (if do-all
+	(setq var-predicate 'user-variable-p))
     (let ((tem apropos-accumulator))
       (while tem
 	(if (get (car tem) 'apropos-inhibit)
@@ -182,13 +200,13 @@ variables.  If JUST-VARS is non-nil, show only variables."
 	     (while p
 	       (setcar p (list
 			  (setq symbol (car p))
-			  (if (or do-all (not just-vars))
+			  (if (or do-all (not var-predicate))
 			      (if (commandp symbol)
 				  (if (setq doc (documentation symbol t))
 				      (substring doc 0 (string-match "\n" doc))
 				    "(not documented)")))
-			  (and do-all
-			       (user-variable-p symbol)
+			  (and var-predicate
+			       (funcall var-predicate symbol)
 			       (if (setq doc (documentation-property
 					      symbol 'variable-documentation t))
 				   (substring doc 0
@@ -484,8 +502,8 @@ Will return nil instead."
 (defun apropos-print (do-keys doc-fn spacing)
   "Output result of various apropos commands with `apropos-regexp'.
 APROPOS-ACCUMULATOR is a list.  Optional DOC-FN is called for each element
-of apropos-accumulator and may modify it resulting in (symbol fn-doc
-var-doc [plist-doc]).  Returns sorted list of symbols and documentation
+of apropos-accumulator and may modify it resulting in (SYMBOL FN-DOC
+VAR-DOC [PLIST-DOC]).  Returns sorted list of symbols and documentation
 found."
   (if (null apropos-accumulator)
       (message "No apropos matches for `%s'" apropos-regexp)
