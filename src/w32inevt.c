@@ -425,15 +425,15 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 
 /* Mouse position hook.  */
 void 
-w32_mouse_position (FRAME_PTR *f,
+w32_console_mouse_position (FRAME_PTR *f,
 #ifndef MULE
-		      int insist,
+			    int insist,
 #endif
-		      Lisp_Object *bar_window,
-		      enum scroll_bar_part *part,
-		      Lisp_Object *x,
-		      Lisp_Object *y,
-		      unsigned long *time)
+			    Lisp_Object *bar_window,
+			    enum scroll_bar_part *part,
+			    Lisp_Object *x,
+			    Lisp_Object *y,
+			    unsigned long *time)
 {
   BLOCK_INPUT;
 
@@ -550,7 +550,7 @@ resize_event (WINDOW_BUFFER_SIZE_RECORD *event)
 
 int 
 w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
-			 int waitp, int expected)
+			 int expected)
 {
   BOOL no_events = TRUE;
   int nev, ret = 0, add;
