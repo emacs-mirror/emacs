@@ -1,4 +1,4 @@
-;;; viper-util.el --- utilities used by viper.el
+;;; viper-util.el --- Utilities used by viper.el
 
 ;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
@@ -103,15 +103,25 @@
       (symbol-function
        (if viper-xemacs-p 'characterp 'integerp)))
 
+(fset 'viper-int-to-char
+      (symbol-function
+       (if viper-xemacs-p 'int-to-char 'identity)))
+
 ;; CHAR is supposed to be a char or an integer (positive or negative)
 ;; LIST is a list of chars, nil, and negative numbers
-;; Check if CHAR is a member by trying to convert into integers, if necessary.
+;; Check if CHAR is a member by trying to convert in characters, if necessary.
 ;; Introduced for compatibility with XEmacs, where integers are not the same as
 ;; chars.
 (defun viper-memq-char (char list)
-  (cond (viper-emacs-p (memq char list))
-	((and (integerp char) (>= char 0)) (memq (int-to-char char) list))
+  (cond ((and (integerp char) (>= char 0))
+	 (memq (viper-int-to-char char) list))
 	((memq char list))))
+
+;; Check if char-or-int and char are the same as characters
+(defun viper-char-equal (char-or-int char)
+  (cond ((and (integerp char-or-int) (>= char-or-int 0))
+	 (= (viper-int-to-char char-or-int) char))
+	((eq char-or-int char))))
 
 ;; Like =, but accommodates null and also is t for eq-objects
 (defun viper= (char char1)
@@ -683,8 +693,13 @@
   (and (featurep 'vc-hooks)
        ;; CVS files are considered not checked in
        (not (memq (vc-backend file) '(nil CVS)))
-       (not (memq (vc-state file) '(edited needs-merge)))
-       (not (stringp (vc-state file)))))
+       (if (fboundp 'vc-state)
+	   (progn
+	     (not (memq (vc-state file) '(edited needs-merge)))
+	     (not (stringp (vc-state file))))
+	 ;; XEmacs has no vc-state
+	 (not (vc-locking-user file)))
+       ))
 
 ;; checkout if visited file is checked in
 (defun viper-maybe-checkout (buf)
@@ -926,7 +941,7 @@
 	help-char key) 
     (use-global-map viper-overriding-map) 
     (unwind-protect
-	(setq key (elt (read-key-sequence nil) 0)) 
+	(setq key (elt (viper-read-key-sequence nil) 0)) 
       (use-global-map global-map))
     key))
 

@@ -13,6 +13,7 @@
 @synindex vr cp
 @synindex fn cp
 @synindex pg cp
+@synindex ky cp
 
 @dircategory Emacs
 @direntry
@@ -149,6 +150,15 @@ The architecture and the interface are, of course, drastically different.
 
 @node Major Entry Points, Session Commands, Introduction, Top
 @chapter Major Entry Points
+
+When Ediff starts up, it displays a small control window, which accepts the
+Ediff commands and two or three windows displaying the files to be compared
+or merged. The control window can be in its own small frame or it can be
+part of a bigger frame that displays other buffers. In any case, it is
+important that the control window be active (i.e., be the one receiving the
+keystrokes) when you use Ediff. You can switch to other Emacs buffers at
+will and even edit the files currently being compared with Ediff and then
+switch back to Ediff at any time by activating the appropriate Emacs windows.
 
 Ediff can be invoked interactively using the following functions, which can
 be run either from the minibuffer or from the menu bar.  In the menu bar,
@@ -443,27 +453,35 @@ command (see @kbd{ga}, @kbd{gb}, and @kbd{gc}).
 
 @table @kbd
 @item ?
+@kindex ?
 Toggles the Ediff Quick Help window ON and OFF.
 @item G
+@kindex G
 Prepares a mail buffer for sending a praise or a curse to the Ediff maintainer.
 
 @item E
+@kindex E
 Brings up the top node of this manual, where you can find further
 information on the various Ediff functions and advanced issues, such as
 customization, session groups, etc.
 
 @item v
+@kindex v
 Scrolls up buffers A and B (and buffer C where appropriate) in a
 coordinated fashion.
 @item V
+@kindex V
 Scrolls the buffers down.
 
 @item <
+@kindex <
 Scrolls the buffers to the left simultaneously.
 @item >
+@kindex >
 Scrolls buffers to the right.
 
 @item wd
+@kindex wd
 Saves the output from the diff utility, for further reference.
 
 With prefix argument, saves the plain output from @code{diff} (see
@@ -473,14 +491,18 @@ argument, it saves customized @code{diff} output (see
 it is available.
 
 @item wa
+@kindex wa
 Saves buffer A, if it was modified.
 @item wb
+@kindex wb
 Saves buffer B, if it was modified.
 @item wc
+@kindex wc
 Saves buffer C, if it was modified (if you are in a session that
 compares three files simultaneously).
 
 @item a
+@kindex a
 @emph{In comparison sessions:}
 Copies the current difference region (or the region specified as the prefix
 to this command) from buffer A to buffer B.
@@ -493,6 +515,7 @@ to this command) from buffer A to the merge buffer.  The old contents of
 this region in buffer C can be restored via the command @kbd{r}.
 
 @item b
+@kindex b
 Works similarly, but copies the current difference region from buffer B to
 buffer A (in @emph{comparison sessions}) or the merge buffer (in
 @emph{merge sessions}).
@@ -502,39 +525,50 @@ be reinstated via the command @kbd{ra} in comparison sessions and
 @kbd{r} in merge sessions.
 
 @item ab
+@kindex ab
 Copies the current difference region (or the region specified as the prefix
 to this command) from buffer A to buffer B.  This (and the next five)
 command is enabled only in sessions that compare three files
 simultaneously.  The old region in buffer B is saved and can be restored
 via the command @kbd{rb}.
 @item ac
+@kindex ac
 Copies the difference region from buffer A to buffer C.
 The old region in buffer C is saved and can be restored via the command
 @kbd{rc}.
 @item ba
+@kindex ba
 Copies the difference region from buffer B to buffer A.
 The old region in buffer A is saved and can be restored via the command
 @kbd{ra}.
 @item bc
+@kindex bc
 Copies the difference region from buffer B to buffer C.
 The command @kbd{rc} undoes this.
 @item ca
+@kindex ca
 Copies the difference region from buffer C to buffer A.
 The command @kbd{ra} undoes this.
 @item cb
+@kindex cb
 Copies the difference region from buffer C to buffer B.
 The command @kbd{rb} undoes this.
 
 @item p
 @itemx DEL
+@kindex p
+@kindex DEL
 Makes the previous difference region current.
 @item n
 @itemx SPC
+@kindex n
+@kindex SPC
 Makes the next difference region current.
 
 @item j
 @itemx -j
 @itemx Nj
+@kindex j
 Makes the very first difference region current.
 
 @kbd{-j} makes the last region current.  Typing a number, N, and then `j'
@@ -542,6 +576,7 @@ makes the difference region N current.  Typing -N (a negative number) then
 `j' makes current the region Last - N.
 
 @item ga
+@kindex ga
 Makes current the difference region closest to the position of the point in
 buffer A.
 
@@ -553,11 +588,13 @@ region, then it is in an area where all variants agree with each other.  In
 this case, the variants will be positioned so that each would display this
 area (of agreement).
 @item gb
+@kindex gb
 Makes current the difference region closest to the position of the point in
 buffer B.
 
 With a prefix argument, behaves like @kbd{ga}, but with respect to buffer B.
 @item gc
+@kindex gc
 @emph{In merge sessions:}
 makes current the difference region closest to the point in the merge buffer.
 
@@ -567,12 +604,14 @@ makes current the region closest to the point in buffer C.
 With a prefix argument, behaves like @kbd{ga}, but with respect to buffer C.
 
 @item !
+@kindex !
 Recomputes the difference regions, bringing them up to date.  This is often
 needed because it is common to do all sorts of editing during Ediff
 sessions, so after a while, the highlighted difference regions may no
 longer reflect the actual differences among the buffers.
 
 @item *
+@kindex *
 Forces refinement of the current difference region, which highlights the exact
 words of disagreement among the buffers.  With a negative prefix argument,
 unhighlights the current region.
@@ -589,17 +628,20 @@ This command is also useful when the highlighted fine differences are
 no longer current, due to user editing.
 
 @item m
+@kindex m
 Displays the current Ediff session in a frame as wide as the physical
 display.  This is useful when comparing files side-by-side.  Typing `m' again
 restores the original size of the frame.
 
 @item |
+@kindex |
 Toggles the horizontal/vertical split of the Ediff display.  Horizontal
 split is convenient when it is possible to compare files
 side-by-side.  If the frame in which files are displayed is too narrow
 and lines are cut off, typing @kbd{m} may help some.
 
 @item @@
+@kindex @@
 Toggles auto-refinement of difference regions (i.e., automatic highlighting
 of the exact words that differ among the variants).  Auto-refinement is
 turned off on devices where Emacs doesn't support highlighting.
@@ -609,11 +651,13 @@ user can always forcefully refine specific difference regions by typing
 @kbd{*}.
 
 @item h
+@kindex h
 Cycles between full highlighting, the mode where fine differences are not
 highlighted (but computed), and the mode where highlighting is done with
 ASCII strings.  The latter is not really recommended, unless on a dumb TTY.
 
 @item r
+@kindex r
 Restores the old contents of the region in the merge buffer.
 (If you copied a difference region from buffer A or B into the merge buffer
 using the commands @kbd{a} or @kbd{b}, Ediff saves the old contents of the
@@ -622,22 +666,26 @@ region in case you change your mind.)
 This command is enabled in merge sessions only.
 
 @item ra
+@kindex ra
 Restores the old contents of the current difference region in buffer A,
 which was previously saved when the user invoked one of these commands:
 @kbd{b}, @kbd{ba}, @kbd{ca}, which see.  This command is enabled in
 comparison sessions only.
 @item rb
+@kindex rb
 Restores the old contents of the current difference region in buffer B,
 which was previously saved when the user invoked one of these commands:
 @kbd{a}, @kbd{ab}, @kbd{cb}, which see.  This command is enabled in
 comparison sessions only.
 @item rc
+@kindex rc
 Restores the old contents of the current difference region in buffer C,
 which was previously saved when the user invoked one of these commands:
 @kbd{ac}, @kbd{bc}, which see.  This command is enabled in 3-file
 comparison sessions only.
 
 @item ##
+@kindex ##
 Tell Ediff to skip over regions that disagree among themselves only in the
 amount of white space and line breaks.
 
@@ -647,6 +695,8 @@ again puts Ediff back in the original state.
 
 @item #h
 @itemx #f
+@kindex #f
+@kindex #h
 Ediff works hard to ameliorate the effects of boredom in the workplace...
 
 Quite often differences are due to identical replacements (e.g., the word
@@ -667,24 +717,30 @@ regular expressions.  All other regions will be skipped
 over.  @xref{Selective Browsing}, for more.
 
 @item A
+@kindex A
 Toggles the read-only property in buffer A.
 If file A is under version control and is checked in, it is checked out
 (with your permission).
 @item B
+@kindex B
 Toggles the read-only property in buffer B.
 If file B is under version control and is checked in, it is checked out.
 @item C
+@kindex C
 Toggles the read-only property in buffer C (in 3-file comparison sessions).
 If file C is under version control and is checked in, it is checked out.
 
 @item ~
+@kindex ~
 Swaps the windows where buffers A and B are displayed.  If you are comparing
 three buffers at once, then this command would rotate the windows among
 buffers A, B, and C.
 
 @item i
+@kindex i
 Displays all kinds of useful data about the current Ediff session.
 @item D
+@kindex D
 Runs @code{ediff-custom-diff-program} on the variants and displays the
 buffer containing the output.  This is useful when you must send the output
 to your Mom.
@@ -693,6 +749,7 @@ With a prefix argument, displays the plain @code{diff} output.
 @xref{Patch and Diff Programs}, for details.
 
 @item R
+@kindex R
 Displays a list of currently active Ediff sessions---the Ediff Registry.
 You can then restart any of these sessions by either clicking on a session
 record or by putting the cursor over it and then typing the return key.
@@ -706,10 +763,12 @@ Control Panel.  If you don't have a control panel handy, type this in the
 minibuffer: @kbd{M-x eregistry}.  @xref{Registry of Ediff Sessions}.
 
 @item M
+@kindex M
 Shows the session group buffer that invoked the current Ediff session.
 @xref{Session Groups}, for more information on session groups.
 
 @item z
+@kindex z
 Suspends the current Ediff session.  (If you develop a condition known as
 Repetitive Ediff Injury---a serious but curable illness---you must change
 your current activity.  This command tries hard to hide all Ediff-related
@@ -718,21 +777,25 @@ buffers.)
 The easiest way to resume a suspended Ediff session is through the registry
 of active sessions.  @xref{Registry of Ediff Sessions}, for details.
 @item q
+@kindex q
 Terminates this Ediff session.  With a prefix argument (e.g.,@kbd{1q}), asks
 if you also want to delete the buffers of the variants.
 Modified files and the results of merges are never deleted.
 
 @item %
+@kindex %
 Toggles narrowing in Ediff buffers.  Ediff buffers may be narrowed if you
 are comparing only parts of these buffers via the commands
 @code{ediff-windows-*} and @code{ediff-regions-*}, which see.
 
 @item C-l
+@kindex C-l
 Restores the usual Ediff window setup.  This is the quickest way to resume
 an Ediff session, but it works only if the control panel of that session is
 visible.
 
 @item $$
+@kindex $$
 While merging with an ancestor file, Ediff is determined to reduce user's
 wear and tear by saving him and her much of unproductive, repetitive
 typing.  If it notices that, say, file A's difference region is identical to
@@ -752,6 +815,7 @@ of the variants clashes with the ancestor but the other variant agrees with
 it.  Typing @kbd{$$} again undoes this setting.
 
 @item $*
+@kindex $*
 When merging files with large number of differences, it is sometimes
 convenient to be able to skip the difference regions for which you already
 decided which variant is most appropriate. Typing @kbd{$*} will accomplish
@@ -767,8 +831,10 @@ this region will be skipped if it differs from the current difference
 region in buffer A, etc.
 
 @item /
+@kindex /
 Displays the ancestor file during merges.
 @item &
+@kindex &
 In some situations, such as when one of the files agrees with the ancestor file
 on a difference region and the other doesn't, Ediff knows what to do: it copies
 the current difference region from the second buffer into the merge buffer.
@@ -788,6 +854,7 @@ region has the status @samp{default-A} then changing the default action to
 corresponding region from buffer B.
 
 @item s
+@kindex s
 Causes the merge window shrink to its minimum size, thereby exposing as much
 of the variant buffers as possible.  Typing `s' again restores
 the original size of that window.
@@ -807,12 +874,14 @@ The split between the merge window and the variant windows is controlled by
 the variable @code{ediff-merge-window-share}, which see.
 
 @item +
+@kindex +
 Combines the difference regions from buffers A and B and copies the
 result into the merge buffer.  @xref{Merging and diff3}, and the
 variables @code{ediff-combine-diffs} and @code{ediff-combination-pattern}.
 
 
 @item =
+@kindex =
 You may run into situations when a large chunk of text in one file has been
 edited and then moved to a different place in another file.  In such a case,
 these two chunks of text are unlikely to belong to the same difference
@@ -835,6 +904,9 @@ be asked which two of the three buffers to use).
 @emph{If you are merging files or buffers (with or without ancestor):}
 Ediff would take the current region in the merge buffer and compare
 it to the current region in the buffer of your choice (A or B).
+
+@emph{Note: In all these cases you must first switch to the appropriate
+Emacs buffers and manually set the regions that you want to compare.}
 
 Highlighting set by the parent Ediff session is removed, to avoid interference
 with highlighting of the child session.  When done with the child session, type
@@ -2329,12 +2401,14 @@ Leigh L Klotz (klotz@@adoc.xerox.com),
 Fritz Knabe (Fritz.Knabe@@ecrc.de),
 Heinz Knutzen (hk@@informatik.uni-kiel.d400.de),
 Andrew Koenig (ark@@research.att.com),
+Hannu Koivisto (azure@@iki.fi),
 Ken Laprade (laprade@@dw3f.ess.harris.com),
 Will C Lauer (wcl@@cadre.com),
 Richard Levitte (levitte@@e.kth.se),
 Mike Long (mike.long@@analog.com),
 Martin Maechler (maechler@@stat.math.ethz.ch),
 Simon Marshall (simon@@gnu.org),
+Paul C. Meuse (pmeuse@@delcomsys.com),
 Richard Mlynarik (mly@@adoc.xerox.com),
 Stefan Monnier (monnier@@cs.yale.edu),
 Chris Murphy (murphycm@@sun.aston.ac.uk),

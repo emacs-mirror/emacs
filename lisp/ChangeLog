@@ -1,3 +1,78 @@
+2001-07-21  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* ediff-util.el: Copyright years.
+	(ediff-choose-syntax-table): New function.
+	(ediff-setup): Use ediff-choose-syntax-table.
+	(ediff-file-checked-out-p,ediff-file-checked-in-p): check if
+	vc-state is available.
+	(ediff-make-temp-file): use ediff-coding-system-for-write.
+	
+	* ediff-init.el (ediff-with-syntax-table): New macro, uses
+	with-syntax-table.
+	(ediff-coding-system-for-read): from ediff-diff.el
+	(ediff-coding-system-for-write): new variable.
+	(ediff-highest-priority): fixed the bug having to do with disappearing
+	overlays.
+	(ediff-file-remote-p): use file-remote-p, if available.
+	(ediff-listable-file): new function.
+	(ediff-file-attributes): use ediff-listable-file.
+	
+	* ediff-mult.el (ediff-meta-insert-file-info1): use
+	ediff-listable-file.
+	
+	* ediff-ptch.el (ediff-prompt-for-patch-file): use
+	ediff-coding-system-for-read.
+	(ediff-patch-file-internal): use ediff-coding-system-for-write.
+	
+	* ediff-diff.el (ediff-coding-system-for-read): moved to ediff-init.el.
+	(ediff-match-diff3-line,ediff-get-diff3-group): improved pattern.
+	
+	* ediff.el: Date of last update, copyright years.
+	
+	* ediff-wind (ediff-setup-control-frame): Nill->nil.
+	
+	* viper-ex.el (ex-token-list,ex-cmd-execute): Revamped, courtesy
+	of Scott Bronson.
+	(ex-cmd-assoc,ex-compile,ex-cmd-one-letr): New functions.
+	(viper-check-sub,viper-get-ex-command,viper-execute-ex-command):
+	Deleted functions.
+	(viper-get-ex-com-subr,viper-ex,ex-mark): Changed to use the new
+	ex-token-list.
+	(viper-get-ex-address-subr): convert registers to char data type.
+	
+	* viper-util.el (viper-int-to-char,viper-char-equal): new
+	functions.
+	(viper-memq-char): use viper-int-to-char.
+	(viper-file-checked-in-p): use vc-locking-user, if vc doesn't have
+	vc-locking-state.
+	(viper-read-key): use viper-read-key-sequence.
+	
+	* viper.el (viper-major-mode-modifier-list): added
+	inferior-emacs-lisp-mode.
+	(this-major-mode-requires-vi-state): new function that uses simple
+	heuristics to decide if vi state is appropriate.
+	(set-viper-state-in-major-mode): use this-major-mode-requires-vi-state.
+	(viper-non-hook-settings): don't advise read-key-sequence.
+	(viper-read-key-sequence): new function that replaces the
+	previously used advice to read-key-sequence.
+	
+	* viper-cmd.el (viper-test-com-defun,viper-exec-change,
+	viper-exec-Change,viper-execute-com,viper-insert,viper-append,
+	viper-Append,viper-Insert,viper-open-line,viper-Open-line,
+	viper-open-line-at-point,viper-substitute,viper-overwrite,
+	viper-replace-char-subr,viper-forward-word,viper-forward-Word):
+	got rid of the negative character hack.
+	(viper-escape-to-state,viper-replace-state-exit-cmd):
+	use viper-read-key-sequence.
+	(viper-envelop-ESC-key): no need for ad-get-orig-definition.
+	(viper-minibuffer-standard-hook,viper-read-string-with-history):
+	don't override existing minibuffer-setup-hook.
+	(viper-mark-point,viper-goto-mark-subr,viper-brac-function):
+	convert registers to char data type. 
+	(viper-autoindent): use viper-indent-line.
+	
+	* viper-keym.el: use viper-exec-key-in-emacs. 
+	
 2001-07-20  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* server.el (server-visit-files): Fix variable name typo.

@@ -1,4 +1,4 @@
-;;; viper.el --- a full-featured Vi emulator for GNU Emacs and XEmacs,
+;;; viper.el --- A full-featured Vi emulator for GNU Emacs and XEmacs,
 ;;		 a VI Plan for Emacs Rescue,
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
@@ -8,7 +8,7 @@
 
 ;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01 Free Software Foundation, Inc.
 
-(defconst viper-version "3.10 of March 3, 2001"
+(defconst viper-version "3.11 of July 18, 2001"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -401,6 +401,7 @@ widget."
 				  
     completion-list-mode
     diff-mode
+    idl-mode
     
     perl-mode
     cperl-mode
@@ -446,6 +447,7 @@ unless it is coming up in a wrong Viper state."
 (defcustom viper-insert-state-mode-list
   '(internal-ange-ftp-mode
     comint-mode
+    inferior-emacs-lisp-mode
     eshell-mode
     shell-mode)
   "*A list of major modes that should come up in Vi Insert state."
@@ -462,11 +464,14 @@ unless it is coming up in a wrong Viper state."
 	     (nth 0 triple) (nth 1 triple) (eval (nth 2 triple))))
 	  viper-major-mode-modifier-list))
 
+;; We change standard bindings in some major mode, making them slightly
+;; different than in "normal" vi/insert/emacs states
 (defcustom viper-major-mode-modifier-list
   '((help-mode emacs-state viper-slash-and-colon-map)
     (comint-mode insert-state viper-comint-mode-modifier-map)
     (comint-mode vi-state viper-comint-mode-modifier-map)
     (shell-mode insert-state viper-comint-mode-modifier-map)
+    (inferior-emacs-lisp-mode insert-state viper-comint-mode-modifier-map)
     (shell-mode vi-state viper-comint-mode-modifier-map)
     (ange-ftp-shell-mode insert-state viper-comint-mode-modifier-map)
     (ange-ftp-shell-mode vi-state viper-comint-mode-modifier-map)
@@ -595,11 +600,23 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 
 	(if viper-xemacs-p
 	    (make-variable-buffer-local 'bar-cursor))
+	(if (eq major-mode 'viper-mode)
+	    (setq major-mode 'fundamental-mode))
 
 	(or (memq major-mode viper-emacs-state-mode-list) ; don't switch to Vi
 	    (memq major-mode viper-insert-state-mode-list) ; don't switch
 	    (viper-change-state-to-vi)))))
    
+
+;; Apply a little heuristic to invoke vi state on major-modes
+;; that are not listed in viper-vi-state-mode-list
+(defun this-major-mode-requires-vi-state (mode)
+  (cond ((memq mode viper-vi-state-mode-list) t)
+	((memq mode viper-emacs-state-mode-list) nil)
+	((memq mode viper-insert-state-mode-list) nil)
+	(t (and (eq (key-binding "a") 'self-insert-command)
+		(eq (key-binding " ") 'self-insert-command)))))
+
 
 ;; This hook designed to enable Vi-style editing in comint-based modes."
 (defun viper-comint-mode-hook ()
@@ -760,7 +777,7 @@ remains buffer-local."
    (lambda (buf)
      (if (viper-buffer-live-p buf)
 	 (with-current-buffer buf
-	   (cond ((and (memq major-mode viper-vi-state-mode-list)
+	   (cond ((and (this-major-mode-requires-vi-state major-mode)
 		       (eq viper-current-state 'emacs-state))
 		  (viper-mode))
 		 ((memq major-mode viper-emacs-state-mode-list)
@@ -798,6 +815,8 @@ remains buffer-local."
   ;; However, this has the effect that if the user didn't specify the
   ;; default mode, new buffers that fall back on the default will come up
   ;; in Fundamental Mode and Vi state.
+  ;; When viper-mode is executed in such a case, it will set the major mode
+  ;; back to fundamental-mode.
   (if (eq default-major-mode 'fundamental-mode)
       (setq default-major-mode 'viper-mode))
   
@@ -956,36 +975,16 @@ remains buffer-local."
       (setq global-mode-string
 	    (append '("" viper-mode-string) (cdr global-mode-string))))
 
-  (defadvice read-key-sequence (around viper-read-keyseq-ad activate)
-    "Harness to work for Viper.  This advice is harmless---don't worry!"
-    (let (inhibit-quit event keyseq)
-      (setq keyseq ad-do-it)
-      (setq event (if viper-xemacs-p
-		      (elt keyseq 0) ; XEmacs returns vector of events
-		    (elt (listify-key-sequence keyseq) 0)))
-      (if (viper-ESC-event-p event)
-	  (let (unread-command-events)
-	    (viper-set-unread-command-events keyseq)
-	    (if (viper-fast-keysequence-p)
-		(let ((viper-vi-global-user-minor-mode  nil)
-		      (viper-vi-local-user-minor-mode  nil)
-		      (viper-replace-minor-mode nil) ; actually unnecessary
-		      (viper-insert-global-user-minor-mode  nil)
-		      (viper-insert-local-user-minor-mode  nil))
-		  (setq keyseq ad-do-it)) 
-	      (setq keyseq ad-do-it))))
-      keyseq))
-  
   (defadvice describe-key (before viper-read-keyseq-ad protect activate)
-    "Force to read key via `read-key-sequence'."
+    "Force to read key via `viper-read-key-sequence'."
     (interactive (list (viper-events-to-keys
-			(read-key-sequence "Describe key: ")))))
+			(viper-read-key-sequence "Describe key: ")))))
   
   (defadvice describe-key-briefly
     (before viper-read-keyseq-ad protect activate)
-    "Force to read key via `read-key-sequence'."
+    "Force to read key via `viper-read-key-sequence'."
     (interactive (list (viper-events-to-keys
-			(read-key-sequence "Describe key briefly: ")))))
+			(viper-read-key-sequence "Describe key briefly: ")))))
   
   
   (defadvice find-file (before viper-add-suffix-advice activate)
@@ -1055,6 +1054,27 @@ remains buffer-local."
 	     (viper-remember-current-frame (selected-frame)))) )
 
   ) ; end viper-non-hook-settings
+
+;; Viperized read-key-sequence
+(defun viper-read-key-sequence (prompt &optional continue-echo)
+  (let (inhibit-quit event keyseq)
+    (setq keyseq (read-key-sequence prompt continue-echo))
+    (setq event (if viper-xemacs-p
+		    (elt keyseq 0) ; XEmacs returns vector of events
+		  (elt (listify-key-sequence keyseq) 0)))
+    (if (viper-ESC-event-p event)
+	(let (unread-command-events)
+	  (viper-set-unread-command-events keyseq)
+	  (if (viper-fast-keysequence-p)
+	      (let ((viper-vi-global-user-minor-mode  nil)
+		    (viper-vi-local-user-minor-mode  nil)
+		    (viper-replace-minor-mode nil) ; actually unnecessary
+		    (viper-insert-global-user-minor-mode  nil)
+		    (viper-insert-local-user-minor-mode  nil))
+		(setq keyseq (read-key-sequence prompt continue-echo))) 
+	    (setq keyseq (read-key-sequence prompt continue-echo)))))
+    keyseq))
+
 
 
 ;; Ask only if this-command/last-command are nil, i.e., when loading
@@ -1259,7 +1279,7 @@ These two lines must come in the order given.
       (setq-default minor-mode-map-alist minor-mode-map-alist)
       ))
 
-(if (and viper-mode (memq major-mode viper-vi-state-mode-list))
+(if (and viper-mode (this-major-mode-requires-vi-state major-mode))
     (viper-mode))
 
 (if viper-mode

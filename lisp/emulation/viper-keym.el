@@ -445,8 +445,8 @@ Useful in some modes, such as Gnus, MH, etc.")
 
 (defvar viper-comint-mode-modifier-map (make-sparse-keymap)
   "This map modifies comint mode.")
-(define-key viper-comint-mode-modifier-map "\C-m" 'comint-send-input)
-(define-key viper-comint-mode-modifier-map "\C-d" 'comint-delchar-or-maybe-eof)
+(define-key viper-comint-mode-modifier-map "\C-m" 'viper-exec-key-in-emacs)
+(define-key viper-comint-mode-modifier-map "\C-d" 'viper-exec-key-in-emacs)
 
 (defvar viper-dired-modifier-map (make-sparse-keymap)
   "This map modifies Dired behavior.")

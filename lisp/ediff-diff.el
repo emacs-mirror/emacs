@@ -57,15 +57,6 @@ Must produce output compatible with Unix's diff3 program."
   :type 'string
   :group 'ediff-diff)
 
-(defcustom ediff-coding-system-for-read 'raw-text
-  "*The coding system for read to use when running the diff program as a subprocess. 
-In most cases, the default will do. However, under certain circumstances in
-Windows NT/98/95 you might need to use something like 'raw-text-dos here.
-So, if the output that your diff program sends to Emacs contains extra ^M's,
-you might need to experiment here, if the default or 'raw-text-dos doesn't
-work."
-  :type 'symbol
-  :group 'ediff-diff)
 
 ;; The following functions must precede all defcustom-defined variables.
 
@@ -153,7 +144,7 @@ This output is not used by Ediff internally."
 
 ;;; Support for diff3
 
-(defvar ediff-match-diff3-line "^====\\(.?\\)$"
+(defvar ediff-match-diff3-line "^====\\(.?\\)\C-m?$"
   "Pattern to match lines produced by diff3 that describe differences.")
 (defcustom ediff-diff3-options ""  
   "*Options to pass to `ediff-diff3-program'."
@@ -918,7 +909,7 @@ delimiter regions"))
   ;; can produce the groups in the order 1, 2, 3 or 1, 3, 2.
   (save-excursion
     (re-search-forward
-     (concat "^" file ":\\([0-9]+\\)\\(,\\([0-9]+\\)\\)?\\([ac]\\)$"))
+     (concat "^" file ":\\([0-9]+\\)\\(,\\([0-9]+\\)\\)?\\([ac]\\)\C-m?$"))
     (beginning-of-line 2)
     ;; treatment depends on whether it is an "a" group or a "c" group
     (if (string-equal (buffer-substring (match-beginning 4) (match-end 4)) "c")

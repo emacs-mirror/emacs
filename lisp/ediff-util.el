@@ -1101,15 +1101,24 @@ of the current buffer."
 (defsubst ediff-file-checked-out-p (file)
   (or (not (featurep 'vc-hooks))
       (and (vc-backend file)
-           (or (memq (vc-state file) '(edited needs-merge))
-               (stringp (vc-state file))))))
+	   (if (fboundp 'vc-state)
+	       (or (memq (vc-state file) '(edited needs-merge))
+		   (stringp (vc-state file)))
+	     ;; XEmacs has no vc-state
+	     (vc-locking-user file))
+	   )))
   
 (defsubst ediff-file-checked-in-p (file)
   (and (featurep 'vc-hooks)
        ;; CVS files are considered not checked in
        (not (memq (vc-backend file) '(nil CVS)))
-       (not (memq (vc-state file) '(edited needs-merge)))
-       (not (stringp (vc-state file)))))
+       (if (fboundp 'vc-state)
+	   (progn
+	     (not (memq (vc-state file) '(edited needs-merge)))
+	     (not (stringp (vc-state file))))
+	 ;; XEmacs has no vc-state
+	 (not (vc-locking-user file)))
+       ))
 
 (defun ediff-file-compressed-p (file)
   (condition-case nil
@@ -2971,7 +2980,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 (defun ediff-make-temp-file (buff &optional prefix given-file start end)
   (let* ((p (ediff-convert-standard-filename (or prefix "ediff")))
 	 (short-p p)
-	 (coding-system-for-write 'no-conversion)
+	 (coding-system-for-write ediff-coding-system-for-write)
 	 f short-f)
     (if (and (fboundp 'msdos-long-file-names)
 	     (not (msdos-long-file-names))
@@ -3464,7 +3473,7 @@ Ediff Control Panel to restore highlighting."
 	  ;; never detach
 	  (ediff-overlay-put
 	   overl (if ediff-emacs-p 'evaporate 'detachable) nil)
-	  ;; make vip-minibuffer-overlay open-ended
+	  ;; make overlay open-ended
 	  ;; In emacs, it is made open ended at creation time
 	  (if ediff-xemacs-p
 	      (progn

@@ -122,6 +122,7 @@
 	("k"			(ex-mark) one-letter)
 	("kmark"		(ex-mark))
 	("m"			"move")
+	("make"     	    	(ex-compile))
 	; old viper doesn't specify a default for "ma" so leave it undefined
 	("map"			(ex-map))
 	("mark"			(ex-mark))
@@ -215,7 +216,7 @@
 ;; If there is no appropriate key (no match or duplicate matches) return nil
 (defun ex-cmd-assoc (key list)
   (let ((entry (try-completion key list))
-	result onelet)
+	result)
     (setq result (cond
 		  ((eq entry t)     (assoc key list))
 		  ((stringp entry)  (or (ex-splice-args-in-1-letr-cmd key list)
@@ -318,6 +319,11 @@
   "Options to pass to the Unix-style shell. 
 Don't put `-c' here, as it is added automatically."
   :type '(choice (const nil) string)
+  :group 'viper-ex)
+
+(defcustom ex-compile-command "make"
+  "The comand to run when the user types :make."
+  :type 'string
   :group 'viper-ex)
 
 (defcustom viper-glob-function
@@ -643,7 +649,7 @@ reversed."
 		      'viper-ex-history
 		      ;; no default when working on region
 		      (if initial-str
-			  "none"
+			  nil
 			(car viper-ex-history))
 		      map
 		      (if initial-str
@@ -855,8 +861,9 @@ reversed."
 	   (save-excursion
 	     (if (null ex-token)
 		 (exchange-point-and-mark)
-	       (goto-char (viper-register-to-point
-			   (1+ (- ex-token ?a)) 'enforce-buffer)))
+	       (goto-char 
+		(viper-register-to-point
+		 (viper-int-to-char (1+ (- ex-token ?a))) 'enforce-buffer)))
 	     (setq address (point-marker)))))
     address))
 
@@ -1454,7 +1461,7 @@ reversed."
 	(error "`%s' requires a following letter" ex-token))))
     (save-excursion
       (goto-char (car ex-addresses))
-      (point-to-register (1+ (- char ?a))))))
+      (point-to-register (viper-int-to-char (1+ (- char ?a)))))))
 
     
       
@@ -2158,6 +2165,29 @@ Please contact your system administrator. "
 	  (viper-enlarge-region (point) (mark t))
 	  (shell-command-on-region (point) (mark t) command t))
 	(goto-char beg)))))
+
+(defun ex-compile ()
+  "Reads args from the command line, then runs make with the args.
+If no args are given, then it runs the last compile command.
+Type 'mak ' (including the space) to run make with no args."
+  (let (args)
+    (save-window-excursion
+      (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
+      (set-buffer viper-ex-work-buf)
+      (setq args (buffer-substring (point) (point-max)))
+      (end-of-line))
+    ;; Remove the newline that may (will?) be at the end of the args
+    (if (string= "\n" (substring args (1- (length args))))
+	(setq args (substring args 0 (1- (length args)))))
+    ;; Run last command if no args given, else construct a new command.
+    (setq args
+	  (if (string= "" args)
+	      (if (boundp 'compile-command)
+		  compile-command
+		ex-compile-command)
+	    (concat ex-compile-command " " args)))
+    (compile args)
+    ))
 
 ;; Print line number
 (defun ex-line-no ()

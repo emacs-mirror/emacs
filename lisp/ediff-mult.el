@@ -970,7 +970,7 @@ behavior."
 			      500))
 	file-modtime file-size)
     (cond ((not (stringp fname)) (setq file-size -2)) ; file doesn't exits
-	  ((not (ediff-file-remote-p fname))
+	  ((ediff-listable-file fname)
 	   (if (file-exists-p fname)
 	       ;; set real size and modtime
 	       (setq file-size (ediff-file-size fname)

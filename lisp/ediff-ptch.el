@@ -408,7 +408,8 @@ are two possible targets for this patch.  However, these files do not exist."
 (defun ediff-prompt-for-patch-file ()
   (let ((dir (cond (ediff-patch-default-directory) ; try patch default dir
 		   (ediff-use-last-dir ediff-last-dir-patch)
-		   (t default-directory))))
+		   (t default-directory)))
+	(coding-system-for-read ediff-coding-system-for-read))
     (find-file-noselect
      (read-file-name
       (format "Patch is in file:%s "
@@ -445,7 +446,7 @@ are two possible targets for this patch.  However, these files do not exist."
 	       (goto-char (point-min))
 	       (and (re-search-forward ediff-context-diff-label-regexp nil t)
 		    (current-buffer)))))
-	  (t (other-buffer (current-buffer) 'visible-ok)))
+	  (t (ediff-other-buffer (current-buffer))))
     'must-match)))
 
 
@@ -576,6 +577,10 @@ optional argument, then use it."
 	 ;; file for the purpose of patching.
 	 (true-source-filename source-filename)
 	 (target-filename source-filename)
+	 ;; this ensures that the patch process gets patch buffer in the
+	 ;; encoding that Emacs thinks is right for that type of text
+	 (coding-system-for-write 
+	  (if (boundp 'buffer-file-coding-system) buffer-file-coding-system))
 	 target-buf buf-to-patch file-name-magic-p 
 	 patch-return-code ctl-buf backup-style aux-wind)
 	  

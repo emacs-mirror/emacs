@@ -1,4 +1,4 @@
-;;; ediff-init.el --- macros, variables, and defsubsts used by Ediff
+;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
 
@@ -714,6 +714,22 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
   :type 'symbol
   :group 'ediff)
 
+(defcustom ediff-coding-system-for-read 'raw-text
+  "*The coding system for read to use when running the diff program as a subprocess. 
+In most cases, the default will do. However, under certain circumstances in
+Windows NT/98/95 you might need to use something like 'raw-text-dos here.
+So, if the output that your diff program sends to Emacs contains extra ^M's,
+you might need to experiment here, if the default or 'raw-text-dos doesn't
+work."
+  :type 'symbol
+  :group 'ediff)
+
+(defcustom ediff-coding-system-for-write 'no-conversion
+  "*The coding system for write to use when writing out difference regions
+to temp files when Ediff needs to find fine differences."
+  :type 'symbol
+  :group 'ediff)
+
 
 (if ediff-xemacs-p
     (progn
@@ -1174,7 +1190,7 @@ this variable represents.")
 (ediff-defvar-local ediff-current-diff-overlay-Ancestor nil
   "Overlay for the current difference region in the ancestor buffer.")
 
-;; Compute priority of ediff overlay.
+;; Compute priority of a current ediff overlay.
 (defun ediff-highest-priority (start end buffer)
   (let ((pos (max 1 (1- start)))
 	ovr-list)
@@ -1184,13 +1200,21 @@ this variable represents.")
 	(while (< pos (min (point-max) (1+ end)))
 	  (setq ovr-list (append (overlays-at pos) ovr-list))
 	  (setq pos (next-overlay-change pos)))
-	(1+ (apply '+
-		   (mapcar (lambda (ovr)
-			     (if ovr
-				 (or (ediff-overlay-get ovr 'priority) 0)
-			       0))
-			   ovr-list)
-		   ))
+	(+ 1 ediff-shadow-overlay-priority
+	   (apply 'max
+		  (mapcar
+		   (lambda (ovr)
+		     (if (and ovr
+			      ;; exclude ediff overlays from priority
+			      ;; calculation, or else priority will keep
+			      ;; increasing
+			      (null (ediff-overlay-get ovr 'ediff))
+			      (null (ediff-overlay-get ovr 'ediff-diff-num)))
+			 ;; use the overlay priority or 0
+			 (or (ediff-overlay-get ovr 'priority) 0)
+		       0))
+		   ovr-list)
+		  ))
 	))))
 
 
@@ -1281,14 +1305,16 @@ This default should work without changes."
 
 ;;; In-line functions
 
-(or (fboundp 'ediff-file-remote-p) ; user supplied his own function: use it
-    (defun ediff-file-remote-p (file-name)
+;; If file-remote-p is defined (as in XEmacs, use it. Otherwise, check
+;; if find-file-name-handler is defined for 'file-local-copy
+(defun ediff-file-remote-p (file-name)
+  (or (and (fboundp 'file-remote-p) (file-remote-p file-name))
       (find-file-name-handler file-name 'file-local-copy)))
-;;;      (or (and (featurep 'efs-auto) (efs-ftp-path file-name))
-;;;	  (and (featurep 'tramp) (tramp-tramp-file-p file-name))
-;;;	  (and (fboundp 'file-remote-p) (file-remote-p file-name))
-;;;	  ;; Can happen only in Emacs, since XEmacs has file-remote-p
-;;;	  (and (require 'ange-ftp) (ange-ftp-ftp-name file-name)))))
+
+;; File for which we can get attributes, such as size or date
+(defun ediff-listable-file (file-name)
+  (let ((handler (find-file-name-handler file-name 'file-local-copy)))
+    (or (null handler) (eq handler 'dired-handler-fn))))
 
 
 (defsubst ediff-frame-unsplittable-p (frame)
@@ -1740,9 +1766,10 @@ Unless optional argument INPLACE is non-nil, return a new string."
       (apply 'message string args)))
 
 (defun ediff-file-attributes (filename attr-number)
-  (if (ediff-file-remote-p filename)
-      -1
-    (nth attr-number (file-attributes filename))))
+  (if (ediff-listable-file filename)
+      (nth attr-number (file-attributes filename))
+    -1)
+  )
 
 (defsubst ediff-file-size (filename)
   (ediff-file-attributes filename 7))

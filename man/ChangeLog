@@ -1,3 +1,9 @@
+2001-07-21  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* viper.texi: Added credits, new commands, like :make.
+	
+	* ediff.texi: added credits.
+	
 2001-06-08  Carsten Dominik  <dominik@astro.uva.nl>
 
 	* reftex.texi: Updated to version 4.16

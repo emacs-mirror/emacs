@@ -168,6 +168,17 @@ with Vi is possible but not desirable.  This chapter tells you about the
 Emacs ideas that you should know about, how to use Viper within Emacs and
 some incompatibilities.
 
+This manual is written with the assumption that you are an experienced Vi
+user who wants to switch to Emacs while retaining the ability to edit files
+Vi style. Incredible as it might seem, there are experienced Emacs users
+who use Viper as a backdoor into the superior (as every Vi user already knows)
+world of Vi! These users are well familiar with Emacs bindings and prefer them
+in some cases, especially in the Vi Insert state. John Hawkins
+<jshawkin@@eecs.umich.edu> has provided a set of customizations, which
+enables additional Emacs bindings under Viper.  These customizations can be
+included in your @file{~/.viper} file and are found at the following URL:
+@file{http://www.eecs.umich.edu/~jshawkin/viper-sample}.
+
 Viper was formerly known as VIP-19, which was
 a descendant of VIP 3.5 by Masahiko Sato and VIP 4.4 by Aamod Sane.
 
@@ -1850,10 +1861,8 @@ specifying a new face.  (Emacs faces are described in the Emacs Lisp
 reference.)  On a color display, the following customization method is
 usually most effective:
 @example
-(set-face-foreground viper-replace-overlay-face 
-                     "DarkSlateBlue")
-(set-face-background viper-replace-overlay-face 
-                     "yellow")
+(set-face-foreground viper-replace-overlay-face "DarkSlateBlue")
+(set-face-background viper-replace-overlay-face "yellow")
 @end example
 For a complete list of colors available to you, evaluate the expression
 @code{(x-defined-colors)}.  (Type it in the buffer @code{*scratch*} and then
@@ -2059,8 +2068,7 @@ can write this:
 @noindent
 To customize the binding for @kbd{C-h} in Insert state:
 @example
-(define-key viper-insert-global-user-map 
-            "\C-h" 'my-del-backwards-function)
+(define-key viper-insert-global-user-map "\C-h" 'my-del-backwards-function)
 @end example
 @noindent
 
@@ -2109,8 +2117,7 @@ Dired functions, the trick can be accomplished via the following code:
 (setq my-dired-vi-purist-map (make-sparse-keymap))
 (define-key my-dired-vi-purist-map "k" 'viper-previous-line)
 (define-key my-dired-vi-purist-map "l" 'viper-forward-char)
-(viper-modify-major-mode 'dired-mode 
-                         'emacs-state my-dired-vi-purist-map)
+(viper-modify-major-mode 'dired-mode 'emacs-state my-dired-vi-purist-map)
 @end example
 
 Yet another way to customize key bindings in a major mode is to edit the
@@ -4198,6 +4205,8 @@ Put the output of <cmd> after the line <address> (default current).
 @item :<address>r <name>
 Read the file <name> into the buffer after the line <address> (default
 current).
+@item :make
+Run the make command in the current directory.
 @end table
 @findex @kbd{:<address>r <name>}
 @findex @kbd{:<address>r !<cmd>}
@@ -4209,6 +4218,7 @@ current).
 @findex @kbd{:!!@: <args>}
 @findex @kbd{:!<cmd>}
 @findex @kbd{:sh}
+@findex @kbd{:make}
 
 @node Options,Emacs Related Commands,Shell Commands,Commands
 @section Options
@@ -4455,6 +4465,7 @@ minakaji@@osaka.email.ne.jp (Mikio Nakajima),
 Mark.Bordas@@East.Sun.COM (Mark Bordas),
 meyering@@comco.com (Jim Meyering),
 martin@@xemacs.org (Martin Buchholz),
+mbutler@@redfernnetworks.com (Malcolm Butler),
 mveiga@@dit.upm.es (Marcelino Veiga Tuimil),
 paulk@@summit.esg.apertus.com (Paul Keusemann),
 pfister@@cs.sunysb.edu (Hanspeter Pfister),
