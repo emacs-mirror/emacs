@@ -1,3 +1,9 @@
+1999-12-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* menu-bar.el (menu-bar-edit-menu): Define the Spell submenu even
+	if start-process is not bound, since Ispell now supports such
+	platforms as well.
+
 1999-12-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/rmailsum.el (rmail-summary-mode-map): Bind RET to

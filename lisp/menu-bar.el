@@ -261,8 +261,7 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-search-menu [search-forward]
   '("Search..." . nonincremental-search-forward))
 
-(if (fboundp 'start-process)
-    (define-key menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map)))
+(define-key menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map))
 (define-key menu-bar-edit-menu [fill] '("Fill" . fill-region))
 (define-key menu-bar-edit-menu [props] '("Text Properties" . facemenu-menu))
 
