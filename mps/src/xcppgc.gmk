@@ -1,0 +1,29 @@
+# impl.gmk.xcppgc: BUILD FOR MACOS X (CARBON)/POWERPC/GCC PLATFORM
+#
+# $HopeName: MMsrc!xcppgc.gmk(MM_epcore_brisling.1) $
+# Copyright (C) 2001 Harlequin Limited.  All rights reserved.
+
+PFM = xcppgc
+
+MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmxc.c \
+        protan.c prmcan.c span.c ssan.c
+SWPF = than.c vmxc.c protsw.c prmcan.c ssan.c
+
+LIBS =
+
+RANLIB=ranlib
+
+include gc.gmk
+
+CC = cc
+
+# Suppress some warnings (last checked in DP3).
+#   .cabs: -Wstrict-prototypes cannot be used because the math.h header has a
+#   traditional declaration of cabs.
+#   .sputc: -Wno-unused is needed, because stdio.h declares __sputc as an
+#   inline function.
+#   .types: sys/types.h uses 'long long' even under -ansi.
+CFLAGSCOMPILER := $(subst -Wstrict-prototypes,,$(CFLAGSCOMPILER)) \
+                  -Wno-unused -Wno-long-long
+
+include comm.gmk
