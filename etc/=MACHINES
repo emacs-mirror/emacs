@@ -867,11 +867,6 @@ Uniplus 5.2 (unipl5.2)
 
 VMS (vmsM.N)
 
-  Works except for certain features (directory listing, dired,
-  sending and receiving mail) that use synchronous subprocesses.
-  We need people to write alternative implementations of these
-  facilities.
-
   The config file s/vms5-5.h may be right for some earlier versions;
   please let us know what happens when you try it in VMS versions 5.0
   thru 5.4.
