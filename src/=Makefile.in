@@ -38,11 +38,13 @@ extraclean: distclean
 	-rm -f *~ \#* m/*~ s/*~
 
 emacs: doemacs
+	@true
 
 doemacs: xmakefile
 	$(MAKE) CC='${CC}' -f xmakefile ${MFLAGS} emacs
 
 temacs: dotemacs
+	@true
 
 dotemacs: xmakefile
 	$(MAKE) CC='${CC}' -f xmakefile ${MFLAGS} temacs
