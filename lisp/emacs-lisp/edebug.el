@@ -8,9 +8,9 @@
 ;; LCD Archive Entry:
 ;; edebug|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A source level debugger for Emacs Lisp.
-;; |$Date: 1994/04/04 21:39:52 $|3.5|~/modes/edebug.el|
+;; |$Date: 1994/04/04 21:52:06 $|3.5|~/modes/edebug.el|
 
-;; Version 3.5 ($Revision: 3.5 $ from FSF Emacs 19)
+;; Version 3.5 ($Revision: 1.18 $ from Emacs 19)
 
 ;; This file is part of GNU Emacs.
 
@@ -2759,9 +2759,14 @@ MSG is printed after `::::} '."
 (defvar edebug-outside-this-command)
 (defvar edebug-outside-last-input-char)
 
+;; Note: here we have defvars for variables that are
+;; built-in in certain versions.
+;; Each defvar makes a difference
+;; in versions where the variable is *not* built-in.
+
 ;; Emacs 18
 (defvar edebug-outside-unread-command-char)
-(defvar unread-command-char -1)  ;; Define for lemacs 19.9
+(defvar unread-command-char -1)
 
 ;; Lucid Emacs
 (defvar edebug-outside-unread-command-event)  ;; like unread-command-events
@@ -4344,7 +4349,7 @@ It is removed when you hit any char."
 ;; to functions like mark and read-from-minibuffer.  These warnings
 ;; may be ignored because the right call should always be made.
 
-(defun edebug-fsf19-specific ()
+(defun edebug-emacs-19-specific ()
 
   (defalias 'edebug-window-live-p 'window-live-p)
 
@@ -4429,15 +4434,14 @@ Print result in minibuffer."
 
 (defun edebug-emacs-version-specific ()
   (cond 
-   ;; Test Lucid first.
-   ((string-match "Lucid" emacs-version);; lemacs
+   ((string-match "Lucid" emacs-version);; Lucid Emacs
     (edebug-lemacs-specific))
 
-   ((string-match "^19" emacs-version);; Emacs 19
-    (edebug-fsf19-specific))
-
    ((and (boundp 'epoch::version) epoch::version)
-    (require 'edebug-epoch))))
+    (require 'edebug-epoch))
+
+   ((not (string-match "^18" emacs-version))
+    (edebug-emacs-19-specific))))
 
 (edebug-emacs-version-specific)
 
