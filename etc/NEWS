@@ -225,7 +225,8 @@ coding systems such as cpXXX and cyrillic-koi8.
 +++
 ** M-; now calls comment-dwim which tries to do something clever based
 on the context.  M-x kill-comment is now an alias to comment-kill,
-defined on newcomment.el.
+defined in newcomment.el.  You can choose different styles of region
+commenting with the variable `comment-style'.
 
 +++
 ** The function `getenv' is now callable interactively.
@@ -369,16 +370,20 @@ a string of hexadecimal numbers read from the mini-buffer.
 
 ** Changes in Texinfo mode.
 
-** A couple of new key bindings have been added for inserting Texinfo
+*** A couple of new key bindings have been added for inserting Texinfo
 macros
 
   Key binding	Macro
   -------------------------
   C-c C-c C-s	@strong
   C-c C-c C-e	@emph
-  C-c C-c u	@url
+  C-c C-c u	    @url
   C-c C-c q     @quotation
-  C-c C-c m	@email
+  C-c C-c m	    @email
+  C-c C-o       @<block> ... @end <block>
+  M-RET         @item
+
+*** The " key now inserts either " or `` or '' depending on context.
 
 ** Changes in Outline mode.
 
@@ -863,11 +868,13 @@ Version numbers are only found in the first 10 percent of a file.
 ** Changes in Font Lock
 
 *** The new function `font-lock-remove-keywords' can be used to remove
-font-lock keywords from the current buffer or from a specific major
-mode.
+font-lock keywords from the current buffer or from a specific major mode.
 
 *** multiline patterns are now supported.
 
+*** `font-lock-syntactic-face-function' allows major-modes to choose
+the face used for each string/comment.
+	
 ** Comint (subshell) changes
 
 These changes generally affect all modes derived from comint mode, which
@@ -939,9 +946,15 @@ in which folder to put messages automatically.
 
 ** Changes to TeX mode
 
-The default mode has been changed from `plain-tex-mode' to
+*** The default mode has been changed from `plain-tex-mode' to
 `latex-mode'.
 
+*** latex-mode now has a simple indentation algorithm.
+
+*** M-f and M-p jump around \begin...\end pairs.
+
+*** Added support for outline-minor-mode.
+	
 ** Changes to RefTeX mode
 
 *** RefTeX has new support for index generation.  Index entries can be
