@@ -42,6 +42,13 @@ and you don't try to apply \\[tex-region] or \\[tex-buffer] when there are
 `\\input' commands with relative directories.")
 
 ;;;###autoload
+(defvar tex-first-line-header-regexp nil
+  "Regexp for matching a first line which `tex-region' should include.
+If this is non-nil, it should be a regular expression string;
+if it matches the first line of the file,
+`tex-region' always includes the first line in the TeX run.")
+
+;;;###autoload
 (defvar tex-main-file nil
   "*The main TeX source file which includes this buffer's file.
 The command `tex-buffer' runs TeX on `tex-main-file'if that is non-nil.")
@@ -1010,6 +1017,14 @@ The value of `tex-command' specifies the command to use to run TeX."
 	      (hbeg (point-min)) (hend (point-min))
 	      (default-directory zap-directory))
 	  (goto-char (point-min))
+          
+          ;; Maybe copy first line, such as `\input texinfo', to temp file.
+	  (and tex-first-line-header-regexp
+	       (looking-at tex-first-line-header-regexp)
+	       (write-region (point) 
+			     (progn (forward-line 1) (point))
+			     tex-out-file nil nil))
+
 	  ;; Initialize the temp file with either the header or nothing
 	  (if (re-search-forward tex-start-of-header search-end t)
 	      (progn
