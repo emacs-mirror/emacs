@@ -1,3 +1,15 @@
+2002-12-26  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-next-action-on-file): Use t argument to vc-checkout in
+	order to get the latest version on the current branch.  Update 
+	documentation of vc-BACKEND-checkout to explain this.
+
+	* vc-rcs.el (vc-rcs-checkout): Handle t argument for REV.
+
+	* vc-cvs.el (vc-cvs-checkout): Likewise.
+
+	* vc-sccs.el (vc-sccs-checkout): Likewise.
+
 2002-12-26  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-info-display-custom): Ensure that frames/buffers
