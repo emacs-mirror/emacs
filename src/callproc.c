@@ -126,7 +126,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
      int nargs;
      register Lisp_Object *args;
 {
-  Lisp_Object display, infile, buffer, path, current_dir;
+  Lisp_Object infile, buffer, current_dir, display, path;
   int fd[2];
   int filefd;
   register int pid;
@@ -168,6 +168,33 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   else 
     buffer = Qnil;
 
+  /* Make sure that the child will be able to chdir to the current
+     buffer's current directory, or its unhandled equivalent.  We
+     can't just have the child check for an error when it does the
+     chdir, since it's in a vfork.
+
+     We have to GCPRO around this because Fexpand_file_name,
+     Funhandled_file_name_directory, and Ffile_accessible_directory_p
+     might call a file name handling function.  The argument list is
+     protected by the caller, so all we really have to worry about is
+     buffer.  */
+  {
+    struct gcpro gcpro1, gcpro2, gcpro3;
+
+    current_dir = current_buffer->directory;
+
+    GCPRO3 (infile, buffer, current_dir);
+
+    current_dir = 
+      expand_and_dir_to_file
+	(Funhandled_file_name_directory (current_dir, Qnil));
+    if (NILP (Ffile_accessible_directory_p (current_dir)))
+      report_file_error ("Setting current directory",
+			 Fcons (current_buffer->directory, Qnil));
+
+    UNGCPRO;
+  }
+
   display = nargs >= 4 ? args[3] : Qnil;
 
   {
@@ -206,14 +233,6 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       set_exclusive_use (fd[0]);
 #endif
     }
-
-  /* Make sure that the child will be able to chdir to the current
-     buffer's current directory.  We can't just have the child check
-     for an error when it does the chdir, since it's in a vfork.  */
-  current_dir = expand_and_dir_to_file (current_buffer->directory, Qnil);
-  if (NILP (Ffile_accessible_directory_p (current_dir)))
-    report_file_error ("Setting current directory",
-		       Fcons (current_buffer->directory, Qnil));
 
   {
     /* child_setup must clobber environ in systems with true vfork.
@@ -359,9 +378,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     Fdelete_region (start, end);
 
   args[3] = filename_string;
-  Fcall_process (nargs - 2, args + 2);
 
-  return unbind_to (count, Qnil);
+  return unbind_to (count, Fcall_process (nargs - 2, args + 2));
 }
 
 #ifndef VMS /* VMS version is in vmsproc.c.  */
