@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.12 $
+;; Version: $Revision: 1.13 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/05/22 20:14:59 $|$Revision: 1.12 $|~/modes/tcl.el.Z|
+;; $Date: 1994/05/22 20:17:15 $|$Revision: 1.13 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+; Revision 1.13  1994/05/22  20:17:15  tromey
+; Moved emacs version checking code to very beginning.
+;
 ; Revision 1.12  1994/05/22  20:14:59  tromey
 ; Compile fixes.
 ;
@@ -228,12 +231,12 @@
 ;; you have 19.22 or earlier, comment this out, or get imenu.
 (and (fboundp 'eval-when-compile)
      (eval-when-compile
-       (if (and tcl-using-emacs-19
-		(not tcl-using-lemacs-19))
+       (if (and (string-match "19\\." emacs-version)
+		(not (string-match "Lucid" emacs-version)))
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.12 $")
+(defconst tcl-version "$Revision: 1.13 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
