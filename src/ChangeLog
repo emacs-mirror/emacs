@@ -1,5 +1,11 @@
 2000-05-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c, w32.c, print.c, msdos.c, emacs.c: Use the term
+	`invalid' instead of `illegal'.
+
+	* indent.c (Fmove_to_column): When ending within a tab, insert
+	spaces first so that markers at the end of the tab get adjusted.
+
 	* frame.c (frames_bury_buffer): Don't add a buffer to the frame's
 	buffer list that wasn't selected in that frame.
 

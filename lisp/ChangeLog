@@ -1,9 +1,23 @@
+2000-05-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (command-line-1): Mention the FAQ in the startup
+	message.
+
+	* help.el (view-emacs-FAQ): Change `emacs-faq' to `efaq'.
+
+	* progmodes/compile.el (compilation-parse-errors): Collect
+	`nomessage' regexps last.
+
+	* dired.el (dired-mode-map): Use dired-do-query-replace-regexp.
+
+	* dired-aux.el (dired-do-query-replace-regexp): Add `-regexp'
+	to the function name.
+
 2000-05-15  Dave Love  <fx@gnu.org>
 
 	* speedbar.el (speedbar-recenter): Typo.
 	(speedbar-expand-line): Make arg optional.
 	(speedbar-mode): Avoid a compiler warning.
-
 
 2000-05-15  Gerd Moellmann  <gerd@gnu.org>
 

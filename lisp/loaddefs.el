@@ -2753,7 +2753,7 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored." t nil)
 ;;;### (autoloads (next-error compilation-minor-mode compilation-shell-minor-mode
 ;;;;;;  compilation-mode grep-find grep compile compilation-search-path
 ;;;;;;  compilation-ask-about-save compilation-window-height compilation-mode-hook)
-;;;;;;  "compile" "progmodes/compile.el" (14569 2479))
+;;;;;;  "compile" "progmodes/compile.el" (14625 19427))
 ;;; Generated autoloads from progmodes/compile.el
 
 (defvar compilation-mode-hook nil "\
@@ -4122,7 +4122,7 @@ Minor mode for viewing/editing context diffs.
 ;;;;;;  dired dired-copy-preserve-time dired-dwim-target dired-keep-marker-symlink
 ;;;;;;  dired-keep-marker-hardlink dired-keep-marker-copy dired-keep-marker-rename
 ;;;;;;  dired-trivial-filenames dired-ls-F-marks-symlinks dired-listing-switches)
-;;;;;;  "dired" "dired.el" (14600 27076))
+;;;;;;  "dired" "dired.el" (14625 18742))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches "-al" "\
@@ -4214,11 +4214,11 @@ Like `dired' but returns the dired buffer as value, does not select it." nil nil
 
 ;;;***
 
-;;;### (autoloads (dired-do-query-replace dired-do-search dired-hide-all
-;;;;;;  dired-hide-subdir dired-tree-down dired-tree-up dired-kill-subdir
-;;;;;;  dired-mark-subdir-files dired-goto-subdir dired-prev-subdir
-;;;;;;  dired-insert-subdir dired-maybe-insert-subdir dired-downcase
-;;;;;;  dired-upcase dired-do-symlink-regexp dired-do-hardlink-regexp
+;;;### (autoloads (dired-do-query-replace-regexp dired-do-search
+;;;;;;  dired-hide-all dired-hide-subdir dired-tree-down dired-tree-up
+;;;;;;  dired-kill-subdir dired-mark-subdir-files dired-goto-subdir
+;;;;;;  dired-prev-subdir dired-insert-subdir dired-maybe-insert-subdir
+;;;;;;  dired-downcase dired-upcase dired-do-symlink-regexp dired-do-hardlink-regexp
 ;;;;;;  dired-do-copy-regexp dired-do-rename-regexp dired-do-rename
 ;;;;;;  dired-do-hardlink dired-do-symlink dired-do-copy dired-create-directory
 ;;;;;;  dired-rename-file dired-copy-file dired-relist-file dired-remove-file
@@ -4226,7 +4226,7 @@ Like `dired' but returns the dired buffer as value, does not select it." nil nil
 ;;;;;;  dired-do-compress dired-compress-file dired-do-kill-lines
 ;;;;;;  dired-do-shell-command dired-do-print dired-do-chown dired-do-chgrp
 ;;;;;;  dired-do-chmod dired-backup-diff dired-diff) "dired-aux"
-;;;;;;  "dired-aux.el" (14506 36592))
+;;;;;;  "dired-aux.el" (14625 18672))
 ;;; Generated autoloads from dired-aux.el
 
 (autoload (quote dired-diff) "dired-aux" "\
@@ -4432,7 +4432,7 @@ Search through all marked files for a match for REGEXP.
 Stops when a match is found.
 To continue searching for next match, use command \\[tags-loop-continue]." t nil)
 
-(autoload (quote dired-do-query-replace) "dired-aux" "\
+(autoload (quote dired-do-query-replace-regexp) "dired-aux" "\
 Do `query-replace-regexp' of FROM with TO, on all marked files.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit] or ESC), you can resume the query replace
@@ -10069,7 +10069,7 @@ Multiplication puzzle with GNU Emacs." t nil)
 
 ;;;***
 
-;;;### (autoloads (msb-mode msb-mode) "msb" "msb.el" (14555 52300))
+;;;### (autoloads (msb-mode msb-mode) "msb" "msb.el" (14625 20437))
 ;;; Generated autoloads from msb.el
 
 (defvar msb-mode nil "\
@@ -12708,7 +12708,7 @@ To work around that, do:
 ;;;***
 
 ;;;### (autoloads (sh-mode) "sh-script" "progmodes/sh-script.el"
-;;;;;;  (14432 40418))
+;;;;;;  (14624 22794))
 ;;; Generated autoloads from progmodes/sh-script.el
 
 (put (quote sh-mode) (quote mode-class) (quote special))
@@ -13351,7 +13351,7 @@ From a program takes two point or marker arguments, BEG and END." t nil)
 ;;;***
 
 ;;;### (autoloads (speedbar-get-focus speedbar-frame-mode) "speedbar"
-;;;;;;  "speedbar.el" (14623 45339))
+;;;;;;  "speedbar.el" (14625 15888))
 ;;; Generated autoloads from speedbar.el
 
 (defalias (quote speedbar) (quote speedbar-frame-mode))
