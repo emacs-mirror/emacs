@@ -183,11 +183,18 @@ These supersede the values given in `default-frame-alist'.")
 			      '(minibuffer . t)))
 		     t))
 	    ;; Create the new frame.
-	    (let* ((parms (append initial-frame-alist
+	    (let (parms new)
+	      ;; If the frame isn't visible yet, wait till it is.
+	      ;; If the user has to position the window,
+	      ;; Emacs doesn't know its real position until
+	      ;; the frame is seen to be visible.
+	      (while (not (cdr (assq 'visibility
+				     (frame-parameters frame-initial-frame))))
+		(sleep-for 1))
+	      (setq parms (append initial-frame-alist
 				  default-frame-alist
 				  (frame-parameters frame-initial-frame)
 				  nil))
-		   new)
 	      ;; Get rid of `reverse', because that was handled
 	      ;; when we first made the frame.
 	      (setq parms (cons '(reverse) (delq (assq 'reverse parms) parms)))
