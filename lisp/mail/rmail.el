@@ -837,6 +837,7 @@ Instead, these commands are available:
 \\[rmail-forward]	Forward this message to another user.
 \\[rmail-output-to-rmail-file]       Output this message to an Rmail file (append it).
 \\[rmail-output]	Output this message to a Unix-format mail file (append it).
+\\[rmail-output-body-to-file]	Save message body to a file.  Default filename comes from Subject line.
 \\[rmail-input]	Input Rmail file.  Run Rmail on that file.
 \\[rmail-add-label]	Add label to message.  It will be displayed in the mode line.
 \\[rmail-kill-label]	Kill label.  Remove a label from current message.
