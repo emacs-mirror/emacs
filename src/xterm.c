@@ -11249,7 +11249,7 @@ notice_overwritten_cursor (w, area, x0, x1, y0, y1)
 	     exception of the cursor being in the first blank row at
 	     the buffer and window end because update_text_area
 	     doesn't draw that row.  */
-	  if (((y0 >= cy0 && y0 < cy1) || (y1 >= cy0 && y1 < cy1))
+	  if (((y0 >= cy0 && y0 < cy1) || (y1 > cy0 && y1 < cy1))
 	      && w->current_matrix->rows[w->phys_cursor.vpos].displays_text_p)
 	    w->phys_cursor_on_p = 0;
 	}
