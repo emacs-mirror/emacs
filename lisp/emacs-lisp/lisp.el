@@ -215,18 +215,22 @@ The defun visible is the one that contains point or follows point."
   (interactive)
   (save-excursion
     (widen)
-    (beginning-of-defun)
-    (narrow-to-region (point) (progn (end-of-defun) (point)))))
+    (end-of-defun)
+    (let ((end (point)))
+      (beginning-of-defun)
+      (narrow-to-region (point) end))))
 
 (defun insert-parentheses (arg)
-  "Put parentheses around next ARG sexps.  Leave point after open-paren.
+  "Enclose following ARG sexps in parentheses.  Leave point after open-paren.
+A negative ARG encloses the preceding ARG sexps instead.
 No argument is equivalent to zero: just insert `()' and leave point between.
 If `parens-require-spaces' is non-nil, this command also inserts a space
 before and after, depending on the surrounding characters."
   (interactive "P")
   (if arg (setq arg (prefix-numeric-value arg))
     (setq arg 0))
-  (or (eq arg 0) (skip-chars-forward " \t"))
+  (cond ((> arg 0) (skip-chars-forward " \t"))
+	((< arg 0) (forward-sexp arg) (setq arg (- arg))))
   (and parens-require-spaces
        (not (bobp))
        (memq (char-syntax (preceding-char)) '(?w ?_ ?\) ))
