@@ -1,7 +1,7 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!mpm.h(trunk.137) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
 #ifndef mpm_h
@@ -294,7 +294,6 @@ extern void PoolNoBufferEmpty(Pool pool, Buffer buffer,
                               Addr init, Addr limit);
 extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer, 
                                 Addr init, Addr limit);
-extern Res PoolNoDescribe(Pool pool, mps_lib_FILE *stream);
 extern Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream);
 extern Res PoolNoTraceBegin(Pool pool, Trace trace);
 extern Res PoolTrivTraceBegin(Pool pool, Trace trace);
@@ -403,26 +402,22 @@ extern Size MessageNoGCNotCondemnedSize(Message message);
 
 /* Trace Interface -- see impl.c.trace */
 
-#define TraceSetSingle(ti)      BS_SINGLE(TraceSet, (ti))
-#define TraceSetIsSingle(ts)    BS_IS_SINGLE(ts)
-#define TraceSetIsMember(ts, ti)BS_IS_MEMBER((ts), (ti))
-#define TraceSetAdd(ts, ti)     BS_ADD(TraceSet, (ts), (ti))
-#define TraceSetDel(ts, ti)     BS_DEL(TraceSet, (ts), (ti))
-#define TraceSetUnion(ts1, ts2) BS_UNION((ts1), (ts2))
-#define TraceSetInter(ts1, ts2) BS_INTER((ts1), (ts2))
-#define TraceSetDiff(ts1, ts2)  BS_DIFF((ts1), (ts2))
-#define TraceSetSuper(ts1, ts2) BS_SUPER((ts1), (ts2))
-#define TraceSetSub(ts1, ts2)   BS_SUB((ts1), (ts2))
-
-extern TraceSet (TraceSetAdd)(TraceSet ts, TraceId id);
-extern TraceSet (TraceSetDel)(TraceSet ts, TraceId id);
-extern TraceSet (TraceSetUnion)(TraceSet ts1, TraceSet ts2);
-extern Bool (TraceSetIsMember)(TraceSet ts, TraceId id);
+#define TraceSetSingle(trace)       BS_SINGLE(TraceSet, (trace)->ti)
+#define TraceSetIsSingle(ts)        BS_IS_SINGLE(ts)
+#define TraceSetIsMember(ts, trace) BS_IS_MEMBER(ts, (trace)->ti)
+#define TraceSetAdd(ts, trace)      BS_ADD(TraceSet, ts, (trace)->ti)
+#define TraceSetDel(ts, trace)      BS_DEL(TraceSet, ts, (trace)->ti)
+#define TraceSetUnion(ts1, ts2)     BS_UNION(ts1, ts2)
+#define TraceSetInter(ts1, ts2)     BS_INTER(ts1, ts2)
+#define TraceSetDiff(ts1, ts2)      BS_DIFF(ts1, ts2)
+#define TraceSetSuper(ts1, ts2)     BS_SUPER(ts1, ts2)
+#define TraceSetSub(ts1, ts2)       BS_SUB(ts1, ts2)
+#define TraceSetComp(ts)            BS_COMP(ts)
 
 #define TRACE_SET_ITER(ti, trace, ts, arena) \
   for(ti = 0, trace = ArenaTrace(arena, ti); ti < TRACE_MAX; \
       ++ti, trace = ArenaTrace(arena, ti)) BEGIN \
-    if(TraceSetIsMember(ts, ti)) {
+    if (TraceSetIsMember(ts, trace)) {
 
 #define TRACE_SET_ITER_END(ti, trace, ts, arena) } END
 
@@ -433,19 +428,20 @@ extern void ScanStateFinish(ScanState ss);
 extern Bool ScanStateCheck(ScanState ss);
 extern void ScanStateSetSummary(ScanState ss, RefSet summary);
 extern RefSet ScanStateSummary(ScanState ss);
+
 extern Bool TraceIdCheck(TraceId id);
 extern Bool TraceSetCheck(TraceSet ts);
 extern Bool TraceCheck(Trace trace);
+extern Res TraceCreate(Trace *traceReturn, Arena arena);
+extern void TraceDestroy(Trace trace);
 
-extern Res TraceCreate(Trace *traceReturn, Space space);
 extern Res TraceAddWhite(Trace trace, Seg seg);
 extern Res TraceCondemnRefSet(Trace trace, RefSet condemnedSet);
 extern void TraceStart(Trace trace, double mortality, double finishingTime);
-extern void TraceDestroy(Trace trace);
 extern Res TraceStep(Trace trace);
-extern void TracePoll(Trace trace);
-extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
+extern void TracePoll(Arena arena);
 
+extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
 extern Res TraceFix(ScanState ss, Ref *refIO);
 extern Res TraceFixEmergency(ScanState ss, Ref *refIO);
 extern Size TraceGreyEstimate(Arena arena, RefSet refSet);
@@ -670,9 +666,12 @@ extern Bool SegPrefCheck(SegPref pref);
 extern SegPref SegPrefDefault(void);
 extern Res SegPrefExpress(SegPref pref, SegPrefKind kind, void *p);
 
+extern void LocusInit(Arena arena);
+extern void LocusFinish(Arena arena);
+extern Bool LocusCheck(Arena arena);
+
 extern Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
-                    Size size, Pool pool, Bool withReservoirPermit,
-                    ...);
+                    Size size, Pool pool, Bool withReservoirPermit, ...);
 extern void SegFree(Seg seg);
 extern Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr);
 extern Bool SegFirst(Seg *segReturn, Arena arena);
@@ -855,15 +854,16 @@ extern Bool RankSetCheck(RankSet rankSet);
 #define RankSetUnion(rs1, rs2)  BS_UNION((rs1), (rs2))
 #define RankSetDel(rs, r)       BS_DEL(RankSet, (rs), (r))
 
-#define RefSetCheck(refset)     TRUE
-#define RefSetZone(arena, addr) \
+#define AddrZone(arena, addr) \
   (((Word)(addr) >> (arena)->zoneShift) & (MPS_WORD_WIDTH - 1))
+
+#define RefSetCheck(refset)     TRUE
 #define RefSetUnion(rs1, rs2)   BS_UNION((rs1), (rs2))
 #define RefSetInter(rs1, rs2)   BS_INTER((rs1), (rs2))
 #define RefSetAdd(arena, rs, addr) \
-  BS_ADD(RefSet, (rs), RefSetZone((arena), (addr)))
+  BS_ADD(RefSet, rs, AddrZone(arena, addr))
 #define RefSetIsMember(arena, rs, addr) \
-  BS_IS_MEMBER((rs), RefSetZone((arena), (addr)))
+  BS_IS_MEMBER(rs, AddrZone(arena, addr))
 #define RefSetSuper(rs1, rs2)   BS_SUPER((rs1), (rs2))
 #define RefSetDiff(rs1, rs2)    BS_DIFF((rs1), (rs2))
 #define RefSetSub(rs1, rs2)     BS_SUB((rs1), (rs2))
@@ -871,6 +871,14 @@ extern Bool RankSetCheck(RankSet rankSet);
 
 extern RefSet RefSetOfRange(Arena arena, Addr base, Addr limit);
 extern RefSet RefSetOfSeg(Arena arena, Seg seg);
+
+
+/* Zone sets -- see design.mps.refset */
+
+#define ZoneSetUnion(zs1, zs2) BS_UNION(zs1, zs2)
+#define ZoneSetInter(zs1, zs2) BS_INTER(zs1, zs2)
+#define ZoneSetAdd(arena, zs, addr) \
+  BS_ADD(RefSet, zs, AddrZone(arena, addr))
 
 
 /* Shield Interface -- see impl.c.shield */
