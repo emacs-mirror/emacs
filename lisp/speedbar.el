@@ -1,11 +1,11 @@
 ;;; speedbar --- quick access to files and tags in a frame
 
-;;; Copyright (C) 1996, 97, 98 Free Software Foundation
+;;; Copyright (C) 1996, 97, 98, 99 Free Software Foundation
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 0.7.3
+;; Version: 0.8.1
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.17 1998/10/04 13:00:45 zappo Exp zappo $
+;; X-RCS: $Id: speedbar.el,v 1.18 1998/12/19 14:01:53 zappo Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -292,6 +292,26 @@ Stealthy functions which have a single operation should always return
 t.  Functions which take a long time should maintain a state (where
 they are in their speedbar related calculations) and permit
 interruption.  See `speedbar-check-vc' as a good example.")
+
+(defvar speedbar-mode-functions-list
+  '(("files" (speedbar-item-info . speedbar-files-item-info)
+     (speedbar-line-path . speedbar-files-line-path))
+    ("buffers" (speedbar-item-info . speedbar-buffers-item-info)
+     (speedbar-line-path . speedbar-buffers-line-path))
+    ("quick buffers" (speedbar-item-info . speedbar-buffers-item-info)
+     (speedbar-line-path . speedbar-buffers-line-path))
+    )
+  "List of function tables to use for different major display modes.
+It is not necessary to define any functions for a specialized mode.
+This just provides a simple way of adding lots of customizations.
+Each sublist is of the form:
+  (\"NAME\" (FUNCTIONSYMBOL . REPLACEMENTFUNCTION) ...)
+Where NAME is the name of the specialized mode.  The rest of the list
+is a set of dotted pairs of the form FUNCTIONSYMBOL, which is the name
+of a function you would like to replace, and REPLACEMENTFUNCTION,
+which is a function you can call instead.  Not all functions can be
+replaced this way.  Replaceable functions must provide that
+functionality individually.")
 
 (defcustom speedbar-mode-specific-contents-flag t
   "*Non-nil means speedbar will show special mode contents.
@@ -895,11 +915,12 @@ This basically creates a sparse keymap, and makes it's parent be
   "Additional menu items while in file-mode.")
  
 (defvar speedbar-easymenu-definition-trailer
-  (list
+  (append
    (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
-       ["Customize..." speedbar-customize t])
-   ["Close" speedbar-close-frame t]
-   ["Quit" delete-frame t] )
+       (list ["Customize..." speedbar-customize t]))
+   (list
+    ["Close" speedbar-close-frame t]
+    ["Quit" delete-frame t] ))
   "Menu items appearing at the end of the speedbar menu.")
 
 (defvar speedbar-desired-buffer nil
@@ -1657,32 +1678,51 @@ File style information is displayed with `speedbar-item-info'."
 			 (point) (progn (end-of-line) (point))))))
 
 (defun speedbar-item-info ()
-  "Display info in the mini-buffer about the button the mouse is over."
+  "Display info in the mini-buffer about the button the mouse is over.
+This function can be replaced in `speedbar-mode-functions-list' as
+`speedbar-item-info'"
   (interactive)
+  (funcall (or (speedbar-fetch-replacement-function 'speedbar-item-info)
+	       'speedbar-generic-item-info)))
+
+(defun speedbar-item-info-file-helper (&optional filename)
+  "Display info about a file that is on the current line.
+nil if not applicable.  If FILENAME, then use that instead of reading
+it from the speedbar buffer."
+  (let* ((item (or filename (speedbar-line-file)))
+	 (attr (if item (file-attributes item) nil)))
+    (if (and item attr) (message "%s %-6d %s" (nth 8 attr) (nth 7 attr) item)
+      nil)))
+
+(defun speedbar-item-info-tag-helper ()
+  "Display info about a tag that is on the current line.
+nil if not applicable."
+  (save-excursion
+    (if (re-search-forward " > \\([^ ]+\\)$"
+			   (save-excursion(end-of-line)(point)) t)
+	(let ((tag (match-string 1))
+	      (attr (get-text-property (match-beginning 1)
+				       'speedbar-token))
+	      (item nil))
+	  (looking-at "\\([0-9]+\\):")
+	  (setq item (speedbar-line-path (string-to-int (match-string 1))))
+	  (message "Tag: %s  in %s @ %s"
+		   tag item (if attr
+				(if (markerp attr) (marker-position attr)
+				  attr)
+			      0)))
+      (if (re-search-forward "{[+-]} \\([^\n]+\\)$"
+			     (save-excursion(end-of-line)(point)) t)
+	  (message "Group of tags \"%s\"" (match-string 1))
+	nil))))
+
+(defun speedbar-files-item-info ()
+  "Display info in the mini-buffer about the button the mouse is over."
   (if (not speedbar-shown-directories)
       (speedbar-generic-item-info)
-    (let* ((item (speedbar-line-file))
-	   (attr (if item (file-attributes item) nil)))
-      (if (and item attr) (message "%s %-6d %s" (nth 8 attr) (nth 7 attr) item)
-	(save-excursion
-	  (beginning-of-line)
-	  (if (not (looking-at "\\([0-9]+\\):"))
-	      (speedbar-generic-item-info)
-	    (setq item (speedbar-line-path (string-to-int (match-string 1))))
-	    (if (re-search-forward "> \\([^ ]+\\)$"
-				   (save-excursion(end-of-line)(point)) t)
-		(progn
-		  (setq attr (get-text-property (match-beginning 1)
-						'speedbar-token))
-		  (message "Tag: %s  in %s @ %s"
-			   (match-string 1) item
-			   (if attr
-			       (if (markerp attr) (marker-position attr) attr)
-			     0)))
-	      (if (re-search-forward "{[+-]} \\([^\n]+\\)$"
-				     (save-excursion(end-of-line)(point)) t)
-		  (message "Group of tags \"%s\"" (match-string 1))
-		(speedbar-generic-item-info)))))))))
+    (or (speedbar-item-info-file-helper)
+	(speedbar-item-info-tag-helper)
+	(speedbar-generic-item-info))))
 
 (defun speedbar-item-copy ()
   "Copy the item under the cursor.
@@ -1981,6 +2021,19 @@ This is based on `speedbar-initial-expansion-list-name' referencing
 	speedbar-initial-expansion-list-name new-default)
   (speedbar-refresh)
   (speedbar-reconfigure-keymaps))
+
+(defun speedbar-fetch-replacement-function (function)
+  "Return a current mode specific replacement for function, or nil.
+Scans `speedbar-mode-functions-list' first for the current mode, then
+for FUNCTION."
+  (cdr (assoc function
+	      (cdr (assoc speedbar-initial-expansion-list-name
+			  speedbar-mode-functions-list)))))
+
+(defun speedbar-add-mode-functions-list (new-list)
+  "Add NEW-LIST to the list of mode functions.
+See `speedbar-mode-functions-list' for details."
+  (add-to-list 'speedbar-mode-functions-list new-list))
 
 
 ;;; Special speedbar display management
@@ -3083,19 +3136,41 @@ a function if appropriate"
 
 ;;; Reading info from the speedbar buffer
 ;;
+(defun speedbar-line-text (&optional p)
+  "Retrieve the text after prefix junk for the current line.
+Optional argument P is where to start the search from."
+  (save-excursion
+    (if p (goto-char p))
+    (beginning-of-line)
+    (if (looking-at (concat
+		     "\\([0-9]+\\): *[[<][-+?][]>] \\([^ \n]+\\)\\("
+		     speedbar-indicator-regex "\\)?"))
+	(match-string 2)
+      nil)))
+
+(defun speedbar-line-token (&optional p)
+  "Retrieve the token information after the prefix junk for the current line.
+Optional argument P is where to start the search from."
+  (save-excursion
+    (if p (goto-char p))
+    (beginning-of-line)
+    (if (looking-at (concat
+		     "\\([0-9]+\\): *[[<][-+?][]>] \\([^ \n]+\\)\\("
+		     speedbar-indicator-regex "\\)?"))
+	(progn
+	  (goto-char (match-beginning 2))
+	  (get-text-property (point) 'speedbar-token))
+      nil)))
+
 (defun speedbar-line-file (&optional p)
   "Retrieve the file or whatever from the line at P point.
 The return value is a string representing the file.  If it is a
 directory, then it is the directory name."
-  (save-excursion
-    (save-match-data
-      (beginning-of-line)
-      (if (looking-at (concat
-		       "\\([0-9]+\\): *[[<][-+?][]>] \\([^ \n]+\\)\\("
-		       speedbar-indicator-regex "\\)?"))
+  (save-match-data
+    (let ((f (speedbar-line-text p)))
+      (if f
 	  (let* ((depth (string-to-int (match-string 1)))
-		 (path (speedbar-line-path depth))
-		 (f (match-string 2)))
+		 (path (speedbar-line-path depth)))
 	    (concat path f))
 	nil))))
 
@@ -3140,40 +3215,42 @@ Otherwise do not move and return nil."
 (defun speedbar-line-path (&optional depth)
   "Retrieve the pathname associated with the current line.
 This may require traversing backwards from DEPTH and combining the default
+directory with these items.  This function is replaceable in
+`speedbar-mode-functions-list' as `speedbar-line-path'"
+  (let ((rf (speedbar-fetch-replacement-function 'speedbar-line-path)))
+    (if rf (funcall rf depth) default-directory)))
+      
+(defun speedbar-files-line-path (&optional depth)
+  "Retrieve the pathname associated with the current line.
+This may require traversing backwards from DEPTH and combining the default
 directory with these items."
-  (cond
-   ((string= speedbar-initial-expansion-list-name "files")
-    (save-excursion
-      (save-match-data
-	(if (not depth)
-	    (progn
-	      (beginning-of-line)
-	      (looking-at "^\\([0-9]+\\):")
-	      (setq depth (string-to-int (match-string 1)))))
-	(let ((path nil))
-	  (setq depth (1- depth))
-	  (while (/= depth -1)
-	    (if (not (re-search-backward (format "^%d:" depth) nil t))
-		(error "Error building path of tag")
-	      (cond ((looking-at "[0-9]+:\\s-*<->\\s-+\\([^\n]+\\)$")
-		     (setq path (concat (buffer-substring-no-properties
-					 (match-beginning 1) (match-end 1))
-					"/"
-					path)))
-		    ((looking-at "[0-9]+:\\s-*[-]\\s-+\\([^\n]+\\)$")
-		     ;; This is the start of our path.
-		     (setq path (buffer-substring-no-properties
-				 (match-beginning 1) (match-end 1))))))
-	    (setq depth (1- depth)))
-	  (if (and path
-		   (string-match (concat speedbar-indicator-regex "$")
-				 path))
-	      (setq path (substring path 0 (match-beginning 0))))
-	  (concat default-directory path)))))
-   (t
-    ;; If we aren't in file mode, then return an empty string to make
-    ;; sure that we can still get some stuff done.
-    "")))
+  (save-excursion
+    (save-match-data
+      (if (not depth)
+	  (progn
+	    (beginning-of-line)
+	    (looking-at "^\\([0-9]+\\):")
+	    (setq depth (string-to-int (match-string 1)))))
+      (let ((path nil))
+	(setq depth (1- depth))
+	(while (/= depth -1)
+	  (if (not (re-search-backward (format "^%d:" depth) nil t))
+	      (error "Error building path of tag")
+	    (cond ((looking-at "[0-9]+:\\s-*<->\\s-+\\([^\n]+\\)$")
+		   (setq path (concat (buffer-substring-no-properties
+				       (match-beginning 1) (match-end 1))
+				      "/"
+				      path)))
+		  ((looking-at "[0-9]+:\\s-*[-]\\s-+\\([^\n]+\\)$")
+		   ;; This is the start of our path.
+		   (setq path (buffer-substring-no-properties
+			       (match-beginning 1) (match-end 1))))))
+	  (setq depth (1- depth)))
+	(if (and path
+		 (string-match (concat speedbar-indicator-regex "$")
+			       path))
+	    (setq path (substring path 0 (match-beginning 0))))
+	(concat default-directory path)))))
 
 (defun speedbar-path-line (path)
   "Position the cursor on the line specified by PATH."
@@ -3323,7 +3400,7 @@ expanded.  INDENT is the current indentation level."
 	     (if (not (string-match (concat "^" (regexp-quote td)) (car oldl)))
 		 (setq newl (cons (car oldl) newl)))
 	     (setq oldl (cdr oldl)))
-	   (setq speedbar-shown-directories newl))
+	   (setq speedbar-shown-directories (nreverse newl)))
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent)
 	 )
@@ -3763,6 +3840,29 @@ If TEMP is non-nil, then clicking on a buffer restores the previous display."
 				  'speedbar-buffer-click temp
 				  'speedbar-file-face 0)))
       (setq bl (cdr bl)))))
+
+(defun speedbar-buffers-item-info ()
+  "Display information about the current buffer on the current line."
+  (or (speedbar-item-info-tag-helper)
+      (let* ((item (speedbar-line-text))
+	     (buffer (if item (get-buffer item) nil)))
+	(and buffer
+	     (message "%s%s %S %d %s"
+		      (if (buffer-modified-p buffer) "* " "")
+		      item (save-excursion (set-buffer buffer) major-mode)
+		      (save-excursion (set-buffer buffer) (buffer-size))
+		      (or (buffer-file-name buffer) "<No file>"))))))
+
+(defun speedbar-buffers-line-path (&optional depth)
+  "Fetch the full path to the file (buffer) specified on the current line.
+Optional argument DEPTH specifies the current depth of the back search."
+  (end-of-line)
+  ;; Buffers are always at level 0
+  (if (not (re-search-backward "^0:" nil t))
+      nil
+    (let* ((bn (speedbar-line-text))
+	   (buffer (if bn (get-buffer bn))))
+      (if buffer (file-name-directory (buffer-file-name buffer))))))
 
 (defun speedbar-buffer-click (text token indent)
   "When the users clicks on a buffer-button in speedbar.
