@@ -4651,6 +4651,7 @@ raw_text_coding_system (coding_system)
 
 Lisp_Object
 coding_inherit_eol_type (coding_system, parent)
+     Lisp_Object coding_system, parent;
 {
   Lisp_Object spec, attrs, eol_type;
 
@@ -6940,6 +6941,7 @@ DEFUN ("set-terminal-coding-system-internal",
        Sset_terminal_coding_system_internal, 1, 1, 0,
        doc: /* Internal use only.  */)
      (coding_system)
+     Lisp_Object coding_system;
 {
   CHECK_SYMBOL (coding_system);
   setup_coding_system (Fcheck_coding_system (coding_system),
@@ -6959,6 +6961,7 @@ DEFUN ("set-safe-terminal-coding-system-internal",
        Sset_safe_terminal_coding_system_internal, 1, 1, 0,
        doc: /* Internal use only.  */)
      (coding_system)
+     Lisp_Object coding_system;
 {
   CHECK_SYMBOL (coding_system);
   setup_coding_system (Fcheck_coding_system (coding_system),
