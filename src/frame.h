@@ -37,7 +37,7 @@ extern int message_buf_print;
    having miscellaneous random variables scattered about.  */
 
 enum output_method
-{ output_termcap, output_x_window, output_msdos_raw };
+{ output_termcap, output_x_window, output_msdos_raw, output_win32 };
 
 struct frame
 {
@@ -172,8 +172,10 @@ struct frame
 
   /* A structure of auxiliary data used for displaying the contents.
      struct x_output is used for X window frames;
-     it is defined in xterm.h.  */
-  union output_data { struct x_output *x; int nothing; } output_data;
+     it is defined in xterm.h.  
+     struct win32_output is used for Win32 window frames;
+     it is defined in w32term.h.  */
+  union output_data { struct x_output *x; struct win32_output *win32; int nothing; } output_data;
 
 #ifdef MULTI_KBOARD
   /* A pointer to the kboard structure associated with this frame.
@@ -185,7 +187,7 @@ struct frame
   /* Number of lines of menu bar.  */
   int menu_bar_lines;
 
-#ifdef USE_X_TOOLKIT
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
   /* Nonzero means using a menu bar that comes from the X toolkit.  */
   int external_menu_bar;
 #endif
@@ -300,9 +302,20 @@ typedef struct frame *FRAME_PTR;
 
 #define WINDOW_FRAME(w) (w)->frame
 
+#define FRAME_X_P(f) ((f)->output_method == output_x_window)
+#define FRAME_WIN32_P(f) ((f)->output_method == output_win32)
+
+/* FRAME_WINDOW_P tests whether the frame is a window, and is
+   defined to be the predicate for the window system being used.  */
+#ifdef HAVE_X_WINDOWS
+#define FRAME_WINDOW_P(f) FRAME_X_P (f)
+#endif
+#ifdef HAVE_NTGUI
+#define FRAME_WINDOW_P(f) FRAME_WIN32_P (f)
+#endif
+
 #define FRAME_LIVE_P(f) ((f)->output_data.nothing != 0)
 #define FRAME_TERMCAP_P(f) ((f)->output_method == output_termcap)
-#define FRAME_X_P(f) ((f)->output_method == output_x_window)
 #define FRAME_MINIBUF_ONLY_P(f) \
   EQ (FRAME_ROOT_WINDOW (f), FRAME_MINIBUF_WINDOW (f))
 #define FRAME_HAS_MINIBUF_P(f) ((f)->has_minibuffer)
@@ -314,7 +327,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_NEW_HEIGHT(f) (f)->new_height
 #define FRAME_NEW_WIDTH(f) (f)->new_width
 #define FRAME_MENU_BAR_LINES(f) (f)->menu_bar_lines
-#ifdef USE_X_TOOLKIT
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
 #define FRAME_EXTERNAL_MENU_BAR(f) (f)->external_menu_bar
 #else
 #define FRAME_EXTERNAL_MENU_BAR(f) 0
@@ -455,6 +468,7 @@ extern FRAME_PTR last_nonminibuf_frame;
 #define FRAME_TERMCAP_P(f) 1
 #define FRAME_X_P(f) 0
 #endif
+#define FRAME_WINDOW_P(f) FRAME_X_P (f)
 #define FRAME_MINIBUF_ONLY_P(f) 0
 #define FRAME_HAS_MINIBUF_P(f) 1
 #define FRAME_CURRENT_GLYPHS(f) (the_only_frame.current_glyphs)
