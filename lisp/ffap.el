@@ -559,70 +559,12 @@ Uses `path-separator' to separate the path into directories."
 	    path (cdr path)))
     (nreverse ret)))
 
-(defvar ffap-locate-jka-suffixes t
-  "List of compression suffixes tried by `ffap-locate-file'.
-If not a list, it is initialized by `ffap-locate-file',
-and it becomes nil unless you are using jka-compr.
-Typical values are nil or '(\".gz\" \".z\" \".Z\").")
-
-(defun ffap-locate-file (file &optional nosuffix path)
-  "A generic path-searching function, mimics `load' by default.
-Returns path to file that \(load FILE\) would load, or nil.
-Optional NOSUFFIX, if nil or t, is like the fourth argument
-for load: whether to try the suffixes (\".elc\" \".el\" \"\").
-If a nonempty list, it is a list of suffixes to try instead.
-Optional PATH is a list of directories instead of `load-path'."
-  (or path (setq path load-path))
-  (if (file-name-absolute-p file)
-      (setq path (list (file-name-directory file))
-	    file (file-name-nondirectory file)))
-  (let ((suffixes-to-try
-	 (cond
-	  ((consp nosuffix) nosuffix)
-	  (nosuffix '(""))
-	  (t '(".elc" ".el" "")))))
-    ;; Modern (>19.27) jka-compr doesn't try foo.gz when you want foo.
-    (or (listp ffap-locate-jka-suffixes)
-	(setq ffap-locate-jka-suffixes
-	      (and (featurep 'jka-compr)
-		   (not (featurep 'jka-aux))
-		   jka-compr-file-name-handler-entry
-		   (not (string-match
-			 (car jka-compr-file-name-handler-entry)
-			 "foo"))
-		   ;; Hard to do this cleverly across jka-compr versions:
-		   '(".gz" ".Z"))))
-    (if ffap-locate-jka-suffixes	; so nil behaves like '("")
-	(setq suffixes-to-try
-	      (apply
-	       'nconc
-	       (mapcar
-		(function
-		 (lambda (suf)
-		   (cons suf
-			 (mapcar
-			  (function (lambda (x) (concat suf x)))
-			  ffap-locate-jka-suffixes))))
-		suffixes-to-try))))
-    (let (found suffixes)
-      (while (and path (not found))
-	(setq suffixes suffixes-to-try)
-	(while (and suffixes (not found))
-	  (let ((try (expand-file-name
-		      (concat file (car suffixes))
-		      (car path))))
-	    (if (and (file-exists-p try) (not (file-directory-p try)))
-		(setq found try)))
-	  (setq suffixes (cdr suffixes)))
-	(setq path (cdr path)))
-      found)))
-
 (defvar ffap-alist
   ;; A big mess!  Parts are probably useless.
   (list
    (cons "\\.info\\'"
 	 (defun ffap-info (name)
-	   (ffap-locate-file
+	   (locate-library
 	    name '("" ".info")
 	    (or (ffap-soft-value "Info-directory-list")
 		(ffap-soft-value "Info-default-directory-list")
@@ -636,13 +578,13 @@ Optional PATH is a list of directories instead of `load-path'."
 	 (defun ffap-info-3 (name)
 	   (and (equal (ffap-string-around) "()") (ffap-info name))))
    (cons "\\.elc?\\'"
-	 (defun ffap-el (name) (ffap-locate-file name t)))
+	 (defun ffap-el (name) (locate-library name t)))
    (cons 'emacs-lisp-mode
 	 (defun ffap-el-mode (name)
 	   ;; We do not bother with "" here, since it was considered above.
 	   ;; Also ignore "elc", for speed (who else reads elc files?)
 	   (and (not (string-match "\\.el\\'" name))
-		(ffap-locate-file name '(".el")))))
+		(locate-library name '(".el")))))
    '(finder-mode . ffap-el-mode)	; v19: {C-h p}
    '(help-mode . ffap-el-mode)		; v19.29
    (cons 'c-mode
@@ -650,7 +592,7 @@ Optional PATH is a list of directories instead of `load-path'."
 	   ;; Need better defaults here!
 	   (defvar ffap-c-path '("/usr/include" "/usr/local/include"))
 	   (defun ffap-c-mode (name)
-	     (ffap-locate-file name t ffap-c-path))))
+	     (locate-library name t ffap-c-path))))
    '(c++-mode . ffap-c-mode)
    '(cc-mode . ffap-c-mode)
    '("\\.\\([chCH]\\|cc\\|hh\\)\\'" . ffap-c-mode)
@@ -680,20 +622,20 @@ If t, `ffap-tex-init' will initialize this when needed.")
 					   ))))))))
 	   (defun ffap-tex-mode (name)
 	     (ffap-tex-init)
-	     (ffap-locate-file name '(".tex" "") ffap-tex-path))))
+	     (locate-library name '(".tex" "") ffap-tex-path))))
    (cons 'latex-mode
 	   (defun ffap-latex-mode (name)
 	     (ffap-tex-init)
 	     ;; Any real need for "" here?
-	     (ffap-locate-file name '(".cls" ".sty" ".tex" "")
-			       ffap-tex-path)))
+	     (locate-library name '(".cls" ".sty" ".tex" "")
+			     ffap-tex-path)))
    (cons "\\.\\(tex\\|sty\\|doc\\|cls\\)\\'"
 	 (defun ffap-tex (name)
 	   (ffap-tex-init)
-	   (ffap-locate-file name t ffap-tex-path)))
+	   (locate-library name t ffap-tex-path)))
    (cons "\\.bib\\'"
 	 (defun ffap-bib (name)
-	   (ffap-locate-file
+	   (locate-library
 	    name t
 	    (ffap-list-env "BIBINPUTS" '("/usr/local/lib/tex/macros/bib")))))
    (cons 'math-mode
@@ -702,9 +644,9 @@ If t, `ffap-tex-init' will initialize this when needed.")
 	     (setq name (concat (substring name 0 (match-beginning 0))
 				"/"
 				(substring name (match-end 0)))))
-	   (ffap-locate-file
+	   (locate-library
 	    name '(".m" "") (ffap-soft-value "Mathematica-search-path"))))
-   (cons "\\`\\." (defun ffap-home (name) (ffap-locate-file name t '("~"))))
+   (cons "\\`\\." (defun ffap-home (name) (locate-library name t '("~"))))
    (cons "\\`~/"
 	 ;; Maybe a "Lisp Code Directory" reference:
 	 (defun ffap-lcd (name)
