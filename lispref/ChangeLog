@@ -1,3 +1,10 @@
+2005-03-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* modes.texi (Other Font Lock Variables): `font-lock-fontify-block'
+	is now bound to M-o M-o.
+
+	* keymaps.texi (Prefix Keys): `facemenu-keymap' is now on M-o.
+
 2005-03-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar.texi: Delete file (and move contents to emacs-xtra.texi
