@@ -317,9 +317,14 @@ next_screen (screen, mini_screen)
     for (tail = Vscreen_list; CONSP (tail); tail = XCONS (tail)->cdr)
       {
 	if (passed)
-	  if (!mini_screen
-	      && EQ (XCONS (tail)->car, Vglobal_minibuffer_screen))
-	    continue;
+	  if (!mini_screen)
+	    {
+	      SCREEN_PTR s = XSCREEN (XCONS (tail)->car);
+
+	      if (EQ (XCONS (tail)->car, Vglobal_minibuffer_screen)
+		  && EQ (s->root_window, s->minibuffer_window))
+		continue;
+	    }
 	  else
 	    return XCONS (tail)->car;
 
@@ -354,8 +359,8 @@ prev_screen (screen, mini_screen)
 DEFUN ("next-screen", Fnext_screen, Snext_screen,
        0, 2, 0,
        "Return the next screen in the screen list after SCREEN.\n\
-If MINISCREEN is non-nil, include the global-minibuffer-screen if it\n\
-has its own screen.")
+If MINISCREEN is non-nil, include screens whose only window is a minibuffer.\n\
+If MINISCREEN is nil or omitted, these screens are skipped.")
   (screen, miniscreen)
 Lisp_Object screen, miniscreen;
 {
@@ -893,12 +898,11 @@ coordinates_in_window (w, x, y)
 {
   register int left = XINT (w->left);
   register int width = XINT (w->width);
-  register int screen_height = XINT ((XSCREEN (w->screen)->height));
   register int window_height = XINT (w->height);
   register int top = XFASTINT (w->top);
 
   if (*x < left || *x >= left + width
-      || *y == screen_height || *y < top || *y > top + window_height - 1)
+      || *y < top || *y > top + window_height - 1)
     return 0;
 
   if (*y == top + window_height - 1
