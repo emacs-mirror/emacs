@@ -67,7 +67,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define XSETTYPE(a, b) ((a)  =  ((a) & VALAMASK)  +  ((int)(b) << VALBITS))
 
 #define XPNTR(a) ((a) & VALAMASK)
-#define XSETPNTR(a, b) ((a) = ((a) & ~VALAMASK)  +  ((b) & VALAMASK))
 
 #define XSET(var, type, ptr) \
    ((var) = ((int)(type) << VALBITS) + ((int) (ptr) & VALAMASK))
