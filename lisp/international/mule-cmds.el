@@ -177,12 +177,43 @@ With arg, make them enable iff arg is positive."
       (call-interactively cmd))))
 
 (defun set-default-coding-systems (coding-system)
-  "Set default value of various coding systems to CODING-SYSTEM."
+  "Set default value of various coding systems to CODING-SYSTEM.
+The follwing coding systems are set:
+  o coding system of a newly created buffer
+  o default coding system for terminal output
+  o default coding system for keyboard input
+  o default coding system for subprocess I/O"
   (check-coding-system coding-system)
   (setq-default buffer-file-coding-system coding-system)
   (setq default-terminal-coding-system coding-system)
   (setq default-keyboard-coding-system coding-system)
   (setq default-process-coding-system (cons coding-system coding-system)))
+
+(defun prefer-coding-system (coding-system)
+  "Add CODING-SYSTEM at the front of the priority list for automatic detection.
+This also sets the following coding systems to CODING-SYSTEM:
+  o coding system of a newly created buffer
+  o default coding system for terminal output
+  o default coding system for keyboard input
+  o default coding system for subprocess I/O"
+  (interactive "zPrefer coding system: ")
+  (if (not (and coding-system (coding-system-p coding-system)))
+      (error "Invalid coding system `%s'" coding-system))
+  (let ((coding-category (coding-system-category coding-system))
+	(parent (coding-system-parent coding-system)))
+    (if (not coding-category)
+	;; CODING-SYSTEM is no-conversion or undecided.
+	(error "Can't prefer the coding system `%s'" coding-system))
+    (set coding-category (or parent coding-system))
+    (if (not (eq coding-category (car coding-category-list)))
+	;; We must change the order.
+	(setq coding-category-list
+	      (cons coding-category
+		    (delq coding-category coding-category-list))))
+    (if (and parent (interactive-p))
+	(message "Highest priority is set to %s (parent of %s)"
+		 parent coding-system))
+    (set-default-coding-systems (or parent coding-system))))
 
 
 ;;; Language support staffs.
