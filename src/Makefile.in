@@ -868,7 +868,7 @@ ralloc.o: ralloc.c $(config_h)
 vm-limit.o: vm-limit.c mem-limits.h $(config_h) 
 marker.o: marker.c buffer.h $(config_h) 
 minibuf.o: minibuf.c syntax.h dispextern.h frame.h window.h \
-   buffer.h commands.h keyboard.h $(config_h) 
+   buffer.h commands.h $(config_h) 
 mocklisp.o: mocklisp.c buffer.h $(config_h)
 process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
    commands.h syssignal.h systime.h systty.h syswait.h frame.h $(config_h) 
@@ -898,7 +898,7 @@ widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h $(config_h)
 window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    termhooks.h disptab.h keyboard.h $(config_h)
 xdisp.o: xdisp.c macros.h commands.h indent.h buffer.h dispextern.h \
-   termchar.h frame.h window.h disptab.h termhooks.h keyboard.h $(config_h) 
+   termchar.h frame.h window.h disptab.h termhooks.h $(config_h) 
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
    window.h $(config_h) 
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h \
