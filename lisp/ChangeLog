@@ -1,3 +1,8 @@
+2004-10-05  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-substitute-special): Return a single string instead
+	of a list of strings if an entity substitution is made.
+
 2004-10-05  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el: New file.
@@ -12,6 +17,7 @@
 	(Info-build-toc): Don't check for special Info file names.
 	Set main-file to nil if Info-find-file returns a symbol.
 
+>>>>>>> 1.6421
 2004-10-05  Emilio C. Lopes  <eclig@gmx.net>:
 
 	* calendar/calendar.el (calendar-goto-iso-week): Add autoload.
