@@ -75,7 +75,6 @@ Then the formatting appears on the screen in Emacs while you edit.
   Emacs has commands for moving over or operating on words.  By convention,
 the keys for them are all Meta characters.
 
-@c widecommands
 @table @kbd
 @item M-f
 Move forward over a word (@code{forward-word}).
@@ -295,8 +294,8 @@ that separate paragraphs without being part of any paragraph (for
 example, blank lines).  Lines that start a new paragraph and are
 contained in it must match only @code{paragraph-start}, not
 @code{paragraph-separate}.  For example, in Fundamental mode,
-@code{paragraph-start} is @code{"[ @t{\}t@t{\}n@t{\}f]"} and
-@code{paragraph-separate} is @code{"[ @t{\}t@t{\}f]*$"}.@refill
+@code{paragraph-start} is @w{@code{"[ \t\n\f]"}}, and
+@code{paragraph-separate} is @w{@code{"[ \t\f]*$"}}.
 
   Normally it is desirable for page boundaries to separate paragraphs.
 The default values of these variables recognize the usual separator for
@@ -317,7 +316,6 @@ character: you can insert it with @kbd{C-q C-l}, and delete it with
 since pages are often meaningful divisions of the file, Emacs provides
 commands to move over them and operate on them.
 
-@c WideCommands
 @table @kbd
 @item C-x [
 Move point to previous page boundary (@code{backward-page}).
@@ -344,12 +342,14 @@ command moves forward past the next page delimiter.
   The @kbd{C-x C-p} command (@code{mark-page}) puts point at the
 beginning of the current page and the mark at the end.  The page
 delimiter at the end is included (the mark follows it).  The page
-delimiter at the front is excluded (point follows it).  @kbd{C-x C-p
-C-w} is a handy way to kill a page to move it elsewhere.  If you move to
-another page delimiter with @kbd{C-x [} and @kbd{C-x ]}, then yank the
-killed page, all the pages will be properly delimited once again.  The
-reason @kbd{C-x C-p} includes only the following page delimiter in the
-region is to ensure that.
+delimiter at the front is excluded (point follows it).  In Transient
+Mark mode, this command activates the mark.
+
+  @kbd{C-x C-p C-w} is a handy way to kill a page to move it
+elsewhere.  If you move to another page delimiter with @kbd{C-x [} and
+@kbd{C-x ]}, then yank the killed page, all the pages will be properly
+delimited once again.  The reason @kbd{C-x C-p} includes only the
+following page delimiter in the region is to ensure that.
 
   A numeric argument to @kbd{C-x C-p} is used to specify which page to go
 to, relative to the current one.  Zero means the current page.  One means
@@ -373,7 +373,7 @@ beginning of a line.
 @vindex page-delimiter
   The variable @code{page-delimiter} controls where pages begin.  Its
 value is a regexp that matches the beginning of a line that separates
-pages.  The normal value of this variable is @code{"^@t{\}f"}, which
+pages.  The normal value of this variable is @code{"^\f"}, which
 matches a formfeed character at the beginning of a line.
 
 @node Filling
@@ -730,7 +730,6 @@ that line.
   Emacs has commands for converting either a single word or any arbitrary
 range of text to upper case or to lower case.
 
-@c WideCommands
 @table @kbd
 @item M-l
 Convert following word to lower case (@code{downcase-word}).
@@ -1170,7 +1169,7 @@ the body, or @kbd{C-c C-i} to expose the child (level-2) headings.
 @findex foldout-zoom-subtree
   With Foldout, you use @kbd{C-c C-z} (@kbd{M-x foldout-zoom-subtree}).
 This exposes the body and child subheadings, and narrows the buffer so
-that only the level-1 heading, the body and the level-2 headings are
+that only the @w{level-1} heading, the body and the level-2 headings are
 visible.  Now to look under one of the level-2 headings, position the
 cursor on it and use @kbd{C-c C-z} again.  This exposes the level-2 body
 and its level-3 child subheadings and narrows the buffer again.  Zooming
@@ -1208,16 +1207,16 @@ folds, and for showing and hiding text:
 
 @table @asis
 @item @kbd{M-C-Mouse-1} zooms in on the heading clicked on
-@table @asis
-@item single click
-expose body.
-@item double click
-expose subheadings.
-@item triple click
-expose body and subheadings.
-@item quad click
-expose entire subtree.
-@end table
+@itemize @asis
+@item
+single click: expose body.
+@item
+double click: expose subheadings.
+@item
+triple click: expose body and subheadings.
+@item
+quad click: expose entire subtree.
+@end itemize
 @item @kbd{M-C-Mouse-2} exposes text under the heading clicked on
 @table @r
 @item single click
@@ -1702,9 +1701,9 @@ formatted text in Enriched mode can specify fonts, colors, underlining,
 margins, and types of filling and justification.  In the future, we plan
 to implement other formatting features as well.
 
-  Enriched mode is a minor mode (@pxref{Minor Modes}).  Typically it is
-used in conjunction with Text mode (@pxref{Text Mode}).  However, you
-can also use it with other major modes such as Outline mode and
+  Enriched mode is a minor mode (@pxref{Minor Modes}).  It is
+typically used in conjunction with Text mode (@pxref{Text Mode}), but
+you can also use it with other major modes such as Outline mode and
 Paragraph-Indent Text mode.
 
 @cindex text/enriched MIME format
