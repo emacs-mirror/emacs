@@ -153,6 +153,9 @@
 (set-language-info-alist
  "Chinese-BIG5" '((charset chinese-big5-1 chinese-big5-2)
 		  (coding-system chinese-big5 chinese-iso-7bit)
+		  (charset-origin-alist
+		   (chinese-big5-1 "BIG5" encode-big5-char)
+		   (chinese-big5-2 "BIG5" encode-big5-char))
 		  (coding-priority chinese-big5 iso-2022-cn chinese-iso-8bit)
 		  (input-method . "chinese-py-punct-b5")
 		  (features china-util)
