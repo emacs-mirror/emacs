@@ -1,5 +1,8 @@
 2004-01-16  Kenichi Handa  <handa@m17n.org>
 
+	* descr-text.el (describe-char): Check `charset' property.
+	Show the code point in the charset in hexadigits.
+	
 	* international/mule-diag.el (stretches-for-character-list):
 	Delete it.
 	(list-block-of-chars): Use tabs instead of `display' property for
