@@ -1,5 +1,7 @@
 2001-11-14  Richard M. Stallman  <rms@gnu.org>
 
+	* editfns.c (Fpropertize): Allow call with 1 arg.
+
 	* dispextern.h (image_background, image_background_transparent):
 	Conditionalize on HAVE_X_WINDOWS.
 
