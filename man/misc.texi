@@ -2219,7 +2219,7 @@ which has a similar feature of its own.
 @subsection Finding Files and URLs at Point
 @findex find-file-at-point
 @findex ffap
-@findex ffap-dired-at-point
+@findex dired-at-point
 @findex ffap-next
 @findex ffap-menu
 @cindex finding file at point
@@ -2257,7 +2257,7 @@ Find @var{filename}, guessing a default from text around point
 @item C-x d @var{directory} @key{RET}
 @kindex C-x d @r{(FFAP)}
 Start Dired on @var{directory}, defaulting to the directory name at
-point (@code{ffap-dired-at-point}).
+point (@code{dired-at-point}).
 @item C-x C-d
 @code{ffap-list-directory}, analogous to @code{list-directory}.
 @item C-x 4 f
