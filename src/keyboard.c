@@ -419,6 +419,8 @@ Lisp_Object recursive_edit_unwind (), command_loop ();
 Lisp_Object Fthis_command_keys ();
 Lisp_Object Qextended_command_history;
 
+Lisp_Object Qpolling_period;
+
 /* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
    happens.  */
 EMACS_TIME *input_available_clear_time;
@@ -1304,6 +1306,16 @@ set_poll_suppress_count (count)
       stop_polling ();
     }
   poll_suppress_count = count;
+#endif
+}
+
+bind_polling_period (n)
+     int n;
+{
+#ifdef POLL_FOR_INPUT
+  stop_polling ();
+  specbind (Qpolling_period, make_number (n));
+  start_polling ();
 #endif
 }
 
@@ -5833,6 +5845,9 @@ syms_of_keyboard ()
   staticpro (&Qrecompute_lucid_menubar);
   Qactivate_menubar_hook = intern ("activate-menubar-hook");
   staticpro (&Qactivate_menubar_hook);
+
+  Qpolling_period = intern ("polling-period");
+  staticpro (&Qpolling_period);
 
   {
     struct event_head *p;
