@@ -1196,6 +1196,10 @@ static Lisp_Object help_echo_window;
 static Lisp_Object help_echo_object;
 static int help_echo_pos;
 
+/* Non-zero means automatically select any window when the mouse
+   cursor moves into it.  */
+int x_autoselect_window_p;
+
 static int mouse_preempted = 0;	/* non-zero when XMenu gobbles mouse events */
 
 /* Set the mouse pointer shape according to whether it is in the
@@ -3388,6 +3392,27 @@ dos_rawgetc ()
          might need to update mouse highlight.  */
       if (mouse_last_x != mouse_prev_x || mouse_last_y != mouse_prev_y)
 	{
+	  if (x_autoselect_window_p)
+	    {
+	      int mouse_area;
+	      Lisp_Object mouse_window;
+
+	      mouse_window = window_from_coordinates (SELECTED_FRAME(),
+						      mouse_last_x,
+						      mouse_last_y,
+						      &mouse_area, 0);
+	      /* A window will be selected only when it is not
+		 selected now and last mouse movement event was not in
+		 it.  A minubuffer window will be selected iff it is
+		 active.  */
+	      if (!EQ (mouse_window, selected_window)
+		  && (!MINI_WINDOW_P (XWINDOW (mouse_window))
+		      || (EQ (mouse_window, minibuf_window)
+			  && minibuf_level > 0)))
+		{
+		  Fselect_window (mouse_window);
+		}
+	    }
 	  previous_help_echo = help_echo;
 	  help_echo = help_echo_object = help_echo_window = Qnil;
 	  help_echo_pos = -1;
@@ -5315,6 +5340,10 @@ syms_of_msdos ()
 
 This variable is used only by MSDOS terminals.  */);
   Vdos_unsupported_char_glyph = '\177';
+
+  DEFVAR_BOOL ("x-autoselect-window", &x_autoselect_window_p,
+    doc: /* *Non-nil means autoselect window with mouse pointer.  */);
+  x_autoselect_window_p = 0;
 #endif
 #ifndef subprocesses
   DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
