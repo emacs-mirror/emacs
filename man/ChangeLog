@@ -1,3 +1,7 @@
+2000-10-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* speedbar.texi: Correct typos, fix markup, add index entries.
+
 2000-10-19  Eric M. Ludlam  <zappo@ultranet.com>
 
 	* speedbar.texi: New file
