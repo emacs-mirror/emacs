@@ -989,10 +989,6 @@ build_load_history (stream, source)
   register Lisp_Object tem, tem2;
   register int foundit, loading;
 
-  /* Don't bother recording anything for preloaded files.  */
-  if (!NILP (Vpurify_flag))
-    return;
-
   loading = stream || !NARROWED;
 
   tail = Vload_history;
