@@ -3635,8 +3635,10 @@ than 988 characters long, and if they are not, trim them until they are."
     (push '(message-mode (encrypt . mc-encrypt-message)
 			 (sign . mc-sign-message))
 	  mc-modes-alist))
-  (when actions
-    (setq message-send-actions actions))
+  (dolist (action actions)
+    (condition-case nil
+	(add-to-list 'message-send-actions
+		     `(apply ',(car action) ',(cdr action)))))
   (setq message-reply-buffer replybuffer)
   (goto-char (point-min))
   ;; Insert all the headers.
@@ -4155,8 +4157,8 @@ Source is the sender, and if the original message was news, Source is
 the list of newsgroups is was posted to."
   (concat "["
 	   (let ((prefix 
-		  (or (message-fetch-field
-		       (if (message-news-p) "newsgroups" "from"))
+		  (or (message-fetch-field "newsgroups")
+		      (message-fetch-field "from")
 		      "(nowhere)")))
 	     (if message-forward-decoded-p
 		 prefix
@@ -4199,6 +4201,7 @@ the message."
 (eval-when-compile
   (defvar gnus-article-decoded-p))
 
+
 ;;;###autoload
 (defun message-forward (&optional news digest)
   "Forward the current message via mail.
@@ -4206,39 +4209,42 @@ Optional NEWS will use news to forward instead of mail.
 Optional DIGEST will use digest to forward."
   (interactive "P")
   (let* ((cur (current-buffer))
-	 (message-forward-decoded-p 
+	 (message-forward-decoded-p
 	  (if (local-variable-p 'gnus-article-decoded-p (current-buffer))
-	      gnus-article-decoded-p  ;; In an article buffer.
+	      gnus-article-decoded-p ;; In an article buffer.
 	    message-forward-decoded-p))
-	 (subject (message-make-forward-subject))
-	 art-beg)
+	 (subject (message-make-forward-subject)))
     (if news
 	(message-news nil subject)
       (message-mail nil subject))
-    ;; Put point where we want it before inserting the forwarded
-    ;; message.
-    (if message-forward-before-signature
-        (message-goto-body)
-      (goto-char (point-max)))
-    (if message-forward-as-mime
-	(if digest
-	    (insert "\n<#multipart type=digest>\n")
-	  (if message-forward-show-mml
-	      (insert "\n\n<#mml type=message/rfc822 disposition=inline>\n")
-	    (insert "\n\n<#part type=message/rfc822 disposition=inline raw=t>\n")))
-      (insert "\n-------------------- Start of forwarded message --------------------\n"))
-    (let ((b (point)) e)
+    (message-forward-make-body cur digest)))
+
+;;;###autoload
+(defun message-forward-make-body (forward-buffer &optional digest)
+  ;; Put point where we want it before inserting the forwarded
+  ;; message.
+  (if message-forward-before-signature
+      (message-goto-body)
+    (goto-char (point-max)))
+  (if message-forward-as-mime
       (if digest
-	  (if message-forward-as-mime
-	      (insert-buffer-substring cur)
-	    (mml-insert-buffer cur))
-	(if (and message-forward-show-mml
-		 (not message-forward-decoded-p))
-	    (insert
-	     (with-temp-buffer
-	       (mm-disable-multibyte-mule4) ;; Must copy buffer in unibyte mode
+	  (insert "\n<#multipart type=digest>\n")
+	(if message-forward-show-mml
+	    (insert "\n\n<#mml type=message/rfc822 disposition=inline>\n")
+	  (insert "\n\n<#part type=message/rfc822 disposition=inline raw=t>\n")))
+    (insert "\n-------------------- Start of forwarded message --------------------\n"))
+  (let ((b (point)) e)
+    (if digest
+	(if message-forward-as-mime
+	    (insert-buffer-substring forward-buffer)
+	  (mml-insert-buffer forward-buffer))
+      (if (and message-forward-show-mml
+	       (not message-forward-decoded-p))
+	  (insert
+	   (with-temp-buffer
+	     (mm-disable-multibyte-mule4) ;; Must copy buffer in unibyte mode
 	       (insert
-		(with-current-buffer cur
+		(with-current-buffer forward-buffer
 		  (mm-string-as-unibyte (buffer-string))))
 	       (mm-enable-multibyte-mule4)
 	       (mime-to-mml)
@@ -4246,37 +4252,53 @@ Optional DIGEST will use digest to forward."
 	       (when (looking-at "From ")
 		 (replace-match "X-From-Line: "))
 	       (buffer-string)))
-	  (save-restriction
-	    (narrow-to-region (point) (point))
-	    (mml-insert-buffer cur)
-	    (goto-char (point-min))
-	    (when (looking-at "From ")
-	      (replace-match "X-From-Line: "))
-	    (goto-char (point-max)))))
-      (setq e (point))
-      (if message-forward-as-mime
-	  (if digest
-	      (insert "<#/multipart>\n")
-	    (if message-forward-show-mml
-		(insert "<#/mml>\n")
-	      (insert "<#/part>\n")))
-	(insert "\n-------------------- End of forwarded message --------------------\n"))
-      (if (and digest message-forward-as-mime)
-	  (save-restriction
-	    (narrow-to-region b e)
-	    (goto-char b)
-	    (narrow-to-region (point)
-			      (or (search-forward "\n\n" nil t) (point)))
-	    (delete-region (point-min) (point-max)))
-	(when (and (not current-prefix-arg)
-		   message-forward-ignored-headers)
-	  (save-restriction
-	    (narrow-to-region b e)
-	    (goto-char b)
-	    (narrow-to-region (point)
-			      (or (search-forward "\n\n" nil t) (point)))
-	    (message-remove-header message-forward-ignored-headers t)))))
-    (message-position-point)))
+	(save-restriction
+	  (narrow-to-region (point) (point))
+	  (mml-insert-buffer forward-buffer)
+	  (goto-char (point-min))
+	  (when (looking-at "From ")
+	    (replace-match "X-From-Line: "))
+	  (goto-char (point-max)))))
+    (setq e (point))
+    (if message-forward-as-mime
+	(if digest
+	    (insert "<#/multipart>\n")
+	  (if message-forward-show-mml
+	      (insert "<#/mml>\n")
+	    (insert "<#/part>\n")))
+      (insert "\n-------------------- End of forwarded message --------------------\n"))
+    (if (and digest message-forward-as-mime)
+	(save-restriction
+	  (narrow-to-region b e)
+	  (goto-char b)
+	  (narrow-to-region (point)
+			    (or (search-forward "\n\n" nil t) (point)))
+	  (delete-region (point-min) (point-max)))
+      (when (and (not current-prefix-arg)
+		 message-forward-ignored-headers)
+	(save-restriction
+	  (narrow-to-region b e)
+	  (goto-char b)
+	  (narrow-to-region (point)
+			    (or (search-forward "\n\n" nil t) (point)))
+	  (message-remove-header message-forward-ignored-headers t)))))
+  (message-position-point))
+
+;;;###autoload
+(defun message-forward-rmail-make-body (forward-buffer)
+  (save-window-excursion
+    (set-buffer forward-buffer)
+    (let (rmail-enable-mime)
+      (rmail-toggle-header 0)))
+  (message-forward-make-body forward-buffer))
+
+;;;###autoload
+(defun message-insinuate-rmail ()
+  "Let RMAIL uses message to forward."
+  (interactive)
+  (setq rmail-enable-mime-composing t)
+  (setq rmail-insert-mime-forwarded-message-function 
+	'message-forward-rmail-make-body))
 
 ;;;###autoload
 (defun message-resend (address)
@@ -4648,9 +4670,10 @@ regexp varstr."
       ;; /usr/bin/mail.
       (unless content-type-p
 	(goto-char (point-min))
-	(re-search-forward "^MIME-Version:")
-	(forward-line 1)
-	(insert "Content-Type: text/plain; charset=us-ascii\n")))))
+	;; For unknown reason, MIME-Version doesn't exist.
+	(when (re-search-forward "^MIME-Version:" nil t)
+	  (forward-line 1)
+	  (insert "Content-Type: text/plain; charset=us-ascii\n"))))))
 
 (defun message-read-from-minibuffer (prompt)
   "Read from the minibuffer while providing abbrev expansion."

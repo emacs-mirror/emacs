@@ -420,6 +420,9 @@ until a user explicitly requires it."
 		 (other :tag "when asked" ask))
   :group 'rmail)
 
+(defvar rmail-enable-mime-composing nil
+  "*If non-nil, RMAIL uses `rmail-insert-mime-forwarded-message-function' to forward.")
+
 ;;;###autoload
 (defvar rmail-show-mime-function nil
   "Function to show MIME decoded message of RMAIL file.
@@ -429,7 +432,8 @@ It is called with no argument.")
 ;;;###autoload
 (defvar rmail-insert-mime-forwarded-message-function nil
   "Function to insert a message in MIME format so it can be forwarded.
-This function is called if `rmail-enable-mime' is non-nil.
+This function is called if `rmail-enable-mime' or 
+`rmail-enable-mime-composing' is non-nil.
 It is called with one argument FORWARD-BUFFER, which is a
 buffer containing the message to forward.  The current buffer
 is the outgoing mail buffer.")
@@ -3253,7 +3257,7 @@ see the documentation of `rmail-resend'."
 	  (save-excursion
 	    ;; Insert after header separator--before signature if any.
 	    (goto-char (mail-text-start))
-	    (if rmail-enable-mime
+	    (if (or rmail-enable-mime rmail-enable-mime-composing)
 		(funcall rmail-insert-mime-forwarded-message-function
 			 forward-buffer)
 	      (insert "------- Start of forwarded message -------\n")

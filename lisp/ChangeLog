@@ -1,3 +1,9 @@
+2001-11-25  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mail/rmail.el (rmail-enable-mime-composing): New. A lightweight
+	version of rmail-enable-mime.
+	(rmail-forward): Use it.
+
 2001-11-25  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (lisp-indent-function): Add doc string.
