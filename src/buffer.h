@@ -60,6 +60,9 @@ Boston, MA 02111-1307, USA.  */
 /* Modification count.  */
 #define MODIFF (current_buffer->text->modiff)
 
+/* Overlay modification count.  */
+#define OVERLAY_MODIFF(buf) (current_buffer->text->overlay_modiff)
+
 /* Modification count as of last visit or save.  */
 #define SAVE_MODIFF (current_buffer->text->save_modiff)
 
@@ -115,6 +118,9 @@ Boston, MA 02111-1307, USA.  */
 /* Modification count as of last visit or save.  */
 #define BUF_SAVE_MODIFF(buf) ((buf)->text->save_modiff)
 
+/* Overlay modification count.  */
+#define BUF_OVERLAY_MODIFF(buf) ((buf)->text->overlay_modiff)
+
 /* Interval tree of buffer.  */
 #define BUF_INTERVALS(buf) ((buf)->text->intervals)
 
@@ -163,6 +169,8 @@ struct buffer_text
 				   changed.  */
     int save_modiff;		/* Previous value of modiff, as of last
 				   time buffer visited or saved a file.  */
+
+    int overlay_modiff;		/* Counts modifications to overlays.  */
 
     /* Properties of this buffer's text -- conditionally compiled.  */
     DECLARE_INTERVALS
