@@ -66,6 +66,9 @@ Lisp_Object combine_after_change_list;
 
 /* Buffer which combine_after_change_list is about.  */
 Lisp_Object combine_after_change_buffer;
+
+Lisp_Object Qinhibit_modification_hooks;
+
 
 /* Check all markers in the current buffer, looking for something invalid.  */
 
@@ -2159,6 +2162,8 @@ syms_of_insdel ()
 This affects `before-change-functions' and `after-change-functions',\n\
 as well as hooks attached to text properties and overlays.");
   inhibit_modification_hooks = 0;
+  Qinhibit_modification_hooks = intern ("inhibit-modification-hooks");
+  staticpro (&Qinhibit_modification_hooks);
 
   defsubr (&Scombine_after_change_execute);
 }
