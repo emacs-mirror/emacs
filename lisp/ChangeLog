@@ -1,3 +1,16 @@
+2000-03-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/rmail.el (rmail-confirm-expunge): New user-option.
+	(rmail-expunge): Ask for confirmation depending on the setting
+	of rmail-confirm-expunge.
+
+2000-03-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile (bootstrap-clean): If $(emacs) exists, build
+	loaddefs.el first.  A loaddefs.el that's not up-to-date might
+	cause a bootstrap failure because things don't autoload as
+	expected.
+
 2000-03-23  Dave Love  <fx@gnu.org>
 
 	* net/browse-url.el: Restore previous use of

@@ -472,6 +472,12 @@ the buffer whose process should be used from the mini-buffer.
 
 ** Changes to Rmail mode
 
+*** The new user-option rmail-confirm-expunge controls whether and how
+to ask for confirmation before expunging deleted messages from an
+Rmail file.  You can choose between no confirmation, confirmation
+with y-or-n-p, or confirmation with yes-or-no-p.  Default is to ask
+for confirmation with yes-or-no-p.
+
 *** RET is now bound in the Rmail summary to rmail-summary-goto-msg,
 like `j'.
 

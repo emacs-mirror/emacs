@@ -11832,11 +11832,12 @@ variable." t nil)
 ;;;***
 
 ;;;### (autoloads (rmail-set-pop-password rmail-input rmail-mode
-;;;;;;  rmail rmail-enable-mime rmail-secondary-file-regexp rmail-secondary-file-directory
-;;;;;;  rmail-mail-new-frame rmail-primary-inbox-list rmail-delete-after-output
-;;;;;;  rmail-highlight-face rmail-highlighted-headers rmail-retry-ignored-headers
-;;;;;;  rmail-displayed-headers rmail-ignored-headers rmail-dont-reply-to-names)
-;;;;;;  "rmail" "mail/rmail.el" (14525 4986))
+;;;;;;  rmail rmail-enable-mime rmail-confirm-expunge rmail-secondary-file-regexp
+;;;;;;  rmail-secondary-file-directory rmail-mail-new-frame rmail-primary-inbox-list
+;;;;;;  rmail-delete-after-output rmail-highlight-face rmail-highlighted-headers
+;;;;;;  rmail-retry-ignored-headers rmail-displayed-headers rmail-ignored-headers
+;;;;;;  rmail-dont-reply-to-names) "rmail" "mail/rmail.el" (14555
+;;;;;;  23001))
 ;;; Generated autoloads from mail/rmail.el
 
 (defvar rmail-dont-reply-to-names nil "\
@@ -11893,6 +11894,9 @@ and the value of the environment variable MAIL overrides it).")
 
 (defvar rmail-secondary-file-regexp "\\.xmail$" "\
 *Regexp for which files are secondary Rmail files.")
+
+(defvar rmail-confirm-expunge (quote yes-or-no-p) "\
+*Whether and how to ask for confirmation before expunging deleted messages.")
 
 (defvar rmail-mode-hook nil "\
 List of functions to call when Rmail is invoked.")
