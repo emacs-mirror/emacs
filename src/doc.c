@@ -82,16 +82,15 @@ static Lisp_Object
 get_doc_string (filepos)
      Lisp_Object filepos;
 {
-  char buf[512 * 32 + 1];
-  char *buffer;
-  int buffer_size;
-  int free_it;
+  static char *buffer;
+  static int buffer_size;
+
   char *from, *to;
   register int fd;
   register char *name;
   register char *p, *p1;
   int minsize;
-  int position;
+  int offset, position;
   Lisp_Object file, tem;
 
   if (INTEGERP (filepos))
@@ -150,12 +149,13 @@ get_doc_string (filepos)
 	  fd = open (name, O_RDONLY, 0);
 	}
 #endif
-
       if (fd < 0)
 	error ("Cannot open doc string file \"%s\"", name);
     }
 
-  if (0 > lseek (fd, position, 0))
+  /* Seek only to beginning of disk block.  */
+  offset = position % (8 * 1024);
+  if (0 > lseek (fd, position - offset, 0))
     {
       close (fd);
       error ("Position %ld out of range in doc string file \"%s\"",
@@ -163,40 +163,26 @@ get_doc_string (filepos)
     }
 
   /* Read the doc string into a buffer.
-     Use the fixed buffer BUF if it is big enough;
-     otherwise allocate one and set FREE_IT.
-     We store the buffer in use in BUFFER and its size in BUFFER_SIZE.  */
+     p points beyond the data just read.  */
 
-  buffer = buf;
-  buffer_size = sizeof buf;
-  free_it = 0;
-  p = buf;
+  p = buffer;
   while (1)
     {
       int space_left = buffer_size - (p - buffer);
       int nread;
 
-      /* Switch to a bigger buffer if we need one.  */
+      /* Allocate or grow the buffer if we need to.  */
       if (space_left == 0)
 	{
-	  if (free_it)
-	    {
-	      int offset = p - buffer;
-	      buffer = (char *) xrealloc (buffer,
-					  buffer_size *= 2);
-	      p = buffer + offset;
-	    }
-	  else
-	    {
-	      buffer = (char *) xmalloc (buffer_size *= 2);
-	      bcopy (buf, buffer, p - buf);
-	      p = buffer + (p - buf);
-	    }
-	  free_it = 1;
+	  int in_buffer = p - buffer;
+	  buffer_size += 16 * 1024;
+	  buffer = (char *) xrealloc (buffer, buffer_size + 1);
+	  p = buffer + in_buffer;
 	  space_left = buffer_size - (p - buffer);
 	}
 
-      /* Don't read too too much at one go.  */
+      /* Read a disk block at a time.
+         If we read the same block last time, maybe skip this?  */
       if (space_left > 1024 * 8)
 	space_left = 1024 * 8;
       nread = read (fd, p, space_left);
@@ -208,7 +194,10 @@ get_doc_string (filepos)
       p[nread] = 0;
       if (!nread)
 	break;
-      p1 = index (p, '\037');
+      if (p == buffer)
+	p1 = index (p + offset, '\037');
+      else
+	p1 = index (p, '\037');
       if (p1)
 	{
 	  *p1 = 0;
@@ -221,8 +210,8 @@ get_doc_string (filepos)
 
   /* Scan the text and perform quoting with ^A (char code 1).
      ^A^A becomes ^A, ^A0 becomes a null char, and ^A_ becomes a ^_.  */
-  from = buffer;
-  to = buffer;
+  from = buffer + offset;
+  to = buffer + offset;
   while (from != p)
     {
       if (*from == 1)
@@ -244,11 +233,7 @@ get_doc_string (filepos)
 	*to++ = *from++;
     }
 
-  tem = make_string (buffer, to - buffer);
-  if (free_it)
-    free (buffer);
-
-  return tem;
+  return make_string (buffer + offset, to - (buffer + offset));
 }
 
 /* Get a string from position FILEPOS and pass it through the Lisp reader.
