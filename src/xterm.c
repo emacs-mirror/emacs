@@ -385,7 +385,7 @@ extern Lisp_Object Vcommand_line_args, Vsystem_name;
 
 extern Lisp_Object Vx_no_window_manager;
 
-extern Lisp_Object Qface, Qmouse_face;
+extern Lisp_Object Qface, Qmouse_face, Qeql;
 
 extern int errno;
 
@@ -396,6 +396,7 @@ extern int extra_keyboard_modifiers;
 /* The keysyms to use for the various modifiers.  */
 
 Lisp_Object Vx_alt_keysym, Vx_hyper_keysym, Vx_meta_keysym, Vx_super_keysym;
+Lisp_Object Vx_keysym_table;
 static Lisp_Object Qalt, Qhyper, Qmeta, Qsuper, Qmodifier_value;
 
 static Lisp_Object Qvendor_specific_keysyms;
@@ -10641,11 +10642,25 @@ XTread_socket (sd, bufp, numchars, expected)
 #endif /* not HAVE_X11R5 */
 				))
 			{
+			  Lisp_Object c;
+
 			  if (temp_index == sizeof temp_buffer / sizeof (short))
 			    temp_index = 0;
 			  temp_buffer[temp_index++] = keysym;
-			  bufp->kind = non_ascii_keystroke;
-			  bufp->code = keysym;
+			  if (! EQ ((c = Fgethash (make_number (keysym),
+						   Vx_keysym_table, Qnil)),
+				    Qnil))
+			    {
+			      bufp->kind = (ASCII_CHAR_P (c)
+					    ? ascii_keystroke
+					    : multibyte_char_keystroke);
+			      bufp->code = c;
+			    }
+			  else
+			    {
+			      bufp->kind = non_ascii_keystroke;
+			      bufp->code = keysym;
+			    }
 			  XSETFRAME (bufp->frame_or_window, f);
 			  bufp->arg = Qnil;
 			  bufp->modifiers
@@ -10670,18 +10685,8 @@ XTread_socket (sd, bufp, numchars, expected)
 			      temp_buffer[temp_index++] = copy_bufptr[i];
 			    }
 
-			  if (/* If the event is not from XIM, */
-			      event.xkey.keycode != 0
-			      /* or the current locale doesn't request
-				 decoding of the input data, ... */
-			      || ! CODING_REQUIRE_DECODING (&coding))
-			    {
-			      /* ... we can use the input data as is.  */
-			      nchars = nbytes;
-			    }
-			  else
 			    { 
-			      /* We have to decode the input data.  */
+			      /* Decode the input data.  */
 			      coding.destination
 				= (unsigned char *) malloc (nbytes);
 			      if (! coding.destination)
@@ -14490,7 +14495,6 @@ x_get_font_repertory (f, font_info)
      struct font_info *font_info;
 {
   XFontStruct *font = (XFontStruct *) font_info->font;
-  struct charset *charset = CHARSET_FROM_ID (font_info->charset);
   Lisp_Object table;
   int min_byte1, max_byte1, min_byte2, max_byte2;
 
@@ -15295,6 +15299,12 @@ For example, `super' means use the Super_L and Super_R keysyms.  The
 default is nil, which is the same as `super'.  */);
   Vx_super_keysym = Qnil;
 
+  DEFVAR_LISP ("x-keysym-table", &Vx_keysym_table,
+    doc: /* Hash table of character codes indexed by X keysym codes.  */);
+  Vx_keysym_table = make_hash_table (Qeql, make_number (800),
+				     make_number (DEFAULT_REHASH_SIZE),
+				     make_number (DEFAULT_REHASH_THRESHOLD),
+				     Qnil, Qnil, Qnil);
 }
 
 #endif /* HAVE_X_WINDOWS */
