@@ -1046,8 +1046,9 @@ A value of 0 in any position is a wild-card."
                   (calendar-gregorian-from-absolute date)))))))))
 
 (defun list-sexp-diary-entries (date)
-  "Add any sexp entries for DATE from the diary-file to diary-entries-list
-and make them visible in the diary file.  Returns t if any entries were found.
+  "Add sexp entries for DATE from the diary-file to diary-entries-list.
+Also, Make them visible in the diary file.  Returns t if any entries were
+found.
 
 Sexp diary entries must be prefaced by a sexp-diary-entry-symbol (normally
 `%%').  The form of a sexp diary entry is
@@ -1222,21 +1223,24 @@ best if they are nonmarking."
 
 (defun diary-sexp-entry (sexp entry date)
   "Process a SEXP diary ENTRY for DATE."
-  (let ((result (condition-case nil
-                    (eval (car (read-from-string sexp)))
-                  (error
-                   (beep)
-                   (message "Bad sexp at line %d in %s: %s"
-                            (save-excursion
-                              (save-restriction
-                                (narrow-to-region 1 (point))
-                                (goto-char (point-min))
-                                (let ((lines 1))
-                                  (while (re-search-forward "\n\\|\^M" nil t)
-                                    (setq lines (1+ lines)))
-                                  lines)))
-                            diary-file sexp)
-                   (sleep-for 2)))))
+  (let ((result (if calendar-debug-sexp
+                  (let ((stack-trace-on-error t))
+                    (eval (car (read-from-string sexp))))
+                  (condition-case nil
+                      (eval (car (read-from-string sexp)))
+                    (error
+                     (beep)
+                     (message "Bad sexp at line %d in %s: %s"
+                              (save-excursion
+                                (save-restriction
+                                  (narrow-to-region 1 (point))
+                                  (goto-char (point-min))
+                                  (let ((lines 1))
+                                    (while (re-search-forward "\n\\|\^M" nil t)
+                                      (setq lines (1+ lines)))
+                                    lines)))
+                              diary-file sexp)
+                     (sleep-for 2))))))
     (if (stringp result)
         result
       (if result
@@ -1545,58 +1549,58 @@ Do nothing if DATE or STRING is nil."
   [nil 52 nil nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 [21 22]
     23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 34 35 36 37 38 39 40 [41 42]
     43 44 45 46 47 48 49 50]
-  "The structure of the parashiot in a Hebrew year that starts on Saturday,
-is `incomplete' (Heshvan and Kislev each have 29 days), and has Passover
-start on Sunday.")
+  "The structure of the parashiot.
+Hebrew year starts on Saturday, is `incomplete' (Heshvan and Kislev each have
+29 days), and has Passover start on Sunday.")
 
 (defconst hebrew-calendar-year-Saturday-complete-Tuesday
   [nil 52 nil nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 [21 22]
     23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 34 35 36 37 38 39 40 [41 42]
     43 44 45 46 47 48 49 [50 51]]
-  "The structure of the parashiot in a Hebrew year that starts on Saturday,
-is `complete' (Heshvan and Kislev each have 30 days), and has Passover
-start on Tuesday.")
+  "The structure of the parashiot.
+Hebrew year that starts on Saturday, is `complete' (Heshvan and Kislev each
+have 30 days), and has Passover start on Tuesday.")
 
 (defconst hebrew-calendar-year-Monday-incomplete-Tuesday
   [51 52 nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 [21 22]
     23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 34 35 36 37 38 39 40 [41 42]
     43 44 45 46 47 48 49 [50 51]]
-  "The structure of the parashiot in a Hebrew year that starts on Monday,
-is `incomplete' (Heshvan and Kislev each have 29 days), and has Passover
-start on Tuesday.")
+  "The structure of the parashiot.
+Hebrew year that starts on Monday, is `incomplete' (Heshvan and Kislev each
+have 29 days), and has Passover start on Tuesday.")
 
 (defconst hebrew-calendar-year-Monday-complete-Thursday
   [51 52 nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 [21 22]
    23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 (nil . 34) (34 . 35) (35 . 36)
    (36 . 37) (37 . 38) ([38 39] . 39) 40 [41 42] 43 44 45 46 47 48 49 [50 51]]
-  "The structure of the parashiot in a Hebrew year that starts on Monday,
-is `complete' (Heshvan and Kislev each have 30 days), and has Passover
-start on Thursday.")
+  "The structure of the parashiot.
+Hebrew year that starts on Monday, is `complete' (Heshvan and Kislev each have
+30 days), and has Passover start on Thursday.")
 
 (defconst hebrew-calendar-year-Tuesday-regular-Thursday
   [51 52 nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 [21 22]
    23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 (nil . 34) (34 . 35) (35 . 36)
    (36 . 37) (37 . 38) ([38 39] . 39) 40 [41 42] 43 44 45 46 47 48 49 [50 51]]
-  "The structure of the parashiot in a Hebrew year that starts on Tuesday,
-is `regular' (Heshvan has 29 days and Kislev has 30 days), and has Passover
-start on Thursday.")
+  "The structure of the parashiot.
+Hebrew year that starts on Tuesday, is `regular' (Heshvan has 29 days and
+Kislev has 30 days), and has Passover start on Thursday.")
 
 (defconst hebrew-calendar-year-Thursday-regular-Saturday
   [52 nil nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 [21 22] 23
    24 nil (nil . 25) (25 . [26 27]) ([26 27] . [28 29]) ([28 29] . 30)
    (30 . 31) ([31 32] . 32) 33 34 35 36 37 38 39 40 [41 42] 43 44 45 46 47 48
    49 50]
-  "The structure of the parashiot in a Hebrew year that starts on Thursday,
-is `regular' (Heshvan has 29 days and Kislev has 30 days), and has Passover
-start on Saturday.")
+  "The structure of the parashiot.
+Hebrew year that starts on Thursday, is `regular' (Heshvan has 29 days and
+Kislev has 30 days), and has Passover start on Saturday.")
 
 (defconst hebrew-calendar-year-Thursday-complete-Sunday
   [52 nil nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
     23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 34 35 36 37 38 39 40 [41 42]
     43 44 45 46 47 48 49 50]
-  "The structure of the parashiot in a Hebrew year that starts on Thursday,
-is `complete' (Heshvan and Kislev each have 30 days), and has Passover
-start on Sunday.")
+  "The structure of the parashiot.
+Hebrew year that starts on Thursday, is `complete' (Heshvan and Kislev each
+have 30 days), and has Passover start on Sunday.")
 
 ;; The seven leap year types (keviot)
 
@@ -1604,59 +1608,59 @@ start on Sunday.")
   [nil 52 nil nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
     23 24 25 26 27 nil 28 29 30 31 32 33 34 35 36 37 38 39 40 [41 42]
     43 44 45 46 47 48 49 [50 51]]
-  "The structure of the parashiot in a Hebrew year that starts on Saturday,
-is `incomplete' (Heshvan and Kislev each have 29 days), and has Passover
-start on Tuesday.")
+  "The structure of the parashiot.
+Hebrew year that starts on Saturday, is `incomplete' (Heshvan and Kislev each
+have 29 days), and has Passover start on Tuesday.")
 
 (defconst hebrew-calendar-year-Saturday-complete-Thursday
   [nil 52 nil nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
    23 24 25 26 27 nil 28 29 30 31 32 33 (nil . 34) (34 . 35) (35 . 36)
    (36 . 37) (37 . 38) ([38 39] . 39) 40 [41 42] 43 44 45 46 47 48 49 [50 51]]
-  "The structure of the parashiot in a Hebrew year that starts on Saturday,
-is `complete' (Heshvan and Kislev each have 30 days), and has Passover
-start on Thursday.")
+  "The structure of the parashiot.
+Hebrew year that starts on Saturday, is `complete' (Heshvan and Kislev each
+have 30 days), and has Passover start on Thursday.")
 
 (defconst hebrew-calendar-year-Monday-incomplete-Thursday
   [51 52 nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
    23 24 25 26 27 nil 28 29 30 31 32 33 (nil . 34) (34 . 35) (35 . 36)
    (36 . 37) (37 . 38) ([38 39] . 39) 40 [41 42] 43 44 45 46 47 48 49 [50 51]]
-  "The structure of the parashiot in a Hebrew year that starts on Monday,
-is `incomplete' (Heshvan and Kislev each have 29 days), and has Passover
-start on Thursday.")
+  "The structure of the parashiot.
+Hebrew year that starts on Monday, is `incomplete' (Heshvan and Kislev each
+have 29 days), and has Passover start on Thursday.")
 
 (defconst hebrew-calendar-year-Monday-complete-Saturday
   [51 52 nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
    23 24 25 26 27 nil (nil . 28) (28 . 29) (29 . 30) (30 . 31) (31 . 32)
    (32 . 33) (33 . 34) (34 . 35) (35 . 36) (36 . 37) (37 . 38) (38 . 39)
    (39 . 40) (40 . 41) ([41 42] . 42) 43 44 45 46 47 48 49 50]
-  "The structure of the parashiot in a Hebrew year that starts on Monday,
-is `complete' (Heshvan and Kislev each have 30 days), and has Passover
-start on Saturday.")
+  "The structure of the parashiot.
+Hebrew year that starts on Monday, is `complete' (Heshvan and Kislev each have
+30 days), and has Passover start on Saturday.")
 
 (defconst hebrew-calendar-year-Tuesday-regular-Saturday
   [51 52 nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
    23 24 25 26 27 nil (nil . 28) (28 . 29) (29 . 30) (30 . 31) (31 . 32)
    (32 . 33) (33 . 34) (34 . 35) (35 . 36) (36 . 37) (37 . 38) (38 . 39)
    (39 . 40) (40 . 41) ([41 42] . 42) 43 44 45 46 47 48 49 50]
-  "The structure of the parashiot in a Hebrew year that starts on Tuesday,
-is `regular' (Heshvan has 29 days and Kislev has 30 days), and has Passover
-start on Saturday.")
+  "The structure of the parashiot.
+Hebrew year that starts on Tuesday, is `regular' (Heshvan has 29 days and
+Kislev has 30 days), and has Passover start on Saturday.")
 
 (defconst hebrew-calendar-year-Thursday-incomplete-Sunday
   [52 nil nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
     23 24 25 26 27 28 nil 29 30 31 32 33 34 35 36 37 38 39 40 41 42
     43 44 45 46 47 48 49 50]
-  "The structure of the parashiot in a Hebrew year that starts on Thursday,
-is `incomplete' (Heshvan and Kislev both have 29 days), and has Passover
-start on Sunday.")
+  "The structure of the parashiot.
+Hebrew year that starts on Thursday, is `incomplete' (Heshvan and Kislev both
+have 29 days), and has Passover start on Sunday.")
 
 (defconst hebrew-calendar-year-Thursday-complete-Tuesday
   [52 nil nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
     23 24 25 26 27 28 nil 29 30 31 32 33 34 35 36 37 38 39 40 41 42
     43 44 45 46 47 48 49 [50 51]]
-  "The structure of the parashiot in a Hebrew year that starts on Thursday,
-is `complete' (Heshvan and Kislev both have 30 days), and has Passover
-start on Tuesday.")
+  "The structure of the parashiot.
+Hebrew year that starts on Thursday, is `complete' (Heshvan and Kislev both
+have 30 days), and has Passover start on Tuesday.")
 
 (defun hebrew-calendar-parasha-name (p)
   "Name(s) corresponding to parasha P."
