@@ -1,14 +1,14 @@
-\input texinfo
+@c Insert  "\input texinfo" at 1st line before texing this file alone.
 @c -*-texinfo-*-
-@c Copyright (C) 1995 Free Software Foundation, Inc.
-@setfilename gnus-faq.info
+@c Copyright (C) 1995, 98, 99, 2000 Free Software Foundation, Inc.
+@setfilename ../info/gnus-faq.info
 
 @node Frequently Asked Questions
 @section Frequently Asked Questions
 
 This is the Gnus Frequently Asked Questions list.
 If you have a Web browser, the official hypertext version is at
-@file{http://www.miranova.com/~steve/gnus-faq.html>}, and has
+@file{http://www.ccs.neu.edu/software/gnus/}, and has
 probably been updated since you got this manual.
 
 @menu
@@ -183,7 +183,7 @@ need to download the sources and recompile.
 @item
 Q1.10  Mailcrypt 3.4 doesn't work
 
-This problem is verified to still exist in Gnus 5.0.9 and MailCrypt 3.4.
+This problem is verified to still exist in Gnus 5.0.9 and Mailcrypt 3.4.
 The answer comes from Peter Arius
 <arius@@immd2.informatik.uni-erlangen.de>.
 
@@ -214,9 +214,9 @@ obtained from@*
 @file{ftp://cag.lcs.mit.edu/pub/patl/mailcrypt-3.4.tar.gz}.
 
 @item
-Tiny Mime.
+Tools for Mime.
 
-Tiny Mime is an Emacs MUA interface to MIME.  Installation is
+Tools for Mime is an Emacs MUA interface to MIME.  Installation is
 a two-step process unlike most other packages, so you should
 be prepared to move the byte-compiled code somewhere.  There
 are currently two versions of this package available.  It can
@@ -264,7 +264,7 @@ and Yank} and @i{Reply and Yank} in the Post menu.
 @kbd{C-c C-y} grabs the previous message and prefixes each line with
 @code{ail-indentation-spaces} spaces or @code{mail-yank-prefix} if that is
 non-nil, unless you have set your own @code{mail-citation-hook}, which will
-be called to to do the job.
+be called to do the job.
 
 You might also consider the Supercite package, which allows for pretty
 arbitrarily complex quoting styles.  Some people love it, some people
@@ -529,21 +529,22 @@ This is what I use...customize as necessary...
 ;;; Don't auto-select first article if reading sources, or archives or
 ;;; jobs postings, etc. and just display the summary buffer
 (add-hook 'gnus-select-group-hook
-	  (lambda ()
-	    (cond ((string-match "sources" gnus-newsgroup-name)
-	           (setq gnus-auto-select-first nil))
-	       	   ((string-match "jobs" gnus-newsgroup-name)
-	       		(setq gnus-auto-select-first nil))
-	          ((string-match "comp\\.archives" gnus-newsgroup-name)
-	           (setq gnus-auto-select-first nil))
-	          ((string-match "reviews" gnus-newsgroup-name)
-	           (setq gnus-auto-select-first nil))
-	          ((string-match "announce" gnus-newsgroup-name)
-	           (setq gnus-auto-select-first nil))
-	          ((string-match "binaries" gnus-newsgroup-name)
-	           (setq gnus-auto-select-first nil))
-	          (t
-	           (setq gnus-auto-select-first t)))))
+	  (function
+	   (lambda ()
+	     (cond ((string-match "sources" gnus-newsgroup-name)
+		    (setq gnus-auto-select-first nil))
+			   ((string-match "jobs" gnus-newsgroup-name)
+				(setq gnus-auto-select-first nil))
+		   ((string-match "comp\\.archives" gnus-newsgroup-name)
+		    (setq gnus-auto-select-first nil))
+		   ((string-match "reviews" gnus-newsgroup-name)
+		    (setq gnus-auto-select-first nil))
+		   ((string-match "announce" gnus-newsgroup-name)
+		    (setq gnus-auto-select-first nil))
+		   ((string-match "binaries" gnus-newsgroup-name)
+		    (setq gnus-auto-select-first nil))
+		   (t
+		    (setq gnus-auto-select-first t))))))
 @end lisp
 
 @item
