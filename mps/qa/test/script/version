@@ -1,6 +1,8 @@
-# $HopeName$
+# $HopeName: MMQA_harness!script:version(trunk.1) $
 # This file should be updated automatically whenever the test
 # harness changes. Edit with care!
 
 $HARNESS_VERSION="2.0";
 
+# This is MMQA_harness!(MMQA_say)
+#
