@@ -8024,6 +8024,7 @@ xim_open_dpy (dpyinfo, resource_name)
 {
   XIM xim;
 
+#ifdef HAVE_XIM
   if (use_xim)
     {
       xim = XOpenIM (dpyinfo->display, dpyinfo->xrdb, resource_name,
@@ -8048,6 +8049,7 @@ xim_open_dpy (dpyinfo, resource_name)
     }
 
   else
+#endif /* HAVE_XIM */
     dpyinfo->xim = NULL;
 }
 
@@ -8122,6 +8124,7 @@ xim_initialize (dpyinfo, resource_name)
      struct x_display_info *dpyinfo;
      char *resource_name;
 {
+#ifdef HAVE_XIM
   if (use_xim)
     {
 #ifdef HAVE_X11R6_XIM
@@ -8148,6 +8151,7 @@ xim_initialize (dpyinfo, resource_name)
 
     }
   else
+#endif /* HAVE_XIM */
     dpyinfo->xim = NULL;
 }
 
@@ -8158,6 +8162,7 @@ static void
 xim_close_dpy (dpyinfo)
      struct x_display_info *dpyinfo;
 {
+#ifdef HAVE_XIM
   if (use_xim)
     {
 #ifdef HAVE_X11R6_XIM
@@ -8171,6 +8176,7 @@ xim_close_dpy (dpyinfo)
       dpyinfo->xim = NULL;
       XFree (dpyinfo->xim_styles);
     }
+#endif /* HAVE_XIM */
 }
 
 #endif /* not HAVE_X11R6_XIM */
