@@ -428,7 +428,7 @@ start a background process even if a buffer already exists and
 	(Man-notify-when-ready buffer)
       (message "Invoking man %s in background..." man-args)
       (setq buffer (generate-new-buffer bufname))
-      (let ((process-environment process-environment))
+      (let ((process-environment (copy-sequence process-environment)))
 	;; Prevent any attempt to use display terminal fanciness.
 	(setenv "TERM" "dumb")
 	(set-process-sentinel
