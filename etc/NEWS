@@ -13,6 +13,10 @@ the --without-pop configure option, should that be necessary.
 
 * Changes in Emacs 21.1
 
+** Listing buffers with M-x list-buffers (C-x C-b) now shows
+abbreviated file names.  Abbreviations can be customized by changing
+`directory-abbrev-alist'.
+
 ** Reading from the mini-buffer now reads from standard input if Emacs
 is running in batch mode.  For example,
 
@@ -384,7 +388,7 @@ selection into the search string rather than giving an error.
 
 *** There is a new lazy highlighting feature in incremental search.
 
-Lazy highlighting is activated by customizing variable
+Lazy highlighting is switched on/off by customizing variable
 `isearch-lazy-highlight'.  When active, all matches for the current
 search string are highlighted.  The current match is highlighted as
 before using face `isearch' or `region'.  All other matches are
