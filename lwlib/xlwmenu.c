@@ -1421,6 +1421,7 @@ pop_up_menu (mw, event)
   int		h;
   int		borderwidth = mw->menu.shadow_thickness;
   Screen*	screen = XtScreen (mw);
+  Display       *display = XtDisplay (mw);
 
   next_release_must_exit = 0;
 
@@ -1465,7 +1466,7 @@ pop_up_menu (mw, event)
     }
 
 #ifdef emacs
-  x_catch_errors ();
+  x_catch_errors (display);
 #endif
   XtGrabPointer ((Widget)mw, False,
 		 (PointerMotionMask
@@ -1477,12 +1478,12 @@ pop_up_menu (mw, event)
 		 event->time);
   pointer_grabbed = 1;
 #ifdef emacs
-  if (x_had_errors_p ())
+  if (x_had_errors_p (display))
     {
       pointer_grabbed = 0;
       XtUngrabPointer ((Widget)mw, event->time);
     }
-  x_uncatch_errors ();
+  x_uncatch_errors (display);
 #endif
 
   handle_motion_event (mw, (XMotionEvent*)event);
