@@ -254,8 +254,7 @@ Not actually set up until the first time you you use it.")
 	 cd-list)))
 
 (defun cd-absolute (dir)
-  "Change current directory to given absolute path DIR."
-  (interactive "DChange default directory: ")
+  "Change current directory to given absolute file name DIR."
   (setq dir (expand-file-name dir))
   (if (not (eq system-type 'vax-vms))
       (setq dir (file-name-as-directory dir)))
@@ -267,27 +266,25 @@ Not actually set up until the first time you you use it.")
 
 (defun cd (dir)
   "Make DIR become the current buffer's default directory.
-If your environment imcludes a $CDPATH variable, cd tries each one of that
-colon-separated list of directories when resolving a relative cd."
+If your environment includes a `CDPATH' variable, try each one of that
+colon-separated list of directories when resolving a relative directory name."
   (interactive "FChange default directory: ")
-  (let ((first (aref dir 0)))
-    (if (or (= first ?/) (= first ?~))
-	(cd-absolute (expand-file-name dir))
-      (if (null cd-path)
-	  (let ((trypath (parse-colon-path (getenv "CDPATH"))))
-	    (setq cd-path (or trypath (list "./")))))
-      (if (not (catch 'found
-		 (mapcar
-		  (function (lambda (x)
-			      (let ((f (expand-file-name (concat x dir))))
-				(if (file-directory-p f)
-				    (progn
-				      (cd-absolute f)
-				      (throw 'found t))))))
-		  cd-path)
-		 nil))
-	  (error "No such directory on your cd path.")))
-    ))
+  (if (file-name-absolute-p dir)
+      (cd-absolute (expand-file-name dir))
+    (if (null cd-path)
+	(let ((trypath (parse-colon-path (getenv "CDPATH"))))
+	  (setq cd-path (or trypath (list "./")))))
+    (if (not (catch 'found
+	       (mapcar
+		(function (lambda (x)
+			    (let ((f (expand-file-name (concat x dir))))
+			      (if (file-directory-p f)
+				  (progn
+				    (cd-absolute f)
+				    (throw 'found t))))))
+		cd-path)
+	       nil))
+	(error "No such directory found via CDPATH environment variable"))))
 
 (defun load-file (file)
   "Load the Lisp file named FILE."
