@@ -1,6 +1,10 @@
+2001-01-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (forward_to_next_line_start): Remove xassert.
+
 2001-01-29  Jason Rumney  <jasonr@gnu.org>
 
-	w32term.c (x_draw_row_bitmaps): Delay obtaining HDC to avoid
+	* w32term.c (x_draw_row_bitmaps): Delay obtaining HDC to avoid
 	returning without releasing it.
 
 2001-01-29  Kenichi Handa  <handa@etl.go.jp>
