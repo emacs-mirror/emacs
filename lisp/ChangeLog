@@ -1,3 +1,23 @@
+2004-04-20  Richard M. Stallman  <rms@gnu.org>
+
+	* window.el (split-window-save-restore-data): 
+	Don't update the data if OLD-INFO is nil.
+
+	* view.el (view-return-to-alist): Mark it permanent local.
+
+	* subr.el (event-modifiers): Fix the criterion for ASCII control chars.
+
+	* recentf.el (recentf-save-list): Catch and warn about errors.
+
+	* menu-bar.el (menu-bar-update-buffers): Call copy-sequence
+	so "Buffers" won't be pure.
+
+	* help-mode.el (help-mode-finish): Set help-return-alist first
+	thing, setting only the entry for the selected window.
+
+	* help-fns.el (describe-function-1): If many non-control non-meta
+	keys run the command, don't list all of them.
+
 2004-04-20  Juanma Barranquero  <lektu@terra.es>
 
 	* vc-svn.el (vc-svn-print-log, vc-svn-diff): Add optional BUFFER
