@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
-@setfilename ../reftex
+@setfilename ../info/reftex
 @settitle RefTeX User Manual
 @dircategory Editors
 @direntry
