@@ -1301,7 +1301,6 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
 /* This is the actual command reading loop,
    sans error-handling encapsulation.  */
 
-EXFUN (Fcommand_execute, 4);
 static int read_key_sequence P_ ((Lisp_Object *, int, Lisp_Object,
 				  int, int, int));
 void safe_run_hooks P_ ((Lisp_Object));
