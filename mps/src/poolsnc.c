@@ -1,6 +1,6 @@
 /* impl.c.poolsnc: STACK NO CHECKING POOL CLASS
  *
- * $HopeName: MMsrc!poolsnc.c(trunk.6) $
+ * $HopeName: MMsrc!poolsnc.c(trunk.7) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -26,7 +26,7 @@
 #include "mpm.h"
 
 
-SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.6) $");
+SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.7) $");
 
 
 #define SNCSig  ((Sig)0x519b754c)       /* SIGPooLSNC */
@@ -188,9 +188,78 @@ DEFINE_BUFFER_CLASS(SNCBufClass, class)
 }
 
 
-#define sncSegNext(seg) ((Seg)SegP((seg)))
-#define sncSegSetNext(seg, next) (SegSetP((seg), (void*)(next)))
 
+/* SNCSegStruct -- SNC segment subclass
+ *
+ * This subclass of GCSeg links segments in chains.
+ */
+
+#define SNCSegSig ((Sig)0x51954C59)    /* SIGSNCSeG */
+
+typedef struct SNCSegStruct *SNCSeg;
+
+typedef struct SNCSegStruct {
+  GCSegStruct gcSegStruct;  /* superclass fields must come first */
+  SNCSeg next;              /* Next segment in chain, or NULL */
+  Sig sig;
+} SNCSegStruct;
+
+#define SegSNCSeg(seg)             ((SNCSeg)(seg))
+#define SNCSegSeg(sncseg)          ((Seg)(sncseg))
+
+#define sncSegNext(seg) \
+  (SNCSegSeg(SegSNCSeg(seg)->next))
+
+#define sncSegSetNext(seg, nextseg) \
+  ((void)(SegSNCSeg(seg)->next = SegSNCSeg(nextseg)))
+
+static Bool SNCSegCheck(SNCSeg sncseg)
+{
+  CHECKS(SNCSeg, sncseg);
+  CHECKL(GCSegCheck(&sncseg->gcSegStruct));
+  if (NULL != sncseg->next) {
+    CHECKS(SNCSeg, sncseg->next);
+  }
+  return TRUE;
+}
+
+/* awlSegInit -- Init method for AWL segments */
+
+static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, 
+                      Bool reservoirPermit, va_list args)
+{
+  SegClass super;
+  SNCSeg sncseg;
+  Res res;
+
+  AVERT(Seg, seg);
+  sncseg = SegSNCSeg(seg);
+  AVERT(Pool, pool);
+  /* no useful checks for base and size */
+  AVER(BoolCheck(reservoirPermit));
+
+  /* Initialize the superclass fields first via next-method call */
+  super = EnsureGCSegClass();
+  res = super->init(seg, pool, base, size, reservoirPermit, args);
+  if(res != ResOK)
+    return res;
+
+  sncseg->next = NULL;
+  sncseg->sig = SNCSegSig;
+  AVERT(SNCSeg, sncseg);
+  return ResOK;
+}
+
+
+/* SNCSegClass -- Class definition for SNC segments */
+
+DEFINE_SEG_CLASS(SNCSegClass, class)
+{
+  INHERIT_CLASS(class, GCSegClass);
+  class->name = "SNCSEG";
+  class->size = sizeof(SNCSegStruct);
+  class->init = sncSegInit;
+}
 
 
 /* sncRecordAllocatedSeg  - stores a segment on the buffer chain */
@@ -361,12 +430,11 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   /* No free seg, so create a new one */
   arena = PoolArena(pool);
   asize = SizeAlignUp(size, ArenaAlign(arena));
-  res = SegAlloc(&seg, &snc->segPrefStruct, asize, 
-                 pool, withReservoirPermit);
+  res = SegAlloc(&seg, EnsureSNCSegClass(), &snc->segPrefStruct, 
+                 asize, pool, withReservoirPermit);
   if(res != ResOK) {
     return res;
   }
-  sncSegSetNext(seg, NULL);
 
 found:
   /* design.mps.seg.field.rankSet.start */
