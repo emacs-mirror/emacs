@@ -91,7 +91,8 @@ copy_properties (source, target)
 }
 
 /* Merge the properties of interval SOURCE into the properties
-   of interval TARGET. */
+   of interval TARGET.  That is to say, each property in SOURCE
+   is added to TARGET if TARGET has no such property as yet.  */
 
 static void
 merge_properties (source, target)
@@ -134,6 +135,9 @@ intervals_equal (i0, i1)
 
   if (DEFAULT_INTERVAL_P (i0) && DEFAULT_INTERVAL_P (i1))
     return 1;
+
+  if (DEFAULT_INTERVAL_P (i0) || DEFAULT_INTERVAL_P (i1))
+    return 0;
 
   i1_len = XFASTINT (Flength (i1->plist));
   if (i1_len & 0x1)		/* Paranoia -- plists are always even */
@@ -186,12 +190,12 @@ traverse_intervals (tree, position, depth, function, arg)
   if (NULL_INTERVAL_P (tree))
     return;
 
-  traverse_intervals (tree->left, position, depth + 1, function);
+  traverse_intervals (tree->left, position, depth + 1, function, arg);
   position += LEFT_TOTAL_LENGTH (tree);
   tree->position = position;
   (*function) (tree, arg);
   position += LENGTH (tree);
-  traverse_intervals (tree->right, position, depth + 1,  function);
+  traverse_intervals (tree->right, position, depth + 1,  function, arg);
 }
 
 #if 0
@@ -422,7 +426,7 @@ split_interval_left (interval, offset)
   new->left = interval->left;
   new->left->parent = new;
   interval->left = new;
-  new->total_length = LENGTH (new) + LEFT_TOTAL_LENGTH (new);
+  new->total_length = new_length + LEFT_TOTAL_LENGTH (new);
 
   return new;
 }
@@ -1105,18 +1109,14 @@ graft_intervals_into_buffer (source, position, buffer)
      int position;
      struct buffer *buffer;
 {
-  register INTERVAL under, over, this;
+  register INTERVAL under, over, this, prev;
   register INTERVAL tree = buffer->intervals;
+  int middle;
 
   /* If the new text has no properties, it becomes part of whatever
-    interval it was inserted into. */
+     interval it was inserted into. */
   if (NULL_INTERVAL_P (source))
     return;
-
-  /* Paranoia -- the text has already been added, so this buffer
-     should be of non-zero length. */
-  if (TOTAL_LENGTH (tree) == 0)
-    abort ();
 
   if (NULL_INTERVAL_P (tree))
     {
@@ -1131,139 +1131,78 @@ graft_intervals_into_buffer (source, position, buffer)
 	}
 
       /* Create an interval tree in which to place a copy
-         of the intervals of the inserted string. */
+	 of the intervals of the inserted string. */
       {
 	Lisp_Object buf;
 	XSET (buf, Lisp_Buffer, buffer);
-	create_root_interval (buffer);
+	tree = create_root_interval (buf);
       }
     }
   else
     if (TOTAL_LENGTH (tree) == TOTAL_LENGTH (source))
+      /* If the buffer contains only the new string, but
+	 there was already some interval tree there, then it may be
+	 some zero length intervals.  Eventually, do something clever
+	 about inserting properly.  For now, just waste the old intervals. */
+      {
+	buffer->intervals = reproduce_tree (source, tree->parent);
+	/* Explicitly free the old tree here. */
 
-    /* If the buffer contains only the new string, but
-       there was already some interval tree there, then it may be
-       some zero length intervals.  Eventually, do something clever
-       about inserting properly.  For now, just waste the old intervals. */
-    {
-      buffer->intervals = reproduce_tree (source, tree->parent);
-      /* Explicitly free the old tree here. */
-
-      return;
-    }
+	return;
+      }
+    else
+      /* Paranoia -- the text has already been added, so this buffer
+	 should be of non-zero length. */
+      if (TOTAL_LENGTH (tree) == 0)
+	abort ();
 
   this = under = find_interval (tree, position);
   if (NULL_INTERVAL_P (under))	/* Paranoia */
     abort ();
   over = find_interval (source, 1);
 
-  /* Insertion between intervals */
-  if (position == under->position)
-    {
-      /* First interval -- none precede it. */
-      if (position == 1)
-	{
-	  if (! FRONT_STICKY_P (under))
-	    /* The inserted string keeps its own properties. */
-	    while (! NULL_INTERVAL_P (over))
-	    {
-	      position = LENGTH (over) + 1;
-	      this = split_interval_left (this, position);
-	      copy_properties (over, this);
-	      over = next_interval (over);
-	    }
-	  else
-	    /* This string "sticks" to the first interval, `under',
-	       which means it gets those properties. */
-	    while (! NULL_INTERVAL_P (over))
-	    {
-	      position = LENGTH (over) + 1;
-	      this = split_interval_left (this, position);
-	      copy_properties (under, this);
-	      if (MERGE_INSERTIONS (under))
-		merge_properties (over, this);
-	      over = next_interval (over);
-	    }
-	}
-       else
-	{
-	  INTERVAL prev = previous_interval (under);
-	  if (NULL_INTERVAL_P (prev))
-	    abort ();
+  /* Here for insertion in the middle of an interval.
+     Split off an equivalent interval to the right,
+     then don't bother with it any more.  */
 
-	  if (END_STICKY_P (prev))
-	    {
-	      if (FRONT_STICKY_P (under))
-		/* The intervals go inbetween as the two sticky
-		   properties cancel each other.  Should we change
-		   this policy? */
-		while (! NULL_INTERVAL_P (over))
-		  {
-		    position = LENGTH (over) + 1;
-		    this = split_interval_left (this, position);
-		    copy_properties (over, this);
-		    over = next_interval (over);
-		  }
-	      else
-		/* The intervals stick to prev */
-		while (! NULL_INTERVAL_P (over))
-		  {
-		    position = LENGTH (over) + 1;
-		    this = split_interval_left (this, position);
-		    copy_properties (prev, this);
-		    if (MERGE_INSERTIONS (prev))
-		      merge_properties (over, this);
-		    over = next_interval (over);
-		  }
-	    }
-	  else
-	    {
-	      if (FRONT_STICKY_P (under))
-		/* The inserted text "sticks" to the interval `under',
-		   which means it gets those properties. */
-		while (! NULL_INTERVAL_P (over))
-		  {
-		    position = LENGTH (over) + 1;
-		    this = split_interval_left (this, position);
-		    copy_properties (under, this);
-		    if (MERGE_INSERTIONS (under))
-		      merge_properties (over, this);
-		    over = next_interval (over);
-		  }
-	      else
-		/* The intervals go inbetween */
-		while (! NULL_INTERVAL_P (over))
-		  {
-		    position = LENGTH (over) + 1;
-		    this = split_interval_left (this, position);
-		    copy_properties (over, this);
-		    over = next_interval (over);
-		  }
-	    }
-	}
-
-      buffer->intervals = balance_intervals (buffer->intervals);
-      return;
-    }
-
-  /* Here for insertion in the middle of an interval. */
-
-  if (TOTAL_LENGTH (source) < LENGTH (this))
+  if (position > under->position)
     {
       INTERVAL end_unchanged
-	= split_interval_right (this, TOTAL_LENGTH (source) + 1);
+	= split_interval_left (this, position - under->position + 1);
       copy_properties (under, end_unchanged);
+      under->position = position;
+      prev = 0;
+      middle = 1;
+    }
+  else
+    {
+      prev = previous_interval (under);
+      if (prev && !END_STICKY_P (prev))
+	prev = 0;
     }
 
-  position = position - tree->position + 1;
+  /* Insertion is now at beginning of UNDER.  */
+
+  /* The inserted text "sticks" to the interval `under',
+     which means it gets those properties. */
   while (! NULL_INTERVAL_P (over))
     {
-      this = split_interval_right (under, position);
-      copy_properties (over, this);
-      if (MERGE_INSERTIONS (under))
-	merge_properties (under, this);
-
       position = LENGTH (over) + 1;
+      if (position < LENGTH (under))
+	this = split_interval_left (under, position);
+      else
+	this = under;
+      copy_properties (over, this);
+      /* Insertion at the end of an interval, PREV,
+	 inherits from PREV if PREV is sticky at the end.  */
+      if (prev && ! FRONT_STICKY_P (under)
+	  && MERGE_INSERTIONS (prev))
+	merge_properties (prev, this);
+      /* Maybe it inherits from the following interval
+	 if that is sticky at the front.  */
+      else if ((FRONT_STICKY_P (under) || middle)
+	       && MERGE_INSERTIONS (under))
+	merge_properties (under, this);
       over = next_interval (over);
     }
 
@@ -1271,18 +1210,32 @@ graft_intervals_into_buffer (source, position, buffer)
   return;
 }
 
+textget (plist, prop)
+     Lisp_Object plist;
+     register Lisp_Object prop;
+{
+  register Lisp_Object tail;
+
+  for (tail = plist; !NILP (tail); tail = Fcdr (Fcdr (tail)))
+    {
+      register Lisp_Object tem;
+      tem = Fcar (tail);
+      if (EQ (prop, tem))
+	return Fcar (Fcdr (tail));
+    }
+  return Qnil;
+}
+
 /* Set point in BUFFER to POSITION.  If the target position is in
-   an invisible interval which is not displayed with a special glyph,
-   skip intervals until we find one.  Point may be at the first
-   position of an invisible interval, if it is displayed with a
-   special glyph. */
+   after an invisible character which is not displayed with a special glyph,
+   move back to an ok place to display.  */
 
 void
 set_point (position, buffer)
      register int position;
      register struct buffer *buffer;
 {
-  register INTERVAL to, from, target;
+  register INTERVAL to, from, toprev, fromprev, target;
   register int iposition = position;
   int buffer_point;
   register Lisp_Object obj;
@@ -1306,62 +1259,88 @@ set_point (position, buffer)
   if (position == BUF_Z (buffer))
     iposition = position - 1;
 
+  /* Set TO to the interval containing the char after POSITION,
+     and TOPREV to the interval containing the char before POSITION.
+     Either one may be null.  They may be equal.  */
   to = find_interval (buffer->intervals, iposition);
-  buffer_point =(BUF_PT (buffer) == BUF_Z (buffer)
-		 ? BUF_Z (buffer) - 1
-		 : BUF_PT (buffer));
+  if (to->position == position)
+    toprev = previous_interval (to);
+  else if (iposition != position)
+    toprev = to, to = 0;
+  else
+    toprev = to;
 
+  buffer_point = (BUF_PT (buffer) == BUF_Z (buffer)
+		  ? BUF_Z (buffer) - 1
+		  : BUF_PT (buffer));
+
+  /* Set FROM to the interval containing the char after PT,
+     and FROMPREV to the interval containing the char before PT.
+     Either one may be null.  They may be equal.  */
   /* We could cache this and save time. */
   from = find_interval (buffer->intervals, buffer_point);
-
-  if (NULL_INTERVAL_P (to) || NULL_INTERVAL_P (from))
-    abort ();			/* Paranoia */
+  if (from->position == BUF_PT (buffer))
+    fromprev = previous_interval (from);
+  else if (buffer_point != BUF_PT (buffer))
+    fromprev = from, from = 0;
+  else
+    fromprev = from;
 
   /* Moving within an interval */
-  if (to == from && INTERVAL_VISIBLE_P (to))
+  if (to == from && toprev == fromprev && INTERVAL_VISIBLE_P (to))
     {
       buffer->text.pt = position;
       return;
     }
 
-  /* Here for the case of moving into another interval. */
-
-  target = to;
-  while (! INTERVAL_VISIBLE_P (to) && ! DISPLAY_INVISIBLE_GLYPH (to)
-	 && ! NULL_INTERVAL_P (to))
-    to = (backwards ? previous_interval (to) : next_interval (to));
-  if (NULL_INTERVAL_P (to))
-    return;
-
-  /* Here we know we are actually moving to another interval. */
-  if (INTERVAL_VISIBLE_P (to))
+  /* If the new position is after an invisible character,
+     move back over all such.  */
+  while (! NULL_INTERVAL_P (toprev)
+	 && ! INTERVAL_VISIBLE_P (toprev)
+	 && ! DISPLAY_INVISIBLE_GLYPH (toprev))
     {
-      /* If we skipped some intervals, go to the closest point
-         in the interval we've stopped at. */
-      if (to != target)
-	buffer->text.pt = (backwards
-			   ? to->position + LENGTH (to) - 1
-			   : to->position);
-      else
-	buffer->text.pt = position;
+      to = toprev;
+      toprev = previous_interval (toprev);
+      position = to->position;
     }
-  else
-    buffer->text.pt = to->position;
+
+  buffer->text.pt = position;
 
   /* We run point-left and point-entered hooks here, iff the
      two intervals are not equivalent.  These hooks take
-     (old_point, new_point) as arguments. */
-  if (! intervals_equal (from, to))
+     (old_point, new_point) as arguments.  */
+  if (! intervals_equal (from, to)
+      || ! intervals_equal (fromprev, toprev))
     {
-      Lisp_Object val;
+      Lisp_Object leave_after, leave_before, enter_after, enter_before;
 
-      val = Fget (Qpoint_left, from->plist);
-      if (! NILP (val))
-	call2 (val, old_position, position);
+      if (fromprev)
+	leave_after = textget (fromprev->plist, Qpoint_left);
+      else
+	leave_after = Qnil;
+      if (from)
+	leave_before = textget (from->plist, Qpoint_left);
+      else
+	leave_before = Qnil;
 
-      val = Fget (Qpoint_entered, to->plist);
-      if (! NILP (val))
-	call2 (val, old_position, position);
+      if (toprev)
+	enter_after = textget (toprev->plist, Qpoint_entered);
+      else
+	enter_after = Qnil;
+      if (to)
+	enter_before = textget (to->plist, Qpoint_entered);
+      else
+	enter_before = Qnil;
+
+      if (! EQ (leave_before, enter_before) && !NILP (leave_before))
+	call2 (leave_before, old_position, position);
+      if (! EQ (leave_after, enter_after) && !NILP (leave_after))
+	call2 (leave_after, old_position, position);
+
+      if (! EQ (enter_before, leave_before) && !NILP (enter_before))
+	call2 (enter_before, old_position, position);
+      if (! EQ (enter_after, leave_after) && !NILP (enter_after))
+	call2 (enter_after, old_position, position);
     }
 }
 
