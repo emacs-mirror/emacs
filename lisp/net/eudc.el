@@ -4,7 +4,7 @@
 
 ;; Author: Oscar Figueiredo <oscar@xemacs.org>
 ;; Maintainer: Oscar Figueiredo <oscar@xemacs.org>
-;; Keywords: help
+;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
 
@@ -622,7 +622,7 @@ otherwise they are formatted according to `eudc-user-attribute-names-alist'."
       result)))
 
 (defun eudc-filter-partial-records (records attrs)
-  "Eliminate records that do not caontain all ATTRS from RECORDS."
+  "Eliminate records that do not contain all ATTRS from RECORDS."
   (delq nil
 	(mapcar
 	 (function
@@ -1240,7 +1240,7 @@ This does nothing except loading eudc by autoload side-effect."
   nil)
 
 ;;;###autoload
-(cond ((not eudc-xemacs-p)
+(cond ((not (string-match "XEmacs" emacs-version))
        (defvar eudc-tools-menu (make-sparse-keymap "Directory Search"))
        (fset 'eudc-tools-menu (symbol-value 'eudc-tools-menu))
        (define-key eudc-tools-menu [phone]
