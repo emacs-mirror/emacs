@@ -4198,12 +4198,12 @@ DEFUN ("make-hash-table", Fmake_hash_table, Smake_hash_table, 0, MANY, 0,
 Arguments are specified as keyword/argument pairs.  The following\n\
 arguments are defined:\n\
 \n\
-:TEST TEST -- TEST must be a symbol that specifies how to compare keys.
+:TEST TEST -- TEST must be a symbol that specifies how to compare keys.\n\
 Default is `eql'.  Predefined are the tests `eq', `eql', and `equal'.\n\
 User-supplied test and hash functions can be specified via\n\
 `define-hash-table-test'.\n\
 \n\
-:SIZE SIZE -- A hint as to how many elements will be put in the table.
+:SIZE SIZE -- A hint as to how many elements will be put in the table.\n\
 Default is 65.\n\
 \n\
 :REHASH-SIZE REHASH-SIZE - Indicates how to expand the table when\n\
