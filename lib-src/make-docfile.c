@@ -143,36 +143,36 @@ write_c_args (out, buf, minargs, maxargs)
      char *buf;
      int minargs, maxargs;
 {
-  register int c;
-  register char *p = buf;
+  register char *p;
   int space = 0;
 
   fprintf (out, "arguments: ");
 
-  while (*p)
+  for (p = buf; *p; p++)
     {
-      c = *p++;
-      if (c == ',')
+      if (*p == ',' || p == buf)
 	{
-	  minargs--;
-	  maxargs--;
 	  if (!space)
 	    putc (' ', out);
 	  if (minargs == 0 && maxargs > 0)
 	    fprintf (out, "&optional ");
 	  space = 1;
+
+	  minargs--;
+	  maxargs--;
+
 	  continue;
 	}
-      else if (c == ' ' && space)
+      else if (*p == ' ' && space)
 	continue;
-      space = (c == ' ');
+      space = (*p == ' ');
 
       /* Print the C arguments as they would appear in Elisp;
 	 print underscores as hyphens.  */
-      if (c == '_')
+      if (*p == '_')
 	putc ('-', out);
       else
-	putc (c, out);
+	putc (*p, out);
     }
   putc ('\n', out);
 }
