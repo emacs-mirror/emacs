@@ -21,11 +21,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Rewritten for X11 by Joseph Arceneaux */
 
+#include <signal.h>
+#include <config.h>
+
 #if 0
 #include <stdio.h>
 #endif
-#include <signal.h>
-#include <config.h>
+
 #include "lisp.h"
 #include "xterm.h"
 #include "frame.h"
