@@ -1,6 +1,31 @@
 2002-07-16  Ken Raeburn  <raeburn@gnu.org>
 
-	* lisp.h (SDATA): Produce rvalue.
+	* lisp.h (SDATA, SREF): Produce rvalue.
+	(SSET): New macro.
+	* alloc.c (make_event_array): Use SSET for storing into a string.
+	* buffer.c (Fother_buffer): Use SREF when retrieving a byte from
+	a string.
+	* casefiddle.c (casify_object): Use SSET.
+	* charset.h (FETCH_STRING_CHAR_ADVANCE,
+	FETCH_STRING_CHAR_ADVANCE_NO_CHECK): Use SDATA when getting
+	address of string contents.
+	* data.c (Faref): Use SDATA.
+	(Faset): Use SDATA, SSET.
+	* dired.c (directory_files_internal): Use SSET.
+	* fileio.c (Fmake_symbolic_link, Fexpand_file_name): Use SSET.
+	(Fread_file_name): Use SREF, SSET.
+	* fns.c (concat): Use SSET.
+	(concat, Fdelete): Use SDATA.
+	* insdel.c (insert_from_string_1): Use SDATA.
+	* keyboard.c (Fevent_convert_list): Use SREF.
+	* lread.c (Fload): Use SDATA, SSET.
+	* macfns.c (validate_x_resource_name): Use SSET.
+	* process.c (status_message): Use SSET.
+	* search.c (wordify): Use SDATA.
+	(Freplace_match): Use SREF.
+	* w32fns.c (validate_x_resource_name): Use SSET.
+	* xfns.c (validate_x_resource_name): Use SSET.
+	* xterm.c (x_catch_errors, x_clear_errors): Use SSET.
 
 2002-07-16  Richard M. Stallman  <rms@gnu.org>
 
