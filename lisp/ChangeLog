@@ -1,5 +1,11 @@
 2000-12-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* generic.el (generic-read-type): Build an alist for
+	completing-read as in 20.7.
+
+	* play/landmark.el (lm): Use interactive spec `P'.
+	(toplevel): Don't set debug-on-error.
+
 	* server.el (server-switch-buffer): Choose a window on a visible
 	frame.
 

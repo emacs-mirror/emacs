@@ -1,5 +1,9 @@
 2000-12-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* lisp.h (Qinhibit_point_motion_hooks): Declare extern.
+
+	* undo.c (Fprimitive_undo): Bind `inhibit-point-motion-hooks' to t.
+
 	* window.c (delete_window, Fsplit_window) 
 	(Fset_window_configuration): Calls to ensure_frame_matrix removed.
 
