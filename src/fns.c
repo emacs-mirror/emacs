@@ -4151,7 +4151,7 @@ copy_hash_table (h1)
 {
   Lisp_Object table;
   struct Lisp_Hash_Table *h2;
-  struct Lisp_Vector *v, *next;
+  struct Lisp_Vector *next;
 
   h2 = allocate_hash_table ();
   next = h2->vec_next;
