@@ -1955,9 +1955,11 @@ stat (const char * path, struct stat * buf)
       /* (This is hacky, but helps when doing file completions on
 	 network drives.)  Optimize by using information available from
 	 active readdir if possible.  */
+      len = strlen (dir_pathname);
+      if (IS_DIRECTORY_SEP (dir_pathname[len-1]))
+	len--;
       if (dir_find_handle != INVALID_HANDLE_VALUE
-	  && (len = strlen (dir_pathname)),
-	  strnicmp (name, dir_pathname, len) == 0
+	  && strnicmp (name, dir_pathname, len) == 0
 	  && IS_DIRECTORY_SEP (name[len])
 	  && stricmp (name + len + 1, dir_static.d_name) == 0)
 	{
