@@ -1,3 +1,17 @@
+2004-02-03  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el (japanese-jisx0213.2004-1): Specify
+	:dimension 2.
+
+	* language/japanese.el (iso-2022-jp): Exclude japanese-jisx0212.
+	(japanese-ucs-cp932-to-jis-map): Fix previous change.
+	(japanese-ucs-jis-to-cp932-map): Likewise.
+	(iso-2022-jp-2004, euc-jis-2004, japanese-shift-jis-2004): New
+	coding systems.
+	(iso-2022-jp-3, euc-jisx0213, shift_jis-2004): New coding system
+	aliases.
+	("Japanese"): Add new charsets and coding system.s
+
 2004-02-02  Kenichi Handa  <handa@m17n.org>
 
 	* language/japanese.el (japanese-ucs-cp932-to-jis-map): Renamed
