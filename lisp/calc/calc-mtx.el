@@ -26,14 +26,10 @@
 
 ;;; Code:
 
-
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-mat () nil)
-
 
 (defun calc-mdet (arg)
   (interactive "P")
@@ -367,6 +363,8 @@
 		     (list 'vec perm lmat umat)))))
 	  (math-reject-arg m "*Singular matrix"))
     (math-reject-arg m 'square-matrixp)))
+
+(provide 'calc-mtx)
 
 ;;; arch-tag: fc0947b1-90e1-4a23-8950-d8ead9c3a306
 ;;; calc-mtx.el ends here
