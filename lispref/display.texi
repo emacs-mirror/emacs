@@ -1161,7 +1161,7 @@ the beginning of the result if one multi-column character in
 
 @node Faces
 @section Faces
-@cindex face
+@cindex faces
 
   A @dfn{face} is a named collection of graphical attributes: font
 family, foreground color, background color, optional underlining, and
