@@ -1,5 +1,6 @@
 /* Generic frame functions.
-   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000 Free Software Foundation.
+   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001
+   Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -198,14 +199,8 @@ make_frame (mini_p)
   register struct frame *f;
   register Lisp_Object root_window;
   register Lisp_Object mini_window;
-  register struct Lisp_Vector *vec;
-  int i;
 
-  vec = allocate_vectorlike ((EMACS_INT) VECSIZE (struct frame));
-  for (i = 0; i < VECSIZE (struct frame); i++)
-    XSETFASTINT (vec->contents[i], 0);
-  vec->size = VECSIZE (struct frame);
-  f = (struct frame *)vec;
+  f = allocate_frame ();
   XSETFRAME (frame, f);
 
   f->desired_matrix = 0;
