@@ -1,6 +1,6 @@
 ;;; texinfo.el --- major mode for editing Texinfo files.
 
-;; Copyright (C) 1985, 1988, 1989, 1990 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Bob Chassell <bob@gnu.ai.mit.edu>
 ;; Version: 2.00
@@ -25,6 +25,10 @@
 ;;; Code:
 
 ;;; Don't you dare insert any `require' calls at top level in this file--rms.
+
+(defvar texinfo-chapter-level-regexp 
+  "chapter\\|unnumbered \\|appendix \\|majorheading\\|chapheading"
+  "Regular expression matching just the Texinfo chapter level headings.")
 
 (defvar texinfo-mode-syntax-table nil)
 
