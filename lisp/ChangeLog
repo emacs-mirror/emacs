@@ -1,3 +1,8 @@
+2002-02-28  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-revert-buffer): If the buffer is not saved, prompt
+	the user to do that first.
+
 2002-02-28  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (shell-command-on-region): Report non-zero exit
