@@ -806,6 +806,21 @@ extern BOOL parse_button ();
 #define RIGHT_WIN_PRESSED      0x4000
 #define APPS_PRESSED           0x2000
 
+/* When compiling on Windows 9x/ME and NT 3.x, the following are not defined
+   (even though they are supported on 98 and ME.  */
+#ifndef WM_MOUSELEAVE
+#define WM_MOUSELEAVE 0x02A3
+#define TME_LEAVE 0x00000002;
+
+typedef struct tagTRACKMOUSEEVENT 
+{
+  DWORD cbSize;
+  DWORD dwFlags;
+  HWND hwndTrack;
+  DWORD dwHoverTime;
+} TRACKMOUSEEVENT;
+#endif
+
 struct image;
 struct face;
 
