@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.5 2000/08/16 19:51:55 monnier Exp $
+;; Revision: $Id: smerge-mode.el,v 1.6 2000/10/05 06:05:51 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -349,16 +349,21 @@ The point is moved to the end of the conflict."
   (let ((name1 (aref smerge-match-names n1))
 	(name2 (aref smerge-match-names n2))
 	(file1 (make-temp-file "smerge1"))
-	(file2 (make-temp-file "smerge2")))
+	(file2 (make-temp-file "smerge2"))
+	(dir default-directory)
+	(file (file-relative-name buffer-file-name)))
     (write-region (match-beginning n1) (match-end n1) file1)
     (write-region (match-beginning n2) (match-end n2) file2)
     (unwind-protect
 	(with-current-buffer (get-buffer-create smerge-diff-buffer-name)
+	  (setq default-directory dir)
 	  (let ((inhibit-read-only t))
 	    (erase-buffer)
 	    (apply 'call-process diff-command nil t nil
 		   (append smerge-diff-switches
-			   (list "-L" name1 "-L" name2 file1 file2))))
+			   (list "-L" (concat name1 "/" file)
+				 "-L" (concat name2 "/" file)
+				 file1 file2))))
 	  (goto-char (point-min))
 	  (diff-mode)
 	  (display-buffer (current-buffer) t))
@@ -472,6 +477,10 @@ The point is moved to the end of the conflict."
 
 ;;; Change Log:
 ;; $Log: smerge-mode.el,v $
+;; Revision 1.6  2000/10/05 06:05:51  miles
+;; (smerge-mine-face, smerge-other-face, smerge-base-face, smerge-markers-face):
+;;   Add dark-background variants.
+;;
 ;; Revision 1.5  2000/08/16 19:51:55  monnier
 ;; (smerge-mode-menu): Doc fix.
 ;;
