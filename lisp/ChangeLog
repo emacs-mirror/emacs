@@ -1,3 +1,12 @@
+2004-09-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.
+	(pr-version): New version number (6.8.1).
+	(pr-ps-file-using-ghostscript): Use make-temp-file instead of
+	make-temp-name.
+	(pr-delete-file): Check if file exists before deleting it.  Reported by
+	Lennart Borgman <lennart.borgman.073@student.lu.se>.
+	
 2004-09-26  Stefan  <monnier@iro.umontreal.ca>
 
 	* term.el (term-display-table): New variable.

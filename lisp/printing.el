@@ -5,13 +5,13 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/09/21 22:51:58 vinicius>
+;; Time-stamp: <2004/09/26 22:11:24 vinicius>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.8
+;; Version: 6.8.1
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst pr-version "6.8"
-  "printing.el, v 6.8 <2004/09/21 vinicius>
+(defconst pr-version "6.8.1"
+  "printing.el, v 6.8.1 <2004/09/26 vinicius>
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -125,16 +125,16 @@ Please send all bug fixes and enhancements to
 ;; Novices (First Users)
 ;; ---------------------
 ;;
-;; First of all, take a glance of printing documentation only to have an idea
-;; of what `printing' is capable.
+;; First of all, see printing documentation only to get an idea of what
+;; `printing' is capable.
 ;;
 ;; Then try to set the variables: `pr-ps-name', `pr-ps-printer-alist',
 ;; `pr-txt-name', `pr-txt-printer-alist' and `pr-path-alist'.  These variables
 ;; are the main variables for printing processing.
 ;;
-;; Now, please, see these variables documentation more in deep.  You can do
-;; this by typing C-h v pr-ps-name RET (for example) if you already loaded
-;; printing package, or by browsing printing.el source file.
+;; Now, please, see these variables documentation deeper.  You can do this by
+;; typing C-h v pr-ps-name RET (for example) if you already loaded printing
+;; package, or by browsing printing.el source file.
 ;;
 ;; If the documentation isn't clear or if you find a way to improve the
 ;; documentation, please, send an email to maintainer.  All printing users
@@ -263,7 +263,8 @@ Please send all bug fixes and enhancements to
 ;;    in Windows.  The gsprint utility is faster than ghostscript to print
 ;;    monochrome PostScript.
 ;;
-;;    The efficiency is similar to print non-monochrome PostScript file.
+;;    To print non-monochrome PostScript file, the efficiency of ghostscript
+;;    is similar to gsprint.
 ;;
 ;;    Also the gsprint utility comes together with gsview distribution.
 ;;
@@ -3887,7 +3888,7 @@ image in a file with that name."
   (interactive (list (pr-ps-infile-preprint "Print preview ")))
   (and (stringp filename) (file-exists-p filename)
        (let* ((file (pr-expand-file-name filename))
-	      (tempfile (pr-dosify-file-name (make-temp-name file))))
+	      (tempfile (pr-dosify-file-name (make-temp-file file))))
 	 ;; gs use
 	 (pr-call-process pr-gs-command
 			  (format "-sDEVICE=%s" pr-gs-device)
@@ -5221,7 +5222,8 @@ non-nil."
 
 
 (defun pr-delete-file (file)
-  (and pr-delete-temp-file (delete-file file)))
+  (and pr-delete-temp-file (file-exists-p file)
+       (delete-file file)))
 
 
 (defun pr-expand-file-name (filename)
