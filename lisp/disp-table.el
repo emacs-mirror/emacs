@@ -76,7 +76,7 @@
   "Display character C using string S."
   (or standard-display-table
       (setq standard-display-table (make-vector 261 nil)))
-  (aset standard-display-table c (apply 'make-rope (append s nil))))
+  (aset standard-display-table c (apply 'vector (append s nil))))
 
 ;;;###autoload
 (defun standard-display-g1 (c sc)
@@ -84,7 +84,7 @@
   (or standard-display-table
       (setq standard-display-table (make-vector 261 nil)))
   (aset standard-display-table c
-	(make-rope (create-glyph (concat "\016" (char-to-string sc) "\017")))))
+	(vector (create-glyph (concat "\016" (char-to-string sc) "\017")))))
 
 ;;;###autoload
 (defun standard-display-graphic (c gc)
@@ -92,7 +92,7 @@
   (or standard-display-table
       (setq standard-display-table (make-vector 261 nil)))
   (aset standard-display-table c
-	(make-rope (create-glyph (concat "\e(0" (char-to-string gc) "\e(B")))))
+	(vector (create-glyph (concat "\e(0" (char-to-string gc) "\e(B")))))
 
 ;;;###autoload
 (defun standard-display-underline (c uc)
@@ -100,7 +100,7 @@
   (or standard-display-table
       (setq standard-display-table (make-vector 261 nil)))
   (aset standard-display-table c
-	(make-rope (create-glyph (concat "\e[4m" (char-to-string uc) "\e[m")))))
+	(vector (create-glyph (concat "\e[4m" (char-to-string uc) "\e[m")))))
 
 ;; Allocate a glyph code to display by sending STRING to the terminal.
 ;;;###autoload
