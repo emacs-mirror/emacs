@@ -225,6 +225,13 @@ An error message should start with a capital letter but should not end
 with a period.
 
 @item
+Many commands that take a long time to execute display a message that
+says @samp{Operating...} when they start, and change it to
+@samp{Operating...done} when they finish.  Please keep the style of
+these messages uniform: @emph{no} space around the ellipsis, and
+@emph{no} period at the end.
+
+@item
 Try to avoid using recursive edits.  Instead, do what the Rmail @kbd{e}
 command does: use a new local keymap that contains one command defined
 to switch back to the old local keymap.  Or do what the
