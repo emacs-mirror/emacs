@@ -34,24 +34,15 @@
 #include <../src/systime.h>
 
 static struct timeval TV1, TV2;
-static struct timezone *tzp = (struct timezone *) NULL; /* no need timezone */
 static int watch_not_started = 1; /* flag */
 static char time_string[30];
-
-#ifndef HAVE_GETTIMEOFDAY
-gettimeofday ()
-{
-  fprintf (stderr, "profile: this system does not support gettimeofday\n");
-  exit (1);
-}
-#endif
 
 /* Reset the stopwatch to zero.  */
 
 int
 reset_watch ()
 {
-  gettimeofday (&TV1, tzp);
+  EMACS_GET_TIME (TV1);
   watch_not_started = 0;
 }
 
@@ -64,7 +55,7 @@ get_time ()
 {
   if (watch_not_started)
     exit (1);  /* call reset_watch first ! */
-  gettimeofday (&TV2, tzp);
+  EMACS_GET_TIME (TV2);
   if (TV1.tv_usec > TV2.tv_usec)
     {
       TV2.tv_usec += 1000000;
