@@ -104,13 +104,27 @@ get_boot_time ()
     return boot_time;
 
   utmpname ("/var/log/wtmp");
-  ut.ut_type = BOOT_TIME;
-  utp = getutid (&ut);
+  setutent ();
+  boot_time = 1;
+  while (1)
+    {
+      /* Find the next reboot record.  */
+      ut.ut_type = BOOT_TIME;
+      utp = getutid (&ut);
+      if (! utp)
+	break;
+      /* Compare reboot times and use the newest one.  */
+      if (utp->ut_time > boot_time)
+	boot_time = utp->ut_time;
+      /* Advance on element in the file
+	 so that getutid won't repeat the same one.  */
+      utp = getutent ();
+      if (! utp)
+	break;
+    }
   endutent ();
 
-  if (!utp)
-    return boot_time = 1;
-  return boot_time = utp->ut_time;
+  return boot_time;
 #else
   return 0;
 #endif
