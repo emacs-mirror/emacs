@@ -1,18 +1,18 @@
 ;; find-dired.el --- run a `find' command and dired the output
 
-;;; Copyright (C) 1991 Roland McGrath
+;;; Copyright (C) 1992 Free Software Foundation, Inc.
 
-;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
-;;	Sebastian Kremer <sk@thp.uni-koeln.de>
-;; Maintainer: Roland McGrath <roland@gnu.ai.mit.edu>
+;; Author: Roland McGrath <roland@gnu.ai.mit.edu>,
+;;	   Sebastian Kremer <sk@thp.uni-koeln.de>
+;; Maintainer: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Keywords: unix
 
-(defconst find-dired-version (substring "$Revision: 1.9 $" 11 -2)
-  "$Id: find-dired.el,v 1.9 1991/11/11 13:24:31 sk Exp $")
+(defconst find-dired-version (substring "$Revision: 1.15 $" 11 -2)
+  "$Id: find-dired.el,v 1.15 1992/09/26 11:48:45 sk Exp $")
 
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
+;;; the Free Software Foundation; either version 1, or (at your option)
 ;;; any later version.
 ;;;
 ;;; This program is distributed in the hope that it will be useful,
@@ -24,8 +24,16 @@
 ;;; program's author (send electronic mail to roland@ai.mit.edu) or from
 ;;; the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
 ;;; 02139, USA.
+;;;
 
 ;;; Commentary:
+
+;; LISPDIR ENTRY for the Elisp Archive ===============================
+;;    LCD Archive Entry:
+;;    find-dired|Roland McGrath, Sebastian Kremer
+;;    |roland@gnu.ai.mit.edu, sk@thp.uni-koeln.de
+;;    |Run a `find' command and dired the output
+;;    |$Date: 1992/09/26 11:48:45 $|$Revision: 1.15 $|
 
 ;; INSTALLATION ======================================================
 
@@ -49,6 +57,7 @@
 ;;; Code:
 
 (require 'dired)
+
 ;;;###autoload
 (defvar find-ls-option (if (eq system-type 'berkeley-unix) "-ls"
 			 "-exec ls -ldi {} \\;")
@@ -87,15 +96,25 @@ The command run (after changing into DIR) is
   (setq buffer-read-only nil)
   (erase-buffer)
   (setq default-directory dir
-	find-args args
-	args (concat "find . " (if (string= args "") ""
-				 (concat "\\( " args " \\) ")) find-ls-option))
-  (dired-mode dir "-gils");; find(1)'s -ls corresponds to `ls -gilds'
-			  ;; (but we don't want -d, of course)
-  ;; Set subdir-alist so that Tree Dired will work (but STILL NOT with
-  ;; dired-nstd.el):
-  (set (make-local-variable 'dired-subdir-alist)
-       (list (cons default-directory (point-marker)))) ; we are at point-min
+	find-args args			; save for next interactive call
+	args (concat "find . "
+		     (if (string= args "")
+			 ""
+		       (concat "\\( " args " \\) "))
+		     find-ls-option))
+  ;; The next statement will bomb in classic dired (no optional arg allowed)
+  ;; find(1)'s -ls corresponds to these switches.
+  ;; Note -b, at least GNU find quotes spaces etc. in filenames
+  (dired-mode dir "-gilsb")
+  ;; Set subdir-alist so that Tree Dired will work:
+  (if (fboundp 'dired-simple-subdir-alist)
+      ;; will work even with nested dired format (dired-nstd.el,v 1.15
+      ;; and later)
+      (dired-simple-subdir-alist)
+    ;; else we have an ancient tree dired (or classic dired, where
+    ;; this does no harm) 
+    (set (make-local-variable 'dired-subdir-alist)
+	 (list (cons default-directory (point-min-marker)))))
   (setq buffer-read-only nil)
   ;; Subdir headlerline must come first because the first marker in
   ;; subdir-alist points there.
@@ -142,11 +161,11 @@ Thus ARG can also contain additional grep options."
   ;; find -exec doesn't allow shell i/o redirections in the command,
   ;; or we could use `grep -l >/dev/null'
   (find-dired dir
-	      (concat "-exec grep " find-grep-options " " args " {} \\\; ")))
+	      (concat "! -type d -exec grep " find-grep-options " "
+		      args " {} \\\; ")))
 
 (defun find-dired-filter (proc string)
   ;; Filter for \\[find-dired] processes.
-  (dired-log "``%s''\n" string)
   (let ((buf (process-buffer proc)))
     (if (buffer-name buf)		; not killed?
 	(save-excursion
@@ -182,6 +201,25 @@ Thus ARG can also contain additional grep options."
 	  (setq mode-line-process nil)
 	  (message "find-dired %s finished." (current-buffer))))))
 
+(or (fboundp 'start-process-shell-command)
+    ;; From version 19 subr.el.
+(defun start-process-shell-command (name buffer &rest args)
+  "Start a program in a subprocess.  Return the process object for it.
+Args are NAME BUFFER COMMAND &rest COMMAND-ARGS.
+NAME is name for process.  It is modified if necessary to make it unique.
+BUFFER is the buffer or (buffer-name) to associate with the process.
+ Process output goes at end of that buffer, unless you specify
+ an output stream or filter function to handle the output.
+ BUFFER may be also nil, meaning that this process is not associated
+ with any buffer
+Third arg is command name, the name of a shell command.
+Remaining arguments are the arguments for the command.
+Wildcards and redirection are handle as usual in the shell."
+  (if (eq system-type 'vax-vms)
+      (apply 'start-process name buffer args)
+    (start-process name buffer shell-file-name "-c"
+		   (concat "exec " (mapconcat 'identity args " "))))))
+
 (provide 'find-dired)
 
 ;;; find-dired.el ends here
