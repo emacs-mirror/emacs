@@ -2205,7 +2205,7 @@ construct_menu_click (result, event, f)
   /* Make the event type no_event; we'll change that when we decide
      otherwise.  */
   result->kind = mouse_click;
-  XSETINT (result->code, event->button - Button1);
+  result->code = event->button - Button1;
   result->timestamp = event->time;
   result->modifiers = (x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
 					       event->state)
@@ -2305,8 +2305,9 @@ note_mouse_highlight (f, x, y)
   if (WINDOWP (window) && portion == 0 && row >= 0 && column >= 0
       && row < FRAME_HEIGHT (f) && column < FRAME_WIDTH (f)
       && EQ (w->window_end_valid, w->buffer)
-      && w->last_modified == BUF_MODIFF (XBUFFER (w->buffer))
-      && w->last_overlay_modified == BUF_OVERLAY_MODIFF (XBUFFER (w->buffer)))
+      && XFASTINT (w->last_modified) == BUF_MODIFF (XBUFFER (w->buffer))
+      && (XFASTINT (w->last_overlay_modified)
+	  == BUF_OVERLAY_MODIFF (XBUFFER (w->buffer))))
     {
       int *ptr = FRAME_CURRENT_GLYPHS (f)->charstarts[row];
       int i, pos;
@@ -2358,7 +2359,7 @@ note_mouse_highlight (f, x, y)
 
 	  /* Put all the overlays we want in a vector in overlay_vec.
 	     Store the length in len.  */
-	  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
+	  noverlays = overlays_at (pos, 1, &overlay_vec, &len,
 				   NULL, NULL);
 	  noverlays = sort_overlays (overlay_vec, noverlays, w);
 
@@ -2465,7 +2466,7 @@ fast_find_position (window, pos, columnp, rowp)
   int i;
   int row = 0;
   int left = WINDOW_LEFT_MARGIN (w);
-  int top = w->top;
+  int top = XFASTINT (w->top);
   int height = XFASTINT (w->height) - ! MINI_WINDOW_P (w);
   int width = window_internal_width (w);
   int *charstarts;
