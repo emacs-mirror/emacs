@@ -720,37 +720,43 @@ and colors.  If it is nil or not specified, the selected frame is
 used.  Value is an alist of (NAME . VALUE) if ATTRIBUTE expects a value
 out of a set of discrete values.  Value is `integerp' if ATTRIBUTE expects
 an integer value."
-  (case attribute
-    (:family
-     (if window-system
-	 (mapcar #'(lambda (x) (cons (car x) (car x)))
-		 (x-font-family-list))
-       ;; Only one font on TTYs.
-       (cons "default" "default")))
-    ((:width :weight :slant :inverse-video)
-     (mapcar #'(lambda (x) (cons (symbol-name x) x))
-	     (internal-lisp-face-attribute-values attribute)))
-    ((:underline :overline :strike-through :box)
-     (if window-system
-	 (nconc (mapcar #'(lambda (x) (cons (symbol-name x) x))
-			(internal-lisp-face-attribute-values attribute))
-		(mapcar #'(lambda (c) (cons c c))
-			(x-defined-colors frame)))
-       (mapcar #'(lambda (x) (cons (symbol-name x) x))
-	       (internal-lisp-face-attribute-values attribute))))
-    ((:foreground :background)
-     (mapcar #'(lambda (c) (cons c c))
-	     (or (and window-system (x-defined-colors frame))
-		 (tty-defined-colors))))
-    ((:height)
-     'integerp)
-    (:stipple
-     (and window-system
-	  (mapcar #'list
-		  (apply #'nconc (mapcar #'directory-files
-					 x-bitmap-file-path)))))
-    (t
-     (error "Internal error"))))
+  (let (valid)
+    (setq valid
+	  (case attribute
+	    (:family
+	     (if window-system
+		 (mapcar #'(lambda (x) (cons (car x) (car x)))
+			 (x-font-family-list))
+	       ;; Only one font on TTYs.
+	       (list (cons "default" "default"))))
+	    ((:width :weight :slant :inverse-video)
+	     (mapcar #'(lambda (x) (cons (symbol-name x) x))
+		     (internal-lisp-face-attribute-values attribute)))
+	    ((:underline :overline :strike-through :box)
+	     (if window-system
+		 (nconc (mapcar #'(lambda (x) (cons (symbol-name x) x))
+				(internal-lisp-face-attribute-values attribute))
+			(mapcar #'(lambda (c) (cons c c))
+				(x-defined-colors frame)))
+	       (mapcar #'(lambda (x) (cons (symbol-name x) x))
+		       (internal-lisp-face-attribute-values attribute))))
+	    ((:foreground :background)
+	     (mapcar #'(lambda (c) (cons c c))
+		     (or (and window-system (x-defined-colors frame))
+			 (tty-defined-colors))))
+	    ((:height)
+	     'integerp)
+	    (:stipple
+	     (and window-system
+		  (mapcar #'list
+			  (apply #'nconc (mapcar #'directory-files
+						 x-bitmap-file-path)))))
+	    (t
+	     (error "Internal error"))))
+    (if (listp valid)
+	(nconc (list (cons "unspecified" 'unspecified)) valid)
+      valid)))
+	       
 
 
 (defvar face-attribute-name-alist
@@ -785,9 +791,7 @@ value to return if no new value is entered.  NAME is a descriptive
 name of the attribute for prompting.  COMPLETION-ALIST is an alist
 of valid values, if non-nil.
 
-Entering ``none'' as attribute value means an unspecified attribute
-value.  Entering nothing accepts the default value DEFAULT.
-
+Entering nothing accepts the default value DEFAULT.
 Value is the new attribute value."
   (let* ((completion-ignore-case t)
 	 (value (completing-read
@@ -798,9 +802,7 @@ Value is the new attribute value."
 						   default)))
 		   (format "Set face %s %s: " face name))
 		 completion-alist)))
-    (if (equal value "none")
-	nil
-      (if (equal value "") default value))))
+    (if (equal value "") default value)))
 
 
 (defun face-read-integer (face default name)
@@ -808,11 +810,16 @@ Value is the new attribute value."
 FACE is the face whose attribute is read.  DEFAULT is the default
 value to return if no new value is entered.  NAME is a descriptive
 name of the attribute for prompting.  Value is the new attribute value."
-  (let ((new-value (face-read-string face
-				     (and default (int-to-string default))
-				     name)))
-    (and new-value
-	 (string-to-int new-value))))
+  (let ((new-value
+	 (face-read-string face
+			   (if (eq default 'unspecified)
+			       'unspecified
+			     (int-to-string default))
+			   name
+			   (list (cons "unspecified" 'unspecified)))))
+    (if (eq new-value 'unspecified)
+	new-value
+      (string-to-int new-value))))
 
 
 (defun read-face-attribute (face attribute &optional frame)
@@ -834,9 +841,9 @@ of a global face.  Value is the new attribute value."
       (setq old-value (prin1-to-string old-value)))
     (cond ((listp valid)
 	   (setq new-value
-		 (cdr (assoc (face-read-string face old-value
-					       attribute-name valid)
-			     valid))))
+		 (face-read-string face old-value attribute-name valid))
+	   (unless (eq new-value 'unspecified)
+	     (setq new-value (cdr (assoc new-value valid)))))
 	  ((eq valid 'integerp)
 	   (setq new-value (face-read-integer face old-value attribute-name)))
 	  (t (error "Internal error")))
