@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.21 2001/08/28 17:05:12 spiegel Exp $
+;; $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -343,6 +343,8 @@ whether to remove it."
 			 default-branch)
 	   (setq rev default-branch)
 	   (setq switches (cons "-f" switches)))
+      (if (and (not rev) old-version)
+          (setq rev (vc-branch-part old-version)))
       (apply 'vc-do-command nil 0 "ci" (vc-name file)
 	     ;; if available, use the secure check-in option
 	     (and (vc-rcs-release-p "5.6.4") "-j")
@@ -433,12 +435,24 @@ whether to remove it."
 		     ;; the writable workfile.
 		     (if (eq (vc-checkout-model file) 'implicit) "-f")
 		     (if editable "-l")
-		     (if rev (concat "-r" rev)
-		       ;; if no explicit revision was specified,
-		       ;; check out that of the working file
-		       (let ((workrev (vc-workfile-version file)))
-			 (if workrev (concat "-r" workrev)
-			   nil)))
+                     (if (stringp rev)
+                         ;; a literal revision was specified
+                         (concat "-r" rev)
+                       (let ((workrev (vc-workfile-version file)))
+                         (if workrev
+                             (concat "-r" 
+                                     (if (not rev)
+                                         ;; no revision specified:
+                                         ;; use current workfile version
+                                         workrev
+                                       ;; REV is t ...
+                                       (if (not (vc-trunk-p workrev))
+                                           ;; ... go to head of current branch
+                                           (vc-branch-part workrev)
+                                         ;; ... go to head of trunk
+                                         (vc-rcs-set-default-branch file
+                                                                    nil)
+                                         ""))))))
 		     switches)
 	      ;; determine the new workfile version
 	      (with-current-buffer "*vc*"
@@ -458,7 +472,8 @@ whether to remove it."
 (defun vc-rcs-revert (file &optional contents-done)
   "Revert FILE to the version it was based on."
   (vc-do-command nil 0 "co" (vc-name file) "-f"
-		 (concat "-u" (vc-workfile-version file))))
+                 (concat (if (eq (vc-state file) 'edited) "-u" "-r") 
+                         (vc-workfile-version file))))
 
 (defun vc-rcs-cancel-version (file editable)
   "Undo the most recent checkin of FILE.
