@@ -280,7 +280,8 @@ This variable is buffer-local."
 ;; AIX puts the name of the person being su'd to in front of the prompt.
 ;; kinit prints a prompt like `Password for devnull@GNU.ORG: '.
 (defcustom comint-password-prompt-regexp
-  "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|login \\|^\\)[Pp]assword\\|pass phrase\\).*:\\s *\\'"
+  "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|login \\|^\\)[Pp]assword\\|pass phrase\\)\
+\\( for [^@ \t\n]+@[^@ \t\n]+\\)?:\\s *\\'"
   "*Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
   :type 'regexp
