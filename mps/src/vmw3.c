@@ -2,7 +2,7 @@
  *
  *                 VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmnt.c(trunk.3) $
+ *  $HopeName: MMsrc!vmnt.c(trunk.4) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -47,8 +47,8 @@
 #include "std.h"
 #include "vm.h"
 
-#ifndef OS_NT
-#error "vmnt.c is Win32 specific, but OS_NT is not set"
+#ifndef MPS_OS_NT
+#error "vmnt.c is Win32 specific, but MPS_OS_NT is not set"
 #endif
 
 #include <stddef.h>

@@ -2,7 +2,7 @@
  * 
  *                  WIN32 THREAD MANAGER
  *
- *  $HopeName: MMsrc!thnti3.c(trunk.4) $
+ *  $HopeName: MMsrc!thnti3.c(trunk.5) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -30,7 +30,7 @@
  *  i.e. stack pointer points to the last allocated location;
  *  stack grows downwards.
  *  
- *  .i3: assumes ARCH_386
+ *  .i3: assumes MPS_ARCH_I3
  *  .i3.sp: The sp in the context is Esp
  *  .i3.context: Esp is in control context so .context.sp holds
  *  The root registers are Edi, Esi, Ebx, Edx, Ecx, Eax 
@@ -59,8 +59,8 @@
  *
  */
 
-#if !defined(OS_NT) || !defined(ARCH_386) /* .i3 .nt */
-#error "Compiling thntmvi3 when OS_NT or ARCH_386 not defined."
+#if !defined(MPS_OS_NT) || !defined(MPS_ARCH_I3) /* .i3 .nt */
+#error "Compiling thntmvi3 when MPS_OS_NT or MPS_ARCH_I3 not defined."
 #endif
 
 #include "std.h"
