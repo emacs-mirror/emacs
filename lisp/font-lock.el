@@ -754,7 +754,7 @@ buffer local value for `font-lock-defaults', via its mode hook."
 
   ;; Turn on Font Lock mode.
   (when font-lock-mode
-    (add-hook 'after-change-functions 'font-lock-after-change-function nil t)
+    (add-hook 'after-change-functions 'font-lock-after-change-function t t)
     (font-lock-set-defaults)
     (font-lock-turn-on-thing-lock)
     ;; Fontify the buffer if we have to.

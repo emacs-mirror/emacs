@@ -1,3 +1,11 @@
+2001-12-13  Richard M. Stallman  <rms@gnu.org>
+
+	* font-lock.el (font-lock-mode): 
+	Put our function at the end of after-change-functions.
+
+	* emacs-lisp/advice.el (ad-compile-function): 
+	Byte compile the function under another (uninterned) name.
+
 2001-12-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/smtpmail.el (smtpmail-send-queued-mail): Insert the
