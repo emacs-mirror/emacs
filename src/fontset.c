@@ -1404,8 +1404,12 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
 
       elt = Fcar (fontlist);
       script = Fcar (elt);
-      for (elt = Fcdr (elt); ! NILP (elt); elt = Fcdr (elt))
-	Fset_fontset_font (name, script, Fcar (elt), Qnil, Qappend);
+      elt = Fcdr (elt);
+      if (CONSP (elt) && (NILP (XCDR (elt)) || CONSP (XCDR (elt))))
+	for (; CONSP (elt); elt = XCDR (elt))
+	  Fset_fontset_font (name, script, XCAR (elt), Qnil, Qappend);
+      else
+	Fset_fontset_font (name, script, elt, Qnil, Qappend);
     }
   return name;
 }
