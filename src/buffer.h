@@ -373,10 +373,7 @@ extern Lisp_Object Vtransient_mark_mode;
 
 /* Overlays */
 
-/* Overlays are ordinary Lisp objects, and users can alter their contents.
-   Therefore, we cannot assume that they remain valid--we must check.  */
-
-/* 1 if the OV is a cons cell whose car is a cons cell.  */
+/* 1 if the OV is an overlay object.  */
 #define OVERLAY_VALID(OV) (OVERLAYP (OV))
 
 /* Return the marker that stands for where OV starts in the buffer.  */
@@ -385,13 +382,11 @@ extern Lisp_Object Vtransient_mark_mode;
 /* Return the marker that stands for where OV ends in the buffer.  */
 #define OVERLAY_END(OV) (XCONS (XCONS ((OV))->car)->cdr)
 
-/* Return the actual buffer position for the marker P,
-   if it is a marker and points into the current buffer.
-   Otherwise, zero.  */
+/* Return the actual buffer position for the marker P.
+   We assume you know which buffer it's pointing into.  */
 
 #define OVERLAY_POSITION(P)					\
- ((MARKERP ((P)) && XMARKER ((P))->buffer == current_buffer)	\
-  ? marker_position ((P)) : 0)
+ (MARKERP ((P)) ? marker_position ((P)) : (abort (), 0))
 
 /* Allocation of buffer text.  */
 
