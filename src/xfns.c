@@ -2581,6 +2581,28 @@ x_window (f, window_prompting, minibuffer_only)
   class_hints.res_class = EMACS_CLASS;
   XSetClassHint (FRAME_X_DISPLAY (f), XtWindow (shell_widget), &class_hints);
 
+#ifdef HAVE_X_I18N
+  { 
+    XIM xim;
+    XIC xic = NULL;
+
+    xim = XOpenIM (FRAME_X_DISPLAY (f), NULL, NULL, NULL);
+
+    if (xim)
+      {
+	xic = XCreateIC (xim,  
+			 XNInputStyle,   XIMPreeditNothing | XIMStatusNothing,
+			 XNClientWindow, FRAME_X_WINDOW(f),
+			 XNFocusWindow,  FRAME_X_WINDOW(f),
+			 NULL);
+
+	if (xic == 0)
+	  XCloseIM (xim);
+      }
+    FRAME_XIC (f) = xic;
+  }
+#endif
+
   f->output_data.x->wm_hints.input = True;
   f->output_data.x->wm_hints.flags |= InputHint;
   XSetWMHints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -2672,6 +2694,28 @@ x_window (f)
 		     InputOutput, /* class */
 		     FRAME_X_DISPLAY_INFO (f)->visual,
 		     attribute_mask, &attributes);
+#ifdef HAVE_X_I18N
+  { 
+    XIM xim;
+    XIC xic = NULL;
+
+    xim = XOpenIM (FRAME_X_DISPLAY(f), NULL, NULL, NULL);
+
+    if (xim)
+      {
+	xic = XCreateIC (xim,  
+			 XNInputStyle,   XIMPreeditNothing | XIMStatusNothing,
+			 XNClientWindow, FRAME_X_WINDOW(f),
+			 XNFocusWindow,  FRAME_X_WINDOW(f),
+			 NULL);
+
+	if (!xic)
+	  XCloseIM (xim);
+      }
+
+    FRAME_XIC (f) = xic;
+  }
+#endif
 
   validate_x_resource_name ();
 
