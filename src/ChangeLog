@@ -3,6 +3,12 @@
 	* xterm.c (x_draw_glyph_string_box): Don't draw a full-width
 	box just because the glyph row's full_width_p flag is set.
 
+2001-03-14  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xdisp.c (highlight_trailing_whitespace): On character terminals,
+	skip the padding blanks inserted in extend_face_to_end_of_line,
+	before checking for trailing whitespace.
+
 2001-03-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* xmenu.c (popup_activate_callback, popup_deactivate_callback): 
