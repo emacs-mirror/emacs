@@ -1,3 +1,7 @@
+2001-11-29  Dave Love  <fx@gnu.org>
+
+	* quail/latin-ltx.el: Fix some Latin-4 characters.
+
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 21.1 released.

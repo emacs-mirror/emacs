@@ -4,6 +4,8 @@
 ;; Licensed to the Free Software Foundation.
 ;; Copyright (C) 2001  Free Software Foundation, Inc.
 
+;; Author: TAKAHASHI Naoto <ntakahas@m17n.org>
+;;         Dave Love <fx@gnu.org>
 ;; Keywords: multilingual, input, Greek, i18n
 
 ;; This file is part of GNU Emacs.
@@ -68,7 +70,7 @@ system, including many technical ones.  Examples:
  ("\\^{A}" ?,AB(B)  ("\\^A" ?,AB(B)
  ("\\~{A}" ?,AC(B)  ("\\~A" ?,AC(B)
  ("\\\"{A}" ?,AD(B)  ("\\\"A" ?,AD(B)
- ("\\\k{A}" ?,B!(B)
+ ("\\\k{A}" ?$,1 $(B)
  ("{\\AA}" ?,AE(B) ("\\AA" ?,AE(B)
  ("{\\AE}" ?,AF(B) ("\\AE" ?,AF(B)
  ("\\c{C}" ?,AG(B)  ("\\cC" ?,AG(B)
@@ -76,12 +78,12 @@ system, including many technical ones.  Examples:
  ("\\'{E}" ?,AI(B)  ("\\'E" ?,AI(B)
  ("\\^{E}" ?,AJ(B)  ("\\^E" ?,AJ(B)
  ("\\\"{E}" ?,AK(B)  ("\\\"E" ?,AK(B)
- ("\\\k{E}" ?,BJ(B)
+ ("\\\k{E}" ?$,1 8(B)
  ("\\`{I}" ?,AL(B)  ("\\`I" ?,AL(B)
  ("\\'{I}" ?,AM(B)  ("\\'I" ?,AM(B)
  ("\\^{I}" ?,AN(B)  ("\\^I" ?,AN(B)
  ("\\\"{I}" ?,AO(B)  ("\\\"I" ?,AO(B)
- ("\\\k{I}" ?,DG(B)
+ ("\\\k{I}" ?$,1 N(B)
 
  ("\\~{N}" ?,AQ(B)  ("\\~N" ?,AQ(B)
  ("\\`{O}" ?,AR(B)  ("\\`O" ?,AR(B)
@@ -96,7 +98,7 @@ system, including many technical ones.  Examples:
  ("\\'{U}" ?,AZ(B) ("\\'U" ?,AZ(B)
  ("\\^{U}" ?,A[(B) ("\\^U" ?,A[(B)
  ("\\\"{U}" ?,A\(B) ("\\\"U" ?,A\(B)
- ("\\\k{U}" ?,DY(B)
+ ("\\\k{U}" ?$,1!2(B)
  ("\\'{Y}" ?,A](B) ("\\'Y" ?,A](B)
  ("{\\ss}" ?,A_(B) ("\\ss" ?,A_(B)
 
@@ -105,7 +107,7 @@ system, including many technical ones.  Examples:
  ("\\^{a}" ?,Ab(B) ("\\^a" ?,Ab(B)
  ("\\~{a}" ?,Ac(B) ("\\~a" ?,Ac(B)
  ("\\\"{a}" ?,Ad(B) ("\\\"a" ?,Ad(B)
- ("\\\k{a}" ?,B1(B)
+ ("\\\k{a}" ?$,1 %(B)
  ("{\\aa}" ?,Ae(B) ("\\aa" ?,Ae(B)
  ("{\\ae}" ?,Af(B) ("\\ae" ?,Af(B)
  ("\\c{c}" ?,Ag(B) ("\\cc" ?,Ag(B)
@@ -113,12 +115,12 @@ system, including many technical ones.  Examples:
  ("\\'{e}" ?,Ai(B) ("\\'e" ?,Ai(B)
  ("\\^{e}" ?,Aj(B) ("\\^e" ?,Aj(B)
  ("\\\"{e}" ?,Ak(B) ("\\\"e" ?,Ak(B)
- ("\\\k{e}" ?,Bj(B)
+ ("\\\k{e}" ?$,1 9(B)
  ("\\`{\\i}" ?,Al(B)  ("\\`i" ?,Al(B)
  ("\\'{\\i}" ?,Am(B)  ("\\'i" ?,Am(B)
  ("\\^{\\i}" ?,An(B) ("\\^i" ?,An(B)
  ("\\\"{\\i}" ?,Ao(B) ("\\\"i" ?,Ao(B)
- ("\\\k{i}" ?,Dg(B)
+ ("\\\k{i}" ?$,1 O(B)
 
  ("\\~{n}" ?,Aq(B) ("\\~n" ?,Aq(B)
  ("\\`{o}" ?,Ar(B) ("\\`o" ?,Ar(B)
@@ -133,7 +135,7 @@ system, including many technical ones.  Examples:
  ("\\'{u}" ?,Az(B) ("\\'u" ?,Az(B)
  ("\\^{u}" ?,A{(B) ("\\^u" ?,A{(B)
  ("\\\"{u}" ?,A|(B) ("\\\"u" ?,A|(B)
- ("\\\k{u}" ?,Dy(B)
+ ("\\\k{u}" ?$,1!3(B)
  ("\\'{y}" ?,A}(B) ("\\'y" ?,A}(B)
  ("\\\"{y}" ?,A(B) ("\\\"y" ?,A(B)
 
