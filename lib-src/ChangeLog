@@ -40,18 +40,15 @@
 
 2001-12-12  Francesco Potorti`  <pot@gnu.org>
 
-	* etags.c (PHP_functions): New function by Diez B. Roggisch,
-	heavily adapted by me, for parsing PHP.
+	* etags.c (PHP_functions): New function for parsing PHP.
 	(LOOKING_AT): New macro.
 	(Perl_functions, Python_functions, PHP_functions)
 	(Scheme_functions, Texinfo_nodes): Use it.
 	(Perl_functions): Use strneq.
 	(prolog_pred): Renamed to prolog_pr.
-	(prolog_pr): Recognise Prolog rules (thanks to Geert Kloosterman)
-	in addition to predicates.
+	(prolog_pr): Recognise Prolog rules in addition to predicates.
 	[ETAGS_REGEXPS] [!HAVE_CONFIG_H] [__CYGWIN__]: Prevent
-	unmodified compile, as Cygwin's regex.h is incompatible with us
-	(thanks to Markus Hoenicka).
+	unmodified compile, as Cygwin's regex.h is incompatible with us.
 	[!HAVE_CONFIG_H] [!__STDC__]: #define const as the empty string.
 
 2001-12-11  Richard M. Stallman  <rms@gnu.org>
@@ -382,7 +379,7 @@
 	(struct tok): Revisited.
 	(cstack, nestlev, instruct): New struct and macros.
 	(pushclass_above, popclass_above, write_classname): New functions
-	for dealing with nested class names, inspired by Mykola Dzyuba.
+	for dealing with nested class names.
 	(consider_token, make_C_tag, C_entries): Many changes for dealing
 	with arbitrarily nested structures.
 	(etags_getcwd): #if MSDOS, not #ifdef MSDOS!
@@ -454,8 +451,7 @@
 	(Makefile_filenames): List of possible filenames for makefiles.
 	(lang_names): Added a NULL member for every entry, added an entry
 	for makefiles.
-	(Makefile_targets): New function, inspired by Assar Westerlund
-	<assar@sics.se>.
+	(Makefile_targets): New function.
 	(Texinfo_nodes): Renamed from Texinfo_fuctions and made
 	it conformant to the style of the rest of the code.
 
