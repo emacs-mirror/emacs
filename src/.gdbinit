@@ -51,7 +51,7 @@ Print the specific type of $, assuming it is some misc type.
 end
 
 define xint
-print (($ & 0x00ffffff) << 4) >> 4
+print (($ & 0x0fffffff) << 4) >> 4
 end
 document xint
 Print $, assuming it is an Emacs Lisp integer.  This gets the sign right.
