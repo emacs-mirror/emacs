@@ -1,3 +1,10 @@
+2000-05-05  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/cl-macs.el: Doc fixes; mainly avoid duplicating arg
+	list in doc string.  Don't quote keyword symbols.
+	* emacs-lisp/cl.el: Likewise
+	* emacs-lisp/cl-seq.el: Likewise
+
 2000-05-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* abbrev.el (abbrev-mode): Make ARG optional.
