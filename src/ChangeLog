@@ -1,3 +1,21 @@
+2000-07-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* xmenu.c (menu_help_callback): Call show_help_echo with 
+	new arguments.
+
+	* keyboard.c (show_help_echo): Add parameter WINDOW.
+	(read_char): Call show_help_echo with window extracted from Lisp
+	help event.
+	(gen_help_event): Add parameter WINDOW.
+
+	* keyboard.h (show_help_echo, gen_help_event): Change prototypes.
+
+	* xterm.c (help_echo_window): New variable.
+	(note_mouse_highlight, note_tool_bar_highlight): Set
+	help_echo_window.
+	(XTread_socket): Pass help_echo_window to gen_help_event.
+	(syms_of_xterm): Initialize and staticpro help_echo_window.
+
 2000-07-18  Dave Love  <fx@gnu.org>
 
 	* Makefile.in: Fix dependencies of blockinput.h on atimer.h,
