@@ -77,7 +77,7 @@
 (define-charset-alias 'ucs 'unicode)
 
 (define-charset 'emacs
-  "Full Emacs characters."
+  "Full Emacs characters"
   :ascii-compatible-p t
   :code-space [ 0 255 0 255 0 63 ]
   :code-offset 0
@@ -114,7 +114,6 @@
 (defmacro define-iso-single-byte-charset (symbol iso-symbol name nickname
 						 iso-ir iso-final
 						 emacs-mule-id map)
-  "For internal use only."
   `(progn
      (define-charset ,symbol
        ,name
@@ -177,6 +176,9 @@
 (define-iso-single-byte-charset 'iso-8859-16 'latin-iso8859-16
   "ISO/IEC 8859/16" "Latin-10" 226 ?f nil "8859-16")
 
+;; No point in keeping it around.
+(fmakunbound 'define-iso-single-byte-charset)
+
 (define-charset 'thai-tis620
   "TIS620.2533"
   :short-name "TIS620.2533"
@@ -195,7 +197,6 @@
 (define-charset 'jisx0201
   "JISX0201"
   :short-name "JISX0201"
-  :long-name "JISX0201"
   :code-space [33 254]
   :map "jisx0201")
 
@@ -230,7 +231,6 @@
 (define-charset 'chinese-gbk
   "GBK Chinese simplified."
   :short-name "GBK"
-  :long-name "GBK"
   :code-space [#x40 #xFE #x81 #xFE]
   :code-offset #x150000
   :unify-map "gbk")
@@ -303,7 +303,6 @@
 (define-charset 'big5
   "Big5 (Chinese traditional)"
   :short-name "Big5"
-  :long-name "Big5"
   :code-space [#x40 #xFE #xA1 #xFE]
   :code-offset #x130000
   :unify-map "big5")
@@ -361,7 +360,6 @@
 (define-charset 'japanese-jisx0213-1
   "JISX0213 Plane 1 (Japanese)"
   :short-name "JISX0213-1"
-  :long-name "JISX0213-1"
   :iso-final-char ?O
   :emacs-mule-id  151
   :code-space [33 126 33 126]
@@ -370,7 +368,6 @@
 (define-charset 'japanese-jisx0213-2
   "JISX0213 Plane 2 (Japanese)"
   :short-name "JISX0213-2"
-  :long-name "JISX0213-2"
   :iso-final-char ?P
   :emacs-mule-id 254
   :code-space [33 126 33 126]
@@ -397,7 +394,6 @@
 (define-charset 'ipa
   "IPA (International Phonetic Association)"
   :short-name "IPA"
-  :long-name "IPA"
   :iso-final-char ?0
   :emacs-mule-id  161
   :code-space [32 127]
@@ -433,14 +429,12 @@
 (define-charset 'vscii
   "VSCII1.1"
   :short-name "VSCII"
-  :long-name "VSCII"
   :code-space [0 255]
   :map "vscii")
 
 (define-charset 'koi8-r
   "KOI8-R"
   :short-name "KOI8-R"
-  :long-name "KOI8-R"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "koi8-r")
@@ -450,7 +444,6 @@
 (define-charset 'alternativnyj
   "ALTERNATIVNYJ"
   :short-name "alternativnyj"
-  :long-name "alternativnyj"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "ibm866")
@@ -460,7 +453,6 @@
 (define-charset 'koi8-u
   "KOI8-U"
   :short-name "KOI8-U"
-  :long-name "KOI8-U"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "koi8-u")
@@ -468,7 +460,6 @@
 (define-charset 'koi8-t
   "KOI8-T"
   :short-name "KOI8-T"
-  :long-name "KOI8-T"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "koi8-t")
@@ -476,7 +467,6 @@
 (define-charset 'georgian-ps
   "GEORGIAN-PS"
   :short-name "GEORGIAN-PS"
-  :long-name "GEORGIAN-PS"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "georgian-ps")
@@ -484,7 +474,6 @@
 (define-charset 'windows-1250
   "WINDOWS-1250 (Central Europe)"
   :short-name "WINDOWS-1250"
-  :long-name "WINDOWS-1250"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "windows-1250")
@@ -493,7 +482,6 @@
 (define-charset 'windows-1251
   "WINDOWS-1251"
   :short-name "WINDOWS-1251"
-  :long-name "WINDOWS-1251"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "windows-1251")
@@ -502,7 +490,6 @@
 (define-charset 'windows-1252
   "WINDOWS-1252 (Greek)"
   :short-name "WINDOWS-1252"
-  :long-name "WINDOWS-1252"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "windows-1252")
@@ -511,7 +498,6 @@
 (define-charset 'windows-1253
   "WINDOWS-1253"
   :short-name "WINDOWS-1253"
-  :long-name "WINDOWS-1253"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "windows-1253")
@@ -520,7 +506,6 @@
 (define-charset 'windows-1254
   "WINDOWS-1254"
   :short-name "WINDOWS-1254"
-  :long-name "WINDOWS-1254"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "windows-1254")
@@ -529,7 +514,6 @@
 (define-charset 'windows-1255
   "WINDOWS-1255 (Hebrew)"
   :short-name "WINDOWS-1255"
-  :long-name "WINDOWS-1255"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "windows-1255")
@@ -538,7 +522,6 @@
 (define-charset 'windows-1256
   "WINDOWS-1256 (Arabic)"
   :short-name "WINDOWS-1256"
-  :long-name "WINDOWS-1256"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "windows-1256")
@@ -547,7 +530,6 @@
 (define-charset 'windows-1257
   "WINDOWS-1257 (Baltic)"
   :short-name "WINDOWS-1257"
-  :long-name "WINDOWS-1257"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "windows-1257")
@@ -556,7 +538,6 @@
 (define-charset 'windows-1258
   "WINDOWS-1258"
   :short-name "WINDOWS-1258"
-  :long-name "WINDOWS-1258"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "windows-1258")
@@ -565,7 +546,6 @@
 (define-charset 'next
   "NEXT"
   :short-name "NEXT"
-  :long-name "NEXT"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "next")
@@ -573,7 +553,6 @@
 (define-charset 'cp1125
   "CP1125"
   :short-name "CP1125"
-  :long-name "CP1125"
   :code-space [0 255]
   :map "cp1125")
 (define-charset-alias 'ruscii 'cp1125)
@@ -583,7 +562,6 @@
 (define-charset 'cp437
   "CP437"
   :short-name "CP437"
-  :long-name "CP437"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp437")
@@ -591,7 +569,6 @@
 (define-charset 'cp737
   "CP737"
   :short-name "CP737"
-  :long-name "CP737"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp737")
@@ -599,7 +576,6 @@
 (define-charset 'cp775
   "CP775"
   :short-name "CP775"
-  :long-name "CP775"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp775")
@@ -607,7 +583,6 @@
 (define-charset 'cp851
   "CP851"
   :short-name "CP851"
-  :long-name "CP851"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp851")
@@ -615,7 +590,6 @@
 (define-charset 'cp852
   "CP852"
   :short-name "CP852"
-  :long-name "CP852"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp852")
@@ -623,7 +597,6 @@
 (define-charset 'cp855
   "CP855"
   :short-name "CP855"
-  :long-name "CP855"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp855")
@@ -631,7 +604,6 @@
 (define-charset 'cp857
   "CP857"
   :short-name "CP857"
-  :long-name "CP857"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp857")
@@ -639,7 +611,6 @@
 (define-charset 'cp860
   "CP860"
   :short-name "CP860"
-  :long-name "CP860"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp860")
@@ -647,7 +618,6 @@
 (define-charset 'cp861
   "CP861"
   :short-name "CP861"
-  :long-name "CP861"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp861")
@@ -655,7 +625,6 @@
 (define-charset 'cp862
   "CP862"
   :short-name "CP862"
-  :long-name "CP862"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp862")
@@ -663,7 +632,6 @@
 (define-charset 'cp863
   "CP863"
   :short-name "CP863"
-  :long-name "CP863"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp863")
@@ -671,7 +639,6 @@
 (define-charset 'cp864
   "CP864"
   :short-name "CP864"
-  :long-name "CP864"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp864")
@@ -679,7 +646,6 @@
 (define-charset 'cp865
   "CP865"
   :short-name "CP865"
-  :long-name "CP865"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp865")
@@ -687,7 +653,6 @@
 (define-charset 'cp869
   "CP869"
   :short-name "CP869"
-  :long-name "CP869"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp869")
@@ -695,7 +660,6 @@
 (define-charset 'cp874
   "CP874"
   :short-name "CP874"
-  :long-name "CP874"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp874")
@@ -707,7 +671,6 @@
 (define-charset 'arabic-digit
   "Arabic digit"
   :short-name "Arabic digit"
-  :long-name "Arabic digit"
   :iso-final-char ?2
   :emacs-mule-id 164
   :code-space [34 42]
@@ -736,7 +699,6 @@
 (define-charset 'lao
   "Lao characters (ISO10646 0E81..0EDF)"
   :short-name "Lao"
-  :long-name "Lao"
   :iso-final-char ?1
   :emacs-mule-id 167
   :code-space [33 126]
@@ -745,7 +707,6 @@
 (define-charset 'mule-lao
   "Lao characters (ISO10646 0E81..0EDF)"
   :short-name "Lao"
-  :long-name "Lao"
   :code-space [0 255]
   :parents '(ascii eight-bit-control (lao . -128)))
 
@@ -766,7 +727,6 @@
 (define-charset  'indian-glyph
   "Glyphs for Indian characters."
   :short-name "Indian glyph"
-  :long-name "Indian glyph"
   :iso-final-char ?4
   :emacs-mule-id 240
   :code-space [32 127 32 127]
@@ -851,7 +811,6 @@
 (define-charset 'mac-roman
   "Mac Roman charset"
   :short-name "Mac Roman"
-  :long-name "Mac Roman"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "mac-roman")
@@ -860,7 +819,6 @@
 (define-charset 'ebcdic-us
   "US version of EBCDIC"
   :short-name "EBCDIC-US"
-  :long-name "EBCDIC-US"
   :code-space [0 255]
   :mime-charset 'ebcdic-us
   :map "ebcdic-us")
@@ -868,7 +826,6 @@
 (define-charset 'ebcdic-uk
   "UK version of EBCDIC"
   :short-name "EBCDIC-UK"
-  :long-name "EBCDIC-UK"
   :code-space [0 255]
   :mime-charset 'ebcdic-uk
   :map "ebcdic-uk")
@@ -876,7 +833,6 @@
 (define-charset 'hp-roman8
   "Encoding used by Hewlet-Packard printer software"
   :short-name "HP-ROMAN8"
-  :long-name "HP-ROMAN8"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "hp-roman8")
@@ -884,21 +840,18 @@
 (define-charset 'adobe-standard-encoding
   "Adobe `standard encoding' used in PostScript"
   :short-name "ADOBE-STANDARD-ENCODING"
-  :long-name "ADOBE-STANDARD-ENCODING"
   :code-space [#x20 255]
   :map "stdenc")
 
 (define-charset 'symbol
   "Adobe symbol encoding used in PostScript"
   :short-name "ADOBE-SYMBOL"
-  :long-name "ADOBE-SYMBOL"
   :code-space [#x20 255]
   :map "symbol")
 
 (define-charset 'ibm850
   "DOS codepage 850"
   :short-name "IBM850"
-  :long-name "IBM850"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "ibm850")
@@ -935,6 +888,8 @@
 ;;   :coding-type 'raw-text
 ;;   :mnemonic ?=)
 
+(define-coding-system-alias 'binary 'no-conversion)
+
 (define-coding-system 'raw-text
  "Raw text, which means text contains random 8-bit codes.
 Encoding text with this coding system produces the actual byte
@@ -949,7 +904,7 @@ is treated as a character."
  :mnemonic ?t)
 
 (define-coding-system 'undecided
-  "No conversion on encoding, automatic conversion on decoding"
+  "No conversion on encoding, automatic conversion on decoding."
   :coding-type 'undecided
   :mnemonic ?-
   :charset-list '(ascii))
@@ -1000,21 +955,21 @@ is treated as a character."
   :mime-charset 'utf-16)
 
 (define-coding-system 'utf-16-le-nosig
-  "UTF-16, little endian, no signature"
+  "UTF-16, little endian, no signature."
   :coding-type 'utf-16
   :mnemonic ?U
   :charset-list '(unicode)
   :endian 'little)
 
 (define-coding-system 'utf-16-be-nosig
-  "UTF-16, big endian, no signature"
+  "UTF-16, big endian, no signature."
   :coding-type 'utf-16
   :mnemonic ?U
   :charset-list '(unicode)
   :endian 'big)
 
 (define-coding-system 'utf-16-le
-  "UTF-16, little endian, with signature"
+  "UTF-16, little endian, with signature."
   :coding-type 'utf-16
   :mnemonic ?U
   :charset-list '(unicode)
@@ -1023,7 +978,7 @@ is treated as a character."
   :mime-charset 'utf-16-le)
 
 (define-coding-system 'utf-16-be
-  "UTF-16, big endian, with signature"
+  "UTF-16, big endian, with signature."
   :coding-type 'utf-16
   :mnemonic ?U
   :charset-list '(unicode)
@@ -1032,7 +987,7 @@ is treated as a character."
   :mime-charset 'utf-16-be)
 
 (define-coding-system 'iso-2022-7bit
-  "ISO 2022 based 7-bit encoding using only G0"
+  "ISO 2022 based 7-bit encoding using only G0."
   :coding-type 'iso-2022
   :mnemonic ?J
   :charset-list 'iso-2022
@@ -1040,7 +995,7 @@ is treated as a character."
   :flags '(short ascii-at-eol ascii-at-cntl 7-bit designation composition))
 
 (define-coding-system 'iso-2022-7bit-ss2
-  "ISO 2022 based 7-bit encoding using SS2 for 96-charset"
+  "ISO 2022 based 7-bit encoding using SS2 for 96-charset."
   :coding-type 'iso-2022
   :mnemonic ?$
   :charset-list 'iso-2022
@@ -1049,7 +1004,7 @@ is treated as a character."
 		 designation single-shift composition))
 
 (define-coding-system 'iso-2022-7bit-lock
-  "ISO-2022 coding system using Locking-Shift for 96-charset"
+  "ISO-2022 coding system using Locking-Shift for 96-charset."
   :coding-type 'iso-2022
   :mnemonic ?&
   :charset-list 'iso-2022
@@ -1060,7 +1015,7 @@ is treated as a character."
 (define-coding-system-alias 'iso-2022-int-1 'iso-2022-7bit-lock)
 
 (define-coding-system 'iso-2022-7bit-lock-ss2
-  "Mixture of ISO-2022-JP, ISO-2022-KR, and ISO-2022-CN"
+  "Mixture of ISO-2022-JP, ISO-2022-KR, and ISO-2022-CN."
   :coding-type 'iso-2022
   :mnemonic ?i
   :charset-list '(ascii
@@ -1081,7 +1036,7 @@ is treated as a character."
 (define-coding-system-alias 'iso-2022-cjk 'iso-2022-7bit-lock-ss2)
 
 (define-coding-system 'iso-2022-8bit-ss2
-  "ISO 2022 based 8-bit encoding using SS2 for 96-charset"
+  "ISO 2022 based 8-bit encoding using SS2 for 96-charset."
   :coding-type 'iso-2022
   :mnemonic ?@
   :charset-list 'iso-2022
@@ -1198,6 +1153,11 @@ for decoding and encoding files, process I/O, etc."
 		      'self-insert-command)
 
 (aset latin-extra-code-table ?\222 t)
+
+;; Move least specific charsets to end of priority list
+
+(apply #'set-charset-priority
+       (delq 'unicode (delq 'emacs (charset-priority-list))))
 
 ;; The old code-pages library is obsoleted by coding systems based on
 ;; the charsets defined in this file but might be required by user
