@@ -31,7 +31,6 @@
 
 (require 'compile)
 
-;;;###autoload
 (defgroup diff nil
   "Comparing files with `diff'."
   :group 'tools)
