@@ -60,6 +60,11 @@ See the files mac/README and mac/INSTALL for build instructions.
 * Changes in Emacs 21.4
 
 +++
+** The `emacsclient' understand the options `--eval' and `--display'
+which tell Emacs resp. to evaluate the given elisp expressions and
+to use the given display when visiting files.
+
++++
 ** The mode line position information now comes before the major mode.
 When the file is maintained under version control, that information
 appears between the position information and the major mode.

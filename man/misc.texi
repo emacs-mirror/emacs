@@ -1300,6 +1300,16 @@ the value of the @samp{--alternate-editor} takes precedence.
 function which will communicate with a running Emacs server, or start
 one if none exists.
 
+If you use several displays, you can tell Emacs on which display to
+open the given files with the option @samp{--display=@var{DISPLAY}}.
+This can be used typically when connecting from home to an Emacs
+server running on your machine at your workplace.
+
+You can also use @code{emacsclient} to execute any piece of Emacs Lisp
+code, using the option @samp{--eval}.  When this option is given, the
+rest of the arguments is not taken as a list of files to visit but as
+a list of expressions to evaluate.
+
 @node Hardcopy, PostScript, Emacs Server, Top
 @section Hardcopy Output
 @cindex hardcopy
