@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.58 $")
+(defconst byte-compile-version "$Revision: 2.60 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -466,8 +466,8 @@ Each element is (INDEX . VALUE)")
 		     (get 'byte-code-vector 'tmp-compile-time-value)
 		     'byte-stack+-info
 		     (get 'byte-stack+-info 'tmp-compile-time-value))
-    (remprop 'byte-code-vector 'tmp-compile-time-value)
-    (remprop 'byte-stack+-info 'tmp-compile-time-value)))
+    (put 'byte-code-vector 'tmp-compile-time-value nil)
+    (put 'byte-stack+-info 'tmp-compile-time-value nil)))
 
 
 ;; unused: 0-7
