@@ -6172,7 +6172,7 @@ buffer's local map, and the minor mode keymaps and text property keymaps.");
 Each element should have the form (N . SYMBOL) where N is the\n\
 numeric keysym code (sans the \"system-specific\" bit 1<<28)\n\
 and SYMBOL is its name.");
-  Vmenu_bar_final_items = Qnil;
+  Vsystem_key_alist = Qnil;
 }
 
 keys_of_keyboard ()
