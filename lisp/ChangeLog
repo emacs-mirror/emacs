@@ -1,3 +1,10 @@
+2004-10-16  Kim F. Storm  <storm@cua.dk>
+
+	* pcvs.el (cvs-mode-view-file, cvs-mode-view-file-other-window): Add.
+	(cvs-mode-find-file): Add optional `view' arg to enter view mode.
+
+	* pcvs-defs.el (cvs-mode-map): Bind v to cvs-mode-view-file.
+
 2004-10-15  Simon Josefsson  <jas@extundo.com>
 
 	* net/password.el: Add.
