@@ -89,7 +89,7 @@ Lisp_Object Vkey_translation_map;
    when Emacs starts up.   t means don't record anything here.  */
 Lisp_Object Vdefine_key_rebound_commands;
 
-Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii;
+Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii, Qmenu_item;
 
 /* A char with the CHAR_META bit set in a vector or the 0200 bit set
    in a string key sequence is equivalent to prefixing with this
@@ -368,22 +368,34 @@ fix_submap_inheritance (map, event, submap)
   /* SUBMAP is a cons that we found as a key binding.
      Discard the other things found in a menu key binding.  */
 
-  if (CONSP (submap)
-      && STRINGP (XCONS (submap)->car))
+  if CONSP (submap)
     {
-      submap = XCONS (submap)->cdr;
-      /* Also remove a menu help string, if any,
-	 following the menu item name.  */
-      if (CONSP (submap) && STRINGP (XCONS (submap)->car))
-	submap = XCONS (submap)->cdr;
-      /* Also remove the sublist that caches key equivalences, if any.  */
-      if (CONSP (submap)
-	  && CONSP (XCONS (submap)->car))
+      /* May be an old format menu item */
+      if STRINGP (XCONS (submap)->car)
 	{
-	  Lisp_Object carcar;
-	  carcar = XCONS (XCONS (submap)->car)->car;
-	  if (NILP (carcar) || VECTORP (carcar))
+	  submap = XCONS (submap)->cdr;
+	  /* Also remove a menu help string, if any,
+	     following the menu item name.  */
+	  if (CONSP (submap) && STRINGP (XCONS (submap)->car))
 	    submap = XCONS (submap)->cdr;
+	  /* Also remove the sublist that caches key equivalences, if any.  */
+	  if (CONSP (submap)
+	      && CONSP (XCONS (submap)->car))
+	    {
+	      Lisp_Object carcar;
+	      carcar = XCONS (XCONS (submap)->car)->car;
+	      if (NILP (carcar) || VECTORP (carcar))
+		submap = XCONS (submap)->cdr;
+	    }
+	}
+
+      /* Or a new format menu item */
+      else if (EQ (XCONS (submap)->car, Qmenu_item)
+	       && CONSP (XCONS (submap)->cdr))
+	{
+	  submap = XCONS (XCONS (submap)->cdr)->cdr;
+	  if (CONSP (submap))
+	    submap = XCONS (submap)->car;
 	}
     }
 
@@ -552,12 +564,15 @@ get_keyelt (object, autoload)
 	    object = access_keymap (map, key, 0, 0);
 	}
 
+      else if (!(CONSP (object)))
+	/* This is really the value.  */
+	return object;
+
       /* If the keymap contents looks like (STRING . DEFN),
 	 use DEFN.
 	 Keymap alist elements like (CHAR MENUSTRING . DEFN)
 	 will be used by HierarKey menus.  */
-      else if (CONSP (object)
-	       && STRINGP (XCONS (object)->car))
+      else if (STRINGP (XCONS (object)->car))
 	{
 	  object = XCONS (object)->cdr;
 	  /* Also remove a menu help string, if any,
@@ -575,6 +590,18 @@ get_keyelt (object, autoload)
 	    }
 	}
 
+      /* If the keymap contents looks like (menu-item name . DEFN)
+	 or (menu-item name DEFN ...) then use DEFN.
+	 This is a new format menu item.
+      */
+      else if (EQ (XCONS (object)->car, Qmenu_item)
+	       && CONSP (XCONS (object)->cdr))
+	{
+	  object = XCONS (XCONS (object)->cdr)->cdr;
+	  if (CONSP (object))
+	    object = XCONS (object)->car;
+	}
+
       else
 	/* Anything else is really the value.  */
 	return object;
@@ -588,8 +615,9 @@ store_in_keymap (keymap, idx, def)
      register Lisp_Object def;
 {
   /* If we are preparing to dump, and DEF is a menu element
-     with a menu item string, copy it to ensure it is not pure.  */
-  if (CONSP (def) && PURE_P (def) && STRINGP (XCONS (def)->car))
+     with a menu item indicator, copy it to ensure it is not pure.  */
+  if (CONSP (def) && PURE_P (def)
+      && (EQ (XCONS (def)->car, Qmenu_item) || STRINGP (XCONS (def)->car)))
     def = Fcons (XCONS (def)->car, XCONS (def)->cdr);
 
   if (!CONSP (keymap) || ! EQ (XCONS (keymap)->car, Qkeymap))
@@ -731,42 +759,80 @@ is not copied.")
 	      XVECTOR (elt)->contents[i]
 		= Fcopy_keymap (XVECTOR (elt)->contents[i]);
 	}
-      else if (CONSP (elt))
+      else if (CONSP (elt) && CONSP (XCONS (elt)->cdr))
 	{
-	  /* Skip the optional menu string.  */
-	  if (CONSP (XCONS (elt)->cdr)
-	      && STRINGP (XCONS (XCONS (elt)->cdr)->car))
+	  Lisp_Object tem;
+	  tem = XCONS (elt)->cdr;
+
+	  /* Is this a new format menu item.  */
+	  if (EQ (XCONS (tem)->car,Qmenu_item))
 	    {
-	      Lisp_Object tem;
-
-	      /* Copy the cell, since copy-alist didn't go this deep.  */
-	      XCONS (elt)->cdr = Fcons (XCONS (XCONS (elt)->cdr)->car,
-					XCONS (XCONS (elt)->cdr)->cdr);
+	      /* Copy cell with menu-item marker.  */
+	      XCONS (elt)->cdr
+		= Fcons (XCONS (tem)->car, XCONS (tem)->cdr);
 	      elt = XCONS (elt)->cdr;
-
-	      /* Also skip the optional menu help string.  */
-	      if (CONSP (XCONS (elt)->cdr)
-		  && STRINGP (XCONS (XCONS (elt)->cdr)->car))
+	      tem = XCONS (elt)->cdr;
+	      if (CONSP (tem))
 		{
-		  XCONS (elt)->cdr = Fcons (XCONS (XCONS (elt)->cdr)->car,
-					    XCONS (XCONS (elt)->cdr)->cdr);
+		  /* Copy cell with menu-item name.  */
+		  XCONS (elt)->cdr
+		    = Fcons (XCONS (tem)->car, XCONS (tem)->cdr);
 		  elt = XCONS (elt)->cdr;
+		  tem = XCONS (elt)->cdr;
+		};
+	      if (CONSP (tem))
+		{
+		  /* Copy cell with binding and if the binding is a keymap,
+		     copy that.  */
+		  XCONS (elt)->cdr
+		    = Fcons (XCONS (tem)->car, XCONS (tem)->cdr);
+		  elt = XCONS (elt)->cdr;
+		  tem = XCONS (elt)->car;
+		  if (!(SYMBOLP (tem) || NILP (Fkeymapp (tem))))
+		    XCONS (elt)->car = Fcopy_keymap (tem);
+		  tem = XCONS (elt)->cdr;
+		  if (CONSP (tem) && CONSP (XCONS (tem)->car))
+		    /* Delete cache for key equivalences.  */
+		    XCONS (elt)->cdr = XCONS (tem)->cdr;
 		}
-	      /* There may also be a list that caches key equivalences.
-		 Just delete it for the new keymap.  */
-	      if (CONSP (XCONS (elt)->cdr)
-		  && CONSP (XCONS (XCONS (elt)->cdr)->car)
-		  && (NILP (tem = XCONS (XCONS (XCONS (elt)->cdr)->car)->car)
-		      || VECTORP (tem)))
-		XCONS (elt)->cdr = XCONS (XCONS (elt)->cdr)->cdr;
 	    }
-	  if (CONSP (elt)
-	      && ! SYMBOLP (XCONS (elt)->cdr)
-	      && ! NILP (Fkeymapp (XCONS (elt)->cdr)))
-	    XCONS (elt)->cdr = Fcopy_keymap (XCONS (elt)->cdr);
+	  else
+	    {
+	      /* It may be an old fomat menu item.
+		 Skip the optional menu string.
+	      */
+	      if (STRINGP (XCONS (tem)->car))
+		{
+		  /* Copy the cell, since copy-alist didn't go this deep.  */
+		  XCONS (elt)->cdr
+		    = Fcons (XCONS (tem)->car, XCONS (tem)->cdr);
+		  elt = XCONS (elt)->cdr;
+		  tem = XCONS (elt)->cdr;
+		  /* Also skip the optional menu help string.  */
+		  if (CONSP (tem) && STRINGP (XCONS (tem)->car))
+		    {
+		      XCONS (elt)->cdr
+			= Fcons (XCONS (tem)->car, XCONS (tem)->cdr);
+		      elt = XCONS (elt)->cdr;
+		      tem = XCONS (elt)->cdr;
+		    }
+		  /* There may also be a list that caches key equivalences.
+		     Just delete it for the new keymap.  */
+		  if (CONSP (tem)
+		      && CONSP (XCONS (tem)->car)
+		      && (NILP (XCONS (XCONS (tem)->car)->car)
+			  || VECTORP (XCONS (XCONS (tem)->car)->car)))
+		    XCONS (elt)->cdr = XCONS (tem)->cdr;
+		}
+	      if (CONSP (elt)
+		  && ! SYMBOLP (XCONS (elt)->cdr)
+		  && ! NILP (Fkeymapp (XCONS (elt)->cdr)))
+		XCONS (elt)->cdr = Fcopy_keymap (XCONS (elt)->cdr);
+	    }
+
 	}
     }
-
+	      
   return copy;
 }
 
@@ -2135,9 +2201,10 @@ where_is_internal_1 (binding, key, definition, noindirect, keymap, this, last,
 	      else
 		break;
 	    }
-	  /* If the contents are (STRING ...), reject.  */
+	  /* If the contents are (menu-item ...) or (STRING ...), reject.  */
 	  if (CONSP (definition)
-	      && STRINGP (XCONS (definition)->car))
+	      && (EQ (XCONS (definition)->car,Qmenu_item)
+		  || STRINGP (XCONS (definition)->car)))
 	    return Qnil;
 	}
       else
@@ -3205,6 +3272,9 @@ and applies even for keys that have ordinary bindings.");
 
   Qnon_ascii = intern ("non-ascii");
   staticpro (&Qnon_ascii);
+
+  Qmenu_item = intern ("menu-item");
+  staticpro (&Qmenu_item);
 
   defsubr (&Skeymapp);
   defsubr (&Skeymap_parent);
