@@ -1474,8 +1474,8 @@ The list should be sorted most significant first.")
   "If non-nil, show textual description of the state.
 If `long', show a full-line description, not just one word."
   :type '(choice (const :tag "no" nil)
-		 (const short)
-		 (const long))
+		 (const long)
+		 (other :tag "short" short))
   :group 'custom-buffer)
 
 (defcustom custom-magic-show-hidden '(option face)
