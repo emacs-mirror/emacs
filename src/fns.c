@@ -826,12 +826,22 @@ concat (nargs, args, target_type, last_special)
 
   if (num_textprops > 0)
     {
+      Lisp_Object props;
+
       for (argnum = 0; argnum < num_textprops; argnum++)
 	{
 	  this = args[textprops[argnum].argnum];
-	  copy_text_properties (make_number (textprops[argnum].from),
-				make_number (XSTRING (this)->size), this,
-				make_number (textprops[argnum].to), val, Qnil);
+	  props = text_property_list (this,
+				      make_number (0),
+				      make_number (XSTRING (this)->size),
+				      Qnil);
+	  /* If successive arguments have properites, be sure that the
+	     value of `composition' property be the copy.  */
+	  if (argnum > 0
+	      && textprops[argnum - 1].argnum + 1 == textprops[argnum].argnum)
+	    make_composition_value_copy (props);
+	  add_text_properties_from_list (val, props,
+					 make_number (textprops[argnum].to));
 	}
     }
   return val;
