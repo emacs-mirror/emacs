@@ -72,7 +72,9 @@ Boston, MA 02111-1307, USA.  */
 #define file_tell ftell
 #endif
 
+#ifndef USE_CRT_DLL
 extern int errno;
+#endif
 
 Lisp_Object Qread_char, Qget_file_char, Qstandard_input, Qcurrent_load_list;
 Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist;

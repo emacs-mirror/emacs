@@ -24,7 +24,9 @@ Boston, MA 02111-1307, USA.  */
 #include <errno.h>
 #include <stdio.h>
 
+#ifndef USE_CRT_DLL
 extern int errno;
+#endif
 
 /* Define SIGCHLD as an alias for SIGCLD.  */
 
@@ -88,7 +90,9 @@ extern int errno;
 #ifdef VMS
 extern noshare char **environ;
 #else
+#ifndef USE_CRT_DLL
 extern char **environ;
+#endif
 #endif
 
 #ifdef HAVE_SETPGID

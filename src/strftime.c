@@ -52,7 +52,9 @@
 # endif
 #endif
 #if HAVE_TZNAME
+#ifndef USE_CRT_DLL
 extern char *tzname[];
+#endif
 #endif
 
 /* Do multibyte processing if multibytes are supported, unless
