@@ -891,7 +891,7 @@ map_sub_char_table_for_charset (c_function, function, table, arg, range,
 	      {
 		XSETCDR (range, make_number (c - 1));
 		if (c_function)
-		  (*c_function) (range, arg);
+		  (*c_function) (arg, range);
 		else
 		  call2 (function, range, arg);
 		XSETCAR (range, Qnil);
