@@ -27,6 +27,8 @@ Boston, MA 02111-1307, USA.  */
 #include "frame.h"	/* Need this to get the X window of selected_frame */
 #include "blockinput.h"
 
+Lisp_Object QCLIPBOARD;
+
 #if 0
 DEFUN ("win32-open-clipboard", Fwin32_open_clipboard, Swin32_open_clipboard, 0, 1, 0,
        "This opens the clipboard with the given frame pointer.")
@@ -243,6 +245,44 @@ DEFUN ("win32-get-clipboard-data", Fwin32_get_clipboard_data, Swin32_get_clipboa
   return (ret);
 }
 
+/* Support checking for a clipboard selection. */
+
+DEFUN ("x-selection-exists-p", Fx_selection_exists_p, Sx_selection_exists_p,
+  0, 1, 0,
+  "Whether there is an owner for the given X Selection.\n\
+The arg should be the name of the selection in question, typically one of\n\
+the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
+\(Those are literal upper-case symbol names, since that's what X expects.)\n\
+For convenience, the symbol nil is the same as `PRIMARY',\n\
+and t is the same as `SECONDARY'.")
+  (selection)
+     Lisp_Object selection;
+{
+  CHECK_SYMBOL (selection, 0);
+
+  /* Return nil for PRIMARY and SECONDARY selections; for CLIPBOARD, check
+     if the clipboard currently has valid text format contents. */
+
+  if (EQ (selection, QCLIPBOARD))
+    {
+      Lisp_Object val = Qnil;
+
+      if (OpenClipboard (NULL))
+	{
+	  int format = 0;
+	  while (format = EnumClipboardFormats (format))
+	    if (format == CF_TEXT)
+	      {
+		val = Qt;
+		break;
+	      }
+	  CloseClipboard ();
+	}
+      return val;
+    }
+  return Qnil;
+}
+
 void 
 syms_of_win32select ()
 {
@@ -253,4 +293,7 @@ syms_of_win32select ()
 #endif
   defsubr (&Swin32_set_clipboard_data);
   defsubr (&Swin32_get_clipboard_data);
+  defsubr (&Sx_selection_exists_p);
+
+  QCLIPBOARD = intern ("CLIPBOARD");	staticpro (&QCLIPBOARD);
 }
