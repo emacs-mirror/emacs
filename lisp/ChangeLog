@@ -1,3 +1,36 @@
+2003-08-18  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.el (kmacro-keymap): Group related bindings in
+	initialization for clarity.  Bind C-s to start macro.
+	Remove C-r binding.
+	(kmacro-initial-counter-value): New defvar to hold initial counter
+	value in case we set the value before defining a macro.
+	(kmacro-insert-counter): Clear kmacro-initial-counter-value..
+	(kmacro-set-counter): Set kmacro-initial-counter-value if we are
+	not defining or executing macro.  Doc fix.
+	(kmacro-add-counter): Clear kmacro-initial-counter-value.
+	(kmacro-view-last-item, kmacro-view-item-no): New defvars used to
+	temporarily view older elements on the macro ring without cycling
+	the ring.
+	(kmacro-display): Doc fix.
+	(kmacro-exec-ring-item): New helper function.
+	(kmacro-call-ring-2nd): Use it.
+	(kmacro-call-ring-2nd-repeat): Doc fix.
+	(kmacro-start-macro): Use (and clear) kmacro-initial-counter-value.
+	(kmacro-end-or-call-macro): Execute last viewed macro (using
+	kmacro-exec-ring-item) from ring if this follows
+	kmacro-view-macro.  This allows us to find a macro on the ring
+	with C-x C-k C-v C-v ... and execute it (with C-k) without cycling
+	the ring to bring it to the head of the ring.
+	(kmacro-bind-to-key): Doc fix (describe reserved bindings).
+	Allow binding to reserved keys without specifying C-x C-k prefix.
+	Ask for confirmation if entered key sequence is already bound to
+	a non-macro command.
+	(kmacro-view-macro): Repeating command will show older elements
+	on the macro ring; C-k will execute the last viewed macro.
+	(kmacro-view-macro-repeat): Doc fix.  Change its kmacro-repeat
+	property from 'ring to 'head.
+
 2003-08-17  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* info.el (Info-scroll-prefer-subnodes): Add :version keyword to
