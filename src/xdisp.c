@@ -11318,31 +11318,36 @@ try_window_id (w)
 
 #if GLYPH_DEBUG
 
- void dump_glyph_row P_ ((struct glyph_matrix *, int, int));
-static void dump_glyph_matrix P_ ((struct glyph_matrix *, int));
+void dump_glyph_row P_ ((struct glyph_matrix *, int, int));
+void dump_glyph_matrix P_ ((struct glyph_matrix *, int));
 
 
-/* Dump the contents of glyph matrix MATRIX on stderr.  If
-   WITH_GLYPHS_P is non-zero, dump glyph contents as well.  */
+/* Dump the contents of glyph matrix MATRIX on stderr.
 
-static void
-dump_glyph_matrix (matrix, with_glyphs_p)
+   GLYPHS 0 means don't show glyph contents.
+   GLYPHS 1 means show glyphs in short form
+   GLYPHS > 1 means show glyphs in long form.  */
+
+void
+dump_glyph_matrix (matrix, glyphs)
      struct glyph_matrix *matrix;
-     int with_glyphs_p;
+     int glyphs;
 {
   int i;
   for (i = 0; i < matrix->nrows; ++i)
-    dump_glyph_row (matrix, i, with_glyphs_p);
+    dump_glyph_row (matrix, i, glyphs);
 }
 
 
 /* Dump the contents of glyph row at VPOS in MATRIX to stderr.
-   WITH_GLYPH_SP non-zero means dump glyph contents, too.  */
+   GLYPHS 0 means don't show glyph contents.
+   GLYPHS 1 means show glyphs in short form
+   GLYPHS > 1 means show glyphs in long form.  */
 
 void
-dump_glyph_row (matrix, vpos, with_glyphs_p)
+dump_glyph_row (matrix, vpos, glyphs)
      struct glyph_matrix *matrix;
-     int vpos, with_glyphs_p;
+     int vpos, glyphs;
 {
   struct glyph_row *row;
   
@@ -11350,45 +11355,48 @@ dump_glyph_row (matrix, vpos, with_glyphs_p)
     return;
 
   row = MATRIX_ROW (matrix, vpos);
+
+  if (glyphs != 1)
+    {
+      fprintf (stderr, "Row Start   End Used oEI><O\\CTZFes     X    Y    W    H    V    A    P\n");
+      fprintf (stderr, "=======================================================================\n");
   
-  fprintf (stderr, "Row Start   End Used oEI><O\\CTZFes     X    Y    W    H    V    A    P\n");
-  fprintf (stderr, "=======================================================================\n");
-  
-  fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d\
+      fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d\
 %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d %4d %4d %4d %4d %4d %4d %4d\n",
-	   row - matrix->rows,
-	   MATRIX_ROW_START_CHARPOS (row),
-	   MATRIX_ROW_END_CHARPOS (row),
-	   row->used[TEXT_AREA],
-	   row->contains_overlapping_glyphs_p,
-	   row->enabled_p,
-	   row->inverse_p,
-	   row->truncated_on_left_p,
-	   row->truncated_on_right_p,
-	   row->overlay_arrow_p,
-	   row->continued_p,
-	   MATRIX_ROW_CONTINUATION_LINE_P (row),
-	   row->displays_text_p,
-	   row->ends_at_zv_p,
-	   row->fill_line_p,
-	   row->ends_in_middle_of_char_p,
-	   row->starts_in_middle_of_char_p,
-	   row->x,
-	   row->y,
-	   row->pixel_width,
-	   row->height,
-	   row->visible_height,
-	   row->ascent,
-	   row->phys_ascent);
-  fprintf (stderr, "%9d %5d\n", row->start.overlay_string_index,
-	   row->end.overlay_string_index);
-  fprintf (stderr, "%9d %5d\n",
-	   CHARPOS (row->start.string_pos),
-	   CHARPOS (row->end.string_pos));
-  fprintf (stderr, "%9d %5d\n", row->start.dpvec_index,
-	   row->end.dpvec_index);
+	       row - matrix->rows,
+	       MATRIX_ROW_START_CHARPOS (row),
+	       MATRIX_ROW_END_CHARPOS (row),
+	       row->used[TEXT_AREA],
+	       row->contains_overlapping_glyphs_p,
+	       row->enabled_p,
+	       row->inverse_p,
+	       row->truncated_on_left_p,
+	       row->truncated_on_right_p,
+	       row->overlay_arrow_p,
+	       row->continued_p,
+	       MATRIX_ROW_CONTINUATION_LINE_P (row),
+	       row->displays_text_p,
+	       row->ends_at_zv_p,
+	       row->fill_line_p,
+	       row->ends_in_middle_of_char_p,
+	       row->starts_in_middle_of_char_p,
+	       row->x,
+	       row->y,
+	       row->pixel_width,
+	       row->height,
+	       row->visible_height,
+	       row->ascent,
+	       row->phys_ascent);
+      fprintf (stderr, "%9d %5d\n", row->start.overlay_string_index,
+	       row->end.overlay_string_index);
+      fprintf (stderr, "%9d %5d\n",
+	       CHARPOS (row->start.string_pos),
+	       CHARPOS (row->end.string_pos));
+      fprintf (stderr, "%9d %5d\n", row->start.dpvec_index,
+	       row->end.dpvec_index);
+    }
   
-  if (with_glyphs_p)
+  if (glyphs > 1)
     {
       struct glyph *glyph, *glyph_end;
       int prev_had_glyphs_p;
@@ -11472,16 +11480,36 @@ dump_glyph_row (matrix, vpos, with_glyphs_p)
 	  ++glyph;
 	}
     }
+  else if (glyphs == 1)
+    {
+      char *s = (char *) alloca (row->used[TEXT_AREA] + 1);
+      int i;
+
+      for (i = 0; i < row->used[TEXT_AREA]; ++i)
+	{
+	  struct glyph *glyph = row->glyphs[TEXT_AREA] + i;
+	  if (glyph->type == CHAR_GLYPH
+	      && glyph->u.ch < 0x80
+	      && glyph->u.ch >= ' ')
+	    s[i] = glyph->u.ch;
+	  else
+	    s[i] = '.';
+	}
+      
+      s[i] = '\0';
+      fprintf (stderr, "%3d: (%d) '%s'\n", vpos, row->enabled_p, s);
+    }
 }
 
 
 DEFUN ("dump-glyph-matrix", Fdump_glyph_matrix,
        Sdump_glyph_matrix, 0, 1, "p",
   "Dump the current matrix of the selected window to stderr.\n\
-Shows contents of glyph row structures.  With non-nil optional\n\
-parameter WITH-GLYPHS-P, dump glyphs as well.")
-  (with_glyphs_p)
-     Lisp_Object with_glyphs_p;
+Shows contents of glyph row structures.  With non-nil\n\
+parameter GLYPHS, dump glyphs as well.  If GLYPHS is 1 show\n\
+glyphs in short form, otherwise show glyphs in long form.")
+  (glyphs)
+     Lisp_Object glyphs;
 {
   struct window *w = XWINDOW (selected_window);
   struct buffer *buffer = XBUFFER (w->buffer);
@@ -11491,7 +11519,8 @@ parameter WITH-GLYPHS-P, dump glyphs as well.")
   fprintf (stderr, "Cursor x = %d, y = %d, hpos = %d, vpos = %d\n",
 	   w->cursor.x, w->cursor.y, w->cursor.hpos, w->cursor.vpos);
   fprintf (stderr, "=============================================\n");
-  dump_glyph_matrix (w->current_matrix, !NILP (with_glyphs_p));
+  dump_glyph_matrix (w->current_matrix,
+		     NILP (glyphs) ? 0 : XINT (glyphs));
   return Qnil;
 }
 
