@@ -1971,7 +1971,6 @@ with another style of continuation lines).
 @vindex indent-tabs-mode @r{(Fortran mode)}
 @vindex fortran-analyze-depth
 @vindex fortran-tab-mode-default
-@vindex fortran-tab-mode-string
   Fortran mode can use either style of continuation line.  When you
 enter Fortran mode, it tries to deduce the proper continuation style
 automatically from the buffer contents.  It does this by scanning up to
@@ -1984,7 +1983,6 @@ non-@code{nil} for tab format) is used.  @samp{/t} in the mode line
 indicates tab format is selected.  Fortran mode sets the value of
 @code{indent-tabs-mode} accordingly (@pxref{Just Spaces}).
 
-@vindex fortran-continuation-string
   If the text on a line starts with the Fortran continuation marker
 @samp{$}, or if it begins with any non-whitespace character in column
 5, Fortran mode treats it as a continuation line.  When you indent a
@@ -2068,7 +2066,8 @@ followed.
 Extra indentation within each level of @samp{do} statement (default 3).
 
 @item fortran-if-indent
-Extra indentation within each level of @samp{if} statement (default 3).
+Extra indentation within each level of @samp{if}, @samp{select case}, or
+@samp{where} statements (default 3).
 
 @item fortran-structure-indent
 Extra indentation within each level of @samp{structure}, @samp{union},
