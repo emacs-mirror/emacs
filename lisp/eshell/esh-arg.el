@@ -328,13 +328,13 @@ special character that is not itself a backslash."
 (defun eshell-parse-double-quote ()
   "Parse a double quoted string, which allows for variable interpolation."
   (when (eq (char-after) ?\")
-    (forward-char)
     (let* ((end (eshell-find-delimiter ?\" ?\" nil nil t))
 	   (eshell-current-quoted t))
       (if (not end)
 	  (throw 'eshell-incomplete ?\")
 	(prog1
 	    (save-restriction
+	      (forward-char)
 	      (narrow-to-region (point) end)
 	      (list 'eshell-escape-arg
 		    (eshell-parse-argument)))

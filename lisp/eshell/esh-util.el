@@ -86,6 +86,15 @@ function `string-to-number'."
   :type 'regexp
   :group 'eshell-util)
 
+(defcustom eshell-ange-ls-uids nil
+  "*List of user/host/id strings, used to determine remote ownership."
+  :type '(list (cons :tag "Host/User Pair"
+		     (string :tag "Hostname")
+		     (repeat (cons :tag "User/UID List"
+				   (string :tag "Username")
+				   (repeat :tag "UIDs" string)))))
+  :group 'eshell-util)
+
 ;;; Internal Variables:
 
 (defvar eshell-group-names nil
@@ -558,27 +567,122 @@ Unless optional argument INPLACE is non-nil, return a new string."
 (unless (fboundp 'directory-files-and-attributes)
   (defun directory-files-and-attributes (dir &optional full match nosort)
     (documentation 'directory-files)
-    (let* ((dir (expand-file-name dir))
-	   (default-directory dir))
+    (let ((dir (expand-file-name dir)) ange-cache)
       (mapcar
        (function
 	(lambda (file)
-	  (cons file (file-attributes file))))
+	  (cons file (eshell-file-attributes (expand-file-name file dir)))))
        (directory-files dir full match nosort)))))
+
+(eval-when-compile
+  (defvar ange-cache))
 
 (defun eshell-directory-files-and-attributes (dir &optional full match nosort)
   "Make sure to use the handler for `directory-file-and-attributes'."
-  (let ((dfh (find-file-name-handler dir 'directory-files)))
+  (let* ((dir (expand-file-name dir))
+	 (dfh (find-file-name-handler dir 'directory-files)))
     (if (not dfh)
 	(directory-files-and-attributes dir full match nosort)
-      (let* ((files (funcall dfh 'directory-files dir full match nosort))
-	     (fah (find-file-name-handler dir 'file-attributes))
-	     (default-directory (expand-file-name dir)))
+      (let ((files (funcall dfh 'directory-files dir full match nosort))
+	    (fah (find-file-name-handler dir 'file-attributes)))
 	(mapcar
 	 (function
 	  (lambda (file)
-	    (cons file (funcall fah 'file-attributes file))))
+	    (cons file (if fah
+			   (eshell-file-attributes
+			    (expand-file-name file dir))
+			 (file-attributes (expand-file-name file dir))))))
 	 files)))))
+
+(defun eshell-current-ange-uids ()
+  (if (string-match "/\\([^@]+\\)@\\([^:]+\\):" default-directory)
+      (let* ((host (match-string 2 default-directory))
+	     (user (match-string 1 default-directory))
+	     (host-users (assoc host eshell-ange-ls-uids)))
+	(when host-users
+	  (setq host-users (cdr host-users))
+	  (cdr (assoc user host-users))))))
+
+;; Add an autoload for parse-time-string
+(if (and (not (fboundp 'parse-time-string))
+	 (locate-library "parse-time"))
+    (autoload 'parse-time-string "parse-time"))
+
+(defun eshell-parse-ange-ls (dir)
+  (let (entry)
+    (with-temp-buffer
+      (insert (ange-ftp-ls dir "-la" nil))
+      (goto-char (point-min))
+      (if (looking-at "^total [0-9]+$")
+	  (forward-line 1))
+      ;; Some systems put in a blank line here.
+      (if (eolp) (forward-line 1))
+      (while (looking-at
+	      `,(concat "\\([dlscb-][rwxst-]+\\)"
+			"\\s-*" "\\([0-9]+\\)" "\\s-+"
+			"\\(\\S-+\\)" "\\s-+"
+			"\\(\\S-+\\)" "\\s-+"
+			"\\([0-9]+\\)" "\\s-+" "\\(.*\\)"))
+	(let* ((perms (match-string 1))
+	       (links (string-to-number (match-string 2)))
+	       (user (match-string 3))
+	       (group (match-string 4))
+	       (size (string-to-number (match-string 5)))
+	       (mtime
+		(if (fboundp 'parse-time-string)
+		    (let ((moment (parse-time-string
+				   (match-string 6))))
+		      (if (nth 0 moment)
+			  (setcar (nthcdr 5 moment)
+				  (nth 5 (decode-time (current-time))))
+			(setcar (nthcdr 0 moment) 0)
+			(setcar (nthcdr 1 moment) 0)
+			(setcar (nthcdr 2 moment) 0))
+		      (apply 'encode-time moment))
+		  (ange-ftp-file-modtime (expand-file-name name dir))))
+	       (name (ange-ftp-parse-filename))
+	       symlink)
+	  (if (string-match "\\(.+\\) -> \\(.+\\)" name)
+	      (setq symlink (match-string 2 name)
+		    name (match-string 1 name)))
+	  (setq entry
+		(cons
+		 (cons name
+		       (list (if (eq (aref perms 0) ?d)
+				 t
+			       symlink)
+			     links user group
+			     nil mtime nil
+			     size perms nil nil)) entry)))
+	(forward-line)))
+    entry))
+
+(defun eshell-file-attributes (file)
+  "Return the attributes of FILE, playing tricks if it's over ange-ftp."
+  (let* ((file (expand-file-name file))
+	 (handler (find-file-name-handler file 'file-attributes))
+	 entry)
+    (if (not handler)
+	(file-attributes file)
+      (if (eq (find-file-name-handler (file-name-directory file)
+				      'directory-files)
+	      'ange-ftp-hook-function)
+	  (let ((base (file-name-nondirectory file))
+		(dir (file-name-directory file)))
+	    (if (boundp 'ange-cache)
+		(setq entry (cdr (assoc base (cdr (assoc dir ange-cache))))))
+	    (unless entry
+	      (setq entry (eshell-parse-ange-ls dir))
+	      (if (boundp 'ange-cache)
+		  (setq ange-cache
+			(cons (cons dir entry)
+			      ange-cache)))
+	      (if entry
+		  (let ((fentry (assoc base (cdr entry))))
+		    (if fentry
+			(setq entry (cdr fentry))
+		      (setq entry nil)))))))
+      (or entry (funcall handler 'file-attributes file)))))
 
 (defun eshell-copy-list (list)
   "Return a copy of a list, which may be a dotted list.

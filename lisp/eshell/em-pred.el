@@ -464,7 +464,7 @@ that 'ls -l' will show in the first column of its display. "
 	(forward-char)
       (setq type ?%)))
   `(lambda (file)
-     (let ((attrs (file-attributes (directory-file-name file))))
+     (let ((attrs (eshell-file-attributes (directory-file-name file))))
        (if attrs
 	   (memq (aref (nth 8 attrs) 0)
 		 ,(if (eq type ?%)
@@ -489,7 +489,7 @@ that 'ls -l' will show in the first column of its display. "
     (setq amount (string-to-number (match-string 0)))
     (goto-char (match-end 0))
     `(lambda (file)
-       (let ((attrs (file-attributes file)))
+       (let ((attrs (eshell-file-attributes file)))
 	 (if attrs
 	     (,(if (eq qual ?-)
 		   '<
@@ -518,7 +518,7 @@ that 'ls -l' will show in the first column of its display. "
     (setq amount (* (string-to-number (match-string 0)) quantum))
     (goto-char (match-end 0))
     `(lambda (file)
-       (let ((attrs (file-attributes file)))
+       (let ((attrs (eshell-file-attributes file)))
 	 (if attrs
 	     (,(if (eq qual ?-)
 		   '<

@@ -122,6 +122,12 @@ Otherwise, `rmdir' is required."
   :type 'boolean
   :group 'eshell-unix)
 
+(defcustom eshell-du-prefer-over-ange nil
+  "*Use Eshell's du in ange-ftp remote directories.
+Otherwise, Emacs will attempt to use rsh to invoke du the machine."
+  :type 'boolean
+  :group 'eshell-unix)
+
 (require 'esh-opt)
 
 ;;; Functions:
@@ -296,7 +302,7 @@ Remove the DIRECTORY(ies), if they are empty.")
   "Shuffle around some filesystem entries, using FUNC to do the work."
   (if (null target)
       (error "%s: missing destination file" command))
-  (let ((attr-target (file-attributes target))
+  (let ((attr-target (eshell-file-attributes target))
 	(is-dir (or (file-directory-p target)
 		    (and preview (not eshell-warn-dot-directories))))
 	attr)
@@ -315,8 +321,10 @@ Remove the DIRECTORY(ies), if they are empty.")
        ((and attr-target
 	     (or (not (eshell-under-windows-p))
 		 (eq system-type 'ms-dos))
-	     (setq attr (file-attributes (car files)))
+	     (setq attr (eshell-file-attributes (car files)))
+	     (nth 10 attr-target) (nth 10 attr)
 	     (= (nth 10 attr-target) (nth 10 attr))
+	     (nth 11 attr-target) (nth 11 attr)
 	     (= (nth 11 attr-target) (nth 11 attr)))
 	(eshell-error (format "%s: `%s' and `%s' are the same file\n"
 			      command (car files) target)))
@@ -339,10 +347,10 @@ Remove the DIRECTORY(ies), if they are empty.")
 		(let (eshell-warn-dot-directories)
 		  (if (and (not deep)
 			   (eq func 'rename-file)
-			   (= (nth 11 (file-attributes
+			   (= (nth 11 (eshell-file-attributes
 				       (file-name-directory
 					(expand-file-name source))))
-			      (nth 11 (file-attributes
+			      (nth 11 (eshell-file-attributes
 				       (file-name-directory
 					(expand-file-name target))))))
 		      (apply 'eshell-funcalln func source target args)
@@ -415,7 +423,7 @@ Remove the DIRECTORY(ies), if they are empty.")
 		     (or (not no-dereference)
 			 (not (file-symlink-p (car args)))))))
        (eshell-shorthand-tar-command ,command args)
-     (let (target)
+     (let (target ange-cache)
        (if (> (length args) 1)
 	   (progn
 	     (setq target (car (last args)))
@@ -508,7 +516,7 @@ Create a link to the specified TARGET with optional LINK_NAME.  If there is
 more than one TARGET, the last argument must be a directory;  create links
 in DIRECTORY to each TARGET.  Create hard links by default, symbolic links
 with '--symbolic'.  When creating hard links, each TARGET must exist.")
-   (let (target no-dereference)
+   (let (target no-dereference ange-cache)
      (if (> (length args) 1)
 	 (progn
 	   (setq target (car (last args)))
@@ -525,10 +533,24 @@ with '--symbolic'.  When creating hard links, each TARGET must exist.")
    nil))
 
 (defun eshell/cat (&rest args)
-  "Implementation of cat in Lisp."
-  (if eshell-in-pipeline-p
-      (throw 'eshell-replace-command
-	     (eshell-parse-command "*cat" (eshell-flatten-list args)))
+  "Implementation of cat in Lisp.
+If in a pipeline, or the file is not a regular file, directory or
+symlink, then revert to the system's definition of cat."
+  (setq args (eshell-flatten-list args))
+  (if (or eshell-in-pipeline-p
+	  (catch 'special
+	    (eshell-for arg args
+	      (unless (let ((attrs (eshell-file-attributes arg)))
+			(and attrs (memq (aref (nth 8 attrs) 0)
+					 '(?d ?l ?-))))
+		(throw 'special t)))))
+      (let ((ext-cat (eshell-search-path "cat")))
+	(if ext-cat
+	    (throw 'eshell-replace-command
+		   (eshell-parse-command ext-cat args))
+	  (if eshell-in-pipeline-p
+	      (error "Eshell's `cat' does not work in pipelines")
+	    (error "Eshell's `cat' cannot display one of the files given"))))
     (eshell-init-print-buffer)
     (eshell-eval-using-options
      "cat" args
@@ -772,61 +794,69 @@ external command."
 
 (defun eshell/du (&rest args)
   "Implementation of \"du\" in Lisp, passing ARGS."
-  (if (eshell-search-path "du")
-      (throw 'eshell-replace-command
-	     (eshell-parse-command "*du" (eshell-flatten-list args)))
-    (eshell-eval-using-options
-     "du" args
-     '((?a "all" nil show-all
-	   "write counts for all files, not just directories")
-       (nil "block-size" t block-size
-	    "use SIZE-byte blocks (i.e., --block-size SIZE)")
-       (?b "bytes" nil by-bytes
-	   "print size in bytes")
-       (?c "total" nil grand-total
-	   "produce a grand total")
-       (?d "max-depth" t max-depth
-	   "display data only this many levels of data")
-       (?h "human-readable" 1024 human-readable
-	   "print sizes in human readable format")
-       (?H "is" 1000 human-readable
-	   "likewise, but use powers of 1000 not 1024")
-       (?k "kilobytes" 1024 block-size
-	   "like --block-size 1024")
-       (?L "dereference" nil dereference-links
-	   "dereference all symbolic links")
-       (?m "megabytes" 1048576 block-size
-	   "like --block-size 1048576")
-       (?s "summarize" 0 max-depth
-	   "display only a total for each argument")
-       (?x "one-file-system" nil only-one-filesystem
-	   "skip directories on different filesystems")
-       (nil "help" nil nil
-	    "show this usage screen")
-       :external "du"
-       :usage "[OPTION]... FILE...
+  (setq args (if args
+		 (eshell-flatten-list args)
+	       '(".")))
+  (let ((ext-du (eshell-search-path "du")))
+    (if (and ext-du
+	     (not (catch 'have-ange-path
+		    (eshell-for arg args
+		      (if (eq (find-file-name-handler (expand-file-name arg)
+						      'directory-files)
+			      'ange-ftp-hook-function)
+			  (throw 'have-ange-path t))))))
+	(throw 'eshell-replace-command
+	       (eshell-parse-command ext-du args))
+      (eshell-eval-using-options
+       "du" args
+       '((?a "all" nil show-all
+	     "write counts for all files, not just directories")
+	 (nil "block-size" t block-size
+	      "use SIZE-byte blocks (i.e., --block-size SIZE)")
+	 (?b "bytes" nil by-bytes
+	     "print size in bytes")
+	 (?c "total" nil grand-total
+	     "produce a grand total")
+	 (?d "max-depth" t max-depth
+	     "display data only this many levels of data")
+	 (?h "human-readable" 1024 human-readable
+	     "print sizes in human readable format")
+	 (?H "is" 1000 human-readable
+	     "likewise, but use powers of 1000 not 1024")
+	 (?k "kilobytes" 1024 block-size
+	     "like --block-size 1024")
+	 (?L "dereference" nil dereference-links
+	     "dereference all symbolic links")
+	 (?m "megabytes" 1048576 block-size
+	     "like --block-size 1048576")
+	 (?s "summarize" 0 max-depth
+	     "display only a total for each argument")
+	 (?x "one-file-system" nil only-one-filesystem
+	     "skip directories on different filesystems")
+	 (nil "help" nil nil
+	      "show this usage screen")
+	 :external "du"
+	 :usage "[OPTION]... FILE...
 Summarize disk usage of each FILE, recursively for directories.")
-     (unless by-bytes
-       (setq block-size (or block-size 1024)))
-     (if (and max-depth (stringp max-depth))
-	 (setq max-depth (string-to-int max-depth)))
-     ;; filesystem support means nothing under Windows
-     (if (eshell-under-windows-p)
-	 (setq only-one-filesystem nil))
-     (unless args
-       (setq args '(".")))
-     (let ((size 0.0))
-       (while args
-	 (if only-one-filesystem
-	     (setq only-one-filesystem
-		   (nth 11 (file-attributes
-			    (file-name-as-directory (car args))))))
-	 (setq size (+ size (eshell-du-sum-directory
-			     (directory-file-name (car args)) 0)))
-	 (setq args (cdr args)))
-       (if grand-total
-	   (eshell-print (concat (eshell-du-size-string size)
-				 "total\n")))))))
+       (unless by-bytes
+	 (setq block-size (or block-size 1024)))
+       (if (and max-depth (stringp max-depth))
+	   (setq max-depth (string-to-int max-depth)))
+       ;; filesystem support means nothing under Windows
+       (if (eshell-under-windows-p)
+	   (setq only-one-filesystem nil))
+       (let ((size 0.0) ange-cache)
+	 (while args
+	   (if only-one-filesystem
+	       (setq only-one-filesystem
+		     (nth 11 (eshell-file-attributes
+			      (file-name-as-directory (car args))))))
+	   (setq size (+ size (eshell-du-sum-directory
+			       (directory-file-name (car args)) 0)))
+	   (setq args (cdr args)))
+	 (if grand-total
+	     (eshell-print (concat (eshell-du-size-string size)
+				   "total\n"))))))))
 
 (defvar eshell-time-start nil)
 

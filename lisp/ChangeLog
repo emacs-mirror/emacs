@@ -1,3 +1,82 @@
+2000-10-13  John Wiegley  <johnw@gnu.org>
+
+	* eshell/esh-util.el: Added a global form which declares an
+	autoload for `parse-time-string', if that function is not already
+	defined, and if parse-time.el is available on the user's system.
+
+	* eshell/em-ls.el (eshell-ls-applicable): Extended this function
+	to be aware of ange-ftp user info.
+	(eshell-do-ls): Bind `ange-cache'.  Also, use
+	`eshell-file-attributes'.
+	(eshell-ls-annotate): Use `eshell-file-attributes'.
+	(eshell-ls-file): Made the user-id printing code a bit smarter.
+
+	* eshell/esh-util.el (eshell-ange-ls-uids): Added variable, to
+	allow identification of alias user ids in remote directories.
+	It's manual, but there's no other way to know when the current
+	user on the local machine, is also the owning user on the remote
+	machine.
+	(fboundp): Bind `ange-cache'.
+	(eshell-directory-files-and-attributes): Re-organized the logic a
+	bit to use `eshell-file-attributes' instead of `file-attributes'.
+	The former is more sensitive to directories that are read via FTP,
+	and knows how to use ange-ftp to determine full attribute
+	information, instead of just the name and last modtime.
+	(eshell-current-ange-uids): Return the current user id when in a
+	remote directory.
+	(eshell-parse-ange-ls): Parse a full directory listing that has
+	been returned by ange-ftp.
+	(eshell-file-attributes): This beefed up version of
+	`file-attributes' is only special if the user is currently in a
+	remote directory, in which case it does a lot of work to find out
+	what the real attributes of a file are, as they appear on the
+	remote machine.  This makes usage of remote directories (i.e.,
+	ange-ftp pathnames) much more useful.  You can now use Eshell as a
+	full-fledged FTP client, with much more manipulation ability than
+	most other clients.
+
+	* eshell/em-unix.el (eshell-du-prefer-over-ange): Added a new
+	variable, which means that Eshell's du should always be preferred
+	in remote directories.
+	(eshell-shuffle-files): Use `eshell-file-attributes', rather than
+	just `file-attributes'.
+	(eshell-mvcp-template): Bind `ange-cache', to improve performance
+	when reading remote directories.  This is an Eshell-specific
+	variable (not part of ange-ftp).
+	(eshell/ln): Bind `ange-cache'.
+	(eshell/du): Added some extra logic for determining when to use
+	Eshell's du (which is slow), and when to use the external version
+	(which may or may not exist).
+
+	* eshell/em-rebind.el (eshell-delchar-or-maybe-eof): Call
+	`eshell-interactive-process', rather than using
+	`get-buffer-process', since backgrounded processes don't count in
+	the context of this function's logic.
+
+	* eshell/esh-arg.el (eshell-parse-double-quote): Moved a call to
+	`forward-char', so that null strings are parsed correctly.
+
+2000-09-10  John Wiegley  <johnw@gnu.org>
+
+	* eshell/em-pred.el (eshell-pred-file-type,
+	eshell-pred-file-links, eshell-pred-file-size): Use
+	`eshell-file-attributes'.  This is more correct over ange-ftp.
+
+	* eshell/em-glob.el (eshell-extended-glob): Bind `ange-cache', so
+	that remote file globbing is more efficient.
+
+	* eshell/em-ls.el (eshell-ls-dir): Use `expand-file-name' when
+	gathering the files and attributes within a directory.
+
+	* eshell/em-unix.el (eshell/cat): If any of the files passed on
+	the command line is a special file (not a regular file, directory
+	or symlink), always attempt to call the external version of cat.
+
+2000-09-06  John Wiegley  <johnw@gnu.org>
+
+	* eshell/esh-mode.el (eshell-find-tag): Corrections to the
+	Eshell-friendly version of find-tag.
+
 2000-10-13  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* image-file.el (image-file-name-extensions) 
@@ -346,6 +425,8 @@
 
 	* files.el (set-auto-mode): Ignore unknown -*- mode -*- rather than
 	raise an error.  This way it can still default to a sane value.
+
+2000-10-06  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* startup.el (fancy-splash-screens): Use local rather than global map.
 	Don't use `update-menu-bindings' any more.
@@ -1361,9 +1442,6 @@
 	* faces.el (secondary-selection): Make dark-background variant sane.
 
 2000-09-16  Andrew Innes  <andrewi@gnu.org>
-
-	* makefile.nt (compile-files): No need to make .elc files
-	read-only, since they aren't under VC now.
 
 	* makefile.w32-in (compile-files-CMD): No need to make .elc files
 	read-only, since they aren't under VC now.

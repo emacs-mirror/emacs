@@ -232,7 +232,7 @@ lock it at that."
 Sends an EOF only if point is at the end of the buffer and there is no
 input."
   (interactive "p")
-  (let ((proc (get-buffer-process (current-buffer))))
+  (let ((proc (eshell-interactive-process)))
     (if (eobp)
 	(cond
 	 ((/= (point) eshell-last-output-end)

@@ -192,9 +192,15 @@ really need to stick around for very long."
   "Test whether, for ATTRS, the user UID can do what corresponds to INDEX.
 This is really just for efficiency, to avoid having to stat the file
 yet again."
-  `(if (= (user-uid) (nth 2 ,attrs))
-       (not (eq (aref (nth 8 ,attrs) ,index) ?-))
-     (,(eval func) ,file)))
+  `(if (numberp (nth 2 ,attrs))
+       (if (= (user-uid) (nth 2 ,attrs))
+ 	   (not (eq (aref (nth 8 ,attrs) ,index) ?-))
+ 	 (,(eval func) ,file))
+     (not (eq (aref (nth 8 ,attrs)
+ 		    (+ ,index (if (member (nth 2 ,attrs)
+ 					  (eshell-current-ange-uids))
+ 				  0 6)))
+ 	      ?-))))
 
 (defcustom eshell-ls-highlight-alist nil
   "*This alist correlates test functions to color.
@@ -265,7 +271,8 @@ instead."
   (defvar show-all)
   (defvar show-recursive)
   (defvar show-size)
-  (defvar sort-method))
+  (defvar sort-method)
+  (defvar ange-cache))
 
 (defun eshell-do-ls (&rest args)
   "Implementation of \"ls\" in Lisp, passing ARGS."
@@ -328,7 +335,7 @@ Sort entries alphabetically across.")
      (setq listing-style 'by-columns))
    (unless args
      (setq args (list ".")))
-   (let ((eshell-ls-exclude-regexp eshell-ls-exclude-regexp))
+   (let ((eshell-ls-exclude-regexp eshell-ls-exclude-regexp) ange-cache)
      (when ignore-pattern
        (unless (eshell-using-module 'eshell-glob)
 	 (error (concat "-I option requires that `eshell-glob'"
@@ -347,7 +354,7 @@ Sort entries alphabetically across.")
 				(file-name-absolute-p arg))
 			   (expand-file-name arg)
 			 arg)
-		       (file-attributes arg)))) args)
+		       (eshell-file-attributes arg)))) args)
       t (expand-file-name default-directory)))
    (funcall flush-func)))
 
@@ -379,7 +386,7 @@ name should be displayed as, etc.  Think of it as cooking a FILEINFO."
 		   (file-name-directory
 		    (expand-file-name (car fileinfo))))))
       (setq attr
-	    (file-attributes
+	    (eshell-file-attributes
 	     (let ((target (if dir
 			       (expand-file-name (cadr fileinfo) dir)
 			     (cadr fileinfo))))
@@ -425,16 +432,22 @@ whose cdr is the list of file attributes."
 		 "%s%4d %-8s %-8s "
 		 (or (nth 8 attrs) "??????????")
 		 (or (nth 1 attrs) 0)
-		 (or (and (not numeric-uid-gid)
-			  (nth 2 attrs)
-			  (eshell-substring
-			   (user-login-name (nth 2 attrs)) 8))
+		 (or (let ((user (nth 2 attrs)))
+		       (and (not numeric-uid-gid)
+			    user
+			    (eshell-substring
+			     (if (numberp user)
+				 (user-login-name user)
+			       user) 8)))
 		     (nth 2 attrs)
 		     "")
-		 (or (and (not numeric-uid-gid)
-			  (nth 3 attrs)
-			  (eshell-substring
-			   (eshell-group-name (nth 3 attrs)) 8))
+		 (or (let ((group (nth 3 attrs)))
+		       (and (not numeric-uid-gid)
+			    group
+			    (eshell-substring
+			     (if (numberp group)
+				 (eshell-group-name group)
+			       group) 8)))
 		     (nth 3 attrs)
 		     ""))
 		(let* ((str (eshell-ls-printable-size (nth 7 attrs)))
