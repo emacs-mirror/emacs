@@ -8,6 +8,10 @@ For older news, see the file ONEWS
 
 * Changes in Emacs 21.2
 
++++
+** `buffer-menu' and `list-buffers' now return buffesr whose names begin
+with a space, if they visit files.
+
 ** tab-always-indent can be set to `never' to make sure indent-for-tab-command
 always tabs rather than indents.
 
