@@ -237,7 +237,7 @@ will often effectively clobber data with an iso-2022 encoding.
 ** There is support for decoding Greek and Cyrillic characters into
 either Unicode (the mule-unicode charsets) or the iso-8859 charsets,
 when possible.  The latter are more space-efficient.  This is
-controlled by user option utf-8-fragment-on-decoding.
+controlled by user option utf-fragment-on-decoding.
 
 ** The new command `set-file-name-coding-system' (C-x RET F) sets
 coding system for encoding and decoding file names.  A new menu item
