@@ -75,59 +75,59 @@ dvi: $(DVI_TARGETS)
 # In a distribution of Emacs, the Info files should be up to date.
 
 ../info/info: ${INFOSOURCES}
-	$(MAKEINFO) --no-split -I$(srcdir) $(srcdir)/info.texi
+	cd $(srcdir); $(MAKEINFO) --no-split info.texi
 
 info.dvi: ${INFOSOURCES}
 	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/info.texi
 
 ../info/emacs: ${EMACSSOURCES}
-	$(MAKEINFO) -I$(srcdir) $(srcdir)/emacs.texi
+	cd $(srcdir); $(MAKEINFO) emacs.texi
 
 emacs.dvi: ${EMACSSOURCES}
 	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/emacs.texi
 
 ../info/ccmode: cc-mode.texi
-	$(MAKEINFO) -I$(srcdir) $(srcdir)/cc-mode.texi
+	cd $(srcdir); $(MAKEINFO) cc-mode.texi
 cc-mode.dvi: cc-mode.texi
 	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/cc-mode.texi
 
 ../info/cl: cl.texi
-	$(MAKEINFO) -I$(srcdir) $(srcdir)/cl.texi
+	cd $(srcdir); $(MAKEINFO) cl.texi
 cl.dvi: cl.texi
 	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/cl.texi
 
 ../info/dired-x: dired-x.texi
-	$(MAKEINFO) -I$(srcdir) $(srcdir)/dired-x.texi
+	cd $(srcdir); $(MAKEINFO) dired-x.texi
 dired-x.dvi: dired-x.texi
 	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/dired-x.texi
 
 ../info/ediff: ediff.texi
-	$(MAKEINFO) -I$(srcdir) $(srcdir)/ediff.texi
+	cd $(srcdir); $(MAKEINFO) ediff.texi
 ediff.dvi: ediff.texi
 	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/ediff.texi
 
 ../info/forms: forms.texi
-	$(MAKEINFO) -I$(srcdir) $(srcdir)/forms.texi
+	cd $(srcdir); $(MAKEINFO) forms.texi
 forms.dvi: forms.texi
 	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/forms.texi
 
 ../info/mh-e: mh-e.texi
-	$(MAKEINFO) -I$(srcdir) $(srcdir)/mh-e.texi
+	cd $(srcdir); $(MAKEINFO) mh-e.texi
 mh-e.dvi: mh-e.texi
 	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/mh-e.texi
 
 ../info/sc: sc.texi
-	$(MAKEINFO) -I$(srcdir) $(srcdir)/sc.texi
+	cd $(srcdir); $(MAKEINFO) sc.texi
 sc.dvi: sc.texi
 	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/sc.texi
 
 ../info/vip: vip.texi
-	$(MAKEINFO) -I$(srcdir) $(srcdir)/vip.texi
+	cd $(srcdir); $(MAKEINFO) vip.texi
 vip.dvi: vip.texi
 	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/vip.texi
 
 ../info/gnus: gnus.texi
-	$(MAKEINFO) -I$(srcdir) $(srcdir)/gnus.texi
+	cd $(srcdir); $(MAKEINFO) gnus.texi
 gnus.dvi: gnus.texi
 	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/gnus.texi
 
@@ -135,7 +135,7 @@ gnus.dvi: gnus.texi
 	makeinfo --no-headers -o ../etc/GNU gnu1.texi
 
 ../info/viper: viper.texi viper-cmd.texi
-	$(MAKEINFO) -I$(srcdir) $(srcdir)/viper.texi
+	cd $(srcdir); $(MAKEINFO) viper.texi
 viper.dvi: viper.texi viper-cmd.texi
 	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/viper.texi
 
