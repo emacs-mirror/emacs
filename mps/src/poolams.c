@@ -1,7 +1,7 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.45) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!poolams.c(trunk.46) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  * 
  * .design: See design.mps.poolams.
  *
@@ -18,7 +18,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.45) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.46) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -610,6 +610,7 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
     if(res != ResOK)
       goto failSeg;
   }
+  PoolGenUpdateZones(&ams->pgen, seg);
 
   /* see design.mps.seg.field.rankset */
   if(rankSet != RankSetEMPTY) {
@@ -657,11 +658,13 @@ static Res AMSInit(Pool pool, va_list args)
 {
   Res res;
   Format format;
+  Chain chain;
 
   AVERT(Pool, pool);
 
   format = va_arg(args, Format);
-  res = AMSInitInternal(PoolPoolAMS(pool), format);
+  chain = va_arg(args, Chain);
+  res = AMSInitInternal(PoolPoolAMS(pool), format, chain);
   if (res == ResOK) {
     EVENT_PPP(PoolInitAMS, pool, PoolArena(pool), format);
   }
@@ -669,22 +672,30 @@ static Res AMSInit(Pool pool, va_list args)
 }
 
 
-/* AMSInitInternal -- initialize an AMS pool, given the format */
+/* AMSInitInternal -- initialize an AMS pool, given the format and the chain */
 
-Res AMSInitInternal(AMS ams, Format format)
+Res AMSInitInternal(AMS ams, Format format, Chain chain)
 {
   Pool pool;
+  Res res;
 
   /* Can't check ams, it's not initialized. */
   AVERT(Format, format);
+  AVERT(Chain, chain);
 
   pool = AMSPool(ams);
   AVERT(Pool, pool);
   pool->format = format;
-
   pool->alignment = pool->format->alignment;
   ams->grainShift = SizeLog2(PoolAlignment(pool));
-  ActionInit(AMSAction(ams), pool);
+
+  if (ChainGens(chain) != 1)
+    return ResPARAM;
+  ams->chain = chain;
+  res = PoolGenInit(&ams->pgen, ams->chain, 0, pool);
+  if (res != ResOK)
+    return res;
+
   RingInit(&ams->segRing);
 
   /* The next five might be overridden by a subclass. */
@@ -695,7 +706,6 @@ Res AMSInitInternal(AMS ams, Format format)
   ams->segClass = EnsureAMSSegClass;
 
   ams->size = 0;
-  ams->lastReclaimed = 0;
 
   ams->sig = AMSSig;
   AVERT(AMS, ams);
@@ -718,9 +728,10 @@ void AMSFinish(Pool pool)
   AVERT(AMS, ams);
 
   (ams->segsDestroy)(ams);
-  ActionFinish(AMSAction(ams));
   /* can't invalidate the AMS until we've destroyed all the segs */
   ams->sig = SigInvalid;
+  RingFinish(&ams->segRing);
+  PoolGenFinish(&ams->pgen);
 }
 
 
@@ -794,6 +805,7 @@ Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   RankSet rankSet;
   Bool b;                       /* the return value of AMSSegAlloc */
   SegPrefStruct segPrefStruct;
+  Size allocatedSize;
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
@@ -837,6 +849,11 @@ Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
 
 found:
   AVER(b);
+  allocatedSize = AddrOffset(AMS_INDEX_ADDR(seg, base),
+                             AMS_INDEX_ADDR(seg, limit));
+  ams->pgen.totalSize += allocatedSize;
+  ams->pgen.newSize += allocatedSize;
+
   *baseReturn = AMS_INDEX_ADDR(seg, base);
   *limitReturn = AMS_INDEX_ADDR(seg, limit);
   return ResOK;
@@ -895,6 +912,8 @@ void AMSBufferEmpty(Pool pool, Buffer buffer,
     }
   }
   amsseg->free += limitIndex - initIndex;
+  ams->pgen.totalSize -= AddrOffset(init, limit);
+  ams->pgen.newSize -= AddrOffset(init, limit);
 }
 
 
@@ -972,7 +991,7 @@ Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   amsseg->marksChanged = FALSE; /* design.mps.poolams.marked.condemn */
   amsseg->ambiguousFixes = FALSE;
 
-  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
+  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
 
   return ResOK;
 }
@@ -1336,6 +1355,7 @@ void AMSReclaim(Pool pool, Trace trace, Seg seg)
 
   amsseg->free += reclaimed;
   trace->reclaimSize += reclaimed << ams->grainShift;
+  ams->pgen.totalSize -= reclaimed << ams->grainShift;
   /* preservedInPlaceCount is updated on fix */
   trace->preservedInPlaceSize += 
     (amsseg->grains - amsseg->free) << ams->grainShift;
@@ -1343,47 +1363,10 @@ void AMSReclaim(Pool pool, Trace trace, Seg seg)
   if(amsseg->free == amsseg->grains && SegBuffer(seg) == NULL) {
     /* No survivors */
     SegFree(seg);
-    /* design.mps.poolams.benefit.guess */
-    ams->lastReclaimed = ams->size;
   } else {
     amsseg->colourTablesInUse = FALSE;
-    SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace->ti));
+    SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
   }
-}
-
-
-/* AMSBenefit -- the pool class benefit computation method
- *
- * This does not compute a real benefit, but something which works
- * well enough to run tests.  See design.mps.poolams.benefit.guess.
- */
-
-int AMSRatioDenominator = 1;
-int AMSRatioNumerator = 2;
-Size AMSMinimumCollectableSize = 128*(Size)1024;
-
-static double AMSBenefit(Pool pool, Action action)
-{
-  AMS ams;
-  double benefit;
-
-  AVERT(Pool, pool);
-  ams = PoolPoolAMS(pool);
-  AVERT(AMS, ams);
-
-  AVERT(Action, action);
-  AVER(ams == ActionAMS(action));
-
-  if((ams->size > AMSMinimumCollectableSize)
-      && (ams->size * AMSRatioNumerator
-          > ams->lastReclaimed * AMSRatioDenominator)) {
-    /* design.mps.poolams.benefit.repeat */
-    ams->lastReclaimed = ams->size; 
-    benefit = 1.0;
-  } else {
-    benefit = 0.0;
-  }
-  return benefit;
 }
 
 
@@ -1408,11 +1391,11 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                (WriteFP)pool, (WriteFU)pool->serial,
-               "  size $W, lastReclaimed $W\n",
-               (WriteFW)ams->size, (WriteFW)ams->lastReclaimed,
+               "  size $W\n",
+               (WriteFW)ams->size,
                "  grain shift $U\n", (WriteFU)ams->grainShift,
-               "  action $P ($U)\n",
-               (WriteFP)AMSAction(ams), (WriteFU)AMSAction(ams)->serial,
+               "  chain $P\n",
+               (WriteFP)ams->chain,
                NULL);
   if(res != ResOK)
     return res;
@@ -1459,9 +1442,9 @@ DEFINE_CLASS(AMSPoolClass, this)
   this->fix = AMSFix;
   this->fixEmergency = AMSFix;
   this->reclaim = AMSReclaim;
-  this->benefit = AMSBenefit;
   this->describe = AMSDescribe;
 }
+
 
 /* AMSCheck -- the check method for an AMS */
 
@@ -1472,11 +1455,9 @@ Bool AMSCheck(AMS ams)
   CHECKL(IsSubclassPoly(AMSPool(ams)->class, EnsureAMSPoolClass()));
   CHECKL(PoolAlignment(AMSPool(ams)) == ((Size)1 << ams->grainShift));
   CHECKL(PoolAlignment(AMSPool(ams)) == AMSPool(ams)->format->alignment);
-  CHECKD(Action, AMSAction(ams));
-  CHECKL(AMSAction(ams)->pool == AMSPool(ams));
+  CHECKD(Chain, ams->chain);
+  CHECKD(PoolGen, &ams->pgen);
   CHECKL(SizeIsAligned(ams->size, ArenaAlign(PoolArena(AMSPool(ams)))));
-  CHECKL(SizeIsAligned(ams->lastReclaimed,
-		       ArenaAlign(PoolArena(AMSPool(ams)))));
   CHECKL(ams->iterate != NULL);
   CHECKL(RingCheck(&ams->segRing));
   CHECKL(ams->allocRing != NULL);

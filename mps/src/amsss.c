@@ -1,6 +1,6 @@
 /* impl.c.amsss: POOL CLASS AMS STRESS TEST
  *
- * $HopeName: MMsrc!amsss.c(trunk.10) $
+ * $HopeName: MMsrc!amsss.c(trunk.11) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .design: Adapted from amcss.c, but not counting collections, just
@@ -25,13 +25,14 @@
 
 #define exactRootsCOUNT 50
 #define ambigRootsCOUNT 100
-/* This is enough for five GCs. */ 
+/* This is enough for three GCs. */ 
 #define totalSizeMAX    800 * (size_t)1024
 #define totalSizeSTEP   200 * (size_t)1024
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
 #define objNULL         ((mps_addr_t)0xDECEA5ED)
 #define testArenaSIZE   ((size_t)16<<20)
 #define initTestFREQ    6000
+static mps_gen_param_s testChain[1] = { { 160, 0.90 } };
 
 
 static mps_pool_t pool;
@@ -65,6 +66,7 @@ static void *test(void *arg, size_t s)
 {
   mps_arena_t arena;
   mps_fmt_t format;
+  mps_chain_t chain;
   mps_root_t exactRoot, ambigRoot;
   size_t lastStep = 0, i, r;
   unsigned long objs;
@@ -75,8 +77,8 @@ static void *test(void *arg, size_t s)
   (void)s; /* unused */
 
   die(mps_fmt_create_A(&format, arena, dylan_fmt_A()), "fmt_create");
-
-  die(mps_pool_create(&pool, arena, mps_class_ams(), format),
+  die(mps_chain_create(&chain, arena, 1, testChain), "chain_create");
+  die(mps_pool_create(&pool, arena, mps_class_ams(), format, chain),
       "pool_create(ams)");
 
   die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "BufferCreate");
@@ -144,6 +146,7 @@ static void *test(void *arg, size_t s)
   mps_root_destroy(exactRoot);
   mps_root_destroy(ambigRoot);
   mps_pool_destroy(pool);
+  mps_chain_destroy(chain);
   mps_fmt_destroy(format);
 
   return NULL;

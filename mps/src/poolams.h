@@ -1,7 +1,7 @@
 /* impl.h.poolams: AUTOMATIC MARK & SWEEP POOL CLASS INTERFACE
  *
- * $HopeName: MMsrc!poolams.h(trunk.12) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!poolams.h(trunk.13) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .purpose: Internal interface to AMS functionality.
  */
@@ -44,16 +44,15 @@ typedef Res (*AMSObjectFunction)(
 #define AMSObjectFunctionCheck(f) \
   ((f) != NULL) /* that's the best we can do */
 
-typedef Res (*AMSIterateFunction)(Seg seg,
-                                  AMSObjectFunction f, void *closure);
+typedef Res (*AMSIterateFunction)(Seg seg, AMSObjectFunction f, void *closure);
 
 
 typedef struct AMSStruct {
   PoolStruct poolStruct;       /* generic pool structure */
   Shift grainShift;            /* log2 of grain size */
-  ActionStruct actionStruct;   /* action of collecting this pool */
+  Chain chain;                 /* chain used by this pool */
+  PoolGenStruct pgen;          /* generation representing the pool */
   Size size;                   /* total segment size of the pool */
-  Size lastReclaimed;          /* size after last reclaim */
   AMSIterateFunction iterate;  /* iterator function */
   AMSSegSizePolicyFunction segSize; /* SegSize policy */
   RingStruct segRing;          /* ring of segments in the pool */
@@ -90,9 +89,6 @@ typedef struct AMSSegStruct {
 
 #define PoolPoolAMS(pool) PARENT(AMSStruct, poolStruct, (pool))
 #define AMSPool(ams)      (&(ams)->poolStruct)
-
-#define ActionAMS(action) PARENT(AMSStruct, actionStruct, (action))
-#define AMSAction(ams)    (&(ams)->actionStruct)
 
 
 /* macros for abstracting index/address computations */
@@ -173,7 +169,9 @@ typedef struct AMSSegStruct {
    : (SegAMSSeg(seg)->firstFree > (index)))
 
 
-extern Res AMSInitInternal(AMS ams, Format format);
+/* the rest */
+
+extern Res AMSInitInternal(AMS ams, Format format, Chain chain);
 extern void AMSFinish(Pool pool);
 extern Bool AMSCheck(AMS ams);
 
@@ -190,14 +188,19 @@ extern Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 extern void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern void AMSReclaim(Pool pool, Trace trace, Seg seg);
 
+#define AMSChain(ams) ((ams)->chain)
+
+
 typedef SegClass AMSSegClass;
 typedef SegClassStruct AMSSegClassStruct;
 extern AMSSegClass EnsureAMSSegClass(void);
 extern Bool AMSSegCheck(AMSSeg seg);
 
+
 typedef PoolClass AMSPoolClass;
 typedef PoolClassStruct AMSPoolClassStruct;
 
 extern AMSPoolClass EnsureAMSPoolClass(void);
+
 
 #endif /* poolams_h */
