@@ -950,11 +950,23 @@ count_combining_after (string, length, pos, pos_byte)
   if (length == 0 || ASCII_BYTE_P (string[length - 1]))
     return 0;
   i = length - 1;
-  while (i > 0 && ! CHAR_HEAD_P (string[i]))
+  while (i >= 0 && ! CHAR_HEAD_P (string[i]))
     {
       i--;
     }
-  if (! BASE_LEADING_CODE_P (string[i]))
+  if (i < 0)
+    {
+      /* All characters in `string' are not character head.
+	 We must check also preceding bytes at POS.
+	 We are sure that the gap is at POS.  */
+      string = BEG_ADDR;
+      i = pos_byte - 2;
+      while (i >= 0 && ! CHAR_HEAD_P (string[i]))
+	i--;
+      if (i < 0 || !BASE_LEADING_CODE_P (string[i]))
+	return 0;
+    }
+  else if (!BASE_LEADING_CODE_P (string[i]))
     return 0;
 
   if (pos == ZV)
