@@ -44,6 +44,9 @@ width which is the minimum number of pixels necessary to display any
 of the currently defined fringe bitmaps.  The width of the built-in
 fringe bitmaps is 8 pixels.
 
+** In GUD mode when talking to GDB, C-x C-a C-j "jumps" the program
+counter to the specified source line (the one where point is).
+
 ** hide-ifdef-mode now uses overlays rather than selective-display
 to hide its text.  This should be mostly transparent but slightly
 changes the behavior of motion commands line C-e and C-p.
