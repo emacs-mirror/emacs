@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.101) $
+ * $HopeName: MMsrc!trace.c(trunk.102) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.trace.  */
@@ -9,7 +9,7 @@
 #include "mpm.h"
 #include <limits.h> /* for LONG_MAX */
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.101) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.102) $");
 
 
 /* Types */
@@ -1509,12 +1509,14 @@ static void traceQuantum(Trace trace)
 
 /* TracePoll -- Check if there's any tracing work to be done */
 
-void TracePoll(Arena arena)
+void TracePoll(Globals globals)
 {
   Trace trace;
   Res res;
-
-  AVERT(Arena, arena);
+  Arena arena;
+ 
+  AVERT(Globals, globals);
+  arena = GlobalsArena(globals); 
 
   if (arena->busyTraces == TraceSetEMPTY) {
     /* If no traces are going on, see if we need to start one. */
@@ -1596,33 +1598,35 @@ failCondemn:
 
 /* ArenaClamp -- clamp the arena (no new collections) */
 
-void ArenaClamp(Arena arena)
+void ArenaClamp(Globals globals)
 {
-  AVERT(Arena, arena);
-  arena->clamped = TRUE;
+  AVERT(Globals, globals);
+  globals->clamped = TRUE;
 }
 
 
 /* ArenaRelease -- release the arena (allow new collections) */
 
-void ArenaRelease(Arena arena)
+void ArenaRelease(Globals globals)
 {
-  AVERT(Arena, arena);
-  arena->clamped = FALSE;
-  TracePoll(arena);
+  AVERT(Globals, globals);
+  globals->clamped = FALSE;
+  TracePoll(globals);
 }
 
 
 /* ArenaClamp -- finish all collections and clamp the arena */
  
-void ArenaPark(Arena arena)
+void ArenaPark(Globals globals)
 {
   TraceId ti;
   Trace trace;
+  Arena arena;
  
-  AVERT(Arena, arena);
+  AVERT(Globals, globals);
+  arena = GlobalsArena(globals); 
  
-  arena->clamped = TRUE;
+  globals->clamped = TRUE;
  
   while (arena->busyTraces != TraceSetEMPTY) {
     /* Poll active traces to make progress. */
@@ -1637,15 +1641,15 @@ void ArenaPark(Arena arena)
 
 /* ArenaCollect -- collect everything in arena */
 
-Res ArenaCollect(Arena arena)
+Res ArenaCollect(Globals globals)
 {
   Trace trace;
   Res res;
 
-  AVERT(Arena, arena);
-  ArenaPark(arena);
+  AVERT(Globals, globals);
+  ArenaPark(globals);
 
-  res = TraceCreate(&trace, arena);
+  res = TraceCreate(&trace, GlobalsArena(globals));
   AVER(res == ResOK); /* should be a trace available -- we're parked */
 
   res = traceCondemnAll(trace);
@@ -1653,7 +1657,7 @@ Res ArenaCollect(Arena arena)
     goto failBegin;
 
   TraceStart(trace, 0.0, 0.0);
-  ArenaPark(arena);
+  ArenaPark(globals);
   return ResOK;
 
 failBegin:
