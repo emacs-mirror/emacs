@@ -1,6 +1,6 @@
 ;; autoload.el --- maintain autoloads in loaddefs.el
 
-;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2001
+;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2001, 2003
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -34,6 +34,7 @@
 
 (require 'lisp-mode)			;for `doc-string-elt' properties.
 (require 'help-fns)			;for help-add-fundoc-usage.
+(eval-when-compile (require 'cl))
 
 (defvar generated-autoload-file "loaddefs.el"
    "*File \\[update-file-autoloads] puts autoloads into.
@@ -90,8 +91,11 @@ or macro definition or a defcustom)."
 		   define-minor-mode defun* defmacro*))
       (let* ((macrop (memq car '(defmacro defmacro*)))
 	     (name (nth 1 form))
-	     (args (if (memq car '(defun defmacro defun* defmacro*))
-		       (nth 2 form) t))
+	     (args (case car
+		    ((defun defmacro defun* defmacro*) (nth 2 form))
+		    ((define-skeleton) '(&optional str arg))
+		    ((define-generic-mode define-derived-mode) nil)
+		    (t)))
 	     (body (nthcdr (get car 'doc-string-elt) form))
 	     (doc (if (stringp (car body)) (pop body))))
 	(when (listp args)
