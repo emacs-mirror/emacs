@@ -655,7 +655,7 @@ list_of_items (pane)
 }
 
 DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
-  doc: /* Pop up a deck-of-cards menu and return user's selection.
+       doc: /* Pop up a deck-of-cards menu and return user's selection.
 POSITION is a position specification.  This is either a mouse button event
 or a list ((XOFFSET YOFFSET) WINDOW)
 where XOFFSET and YOFFSET are positions in pixels from the top left
@@ -880,7 +880,7 @@ cached information about equivalent key sequences.  */)
 #ifdef HAVE_MENUS
 
 DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 2, 0,
-  doc: /* Pop up a dialog box and return user's selection.
+       doc: /* Pop up a dialog box and return user's selection.
 POSITION specifies which frame to use.
 This is normally a mouse button event or a window or frame.
 If POSITION is t, it means to use the frame the mouse is on.
