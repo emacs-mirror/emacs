@@ -9,11 +9,11 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/06/05 14:40:03 vinicius>
-;; Version:	5.2.2
+;; Time-stamp:	<2000/06/21 14:10:51 vinicius>
+;; Version:	5.2.3
 
-(defconst ps-print-version "5.2.2"
-  "ps-print.el, v 5.2.2 <2000/06/05 vinicius>
+(defconst ps-print-version "5.2.3"
+  "ps-print.el, v 5.2.3 <2000/06/21 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -248,6 +248,17 @@ Please send all bug fixes and enhancements to
 ;; default value is nil (`normal' printing).
 ;;
 ;; The `upside-down' orientation can be used in portrait or landscape mode.
+;;
+;; The variable `ps-selected-pages' specifies which pages to print.  If it's
+;; nil, all pages are printed.  If it's a list, the list element may be an
+;; integer or a cons cell (FROM . TO) designating FROM page to TO page; any
+;; invalid element is ignored, that is, an integer lesser than one or if FROM
+;; is greater than TO.  Otherwise, it's treated as nil.  The default value is
+;; nil (print all pages).  After ps-print processing `ps-selected-pages' is set
+;; to nil.  But the latest `ps-selected-pages' is saved in
+;; `ps-last-selected-pages' (see it for documentation).  So you can restore the
+;; latest selected pages by using `ps-last-selected-pages' or by calling
+;; `ps-restore-selected-pages' command (see it for documentation).
 ;;
 ;;
 ;; Horizontal layout
@@ -803,11 +814,11 @@ Please send all bug fixes and enhancements to
 ;; - create a new buffer
 ;; - generate the PostScript image to a file (C-u M-x ps-print-buffer)
 ;; - open this file and find the line:
-;;	`% 3 cm 20 cm moveto  10 /Courier ReportFontInfo  showpage'
+;;	`% 3 cm 20 cm moveto  10/Courier ReportFontInfo  showpage'
 ;; - delete the leading `%' (which is the PostScript comment character)
 ;; - replace in this line `Courier' by the new font (say `Helvetica')
 ;;   to get the line:
-;;	`3 cm 20 cm moveto  10 /Helvetica ReportFontInfo  showpage'
+;;	`3 cm 20 cm moveto  10/Helvetica ReportFontInfo  showpage'
 ;; - send this file to the printer (or to ghostscript).
 ;;   You should read the following on the output page:
 ;;
@@ -1067,63 +1078,67 @@ Please send all bug fixes and enhancements to
 ;; New since version 2.8
 ;; ---------------------
 ;;
-;; [vinicius] 20000310 Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; [vinicius] Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;
-;; PostScript error handler.
-;; `ps-user-defined-prologue' and `ps-error-handler-message'.
+;;    20000617
+;;	 `ps-manual-feed', `ps-warn-paper-type', `ps-print-upside-down',
+;;	 `ps-selected-pages', `ps-last-selected-pages',
+;;	 `ps-restore-selected-pages', `ps-switch-header',
+;;	 `ps-line-number-step', `ps-line-number-start',
+;;	 `ps-zebra-stripe-follow' and `ps-use-face-background'.
 ;;
-;; [vinicius] 991211 Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;    20000310
+;;	 PostScript error handler.
+;;	 `ps-user-defined-prologue' and `ps-error-handler-message'.
 ;;
-;; `ps-print-customize'.
+;;    991211
+;;	 `ps-print-customize'.
 ;;
-;; [vinicius] 990703 Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;    990703
+;;	 Better customization.
+;;	 `ps-banner-page-when-duplexing' and `ps-zebra-color'.
 ;;
-;; Better customization.
-;; `ps-banner-page-when-duplexing' and `ps-zebra-color'.
-;;
-;; [vinicius] 990513 Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;;
-;; N-up printing.
-;; Hook: `ps-print-begin-sheet-hook'.
+;;    990513
+;;	 N-up printing.
+;;	 Hook: `ps-print-begin-sheet-hook'.
 ;;
 ;; [keinichi] 990509 Kein'ichi Handa <handa@etl.go.jp>
 ;;
 ;; `ps-print-region-function'
 ;;
-;; [vinicius] 990301 Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; [vinicius] Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;
-;; PostScript tumble and setpagedevice.
+;;    990301
+;;	 PostScript tumble and setpagedevice.
 ;;
-;; [vinicius] 980922 Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;;
-;; PostScript prologue header comment insertion.
-;; Skip invisible text better.
+;;    980922
+;;	 PostScript prologue header comment insertion.
+;;	 Skip invisible text better.
 ;;
 ;; [keinichi] 980819 Kein'ichi Handa <handa@etl.go.jp>
 ;;
 ;; Multi-byte buffer handling.
 ;;
-;; [vinicius] 980306 Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; [vinicius] Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;
-;; Skip invisible text.
+;;    980306
+;;	 Skip invisible text.
 ;;
-;; [vinicius] 971130 Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;    971130
+;;	 Hooks: `ps-print-hook', `ps-print-begin-page-hook' and
+;;	 `ps-print-begin-column-hook'.
+;;	 Put one header per page over the columns.
+;;	 Better database font management.
+;;	 Better control characters handling.
 ;;
-;; Hooks: `ps-print-hook', `ps-print-begin-page-hook' and
-;; `ps-print-begin-column-hook'.
-;; Put one header per page over the columns.
-;; Better database font management.
-;; Better control characters handling.
-;;
-;; [vinicius] 971121 Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;;
-;; Dynamic evaluation at print time of `ps-lpr-switches'.
-;; Handle control characters.
-;; Face remapping.
-;; New face attributes.
-;; Line number.
-;; Zebra stripes.
-;; Text and/or image on background.
+;;    971121
+;;	 Dynamic evaluation at print time of `ps-lpr-switches'.
+;;	 Handle control characters.
+;;	 Face remapping.
+;;	 New face attributes.
+;;	 Line number.
+;;	 Zebra stripes.
+;;	 Text and/or image on background.
 ;;
 ;; [jack] 960517 Jacques Duthen <duthen@cegelec-red.fr>
 ;;
@@ -1273,12 +1288,36 @@ Please send all bug fixes and enhancements to
       (char-charset (char-after arg))))
 
 
+;; GNU Emacs
 (or (fboundp 'line-beginning-position)
     (defun line-beginning-position (&optional n)
       (save-excursion
 	(and n (/= n 1) (forward-line (1- n)))
 	(beginning-of-line)
 	(point))))
+
+
+;; to avoid compilation gripes
+(eval-and-compile
+  (mapcar #'(lambda (sym)
+	      (or (fboundp sym)
+		  (defalias sym 'ignore)))
+	  '(;; XEmacs
+	    color-instance-p
+	    color-instance-rgb-components
+	    color-name
+	    color-specifier-p
+	    copy-coding-system
+	    device-class
+	    extent-end-position
+	    extent-face
+	    extent-priority
+	    extent-start-position
+	    face-font-instance
+	    find-coding-system
+	    font-instance-properties
+	    make-color-instance
+	    map-extents)))
 
 
 (defconst ps-windows-system
@@ -1587,6 +1626,30 @@ It's used when `ps-spool-config' is set to `setpagedevice'."
 (defcustom ps-print-upside-down nil
   "*Non-nil means print upside-down."
   :type 'boolean
+  :group 'ps-print-page)
+
+(defcustom ps-selected-pages nil
+  "*Specify which pages to print.
+
+If it's nil, all pages are printed.
+
+If it's a list, the list element may be an integer or a cons cell (FROM . TO)
+designating FROM page to TO page; any invalid element is ignored, that is, an
+integer lesser than one or if FROM is greater than TO.
+
+Otherwise, it's treated as nil.
+
+After ps-print processing `ps-selected-pages' is set to nil.  But the latest
+`ps-selected-pages' is saved in `ps-last-selected-pages' (see it for
+documentation).  So you can restore the latest selected pages by using
+`ps-last-selected-pages' or by calling `ps-restore-selected-pages' command (see
+it for documentation)."
+  :type '(repeat :tag "Selected Pages"
+		 (radio :tag "Page"
+			(integer :tag "Number")
+			(cons :tag "Range"
+			      (integer :tag "From")
+			      (integer :tag "To"))))
   :group 'ps-print-page)
 
 (defcustom ps-print-control-characters 'control-8-bit
@@ -2184,9 +2247,9 @@ To get the info for another specific font (say Helvetica), do the following:
 - generate the PostScript image to a file (C-u M-x ps-print-buffer)
 - open this file and delete the leading `%' (which is the PostScript
   comment character) from the line
-	   `% 3 cm 20 cm moveto  10 /Courier ReportFontInfo  showpage'
+	   `% 3 cm 20 cm moveto  10/Courier ReportFontInfo  showpage'
   to get the line
-	   `3 cm 20 cm moveto  10 /Helvetica ReportFontInfo  showpage'
+	   `3 cm 20 cm moveto  10/Helvetica ReportFontInfo  showpage'
 - add the values to `ps-font-info-database'.
 You can get all the fonts of YOUR printer using `ReportAllFontInfo'."
   :type '(repeat (list :tag "Font Definition"
@@ -2425,6 +2488,20 @@ By default, this directory is the same as in the variable `data-directory'."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Selected Pages
+
+
+(defvar ps-last-selected-pages nil
+  "Latest `ps-selected-pages' value.")
+
+
+(defun ps-restore-selected-pages ()
+  "Restore latest `ps-selected-pages' value."
+  (interactive)
+  (setq ps-selected-pages ps-last-selected-pages))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Customization
 
 
@@ -2568,6 +2645,7 @@ The table depends on the current ps-print setup."
   (format
    "
 ;;; ps-print version %s
+
 \(setq ps-print-color-p         %s
       ps-lpr-command           %S
       ps-lpr-switches          %s
@@ -2632,7 +2710,12 @@ The table depends on the current ps-print setup."
       ps-font-size              %s
       ps-header-font-family     %s
       ps-header-font-size       %s
-      ps-header-title-font-size %s)
+      ps-header-title-font-size %s
+
+      ps-selected-pages      %s
+      ps-last-selected-pages %s)
+
+;;; ps-print - end of settings
 "
    ps-print-version
    ps-print-color-p
@@ -2688,7 +2771,9 @@ The table depends on the current ps-print setup."
    (ps-print-quote ps-font-size)
    (ps-print-quote ps-header-font-family)
    (ps-print-quote ps-header-font-size)
-   (ps-print-quote ps-header-title-font-size)))
+   (ps-print-quote ps-header-title-font-size)
+   (ps-print-quote ps-selected-pages)
+   (ps-print-quote ps-last-selected-pages)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2711,8 +2796,7 @@ The table depends on the current ps-print setup."
 	((string-match "Epoch" emacs-version) 'epoch)
 	(t 'emacs)))
 
-(if (or (eq ps-print-emacs-type 'lucid)
-	(eq ps-print-emacs-type 'xemacs))
+(if (memq ps-print-emacs-type '(lucid xemacs))
     (if (< emacs-minor-version 12)
 	(setq ps-print-color-p nil))
   (require 'faces))			; face-font, face-underline-p,
@@ -2777,6 +2861,8 @@ The table depends on the current ps-print setup."
 (defvar ps-page-order 0)
 (defvar ps-page-count 0)
 (defvar ps-showline-count 1)
+(defvar ps-first-page nil)
+(defvar ps-last-page nil)
 
 (defvar ps-control-or-escape-regexp nil)
 (defvar ps-n-up-on nil)
@@ -3379,13 +3465,36 @@ page-height == bm + print-height + tm - ho - hh
   (insert ")"))				;insert end-string delimiter
 
 (defun ps-init-output-queue ()
-  (setq ps-output-head '("")
+  (setq ps-output-head (list "")
 	ps-output-tail ps-output-head))
 
+
+(defun ps-selected-pages ()
+  (while (progn
+	   (setq ps-first-page     (car (car ps-selected-pages))
+		 ps-last-page      (cdr (car ps-selected-pages))
+		 ps-selected-pages (cdr ps-selected-pages))
+	   (and ps-selected-pages
+		(< ps-last-page ps-page-postscript)))))
+
+
+(defsubst ps-print-page-p ()
+  (cond ((null ps-first-page))
+	((<= ps-page-postscript ps-last-page)
+	 (<= ps-first-page ps-page-postscript))
+	(ps-selected-pages
+	 (ps-selected-pages)
+	 (and (<= ps-first-page ps-page-postscript)
+	      (<= ps-page-postscript ps-last-page)))
+	(t
+	 nil)))
+
+
 (defun ps-output (&rest args)
-  (setcdr ps-output-tail args)
-  (while (cdr ps-output-tail)
-    (setq ps-output-tail (cdr ps-output-tail))))
+  (when (ps-print-page-p)
+    (setcdr ps-output-tail args)
+    (while (cdr ps-output-tail)
+      (setq ps-output-tail (cdr ps-output-tail)))))
 
 (defun ps-output-string (string)
   (ps-output t string))
@@ -4318,6 +4427,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
 
 (defun ps-begin-job ()
+  ;; prologue files
   (let ((last-char (aref ps-postscript-code-directory
 			 (1- (length ps-postscript-code-directory)))))
     (or (eq last-char ?/)
@@ -4330,8 +4440,28 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	    ps-print-prologue-2     (ps-prologue-file 2)
 	    ps-print-duplex-feature (ps-prologue-file 3)
 	    ps-mark-code-directory  ps-postscript-code-directory))
+  ;; selected pages
+  (let (new page)
+    (while ps-selected-pages
+      (setq page              (car ps-selected-pages)
+	    ps-selected-pages (cdr ps-selected-pages))
+      (cond ((integerp page)
+	     (and (> page 0)
+		  (setq new (cons (cons page page) new))))
+	    ((consp page)
+	     (and (integerp (car page)) (integerp (cdr page))
+		  (> (car page) 0)
+		  (<= (car page) (cdr page))
+		  (setq new (cons page new))))))
+    (setq ps-selected-pages      (sort new #'(lambda (one other)
+					       (< (car one) (car other))))
+	  ps-last-selected-pages ps-selected-pages
+	  ps-first-page          nil
+	  ps-last-page           nil))
+  ;; face background
   (or (listp ps-use-face-background)
       (setq ps-use-face-background t))
+  ;; line number
   (and (integerp ps-line-number-step)
        (<= ps-line-number-step 0)
        (setq ps-line-number-step 1))
@@ -4340,11 +4470,13 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 					 (if (integerp ps-line-number-step)
 					     ps-line-number-step
 					   ps-zebra-stripe-height))))
+  ;; spooling buffer
   (save-excursion
     (set-buffer ps-spool-buffer)
     (goto-char (point-max))
     (and (re-search-backward "^%%Trailer$" nil t)
 	 (delete-region (match-beginning 0) (point-max))))
+  ;; miscellaneous
   (setq ps-showline-count (car ps-printing-region)
 	ps-page-count 0
 	ps-font-size-internal        (ps-get-font-size 'ps-font-size)
@@ -4395,9 +4527,13 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	   (replace-match (format "%d BeginSheet" pages-per-sheet) t))))
   ;; Set dummy page
   (and ps-spool-duplex (= (mod ps-page-order 2) 1)
-       (ps-dummy-page))
+       (let (ps-first-page)
+	 (ps-dummy-page)))
   ;; Set end of PostScript file
-  (ps-output "EndSheet\n\n%%Trailer\n%%Pages: "
+  (or ps-first-page
+      (ps-output "EndSheet\n"))
+  (setq ps-first-page nil)		; disable selected pages
+  (ps-output "\n%%Trailer\n%%Pages: "
 	     (format "%d"
 		     (if (and needs-begin-file ps-banner-page-when-duplexing)
 			 (1+ ps-page-order)
@@ -4413,16 +4549,22 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
 (defun ps-header-sheet ()
   ;; Print only when a new sheet begins.
-  (setq ps-page-postscript (1+ ps-page-postscript)
-	ps-page-order (1+ ps-page-order))
-  (and (> ps-page-order 1)
-       (ps-output "EndSheet\n"))
-  (ps-output (if ps-n-up-on
-		 (format "\n%%%%Page: (%d \\(%d\\)) %d\n"
-			 ps-page-order ps-page-postscript ps-page-order)
-	       (format "\n%%%%Page: %d %d\n"
-		       ps-page-postscript ps-page-order))
-	     (format "%d BeginSheet\nBeginDSCPage\n" ps-n-up-printing)))
+  (let ((print-posterior (ps-print-page-p)))
+    (setq ps-page-postscript (1+ ps-page-postscript))
+    (cond ((ps-print-page-p)
+	   (setq ps-page-order (1+ ps-page-order))
+	   (and print-posterior (> ps-page-order 1)
+		(ps-output "EndSheet\n"))
+	   (ps-output (if ps-n-up-on
+			  (format "\n%%%%Page: (%d \\(%d\\)) %d\n"
+				  ps-page-order ps-page-postscript ps-page-order)
+			(format "\n%%%%Page: %d %d\n"
+				ps-page-postscript ps-page-order))
+		      (format "%d BeginSheet\nBeginDSCPage\n"
+			      ps-n-up-printing)))
+	  (print-posterior
+	   (let (ps-first-page)
+	     (ps-output "EndSheet\n"))))))
 
 
 (defsubst ps-header-page ()
@@ -4633,7 +4775,8 @@ EndDSCPage\n")
 	     ((= match ?\f)		; form feed
 	      ;; do not skip page if previous character is NEWLINE and
 	      ;; it is a beginning of page.
-	      (or (and (= (char-after (1- match-point)) ?\n)
+	      (or (and (> match-point 1)
+		       (= (char-after (1- match-point)) ?\n)
 		       (= ps-height-remaining ps-print-height))
 		  (ps-next-page)))
 
@@ -4713,6 +4856,10 @@ EndDSCPage\n")
 					; xemacs
 					; lucid
       (t				; epoch
+
+       (or (find-coding-system 'raw-text-unix)
+	   (copy-coding-system 'no-conversion-unix 'raw-text-unix))
+
        (defun ps-color-values (x-color)
 	 (let ((color (ps-xemacs-color-name x-color)))
 	   (cond
@@ -5089,6 +5236,7 @@ If FACE is not a valid face name, it is used default face."
 		    (ps-begin-file)
 		    (ps-mule-initialize))
 		  (ps-mule-begin-job from to)
+		  (ps-selected-pages)
 		  (ps-begin-page))
 		(set-buffer ps-source-buffer)
 		(funcall genfunc from to)
@@ -5125,7 +5273,9 @@ If FACE is not a valid face name, it is used default face."
     (goto-char (point-min))
     (and (re-search-forward "^/Lines 0 def\n/PageCount 0 def$" nil t)
 	 (replace-match (format "/Lines %d def\n/PageCount %d def"
-				total-lines total-pages) t))))
+				total-lines total-pages) t)))
+  ;; selected pages
+  (setq ps-selected-pages nil))
 
 
 (defvar ps-printer-name-option
