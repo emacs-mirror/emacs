@@ -1,4 +1,4 @@
-#!/bin/csh -f
+#!/bin/sh
 # Generate a permuted index of all names.
 # The result is a file called index.fns.
 
@@ -45,6 +45,7 @@ echo "Extract raw index from texinfo fn index."
 # change '\ ' to ' '
 # change lines with = < > since they mess up field extraction.
 # separate into fields delimited by "
+rm -f permuted.raw
 cat ${MANUAL}.fn | \
 	sed \
 	-e 's/(\([^)]*\))/\1/' \
@@ -57,7 +58,7 @@ cat ${MANUAL}.fn | \
 	-e 's/{\\tt\\gtr}/>/' \
 	-e 's/{\\tt\\less}/</' \
 	-e 's/}{/"/g' \
-	| awk -F\" '{print $2, $1}' >! permuted.raw
+	| awk -F\" '{print $2, $1}' > permuted.raw
 
 2:
 # Build break file for ptx.
@@ -66,7 +67,7 @@ cat <<EOF > permuted.break
 :
 EOF
 # Build the ignore file for ptx.
-# We would like to ignore "and", "or", and "for", 
+# We would like to ignore "and", "or", and "for",
 # but ptx ignores ignore words even if they stand alone.
 cat <<EOF > permuted.ignore
 the
@@ -84,12 +85,14 @@ by
 EOF
 
 echo "Make troff permuted index."
+rm -f permuted.t
 ptx -i permuted.ignore -b permuted.break -f -r -w 144 \
-	 < permuted.raw >! permuted.t
+	 < permuted.raw > permuted.t
 
 3:
 echo "Extract the desired fields."
-awk -F\" '{printf "%s\"%s\"%s\n", $4,$6,$9}' permuted.t >! permuted.fields 
+rm -f permuted.fields
+awk -F\" '{printf "%s\"%s\"%s\n", $4,$6,$9}' permuted.t > permuted.fields
 
 4:
 echo "Format for texindex."
