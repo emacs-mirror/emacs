@@ -71,8 +71,9 @@
 		    (let ((beg (min pos oldpos)) (end (max pos oldpos)))
 		      (and (/= (char-syntax (char-after beg)) ?\$)
 			   (setq mismatch
-				 (/= (char-after (1- end))
-				     (matching-paren (char-after beg)))))))
+				 (not (eq (char-after (1- end))
+					  ;; This can give nil.
+					  (matching-paren (char-after beg))))))))
 		;; If they don't properly match, use a different face,
 		;; or print a message.
 		(if mismatch
