@@ -248,7 +248,7 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'perl-comment-indent)
   (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments nil)
+  (setq parse-sexp-ignore-comments t)
   (run-hooks 'perl-mode-hook))
 
 ;; This is used by indent-for-comment
