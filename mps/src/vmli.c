@@ -1,6 +1,6 @@
 /* impl.c.vmli: VIRTUAL MEMORY MAPPING FOR LINUX
  *
- * $HopeName: MMsrc!vmli.c(MMdevel_drj_vmli.2) $
+ * $HopeName: MMsrc!vmli.c(trunk.2) $
  * Copyright (C) 1995, 1997, 1998 Harlequin Group, all rights reserved
  *
  * Readership: Any MPS developer
@@ -61,10 +61,10 @@
 /* for errno(2) */
 #include <errno.h>
 
-/* for getpagesize(2),close(2) */
+/* for sysconf(2),close(2) */
 #include <unistd.h>
 
-SRCID(vmo1, "$HopeName: MMsrc!vmli.c(MMdevel_drj_vmli.2) $");
+SRCID(vmli, "$HopeName: MMsrc!vmli.c(trunk.2) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -106,14 +106,23 @@ Bool VMCheck(VM vm)
 
 Res VMCreate(VM *vmReturn, Size size)
 {
-  void *addr;
   Align align;
-  int none_fd;
   VM vm;
+  int none_fd;
+  long pagesize;
+  void *addr;
 
   AVER(vmReturn != NULL);
 
-  align = (Align)getpagesize();
+  /* sysconf code copied wholesale from vmso.c */
+  /* Find out the page size from the OS */
+  pagesize = sysconf(_SC_PAGESIZE);
+  /* check the actual returned pagesize will fit in an object of */
+  /* type Align. */
+  AVER(pagesize > 0);
+  AVER((unsigned long)pagesize <= (unsigned long)(Align)-1);
+  /* Note implicit conversion from "long" to "Align". */
+  align = pagesize;
   AVER(SizeIsP2(align));
   size = SizeAlignUp(size, align);
   if((size == 0) || (size > (Size)(size_t)-1))
