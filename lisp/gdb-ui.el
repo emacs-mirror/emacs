@@ -37,38 +37,14 @@ Use `toggle-gdb-windows' to change this value during a gdb session"
   :type 'boolean
   :group 'gud)
 
-(defvar gdb-main-file nil "Source file from which program execution begins.")
-(defvar gdb-cdir nil "Compilation directory.")
 (defvar gdb-main-or-pc nil "Initialisation for Assembler buffer.")
-(defvar gdb-prev-main-or-pc nil)
 (defvar gdb-current-address nil)
-(defvar gdb-current-frame nil)
 (defvar gdb-display-in-progress nil)
 (defvar gdb-dive nil)
 (defvar gdb-first-time nil)
-(defvar breakpoint-enabled-icon 
-  "Icon for enabled breakpoint in display margin")
-(defvar breakpoint-disabled-icon 
-  "Icon for disabled breakpoint in display margin")
-(defvar gdb-nesting-level)
-(defvar gdb-expression-buffer-name)
-(defvar gdb-expression)
-(defvar gdb-point)
-(defvar gdb-annotation-arg)
-(defvar gdb-array-start)
-(defvar gdb-array-stop)
-(defvar gdb-display-number)
-(defvar gdb-dive-display-number)
-(defvar gdb-dive-map nil)
-(defvar gdb-display-string)
-(defvar gdb-values)
-(defvar gdb-array-size)
-(defvar gdb-array-slice-map nil)
-(defvar gdb-buffer-instance nil)
-(defvar gdb-source-window nil)
-(defvar gdb-target-name "--unknown--"
-  "The apparent name of the program being debugged in a gud buffer.")
+(defvar gdb-proc nil "The process associated with gdb.")
 
+;;;###autoload
 (defun gdba (command-line)
   "Run gdb on program FILE in buffer *gdb-FILE*.
 The directory containing FILE becomes the initial working directory
@@ -125,9 +101,7 @@ The following interactive lisp functions help control operation :
 
   (set (make-local-variable 'gud-minor-mode) 'gdba)
 
-;  (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t" "Set breakpoint at current line.")
-;  (gud-def gud-remove "clear %f:%l"  "\C-d" "Remove breakpoint at current line")
   (gud-def gud-run    "run"	     nil    "Run the program.")
   (gud-def gud-stepi  "stepi %p"     "\C-i" "Step one instruction with display.")
   (gud-def gud-step   "step %p"      "\C-s" "Step one source line with display.")
@@ -158,15 +132,15 @@ The following interactive lisp functions help control operation :
   (setq gud-last-last-frame nil)
 
   (run-hooks 'gdb-mode-hook)
-  (let ((instance
-	 (make-gdb-instance (get-buffer-process (current-buffer)))))
-    (if gdb-first-time (gdb-clear-inferior-io instance))
+  (setq gdb-proc (get-buffer-process (current-buffer)))
+  (gdb-make-instance)
+  (if gdb-first-time (gdb-clear-inferior-io))
 
 ; find source file and compilation directory here
-    (gdb-instance-enqueue-idle-input instance (list "server list\n"
-					       '(lambda () nil)))
-    (gdb-instance-enqueue-idle-input instance (list "server info source\n"
-				'(lambda () (gdb-source-info))))))
+  (gdb-instance-enqueue-idle-input (list "server list\n"
+					 '(lambda () nil)))
+  (gdb-instance-enqueue-idle-input (list "server info source\n"
+					 '(lambda () (gdb-source-info)))))
 
 (defun gud-break (arg)
   "Set breakpoint at current line or address."
@@ -196,7 +170,6 @@ The following interactive lisp functions help control operation :
   (save-excursion
     (let ((expr (gud-find-c-expr)))
       (gdb-instance-enqueue-idle-input
-       gdb-buffer-instance
        (list (concat "server whatis " expr "\n")
 	     `(lambda () (gud-display1 ,expr)))))))
 
@@ -204,12 +177,10 @@ The following interactive lisp functions help control operation :
   (goto-char (point-min))
     (if (re-search-forward "\*" nil t)
 	(gdb-instance-enqueue-idle-input
-	 gdb-buffer-instance
 	 (list (concat "server display* " expr "\n")
 	       '(lambda () nil)))
 ;else
       (gdb-instance-enqueue-idle-input
-       gdb-buffer-instance
        (list (concat "server display " expr "\n")
 	     '(lambda () nil)))))
 
@@ -218,7 +189,7 @@ The following interactive lisp functions help control operation :
 ;; output of GDB up to the next prompt and build the completion list.
 ;; It must also handle annotations.
 (defun gdba-complete-filter (string)
-  (gdb-output-burst gdb-buffer-instance string)
+  (gdb-output-burst string)
   (while (string-match "\n\032\032\\(.*\\)\n" string)
     (setq string (concat (substring string 0 (match-beginning 0))
 			 (substring string (match-end 0)))))
@@ -236,6 +207,8 @@ The following interactive lisp functions help control operation :
       (setq gud-gdb-complete-string string)
       "")))
 
+(defvar gdb-target-name "--unknown--"
+  "The apparent name of the program being debugged in a gud buffer.")
 
 (defun gdba-common-init (command-line massage-args marker-filter &optional find-file)
 
@@ -289,11 +262,8 @@ The following interactive lisp functions help control operation :
 	(setq w (cdr w)))
       (if w
 	  (setcar w file)))
-    (let ((old-instance gdb-buffer-instance))
-      (apply 'make-comint (concat "gdb-" filepart) program nil args)
-      (gud-mode)
-      (make-variable-buffer-local 'old-gdb-buffer-instance)
-      (setq old-gdb-buffer-instance old-instance))
+    (apply 'make-comint (concat "gdb-" filepart) program nil args)
+    (gud-mode)
     (setq gdb-target-name filepart))
   (make-local-variable 'gud-marker-filter)
   (setq gud-marker-filter marker-filter)
@@ -314,55 +284,31 @@ The following interactive lisp functions help control operation :
 ;; gdb-instance objects
 ;;
 
-(defun make-gdb-instance (proc)
-  "Create a gdb instance object from a gdb process."
-  (let ((instance (cons 'gdb-instance proc)))
-    (with-current-buffer (process-buffer proc)
-      (setq gdb-buffer-instance instance)
-      (progn
-	(mapc 'make-local-variable gdb-instance-variables)
-	(setq gdb-buffer-type 'gdba)
-	;; If we're taking over the buffer of another process,
-	;; take over it's ancillary buffers as well.
-	;;
-	(let ((dead old-gdb-buffer-instance))
-	  (dolist (b (buffer-list))
-		(set-buffer b)
-		(if (eq dead gdb-buffer-instance)
-		(setq gdb-buffer-instance instance))))))
-    instance))
-
-(defun gdb-instance-process (inst) (cdr inst))
-
-;;; The list of instance variables is built up by the expansions of
-;;; DEF-GDB-VARIABLE
-;;;
 (defvar gdb-instance-variables '()
   "A list of variables that are local to the GUD buffer associated
 with a gdb instance.")
 
+;;; The list of instance variables is built up by the expansions of
+;;; DEF-GDB-VARIABLE
+;;;
+
 (defmacro def-gdb-variable (name accessor setter &optional default doc)
   `(progn
-     (defvar ,name ,default ,(or doc "undocumented"))
+     (defvar ,name ,default ,doc)
      (if (not (memq ',name gdb-instance-variables))
-	 (setq gdb-instance-variables
-	       (cons ',name gdb-instance-variables)))
+	 (push ',name gdb-instance-variables))
      ,(and accessor
-	     `(defun ,accessor (instance)
-		(let
-		    ((buffer (gdb-get-instance-buffer instance 'gdba)))
-		  (and buffer
-		       (save-excursion
-			 (set-buffer buffer)
-			 ,name)))))
+	     `(defun ,accessor ()
+		(let ((buffer (gdb-get-instance-buffer 'gdba)))
+		  (and buffer (save-excursion
+				(set-buffer buffer)
+				,name)))))
      ,(and setter
-	     `(defun ,setter (instance val)
-		(let
-		    ((buffer (gdb-get-instance-buffer instance 'gdba)))
-		  (and buffer
-		       (save-excursion
-			 (set-buffer buffer)
-			 (setq ,name val))))))))
+	     `(defun ,setter (val)
+		(let ((buffer (gdb-get-instance-buffer 'gdba)))
+		  (and buffer (save-excursion
+				(set-buffer buffer)
+				(setq ,name val))))))))
 
 (defmacro def-gdb-var (root-symbol &optional default doc)
   (let* ((root (symbol-name root-symbol))
@@ -372,9 +318,6 @@ with a gdb instance.")
     `(def-gdb-variable
 	 ,var-name ,accessor ,setter
 	 ,default ,doc)))
-
-(def-gdb-var buffer-instance nil
-  "In an instance buffer, the buffer's instance.")
 
 (def-gdb-var buffer-type nil
   "One of the symbols bound in gdb-instance-buffer-rules")
@@ -418,58 +361,28 @@ Possible values are these symbols:
   "A list of trigger functions that have run later than their output
 handlers.")
 
-(defun in-gdb-instance-context (instance form)
-  "Funcall FORM in the GUD buffer of INSTANCE."
+(defun in-gdb-instance-context (form)
+  "Funcall FORM in the GUD buffer."
   (save-excursion
-    (set-buffer (gdb-get-instance-buffer instance 'gdba))
+    (set-buffer (gdb-get-instance-buffer 'gdba))
     (funcall form)))
 
 ;; end of instance vars
 
-;;
-;; finding instances
-;;
+(defun gdb-make-instance ()
+  "Create a gdb instance object from a gdb process."
+  (with-current-buffer (process-buffer gdb-proc)
+    (progn
+      (mapc 'make-local-variable gdb-instance-variables)
+      (setq gdb-buffer-type 'gdba))))
 
-(defun gdb-proc->instance (proc)
-  (save-excursion
-    (set-buffer (process-buffer proc))
-    gdb-buffer-instance))
-
-(defun gdb-mru-instance-buffer ()
-  "Return the most recently used (non-auxiliary) GUD buffer."
-  (save-excursion
-    (gdb-goto-first-gdb-instance (buffer-list))))
-
-(defun gdb-goto-first-gdb-instance (blist)
-  "Use gdb-mru-instance-buffer -- not this."
-  (and blist
-       (progn
-	 (set-buffer (car blist))
-	 (or (and gdb-buffer-instance
-		  (eq gdb-buffer-type 'gdba)
-		  (car blist))
-	     (gdb-goto-first-gdb-instance (cdr blist))))))
-
-(defun buffer-gdb-instance (buf)
-  (save-excursion
-    (set-buffer buf)
-    gdb-buffer-instance))
-
-(defun gdb-needed-default-instance ()
-  "Return the most recently used gdb instance or signal an error."
-  (let ((buffer (gdb-mru-instance-buffer)))
-    (or (and buffer (buffer-gdb-instance buffer))
-	(error "No instance of gdb found"))))
-
-(defun gdb-instance-target-string (instance)
+(defun gdb-instance-target-string ()
   "The apparent name of the program being debugged by a gdb instance.
 For sure this the root string used in smashing together the gdb
 buffer's name, even if that doesn't happen to be the name of a
 program."
   (in-gdb-instance-context
-   instance
    (function (lambda () gdb-target-name))))
-
 
 
 ;;
@@ -487,46 +400,39 @@ program."
 ;; Others are constructed by gdb-get-create-instance-buffer and
 ;; named according to the rules set forth in the gdb-instance-buffer-rules-assoc
 
-(defun gdb-get-instance-buffer (instance key)
-  "Return the instance buffer for INSTANCE tagged with type KEY.
+(defvar gdb-instance-buffer-rules-assoc '())
+
+(defun gdb-get-instance-buffer (key)
+  "Return the instance buffer tagged with type KEY.
 The key should be one of the cars in `gdb-instance-buffer-rules-assoc'."
   (save-excursion
-    (gdb-look-for-tagged-buffer instance key (buffer-list))))
+    (gdb-look-for-tagged-buffer key (buffer-list))))
 
-(defun gdb-get-create-instance-buffer (instance key)
+(defun gdb-get-create-instance-buffer (key)
   "Create a new gdb instance buffer of the type specified by KEY.
 The key should be one of the cars in `gdb-instance-buffer-rules-assoc'."
-  (or (gdb-get-instance-buffer instance key)
+  (or (gdb-get-instance-buffer key)
       (let* ((rules (assoc key gdb-instance-buffer-rules-assoc))
-	     (name (funcall (gdb-rules-name-maker rules) instance))
+	     (name (funcall (gdb-rules-name-maker rules)))
 	     (new (get-buffer-create name)))
 	(save-excursion
 	  (set-buffer new)
 	  (make-variable-buffer-local 'gdb-buffer-type)
 	  (setq gdb-buffer-type key)
-	  (make-variable-buffer-local 'gdb-buffer-instance)
-	  (setq gdb-buffer-instance instance)
 	  (if (cdr (cdr rules))
 	      (funcall (car (cdr (cdr rules)))))
 	  new))))
 
 (defun gdb-rules-name-maker (rules) (car (cdr rules)))
 
-(defun gdb-look-for-tagged-buffer (instance key bufs)
+(defun gdb-look-for-tagged-buffer (key bufs)
   (let ((retval nil))
     (while (and (not retval) bufs)
       (set-buffer (car bufs))
-      (if (and (eq gdb-buffer-instance instance)
-	       (eq gdb-buffer-type key))
+      (if (eq gdb-buffer-type key)
 	  (setq retval (car bufs)))
       (setq bufs (cdr bufs)))
     retval))
-
-(defun gdb-instance-buffer-p (buf)
-  (save-excursion
-    (set-buffer buf)
-    (and gdb-buffer-type
-	 (not (eq gdb-buffer-type 'gdba)))))
 
 ;;
 ;; This assoc maps buffer type symbols to rules.  Each rule is a list of
@@ -540,8 +446,6 @@ The key should be one of the cars in `gdb-instance-buffer-rules-assoc'."
 ;;     MODE - called in new new buffer with no arguments, should establish
 ;;	      the proper mode for the buffer.
 ;;
-
-(defvar gdb-instance-buffer-rules-assoc '())
 
 (defun gdb-set-instance-buffer-rules (buffer-type &rest rules)
   (let ((binding (assoc buffer-type gdb-instance-buffer-rules-assoc)))
@@ -564,9 +468,9 @@ The key should be one of the cars in `gdb-instance-buffer-rules-assoc'."
 (gdb-set-instance-buffer-rules 'gdb-partial-output-buffer
 			       'gdb-partial-output-name)
 
-(defun gdb-partial-output-name (instance)
+(defun gdb-partial-output-name ()
   (concat "*partial-output-"
-	  (gdb-instance-target-string instance)
+	  (gdb-instance-target-string)
 	  "*"))
 
 
@@ -574,9 +478,9 @@ The key should be one of the cars in `gdb-instance-buffer-rules-assoc'."
 			       'gdb-inferior-io-name
 			       'gdb-inferior-io-mode)
 
-(defun gdb-inferior-io-name (instance)
+(defun gdb-inferior-io-name ()
   (concat "*input/output of "
-	  (gdb-instance-target-string instance)
+	  (gdb-instance-target-string)
 	  "*"))
 
 (defvar gdb-inferior-io-mode-map (copy-keymap comint-mode-map))
@@ -603,35 +507,33 @@ The key should be one of the cars in `gdb-instance-buffer-rules-assoc'."
 (defun gdb-inferior-io-sender (proc string)
   (save-excursion
     (set-buffer (process-buffer proc))
-    (let ((instance gdb-buffer-instance))
-      (set-buffer (gdb-get-instance-buffer instance 'gdba))
-      (let ((gdb-proc (get-buffer-process (current-buffer))))
+      (set-buffer (gdb-get-instance-buffer 'gdba))
 	(process-send-string gdb-proc string)
-	(process-send-string gdb-proc "\n")))))
+	(process-send-string gdb-proc "\n")))
 
-(defun gdb-inferior-io-interrupt (instance)
+(defun gdb-inferior-io-interrupt ()
   "Interrupt the program being debugged."
-  (interactive (list (gdb-needed-default-instance)))
+  (interactive (list gdb-proc))
   (interrupt-process
-   (get-buffer-process (gdb-get-instance-buffer instance 'gdba)) comint-ptyp))
+   (get-buffer-process (gdb-get-instance-buffer 'gdba)) comint-ptyp))
 
-(defun gdb-inferior-io-quit (instance)
+(defun gdb-inferior-io-quit ()
   "Send quit signal to the program being debugged."
-  (interactive (list (gdb-needed-default-instance)))
+  (interactive (list gdb-proc))
   (quit-process
-   (get-buffer-process (gdb-get-instance-buffer instance 'gdba)) comint-ptyp))
+   (get-buffer-process (gdb-get-instance-buffer 'gdba)) comint-ptyp))
 
-(defun gdb-inferior-io-stop (instance)
+(defun gdb-inferior-io-stop ()
   "Stop the program being debugged."
-  (interactive (list (gdb-needed-default-instance)))
+  (interactive (list gdb-proc))
   (stop-process
-   (get-buffer-process (gdb-get-instance-buffer instance 'gdba)) comint-ptyp))
+   (get-buffer-process (gdb-get-instance-buffer 'gdba)) comint-ptyp))
 
-(defun gdb-inferior-io-eof (instance)
+(defun gdb-inferior-io-eof ()
   "Send end-of-file to the program being debugged."
-  (interactive (list (gdb-needed-default-instance)))
+  (interactive (list gdb-proc))
   (process-send-eof
-   (get-buffer-process (gdb-get-instance-buffer instance 'gdba))))
+   (get-buffer-process (gdb-get-instance-buffer 'gdba))))
 
 
 ;;
@@ -662,8 +564,7 @@ The key should be one of the cars in `gdb-instance-buffer-rules-assoc'."
 (defun gdb-send (proc string)
   "A comint send filter for gdb.
 This filter may simply queue output for a later time."
-  (let ((instance (gdb-proc->instance proc)))
-    (gdb-instance-enqueue-input instance (concat string "\n"))))
+    (gdb-instance-enqueue-input (concat string "\n")))
 
 ;; Note: Stuff enqueued here will be sent to the next prompt, even if it
 ;; is a query, or other non-top-level prompt.  To guarantee stuff will get
@@ -673,40 +574,38 @@ This filter may simply queue output for a later time."
 ;;  the user go first; it is not a bug.     -t]
 ;;
 
-(defun gdb-instance-enqueue-input (instance item)
-  (if (gdb-instance-prompting instance)
+(defun gdb-instance-enqueue-input (item)
+  (if (gdb-instance-prompting)
       (progn
-	(gdb-send-item instance item)
-	(set-gdb-instance-prompting instance nil))
+	(gdb-send-item item)
+	(set-gdb-instance-prompting nil))
     (set-gdb-instance-input-queue
-     instance
-     (cons item (gdb-instance-input-queue instance)))))
+     (cons item (gdb-instance-input-queue)))))
 
-(defun gdb-instance-dequeue-input (instance)
-  (let ((queue (gdb-instance-input-queue instance)))
+(defun gdb-instance-dequeue-input ()
+  (let ((queue (gdb-instance-input-queue)))
     (and queue
        (if (not (cdr queue))
 	   (let ((answer (car queue)))
-	     (set-gdb-instance-input-queue instance '())
+	     (set-gdb-instance-input-queue '())
 	     answer)
 	 (gdb-take-last-elt queue)))))
 
-(defun gdb-instance-enqueue-idle-input (instance item)
-  (if (and (gdb-instance-prompting instance)
-	   (not (gdb-instance-input-queue instance)))
+(defun gdb-instance-enqueue-idle-input (item)
+  (if (and (gdb-instance-prompting)
+	   (not (gdb-instance-input-queue)))
       (progn
-	(gdb-send-item instance item)
-	(set-gdb-instance-prompting instance nil))
+	(gdb-send-item item)
+	(set-gdb-instance-prompting nil))
     (set-gdb-instance-idle-input-queue
-     instance
-     (cons item (gdb-instance-idle-input-queue instance)))))
+     (cons item (gdb-instance-idle-input-queue)))))
 
-(defun gdb-instance-dequeue-idle-input (instance)
-  (let ((queue (gdb-instance-idle-input-queue instance)))
+(defun gdb-instance-dequeue-idle-input ()
+  (let ((queue (gdb-instance-idle-input-queue)))
     (and queue
        (if (not (cdr queue))
 	   (let ((answer (car queue)))
-	     (set-gdb-instance-idle-input-queue instance '())
+	     (set-gdb-instance-idle-input-queue '())
 	     answer)
 	 (gdb-take-last-elt queue)))))
 
@@ -743,8 +642,7 @@ This filter may simply queue output for a later time."
 (defun gdba-marker-filter (string)
   "A gud marker filter for gdb."
   ;; Bogons don't tell us the process except through scoping crud.
-  (let ((instance (gdb-proc->instance proc)))
-    (gdb-output-burst instance string)))
+  (gdb-output-burst string))
 
 (defvar gdb-annotation-rules
   '(("frames-invalid" gdb-invalidate-frame-and-assembler)
@@ -775,14 +673,14 @@ This filter may simply queue output for a later time."
     ("field-end" gdb-field-end)
     ) "An assoc mapping annotation tags to functions which process them.")
 
-(defun gdb-ignore-annotation (instance args)
+(defun gdb-ignore-annotation (args)
   nil)
 
 (defconst gdb-source-spec-regexp
   "\\(.*\\):\\([0-9]*\\):[0-9]*:[a-z]*:\\(0x[a-f0-9]*\\)")
 
 ;; Do not use this except as an annotation handler."
-(defun gdb-source (instance args)
+(defun gdb-source (args)
   (string-match gdb-source-spec-regexp args)
   ;; Extract the frame position from the marker.
   (setq gud-last-frame
@@ -795,102 +693,100 @@ This filter may simply queue output for a later time."
 				       (match-end 3)))
   (setq gdb-main-or-pc gdb-current-address)
 ;update with new frame for machine code if necessary
-  (gdb-invalidate-assembler instance))
+  (gdb-invalidate-assembler))
 
 ;; An annotation handler for `prompt'.
 ;; This sends the next command (if any) to gdb.
-(defun gdb-prompt (instance ignored)
-  (let ((sink (gdb-instance-output-sink instance)))
+(defun gdb-prompt (ignored)
+  (let ((sink (gdb-instance-output-sink)))
     (cond
      ((eq sink 'user) t)
      ((eq sink 'post-emacs)
-      (set-gdb-instance-output-sink instance 'user))
+      (set-gdb-instance-output-sink 'user))
      (t
-      (set-gdb-instance-output-sink instance 'user)
+      (set-gdb-instance-output-sink 'user)
       (error "Phase error in gdb-prompt (got %s)" sink))))
-  (let ((highest (gdb-instance-dequeue-input instance)))
+  (let ((highest (gdb-instance-dequeue-input)))
     (if highest
-	(gdb-send-item instance highest)
-      (let ((lowest (gdb-instance-dequeue-idle-input instance)))
+	(gdb-send-item highest)
+      (let ((lowest (gdb-instance-dequeue-idle-input)))
 	(if lowest
-	    (gdb-send-item instance lowest)
+	    (gdb-send-item lowest)
 	  (progn
-	    (set-gdb-instance-prompting instance t)
+	    (set-gdb-instance-prompting t)
 	    (gud-display-frame)))))))
 
 ;; An annotation handler for non-top-level prompts.
-(defun gdb-subprompt (instance ignored)
-  (let ((highest (gdb-instance-dequeue-input instance)))
+(defun gdb-subprompt (ignored)
+  (let ((highest (gdb-instance-dequeue-input)))
     (if highest
-	(gdb-send-item instance highest)
-      (set-gdb-instance-prompting instance t))))
+	(gdb-send-item highest)
+      (set-gdb-instance-prompting t))))
 
-(defun gdb-send-item (instance item)
-  (set-gdb-instance-current-item instance item)
+(defun gdb-send-item (item)
+  (set-gdb-instance-current-item item)
   (if (stringp item)
       (progn
-	(set-gdb-instance-output-sink instance 'user)
-	(process-send-string (gdb-instance-process instance)
-			     item))
+	(set-gdb-instance-output-sink 'user)
+	(process-send-string gdb-proc item))
     (progn
-      (gdb-clear-partial-output instance)
-      (set-gdb-instance-output-sink instance 'pre-emacs)
-      (process-send-string (gdb-instance-process instance)
-			   (car item)))))
+      (gdb-clear-partial-output)
+      (set-gdb-instance-output-sink 'pre-emacs)
+      (process-send-string gdb-proc (car item)))))
 
 ;; An annotation handler for `pre-prompt'.
 ;; This terminates the collection of output from a previous
 ;; command if that happens to be in effect.
-(defun gdb-pre-prompt (instance ignored)
-  (let ((sink (gdb-instance-output-sink instance)))
+(defun gdb-pre-prompt (ignored)
+  (let ((sink (gdb-instance-output-sink)))
     (cond
      ((eq sink 'user) t)
      ((eq sink 'emacs)
-      (set-gdb-instance-output-sink instance 'post-emacs)
+      (set-gdb-instance-output-sink 'post-emacs)
       (let ((handler
-	     (car (cdr (gdb-instance-current-item instance)))))
+	     (car (cdr (gdb-instance-current-item)))))
 	(save-excursion
-	  (set-buffer (gdb-get-create-instance-buffer
-		       instance 'gdb-partial-output-buffer))
+	  (set-buffer (gdb-get-create-instance-buffer 
+		       'gdb-partial-output-buffer))
 	  (funcall handler))))
      (t
-      (set-gdb-instance-output-sink instance 'user)
+      (set-gdb-instance-output-sink 'user)
       (error "Output sink phase error 1")))))
 
 ;; An annotation handler for `starting'.  This says that I/O for the subprocess
 ;; is now the program being debugged, not GDB.
-(defun gdb-starting (instance ignored)
-  (let ((sink (gdb-instance-output-sink instance)))
+(defun gdb-starting (ignored)
+  (let ((sink (gdb-instance-output-sink)))
     (cond
      ((eq sink 'user)
-      (set-gdb-instance-output-sink instance 'inferior))
+      (set-gdb-instance-output-sink 'inferior))
      (t (error "Unexpected `starting' annotation")))))
 
 ;; An annotation handler for `exited' and other annotations which say that
 ;; I/O for the subprocess is now GDB, not the program being debugged.
-(defun gdb-stopping (instance ignored)
-  (let ((sink (gdb-instance-output-sink instance)))
+(defun gdb-stopping (ignored)
+  (let ((sink (gdb-instance-output-sink)))
     (cond
      ((eq sink 'inferior)
-      (set-gdb-instance-output-sink instance 'user))
+      (set-gdb-instance-output-sink 'user))
      (t (error "Unexpected stopping annotation")))))
 
 ;; An annotation handler for `stopped'.  It is just like gdb-stopping, except
 ;; that if we already set the output sink to 'user in gdb-stopping, that is
 ;; fine.
-(defun gdb-stopped (instance ignored)
-  (let ((sink (gdb-instance-output-sink instance)))
+(defun gdb-stopped (ignored)
+  (let ((sink (gdb-instance-output-sink)))
     (cond
      ((eq sink 'inferior)
-      (set-gdb-instance-output-sink instance 'user))
+      (set-gdb-instance-output-sink 'user))
      ((eq sink 'user) t)
      (t (error "Unexpected stopped annotation")))))
 
-(defun gdb-frame-begin (instance ignored)
-  (let ((sink (gdb-instance-output-sink instance)))
+(defun gdb-frame-begin (ignored)
+  (let ((sink (gdb-instance-output-sink)))
     (cond
      ((eq sink 'inferior)
-      (set-gdb-instance-output-sink instance 'user))
+      (set-gdb-instance-output-sink 'user))
      ((eq sink 'user) t)
      ((eq sink 'emacs) t)
      (t (error "Unexpected frame-begin annotation (%S)" sink)))))
@@ -898,40 +794,43 @@ This filter may simply queue output for a later time."
 ;; An annotation handler for `post-prompt'.
 ;; This begins the collection of output from the current
 ;; command if that happens to be appropriate."
-(defun gdb-post-prompt (instance ignored)
-  (if (not (gdb-instance-pending-triggers instance))
+(defun gdb-post-prompt (ignored)
+  (if (not (gdb-instance-pending-triggers))
       (progn
-	(gdb-invalidate-registers instance ignored)
-	(gdb-invalidate-locals instance ignored)
-	(gdb-invalidate-display instance ignored)))
-  (let ((sink (gdb-instance-output-sink instance)))
+	(gdb-invalidate-registers ignored)
+	(gdb-invalidate-locals ignored)
+	(gdb-invalidate-display ignored)))
+  (let ((sink (gdb-instance-output-sink)))
     (cond
      ((eq sink 'user) t)
      ((eq sink 'pre-emacs)
-      (set-gdb-instance-output-sink instance 'emacs))
+      (set-gdb-instance-output-sink 'emacs))
 
      (t
-      (set-gdb-instance-output-sink instance 'user)
+      (set-gdb-instance-output-sink 'user)
       (error "Output sink phase error 3")))))
 
 ;; If we get an error whilst evaluating one of the expressions
 ;; we won't get the display-end annotation. Set the sink back to
 ;; user to make sure that the error message is seen
 
-(defun gdb-error-begin (instance ignored)
-  (set-gdb-instance-output-sink instance 'user))
+(defun gdb-error-begin (ignored)
+  (set-gdb-instance-output-sink 'user))
 
-(defun gdb-display-begin (instance ignored)
-  (if (gdb-get-instance-buffer instance 'gdb-display-buffer)
+(defun gdb-display-begin (ignored)
+  (if (gdb-get-instance-buffer 'gdb-display-buffer)
       (progn
-	(set-gdb-instance-output-sink instance 'emacs)
-	(gdb-clear-partial-output instance)
+	(set-gdb-instance-output-sink 'emacs)
+	(gdb-clear-partial-output)
 	(setq gdb-display-in-progress t))
-    (set-gdb-instance-output-sink instance 'user)))
+    (set-gdb-instance-output-sink 'user)))
 
-(defun gdb-display-number-end (instance ignored)
-  (set-buffer (gdb-get-instance-buffer
-	       instance 'gdb-partial-output-buffer))
+(defvar gdb-expression-buffer-name)
+(defvar gdb-display-number)
+(defvar gdb-dive-display-number)
+
+(defun gdb-display-number-end (ignored)
+  (set-buffer (gdb-get-instance-buffer 'gdb-partial-output-buffer))
   (setq gdb-display-number (buffer-string))
   (setq gdb-expression-buffer-name
 	(concat "*display " gdb-display-number "*"))
@@ -962,12 +861,17 @@ This filter may simply queue output for a later time."
 				  (tool-bar-lines . nil)
 				  (menu-bar-lines . nil)
 				  (minibuffer . nil))))))))))
-  (set-buffer (gdb-get-instance-buffer
-	       instance 'gdb-partial-output-buffer))
+  (set-buffer (gdb-get-instance-buffer 'gdb-partial-output-buffer))
   (setq gdb-dive nil))
 
-(defun gdb-display-end (instance ignored)
-  (set-buffer (gdb-get-instance-buffer instance 'gdb-partial-output-buffer))
+(defvar gdb-current-frame nil)
+(defvar gdb-nesting-level)
+(defvar gdb-expression)
+(defvar gdb-point)
+(defvar gdb-annotation-arg)
+
+(defun gdb-display-end (ignored)
+  (set-buffer (gdb-get-instance-buffer 'gdb-partial-output-buffer))
   (goto-char (point-min))
   (search-forward ": ")
   (looking-at "\\(.*?\\) =")
@@ -996,8 +900,7 @@ This filter may simply queue output for a later time."
 	  (set-buffer gdb-expression-buffer-name)
 	  (setq buffer-read-only nil)
 	  (delete-region (point-min) (point-max))
-	  (insert-buffer (gdb-get-instance-buffer
-			  instance 'gdb-partial-output-buffer))
+	  (insert-buffer (gdb-get-instance-buffer 'gdb-partial-output-buffer))
 	  (setq buffer-read-only t)))
 ; else
 ; display expression name...
@@ -1009,7 +912,6 @@ This filter may simply queue output for a later time."
 	(setq buffer-read-only nil)
 	(delete-region (point-min) (point-max))
 	(insert-buffer-substring (gdb-get-instance-buffer
-				  gdb-buffer-instance
 				  'gdb-partial-output-buffer)
 				 start end)
 	(insert "\n")))
@@ -1037,8 +939,8 @@ This filter may simply queue output for a later time."
 	(insert "\n")
 	(insert-text-button "[back]" 'type 'gdb-display-back)
 	(setq buffer-read-only t))))
-  (gdb-clear-partial-output instance)
-  (set-gdb-instance-output-sink instance 'user)
+  (gdb-clear-partial-output)
+  (set-gdb-instance-output-sink 'user)
   (setq gdb-display-in-progress nil))
 
 (define-button-type 'gdb-display-back
@@ -1049,7 +951,6 @@ This filter may simply queue output for a later time."
   ; delete display so they don't accumulate and delete buffer
   (let ((number gdb-display-number))
     (gdb-instance-enqueue-idle-input
-     gdb-buffer-instance
      (list (concat "server delete display " number "\n")
 	   '(lambda () nil)))
     (switch-to-buffer (concat "*display " gdb-dive-display-number "*"))
@@ -1060,43 +961,39 @@ This filter may simply queue output for a later time."
 
 ; array-section flags are just removed again but after counting. They
 ; might also be useful for arrays of structures and structures with arrays.
-(defun gdb-array-section-begin (instance args)
+(defun gdb-array-section-begin (args)
   (if gdb-display-in-progress
       (progn
 	(save-excursion
-	  (set-buffer (gdb-get-instance-buffer
-	       instance 'gdb-partial-output-buffer))
+	  (set-buffer (gdb-get-instance-buffer 'gdb-partial-output-buffer))
 	  (goto-char (point-max))
 	  (insert (concat "\n##array-section-begin " args "\n"))))))
 
-(defun gdb-array-section-end (instance ignored)
+(defun gdb-array-section-end (ignored)
   (if gdb-display-in-progress
       (progn
 	(save-excursion
-	  (set-buffer (gdb-get-instance-buffer
-	       instance 'gdb-partial-output-buffer))
+	  (set-buffer (gdb-get-instance-buffer 'gdb-partial-output-buffer))
 	  (goto-char (point-max))
 	  (insert "\n##array-section-end\n")))))
 
-(defun gdb-field-begin (instance args)
+(defun gdb-field-begin (args)
   (if gdb-display-in-progress
       (progn
 	(save-excursion
-	  (set-buffer (gdb-get-instance-buffer
-	       instance 'gdb-partial-output-buffer))
+	  (set-buffer (gdb-get-instance-buffer 'gdb-partial-output-buffer))
 	  (goto-char (point-max))
 	  (insert (concat "\n##field-begin " args "\n"))))))
 
-(defun gdb-field-end (instance ignored)
+(defun gdb-field-end (ignored)
   (if gdb-display-in-progress
       (progn
 	(save-excursion
-	  (set-buffer (gdb-get-instance-buffer
-	       instance 'gdb-partial-output-buffer))
+	  (set-buffer (gdb-get-instance-buffer 'gdb-partial-output-buffer))
 	  (goto-char (point-max))
 	  (insert "\n##field-end\n")))))
 
-(defun gdb-elt (instance ignored)
+(defun gdb-elt (ignored)
   (if gdb-display-in-progress
       (progn
 	(goto-char (point-max))
@@ -1123,6 +1020,54 @@ This filter may simply queue output for a later time."
   (gdb-delete-line)
   (setq gdb-nesting-level (- gdb-nesting-level 1)))
 
+(defvar gdb-dive-map nil)
+
+(setq gdb-dive-map (make-keymap))
+(define-key gdb-dive-map [mouse-2] 'gdb-dive)
+(define-key gdb-dive-map [S-mouse-2] 'gdb-dive-new-frame)
+
+(defun gdb-dive (event)
+  "Dive into structure."
+  (interactive "e")
+  (setq gdb-dive t)
+  (gdb-dive-new-frame event))
+
+(defun gdb-dive-new-frame (event)
+  "Dive into structure and display in a new frame."
+  (interactive "e")
+  (save-excursion
+    (mouse-set-point event)
+    (let ((point (point)) (gdb-full-expression gdb-expression)
+	  (end (progn (end-of-line) (point)))
+	  (gdb-part-expression "") (gdb-last-field nil) (gdb-display-char nil))
+      (beginning-of-line)
+      (if (looking-at "\*") (setq gdb-display-char "*"))
+      (re-search-forward "\\(\\S-+\\) = " end t)
+      (setq gdb-last-field (buffer-substring-no-properties
+			    (match-beginning 1)
+			    (match-end 1)))
+      (goto-char (match-beginning 1))
+      (let ((last-column (current-column)))
+	(while (re-search-backward "\\s-\\(\\S-+\\) = {" nil t)
+	  (goto-char (match-beginning 1))
+	  (if (and (< (current-column) last-column)
+		   (> (count-lines 1 (point)) 1))
+	      (progn
+		(setq gdb-part-expression
+		      (concat "." (buffer-substring-no-properties
+				   (match-beginning 1)
+				   (match-end 1)) gdb-part-expression))
+		(setq last-column (current-column))))))
+; * not needed for components of a pointer to a structure in gdb
+      (if (string-equal "*" (substring gdb-full-expression 0 1))
+	  (setq gdb-full-expression (substring gdb-full-expression 1 nil)))
+      (setq gdb-full-expression
+	    (concat gdb-full-expression gdb-part-expression "." gdb-last-field))
+      (gdb-instance-enqueue-idle-input (list
+					(concat "server display" gdb-display-char
+						" " gdb-full-expression "\n")
+			      '(lambda () nil))))))
+
 (defun gdb-insert-field ()
   (let ((start (progn (point)))
 	(end (progn (next-line) (point)))
@@ -1135,7 +1080,6 @@ This filter may simply queue output for a later time."
 	(insert "\t")
 	(setq num (+ num 1)))
       (insert-buffer-substring (gdb-get-instance-buffer
-				gdb-buffer-instance
 				'gdb-partial-output-buffer)
 			       start end)
       (put-text-property (- (point) (- end start)) (- (point) 1)
@@ -1144,6 +1088,8 @@ This filter may simply queue output for a later time."
                          'local-map gdb-dive-map)
       (setq buffer-read-only t))
     (delete-region start end)))
+
+(defvar gdb-values)
 
 (defun gdb-array-format ()
   (while (re-search-forward "##" nil t)
@@ -1169,6 +1115,31 @@ This filter may simply queue output for a later time."
 	  (gdb-delete-line)
 	  (setq gdb-nesting-level (- gdb-nesting-level 1))
 	  (gdb-array-format)))))
+
+(defvar gdb-array-start)
+(defvar gdb-array-stop)
+
+(defvar gdb-array-slice-map nil)
+(setq gdb-array-slice-map (make-keymap))
+(define-key gdb-array-slice-map [mouse-2] 'gdb-array-slice)
+
+(defun gdb-array-slice (event)
+  "Select an array slice to display."
+  (interactive "e")
+  (mouse-set-point event)
+  (save-excursion
+    (let ((n -1) (stop 0) (start 0) (point (point)))
+      (beginning-of-line)
+      (while (search-forward "[" point t)
+	(setq n (+ n 1)))
+      (setq start (string-to-int (read-string "Start index: ")))
+      (aset gdb-array-start n start)
+      (setq stop (string-to-int (read-string "Stop index: ")))
+      (aset gdb-array-stop n stop)))
+  (gdb-array-format1))
+
+(defvar gdb-display-string)
+(defvar gdb-array-size)
 
 (defun gdb-array-format1 ()
   (setq gdb-display-string "")
@@ -1247,59 +1218,12 @@ This filter may simply queue output for a later time."
        (concat "\n     Slice : " array-slice "\n\nIndex\tValues\n\n"))))
   (setq buffer-read-only t))
 
-(setq gdb-dive-map (make-keymap))
-(define-key gdb-dive-map [mouse-2] 'gdb-dive)
-(define-key gdb-dive-map [S-mouse-2] 'gdb-dive-new-frame)
-
-(defun gdb-dive (event)
-  "Dive into structure."
-  (interactive "e")
-  (setq gdb-dive t)
-  (gdb-dive-new-frame event))
-
-(defun gdb-dive-new-frame (event)
-  "Dive into structure and display in a new frame."
-  (interactive "e")
-  (save-excursion
-    (mouse-set-point event)
-    (let ((point (point)) (gdb-full-expression gdb-expression)
-	  (end (progn (end-of-line) (point)))
-	  (gdb-part-expression "") (gdb-last-field nil) (gdb-display-char nil))
-      (beginning-of-line)
-      (if (looking-at "\*") (setq gdb-display-char "*"))
-      (re-search-forward "\\(\\S-+\\) = " end t)
-      (setq gdb-last-field (buffer-substring-no-properties
-			    (match-beginning 1)
-			    (match-end 1)))
-      (goto-char (match-beginning 1))
-      (let ((last-column (current-column)))
-	(while (re-search-backward "\\s-\\(\\S-+\\) = {" nil t)
-	  (goto-char (match-beginning 1))
-	  (if (and (< (current-column) last-column)
-		   (> (count-lines 1 (point)) 1))
-	      (progn
-		(setq gdb-part-expression
-		      (concat "." (buffer-substring-no-properties
-				   (match-beginning 1)
-				   (match-end 1)) gdb-part-expression))
-		(setq last-column (current-column))))))
-; * not needed for components of a pointer to a structure in gdb
-      (if (string-equal "*" (substring gdb-full-expression 0 1))
-	  (setq gdb-full-expression (substring gdb-full-expression 1 nil)))
-      (setq gdb-full-expression
-	    (concat gdb-full-expression gdb-part-expression "." gdb-last-field))
-      (gdb-instance-enqueue-idle-input gdb-buffer-instance
-				       (list
-					(concat "server display" gdb-display-char
-						" " gdb-full-expression "\n")
-			      '(lambda () nil))))))
-
 ;; Handle a burst of output from a gdb instance.
 ;; This function is (indirectly) used as a gud-marker-filter.
 ;; It must return output (if any) to be insterted in the gdb
 ;; buffer.
 
-(defun gdb-output-burst (instance string)
+(defun gdb-output-burst (string)
   "Handle a burst of output from a gdb instance.
 This function is (indirectly) used as a gud-marker-filter.
 It must return output (if any) to be insterted in the gdb
@@ -1308,7 +1232,7 @@ buffer."
   (save-match-data
     (let (
 	  ;; Recall the left over burst from last time
-	  (burst (concat (gdb-instance-burst instance) string))
+	  (burst (concat (gdb-instance-burst) string))
 	  ;; Start accumulating output for the GUD buffer
 	  (output ""))
 
@@ -1323,9 +1247,7 @@ buffer."
 	  ;; It is either concatenated to OUTPUT or directed
 	  ;; elsewhere.
 	  (setq output
-		(gdb-concat-output
-		 instance
-		 output
+		(gdb-concat-output output
 		 (substring burst 0 (match-beginning 0))))
 
 	  ;; Take that stuff off the burst.
@@ -1344,7 +1266,6 @@ buffer."
 	    ;; Call the handler for this annotation.
 	    (if annotation-rule
 		(funcall (car (cdr annotation-rule))
-			 instance
 			 annotation-arguments)
 	      ;; Else the annotation is not recognized.  Ignore it silently,
 	      ;; so that GDB can add new annotations without causing
@@ -1359,9 +1280,7 @@ buffer."
 	  (progn
 	    ;; Everything before the potential marker start can be output.
 	    (setq output
-		  (gdb-concat-output
-		   instance
-		   output
+		  (gdb-concat-output output
 		   (substring burst 0 (match-beginning 0))))
 
 	    ;; Everything after, we save, to combine with later input.
@@ -1369,57 +1288,52 @@ buffer."
 
 	;; In case we know the burst contains no partial annotations:
 	(progn
-	  (setq output (gdb-concat-output instance output burst))
+	  (setq output (gdb-concat-output output burst))
 	  (setq burst "")))
 
       ;; Save the remaining burst for the next call to this function.
-      (set-gdb-instance-burst instance burst)
+      (set-gdb-instance-burst burst)
       output)))
 
-(defun gdb-concat-output (instance so-far new)
-  (let ((sink (gdb-instance-output-sink instance)))
+(defun gdb-concat-output (so-far new)
+  (let ((sink (gdb-instance-output-sink )))
     (cond
      ((eq sink 'user) (concat so-far new))
      ((or (eq sink 'pre-emacs) (eq sink 'post-emacs)) so-far)
      ((eq sink 'emacs)
-      (gdb-append-to-partial-output instance new)
+      (gdb-append-to-partial-output new)
       so-far)
      ((eq sink 'inferior)
-      (gdb-append-to-inferior-io instance new)
+      (gdb-append-to-inferior-io new)
       so-far)
      (t (error "Bogon output sink %S" sink)))))
 
-(defun gdb-append-to-partial-output (instance string)
+(defun gdb-append-to-partial-output (string)
   (save-excursion
     (set-buffer
-     (gdb-get-create-instance-buffer
-      instance 'gdb-partial-output-buffer))
+     (gdb-get-create-instance-buffer 'gdb-partial-output-buffer))
     (goto-char (point-max))
     (insert string)))
 
-(defun gdb-clear-partial-output (instance)
+(defun gdb-clear-partial-output ()
   (save-excursion
     (set-buffer
-     (gdb-get-create-instance-buffer
-      instance 'gdb-partial-output-buffer))
+     (gdb-get-create-instance-buffer 'gdb-partial-output-buffer))
     (delete-region (point-min) (point-max))))
 
-(defun gdb-append-to-inferior-io (instance string)
+(defun gdb-append-to-inferior-io (string)
   (save-excursion
     (set-buffer
-     (gdb-get-create-instance-buffer
-      instance 'gdb-inferior-io))
+     (gdb-get-create-instance-buffer 'gdb-inferior-io))
     (goto-char (point-max))
     (insert-before-markers string))
   (gdb-display-buffer
-   (gdb-get-create-instance-buffer instance
-				   'gdb-inferior-io)))
+   (gdb-get-create-instance-buffer 'gdb-inferior-io)))
 
-(defun gdb-clear-inferior-io (instance)
+(defun gdb-clear-inferior-io ()
   (save-excursion
     (set-buffer
-     (gdb-get-create-instance-buffer
-      instance 'gdb-inferior-io))
+     (gdb-get-create-instance-buffer 'gdb-inferior-io))
     (delete-region (point-min) (point-max))))
 
 
@@ -1433,7 +1347,7 @@ buffer."
 ;; the command behind the user's back.
 ;;
 ;; The idle input queue and the output phasing associated with
-;; the instance variable `(gdb-instance-output-sink instance)' help
+;; the instance variable `(gdb-instance-output-sink)' help
 ;; us to run commands behind the user's back.
 ;;
 ;; Below is the code for specificly managing buffers of output from one
@@ -1450,27 +1364,23 @@ buffer."
 ;; GDB-COMMAND is a string of such.  OUTPUT-HANDLER is the function bound to the
 ;; input in the input queue (see comment about ``gdb communications'' above).
 (defmacro def-gdb-auto-update-trigger (name demand-predicate gdb-command output-handler)
-  `(defun ,name (instance &optional ignored)
-     (if (and (,demand-predicate instance)
+  `(defun ,name (&optional ignored)
+     (if (and (,demand-predicate)
 	      (not (member ',name
-			   (gdb-instance-pending-triggers instance))))
+			   (gdb-instance-pending-triggers))))
 	 (progn
 	   (gdb-instance-enqueue-idle-input
-	    instance
 	    (list ,gdb-command ',output-handler))
 	   (set-gdb-instance-pending-triggers
-	    instance
 	    (cons ',name
-		  (gdb-instance-pending-triggers instance)))))))
+		  (gdb-instance-pending-triggers)))))))
 
 (defmacro def-gdb-auto-update-handler (name trigger buf-key custom-defun)
   `(defun ,name ()
      (set-gdb-instance-pending-triggers
-      instance
       (delq ',trigger
-	    (gdb-instance-pending-triggers instance)))
-     (let ((buf (gdb-get-instance-buffer instance
-					  ',buf-key)))
+	    (gdb-instance-pending-triggers)))
+     (let ((buf (gdb-get-instance-buffer ',buf-key)))
        (and buf
 	    (save-excursion
 	      (set-buffer buf)
@@ -1478,7 +1388,6 @@ buffer."
 		    (buffer-read-only nil))
 		(delete-region (point-min) (point-max))
 		(insert-buffer (gdb-get-create-instance-buffer
-				instance
 				'gdb-partial-output-buffer))
 		(goto-char p)))))
 ; put customisation here
@@ -1489,8 +1398,8 @@ buffer."
    `(progn
      (def-gdb-auto-update-trigger ,trigger-name
        ;; The demand predicate:
-       (lambda (instance)
-	 (gdb-get-instance-buffer instance ',buffer-key))
+       (lambda ()
+	 (gdb-get-instance-buffer ',buffer-key))
        ,gdb-command
        ,output-handler-name)
      (def-gdb-auto-update-handler ,output-handler-name
@@ -1526,6 +1435,12 @@ buffer."
 ;; buffer specific functions
   gdb-info-breakpoints-custom)
 
+(defvar gdb-cdir nil "Compilation directory.")
+(defvar breakpoint-enabled-icon 
+  "Icon for enabled breakpoint in display margin")
+(defvar breakpoint-disabled-icon 
+  "Icon for disabled breakpoint in display margin")
+
 ;-put breakpoint icons in relevant margins (even those set in the GUD buffer)
 (defun gdb-info-breakpoints-custom ()
   (let ((flag)(address))
@@ -1543,7 +1458,7 @@ buffer."
 	  (setq buffers (cdr buffers)))))
 
     (save-excursion
-      (set-buffer (gdb-get-instance-buffer instance 'gdb-breakpoints-buffer))
+      (set-buffer (gdb-get-instance-buffer 'gdb-breakpoints-buffer))
       (save-excursion
 	(goto-char (point-min))
 	(while (< (point) (- (point-max) 1))
@@ -1570,7 +1485,7 @@ buffer."
 			(set (make-local-variable 'gud-minor-mode) 'gdba)
 			(set (make-local-variable 'tool-bar-map)
 			     gud-tool-bar-map)
-			(set (make-variable-buffer-local 'left-margin-width) 2)
+			(setq left-margin-width 2)
 			(if (get-buffer-window (current-buffer))
 			    (set-window-margins (get-buffer-window
 						 (current-buffer))
@@ -1599,22 +1514,20 @@ buffer."
 					'left-margin)))))))))
 	  (end-of-line))))))
 
-(defun gdb-breakpoints-buffer-name (instance)
+(defun gdb-breakpoints-buffer-name ()
   (save-excursion
-    (set-buffer (process-buffer (gdb-instance-process instance)))
-    (concat "*breakpoints of " (gdb-instance-target-string instance) "*")))
+    (set-buffer (process-buffer gdb-proc))
+    (concat "*breakpoints of " (gdb-instance-target-string) "*")))
 
-(defun gdb-display-breakpoints-buffer (instance)
-  (interactive (list (gdb-needed-default-instance)))
+(defun gdb-display-breakpoints-buffer ()
+  (interactive (list gdb-proc))
   (gdb-display-buffer
-   (gdb-get-create-instance-buffer instance
-				    'gdb-breakpoints-buffer)))
+   (gdb-get-create-instance-buffer 'gdb-breakpoints-buffer)))
 
-(defun gdb-frame-breakpoints-buffer (instance)
-  (interactive (list (gdb-needed-default-instance)))
+(defun gdb-frame-breakpoints-buffer ()
+  (interactive (list gdb-proc))
   (switch-to-buffer-other-frame
-   (gdb-get-create-instance-buffer instance
-				    'gdb-breakpoints-buffer)))
+   (gdb-get-create-instance-buffer 'gdb-breakpoints-buffer)))
 
 (defvar gdb-breakpoints-mode-map nil)
 (setq gdb-breakpoints-mode-map (make-keymap))
@@ -1643,7 +1556,7 @@ buffer."
   (set (make-local-variable 'gud-minor-mode) 'gdba)
   (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
   (setq buffer-read-only t)
-  (gdb-invalidate-breakpoints gdb-buffer-instance))
+  (gdb-invalidate-breakpoints))
 
 (defun gdb-toggle-bp-this-line ()
   (interactive)
@@ -1652,7 +1565,6 @@ buffer."
     (if (not (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)"))
 	(error "Not recognized as break/watchpoint line")
       (gdb-instance-enqueue-idle-input
-       gdb-buffer-instance
        (list
 	(concat
 	 (if (eq ?y (char-after (match-beginning 2)))
@@ -1669,7 +1581,6 @@ buffer."
     (if (not (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)"))
 	(error "Not recognized as break/watchpoint line")
       (gdb-instance-enqueue-idle-input
-       gdb-buffer-instance
        (list
 	(concat
 	 "server delete "
@@ -1677,6 +1588,8 @@ buffer."
 			   (match-end 1))
 	 "\n")
 	'(lambda () nil)))))
+
+(defvar gdb-source-window nil)
 
 (defun gdb-goto-bp-this-line ()
 "Display the file at the breakpoint specified."
@@ -1715,7 +1628,7 @@ buffer."
 
 (defun gdb-info-frames-custom ()
   (save-excursion
-    (set-buffer (gdb-get-instance-buffer instance 'gdb-stack-buffer))
+    (set-buffer (gdb-get-instance-buffer 'gdb-stack-buffer))
     (let ((buffer-read-only nil))
       (goto-char (point-min))
       (looking-at "\\S-*\\s-*\\(\\S-*\\)")
@@ -1726,23 +1639,21 @@ buffer."
 			   'mouse-face 'highlight)
 	(forward-line 1)))))
 
-(defun gdb-stack-buffer-name (instance)
+(defun gdb-stack-buffer-name ()
   (save-excursion
-    (set-buffer (process-buffer (gdb-instance-process instance)))
+    (set-buffer (process-buffer gdb-proc))
     (concat "*stack frames of "
-	    (gdb-instance-target-string instance) "*")))
+	    (gdb-instance-target-string) "*")))
 
-(defun gdb-display-stack-buffer (instance)
-  (interactive (list (gdb-needed-default-instance)))
+(defun gdb-display-stack-buffer ()
+  (interactive (list gdb-proc))
   (gdb-display-buffer
-   (gdb-get-create-instance-buffer instance
-				   'gdb-stack-buffer)))
+   (gdb-get-create-instance-buffer 'gdb-stack-buffer)))
 
-(defun gdb-frame-stack-buffer (instance)
-  (interactive (list (gdb-needed-default-instance)))
+(defun gdb-frame-stack-buffer ()
+  (interactive (list gdb-proc))
   (switch-to-buffer-other-frame
-   (gdb-get-create-instance-buffer instance
-				   'gdb-stack-buffer)))
+   (gdb-get-create-instance-buffer 'gdb-stack-buffer)))
 
 (defvar gdb-frames-mode-map nil)
 (setq gdb-frames-mode-map (make-keymap))
@@ -1760,7 +1671,7 @@ buffer."
   (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
   (setq buffer-read-only t)
   (use-local-map gdb-frames-mode-map)
-  (gdb-invalidate-frames gdb-buffer-instance))
+  (gdb-invalidate-frames))
 
 (defun gdb-get-frame-number ()
   (save-excursion
@@ -1783,9 +1694,8 @@ buffer."
 	(setq selection (gdb-get-frame-number))))
     (select-window (posn-window (event-end e)))
     (save-excursion
-      (set-buffer (gdb-get-instance-buffer (gdb-needed-default-instance) 'gdba))
+      (set-buffer (gdb-get-instance-buffer 'gdba))
   (gdb-instance-enqueue-idle-input
-   gdb-buffer-instance
    (list
     (concat (gud-format-command "server frame %p" selection)
 		 "\n")
@@ -1823,24 +1733,22 @@ buffer."
   (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
   (setq buffer-read-only t)
   (use-local-map gdb-registers-mode-map)
-  (gdb-invalidate-registers gdb-buffer-instance))
+  (gdb-invalidate-registers))
 
-(defun gdb-registers-buffer-name (instance)
+(defun gdb-registers-buffer-name ()
   (save-excursion
-    (set-buffer (process-buffer (gdb-instance-process instance)))
-    (concat "*registers of " (gdb-instance-target-string instance) "*")))
+    (set-buffer (process-buffer gdb-proc))
+    (concat "*registers of " (gdb-instance-target-string) "*")))
 
-(defun gdb-display-registers-buffer (instance)
-  (interactive (list (gdb-needed-default-instance)))
+(defun gdb-display-registers-buffer ()
+  (interactive (list gdb-proc))
   (gdb-display-buffer
-   (gdb-get-create-instance-buffer instance
-				   'gdb-registers-buffer)))
+   (gdb-get-create-instance-buffer 'gdb-registers-buffer)))
 
-(defun gdb-frame-registers-buffer (instance)
-  (interactive (list (gdb-needed-default-instance)))
+(defun gdb-frame-registers-buffer ()
+  (interactive (list gdb-proc))
   (switch-to-buffer-other-frame
-   (gdb-get-create-instance-buffer instance
-				   'gdb-registers-buffer)))
+   (gdb-get-create-instance-buffer 'gdb-registers-buffer)))
 
 ;;
 ;; Locals buffers
@@ -1855,11 +1763,9 @@ buffer."
 
 ;Abbreviate for arrays and structures. These can be expanded using gud-display
 (defun gdb-info-locals-handler nil
-  (set-gdb-instance-pending-triggers
-   instance (delq (quote gdb-invalidate-locals)
-		  (gdb-instance-pending-triggers instance)))
-  (let ((buf (gdb-get-instance-buffer instance
-				      (quote gdb-partial-output-buffer))))
+  (set-gdb-instance-pending-triggers (delq (quote gdb-invalidate-locals)
+					   (gdb-instance-pending-triggers)))
+  (let ((buf (gdb-get-instance-buffer (quote gdb-partial-output-buffer))))
     (save-excursion
       (set-buffer buf)
       (goto-char (point-min))
@@ -1868,14 +1774,13 @@ buffer."
       (replace-regexp "{[-0-9, {}\]*\n" "(array);\n")))
       (goto-char (point-min))
       (replace-regexp "{.*=.*\n" "(structure);\n")
-  (let ((buf (gdb-get-instance-buffer instance (quote gdb-locals-buffer))))
+  (let ((buf (gdb-get-instance-buffer (quote gdb-locals-buffer))))
     (and buf (save-excursion
 	       (set-buffer buf)
 	       (let ((p (point))
 		     (buffer-read-only nil))
 		 (delete-region (point-min) (point-max))
 		 (insert-buffer (gdb-get-create-instance-buffer
-				 instance
 				 (quote gdb-partial-output-buffer)))
 		 (goto-char p)))))
   (run-hooks (quote gdb-info-locals-hook)))
@@ -1901,24 +1806,22 @@ buffer."
   (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
   (setq buffer-read-only t)
   (use-local-map gdb-locals-mode-map)
-  (gdb-invalidate-locals gdb-buffer-instance))
+  (gdb-invalidate-locals))
 
-(defun gdb-locals-buffer-name (instance)
+(defun gdb-locals-buffer-name ()
   (save-excursion
-    (set-buffer (process-buffer (gdb-instance-process instance)))
-    (concat "*locals of " (gdb-instance-target-string instance) "*")))
+    (set-buffer (process-buffer gdb-proc))
+    (concat "*locals of " (gdb-instance-target-string) "*")))
 
-(defun gdb-display-locals-buffer (instance)
-  (interactive (list (gdb-needed-default-instance)))
+(defun gdb-display-locals-buffer ()
+  (interactive (list gdb-proc))
   (gdb-display-buffer
-   (gdb-get-create-instance-buffer instance
-				   'gdb-locals-buffer)))
+   (gdb-get-create-instance-buffer 'gdb-locals-buffer)))
 
-(defun gdb-frame-locals-buffer (instance)
-  (interactive (list (gdb-needed-default-instance)))
+(defun gdb-frame-locals-buffer ()
+  (interactive (list gdb-proc))
   (switch-to-buffer-other-frame
-   (gdb-get-create-instance-buffer instance
-				   'gdb-locals-buffer)))
+   (gdb-get-create-instance-buffer 'gdb-locals-buffer)))
 ;;
 ;; Display expression buffers (just allow one to start with)
 ;;
@@ -1974,24 +1877,22 @@ buffer."
   (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
   (setq buffer-read-only t)
   (use-local-map gdb-display-mode-map)
-  (gdb-invalidate-display gdb-buffer-instance))
+  (gdb-invalidate-display))
 
-(defun gdb-display-buffer-name (instance)
+(defun gdb-display-buffer-name ()
   (save-excursion
-    (set-buffer (process-buffer (gdb-instance-process instance)))
-    (concat "*Displayed expressions of " (gdb-instance-target-string instance) "*")))
+    (set-buffer (process-buffer gdb-proc))
+    (concat "*Displayed expressions of " (gdb-instance-target-string) "*")))
 
-(defun gdb-display-display-buffer (instance)
-  (interactive (list (gdb-needed-default-instance)))
+(defun gdb-display-display-buffer ()
+  (interactive (list gdb-proc))
   (gdb-display-buffer
-   (gdb-get-create-instance-buffer instance
-				   'gdb-display-buffer)))
+   (gdb-get-create-instance-buffer 'gdb-display-buffer)))
 
-(defun gdb-frame-display-buffer (instance)
-  (interactive (list (gdb-needed-default-instance)))
+(defun gdb-frame-display-buffer ()
+  (interactive (list gdb-proc))
   (switch-to-buffer-other-frame
-   (gdb-get-create-instance-buffer instance
-				   'gdb-display-buffer)))
+   (gdb-get-create-instance-buffer 'gdb-display-buffer)))
 
 (defun gdb-toggle-disp-this-line ()
   (interactive)
@@ -2000,7 +1901,6 @@ buffer."
     (if (not (looking-at "\\([0-9]+\\):   \\([ny]\\)"))
 	(error "No expression on this line")
       (gdb-instance-enqueue-idle-input
-       gdb-buffer-instance
        (list
 	(concat
 	 (if (eq ?y (char-after (match-beginning 2)))
@@ -2015,14 +1915,13 @@ buffer."
   (interactive)
   (save-excursion
     (set-buffer
-     (gdb-get-instance-buffer gdb-buffer-instance 'gdb-display-buffer))
+     (gdb-get-instance-buffer 'gdb-display-buffer))
     (beginning-of-line 1)
     (if (not (looking-at "\\([0-9]+\\):   \\([ny]\\)"))
 	(error "No expression on this line")
       (let ((number (buffer-substring (match-beginning 0)
 				      (match-end 1))))
 	(gdb-instance-enqueue-idle-input
-	 gdb-buffer-instance
 	 (list (concat "server delete display " number "\n")
 	       '(lambda () nil)))
 	(if (not (display-graphic-p))
@@ -2081,7 +1980,7 @@ buffer."
 
 ;;;; Window management
 
-;;; FIXME: This should only return true for buffers in the current instance
+;;; FIXME: This should only return true for buffers in the current gdb-proc
 (defun gdb-protected-buffer-p (buffer)
   "Is BUFFER a buffer which we want to leave displayed?"
   (save-excursion
@@ -2129,10 +2028,10 @@ buffer."
 
 ;;; Shared keymap initialization:
 
-(defun gdb-display-gdb-buffer (instance)
-  (interactive (list (gdb-needed-default-instance)))
+(defun gdb-display-gdb-buffer ()
+  (interactive (list gdb-proc))
   (gdb-display-buffer
-   (gdb-get-create-instance-buffer instance 'gdba)))
+   (gdb-get-create-instance-buffer 'gdba)))
 
 (defun gdb-make-windows-menu (map)
   ;; FIXME: This adds to the DBX, PerlDB, ... menu as well :-(
@@ -2161,10 +2060,10 @@ buffer."
 
 (gdb-make-windows-menu gud-minor-mode-map)
 
-(defun gdb-frame-gdb-buffer (instance)
-  (interactive (list (gdb-needed-default-instance)))
+(defun gdb-frame-gdb-buffer ()
+  (interactive (list gdb-proc))
   (switch-to-buffer-other-frame
-   (gdb-get-create-instance-buffer instance 'gdba)))
+   (gdb-get-create-instance-buffer 'gdba)))
 
 (defun gdb-make-frames-menu (map)
   (define-key map [menu-bar frames]
@@ -2187,32 +2086,25 @@ buffer."
 (if (display-graphic-p)
     (gdb-make-frames-menu gud-minor-mode-map))
 
-(defun gdb-proc-died (proc)
-  ;; Stop displaying an arrow in a source file.
-  (setq overlay-arrow-position nil)
-
-  ;; Kill the dummy process, so that C-x C-c won't worry about it.
-  (save-excursion
-    (set-buffer (process-buffer proc))
-    (kill-process
-     (get-buffer-process
-      (gdb-get-instance-buffer gdb-buffer-instance 'gdb-inferior-io)))))
 ;; end of functions from gdba.el
 
 ;; new functions for gdb-ui.el
+
+(defvar gdb-main-file nil "Source file from which program execution begins.")
+
 ;; layout for all the windows
-(defun gdb-setup-windows (instance)
-  (gdb-display-locals-buffer instance)
-  (gdb-display-stack-buffer instance)
+(defun gdb-setup-windows ()
+  (gdb-display-locals-buffer)
+  (gdb-display-stack-buffer)
   (delete-other-windows)
-  (gdb-display-breakpoints-buffer instance)
-  (gdb-display-display-buffer instance)
+  (gdb-display-breakpoints-buffer)
+  (gdb-display-display-buffer)
   (delete-other-windows)
   (split-window nil ( / ( * (window-height) 3) 4))
   (split-window nil ( / (window-height) 3))
   (split-window-horizontally)
   (other-window 1)
-  (switch-to-buffer (gdb-locals-buffer-name instance))
+  (switch-to-buffer (gdb-locals-buffer-name))
   (other-window 1)
   (switch-to-buffer
    (if gud-last-last-frame
@@ -2221,12 +2113,12 @@ buffer."
   (setq gdb-source-window (get-buffer-window (current-buffer)))
   (split-window-horizontally)
   (other-window 1)
-  (switch-to-buffer (gdb-inferior-io-name instance))
+  (switch-to-buffer (gdb-inferior-io-name))
   (other-window 1)
-  (switch-to-buffer (gdb-stack-buffer-name instance))
+  (switch-to-buffer (gdb-stack-buffer-name))
   (split-window-horizontally)
   (other-window 1)
-  (switch-to-buffer (gdb-breakpoints-buffer-name instance))
+  (switch-to-buffer (gdb-breakpoints-buffer-name))
   (other-window 1))
 
 (defun gdb-restore-windows ()
@@ -2237,7 +2129,7 @@ This arrangement depends on the value of `gdb-many-windows'."
       (progn
 	(switch-to-buffer gud-comint-buffer)
 	(delete-other-windows)
-	(gdb-setup-windows gdb-buffer-instance))
+	(gdb-setup-windows))
 ;else
     (switch-to-buffer gud-comint-buffer)
     (delete-other-windows)
@@ -2267,7 +2159,7 @@ This arrangement depends on the value of `gdb-many-windows'."
 ;else
     (switch-to-buffer gud-comint-buffer)
     (delete-other-windows)
-    (gdb-setup-windows gdb-buffer-instance)
+    (gdb-setup-windows)
     (setq gdb-many-windows t)))
 
 (defconst breakpoint-xpm-data "/* XPM */
@@ -2337,11 +2229,11 @@ Just the partial-output buffer is left."
       (other-window 1))
   (delete-other-windows)
   (if gdb-many-windows
-      (gdb-setup-windows gdb-buffer-instance)
+      (gdb-setup-windows)
 ;else
-    (gdb-display-breakpoints-buffer gdb-buffer-instance)
-    (gdb-display-display-buffer instance)
-    (gdb-display-stack-buffer instance)
+    (gdb-display-breakpoints-buffer)
+    (gdb-display-display-buffer)
+    (gdb-display-stack-buffer)
     (delete-other-windows)
     (split-window)
     (other-window 1)
@@ -2419,25 +2311,6 @@ BUFFER nil or omitted means use the current buffer."
 	  (delete-overlay overlay)))
       (setq overlays (cdr overlays)))))
 
-(defvar gdb-array-slice-map nil)
-(setq gdb-array-slice-map (make-keymap))
-(define-key gdb-array-slice-map [mouse-2] 'gdb-array-slice)
-
-(defun gdb-array-slice (event)
-  "Select an array slice to display."
-  (interactive "e")
-  (mouse-set-point event)
-  (save-excursion
-    (let ((n -1) (stop 0) (start 0) (point (point)))
-      (beginning-of-line)
-      (while (search-forward "[" point t)
-	(setq n (+ n 1)))
-      (setq start (string-to-int (read-string "Start index: ")))
-      (aset gdb-array-start n start)
-      (setq stop (string-to-int (read-string "Stop index: ")))
-      (aset gdb-array-stop n stop)))
-  (gdb-array-format1))
-
 (defun gdb-array-visualise ()
   "Visualise arrays and slices using graph program from plotutils."
   (interactive)
@@ -2468,7 +2341,6 @@ BUFFER nil or omitted means use the current buffer."
   "Delete displayed expression and its frame."
   (interactive)
   (gdb-instance-enqueue-idle-input
-   gdb-buffer-instance
    (list (concat "server delete display " gdb-display-number "\n")
 	 '(lambda () nil)))
   (kill-buffer nil)
@@ -2485,8 +2357,7 @@ BUFFER nil or omitted means use the current buffer."
   gdb-assembler-custom)
 
 (defun gdb-assembler-custom ()
-  (let ((buffer (gdb-get-instance-buffer gdb-buffer-instance
-					 'gdb-assembler-buffer))
+  (let ((buffer (gdb-get-instance-buffer 'gdb-assembler-buffer))
 	(gdb-arrow-position) (address) (flag))
     (if gdb-current-address
 	(progn
@@ -2505,7 +2376,7 @@ BUFFER nil or omitted means use the current buffer."
 	  (remove-images (point-min) (point-max))
 	(remove-strings (point-min) (point-max))))
     (save-excursion
-      (set-buffer (gdb-get-instance-buffer instance 'gdb-breakpoints-buffer))
+      (set-buffer (gdb-get-instance-buffer 'gdb-breakpoints-buffer))
       (goto-char (point-min))
       (while (< (point) (- (point-max) 1))
 	(forward-line 1)
@@ -2557,51 +2428,50 @@ BUFFER nil or omitted means use the current buffer."
   (setq mode-name "Assembler")
   (set (make-local-variable 'gud-minor-mode) 'gdba)
   (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
-  (set (make-variable-buffer-local 'left-margin-width) 2)
+  (setq left-margin-width 2)
   (setq buffer-read-only t)
   (use-local-map gdb-assembler-mode-map)
-  (gdb-invalidate-assembler gdb-buffer-instance)
-  (gdb-invalidate-breakpoints gdb-buffer-instance))
+  (gdb-invalidate-assembler)
+  (gdb-invalidate-breakpoints))
 
-(defun gdb-assembler-buffer-name (instance)
+(defun gdb-assembler-buffer-name ()
   (save-excursion
-    (set-buffer (process-buffer (gdb-instance-process instance)))
-    (concat "*Machine Code " (gdb-instance-target-string instance) "*")))
+    (set-buffer (process-buffer gdb-proc))
+    (concat "*Machine Code " (gdb-instance-target-string) "*")))
 
-(defun gdb-display-assembler-buffer (instance)
-  (interactive (list (gdb-needed-default-instance)))
+(defun gdb-display-assembler-buffer ()
+  (interactive (list gdb-proc))
   (gdb-display-buffer
-   (gdb-get-create-instance-buffer instance
-				   'gdb-assembler-buffer)))
+   (gdb-get-create-instance-buffer 'gdb-assembler-buffer)))
 
-(defun gdb-frame-assembler-buffer (instance)
-  (interactive (list (gdb-needed-default-instance)))
+(defun gdb-frame-assembler-buffer ()
+  (interactive (list gdb-proc))
   (switch-to-buffer-other-frame
-   (gdb-get-create-instance-buffer instance
-				   'gdb-assembler-buffer)))
+   (gdb-get-create-instance-buffer 'gdb-assembler-buffer)))
 
-(defun gdb-invalidate-frame-and-assembler (instance &optional ignored)
-  (gdb-invalidate-frames instance)
-  (gdb-invalidate-assembler instance))
+(defun gdb-invalidate-frame-and-assembler (&optional ignored)
+  (gdb-invalidate-frames)
+  (gdb-invalidate-assembler))
 
-(defun gdb-invalidate-breakpoints-and-assembler (instance &optional ignored)
-  (gdb-invalidate-breakpoints instance)
-  (gdb-invalidate-assembler instance))
+(defun gdb-invalidate-breakpoints-and-assembler (&optional ignored)
+  (gdb-invalidate-breakpoints)
+  (gdb-invalidate-assembler))
+
+(defvar gdb-prev-main-or-pc nil)
 
 ; modified because if gdb-main-or-pc has changed value a new command
 ; must be enqueued to update the buffer with the new output
-(defun gdb-invalidate-assembler (instance &optional ignored)
-  (if (and ((lambda (instance)
-	      (gdb-get-instance-buffer instance
-				       (quote gdb-assembler-buffer))) instance)
+(defun gdb-invalidate-assembler (&optional ignored)
+  (if (and ((lambda ()
+	      (gdb-get-instance-buffer (quote gdb-assembler-buffer))))
 	   (or (not (member (quote gdb-invalidate-assembler)
-			(gdb-instance-pending-triggers instance)))
+			(gdb-instance-pending-triggers)))
 	   (not (string-equal gdb-main-or-pc gdb-prev-main-or-pc))))
       (progn
 
         ; take previous disassemble command off the queue
 	(save-excursion
-	  (set-buffer (gdb-get-instance-buffer instance 'gdba))
+	  (set-buffer (gdb-get-instance-buffer 'gdba))
 	   (let ((queue gdb-idle-input-queue) (item))
 	     (while queue
 	       (setq item (car queue))
@@ -2610,11 +2480,11 @@ BUFFER nil or omitted means use the current buffer."
 		 (setq queue (cdr queue)))))
 
 	(gdb-instance-enqueue-idle-input
-	      instance (list (concat "server disassemble " gdb-main-or-pc "\n")
+	 (list (concat "server disassemble " gdb-main-or-pc "\n")
 			     (quote gdb-assembler-handler)))
 	     (set-gdb-instance-pending-triggers
-	      instance (cons (quote gdb-invalidate-assembler)
-			     (gdb-instance-pending-triggers instance)))
+	      (cons (quote gdb-invalidate-assembler)
+			     (gdb-instance-pending-triggers)))
 	     (setq gdb-prev-main-or-pc gdb-main-or-pc))))
 
 (defun gdb-delete-line ()
