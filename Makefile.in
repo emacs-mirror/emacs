@@ -186,6 +186,7 @@ INSTALL_DATA = @INSTALL_DATA@
 
 # Flags passed down to subdirectory makefiles.
 MFLAGS = 
+MAKEFLAGS = $(MFLAGS)
 
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution
@@ -232,7 +233,7 @@ lib-src: FRC.lib-src
 .RECURSIVE: ${SUBDIR}
 
 ${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
-	cd $@; $(MAKE) all ${MFLAGS} \
+	cd $@; $(MAKE) all ${MAKEFLAGS} \
 		CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
 		prefix='${prefix}' srcdir='${srcdir}/$@' libdir='${libdir}'
 
@@ -332,7 +333,7 @@ install: all do-install
 ### as well as lots of things from ${srcdir}/etc.
 do-install: mkdir
 	(cd lib-src; \
-	  $(MAKE) install ${MFLAGS} prefix=${prefix} \
+	  $(MAKE) install ${MAKEFLAGS} prefix=${prefix} \
 	    exec_prefix=${exec_prefix} bindir=${bindir} libdir=${libdir} \
 	    archlibdir=${archlibdir})
 	-set ${COPYDESTS} ; \
@@ -375,9 +376,9 @@ do-install: mkdir
 	  ${INSTALL_DATA} $${page}.1 ${mandir}/$${page}${manext} ; \
 	done
 	${INSTALL_PROGRAM} src/emacs ${bindir}/emacs-${version}
-	chmod 1755  ${bindir}/emacs-${version}
+	-chmod 1755  ${bindir}/emacs-${version}
 	rm -f ${bindir}/emacs
-	ln ${bindir}/emacs-${version} ${bindir}/emacs
+	-ln ${bindir}/emacs-${version} ${bindir}/emacs
 
 ### Build all the directories we're going to install Emacs in.	Since
 ### we may be creating several layers of directories (for example,
@@ -396,7 +397,7 @@ mkdir: FRC.mkdir
 ### Don't delete the lisp and etc directories if they're in the source tree.
 uninstall:
 	(cd lib-src; 					\
-	 $(MAKE) ${MFLAGS} uninstall			\
+	 $(MAKE) ${MAKEFLAGS} uninstall			\
 	    prefix=${prefix} exec_prefix=${exec_prefix}	\
 	    bindir=${bindir} libdir=${libdir} archlibdir=${archlibdir})
 	for dir in ${lispdir} ${etcdir} ; do 		\
@@ -428,10 +429,10 @@ FRC.mostlyclean FRC.clean FRC.distclean FRC.realclean:
 ###      target for GCC does not delete `libgcc.a', because recompiling it
 ###      is rarely necessary and takes a lot of time.
 mostlyclean: FRC.mostlyclean
-	(cd src;      $(MAKE) ${MFLAGS} mostlyclean)
-	(cd oldXMenu; $(MAKE) ${MFLAGS} mostlyclean)
-	(cd lib-src;  $(MAKE) ${MFLAGS} mostlyclean)
-	(cd man;      $(MAKE) ${MFLAGS} mostlyclean)
+	(cd src;      $(MAKE) ${MAKEFLAGS} mostlyclean)
+	(cd oldXMenu; $(MAKE) ${MAKEFLAGS} mostlyclean)
+	(cd lib-src;  $(MAKE) ${MAKEFLAGS} mostlyclean)
+	(cd man;      $(MAKE) ${MAKEFLAGS} mostlyclean)
 
 ### `clean'
 ###      Delete all files from the current directory that are normally
@@ -442,10 +443,10 @@ mostlyclean: FRC.mostlyclean
 ### 
 ###      Delete `.dvi' files here if they are not part of the distribution.
 clean: FRC.clean
-	(cd src;      $(MAKE) ${MFLAGS} clean)
-	(cd oldXMenu; $(MAKE) ${MFLAGS} clean)
-	(cd lib-src;  $(MAKE) ${MFLAGS} clean)
-	(cd man;      $(MAKE) ${MFLAGS} clean)
+	(cd src;      $(MAKE) ${MAKEFLAGS} clean)
+	(cd oldXMenu; $(MAKE) ${MAKEFLAGS} clean)
+	(cd lib-src;  $(MAKE) ${MAKEFLAGS} clean)
+	(cd man;      $(MAKE) ${MAKEFLAGS} clean)
 
 ### `distclean'
 ###      Delete all files from the current directory that are created by
@@ -458,10 +459,10 @@ top_distclean=\
 	rm -f Makefile ${SUBDIR_MAKEFILES} ; \
 	(cd lock ; rm -f *)
 distclean: FRC.distclean
-	(cd src;      $(MAKE) ${MFLAGS} distclean)
-	(cd oldXMenu; $(MAKE) ${MFLAGS} distclean)
-	(cd lib-src;  $(MAKE) ${MFLAGS} distclean)
-	(cd man;      $(MAKE) ${MFLAGS} distclean)
+	(cd src;      $(MAKE) ${MAKEFLAGS} distclean)
+	(cd oldXMenu; $(MAKE) ${MAKEFLAGS} distclean)
+	(cd lib-src;  $(MAKE) ${MAKEFLAGS} distclean)
+	(cd man;      $(MAKE) ${MAKEFLAGS} distclean)
 	${top_distclean}
 	
 
@@ -477,10 +478,10 @@ distclean: FRC.distclean
 ###      anything that needs to exist in order to run `configure' and then
 ###      begin to build the program.
 realclean: FRC.realclean
-	(cd src;      $(MAKE) ${MFLAGS} realclean)
-	(cd oldXMenu; $(MAKE) ${MFLAGS} realclean)
-	(cd lib-src;  $(MAKE) ${MFLAGS} realclean)
-	(cd man;      $(MAKE) ${MFLAGS} realclean)
+	(cd src;      $(MAKE) ${MAKEFLAGS} realclean)
+	(cd oldXMenu; $(MAKE) ${MAKEFLAGS} realclean)
+	(cd lib-src;  $(MAKE) ${MAKEFLAGS} realclean)
+	-(cd man;     $(MAKE) ${MAKEFLAGS} realclean)
 	${top_distclean}
 
 ### This doesn't actually appear in the coding standards, but Karl
@@ -488,7 +489,7 @@ realclean: FRC.realclean
 ### the coding standards seem to come from.  It's like distclean, but
 ### it deletes backup and autosave files too.
 extraclean:
-	for i in ${SUBDIR}; do (cd $$i; $(MAKE) ${MFLAGS} extraclean); done
+	for i in ${SUBDIR}; do (cd $$i; $(MAKE) ${MAKEFLAGS} extraclean); done
 	-(cd lock; rm *)
 	-rm config.status config-tmp-*
 	-rm -f *~ \#*
@@ -509,24 +510,24 @@ SOURCES = ChangeLog GETTING.GNU.SOFTWARE INSTALL Makefile.in PROBLEMS \
 unlock:
 	chmod u+w $(SOURCES) cpp/*
 	-(cd elisp; chmod u+w Makefile README *.texi)
-	(cd etc; $(MAKE) unlock)
-	(cd lib-src; $(MAKE) unlock)
-	(cd lisp; $(MAKE) unlock)
+	(cd etc; $(MAKE) $(MAKEFLAGS) unlock)
+	(cd lib-src; $(MAKE) $(MAKEFLAGS) unlock)
+	(cd lisp; $(MAKE) $(MAKEFLAGS) unlock)
 	(cd lisp/term; chmod u+w README *.el)
 	(cd man; chmod u+w *texi* ChangeLog split-man)
 	(cd oldXMenu; chmod u+w *.[ch] Makefile README)
-	(cd src; $(MAKE) unlock)
+	(cd src; $(MAKE) $(MAKEFLAGS) unlock)
 
 relock:
 	chmod u-w $(SOURCES) cpp/*
 	-(cd elisp; chmod u-w Makefile README *.texi)
-	(cd etc; $(MAKE) relock)
-	(cd lib-src; $(MAKE) relock)
-	(cd lisp; $(MAKE) relock)
+	(cd etc; $(MAKE) $(MAKEFLAGS) relock)
+	(cd lib-src; $(MAKE) $(MAKEFLAGS) relock)
+	(cd lisp; $(MAKE) $(MAKEFLAGS) relock)
 	(cd lisp/term; chmod u+w README *.el)
 	(cd man; chmod u+w *texi* ChangeLog split-man)
 	(cd oldXMenu; chmod u+w *.[ch] Makefile README)
-	(cd src; $(MAKE) relock)
+	(cd src; $(MAKE) $(MAKEFLAGS) relock)
 
 TAGS tags:	lib-src
 	(cd ${srcdir}/src; \
@@ -539,6 +540,6 @@ dist:
 	cd ${srcdir}; make-dist
 
 info:
-	(cd ${srcdir}/man; $(MAKE) ${MFLAGS} info)
+	(cd ${srcdir}/man; $(MAKE) ${MAKEFLAGS} info)
 dvi:
-	(cd ${srcdir}/man; $(MAKE) ${MFLAGS} dvi)
+	(cd ${srcdir}/man; $(MAKE) ${MAKEFLAGS} dvi)
