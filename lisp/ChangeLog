@@ -187,6 +187,31 @@
 	Interactively, when point is on text with a face, suggest to
 	customize that face.
 
+2002-04-25  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el: General tidy-up of commentary and some doc
+	strings.
+
+2002-04-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* scroll-all.el (scroll-all-function-all) New function to do the
+	actual work.
+	(scroll-all-scroll-down-all, scroll-all-scroll-up-all,
+	scroll-all-page-down-all, scroll-all-page-up-all,
+	scroll-all-beginning-of-buffer-all, scroll-all-end-of-buffer-all):
+	Make them use scroll-all-function-all.
+
+	* progmodes/f90.el (f90-get-beg-of-line): Removed and replaced
+	with line-beginning-position.
+	(f90-get-end-of-line): Removed and replaced with line-end-position.
+	(f90-match-piece): Removed and replaced with match-string.
+	(f90-current-indentation): Remove `current-column'.
+	(f90-get-present-comment-type): Use match-string rather than
+	buffer-substring. 
+	(f90-match-end): Use line-beginning-position, line-end-position
+	rather than beginning-of-line, end-of-line.
+	(f90-startup-message): Variable removed.
+
 2002-04-24  Colin Walters  <walters@verbum.org>
 
 	* replace.el (occur-accumulate-lines): Add optional argument
@@ -1282,6 +1307,31 @@
 
 	* subr.el (insert-buffer-substring-no-properties): New function.
 	(insert-buffer-substring-as-yank): New function.
+
+2002-04-21  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* scroll-all.el (minor-mode-alist): Fix usage of `scroll-all-mode'.
+	(scroll-all-page-down-all, scroll-all-page-up-all) Remove `fkey-'
+	prefix from scroll commands.  Ignore end-of-buffer errors from
+	other windows. 
+	(scroll-all-check-to-scroll): Remove `fkey-' prefix from scroll
+	commands. 
+	(scroll-all-beginning-of-buffer-all, scroll-all-end-of-buffer-all): New
+	functions.
+
+	* files.el: (auto-mode-alist): .f95 files in f90-mode.
+
+	* progmodes/fortran.el: (fortran-beginning-do): Make regexp match
+	a DO statement irrespective of numeric label. 
+
+2002-04-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* files.el (auto-save-file-name-transforms): Doc fix.
+	Add third element to "uniquify" filenames.
+	(make-auto-save-file-name): Use new element of
+	auto-save-file-name-transforms.
+	* startup.el (command-line): Add third element to
+	auto-save-file-name-transforms.
 
 2002-04-19  Stefan Monnier  <monnier@cs.yale.edu>
 
