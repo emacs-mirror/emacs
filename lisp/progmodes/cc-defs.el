@@ -972,7 +972,11 @@ of any identifier.  Adorned regexps cannot be appended.  The language
 variable `c-nonsymbol-key' is used to make the adornment.  The
 optional MODE specifies the language to get it in.  The default is the
 current language (taken from `c-buffer-is-cc-mode')."
-  (setq list (delete-duplicates list :test 'string-equal))
+  (let (unique)
+    (dolist (elt list)
+      (unless (member elt unique)
+	(push elt unique)))
+    (setq list unique))
   (if list
       (let ((re (c-regexp-opt list)))
 	;; Add our own grouping parenthesis around re instead of
@@ -1326,11 +1330,12 @@ This macro does not do any hidden buffer changes."
 	;; are no file dependencies needed.
 	(setq source-files (nreverse
 			    ;; Reverse to get the right load order.
-			    (mapcan (lambda (elem)
-				      (if (eq file (car elem))
-					  nil ; Exclude our own file.
-					(list (car elem))))
-				    (get sym 'source)))))
+			    (apply 'nconc
+				   (mapcar (lambda (elem)
+					     (if (eq file (car elem))
+						 nil ; Exclude our own file.
+					       (list (car elem))))
+					   (get sym 'source))))))
 
       ;; Spend some effort to make a compact call to
       ;; `c-get-lang-constant' since it will be compiled in.
