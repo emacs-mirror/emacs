@@ -1,3 +1,7 @@
+2002-06-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* macmenu.c: Remove declaration of Qmouse_click and Qevent_kind.
+
 2002-06-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* intervals.c (textget): Don't forget to `return'.
