@@ -57,7 +57,7 @@ pair is not at the head of alist.  ALIST is not altered."
 (defun aput (alist-symbol key &optional value)
   "Inserts a key-value pair into an alist.
 The alist is referenced by ALIST-SYMBOL. The key-value pair is made
->from KEY and optionally, VALUE. Returns the altered alist or nil if
+from KEY and optionally, VALUE. Returns the altered alist or nil if
 ALIST is nil.
 
 If the key-value pair referenced by KEY can be found in the alist, and
