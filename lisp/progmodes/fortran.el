@@ -1416,8 +1416,7 @@ automatically breaks the line at a previous space."
 		     (> (prefix-numeric-value arg) 0))
 		   'fortran-indent-line
 		 nil))
-    ;; update mode-line
-    (set-buffer-modified-p (buffer-modified-p))))
+    (force-mode-line-update)))
 
 (defun fortran-do-auto-fill ()
   (interactive)
