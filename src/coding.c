@@ -3576,8 +3576,8 @@ setup_coding_system (coding_system, coding)
 	    = CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION;
 	for (i = 0; i < 4; i++)
 	  {
-	    if (INTEGERP (flags[i])
-		&& (charset = XINT (flags[i]), CHARSET_VALID_P (charset))
+	    if ((INTEGERP (flags[i])
+		 && (charset = XINT (flags[i]), CHARSET_VALID_P (charset)))
 		|| (charset = get_charset_id (flags[i])) >= 0)
 	      {
 		CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, i) = charset;
@@ -3595,9 +3595,9 @@ setup_coding_system (coding_system, coding)
 		tail = flags[i];
 
 		coding->flags |= CODING_FLAG_ISO_DESIGNATION;
-		if (INTEGERP (XCAR (tail))
-		    && (charset = XINT (XCAR (tail)),
-			CHARSET_VALID_P (charset))
+		if ((INTEGERP (XCAR (tail))
+		     && (charset = XINT (XCAR (tail)),
+			 CHARSET_VALID_P (charset)))
 		    || (charset = get_charset_id (XCAR (tail))) >= 0)
 		  {
 		    CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, i) = charset;
@@ -3608,9 +3608,9 @@ setup_coding_system (coding_system, coding)
 		tail = XCDR (tail);
 		while (CONSP (tail))
 		  {
-		    if (INTEGERP (XCAR (tail))
-			&& (charset = XINT (XCAR (tail)),
-			    CHARSET_VALID_P (charset))
+		    if ((INTEGERP (XCAR (tail))
+			 && (charset = XINT (XCAR (tail)),
+			     CHARSET_VALID_P (charset)))
 			|| (charset = get_charset_id (XCAR (tail))) >= 0)
 		      CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
 			= i;
@@ -5047,7 +5047,7 @@ shrink_encoding_region (beg, end, coding, str)
   if (coding->type == coding_type_ccl
       || coding->eol_type == CODING_EOL_CRLF
       || coding->eol_type == CODING_EOL_CR
-      || coding->cmp_data && coding->cmp_data->used > 0)
+      || (coding->cmp_data && coding->cmp_data->used > 0))
     {
       /* We can't skip any data.  */
       return;
@@ -6606,7 +6606,7 @@ Return the corresponding character.  */)
     }
   else
     {
-      if ((s1 < 0x80 || s1 > 0x9F && s1 < 0xE0 || s1 > 0xEF)
+      if ((s1 < 0x80 || (s1 > 0x9F && s1 < 0xE0) || s1 > 0xEF)
 	  || (s2 < 0x40 || s2 == 0x7F || s2 > 0xFC))
 	error ("Invalid Shift JIS code: %x", XFASTINT (code));
       DECODE_SJIS (s1, s2, c1, c2);
