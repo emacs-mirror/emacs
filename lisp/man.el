@@ -188,7 +188,7 @@ the manpage buffer.")
 (defvar Man-mode-hooks nil
   "*Hooks for Man mode.")
 
-(defvar Man-section-regexp "[0-9][a-zA-Z+]*"
+(defvar Man-section-regexp "[0-9][a-zA-Z+]*\\|[LNln]"
   "*Regular expression describing a manpage section within parentheses.")
 
 (defvar Man-heading-regexp "^ ?[A-Z]"
