@@ -1,3 +1,36 @@
+2001-05-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* config.in (HAVE_DBE): Add.
+
+	* xterm.c: Use FRAME_X_DRAWABLE instead of FRAME_X_WINDOW
+	when drawing.
+	(x_update_begin) [HAVE_DBE]: Call dbe_reset_region.
+	(x_update_end) [HAVE_DBE]: Call dbe_show.
+	(x_draw_glyph_string) [HAVE_DBE]: Call dbe_record_region.
+	(x_clear_area): Take a pointer to a frame as parameter instead
+	of a Display and a Window.  Clear a back-buffer, if any.
+	(x_scroll_run) [HAVE_DBE]: Call dbe_record_region.
+	(expose_frame) [HAVE_DBE]: Call dbe_show.
+	(note_mouse_highlight) [HAVE_DBE]: Call dbe_show.
+	(x_draw_bar_cursor) [HAVE_DBE]: Call dbe_record_region.
+	(x_term_init) [HAVE_DBE]: Call init_dbe.
+
+	* dispnew.c (direct_output_forward_char): Call
+	update_begin/update_end.
+
+	* xfns.c (Fx_create_frame) [HAVE_DBE]: Make frame double-buffered.
+	(init_dbe, dbe_make_frame_buffered, dbe_reset_region)
+	(dbe_record_region, dbe_show) [HAVE_DBE]: New functions.
+
+	* xterm.h (struct x_display_info) [HAVE_DBE]: Add member `dbe'.
+	(struct x_output): Add back_buffer.
+	(struct x_output) (HAVE_DBE]: Add dbe_min_x, dbe_min_y, dbe_max_x,
+	dbe_max_y.
+	(FRAME_X_DRAWABLE): New macro.
+	(init_dbe, dbe_make_frame_buffered, dbe_reset_region)
+	(dbe_record_region, dbe_show) [HAVE_DBE]: Add prototypes.
+	(x_clear_area): Change prototype.
+
 2001-05-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* eval.c (call_debugger): Don't bind inhibit-eval-during-redisplay.

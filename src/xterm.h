@@ -346,6 +346,11 @@ struct x_display_info
      use this directly, call x_color_cells instead.  */
   XColor *color_cells;
   int ncolor_cells;
+
+#ifdef HAVE_DBE
+  /* Non-zero means DOUBLE-BUFFER extension can be used.  */
+  int dbe;
+#endif /* HAVE_DBE */
 };
 
 /* This checks to make sure we have a display.  */
@@ -581,10 +586,22 @@ struct x_output
   /* The background for which the above relief GCs were set up.
      They are changed only when a different background is involved.  */
   unsigned long relief_background;
+
+  Drawable back_buffer;
+
+#ifdef HAVE_DBE
+  /* Region that must be copied from the back-buffer to the display.  */
+  int dbe_min_x, dbe_max_x, dbe_min_y, dbe_max_y;
+#endif /* HAVE_DBE */
 };
 
 /* Return the X window used for displaying data in frame F.  */
 #define FRAME_X_WINDOW(f) ((f)->output_data.x->window_desc)
+
+#define FRAME_X_DRAWABLE(f)			\
+  ((f)->output_data.x->back_buffer		\
+   ? (f)->output_data.x->back_buffer		\
+   : FRAME_X_WINDOW (f))
 
 /* Return the outermost X window associated with the frame F.  */
 #ifdef USE_X_TOOLKIT
@@ -919,6 +936,14 @@ void x_handle_property_notify P_ ((XPropertyEvent *));
 
 /* From xfns.c.  */
 
+#ifdef HAVE_DBE
+extern int init_dbe P_ ((Display *));
+extern void dbe_make_frame_buffered P_ ((struct frame *));
+extern void dbe_reset_region P_ ((struct frame *));
+extern void dbe_record_region P_ ((struct frame *, int, int, int, int));
+extern void dbe_show P_ ((struct frame *));
+#endif /* HAVE_DBE */
+
 Lisp_Object display_x_get_resource P_ ((struct x_display_info *,
 					Lisp_Object, Lisp_Object,
 					Lisp_Object, Lisp_Object));
@@ -994,7 +1019,7 @@ extern XtAppContext Xt_app_con;
 #endif
 extern void x_query_colors P_ ((struct frame *f, XColor *, int));
 extern void x_query_color P_ ((struct frame *f, XColor *));
-extern void x_clear_area P_ ((Display *, Window, int, int, int, int, int));
+extern void x_clear_area P_ ((struct frame *, int, int, int, int));
 
 /* Defined in xselect.c */
 
