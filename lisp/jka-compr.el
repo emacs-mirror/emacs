@@ -202,6 +202,9 @@ invoked."
   (list (cons "\\.tgz\\'" 'tar-mode))
   "A list of pairs to add to `auto-mode-alist' when jka-compr is installed.")
 
+(defvar jka-compr-load-suffixes '(".gz")
+  "List of suffixes to try when loading files.")
+
 ;; List of all the elements we actually added to file-coding-system-alist.
 (defvar jka-compr-added-to-file-coding-system-alist nil)
 
@@ -804,7 +807,16 @@ and `inhibit-first-line-modes-suffixes'."
 				inhibit-first-line-modes-suffixes)))))
    jka-compr-compression-info-list)
   (setq auto-mode-alist
-	(append auto-mode-alist jka-compr-mode-alist-additions)))
+	(append auto-mode-alist jka-compr-mode-alist-additions))
+
+  ;; Make sure that (load "foo") will find /bla/foo.el.gz.
+  (setq load-suffixes
+	(apply 'append
+	       (mapcar (lambda (suffix)
+			 (cons suffix
+			       (mapcar (lambda (ext) (concat suffix ext))
+				       jka-compr-load-suffixes)))
+		       load-suffixes))))
 
 
 (defun jka-compr-uninstall ()
@@ -856,7 +868,15 @@ by `jka-compr-installed'."
 	  (setcdr last (cdr (cdr last)))
 	(setq last (cdr last))))
     
-    (setq file-coding-system-alist (cdr ama))))
+    (setq file-coding-system-alist (cdr ama)))
+
+  ;; Remove the suffixes that were added by jka-compr.
+  (let ((suffixes nil)
+	(re (jka-compr-build-file-regexp)))
+    (dolist (suffix load-suffixes)
+      (unless (string-match re suffix)
+	(push suffix suffixes)))
+    (setq load-suffixes (nreverse suffixes))))
 
       
 (defun jka-compr-installed-p ()
@@ -881,10 +901,6 @@ The return value is the entry in `file-name-handler-alist' for jka-compr."
      (jka-compr-uninstall))
 
 
-;;; Note this definition must be at the end of the file, because
-;;; `define-minor-mode' actually calls the mode-function if the
-;;; associated variable is non-nil, which requires that all needed
-;;; functions be already defined.  [This is arguably a bug in d-m-m]
 ;;;###autoload
 (define-minor-mode auto-compression-mode
   "Toggle automatic file compression and uncompression.
