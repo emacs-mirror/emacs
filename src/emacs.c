@@ -117,8 +117,6 @@ Lisp_Object Vsystem_configuration_options;
 
 Lisp_Object Qfile_name_handler_alist;
 
-Lisp_Object Qusr1_signal, Qusr2_signal;
-
 /* If non-zero, emacs should not attempt to use an window-specific code,
    but instead should use the virtual terminal under which it was started */
 int inhibit_window_system;
@@ -189,8 +187,8 @@ handle_USR1_signal (sig)
 {
   struct input_event buf;
 
-  buf.kind = non_ascii_keystroke;
-  buf.code = Qusr1_signal;
+  buf.kind = user_signal;
+  buf.code = 0;
   buf.frame_or_window = Fselected_frame ();
   buf.modifiers = 0;
   buf.timestamp = 0;
@@ -206,8 +204,8 @@ handle_USR2_signal (sig)
 {
   struct input_event buf;
 
-  buf.kind = non_ascii_keystroke;
-  buf.code = Qusr2_signal;
+  buf.kind = user_signal;
+  buf.code = 1;
   buf.frame_or_window = Fselected_frame ();
   buf.modifiers = 0;
   buf.timestamp = 0;
@@ -1860,11 +1858,6 @@ syms_of_emacs ()
 {
   Qfile_name_handler_alist = intern ("file-name-handler-alist");
   staticpro (&Qfile_name_handler_alist);
-
-  Qusr1_signal = intern ("usr1-signal");
-  staticpro (&Qusr1_signal);
-  Qusr2_signal = intern ("usr2-signal");
-  staticpro (&Qusr2_signal);
 
 #ifndef CANNOT_DUMP
 #ifdef HAVE_SHM
