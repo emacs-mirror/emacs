@@ -523,7 +523,8 @@
     (let ((nnmail-file-coding-system
 	   (or nnmbox-file-coding-system-for-write
 	       nnmbox-file-coding-system)))
-      (nnmail-write-region 1 1 nnmbox-mbox-file t 'nomesg))))
+      (nnmail-write-region (point-min) (point-min)
+			   nnmbox-mbox-file t 'nomesg))))
 
 (defun nnmbox-read-mbox ()
   (nnmail-activate 'nnmbox)
