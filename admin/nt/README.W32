@@ -1,14 +1,14 @@
-	      Emacs for Windows NT and Windows 95/98/2000
+	    Emacs for Windows NT and Windows 95/98/2000/XP
 
-			Version 21.0.104 pretest
+			     Version 21.1
 
-			     July 16, 2001
+			  November 18, 2001
 		
   This README file describes how to set up and run a precompiled version
-  of GNU Emacs for Windows NT and Windows 95/98/2000.  This distribution
-  can be found on the ftp.gnu.org server and its mirrors:
+  of GNU Emacs for Windows NT and Windows 95/98/2000/XP.  This
+  distribution can be found on the ftp.gnu.org server and its mirrors:
 
-	ftp://ftp.gnu.org/gnu/windows/emacs/
+	ftp://ftp.gnu.org/gnu/windows/emacs/latest/
 
   This server contains other distributions, including the full Emacs
   source distribution and the lisp source distribution, as well as older
@@ -139,13 +139,16 @@
   about the Windows port and related software packages.
 
   In addition to the FAQ, there is a mailing list for discussing issues
-  related to the Windows port of Emacs.  The name of the list is
-  "ntemacs-users@cs.washington.edu".  For information about the list,
-  send a message to "ntemacs-users-request@cs.washington.edu" with the
-  word "info" in the body of the message.  To subscribe to the list,
-  send a message to the same address with the word "subscribe" in the
-  body of the message; similarly, to unsubscribe from the list, send a
-  message with the word "unsubscribe" in the message body.
+  related to the Windows port of Emacs.  For information about the
+  list, see this Web page:
+
+	http://mail.gnu.org/mailman/listinfo/help-emacs-windows
+
+  To ask questions on the mailing list, send email to
+  help-emacs-windows@gnu.org.  (You don't need to subscribe for that.)
+  To subscribe to the list or unsubscribe from it, fill the form you
+  find at http://mail.gnu.org/mailman/listinfo/help-emacs-windows as
+  explained there.
 
   Another valuable source of information and help which should not be
   overlooked is the various Usenet news groups dedicated to Emacs.

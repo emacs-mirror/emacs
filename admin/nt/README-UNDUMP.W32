@@ -1,15 +1,15 @@
-	      Emacs for Windows NT and Windows 95/98/2000
+	    Emacs for Windows NT and Windows 95/98/2000/XP
 
-			Version 21.0.104 pretest
+			     Version 21.1
 
-			     July 16, 2001
+			  November 18, 2001
 		
 This README file describes how to dump a bare precompiled version of GNU
-Emacs for Windows NT and Windows 95/98/2000.  This distribution
+Emacs for Windows NT and Windows 95/98/2000/XP.  This distribution
 supplements the standard dumped precompiled distribution of Emacs, which
 you can download from:
 
-	ftp://ftp.gnu.org/gnu/windows/emacs/
+	ftp://ftp.gnu.org/gnu/windows/emacs/latest/
 
 If you do not have the "bin" distribution, then you will need to
 download it before you can use this undumped version.  Also note that
@@ -35,7 +35,7 @@ overwritten if you run dump more than once).
 For more information about running Emacs, read the README.W32 file that
 came with the standard dumped precompiled distribution.  If you have
 problems with Emacs, including problems with dumping, send email to
-"ntemacs-users@cs.washington.edu".
+help-emacs-windows@gnu.org.
 
 Enjoy.
 
