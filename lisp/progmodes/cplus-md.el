@@ -563,6 +563,8 @@ Returns nil if line starts inside a string, t if in a comment."
 		     (backward-char 1))
 		 (if (= (preceding-char) ?})
 		     0
+		   (if (= (preceding-char) ?\))
+		       (forward-list -1))
 		   (beginning-of-line)	; continued arg decls or member inits
 		   (skip-chars-forward " \t")
 		   (if (= (following-char) ?:)
@@ -608,7 +610,14 @@ Returns nil if line starts inside a string, t if in a comment."
 	     ;; Statement.  Find previous non-comment character.
 	     (goto-char indent-point)
 	     (c++-backward-to-noncomment containing-sexp)
-	     (if (not (memq (preceding-char) '(nil ?\, ?\; ?} ?: ?\{)))
+	     (if (and (not (memq (preceding-char) '(0 ?\, ?\; ?\} ?\{)))
+		      ;; But don't treat a line with a close-brace
+		      ;; as a continuation.  It is probably the
+		      ;; end of an enum type declaration.
+		      (save-excursion
+			(goto-char indent-point)
+			(skip-chars-forward " \t")
+			(not (= (following-char) ?}))))
 		 ;; This line is continuation of preceding line's statement;
 		 ;; indent  c-continued-statement-offset  more than the
 		 ;; previous line of the statement.
