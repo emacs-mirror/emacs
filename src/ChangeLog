@@ -1,5 +1,9 @@
 2000-05-25  Kenichi Handa  <handa@etl.go.jp>
 
+	(ccl_driver): Fix previous change.
+
+2000-05-25  Kenichi Handa  <handa@etl.go.jp>
+
 	* coding.c (run_pre_post_conversion_on_str): Set point to the
 	beginning of buffer before calling coding->post_read_conversion.
 	(decode_coding_string): Give correct args to
