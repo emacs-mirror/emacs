@@ -1,3 +1,14 @@
+2003-04-09  Juanma Barranquero  <lektu@terra.es>
+
+	* frame.el (new-frame): Add obsolescence declaration.
+
+2003-04-09  Ehud Karni  <ehud@unix.mvs.co.il>
+
+	* frame.el (set-frame-font): Allow keeping frame size after
+	changing font.
+	(modify-all-frames-parameters): New function to change parameters
+	in all existing and future frames.
+
 2003-04-09  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* man.el (Man-heading-regexp): Accept hyphen.
@@ -69,7 +80,7 @@
 	(mule-utf-16): New coding systems.
 	(utf-16-le-with-signature, utf-16-be-with-signature),
 	(utf-16): Aliases of the above coding systems.
-	
+
 2003-04-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-langs.el (c-symbol-key): Use POSIX char classes
@@ -128,7 +139,7 @@
 	locals -> desktop-buffer-locals
 	(desktop-buffer-major-mode, desktop-buffer-file-name)
 	(desktop-buffer-name): Unused customizable variables deleted.
-	(desktop-buffer-misc): Unused variable deleted.	
+	(desktop-buffer-misc): Unused variable deleted.
 	(desktop-save, desktop-buffer-dired-misc-data):
 	Use `desktop-file-name'.
 	(desktop-path): New customizable variable.  List of directories in
