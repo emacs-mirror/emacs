@@ -201,9 +201,9 @@ read the file name to use.  Otherwise use the value of `fortune-file'."
 	     (point-max) t))
       (if help-point
 	  (setq newsgroup (buffer-substring (match-beginning 1) help-point))
-	(setq newsgroup (if (or (eql major-mode 'gnus-article-mode)
-				(eql major-mode 'vm-mode)
-				(eql major-mode 'rmail-mode))
+	(setq newsgroup (if (or (eq major-mode 'gnus-article-mode)
+				(eq major-mode 'vm-mode)
+				(eq major-mode 'rmail-mode))
 			    fortune-from-mail
 			  "unknown"))))
 
