@@ -1,10 +1,11 @@
 /* impl.c.amsss: POOL CLASS AMS STRESS TEST
  *
- * $HopeName: MMsrc!amsss.c(trunk.5) $
- * Copyright (C) 1996, 1997, 1998 Harlequin Group, all rights reserved
+ * $HopeName$
+ * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .design: Adapted from amcss.c, but not counting collections, just
- * total size of objects allocated.
+ * total size of objects allocated (because epoch doesn't increment
+ * when AMS is collected).
  */
 
 #include <stdio.h>
@@ -30,10 +31,11 @@
 #define exactRootsCOUNT 50
 #define ambigRootsCOUNT 50
 /* Even this much takes 20 min to run in variety CI on gaia. */ 
-#define totalSizeMAX    4 * 1024 * (size_t)1024
-#define totalSizeSTEP   1 * 1024 * (size_t)1024
+#define totalSizeMAX    800 * (size_t)1024
+#define totalSizeSTEP   200 * (size_t)1024
 #define objNULL         ((mps_addr_t)0xDECEA5ED)
 #define testArenaSIZE   ((size_t)16<<20)
+#define initTestFREQ    6000
 
 
 static mps_pool_t pool;
@@ -70,7 +72,8 @@ static void *test(void *arg, size_t s)
   mps_root_t exactRoot, ambigRoot;
   size_t lastStep = 0;
   unsigned long i;
-  mps_word_t collections;
+  mps_ap_t busy_ap;
+  mps_addr_t busy_init;
 
   arena = (mps_arena_t)arg;
   (void)s; /* unused */
@@ -81,24 +84,24 @@ static void *test(void *arg, size_t s)
       "pool_create(ams)");
 
   die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "BufferCreate");
+  die(mps_ap_create(&busy_ap, pool, MPS_RANK_EXACT), "BufferCreate 2");
+
+  for(i = 0; i < exactRootsCOUNT; ++i)
+    exactRoots[i] = objNULL;
+  for(i = 0; i < ambigRootsCOUNT; ++i)
+    ambigRoots[i] = (mps_addr_t)rnd();
 
   die(mps_root_create_table(&exactRoot, arena,
                             MPS_RANK_EXACT, (mps_rm_t)0,
                             &exactRoots[0], exactRootsCOUNT),
                             "root_create_table(exact)");
-
   die(mps_root_create_table(&ambigRoot, arena,
                             MPS_RANK_AMBIG, (mps_rm_t)0,
                             &ambigRoots[0], ambigRootsCOUNT),
                             "root_create_table(ambig)");
 
-  for(i = 0; i < exactRootsCOUNT; ++i)
-    exactRoots[i] = objNULL;
-
-  for(i = 0; i < ambigRootsCOUNT; ++i)
-    ambigRoots[i] = (mps_addr_t)rnd();
-
-  collections = 0;
+  /* create an ap, and leave it busy */
+  die(mps_reserve(&busy_init, busy_ap, 64), "mps_reserve busy");
 
   i = 0;
   while(totalSize < totalSizeMAX) {
@@ -123,6 +126,9 @@ static void *test(void *arg, size_t s)
     if(exactRoots[r] != objNULL)
       assert(dylan_check(exactRoots[r]));
 
+    if(rnd() % initTestFREQ == 0)
+      *(int*)busy_init = -1; /* check that the buffer is still there */
+
     ++i;
     if (i % 256 == 0) {
       printf(".");
@@ -130,6 +136,8 @@ static void *test(void *arg, size_t s)
     }
   }
 
+  (void)mps_commit(busy_ap, busy_init, 64);
+  mps_ap_destroy(busy_ap);
   mps_ap_destroy(ap);
   mps_root_destroy(exactRoot);
   mps_root_destroy(ambigRoot);

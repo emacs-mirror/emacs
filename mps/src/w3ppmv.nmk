@@ -1,8 +1,8 @@
 # ==== W3PPMV NMAKE FILE ====
 #
-# $HopeName: MMsrc!w3ppmv.nmk(trunk.27) $
+# $HopeName: MMsrc!w3ppmv.nmk(trunk.28) $
 #
-# Copyright (C) 1995,1997 Harlequin Group, all rights reserved
+# Copyright (C) 1997.  Harlequin Group plc.  All rights reserved.
 #
 
 PFM = w3ppmv
@@ -18,8 +18,8 @@ SW  = <assert> <ring> <mpm> <bt> \
       <arenavm> <arenacl> <arena> <pool> <poolmfs> \
       <poolmv> <root> <format> <buffer> <lockw3> \
       <ref> <trace> <protsw> <prmcan> <shield> <vmw3> \
-      <than> <ssan> <mpsi> <mpsiw3> <ld> <poolepdl> <poolepvm> \
-      <action> <seg> <poolmrg> <message>
+      <than> <ssan> <mpsi> <mpsiw3> <ld> <action> <seg> \
+      <poolmrg> <message> <poolepdl> <poolepvm> <poolams>
 PLINTH = <mpsioan> <mpsliban>
 AMC = <poolamc>
 AMS = <poolams>
