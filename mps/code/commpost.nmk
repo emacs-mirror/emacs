@@ -37,7 +37,8 @@ mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awlu
      walkt0.exe locbwcss.exe locusss.exe \
      exposet0.exe \
      replay.exe replaysw.exe eventcnv.exe \
-     mmdw.lib mmsw.lib mps.lib mpsplan.lib:
+     mmdw.lib mmsw.lib mps.lib mpsplan.lib \
+     mps.dll:
 !IFDEF VARIETY
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
 !ELSE
@@ -251,6 +252,11 @@ $(PFM)\$(VARIETY)\mps.lib: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
         $(MVFFOBJ) $(AMSOBJ) $(AWLOBJ)
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+$(PFM)\$(VARIETY)\mps.dll: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
+        $(MVFFOBJ) $(AMSOBJ) $(AWLOBJ)
+	$(ECHO) $@
+	$(LINKER) $(LINKFLAGS) /dll /OUT:$@ $**
 
 $(PFM)\$(VARIETY)\mpsplan.lib: $(PLINTHOBJ)
 	$(ECHO) $@
