@@ -1103,14 +1103,6 @@ specifies a font that does not exist on your system, then it cannot
 display that character properly.  It will display that character as an
 empty box instead.
 
-@vindex highlight-wrong-size-font
-  The fontset height and width are determined by the ASCII characters
-(that is, by the font used for ASCII characters in that fontset).  If
-another font in the fontset has a different height, or a different
-width, then characters assigned to that font are clipped to the
-fontset's size.  If @code{highlight-wrong-size-font} is non-@code{nil},
-a box is displayed around these wrong-size characters as well.
-
 @node Defining Fontsets
 @section Defining fontsets
 
