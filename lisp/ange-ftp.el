@@ -653,6 +653,7 @@ parenthesized expressions in REGEXP for the components (in that order).")
 (defvar ange-ftp-skip-msgs
   (concat "^200 \\(PORT\\|Port\\) \\|^331 \\|^150 \\|^350 \\|^[0-9]+ bytes \\|"
 	  "^Connected \\|^$\\|^Remote system\\|^Using\\|^ \\|Password:\\|"
+	  "^Data connection \\|"
 	  "^local:\\|^Trying\\|^125 \\|^550-\\|^221 .*oodbye")
   "*Regular expression matching ftp messages that can be ignored.")
 
@@ -2204,7 +2205,7 @@ Works by doing a pwd and examining the directory syntax."
 ;; Returns whether HOST's FTP server doesn't like \'ls\' or \'dir\' commands
 ;; to take switch arguments.
 (defun ange-ftp-dumb-unix-host (host)
-  (and ange-ftp-dumb-unix-host-regexp
+  (and host ange-ftp-dumb-unix-host-regexp
        (save-match-data
 	 (string-match ange-ftp-dumb-unix-host-regexp host))))
 
