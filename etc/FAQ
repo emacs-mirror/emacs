@@ -471,10 +471,10 @@ General Questions
   The FSF has maintained archives of all of the GNU mailing lists for many
   years, although there may be some unintentional gaps in coverage.  The
   archive is not particularly well organized or easy to retrieve individual
-  postings from, but pretty much everything is there.  The latest archives
+  postings from, but pretty much everything is there.  The archives
   are available at
  
-    ftp://gnudist.gnu.org/pub/gnu/MailingListArchives/current
+    ftp://ftp-mailing-list-archives.gnu.org/
 
   Web-based Usenet search services, such as DejaNews, also archive the
   gnu.* groups.  You can reach DejaNews at
