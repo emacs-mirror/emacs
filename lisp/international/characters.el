@@ -265,7 +265,7 @@
 
 ;; Ethiopic character set
 
-(modify-category-entry '(#x1200 . #x137b) ?e)
+(modify-category-entry '(#x1200 . #x137c) ?e)
 (let ((chars '(?á¡ ?á¢ ?á£ ?á¤ ?á¥ ?á¦ ?á§ ?á¨ ?ö ‡€ ?ö ‡‹ ?ö ‡Œ ?ö ‡ ?ö ‡Ž ?ö ‡)))
   (while chars
     (modify-syntax-entry (car chars) ".")
