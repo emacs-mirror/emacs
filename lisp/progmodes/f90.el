@@ -1624,13 +1624,17 @@ Update keyword case first."
   ;; position is beyond fill-column.
   ;; Will not break **, //, or => (as specified by f90-no-break-re).
   (f90-update-line)
-  (while (> (current-column) fill-column)
-    (let ((pos-mark (point-marker)))
-      (move-to-column fill-column)
-      (or (f90-in-string) (f90-find-breakpoint))
-      (f90-break-line)
-      (goto-char pos-mark)
-      (set-marker pos-mark nil))))
+  ;; Need this for `f90-electric-insert' and other f90- callers.
+  (unless (and (boundp 'comment-auto-fill-only-comments)
+               comment-auto-fill-only-comments
+               (not (f90-in-comment)))
+    (while (> (current-column) fill-column)
+      (let ((pos-mark (point-marker)))
+        (move-to-column fill-column)
+        (or (f90-in-string) (f90-find-breakpoint))
+        (f90-break-line)
+        (goto-char pos-mark)
+        (set-marker pos-mark nil)))))
 
 
 (defun f90-join-lines ()
