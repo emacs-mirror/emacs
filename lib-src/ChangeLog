@@ -1,3 +1,12 @@
+2003-02-15  Richard M. Stallman  <rms@gnu.org>
+
+	* cvtmail.c: Cast result of malloc and realloc.
+	Don't include stdlib.h, becuase config.h does.
+	(malloc, realloc): Declarations deleted.
+	
+	* yow.c (yow): Cast result of malloc and realloc.
+	(malloc, realloc): Declarations deleted.
+
 2003-02-11  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in (lisp): Add malayalam.el and tamil.el.

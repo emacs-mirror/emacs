@@ -1,3 +1,18 @@
+2003-02-15  Richard M. Stallman  <rms@gnu.org>
+
+	* ffap.el: Many doc fixes.
+	(ffap-replace-file-component):
+	Renamed from ffap-replace-path-component.  Callers changed.
+	(ffap-host-to-filename): Renamed from ffap-host-to-path.  Callers chgd.
+
+	* international/iso-ascii.el (iso-ascii-display-table): New variable.
+	(iso-ascii-standard-display-table): New variable.
+	(iso-ascii-display): Define in iso-ascii-display-table.
+	(iso-ascii-mode): New command.
+
+	* tar-mode.el (tar-header-block-summarize):
+	Use l for symlink, h for hard link.
+
 2003-02-15  David Kastrup  <dak@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-get-file-entry): Allow for graceful
