@@ -1,5 +1,12 @@
 2001-12-16  Richard M. Stallman  <rms@gnu.org>
 
+	* startup.el (command-line-1): Display startup screen
+	even if there are command line args.
+	Add a note about how to go to editing your files. 
+	(fancy-splash-head): Add a note about how to go to your files.
+	(fancy-splash-outer-buffer): New variable.
+	(fancy-splash-screens): Bind variable fancy-splash-outer-buffer.
+
 	* subr.el (with-temp-message): At the end, always discard
 	the temp message, even by clearing the echo area.
 
