@@ -18572,12 +18572,12 @@ calc_line_height_property (it, prop, font, boff)
 
       face_id = lookup_named_face (it->f, face_name, ' ');
       if (face_id < 0)
-	return -1;
+	return make_number (-1);
 
       face = FACE_FROM_ID (it->f, face_id);
       font = face->font;
       if (font == NULL)
-	return -1;
+	return make_number (-1);
 
       font_info = FONT_INFO_FROM_ID (it->f, face->font_info_id);
       boff = font_info->baseline_offset;
