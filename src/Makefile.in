@@ -290,7 +290,22 @@ LIBXMENU=
 #endif /* not HAVE_X_MENU */
 
 #ifdef USE_X_TOOLKIT
-LIBXT= -lXaw -lXt -lXmu -lXext
+#define @X_TOOLKIT_TYPE@
+#if defined (LUCID) || defined (ATHENA)
+LIBW= -lXaw
+#endif
+#ifdef MOTIF
+#ifdef LIB_MOTIF
+LIBW= LIB_MOTIF
+#else
+LIBW= -lXm
+#endif
+#endif
+#ifdef OPEN_LOOK
+LIBW= -lXol
+#endif
+
+LIBXT= $(LIBW) -lXt -lXmu -lXext
 #else
 LIBXT=
 #endif
