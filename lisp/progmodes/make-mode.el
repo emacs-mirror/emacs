@@ -220,11 +220,13 @@ not be enclosed in { } or ( ).")
    ;; They can cause trouble, especially if they start with a tab.
    '("^[ \t]+$" . makefile-space-face)
 
-   ;; Highlight leading spaces, since they are hard to see before a tab
-   ;; and can make a makefile fail to function.
-   ;; Don't highlight leading tabs, because they are normal
-   ;; and people assume that 8 cols of whitespace means a tab.
-   '("^ " . makefile-space-face)))
+   ;; Highlight shell comments that Make treats as commands,
+   ;; since these can fool people.
+   '("^\t+#" makefile-space-face t)
+
+   ;; Highlight spaces that precede tabs.
+   ;; They can make a tab fail to be effective.
+   '("^\\( +\\)\t" 1 makefile-space-face)))
 
 ;;; ------------------------------------------------------------
 ;;; The following configurable variables are used in the
