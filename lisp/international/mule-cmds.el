@@ -719,7 +719,7 @@ see `language-info-alist'."
 (defun set-language-info-alist (lang-env alist &optional parents)
   "Store ALIST as the definition of language environment LANG-ENV.
 ALIST is an alist of KEY and INFO values.  See the documentation of
-`set-language-info' for the meanings of KEY and INFO.
+`language-info-alist' for the meanings of KEY and INFO.
 
 Optional arg PARENTS is a list of parent menu names; it specifies
 where to put this language environment in the 
