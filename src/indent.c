@@ -1061,8 +1061,9 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   Lisp_Object window;
 
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
-  int wide_column_end_hpos = 0;	/* Horizontal position at the end of
-				   last wide-column character.  */
+  /* If previous char scanned was a wide character,
+     this is the column where it ended.  Otherwise, this is 0.  */
+  int wide_column_end_hpos = 0;
   int prev_pos;			/* Previous buffer position.  */
   int prev_pos_byte;		/* Previous buffer position.  */
   int contin_hpos;		/* HPOS of last column of continued line.  */
