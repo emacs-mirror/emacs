@@ -439,7 +439,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     new_argv[1] = 0;
 
 #ifdef MSDOS /* MW, July 1993 */
-  if ((outf = egetenv ("TMP")) || (outf = egetenv ("TEMP")))
+  if ((outf = egetenv ("TMPDIR")))
     strcpy (tempfile = alloca (strlen (outf) + 20), outf);
   else
     {
@@ -811,7 +811,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   char *tempfile;
   char *outf = '\0';
 
-  if ((outf = egetenv ("TMP")) || (outf = egetenv ("TEMP")))
+  if ((outf = egetenv ("TMPDIR"))
+      || (outf = egetenv ("TMP"))
+      || (outf = egetenv ("TEMP")))
     strcpy (tempfile = alloca (strlen (outf) + 20), outf);
   else
     {
