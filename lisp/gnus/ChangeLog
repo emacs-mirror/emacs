@@ -1,3 +1,8 @@
+2002-02-13  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-art.el (gnus-article-edit-mode): Use define-derived-mode.
+	From:  Stefan Monnier  <monnier@cs.yale.edu>
+
 2002-02-07  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-art.el (article-wash-html): Bind url-gateway-unplugged. 

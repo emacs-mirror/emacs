@@ -1400,7 +1400,7 @@ MAP is an alist where the elements are on the form (\"from\" \"to\")."
 	  (width (window-width (get-buffer-window (current-buffer)))))
       (save-restriction
 	(article-goto-body)
-	(let ((adaptive-fill-mode nil))
+	(let ((adaptive-fill-mode nil)) ;Why?  -sm
 	  (while (not (eobp))
 	    (end-of-line)
 	    (when (>= (current-column) (min fill-column width))
@@ -4137,21 +4137,18 @@ If given a prefix, show the hidden text instead."
 		     "\C-c\C-w" gnus-article-edit-mode-map)
     "f" gnus-article-edit-full-stops))
 
-(defun gnus-article-edit-mode ()
+(define-derived-mode gnus-article-edit-mode text-mode "Article Edit"
   "Major mode for editing articles.
 This is an extended text-mode.
 
 \\{gnus-article-edit-mode-map}"
-  (interactive)
-  (setq major-mode 'gnus-article-edit-mode)
-  (setq mode-name "Article Edit")
-  (use-local-map gnus-article-edit-mode-map)
   (make-local-variable 'gnus-article-edit-done-function)
   (make-local-variable 'gnus-prev-winconf)
+  (set (make-local-variable 'font-lock-defaults)
+       '(message-font-lock-keywords t))
   (setq buffer-read-only nil)
   (buffer-enable-undo)
-  (widen)
-  (gnus-run-hooks 'text-mode-hook 'gnus-article-edit-mode-hook))
+  (widen))
 
 (defun gnus-article-edit (&optional force)
   "Edit the current article.
