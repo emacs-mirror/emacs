@@ -1,3 +1,9 @@
+2003-12-31  Andreas Schwab  <schwab@suse.de>
+
+	* numbers.texi (Math Functions): sqrt reports a domain-error
+	error.
+	(Float Basics): Use `(/ 0.0 0.0)' instead of `(sqrt -1.0)'.
+
 2003-12-30  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* tips.texi (Documentation Tips): Update item on hyperlinks in
