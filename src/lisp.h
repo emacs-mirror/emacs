@@ -477,7 +477,8 @@ extern Lisp_Object make_number ();
 /* Value is non-zero if C integer I doesn't fit into a Lisp fixnum.  */
 
 #define FIXNUM_OVERFLOW_P(i) \
-  ((i) > MOST_POSITIVE_FIXNUM || (i) < MOST_NEGATIVE_FIXNUM)
+  ((EMACS_INT)(i) > MOST_POSITIVE_FIXNUM \
+   || (EMACS_INT) (i) < MOST_NEGATIVE_FIXNUM)
 
 /* Extract a value or address from a Lisp_Object.  */
 
