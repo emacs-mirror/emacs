@@ -174,7 +174,7 @@ rejecting one login and prompting again for a username and password.")
       (delete-region comint-last-input-start
 		     comint-last-input-end)))
 
-;;;autoload (add-hook 'same-window-regexps "\\*telnet-.*\\*\\(\\|<[0-9]+>\\)")
+;;;###autoload (add-hook 'same-window-regexps "\\*telnet-.*\\*\\(\\|<[0-9]+>\\)")
 
 ;;;###autoload
 (defun telnet (host)
@@ -216,7 +216,7 @@ Data is sent to the remote host when RET is typed.
   (use-local-map telnet-mode-map)
   (run-hooks 'telnet-mode-hook))
 
-;;;autoload (add-hook 'same-window-regexps "\\*[^-]*-rsh\\*\\(\\|<[0-9]*>\\)")
+;;;###autoload (add-hook 'same-window-regexps "\\*[^-]*-rsh\\*\\(\\|<[0-9]*>\\)")
 
 ;;;###autoload
 (defun rsh (host)
