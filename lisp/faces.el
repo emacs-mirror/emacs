@@ -170,7 +170,7 @@ This function is defined for compatibility with Emacs 20.2.  It
 should not be used anymore."
   (or (internal-find-face name frame)
       (check-face name)))
-(make-obsolete 'internal-find-face "See `facep' and `check-face'.")
+(make-obsolete 'internal-get-face "See `facep' and `check-face'.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1725,7 +1725,7 @@ created."
 
 (defun x-resolve-font-name (pattern &optional face frame)
   "Return a font name matching PATTERN.
-All wildcards in PATTERN become substantiated.
+All wildcards in PATTERN are instantiated.
 If PATTERN is nil, return the name of the frame's base font, which never
 contains wildcards.
 Given optional arguments FACE and FRAME, return a font which is
