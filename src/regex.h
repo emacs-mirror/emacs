@@ -378,13 +378,16 @@ typedef struct
    unfortunately clutters up the declarations a bit, but I think it's
    worth it.
    
-   We also have to undo `const' if we are not ANSI.  */
+   We also have to undo `const' if we are not ANSI and if it hasn't
+   previously being taken care of.  */
 
 #if __STDC__
 #define _RE_ARGS(args) args
 #else
 #define _RE_ARGS(args) ()
+#ifndef const
 #define const
+#endif
 #endif
 
 /* Sets the current default syntax to SYNTAX, and return the old syntax.
