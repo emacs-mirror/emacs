@@ -1,6 +1,6 @@
 # Set up a mask to use.
 
-set $valmask = (1 << gdb_valbits) - 1
+set $valmask = ((EMACS_INT)1 << gdb_valbits) - 1
 set $nonvalbits = gdb_emacs_intbits - gdb_valbits
 
 # Set up something to print out s-expressions.
