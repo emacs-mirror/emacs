@@ -188,7 +188,8 @@ Lisp_Object last_command;
 Lisp_Object this_command;
 
 #ifdef MULTI_FRAME
-/* The frame in which the last input event occurred.
+/* The frame in which the last input event occurred, or Qmacro if the
+   last event came from a macro.
    command_loop_1 will select this frame before running the
    command bound to an event sequence, and read_key_sequence will
    toss the existing prefix if the user starts typing at a
@@ -1099,6 +1100,17 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   if (!NILP (Vexecuting_macro))
     {
+      /* We set this to Qmacro; since that's not a frame, nobody will
+	 try to switch frames on us, and the selected window will
+	 remain unchanged.
+
+         Since this event came from a macro, it would be misleading to
+	 leave Vlast_event_frame set to whereever the last real event
+	 came from.  Normally, command_loop_1 selects
+	 Vlast_event_frame after each command is read, but events read
+	 from a macro should never cause a new frame to be selected.  */
+      Vlast_event_frame = Qmacro;
+
       if (executing_macro_index >= Flength (Vexecuting_macro))
 	{
 	  XSET (c, Lisp_Int, -1);
@@ -1860,10 +1872,19 @@ format_modifiers (modifiers, buf)
 {
   char *p = buf;
 
-  if (modifiers & ctrl_modifier) { *p++ = 'C'; *p++ = '-'; }
-  if (modifiers & meta_modifier) { *p++ = 'M'; *p++ = '-'; }
+  /* Events with the `up' modifier should always be turned into 
+     click or drag events.  */
+  if (modifiers & up_modifier)
+    abort ();
+
+  if (modifiers & alt_modifier)   { *p++ = 'A'; *p++ = '-'; }
+  if (modifiers & ctrl_modifier)  { *p++ = 'C'; *p++ = '-'; }
+  if (modifiers & hyper_modifier) { *p++ = 'H'; *p++ = '-'; }
+  if (modifiers & meta_modifier)  { *p++ = 'M'; *p++ = '-'; }
   if (modifiers & shift_modifier) { *p++ = 'S'; *p++ = '-'; }
-  if (modifiers & up_modifier) { *p++ = 'U'; *p++ = '-'; }
+  if (modifiers & super_modifier) { strcpy (p, "super-"); p += 6; }
+  if (modifiers & down_modifier)  { strcpy (p, "down-");  p += 5; }
+  if (modifiers & drag_modifier)  { strcpy (p, "drag-");  p += 5; }
   *p = '\0';
 
   return p - buf;
@@ -1872,6 +1893,8 @@ format_modifiers (modifiers, buf)
 
 /* Given a symbol whose name begins with modifiers ("C-", "M-", etc),
    return a symbol with the modifiers placed in the canonical order.
+   Canonical order is alphabetical, except for down and drag, which
+   always come last.
 
    Fdefine_key calls this to make sure that (for example) C-M-foo
    and M-C-foo end up being equivalent in the keymap.  */
@@ -1895,29 +1918,70 @@ reorder_modifiers (symbol)
   if (! (name->size >= 4 && name->data[1] == '-' && name->data[3] == '-'))
     return symbol;
 
-  for (i = 0; i + 1 < name->size && name->data[i + 1] == '-'; i += 2)
+  for (i = 0; i+1 < name->data[i]; )
     switch (name->data[i])
       {
-      case 'M':
-	not_canonical |= (modifiers & (meta_modifier|ctrl_modifier
-				      |shift_modifier|up_modifier));
-	modifiers |= meta_modifier;
+      case 'A':
+	if (name->data[i] != '-') goto no_more_modifiers;
+	not_canonical |= (modifiers & ~(alt_modifier - 1));
+	modifiers |= alt_modifier;
+	i += 2;
 	break;
 
       case 'C':
-	not_canonical |= (modifiers &
-			 (ctrl_modifier|shift_modifier|up_modifier));
+	if (name->data[i] != '-') goto no_more_modifiers;
+	not_canonical |= (modifiers & ~(ctrl_modifier - 1));
 	modifiers |= ctrl_modifier;
+	i += 2;
+	break;
+
+      case 'H':
+	if (name->data[i] != '-') goto no_more_modifiers;
+	not_canonical |= (modifiers & ~(hyper_modifier - 1));
+	modifiers |= hyper_modifier;
+	i += 2;
+	break;
+
+      case 'M':
+	if (name->data[i] != '-') goto no_more_modifiers;
+	not_canonical |= (modifiers & ~(meta_modifier - 1));
+	modifiers |= meta_modifier;
+	i += 2;
 	break;
 
       case 'S':
-	not_canonical |= (modifiers & (shift_modifier|up_modifier));
+	if (name->data[i] != '-') goto no_more_modifiers;
+	not_canonical |= (modifiers & ~(shift_modifier - 1));
 	modifiers |= shift_modifier;
+	i += 2;
 	break;
 
-      case 'U':
-	not_canonical |= (modifiers & (up_modifier));
-	modifiers |= up_modifier;
+      case 's':
+	if (i + 6 > name->size
+	    || strncmp (name->data + i, "super-", 6))
+	  goto no_more_modifiers;
+	not_canonical |= (modifiers & ~(super_modifier - 1));
+	modifiers |= super_modifier;
+	i += 6;
+	break;
+
+      case 'd':
+	if (i + 5 > name->size)
+	  goto no_more_modifiers;
+	if (! strncmp (name->data + i, "drag-", 5))
+	  {
+	    not_canonical |= (modifiers & ~(drag_modifier - 1));
+	    modifiers |= drag_modifier;
+	    i += 5;
+	  }
+	else if (! strncmp (name->data + i, "down-", 5))
+	  {
+	    not_canonical |= (modifiers & ~(down_modifier - 1));
+	    modifiers |= down_modifier;
+	    i += 5;
+	  }
+	else
+	  goto no_more_modifiers;
 	break;
 
       default:
@@ -1933,7 +1997,7 @@ reorder_modifiers (symbol)
      use intern here; we have to use Fintern, which expects a genuine
      Lisp_String, and keeps a reference to it.  */
   {
-    char *new_mods = (char *) alloca (sizeof ("C-M-S-U-"));
+    char *new_mods = (char *) alloca (sizeof ("A-C-H-M-S-super-U-down-drag-"));
     int len = format_modifiers (modifiers, new_mods);
     Lisp_Object new_name = make_uninit_string (len + name->size - i);
 
@@ -2712,10 +2776,14 @@ read_key_sequence (keybuf, bufsize, prompt)
 	    /* Never change last_event_buffer for using a menu.  */
 	    buf = last_event_buffer;
 	  else if (XTYPE (key) == Lisp_Int || XTYPE (key) == Lisp_Symbol)
-	    buf = (XBUFFER
-		   (XWINDOW
-		    (FRAME_SELECTED_WINDOW
-		     (XFRAME (Vlast_event_frame)))->buffer));
+	    {
+	      buf = ((XTYPE (Vlast_event_frame) == Lisp_Frame)
+		     ? (XBUFFER
+			(XWINDOW
+			 (FRAME_SELECTED_WINDOW
+			  (XFRAME (Vlast_event_frame)))->buffer))
+		     : last_event_buffer);
+	    }
 	  else if (EVENT_HAS_PARAMETERS (key))
 	    {
 	      Lisp_Object window = EVENT_WINDOW (key);
@@ -3605,7 +3673,8 @@ Polling is automatically disabled in all other cases.");
 
 #ifdef MULTI_FRAME
   DEFVAR_LISP ("last-event-frame", &Vlast_event_frame,
-    "*The frame in which the most recently read event occurred.");
+    "*The frame in which the most recently read event occurred.\n\
+If the last event came from a keyboard macro, this is set to `macro'.");
   Vlast_event_frame = Qnil;
 #endif
 
