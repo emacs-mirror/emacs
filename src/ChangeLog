@@ -1,5 +1,11 @@
 2005-03-03  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* s/vms.h (FILE_SYSTEM_CASE): New macro.
+	* fileio.c (Fexpand_file_name) [VMS]: Don't upcase the name
+	"manually"; this is now handled generally via FILE_SYSTEM_CASE.
+
+2005-03-03  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* fileio.c (FILE_SYSTEM_CASE): Define macro if not already defined.
 	(Ffile_name_directory): Use FILE_SYSTEM_CASE unconditionally.
 	(Fexpand_file_name): Likewise.

@@ -1098,10 +1098,6 @@ See also the function `substitute-in-file-name'.")
       UNGCPRO;
     }
 
-#ifdef VMS
-  /* Filenames on VMS are always upper case.  */
-  name = Fupcase (name);
-#endif
   name = FILE_SYSTEM_CASE (name);
   nm = XSTRING (name)->data;
 
