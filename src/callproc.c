@@ -1083,21 +1083,13 @@ init_callproc ()
 
   tempdir = Fdirectory_file_name (Vexec_directory);
   if (access (XSTRING (tempdir)->data, 0) < 0)
-    {
-      fprintf (stderr,
-	       "Warning: arch-dependent data dir (%s) does not exist.\n",
-	       XSTRING (Vexec_directory)->data);
-      sleep (2);
-    }
+    dir_warning ("Warning: arch-dependent data dir (%s) does not exist.\n",
+		 Vexec_directory);
 
   tempdir = Fdirectory_file_name (Vdata_directory);
   if (access (XSTRING (tempdir)->data, 0) < 0)
-    {
-      fprintf (stderr,
-	       "Warning: arch-independent data dir (%s) does not exist.\n",
-	       XSTRING (Vdata_directory)->data);
-      sleep (2);
-    }
+    dir_warning ("Warning: arch-independent data dir (%s) does not exist.\n",
+		 Vdata_directory);
 
 #ifdef VMS
   Vshell_file_name = build_string ("*dcl*");
