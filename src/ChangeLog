@@ -1,5 +1,11 @@
 2000-09-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* config.in (NO_RETURN): Define.as `__attribute__((__noreturn__))'
+	for GCC >= 2.5.
+
+	* lisp.h (wrong_type_argument, Fthrow, Fsignal, error): Declare
+	NO_RETURN.
+
 	* window.c, term.c, xmenu.c, xrdb.c, emacs.c, macros.c,
 	* keymap.c, insdel.c, marker.c, minibuf.c, fileio.c, dired.c,
 	* indent.c, search.c, alloc.c, data.c: Avoid some more compiler
