@@ -263,8 +263,8 @@ x_window_to_frame (wdesc)
 #ifdef USE_X_TOOLKIT
       if (f->display.nothing == 1) 
 	return 0;
-      if (f->display.x->edit_widget 
-	  && XtWindow (f->display.x->edit_widget) == wdesc
+      if ((f->display.x->edit_widget 
+	   && XtWindow (f->display.x->edit_widget) == wdesc)
           || f->display.x->icon_desc == wdesc)
         return f;
 #else /* not USE_X_TOOLKIT */
