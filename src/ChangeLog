@@ -1,3 +1,13 @@
+2002-01-23  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_update_window_begin): Only hide caret if
+	w32_use_visible_system_caret is set.
+	(x_update_window_end): Only show caret if
+	w32_use_visible_system_caret is set.
+	(syms_of_w32term): Handle SystemParametersInfo call failing.
+
+	* w32fns.c (syms_of_w32fns): Initialize w32_visible_system_caret_hwnd.
+
 2002-01-22  Richard M. Stallman  <rms@gnu.org>
 
 	* unexelf.c (unexec): Define n so as to cause compilation error
