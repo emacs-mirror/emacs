@@ -1070,7 +1070,7 @@ sysdep.o: sysdep.c $(config_h) dispextern.h termhooks.h termchar.h termopts.h \
    frame.h syssignal.h systty.h systime.h syswait.h blockinput.h atimer.h \
    window.h msdos.h dosfns.h keyboard.h
 term.o: term.c termchar.h termhooks.h termopts.h $(config_h) cm.h frame.h \
-   disptab.h keyboard.h charset.h coding.h ccl.h msdos.h
+   disptab.h dispextern.h keyboard.h charset.h coding.h ccl.h msdos.h
 termcap.o: termcap.c $(config_h)
 terminfo.o: terminfo.c $(config_h)
 tparam.o: tparam.c $(config_h)
