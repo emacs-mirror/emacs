@@ -109,6 +109,8 @@
   ;; because lisp-fill-paragraph should do the job.
   (make-local-variable 'adaptive-fill-mode)
   (setq adaptive-fill-mode nil)
+  (make-local-variable 'normal-auto-fill-function)
+  (setq normal-auto-fill-function 'lisp-mode-auto-fill)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'lisp-indent-line)
   (make-local-variable 'indent-region-function)
@@ -361,6 +363,17 @@ With argument, insert value in current buffer after the defun."
       (skip-chars-backward " \t")
       (max (if (bolp) 0 (1+ (current-column)))
 	   comment-column))))
+
+(defun lisp-mode-auto-fill ()
+  (if (> (current-column) (current-fill-column))
+      (if (save-excursion
+	    (nth 4 (parse-partial-sexp (save-excursion
+					 (beginning-of-defun)
+					 (point))
+				       (point))))
+	  (do-auto-fill)
+	(let ((comment-start nil) (comment-start-skip nil))
+	  (do-auto-fill)))))
 
 (defvar lisp-indent-offset nil "")
 (defvar lisp-indent-function 'lisp-indent-function "")
