@@ -1,3 +1,7 @@
+2002-10-17  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (TEMACS_LDFLAGS): Add trailing comment.
+
 2002-10-16  Richard M. Stallman  <rms@gnu.org>
 
 	* fileio.c (Fcopy_file): Fix backward test of KEEP_TIME.
