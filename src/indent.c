@@ -1261,21 +1261,26 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	    {
 	      if (selective > 0 && indented_beyond_p (pos, selective))
 		{
-		  /* Skip any number of invisible lines all at once */
-		  do
-		    pos = find_before_next_newline (pos, to, 1) + 1;
-		  while (pos < to
-			 && indented_beyond_p (pos, selective));
-		  /* Allow for the " ..." that is displayed for them. */
-		  if (selective_rlen)
+		  /* If (pos == to), we don't have to take care of
+		    selective display.  */
+		  if (pos < to)
 		    {
-		      hpos += selective_rlen;
-		      if (hpos >= width)
-			hpos = width;
+		      /* Skip any number of invisible lines all at once */
+		      do
+			pos = find_before_next_newline (pos, to, 1) + 1;
+		      while (pos < to
+			     && indented_beyond_p (pos, selective));
+		      /* Allow for the " ..." that is displayed for them. */
+		      if (selective_rlen)
+			{
+			  hpos += selective_rlen;
+			  if (hpos >= width)
+			    hpos = width;
+			}
+		      --pos;
+		      /* We have skipped the invis text, but not the
+			newline after.  */
 		    }
-		  --pos;
-		  /* We have skipped the invis text, but not the
-		     newline after.  */
 		}
 	      else
 		{
@@ -1295,7 +1300,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      /* In selective display mode,
 		 everything from a ^M to the end of the line is invisible.
 		 Stop *before* the real newline.  */
-	      pos = find_before_next_newline (pos, to, 1);
+	      if (pos < to)
+		pos = find_before_next_newline (pos, to, 1);
 	      /* If we just skipped next_boundary,
 		 loop around in the main while
 		 and handle it.  */
