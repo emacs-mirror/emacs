@@ -501,9 +501,7 @@ w32_console_toggle_lock_key (int vk_code, Lisp_Object new_state)
 /* Mouse position hook.  */
 void 
 w32_console_mouse_position (FRAME_PTR *f,
-#ifndef MULE
 			    int insist,
-#endif
 			    Lisp_Object *bar_window,
 			    enum scroll_bar_part *part,
 			    Lisp_Object *x,
@@ -512,9 +510,7 @@ w32_console_mouse_position (FRAME_PTR *f,
 {
   BLOCK_INPUT;
 
-#ifndef MULE  
   insist = insist;
-#endif
 
   *f = get_frame ();
   *bar_window = Qnil;
