@@ -1245,8 +1245,9 @@ Leaves the region wide."
 	;; tar-header-offset turns out to be null for files fetched with W3,
 	;; at least.
 	(let ((coding-system-for-write 'no-conversion))
-	  (write-region (or (byte-to-position tar-header-offset)
-			    (point-min))
+	  (write-region (if tar-header-offset
+			    (byte-to-position tar-header-offset)
+			  (point-min))
 			(point-max)
 			buffer-file-name nil t))
 	(tar-clear-modification-flags)
