@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 
-;; Provides a minor mode (toggled by M-x hl-line-ode) and a global minor
+;; Provides a minor mode (toggled by M-x hl-line-mode) and a global minor
 ;; mode (toggled by M-x global-hl-line-mode) to highlight, on a
 ;; suitable terminal, the line in the current window on which point is
 ;; (except in a minibuffer window).  Done to satisfy a request for a
