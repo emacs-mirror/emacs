@@ -840,7 +840,7 @@ the last macro.  While defining the macro, F7 inserts a counter value
 which automatically increments every time the macro is executed.
 
 M-F7 edits the last macro, C-F7 sets the counter, and S-F7 sets the
-counter format. S-F8 executes the previous macro (actuall the head of
+counter format. S-F8 executes the previous macro (actually the head of
 the keyboard macro ring), and C-F8 cycles through the keyboard macro
 ring. C-u F8 swaps the last macro with the head of the macro ring.
 
