@@ -639,7 +639,7 @@ or three octal digits representing its character code."))
 	    (t (setq code char count 259))))
     ;; Turn a meta-character into a character with the 0200 bit set.
     (logior (if (/= (logand code ?\M-\^@) 0) 128 0)
-	    (logand 255 code))))
+	    code)))
 
 (defun force-mode-line-update (&optional all)
   "Force the mode-line of the current buffer to be redisplayed.
