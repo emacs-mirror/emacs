@@ -670,7 +670,7 @@ and sometimes other things."
   (interactive
    (list (read-language-name
 	  'documentation
-	  "Describe language environment (default, current choise): ")))
+	  "Describe language environment (default, current choice): ")))
   (if (null language-name)
       (setq language-name current-language-environment))
   (if (or (null language-name)
