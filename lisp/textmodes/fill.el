@@ -197,6 +197,7 @@ space does not end a sentence, so don't break a line there."
     (setq from (point))
   
     ;; Delete all but one soft newline at end of region.
+    ;; And leave TO before that one.
     (goto-char to)
     (while (and (> (point) from) (eq ?\n (char-after (1- (point)))))
       (if (and oneleft
@@ -362,20 +363,23 @@ space does not end a sentence, so don't break a line there."
 			(skip-chars-forward " \t")
 			(skip-chars-forward "^ \t\n")
 			(setq first nil))))
-		;; Replace whitespace here with one newline, then indent to left
-		;; margin.
-		(skip-chars-backward " \t")
-		(insert ?\n)
-		;; Give newline the properties of the space(s) it replaces
-		(set-text-properties (1- (point)) (point)
-				     (text-properties-at (point)))
-		(indent-to-left-margin)
-		;; Insert the fill prefix after indentation.
-		;; Set prefixcol so whitespace in the prefix won't get lost.
-		(and fill-prefix (not (equal fill-prefix ""))
-		     (progn
-		       (insert-and-inherit fill-prefix)
-		       (setq prefixcol (current-column)))))
+		;; Check again to see if we got to the end of the paragraph.
+		(if (eobp)
+		    (or nosqueeze (delete-horizontal-space))
+		  ;; Replace whitespace here with one newline, then indent to left
+		  ;; margin.
+		  (skip-chars-backward " \t")
+		  (insert ?\n)
+		  ;; Give newline the properties of the space(s) it replaces
+		  (set-text-properties (1- (point)) (point)
+				       (text-properties-at (point)))
+		  (indent-to-left-margin)
+		  ;; Insert the fill prefix after indentation.
+		  ;; Set prefixcol so whitespace in the prefix won't get lost.
+		  (and fill-prefix (not (equal fill-prefix ""))
+		       (progn
+			 (insert-and-inherit fill-prefix)
+			 (setq prefixcol (current-column))))))
 	      ;; Justify the line just ended, if desired.
 	      (if justify
 		  (if (eobp)
