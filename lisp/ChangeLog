@@ -1,3 +1,7 @@
+2004-07-22  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/make-mode.el: Fix comments.
+
 2004-07-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Doc fix.
