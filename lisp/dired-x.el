@@ -387,6 +387,7 @@ See variables `dired-texinfo-unclean-extensions',
 
 ;;;; JUMP.
 
+;;;###autoload
 (defun dired-jump (&optional other-window)
   "Jump to dired buffer corresponding to current buffer.
 If in a file, dired the current directory and move to file's line.
