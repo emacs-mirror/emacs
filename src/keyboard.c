@@ -6496,18 +6496,14 @@ menu_bar_items (old)
       }
     else
       {
-	/* No, so use major and minor mode keymaps and keymap property.  */
-	int extra_maps = 2;
-	Lisp_Object map = get_local_map (PT, current_buffer, Qkeymap);
-	if (!NILP (map))
-	  extra_maps = 3;
+	/* No, so use major and minor mode keymaps.
+	   Don't include local-map or keymap properties, as menu-bar
+	   bindings are not supported in those maps (that would require
+	   checking for menu-bar updates after every command).  */
 	nmaps = current_minor_maps (NULL, &tmaps);
-	maps = (Lisp_Object *) alloca ((nmaps + extra_maps)
-				       * sizeof (maps[0]));
+	maps = (Lisp_Object *) alloca ((nmaps + 2) * sizeof (maps[0]));
 	bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
-	if (!NILP (map))
-	  maps[nmaps++] = map;
-	maps[nmaps++] = get_local_map (PT, current_buffer, Qlocal_map);
+	maps[nmaps++] = current_buffer->keymap;
       }
     maps[nmaps++] = current_global_map;
   }
@@ -7148,18 +7144,14 @@ tool_bar_items (reuse, nitems)
     }
   else
     {
-      /* No, so use major and minor mode keymaps and keymap property.  */
-      int extra_maps = 2;
-      Lisp_Object map = get_local_map (PT, current_buffer, Qkeymap);
-      if (!NILP (map))
-	extra_maps = 3;
+      /* No, so use major and minor mode keymaps.
+	 Don't include local-map or keymap properties, as tool-bar
+	 bindings are not supported in those maps (that would require
+	 checking for tool-bar updates after every command).  */
       nmaps = current_minor_maps (NULL, &tmaps);
-      maps = (Lisp_Object *) alloca ((nmaps + extra_maps)
-				     * sizeof (maps[0]));
+      maps = (Lisp_Object *) alloca ((nmaps + 2) * sizeof (maps[0]));
       bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
-      if (!NILP (map))
-	maps[nmaps++] = map;
-      maps[nmaps++] = get_local_map (PT, current_buffer, Qlocal_map);
+      maps[nmaps++] = current_buffer->keymap;
     }
 
   /* Add global keymap at the end.  */
@@ -9479,49 +9471,6 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   RETURN_UNGCPRO (value);
 }
 
-/* Find the set of keymaps now active.
-   Store into *MAPS_P a vector holding the various maps
-   and return the number of them.  The vector was malloc'd
-   and the caller should free it.  */
-
-int
-current_active_maps (maps_p)
-     Lisp_Object **maps_p;
-{
-  Lisp_Object *tmaps, *maps;
-  int nmaps;
-
-  /* Should overriding-terminal-local-map and overriding-local-map apply?  */
-  if (!NILP (Voverriding_local_map_menu_flag))
-    {
-      /* Yes, use them (if non-nil) as well as the global map.  */
-      maps = (Lisp_Object *) xmalloc (3 * sizeof (maps[0]));
-      nmaps = 0;
-      if (!NILP (current_kboard->Voverriding_terminal_local_map))
-	maps[nmaps++] = current_kboard->Voverriding_terminal_local_map;
-      if (!NILP (Voverriding_local_map))
-	maps[nmaps++] = Voverriding_local_map;
-    }
-  else
-    {
-      /* No, so use major and minor mode keymaps and keymap property.  */
-      int extra_maps = 2;
-      Lisp_Object map = get_local_map (PT, current_buffer, Qkeymap);
-      if (!NILP (map))
-	extra_maps = 3;
-      nmaps = current_minor_maps (NULL, &tmaps);
-      maps = (Lisp_Object *) alloca ((nmaps + extra_maps)
-				      * sizeof (maps[0]));
-      bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
-      if (!NILP (map))
-	maps[nmaps++] = map;
-      maps[nmaps++] = get_local_map (PT, current_buffer, Qlocal_map);
-    }
-  maps[nmaps++] = current_global_map;
-
-  *maps_p = maps;
-  return nmaps;
-}
 
 /* Return nonzero if input events are pending.  */
 
