@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual
 
@@ -327,7 +327,7 @@ This also sets the following coding systems:
   o coding system of a newly created buffer
   o default coding system for subprocess I/O
 This also sets the following values:
-  o default value used as file-name-coding-system for converting file names.
+  o default value used as `file-name-coding-system' for converting file names.
   o default value for the command `set-terminal-coding-system' (not on MSDOS)
   o default value for the command `set-keyboard-coding-system'
 
@@ -339,8 +339,10 @@ for MS-DOS terminal, because DOS terminals only support a single coding
 system, and Emacs automatically sets the default to that coding system at
 startup.
 
-Such a coding system that requires automatic detection of text
-encoding (e.g. undecided, unix) can't be preferred."
+A coding system that requires automatic detection of text
+encoding (e.g. undecided, unix) can't be preferred.
+
+See also `coding-category-list' and `coding-system-category'."
   (interactive "zPrefer coding system: ")
   (if (not (and coding-system (coding-system-p coding-system)))
       (error "Invalid coding system `%s'" coding-system))
@@ -587,7 +589,7 @@ and TO is ignored."
   (let ((tail coding-category-list)
 	preferred base)
     (while (and tail
-		(not (setq preferred (symbol-name (car tail)))))
+		(not (setq preferred (symbol-value (car tail)))))
       (setq tail (cdr tail)))
     (and (coding-system-p preferred)
 	 (setq base (coding-system-base preferred))
@@ -895,15 +897,15 @@ Emacs loads this file at startup time.")
 ";;; %s -- list of LEIM (Library of Emacs Input Method)
 ;;
 ;; This file contains a list of LEIM (Library of Emacs Input Method)
-;; in the same directory as this file.  Loading this file registers
-;; the whole input methods in Emacs.
+;; methods in the same directory as this file.  Loading this file
+;; registers all the input methods in Emacs.
 ;;
 ;; Each entry has the form:
 ;;   (register-input-method
 ;;    INPUT-METHOD LANGUAGE-NAME ACTIVATE-FUNC
 ;;    TITLE DESCRIPTION
 ;;    ARG ...)
-;; See the function `register-input-method' for the meanings of arguments.
+;; See the function `register-input-method' for the meanings of the arguments.
 ;;
 ;; If this directory is included in load-path, Emacs automatically
 ;; loads this file at startup time.
@@ -977,7 +979,7 @@ Each element has the form:
 See the function `register-input-method' for the meanings of the elements.")
 
 (defun register-input-method (input-method lang-env &rest args)
-  "Register INPUT-METHOD as an input method for language environment ENV.
+  "Register INPUT-METHOD as an input method for language environment LANG-ENV.
 INPUT-METHOD and LANG-ENV are symbols or strings.
 
 The remaining arguments are:
@@ -989,17 +991,17 @@ The ARGS, if any, are passed as arguments to ACTIVATE-FUNC.
 All told, the arguments to ACTIVATE-FUNC are INPUT-METHOD and the ARGS.
 
 This function is mainly used in the file \"leim-list.el\" which is
-created at building time of emacs, registering all quail input methods
-contained in the emacs distribution.
+created at Emacs build time, registering all Quail input methods
+contained in the Emacs distribution.
 
-In case you want to register a new quail input method by yourself, be
+In case you want to register a new Quail input method by yourself, be
 careful to use the same input method title as given in the third
-parameter of `quail-define-package' (if the values are different, the
-string specified in this function takes precedence).
+parameter of `quail-define-package'.  (If the values are different, the
+string specified in this function takes precedence.)
 
 The commands `describe-input-method' and `list-input-methods' need
-this duplicated values to show some information about input methods
-without loading the affected quail packages."
+these duplicated values to show some information about input methods
+without loading the relevant Quail packages."
   (if (symbolp lang-env)
       (setq lang-env (symbol-name lang-env)))
   (if (symbolp input-method)
@@ -1014,13 +1016,17 @@ without loading the affected quail packages."
 (defun read-input-method-name (prompt &optional default inhibit-null)
   "Read a name of input method from a minibuffer prompting with PROMPT.
 If DEFAULT is non-nil, use that as the default,
-  and substitute it into PROMPT at the first `%s'.
+and substitute it into PROMPT at the first `%s'.
 If INHIBIT-NULL is non-nil, null input signals an error.
 
 The return value is a string."
   (if default
       (setq prompt (format prompt default)))
   (let* ((completion-ignore-case t)
+	 ;; As it is quite normal to change input method in the
+	 ;; minibuffer, we must enable it even if
+	 ;; enable-recursive-minibuffers is currently nil.
+	 (enable-recursive-minibuffers t)
 	 ;; This binding is necessary because input-method-history is
 	 ;; buffer local.
 	 (input-method (completing-read prompt input-method-alist
@@ -1046,6 +1052,7 @@ If INPUT-METHOD is nil, deactivate any current input method."
     (let ((slot (assoc input-method input-method-alist)))
       (if (null slot)
 	  (error "Can't activate input method `%s'" input-method))
+      (setq current-input-method-title nil)
       (let ((func (nth 2 slot)))
 	(if (functionp func)
 	    (apply (nth 2 slot) input-method (nthcdr 5 slot))
@@ -1055,7 +1062,8 @@ If INPUT-METHOD is nil, deactivate any current input method."
 		(apply (car func) input-method (nthcdr 5 slot)))
 	    (error "Can't activate input method `%s'" input-method))))
       (setq current-input-method input-method)
-      (setq current-input-method-title (nth 3 slot))
+      (or (stringp current-input-method-title)
+	  (setq current-input-method-title (nth 3 slot)))
       (unwind-protect
 	  (run-hooks 'input-method-activate-hook)
 	(force-mode-line-update)))))
@@ -1074,12 +1082,19 @@ If INPUT-METHOD is nil, deactivate any current input method."
       (unwind-protect
 	  (run-hooks 'input-method-inactivate-hook)
 	(setq current-input-method nil
+	      input-method-function nil
 	      current-input-method-title nil)
 	(force-mode-line-update)))))
 
 (defun set-input-method (input-method)
   "Select and activate input method INPUT-METHOD for the current buffer.
-This also sets the default input method to the one you specify."
+This also sets the default input method to the one you specify.
+If INPUT-METHOD is nil, this function turns off the input method, and
+also causes you to be prompted for a name of an input method the next
+time you invoke \\[toggle-input-method].
+
+To deactivate the input method interactively, use \\[toggle-input-method].
+To deactivate it programmatically, use \\[inactivate-input-method]."
   (interactive
    (let* ((default (or (car input-method-history) default-input-method)))
      (list (read-input-method-name
@@ -1089,18 +1104,20 @@ This also sets the default input method to the one you specify."
   (setq default-input-method input-method))
 
 (defun toggle-input-method (&optional arg)
-  "Turn on or off a multilingual text input method for the current buffer.
+  "Enable or disable multilingual text input method for the current buffer.
+Only one input method can be enabled at any time in a given buffer.
 
-With no prefix argument, if an input method is currently activated,
-turn it off.  Otherwise, activate an input method -- the one most
-recently used, or the one specified in `default-input-method', or
-the one read from the minibuffer.
+The normal action is to enable an input method if none was
+enabled, and disable the current one otherwise.  Which input method
+to enable can be determined in various ways--either the one most
+recently used, or the one specified by `default-input-method', or
+as a last resort by reading the name of an input method in the
+minibuffer.
 
-With a prefix argument, read an input method from the minibuffer and
-turn it on.
-
-The default is to use the most recent input method specified
+With a prefix argument, read an input method name with the minibuffer
+and enable that one.  The default is the most recent input method specified
 \(not including the currently active input method, if any)."
+
   (interactive "P")
   (if (and current-input-method (not arg))
       (inactivate-input-method)
@@ -1140,7 +1157,9 @@ The default is to use the most recent input method specified
 	   (let ((elt (assoc input-method input-method-alist)))
 	     (princ (format
 		     "Input method: %s (`%s' in mode line) for %s\n  %s\n"
-		     input-method (nth 3 elt) (nth 1 elt) (nth 4 elt))))))))))
+		     input-method (nth 3 elt) (nth 1 elt) (nth 4 elt))))
+	   (help-setup-xref (list #'describe-input-method input-method)
+			    (interactive-p))))))))
 
 (defun describe-current-input-method ()
   "Describe the input method currently in use."
@@ -1225,7 +1244,7 @@ just inactivated.")
   "Normal hook run just after an input method insert some chunk of text.")
 
 (defvar input-method-exit-on-first-char nil
-  "This flag controls a timing when an input method returns.
+  "This flag controls when an input method returns.
 Usually, the input method does not return while there's a possibility
 that it may find a different translation if a user types another key.
 But, it this flag is non-nil, the input method returns as soon as
@@ -1323,8 +1342,7 @@ The default status is as follows:
 	coding-category-binary		no-conversion
 	coding-category-utf-16-be	nil
 	coding-category-utf-16-le	nil
-	coding-category-utf-8		'mule-utf-8
-"
+	coding-category-utf-8		mule-utf-8"
   (interactive)
   ;; This function formerly set default-enable-multibyte-characters to t,
   ;; but that is incorrect.  It should not alter the unibyte/multibyte choice.
@@ -1883,57 +1901,67 @@ See also `locale-charset-language-names', `locale-language-names',
 	    (setq files (cdr files)))
 	  (car files)))
 
-  (unless locale-name
-    ;; Use the first of these three environment variables
-    ;; that has a nonempty value.
-    (let ((vars '("LC_ALL" "LC_CTYPE" "LANG")))
-      (while (and vars (not (setq locale-name (getenv (car vars)))))
-	(setq vars (cdr vars)))))
+  (let ((locale locale-name))
 
-  (when locale-name
+    (unless locale
+      ;; Use the first of these three environment variables
+      ;; that has a nonempty value.
+      (let ((vars '("LC_ALL" "LC_CTYPE" "LANG")))
+	(while (and vars (not (setq locale (getenv (car vars)))))
+	  (setq vars (cdr vars)))))
 
-    ;; Translate "swedish" into "sv_SE.ISO8859-1", and so on,
-    ;; using the translation file that many systems have.
-    (when locale-translation-file-name
-      (with-temp-buffer
-	(insert-file-contents locale-translation-file-name)
-	(when (re-search-forward
-	       (concat "^" (regexp-quote locale-name) ":?[ \t]+") nil t)
-	  (setq locale-name (buffer-substring (point) (line-end-position))))))
+    (when locale
 
-    (setq locale-name (downcase locale-name))
+      ;; Translate "swedish" into "sv_SE.ISO8859-1", and so on,
+      ;; using the translation file that many systems have.
+      (when locale-translation-file-name
+	(with-temp-buffer
+	  (insert-file-contents locale-translation-file-name)
+	  (when (re-search-forward
+		 (concat "^" (regexp-quote locale) ":?[ \t]+") nil t)
+	    (setq locale (buffer-substring (point) (line-end-position))))))
 
-    (let ((language-name
-	   (locale-name-match locale-name locale-language-names))
-	  (charset-language-name
-	   (locale-name-match locale-name locale-charset-language-names))
-	  (coding-system
-	   (locale-name-match locale-name locale-preferred-coding-systems)))
+      ;; Leave the system locales alone if the caller did not specify
+      ;; an explicit locale name, as their defaults are set from
+      ;; LC_MESSAGES and LC_TIME, not LC_CTYPE, and the user might not
+      ;; want to set them to the same value as LC_CTYPE.
+      (when locale-name
+	(setq system-messages-locale locale)
+	(setq system-time-locale locale))
 
-      (if (and charset-language-name
-	       (not
-		(equal (get-language-info language-name 'charset)
-		       (get-language-info charset-language-name 'charset))))
-	  (setq language-name charset-language-name))
+      (setq locale (downcase locale))
 
-      (when language-name
+      (let ((language-name
+	     (locale-name-match locale locale-language-names))
+	    (charset-language-name
+	     (locale-name-match locale locale-charset-language-names))
+	    (coding-system
+	     (locale-name-match locale locale-preferred-coding-systems)))
 
-	;; Set up for this character set.  This is now the right way
-	;; to do it for both unibyte and multibyte modes.
-	(set-language-environment language-name)
+	(if (and charset-language-name
+		 (not
+		  (equal (get-language-info language-name 'charset)
+			 (get-language-info charset-language-name 'charset))))
+	    (setq language-name charset-language-name))
 
-	;; If default-enable-multibyte-characters is nil,
-	;; we are using single-byte characters,
-	;; so the display table and terminal coding system are irrelevant.
-	(when default-enable-multibyte-characters
-	  (set-display-table-and-terminal-coding-system language-name))
+	(when language-name
 
-	(setq locale-coding-system
-	      (car (get-language-info language-name 'coding-priority))))
+	  ;; Set up for this character set.  This is now the right way
+	  ;; to do it for both unibyte and multibyte modes.
+	  (set-language-environment language-name)
 
-      (when coding-system
-	(prefer-coding-system coding-system)
-	(setq locale-coding-system coding-system)))))
+	  ;; If default-enable-multibyte-characters is nil,
+	  ;; we are using single-byte characters,
+	  ;; so the display table and terminal coding system are irrelevant.
+	  (when default-enable-multibyte-characters
+	    (set-display-table-and-terminal-coding-system language-name))
+
+	  (setq locale-coding-system
+		(car (get-language-info language-name 'coding-priority))))
+
+	(when coding-system
+	  (prefer-coding-system coding-system)
+	  (setq locale-coding-system coding-system))))))
 
 ;;; Charset property
 
