@@ -255,26 +255,26 @@ looking_at_1 (string, posix)
 }
 
 DEFUN ("looking-at", Flooking_at, Slooking_at, 1, 1, 0,
-  "Return t if text after point matches regular expression PAT.\n\
+  "Return t if text after point matches regular expression REGEXP.\n\
 This function modifies the match data that `match-beginning',\n\
 `match-end' and `match-data' access; save and restore the match\n\
 data if you want to preserve them.")
-  (string)
-     Lisp_Object string;
+  (regexp)
+     Lisp_Object regexp;
 {
-  return looking_at_1 (string, 0);
+  return looking_at_1 (regexp, 0);
 }
 
 DEFUN ("posix-looking-at", Fposix_looking_at, Sposix_looking_at, 1, 1, 0,
-  "Return t if text after point matches regular expression PAT.\n\
+  "Return t if text after point matches regular expression REGEXP.\n\
 Find the longest match, in accord with Posix regular expression rules.\n\
 This function modifies the match data that `match-beginning',\n\
 `match-end' and `match-data' access; save and restore the match\n\
 data if you want to preserve them.")
-  (string)
-     Lisp_Object string;
+  (regexp)
+     Lisp_Object regexp;
 {
-  return looking_at_1 (string, 1);
+  return looking_at_1 (regexp, 1);
 }
 
 static Lisp_Object
