@@ -437,7 +437,12 @@ name.
 @kindex C-_ @r{(Dired)}
 @findex dired-undo
 Undo changes in the Dired buffer, such as adding or removing
-marks (@code{dired-undo}).
+marks (@code{dired-undo}).  @emph{This command does not revert the
+actual file operations, nor recovers lost files!}  It just undoes
+changes in the buffer itself.  For example, if used after renaming one
+or more files, @code{dired-undo} restores the original names, which
+will get the Dired buffer out of sync with the actual contents of the
+directory.
 @end table
 
 @node Operating on Files
@@ -684,7 +689,21 @@ Updating}).
 @node Transforming File Names
 @section Transforming File Names in Dired
 
-  Here are commands that alter file names in a systematic way:
+  This section describes Dired commands which alter file names in a
+systematic way.
+
+  Like the basic Dired file-manipulation commands (@pxref{Operating on
+Files}), the commands described here operate either on the next
+@var{n} files, or on all files marked with @samp{*}, or on the current
+file.  (To mark files, use the commands described in @ref{Marks vs
+Flags}.)
+
+  All of the commands described in this section work
+@emph{interactively}: they ask you to confirm the operation for each
+candidate file.  Thus, you can select more files than you actually
+need to operate on (e.g., with a regexp that matches many files), and
+then refine the selection by typing @kbd{y} or @kbd{n} when the
+command prompts for confirmation.
 
 @table @kbd
 @findex dired-upcase
@@ -742,7 +761,8 @@ matches that should span the whole filename.)
   Normally, the replacement process does not consider the files'
 directory names; it operates on the file name within the directory.  If
 you specify a numeric argument of zero, then replacement affects the
-entire absolute file name including directory name.
+entire absolute file name including directory name.  (Non-zero
+argument specifies the number of files to operate on.)
 
   Often you will want to select the set of files to operate on using the
 same @var{regexp} that you will use to operate on them.  To do this,
