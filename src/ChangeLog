@@ -1,5 +1,7 @@
 2001-10-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* xterm.c: Fix typo in a comment.
+
 	* emacs.c: Fix typos in comments.
 	Remove unnecessary spaces.
 	Change doc-string comments to `new style' [w/`doc:' keyword].
