@@ -86,9 +86,13 @@ enum Lisp_Type
        XOBJFWD(obj) points to the Lisp_Object variable. */
     Lisp_Objfwd,
 
+#ifdef MULTI_FRAME
     /* Pointer to a vector-like object describing a display frame
-       on which Emacs can display a window hierarchy.  */
+       on which Emacs can display a window hierarchy.  We don't define
+       this unless MULTI_FRAME is defined; this helps the compiler catch
+       code that won't work on a non-MULTI_FRAME configuration.  */
     Lisp_Frame,
+#endif
 
     /* Used when a FILE * value needs to be passed
        in an argument of type Lisp_Object.
