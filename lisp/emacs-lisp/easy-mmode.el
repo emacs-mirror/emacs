@@ -94,8 +94,11 @@ BODY contains code that will be executed each time the mode is (dis)activated.
   These following keyword arguments are supported (other keywords
   will be passed to `defcustom' if the minor mode is global):
 :group GROUP	Custom group name to use in all generated `defcustom' forms.
+		Defaults to MODE without the possible trailing \"-mode\".
+		(This default may not be a valid customization group defined
+		with `defgroup'.  Make sure it is.)
 :global GLOBAL	If non-nil specifies that the minor mode is not meant to be
-              	buffer-local, so don't make the variable MODE buffer-local.
+		buffer-local, so don't make the variable MODE buffer-local.
 		By default, the mode is buffer-local.
 :init-value VAL	Same as the INIT-VALUE argument.
 :lighter SPEC	Same as the LIGHTER argument.
@@ -153,10 +156,9 @@ For example, you could write
     (unless group
       ;; We might as well provide a best-guess default group.
       (setq group
-	    `(:group (or (custom-current-group)
-			 ',(intern (replace-regexp-in-string
-				    "-mode\\'" "" mode-name))))))
-
+	    `(:group ',(intern (replace-regexp-in-string
+				"-mode\\'" "" mode-name)))))
+    
     `(progn
        ;; Define the variable to enable or disable the mode.
        ,(if (not globalp)
@@ -220,8 +222,8 @@ With zero or negative ARG turn mode off.
 	 ;; Return the new setting.
 	 ,mode)
 
-       ;; Autoloading an easy-mmode-define-minor-mode autoloads
-       ;; everything up-to-here.
+       ;; Autoloading a define-minor-mode autoloads everything
+       ;; up-to-here.
        :autoload-end
 
        ;; The toggle's hook.
@@ -280,9 +282,8 @@ KEYS is a list of CL-style keyword arguments:
     (unless group
       ;; We might as well provide a best-guess default group.
       (setq group
-	    `(:group (or (custom-current-group)
-			 ',(intern (replace-regexp-in-string
-				    "-mode\\'" "" (symbol-name mode)))))))
+	    `(:group ',(intern (replace-regexp-in-string
+				"-mode\\'" "" (symbol-name mode))))))
 
     `(progn
        ;; The actual global minor-mode
