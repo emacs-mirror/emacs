@@ -1,5 +1,8 @@
 2000-08-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* minibuf.c (do_completion): Use EQ instead of != to compare
+	Lisp_Objects.
+
 	* keyboard.c (kbd_buffer_get_event): Handle the case that the
 	second half of a HELP_EVENT is found at the start of kbd_buffer.
 
