@@ -715,44 +715,49 @@ See also `minibuffer-history-case-insensitive-variables'."
 		 (error "No previous history search regexp"))
 	     regexp)
 	   (prefix-numeric-value current-prefix-arg))))
-  (if (and (zerop minibuffer-history-position)
-	   (null minibuffer-text-before-history))
-      (setq minibuffer-text-before-history (field-string (point-max))))
-  (let ((history (symbol-value minibuffer-history-variable))
-	(case-fold-search
-	 (if (isearch-no-upper-case-p regexp t)	; assume isearch.el is dumped
-	     ;; On some systems, ignore case for file names.
-	     (if (memq minibuffer-history-variable
-		       minibuffer-history-case-insensitive-variables)
-		 t
-	       ;; Respect the user's setting for case-fold-search:
-	       case-fold-search)
-	   nil))
-	prevpos
-	(pos minibuffer-history-position))
-    (while (/= n 0)
-      (setq prevpos pos)
-      (setq pos (min (max 1 (+ pos (if (< n 0) -1 1))) (length history)))
-      (if (= pos prevpos)
+  (unless (zerop n)
+    (if (and (zerop minibuffer-history-position)
+	     (null minibuffer-text-before-history))
+	(setq minibuffer-text-before-history (field-string (point-max))))
+    (let ((history (symbol-value minibuffer-history-variable))
+	  (case-fold-search
+	   (if (isearch-no-upper-case-p regexp t) ; assume isearch.el is dumped
+	       ;; On some systems, ignore case for file names.
+	       (if (memq minibuffer-history-variable
+			 minibuffer-history-case-insensitive-variables)
+		   t
+		 ;; Respect the user's setting for case-fold-search:
+		 case-fold-search)
+	     nil))
+	  prevpos
+	  match-string
+	  match-offset
+	  (pos minibuffer-history-position))
+      (while (/= n 0)
+	(setq prevpos pos)
+	(setq pos (min (max 1 (+ pos (if (< n 0) -1 1))) (length history)))
+	(when (= pos prevpos)
 	  (error (if (= pos 1)
 		     "No later matching history item"
 		   "No earlier matching history item")))
-      (if (string-match regexp
-			(if (eq minibuffer-history-sexp-flag
-				(minibuffer-depth))
-			    (let ((print-level nil))
-			      (prin1-to-string (nth (1- pos) history)))
-			  (nth (1- pos) history)))
-	  (setq n (+ n (if (< n 0) 1 -1)))))
-    (setq minibuffer-history-position pos)
-    (goto-char (point-max))
-    (delete-field)
-    (let ((elt (nth (1- pos) history)))
-      (insert (if (eq minibuffer-history-sexp-flag (minibuffer-depth))
+	(setq match-string
+	      (if (eq minibuffer-history-sexp-flag (minibuffer-depth))
 		  (let ((print-level nil))
-		    (prin1-to-string elt))
-		elt)))
-      (goto-char (field-beginning)))
+		    (prin1-to-string (nth (1- pos) history)))
+		(nth (1- pos) history)))
+	(setq match-offset
+	      (if (< n 0)
+		  (and (string-match regexp match-string)
+		       (match-end 0))
+		(and (string-match (concat ".*\\(" regexp "\\)") match-string)
+		     (match-beginning 1))))
+	(when match-offset
+	  (setq n (+ n (if (< n 0) 1 -1)))))
+      (setq minibuffer-history-position pos)
+      (goto-char (point-max))
+      (delete-field)
+      (insert match-string)
+      (goto-char (+ (field-beginning) match-offset))))
   (if (or (eq (car (car command-history)) 'previous-matching-history-element)
 	  (eq (car (car command-history)) 'next-matching-history-element))
       (setq command-history (cdr command-history))))
