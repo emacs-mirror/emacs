@@ -163,7 +163,7 @@ rm -f makefile.tmp
 :src5
 
 if "%nodebug%" == "" goto src6
-sed -e "/^CFLAGS *=/s/ *-g//" <Makefile >makefile.tmp
+sed -e "/^CFLAGS *=/s/ *-gcoff//" <Makefile >makefile.tmp
 sed -e "/^LDFLAGS *=/s/=/=-s/" <makefile.tmp >Makefile
 rm -f makefile.tmp
 :src6
@@ -182,7 +182,7 @@ sed -f ../msdos/sed3v2.inp <makefile.new >Makefile
 :libsrc2
 rm -f makefile.new junk.c
 if "%nodebug%" == "" goto libsrc3
-sed -e "/^CFLAGS *=/s/ *-g//" <Makefile >makefile.tmp
+sed -e "/^CFLAGS *=/s/ *-gcoff//" <Makefile >makefile.tmp
 sed -e "/^ALL_CFLAGS *=/s/=/= -s/" <makefile.tmp >Makefile
 rm -f makefile.tmp
 :libsrc3
@@ -193,7 +193,7 @@ Echo Configuring the oldxmenu directory...
 cd oldxmenu
 sed -f ../msdos/sed5x.inp <Makefile.in >Makefile
 if "%nodebug%" == "" goto oldx2
-sed -e "/^CFLAGS *=/s/ *-g//" <Makefile >makefile.tmp
+sed -e "/^CFLAGS *=/s/ *-gcoff//" <Makefile >makefile.tmp
 mv -f makefile.tmp Makefile
 :oldx2
 cd ..
