@@ -3720,6 +3720,14 @@ Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
   (setq completion-base-size nil)
   (run-hooks 'completion-list-mode-hook))
 
+(defun completion-list-mode-finish ()
+  "Finish setup of the completions buffer.
+Called from `temp-buffer-show-hook'."
+  (when (eq major-mode 'completion-list-mode)
+    (toggle-read-only 1)))
+
+(add-hook 'temp-buffer-show-hook 'completion-list-mode-finish)
+
 (defvar completion-setup-hook nil
   "Normal hook run at the end of setting up a completion list buffer.
 When this hook is run, the current buffer is the one in which the
