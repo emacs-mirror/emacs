@@ -445,7 +445,7 @@ otherwise."
 (defvar he-file-name-chars
   (cond ((memq system-type '(vax-vms axp-vms))
 	 "-a-zA-Z0-9_/.,~^#$+=:\\[\\]")
-	((memq system-type '(ms-dos ms-windows))
+	((memq system-type '(ms-dos windows-nt))
 	 "-a-zA-Z0-9_/.,~^#$+=:\\\\")
 	(t			    ;; More strange file formats ?
 	 "-a-zA-Z0-9_/.,~^#$+="))
