@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.20 2000/06/03 19:50:18 friedman Exp $
+;; $Id: eldoc.el,v 1.17 2000/07/24 00:37:03 friedman Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -56,7 +56,6 @@
 
 (defgroup eldoc nil
   "Show function arglist or variable docstring in echo area."
-  :group 'eldoc
   :group 'lisp
   :group 'extensions)
 
