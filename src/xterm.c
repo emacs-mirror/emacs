@@ -6249,6 +6249,8 @@ syms_of_xterm ()
 #ifdef X_CONNECTION_LOCK_FLAG
 #define free loserfree
 #define malloc losermalloc
+#define exit loserexit
+#define abort loserabort
 /* For XlibDisplayWriting */
 #include <X11/Xlibint.h>
 #endif
