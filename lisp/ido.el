@@ -416,8 +416,8 @@ This allows the current directory to be opened immediate with `dired'."
   :group 'ido)
 
 (defcustom ido-ignore-directories-merge nil
-  "*List of regexps or functions matching directory path names to ignore during merge.
-Directory paths matched by one of the regexps in this list are not inserted
+  "*List of regexps or functions matching directory names to ignore during merge.
+Directory names matched by one of the regexps in this list are not inserted
 in merged file and directory lists."
   :type '(repeat (choice regexp function))
   :group 'ido)
@@ -511,7 +511,7 @@ non-negletable amount of time; setting this variable reduces that time."
   :type 'integer
   :group 'ido)
 
-(defcustom ido-max-prompt-path 0.35
+(defcustom ido-max-prompt-width 0.35
   "*Non-zero means that the prompt string be limited to than number of characters.
 If value is a floating point number, it specifies a fraction of the frame width."
   :type '(choice
@@ -533,7 +533,7 @@ If value is a floating point number, it specifies a fraction of the frame width.
   :group 'ido)
 
 (defcustom ido-enable-last-directory-history t
-  "*Non-nil means that `ido' will remember latest selected directory paths.
+  "*Non-nil means that `ido' will remember latest selected directory names.
 See `ido-last-directory-list' and `ido-save-directory-list-file'."
   :type 'boolean
   :group 'ido)
@@ -547,7 +547,7 @@ See `ido-work-directory-list' and `ido-save-directory-list-file'."
 
 (defcustom ido-work-directory-list-ignore-regexps nil
   "*List of regexps matching directories which should not be recorded.
-Directory paths matched by one of the regexps in this list are not inserted in
+Directory names matched by one of the regexps in this list are not inserted in
 the `ido-work-directory-list' list."
   :type '(repeat regexp)
   :group 'ido)
@@ -555,17 +555,17 @@ the `ido-work-directory-list' list."
 
 (defcustom ido-enable-tramp-completion t
   "*Non-nil means that ido shall perform tramp method and server name completion.
-A tramp file name uses the following syntax: /method:user@host:path."
+A tramp file name uses the following syntax: /method:user@host:filename."
   :type 'boolean
   :group 'ido)
 
 (defcustom ido-record-ftp-work-directories t
-  "*Non-nil means that ftp paths are recorded in work directory list."
+  "*Non-nil means that remote directories are recorded in work directory list."
   :type 'boolean
   :group 'ido)
 
 (defcustom ido-merge-ftp-work-directories nil
-  "*Nil means that ftp paths in work directory list are ignored during merge."
+  "*Nil means that remote directories in work directory list are ignored during merge."
   :type 'boolean
   :group 'ido)
 
@@ -735,31 +735,31 @@ Each function on the list may modify the dynamically bound variable
   :type 'hook
   :group 'ido)
 
-(defcustom ido-make-file-prompt-hook nil
+(defcustom ido-rewrite-file-prompt-functions nil
   "*List of functions to run when the find-file prompt is created.
 Each function on the list may modify the following dynamically bound
 variables:
-  path   - the (abbreviated) directory path
-  max-width - the max width of the path; set to nil to inhibit truncation
+  dirname   - the (abbreviated) directory name to be modified by the hook functions
+  max-width - the max width of the resulting dirname; set to nil to inhibit truncation
   prompt - the basic prompt (e.g. \"Find File: \")
   literal - the string shown if doing `literal' find; set to nil to omit
   vc-off  - the string shown if version control is inhibited; set to nit to omit
-  prefix  - normally nil, but may be set to a fixed prefix for the path
+  prefix  - normally nil, but may be set to a fixed prefix for the dirname
 The following variables are available, but should not be changed:
-  ido-current-directory - the unabbreviated directory path
+  ido-current-directory - the unabbreviated directory name
   item - equals 'file or 'dir depending on the current mode."
   :type 'hook
   :group 'ido)
 
-(defvar ido-rewrite-prompt-path-rules nil
-  "*Alist of rewriting rules for file paths.
-A list of elements of the form (FROM . TO) or (FROM . FUNC),
-each meaning to rewrite the path if matched by FROM by either
-substituting the matched string by TO or calling the function
-FUNC with the current path as its only argument and using the
-return value as the new path.  In addition, each FUNC may
-also modify the dynamic variables described for the
-variable `ido-make-file-prompt-hook'.")
+(defvar ido-rewrite-file-prompt-rules nil
+  "*Alist of rewriting rules for directory names in ido prompts.
+A list of elements of the form (FROM . TO) or (FROM . FUNC), each
+meaning to rewrite the directory name if matched by FROM by either
+substituting the matched string by TO or calling the function FUNC
+with the current directory name as its only argument and using the
+return value as the new directory name.  In addition, each FUNC may
+also modify the dynamic variables described for the variable
+`ido-rewrite-file-prompt-functions'.")
 
 (defcustom ido-completion-buffer "*Ido Completions*"
   "*Name of completion buffer used by ido.
@@ -804,7 +804,7 @@ Must be set before enabling ido mode."
   :group 'ido)
 
 (defcustom ido-read-file-name-as-directory-commands '()
-  "List of commands which uses read-file-name to read a directory path.
+  "List of commands which uses read-file-name to read a directory name.
 When `ido-everywhere' is non-nil, the commands in this list will read
 the directory using ido-read-directory-name."
   :type '(repeat symbol)
@@ -831,17 +831,17 @@ the file name using normal read-file-name style."
   "History of buffers selected using `ido-switch-buffer'.")
 
 (defvar ido-last-directory-list nil
-  "List of last selected directory paths.
+  "List of last selected directory names.
 See `ido-enable-last-directory-history' for details.")
 
 (defvar ido-work-directory-list nil
-  "List of actual working directory paths.
+  "List of actual working directory names.
 The current directory is inserted at the front of this list whenever a
 file is opened with ido-find-file and family.")
 
 (defvar ido-work-file-list nil
   "List of actual work file names.
-The current file name (sans path) is inserted at the front of this list
+The current file name (sans directory) is inserted at the front of this list
 whenever a file is opened with ido-find-file and family.")
 
 (defvar ido-dir-file-cache nil
@@ -1394,35 +1394,35 @@ This function also adds a hook to the minibuffer."
   ;; Make the prompt for ido-read-internal
   (cond
    ((and (memq item '(file dir)) ido-current-directory)
-    (let ((path (abbreviate-file-name ido-current-directory))
-	  (max-width (if (and ido-max-prompt-path (floatp ido-max-prompt-path))
-			 (floor (* (frame-width) ido-max-prompt-path))
-		       ido-max-prompt-path))
+    (let ((dirname (abbreviate-file-name ido-current-directory))
+	  (max-width (if (and ido-max-prompt-width (floatp ido-max-prompt-width))
+			 (floor (* (frame-width) ido-max-prompt-width))
+		       ido-max-prompt-width))
 	  (literal (and (boundp 'ido-find-literal) ido-find-literal "(literal) "))
 	  (vc-off (and ido-saved-vc-mt (not vc-master-templates) "[-VC] "))
 	  (prefix nil)
-	  (rule ido-rewrite-prompt-path-rules))
+	  (rule ido-rewrite-file-prompt-rules))
       (let ((case-fold-search nil))
 	(while rule
 	  (if (and (consp (car rule))
-		   (string-match (car (car rule)) path))
-	      (setq path
+		   (string-match (car (car rule)) dirname))
+	      (setq dirname
 		    (if (stringp (cdr (car rule)))
-			(replace-match (cdr (car rule)) t nil path)
-		      (funcall (cdr (car rule)) path))))
+			(replace-match (cdr (car rule)) t nil dirname)
+		      (funcall (cdr (car rule)) dirname))))
 	  (setq rule (cdr rule))))
-      (run-hooks 'ido-make-file-prompt-hook)
+      (run-hooks 'ido-rewrite-file-prompt-functions)
       (concat prompt 
 	      ; (if ido-process-ignore-lists "" "&")
 	      (or literal "")
 	      (or vc-off  "")
 	      (or prefix "")
-	      (let ((l (length path)))
+	      (let ((l (length dirname)))
 		(if (and max-width (> max-width 0) (> l max-width))
-		    (let* ((s (substring path (- max-width))) 
+		    (let* ((s (substring dirname (- max-width))) 
 			   (i (string-match "/" s)))
 		      (concat "..." (if i (substring s i) s)))
-		  path)))))
+		  dirname)))))
    (t prompt)))
 
 ;; Here is very briefly how ido-find-file works:
@@ -1723,7 +1723,7 @@ If INITIAL is non-nil, it specifies the initial input string."
     ido-selected))
 
 (defun ido-edit-input ()
-  "Edit ido path and input string. Terminate by RET."
+  "Edit absolute file name entered so far with ido; terminate by RET."
   (interactive)
   (setq ido-text-init ido-text)
   (setq ido-exit 'edit)
@@ -1884,7 +1884,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 	      (if (eq method 'dired)
 		  (dired-goto-file (expand-file-name file))))
 	     ((string-match "[[*?]" filename)
-	      (setq  path (concat ido-current-directory filename))
+	      (setq path (concat ido-current-directory filename))
 	      (ido-record-command method path)
 	      (ido-record-work-directory)
 	      (funcall method path))
@@ -1958,7 +1958,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 	   (string-match "[$]" ido-text))
       (let ((evar (substitute-in-file-name (concat ido-current-directory ido-text))))
 	(if (not (file-exists-p (file-name-directory evar)))
-	    (message "Expansion generates non-existing directory path")
+	    (message "Expansion generates non-existing directory.")
 	  (if (file-directory-p evar)
 	      (ido-set-current-directory evar)
 	    (let ((d (or (file-name-directory evar) "/"))
@@ -2319,7 +2319,7 @@ If repeated, insert text from buffer instead."
       (exit-minibuffer))))
   
 (defun ido-copy-current-word (all)
-  "Insert current word (file name or path) from current buffer."
+  "Insert current word (file or directory name) from current buffer."
   (interactive "P")
   (let ((word (save-excursion
 		(set-buffer ido-entry-buffer)
@@ -2494,7 +2494,7 @@ for first matching file."
     res))
 
 (defun ido-flatten-merged-list (items)
-  ;; Create a list of path names based on a merged directory list.
+  ;; Create a list of directory names based on a merged directory list.
   (let (res)
     (while items
       (let* ((item (car items))
@@ -3220,7 +3220,7 @@ If no buffer or file is found, prompt for a new one.
 matches all files.  If there is only one match, select that file.
 If there is no common suffix, show a list of all matching files
 in a separate window.
-\\[ido-edit-input] Edit input string (including path).
+\\[ido-edit-input] Edit input string (including directory).
 \\[ido-prev-work-directory] or \\[ido-next-work-directory] go to previous/next directory in work directory history.
 \\[ido-merge-work-directories] search for file in the work directory history.
 \\[ido-forget-work-directory] removes current directory from the work directory history.
