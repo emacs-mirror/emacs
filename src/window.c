@@ -60,9 +60,6 @@ Lisp_Object Vminibuf_scroll_window;
 /* Non-nil means this is the buffer whose window C-M-v should scroll.  */
 Lisp_Object Vother_window_scroll_buffer;
 
-/* Last mouse click data structure (nil if no mouse support).  */
-Lisp_Object Vmouse_event;
-
 /* Non-nil means it's function to call to display temp buffers.  */
 Lisp_Object Vtemp_buffer_show_function;
 
@@ -2893,21 +2890,6 @@ It will receive two args, the buffer and a flag which if non-nil means\n\
 Commands such as `switch-to-buffer-other-window' and `find-file-other-window'\n\
 work using this function.");
   Vdisplay_buffer_function = Qnil;
-
-  DEFVAR_LISP ("mouse-event", &Vmouse_event,
-     "The last mouse-event object.  A list of four elements:\n\
-  ((X-POS Y-POS) WINDOW FRAME-PART KEYSEQ).\n\
-KEYSEQ is a string, the key sequence to be looked up in the mouse maps.\n\
-WINDOW is the window that the click applies do.\n\
-If FRAME-PART is non-nil, the event was on a scroll bar;\n\
-then Y-POS is really the total length of the scroll bar, while X-POS is\n\
-the relative position of the scroll bar's value within that total length.\n\
-FRAME-PART is one of the following symbols:\n\
- `vertical-scroll-bar', `vertical-slider',\n\
- `vertical-thumbup', `vertical-thumbdown',\n\
- `horizontal-scroll-bar', `horizontal-slider',\n\
- `horizontal-thumbleft', `horizontal-thumbright'");
-  Vmouse_event = Qnil;
 
   DEFVAR_LISP ("minibuffer-scroll-window", &Vminibuf_scroll_window,
     "Non-nil means it is the window that C-M-v in minibuffer should scroll.");
