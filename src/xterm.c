@@ -11478,7 +11478,13 @@ x_draw_phys_cursor_glyph (w, row, hl)
 	{
 	  struct glyph *cursor_glyph = get_phys_cursor_glyph (w);
 	  if (cursor_glyph)
-	    w->phys_cursor_width = cursor_glyph->pixel_width;
+	    {
+	      if (x_stretch_cursor_p)
+		w->phys_cursor_width = cursor_glyph->pixel_width;
+	      else
+		w->phys_cursor_width = min (CANON_X_UNIT (XFRAME (w->frame)),
+					    cursor_glyph->pixel_width);
+	    }
 	}
 
       /* When we erase the cursor, and ROW is overlapped by other
