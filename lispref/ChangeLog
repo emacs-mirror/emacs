@@ -1,5 +1,9 @@
 2004-11-20  Richard M. Stallman  <rms@gnu.org>
 
+	* Makefile.in (elisp): New target.
+	(dist): Depend on $(infodir)/elisp, not elisp.
+	Copy the info files from $(infodir).
+
 	* minibuf.texi (Text from Minibuffer): Document KEEP-ALL arg in
 	read-from-minibuffer.
 

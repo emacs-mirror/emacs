@@ -1,5 +1,9 @@
 2004-11-20  Richard M. Stallman  <rms@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-form):
+	Move the calls to byte-compile-set-symbol-position,
+	to avoid having two for the same symbol occurrence.
+
 	* comint.el (comint-input-ring-size): Increase to 150.
 
 	* hexl.el (hexl-mode-old-hl-line-mode, hexl-mode-old-ruler-mode): 

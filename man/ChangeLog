@@ -1,3 +1,7 @@
+2004-11-20  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Fill Prefix): M-q doesn't apply fill prefix to first line.
+
 2004-11-09  Lars Brinkhoff  <lars@nocrew.org>
 
 	* building.texi (Lisp Eval): Delete hyphen in section name.

@@ -1,9 +1,11 @@
-2004-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+2004-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.c (Fminibuffer_complete_and_exit):
 	Fixup the case of the completed value, for case-indep completion.
 
 2004-11-20  Richard M. Stallman  <rms@gnu.org>
+
+	* lisp.h (Fread_from_minibuffer): Add arg in decl.
 
 	* minibuf.c (read_minibuf): New arg KEEP_ALL.  Callers changed.
 	(Fread_from_minibuffer): New ark KEEP_ALL.  Callers changed.
