@@ -1124,6 +1124,7 @@ Latin-1, you can arrange to display mnemonic @sc{ascii} sequences
 instead, e.g.@: @samp{"o} for o-umlaut.  Load the library
 @file{iso-ascii} to do this.
 
+@vindex latin1-display
   If your terminal can display Latin-1, you can display characters
 from other European character sets using a mixture of equivalent
 Latin-1 characters and @sc{ascii} mnemonics.  Use the Custom option
