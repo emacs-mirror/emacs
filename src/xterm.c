@@ -29,14 +29,14 @@ Boston, MA 02111-1307, USA.  */
 
 #include <stdio.h>
 
-/* Need syssignal.h for various externs and definitions that may be required
-   by some configurations for calls to signal later in this source file.  */
-#include "syssignal.h"
-
 #ifdef HAVE_X_WINDOWS
 
 #include "lisp.h"
 #include "blockinput.h"
+
+/* Need syssignal.h for various externs and definitions that may be required
+   by some configurations for calls to signal later in this source file.  */
+#include "syssignal.h"
 
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
