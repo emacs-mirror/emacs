@@ -153,21 +153,44 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful."
   (unwind-protect
       (let ((file (plist-get (cdr spec) :file))
 	    gs
-	    (timeout 10))
-	;; Wait while property gets freed from a previous ghostscript
-	;; process
-	(while (and (not (zerop (length (x-window-property "GHOSTVIEW" 
-							   frame))))
-		    (not (zerop timeout)))
-	  (sit-for 0 100 t)
-	  (setq timeout (1- timeout)))
-	;; No use waiting longer.  We might want to try killing off
-	;; stuck processes, but there is no point in doing so: either
-	;; they are stuck for good, in which case the user would
-	;; probably be responsible for that, and killing them off will
-	;; make debugging harder, or they are not.  In that case, they
-	;; will cause incomplete displays.  But the same will happen
-	;; if they are killed, anyway.
+ 	    (timeout 40))
+ 	;; Wait while property gets freed from a previous ghostscript process
+ 	;; sit-for returns nil as soon as input starts being
+	;; available, so if we want to give GhostScript a reasonable
+ 	;; chance of starting up, we better use sleep-for.  We let
+ 	;; sleep-for wait only half the time because if input is
+ 	;; available, it is more likely that we don't care that much
+ 	;; about garbled redisplay and are in a hurry.
+ 	(while (and
+ 		;; Wait while the property is not yet available
+ 		(not (zerop (length (x-window-property "GHOSTVIEW"
+ 						       frame))))
+ 		;; The following was an alternative condition: wait
+ 		;; while there is still a process running.  The idea
+ 		;; was to avoid contention between processes.  Turned
+ 		;; out even more sluggish.
+ 		;; (get-buffer-process "*GS*")
+ 		(not (zerop timeout)))
+ 	  (unless (sit-for 0 100 t)
+ 	    (sleep-for 0 50))
+ 	  (setq timeout (1- timeout)))
+
+ 	;; No use waiting longer.  We might want to try killing off
+ 	;; stuck processes, but there is no point in doing so: either
+ 	;; they are stuck for good, in which case the user would
+ 	;; probably be responsible for that, and killing them off will
+ 	;; make debugging harder, or they are not.  In that case, they
+ 	;; will cause incomplete displays.  But the same will happen
+ 	;; if they are killed, anyway. The whole is rather
+ 	;; disconcerting, and fast scrolling through a dozen images
+ 	;; will make Emacs freeze for a while.  The alternatives are a)
+ 	;; proper implementation not waiting at all but creating
+ 	;; appropriate queues, or b) permanently bad display due to
+ 	;; bad cached images.  So remember that this
+ 	;; is just a hack and if people don't like the behaviour, they
+ 	;; will most likely like the easy alternatives even less.
+ 	;; And at least the image cache will make the delay apparent
+ 	;; just once.
 	(gs-set-ghostview-window-prop frame spec img-width img-height)
 	(gs-set-ghostview-colors-window-prop frame pixel-colors)
 	(setenv "GHOSTVIEW" window-and-pixmap-id)
