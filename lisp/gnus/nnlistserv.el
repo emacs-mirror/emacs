@@ -32,7 +32,10 @@
 (eval-when-compile (require 'cl))
 
 (require 'nnoo)
-(require 'nnweb)
+(eval-when-compile
+  (ignore-errors
+   (require 'nnweb))			; requires W3
+  (autoload 'url-insert-file-contents "nnweb"))
 
 (nnoo-declare nnlistserv
   nnweb)
