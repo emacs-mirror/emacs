@@ -1,3 +1,7 @@
+2000-03-28  Jason Rumney  <jasonr@gnu.org>
+
+	* lread.c (Fload): Move safe_p definition to above #ifdef DOS_NT.
+
 2000-03-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* s/freebsd.h (GC_SETJMP_WORKS): Define.
