@@ -770,7 +770,6 @@ Sorry, but 'ghe with upturn' is not included in ISO 8859-5."
  ("l" ?$,1(T(B)
  (";" ?$,1(V(B)
  ("'" ?$,1(t(B)
- ("\\" ?\\)
  ("z" ?$,1(o(B)
  ("x" ?$,1(g(B)
  ("c" ?$,1(a(B)
