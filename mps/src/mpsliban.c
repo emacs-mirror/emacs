@@ -1,7 +1,7 @@
 /* impl.c.mpsliban: HARLEQUIN MEMORY POOL SYSTEM LIBRARY INTERFACE (ANSI)
  *
- * $HopeName: MMsrc!mpsliban.c(trunk.3) $
- * Copyright (C) 1996 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!mpsliban.c(trunk.4) $
+ * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  * PURPOSE
  *
@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "mpstd.h"              /* .sunos.warn */
 #ifdef MPS_OS_SU
@@ -75,4 +76,11 @@ void mps_lib_abort(void)
 void *mps_lib_memset(void *s, int c, size_t n)
 {
   return memset(s, c, n);
+}
+
+/* @@@@ Platform specific conversion? */
+/* See http://devworld.apple.com/dev/techsupport/insidemac/OSUtilities/OSUtilities-94.html#MARKER-9-32 */
+mps_clock_t mps_clock(void)
+{
+  return (unsigned long)clock();
 }
