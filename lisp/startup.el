@@ -483,15 +483,16 @@ from being initialized.")
 		 (string-match "=" argi))
 	    (setq argval (substring argi (match-end 0))
 		  argi (substring argi 0 (match-beginning 0))))
-	(let ((completion (try-completion argi longopts)))
-	  (if (eq completion t)
-	      (setq argi (substring argi 1))
-	    (if (stringp completion)
-		(let ((elt (assoc completion longopts)))
-		  (or elt
-		      (error "Option `%s' is ambiguous" argi))
-		  (setq argi (substring (car elt) 1)))
-	      (setq argval nil))))
+	(or (equal argi "--")
+	    (let ((completion (try-completion argi longopts)))
+	      (if (eq completion t)
+		  (setq argi (substring argi 1))
+		(if (stringp completion)
+		    (let ((elt (assoc completion longopts)))
+		      (or elt
+			  (error "Option `%s' is ambiguous" argi))
+		      (setq argi (substring (car elt) 1)))
+		  (setq argval nil)))))
 	(cond
 	 ((or (string-equal argi "-q")
 	      (string-equal argi "-no-init-file"))
@@ -787,8 +788,9 @@ Type \\[describe-distribution] for information on getting the latest version."))
     (let ((dir command-line-default-directory)
 	  (file-count 0)
 	  first-file-buffer
+	  done
 	  (line 0))
-      (while command-line-args-left
+      (while (and command-line-args-left (not done))
 	(let* ((argi (car command-line-args-left))
 	       (orig-argi argi)
 	       ;; This includes our standard options' long versions
@@ -818,7 +820,9 @@ Type \\[describe-distribution] for information on getting the latest version."))
 	  (if (string-match "^--[^=]*=" argi)
 	      (setq argval (substring argi (match-end 0))
 		    argi (substring argi 0 (1- (match-end 0)))))
-	  (setq completion (try-completion argi longopts))
+	  (if (equal argi "--")
+	      (setq completion nil)
+	    (setq completion (try-completion argi longopts)))
 	  (if (eq completion t)
 	      (setq argi (substring argi 1))
 	    (if (stringp completion)
@@ -891,6 +895,8 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		 ;; Ignore X-windows options and their args if not using X.
 		 (setq command-line-args-left
 		       (nthcdr (nth 1 tem) command-line-args-left)))
+		((equal argi "--")
+		 (setq done t))
 		(t
 		 ;; We have almost exhausted our options. See if the
 		 ;; user has made any other command-line options available
