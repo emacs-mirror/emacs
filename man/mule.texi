@@ -992,7 +992,19 @@ translation of keyboard input is useful for terminals with keys that
 send non-ASCII graphic characters---for example, some terminals designed
 for ISO Latin-1 or subsets of it.
 
-  By default, keyboard input is not translated at all.
+  By default, keyboard input is translated based on your system locale
+setting.  If your terminal does not really support the encoding
+implied by your locale (for example, if you find it inserts a
+non-ASCII character if you type @kbd{M-i}), you will need to set
+@code{keyboard-coding-system} to @code{nil} to turn off encoding.
+You can do this by putting
+
+@lisp
+(set-keyboard-coding-system nil)
+@end lisp
+
+@noindent
+in your @file{~/.emacs} file.
 
   There is a similarity between using a coding system translation for
 keyboard input, and using an input method: both define sequences of
