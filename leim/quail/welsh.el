@@ -25,8 +25,6 @@
 ;;; Commentary:
 
 ;; Welsh input following the Yudit map by david@sheetmusic.org.uk.
-;; This is set up to produce utf-8.  A Latin-8 version of most of it
-;; is commented-out at the end.
 
 ;;; Code:
 
@@ -34,7 +32,7 @@
 
 (quail-define-package
  "welsh" "Welsh" "$,1!4(B" t
- "Welsh postfix input method, using Unicode"
+ "Welsh postfix input method."
  nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -117,92 +115,5 @@
 
  ;; "hawlfraint" (copyright).  Dyma arwyddlun hawlfraint.
  ("(h)" ?$,1W(B))
-
-;; In the following line paren changed  to bracket to avoid an error
-;; message from quail-update-leim-list-file, which doesn't know about
-;; Lisp comments.
-;; [quail-define-package
-;;  "welsh" "Welsh" "$,1!4(B" t
-;;  "Welsh postfix input method, using Latin-8"
-;;  nil t nil nil nil nil nil nil nil nil t)
-
-;; (quail-define-rules
-;;  ("A\\" ?,A@(B)
-;;  ("A/" ?,AA(B)
-;;  ("A^" ?,AB(B)
-;;  ("A+" ?,AB(B)
-;;  ("A\"" ?,AD(B)
-;;  ("a\\" ?,A`(B)
-;;  ("a/" ?,Aa(B)
-;;  ("a^" ?,Ab(B)
-;;  ("a+" ?,Ab(B)
-;;  ("a\"" ?,Ad(B)
-
-;;  ("E\\" ?,AH(B)
-;;  ("E/" ?,AI(B)
-;;  ("E^" ?,AJ(B)
-;;  ("E+" ?,AJ(B)
-;;  ("E\"" ?,AK(B)
-;;  ("e\\" ?,Ah(B)
-;;  ("e/" ?,Ai(B)
-;;  ("e^" ?,Aj(B)
-;;  ("e+" ?,Aj(B)
-;;  ("e\"" ?,Ak(B)
-
-;;  ("I\\" ?,AL(B)
-;;  ("I/" ?,AM(B)
-;;  ("I^" ?,AN(B)
-;;  ("I+" ?,AN(B)
-;;  ("I\"" ?,AO(B)
-;;  ("i\\" ?,Al(B)
-;;  ("i/" ?,Am(B)
-;;  ("i^" ?,An(B)
-;;  ("i+" ?,An(B)
-;;  ("i\"" ?,Ao(B)
-
-;;  ("O\\" ?,AR(B)
-;;  ("O/" ?,AS(B)
-;;  ("O^" ?,AT(B)
-;;  ("O+" ?,AT(B)
-;;  ("O\"" ?,AV(B)
-;;  ("o\\" ?,Ar(B)
-;;  ("o/" ?,As(B)
-;;  ("o^" ?,At(B)
-;;  ("o+" ?,At(B)
-;;  ("o\"" ?,Av(B)
-
-;;  ("U\\" ?,AY(B)
-;;  ("U/" ?,AZ(B)
-;;  ("U^" ?,A[(B)
-;;  ("U+" ?,A[(B)
-;;  ("U\"" ?,A\(B)
-;;  ("u\\" ?,Ay(B)
-;;  ("u/" ?,Az(B)
-;;  ("u^" ?,A{(B)
-;;  ("u+" ?,A{(B)
-;;  ("u\"" ?,A|(B)
-
-;;  ("Y\\" ?,A,(B)
-;;  ("Y/" ?,A](B)
-;;  ("Y^" ?,A^(B)
-;;  ("Y+" ?,A^(B)
-;;  ("Y\"" ?,A/(B)
-;;  ("y\\" ?,A<(B)
-;;  ("y/" ?,A}(B)
-;;  ("y\"" ?,A(B)
-;;  ("y^" ?,A~(B)
-;;  ("y+" ?,A~(B)
-
-;;  ("W\\" ?,A((B)
-;;  ("W/" ?,A*(B)
-;;  ("W^" ?,AP(B)
-;;  ("W+" ?,AP(B)
-;;  ("W\"" ?,A=(B)
-;;  ("w\\" ?,A8(B)
-;;  ("w/" ?,A:(B)
-;;  ("w^" ?,Ap(B)
-;;  ("w+" ?,Ap(B)
-;;  ("w\"" ?,A>(B))
-
 
 ;;; welsh.el ends here
