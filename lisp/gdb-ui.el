@@ -589,7 +589,7 @@ This filter may simply queue output for a later time."
 ;; any newlines.
 ;;
 
-(defcustom gud-gdba-command-name "~/gdb/gdb/gdb -annotate=3"
+(defcustom gud-gdba-command-name "gdb -annotate=3"
   "Default command to execute an executable under the GDB-UI debugger."
   :type 'string
   :group 'gud)
@@ -933,32 +933,32 @@ static char *magick[] = {
 \"  c red\",
 \"+ c None\",
 /* pixels */
+\"+++    +++\",
 \"++      ++\",
 \"+        +\",
 \"          \",
 \"          \",
 \"          \",
 \"          \",
-\"          \",
-\"          \",
 \"+        +\",
 \"++      ++\",
+\"+++    +++\",
 };"
   "XPM data used for breakpoint icon.")
 
 (defconst breakpoint-enabled-pbm-data
 "P1
 10 10\",
+0 0 0 0 1 1 1 1 0 0 0 0
 0 0 0 1 1 1 1 1 1 0 0 0
 0 0 1 1 1 1 1 1 1 1 0 0
 0 1 1 1 1 1 1 1 1 1 1 0
 0 1 1 1 1 1 1 1 1 1 1 0
 0 1 1 1 1 1 1 1 1 1 1 0
 0 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 0
 0 0 1 1 1 1 1 1 1 1 0 0
-0 0 0 1 1 1 1 1 1 0 0 0"
+0 0 0 1 1 1 1 1 1 0 0 0
+0 0 0 0 1 1 1 1 0 0 0 0"
   "PBM data used for enabled breakpoint icon.")
 
 (defconst breakpoint-disabled-pbm-data
@@ -977,13 +977,13 @@ static char *magick[] = {
   "PBM data used for disabled breakpoint icon.")
 
 (defvar breakpoint-enabled-icon
-  (find-image `((:type xpm :data ,breakpoint-xpm-data)
-		(:type pbm :data ,breakpoint-enabled-pbm-data)))
+  (find-image `((:type xpm :data ,breakpoint-xpm-data :ascent 100)
+		(:type pbm :data ,breakpoint-enabled-pbm-data :ascent 100)))
   "Icon for enabled breakpoint in display margin")
 
 (defvar breakpoint-disabled-icon
-  (find-image `((:type xpm :data ,breakpoint-xpm-data :conversion disabled)
-		(:type pbm :data ,breakpoint-disabled-pbm-data)))
+  (find-image `((:type xpm :data ,breakpoint-xpm-data :conversion disabled :ascent 100)
+		(:type pbm :data ,breakpoint-disabled-pbm-data :ascent 100)))
   "Icon for disabled breakpoint in display margin")
 
 ;;-put breakpoint icons in relevant margins (even those set in the GUD buffer)
