@@ -79,7 +79,7 @@ Its ok to be on a row number line."
 	       (1- (% buffer-line lines-per-row))
 	     (% buffer-line lines-per-row)))
 	;; Array columns on the current line.
-	(ceiling (1+ buffer-column) field-width))))
+	(1+ (floor buffer-column field-width)))))
 
 (defun array-update-array-position (&optional a-row a-column)
   "Set `array-row' and `array-column' to their current values or
@@ -706,8 +706,8 @@ of rows-numbered."
       (setq rows-numbered new-rows-numbered)
       (setq line-length (* old-field-width new-columns-per-line))
       (setq lines-per-row 
-	    (+ (ceiling temp-max-column new-columns-per-line)
-	       (if new-rows-numbered 1 0)))
+	    (+ (floor (1- temp-max-column) new-columns-per-line)
+	       (if new-rows-numbered 2 1)))
       (array-goto-cell (or array-row 1) (or array-column 1)))
     (kill-buffer temp-buffer))
   (message "Working...done"))
@@ -725,26 +725,6 @@ of rows-numbered."
   (cond ((< index 1) 1)
 	((> index limit) limit)
 	(t index)))
-
-(defun abs (int)
-  "Return the absolute value of INT."
-  (if (< int 0) (- int) int))
-
-
-(defun floor (int1 int2)
-  "Returns the floor of INT1 divided by INT2.
-INT1 may be negative.  INT2 must be positive."
-  (if (< int1 0)
-      (- (ceiling (- int1) int2))
-      (/ int1 int2)))
-
-(defun ceiling (int1 int2)
-  "Returns the ceiling of INT1 divided by INT2.
-Assumes that both arguments are nonnegative."
-  (+ (/ int1 int2)
-     (if (zerop (mod int1 int2))
-	 0
-	 1)))
 
 (defun xor (pred1 pred2)
   "Returns the logical exclusive or of predicates PRED1 and PRED2."
@@ -965,7 +945,7 @@ array in this buffer."
   "Initialize the value of lines-per-row."
   (setq lines-per-row
 	(or arg
-	  (+ (ceiling max-column columns-per-line)
-	     (if rows-numbered 1 0)))))
+	  (+ (floor (1- max-column) columns-per-line)
+	     (if rows-numbered 2 1)))))
 
 ;;; array.el ends here
