@@ -4,6 +4,9 @@
 	progmodes/ada-stmt.el, progmodes/ada-xref.el: Doc-string and
 	comment fixes.
 
+	* progmodes/compile.el (compilation-error-regexp-alist): Recognize
+	MIPS Pro 7.3 compiler error message syntax.  
+	
 1999-10-27  Dave Love  <fx@gnu.org>
 
 	* progmodes/compile.el: Checkdoc-inspired fixes.

@@ -1,3 +1,8 @@
+1999-10-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* fns.c (Fmemq, Fassq, Frassq, assq_no_quit, Fassoc)
+	(Frassoc): Rewritten.
+
 1999-10-27  Noah Friedman  <friedman@splode.com>
 
 	* s/gnu-linux.h [HAVE_DEV_PTMX]: Redefine FIRST_PTY_LETTER to 'z'.
