@@ -1,3 +1,7 @@
+2003-07-22  Dave Love  <fx@gnu.org>
+
+	* xfns.c [HAVE_PNG]: Consider both png.h and libpng/png.h.
+
 2003-07-21  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* alloc.c (MARK_STRING, UNMARK_STRING, STRING_MARKED_P)
