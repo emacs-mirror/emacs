@@ -5,7 +5,7 @@
 
 ;; Author: David Megginson (dmeggins@aix1.uottawa.ca)
 ;; Maintainer: FSF
-;; Keywords: obsolete
+;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.
 
@@ -25,13 +25,6 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-
-;; Obsolete.
-;; Use the `derived-major-mode' provided by easy-mmode.el instead.
-;; It is only kept for backward compatibility with Emacs-20 byte-compiled
-;; files that refer to `derived-mode-init-mode-variables' and other functions.
-
-
 
 ;; GNU Emacs is already, in a sense, object oriented -- each object
 ;; (buffer) belongs to a class (major mode), and that class defines
@@ -91,21 +84,16 @@
 ;; 
 ;; will add a new major mode for HTML with very little fuss.
 ;;
-;; Note also the function `derived-mode-class,' which returns the non-derived
-;; major mode which a derived mode is based on (ie. NOT necessarily the
-;; immediate parent).
-;;
-;; (derived-mode-class 'text-mode) ==> text-mode
-;; (derived-mode-class 'hypertext-mode) ==> text-mode
-;; (derived-mode-class 'html-mode) ==> text-mode
+;; Note also the function `derived-mode-p' which can tell if the current
+;; mode derives from another.  In a hypertext-mode, buffer, for example,
+;; (derived-mode-p 'text-mode) would return non-nil.  This should always
+;; be used in place of (eq major-mode 'text-mode).
 
 ;;; Code:
 
 ;; PUBLIC: define a new major mode which inherits from an existing one.
 
-;; ;;;###autoload
-;; Don't override the definition provided by easy-mmode.el
-(unless (fboundp 'define-derived-mode)
+;;;###autoload
 (defmacro define-derived-mode (child parent name &optional docstring &rest body)
   "Create a new mode as a variant of an existing mode.
 
@@ -137,58 +125,86 @@ the parent, and then sets the variable `case-fold-search' to nil:
 Note that if the documentation string had been left out, it would have
 been generated automatically, with a reference to the keymap."
 
-					; Some trickiness, since what
-					; appears to be the docstring
-					; may really be the first
-					; element of the body.
-  (if (and docstring (not (stringp docstring)))
-      (progn (setq body (cons docstring body))
-	     (setq docstring nil)))
-  (setq docstring (or docstring (derived-mode-make-docstring parent child)))
+  (when (and docstring (not (stringp docstring)))
+    ;; Some trickiness, since what appears to be the docstring may really be
+    ;; the first element of the body.
+    (push docstring body)
+    (setq docstring nil))
 
-  `(progn
-     (derived-mode-init-mode-variables (quote ,child))
-     (defun ,child ()
-       ,docstring
-       (interactive)
+  (unless parent (setq parent 'fundamental-mode))
+
+  (let ((map (derived-mode-map-name child))
+	(syntax (derived-mode-syntax-table-name child))
+	(abbrev (derived-mode-abbrev-table-name child))
+	(hook (derived-mode-hook-name child))
+	(docstring (derived-mode-make-docstring parent child docstring)))
+	 
+    `(progn
+       (defvar ,map (make-sparse-keymap))
+       (defvar ,syntax (make-char-table 'syntax-table nil))
+       (defvar ,abbrev)
+       (define-abbrev-table ',abbrev nil)
+       (put ',child 'derived-mode-parent ',parent)
+     
+       (defun ,child ()
+	 ,docstring
+	 (interactive)
 					; Run the parent.
-       (,parent)
-					; Identify special modes.
-       (if (get (quote ,parent) 'special)
-	   (put (quote ,child) 'special t))
-					; Identify the child mode.
-       (setq major-mode (quote ,child))
-       (setq mode-name ,name)
-					; Set up maps and tables.
-       (derived-mode-set-keymap (quote ,child))
-       (derived-mode-set-syntax-table (quote ,child))
-       (derived-mode-set-abbrev-table (quote ,child))
-					; Splice in the body (if any).
-       ,@body
-;;;					; Run the setup function, if
-;;;					; any -- this will soon be
-;;;					; obsolete.
-;;;	 (derived-mode-run-setup-function (quote ,child))
-					; Run the hooks, if any.
-       (derived-mode-run-hooks (quote ,child))))))
+	 (combine-run-hooks
 
+	  (,parent)
+					; Identify special modes.
+	  (if (get (quote ,parent) 'special)
+	      (put (quote ,child) 'special t))
+					; Identify the child mode.
+	  (setq major-mode (quote ,child))
+	  (setq mode-name ,name)
+					; Set up maps and tables.
+	  (unless (keymap-parent ,map)
+	    (set-keymap-parent ,map (current-local-map)))
+	  (let ((parent (char-table-parent ,syntax)))
+	    (unless (and parent (not (eq parent (standard-syntax-table))))
+	      (set-char-table-parent ,syntax (syntax-table))))
+	  (when local-abbrev-table
+	    (mapatoms
+	     (lambda (symbol)
+	       (or (intern-soft (symbol-name symbol) ,abbrev)
+		   (define-abbrev ,abbrev (symbol-name symbol)
+		     (symbol-value symbol) (symbol-function symbol))))
+	     local-abbrev-table))
+       
+	  (use-local-map ,map)
+	  (set-syntax-table ,syntax)
+	  (setq local-abbrev-table ,abbrev)
+					; Splice in the body (if any).
+	  ,@body)
+					; Run the hooks, if any.
+	 (run-hooks ',hook)))))
+
+;; PUBLIC: find if the current mode derives from another.
+
+(defun derived-mode-p (&rest modes)
+  "Non-nil if the current major mode is derived from one of MODES.
+Uses the `derived-mode-parent' property of the symbol to trace backwards."
+  (let ((parent major-mode))
+    (while (and (not (memq parent modes))
+		(setq parent (get parent 'derived-mode-parent))))
+    parent))
 
 ;; PUBLIC: find the ultimate class of a derived mode.
 
 (defun derived-mode-class (mode)
   "Find the class of a major MODE.
 A mode's class is the first ancestor which is NOT a derived mode.
-Use the `derived-mode-parent' property of the symbol to trace backwards."
+Use the `derived-mode-parent' property of the symbol to trace backwards.
+Since major-modes might derive from each other and from `fundamental-mode',
+this function is not very useful.  Use `derived-mode-p' instead."
   (while (get mode 'derived-mode-parent)
     (setq mode (get mode 'derived-mode-parent)))
   mode)
 
 
-;; Inline functions to construct various names from a mode name.
-
-(defsubst derived-mode-setup-function-name (mode)
-  "Construct a setup-function name based on a MODE name."
-  (intern (concat (symbol-name mode) "-setup")))
+;;; PRIVATE
 
 (defsubst derived-mode-hook-name (mode)
   "Construct the mode hook name based on mode name MODE."
@@ -205,6 +221,56 @@ Use the `derived-mode-parent' property of the symbol to trace backwards."
 (defsubst derived-mode-abbrev-table-name (mode)
   "Construct an abbrev-table name based on a MODE name."
   (intern (concat (symbol-name mode) "-abbrev-table")))
+
+(defun derived-mode-make-docstring (parent child &optional docstring)
+  "Construct a docstring for a new mode if none is provided."
+
+  (let ((map (derived-mode-map-name child))
+	(syntax (derived-mode-syntax-table-name child))
+	(abbrev (derived-mode-abbrev-table-name child))
+	(hook (derived-mode-hook-name child)))
+
+    (unless (stringp docstring)
+      ;; Use a default docstring.
+      (setq docstring
+	    (format "Major mode derived from `%s' by `define-derived-mode'.
+It inherits all of the parent's attributes, but has its own keymap,
+abbrev table and syntax table:
+
+  `%s', `%s' and `%s'
+
+which more-or-less shadow %s's corresponding tables."
+		    parent map abbrev syntax parent)))
+  
+    (unless (string-match (regexp-quote (symbol-name hook)) docstring)
+      ;; Make sure the docstring mentions the mode's hook
+      (setq docstring
+	    (concat docstring
+		    (if (eq parent 'fundamental-mode)
+			"\n\nThis mode "
+		      (concat
+		       "\n\nIn addition to any hooks its parent mode "
+		       (if (string-match (regexp-quote (format "`%s'" parent))
+					 docstring) nil
+			 (format "`%s' " parent))
+		       "might have run,\nthis mode "))
+		    (format "runs the hook `%s'" hook)
+		    ", as the final step\nduring initialization.")))
+    
+    (unless (string-match "\\\\[{[]" docstring)
+      ;; And don't forget to put the mode's keymap
+      (setq docstring (concat docstring "\n\n\\{" (symbol-name map) "}")))
+
+    docstring))
+
+
+;;; OBSOLETE
+;; The functions below are only provided for backward compatibility with
+;; code byte-compiled with versions of derived.el prior to Emacs-21.
+
+(defsubst derived-mode-setup-function-name (mode)
+  "Construct a setup-function name based on a MODE name."
+  (intern (concat (symbol-name mode) "-setup")))
 
 
 ;; Utility functions for defining a derived mode.
@@ -240,22 +306,6 @@ the first time the mode is used."
 	       (define-abbrev-table (derived-mode-abbrev-table-name mode) nil)
 	       (make-abbrev-table))
 	     ,(format "Abbrev table for %s." mode)))))
-
-(defun derived-mode-make-docstring (parent child)
-  "Construct a docstring for a new mode if none is provided."
-
-  (format "This major mode is a variant of `%s', created by `define-derived-mode'.
-It inherits all of the parent's attributes, but has its own keymap,
-abbrev table and syntax table:
-
-  `%s-map' and `%s-syntax-table'
-
-which more-or-less shadow
-
-  `%s-map' and `%s-syntax-table'
-
-\\{%s-map}" parent child child parent parent child))
-
 
 ;; Utility functions for running a derived mode.
 
@@ -298,7 +348,6 @@ Always merge its parent into it, since the merge is non-destructive."
 
 (defun derived-mode-run-hooks (mode)
   "Run the mode hook for MODE."
-
   (let ((hooks-name (derived-mode-hook-name mode)))
     (if (boundp hooks-name)
 	(run-hooks hooks-name))))
