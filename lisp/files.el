@@ -1569,8 +1569,8 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.awk\\'" . awk-mode)
      ("\\.prolog\\'" . prolog-mode)
      ("\\.tar\\'" . tar-mode)
-     ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|jar\\)\\'" . archive-mode)
-     ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|JAR\\)\\'" . archive-mode)
+     ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|ear\\|jar\\|war\\)\\'" . archive-mode)
+     ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|EAR\\|JAR\\|WAR\\)\\'" . archive-mode)
      ("\\.sx[dmicw]\\'" . archive-mode)	; OpenOffice.org
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message
