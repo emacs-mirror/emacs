@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.68) $
+ * $HopeName: MMsrc!mpmst.h(trunk.69) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -714,6 +714,11 @@ typedef struct ArenaStruct {
 } ArenaStruct;
 
 
+typedef struct AllocPatternStruct {
+  char dummy;
+} AllocPatternStruct;
+
+
 /* Splay Trees 
  *
  * See design.mps.splay
@@ -761,5 +766,6 @@ typedef struct CBSBlockStruct {
   Addr limit;
   Size maxSize; /* accurate maximum block size of sub-tree */
 } CBSBlockStruct;
+
 
 #endif /* mpmst_h */
