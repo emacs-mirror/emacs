@@ -2178,6 +2178,10 @@ current input method to input a character.
 click-event-style position information for a given visible buffer
 position or for a given window pixel coordinate.
 
+** skip-chars-forward and skip-chars-backward now handle
+character classes such as [:alpha:], along with individual characters
+and ranges.
+
 ** Function pos-visible-in-window-p now returns the pixel coordinates
 and partial visiblity state of the corresponding row, if the PARTIALLY
 arg is non-nil.
