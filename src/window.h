@@ -202,6 +202,9 @@ extern Lisp_Object Fnext_window ();
 extern Lisp_Object Fselect_window ();
 extern Lisp_Object Fdisplay_buffer ();
 extern Lisp_Object Fset_window_buffer ();
+extern Lisp_Object make_window ();
+extern Lisp_Object window_from_coordinates ();
+extern Lisp_Object Fwindow_dedicated_p ();
 
 /* Prompt to display in front of the minibuffer contents.  */
 extern char *minibuf_prompt;
