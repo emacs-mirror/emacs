@@ -301,7 +301,7 @@ rigidly along with this one."
 	     (> end beg))
 	   (indent-code-rigidly beg end shift-amt)))))
 
-defvar calculate-lisp-indent-last-sexp)
+(defvar calculate-lisp-indent-last-sexp)
 
 (defun calculate-lisp-indent (&optional parse-start)
   "Return appropriate indentation for current line as Lisp code.
