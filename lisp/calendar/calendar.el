@@ -1490,6 +1490,9 @@ the inserted text.  Value is always t."
       (substitute-command-keys
        "\\<calendar-mode-map>\\[describe-mode] from within the calendar")
       (substitute-command-keys "\\{calendar-mode-map}")))
+    (save-excursion
+      (set-buffer standard-output)
+      (help-mode))
     (print-help-return-message)))
 
 ;; Calendar mode is suitable only for specially formatted data.
