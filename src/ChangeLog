@@ -79,8 +79,8 @@
 
 2000-07-05  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* w32menu.c (w32_menu_display_help): * xmenu.c
-	(menu_help_callback): Use show_help_echo.
+	* w32menu.c (w32_menu_display_help):
+	* xmenu.c (menu_help_callback): Use show_help_echo.
 
 	* keyboard.h (show_help_echo): Declare.
 
