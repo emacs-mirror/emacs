@@ -120,7 +120,7 @@ The returned string has no composition information."
 ;;;
 ;;; Here are examples of the words "bsgrubs" and "hfauM"
 ;;;
-;;;            4$(7"70"714%qx!"U0"G###C"U14"70"714"G0"G1(B            4$(7"Hx!"Rx!"Ur'"_0"H"R"U"_1(B
+;;;            $(7"7"G###C"U"7"G(B            $(7"H"R"U"_(B
 ;;;
 ;;;                             M
 ;;;             b s b s         h
@@ -146,7 +146,7 @@ The returned string has no composition information."
     ;; If 'a follows a consonant, turn it into the subjoined form.
     ;; * Disabled by Tomabechi 2000/06/09 *
     ;; Because in Unicode, $(7"A(B may follow directly a consonant without
-    ;; any intervening vowel, as in 4$(7"90"914""0"""Q14"A0"A1!;(B=4$(7"90"91(B 4$(7""0""1(B 4$(7"A0"A1(B not 4$(7"90"91(B 4$(7""0""1(B $(7"Q(B 4$(7"A0"A1(B  
+    ;; any intervening vowel, as in $(7"9"""Q"A!;(B=$(7"9(B $(7""(B $(7"A(B not $(7"9(B $(7""(B $(7"Q(B $(7"A(B  
     ;;(if (and (= char ?$(7"A(B)
     ;;	     (aref (char-category-set (car last)) ?0))
     ;;	(setq char ?$(7"R(B)) ;; modified for new font by Tomabechi 1999/12/10
@@ -294,11 +294,17 @@ are decomposed into normal Tibetan character sequences."
     new))
 
 ;;;###autoload
-(defun tibetan-composition-function (from to pattern &optional string)
+(defun tibetan-composition-function (pos &optional string)
+  (setq pos (1- pos))
   (if string
-      (tibetan-compose-string string)
-    (tibetan-compose-region from to))
-  (- to from))
+      ;; Not yet implemented.
+      nil
+    (if (>= pos (point-min))
+	(save-excursion
+	  (goto-char pos)
+	  (if (looking-at tibetan-composable-pattern)
+	      (prog1 (match-end 0)
+		(tibetan-compose-region pos (match-end 0))))))))
 
 ;;;
 ;;; This variable is used to avoid repeated decomposition.
