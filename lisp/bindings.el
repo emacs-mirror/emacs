@@ -289,15 +289,19 @@ is okay.  See `mode-line-format'.")
   "Perform tags completion on the text around point.
 Completes to the set of names listed in the current tags table.
 The string to complete is chosen in the same way as the default
-for \\[find-tag] (which see)."
+for \\[find-tag] (which see).
+
+With a prefix argument, this command does completion within
+the collection of symbols listed in the index of the manual for the
+language you are using."
   (interactive "P")
   (if arg
-      (if (fboundp 'complete-tag)
-	  (complete-tag)
-	;; Don't autoload etags if we have no tags table.
-	(error (substitute-command-keys
-		"No tags table loaded; use \\[visit-tags-table] to load one")))
-    (info-complete-symbol)))
+      (info-complete-symbol)
+    (if (fboundp 'complete-tag)
+	(complete-tag)
+      ;; Don't autoload etags if we have no tags table.
+      (error (substitute-command-keys
+	      "No tags table loaded; use \\[visit-tags-table] to load one")))))
 
 ;; Reduce total amount of space we must allocate during this function
 ;; that we will not need to keep permanently.
