@@ -1604,6 +1604,11 @@ examine the brightness for you."
 
 (setq region-face (face-id 'region))
 
+(defgroup basic-faces nil
+  "The standard faces of Emacs."
+  :prefix "huh"
+  :group 'faces)
+
 ;; Specify how these faces look, and their documentation.
 (let ((all '((bold "Use bold font." ((t (:bold t))))
 	     (bold-italic "Use bold italic font." ((t (:bold t :italic t))))
@@ -1636,6 +1641,7 @@ examine the brightness for you."
 	  symbol (nth 0 entry)
 	  doc (nth 1 entry)
 	  spec (nth 2 entry))
+    (custom-add-to-group 'basic-faces symbol 'custom-face)
     (put symbol 'face-documentation doc)
     (put symbol 'face-defface-spec spec)))
 
