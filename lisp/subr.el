@@ -89,8 +89,9 @@ LISTNAME must be a symbol."
 LISTNAME must be a symbol whose value is a list.
 If the value is nil, `pop' returns nil but does not actually
 change the list."
-  (list 'prog1 (list 'car listname)
-	(list 'setq listname (list 'cdr listname))))
+  (list 'car
+	(list 'prog1 listname
+	      (list 'setq listname (list 'cdr listname)))))
 
 (defmacro when (cond &rest body)
   "If COND yields non-nil, do BODY, else return nil."
