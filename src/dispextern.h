@@ -2199,6 +2199,7 @@ int face_at_string_position P_ ((struct window *, Lisp_Object,
 int compute_char_face P_ ((struct frame *, int, Lisp_Object));
 void free_all_realized_faces P_ ((Lisp_Object));
 extern Lisp_Object Qforeground_color, Qbackground_color;
+extern char unspecified_fg[], unspecified_bg[];
 void free_realized_multibyte_face P_ ((struct frame *, int));
 
 /* Defined in xfns.c  */
