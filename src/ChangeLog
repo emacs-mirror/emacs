@@ -1,3 +1,12 @@
+2004-12-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* alloc.c (check_depth): New variable.
+	(overrun_check_malloc, overrun_check_realloc): Only add
+	overhead and write check pattern if check_depth is 1 (to handle
+	recursive calls).  Increase/decrease check_depth in entry/exit.
+	(overrun_check_free): Only check for overhead if check_depth is 1.
+	Increase/decrease check_depth in entry/exit.
+
 2004-12-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (input_available_signal): Call SIGNAL_THREAD_CHECK
