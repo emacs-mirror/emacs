@@ -415,7 +415,9 @@ changing the variable `diary-include-string'."
 
 (defface diary-button-face '((((type pc) (class color))
 		   (:foreground "lightblue")))
-  "Default face used for buttons.")
+  "Default face used for buttons."
+  :version "21.4"
+  :group 'diary)
 
 (define-button-type 'diary-entry
   'action #'diary-goto-entry
