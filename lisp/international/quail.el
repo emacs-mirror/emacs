@@ -591,6 +591,7 @@ The command \\[describe-input-method] describes the current Quail package."
 The current translation and conversion are terminated."
   (interactive)
   (setq unread-command-events (cons last-input-event unread-command-events))
+  (quail-terminate-translation)
   (quail-delete-overlays)
   (setq overriding-terminal-local-map nil)
   (if (buffer-live-p quail-guidance-buf)
