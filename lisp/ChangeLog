@@ -1,3 +1,12 @@
+2004-04-18  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-goto-info): Require 'info.
+	(gdb-info-breakpoints-custom): Revert previous change.
+	(gdb-view-assembler): Update assembler if necessary.
+	(gdb-frame-handler): Parse correctly for gdb-current-frame.
+	(gdb-display-source-buffer): Update properly when both source and
+	assembler are visible.
+
 2004-04-17  John Wiegley  <johnw@newartisans.com>
 
 	* iswitchb.el (iswitchb-max-to-show): Added a new config variable
