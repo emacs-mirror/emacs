@@ -730,13 +730,20 @@ other hooks, such as major mode hooks, can do the job."
 (defun eval-after-load (file form)
   "Arrange that, if FILE is ever loaded, FORM will be run at that time.
 This makes or adds to an entry on `after-load-alist'.
+If FILE is already loaded, evaluate FORM right now.
 It does nothing if FORM is already on the list for FILE.
 FILE should be the name of a library, with no directory name."
+  ;; Make sure there is an element for FILE.
   (or (assoc file after-load-alist)
       (setq after-load-alist (cons (list file) after-load-alist)))
+  ;; Add FORM to the element if it isn't there.
   (let ((elt (assoc file after-load-alist)))
     (or (member form (cdr elt))
-	(nconc elt (list form))))
+	(progn
+	  (nconc elt (list form))
+	  ;; If the file has been loaded already, run FORM right away.
+	  (and (assoc file load-history)
+	       (eval form)))))
   form)
 
 (defun eval-next-after-load (file)
