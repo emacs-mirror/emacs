@@ -1,9 +1,10 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler.
 
-;;; Copyright (c) 1991, 1994 Free Software Foundation, Inc.
+;;; Copyright (c) 1991, 1994, 2000 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
+;; Maintainer: FSF
 ;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
@@ -592,9 +593,10 @@
 ;; I'd like this to be a defsubst, but let's not be self-referential...
 (defmacro byte-compile-trueconstp (form)
   ;; Returns non-nil if FORM is a non-nil constant.
-  (` (cond ((consp (, form)) (eq (car (, form)) 'quote))
-	   ((not (symbolp (, form))))
-	   ((eq (, form) t)))))
+  `(cond ((consp ,form) (eq (car ,form) 'quote))
+	 ((not (symbolp ,form)))
+	 ((eq ,form t))
+	 ((keywordp ,form))))
 
 ;; If the function is being called with constant numeric args,
 ;; evaluate as much as possible at compile-time.  This optimizer 
@@ -895,7 +897,7 @@
 (defun byte-optimize-quote (form)
   (if (or (consp (nth 1 form))
 	  (and (symbolp (nth 1 form))
-	       (not (memq (nth 1 form) '(nil t)))))
+	       (not (byte-compile-const-symbol-p form))))
       form
     (nth 1 form)))
 
@@ -1116,6 +1118,14 @@
 	((= 1 (safe-length form))
 	 '(forward-char -1))
 	(t form)))
+
+(put 'char-before 'byte-optimizer 'byte-optimize-char-before)
+(defun byte-optimize-char-before (form)
+  (cond ((= 2 (safe-length form))
+	 `(char-after (1- ,(nth 1 form))))
+	((= 1 (safe-length form))
+	 '(char-after (1- (point))))
+	(t form)))
 
 ;;; enumerating those functions which need not be called if the returned 
 ;;; value is not used.  That is, something like
@@ -1132,7 +1142,8 @@
 	 assoc assq
 	 boundp buffer-file-name buffer-local-variables buffer-modified-p
 	 buffer-substring
-	 capitalize car-less-than-car car cdr ceiling concat coordinates-in-window-p
+	 capitalize car-less-than-car car cdr ceiling concat
+	 coordinates-in-window-p
 	 char-width copy-marker cos count-lines
 	 default-boundp default-value documentation downcase
 	 elt exp expt fboundp featurep
@@ -1143,7 +1154,8 @@
 	 hash-table-count
 	 int-to-string
 	 keymap-parent
-	 length local-variable-if-set-p local-variable-p log log10 logand logb logior lognot logxor lsh
+	 length local-variable-if-set-p local-variable-p log log10 logand
+	 logb logior lognot logxor lsh
 	 marker-buffer max member memq min mod
 	 next-window nth nthcdr number-to-string
 	 parse-colon-path prefix-numeric-value previous-window
@@ -1484,7 +1496,8 @@
 		 (if (memq (car lap0) '(byte-constant byte-dup))
 		     (progn
 		       (setq tmp (if (or (not tmp)
-					 (memq (car (cdr lap0)) '(nil t)))
+					 (byte-compile-const-symbol-p
+					  (car (cdr lap0))))
 				     (cdr lap0)
 				   (byte-compile-get-constant t)))
 		       (byte-compile-log-lap "  %s %s %s\t-->\t%s %s %s"
