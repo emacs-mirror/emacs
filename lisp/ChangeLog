@@ -1,3 +1,9 @@
+2004-03-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-handler): Handle auto-revert-mode.
+	Call vc-find-file-hook here instead of in auto-revert-buffers.
+	(auto-revert-buffers): Delete call to vc-find-file-hook.
+
 2004-03-27  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
 
 	* woman.el (woman-change-fonts): Rename local variable
