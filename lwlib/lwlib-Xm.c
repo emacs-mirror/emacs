@@ -1963,20 +1963,5 @@ xm_manage_resizing (w, flag)
      Widget w;
      Boolean flag;
 {
-  if (flag)
-    {
-      /* Enable the edit widget for resizing. */
-      Arg al[1];
-      
-      XtSetArg (al[0], XtNallowShellResize, 0);
-      XtSetValues (w, al, 1);
-    }
-  else
-    {
-      /* Disable the edit widget from resizing. */
-      Arg al[1];
-      
-      XtSetArg (al[0], XtNallowShellResize, 0);
-      XtSetValues (w, al, 1);
-    }
+  XtVaSetValues (w, XtNallowShellResize, flag, NULL);
 }
