@@ -33,7 +33,7 @@
   (setup-english-environment)
   (setq primary-language "Ethiopic")
 
-  (setq default-input-method '("Ethiopic" . "quail-ethio"))
+  (setq default-input-method '("Ethiopic" . "ethiopic"))
 
   ;;
   ;;  key bindings
