@@ -1,5 +1,7 @@
 2002-02-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* coding.h (run_pre_post_conversion_on_str): Add prototype.
+
 	* xselect.c (selection_data_to_lisp_data): Fix last change.
 
 2002-02-22  Eli Zaretskii  <eliz@gnu.org>
