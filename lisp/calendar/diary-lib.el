@@ -383,10 +383,11 @@ changing the variable `diary-include-string'."
                   (setq diary-entries-list
                         (append diary-entries-list
                                 (list-diary-entries original-date number)))
-                (set-buffer (find-buffer-visiting diary-file))
-                (subst-char-in-region (point-min) (point-max) ?\^M ?\n t)
-                (setq selective-display nil)
-                (set-buffer-modified-p diary-modified))
+                (save-excursion
+                  (set-buffer (find-buffer-visiting diary-file))
+                  (subst-char-in-region (point-min) (point-max) ?\^M ?\n t)
+                  (setq selective-display nil)
+                  (set-buffer-modified-p diary-modified)))
             (beep)
             (message "Can't read included diary file %s" diary-file)
             (sleep-for 2))
