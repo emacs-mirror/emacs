@@ -269,7 +269,7 @@ Expands the abbreviation after defining it."
 					       (setq nameloc (point))))))
     (set-text-properties 0 (length name) nil name)
     (setq exp (read-string (format "%s expansion for \"%s\": "
-				   type name)))
+				   type name) nil nil nil t))
     (if (or (not (abbrev-expansion name table))
 	    (y-or-n-p (format "%s expands to \"%s\"; redefine? "
 			      name (abbrev-expansion name table))))
