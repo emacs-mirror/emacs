@@ -148,7 +148,7 @@ all:            $(ALL)
 #
 emacs:          $(BLD) $(EMACS)
 $(EMACS):       $(DOC) $(TEMACS)
-		"./$(BLD)/temacs.exe" -batch -l loadup dump
+	"./$(BLD)/temacs.exe" -batch -l loadup dump
 
 #
 # The undumped executable
@@ -158,8 +158,8 @@ $(EMACS):       $(DOC) $(TEMACS)
 #
 temacs:         $(BLD) $(TEMACS)
 $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES)
-		$(LINK) $(LINK_OUT)$(TEMACS_TMP) $(FULL_LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
-		"../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 16
+	$(LINK) $(LINK_OUT)$(TEMACS_TMP) $(FULL_LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
+	"../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 16
 
 bootstrap: bootstrap-emacs
 
@@ -168,47 +168,47 @@ bootstrap: bootstrap-emacs
 # Lisp files from loadup.el in source form.
 #
 bootstrap-temacs: bootstrap-clean
-		$(MAKECMD) temacs CFLAGS="$(CFLAGS) -DPURESIZE=5000000"
+	$(MAKE) $(MFLAGS) temacs CFLAGS=$(ARGQUOTE)$(CFLAGS) -DPURESIZE=5000000$(ARGQUOTE)
 
 #
 # Dump an Emacs executable named bootstrap-emacs containing the 
 # files from loadup.el in source form.
 #
 bootstrap-emacs: bootstrap-temacs
-		"./$(BLD)/temacs.exe" -batch -l loadup bootstrap
-		- mkdir "../bin"
-		$(CP) $(EMACS) ../bin
+	"./$(BLD)/temacs.exe" -batch -l loadup bootstrap
+	- mkdir "../bin"
+	$(CP) $(EMACS) ../bin
 
 #
 # Force recompile of files that depend on PURESIZE
 #
 bootstrap-clean:
-		- $(DEL) $(BLD)/alloc.$(O)
-		- $(DEL) $(BLD)/data.$(O)
-		- $(DEL) $(BLD)/intervals.$(O)
-		- $(DEL) $(BLD)/keyboard.$(O)
-		- $(DEL) $(BLD)/keymap.$(O)
+	- $(DEL) $(BLD)/alloc.$(O)
+	- $(DEL) $(BLD)/data.$(O)
+	- $(DEL) $(BLD)/intervals.$(O)
+	- $(DEL) $(BLD)/keyboard.$(O)
+	- $(DEL) $(BLD)/keymap.$(O)
 
 #
 # The resource file.  NT 3.10 requires the use of cvtres; even though
 # it is not necessary on later versions, it is still ok to use it.
 #
-$(TRES):	../nt/emacs.rc
-		$(RC) $(RC_INCLUDE)../nt $(RC_OUT)$@ $(ALL_DEPS)
+$(TRES): ../nt/emacs.rc
+	$(RC) $(RC_INCLUDE)../nt $(RC_OUT)$@ $(ALL_DEPS)
 
 #
 # Build the library.  Split up the build into two phases...otherwise we 
 # run out of command line space.
 #
 $(TLIB0):       $(OBJ0)
-		- $(DEL) $@
-		$(AR) $(AR_OUT)$@ $(ALL_DEPS)
+	- $(DEL) $@
+	$(AR) $(AR_OUT)$@ $(ALL_DEPS)
 $(TLIB1):       $(OBJ1)
-		- $(DEL) $@
-		$(AR) $(AR_OUT)$@ $(ALL_DEPS)
+	- $(DEL) $@
+	$(AR) $(AR_OUT)$@ $(ALL_DEPS)
 $(TLIBW32):	$(WIN32OBJ)
-		- $(DEL) $@
-		$(AR) $(AR_OUT)$@ $(ALL_DEPS)
+	- $(DEL) $@
+	$(AR) $(AR_OUT)$@ $(ALL_DEPS)
 
 #
 # Place lastfile.$(O) in its own library so that it can be loaded after
@@ -216,31 +216,32 @@ $(TLIBW32):	$(WIN32OBJ)
 # the end of Emacs' data section portably across compilers and systems.
 #
 $(TLASTLIB):	$(BLD)/lastfile.$(O)
-		- $(DEL) $@
-		$(AR) $(AR_OUT)$@ $(ALL_DEPS)
+	- $(DEL) $@
+	$(AR) $(AR_OUT)$@ $(ALL_DEPS)
 
 #
 # Assuming INSTALL_DIR is defined, build and install emacs in it.
 #
 install:        $(ALL)
-		- mkdir "$(INSTALL_DIR)/bin"
-		$(CP) $(EMACS) $(INSTALL_DIR)/bin
+	- mkdir "$(INSTALL_DIR)/bin"
+	$(CP) $(EMACS) $(INSTALL_DIR)/bin
 
 #
 # Maintenance
 # 
-clean:;         - $(DEL) *~ "s/*~" "m/*~"
-		- $(DEL) *.pdb
-		- $(DEL_TREE) $(OBJDIR)
+clean:
+	- $(DEL) *~ "s/*~" "m/*~"
+	- $(DEL) *.pdb
+	- $(DEL_TREE) $(OBJDIR)
 
 distclean:	clean
-		- $(DEL) config.h epaths.h
+	- $(DEL) config.h epaths.h
 
 cleanall:	clean
-		- $(DEL_TREE) obj
-		- $(DEL_TREE) obj-spd
-		- $(DEL_TREE) oo
-		- $(DEL_TREE) oo-spd
+	- $(DEL_TREE) obj
+	- $(DEL_TREE) obj-spd
+	- $(DEL_TREE) oo
+	- $(DEL_TREE) oo-spd
 
 ### DEPENDENCIES ###
 
