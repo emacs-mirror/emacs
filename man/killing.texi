@@ -224,7 +224,7 @@ Kill back to beginning of sentence (@code{backward-kill-sentence}).
 @item M-k
 Kill to end of sentence (@code{kill-sentence}).
 @item C-M-k
-Kill sexp (@code{kill-sexp}).  @xref{Lists}.
+Kill the following balanced expression (@code{kill-sexp}).  @xref{Expressions}.
 @item M-z @var{char}
 Kill through the next occurrence of @var{char} (@code{zap-to-char}).
 @end table
@@ -242,10 +242,10 @@ including) the next occurrence of that character in the buffer.  A
 numeric argument acts as a repeat count.  A negative argument means to
 search backward and kill text before point.
 
-  Other syntactic units can be killed: words, with @kbd{M-@key{DEL}} and
-@kbd{M-d} (@pxref{Words}); sexps, with @kbd{C-M-k} (@pxref{Lists}); and
-sentences, with @kbd{C-x @key{DEL}} and @kbd{M-k}
-(@pxref{Sentences}).@refill
+  Other syntactic units can be killed: words, with @kbd{M-@key{DEL}}
+and @kbd{M-d} (@pxref{Words}); balanced expressions, with @kbd{C-M-k}
+(@pxref{Expressions}); and sentences, with @kbd{C-x @key{DEL}} and
+@kbd{M-k} (@pxref{Sentences}).@refill
 
   You can use kill commands in read-only buffers.  They don't actually
 change the buffer, and they beep to warn you of that, but they do copy
