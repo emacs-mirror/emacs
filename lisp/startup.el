@@ -1287,6 +1287,139 @@ where FACE is a valid face specification, as it can be used with
       (> window-height (+ image-height 15)))))
 
 
+(defun normal-splash-screen ()
+  "Display splash screen when Emacs starts."
+  (with-current-buffer (get-buffer-create "GNU Emacs")
+    (let ((tab-width 8)
+	  (mode-line-format (propertize "---- %b %-" 
+					'face '(:weight bold))))
+
+      ;; The convention for this piece of code is that
+      ;; each piece of output starts with one or two newlines
+      ;; and does not end with any newlines.
+      (insert "Welcome to GNU Emacs")
+      (if (eq system-type 'gnu/linux)
+	  (insert ", one component of a Linux-based GNU system."))
+      (insert "\n")
+
+      (unless (equal (buffer-name (current-buffer)) "*scratch*")
+	(insert (substitute-command-keys
+		 "\nType \\[recenter] to begin editing your file.\n")))
+
+      (if (display-mouse-p)
+	  ;; The user can use the mouse to activate menus
+	  ;; so give help in terms of menu items.
+	  (progn
+	    (insert "\
+You can do basic editing with the menu bar and scroll bar using the mouse.
+
+Useful File menu items:
+Exit Emacs		(or type Control-x followed by Control-c)
+Recover Session		recover files you were editing before a crash
+
+Important Help menu items:
+Emacs Tutorial		Learn-by-doing tutorial for using Emacs efficiently.
+Emacs FAQ		Frequently asked questions and answers
+\(Non)Warranty		GNU Emacs comes with ABSOLUTELY NO WARRANTY
+Copying Conditions	Conditions for redistributing and changing Emacs.
+Getting New Versions	How to obtain the latest version of Emacs.
+Ordering Manuals	How to order manuals from the FSF.
+")
+	    (insert "\n\n" (emacs-version)
+			    "
+Copyright (C) 2001 Free Software Foundation, Inc."))
+
+	;; No mouse menus, so give help using kbd commands.
+
+	;; If keys have their default meanings,
+	;; use precomputed string to save lots of time.
+	(if (and (eq (key-binding "\C-h") 'help-command)
+		 (eq (key-binding "\C-xu") 'advertised-undo)
+		 (eq (key-binding "\C-x\C-c") 'save-buffers-kill-emacs)
+		 (eq (key-binding "\C-ht") 'help-with-tutorial)
+		 (eq (key-binding "\C-hi") 'info)
+		 (eq (key-binding "\C-h\C-n") 'view-emacs-news))
+	    (insert "
+Get help	   C-h  (Hold down CTRL and press h)
+Undo changes	   C-x u       Exit Emacs		C-x C-c
+Get a tutorial	   C-h t       Use Info to read docs	C-h i
+Ordering manuals   C-h RET")
+	  (insert (substitute-command-keys
+		   (format "\n
+Get help	   %s
+Undo changes	   \\[advertised-undo]
+Exit Emacs	   \\[save-buffers-kill-emacs]
+Get a tutorial	   \\[help-with-tutorial]
+Use Info to read docs	\\[info]
+Ordering manuals   \\[view-order-manuals]"
+			   (let ((where (where-is-internal
+					 'help-command nil t)))
+			     (if where
+				 (key-description where)
+			       "M-x help"))))))
+
+	;; Say how to use the menu bar with the keyboard.
+	(if (and (eq (key-binding "\M-`") 'tmm-menubar)
+		 (eq (key-binding [f10]) 'tmm-menubar))
+	    (insert "
+Activate menubar   F10  or  ESC `  or   M-`")
+	  (insert (substitute-command-keys "
+Activate menubar     \\[tmm-menubar]")))
+
+	;; Many users seem to have problems with these.
+	(insert "
+\(`C-' means use the CTRL key.  `M-' means use the Meta (or Alt) key.
+If you have no Meta key, you may instead type ESC followed by the character.)")
+
+	(insert "\n\n" (emacs-version)
+			"
+Copyright (C) 2001 Free Software Foundation, Inc.")
+
+	(if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
+		 (eq (key-binding "\C-h\C-d") 'describe-distribution)
+		 (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
+	    (insert 
+		     "\n
+GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for full details.
+Emacs is Free Software--Free as in Freedom--so you can redistribute copies
+of Emacs and modify it; type C-h C-c to see the conditions.
+Type C-h C-d for information on getting the latest version.")
+	  (insert (substitute-command-keys
+		   "\n
+GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for full details.
+Emacs is Free Software--Free as in Freedom--so you can redistribute copies
+of Emacs and modify it; type \\[describe-copying] to see the conditions.
+Type \\[describe-distribution] for information on getting the latest version."))))
+
+      ;; The rest of the startup screen is the same on all
+      ;; kinds of terminals.
+
+      ;; Give information on recovering, if there was a crash.
+      (and auto-save-list-file-prefix
+	   ;; Don't signal an error if the
+	   ;; directory for auto-save-list files
+	   ;; does not yet exist.
+	   (file-directory-p (file-name-directory
+			      auto-save-list-file-prefix))
+	   (directory-files
+	    (file-name-directory auto-save-list-file-prefix)
+	    nil
+	    (concat "\\`"
+		    (regexp-quote (file-name-nondirectory
+				   auto-save-list-file-prefix)))
+	    t)
+	   (insert "\n\nIf an Emacs session crashed recently, "
+		   "type M-x recover-session RET\nto recover"
+		   " the files you were editing."))
+
+      ;; Display the input that we set up in the buffer.
+      (set-buffer-modified-p nil)
+      (goto-char (point-min))
+      (save-window-excursion
+	(switch-to-buffer (current-buffer))
+	(sit-for 120))))
+  (kill-buffer "GNU Emacs"))
+
 (defun startup-echo-area-message ()
   (if (eq (key-binding "\C-h\C-p") 'describe-project)
       "For information about the GNU Project and its goals, type C-h C-p."
@@ -1298,6 +1431,17 @@ where FACE is a valid face specification, as it can be used with
 (defun display-startup-echo-area-message ()
   (let ((resize-mini-windows t))
     (message (startup-echo-area-message))))
+
+
+(defun display-splash-screen ()
+  "Display splash screen according to display.
+Fancy splash screens are used on graphic displays,
+normal otherwise."
+  (interactive)
+  (if (and (display-graphic-p)
+	   (use-fancy-splash-screens-p))
+      (fancy-splash-screens)
+    (normal-splash-screen)))
 
 
 (defun command-line-1 (command-line-args-left)
@@ -1572,141 +1716,8 @@ where FACE is a valid face specification, as it can be used with
 
     ;; If user typed input during all that work,
     ;; abort the startup screen.  Otherwise, display it now.
-    (let ((buffer (current-buffer)))
-      (when (not (input-pending-p))
-	(if (and (display-graphic-p)
-		 (use-fancy-splash-screens-p))
-	    (fancy-splash-screens)
-	  (with-current-buffer (get-buffer-create "GNU Emacs")
-	    (let ((tab-width 8)
-		  (mode-line-format (propertize "---- %b %-" 
-						'face '(:weight bold))))
-
-	      ;; The convention for this piece of code is that
-	      ;; each piece of output starts with one or two newlines
-	      ;; and does not end with any newlines.
-	      (insert "Welcome to GNU Emacs")
-	      (if (eq system-type 'gnu/linux)
-		  (insert ", one component of a Linux-based GNU system."))
-	      (insert "\n")
-
-	      (unless (equal (buffer-name buffer) "*scratch*")
-		(insert (substitute-command-keys
-			 "\nType \\[recenter] to begin editing your file.\n")))
-
-	      (if (display-mouse-p)
-		  ;; The user can use the mouse to activate menus
-		  ;; so give help in terms of menu items.
-		  (progn
-		    (insert "\
-You can do basic editing with the menu bar and scroll bar using the mouse.
-
-Useful File menu items:
-Exit Emacs		(or type Control-x followed by Control-c)
-Recover Session		recover files you were editing before a crash
-
-Important Help menu items:
-Emacs Tutorial		Learn-by-doing tutorial for using Emacs efficiently.
-Emacs FAQ		Frequently asked questions and answers
-\(Non)Warranty		GNU Emacs comes with ABSOLUTELY NO WARRANTY
-Copying Conditions	Conditions for redistributing and changing Emacs.
-Getting New Versions	How to obtain the latest version of Emacs.
-Ordering Manuals	How to order manuals from the FSF.
-")
-		    (insert "\n\n" (emacs-version)
-			    "
-Copyright (C) 2001 Free Software Foundation, Inc."))
-
-		;; No mouse menus, so give help using kbd commands.
-
-		;; If keys have their default meanings,
-		;; use precomputed string to save lots of time.
-		(if (and (eq (key-binding "\C-h") 'help-command)
-			 (eq (key-binding "\C-xu") 'advertised-undo)
-			 (eq (key-binding "\C-x\C-c") 'save-buffers-kill-emacs)
-			 (eq (key-binding "\C-ht") 'help-with-tutorial)
-			 (eq (key-binding "\C-hi") 'info)
-			 (eq (key-binding "\C-h\C-n") 'view-emacs-news))
-		    (insert "
-Get help	   C-h  (Hold down CTRL and press h)
-Undo changes	   C-x u       Exit Emacs		C-x C-c
-Get a tutorial	   C-h t       Use Info to read docs	C-h i
-Ordering manuals   C-h RET")
-		  (insert (substitute-command-keys
-			   (format "\n
-Get help	   %s
-Undo changes	   \\[advertised-undo]
-Exit Emacs	   \\[save-buffers-kill-emacs]
-Get a tutorial	   \\[help-with-tutorial]
-Use Info to read docs	\\[info]
-Ordering manuals   \\[view-order-manuals]"
-				   (let ((where (where-is-internal
-						 'help-command nil t)))
-				     (if where
-					 (key-description where)
-				       "M-x help"))))))
-
-		;; Say how to use the menu bar with the keyboard.
-		(if (and (eq (key-binding "\M-`") 'tmm-menubar)
-			 (eq (key-binding [f10]) 'tmm-menubar))
-		    (insert "
-Activate menubar   F10  or  ESC `  or   M-`")
-		  (insert (substitute-command-keys "
-Activate menubar     \\[tmm-menubar]")))
-
-		;; Many users seem to have problems with these.
-		(insert "
-\(`C-' means use the CTRL key.  `M-' means use the Meta (or Alt) key.
-If you have no Meta key, you may instead type ESC followed by the character.)")
-
-		(insert "\n\n" (emacs-version)
-			"
-Copyright (C) 2001 Free Software Foundation, Inc.")
-
-		(if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
-			 (eq (key-binding "\C-h\C-d") 'describe-distribution)
-			 (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
-		    (insert 
-		     "\n
-GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for full details.
-Emacs is Free Software--Free as in Freedom--so you can redistribute copies
-of Emacs and modify it; type C-h C-c to see the conditions.
-Type C-h C-d for information on getting the latest version.")
-		  (insert (substitute-command-keys
-			   "\n
-GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for full details.
-Emacs is Free Software--Free as in Freedom--so you can redistribute copies
-of Emacs and modify it; type \\[describe-copying] to see the conditions.
-Type \\[describe-distribution] for information on getting the latest version."))))
-
-	      ;; The rest of the startup screen is the same on all
-	      ;; kinds of terminals.
-
-	      ;; Give information on recovering, if there was a crash.
-	      (and auto-save-list-file-prefix
-		   ;; Don't signal an error if the
-		   ;; directory for auto-save-list files
-		   ;; does not yet exist.
-		   (file-directory-p (file-name-directory
-				      auto-save-list-file-prefix))
-		   (directory-files
-		    (file-name-directory auto-save-list-file-prefix)
-		    nil
-		    (concat "\\`"
-			    (regexp-quote (file-name-nondirectory
-					   auto-save-list-file-prefix)))
-		    t)
-		   (insert "\n\nIf an Emacs session crashed recently, "
-			   "type M-x recover-session RET\nto recover"
-			   " the files you were editing."))
-
-	      ;; Display the input that we set up in the buffer.
-	      (set-buffer-modified-p nil)
-	      (goto-char (point-min))
-	      (save-window-excursion
-		(switch-to-buffer (current-buffer))
-		(sit-for 120))))
-	  (kill-buffer "GNU Emacs"))))))
+    (unless (input-pending-p)
+      (display-splash-screen))))
 
 
 (defun command-line-normalize-file-name (file)
