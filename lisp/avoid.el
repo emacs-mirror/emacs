@@ -267,21 +267,30 @@ redefine this function to suit your own tastes."
 
 (defun mouse-avoidance-banish-hook ()
   (if (and (not executing-kbd-macro)	; don't check inside macro
-	   ;; Don't check while mouse is down.
+	   ;; Don't do anything if last event was a mouse event.
 	   (not (and (consp last-input-event)
 		     (symbolp (car last-input-event))
-		     (memq 'down (event-modifiers (car last-input-event)))))
-	   (mouse-avoidance-kbd-command (this-command-keys)))
+		     (let ((modifiers (event-modifiers (car last-input-event))))
+		       (or (memq (car last-input-event)
+				 '(mouse-movement scroll-bar-movement))
+			   (memq 'click modifiers)
+			   (memq 'drag modifiers)
+			   (memq 'down modifiers))))))
       (mouse-avoidance-banish-mouse)))
 
 (defun mouse-avoidance-exile-hook ()
   ;; For exile mode, the state is nil when the mouse is in its normal
   ;; position, and set to the old mouse-position when the mouse is in exile.
   (if (and (not executing-kbd-macro)
+	   ;; Don't do anything if last event was a mouse event.
 	   (not (and (consp last-input-event)
 		     (symbolp (car last-input-event))
-		     (memq 'down (event-modifiers (car last-input-event)))))
-	   (mouse-avoidance-kbd-command (this-command-keys)))
+		     (let ((modifiers (event-modifiers (car last-input-event))))
+		       (or (memq (car last-input-event)
+				 '(mouse-movement scroll-bar-movement))
+			   (memq 'click modifiers)
+			   (memq 'drag modifiers)
+			   (memq 'down modifiers))))))
       (let ((mp (mouse-position)))
 	(cond ((and (not mouse-avoidance-state)
 		    (mouse-avoidance-too-close-p mp))
@@ -300,31 +309,21 @@ redefine this function to suit your own tastes."
 (defun mouse-avoidance-fancy-hook ()
   ;; Used for the "fancy" modes, ie jump et al.
   (if (and (not executing-kbd-macro)	; don't check inside macro
+	   ;; Don't do anything if last event was a mouse event.
 	   (not (and (consp last-input-event)
 		     (symbolp (car last-input-event))
-		     (memq 'down (event-modifiers (car last-input-event)))))
-	   (mouse-avoidance-kbd-command (this-command-keys))
+		     (let ((modifiers (event-modifiers (car last-input-event))))
+		       (or (memq (car last-input-event)
+				 '(mouse-movement scroll-bar-movement))
+			   (memq 'click modifiers)
+			   (memq 'drag modifiers)
+			   (memq 'down modifiers)))))
 	   (mouse-avoidance-too-close-p (mouse-position)))
       (let ((old-pos (mouse-position)))
 	(mouse-avoidance-nudge-mouse)
 	(if (not (eq (selected-frame) (car old-pos)))
 	    ;; This should never happen.
 	    (apply 'set-mouse-position old-pos)))))
-
-(defun mouse-avoidance-kbd-command (key)
-  "Return t if the KEYSEQENCE is composed of keyboard events only.
-Return nil if there are any lists in the key sequence."
-  (cond ((null key) nil)		; Null event seems to be
-					; returned occasionally.
-	((not (vectorp key)) t)		; Strings are keyboard events.
-	((catch 'done
-	   (let ((i 0)
-		 (l (length key)))
-	     (while (< i l)
-	       (if (listp (aref key i))
-		   (throw 'done nil))
-	       (setq i (1+ i))))
-	   t))))
 
 ;;;###autoload
 (defun mouse-avoidance-mode (&optional mode)
