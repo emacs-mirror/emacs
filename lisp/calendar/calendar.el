@@ -1851,8 +1851,10 @@ characters on the line."
    ;; Put in the days of the month
    (calendar-for-loop i from 1 to last do
       (insert (format "%2d " i))
-      (put-text-property (- (point) 3) (1- (point))
-			 'mouse-face 'highlight)
+      (add-text-properties
+       (- (point) 3) (1- (point))
+       '(mouse-face highlight
+	 help-echo "mouse-2: menu of operations for this date"))
       (and (zerop (mod (+ i blank-days) 7))
            (/= i last)
            (calendar-insert-indented "" 0 t)    ;; Force onto following line
