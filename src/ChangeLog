@@ -1,3 +1,7 @@
+1999-12-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c: Indentation fixes.
+
 1999-12-10  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xterm.c (x_initialize): Only setup xaw3d_* if they've been declared.

@@ -1,3 +1,8 @@
+1999-12-12  Richard Sharman  <rsharman@pobox.com>
+
+	* sh-script.el: Fix for when font-lock mode is active.
+	(sh-font-lock-unfontify-region-function): New function.
+	
 1999-12-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* menu-bar.el (menu-bar-edit-menu): Define the Spell submenu even
