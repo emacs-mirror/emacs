@@ -450,20 +450,26 @@ Environment variables are expanded, see function `substitute-in-file-name'."
   (if shell-dirtrackp
       ;; We fail gracefully if we think the command will fail in the shell.
       (condition-case chdir-failure
-	  (let ((start (progn (string-match "^[;\\s ]*" str) ; skip whitespace
+	  (let ((start (progn (string-match "^[; \t]*" str) ; skip whitespace
 			      (match-end 0)))
 		end cmd arg1)
 	    (while (string-match shell-command-regexp str start)
 	      (setq end (match-end 0)
 		    cmd (comint-arguments (substring str start end) 0 0)
 		    arg1 (comint-arguments (substring str start end) 1 1))
-	      (cond ((eq (string-match shell-popd-regexp cmd) 0)
+	      (cond ((string-match (concat "\\`\\(" shell-popd-regexp
+					   "\\)\\($\\|[ \t]\\)")
+				   cmd)
 		     (shell-process-popd (substitute-in-file-name arg1)))
-		    ((eq (string-match shell-pushd-regexp cmd) 0)
+		    ((string-match (concat "\\`\\(" shell-pushd-regexp
+					   "\\)\\($\\|[ \t]\\)")
+				   cmd)
 		     (shell-process-pushd (substitute-in-file-name arg1)))
-		    ((eq (string-match shell-cd-regexp cmd) 0)
+		    ((string-match (concat "\\`\\(" shell-cd-regexp
+					   "\\)\\($\\|[ \t]\\)")
+				   cmd)
 		     (shell-process-cd (substitute-in-file-name arg1))))
-	      (setq start (progn (string-match "[;\\s ]*" str end) ; skip again
+	      (setq start (progn (string-match "[; \t]*" str end) ; skip again
 				 (match-end 0)))))
 	(error "Couldn't cd"))))
 
