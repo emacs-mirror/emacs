@@ -133,6 +133,13 @@ Lisp_Object Vload_source_file_function;
 /* List of all DEFVAR_BOOL variables.  Used by the byte optimizer.  */
 Lisp_Object Vbyte_boolean_vars;
 
+/* Whether or not to add a `read-positions' property to symbols
+   read. */
+Lisp_Object Vread_with_symbol_positions;
+
+/* List of (SYMBOL . POSITION) accumulated so far. */
+Lisp_Object Vread_symbol_positions_list;
+
 /* List of descriptors now open for Fload.  */
 static Lisp_Object load_descriptor_list;
 
@@ -150,6 +157,9 @@ static int read_from_string_limit;
 /* Number of bytes left to read in the buffer character
    that `readchar' has already advanced over.  */
 static int readchar_backlog;
+/* Number of characters read in the current call to Fread or
+   Fread_from_string. */
+static int readchar_count;
 
 /* This contains the last string skipped with #@.  */
 static char *saved_doc_string;
@@ -202,8 +212,14 @@ static Lisp_Object load_descriptor_unwind P_ ((Lisp_Object));
    Write READCHAR to read a character,
    UNREAD(c) to unread c to be read again.
 
-   These macros actually read/unread a byte code, multibyte characters
-   are not handled here.  The caller should manage them if necessary.
+   The READCHAR and UNREAD macros are meant for reading/unreading a
+   byte code; they do not handle multibyte characters.  The caller
+   should manage them if necessary.
+   
+   [ Actually that seems to be a lie; READCHAR will definitely read
+     multibyte characters from buffer sources, at least.  Is the
+     comment just out of date?
+     -- Colin Walters <walters@gnu.org>, 22 May 2002 16:36:50 -0400 ]
  */
 
 #define READCHAR readchar (readcharfun)
@@ -216,6 +232,8 @@ readchar (readcharfun)
   Lisp_Object tem;
   register int c;
 
+  readchar_count++;
+  
   if (BUFFERP (readcharfun))
     {
       register struct buffer *inbuffer = XBUFFER (readcharfun);
@@ -335,6 +353,7 @@ unreadchar (readcharfun, c)
      Lisp_Object readcharfun;
      int c;
 {
+  readchar_count--;
   if (c == -1)
     /* Don't back up the pointer if we're unreading the end-of-input mark,
        since readchar didn't advance it when we read it.  */
@@ -389,10 +408,20 @@ unreadchar (readcharfun, c)
     call1 (readcharfun, make_number (c));
 }
 
-static Lisp_Object read0 (), read1 (), read_list (), read_vector ();
-static int read_multibyte ();
-static Lisp_Object substitute_object_recurse ();
-static void        substitute_object_in_subtree (), substitute_in_interval ();
+static Lisp_Object read_internal_start P_ ((Lisp_Object, Lisp_Object,
+					    Lisp_Object));
+static Lisp_Object read0 P_ ((Lisp_Object));
+static Lisp_Object read1 P_ ((Lisp_Object, int *, int)); 
+
+static Lisp_Object read_list P_ ((int, Lisp_Object));
+static Lisp_Object read_vector P_ ((Lisp_Object, int));
+static int read_multibyte P_ ((int, Lisp_Object));
+
+static Lisp_Object substitute_object_recurse P_ ((Lisp_Object, Lisp_Object,
+						  Lisp_Object));
+static void substitute_object_in_subtree P_ ((Lisp_Object,
+					      Lisp_Object));
+static void substitute_in_interval P_ ((INTERVAL, Lisp_Object));
 
 
 /* Get a character from the tty.  */
@@ -1310,7 +1339,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag, unibyte, read
 	  else if (! NILP (Vload_read_function))
 	    val = call1 (Vload_read_function, readcharfun);
 	  else
-	    val = read0 (readcharfun);
+	    val = read_internal_start (readcharfun, Qnil, Qnil);
 	}
 
       val = (*evalfun) (val);
@@ -1432,23 +1461,15 @@ STREAM or the value of `standard-input' may be:
      Lisp_Object stream;
 {
   extern Lisp_Object Fread_minibuffer ();
-
+  Lisp_Object tem;
   if (NILP (stream))
     stream = Vstandard_input;
   if (EQ (stream, Qt))
     stream = Qread_char;
-
-  readchar_backlog = -1;
-  new_backquote_flag = 0;
-  read_objects = Qnil;
-
   if (EQ (stream, Qread_char))
     return Fread_minibuffer (build_string ("Lisp expression: "), Qnil);
 
-  if (STRINGP (stream))
-    return Fcar (Fread_from_string (stream, Qnil, Qnil));
-
-  return read0 (stream);
+  return read_internal_start (stream, Qnil, Qnil);
 }
 
 DEFUN ("read-from-string", Fread_from_string, Sread_from_string, 1, 3, 0,
@@ -1459,40 +1480,61 @@ START and END optionally delimit a substring of STRING from which to read;
      (string, start, end)
      Lisp_Object string, start, end;
 {
-  int startval, endval;
-  Lisp_Object tem;
-
   CHECK_STRING (string);
+  return Fcons (read_internal_start (string, start, end),
+		make_number (read_from_string_index));
+}
 
-  if (NILP (end))
-    endval = XSTRING (string)->size;
-  else
-    {
-      CHECK_NUMBER (end);
-      endval = XINT (end);
-      if (endval < 0 || endval > XSTRING (string)->size)
-	args_out_of_range (string, end);
-    }
+/* Function to set up the global context we need in toplevel read
+   calls. */
+static Lisp_Object
+read_internal_start (stream, start, end)
+     Lisp_Object stream;
+     Lisp_Object start; /* Only used when stream is a string. */
+     Lisp_Object end; /* Only used when stream is a string. */
+{
+  Lisp_Object retval;
 
-  if (NILP (start))
-    startval = 0;
-  else
-    {
-      CHECK_NUMBER (start);
-      startval = XINT (start);
-      if (startval < 0 || startval > endval)
-	args_out_of_range (string, start);
-    }
-
-  read_from_string_index = startval;
-  read_from_string_index_byte = string_char_to_byte (string, startval);
-  read_from_string_limit = endval;
-
+  readchar_backlog = -1;
+  readchar_count = 0;
   new_backquote_flag = 0;
   read_objects = Qnil;
+  if (EQ (Vread_with_symbol_positions, Qt)
+      || EQ (Vread_with_symbol_positions, stream))
+    Vread_symbol_positions_list = Qnil;
 
-  tem = read0 (string);
-  return Fcons (tem, make_number (read_from_string_index));
+  if (STRINGP (stream))
+    {
+      int startval, endval;
+      if (NILP (end))
+	endval = XSTRING (stream)->size;
+      else
+	{
+	  CHECK_NUMBER (end);
+	  endval = XINT (end);
+	  if (endval < 0 || endval > XSTRING (stream)->size)
+	    args_out_of_range (stream, end);
+	}
+
+      if (NILP (start))
+	startval = 0;
+      else
+	{
+	  CHECK_NUMBER (start);
+	  startval = XINT (start);
+	  if (startval < 0 || startval > endval)
+	    args_out_of_range (stream, start);
+	}
+      read_from_string_index = startval;
+      read_from_string_index_byte = string_char_to_byte (stream, startval);
+      read_from_string_limit = endval;
+    }
+      
+  retval = read0 (stream);
+  if (EQ (Vread_with_symbol_positions, Qt)
+      || EQ (Vread_with_symbol_positions, stream))
+    Vread_symbol_positions_list = Fnreverse (Vread_symbol_positions_list);
+  return retval;
 }
 
 /* Use this for recursive reads, in contexts where internal tokens
@@ -1532,10 +1574,16 @@ read_multibyte (c, readcharfun)
   int len = 0;
   int bytes;
 
+  if (c < 0)
+    return c;
+
   str[len++] = c;
   while ((c = READCHAR) >= 0xA0
 	 && len < MAX_MULTIBYTE_LENGTH)
-    str[len++] = c;
+    {
+      str[len++] = c;
+      readchar_count--;
+    }
   UNREAD (c);
   if (UNIBYTE_STR_AS_MULTIBYTE_P (str, len, bytes))
     return STRING_CHAR (str, len);
@@ -2314,6 +2362,11 @@ read1 (readcharfun, pch, first_in_list)
 	     separate characters, treat them as separate characters now.  */
 	  ;
 
+	/* We want readchar_count to be the number of characters, not
+	   bytes.  Hence we adjust for multibyte characters in the
+	   string.  ... But it doesn't seem to be necessary, because
+	   READCHAR *does* read multibyte characters from buffers. */
+	/* readchar_count -= (p - read_buffer) - nchars; */
 	if (read_pure)
 	  return make_pure_string (read_buffer, nchars, p - read_buffer,
 				   is_multibyte);
@@ -2449,11 +2502,19 @@ read1 (readcharfun, pch, first_in_list)
 		return make_float (negative ? - value : value);
 	      }
 	  }
-
-	if (uninterned_symbol)
-	  return make_symbol (read_buffer);
-	else
-	  return intern (read_buffer);
+	{
+	  Lisp_Object result = uninterned_symbol ? make_symbol (read_buffer)
+	    : intern (read_buffer);
+	  if (EQ (Vread_with_symbol_positions, Qt)
+	      || EQ (Vread_with_symbol_positions, readcharfun))
+	    Vread_symbol_positions_list = 
+	      /* Kind of a hack; this will probably fail if characters
+		 in the symbol name were escaped.  Not really a big
+		 deal, though.  */
+	      Fcons (Fcons (result, readchar_count - Flength (Fsymbol_name (result))),
+		     Vread_symbol_positions_list);
+	  return result;
+	}
       }
     }
 }
@@ -3632,6 +3693,35 @@ Order is reverse chronological.  */);
 	       doc: /* Stream for read to get input from.
 See documentation of `read' for possible values.  */);
   Vstandard_input = Qt;
+
+  DEFVAR_LISP ("read-with-symbol-positions", &Vread_with_symbol_positions,
+	       doc: /* If non-nil, add position of read symbols to `read-symbol-positions-list'.
+
+If this variable is a buffer, then only forms read from that buffer
+will be added to `read-symbol-positions-list'.
+If this variable is t, then all read forms will be added.
+The effect of all other values other than nil are not currently
+defined, although they may be in the future.
+
+The positions are relative to the last call to `read' or
+`read-from-string'.  It is probably a bad idea to set this variable at
+the toplevel; bind it instead. */);
+  Vread_with_symbol_positions = Qnil;
+
+  DEFVAR_LISP ("read-symbol-positions-list", &Vread_symbol_positions_list,
+	       doc: /* An list mapping read symbols to their positions.
+This variable is modified during calls to `read' or
+`read-from-string', but only when `read-with-symbol-positions' is
+non-nil.
+
+Each element of the list looks like (SYMBOL . CHAR-POSITION), where
+CHAR-POSITION is an integer giving the offset of that occurence of the
+symbol from the position where `read' or `read-from-string' started.
+
+Note that a symbol will appear multiple times in this list, if it was
+read multiple times.  The list is in the same order as the symbols
+were read in. */);
+  Vread_symbol_positions_list = Qnil;  
 
   DEFVAR_LISP ("load-path", &Vload_path,
 	       doc: /* *List of directories to search for files to load.
