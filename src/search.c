@@ -28,6 +28,7 @@ Boston, MA 02111-1307, USA.  */
 #include "region-cache.h"
 #include "commands.h"
 #include "blockinput.h"
+#include "intervals.h"
 
 #include <sys/types.h>
 #include "regex.h"
