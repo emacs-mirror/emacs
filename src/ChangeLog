@@ -1,3 +1,13 @@
+2001-04-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_alloc_nearest_color_1): New function.
+	(x_alloc_nearest_color): Use it.
+	(x_color_cells): Take a Display as argument, instead of a frame.
+	(cvt_string_to_pixel_args, cvt_string_to_pixel_value): New variables.
+	(cvt_string_to_pixel, cvt_pixel_dtor): New functions.
+	(x_initialize): Register cvt_string_to_pixel as resource converter
+	string -> Pixel and cvt_pixel_dtor as pixel resource destructor.
+
 2001-03-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (get_overlay_strings): Set iterator's end_charpos.
