@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.33 1997/12/04 17:45:22 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.34 1998/01/12 11:43:22 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -61,6 +61,27 @@
 ;;      You may now enter new items by typing "M-x todo-insert-item",
 ;;      or enter your TODO list file by typing "M-x todo-show".
 ;;
+;;      -------------------------------------------------------------
+;;
+;;      oh no, it doesn't work any more ... but Alex Schroeder
+;;      <a.schroeder@bsiag.ch> writes:
+;;
+;;      -------------------------------------------------------------
+;;
+;;      1. Call todo-show (I called todo-insert first)
+;;      2. Add some categories (I called todo-insert)
+;;      3. Save the buffer, restart Emacs (perhaps restarting Emacs is not
+;;         required)
+;;      4. Only now can you start to add entries.
+;;
+;;      This is a bit cumbersome, and it should be documented.  You probably
+;;
+;;      -------------------------------------------------------------
+;;
+;;      and right he is.  My apologies, I'll try to fix it sometime.
+;;
+;;      -------------------------------------------------------------
+;;
 ;;      The TODO list file has a special format and some auxiliary
 ;;      information, which will be added by the todo-show function if
 ;;      it attempts to visit an un-initialised file.  Hence it is
@@ -96,7 +117,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.33 1997/12/04 17:45:22 os10000 Exp os10000 $
+;;      $Id: todo-mode.el,v 1.34 1998/01/12 11:43:22 os10000 Exp os10000 $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -237,7 +258,7 @@
 ;;      o   The optional COUNT variable of todo-forward-item should be
 ;;          applied to the other functions performing similar tasks
 ;;      o   Modularization could be done for repeaded elements of
-;;          the code, like the completing-read lines of code.  
+;;          the code, like the completing-read lines of code.
 ;;	o   license / version function
 ;;	o   export to diary file
 ;;	o   todo-report-bug
@@ -267,6 +288,9 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.34  1998/01/12 11:43:22  os10000
+;; Added patch from Don Hejna <djhejna@oasis.ambit.com>.
+;;
 ;; Revision 1.33  1997/12/04 17:45:22  os10000
 ;; Another patch by Michael Cook to fix annotation.
 ;;
@@ -480,7 +504,7 @@
     ;; We have the old custom-library, hack around it!
     (defmacro defgroup (&rest args)
       nil)
-    (defmacro defcustom (var value doc &rest args) 
+    (defmacro defcustom (var value doc &rest args)
       (` (defvar (, var) (, value) (, doc))))))
 
 ;; User-configurable variables:
@@ -742,7 +766,7 @@ Use `todo-categories' instead.")
     (narrow-to-region (todo-item-start) (todo-item-end))))
 
 ;;;### autoload
-(defun todo-add-category (cat) 
+(defun todo-add-category (cat)
   "Add new category CAT to the TODO list."
   (interactive "sCategory: ")
   (save-window-excursion
@@ -761,7 +785,7 @@ Use `todo-categories' instead.")
     (forward-char 1)
     (insert (format "%s%s%s\n%s\n%s %s\n"
                     todo-prefix todo-category-beg cat
-                    todo-category-end 
+                    todo-category-end
                     todo-prefix todo-category-sep)))
   0)
 
@@ -814,10 +838,10 @@ category."
 	   (categories todo-categories)
 	   (history (cons 'categories (1+ todo-category-number)))
 	   (current-category (nth todo-category-number todo-categories))
-	   (category 
+	   (category
 	    (if ARG
 		current-category
-	      (completing-read 
+	      (completing-read
 	       (concat "Category ["
 		       current-category "]: ")
 	       (todo-category-alist) nil nil nil history))))
@@ -1031,7 +1055,7 @@ Number of entries for each category is given by
   (interactive)
   (let* ((categories todo-categories)
          (history (cons 'categories (1+ todo-category-number)))
-	 (category (completing-read 
+	 (category (completing-read
                     (concat "Category ["
                             (nth todo-category-number todo-categories) "]: ")
                     (todo-category-alist) nil nil nil history)))
