@@ -90,7 +90,7 @@ static void describe_map_2 ();
 
 DEFUN ("make-keymap", Fmake_keymap, Smake_keymap, 0, 1, 0,
   "Construct and return a new keymap, of the form (keymap VECTOR . ALIST).\n\
-VECTOR is a 128-element vector which holds the bindings for the ASCII\n\
+VECTOR is a vector which holds the bindings for the ASCII\n\
 characters.  ALIST is an assoc-list which holds bindings for function keys,\n\
 mouse events, and any other things that appear in the input stream.\n\
 All entries in it are initially nil, meaning \"command undefined\".\n\n\
@@ -170,10 +170,11 @@ synkey (frommap, fromchar, tomap, tochar)
 DEFUN ("keymapp", Fkeymapp, Skeymapp, 1, 1, 0,
   "Return t if ARG is a keymap.\n\
 \n\
-A keymap is a list (keymap . ALIST), a list (keymap VECTOR . ALIST),\n\
+A keymap is a list (keymap . ALIST),\n\
 or a symbol whose function definition is a keymap is itself a keymap.\n\
 ALIST elements look like (CHAR . DEFN) or (SYMBOL . DEFN);\n\
-VECTOR is a 128-element vector of bindings for ASCII characters.")
+a vector of densely packed bindings for small character codes\n\
+is also allowed as an element.")
   (object)
      Lisp_Object object;
 {
@@ -290,10 +291,9 @@ access_keymap (map, idx, t_ok)
 	    break;
 
 	  case Lisp_Vector:
-	    if (XVECTOR (binding)->size == DENSE_TABLE_SIZE
-		&& XTYPE (idx) == Lisp_Int
+	    if (XTYPE (idx) == Lisp_Int
 		&& XINT (idx) >= 0
-		&& XINT (idx) < DENSE_TABLE_SIZE)
+		&& XINT (idx) < XVECTOR (binding)->size)
 	      return XVECTOR (binding)->contents[XINT (idx)];
 	    break;
 	  }
@@ -389,10 +389,8 @@ store_in_keymap (keymap, idx, def)
 	switch (XTYPE (elt))
 	  {
 	  case Lisp_Vector:
-	    if (XVECTOR (elt)->size != DENSE_TABLE_SIZE)
-	      break;
 	    if (XTYPE (idx) == Lisp_Int
-		&& XINT (idx) >= 0 && XINT (idx) < DENSE_TABLE_SIZE)
+		&& XINT (idx) >= 0 && XINT (idx) < XVECTOR (elt)->size)
 	      {
 		XVECTOR (elt)->contents[XFASTINT (idx)] = def;
 		return def;
@@ -450,15 +448,14 @@ is not copied.")
     {
       Lisp_Object elt = XCONS (tail)->car;
 
-      if (XTYPE (elt) == Lisp_Vector
-	  && XVECTOR (elt)->size == DENSE_TABLE_SIZE)
+      if (XTYPE (elt) == Lisp_Vector)
 	{
 	  int i;
 
 	  elt = Fcopy_sequence (elt);
 	  XCONS (tail)->car = elt;
 
-	  for (i = 0; i < DENSE_TABLE_SIZE; i++)
+	  for (i = 0; i < XVECTOR (elt)->size; i++)
 	    if (XTYPE (XVECTOR (elt)->contents[i]) != Lisp_Symbol
 		&& Fkeymapp (XVECTOR (elt)->contents[i]))
 	      XVECTOR (elt)->contents[i] =
