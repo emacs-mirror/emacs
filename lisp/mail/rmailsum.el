@@ -1456,7 +1456,7 @@ see the documentation of `rmail-resend'."
 
 ;; Summary output commands.
 
-(defun rmail-summary-output-to-rmail-file (&optional file-name &optional n)
+(defun rmail-summary-output-to-rmail-file (&optional file-name n)
   "Append the current message to an Rmail file named FILE-NAME.
 If the file does not exist, ask if it should be created.
 If file is being visited, the message is appended to the Emacs
