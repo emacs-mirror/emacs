@@ -33,7 +33,8 @@
 ;; added support for xdb (HPUX debugger).  Rick Sladkey <jrs@world.std.com>
 ;; wrote the GDB command completion code.  Dave Love <d.love@dl.ac.uk>
 ;; added the IRIX kluge, re-implemented the Mips-ish variant and added
-;; a menu.
+;; a menu. Brian D. Carlstrom <bdc@ai.mit.edu> combined the IRIX kluge with 
+;; the gud-xdb-directories hack producing gud-dbx-directories.
 
 ;;; Code:
 
@@ -511,7 +512,36 @@ and source-file directory for your debugger."
 ;;; History of argument lists passed to dbx.
 (defvar gud-dbx-history nil)
 
-(defun gud-dbx-massage-args (file args) args)
+(defvar gud-dbx-directories nil
+  "*A list of directories that dbx should search for source code.
+If nil, only source files in the program directory
+will be known to dbx.
+
+The file names should be absolute, or relative to the directory
+containing the executable being debugged.")
+
+(defun gud-dbx-massage-args (file args)
+  (nconc (let ((directories gud-dbx-directories)
+	       (result nil))
+	   (while directories
+	     (setq result (cons (car directories) (cons "-I" result)))
+	     (setq directories (cdr directories)))
+	   (nreverse result))
+	 args))
+
+(defun gud-dbx-file-name (f)
+  "Transform a relative file name to an absolute file name, for dbx."
+  (let ((result nil))
+    (if (file-exists-p f)
+        (setq result (expand-file-name f))
+      (let ((directories gud-dbx-directories))
+        (while directories
+          (let ((path (concat (car directories) "/" f)))
+            (if (file-exists-p path)
+                (setq result (expand-file-name path)
+                      directories nil)))
+          (setq directories (cdr directories)))))
+    result))
 
 (defun gud-dbx-marker-filter (string)
   (setq gud-marker-acc (if gud-marker-acc (concat gud-marker-acc string) string))
@@ -680,8 +710,9 @@ This works in IRIX 4, 5 and 6.")
 	  result)
 	 ((string-match			; kluged-up marker as above
 	   "\032\032\\([0-9]*\\):\\(.*\\)\n" result)
-	  (let ((file (substring result (match-beginning 2) (match-end 2))))
-	    (if (file-exists-p file)
+	  (let ((file (gud-dbx-file-name
+		       (substring result (match-beginning 2) (match-end 2)))))
+	    (if (and file (file-exists-p file))
 		(setq gud-last-frame
 		      (cons
 		       file
@@ -693,12 +724,15 @@ This works in IRIX 4, 5 and 6.")
 
 (defun gud-dbx-find-file (f)
   (save-excursion
-    (let ((buf (find-file-noselect f)))
-      (set-buffer buf)
-      (gud-make-debug-menu)
-      (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
-      (local-set-key [menu-bar debug down] '("Down Stack" . gud-down))
-      buf)))
+    (let ((realf (gud-dbx-file-name f)))
+      (if realf
+	  (let ((buf (find-file-noselect f)))
+	    (set-buffer buf)
+	    (gud-make-debug-menu)
+	    (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
+	    (local-set-key [menu-bar debug down] '("Down Stack" . gud-down))
+	    buf)
+	nil))))
 
 ;;;###autoload
 (defun dbx (command-line)
@@ -1219,20 +1253,20 @@ It is saved for when this flag is not set.")
 	      (setq process-window
 		    (and gud-last-frame
 			 (>= (point) (process-mark proc))
-			 (get-buffer-window (current-buffer))))))
-	  (if process-window
-	      (save-selected-window
-		(select-window process-window)
-		(gud-display-frame)))
+			 (get-buffer-window (current-buffer)))))
+	    (if process-window
+		(save-selected-window
+		  (select-window process-window)
+		  (gud-display-frame)))
 
-	  ;; Let the comint filter do the actual insertion.
-	  ;; That lets us inherit various comint features.
-	  (comint-output-filter proc output)
+	    ;; Let the comint filter do the actual insertion.
+	    ;; That lets us inherit various comint features.
+	    (comint-output-filter proc output)
 
-	  ;; If we deferred text that arrived during this processing,
-	  ;; handle it now.
-	  (if gud-filter-pending-text
-	      (gud-filter proc ""))))))
+	    ;; If we deferred text that arrived during this processing,
+	    ;; handle it now.
+	    (if gud-filter-pending-text
+		(gud-filter proc "")))))))
 
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
