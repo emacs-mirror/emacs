@@ -6324,14 +6324,17 @@ static Lisp_Object
 intersection (l1, l2)
      Lisp_Object l1, l2;
 {
-  Lisp_Object val;
+  Lisp_Object val = Fcons (Qnil, Qnil), tail;
 
-  for (val = Qnil; CONSP (l1); l1 = XCDR (l1))
+  for (tail = val; CONSP (l1); l1 = XCDR (l1))
     {
       if (!NILP (Fmemq (XCAR (l1), l2)))
-	val = Fcons (XCAR (l1), val);
+	{
+	  XSETCDR (tail, Fcons (XCAR (l1), Qnil));
+	  tail = XCDR (tail);
+	}
     }
-  return val;
+  return XCDR (val);
 }
 
 
