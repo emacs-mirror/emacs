@@ -699,6 +699,8 @@ lisp= \
 	${lispsource}language/tibetan.elc \
 	${lispsource}language/vietnamese.elc \
 	${lispsource}language/misc-lang.el \
+	${lispsource}language/utf-8-lang.el \
+	${lispsource}language/georgian.el \
 	${lispsource}paths.el \
 	${lispsource}register.elc \
 	${lispsource}replace.elc \
@@ -779,6 +781,8 @@ shortlisp= \
 	../lisp/language/tibetan.elc \
 	../lisp/language/vietnamese.elc \
 	../lisp/language/misc-lang.el \
+	../lisp/language/utf-8-lang.el \
+	../lisp/language/georgian.el \
 	../lisp/menu-bar.elc \
 	../lisp/paths.el \
 	../lisp/register.elc \
