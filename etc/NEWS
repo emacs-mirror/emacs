@@ -207,8 +207,9 @@ occupy more space, and thus might cause the first or the last line of
 the window to be partially obscured.)
 
 The variable `mode-line-inverse-video', which was used in older
-versions of emacs to make the mode-line stand out, now defaults to nil,
-and its use is deprecated.
+versions of emacs to make the mode-line stand out, is now deprecated.
+However, setting it to nil will cause the `mode-line' face to be
+ignored, and mode-lines to be drawn using the default text face.
 
 +++
 ** Mouse-sensitive mode line.

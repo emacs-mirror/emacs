@@ -785,10 +785,10 @@ users should skip it.
   The variable @code{mode-line-inverse-video} is an obsolete way of
 controlling whether the mode line is displayed in inverse video; the
 preferred way of doing this is to change the @code{mode-line} face.
-@xref{Mode Line}.  If you specify the foreground color for the
-@code{mode-line} face, and @code{mode-line-inverse-video} is
-non-@code{nil}, then the default background color for that face is the
-usual foreground color.  @xref{Faces}.
+@xref{Mode Line}.  However, if @code{mode-line-inverse-video} has a
+value of @code{nil}, then the @code{mode-line} face will be ignored,
+and mode-lines will be drawn using the default text face.
+@xref{Faces}.
 
 @vindex inverse-video
   If the variable @code{inverse-video} is non-@code{nil}, Emacs attempts
