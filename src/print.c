@@ -128,12 +128,17 @@ Lisp_Object Vprint_level;
 
 int print_escape_newlines;
 
-Lisp_Object Qprint_escape_newlines;
-
 /* Nonzero means to print single-byte non-ascii characters in strings as
    octal escapes.  */
 
 int print_escape_nonascii;
+
+/* Nonzero means to print multibyte characters in strings as hex escapes.  */
+
+int print_escape_multibyte;
+
+Lisp_Object Qprint_escape_newlines;
+Lisp_Object Qprint_escape_multibyte, Qprint_escape_nonascii;
 
 /* Nonzero means print (quote foo) forms as 'foo, etc.  */
 
@@ -261,6 +266,12 @@ glyph_to_str_cpy (glyphs, str)
    if (NILP (printcharfun))					\
      {								\
        Lisp_Object string;					\
+       if (NILP (current_buffer->enable_multibyte_characters)	\
+	   && ! print_escape_multibyte)				\
+         specbind (Qprint_escape_multibyte, Qt);		\
+       if (! NILP (current_buffer->enable_multibyte_characters)	\
+	   && ! print_escape_nonascii)				\
+         specbind (Qprint_escape_nonascii, Qt);			\
        if (print_buffer != 0)					\
 	 {							\
 	   string = make_string_from_bytes (print_buffer,	\
@@ -1269,8 +1280,7 @@ print (obj, printcharfun, escapeflag)
 		  PRINTCHAR ('\\');
 		  PRINTCHAR ('f');
 		}
-	      else if ((! SINGLE_BYTE_CHAR_P (c)
-			&& NILP (current_buffer->enable_multibyte_characters)))
+	      else if (! SINGLE_BYTE_CHAR_P (c) && print_escape_multibyte)
 		{
 		  /* When multibyte is disabled,
 		     print multibyte string chars using hex escapes.  */
@@ -1279,12 +1289,11 @@ print (obj, printcharfun, escapeflag)
 		  strout (outbuf, -1, -1, printcharfun, 0);
 		  need_nonhex = 1;
 		}
-	      else if (SINGLE_BYTE_CHAR_P (c)
-		       && ! ASCII_BYTE_P (c)
-		       && (! NILP (current_buffer->enable_multibyte_characters)
-			   || print_escape_nonascii))
+	      else if (SINGLE_BYTE_CHAR_P (c) && ! ASCII_BYTE_P (c)
+		       && print_escape_nonascii)
 		{
-		  /* When multibyte is enabled or when explicitly requested,
+		  /* When printing in a multibyte buffer
+		     or when explicitly requested,
 		     print single-byte non-ASCII string chars
 		     using octal escapes.  */
 		  unsigned char outbuf[5];
@@ -1842,10 +1851,16 @@ Also print formfeeds as backslash-f.");
   print_escape_newlines = 0;
 
   DEFVAR_BOOL ("print-escape-nonascii", &print_escape_nonascii,
-    "Non-nil means print non-ASCII characters in strings as backslash-NNN.\n\
-NNN is the octal representation of the character's value.\n\
+    "Non-nil means print unibyte non-ASCII chars in strings as \\OOO.\n\
+\(OOO is the octal representation of the character code.)\n\
 Only single-byte characters are affected, and only in `prin1'.");
   print_escape_nonascii = 0;
+
+  DEFVAR_BOOL ("print-escape-multibyte", &print_escape_multibyte,
+    "Non-nil means print multibyte characters in strings as \\xXXXX.\n\
+\(XXX is the hex representation of the character code.)\n\
+This affects only `prin1'.");
+  print_escape_multibyte = 0;
 
   DEFVAR_BOOL ("print-quoted", &print_quoted,
     "Non-nil means print quoted forms with reader syntax.\n\
@@ -1890,6 +1905,12 @@ with #N= for the specified value of N.");
 
   Qprint_escape_newlines = intern ("print-escape-newlines");
   staticpro (&Qprint_escape_newlines);
+
+  Qprint_escape_multibyte = intern ("print-escape-multibyte");
+  staticpro (&Qprint_escape_multibyte);
+
+  Qprint_escape_nonascii = intern ("print-escape-nonascii");
+  staticpro (&Qprint_escape_nonascii);
 
 #ifndef standalone
   defsubr (&Swith_output_to_temp_buffer);
