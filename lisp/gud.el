@@ -1494,6 +1494,13 @@ The file names should be absolute, or relative to the current directory.")
 ;; List of the java source files for this debugging session.
 (defvar gud-jdb-source-files nil)
 
+;; Association list of fully qualified class names (package + class name) and
+;; their source files.
+(defvar gud-jdb-class-source-alist nil)
+
+;; This is used to hold a source file during analysis.
+(defvar gud-jdb-analysis-buffer nil)
+
 ;; Return a list of java source files.  PATH gives the directories in
 ;; which to search for files with extension EXTN.  Normally EXTN is
 ;; given as the regular expression "\\.java$" .
@@ -1694,13 +1701,6 @@ The file names should be absolute, or relative to the current directory.")
    (lambda (c)
      (cons c file))
    (gud-jdb-analyze-source gud-jdb-analysis-buffer file)))
-
-;; Association list of fully qualified class names (package + class name) and
-;; their source files.
-(defvar gud-jdb-class-source-alist nil)
-
-;; This is used to hold a source file during analysis.
-(defvar gud-jdb-analysis-buffer nil)
 
 ;; Return an alist of fully qualified classes and the source files
 ;; holding their definitions.  SOURCES holds a list of all the source
