@@ -321,7 +321,7 @@ When done with skeleton, but before going back to `_'-point call
 	(if skeleton-point
 	    (goto-char skeleton-point))))))
 
-(defun skeleton-read (PROMPT &optional initial-input recursive)
+(defun skeleton-read (prompt &optional initial-input recursive)
   "Function for reading a string from the minibuffer within skeletons.
 PROMPT may contain a `%s' which will be replaced by `skeleton-subprompt'.
 If non-`nil' second arg INITIAL-INPUT or variable `input' is a string or
@@ -362,7 +362,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 	       (equal prompt initial-input)
 	       (equal prompt (car-safe initial-input))))
       (signal 'quit t)
-    str))
+    prompt))
 
 (defun skeleton-internal-list (skeleton &optional str recursive)
   (let* ((start (save-excursion (beginning-of-line) (point)))
