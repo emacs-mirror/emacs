@@ -553,6 +553,21 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	    unbind_to (speccount1, Qnil);
 	    teml = args[i];
 	    visargs[i] = Fkey_description (teml);
+
+	    /* If the key sequence ends with a down-event,
+	       discard the following up-event.  */
+	    teml = Faref (args[i], make_number (XINT (Flength (args[i])) - 1));
+	    if (CONSP (teml))
+	      teml = XCONS (teml)->car;
+	    if (SYMBOLP (teml))
+	      {
+		Lisp_Object tem2;
+
+		teml = Fget (teml, intern ("event-symbol-elements"));
+		tem2 = Fmemq (intern ("down"), teml);
+		if (! NILP (tem2))
+		  Fread_event ();
+	      }
 	  }
 	  break;
 
@@ -565,6 +580,21 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	    teml = args[i];
 	    visargs[i] = Fkey_description (teml);
 	    unbind_to (speccount1, Qnil);
+
+	    /* If the key sequence ends with a down-event,
+	       discard the following up-event.  */
+	    teml = Faref (args[i], make_number (XINT (Flength (args[i])) - 1));
+	    if (CONSP (teml))
+	      teml = XCONS (teml)->car;
+	    if (SYMBOLP (teml))
+	      {
+		Lisp_Object tem2;
+
+		teml = Fget (teml, intern ("event-symbol-elements"));
+		tem2 = Fmemq (intern ("down"), teml);
+		if (! NILP (tem2))
+		  Fread_event ();
+	      }
 	  }
 	  break;
 
