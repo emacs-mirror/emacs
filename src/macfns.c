@@ -149,13 +149,6 @@ Lisp_Object Qnone;
 Lisp_Object Qsuppress_icon;
 Lisp_Object Qundefined_color;
 Lisp_Object Qcancel_timer;
-Lisp_Object Qhyper;
-Lisp_Object Qsuper;
-Lisp_Object Qmeta;
-Lisp_Object Qalt;
-Lisp_Object Qctrl;
-Lisp_Object Qcontrol;
-Lisp_Object Qshift;
 
 extern Lisp_Object Vwindow_system_version;
 
@@ -1453,148 +1446,99 @@ x_set_mouse_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
+  struct x_output *x = f->output_data.x;
+  Display *dpy = FRAME_MAC_DISPLAY (f);
   Cursor cursor, nontext_cursor, mode_cursor, hand_cursor;
-  int count;
-  int mask_color;
-
-  if (!EQ (Qnil, arg))
-    f->output_data.mac->mouse_pixel
-      = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
-  mask_color = FRAME_BACKGROUND_PIXEL (f);
+  Cursor hourglass_cursor, horizontal_drag_cursor;
+  unsigned long pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+  unsigned long mask_color = x->background_pixel;
 
   /* Don't let pointers be invisible.  */
-  if (mask_color == f->output_data.mac->mouse_pixel
-	&& mask_color == FRAME_BACKGROUND_PIXEL (f))
-    f->output_data.mac->mouse_pixel = FRAME_FOREGROUND_PIXEL (f);
+  if (mask_color == pixel)
+    pixel = x->foreground_pixel;
 
-#if 0 /* MAC_TODO : cursor changes */
-  BLOCK_INPUT;
+  f->output_data.mac->mouse_pixel = pixel;
 
-  /* It's not okay to crash if the user selects a screwy cursor.  */
-  count = x_catch_errors (FRAME_W32_DISPLAY (f));
-
-  if (!EQ (Qnil, Vx_pointer_shape))
+  if (!NILP (Vx_pointer_shape))
     {
       CHECK_NUMBER (Vx_pointer_shape);
-      cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XINT (Vx_pointer_shape));
+      cursor = XINT (Vx_pointer_shape);
     }
   else
-    cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_xterm);
-  x_check_errors (FRAME_W32_DISPLAY (f), "bad text pointer cursor: %s");
+    cursor = kThemeIBeamCursor;
 
-  if (!EQ (Qnil, Vx_nontext_pointer_shape))
+  if (!NILP (Vx_nontext_pointer_shape))
     {
       CHECK_NUMBER (Vx_nontext_pointer_shape);
-      nontext_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f),
-					  XINT (Vx_nontext_pointer_shape));
+      nontext_cursor = XINT (Vx_nontext_pointer_shape);
     }
   else
-    nontext_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_left_ptr);
-  x_check_errors (FRAME_W32_DISPLAY (f), "bad nontext pointer cursor: %s");
+    nontext_cursor = kThemeArrowCursor;
 
-  if (!EQ (Qnil, Vx_hourglass_pointer_shape))
+  if (!NILP (Vx_hourglass_pointer_shape))
     {
       CHECK_NUMBER (Vx_hourglass_pointer_shape);
-      hourglass_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f),
-					    XINT (Vx_hourglass_pointer_shape));
+      hourglass_cursor = XINT (Vx_hourglass_pointer_shape);
     }
   else
-    hourglass_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_watch);
-  x_check_errors (FRAME_W32_DISPLAY (f), "bad busy pointer cursor: %s");
+    hourglass_cursor = kThemeWatchCursor;
 
-  x_check_errors (FRAME_W32_DISPLAY (f), "bad nontext pointer cursor: %s");
-  if (!EQ (Qnil, Vx_mode_pointer_shape))
+  if (!NILP (Vx_mode_pointer_shape))
     {
       CHECK_NUMBER (Vx_mode_pointer_shape);
-      mode_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f),
-				       XINT (Vx_mode_pointer_shape));
+      mode_cursor = XINT (Vx_mode_pointer_shape);
     }
   else
-    mode_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_xterm);
-  x_check_errors (FRAME_W32_DISPLAY (f), "bad modeline pointer cursor: %s");
+    mode_cursor = kThemeArrowCursor;
 
-  if (!EQ (Qnil, Vx_sensitive_text_pointer_shape))
+  if (!NILP (Vx_sensitive_text_pointer_shape))
     {
       CHECK_NUMBER (Vx_sensitive_text_pointer_shape);
-      hand_cursor
-	= XCreateFontCursor (FRAME_W32_DISPLAY (f),
-			     XINT (Vx_sensitive_text_pointer_shape));
+      hand_cursor = XINT (Vx_sensitive_text_pointer_shape);
     }
   else
-    hand_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_crosshair);
+    hand_cursor = kThemePointingHandCursor;
 
   if (!NILP (Vx_window_horizontal_drag_shape))
     {
       CHECK_NUMBER (Vx_window_horizontal_drag_shape);
-      horizontal_drag_cursor
-	= XCreateFontCursor (FRAME_W32_DISPLAY (f),
-			     XINT (Vx_window_horizontal_drag_shape));
+      horizontal_drag_cursor = XINT (Vx_window_horizontal_drag_shape);
     }
   else
-    horizontal_drag_cursor
-      = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_sb_h_double_arrow);
+    horizontal_drag_cursor = kThemeResizeLeftRightCursor;
 
-  /* Check and report errors with the above calls.  */
-  x_check_errors (FRAME_W32_DISPLAY (f), "can't set cursor shape: %s");
-  x_uncatch_errors (FRAME_W32_DISPLAY (f), count);
-
+#if 0 /* MAC_TODO: cursor color changes */
   {
     XColor fore_color, back_color;
 
-    fore_color.pixel = f->output_data.w32->mouse_pixel;
+    fore_color.pixel = f->output_data.mac->mouse_pixel;
+    x_query_color (f, &fore_color);
     back_color.pixel = mask_color;
-    XQueryColor (FRAME_W32_DISPLAY (f),
-		 DefaultColormap (FRAME_W32_DISPLAY (f),
-				  DefaultScreen (FRAME_W32_DISPLAY (f))),
-		 &fore_color);
-    XQueryColor (FRAME_W32_DISPLAY (f),
-		 DefaultColormap (FRAME_W32_DISPLAY (f),
-				  DefaultScreen (FRAME_W32_DISPLAY (f))),
-		 &back_color);
-    XRecolorCursor (FRAME_W32_DISPLAY (f), cursor,
-		    &fore_color, &back_color);
-    XRecolorCursor (FRAME_W32_DISPLAY (f), nontext_cursor,
-		    &fore_color, &back_color);
-    XRecolorCursor (FRAME_W32_DISPLAY (f), mode_cursor,
-		    &fore_color, &back_color);
-    XRecolorCursor (FRAME_W32_DISPLAY (f), hand_cursor,
-                    &fore_color, &back_color);
-    XRecolorCursor (FRAME_W32_DISPLAY (f), hourglass_cursor,
-                    &fore_color, &back_color);
+    x_query_color (f, &back_color);
+
+    XRecolorCursor (dpy, cursor, &fore_color, &back_color);
+    XRecolorCursor (dpy, nontext_cursor, &fore_color, &back_color);
+    XRecolorCursor (dpy, mode_cursor, &fore_color, &back_color);
+    XRecolorCursor (dpy, hand_cursor, &fore_color, &back_color);
+    XRecolorCursor (dpy, hourglass_cursor, &fore_color, &back_color);
+    XRecolorCursor (dpy, horizontal_drag_cursor, &fore_color, &back_color);
   }
+#endif
 
-  if (FRAME_W32_WINDOW (f) != 0)
-    XDefineCursor (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f), cursor);
+  BLOCK_INPUT;
 
-  if (cursor != f->output_data.w32->text_cursor && f->output_data.w32->text_cursor != 0)
-    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->text_cursor);
-  f->output_data.w32->text_cursor = cursor;
+  rif->define_frame_cursor (f, cursor);
 
-  if (nontext_cursor != f->output_data.w32->nontext_cursor
-      && f->output_data.w32->nontext_cursor != 0)
-    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->nontext_cursor);
-  f->output_data.w32->nontext_cursor = nontext_cursor;
+  f->output_data.mac->text_cursor = cursor;
+  f->output_data.mac->nontext_cursor = nontext_cursor;
+  f->output_data.mac->hourglass_cursor = hourglass_cursor;
+  f->output_data.mac->modeline_cursor = mode_cursor;
+  f->output_data.mac->hand_cursor = hand_cursor;
+  f->output_data.mac->horizontal_drag_cursor = horizontal_drag_cursor;
 
-  if (hourglass_cursor != f->output_data.w32->hourglass_cursor
-      && f->output_data.w32->hourglass_cursor != 0)
-    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->hourglass_cursor);
-  f->output_data.w32->hourglass_cursor = hourglass_cursor;
-
-  if (mode_cursor != f->output_data.w32->modeline_cursor
-      && f->output_data.w32->modeline_cursor != 0)
-    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->modeline_cursor);
-  f->output_data.w32->modeline_cursor = mode_cursor;
-
-  if (hand_cursor != f->output_data.w32->hand_cursor
-      && f->output_data.w32->hand_cursor != 0)
-    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->hand_cursor);
-  f->output_data.w32->hand_cursor = hand_cursor;
-
-  XFlush (FRAME_W32_DISPLAY (f));
   UNBLOCK_INPUT;
 
   update_face_from_frame_parameter (f, Qmouse_color, arg);
-#endif /* MAC_TODO */
 }
 
 void
@@ -2086,49 +2030,24 @@ x_set_scroll_bar_default_width (f)
 
 /* Subroutines of creating a frame.  */
 
-static char *
-mac_get_rdb_resource (rdb, resource)
-     char *rdb;
-     char *resource;
-{
-  char *value = rdb;
-  int len = strlen (resource);
-
-  while (*value)
-    {
-      if ((strncmp (value, resource, len) == 0) && (value[len] == ':'))
-        return xstrdup (&value[len + 1]);
-
-      value = strchr (value, '\0') + 1;
-    }
-
-  return NULL;
-}
-
 /* Retrieve the string resource specified by NAME with CLASS from
-   database RDB. */
+   database RDB.
+
+   The return value points to the contents of a Lisp string.  So it
+   will not be valid after the next GC where string compaction will
+   occur.  */
 
 char *
 x_get_string_resource (rdb, name, class)
      XrmDatabase rdb;
      char *name, *class;
 {
-  if (rdb)
-    {
-      char *resource;
+  Lisp_Object value = xrm_get_resource (rdb, name, class);
 
-      if (resource = mac_get_rdb_resource (rdb, name))
-        return resource;
-      if (resource = mac_get_rdb_resource (rdb, class))
-        return resource;
-    }
-
-  /* MAC_TODO: implement resource strings.  (Maybe Property Lists?)  */
-#if 0
-  return mac_get_string_resource (name, class);
-#else
-  return (char *)0;
-#endif
+  if (STRINGP (value))
+    return SDATA (value);
+  else
+    return NULL;
 }
 
 /* Return the value of parameter PARAM.
@@ -2327,6 +2246,18 @@ mac_window (f)
   /* so that update events can find this mac_output struct */
   f->output_data.mac->mFP = f;  /* point back to emacs frame */
 
+#ifndef MAC_OSX
+  if (FRAME_MAC_WINDOW (f))
+    {
+      ControlRef root_control;
+
+      if (CreateRootControl (FRAME_MAC_WINDOW (f), &root_control) != noErr)
+	{
+	  DisposeWindow (FRAME_MAC_WINDOW (f));
+	  FRAME_MAC_WINDOW (f) = NULL;
+	}
+    }
+#endif
   if (FRAME_MAC_WINDOW (f))
     XSetWindowBackground (FRAME_MAC_DISPLAY(f), FRAME_MAC_WINDOW (f),
 			  FRAME_BACKGROUND_PIXEL (f));
@@ -2774,22 +2705,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
                        "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
   f->output_data.mac->parent_desc = FRAME_MAC_DISPLAY_INFO (f)->root_window;
-
-#if TARGET_API_MAC_CARBON
-  f->output_data.mac->text_cursor = kThemeIBeamCursor;
-  f->output_data.mac->nontext_cursor = kThemeArrowCursor;
-  f->output_data.mac->modeline_cursor = kThemeArrowCursor;
-  f->output_data.mac->hand_cursor = kThemePointingHandCursor;
-  f->output_data.mac->hourglass_cursor = kThemeWatchCursor;
-  f->output_data.mac->horizontal_drag_cursor = kThemeResizeLeftRightCursor;
-#else
-  f->output_data.mac->text_cursor = GetCursor (iBeamCursor);
-  f->output_data.mac->nontext_cursor = &arrow_cursor;
-  f->output_data.mac->modeline_cursor = &arrow_cursor;
-  f->output_data.mac->hand_cursor = &arrow_cursor;
-  f->output_data.mac->hourglass_cursor = GetCursor (watchCursor);
-  f->output_data.mac->horizontal_drag_cursor = &arrow_cursor;
-#endif
 
   /* Compute the size of the window.  */
   window_prompting = x_figure_window_size (f, parms, 1);
@@ -3475,7 +3390,7 @@ value.  */)
 
 
 /***********************************************************************
-				Hourglass cursor
+				Busy cursor
  ***********************************************************************/
 
 /* If non-null, an asynchronous timer that, when it expires, displays
@@ -3501,13 +3416,21 @@ static Lisp_Object Vhourglass_delay;
 static void show_hourglass P_ ((struct atimer *));
 static void hide_hourglass P_ ((void));
 
+/* Return non-zero if houglass timer has been started or hourglass is shown.  */
+
+int
+hourglass_started ()
+{
+  return hourglass_shown_p || hourglass_atimer != NULL;
+}
+
 
 /* Cancel a currently active hourglass timer, and start a new one.  */
 
 void
 start_hourglass ()
 {
-#if 0 /* MAC_TODO: cursor shape changes.  */
+#ifdef MAC_OSX
   EMACS_TIME delay;
   int secs, usecs = 0;
 
@@ -3530,16 +3453,17 @@ start_hourglass ()
   EMACS_SET_SECS_USECS (delay, secs, usecs);
   hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
 				     show_hourglass, NULL);
-#endif /* MAC_TODO */
+#endif /* MAC_OSX */
 }
 
 
-/* Cancel the hourglass cursor timer if active, hide an hourglass
-   cursor if shown.  */
+/* Cancel the hourglass cursor timer if active, hide a busy cursor if
+   shown.  */
 
 void
 cancel_hourglass ()
 {
+#ifdef MAC_OSX
   if (hourglass_atimer)
     {
       cancel_atimer (hourglass_atimer);
@@ -3548,22 +3472,22 @@ cancel_hourglass ()
 
   if (hourglass_shown_p)
     hide_hourglass ();
+#endif /* MAC_OSX */
 }
 
 
 /* Timer function of hourglass_atimer.  TIMER is equal to
    hourglass_atimer.
 
-   Display an hourglass cursor on all frames by mapping the frames'
-   hourglass_window.  Set the hourglass_p flag in the frames'
-   output_data.x structure to indicate that an hourglass cursor is
-   shown on the frames.  */
+   On Mac, busy status is shown by the progress indicator (chasing
+   arrows) at the upper-right corner of each frame instead of the
+   hourglass pointer.  */
 
 static void
 show_hourglass (timer)
      struct atimer *timer;
 {
-#if 0  /* MAC_TODO: cursor shape changes.  */
+#if TARGET_API_MAC_CARBON
   /* The timer implementation will cancel this timer automatically
      after this function has run.  Set hourglass_atimer to null
      so that we know the timer doesn't have to be canceled.  */
@@ -3576,46 +3500,44 @@ show_hourglass (timer)
       BLOCK_INPUT;
 
       FOR_EACH_FRAME (rest, frame)
-	if (FRAME_W32_P (XFRAME (frame)))
-	  {
-	    struct frame *f = XFRAME (frame);
+	{
+	  struct frame *f = XFRAME (frame);
 
-	    f->output_data.w32->hourglass_p = 1;
+	  if (FRAME_LIVE_P (f) && FRAME_MAC_P (f)
+	      && FRAME_MAC_WINDOW (f) != tip_window)
+	    {
+	      if (!f->output_data.mac->hourglass_control)
+		{
+		  Window w = FRAME_MAC_WINDOW (f);
+		  Rect r;
+		  ControlRef c;
 
-	    if (!f->output_data.w32->hourglass_window)
-	      {
-		unsigned long mask = CWCursor;
-		XSetWindowAttributes attrs;
+		  GetWindowPortBounds (w, &r);
+		  r.left = r.right - HOURGLASS_WIDTH;
+		  r.bottom = r.top + HOURGLASS_HEIGHT;
+		  if (CreateChasingArrowsControl (w, &r, &c) == noErr)
+		    f->output_data.mac->hourglass_control = c;
+		}
 
-		attrs.cursor = f->output_data.w32->hourglass_cursor;
-
-		f->output_data.w32->hourglass_window
-		  = XCreateWindow (FRAME_X_DISPLAY (f),
-				   FRAME_OUTER_WINDOW (f),
-				   0, 0, 32000, 32000, 0, 0,
-				   InputOnly,
-				   CopyFromParent,
-				   mask, &attrs);
-	      }
-
-	    XMapRaised (FRAME_X_DISPLAY (f),
-			f->output_data.w32->hourglass_window);
-	    XFlush (FRAME_X_DISPLAY (f));
-	  }
+	      if (f->output_data.mac->hourglass_control)
+		ShowControl (f->output_data.mac->hourglass_control);
+	    }
+	}
 
       hourglass_shown_p = 1;
       UNBLOCK_INPUT;
     }
-#endif /* MAC_TODO */
+#endif /* TARGET_API_MAC_CARBON */
 }
 
 
-/* Hide the hourglass cursor on all frames, if it is currently shown.  */
+/* Hide the progress indicators on all frames, if it is currently
+   shown.  */
 
 static void
 hide_hourglass ()
 {
-#if 0 /* MAC_TODO: cursor shape changes.  */
+#if TARGET_API_MAC_CARBON
   if (hourglass_shown_p)
     {
       Lisp_Object rest, frame;
@@ -3625,23 +3547,16 @@ hide_hourglass ()
 	{
 	  struct frame *f = XFRAME (frame);
 
-	  if (FRAME_W32_P (f)
+	  if (FRAME_MAC_P (f)
 	      /* Watch out for newly created frames.  */
-	      && f->output_data.x->hourglass_window)
-	    {
-	      XUnmapWindow (FRAME_X_DISPLAY (f),
-			    f->output_data.x->hourglass_window);
-	      /* Sync here because XTread_socket looks at the
-		 hourglass_p flag that is reset to zero below.  */
-	      XSync (FRAME_X_DISPLAY (f), False);
-	      f->output_data.x->hourglass_p = 0;
-	    }
+	      && f->output_data.mac->hourglass_control)
+	    HideControl (f->output_data.mac->hourglass_control);
 	}
 
       hourglass_shown_p = 0;
       UNBLOCK_INPUT;
     }
-#endif /* MAC_TODO */
+#endif /* TARGET_API_MAC_CARBON */
 }
 
 
@@ -4487,7 +4402,7 @@ mac_nav_event_callback (selector, parms, data)
 			    Initialization
  ***********************************************************************/
 
-/* Keep this list in the same order as frame_parms in frame.c. 
+/* Keep this list in the same order as frame_parms in frame.c.
    Use 0 for unsupported frame parameters.  */
 
 frame_parm_handler mac_frame_parm_handlers[] =
@@ -4545,29 +4460,12 @@ syms_of_macfns ()
   staticpro (&Qundefined_color);
   Qcancel_timer = intern ("cancel-timer");
   staticpro (&Qcancel_timer);
-
-  Qhyper = intern ("hyper");
-  staticpro (&Qhyper);
-  Qsuper = intern ("super");
-  staticpro (&Qsuper);
-  Qmeta = intern ("meta");
-  staticpro (&Qmeta);
-  Qalt = intern ("alt");
-  staticpro (&Qalt);
-  Qctrl = intern ("ctrl");
-  staticpro (&Qctrl);
-  Qcontrol = intern ("control");
-  staticpro (&Qcontrol);
-  Qshift = intern ("shift");
-  staticpro (&Qshift);
   /* This is the end of symbol initialization.  */
 
   /* Text property `display' should be nonsticky by default.  */
   Vtext_property_default_nonsticky
     = Fcons (Fcons (Qdisplay, Qt), Vtext_property_default_nonsticky);
 
-  Qface_set_after_frame_default = intern ("face-set-after-frame-default");
-  staticpro (&Qface_set_after_frame_default);
 
   Fput (Qundefined_color, Qerror_conditions,
 	Fcons (Qundefined_color, Fcons (Qerror, Qnil)));
@@ -4575,39 +4473,58 @@ syms_of_macfns ()
 	build_string ("Undefined color"));
 
   DEFVAR_LISP ("x-pointer-shape", &Vx_pointer_shape,
-	       doc: /* The shape of the pointer when over text.
+    doc: /* The shape of the pointer when over text.
 Changing the value does not affect existing frames
 unless you set the mouse color.  */);
   Vx_pointer_shape = Qnil;
 
+#if 0 /* This doesn't really do anything.  */
+  DEFVAR_LISP ("x-nontext-pointer-shape", &Vx_nontext_pointer_shape,
+    doc: /* The shape of the pointer when not over text.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+#endif
   Vx_nontext_pointer_shape = Qnil;
 
-  Vx_mode_pointer_shape = Qnil;
-
   DEFVAR_LISP ("x-hourglass-pointer-shape", &Vx_hourglass_pointer_shape,
-	       doc: /* The shape of the pointer when Emacs is hourglass.
+    doc: /* The shape of the pointer when Emacs is busy.
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_hourglass_pointer_shape = Qnil;
 
   DEFVAR_BOOL ("display-hourglass", &display_hourglass_p,
-	       doc: /* Non-zero means Emacs displays an hourglass pointer on window systems.  */);
+    doc: /* Non-zero means Emacs displays an hourglass pointer on window systems.  */);
   display_hourglass_p = 1;
 
   DEFVAR_LISP ("hourglass-delay", &Vhourglass_delay,
-	       doc: /* *Seconds to wait before displaying an hourglass pointer.
+    doc: /* *Seconds to wait before displaying an hourglass pointer.
 Value must be an integer or float.  */);
   Vhourglass_delay = make_number (DEFAULT_HOURGLASS_DELAY);
 
+#if 0 /* This doesn't really do anything.  */
+  DEFVAR_LISP ("x-mode-pointer-shape", &Vx_mode_pointer_shape,
+    doc: /* The shape of the pointer when over the mode line.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+#endif
+  Vx_mode_pointer_shape = Qnil;
+
   DEFVAR_LISP ("x-sensitive-text-pointer-shape",
-	       &Vx_sensitive_text_pointer_shape,
+	      &Vx_sensitive_text_pointer_shape,
 	       doc: /* The shape of the pointer when over mouse-sensitive text.
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_sensitive_text_pointer_shape = Qnil;
 
+  DEFVAR_LISP ("x-window-horizontal-drag-cursor",
+	      &Vx_window_horizontal_drag_shape,
+  doc: /* Pointer shape to use for indicating a window can be dragged horizontally.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_horizontal_drag_shape = Qnil;
+
   DEFVAR_LISP ("x-cursor-fore-pixel", &Vx_cursor_fore_pixel,
-	       doc: /* A string indicating the foreground color of the cursor box.  */);
+    doc: /* A string indicating the foreground color of the cursor box.  */);
   Vx_cursor_fore_pixel = Qnil;
 
   DEFVAR_LISP ("x-max-tooltip-size", &Vx_max_tooltip_size,
@@ -4616,7 +4533,7 @@ Text larger than this is clipped.  */);
   Vx_max_tooltip_size = Fcons (make_number (80), make_number (40));
 
   DEFVAR_LISP ("x-no-window-manager", &Vx_no_window_manager,
-	       doc: /* Non-nil if no window manager is in use.
+    doc: /* Non-nil if no window manager is in use.
 Emacs doesn't try to figure this out; this is always nil
 unless you set it to something else.  */);
   /* We don't have any way to find this out, so set it to nil
@@ -4625,7 +4542,7 @@ unless you set it to something else.  */);
 
   DEFVAR_LISP ("x-pixel-size-width-font-regexp",
 	       &Vx_pixel_size_width_font_regexp,
-	       doc: /* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.
+    doc: /* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.
 
 Since Emacs gets width of a font matching with this regexp from
 PIXEL_SIZE field of the name, font finding mechanism gets faster for

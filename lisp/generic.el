@@ -1,6 +1,6 @@
 ;;; generic.el --- defining simple major modes with comment and font-lock
 ;;
-;; Copyright (C) 1997, 1999, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2004, 2005 Free Software Foundation, Inc.
 ;;
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Fri Sep 27 1996
@@ -215,8 +215,7 @@ FUNCTION-LIST is a list of functions to call to do some additional setup.
 See the file generic-x.el for some examples of `define-generic-mode'."
 
   ;; Add a new entry
-  (unless (assq name generic-mode-list)
-    (push (list (symbol-name name)) generic-mode-list))
+  (add-to-list 'generic-mode-list (symbol-name name))
 
   ;; Add it to auto-mode-alist
   (dolist (re auto-mode-list)

@@ -2508,7 +2508,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
       c = Faref (Vexecuting_macro, make_number (executing_macro_index));
       if (STRINGP (Vexecuting_macro)
-	  && (XINT (c) & 0x80))
+	  && (XINT (c) & 0x80) && (XUINT (c) <= 0xff))
 	XSETFASTINT (c, CHAR_META | (XINT (c) & ~0x80));
 
       executing_macro_index++;

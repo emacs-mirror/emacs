@@ -43,7 +43,12 @@ typedef struct _window_state
 typedef struct _XlwMenu_part
 {
   /* slots set by the resources */
+#ifdef HAVE_X_I18N
+  XFontSet	font;
+  XFontSetExtents *font_extents;
+#else
   XFontStruct*	font;
+#endif
   Pixel		foreground;
   Pixel		disabled_foreground;
   Pixel		button_foreground;

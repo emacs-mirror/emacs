@@ -18,13 +18,6 @@ See msg from rms to emacs-devel on 21 Dec.
 
 * FATAL ERRORS
 
-** Investigate face cache related crash.
-
-Indications: Face cache seems to have been cleared, but
-redisplay uses an invalidated face_id with FACE_FROM_ID
-which then returns a NULL pointer.  Said to happen with
-isearch faces.
-
 ** Investigate reported crashes in compact_small_strings.
 
 ** Investigate reported crashes related to using an
@@ -73,28 +66,6 @@ time to make anfe-ftp more intelligent.
 
 * REDISPLAY RELATED BUGS
 
-** Strange text scrolling with Emacs + GTK
-
-> I could reproduce the problem with the latest CVS.
->
->   % emacs -Q
->   M-x info RET
->   M->
->   C-l
->   C-x ( C-u - 1 C-v C-x )
->   C-x e e e e ...
->
-> I see the problem around "CC mode" and "Forms".
-
-It is not specific for the first line of a buffer.
-
-Rather it happens for lines which are indented but the
-indentation is controlled by a display property and
-the newline is part of that display property -- in
-that case, the indentation is not recognized for the
-first display line.
-
-
 ** Avoid unbreakable loops in redisplay.
 
 Redisplay may loop if there is an error in some display property, e.g.
@@ -102,16 +73,6 @@ Redisplay may loop if there is an error in some display property, e.g.
 
 A fix would be to somehow disable handling of display properties if an error
 is encountered.
-
-
-** Problem with modeline and window margins:
-
-The mode line's right "box" line is misplaced under the right margin,
-rather than at the right window edge.
-
-emacs -Q
-(set-window-margins nil 25 25)
-C-x 2
 
 
 ** custom mode-line face makes Emacs freeze up
@@ -208,12 +169,12 @@ man/misc.texi       Chong Yidong
 man/msdog.texi      Chong Yidong
 man/mule.texi       "Luc Teirlinck"
 man/m-x.texi        "Luc Teirlinck"  Chong Yidong
-man/picture.texi    Joakim Verona <joakim@verona.se>
+man/picture.texi    Joakim Verona <joakim@verona.se>   Chong Yidong
 man/programs.texi   "Stephen Eglen"  Chong Yidong
 man/regs.texi       "Luc Teirlinck"   Chong Yidong
 man/rmail.texi      Chong Yidong
-man/screen.texi     "Luc Teirlinck"  Chong Yidong
-man/search.texi     "Luc Teirlinck"
+man/screen.texi     "Luc Teirlinck"   Chong Yidong
+man/search.texi     "Luc Teirlinck"   Chong Yidong
 man/sending.texi    Chong Yidong
 man/text.texi       "Luc Teirlinck"   Chong Yidong
 man/trouble.texi    Chong Yidong
@@ -268,7 +229,7 @@ lispref/objects.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/os.texi		 "Luc Teirlinck"   Chong Yidong
 lispref/positions.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/processes.texi   Chong Yidong
-lispref/searching.texi	 "Luc Teirlinck"
+lispref/searching.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/sequences.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/streams.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/strings.texi	 "Luc Teirlinck"   Chong Yidong

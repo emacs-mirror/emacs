@@ -31,11 +31,35 @@
 
 ;;; Code:
 
+;; We define macro-declaration-function here because it is needed to
+;; handle declarations in macro definitions and this is the first file
+;; loaded by loadup.el that uses declarations in macros.
+
+(defun macro-declaration-function (macro decl)
+  "Process a declaration found in a macro definition.
+This is set as the value of the variable `macro-declaration-function'.
+MACRO is the name of the macro being defined.
+DECL is a list `(declare ...)' containing the declarations.
+The return value of this function is not used."
+  ;; We can't use `dolist' or `cadr' yet for bootstrapping reasons.
+  (let (d)
+    ;; Ignore the first element of `decl' (it's always `declare').
+    (while (setq decl (cdr decl))
+      (setq d (car decl))
+      (cond ((and (consp d) (eq (car d) 'indent))
+	     (put macro 'lisp-indent-function (car (cdr d))))
+	    ((and (consp d) (eq (car d) 'debug))
+	     (put macro 'edebug-form-spec (car (cdr d))))
+	    (t
+	     (message "Unknown declaration %s" d))))))
+
+(setq macro-declaration-function 'macro-declaration-function)
+
+
 ;; Redefined in byte-optimize.el.
 ;; This is not documented--it's not clear that we should promote it.
 (fset 'inline 'progn)
 (put 'inline 'lisp-indent-function 0)
-
 
 ;;; Interface to inline functions.
 
@@ -105,11 +129,10 @@ was first made obsolete, for example a date or a release number."
   (put variable 'byte-obsolete-variable (cons new when))
   variable)
 
-(put 'dont-compile 'lisp-indent-function 0)
 (defmacro dont-compile (&rest body)
   "Like `progn', but the body always runs interpreted (not compiled).
 If you think you need this, you're probably making a mistake somewhere."
-  (declare (debug t))
+  (declare (debug t) (indent 0))
   (list 'eval (list 'quote (if (cdr body) (cons 'progn body) (car body)))))
 
 
@@ -118,19 +141,17 @@ If you think you need this, you're probably making a mistake somewhere."
 ;;; definition in the file overrides the magic definitions on the
 ;;; byte-compile-macro-environment.
 
-(put 'eval-when-compile 'lisp-indent-function 0)
 (defmacro eval-when-compile (&rest body)
   "Like `progn', but evaluates the body at compile time.
 The result of the body appears to the compiler as a quoted constant."
-  (declare (debug t))
+  (declare (debug t) (indent 0))
   ;; Not necessary because we have it in b-c-initial-macro-environment
   ;; (list 'quote (eval (cons 'progn body)))
   (cons 'progn body))
 
-(put 'eval-and-compile 'lisp-indent-function 0)
 (defmacro eval-and-compile (&rest body)
   "Like `progn', but evaluates the body at compile time and at load time."
-  (declare (debug t))
+  (declare (debug t) (indent 0))
   ;; Remember, it's magic.
   (cons 'progn body))
 

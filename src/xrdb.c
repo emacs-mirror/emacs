@@ -527,7 +527,11 @@ x_load_resources (display, xrm_string, myname, myclass)
   XrmDatabase rdb;
   XrmDatabase db;
   char line[256];
+#ifdef HAVE_X_I18N
+  char *helv = "-*-helvetica-medium-r-*--*-120-*-*-*-*,*";
+#else
   char *helv = "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1";
+#endif
 #ifdef USE_MOTIF
   char *courier = "-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1";
   extern Lisp_Object Vdouble_click_time;

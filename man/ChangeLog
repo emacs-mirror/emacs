@@ -1,3 +1,8 @@
+2005-03-14  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Commands of GUD): Move paragraph on setting
+	breakpoints with mouse to the GDB Graphical Interface node.
+
 2005-03-07  Richard M. Stallman  <rms@gnu.org>
 
 	* url.texi: Fix usage of "e.g.".

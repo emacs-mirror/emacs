@@ -6,6 +6,9 @@
 ;; Copyright (C) 2003
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
+;; Copyright (C) 2005
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, Thai, i18n
 
@@ -53,7 +56,7 @@
 	  (features thai-util)
 	  (sample-text
 	   . (thai-compose-string
-	      (copy-sequence "Thai (,T@RIRd7B(B)		,TJ0GQ1J04U1$0CQ1:(B, ,TJ0GQ1J04U10$h1P(B")))
+	      (copy-sequence "Thai (,T@RIRd7B(B)		,TJGQJ4U$CQ:(B, ,TJGQJ4U$hP(B")))
 	  (documentation . t)))
 
 (define-coding-system 'cp874

@@ -25,7 +25,7 @@ Boston, MA 02111-1307, USA.  */
 
 typedef int Display;  /* fix later */
 
-typedef char * XrmDatabase;  /* fix later */
+typedef Lisp_Object XrmDatabase;
 
 typedef unsigned long Time;
 
@@ -68,22 +68,17 @@ typedef unsigned long Time;
 #else /* not HAVE_CARBON */
 #include <QuickDraw.h>		/* for WindowPtr */
 #include <QDOffscreen.h>	/* for GWorldPtr */
+#include <Appearance.h>		/* for ThemeCursor */
 #include <Windows.h>
+#include <Controls.h>
 #include <Gestalt.h>
 #endif /* not HAVE_CARBON */
 
 typedef WindowPtr Window;
 typedef GWorldPtr Pixmap;
 
-#if TARGET_API_MAC_CARBON
 #define Cursor ThemeCursor
 #define No_Cursor (-1)
-#else
-#define SetPortWindowPort(w) SetPort(w)
-#define Cursor CursHandle
-#define No_Cursor (0)
-extern CursPtr arrow_cursor;
-#endif
 
 #define FACE_DEFAULT (~0)
 

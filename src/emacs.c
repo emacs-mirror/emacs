@@ -2064,7 +2064,7 @@ all of which are called before Emacs is actually killed.  */)
 
   exit (INTEGERP (arg) ? XINT (arg) : EXIT_SUCCESS);
   /* NOTREACHED */
-  return 0;
+  return Qnil;
 }
 
 

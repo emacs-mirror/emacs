@@ -1,3 +1,14 @@
+2005-03-18  handa  <handa@m17n.org>
+
+	* quail/thai.el (quail-thai-update-translation): Delete it.
+	(thai-generate-quail-map): Generate is simple map.
+	("thai-kesmanee"): Don't use quail-thai-update-translation.
+	(thai-generate-quail-map): Likewise.
+
+2005-03-15  Kenichi Handa  <handa@m17n.org>
+
+	* quail/thai.el (thai-generate-quail-map): Fix the kesmanee layout.
+
 2005-03-08  Kenichi Handa  <handa@m17n.org>
 
 	* quail/latin-pre.el ("latin-1-prefix"): Add rule "__"->"_".

@@ -2012,55 +2012,60 @@ of `buffer-file-coding-system' set by this function."
      ;; and Chinese are exceptions, which are listed in the
      ;; non-standard section at the bottom of locale-language-names.
 
-    ; aa Afar
-    ; ab Abkhazian
+    ("aa_DJ" . "Latin-1") ; Afar
+    ("aa" . "UTF-8")
+    ;; ab Abkhazian
     ("af" . "Latin-1") ; Afrikaans
-    ("am" . "Ethiopic") ; Amharic
+    ("am" "Ethiopic" utf-8) ; Amharic
+    ("an" . "Latin-9") ; Aragonese
     ; ar Arabic glibc uses 8859-6
     ; as Assamese
     ; ay Aymara
-    ; az Azerbaijani
+    ("az" . "UTF-8") ; Azerbaijani
     ; ba Bashkir
-    ("be" . "Belarusian") ; Belarusian [Byelorussian until early 1990s]
-    ("bg" . "Bulgarian") ; Bulgarian
+    ("be" "Belarusian" cp1251) ; Belarusian [Byelorussian until early 1990s]
+    ("bg" "Bulgarian" cp1251) ; Bulgarian
     ; bh Bihari
     ; bi Bislama
-    ; bn Bengali, Bangla
+    ("bn" . "UTF-8") ; Bengali, Bangla
     ("bo" . "Tibetan")
     ("br" . "Latin-1") ; Breton
     ("bs" . "Latin-2") ; Bosnian
+    ("byn" . "UTF-8")  ; Bilin; Blin
     ("ca" . "Latin-1") ; Catalan
     ; co Corsican
-    ("cs" . "Czech")
-    ("cy" . "Welsh") ; Welsh [glibc uses Latin-8.  Did this change?]
+    ("cs" "Czech" iso-8859-2)
+    ("cy" "Welsh" iso-8859-14)
     ("da" . "Latin-1") ; Danish
-    ("de" . "German")
+    ("de" "German" iso-8859-1)
     ; dz Bhutani
-    ("el" . "Greek")
+    ("el" "Greek" iso-8859-7)
     ;; Users who specify "en" explicitly typically want Latin-1, not ASCII.
     ;; That's actually what the GNU locales define, modulo things like
     ;; en_IN -- fx.
+    ("en_IN" "English" utf-8) ; glibc uses utf-8 for English in India
     ("en" . "Latin-1") ; English
     ("eo" . "Latin-3") ; Esperanto
-    ("es" . "Spanish")
-    ("et" . "Latin-4") ; Estonian
+    ("es" "Spanish" iso-8859-1)
+    ("et" . "Latin-1") ; Estonian
     ("eu" . "Latin-1") ; Basque
-    ; fa Persian glibc uses utf-8
+    ("fa" . "UTF-8") ; Persian
     ("fi" . "Latin-1") ; Finnish
-    ; fj Fiji
+    ("fj" . "Latin-1") ; Fiji
     ("fo" . "Latin-1") ; Faroese
-    ("fr" . "French") ; French
+    ("fr" "French" iso-8859-1) ; French
     ("fy" . "Latin-1") ; Frisian
     ("ga" . "Latin-1") ; Irish Gaelic (new orthography)
-    ("gd" . "Latin-1") ; Scots Gaelic
-    ("gl" . "Latin-1") ; Galician
+    ("gd" . "Latin-9") ; Scots Gaelic
+    ("gez" "Ethiopic" utf-8) ; Geez
+    ("gl" . "Latin-1") ; Gallegan; Galician
     ; gn Guarani
-    ; gu Gujarati
-    ("gv" . "Latin-8") ; Manx Gaelic  glibc uses 8859-1
+    ("gu" . "UTF-8") ; Gujarati
+    ("gv" . "Latin-1") ; Manx Gaelic
     ; ha Hausa
-    ("he" . "Hebrew")
-    ("hi" . "Devanagari") ; Hindi  glibc uses utf-8
-    ("hr" . "Croatian") ; Croatian
+    ("he" "Hebrew" iso-8859-8)
+    ("hi" "Devanagari" utf-8) ; Hindi
+    ("hr" "Croatian" iso-8859-2) ; Croatian
     ("hu" . "Latin-2") ; Hungarian
     ; hy Armenian
     ; ia Interlingua
@@ -2068,110 +2073,113 @@ of `buffer-file-coding-system' set by this function."
     ; ie Interlingue
     ; ik Inupiak
     ("is" . "Latin-1") ; Icelandic
-    ("it" . "Italian") ; Italian
+    ("it" "Italian" iso-8859-1) ; Italian
     ; iu Inuktitut
-    ("ja" . "Japanese")
+    ("iw" "Hebrew" iso-8859-8)
+    ("ja" "Japanese" euc-jp)
     ; jw Javanese
-    ("ka" . "Georgian") ; Georgian
+    ("ka" "Georgian" georgian-ps) ; Georgian
     ; kk Kazakh
     ("kl" . "Latin-1") ; Greenlandic
     ; km Cambodian
-    ; kn Kannada
-    ("ko" . "Korean")
+    ("kn" "Kannada" utf-8)
+    ("ko" "Korean" euc-kr)
     ; ks Kashmiri
     ; ku Kurdish
     ("kw" . "Latin-1") ; Cornish
     ; ky Kirghiz
     ("la" . "Latin-1") ; Latin
     ("lb" . "Latin-1") ; Luxemburgish
+    ("lg" . "Laint-6") ; Ganda
     ; ln Lingala
-    ("lo" . "Lao") ; Laothian
-    ("lt" . "Lithuanian")
+    ("lo" "Lao" utf-8) ; Laothian
+    ("lt" "Lithuanian" iso-8859-13)
     ("lv" . "Latvian") ; Latvian, Lettish
     ; mg Malagasy
     ("mi" . "Latin-7") ; Maori
-    ("mk" . "Cyrillic-ISO") ; Macedonian
-    ; ml Malayalam
-    ; mn Mongolian
+    ("mk" "Cyrillic-ISO" iso-8859-5) ; Macedonian
+    ("ml" "Malayalam" utf-8)
+    ("mn" . "UTF-8") ; Mongolian
     ; mo Moldavian
-    ("mr" . "Devanagari") ; Marathi  glibc uses utf-8
+    ("mr" "Devanagari" utf-8) ; Marathi
     ("ms" . "Latin-1") ; Malay
     ("mt" . "Latin-3") ; Maltese
     ; my Burmese
     ; na Nauru
-    ("ne" . "Devanagari") ; Nepali
-    ("nl" . "Dutch")
+    ("nb" . "Latin-1") ; Norwegian
+    ("ne" "Devanagari" utf-8) ; Nepali
+    ("nl" "Dutch" iso-8859-1)
     ("no" . "Latin-1") ; Norwegian
     ("oc" . "Latin-1") ; Occitan
-    ; om (Afan) Oromo
+    ("om_ET" . "UTF-8") ; (Afan) Oromo
+    ("om" . "Latin-1") ; (Afan) Oromo
     ; or Oriya
-    ; pa Punjabi
+    ("pa" . "UTF-8") ; Punjabi
     ("pl" . "Latin-2") ; Polish
     ; ps Pashto, Pushto
     ("pt" . "Latin-1") ; Portuguese
     ; qu Quechua
     ("rm" . "Latin-1") ; Rhaeto-Romanic
     ; rn Kirundi
-    ("ro" . "Romanian")
-    ("ru.*[_.]koi8\\(?:-r\\)?\\'" . "Cyrillic-KOI8") ; Russian
-    ("ru" . "Cyrillic-ISO") ; Russian
+    ("ro" "Romanian" iso-8859-2)
+    ("ru_RU" "Russian" iso-8859-5)
+    ("ru_UA" "Russian" koi8-u)
     ; rw Kinyarwanda
     ("sa" . "Devanagari") ; Sanskrit
     ; sd Sindhi
-    ; se   Northern Sami
+    ("se" . "UTF-8") ; Northern Sami
     ; sg Sangho
     ("sh" . "Latin-2") ; Serbo-Croatian
     ; si Sinhalese
-    ("sk" . "Slovak")
-    ("sl" . "Slovenian")
+    ("sid" . "UTF-8") ; Sidamo
+    ("sk" "Slovak" iso-8859-2)
+    ("sl" "Slovenian" iso-8859-2)
     ; sm Samoan
     ; sn Shona
-    ; so Somali
+    ("so_ET" "UTF-8") ; Somali
+    ("so" "Latin-1") ; Somali
     ("sq" . "Latin-1") ; Albanian
     ("sr" . "Latin-2") ; Serbian (Latin alphabet)
-    ("sr.*@cyrillic" . "Cyrillic-ISO")	; per glibc
     ; ss Siswati
-    ; st Sesotho
+    ("st" . "Latin-1") ;  Sesotho
     ; su Sundanese
-    ("sv" . "Swedish") ; Swedish
+    ("sv" "Swedish" iso-8859-1)		; Swedish
     ("sw" . "Latin-1") ; Swahili
-    ; ta Tamil  glibc uses utf-8
-    ; te Telugu  glibc uses utf-8
-    ("tg" . "Tajik")
-    ("th" . "Thai")
-    ; ti Tigrinya
+    ("ta" "Tamil" utf-8)
+    ("te" . "UTF-8") ; Telugu
+    ("tg" "Tajik" koi8-t)
+    ("th" "Thai" tis-620)
+    ("ti" "Ethiopic" utf-8) ; Tigrinya
+    ("tig_ER" . "UTF-8") ; Tigre
     ; tk Turkmen
     ("tl" . "Latin-1") ; Tagalog
     ; tn Setswana
     ; to Tonga
-    ("tr" . "Turkish")
+    ("tr" "Turkish" iso-8859-9)
     ; ts Tsonga
-    ; tt Tatar
+    ("tt" . "UTF-8") ; Tatar
     ; tw Twi
     ; ug Uighur
-    ("uk" . "Ukrainian") ; Ukrainian
-    ; ur Urdu  glibc uses utf-8
+    ("uk" "Ukrainian" koi8-u)
+    ("ur" . "UTF-8") ; Urdu
+    ("uz_UZ@cyrillic" . "UTF-8"); Uzbek
     ("uz" . "Latin-1") ; Uzbek
-    ("vi" . "Vietnamese") ;  glibc uses utf-8
+    ("vi" "Vietnamese" utf-8)
     ; vo Volapuk
     ("wa" . "Latin-1") ; Walloon
     ; wo Wolof
-    ; xh Xhosa
+    ("xh" . "Latin-1") ; Xhosa
     ("yi" . "Windows-1255") ; Yiddish
     ; yo Yoruba
     ; za Zhuang
-
-    ; glibc:
-    ; zh_HK/BIG5-HKSCS \
-
-    ("zh.*[._]big5" . "Chinese-BIG5")
-    ("zh.*[._]gb18030" . "Chinese-GB18030") ; zh_CN.GB18030/GB18030 in glibc
-    ("zh.*[._]gbk" . "Chinese-GBK")
-    ;; glibc has zh_TW.EUC-TW, with zh_TW defaulting to Big5
-    ("zh_tw" . "Chinese-CNS") ; glibc uses big5
-    ("zh_tw[._]euc-tw" . "Chinese-EUC-TW")
+    ("zh_HK" . "Chinese-Big5")
+    ("zh_TW" . "Chinese-Big5")
+    ("zh_CN" . "Chinese-GB")
     ("zh" . "Chinese-GB")
-    ; zu Zulu
+    ; zh_CN.GB18030/GB18030 \
+    ; zh_CN.GBK/GBK \
+    ; zh_HK/BIG5-HKSCS \
+    ("zu" . "Latin-1") ; Zulu
 
     ;; ISO standard locales
     ("c$" . "ASCII")
@@ -2191,10 +2199,16 @@ of `buffer-file-coding-system' set by this function."
     ("chs" . "Chinese-GB") ; MS Windows Chinese Simplified
     ("cht" . "Chinese-BIG5") ; MS Windows Chinese Traditional
     ))
-  "List of pairs of locale regexps and language names.
-The first element whose locale regexp matches the start of a downcased locale
-specifies the language name corresponding to that locale.
-If the language name is nil, there is no corresponding language environment.")
+  "Alist of locale regexps vs the corresponding languages and coding systems.
+Each element has these form:
+  \(LOCALE-REGEXP LANG-ENV CODING-SYSTEM)
+The first element whose LOCALE-REGEXP matches the start of a
+downcased locale specifies the LANG-ENV \(language environtment)
+and CODING-SYSTEM corresponding to that locale.  If there is no
+appropriate language environment, the element may have this form:
+  \(LOCALE-REGEXP . LANG-ENV)
+In this case, LANG-ENV is one of generic language environments for an
+specific encoding such as \"Latin-1\" and \"UTF-8\".")
 
 (defconst locale-charset-language-names
   (purecopy
@@ -2212,20 +2226,43 @@ If the language name is nil, there is no corresponding language environment.")
   "List of pairs of locale regexps and charset language names.
 The first element whose locale regexp matches the start of a downcased locale
 specifies the language name whose charset corresponds to that locale.
-This language name is used if its charsets disagree with the charsets of
-the language name that would otherwise be used for this locale.")
+This language name is used if the locale is not listed in
+`locale-language-names'")
 
 (defconst locale-preferred-coding-systems
   (purecopy
-   '(("ja.*[._]euc" . japanese-iso-8bit)
+   '((".*8859[-_]?1\\>" . iso-8859-1)
+     (".*8859[-_]?2\\>" . iso-8859-2)
+     (".*8859[-_]?3\\>" . iso-8859-3)
+     (".*8859[-_]?4\\>" . iso-8859-4)
+     (".*8859[-_]?9\\>" . iso-8859-9)
+     (".*8859[-_]?14\\>" . iso-8859-14)
+     (".*8859[-_]?15\\>" . iso-8859-15)
+     (".*utf\\(?:-?8\\)?" . utf-8)
+     ;; utf-8@euro exists, so put this after utf-8.  (@euro really
+     ;; specifies the currency, rather than the charset.)
+     (".*@euro" . iso-8859-15)
+     ("koi8-?r" . koi8-r)
+     ("koi8-?u" . koi8-u)
+     ("tcvn" . tcvn)
+     ("big5" . big5)
+     ("euc-?tw" . euc-tw)
+     ;; We don't support GBK, but as it is upper compatible with
+     ;; GB-2312, we setup the default coding system to gb2312.
+     ("gbk" . gb2312)
+     ;; We don't support BIG5-HKSCS, but as it is upper compatible with
+     ;; BIG5, we setup the default coding system to big5.
+     ("big5hkscs" . big5)
+     ("ja.*[._]euc" . japanese-iso-8bit)
      ("ja.*[._]jis7" . iso-2022-jp)
      ("ja.*[._]pck" . japanese-shift-jis)
      ("ja.*[._]sjis" . japanese-shift-jis)
      ("jpn" . japanese-shift-jis)   ; MS-Windows uses this.
-     (".*[._]utf" . utf-8)))
+     ))
   "List of pairs of locale regexps and preferred coding systems.
 The first element whose locale regexp matches the start of a downcased locale
-specifies the coding system to prefer when using that locale.")
+specifies the coding system to prefer when using that locale.
+This coding system is used if the locale specifies a specific charset.")
 
 (defun locale-name-match (key alist)
   "Search for KEY in ALIST, which should be a list of regexp-value pairs.
@@ -2356,12 +2393,17 @@ See also `locale-charset-language-names', `locale-language-names',
 		       (locale-charset-to-coding-system
 			(match-string 1 locale)))))))
 
-	;; Give preference to charset-language-name over language-name.
-	(if (and charset-language-name
-		 (not
-		  (equal (get-language-info language-name 'charset)
-			 (get-language-info charset-language-name 'charset))))
-	    (setq language-name charset-language-name))
+	(if (consp language-name)
+	    ;; locale-language-names specify both lang-env and coding.
+	    ;; But, what specified in locale-preferred-coding-systems
+	    ;; has higher priority.
+	    (setq coding-system (or coding-system
+				    (nth 1 language-name))
+		  language-name (car language-name))
+	  ;; Otherwise, if locale is not listed in locale-language-names,
+	  ;; use what listed in locale-charset-language-names.
+	  (if (not language-name)
+	      (setq language-name charset-language-name)))
 
 	(when language-name
 
@@ -2387,7 +2429,9 @@ See also `locale-charset-language-names', `locale-language-names',
 	  (setq locale-coding-system
 		(car (get-language-info language-name 'coding-priority))))
 
-	(when coding-system
+	(when (and coding-system
+		   (not (coding-system-equal coding-system
+					     locale-coding-system)))
 	  (prefer-coding-system coding-system)
 	  (setq locale-coding-system coding-system))
 	(when (get-language-info current-language-environment 'coding-priority)

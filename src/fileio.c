@@ -2383,7 +2383,7 @@ barf_or_query_if_file_exists (absname, querystring, interactive, statptr, quick)
 }
 
 DEFUN ("copy-file", Fcopy_file, Scopy_file, 2, 4,
-       "fCopy file: \nFCopy %s to file: \np\nP",
+       "fCopy file: \nGCopy %s to file: \np\nP",
        doc: /* Copy FILE to NEWNAME.  Both args must be strings.
 If NEWNAME names a directory, copy FILE there.
 Signals a `file-already-exists' error if file NEWNAME already exists,
@@ -2674,7 +2674,7 @@ internal_delete_file (filename)
 }
 
 DEFUN ("rename-file", Frename_file, Srename_file, 2, 3,
-       "fRename file: \nFRename %s to file: \np",
+       "fRename file: \nGRename %s to file: \np",
        doc: /* Rename FILE as NEWNAME.  Both args strings.
 If file has names other than FILE, it continues to have those names.
 Signals a `file-already-exists' error if a file NEWNAME already exists
@@ -2762,7 +2762,7 @@ This is what happens in interactive use with M-x.  */)
 }
 
 DEFUN ("add-name-to-file", Fadd_name_to_file, Sadd_name_to_file, 2, 3,
-       "fAdd name to file: \nFName to add to %s: \np",
+       "fAdd name to file: \nGName to add to %s: \np",
        doc: /* Give FILE additional name NEWNAME.  Both args strings.
 Signals a `file-already-exists' error if a file NEWNAME already exists
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
@@ -2829,7 +2829,7 @@ This is what happens in interactive use with M-x.  */)
 
 #ifdef S_IFLNK
 DEFUN ("make-symbolic-link", Fmake_symbolic_link, Smake_symbolic_link, 2, 3,
-       "FMake symbolic link to file: \nFMake symbolic link to file %s: \np",
+       "FMake symbolic link to file: \nGMake symbolic link to file %s: \np",
        doc: /* Make a symbolic link to FILENAME, named LINKNAME.  Both args strings.
 Signals a `file-already-exists' error if a file LINKNAME already exists
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.

@@ -37,7 +37,8 @@
 
 (nnoo-declare nneething)
 
-(defvoo nneething-map-file-directory "~/.nneething/"
+(defvoo nneething-map-file-directory
+  (nnheader-concat gnus-directory ".nneething/")
   "Where nneething stores the map files.")
 
 (defvoo nneething-map-file ".nneething"

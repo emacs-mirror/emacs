@@ -136,9 +136,9 @@ the ball boy@point{}!"
 @end group
 @end example
 
-If @var{limit} is non-@code{nil} (it must be a position in the current
-buffer), then it is the upper bound to the search.  The match found must
-not extend after that position.
+If @var{limit} is non-@code{nil}, it must be a position in the current
+buffer; it specifies the upper bound to the search.  The match found
+must not extend after that position.
 
 If @var{noerror} is @code{nil}, then @code{word-search-forward} signals
 an error if the search fails.  If @var{noerror} is @code{t}, then it
@@ -844,15 +844,15 @@ function skips over any amount of text that is not matched by
 @var{regexp}, and leaves point at the end of the first match found.
 It returns the new value of point.
 
-If @var{limit} is non-@code{nil} (it must be a position in the current
-buffer), then it is the upper bound to the search.  No match extending
-after that position is accepted.
+If @var{limit} is non-@code{nil}, it must be a position in the current
+buffer.  It specifies the upper bound to the search.  No match
+extending after that position is accepted.
 
-If @var{repeat} is supplied (it must be a positive number), then the
-search is repeated that many times (each time starting at the end of the
-previous time's match).  If all these successive searches succeed, the
-function succeeds, moving point and returning its new value.  Otherwise
-the function fails.
+If @var{repeat} is supplied, it must be a positive number; the search
+is repeated that many times; each repetition starts at the end of the
+previous match.  If all these successive searches succeed, the
+function succeeds, moving point and returning its new value.
+Otherwise the function fails.
 
 What happens when the function fails depends on the value of
 @var{noerror}.  If @var{noerror} is @code{nil}, a @code{search-failed}
@@ -1004,10 +1004,14 @@ comes back" twice.
 @defvar search-spaces-regexp
 If this variable is non-@code{nil}, it should be a regular expression
 that says how to search for whitespace.  In that case, any group of
-spaces within in a regular expression being searched for stands for
-use of this regular expression.  However, spaces inside of constructs
-such as @samp{[@dots{}]} and @samp{*}, @samp{+}, @samp{?} are not
-affected by @code{search-spaces-regexp}.
+spaces in a regular expression being searched for stands for use of
+this regular expression.  However, spaces inside of constructs such as
+@samp{[@dots{}]} and @samp{*}, @samp{+}, @samp{?} are not affected by
+@code{search-spaces-regexp}.
+
+Since this variable affects all regular expression search and match
+constructs, you should bind it temporarily for as small as possible
+a part of the code.
 @end defvar
 
 @node POSIX Regexps

@@ -238,7 +238,17 @@ When set to `block', assumes a block cursor with TTY displays."
   :type '(choice (const block) (const :tag "off" nil) (const :tag "on" t))
   :group 'ispell)
 
-(defcustom ispell-highlight-face 'highlight
+(defcustom ispell-lazy-highlight (boundp 'lazy-highlight-cleanup)
+  "*Controls the lazy-highlighting of spelling errors.
+When non-nil, all text in the buffer matching the current spelling
+error is highlighted lazily using isearch lazy highlighting (see
+`lazy-highlight-initial-delay' and `lazy-highlight-interval')."
+  :type 'boolean
+  :group 'lazy-highlight
+  :group 'ispell
+  :version "22.1")
+
+(defcustom ispell-highlight-face (if ispell-lazy-highlight 'isearch 'highlight)
   "*The face used for Ispell highlighting.  For Emacses with overlays.
 Possible values are `highlight', `modeline', `secondary-selection',
 `region', and `underline'.
@@ -2130,7 +2140,7 @@ When the optional third arg HIGHLIGHT is set, the word is highlighted,
 otherwise it is displayed normally."
   (if highlight
       (isearch-highlight start end)
-    (isearch-dehighlight t))
+    (isearch-dehighlight))
   ;;(sit-for 0)
   )
 
@@ -2144,8 +2154,23 @@ The variable `ispell-highlight-face' selects the face to use for highlighting."
   (if highlight
       (progn
 	(setq ispell-overlay (make-overlay start end))
+	(overlay-put ispell-overlay 'priority 1) ;higher than lazy overlays
 	(overlay-put ispell-overlay 'face ispell-highlight-face))
-    (delete-overlay ispell-overlay)))
+    (delete-overlay ispell-overlay))
+  (if (and ispell-lazy-highlight (boundp 'lazy-highlight-cleanup))
+      (if highlight
+	  (let ((isearch-string
+		 (concat
+		  "\\b"
+		  (regexp-quote (buffer-substring-no-properties start end))
+		  "\\b"))
+		(isearch-regexp t)
+		(isearch-case-fold-search nil))
+	    (isearch-lazy-highlight-new-loop
+	     (if (boundp 'reg-start) reg-start)
+	     (if (boundp 'reg-end)   reg-end)))
+	(lazy-highlight-cleanup lazy-highlight-cleanup)
+	(setq isearch-lazy-highlight-last-string nil))))
 
 
 (defun ispell-highlight-spelling-error (start end &optional highlight refresh)

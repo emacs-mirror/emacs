@@ -3,6 +3,9 @@
 ;; Copyright (C) 1995, 2000 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 ;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2005
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Author: Kenichi HANDA <handa@etl.go.jp>
 ;;	   Naoto TAKAHASHI <ntakahas@etl.go.jp>
@@ -1300,7 +1303,8 @@ If STR has `advice' text property, append the following special event:
       (list key)
     (quail-setup-overlays (quail-conversion-keymap))
     (let ((modified-p (buffer-modified-p))
-	  (buffer-undo-list t))
+	  (buffer-undo-list t)
+	  (inhibit-modification-hooks t))
       (unwind-protect
 	  (let ((input-string (if (quail-conversion-keymap)
 				  (quail-start-conversion key)

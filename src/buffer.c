@@ -182,6 +182,7 @@ static void alloc_buffer_text P_ ((struct buffer *, size_t));
 static void free_buffer_text P_ ((struct buffer *b));
 static struct Lisp_Overlay * copy_overlays P_ ((struct buffer *, struct Lisp_Overlay *));
 static void modify_overlay P_ ((struct buffer *, EMACS_INT, EMACS_INT));
+static Lisp_Object buffer_lisp_local_variables P_ ((struct buffer *));
 
 extern char * emacs_strerror P_ ((int));
 
@@ -516,15 +517,10 @@ clone_per_buffer_values (from, to)
   to->overlays_before = copy_overlays (to, from->overlays_before);
   to->overlays_after = copy_overlays (to, from->overlays_after);
 
-  /* Copy the alist of local variables,
-     and all the alist elements too.  */
-  to->local_var_alist
-    = Fcopy_sequence (from->local_var_alist);
-  for (tem = to->local_var_alist; CONSP (tem);
-       tem = XCDR (tem))
-    XSETCAR (tem, Fcons (XCAR (XCAR (tem)), XCDR (XCAR (tem))));
+  /* Get (a copy of) the alist of Lisp-level local variables of FROM
+     and install that in TO.  */
+  to->local_var_alist = buffer_lisp_local_variables (from);
 }
-
 
 DEFUN ("make-indirect-buffer", Fmake_indirect_buffer, Smake_indirect_buffer,
        2, 3,
@@ -935,6 +931,43 @@ is the default binding of variable. */)
   return result;
 }
 
+/* Return an alist of the Lisp-level buffer-local bindings of
+   buffer BUF.  That is, do't include  the variables maintained
+   in special slots in the buffer object.  */
+
+static Lisp_Object
+buffer_lisp_local_variables (buf)
+     struct buffer *buf;
+{
+  Lisp_Object result = Qnil;
+  register Lisp_Object tail;
+  for (tail = buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
+    {
+      Lisp_Object val, elt;
+
+      elt = XCAR (tail);
+
+      /* Reference each variable in the alist in buf.
+	 If inquiring about the current buffer, this gets the current values,
+	 so store them into the alist so the alist is up to date.
+	 If inquiring about some other buffer, this swaps out any values
+	 for that buffer, making the alist up to date automatically.  */
+      val = find_symbol_value (XCAR (elt));
+      /* Use the current buffer value only if buf is the current buffer.  */
+      if (buf != current_buffer)
+	val = XCDR (elt);
+
+      /* If symbol is unbound, put just the symbol in the list.  */
+      if (EQ (val, Qunbound))
+	result = Fcons (XCAR (elt), result);
+      /* Otherwise, put (symbol . value) in the list.  */
+      else
+	result = Fcons (Fcons (XCAR (elt), val), result);
+    }
+
+  return result;
+}
+
 DEFUN ("buffer-local-variables", Fbuffer_local_variables,
        Sbuffer_local_variables, 0, 1, 0,
        doc: /* Return an alist of variables that are buffer-local in BUFFER.
@@ -956,34 +989,7 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
       buf = XBUFFER (buffer);
     }
 
-  result = Qnil;
-
-  {
-    register Lisp_Object tail;
-    for (tail = buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
-      {
-	Lisp_Object val, elt;
-
-	elt = XCAR (tail);
-
-	/* Reference each variable in the alist in buf.
-	   If inquiring about the current buffer, this gets the current values,
-	   so store them into the alist so the alist is up to date.
-	   If inquiring about some other buffer, this swaps out any values
-	   for that buffer, making the alist up to date automatically.  */
-	val = find_symbol_value (XCAR (elt));
-	/* Use the current buffer value only if buf is the current buffer.  */
-	if (buf != current_buffer)
-	  val = XCDR (elt);
-
-	/* If symbol is unbound, put just the symbol in the list.  */
-	if (EQ (val, Qunbound))
-	  result = Fcons (XCAR (elt), result);
-	/* Otherwise, put (symbol . value) in the list.  */
-	else
-	  result = Fcons (Fcons (XCAR (elt), val), result);
-      }
-  }
+  result = buffer_lisp_local_variables (buf);
 
   /* Add on all the variables stored in special slots.  */
   {
@@ -1005,7 +1011,6 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
 
   return result;
 }
-
 
 DEFUN ("buffer-modified-p", Fbuffer_modified_p, Sbuffer_modified_p,
        0, 1, 0,

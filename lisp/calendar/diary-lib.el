@@ -835,21 +835,23 @@ argument PAREN is non-nil, the regexp is surrounded by parentheses."
 (defvar marking-diary-entry nil
   "True during the marking of diary entries, if current entry is marking.")
 
-(defun mark-diary-entries ()
+(defun mark-diary-entries (&optional redraw)
   "Mark days in the calendar window that have diary entries.
-Each entry in the diary file visible in the calendar window is marked.
-After the entries are marked, the hooks `nongregorian-diary-marking-hook' and
-`mark-diary-entries-hook' are run."
-  (interactive)
-  ;; To remove any deleted diary entries.
-  (when (and mark-diary-entries-in-calendar
-             ;; Avoid redrawing when called recursively, eg through
-             ;; mark-diary-entries-hook for #include's, else only get
-             ;; the last set of diary marks.
-             (not marking-diary-entries)
-             ;; If called from redraw-calendar, the calendar has been
-             ;; erased, so no need to unmark the diary entries.
-             (not calendar-redrawing))
+Each entry in the diary file visible in the calendar window is
+marked.  After the entries are marked, the hooks
+`nongregorian-diary-marking-hook' and `mark-diary-entries-hook'
+are run.  If the optional argument REDRAW is non-nil (which is
+the case interactively, for example) then any existing diary
+marks are first removed. This is intended to deal with deleted
+diary entries."
+  (interactive "p")
+  ;; To remove any deleted diary entries. Do not redraw when:
+  ;; i) processing #include diary files (else only get the marks from
+  ;; the last #include file processed).
+  ;; ii) called via calendar-redraw (since calendar has already been
+  ;; erased).
+  ;; Use of REDRAW handles both of these cases.
+  (when (and redraw mark-diary-entries-in-calendar)
     (setq mark-diary-entries-in-calendar nil)
     (redraw-calendar))
   (let ((marking-diary-entries t)
@@ -1661,7 +1663,8 @@ Do nothing if DATE or STRING is nil."
 (defun diary-redraw-calendar ()
   "If `calendar-buffer' is live and diary entries are marked, redraw it."
   (and mark-diary-entries-in-calendar
-       (redraw-calendar))
+       (save-excursion
+         (redraw-calendar)))
   ;; Return value suitable for `write-contents-functions'.
   nil)
 

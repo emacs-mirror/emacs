@@ -1,5 +1,5 @@
 /* Generic frame functions.
-   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2003, 2004
+   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2003, 2004, 2005
    Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -766,11 +766,28 @@ to that frame.  */)
 }
 
 DEFUN ("ignore-event", Fignore_event, Signore_event, 0, 0, "",
-       doc: /* Do nothing, but preserve any prefix argument already specified.
+       doc: /* Do nothing.
 This is a suitable binding for `iconify-frame' and `make-frame-visible'.  */)
      ()
 {
-  current_kboard->Vprefix_arg = Vcurrent_prefix_arg;
+  /* Contrary to `handle-switch-frame', `ignore-event' is used from
+     `special-event-map'.  Commands from that map are run in a special
+     way that automatically preserves the prefix-arg.  Restoring
+     the prefix arg here is not just redundant but harmful:
+     - C-u C-x v =
+     - current-prefix-arg is set to non-nil, prefix-arg is set to nil.
+     - after the first prompt, the exit-minibuffer-hook is run which may
+       iconify a frame and thus push a `iconify-frame' event.
+     - after running exit-minibuffer-hook, current-prefix-arg is
+       restored to the non-nil value it had before the prompt.
+     - we enter the second prompt.
+       current-prefix-arg is non-nil, prefix-arg is nil.
+     - before running the first real event, we run the special iconify-frame
+       event, but we pass the `special' arg to execute-command so
+       current-prefix-arg and prefix-arg are left untouched.
+     - here we foolishly copy the non-nil current-prefix-arg to prefix-arg.
+     - the next key event will have a spuriously non-nil current-prefix-arg.
+  current_kboard->Vprefix_arg = Vcurrent_prefix_arg; */
   return Qnil;
 }
 
