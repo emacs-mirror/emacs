@@ -1,5 +1,9 @@
 2002-11-18  Kenichi Handa  <handa@m17n.org>
 
+	* progmodes/cc-vars.el (char-table-p): Undo previous change.
+
+2002-11-18  Kenichi Handa  <handa@m17n.org>
+
 	* language/cyrillic.el (cyrillic-iso-8bit): Make it safe.
 
 	* language/european.el (iso-latin-1): Make it safe.
