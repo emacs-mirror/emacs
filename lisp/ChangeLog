@@ -1,3 +1,8 @@
+2003-09-28  Evgeni Dobrev  <evgeni_dobrev@developer.bg> (tiny patch)
+
+	* man.el (Man-default-man-entry): Remove the leading `*' from the
+	word at point.
+
 2003-09-26  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
 	* bindings.el (mode-line-position): Mention size indication in
