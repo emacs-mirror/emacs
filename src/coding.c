@@ -44,41 +44,40 @@ Boston, MA 02111-1307, USA.  */
   0. Emacs' internal format (emacs-mule)
 
   Emacs itself holds a multi-lingual character in a buffer and a string
-  in a special format.  Details are described in the section 2.
+  in a special format.  Details are described in section 2.
 
   1. ISO2022
 
   The most famous coding system for multiple character sets.  X's
-  Compound Text, various EUCs (Extended Unix Code), and such coding
-  systems used in Internet communication as ISO-2022-JP are all
-  variants of ISO2022.  Details are described in the section 3.
+  Compound Text, various EUCs (Extended Unix Code), and coding
+  systems used in Internet communication such as ISO-2022-JP are
+  all variants of ISO2022.  Details are described in section 3.
 
   2. SJIS (or Shift-JIS or MS-Kanji-Code)
    
   A coding system to encode character sets: ASCII, JISX0201, and
   JISX0208.  Widely used for PC's in Japan.  Details are described in
-  the section 4.
+  section 4.
 
   3. BIG5
 
   A coding system to encode character sets: ASCII and Big5.  Widely
   used by Chinese (mainly in Taiwan and Hong Kong).  Details are
-  described in the section 4.  In this file, when written as "BIG5"
-  (all uppercase), it means the coding system, and when written as
-  "Big5" (capitalized), it means the character set.
+  described in section 4.  In this file, when we write "BIG5"
+  (all uppercase), we mean the coding system, and when we write
+  "Big5" (capitalized), we mean the character set.
 
-  4. Else
+  4. Other
 
-  If a user want to read/write a text encoded in a coding system not
+  If a user wants to read/write a text encoded in a coding system not
   listed above, he can supply a decoder and an encoder for it in CCL
   (Code Conversion Language) programs.  Emacs executes the CCL program
   while reading/writing.
 
-  Emacs represent a coding-system by a Lisp symbol that has a property
+  Emacs represents a coding-system by a Lisp symbol that has a property
   `coding-system'.  But, before actually using the coding-system, the
   information about it is set in a structure of type `struct
-  coding_system' for rapid processing.  See the section 6 for more
-  detail.
+  coding_system' for rapid processing.  See section 6 for more details.
 
 */
 
@@ -86,14 +85,13 @@ Boston, MA 02111-1307, USA.  */
 
   How end-of-line of a text is encoded depends on a system.  For
   instance, Unix's format is just one byte of `line-feed' code,
-  whereas DOS's format is two bytes sequence of `carriage-return' and
+  whereas DOS's format is two-byte sequence of `carriage-return' and
   `line-feed' codes.  MacOS's format is one byte of `carriage-return'.
 
-  Since how characters in a text is encoded and how end-of-line is
-  encoded is independent, any coding system described above can take
+  Since text characters encoding and end-of-line encoding are
+  independent, any coding system described above can take
   any format of end-of-line.  So, Emacs has information of format of
-  end-of-line in each coding-system.  See the section 6 for more
-  detail.
+  end-of-line in each coding-system.  See section 6 for more details.
 
 */
 
@@ -117,10 +115,10 @@ detect_coding_emacs_mule (src, src_end)
 
   These functions decode SRC_BYTES length text at SOURCE encoded in
   CODING to Emacs' internal format (emacs-mule).  The resulting text
-  goes to a place pointed by DESTINATION, the length of which should
-  not exceed DST_BYTES.  The bytes actually processed is returned as
-  *CONSUMED.  The return value is the length of the decoded text.
-  Below is a template of these functions.  */
+  goes to a place pointed to by DESTINATION, the length of which should
+  not exceed DST_BYTES.  The number of bytes actually processed is
+  returned as *CONSUMED.  The return value is the length of the decoded
+  text.  Below is a template of these functions.  */
 #if 0
 decode_coding_XXX (coding, source, destination, src_bytes, dst_bytes, consumed)
      struct coding_system *coding;
@@ -136,10 +134,10 @@ decode_coding_XXX (coding, source, destination, src_bytes, dst_bytes, consumed)
 
   These functions encode SRC_BYTES length text at SOURCE of Emacs'
   internal format (emacs-mule) to CODING.  The resulting text goes to
-  a place pointed by DESTINATION, the length of which should not
-  exceed DST_BYTES.  The bytes actually processed is returned as
-  *CONSUMED.  The return value is the length of the encoded text.
-  Below is a template of these functions.  */
+  a place pointed to by DESTINATION, the length of which should not
+  exceed DST_BYTES.  The number of bytes actually processed is
+  returned as *CONSUMED.  The return value is the length of the
+  encoded text.  Below is a template of these functions.  */
 #if 0
 encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes, consumed)
      struct coding_system *coding;
@@ -200,7 +198,7 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes, consumed)
       *dst++ = (c);						\
   } while (0)
 
-/* Decode one DIMENSION1 character of which charset is CHARSET and
+/* Decode one DIMENSION1 character whose charset is CHARSET and whose
    position-code is C.  */
 
 #define DECODE_CHARACTER_DIMENSION1(charset, c)				\
@@ -215,7 +213,7 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes, consumed)
     *dst++ = (c) | 0x80;						\
   } while (0)
 
-/* Decode one DIMENSION2 character of which charset is CHARSET and
+/* Decode one DIMENSION2 character whose charset is CHARSET and whose
    position-codes are C1 and C2.  */
 
 #define DECODE_CHARACTER_DIMENSION2(charset, c1, c2)	\
@@ -337,25 +335,25 @@ Lisp_Object Vdefault_process_coding_system;
 /*** 2. Emacs internal format (emacs-mule) handlers ***/
 
 /* Emacs' internal format for encoding multiple character sets is a
-   kind of multi-byte encoding, i.e. encoding a character by a sequence
-   of one-byte codes of variable length.  ASCII characters and control
-   characters (e.g. `tab', `newline') are represented by one-byte as
-   is.  It takes the range 0x00 through 0x7F.  The other characters
-   are represented by a sequence of `base leading-code', optional
-   `extended leading-code', and one or two `position-code's.  Length
-   of the sequence is decided by the base leading-code.  Leading-code
-   takes the range 0x80 through 0x9F, whereas extended leading-code
-   and position-code take the range 0xA0 through 0xFF.  See the
-   document of `charset.h' for more detail about leading-code and
-   position-code.
+   kind of multi-byte encoding, i.e. characters are encoded by
+   variable-length sequences of one-byte codes.  ASCII characters
+   and control characters (e.g. `tab', `newline') are represented by
+   one-byte sequences which are their ASCII codes, in the range 0x00
+   through 0x7F.  The other characters are represented by a sequence
+   of `base leading-code', optional `extended leading-code', and one
+   or two `position-code's.  The length of the sequence is determined
+   by the base leading-code.  Leading-code takes the range 0x80
+   through 0x9F, whereas extended leading-code and position-code take
+   the range 0xA0 through 0xFF.  See `charset.h' for more details
+   about leading-code and position-code.
 
-   There's one exception in this rule.  Special leading-code
+   There's one exception to this rule.  Special leading-code
    `leading-code-composition' denotes that the following several
    characters should be composed into one character.  Leading-codes of
    components (except for ASCII) are added 0x20.  An ASCII character
    component is represented by a 2-byte sequence of `0xA0' and
-   `ASCII-code + 0x80'.  See also the document in `charset.h' for the
-   detail of composite character.  Hence, we can summarize the code
+   `ASCII-code + 0x80'.  See also the comments in `charset.h' for the
+   details of composite character.  Hence, we can summarize the code
    range as follows:
 
    --- CODE RANGE of Emacs' internal format ---
@@ -447,21 +445,21 @@ detect_coding_emacs_mule (src, src_end)
 /*** 3. ISO2022 handlers ***/
 
 /* The following note describes the coding system ISO2022 briefly.
-   Since the intension of this note is to help understanding of the
-   programs in this file, some parts are NOT ACCURATE or OVERLY
+   Since the intention of this note is to help in understanding of
+   the programs in this file, some parts are NOT ACCURATE or OVERLY
    SIMPLIFIED.  For the thorough understanding, please refer to the
    original document of ISO2022.
 
    ISO2022 provides many mechanisms to encode several character sets
-   in 7-bit and 8-bit environment.  If one choose 7-bite environment,
+   in 7-bit and 8-bit environment.  If one chooses 7-bite environment,
    all text is encoded by codes of less than 128.  This may make the
-   encoded text a little bit longer, but the text get more stability
-   to pass through several gateways (some of them split MSB off).
+   encoded text a little bit longer, but the text gets more stability
+   to pass through several gateways (some of them strip off the MSB).
 
-   There are two kind of character set: control character set and
+   There are two kinds of character set: control character set and
    graphic character set.  The former contains control characters such
    as `newline' and `escape' to provide control functions (control
-   functions are provided also by escape sequence).  The latter
+   functions are provided also by escape sequences).  The latter
    contains graphic characters such as ' A' and '-'.  Emacs recognizes
    two control character sets and many graphic character sets.
 
@@ -565,7 +563,7 @@ detect_coding_emacs_mule (src, src_end)
    '(' can be omitted.  We call this as "short-form" here after.
 
    Now you may notice that there are a lot of ways for encoding the
-   same multilingual text in ISO2022.  Actually, there exist many
+   same multilingual text in ISO2022.  Actually, there exists many
    coding systems such as Compound Text (used in X's inter client
    communication, ISO-2022-JP (used in Japanese Internet), ISO-2022-KR
    (used in Korean Internet), EUC (Extended UNIX Code, used in Asian
@@ -1018,10 +1016,10 @@ decode_coding_iso2022 (coding, source, destination,
   return dst - destination;
 }
 
-/* ISO2022 encoding staffs.  */
+/* ISO2022 encoding stuff.  */
 
 /*
-   It is not enough to say just "ISO2022" on encoding, but we have to
+   It is not enough to say just "ISO2022" on encoding, we have to
    specify more details.  In Emacs, each coding-system of ISO2022
    variant has the following specifications:
 	1. Initial designation to G0 thru G3.
@@ -1036,7 +1034,7 @@ decode_coding_iso2022 (coding, source, destination,
 	9. Use JISX0208-1983 in place of JISX0208-1978?
    These specifications are encoded in `coding->flags' as flag bits
    defined by macros CODING_FLAG_ISO_XXX.  See `coding.h' for more
-   detail.
+   details.
 */
 
 /* Produce codes (escape sequence) for designating CHARSET to graphic
@@ -1132,8 +1130,8 @@ decode_coding_iso2022 (coding, source, destination,
     CODING_SPEC_ISO_INVOCATION (coding, 0) = 3;	\
   } while (0)
 
-/* Produce codes for a DIMENSION1 character of which character set is
-   CHARSET and position-code is C1.  Designation and invocation
+/* Produce codes for a DIMENSION1 character whose character set is
+   CHARSET and whose position-code is C1.  Designation and invocation
    sequences are also produced in advance if necessary.  */
 
 
@@ -1166,8 +1164,8 @@ decode_coding_iso2022 (coding, source, destination,
       dst = encode_invocation_designation (charset, coding, dst);	\
   } while (1)
 
-/* Produce codes for a DIMENSION2 character of which character set is
-   CHARSET and position-codes are C1 and C2.  Designation and
+/* Produce codes for a DIMENSION2 character whose character set is
+   CHARSET and whose position-codes are C1 and C2.  Designation and
    invocation codes are also produced in advance if necessary.  */
 
 #define ENCODE_ISO_CHARACTER_DIMENSION2(charset, c1, c2)		\
@@ -1552,7 +1550,7 @@ encode_coding_iso2022 (coding, source, destination,
 
 /*** 4. SJIS and BIG5 handlers ***/
 
-/* Although SJIS and BIG5 are not ISO's coding system, They are used
+/* Although SJIS and BIG5 are not ISO's coding system, they are used
    quite widely.  So, for the moment, Emacs supports them in the bare
    C code.  But, in the future, they may be supported only by CCL.  */
 
@@ -2167,7 +2165,7 @@ setup_coding_system (coding_system, coding)
 {
   Lisp_Object type, eol_type;
 
-  /* At first, set several fields default values.  */
+  /* At first, set several fields to default values.  */
   coding->require_flushing = 0;
   coding->last_block = 0;
   coding->selective = 0;
