@@ -5925,13 +5925,16 @@ realize_x_face (cache, attrs, c, base_face)
   else
     {
       /* If the face attribute ATTRS specifies a fontset, use it as
-	 the base of a new realized fontset.  Otherwise, use the
-	 default fontset as the base.  The base determines registry
-	 and encoding of a font.  It may also determine foundry and
-	 family.  The other fields of font name pattern are
-	 constructed from ATTRS.  */
-      face->fontset
-	= make_fontset_for_ascii_face (f, face_fontset (attrs));
+	 the base of a new realized fontset.  Otherwise, use the same
+	 base fontset as of the default face.  The base determines
+	 registry and encoding of a font.  It may also determine
+	 foundry and family.  The other fields of font name pattern
+	 are constructed from ATTRS.  */
+      int fontset = face_fontset (attrs);
+
+      if (fontset == -1)
+	fontset = default_face->fontset;
+      face->fontset = make_fontset_for_ascii_face (f, fontset);
       face->font = NULL;	/* to force realize_face to load font */
     }
 
