@@ -1,3 +1,8 @@
+2003-11-01  Alan Mackenzie  <acm@muc.de>
+
+	* search.texi (Scrolling During Incremental Search): Document a
+	new scrolling facility in isearch mode.
+
 2003-10-26  Karl Berry  <karl@gnu.org>
 
 	* info.texi (Info Search): echo area, not echo are.  From Debian
