@@ -1,3 +1,13 @@
+2002-08-19  Kenichi Handa  <handa@etl.go.jp>
+
+	* emacs.c (main): In the case of --unibyte, instead of aborting on
+	finding non-empty buffer, make it unibyte.
+
+2002-08-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* xterm.c (x_new_fontset): Call `create-fontset-from-ascii-font'
+	to create a fontset.
+
 2002-08-18  Dave Love  <fx@gnu.org>
 
 	* character.c (Funibyte_char_to_multibyte): Doc fix.

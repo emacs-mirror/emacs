@@ -1,3 +1,12 @@
+2002-08-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/fontset.el (fontset-plain-name): If the fontset
+	name doesn't ends with "-fontset-*", use family name as the first
+	part of the plain name.
+	(create-fontset-from-ascii-font): If "fontset-startup" is not yet
+	created, use that name for the fontset.  Fix arguments to
+	subst-char-in-string.
+
 2002-08-18  Dave Love  <fx@gnu.org>
 
 	* term.el (term-char-mode): Remove generic-character-list code.
