@@ -3,6 +3,14 @@
 	* toolbar/*.xpm: Reduce to max. 8 colors (mogrify -colorspace 
 	transparent -colors 8).
 
+2000-10-13  Stephen Gildea  <gildea@alum.mit.edu>
+
+	* time-stamp.el (time-stamp): Fixed bug in new multi-line code
+	that breaks with old list format timestamps.
+	(time-stamp-warn-inactive, time-stamp-old-format-warn)
+	(time-stamp-count, time-stamp-conversion-warn): Improved doc
+	strings.
+
 2000-10-13  John Wiegley  <johnw@gnu.org>
 
 	* align.el, pcomplete.el, calendar/timeclock.el,
