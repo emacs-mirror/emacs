@@ -1,3 +1,10 @@
+2002-05-23  Dave Love  <fx@gnu.org>
+
+	* data.c (Fchar_or_string_p): Doc fix.  Use CHARACTERP.
+
+	* category.c (Fmodify_category_entry): Doc fix.  Remove unused
+	vars.
+
 2002-05-23  Yong Lu <lyongu@asia-infonet.com>
 
 	* charset.c (Fdefine_charset_internal): Fix argument to bzero.

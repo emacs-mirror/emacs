@@ -1,3 +1,40 @@
+2002-05-23  Dave Love  <fx@gnu.org>
+
+	* language/ind-util.el: Avoid decode-char.
+	(indian--puthash-char, indian--puthash-c, indian--puthash-cv):
+	Use characterp, not char-valid-p.
+
+	* language/devan-util.el: Add coding tag, avoid decode-char.
+
+	* international/titdic-cnv.el: Add coding tag.
+	(tit-process-header): Add coding tag to output.
+
+	* language/thai.el (cp874, ibm874): New coding systems.
+
+	* emacs-lisp/byte-opt.el <side-effect-and-error-free-fns>: Add
+	character-p.
+
+	* language/european.el (cp852, ibm852, cp857, ibm857, cp860)
+	(ibm860, cp861, ibm861, cp863, cp865, ibm865, cp437, ibm437): New
+	coding systems.
+	<set-language-info-alist>: Avoid decode-char.
+
+	* language/hebrew.el (cp862, ibm862): New coding systems.
+
+	* language/greek.el (cp851, ibm851, cp869, ibm869): New coding
+	systems.
+
+	* language/cyrillic.el (cp855, ibm855): New coding systems.
+
+	* international/mule-conf.el: Avoid decode-char in top-level code
+	for self-inserting multibyte chars.
+	(cp437, cp737, cp775, cp851, cp852, cp855, cp857, cp855, cp857)
+	(cp860, cp861, cp862, cp863, cp864, cp865, cp869, cp874):  New
+	charsets.
+
+	* international/characters.el: Various simplifications and
+	additions.
+
 2002-05-22  Dave Love  <fx@gnu.org>
 
 	* international/mule-conf.el (code-pages): Provide for
