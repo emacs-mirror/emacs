@@ -1,3 +1,17 @@
+2003-03-14  John Paul Wallington  <jpw@gnu.org>
+
+	* files.el (recover-session): Error if there are no previous
+	sessions to recover.
+
+	* subr.el (posn-col-row): Simplify.
+
+	* arc-mode.el (archive-subtype, archive-file-list-start)
+	(archive-file-list-end, archive-proper-file-start)
+	(archive-read-only, archive-local-name, archive-mode-map)
+	(archive-file-name-indent, archive-remote)
+	(archive-alternate-display, archive-superior-buffer)
+	(archive-subfile-mode): Doc fixes.
+
 2003-03-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/outline.el (outline-level): Demote it to defvar.
