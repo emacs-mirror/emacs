@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.24 2001/08/28 17:06:36 spiegel Exp $
+;; $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -688,19 +688,21 @@ essential information."
             (setq status (match-string 1)))
           (if (and full
                    (re-search-forward
-		    "\\(RCS Version\\|RCS Revision\\|Repository revision\\):\
+                    "\\(RCS Version\\|RCS Revision\\|Repository revision\\):\
 \[\t ]+\\([0-9.]+\\)"
                     nil t))
               (vc-file-setprop file 'vc-latest-version (match-string 2)))
-          (cond
-           ((string-match "Up-to-date" status)
-            (vc-file-setprop file 'vc-checkout-time
-                             (nth 5 (file-attributes file)))
-            'up-to-date)
-           ((string-match "Locally Modified"    status) 'edited)
-	   ((string-match "Needs Merge"         status) 'needs-merge)
-	   ((string-match "Needs \\(Checkout\\|Patch\\)" status) 'needs-patch)
-	   (t 'edited)))))))
+          (vc-file-setprop 
+           file 'vc-state
+           (cond
+            ((string-match "Up-to-date" status)
+             (vc-file-setprop file 'vc-checkout-time
+                              (nth 5 (file-attributes file)))
+             'up-to-date)
+            ((string-match "Locally Modified" status)             'edited)
+            ((string-match "Needs Merge" status)                  'needs-merge)
+            ((string-match "Needs \\(Checkout\\|Patch\\)" status) 'needs-patch)
+            (t 'edited))))))))
 
 (defun vc-cvs-dir-state-heuristic (dir)
   "Find the CVS state of all files in DIR, using only local information."
