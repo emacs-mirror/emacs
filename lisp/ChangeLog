@@ -1,3 +1,19 @@
+2004-09-02  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-buffer-name): Compare major
+	mode with second element of compilation-arguments instead of third
+	to reflect latest changes in compilation-arguments structure.
+	(recompile): Use global variable `compilation-directory' to get
+	recent compilation directory only when `recompile' is invoked NOT
+	in the compilation buffer.  Otherwise, use `default-directory' of
+	the compilation buffer.
+
+	* emacs-lisp/lisp.el (beginning-of-defun, end-of-defun):
+	Do not push mark if inhibit-mark-movement is non-nil.
+
+	* textmodes/ispell.el (ispell-html-skip-alists):
+	Fix backslashes in docstring.
+
 2004-09-01  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-wrap-function)

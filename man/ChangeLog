@@ -1,3 +1,11 @@
+2004-09-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* building.texi (Compilation Mode): Add a paragraph about rules
+	for finding the compilation buffer for `next-error'.
+
+	* search.texi (Other Repeating Search): Mention that Occur mode
+	supports the next-error functionality.
+
 2004-09-02  Juri Linkov  <juri@jurta.org>
 
 	* search.texi (Regexp Replace): Add missing backslash to \footnote.
