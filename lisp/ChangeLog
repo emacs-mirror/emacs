@@ -1,3 +1,26 @@
+2000-12-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	From Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>:
+
+	* ls-lisp.el: Better support for the Mac and MS-Windows.
+	(ls-lisp): New defgroup.
+	(ls-lisp-emulation, ls-lisp-ignore-case, ls-lisp-dirs-first)
+	(ls-lisp-verbosity, ls-lisp-use-insert-directory-program) 
+	(ls-lisp-support-shell-wildcards): New defcustoms.
+	(ls-lisp-parse-symlink): New function.
+	(insert-directory): Code to convert switches to a list and set up
+	the wildcard argument copied from ls-lisp-insert-directory.
+	(ls-lisp-insert-directory): New argument TIME-INDEX.  Add support
+	for -C and -R switches.
+	(ls-lisp-column-format): New function.
+	(ls-lisp-delete-matching, ls-lisp-handle-switches) 
+	(ls-lisp-format-time): Add doc strings.
+	(ls-lisp-handle-switches): Handle -U, -S, -X, and -F switches.
+	Support ls-lisp-dirs-first.
+	(ls-lisp-classify, ls-lisp-extension): New functions.
+	(ls-lisp-format): Optionally support emulation of symlinks.
+	Support -i, -s, and -G switches.
+
 2000-12-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/texinfo.el (texinfo-mode): Set fill-column to 70.

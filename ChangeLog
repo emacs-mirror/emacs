@@ -1,3 +1,11 @@
+2000-12-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* INSTALL: Add basic installation procedure which assumes
+	`configure' does its job.  Elaborate on image support libraries.
+	Add a pointer to Xaw3d library.  Add advice about solving
+	configure-time problems by looking in config.log and setting
+	variables in the envoronment.
+
 2000-12-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (install-arch-indep): If tar fails, exit with
