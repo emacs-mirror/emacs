@@ -209,6 +209,27 @@
 ;;;See also "site-load" above.
 (load "site-init" t)
 (setq current-load-list nil)
+
+;; Write the value of load-history into etc/LOADHIST.el,
+;; the clear out load-history.
+(let ((buffer-undo-list t))
+  (princ "(setq load-history\n" (current-buffer))
+  (princ "      (nconc load-history\n" (current-buffer))
+  (princ "             '(" (current-buffer))
+  (let ((tem load-history))
+    (while tem
+      (prin1 (car tem) (current-buffer))
+      (terpri (current-buffer))
+      (if (cdr tem)
+	  (princ "               " (current-buffer)))
+      (setq tem (cdr tem))))
+  (princ ")))" (current-buffer))
+  (write-region (point-min) (point-max)
+		(expand-file-name (format "fns-%s.el" emacs-version)
+				  data-directory))
+  (erase-buffer))
+(setq load-history nil)
+
 (garbage-collect)
 
 ;;; At this point, we're ready to resume undo recording for scratch.
