@@ -317,12 +317,12 @@ This command must be bound to a mouse click."
 	      'right)))
     (if (one-window-p t)
 	(error "Attempt to resize sole ordinary window"))
-    (if (eq which-side 'left)
-	(if (= (nth 0 (window-edges start-event-window)) 0)
-	    (error "Attempt to drag leftmost scrollbar"))
-      (if (= (nth 2 (window-edges start-event-window))
-	     (frame-width start-event-frame))
-	  (error "Attempt to drag rightmost scrollbar")))
+    (if (eq which-side 'right)
+	(if (= (nth 2 (window-edges start-event-window))
+	       (frame-width start-event-frame))
+	    (error "Attempt to drag rightmost scrollbar"))
+      (if (= (nth 0 (window-edges start-event-window)) 0)
+	  (error "Attempt to drag leftmost scrollbar")))
     (track-mouse
       (progn
 	;; enlarge-window only works on the selected window, so
@@ -363,10 +363,10 @@ This command must be bound to a mouse click."
 		 (save-selected-window
 		   ;; If the scroll bar is on the window's left,
 		   ;; adjust the window on the left.
-		   (if (eq which-side 'left)
-		       (select-window (previous-window)))
+		   (unless (eq which-side 'right)
+		     (select-window (previous-window)))
 		   (setq x (- (car (cdr mouse))
-			      (if (eq which-side 'left) 2 0))
+			      (if (eq which-side 'right) 0 2))
 			 edges (window-edges)
 			 left (nth 0 edges)
 			 right (nth 2 edges))
