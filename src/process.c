@@ -734,18 +734,34 @@ If the process has a filter, its buffer is not used for output.")
   (process, filter)
      register Lisp_Object process, filter;
 {
+  struct Lisp_Process *p;
+  
   CHECK_PROCESS (process, 0);
-  if (EQ (filter, Qt))
+  p = XPROCESS (process);
+
+  /* Don't signal an error if the process' input file descriptor
+     is closed.  This could make debugging Lisp more difficult,
+     for example when doing something like
+
+     (setq process (start-process ...))
+     (debug)
+     (set-process-filter process ...)  */
+  
+  if (XINT (p->infd) >= 0)
     {
-      FD_CLR (XINT (XPROCESS (process)->infd), &input_wait_mask);
-      FD_CLR (XINT (XPROCESS (process)->infd), &non_keyboard_wait_mask);
+      if (EQ (filter, Qt))
+	{
+	  FD_CLR (XINT (p->infd), &input_wait_mask);
+	  FD_CLR (XINT (p->infd), &non_keyboard_wait_mask);
+	}
+      else if (EQ (XPROCESS (process)->filter, Qt))
+	{
+	  FD_SET (XINT (p->infd), &input_wait_mask);
+	  FD_SET (XINT (p->infd), &non_keyboard_wait_mask);
+	}
     }
-  else if (EQ (XPROCESS (process)->filter, Qt))
-    {
-      FD_SET (XINT (XPROCESS (process)->infd), &input_wait_mask);
-      FD_SET (XINT (XPROCESS (process)->infd), &non_keyboard_wait_mask);
-    }
-  XPROCESS (process)->filter = filter;
+  
+  p->filter = filter;
   return filter;
 }
 
@@ -793,8 +809,10 @@ DEFUN ("set-process-window-size", Fset_process_window_size,
   CHECK_PROCESS (process, 0);
   CHECK_NATNUM (height, 0);
   CHECK_NATNUM (width, 0);
-  if (set_window_size (XINT (XPROCESS (process)->infd),
-		       XINT (height), XINT (width)) <= 0)
+  
+  if (XINT (XPROCESS (process)->infd < 0)
+      || set_window_size (XINT (XPROCESS (process)->infd),
+			  XINT (height), XINT (width)) <= 0)
     return Qnil;
   else
     return Qt;
