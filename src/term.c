@@ -2189,6 +2189,7 @@ term_dummy_init (void)
   tty_list->output = stdout;
   tty_list->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
   tty_list->display_method = (struct display_method *) xmalloc (sizeof (struct display_method));
+  tty_list->kboard = initial_kboard;
   return tty_list;
 }
 
@@ -2212,6 +2213,15 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
          the dummy terminal created for the initial frame. */
       if (tty->type)
         return tty;
+
+      /* Free up temporary structures. */
+      if (tty->Wcm)
+        xfree (tty->Wcm);
+      if (tty->display_method)
+        xfree (tty->display_method);
+      if (tty->kboard != initial_kboard)
+        abort ();
+      tty->kboard = 0;
     }
   else
     {
@@ -2221,19 +2231,17 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
       tty_list = tty;
     }
 
-  if (! tty->Wcm)
-    tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
+  tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
+  Wcm_clear (tty);
 
-  if (! tty->display_method)
-    tty->display_method = (struct display_method *) xmalloc (sizeof (struct display_method));
+  /* Each termcap frame has its own display method. */
+  tty->display_method = (struct display_method *) xmalloc (sizeof (struct display_method));
+  bzero (tty->display_method, sizeof (struct display_method));
 
   /* Initialize the common members in the new display method with our
      predefined template. */
   *tty->display_method = tty_display_method_template;
   f->display_method = tty->display_method;
-
-  /* Termcap-based displays don't support window-based redisplay. */
-  f->display_method->rif = 0;
 
   /* Make sure the frame is live; if an error happens, it must be
      deleted. */
@@ -2278,7 +2286,7 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
   FrameCols (tty) = FRAME_COLS (f);
   tty->specified_window = FRAME_LINES (f);
 
-  f->display_method->delete_in_insert_mode = 1;
+  tty->display_method->delete_in_insert_mode = 1;
 
   UseTabs (tty) = 0;
   FRAME_SCROLL_REGION_OK (f) = 0;
@@ -2509,7 +2517,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     }
 
 #if 0  /* This is not used anywhere. */
-  f->display_method->min_padding_speed = tgetnum ("pb");
+  tty->display_method->min_padding_speed = tgetnum ("pb");
 #endif
 
   TabWidth (tty) = tgetnum ("tw");
@@ -2723,6 +2731,19 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   FRAME_CHAR_INS_DEL_OK (f) = 0;
 #endif
 
+#ifdef MULTI_KBOARD
+  tty->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+  init_kboard (tty->kboard);
+  tty->kboard->next_kboard = all_kboards;
+  all_kboards = tty->kboard;
+  /* Don't let the initial kboard remain current longer than necessary.
+     That would cause problems if a file loaded on startup tries to
+     prompt in the mini-buffer.  */
+  if (current_kboard == initial_kboard)
+    current_kboard = tty->kboard;
+  tty->kboard->reference_count++;
+#endif
+
   /* Don't do this.  I think termcap may still need the buffer. */
   /* xfree (buffer); */
 
@@ -2735,7 +2756,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   tty_set_terminal_modes (tty);
 
   return tty;
-#endif /* WINDOWSNT */
+#endif /* not WINDOWSNT */
 }
 
 /* VARARGS 1 */
@@ -2844,6 +2865,13 @@ delete_tty (struct tty_display_info *tty)
   if (tty->display_method)
     xfree (tty->display_method);
 
+#ifdef MULTI_KBOARD
+  if (tty->kboard && --tty->kboard->reference_count > 0)
+    abort ();
+  if (tty->kboard)
+    delete_kboard (tty->kboard);
+#endif
+  
   bzero (tty, sizeof (struct tty_display_info));
   xfree (tty);
   deleting_tty = 0;
@@ -2897,9 +2925,13 @@ The function should accept no arguments.  */);
   defsubr (&Sframe_tty_type);
   defsubr (&Sdelete_tty);
 
-  /* XXX tty_display_method_template initialization will go here. */
-
   Fprovide (intern ("multi-tty"), Qnil);
+
+  /* Initialize the display method template. */
+  
+  /* Termcap-based displays don't support window-based redisplay. */
+  tty_display_method_template.rif = 0;
+
 }
 
 

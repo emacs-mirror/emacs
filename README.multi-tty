@@ -6,6 +6,22 @@ The ultimate goal of this branch is to implement support for opening
 multiple, different tty devices and simultaneous X and tty frames from
 a single Emacs session.
 
+Some use cases:
+
+Emacs is notoriously slow at startup, so most people use another
+editor or emacsclient for quick editing jobs from the console.
+Unfortunately, emacsclient was very awkward to use, because it did not
+support opening a new Emacs frame on the current virtual console.
+Now, with multi-tty support, it can do that.  (Emacsclient starts up
+faster than vi!)
+
+Some Gnus users (including me) run Gnus in an X frame in its own Emacs
+instance, which they typically leave running for weeks.  It would be
+nice if they could connect to this instance from a remote ssh session
+and check their messages without opening a remote X frame or resorting
+to gnus-slave.
+
+
 WHO IS DOING IT
 ---------------
 
@@ -18,46 +34,66 @@ Retrieving the latest version of the branch:
 	tla register-archive lorentey@elte.hu--2004 http://lorentey.web.elte.hu/arch/2004/
 	tla get lorentey@elte.hu--2004/emacs--multi-tty <directory>
 
-(I use tla 1.1.)
+(I use a recent arch development snapshot, but any of the released
+versions of arch will do fine, I think.)
 
+If you don't have arch, the branch has a homepage from which you can
+download conventional patches against Emacs CVS HEAD:
+
+	http://lorentey.web.elte.hu/project/emacs.html
 
 STATUS
 ------
 
-Basic multi-tty support is there; there are some rough edges, but it
-already seems to be usable.  Emacsclient has been extended to support
-opening a new terminal frame.
+Multi-tty support is stable, I think most of the problems were fixed.
+(It still needs testing on other architectures, though.)  Please let
+me know if you find any bugs in it.  Emacsclient has been extended to
+support opening a new terminal frame.
 
-To try it out, compile the multi-tty branch with the following
+To try it out, compile and run the multi-tty branch with the following
 commands:
 
    	mkdir +build
 	cd +build
 	../configure
 	make bootstrap
+	src/emacs -nw
+	M-x server-start
 
-then start up the emacs server (src/emacs -nw, M-x server-start), and
-then (from a shell prompt on another terminal) start emacsclient with
+and then (from a shell prompt on another terminal) start emacsclient
+with
 
-	lib-src/emacsclient -f /optional/file/names...
+	lib-src/emacsclient -t /optional/file/names...
 
 You'll hopefully have two fully working, independent frames on
-separate terminals.  (This seems to be very useful, emacsclient starts
-up even faster than vi!) :-) You can close the newly opened frame and
-return to the shell without exiting Emacs by pressing C-x 5 0, i.e.,
-delete-frame.  Creating new frames on the same tty with C-x 5 2
-works exactly as before.  Suspending Emacs is disabled at the moment.
-If you exit emacs, all terminals should be restored to their previous
-states.
+separate terminals. The new frame is closed automatically when you
+have finished editing the specified files (C-x #), but delete-frame
+(C-x 5 0) also works.  Of course, you can create frames on more than
+two tty devices.
 
-X support is (I hope) working, but at the moment there are problems
-with simultaneous X and tty devices, so don't do that.
+Creating new frames on the same tty with C-x 5 2 works, and they
+behave the same way as in previous Emacs versions.  If you exit emacs,
+all terminals should be restored to their previous states.
 
-Mac, Windows and DOS support is broken, probably doesn't even
-compile -- this will be solved later.
+This is work in progress, and probably full of bugs.  You should
+always run emacs from gdb, so that you'll have a live instance to
+debug if something goes wrong.  Please send me your reports.
 
-Only tested on my GNU/Linux box.
+Problems:
 
+	* Suspending Emacs is disabled if there are multiple tty
+	  devices.  Also, there is no way to suspend emacsclient. This
+	  will be fixed.
+
+	* X support is (I hope) working, but at the moment there are
+	  problems with simultaneous X and tty devices, so don't do
+	  that - start a separate Emacs with -nw and run the server
+	  there.
+
+	* Mac, Windows and DOS support is broken, probably doesn't
+	  even compile -- this will be solved later.
+
+	* Only tested on my GNU/Linux box.
 
 NEWS
 ----
@@ -88,6 +124,78 @@ CHANGELOG
 
 See arch logs.
 
+THINGS TO DO
+------------
+
+** Fix rif issue with X-tty combo sessions.  IMHO the best thing to do
+   is to get rid of that global variable (and use the value value in
+   display_method, which is guaranteed to be correct).
+
+** Fix faces on tty frames during X-tty combo sessions.
+
+** During an X-tty combo session, a (message "Hello") from a tty frame
+   goes to the X frame.  Fix this.
+
+** Find out the best way to support suspending Emacs with multiple
+   ttys.  My guess: disable it on the controlling tty, but from other
+   ttys pass it on to emacsclient somehow.  (It is (I hope) trivial to
+   extend emacsclient to handle suspend/resume.  A `kill -STOP' almost
+   works right now.)
+
+** Move baud_rate to tty_output.
+
+** Do tty output through term_hooks, like graphical display backends.
+
+** Implement support for starting an interactive Emacs session without
+   an initial frame.  (The user would connect to it and open frames
+   later, with emacsclient.)  Not necessarily a good idea.
+
+** Fix input from raw ttys (again).
+
+** Fix Mac support (I can't do this myself).
+
+** Fix W32 support (I can't do this myself).
+
+** Fix DOS support (I can't do this myself).
+
+** Do a grep on XXX and ?? for more issues.
+
+** Understand Emacs's low-level input system (it seems complicated) :-)
+
+** What does interrupt_input do?  I tried to disable it for raw
+   secondary tty support, but it does not seem to do anything useful.
+   (Update: Look again. X unconditionally enables this, maybe that's
+   why raw terminal support is broken again.  I really do need to
+   understand input.)
+
+** Make sure C-g goes to the right frame.  This is hard, as SIGINT
+   doesn't have a tty parameter. :-(
+
+** I have seen a case when Emacs with multiple ttys fell into a loop
+   eating 100% of CPU time.  Strace showed this loop:
+
+	getpid()                                = 30284
+	kill(30284, SIGIO)                      = 0
+	--- SIGIO (I/O possible) @ 0 (0) ---
+	ioctl(6, FIONREAD, [0])                 = -1 EIO (Input/output error)
+	ioctl(5, FIONREAD, [0])                 = -1 EIO (Input/output error)
+	ioctl(0, FIONREAD, [0])                 = 0
+	sigreturn()                             = ? (mask now [])
+	gettimeofday({1072842297, 747760}, NULL) = 0
+	gettimeofday({1072842297, 747806}, NULL) = 0
+	select(9, [0 3 5 6], NULL, NULL, {0, 0}) = 2 (in [5 6], left {0, 0})
+	select(9, [0 3 5 6], NULL, NULL, {0, 0}) = 2 (in [5 6], left {0, 0})
+	gettimeofday({1072842297, 748245}, NULL) = 0
+
+   I have not been able to reproduce this.
+
+** Define a output_initial value for output_method for the initial
+   frame that is dumped with Emacs.  Checking for this frame (e.g. in
+   cmd_error_internal) is ugly.
+
+** emacsclient -t from an Emacs term buffer does not work, complains
+   about face problems.  This can even lock up Emacs (if the recursive
+   frame sets single_kboard).
 
 DIARY OF CHANGES
 ----------------
@@ -222,7 +330,7 @@ DIARY OF CHANGES
 
    (Done, nothing to do.  It seems that Emacs does not receive SIGHUP
    from secondary ttys, which is actually a good thing.)  (Update: I
-   think it would be a bad idea to remove server-frames anyway.)
+   think it would be a bad idea to remove server-frames.)
 
 -- Change emacsclient/server.el to support the -t argument better,
    i.e. automatically close the socket when the frame is closed.
@@ -316,75 +424,10 @@ DIARY OF CHANGES
    the point of being unusable.  The rif variable causes constant
    core dumps.  Handling input is indeed tricky.)
 
-THINGS TO DO
-------------
+-- Rewrite multi-tty input in terms of MULTI_KBOARD.
 
-** Fix rif issue with X-tty combo sessions.  IMHO the best thing to do
-   is to get rid of that global variable (and use the value value in
-   display_method, which is guaranteed to be correct).
-
-** Fix faces on tty frames during X-tty combo sessions.
-
-** Find out the best way to support suspending Emacs with multiple
-   ttys.  My guess: disable it on the controlling tty, but from other
-   ttys pass it on to emacsclient somehow.  (It is (I hope) trivial to
-   extend emacsclient to handle suspend/resume.  A `kill -STOP' almost
-   works right now.)
-
-** Move baud_rate to tty_output.
-
-** Do tty output through term_hooks, like graphical display backends.
-
-** Implement support for starting an interactive Emacs session without
-   an initial frame.  (The user would connect to it and open frames
-   later, with emacsclient.)  Not necessarily a good idea.
-
-** Fix input from raw ttys (again).
-
-** Fix Mac support (I can't do this myself).
-
-** Fix W32 support (I can't do this myself).
-
-** Fix DOS support (I can't do this myself).
-
-** Do a grep on XXX and ?? for more issues.
-
-** Understand Emacs's low-level input system (it seems complicated)
-   :-) and maybe rewrite multi-tty input in terms of MULTI_KBOARD.
-   (Update: This backtrace from a tty-X combo session hints that this
-   may be necessary.)
-
-	#0  abort () at /home/lorentey/work/emacs/emacs--multi-tty/src/emacs.c:417
-	#1  0x081104fb in read_char (commandflag=0, nmaps=0, maps=0x0, prev_event=675499188, used_mouse_menu=0x0) at /home/lorentey/work/emacs/emacs--multi-tty/src/keyboard.c:2581
-	#2  0x0819f23e in read_filtered_event (no_switch_frame=1, ascii_required=0, error_nonascii=0, input_method=0) at /home/lorentey/work/emacs/emacs--multi-tty/src/lread.c:468
-	#3  0x0819387c in Fy_or_n_p (prompt=1759896324) at /home/lorentey/work/emacs/emacs--multi-tty/src/fns.c:3115
-	...
-
-** What does interrupt_input do?  I tried to disable it for raw
-   secondary tty support, but it does not seem to do anything useful.
-   (Update: Look again. X unconditionally enables this, maybe that's
-   why raw terminal support is broken again.  I really do need to
-   understand input.)
-
-** Make sure C-g goes to the right frame.  This is hard, as SIGINT
-   doesn't have a tty parameter. :-(
-
-** I have seen a case when Emacs with multiple ttys fell into a loop
-   eating 100% of CPU time.  Strace showed this loop:
-
-	getpid()                                = 30284
-	kill(30284, SIGIO)                      = 0
-	--- SIGIO (I/O possible) @ 0 (0) ---
-	ioctl(6, FIONREAD, [0])                 = -1 EIO (Input/output error)
-	ioctl(5, FIONREAD, [0])                 = -1 EIO (Input/output error)
-	ioctl(0, FIONREAD, [0])                 = 0
-	sigreturn()                             = ? (mask now [])
-	gettimeofday({1072842297, 747760}, NULL) = 0
-	gettimeofday({1072842297, 747806}, NULL) = 0
-	select(9, [0 3 5 6], NULL, NULL, {0, 0}) = 2 (in [5 6], left {0, 0})
-	select(9, [0 3 5 6], NULL, NULL, {0, 0}) = 2 (in [5 6], left {0, 0})
-	gettimeofday({1072842297, 748245}, NULL) = 0
-
-   I have not been able to reproduce this.
+   (Done.  In fact, there was no need to rewrite anything, I just
+   added a kboard member to tty_display_info, and initialized the
+   frame's kboard from there.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

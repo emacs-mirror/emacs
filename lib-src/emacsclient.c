@@ -794,7 +794,7 @@ pty_conversation (FILE *in)
           {
             do {
               res = read (fileno (in), string, BUFSIZ-1);
-            } while (res == EINTR);
+            } while (res < 0 && errno == EINTR);
             if (res < 0)
               {
                 reset_tty ();

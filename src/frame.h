@@ -292,8 +292,10 @@ struct frame
 
 #ifdef MULTI_KBOARD
   /* A pointer to the kboard structure associated with this frame.
-     For termcap frames, this points to initial_kboard.  For X frames,
-     it will be the same as display.x->display_info->kboard.  */
+     For termcap frames, it will be the same as
+     output_data.tty->display_info->kboard.
+     For X frames, it will be the same as
+     output_data.x->display_info->kboard.  */
   struct kboard *kboard;
 #endif
 

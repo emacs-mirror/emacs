@@ -21,7 +21,7 @@ Boston, MA 02111-1307, USA.  */
 /* Length of echobuf field in each KBOARD.  */
 
 /* Each KBOARD represents one logical input stream from which Emacs gets input.
-   If we are using an ordinary terminal, it has one KBOARD object.
+   If we are using ordinary terminals, it has one KBOARD object for each terminal device.
    Usually each X display screen has its own KBOARD,
    but when two of them are on the same X server,
    we assume they share a keyboard and give them one KBOARD in common.
@@ -152,7 +152,7 @@ struct kboard
   };
 
 #ifdef MULTI_KBOARD
-/* Temporarily used before a frame has been opened, and for termcap frames */
+/* Temporarily used before a frame has been opened. */
 extern KBOARD *initial_kboard;
 
 /* In the single-kboard state, this is the kboard

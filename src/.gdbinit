@@ -383,7 +383,7 @@ set print sevenbit-strings
 
 show environment DISPLAY
 show environment TERM
-set args -geometry 80x40+0+0
+#set args -geometry 80x40+0+0
 
 # Don't let abort actually run, as it will make
 # stdio stop working and therefore the `pr' command above as well.

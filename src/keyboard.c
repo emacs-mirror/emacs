@@ -1205,7 +1205,8 @@ cmd_error_internal (data, context)
 	 running under a window system.  */
       || (!NILP (Vwindow_system)
 	  && !inhibit_window_system
-	  && FRAME_TERMCAP_P (sf))
+	  && FRAME_TERMCAP_P (sf)
+          && !FRAME_TTY (sf)->type) /* XXX This is ugly. */
       || noninteractive)
     {
       stream = Qexternal_debugging_output;
@@ -6594,7 +6595,7 @@ read_avail_input (expected)
 {
   struct input_event buf[KBD_BUFFER_SIZE];
   register int i;
-  int nread;
+  int nread = 0;
   
   for (i = 0; i < KBD_BUFFER_SIZE; i++)
     EVENT_INIT (buf[i]);
@@ -6738,10 +6739,13 @@ read_avail_input (expected)
 #endif /* not MSDOS */
 #endif /* not WINDOWSNT */
 
+      if (!tty)
+        abort ();
+      
       /* Select frame corresponding to the active tty.  Note that the
          value of selected_frame is not reliable here, redisplay tends
          to temporarily change it.  But tty should always be non-NULL. */
-      frame = (tty ? tty->top_frame : selected_frame);
+      frame = tty->top_frame;
 
       for (i = 0; i < nread; i++)
 	{
@@ -10245,13 +10249,10 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
   struct frame *sf = SELECTED_FRAME ();
 
 #if defined (USG) && !defined (POSIX_SIGNALS)
-  if (!read_socket_hook && NILP (Vwindow_system))
-    {
-      /* USG systems forget handlers when they are used;
-	 must reestablish each time */
-      signal (SIGINT, interrupt_signal);
-      signal (SIGQUIT, interrupt_signal);
-    }
+  /* USG systems forget handlers when they are used;
+     must reestablish each time */
+  signal (SIGINT, interrupt_signal);
+  signal (SIGQUIT, interrupt_signal);
 #endif /* USG */
 
   cancel_echoing ();
@@ -10626,7 +10627,7 @@ init_keyboard ()
   wipe_kboard (current_kboard);
   init_kboard (current_kboard);
 
-  if (!noninteractive && !read_socket_hook && NILP (Vwindow_system))
+  if (!noninteractive)
     {
       signal (SIGINT, interrupt_signal);
 #if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)

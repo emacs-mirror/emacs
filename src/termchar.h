@@ -182,6 +182,11 @@ struct tty_display_info
   /* This is a copy of struct frame's display_method value; needed for
      freeing up memory when deleting the tty. */
   struct display_method *display_method;
+
+#ifdef MULTI_KBOARD
+  /* The terminal's keyboard object. */
+  struct kboard *kboard;
+#endif  
 };
 
 /* A chain of structures for all tty devices currently in use. */

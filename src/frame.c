@@ -488,6 +488,7 @@ make_terminal_frame (tty_name, tty_type)
   char name[20];
   
 #ifdef MULTI_KBOARD
+  /* Create the initial keyboard. */
   if (!initial_kboard)
     {
       initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
@@ -567,6 +568,9 @@ make_terminal_frame (tty_name, tty_type)
       }
     FRAME_TTY (f)->reference_count++;
     f->display_method = FRAME_TTY (f)->display_method;
+#ifdef MULTI_KBOARD
+    f->kboard = FRAME_TTY (f)->kboard;
+#endif
   }
   
 #ifdef CANNOT_DUMP
