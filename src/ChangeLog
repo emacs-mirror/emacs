@@ -1,3 +1,7 @@
+2003-05-17  David Kastrup  <dak@gnu.org>
+
+	* process.c (read_process_output): Back out change from 2003-03-09.
+
 2003-05-17  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.c (read_minibuf): If buffer is empty, record the default
@@ -41,6 +45,7 @@
 2003-05-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keyboard.c (apply_modifiers): Don't fill the other cache.
+======= end
 
 2003-05-14  Stefan Monnier  <monnier@cs.yale.edu>
 
