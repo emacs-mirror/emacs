@@ -22,6 +22,11 @@
 	programs are modified and moved from mac-win.el.
 	(mac-roman): Definition of this coding system is modified and
 	moved from mac-win.el.
+	
+2000-10-29  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* ediff-wind.el (ediff-setup-control-frame): enclose
+	face-attribute in condition-case to avoid errors in older emacsen.
 
 2000-10-29  Miles Bader  <miles@gnu.org>
 
@@ -4793,7 +4798,7 @@
 2000-08-28  Peter Breton  <pbreton@ne.mediaone.net>
 
 	* locate.el (locate): Cleaned up locate command's interactive prompting
-	Thanks to Fran,Ag(Bois_Pinard <pinard@iro.umontreal.ca> for suggestions.
+	Thanks to François_Pinard <pinard@iro.umontreal.ca> for suggestions.
 
 	* filecache.el (file-cache-case-fold-search): New variable
 	(file-cache-assoc-function): New variable
@@ -8724,7 +8729,7 @@
 
 2000-05-07  Dave Love  <fx@gnu.org>
 
-	* time.el: Small doc fixes from Pavel Jan,Am(Bk ml.
+	* time.el: Small doc fixes from Pavel Janík ml.
 
 2000-05-05  Dave Love  <fx@gnu.org>
 

@@ -906,8 +906,12 @@ into icons, regardless of the window manager."
 			  old-ctl-frame
 			(make-frame ediff-control-frame-parameters))
 	    ediff-control-frame ctl-frame)
-      (when (and ediff-emacs-p (face-attribute 'mode-line :box))
-	(set-face-attribute 'mode-line ctl-frame :box nil)))
+      ;; protect against undefined face-attribute
+      (condition-case nill
+	  (when (and ediff-emacs-p (face-attribute 'mode-line :box))
+	    (set-face-attribute 'mode-line ctl-frame :box nil))
+	(error))
+      )
     
     (setq ctl-frame-iconified-p (ediff-frame-iconified-p ctl-frame))
     (select-frame ctl-frame)
