@@ -3,7 +3,7 @@
 ;; Copyright (C) 1989, 1990, 1991, 1992, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
-;; Maintainer: FSF
+;; Maintainer: bug-texinfo@gnu.org
 ;; Keywords: maint, tex, docs
 
 ;; This file is part of GNU Emacs.

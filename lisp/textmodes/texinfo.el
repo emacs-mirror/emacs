@@ -1,11 +1,11 @@
 ;;; texinfo.el --- major mode for editing Texinfo files
 
 ;; Copyright (C) 1985, '88, '89, '90, '91, '01,
-;;                '92, '93, '96, '97, 2000, 2002 Free Software Foundation, Inc.
+;;                '92, '93, '96, '97, 2000 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Date:   [See date below for texinfo-version]
-;; Maintainer: FSF
+;; Maintainer: bug-texinfo@gnu.org
 ;; Keywords: maint, tex, docs
 
 ;; This file is part of GNU Emacs.
