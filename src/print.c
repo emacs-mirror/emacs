@@ -1169,21 +1169,30 @@ print (obj, printcharfun, escapeflag)
   if (!NILP (Vprint_gensym) || !NILP (Vprint_circle))
     {
       int i, start, index;
-      /* Construct Vprint_number_table.  */
       start = index = print_number_index;
+      /* Construct Vprint_number_table.
+	 This increments print_number_index for the objects added.  */
       print_preprocess (obj);
+
       /* Remove unnecessary objects, which appear only once in OBJ;
-	 that is, whose status is Qnil.  */
+	 that is, whose status is Qnil.  Compactify the necessary objects.  */
       for (i = start; i < print_number_index; i++)
 	if (!NILP (PRINT_NUMBER_STATUS (Vprint_number_table, i)))
 	  {
 	    PRINT_NUMBER_OBJECT (Vprint_number_table, index)
 	      = PRINT_NUMBER_OBJECT (Vprint_number_table, i);
-	    /* Reset the status field for the next print step.  Now this
-	       field means whether the object has already been printed.  */
-	    PRINT_NUMBER_STATUS (Vprint_number_table, index) = Qnil;
 	    index++;
 	  }
+
+      /* Clear out objects outside the active part of the table.  */
+      for (i = index; i < print_number_index; i++)
+	PRINT_NUMBER_OBJECT (Vprint_number_table, i) = Qnil;
+
+      /* Reset the status field for the next print step.  Now this
+	 field means whether the object has already been printed.  */
+      for (i = start; i < print_number_index; i++)
+	PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qnil;
+
       print_number_index = index;
     }
 
@@ -2087,10 +2096,14 @@ This variable should not be set with `setq'; bind it with a `let' instead.  */);
   DEFVAR_LISP ("print-number-table", &Vprint_number_table,
 	       doc: /* A vector used internally to produce `#N=' labels and `#N#' references.
 The Lisp printer uses this vector to detect Lisp objects referenced more
-than once.  When `print-continuous-numbering' is bound to t, you should
-probably also bind `print-number-table' to nil.  This ensures that the
-value of `print-number-table' can be garbage-collected once the printing
-is done.  */);
+than once.
+
+When you bind `print-continuous-numbering' to t, you should probably
+also bind `print-number-table' to nil.  This ensures that the value of
+`print-number-table' can be garbage-collected once the printing is
+done.  If all elements of `print-number-table' are nil, it means that
+the printing done so far has not found any shared structure or objects
+that need to be recorded in the table.  */);
   Vprint_number_table = Qnil;
 
   /* prin1_to_string_buffer initialized in init_buffer_once in buffer.c */
