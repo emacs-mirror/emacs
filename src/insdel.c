@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 93, 94, 95, 1997 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -33,12 +33,14 @@ Boston, MA 02111-1307, USA.  */
 
 #define min(x, y) ((x) < (y) ? (x) : (y))
 
-static void insert_from_string_1 ();
+static void insert_from_string_1 P_ ((Lisp_Object, int, int, int, int, int));
 static void insert_from_buffer_1 ();
-static void gap_left ();
-static void gap_right ();
-static void adjust_markers ();
-static void adjust_point ();
+static void gap_left P_ ((int, int, int));
+static void gap_right P_ ((int, int));
+static void adjust_markers_gap_motion P_ ((int, int, int));
+static void adjust_markers_for_insert P_ ((int, int, int, int, int));
+static void adjust_markers_for_delete P_ ((int, int, int, int));
+static void adjust_point P_ ((int, int));
 
 Lisp_Object Fcombine_after_change_execute ();
 
@@ -61,54 +63,64 @@ Lisp_Object combine_after_change_list;
 /* Buffer which combine_after_change_list is about.  */
 Lisp_Object combine_after_change_buffer;
 
-/* Move gap to position `pos'.
+/* Move gap to position CHARPOS.
    Note that this can quit!  */
 
 void
-move_gap (pos)
-     int pos;
+move_gap (charpos)
+     int charpos;
 {
-  if (pos < GPT)
-    gap_left (pos, 0);
-  else if (pos > GPT)
-    gap_right (pos);
+  move_gap_both (charpos, charpos_to_bytepos (charpos));
 }
 
-/* Move the gap to POS, which is less than the current GPT.
+/* Move gap to byte position BYTEPOS, which is also char position CHARPOS.
+   Note that this can quit!  */
+
+void
+move_gap_both (charpos, bytepos)
+     int charpos, bytepos;
+{
+  if (bytepos < GPT_BYTE)
+    gap_left (charpos, bytepos, 0);
+  else if (bytepos > GPT_BYTE)
+    gap_right (charpos, bytepos);
+}
+
+/* Move the gap to a position less than the current GPT.
+   BYTEPOS describes the new position as a byte position,
+   and CHARPOS is the corresponding char position.
    If NEWGAP is nonzero, then don't update beg_unchanged and end_unchanged.  */
 
 static void
-gap_left (pos, newgap)
-     register int pos;
+gap_left (charpos, bytepos, newgap)
+     register int charpos, bytepos;
      int newgap;
 {
   register unsigned char *to, *from;
   register int i;
   int new_s1;
 
-  pos--;
-
   if (!newgap)
     {
       if (unchanged_modified == MODIFF
 	  && overlay_unchanged_modified == OVERLAY_MODIFF)
 	{
-	  beg_unchanged = pos;
-	  end_unchanged = Z - pos - 1;
+	  beg_unchanged = charpos - BEG;
+	  end_unchanged = Z - charpos;
 	}
       else
 	{
 	  if (Z - GPT < end_unchanged)
 	    end_unchanged = Z - GPT;
-	  if (pos < beg_unchanged)
-	    beg_unchanged = pos;
+	  if (charpos < beg_unchanged)
+	    beg_unchanged = charpos - BEG;
 	}
     }
 
-  i = GPT;
+  i = GPT_BYTE;
   to = GAP_END_ADDR;
   from = GPT_ADDR;
-  new_s1 = GPT - BEG;
+  new_s1 = GPT_BYTE;
 
   /* Now copy the characters.  To move the gap down,
      copy characters up.  */
@@ -116,14 +128,15 @@ gap_left (pos, newgap)
   while (1)
     {
       /* I gets number of characters left to copy.  */
-      i = new_s1 - pos;
+      i = new_s1 - bytepos;
       if (i == 0)
 	break;
       /* If a quit is requested, stop copying now.
-	 Change POS to be where we have actually moved the gap to.  */
+	 Change BYTEPOS to be where we have actually moved the gap to.  */
       if (QUITP)
 	{
-	  pos = new_s1;
+	  bytepos = new_s1;
+	  charpos = BYTE_TO_CHAR (bytepos);
 	  break;
 	}
       /* Move at most 32000 chars before checking again for a quit.  */
@@ -153,44 +166,48 @@ gap_left (pos, newgap)
 	}
     }
 
-  /* Adjust markers, and buffer data structure, to put the gap at POS.
-     POS is where the loop above stopped, which may be what was specified
+  /* Adjust markers, and buffer data structure, to put the gap at BYTEPOS.
+     BYTEPOS is where the loop above stopped, which may be what was specified
      or may be where a quit was detected.  */
-  adjust_markers (pos + 1, GPT, GAP_SIZE);
-  GPT = pos + 1;
+  adjust_markers_gap_motion (bytepos, GPT_BYTE, GAP_SIZE);
+  GPT_BYTE = bytepos;
+  GPT = charpos;
+  if (bytepos < charpos)
+    abort ();
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
   QUIT;
 }
 
+/* Move the gap to a position greater than than the current GPT.
+   BYTEPOS describes the new position as a byte position,
+   and CHARPOS is the corresponding char position.  */
+
 static void
-gap_right (pos)
-     register int pos;
+gap_right (charpos, bytepos)
+     register int charpos, bytepos;
 {
   register unsigned char *to, *from;
   register int i;
   int new_s1;
 
-  pos--;
-
   if (unchanged_modified == MODIFF
       && overlay_unchanged_modified == OVERLAY_MODIFF)
-
     {
-      beg_unchanged = pos;
-      end_unchanged = Z - pos - 1;
+      beg_unchanged = charpos - BEG;
+      end_unchanged = Z - charpos;
     }
   else
     {
-      if (Z - pos - 1 < end_unchanged)
-	end_unchanged = Z - pos - 1;
+      if (Z - charpos - 1 < end_unchanged)
+	end_unchanged = Z - charpos;
       if (GPT - BEG < beg_unchanged)
 	beg_unchanged = GPT - BEG;
     }
 
-  i = GPT;
+  i = GPT_BYTE;
   from = GAP_END_ADDR;
   to = GPT_ADDR;
-  new_s1 = GPT - 1;
+  new_s1 = GPT_BYTE;
 
   /* Now copy the characters.  To move the gap up,
      copy characters down.  */
@@ -198,14 +215,15 @@ gap_right (pos)
   while (1)
     {
       /* I gets number of characters left to copy.  */
-      i = pos - new_s1;
+      i = bytepos - new_s1;
       if (i == 0)
 	break;
       /* If a quit is requested, stop copying now.
-	 Change POS to be where we have actually moved the gap to.  */
+	 Change BYTEPOS to be where we have actually moved the gap to.  */
       if (QUITP)
 	{
-	  pos = new_s1;
+	  bytepos = new_s1;
+	  charpos = BYTE_TO_CHAR (bytepos);
 	  break;
 	}
       /* Move at most 32000 chars before checking again for a quit.  */
@@ -235,14 +253,18 @@ gap_right (pos)
 	}
     }
 
-  adjust_markers (GPT + GAP_SIZE, pos + 1 + GAP_SIZE, - GAP_SIZE);
-  GPT = pos + 1;
+  adjust_markers_gap_motion (GPT_BYTE + GAP_SIZE, bytepos + GAP_SIZE,
+			     - GAP_SIZE);
+  GPT = charpos;
+  GPT_BYTE = bytepos;
+  if (bytepos < charpos)
+    abort ();
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
   QUIT;
 }
 
-/* Add AMOUNT to the position of every marker in the current buffer
-   whose current position is between FROM (exclusive) and TO (inclusive).
+/* Add AMOUNT to the byte position of every marker in the current buffer
+   whose current byte position is between FROM (exclusive) and TO (inclusive).
 
    Also, any markers past the outside of that interval, in the direction
    of adjustment, are first moved back to the near end of the interval
@@ -250,10 +272,15 @@ gap_right (pos)
 
    When the latter adjustment is done, if AMOUNT is negative,
    we record the adjustment for undo.  (This case happens only for
-   deletion.)  */
+   deletion.)
+
+   The markers' character positions are not altered,
+   because gap motion does not affect character positions.  */
+
+int adjust_markers_test;
 
 static void
-adjust_markers (from, to, amount)
+adjust_markers_gap_motion (from, to, amount)
      register int from, to, amount;
 {
   Lisp_Object marker;
@@ -269,7 +296,11 @@ adjust_markers (from, to, amount)
       if (amount > 0)
 	{
 	  if (mpos > to && mpos < to + amount)
-	    mpos = to + amount;
+	    {
+	      if (adjust_markers_test)
+		abort ();
+	      mpos = to + amount;
+	    }
 	}
       else
 	{
@@ -278,24 +309,9 @@ adjust_markers (from, to, amount)
 	     but then this range contains no markers.  */
 	  if (mpos > from + amount && mpos <= from)
 	    {
-	      int before = mpos;
-	      int after = from + amount;
-
-	      mpos = after;
-
-	      /* Compute the before and after positions
-		 as buffer positions.  */
-	      if (before > GPT + GAP_SIZE)
-		before -= GAP_SIZE;
-	      else if (before > GPT)
-		before = GPT;
-
-	      if (after > GPT + GAP_SIZE)
-		after -= GAP_SIZE;
-	      else if (after > GPT)
-		after = GPT;
-
-	      record_marker_adjustment (marker, after - before);
+	      if (adjust_markers_test)
+		abort ();
+	      mpos = from + amount;
 	    }
 	}
       if (mpos > from && mpos <= to)
@@ -305,73 +321,177 @@ adjust_markers (from, to, amount)
     }
 }
 
-/* Adjust markers whose insertion-type is t
-   for an insertion of AMOUNT characters at POS.  */
+/* Adjust all markers for a deletion
+   whose range in bytes is FROM_BYTE to TO_BYTE.
+   The range in charpos is FROM to TO.
+
+   This function assumes that the gap is adjacent to
+   or inside of the range being deleted.  */
 
 static void
-adjust_markers_for_insert (pos, amount)
-     register int pos, amount;
+adjust_markers_for_delete (from, from_byte, to, to_byte)
+     register int from, from_byte, to, to_byte;
+{
+  Lisp_Object marker;
+  register struct Lisp_Marker *m;
+  register int charpos;
+  /* This is what GAP_SIZE will be when this deletion is finished.  */
+  int coming_gap_size = GAP_SIZE + to_byte - from_byte;
+
+  marker = BUF_MARKERS (current_buffer);
+
+  while (!NILP (marker))
+    {
+      m = XMARKER (marker);
+      charpos = m->charpos;
+
+      if (charpos > Z)
+	abort ();
+
+      /* If the marker is after the deletion,
+	 its bufpos needs no change because the deleted text
+	 becomes gap; but its charpos needs to be decreased.  */
+      if (charpos > to)
+	m->charpos -= to - from;
+
+      /* Here's the case where a marker is inside text being deleted.
+	 We take advantage of the fact that the deletion is at the gap.  */
+      else if (charpos > from)
+	{
+	  record_marker_adjustment (marker, from - charpos);
+	  m->charpos = from;
+	  /* The gap must be at or after FROM_BYTE when we do a deletion.  */
+	  m->bufpos = from_byte;
+	}
+
+      /* In a single-byte buffer, a marker's two positions must be equal.  */
+      if (Z == Z_BYTE)
+	{
+	  register int i = m->bufpos;
+
+	  /* We use FROM_BYTE here instead of GPT_BYTE
+	     because FROM_BYTE is where the gap will be after the deletion.  */
+	  if (i > from_byte + coming_gap_size)
+	    i -= coming_gap_size;
+	  else if (i > from_byte)
+	    i = from_byte;
+
+	  if (m->charpos != i)
+	    abort ();
+	}
+
+      marker = m->chain;
+    }
+}
+
+/* Adjust markers for an insertion at CHARPOS / BYTEPOS
+   consisting of NCHARS chars, which are NBYTES bytes.
+
+   We have to relocate the charpos of every marker that points
+   after the insertion (but not their bufpos).
+
+   When a marker points at the insertion point,
+   we advance it if either its insertion-type is t
+   or BEFORE_MARKERS is true.  */
+
+static void
+adjust_markers_for_insert (from, from_byte, to, to_byte, before_markers)
+     register int from, from_byte, to, to_byte, before_markers;
 {
   Lisp_Object marker;
   int adjusted = 0;
+  int nchars = to - from;
+  int nbytes = to_byte - from_byte;
 
   marker = BUF_MARKERS (current_buffer);
 
   while (!NILP (marker))
     {
       register struct Lisp_Marker *m = XMARKER (marker);
-      if (m->insertion_type && m->bufpos == pos)
+      if (m->bufpos == from_byte
+	  && (m->insertion_type || before_markers))
 	{
-	  m->bufpos += amount;
-	  adjusted = 1;
+	  m->bufpos += nbytes;
+	  m->charpos += nchars;
+	  if (m->insertion_type)
+	    adjusted = 1;
 	}
+      else if (m->bufpos > from_byte)
+	m->charpos += nchars;
+
+      /* In a single-byte buffer, a marker's two positions must be equal.  */
+      if (Z == Z_BYTE)
+	{
+	  register int i = m->bufpos;
+
+	  if (i > GPT_BYTE + GAP_SIZE)
+	    i -= GAP_SIZE;
+	  else if (i > GPT_BYTE)
+	    i = GPT_BYTE;
+
+	  if (m->charpos != i)
+	    abort ();
+	}
+
       marker = m->chain;
     }
+
+  /* Adjusting only markers whose insertion-type is t may result in
+     disordered overlays in the slot `overlays_before'.  */
   if (adjusted)
-    /* Adjusting only markers whose insertion-type is t may result in
-       disordered overlays in the slot `overlays_before'.  */
-    fix_overlays_before (current_buffer, pos, pos + amount);
+    fix_overlays_before (current_buffer, from, to);
 }
 
-/* Add the specified amount to point.  This is used only when the value
-   of point changes due to an insert or delete; it does not represent
-   a conceptual change in point as a marker.  In particular, point is
-   not crossing any interval boundaries, so there's no need to use the
-   usual SET_PT macro.  In fact it would be incorrect to do so, because
-   either the old or the new value of point is out of sync with the
-   current set of intervals.  */
+/* Adjust point for an insertion of NBYTES bytes, which are NCHARS characters.
+
+   This is used only when the value of point changes due to an insert
+   or delete; it does not represent a conceptual change in point as a
+   marker.  In particular, point is not crossing any interval
+   boundaries, so there's no need to use the usual SET_PT macro.  In
+   fact it would be incorrect to do so, because either the old or the
+   new value of point is out of sync with the current set of
+   intervals.  */
+
 static void
-adjust_point (amount)
-     int amount;
+adjust_point (nchars, nbytes)
+     int nchars, nbytes;
 {
-  BUF_PT (current_buffer) += amount;
+  BUF_PT (current_buffer) += nchars;
+  BUF_PT_BYTE (current_buffer) += nbytes;
+
+  /* In a single-byte buffer, the two positions must be equal.  */
+  if (ZV == ZV_BYTE
+      && PT != PT_BYTE)
+    abort ();
 }
 
-/* Make the gap INCREMENT characters longer.  */
+/* Make the gap NBYTES_ADDED bytes longer.  */
 
 void
-make_gap (increment)
-     int increment;
+make_gap (nbytes_added)
+     int nbytes_added;
 {
   unsigned char *result;
   Lisp_Object tem;
   int real_gap_loc;
+  int real_gap_loc_byte;
   int old_gap_size;
 
   /* If we have to get more space, get enough to last a while.  */
-  increment += 2000;
+  nbytes_added += 2000;
 
   /* Don't allow a buffer size that won't fit in an int
      even if it will fit in a Lisp integer.
      That won't work because so many places use `int'.  */
      
-  if (Z - BEG + GAP_SIZE + increment
+  if (Z_BYTE - BEG_BYTE + GAP_SIZE + nbytes_added
       >= ((unsigned) 1 << (min (BITS_PER_INT, VALBITS) - 1)))
     error ("Buffer exceeds maximum size");
 
   BLOCK_INPUT;
   /* We allocate extra 1-byte `\0' at the tail for anchoring a search.  */
-  result = BUFFER_REALLOC (BEG_ADDR, (Z - BEG + GAP_SIZE + increment + 1));
+  result = BUFFER_REALLOC (BEG_ADDR, (Z_BYTE - BEG_BYTE
+				      + GAP_SIZE + nbytes_added + 1));
 
   if (result == 0)
     {
@@ -388,19 +508,21 @@ make_gap (increment)
   Vinhibit_quit = Qt;
 
   real_gap_loc = GPT;
+  real_gap_loc_byte = GPT_BYTE;
   old_gap_size = GAP_SIZE;
 
   /* Call the newly allocated space a gap at the end of the whole space.  */
   GPT = Z + GAP_SIZE;
-  GAP_SIZE = increment;
+  GAP_SIZE = nbytes_added;
 
   /* Move the new gap down to be consecutive with the end of the old one.
      This adjusts the markers properly too.  */
-  gap_left (real_gap_loc + old_gap_size, 1);
+  gap_left (real_gap_loc + old_gap_size, real_gap_loc_byte + old_gap_size, 1);
 
   /* Now combine the two into one large gap.  */
   GAP_SIZE += old_gap_size;
   GPT = real_gap_loc;
+  GPT_BYTE = real_gap_loc_byte;
 
   /* Put an anchor.  */
   *(Z_ADDR) = 0;
@@ -413,215 +535,29 @@ make_gap (increment)
    prepare_to_modify_buffer could relocate the text.  */
 
 void
-insert (string, length)
+insert (string, nbytes)
      register unsigned char *string;
-     register length;
+     register nbytes;
 {
-  if (length > 0)
+  if (nbytes > 0)
     {
-      insert_1 (string, length, 0, 1);
-      signal_after_change (PT-length, 0, length);
+      int opoint = PT;
+      insert_1 (string, nbytes, 0, 1, 0);
+      signal_after_change (opoint, 0, PT - opoint);
     }
 }
 
 void
-insert_and_inherit (string, length)
+insert_and_inherit (string, nbytes)
      register unsigned char *string;
-     register length;
+     register nbytes;
 {
-  if (length > 0)
+  if (nbytes > 0)
     {
-      insert_1 (string, length, 1, 1);
-      signal_after_change (PT-length, 0, length);
+      int opoint = PT;
+      insert_1 (string, nbytes, 1, 1, 0);
+      signal_after_change (opoint, 0, PT - opoint);
     }
-}
-
-void
-insert_1 (string, length, inherit, prepare)
-     register unsigned char *string;
-     register int length;
-     int inherit, prepare;
-{
-  register Lisp_Object temp;
-
-  if (prepare)
-    prepare_to_modify_buffer (PT, PT, NULL);
-
-  if (PT != GPT)
-    move_gap (PT);
-  if (GAP_SIZE < length)
-    make_gap (length - GAP_SIZE);
-
-  record_insert (PT, length);
-  MODIFF++;
-
-  bcopy (string, GPT_ADDR, length);
-
-#ifdef USE_TEXT_PROPERTIES
-  if (BUF_INTERVALS (current_buffer) != 0)
-    /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES.  */
-    offset_intervals (current_buffer, PT, length);
-#endif
-
-  GAP_SIZE -= length;
-  GPT += length;
-  ZV += length;
-  Z += length;
-  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
-  adjust_overlays_for_insert (PT, length);
-  adjust_markers_for_insert (PT, length);
-  adjust_point (length);
-
-#ifdef USE_TEXT_PROPERTIES
-  if (!inherit && BUF_INTERVALS (current_buffer) != 0)
-    Fset_text_properties (make_number (PT - length), make_number (PT),
-			  Qnil, Qnil);
-#endif
-}
-
-/* Insert the part of the text of STRING, a Lisp object assumed to be
-   of type string, consisting of the LENGTH characters starting at
-   position POS.  If the text of STRING has properties, they are absorbed
-   into the buffer.
-
-   It does not work to use `insert' for this, because a GC could happen
-   before we bcopy the stuff into the buffer, and relocate the string
-   without insert noticing.  */
-
-void
-insert_from_string (string, pos, length, inherit)
-     Lisp_Object string;
-     register int pos, length;
-     int inherit;
-{
-  if (length > 0)
-    {
-      insert_from_string_1 (string, pos, length, inherit);
-      signal_after_change (PT-length, 0, length);
-    }
-}
-
-static void
-insert_from_string_1 (string, pos, length, inherit)
-     Lisp_Object string;
-     register int pos, length;
-     int inherit;
-{
-  register Lisp_Object temp;
-  struct gcpro gcpro1;
-
-  /* Make sure point-max won't overflow after this insertion.  */
-  XSETINT (temp, length + Z);
-  if (length + Z != XINT (temp))
-    error ("maximum buffer size exceeded");
-
-  GCPRO1 (string);
-  prepare_to_modify_buffer (PT, PT, NULL);
-
-  if (PT != GPT)
-    move_gap (PT);
-  if (GAP_SIZE < length)
-    make_gap (length - GAP_SIZE);
-
-  record_insert (PT, length);
-  MODIFF++;
-  UNGCPRO;
-
-  bcopy (XSTRING (string)->data, GPT_ADDR, length);
-
-  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  offset_intervals (current_buffer, PT, length);
-
-  GAP_SIZE -= length;
-  GPT += length;
-  ZV += length;
-  Z += length;
-  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
-  adjust_overlays_for_insert (PT, length);
-  adjust_markers_for_insert (PT, length);
-
-  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  graft_intervals_into_buffer (XSTRING (string)->intervals, PT, length,
-			       current_buffer, inherit);
-
-  adjust_point (length);
-}
-
-/* Insert text from BUF, starting at POS and having length LENGTH, into the
-   current buffer.  If the text in BUF has properties, they are absorbed
-   into the current buffer.
-
-   It does not work to use `insert' for this, because a malloc could happen
-   and relocate BUF's text before the bcopy happens.  */
-
-void
-insert_from_buffer (buf, pos, length, inherit)
-     struct buffer *buf;
-     int pos, length;
-     int inherit;
-{
-  if (length > 0)
-    {
-      insert_from_buffer_1 (buf, pos, length, inherit);
-      signal_after_change (PT-length, 0, length);
-    }
-}
-
-static void
-insert_from_buffer_1 (buf, pos, length, inherit)
-     struct buffer *buf;
-     int pos, length;
-     int inherit;
-{
-  register Lisp_Object temp;
-  int chunk;
-
-  /* Make sure point-max won't overflow after this insertion.  */
-  XSETINT (temp, length + Z);
-  if (length + Z != XINT (temp))
-    error ("maximum buffer size exceeded");
-
-  prepare_to_modify_buffer (PT, PT, NULL);
-
-  if (PT != GPT)
-    move_gap (PT);
-  if (GAP_SIZE < length)
-    make_gap (length - GAP_SIZE);
-
-  record_insert (PT, length);
-  MODIFF++;
-
-  if (pos < BUF_GPT (buf))
-    {
-      chunk = BUF_GPT (buf) - pos;
-      if (chunk > length)
-	chunk = length;
-      bcopy (BUF_CHAR_ADDRESS (buf, pos), GPT_ADDR, chunk);
-    }
-  else
-    chunk = 0;
-  if (chunk < length)
-    bcopy (BUF_CHAR_ADDRESS (buf, pos + chunk),
-	   GPT_ADDR + chunk, length - chunk);
-
-#ifdef USE_TEXT_PROPERTIES
-  if (BUF_INTERVALS (current_buffer) != 0)
-    offset_intervals (current_buffer, PT, length);
-#endif
-
-  GAP_SIZE -= length;
-  GPT += length;
-  ZV += length;
-  Z += length;
-  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
-  adjust_overlays_for_insert (PT, length);
-  adjust_markers_for_insert (PT, length);
-  adjust_point (length);
-
-  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  graft_intervals_into_buffer (copy_intervals (BUF_INTERVALS (buf),
-					       pos, length),
-			       PT - length, length, current_buffer, inherit);
 }
 
 /* Insert the character C before point */
@@ -651,32 +587,114 @@ insert_string (s)
    since gc could happen and relocate it.  */
 
 void
-insert_before_markers (string, length)
+insert_before_markers (string, nbytes)
      unsigned char *string;
-     register int length;
+     register int nbytes;
 {
-  if (length > 0)
+  if (nbytes > 0)
     {
-      register int opoint = PT;
-      insert_1 (string, length, 0, 1);
-      adjust_markers (opoint - 1, opoint, length);
-      signal_after_change (PT-length, 0, length);
+      int opoint = PT;
+
+      insert_1 (string, nbytes, 0, 1, 1);
+      signal_after_change (opoint, 0, PT - opoint);
     }
 }
 
 void
-insert_before_markers_and_inherit (string, length)
+insert_before_markers_and_inherit (string, nbytes)
      unsigned char *string;
-     register int length;
+     register int nbytes;
+{
+  if (nbytes > 0)
+    {
+      int opoint = PT;
+
+      insert_1 (string, nbytes, 1, 1, 1);
+      signal_after_change (opoint, 0, PT - opoint);
+    }
+}
+
+/* Subroutine used by the insert functions above.  */
+
+void
+insert_1 (string, nbytes, inherit, prepare, before_markers)
+     register unsigned char *string;
+     register int nbytes;
+     int inherit, prepare, before_markers;
+{
+  register Lisp_Object temp;
+  int nchars = chars_in_text (string, nbytes);
+
+  if (prepare)
+    prepare_to_modify_buffer (PT, PT, NULL);
+
+  if (PT != GPT)
+    move_gap_both (PT, PT_BYTE);
+  if (GAP_SIZE < nbytes)
+    make_gap (nbytes - GAP_SIZE);
+
+  record_insert (PT, nchars);
+  MODIFF++;
+
+  bcopy (string, GPT_ADDR, nbytes);
+
+#ifdef USE_TEXT_PROPERTIES
+  if (BUF_INTERVALS (current_buffer) != 0)
+    /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES.  */
+    offset_intervals (current_buffer, PT, nchars);
+#endif
+
+  GAP_SIZE -= nbytes;
+  GPT += nchars;
+  ZV += nchars;
+  Z += nchars;
+  GPT_BYTE += nbytes;
+  ZV_BYTE += nbytes;
+  Z_BYTE += nbytes;
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
+  adjust_overlays_for_insert (PT, nchars);
+  adjust_markers_for_insert (PT, PT_BYTE, PT + nchars, PT_BYTE + nbytes,
+			     before_markers);
+  adjust_point (nchars, nbytes);
+
+  if (GPT_BYTE < GPT)
+    abort ();
+
+#ifdef USE_TEXT_PROPERTIES
+  if (!inherit && BUF_INTERVALS (current_buffer) != 0)
+    Fset_text_properties (make_number (PT - nchars), make_number (PT),
+			  Qnil, Qnil);
+#endif
+}
+
+/* Insert the part of the text of STRING, a Lisp object assumed to be
+   of type string, consisting of the LENGTH characters starting at
+   position POS.  If the text of STRING has properties, they are absorbed
+   into the buffer.
+
+   It does not work to use `insert' for this, because a GC could happen
+   before we bcopy the stuff into the buffer, and relocate the string
+   without insert noticing.  */
+
+void
+insert_from_string (string, pos, length, inherit)
+     Lisp_Object string;
+     register int pos, length;
+     int inherit;
 {
   if (length > 0)
     {
-      register int opoint = PT;
-      insert_1 (string, length, 1, 1);
-      adjust_markers (opoint - 1, opoint, length);
-      signal_after_change (PT-length, 0, length);
+      int opoint = PT;
+      int nchars = chars_in_text (XSTRING (string)->data + pos, length);
+      insert_from_string_1 (string, pos, length, nchars, inherit, 0);
+      signal_after_change (opoint, 0, PT - opoint);
     }
 }
+
+/* Like `insert' except that all markers pointing at the place where
+   the insertion happens are adjusted to point after it.
+   Don't use this function to insert part of a Lisp string,
+   since gc could happen and relocate it.  */
 
 /* Insert part of a Lisp string, relocating markers after.  */
 
@@ -688,14 +706,158 @@ insert_from_string_before_markers (string, pos, length, inherit)
 {
   if (length > 0)
     {
-      register int opoint = PT;
-      insert_from_string_1 (string, pos, length, inherit);
-      adjust_markers (opoint - 1, opoint, length);
-      signal_after_change (PT-length, 0, length);
+      int opoint = PT;
+      int nchars = chars_in_text (XSTRING (string)->data + pos, length);
+      insert_from_string_1 (string, pos, length, nchars, inherit, 1);
+      signal_after_change (opoint, 0, PT - opoint);
     }
 }
+
+/* Subroutine of the insertion functions above.  */
+
+static void
+insert_from_string_1 (string, pos, nbytes, nchars, inherit, before_markers)
+     Lisp_Object string;
+     register int pos, nbytes, nchars;
+     int inherit, before_markers;
+{
+  register Lisp_Object temp;
+  struct gcpro gcpro1;
+
+  /* Make sure point-max won't overflow after this insertion.  */
+  XSETINT (temp, nbytes + Z_BYTE);
+  if (nbytes + Z_BYTE != XINT (temp))
+    error ("Maximum buffer size exceeded");
+
+  GCPRO1 (string);
+  prepare_to_modify_buffer (PT, PT, NULL);
+
+  if (PT != GPT)
+    move_gap_both (PT, PT_BYTE);
+  if (GAP_SIZE < nbytes)
+    make_gap (nbytes - GAP_SIZE);
+
+  record_insert (PT, nchars);
+  MODIFF++;
+  UNGCPRO;
+
+  bcopy (XSTRING (string)->data, GPT_ADDR, nbytes);
+
+  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+  offset_intervals (current_buffer, PT, nchars);
+
+  GAP_SIZE -= nbytes;
+  GPT += nchars;
+  ZV += nchars;
+  Z += nchars;
+  GPT_BYTE += nbytes;
+  ZV_BYTE += nbytes;
+  Z_BYTE += nbytes;
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
+  adjust_overlays_for_insert (PT, nchars);
+  adjust_markers_for_insert (PT, PT_BYTE, PT + nchars, PT_BYTE + nbytes,
+			     before_markers);
+
+  if (GPT_BYTE < GPT)
+    abort ();
+
+  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+  graft_intervals_into_buffer (XSTRING (string)->intervals, PT, nchars,
+			       current_buffer, inherit);
+
+  adjust_point (nchars, nbytes);
+}
 
-/* Replace the text from FROM to TO with NEW,
+/* Insert text from BUF, NCHARS characters starting at CHARPOS, into the
+   current buffer.  If the text in BUF has properties, they are absorbed
+   into the current buffer.
+
+   It does not work to use `insert' for this, because a malloc could happen
+   and relocate BUF's text before the bcopy happens.  */
+
+void
+insert_from_buffer (buf, charpos, nchars, inherit)
+     struct buffer *buf;
+     int charpos, nchars;
+     int inherit;
+{
+  if (nchars > 0)
+    {
+      int opoint = PT;
+
+      insert_from_buffer_1 (buf, charpos, nchars, inherit);
+      signal_after_change (opoint, 0, PT - opoint);
+    }
+}
+
+static void
+insert_from_buffer_1 (buf, from, nchars, inherit)
+     struct buffer *buf;
+     int from, nchars;
+     int inherit;
+{
+  register Lisp_Object temp;
+  int chunk;
+  int from_byte = buf_charpos_to_bytepos (buf, from);
+  int to_byte = buf_charpos_to_bytepos (buf, from + nchars);
+  int nbytes = to_byte - from_byte;
+
+  /* Make sure point-max won't overflow after this insertion.  */
+  XSETINT (temp, nbytes + Z);
+  if (nbytes + Z != XINT (temp))
+    error ("Maximum buffer size exceeded");
+
+  prepare_to_modify_buffer (PT, PT, NULL);
+
+  if (PT != GPT)
+    move_gap_both (PT, PT_BYTE);
+  if (GAP_SIZE < nbytes)
+    make_gap (nbytes - GAP_SIZE);
+
+  record_insert (PT, nchars);
+  MODIFF++;
+
+  if (from < BUF_GPT (buf))
+    {
+      chunk = BUF_GPT_BYTE (buf) - from_byte;
+      if (chunk > nbytes)
+	chunk = nbytes;
+      bcopy (BUF_BYTE_ADDRESS (buf, from_byte), GPT_ADDR, chunk);
+    }
+  else
+    chunk = 0;
+  if (chunk < nbytes)
+    bcopy (BUF_BYTE_ADDRESS (buf, from_byte + chunk),
+	   GPT_ADDR + chunk, nbytes - chunk);
+
+#ifdef USE_TEXT_PROPERTIES
+  if (BUF_INTERVALS (current_buffer) != 0)
+    offset_intervals (current_buffer, PT, nchars);
+#endif
+
+  GAP_SIZE -= nbytes;
+  GPT += nchars;
+  ZV += nchars;
+  Z += nchars;
+  GPT_BYTE += nbytes;
+  ZV_BYTE += nbytes;
+  Z_BYTE += nbytes;
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
+  adjust_overlays_for_insert (PT, nchars);
+  adjust_markers_for_insert (PT, PT_BYTE, PT + nchars, PT_BYTE + nbytes, 0);
+  adjust_point (nchars, nbytes);
+
+  if (GPT_BYTE < GPT)
+    abort ();
+
+  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+  graft_intervals_into_buffer (copy_intervals (BUF_INTERVALS (buf),
+					       from, nchars),
+			       PT - nchars, nchars,
+			       current_buffer, inherit);
+}
+
+/* Replace the text from character positions FROM to TO with NEW,
    If PREPARE is nonzero, call prepare_to_modify_buffer.
    If INHERIT, the newly inserted text should inherit text properties
    from the surrounding non-deleted text.  */
@@ -710,8 +872,10 @@ replace_range (from, to, new, prepare, inherit)
      Lisp_Object new;
      int from, to, prepare, inherit;
 {
-  int numdel;
-  int inslen = XSTRING (new)->size;
+  int insbytes = XSTRING (new)->size;
+  int inschars;
+  int from_byte, to_byte;
+  int nbytes_del, nchars_del;
   register Lisp_Object temp;
   struct gcpro gcpro1;
 
@@ -724,95 +888,117 @@ replace_range (from, to, new, prepare, inherit)
       to = from + range_length;
     }
 
+  UNGCPRO;
+
   /* Make args be valid */
   if (from < BEGV)
     from = BEGV;
   if (to > ZV)
     to = ZV;
 
-  UNGCPRO;
+  from_byte = CHAR_TO_BYTE (from);
+  to_byte = CHAR_TO_BYTE (to);
 
-  numdel = to - from;
+  nchars_del = to - from;
+  nbytes_del = to_byte - from_byte;
+
+  if (nbytes_del <= 0 && insbytes == 0)
+    return;
 
   /* Make sure point-max won't overflow after this insertion.  */
-  XSETINT (temp, Z - numdel + inslen);
-  if (Z - numdel + inslen != XINT (temp))
-    error ("maximum buffer size exceeded");
+  XSETINT (temp, Z_BYTE - nbytes_del + insbytes);
+  if (Z_BYTE - nbytes_del + insbytes != XINT (temp))
+    error ("Maximum buffer size exceeded");
 
-  if (numdel <= 0 && inslen == 0)
-    return;
+  inschars = XINT (Fchars_in_string (new));
 
   GCPRO1 (new);
 
   /* Make sure the gap is somewhere in or next to what we are deleting.  */
   if (from > GPT)
-    gap_right (from);
+    gap_right (from, from_byte);
   if (to < GPT)
-    gap_left (to, 0);
+    gap_left (to, to_byte, 0);
 
   /* Relocate all markers pointing into the new, larger gap
      to point at the end of the text before the gap.
-     This has to be done before recording the deletion,
-     so undo handles this after reinserting the text.  */
-  adjust_markers (to + GAP_SIZE, to + GAP_SIZE, - numdel - GAP_SIZE);
+     Do this before recording the deletion,
+     so that undo handles this after reinserting the text.  */
+  adjust_markers_for_delete (from, from_byte, to, to_byte);
 
-  record_delete (from, numdel);
+  record_delete (from, nchars_del);
 
-  GAP_SIZE += numdel;
-  ZV -= numdel;
-  Z -= numdel;
+  GAP_SIZE += nbytes_del;
+  ZV -= nchars_del;
+  Z -= nchars_del;
+  ZV_BYTE -= nbytes_del;
+  Z_BYTE -= nbytes_del;
   GPT = from;
+  GPT_BYTE = from_byte;
   *(GPT_ADDR) = 0;		/* Put an anchor.  */
+
+  if (GPT_BYTE < GPT)
+    abort ();
 
   if (GPT - BEG < beg_unchanged)
     beg_unchanged = GPT - BEG;
   if (Z - GPT < end_unchanged)
     end_unchanged = Z - GPT;
 
-  if (GAP_SIZE < inslen)
-    make_gap (inslen - GAP_SIZE);
+  if (GAP_SIZE < insbytes)
+    make_gap (insbytes - GAP_SIZE);
 
-  record_insert (from, inslen);
+  record_insert (from, inschars);
 
-  bcopy (XSTRING (new)->data, GPT_ADDR, inslen);
+  bcopy (XSTRING (new)->data, GPT_ADDR, insbytes);
 
   /* Relocate point as if it were a marker.  */
   if (from < PT)
-    adjust_point (from + inslen - (PT < to ? PT : to));
+    adjust_point (from + inschars - (PT < to ? PT : to),
+		  (from_byte + insbytes
+		   - (PT_BYTE < to_byte ? PT_BYTE : to_byte)));
 
 #ifdef USE_TEXT_PROPERTIES
-  offset_intervals (current_buffer, PT, inslen - numdel);
+  offset_intervals (current_buffer, PT, inschars - nchars_del);
 #endif
 
-  GAP_SIZE -= inslen;
-  GPT += inslen;
-  ZV += inslen;
-  Z += inslen;
+  GAP_SIZE -= insbytes;
+  GPT += inschars;
+  ZV += inschars;
+  Z += inschars;
+  GPT_BYTE += insbytes;
+  ZV_BYTE += insbytes;
+  ZV_BYTE += insbytes;
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
+
+  if (GPT_BYTE < GPT)
+    abort ();
 
   /* Adjust the overlay center as needed.  This must be done after
      adjusting the markers that bound the overlays.  */
-  adjust_overlays_for_delete (from, numdel);
-  adjust_overlays_for_insert (from, inslen);
-  adjust_markers_for_insert (from, inslen);
+  adjust_overlays_for_delete (from, nchars_del);
+  adjust_overlays_for_insert (from, inschars);
+  adjust_markers_for_insert (from, from_byte, from + inschars,
+			     from_byte + insbytes, 0);
 
 #ifdef USE_TEXT_PROPERTIES
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  graft_intervals_into_buffer (XSTRING (new)->intervals, from, inslen,
-			       current_buffer, inherit);
+  graft_intervals_into_buffer (XSTRING (new)->intervals, from,
+			       inschars, current_buffer, inherit);
 #endif
 
-  if (inslen == 0)
+  if (insbytes == 0)
     evaporate_overlays (from);
 
   MODIFF++;
   UNGCPRO;
 
-  signal_after_change (from, numdel, inslen);
+  signal_after_change (from, nchars_del, inschars);
 }
 
 /* Delete characters in current buffer
-   from FROM up to (but not including) TO.  */
+   from FROM up to (but not including) TO.
+   If TO comes before FROM, we delete nothing.  */
 
 void
 del_range (from, to)
@@ -827,7 +1013,16 @@ void
 del_range_1 (from, to, prepare)
      int from, to, prepare;
 {
-  register int numdel;
+  int from_byte, to_byte;
+
+  /* Make args be valid */
+  if (from < BEGV)
+    from = BEGV;
+  if (to > ZV)
+    to = ZV;
+
+  if (to <= from)
+    return;
 
   if (prepare)
     {
@@ -836,46 +1031,136 @@ del_range_1 (from, to, prepare)
       to = from + range_length;
     }
 
+  from_byte = CHAR_TO_BYTE (from);
+  to_byte = CHAR_TO_BYTE (to);
+
+  del_range_2 (from, to, from_byte, to_byte);
+}
+
+/* Like del_range_1 but args are byte positions, not char positions.  */
+
+void
+del_range_byte (from_byte, to_byte, prepare)
+     int from_byte, to_byte, prepare;
+{
+  int from, to;
+
   /* Make args be valid */
+  if (from_byte < BEGV_BYTE)
+    from_byte = BEGV_BYTE;
+  if (to_byte > ZV_BYTE)
+    to_byte = ZV_BYTE;
+
+  if (to_byte <= from_byte)
+    return;
+
+  from = BYTE_TO_CHAR (from_byte);
+  to = BYTE_TO_CHAR (to_byte);
+
+  if (prepare)
+    {
+      int old_from = from, old_to = Z - to;
+      int range_length = to - from;
+      prepare_to_modify_buffer (from, to, &from);
+      to = from + range_length;
+
+      if (old_from != from)
+	from_byte = CHAR_TO_BYTE (from);
+      if (old_to == Z - to)
+	to_byte = CHAR_TO_BYTE (to);
+    }
+
+  del_range_2 (from, to, from_byte, to_byte);
+}
+
+/* Like del_range_1, but positions are specified both as charpos
+   and bytepos.  */
+
+void
+del_range_both (from, to, from_byte, to_byte, prepare)
+     int from, to, from_byte, to_byte, prepare;
+{
+  /* Make args be valid */
+  if (from_byte < BEGV_BYTE)
+    from_byte = BEGV_BYTE;
+  if (to_byte > ZV_BYTE)
+    to_byte = ZV_BYTE;
+
+  if (to_byte <= from_byte)
+    return;
+
   if (from < BEGV)
     from = BEGV;
   if (to > ZV)
     to = ZV;
 
-  if ((numdel = to - from) <= 0)
-    return;
+  if (prepare)
+    {
+      int old_from = from, old_to = Z - to;
+      int range_length = to - from;
+      prepare_to_modify_buffer (from, to, &from);
+      to = from + range_length;
+
+      if (old_from != from)
+	from_byte = CHAR_TO_BYTE (from);
+      if (old_to == Z - to)
+	to_byte = CHAR_TO_BYTE (to);
+    }
+
+  del_range_2 (from, to, from_byte, to_byte);
+}
+
+/* Delete a range of text, specified both as character positions
+   and byte positions.  FROM and TO are character positions,
+   while FROM_BYTE and TO_BYTE are byte positions.  */
+
+void
+del_range_2 (from, to, from_byte, to_byte)
+     int from, to, from_byte, to_byte;
+{
+  register int nbytes_del, nchars_del;
+
+  nchars_del = to - from;
+  nbytes_del = to_byte - from_byte;
 
   /* Make sure the gap is somewhere in or next to what we are deleting.  */
   if (from > GPT)
-    gap_right (from);
+    gap_right (from, from_byte);
   if (to < GPT)
-    gap_left (to, 0);
+    gap_left (to, to_byte, 0);
 
   /* Relocate all markers pointing into the new, larger gap
      to point at the end of the text before the gap.
-     This has to be done before recording the deletion,
-     so undo handles this after reinserting the text.  */
-  adjust_markers (to + GAP_SIZE, to + GAP_SIZE, - numdel - GAP_SIZE);
+     Do this before recording the deletion,
+     so that undo handles this after reinserting the text.  */
+  adjust_markers_for_delete (from, from_byte, to, to_byte);
 
-  record_delete (from, numdel);
+  record_delete (from, nchars_del);
   MODIFF++;
 
   /* Relocate point as if it were a marker.  */
   if (from < PT)
-    adjust_point (from - (PT < to ? PT : to));
+    adjust_point (from - (PT < to ? PT : to),
+		  from_byte - (PT_BYTE < to_byte ? PT_BYTE : to_byte));
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  offset_intervals (current_buffer, from, - numdel);
+  offset_intervals (current_buffer, from, - nchars_del);
 
   /* Adjust the overlay center as needed.  This must be done after
      adjusting the markers that bound the overlays.  */
-  adjust_overlays_for_delete (from, numdel);
+  adjust_overlays_for_delete (from_byte, nchars_del);
 
-  GAP_SIZE += numdel;
-  ZV -= numdel;
-  Z -= numdel;
+  GAP_SIZE += nbytes_del;
+  ZV_BYTE -= nbytes_del;
+  Z_BYTE -= nbytes_del;
+  ZV -= nchars_del;
+  Z -= nchars_del;
   GPT = from;
+  GPT_BYTE = from_byte;
   *(GPT_ADDR) = 0;		/* Put an anchor.  */
+
+  if (GPT_BYTE < GPT)
+    abort ();
 
   if (GPT - BEG < beg_unchanged)
     beg_unchanged = GPT - BEG;
@@ -883,13 +1168,15 @@ del_range_1 (from, to, prepare)
     end_unchanged = Z - GPT;
 
   evaporate_overlays (from);
-  signal_after_change (from, numdel, 0);
+  signal_after_change (from, nchars_del, 0);
 }
 
-/* Call this if you're about to change the region of BUFFER from START
-   to END.  This checks the read-only properties of the region, calls
-   the necessary modification hooks, and warns the next redisplay that
-   it should pay attention to that area.  */
+/* Call this if you're about to change the region of BUFFER from
+   character positions START to END.  This checks the read-only
+   properties of the region, calls the necessary modification hooks,
+   and warns the next redisplay that it should pay attention to that
+   area.  */
+
 void
 modify_region (buffer, start, end)
      struct buffer *buffer;
@@ -921,7 +1208,9 @@ modify_region (buffer, start, end)
     set_buffer_internal (old_buffer);
 }
 
-/* Check that it is okay to modify the buffer between START and END.
+/* Check that it is okay to modify the buffer between START and END,
+   which are char positions.
+
    Run the before-change-function, if any.  If intervals are in use,
    verify that the text to be modified is not read-only, and call
    any modification properties the text may have.
@@ -1103,15 +1392,15 @@ signal_before_change (start_int, end_int, preserve_ptr)
 }
 
 /* Signal a change immediately after it happens.
-   POS is the address of the start of the changed text.
+   CHARPOS is the character position of the start of the changed text.
    LENDEL is the number of characters of the text before the change.
    (Not the whole buffer; just the part that was changed.)
    LENINS is the number of characters in that part of the text
    after the change.  */
 
 void
-signal_after_change (pos, lendel, lenins)
-     int pos, lendel, lenins;
+signal_after_change (charpos, lendel, lenins)
+     int charpos, lendel, lenins;
 {
   /* If we are deferring calls to the after-change functions
      and there are no before-change functions,
@@ -1127,8 +1416,8 @@ signal_after_change (pos, lendel, lenins)
 	  && current_buffer != XBUFFER (combine_after_change_buffer))
 	Fcombine_after_change_execute ();
 
-      elt = Fcons (make_number (pos - BEG),
-		   Fcons (make_number (Z - (pos - lendel + lenins)),
+      elt = Fcons (make_number (charpos - BEG),
+		   Fcons (make_number (Z - (charpos - lendel + lenins)),
 			  Fcons (make_number (lenins - lendel), Qnil)));
       combine_after_change_list
 	= Fcons (elt, combine_after_change_list);
@@ -1145,7 +1434,7 @@ signal_after_change (pos, lendel, lenins)
      because it is obsolete anyway and new code should not use it.  */
   if (!NILP (Vafter_change_function))
     call3 (Vafter_change_function,
-	   make_number (pos), make_number (pos + lenins),
+	   make_number (charpos), make_number (charpos + lenins),
 	   make_number (lendel));
 
   if (!NILP (Vafter_change_functions))
@@ -1166,8 +1455,8 @@ signal_after_change (pos, lendel, lenins)
 
       /* Actually run the hook functions.  */
       args[0] = Qafter_change_functions;
-      XSETFASTINT (args[1], pos);
-      XSETFASTINT (args[2], pos + lenins);
+      XSETFASTINT (args[1], charpos);
+      XSETFASTINT (args[2], charpos + lenins);
       XSETFASTINT (args[3], lendel);
       run_hook_list_with_args (after_change_functions,
 			       4, args);
@@ -1180,16 +1469,17 @@ signal_after_change (pos, lendel, lenins)
 
   if (!NILP (current_buffer->overlays_before)
       || !NILP (current_buffer->overlays_after))
-    report_overlay_modification (make_number (pos),
-				 make_number (pos + lenins),
+    report_overlay_modification (make_number (charpos),
+				 make_number (charpos + lenins),
 				 1,
-				 make_number (pos), make_number (pos + lenins),
+				 make_number (charpos),
+				 make_number (charpos + lenins),
 				 make_number (lendel));
 
   /* After an insertion, call the text properties
      insert-behind-hooks or insert-in-front-hooks.  */
   if (lendel == 0)
-    report_interval_modification (pos, pos + lenins);
+    report_interval_modification (charpos, charpos + lenins);
 }
 
 Lisp_Object
