@@ -3,7 +3,7 @@
 ;; Copyright (C) 1988,'89,'90,'91,'92,'93,'94,'95,1997
 ;;       Free Software Foundation, Inc
 
-;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
+;; Author: Daniel LaLiberte <dlaliberte@gte.com>
 ;; Keywords: lisp, tools, maint
 
 ;; This file is part of GNU Emacs.
@@ -32,51 +32,28 @@
 ;; expressions, trap errors normally caught by debug, and display a
 ;; debug style backtrace.
 
-;;; Installation
-;; =============
+;;; Minimal Instructions
+;; =====================
 
-;; Put edebug.el in some directory in your load-path and
-;; byte-compile it.  Also read the beginning of edebug-epoch.el, 
-;; cl-specs.el, and edebug-cl-read.el if they apply to you.
-
-;; Unless you are using Emacs 19 which is already set up to use Edebug,
-;; put the following forms in your .emacs file.
-;; (define-key emacs-lisp-mode-map "\C-xx" 'edebug-eval-top-level-form)
-;; (autoload 'edebug-eval-top-level-form "edebug")
+;; First evaluate a defun with C-M-x, then run the function.  Step
+;; through the code with SPC, mark breakpoints with b, go until a
+;; breakpoint is reached with g, and quit execution with q.  Use the
+;; "?" command in edebug to describe other commands. 
+;; See the Emacs 19 Lisp Reference Manual for more instructions.
 
 ;; If you wish to change the default edebug global command prefix, change:
 ;; (setq edebug-global-prefix "\C-xX")
 
-;; Other options, are described in the manual.
-
-;; In previous versions of Edebug, users were directed to set
-;; `debugger' to `edebug-debug'.  This is no longer necessary
-;; since Edebug automatically sets it whenever Edebug is active.
-
-;;; Minimal Instructions
-;; =====================
-
-;; First evaluate a defun with C-xx, then run the function.  Step
-;; through the code with SPC, mark breakpoints with b, go until a
-;; breakpoint is reached with g, and quit execution with q.  Use the
-;; "?" command in edebug to describe other commands.  See edebug.tex
-;; or the Emacs 19 Lisp Reference Manual for more instructions.
-
 ;; Send me your enhancements, ideas, bugs, or fixes.
-;; For bugs, you can call edebug-submit-bug-report if you have reporter.el.
+;; For bugs, you can call edebug-submit-bug-report.
 ;; There is an edebug mailing list if you want to keep up
-;; with the latest developments. Requests to: edebug-request@cs.uiuc.edu
+;; with the latest developments.  Requests to: edebug-request@cs.uiuc.edu
 
-;; Daniel LaLiberte   217-398-4114
-;; University of Illinois, Urbana-Champaign
-;; Department of Computer Science
-;; 1304 W Springfield
-;; Urbana, IL  61801
-
-;; uiucdcs!liberte
-;; liberte@cs.uiuc.edu
-
-;; For the early revision history, see edebug-history.
+;; Daniel LaLiberte    617-466-3291
+;; GTE Labs
+;; 40 Sylvan Rd
+;; Waltham, MA  02254
+;; dlaliberte@gte.com
 
 ;;; Code:
 
@@ -4052,7 +4029,7 @@ May only be called from within edebug-recursive-edit."
 
 
 (defvar edebug-eval-mode-map nil
-  "Keymap for edebug-eval-mode.  Superset of lisp-interaction-mode.")
+  "Keymap for Edebug Eval mode.  Superset of Lisp Interaction mode.")
 
 (if edebug-eval-mode-map
     nil
@@ -4083,7 +4060,7 @@ Global commands prefixed by global-edebug-prefix:
 "
   (lisp-interaction-mode)
   (setq major-mode 'edebug-eval-mode)
-  (setq mode-name "Edebug-Eval")
+  (setq mode-name "Edebug Eval")
   (use-local-map edebug-eval-mode-map))
 
 ;;; Interface with standard debugger.
