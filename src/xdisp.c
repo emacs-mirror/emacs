@@ -3353,8 +3353,6 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 
   while (p1 < endp)
     {
-      int eat_following_binary_data;
-
       if (pos >= pause)
 	{
 	  int e_t_h;
@@ -3739,61 +3737,56 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 	    *p1 = MAKE_GLYPH (f, c ^ 0100, current_face) | rev_dir_bit;
 	  p1++;
 	}
-      else if (len == 1)
-	{
-	  /* C is not a multibyte character.  */
-	  eat_following_binary_data = multibyte && BASE_LEADING_CODE_P (c);
-	  
-	label_display_binary_data:
-	  do {
-	    if (p1 >= leftmargin && p1 < endp)
-	      *p1 = (fix_glyph
-		     (f, (dp && INTEGERP (DISP_ESCAPE_GLYPH (dp))
-			  && GLYPH_CHAR_VALID_P (XINT (DISP_ESCAPE_GLYPH (dp)))
-			  ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
-		      current_face)
-		     | rev_dir_bit);
-	    p1++;
-	    if (p1 >= leftmargin && p1 < endp)
-	      *p1 = MAKE_GLYPH (f, (c >> 6) + '0', current_face) | rev_dir_bit;
-	    p1++;
-	    if (p1 >= leftmargin && p1 < endp)
-	      *p1 = (MAKE_GLYPH (f, (7 & (c >> 3)) + '0', current_face)
-		     | rev_dir_bit);
-	    p1++;
-	    if (p1 >= leftmargin && p1 < endp)
-	      *p1 = MAKE_GLYPH (f, (7 & c) + '0', current_face) | rev_dir_bit;
-	    p1++;
-	  } while (eat_following_binary_data
-		   && (pos_byte + len) < limit_byte
-		   && ! CHAR_HEAD_P (*p)
-		   && ((c = *p++), len++));
-	}
       else
 	{
-	  /* C is a multibyte character.  */
-	  int charset = CHAR_CHARSET (c);
-	  int columns = (charset == CHARSET_COMPOSITION
-			 ? cmpchar_table[COMPOSITE_CHAR_ID (c)]->width
-			 : CHARSET_WIDTH (charset));
-	  GLYPH g = MAKE_GLYPH (f, c, current_face) | rev_dir_bit;
+	  /* C is a multibyte character or a character to be displayed
+             by octral form.  */
+	  int remaining_bytes = len;
 
-	  while (columns--)
+	  if (c >= 0400)
 	    {
-	      if (p1 >= leftmargin && p1 < endp)
-		*p1 = g, g |= GLYPH_MASK_PADDING;
-	      p1++;
+	      /* C is a multibyte character.  */
+	      int charset = CHAR_CHARSET (c);
+	      int columns = (charset == CHARSET_COMPOSITION
+			     ? cmpchar_table[COMPOSITE_CHAR_ID (c)]->width
+			     : CHARSET_WIDTH (charset));
+	      GLYPH g = MAKE_GLYPH (f, c, current_face) | rev_dir_bit;
+
+	      while (columns--)
+		{
+		  if (p1 >= leftmargin && p1 < endp)
+		    *p1 = g, g |= GLYPH_MASK_PADDING;
+		  p1++;
+		}
+	      p1_wide_column_end = p1;
+	      remaining_bytes -= CHARSET_BYTES (charset);
 	    }
 
-	  p1_wide_column_end = p1;
-	  /* Check if binary data follows it.  */
-	  if (pos_byte + len < limit_byte
-	      && ! CHAR_HEAD_P (*p))
+	  while (remaining_bytes > 0)
 	    {
-	      eat_following_binary_data = 1;
-	      c = *p++;
-	      len++;
-	      goto label_display_binary_data;
+	      c = *(p - remaining_bytes--);
+
+	      if (p1 >= leftmargin && p1 < endp)
+		*p1 = (fix_glyph
+		       (f,
+			(dp && INTEGERP (DISP_ESCAPE_GLYPH (dp))
+			 && GLYPH_CHAR_VALID_P (XINT (DISP_ESCAPE_GLYPH (dp)))
+			 ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
+			current_face)
+		       | rev_dir_bit);
+	      p1++;
+	      if (p1 >= leftmargin && p1 < endp)
+		*p1 = (MAKE_GLYPH (f, (c >> 6) + '0', current_face)
+		       | rev_dir_bit);
+	      p1++;
+	      if (p1 >= leftmargin && p1 < endp)
+		*p1 = (MAKE_GLYPH (f, (7 & (c >> 3)) + '0', current_face)
+		       | rev_dir_bit);
+	      p1++;
+	      if (p1 >= leftmargin && p1 < endp)
+		*p1 = (MAKE_GLYPH (f, (7 & c) + '0', current_face)
+		       | rev_dir_bit);
+	      p1++;
 	    }
 	}
 
