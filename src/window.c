@@ -1452,8 +1452,12 @@ value is reasonable when this function is called.")
     CHECK_LIVE_WINDOW (window, 0);
 
   w = XWINDOW (window);
+
   startpos = marker_position (w->start);
   top = XFASTINT (w->top) - FRAME_MENU_BAR_LINES (XFRAME (WINDOW_FRAME (w)));
+
+  if (MINI_WINDOW_P (w) && top > 0)
+    error ("Can't expand minibuffer to full frame");
 
   window_loop (DELETE_OTHER_WINDOWS, window, 0, WINDOW_FRAME (w));
 
