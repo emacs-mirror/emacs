@@ -444,7 +444,7 @@
       coding-category-iso-7-else	'iso-2022-7bit-lock
       coding-category-iso-8-else	'iso-2022-8bit-ss2
       coding-category-ccl		nil
-      coding-category-utf-8             nil
+      coding-category-utf-8		'mule-utf-8
       coding-category-utf-16-be         nil
       coding-category-utf-16-le         nil
       coding-category-big5		'chinese-big5
@@ -463,10 +463,10 @@
    coding-category-sjis 
    coding-category-big5
    coding-category-ccl
+   coding-category-utf-8
    coding-category-binary
    coding-category-utf-16-be
-   coding-category-utf-16-le
-   coding-category-utf-8))
+   coding-category-utf-16-le))
 
 
 ;;; Miscellaneous settings.
