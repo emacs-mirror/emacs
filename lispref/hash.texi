@@ -78,7 +78,8 @@ alternatives:
 @item eql
 Keys which are numbers are ``the same'' if they are @code{equal}, that
 is, if they are equal in value and either both are integers or both
-are floats; otherwise, two distinct objects are never ``the same''.
+are floating point numbers; otherwise, two distinct objects are never
+``the same''.
 
 @item eq
 Any two distinct Lisp objects are ``different'' as keys.

@@ -1,3 +1,14 @@
+2003-11-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* markers.texi (Creating Markers): Specify insertion type of
+	created markers.  Add xref to `Marker Insertion Types'.
+	Second argument to `copy-marker' is optional.
+	(Marker Insertion Types): Mention that most markers are created
+	with insertion type nil.
+	(The Mark): Correctly describe when `mark' signals an error.
+	(The Region): Correctly describe when `region-beginning' and
+	`region-end' signal an error.
+
 2003-11-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* hash.texi (Creating Hash): Clarify description of `eql'.
@@ -504,7 +515,7 @@
 	(Hooks): Add run-mode-hooks and delay-mode-hooks.
 
 	* variables.texi (Creating Buffer-Local): Add buffer-local-value.
-	(Variable Aliases): Clarify defvralias.
+	(Variable Aliases): Clarify defvaralias.
 
 	* loading.texi (Library Search): Add load-suffixes.
 
