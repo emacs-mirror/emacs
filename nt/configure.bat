@@ -202,7 +202,16 @@ echo Checking whether W32 API headers are too old...
 echo #include "windows.h" >junk.c
 echo test(PIMAGE_NT_HEADERS pHeader) >>junk.c
 echo {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);} >>junk.c
-gcc -c junk.c
+if (%nocygwin%) == (Y) goto checkw32api1
+set cf=%usercflags%
+goto checkw32api2
+:checkw32api1
+set cf=%usercflags% -mno-cygwin
+:checkw32api2
+echo on
+gcc %cf% -c junk.c
+echo off
+set cf=
 if exist junk.o goto gccOk
 
 :nocompiler
