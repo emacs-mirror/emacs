@@ -3,6 +3,9 @@
 	* international/mule-cmds.el (inactivate-input-method): Set
 	input-method-function to nil.
 
+	* xml.el (xml-parse-tag): The document may contain invalid characters.
+	From ShengHuo ZHU  <zsh@cs.rochester.edu>
+
 2001-05-31  MORIOKA Tomohiko  <tomo@kanji.zinbun.kyoto-u.ac.jp>
 
 	* mail/rmailsum.el (rmail-message-subject-p): Don't call
