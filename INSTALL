@@ -173,48 +173,6 @@ Unicode characters are available from <URL:ftp://ftp.x.org/contrib/fonts/>
 and <URL:ftp://ftp.xfree86.org/pub/X.Org/contrib/fonts/>.
 
 
-The new Indian implementation uses the ISFOC standard fonts.  We use
-CDAC ISFOC fonts to display the Devanagari script in Emacs.  They are
-copyrighted, but we received permission to use them in Emacs from the
-font developers.  These fonts can be obtained from the internet, or
-may be found in C-DAC products (including downloadable ones).  For
-examle, you can search the CDAC Devanagari font `dvsr0ntt.ttf' by
-using some search engines and they will guide you to appropriate URLs
-to obtain them.
-
-After you've downloaded the fonts, then run the following Makefile
-to create the appropriate BDF/PCF fonts.  (You will need `ttf2bdf',
-equipped with freetype 1, to create BDF file.)
-
-TTFS=	asdr0ntt.ttf:Assamese\
-	bndr0ntt.ttf:Bengali\
-	dvsr0ntt.ttf:Devanagari\
-	gjav0ntt.ttf:Gujarati\
-	knum0ntt.ttf:Kannada\
-	mlkr0ntt.ttf:Malayalam\
-	orsr0ntt.ttf:Oriya\
-	pnam0ntt.ttf:Punjabi\
-	sdsr0ntt.ttf:Sanskrit\
-	tlhm0ntt.ttf:Telugu\
-	tmvl0ntt.ttf:Tamil
-
-all:
-	for f in ${TTFS}; do \
-	  ttf=`echo $$f | sed 's/:.*$$//'`; \
-	  reg=`echo $$f | sed 's/[^:]*://'`; \
-	  base=`basename $$ttf .ttf`; \
-	  echo Converting "$$ttf to $$base-XX.bdf/pcf with registry $$reg"; \
-	  for i in 16 24; do \
-	    ttf2bdf -p $${i} -r 100 -l 0_255 $$ttf > temp; \
-	    sed "/^FONT /s/ISO10646-1/$$reg-CDAC/" <temp >$$base-$$i.bdf; \
-	    bdftopcf $$base-$$i.bdf > $$base-$$i.pcf; \
-	  done; \
-	done
-	rm -f temp
-
-clean:
-	rm -f *.pcf *.bdf
-
 
 DETAILED BUILDING AND INSTALLATION:
 
