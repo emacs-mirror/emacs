@@ -659,11 +659,21 @@ which font is being used for displaying the character."
 		    ").\n"
 		    "See the variable `reference-point-alist' for "
 		    "the meaning of the rule.\n")))
-	(if props
-	    (insert "\nText properties\n"))
-	(while props
-	  (insert (format "  %s: %s" (car props) (cadr props)))
-	  (setq props (cddr props)))
+	(when props
+	  (insert "\nText properties\n"))
+	;; List the text properties, sorted by the size of the printed
+	;; representation of their value.  This makes it easier to
+	;; read.
+	(dolist (elt (sort (let ((ret nil))
+			     (while props
+			       (push (cons (pop props)
+					   (prin1-to-string (pop props)))
+				     ret))
+			     ret)
+			   (lambda (a b)
+			     (< (length (cdr a))
+				(length (cdr b))))))
+	  (insert (format "  %s: %s\n" (car elt) (cdr elt))))
 	))))
 
 
