@@ -1,3 +1,8 @@
+2001-04-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* net/browse-url.el (browse-url-new-window-flag): Renamed from
+	browse-url-new-window-p.
+
 2001-04-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-menu-update): When there are no menus and/or no
