@@ -27,7 +27,7 @@
 ;;; Commentary:
 ;;
 ;; A calculator for Emacs.
-;; Why should you each for your mouse to get xcalc (calc.exe, gcalc or
+;; Why should you reach for your mouse to get xcalc (calc.exe, gcalc or
 ;; whatever), when you have Emacs running already?
 ;;
 ;; If this is not part of your Emacs distribution, then simply bind
