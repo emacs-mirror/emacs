@@ -75,6 +75,18 @@
   is running, when gcc support is being tested.  These cannot be
   surpressed because of limitations in the Windows 9x command.com shell.
 
+* Optional image library support
+
+  To build Emacs with support for PNG image, the libpng and zlib headers
+  must be in the include path when the configure script is run. This can
+  be setup using environment variables, or by specifying --cflags -I...
+  options on the command-line to configure.  The configure script will
+  report whether it was able to detect the headers.
+
+  To use the PNG support, zlib.dll (or zlibd.dll) and libpng.dll (or
+  libpng13.dll, or libpng13d.dll) must be on the PATH or in the same
+  directory as emacs.exe when Emacs is started.
+
 * Building
 
   After running configure, simply run the appropriate `make' program for
