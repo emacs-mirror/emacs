@@ -5687,21 +5687,24 @@ update_frame_line (f, vpos)
  ***********************************************************************/
 
 /* Determine what's under window-relative pixel position (*X, *Y).
-   Return in *OBJECT the object (string or buffer) that's there.
-   Return in *POS the position in that object. Adjust *X and *Y
-   to character positions.  */
+   Return the object (string or buffer) that's there.
+   Return in *POS the position in that object.
+   Adjust *X and *Y to character positions.  */
 
-void
-buffer_posn_from_coords (w, x, y, dx, dy, object, pos)
+Lisp_Object
+buffer_posn_from_coords (w, x, y, pos, object, dx, dy, width, height)
      struct window *w;
      int *x, *y;
-     int *dx, *dy;
-     Lisp_Object *object;
      struct display_pos *pos;
+     Lisp_Object *object;
+     int *dx, *dy;
+     int *width, *height;
 {
   struct it it;
   struct buffer *old_current_buffer = current_buffer;
   struct text_pos startp;
+  Lisp_Object string;
+  struct glyph_row *row;
   int x0, x1;
 
   current_buffer = XBUFFER (w->buffer);
@@ -5719,7 +5722,10 @@ buffer_posn_from_coords (w, x, y, dx, dy, object, pos)
   *dx = x0 + it.first_visible_x - it.current_x;
   *dy = *y - it.current_y;
 
-  *object =  w->buffer;
+  string =  w->buffer;
+  if (STRINGP (it.string))
+    string = it.string;
+  *pos = it.current;
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (it.what == IT_IMAGE)
@@ -5727,25 +5733,33 @@ buffer_posn_from_coords (w, x, y, dx, dy, object, pos)
       struct image *img;
       if ((img = IMAGE_FROM_ID (it.f, it.image_id)) != NULL
 	  && !NILP (img->spec))
-	{
-	  struct glyph_row *row = MATRIX_ROW (w->current_matrix, it.vpos);
-	  struct glyph *glyph;
+	*object = img->spec;
+    }
+#endif
 
-	  if (it.hpos < row->used[TEXT_AREA]
-	      && (glyph = row->glyphs[TEXT_AREA] + it.hpos,
-		  glyph->type == IMAGE_GLYPH))
-	    {
-	      *dy -= row->ascent - glyph->ascent;
-	      *object = img->spec;
-	    }
+  row = MATRIX_ROW (w->current_matrix, it.vpos);
+  if (row->enabled_p)
+    {
+      if (it.hpos < row->used[TEXT_AREA])
+	{
+	  struct glyph *glyph = row->glyphs[TEXT_AREA] + it.hpos;
+	  *width = glyph->pixel_width;
+	  *height = glyph->ascent + glyph->descent;
+#ifdef HAVE_WINDOW_SYSTEM
+	  if (glyph->type == IMAGE_GLYPH)
+	    *dy -= row->ascent - glyph->ascent;
+#endif
+	}
+      else
+	{
+	  *width = 0;
+	  *height = row->height;
 	}
     }
   else
-#endif
-    if (STRINGP (it.string))
-      *object = it.string;
-
-  *pos = it.current;
+    {
+      *width = *height = 0;
+    }
 
   /* Add extra (default width) columns if clicked after EOL. */
   x1 = max(0, it.current_x + it.pixel_width - it.first_visible_x);
@@ -5754,21 +5768,24 @@ buffer_posn_from_coords (w, x, y, dx, dy, object, pos)
 
   *x = it.hpos;
   *y = it.vpos;
+
+  return string;
 }
 
 
 /* Value is the string under window-relative coordinates X/Y in the
-   mode or header line of window W, or nil if none.  MODE_LINE_P non-zero
-   means look at the mode line.  *CHARPOS is set to the position in
-   the string returned.  */
+   mode line or header line (PART says which) of window W, or nil if none.
+   *CHARPOS is set to the position in the string returned.  */
 
 Lisp_Object
-mode_line_string (w, x, y, dx, dy, part, charpos)
+mode_line_string (w, part, x, y, charpos, object, dx, dy, width, height)
      struct window *w;
-     int *x, *y;
-     int *dx, *dy;
      enum window_part part;
+     int *x, *y;
      int *charpos;
+     Lisp_Object *object;
+     int *dx, *dy;
+     int *width, *height;
 {
   struct glyph_row *row;
   struct glyph *glyph, *end;
@@ -5795,22 +5812,36 @@ mode_line_string (w, x, y, dx, dy, part, charpos)
 	{
 	  string = glyph->object;
 	  *charpos = glyph->charpos;
+	  *width = glyph->pixel_width;
+	  *height = glyph->ascent + glyph->descent;
+#ifdef HAVE_WINDOW_SYSTEM
+	  if (glyph->type == IMAGE_GLYPH)
+	    {
+	      struct image *img;
+	      img = IMAGE_FROM_ID (WINDOW_XFRAME (w), glyph->u.img_id);
+	      if (img != NULL)
+		*object = img->spec;
+	      y0 -= row->ascent - glyph->ascent;
+	    }
+#endif
 	}
       else
-	/* Add extra (default width) columns if clicked after EOL. */
-	*x += x0 / WINDOW_FRAME_COLUMN_WIDTH (w);
+	{
+	  /* Add extra (default width) columns if clicked after EOL. */
+	  *x += x0 / WINDOW_FRAME_COLUMN_WIDTH (w);
+	  *width = 0;
+	  *height = row->height;
+	}
     }
   else
     {
       *x = 0;
       x0 = 0;
+      *width = *height = 0;
     }
 
-  if (dx)
-    {
-      *dx = x0;
-      *dy = y0;
-    }
+  *dx = x0;
+  *dy = y0;
 
   return string;
 }
@@ -5821,12 +5852,14 @@ mode_line_string (w, x, y, dx, dy, part, charpos)
    the string returned.  */
 
 Lisp_Object
-marginal_area_string (w, x, y, dx, dy, part, charpos)
+marginal_area_string (w, part, x, y, charpos, object, dx, dy, width, height)
      struct window *w;
-     int *x, *y;
-     int *dx, *dy;
      enum window_part part;
+     int *x, *y;
      int *charpos;
+     Lisp_Object *object;
+     int *dx, *dy;
+     int *width, *height;
 {
   struct glyph_row *row = w->current_matrix->rows;
   struct glyph *glyph, *end;
@@ -5871,32 +5904,36 @@ marginal_area_string (w, x, y, dx, dy, part, charpos)
 	{
 	  string = glyph->object;
 	  *charpos = glyph->charpos;
+	  *width = glyph->pixel_width;
+	  *height = glyph->ascent + glyph->descent;
 #ifdef HAVE_WINDOW_SYSTEM
 	  if (glyph->type == IMAGE_GLYPH)
 	    {
 	      struct image *img;
 	      img = IMAGE_FROM_ID (WINDOW_XFRAME (w), glyph->u.img_id);
 	      if (img != NULL)
-		string = img->spec;
+		*object = img->spec;
 	      y0 -= row->ascent - glyph->ascent;
 	    }
 #endif
 	}
       else
-	/* Add extra (default width) columns if clicked after EOL. */
-	*x += x0 / WINDOW_FRAME_COLUMN_WIDTH (w);
+	{
+	  /* Add extra (default width) columns if clicked after EOL. */
+	  *x += x0 / WINDOW_FRAME_COLUMN_WIDTH (w);
+	  *width = 0;
+	  *height = row->height;
+	}
     }
   else
     {
       x0 = 0;
       *x = 0;
+      *width = *height = 0;
     }
 
-  if (dx)
-    {
-      *dx = x0;
-      *dy = y0;
-    }
+  *dx = x0;
+  *dy = y0;
 
   return string;
 }
