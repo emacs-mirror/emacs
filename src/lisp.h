@@ -352,26 +352,6 @@ enum pvec_type
 #define XUINT(a) ((EMACS_UINT) ((a) & VALMASK))
 #endif
 
-#ifndef XPNTR
-#ifdef HAVE_SHM
-/* In this representation, data is found in two widely separated segments.  */
-extern size_t pure_size;
-#define XPNTR(a) \
-  (XUINT (a) | (XUINT (a) > pure_size ? DATA_SEG_BITS : PURE_SEG_BITS))
-#else /* not HAVE_SHM */
-#ifdef DATA_SEG_BITS
-/* This case is used for the rt-pc.
-   In the diffs I was given, it checked for ptr = 0
-   and did not adjust it in that case.
-   But I don't think that zero should ever be found
-   in a Lisp object whose data type says it points to something.  */
-#define XPNTR(a) (XUINT (a) | DATA_SEG_BITS)
-#else
-#define XPNTR(a) XUINT (a)
-#endif
-#endif /* not HAVE_SHM */
-#endif /* no XPNTR */
-
 #ifndef XSET
 #define XSET(var, type, ptr) \
    ((var) = ((EMACS_INT)(type) << VALBITS) + ((EMACS_INT) (ptr) & VALMASK))
@@ -437,7 +417,6 @@ extern size_t pure_size;
 #endif /* EXPLICIT_SIGN_EXTEND */
 
 #define XUINT(a) ((a).u.val)
-#define XPNTR(a) ((a).u.val)
 
 #define XSET(var, vartype, ptr) \
    (((var).s.val = ((EMACS_INT) (ptr))), ((var).s.type = ((char) (vartype))))
@@ -462,6 +441,26 @@ extern Lisp_Object make_number ();
 #define XUNMARK(a) (XMARKBIT(a) = 0)
 
 #endif /* NO_UNION_TYPE */
+
+#ifndef XPNTR
+#ifdef HAVE_SHM
+/* In this representation, data is found in two widely separated segments.  */
+extern size_t pure_size;
+#define XPNTR(a) \
+  (XUINT (a) | (XUINT (a) > pure_size ? DATA_SEG_BITS : PURE_SEG_BITS))
+#else /* not HAVE_SHM */
+#ifdef DATA_SEG_BITS
+/* This case is used for the rt-pc.
+   In the diffs I was given, it checked for ptr = 0
+   and did not adjust it in that case.
+   But I don't think that zero should ever be found
+   in a Lisp object whose data type says it points to something.  */
+#define XPNTR(a) (XUINT (a) | DATA_SEG_BITS)
+#else
+#define XPNTR(a) XUINT (a)
+#endif
+#endif /* not HAVE_SHM */
+#endif /* no XPNTR */
 
 /* Largest and smallest representable fixnum values.  These are the C
    values.  */
