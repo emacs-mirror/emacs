@@ -2064,13 +2064,16 @@ whether or not it is currently displayed in some window.  */)
   SET_TEXT_POS (pt, PT, PT_BYTE);
   start_display (&it, w, pt);
 
-  /* Move to the start of the display line containing PT.  If we don't
+  /* Scan from the start of the line containing PT.  If we don't
      do this, we start moving with IT->current_x == 0, while PT is
      really at some x > 0.  The effect is, in continuation lines, that
      we end up with the iterator placed at where it thinks X is 0,
      while the end position is really at some X > 0, the same X that
      PT had.  */
-  move_it_by_lines (&it, 0, 0);
+  reseat_at_previous_visible_line_start (&it);
+  it.current_x = it.hpos = 0;
+  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
+  it.vpos = 0;
 
   if (XINT (lines) != 0)
     move_it_by_lines (&it, XINT (lines), 0);
