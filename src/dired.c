@@ -126,6 +126,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
      Ffuncall, and cause a GC.  */
     GCPRO1 (match);
     dirname = Fexpand_file_name (dirname, Qnil);
+    UNGCPRO;
     GCPRO2 (match, dirname);
     dirfilename = Fdirectory_file_name (dirname);
     UNGCPRO;
