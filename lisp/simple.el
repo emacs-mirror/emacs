@@ -849,13 +849,18 @@ Likewise in Transient Mark mode when the mark is active."
 (defvar pending-undo-list nil
   "Within a run of consecutive undo commands, list remaining to be undone.")
 
+(defvar undo-in-progress nil
+  "Non-nil while performing an undo.
+Some change-hooks test this variable to do something different.")
+
 (defun undo-more (count)
   "Undo back N undo-boundaries beyond what was already undone recently.
 Call `undo-start' to get ready to undo recent changes,
 then call `undo-more' one or more times to undo them."
   (or pending-undo-list
       (error "No further undo information"))
-  (setq pending-undo-list (primitive-undo count pending-undo-list)))
+  (let ((undo-in-progress t))
+    (setq pending-undo-list (primitive-undo count pending-undo-list))))
 
 ;; Deep copy of a list
 (defun undo-copy-list (list)
