@@ -3175,7 +3175,7 @@ even if they match PATTERN and FACE.")
 
 
 DEFUN ("x-color-defined-p", Fx_color_defined_p, Sx_color_defined_p, 1, 2, 0,
-       "Return non-nil color COLOR is supported on frame FRAME.\n\
+       "Return non-nil if color COLOR is supported on frame FRAME.\n\
 If FRAME is omitted or nil, use the selected frame.")
   (color, frame)
      Lisp_Object color, frame;
