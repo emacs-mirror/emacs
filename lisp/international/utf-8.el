@@ -3,6 +3,7 @@
 ;; Copyright (C) 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 
+;; Author: TAKAHASHI Naoto  <ntakahas@m17n.org>
 ;; Keywords: multilingual, Unicode, UTF-8, i18n
 
 ;; This file is part of GNU Emacs.
@@ -186,85 +187,116 @@ characters.")
 
 (define-ccl-program ccl-encode-mule-utf-8
   `(1
-    (loop
-     (read-multibyte-character r0 r1)
+    ((r5 = -1)
+     (loop
+      (if (r5 < 0)
+	  ((r1 = -1)
+	   (read-multibyte-character r0 r1))
+	(;; We have already done read-multibyte-character.
+	 (r0 = r5)
+	 (r1 = r6)
+	 (r5 = -1)))
 
-     (if (r0 == ,(charset-id 'ascii))
-	 (write r1)
+      (if (r0 == ,(charset-id 'ascii))
+	  (write r1)
 
-       (if (r0 == ,(charset-id 'latin-iso8859-1))
-	   ;; r1          scalar                  utf-8
-	   ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
-	   ;; 20    0000 0000 1010 0000    1100 0010 1010 0000
-	   ;; 7f    0000 0000 1111 1111    1100 0011 1011 1111
-	   ((r0 = (((r1 & #x40) >> 6) | #xc2))
-	    (r1 &= #x3f)
-	    (r1 |= #x80)
-	    (write r0 r1))
+	(if (r0 == ,(charset-id 'latin-iso8859-1))
+	    ;; r1          scalar                  utf-8
+	    ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
+	    ;; 20    0000 0000 1010 0000    1100 0010 1010 0000
+	    ;; 7f    0000 0000 1111 1111    1100 0011 1011 1111
+	    ((r0 = (((r1 & #x40) >> 6) | #xc2))
+	     (r1 &= #x3f)
+	     (r1 |= #x80)
+	     (write r0 r1))
 
-	 (if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
-	     ((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
-	      ;; #x3f80 == (0011 1111 1000 0000)b
-	      (r1 &= #x7f)
-	      (r1 += (r0 + 224))	; 240 == -32 + #x0100
-	      ;; now r1 holds scalar value
-	      (if (r1 < #x0800)
-		  ;; 2byte encoding
-		  ((r0 = (((r1 & #x07c0) >> 6) | #xc0))
-		   ;; #x07c0 == (0000 0111 1100 0000)b
-		   (r1 &= #x3f)
-		   (r1 |= #x80)
-		   (write r0 r1))
-		;; 3byte encoding
-		((r0 = (((r1 & #xf000) >> 12) | #xe0))
-		 (r2 = ((r1 & #x3f) | #x80))
-		 (r1 &= #x0fc0)
-		 (r1 >>= 6)
-		 (r1 |= #x80)
-		 (write r0 r1 r2))))
-
-	   (if (r0 == ,(charset-id 'mule-unicode-2500-33ff))
-	       ((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
-		(r1 &= #x7f)
-		(r1 += (r0 + 9440))	; 9440 == -32 + #x2500
-		(r0 = (((r1 & #xf000) >> 12) | #xe0))
-		(r2 = ((r1 & #x3f) | #x80))
-		(r1 &= #x0fc0)
-		(r1 >>= 6)
-		(r1 |= #x80)
-		(write r0 r1 r2))
-
-	     (if (r0 == ,(charset-id 'mule-unicode-e000-ffff))
-		 ((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
-		  (r1 &= #x7f)
-		  (r1 += (r0 + 57312))	; 57312 == -160 + #xe000
-		  (r0 = (((r1 & #xf000) >> 12) | #xe0))
+	  (if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
+	      ((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
+	       ;; #x3f80 == (0011 1111 1000 0000)b
+	       (r1 &= #x7f)
+	       (r1 += (r0 + 224))	; 240 == -32 + #x0100
+	       ;; now r1 holds scalar value
+	       (if (r1 < #x0800)
+		   ;; 2byte encoding
+		   ((r0 = (((r1 & #x07c0) >> 6) | #xc0))
+		    ;; #x07c0 == (0000 0111 1100 0000)b
+		    (r1 &= #x3f)
+		    (r1 |= #x80)
+		    (write r0 r1))
+		 ;; 3byte encoding
+		 ((r0 = (((r1 & #xf000) >> 12) | #xe0))
 		  (r2 = ((r1 & #x3f) | #x80))
 		  (r1 &= #x0fc0)
 		  (r1 >>= 6)
 		  (r1 |= #x80)
-		  (write r0 r1 r2))
+		  (write r0 r1 r2))))
 
-	       (if (r0 == ,(charset-id 'eight-bit-control))
-		   ;; r1          scalar                  utf-8
-		   ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
-		   ;; 80    0000 0000 1000 0000    1100 0010 1000 0000
-		   ;; 9f    0000 0000 1001 1111    1100 0010 1001 1111
-		   (write r1)
+	    (if (r0 == ,(charset-id 'mule-unicode-2500-33ff))
+		((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
+		 (r1 &= #x7f)
+		 (r1 += (r0 + 9440))	; 9440 == -32 + #x2500
+		 (r0 = (((r1 & #xf000) >> 12) | #xe0))
+		 (r2 = ((r1 & #x3f) | #x80))
+		 (r1 &= #x0fc0)
+		 (r1 >>= 6)
+		 (r1 |= #x80)
+		 (write r0 r1 r2))
 
-		 (if (r0 == ,(charset-id 'eight-bit-graphic))
-		     ;; r1          scalar                  utf-8
-		     ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
-		     ;; a0    0000 0000 1010 0000    1100 0010 1010 0000
-		     ;; ff    0000 0000 1111 1111    1101 1111 1011 1111
-		     (write r1)
+	      (if (r0 == ,(charset-id 'mule-unicode-e000-ffff))
+		  ((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
+		   (r1 &= #x7f)
+		   (r1 += (r0 + 57312))	; 57312 == -160 + #xe000
+		   (r0 = (((r1 & #xf000) >> 12) | #xe0))
+		   (r2 = ((r1 & #x3f) | #x80))
+		   (r1 &= #x0fc0)
+		   (r1 >>= 6)
+		   (r1 |= #x80)
+		   (write r0 r1 r2))
 
-		   ;; Unsupported character.
-		   ;; Output U+FFFD, which is `ef bf bd' in UTF-8.
-		   ((write #xef)
-		    (write #xbf)
-		    (write #xbd)))))))))
-     (repeat)))
+		(if (r0 == ,(charset-id 'eight-bit-control))
+		    ;; r1          scalar                  utf-8
+		    ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
+		    ;; 80    0000 0000 1000 0000    1100 0010 1000 0000
+		    ;; 9f    0000 0000 1001 1111    1100 0010 1001 1111
+		    ((write #xc2)
+		     (write r1))
+
+		  (if (r0 == ,(charset-id 'eight-bit-graphic))
+		      ;; r1          scalar                  utf-8
+		      ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
+		      ;; a0    0000 0000 1010 0000    1100 0010 1010 0000
+		      ;; ff    0000 0000 1111 1111    1101 1111 1011 1111
+		      ((write r1)
+		       (r1 = -1)
+		       (read-multibyte-character r0 r1)
+		       (if (r0 != ,(charset-id 'eight-bit-graphic))
+			   (if (r0 != ,(charset-id 'eight-bit-control))
+			       ((r5 = r0)
+				(r6 = r1))))
+		       (if (r5 < 0)
+			   ((read-multibyte-character r0 r2)
+			    (if (r0 != ,(charset-id 'eight-bit-graphic))
+				(if (r0 != ,(charset-id 'eight-bit-control))
+				    ((r5 = r0)
+				     (r6 = r2))))
+			    (if (r5 < 0)
+				(write r1 r2)
+			      (if (r1 < #xa0)
+				  (write r1)
+				((write #xc2)
+				 (write r1)))))))
+
+		    ;; Unsupported character.
+		    ;; Output U+FFFD, which is `ef bf bd' in UTF-8.
+		    ((write #xef)
+		     (write #xbf)
+		     (write #xbd)))))))))
+      (repeat)))
+    (if (r1 >= #xa0)
+	(write r1)
+      (if (r1 >= #x80)
+	  ((write #xc2)
+	   (write r1)))))
 
   "CCL program to encode into UTF-8.
 Only characters from the charsets ascii, eight-bit-control,
