@@ -711,7 +711,7 @@ If START or END is negative, it counts from the end."
       (setq res (edmacro-subseq res 2 -2)))
     (if (and (not need-vector)
 	     (loop for ch across res
-		   always (and (integerp ch)
+		   always (and (char-valid-p ch)
 			       (let ((ch2 (logand ch (lognot ?\M-\^@))))
 				 (and (>= ch2 0) (<= ch2 127))))))
 	(concat (loop for ch across res
