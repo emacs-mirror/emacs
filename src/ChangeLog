@@ -1,5 +1,10 @@
 2001-10-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_draw_relief_rect): Correct bottom relief by 1 pixel.
+	(x_set_glyph_string_background_width): Set
+	extends_to_end_of_line_p if the row's fill_line_p is set and
+	drawing the last glyph with DRAW_IMAGE_{RAISED,SUNKEN}.
+
 	* xdisp.c (clear_garbaged_frames): Call Fredraw_frame.
 
 2001-10-29  Stefan Monnier  <monnier@cs.yale.edu>
