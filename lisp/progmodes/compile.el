@@ -1015,9 +1015,10 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
     ;; later on.
     (goto-char omax)
     (insert ?\n mode-name " " (car status))
-    (forward-char -1)
+    (if (bolp)
+	(forward-char -1))
     (insert " at " (substring (current-time-string) 0 19))
-    (forward-char 1)
+    (goto-char (point-max))
     (setq mode-line-process (format ":%s [%s]" process-status (cdr status)))
     ;; Force mode line redisplay soon.
     (force-mode-line-update)
