@@ -1,3 +1,11 @@
+2001-10-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacsserver.c (main): Cast geteuid in sprintf to int.
+	From Hallvard B Furuseth <h.b.furuseth@usit.uio.no>.
+
+	* emacsclient.c (main): Cast isdigit() argument to unsigned char.
+	From Hallvard B Furuseth <h.b.furuseth@usit.uio.no>.
+
 2001-10-07  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* profile.c: Include config.h, not ../src/config.h.

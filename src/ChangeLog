@@ -3,6 +3,10 @@
 	* regex.c (WIDE_CHAR_SUPPORT): Do not use defined() in macro.
 	From Hallvard B Furuseth <h.b.furuseth@usit.uio.no>.
 
+	* editfns.c (Fcurrent_time_zone): Cast isalnum() argument to
+	unsigned char.
+	From Hallvard B Furuseth <h.b.furuseth@usit.uio.no>.
+	
 2001-10-08  Andrew Innes  <andrewi@gnu.org>
 
 	* lisp.h [max]: Undef min and max before redefining them.
