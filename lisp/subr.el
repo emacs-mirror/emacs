@@ -798,6 +798,8 @@ If ELEMENT is added, it is added at the beginning of the list,
 unless the optional argument APPEND is non-nil, in which case
 ELEMENT is added at the end.
 
+The return value is the new value of LIST-VAR.
+
 If you want to use `add-to-list' on a variable that is not defined
 until a certain package is loaded, you should put the call to `add-to-list'
 into a hook function that will be run only after loading the package.
