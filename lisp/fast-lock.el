@@ -217,10 +217,15 @@
   ;; We use this for compatibility with a future Emacs.
   (or (fboundp 'with-temp-message)
       (defmacro with-temp-message (message &rest body)
-	(` (let ((current-message (current-message)))
+	(` (let ((temp-message (, message)) current-message)
 	     (unwind-protect
-		 (progn (message (, message)) (,@ body))
-	       (message current-message))))))
+		 (progn
+		   (when temp-message
+		     (setq current-message (current-message))
+		     (message temp-message))
+		   (,@ body))
+	       (when temp-message
+		 (message current-message)))))))
   ;;
   ;; We use this for compatibility with a future Emacs.
   (or (fboundp 'defcustom)
@@ -574,9 +579,8 @@ See `fast-lock-cache-directory'."
 		   fast-lock-verbose))
 	(saved t))
     (with-temp-message
-	(if verbose
-	    (format "Saving %s font lock cache..." (buffer-name))
-	  (current-message))
+	(when verbose
+	  (format "Saving %s font lock cache..." (buffer-name)))
       (condition-case nil
 	  (save-excursion
 	    (print (list 'fast-lock-cache-data 3
@@ -631,9 +635,8 @@ See `fast-lock-cache-directory'."
 	    (not (equal keywords font-lock-keywords)))
 	(setq loaded nil)
       (with-temp-message
-	  (if verbose
-	      (format "Loading %s font lock cache..." (buffer-name))
-	    (current-message))
+	  (when verbose
+	    (format "Loading %s font lock cache..." (buffer-name)))
 	(condition-case nil
 	    (fast-lock-add-properties syntactic-properties face-properties)
 	  (error (setq loaded 'error)) (quit (setq loaded 'quit))))
