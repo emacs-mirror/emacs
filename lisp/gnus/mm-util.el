@@ -72,7 +72,8 @@
 	    string)))
      (string-as-unibyte . identity)
      (string-as-multibyte . identity)
-     (multibyte-string-p . ignore))))
+     (multibyte-string-p . ignore)
+     (insert-byte . insert))))
 
 (eval-and-compile
   (defalias 'mm-char-or-char-int-p
