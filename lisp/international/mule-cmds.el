@@ -265,7 +265,7 @@ startup."
 	(message "Highest priority is set to %s (base of %s)"
 		 base coding-system))
     ;; If they asked for specific EOL conversion, honor that.
-    (if (memq eol-type '(0 1 2 unix dos mac))
+    (if (memq eol-type '(0 1 2))
 	(setq coding-system
 	      (coding-system-change-eol-conversion base eol-type))
       (setq coding-system base))
