@@ -257,8 +257,10 @@ WidgetClass xlwMenuWidgetClass = (WidgetClass) &xlwMenuClassRec;
 
 int submenu_destroyed;
 
-/* For debug, set this to 0 to not grab the keyboard on menu popup */
-int x_menu_grab_keyboard = 1;
+/* For debug, if installation-directory is non-nil this is not an installed
+   Emacs.   In that case we do not grab the keyboard to make it easier to
+   debug. */
+#define GRAB_KEYBOARD  (EQ (Vinstallation_directory, Qnil))
 
 static int next_release_must_exit;
 
@@ -271,7 +273,7 @@ ungrab_all (w, ungrabtime)
      Time ungrabtime;
 {
   XtUngrabPointer (w, ungrabtime);
-  if (x_menu_grab_keyboard) XtUngrabKeyboard (w, ungrabtime);
+  if (GRAB_KEYBOARD) XtUngrabKeyboard (w, ungrabtime);
 }
 
 /* Like abort, but remove grabs from widget W before.  */
@@ -2334,7 +2336,7 @@ pop_up_menu (mw, event)
                      mw->menu.cursor_shape,
                      event->time) == Success)
     {
-      if (! x_menu_grab_keyboard
+      if (! GRAB_KEYBOARD
           || XtGrabKeyboard ((Widget)mw, False, GrabModeAsync,
                              GrabModeAsync, event->time) == Success)
         {
