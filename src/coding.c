@@ -764,6 +764,7 @@ static int detected_mask[coding_category_raw_text] =
 	  error ("Undecodable char found");	\
 	c = ((c & 1) << 6) | *src++;		\
       }						\
+    consumed_chars++;				\
   } while (0)
 
 
@@ -1523,12 +1524,12 @@ char emacs_mule_bytes[256];
 
 
 int
-emacs_mule_char (coding, composition, nbytes, nchars)
+emacs_mule_char (coding, src, nbytes, nchars)
      struct coding_system *coding;
+     unsigned char *src;
      int composition;
      int *nbytes, *nchars;
 {
-  unsigned char *src = coding->source + coding->consumed;
   unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
   unsigned char *src_base = src;
@@ -1538,20 +1539,6 @@ emacs_mule_char (coding, composition, nbytes, nchars)
   int consumed_chars = 0;
 
   ONE_MORE_BYTE (c);
-  if (composition)
-    {
-      c -= 0x20;
-      if (c == 0x80)
-	{
-	  ONE_MORE_BYTE (c);
-	  if (c < 0xA0)
-	    goto invalid_code;
-	  *nbytes = src - src_base;
-	  *nchars = consumed_chars;
-	  return (c - 0x80);
-	}
-    }
-
   switch (emacs_mule_bytes[c])
     {
     case 2:
@@ -1576,17 +1563,18 @@ emacs_mule_char (coding, composition, nbytes, nchars)
 	  if (! (charset = emacs_mule_charset[c]))
 	    goto invalid_code;
 	  ONE_MORE_BYTE (c);
-	  code = (c & 0x7F) << 7;
+	  code = (c & 0x7F) << 8;
 	  ONE_MORE_BYTE (c);
 	  code |= c & 0x7F;
 	}
       break;
 
     case 4:
+      ONE_MORE_BYTE (c);
       if (! (charset = emacs_mule_charset[c]))
 	goto invalid_code;
       ONE_MORE_BYTE (c);
-      code = (c & 0x7F) << 7;
+      code = (c & 0x7F) << 8;
       ONE_MORE_BYTE (c);
       code |= c & 0x7F;
       break;
@@ -1709,7 +1697,7 @@ detect_coding_emacs_mule (coding, mask)
 								\
       if (src == src_end)					\
 	break;							\
-      c = emacs_mule_char (coding, 1, &nbytes, &nchars);	\
+      c = emacs_mule_char (coding, src, &nbytes, &nchars);	\
       if (c < 0)						\
 	{							\
 	  if (c == -2)						\
@@ -1724,21 +1712,44 @@ detect_coding_emacs_mule (coding, mask)
 
 
 /* Decode a composition rule represented as a component of composition
-   sequence of Emacs 20 style at SRC.  Set C to the rule.  If SRC
-   points an invalid byte sequence, set C to -1.  */
+   sequence of Emacs 20 style at SRC.  Store the decoded rule in *BUF,
+   and increment BUF.  If SRC points an invalid byte sequence, set C
+   to -1.  */
 
-#define DECODE_EMACS_MULE_COMPOSITION_RULE(buf)		\
+#define DECODE_EMACS_MULE_COMPOSITION_RULE_20(buf)	\
   do {							\
     int c, gref, nref;					\
 							\
-    if (src < src_end)					\
+    if (src >= src_end)					\
       goto invalid_code;				\
     ONE_MORE_BYTE_NO_CHECK (c);				\
-    c -= 0xA0;						\
+    c -= 0x20;						\
     if (c < 0 || c >= 81)				\
       goto invalid_code;				\
 							\
     gref = c / 9, nref = c % 9;				\
+    *buf++ = COMPOSITION_ENCODE_RULE (gref, nref);	\
+  } while (0)
+
+
+/* Decode a composition rule represented as a component of composition
+   sequence of Emacs 21 style at SRC.  Store the decoded rule in *BUF,
+   and increment BUF.  If SRC points an invalid byte sequence, set C
+   to -1.  */
+
+#define DECODE_EMACS_MULE_COMPOSITION_RULE_21(buf)	\
+  do {							\
+    int gref, nref;					\
+							\
+    if (src + 1>= src_end)				\
+      goto invalid_code;				\
+    ONE_MORE_BYTE_NO_CHECK (gref);			\
+    gref -= 0x20;					\
+    ONE_MORE_BYTE_NO_CHECK (nref);			\
+    nref -= 0x20;					\
+    if (gref < 0 || gref >= 81				\
+	|| nref < 0 || nref >= 81)			\
+      goto invalid_code;				\
     *buf++ = COMPOSITION_ENCODE_RULE (gref, nref);	\
   } while (0)
 
@@ -1756,10 +1767,11 @@ detect_coding_emacs_mule (coding, mask)
 #define DECODE_EMACS_MULE_21_COMPOSITION(c)				\
   do {									\
     /* Emacs 21 style format.  The first three bytes at SRC are		\
-       (METHOD - 0xF0), (BYTES - 0xA0), (CHARS - 0xA0), where BYTES is	\
+       (METHOD - 0xF2), (BYTES - 0xA0), (CHARS - 0xA0), where BYTES is	\
        the byte length of this composition information, CHARS is the	\
        number of characters composed by this composition.  */		\
-    enum composition_method method = c - 0xF0;				\
+    enum composition_method method = c - 0xF2;				\
+    int *charbuf_base = charbuf;					\
     int consumed_chars_limit;						\
     int nbytes, nchars;							\
 									\
@@ -1777,12 +1789,14 @@ detect_coding_emacs_mule (coding, mask)
 	while (consumed_chars < consumed_chars_limit)			\
 	  {								\
 	    if (i % 2 && method != COMPOSITION_WITH_ALTCHARS)		\
-	      DECODE_EMACS_MULE_COMPOSITION_RULE (charbuf);		\
+	      DECODE_EMACS_MULE_COMPOSITION_RULE_21 (charbuf);		\
 	    else							\
 	      DECODE_EMACS_MULE_COMPOSITION_CHAR (charbuf);		\
+	    i++;							\
 	  }								\
 	if (consumed_chars < consumed_chars_limit)			\
 	  goto invalid_code;						\
+	charbuf_base[0] -= i;						\
       }									\
   } while (0)
 
@@ -1818,7 +1832,7 @@ detect_coding_emacs_mule (coding, mask)
     DECODE_EMACS_MULE_COMPOSITION_CHAR (buf);			\
     for (i = 0; i < MAX_COMPOSITION_COMPONENTS; i++)		\
       {								\
-	DECODE_EMACS_MULE_COMPOSITION_RULE (buf);		\
+	DECODE_EMACS_MULE_COMPOSITION_RULE_20 (buf);		\
 	DECODE_EMACS_MULE_COMPOSITION_CHAR (buf);		\
       }								\
     if (i < 1 || (buf - components) % 2 == 0)			\
@@ -1883,8 +1897,8 @@ decode_coding_emacs_mule (coding)
 	  if (charbuf + 5 + (MAX_COMPOSITION_COMPONENTS * 2) - 1 > charbuf_end)
 	    break;
 	  ONE_MORE_BYTE (c);
-	  if (c - 0xF0 >= COMPOSITION_RELATIVE
-	      && c - 0xF0 <= COMPOSITION_WITH_RULE_ALTCHARS)
+	  if (c - 0xF2 >= COMPOSITION_RELATIVE
+	      && c - 0xF2 <= COMPOSITION_WITH_RULE_ALTCHARS)
 	    DECODE_EMACS_MULE_21_COMPOSITION (c);
 	  else if (c < 0xC0)
 	    DECODE_EMACS_MULE_20_RELATIVE_COMPOSITION (c);
@@ -1892,12 +1906,14 @@ decode_coding_emacs_mule (coding)
 	    DECODE_EMACS_MULE_20_RULEBASE_COMPOSITION (c);
 	  else
 	    goto invalid_code;
+	  coding->annotated = 1;
 	}
       else if (c < 0xA0 && emacs_mule_bytes[c] > 1)
 	{
 	  int nbytes, nchars;
-	  src--;
-	  c = emacs_mule_char (coding, 0, &nbytes, &nchars);
+	  src = src_base;
+	  consumed_chars = consumed_chars_base;
+	  c = emacs_mule_char (coding, src, &nbytes, &nchars);
 	  if (c < 0)
 	    {
 	      if (c == -2)
@@ -1905,6 +1921,8 @@ decode_coding_emacs_mule (coding)
 	      goto invalid_code;
 	    }
 	  *charbuf++ = c;
+	  src += nbytes;
+	  consumed_chars += nchars;
 	  char_offset++;
 	}
       continue;
@@ -2572,7 +2590,7 @@ detect_coding_iso_2022 (coding, mask)
 #define DECODE_COMPOSITION_START(c1)					\
   do {									\
     if (c1 == '0'							\
-	&& composition_state == COMPOSING_COMPONENT_CHAR)		\
+	&& composition_state == COMPOSING_COMPONENT_RULE)		\
       {									\
 	component_len = component_idx;					\
 	composition_state = COMPOSING_CHAR;				\
@@ -2725,27 +2743,26 @@ decode_coding_iso_2022 (coding)
 		  composition_state--;
 		  continue;
 		}
-	      else if (method == COMPOSITION_WITH_RULE)
-		composition_state = COMPOSING_RULE;
-	      else if (method == COMPOSITION_WITH_RULE_ALTCHARS
-		       && composition_state == COMPOSING_COMPONENT_CHAR)
-		composition_state = COMPOSING_COMPONENT_CHAR;
 	    }
 	  if (charset_id_0 < 0
 	      || ! CHARSET_ISO_CHARS_96 (CHARSET_FROM_ID (charset_id_0)))
-	    {
-	      /* This is SPACE or DEL.  */
-	      charset = CHARSET_FROM_ID (charset_ascii);
-	      break;
-	    }
-	  /* This is a graphic character, we fall down ...  */
+	    /* This is SPACE or DEL.  */
+	    charset = CHARSET_FROM_ID (charset_ascii);
+	  else
+	    charset = CHARSET_FROM_ID (charset_id_0);
+	  break;
 
 	case ISO_graphic_plane_0:
-	  if (composition_state == COMPOSING_RULE)
+	  if (composition_state != COMPOSING_NO)
 	    {
-	      DECODE_COMPOSITION_RULE (c1);
-	      components[component_idx++] = c1;
-	      composition_state = COMPOSING_CHAR;
+	      if (composition_state == COMPOSING_RULE
+		  || composition_state == COMPOSING_COMPONENT_RULE)
+		{
+		  DECODE_COMPOSITION_RULE (c1);
+		  components[component_idx++] = c1;
+		  composition_state--;
+		  continue;
+		}
 	    }
 	  charset = CHARSET_FROM_ID (charset_id_0);
 	  break;
@@ -3009,7 +3026,13 @@ decode_coding_iso_2022 (coding)
 	  char_offset++;
 	}
       else
-	components[component_idx++] = c;
+	{
+	  components[component_idx++] = c;
+	  if (method == COMPOSITION_WITH_RULE
+	      || (method == COMPOSITION_WITH_RULE_ALTCHARS
+		  && composition_state == COMPOSING_COMPONENT_CHAR))
+	    composition_state++;
+	}
       continue;
 
     invalid_code:
@@ -7785,6 +7808,10 @@ init_coding_once ()
     {
       emacs_mule_bytes[i] = 1;
     }
+  emacs_mule_bytes[LEADING_CODE_PRIVATE_11] = 3;
+  emacs_mule_bytes[LEADING_CODE_PRIVATE_12] = 3;
+  emacs_mule_bytes[LEADING_CODE_PRIVATE_21] = 4;
+  emacs_mule_bytes[LEADING_CODE_PRIVATE_22] = 4;
 }
 
 #ifdef emacs
