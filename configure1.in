@@ -64,6 +64,16 @@ The --with-x, --with-x11 and --with-x10 options specify what window
 	system to use; if all are omitted, use X11 if present.  If you
 	don't want X, specify \`--with-x=no'.
 
+The --x-includes=DIR option tells the build process where to search for
+	the X Windows header files.  If this option is omitted, the
+	build process assumes they exist in a directory the compiler
+	checks by default.
+
+The --x-libraries=DIR option tells the build process where to look for
+	the X windows libraries.  If this option is omitted, the build
+	process assumes they are in a directory the compiler checks by
+	default.
+
 The --with-gcc option says that the build process should use GCC to
 	compile Emacs.  If you have GCC but don't want to use it,
 	specify \`--with-gcc=no'.  \`configure' tries to guess whether
@@ -85,7 +95,8 @@ unsuccessful after disturbing the status quo, it removes config.status."
 ### names.
 config_h_opts=" \
 HAVE_X_WINDOWS HAVE_X11 HAVE_X_MENU \
-SIGTYPE GNU_MALLOC REL_ALLOC LISP_FLOAT_TYPE HAVE_CONST"
+SIGTYPE GNU_MALLOC REL_ALLOC LISP_FLOAT_TYPE HAVE_CONST\
+LD_SWITCH_SITE C_SWITCH_SITE"
 
 ### Record all the arguments, so we can save them in config.status.
 arguments="$@"
@@ -169,6 +180,41 @@ Set it to either \`yes' or \`no'."
 
 	  echo "${progname}: Beware - the \`--srcdir' option doesn't work yet." >&2
 	;;
+
+	## Has the user tried to tell us where the X files are?
+	## I think these are dopey, but no less than three alpha
+	## testers, at large sites, have said they have their X files
+	## installed in odd places.
+	"x-includes" )
+	  ## If the value was omitted, get it from the next argument.
+	  if [ "${valomitted}" = "yes" ]; then
+	    ## Get the next argument from the argument list, if there is one.
+            if [ $# = 1 ]; then
+	      (echo "${progname}: You must give a value for the \`--${opt}' option, as in
+    \`--${opt}=FOO'."
+	       echo "${short_usage}") >&2
+	      exit 1
+	    fi
+	    shift; val="$1"
+	  fi
+	  x_includes="${val}"
+	  C_SWITCH_SITE="-I${x_includes}"
+        ;;
+	"x-libraries" )
+	  ## If the value was omitted, get it from the next argument.
+	  if [ "${valomitted}" = "yes" ]; then
+	    ## Get the next argument from the argument list, if there is one.
+            if [ $# = 1 ]; then
+	      (echo "${progname}: You must give a value for the \`--${opt}' option, as in
+    \`--${opt}=FOO'."
+	       echo "${short_usage}") >&2
+	      exit 1
+	    fi
+	    shift; val="$1"
+	  fi
+	  x_libraries="${val}"
+	  LD_SWITCH_SITE="-L${x_libraries}"
+        ;;
 
 	## Has the user asked for some help?
 	"usage" | "help" )
@@ -1001,6 +1047,7 @@ ${srcdir}/move-if-change Makefile.tmp Makefile
 #### Describe the results.
 
 ### Create a verbal description of what we have done.
+
 message="Configured for \`${configuration}'.
 
   What operating system and machine description files should Emacs use?
@@ -1009,7 +1056,9 @@ message="Configured for \`${configuration}'.
   Should Emacs use the relocating allocator for buffers?  ${REL_ALLOC}
   What window system should Emacs use?                    ${window_system}
   What compiler should emacs be built with?               ${default_cc}
-  Should the compilation use \`-g' and/or \`-O'?            ${default_cflags-neither}"
+  Should the compilation use \`-g' and/or \`-O'?            ${default_cflags-neither}${x_includes+
+  Where do we find X Windows header files?                }${x_includes}${x_libraries+
+  Where do we find X Windows libraries?                   }${x_libraries}"
 
 ### Write config.status, documenting the damage we have done.
 
