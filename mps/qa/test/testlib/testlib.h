@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.5) $
+/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.6) $
 test_lib.h
    various handy things for running tests, reporting errors &c
 */
@@ -55,6 +55,10 @@ void verror(const char *format, va_list args);
 /* If exp is false, prints text to stdout and aborts */
 
 void asserts(int expr, const char *format, ...);
+
+/* Abort. Tests should use error rather than this. */
+
+void myabort(void);
 
 /* Easy way of entering the trampoline, for when you don't
    want to pass any information in or out. If you have a
