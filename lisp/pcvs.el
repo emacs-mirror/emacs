@@ -1256,7 +1256,8 @@ they should always be unmarked."
   (let ((tin (ewoc-goto-prev cvs-cookies 1)))
     (when tin
       (setf (cvs-fileinfo->marked (ewoc-data tin)) nil)
-      (ewoc-invalidate cvs-cookies tin))))
+      (ewoc-invalidate cvs-cookies tin)))
+  (cvs-move-to-goal-column))
 
 (defconst cvs-ignore-marks-alternatives
   '(("toggle-marks"	. "/TM")
@@ -2043,14 +2044,14 @@ Returns a list of FIS that should be `cvs remove'd."
 	  (shrink-window-if-larger-than-buffer))))
     (if (not (or silent
 		 (unwind-protect
-		     (yes-or-no-p 
+		     (yes-or-no-p
 		      (let ((nfiles (length files))
 			    (verb (if (eq filter 'undo) "Undo" "Delete")))
 			(if (= 1 nfiles)
-			    (format "%s file: \"%s\" ? " 
+			    (format "%s file: \"%s\" ? "
 				    verb
 				    (cvs-fileinfo->file (car files)))
-			  (format "%s %d files? " 
+			  (format "%s %d files? "
 				  verb
 				  nfiles))))
 		   (cvs-bury-buffer tmpbuf cvs-buffer))))
