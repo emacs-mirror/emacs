@@ -1,5 +1,7 @@
 2001-08-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* Makefile.in (DONTCOMPILE): Remove sc.el.
+	
 	* Makefile.in (finder_setwins): Renamed from nonobsolete_setwins.
 	Don't include term/.
 

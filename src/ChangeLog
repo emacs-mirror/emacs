@@ -1,3 +1,8 @@
+2001-08-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (x_update_menu_appearance): Don't call
+	set_frame_menubar, let the next redisplay do it.
+
 2001-08-14  Andrew Innes  <andrewi@gnu.org>
 
 	* w32term.c (x_draw_glyph_string): Draw relief (if any) before
