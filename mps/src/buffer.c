@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.13) $
+ * $HopeName: MMsrc!buffer.c(trunk.14) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
  * This is (part of) the implementation of allocation buffers.
@@ -29,7 +29,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.13) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.14) $");
 
 
 /* BufferCreate -- create an allocation buffer in a pool
@@ -222,11 +222,11 @@ void BufferReset(Buffer buffer)
  *
  * BufferAP returns the APStruct substructure of a buffer.
  *
- * BufferOfAP is a thread-safe (impl.c.mpsi.thread-safety) method of
- * getting the buffer which owns an APStruct.
+ * BufferOfAP is a thread-safe (design.mps.interface.c.thread-safety)
+ * method of getting the buffer which owns an APStruct.
  *
- * BufferSpace is a thread-safe (impl.c.mpsi.thread-safety) method of
- * getting the space which owns a buffer.
+ * BufferSpace is a thread-safe (design.mps.interface.c.thread-safety)
+ * method of getting the space which owns a buffer.
  *
  * BufferPool returns the pool to which a buffer is attached.
  */
@@ -261,16 +261,18 @@ AP BufferAP(Buffer buffer)
   return &buffer->ap;
 }
 
-/* design.mps.buffer.method.ofap
- * This method must be thread-safe.  See impl.c.mpsi.thread-safety. */
+/* design.mps.buffer.method.ofap */
+/* This method must be thread-safe. See */
+/* design.mps.interface.c.thread-safety. */
 Buffer BufferOfAP(AP ap)
 {
   /* .design.mps.misc.parent.thread-safe */
   return PARENT(BufferStruct, ap, ap);
 }
 
-/* design.mps.buffer.method.space
- * This method must be thread-safe.  See impl.c.mpsi.thread-safety. */
+/* design.mps.buffer.method.space */
+/* This method must be thread-safe.  See */
+/* design.mps.interface.c.thread-safety. */
 Space BufferSpace(Buffer buffer)
 {
   return buffer->space;

@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM INTERFACE
  *
- *  $HopeName: MMsrc!mps.h(trunk.11) $
+ *  $HopeName: MMsrc!mps.h(trunk.12) $
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -167,7 +167,7 @@ typedef void       (*mps_fmt_pad_t)    (mps_addr_t base, size_t size);
  * The fields of the ss structure should not be accessed by the client
  * except via macros supplied in this interface.
  *
- * See also impl.c.mpsi.check.ss and impl.h.trace.ss.
+ * .ss: Keep in sync with impl.h.mpmst.ss.
  */
 
 typedef struct mps_ss_s {
