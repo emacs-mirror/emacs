@@ -85,7 +85,7 @@ $(BLD)\regex.obj: ../src/regex.c ../src/regex.h ../src/config.h
 		$(CC)  $(CFLAGS) -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER \
 		../src/regex.c -Fo$@
 
-ETAGS_CFLAGS  = -DETAGS_REGEXPS
+ETAGS_CFLAGS  = -DETAGS_REGEXPS -DHAVE_GETCWD
 $(BLD)\etags.obj: etags.c
 		$(CC) $(CFLAGS) $(ETAGS_CFLAGS) -Fo$@ etags.c
 
