@@ -406,6 +406,12 @@ case "${canonical}" in
   rs6000-ibm-aix3.2.5 | powerpc-ibm-aix3.2.5 )
     machine=ibmrs6000 opsys=aix3-2-5
   ;;
+  rs6000-ibm-aix4.1* | powerpc-ibm-aix4.1*  )
+    machine=ibmrs6000 opsys=aix4-1
+  ;;
+  rs6000-ibm-aix4* | powerpc-ibm-aix4*  )
+    machine=ibmrs6000 opsys=aix4
+  ;;
   rs6000-ibm-aix* | powerpc-ibm-aix* )
     machine=ibmrs6000 opsys=aix3-2
   ;;
@@ -772,7 +778,11 @@ if test x"${opsys}" = x; then
     *-sysv4.1 | *-sysvr4.1 )
 	NON_GNU_CPP=/usr/lib/cpp
 	opsys=usg5-4 ;;
-    *-sysv4.2 | *-sysvr4.2 )		opsys=usg5-4-2 ;;
+    *-sysv4.2 | *-sysvr4.2 )
+	if [ x$NON_GNU_CPP = x ]; then
+	  NON_GNU_CPP=/usr/ccs/lib/cpp
+	fi
+	opsys=usg5-4-2 ;;
     * )
       unported=yes
     ;;
@@ -1261,7 +1271,7 @@ changequote([, ])dnl
 AC_OUTPUT(Makefile lib-src/Makefile.in oldXMenu/Makefile \
 	man/Makefile lwlib/Makefile src/Makefile.in, [
 
-### Make necessary directories, if they don't exist.
+### Make the necessary directories, if they don't exist.
 for dir in cpp etc ; do
   test -d ${dir} || mkdir ${dir}
 done
