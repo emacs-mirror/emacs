@@ -352,6 +352,12 @@ One annotation each for foreground color, background color, italic, etc."
 	 (list (list "x-color" (cdr face))))
 	((and (consp face) (eq (car face) 'background-color))
 	 (list (list "x-bg-color" (cdr face))))
+	((and (consp face) (symbolp (car face)) (not (keywordp (car face))))
+	 ;; List of faces `(face1 face2 ...)'.
+	 (let ((ans nil))
+	   (dolist (elt face)
+	     (setq ans (append ans (enriched-face-ans elt))))
+	   ans))
 	((string-match "^fg:" (symbol-name face))
 	 (list (list "x-color" (substring (symbol-name face) 3))))
 	((string-match "^bg:" (symbol-name face))
