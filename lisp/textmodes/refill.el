@@ -119,15 +119,6 @@ complex processing.")
      (t (refill-fill-paragraph nil)))
     (setq refill-doit nil)))
 
-(defvar refill-mode nil
-  "Non-nil if Refill mode is active.  Use `refill-mode' to toggle it.")
-(make-variable-buffer-local 'refill-mode)
-
-(defvar refill-mode-hook nil
-  "Normal hook run by function `refill-mode'.")
-
-(add-to-list 'minor-mode-alist '(refill-mode " Refill"))
-
 ;;;###autoload
 (define-minor-mode refill-mode
   "Toggle Refill minor mode.
