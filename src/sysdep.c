@@ -2597,7 +2597,8 @@ bcmp (b1, b2, length)	/* This could be a macro! */
 #endif /* not BSTRING */
 
 #ifndef HAVE_RANDOM
-#ifdef USG
+#ifndef random 
+
 /*
  *	The BSD random returns numbers in the range of
  *	0 to 2e31 - 1.  The USG rand returns numbers in the
@@ -2608,32 +2609,26 @@ bcmp (b1, b2, length)	/* This could be a macro! */
 long
 random ()
 {
+#ifdef HAVE_RAND48
+  return rand48 ();
+#else
   /* Arrange to return a range centered on zero.  */
   return (rand () << 15) + rand () - (1 << 29);
-}
-
-srandom (arg)
-     int arg;
-{
-  srand (arg);
-}
-
-#endif /* USG */
-
-#ifdef BSD4_1
-long random ()
-{
-  /* Arrange to return a range centered on zero.  */
-  return (rand () << 15) + rand () - (1 << 29);
-}
-
-srandom (arg)
-     int arg;
-{
-  srand (arg);
-}
-#endif /* BSD4_1 */
 #endif
+}
+
+srandom (arg)
+     int arg;
+{
+#ifdef HAVE_RAND48
+  return srand48 ();
+#else
+  srand (arg);
+#endif
+}
+
+#endif /* no random */
+#endif /* not HAVE_RANDOM */
 
 #ifdef WRONG_NAME_INSQUE
 
