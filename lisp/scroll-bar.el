@@ -92,7 +92,9 @@ EVENT should be a scroll bar click or drag event."
     (save-excursion
       (set-buffer (window-buffer window))
       (save-excursion
-	(goto-char (scroll-bar-scale portion-whole (buffer-size)))
+	(goto-char (+ (point-min)
+		      (scroll-bar-scale portion-whole
+					(- (point-max) (point-min)))))
 	(beginning-of-line)
 	(set-window-start window (point))))))
 
