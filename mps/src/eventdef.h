@@ -1,6 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.19) $
+ * $HopeName: MMsrc!eventdef.h(trunk.20) $
  * Copyright (C) 1997, 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MPS developers.
@@ -66,12 +66,12 @@ RELATION(AMCFinish                       , 0x0004, TRUE, Pool, P)
 #if 0 /* Not in use */
 RELATION(AMCBufferInit                   , 0x0005, TRUE, Pool, PP)
 RELATION(AMCBufferFill                   , 0x0006, TRUE, Seg, PPWAW)
-RELATION(AMCBufferEmpty                  , 0x0007, TRUE, Seg, PPW)
 #endif
+RELATION(ArenaWriteFaults                , 0x0007, TRUE, Seg, PW)
 RELATION(MeterInit                       , 0x0008, TRUE, Pool, PP)
-RELATION(MeterValues                     , 0x0009, TRUE, Pool, PDDUUU)
-RELATION(AMCScanBegin                    , 0x000a, TRUE, Trace, PPP)
-RELATION(AMCScanEnd                      , 0x000b, TRUE, Trace, PPP)
+RELATION(MeterValues                     , 0x0009, TRUE, Pool, PDDWWW)
+RELATION(AMCScanBegin                    , 0x000a, TRUE, Seg, PPP)
+RELATION(AMCScanEnd                      , 0x000b, TRUE, Seg, PPP)
 RELATION(AMCFix                          , 0x000c, TRUE, Ref, 0)
 RELATION(AMCFixInPlace                   , 0x000d, TRUE, Ref, 0)
 RELATION(AMCFixForward                   , 0x000e, TRUE, Ref, A)
@@ -132,3 +132,7 @@ RELATION(SegAllocFail                    , 0x003B, TRUE, Seg, PWP)
 RELATION(TraceScanSeg                    , 0x003C, TRUE, Seg, UUPP)
 /* TraceScanSingleRef abuses kind, see .kind.abuse */
 RELATION(TraceScanSingleRef              , 0x003D, TRUE, Seg, UUPA)
+RELATION(TraceStatCondemn                , 0x003E, TRUE, Trace, PWWWWDD)
+RELATION(TraceStatScan                   , 0x003F, TRUE, Trace, PWWWWWWWWWWWW)
+RELATION(TraceStatFix                    , 0x0040, TRUE, Trace, PWWWWWWWWW)
+RELATION(TraceStatReclaim                , 0x0041, TRUE, Trace, PWW)
