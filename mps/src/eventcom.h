@@ -1,7 +1,7 @@
 /* impl.h.eventcom -- Event Logging Common Types
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!eventcom.h(trunk.2) $
+ * $HopeName: MMsrc!eventcom.h(trunk.3) $
  *
  * .readership: MPS developers.
  * .sources: mps.design.telemetry
@@ -53,7 +53,7 @@ typedef Word EventType;
 #define EventTraceStart     ((EventType)0xEF26AC52) /* TRACe STart */
 #define EventTraceCreate    ((EventType)0xEF26ACC6) /* TRACe CReate */
 #define EventTraceDestroy   ((EventType)0xEF26ACDE) /* TRACe DEstroy */
-#define EventTraceSegGreyen ((EventType)0xEF26A599) /* TRAce SeG Greyen */
+#define EventSegSetGrey     ((EventType)0xEF59596A) /* SeG Set GRAy */
 #define EventTraceFlipBegin ((EventType)0xEF26AF7B) /* TRAce FLip Begin */
 #define EventTraceFlipEnd   ((EventType)0xEF26AF7E) /* TRAce FLip End */
 #define EventTraceReclaim   ((EventType)0xEF26A6EC) /* TRAce REClaim */

@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.39) $
+ * $HopeName: MMsrc!mpm.h(trunk.40) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -258,8 +258,6 @@ extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream);
 
 extern Arena (PoolArena)(Pool pool);
 #define PoolArena(pool)         ((pool)->arena)
-/* backward compatibility */
-#define PoolSpace(pool)         ((pool)->arena)
 
 extern Align (PoolAlignment)(Pool pool);
 #define PoolAlignment(pool)     ((pool)->alignment)
@@ -267,8 +265,6 @@ extern Align (PoolAlignment)(Pool pool);
 extern Ring (PoolSegRing)(Pool pool);
 #define PoolSegRing(pool)       (&(pool)->segRing)
 
-extern Res PoolSegAlloc(Seg *segReturn, SegPref pref, Pool pool, Size size);
-extern void PoolSegFree(Pool pool, Seg seg);
 extern Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr);
 extern Bool PoolHasAddr(Pool pool, Addr addr);
 
@@ -347,8 +343,6 @@ extern Res TracePoll(Trace trace);
 extern void TraceAccess(Arena arena, Seg seg, AccessSet mode);
 
 extern Res TraceFix(ScanState ss, Ref *refIO);
-extern void TraceSegGreyen(Arena arena, Seg seg, TraceSet ts);
-extern void TraceSetSummary(Arena arena, Seg seg, RefSet summary);
 extern Size TraceGreyEstimate(Arena arena, RefSet refSet);
 
 /* Equivalent to impl.h.mps MPS_SCAN_BEGIN */
@@ -439,6 +433,8 @@ extern void ArenaFree(Arena arena, void *base, Size size);
 #define ArenaTrace(arena, ti)	(&(arena)->trace[ti])
 #define ArenaZoneShift(arena)	((arena)->zoneShift)
 #define ArenaAlign(arena)       ((arena)->alignment)
+#define ArenaGreyRing(arena, rank) \
+  (&arena->greyRing[rank])
 
 extern Size ArenaReserved(Arena arena);
 extern Size ArenaCommitted(Arena arena);
@@ -467,6 +463,9 @@ extern Res SegPrefExpress(SegPref pref, SegPrefKind kind, void *p);
 extern Bool SegCheck(Seg seg);
 extern void SegInit(Seg seg, Pool pool);
 extern void SegFinish(Seg seg);
+extern void SegSetGrey(Seg seg, TraceSet grey);
+extern void SegSetSummary(Seg seg, RefSet summary);
+extern void SegSetRankSet(Seg seg, RankSet rankSet);
 
 #define SegPool(seg)		((seg)->_pool)
 #define SegSingle(seg)		((seg)->_single)
@@ -481,17 +480,15 @@ extern void SegFinish(Seg seg);
 #define SegBuffer(seg)		((seg)->_buffer)
 #define SegPoolRing(seg)	(&(seg)->_poolRing)
 #define SegOfPoolRing(node)	RING_ELT(Seg, _poolRing, node)
+#define SegGreyRing(seg)	(&(seg)->_greyRing)
+#define SegOfGreyRing(node)	RING_ELT(Seg, _greyRing, node)
 
-#define SegSetPool(seg, pool)   ((void)((seg)->_pool = (pool)))
 #define SegSetSingle(seg, s)	((void)((seg)->_single = (s)))
-#define SegSetRankSet(seg, rs)	((void)((seg)->_rankSet = (rs)))
 #define SegSetPM(seg, mode)	((void)((seg)->_pm = (mode)))
 #define SegSetSM(seg, mode)	((void)((seg)->_sm = (mode)))
 #define SegSetDepth(seg, d)	((void)((seg)->_depth = (d)))
 #define SegSetP(seg, pp)	((void)((seg)->_p = (pp)))
-#define SegSetGrey(seg, ts)	((void)((seg)->_grey = (ts)))
 #define SegSetWhite(seg, ts)	((void)((seg)->_white = (ts)))
-#define SegSetSummary(seg, rs)	((void)((seg)->_summary = (rs)))
 #define SegSetBuffer(seg, b)	((void)((seg)->_buffer = (b)))
 
 
