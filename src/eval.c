@@ -1533,9 +1533,9 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
         return Fsymbol_value (form);
       val = Fsymbol_value (form);
       if (NILP (val))
-	XFASTINT (val) = 0;
+	XSETFASTINT (val, 0);
       else if (EQ (val, Qt))
-	XFASTINT (val) = 1;
+	XSETFASTINT (val, 1);
       return val;
     }
   if (!CONSP (form))
@@ -1708,9 +1708,9 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
   if (!EQ (Vmocklisp_arguments, Qt))
     {
       if (NILP (val))
-	XFASTINT (val) = 0;
+	XSETFASTINT (val, 0);
       else if (EQ (val, Qt))
-	XFASTINT (val) = 1;
+	XSETFASTINT (val, 1);
     }
   lisp_eval_depth--;
   if (backtrace.debug_on_exit)
@@ -2025,7 +2025,7 @@ Thus, (funcall 'cons 'x 'y) returns (x . y).")
       if (numargs < XSUBR (fun)->min_args
 	  || (XSUBR (fun)->max_args >= 0 && XSUBR (fun)->max_args < numargs))
 	{
-	  XFASTINT (lisp_numargs) = numargs;
+	  XSETFASTINT (lisp_numargs, numargs);
 	  return Fsignal (Qwrong_number_of_arguments, Fcons (fun, Fcons (lisp_numargs, Qnil)));
 	}
 
@@ -2187,7 +2187,7 @@ funcall_lambda (fun, nargs, arg_vector)
 
   specbind (Qmocklisp_arguments, Qt);   /* t means NOT mocklisp! */
 
-  XFASTINT (numargs) = nargs;
+  XSETFASTINT (numargs, nargs);
 
   if (CONSP (fun))
     syms_left = Fcar (Fcdr (fun));
@@ -2397,7 +2397,7 @@ Output stream used is value of `standard-output'.")
   extern Lisp_Object Vprint_level;
   struct gcpro gcpro1;
 
-  XFASTINT (Vprint_level) = 3;
+  XSETFASTINT (Vprint_level, 3);
 
   tail = Qnil;
   GCPRO1 (tail);
