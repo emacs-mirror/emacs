@@ -200,7 +200,7 @@ main (argc, argv)
       /* Give up if cannot do that.  */
       desc = open (tempname, O_WRONLY | O_CREAT, 0666);
       if (desc < 0)
-        pfatal_with_name ("lock file--see source file etc/movemail.c");
+        pfatal_with_name ("lock file--see source file lib-src/movemail.c");
       close (desc);
 
       tem = link (tempname, lockname);
