@@ -64,7 +64,7 @@ should insert the function name.  The default value avoids `defconst',
 Please send improvements and fixes to the maintainer."
   :type 'regexp
   :group 'find-function
-  :version 20.3)
+  :version "20.3")
 
 (defcustom find-variable-regexp
   "^\\s-*(def[^uma\W]\\w+\\*?\\s-+%s\\(\\s-\\|$\\)"
@@ -75,7 +75,7 @@ avoids `defun', `defmacro', `defalias', `defadvice'.
 Please send improvements and fixes to the maintainer."
   :type 'regexp
   :group 'find-function
-  :version 20.3)
+  :version "20.3")
 
 (defcustom find-function-source-path nil
   "The default list of directories where find-function searches.
@@ -91,14 +91,14 @@ A value of nil implies center the beginning of the definition.
 See the function `center-to-window-line' for more information, and
 `find-function' and `find-variable'."
   :group 'find-function
-  :version 20.3)
+  :version "20.3")
 
 (defcustom find-function-after-hook nil
   "Hook run after finding symbol definition.
 
 See the functions `find-function' and `find-variable'."
   :group 'find-function
-  :version 20.3)
+  :version "20.3")
 
 ;;; Functions:
 
