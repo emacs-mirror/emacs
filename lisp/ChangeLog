@@ -22,7 +22,7 @@
 
 	* textmodes/ispell.el (ispell-parse-output): Doc fix.
 
-	* emacs-lisp/byte-opt.el (byte-optimize-while) 
+	* emacs-lisp/byte-opt.el (byte-optimize-while)
 	(byte-optimize-form-code-walker): Diagnose too few arguments
 	for `if' and `while'.
 
@@ -33,18 +33,18 @@
 
 2001-03-26  Gerd Moellmann  <gerd@gnu.org>
 
-	* autorevert.el (global-auto-revert-non-file-buffers): Remove
-	duplicate defcustom.
+	* autorevert.el (global-auto-revert-non-file-buffers):
+	Remove duplicate defcustom.
 
 2001-03-26  Miles Bader  <miles@gnu.org>
 
-	* international/latin1-disp.el (latin1-char-displayable-p): Add
-	leading "-" for X font pattern.
+	* international/latin1-disp.el (latin1-char-displayable-p):
+	Add leading "-" for X font pattern.
 
 2001-03-26  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-diag.el (describe-coding-system): For
-	raw-text and emacs-mule, don't add anymore text about what
+	* international/mule-diag.el (describe-coding-system):
+	For raw-text and emacs-mule, don't add anymore text about what
 	charsets they can encode.
 
 2001-03-25  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -447,22 +447,17 @@
 	* international/mule-cmds.el (set-locale-environment):
 	Set system-messages-locale and system-time-locale, but only if the
 	caller specifies a non-nil locale name.
-<<<<<<< ChangeLog
 
 2001-03-20  John Wiegley  <johnw@gnu.org>
 
 	* calendar/calendar.el (nongregorian-diary-listing-hook):
 	Added :options to cover the possible values.
 	(nongregorian-diary-marking-hook): Ditto.
-=======
->>>>>>> 1.2177
 
-<<<<<<< ChangeLog
 	* cal-bahai.el, cal-menu.el, calendar.el, diary-lib.el,
 	* holidays.el: Added support for the Baha'i calendar system.
-=======
+
 2001-03-20  Gerd Moellmann  <gerd@gnu.org>
->>>>>>> 1.2177
 
 	* pcvs-util.el (cvs-bury-buffer): Bodiless `if' statements cause
 	problems for the interpreter.  From: John Wiegley  <johnw@gnu.org>
