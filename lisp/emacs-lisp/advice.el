@@ -2031,7 +2031,7 @@ This will be true for GNU Emacs-19 as well as Lemacs.")
   "Non-NIL if we run Lucid's version of Emacs-19.")
 
 ;;;###autoload
-(defvar ad-start-advice-on-load nil
+(defvar ad-start-advice-on-load t
   "*Non-NIL will start advice magic when this file gets loaded.
 Also see function `ad-start-advice'.")
 
