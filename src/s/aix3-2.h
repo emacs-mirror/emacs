@@ -16,6 +16,7 @@
 #endif
 
 #define HAVE_ALLOCA
+/* Adrian Colley <Adrian.Colley@three.serpentine.com> says this is needed.  */
 #ifndef NOT_C_CODE
  #pragma alloca
 #endif
