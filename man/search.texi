@@ -988,6 +988,9 @@ Delete each line that follows point and @emph{does not} contain a match
 for @var{regexp}.
 @end table
 
+  Searching and replacing can be performed under the control of tags
+files (@pxref{Tags Search}) and Dired (@pxref{Operating on Files}).
+
   In addition, you can use @code{grep} from Emacs to search a collection
 of files for matches for a regular expression, then visit the matches
 either sequentially or in arbitrary order.  @xref{Grep Searching}.
