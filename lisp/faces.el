@@ -1552,18 +1552,26 @@ created."
      ;; happens to look good with the only current use of header-lines,
      ;; the info browser. XXX
      (:underline t))
-    (((class color) (background light))
-     (:box (:line-width 1 :style released-button)
-	   :background "grey90" :foreground "grey20"
-	   :inherit mode-line))
-    (((class color) (background dark))
-     (:box (:line-width 1 :style released-button)
-	   :background "grey20" :foreground "grey90"
-	   :inherit mode-line))
-    (((class mono))
-     (:box (:line-width 1 :style released-button)
-	   :background "grey"
-	   :inherit mode-line))
+    (((class color grayscale) (background light))
+     (:inherit mode-line
+      :background "grey90" :foreground "grey20"
+      :box (:line-width 1 :style released-button)))
+    (((class color grayscale) (background dark))
+     (:inherit mode-line
+      :background "grey20" :foreground "grey90"
+      :box (:line-width 1 :style released-button)))
+    (((class mono) (background light))
+     (:inherit mode-line
+      :background "white" :foreground "black"
+      :inverse-video nil
+      :box nil
+      :underline t))
+    (((class mono) (background dark))
+     (:inherit mode-line
+      :background "black" :foreground "white"
+      :inverse-video nil
+      :box nil
+      :underline t))
     (t
      (:inverse-video t)))
   "Basic header-line face."
