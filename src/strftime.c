@@ -33,7 +33,6 @@
 # define HAVE_TZSET 1
 # define MULTIBYTE_IS_FORMAT_SAFE 1
 # define STDC_HEADERS 1
-# include <ansidecl.h>
 # include "../locale/localeinfo.h"
 #endif
 
@@ -83,7 +82,9 @@ extern char *tzname[];
 # include <stdlib.h>
 # include <string.h>
 #else
-# define memcpy(d, s, n) bcopy ((s), (d), (n))
+# ifndef HAVE_MEMCPY
+#  define memcpy(d, s, n) bcopy ((s), (d), (n))
+# endif
 #endif
 
 #ifndef __P
@@ -140,7 +141,7 @@ extern int __tz_compute __P ((time_t timer, const struct tm *tm));
 # if ! HAVE_LOCALTIME_R
 #  if ! HAVE_TM_GMTOFF
 /* Approximate gmtime_r as best we can in its absence.  */
-#  define gmtime_r my_gmtime_r
+#   define gmtime_r my_gmtime_r
 static struct tm *gmtime_r __P ((const time_t *, struct tm *));
 static struct tm *
 gmtime_r (t, tp)
@@ -156,7 +157,7 @@ gmtime_r (t, tp)
 #  endif /* ! HAVE_TM_GMTOFF */
 
 /* Approximate localtime_r as best we can in its absence.  */
-#  define localtime_r my_localtime_r
+#  define localtime_r my_ftime_localtime_r
 static struct tm *localtime_r __P ((const time_t *, struct tm *));
 static struct tm *
 localtime_r (t, tp)
@@ -173,13 +174,15 @@ localtime_r (t, tp)
 #endif /* ! defined (_LIBC) */
 
 
-#if !defined (memset) && !defined (HAVE_MEMSET) && !defined (_LIBC)
+#if !defined memset && !defined HAVE_MEMSET && !defined _LIBC
 /* Some systems lack the `memset' function and we don't want to
    introduce additional dependencies.  */
 /* The SGI compiler reportedly barfs on the trailing null
    if we use a string constant as the initializer.  28 June 1997, rms.  */
-static const char spaces[16] = { ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '} /* "                "*/ ;
-static const char zeroes[16] = { '0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'} /*"0000000000000000"*/;
+static const char spaces[16] = /* "                " */
+  { ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ' };
+static const char zeroes[16] = /* "0000000000000000" */
+  { '0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0' };
 
 # define memset_space(P, Len) \
   do {									      \
@@ -213,7 +216,7 @@ static const char zeroes[16] = { '0','0','0','0','0','0','0','0','0','0','0','0'
 # define memset_zero(P, Len) (memset ((P), '0', (Len)), (P) += (Len))
 #endif
 
-#define	add(n, f)							      \
+#define add(n, f)							      \
   do									      \
     {									      \
       int _n = (n);							      \
@@ -236,7 +239,7 @@ static const char zeroes[16] = { '0','0','0','0','0','0','0','0','0','0','0','0'
       i += _incr;							      \
     } while (0)
 
-#define	cpy(n, s) \
+#define cpy(n, s) \
     add ((n),								      \
 	 if (to_lowcase)						      \
 	   memcpy_lowcase (p, (s), _n);					      \
@@ -286,9 +289,11 @@ memcpy_uppcase (dest, src, len)
   return dest;
 }
 
+
 #if ! HAVE_TM_GMTOFF
 /* Yield the difference between *A and *B,
    measured in seconds, ignoring leap seconds.  */
+# define tm_diff ftime_tm_diff
 static int tm_diff __P ((const struct tm *, const struct tm *));
 static int
 tm_diff (a, b)
@@ -421,15 +426,13 @@ strftime (s, maxsize, format, tp)
   const char *f;
 
   zone = NULL;
-#if !defined _LIBC && HAVE_TM_ZONE
-  /* XXX We have some problems here.  First, the string pointed to by
-     tm_zone is dynamically allocated while loading the zone data.  But
-     when another zone is loaded since the information in TP were
-     computed this would be a stale pointer.
-     The second problem is the POSIX test suite which assumes setting
+#if HAVE_TM_ZONE
+  /* The POSIX test suite assumes that setting
      the environment variable TZ to a new value before calling strftime()
      will influence the result (the %Z format) even if the information in
-     TP is computed with a totally different time zone.  --drepper@gnu  */
+     TP is computed with a totally different time zone.
+     This is bogus: though POSIX allows bad behavior like this,
+     POSIX does not require it.  Do the right thing instead.  */
   zone = (const char *) tp->tm_zone;
 #endif
 #if HAVE_TZNAME
@@ -468,6 +471,7 @@ strftime (s, maxsize, format, tp)
       int width = -1;
       int to_lowcase = 0;
       int to_uppcase = 0;
+      int change_case = 0;
 
 #if DO_MULTIBYTE
 
@@ -559,6 +563,9 @@ strftime (s, maxsize, format, tp)
 	    case '^':
 	      to_uppcase = 1;
 	      continue;
+	    case '#':
+	      change_case = 1;
+	      continue;
 
 	    default:
 	      break;
@@ -596,9 +603,11 @@ strftime (s, maxsize, format, tp)
       switch (*f)
 	{
 #define DO_NUMBER(d, v) \
-	  digits = d; number_value = v; goto do_number
+	  digits = width == -1 ? d : width;				      \
+	  number_value = v; goto do_number
 #define DO_NUMBER_SPACEPAD(d, v) \
-	  digits = d; number_value = v; goto do_number_spacepad
+	  digits = width == -1 ? d : width;				      \
+	  number_value = v; goto do_number_spacepad
 
 	case '%':
 	  if (modifier != 0)
@@ -609,12 +618,22 @@ strftime (s, maxsize, format, tp)
 	case 'a':
 	  if (modifier != 0)
 	    goto bad_format;
+	  if (change_case)
+	    {
+	      to_uppcase = 1;
+	      to_lowcase = 0;
+	    }
 	  cpy (aw_len, a_wkday);
 	  break;
 
 	case 'A':
 	  if (modifier != 0)
 	    goto bad_format;
+	  if (change_case)
+	    {
+	      to_uppcase = 1;
+	      to_lowcase = 0;
+	    }
 	  cpy (wkday_len, f_wkday);
 	  break;
 
@@ -628,6 +647,11 @@ strftime (s, maxsize, format, tp)
 	case 'B':
 	  if (modifier != 0)
 	    goto bad_format;
+	  if (change_case)
+	    {
+	      to_uppcase = 1;
+	      to_lowcase = 0;
+	    }
 	  cpy (month_len, f_month);
 	  break;
 
@@ -828,6 +852,11 @@ strftime (s, maxsize, format, tp)
 	  /* FALLTHROUGH */
 
 	case 'p':
+	  if (change_case)
+	    {
+	      to_uppcase = 0;
+	      to_lowcase = 1;
+	    }
 	  cpy (ap_len, ampm);
 	  break;
 
@@ -1000,6 +1029,11 @@ strftime (s, maxsize, format, tp)
 	  DO_NUMBER (2, (tp->tm_year % 100 + 100) % 100);
 
 	case 'Z':
+	  if (change_case)
+	    {
+	      to_uppcase = 0;
+	      to_lowcase = 1;
+	    }
 	  cpy (zonelen, zone);
 	  break;
 
