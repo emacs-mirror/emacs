@@ -1,3 +1,11 @@
+2000-01-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* iswitchb.el (iswitchb-use-frame-buffer-list): New configuration
+	variable. If non-nil, order the buffer list according to the
+	currently selected frame.
+	(iswitchb-make-buflist): If iswitchb-use-frame-buffer-list is
+	non-nil, pass the selected frame to function buffer-list.
+	
 2000-01-29  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* progmodes/ebnf2ps.el (ebnf-syntax): Doc fix

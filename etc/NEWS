@@ -781,6 +781,38 @@ appropriate for C-style escape sequences in strings.
 
 ** New modes and packages
 
+*** The package ebnf2ps translates an EBNF to a syntactic chart in
+PostScript.
+
+Currently accepts ad-hoc EBNF, ISO EBNF and Bison/Yacc.
+
+The ad-hoc default EBNF syntax has the following elements:
+
+    ;		comment (until end of line)
+    A		non-terminal
+    "C"		terminal
+    ?C?		special
+    $A		default non-terminal
+    $"C"	default terminal
+    $?C?	default special
+    A = B.	production (A is the header and B the body)
+    C D		sequence (C occurs before D)
+    C | D	alternative (C or D occurs)
+    A - B	exception (A excluding B, B without any non-terminal)
+    n * A	repetition (A repeats n (integer) times)
+    (C)		group (expression C is grouped together)
+    [C]		optional (C may or not occurs)
+    C+		one or more occurrences of C
+    {C}+	one or more occurrences of C
+    {C}*	zero or more occurrences of C
+    {C}		zero or more occurrences of C
+    C / D	equivalent to: C {D C}*
+    {C || D}+	equivalent to: C {D C}*
+    {C || D}*	equivalent to: [C {D C}*]
+    {C || D}	equivalent to: [C {D C}*]
+
+Please, see ebnf2ps documentation for EBNF syntax and how to use it.
+
 *** The package align.el will align columns within a region, using M-x
 align.  Its mode-specific rules, based on regular expressions,
 determine where the columns should be split.  In C and C++, for
