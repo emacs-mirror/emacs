@@ -1,4 +1,5 @@
 run tests from a test-set
+% $HopeName$
 
 Usage: qa runset [<options>] <testsetfile>
 

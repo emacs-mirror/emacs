@@ -1,4 +1,5 @@
 #!/usr/local/perl
+# $HopeName$
 #
 # set directories up for testing
 # n.b. this must happen _after_ options have been

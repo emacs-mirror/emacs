@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = MIN-1 rank for mps_root_create_table
  language = c
  link = testlib.o

@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = NULL 1st arg to fmt_create_A
  language = c
  link = testlib.o newfmt.o

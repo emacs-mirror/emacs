@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = use AMC with inactive LO pool
  language = c
  link = testlib.o awlfmt.o

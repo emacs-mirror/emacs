@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = big allocation with an LO pool
  language = c
  link = lofmt.o testlib.o

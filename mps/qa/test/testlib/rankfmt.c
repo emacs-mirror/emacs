@@ -1,4 +1,5 @@
-/* rankfmt.c
+/* $HopeName$
+rankfmt.c
    See comments in header file for usage.
 */
 

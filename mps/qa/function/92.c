@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = EPVM allocate and epvm_collect, 8--32 byte objects
  language = c
  link = testlib.o epvmfmt.o

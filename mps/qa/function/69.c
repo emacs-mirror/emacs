@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = request.dylan.170563 (colour invariant and finalization)
  language = c
  link = testlib.o rankfmt.o

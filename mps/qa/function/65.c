@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = sort-of-leak in arena_collect
  language = c
  link = testlib.o exfmt.o

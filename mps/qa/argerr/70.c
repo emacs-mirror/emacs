@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = null space_t to thread_reg
  language = c
  link = testlib.o

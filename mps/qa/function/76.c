@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = destroy space when messages are on the queue
  language = c
  link = testlib.o rankfmt.o

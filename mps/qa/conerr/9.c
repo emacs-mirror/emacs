@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = create a format in a destroyed space
  language = c
  link = testlib.o

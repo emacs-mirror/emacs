@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = wrong size_t to free (MV)
  language = c
  link = testlib.o

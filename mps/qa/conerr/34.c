@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = allocate in uncreated AP
  language = c
  link = myfmt.o testlib.o

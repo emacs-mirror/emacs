@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = destroy a space which isn't a space
  language = c
  link = testlib.o

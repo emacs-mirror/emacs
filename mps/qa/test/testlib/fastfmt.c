@@ -1,4 +1,5 @@
-/* fastfmt.c
+/* $HopeName$
+fastfmt.c
    See comments in header file for usage.
 */
 

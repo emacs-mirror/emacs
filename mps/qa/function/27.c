@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = mutually referring objects should die
  language = c
  link = testlib.o newfmt.o

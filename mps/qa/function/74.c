@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = LO pool should get collected (cf request.dylan.170322)
  language = c
  link = testlib.o rankfmt.o

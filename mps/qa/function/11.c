@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = lots of allocation to provoke mmap error in sunos
  language = c
  link = myfmt.o testlib.o

@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = try to provoke request.dylan.170463 using LO pool
  language = c
  link = testlib.o awlfmt.o

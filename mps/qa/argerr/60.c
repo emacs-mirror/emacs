@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = unaligned size to mps_reserve
  language = c
  link = testlib.o newfmt.o

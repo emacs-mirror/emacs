@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = null space for ld_reset
  language = c
  link = testlib.o

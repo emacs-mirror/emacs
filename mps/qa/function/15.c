@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = destroy AMC pool in mid-collection
  language = c
  link = testlib.o newfmt.o

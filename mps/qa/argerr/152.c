@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = 2nd arg to mps_free not at start of an object
  language = c
  link = testlib.o

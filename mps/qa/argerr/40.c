@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = unitSize > extendBy for pool_create (MFS)
  language = c
  link = testlib.o

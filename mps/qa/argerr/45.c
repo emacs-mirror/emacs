@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = null ap_t to mps_ap_create
  language = c
  link = testlib.o newfmt.o

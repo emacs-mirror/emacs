@@ -1,4 +1,5 @@
 #!/usr/local/bin/perl
+# $HopeName$
 #
 # make an index of all the tests (all .c files) in the
 # current directory, and write it on stdout.

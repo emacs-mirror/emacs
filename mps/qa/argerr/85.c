@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = UNALIGNED ld for is_stale
  language = c
  link = testlib.o

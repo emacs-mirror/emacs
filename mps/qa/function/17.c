@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = create and destroy lots of pools (interleaved)
  language = c
  link = testlib.o newfmt.o

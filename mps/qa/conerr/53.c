@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = add to ld without resetting
  language = c
  link = myfmt.o testlib.o

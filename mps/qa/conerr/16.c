@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = destroy a pool twice
  language = c
  link = testlib.o

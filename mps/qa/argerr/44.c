@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = extendBy > maxSize for pool_create (MV)
  language = c
  link = testlib.o

@@ -1,4 +1,5 @@
 #!/usr/local/perl -w
+# $HopeName$
 #
 # subroutines for processing options to qa commands
 # Each command can specify which options it requires,

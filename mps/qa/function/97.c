@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = test of mps_arena_formatted_objects_walk
  language = c
  link = testlib.o rankfmt.o

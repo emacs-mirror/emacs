@@ -1,4 +1,5 @@
-/* lofmt.c
+/* $HopeName$
+lofmt.c
    A format for pool class LO
 */
 

@@ -1,4 +1,5 @@
-/* newfmt.c
+/* $HopeName$
+newfmt.c
    My attempt to write a format using unions &c to avoid
    nasty casting all over the place
 */

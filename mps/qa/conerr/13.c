@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = create a pool in an uncreated space
  language = c
  link = testlib.o

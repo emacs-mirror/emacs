@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = ensure allocation in MV pool causes collection
  language = c
  link = newfmt.o testlib.o

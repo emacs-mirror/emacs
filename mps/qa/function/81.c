@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = run out of memory while collecting
  language = c
  link = testlib.o fastfmt.o

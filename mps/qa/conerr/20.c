@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = alloc in an destroyed pool
  language = c
  link = testlib.o

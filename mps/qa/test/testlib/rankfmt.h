@@ -1,4 +1,5 @@
-/* rankfmt.h
+/* $HopeName$
+rankfmt.h
    Format like exfmt but with rank-checking built in.
    This format will work without register roots, but to use it,
    you must take precautions. You must register exfmt_root as

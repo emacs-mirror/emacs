@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = UNALIGNED thread for mps_root_create_reg
  language = c
  link = testlib.o

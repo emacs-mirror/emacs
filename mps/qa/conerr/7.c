@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = destroy a space which contains a thread
  language = c
  link = testlib.o

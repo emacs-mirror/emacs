@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = regression test for scan of invalid obj after I=A
  language = c
  link = testlib.o newfmt.o

@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary =  check tagged roots are scanned correctly
  language = c
  link = testlib.o exfmt.o

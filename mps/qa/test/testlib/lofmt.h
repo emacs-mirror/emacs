@@ -1,4 +1,5 @@
-/* lofmt.h
+/* $HopeName$
+lofmt.h
    A format for the LO pool class. We have to allow for copying
    and forwarding, but scan should never be called.
 */

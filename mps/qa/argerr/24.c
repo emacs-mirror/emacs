@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = zero 3rd arg to mps_alloc
  language = c
  link = testlib.o

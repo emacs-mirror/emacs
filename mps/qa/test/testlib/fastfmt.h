@@ -1,4 +1,5 @@
-/* fastfmt.h
+/* $HopeName$
+fastfmt.h
    Format like rankfmt (see rankfmt.h) and with same object
    structure, but with no checking or comments.
    Use for performance testing only.

@@ -1,4 +1,5 @@
-/* awlfmt.h
+/* $HopeName$
+awlfmt.h
    A format for the awl pool
 */
 

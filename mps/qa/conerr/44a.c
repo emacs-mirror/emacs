@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = create register root without registering thread
  language = c
  link = myfmt.o testlib.o

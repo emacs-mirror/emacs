@@ -1,4 +1,5 @@
 #!/usr/local/perl
+# $HopeName$
 #
 # provides subroutines to compile or compile and link
 # tests and test libraries.

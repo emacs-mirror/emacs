@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = UNALIGNED 2nd arg to fmt_create_A
  language = c
  link = testlib.o newfmt.o

@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = EPDL allocation test
  language = c
  link = testlib.o

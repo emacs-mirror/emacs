@@ -1,4 +1,5 @@
 #!/usr/local/bin/perl
+# $HopeName$
 #
 # run tests interactively (allows for user input, immediate results,
 # &c, but doesn't give results in standard format)

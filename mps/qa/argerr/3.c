@@ -1,4 +1,5 @@
-/* TEST_HEADER
+/* $HopeName$
+TEST_HEADER
  summary = destroy a space with an unaligned space_t
  language = c
  link = testlib.o
