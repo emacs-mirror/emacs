@@ -962,6 +962,23 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
   return set_internal (symbol, newval, current_buffer, 0);
 }
 
+/* Return 1 if SYMBOL currently has a let-binding
+   which was made in the buffer that is now current.  */
+
+static int
+let_shadows_buffer_binding_p (symbol)
+     Lisp_Object symbol;
+{
+  struct specbinding *p;
+
+  for (p = specpdl_ptr - 1; p >= specpdl; p--)
+    if (p->func == 0 && CONSP (p->symbol)
+	&& XBUFFER (XCDR (XCDR (p->symbol))) == current_buffer)
+      return 1;
+
+  return 0;
+}
+
 /* Store the value NEWVAL into SYMBOL.
    If buffer-locality is an issue, BUF specifies which buffer to use.
    (0 stands for the current buffer.)
@@ -1000,7 +1017,8 @@ set_internal (symbol, newval, buf, bindflag)
       register int idx = XBUFFER_OBJFWD (valcontents)->offset;
       register int mask = XINT (*((Lisp_Object *)
 				  (idx + (char *)&buffer_local_flags)));
-      if (mask > 0 && ! bindflag)
+      if (mask > 0 && ! bindflag
+	  && ! let_shadows_buffer_binding_p (symbol))
 	buf->local_var_flags |= mask;
     }
 
@@ -1068,8 +1086,11 @@ set_internal (symbol, newval, buf, bindflag)
 	      /* If the variable is a Lisp_Some_Buffer_Local_Value,
 		 or if this is `let' rather than `set',
 		 make CURRENT-ALIST-ELEMENT point to itself,
-		 indicating that we're seeing the default value.  */
-	      if (bindflag || SOME_BUFFER_LOCAL_VALUEP (valcontents))
+		 indicating that we're seeing the default value.
+		 Likewise if the variable has been let-bound
+		 in the current buffer.  */
+	      if (bindflag || SOME_BUFFER_LOCAL_VALUEP (valcontents)
+		  || let_shadows_buffer_binding_p (symbol))
 		{
 		  XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer = 0;
 
@@ -1083,8 +1104,10 @@ set_internal (symbol, newval, buf, bindflag)
 		    tem1 = XBUFFER_LOCAL_VALUE (valcontents)->cdr;
 		}
 	      /* If it's a Lisp_Buffer_Local_Value, being set not bound,
-		 give this buffer a new assoc for a local value and set
-		 CURRENT-ALIST-ELEMENT to point to that.  */
+		 and we're not within a let that was made for this buffer,
+		 create a new buffer-local binding for the variable.
+		 That means, give this buffer a new assoc for a local value
+		 and set CURRENT-ALIST-ELEMENT to point to that.  */
 	      else
 		{
 		  tem1 = Fcons (symbol, Fcdr (current_alist_element));
