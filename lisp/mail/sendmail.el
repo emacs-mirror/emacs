@@ -497,9 +497,8 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   (set (make-local-variable 'comment-start) mail-yank-prefix)
   (make-local-variable 'adaptive-fill-regexp)
   (setq adaptive-fill-regexp
-	(concat "[ \t]*\\([-|#;>*]+ *\\|(?[0-9]+[.)] *\\)+"
-		"\\|[ \t]*[-[:alnum:]]*>+[ \t]*"
-		"\\|[ \t]*"))
+	(concat adaptive-fill-regexp
+		"\\|[ \t]*[-[:alnum:]]*>+[ \t]*"))
   (make-local-variable 'adaptive-fill-first-line-regexp)
   (setq adaptive-fill-first-line-regexp
 	(concat adaptive-fill-first-line-regexp
