@@ -1928,7 +1928,12 @@ adjust_point_for_property (last_pt, modified)
 		      : (PT < last_pt ? beg : end));
 	      check_composition = check_display = 1;
 	    }
+#if 0 /* This assertion isn't correct, because SET_PT may end up setting
+	 the point to something other than its argument, due to
+	 point-motion hooks, intangibility, etc.  */
 	  xassert (PT == beg || PT == end);
+#endif
+
 	  /* Pretend the area doesn't exist if the buffer is not
 	     modified.  */
 	  if (!modified && !ellipsis && beg < end)
