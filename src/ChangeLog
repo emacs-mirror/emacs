@@ -1,3 +1,13 @@
+2003-04-11  Kenichi Handa  <handa@etlken2>
+
+	* fileio.c (Vafter_insert_file_adjust_coding_function): Delete
+	this variable.
+	(Qafter_insert_file_set_coding): New variable.
+	(syms_of_fileio): Initialize and staticpro it.  Delete declaration
+	for after-insert-file-adjust-coding-function.
+	(Finsert_file_contents): Call Qafter_insert_file_set_coding
+	instead of Vafter_insert_file_adjust_coding_function.
+
 2003-04-11  Kenichi Handa  <handa@m17n.org>
 
 	* lisp.h (temp_echo_area_glyphs): Adjust prototype.

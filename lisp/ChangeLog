@@ -12,6 +12,13 @@
 
 2003-04-11  Kenichi Handa  <handa@m17n.org>
 
+	* international/mule.el: Don't set
+	after-insert-file-adjust-coding-function.
+	(after-insert-file-set-coding): Renamed from
+	after-insert-file-set-buffer-file-coding-system.
+
+2003-04-11  Kenichi Handa  <handa@m17n.org>
+
 	* international/quail.el (quail-guidance-str)
 	(quail-guidance-frame): New variables.
 	(quail-guidance-win): Delete this variable.
