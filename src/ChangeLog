@@ -1,5 +1,13 @@
 2001-10-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (clear_garbaged_frames): Redraw the frame only if its
+	resized_p flag is set.  If not set, use the much less flickering
+	method previously used.
+
+	* dispnew.c (change_frame_size_1): Set frame's resized_p.
+
+	* frame.h (struct frame) <resized_p>: New member.
+
 	* lread.c (to_multibyte): Ensure read_buffer is at least twice
 	as large as the number of bytes to convert.
 	
