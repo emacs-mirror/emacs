@@ -1,5 +1,5 @@
 /* Includes for memory limit warnings.
-   Copyright (C) 1990, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -29,6 +29,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/resource.h>
 #define BSD4_2			/* Tell code below to use getrlimit.  */
 
+extern int __data_start;
+#define start_of_data()	&__data_start
+
 #else
 
 #if defined (__osf__) && (defined (__mips) || defined (mips) || defined(__alpha))
@@ -52,8 +55,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif /* BSD4_2 */
-
-#endif /* _LIBC */
 
 #ifdef emacs
 /* The important properties of this type are that 1) it's a pointer, and
@@ -92,7 +93,8 @@ extern char etext;
 #define start_of_data() &etext
 #endif /* Not emacs */
 
-  
+#endif /* _LIBC */
+
 
 /* start of data space; can be changed by calling malloc_init */
 static POINTER data_space_start;
