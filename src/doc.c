@@ -125,10 +125,10 @@ string is passed through `substitute-command-keys'.")
     {
     case Lisp_Subr:
       if (XSUBR (fun)->doc == 0) return Qnil;
-      if ((int) XSUBR (fun)->doc >= 0)
+      if ((EMACS_INT) XSUBR (fun)->doc >= 0)
 	doc = build_string (XSUBR (fun)->doc);
       else
-	doc = get_doc_string (- (int) XSUBR (fun)->doc);
+	doc = get_doc_string (- (EMACS_INT) XSUBR (fun)->doc);
       break;
       
     case Lisp_Compiled:
