@@ -1,3 +1,7 @@
+2005-04-06  Kim F. Storm  <storm@cua.dk>
+
+	* emacs.c (standard_args): Add -Q, --bare-bones, -bare-bones.
+
 2005-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (cfdate_to_lisp): Add `const' for variable `epoch_gdate'.

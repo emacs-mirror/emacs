@@ -1,3 +1,7 @@
+2005-04-06  Kim F. Storm  <storm@cua.dk>
+
+	* cmdargs.texi (Initial Options): Add --bare-bones alias for -Q.
+
 2005-04-04  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* dired.texi (Dired Visiting): `dired-view-command-alist' has been

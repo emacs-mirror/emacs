@@ -1,3 +1,7 @@
+2005-04-06  Kim F. Storm  <storm@cua.dk>
+
+	* startup.el (command-line): Add --bare-bones alias for -Q.
+
 2005-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Use create-fontset-from-mac-roman-font to
