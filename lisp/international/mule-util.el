@@ -56,16 +56,19 @@ TYPE should be `list' or `vector'."
 	   (error "Invalid type: %s" type)))
 ;;;    val)
 )
+(make-obsolete 'string-to-sequence
+	       "Use `string-to-list' or `string-to-vector'"
+	       "21.3")
 
 ;;;###autoload
 (defsubst string-to-list (string)
   "Return a list of characters in STRING."
-  (string-to-sequence string 'list))
+  (append string nil))
 
 ;;;###autoload
 (defsubst string-to-vector (string)
   "Return a vector of characters in STRING."
-  (string-to-sequence string 'vector))
+  (vconcat string))
 
 ;;;###autoload
 (defun store-substring (string idx obj)
