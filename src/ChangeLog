@@ -1,3 +1,7 @@
+2000-02-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* window.c (Fsave_window_excursion): Doc fix.
+
 2000-02-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* syntax.c (back_comment): Make sure we only consider comment-starters
