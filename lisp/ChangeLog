@@ -1,4 +1,4 @@
-2002-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
+2002-02-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/rmail.el (rmail): Use find-buffer-visiting instead of
 	get-file-buffer to check for rmail buffer existence.
