@@ -19,26 +19,25 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;; Jeff Peck, Sun Microsystems, Jan 1987.
-;;; Original idea by Stan Jefferson
+;; Jeff Peck, Sun Microsystems, Jan 1987.
+;; Original idea by Stan Jefferson
 
-;;;
-;;;     Modeled after the GNUEMACS keymap interface.
-;;;
-;;; User Functions:
-;;;   make-mousemap, copy-mousemap, 
-;;;   define-mouse, global-set-mouse, local-set-mouse,
-;;;   use-global-mousemap, use-local-mousemap,
-;;;   mouse-lookup, describe-mouse-bindings
-;;;
-;;; Options:
-;;;   extra-click-wait, scrollbar-width
-;;;
+;;     Modeled after the GNUEMACS keymap interface.
+;;
+;; User Functions:
+;;   make-mousemap, copy-mousemap, 
+;;   define-mouse, global-set-mouse, local-set-mouse,
+;;   use-global-mousemap, use-local-mousemap,
+;;   mouse-lookup, describe-mouse-bindings
+;;
+;; Options:
+;;   extra-click-wait, scrollbar-width
 
 ;;; Code:
 
