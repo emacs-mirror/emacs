@@ -75,6 +75,20 @@ range of each dimension in this format:
 where MIN-N is the minimum byte value of Nth dimension of code-point,
 MAX-N is the maximum byte value of that.
 
+`:min-code'
+
+VALUE must be an integer specifying the mininum code point of the
+charset.  If omitted, it is calculated from `:code-space'.  VALUE may
+be a cons (HIGH . LOW), where HIGH is the most significant 16 bits of
+the code point and LOW is the least significant 16 bits.
+
+`max-code'
+
+VALUE must be an integer specifying the maxinum code point of the
+charset.  If omitted, it is calculated from `:code-space'.  VALUE may
+be a cons (HIGH . LOW), where HIGH is the most significant 16 bits of
+the code point and LOW is the least significant 16 bits.
+
 `:iso-final-char'
 
 VALUE must be a character in the range 32 to 127 (inclusive)
@@ -151,6 +165,8 @@ information.  The file format is the same as what described for `:map'
 attribute."
   (let ((attrs (mapcar 'list '(:dimension
 			       :code-space
+			       :min-code
+			       :max-code
 			       :iso-final-char
 			       :iso-revision-number
 			       :emacs-mule-id
