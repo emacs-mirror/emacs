@@ -59,7 +59,9 @@ extern int (*set_terminal_window_hook) ();
 enum scroll_bar_part {
   scroll_bar_above_handle,
   scroll_bar_handle,
-  scroll_bar_below_handle
+  scroll_bar_below_handle,
+  scroll_bar_up_arrow,
+  scroll_bar_down_arrow,
 };
 
 /* Return the current position of the mouse.
@@ -245,6 +247,10 @@ enum event_kind
 				   whose scroll bar was clicked in.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
+#ifdef WINDOWSNT
+  win32_scroll_bar_click,	/* as for scroll_bar_click, but only generated
+				   by MS-Windows scroll bar controls. */
+#endif
   selection_request_event,	/* Another X client wants a selection from us.
 				   See `struct selection_event'.  */
   selection_clear_event,	/* Another X client cleared our selection.  */
