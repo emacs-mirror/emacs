@@ -765,6 +765,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (setq-default blink-cursor t)
     (blink-cursor-mode 1))
 
+  (when (and (not noninteractive)
+	     (display-graphic-p)
+	     (fboundp 'x-show-tip))
+    (setq-default tooltip-mode t)
+    (tooltip-mode 1))
+
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.
   (or (memq window-system '(x w32))
