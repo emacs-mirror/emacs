@@ -30,7 +30,7 @@
 ;; according to the ISO-8859-1 character set.
 ;;
 ;; In `iso-accents-mode', pseudo accent characters are used to
-;; introduce accented keys.  The pseudo-accent characterss are:
+;; introduce accented keys.  The pseudo-accent characters are:
 ;;
 ;;   '  (minute)    -> grave accent
 ;;   `  (backtick)  -> acute accent
@@ -120,11 +120,13 @@
     ((?\~ ?D) ?\320)
     ((?\~ ?N) ?\321)
     ((?\~ ?O) ?\325)
+    ((?\~ ?T) ?\336)
     ((?\~ ?a) ?\343)
     ((?\~ ?c) ?\347)
     ((?\~ ?d) ?\360)
     ((?\~ ?n) ?\361)
     ((?\~ ?o) ?\365)
+    ((?\~ ?t) ?\376)
     ((?\~ ?>) ?\273)
     ((?\~ ?<) ?\253)
     ((?\~ ?\ ) ?\~)
@@ -230,7 +232,8 @@ enable as accents.  If you don't need all of them, remove the ones you
 don't need from that list.
 
 Special combinations: ~c gives a c with cedilla,
-~d gives a d with dash.
+~d gives an Icelandic eth (d with dash).
+~t gives an Icelandic thorn.
 \"s gives German sharp s.
 /a gives a with ring.
 /e gives an a-e ligature.
