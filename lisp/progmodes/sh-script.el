@@ -179,25 +179,22 @@ the car and cdr are the same symbol.")
 
 
 (defvar sh-mode-syntax-table
-  '((csh eval identity sh)
-    (sh eval sh-mode-syntax-table ()
-	;; #'s meanings depend on context which can't be expressed here
-	;; ?\# "<"
-	;; ?\^l ">#"
-	;; ?\n ">#"
+  '((sh eval sh-mode-syntax-table ()
+	?\# "<"
+	?\^l ">#"
+	?\n ">#"
 	?\" "\"\""
 	?\' "\"'"
-	?\` ".`"
-	?$ "_"
+	?\` "\"`"
+	?$ "\\"			    ; `escape' so $# doesn't start a comment
 	?! "_"
 	?% "_"
 	?: "_"
 	?. "_"
 	?^ "_"
 	?~ "_")
-    (rc eval sh-mode-syntax-table sh
-	?\" "_"
-	?\` "."))
+    (csh eval identity sh)
+    (rc eval identity sh))
   "Syntax-table used in Shell-Script mode.  See `sh-feature'.")
 
 
@@ -276,16 +273,6 @@ the car and cdr are the same symbol.")
     (rc eval . require-final-newline)
     (sh eval . require-final-newline))
   "*Value of `require-final-newline' in Shell-Script mode buffers.
-See `sh-feature'.")
-
-
-(defvar sh-comment-prefix
-  '((csh . "\\(^\\|[^$]\\|\\$[^{]\\)")
-    (rc eval identity csh)
-    (sh . "\\(^\\|[ \t|&;()]\\)"))
-  "*Regexp matching what may come before a comment `#'.
-This must contain one \\(grouping\\) since it is the basis for fontifying
-comments as well as for `comment-start-skip'.
 See `sh-feature'.")
 
 
@@ -544,12 +531,6 @@ See `sh-feature'.")
 (defvar sh-font-lock-keywords-2 ()
   "*Yet more rules for highlighting shell scripts.  See `sh-feature'.")
 
-(defvar sh-font-lock-keywords-only t
-  "*Value of `font-lock-keywords-only' for highlighting shell scripts.
-Default value is `t' because Emacs' syntax is not expressive enough to
-detect that $# does not start a comment.  Thus comments are fontified by
-regexp which means that a single apostrophe in a comment turns everything
-upto the next one or end of buffer into a string.")
 
 ;; mode-command and utility functions
 
@@ -641,7 +622,7 @@ with your script for an edit-interpret-debug cycle."
 	paragraph-start (concat page-delimiter "\\|$")
 	paragraph-separate paragraph-start
 	comment-start "# "
-	comment-start-skip (concat (sh-feature sh-comment-prefix) "#+[\t ]*")
+	comment-start-skip "#+[\t ]*"
 	comint-dynamic-complete-functions sh-dynamic-complete-functions
 	;; we can't look if previous line ended with `\'
 	comint-prompt-regexp "^[ \t]*"
@@ -649,8 +630,7 @@ with your script for an edit-interpret-debug cycle."
 	  `((sh-font-lock-keywords
 	     sh-font-lock-keywords-1
 	     sh-font-lock-keywords-2)
-	    ,sh-font-lock-keywords-only
-	    nil
+	    nil nil
 	    ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")))
 	skeleton-pair-alist '((?` _ ?`))
 	skeleton-pair-filter 'sh-quoted-p
@@ -659,8 +639,8 @@ with your script for an edit-interpret-debug cycle."
 	skeleton-filter 'sh-feature
 	skeleton-newline-indent-rigidly t)
   (save-excursion
-    ;; parse or insert magic number for exec() and set all variables depending
-    ;; on the shell thus determined
+    ;; Parse or insert magic number for exec, and set all variables depending
+    ;; on the shell thus determined.
     (goto-char (point-min))
     (and (zerop (buffer-size))
 	 (not buffer-read-only)
@@ -675,9 +655,7 @@ with your script for an edit-interpret-debug cycle."
 This adds rules for comments and assignments."
   (sh-feature sh-font-lock-keywords
 	      (lambda (list)
-		`((,(concat (sh-feature sh-comment-prefix) "\\(#.*\\)")
-		   2 font-lock-comment-face t)
-		  (,(sh-feature sh-assignment-regexp)
+		`((,(sh-feature sh-assignment-regexp)
 		   1 font-lock-variable-name-face)
 		  ,@keywords
 		  ,@list))))
@@ -728,7 +706,7 @@ Calls the value of `sh-set-shell-hook' if set."
 ;;;	local-abbrev-table (sh-feature sh-abbrevs)
 	font-lock-keywords nil		; force resetting
 	font-lock-syntax-table nil
-	comment-start-skip (concat (sh-feature sh-comment-prefix) "#+[\t ]*")
+	comment-start-skip "#+[\t ]*"
 	mode-line-process (format "[%s]" sh-shell)
 	sh-shell-variables nil
 	sh-shell-variables-initialized nil
