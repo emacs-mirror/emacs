@@ -882,64 +882,67 @@ or \\[ispell-region] to update the Ispell process."
 	      quietly ispell-quietly))
     (ispell-accept-buffer-local-defs)	; use the correct dictionary
     (let ((cursor-location (point))	; retain cursor location
+	  (opoint (point))
 	  (word (ispell-get-word following))
 	  start end poss replace)
-      ;; destructure return word info list.
-      (setq start (car (cdr word))
-	    end (car (cdr (cdr word)))
-	    word (car word))
+      (unless (or (equal (car word) "")
+		  (< (nth 2 word) opoint))
+	;; destructure return word info list.
+	(setq start (car (cdr word))
+	      end (car (cdr (cdr word)))
+	      word (car word))
 
-      ;; now check spelling of word.
-      (or quietly
-	  (message "Checking spelling of %s..."
-		   (funcall ispell-format-word word)))
-      (process-send-string ispell-process "%\n") ;put in verbose mode
-      (process-send-string ispell-process (concat "^" word "\n"))
-      ;; wait until ispell has processed word
-      (while (progn
-	       (accept-process-output ispell-process)
-	       (not (string= "" (car ispell-filter)))))
-      ;;(process-send-string ispell-process "!\n") ;back to terse mode.
-      (setq ispell-filter (cdr ispell-filter))
-      (if (listp ispell-filter)
-	  (setq poss (ispell-parse-output (car ispell-filter))))
-      (cond ((eq poss t)
-	     (or quietly
-		 (message "%s is correct" (funcall ispell-format-word word))))
-	    ((stringp poss)
-	     (or quietly
-		 (message "%s is correct because of root %s"
-			  (funcall ispell-format-word word)
-			  (funcall ispell-format-word poss))))
-	    ((null poss) (message "Error in ispell process"))
-	    (ispell-check-only		; called from ispell minor mode.
-	     (message "Misspelled word `%s'" word)
-	     (beep))
-	    (t				; prompt for correct word.
-	     (save-window-excursion
-	       (setq replace (ispell-command-loop
-			      (car (cdr (cdr poss)))
-			      (car (cdr (cdr (cdr poss))))
-			      (car poss) start end)))
-	     (cond ((equal 0 replace)
-		    (ispell-add-per-file-word-list (car poss)))
-		   (replace
-		    (setq word (if (atom replace) replace (car replace))
-			  cursor-location (+ (- (length word) (- end start))
-					     cursor-location))
-		    (if (not (equal word (car poss)))
-			(progn
-			  (delete-region start end)
-			  (insert word)))
-		    (if (not (atom replace)) ; recheck spelling of replacement
-			(progn
-			  (goto-char cursor-location)
-			  (ispell-word following quietly)))))
-	     (if (get-buffer ispell-choices-buffer)
-		 (kill-buffer ispell-choices-buffer))))
-      (goto-char cursor-location)	; return to original location
-      (ispell-pdict-save ispell-silently-savep)
-      (if ispell-quit (setq ispell-quit nil)))))
+	;; now check spelling of word.
+	(or quietly
+	    (message "Checking spelling of %s..."
+		     (funcall ispell-format-word word)))
+	(process-send-string ispell-process "%\n") ;put in verbose mode
+	(process-send-string ispell-process (concat "^" word "\n"))
+	;; wait until ispell has processed word
+	(while (progn
+		 (accept-process-output ispell-process)
+		 (not (string= "" (car ispell-filter)))))
+	;;(process-send-string ispell-process "!\n") ;back to terse mode.
+	(setq ispell-filter (cdr ispell-filter))
+	(if (listp ispell-filter)
+	    (setq poss (ispell-parse-output (car ispell-filter))))
+	(cond ((eq poss t)
+	       (or quietly
+		   (message "%s is correct" (funcall ispell-format-word word))))
+	      ((stringp poss)
+	       (or quietly
+		   (message "%s is correct because of root %s"
+			    (funcall ispell-format-word word)
+			    (funcall ispell-format-word poss))))
+	      ((null poss) (message "Error in ispell process"))
+	      (ispell-check-only	; called from ispell minor mode.
+	       (message "Misspelled word `%s'" word)
+	       (beep))
+	      (t			; prompt for correct word.
+	       (save-window-excursion
+		 (setq replace (ispell-command-loop
+				(car (cdr (cdr poss)))
+				(car (cdr (cdr (cdr poss))))
+				(car poss) start end)))
+	       (cond ((equal 0 replace)
+		      (ispell-add-per-file-word-list (car poss)))
+		     (replace
+		      (setq word (if (atom replace) replace (car replace))
+			    cursor-location (+ (- (length word) (- end start))
+					       cursor-location))
+		      (if (not (equal word (car poss)))
+			  (progn
+			    (delete-region start end)
+			    (insert word)))
+		      (if (not (atom replace)) ; recheck spelling of replacement
+			  (progn
+			    (goto-char cursor-location)
+			    (ispell-word following quietly)))))
+	       (if (get-buffer ispell-choices-buffer)
+		   (kill-buffer ispell-choices-buffer))))
+	(goto-char cursor-location)	; return to original location
+	(ispell-pdict-save ispell-silently-savep)
+	(if ispell-quit (setq ispell-quit nil))))))
 
 
 (defun ispell-get-word (following &optional extra-otherchars)
@@ -991,12 +994,14 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
 	    (re-search-backward ispell-not-casechars (point-min) 'move)
 	  (backward-char -1))))
     ;; Now mark the word and save to string.
-    (or (re-search-forward word-regexp (point-max) t)
-	(error "No word found to check!"))
-    (setq start (match-beginning 0)
-	  end (point)
-	  word (buffer-substring-no-properties start end))
-    (list word start end)))
+    (if (not (re-search-forward word-regexp (point-max) t))
+	(if ispell-check-only
+	    (list "" (point) (point))
+	  (error "No word found to check!"))
+      (setq start (match-beginning 0)
+	    end (point)
+	    word (buffer-substring-no-properties start end))
+      (list word start end))))
 
 
 ;;; Global ispell-pdict-modified-p is set by ispell-command-loop and
@@ -2141,9 +2146,10 @@ warns you if the previous word is incorrectly spelled."
   (interactive "*")
   (let ((ispell-minor-mode nil)
 	(ispell-check-only t))
-    (save-restriction
-      (narrow-to-region (point-min) (point))
-      (ispell-word nil t))
+    (save-excursion
+      (save-restriction
+	(narrow-to-region (point-min) (point))
+	(ispell-word nil t)))
     (call-interactively (key-binding (this-command-keys)))))
 
 
