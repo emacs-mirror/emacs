@@ -1,3 +1,8 @@
+2003-04-12  John Paul Wallington  <jpw@gnu.org>
+
+	* help-fns.el (help-add-fundoc-usage): Pass an empty string to
+	`format' if no newlines are necessary.
+
 2003-04-11  John Paul Wallington  <jpw@gnu.org>
 
 	* type-break.el (type-break-warning-countdown-string): Doc fix.
