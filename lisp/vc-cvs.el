@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.20 2001/02/02 07:21:21 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.21 2001/03/10 10:49:05 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -461,8 +461,10 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 
 (defun vc-cvs-print-log (file)
   "Get change log associated with FILE."
-  (vc-do-command nil (if (vc-cvs-stay-local-p file) 'async 0)
-                 "cvs" file "log"))
+  (vc-do-command
+   nil
+   (if (and (vc-cvs-stay-local-p file) (fboundp 'start-process)) 'async 0)
+   "cvs" file "log"))
 
 (defun vc-cvs-show-log-entry (version)
   (when (re-search-forward
@@ -509,7 +511,10 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
                  (append diff-switches-list '("/dev/null"))))
       (setq status
             (apply 'vc-do-command "*vc-diff*"
-                   (if (vc-cvs-stay-local-p file) 'async 1)
+                   (if (and (vc-cvs-stay-local-p file)
+			    (fboundp 'start-process))
+		       'async
+		     1)
                    "cvs" file "diff"
                    (and oldvers (concat "-r" oldvers))
                    (and newvers (concat "-r" newvers))
