@@ -194,7 +194,8 @@ See the command `outline-mode' for more information on this mode."
       (progn
 	(setq selective-display t)
 	(run-hooks 'outline-minor-mode-hook))
-    (setq selective-display nil)))
+    (setq selective-display nil))
+  (set-buffer-modified-p (buffer-modified-p)))
 
 (defvar outline-level 'outline-level
   "Function of no args to compute a header's nesting level in an outline.
