@@ -1279,7 +1279,7 @@ It returns t if it got any new messages."
   (or (memq (file-locked-p buffer-file-name) '(nil t))
       (error "RMAIL file %s is locked"
 	     (file-name-nondirectory buffer-file-name)))
-  (let (file tofile delete-files movemail popmail got-password)
+  (let (file tofile delete-files movemail popmail got-password password)
     (while files
       (setq file (file-truename
 		  (expand-file-name (substitute-in-file-name (car files))))
@@ -1314,12 +1314,9 @@ It returns t if it got any new messages."
 		(setq file (expand-file-name (user-login-name)
 					     file)))))
       (cond (popmail
-	     (if (and rmail-pop-password-required (not rmail-pop-password))
-		 (setq rmail-pop-password
-		       (rmail-read-passwd
-			(format "Password for %s: "
-				(substring file (+ popmail 3))))
-		       got-password t))
+	     (if rmail-pop-password-required
+		 (progn (setq got-password (not (rmail-have-password)))
+			(setq password (rmail-get-pop-password))))
 	     (if (eq system-type 'windows-nt)
 		 ;; cannot have "po:" in file name
 		 (setq tofile
@@ -1375,9 +1372,7 @@ It returns t if it got any new messages."
 			       nil)
 			     rmail-movemail-flags
 			     (list file tofile)
-			     (if rmail-pop-password 
-				 (list rmail-pop-password)
-			       nil))))
+			     (if password (list password) nil))))
 		       (apply 'call-process args))
 		     (if (not (buffer-modified-p errors))
 			 ;; No output => movemail won
@@ -1401,7 +1396,7 @@ It returns t if it got any new messages."
 		       (if (or got-password
 			       (re-search-forward rmail-pop-password-error
 						  nil t))
-			   (setq rmail-pop-password nil))
+			   (rmail-set-pop-password nil))
 		       (sit-for 3)
 		       nil))
 		 (if errors (kill-buffer errors))))))
@@ -3278,6 +3273,51 @@ TEXT and INDENT are not used."
    (message "Moving message to %s" token)
    (rmail-output-to-rmail-file token)))
 
+; Functions for setting, getting and encoding the POP password.
+; The password is encoded to prevent it from being easily accessible
+; to "prying eyes."  Obviously, this encoding isn't "real security,"
+; nor is it meant to be.
+
+;;;###autoload
+(defun rmail-set-pop-password (password)
+  "Set PASSWORD to be used for retrieving mail from a POP server."
+  (interactive "sPassword: ")
+  (if password
+      (setq rmail-encoded-pop-password 
+	    (rmail-encode-string password (emacs-pid)))
+    (setq rmail-pop-password nil)
+    (setq rmail-encoded-pop-password nil)))
+
+(defun rmail-get-pop-password ()
+  "Get the password for retrieving mail from a POP server.  If none
+has been set, then prompt the user for one."
+  (if (not rmail-encoded-pop-password)
+      (progn (if (not rmail-pop-password)
+		 (setq rmail-pop-password (rmail-read-passwd "POP password: ")))
+	     (rmail-set-pop-password rmail-pop-password)
+	     (setq rmail-pop-password nil)))
+  (rmail-encode-string rmail-encoded-pop-password (emacs-pid)))
+
+(defun rmail-have-password ()
+  (or rmail-pop-password rmail-encoded-pop-password))
+
+(defun rmail-encode-string (string mask)
+ "Encode STRING with integer MASK, by taking the exclusive OR of the
+lowest byte in the mask with the first character of string, the
+second-lowest-byte with the second character of the string, etc.,
+restarting at the lowest byte of the mask whenever it runs out.
+Returns the encoded string.  Calling the function again with an
+encoded string (and the same mask) will decode the string."
+ (let* ((string-vector (string-to-vector string)) (i 0) 
+	(len (length string-vector)) (curmask mask) charmask)
+   (while (< i len)
+     (if (= curmask 0)
+	 (setq curmask mask))
+     (setq charmask (% curmask 256))
+     (setq curmask (lsh curmask -8))
+     (aset string-vector i (logxor charmask (aref string-vector i)))
+     (setq i (1+ i)))
+   (concat string-vector)))
 
 (provide 'rmail)
 
