@@ -699,7 +699,7 @@ as returned by the `event-start' and `event-end' functions."
 
 (defalias 'sref 'aref)
 (make-obsolete 'sref 'aref "20.4")
-(make-obsolete 'char-bytes "now always returns 1 (maintained for backward compatibility)." "20.4")
+(make-obsolete 'char-bytes "now always returns 1." "20.4")
 (make-obsolete 'chars-in-region "use (abs (- BEG END))." "20.3")
 (make-obsolete 'dot 'point		"before 19.15")
 (make-obsolete 'dot-max 'point-max	"before 19.15")
@@ -1062,11 +1062,16 @@ Legitimate radix values are 8, 10 and 16."
   :type '(choice (const 8) (const 10) (const 16))
   :group 'editing-basics)
 
+(defconst read-key-auxiliary-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [t] 'undefined)
+    map))
+
 (defun read-key (&optional prompt)
   "Read a key from the keyboard.
 Contrary to `read-event' this will not return a raw event but will
 obey `function-key-map' and `key-translation-map' instead."
-  (let ((overriding-terminal-local-map (make-sparse-keymap)))
+  (let ((overriding-terminal-local-map read-key-aux-map))
     (aref (read-key-sequence prompt nil t) 0)))
 
 (defun read-quoted-char (&optional prompt)
@@ -1998,23 +2003,32 @@ You can then use `write-region' to write new data into the file.
 If DIR-FLAG is non-nil, create a new empty directory instead of a file.
 
 If SUFFIX is non-nil, add that at the end of the file name."
-  (let (file)
-    (while (condition-case ()
-	       (progn
-		 (setq file
-		       (make-temp-name
-			(expand-file-name prefix temporary-file-directory)))
-		 (if suffix
-		     (setq file (concat file suffix)))
-		 (if dir-flag
-		     (make-directory file)
-		   (write-region "" nil file nil 'silent nil 'excl))
-		 nil)
-	     (file-already-exists t))
-      ;; the file was somehow created by someone else between
-      ;; `make-temp-name' and `write-region', let's try again.
-      nil)
-    file))
+  (let ((umask (default-file-modes))
+	file)
+    (unwind-protect
+	(progn
+	  ;; Create temp files with strict access rights.  It's easy to
+	  ;; loosen them later, whereas it's impossible to close the
+	  ;; time-window of loose permissions otherwise.
+	  (set-default-file-modes ?\700)
+	  (while (condition-case ()
+		     (progn
+		       (setq file
+			     (make-temp-name
+			      (expand-file-name prefix temporary-file-directory)))
+		       (if suffix
+			   (setq file (concat file suffix)))
+		       (if dir-flag
+			   (make-directory file)
+			 (write-region "" nil file nil 'silent nil 'excl))
+		       nil)
+		   (file-already-exists t))
+	    ;; the file was somehow created by someone else between
+	    ;; `make-temp-name' and `write-region', let's try again.
+	    nil)
+	  file)
+      ;; Reset the umask.
+      (set-default-file-modes umask))))
 
 
 (defun add-minor-mode (toggle name &optional keymap after toggle-fun)
@@ -2045,11 +2059,6 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
   ;; Add the name to the minor-mode-alist.
   (when name
     (let ((existing (assq toggle minor-mode-alist)))
-      (when (and (stringp name) (not (get-text-property 0 'local-map name)))
-	(setq name
-	      (propertize name
-			  'local-map mode-line-minor-mode-keymap
-			  'help-echo "mouse-3: minor mode menu")))
       (if existing
 	  (setcdr existing (list name))
 	(let ((tail minor-mode-alist) found)
@@ -2071,14 +2080,13 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 	    (concat
 	     (or (get toggle :menu-tag)
 		 (if (stringp name) name (symbol-name toggle)))
-	     (let ((mode-name (if (stringp name) name
-				(if (symbolp name) (symbol-value name)))))
-	       (if mode-name
-		   (concat " (" mode-name ")"))))
+	     (let ((mode-name (if (symbolp name) (symbol-value name))))
+	       (if (and (stringp mode-name) (string-match "[^ ]+" mode-name))
+		   (concat " (" (match-string 0 mode-name) ")"))))
 	    toggle-fun
 	    :button (cons :toggle toggle))))
 
-  ;; Add the map to the minor-mode-map-alist.    
+  ;; Add the map to the minor-mode-map-alist.
   (when keymap
     (let ((existing (assq toggle minor-mode-map-alist)))
       (if existing
