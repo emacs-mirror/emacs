@@ -1,26 +1,26 @@
-;;; info-xref.el --- check external references in an Info document.
+;;; info-xref.el --- check external references in an Info document
 
-;; Copyright 2003, 2004 Free Software Foundation, Inc
-;;
+;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
+
 ;; Author: Kevin Ryde <user42@zip.com.au>
 ;; Keywords: docs
-;;
-;; info-xref.el is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by the
-;; Free Software Foundation; either version 2, or (at your option) any later
-;; version.
-;;
-;; info-xref.el is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
-;; Public License for more details.
-;;
-;; You can get a copy of the GNU General Public License online at
-;; http://www.gnu.org/licenses/gpl.txt, or you should have one in the file
-;; COPYING which comes with GNU Emacs and other GNU programs.  Failing that,
-;; write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
 
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
@@ -60,35 +60,9 @@
 ;; `Info-directory-list' then a lot of extraneous files might be read, which
 ;; will be time consuming but should be harmless.
 ;;
-;;
 ;; `M-x info-xref-check-all-custom' is a related command, it goes through
 ;; all info document references in customizable variables, checking them
 ;; like info file cross references.
-
-
-;;; Install:
-
-;; Put info-xref.el somewhere in your `load-path', and in your .emacs put
-;;
-;;     (autoload 'info-xref-check     "info-xref" nil t)
-;;     (autoload 'info-xref-check-all "info-xref" nil t)
-;;
-;; then
-;;
-;;     M-x info-xref-check
-;;
-;; and enter an info file name.
-
-
-;;; Emacsen:
-
-;; Designed for use with GNU Emacs 21.
-
-
-;;; History:
-
-;; Version 1 - the first version.
-
 
 ;;; Code:
 
