@@ -21,7 +21,7 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_CONFIG_H
 #define NO_SHORTNAMES	/* Tell config not to load remap.h */
-#include <../src/config.h>
+#include <config.h>
 #else
 #define MAIL_USE_POP
 #endif

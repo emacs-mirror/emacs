@@ -23,7 +23,10 @@
 
    This version sorts the output by function name.  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <ctype.h>
 #ifndef HAVE_STDLIB_H		/* config.h includes stdlib.  */

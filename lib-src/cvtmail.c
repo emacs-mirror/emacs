@@ -29,11 +29,14 @@ Boston, MA 02111-1307, USA.  */
  *
  * In order to get rmail to read the messages, the resulting file must
  * be mv'ed to ~/mbox, and then have rmail invoked on them.
- * 
+ *
  * Author: Larry Kolodney, 1985
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 
 #ifndef HAVE_STDLIB_H
@@ -119,7 +122,7 @@ main (argc, argv)
 	}
     }
   fclose (mddf);
-  fclose (mfilef);    
+  fclose (mfilef);
   return 0;
 }
 

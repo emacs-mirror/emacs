@@ -10,7 +10,10 @@
  * With dynamic memory allocation.
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <ctype.h>
 #ifdef HAVE_STRING_H

@@ -28,7 +28,7 @@ Boston, MA 02111-1307, USA.  */
 #define NO_SHORTNAMES
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include <config.h>
 #endif
 
 #include <signal.h>
