@@ -3181,7 +3181,7 @@ Faces are frame-local by nature because Emacs allows to define the
 same named face (face names are symbols) differently for different
 frames.  Each frame has an alist of face definitions for all named
 faces.  The value of a named face in such an alist is a Lisp vector
-with the symbol `face' in slot 0, and a slot for each each of the face
+with the symbol `face' in slot 0, and a slot for each of the face
 attributes mentioned above.
 
 There is also a global face alist `face-new-frame-defaults'.  Face
@@ -6491,8 +6491,8 @@ FONTSET-NAME should have the form of a standard X font name, except:
 	* the CHARSET_ENCODING field can be any nickname of the fontset.
 The construct CHARSET-NAME:FONT-NAME can be repeated any number
 of times; each time specifies the font for one character set.
-CHARSET-NAME should be the name name of a character set, and
-FONT-NAME should specify an actual font to use for that character set.
+CHARSET-NAME should be the name of a character set, and FONT-NAME
+should specify an actual font to use for that character set.
 
 Each of these fontsets has an alias which is made from the
 last two font name fields, CHARSET_REGISTRY and CHARSET_ENCODING.
