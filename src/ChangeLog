@@ -2,7 +2,7 @@
 
 	* process.c (read_process_output): Fix previous change.  Adjust
 	multibyteness of text to insert in a buffer by
-	make_string_unibyte/multibyte instead of
+	string_make_unibyte/multibyte instead of
 	Fstring_as_unibyte/multibyte.
 
 2000-10-10  Andreas Schwab  <schwab@suse.de>
