@@ -4,6 +4,11 @@
 
 2000-11-14  Dave Love  <fx@gnu.org>
 
+	* calculator.el: New maintainer version.
+
+	* diff-mode.el (diff-imenu-generic-expression): Modify unidiff
+	pattern.
+
 	* cmuscheme.el: Doc fixes.
 	(cmuscheme) <defgroup>: Use `scheme' as parent.
 	(cmuscheme-program-name): Remove.  Change uses to
