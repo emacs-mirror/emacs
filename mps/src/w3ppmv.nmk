@@ -1,12 +1,14 @@
 # impl.nmk.w3ppmv: WINDOWS (POWERPC) NMAKE FILE
 #
-# $HopeName: MMsrc!w3ppmv.nmk(trunk.39) $
-#
-# Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
-#
+# $HopeName: MMsrc!w3ppmv.nmk(trunk.40) $
+# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
 PFM = w3ppmv
-PFMDEFS = /DWIN32 /D_WINDOWS
+
+RAINBOWPATH = MSVISUAL\WIN32\PPC
+DONGLELIB = $(RAINBOWPATH)\spromeps.lib
+
+PFMDEFS = /DWIN32 /D_WINDOWS /I$(RAINBOWPATH)
 
 MPM = <assert> <ring> <mpm> <bt> <protocol> \
       <arenavm> <arenacl> <arena> <tract> <walk> <reserv> \
