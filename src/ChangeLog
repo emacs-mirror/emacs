@@ -1,3 +1,14 @@
+2000-08-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* fns.c (hashfn_eq, hashfn_eql): Don't handle strings specially
+	since they aren't relocated anymore.
+	(sxhash_string): Make sure returned hash code fits in a Lisp
+	integer.
+
+	* xdisp.c (try_cursor_movement): Fix handling of cursor in
+	partially visible line which is smaller than the window's
+	height.
+
 2000-08-11  Kenichi Handa  <handa@etl.go.jp>
 
 	* ccl.c (CCL_READ_CHAR): If source is multibyte, pay attention to
