@@ -1,5 +1,8 @@
 2001-03-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (handle_display_prop): Fix recognition of subproperty
+	lists.
+	
 	* xdisp.c (reseat_to_string): Undo last change.
 
 	* dispnew.c (adjust_glyph_matrix): Don't try to reuse the current
