@@ -306,7 +306,7 @@ to writing a completion function."
   "Return the command name, possibly sans globbing."
   (let ((cmd (file-name-nondirectory (pcomplete-arg 'first))))
     (setq cmd (if (and (> (length cmd) 0)
-		       (eq (aref cmd 0) ?*))
+		       (eq (aref cmd 0) eshell-explicit-command-char))
 		  (substring cmd 1)
 		cmd))
     (if (eshell-under-windows-p)
@@ -396,7 +396,7 @@ to writing a completion function."
     (if (file-name-directory filename)
 	(pcomplete-executables)
       (if (and (> (length filename) 0)
-	       (eq (aref filename 0) ?*))
+	       (eq (aref filename 0) eshell-explicit-command-char))
 	  (setq filename (substring filename 1)
 		pcomplete-stub filename
 		glob-name t))
