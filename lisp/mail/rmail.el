@@ -1890,7 +1890,13 @@ It returns t if it got any new messages."
 		       (when
 			   (condition-case nil
 			       (progn
-				 (base64-decode-region (1+ header-end) (point))
+				 (base64-decode-region
+				  (1+ header-end)
+				  (save-excursion
+				    ;; Prevent base64-decode-region
+				    ;; from removing newline characters.
+				    (skip-chars-backward "\n\t ")
+				    (point)))
 				 t)
 			     (error nil))
 			 (goto-char header-end)
@@ -1908,6 +1914,7 @@ It returns t if it got any new messages."
 		   (goto-char (point-min))
 		   (while (search-forward "\n\^_" nil t); single char
 		     (replace-match "\n^_")))); 2 chars: "^" and "_"
+	       (or (bolp) (newline)) ; in case we lost the final newline.
 	       (insert ?\^_)
 	       (setq last-coding-system-used nil)
 	       (or rmail-enable-mime
