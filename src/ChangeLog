@@ -12,23 +12,22 @@
 
 2002-03-10  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
 
-	* xterm.h: Extern declare x_session_check_input () and
- 	x_session_initialize ().
+	* xterm.h: Declare x_session_check_input and x_session_initialize.
 
-	* xterm.c: Added calls to x_session_check_input () and
- 	x_session_initialize ().
+	* xterm.c: Add calls to x_session_check_input and
+	x_session_initialize.
 
-	* termhooks.h (enum event_kind): Added save_session_event.
+	* termhooks.h (enum event_kind): Add save_session_event.
 
-	* keyboard.c: Added Emacs event save_session_event.
+	* keyboard.c: Add Emacs event save_session_event.
 
-	* emacs.c (main): Added call to syms_of_xsmfns ().
+	* emacs.c (main): Add call to syms_of_xsmfns.
 
-	* lisp.h: Extern declare syms_of_xsmfns ().
+	* lisp.h: Declare syms_of_xsmfns as extern.
 
-	* config.in: Added HAVE_X_SM
+	* config.in: Add HAVE_X_SM.
 
-	* Makefile.in: Added test for HAVE_X_SM and added new file xsmfns.c
+	* Makefile.in: Add test for HAVE_X_SM and new file xsmfns.c
 
 	* xsmfns.c: New file for X session management.
 
