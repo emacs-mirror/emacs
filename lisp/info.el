@@ -2166,7 +2166,7 @@ If no reference to follow, moves to the next node, or up if none."
 	  (if items
 	      (setq entries (cons ["Other..." Info-menu t] entries)))
 	  (or entries
-	      (setq entries (list ["No menu" nil nil])))
+	      (setq entries (list ["No menu" nil nil] nil :active)))
 	  (easy-menu-change '("Info") "Menu Item" (nreverse entries)))
 	;; Update reference menu.  Code stolen from `Info-follow-reference'.
 	(let ((items nil)
@@ -2198,7 +2198,7 @@ If no reference to follow, moves to the next node, or up if none."
 	      (setq entries (cons ["Other..." Info-follow-reference t]
 				  entries)))
 	  (or entries
-	      (setq entries (list ["No references" nil nil])))
+	      (setq entries (list ["No references" nil nil] nil :active)))
 	  (easy-menu-change '("Info") "Reference" (nreverse entries)))
 	;; Update last seen node.
 	(setq Info-menu-last-node (list Info-current-file Info-current-node)))
