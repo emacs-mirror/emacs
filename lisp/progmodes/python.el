@@ -1129,33 +1129,6 @@ def _emacs_args (name):  # get arglist of name for eldoc &c
 print '_emacs_ok'"))
   (unless noshow (pop-to-buffer (setq python-buffer "*Python*"))))
 
-(defun python-mouse-2-command (event)
-  "Command bound to `mouse-2' in inferior Python buffer.
-Selects Comint or Compilation mode command as appropriate."
-  (interactive "e")
-  ;; This only works with the font-lock-based compilation mode.
-  (call-interactively
-   (lookup-key (if (save-window-excursion
-		     (save-excursion
-		       (mouse-set-point event)
-		       (consp (get-text-property (line-beginning-position)
-						 'message))))
-		   compilation-mode-map
-		 comint-mode-map)
-	       [mouse-2])))
-
-(defun python-RET-command ()
-  "Command bound to `RET' in inferior Python buffer.
-Selects Comint or Compilation mode command as appropriate."
-  (interactive)
-  ;; This only works with the font-lock-based compilation mode.
-  (call-interactively
-   (lookup-key (if (consp (get-text-property (line-beginning-position)
-					     'message))
-		   compilation-mode-map
-		 comint-mode-map)
-	       "\C-m")))
-
 (defun python-send-region (start end)
   "Send the region to the inferior Python process."
   ;; The region is evaluated from a temporary file.  This avoids
