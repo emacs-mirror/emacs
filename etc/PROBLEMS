@@ -3257,3 +3257,8 @@ defined as a union on some rare architectures.
 This problem will not happen if the m-...h file for your type
 of machine defines NO_UNION_TYPE.
 
+
+Local variables:
+mode: outline
+paragraph-separate: "[ 	]*$"
+end:
