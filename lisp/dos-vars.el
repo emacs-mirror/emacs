@@ -61,7 +61,7 @@ you want to silently discard the printed output, set this to \"NUL\".
 If the value is anything but a string, PostScript files will be
 piped to the program given by `ps-lpr-command', with switches
 given by `ps-lpr-switches', which see."
-  :type '(choice file (const :tag "Pipe to ps-lpr-command" pipe))
+  :type '(choice file (other :tag "Pipe to ps-lpr-command" pipe))
   :group 'dos-fns)
 
 ;;; dos-vars.el ends here
