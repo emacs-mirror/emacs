@@ -1,3 +1,8 @@
+2001-11-01  Stefan Monnier  <monnier@rum.cs.yale.edu>
+
+	* fill.el (fill-region-as-paragraph): Don't forget to skip
+	over current whitespace before looking for a preceding space.
+
 2001-11-01  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (find-file-noselect): Offer to change buffer-read-only
