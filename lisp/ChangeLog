@@ -1,3 +1,9 @@
+2004-10-09  Masatake YAMATO  <jet@gyve.org>
+
+	* server.el (server-process-filter): Wrap `process-send-region' 
+	by `condition-case' to guard the case when the pipe to PROC is 
+	closed.
+
 2004-10-07  Mark A. Hershberger  <mah@everybody.org>
 
 	* xml.el (xml-substitute-special): Limit handling of external
