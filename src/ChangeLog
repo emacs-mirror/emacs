@@ -1,3 +1,7 @@
+2004-11-22  Markus Rost  <rost@ias.edu>
+
+	* minibuf.c (Fminibuffer_complete_and_exit): Fix previous change.
+
 2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fdefvar): Warn when var is let-bound but globally void.
