@@ -189,8 +189,8 @@ case "${canonical}" in
     machine=alpha opsys=osf1
   ;;
 
-  alpha-*-linux* )
-    machine=alpha opsys=linux
+  alpha-*-linux* | alpha-*-lignux* )
+    machine=alpha opsys=lignux
   ;;
 
   ## Altos 3068
@@ -831,7 +831,7 @@ case "${canonical}" in
       *-esix5* )		opsys=esix5r4; NON_GNU_CPP=/usr/lib/cpp ;;
       *-esix* )			opsys=esix ;;
       *-xenix* )		opsys=xenix ;;
-      *-linux* )		opsys=linux ;;
+      *-linux* | *-lignux* )	opsys=lignux ;;
       *-sco3.2v4* )		opsys=sco4 ; NON_GNU_CPP=/lib/cpp  ;;
       *-bsd386* | *-bsdi1* )	opsys=bsd386 ;;
       *-bsdi2* )		opsys=bsdos2 ;;
@@ -842,9 +842,9 @@ case "${canonical}" in
     esac
   ;;
 
-  ## Linux/68k
-  m68k-*-linux* )
-    machine=m68k opsys=linux
+  ## Lignux/68k
+  m68k-*-linux* | m68k-*-lignux* )
+    machine=m68k opsys=lignux
   ;;
 
   * )
@@ -956,7 +956,7 @@ dnl checks for Unix variants
 AC_AIX
 
 dnl checks for header files
-AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h)
+AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h linux/version.h)
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_DECL_SYS_SIGLIST
@@ -1100,7 +1100,7 @@ AC_CHECKING([the machine- and system-dependent files to find out
 ### and REAL_CFLAGS (which we use for real compilation).
 ### The two are the same except on a few systems, where they are made
 ### different to work around various lossages.  For example,
-### GCC 2.5 on Linux needs them to be different because it treats -g
+### GCC 2.5 on Lignux needs them to be different because it treats -g
 ### as implying static linking.
 
 ### If the CFLAGS env var is specified, we use that value
@@ -1268,7 +1268,7 @@ if test "${HAVE_X11}" = "yes"; then
     export LD_RUN_PATH
   fi
 
-  if test "${opsys}" = "linux"; then
+  if test "${opsys}" = "lignux"; then
     AC_MSG_CHECKING(whether X on GNU/Linux needs -b to link)
     AC_TRY_LINK([],
      [XOpenDisplay ("foo");],
