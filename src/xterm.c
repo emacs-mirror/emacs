@@ -1259,6 +1259,7 @@ x_encode_char (c, char2b, font_info)
 	{
 	  ccl->reg[0] = charset;
 	  ccl->reg[1] = char2b->byte2;
+	  ccl->reg[2] = -1;
 	}
       else
 	{
