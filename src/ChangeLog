@@ -1,5 +1,9 @@
 2001-03-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (x_create_tip_frame): Add parameter TEXT.  Set the
+	tip frame's root window buffer to *tip* right after creating
+	the frame.
+
 	* xdisp.c (highlight_trailing_whitespace): Glyphs whose object
 	is an integer don't have to be for space characters.
 
