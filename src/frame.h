@@ -48,7 +48,8 @@ struct frame
      Only EMACS_INT values can be intermixed with them.
      That ensures they are all aligned normally.  */
 
-  /* Name of this frame: a Lisp string.  See also `explicit_name'.  */
+  /* Name of this frame: a Lisp string.  See also `explicit_name'
+     and `namebuf'.  */
   Lisp_Object name;
 
   /* The frame which should receive keystrokes that occur in this
@@ -116,6 +117,10 @@ struct frame
 
   /* Beyond here, there should be no more Lisp_Object components.  */
 
+
+  /* A buffer to hold the frame's name.  We can't use the Lisp string's
+     pointer (`name', above) because it might get relocated.  */
+  char *namebuf;
 
   /* glyphs as they appear on the frame */
   struct frame_glyphs *current_glyphs;
