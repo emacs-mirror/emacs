@@ -1,3 +1,9 @@
+2004-04-07  Kenichi Handa  <handa@m17n.org>
+
+	* editfns.c: Sync to HEAD.
+	(check_translation): New function.
+	(Ftranslate_region_internal): Handle M:N mapping.
+
 2004-04-06  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (xlfd_point_size): Set font->numeric[XLFD_PIXEL_SIZE].

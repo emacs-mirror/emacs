@@ -1,3 +1,11 @@
+2004-04-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (make-translation-table): Set the second
+	extra slot of the char table to 1.
+	(make-translation-table-from-vector): Likewise.
+	(make-translation-table-from-alist): Fix handling of multiple
+	entries.
+
 2004-03-11  Kenichi Handa  <handa@m17n.org>
 
 	* language/japanese.el (jisx0213-to-unicode, unicode-to-jisx0213):
@@ -882,7 +890,7 @@
 
 2002-09-05  Dave Love  <fx@gnu.org>
 
-	* international/characters.el: Make Ÿ and ÿ a case pair.
+	* international/characters.el: Make ,_/(B and ,A a case pair.
 
 2002-09-03  Kenichi Handa  <handa@etl.go.jp>
 
