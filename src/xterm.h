@@ -223,6 +223,9 @@ struct x_display_info
   /* Nonzero means defer mouse-motion highlighting.  */
   int mouse_face_defer;
 
+  /* Nonzero means that the mouse highlight should not be shown.  */
+  int mouse_face_hidden;
+
   int mouse_face_image_state;
 
   char *x_id_name;
