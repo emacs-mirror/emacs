@@ -1,3 +1,11 @@
+2005-01-30  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-bury-buffer): Function deleted.
+	(custom-buffer-done-function): Option deleted.
+	(custom-buffer-done-kill): New (replacement option.
+	(Custom-buffer-done): Call quit-window.
+	(custom-buffer-create-internal): Update for above changes.
+
 2005-01-29  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* simple.el (undo-ask-before-discard): New var.
