@@ -1,5 +1,4 @@
 ;;; doctor.el --- psychological help for frustrated users.
-;;; (censored version--see below)
 
 ;; Copyright (C) 1985, 1987, 1994, 1996 Free Software Foundation, Inc.
 
@@ -29,14 +28,16 @@
 ;; phrase-production techniques similar to the classic ELIZA demonstration
 ;; of pseudo-AI.
 
-;; This file has been censored by the Communications Decency Act.
+;; This file was for a while censored by the Communications Decency Act.
 ;; Some of its features were removed.  The law was promoted as a ban
 ;; on pornography, but it bans far more than that.  The doctor program
 ;; did not contain pornography, but part of it was prohibited
 ;; nonetheless.
 
+;; The Supreme Court overturned the Communications Decency Act, but
+;; Congress is sure to look for some other way to try to end free speech.
 ;; For information on US government censorship of the Internet, and
-;; what you can do to bring back freedom of the press, see the web
+;; what you can do to protect freedom of the press, see the web
 ;; site http://www.vtw.org/
 ;; See also the file etc/CENSORSHIP in the Emacs distribution
 ;; for a discussion of why and how this file was censored, and the
@@ -82,8 +83,6 @@ reads the sentence before point, and prints the Doctor's answer."
   (setq mode-name "Doctor")
   (turn-on-auto-fill)
   (doctor-type '(i am the psychotherapist \.
-		 for your protection, i have been censored according to
-		 the Communications Decency Act \.
 		 ($ please) ($ describe) your ($ problems) \.
 		 each time you are finished talking, type \R\E\T twice \.))
   (insert "\n"))
@@ -605,6 +604,7 @@ reads the sentence before point, and prints the Doctor's answer."
 (doctor-put-meaning ibm 'mach)
 (doctor-put-meaning pc 'mach)
 (doctor-put-meaning bitching 'foul)
+(doctor-put-meaning shit 'foul)
 (doctor-put-meaning bastard 'foul)
 (doctor-put-meaning damn 'foul)
 (doctor-put-meaning damned 'foul)
@@ -679,6 +679,7 @@ reads the sentence before point, and prints the Doctor's answer."
 (doctor-put-meaning lonely 'mood)
 (doctor-put-meaning angry 'mood)
 (doctor-put-meaning mad 'mood)
+(doctor-put-meaning pissed 'mood)
 (doctor-put-meaning jealous 'mood)
 (doctor-put-meaning afraid 'fear)
 (doctor-put-meaning terrified 'fear)
@@ -692,6 +693,8 @@ reads the sentence before point, and prints the Doctor's answer."
 (doctor-put-meaning cocks 'sexnoun)
 (doctor-put-meaning dick 'sexnoun)
 (doctor-put-meaning dicks 'sexnoun)
+(doctor-put-meaning cunt 'sexnoun)
+(doctor-put-meaning cunts 'sexnoun)
 (doctor-put-meaning prostitute 'sexnoun)
 (doctor-put-meaning condom 'sexnoun)
 (doctor-put-meaning sex 'sexnoun)
@@ -750,14 +753,18 @@ reads the sentence before point, and prints the Doctor's answer."
 (doctor-put-meaning wine 'alcohol)
 (doctor-put-meaning whiskey 'alcohol)
 (doctor-put-meaning scotch 'alcohol)
+(doctor-put-meaning fuck 'sexverb)
+(doctor-put-meaning fucked 'sexverb)
 (doctor-put-meaning screw 'sexverb)
 (doctor-put-meaning screwing 'sexverb)
+(doctor-put-meaning fucking 'sexverb)
 (doctor-put-meaning rape 'sexverb)
 (doctor-put-meaning raped 'sexverb)
 (doctor-put-meaning kiss 'sexverb)
 (doctor-put-meaning kissing 'sexverb)
 (doctor-put-meaning kisses 'sexverb)
 (doctor-put-meaning screws 'sexverb)
+(doctor-put-meaning fucks 'sexverb)
 (doctor-put-meaning because 'conj)
 (doctor-put-meaning but 'conj)
 (doctor-put-meaning however 'conj)
@@ -1072,6 +1079,7 @@ the subject noun, and return the portion of the sentence following it."
 		explain explained explains
 		fart farts feel feels felt fight fights find finds finding
 		forget forgets forgot fought found
+		fuck fucked fucking fucks
 		gave get gets getting give gives go goes going gone got gotten
 		had harm harms has hate hated hates have having
 		hear heard hears hearing help helped helping helps
