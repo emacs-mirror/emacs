@@ -28,10 +28,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define USG5_4
 
-/* On most SVR4 systems, gettimeofday takes one arg
-   and the compiler might crash.  */
-#define GETTIMEOFDAY_ONE_ARGUMENT
-
 /* We do have multiple jobs.  Handle ^Z. */
 
 #undef NOMULTIPLEJOBS
