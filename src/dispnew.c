@@ -5726,11 +5726,13 @@ buffer_posn_from_coords (w, x, y, dx, dy, object, pos)
   *dx = x0 + it.first_visible_x - it.current_x;
   *dy = *y - it.current_y;
 
+#ifdef HAVE_WINDOW_SYSTEM
   if (it.what == IT_IMAGE
       && (img = IMAGE_FROM_ID (it.f, it.image_id)) != NULL
       && !NILP (img->spec))
     *object = img->spec;
   else
+#endif
     *object = STRINGP (it.string) ? it.string : w->buffer;
   *pos = it.current;
   *x = it.hpos;

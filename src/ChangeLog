@@ -1,5 +1,8 @@
 2003-11-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* dispnew.c (buffer_posn_from_coords): Add ifdef HAVE_WINDOW_SYSTEM
+	to compile on terminal configuration.
+
 	* fileio.c (Fread_file_name): Check use_file_dialog also before
 	calling Fx_file_dialog.
 
