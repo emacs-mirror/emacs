@@ -36,6 +36,9 @@
 
 ;;; Code:
 
+(defvar displayed-month)
+(defvar displayed-year)
+
 (require 'calendar)
 
 (defun calendar-goto-today ()

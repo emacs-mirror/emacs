@@ -51,6 +51,9 @@
 
 ;;; Code:
 
+(defvar displayed-month)
+(defvar displayed-year)
+
 (require 'calendar)
 
 (autoload 'holiday-julian "cal-julian"

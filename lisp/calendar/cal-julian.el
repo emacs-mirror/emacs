@@ -40,6 +40,9 @@
 
 ;;; Code:
 
+(defvar displayed-month)
+(defvar displayed-year)
+
 (require 'calendar)
 
 (defun calendar-julian-from-absolute (date)

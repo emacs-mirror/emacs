@@ -49,6 +49,9 @@
 
 ;;; Code:
 
+(defvar displayed-month)
+(defvar displayed-year)
+
 (if (fboundp 'atan)
     (require 'lisp-float-type)
   (error "Lunar calculations impossible since floating point is unavailable"))

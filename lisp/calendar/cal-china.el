@@ -49,6 +49,9 @@
 
 ;;; Code:
 
+(defvar displayed-month)
+(defvar displayed-year)
+
 (require 'lunar)
 
 (defvar chinese-calendar-celestial-stem
