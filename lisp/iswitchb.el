@@ -29,6 +29,8 @@
 ;; Installation:
 ;; To get the functions in this package bound to keys, use
 ;; M-x iswitchb-mode or customize the option `iswitchb-mode'.
+;; Alternatively, add the following line to your .emacs:
+;; (iswitchb-mode 1)
 
 ;; As you type in a substring, the list of buffers currently matching
 ;; the substring is displayed as you type.  The list is ordered so
