@@ -70,6 +70,8 @@
 (autoload 'starttls-open-stream "starttls")
 (autoload 'starttls-negotiate "starttls")
 (autoload 'mail-strip-quoted-names "mail-utils")
+(autoload 'message-make-date "message")
+(autoload 'message-make-message-id "message")
 (autoload 'rfc2104-hash "rfc2104")
 
 ;;;
@@ -293,6 +295,14 @@ This is relative to `smtpmail-queue-dir'.")
 			 (insert ")\n"))
 			((null mail-from-style)
 			 (insert "From: " login "\n")))))
+	    ;; Insert a `Message-Id:' field if there isn't one yet.
+	    (goto-char (point-min))
+	    (unless (re-search-forward "^Message-Id:" delimline t)
+	      (insert "Message-Id: " (message-make-message-id) "\n"))
+	    ;; Insert a `Date:' field if there isn't one yet.
+	    (goto-char (point-min))
+	    (unless (re-search-forward "^Date:" delimline t)
+	      (insert "Date: " (message-make-date) "\n"))
 	    ;; Insert an extra newline if we need it to work around
 	    ;; Sun's bug that swallows newlines.
 	    (goto-char (1+ delimline))
@@ -303,8 +313,7 @@ This is relative to `smtpmail-queue-dir'.")
 	    (if (re-search-forward "^FCC:" delimline t)
 		(mail-do-fcc delimline))
 	    (if mail-interactive
-		(save-excursion
-		  (set-buffer errbuf)
+		(with-current-buffer errbuf
 		  (erase-buffer))))
 	  ;;
 	  ;;
@@ -331,8 +340,7 @@ This is relative to `smtpmail-queue-dir'.")
 		   (buffer-data (create-file-buffer file-data))
 		   (buffer-elisp (create-file-buffer file-elisp))
 		   (buffer-scratch "*queue-mail*"))
-	      (save-excursion
-		(set-buffer buffer-data)
+	      (with-current-buffer buffer-data
 		(erase-buffer)
 		(insert-buffer tembuf)
 		(write-file file-data)
@@ -363,13 +371,10 @@ This is relative to `smtpmail-queue-dir'.")
   (let ((buffer-index (find-file-noselect smtpmail-queue-index))
 	(file-msg "")
 	(tembuf nil))
-    (save-excursion
-      (set-buffer buffer-index)
+    (with-current-buffer buffer-index
       (beginning-of-buffer)
       (while (not (eobp))
-	(setq file-msg (buffer-substring (point) (save-excursion
-						   (end-of-line)
-						   (point))))
+	(setq file-msg (buffer-substring (point) (line-end-position)))
 	(load file-msg)
 	(setq tembuf (find-file-noselect file-msg))
 	(if (not (null smtpmail-recipient-address-list))
@@ -520,8 +525,7 @@ This is relative to `smtpmail-queue-dir'.")
 		(get-buffer-create (format "*trace of SMTP session to %s*" host)))
 
 	  ;; clear the trace buffer of old output
-	  (save-excursion
-	    (set-buffer process-buffer)
+	  (with-current-buffer process-buffer
 	    (erase-buffer))
 
 	  ;; open the connection to the server
@@ -531,8 +535,7 @@ This is relative to `smtpmail-queue-dir'.")
 	  ;; set the send-filter
 	  (set-process-filter process 'smtpmail-process-filter)
 
-	  (save-excursion
-	    (set-buffer process-buffer)
+	  (with-current-buffer process-buffer
 	    (set-buffer-process-coding-system 'raw-text-unix 'raw-text-unix)
 	    (make-local-variable 'smtpmail-read-point)
 	    (setq smtpmail-read-point (point-min))
@@ -629,8 +632,7 @@ This is relative to `smtpmail-queue-dir'.")
 		   (if (or (member 'size supported-extensions)
 			   (assoc 'size supported-extensions))
 		       (format " SIZE=%d"
-			       (save-excursion
-				 (set-buffer smtpmail-text-buffer)
+			       (with-current-buffer smtpmail-text-buffer
 				 ;; size estimate:
 				 (+ (- (point-max) (point-min))
 				    ;; Add one byte for each change-of-line
@@ -713,8 +715,7 @@ This is relative to `smtpmail-queue-dir'.")
 ;		 (throw 'done nil))
 	    t ))
       (if process
-	  (save-excursion
-	    (set-buffer (process-buffer process))
+	  (with-current-buffer (process-buffer process)
 	    (smtpmail-send-command process "QUIT")
 	    (smtpmail-read-response process)
 
@@ -727,8 +728,7 @@ This is relative to `smtpmail-queue-dir'.")
 
 
 (defun smtpmail-process-filter (process output)
-  (save-excursion
-    (set-buffer (process-buffer process))
+  (with-current-buffer (process-buffer process)
     (goto-char (point-max))
     (insert output)))
 
@@ -819,13 +819,11 @@ This is relative to `smtpmail-queue-dir'.")
        this-line
        this-line-end)
 
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (goto-char (point-min)))
 
     (while data-continue
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(beginning-of-line)
 	(setq this-line (point))
 	(end-of-line)
@@ -844,8 +842,8 @@ This is relative to `smtpmail-queue-dir'.")
 (defun smtpmail-deduce-address-list (smtpmail-text-buffer header-start header-end)
   "Get address list suitable for smtp RCPT TO: <address>."
   (unwind-protect
-      (save-excursion
-	(set-buffer smtpmail-address-buffer) (erase-buffer)
+      (with-current-buffer smtpmail-address-buffer
+	(erase-buffer)
 	(let
 	    ((case-fold-search t)
 	     (simple-address-list "")
@@ -856,9 +854,11 @@ This is relative to `smtpmail-queue-dir'.")
 	  (goto-char (point-min))
 	  ;; RESENT-* fields should stop processing of regular fields.
 	  (save-excursion
-	    (if (re-search-forward "^Resent-\\(to\\|cc\\|bcc\\):" header-end t)
-		(setq addr-regexp "^Resent-\\(to\\|cc\\|bcc\\):")
-	      (setq addr-regexp  "^\\(To:\\|Cc:\\|Bcc:\\)")))
+	    (setq addr-regexp
+		  (if (re-search-forward "^Resent-\\(to\\|cc\\|bcc\\):"
+					 header-end t)
+		      "^Resent-\\(to\\|cc\\|bcc\\):"
+		    "^\\(To:\\|Cc:\\|Bcc:\\)")))
 
 	  (while (re-search-forward addr-regexp header-end t)
 	    (replace-match "")
