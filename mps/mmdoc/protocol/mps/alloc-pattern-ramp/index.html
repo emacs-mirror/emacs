@@ -1,232 +1,174 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
+<head>
 
- <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
+<title>MPS Ramp Allocation Pattern Protocol</title>
 
-  <head>
+</head>
 
-   <title>MPS Ramp Allocation Pattern Protocol</title>
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
 
-  </head>
+<div align="center">
 
-  <body bgcolor='#FFFFFF' text='#000000' link='#000099' vlink='#660066' alink='#FF0000'>
+<h1>MPS Ramp Allocation Pattern Protocol</h1>
 
-   <div align='center'>
+<p>incomplete</p>
 
-    <h1>MPS Ramp Allocation Pattern Protocol</h1>
+<address>
+<a href="mailto:nb@ravenbrook.com">Nick Barnes</a>,
+<a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
+2001-11-14
+</address>
 
-    <p>incomplete</p>
+</div>
 
-    <address>drj, 1998-06-25</address>
+<h2><a id="section-Contents" name="section-Contents">Contents</a></h2>
 
-   </div>
+<ul>
 
-   <h2>
+<li><a href="#section-1">1. Introduction</a></li>
 
-    <a id='section-introduction' name='section-introduction'>Introduction</a>
+<li><a href="#section-2">2. Overview</a></li>
 
-   </h2>
+<li><a href="#section-3">3. Definitions</a></li>
 
-   <p>This document describes the purpose and usage of the Ramp Allocation Pattern Protocol.</p>
+<li><a href="#section-4">4. Protocol</a></li>
 
-   <h2>
+<li><a href="#section-A">A. References</a></li>
 
-    <a id='section-overview' name='section-overview'>Overview</a>
+<li><a href="#section-B">B. Document history</a></li>
 
-   </h2>
+</ul>
 
-   <p>A Ramp Allocation Pattern is a particular Allocation Pattern (see doc).  They are used to declare the building of large data structures which persist somewhat longer than the usual nursery collection frequency and are then almost entirely thrown away.</p>
+<h2><a id="section-1" name="section-1">1. Introduction</a></h2>
 
-   <h2>
+<p>This document describes the purpose and usage of the Ramp
+Allocation Pattern Protocol.</p>
 
-    <a id='section-definitions' name='section-definitions'>Definitions</a>
+<h2><a id="section-2" name="section-2">2. Overview</a></h2>
 
-   </h2>
+<p>A Ramp Allocation Pattern is a particular Allocation Pattern [see
+doc].  They are used to declare the building of large data structures
+which persist somewhat longer than the usual nursery collection
+frequency and are then almost entirely thrown away.</p>
 
-   <p>"Ramp Allocation" is used to describe a pattern of allocation whereby the mutator builds up an increasingly large data structure the live size of which increases until a particularly time at which time most of the data structure is discarded resulting in sharp cutoff and decline in the live size.</p>
+<h2><a id="section-3" name="section-3">3. Definitions</a></h2>
 
-   <h2>
+<p>"Ramp Allocation" is used to describe a pattern of allocation
+whereby the mutator builds up an increasingly large data structure,
+the live size of which increases until a particularly time, at which
+time most of the data structure is discarded, resulting in sharp
+cutoff and decline in the live size.</p>
 
-    <a id='section-stuff' name='section-stuff'>Stuff</a>
+<h2><a id="section-4" name="section-4">4. Protocol</a></h2>
 
-   </h2>
+<p>Using Ramp Allocation Patterns conforms to the general use of
+allocation patterns.  So in particular, a ramp allocation is
+associated with a particular allocation point.</p>
 
-   <p>
+<p>It's probably only worth declaring a ramp allocation if the
+expected size is much larger than the nursery generation.</p>
 
-    Using Ramp Allocation Patterns conforms to the general use of allocation patterns.  So in particular, a ramp allocation is associated with a particular allocation point.  
+<p>A Ramp Allocation has two interesting points: a beginning and an
+end.</p>
 
-    It's probably only worth declaring a ramp allocation if the expected size is much larger than the nursery generation.
+<p>The beginning is the point in time at which the mutator beings the
+ramp allocation.</p>
 
-   </p>
+<p>The end is the point when the mutator has discarded most of the
+live object and the live size has declined.</p>
 
-   <p>
+<p>The beginning of a ramp allocation is declared using <code
+class="source">mps_ap_alloc_pattern_begin</code>:</p>
 
-    A Ramp Allocation has two interesting points: a beginning and an end.  
+<p><code class="source">mps_ap_alloc_pattern_begin(an_ap,
+mps_alloc_pattern_ramp())</code></p>
 
-    The beginning is the point in time at which the mutator beings the ramp allocation.  
+<p>The end of a ramp allocation is declared using <code
+class="source">mps_ap_alloc_pattern_end</code>:</p>
 
-    The end is the point when the mutator has discarded most of the live object and the live size has declined.
+<p><code class="source">mps_ap_alloc_pattern_end(an_ap,
+mps_alloc_pattern_ramp())</code></p>
 
-   </p>
+<p>Ramp allocations on a given allocation point can nest.  <code
+class="source">mps_ap_alloc_pattern_end</code> is a declaration that
+the most recently begun ramp allocation on the specified allocation
+point has ended.</p>
 
-   <p>The beginning of a ramp allocation is declared using mps_ap_alloc_pattern_begin:</p>
+<p>In case the client doesn't keep track of the nesting, it can reset
+all declarations of all allocation patterns on a particular allocation
+point:</p>
 
-   <p>mps_ap_alloc_pattern_begin(an_ap, mps_alloc_pattern_ramp())</p>
+<p><code class="source">mps_ap_alloc_pattern_reset(an_ap)</code></p>
 
-   <p>The end of a ramp allocation is declared using mps_ap_alloc_pattern_end:</p>
+<h2><a id="section-A" name="section-A">A. References</a></h2>
 
-   <p>mps_ap_alloc_pattern_end(an_ap, mps_alloc_pattern_ramp())</p>
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
-   <p>Ramp allocations on a given allocation point can nest.  mps_ap_alloc_pattern_end is a declaration that the most recently begun ramp allocation on the specified allocation point has ended.</p>
+<table>
 
-   <p>In case the client doesn't keep track of the nesting, it can reset all declarations of all allocation patterns on a particular allocation point:</p>
+<tr valign="top">
 
-   <p>mps_ap_alloc_pattern_reset(an_ap)</p>
+  <td>1998-06-25</td>
 
-   <h2>
+  <td>drj</td>
 
-    <a id='section-A' name='section-A'>A. References</a>
+  <td>Created</td>
 
-   </h2>
+</tr>
 
-   <h2>
+<tr>
 
-    <a id='section-B' name='section-B'>B. Document History</a>
+  <td>1998-06-25 to 2000-10-04</td>
 
-   </h2>
+  <td />
 
-   <table>
+  <td>Developed at Harlequin</td>
 
-    <tr valign='top'>
+</tr>
 
-     <td>1998-06-25 15:41:58 +00</td>
+<tr valign="top">
 
-     <td>drj</td>
+  <td>2001-09-26</td>
 
-     <td>New document saved</td>
+  <td><a href="mailto:ndl@ravenbrook.com">NDL</a></td>
 
-    </tr>
+  <td>Converted from xml to html (second pass).</td>
 
-    <tr valign='top'>
+</tr>
 
-     <td>1998-06-25 15:57:24 +00</td>
+<tr valign="top">
 
-     <td>drj</td>
+  <td>2001-11-14</td>
 
-     <td>typo</td>
+  <td><a href="mailto:nb@ravenbrook.com">NB</a></td>
 
-    </tr>
+  <td>Reformatted and adopted.</td>
 
-    <tr valign='top'>
+</tr>
 
-     <td>1998-06-29 09:55:02 +00</td>
+</table>
 
-     <td>drj</td>
+<hr />
 
-     <td>adding ref to genera's with-ephemeral-mode</td>
+<p><small>Copyright &copy; 2001 Ravenbrook Limited.  This document is
+provided "as is", without any express or implied warranty.  In no
+event will the authors be held liable for any damages arising from the
+use of this document.  You may not duplicate or reproduce this
+document in any form without the express permission of the copyright
+holder.</small></p>
 
-    </tr>
+<div align="center">
 
-    <tr valign='top'>
+<p><code>$Id$</code></p>
 
-     <td>1998-07-06 16:02:15 +00</td>
+</div>
 
-     <td>drj</td>
+</body>
 
-     <td>added another ref to ptw's mail</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>1998-08-27 14:11:33 +00</td>
-
-     <td>drj</td>
-
-     <td>fixed typo</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>2000-05-19 16:13:44 +01</td>
-
-     <td>pekka</td>
-
-     <td>Fix format</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>2000-05-23 14:51:09 +01</td>
-
-     <td />
-
-     <td>fix title</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>2000-05-23 14:51:16 +01</td>
-
-     <td>pekka</td>
-
-     <td>fix title</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>2000-10-04 14:36:59 +01</td>
-
-     <td>pekka</td>
-
-     <td>remove Dylan stuff; clean up</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>2001-09-26</td>
-
-     <td>
-
-      <a href='mailto:ndl@ravenbrook.com'>NDL</a>
-
-     </td>
-
-     <td>Converted from xml to html (second pass).</td>
-
-    </tr>
-
-   </table>
-
-   <hr />
-
-   <p>
-
-    <small>Copyright &copy; 2001 Ravenbrook Limited.  This document is provided "as is", without any express or implied warranty.  In no event will the authors be held liable for any damages arising from the use of this document.  You may not duplicate or reproduce this document in any form without the express permission of the copyright holder.</small>
-
-   </p>
-
-   <div align='center'>
-
-    <p>
-
-     <code>$Id$</code>
-
-    </p>
-
-   </div>
-
-  </body>
-
- </html>
+</html>
 
