@@ -675,7 +675,7 @@ If nil, Message won't auto-save."
 
 (defcustom message-buffer-naming-style 'unique
   "*The way new message buffers are named.
-Valid valued are `unique' and `unsent'."
+Valid values are `unique' and `unsent'."
   :version "21.1"
   :group 'message-buffers
   :type '(choice (const :tag "unique" unique)
