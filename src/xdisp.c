@@ -8492,6 +8492,10 @@ redisplay_internal (preserve_echo_area)
 	      xassert (this_line_vpos == it.vpos);
 	      xassert (this_line_y == it.current_y);
 	      set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
+#if GLYPH_DEBUG
+	      *w->desired_matrix->method = 0;
+	      debug_method_add (w, "optimization 3");
+#endif
 	      goto update;
 	    }
 	  else
@@ -12252,12 +12256,12 @@ highlight_trailing_whitespace (f, row)
       struct glyph *start = row->glyphs[TEXT_AREA];
       struct glyph *glyph = start + used - 1;
 
-      /* Skip over space glyphs inserted to display the cursor at the
-	 end of a line, and for extending the face of the last glyph
-	 to the end of the line on terminals.  */
+      /* Skip over glyphs inserted to display the cursor at the
+	 end of a line, for extending the face of the last glyph
+	 to the end of the line on terminals, and for truncation
+	 and continuation glyphs.  */
       while (glyph >= start
 	     && glyph->type == CHAR_GLYPH
-	     && glyph->u.ch == ' '
 	     && INTEGERP (glyph->object))
 	--glyph;
 
