@@ -1,7 +1,7 @@
-2000-10-06  Miles Bader  <miles@lsi.nec.co.jp>
+2000-10-06  Miles Bader  <miles@gnu.org>
 
-	* simple.el (shell-command-on-region): If the output is short
-	enough to display in an expanded echo area, show it here.
+	* simple.el (display-message-or-buffer): New function.
+	(shell-command-on-region): Use `display-message-or-buffer'.
 
 	* emacs-lisp/easy-mmode.el (define-derived-mode): Tweak generated
 	docstring parts.
