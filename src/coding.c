@@ -1418,26 +1418,6 @@ detect_coding_utf_16 (coding, detect_info)
     }
   else if (c1 >= 0 && c2 >= 0)
     {
-      unsigned char b1[256], b2[256];
-      int b1_variants = 1, b2_variants = 1;
-      int n;
-
-      bzero (b1, 256), bzero (b2, 256);
-      b1[c1]++, b2[c2]++;
-      for (n = 0; n < 256 && src < src_end; n++)
-	{
-	  src_base = src;
-	  ONE_MORE_BYTE (c1);
-	  ONE_MORE_BYTE (c2);
-	  if (c1 < 0 || c2 < 0)
-	    break;
-	  if (! b1[c1++]) b1_variants++;
-	  if (! b2[c2++]) b2_variants++;
-	}
-      if (b1_variants < b2_variants)
-	detect_info->found |= CATEGORY_MASK_UTF_16_BE_NOSIG;
-      else
-	detect_info->found |= CATEGORY_MASK_UTF_16_LE_NOSIG;      
       detect_info->rejected
 	|= (CATEGORY_MASK_UTF_16_BE | CATEGORY_MASK_UTF_16_LE);
     }
@@ -5421,53 +5401,78 @@ detect_coding (coding)
   if (EQ (CODING_ATTR_TYPE (CODING_ID_ATTRS (coding->id)), Qundecided))
     {
       int c, i;
+      struct coding_detection_info detect_info;
 
+      detect_info.checked = detect_info.found = detect_info.rejected = 0;
       for (i = 0, src = coding->source; src < src_end; i++, src++)
 	{
 	  c = *src;
-	  if (c & 0x80 || (c < 0x20 && (c == ISO_CODE_ESC
-					|| c == ISO_CODE_SI
-					|| c == ISO_CODE_SO)))
+	  if (c & 0x80)
 	    break;
-	}
-      coding->head_ascii = src - (coding->source + coding->consumed);
-
-      if (coding->head_ascii < coding->src_bytes)
-	{
-	  struct coding_detection_info detect_info;
-	  enum coding_category category;
-	  struct coding_system *this;
-
-	  detect_info.checked = detect_info.found = detect_info.rejected = 0;
-	  for (i = 0; i < coding_category_raw_text; i++)
+	  if (c < 0x20
+	      && (c == ISO_CODE_ESC || c == ISO_CODE_SI || c == ISO_CODE_SO)
+	      && ! inhibit_iso_escape_detection
+	      && ! detect_info.checked)
 	    {
-	      category = coding_priorities[i];
-	      this = coding_categories + category;
-	      if (this->id < 0)
+	      coding->head_ascii = src - (coding->source + coding->consumed);
+	      if (detect_coding_iso_2022 (coding, &detect_info))
 		{
-		  /* No coding system of this category is defined.  */
-		  detect_info.rejected |= (1 << category);
-		}
-	      else if (category >= coding_category_raw_text)
-		continue;
-	      else if (detect_info.checked & (1 << category))
-		{
-		  if (detect_info.found & (1 << category))
-		    break;
-		}
-	      else if ((*(this->detector)) (coding, &detect_info)
-		       && detect_info.found & (1 << category))
-		{
-		  if (category == coding_category_utf_16_auto)
-		    {
-		      if (detect_info.found & CATEGORY_MASK_UTF_16_LE)
-			category = coding_category_utf_16_le;
-		      else
-			category = coding_category_utf_16_be;
-		    }
+		  /* We have scanned the whole data.  */
+		  if (! (detect_info.rejected & CATEGORY_MASK_ISO_7_ELSE))
+		    /* We didn't find an 8-bit code.  */
+		    src = src_end;
 		  break;
 		}
 	    }
+	}
+      coding->head_ascii = src - (coding->source + coding->consumed);
+
+      if (coding->head_ascii == coding->src_bytes
+	  || detect_info.found)
+	{
+	  enum coding_category category;
+	  struct coding_system *this;
+
+	  if (coding->head_ascii == coding->src_bytes)
+	    /* As all bytes are 7-bit, we can ignore non-ISO-2022 codings.  */
+	    for (i = 0; i < coding_category_raw_text; i++)
+	      {
+		category = coding_priorities[i];
+		this = coding_categories + category;
+		if (detect_info.found & (1 << category))
+		  break;
+	      }
+	  else
+	    for (i = 0; i < coding_category_raw_text; i++)
+	      {
+		category = coding_priorities[i];
+		this = coding_categories + category;
+		if (this->id < 0)
+		  {
+		    /* No coding system of this category is defined.  */
+		    detect_info.rejected |= (1 << category);
+		  }
+		else if (category >= coding_category_raw_text)
+		  continue;
+		else if (detect_info.checked & (1 << category))
+		  {
+		    if (detect_info.found & (1 << category))
+		      break;
+		  }
+		else if ((*(this->detector)) (coding, &detect_info)
+			 && detect_info.found & (1 << category))
+		  {
+		    if (category == coding_category_utf_16_auto)
+		      {
+			if (detect_info.found & CATEGORY_MASK_UTF_16_LE)
+			  category = coding_category_utf_16_le;
+			else
+			  category = coding_category_utf_16_be;
+		      }
+		    break;
+		  }
+	      }
+	  
 	  if (i < coding_category_raw_text)
 	    setup_coding_system (CODING_ID_NAME (this->id), coding);
 	  else if (detect_info.rejected == CATEGORY_MASK_ANY)
@@ -7120,49 +7125,73 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
       for (i = 0; src < src_end; i++, src++)
 	{
 	  c = *src;
-	  if (c & 0x80 || (c < 0x20 && (c == ISO_CODE_ESC
-					|| c == ISO_CODE_SI
-					|| c == ISO_CODE_SO)))
+	  if (c & 0x80)
 	    break;
+	  if (c < 0x20
+	      && (c == ISO_CODE_ESC || c == ISO_CODE_SI || c == ISO_CODE_SO)
+	      && inhibit_iso_escape_detection)
+	    {
+	      coding.head_ascii = src - coding.source;
+	      if (detect_coding_iso_2022 (&coding, &detect_info))
+		{
+		  /* We have scanned the whole data.  */
+		  if (! (detect_info.rejected & CATEGORY_MASK_ISO_7_ELSE))
+		    /* We didn't find an 8-bit code.  */
+		    src = src_end;
+		  break;
+		}
+	    }
 	}
       coding.head_ascii = src - coding.source;
 
-      if (src < src_end)
-	for (i = 0; i < coding_category_raw_text; i++)
-	  {
-	    category = coding_priorities[i];
-	    this = coding_categories + category;
-
-	    if (this->id < 0)
+      if (src < src_end
+	  || detect_info.found)
+	{
+	  if (src == src_end)
+	    /* As all bytes are 7-bit, we can ignore non-ISO-2022 codings.  */
+	    for (i = 0; i < coding_category_raw_text; i++)
 	      {
-		/* No coding system of this category is defined.  */
-		detect_info.rejected |= (1 << category);
-	      }
-	    else if (category >= coding_category_raw_text)
-	      continue;
-	    else if (detect_info.checked & (1 << category))
-	      {
-		if (highest
-		    && (detect_info.found & (1 << category)))
+		category = coding_priorities[i];
+		if (detect_info.found & (1 << category))
 		  break;
 	      }
-	    else
+	  else
+	    for (i = 0; i < coding_category_raw_text; i++)
 	      {
-		if ((*(this->detector)) (&coding, &detect_info)
-		    && highest
-		    && (detect_info.found & (1 << category)))
+		category = coding_priorities[i];
+		this = coding_categories + category;
+
+		if (this->id < 0)
 		  {
-		    if (category == coding_category_utf_16_auto)
+		    /* No coding system of this category is defined.  */
+		    detect_info.rejected |= (1 << category);
+		  }
+		else if (category >= coding_category_raw_text)
+		  continue;
+		else if (detect_info.checked & (1 << category))
+		  {
+		    if (highest
+			&& (detect_info.found & (1 << category)))
+		      break;
+		  }
+		else
+		  {
+		    if ((*(this->detector)) (&coding, &detect_info)
+			&& highest
+			&& (detect_info.found & (1 << category)))
 		      {
-			if (detect_info.found & CATEGORY_MASK_UTF_16_LE)
-			  category = coding_category_utf_16_le;
-			else
-			  category = coding_category_utf_16_be;
+			if (category == coding_category_utf_16_auto)
+			  {
+			    if (detect_info.found & CATEGORY_MASK_UTF_16_LE)
+			      category = coding_category_utf_16_le;
+			    else
+			      category = coding_category_utf_16_be;
+			  }
+			break;
 		      }
-		    break;
 		  }
 	      }
-	  }
+	}
 
       if (detect_info.rejected == CATEGORY_MASK_ANY)
 	{
