@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.22) $
+ * $HopeName: MMsrc!mps.h(trunk.23) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -61,13 +61,13 @@ enum {
 };
 
 /* .message.types: Keep in sync with impl.h.mpmtypes.message.types */
-/* These are not visible to our clients */
+/* Not meant to be used by clients, they should use the macros below. */
 enum {
   MPS_MESSAGE_TYPE_FINALIZATION
 };
 
 /* Message Types
- * these are visible to our clients */
+ * This is what clients should use. */
 #define mps_message_type_finalization() MPS_MESSAGE_TYPE_FINALIZATION
 
 
@@ -328,26 +328,26 @@ extern mps_word_t mps_collections(mps_arena_t);
 
 /* Messages */
 
-extern mps_bool_t mps_message_poll(mps_space_t);
-extern void mps_message_type_enable(mps_space_t, mps_message_type_t);
+extern mps_bool_t mps_message_poll(mps_arena_t);
+extern void mps_message_type_enable(mps_arena_t, mps_message_type_t);
 extern mps_bool_t mps_message_get(mps_message_t *,
-                                  mps_space_t, mps_message_type_t);
-extern void mps_message_discard(mps_space_t, mps_message_t);
-extern mps_bool_t mps_message_queue_type(mps_message_type_t *, mps_space_t);
-extern mps_message_type_t mps_message_type(mps_space_t, mps_message_t);
+                                  mps_arena_t, mps_message_type_t);
+extern void mps_message_discard(mps_arena_t, mps_message_t);
+extern mps_bool_t mps_message_queue_type(mps_message_type_t *, mps_arena_t);
+extern mps_message_type_t mps_message_type(mps_arena_t, mps_message_t);
 
 /* Message Type Specific Methods */
 
 /* MPS_MESSAGE_TYPE_FINALIZATION */
 
 extern void mps_message_finalization_ref(mps_addr_t *,
-					 mps_space_t, mps_message_t);
+					 mps_arena_t, mps_message_t);
 
 
 /* Finalization */
 
-extern mps_res_t mps_finalize(mps_space_t, mps_addr_t);
-extern void mps_definalize(mps_space_t, mps_addr_t);
+extern mps_res_t mps_finalize(mps_arena_t, mps_addr_t);
+extern void mps_definalize(mps_arena_t, mps_addr_t);
 
 
 /* Scanner Support */
