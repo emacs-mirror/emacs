@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.68) $
+ * $HopeName: MMsrc!pool.c(trunk.69) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.68) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.69) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -53,10 +53,8 @@ Bool PoolClassCheck(PoolClass class)
   CHECKL(FUNCHECK(class->finish));
   CHECKL(FUNCHECK(class->alloc));
   CHECKL(FUNCHECK(class->free));
-  CHECKL(FUNCHECK(class->bufferInit));
   CHECKL(FUNCHECK(class->bufferFill));
   CHECKL(FUNCHECK(class->bufferEmpty));
-  CHECKL(FUNCHECK(class->bufferFinish));
   CHECKL(FUNCHECK(class->traceBegin));
   CHECKL(FUNCHECK(class->whiten));
   CHECKL(FUNCHECK(class->grey));
@@ -681,47 +679,6 @@ void PoolTrivFree(Pool pool, Addr old, Size size)
   AVER(old != NULL);
   AVER(size > 0);
   NOOP;                         /* trivial free has no effect */
-}
-
-
-/* PoolNoBufferInit -- buffer init for pools without buffers */
-
-Res PoolNoBufferInit(Pool pool, Buffer buffer, va_list args)
-{
-  AVERT(Pool, pool);
-  UNUSED(buffer); UNUSED(args);
-  NOTREACHED;
-  return ResUNIMPL;
-}
-
-
-/* PoolTrivBufferInit -- default initialization for buffers
- *
- * The generic method initialised all generic fields; nothing to do.
- */
-
-Res PoolTrivBufferInit(Pool pool, Buffer buffer, va_list args)
-{
-  AVERT(Pool, pool);
-  UNUSED(buffer); UNUSED(args);
-  return ResOK;
-}
-
-
-void PoolNoBufferFinish(Pool pool, Buffer buffer)
-{
-  AVERT(Pool, pool);
-  AVERT(Buffer, buffer);
-  AVER(BufferIsReset(buffer));
-  NOTREACHED;
-}
-
-void PoolTrivBufferFinish(Pool pool, Buffer buffer)
-{
-  AVERT(Pool, pool);
-  AVERT(Buffer, buffer);
-  AVER(BufferIsReset(buffer));
-  NOOP;
 }
 
 Res PoolNoBufferFill(Addr *baseReturn, Addr *limitReturn,

@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.26) $
+ * $HopeName: MMsrc!poolamc.c(trunk.27) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.26) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.27) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -48,124 +48,6 @@ typedef struct AMCGenStruct {
   Size size;                    /* total size of segs in gen */
   double collected;             /* time of last collection */
 } AMCGenStruct;
-
-
-
-/* AMCBufStruct -- AMC Buffer subclass
- *
- * This subclass of BufferedSeg records a link to a generation.
- */
-
-#define AMCBufSig ((Sig)0x519A3CBF) /* SIGnature AMC BuFfer  */ 
-
-typedef struct AMCBufStruct *AMCBuf;
-
-typedef struct AMCBufStruct {
-  BufferedSegStruct bufSegStruct; /* superclass fields must come first */
-  AMCGen gen;                     /* The AMC generation */
-  Sig sig;                        /* design.mps.sig */
-} AMCBufStruct;
-
-
-/* BufferAMCBuf -- convert generic Buffer to an AMCBuf */
-
-#define BufferAMCBuf(buffer) ((AMCBuf)(buffer))
-
-
-/* AMCBufCheck -- check consistency of an AMCBuf */
-
-static Bool AMCBufCheck(AMCBuf amcbuf)
-{
-  BufferedSeg bufseg;
-
-  CHECKS(AMCBuf, amcbuf);
-  bufseg = &amcbuf->bufSegStruct;
-  CHECKL(BufferedSegCheck(bufseg));
-  if (amcbuf->gen != NULL) {
-    CHECKL(AMCGenCheck(amcbuf->gen));
-  }
-  return TRUE;
-}
-
-
-/* AMCBufGen -- Return the AMC generation of an AMCBuf */
-
-static AMCGen AMCBufGen(Buffer buffer)
-{
-  AMCBuf amcbuf;
-  AVERT(Buffer, buffer);
-  amcbuf = BufferAMCBuf(buffer);
-  AVERT(AMCBuf, amcbuf);
-  return amcbuf->gen;
-}
-
-
-/* AMCBufSetGen -- Set the AMC generation of an AMCBuf */
-
-static void AMCBufSetGen(Buffer buffer, AMCGen gen)
-{
-  AMCBuf amcbuf;
-  AVERT(Buffer, buffer);
-  if (gen != NULL) {
-    AVERT(AMCGen, gen);
-  }
-  amcbuf = BufferAMCBuf(buffer);
-  AVERT(AMCBuf, amcbuf);
-  amcbuf->gen = gen;
-}
-
-
-/* AMCBufInit -- Initialize an AMCBuf */
-
-static Res AMCBufInit(Buffer buffer, Pool pool)
-{
-  AMCBuf amcbuf;
-  BufferClass superclass = EnsureBufferedSegClass();
-
-  AVERT(Buffer, buffer);
-  AVERT(Pool, pool);
-
-  /* call next method */
-  (*superclass->init)(buffer, pool);
-
-  amcbuf = BufferAMCBuf(buffer);
-  amcbuf->gen = NULL;
-  amcbuf->sig = AMCBufSig;
-
-  AVERT(AMCBuf, amcbuf);
-  return ResOK;
-}
-
-
-/* AMCBufFinish -- Finish an AMCBuf */
-
-static void AMCBufFinish(Buffer buffer)
-{
-  BufferClass super;
-  AMCBuf amcbuf;
-
-  AVERT(Buffer, buffer);
-  amcbuf = BufferAMCBuf(buffer);
-  AVERT(AMCBuf, amcbuf);
-
-  amcbuf->sig = SigInvalid;
-
-  /* finish the superclass fields last */
-  super = EnsureBufferedSegClass();
-  super->finish(buffer);
-}
-
-
-/* AMCBufClass -- The class definition */
-
-DEFINE_BUFFER_CLASS(AMCBufClass, class)
-{
-  INHERIT_CLASS(class, BufferedSegClass);
-  class->name = "AMCBUF";
-  class->size = sizeof(AMCBufStruct);
-  class->init = AMCBufInit;
-  class->finish = AMCBufFinish;
-}
 
 
 /* .ramp.generation: The ramp gen has serial AMCTopGen+1. */
@@ -315,6 +197,129 @@ static Bool AMCNailBoardCheck(AMCNailBoard board)
   /* weak check for BTs @@@@ */
   CHECKL(board->mark != NULL);
   return TRUE;
+}
+
+
+/* AMCBufStruct -- AMC Buffer subclass
+ *
+ * This subclass of SegBuf records a link to a generation.
+ */
+
+#define AMCBufSig ((Sig)0x519A3CBF) /* SIGnature AMC BuFfer  */ 
+
+typedef struct AMCBufStruct *AMCBuf;
+
+typedef struct AMCBufStruct {
+  SegBufStruct segbufStruct;      /* superclass fields must come first */
+  AMCGen gen;                     /* The AMC generation */
+  Sig sig;                        /* design.mps.sig */
+} AMCBufStruct;
+
+
+/* BufferAMCBuf -- convert generic Buffer to an AMCBuf */
+
+#define BufferAMCBuf(buffer) ((AMCBuf)(buffer))
+
+
+/* AMCBufCheck -- check consistency of an AMCBuf */
+
+static Bool AMCBufCheck(AMCBuf amcbuf)
+{
+  SegBuf segbuf;
+
+  CHECKS(AMCBuf, amcbuf);
+  segbuf = &amcbuf->segbufStruct;
+  CHECKL(SegBufCheck(segbuf));
+  if (amcbuf->gen != NULL) {
+    CHECKL(AMCGenCheck(amcbuf->gen));
+  }
+  return TRUE;
+}
+
+
+/* AMCBufGen -- Return the AMC generation of an AMCBuf */
+
+static AMCGen AMCBufGen(Buffer buffer)
+{
+  AMCBuf amcbuf;
+  AVERT(Buffer, buffer);
+  amcbuf = BufferAMCBuf(buffer);
+  AVERT(AMCBuf, amcbuf);
+  return amcbuf->gen;
+}
+
+
+/* AMCBufSetGen -- Set the AMC generation of an AMCBuf */
+
+static void AMCBufSetGen(Buffer buffer, AMCGen gen)
+{
+  AMCBuf amcbuf;
+  AVERT(Buffer, buffer);
+  if (gen != NULL) {
+    AVERT(AMCGen, gen);
+  }
+  amcbuf = BufferAMCBuf(buffer);
+  AVERT(AMCBuf, amcbuf);
+  amcbuf->gen = gen;
+}
+
+
+/* AMCBufInit -- Initialize an AMCBuf */
+
+static Res AMCBufInit(Buffer buffer, Pool pool, va_list args)
+{
+  AMC amc;
+  AMCBuf amcbuf;
+  BufferClass superclass = EnsureSegBufClass();
+
+  AVERT(Buffer, buffer);
+  AVERT(Pool, pool);
+  amc = PoolPoolAMC(pool);
+  AVERT(AMC, amc);
+
+  /* call next method */
+  (*superclass->init)(buffer, pool, args);
+
+  /* Set up the buffer to be allocating in the nursery. */
+  amcbuf = BufferAMCBuf(buffer);
+  amcbuf->gen = amc->nursery;
+  amcbuf->sig = AMCBufSig;
+  AVERT(AMCBuf, amcbuf);
+
+  BufferSetRankSet(buffer, amc->rankSet);
+
+  return ResOK;
+}
+
+
+/* AMCBufFinish -- Finish an AMCBuf */
+
+static void AMCBufFinish(Buffer buffer)
+{
+  BufferClass super;
+  AMCBuf amcbuf;
+
+  AVERT(Buffer, buffer);
+  amcbuf = BufferAMCBuf(buffer);
+  AVERT(AMCBuf, amcbuf);
+
+  amcbuf->sig = SigInvalid;
+
+  /* finish the superclass fields last */
+  super = EnsureSegBufClass();
+  super->finish(buffer);
+}
+
+
+/* AMCBufClass -- The class definition */
+
+DEFINE_BUFFER_CLASS(AMCBufClass, class)
+{
+  INHERIT_CLASS(class, SegBufClass);
+  class->name = "AMCBUF";
+  class->size = sizeof(AMCBufStruct);
+  class->init = AMCBufInit;
+  class->finish = AMCBufFinish;
 }
 
 
@@ -699,26 +704,6 @@ static void AMCFinish(Pool pool)
   }
 
   amc->sig = SigInvalid;
-}
-
-
-/* AMCBufferInit -- initialize a new AMC buffer */
-
-static Res AMCBufferInit(Pool pool, Buffer buffer, va_list args)
-{
-  AMC amc;
-
-  AVERT(Pool, pool);
-  amc = PoolPoolAMC(pool);
-  AVERT(AMC, amc);
-  UNUSED(args);
-
-  BufferSetRankSet(buffer, amc->rankSet);
-
-  /* Set up the buffer to be a mutator buffer allocating in */
-  /* the nursery. */
-  AMCBufSetGen(buffer, amc->nursery);
-  return ResOK;
 }
 
 
@@ -1865,7 +1850,6 @@ DEFINE_POOL_CLASS(AMCPoolClass, this)
   this->attr |= AttrMOVINGGC;
   this->init = AMCInit;
   this->finish = AMCFinish;
-  this->bufferInit = AMCBufferInit;
   this->bufferFill = AMCBufferFill;
   this->bufferEmpty = AMCBufferEmpty;
   this->whiten = AMCWhiten;
