@@ -1,6 +1,6 @@
 /*  ==== ASSERTION ====
  *
- *  $HopeName$
+ *  $HopeName: MMsrc!assert.c(trunk.1) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -52,16 +52,11 @@ AssertHandler AssertInstall(AssertHandler new)
  *  exits the program.
  */
 
-void AssertFail(const char *who, const char *cond,
-		const char *file, unsigned line,
-		const char *format, ...)
+void AssertFail(const char *cond, const char *id, 
+  const char *file, unsigned line)
 {
-  va_list arg;
-
   if(handler != NULL) {
-    va_start(arg, format);
-    (*handler)(who, cond, file, line, format, arg);
-    va_end(arg);
+    (*handler)(cond, id, file, line);
     LibAbort();
     /* not reached, but we can't assert that */
   }
@@ -75,7 +70,7 @@ void AssertFail(const char *who, const char *cond,
 
 void AssertReach(const char *file, unsigned line)
 {
-  AssertFail(NULL, "unreachable statement", file, line, NULL);
+  AssertFail("unreachable statement", "no id", file, line);
 }
 
 
