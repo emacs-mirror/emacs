@@ -1,3 +1,15 @@
+2004-04-08  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-source-window): Remove variable
+	(gdb-goto-breakpoint, gdb-display-buffer)
+	(gdb-display-source-buffer, gdb-view-source-function)
+	(gdb-view-assembler, gdb-setup-windows, gdb-restore-windows)
+	(gdb-source-info, gdb-frame-handler): Don't specify a window
+	for display.
+	(gdb-info-breakpoints-custom): Remove superfluous update of
+	assembler buffer.
+	(gdb-many-windows): Make settable outside gdb.
+
 2004-04-08  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/diary-lib.el (diary-mode, fancy-diary-display-mode):
