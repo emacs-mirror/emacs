@@ -2002,7 +2002,7 @@ Switch to any other back end that the current file is registered
 under (@code{vc-switch-backend}).
 @end table
 
-@kindex{C-x v b}
+@kindex C-x v b
 @findex vc-switch-backend
 If the current file is registered in more than one back end, typing
 @kbd{C-x v b} lets you ``cycle'' through these back ends.  (With a prefix
