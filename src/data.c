@@ -1362,14 +1362,18 @@ From now on the default value will apply in this buffer.")
     current_buffer->local_var_alist
       = Fdelq (tem, current_buffer->local_var_alist);
 
-  /* Make sure symbol does not think it is set up for this buffer;
-     force it to look once again for this buffer's value */
+  /* If the symbol is set up for the current buffer, recompute its
+     value.  We have to do it now, or else forwarded objects won't
+     work right. */
   {
     Lisp_Object *pvalbuf;
     valcontents = XSYMBOL (variable)->value;
     pvalbuf = &XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->car;
     if (current_buffer == XBUFFER (*pvalbuf))
-      *pvalbuf = Qnil;
+      {
+	*pvalbuf = Qnil;
+	Fsymbol_value(variable);
+      }
   }
 
   return variable;
