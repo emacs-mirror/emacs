@@ -39,7 +39,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 Lisp_Object Vemacs_iconified;
 Lisp_Object Vframe_list;
 Lisp_Object Vterminal_frame;
-Lisp_Object Vdefault_minibuffer_frame;
 Lisp_Object Vdefault_frame_alist;
 
 /* Evaluate this expression to rebuild the section of syms_of_frame
@@ -265,11 +264,11 @@ make_frame_without_minibuffer (mini_window, kb)
   /* Choose the minibuffer window to use.  */
   if (NILP (mini_window))
     {
-      if (!FRAMEP (Vdefault_minibuffer_frame))
+      if (!FRAMEP (kb->Vdefault_minibuffer_frame))
 	error ("default-minibuffer-frame must be set when creating minibufferless frames");
-      if (! FRAME_LIVE_P (XFRAME (Vdefault_minibuffer_frame)))
+      if (! FRAME_LIVE_P (XFRAME (kb->Vdefault_minibuffer_frame)))
 	error ("default-minibuffer-frame must be a live frame");
-      mini_window = XFRAME (Vdefault_minibuffer_frame)->minibuffer_window;
+      mini_window = XFRAME (kb->Vdefault_minibuffer_frame)->minibuffer_window;
     }
   else
     {
@@ -1018,7 +1017,7 @@ but if the second optional argument FORCE is non-nil, you may do so.")
   /* If we've deleted Vdefault_minibuffer_frame, try to find another
      one.  Prefer minibuffer-only frames, but also notice frames
      with other windows.  */
-  if (EQ (frame, Vdefault_minibuffer_frame))
+  if (EQ (frame, FRAME_KBOARD (f)->Vdefault_minibuffer_frame))
     {
       Lisp_Object frames;
 
@@ -1054,7 +1053,7 @@ but if the second optional argument FORCE is non-nil, you may do so.")
       if (NILP (frame_with_minibuf))
 	abort ();
 
-      Vdefault_minibuffer_frame = frame_with_minibuf;
+      FRAME_KBOARD (f)->Vdefault_minibuffer_frame = frame_with_minibuf;
     }
 
   return Qnil;
@@ -1874,7 +1873,7 @@ syms_of_frame ()
     "Non-nil if all of emacs is iconified and frame updates are not needed.");
   Vemacs_iconified = Qnil;
 
-  DEFVAR_LISP ("default-minibuffer-frame", &Vdefault_minibuffer_frame,
+  DEFVAR_KBOARD ("default-minibuffer-frame", Vdefault_minibuffer_frame,
     "Minibufferless frames use this frame's minibuffer.\n\
 \n\
 Emacs cannot create minibufferless frames unless this is set to an\n\
@@ -1886,7 +1885,6 @@ minibuffer, no matter what this variable is set to.  This means that\n\
 this variable doesn't necessarily say anything meaningful about the\n\
 current set of frames, or where the minibuffer is currently being\n\
 displayed.");
-  Vdefault_minibuffer_frame = Qnil;
 
   DEFVAR_LISP ("default-frame-alist", &Vdefault_frame_alist,
     "Alist of default values for frame creation.\n\
