@@ -32,6 +32,7 @@
 ;;; 9-dec-86 Jeff Peck, Sun Microsystems Inc. <peck@sun.com>
 
 (require 'cl)
+(require 'sun-fns)
 
 (eval-and-compile
   (defvar sc::cursors nil "List of known cursors"))
