@@ -46,7 +46,7 @@ Boston, MA 02111-1307, USA.  */
 extern char *index P_ ((const char *, int));
 #endif
 
-Lisp_Object Vdoc_file_name, Vhelp_manyarg_func_alist;
+Lisp_Object Vdoc_file_name;
 
 Lisp_Object Qfunction_documentation;
 
@@ -331,8 +331,6 @@ string is passed through `substitute-command-keys'.")
       else
 	doc = get_doc_string (make_number (- (EMACS_INT) XSUBR (fun)->doc),
 			      0, 0);
-      if (! NILP (tem = Fassq (function, Vhelp_manyarg_func_alist)))
-	doc = concat3 (doc, build_string ("\n"), Fcdr (tem));
     }
   else if (COMPILEDP (fun))
     {
@@ -819,12 +817,6 @@ syms_of_doc ()
   DEFVAR_LISP ("internal-doc-file-name", &Vdoc_file_name,
     "Name of file containing documentation strings of built-in symbols.");
   Vdoc_file_name = Qnil;
-  DEFVAR_LISP ("help-manyarg-func-alist", &Vhelp_manyarg_func_alist,
-    "Alist of primitive functions and descriptions of their arg lists.\n\
-All special forms and primitives which effectively have &rest args\n\
-should have an entry here so that `documentation' can provide their\n\
-arg list.");
-  Vhelp_manyarg_func_alist = Qnil;
 
   defsubr (&Sdocumentation);
   defsubr (&Sdocumentation_property);
