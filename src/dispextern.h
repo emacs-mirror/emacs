@@ -101,6 +101,7 @@ struct frame_glyphs
 
     /* When representing a desired frame,
          enable[n] == 0 means that line n is same as current frame.
+	 Between updates, all lines should be disabled.
        When representing current frame contents,
          enable[n] == 0 means that line n is blank.  */
     char *enable;
