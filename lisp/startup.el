@@ -172,8 +172,8 @@ This is normally copied from `default-directory' when Emacs starts.")
     ("-fn" 1 x-handle-switch font)
     ("-font" 1 x-handle-switch font)
     ("-ib" 1 x-handle-numeric-switch internal-border-width)
-    ("-g" 1 x-handle-switch geometry)
-    ("-geometry" 1 x-handle-switch geometry)
+    ("-g" 1 x-handle-geometry)
+    ("-geometry" 1 x-handle-geometry)
     ("-fg" 1 x-handle-switch foreground-color)
     ("-foreground" 1 x-handle-switch foreground-color)
     ("-bg" 1 x-handle-switch background-color)
@@ -194,7 +194,7 @@ This is normally copied from `default-directory' when Emacs starts.")
     ("--reverse-video" 0 x-handle-switch reverse t)
     ("--font" 1 x-handle-switch font)
     ("--internal-border" 1 x-handle-numeric-switch internal-border-width)
-    ("--geometry" 1 x-handle-switch geometry)
+    ("--geometry" 1 x-handle-geometry)
     ("--foreground-color" 1 x-handle-switch foreground-color)
     ("--background-color" 1 x-handle-switch background-color)
     ("--mouse-color" 1 x-handle-switch mouse-color)
@@ -284,7 +284,10 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 This is initialized based on `mail-host-address',
 after your init file is read, in case it sets `mail-host-address'.")
 
-(defvar auto-save-list-file-prefix "~/.saves-"
+(defvar auto-save-list-file-prefix
+  (if (eq system-type 'ms-dos)
+      "~/_s"  ; MS-DOS cannot have initial dot, and allows only 8.3 names
+    "~/.saves-")
   "Prefix for generating `auto-save-list-file-name'.
 This is used after reading your `.emacs' file to initialize
 `auto-save-list-file-name', by appending Emacs's pid and the system name,
@@ -347,11 +350,15 @@ from being initialized.")
 	(or auto-save-list-file-name
 	    (and auto-save-list-file-prefix
 		 (setq auto-save-list-file-name
-		       (expand-file-name
-			(format "%s%d-%s"
-				auto-save-list-file-prefix
-				(emacs-pid)
-				(system-name))))))
+		       ;; Under MS-DOS our PID is almost always reused between
+		       ;; Emacs invocations.  We need something more unique.
+		       (if (eq system-type 'ms-dos)
+			   (make-temp-name
+			    (expand-file-name auto-save-list-file-prefix))
+			 (expand-file-name (format "%s%d-%s"
+						   auto-save-list-file-prefix
+						   (emacs-pid)
+						   (system-name)))))))
 	(run-hooks 'emacs-startup-hook)
 	(and term-setup-hook
 	     (run-hooks 'term-setup-hook))
@@ -716,8 +723,7 @@ Type \\[info] to enter Info, which you can use to read GNU documentation."
 
 		   ;; Windows and MSDOS (currently) do not count as
 		   ;; window systems, but do have mouse support.
-		   (if (or (memq system-type '(msdos windowsnt))
-			   window-system)
+		   (if window-system
 		       (insert "\n
 C-mouse-3 (third mouse button, with Control) gets a mode-specific menu."))
 		   (if (directory-files (file-name-directory auto-save-list-file-prefix)
