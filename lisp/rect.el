@@ -155,10 +155,13 @@ But in programs you might prefer to use `delete-extract-rectangle'."
   "Insert text of RECTANGLE with upper left corner at point.
 RECTANGLE's first line is inserted at point, its second
 line is inserted at a point vertically under point, etc.
-RECTANGLE should be a list of strings."
+RECTANGLE should be a list of strings.
+After this command, the mark is at the upper left corner
+and point is at the lower right corner."
   (let ((lines rectangle)
 	(insertcolumn (current-column))
 	(first t))
+    (push-mark)
     (while lines
       (or first
 	  (progn
