@@ -36,6 +36,7 @@ s/\.h\.in/.h-in/
 /^LIBOBJS *=/s/@[^@\n]*@/getloadavg.o/
 /^GETLOADAVG_LIBS *=/s/@[^@\n]*@//
 /^LIBSOUND *=/s/@LIBSOUND@//
+/^EXEEXT *=/s/@EXEEXT@//
 /^LN_S *=/s/@[^@\n]*@/ln -s/
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
