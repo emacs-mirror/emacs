@@ -1,3 +1,8 @@
+2003-05-28  Nick Roberts  <nick@nick.uklinux.net>
+
+	* building.texi (GDB Graphical Interface): New node.
+	(Rewritten somewhat by RMS.)
+
 2003-05-28  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* custom.texi (Init Rebinding): Xref Non-ASCII Rebinding, for
