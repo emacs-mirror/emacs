@@ -1,6 +1,6 @@
 /* impl.c.arenacl: ARENA IMPLEMENTATION USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.12) $
+ * $HopeName: MMsrc!arenacl.c(trunk.13) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .readership: MM developers
@@ -17,7 +17,7 @@
 #include "mpsacl.h"
 
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.12) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.13) $");
 
 
 typedef struct ClientArenaStruct *ClientArena;
@@ -288,7 +288,8 @@ static Res ChunkCreate(Chunk *chunkReturn, Addr base, Addr limit,
  * to do the generic part of init.
  */
 
-static Res ClientArenaInit(Arena *arenaReturn, va_list args)
+static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
+                           va_list args)
 {
   Arena arena;
   ClientArena clientArena;
@@ -300,6 +301,7 @@ static Res ClientArenaInit(Arena *arenaReturn, va_list args)
   size = va_arg(args, Size);
   base = va_arg(args, Addr);
   AVER(arenaReturn != NULL);
+  AVER((ArenaClass)mps_arena_class_cl() == class);
   AVER(base != (Addr)0);
 
   if (size < sizeof(ClientArenaStruct)) return ResMEMORY;
@@ -315,7 +317,7 @@ static Res ClientArenaInit(Arena *arenaReturn, va_list args)
 
   arena = ClientArenaArena(clientArena);
   /* impl.c.arena.init.caller */
-  ArenaInit(arena, (ArenaClass)mps_arena_class_cl());
+  ArenaInit(arena, class);
 
   clientArena->pageSize = ARENA_CLIENT_PAGE_SIZE;
   clientArena->pageShift = SizeLog2(clientArena->pageSize);
