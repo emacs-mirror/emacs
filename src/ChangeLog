@@ -1,5 +1,8 @@
 2000-11-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (Fx_create_frame): Reintroduce the call to
+	face-set-after-frame-defaults.
+
 	* eval.c (Fsignal): Reset handling_signal.
 
 2000-11-28  Jason Rumney  <jasonr@gnu.org>
