@@ -268,6 +268,8 @@ directory_files_internal (directory, full, match, nosort, attrs)
 		  
 		  finalname = fullname;
 		}
+	      else
+		finalname = name;
 
 	      if (attrs)
 		{
