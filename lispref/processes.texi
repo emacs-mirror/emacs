@@ -1240,7 +1240,7 @@ or terminal input.  Occasionally it is useful in a Lisp program to
 explicitly permit output to arrive at a specific point, or even to wait
 until output arrives from a process.
 
-@defun accept-process-output &optional process seconds millisec
+@defun accept-process-output &optional process seconds millisec just-this-one
 This function allows Emacs to read pending output from processes.  The
 output is inserted in the associated buffers or given to their filter
 functions.  If @var{process} is non-@code{nil} then this function does
@@ -1262,6 +1262,15 @@ Some systems support only a whole number of seconds; on these systems,
 Not all operating systems support waiting periods other than multiples
 of a second; on those that do not, you get an error if you specify
 nonzero @var{millisec}.
+
+@c Emacs 21.4 feature
+If @var{process} is a process, and the argument @var{just-this-one} is
+non-nil, only output from that process is handled, suspending output
+from other processes until some output has been received from that
+process or the timeout expires.  If @var{just-this-one} is an integer,
+also inhibit running timers.  This feature is generally not
+recommended, but may be necessary for specific applications, such as
+speech synthesis.
 
 The function @code{accept-process-output} returns non-@code{nil} if it
 did get some output, or @code{nil} if the timeout expired before output
@@ -1664,7 +1673,7 @@ meaning ask the system to allocate an unused port to listen on.
 @end defun
 
 @node Datagrams
-@section Datagrams 
+@section Datagrams
 @cindex datagrams
 
   A datagram connection communicates with individual packets rather
@@ -1951,7 +1960,7 @@ the port number.
 
 @example
 (featurep 'make-network-process '(@var{keyword} @var{value}))
-@end example 
+@end example
 
 @noindent
 The result of the first form is @code{t} if it works to specify
@@ -1977,7 +1986,7 @@ Non-@code{nil} if the system can select the port for a server.
 
 @example
 (featurep 'make-network-process '@var{keyword})
-@end example 
+@end example
 
 Here are some of the option @var{keyword}s you can test in
 this way.
