@@ -404,8 +404,7 @@
 (defun viper-normalize-minor-mode-map-alist ()
   (setq minor-mode-map-alist
 	(viper-append-filter-alist
-	 (list
-	       (cons 'viper-vi-intercept-minor-mode viper-vi-intercept-map)
+	 (list (cons 'viper-vi-intercept-minor-mode viper-vi-intercept-map)
 	       (cons 'viper-vi-minibuffer-minor-mode viper-minibuffer-map)
 	       (cons 'viper-vi-local-user-minor-mode viper-vi-local-user-map)
 	       (cons 'viper-vi-kbd-minor-mode viper-vi-kbd-map)
@@ -455,8 +454,6 @@
 		       viper-empty-keymap))
 	       )
 	 minor-mode-map-alist)))
-
-
 
 
 
@@ -1021,8 +1018,8 @@ as a Meta key and any number of multiple escapes is allowed."
 		      `(key-binding (char-to-string ,event-char))))
 	  (funcall func prefix-arg)
 	  (setq prefix-arg nil))
-        ;; some other command -- let emacs do it in its own way
-        (viper-set-unread-command-events event-char))
+      ;; some other command -- let emacs do it in its own way
+      (viper-set-unread-command-events event-char))
     ))
 
 
@@ -1044,86 +1041,86 @@ as a Meta key and any number of multiple escapes is allowed."
 	    (if (memq char '(?# ?\")) (error ""))
 	    (setq com (cons char com))
 	    (setq cont nil))
-          ;; If com is nil we set com as char, and read more.  Again, if char is
-          ;; ", we read the name of register and store it in viper-use-register.
-          ;; if char is !, =, or #, a complete com is formed so we exit the while
-          ;; loop.
-          (cond ((memq char '(?! ?=))
-                 (setq com char)
-                 (setq char (read-char))
-                 (setq cont nil))
-                ((= char ?#)
-                 ;; read a char and encode it as com
-                 (setq com (+ 128 (read-char)))
-                 (setq char (read-char)))
-                ((= char ?\")
-                 (let ((reg (read-char)))
-                   (if (viper-valid-register reg)
-                       (setq viper-use-register reg)
-                       (error ""))
-                   (setq char (read-char))))
-                (t
-                 (setq com char)
-                 (setq char (read-char))))))
+	;; If com is nil we set com as char, and read more.  Again, if char is
+	;; ", we read the name of register and store it in viper-use-register.
+	;; if char is !, =, or #, a complete com is formed so we exit the while
+	;; loop.
+	(cond ((memq char '(?! ?=))
+	       (setq com char)
+	       (setq char (read-char))
+	       (setq cont nil))
+	      ((= char ?#)
+	       ;; read a char and encode it as com
+	       (setq com (+ 128 (read-char)))
+	       (setq char (read-char)))
+	      ((= char ?\")
+	       (let ((reg (read-char)))
+		 (if (viper-valid-register reg)
+		     (setq viper-use-register reg)
+		   (error ""))
+		 (setq char (read-char))))
+	      (t
+	       (setq com char)
+	       (setq char (read-char))))))
 
-    (if (atom com)
-        ;; `com' is a single char, so we construct the command argument
-        ;; and if `char' is `?', we describe the arg; otherwise
-        ;; we prepare the command that will be executed at the end.
-        (progn
-          (setq cmd-info (cons value com))
-          (while (= char ?U)
-            (viper-describe-arg cmd-info)
-            (setq char (read-char)))
-          ;; `char' is a movement cmd, a digit arg cmd, or a register cmd---so we
-          ;; execute it at the very end
-          (or (viper-movement-command-p char)
-              (viper-digit-command-p char)
-              (viper-regsuffix-command-p char)
-              (= char ?!)       ; bang command
-              (error ""))
-          (setq cmd-to-exec-at-end
-                (viper-exec-form-in-vi
-                 `(key-binding (char-to-string ,char)))))
-
-        ;; as com is non-nil, this means that we have a command to execute
-        (if (memq (car com) '(?r ?R))
-            ;; execute apropriate region command.
-            (let ((char (car com)) (com (cdr com)))
-              (setq prefix-arg (cons value com))
-              (if (= char ?r) (viper-region prefix-arg)
-                  (viper-Region prefix-arg))
-              ;; reset prefix-arg
-              (setq prefix-arg nil))
-            ;; otherwise, reset prefix arg and call appropriate command
-            (setq value (if (null value) 1 value))
-            (setq prefix-arg nil)
-            (cond
-              ;; If we change ?C to ?c here, then cc will enter replacement mode
-              ;; rather than deleting lines.  However, it will affect 1 less line than
-              ;; normal.  We decided to not use replacement mode here and follow Vi,
-              ;; since replacement mode on n full lines can be achieved with nC.
-              ((equal com '(?c . ?c)) (viper-line (cons value ?C)))
-              ((equal com '(?d . ?d)) (viper-line (cons value ?D)))
-              ((equal com '(?d . ?y)) (viper-yank-defun))
-              ((equal com '(?y . ?y)) (viper-line (cons value ?Y)))
-              ((equal com '(?< . ?<)) (viper-line (cons value ?<)))
-              ((equal com '(?> . ?>)) (viper-line (cons value ?>)))
-              ((equal com '(?! . ?!)) (viper-line (cons value ?!)))
-              ((equal com '(?= . ?=)) (viper-line (cons value ?=)))
-              (t (error "")))))
-
-    (if cmd-to-exec-at-end
-        (progn
-          (setq last-command-char char)
-          (setq last-command-event
-                (viper-copy-event
-                 (if viper-xemacs-p (character-to-event char) char)))
-          (condition-case nil
-              (funcall cmd-to-exec-at-end cmd-info)
-            (error
-             (error "")))))
-    ))
+  (if (atom com)
+      ;; `com' is a single char, so we construct the command argument
+      ;; and if `char' is `?', we describe the arg; otherwise 
+      ;; we prepare the command that will be executed at the end.
+      (progn
+	(setq cmd-info (cons value com))
+	(while (= char ?U)
+	  (viper-describe-arg cmd-info)
+	  (setq char (read-char)))
+	;; `char' is a movement cmd, a digit arg cmd, or a register cmd---so we
+	;; execute it at the very end 
+	(or (viper-movement-command-p char)
+	    (viper-digit-command-p char)
+	    (viper-regsuffix-command-p char)
+	    (= char ?!) ; bang command
+	    (error ""))
+	(setq cmd-to-exec-at-end
+	      (viper-exec-form-in-vi 
+	       `(key-binding (char-to-string ,char)))))
+    
+    ;; as com is non-nil, this means that we have a command to execute
+    (if (memq (car com) '(?r ?R))
+	;; execute apropriate region command.
+	(let ((char (car com)) (com (cdr com)))
+	  (setq prefix-arg (cons value com))
+	  (if (= char ?r) (viper-region prefix-arg)
+	    (viper-Region prefix-arg))
+	  ;; reset prefix-arg
+	  (setq prefix-arg nil))
+      ;; otherwise, reset prefix arg and call appropriate command
+      (setq value (if (null value) 1 value))
+      (setq prefix-arg nil)
+      (cond 
+       ;; If we change ?C to ?c here, then cc will enter replacement mode
+       ;; rather than deleting lines.  However, it will affect 1 less line than
+       ;; normal.  We decided to not use replacement mode here and follow Vi,
+       ;; since replacement mode on n full lines can be achieved with nC.
+       ((equal com '(?c . ?c)) (viper-line (cons value ?C)))
+       ((equal com '(?d . ?d)) (viper-line (cons value ?D)))
+       ((equal com '(?d . ?y)) (viper-yank-defun))
+       ((equal com '(?y . ?y)) (viper-line (cons value ?Y)))
+       ((equal com '(?< . ?<)) (viper-line (cons value ?<)))
+       ((equal com '(?> . ?>)) (viper-line (cons value ?>)))
+       ((equal com '(?! . ?!)) (viper-line (cons value ?!)))
+       ((equal com '(?= . ?=)) (viper-line (cons value ?=)))
+       (t (error "")))))
+  
+  (if cmd-to-exec-at-end
+      (progn
+	(setq last-command-char char)
+	(setq last-command-event 
+	      (viper-copy-event
+	       (if viper-xemacs-p (character-to-event char) char)))
+	(condition-case nil
+	    (funcall cmd-to-exec-at-end cmd-info)
+	  (error
+	   (error "")))))
+  ))
 
 (defun viper-describe-arg (arg)
   (let (val com)
@@ -1660,6 +1657,7 @@ invokes the command before that, etc."
 	(viper-push-onto-ring viper-d-com 'viper-command-ring)))
   (setq viper-this-command-keys nil))
 
+
 (defun viper-prev-destructive-command (next)
   "Find previous destructive command in the history of destructive commands.
 With prefix argument, find next destructive command."
@@ -1679,10 +1677,12 @@ With prefix argument, find next destructive command."
       (setq viper-d-com cmd))
     (viper-display-current-destructive-command)))
 
+
 (defun viper-next-destructive-command ()
   "Find next destructive command in the history of destructive commands."
   (interactive)
   (viper-prev-destructive-command 'next))
+
 
 (defun viper-insert-prev-from-insertion-ring (arg)
   "Cycle through insertion ring in the direction of older insertions.
@@ -1722,6 +1722,7 @@ to in the global map, instead of cycling through the insertion ring."
 Undo previous insertion and inserts new."
   (interactive)
   (viper-insert-prev-from-insertion-ring 'next))
+
 
 
 ;; some region utilities
@@ -1837,6 +1838,7 @@ Undo previous insertion and inserts new."
 		'viper-change-state-to-emacs)))
     (funcall hook)
     ))
+
 
 ;; Interpret last event in the local map first; if fails, use exit-minibuffer.
 ;; Run viper-minibuffer-exit-hook before exiting.
@@ -2518,6 +2520,7 @@ On reaching end of line, stop and signal error."
       (forward-char val)
       (if com (viper-execute-com 'viper-forward-char val com)))))
 
+
 (defun viper-backward-char (arg)
   "Move point left ARG characters (right if ARG negative).
 On reaching beginning of line, stop and signal error."
@@ -2533,6 +2536,7 @@ On reaching beginning of line, stop and signal error."
       (backward-char val)
       (if com (viper-execute-com 'viper-backward-char val com)))))
 
+
 ;; Like forward-char, but doesn't move at end of buffer.
 ;; Returns distance traveled
 ;; (positive or 0, if arg positive; negative if arg negative).
@@ -2545,6 +2549,7 @@ On reaching beginning of line, stop and signal error."
     (if (< (point) pt) ; arg was negative
 	(- (viper-chars-in-region pt (point)))
       (viper-chars-in-region pt (point)))))
+
 
 ;; Like backward-char, but doesn't move at beg of buffer.
 ;; Returns distance traveled
@@ -2593,6 +2598,7 @@ On reaching beginning of line, stop and signal error."
     (if (looking-at "\n")
 	(viper-skip-all-separators-backward 'within-line)
       (or (bobp) (forward-char)))))
+
 
 (defun viper-forward-word-kernel (val)
   (while (> val 0)
@@ -2876,6 +2882,7 @@ On reaching beginning of line, stop and signal error."
     (forward-line val)
     (back-to-indentation)
     (if com (viper-execute-com 'viper-next-line-at-bol val com))))
+
 
 (defun viper-previous-line (arg)
   "Go to previous line."
@@ -3985,12 +3992,14 @@ Null string will repeat previous search."
 	(ding))
     (delete-backward-char val t)))
 
+
 (defun viper-del-backward-char-in-insert ()
   "Delete 1 char backwards while in insert mode."
   (interactive)
   (if (and viper-ex-style-editing (bolp))
       (beep 1)
     (delete-backward-char 1 t)))
+
 
 (defun viper-del-backward-char-in-replace ()
   "Delete one character in replace mode.
@@ -4559,6 +4568,7 @@ sensitive for VI-style look-and-feel."
 	  (and (> viper-expert-level 0) (> 5 viper-expert-level)))
       (viper-set-hooks)))
 
+
 ;; Ask user expert level.
 (defun viper-ask-level (dont-change-unless)
   (let ((ask-buffer " *viper-ask-level*")
@@ -4797,7 +4807,6 @@ Mail anyway (y or n)? ")
 
 
 
-
 ;; Smoothes out the difference between Emacs' unread-command-events
 ;; and XEmacs unread-command-event.  Arg is a character, an event, a list of
 ;; events or a sequence of keys.
@@ -4844,7 +4853,7 @@ Mail anyway (y or n)? ")
 	       "viper-eventify-list-xemacs: can't convert to event, %S"
 	       elt))))
    lis))
-
-
+  
+  
 
 ;;;  viper-cmd.el ends here
