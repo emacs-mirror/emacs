@@ -599,7 +599,7 @@ If `enable-multibyte-characters' is nil or POS is not at character boundary,\n\
       pos_byte = CHAR_TO_BYTE (XINT (pos));
     }
 
-  if (n < BEGV_BYTE || n >= ZV_BYTE)
+  if (pos_byte < BEGV_BYTE || pos_byte >= ZV_BYTE)
     return Qnil;
 
   return make_number (FETCH_CHAR (pos_byte));
