@@ -100,7 +100,7 @@ A value of t means there is no limit--fontify regardless of the size."
 
 (defvar goto-address-mail-regexp
   ;; Actually pretty much any char could appear in the username part.  -stef
-  "[-a-zA-Z0-9._+]+@\\([-a-zA-z0-9_]+\\.\\)+[a-zA-Z0-9]+"
+  "[-a-zA-Z0-9=._+]+@\\([-a-zA-z0-9_]+\\.\\)+[a-zA-Z0-9]+"
   "A regular expression probably matching an e-mail address.")
 
 (defvar goto-address-url-regexp
