@@ -322,7 +322,7 @@ to read a file name from the minibuffer."
 				   end t)
 		(progn
 		  (insert "* " nodename "\n")
-		  (setq menu-items (cons nodename menu-item)))))
+		  (setq menu-items (cons nodename menu-items)))))
 	  (setq nodes (cdr nodes))))
       ;; Now take each node of each of the other buffers
       ;; and merge it into the main buffer.
