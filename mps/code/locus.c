@@ -361,6 +361,24 @@ void ChainEndGC(Chain chain, Trace trace)
   chain->activeTraces = TraceSetDel(chain->activeTraces, trace);
 }
 
+#define PoolGenMessageMessage(m) (&(m)->messageStruct)
+#define MessagePoolGenMessage(message) \
+  (PARENT(PoolGenMessageStruct, messageStruct, message))
+
+static void PoolGenMessageInit(PoolGenMessage message, PoolGen gen)
+{
+  size_t i = 0;
+  size_t l;
+  /* message is to be initialised so can't be checked. */
+  /* gen is halfway through intialisation.  Naughtily, we will
+     use some of it but not check it. */
+
+  message->id[i++] = '[';
+  ClassOfPool(gen->pool);
+  mps_lib_memcpy(message->id, 
+  message->condemned = 0;
+}
+
 
 /* PoolGenInit -- initialize a PoolGen */
 
@@ -377,13 +395,15 @@ Res PoolGenInit(PoolGen gen, Chain chain, Serial nr, Pool pool)
   RingInit(&gen->genRing);
   gen->totalSize = (Size)0;
   gen->newSize = (Size)0;
+  PoolGenMessageInit(&gen->messageStruct);
   gen->sig = PoolGenSig;
 
-  if (nr != chain->genCount)
+  if(nr != chain->genCount)  {
     RingAppend(&chain->gens[nr].locusRing, &gen->genRing);
-  else
+  } else {
     /* Dynamic generation is linked to the arena, not the chain. */
     RingAppend(&chain->arena->topGen.locusRing, &gen->genRing);
+  }
   AVERT(PoolGen, gen);
   return ResOK;
 }
