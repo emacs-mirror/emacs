@@ -1163,9 +1163,10 @@ seconds since the epoch, to a time value and returns that.  To perform
 the inverse conversion, use @code{float-time}.
 @end defun
 
-@defun decode-time time
-This function converts a time value into calendrical information.  The
-return value is a list of nine elements, as follows:
+@defun decode-time &optional time
+This function converts a time value into calendrical information.  If
+you don't specify @var{time}, it decodes the current time.  The return
+value is a list of nine elements, as follows:
 
 @example
 (@var{seconds} @var{minutes} @var{hour} @var{day} @var{month} @var{year} @var{dow} @var{dst} @var{zone})
