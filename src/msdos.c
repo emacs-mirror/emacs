@@ -265,7 +265,11 @@ dos_rawgetc ()
      characters like { and } if their positions are overlaid.  */
   alt_p = ((extended_kbd ? (regs.h.ah & 2) : (regs.h.al & 8)) != 0);
 
-  while (kbhit ())
+  /* The following condition is equivalent to `kbhit ()', except that
+     it uses the bios to do its job.  This pleases DESQview/X.  */
+  while ((regs.h.ah = extended_kbd ? 0x11 : 0x01),
+	 int86 (0x16, &regs, &regs),
+	 (regs.x.flags & 0x40) == 0)
     {
       union REGS regs;
       register unsigned char c;
