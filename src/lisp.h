@@ -2026,6 +2026,7 @@ extern void syms_of_alloc P_ ((void));
 
 /* Defined in print.c */
 extern Lisp_Object Vprin1_to_string_buffer;
+extern void debug_print P_ ((Lisp_Object));
 EXFUN (Fprin1, 2);
 EXFUN (Fprin1_to_string, 2);
 EXFUN (Fprinc, 2);
@@ -2636,6 +2637,9 @@ EXFUN (Fset_fontset_font, 4);
 
 /* Defined in xfaces.c */
 extern void syms_of_xfaces P_ ((void));
+
+/* Defined in getloadavg.c */
+extern int getloadavg P_ ((double *, int));
 
 #ifdef HAVE_X_WINDOWS
 /* Defined in xfns.c */
