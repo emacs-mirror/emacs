@@ -1,5 +1,21 @@
 2001-05-09  John Wiegley  <johnw@gnu.org>
 
+	* eshell/esh-cmd.el (eshell-lisp-command): Don't perform numeric
+	conversions if a Lisp function has the property
+	`eshell-no-numeric-conversions' set to a non-nil value.
+
+	* eshell/em-dirs.el, eshell/em-ls.el, eshell/em-script.el,
+	eshell/em-unix.el, eshell/esh-ext.el, eshell/esh-cmd.el: Set the
+	property `eshell-no-numeric-conversions' on the following
+	functions (which all deal with filesystem entities, and never Lisp
+	numerical values): eshell/cd, eshell/pushd, eshell/popd,
+	eshell/ls, eshell/source, eshell/., eshell/man, eshell/rm,
+	eshell/mkdir, eshell/rmdir, eshell/mv, eshell/cp, eshell/ln,
+	eshell/cat, eshell/make, eshell/diff, eshell/locate, eshell/occur,
+	eshell/which, eshell/addpath.
+
+2001-05-09  John Wiegley  <johnw@gnu.org>
+	
 	* eshell/esh-arg.el (eshell-parse-argument-hook): If a number is
 	encountered as an argument, don't convert it right away, but tag
 	the first character of the string with the text properties
