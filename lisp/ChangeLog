@@ -4,6 +4,9 @@
 
 2000-11-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* avoid.el (mouse-avoidance-too-close-p): Return nil if mouse
+	is in the tool bar.
+
 	* dired-aux.el (dired-add-entry): Don't call dired-get-filename
 	with `no-dir'; we want the directory part to be able to remove
 	it.
