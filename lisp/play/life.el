@@ -1,8 +1,9 @@
 ;;; life.el --- John Horton Conway's `Life' game for GNU Emacs
 
-;; Copyright (C) 1988, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Author: Kyle Jones <kyleuunet.uu.net>
+;; Maintainer: FSF
 ;; Keywords: games
 
 ;; This file is part of GNU Emacs.
@@ -30,7 +31,7 @@
 
 ;;; Code:
 
-(defconst life-patterns
+(defvar life-patterns
   [("@@@" " @@" "@@@")
    ("@@@ @@@" "@@  @@ " "@@@ @@@")
    ("@@@ @@@" "@@   @@" "@@@ @@@")
@@ -80,16 +81,16 @@
 
 ;; list of numbers that tell how many characters to move to get to
 ;; each of a cell's eight neighbors.
-(defconst life-neighbor-deltas nil)
+(defvar life-neighbor-deltas nil)
 
 ;; window display always starts here.  Easier to deal with than
 ;; (scroll-up) and (scroll-down) when trying to center the display.
-(defconst life-window-start nil)
+(defvar life-window-start nil)
 
 ;; For mode line
-(defconst life-current-generation nil)
+(defvar life-current-generation nil)
 ;; Sadly, mode-line-format won't display numbers.
-(defconst life-generation-string nil)
+(defvar life-generation-string nil)
 
 (defvar life-initialized nil
   "Non-nil if `life' has been run at least once.")
