@@ -234,8 +234,8 @@ is typed.  @xref{Completion}.@refill
 When a line of text is longer than the width of the window, it
 takes up more than one screen line when displayed.  We say that the
 text line is continued, and all screen lines used for it after the
-first are called continuation lines.  @xref{Basic,Continuation,Basic
-Editing}.  A related Emacs feature is `filling' (q.v.@:).
+first are called continuation lines.  @xref{Continuation Lines}.
+A related Emacs feature is `filling' (q.v.@:).
 
 @item Control Character
 A control character is a character that you type by holding down the
@@ -280,7 +280,7 @@ The cursor is the rectangle on the screen which indicates the position
 called point (q.v.@:) at which insertion and deletion takes place.
 The cursor is on or under the character that follows point.  Often
 people speak of `the cursor' when, strictly speaking, they mean
-`point.'  @xref{Basic,Cursor,Basic Editing}.
+`point.'  @xref{Point,Cursor}.
 
 @item Customization
 Customization is making minor changes in the way Emacs works.  It is
@@ -317,7 +317,7 @@ A defun is a major definition at the top level in a program.  The name
 @key{DEL} is a character that runs the command to delete one character
 of text before the cursor.  It is typically either the @key{DELETE}
 key or the @key{BACKSPACE} key, whichever one is easy to type.
-@xref{Basic,DEL,Basic Editing}.
+@xref{Erasing,DEL}.
 
 @item Deletion
 Deletion means erasing text without copying it into the kill ring
@@ -547,7 +547,7 @@ just names.  All the non-Meta (q.v.@:) characters except for the
 Control (q.v.@:) characters are graphic characters.  These include
 letters, digits, punctuation, and spaces; they do not include
 @key{RET} or @key{ESC}.  In Emacs, typing a graphic character inserts
-that character (in ordinary editing modes).  @xref{Basic,,Basic Editing}.
+that character (in ordinary editing modes).  @xref{Inserting Text}.
 
 @item Highlighting
 Highlighting text means displaying it with a different foreground and/or
@@ -639,7 +639,7 @@ See `incremental search.'
 @item Justification
 Justification means adding extra spaces within lines of text to make
 them extend exactly to a specified width.
-@xref{Filling,Justification}.
+@xref{Format Justification}.
 
 @item Keyboard Macro
 Keyboard macros are a way of defining new Emacs commands from
@@ -730,7 +730,7 @@ A local value of a variable (q.v.@:) applies to only one buffer.
 @item @kbd{M-}
 @kbd{M-} in the name of a character is an abbreviation for @key{META},
 one of the modifier keys that can accompany any character.
-@xref{User Input}.
+@xref{User Input,M-}.
 
 @item @kbd{M-C-}
 @kbd{M-C-} in the name of a character is an abbreviation for
@@ -894,7 +894,7 @@ end of a word or expression.  @xref{Syntax}.
 Point is the place in the buffer at which insertion and deletion
 occur.  Point is considered to be between two characters, not at one
 character.  The terminal's cursor (q.v.@:) indicates the location of
-point.  @xref{Basic,Point,Basic Editing}.
+point.  @xref{Point}.
 
 @item Prefix Argument
 See `numeric argument.'
@@ -942,7 +942,7 @@ convention.  For example, an ``ordinary'' character as an Emacs command
 inserts itself; so in this context, a special character is any character
 that does not normally insert itself (such as @key{DEL}, for example),
 and quoting it makes it insert itself as if it were not special.  Not
-all contexts allow quoting.  @xref{Basic,Quoting,Basic Editing}.
+all contexts allow quoting.  @xref{Inserting Text,Quoting}.
 
 @item Quoting File Names
 Quoting a file name turns off the special significance of constructs
@@ -1035,7 +1035,7 @@ systems.  @xref{Scroll Bars}.
 
 @item Scrolling
 Scrolling means shifting the text in the Emacs window so as to see a
-different part of the buffer.  @xref{Display,Scrolling}.
+different part of the buffer.  @xref{Scrolling}.
 
 @item Searching
 Searching means moving point to the next occurrence of a specified
@@ -1055,7 +1055,7 @@ using the secondary selection.  @xref{Secondary Selection}.
 
 @item Selecting
 Selecting a buffer means making it the current (q.v.@:) buffer.
-@xref{Buffers,Selecting}.
+@xref{Select Buffer}.
 
 @item Selection
 Windowing systems allow an application program to specify
@@ -1212,7 +1212,7 @@ two adjacent characters, words, balanced expressions (q.v.@:) or lines
 Truncating text lines in the display means leaving out any text on a
 line that does not fit within the right margin of the window
 displaying it.  See also `continuation line.'
-@xref{Basic,Truncation,Basic Editing}.
+@xref{Continuation Lines,Truncation}.
 
 @item TTY
 See `text-only terminal.'
