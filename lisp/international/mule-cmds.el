@@ -1080,6 +1080,10 @@ If INPUT-METHOD is nil, deactivate any current input method."
 (defun set-input-method (input-method)
   "Select and activate input method INPUT-METHOD for the current buffer.
 This also sets the default input method to the one you specify.
+If INPUT-METHOD is nil, this function turns off the input method, and
+also causes you to be prompted for a name of an input method the next
+time you invoke \\[toggle-input-method].
+
 To deactivate the input method interactively, use \\[toggle-input-method].
 To deactivate it programmatically, use \\[inactivate-input-method]."
   (interactive
