@@ -35,30 +35,30 @@
    'global-mode-string
    (purecopy "   %[(")
    (purecopy "%t:")
-   'mode-name 'minor-mode-alist "%n" 'mode-line-process
+   'mode-name 'mode-line-process 'minor-mode-alist "%n"
    (purecopy ")%]--")
    (purecopy '(line-number-mode "L%l--"))
    (purecopy '(-3 . "%p"))
    (purecopy "-%-")))
 
-;;
-;; buffer-file-type   (0 "text") (1 "binary")
-;;
 (defvar file-name-buffer-file-type-alist
   '(
-    ("[:/].*config.sys$" . 0)		; config.sys text
-    ("\\.elc$" . 1)			; emacs stuff
-    ("\\.\\(obj\\|exe\\|com\\|lib\\|sys\\|chk\\|out\\|bin\\|ico\\|pif\\)$" . 1)
+    ("[:/].*config.sys$" . nil)		; config.sys text
+    ("\\.elc$" . t)			; emacs stuff
+    ("\\.\\(obj\\|exe\\|com\\|lib\\|sys\\|chk\\|out\\|bin\\|ico\\|pif\\)$" . t)
 					; MS-Dos stuff
-    ("\\.\\(arc\\|zip\\|pak\\|lzh\\|zoo\\)$" . 1)
+    ("\\.\\(arc\\|zip\\|pak\\|lzh\\|zoo\\)$" . t)
 					; Packers
-    ("\\.\\(a\\|o\\|tar\\|z\\|gz\\|taz\\)$" . 1)
+    ("\\.\\(a\\|o\\|tar\\|z\\|gz\\|taz\\)$" . t)
 					; Unix stuff
-    ("\\.tp[ulpw]$" . 1)
+    ("\\.tp[ulpw]$" . t)
 					; Borland Pascal stuff
-    ("[:/]tags$" . 1 ) 
+    ("[:/]tags$" . t ) 
 					; Emacs TAGS file
-    ))
+    )
+  "*Alist for distinguishing text files from binary files.
+Each element has the form (REGEXP . TYPE), where REGEXP is matched
+against the file name, and TYPE is nil for text, t for binary.")
 
 (defun find-buffer-file-type (filename)
   (let ((alist file-name-buffer-file-type-alist)
@@ -71,22 +71,22 @@
 	    (setq code (cdr (car alist))
 		  found t))
 	(setq alist (cdr alist))))
-    (if code
-	(cond((numberp code) code)
+    (if found
+	(cond((memq code '(nil t)) code)
 	     ((and (symbolp code) (fboundp code))
 	      (funcall code filename)))
       default-buffer-file-type)))
 
 (defun find-file-binary (filename) 
-  "Like find-file but always load the file as binary."
+  "Visit file FILENAME and treat it as binary."
   (interactive "FFind file binary: ")
-  (let ((file-name-buffer-file-type-alist '(("" . 1))))
+  (let ((file-name-buffer-file-type-alist '(("" . t))))
     (find-file filename)))
 
 (defun find-file-text (filename) 
-  "Like find-file but always load the file as text."
+  "Visit file FILENAME and treat it as a text file."
   (interactive "FFind file text: ")
-  (let ((file-name-buffer-file-type-alist '(("" . 0))))
+  (let ((file-name-buffer-file-type-alist '(("" . nil))))
     (find-file filename)))
 
 (defun find-file-not-found-set-buffer-file-type ()
