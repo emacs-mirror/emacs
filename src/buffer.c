@@ -132,6 +132,10 @@ Lisp_Object Qkill_buffer_hook;
 
 Lisp_Object Qoverlayp;
 
+Lisp_Object Qmodification_hooks;
+Lisp_Object Qinsert_in_front_hooks;
+Lisp_Object Qinsert_behind_hooks;
+
 /* For debugging; temporary.  See set_buffer_internal.  */
 /* Lisp_Object Qlisp_mode, Vcheck_symbol; */
 
@@ -2154,6 +2158,12 @@ syms_of_buffer ()
   staticpro (&Qpermanent_local);
   staticpro (&Qkill_buffer_hook);
   staticpro (&Qoverlayp);
+  staticpro (&Qmodification_hooks);
+  Qmodification_hooks = intern ("modification-hooks");
+  staticpro (&Qinsert_in_front_hooks);
+  Qinsert_in_front_hooks = intern ("insert-in-front-hooks");
+  staticpro (&Qinsert_behind_hooks);
+  Qinsert_behind_hooks = intern ("insert-behind-hooks");
 
   Qoverlayp = intern ("overlayp");
 
