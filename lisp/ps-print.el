@@ -3836,6 +3836,7 @@ EndDSCPage\n"))
     (if (< (car wrappoint) to)
 	(ps-continue-line))
     (setq ps-width-remaining (- ps-width-remaining (* len char-width)))
+    (ps-mule-prepare-ascii-font)
     (ps-output-string str)
     (ps-output " S\n")))
 
