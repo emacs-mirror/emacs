@@ -1,4 +1,4 @@
-/* System description file for hpux version 9.  */   
+/* System description file for hpux version 9.  */
 
 #include "hpux8.h"
 
