@@ -1,3 +1,8 @@
+2001-05-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* fontset.c (Ffontset_info): Check that face is non-null
+	before accessing its fields.
+
 2001-05-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (read_key_sequence): Prevent generating a fake
