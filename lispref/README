@@ -37,6 +37,7 @@ the title page in a new format designed by Karl Berry, using the
 To create a DVI file with a sorted index, execute the following
 commands in the shell:
 
+% ./configure
 % make index.texi
 % make elisp.dvi
 
@@ -44,4 +45,5 @@ commands in the shell:
 with `make-permuted-index'.  
 
 ** To make an Info file, you need to install Texinfo, then run
-`make elisp'.  To install the Info files, run `make install'.
+`./configure' and `make elisp'.  To install the Info files, run
+`make install'.
