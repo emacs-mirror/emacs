@@ -1286,7 +1286,7 @@ use either \\[customize] or the function `menu-bar-mode'."
   :type 'boolean
   :group 'frames)
 
-(defun menu-bar-mode (flag)
+(defun menu-bar-mode (&optional flag)
   "Toggle display of a menu bar on each frame.
 This command applies to all frames that exist and frames to be
 created in the future.
