@@ -750,18 +750,25 @@ names of functions and variables they define, the features they provide,
 and the features they require.
 
 Each element is a list and describes one library.  The @sc{car} of the
-list is the name of the library, as a string.  The rest of the list is
-composed of these kinds of objects:
+list is the name of the library, as a string.  The rest of the list
+elements have these forms:
 
-@itemize @bullet
-@item
-Symbols that were defined by this library.
-@item
-Cons cells of the form @code{(require . @var{feature})} indicating
-features that were required.
-@item
-Cons cells of the form @code{(provide . @var{feature})} indicating
-features that were provided.
+@table @code
+@item @var{fun}
+The function @var{fun} was defined by this library.
+@item (t . @var{fun})
+The function @var{fun} was previously an autoload before this library
+redefined it as a function.  The following element is always the
+symbol @var{fun}, which signifies that the library defined @var{fun}
+as a function.
+@item (autoload . @var{fun})
+The function @var{fun} was defined as an autoload.
+@item (defvar . @var{var})
+The symbol @var{var} was defined as a variable.
+@item (require . @var{feature})
+The feature @var{feature} was required.
+@item (provide . @var{feature})
+The feature @var{feature} was provided.
 @end itemize
 
 The value of @code{load-history} may have one element whose @sc{car} is
