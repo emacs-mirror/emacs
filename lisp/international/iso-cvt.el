@@ -41,11 +41,9 @@
 ; If you are interested in questions related to using the ISO 8859-1
 ; characters set (configuring emacs, Unix, etc. to use ISO), then you
 ; can get the ISO 8859-1 FAQ via anonymous ftp from
-; ftp.vlsivie.tuwien.ac.at in /pub/bit/FAQ-ISO-8859-1
+; ftp.vlsivie.tuwien.ac.at in /pub/8bit/FAQ-ISO-8859-1
 
 ;;; Code:
-
-(require 'format)
 
 (defvar iso-spanish-trans-tab
   '(
