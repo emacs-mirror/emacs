@@ -76,46 +76,10 @@
 (require 'faces)
 (require 'select)
 (require 'menu-bar)
-(if (fboundp 'new-fontset)
-    (require 'fontset))
+(require 'fontset)
 
-;; Because Windows scrollbars look and act quite differently compared
-;; with the standard X scroll-bars, we don't try to use the normal
-;; scroll bar routines.
-
-(defun w32-handle-scroll-bar-event (event)
-  "Handle W32 scroll bar EVENT to do normal Window style scrolling."
-  (interactive "e")
-  (let ((old-window (selected-window)))
-    (unwind-protect
-	(let* ((position (event-start event))
-	       (window (nth 0 position))
-	       (portion-whole (nth 2 position))
-	       (bar-part (nth 4 position)))
-	  (save-excursion
-	    (select-window window)
-	    (cond
-	     ((eq bar-part 'up)
-	      (goto-char (window-start window))
-	      (scroll-down 1))
-	     ((eq bar-part 'above-handle)
-	      (scroll-down))
-	     ((eq bar-part 'handle)
-	      (scroll-bar-maybe-set-window-start event))
-	     ((eq bar-part 'below-handle)
-	      (scroll-up))
-	     ((eq bar-part 'down)
-	      (goto-char (window-start window))
-	      (scroll-up 1))
-	     )))
-      (select-window old-window))))
-
-;; The following definition is used for debugging.
+;; The following definition is used for debugging scroll bar events.
 ;(defun w32-handle-scroll-bar-event (event) (interactive "e") (princ event))
-
-(global-set-key [vertical-scroll-bar mouse-1] 'w32-handle-scroll-bar-event)
-
-;; (scroll-bar-mode nil)
 
 (defvar mouse-wheel-scroll-amount 4
   "*Number of lines to scroll per click of the mouse wheel.")
