@@ -372,7 +372,7 @@ for language-specific arguments."
 
 ;;; split dictionary so line length is smaller in loaddefs.el
 
-;;; First half of dictionary, shortened for loaddefs.el
+;;; First part of dictionary, shortened for loaddefs.el
 ;;;###autoload
 (setq
  ispell-dictionary-alist-1
@@ -389,8 +389,14 @@ for language-specific arguments."
    ("castellano8"			; 8 bit Spanish mode
     "[A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
     "[^A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
-    "[---]" nil ("-B" "-d" "castellano") "~latin1" iso-8859-1)
-   ("czech"
+    "[---]" nil ("-B" "-d" "castellano") "~latin1" iso-8859-1)))
+
+
+;;; Second part of dictionary, shortened for loaddefs.el
+;;;###autoload
+(setq
+ ispell-dictionary-alist-2
+ '(("czech"
     "[A-Za-z\301\311\314\315\323\332\331\335\256\251\310\330\317\253\322\341\351\354\355\363\372\371\375\276\271\350\370\357\273\362]"
     "[^A-Za-z\301\311\314\315\323\332\331\335\256\251\310\330\317\253\322\341\351\354\355\363\372\371\375\276\271\350\370\357\273\362]"
     "" nil ("-B" "-d" "czech") nil iso-8859-2)
@@ -407,10 +413,10 @@ for language-specific arguments."
     "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)))
 
 
-;;; Second half of dictionary, shortened for loaddefs.el
+;;; Third part of dictionary, shortened for loaddefs.el
 ;;;###autoload
 (setq
- ispell-dictionary-alist-2
+ ispell-dictionary-alist-3
  '(("esperanto"
     "[A-Za-z\246\254\266\274\306\330\335\336\346\370\375\376]"
     "[^A-Za-z\246\254\266\274\306\330\335\336\346\370\375\376]"
@@ -423,8 +429,14 @@ for language-specific arguments."
    ("francais"				; Francais.aff
     "[A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374]"
     "[^A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374]"
-    "[---']" t nil "~list" iso-8859-1)
-   ("francais-tex"			; Francais.aff
+    "[---']" t nil "~list" iso-8859-1)))
+
+
+;;; Fourth part of dictionary, shortened for loaddefs.el
+;;;###autoload
+(setq
+ ispell-dictionary-alist-4
+ '(("francais-tex"			; Francais.aff
     "[A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374\\]"
     "[^A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374\\]"
     "[---'^`\"]" t nil "~tex" iso-8859-1)
@@ -435,8 +447,14 @@ for language-specific arguments."
    ("nederlands8"			; Dutch8.aff
     "[A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
     "[^A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
-    "[']" t ("-C") nil iso-8859-1)
-   ("norsk"				; 8 bit Norwegian mode
+    "[']" t ("-C") nil iso-8859-1)))
+
+
+;;; Fifth part of dictionary, shortened for loaddefs.el
+;;;###autoload
+(setq
+ ispell-dictionary-alist-5
+ '(("norsk"				; 8 bit Norwegian mode
     "[A-Za-z\305\306\307\310\311\322\324\330\345\346\347\350\351\362\364\370]"
     "[^A-Za-z\305\306\307\310\311\322\324\330\345\346\347\350\351\362\364\370]"
     "[\"]" nil ("-d" "norsk") "~list" iso-8859-1)
@@ -446,8 +464,14 @@ for language-specific arguments."
    ("polish"				; polish mode 
     "[A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]"
     "[^A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]"
-    "" nil ( "-d" "polish") nil iso-8859-2)
-   ("russian"				; russian.aff (KOI8-R charset)
+    "" nil ( "-d" "polish") nil iso-8859-2)))
+
+
+;;; Sixth part of dictionary, shortened for loaddefs.el
+;;;###autoload
+(setq
+ ispell-dictionary-alist-6
+ '(("russian"				; russian.aff (KOI8-R charset)
     "[\341\342\367\347\344\345\263\366\372\351\352\353\354\355\356\357\360\362\363\364\365\346\350\343\376\373\375\370\371\377\374\340\361\301\302\327\307\304\305\243\326\332\311\312\313\314\315\316\317\320\322\323\324\325\306\310\303\336\333\335\330\331\337\334\300\321]"
     "[^\341\342\367\347\344\345\263\366\372\351\352\353\354\355\356\357\360\362\363\364\365\346\350\343\376\373\375\370\371\377\374\340\361\301\302\327\307\304\305\243\326\332\311\312\313\314\315\316\317\320\322\323\324\325\306\310\303\336\333\335\330\331\337\334\300\321]"
     "[']" t ("-C" "-d" "russian") "~latin1" iso-8859-1)
@@ -460,7 +484,9 @@ for language-specific arguments."
 
 ;;;###autoload
 (defcustom ispell-dictionary-alist
-  (append ispell-dictionary-alist-1 ispell-dictionary-alist-2)
+  (append ispell-dictionary-alist-1 ispell-dictionary-alist-2
+	  ispell-dictionary-alist-3 ispell-dictionary-alist-4
+	  ispell-dictionary-alist-5 ispell-dictionary-alist-6)
   "An alist of dictionaries and their associated parameters.
 
 Each element of this list is also a list:
@@ -531,7 +557,9 @@ LANGUAGE.aff file \(e.g., english.aff\)."
 ;;; update the dictionaries at load time
 (unless ispell-dictionary-alist-override
   (setq ispell-dictionary-alist
-	(append ispell-dictionary-alist-1 ispell-dictionary-alist-2)))
+	(append ispell-dictionary-alist-1 ispell-dictionary-alist-2
+		ispell-dictionary-alist-3 ispell-dictionary-alist-4
+		ispell-dictionary-alist-5 ispell-dictionary-alist-6)))
 
 ;;; The preparation of the menu bar menu must be autoloaded
 ;;; because otherwise this file gets autoloaded every time Emacs starts
