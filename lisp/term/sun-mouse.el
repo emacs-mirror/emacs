@@ -665,7 +665,7 @@ If running under as a detached process emacstool,
 you don't want to suspend  (there is no way to resume), 
 just close the window, and wait for reopening."
   (interactive)
-  (run-hooks 'suspend-hook)
+  (run-hooks 'suspend-hooks)
   (if stuffstring (send-string-to-terminal stuffstring))
   (send-string-to-terminal "\033[2t")	; To close EmacsTool window.
   (run-hooks 'suspend-resume-hook))
