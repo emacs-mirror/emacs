@@ -1,9 +1,15 @@
+2002-09-04  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule.el (decode-char): Translate a character by
+	utf-8-translation-table-for-decode only when
+	utf-8-fragment-on-decoding is non-nil.
+
 2002-09-02  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* mail/sendmail.el (mail-mode): Don't set local-abbrev-table.
 	(mail-mode-abbrev-table): Set to text-mode-abbrev-table.
 
-2002-09-02  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-02  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.15 released.
 	(require 'base64): Most modern Emacsen have the base64
@@ -385,7 +391,7 @@
 	Always call x-focus-frame, if using x.
 	Use set-mouse-position on all systems, if focus-follows-mouse.
 
-2002-08-22  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-22  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.14 released.
 	(tramp-shell-prompt-pattern): New variable.
@@ -420,7 +426,7 @@
 	pushing mark.
 	(f90-abbrev-start): unread-command-event is obsolete in XEmacs.
 
-2002-08-21  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-21  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* tramp.el: Version 2.0.13 released.
 	(tramp-handle-write-region): Don't check to see if remote end is
@@ -711,7 +717,7 @@
 
 	* wid-browse.el (widget-minor-mode): Fix doc typo.
 
-2002-08-07  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-07  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.12 released.
 	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
@@ -789,7 +795,7 @@
 
 	* image.el (image-jpeg-p): Accept "Exif" marker.
 
-2002-08-05  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-05  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.11 released.
 	(tramp-perl-file-attributes): Print uid and gid as signed integers.
@@ -811,7 +817,7 @@
 
 	* startup.el (fancy-splash-frame): Check selected frame last.
 
-2002-08-04  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-04  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.10 released.
 	(tramp-uudecode): New shell function `tramp_uudecode' to decode to
@@ -824,7 +830,7 @@
 	(tramp-coding-commands): Add an alternative for `tramp_uudecode'.
 	(tramp-bug): Include more variables in the report.
 
-2002-08-04  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-04  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.9 released.
 	(tramp-bug): Add wording about additional info to include in bug
