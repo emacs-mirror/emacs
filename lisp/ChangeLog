@@ -1,3 +1,7 @@
+2001-02-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/mule-cmds.el (set-input-method): Doc fix.
+
 2001-02-12  Eric M. Ludlam  <zappo@choochoo.ultranet.com>
 
 	* speedbar.el (speedbar-frame-parameters): No toolbar lines.
@@ -8,7 +12,7 @@
 	
 	* ediff-diff.el (ediff-make-diff2-buffer): Removed bogus checks
 	for remote files.
-	(ediff-coding-system-for-read): replaced the no-conversion default
+	(ediff-coding-system-for-read): Replaced the no-conversion default
 	with raw-text.
 	
 	* ediff-init.el: Removed :version from defcustom vars.
@@ -18,7 +22,7 @@
 	
 	* ediff.texi: Added ediff-coding-system-for-read.
 	
-	* viper.texi: Typos
+	* viper.texi: Fix typos.
 	
 2001-02-11  Dave Love  <fx@gnu.org>
 
