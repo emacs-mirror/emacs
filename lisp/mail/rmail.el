@@ -295,6 +295,35 @@ before obeying `rmail-ignored-headers'.")
 	   (let ((rmail-total-messages total))
 	     (,@ body))))
        (rmail-maybe-display-summary))))
+
+(defvar rmail-view-buffer nil
+  "Buffer which holds RMAIL message for displaying.")
+
+;; Mule and MIME related variables.
+
+;;;###autoload
+(defvar rmail-file-coding-system nil
+  "Coding system used in RMAIL file.
+
+This is set to nil by default.")
+
+;;;###autoload
+(defvar rmail-enable-mime nil
+  "*If non-nil, RMAIL uses MIME feature.
+If the value is t, RMAIL automatically shows MIME decoded message.
+If the value is neither t nor nil, RMAIL does not show MIME decoded message
+until a user explicitly require it.")
+
+;;;###autoload
+(defvar rmail-show-mime-function nil
+  "Function to show MIME decoded message of RMAIL file.")
+
+;;;###autoload
+(defvar rmail-mime-feature 'rmail-mime
+  "Feature to provide for using MIME feature in RMAIL.
+When starting rmail, this feature is requrired if rmail-enable-mime
+is non-nil.")
+
 
 ;;;; *** Rmail Mode ***
 
@@ -313,8 +342,15 @@ have a chance to specify a file name with the minibuffer.
 If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Run rmail on RMAIL file: "))))
+  (if rmail-enable-mime
+      (condition-case err
+	  (require rmail-mime-feature)
+	(error (message "Feature `%s' not provided" rmail-mime-feature)
+	       (sit-for 1)
+	       (setq rmail-enable-mime nil))))
   (let* ((file-name (expand-file-name (or file-name-arg rmail-file-name)))
 	 (existed (get-file-buffer file-name))
+	 (coding-system-for-read 'no-conversion)
 	 run-mail-hook)
     ;; Like find-file, but in the case where a buffer existed
     ;; and the file was reverted, recompute the message-data.
@@ -391,6 +427,13 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	   ;; Non-empty file in non-RMAIL format.  Add header and convert.
 	   (setq convert t)
 	   (rmail-insert-rmail-file-header)))
+    (if (and (not convert)
+	     (not rmail-enable-mime)
+	     rmail-file-coding-system)
+	;; Decode BABYL part at the headq only.  The remaining non
+	;; BABYL parts are decode in rmail-convert-to-babyl-format if
+	;; necessary..
+	(rmail-decode-babyl-format))
     ;; If file was not a Babyl file or if there are
     ;; Unix format messages added at the end,
     ;; convert file as necessary.
@@ -422,6 +465,24 @@ Labels:
 Note:   This is the header of an rmail file.
 Note:   If you are seeing it in rmail,
 Note:    it means the file has no messages in it.\n\^_")))
+
+;; Decode Babyl formated part at the head of current buffer by
+;; rmail-file-coding-system.
+
+(defun rmail-decode-babyl-format ()
+  (let ((modifiedp (buffer-modified-p))
+	(buffer-read-only nil)
+	pos)
+    (goto-char (point-min))
+    (search-forward "\n\^_" nil t)	; Skip BYBYL header.
+    (setq pos (point))
+    (message "Decoding messages...")
+    (while (search-forward "\n\^_" nil t)
+      (decode-coding-region pos (point) rmail-file-coding-system)
+      (setq pos (point)))
+    (message "Decoding messages...done")
+    (set-buffer-file-coding-system rmail-file-coding-system)
+    (set-buffer-modified-p modifiedp)))
 
 (if rmail-mode-map
     nil
@@ -691,6 +752,10 @@ Instead, these commands are available:
   (make-local-variable 'rmail-last-label)
   (make-local-variable 'rmail-last-regexp)
   (make-local-variable 'rmail-deleted-vector)
+  (make-local-variable 'rmail-buffer)
+  (setq rmail-buffer (current-buffer))
+  (make-local-variable 'rmail-view-buffer)
+  (setq rmail-view-buffer rmail-buffer)
   (make-local-variable 'rmail-summary-buffer)
   (make-local-variable 'rmail-summary-vector)
   (make-local-variable 'rmail-current-message)
@@ -1014,9 +1079,6 @@ It returns t if it got any new messages."
       ;; Don't leave the buffer screwed up if we get a disk-full error.
       (rmail-show-message))))
 
-(defvar rmail-file-coding-system 'coding-system-iso2022-7
-  "Coding system used in RMAIL file.")
-
 (defun rmail-insert-inbox-text (files renamep)
   ;; Detect a locked file now, so that we avoid moving mail
   ;; out of the real inbox file.  (That could scare people.)
@@ -1144,29 +1206,10 @@ It returns t if it got any new messages."
       ;; Either the alternate name (if we renamed)
       ;; or the actual inbox (if not renaming).
       (if (file-exists-p tofile)
-	  (let (size)
+	  (let ((coding-system-for-read 'no-conversion)
+		size)
 	    (goto-char (point-max))
-	    ;; At first, read the file as is (i.e. no decoding).
-	    (setq size (nth 1 (let ((coding-system-for-read 'no-conversion))
-				(insert-file-contents tofile))))
-	    ;; Then, decode the contents one by one.
-	    (let ((pos (point)))
-	      (cond ((looking-at "^From ") ; new mails.
-		     (forward-line 1)
-		     (while (not (eobp))
-		       (setq pos (point))
-		       (search-forward "\nFrom " nil 'move)
-		       (decode-coding-region pos (point)
-					     'automatic-conversion)))
-		    ((looking-at "BABYL OPTIONS:\\|\^L") ; Babyl format
-		     (while (not (eobp))
-		       (setq pos (point))
-		       (search-forward "\n^_" nil 'move)
-		       (decode-coding-region pos (point)
-					     rmail-file-coding-system)))
-		    (t ; Perhaps MMDF format.  Convert all data at once.
-		     (decode-coding-region (point) (point-max)
-					   'automatic-conversion))))
+	    (setq size (nth 1 (insert-file-contents tofile)))
 	    (goto-char (point-max))
 	    (or (= (preceding-char) ?\n)
 		(zerop size)
@@ -1216,6 +1259,7 @@ Optional DEFAULT is password to start with."
     (goto-char (point-min))
     (save-restriction
       (while (not (eobp))
+	(setq start (point))
 	(cond ((looking-at "BABYL OPTIONS:");Babyl header
 	       (if (search-forward "\n\^_" nil t)
 		   ;; If we find the proper terminator, delete through there.
@@ -1235,13 +1279,16 @@ Optional DEFAULT is password to start with."
 			      (save-excursion
 				(skip-chars-forward " \t\n")
 				(point)))
+	       (or rmail-enable-mime
+		   (not rmail-file-coding-system)
+		   (decode-coding-region start (point)
+					 rmail-file-coding-system))
 	       (narrow-to-region (point) (point-max)))
 	      ;;*** MMDF format
 	      ((let ((case-fold-search t))
 		 (looking-at mmdf-delim1))
 	       (let ((case-fold-search t))
 		 (replace-match "\^L\n0, unseen,,\n*** EOOH ***\n")
-		 (setq start (point))
 		 (re-search-forward mmdf-delim2 nil t)
 		 (replace-match "\^_"))
 	       (save-excursion
@@ -1250,11 +1297,13 @@ Optional DEFAULT is password to start with."
 		   (goto-char (point-min))
 		   (while (search-forward "\n\^_" nil t); single char "\^_"
 		     (replace-match "\n^_")))); 2 chars: "^" and "_"
+	       (or rmail-enable-mime
+		   (not rmail-file-coding-system)
+		   (decode-coding-region start (point) 'automatic-conversion))
 	       (narrow-to-region (point) (point-max))
 	       (setq count (1+ count)))
 	      ;;*** Mail format
 	      ((looking-at "^From ")
-	       (setq start (point))
 	       (insert "\^L\n0, unseen,,\n*** EOOH ***\n")
 	       (rmail-nuke-pinhead-header)
 	       ;; If this message has a Content-Length field,
@@ -1311,6 +1360,9 @@ Optional DEFAULT is password to start with."
 		   (while (search-forward "\n\^_" nil t); single char
 		     (replace-match "\n^_")))); 2 chars: "^" and "_"
 	       (insert ?\^_)
+	       (or rmail-enable-mime
+		   (not rmail-file-coding-system)
+		   (decode-coding-region start (point) 'automatic-conversion))
 	       (narrow-to-region (point) (point-max)))
 	      ;;
 	      ;; This kludge is because some versions of sendmail.el
@@ -1710,6 +1762,8 @@ change the invisible header text."
   "Show message number N (prefix argument), counting from start of file.
 If summary buffer is currently displayed, update current message there also."
   (interactive "p")
+  (or (eq major-mode 'rmail-mode)
+      (switch-to-buffer rmail-buffer))
   (rmail-maybe-set-message-counters)
   (widen)
   (if (zerop rmail-total-messages)
@@ -1742,6 +1796,10 @@ If summary buffer is currently displayed, update current message there also."
 	    (narrow-to-region (point) end)))
 	(goto-char (point-min))
 	(rmail-display-labels)
+	(if (eq rmail-enable-mime t)
+	    (funcall rmail-show-mime-function)
+	  (setq rmail-view-buffer rmail-buffer)
+	  )
 	(rmail-highlight-headers)
 	(if transient-mark-mode (deactivate-mark))
 	(run-hooks 'rmail-show-message-hook)
@@ -2243,7 +2301,7 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
 While composing the message, use \\[mail-yank-original] to yank the
 original message into it."
   (interactive)
-  (rmail-start-mail nil nil nil nil nil (current-buffer)))
+  (rmail-start-mail nil nil nil nil nil rmail-view-buffer))
 
 (defun rmail-continue ()
   "Continue composing outgoing message previously being composed."
@@ -2261,8 +2319,7 @@ use \\[mail-yank-original] to yank the original message into it."
   (interactive "P")
   (let (from reply-to cc subject date to message-id references
 	     resent-to resent-cc resent-reply-to
-	     (msgnum rmail-current-message)
-	     (rmail-buffer (current-buffer)))
+	     (msgnum rmail-current-message))
     (save-excursion
       (save-restriction
 	(widen)
@@ -2323,7 +2380,7 @@ use \\[mail-yank-original] to yank the original message into it."
 			  (mail-strip-quoted-names
 			    (if (null cc) to (concat to ", " cc))))))
 	  (if (string= cc-list "") nil cc-list)))
-      (current-buffer)
+      rmail-view-buffer
       (list (list '(lambda ()
 		     (let ((msgnum rmail-send-actions-rmail-msg-number))
 		       (save-excursion
@@ -2338,7 +2395,7 @@ use \\[mail-yank-original] to yank the original message into it."
     ;; so that rmail-only-expunge can relocate the message number.
     (make-local-variable 'rmail-send-actions-rmail-buffer)
     (make-local-variable 'rmail-send-actions-rmail-msg-number)
-    (setq rmail-send-actions-rmail-buffer rmail-buffer)
+    (setq rmail-send-actions-rmail-buffer rmail-view-buffer)
     (setq rmail-send-actions-rmail-msg-number msgnum)))
 
 (defun rmail-make-in-reply-to-field (from date message-id)
