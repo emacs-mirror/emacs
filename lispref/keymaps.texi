@@ -1266,9 +1266,10 @@ map
 @defun suppress-keymap keymap &optional nodigits
 @cindex @code{self-insert-command} override
 This function changes the contents of the full keymap @var{keymap} by
-making all the printing characters undefined.  More precisely, it binds
-them to the command @code{undefined}.  This makes ordinary insertion of
-text impossible.  @code{suppress-keymap} returns @code{nil}.
+remapping @code{self-insert-command} to the command @code{undefined}
+(@pxref{Remapping Commands}).  This has the effect of undefining all
+printing characters, thus making ordinary insertion of text impossible.
+@code{suppress-keymap} returns @code{nil}.
 
 If @var{nodigits} is @code{nil}, then @code{suppress-keymap} defines
 digits to run @code{digit-argument}, and @kbd{-} to run
