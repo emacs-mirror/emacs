@@ -2881,16 +2881,16 @@ See also the variable `ps-font-info-database'.")
 Currently, data for Japanese and Korean PostScript printers are listed.")
 
 (defconst ps-mule-font-info-database-bdf
-  '(;;(ascii
-    ;; (normal bdf "etl24-latin1.bdf" nil 1)
-    ;; (bold bdf "etl16b-latin1.bdf" iso-latin-1 1)
-    ;; (italic bdf "etl16i-latin1.bdf" iso-latin-1 1)
-    ;; (bold-italic bdf "etl16bi-latin1.bdf" iso-latin-1 1))
-    ;;(latin-iso8859-1
-    ;; (normal bdf "etl24-latin1.bdf" iso-latin-1 1)
-    ;; (bold bdf "etl16b-latin1.bdf" iso-latin-1 1)
-    ;; (italic bdf "etl16i-latin1.bdf" iso-latin-1 1)
-    ;; (bold-italic bdf "etl16bi-latin1.bdf" iso-latin-1 1))
+  '((ascii
+     (normal bdf "etl24-latin1.bdf" nil 1)
+     (bold bdf "etl16b-latin1.bdf" iso-latin-1 1)
+     (italic bdf "etl16i-latin1.bdf" iso-latin-1 1)
+     (bold-italic bdf "etl16bi-latin1.bdf" iso-latin-1 1))
+    (latin-iso8859-1
+     (normal bdf "etl24-latin1.bdf" iso-latin-1 1)
+     (bold bdf "etl16b-latin1.bdf" iso-latin-1 1)
+     (italic bdf "etl16i-latin1.bdf" iso-latin-1 1)
+     (bold-italic bdf "etl16bi-latin1.bdf" iso-latin-1 1))
     (latin-iso8859-1
      (normal nil nil iso-latin-1))
     (latin-iso8859-2
@@ -2972,10 +2972,31 @@ Currently, data for Japanese and Korean PostScript printers are listed.")
     (tibetan
      (normal bdf "mule-tibmdx-24.bdf" ps-mule-encode-7bit 2)))
   "Sample setting of the `ps-mule-font-info-database' to use BDF fonts.
+BDF (Bitmap Distribution Format) is a format used for distributing
+X's font source file.
 
 Current default value lists BDF fonts included in `intlfonts-1.1'
 which is a collection of X11 fonts for all characters supported by
-Emacs.")
+Emacs.
+
+With the default value, all characters including ASCII and Latin-1 are
+printed by BDF fonts.   See also `ps-mule-font-info-database-ps-bdf'.")
+
+(defconst ps-mule-font-info-database-ps-bdf
+  (cons '(latin-iso8859-1
+	  (normal nil nil iso-latin-1))
+	(cdr (cdr ps-mule-font-info-database-bdf)))
+  "Sample setting of the `ps-mule-font-info-database to use BDF fonts.
+
+Current default value lists BDF fonts included in `intlfonts-1.1'
+which is a collection of X11 fonts for all characters supported by
+Emacs.
+
+With the default value, all characters except for ASCII and Latin-1 are
+printed by BDF fonts.   ASCII and Latin-1 charcaters are printed by
+PostScript font specified by `ps-font-family'.
+
+See also `ps-mule-font-info-database-bdf'.")
 
 ;; Two typical encoding functions for PostScript fonts.
 
@@ -3021,19 +3042,19 @@ Emacs.")
 ;; Special encoding function for Ethiopic.
 (define-ccl-program ccl-encode-ethio-unicode
   `(1
-    (read r2)
-    (loop
-     (if (r2 == ,leading-code-private-22)
-	 ((read r0)
-	  (if (r0 == ,(charset-id 'ethiopic))
-	      ((read r1 r2)
-	       (r1 &= 127) (r2 &= 127)
-	       (call ccl-encode-ethio-font)
-	       (write r1)
-	       (write-read-repeat r2))
-	    ((write r2 r0)
-	     (repeat))))
-       (write-read-repeat r2)))))
+    ((read r2)
+     (loop
+      (if (r2 == ,leading-code-private-22)
+	  ((read r0)
+	   (if (r0 == ,(charset-id 'ethiopic))
+	       ((read r1 r2)
+		(r1 &= 127) (r2 &= 127)
+		(call ccl-encode-ethio-font)
+		(write r1)
+		(write-read-repeat r2))
+	     ((write r2 r0)
+	      (repeat))))
+	(write-read-repeat r2))))))
 
 (defun ps-mule-encode-ethiopic (string)
   (ccl-execute-on-string (symbol-value 'ccl-encode-ethio-unicode)
@@ -3130,7 +3151,7 @@ each element of the list."
 	    (format "f%02x-%d"
 		    (charset-id charset) ps-current-font))))
     (if (and func (not font-cache))
-	(ps-output-prologue (funcall func font-spec)))
+	(ps-output-prologue (funcall func charset font-spec)))
     (ps-output-prologue
      (list (format "/%s %f /%s Def%sFontMule\n"
 		   scaled-font-name ps-font-size font-name
@@ -3584,6 +3605,7 @@ NewBitmapDict
 	0 0 setcharwidth
     } {
 	1 index /FontSize get /size exch def
+	1 index /FontSpaceWidthRatio get /ratio exch def
 	1 index /FontIndex get exch FirstCode exch
 	GlobalCharName GetBitmap /bmp exch def
 	%% bmp == [ DWIDTH BBX-WIDTH BBX-HEIGHT BBX-XOFF BBX-YOFF BITMAP ]
@@ -3598,7 +3620,7 @@ NewBitmapDict
 	} ifelse
 	/FirstCode -1 store
 
-	bmp 0 get size div 0		% wx wy
+	bmp 0 get SpaceWidthRatio ratio div mul size div 0	% wx wy
 	setcharwidth			% We can't use setcachedevice here.
 
 	bmp 1 get 0 gt bmp 2 get 0 gt and {
@@ -3631,14 +3653,16 @@ NewBitmapDict
 
 /GlobalFontIndex 0 def
 
-%% fontname dimension fontsize relative-compose baseline-offset fbbx  |-  --
+%% fontname dim col fontsize relative-compose baseline-offset fbbx  |-  --
 /BitmapFont {
-    14 dict begin
+    15 dict begin
     /FontBBox exch def
     /BaselineOffset exch def
     /RelativeCompose exch def
     /FontSize exch def
     /FontBBox [ FontBBox { FontSize div } forall ] def
+    FontBBox 2 get FontBBox 0 get sub exch div
+    /FontSpaceWidthRatio exch def
     /FontDimension exch def
     /FontIndex GlobalFontIndex def
     /FontType 3 def
@@ -3652,7 +3676,7 @@ NewBitmapDict
 } bind def
 
 %% Define a new bitmap font.
-%% fontname dimension fontsize relative-compose baseline-offset fbbx  |-  --
+%% fontname dim col fontsize relative-compose baseline-offset fbbx  |-  --
 /NF {
     /fbbx exch def
     %% Convert BDF's FontBoundingBox to PostScript's FontBBox
@@ -3685,7 +3709,7 @@ NewBitmapDict
     (list ps-mule-bitmap-prologue)))
 
 (defun ps-mule-generate-bitmap-font (&rest args)
-  (list (apply 'format "/%s %d %f %S %d %S NF\n" args)))
+  (list (apply 'format "/%s %d %d %f %S %d %S NF\n" args)))
 
 (defun ps-mule-generate-bitmap-glyph (font-name code dwidth bbx bitmap)
   (format "/%s %d [ %d %d %d %d %d <%s> ] NG\n"
@@ -4355,6 +4379,10 @@ page-height == bm + print-height + tm - ho - hh
       (setq font (cdr font)
 	    i (1+ i))))
 
+  (let ((font-entry (cdr (assq ps-font-family ps-font-info-database))))
+    (ps-output (format "/SpaceWidthRatio %f def\n"
+		       (/ (ps-lookup 'space-width) (ps-lookup 'size)))))
+
   (ps-mule-initialize)
 
   (ps-output "\nBeginDoc\n\n"
@@ -4603,7 +4631,7 @@ EndDSCPage\n"))
 	      (ps-plot 'ps-basic-plot-string from match-point bg-color))
 	    (cond
 	     ((= match ?\t)		; tab
-	      (let ((linestart (save-excursion (beginning-of-line) (point))))
+	      (let ((linestart (line-beginning-position)))
 		(forward-char -1)
 		(setq from (+ linestart (current-column)))
 		(when (re-search-forward "[ \t]+" to t)
