@@ -3980,7 +3980,7 @@ detect_coding_mask (source, src_bytes, priorities, skip, multibytep)
       int try;
 
       if (multibytep && c == LEADING_CODE_8_BIT_CONTROL)
-	c = *src++ - 0x20;
+	c = src[1] - 0x20;
 
       if (c < 0xA0)
 	{
