@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.9900
+;; Version: 1.9901
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -31,6 +31,7 @@
 ;;; Code:
 
 (require 'widget)
+(eval-when-compile (require 'cl))
 
 ;;; Compatibility.
 
@@ -567,27 +568,23 @@ automatically."
 		       (repeat :tag "Suffixes"
 			       (string :format "%v")))))
 
-(defun widget-glyph-insert (widget tag image)
-  "In WIDGET, insert the text TAG or, if supported, IMAGE.
-IMAGE should either be a glyph, an image instantiator, or an image file
-name sans extension (xpm, xbm, gif, jpg, or png) located in
-`widget-glyph-directory'.
-
-WARNING: If you call this with a glyph, and you want the user to be
-able to invoke the glyph, make sure it is unique.  If you use the
-same glyph for multiple widgets, invoking any of the glyphs will
-cause the last created widget to be invoked."
-  (cond ((not (and (string-match "XEmacs" emacs-version)
+(defun widget-glyph-find (image tag)
+  "Create a glyph corresponding to IMAGE with string TAG as fallback.
+IMAGE should either already be a glyph, or be a file name sans
+extension (xpm, xbm, gif, jpg, or png) located in
+`widget-glyph-directory'." 
+  (cond ((not (and image 
+		   (string-match "XEmacs" emacs-version)
 		   widget-glyph-enable
 		   (fboundp 'make-glyph)
 		   (fboundp 'locate-file)
 		   image))
 	 ;; We don't want or can't use glyphs.
-	 (insert tag))
+	 nil)
 	((and (fboundp 'glyphp)
 	      (glyphp image))
-	 ;; Already a glyph.  Insert it.
-	 (widget-glyph-insert-glyph widget image))
+	 ;; Already a glyph.  Use it.
+	 image)
 	((stringp image)
 	 ;; A string.  Look it up in relevant directories.
 	 (let* ((dirlist (list (or widget-glyph-directory
@@ -599,50 +596,65 @@ cause the last created widget to be invoked."
 	   (while (and formats (not file))
 	     (if (valid-image-instantiator-format-p (car (car formats)))
 		 (setq file (locate-file image dirlist
-					 (mapconcat 'identity (cdr (car formats))
+					 (mapconcat 'identity
+						    (cdr (car formats))
 						    ":")))
 	       (setq formats (cdr formats))))
 	   ;; We create a glyph with the file as the default image
 	   ;; instantiator, and the TAG fallback
-	   (widget-glyph-insert-glyph
-	    widget
-	    (make-glyph (if file
-			    (list (vector (car (car formats)) ':file file)
-				  (vector 'string ':data tag))
-			  (vector 'string ':data tag))))))
+	   (make-glyph (if file
+			   (list (vector (car (car formats)) ':file file)
+				 (vector 'string ':data tag))
+			 (vector 'string ':data tag)))))
 	((valid-instantiator-p image 'image)
 	 ;; A valid image instantiator (e.g. [gif :file "somefile"] etc.)
-	 (widget-glyph-insert-glyph
-	  widget
-	  (make-glyph (list image
-			    (vector 'string ':data tag)))))
+	 (make-glyph (list image
+			   (vector 'string ':data tag))))
 	(t
 	 ;; Oh well.
-	 (insert tag))))
+	 nil)))
+
+(defun widget-glyph-insert (widget tag image &optional down inactive)
+  "In WIDGET, insert the text TAG or, if supported, IMAGE.
+IMAGE should either be a glyph, an image instantiator, or an image file
+name sans extension (xpm, xbm, gif, jpg, or png) located in
+`widget-glyph-directory'.
+
+Optional arguments DOWN and INACTIVE is used instead of IMAGE when the
+glyph is pressed or inactive, respectively. 
+
+WARNING: If you call this with a glyph, and you want the user to be
+able to invoke the glyph, make sure it is unique.  If you use the
+same glyph for multiple widgets, invoking any of the glyphs will
+cause the last created widget to be invoked."
+  (let ((glyph (widget-glyph-find image tag)))
+    (if glyph 
+	(widget-glyph-insert-glyph widget 
+				   glyph
+				   (widget-glyph-find down tag)
+				   (widget-glyph-find inactive tag))
+      (insert tag))))
 
 (defun widget-glyph-insert-glyph (widget glyph &optional down inactive)
-  "In WIDGET, with alternative text TAG, insert GLYPH."
+  "In WIDGET, insert GLYPH.
+If optional arguments DOWN and INACTIVE are given, they should be
+glyphs used when the widget is pushed and inactive, respectively."
   (set-glyph-property glyph 'widget widget)
   (when down
     (set-glyph-property down 'widget widget))
   (when inactive
     (set-glyph-property inactive 'widget widget))
   (insert "*")
-  (add-text-properties (1- (point)) (point) 
-		       (list 'invisible t
-			     'end-glyph glyph))
+  (let ((ext (make-extent (point) (1- (point))))
+	(help-echo (widget-get widget :help-echo)))
+    (set-extent-property ext 'invisible t)
+    (set-extent-end-glyph ext glyph)
+    (when help-echo
+      (set-extent-property ext 'balloon-help help-echo)
+      (set-extent-property ext 'help-echo help-echo)))
   (widget-put widget :glyph-up glyph)
   (when down (widget-put widget :glyph-down down))
-  (when inactive (widget-put widget :glyph-inactive inactive))
-  (let ((help-echo (widget-get widget :help-echo)))
-    (when help-echo
-      (let ((extent (extent-at (1- (point)) nil 'end-glyph))
-	    (help-property (if (featurep 'balloon-help)
-			       'balloon-help
-			     'help-echo)))
-	(set-extent-property extent help-property (if (stringp help-echo)
-						      help-echo
-						    'widget-mouse-help))))))
+  (when inactive (widget-put widget :glyph-inactive inactive)))
 
 ;;; Buttons.
 
@@ -653,12 +665,12 @@ cause the last created widget to be invoked."
 (defcustom widget-button-prefix ""
   "String used as prefix for buttons."
   :type 'string
-  :group 'widgets)
+  :group 'widget-button)
 
 (defcustom widget-button-suffix ""
   "String used as suffix for buttons."
   :type 'string
-  :group 'widgets)
+  :group 'widget-button)
 
 (defun widget-button-insert-indirect (widget key)
   "Insert value of WIDGET's KEY property."
@@ -1313,20 +1325,10 @@ Optional EVENT is the event that triggered the action."
 	     ;; Get rid of trailing newlines.
 	     (when (string-match "\n+\\'" doc-text)
 	       (setq doc-text (substring doc-text 0 (match-beginning 0))))
-	     (setq buttons
-		   (cons (if (string-match "\n." doc-text)
-			     ;; Allow multiline doc to be hiden.
-			     (widget-create-child-and-convert
-			      widget 'widget-help 
-			      :doc (progn
-				     (string-match "\\`.*" doc-text)
-				     (match-string 0 doc-text))
-			      :widget-doc doc-text
-			      "?")
-			   ;; A single line is just inserted.
-			   (widget-create-child-and-convert
-			    widget 'item :format "%d" :doc doc-text nil))
-			 buttons))))
+	     (push (widget-create-child-and-convert
+		    widget 'documentation-string
+		    doc-text)
+		   buttons)))
 	  (t 
 	   (error "Unknown escape `%c'" escape)))
     (widget-put widget :buttons buttons)))
@@ -1495,8 +1497,7 @@ If END is omitted, it defaults to the length of LIST."
 	(progn 
 	  (unless gui
 	    (setq gui (make-gui-button tag 'widget-gui-action widget))
-	    (setq widget-push-button-cache
-		  (cons (cons tag gui) widget-push-button-cache)))
+	    (push (cons tag gui) widget-push-button-cache))
 	  (widget-glyph-insert-glyph widget
 				     (make-glyph
 				      (list (nth 0 (aref gui 1))
@@ -2451,14 +2452,13 @@ when he invoked the menu."
       (and (eq (preceding-char) ?\n)
 	   (widget-get widget :indent)
 	   (insert-char ?  (widget-get widget :indent)))
-      (setq children
-	    (cons (cond ((null answer)
-			 (widget-create-child widget arg))
-			((widget-get arg :inline)
-			 (widget-create-child-value widget arg  (car answer)))
-			(t
-			 (widget-create-child-value widget arg  (car (car answer)))))
-		  children)))
+      (push (cond ((null answer)
+		   (widget-create-child widget arg))
+		  ((widget-get arg :inline)
+		   (widget-create-child-value widget arg  (car answer)))
+		  (t
+		   (widget-create-child-value widget arg  (car (car answer)))))
+	    children))
     (widget-put widget :children (nreverse children))))
 
 (defun widget-group-match (widget values)
@@ -2484,20 +2484,74 @@ when he invoked the menu."
 	(cons found vals)
       nil)))
 
-;;; The `widget-help' Widget.
+;;; The `visibility' Widget.
 
-(define-widget 'widget-help 'push-button
-  "The widget documentation button."
-  :format "%[%v%] %d"
-  :help-echo "Toggle display of documentation."
-  :action 'widget-help-action)
+(define-widget 'visibility 'item
+  "An indicator and manipulator for hidden items."
+  :format "%[%v%]"
+  :button-prefix ""
+  :button-suffix ""
+  :on "hide"
+  :off "more"
+  :value-create 'widget-visibility-value-create
+  :action 'widget-toggle-action
+  :match (lambda (widget value) t))
 
-(defun widget-help-action (widget &optional event)
-  "Toggle documentation for WIDGET."
-  (let ((old (widget-get widget :doc))
-	(new (widget-get widget :widget-doc)))
-    (widget-put widget :doc new)
-    (widget-put widget :widget-doc old))
+(defun widget-visibility-value-create (widget)
+  ;; Insert text representing the `on' and `off' states.
+  (let ((on (widget-get widget :on))
+	(off (widget-get widget :off)))
+    (if on
+	(setq on (concat widget-push-button-prefix
+			 on
+			 widget-push-button-suffix))
+      (setq on ""))
+    (if off
+	(setq off (concat widget-push-button-prefix
+			 off
+			 widget-push-button-suffix))
+      (setq off ""))
+    (if (widget-value widget)
+	(widget-glyph-insert widget on "down" "down-pushed")
+      (widget-glyph-insert widget off "right" "right-pushed")
+      (insert "..."))))
+
+;;; The `documentation-string' Widget.
+
+(define-widget 'documentation-string 'item
+  "A documentation string."
+  :format "%v"
+  :action 'widget-documentation-string-action
+  :value-delete 'widget-children-value-delete
+  :value-create 'widget-documentation-string-value-create)
+
+(defun widget-documentation-string-value-create (widget)
+  ;; Insert documentation string.
+  (let ((doc (widget-value widget))
+	(shown (widget-get (widget-get widget :parent) :documentation-shown)))
+    (if (string-match "\n" doc)
+	(let ((before (substring doc 0 (match-beginning 0)))
+	      (after (substring doc (match-beginning 0)))
+	      buttons)
+	  (insert before " ")
+	  (push (widget-create-child-and-convert
+		 widget 'visibility
+		 :off nil
+		 :action 'widget-parent-action
+		 shown)
+		buttons)
+	  (when shown
+	    (insert after))
+	  (widget-put widget :buttons buttons))
+      (insert doc)))
+  (insert "\n"))
+
+(defun widget-documentation-string-action (widget &rest ignore)
+  ;; Toggle documentation.
+  (let ((parent (widget-get widget :parent)))
+    (widget-put parent :documentation-shown 
+		(not (widget-get parent :documentation-shown))))
+  ;; Redraw.
   (widget-value-set widget (widget-value widget)))
 
 ;;; The Sexp Widgets.

@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
-;; Version: 1.9900
+;; Version: 1.9901
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -517,7 +517,7 @@ if that fails, the doc string with `custom-guess-doc-alist'."
   "Function used for sorting group members in buffers.
 The value should be useful as a predicate for `sort'.  
 The list to be sorted is the value of the groups `custom-group' property."
-  :type '(radio (function-item 'custom-buffer-sort-alphabetically)
+  :type '(radio (function-item custom-buffer-sort-alphabetically)
 		(function :tag "Other"))
   :group 'customize)
 
@@ -539,7 +539,7 @@ sorted after all non-groups."
   "Function used for sorting group members in menus.
 The value should be useful as a predicate for `sort'.  
 The list to be sorted is the value of the groups `custom-group' property."
-  :type '(radio (function-item 'custom-menu-sort-alphabetically)
+  :type '(radio (function-item custom-menu-sort-alphabetically)
 		(function :tag "Other"))
   :group 'customize)
 
@@ -1028,8 +1028,8 @@ uninitialized, you should not see this.")
 			       (unknown "?" italic "\
 unknown, you should not see this.")
 			       (hidden "-" default "\
-hidden, invoke the state button to show." "\
-group now hidden, invoke the state button to show contents.")
+hidden, invoke the dots above to show." "\
+group now hidden, invoke the dots above to show contents.")
 			       (invalid "x" custom-invalid-face "\
 the value displayed for this item is invalid and cannot be set.")
 			       (modified "*" custom-modified-face "\
@@ -1088,10 +1088,16 @@ left out, ITEM-DESC will be used.
 The list should be sorted most significant first.")
 
 (defcustom custom-magic-show 'long
-  "Show long description of the state of each customization option."
+  "If non-nil, show textual description of the state.
+If non-nil and not the symbol `long', only show first word."
   :type '(choice (const :tag "no" nil)
 		 (const short)
 		 (const long))
+  :group 'customize)
+
+(defcustom custom-magic-show-hidden nil
+  "If non-nil, also show long state description of hidden options."
+  :type 'boolean
   :group 'customize)
 
 (defcustom custom-magic-show-button nil
@@ -1118,6 +1124,7 @@ The list should be sorted most significant first.")
   ;; Create compact status report for WIDGET.
   (let* ((parent (widget-get widget :parent))
 	 (state (widget-get parent :custom-state))
+	 (hidden (eq state 'hidden))
 	 (entry (assq state custom-magic-alist))
 	 (magic (nth 1 entry))
 	 (face (nth 2 entry))
@@ -1126,13 +1133,14 @@ The list should be sorted most significant first.")
 		   (nth 3 entry)))
 	 (lisp (eq (widget-get parent :custom-form) 'lisp))
 	 children)
-    (when custom-magic-show
+    (when (and custom-magic-show
+	       (or custom-magic-show-hidden (not hidden)))
       (insert "   ")
       (push (widget-create-child-and-convert 
 	     widget 'choice-item 
 	     :help-echo "\
 Change the state of this item."
-	     :format "%[%t%]"
+	     :format (if hidden "%t" "%[%t%]")
 	     :button-prefix 'widget-push-button-prefix
 	     :button-suffix 'widget-push-button-suffix
 	     :mouse-down-action 'widget-magic-mouse-down-action
@@ -1154,8 +1162,10 @@ Change the state of this item."
 	     widget 'choice-item 
 	     :mouse-down-action 'widget-magic-mouse-down-action
 	     :button-face face
+	     :button-prefix ""
+	     :button-suffix ""
 	     :help-echo "Change the state."
-	     :format "%[%t%]"
+	     :format (if hidden "%t" "%[%t%]")
 	     :tag (if lisp 
 		      (concat "(" magic ")")
 		    (concat "[" magic "]")))
@@ -1201,13 +1211,25 @@ Change the state of this item."
 	 (level (widget-get widget :custom-level)))
     (cond ((eq escape ?l)
 	   (when level 
-	     (push (widget-create-child-and-convert
-		    widget 'item :format "%v " (make-string level ?*))
-		   buttons)
-	     (widget-put widget :buttons buttons)))
+	     (if (eq state 'hidden)
+		 (insert-char ?- (* 2 level))
+	       (insert "/" (make-string (1- (* 2 level)) ?-)))))
+	  ((eq escape ?e)
+	   (when (and level (not (eq state 'hidden)))
+	     (insert "\n\\" (make-string (1- (* 2 level)) ?-) " "
+		     (widget-get widget :tag) " group end ")
+	     (insert (make-string (- 75 (current-column)) ?-) "/\n")))
+	  ((eq escape ?-)
+	   (when level 
+	     (if (eq state 'hidden)
+		 (insert-char ?- (- 77 (current-column)))		 
+	       (insert (make-string (- 76 (current-column)) ?-) "\\"))))
 	  ((eq escape ?L)
-	   (when (eq state 'hidden)
-	     (widget-insert " ...")))
+	   (push (widget-create-child-and-convert
+		  widget 'visibility
+		  :action 'custom-toggle-parent
+		  (not (eq state 'hidden)))
+		 buttons))
 	  ((eq escape ?m)
 	   (and (eq (preceding-char) ?\n)
 		(widget-get widget :indent)
@@ -1218,27 +1240,28 @@ Change the state of this item."
 	     (push magic buttons)
 	     (widget-put widget :buttons buttons)))
 	  ((eq escape ?a)
-	   (let* ((symbol (widget-get widget :value))
-		  (links (get symbol 'custom-links))
-		  (many (> (length links) 2)))
-	     (when links
-	       (and (eq (preceding-char) ?\n)
-		    (widget-get widget :indent)
-		    (insert-char ?  (widget-get widget :indent)))
-	       (insert "See also ")
-	       (while links
-		 (push (widget-create-child-and-convert widget (car links))
-		       buttons)
-		 (setq links (cdr links))
-		 (cond ((null links)
-			(insert ".\n"))
-		       ((null (cdr links))
-			(if many
-			    (insert ", and ")
-			  (insert " and ")))
-		       (t 
-			(insert ", "))))
-	       (widget-put widget :buttons buttons))))
+	   (unless (eq state 'hidden)
+	     (let* ((symbol (widget-get widget :value))
+		    (links (get symbol 'custom-links))
+		    (many (> (length links) 2)))
+	       (when links
+		 (and (eq (preceding-char) ?\n)
+		      (widget-get widget :indent)
+		      (insert-char ?  (widget-get widget :indent)))
+		 (insert "See also ")
+		 (while links
+		   (push (widget-create-child-and-convert widget (car links))
+			 buttons)
+		   (setq links (cdr links))
+		   (cond ((null links)
+			  (insert ".\n"))
+			 ((null (cdr links))
+			  (if many
+			      (insert ", and ")
+			    (insert " and ")))
+			 (t 
+			  (insert ", "))))
+		 (widget-put widget :buttons buttons)))))
 	  (t 
 	   (widget-default-format-handler widget escape)))))
 
@@ -1329,8 +1352,13 @@ Change the state of this item."
 	  ((eq state 'hidden)
 	   (widget-put widget :custom-state 'unknown))
 	  (t 
+	   (widget-put widget :documentation-shown nil)
 	   (widget-put widget :custom-state 'hidden)))
     (custom-redraw widget)))
+
+(defun custom-toggle-parent (widget &rest ignore)
+  "Toggle visibility of parent to WIDGET."
+  (custom-toggle-hide (widget-get widget :parent)))
 
 ;;; The `custom-variable' Widget.
 
@@ -1405,11 +1433,16 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 	   ;; Indicate hidden value.
 	   (push (widget-create-child-and-convert 
 		  widget 'item
-		  :format "%{%t%}: ..."
+		  :format "%{%t%}: "
 		  :sample-face 'custom-variable-sample-face
 		  :tag tag
 		  :parent widget)
-		 children))
+		 buttons)
+	   (push (widget-create-child-and-convert 
+		  widget 'visibility
+		  :action 'custom-toggle-parent
+		  nil)
+		 buttons))
 	  ((eq form 'lisp)
 	   ;; In lisp mode edit the saved value when possible.
 	   (let* ((value (cond ((get symbol 'saved-value)
@@ -1420,22 +1453,49 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 				(custom-quote (funcall get symbol)))
 			       (t
 				(custom-quote (widget-get conv :value))))))
+	     (insert (symbol-name symbol) ": ")
+	     (push (widget-create-child-and-convert 
+		  widget 'visibility
+		  :action 'custom-toggle-parent
+		  t)
+		 buttons)
+	     (insert " ")
 	     (push (widget-create-child-and-convert 
 		    widget 'sexp 
 		    :button-face 'custom-variable-button-face
+		    :format "%v"
 		    :tag (symbol-name symbol)
 		    :parent widget
 		    :value value)
 		   children)))
 	  (t
 	   ;; Edit mode.
-	   (push (widget-create-child-and-convert
-		  widget type 
-		  :tag tag
-		  :button-face 'custom-variable-button-face
-		  :sample-face 'custom-variable-sample-face
-		  :value value)
-		 children)))
+	   (let* ((format (widget-get type :format))
+		  tag-format value-format)
+	     (unless (string-match ":" format)
+	       (error "Bad format."))
+	     (setq tag-format (substring format 0 (match-end 0)))
+	     (setq value-format (substring format (match-end 0)))
+	     (push (widget-create-child-and-convert
+		    widget 'item 
+		    :format tag-format
+		    :action 'custom-tag-action
+		    :mouse-down-action 'custom-tag-mouse-down-action
+		    :button-face 'custom-variable-button-face
+		    :sample-face 'custom-variable-sample-face
+		    tag)
+		   buttons)
+	     (insert " ")
+	     (push (widget-create-child-and-convert 
+		  widget 'visibility
+		  :action 'custom-toggle-parent
+		  t)
+		 buttons)	     
+	     (push (widget-create-child-and-convert
+		    widget type 
+		    :format value-format
+		    :value value)
+		   children))))
     ;; Now update the state.
     (unless (eq (preceding-char) ?\n)
       (widget-insert "\n"))
@@ -1445,6 +1505,16 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
     (widget-put widget :custom-form form)	     
     (widget-put widget :buttons buttons)
     (widget-put widget :children children)))
+
+(defun custom-tag-action (widget &rest args)
+  "Pass :action to first child of WIDGET's parent."
+  (apply 'widget-apply (car (widget-get (widget-get widget :parent) :children))
+	 :action args))
+
+(defun custom-tag-mouse-down-action (widget &rest args)
+  "Pass :mouse-down-action to first child of WIDGET's parent."
+  (apply 'widget-apply (car (widget-get (widget-get widget :parent) :children))
+	 :mouse-down-action args))
 
 (defun custom-variable-state-set (widget)
   "Set the state of WIDGET."
@@ -1476,10 +1546,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
     (widget-put widget :custom-state state)))
 
 (defvar custom-variable-menu 
-  '(("Hide" custom-toggle-hide
-     (lambda (widget)
-       (not (memq (widget-get widget :custom-state) '(modified invalid)))))
-     ("Edit" custom-variable-edit 
+  '(("Edit" custom-variable-edit 
      (lambda (widget)
        (not (eq (widget-get widget :custom-form) 'edit))))
     ("Edit Lisp" custom-variable-edit-lisp
@@ -1712,7 +1779,7 @@ Match frames with dark backgrounds.")
 
 (define-widget 'custom-face 'custom
   "Customize face."
-  :format "%{%t%}: %s%m%h%a%v"
+  :format "%{%t%}: %s %L\n%m%h%a%v"
   :format-handler 'custom-face-format-handler
   :sample-face 'custom-face-tag-face
   :help-echo "Set or reset this face."
@@ -1739,7 +1806,7 @@ Match frames with dark backgrounds.")
 		(copy-face 'custom-face-empty symbol))
 	   (setq child (widget-create-child-and-convert 
 			widget 'item
-			:format "(%{%t%})\n"
+			:format "(%{%t%})"
 			:sample-face symbol
 			:tag "sample")))
 	  (t 
@@ -1813,10 +1880,7 @@ Match frames with dark backgrounds.")
     (message "Creating face editor...done")))
 
 (defvar custom-face-menu 
-  '(("Hide" custom-toggle-hide
-     (lambda (widget)
-       (not (memq (widget-get widget :custom-state) '(modified invalid)))))
-    ("Edit Selected" custom-face-edit-selected
+  '(("Edit Selected" custom-face-edit-selected
      (lambda (widget)
        (not (eq (widget-get widget :custom-form) 'selected))))
     ("Edit All" custom-face-edit-all
@@ -1955,7 +2019,7 @@ Optional EVENT is the location for the menu."
   (let* ((symbol (widget-value widget))
 	 (child (widget-create-child-and-convert
 		 widget 'custom-face
-		 :format "%t %s%m%h%v"
+		 :format "%t %s %L\n%m%h%v"
 		 :custom-level nil
 		 :value symbol)))
     (custom-magic-reset child)
@@ -2039,7 +2103,7 @@ and so forth.  The remaining group tags are shown with
 
 (define-widget 'custom-group 'custom
   "Customize group."
-  :format "%l%{%t%}:%L\n%m%h%a%v"
+  :format "%l %{%t%} group: %L %-\n%m%h%a%v%e"
   :sample-face-get 'custom-group-sample-face-get
   :documentation-property 'group-documentation
   :help-echo "Set or reset all members of this group."
@@ -2096,10 +2160,7 @@ and so forth.  The remaining group tags are shown with
 	(message "Creating group... done")))))
 
 (defvar custom-group-menu 
-  '(("Hide" custom-toggle-hide
-     (lambda (widget)
-       (not (memq (widget-get widget :custom-state) '(modified invalid)))))
-    ("Set" custom-group-set
+  '(("Set" custom-group-set
      (lambda (widget)
        (eq (widget-get widget :custom-state) 'modified)))
     ("Save" custom-group-save
