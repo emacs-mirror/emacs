@@ -362,7 +362,7 @@ autoloads go somewhere else.")
 				  nil t)
 				 nil
 			       (if (interactive-p)
-				   (message file " has no autoloads"))
+				   (message "%s has no autoloads" file))
 			       t)
 			   (or existing-buffer
 			       (kill-buffer (current-buffer))))))))
