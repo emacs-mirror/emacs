@@ -8927,6 +8927,8 @@ XTread_socket (sd, bufp, numchars, expected)
   if (numchars <= 0)
     abort ();			/* Don't think this happens.  */
 
+  ++handling_signal;
+  
   /* Find the display we are supposed to read input for.
      It's the one communicating on descriptor SD.  */
   for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
@@ -10046,6 +10048,7 @@ XTread_socket (sd, bufp, numchars, expected)
     }
 
   UNBLOCK_INPUT;
+  --handling_signal;
   return count;
 }
 
