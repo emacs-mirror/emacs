@@ -1485,7 +1485,7 @@ item in another window.\n\n"))
 (defface custom-invalid-face '((((class color))
 				(:foreground "yellow" :background "red"))
 			       (t
-				(:bold t :italic t :underline t)))
+				(:weight bold :slant italic :underline t)))
   "Face used when the customize item is invalid."
   :group 'custom-magic-faces)
 
@@ -1499,21 +1499,21 @@ item in another window.\n\n"))
 (defface custom-modified-face '((((class color))
 				 (:foreground "white" :background "blue"))
 				(t
-				 (:italic t :bold)))
+				 (:slant italic :bold)))
   "Face used when the customize item has been modified."
   :group 'custom-magic-faces)
 
 (defface custom-set-face '((((class color))
 				(:foreground "blue" :background "white"))
 			       (t
-				(:italic t)))
+				(:slant italic)))
   "Face used when the customize item has been set."
   :group 'custom-magic-faces)
 
 (defface custom-changed-face '((((class color))
 				(:foreground "white" :background "blue"))
 			       (t
-				(:italic t)))
+				(:slant italic)))
   "Face used when the customize item has been changed."
   :group 'custom-magic-faces)
 
@@ -1958,7 +1958,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 				 (background dark))
 				(:background "dim gray"))
 			       (t
-				(:italic t)))
+				(:slant italic)))
   "Face used for comments on variables or faces"
   :version "21.1"
   :group 'custom-faces)
@@ -1968,10 +1968,10 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   '((((class color) (background dark)) (:foreground "gray80"))
     (((class color) (background light)) (:foreground "blue4"))
     (((class grayscale) (background light))
-     (:foreground "DimGray" :bold t :italic t))
+     (:foreground "DimGray" :weight bold :slant italic))
     (((class grayscale) (background dark))
-     (:foreground "LightGray" :bold t :italic t))
-    (t (:bold t)))
+     (:foreground "LightGray" :weight bold :slant italic))
+    (t (:weight bold)))
   "Face used for variables or faces comment tags"
   :group 'custom-faces)
 
@@ -2016,15 +2016,15 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 (defface custom-variable-tag-face
   `((((class color)
       (background dark))
-     (:foreground "light blue" :bold t :height 1.2 :inherit variable-pitch))
+     (:foreground "light blue" :weight bold :height 1.2 :inherit variable-pitch))
     (((class color)
       (background light))
-     (:foreground "blue" :bold t :height 1.2 :inherit variable-pitch))
-    (t (:bold t)))
+     (:foreground "blue" :weight bold :height 1.2 :inherit variable-pitch))
+    (t (:weight bold)))
   "Face used for unpushable variable tags."
   :group 'custom-faces)
 
-(defface custom-variable-button-face '((t (:underline t :bold t)))
+(defface custom-variable-button-face '((t (:underline t :weight bold)))
   "Face used for pushable variable tags."
   :group 'custom-faces)
 
@@ -2476,7 +2476,6 @@ restoring it to the state of a variable that has never been customized."
   "Ignoring WIDGET, convert :bold and :italic in VALUE to new form."
   (let (result)
     (while value
-      (assert (cdr value))
       (let ((key (car value))
 	    (val (car (cdr value))))
 	(cond ((eq key :italic)
@@ -2632,7 +2631,7 @@ Match frames with dark backgrounds.")
 ;;; The `custom-face' Widget.
 
 (defface custom-face-tag-face
-  `((t (:bold t :height 1.2 :inherit variable-pitch)))
+  `((t (:weight bold :height 1.2 :inherit variable-pitch)))
   "Face used for face tags."
   :group 'custom-faces)
 
@@ -3140,22 +3139,22 @@ and so forth.  The remaining group tags are shown with
 (defface custom-group-tag-face-1
   `((((class color)
       (background dark))
-     (:foreground "pink" :bold t :height 1.2 :inherit variable-pitch))
+     (:foreground "pink" :weight bold :height 1.2 :inherit variable-pitch))
     (((class color)
       (background light))
-     (:foreground "red" :bold t :height 1.2 :inherit variable-pitch))
-    (t (:bold t)))
+     (:foreground "red" :weight bold :height 1.2 :inherit variable-pitch))
+    (t (:weight bold)))
   "Face used for group tags."
   :group 'custom-faces)
 
 (defface custom-group-tag-face
   `((((class color)
       (background dark))
-     (:foreground "light blue" :bold t :height 1.2))
+     (:foreground "light blue" :weight bold :height 1.2))
     (((class color)
       (background light))
-     (:foreground "blue" :bold t :height 1.2))
-    (t (:bold t)))
+     (:foreground "blue" :weight bold :height 1.2))
+    (t (:weight bold)))
   "Face used for low level group tags."
   :group 'custom-faces)
 
