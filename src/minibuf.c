@@ -31,6 +31,7 @@ Boston, MA 02111-1307, USA.  */
 #include "frame.h"
 #include "window.h"
 #include "syntax.h"
+#include "intervals.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 

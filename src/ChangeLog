@@ -1,3 +1,7 @@
+2000-12-05  Ken Raeburn  <raeburn@gnu.org>
+
+	* minibuf.c: Include intervals.h.
+
 2000-12-05  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (x_produce_glyphs): If a font for a component of
