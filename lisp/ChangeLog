@@ -1,3 +1,8 @@
+2003-02-24  Ken Manheimer  <klm@zope.com>
+
+	* allout.el (outline-pre-command-business): Fix docstring and
+	update maintainer's e-mail address.
+
 2003-02-20  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in (WINS): Add obsolete and toolbar directories.

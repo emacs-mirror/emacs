@@ -2,10 +2,10 @@
 
 ;; Copyright (C) 1992, 1993, 1994, 2001 Free Software Foundation, Inc.
 
-;; Author: Ken Manheimer <klm@python.org>
-;; Maintainer: Ken Manheimer <klm@python.org>
+;; Author: Ken Manheimer <klm@zope.com>
+;; Maintainer: Ken Manheimer <klm@zope.com>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.29 2001/07/16 11:39:41 pj Exp $||
+;; Version: $Id: allout.el,v 1.29.4.1 2002/07/03 13:29:59 lektu Exp $||
 ;; Keywords: outline mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -58,7 +58,7 @@
 ;; Note - the lines beginning with `;;;_' are outline topic headers.
 ;;        Just `ESC-x eval-current-buffer' to give it a whirl.
 
-;; Ken Manheimer	klm@python.org
+;; Ken Manheimer	klm@zope.com
 
 ;;; Code:
 
@@ -509,7 +509,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = outline-version
 (defvar outline-version
-  (let ((rcs-rev "$Revision: 1.29 $"))
+  (let ((rcs-rev "$Revision: 1.29.4.1 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -2330,18 +2330,19 @@ outline-mode-map.")
 ;;;_   > outline-pre-command-business ()
 (defun outline-pre-command-business ()
   "Outline pre-command-hook function for outline buffers.
-Implements special behavior when cursor is on bullet char.
+Implements special behavior when cursor is on bullet character.
 
-Self-insert characters are reinterpreted control-character references
-into the outline-mode-map.  The outline-mode post-command hook will
-position a cursor that has moved as a result of such reinterpretation,
-on the destination topic's bullet, when the cursor wound up in the
+When the cursor is on the bullet character, self-insert characters are
+reinterpreted as the corresponding control-character in the
+outline-mode map.  The outline-mode post-command-hook insures that the
+cursor which has moved as a result of such reinterpretation is
+positioned on the bullet character of the destination topic.
 
 The upshot is that you can get easy, single (ie, unmodified) key
 outline maneuvering operations by positioning the cursor on the bullet
-char.  You stay in this mode until you use some regular
-cursor-positioning command to relocate the cursor off of a bullet
-char."
+char.  When in this mode you can use regular cursor-positioning
+command/keystrokes to relocate the cursor off of a bullet character to
+return to regular interpretation of self-insert characters."
 
   (if (not (outline-mode-p))
       ;; Shouldn't be invoked if not in allout outline-mode, but just in case:
