@@ -275,7 +275,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
 		  if (nchars > nbytes)
 		    abort ();
 		      
-		  SCHARS (fullname) = nchars;
+		  STRING_SET_CHARS (fullname, nchars);
 		  if (nchars == nbytes)
 		    STRING_SET_UNIBYTE (fullname);
 		  
