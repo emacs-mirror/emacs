@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(defvar sentence-end-save nil)
+
 ;;;###autoload
 (defun setup-japanese-environment ()
   "Setup multilingual environment (MULE) for Japanese."
@@ -33,7 +35,12 @@
   (if (eq system-type 'ms-dos)
       (prefer-coding-system 'japanese-shift-jis))
   (setq default-file-name-coding-system 'japanese-iso-8bit)
-  (setq default-input-method "japanese"))
+  (setq default-input-method "japanese")
+  (setq sentence-end-save sentence-end)
+  (setq sentence-end (concat sentence-end "\\|[。？！]")))
+
+(defun exit-japanese-environment ()
+  (setq sentence-end sentence-end-save))
 
 (defconst japanese-kana-table
   '((?あ ?ア ?ｱ) (?い ?イ ?ｲ) (?う ?ウ ?ｳ) (?え ?エ ?ｴ) (?お ?オ ?ｵ)
