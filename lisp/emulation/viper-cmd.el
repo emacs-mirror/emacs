@@ -1814,7 +1814,7 @@ With prefix argument, find next destructive command."
 	(setq viper-intermediate-command
 	      'repeating-display-destructive-command)
       ;; first search through command history--set temp ring
-      (setq viper-temp-command-ring (copy-sequence viper-command-ring)))
+      (setq viper-temp-command-ring (copy-list viper-command-ring)))
     (setq cmd (if next
 		  (viper-special-ring-rotate1 viper-temp-command-ring 1)
 		(viper-special-ring-rotate1 viper-temp-command-ring -1)))
@@ -1848,7 +1848,7 @@ to in the global map, instead of cycling through the insertion ring."
 		 (length viper-last-inserted-string-from-insertion-ring))))
 	  )
       ;;first search through insertion history
-      (setq viper-temp-insertion-ring (copy-sequence viper-insertion-ring)))
+      (setq viper-temp-insertion-ring (copy-list viper-insertion-ring)))
     (setq this-command 'viper-insert-from-insertion-ring)
     ;; so that things will be undone properly
     (setq buffer-undo-list (cons nil buffer-undo-list))
