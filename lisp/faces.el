@@ -1669,15 +1669,17 @@ Value is the new frame created."
 (defun face-set-after-frame-default (frame)
   "Set frame-local faces of FRAME from face specs and resources.
 Initialize colors of certain faces from frame parameters."
+  ;; Don't let frame creation fail because of an invalid face spec.
   (dolist (face (face-list))
-    (when (not (equal face 'default))
-      (face-spec-set face (face-user-default-spec face) frame)
-      (internal-merge-in-global-face face frame)
-      (when (and (memq window-system '(x w32 mac))
-		 (or (not (boundp 'inhibit-default-face-x-resources))
-		     (not (eq face 'default))))
-	(make-face-x-resource-internal face frame))))
-
+    (condition-case ()
+	(when (not (equal face 'default))
+	  (face-spec-set face (face-user-default-spec face) frame)
+	  (internal-merge-in-global-face face frame)
+	  (when (and (memq window-system '(x w32 mac))
+		     (or (not (boundp 'inhibit-default-face-x-resources))
+			 (not (eq face 'default))))
+	    (make-face-x-resource-internal face frame)))
+      (error nil)))
   ;; Initialize attributes from frame parameters.
   (let ((params '((foreground-color default :foreground)
 		  (background-color default :background)
