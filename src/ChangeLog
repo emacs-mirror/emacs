@@ -1,3 +1,10 @@
+2001-07-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (resize_mini_window): Give up when inhibit-redisplay
+	is non-nil, instead of when redisplaying_p is non-zero.  See
+	comment there.
+	(mark_window_display_accurate_1): Add an assertion.
+
 2001-07-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispextern.h (struct it): Increase size of ctl_chars to 16.
