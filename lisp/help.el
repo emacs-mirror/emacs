@@ -1040,8 +1040,7 @@ that."
 			       (end-of-line)
 			       (skip-chars-backward "^\t\n")
                                (if (and (>= (current-column) col)
-					 +(looking-at "\\(\\sw\\|-\\)+$"))
-                                   ;; 
+					(looking-at "\\(\\sw\\|-\\)+$"))
                                    (let ((sym (intern-soft (match-string 0))))
                                      (if (fboundp sym)
                                          (help-xref-button 
