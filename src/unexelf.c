@@ -404,23 +404,9 @@ Filesz      Memsz       Flags       Align
 
  */
 
-/*
- * Modified by rdh@yottayotta.com of Yotta Yotta Incorporated.
- * 
- * The code originally used mmap() to create a memory image of the new
- * and old object files.  This had a few handy features: (1) you get
- * to use a cool system call like mmap, (2) no need to explicitly
- * write out the new file before the close, and (3) no swap space
- * requirements.  Unfortunately, mmap() often fails to work with
- * nfs-mounted file systems.
- *
- * So, instead of relying on the vm subsystem to do the file i/o for
- * us, it's now done explicitly.  A buffer of the right size for the
- * file is dynamically allocated, and either the old_name is read into
- * it, or it is initialized with the correct new executable contents,
- * and then written to new_name.
- */
-
+/* We do not use mmap because that fails with NFS.
+   Instead we read the whole file, modify it, and write it out.  */
+
 #ifndef emacs
 #define fatal(a, b, c) fprintf (stderr, a, b, c), exit (1)
 #include <string.h>
@@ -660,17 +646,16 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 {
   int new_file, old_file, new_file_size;
 
-  /* Pointers to the base of the image of the two files. */
+  /* Pointers to the base of the image of the two files.  */
   caddr_t old_base, new_base;
 
-  /* Pointers to the file, program and section headers for the old and new
-   * files.
-   */
+  /* Pointers to the file, program and section headers for the old and
+     new files.  */
   ElfW(Ehdr) *old_file_h, *new_file_h;
   ElfW(Phdr) *old_program_h, *new_program_h;
   ElfW(Shdr) *old_section_h, *new_section_h;
 
-  /* Point to the section name table in the old file */
+  /* Point to the section name table in the old file.  */
   char *old_section_names;
 
   ElfW(Addr) old_bss_addr, new_bss_addr;
@@ -685,7 +670,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   struct stat stat_buf;
 
   /* Open the old file, allocate a buffer of the right size, and read
-   * in the file contents. */
+     in the file contents.  */
 
   old_file = open (old_name, O_RDONLY);
 
@@ -722,8 +707,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 				   old_name, old_file_h, old_section_h, 1);
 
   /* Find the old .bss section.  Figure out parameters of the new
-   * data2 and bss sections.
-   */
+     data2 and bss sections.  */
 
   old_bss_index = find_section (".bss", old_section_names,
 				old_name, old_file_h, old_section_h, 0);
@@ -778,9 +762,8 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
     fatal (".bss shrank when undumping???\n", 0, 0);
 
   /* Set the output file to the right size.  Allocate a buffer to hold
-   * the image of the new file.  Set pointers to various interesting
-   * objects.  stat_buf still has old_file data.
-   */
+     the image of the new file.  Set pointers to various interesting
+     objects.  stat_buf still has old_file data.  */
 
   new_file = open (new_name, O_RDWR | O_CREAT, 0666);
   if (new_file < 0)
@@ -807,8 +790,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
     ((byte *) new_base + old_file_h->e_shoff + new_data2_size);
 
   /* Make our new file, program and section headers as copies of the
-   * originals.
-   */
+     originals.  */
 
   memcpy (new_file_h, old_file_h, old_file_h->e_ehsize);
   memcpy (new_program_h, old_program_h,
@@ -818,8 +800,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   PATCH_INDEX (new_file_h->e_shstrndx);
 
   /* Fix up file header.  We'll add one section.  Section header is
-   * further away now.
-   */
+     further away now.  */
 
   new_file_h->e_shoff += new_data2_size;
   new_file_h->e_shnum += 1;
@@ -832,12 +813,11 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 #endif
 
   /* Fix up a new program header.  Extend the writable data segment so
-   * that the bss area is covered too. Find that segment by looking
-   * for a segment that ends just before the .bss area.  Make sure
-   * that no segments are above the new .data2.  Put a loop at the end
-   * to adjust the offset and address of any segment that is above
-   * data2, just in case we decide to allow this later.
-   */
+     that the bss area is covered too. Find that segment by looking
+     for a segment that ends just before the .bss area.  Make sure
+     that no segments are above the new .data2.  Put a loop at the end
+     to adjust the offset and address of any segment that is above
+     data2, just in case we decide to allow this later.  */
 
   for (n = new_file_h->e_phnum - 1; n >= 0; n--)
     {
@@ -887,11 +867,10 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 #endif
 
   /* Fix up section headers based on new .data2 section.  Any section
-   * whose offset or virtual address is after the new .data2 section
-   * gets its value adjusted.  .bss size becomes zero and new address
-   * is set.  data2 section header gets added by copying the existing
-   * .data header and modifying the offset, address and size.
-   */
+     whose offset or virtual address is after the new .data2 section
+     gets its value adjusted.  .bss size becomes zero and new address
+     is set.  data2 section header gets added by copying the existing
+     .data header and modifying the offset, address and size.  */
   for (old_data_index = 1; old_data_index < (int) old_file_h->e_shnum;
        old_data_index++)
     if (!strcmp (old_section_names + OLD_SECTION_H (old_data_index).sh_name,
@@ -1217,26 +1196,22 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
       }
     }
 
-  /* Write out new_file, close it, and free the buffer containing its
-   * contents */
+  /* Write out new_file, and free the buffers.  */
 
   if (write (new_file, new_base, new_file_size) != new_file_size)
     fatal ("Didn't write %d bytes to %s: errno %d\n", 
 	   new_file_size, new_base, errno);
 
-  if (close (new_file))
-    fatal ("Can't close (%s): errno %d\n", new_name, errno);
-
+  free (old_base);
   free (new_base);
 
-  /* Close old_file, and free the corresponding buffer */
+  /* Close the files and make the new file executable.  */
 
   if (close (old_file))
     fatal ("Can't close (%s): errno %d\n", old_name, errno);
 
-  free (old_base);
-
-  /* Make the new file executable */
+  if (close (new_file))
+    fatal ("Can't close (%s): errno %d\n", new_name, errno);
 
   if (stat (new_name, &stat_buf) == -1)
     fatal ("Can't stat (%s): errno %d\n", new_name, errno);
