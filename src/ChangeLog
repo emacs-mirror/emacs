@@ -1,10 +1,13 @@
+2002-06-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* .gdbinit (xsymbol): Use the name `xname' field.
+
 2002-06-17  Andrew Choi  <akochoi@shaw.ca>
 
 	* mac.c (do_applescript): Call initialize_applescript if necessary
-	when first called.  Dispose of result_desc only when there is no
-	error.
+	when first called.  Dispose of result_desc only when there is no error.
 	(Fdo_applescript): Use %d format specifier instead of %ld.
-	
+
 2002-06-16  Andrew Choi  <akochoi@shaw.ca>
 
 	* macterm.c (XTread_socket): Call FrontNonFloatingWindow instead
@@ -26,12 +29,11 @@
 	for Mac too.
 	(try_font_list) [MAC_OS]: If no font matches given registry, try
 	fonts with any registry matching face_family.
-	(realize_x_face) [MAC_OS]: Remove old ad-hoc fix to load font
-	here.
+	(realize_x_face) [MAC_OS]: Remove old ad-hoc fix to load font here.
 
 	* s/darwin.h: If autoconf detects the Ncurses library, define
 	LIBS_TERMCAP to -lncurses to use it.
-	
+
 2002-06-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* strftime.c [__hpux]: Include sys/_mbstate_t.h.
