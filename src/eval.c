@@ -1906,6 +1906,8 @@ do_autoload (fundef, funname)
   Lisp_Object fun, queue, first, second;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
+  /* This is to make sure that loadup.el gives a clear picture
+     of what files are preloaded and when.  */
   if (! NILP (Vpurify_flag))
     error ("Attempt to autoload %s while preparing to dump",
 	   XSYMBOL (funname)->name->data);

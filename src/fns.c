@@ -3251,6 +3251,8 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
       int count = specpdl_ptr - specpdl;
       int nesting = 0;
 
+      /* This is to make sure that loadup.el gives a clear picture
+	 of what files are preloaded and when.  */
       if (! NILP (Vpurify_flag))
 	error ("(require %s) while preparing to dump",
 	       XSYMBOL (feature)->name->data);
