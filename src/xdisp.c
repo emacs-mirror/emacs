@@ -6846,7 +6846,7 @@ build_desired_tool_bar_string (f)
 
       int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
-      int margin, relief;
+      int margin, relief, idx;
       extern Lisp_Object QCrelief, QCmargin, QCalgorithm, Qimage;
       extern Lisp_Object Qlaplace;
 
@@ -6855,8 +6855,6 @@ build_desired_tool_bar_string (f)
       image = PROP (TOOL_BAR_ITEM_IMAGES);
       if (VECTORP (image))
 	{
-	  enum tool_bar_item_image idx;
-	  
 	  if (enabled_p)
 	    idx = (selected_p
 		   ? TOOL_BAR_IMAGE_ENABLED_SELECTED
@@ -6866,9 +6864,11 @@ build_desired_tool_bar_string (f)
 		   ? TOOL_BAR_IMAGE_DISABLED_SELECTED
 		   : TOOL_BAR_IMAGE_DISABLED_DESELECTED);
 	  
-	  xassert (XVECTOR (image)->size >= idx);
-	  image = XVECTOR (image)->contents[idx];
+	  xassert (ASIZE (image) >= idx);
+	  image = AREF (image, idx);
 	}
+      else
+	idx = -1;
 
       /* Ignore invalid image specifications.  */
       if (!valid_image_p (image))
@@ -6907,10 +6907,11 @@ build_desired_tool_bar_string (f)
       if (margin)
 	plist = Fplist_put (plist, QCmargin, make_number (margin));
 	  
-      /* If button is not enabled, make the image appear disabled by
+      /* If button is not enabled, and we don't have special images
+	 for the disabled state, make the image appear disabled by
 	 applying an appropriate algorithm to it.  */
-      if (!enabled_p)
-	plist = Fplist_put (plist, QCalgorithm, Qlaplace);
+      if (!enabled_p && idx < 0)
+	plist = Fplist_put (plist, QCalgorithm, Qdisabled);
       
       /* Put a `display' text property on the string for the image to
 	 display.  Put a `menu-item' property on the string that gives
