@@ -1826,7 +1826,7 @@ Otherwise, [0-9A-F]."
 
 ;;;###autoload
 (defun ethio-find-file nil
-  "Transcribe file content into Ethiopic dependig on filename suffix."
+  "Transcribe file content into Ethiopic depending on filename suffix."
   (cond
 
    ((string-match "\\.sera$" (buffer-file-name))
