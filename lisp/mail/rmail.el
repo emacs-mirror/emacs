@@ -522,6 +522,9 @@ Note:    it means the file has no messages in it.\n\^_")))
 ;; Rmail mode is suitable only for specially formatted data.
 (put 'rmail-mode 'mode-class 'special)
 
+(defun rmail-mode-kill-summary ()
+  (if rmail-summary-buffer (kill-buffer rmail-summary-buffer)))
+
 ;;;###autoload
 (defun rmail-mode ()
   "Rmail Mode is used by \\<rmail-mode-map>\\[rmail] for editing Rmail files.
@@ -615,6 +618,8 @@ Instead, these commands are available:
   (setq rmail-overlay-list nil)
   (make-local-variable 'version-control)
   (setq version-control 'never)
+  (make-local-variable 'kill-buffer-hook)
+  (add-hook 'kill-buffer-hook 'rmail-mode-kill-summary)
   (make-local-variable 'file-precious-flag)
   (setq file-precious-flag t)
   (make-local-variable 'rmail-message-vector)
