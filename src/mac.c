@@ -26,31 +26,15 @@ Boston, MA 02111-1307, USA.  */
 #include <errno.h>
 #include <time.h>
 
-#ifdef HAVE_CARBON
-#ifdef MAC_OSX
-#undef mktime
-#undef DEBUG
-#undef free
-#undef malloc
-#undef realloc
-#undef init_process
-#include <Carbon/Carbon.h>
-#undef mktime
-#define mktime emacs_mktime
-#undef free
-#define free unexec_free
-#undef malloc
-#define malloc unexec_malloc
-#undef realloc
-#define realloc unexec_realloc
-#undef init_process
-#define init_process emacs_init_process
-#else  /* not MAC_OSX */
-#undef SIGHUP
-#define OLDP2C 1
-#include <Carbon.h>
-#endif	/* not MAC_OSX */
-#else	/* not HAVE_CARBON */
+#include "lisp.h"
+#include "process.h"
+#include "sysselect.h"
+#include "systime.h"
+#include "blockinput.h"
+
+#include "macterm.h"
+
+#ifndef HAVE_CARBON
 #include <Files.h>
 #include <MacTypes.h>
 #include <TextUtils.h>
@@ -80,12 +64,6 @@ Boston, MA 02111-1307, USA.  */
 #if __MWERKS__
 #include <unistd.h>
 #endif
-
-#include "lisp.h"
-#include "process.h"
-#include "sysselect.h"
-#include "systime.h"
-#include "blockinput.h"
 
 Lisp_Object QCLIPBOARD;
 
@@ -272,7 +250,25 @@ posix_to_mac_pathname (const char *ufn, char *mfn, int mfnbuflen)
   return 1;
 }
 
+
+/***********************************************************************
+	 Conversion between Lisp and Core Foundation objects
+ ***********************************************************************/
+
 #if TARGET_API_MAC_CARBON
+static Lisp_Object Qstring, Qnumber, Qboolean, Qdate, Qdata;
+static Lisp_Object Qarray, Qdictionary;
+extern Lisp_Object Qutf_8;
+#define DECODE_UTF_8(str) code_convert_string_norecord (str, Qutf_8, 0)
+
+struct cfdict_context
+{
+  Lisp_Object *result;
+  int with_tag, hash_bound;
+};
+
+/* C string to CFString. */
+
 CFStringRef
 cfstring_create_with_utf8_cstring (c_str)
      const char *c_str;
@@ -286,8 +282,807 @@ cfstring_create_with_utf8_cstring (c_str)
 
   return str;
 }
+
+
+/* From CFData to a lisp string.  Always returns a unibyte string.  */
+
+Lisp_Object
+cfdata_to_lisp (data)
+     CFDataRef data;
+{
+  CFIndex len = CFDataGetLength (data);
+  Lisp_Object result = make_uninit_string (len);
+  
+  CFDataGetBytes (data, CFRangeMake (0, len), SDATA (result));
+
+  return result;
+}
+
+
+/* From CFString to a lisp string.  Never returns a unibyte string
+   (even if it only contains ASCII characters).
+   This may cause GC during code conversion. */
+
+Lisp_Object
+cfstring_to_lisp (string)
+     CFStringRef string;
+{
+  Lisp_Object result = Qnil;
+  const char *s = CFStringGetCStringPtr (string, kCFStringEncodingUTF8);
+
+  if (s)
+    result = make_unibyte_string (s, strlen (s));
+  else
+    {
+      CFDataRef data =
+	CFStringCreateExternalRepresentation (NULL, string,
+					      kCFStringEncodingUTF8, '?');
+
+      if (data)
+	{
+	  result = cfdata_to_lisp (data);
+	  CFRelease (data);
+	}
+    }
+
+  if (!NILP (result))
+    {
+      result = DECODE_UTF_8 (result);
+      /* This may be superfluous.  Just to make sure that the result
+	 is a multibyte string.  */
+      result = string_to_multibyte (result);
+    }
+
+  return result;
+}
+
+
+/* CFNumber to a lisp integer or a lisp float.  */
+
+Lisp_Object
+cfnumber_to_lisp (number)
+     CFNumberRef number;
+{
+  Lisp_Object result = Qnil;
+#if BITS_PER_EMACS_INT > 32      
+  SInt64 int_val;
+  CFNumberType emacs_int_type = kCFNumberSInt64Type;
+#else
+  SInt32 int_val;
+  CFNumberType emacs_int_type = kCFNumberSInt32Type;
+#endif
+  double float_val;
+
+  if (CFNumberGetValue (number, emacs_int_type, &int_val)
+      && !FIXNUM_OVERFLOW_P (int_val))
+    result = make_number (int_val);
+  else
+    if (CFNumberGetValue (number, kCFNumberDoubleType, &float_val))
+      result = make_float (float_val);
+  return result;
+}
+
+
+/* CFDate to a list of three integers as in a return value of
+   `current-time'xo.  */
+
+Lisp_Object
+cfdate_to_lisp (date)
+     CFDateRef date;
+{
+  static CFGregorianDate epoch_gdate = {1970, 1, 1, 0, 0, 0.0};
+  static CFAbsoluteTime epoch = 0.0, sec;
+  int high, low;
+
+  if (epoch == 0.0)
+    epoch = CFGregorianDateGetAbsoluteTime (epoch_gdate, NULL);
+
+  sec = CFDateGetAbsoluteTime (date) - epoch;
+  high = sec / 65536.0;
+  low = sec - high * 65536.0;
+
+  return list3 (make_number (high), make_number (low), make_number (0));
+}
+
+
+/* CFBoolean to a lisp symbol, `t' or `nil'.  */
+
+Lisp_Object
+cfboolean_to_lisp (boolean)
+     CFBooleanRef boolean;
+{
+  return CFBooleanGetValue (boolean) ? Qt : Qnil;
+}
+
+
+/* Any Core Foundation object to a (lengthy) lisp string.  */
+
+Lisp_Object
+cfobject_desc_to_lisp (object)
+     CFTypeRef object;
+{
+  Lisp_Object result = Qnil;
+  CFStringRef desc = CFCopyDescription (object);
+
+  if (desc)
+    {
+      result = cfstring_to_lisp (desc);
+      CFRelease (desc);
+    }
+
+  return result;
+}
+
+
+/* Callback functions for cfproperty_list_to_lisp.  */
+
+static void
+cfdictionary_add_to_list (key, value, context)
+     const void *key;
+     const void *value;
+     void *context;
+{
+  struct cfdict_context *cxt = (struct cfdict_context *)context;
+
+  *cxt->result =
+    Fcons (Fcons (cfstring_to_lisp (key),
+		  cfproperty_list_to_lisp (value, cxt->with_tag,
+					   cxt->hash_bound)),
+	   *cxt->result);
+}
+
+static void
+cfdictionary_puthash (key, value, context)
+     const void *key;
+     const void *value;
+     void *context;
+{
+  Lisp_Object lisp_key = cfstring_to_lisp (key);
+  struct cfdict_context *cxt = (struct cfdict_context *)context;
+  struct Lisp_Hash_Table *h = XHASH_TABLE (*(cxt->result));
+  unsigned hash_code;
+
+  hash_lookup (h, lisp_key, &hash_code);
+  hash_put (h, lisp_key,
+	    cfproperty_list_to_lisp (value, cxt->with_tag, cxt->hash_bound),
+	    hash_code);
+}
+
+
+/* Convert CFPropertyList PLIST to a lisp object.  If WITH_TAG is
+   non-zero, a symbol that represents the type of the original Core
+   Foundation object is prepended.  HASH_BOUND specifies which kinds
+   of the lisp objects, alists or hash tables, are used as the targets
+   of the conversion from CFDictionary.  If HASH_BOUND is negative,
+   always generate alists.  If HASH_BOUND >= 0, generate an alist if
+   the number of keys in the dictionary is smaller than HASH_BOUND,
+   and a hash table otherwise.  */
+
+Lisp_Object
+cfproperty_list_to_lisp (plist, with_tag, hash_bound)
+     CFPropertyListRef plist;
+     int with_tag, hash_bound;
+{
+  CFTypeID type_id = CFGetTypeID (plist);
+  Lisp_Object tag = Qnil, result = Qnil;
+  struct gcpro gcpro1, gcpro2;
+
+  GCPRO2 (tag, result);
+
+  if (type_id == CFStringGetTypeID ())
+    {
+      tag = Qstring;
+      result = cfstring_to_lisp (plist);
+    }
+  else if (type_id == CFNumberGetTypeID ())
+    {
+      tag = Qnumber;
+      result = cfnumber_to_lisp (plist);
+    }
+  else if (type_id == CFBooleanGetTypeID ())
+    {
+      tag = Qboolean;
+      result = cfboolean_to_lisp (plist);
+    }
+  else if (type_id == CFDateGetTypeID ())
+    {
+      tag = Qdate;
+      result = cfdate_to_lisp (plist);
+    }
+  else if (type_id == CFDataGetTypeID ())
+    {
+      tag = Qdata;
+      result = cfdata_to_lisp (plist);
+    }
+  else if (type_id == CFArrayGetTypeID ())
+    {
+      CFIndex index, count = CFArrayGetCount (plist);
+
+      tag = Qarray;
+      result = Fmake_vector (make_number (count), Qnil);
+      for (index = 0; index < count; index++)
+	XVECTOR (result)->contents[index] =
+	  cfproperty_list_to_lisp (CFArrayGetValueAtIndex (plist, index),
+				   with_tag, hash_bound);
+    }
+  else if (type_id == CFDictionaryGetTypeID ())
+    {
+      struct cfdict_context context;
+      CFIndex count = CFDictionaryGetCount (plist);
+
+      tag = Qdictionary;
+      context.result  = &result;
+      context.with_tag = with_tag;
+      context.hash_bound = hash_bound;
+      if (hash_bound < 0 || count < hash_bound)
+	{
+	  result = Qnil;
+	  CFDictionaryApplyFunction (plist, cfdictionary_add_to_list,
+				     &context);
+	}
+      else
+	{
+	  result = make_hash_table (Qequal,
+				    make_number (count),
+				    make_float (DEFAULT_REHASH_SIZE),
+				    make_float (DEFAULT_REHASH_THRESHOLD),
+				    Qnil, Qnil, Qnil);
+	  CFDictionaryApplyFunction (plist, cfdictionary_puthash,
+				     &context);
+	}
+    }
+  else
+    abort ();
+
+  UNGCPRO;
+
+  if (with_tag)
+    result = Fcons (tag, result);
+
+  return result;
+}
 #endif
 
+
+/***********************************************************************
+		 Emulation of the X Resource Manager
+ ***********************************************************************/
+
+/* Parser functions for resource lines.  Each function takes an
+   address of a variable whose value points to the head of a string.
+   The value will be advanced so that it points to the next character
+   of the parsed part when the function returns.
+
+   A resource name such as "Emacs*font" is parsed into a non-empty
+   list called `quarks'.  Each element is either a Lisp string that
+   represents a concrete component, a Lisp symbol LOOSE_BINDING
+   (actually Qlambda) that represents any number (>=0) of intervening
+   components, or a Lisp symbol SINGLE_COMPONENT (actually Qquote)
+   that represents as any single component.  */
+
+#define P (*p)
+
+#define LOOSE_BINDING    Qlambda /* '*' ("L"oose) */
+#define SINGLE_COMPONENT Qquote	 /* '?' ("Q"uestion) */
+
+static void
+skip_while_space (p)
+     char **p;
+{
+  /* WhiteSpace = {<space> | <horizontal tab>} */
+  while (*P == ' ' || *P == '\t')
+    P++;
+}
+
+static int
+parse_comment (p)
+     char **p;
+{
+  /* Comment = "!" {<any character except null or newline>} */
+  if (*P == '!')
+    {
+      P++;
+      while (*P)
+	if (*P++ == '\n')
+	  break;
+      return 1;
+    }
+  else
+    return 0;
+}
+
+/* Don't interpret filename.  Just skip until the newline.  */
+static int
+parse_include_file (p)
+     char **p;
+{
+  /* IncludeFile = "#" WhiteSpace "include" WhiteSpace FileName WhiteSpace */
+  if (*P == '#')
+    {
+      P++;
+      while (*P)
+	if (*P++ == '\n')
+	  break;
+      return 1;
+    }
+  else
+    return 0;
+}
+
+static char
+parse_binding (p)
+     char **p;
+{
+  /* Binding = "." | "*"  */
+  if (*P == '.' || *P == '*')
+    {
+      char binding = *P++;
+
+      while (*P == '.' || *P == '*')
+	if (*P++ == '*')
+	  binding = '*';
+      return binding;
+    }
+  else
+    return '\0';
+}
+
+static Lisp_Object
+parse_component (p)
+     char **p;
+{
+  /*  Component = "?" | ComponentName
+      ComponentName = NameChar {NameChar}
+      NameChar = "a"-"z" | "A"-"Z" | "0"-"9" | "_" | "-" */
+  if (*P == '?')
+    {
+      P++;
+      return SINGLE_COMPONENT;
+    }
+  else if (isalnum (*P) || *P == '_' || *P == '-')
+    {
+      char *start = P++;
+
+      while (isalnum (*P) || *P == '_' || *P == '-')
+	P++;
+
+      return make_unibyte_string (start, P - start);
+    }
+  else
+    return Qnil;
+}
+
+static Lisp_Object
+parse_resource_name (p)
+     char **p;
+{
+  Lisp_Object result = Qnil, component;
+  char binding;
+
+  /* ResourceName = [Binding] {Component Binding} ComponentName */
+  if (parse_binding (p) == '*')
+    result = Fcons (LOOSE_BINDING, result);
+
+  component = parse_component (p);
+  if (NILP (component))
+    return Qnil;
+
+  result = Fcons (component, result);  
+  while (binding = parse_binding (p))
+    {
+      if (binding == '*')
+	result = Fcons (LOOSE_BINDING, result);
+      component = parse_component (p);
+      if (NILP (component))
+	return Qnil;
+      else
+	result = Fcons (component, result);
+    }
+  
+  /* The final component should not be '?'.  */
+  if (EQ (component, SINGLE_COMPONENT))
+    return Qnil;
+
+  return Fnreverse (result);
+}
+
+static Lisp_Object
+parse_value (p)
+     char **p;
+{
+  char *q, *buf;
+  Lisp_Object seq = Qnil, result;
+  int buf_len, total_len = 0, len, continue_p;
+
+  q = strchr (P, '\n');
+  buf_len = q ? q - P : strlen (P);
+  buf = xmalloc (buf_len);
+
+  while (1)
+    {
+      q = buf;
+      continue_p = 0;
+      while (*P)
+	{
+	  if (*P == '\n')
+	    {
+	      P++;
+	      break;
+	    }
+	  else if (*P == '\\')
+	    {
+	      P++;
+	      if (*P == '\0')
+		break;
+	      else if (*P == '\n')
+		{
+		  P++;
+		  continue_p = 1;
+		  break;
+		}
+	      else if (*P == 'n')
+		{
+		  *q++ = '\n';
+		  P++;
+		}
+	      else if ('0' <= P[0] && P[0] <= '7'
+		       && '0' <= P[1] && P[1] <= '7'
+		       && '0' <= P[2] && P[2] <= '7')
+		{
+		  *q++ = (P[0] - '0' << 6) + (P[1] - '0' << 3) + (P[2] - '0');
+		  P += 3;
+		}
+	      else
+		*q++ = *P++;
+	    }
+	  else
+	    *q++ = *P++;
+	}
+      len = q - buf;
+      seq = Fcons (make_unibyte_string (buf, len), seq);
+      total_len += len;
+
+      if (continue_p)
+	{
+	  q = strchr (P, '\n');
+	  len = q ? q - P : strlen (P);
+	  if (len > buf_len)
+	    {
+	      xfree (buf);
+	      buf_len = len;
+	      buf = xmalloc (buf_len);
+	    }
+	}
+      else
+	break;
+    }
+  xfree (buf);
+
+  if (SBYTES (XCAR (seq)) == total_len)
+    return make_string (SDATA (XCAR (seq)), total_len);
+  else
+    {
+      buf = xmalloc (total_len);
+      q = buf + total_len;
+      for (; CONSP (seq); seq = XCDR (seq))
+	{
+	  len = SBYTES (XCAR (seq)); 
+	  q -= len;
+	  memcpy (q, SDATA (XCAR (seq)), len);
+	}
+      result = make_string (buf, total_len);
+      xfree (buf);
+      return result;
+    }
+}
+
+static Lisp_Object
+parse_resource_line (p)
+     char **p;
+{
+  Lisp_Object quarks, value;
+
+  /* ResourceLine = Comment | IncludeFile | ResourceSpec | <empty line> */
+  if (parse_comment (p) || parse_include_file (p))
+    return Qnil;
+
+  /* ResourceSpec = WhiteSpace ResourceName WhiteSpace ":" WhiteSpace Value */
+  skip_while_space (p);
+  quarks = parse_resource_name (p);
+  if (NILP (quarks))
+    goto cleanup;
+  skip_while_space (p);
+  if (*P != ':')
+    goto cleanup;
+  P++;
+  skip_while_space (p);
+  value = parse_value (p);
+  return Fcons (quarks, value);
+
+ cleanup:
+  /* Skip the remaining data as a dummy value.  */
+  parse_value (p);
+  return Qnil;
+}
+
+#undef P
+
+/* Equivalents of X Resource Manager functions.
+
+   An X Resource Database acts as a collection of resource names and
+   associated values.  It is implemented as a trie on quarks.  Namely,
+   each edge is labeled by either a string, LOOSE_BINDING, or
+   SINGLE_COMPONENT.  Nodes of the trie are implemented as Lisp hash
+   tables, and a value associated with a resource name is recorded as
+   a value for HASHKEY_TERMINAL at the hash table whose path from the
+   root is the quarks of the resource name. */
+
+#define HASHKEY_TERMINAL Qt /* "T"erminal */
+
+static XrmDatabase
+xrm_create_database ()
+{
+  return make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+			  make_float (DEFAULT_REHASH_SIZE),
+			  make_float (DEFAULT_REHASH_THRESHOLD),
+			  Qnil, Qnil, Qnil);  
+}
+
+static void
+xrm_q_put_resource (database, quarks, value)
+     XrmDatabase database;
+     Lisp_Object quarks, value;
+{
+  struct Lisp_Hash_Table *h;
+  unsigned hash_code;
+  int i;
+
+  for (; CONSP (quarks); quarks = XCDR (quarks))
+    {
+      h = XHASH_TABLE (database);
+      i = hash_lookup (h, XCAR (quarks), &hash_code);
+      if (i < 0)
+	{
+	  database = xrm_create_database ();
+	  hash_put (h, XCAR (quarks), database, hash_code);
+	}
+      else
+	database = HASH_VALUE (h, i);
+    }
+
+  Fputhash (HASHKEY_TERMINAL, value, database);
+}
+
+/* Merge multiple resource entries specified by DATA into a resource
+   database DATABASE.  DATA points to the head of a null-terminated
+   string consisting of multiple resource lines.  It's like a
+   combination of XrmGetStringDatabase and XrmMergeDatabases.  */
+
+void
+xrm_merge_string_database (database, data)
+     XrmDatabase database;
+     char *data;
+{
+  Lisp_Object quarks_value;
+
+  while (*data)
+    {
+      quarks_value = parse_resource_line (&data);
+      if (!NILP (quarks_value))
+	xrm_q_put_resource (database,
+			    XCAR (quarks_value), XCDR (quarks_value));
+    }
+}
+
+static Lisp_Object
+xrm_q_get_resource (database, quark_name, quark_class)
+     XrmDatabase database;
+     Lisp_Object quark_name, quark_class;
+{
+  struct Lisp_Hash_Table *h = XHASH_TABLE (database);
+  Lisp_Object keys[3], value;
+  int i, k;
+  
+  if (!CONSP (quark_name))
+    return Fgethash (HASHKEY_TERMINAL, database, Qnil);
+  
+  /* First, try tight bindings */
+  keys[0] = XCAR (quark_name);
+  keys[1] = XCAR (quark_class);
+  keys[2] = SINGLE_COMPONENT;
+
+  for (k = 0; k < sizeof (keys) / sizeof (*keys); k++)
+    {
+      i = hash_lookup (h, keys[k], NULL);
+      if (i >= 0)
+	{
+	  value = xrm_q_get_resource (HASH_VALUE (h, i),
+				      XCDR (quark_name), XCDR (quark_class));
+	  if (!NILP (value))
+	    return value;
+	}
+    }
+
+  /* Then, try loose bindings */
+  i = hash_lookup (h, LOOSE_BINDING, NULL);
+  if (i >= 0)
+    {
+      value = xrm_q_get_resource (HASH_VALUE (h, i), quark_name, quark_class);
+      if (!NILP (value))
+	return value;
+      else
+	return xrm_q_get_resource (database,
+				   XCDR (quark_name), XCDR (quark_class));
+    }
+  else
+    return Qnil;
+}
+
+/* Retrieve a resource value for the specified NAME and CLASS from the
+   resource database DATABASE.  It corresponds to XrmGetResource.  */
+
+Lisp_Object
+xrm_get_resource (database, name, class)
+     XrmDatabase database;
+     char *name, *class;
+{
+  Lisp_Object quark_name, quark_class, tmp;
+  int nn, nc;
+
+  quark_name = parse_resource_name (&name);
+  if (*name != '\0')
+    return Qnil;
+  for (tmp = quark_name, nn = 0; CONSP (tmp); tmp = XCDR (tmp), nn++)
+    if (!STRINGP (XCAR (tmp)))
+      return Qnil;
+
+  quark_class = parse_resource_name (&class);
+  if (*class != '\0')
+    return Qnil;
+  for (tmp = quark_class, nc = 0; CONSP (tmp); tmp = XCDR (tmp), nc++)
+    if (!STRINGP (XCAR (tmp)))
+      return Qnil;
+
+  if (nn != nc)
+    return Qnil;
+  else
+    return xrm_q_get_resource (database, quark_name, quark_class);
+}
+
+#if TARGET_API_MAC_CARBON
+static Lisp_Object
+xrm_cfproperty_list_to_value (plist)
+     CFPropertyListRef plist;
+{
+  CFTypeID type_id = CFGetTypeID (plist);
+
+  if (type_id == CFStringGetTypeID ())
+      return cfstring_to_lisp (plist);
+  else if (type_id == CFNumberGetTypeID ())
+    {
+      CFStringRef string;
+      Lisp_Object result = Qnil;
+
+      string = CFStringCreateWithFormat (NULL, NULL, CFSTR ("%@"), plist);
+      if (string)
+	{
+	  result = cfstring_to_lisp (string);
+	  CFRelease (string);
+	}
+      return result;
+    }
+  else if (type_id == CFBooleanGetTypeID ())
+    {
+      static value_true = NULL, value_false = NULL;
+
+      if (value_true == NULL)
+	{
+	  value_true = build_string ("true");
+	  value_false = build_string ("false");
+	}
+      return CFBooleanGetValue (plist) ? value_true : value_false;
+    }
+  else if (type_id == CFDataGetTypeID ())
+    return cfdata_to_lisp (plist);
+  else
+    return Qnil;
+}
+#endif
+
+/* Create a new resource database from the preferences for the
+   application APPLICATION.  APPLICATION is either a string that
+   specifies an application ID, or NULL that represents the current
+   application.  */
+
+XrmDatabase
+xrm_get_preference_database (application)
+     char *application;
+{
+#if TARGET_API_MAC_CARBON
+  CFStringRef app_id, *keys, user_doms[2], host_doms[2];
+  CFMutableSetRef key_set = NULL;
+  CFArrayRef key_array;
+  CFIndex index, count;
+  char *res_name;
+  XrmDatabase database;
+  Lisp_Object quarks = Qnil, value = Qnil;
+  CFPropertyListRef plist;
+  int iu, ih;
+  struct gcpro gcpro1, gcpro2, gcpro3;
+
+  user_doms[0] = kCFPreferencesCurrentUser;
+  user_doms[1] = kCFPreferencesAnyUser;
+  host_doms[0] = kCFPreferencesCurrentHost;
+  host_doms[1] = kCFPreferencesAnyHost;
+
+  database = xrm_create_database ();
+
+  GCPRO3 (database, quarks, value);
+
+  BLOCK_INPUT;
+
+  app_id = kCFPreferencesCurrentApplication;
+  if (application)
+    {
+      app_id = cfstring_create_with_utf8_cstring (application);
+      if (app_id == NULL)
+	goto out;
+    }
+
+  key_set = CFSetCreateMutable (NULL, 0, &kCFCopyStringSetCallBacks);
+  if (key_set == NULL)
+    goto out;
+  for (iu = 0; iu < sizeof (user_doms) / sizeof (*user_doms) ; iu++)
+    for (ih = 0; ih < sizeof (host_doms) / sizeof (*host_doms); ih++)
+      {
+	key_array = CFPreferencesCopyKeyList (app_id, user_doms[iu],
+					      host_doms[ih]);
+	if (key_array)
+	  {
+	    count = CFArrayGetCount (key_array);
+	    for (index = 0; index < count; index++)
+	      CFSetAddValue (key_set,
+			     CFArrayGetValueAtIndex (key_array, index));
+	    CFRelease (key_array);
+	  }
+      }
+
+  count = CFSetGetCount (key_set);
+  keys = xmalloc (sizeof (CFStringRef) * count);
+  if (keys == NULL)
+    goto out;
+  CFSetGetValues (key_set, (const void **)keys);
+  for (index = 0; index < count; index++)
+    {
+      res_name = SDATA (cfstring_to_lisp (keys[index]));
+      quarks = parse_resource_name (&res_name);
+      if (!(NILP (quarks) || *res_name))
+	{
+	  plist = CFPreferencesCopyAppValue (keys[index], app_id);
+	  value = xrm_cfproperty_list_to_value (plist);
+	  CFRelease (plist);
+	  if (!NILP (value))
+	    xrm_q_put_resource (database, quarks, value);
+	}
+    }
+
+  xfree (keys);
+ out:
+  if (key_set)
+    CFRelease (key_set);
+  CFRelease (app_id);
+
+  UNBLOCK_INPUT;
+
+  UNGCPRO;
+
+  return database;
+#else
+  return xrm_create_database ();
+#endif
+}
+
+
 #ifndef MAC_OSX
 
 /* The following functions with "sys_" prefix are stubs to Unix
@@ -2825,6 +3620,124 @@ and t is the same as `SECONDARY'.  */)
   return Qnil;
 }
 
+#if TARGET_API_MAC_CARBON
+static Lisp_Object Qxml;
+
+DEFUN ("mac-get-preference", Fmac_get_preference, Smac_get_preference, 1, 4, 0,
+       doc: /* Return the application preference value for KEY.
+KEY is either a string specifying a preference key, or a list of key
+strings.  If it is a list, the (i+1)-th element is used as a key for
+the CFDictionary value obtained by the i-th element.  If lookup is
+failed at some stage, nil is returned.
+
+Optional arg APPLICATION is an application ID string.  If omitted or
+nil, that stands for the current application.
+
+Optional arg FORMAT specifies the data format of the return value.  If
+omitted or nil, each Core Foundation object is converted into a
+corresponding Lisp object as follows:
+
+  Core Foundation    Lisp                           Tag
+  ------------------------------------------------------------
+  CFString           Multibyte string               string
+  CFNumber           Integer or float               number
+  CFBoolean          Symbol (t or nil)              boolean
+  CFDate             List of three integers         date
+                       (cf. `current-time')
+  CFData             Unibyte string                 data
+  CFArray            Array                          array
+  CFDictionary       Alist or hash table            dictionary
+                       (depending on HASH-BOUND)
+
+If it is t, a symbol that represents the type of the original Core
+Foundation object is prepended.  If it is `xml', the value is returned
+as an XML representation.
+
+Optional arg HASH-BOUND specifies which kinds of the list objects,
+alists or hash tables, are used as the targets of the conversion from
+CFDictionary.  If HASH-BOUND is a negative integer or nil, always
+generate alists.  If HASH-BOUND >= 0, generate an alist if the number
+of keys in the dictionary is smaller than HASH-BOUND, and a hash table
+otherwise.  */)
+  (key, application, format, hash_bound)
+     Lisp_Object key, application, format, hash_bound;
+{
+  CFStringRef app_id, key_str;
+  CFPropertyListRef app_plist = NULL, plist;
+  Lisp_Object result = Qnil, tmp;
+
+  if (STRINGP (key))
+    key = Fcons (key, Qnil);
+  else
+    {
+      CHECK_CONS (key);
+      for (tmp = key; CONSP (tmp); tmp = XCDR (tmp))
+	CHECK_STRING_CAR (tmp);
+      if (!NILP (tmp))
+	wrong_type_argument (Qlistp, key);
+    }
+  if (!NILP (application))
+    CHECK_STRING (application);
+  CHECK_SYMBOL (format);
+  if (!NILP (hash_bound))
+    CHECK_NUMBER (hash_bound);
+
+  BLOCK_INPUT;
+
+  app_id = kCFPreferencesCurrentApplication;
+  if (!NILP (application))
+    {
+      app_id = cfstring_create_with_utf8_cstring (SDATA (application));
+      if (app_id == NULL)
+	goto out;
+    }
+  key_str = cfstring_create_with_utf8_cstring (SDATA (XCAR (key)));
+  if (key_str == NULL)
+    goto out;
+  app_plist = CFPreferencesCopyAppValue (key_str, app_id);
+  CFRelease (key_str);
+  if (app_plist == NULL)
+    goto out;
+
+  plist = app_plist;
+  for (key = XCDR (key); CONSP (key); key = XCDR (key))
+    {
+      if (CFGetTypeID (plist) != CFDictionaryGetTypeID ())
+	break;
+      key_str = cfstring_create_with_utf8_cstring (SDATA (XCAR (key)));
+      if (key_str == NULL)
+	goto out;
+      plist = CFDictionaryGetValue (plist, key_str);
+      CFRelease (key_str);
+      if (plist == NULL)
+	goto out;
+    }
+
+  if (NILP (key))
+    if (EQ (format, Qxml))
+      {
+	CFDataRef data = CFPropertyListCreateXMLData (NULL, plist);
+	if (data == NULL)
+	  goto out;
+	result = cfdata_to_lisp (data);
+	CFRelease (data);
+      }
+    else
+      result =
+	cfproperty_list_to_lisp (plist, EQ (format, Qt),
+				 NILP (hash_bound) ? -1 : XINT (hash_bound));
+
+ out:
+  if (app_plist)
+    CFRelease (app_plist);
+  CFRelease (app_id);
+
+  UNBLOCK_INPUT;
+
+  return result;
+}
+#endif	/* TARGET_API_MAC_CARBON */
+
 
 DEFUN ("mac-clear-font-name-table", Fmac_clear_font_name_table, Smac_clear_font_name_table, 0, 0, 0,
        doc: /* Clear the font name table.  */)
@@ -3243,9 +4156,38 @@ syms_of_mac ()
   QCLIPBOARD = intern ("CLIPBOARD");
   staticpro (&QCLIPBOARD);
 
+#if TARGET_API_MAC_CARBON
+  Qstring = intern ("string");
+  staticpro (&Qstring);
+
+  Qnumber = intern ("number");
+  staticpro (&Qnumber);
+
+  Qboolean = intern ("boolean");
+  staticpro (&Qboolean);
+
+  Qdate = intern ("date");
+  staticpro (&Qdate);
+
+  Qdata = intern ("data");
+  staticpro (&Qdata);
+
+  Qarray = intern ("array");
+  staticpro (&Qarray);
+
+  Qdictionary = intern ("dictionary");
+  staticpro (&Qdictionary);
+
+  Qxml = intern ("xml");
+  staticpro (&Qxml);
+#endif
+
   defsubr (&Smac_paste_function);
   defsubr (&Smac_cut_function);
   defsubr (&Sx_selection_exists_p);
+#if TARGET_API_MAC_CARBON
+  defsubr (&Smac_get_preference);
+#endif
   defsubr (&Smac_clear_font_name_table);
 
   defsubr (&Sdo_applescript);
