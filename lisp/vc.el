@@ -532,7 +532,7 @@ version control backend imposes itself."
     (421.8750 . "#00B6FF")
     (448.2422 . "#007EFF"))
   "*Association list of age versus color, for \\[vc-annotate].
-Ages are given in units of 2**-16 seconds.
+Ages are given in units of 2**16 seconds.
 Default is eighteen steps using a twenty day increment."
   :type 'alist
   :group 'vc)
