@@ -150,9 +150,8 @@ ${TIT}:
 	if [ -d quail ]; then true; else make quail; fi
 	${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
 	    --eval '(batch-titdic-convert t)' -dir quail ${srcdir}/CXTERM-DIC
-	EL=`echo ${TIT} | sed 's/\.elc/\.el/g'`; \
 	${RUN-EMACS}  -l ${buildlisppath}/international/quail \
-	    -f batch-byte-compile $$EL
+	    -f batch-byte-compile ${TIT:.elc=.el}
 
 leim-list.el: ${SUBDIRS} ${WORLD}
 	if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
@@ -182,8 +181,7 @@ install: all
 	-chmod -R a+r ${INSTALLDIR}
 
 clean mostlyclean:
-	EL=`echo ${TIT} | sed 's/\.elc/.el/g'`; \
-	rm -f ${TIT} ${NON-TIT} ${WORLD} $$EL leim-list.el
+	rm -f ${TIT} ${NON-TIT} ${WORLD} ${TIT:.elc=.el} leim-list.el
 
 distclean maintainer-clean:
 	if test -f stamp-subdir; then rm -rf ${SUBDIRS} stamp-subdir; fi
