@@ -144,31 +144,17 @@
 	 (buf (get-buffer buffer))
 	 (one-window (one-window-p t))
 	 (pop-up-windows t)
-	 (pop-up-frames nil)
-	 (target-height)
-	 (lines))
+	 (pop-up-frames nil))
     (if (not buf)
 	(error "Buffer %s does not exist" buffer)
-      (with-current-buffer buf
-	(setq lines (count-lines (point-min) (point-max)))
-	(setq target-height
-	      (min (max (if max-height (min max-height (1+ lines)) (1+ lines))
-			window-min-height)
-		   (save-window-excursion
-		     (delete-other-windows)
-		     (1- (window-height (selected-window)))))))
       (cond ((and (eq (window-buffer win) buf))
 	     (select-window win))
 	    (one-window
 	     (pop-to-buffer buffer)
-	     (setq win (selected-window))
-	     (enlarge-window (- target-height (window-height win))))
+	     (setq win (selected-window)))
 	    (t
 	     (switch-to-buffer buf)))
-      (if (and (not max-height)
-	       (> target-height (window-height (selected-window))))
-	  (progn (goto-char (window-start win))
-		 (enlarge-window (- target-height (window-height win)))))
+      (fit-window-to-buffer win max-height)
       (goto-char (point-min))
       win)))
 

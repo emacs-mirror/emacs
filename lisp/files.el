@@ -1,7 +1,7 @@
 ;;; files.el --- file input and output commands for Emacs
 
-;; Copyright (C) 1985,86,87,92,93,94,95,96,97,98,99,2000,01,02,03,2004
-;;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -2202,93 +2202,86 @@ is specified, returning t if it is specified."
     (save-excursion
       (goto-char (point-max))
       (search-backward "\n\^L" (max (- (point-max) 3000) (point-min)) 'move)
-      (if (let ((case-fold-search t))
-	    (and (search-forward "Local Variables:" nil t)
-		 (or (eq enable-local-variables t)
-		     mode-only
-		     (and enable-local-variables
-			  (save-window-excursion
-			    (switch-to-buffer (current-buffer))
-			    (save-excursion
-			      (beginning-of-line)
-			      (set-window-start (selected-window) (point)))
-			    (y-or-n-p (format "Set local variables as specified at end of %s? "
-					      (if buffer-file-name
-						  (file-name-nondirectory
-						   buffer-file-name)
-						(concat "buffer "
-							(buffer-name))))))))))
-	  (let (prefix suffix beg
-		(enable-local-eval enable-local-eval))
-	    ;; The prefix is what comes before "local variables:" in its line.
-	    ;; The suffix is what comes after "local variables:" in its line.
-	    (skip-chars-forward " \t")
-	    (or (eolp)
-		(setq suffix (buffer-substring (point)
-					       (progn (end-of-line) (point)))))
-	    (goto-char (match-beginning 0))
-	    (or (bolp)
-		(setq prefix
-		      (buffer-substring (point)
-					(progn (beginning-of-line) (point)))))
+      (when (let ((case-fold-search t))
+	      (and (search-forward "Local Variables:" nil t)
+		   (or (eq enable-local-variables t)
+		       mode-only
+		       (and enable-local-variables
+			    (save-window-excursion
+			      (switch-to-buffer (current-buffer))
+			      (save-excursion
+				(beginning-of-line)
+				(set-window-start (selected-window) (point)))
+			      (y-or-n-p (format "Set local variables as specified at end of %s? "
+						(if buffer-file-name
+						    (file-name-nondirectory
+						     buffer-file-name)
+						  (concat "buffer "
+							  (buffer-name))))))))))
+	(skip-chars-forward " \t")
+	(let ((enable-local-eval enable-local-eval)
+	      ;; suffix is what comes after "local variables:" in its line.
+	      (suffix
+	       (concat
+		(regexp-quote (buffer-substring (point) (line-end-position)))
+		"$"))
+	      ;; prefix is what comes before "local variables:" in its line.
+	      (prefix
+	       (concat "^" (regexp-quote
+			    (buffer-substring (line-beginning-position)
+					      (match-beginning 0)))))
+	      beg)
 
-	    (setq prefix (if prefix (regexp-quote prefix) "^"))
-	    (if suffix (setq suffix (concat (regexp-quote suffix) "$")))
-	    (forward-line 1)
-	    (let ((startpos (point))
-		  endpos
-		  (thisbuf (current-buffer)))
-	      (save-excursion
-		(if (not (re-search-forward
-			  (concat (or prefix "")
-				  "[ \t]*End:[ \t]*"
-				  (or suffix ""))
-			  nil t))
-		    (error "Local variables list is not properly terminated"))
-		(beginning-of-line)
-		(setq endpos (point)))
+	  (forward-line 1)
+	  (let ((startpos (point))
+		endpos
+		(thisbuf (current-buffer)))
+	    (save-excursion
+	      (if (not (re-search-forward
+			(concat prefix "[ \t]*End:[ \t]*" suffix)
+			nil t))
+		  (error "Local variables list is not properly terminated"))
+	      (beginning-of-line)
+	      (setq endpos (point)))
 
-	      (with-temp-buffer
-		(insert-buffer-substring thisbuf startpos endpos)
-		(goto-char (point-min))
-		(subst-char-in-region (point) (point-max)
-				      ?\^m ?\n)
-		(while (not (eobp))
-		  ;; Discard the prefix, if any.
-		  (if prefix
-		      (if (looking-at prefix)
-			  (delete-region (point) (match-end 0))
-			(error "Local variables entry is missing the prefix")))
-		  (end-of-line)
-		  ;; Discard the suffix, if any.
-		  (if suffix
-		      (if (looking-back suffix)
-			  (delete-region (match-beginning 0) (point))
-			(error "Local variables entry is missing the suffix")))
-		  (forward-line 1))
-		(goto-char (point-min))
+	    (with-temp-buffer
+	      (insert-buffer-substring thisbuf startpos endpos)
+	      (goto-char (point-min))
+	      (subst-char-in-region (point) (point-max) ?\^m ?\n)
+	      (while (not (eobp))
+		;; Discard the prefix.
+		(if (looking-at prefix)
+		    (delete-region (point) (match-end 0))
+		  (error "Local variables entry is missing the prefix"))
+		(end-of-line)
+		;; Discard the suffix.
+		(if (looking-back suffix)
+		    (delete-region (match-beginning 0) (point))
+		  (error "Local variables entry is missing the suffix"))
+		(forward-line 1))
+	      (goto-char (point-min))
 
-		(while (not (eobp))
-		  ;; Find the variable name; strip whitespace.
-		  (skip-chars-forward " \t")
-		  (setq beg (point))
-		  (skip-chars-forward "^:\n")
-		  (if (eolp) (error "Missing colon in local variables entry"))
-		  (skip-chars-backward " \t")
-		  (let* ((str (buffer-substring beg (point)))
-			 (var (read str))
-			 val)
-		    ;; Read the variable value.
-		    (skip-chars-forward "^:")
-		    (forward-char 1)
-		    (setq val (read (current-buffer)))
-		    (if mode-only
-			(if (eq var 'mode)
-			    (setq mode-specified t))
-		      ;; Set the variable.  "Variables" mode and eval are funny.
-		      (with-current-buffer thisbuf
-			(hack-one-local-variable var val))))
-		  (forward-line 1)))))))
+	      (while (not (eobp))
+		;; Find the variable name; strip whitespace.
+		(skip-chars-forward " \t")
+		(setq beg (point))
+		(skip-chars-forward "^:\n")
+		(if (eolp) (error "Missing colon in local variables entry"))
+		(skip-chars-backward " \t")
+		(let* ((str (buffer-substring beg (point)))
+		       (var (read str))
+		       val)
+		  ;; Read the variable value.
+		  (skip-chars-forward "^:")
+		  (forward-char 1)
+		  (setq val (read (current-buffer)))
+		  (if mode-only
+		      (if (eq var 'mode)
+			  (setq mode-specified t))
+		    ;; Set the variable.  "Variables" mode and eval are funny.
+		    (with-current-buffer thisbuf
+		      (hack-one-local-variable var val))))
+		(forward-line 1)))))))
     (unless mode-only
       (run-hooks 'hack-local-variables-hook))
     mode-specified))

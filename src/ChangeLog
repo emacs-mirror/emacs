@@ -1,8 +1,25 @@
+2005-01-02  Richard M. Stallman  <rms@gnu.org>
+
+	* alloc.c (Fgarbage_collect): Don't truncate_undo_list on dead buffers.
+
 2004-12-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Clear area in expose event for GTK.
 
 2004-12-31  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (setup_for_ellipsis, get_next_display_element):
+	Set it->ellipsis_p to 1 or 0.
+	(display_line): Record whether row ends in mid-ellipsis.
+	(set_cursor_from_row): If ends in ellipsis. find start of it.
+	(cursor_row_p): If PT's at the end of the ellipsis the row
+	ends within, don't display cursor on this row.
+
+	* dispextern.h (struct it): New element ellipsis_p.
+	(struct glyph_row): New element ends_in_ellipsis_p.
+
+	* xdisp.c (BUFFER_POS_REACHED_P): We haven't reached the specified
+	position if we're reading from something other than the buffer.
 
 	* window.c (window_scroll_pixel_based): Only look at
 	Vscroll_preserve_screen_position if the old PT can't be kept.

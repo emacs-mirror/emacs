@@ -1,3 +1,26 @@
+2005-01-01  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Programming Tutorial): Changed description of how to
+	edit keyboard macros to match current behavior.
+
+2005-01-01  Andreas Schwab  <schwab@suse.de>
+
+	* killing.texi (Graphical Kill): Move up under node Killing,
+	change @section to @subsection.
+
+2005-01-01  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Face Customization): Mention hex color specs.
+
+	* emacs.texi (Top): Update Killing submenu.
+
+	* killing.texi (Killing): Reorganize section.
+	No more TeX-only text; put the node command at start of chapter.
+	But the first section heading is used only in TeX.
+	Rewrite the text to read better in this mode.
+	(Graphical Kill): New subnode gets some of the text that
+	used to be in the first section.
+
 2004-12-31  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.texi (Shell Commands in Dired): Delete the ? example.

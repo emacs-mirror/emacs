@@ -1,3 +1,15 @@
+2005-01-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi (Face Attributes): Correct xref to renamed node.
+
+2005-01-01  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Face Attributes): Describe hex color specs.
+
+2004-12-31  Richard M. Stallman  <rms@gnu.org>
+
+	* os.texi (Timers): Update previous change.
+
 2004-12-30  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Line Height): Total line-height is now specified

@@ -6333,51 +6333,52 @@ then enter the real one in the edit command.
 
 @smallexample
 @group
-1:  3                   1:  3           Keyboard Macro Editor.
-    .                       .           Original keys: 1 @key{RET} 2 +
+1:  3                   1:  3           Calc Macro Edit Mode.
+    .                       .           Original keys: 1 <return> 2 +
 
-                                        type "1\r"
-                                        type "2"
-                                        calc-plus
+                                        1                          ;; calc digits
+                                        RET                        ;; calc-enter
+                                        2                          ;; calc digits
+                                        +                          ;; calc-plus
 
 C-x ( 1 @key{RET} 2 + C-x )    Z K h @key{RET}      Z E h
 @end group
 @end smallexample
 
 @noindent
-This shows the screen display assuming you have the @file{macedit}
-keyboard macro editing package installed, which is usually the case
-since a copy of @file{macedit} comes bundled with Calc.
-
 A keyboard macro is stored as a pure keystroke sequence.  The
-@file{macedit} package (invoked by @kbd{Z E}) scans along the
+@file{edmacro} package (invoked by @kbd{Z E}) scans along the
 macro and tries to decode it back into human-readable steps.
-If a key or keys are simply shorthand for some command with a
-@kbd{M-x} name, that name is shown.  Anything that doesn't correspond
-to a @kbd{M-x} command is written as a @samp{type} command.
+Descriptions of the keystrokes are given as comments, which begin with
+@samp{;;}, and which are ignored when the edited macro is saved.
+Spaces and line breaks are also ignored when the edited macro is saved.
+To enter a space into the macro, type @code{SPC}.  All the special
+characters @code{RET}, @code{LFD}, @code{TAB}, @code{SPC}, @code{DEL},
+and @code{NUL} must be written in all uppercase, as must the prefixes
+@code{C-} and @code{M-}.
 
 Let's edit in a new definition, for computing harmonic numbers.
-First, erase the three lines of the old definition.  Then, type
+First, erase the four lines of the old definition.  Then, type
 in the new definition (or use Emacs @kbd{M-w} and @kbd{C-y} commands
-to copy it from this page of the Info file; you can skip typing
-the comments that begin with @samp{#}).
+to copy it from this page of the Info file; you can of course skip
+typing the comments, which begin with @samp{;;}).
 
 @smallexample
-calc-kbd-push         # Save local values (Z `)
-type "0"              # Push a zero
-calc-store-into       # Store it in variable 1
-type "1"
-type "1"              # Initial value for loop
-calc-roll-down        # This is the @key{TAB} key; swap initial & final
-calc-kbd-for          # Begin "for" loop...
-calc-inv              #   Take reciprocal
-calc-store-plus       #   Add to accumulator
-type "1"
-type "1"              #   Loop step is 1
-calc-kbd-end-for      # End "for" loop
-calc-recall           # Now recall final accumulated value
-type "1"
-calc-kbd-pop          # Restore values (Z ')
+Z`                      ;; calc-kbd-push     (Save local values)
+0                       ;; calc digits       (Push a zero onto the stack)
+st                      ;; calc-store-into   (Store it in the following variable)
+1                       ;; calc quick variable  (Quick variable q1)
+1                       ;; calc digits       (Initial value for the loop) 
+TAB                     ;; calc-roll-down    (Swap initial and final)
+Z(                      ;; calc-kbd-for      (Begin the "for" loop)
+&                       ;; calc-inv          (Take the reciprocal)
+s+                      ;; calc-store-plus   (Add to the following variable)
+1                       ;; calc quick variable  (Quick variable q1)
+1                       ;; calc digits       (The loop step is 1)
+Z)                      ;; calc-kbd-end-for  (End the "for" loop)
+sr                      ;; calc-recall       (Recall the final accumulated value)
+1                       ;; calc quick variable (Quick variable q1)
+Z'                      ;; calc-kbd-pop      (Restore values)
 @end smallexample
 
 @noindent
@@ -6392,15 +6393,12 @@ Press @kbd{C-c C-c} to finish editing and return to the Calculator.
 @end group
 @end smallexample
 
-If you don't know how to write a particular command in @file{macedit}
-format, you can always write it as keystrokes in a @code{type} command.
-There is also a @code{keys} command which interprets the rest of the
-line as standard Emacs keystroke names.  In fact, @file{macedit} defines
-a handy @code{read-kbd-macro} command which reads the current region
-of the current buffer as a sequence of keystroke names, and defines that
-sequence on the @kbd{X} (and @kbd{C-x e}) key.  Because this is so
-useful, Calc puts this command on the @kbd{M-# m} key.  Try reading in
-this macro in the following form:  Press @kbd{C-@@} (or @kbd{C-@key{SPC}}) at
+The @file{edmacro} package defines a handy @code{read-kbd-macro} command
+which reads the current region of the current buffer as a sequence of
+keystroke names, and defines that sequence on the @kbd{X} 
+(and @kbd{C-x e}) key.  Because this is so useful, Calc puts this
+command on the @kbd{M-# m} key.  Try reading in this macro in the
+following form:  Press @kbd{C-@@} (or @kbd{C-@key{SPC}}) at 
 one end of the text below, then type @kbd{M-# m} at the other.
 
 @example
@@ -30827,33 +30825,19 @@ Once you have bound your keyboard macro to a key, you can use
 
 @cindex Keyboard macros, editing
 The @kbd{Z E} (@code{calc-user-define-edit}) command on a key that has
-been defined by a keyboard macro tries to use the @code{edit-kbd-macro}
-command to edit the macro.  This command may be found in the
-@file{macedit} package, a copy of which comes with Calc.  It decomposes
-the macro definition into full Emacs command names, like @code{calc-pop}
-and @code{calc-add}.  Type @kbd{C-c C-c} to finish editing and update
+been defined by a keyboard macro tries to use the @code{edmacro} package
+edit the macro.  Type @kbd{C-c C-c} to finish editing and update 
 the definition stored on the key, or, to cancel the edit, kill the
 buffer with @kbd{C-x k}.
-
-If you give a negative numeric prefix argument to @kbd{Z E}, the keyboard
-macro is edited in spelled-out keystroke form.  For example, the editing
-buffer might contain the nine characters @w{@samp{1 @key{RET} 2 +}}.  When you press
-@kbd{C-c C-c}, the @code{read-kbd-macro} feature of the @file{macedit}
-package is used to reinterpret these key names.  The
-notations @code{RET}, @code{LFD}, @code{TAB}, @code{SPC}, @code{DEL}, and
-@code{NUL} must be written in all uppercase, as must the prefixes @code{C-}
-and @code{M-}.  Spaces and line breaks are ignored.  Other characters are
+The special characters @code{RET}, @code{LFD}, @code{TAB}, @code{SPC},
+@code{DEL}, and @code{NUL} must be entered as these three character
+sequences, written in all uppercase, as must the prefixes @code{C-} and
+@code{M-}.  Spaces and line breaks are ignored.  Other characters are
 copied verbatim into the keyboard macro.  Basically, the notation is the
 same as is used in all of this manual's examples, except that the manual
-takes some liberties with spaces:  When we say @kbd{' [1 2 3] @key{RET}}, we take
-it for granted that it is clear we really mean @kbd{' [1 @key{SPC} 2 @key{SPC} 3] @key{RET}},
-which is what @code{read-kbd-macro} wants to see.
-
-If @file{macedit} is not available, @kbd{Z E} edits the keyboard macro
-in ``raw'' form; the editing buffer simply contains characters like
-@samp{1^M2+} (here @samp{^M} represents the carriage-return character).
-Editing in this mode, you will have to use @kbd{C-q} to enter new
-control characters into the buffer.
+takes some liberties with spaces: When we say @kbd{' [1 2 3] @key{RET}},
+we take it for granted that it is clear we really mean 
+@kbd{' [1 @key{SPC} 2 @key{SPC} 3] @key{RET}}.
 
 @kindex M-# m
 @pindex read-kbd-macro
@@ -30861,7 +30845,6 @@ The @kbd{M-# m} (@code{read-kbd-macro}) command reads an Emacs ``region''
 of spelled-out keystrokes and defines it as the current keyboard macro.
 It is a convenient way to define a keyboard macro that has been stored
 in a file, or to define a macro without executing it at the same time.
-The @kbd{M-# m} command works only if @file{macedit} is present.
 
 @node Conditionals in Macros, Loops in Macros, Naming Keyboard Macros, Keyboard Macros
 @subsection Conditionals in Keyboard Macros

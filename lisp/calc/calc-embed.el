@@ -308,10 +308,10 @@ This is not required to be present for user-written mode annotations.")
   (calc-show-edit-buffer))
 
 (defvar calc-original-buffer)
-
+(defvar calc-edit-top)
 (defun calc-embedded-finish-edit (info)
   (let ((buf (current-buffer))
-	(str (buffer-substring (point) (point-max)))
+	(str (buffer-substring calc-edit-top (point-max)))
 	(start (point))
 	pos)
     (switch-to-buffer calc-original-buffer)

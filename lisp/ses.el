@@ -1,6 +1,6 @@
 ;;; ses.el -- Simple Emacs Spreadsheet  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2002,03,04  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
@@ -2331,7 +2331,10 @@ hard to override how mouse-1 works."
 		(eq (get-text-property beg 'read-only) 'ses)
 		(eq (get-text-property (1- end) 'read-only) 'ses)))
       ad-do-it ;Normal copy-region-as-kill
-    (kill-new (ses-copy-region beg end))))
+    (kill-new (ses-copy-region beg end))
+    (if transient-mark-mode
+	(setq deactivate-mark t))
+    nil))
 
 (defun ses-copy-region (beg end)
   "Treat the region as rectangular.  Convert the intangible attributes to

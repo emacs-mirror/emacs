@@ -4743,7 +4743,7 @@ returns nil, because real GC can't be done.  */)
 	   turned off in that buffer.  Calling truncate_undo_list on
 	   Qt tends to return NULL, which effectively turns undo back on.
 	   So don't call truncate_undo_list if undo_list is Qt.  */
-	if (! EQ (nextb->undo_list, Qt))
+	if (! NILP (nextb->name) && ! EQ (nextb->undo_list, Qt))
 	  truncate_undo_list (nextb);
 
 	/* Shrink buffer gaps, but skip indirect and dead buffers.  */

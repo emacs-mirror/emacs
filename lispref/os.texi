@@ -1368,10 +1368,10 @@ because most timer functions don't do a lot of work.  Indeed, for a
 timer to call a function that takes substantial time to run is likely
 to be annoying.
 
-  Timer functions should normally not alter the current buffer
-contents, but it may be ok to alter some other buffer that exists for
-special purposes.  A general guideline is that if a buffer has undo
-enabled, timers should not write in it.
+  It is usually a bad idea for timer functions to alter buffer
+contents.  When they do, they usually should call @code{undo-boundary}
+both before and after changing the buffer, to separate the timer's
+changes from user commands' changes.
 
 @deffn Command run-at-time time repeat function &rest args
 This sets up a timer that calls the function @var{function} with
@@ -1485,11 +1485,6 @@ minutes, and even if there have been garbage collections and autosaves.
   When the user supplies input, Emacs becomes non-idle while executing the
 input.  Then it becomes idle again, and all the idle timers that are
 set up to repeat will subsequently run another time, one by one.
-
-  It is legitimate for an idle timer to edit the current buffer.  If
-it does, it should explicitly call @code{undo-boundary} once at the
-beginning and once just before exiting, since Emacs won't do that
-automatically for an idle timer.
 
 @defun cancel-timer timer
 Cancel the requested action for @var{timer}, which should be a value

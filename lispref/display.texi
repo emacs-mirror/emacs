@@ -1636,7 +1636,7 @@ face name a special meaning in one frame if you wish.
 * Defining Faces::      How to define a face with @code{defface}.
 * Face Attributes::     What is in a face?
 * Attribute Functions::  Functions to examine and set face attributes.
-* Merging Faces::       How Emacs combines the faces specified for a character.
+* Displaying Faces::     How Emacs combines the faces specified for a character.
 * Font Selection::      Finding the best available font for a face.
 * Face Functions::      How to define and examine faces.
 * Auto Faces::          Hook for automatic face assignment.
@@ -1890,7 +1890,7 @@ as if they had a light background.
 attributes}.  This table lists all the face attributes, and what they
 mean.  Note that in general, more than one face can be specified for a
 given piece of text; when that happens, the attributes of all the faces
-are merged to specify how to display the text.  @xref{Merging Faces}.
+are merged to specify how to display the text.  @xref{Displaying Faces}.
 
   In Emacs 21, any attribute in a face can have the value
 @code{unspecified}.  This means the face doesn't specify that attribute.
@@ -1941,10 +1941,14 @@ On a text-only terminal, slanted text is displayed as half-bright, if
 the terminal supports the feature.
 
 @item :foreground
-Foreground color, a string.
+Foreground color, a string.  The value can be a system-defined color
+name, or a hexadecimal color specification of the form
+@samp{#@var{rr}@var{gg}@var{bb}}.  (@samp{#000000} is black,
+@samp{#ff0000} is red, @samp{#00ff00} is green, @samp{#0000ff} is
+blue, and @samp{#ffffff} is white.)
 
 @item :background
-Background color, a string.
+Background color, a string, like the foreground color.
 
 @item :inverse-video
 Whether or not characters should be displayed in inverse video.  The
@@ -2265,8 +2269,8 @@ This function returns the @code{:underline} attribute of face @var{face}.
 This function returns the @code{:inverse-video} attribute of face @var{face}.
 @end defun
 
-@node Merging Faces
-@subsection Merging Faces for Display
+@node Displaying Faces
+@subsection Displaying Faces
 
   Here are the ways to specify which faces to use for display of text:
 
