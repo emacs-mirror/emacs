@@ -334,6 +334,9 @@ struct coding_system
      meaing of each non-zero value.  */
   int composing;
 
+  /* Number of composed characters in the current composing sequence.  */
+  int composed_chars;
+
   /* Detailed information specific to each type of coding system.  */
   union spec
     {
