@@ -100,7 +100,7 @@ struct cm
 
 extern struct cm Wcm;		/* Terminal capabilities */
 extern char PC;			/* Pad character */
-#ifdef HAVE_TERMIOS_H
+#ifdef HAVE_TERMIOS
 # include <termios.h>
 extern speed_t ospeed;
 #else

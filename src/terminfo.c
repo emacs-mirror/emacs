@@ -29,7 +29,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 char *UP, *BC, PC;
-#ifdef HAVE_TERMIOS_H
+#ifdef HAVE_TERMIOS
 # include <termios.h>
   speed_t ospeed;
 #else

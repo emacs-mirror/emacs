@@ -220,7 +220,7 @@ static int baud_convert[] =
   };
 #endif
 
-#ifdef HAVE_TERMIOS_H
+#ifdef HAVE_TERMIOS
 # include <termios.h>
   extern speed_t ospeed;
 #else
