@@ -3266,10 +3266,11 @@ the whole thing because (1) it preserves some marker positions\n\
 and (2) it puts less data in the undo list.\n\
 When REPLACE is non-nil, the value is the number of characters actually read,\n\
 which is often less than the number of characters to be read.\n\
+\n\
 This does code conversion according to the value of\n\
-  `coding-system-for-read' or `file-coding-system-alist',\n\
-  and sets the variable `last-coding-system-used' to the coding system\n\
-  actually used.")
+`coding-system-for-read' or `file-coding-system-alist',\n\
+and sets the variable `last-coding-system-used' to the coding system\n\
+actually used.")
   (filename, visit, beg, end, replace)
      Lisp_Object filename, visit, beg, end, replace;
 {
@@ -3542,6 +3543,9 @@ This does code conversion according to the value of\n\
       }
     else
       setup_coding_system (Fcheck_coding_system (val), &coding);
+
+    /* Ensure we always set Vlast_coding_system_used.  */
+    set_coding_system = 1;
   }
 
   /* If requested, replace the accessible part of the buffer
@@ -4029,8 +4033,6 @@ This does code conversion according to the value of\n\
 #endif
     }
 
-  set_coding_system = 1;
-
  notfound:
  handled:
 
@@ -4157,7 +4159,13 @@ The optional sixth arg LOCKNAME, if non-nil, specifies the name to\n\
 The optional seventh arg CONFIRM, if non-nil, says ask for confirmation\n\
   before overwriting an existing file.\n\
 Kludgy feature: if START is a string, then that string is written\n\
-to the file, instead of any buffer contents, and END is ignored.")
+to the file, instead of any buffer contents, and END is ignored.\n\
+\n\
+This does code conversion according to the value of\n\
+`coding-system-for-write', `buffer-file-coding-system', or\n\
+`file-coding-system-alist', and sets the variable\n\
+`last-coding-system-used' to the coding system actually used.")
+
   (start, end, filename, append, visit, lockname, confirm)
      Lisp_Object start, end, filename, append, visit, lockname, confirm;
 {
