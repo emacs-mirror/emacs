@@ -208,6 +208,7 @@ install: all
 		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
 	  fi; \
 	else true; fi
+	-rm -f ${INSTALLDIR}/.cvsignore ${INSTALLDIR}/*/.cvsignore
 	-chmod -R a+r ${INSTALLDIR}
 
 clean mostlyclean:
