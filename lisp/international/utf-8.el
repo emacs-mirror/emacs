@@ -258,8 +258,11 @@ The value nil means that the tables are not yet loaded.")
 				 (funcall decode-char-no-trans (car x))
 				 (funcall decode-char-no-trans (cdr x))))
 		     ranges "")))
-  ;; This forces loading tables for utf-translate-cjk-mode.
-  (setq utf-translate-cjk-lang-env nil))
+  ;; These forces loading and settting tables for
+  ;; utf-translate-cjk-mode.
+  (setq utf-translate-cjk-lang-env nil
+	ucs-mule-cjk-to-unicode (make-hash-table :test 'eq)
+	ucs-unicode-to-mule-cjk (make-hash-table :test 'eq)))
 
 (defcustom utf-translate-cjk-unicode-range '((#x2e80 . #xd7a3)
 					     (#xff00 . #xffef))
@@ -492,25 +495,32 @@ by the above coding systems, you can customize the user option
 	  ;; 2-byte encoding 00000yyyyyxxxxxx = 110yyyyy 10xxxxxx
 	  ((r1 &= #x3F)
 	   (r1 |= ((r0 & #x1F) << 6))
-	   ;; Now r2 holds scalar value.  We don't have to check
+	   ;; Now r1 holds scalar value.  We don't have to check
 	   ;; `overlong sequence' because r0 >= 0xC2.
 
 	   (if (r1 >= 256)
 	       ;; mule-unicode-0100-24ff (< 0800)
-	       ((r0 = ,(charset-id 'mule-unicode-0100-24ff))
-		(r1 -= #x0100)
-		(r2 = (((r1 / 96) + 32) << 7))
-		(r1 %= 96)
-		(r1 += (r2 + 32))
-		(translate-character
-		 utf-translation-table-for-decode r0 r1)
+	       ((r0 = r1)
+		(lookup-integer utf-subst-table-for-decode r0 r1)
+		(if (r7 == 0)
+		    ((r0 = ,(charset-id 'mule-unicode-0100-24ff))
+		     (r1 -= #x0100)
+		     (r2 = (((r1 / 96) + 32) << 7))
+		     (r1 %= 96)
+		     (r1 += (r2 + 32))
+		     (translate-character
+		      utf-translation-table-for-decode r0 r1)))
 		(write-multibyte-character r0 r1)
 		(read r0)
 		(repeat))
 	     (if (r1 >= 160)
 		 ;; latin-iso8859-1
-		 ((r1 -= 128)
-		  (write-multibyte-character r6 r1)
+		 ((r0 = r1)
+		  (lookup-integer utf-subst-table-for-decode r0 r1)
+		  (if (r7 == 0)
+		      ((r1 -= 128)
+		       (write-multibyte-character r6 r1))
+		    ((write-multibyte-character r0 r1)))
 		  (read r0)
 		  (repeat))
 	       ;; eight-bit-control
@@ -549,13 +559,16 @@ by the above coding systems, you can customize the user option
 
 	   (if (r3 < #x2500)
 	       ;; mule-unicode-0100-24ff (>= 0800)
-	       ((r0 = ,(charset-id 'mule-unicode-0100-24ff))
-		(r3 -= #x0100)
-		(r3 //= 96)
-		(r1 = (r7 + 32))
-		(r1 += ((r3 + 32) << 7))
-		(translate-character
-		 utf-translation-table-for-decode r0 r1)
+	       ((r0 = r3)
+		(lookup-integer utf-subst-table-for-decode r0 r1)
+		(if (r7 == 0)
+		    ((r0 = ,(charset-id 'mule-unicode-0100-24ff))
+		     (r3 -= #x0100)
+		     (r3 //= 96)
+		     (r1 = (r7 + 32))
+		     (r1 += ((r3 + 32) << 7))
+		     (translate-character
+		      utf-translation-table-for-decode r0 r1)))
 		(write-multibyte-character r0 r1)
 		(read r0)
 		(repeat)))
@@ -949,9 +962,9 @@ Also compose particular scripts if `utf-8-compose-scripts' is non-nil."
 	    (unless (eobp)
 	      (utf-translate-cjk-load-tables)
 	      (setq range
-		    (concat range utf-translate-cjk-unicode-range-string))))
-	  (setq hash-table (get 'utf-subst-table-for-decode
-				'translation-hash-table)))
+		    (concat range utf-translate-cjk-unicode-range-string)))
+	    (setq hash-table (get 'utf-subst-table-for-decode
+				  'translation-hash-table))))
 	(while (and (skip-chars-forward range)
 		    (not (eobp)))
 	  (setq ch (following-char))
