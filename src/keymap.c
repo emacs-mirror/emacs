@@ -25,6 +25,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
+#include "character.h"
 #include "charset.h"
 #include "keyboard.h"
 #include "termhooks.h"
@@ -792,6 +793,11 @@ store_in_keymap (keymap, idx, def)
 		       NILP (def) ? Qt : def);
 		return def;
 	      }
+	    else if (CONSP (idx) && CHARACTERP (XCAR (idx)))
+	      {
+		Fset_char_table_range (elt, idx, NILP (def) ? Qt : def);
+		return def;
+	      }
 	    insertion_point = tail;
 	  }
 	else if (CONSP (elt))
@@ -1019,8 +1025,15 @@ the front of KEYMAP.  */)
     {
       c = Faref (key, make_number (idx));
 
-      if (CONSP (c) && lucid_event_type_list_p (c))
-	c = Fevent_convert_list (c);
+      if (CONSP (c))
+	{
+	  /* C may be a cons (FROM . TO) specifying a range of
+	     characters.  */
+	  if (CHARACTERP (XCAR (c)))
+	    CHECK_CHARACTER (XCDR (c));
+	  else if (lucid_event_type_list_p (c))
+	    c = Fevent_convert_list (c);
+	}
 
       if (SYMBOLP (c))
 	silly_event_symbol_error (c);
@@ -1041,7 +1054,10 @@ the front of KEYMAP.  */)
 	  idx++;
 	}
 
-      if (!INTEGERP (c) && !SYMBOLP (c) && !CONSP (c))
+      if (!INTEGERP (c) && !SYMBOLP (c)
+	  && (!CONSP (c)
+	      /* If C is a range, it must be a leaf.  */
+	      || (INTEGERP (XCAR (c)) && idx != length)))
 	error ("Key sequence contains invalid event");
 
       if (idx == length)
@@ -2028,30 +2044,23 @@ push_key_description (c, p, force_multibyte)
     {
       *p++ = c;
     }
+  else if (CHAR_VALID_P (c, 0))
+    {
+      if (NILP (current_buffer->enable_multibyte_characters))
+	*p++ = multibyte_char_to_unibyte (c, Qnil);
+      else
+	p += CHAR_STRING (c, (unsigned char *) p);
+    }
   else
     {
-      int valid_p = SINGLE_BYTE_CHAR_P (c) || char_valid_p (c, 0);
-      
-      if (force_multibyte && valid_p)
+      int bit_offset;
+      *p++ = '\\';
+      /* The biggest character code uses 22 bits.  */
+      for (bit_offset = 21; bit_offset >= 0; bit_offset -= 3)
 	{
-	  if (SINGLE_BYTE_CHAR_P (c))
-	    c = unibyte_char_to_multibyte (c);
-	  p += CHAR_STRING (c, p);
+	  if (c >= (1 << bit_offset))
+	    *p++ = ((c & (7 << bit_offset)) >> bit_offset) + '0';
 	}
-      else if (NILP (current_buffer->enable_multibyte_characters)
-	       || valid_p)
-	{
-	  int bit_offset;
-	  *p++ = '\\';
-	  /* The biggest character code uses 19 bits.  */
-	  for (bit_offset = 18; bit_offset >= 0; bit_offset -= 3)
-	    {
-	      if (c >= (1 << bit_offset))
-		*p++ = ((c & (7 << bit_offset)) >> bit_offset) + '0';
-	    }
-	}
-      else
-	p += CHAR_STRING (c, p);
     }
 
   return p;
@@ -2075,43 +2084,10 @@ around function keys and event symbols.  */)
 
   if (INTEGERP (key))		/* Normal character */
     {
-      unsigned int charset, c1, c2;
-      int without_bits = XINT (key) & ~((-1) << CHARACTERBITS);
+      char tem[KEY_DESCRIPTION_SIZE];
 
-      if (SINGLE_BYTE_CHAR_P (without_bits))
-	charset = 0;
-      else
-	SPLIT_CHAR (without_bits, charset, c1, c2);
-
-      if (charset
-	  && CHARSET_DEFINED_P (charset)
-	  && ((c1 >= 0 && c1 < 32)
-	      || (c2 >= 0 && c2 < 32)))
-	{
-	  /* Handle a generic character.  */
-	  Lisp_Object name;
-	  name = CHARSET_TABLE_INFO (charset, CHARSET_LONG_NAME_IDX);
-	  CHECK_STRING (name);
-	  return concat2 (build_string ("Character set "), name);
-	}
-      else
-	{
-	  char tem[KEY_DESCRIPTION_SIZE], *end;
-	  int nbytes, nchars;
-	  Lisp_Object string;
-
-	  end = push_key_description (XUINT (key), tem, 1);
-	  nbytes = end - tem;
-	  nchars = multibyte_chars_in_text (tem, nbytes);
-	  if (nchars == nbytes)
-	    {
-	      *end = '\0';
-	      string = build_string (tem);
-	    }
-	  else
-	    string = make_multibyte_string (tem, nchars, nbytes);
-	  return string;
-	}
+      *push_key_description (XUINT (key), tem, 1) = 0;
+      return build_string (tem);
     }
   else if (SYMBOLP (key))	/* Function key or event-symbol */
     {
@@ -3156,11 +3132,10 @@ This is text showing the elements of vector matched against indices.  */)
    If the definition in effect in the whole map does not match
    the one in this vector, we ignore this one.
 
-   When describing a sub-char-table, INDICES is a list of
-   indices at higher levels in this char-table,
-   and CHAR_TABLE_DEPTH says how many levels down we have gone.
+   ARGS is simply passed as the second argument to ELT_DESCRIBER.
 
-   ARGS is simply passed as the second argument to ELT_DESCRIBER.  */
+   INDICES and CHAR_TABLE_DEPTH are ignored.  They will be removed in
+   the near future.  */
 
 void
 describe_vector (vector, elt_prefix, args, elt_describer,
@@ -3180,20 +3155,20 @@ describe_vector (vector, elt_prefix, args, elt_describer,
   register int i;
   Lisp_Object suppress;
   Lisp_Object kludge;
-  int first = 1;
   struct gcpro gcpro1, gcpro2, gcpro3;
   /* Range of elements to be handled.  */
   int from, to;
-  /* A flag to tell if a leaf in this level of char-table is not a
-     generic character (i.e. a complete multibyte character).  */
-  int complete_char;
-  int character;
+  Lisp_Object character;
   int starting_i;
 
+  if (CHAR_TABLE_P (vector))
+    {
+      describe_char_table (vector, elt_prefix, args, elt_describer,
+			   partial, shadow, entire_map);
+      return;
+    }
+  
   suppress = Qnil;
-
-  if (indices == 0)
-    indices = (int *) alloca (3 * sizeof (int));
 
   definition = Qnil;
 
@@ -3206,60 +3181,14 @@ describe_vector (vector, elt_prefix, args, elt_describer,
   if (partial)
     suppress = intern ("suppress-keymap");
 
-  if (CHAR_TABLE_P (vector))
-    {
-      if (char_table_depth == 0)
-	{
-	  /* VECTOR is a top level char-table.  */
-	  complete_char = 1;
-	  from = 0;
-	  to = CHAR_TABLE_ORDINARY_SLOTS;
-	}
-      else
-	{
-	  /* VECTOR is a sub char-table.  */
-	  if (char_table_depth >= 3)
-	    /* A char-table is never that deep.  */
-	    error ("Too deep char table");
-
-	  complete_char
-	    = (CHARSET_VALID_P (indices[0])
-	       && ((CHARSET_DIMENSION (indices[0]) == 1
-		    && char_table_depth == 1)
-		   || char_table_depth == 2));
-
-	  /* Meaningful elements are from 32th to 127th.  */
-	  from = 32;
-	  to = SUB_CHAR_TABLE_ORDINARY_SLOTS;
-	}
-    }
-  else
-    {
-      /* This does the right thing for ordinary vectors.  */
-
-      complete_char = 1;
-      from = 0;
-      to = XVECTOR (vector)->size;
-    }
+  from = 0;
+  to = XVECTOR (vector)->size;
 
   for (i = from; i < to; i++)
     {
       QUIT;
 
-      if (CHAR_TABLE_P (vector))
-	{
-	  if (char_table_depth == 0 && i >= CHAR_TABLE_SINGLE_BYTE_SLOTS)
-	    complete_char = 0;
-
-	  if (i >= CHAR_TABLE_SINGLE_BYTE_SLOTS
-	      && !CHARSET_DEFINED_P (i - 128))
-	    continue;
-
-	  definition
-	    = get_keyelt (XCHAR_TABLE (vector)->contents[i], 0);
-	}
-      else
-	definition = get_keyelt (AREF (vector, i), 0);
+      definition = get_keyelt (AREF (vector, i), 0);
 
       if (NILP (definition)) continue;
 
@@ -3273,33 +3202,14 @@ describe_vector (vector, elt_prefix, args, elt_describer,
 	  if (!NILP (tem)) continue;
 	}
 
-      /* Set CHARACTER to the character this entry describes, if any.
-	 Also update *INDICES.  */
-      if (CHAR_TABLE_P (vector))
-	{
-	  indices[char_table_depth] = i;
-
-	  if (char_table_depth == 0)
-	    {
-	      character = i;
-	      indices[0] = i - 128;
-	    }
-	  else if (complete_char)
-	    {
-	      character	= MAKE_CHAR (indices[0], indices[1], indices[2]);
-	    }
-	  else
-	    character = 0;
-	}
-      else
-	character = i;
+      character = make_number (i);
 
       /* If this binding is shadowed by some other map, ignore it.  */
-      if (!NILP (shadow) && complete_char)
+      if (!NILP (shadow))
 	{
 	  Lisp_Object tem;
 	  
-	  ASET (kludge, 0, make_number (character));
+	  ASET (kludge, 0, character);
 	  tem = shadow_lookup (shadow, kludge, Qt);
 
 	  if (!NILP (tem)) continue;
@@ -3307,7 +3217,7 @@ describe_vector (vector, elt_prefix, args, elt_describer,
 
       /* Ignore this definition if it is shadowed by an earlier
 	 one in the same keymap.  */
-      if (!NILP (entire_map) && complete_char)
+      if (!NILP (entire_map))
 	{
 	  Lisp_Object tem;
 
@@ -3318,70 +3228,11 @@ describe_vector (vector, elt_prefix, args, elt_describer,
 	    continue;
 	}
 
-      if (first)
-	{
-	  if (char_table_depth == 0)
-	    insert ("\n", 1);
-	  first = 0;
-	}
-
-      /* For a sub char-table, show the depth by indentation.
-	 CHAR_TABLE_DEPTH can be greater than 0 only for a char-table.  */
-      if (char_table_depth > 0)
-	insert ("    ", char_table_depth * 2); /* depth is 1 or 2.  */
-
       /* Output the prefix that applies to every entry in this map.  */
       if (!NILP (elt_prefix))
 	insert1 (elt_prefix);
 
-      /* Insert or describe the character this slot is for,
-	 or a description of what it is for.  */
-      if (SUB_CHAR_TABLE_P (vector))
-	{
-	  if (complete_char)
-	    insert_char (character);
-	  else
-	    {
-	      /* We need an octal representation for this block of
-                 characters.  */
-	      char work[16];
-	      sprintf (work, "(row %d)", i);
-	      insert (work, strlen (work));
-	    }
-	}
-      else if (CHAR_TABLE_P (vector))
-	{
-	  if (complete_char)
-	    insert1 (Fsingle_key_description (make_number (character), Qnil));
-	  else
-	    {
-	      /* Print the information for this character set.  */
-	      insert_string ("<");
-	      tem2 = CHARSET_TABLE_INFO (i - 128, CHARSET_SHORT_NAME_IDX);
-	      if (STRINGP (tem2))
-		insert_from_string (tem2, 0, 0, XSTRING (tem2)->size,
-				    STRING_BYTES (XSTRING (tem2)), 0);
-	      else
-		insert ("?", 1);
-	      insert (">", 1);
-	    }
-	}
-      else
-	{
-	  insert1 (Fsingle_key_description (make_number (character), Qnil));
-	}
-
-      /* If we find a sub char-table within a char-table,
-	 scan it recursively; it defines the details for
-	 a character set or a portion of a character set.  */
-      if (CHAR_TABLE_P (vector) && SUB_CHAR_TABLE_P (definition))
-	{
-	  insert ("\n", 1);
-	  describe_vector (definition, elt_prefix, args, elt_describer,
-			   partial, shadow, entire_map,
-			   indices, char_table_depth + 1);
-	  continue;
-	}
+      insert1 (Fsingle_key_description (make_number (character), Qnil));
 
       starting_i = i;
 
@@ -3389,26 +3240,11 @@ describe_vector (vector, elt_prefix, args, elt_describer,
          definition.  But, for elements of a top level char table, if
          they are for charsets, we had better describe one by one even
          if they have the same definition.  */
-      if (CHAR_TABLE_P (vector))
-	{
-	  int limit = to;
-
-	  if (char_table_depth == 0)
-	    limit = CHAR_TABLE_SINGLE_BYTE_SLOTS;
-
-	  while (i + 1 < limit
-		 && (tem2 = get_keyelt (XCHAR_TABLE (vector)->contents[i + 1], 0),
-		     !NILP (tem2))
-		 && !NILP (Fequal (tem2, definition)))
-	    i++;
-	}
-      else
-	while (i + 1 < to
-	       && (tem2 = get_keyelt (AREF (vector, i + 1), 0),
-		   !NILP (tem2))
-	       && !NILP (Fequal (tem2, definition)))
-	  i++;
-      
+      while (i + 1 < to
+	     && (tem2 = get_keyelt (AREF (vector, i + 1), 0),
+		 !NILP (tem2))
+	     && !NILP (Fequal (tem2, definition)))
+	i++;
 
       /* If we have a range of more than one character,
 	 print where the range reaches to.  */
@@ -3419,32 +3255,7 @@ describe_vector (vector, elt_prefix, args, elt_describer,
 
 	  if (!NILP (elt_prefix))
 	    insert1 (elt_prefix);
-
-	  if (CHAR_TABLE_P (vector))
-	    {
-	      if (char_table_depth == 0)
-		{
-		  insert1 (Fsingle_key_description (make_number (i), Qnil));
-		}
-	      else if (complete_char)
-		{
-		  indices[char_table_depth] = i;
-		  character = MAKE_CHAR (indices[0], indices[1], indices[2]);
-		  insert_char (character);
-		}
-	      else
-		{
-		  /* We need an octal representation for this block of
-		     characters.  */
-		  char work[16];
-		  sprintf (work, "(row %d)", i);
-		  insert (work, strlen (work));
-		}
-	    }
-	  else
-	    {
-	      insert1 (Fsingle_key_description (make_number (i), Qnil));
-	    }
+	  insert1 (Fsingle_key_description (make_number (i), Qnil));
 	}
 
       /* Print a description of the definition of this character.
@@ -3453,16 +3264,129 @@ describe_vector (vector, elt_prefix, args, elt_describer,
       (*elt_describer) (definition, args);
     }
 
-  /* For (sub) char-table, print `defalt' slot at last.  */
-  if (CHAR_TABLE_P (vector) && !NILP (XCHAR_TABLE (vector)->defalt))
+  UNGCPRO;
+}
+
+/* Insert in the current buffer a description of the contents of
+   char-table TABLE.  We call ELT_DESCRIBER to insert the description
+   of one value found in TABLE.
+
+   ELT_PREFIX describes what "comes before" the keys or indices defined
+   by this vector.  This is a human-readable string whose size
+   is not necessarily related to the situation.
+
+   If PARTIAL is nonzero, it means do not mention suppressed commands
+   (that assumes the vector is in a keymap).
+
+   SHADOW is a list of keymaps that shadow this map.
+   If it is non-nil, then we look up the key in those maps
+   and we don't mention it now if it is defined by any of them.
+
+   ENTIRE_MAP is the keymap in which this vector appears.
+   If the definition in effect in the whole map does not match
+   the one in this vector, we ignore this one.
+
+   ARGS is simply passed as the second argument to ELT_DESCRIBER.  */
+
+void
+describe_char_table  (table, elt_prefix, args, elt_describer,
+		      partial, shadow, entire_map)
+     register Lisp_Object table;
+     Lisp_Object args;
+     Lisp_Object elt_prefix;
+     void (*elt_describer) P_ ((Lisp_Object, Lisp_Object));
+     int partial;
+     Lisp_Object shadow;
+     Lisp_Object entire_map;
+{
+  Lisp_Object definition;
+  Lisp_Object tem2;
+  register int i;
+  Lisp_Object suppress;
+  Lisp_Object kludge;
+  struct gcpro gcpro1, gcpro2, gcpro3;
+  /* Range of elements to be handled.  */
+  int from, to;
+  int c;
+  int starting_i;
+
+  suppress = Qnil;
+
+  definition = Qnil;
+
+  /* This vector gets used to present single keys to Flookup_key.  Since
+     that is done once per vector element, we don't want to cons up a
+     fresh vector every time.  */
+  kludge = Fmake_vector (make_number (1), Qnil);
+  GCPRO3 (elt_prefix, definition, kludge);
+
+  if (partial)
+    suppress = intern ("suppress-keymap");
+
+  from = 0;
+  to = MAX_CHAR + 1;
+
+  while (from < to)
     {
-      insert ("    ", char_table_depth * 2);
-      insert_string ("<<default>>");
-      (*elt_describer) (XCHAR_TABLE (vector)->defalt, args);
+      int range_beg, range_end;
+      Lisp_Object val;
+
+      QUIT;
+
+      val = char_table_ref_and_range (table, from, &range_beg, &range_end);
+      from = range_end + 1;
+      definition = get_keyelt (val, 0);
+
+      if (NILP (definition)) continue;      
+
+      /* Don't mention suppressed commands.  */
+      if (SYMBOLP (definition) && partial)
+	{
+	  Lisp_Object tem;
+
+	  tem = Fget (definition, suppress);
+
+	  if (!NILP (tem)) continue;
+	}
+
+      /* Output the prefix that applies to every entry in this map.  */
+      if (!NILP (elt_prefix))
+	insert1 (elt_prefix);
+
+      starting_i = range_beg;
+      insert_char (starting_i);
+
+      /* Find all consecutive characters that have the same
+         definition.  */
+      while (from < to
+	     && (val = char_table_ref_and_range (table, from,
+						 &range_beg, &range_end),
+		 tem2 = get_keyelt (val, 0),
+		 !NILP (tem2))
+	     && !NILP (Fequal (tem2, definition)))
+	from = range_end + 1;
+
+      /* If we have a range of more than one character,
+	 print where the range reaches to.  */
+      if (starting_i + 1 < from)
+	{
+	  insert (" .. ", 4);
+
+	  if (!NILP (elt_prefix))
+	    insert1 (elt_prefix);
+
+	  insert_char (from - 1);
+	}
+
+      /* Print a description of the definition of this character.
+	 elt_describer will take care of spacing out far enough
+	 for alignment purposes.  */
+      (*elt_describer) (definition, args);
     }
 
   UNGCPRO;
 }
+
 
 /* Apropos - finding all symbols whose names match a regexp.		*/
 Lisp_Object apropos_predicate;
