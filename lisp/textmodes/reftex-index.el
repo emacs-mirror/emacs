@@ -1,5 +1,6 @@
 ;;; reftex-index.el --- index support with RefTeX
-;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004, 2005
+;;  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Version: 4.26
@@ -928,7 +929,7 @@ When index is restricted, select the previous section as restriction criterion."
            (error "Not changed"))
           ((string= npart "")
            (if dont-allow-empty
-               (error "Illegal value")
+               (error "Invalid value")
              (setf (nth n analyze) npart)))
           (t (setf (nth n analyze) (concat initial npart))))
     (setq new (apply 'concat analyze))
@@ -1385,7 +1386,7 @@ match, the user will be asked to confirm the replacement."
                                (file-regular-p reftex-index-phrases-restrict-file))
                           (list reftex-index-phrases-restrict-file))
                          ((stringp reftex-index-phrases-restrict-file)
-                          (error "Illegal restriction file %s"
+                          (error "Invalid restriction file %s"
                                  reftex-index-phrases-restrict-file))
                          (t reftex-index-phrases-files)))
                   (as-words reftex-index-phrases-search-whole-words))

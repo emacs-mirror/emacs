@@ -13,6 +13,11 @@
 	progmodes/ebnf-yac.el, progmodes/ebnf2ps.el, progmodes/idlwave.el,
 	progmodes/sh-script.el, progmodes/xscheme.el: Replace `illegal' with
 	`invalid'.
+	* textmodes/refbib.el, textmodes/refer.el, textmodes/reftex-cite.el,
+	textmodes/reftex-index.el, textmodes/reftex-parse.el,
+	textmodes/reftex-ref.el, textmodes/reftex-vars.el,
+	textmodes/reftex.el, textmodes/org.el: Replace `illegal' with
+	`invalid'.
 
 2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 

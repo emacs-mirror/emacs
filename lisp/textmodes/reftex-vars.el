@@ -1,5 +1,6 @@
 ;;; reftex-vars.el --- configuration variables for RefTeX
-;; Copyright (c) 1997, 1998, 1999, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2003, 2004, 2005
+;;  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Version: 4.26
@@ -811,8 +812,8 @@ This variable is a list of the following items.
 
 NWORDS      Number of words to use.
 MAXCHAR     Maximum number of characters in a label string.
-ILLEGAL     nil: Throw away any words containing characters illegal in labels.
-            t:   Throw away only the illegal characters, not the whole word.
+INVALID     nil: Throw away any words containing characters invalid in labels.
+            t:   Throw away only the invalid characters, not the whole word.
 ABBREV      nil: Never abbreviate words.
             t:   Always abbreviate words (see `reftex-abbrev-parameters').
             not t and not nil: Abbreviate words if necessary to shorten
@@ -823,7 +824,7 @@ DOWNCASE    t:   Downcase words before using them."
   :group 'reftex-making-and-inserting-labels
   :type  '(list (integer :tag "Number of words            "  3)
                 (integer :tag "Maximum label length       " 20)
-                (choice  :tag "Illegal characters in words"
+                (choice  :tag "Invalid characters in words"
                          (const :tag "throw away entire word" nil)
                          (const :tag "throw away single chars" t))
                 (choice  :tag "Abbreviate words           "
@@ -837,7 +838,7 @@ DOWNCASE    t:   Downcase words before using them."
                 (option (boolean :tag "Downcase words          "))))
 
 (defcustom reftex-label-illegal-re "[^-a-zA-Z0-9_+=:;,.]"
-  "Regexp matching characters not legal in labels."
+  "Regexp matching characters not valid in labels."
   :group 'reftex-making-and-inserting-labels
   :type '(regexp :tag "Regular Expression"))
 

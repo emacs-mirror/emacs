@@ -1,5 +1,6 @@
 ;;; reftex-ref.el --- code to create labels and references with RefTeX
-;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004, 2005
+;;  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Version: 4.26
@@ -172,7 +173,7 @@ This function is controlled by the settings of reftex-insert-label-flags."
                        (nth 2 (reftex-label-info " " nil nil t))))
         ;; Catch the cases where the is actually no context available.
         (if (or (string-match "NO MATCH FOR CONTEXT REGEXP" default)
-                (string-match "ILLEGAL VALUE OF PARSE" default)
+                (string-match "INVALID VALUE OF PARSE" default)
                 (string-match "SECTION HEADING NOT FOUND" default)
                 (string-match "HOOK ERROR" default)
                 (string-match "^[ \t]*$" default))
@@ -217,7 +218,7 @@ This function is controlled by the settings of reftex-insert-label-flags."
 
              ;; Test if label contains strange characters
              ((string-match reftex-label-illegal-re label)
-              (message "Label \"%s\" contains illegal characters" label)
+              (message "Label \"%s\" contains invalid characters" label)
               (ding)
               (sit-for 2))
 

@@ -1,6 +1,6 @@
 ;; org.el --- Outline-based notes management and organizer 
 ;; Carstens outline-mode for keeping track of everything.
-;; Copyright (c) 2003, 2004 Free Software Foundation
+;; Copyright (c) 2003, 2004, 2005 Free Software Foundation
 
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar
@@ -2380,7 +2380,7 @@ ACTION can be set, up, or down."
         (setq new (1- current)))
        ((eq action 'down)
         (setq new (1+ current)))
-       (t (error "Illegal ection")))
+       (t (error "Invalid action")))
       (setq new (min (max ?A (upcase new)) org-lowest-priority))
       (setq news (format "%c" new))
       (if have
@@ -5902,13 +5902,13 @@ separator line)."
                     (string-to-int (match-string 1 form))
                   n0)
               x (nth n fields))
-        (unless x (error "Illegal field specifier \"%s\""
+        (unless x (error "Invalid field specifier \"%s\""
                          (match-string 0 form)))
         (if (equal (string-to-number x) 0) (setq x "0"))
         (setq form (replace-match x t t form)))
       (setq ev (calc-eval (list form) 'num))
       (if (listp ev)
-          (error "Illegal expression: %s (%s at %d)" form (nth 1 ev) (car ev)))
+          (error "Invalid expression: %s (%s at %d)" form (nth 1 ev) (car ev)))
       (org-table-blank-field)
       (if fmt
           (insert (format fmt (string-to-number ev)))
