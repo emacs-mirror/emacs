@@ -1,12 +1,14 @@
 #include "irix3-3.h"
 
 #define USG5_3
+#define IRIX4
 
 #define HAVE_ALLOCA
 #ifndef NOT_C_CODE
 #include <alloca.h>
 #endif
 
+#undef IRIS_UTIME
 #undef NEED_SIOCTL
 
 /* Make process_send_signal work by "typing" a signal character on the pty.  */
