@@ -7163,8 +7163,10 @@ build_desired_tool_bar_string (f)
 	  ? XSTRING (f->desired_tool_bar_string)->size
 	  : 0);
 
-  /* Reuse f->desired_tool_bar_string, if possible.  */
+  /* We need one space in the string for each image.  */
   size_needed = f->n_tool_bar_items;
+  
+  /* Reuse f->desired_tool_bar_string, if possible.  */
   if (size < size_needed)
     f->desired_tool_bar_string = Fmake_string (make_number (size_needed),
 					       make_number (' '));
@@ -11346,11 +11348,11 @@ dump_glyph_row (matrix, vpos, glyphs)
 
   if (glyphs != 1)
     {
-      fprintf (stderr, "Row Start   End Used oEI><O\\CTZFes     X    Y    W    H    V    A    P\n");
+      fprintf (stderr, "Row Start   End Used oEI><O\\CTZFesm     X    Y    W    H    V    A    P\n");
       fprintf (stderr, "=======================================================================\n");
   
       fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d\
-%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d %4d %4d %4d %4d %4d %4d %4d\n",
+%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d %4d %4d %4d %4d %4d %4d %4d\n",
 	       row - matrix->rows,
 	       MATRIX_ROW_START_CHARPOS (row),
 	       MATRIX_ROW_END_CHARPOS (row),
@@ -11368,6 +11370,7 @@ dump_glyph_row (matrix, vpos, glyphs)
 	       row->fill_line_p,
 	       row->ends_in_middle_of_char_p,
 	       row->starts_in_middle_of_char_p,
+	       row->mouse_face_p,
 	       row->x,
 	       row->y,
 	       row->pixel_width,
@@ -11529,14 +11532,17 @@ GLYPH > 1 or omitted means dump glyphs in long form.")
 }
 
 
-DEFUN ("dump-tool-bar-row", Fdump_tool_bar_row, Sdump_tool_bar_row,
-       0, 0, "", "")
-  ()
+DEFUN ("dump-tool-bar-row", Fdump_tool_bar_row, Sdump_tool_bar_row, 1, 2, "",
+  "Dump glyph row ROW of the tool-bar of the current frame to stderr.\n\
+GLYPH 0 means don't dump glyphs.\n\
+GLYPH 1 means dump glyphs in short form.\n\
+GLYPH > 1 or omitted means dump glyphs in long form.")
+  (row, glyphs)
+     Lisp_Object row, glyphs;
 {
   struct frame *sf = SELECTED_FRAME ();
-  struct glyph_matrix *m = (XWINDOW (sf->tool_bar_window)
-			    ->current_matrix);
-  dump_glyph_row (m, 0, 1);
+  struct glyph_matrix *m = (XWINDOW (sf->tool_bar_window)->current_matrix);
+  dump_glyph_row (m, XINT (row), INTEGERP (glyphs) ? XINT (glyphs) : 2);
   return Qnil;
 }
 
