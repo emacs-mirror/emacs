@@ -1,5 +1,8 @@
 2003-11-17  Kenichi Handa  <handa@m17n.org>
 
+	* keymap.c (Fdefine_key): Fix handling of Lucid style event type
+	list.
+
 	* fns.c (Fmapconcat): Signal an error if SEQUENCE is a char table.
 	(Fmapcar): Likewise.
 	(Fmapc): Likewise.
