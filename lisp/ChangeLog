@@ -1,5 +1,8 @@
 2001-07-31  Gerd Moellmann  <gerd@gnu.org>
 
+	* delsel.el (delete-selection-pre-hook): Don't set this-command
+	to `ignore' if the region is empty.
+
 	* international/mule.el (set-keyboard-coding-system): Set
 	keyboard-coding-system.
 
