@@ -1,5 +1,8 @@
 2002-09-16  Richard M. Stallman  <rms@gnu.org>
 
+	* play/gomoku.el (gomoku-move-up, gomoku-move-down):
+	Use forward-line and move-to-column.
+
 	* cus-edit.el (custom-variable-backup-value): New function.
 	(custom-variable-reset-backup): New function.
 	(custom-variable-menu): Add item for custom-variable-reset-backup.
