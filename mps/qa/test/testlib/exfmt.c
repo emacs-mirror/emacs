@@ -5,7 +5,7 @@
 
 #include "mps.h"
 #include "testlib.h"
-#include "awlfmt.h"
+#include "exfmt.h"
 #include <string.h>
 
 /* some options on the format are controlled by global
@@ -29,28 +29,12 @@ long int checkobjcount=0;
 
 mps_addr_t exfmt_root=NULL;
 
-enum
-{
- SCANCALL_COUNT,
- SCANOBJ_COUNT, /* = #objects scanned (real ones, that is) */
- SCANPAD_COUNT,  /* = #pads scanned */
- SCANHEART_COUNT,
- COPY_COUNT,
- SKIP_COUNT,
- FWD_COUNT,
- ISFWD_COUNT,
- RESERVE_COUNT,
- ALLOC_COUNT,
- DYING_REFERENCE_COUNT,
- PAD_COUNT /* this one must come last or the arrays will be too small */
-};
-
-int counters[PAD_COUNT+1];
-int prevcounters[PAD_COUNT+1];
+int counters[PAD_COUNT+1] = {0};
+int prevcounters[PAD_COUNT+1] = {0};
 int maxcounters[PAD_COUNT+1] = {0};
 
-static long int maxcopy = 0;
-static int freeze=0;
+long int maxcopy = 0;
+int freeze=0;
 
 /* The AWL pool makes certain assumptions about the object format,
    some necessary and some unnecessary but useful for detecting problems
