@@ -214,11 +214,23 @@ stop_other_atimers (t)
 
   if (t)
     {
-      cancel_atimer (t);
-      if (free_atimers != t)
-	abort ();
-      free_atimers = free_atimers->next;
-      t->next = NULL;
+      struct atimer *p, *prev;
+      
+      /* See if T is active.  */
+      for (p = atimers, prev = 0; p && p != t; p = p->next)
+	;
+
+      if (p == t)
+	{
+	  if (prev)
+	    prev->next = t->next;
+	  else
+	    atimers = t->next;
+	  t->next = NULL;
+	}
+      else
+	/* T is not active.  Let's handle this like T == 0.  */
+	t = NULL;
     }
   
   stopped_atimers = atimers;
