@@ -117,7 +117,7 @@ Cut buffers are considered obsolete; you should use selections instead."
 (defun x-set-cut-buffer (string &optional push)
   "Store STRING into the X server's primary cut buffer.
 If PUSH is non-nil, also rotate the cut buffers:
-this means the previous value of the primary cut buffer moves the second
+this means the previous value of the primary cut buffer moves to the second
 cut buffer, and the second to the third, and so on (there are 8 buffers.)
 Cut buffers are considered obsolete; you should use selections instead."
   ;; Check the data type of STRING.
