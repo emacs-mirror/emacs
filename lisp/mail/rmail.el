@@ -528,19 +528,12 @@ argument causes us to read a file name and use that file as the inbox."
 	    ;; Delete the old files, now that babyl file is saved.
 	    (while delete-files
 	      (condition-case ()
-		  (if (or (string= (file-name-directory (car delete-files))
-				   rmail-spool-directory)
-			  (string-match "^\\.newmail-"
-					(file-name-nondirectory (car delete-files))))
-		      ;; If the file's in the spool directory, try deleting.
-		      ;; Likewise if made with movemail.
-		      (condition-case ()
-			  (delete-file (car delete-files))
-			(file-error
-			 ;; If we can't delete it, truncate it.
-			 (write-region (point) (point) (car delete-files))))
-		    ;; If not in the spool dir, just truncate it.
-		    (write-region (point) (point) (car delete-files)))
+		  ;; First, try deleting.
+		  (condition-case ()
+		      (delete-file (car delete-files))
+		    (file-error
+		     ;; If we can't delete it, truncate it.
+		     (write-region (point) (point) (car delete-files))))
 		(file-error nil))
 	      (setq delete-files (cdr delete-files)))))
 	(if (= new-messages 0)
@@ -597,7 +590,13 @@ argument causes us to read a file name and use that file as the inbox."
 	    ((or (file-exists-p tofile) (not (file-exists-p file)))
 	     nil)
 	    ((not movemail)
-	     (rename-file file tofile nil))
+	     (rename-file file tofile nil)
+	     ;; Make the real inbox file empty.
+	     ;; Leaving it deleted could cause lossage
+	     ;; because mailers often won't create the file.
+	     (condition-case ()
+		 (write-region (point) (point) file)
+	       (file-error nil)))
 	    (t
 	     (let ((errors nil))
 	       (unwind-protect
