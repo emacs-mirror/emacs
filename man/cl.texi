@@ -498,19 +498,6 @@ accepts other keyword arguments which are passed on to the
 keep both @code{find-thing} and @code{member*} from complaining
 about each others' keywords in the arguments.
 
-As a (significant) performance optimization, this package
-implements the scan for keyword arguments by calling @code{memq}
-to search for keywords in a ``rest'' argument.  Technically
-speaking, this is incorrect, since @code{memq} looks at the
-odd-numbered values as well as the even-numbered keywords.
-The net effect is that if you happen to pass a keyword symbol
-as the @emph{value} of another keyword argument, where that
-keyword symbol happens to equal the name of a valid keyword
-argument of the same function, then the keyword parser will
-become confused.  This minor bug can only affect you if you
-use keyword symbols as general-purpose data in your program;
-this practice is strongly discouraged in Emacs Lisp.
-
 The fifth section of the argument list consists of @dfn{auxiliary
 variables}.  These are not really arguments at all, but simply
 variables which are bound to @code{nil} or to the specified
@@ -4991,13 +4978,7 @@ have built-in compiler macros to optimize them in common cases.
 Common Lisp compliance has in general not been sacrificed for the
 sake of efficiency.  A few exceptions have been made for cases
 where substantial gains were possible at the expense of marginal
-incompatibility.  One example is the use of @code{memq} (which is
-treated very efficiently by the byte-compiler) to scan for keyword
-arguments; this can become confused in rare cases when keyword
-symbols are used as both keywords and data values at once.  This
-is extremely unlikely to occur in practical code, and the use of
-@code{memq} allows functions with keyword arguments to be nearly
-as fast as functions that use @code{&optional} arguments.
+incompatibility.
 
 The Common Lisp standard (as embodied in Steele's book) uses the
 phrase ``it is an error if'' to indicate a situation which is not
@@ -5056,13 +5037,6 @@ to use extended Common Lisp argument lists in a function.  Likewise,
 which understand full-featured argument lists.  The @code{&whole}
 keyword does not work in @code{defmacro} argument lists (except
 inside recursive argument lists).
-
-In order to allow an efficient implementation, keyword arguments use
-a slightly cheesy parser which may be confused if a keyword symbol
-is passed as the @emph{value} of another keyword argument.
-(Specifically, @code{(memq :@var{keyword} @var{rest-of-arguments})}
-is used to scan for @code{:@var{keyword}} among the supplied
-keyword arguments.)
 
 The @code{eql} and @code{equal} predicates do not distinguish
 between IEEE floating-point plus and minus zero.  The @code{equalp}
