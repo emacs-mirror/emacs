@@ -1541,6 +1541,10 @@ sort_args (argc, argv)
 	argv[best + i + 1] = 0;
     }
 
+  /* If duplicate options were deleted, fill up extra space with null ptrs.  */
+  while (to < argc)
+    new[to++] = 0;
+
   bcopy (new, argv, sizeof (char *) * argc);
 
   free (options);
