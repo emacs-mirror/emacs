@@ -1182,6 +1182,7 @@ the buffer, just like for the local files.
 
 ** New modes and packages
 
++++
 *** The new package timeclock.el is a mode is for keeping track of time
 intervals.  You can use it for whatever purpose you like, but the
 typical scenario is to keep track of how much time you spend working
