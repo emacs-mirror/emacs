@@ -27,13 +27,15 @@
 
 (defun open-line (arg)
   "Insert a newline and leave point before it.
-If there is a fill prefix, insert the fill prefix on the new line
+If there is a fill prefix and/or a left-margin, insert them on the new line
 if the line would have been empty.
 With arg N, insert N newlines."
   (interactive "*p")
   (let* ((do-fill-prefix (and fill-prefix (bolp)))
+	 (do-left-margin (and (bolp) (> (current-left-margin) 0)))
 	 (loc (point)))
     (while (> arg 0)
+      (if do-left-margin (indent-to (current-left-margin)))
       (if do-fill-prefix (insert-and-inherit fill-prefix))
       (newline 1)
       (setq arg (1- arg)))
@@ -2185,13 +2187,8 @@ Setting this variable automatically makes it local to the current buffer.")
 			    (and auto-fill-inhibit-regexp
 				 (looking-at auto-fill-inhibit-regexp))))
 	nil ;; Auto-filling not required
-      ;; Remove justification-introduced whitespace before filling
-      (cond ((eq 'left justify) nil)
-	    ((eq 'full justify) ; full justify: remove extra spaces
-	     (canonically-space-region
-	      (point) (save-excursion (end-of-line) (point))))
-	    ;; right or center justify: remove extra indentation.
-	    (t (save-excursion (indent-according-to-mode))))
+      (if (memq justify '(full center right))
+	  (save-excursion (unjustify-current-line)))
       (while (and (not give-up) (> (current-column) fc))
 	  ;; Determine where to split the line.
 	  (let ((fill-point
@@ -2359,9 +2356,10 @@ unless optional argument SOFT is non-nil."
 	    ;; Make sure we delete the newline inserted above.
 	    (end-of-line)
 	    (delete-char 1)))
-      (if fill-prefix
-	  (insert-and-inherit fill-prefix)
-	(indent-according-to-mode)))))
+      (if (null fill-prefix)
+	  (indent-according-to-mode)
+	(indent-to-left-margin)
+	(insert-and-inherit fill-prefix)))))
 
 (defun set-selective-display (arg)
   "Set `selective-display' to ARG; clear it if no arg.
