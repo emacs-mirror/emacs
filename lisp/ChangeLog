@@ -1,3 +1,16 @@
+2000-05-31  Dave Love  <fx@gnu.org>
+
+	* loadhist.el (loadhist-hook-functions): Remove
+	before-change-function, after-change-function.
+	(unload-feature): Deal with symbols which are both bound and
+	fbound.
+
+	* mouse.el (mouse-save-then-kill-delete-region): Don't bind
+	before-change-function, after-change-function.
+
+	* simple.el (newline): Don't bind before-change-function,
+	after-change-function.
+
 2000-05-31  Rajesh Vaidheeswarran <rv@gnu.org>
 
 	* whitespace.el (whitespace-rescan-timer-time): Update interval
