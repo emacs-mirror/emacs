@@ -2361,7 +2361,8 @@ So do certain other operations that set the mark
 but whose main purpose is something else--for example,
 incremental search, \\[beginning-of-buffer], and \\[end-of-buffer].
 
-You can also deactivate the mark by typing \\[keyboard-quit].
+You can also deactivate the mark by typing \\[keyboard-quit] or
+\\[keyboard-escape-quit].
 
 Many commands change their behavior when Transient Mark mode is in effect
 and the mark is active, by acting on the region instead of their usual
