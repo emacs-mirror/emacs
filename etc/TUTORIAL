@@ -358,8 +358,8 @@ and M-e, sort of, in that lines are opposite sentences.
 
 You can also kill any part of the buffer with one uniform method.
 Move to one end of that part, and type C-@ or C-SPC (either one).
-Move to the other end of that part, and type C-w.  That kills
-all the text between the two positions.
+(SPC is the Space bar.)  Move to the other end of that part, and type
+C-w.  That kills all the text between the two positions.
 
 >> Move the cursor to the Y at the start of the previous paragraph.
 >> Type C-SPC.  Emacs should display a message "Mark set"
@@ -641,7 +641,9 @@ example is the command replace-string, which globally replaces one
 string with another.  When you type M-x, Emacs prompts you at the
 bottom of the screen with M-x and you should type the name of the
 command; in this case, "replace-string".  Just type "repl s<TAB>" and
-Emacs will complete the name.  End the command name with <Return>.
+Emacs will complete the name.  (<TAB> is the Tab key, usually found
+above the lCapsLock or Shift key near the left edge of the keyboard.)
+End the command name with <Return>.
 
 The replace-string command requires two arguments--the string to be
 replaced, and the string to replace it with.  You must end each
@@ -850,7 +852,8 @@ the search is reversed.
 One of the nice features of Emacs is that you can display more than one
 window on the screen at the same time.
 
->> Move the cursor to this line and type C-u 0 C-l.
+>> Move the cursor to this line and type C-u 0 C-l (that's control-L, not
+   control-1).
 
 >> Now type C-x 2 which splits the screen into two windows.
    Both windows display this tutorial.  The cursor stays in the top window.
