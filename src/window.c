@@ -4580,7 +4580,9 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	  int px;
 	  int dy = WINDOW_FRAME_LINE_HEIGHT (w);
 	  if (whole)
-	    dy = window_box_height (w) - next_screen_context_lines * dy;
+	    dy = max ((window_box_height (w)
+		       - next_screen_context_lines * dy),
+		      dy);
 	  dy *= n;
 
 	  if (n < 0 && (px = XINT (XCAR (tem))) > 0)
@@ -4615,18 +4617,26 @@ window_scroll_pixel_based (window, n, whole, noerror)
   start_display (&it, w, start);
   if (whole)
     {
-      int screen_full = (window_box_height (w)
-			 - next_screen_context_lines * FRAME_LINE_HEIGHT (it.f));
-      int dy = n * screen_full;
+      int start_pos = IT_CHARPOS (it);
+      int dy = WINDOW_FRAME_LINE_HEIGHT (w);
+      dy = max ((window_box_height (w)
+		 - next_screen_context_lines * dy),
+		dy) * n;
 
       /* Note that move_it_vertically always moves the iterator to the
          start of a line.  So, if the last line doesn't have a newline,
 	 we would end up at the start of the line ending at ZV.  */
       if (dy <= 0)
-	move_it_vertically_backward (&it, -dy);
+	{
+	  move_it_vertically_backward (&it, -dy);
+	  /* Ensure we actually does move, e.g. in case we are currently
+	     looking at an image that is taller that the window height.  */
+	  while (start_pos == IT_CHARPOS (it)
+		 && start_pos > BEGV)
+	    move_it_by_lines (&it, -1, 1);
+	}
       else if (dy > 0)
 	{
-	  int start_pos = IT_CHARPOS (it);
 	  move_it_to (&it, ZV, -1, it.current_y + dy, -1,
 		      MOVE_TO_POS | MOVE_TO_Y);
 	  /* Ensure we actually does move, e.g. in case we are currently
