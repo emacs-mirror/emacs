@@ -2317,8 +2317,7 @@ See also variable `debug-on-quit'.");
 
   DEFVAR_BOOL ("debug-on-quit", &debug_on_quit,
     "*Non-nil means enter debugger if quit is signaled (C-G, for example).\n\
-Does not apply if quit is handled by a `condition-case'.\n\
-A non-nil value is equivalent to a `debug-on-error' value containing `quit'.");
+Does not apply if quit is handled by a `condition-case'.")
   debug_on_quit = 0;
 
   DEFVAR_BOOL ("debug-on-next-call", &debug_on_next_call,
