@@ -2091,15 +2091,17 @@ mark_object (argptr)
 	  {
 	    register struct Lisp_Buffer_Local_Value *ptr
 	      = XBUFFER_LOCAL_VALUE (obj);
-	    if (XMARKBIT (ptr->car)) break;
-	    XMARK (ptr->car);
+	    if (XMARKBIT (ptr->realvalue)) break;
+	    XMARK (ptr->realvalue);
 	    /* If the cdr is nil, avoid recursion for the car.  */
 	    if (EQ (ptr->cdr, Qnil))
 	      {
-		objptr = &ptr->car;
+		objptr = &ptr->realvalue;
 		goto loop;
 	      }
-	    mark_object (&ptr->car);
+	    mark_object (&ptr->realvalue);
+	    mark_object (&ptr->buffer);
+	    mark_object (&ptr->frame);
 	    /* See comment above under Lisp_Vector for why not use ptr here.  */
 	    objptr = &XBUFFER_LOCAL_VALUE (obj)->cdr;
 	    goto loop;
@@ -2433,9 +2435,8 @@ gc_sweep ()
   }
 
 #ifndef standalone
-  /* Put all unmarked markers on free list.
-     Unchain each one first from the buffer it points into,
-     but only if it's a real marker.  */
+  /* Put all unmarked misc's on free list.
+     For a marker, first unchain it from the buffer it points into.  */
   {
     register struct marker_block *mblk;
     struct marker_block **mprev = &marker_block;
@@ -2460,7 +2461,7 @@ gc_sweep ()
 		break;
 	      case Lisp_Misc_Buffer_Local_Value:
 	      case Lisp_Misc_Some_Buffer_Local_Value:
-		markword = &mblk->markers[i].u_buffer_local_value.car;
+		markword = &mblk->markers[i].u_buffer_local_value.realvalue;
 		break;
 	      case Lisp_Misc_Overlay:
 		markword = &mblk->markers[i].u_overlay.plist;
