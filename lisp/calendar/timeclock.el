@@ -540,21 +540,31 @@ non-nil."
 (defvar timeclock-project-list nil)
 (defvar timeclock-last-project nil)
 
+(defun timeclock-completing-read (prompt alist &optional default)
+  "A version of `completing-read' that works on both Emacs and XEmacs."
+  (if (featurep 'xemacs)
+      (let ((str (completing-read prompt alist)))
+	(if (or (null str) (= (length str) 0))
+	    default
+	  str))
+    (completing-read prompt alist nil nil nil nil default)))
+
 (defun timeclock-ask-for-project ()
   "Ask the user for the project they are clocking into."
-  (completing-read (format "Clock into which project (default \"%s\"): "
-			   (or timeclock-last-project
-			       (car timeclock-project-list)))
-		   (mapcar 'list timeclock-project-list)
-		   nil nil nil nil (or timeclock-last-project
-				       (car timeclock-project-list))))
+  (timeclock-completing-read
+   (format "Clock into which project (default \"%s\"): "
+	   (or timeclock-last-project
+	       (car timeclock-project-list)))
+   (mapcar 'list timeclock-project-list)
+   (or timeclock-last-project
+       (car timeclock-project-list))))
 
 (defvar timeclock-reason-list nil)
 
 (defun timeclock-ask-for-reason ()
   "Ask the user for the reason they are clocking out."
-  (completing-read "Reason for clocking out: "
-		   (mapcar 'list timeclock-reason-list)))
+  (timeclock-completing-read "Reason for clocking out: "
+			     (mapcar 'list timeclock-reason-list)))
 
 (defun timeclock-update-modeline ()
   "Update the `timeclock-mode-string' displayed in the modeline."
