@@ -520,9 +520,9 @@ typedef struct
     int echo_after_prompt;
     char *echoptr;
     char echobuf[300];
-  } PERD;
-extern PERD the_only_perd;
-#define get_perd(f) (&the_only_perd)
+  } PERDISPLAY;
+extern PERDISPLAY the_only_perdisplay;
+#define get_perdisplay(f) (&the_only_perdisplay)
 
 /* In a cons, the markbit of the car is the gc mark bit */
 
