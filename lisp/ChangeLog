@@ -1,3 +1,7 @@
+2000-11-24  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el: Require 'cl during compilation.
+
 2000-11-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* faces.el (face-set-after-frame-default): Let face attributes
