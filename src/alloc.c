@@ -1879,6 +1879,7 @@ mark_perdisplays ()
       mark_object (&perd->prefix_factor);
       mark_object (&perd->prefix_value);
       mark_object (&perd->kbd_queue);
+      mark_object (&perd->Vlast_kbd_macro);
     }
 }
 
