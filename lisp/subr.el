@@ -783,6 +783,24 @@ See also `with-temp-file' and `with-output-to-string'."
        (prog1
 	   (buffer-string)
 	 (kill-buffer nil)))))
+
+(defmacro combine-after-change-calls (&rest body)
+  "Execute BODY, but don't call the after-change functions till the end.
+If BODY makes changes in the buffer, they are recorded
+and the functions on `after-change-functions' are called several times
+when BODY is finished.
+The return value is rthe value of the last form in BODY.
+
+If `before-change-functions' is non-nil, then calls to the after-change
+functions can't be deferred, so in that case this macro has no effect.
+
+Do not alter `after-change-functions' or `before-change-functions'
+in BODY."
+  `(unwind-protect
+       (let ((combine-after-change-calls t))
+	 . ,body)
+     (combine-after-change-execute)))
+
 
 (defvar save-match-data-internal)
 
