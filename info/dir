@@ -15,9 +15,10 @@ The Info Directory
     "mEmacs<Return>" visits the Emacs manual.
   In Emacs Info, you can click mouse button 2 on a menu item
   or cross reference to follow it to its target.
+  Each menu line that starts with a * is a topic you can select with "m".
+  Every third topic has a red * to help pick the right number to type.
 
-* Menu: Each line that starts with a * is a topic you can select with "m".
-  Every third topic has a red *.
+* Menu:
 
 * Info: (info).		How to use the documentation browsing system.
 
