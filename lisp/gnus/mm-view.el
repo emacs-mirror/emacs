@@ -89,6 +89,7 @@
       (setq text (mm-get-part handle))
       (let ((b (point))
 	    (url-standalone-mode t)
+	    (url-gateway-unplugged t)
 	    (url-current-object
 	     (url-generic-parse-url (format "cid:%s" (mm-handle-id handle))))
 	    (width (window-width))
@@ -120,8 +121,7 @@
 		(let ((w3-strict-width width)
 		      ;; Don't let w3 set the global version of
 		      ;; this variable.
-		      (fill-column fill-column)
-		      (url-standalone-mode t))
+		      (fill-column fill-column))
 		  (condition-case var
 		      (w3-region (point-min) (point-max))
 		    (error
@@ -214,7 +214,8 @@
 
 (defun mm-w3-prepare-buffer ()
   (require 'w3)
-  (let ((url-standalone-mode t))
+  (let ((url-standalone-mode t)
+	(url-gateway-unplugged t))
     (w3-prepare-buffer)))
 
 (defun mm-view-message ()

@@ -1667,6 +1667,7 @@ If FORCE, decode the article whether it is marked as base64 not."
 	  (narrow-to-region (point) (point-max))
 	  (mm-setup-w3)
 	  (let ((w3-strict-width (window-width))
+		(url-gateway-unplugged t)
 		(url-standalone-mode t))
 	    (condition-case var
 		(w3-region (point-min) (point-max))
