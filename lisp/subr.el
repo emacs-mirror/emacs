@@ -708,7 +708,11 @@ Optional argument PROMPT specifies a string to use to prompt the user."
   (let ((message-log-max nil) (count 0) (code 0) char)
     (while (< count 3)
       (let ((inhibit-quit (zerop count))
-	    (help-form nil))
+	    ;; Don't let C-h get the help message--only help function keys.
+	    (help-char nil)
+	    (help-form
+	     "Type the special character you want to use,
+or three octal digits representing its character code."))
 	(and prompt (message "%s-" prompt))
 	(setq char (read-char))
 	(if inhibit-quit (setq quit-flag nil)))
