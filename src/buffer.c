@@ -1865,9 +1865,11 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
 
   CHECK_OVERLAY (overlay, 0);
 
-  redisplay_region (XMARKER (OVERLAY_START (overlay))->buffer,
-		    marker_position (OVERLAY_START (overlay)),
-		    marker_position (OVERLAY_END   (overlay)));
+  tail = Fmarker_buffer (OVERLAY_START (overlay));
+  if (! NILP (tail))
+    redisplay_region (XMARKER (OVERLAY_START (overlay))->buffer,
+		      marker_position (OVERLAY_START (overlay)),
+		      marker_position (OVERLAY_END   (overlay)));
   
   plist = Fcdr_safe (XCONS (overlay)->cdr);
 
