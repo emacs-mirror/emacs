@@ -319,7 +319,7 @@ an optional alist of possible values."
 		       (string :tag "Description")))
   :group 'sgml)
 
-(defcustom sgml-xml nil
+(defcustom sgml-xml-mode nil
   "*When non-nil, tag insertion functions will be XML-compliant.
 If this variable is customized, the custom value is used always.
 Otherwise, it is set to be buffer-local when the file has
@@ -335,34 +335,51 @@ Otherwise, it is set to be buffer-local when the file has
   "Guess whether the current buffer is XML."
   (save-excursion
     (goto-char (point-min))
-    (cond ((or (string= "xml" (file-name-extension (or buffer-file-name "")))
-               (looking-at "\\s-*<\\?xml"))
-           (set (make-local-variable 'sgml-xml) t))
-          ((re-search-forward
-            (eval-when-compile
-             (mapconcat 'identity
-                        '("<!DOCTYPE" "\\(\\w+\\)" "\\(\\w+\\)"
-                          "\"\\([^\"]+\\)\"" "\"\\([^\"]+\\)\"")
-                        "\\s-+"))
-            nil t)
-           (let ((name (match-string 1))
-                 (pub (match-string 2))
-                 (id (match-string 3))
-                 (url (match-string 4)))
-             (cond ((string= name "html")
-                    (set (make-local-variable 'sgml-xml)
-                         (not (null (string-match "XHTML" id)))))
-                   ((string-match "XML" id)
-                    (set (make-local-variable 'sgml-xml) t))))))))
+    (when (or (string= "xml" (file-name-extension (or buffer-file-name "")))
+	      (looking-at "\\s-*<\\?xml")
+	      (when (re-search-forward
+		     (eval-when-compile
+		       (mapconcat 'identity
+				  '("<!DOCTYPE" "\\(\\w+\\)" "\\(\\w+\\)"
+				    "\"\\([^\"]+\\)\"" "\"\\([^\"]+\\)\"")
+				  "\\s-+"))
+		     nil t)
+		(string-match "X\\(HT\\)?ML" (match-string 3))))
+      (set (make-local-variable 'sgml-xml-mode) t))))
 
 (defvar v2)				; free for skeleton
 
-(defun sgml-mode-common ()
-  "Common code for setting up `sgml-mode' and derived modes."
+(defun sgml-mode-facemenu-add-face-function (face end)
+  (if (setq face (cdr (assq face sgml-face-tag-alist)))
+      (progn
+	(setq face (funcall skeleton-transformation face))
+	(setq facemenu-end-add-face (concat "</" face ">"))
+	(concat "<" face ">"))
+    (error "Face not configured for %s mode" mode-name)))
+
+
+;;;###autoload
+(define-derived-mode sgml-mode text-mode "SGML"
+  "Major mode for editing SGML documents.
+Makes > match <.
+Keys <, &, SPC within <>, \" and ' can be electric depending on
+`sgml-quick-keys'.
+
+An argument of N to a tag-inserting command means to wrap it around
+the next N words.  In Transient Mark mode, when the mark is active,
+N defaults to -1, which means to wrap it around the current region.
+
+If you like upcased tags, put (setq sgml-transformation 'upcase) in
+your `.emacs' file.
+
+Use \\[sgml-validate] to validate your document with an SGML parser.
+
+Do \\[describe-variable] sgml- SPC to see available variables.
+Do \\[describe-key] on the following bindings to discover what they do.
+\\{sgml-mode-map}"
   (make-local-variable 'sgml-saved-validate-command)
   (make-local-variable 'facemenu-end-add-face)
   ;;(make-local-variable 'facemenu-remove-face-function)
-  (set (make-local-variable 'indent-line-function) 'indent-relative-maybe)
   ;; A start or end tag by itself on a line separates a paragraph.
   ;; This is desirable because SGML discards a newline that appears
   ;; immediately after a start tag or immediately before an end tag.
@@ -374,7 +391,6 @@ Otherwise, it is set to be buffer-local when the file has
   (set (make-local-variable 'comment-start) "<!-- ")
   (set (make-local-variable 'comment-end) " -->")
   (set (make-local-variable 'comment-indent-function) 'sgml-comment-indent)
-  (set (make-local-variable 'skeleton-transformation) sgml-transformation)
   (set (make-local-variable 'skeleton-further-elements)
        '((completion-ignore-case t)))
   (set (make-local-variable 'skeleton-end-hook)
@@ -391,46 +407,15 @@ Otherwise, it is set to be buffer-local when the file has
           . sgml-font-lock-syntactic-keywords)))
   (set (make-local-variable 'facemenu-add-face-function)
        'sgml-mode-facemenu-add-face-function)
-  ;; `sgml-xml' not customized -- guess
-  (unless (get 'sgml-xml 'saved-value) (sgml-xml-guess))
+  (sgml-xml-guess)
+  (if sgml-xml-mode
+      (setq mode-name "XML")
+    (set (make-local-variable 'skeleton-transformation) sgml-transformation))
   ;; This will allow existing comments within declarations to be
   ;; recognized.
   (set (make-local-variable 'comment-start-skip) "\\(?:<!\\)?--[ \t]*")
-  (set (make-local-variable 'comment-end-skip) "[ \t]*--\\([ \t\n]*>\\)?"))
-
-
-(defun sgml-mode-facemenu-add-face-function (face end)
-  (if (setq face (cdr (assq face sgml-face-tag-alist)))
-      (progn
-	(setq face (funcall skeleton-transformation face))
-	(setq facemenu-end-add-face (concat "</" face ">"))
-	(concat "<" face ">"))
-    (error "Face not configured for %s mode" mode-name)))
-
-
-;;;###autoload
-(define-derived-mode sgml-mode text-mode "SGML"
-  "Major mode for editing SGML documents.
-Makes > match <.  Makes / blink matching /.
-Keys <, &, SPC within <>, \" and ' can be electric depending on
-`sgml-quick-keys'.
-
-An argument of N to a tag-inserting command means to wrap it around
-the next N words.  In Transient Mark mode, when the mark is active,
-N defaults to -1, which means to wrap it around the current region.
-
-If you like upcased tags, put (setq sgml-transformation 'upcase) in
-your `.emacs' file.
-
-Use \\[sgml-validate] to validate your document with an SGML parser.
-
-Do \\[describe-variable] sgml- SPC to see available variables.
-Do \\[describe-key] on the following bindings to discover what they do.
-\\{sgml-mode-map}"
-  (sgml-mode-common)
-  (when sgml-xml (setq mode-name "XML"))
-  ;; Set `imenu-generic-expression' here, rather than in `sgml-mode-common',
-  ;; because this definition probably is not useful in HTML mode.
+  (set (make-local-variable 'comment-end-skip) "[ \t]*--\\([ \t\n]*>\\)?")
+  ;; This definition probably is not useful in derived modes.
   (set (make-local-variable 'imenu-generic-expression)
        "<!\\(element\\|entity\\)[ \t\n]+%?[ \t\n]*\\([[:alpha:]][-_.:[:alnum:]]*\\)"))
 
@@ -556,9 +541,9 @@ skeleton-transformation RET upcase RET, or put this in your `.emacs':
      ((string= "![" ,str)
       (backward-char)
       '(("") " [ " _ " ]]"))
-     ((and (eq v2 t) sgml-xml (member ,str sgml-empty-tags))
+     ((and (eq v2 t) sgml-xml-mode (member ,str sgml-empty-tags))
       '(("") -1 "/>"))
-     ((or (and (eq v2 t) (not sgml-xml)) (string-match "^[/!?]" ,str))
+     ((or (and (eq v2 t) (not sgml-xml-mode)) (string-match "^[/!?]" ,str))
       nil)
      ((symbolp v2)
       ;; Make sure we don't fall into an infinite loop.
@@ -869,7 +854,7 @@ See `sgml-tag-alist' for info about attribute rules."
   (setq alist (cdr alist))
   (if (stringp (car alist))
       (insert "=\"" (car alist) ?\")
-    (if (and (eq (car alist) t) (not sgml-xml))
+    (if (and (eq (car alist) t) (not sgml-xml-mode))
 	(when (cdr alist)
 	  (insert "=\"")
 	  (setq alist (skeleton-read '(completing-read "Value: " (cdr alist))))
@@ -1026,7 +1011,7 @@ This takes effect when first loading the library.")
 		 ("rev" ,@rel)
 		 ("title")))
 	 (list '((nil \n ("List item: " "<li>" str
-                          (if sgml-xml "</li>") \n))))
+                          (if sgml-xml-mode "</li>") \n))))
 	 (cell `(t
 		 ,@align
 		 ("valign" ,@valign)
@@ -1040,7 +1025,7 @@ This takes effect when first loading the library.")
       ("dir" ,@list)
       ("font" nil "size" ("-1") ("+1") ("-2") ("+2") ,@1-7)
       ("form" (\n _ \n "<input type=\"submit\" value=\"\""
-	       (if sgml-xml "/>" ">"))
+	       (if sgml-xml-mode "/>" ">"))
        ("action" ,@(cdr href)) ("method" ("get") ("post")))
       ("h1" ,@align)
       ("h2" ,@align)
@@ -1062,13 +1047,13 @@ This takes effect when first loading the library.")
       ("p" t ,@align)
       ("select" (nil \n
 		     ("Text: "
-		      "<option>" str (if sgml-xml "</option>") \n))
+		      "<option>" str (if sgml-xml-mode "</option>") \n))
        ,name ("size" ,@1-9) ("multiple" t))
       ("table" (nil \n
 		    ((completing-read "Cell kind: " '(("td") ("th"))
 				      nil t "t")
 		     "<tr><" str ?> _
-		     (if sgml-xml (concat "<" str "></tr>")) \n))
+		     (if sgml-xml-mode (concat "<" str "></tr>")) \n))
        ("border" t ,@1-9) ("width" "10") ("cellpadding"))
       ("td" ,@cell)
       ("textarea" ,name ("rows" ,@1-9) ("cols" ,@1-9))
@@ -1081,7 +1066,7 @@ This takes effect when first loading the library.")
       ("acronym")
       ("address")
       ("array" (nil \n
-		    ("Item: " "<item>" str (if sgml-xml "</item>") \n))
+		    ("Item: " "<item>" str (if sgml-xml-mode "</item>") \n))
        "align")
       ("au")
       ("b")
@@ -1090,22 +1075,22 @@ This takes effect when first loading the library.")
       ("blockquote" \n)
       ("body" \n ("background" ".gif") ("bgcolor" "#") ("text" "#")
        ("link" "#") ("alink" "#") ("vlink" "#"))
-      ("box" (nil _ "<over>" _ (if sgml-xml "</over>")))
+      ("box" (nil _ "<over>" _ (if sgml-xml-mode "</over>")))
       ("br" t ("clear" ("left") ("right")))
       ("caption" ("valign" ("top") ("bottom")))
       ("center" \n)
       ("cite")
       ("code" \n)
-      ("dd" ,(not sgml-xml))
+      ("dd" ,(not sgml-xml-mode))
       ("del")
       ("dfn")
       ("div")
       ("dl" (nil \n
 		 ( "Term: "
-		   "<dt>" str (if sgml-xml "</dt>")
-                   "<dd>" _ (if sgml-xml "</dd>") \n)))
-      ("dt" (t _ (if sgml-xml "</dt>")
-             "<dd>" (if sgml-xml "</dd>") \n))
+		   "<dt>" str (if sgml-xml-mode "</dt>")
+                   "<dd>" _ (if sgml-xml-mode "</dd>") \n)))
+      ("dt" (t _ (if sgml-xml-mode "</dt>")
+             "<dd>" (if sgml-xml-mode "</dd>") \n))
       ("em")
       ;("fn" "id" "fn")  ; ???
       ("head" \n)
@@ -1124,7 +1109,7 @@ This takes effect when first loading the library.")
       ("isindex" t ("action") ("prompt"))
       ("kbd")
       ("lang")
-      ("li" ,(not sgml-xml))
+      ("li" ,(not sgml-xml-mode))
       ("math" \n)
       ("nobr")
       ("option" t ("value") ("label") ("selected" t))
@@ -1307,7 +1292,7 @@ To work around that, do:
 	outline-level (lambda ()
 			(char-before (match-end 0))))
   (setq imenu-create-index-function 'html-imenu-index)
-  (when sgml-xml (setq mode-name "XHTML"))
+  (when sgml-xml-mode (setq mode-name "XHTML"))
   (set (make-local-variable 'sgml-empty-tags)
        '("br" "hr" "img" "input" "area" "link" "param" "col"
 	 "base" "meta" "basefont" "frame" "isindex" "wbr"))
@@ -1396,44 +1381,44 @@ Can be used as a value for `html-mode-hook'."
 (define-skeleton html-horizontal-rule
   "HTML horizontal rule tag."
   nil
-  (if sgml-xml "<hr/>" "<hr>") \n)
+  (if sgml-xml-mode "<hr/>" "<hr>") \n)
 
 (define-skeleton html-image
   "HTML image tag."
   nil
   "<img src=\"" _ "\""
-  (if sgml-xml "/>" ">"))
+  (if sgml-xml-mode "/>" ">"))
 
 (define-skeleton html-line
   "HTML line break tag."
   nil
-  (if sgml-xml "<br/>" "<br>") \n)
+  (if sgml-xml-mode "<br/>" "<br>") \n)
 
 (define-skeleton html-ordered-list
   "HTML ordered list tags."
   nil
   "<ol>" \n
-  "<li>" _ (if sgml-xml "</li>") \n
+  "<li>" _ (if sgml-xml-mode "</li>") \n
   "</ol>")
 
 (define-skeleton html-unordered-list
   "HTML unordered list tags."
   nil
   "<ul>" \n
-  "<li>" _ (if sgml-xml "</li>") \n
+  "<li>" _ (if sgml-xml-mode "</li>") \n
   "</ul>")
 
 (define-skeleton html-list-item
   "HTML list item tag."
   nil
   (if (bolp) nil '\n)
-  "<li>" _ (if sgml-xml "</li>"))
+  "<li>" _ (if sgml-xml-mode "</li>"))
 
 (define-skeleton html-paragraph
   "HTML paragraph tag."
   nil
   (if (bolp) nil ?\n)
-  \n "<p>" _ (if sgml-xml "</p>"))
+  \n "<p>" _ (if sgml-xml-mode "</p>"))
 
 (define-skeleton html-checkboxes
   "Group of connected checkbox inputs."
@@ -1446,11 +1431,11 @@ Can be used as a value for `html-mode-hook'."
    "\" value=\"" str ?\"
    (when (y-or-n-p "Set \"checked\" attribute? ")
      (funcall skeleton-transformation " checked"))
-   (if sgml-xml "/>" ">")
+   (if sgml-xml-mode "/>" ">")
    (skeleton-read "Text: " (capitalize str))
    (or v2 (setq v2 (if (y-or-n-p "Newline after text? ")
 		       (funcall skeleton-transformation
-                                (if sgml-xml "<br/>" "<br>"))
+                                (if sgml-xml-mode "<br/>" "<br>"))
 		     "")))
    \n))
 
@@ -1465,11 +1450,11 @@ Can be used as a value for `html-mode-hook'."
    "\" value=\"" str ?\"
    (when (and (not v1) (setq v1 (y-or-n-p "Set \"checked\" attribute? ")))
      (funcall skeleton-transformation " checked"))
-   (if sgml-xml "/>" ">")
+   (if sgml-xml-mode "/>" ">")
    (skeleton-read "Text: " (capitalize str))
    (or (cdr v2) (setcdr v2 (if (y-or-n-p "Newline after text? ")
 			       (funcall skeleton-transformation
-                                        (if sgml-xml "<br/>" "<br>"))
+                                        (if sgml-xml-mode "<br/>" "<br>"))
 			     "")))
    \n))
 
