@@ -624,7 +624,16 @@
   (while l
     (put-charset-property (car (car l)) 'prefered-coding-system (cdr (car l)))
     (setq l (cdr l))))
-  
+
+
+;; Setup auto-fill-chars for characters that should invoke auto-filling.
+;; SPACE and NEWLIE are already set.
+(let ((l '(katakana-jisx0201
+	   japanese-jisx0208 japanese-jisx0212
+	   chinese-gb2312 chinese-big5-1 chinese-big5-2)))
+  (while l
+    (aset auto-fill-chars (make-char (car l)) t)
+    (setq l (cdr l))))
 
 ;;; Local Variables:
 ;;; coding: iso-2022-7bit
