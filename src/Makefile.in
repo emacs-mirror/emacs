@@ -943,8 +943,8 @@ stamp-oldxmenu:
 	touch stamp-oldxmenu
 #endif /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS) */
 
-../config.status:: paths.in
-	@echo "The file paths.h needs to be set up from paths.in."
+../config.status:: epaths.in
+	@echo "The file epaths.h needs to be set up from epaths.in."
 	@echo "Please run the `configure' script again."
 	exit 1
 
@@ -999,7 +999,7 @@ buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
    INTERVAL_SRC blockinput.h charset.h $(config_h)
 callint.o: callint.c window.h commands.h buffer.h mocklisp.h \
    keyboard.h $(config_h)
-callproc.o: callproc.c paths.h buffer.h commands.h $(config_h) \
+callproc.o: callproc.c epaths.h buffer.h commands.h $(config_h) \
 	process.h systty.h syssignal.h charset.h coding.h msdos.h
 casefiddle.o: casefiddle.c syntax.h commands.h buffer.h $(config_h)
 casetab.o: casetab.c buffer.h $(config_h)
@@ -1017,7 +1017,7 @@ dired.o: dired.c commands.h buffer.h $(config_h) charset.h coding.h regex.h
 dispnew.o: dispnew.c  commands.h frame.h window.h buffer.h dispextern.h \
    termchar.h termopts.h termhooks.h cm.h disptab.h systty.h systime.h \
    xterm.h blockinput.h charset.h msdos.h $(config_h)
-doc.o: doc.c $(config_h) paths.h buffer.h keyboard.h
+doc.o: doc.c $(config_h) epaths.h buffer.h keyboard.h
 doprnt.o: doprnt.c charset.h $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h msdos.h dosfns.h $(config_h)
 editfns.o: editfns.c window.h buffer.h systime.h INTERVAL_SRC charset.h \
@@ -1026,7 +1026,7 @@ emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
    termhooks.h buffer.h INTERVAL_SRC $(config_h)
 fileio.o: fileio.c window.h buffer.h systime.h INTERVAL_SRC charset.h \
    coding.h msdos.h $(config_h)
-filelock.o: filelock.c buffer.h systime.h paths.h $(config_h)
+filelock.o: filelock.c buffer.h systime.h epaths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    buffer.h charset.h fontset.h msdos.h $(config_h)
@@ -1091,7 +1091,7 @@ xdisp.o: xdisp.c macros.h commands.h indent.h buffer.h dispextern.h coding.h \
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
    window.h charset.h msdos.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h\
-   $(srcdir)/../lwlib/lwlib.h blockinput.h paths.h charset.h $(config_h)
+   $(srcdir)/../lwlib/lwlib.h blockinput.h epaths.h charset.h $(config_h)
 xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h keyboard.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h msdos.h $(config_h)
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h \
@@ -1099,7 +1099,7 @@ xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h \
   keyboard.h gnu.h sink.h sinkmask.h charset.h ccl.h fontset.h $(config_h)
 xselect.o: xselect.c dispextern.h frame.h xterm.h blockinput.h charset.h \
   coding.h buffer.h $(config_h)
-xrdb.o: xrdb.c $(config_h) paths.h
+xrdb.o: xrdb.c $(config_h) epaths.h
 hftctl.o: hftctl.c $(config_h)
 
 /* The files of Lisp proper */
@@ -1114,7 +1114,7 @@ fns.o: fns.c commands.h $(config_h) frame.h buffer.h keyboard.h \
  frame.h window.h INTERVAL_SRC
 print.o: print.c process.h frame.h window.h buffer.h keyboard.h charset.h\
    $(config_h) dispextern.h msdos.h
-lread.o: lread.c commands.h keyboard.h buffer.h paths.h charset.h $(config_h) \
+lread.o: lread.c commands.h keyboard.h buffer.h epaths.h charset.h $(config_h) \
  termhooks.h msdos.h
 
 /* Text properties support */
@@ -1137,7 +1137,7 @@ clean: mostlyclean
 /**/# This is used in making a distribution.
 /**/# Do not use it on development directories!
 distclean: clean
-	rm -f paths.h config.h Makefile Makefile.c config.stamp stamp-oldxmenu ../etc/DOC-*
+	rm -f epaths.h config.h Makefile Makefile.c config.stamp stamp-oldxmenu ../etc/DOC-*
 maintainer-clean: distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
@@ -1150,13 +1150,13 @@ extraclean: distclean
 /* The rule for the [sm] files has to be written a little funny to
    avoid looking like a C comment to CPP. */
 SOURCES = *.[ch] [sm]/?* COPYING Makefile.in \
-	config.in paths.in README COPYING ChangeLog vms.pp-trans
+	config.in epaths.in README COPYING ChangeLog vms.pp-trans
 unlock:
 	chmod u+w $(SOURCES)
 
 relock:
 	chmod -w $(SOURCES)
-	chmod +w paths.h
+	chmod +w epaths.h
 
 /* Arrange to make a tags table TAGS-LISP for ../lisp,
    plus TAGS for the C files, which includes ../lisp/TAGS by reference.  */
