@@ -5081,6 +5081,11 @@ compare_window_configurations (c1, c2, ignore_positions)
   struct Lisp_Vector *sw1, *sw2;
   int i;
 
+  if (!WINDOW_CONFIGURATIONP (c1))
+    wrong_type_argument (Qwindow_configuration_p, c1);
+  if (!WINDOW_CONFIGURATIONP (c2))
+    wrong_type_argument (Qwindow_configuration_p, c2);
+  
   d1 = (struct save_window_data *) XVECTOR (c1);
   d2 = (struct save_window_data *) XVECTOR (c2);
   sw1 = XVECTOR (d1->saved_windows);
