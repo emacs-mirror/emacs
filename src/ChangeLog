@@ -5,6 +5,15 @@
 
 2004-05-08  Juanma Barranquero  <lektu@terra.es>
 
+	* process.c (Fwaiting_for_user_input_p, Fmake_network_process)
+	(Fset_process_query_on_exit_flag, Vprocess_adaptive_read_buffering):
+	Fix spelling of Emacs on docstring.
+	(Fset_process_coding_system, Fprocess_coding_system)
+	(Fset_process_filter_multibyte, Fprocess_filter_multibyte_p):
+	Make argument names match their use in docstring.
+	(Fprocess_id, Fprocess_query_on_exit_flag, Finterrupt_process):
+	Fix docstring.
+
 	* editfns.c (Finsert_buffer_substring): Make argument names match their
 	use in docstring.
 
