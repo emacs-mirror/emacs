@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.361 2003/12/24 23:18:10 uid66361 Exp $
+;; $Id: vc.el,v 1.362 2004/01/20 17:39:09 uid65624 Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2830,7 +2830,7 @@ Return nil if no match made.  Associations are made based on
 `vc-annotate-buffers'."
   (cdr (assoc buffer vc-annotate-buffers)))
 
-(define-derived-mode vc-annotate-mode view-mode "Annotate"
+(define-derived-mode vc-annotate-mode fundamental-mode "Annotate"
   "Major mode for output buffers of the `vc-annotate' command.
 
 You can use the mode-specific menu to alter the time-span of the used
@@ -2839,6 +2839,7 @@ menu items."
   (set (make-local-variable 'truncate-lines) t)
   (set (make-local-variable 'font-lock-defaults)
        '(vc-annotate-font-lock-keywords t))
+  (view-mode 1)
   (vc-annotate-add-menu))
 
 (defun vc-annotate-display-default (&optional ratio)
