@@ -1560,7 +1560,7 @@ on the menu bar.
 
 (defun reftex-TeX-master-file ()
   ;; Return the name of the master file associated with the current buffer.
-  ;; When AUCTeX is loaded, we will use it's more sophisticated method.
+  ;; When AUCTeX is loaded, we will use its more sophisticated method.
   ;; We also support the default TeX and LaTeX modes by checking for a
   ;; variable tex-main-file.
   (let
