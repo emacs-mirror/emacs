@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.13
+;; Version:    5.14
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -353,9 +353,21 @@ The list of variables to buffer localize are:
   :type 'hook
   :group 'c)
 
+(defcustom idl-mode-hook nil
+  "*Hook called by `idl-mode'."
+  :type 'hook
+  :group 'c)
+
 (defcustom c-mode-common-hook nil
   "*Hook called by all CC Mode modes for common initializations."
   :type '(hook :format "%{CC Mode Common Hook%}:\n%v")
+  :group 'c)
+
+(defcustom c-initialization-hook nil
+  "*Hook called when the CC Mode package gets initialized.
+This hook is only run once per Emacs session and can be used as a
+`load-hook' or in place of using `eval-after-load'."
+  :type 'hook
   :group 'c)
 
 
