@@ -853,39 +853,69 @@ adjust_intervals_for_insertion (tree, position, length)
 
   /* If in middle of an interval which is not sticky either way,
      we must not just give its properties to the insertion.
-     So split this interval at the insertion point.  */
-  if (! (position == i->position || eobp)
-      && END_NONSTICKY_P (i)
-      && FRONT_NONSTICKY_P (i))
+     So split this interval at the insertion point.
+
+     Originally, the if condition here was this:
+	(! (position == i->position || eobp)
+	 && END_NONSTICKY_P (i)
+	 && FRONT_NONSTICKY_P (i))
+     But, these macros are now unreliable because of introduction of
+     Vtext_property_default_nonsticky.  So, we always check properties
+     one by one if POSITION is in middle of an interval.  */
+  if (! (position == i->position || eobp))
     {
       Lisp_Object tail;
       Lisp_Object front, rear;
 
-      front = textget (i->plist, Qfront_sticky);
-      rear  = textget (i->plist, Qrear_nonsticky);
+      tail = i->plist;
 
-      /* Does any actual property pose an actual problem?  */
-      for (tail = i->plist; ! NILP (tail); tail = Fcdr (Fcdr (tail)))
+      /* Properties font-sticky and rear-nonsticky override
+         Vtext_property_default_nonsticky.  So, if they are t, we can
+         skip one by one checking of properties.  */
+      rear = textget (i->plist, Qrear_nonsticky);
+      if (! CONSP (rear) && ! NILP (rear))
 	{
-	  Lisp_Object prop;
+	  /* All properties are nonsticky.  We split the interval.  */
+	  goto check_done;
+	}
+      front = textget (i->plist, Qfront_sticky);
+      if (! CONSP (front) && ! NILP (front))
+	{
+	  /* All properties are sticky.  We don't split the interval.  */
+	  tail = Qnil;
+	  goto check_done;
+	}
+
+      /* Does any actual property pose an actual problem?  We break
+         the loop if we find a nonsticky property.  */
+      for (; CONSP (tail); tail = Fcdr (XCDR (tail)))
+	{
+	  Lisp_Object prop, tmp;
 	  prop = XCAR (tail);
 
-	  /* Is this particular property rear-sticky?
-	     Note, if REAR isn't a cons, it must be non-nil,
-	     which means that all properties are rear-nonsticky.  */
-	  if (CONSP (rear) && NILP (Fmemq (prop, rear)))
-	    continue;
-
-	  /* Is this particular property front-sticky?
-	     Note, if FRONT isn't a cons, it must be nil,
-	     which means that all properties are front-nonsticky.  */
+	  /* Is this particular property front-sticky?  */
 	  if (CONSP (front) && ! NILP (Fmemq (prop, front)))
 	    continue;
 
-	  /* PROP isn't sticky on either side => it is a real problem.  */
-	  break;
+	  /* Is this particular property rear-nonsticky?  */
+	  if (CONSP (rear) && ! NILP (Fmemq (prop, rear)))
+	    break;
+
+	  /* Is this particular property recorded as sticky or
+             nonsticky in Vtext_property_default_nonsticky?  */
+	  tmp = Fassq (prop, Vtext_property_default_nonsticky);
+	  if (CONSP (tmp))
+	    {
+	      if (NILP (tmp))
+		continue;
+	      break;
+	    }
+
+	  /* By default, a text property is rear-sticky, thus we
+	     continue the loop.  */
 	}
 
+    check_done:
       /* If any property is a real problem, split the interval.  */
       if (! NILP (tail))
 	{
@@ -921,8 +951,16 @@ adjust_intervals_for_insertion (tree, position, length)
 	}
       
       /* If at least one interval has sticky properties,
-	 we check the stickiness property by property.  */
-      if (END_NONSTICKY_P (prev) || FRONT_STICKY_P (i))
+	 we check the stickiness property by property.
+
+	 Originally, the if condition here was this:
+		(END_NONSTICKY_P (prev) || FRONT_STICKY_P (i))
+	 But, these macros are now unreliable because of introduction
+	 of Vtext_property_default_nonsticky.  So, we always have to
+	 check stickiness of properties one by one.  If cache of
+	 stickiness is implemented in the future, we may be able to
+	 use those macros again.  */
+      if (1)
 	{
 	  Lisp_Object pleft, pright;
 	  struct interval newi;
@@ -1030,8 +1068,10 @@ merge_properties_sticky (pleft, pright)
   rrear  = textget (pright, Qrear_nonsticky);
 
   /* Go through each element of PRIGHT.  */
-  for (tail1 = pright; ! NILP (tail1); tail1 = Fcdr (Fcdr (tail1)))
+  for (tail1 = pright; CONSP (tail1); tail1 = Fcdr (Fcdr (tail1)))
     {
+      Lisp_Object tmp;
+
       sym = Fcar (tail1);
 
       /* Sticky properties get special treatment.  */
@@ -1039,7 +1079,7 @@ merge_properties_sticky (pleft, pright)
 	continue;
 
       rval = Fcar (Fcdr (tail1));
-      for (tail2 = pleft; ! NILP (tail2); tail2 = Fcdr (Fcdr (tail2)))
+      for (tail2 = pleft; CONSP (tail2); tail2 = Fcdr (Fcdr (tail2)))
 	if (EQ (sym, Fcar (tail2)))
 	  break;
 
@@ -1049,8 +1089,15 @@ merge_properties_sticky (pleft, pright)
       lpresent = ! NILP (tail2);
       lval = (NILP (tail2) ? Qnil : Fcar (Fcdr (tail2)));
 
-      use_left = ! TMEM (sym, lrear) && lpresent;
-      use_right = TMEM (sym, rfront);
+      /* Even if lrear or rfront say nothing about the stickiness of
+	 SYM, Vtext_property_default_nonsticky may give default
+	 stickiness to SYM.  */
+      tmp = Fassq (sym, Vtext_property_default_nonsticky);
+      use_left = (lpresent
+		  && ! (TMEM (sym, lrear)
+			|| CONSP (tmp) && ! NILP (XCDR (tmp))));
+      use_right = (TMEM (sym, rfront)
+		   || (CONSP (tmp) && NILP (XCDR (tmp))));
       if (use_left && use_right)
 	{
 	  if (NILP (lval))
@@ -1079,8 +1126,10 @@ merge_properties_sticky (pleft, pright)
     }
 
   /* Now go through each element of PLEFT.  */
-  for (tail2 = pleft; ! NILP (tail2); tail2 = Fcdr (Fcdr (tail2)))
+  for (tail2 = pleft; CONSP (tail2); tail2 = Fcdr (Fcdr (tail2)))
     {
+      Lisp_Object tmp;
+
       sym = Fcar (tail2);
 
       /* Sticky properties get special treatment.  */
@@ -1088,7 +1137,7 @@ merge_properties_sticky (pleft, pright)
 	continue;
 
       /* If sym is in PRIGHT, we've already considered it.  */
-      for (tail1 = pright; ! NILP (tail1); tail1 = Fcdr (Fcdr (tail1)))
+      for (tail1 = pright; CONSP (tail1); tail1 = Fcdr (Fcdr (tail1)))
 	if (EQ (sym, Fcar (tail1)))
 	  break;
       if (! NILP (tail1))
@@ -1096,14 +1145,19 @@ merge_properties_sticky (pleft, pright)
 
       lval = Fcar (Fcdr (tail2));
 
+      /* Even if lrear or rfront say nothing about the stickiness of
+	 SYM, Vtext_property_default_nonsticky may give default
+	 stickiness to SYM.  */
+      tmp = Fassq (sym, Vtext_property_default_nonsticky);
+
       /* Since rval is known to be nil in this loop, the test simplifies.  */
-      if (! TMEM (sym, lrear))
+      if (! (TMEM (sym, lrear) || (CONSP (tmp) && ! NILP (XCDR (tmp)))))
 	{
 	  props = Fcons (lval, Fcons (sym, props));
 	  if (TMEM (sym, lfront))
 	    front = Fcons (sym, front);
 	}
-      else if (TMEM (sym, rfront))
+      else if (TMEM (sym, rfront) || (CONSP (tmp) && NILP (XCDR (tmp))))
 	{
 	  /* The value is nil, but we still inherit the stickiness
 	     from the right.  */
@@ -1648,14 +1702,24 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 	= split_interval_left (this, position - under->position);
       copy_properties (under, end_unchanged);
       under->position = position;
+#if 0
+      /* This code has no effect.  */
       prev = 0;
       middle = 1;
+#endif /* 0 */
     }
   else
     {
+      /* This call may have some effect because previous_interval may
+         update `position' fields of intervals.  Thus, don't ignore it
+         for the moment.  Someone please tell me the truth (K.Handa).  */
       prev = previous_interval (under);
+#if 0
+      /* But, this code surely has no effect.  And, anyway,
+         END_NONSTICKY_P is unreliable now.  */
       if (prev && !END_NONSTICKY_P (prev))
 	prev = 0;
+#endif /* 0 */
     }
 
   /* Insertion is now at beginning of UNDER.  */
@@ -2015,6 +2079,53 @@ move_if_not_intangible (position)
 
   if (XINT (pos) != PT)
     SET_PT (position);
+}
+
+/* If text at position POS has property PROP, set *VAL to the property
+   value, *START and *END to the beginning and end of a region that
+   has the same property, and return 1.  Otherwise return 0.
+
+   OBJECT is the string or buffer to look for the property in;
+   nil means the current buffer. */
+
+int
+get_property_and_range (pos, prop, val, start, end, object)
+     int pos;
+     Lisp_Object prop, *val;
+     int *start, *end;
+     Lisp_Object object;
+{
+  INTERVAL i, prev, next;
+
+  if (NILP (object))
+    i = find_interval (BUF_INTERVALS (current_buffer), pos);
+  else if (BUFFERP (object))
+    i = find_interval (BUF_INTERVALS (XBUFFER (object)), pos);
+  else if (STRINGP (object))
+    i = find_interval (XSTRING (object)->intervals, pos);
+  else
+    abort ();
+
+  if (NULL_INTERVAL_P (i) || (i->position + LENGTH (i) <= pos))
+    return 0;
+  *val = textget (i->plist, prop);
+  if (NILP (*val))
+    return 0;
+
+  next = i;			/* remember it in advance */
+  prev = previous_interval (i);
+  while (! NULL_INTERVAL_P (prev)
+	 && EQ (*val, textget (prev->plist, prop)))
+    i = prev, prev = previous_interval (prev);
+  *start = i->position;
+
+  next = next_interval (i);
+  while (! NULL_INTERVAL_P (next) 
+	 && EQ (*val, textget (next->plist, prop)))
+    i = next, next = next_interval (next);
+  *end = i->position + LENGTH (i);
+
+  return 1;
 }
 
 /* Return the proper local map for position POSITION in BUFFER.
