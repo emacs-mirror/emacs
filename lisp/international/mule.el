@@ -389,8 +389,8 @@ for more detail."
 
 (defun coding-system-base (coding-system)
   "Return the base coding system of CODING-SYSTEM.
-A base coding system is what made by `make-coding-system',
-not what made by `define-coding-system-alias'."
+A base coding system is what made by `make-coding-system'.
+Any alias nor subsidiary coding systems are not base coding system."
   (car (coding-system-get coding-system 'alias-coding-systems)))
 
 (defalias 'coding-system-parent 'coding-system-base)
@@ -438,10 +438,10 @@ coding system whose eol-type is N."
     subsidiaries))
 
 (defun make-coding-system (coding-system type mnemonic doc-string
-					 &optional flags safe-charsets)
+					 &optional flags properties)
   "Define a new CODING-SYSTEM (symbol).
 Remaining arguments are TYPE, MNEMONIC, DOC-STRING, FLAGS (optional), 
-and CHARSETS (optional) which construct a coding-spec of CODING-SYSTEM
+and PROPERTIES (optional) which construct a coding-spec of CODING-SYSTEM
 in the following format:
 	[TYPE MNEMONIC DOC-STRING PLIST FLAGS]
 TYPE is an integer value indicating the type of coding-system as follows:
@@ -455,12 +455,6 @@ TYPE is an integer value indicating the type of coding-system as follows:
 MNEMONIC is a character to be displayed on mode line for the coding-system.
 
 DOC-STRING is a documentation string for the coding-system.
-
-PLIST is the propert list for CODING-SYSTEM.  This function sets
-properties coding-category, alias-coding-systems, safe-charsets.  The
-first two are set automatically.  The last one is set to the argument
-SAFE-CHARSETS.  SAFE-CHARSETS is a list of character sets encoded
-safely in CODING-SYSTEM, or t which means all character sets are safe.
 
 FLAGS specifies more precise information of each TYPE.
 
@@ -495,14 +489,23 @@ FLAGS specifies more precise information of each TYPE.
       code of the coding system.
 
   If TYPE is 4 (private), FLAGS should be a cons of CCL programs,
-    for decoding and encoding.  See the documentation of CCL for more detail."
+    for decoding and encoding.  See the documentation of CCL for more detail.
 
+PROPERTIES is an alist of properties vs the corresponding values.
+These properties are set in PLIST, a property list.  This function
+also sets properties `coding-category' and `alias-coding-systems'
+automatically.
+
+Kludgy feature: For backward compatibility, if PROPERTIES is a list of
+character sets, the list is set as a value of `safe-charsets' in
+PLIST."
   (if (memq coding-system coding-system-list)
-      (error "Coding system %s already exists"))
+      (error "Coding system %s already exists" coding-system))
 
   ;; Set a value of `coding-system' property.
   (let ((coding-spec (make-vector 5 nil))
-	(no-initial-designation nil)
+	(no-initial-designation t)
+	(no-alternative-designation t)
 	coding-category)
     (if (or (not (integerp type)) (< type 0) (> type 5))
 	(error "TYPE argument must be 0..5"))
@@ -520,7 +523,6 @@ FLAGS specifies more precise information of each TYPE.
 	   (let ((i 0)
 		 (vec (make-vector 32 nil))
 		 (g1-designation nil))
-	     (setq no-initial-designation t)
 	     (while (< i 4)
 	       (let ((charset (car flags)))
 		 (if (and no-initial-designation
@@ -536,12 +538,16 @@ FLAGS specifies more precise information of each TYPE.
 			     elt)
 			 (while tail
 			   (setq elt (car tail))
-			   (or (not elt) (eq elt t) (charsetp elt)
-			       (error "Invalid charset: %s" elt))
+			   (if (eq elt t)
+			       (setq no-alternative-designation nil)
+			     (if (and elt (not (charsetp elt)))
+				 (error "Invalid charset: %s" elt)))
 			   (setq tail (cdr tail)))
 			 (setq g1-designation (car charset)))
-		     (if (and charset (not (eq charset t)))
-			 (error "Invalid charset: %s" charset))))
+		     (if charset
+			 (if (eq charset t)
+			     (setq no-alternative-designation nil)
+			   (error "Invalid charset: %s" charset)))))
 		 (aset vec i charset))
 	       (setq flags (cdr flags) i (1+ i)))
 	     (while (and (< i 32) flags)
@@ -555,7 +561,9 @@ FLAGS specifies more precise information of each TYPE.
 		     (if (aref vec 7)	; 7-bit only.
 			 (if (aref vec 9) ; Use single-shift.
 			     'coding-category-iso-7-else
-			   'coding-category-iso-7)
+			   (if no-alternative-designation
+			       'coding-category-iso-7-tight
+			     'coding-category-iso-7))
 		       (if no-initial-designation
 			   'coding-category-iso-8-else
 			 (if (and (charsetp g1-designation)
@@ -575,11 +583,18 @@ FLAGS specifies more precise information of each TYPE.
 	   (setq coding-category 'coding-category-raw-text)))
 
     (let ((plist (list 'coding-category coding-category
-		       'alias-coding-systems (list coding-system)
-		       'safe-charsets safe-charsets)))
+		       'alias-coding-systems (list coding-system))))
       (if no-initial-designation
-	  (setq plist (cons 'no-initial-designation
-			    (cons no-initial-designation plist))))
+	  (plist-put plist 'no-initial-designation t))
+      (if (and properties
+	       (or (eq properties t)
+		   (not (consp (car properties)))))
+	  ;; In the old version, the arg PROPERTIES is a list to be
+	  ;; set in PLIST as a value of property `safe-charsets'.
+	  (plist-put plist 'safe-charsets properties)
+	(while properties
+	  (plist-put plist (car (car properties)) (cdr (car properties)))
+	  (setq properties (cdr properties))))
       (aset coding-spec coding-spec-plist-idx plist))
     (put coding-system 'coding-system coding-spec)
     (put coding-category 'coding-systems
@@ -597,7 +612,8 @@ FLAGS specifies more precise information of each TYPE.
   ;; `coding-system-alist'.
   (setq coding-system-list (cons coding-system coding-system-list))
   (setq coding-system-alist (cons (list (symbol-name coding-system))
-				  coding-system-alist)))
+				  coding-system-alist))
+  coding-system)
 
 (defun define-coding-system-alias (alias coding-system)
   "Define ALIAS as an alias for coding system CODING-SYSTEM."
@@ -622,7 +638,7 @@ conversion, and CODING-SYSTEM does not specify one, CODING-SYSTEM is
 merged with the already-specified end-of-line conversion.
 However, if the optional prefix argument FORCE is non-nil,
 then CODING-SYSTEM is used exactly as specified."
-  (interactive "zCoding system for visited file: \nP")
+  (interactive "zCoding system for visited file (default, nil): \nP")
   (check-coding-system coding-system)
   (if (null force)
       (let ((x (coding-system-eol-type buffer-file-coding-system))
@@ -706,24 +722,21 @@ For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems]."
   (force-mode-line-update))
 
 (defun set-coding-priority (arg)
-  "Set priority of coding-category according to LIST.
-LIST is a list of coding-categories ordered by priority."
-  (let (l)
-    ;; Put coding-categories listed in ARG to L while checking the
-    ;; validity.  We assume that `coding-category-list' contains whole
-    ;; coding-categories.
-    (while arg
-      (if (null (memq (car arg) coding-category-list))
-	  (error "Invalid element in argument: %s" (car arg)))
-      (setq l (cons (car arg) l))
-      (setq arg (cdr arg)))
-    ;; Put coding-category not listed in ARG to L.
-    (while coding-category-list
-      (if (null (memq (car coding-category-list) l))
-	  (setq l (cons (car coding-category-list) l)))
-      (setq coding-category-list (cdr coding-category-list)))
+  "Set priority of coding categories according to LIST.
+LIST is a list of coding categories ordered by priority."
+  (let ((l arg)
+	(current-list (copy-sequence coding-category-list)))
+    ;; Check the varidity of ARG while deleting coding categories in
+    ;; ARG from CURRENT-LIST.  We assume that CODING-CATEGORY-LIST
+    ;; contains all coding categories.
+    (while l
+      (if (or (null (get (car l) 'coding-category-index))
+	      (null (memq (car l) current-list)))
+	  (error "Invalid or duplicated element in argument: %s" arg))
+      (setq current-list (delq (car l) current-list))
+      (setq l (cdr l)))
     ;; Update `coding-category-list' and return it.
-    (setq coding-category-list (nreverse l))))
+    (setq coding-category-list (append arg current-list))))
 
 ;;; FILE I/O
 
@@ -997,6 +1010,33 @@ without changing their position code(s)."
       (setq args (cdr args)))
     ;; Return TABLE just created.
     table))
+
+(defun define-character-unification-table (symbol &rest args)
+  "define character unification table. This function call make-unification-table,
+store a returned table to character-unification-table-vector.
+And then set the table as SYMBOL's unification-table property,
+the index of the vector as SYMBOL's unification-table-id."
+  (let ((table (apply 'make-unification-table args))
+	(len (length character-unification-table-vector))
+	(id 0)
+	slot)
+    (or (symbolp symbol)
+	(signal 'wrong-type-argument symbol))
+    (put symbol 'unification-table table)
+    (while (and (< id len)
+		(if (consp (setq slot (aref character-unification-table-vector id)))
+		    (if (eq (car slot) symbol) nil t)
+		  (aset character-unification-table-vector id (cons symbol table))
+		  nil))
+      (setq id (1+ id)))
+    (if (= id len)
+	(progn
+	  (setq character-unification-table-vector
+		(vconcat character-unification-table-vector (make-vector len nil)))
+	  (aset character-unification-table-vector id (cons symbol table))))
+    (put symbol 'unification-table-id id)
+    id))
+
 
 ;;; Initialize some variables.
 
