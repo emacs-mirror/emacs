@@ -1,5 +1,12 @@
 2002-07-17  Dave Love  <fx@gnu.org>
 
+	* fns.c: Move coding.h.
+	(Qcodeset, Qdays, Qmonths): New.
+	(concat): Use CHARACTERP instead of INTERGERP.
+	(Flocale_codeset): Deleted.
+	(Flanginfo): New function.
+	(syms_of_fns): Changed accordingly.
+
 	* coding.c (adjust_coding_eol_type): Fix eol_type/eol_seen mixup.
 
 2002-07-16  Dave Love  <fx@gnu.org>
