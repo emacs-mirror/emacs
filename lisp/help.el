@@ -1466,13 +1466,10 @@ out of view."
     (let* ((max-height (if (functionp temp-buffer-max-height)
                            (funcall temp-buffer-max-height (current-buffer))
                          temp-buffer-max-height))
-           (win-height (- (window-height)
-			  (mode-line-window-height-fudge)
-			  1))
            (min-height (1- window-min-height))
            (text-height (count-screen-lines))
            (new-height (max (min text-height max-height) min-height)))
-      (enlarge-window (- new-height win-height)))))
+      (set-window-text-height nil new-height))))
 
 ;; `help-manyarg-func-alist' is defined primitively (in doc.c).
 ;; New primitives with `MANY' or `UNEVALLED' arglists should be added
