@@ -336,51 +336,59 @@ Do the right thing if the file has been compressed or zipped."
 		   (car decoder) t t nil (cdr decoder))))
       (insert-file-contents fullname visit))))
 
+(defun Info-default-dirs ()
+  (let ((source (expand-file-name "info/" source-directory))
+	(sibling (if installation-directory
+		     (expand-file-name "info/" installation-directory)
+		   (if invocation-directory
+		       (let ((infodir (expand-file-name
+				       "../info/"
+				       invocation-directory)))
+			 (if (file-exists-p infodir)
+			     infodir
+			   (setq infodir (expand-file-name
+					  "../../../info/"
+					  invocation-directory))
+			   (and (file-exists-p infodir)
+				infodir))))))
+	alternative)
+    (setq alternative
+	  (if (and sibling (file-exists-p sibling))
+	      ;; Uninstalled, Emacs builddir != srcdir.
+	      sibling
+	    ;; Uninstalled, builddir == srcdir
+	    source))
+    (if (or (member alternative Info-default-directory-list)
+	    ;; On DOS/NT, we use movable executables always,
+	    ;; and we must always find the Info dir at run time.
+	    (if (memq system-type '(ms-dos windows-nt))
+		nil
+	      ;; Use invocation-directory for Info
+	      ;; only if we used it for exec-directory also.
+	      (not (string= exec-directory
+			    (expand-file-name "lib-src/"
+					      installation-directory))))
+	    (not (file-exists-p alternative)))
+	Info-default-directory-list
+      ;; `alternative' contains the Info files that came with this
+      ;; version, so we should look there first.  `Info-insert-dir'
+      ;; currently expects to find `alternative' first on the list.
+      (cons alternative
+	    (reverse (cdr (reverse Info-default-directory-list)))))))
+
 (defun info-initialize ()
   "Initialize `Info-directory-list', if that hasn't been done yet."
   (unless Info-directory-list
-    (let ((path (getenv "INFOPATH"))
-	  (source (expand-file-name "info/" source-directory))
-	  (sibling (if installation-directory
-		       (expand-file-name "info/" installation-directory)
-		     (if invocation-directory
-			 (let ((infodir (expand-file-name
-					 "../info/"
-					 invocation-directory)))
-			   (if (file-exists-p infodir)
-			       infodir
-			     (setq infodir (expand-file-name
-					    "../../../info/"
-					    invocation-directory))
-			     (and (file-exists-p infodir)
-				  infodir))))))
-	  alternative)
+    (let ((path (getenv "INFOPATH")))
       (setq Info-directory-list
 	    (prune-directory-list
 	     (if path
-		 (split-string path (regexp-quote path-separator))
-	       (if (and sibling (file-exists-p sibling))
-		   ;; Uninstalled, Emacs builddir != srcdir.
-		   (setq alternative sibling)
-		 ;; Uninstalled, builddir == srcdir
-		 (setq alternative source))
-	       (if (or (member alternative Info-default-directory-list)
-		       ;; On DOS/NT, we use movable executables always,
-		       ;; and we must always find the Info dir at run time.
-		       (if (memq system-type '(ms-dos windows-nt))
-			   nil
-			 ;; Use invocation-directory for Info
-			 ;; only if we used it for exec-directory also.
-			 (not (string= exec-directory
-				       (expand-file-name "lib-src/"
-							 installation-directory))))
-		       (not (file-exists-p alternative)))
-		   Info-default-directory-list
-		 ;; `alternative' contains the Info files that came with this
-		 ;; version, so we should look there first.  `Info-insert-dir'
-		 ;; currently expects to find `alternative' first on the list.
-		 (cons alternative
-		       (reverse (cdr (reverse Info-default-directory-list)))))))))))
+		 (if (string-match ":\\'" path)
+		     (append (split-string (substring path 0 -1)
+					   (regexp-quote path-separator))
+			     (Info-default-dirs))
+		   (split-string path (regexp-quote path-separator)))
+	       (Info-default-dirs)))))))
 
 ;;;###autoload
 (defun info-other-window (&optional file)
