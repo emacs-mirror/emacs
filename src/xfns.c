@@ -1529,6 +1529,24 @@ x_figure_window_size (f, parms)
   return window_prompting;
 }
 
+#if !defined (HAVE_X11R4) && !defined (HAVE_XSETWMPROTOCOLS)
+
+Status
+XSetWMProtocols (dpy, w, protocols, count)
+     Display *dpy;
+     Window w;
+     Atom *protocols;
+     int count;
+{
+  Atom prop;
+  prop = XInternAtom (dpy, "WM_PROTOCOLS", False);
+  if (prop == None) return False;
+  XChangeProperty (dpy, w, prop, XA_ATOM, 32, PropModeReplace,
+		   (unsigned char *) protocols, count);
+  return True;
+}
+#endif /* !HAVE_X11R4 && !HAVE_XSETWMPROTOCOLS */
+
 static void
 x_window (f)
      struct frame *f;
@@ -1865,8 +1883,8 @@ be shared by the new frame.")
   x_default_parameter (f, parms, Qmenu_bar_lines, make_number (0),
 		       "menuBarLines", "MenuBarLines", number);
 
-  tem0 = x_get_arg (parms, Qtop, 0, 0, number);
-  tem1 = x_get_arg (parms, Qleft, 0, 0, number);
+  tem0 = x_get_arg (parms, Qleft, 0, 0, number);
+  tem1 = x_get_arg (parms, Qtop, 0, 0, number);
   BLOCK_INPUT;
   x_wm_set_size_hint (f, window_prompting, XINT (tem0), XINT (tem1));
   UNBLOCK_INPUT;
@@ -1891,6 +1909,7 @@ be shared by the new frame.")
       ;
   }
 
+  Vframe_list = Fcons (frame, Vframe_list);
   return frame;
 #else /* X10 */
   struct frame *f;
@@ -2129,6 +2148,7 @@ be shared by the new frame.")
 
   SET_FRAME_GARBAGED (f);
 
+  Vframe_list = Fcons (frame, Vframe_list);
   return frame;
 #endif /* X10 */
 }
@@ -2293,11 +2313,20 @@ fonts), even if they match PATTERN and FACE.")
     }
 
   BLOCK_INPUT;
+
+  /* Solaris 2.3 has a bug in XListFontsWithInfo.  */
+#ifdef BROKEN_XLISTFONTSWITHINFO
+  names = XListFonts (x_current_display,
+                      XSTRING (pattern)->data,
+                      2000, /* maxnames */
+                      &num_fonts); /* count_return */
+#else
   names = XListFontsWithInfo (x_current_display,
 			      XSTRING (pattern)->data,
 			      2000, /* maxnames */
 			      &num_fonts, /* count_return */
 			      &info); /* info_return */
+#endif
   UNBLOCK_INPUT;
 
   list = Qnil;
@@ -2307,16 +2336,30 @@ fonts), even if they match PATTERN and FACE.")
       Lisp_Object *tail;
       int i;
 
-      tail = &list;
       for (i = 0; i < num_fonts; i++)
-	if (! size_ref 
-	    || same_size_fonts (&info[i], size_ref))
-	  {
-	    *tail = Fcons (build_string (names[i]), Qnil);
-	    tail = &XCONS (*tail)->cdr;
-	  }
+        {
+#ifdef BROKEN_XLISTFONTSWITHINFO
+          BLOCK_INPUT;
+          info = XLoadQueryFont (x_current_display, names[i]);
+          UNBLOCK_INPUT;
+#else
+	  info = &info[i];
+#endif
+          if (info && (! size_ref
+		       || same_size_fonts (info, size_ref)))
+	    {
+	      *tail = Fcons (build_string (names[i]), Qnil);
+	      tail = &XCONS (*tail)->cdr;
+	    }
+        }
 
+      BLOCK_INPUT;
+#ifdef BROKEN_XLISTFONTSWITHINFO
+      XFreeFontNames (names);
+#else
       XFreeFontInfo (names, info, num_fonts);
+#endif
+      UNBLOCK_INPUT;
     }
 
   return list;
