@@ -1335,7 +1335,14 @@
 	       (setq offset (or endtag (setq endtag (byte-compile-make-tag)))
 		     op 'byte-goto)))
 	    ((eq op 'byte-stack-set2)
-	     (setq op 'byte-stack-set)))
+	     (setq op 'byte-stack-set))
+	    ((and (eq op 'byte-discardN) (>= offset #x80))
+	     ;; The top bit of the operand for byte-discardN is a flag,
+	     ;; saying whether the top-of-stack is preserved.  In
+	     ;; lapcode, we represent this by using a different opcode
+	     ;; (with the flag removed from the operand).
+	     (setq op 'byte-discardN-preserve-tos)
+	     (setq offset (- offset #x80))))
       ;; lap = ( [ (pc . (op . arg)) ]* )
       (setq lap (cons (cons optr (cons op (or offset 0)))
 		      lap))
@@ -1391,7 +1398,7 @@
     byte-cdr-safe byte-cons byte-list1 byte-list2 byte-point byte-point-max
     byte-point-min byte-following-char byte-preceding-char
     byte-current-column byte-eolp byte-eobp byte-bolp byte-bobp
-    byte-current-buffer byte-interactive-p))
+    byte-current-buffer byte-interactive-p byte-stack-ref))
 
 (defconst byte-compile-side-effect-free-ops
   (nconc 
@@ -1400,7 +1407,7 @@
      byte-eqlsign byte-gtr byte-lss byte-leq byte-geq byte-diff byte-negate
      byte-plus byte-max byte-min byte-mult byte-char-after byte-char-syntax
      byte-buffer-substring byte-string= byte-string< byte-nthcdr byte-elt
-     byte-member byte-assq byte-quo byte-rem)
+     byte-member byte-assq byte-quo byte-rem byte-vec-ref)
    byte-compile-side-effect-and-error-free-ops))
 
 ;;; This crock is because of the way DEFVAR_BOOL variables work.
@@ -1438,6 +1445,8 @@
   (let (lap0
 	lap1
 	lap2
+	stack-adjust
+	(stack-depth 0)
 	(keep-going 'first-time)
 	(add-depth 0)
 	rest tmp tmp2 tmp3
@@ -1454,6 +1463,32 @@
 	      lap1 (nth 1 rest)
 	      lap2 (nth 2 rest))
 
+	(cond ((eq (car lap0) 'TAG)
+	       ;; A tag can encode the expected stack depth.
+	       (when (cddr lap0)
+		 ;; First, check to see if our notion of the current stack
+		 ;; depth agrees with this tag.  We don't check at the
+		 ;; beginning of the function, because the presence of
+		 ;; lexical arguments means the first tag will have a
+		 ;; non-zero offset.
+		 (when (and (not (eq rest lap))	; not at first insn
+			    stack-depth	        ; not just after a goto
+			    (not (= (cddr lap0) stack-depth)))
+		   (error "Compiler error: optimizer is confused about stack-depth:
+  %s != %s at lapcode %s" (cddr lap0) stack-depth lap0))
+		 ;; Now set out current depth from this tag
+		 (setq stack-depth (cddr lap0)))
+	       (setq stack-adjust 0))
+	      ((memq (car lap0) '(byte-goto byte-return))
+	       ;; These insns leave us in an unknown state
+	       (setq stack-adjust nil))
+	      (t
+	       ;; stack-adjust will be added to stack-depth at the end of the
+	       ;; loop, so any code that modifies the isntruction sequence must
+	       ;; adjust this too.
+	       (setq stack-adjust
+		     (byte-compile-stack-adjustment (car lap0) (cdr lap0)))))
+
 	;; You may notice that sequences like "dup varset discard" are
 	;; optimized but sequences like "dup varset TAG1: discard" are not.
 	;; You may be tempted to change this; resist that temptation.
@@ -1467,22 +1502,22 @@
 	      ((and (eq 'byte-discard (car lap1))
 		    (memq (car lap0) side-effect-free))
 	       (setq keep-going t)
-	       (setq tmp (aref byte-stack+-info (symbol-value (car lap0))))
 	       (setq rest (cdr rest))
-	       (cond ((= tmp 1)
+	       (cond ((= stack-adjust 1)
 		      (byte-compile-log-lap
  		       "  %s discard\t-->\t<deleted>" lap0)
 		      (setq lap (delq lap0 (delq lap1 lap))))
-		     ((= tmp 0)
+		     ((= stack-adjust 0)
 		      (byte-compile-log-lap
 		       "  %s discard\t-->\t<deleted> discard" lap0)
 		      (setq lap (delq lap0 lap)))
-		     ((= tmp -1)
+		     ((= stack-adjust -1)
 		      (byte-compile-log-lap
 		       "  %s discard\t-->\tdiscard discard" lap0)
 		      (setcar lap0 'byte-discard)
 		      (setcdr lap0 0))
-		     ((error "Optimizer error: too much on the stack"))))
+		     ((error "Optimizer error: too much on the stack")))
+	       (setq stack-adjust (1- stack-adjust)))
 	      ;;
 	      ;; goto*-X X:  -->  X:
 	      ;;
@@ -1499,7 +1534,8 @@
 		    (byte-compile-log "  (goto %s) %s:\t-->\t%s %s:"
 				      (nth 1 lap1) (nth 1 lap1)
 				      tmp (nth 1 lap1)))
-	       (setq keep-going t))
+	       (setq keep-going t
+		     stack-adjust 0))
 	      ;;
 	      ;; varset-X varref-X  -->  dup varset-X
 	      ;; varbind-X varref-X  -->  dup varbind-X
@@ -1507,10 +1543,14 @@
 	      ;; const/dup varbind-X varref-X --> const/dup varbind-X const/dup
 	      ;; The latter two can enable other optimizations.
 	      ;;
-	      ((and (eq 'byte-varref (car lap2))
-		    (eq (cdr lap1) (cdr lap2))
-		    (memq (car lap1) '(byte-varset byte-varbind)))
-	       (if (and (setq tmp (memq (car (cdr lap2)) byte-boolean-vars))
+	      ((or (and (eq 'byte-varref (car lap2))
+			(eq (cdr lap1) (cdr lap2))
+			(memq (car lap1) '(byte-varset byte-varbind)))
+		   (and (eq (car lap2) 'byte-stack-ref)
+			(eq (car lap1) 'byte-stack-set)
+			(eq (cdr lap1) (cdr lap2))))
+	       (if (and (eq 'byte-varref (car lap2))
+			(setq tmp (memq (car (cdr lap2)) byte-boolean-vars))
 			(not (eq (car lap0) 'byte-constant)))
 		   nil
 		 (setq keep-going t)
@@ -1542,10 +1582,11 @@
 	      ;;
 	      ((and (eq 'byte-dup (car lap0))
 		    (eq 'byte-discard (car lap2))
-		    (memq (car lap1) '(byte-varset byte-varbind)))
+		    (memq (car lap1) '(byte-varset byte-varbind byte-stack-set byte-vec-set)))
 	       (byte-compile-log-lap "  dup %s discard\t-->\t%s" lap1 lap1)
 	       (setq keep-going t
-		     rest (cdr rest))
+		     rest (cdr rest)
+		     stack-adjust -1)
 	       (setq lap (delq lap0 (delq lap2 lap))))
 	      ;;
 	      ;; not goto-X-if-nil              -->  goto-X-if-non-nil
@@ -1567,7 +1608,8 @@
 				'byte-goto-if-not-nil
 				'byte-goto-if-nil))
 	       (setq lap (delq lap0 lap))
-	       (setq keep-going t))
+	       (setq keep-going t
+		     stack-adjust 0))
 	      ;;
 	      ;; goto-X-if-nil     goto-Y X:  -->  goto-Y-if-non-nil X:
 	      ;; goto-X-if-non-nil goto-Y X:  -->  goto-Y-if-nil     X:
@@ -1583,7 +1625,8 @@
 		 (byte-compile-log-lap "  %s %s %s:\t-->\t%s %s:"
 				       lap0 lap1 lap2
 				       (cons inverse (cdr lap1)) lap2)
-		 (setq lap (delq lap0 lap))
+		 (setq lap (delq lap0 lap)
+		       stack-adjust 0)
 		 (setcar lap1 inverse)
 		 (setq keep-going t)))
 	      ;;
@@ -1600,15 +1643,14 @@
 		      (setq rest (cdr rest)
 			    lap (delq lap0 (delq lap1 lap))))
 		     (t
-		      (if (memq (car lap1) byte-goto-always-pop-ops)
-			  (progn
-			    (byte-compile-log-lap "  %s %s\t-->\t%s"
-			     lap0 lap1 (cons 'byte-goto (cdr lap1)))
-			    (setq lap (delq lap0 lap)))
-			(byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1
-			 (cons 'byte-goto (cdr lap1))))
+		      (byte-compile-log-lap "  %s %s\t-->\t%s"
+					    lap0 lap1
+					    (cons 'byte-goto (cdr lap1)))
+		      (when (memq (car lap1) byte-goto-always-pop-ops)
+			(setq lap (delq lap0 lap)))
 		      (setcar lap1 'byte-goto)))
-	       (setq keep-going t))
+	       (setq keep-going t
+		     stack-adjust 0))
 	      ;;
 	      ;; varref-X varref-X  -->  varref-X dup
 	      ;; varref-X [dup ...] varref-X  -->  varref-X [dup ...] dup
@@ -1616,14 +1658,14 @@
 	      ;; because that would inhibit some goto optimizations; we
 	      ;; optimize the const-X case after all other optimizations.
 	      ;;
-	      ((and (eq 'byte-varref (car lap0))
+	      ((and (memq (car lap0) '(byte-varref byte-stack-ref))
 		    (progn
-		      (setq tmp (cdr rest))
+		      (setq tmp (cdr rest) tmp2 0)
 		      (while (eq (car (car tmp)) 'byte-dup)
-			(setq tmp (cdr tmp)))
+			(setq tmp (cdr tmp) tmp2 (1+ tmp2)))
 		      t)
-		    (eq (cdr lap0) (cdr (car tmp)))
-		    (eq 'byte-varref (car (car tmp))))
+		    (eq (car lap0) (car (car tmp)))
+		    (eq (cdr lap0) (cdr (car tmp))))
 	       (if (memq byte-optimize-log '(t byte))
 		   (let ((str ""))
 		     (setq tmp2 (cdr rest))
@@ -1635,7 +1677,8 @@
 	       (setq keep-going t)
 	       (setcar (car tmp) 'byte-dup)
 	       (setcdr (car tmp) 0)
-	       (setq rest tmp))
+	       (setq rest tmp
+		     stack-adjust (+ 2 tmp2)))
 	      ;;
 	      ;; TAG1: TAG2: --> TAG1: <deleted>
 	      ;; (and other references to TAG2 are replaced with TAG1)
@@ -1702,7 +1745,8 @@
 	       (byte-compile-log-lap "  %s %s\t-->\t%s %s" lap0 lap1 lap1 lap0)
 	       (setcar rest lap1)
 	       (setcar (cdr rest) lap0)
-	       (setq keep-going t))
+	       (setq keep-going t
+		     stack-adjust 0))
 	      ;;
 	      ;; varbind-X unbind-N         -->  discard unbind-(N-1)
 	      ;; save-excursion unbind-N    -->  unbind-(N-1)
@@ -1804,20 +1848,22 @@
 					    (cdr tmp))))
 		      (setcdr lap1 (car (cdr tmp)))
 		      (setq lap (delq lap0 lap))))
-	       (setq keep-going t))
+	       (setq keep-going t
+		     stack-adjust 0))
 	      ;;
 	      ;; X: varref-Y    ...     varset-Y goto-X  -->
 	      ;; X: varref-Y Z: ... dup varset-Y goto-Z
 	      ;; (varset-X goto-BACK, BACK: varref-X --> copy the varref down.)
 	      ;; (This is so usual for while loops that it is worth handling).
 	      ;;
-	      ((and (eq (car lap1) 'byte-varset)
+	      ((and (memq (car lap1) '(byte-varset byte-stack-set))
 		    (eq (car lap2) 'byte-goto)
 		    (not (memq (cdr lap2) rest)) ;Backwards jump
 		    (eq (car (car (setq tmp (cdr (memq (cdr lap2) lap)))))
-			'byte-varref)
+			(if (eq (car lap1) 'byte-varset) 'byte-varref 'byte-stack-ref))
 		    (eq (cdr (car tmp)) (cdr lap1))
-		    (not (memq (car (cdr lap1)) byte-boolean-vars)))
+		    (not (and (eq (car lap1) 'byte-varref)
+			      (memq (car (cdr lap1)) byte-boolean-vars))))
 	       ;;(byte-compile-log-lap "  Pulled %s to end of loop" (car tmp))
 	       (let ((newtag (byte-compile-make-tag)))
 		 (byte-compile-log-lap
@@ -1874,10 +1920,17 @@
 					   byte-goto-if-not-nil
 					   byte-goto byte-goto))))
 	       )
-	       (setq keep-going t))
+	       (setq keep-going t
+		     stack-adjust (and (not (eq (car lap0) 'byte-goto)) -1)))
 	      )
+
+	(if (and stack-depth stack-adjust)
+	    (setq stack-depth (+ stack-depth stack-adjust))
+	  (setq stack-depth nil))
+
 	(setq rest (cdr rest)))
       )
+
     ;; Cleanup stage:
     ;; Rebuild byte-compile-constants / byte-compile-variables.
     ;; Simple optimizations that would inhibit other optimizations if they
@@ -1935,9 +1988,44 @@
 	     (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1
 				   (cons 'byte-unbind
 					 (+ (cdr lap0) (cdr lap1))))
-	     (setq keep-going t)
 	     (setq lap (delq lap0 lap))
 	     (setcdr lap1 (+ (cdr lap1) (cdr lap0))))
+;; 	    ;;
+;; 	    ;; [(stack-set-M [discard ...]) ...]  -->  discardN-preserve-tos-(...)
+;; 	    ;;
+;; 	    ((and (memq (car lap0) '(byte-discard byte-discardN))
+;; 		  (memq (car lap1) '(byte-discard byte-discardN)))
+;; 	     (setq tmp rest)
+;; 	     (while (memq (car tmp) '(byte-discard byte-discardN))
+;; 	       (setq tmp2 (+ tmp2 (if (eq (car rest) 'byte-discard) 1 (cdar tmp))))
+;; 	       (setq tmp (cdr tmp)))
+;; 	     (setcar lap0 'byte-discardN)
+;; 	     (setcdr lap0 tmp2)
+;; 	     (setcdr rest tmp))
+;; 	    ;;
+;; 	    ;; [discard/discardN-M ...]  -->  discardN-(M+...)
+;; 	    ;;
+;; 	    ((and (memq (car lap0) '(byte-discard byte-discardN))
+;; 		  (memq (car lap1) '(byte-discard byte-discardN)))
+;; 	     (setq tmp rest)
+;; 	     (while (memq (car tmp) '(byte-discard byte-discardN))
+;; 	       (setq tmp2 (+ tmp2 (if (eq (car rest) 'byte-discard) 1 (cdar tmp))))
+;; 	       (setq tmp (cdr tmp)))
+;; 	     (setcar lap0 'byte-discardN)
+;; 	     (setcdr lap0 tmp2)
+;; 	     (setcdr rest tmp))
+;; 	    ;;
+;; 	    ;; [discardN-preserve-tos-M ...]  -->  discardN-preserve-tos-(M+...)
+;; 	    ;;
+;; 	    ((and (eq (car lap0) 'byte-discardN-preserve-tos)
+;; 		  (eq (car lap1) 'byte-discardN-preserve-tos))
+;; 	     (setq tmp rest)
+;; 	     (while (eq (car tmp) 'byte-discardN-preserve-tos)
+;; 	       (setq tmp2 (+ tmp2 (cdar tmp)))
+;; 	       (setq tmp (cdr tmp)))
+;; 	     (setcar lap0 'byte-discardN-preserve-tos)
+;; 	     (setcdr lap0 tmp2)
+;; 	     (setcdr rest tmp))
 	    )
       (setq rest (cdr rest)))
     (setq byte-compile-maxdepth (+ byte-compile-maxdepth add-depth)))
