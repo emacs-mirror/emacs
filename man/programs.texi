@@ -7,8 +7,8 @@
 @cindex C editing
 @cindex program editing
 
-  Emacs provides many features to facilitate editing programs.  These
-features can:
+  Emacs provides many features to facilitate editing programs.  Some
+of these features can
 
 @itemize @bullet
 @item
@@ -23,6 +23,8 @@ Balance parentheses (@pxref{Parentheses}).
 @item
 Highlight program syntax (@pxref{Font Lock}).
 @end itemize
+
+  This chapter describes these features and many more.
 
 @menu
 * Program Modes::       Major modes for editing programs.
@@ -50,15 +52,15 @@ Highlight program syntax (@pxref{Font Lock}).
 @xref{Major Modes}.  A programming language major mode typically
 specifies the syntax of expressions, the customary rules for
 indentation, how to do syntax highlighting for the language, and how
-to find the beginning of a function definition.  They often provide
-facilities for compiling and debugging programs as well.
+to find the beginning of a function definition.  It often customizes
+or provides facilities for compiling and debugging programs as well.
 
   Ideally, Emacs should provide a major mode for each programming
 language that you might want to edit; if it doesn't have a mode for
 your favorite language, you can contribute one.  But often the mode
 for one language can serve for other syntactically similar languages.
 The major mode for language @var{l} is called @code{@var{l}-mode},
-and you can enable it by typing @kbd{M-x @var{l}-mode @key{RET}}.
+and you can select it by typing @kbd{M-x @var{l}-mode @key{RET}}.
 @xref{Choosing Modes}.
 
 @cindex Perl mode
@@ -86,7 +88,7 @@ companion for font creation), Modula2, Objective-C, Octave, Pascal,
 Perl, Pike, PostScript, Prolog, Simula, Tcl, and VHDL.  There is
 also a major mode for makefiles, called Makefile mode.  An alternative
 mode for Perl is called CPerl mode.  Modes are available for the
-scripting languages of the common Unix shells, VMS DCL, and
+scripting languages of the common GNU and Unix shells, VMS DCL, and
 MS-DOS/MS-Windows @samp{BAT} files.  There are also major modes for
 editing various sorts of configuration files.
 
@@ -94,12 +96,12 @@ editing various sorts of configuration files.
 @findex c-electric-backspace
   In most programming languages, indentation should vary from line to
 line to illustrate the structure of the program.  So the major modes
-for program languages arrange for @key{TAB} to update the indentation
-of the current line.  They also rebind @key{DEL} to treat a tab as if
-it were the equivalent number of spaces.  This makes it possible to
-reduce indentation one column at a time without worrying whether it is
-made up of spaces or tabs.  Use @kbd{C-b C-d} to delete a tab
-character before point, in these modes.
+for programming languages arrange for @key{TAB} to update the
+indentation of the current line.  They also rebind @key{DEL} to treat
+a tab as if it were the equivalent number of spaces; this lets you
+delete one column of indentation without worrying whether the
+whitespace consists of spaces or tabs.  Use @kbd{C-b C-d} to delete a
+tab character before point, in these modes.
 
   Separate manuals are available for the modes for Ada (@pxref{Top, , Ada
 Mode, ada-mode, Ada Mode}), C/C++/Objective C/Java/Corba IDL
@@ -240,51 +242,52 @@ command while point is between defuns, it uses the following defun.
   In C mode, @kbd{C-M-h} runs the function @code{c-mark-function},
 which is almost the same as @code{mark-defun}; the difference is that
 it backs up over the argument declarations, function name and returned
-data type so that the entire C function is inside the region.
-@xref{Marking Objects}.  This is an example of how major modes adjust
-the standard key bindings so that they do their standard jobs in a way
-better fitting a particular language.  Other major modes may adjust
-any or all of these key bindings for that purpose.
+data type so that the entire C function is inside the region.  This is
+an example of how major modes adjust the standard key bindings so that
+they do their standard jobs in a way better fitting a particular
+language.  Other major modes may replace any or all of these key
+bindings for that purpose.
 
 @node Imenu
 @subsection Imenu
-@cindex indexes of buffer contents
-@cindex buffer content indexes
+@cindex index of buffer definitions
+@cindex buffer definitions index
 @cindex tags
 
   The Imenu facility offers a way to find the the major definitions in
 a file by name.  It is also useful in text formatter major modes,
 where it treats each chapter, section, etc., as a definition.
-(@pxref{Tags}, for a more powerful feature that handles multiple files
+(@xref{Tags}, for a more powerful feature that handles multiple files
 together.)
 
 @findex imenu
   If you type @kbd{M-x imenu}, it reads the name of a definition using
-the minibuffer, then goes to that definition.  You can use completion
-to specify the name, and a complete list of possible names is always
-displayed.
+the minibuffer, then moves point to that definition.  You can use
+completion to specify the name; the command always displays the whole
+list of valid names.
 
 @findex imenu-add-menubar-index
   Alternatively, you can bind the command @code{imenu} to a mouse
-click.  Then it displays mouse menus for you to select the definition
-you want.  You can also add the buffer's index to the menu bar by
-calling @code{imenu-add-menubar-index}.  If you want to have this
-menu bar item available for all buffers in a certain major mode, you
-can do this by adding @code{imenu-add-menubar-index} to its mode
-hook.  But then you will have to wait for the buffer to be searched
-for definitions, each time you visit a file which uses that mode.
+click.  Then it displays mouse menus for you to select a definition
+name.  You can also add the buffer's index to the menu bar by calling
+@code{imenu-add-menubar-index}.  If you want to have this menu bar
+item available for all buffers in a certain major mode, you can do
+this by adding @code{imenu-add-menubar-index} to its mode hook.  But
+if you have done that, you will have to wait each time you visit a
+file in that mode, while Emacs finds all the definitions in that
+buffer.
 
 @vindex imenu-auto-rescan
   When you change the contents of a buffer, if you add or delete
-definitions, you can update the buffer's index to correspond to the
+definitions, you can update the buffer's index based on the
 new contents by invoking the @samp{*Rescan*} item in the menu.
-Rescanning happens automatically if @code{imenu-auto-rescan} is
-non-@code{nil}.  There is no need to rescan because of small changes
-in the text.
+Rescanning happens automatically you set @code{imenu-auto-rescan} to a
+non-@code{nil} value.  There is no need to rescan because of small
+changes in the text.
 
 @vindex imenu-sort-function
   You can customize the way the menus are sorted by setting the
-variable @code{imenu-sort-function}.  By default names are ordered as
+variable @code{imenu-sort-function}.  By default, names are ordered as
 they occur in the buffer; if you want alphabetic sorting, use the
 symbol @code{imenu--sort-by-name} as the value.  You can also
 define your own comparison function by writing Lisp code.
@@ -309,11 +312,11 @@ buffer.
 @vindex which-func-modes
   To enable (or disable) Which Function mode, use the command @kbd{M-x
 which-function-mode}.  This command is global; it applies to all
-buffers, both existing ones and those yet to be created.  However, this
-only affects certain major modes, those listed in the value of
-@code{which-func-modes}.  If the value is @code{t}, then Which Function
-mode applies to all major modes that know how to support it---which are
-the major modes that support Imenu.
+buffers, both existing ones and those yet to be created.  However,
+it only takes effect in certain major modes, those listed in the value of
+@code{which-func-modes}.  If the value is @code{t}, then Which
+Function mode applies to all major modes that know how to support
+it---in other words, all the major modes that support Imenu.
 
 @node Program Indent
 @section Indentation for Programs
@@ -348,7 +351,7 @@ Adjust indentation of current line.
 @item C-j
 Equivalent to @key{RET} followed by @key{TAB} (@code{newline-and-indent}).
 @item @key{LINEFEED}
-This key is a way to enter @kbd{C-j}, on some keyboards.
+This key, if the keyboard has it, is another way to enter @kbd{C-j}.
 @end table
 
 @kindex TAB @r{(programming modes)}
@@ -405,11 +408,11 @@ you have several commands available.
 @table @kbd
 @item C-M-q
 Reindent all the lines within one parenthetical grouping(@code{indent-sexp}).
+@item C-M-\
+Reindent all lines in the region (@code{indent-region}).
 @item C-u @key{TAB}
 Shift an entire parenthetical grouping rigidly sideways so that its
 first line is properly indented.
-@item C-M-\
-Reindent all lines in the region (@code{indent-region}).
 @item M-x indent-code-rigidly
 Shift all the lines in the region rigidly sideways, but do not alter
 lines that start inside comments and strings.
@@ -425,6 +428,11 @@ the line where the grouping starts is not changed; therefore, this
 changes only the relative indentation within the grouping, not its
 overall indentation.  To correct that as well, type @key{TAB} first.
 
+  Another way to specify the range to be reindented is with the
+region.  The command @kbd{C-M-\} (@code{indent-region}) applies
+@key{TAB} to every line whose first character is between point and
+mark.
+
 @kindex C-u TAB
   If you like the relative indentation within a grouping, but not the
 indentation of its first line, you can type @kbd{C-u @key{TAB}} to
@@ -436,13 +444,11 @@ line.  It is clever, though, and does not alter lines that start
 inside strings, or C preprocessor lines when in C mode.
 
 @findex indent-code-rigidly
-  Another way to specify the range to be reindented is with the region.
-The command @kbd{C-M-\} (@code{indent-region}) applies @key{TAB} to
-every line whose first character is between point and mark.  The command
-@kbd{M-x indent-code-rigidly} rigidly shifts all the lines in the region
-sideways, like @code{indent-rigidly} does (@pxref{Indentation
-Commands}), except that it doesn't alter the indentation of lines that
-start inside a comment or a string, unless the region starts inside that
+  You can also perform this operation on the region, using the command
+@kbd{M-x indent-code-rigidly}.  It rigidly shifts all the lines in the
+region sideways, like @code{indent-rigidly} does (@pxref{Indentation
+Commands}).  It doesn't alter the indentation of lines that start
+inside a comment or a string, unless the region starts inside that
 comment or string.
 
 @node Lisp Indent
@@ -482,7 +488,7 @@ function name.  There are four possibilities for this property:
 This is the same as no property---use the standard indentation pattern.
 @item @code{defun}
 Handle this function like a @samp{def} construct: treat the second
-line the start of a @dfn{body}.
+line as the start of a @dfn{body}.
 @item a number, @var{number}
 The first @var{number} arguments of the function are
 @dfn{distinguished} arguments; the rest are considered the body
@@ -593,8 +599,8 @@ definition.
 c-set-style}.  Specify a style name as an argument (case is not
 significant).  This command affects the current buffer only, and it
 affects only future invocations of the indentation commands; it does
-not change the indentation of the code in the buffer.  To reindent the
-whole buffer in the new style, you can type @kbd{C-x h C-M-\}.
+not reindent the code in the buffer.  To reindent the whole buffer in
+the new style, you can type @kbd{C-x h C-M-\}.
 
 @vindex c-default-style
   You can also set the variable @code{c-default-style} to specify the
@@ -610,7 +616,7 @@ style to use for it.  For example,
 @noindent
 specifies an explicit choice for Java mode, and the default @samp{gnu}
 style for the other C-like modes.  This variable takes effect when you
-switch to one of the C-like major modes; thus, if you specify a new
+select one of the C-like major modes; thus, if you specify a new
 default style for Java mode, you can make it take effect in an
 existing Java mode buffer by typing @kbd{M-x java-mode} there.
 
@@ -618,7 +624,7 @@ existing Java mode buffer by typing @kbd{M-x java-mode} there.
 Project for C; it is the default, so as to encourage use of our
 recommended style.
 
-  @xref{Customizing Indentation,, cc-mode, the CC Mode Manual}, for
+  @xref{Customizing Indentation,,, cc-mode, the CC Mode Manual}, for
 more information on customizing indentation for C and related modes,
 including how to override parts of an existing style and how to define
 your own styles.
@@ -634,9 +640,9 @@ balanced.
 
   When talking about these facilities, the term ``parenthesis'' also
 includes braces, brackets, or whatever delimiters are defined to match
-in pairs.  This is controlled by the major mode, through the syntax
-table (@pxref{Syntax}).  In Lisp, only parentheses count; in C, these
-commands apply to braces and brackets too.
+in pairs.  The major mode controls which delimiters are significant,
+through the syntax table (@pxref{Syntax}).  In Lisp, only parentheses
+count; in C, these commands apply to braces and brackets too.
 
   You can use @kbd{M-x check-parens} to find any unbalanced
 parentheses and unbalanced string quotes in the buffer.
@@ -676,16 +682,16 @@ Put mark after following expression (@code{mark-sexp}).
   Each programming language major mode customizes the definition of
 balanced expressions to suit that language.  Balanced expressions
 typically include symbols, numbers, and string constants, as well as
-anything contained in parentheses, brackets or braces.  Some languages
+any pair of matching delimiters and their contents.  Some languages
 have obscure forms of expression syntax that nobody has bothered to
 implement in Emacs.
 
 @cindex Control-Meta
-  By convention, the keys for these commands are always Control-Meta
-characters.  They usually act like the corresponding Meta characters,
-except that they take note of parentheses and their contents.  For
-instance, the command @kbd{C-M-b} moves backward over a balanced
-expression, just as @kbd{M-b} moves back over a word.
+  By convention, the keys for these commands are all Control-Meta
+characters.  They usually act on expressions just as the corresponding
+Meta characters act on words.  For instance, the command @kbd{C-M-b}
+moves backward over a balanced expression, just as @kbd{M-b} moves
+back over a word.
 
 @kindex C-M-f
 @kindex C-M-b
@@ -731,10 +737,11 @@ Emacs is really @key{BACKSPACE}, and the reboot command is
   A somewhat random-sounding command which is nevertheless handy is
 @kbd{C-M-t} (@code{transpose-sexps}), which drags the previous
 balanced expression across the next one.  An argument serves as a
-repeat count, and a negative argument drags backwards (thus canceling
-out the effect of @kbd{C-M-t} with a positive argument).  An argument
-of zero, rather than doing nothing, transposes the balanced
-expressions ending after point and the mark.
+repeat count, and a negative argument drags the previous balanced
+expression backwards across those before it (thus canceling out the
+effect of @kbd{C-M-t} with a positive argument).  An argument of zero,
+rather than doing nothing, transposes the balanced expressions ending
+at or after point and the mark.
 
 @kindex C-M-@@
 @findex mark-sexp
@@ -752,8 +759,9 @@ not treat @samp{foo + bar} as a single expression, even though it
 expression and @samp{bar} as another, with the @samp{+} as punctuation
 between them.  Both @samp{foo + bar} and @samp{foo} are legitimate
 choices for ``the expression following point'' when point is at the
-@samp{f}.  Note that @samp{(foo + bar)} does act as a single
-expression in C mode.
+@samp{f}, so the expression commands must perforce choose one or the
+other to operate on.  Note that @samp{(foo + bar)} is recognized as a
+single expression in C mode, because of the parentheses.
 
 @node Moving by Parens
 @subsection Moving in the Parenthesis Structure
@@ -817,8 +825,8 @@ automatically how parentheses (and other matching delimiters) match in
 the text.  Whenever you type a self-inserting character that is a
 closing delimiter, the cursor moves momentarily to the location of the
 matching opening delimiter, provided that is on the screen.  If it is
-not on the screen, Emacs displays some text near it in the echo area.
-Either way, you can tell what grouping you are closing off.
+not on the screen, Emacs displays some of the text near it in the echo
+area.  Either way, you can tell which grouping you are closing off.
 
   If the opening delimiter and closing delimiter are mismatched---such
 as in @samp{[x)}---a warning message is displayed in the echo area.
@@ -1102,34 +1110,36 @@ typically available with the appropriate GNU package.
 @node Man Page
 @subsection Man Page Lookup
 
-  Eventually the GNU project hopes to replace most man pages in the
-GNU operating system with better-organized manuals that you can browse
-with Info (@pxref{Misc Help}).  Since this process is not finished, it
-is still useful to read manual pages.
+@cindex manual page
+  On Unix, the main form of on-line documentation was the @dfn{manual
+page} or @dfn{man page}.  In the GNU operating system, we hope to
+replace man pages with better-organized manuals that you can browse
+with Info (@pxref{Misc Help}).  This process is not finished, so it is
+still useful to read manual pages.
 
 @findex manual-entry
-@cindex manual pages
-  You can read the ``man page'' for an operating system command,
-library function, or system call, with the @kbd{M-x manual-entry}
-command.  It runs the @code{man} program to format the man page, and
-runs it asynchronously if your system permits, so that you can keep on
-editing while the page is being formatted.  (MS-DOS and MS-Windows 3
-do not permit asynchronous subprocesses, so on these systems you
-cannot edit while Emacs waits for @code{man} to finish.)  The result
-goes in a buffer named @samp{*Man @var{topic}*}.  These buffers use a
-special major mode, Man mode, that facilitates scrolling and jumping
-to other manual pages.  For details, type @kbd{C-h m} while in a man
-page buffer.
+  You can read the man page for an operating system command, library
+function, or system call, with the @kbd{M-x manual-entry} command.  It
+runs the @code{man} program to format the man page; if the system
+permits, it runs @code{man} asynchronously, so that you can keep on
+editing while the page is being formatted.  (On MS-DOS and MS-Windows
+3, you cannot edit while Emacs waits for @code{man} to finish.)  The
+result goes in a buffer named @samp{*Man @var{topic}*}.  These buffers
+use a special major mode, Man mode, that facilitates scrolling and
+jumping to other manual pages.  For details, type @kbd{C-h m} while in
+a man page buffer.
 
 @cindex sections of manual pages
-  Each man page belongs to one of around ten @dfn{sections}; sometimes
-there are multiple man pages with the same name in different sections.
-To read a man page from a specific section, type
+  Each man page belongs to one of ten or more @dfn{sections}, each
+named by a digit or by a digit and a letter.  Sometimes there are
+multiple man pages with the same name in different sections.  To read
+a man page from a specific section, type
 @samp{@var{topic}(@var{section})} or @samp{@var{section} @var{topic}}
 when @kbd{M-x manual-entry} prompts for the topic.  For example, to
 read the man page for the C library function @code{chmod} (as opposed
-to a command by the same name), type @kbd{M-x manual-entry @key{RET}
-chmod(2v) @key{RET}} (assuming @code{chmod} is in section @samp{2v}).
+to a command of the same name), type @kbd{M-x manual-entry @key{RET}
+chmod(2) @key{RET}} (@code{chmod} is a system call, so it is in
+section @samp{2}).
 
 @vindex Man-switches
   If you do not specify a section, the results depend on how the
@@ -1143,11 +1153,10 @@ can add this option to the value of the variable @code{Man-switches}.}.
 The mode line shows how many manual pages are present in the Man buffer.
 
 @vindex Man-fontify-manpage-flag
-  By default, Emacs uses faces in man pages if Emacs can display
-different fonts or colors.  For a long man page, setting the faces
-properly can take substantial time.  You can turn off use of faces in
-man pages by setting the variable @code{Man-fontify-manpage-flag} to
-@code{nil}.
+  By default, Emacs highlights the text in man pages.  For a long man
+page, highlighting can take substantial time.  You can turn off
+highlighting of man pages by setting the variable
+@code{Man-fontify-manpage-flag} to @code{nil}.
 
 @findex Man-fontify-manpage
   If you insert the text of a man page into an Emacs buffer in some
@@ -1186,7 +1195,7 @@ them.
 directories specified in the @code{MANPATH} environment variable.  (If
 @code{MANPATH} is not set, @code{woman} uses a suitable default value,
 which can be customized.)  More precisely, @code{woman} looks for
-subdirectories that match the shell wildcard @file{man*} in each one
+subdirectories that match the shell wildcard pattern @file{man*} in each one
 of these directories, and tries to find the manual pages in those
 subdirectories.  When first invoked, @kbd{M-x woman} converts the
 value of @code{MANPATH} to a list of directory names and stores that
@@ -1316,7 +1325,7 @@ Open neither blocks nor comments.
 @end table
 
 @item hs-special-modes-alist
-A list of elements, each Specifying how to initialize Hideshow
+A list of elements, each specifying how to initialize Hideshow
 variables for one major mode.  See the variable's documentation string
 for more information.
 @end table
@@ -1325,18 +1334,20 @@ for more information.
 @section Completion for Symbol Names
 @cindex completion (symbol names)
 
-  Usually completion happens in the minibuffer.  But one kind of completion
-is available in all buffers: completion for symbol names.
+  In Emacs, completion is something you normally do in the minibuffer.
+But one kind of completion is available in all buffers: completion for
+symbol names.
 
 @kindex M-TAB
-  The character @kbd{M-@key{TAB}} runs a command to complete the partial
-symbol before point against the set of meaningful symbol names.  Any
-additional characters determined by the partial name are inserted at
-point.
+  The character @kbd{M-@key{TAB}} runs a command to complete the
+partial symbol before point against the set of meaningful symbol
+names.  This command inserts at point any additional characters that
+it can determine from the partial name.
 
-  If the partial name in the buffer has more than one possible completion
-and they have no additional characters in common, a list of all possible
-completions is displayed in another window.
+  If the partial name in the buffer has multiple possible completions
+that differ in the very next character, so that it is impossible to
+complete even one more character, @kbd{M-@key{TAB}} displays a list of
+all possible completions in another window.
 
 @cindex tags-based completion
 @cindex Info index completion
@@ -1373,25 +1384,26 @@ based on the spell-checker's dictionary.  @xref{Spelling}.
 @findex glasses-mode
 
   Glasses minor mode makes @samp{unreadableIdentifiersLikeThis}
-readable by altering the display.  It knows two different ways to do
-this: by displaying underscores between a lower-case letter and the
-following capital letter, or by emboldening the capital letters.  It
-does not alter the buffer text, only the way they display, so you can
-use it even on read-only buffers.  You can use the command @kbd{M-x
-glasses-mode} to enable or disable the mode; you can also add
-@code{glasses-mode} to the mode hook of appropriate programming
-language major modes.
+readable by altering the way they display.  It knows two different
+ways to do this: by displaying underscores between a lower-case letter
+and the following capital letter, and by emboldening the capital
+letters.  It does not alter the buffer text, only the way they
+display, so you can use it even on read-only buffers.  You can use the
+command @kbd{M-x glasses-mode} to enable or disable the mode in the
+current buffer; you can also add @code{glasses-mode} to the mode hook
+of the programming language major modes in which you normally want
+to use Glasses mode.        
 
 @node Misc for Programs
 @section Other Features Useful for Editing Programs
 
   A number of Emacs commands that aren't designed specifically for
-editing programs are useful for it nonetheless.
+editing programs are useful for that nonetheless.
 
   The Emacs commands that operate on words, sentences and paragraphs
 are useful for editing code.  Most symbols names contain words
 (@pxref{Words}); sentences can be found in strings and comments
-(@pxref{Sentences}).  Paragraphs in the strict sense may be found in
+(@pxref{Sentences}).  Paragraphs in the strict sense can be found in
 program code (in long comments), but the paragraph commands are useful
 in other places too, because programming language major modes define
 paragraphs to begin and end at blank lines (@pxref{Paragraphs}).
