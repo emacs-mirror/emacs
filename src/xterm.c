@@ -9208,11 +9208,14 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   /* Does the scroll bar exist yet?  */
   if (NILP (w->vertical_scroll_bar))
     {
-      BLOCK_INPUT;
       if (width && height)
-	x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		      left, top, width, height, False);
-      UNBLOCK_INPUT;
+	{
+	  BLOCK_INPUT;
+	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			left, top, width, height, False);
+	  UNBLOCK_INPUT;
+	}
+      
       bar = x_scroll_bar_create (w, top, sb_left, sb_width, height);
     }
   else
@@ -9273,7 +9276,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	int rest = area_width - sb_width;
 	if (rest > 0)
 	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			left + area_width -  rest, 0,
+			left + area_width -  rest, top,
 			rest, max (height, 1), False);
       }
       
