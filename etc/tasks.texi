@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 27 August 1997
+@set lastupdate 16 September 1997
 @c %**end of header
 
 @setchapternewpage off
@@ -480,10 +480,6 @@ and all the other standard project progress reports.
 
 @item
 Grammar and style checking programs.
-
-@item
-An implementation of the S language (an interpreted language used for
-statistics).
 
 @item
 A translator from Scheme to C.
