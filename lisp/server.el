@@ -390,6 +390,7 @@ or nil.  KILLED is t if we killed BUFFER
 			   (set-buffer buffer)
 			   server-existing-buffer))
 		(setq killed t)
+		(bury-buffer buffer)
 		(kill-buffer buffer))
 	      (unless killed
 		(if (server-temp-file-p buffer)
