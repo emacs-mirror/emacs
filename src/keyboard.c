@@ -9623,6 +9623,8 @@ DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
 
 DEFUN ("this-command-keys", Fthis_command_keys, Sthis_command_keys, 0, 0, 0,
        doc: /* Return the key sequence that invoked this command.
+However, if the command has called `read-key-sequence', it returns
+the the last key sequence that has been read.
 The value is a string or a vector.  */)
      ()
 {
@@ -9631,7 +9633,9 @@ The value is a string or a vector.  */)
 }
 
 DEFUN ("this-command-keys-vector", Fthis_command_keys_vector, Sthis_command_keys_vector, 0, 0, 0,
-       doc: /* Return the key sequence that invoked this command, as a vector.  */)
+       doc: /* Return the key sequence that invoked this command, as a vector.
+However, if the command has called `read-key-sequence', it returns
+the the last key sequence that has been read.  */)
      ()
 {
   return Fvector (this_command_key_count,
@@ -9641,6 +9645,8 @@ DEFUN ("this-command-keys-vector", Fthis_command_keys_vector, Sthis_command_keys
 DEFUN ("this-single-command-keys", Fthis_single_command_keys,
        Sthis_single_command_keys, 0, 0, 0,
        doc: /* Return the key sequence that invoked this command.
+More generally, it returns the last key sequence read, either by
+the command loop or by `read-key-sequence'.
 Unlike `this-command-keys', this function's value
 does not include prefix arguments.
 The value is always a vector.  */)
@@ -9655,6 +9661,8 @@ The value is always a vector.  */)
 DEFUN ("this-single-command-raw-keys", Fthis_single_command_raw_keys,
        Sthis_single_command_raw_keys, 0, 0, 0,
        doc: /* Return the raw events that were read for this command.
+More generally, it returns the last key sequence read, either by
+the command loop or by `read-key-sequence'.
 Unlike `this-single-command-keys', this function's value
 shows the events before all translations (except for input methods).
 The value is always a vector.  */)
@@ -9688,7 +9696,7 @@ appears in the echo area and in the value of `this-command-keys'.  */)
 DEFUN ("clear-this-command-keys", Fclear_this_command_keys,
        Sclear_this_command_keys, 0, 0, 0,
        doc: /* Clear out the vector that `this-command-keys' returns.
-Clear vector containing last 100 events.  */)
+Also clear the record of the last 100 events.  */)
      ()
 {
   int i;
