@@ -214,7 +214,7 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   (make-local-variable 'line-move-ignore-invisible)
   (setq line-move-ignore-invisible t)
   ;; Cause use of ellipses for invisible text.
-  (setq buffer-invisibility-spec '((t . t)))
+  (add-to-invisibility-spec '(outline . t))
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat paragraph-start "\\|\\("
 				outline-regexp "\\)"))
@@ -270,11 +270,11 @@ See the command `outline-mode' for more information on this mode."
 	(make-local-variable 'line-move-ignore-invisible)
 	(setq line-move-ignore-invisible t)
 	;; Cause use of ellipses for invisible text.
-	(setq buffer-invisibility-spec '((t . t)))
+	(add-to-invisibility-spec '(outline . t))
 	(run-hooks 'outline-minor-mode-hook))
     (setq line-move-ignore-invisible nil)
     ;; Cause use of ellipses for invisible text.
-    (setq buffer-invisibility-spec t))
+    (remove-from-invisibility-spec '(outline . t)))
   ;; When turning off outline mode, get rid of any outline hiding.
   (or outline-minor-mode
       (show-all))
@@ -402,7 +402,7 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
       (outline-discard-overlays (point) to 'outline)
       (if flag
 	  (let ((o (make-overlay (point) to)))
-	    (overlay-put o 'invisible flag)
+	    (overlay-put o 'invisible 'outline)
 	    (overlay-put o 'outline t)))))
   (run-hooks 'outline-view-change-hook))
 
