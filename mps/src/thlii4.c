@@ -58,7 +58,7 @@ typedef struct ThreadStruct {    /* PThreads thread structure */
   RingStruct arenaRing;          /* threads attached to arena */
   PThreadextStruct thrextStruct; /* PThreads extension */
   pthread_t id;                  /* Pthread object of thread */
-  MutatorFaultContextStruct mfc; /* Context if thread is suspended */
+  MutatorFaultContext mfc;       /* Context if thread is suspended */
 } ThreadStruct;
 
 
@@ -106,7 +106,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   thread->serial = arena->threadSerial;
   ++arena->threadSerial;
   thread->arena = arena;
-  thread->mfc.scp = NULL;
+  thread->mfc = NULL;
 
   PThreadextInit(&thread->thrextStruct, thread->id);
 
@@ -171,7 +171,7 @@ static void threadSuspend(Thread thread)
   Res res;
   res = PThreadextSuspend(&thread->thrextStruct, &thread->mfc);
   if(res != ResOK)
-    thread->mfc.scp = NULL;
+    thread->mfc = NULL;
 }
 
 
@@ -188,13 +188,13 @@ void ThreadRingSuspend(Ring threadRing)
 static void threadResume(Thread thread)
 {
   /* .error.resume */
-  /* If the previous suspend failed (thread->mfc.scp == NULL), */
+  /* If the previous suspend failed (thread->mfc == NULL), */
   /* or in the error case (PThreadextResume returning ResFAIL), */
   /* assume the thread has been destroyed. */
   /* In which case we simply continue. */
-  if(thread->mfc.scp != NULL) {
+  if(thread->mfc != NULL) {
     (void)PThreadextResume(&thread->thrextStruct);
-    thread->mfc.scp = NULL;
+    thread->mfc = NULL;
   }
 }
 
@@ -246,7 +246,7 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
     struct sigcontext *scp;
     Addr *stackBase, *stackLimit, stackPtr;
 
-    scp = thread->mfc.scp;
+    scp = thread->mfc->scp;
     if(scp == NULL) {
       /* .error.suspend */
       /* We assume that the thread must have been destroyed. */
