@@ -941,7 +941,7 @@ case "${canonical}" in
       m68*-sunos1* )	machine=sun1 ;;
       m68*-sunos2* )	machine=sun2 ;;
       m68* )		machine=sun3 ;;
-      i[34]86-sun-* )	machine=sun386 ;;
+      i[34]86-sun-sunos[34]* )	machine=sun386 ;;
       i[34]86-*-* )     machine=intel386 ;;
       sparc* )		machine=sparc ;;
       * )		unported=true ;;
