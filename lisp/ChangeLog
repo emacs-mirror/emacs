@@ -1,5 +1,8 @@
 2001-07-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* term/internal.el (IT-unicode-translations): Fix the appearance of
+	"6`".
+
 	* progmodes/compile.el (compile-internal): If EMACS is already
 	defined in the environment, don't override its value.
 
