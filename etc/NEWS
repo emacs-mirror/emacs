@@ -2269,7 +2269,7 @@ will not have any effect when support for this variable is removed.
 
 ** Function assq-delete-all replaces function assoc-delete-all.
 
-** The new function amimate-string, from lisp/play/animate.el 
+** The new function animate-string, from lisp/play/animate.el 
 allows the animated display of strings.
 
 ** The new function `interactive-form' can be used to obtain the
