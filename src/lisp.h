@@ -1594,6 +1594,7 @@ extern int window_internal_height (), window_internal_width ();
 /* defined in frame.c */
 extern Lisp_Object Qvisible;
 extern void store_frame_param (), store_in_alist ();
+extern Lisp_Object do_switch_frame ();
 extern Lisp_Object get_frame_param();
 extern Lisp_Object frame_buffer_predicate ();
 extern Lisp_Object Fframep ();
@@ -1625,9 +1626,6 @@ extern Lisp_Object Fset_frame_height ();
 extern Lisp_Object Fset_frame_width ();
 extern Lisp_Object Fset_frame_size ();
 extern Lisp_Object Fset_frame_position ();
-#ifndef HAVE_X11
-extern Lisp_Object Frubber_band_rectangle ();
-#endif	/* HAVE_X11 */
 
 /* defined in emacs.c */
 extern Lisp_Object decode_env_path ();
