@@ -3291,20 +3291,6 @@ emacs_write (fildes, buf, nbyte)
   return (bytes_written);
 }
 
-#ifndef HAVE_VFORK
-#ifndef WINDOWSNT
-/*
- *      Substitute fork for vfork on USG flavors.
- */
-
-VFORK_RETURN_TYPE
-vfork ()
-{
-  return (fork ());
-}
-#endif /* not WINDOWSNT */
-#endif /* not HAVE_VFORK */
-
 #ifdef USG
 /*
  *	All of the following are for USG.
