@@ -31,6 +31,7 @@
 
 (eval-when-compile (require 'cl))
 
+(require 'sendmail)
 (require 'mailheader)
 (require 'rmail)
 (require 'nnheader)
@@ -1556,7 +1557,8 @@ Numeric argument means justify as well."
     (goto-char (point-min))
     (search-forward (concat "\n" mail-header-separator "\n") nil t)
     (let ((fill-prefix message-yank-prefix))
-      (fill-individual-paragraphs (point) (point-max) justifyp t))))
+      (fill-individual-paragraphs (point) (point-max) justifyp
+				  mail-citation-prefix-regexp))))
 
 (defun message-indent-citation ()
   "Modify text just inserted from a message to be cited.
