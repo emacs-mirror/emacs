@@ -554,6 +554,7 @@ remains active.  Otherwise, it remains until the next input event."
 	 (start-point (posn-point start-posn))
 	 (start-window (posn-window start-posn))
 	 (start-frame (window-frame start-window))
+	 (start-hscroll (window-hscroll start-window))
 	 (bounds (window-edges start-window))
 	 (top (nth 1 bounds))
 	 (bottom (if (window-minibuffer-p start-window)
@@ -676,9 +677,10 @@ remains active.  Otherwise, it remains until the next input event."
 			 (mouse-set-region-1))))
 	      (delete-overlay mouse-drag-overlay)
 	      ;; Run the binding of the terminating up-event.
-	      (if (fboundp fun)
-		  (setq unread-command-events
-			(cons event unread-command-events)))))
+	      (when (and (fboundp fun)
+			 (= start-hscroll (window-hscroll start-window)))
+		(setq unread-command-events
+		      (cons event unread-command-events)))))
 	(delete-overlay mouse-drag-overlay)))))
 
 ;; Commands to handle xterm-style multiple clicks.
