@@ -122,7 +122,7 @@ ever-changing layouts.
 
 *** Gnus can now read IMAP mail via nnimap.
 
-*** There is image support.
+*** There is image support of various kinds and some sound support.
 
 ** When your terminal can't display characters from some of the ISO
 8859 character sets but can display Latin-1, you can display
