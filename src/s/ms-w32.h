@@ -237,6 +237,7 @@ Boston, MA 02111-1307, USA.  */
 #define HAVE_DUP2 1
 #define HAVE_RENAME 1
 #define HAVE_CLOSEDIR 1
+#define HAVE_FSYNC 1		/* fsync is called _commit in MSVC.  */
 
 #undef  TM_IN_SYS_TIME
 #undef  HAVE_TM_ZONE
@@ -352,6 +353,8 @@ Boston, MA 02111-1307, USA.  */
 #define fileno	  _fileno
 #define flushall  _flushall
 #define fputchar  _fputchar
+#define fsync	  _commit
+#define ftruncate _chsize
 #define getw	  _getw
 #define getpid    _getpid
 #define isatty    _isatty
