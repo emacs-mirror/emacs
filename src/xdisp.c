@@ -4649,7 +4649,7 @@ reseat_1 (it, pos, set_stop_p)
 
   if (it->bidi_p)
     {
-      bidi_init_it (pos.charpos, L2R, &it->bidi_it);
+      bidi_init_it (pos.charpos - 1, L2R, &it->bidi_it);
       bidi_get_next_char_visually (&it->bidi_it);
 
       pos.charpos = it->bidi_it.charpos;
