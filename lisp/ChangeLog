@@ -2,7 +2,12 @@
 
 	* vc.el (vc-revert-buffer): If the buffer is not saved, prompt
 	the user to do that first.
+	(vc-update): New function.
 
+	* vc-hooks.el (vc-menu-map): New entry "Update to Latest Version",
+	which calls vc-update.  Use the term "Base Version" instead of
+	"Last Version" for the entries "Revert" and "Compare".
+	
 2002-02-28  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (shell-command-on-region): Report non-zero exit
