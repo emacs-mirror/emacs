@@ -88,7 +88,7 @@ typedef char *pointer;
 
    Callers below should use malloc.  */
 
-#ifndef emacs
+#ifdef emacs
 #define malloc xmalloc
 #endif
 extern pointer malloc ();
