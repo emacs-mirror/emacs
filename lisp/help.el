@@ -1034,20 +1034,19 @@ that."
                     (while
                         ;; Ignore single blank lines in table, but not
                         ;; double ones, which should terminate it.
-                        (and (looking-at "^\n?[^\n\t ]")
+                        (and (not (looking-at "\n\n"))
                              (progn
-                               (if (and (> (move-to-column col) 0)
-                                        (looking-at "\\(\\sw\\|-\\)+$"))
+			       (and (eolp) (forward-line))
+			       (end-of-line)
+			       (skip-chars-backward "^\t\n")
+                               (if (and (>= (current-column) col)
+					 +(looking-at "\\(\\sw\\|-\\)+$"))
                                    ;; 
                                    (let ((sym (intern-soft (match-string 0))))
                                      (if (fboundp sym)
                                          (help-xref-button 
                                           0 #'describe-function sym))))
-                               t)
-                             (progn
-			       (end-of-line)
-			       (zerop (forward-line)))
-                             (move-to-column 0)))))))
+			       (zerop (forward-line)))))))))
           (set-syntax-table stab))
         ;; Make a back-reference in this buffer if appropriate.
         (when help-xref-stack
