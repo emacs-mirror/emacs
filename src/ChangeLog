@@ -1,3 +1,7 @@
+2002-02-26  Juanma Barranquero  <lektu@terra.es>
+
+	* w32proc.c (syms_of_ntproc): Doc fix.
+
 2002-02-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* intervals.h: Include "dispextern.h" unconditionally.
