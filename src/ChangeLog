@@ -1,5 +1,11 @@
 2002-03-13  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* xterm.c (x_set_toolkit_scroll_bar_thumb) <USE_MOTIF>: Use a fixed-size
+	thumb (based on an ad-hoc estimate of 30 chars per line) to avoid
+	annoying flicker.
+	(xm_scroll_callback): Get rid of the now unnecessary kludge.
+	(XTread_socket): Mark it static.
+
 	* xdisp.c (display_mode_element): Fix int/Lisp_Object mixup.
 
 2002-03-13  Kim F. Storm  <storm@cua.dk>
