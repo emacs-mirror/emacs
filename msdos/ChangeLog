@@ -1,3 +1,8 @@
+2001-07-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed2.inp: Ifdef away the test for !HAVE_MKTIME, to avoid parse
+	error in "gcc -E -traditional" with GCC 3.0.
+
 2001-04-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sedleim.inp (srcdir=): Edit @srcdir@ into an absolute file name
