@@ -196,6 +196,20 @@ chapter."
   (modify-syntax-entry ?} "){" texinfo-mode-syntax-table)
   (modify-syntax-entry ?\' "w" texinfo-mode-syntax-table))
 
+(defvar texinfo-font-lock-keywords
+  (list
+   "@\\(@\\|[^}\t \n{]+\\)"					;commands
+   '("^\\(@c\\|@comment\\)[ \t].*$" . font-lock-comment-face)	;comments
+   '("^\\(*.*\\)[\t ]*$" 1 font-lock-function-name-face t)	;menu items
+   '("@\\(emph\\|strong\\|b\\|i\\){\\([^}]+\\)" 2 font-lock-comment-face t)
+   '("@\\(file\\|kbd\\|key\\){\\([^}]+\\)" 2 font-lock-string-face t)
+   '("@\\(samp\\|code\\|var\\){\\([^}]+\\)" 2 font-lock-function-name-face t)
+   '("@\\(xref\\|pxref\\){\\([^}]+\\)" 2 font-lock-keyword-face t)
+   '("@end *\\([a-zA-Z0-9]+\\)[ \t]*$" 1 font-lock-function-name-face t)
+   '("@item \\(.*\\)$" 1 font-lock-function-name-face t)
+   '("\\$\\([^$]*\\)\\$" 1 font-lock-string-face t)
+   )
+  "Additional expressions to highlight in TeXinfo mode.")
 
 ;;; Keybindings
 (defvar texinfo-mode-map nil)
@@ -371,6 +385,8 @@ value of texinfo-mode-hook."
   (setq comment-start-skip "@c +")
   (make-local-variable 'words-include-escapes)
   (setq words-include-escapes t)
+  (make-local-variable 'font-lock-keywords)
+  (setq font-lock-keywords texinfo-font-lock-keywords)
   (make-local-variable 'tex-start-of-header)
   (setq tex-start-of-header "%**start")
   (make-local-variable 'tex-end-of-header)
