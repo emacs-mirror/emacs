@@ -1,3 +1,8 @@
+2001-07-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* desktop.el (desktop-save): Add `-*- coding: emacs-mule -*-' to
+	the desktop file.
+
 2001-07-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (last-sexp-setup-props): New function.
