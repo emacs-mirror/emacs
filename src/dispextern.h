@@ -1265,10 +1265,8 @@ struct face
      reallocated.  */
   int font_info_id;
 
-  /* Fontset ID if this face uses a fontset, or -1.  This is only >= 0
-     if the face was realized for a composition sequence.
-     Otherwise, a specific font is loaded from the set of fonts
-     specified by the fontset given by the family attribute of the face.  */
+  /* Fontset ID if for this face's fontset.  Non-ASCII faces derived
+     from the same ASCII face have the same fontset.  */
   int fontset;
   
   /* Pixmap width and height.  */
@@ -1299,13 +1297,6 @@ struct face
 
   /* The hash value of this face.  */
   unsigned hash;
-
-  /* The charset for which this face was realized if it was realized
-     for use in multibyte text.  If fontset >= 0, this is the charset
-     of the first character of the composition sequence.  A value of
-     charset < 0 means the face was realized for use in unibyte text
-     where the idea of Emacs charsets isn't applicable.  */
-  int charset;
 
   /* Non-zero if text in this face should be underlined, overlined,
      strike-through or have a box drawn around it.  */
@@ -1349,8 +1340,9 @@ struct face
   /* Next and previous face in hash collision list of face cache.  */
   struct face *next, *prev;
 
-  /* If this face is for ASCII characters, this points this face
-     itself.  Otherwise, this points a face for ASCII characters.  */
+  /* If this face is an ASCII face, this points to this face itself.
+     Otherwise, this points to an ASCII face that has the same
+     attributes except the font.  */
   struct face *ascii_face;
 };
 
@@ -1437,7 +1429,7 @@ struct face_cache
 /* Non-zero if FACE is suitable for displaying character CHAR.  */
 
 #define FACE_SUITABLE_FOR_CHAR_P(FACE, CHAR)	\
-  (SINGLE_BYTE_CHAR_P (CHAR)			\
+  (ASCII_CHAR_P (CHAR)			\
    ? (FACE) == (FACE)->ascii_face		\
    : face_suitable_for_char_p ((FACE), (CHAR)))
 
@@ -1446,7 +1438,7 @@ struct face_cache
    This macro is only meaningful for multibyte character CHAR.  */
    
 #define FACE_FOR_CHAR(F, FACE, CHAR)	\
-  (SINGLE_BYTE_CHAR_P (CHAR)		\
+  (ASCII_CHAR_P (CHAR)		\
    ? (FACE)->ascii_face->id		\
    : face_for_char ((F), (FACE), (CHAR)))
 
@@ -2276,14 +2268,16 @@ unsigned long load_color P_ ((struct frame *, struct face *, Lisp_Object,
 			      enum lface_attribute_index));
 void unload_color P_ ((struct frame *, unsigned long));
 int frame_update_line_height P_ ((struct frame *));
+char *choose_face_font P_ ((struct frame *, Lisp_Object *, Lisp_Object));
 int ascii_face_of_lisp_face P_ ((struct frame *, int));
 void prepare_face_for_display P_ ((struct frame *, struct face *));
 int xstricmp P_ ((unsigned char *, unsigned char *));
-int lookup_face P_ ((struct frame *, Lisp_Object *, int, struct face *));
-int lookup_named_face P_ ((struct frame *, Lisp_Object, int));
+int lookup_face P_ ((struct frame *, Lisp_Object *));
+int lookup_non_ascii_face P_ ((struct frame *, int, struct face *));
+int lookup_named_face P_ ((struct frame *, Lisp_Object));
 int smaller_face P_ ((struct frame *, int, int));
 int face_with_height P_ ((struct frame *, int, int));
-int lookup_derived_face P_ ((struct frame *, Lisp_Object, int, int));
+int lookup_derived_face P_ ((struct frame *, Lisp_Object, int));
 void init_frame_faces P_ ((struct frame *));
 void free_frame_faces P_ ((struct frame *));
 void recompute_basic_faces P_ ((struct frame *));
@@ -2298,7 +2292,8 @@ void free_realized_face P_ ((struct frame *, struct face *));
 extern Lisp_Object Qforeground_color, Qbackground_color;
 extern char unspecified_fg[], unspecified_bg[];
 extern void check_face_attributes P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-extern Lisp_Object generate_ascii_font P_ ((Lisp_Object, Lisp_Object));
+extern Lisp_Object generate_ascii_font_name P_ ((Lisp_Object, Lisp_Object));
+extern Lisp_Object font_name_registry P_ ((Lisp_Object));
 
 /* Defined in xfns.c  */
 
