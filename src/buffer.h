@@ -404,9 +404,13 @@ struct buffer
                  if it is memq in that list.  */
     Lisp_Object invisibility_spec;
 
+    /* This is the last window that was selected with this buffer in it,
+       or nil if that window no longer displays this buffer.  */
+    Lisp_Object last_selected_window;
+
     /* These are so we don't have to recompile everything
        the next few times we add a new slot.  */
-    Lisp_Object extra1, extra2, extra3;
+    Lisp_Object extra2, extra3;
   };
 
 /* This points to the current buffer.  */
