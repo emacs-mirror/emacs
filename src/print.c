@@ -1284,6 +1284,11 @@ print_preprocess (obj)
   int loop_count = 0;
   Lisp_Object halftail;
 
+  /* Give up if we go so deep that print_object will get an error.  */
+  /* See similar code in print_object.  */
+  if (print_depth >= PRINT_CIRCLE)
+    return;
+
   /* Avoid infinite recursion for circular nested structure
      in the case where Vprint_circle is nil.  */
   if (NILP (Vprint_circle))
@@ -1293,11 +1298,6 @@ print_preprocess (obj)
 	  return;
       being_printed[print_depth] = obj;
     }
-
-  /* Give up if we go so deep that print_object will get an error.  */
-  /* See similar code in print_object.  */
-  if (print_depth >= PRINT_CIRCLE)
-    return;
 
   print_depth++;
   halftail = obj;
