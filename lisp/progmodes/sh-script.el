@@ -358,21 +358,21 @@ the car and cdr are the same symbol.")
 ;; I turned off this feature because it doesn't permit typing commands
 ;; in the usual way without help.
 ;;(defvar sh-abbrevs
-;;  '((csh eval sh-abbrevs shell
+;;  '((csh sh-abbrevs shell
 ;;	 "switch" 'sh-case
 ;;	 "getopts" 'sh-while-getopts)
 
-;;    (es eval sh-abbrevs shell
+;;    (es sh-abbrevs shell
 ;;	"function" 'sh-function)
 
-;;    (ksh88 eval sh-abbrevs sh
+;;    (ksh88 sh-abbrevs sh
 ;;	   "select" 'sh-select)
 
-;;    (rc eval sh-abbrevs shell
+;;    (rc sh-abbrevs shell
 ;;	"case" 'sh-case
 ;;	"function" 'sh-function)
 
-;;    (sh eval sh-abbrevs shell
+;;    (sh sh-abbrevs shell
 ;;	"case" 'sh-case
 ;;	"function" 'sh-function
 ;;	"until" 'sh-until
@@ -385,7 +385,7 @@ the car and cdr are the same symbol.")
 ;;	   "tmpfile" sh-tmp-file
 ;;	   "while" sh-while)
 
-;;    (zsh eval sh-abbrevs ksh88
+;;    (zsh sh-abbrevs ksh88
 ;;	 "repeat" 'sh-repeat))
 ;;  "Abbrev-table used in Shell-Script mode.  See `sh-feature'.
 ;;;Due to the internal workings of abbrev tables, the shell name symbol is
@@ -1567,10 +1567,10 @@ in ALIST."
 	(unless elt
 	  (setq elt (assq 'sh alist)))
 	(if (and (consp (setq val (cdr elt)))
-		 (eq (car val) 'sh-append))
+		 (memq (car val) '(sh-append sh-modify)))
 	    (setcdr elt
 		    (setq val
-			  (apply 'sh-append
+			  (apply (car val)
 				 (let ((sh-shell (car (cdr val))))
                                    (if (assq sh-shell alist)
                                        (sh-feature alist)
@@ -3128,16 +3128,16 @@ This is always added to the end of the buffer."
 
 (define-skeleton sh-for
   "Insert a for loop.  See `sh-feature'."
-  (csh eval sh-modify sh
+  (csh sh-modify sh
        1 ""
        2 "foreach "
        4 " ( "
        6 " )"
        15 '<
        16 "end")
-  (es eval sh-modify rc
+  (es sh-modify rc
       4 " = ")
-  (rc eval sh-modify sh
+  (rc sh-modify sh
       2 "for( "
       6 " ) {"
       15 ?\} )
@@ -3150,14 +3150,14 @@ This is always added to the end of the buffer."
 
 (define-skeleton sh-indexed-loop
   "Insert an indexed loop from 1 to n.  See `sh-feature'."
-  (bash eval identity posix)
+  (bash sh-modify posix)
   (csh "Index variable: "
        "@ " str " = 1" \n
        "while( $" str " <= " (read-string "upper limit: ") " )" \n
        > _ ?$ str \n
        "@ " str "++" \n
        < "end" \n)
-  (es eval sh-modify rc
+  (es sh-modify rc
       4 " =")
   (ksh88 "Index variable: "
 	 > "integer " str "=0" \n
@@ -3255,13 +3255,13 @@ t means to return a list of all possible completions of STRING.
 
 (define-skeleton sh-function
   "Insert a function definition.  See `sh-feature'."
-  (bash eval sh-modify ksh88
+  (bash sh-modify ksh88
 	3 "() {")
   (ksh88 "name: "
 	 "function " str " {" \n
 	 > _ \n
 	 < "}" \n)
-  (rc eval sh-modify ksh88
+  (rc sh-modify ksh88
       1 "fn ")
   (sh ()
       "() {" \n
@@ -3337,14 +3337,14 @@ t means to return a list of all possible completions of STRING.
 	 > "select " str " in " _ "; do" \n
 	 > ?$ str \n
 	 "done" > \n)
-  (bash eval sh-append ksh88))
+  (bash sh-append ksh88))
 ;;;(put 'sh-select 'menu-enable '(sh-feature sh-select))
 
 
 
 (define-skeleton sh-tmp-file
   "Insert code to setup temporary file handling.  See `sh-feature'."
-  (bash eval identity ksh88)
+  (bash sh-append ksh88)
   (csh (file-name-nondirectory (buffer-file-name))
        "set tmp = /tmp/" str ".$$" \n
        "onintr exit" \n _
@@ -3363,7 +3363,7 @@ t means to return a list of all possible completions of STRING.
       _ \n
       ?\} > \n
       ?\} > \n)
-  (ksh88 eval sh-modify sh
+  (ksh88 sh-modify sh
 	 7 "EXIT")
   (rc (file-name-nondirectory (buffer-file-name))
       > "tmp = /tmp/" str ".$pid" \n
@@ -3387,17 +3387,17 @@ t means to return a list of all possible completions of STRING.
 
 (define-skeleton sh-while
   "Insert a while loop.  See `sh-feature'."
-  (csh eval sh-modify sh
+  (csh sh-modify sh
        2 ""
        3 "while( "
        5 " )"
        10 '<
        11 "end")
-  (es eval sh-modify sh
+  (es sh-modify sh
       3 "while { "
       5 " } {"
       10 ?\} )
-  (rc eval sh-modify sh
+  (rc sh-modify sh
       3 "while( "
       5 " ) {"
       10 ?\} )
@@ -3413,7 +3413,7 @@ t means to return a list of all possible completions of STRING.
   "Insert a while getopts loop.  See `sh-feature'.
 Prompts for an options string which consists of letters for each recognized
 option followed by a colon `:' if the option accepts an argument."
-  (bash eval sh-modify sh
+  (bash sh-modify sh
 	18 "${0##*/}")
   (csh nil
        "while( 1 )" \n
@@ -3438,11 +3438,11 @@ option followed by a colon `:' if the option accepts an argument."
        < < "endsw" \n
        "shift" \n
        < "end" \n)
-  (ksh88 eval sh-modify sh
+  (ksh88 sh-modify sh
 	 16 "print"
 	 18 "${0##*/}"
 	 37 "OPTIND-1")
-  (posix eval sh-modify sh
+  (posix sh-modify sh
 	 18 "$(basename $0)")
   (sh "optstring: "
       > "while getopts :" str " OPT; do" \n
