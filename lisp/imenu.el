@@ -64,8 +64,6 @@
 ;;; Customizable variables
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defvar imenu-use-keymap-menu nil
-  "*Non-nil means use a keymap when making the mouse menu.")
 
 (defvar imenu-auto-rescan nil
   "*Non-nil means Imenu should always rescan the buffers.")
@@ -709,14 +707,10 @@ Returns t for rescan and otherwise a position number."
 		   index-alist)
 		 (or title (buffer-name))))
 	 position)
-    (and imenu-use-keymap-menu
-	 (setq menu (imenu--create-keymap-1 (car menu) 
-					    (if (< 1 (length (cdr menu)))
-						(cdr menu)
-					      (cdr (cadr menu))))))
-
-    (or imenu-use-keymap-menu
-	(setq menu (list "Imenu" (delq nil menu))))
+    (setq menu (imenu--create-keymap-1 (car menu) 
+				       (if (< 1 (length (cdr menu)))
+					   (cdr menu)
+					 (cdr (cadr menu)))))
     (setq position (x-popup-menu event menu))
     (if imenu-use-keymap-menu
 	(progn
