@@ -75,12 +75,14 @@ create_root_interval (parent)
     {
       new->total_length = (BUF_Z (XBUFFER (parent))
 			   - BUF_BEG (XBUFFER (parent)));
+      CHECK_TOTAL_LENGTH (new);
       BUF_INTERVALS (XBUFFER (parent)) = new;
       new->position = 1;
     }
   else if (STRINGP (parent))
     {
       new->total_length = SCHARS (parent);
+      CHECK_TOTAL_LENGTH (new);
       STRING_SET_INTERVALS (parent, new);
       new->position = 0;
     }
@@ -338,9 +340,11 @@ rotate_right (interval)
 
   /* A's total length is decreased by the length of B and its left child.  */
   interval->total_length -= B->total_length - LEFT_TOTAL_LENGTH (interval);
+  CHECK_TOTAL_LENGTH (interval);
 
   /* B must have the same total length of A.  */
   B->total_length = old_total;
+  CHECK_TOTAL_LENGTH (B);
 
   return B;
 }
@@ -384,9 +388,11 @@ rotate_left (interval)
 
   /* A's total length is decreased by the length of B and its right child.  */
   interval->total_length -= B->total_length - RIGHT_TOTAL_LENGTH (interval);
+  CHECK_TOTAL_LENGTH (interval);
 
   /* B must have the same total length of A.  */
   B->total_length = old_total;
+  CHECK_TOTAL_LENGTH (B);
 
   return B;
 }
@@ -405,6 +411,7 @@ balance_an_interval (i)
       old_diff = LEFT_TOTAL_LENGTH (i) - RIGHT_TOTAL_LENGTH (i);
       if (old_diff > 0)
 	{
+	  /* Since the left child is longer, there must be one.  */
 	  new_diff = i->total_length - i->left->total_length
 	    + RIGHT_TOTAL_LENGTH (i->left) - LEFT_TOTAL_LENGTH (i->left);
 	  if (abs (new_diff) >= old_diff)
@@ -414,6 +421,7 @@ balance_an_interval (i)
 	}
       else if (old_diff < 0)
 	{
+	  /* Since the right child is longer, there must be one.  */
 	  new_diff = i->total_length - i->right->total_length
 	    + LEFT_TOTAL_LENGTH (i->right) - RIGHT_TOTAL_LENGTH (i->right);
 	  if (abs (new_diff) >= -old_diff)
@@ -514,6 +522,7 @@ split_interval_right (interval, offset)
     {
       interval->right = new;
       new->total_length = new_length;
+      CHECK_TOTAL_LENGTH (new);
     }
   else
     {
@@ -522,6 +531,7 @@ split_interval_right (interval, offset)
       SET_INTERVAL_PARENT (interval->right, new);
       interval->right = new;
       new->total_length = new_length + new->right->total_length;
+      CHECK_TOTAL_LENGTH (new);
       balance_an_interval (new);
     }
 
@@ -559,6 +569,7 @@ split_interval_left (interval, offset)
     {
       interval->left = new;
       new->total_length = new_length;
+      CHECK_TOTAL_LENGTH (new);
     }
   else
     {
@@ -567,6 +578,7 @@ split_interval_left (interval, offset)
       SET_INTERVAL_PARENT (new->left, new);
       interval->left = new;
       new->total_length = new_length + new->left->total_length;
+      CHECK_TOTAL_LENGTH (new);
       balance_an_interval (new);
     }
 
@@ -828,6 +840,7 @@ adjust_intervals_for_insertion (tree, position, length)
       if (relative_position <= LEFT_TOTAL_LENGTH (this))
 	{
 	  this->total_length += length;
+	  CHECK_TOTAL_LENGTH (this);
 	  this = this->left;
 	}
       else if (relative_position > (TOTAL_LENGTH (this)
@@ -836,6 +849,7 @@ adjust_intervals_for_insertion (tree, position, length)
 	  relative_position -= (TOTAL_LENGTH (this)
 				- RIGHT_TOTAL_LENGTH (this));
 	  this->total_length += length;
+	  CHECK_TOTAL_LENGTH (this);
 	  this = this->right;
 	}
       else
@@ -843,6 +857,7 @@ adjust_intervals_for_insertion (tree, position, length)
 	  /* If we are to use zero-length intervals as buffer pointers,
 	     then this code will have to change.  */
 	  this->total_length += length;
+	  CHECK_TOTAL_LENGTH (this);
 	  this->position = LEFT_TOTAL_LENGTH (this)
 	                   + position - relative_position + 1;
 	  return tree;
@@ -987,6 +1002,7 @@ adjust_intervals_for_insertion (tree, position, length)
       for (temp = prev ? prev : i; temp; temp = INTERVAL_PARENT_OR_NULL (temp))
 	{
 	  temp->total_length += length;
+	  CHECK_TOTAL_LENGTH (temp);
 	  temp = balance_possible_root_interval (temp);
 	}
 
@@ -1043,6 +1059,7 @@ adjust_intervals_for_insertion (tree, position, length)
       for (temp = i; temp; temp = INTERVAL_PARENT_OR_NULL (temp))
 	{
 	  temp->total_length += length;
+	  CHECK_TOTAL_LENGTH (temp);
 	  temp = balance_possible_root_interval (temp);
 	}
     }
@@ -1247,6 +1264,7 @@ delete_node (i)
       this = this->left;
       this->total_length += migrate_amt;
     }
+  CHECK_TOTAL_LENGTH (this);
   this->left = migrate;
   SET_INTERVAL_PARENT (migrate, this);
 
@@ -1331,6 +1349,7 @@ interval_deletion_adjustment (tree, from, amount)
 						   relative_position,
 						   amount);
       tree->total_length -= subtract;
+      CHECK_TOTAL_LENGTH (tree);
       return subtract;
     }
   /* Right branch */
@@ -1345,6 +1364,7 @@ interval_deletion_adjustment (tree, from, amount)
 					       relative_position,
 					       amount);
       tree->total_length -= subtract;
+      CHECK_TOTAL_LENGTH (tree);
       return subtract;
     }
   /* Here -- this node.  */
@@ -1359,6 +1379,7 @@ interval_deletion_adjustment (tree, from, amount)
 	amount = my_amount;
 
       tree->total_length -= amount;
+      CHECK_TOTAL_LENGTH (tree);
       if (LENGTH (tree) == 0)
 	delete_interval (tree);
 
@@ -1402,6 +1423,7 @@ adjust_intervals_for_deletion (buffer, start, length)
   if (ONLY_INTERVAL_P (tree))
     {
       tree->total_length -= length;
+      CHECK_TOTAL_LENGTH (tree);
       return;
     }
 
@@ -1457,6 +1479,7 @@ merge_interval_right (i)
 
   /* Zero out this interval.  */
   i->total_length -= absorb;
+  CHECK_TOTAL_LENGTH (i);
 
   /* Find the succeeding interval.  */
   if (! NULL_RIGHT_CHILD (i))      /* It's below us.  Add absorb
@@ -1466,10 +1489,12 @@ merge_interval_right (i)
       while (! NULL_LEFT_CHILD (successor))
 	{
 	  successor->total_length += absorb;
+	  CHECK_TOTAL_LENGTH (successor);
 	  successor = successor->left;
 	}
 
       successor->total_length += absorb;
+      CHECK_TOTAL_LENGTH (successor);
       delete_interval (i);
       return successor;
     }
@@ -1487,6 +1512,7 @@ merge_interval_right (i)
 
       successor = INTERVAL_PARENT (successor);
       successor->total_length -= absorb;
+      CHECK_TOTAL_LENGTH (successor);
     }
 
   /* This must be the rightmost or last interval and cannot
@@ -1510,6 +1536,7 @@ merge_interval_left (i)
 
   /* Zero out this interval.  */
   i->total_length -= absorb;
+  CHECK_TOTAL_LENGTH (i);
 
   /* Find the preceding interval.  */
   if (! NULL_LEFT_CHILD (i))	/* It's below us. Go down,
@@ -1519,10 +1546,12 @@ merge_interval_left (i)
       while (! NULL_RIGHT_CHILD (predecessor))
 	{
 	  predecessor->total_length += absorb;
+	  CHECK_TOTAL_LENGTH (predecessor);
 	  predecessor = predecessor->right;
 	}
 
       predecessor->total_length += absorb;
+      CHECK_TOTAL_LENGTH (predecessor);
       delete_interval (i);
       return predecessor;
     }
@@ -1540,6 +1569,7 @@ merge_interval_left (i)
 
       predecessor = INTERVAL_PARENT (predecessor);
       predecessor->total_length -= absorb;
+      CHECK_TOTAL_LENGTH (predecessor);
     }
 
   /* This must be the leftmost or first interval and cannot
@@ -2354,6 +2384,7 @@ copy_intervals (tree, start, length)
   new->position = 0;
   got = (LENGTH (i) - (start - i->position));
   new->total_length = length;
+  CHECK_TOTAL_LENGTH (new);
   copy_properties (i, new);
 
   t = new;
@@ -2440,6 +2471,13 @@ set_intervals_multibyte_1 (i, multi_flag, start, start_byte, end, end_byte)
     i->total_length = end - start;
   else
     i->total_length = end_byte - start_byte;
+  CHECK_TOTAL_LENGTH (i);
+
+  if (TOTAL_LENGTH (i) == 0)
+    {
+      delete_interval (i);
+      return;
+    }
 
   /* Recursively fix the length of the subintervals.  */
   if (i->left)
@@ -2448,8 +2486,23 @@ set_intervals_multibyte_1 (i, multi_flag, start, start_byte, end, end_byte)
 
       if (multi_flag)
 	{
+	  int temp;
 	  left_end_byte = start_byte + LEFT_TOTAL_LENGTH (i);
 	  left_end = BYTE_TO_CHAR (left_end_byte);
+
+	  temp = CHAR_TO_BYTE (left_end);
+
+	  /* If LEFT_END_BYTE is in the middle of a character,
+	     adjust it and LEFT_END to a char boundary.  */ 
+	  if (left_end_byte > temp)
+	    {
+	      left_end_byte = temp;
+	    }
+	  if (left_end_byte < temp)
+	    {
+	      left_end--;
+	      left_end_byte = CHAR_TO_BYTE (left_end);
+	    }
 	}
       else
 	{
@@ -2466,8 +2519,24 @@ set_intervals_multibyte_1 (i, multi_flag, start, start_byte, end, end_byte)
 
       if (multi_flag)
 	{
+	  int temp;
+
 	  right_start_byte = end_byte - RIGHT_TOTAL_LENGTH (i);
 	  right_start = BYTE_TO_CHAR (right_start_byte);
+
+	  /* If RIGHT_START_BYTE is in the middle of a character,
+	     adjust it and RIGHT_START to a char boundary.  */ 
+	  temp = CHAR_TO_BYTE (right_start);
+
+	  if (right_start_byte < temp)
+	    {
+	      right_start_byte = temp;
+	    }
+	  if (right_start_byte > temp)
+	    {
+	      right_start++;
+	      right_start_byte = CHAR_TO_BYTE (right_start);
+	    }
 	}
       else
 	{
@@ -2478,6 +2547,25 @@ set_intervals_multibyte_1 (i, multi_flag, start, start_byte, end, end_byte)
       set_intervals_multibyte_1 (i->right, multi_flag,
 				 right_start, right_start_byte,
 				 end, end_byte);
+    }
+
+  /* Rounding to char boundaries can theoretically ake this interval
+     spurious.  If so, delete one child, and copy its property list
+     to this interval.  */
+  if (LEFT_TOTAL_LENGTH (i) + RIGHT_TOTAL_LENGTH (i) >= TOTAL_LENGTH (i))
+    {
+      if ((i)->left)
+	{
+	  (i)->plist = (i)->left->plist;
+	  (i)->left->total_length = 0;
+	  delete_interval ((i)->left);
+	}
+      else
+	{
+	  (i)->plist = (i)->right->plist;
+	  (i)->right->total_length = 0;
+	  delete_interval ((i)->right);
+	}
     }
 }
 
