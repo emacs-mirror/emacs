@@ -1925,7 +1925,7 @@ A prefix arg makes KEEP-TIME non-nil.")
   UNGCPRO;
   return Qnil;
 }
-
+
 DEFUN ("make-directory-internal", Fmake_directory_internal,
        Smake_directory_internal, 1, 1, 0,
   "Create a directory.  One argument, a file name string.")
@@ -1995,6 +1995,23 @@ If file has multiple names, it continues to exist with the other names.")
   return Qnil;
 }
 
+static Lisp_Object
+internal_delete_file_1 (ignore)
+     Lisp_Object ignore;
+{
+  return Qt;
+}
+
+/* Delete file FILENAME, returning 1 if successful and 0 if failed.  */
+
+int
+internal_delete_file (filename)
+     Lisp_Object filename;
+{
+  return NILP (internal_condition_case_1 (Fdelete_file, filename,
+					  Qt, internal_delete_file_1));
+}
+
 DEFUN ("rename-file", Frename_file, Srename_file, 2, 3,
   "fRename file: \nFRename %s to file: \np",
   "Rename FILE as NEWNAME.  Both args strings.\n\
