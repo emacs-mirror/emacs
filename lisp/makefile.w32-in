@@ -70,7 +70,6 @@ DONTCOMPILE = \
 	$(lisp)/loaddefs.el \
 	$(lisp)/loadup.el \
 	$(lisp)/mail/blessmail.el \
-	$(lisp)/mail/sc.el \
 	$(lisp)/patcomp.el \
 	$(lisp)/paths.el \
 	$(lisp)/play/bruce.el \
