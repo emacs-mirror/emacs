@@ -1,6 +1,6 @@
 /* impl.c.vmli: VIRTUAL MEMORY MAPPING FOR LINUX
  *
- * $HopeName: MMsrc!vmli.c(trunk.6) $
+ * $HopeName: MMsrc!vmli.c(trunk.7) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is the implementation of the virtual memory mapping 
@@ -55,7 +55,7 @@
 #error "vmli.c is LINUX specific, but MPS_OS_LI is not set"
 #endif
 
-SRCID(vmli, "$HopeName$");
+SRCID(vmli, "$HopeName: MMsrc!vmli.c(trunk.7) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -242,7 +242,6 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVER(base < limit);
   AVER(base >= vm->base);
   AVER(limit <= vm->limit);
-  AVER(AddrOffset(base, limit) <= INT_MAX);
   AVER(AddrIsAligned(base, vm->align));
   AVER(AddrIsAligned(limit, vm->align));
 
