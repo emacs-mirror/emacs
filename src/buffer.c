@@ -1683,7 +1683,7 @@ DEFUN ("pop-to-buffer", Fpop_to_buffer, Spop_to_buffer, 1, 3, 0,
        doc: /* Select buffer BUFFER in some window, preferably a different one.
 If BUFFER is nil, then some other buffer is chosen.
 If `pop-up-windows' is non-nil, windows can be split to do this.
-If optional second arg OTHER-WINDOW is nil, insist on finding another
+If optional second arg OTHER-WINDOW is non-nil, insist on finding another
 window even if BUFFER is already visible in the selected window,
 and ignore `same-window-regexps' and `same-window-buffer-names'.
 This uses the function `display-buffer' as a subroutine; see the documentation
