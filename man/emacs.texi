@@ -113,7 +113,7 @@ Emacs Lisp Reference Manual}.
 If you are new to Info and want to learn how to use it, type the
 command @kbd{h} now.  It brings you to a programmed instruction
 sequence.
-@end info
+@end ifinfo
 
 @ignore
 These subcategories have been deleted for simplicity
@@ -434,7 +434,7 @@ Frames and X Windows
 * Font Lock::           Minor mode for syntactic highlighting using faces.
 * Highlight Changes::   Using colors to show where you changed the buffer.
 * Highlight Interactively:: Tell Emacs what text to highlight.
-* Trailing Whitespace:: Showing possibly-spurious trailing whitespace.
+* Useless Whitespace::  Showing possibly-spurious trailing whitespace.
 * Tooltips::            Showing "tooltips", AKA "ballon help" for active text.
 * Mouse Avoidance::     Moving the mouse pointer out of the way.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
