@@ -243,7 +243,7 @@ See the variable `sc-cite-frame-alist' for details."
 
 (defcustom sc-cite-region-limit t
   "*This variable controls automatic citation of yanked text.
-Legal values are:
+Valid values are:
 
 non-nil   -- cite the entire region, regardless of its size
 nil       -- do not cite the region at all
@@ -347,7 +347,7 @@ Non-nil uses nested citations, nil uses non-nested citations."
 
 (defcustom sc-nuke-mail-headers 'all
   "*Controls mail header nuking.
-Used in conjunction with `sc-nuke-mail-header-list'.  Legal values are:
+Used in conjunction with `sc-nuke-mail-header-list'.  Valid values are:
 
 `all'       -- nuke all mail headers
 `none'      -- don't nuke any mail headers
