@@ -1922,7 +1922,7 @@ duplicates what `expand-file-name' does.")
 	 || IS_DIRECTORY_SEP (p[0])
 #endif /* not (APOLLO || WINDOWSNT) */
 	 )
-	&& p != nm && IS_DIRECTORY_SEP (p[-1]))
+	&& p != xnm && IS_DIRECTORY_SEP (p[-1]))
       xnm = p;
 #ifdef DOS_NT
     else if (IS_DRIVE (p[0]) && p[1] == ':'
