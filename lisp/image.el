@@ -176,8 +176,8 @@ BUFFER nil or omitted means use the current buffer."
 
 
 ;;;###autoload
-(defmacro defimage (symbol specs &optional doc)
-  "Define SYMBOL as an image.
+(defun find-image (specs)
+  "Find an image, choosing one of a list of image specifications.
 
 SPECS is a list of image specifications.  DOC is an optional
 documentation string.
@@ -189,12 +189,7 @@ least contain the properties `:type TYPE' and either `:file FILE' or
 e.g. `xbm', FILE is the file to load the image from, and DATA is a
 string containing the actual image data.  The first image
 specification whose TYPE is supported, and FILE exists, is used to
-define SYMBOL.
-
-Example:
-
-   (defimage test-image ((:type xpm :file \"~/test1.xpm\")
-                         (:type xbm :file \"~/test1.xbm\")))"
+define SYMBOL."
   (let (image)
     (while (and specs (null image))
       (let* ((spec (car specs))
@@ -216,7 +211,30 @@ Example:
 		((not (null data))
 		 (setq image (cons 'image spec)))))
 	(setq specs (cdr specs))))
-    `(defvar ,symbol ',image ,doc)))
+    image))
+
+
+;;;###autoload
+(defmacro defimage (symbol specs &optional doc)
+  "Define SYMBOL as an image.
+
+SPECS is a list of image specifications.  DOC is an optional
+documentation string.
+
+Each image specification in SPECS is a property list.  The contents of
+a specification are image type dependent.  All specifications must at
+least contain the properties `:type TYPE' and either `:file FILE' or
+`:data DATA', where TYPE is a symbol specifying the image type,
+e.g. `xbm', FILE is the file to load the image from, and DATA is a
+string containing the actual image data.  The first image
+specification whose TYPE is supported, and FILE exists, is used to
+define SYMBOL.
+
+Example:
+
+   (defimage test-image ((:type xpm :file \"~/test1.xpm\")
+                         (:type xbm :file \"~/test1.xbm\")))"
+  `(defvar ,symbol (find-image ',specs) ,doc))
 
 
 (provide 'image)
