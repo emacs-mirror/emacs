@@ -1,6 +1,7 @@
 /* Composite sequence support.
    Copyright (C) 1999 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
+   Copyright (C) 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
