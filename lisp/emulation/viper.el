@@ -3,17 +3,11 @@
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
 
+;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+
 ;;  Version:  2.72
 ;;  Keywords: emulations
 ;;  Author: Michael Kifer <kifer@cs.sunysb.edu>
-
-;; LCD Archive Entry:
-;; viper|Michael Kifer|kifer@cs.sunysb.edu|
-;; A full-featured  Vi emulator for GNU Emacs 19 and XEmacs 19|
-;; 19-February-95|2.72|~/modes/viper.tar.Z|
-
-(defconst viper-version "2.72 of February 19, 1995"
-  "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
 
@@ -30,6 +24,14 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;; LCD Archive Entry:
+;; viper|Michael Kifer|kifer@cs.sunysb.edu|
+;; A full-featured  Vi emulator for Emacs 19 and XEmacs 19|
+;; 19-February-95|2.72|~/modes/viper.tar.Z|
+
+(defconst viper-version "2.72 of February 19, 1995"
+  "The current version of Viper")
 
 ;;; Commentary:
 
@@ -1141,7 +1143,7 @@ modes were turned on by the user or by other packages."
 		      "Viper Is a Package for Emacs Rebels.
 It is also a VI Plan for Emacs Rescue and a venomous VI PERil.
 
-Technically speaking, Viper is a Vi emulation package for GNU Emacs 19 and
+Technically speaking, Viper is a Vi emulation package for Emacs 19 and
 XEmacs 19.  It supports virtually all of Vi and Ex functionality, extending
 and improving upon much of it.
 
