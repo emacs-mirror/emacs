@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.11 $
+;; Version: $Revision: 1.12 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/05/22 20:12:44 $|$Revision: 1.11 $|~/modes/tcl.el.Z|
+;; $Date: 1994/05/22 20:14:59 $|$Revision: 1.12 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+; Revision 1.12  1994/05/22  20:14:59  tromey
+; Compile fixes.
+;
 ; Revision 1.11  1994/05/22  20:12:44  tromey
 ; Fixed mark-defun for 19.23.
 ; More menu fixes.
@@ -206,6 +209,19 @@
 
 ;;; Code:
 
+;; I sure wish Emacs had a package that made it easy to extract this
+;; sort of information.
+(defconst tcl-using-emacs-19 (string-match "19\\." emacs-version)
+  "Nil unless using Emacs 19 (Lucid or FSF).")
+
+;; FIXME this will break on Emacs 19.100.
+(defconst tcl-using-emacs-19.23
+  (string-match "19\\.\\(2[3-9]\\|[3-9][0-9]\\)" emacs-version)
+  "Nil unless using Emacs 19.23 or later.")
+
+(defconst tcl-using-lemacs-19 (string-match "Lucid" emacs-version)
+  "Nil unless using Lucid Emacs).")
+
 (require 'comint)
 
 ;; When compiling under GNU Emacs, load imenu during compilation.  If
@@ -217,7 +233,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.11 $")
+(defconst tcl-version "$Revision: 1.12 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
@@ -299,19 +315,6 @@ quoted for Tcl.")
 (if tcl-mode-abbrev-table
     ()
   (define-abbrev-table 'tcl-mode-abbrev-table ()))
-
-;; I sure wish Emacs had a package that made it easy to extract this
-;; sort of information.
-(defconst tcl-using-emacs-19 (string-match "19\\." emacs-version)
-  "Nil unless using Emacs 19 (Lucid or FSF).")
-
-;; FIXME this will break on Emacs 19.100.
-(defconst tcl-using-emacs-19.23
-  (string-match "19\\.\\(2[3-9]\\|[3-9][0-9]\\)" emacs-version)
-  "Nil unless using Emacs 19.23 or later.")
-
-(defconst tcl-using-lemacs-19 (string-match "Lucid" emacs-version)
-  "Nil unless using Lucid Emacs).")
 
 (defvar tcl-mode-map ()
   "Keymap used in Tcl mode.")
