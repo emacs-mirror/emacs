@@ -18,10 +18,12 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* Don't multiply include: dispextern.h includes macterm.h which includes frame.h 
-   some emacs source includes both dispextern.h and frame.h */
-#ifndef _XFRAME_H_
-#define _XFRAME_H_
+/* Don't multiply include: dispextern.h includes macterm.h which
+   includes frame.h some emacs source includes both dispextern.h and
+   frame.h */
+
+#ifndef EMACS_FRAME_H_INCLUDED
+#define EMACS_FRAME_H_INCLUDED
 
 
 /* Miscellanea.  */
@@ -781,4 +783,4 @@ extern Lisp_Object selected_frame;
       ? make_float ((double) (Y) / CANON_Y_UNIT (F))	\
       : make_number ((Y) / CANON_Y_UNIT (F)))	
 			     
-#endif /* not defined _FRAME_H_ */
+#endif /* not EMACS_FRAME_H_INCLUDED */
