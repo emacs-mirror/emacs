@@ -398,7 +398,7 @@ cvtmail: ${srcdir}/cvtmail.c
 fakemail: ${srcdir}/fakemail.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/fakemail.c $(LOADLIBES) -o fakemail
 
-yow: ${srcdir}/yow.c ../src/paths.h
+yow: ${srcdir}/yow.c ../src/epaths.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/yow.c $(LOADLIBES) -o yow
 
 emacsserver: ${srcdir}/emacsserver.c ../src/config.h
