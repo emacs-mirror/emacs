@@ -3940,6 +3940,31 @@ redraw_overlapping_rows (w, yb)
 }
 
 
+#ifdef GLYPH_DEBUG
+
+/* Check that no row in the current matrix of window W is enabled
+   which is below what's displayed in the window.  */
+
+void
+check_current_matrix_flags (w)
+     struct window *w;
+{
+  int last_seen_p = 0;
+  int i, yb = window_text_bottom_y (w);
+
+  for (i = 0; i < w->current_matrix->nrows - 1; ++i)
+    {
+      struct glyph_row *row = MATRIX_ROW (w->current_matrix, i);
+      if (!last_seen_p && MATRIX_ROW_BOTTOM_Y (row) >= yb)
+	last_seen_p = 1;
+      else if (last_seen_p && row->enabled_p)
+	abort ();
+    }
+}
+
+#endif /* GLYPH_DEBUG */
+
+
 /* Update display of window W.  FORCE_P non-zero means that we should
    not stop when detecting pending input.  */
 
@@ -4095,6 +4120,7 @@ update_window (w, force_p)
     paused_p = 1;
 
 #if GLYPH_DEBUG
+  check_current_matrix_flags (w);
   add_window_display_history (w, w->current_matrix->method, paused_p);
 #endif
   
@@ -4690,9 +4716,15 @@ scrolling_window (w, header_line_p)
      we plan to reuse part of the display even if other parts are
      disabled.  */
   i = first_old + 1;
-  while (i < current_matrix->nrows - 1
-	 && MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (current_matrix, i)) <= yb)
-    ++i;
+  while (i < current_matrix->nrows - 1)
+    {
+      int bottom = MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (current_matrix, i));
+      if (bottom <= yb)
+	++i;
+      if (bottom >= yb)
+	break;
+    }
+
   last_old = i;
 
   /* Skip over rows equal at the bottom.  */
