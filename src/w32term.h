@@ -817,6 +817,9 @@ extern BOOL parse_button ();
 #define RIGHT_WIN_PRESSED      0x4000
 #define APPS_PRESSED           0x2000
 
+struct image;
+struct face;
+
 XGCValues *XCreateGC (void *, Window, unsigned long, XGCValues *);
 struct frame * check_x_frame (Lisp_Object);
 EXFUN (Fx_display_color_p, 1);
