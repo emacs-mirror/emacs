@@ -540,11 +540,16 @@ struct Lisp_Buffer_Cons
     int bufpos;
   };
 
+/* Nonzero if STR is a multibyte string.  */
+#define STRING_MULTIBYTE(STR)  \
+  (XSTRING (STR)->size != XSTRING (STR)->size_byte)
+
 /* In a string or vector, the sign bit of the `size' is the gc mark bit */
 
 struct Lisp_String
   {
     EMACS_INT size;
+    EMACS_INT size_byte;
     DECLARE_INTERVALS		/* `data' field must be last.  */
     unsigned char data[1];
   };
@@ -1511,6 +1516,7 @@ EXFUN (Fnatnump, 1);
 EXFUN (Fsymbolp, 1);
 EXFUN (Fvectorp, 1);
 EXFUN (Fstringp, 1);
+EXFUN (Fmultibyte_string_p, 1);
 EXFUN (Farrayp, 1);
 EXFUN (Fsequencep, 1);
 EXFUN (Fbufferp, 1);
@@ -1595,6 +1601,7 @@ EXFUN (Fforward_char, 1);
 EXFUN (Fforward_line, 1);
 extern int forward_point P_ ((int));
 extern int internal_self_insert P_ ((int, int));
+extern int nonascii_insert_offset;
 
 /* Defined in coding.c */
 EXFUN (Fcoding_system_p, 1);
@@ -1607,6 +1614,8 @@ EXFUN (Fdecode_coding_string, 3);
 
 /* Defined in charset.c */
 EXFUN (Fchar_bytes, 1);
+extern int chars_in_text P_ ((unsigned char *, int));
+extern int multibyte_chars_in_text P_ ((unsigned char *, int));
 
 /* Defined in syntax.c */
 EXFUN (Fforward_word, 1);
@@ -1628,6 +1637,7 @@ EXFUN (Fconcat, MANY);
 EXFUN (Fvconcat, MANY);
 EXFUN (Fcopy_sequence, 1);
 EXFUN (Fsubstring, 3);
+extern Lisp_Object substring_both P_ ((Lisp_Object, int, int, int, int));
 EXFUN (Fnth, 2);
 EXFUN (Fnthcdr, 2);
 EXFUN (Fmemq, 2);
@@ -1656,6 +1666,8 @@ extern Lisp_Object concat2 P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object concat3 P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 extern Lisp_Object nconc2 P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object assq_no_quit P_ ((Lisp_Object, Lisp_Object));
+extern int string_char_to_byte P_ ((Lisp_Object, int));
+extern int string_byte_to_char P_ ((Lisp_Object, int));
 EXFUN (Fcopy_alist, 1);
 EXFUN (Fplist_get, 2);
 EXFUN (Fset_char_table_parent, 2);
@@ -1679,16 +1691,19 @@ EXFUN (Ftruncate, 2);
 extern void move_gap P_ ((int));
 extern void move_gap_both P_ ((int, int));
 extern void make_gap P_ ((int));
+extern int copy_text P_ ((unsigned char *, unsigned char *, int, int, int));
+extern int count_size_as_multibyte P_ ((unsigned char *, int));
 extern void insert P_ ((unsigned char *, int));
 extern void insert_and_inherit P_ ((unsigned char *, int));
 extern void insert_1 P_ ((unsigned char *, int, int, int, int));
-extern void insert_from_string P_ ((Lisp_Object, int, int, int));
+extern void insert_1_both P_ ((unsigned char *, int, int, int, int, int));
+extern void insert_from_string P_ ((Lisp_Object, int, int, int, int, int));
 extern void insert_from_buffer P_ ((struct buffer *, int, int, int));
 extern void insert_char P_ ((int));
 extern void insert_string P_ ((char *));
 extern void insert_before_markers P_ ((unsigned char *, int));
 extern void insert_before_markers_and_inherit P_ ((unsigned char *, int));
-extern void insert_from_string_before_markers P_ ((Lisp_Object, int, int, int));
+extern void insert_from_string_before_markers P_ ((Lisp_Object, int, int, int, int, int));
 extern void del_range P_ ((int, int));
 extern void del_range_1 P_ ((int, int, int));
 extern void del_range_byte P_ ((int, int, int));
@@ -1710,13 +1725,15 @@ extern void quit_error_check P_ ((void));
 
 /* Defined in xdisp.c */
 extern Lisp_Object Vmessage_log_max;
+extern int message_enable_multibyte;
 extern void message P_ ((/* char *, ... */));
 extern void message_nolog P_ ((/* char *, ... */));
 extern void message1 P_ ((char *));
 extern void message1_nolog P_ ((char *));
-extern void message2 P_ ((char *, int));
+extern void message2 P_ ((char *, int, int));
 extern void message2_nolog P_ ((char *, int, int));
-extern void message_dolog P_ ((char *, int, int));
+extern void message_dolog P_ ((char *, int, int, int));
+extern void message_with_string P_ ((char *, Lisp_Object, int));
 extern void message_log_maybe_newline P_ ((void));
 extern void update_echo_area P_ ((void));
 extern void truncate_echo_area P_ ((int));
@@ -1742,10 +1759,12 @@ EXFUN (Fmake_marker, 0);
 EXFUN (Fmake_string, 2);
 extern Lisp_Object build_string P_ ((char *));
 extern Lisp_Object make_string P_ ((char *, int));
+extern Lisp_Object make__multibytestring P_ ((char *, int, int));
 extern Lisp_Object make_event_array P_ ((int, Lisp_Object *));
 extern Lisp_Object make_uninit_string P_ ((int));
+extern Lisp_Object make_uninit_multibyte_string P_ ((int, int));
 EXFUN (Fpurecopy, 1);
-extern Lisp_Object make_pure_string P_ ((char *, int));
+extern Lisp_Object make_pure_string P_ ((char *, int, int));
 extern Lisp_Object pure_cons P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object make_pure_vector P_ ((EMACS_INT));
 EXFUN (Fgarbage_collect, 0);
@@ -1802,7 +1821,7 @@ extern Lisp_Object read_filtered_event P_ ((int, int, int));
 EXFUN (Feval_region, 3);
 extern Lisp_Object intern P_ ((char *));
 extern Lisp_Object make_symbol P_ ((char *));
-extern Lisp_Object oblookup P_ ((Lisp_Object, char *, int));
+extern Lisp_Object oblookup P_ ((Lisp_Object, char *, int, int));
 #define LOADHIST_ATTACH(x) \
  if (initialized) Vcurrent_load_list = Fcons (x, Vcurrent_load_list)
 extern Lisp_Object Vcurrent_load_list;
