@@ -98,7 +98,7 @@
 (defvar pascal-imenu-generic-expression
   '("^[ \t]*\\(function\\|procedure\\)[ \t\n]+\\([a-zA-Z0-9_.:]+\\)" . (2))
   "Imenu expression for Pascal-mode.  See `imenu-generic-expression'.")
-  
+
 (defvar pascal-keywords
   '("and" "array" "begin" "case" "const" "div" "do" "downto" "else" "end" 
     "file" "for" "function" "goto" "if" "in" "label" "mod" "nil" "not" "of" 
@@ -301,7 +301,7 @@ Variables controlling indentation/edit style:
     Non-nil means a comment { ... } is set after the ends which ends cases and
     functions. The name of the function or case will be set between the braces.
  pascal-auto-lineup       (default t)
-    List of contexts where auto lineup of :'s or ='s hould be done.
+    List of contexts where auto lineup of :'s or ='s should be done.
 
 See also the user variables pascal-type-keywords, pascal-start-keywords and
 pascal-separator-keywords.
@@ -319,6 +319,8 @@ no args, if that value is non-nil."
   (setq indent-line-function 'pascal-indent-line)
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'pascal-indent-comment)
+  (make-local-variable 'comment-start)
+  (setq comment-start "{")
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments nil)
   (make-local-variable 'case-fold-search)
