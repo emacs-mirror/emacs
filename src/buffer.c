@@ -1683,7 +1683,7 @@ set_buffer_internal_1 (b)
 
   for (tail = b->local_var_alist; !NILP (tail); tail = XCDR (tail))
     {
-      valcontents = XSYMBOL (XCAR (XCAR (tail)))->value;
+      valcontents = SYMBOL_VALUE (XCAR (XCAR (tail)));
       if ((BUFFER_LOCAL_VALUEP (valcontents)
 	   || SOME_BUFFER_LOCAL_VALUEP (valcontents))
 	  && (tem = XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
@@ -1698,7 +1698,7 @@ set_buffer_internal_1 (b)
   if (old_buf)
     for (tail = old_buf->local_var_alist; !NILP (tail); tail = XCDR (tail))
       {
-	valcontents = XSYMBOL (XCAR (XCAR (tail)))->value;
+	valcontents = SYMBOL_VALUE (XCAR (XCAR (tail)));
 	if ((BUFFER_LOCAL_VALUEP (valcontents)
 	     || SOME_BUFFER_LOCAL_VALUEP (valcontents))
 	    && (tem = XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
@@ -2260,26 +2260,26 @@ swap_out_buffer_local_variables (b)
       sym = XCAR (XCAR (alist));
 
       /* Need not do anything if some other buffer's binding is now encached.  */
-      tem = XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->buffer;
+      tem = XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->buffer;
       if (BUFFERP (tem) && XBUFFER (tem) == current_buffer)
 	{
 	  /* Symbol is set up for this buffer's old local value.
 	     Set it up for the current buffer with the default value.  */
 
-	  tem = XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->cdr;
+	  tem = XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->cdr;
 	  /* Store the symbol's current value into the alist entry
 	     it is currently set up for.  This is so that, if the
 	     local is marked permanent, and we make it local again
 	     later in Fkill_all_local_variables, we don't lose the value.  */
 	  XCDR (XCAR (tem))
-	    = do_symval_forwarding (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->realvalue);
+	    = do_symval_forwarding (XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->realvalue);
 	  /* Switch to the symbol's default-value alist entry.  */
 	  XCAR (tem) = tem;
 	  /* Mark it as current for buffer B.  */
-	  XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->buffer = buffer;
+	  XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->buffer = buffer;
 	  /* Store the current value into any forwarding in the symbol.  */
 	  store_symval_forwarding (sym,
-				   XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->realvalue,
+				   XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->realvalue,
 				   XCDR (tem), NULL);
 	}
     }

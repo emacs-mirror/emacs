@@ -602,7 +602,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       Lisp_Object histval;
 
       /* If variable is unbound, make it nil.  */
-      if (EQ (XSYMBOL (Vminibuffer_history_variable)->value, Qunbound))
+      if (EQ (SYMBOL_VALUE (Vminibuffer_history_variable), Qunbound))
 	Fset (Vminibuffer_history_variable, Qnil);
 
       histval = Fsymbol_value (Vminibuffer_history_variable);

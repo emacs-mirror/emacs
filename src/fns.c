@@ -5020,7 +5020,7 @@ guesswork fails.  Normally, an error is signaled in such case.")
 
 	  if (STRING_MULTIBYTE (object))
 	    /* use default, we can't guess correct value */
-	    coding_system = XSYMBOL (XCAR (Vcoding_category_list))->value;
+	    coding_system = SYMBOL_VALUE (XCAR (Vcoding_category_list));
 	  else 
 	    coding_system = Qraw_text;
 	}

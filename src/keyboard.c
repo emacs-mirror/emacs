@@ -10717,7 +10717,7 @@ This is measured in microseconds.");
     "Normal hook run when clearing the echo area.");
 #endif
   Qecho_area_clear_hook = intern ("echo-area-clear-hook");
-  XSYMBOL (Qecho_area_clear_hook)->value = Qnil;
+  SET_SYMBOL_VALUE (Qecho_area_clear_hook, Qnil);
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", &Vlucid_menu_bar_dirty_flag,
     "t means menu bar, specified Lucid style, needs to be recomputed.");

@@ -1,3 +1,63 @@
+2001-10-04  Gerd Moellmann  <gerd@gnu.org>
+
+	This adds `defvaralias' and `indirect-variable'.  Changes not
+	directly related to this feature are there to gain the same
+	performance again as before variable aliases.  
+
+	You must use the SYMBOL_VALUE and SET_SYMBOL_VALUE macros in C
+	code to get and set symbol values, to take defvaralias into
+	account.
+	
+	(Note: the new `constant' bit-flag in symbols would make it
+	possible to define arbitrary read-only variables, e.g. with
+	`defconst'.)
+
+	Documentation is in lispref/variables.texi.
+
+	* lisp.h (enum symbol_interned): New enumeration.
+	(struct Lisp_Symbol): Remove member `obarray', add
+	`indirect_variable', `constant', and `interned'.
+	(SYMBOL_INTERNED_P, SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P)
+	(SYMBOL_CONSTANT_P, SYMBOL_VALUE, SET_SYMBOL_VALUE): New macros.
+	(indirect_variable): Add prototype.
+
+	* print.c (print_preprocess, print_object): Test internedness of
+	symbols differently.
+
+	* lread.c (Fintern, Funintern): Set symbol's interned and constant
+	bit-fields.
+	(init_obarray): Likewise for t and nil.
+
+	* eval.c Use SYMBOL_VALUE/SET_SYMBOL_VALUE.
+	(Fdefvaralias): New function.
+	(specbind): Simplify the test if symbol is a constant.
+	(syms_of_eval): Defsubr Fdefvaralias.
+
+	* data.c: Use SYMBOL_VALUE/SET_SYMBOL_VALUE.
+	(Qcyclic_variable_indirection): New variable.
+	(Fkeywordp): Check for internedness differently.
+	(Fmakunbound): Simplify the test if symbol is a constant.
+	(indirect_variable, Findirect_variable): New functions.
+	(swap_in_symval_forwarding): If SYMBOL is an alias, use the
+	aliased symbol.
+	(let_shadows_buffer_binding_p): Check for variable aliases.
+	(set_internal): Simplify the test if SYMBOL is a constant.  If
+	SYMBOL has a buffer-local value and is an alias, use the aliased
+	symbol instead.
+	(syms_of_data): Initialize Qcyclic_variable_indirection and defsubr
+	Sindirect_variable.
+
+	* bytecode.c (Fbyte_code) <varref>: Use SYMBOL_VALUE.
+	(Fbyte_code) <varset>: Simplify the test if symbol's value can be
+	set directly.
+
+	* alloc.c (Fmake_symbol): Adapt to changes of struct Lisp_Symbol.
+
+	* abbrev.c, buffer.c, coding.c, fns.c, frame.c, keyboard.c: 
+	* minibuf.c, sunfns.c, w16select.c: Use SYMBOL_VALUE/
+	SET_SYMBOL_VALUE macros instead of accessing symbol values
+	directly.
+
 2001-10-03  Miles Bader  <miles@gnu.org>
 
 	* callproc.c (syms_of_callproc): Explicitly state in the
