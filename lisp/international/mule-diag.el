@@ -226,7 +226,7 @@ but still shows the full information."
 	charset)
     (while l
       (setq charset (car l) l (cdr l))
-      (princ (format "%03d:%s:%d:%d:%d:%d:%d:%d:%d:%s\n" 
+      (princ (format "%03d:%s:%d:%d:%d:%d:%d:%d:%d:%s\n"
 		     (charset-id charset)
 		     charset
 		     (charset-dimension charset)
@@ -347,7 +347,7 @@ detailed meanings of these arguments."
 				   default-value)))
     (if (> (length charset) 0)
 	(intern charset))))
-    
+
 
 ;; List characters of the range MIN and MAX of CHARSET.  If dimension
 ;; of CHARSET is two (i.e. 2-byte charset), ROW is the first byte
@@ -608,7 +608,7 @@ which font is being used for displaying the character."
 				(car charset)
 				(charset-description (car charset)))))
 		(t
-		 "invalid designation information"))		   
+		 "invalid designation information"))
 	  (setq charset (cdr charset))))
       (setq graphic-register (1+ graphic-register)))))
 
@@ -704,22 +704,22 @@ which font is being used for displaying the character."
 The format is \"F[..],K[..],T[..],P>[..],P<[..], default F[..],P<[..],P<[..]\",
 where mnemonics of the following coding systems come in this order
 at the place of `..':
-  `buffer-file-coding-system` (of the current buffer)
-  eol-type of buffer-file-coding-system (of the current buffer)
+  `buffer-file-coding-system' (of the current buffer)
+  eol-type of `buffer-file-coding-system' (of the current buffer)
   Value returned by `keyboard-coding-system'
-  eol-type of (keyboard-coding-system)
-  Value returned by `terminal-coding-system.
-  eol-type of (terminal-coding-system)
+  eol-type of `keyboard-coding-system'
+  Value returned by `terminal-coding-system'.
+  eol-type of `terminal-coding-system'
   `process-coding-system' for read (of the current buffer, if any)
-  eol-type of process-coding-system for read (of the current buffer, if any)
+  eol-type of `process-coding-system' for read (of the current buffer, if any)
   `process-coding-system' for write (of the current buffer, if any)
-  eol-type of process-coding-system for write (of the current buffer, if any)
+  eol-type of `process-coding-system' for write (of the current buffer, if any)
   `default-buffer-file-coding-system'
-  eol-type of default-buffer-file-coding-system
+  eol-type of `default-buffer-file-coding-system'
   `default-process-coding-system' for read
-  eol-type of default-process-coding-system for read
+  eol-type of `default-process-coding-system' for read
   `default-process-coding-system' for write
-  eol-type of default-process-coding-system"
+  eol-type of `default-process-coding-system'"
   (interactive)
   (let* ((proc (get-buffer-process (current-buffer)))
 	 (process-coding-systems (if proc (process-coding-system proc))))

@@ -26,9 +26,9 @@
 
 ;; For those who are annoyed by the mouse pointer obscuring text,
 ;; this mode moves the mouse pointer - either just a little out of
-;; the way, or all the way to the corner of the frame. 
+;; the way, or all the way to the corner of the frame.
 ;; To use, load or evaluate this file and type M-x mouse-avoidance-mode .
-;; To set up permanently, put the following in your .emacs: 
+;; To set up permanently, put the following in your .emacs:
 ;;
 ;; (if (display-mouse-p) (mouse-avoidance-mode 'animate))
 ;;
@@ -49,7 +49,7 @@
 ;;
 ;; For completely random pointer shape, replace the setq above with:
 ;; (setq x-pointer-shape (mouse-avoidance-random-shape))
-;; 
+;;
 ;; Bugs / Warnings / To-Do:
 ;;
 ;; - Using this code does slow emacs down.  "banish" mode shouldn't
@@ -59,7 +59,7 @@
 ;;   rather than always raising the frame.
 
 ;; Credits:
-;; This code was helped by all those who contributed suggestions, 
+;; This code was helped by all those who contributed suggestions,
 ;;   fixes, and additions
 ;; Joe Harrington (and his advisor), for the original inspiration.
 ;; Ken Manheimer, for dreaming up the Protean mode.
@@ -78,15 +78,15 @@
 
 ;;;###autoload
 (defcustom mouse-avoidance-mode nil
-  "Activate mouse avoidance mode.  
+  "Activate mouse avoidance mode.
 See function `mouse-avoidance-mode' for possible values.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `mouse-avoidance-mode'."
   :set (lambda (symbol value)
 	 ;; 'none below prevents toggling when value is nil.
-	 (mouse-avoidance-mode (or value 'none))) 
+	 (mouse-avoidance-mode (or value 'none)))
   :initialize 'custom-initialize-default
-  :type '(choice (const :tag "none" nil) (const banish) (const jump) 
+  :type '(choice (const :tag "none" nil) (const banish) (const jump)
 		 (const animate) (const exile) (const proteus)
 		 )
   :group 'avoid
@@ -139,10 +139,10 @@ Only applies in mouse-avoidance-modes `animate' and `jump'."
 Analogous to mouse-position."
   (let* ((w (selected-window))
 	 (edges (window-edges w))
-	 (list 
+	 (list
 	  (compute-motion (max (window-start w) (point-min))   ; start pos
 			  ;; window-start can be < point-min if the
-			  ;; latter has changed since the last redisplay 
+			  ;; latter has changed since the last redisplay
 			  '(0 . 0)	                       ; start XY
 			  (point)	                       ; stop pos
 			  (cons (window-width) (window-height)); stop XY: none
@@ -157,7 +157,7 @@ Analogous to mouse-position."
 
 ;(defun mouse-avoidance-point-position-test ()
 ;  (interactive)
-;  (message (format "point=%s mouse=%s" 
+;  (message (format "point=%s mouse=%s"
 ;		   (cdr (mouse-avoidance-point-position))
 ;		   (cdr (mouse-position)))))
 
@@ -171,7 +171,7 @@ Analogous to mouse-position."
     (raise-frame f)
     (set-mouse-position f (car pos) (cdr pos))
     t))
-      
+
 (defun mouse-avoidance-too-close-p (mouse)
   ;;  Return t if mouse pointer and point cursor are too close.
   ;; Acceptable distance is defined by mouse-avoidance-threshold.
@@ -214,19 +214,19 @@ You can redefine this if you want the mouse banished to a different corner."
 	  ((or R1 L2))
 	  (t 0))))
 
-(defun mouse-avoidance-nudge-mouse () 
+(defun mouse-avoidance-nudge-mouse ()
   ;; Push the mouse a little way away, possibly animating the move
   ;; For these modes, state keeps track of the total offset that we've
   ;; accumulated, and tries to keep it close to zero.
   (let* ((cur (mouse-position))
 	 (cur-frame (car cur))
 	 (cur-pos (cdr cur))
-	 (deltax (mouse-avoidance-delta 
+	 (deltax (mouse-avoidance-delta
 		  (car cur-pos) (- (random mouse-avoidance-nudge-var)
 				   (car mouse-avoidance-state))
 		  mouse-avoidance-nudge-dist mouse-avoidance-nudge-var
 		  0 (frame-width)))
-	 (deltay (mouse-avoidance-delta 
+	 (deltay (mouse-avoidance-delta
 		  (cdr cur-pos) (- (random mouse-avoidance-nudge-var)
 				   (cdr mouse-avoidance-state))
 		  mouse-avoidance-nudge-dist mouse-avoidance-nudge-var
@@ -234,16 +234,16 @@ You can redefine this if you want the mouse banished to a different corner."
     (setq mouse-avoidance-state
 	  (cons (+ (car mouse-avoidance-state) deltax)
 		(+ (cdr mouse-avoidance-state) deltay)))
-    (if (or (eq mouse-avoidance-mode 'animate) 
+    (if (or (eq mouse-avoidance-mode 'animate)
 	    (eq mouse-avoidance-mode 'proteus))
 	(let ((i 0.0))
 	  (while (<= i 1)
-	    (mouse-avoidance-set-mouse-position 
+	    (mouse-avoidance-set-mouse-position
 	     (cons (+ (car cur-pos) (round (* i deltax)))
 		   (+ (cdr cur-pos) (round (* i deltay)))))
     	    (setq i (+ i (max .1 (/ 1.0 mouse-avoidance-nudge-dist))))
 	    (if (eq mouse-avoidance-mode 'proteus)
-		(mouse-avoidance-set-pointer-shape 
+		(mouse-avoidance-set-pointer-shape
 		 (mouse-avoidance-random-shape)))
 	    (sit-for mouse-avoidance-animation-delay)))
       (mouse-avoidance-set-mouse-position (cons (+ (car (cdr cur)) deltax)
@@ -259,10 +259,10 @@ redefine this function to suit your own tastes."
 	(setq mouse-avoidance-pointer-shapes
 	      (mapcar (lambda (x) (symbol-value (intern x)))
 		      (all-completions "x-pointer-" obarray
-				       (lambda (x) 
+				       (lambda (x)
 					  (and (boundp x)
 					       (integerp (symbol-value x)))))))
-	(setq mouse-avoidance-n-pointer-shapes 
+	(setq mouse-avoidance-n-pointer-shapes
 	      (length mouse-avoidance-pointer-shapes))))
   (nth (random mouse-avoidance-n-pointer-shapes)
        mouse-avoidance-pointer-shapes))
@@ -334,11 +334,11 @@ redefine this function to suit your own tastes."
 MODE should be one of the symbols `banish', `exile', `jump', `animate',
 `cat-and-mouse', `proteus', or `none'.
 
-If MODE is nil, toggle mouse avoidance between `none` and `banish'
+If MODE is nil, toggle mouse avoidance between `none' and `banish'
 modes.  Positive numbers and symbols other than the above are treated
 as equivalent to `banish'; negative numbers and `-' are equivalent to `none'.
 
-Effects of the different modes: 
+Effects of the different modes:
  * banish: Move the mouse to the upper-right corner on any keypress.
  * exile: Move the mouse to the corner only if the cursor gets too close,
      and allow it to return once the cursor is out of the way.
@@ -385,7 +385,7 @@ definition of \"random distance\".)"
 	       (run-with-idle-timer 0.1 t 'mouse-avoidance-exile-hook))
 	 (setq mouse-avoidance-mode mode
 	       mouse-avoidance-state nil))
-	((or (eq mode 'banish) 
+	((or (eq mode 'banish)
 	     (eq mode t)
 	     (and (null mode) (null mouse-avoidance-mode))
 	     (and mode (> (prefix-numeric-value mode) 0)))
@@ -402,7 +402,7 @@ definition of \"random distance\".)"
 ;;				 minor-mode-alist)))
 
 ;; Needed for custom.
-(if mouse-avoidance-mode 
+(if mouse-avoidance-mode
     (mouse-avoidance-mode mouse-avoidance-mode))
 
 ;;; avoid.el ends here
