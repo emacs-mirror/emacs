@@ -125,7 +125,7 @@ void popup_get_selection ();
 
 static void push_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				Lisp_Object, Lisp_Object, Lisp_Object,
-				Lisp_Object));
+				Lisp_Object, Lisp_Object));
 static Lisp_Object xmenu_show ();
 static void keymap_panes ();
 static void single_keymap_panes ();
@@ -159,14 +159,18 @@ static void list_of_items ();
 #define MENU_ITEMS_PANE_PREFIX 2
 #define MENU_ITEMS_PANE_LENGTH 3
 
-#define MENU_ITEMS_ITEM_NAME 0
-#define MENU_ITEMS_ITEM_ENABLE 1
-#define MENU_ITEMS_ITEM_VALUE 2
-#define MENU_ITEMS_ITEM_EQUIV_KEY 3
-#define MENU_ITEMS_ITEM_DEFINITION 4
-#define MENU_ITEMS_ITEM_TYPE 5
-#define MENU_ITEMS_ITEM_SELECTED 6
-#define MENU_ITEMS_ITEM_LENGTH 7
+enum menu_item_idx
+{
+  MENU_ITEMS_ITEM_NAME = 0,
+  MENU_ITEMS_ITEM_ENABLE,
+  MENU_ITEMS_ITEM_VALUE,
+  MENU_ITEMS_ITEM_EQUIV_KEY,
+  MENU_ITEMS_ITEM_DEFINITION,
+  MENU_ITEMS_ITEM_TYPE,
+  MENU_ITEMS_ITEM_SELECTED,
+  MENU_ITEMS_ITEM_HELP,
+  MENU_ITEMS_ITEM_LENGTH
+};
 
 static Lisp_Object menu_items;
 
@@ -341,8 +345,8 @@ push_menu_pane (name, prefix_vec)
    item, one of nil, `toggle' or `radio'. */
 
 static void
-push_menu_item (name, enable, key, def, equiv, type, selected)
-     Lisp_Object name, enable, key, def, equiv, type, selected;
+push_menu_item (name, enable, key, def, equiv, type, selected, help)
+     Lisp_Object name, enable, key, def, equiv, type, selected, help;
 {
   if (menu_items_used + MENU_ITEMS_ITEM_LENGTH > menu_items_allocated)
     grow_menu_items ();
@@ -354,6 +358,7 @@ push_menu_item (name, enable, key, def, equiv, type, selected)
   XVECTOR (menu_items)->contents[menu_items_used++] = def;
   XVECTOR (menu_items)->contents[menu_items_used++] = type;
   XVECTOR (menu_items)->contents[menu_items_used++] = selected;
+  XVECTOR (menu_items)->contents[menu_items_used++] = help;
 }
 
 /* Look through KEYMAPS, a vector of keymaps that is NMAPS long,
@@ -582,7 +587,8 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
 		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF],
 		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ],
 		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_TYPE],
-		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED]);
+		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED],
+		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP]);
 
 #ifdef USE_X_TOOLKIT
   /* Display a submenu using the toolkit.  */
@@ -634,7 +640,7 @@ list_of_items (pane)
     {
       item = Fcar (tail);
       if (STRINGP (item))
-	push_menu_item (item, Qnil, Qnil, Qt, Qnil, Qnil, Qnil);
+	push_menu_item (item, Qnil, Qnil, Qt, Qnil, Qnil, Qnil, Qnil);
       else if (NILP (item))
 	push_left_right_boundary ();
       else
@@ -642,7 +648,7 @@ list_of_items (pane)
 	  CHECK_CONS (item, 0);
 	  item1 = Fcar (item);
 	  CHECK_STRING (item1, 1);
-	  push_menu_item (item1, Qt, Fcdr (item), Qt, Qnil, Qnil, Qnil);
+	  push_menu_item (item1, Qt, Fcdr (item), Qt, Qnil, Qnil, Qnil, Qnil);
 	}
     }
 }
@@ -1156,6 +1162,51 @@ popup_activate_callback (widget, id, client_data)
   popup_activated_flag = 1;
 }
 
+/* Lwlib callback called when menu items are highlighted/unhighlighted
+   while moving the mouse over them.  WIDGET is the menu bar or menu
+   popup widget.  ID is its LWLIB_ID.  CALL_DATA contains a pointer to
+   the widget_value structure for the menu item, or null in case of
+   unhighlighting.  */
+
+void
+menu_highlight_callback (widget, id, call_data)
+     Widget widget;
+     LWLIB_ID id;
+     void *call_data;
+{
+  widget_value *wv = (widget_value *) call_data;
+  struct frame *f;
+  Lisp_Object frame, help;
+  struct input_event buf;
+
+  /* Determine the frame for the help event.  */
+  f = menubar_id_to_frame (id);
+  if (f)
+    XSETFRAME (frame, f);
+  else
+    {
+      /* WIDGET is the popup menu.  It's parent is the frame's 
+	 widget.  See which frame that is.  */
+      Widget frame_widget = XtParent (widget);
+      Lisp_Object tail;
+
+      for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
+	{
+	  frame = XCAR (tail);
+	  if (GC_FRAMEP (frame)
+	      && (f = XFRAME (frame),
+		  FRAME_X_P (f) && f->output_data.x->widget == frame_widget))
+	    break;
+	}
+    }
+
+  /* Store the help event.  */
+  help = wv && wv->help ? build_string (wv->help) : Qnil;
+  buf.kind = HELP_EVENT;
+  buf.frame_or_window = Fcons (frame, help);
+  kbd_buffer_store_event (&buf);
+}
+
 /* This callback is called from the menu bar pulldown menu
    when the user makes a selection.
    Figure out what the user chose
@@ -1337,7 +1388,8 @@ single_submenu (item_key, item_name, maps)
 	     as opposed to a submenu.  */
 	  top_level_items = 1;
 	  push_menu_pane (Qnil, Qnil);
-	  push_menu_item (item_name, Qt, item_key, mapvec[i], Qnil, Qnil, Qnil);
+	  push_menu_item (item_name, Qt, item_key, mapvec[i],
+			  Qnil, Qnil, Qnil, Qnil);
 	}
       else
 	single_keymap_panes (mapvec[i], item_name, item_key, 0, 10);
@@ -1429,6 +1481,8 @@ single_submenu (item_key, item_name, maps)
 	{
 	  /* Create a new item within current pane.  */
 	  Lisp_Object item_name, enable, descrip, def, type, selected;
+	  Lisp_Object help;
+	  
 	  item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
 	  enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
 	  descrip
@@ -1436,6 +1490,7 @@ single_submenu (item_key, item_name, maps)
 	  def = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_DEFINITION];
 	  type = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_TYPE];
 	  selected = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_SELECTED];
+	  help = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_HELP];
 
 #ifndef HAVE_MULTILINGUAL_MENU
           if (STRING_MULTIBYTE (item_name))
@@ -1469,6 +1524,8 @@ single_submenu (item_key, item_name, maps)
 	    abort ();
 
 	  wv->selected = !NILP (selected);
+	  if (STRINGP (help))
+	    wv->help = XSTRING (help)->data;
 		   
 	  prev_wv = wv;
 
@@ -1760,7 +1817,8 @@ set_frame_menubar (f, first_time, deep_p)
 					 0,
 					 popup_activate_callback,
 					 menubar_selection_callback,
-					 popup_deactivate_callback);
+					 popup_deactivate_callback,
+					 menu_highlight_callback);
       f->output_data.x->menubar_widget = menubar_widget;
     }
 
@@ -2069,7 +2127,8 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   menu = lw_create_widget ("popup", first_wv->name, menu_id, first_wv,
 			   f->output_data.x->widget, 1, 0,
 			   popup_selection_callback,
-			   popup_deactivate_callback);
+			   popup_deactivate_callback,
+			   menu_highlight_callback);
 
   /* Adjust coordinates to relative to the outer (window manager) window.  */
   {
@@ -2354,7 +2413,7 @@ xdialog_show (f, keymaps, title, error)
   dialog_id = widget_id_tick++;
   menu = lw_create_widget (first_wv->name, "dialog", dialog_id, first_wv,
 			   f->output_data.x->widget, 1, 0,
-			   dialog_selection_callback, 0);
+			   dialog_selection_callback, 0, 0);
   lw_modify_all_widgets (dialog_id, first_wv->contents, True);
   /* Free the widget_value objects we used to specify the contents.  */
   free_menubar_widget_value_tree (first_wv);
