@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1992, 1995, 1996 Free Software Foundation, Inc.
 
-;; Author: James Clark <jjc@clark.com>
+;; Author: James Clark <jjc@jclark.com>
 ;; Adapted-By: ESR; Daniel.Pfeiffer@Informatik.START.dbp.de
 ;; Keywords: wp, hypermedia, comm, languages
 
@@ -30,6 +30,10 @@
 ;; HTML hypertext markup language.
 
 ;;; Code:
+
+(defgroup sgml nil
+  "SGML editing mode"
+  :group 'languages)
 
 ;; As long as Emacs' syntax can't be complemented with predicates to context
 ;; sensitively confirm the syntax of characters, we have to live with this
@@ -122,8 +126,10 @@ This takes effect when first loading the library.")
   "Syntax table used in SGML mode.  See also `sgml-specials'.")
 
 
-(defvar sgml-name-8bit-mode nil
-  "*When non-`nil' insert 8 bit characters with their names.")
+(defcustom sgml-name-8bit-mode nil
+  "*When non-`nil' insert 8 bit characters with their names."
+  :type 'boolean
+  :group 'sgml)
 
 (defvar sgml-char-names
   [nil nil nil nil nil nil nil nil
@@ -166,10 +172,12 @@ This takes effect when first loading the library.")
 ;; Its error messages can be parsed by next-error.
 ;; The -s option suppresses output.
 
-(defvar sgml-validate-command "sgmls -s"
+(defcustom sgml-validate-command "sgmls -s"
   "*The command to validate an SGML document.
 The file name of current buffer file name will be appended to this,
-separated by a space.")
+separated by a space."
+  :type 'string
+  :group 'sgml)
 
 (defvar sgml-saved-validate-command nil
   "The command last used to validate in this buffer.")
@@ -177,8 +185,10 @@ separated by a space.")
 
 ;;; I doubt that null end tags are used much for large elements,
 ;;; so use a small distance here.
-(defconst sgml-slash-distance 1000
-  "*If non-nil, is the maximum distance to search for matching /.")
+(defcustom sgml-slash-distance 1000
+  "*If non-nil, is the maximum distance to search for matching /."
+  :type '(choice (const nil) integer)
+  :group 'sgml)
 
 (defconst sgml-start-tag-regex
   "<[A-Za-z]\\([-.A-Za-z0-9= \n\t]\\|\"[^\"]*\"\\|'[^']*'\\)*"
@@ -212,7 +222,7 @@ When more these are fontified together with `sgml-font-lock-keywords'.")
 (defvar sgml-tags-invisible nil)
 
 
-(defvar sgml-tag-alist
+(defcustom sgml-tag-alist
   '(("![" ("ignore" t) ("include" t))
     ("!attlist")
     ("!doctype")
@@ -235,16 +245,22 @@ The attribute alist is made up as
    ...)
 
 ATTRIBUTERULE is a list of optionally `t' (no value when no input) followed by
-an optional alist of possible values.")
+an optional alist of possible values."
+  :type '(repeat (cons (string :tag "Tag Name")
+		       (repeat :tag "Tag Rule" sexp)))
+  :group 'sgml)
 
-(defvar sgml-tag-help
+(defcustom sgml-tag-help
   '(("!" . "Empty declaration for comment")
     ("![" . "Embed declarations with parser directive")
     ("!attlist" . "Tag attributes declaration")
     ("!doctype" . "Document type (DTD) declaration")
     ("!element" . "Tag declaration")
     ("!entity" . "Entity (macro) declaration"))
-  "*Alist of tag name and short description.")
+  "*Alist of tag name and short description."
+  :type '(repeat (cons (string :tag "Tag Name")
+		       (string :tag "Description")))
+  :group 'sgml)
 
 
 ;; put read-only last to enable setting this even when read-only enabled
