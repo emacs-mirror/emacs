@@ -34,6 +34,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include "systty.h"
 #include "systime.h"
+#include "atimer.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -89,6 +90,7 @@ enum bitmap_type
 #define zv_height 8
 static unsigned short zv_bits[] = {
    0x00, 0x00, 0x78, 0x78, 0x78, 0x78, 0x00, 0x00};
+static HBITMAP zv_bmp;
 
 /* An arrow like this: `<-'.  */
 
@@ -96,6 +98,7 @@ static unsigned short zv_bits[] = {
 #define left_height 8
 static unsigned short left_bits[] = {
    0x18, 0x30, 0x60, 0xfc, 0xfc, 0x60, 0x30, 0x18};
+static HBITMAP left_bmp;
 
 /* Right truncation arrow bitmap `->'.  */
 
@@ -103,6 +106,7 @@ static unsigned short left_bits[] = {
 #define right_height 8
 static unsigned short right_bits[] = {
    0x18, 0x0c, 0x06, 0x3f, 0x3f, 0x06, 0x0c, 0x18};
+static HBITMAP right_bmp;
 
 /* Marker for continued lines.  */
 
@@ -110,6 +114,7 @@ static unsigned short right_bits[] = {
 #define continued_height 8
 static unsigned short continued_bits[] = {
    0x3c, 0x3e, 0x03, 0x27, 0x3f, 0x3e, 0x3c, 0x3e};
+static HBITMAP continued_bmp;
 
 /* Marker for continuation lines.  */
 
@@ -117,6 +122,7 @@ static unsigned short continued_bits[] = {
 #define continuation_height 8
 static unsigned short continuation_bits[] = {
    0x3c, 0x7c, 0xc0, 0xe4, 0xfc, 0x7c, 0x3c, 0x7c};
+static HBITMAP continuation_bmp;
 
 /* Overlay arrow bitmap.  */
 
@@ -132,8 +138,8 @@ static unsigned short ov_bits[] = {
 #define ov_height 8
 static unsigned short ov_bits[] = {
    0xc0, 0xf0, 0xf8, 0xfc, 0xfc, 0xf8, 0xf0, 0xc0};
-
 #endif
+static HBITMAP ov_bmp;
 
 extern Lisp_Object Qhelp_echo;
 
@@ -165,6 +171,7 @@ int x_stretch_cursor_p;
 #define CP_DEFAULT 1004
 
 extern unsigned int msh_mousewheel;
+extern int inhibit_busy_cursor;
 
 extern void free_frame_menubar ();
 
@@ -464,14 +471,6 @@ w32_set_clip_rectangle (HDC hdc, RECT *rect)
     SelectClipRgn (hdc, NULL);
 }
 
-/* Return the struct w32_display_info.  */
-
-struct w32_display_info *
-w32_display_info_for_display ()
-{
-  return (&one_w32_display_info);
-}
-
 
 /* Draw a hollow rectangle at the specified position.  */
 void
@@ -747,7 +746,6 @@ w32_draw_bitmap (w, hdc, row, which)
   Window window = FRAME_W32_WINDOW (f);
   HDC compat_hdc;
   int x, y, wd, h, dy;
-  unsigned short *bits;
   HBITMAP pixmap;
   HBRUSH fg_brush, orig_brush;
   HANDLE horig_obj;
@@ -761,7 +759,7 @@ w32_draw_bitmap (w, hdc, row, which)
     case LEFT_TRUNCATION_BITMAP:
       wd = left_width;
       h = left_height;
-      bits = left_bits;
+      pixmap = left_bmp;
       x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
 	   - wd
 	   - (FRAME_X_LEFT_FLAGS_AREA_WIDTH (f) - wd) / 2);
@@ -770,7 +768,7 @@ w32_draw_bitmap (w, hdc, row, which)
     case OVERLAY_ARROW_BITMAP:
       wd = ov_width;
       h = ov_height;
-      bits = ov_bits;
+      pixmap = ov_bmp;
       x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
 	   - wd
 	   - (FRAME_X_LEFT_FLAGS_AREA_WIDTH (f) - wd) / 2);
@@ -779,7 +777,7 @@ w32_draw_bitmap (w, hdc, row, which)
     case RIGHT_TRUNCATION_BITMAP:
       wd = right_width;
       h = right_height;
-      bits = right_bits;
+      pixmap = right_bmp;
       x = window_box_right (w, -1);
       x += (FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f) - wd) / 2;
       break;
@@ -787,7 +785,7 @@ w32_draw_bitmap (w, hdc, row, which)
     case CONTINUED_LINE_BITMAP:
       wd = continued_width;
       h = continued_height;
-      bits = continued_bits;
+      pixmap = continued_bmp;
       x = window_box_right (w, -1);
       x += (FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f) - wd) / 2;
       break;
@@ -795,7 +793,7 @@ w32_draw_bitmap (w, hdc, row, which)
     case CONTINUATION_LINE_BITMAP:
       wd = continuation_width;
       h = continuation_height;
-      bits = continuation_bits;
+      pixmap = continuation_bmp;
       x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
 	   - wd
 	   - (FRAME_X_LEFT_FLAGS_AREA_WIDTH (f) - wd) / 2);
@@ -804,7 +802,7 @@ w32_draw_bitmap (w, hdc, row, which)
     case ZV_LINE_BITMAP:
       wd = zv_width;
       h = zv_height;
-      bits = zv_bits;
+      pixmap = zv_bmp;
       x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
 	   - wd
 	   - (FRAME_X_LEFT_FLAGS_AREA_WIDTH (f) - wd) / 2);
@@ -819,10 +817,8 @@ w32_draw_bitmap (w, hdc, row, which)
   y = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
   dy = (row->height - h) / 2;
 
-  /* Draw the bitmap.  I believe these small pixmaps can be cached
-     by the server.  */
+  /* Draw the bitmap.  */
   face = FACE_FROM_ID (f, BITMAP_AREA_FACE_ID);
-  pixmap = CreateBitmap (wd, h, 1, 1, bits);
 
   compat_hdc = CreateCompatibleDC (hdc);
   SaveDC (hdc);
@@ -838,7 +834,6 @@ w32_draw_bitmap (w, hdc, row, which)
 #endif
   SelectObject (compat_hdc, horig_obj);
   SelectObject (hdc, orig_brush);
-  DeleteObject (pixmap);
   DeleteObject (fg_brush);
   DeleteDC (compat_hdc);
   RestoreDC (hdc, -1);
@@ -9548,6 +9543,47 @@ x_wm_set_icon_position (f, icon_x, icon_y)
 
 static int w32_initialized = 0;
 
+void
+w32_initialize_display_info (display_name)
+     Lisp_Object display_name;
+{
+  struct w32_display_info *dpyinfo = &one_w32_display_info;
+
+  bzero (dpyinfo, sizeof (*dpyinfo));
+
+  /* Put it on w32_display_name_list.  */
+  w32_display_name_list = Fcons (Fcons (display_name, Qnil),
+                                 w32_display_name_list);
+  dpyinfo->name_list_element = XCAR (w32_display_name_list);
+  
+  dpyinfo->w32_id_name
+    = (char *) xmalloc (XSTRING (Vinvocation_name)->size
+			+ XSTRING (Vsystem_name)->size
+			+ 2);
+  sprintf (dpyinfo->w32_id_name, "%s@%s",
+	   XSTRING (Vinvocation_name)->data, XSTRING (Vsystem_name)->data);
+
+  /* Default Console mode values - overridden when running in GUI mode
+     with values obtained from system metrics.  */
+  dpyinfo->resx = 1;
+  dpyinfo->resy = 1;
+  dpyinfo->height_in = 1;
+  dpyinfo->width_in = 1;
+  dpyinfo->n_planes = 1;
+  dpyinfo->n_cbits = 4;
+  dpyinfo->n_fonts = 0;
+  dpyinfo->smallest_font_height = 1;
+  dpyinfo->smallest_char_width = 1;
+
+  dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
+  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
+  dpyinfo->mouse_face_face_id = DEFAULT_FACE_ID;
+  dpyinfo->mouse_face_window = Qnil;
+
+  /* NTEMACS_TODO: dpyinfo->gray */
+
+}
+
 struct w32_display_info *
 w32_term_init (display_name, xrm_option, resource_name)
      Lisp_Object display_name;
@@ -9578,31 +9614,10 @@ w32_term_init (display_name, xrm_option, resource_name)
       }
   }
   
+  w32_initialize_display_info (display_name);
+
   dpyinfo = &one_w32_display_info;
   
-  /* Put this display on the chain.  */
-  dpyinfo->next = NULL;
-  
-  /* Put it on w32_display_name_list as well, to keep them parallel.  */ 
-  w32_display_name_list = Fcons (Fcons (display_name, Qnil),
-                                 w32_display_name_list);
-  dpyinfo->name_list_element = XCAR (w32_display_name_list);
-  
-  dpyinfo->w32_id_name
-    = (char *) xmalloc (XSTRING (Vinvocation_name)->size
-			+ XSTRING (Vsystem_name)->size
-			+ 2);
-  sprintf (dpyinfo->w32_id_name, "%s@%s",
-	   XSTRING (Vinvocation_name)->data, XSTRING (Vsystem_name)->data);
-
-#if 0
-  xrdb = x_load_resources (dpyinfo->display, xrm_option,
-			   resource_name, EMACS_CLASS);
-  
-  /* Put the rdb where we can find it in a way that works on
-     all versions.  */
-  dpyinfo->xrdb = xrdb;
-#endif
   hdc = GetDC (GetDesktopWindow ());
 
   dpyinfo->height = GetDeviceCaps (hdc, VERTRES);
@@ -9613,35 +9628,10 @@ w32_term_init (display_name, xrm_option, resource_name)
   dpyinfo->resx = GetDeviceCaps (hdc, LOGPIXELSX);
   dpyinfo->resy = GetDeviceCaps (hdc, LOGPIXELSY);
   dpyinfo->has_palette = GetDeviceCaps (hdc, RASTERCAPS) & RC_PALETTE;
-  dpyinfo->grabbed = 0;
-  dpyinfo->reference_count = 0;
-  dpyinfo->font_table = NULL;
-  dpyinfo->n_fonts = 0;
-  dpyinfo->font_table_size = 0;
-  dpyinfo->bitmaps = 0;
-  dpyinfo->bitmaps_size = 0;
-  dpyinfo->bitmaps_last = 0;
-  dpyinfo->scratch_cursor_gc = NULL;
-  dpyinfo->mouse_face_mouse_frame = 0;
-  dpyinfo->mouse_face_deferred_gc = 0;
-  dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
-  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
-  dpyinfo->mouse_face_face_id = DEFAULT_FACE_ID;
-  dpyinfo->mouse_face_window = Qnil;
-  dpyinfo->mouse_face_mouse_x = dpyinfo->mouse_face_mouse_y = 0;
-  dpyinfo->mouse_face_defer = 0;
-  dpyinfo->w32_focus_frame = 0;
-  dpyinfo->w32_focus_event_frame = 0;
-  dpyinfo->w32_highlight_frame = 0;
   dpyinfo->image_cache = make_image_cache ();
   dpyinfo->height_in = dpyinfo->height / dpyinfo->resx;
   dpyinfo->width_in = dpyinfo->width / dpyinfo->resy;
   ReleaseDC (GetDesktopWindow (), hdc);
-  /* NTEMACS_TODO: dpyinfo->gray */
-  /* Determine if there is a middle mouse button, to allow parse_button
-     to decide whether right mouse events should be mouse-2 or
-     mouse-3. */
-  XSETINT (Vw32_num_mouse_buttons, GetSystemMetrics (SM_CMOUSEBUTTONS));
 
   /* initialise palette with white and black */
   {
@@ -9649,6 +9639,16 @@ w32_term_init (display_name, xrm_option, resource_name)
     w32_defined_color (0, "white", &color, 1);
     w32_defined_color (0, "black", &color, 1);
   }
+
+  /* Create Row Bitmaps and store them for later use.  */
+  left_bmp = CreateBitmap (left_width, left_height, 1, 1, left_bits);
+  ov_bmp = CreateBitmap (ov_width, ov_height, 1, 1, ov_bits);
+  right_bmp = CreateBitmap (right_width, right_height, 1, 1, right_bits);
+  continued_bmp = CreateBitmap (continued_width, continued_height, 1,
+                                1, continued_bits);
+  continuation_bmp = CreateBitmap (continuation_width, continuation_height,
+                                   1, 1, continuation_bits);
+  zv_bmp = CreateBitmap (zv_width, zv_height, 1, 1, zv_bits);
 
 #ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
@@ -9689,8 +9689,7 @@ x_delete_display (dpyinfo)
       tail = w32_display_name_list;
       while (CONSP (tail) && CONSP (XCDR (tail)))
 	{
-	  if (EQ (XCAR (XCDR (tail)),
-		  dpyinfo->name_list_element))
+	  if (EQ (XCAR (XCDR (tail)), dpyinfo->name_list_element))
 	    {
 	      XCDR (tail) = XCDR (XCDR (tail));
 	      break;
@@ -9716,6 +9715,14 @@ x_delete_display (dpyinfo)
   }
   xfree (dpyinfo->font_table);
   xfree (dpyinfo->w32_id_name);
+
+  /* Destroy row bitmaps.  */
+  DeleteObject (left_bmp);
+  DeleteObject (ov_bmp);
+  DeleteObject (right_bmp);
+  DeleteObject (continued_bmp);
+  DeleteObject (continuation_bmp);
+  DeleteObject (zv_bmp);
 }
 
 /* Set up use of W32.  */
