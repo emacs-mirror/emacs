@@ -12,6 +12,18 @@
 
 2004-05-10  Kenichi Handa  <handa@m17n.org>
 
+	* print.c (temp_output_buffer_setup): Bind inhibit-read-only and
+	inhibit-modification-hooks to t temporarily before calling
+	Ferase_buffer.
+
+	* xfns.c (x_create_tip_frame): Bind inhibit-read-only and
+	inhibit-modification-hooks to t temporarily before calling
+	Ferase_buffer.
+
+	* w32fns.c (x_create_tip_frame): Bind inhibit-read-only and
+	inhibit-modification-hooks to t temporarily before calling
+	Ferase_buffer.
+
 	* fns.c (count_combining): Delete it.
 	(concat): Don't check combining bytes.
 
