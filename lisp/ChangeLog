@@ -1,3 +1,7 @@
+2001-01-26  Dave Love  <fx@gnu.org>
+
+	* dired.el, dired-aux.el: Revert last change.
+
 2001-01-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* makefile.w32-in (DONTCOMPILE): Add various term files.
@@ -58,6 +62,9 @@
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Docstring fix.
 
 2001-01-25  Dave Love  <fx@gnu.org>
+
+	* lisp/international/mule-diag.el (describe-char-after): Doc fix.
+	(describe-coding-system): Tweak the English text.
 
 	* loadup.el: Preload international/ccl for utf-8.
 
