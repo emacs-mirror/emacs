@@ -9066,7 +9066,7 @@ whenever `deferred-action-list' is non-nil.");
   Vdeferred_action_function = Qnil;
 
   DEFVAR_LISP ("suggest-key-bindings", &Vsuggest_key_bindings,
-    "Non-nil means show the equivalent key-binding when M-x command has one.\n\
+    "*Non-nil means show the equivalent key-binding when M-x command has one.\n\
 The value can be a length of time to show the message for.\n\
 If the value is non-nil and not a number, we wait 2 seconds.");
   Vsuggest_key_bindings = Qt;
