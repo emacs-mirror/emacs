@@ -6,7 +6,7 @@
  *
  * DESIGN
  *
- * .design: See design.mps.arena.vm, and design.mps.arena.coop-vm
+ * .design: See <design/arenavm/>, and <design/arena/#coop-vm>
  *
  * .vm.addr-is-star: In this file, Addr is compatible with C
  * pointers, and Count with size_t (Index), because all refer to the
@@ -47,7 +47,7 @@ typedef struct VMChunkStruct {
   Addr overheadMappedLimit;           /* limit of pages mapped for overhead */
   BT pageTableMapped;           /* indicates mapped state of page table */
   BT noSparePages;             /* 1 bit per page of pageTable */
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
 } VMChunkStruct;
 
 #define VMChunk2Chunk(vmchunk) (&(vmchunk)->chunkStruct)
@@ -62,7 +62,7 @@ typedef struct VMChunkStruct {
 
 /* VMArena
  *
- * See design.mps.arena.coop-vm.struct.vmarena for description.
+ * See <design/arena/#coop-vm.struct.vmarena> for description.
  */
 
 typedef struct VMArenaStruct *VMArena;
@@ -77,7 +77,7 @@ typedef struct VMArenaStruct {  /* VM arena structure */
   ZoneSet genZoneSet[VMArenaGenCount]; /* .gencount.const */
   ZoneSet freeSet;               /* unassigned zones */
   Size extendBy;
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
 } VMArenaStruct;
 
 #define Arena2VMArena(arena) PARENT(VMArenaStruct, arenaStruct, arena)
@@ -273,7 +273,7 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
     goto failBootInit;
 
   /* Allocate and map the descriptor. */
-  /* See design.mps.arena.@@@@ */
+  /* See <design/arena/>.@@@@ */
   res = BootAlloc(&p, boot, sizeof(VMChunkStruct), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failChunkAlloc;
@@ -333,7 +333,7 @@ static Res VMChunkInit(Chunk chunk, BootBlock boot)
     goto failnoSparePages;
   vmChunk->noSparePages = p;
 
-  /* Actually commit all the tables. design.mps.arena.vm.@@@@ */
+  /* Actually commit all the tables. <design/arenavm/>.@@@@ */
   overheadLimit = AddrAdd(chunk->base, (Size)BootAllocated(boot));
   if (vmChunk->overheadMappedLimit < overheadLimit) {
     overheadLimit = AddrAlignUp(overheadLimit, ChunkPageSize(chunk));
@@ -438,7 +438,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
     vmArena->genZoneSet[gen] = ZoneSetEMPTY;
   }
   vmArena->freeSet = ZoneSetUNIV; /* includes blacklist */
-  /* design.mps.arena.coop-vm.struct.vmarena.extendby.init */
+  /* <design/arena/#coop-vm.struct.vmarena.extendby.init> */
   vmArena->extendBy = userSize;
 
   /* have to have a valid arena before calling ChunkCreate */
@@ -452,7 +452,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   /* number of stripes as will fit into a reference set (the number of */
   /* bits in a word).  Fail if the chunk is so small stripes are smaller */
   /* than pages.  Note that some zones are discontiguous in the chunk if */
-  /* the size is not a power of 2.  See design.mps.arena.class.fields. */
+  /* the size is not a power of 2.  See <design/arena/#class.fields>. */
   chunkSize = AddrOffset(chunk->base, chunk->limit);
   arena->zoneShift = SizeFloorLog2(chunkSize >> MPS_WORD_SHIFT);
 
@@ -1221,7 +1221,7 @@ static Res vmAllocComm(Addr *baseReturn, Tract *baseTractReturn,
   AVER(SizeIsAligned(size, ChunkPageSize(arena->primary)));
  
   /* NULL is used as a discriminator */
-  /* (see design.mps.arena.vm.table.disc) therefore the real pool */
+  /* (see <design/arenavm/table.disc>) therefore the real pool */
   /* must be non-NULL. */
   AVER(pool != NULL);
 

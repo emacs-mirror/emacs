@@ -5,7 +5,7 @@
  *
  * DESIGN
  *
- * .design: See design.mps.class-interface and design.mps.pool.
+ * .design: See <design/class-interface/> and <design/pool/>.
  *
  * PURPOSE
  *
@@ -99,7 +99,7 @@ Bool PoolCheck(Pool pool)
 /* PoolInit, PoolInitV -- initialize a pool
  *
  * Initialize the generic fields of the pool and calls class-specific
- * init.  See design.mps.pool.align.  */
+ * init.  See <design/pool/#align>.  */
 
 Res PoolInit(Pool pool, Arena arena, PoolClass class, ...)
 {
@@ -130,7 +130,7 @@ Res PoolInitV(Pool pool, Arena arena, PoolClass class, va_list args)
     /* putting another lock in the code. */
     class->labelled = TRUE;
     classId = EventInternString(class->name);
-    /* @@@@ this breaks design.mps.type.addr.use */
+    /* @@@@ this breaks <design/type/#addr.use> */
     EventLabelAddr((Addr)class, classId);
   }
 
@@ -147,7 +147,7 @@ Res PoolInitV(Pool pool, Arena arena, PoolClass class, va_list args)
   pool->fillInternalSize = 0.0;
   pool->emptyInternalSize = 0.0;
 
-  /* Initialise signature last; see design.mps.sig */
+  /* Initialise signature last; see <design/sig/> */
   pool->sig = PoolSig;
   pool->serial = globals->poolSerial;
   ++(globals->poolSerial);
@@ -399,7 +399,7 @@ Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
 /* PoolFix* -- fix a reference to an object in this pool
  *
- * See impl.h.mpm for macro version; see design.mps.pool.req.fix. */
+ * See impl.h.mpm for macro version; see <design/pool/#req.fix>. */
 
 Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO)
 {

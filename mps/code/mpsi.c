@@ -9,7 +9,7 @@
  * usage of the MPS Interface.  .purpose.thread: It excludes multiple
  * threads from the MPM by locking the Arena (see .thread-safety).
  *
- * .design: design.mps.interface.c
+ * .design: <design/interface-c/>
  *
  *
  * NOTES
@@ -44,7 +44,7 @@
  * interface is designed allows for the possibility of change.
  *
  * .naming: (rule.impl.guide) The exported identifiers do not follow the
- * normal MPS naming conventions.  See design.mps.interface.c.naming.  */
+ * normal MPS naming conventions.  See <design/interface-c/#naming>.  */
 
 #include "mpm.h"
 #include "mps.h"
@@ -91,7 +91,7 @@ static Bool mpsi_check(void)
   CHECKL((int)MPS_RANK_WEAK == (int)RankWEAK);
 
   /* The external idea of a word width and the internal one */
-  /* had better match.  See design.mps.interface.c.cons. */
+  /* had better match.  See <design/interface-c/#cons>. */
   CHECKL(sizeof(mps_word_t) == sizeof(void *));
   CHECKL(CHECKTYPE(mps_word_t, Word));
 
@@ -100,8 +100,8 @@ static Bool mpsi_check(void)
   CHECKL(CHECKTYPE(mps_addr_t, Addr));
 
   /* The external idea of size and the internal one had */
-  /* better match.  See design.mps.interface.c.cons.size */
-  /* and design.mps.interface.c.pun.size. */
+  /* better match.  See <design/interface-c/#cons.size> */
+  /* and <design/interface-c/#pun.size>. */
   CHECKL(CHECKTYPE(size_t, Size));
 
   /* Check ap_s/APStruct compatibility by hand */
@@ -146,7 +146,7 @@ static Bool mpsi_check(void)
   /* are not equal.  See impl.h.mpmst.ss.  CHECKFIELDAPPROX */
   /* is used on the fix field because its type is punned and */
   /* therefore isn't exactly checkable.  See */
-  /* design.mps.interface.c.pun.addr. */
+  /* <design/interface-c/#pun.addr>. */
   CHECKL(CHECKFIELDAPPROX(mps_ss_s, fix, ScanStateStruct, fix));
   CHECKL(CHECKFIELD(mps_ss_s, w0, ScanStateStruct, zoneShift));
   CHECKL(CHECKFIELD(mps_ss_s, w1, ScanStateStruct, white));
@@ -461,7 +461,7 @@ mps_bool_t mps_arena_has_addr(mps_arena_t mps_arena, mps_addr_t p)
  *
  * .fmt.create.A.purpose: This function converts an object format spec
  * of variant "A" into an MPM Format object.  See
- * design.mps.interface.c.fmt.extend for justification of the way that
+ * <design/interface-c/#fmt.extend> for justification of the way that
  * the format structure is declared as "mps_fmt_A".  */
 
 mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
@@ -653,7 +653,7 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t mps_pool, size_t size, ...)
   AVERT(Pool, pool);
   AVER(size > 0);
   /* Note: class may allow unaligned size, see */
-  /* design.mps.class-interface.alloc.size.align. */
+  /* <design/class-interface/#alloc.size.align>. */
   /* Rest ignored, see .varargs. */
 
   /* @@@@ There is currently no requirement for reservoirs to work */
@@ -693,7 +693,7 @@ void mps_free(mps_pool_t mps_pool, mps_addr_t p, size_t size)
   AVER(PoolHasAddr(pool, p));
   AVER(size > 0);
   /* Note: class may allow unaligned size, see */
-  /* design.mps.class-interface.alloc.size.align. */
+  /* <design/class-interface/#alloc.size.align>. */
 
   PoolFree(pool, (Addr)p, size);
   ArenaLeave(arena);
@@ -852,7 +852,7 @@ mps_bool_t (mps_commit)(mps_ap_t mps_ap, mps_addr_t p, size_t size)
 
 /* mps_ap_frame_push -- push a new allocation frame
  *
- * See design.mps.alloc-frame.lw-frame.push. */
+ * See <design/alloc-frame/#lw-frame.push>. */
 
 mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
 {
@@ -893,7 +893,7 @@ mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
 
 /* mps_ap_frame_pop -- push a new allocation frame
  *
- * See design.mps.alloc-frame.lw-frame.pop.  */
+ * See <design/alloc-frame/#lw-frame.pop>.  */
 
 mps_res_t (mps_ap_frame_pop)(mps_ap_t mps_ap, mps_frame_t frame)
 {
@@ -1402,7 +1402,7 @@ void mps_ld_reset(mps_ld_t mps_ld, mps_arena_t mps_arena)
 
 /* mps_ld_add -- add a reference to a location dependency
  *
- * See design.mps.interface.c.lock-free.  */
+ * See <design/interface-c/#lock-free>.  */
 
 void mps_ld_add(mps_ld_t mps_ld, mps_arena_t mps_arena, mps_addr_t addr)
 {
@@ -1415,7 +1415,7 @@ void mps_ld_add(mps_ld_t mps_ld, mps_arena_t mps_arena, mps_addr_t addr)
 
 /* mps_ld_merge -- merge two location dependencies
  *
- * See design.mps.interface.c.lock-free.  */
+ * See <design/interface-c/#lock-free>.  */
 
 void mps_ld_merge(mps_ld_t mps_ld, mps_arena_t mps_arena,
                   mps_ld_t mps_from)
@@ -1430,7 +1430,7 @@ void mps_ld_merge(mps_ld_t mps_ld, mps_arena_t mps_arena,
 
 /* mps_ld_isstale -- check whether a location dependency is "stale"
  *
- * See design.mps.interface.c.lock-free.  */
+ * See <design/interface-c/#lock-free>.  */
 
 mps_bool_t mps_ld_isstale(mps_ld_t mps_ld, mps_arena_t mps_arena,
                           mps_addr_t addr)

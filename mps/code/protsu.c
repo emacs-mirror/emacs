@@ -5,8 +5,8 @@
  *
  * DESIGN
  *
- * see design.mps.prot for the generic design (including the interface),
- * and design.mps.protsu for the design specific to this implementation.
+ * see <design/prot/> for the generic design (including the interface),
+ * and <design/protsu/> for the design specific to this implementation.
  *
  * TRANSGRESSIONS
  *
@@ -153,7 +153,7 @@ void ProtSetup(void)
 {
   handler_t next;
 
-  /* ProtSetup is called exactly once, see design.mps.prot.if.setup */
+  /* ProtSetup is called exactly once, see <design/prot/#if.setup> */
   AVER(sigNext == NULL);
 
   next = signal(SIGSEGV, sigHandle);
@@ -206,7 +206,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
 
   /* 2nd arg to mprotect, .assume.size */
   if(mprotect((caddr_t)base, (int)AddrOffset(base, limit), flags) != 0) {
-    /* design.mps.protsu.fun.set.assume.mprotect */
+    /* <design/protsu/#fun.set.assume.mprotect> */
     NOTREACHED;
   }
 }

@@ -5,7 +5,7 @@
  *
  * DESIGN
  *
- * .design: See design.mps.protocol
+ * .design: See <design/protocol/>
  */
 
 #include "mpm.h"

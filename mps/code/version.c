@@ -10,7 +10,7 @@
  *
  * DESIGN
  *
- * .design: See design.mps.version-library, but to let you in on a
+ * .design: See <design/version/>-library, but to let you in on a
  * secret it works by declaring a string with all the necessary info
  * in.
  */

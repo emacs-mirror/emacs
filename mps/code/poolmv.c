@@ -113,7 +113,7 @@ static Bool MVBlockCheck(MVBlock block)
 
 typedef struct MVSpanStruct *MVSpan;
 typedef struct MVSpanStruct {
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
   RingStruct spans;             /* all the spans */
   MV mv;                        /* owning MV pool */
   Tract tract;                  /* first tract of the span */

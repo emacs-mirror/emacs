@@ -5,7 +5,7 @@
  *
  * DESIGN
  *
- * See design.mps.poolmrg.test.
+ * See <design/poolmrg/#test>.
  *
  * DEPENDENCIES
  *
@@ -104,7 +104,7 @@ static void *test(void *arg, size_t s)
       "root_create\n");
   die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create\n");
 
-  /* design.mps.poolmrg.test.promise.ut.alloc */
+  /* <design/poolmrg/#test.promise.ut.alloc> */
   for(i = 0; i < rootCOUNT; ++i) {
     do {
       MPS_RESERVE_BLOCK(e, p, ap, slotSIZE);
@@ -117,7 +117,7 @@ static void *test(void *arg, size_t s)
   }
   p = NULL;
 
-  /* design.mps.poolmrg.test.promise.ut.drop */
+  /* <design/poolmrg/#test.promise.ut.drop> */
   for(i = 0; i < rootCOUNT; ++i) {
     if (rnd() % 2 == 0)
       root[i] = NULL;
@@ -125,7 +125,7 @@ static void *test(void *arg, size_t s)
 
   mps_message_type_enable(arena, mps_message_type_finalization());
 
-  /* design.mps.poolmrg.test.promise.ut.churn */
+  /* <design/poolmrg/#test.promise.ut.churn> */
   while(mps_collections(arena) < 3) {
     churn(ap);
     while(mps_message_poll(arena)) {
@@ -133,21 +133,21 @@ static void *test(void *arg, size_t s)
       mps_word_t objind;
       mps_addr_t objaddr;
 
-      /* design.mps.poolmrg.test.promise.ut.message */
+      /* <design/poolmrg/#test.promise.ut.message> */
       cdie(mps_message_get(&message, arena, mps_message_type_finalization()),
            "get");
       mps_message_finalization_ref(&objaddr, arena, message);
       obj = objaddr;
       objind = dylan_int_int(obj[2]);
       printf("Finalizing: object %lu at %p\n", objind, objaddr);
-      /* design.mps.poolmrg.test.promise.ut.final.check */
+      /* <design/poolmrg/#test.promise.ut.final.check> */
       cdie(root[objind] == NULL, "died");
       root[objind] = objaddr;
       mps_message_discard(arena, message);
     }
   }
 
-  /* @@@@ design.mps.poolmrg.test.promise.ut.nofinal.check missing */
+  /* @@@@ <design/poolmrg/#test.promise.ut.nofinal.check> missing */
 
   mps_ap_destroy(ap);
   mps_root_destroy(mps_root[1]);

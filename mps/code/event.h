@@ -9,7 +9,7 @@
  *
  * DESIGN
  *
- * .design: design.mps.telemetry.
+ * .design: <design/telemetry/>.
  */
 
 #ifndef event_h
@@ -34,7 +34,7 @@ extern void EventLabelAddr(Addr, Word);
 extern Res EventFlush(void);
 
 
-/* Event Kinds --- see design.mps.telemetry
+/* Event Kinds --- see <design/telemetry/>
  *
  * All events are classified as being of one event type.
  * They are small enough to be able to be used as shifts within a word.

@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .design: design.mps.trace.  */
+ * .design: <design/trace/>.  */
 
 #include "chain.h"
 #include "mpm.h"
@@ -101,7 +101,7 @@ static MessageClassStruct TraceMessageClassStruct = {
   TraceMessageLiveSize,          /* GCLiveSize */
   TraceMessageCondemnedSize,     /* GCCondemnedSize */
   TraceMessageNotCondemnedSize,  /* GCNotCondemnedSize */
-  MessageClassSig                /* design.mps.message.class.sig.double */
+  MessageClassSig                /* <design/message/#class.sig.double> */
 };
 
 static void TraceMessageInit(Arena arena, TraceMessage tMessage)
@@ -578,7 +578,7 @@ static void traceFlip(Trace trace)
   /* needs to change when we flip later (i.e. have a read-barrier     */
   /* collector), so that we allocate grey or white before the flip    */
   /* and black afterwards. For instance, see                          */
-  /* design.mps.poolams.invariant.alloc.                              */
+  /* <design/poolams/#invariant.alloc>.                              */
 
   /* Now that the mutator is black we must prevent it from reading */
   /* grey objects so that it can't obtain white pointers.  This is */
@@ -640,7 +640,7 @@ Res TraceCreate(Trace *traceReturn, Arena arena)
 
 found:
   trace = ArenaTrace(arena, ti);
-  AVER(trace->sig == SigInvalid);       /* design.mps.arena.trace.invalid */
+  AVER(trace->sig == SigInvalid);       /* <design/arena/#trace.invalid> */
 
   trace->arena = arena;
   trace->white = ZoneSetEMPTY;
@@ -945,7 +945,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
       });
 
     /* following is true whether or not scan was total */
-    /* See design.mps.scan.summary.subset. */
+    /* See <design/scan/#summary.subset>. */
     AVER(RefSetSub(ss.unfixedSummary, SegSummary(seg)));
 
     if (res != ResOK || !wasTotal) {
@@ -1057,7 +1057,7 @@ Res TraceFix(ScanState ss, Ref *refIO)
   Tract tract;
   Pool pool;
 
-  /* See design.mps.trace.fix.noaver */
+  /* See <design/trace/#fix.noaver> */
   AVERT_CRITICAL(ScanState, ss);
   AVER_CRITICAL(refIO != NULL);
 
@@ -1085,7 +1085,7 @@ Res TraceFix(ScanState ss, Ref *refIO)
       }
     } else {
       /* Tract isn't white. Don't compute seg for non-statistical */
-      /* variety. See design.mps.trace.fix.tractofaddr */
+      /* variety. See <design/trace/#fix.tractofaddr> */
       STATISTIC_STAT
         ({
           Seg seg;
@@ -1096,12 +1096,12 @@ Res TraceFix(ScanState ss, Ref *refIO)
         });
     }
   } else {
-    /* See design.mps.trace.exact.legal */
+    /* See <design/trace/#exact.legal> */
     AVER(ss->rank < RankEXACT
          || !ArenaIsReservedAddr(ss->arena, ref));
   }
 
-  /* See design.mps.trace.fix.fixed.all */
+  /* See <design/trace/#fix.fixed.all> */
   ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, *refIO);
 
   return ResOK;
@@ -1138,7 +1138,7 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
       }
     } else {
       /* Tract isn't white. Don't compute seg for non-statistical */
-      /* variety. See design.mps.trace.fix.tractofaddr */
+      /* variety. See <design/trace/#fix.tractofaddr> */
       STATISTIC_STAT
         ({
           Seg seg;
@@ -1149,12 +1149,12 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
         });
     }
   } else {
-    /* See design.mps.trace.exact.legal */
+    /* See <design/trace/#exact.legal> */
     AVER(ss->rank < RankEXACT ||
          !ArenaIsReservedAddr(ss->arena, ref));
   }
 
-  /* See design.mps.trace.fix.fixed.all */
+  /* See <design/trace/#fix.fixed.all> */
   ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, *refIO);
 
   return ResOK;
@@ -1358,7 +1358,7 @@ double TraceWorkFactor = 0.25;
  * recently returned from TraceCreate, with some condemned segments
  * added.  mortality is the fraction of the condemned set expected to
  * survive.  finishingTime is relative to the current polling clock, see
- * design.mps.arena.poll.clock.
+ * <design/arena/#poll.clock>.
  *
  * .start.black: All segments are black w.r.t. a newly allocated trace.
  * However, if TraceStart initialized segments to black when it

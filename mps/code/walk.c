@@ -254,11 +254,11 @@ static Res RootsWalkFix(ScanState ss, Ref *refIO)
       rsc->f((mps_addr_t*)refIO, (mps_root_t)rsc->root, rsc->p, rsc->s);
     }
   } else {
-    /* See design.mps.trace.exact.legal */
+    /* See <design/trace/#exact.legal> */
     AVER(ss->rank < RankEXACT || !ArenaIsReservedAddr(arena, ref));
   }
 
-  /* See design.mps.trace.fix.fixed.all */
+  /* See <design/trace/#fix.fixed.all> */
   ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, *refIO);
 
   AVER(ref == *refIO);  /* can walk object graph - but not modify it */

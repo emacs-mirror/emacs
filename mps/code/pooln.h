@@ -31,7 +31,7 @@ extern PoolClass PoolClassN(void);
 /* PoolNCheck -- check a pool of class N
  *
  * Validates a PoolN object.  This function conforms to the validation
- * protocol defined in design.mps.check.
+ * protocol defined in <design/check/>.
  */
 
 extern Bool PoolNCheck(PoolN poolN);

@@ -14,7 +14,7 @@
 SRCID(reserv, "$Id$");
 
 
-/* The reservoir pool is defined here. See design.mps.reservoir */
+/* The reservoir pool is defined here. See <design/reservoir/> */
 
 #define Pool2Reservoir(pool) PARENT(ReservoirStruct, poolStruct, pool)
 
@@ -129,7 +129,7 @@ static Bool reservoirIsConsistent(Reservoir reservoir)
   if (size != reservoir->reservoirSize)
     return FALSE;
 
-  /* design.mps.reservoir.align */
+  /* <design/reservoir/#align> */
   return SizeIsAligned(reservoir->reservoirLimit, alignment)
          && SizeIsAligned(reservoir->reservoirSize, alignment)
          && (reservoir->reservoirLimit >= reservoir->reservoirSize);
@@ -332,12 +332,12 @@ void ReservoirSetLimit(Reservoir reservoir, Size size)
 
   if (size > 0) {
     Size wastage;
-    /* design.mps.reservoir.wastage */
+    /* <design/reservoir/#wastage> */
     wastage = ArenaAlign(arena) * mutatorBufferCount(ArenaGlobals(arena));
-    /* design.mps.reservoir.align */
+    /* <design/reservoir/#align> */
     needed = SizeAlignUp(size, ArenaAlign(arena)) + wastage;
   } else {
-    needed = 0; /* design.mps.reservoir.really-empty */
+    needed = 0; /* <design/reservoir/#really-empty> */
   }
 
   AVER(SizeIsAligned(needed, ArenaAlign(arena)));
@@ -388,7 +388,7 @@ Res ReservoirInit(Reservoir reservoir, Arena arena)
   reservoir->reservoirSize = (Size)0;
   reservoir->reserve = NULL;
   reservoir->sig = ReservoirSig;
-  /* initialize the reservoir pool, design.mps.reservoir */
+  /* initialize the reservoir pool, <design/reservoir/> */
   res = PoolInit(&reservoir->poolStruct,
                  arena, EnsureReservoirPoolClass());
   if (res == ResOK) {

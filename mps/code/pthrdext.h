@@ -30,7 +30,7 @@ typedef struct PThreadextStruct *PThreadext;
  */
 
 typedef struct PThreadextStruct {
-  Sig sig;                         /* design.mps.sig */
+  Sig sig;                         /* <design/sig/> */
   pthread_t id;                    /* Thread ID */
   MutatorFaultContext suspendedMFC; /* context if suspended */
   RingStruct threadRing;           /* ring of suspended threads */
