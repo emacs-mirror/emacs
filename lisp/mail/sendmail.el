@@ -96,10 +96,15 @@ nil means let mailer mail back a message to report errors."
 
 ;; Useful to set in site-init.el
 ;;;###autoload
-(defvar send-mail-function 'sendmail-send-it "\
+(defcustom send-mail-function 'sendmail-send-it "\
 Function to call to send the current buffer as mail.
 The headers should be delimited by a line which is
-not a valid RFC822 header or continuation line.")
+not a valid RFC822 header or continuation line."
+  :type '(radio (function-item sendmail-send-it)
+		(function-item feedmail-send-it)
+		(function-item smtpmail-send-it)
+		function)
+  :group 'sendmail)
 
 ;;;###autoload
 (defcustom mail-header-separator "--text follows this line--" "\
