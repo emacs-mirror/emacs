@@ -162,7 +162,7 @@ If `auto-fill-mode' is active, re-fill the region to fit the new margin."
 (defun set-right-margin (from to lm)
   "Set the right margin of the region to WIDTH.
 If `auto-fill-mode' is active, re-fill the region to fit the new margin."
-  (interactive "r\nNSet left margin to column: ")
+  (interactive "r\nNSet right margin to width: ")
   (if (interactive-p) (setq lm (prefix-numeric-value lm)))
   (save-excursion
     (goto-char from)
