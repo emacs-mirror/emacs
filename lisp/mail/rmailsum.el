@@ -469,17 +469,23 @@ messages, or backward if NUMBER is negative."
   "Show next message with LABEL.  Defaults to last labels used.
 With prefix argument N moves forward N messages with these labels."
   (interactive "p\nsMove to next msg with labels: ")
-  (save-excursion
-    (set-buffer rmail-buffer)
-    (rmail-next-labeled-message n labels)))
+  (let (msg)
+    (save-excursion
+      (set-buffer rmail-buffer)
+      (rmail-next-labeled-message n labels)
+      (setq msg rmail-current-message))
+    (rmail-summary-goto-msg msg)))
 
 (defun rmail-summary-previous-labeled-message (n labels)
   "Show previous message with LABEL.  Defaults to last labels used.
 With prefix argument N moves backward N messages with these labels."
   (interactive "p\nsMove to previous msg with labels: ")
-  (save-excursion
-    (set-buffer rmail-buffer)
-    (rmail-previous-labeled-message n labels)))
+  (let (msg)
+    (save-excursion
+      (set-buffer rmail-buffer)
+      (rmail-previous-labeled-message n labels)
+      (setq msg rmail-current-message))
+    (rmail-summary-goto-msg msg)))
 
 (defun rmail-summary-next-same-subject (n)
   "Go to the next message in the summary having the same subject.
