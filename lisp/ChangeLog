@@ -1,3 +1,13 @@
+2001-06-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/perl-mode.el (perl-font-lock-syntactic-keywords):
+	New var, to recognize ${ $' and PODs.
+	(perl-font-lock-syntactic-face-function): New function.
+	(perl-mode): Use them.
+	(perl-continuation-line-p): New function, from perl-calculate-indent.
+	(perl-calculate-indent): Use it, to properly handle continuation
+	lines of continuation lines.
+
 2001-06-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* server.el (server-process, server-buffer-clients): Doc fix.
