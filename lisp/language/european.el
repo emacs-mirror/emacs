@@ -291,8 +291,8 @@ but default input method is set to \"german-postfix\"."))
 	    (sample-text . "Spanish (Espa,Aq(Bol)	,A!(BHola!")
 	    (documentation . "\
 This language environment is almost the same as Latin-1,
-but default input method is set to \"spanish-postfix\",
-and select's the Spanish tutorial."))
+but it sets the default input method to \"spanish-postfix\",
+and selects the Spanish tutorial."))
  '("European"))
 
 (set-language-info-alist
@@ -527,7 +527,8 @@ but it selects the Dutch tutorial."))
  'mac-roman 4 ?M "Mac Roman Encoding"
  '(decode-mac-roman . encode-mac-roman)
  (list (cons 'safe-chars (get 'mac-roman-encoder 'translation-table))
-       '(valid-codes (0 . 255))))
+       '(valid-codes (0 . 255))
+       '(mime-charset . macintosh)))
 
 (provide 'european)
 

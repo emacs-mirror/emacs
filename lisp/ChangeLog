@@ -1,3 +1,10 @@
+2002-12-15  Dave Love  <fx@gnu.org>
+
+	* language/european.el (mac-roman): Add mime-charset property.
+
+	* loadup.el (current-language-environment): Set custom-type after
+	language files are loaded.
+
 2002-12-13  Kenichi Handa  <handa@m17n.org>
 
 	* language/european.el (encode-mac-roman): Fix last change.
