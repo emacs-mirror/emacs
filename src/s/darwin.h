@@ -297,11 +297,11 @@ Boston, MA 02111-1307, USA.  */
 struct kboard;
 #endif
 
-
-/* This makes create_process in process.c save and restore signal
-   handlers correctly.  Suggested by Nozomu Ando.*/
-#define POSIX_SIGNALS
-
+/* The following solves the problem that Emacs hangs when evaluating
+   (make-comint "test0" "/nodir/nofile" nil "") when /nodir/nofile
+   does not exist.  */
+#undef HAVE_WORKING_VFORK
+#define vfork fork
 
 #ifdef temacs
 #define malloc unexec_malloc
