@@ -7,6 +7,14 @@
 
 2001-12-24  Richard M. Stallman  <rms@gnu.org>
 
+	* net/net-utils.el (ftp-mode-abbrev-table): Don't define it.
+	(nslookup-mode-abbrev-table): Don't define it.
+	(smbclient-mode-abbrev-table): Don't define it.
+	(ftp-mode): Don't use ftp-mode-abbrev-table; don't enable Abbrev mode.
+	(nslookup-mode, smbclient-mode): Likewise.
+	(network-connection-service-abbrev-alist): Variable deleted.
+	(network-connection-mode-setup): Don't set up abbrev table.
+
 	* faces.el (minibuffer-prompt): New face.
 	(minibuffer-prompt-properties): Add `face' property.
 

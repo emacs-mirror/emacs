@@ -456,23 +456,11 @@ If your system's ping continues until interrupted, you can try setting
   (set
    (make-local-variable 'font-lock-defaults)
    '((nslookup-font-lock-keywords)))
-  (setq local-abbrev-table nslookup-mode-abbrev-table)
-  (abbrev-mode t)
   (setq comint-prompt-regexp nslookup-prompt-regexp)
   (setq comint-input-autoexpand t)
   )
 
 (define-key nslookup-mode-map "\t" 'comint-dynamic-complete)
-
-(define-abbrev nslookup-mode-abbrev-table "e"   "exit")
-(define-abbrev nslookup-mode-abbrev-table "f"   "finger")
-(define-abbrev nslookup-mode-abbrev-table "h"   "help")
-(define-abbrev nslookup-mode-abbrev-table "lse" "lserver")
-(define-abbrev nslookup-mode-abbrev-table "q"   "exit")
-(define-abbrev nslookup-mode-abbrev-table "r"   "root")
-(define-abbrev nslookup-mode-abbrev-table "s"   "set")
-(define-abbrev nslookup-mode-abbrev-table "se"  "server")
-(define-abbrev nslookup-mode-abbrev-table "v"   "viewer")
 
 ;;;###autoload
 (defun dig (host)
@@ -526,14 +514,7 @@ If your system's ping continues until interrupted, you can try setting
 		(default-value 'comint-output-filter-functions))
     (add-hook 'comint-output-filter-functions 'comint-watch-for-password-prompt
 	      nil t))
-  (setq local-abbrev-table ftp-mode-abbrev-table)
-  (abbrev-mode t)
   )
-
-(define-abbrev ftp-mode-abbrev-table "q"    "quit")
-(define-abbrev ftp-mode-abbrev-table "g"    "get")
-(define-abbrev ftp-mode-abbrev-table "p"    "prompt")
-(define-abbrev ftp-mode-abbrev-table "anon" "anonymous")
 
 ;; Occasionally useful
 (define-key ftp-mode-map "\t" 'comint-dynamic-complete)
@@ -585,11 +566,7 @@ If your system's ping continues until interrupted, you can try setting
 		(default-value 'comint-output-filter-functions))
     (add-hook 'comint-output-filter-functions 'comint-watch-for-password-prompt
 	      nil t))
-  (setq local-abbrev-table smbclient-mode-abbrev-table)
-  (abbrev-mode t)
   )
-
-(define-abbrev smbclient-mode-abbrev-table "q"    "quit")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -625,12 +602,6 @@ If your system's ping continues until interrupted, you can try setting
     )
   "Alist of services and associated TCP port numbers.
 This list is not complete.")
-
-(defvar network-connection-service-abbrev-alist nil
-  "Alist of (SERVICE . ABBREVTABLE) for various network services.
-SERVICE can be either a symbol or a number appearing in
-`network-connection-service-alist'.  ABBREVTABLE is the abbrev table
-to use in buffers that talk to that network service.")
 
 ;; Workhorse macro
 (defmacro run-network-program (process-name host port
@@ -807,21 +778,10 @@ from SEARCH-STRING.  With argument, prompt for whois server."
   )
 
 (defun network-connection-mode-setup (host service)
-  (let ((network-abbrev-table
-	 (or
-	  (assoc service network-connection-service-abbrev-alist)
-	  (and (rassoc service network-connection-service-alist)
-	       (assoc
-		(elt (rassoc service network-connection-service-alist) 0)
-		network-connection-service-abbrev-alist)))))
-    (make-local-variable 'network-connection-host)
-    (setq network-connection-host host)
-    (make-local-variable 'network-connection-service)
-    (setq network-connection-service service)
-    (and network-abbrev-table
-	 (setq local-abbrev-table (cdr network-abbrev-table))
-	 (abbrev-mode t)
-	 )))
+  (make-local-variable 'network-connection-host)
+  (setq network-connection-host host)
+  (make-local-variable 'network-connection-service)
+  (setq network-connection-service service)))
 
 ;;;###autoload
 (defun network-connection-to-service (host service)
