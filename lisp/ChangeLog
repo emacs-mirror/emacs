@@ -1,3 +1,8 @@
+2001-10-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Return success when
+	the file says no-byte-compile.
+
 2001-10-08  Miles Bader  <miles@gnu.org>
 
 	* button.el (next-button, previous-button): Respect `skip' property.
@@ -42,7 +47,7 @@
 	the work.
 
 	* apropos.el (apropos-symbol, apropos-label): New button types.
-	(apropos-symbol-button-display-help) 
+	(apropos-symbol-button-display-help)
 	(apropos-label-button-display-help, apropos-next-label-button):
 	New functions.
 	(apropos-mode-map): Make button-buffer-map our parent.
@@ -56,7 +61,7 @@
 
 2001-10-07  Gerd Moellmann  <gerd@gnu.org>
 
-	* emacs-lisp/cl.el (most-positive-fixnum, most-negative-fixnum): 
+	* emacs-lisp/cl.el (most-positive-fixnum, most-negative-fixnum):
 	Remove.
 
 2001-10-05  Richard M. Stallman  <rms@gnu.org>
@@ -89,8 +94,8 @@
 
 2001-10-06  Miles Bader  <miles@gnu.org>
 
-	* rfn-eshadow.el (rfn-eshadow-update-overlay): Use
-	`minibuffer-prompt-end'.
+	* rfn-eshadow.el (rfn-eshadow-update-overlay):
+	Use `minibuffer-prompt-end'.
 
 	* simple.el (previous-matching-history-element): Fix misplaced
 	parentheses.
@@ -137,8 +142,7 @@
 
 	* simple.el (previous-matching-history-element)
 	(next-history-element, next-complete-history-element): Use
-	`minibuffer-' functions instead of calling `field-' functions
-	directly.
+	`minibuffer-' functions instead of calling `field-' functions directly.
 	(minibuffer-prompt-end, minibuffer-contents):
 	(minibuffer-contents-no-properties, delete-minibuffer-contents):
 	Functions removed (now subrs).
@@ -163,8 +167,8 @@
 
 2001-10-04  Andrew Innes  <andrewi@gnu.org>
 
-	* faces.el (face-font-registry-alternatives) [windows-nt]: Make
-	gb2312 an alias for gb2312.1980.
+	* faces.el (face-font-registry-alternatives) [windows-nt]:
+	Make gb2312 an alias for gb2312.1980.
 
 2001-10-04  Stefan Monnier  <monnier@cs.yale.edu>
 
