@@ -1,12 +1,17 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.3) $
+ * $HopeName: MMsrc!mpm.c(MMdevel_lib.6) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
+ *
+ * .readership: MM developers.
+ *
+ * .purpose: Miscellaneous support for the implementation of the MPM
+ * and pool classes.
  */
 
 #include "mpm.h"
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.3) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(MMdevel_lib.6) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -126,4 +131,144 @@ Size (AddrOffset)(Addr base, Addr limit)
 {
   AVER(base <= limit);
   return (Size)((Word)limit - (Word)base);
+}
+
+
+/* WriteWord -- output a textual representation of a word to a stream */
+ 
+static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base, unsigned width)
+{
+  static const char digit[16] = "0123456789ABCDEF";
+  char buf[MPS_WORD_WIDTH + 1]; /* enough for binary, plus one for terminator */
+  unsigned i;
+  int r;
+
+  AVER(stream != NULL);
+  AVER(2 <= base && base <= 16);
+  AVER(width <= MPS_WORD_WIDTH);
+  
+  /* Add digits to the buffer starting at the right-hand end, so that */
+  /* the buffer forms a string representing the number.  A do...while */
+  /* loop is used to ensure that at least one digit (zero) is written */
+  /* when the number is zero. */
+  i = MPS_WORD_WIDTH;
+  buf[i] = '\0';
+  do {
+    --i;
+    buf[i] = digit[w % base];
+    w /= base;
+  } while(w > 0);
+
+  /* If the number is not as wide as the requested field, pad out the */
+  /* buffer with zeros. */
+  while(i > MPS_WORD_WIDTH - width) {
+    --i;
+    buf[i] = digit[0];
+  }
+
+  r = mps_lib_fputs(&buf[i], stream);
+  if(r == mps_lib_EOF)
+    return ResIO;
+
+  return ResOK;
+}
+
+
+/* WriteF -- write formatted output
+ *
+ * .writef.p: There is an assumption that void * fits in Word in
+ * the case of $P.
+ *
+ * .writef.div: Although MPS_WORD_WIDTH/4 appears three times, there
+ * are effectively three separate decisions to format at this width.
+ */
+
+Res WriteF(mps_lib_FILE *stream, ...)
+{
+  const char *format;
+  int r;
+  Res res;
+  va_list args;
+
+  AVER(stream != NULL);
+  
+  va_start(args, stream);
+  
+  for(;;) {
+    format = va_arg(args, const char *);
+    if(format == NULL)
+      break;
+
+    while(*format != '\0') {
+      if(*format != '$') {
+        r = mps_lib_fputc(*format, stream);
+        if(r == mps_lib_EOF)
+          return ResIO;
+      } else {
+        ++format;
+        AVER(*format != '\0');
+
+        switch(*format) {
+          case 'A': {			/* address */
+            Addr addr = va_arg(args, Addr);
+            res = WriteWord(stream, (Word)addr, 0x10, MPS_WORD_WIDTH / 4);
+            if(res != ResOK) return res;
+          } break;
+
+          case 'P': {			/* pointer, see .writef.p */
+            void *p = va_arg(args, void *);
+            res = WriteWord(stream, (Word)p, 0x10, MPS_WORD_WIDTH / 4);
+            if(res != ResOK) return res;
+          } break;
+
+          case 'S': {			/* string */
+            char *s = va_arg(args, char *);
+            r = mps_lib_fputs(s, stream);
+            if(r == mps_lib_EOF)
+              return ResIO;
+          } break;
+        
+          case 'C': {			/* character */
+            char c = va_arg(args, int);
+            r = mps_lib_fputc(c, stream);
+            if(r == mps_lib_EOF)
+              return ResIO;
+          } break;
+        
+          case 'W': {			/* word */
+            Word w = va_arg(args, Word);
+            res = WriteWord(stream, w, 0x10, MPS_WORD_WIDTH / 4);
+            if(res != ResOK) return res;
+          } break;
+
+          case 'U': {			/* decimal */
+            unsigned long u = va_arg(args, unsigned long);
+            res = WriteWord(stream, (Word)u, 10, 0);
+            if(res != ResOK) return res;
+          } break;
+
+          case 'B': {			/* binary */
+            unsigned long u = va_arg(args, unsigned long);
+            res = WriteWord(stream, (Word)u, 2, MPS_WORD_WIDTH);
+            if(res != ResOK) return res;
+          } break;
+        
+          case '$': {			/* dollar char */
+            r = mps_lib_fputc('$', stream);
+            if(r == mps_lib_EOF)
+              return ResIO;
+          } break;
+
+          default:
+          NOTREACHED;
+        }
+      }
+
+      ++format;
+    }
+  }
+  
+  va_end(args);
+  
+  return ResOK;
 }
