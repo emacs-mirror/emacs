@@ -3194,7 +3194,8 @@ appropriate for reading truly binary files.
 `before-change-functions' and `after-change-functions' instead.
 
 ** Code that uses `concat' with integer args now gets an error, as
-long promised.
+long promised.  So does any code that uses derivatives of `concat',
+such as `mapconcat'.
 
 ** The function base64-decode-string now always returns a unibyte
 string.
