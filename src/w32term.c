@@ -3946,8 +3946,12 @@ x_draw_image_foreground (s)
 	     the image.  I believe it's looking better if we do
 	     nothing here for mouse-face.  */
 	  if (s->hl == DRAW_CURSOR)
-            w32_draw_rectangle (s->hdc, s->gc, x, y, s->img->width - 1,
-                                s->img->height - 1);
+	    {
+	      int r = s->img->relief;
+	      if (r < 0) r = -r;
+	      w32_draw_rectangle (s->hdc, s->gc, x - r, y - r ,
+				  s->img->width + r*2 - 1, s->img->height + r*2 - 1);
+	    }
           w32_set_clip_rectangle (s->hdc, NULL);
 	}
     }
@@ -4087,8 +4091,12 @@ w32_draw_image_foreground_1 (s, pixmap)
 	     the image.  I believe it's looking better if we do
 	     nothing here for mouse-face.  */
 	  if (s->hl == DRAW_CURSOR)
-            w32_draw_rectangle (hdc, s->gc, x, y, s->img->width - 1,
-                                s->img->height - 1);
+	    {
+	      int r = s->img->relief;
+	      if (r < 0) r = -r;
+	      w32_draw_rectangle (s->hdc, s->gc, x - r, y - r ,
+				  s->img->width + r*2 - 1, s->img->height + r*2 - 1);
+	    }
 	}
     }
   else
