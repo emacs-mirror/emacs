@@ -112,6 +112,8 @@
       (garbage-collect)
       (load "ls-lisp")
       (garbage-collect)
+      (load "disp-table") ; needed to setup ibm-pc char set, see internal.el
+      (garbage-collect)
       (load "winnt")
       (garbage-collect)))
 (if (eq system-type 'ms-dos)
