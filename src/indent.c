@@ -631,7 +631,7 @@ being displayed, perhaps because the line was continued within it.\n\
 If OFFSETS is nil, HSCROLL and TAB-OFFSET are assumed to be zero.\n\
 \n\
 The value is a list of five elements:\n\
-  (POS VPOS HPOS PREVHPOS CONTIN)\n\
+  (POS HPOS VPOS PREVHPOS CONTIN)\n\
 POS is the buffer position where the scan stopped.\n\
 VPOS is the vertical position where the scan stopped.\n\
 HPOS is the horizontal position where the scan stopped.\n\
@@ -679,9 +679,9 @@ visible section of the buffer, and pass LINE and COL as TOPOS.")
 			XINT (width), hscroll, tab_offset);
 
   XFASTINT (bufpos) = pos->bufpos;
-  XFASTINT (hpos) = pos->hpos;
+  XSET (hpos, Lisp_Int, pos->hpos);
   XSET (vpos, Lisp_Int, pos->vpos);
-  XFASTINT (prevhpos) = pos->prevhpos;
+  XSET (prevhpos, Lisp_Int, pos->prevhpos);
 
   return Fcons (bufpos,
 		Fcons (hpos,
