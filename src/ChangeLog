@@ -1,3 +1,7 @@
+2003-04-07  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* Makefile.in (md5.o): Add missing dependency info.
+
 2003-04-06  Richard M. Stallman  <rms@gnu.org>
 
 	* xselect.c (x_handle_selection_request): Move UNGCPRO to very end.
@@ -11,7 +15,7 @@
 
 	* intervals.h (CHECK_TOTAL_LENGTH): New macro.
 	* intervals.c: Add many calls to CHECK_TOTAL_LENGTH.
-	
+
 	* alloc.c: (VALIDATE_LISP_STORAGE): Macro deleted.
 	All calls deleted.
 	(lisp_malloc): Do the work here directly.
