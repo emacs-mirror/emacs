@@ -57,14 +57,21 @@ enum syntaxcode
 #define SYNTAX_MATCH(c) \
   ((XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) >> 8) & 0377)
 
-/* Then there are five single-bit flags that have the following meanings:
+/* Then there are six single-bit flags that have the following meanings:
   1. This character is the first of a two-character comment-start sequence.
   2. This character is the second of a two-character comment-start sequence.
   3. This character is the first of a two-character comment-end sequence.
   4. This character is the second of a two-character comment-end sequence.
   5. This character is a prefix, for backward-prefix-chars.
- Note that any two-character sequence whose first character has flag 1
-  and whose second character has flag 2 will be interpreted as a comment start. */
+  Note that any two-character sequence whose first character has flag 1
+  and whose second character has flag 2 will be interpreted as a comment start.
+
+  bit 6 is used to discriminate between two different comment styles.
+  Languages such as C++ allow two orthogonal syntax start/end pairs
+  and bit 6 is used to determine whether a comment-end or Scommentend
+  ends style a or b. Comment start sequences can start style a or b.
+  Style a is always the default.
+  */
 
 #define SYNTAX_COMSTART_FIRST(c) \
   ((XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) >> 16) & 1)
@@ -80,6 +87,10 @@ enum syntaxcode
 
 #define SYNTAX_PREFIX(c) \
   ((XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) >> 20) & 1)
+
+/* extract the comment style bit from the syntax table entry */
+#define SYNTAX_COMMENT_STYLE(c) \
+  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[c]) >> 21) & 1)
 
 /* This array, indexed by a character, contains the syntax code which that
  character signifies (as a char).  For example,
