@@ -66,7 +66,9 @@ c -- Character.\n\
 C -- Command name: symbol with interactive function definition.\n\
 d -- Value of point as number.  Does not do I/O.\n\
 D -- Directory name.\n\
-e -- Mouse click that invoked this command (value of `last-nonmenu-event').\n\
+e -- Event that invoked this command (value of `last-nonmenu-event').\n\
+     This skips events without parameters.\n\
+     If used more than once, the Nth 'e' returns the Nth parameterized event.\n\
 f -- Existing file name.\n\
 F -- Possibly nonexistent file name.\n\
 k -- Key sequence (string).\n\
@@ -159,6 +161,10 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
   Lisp_Object teml;
   Lisp_Object enable;
   int speccount = specpdl_ptr - specpdl;
+
+  /* The index of the next element of this_command_keys to examine for
+     the 'e' interactive code.  */
+  int next_event = 0;
 
   Lisp_Object prefix_arg;
   unsigned char *string;
@@ -391,13 +397,17 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  visargs[i] = Fkey_description (teml);
 	  break;
 
-	case 'e':		/* Mouse click.  */
-	  args[i] = last_command_char;
-	  if (NILP (Fmouse_click_p (args[i])))
-	    error ("%s must be bound to a mouse click.",
+	case 'e':		/* The invoking event.  */
+	  /* Find the next parameterized event.  */
+	  while (next_event < this_command_key_count
+		 && ! EVENT_HAS_PARAMETERS (this_command_keys[next_event]))
+	    next_event++;
+	  if (next_event >= this_command_key_count)
+	    error ("%s must be bound to an event with parameters",
 		   (XTYPE (function) == Lisp_Symbol
 		    ? (char *) XSYMBOL (function)->name->data
-		    : "Command"));
+		    : "command"));
+	  args[i] = this_command_keys[next_event++];
 	  varies[i] = -1;
 	  break;
 
