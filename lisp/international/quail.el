@@ -1340,7 +1340,8 @@ Return the input string."
 	     (overriding-terminal-local-map (quail-translation-keymap))
 	     (generated-events nil)
 	     (input-method-function nil)
-	     (modified-p (buffer-modified-p)))
+	     (modified-p (buffer-modified-p))
+	     last-command-event last-command this-command)
 	(setq quail-current-key ""
 	      quail-current-str ""
 	      quail-translating t)
@@ -1357,9 +1358,10 @@ Return the input string."
 	    (if (if key
 		    (and (commandp cmd) (not (eq cmd 'quail-other-command)))
 		  (eq cmd 'quail-self-insert-command))
-		(let ((last-command-event (aref keyseq (1- (length keyseq))))
-		      (last-command this-command)
-		      (this-command cmd))
+		(progn
+		  (setq last-command-event (aref keyseq (1- (length keyseq)))
+			last-command this-command
+			this-command cmd)
 		  (setq key t)
 		  (condition-case err
 		      (call-interactively cmd)
@@ -1394,7 +1396,8 @@ Return the input string."
 	     (overriding-terminal-local-map (quail-conversion-keymap))
 	     (generated-events nil)
 	     (input-method-function nil)
-	     (modified-p (buffer-modified-p)))
+	     (modified-p (buffer-modified-p))
+	     last-command-event last-command this-command)
 	(setq quail-current-key ""
 	      quail-current-str ""
 	      quail-translating t
@@ -1420,9 +1423,10 @@ Return the input string."
 			  nil nil t))
 		 (cmd (lookup-key (quail-conversion-keymap) keyseq)))
 	    (if (if key (commandp cmd) (eq cmd 'quail-self-insert-command))
-		(let ((last-command-event (aref keyseq (1- (length keyseq))))
-		      (last-command this-command)
-		      (this-command cmd))
+		(progn
+		  (setq last-command-event (aref keyseq (1- (length keyseq)))
+			last-command this-command
+			this-command cmd)
 		  (setq key t)
 		  (condition-case err
 		      (call-interactively cmd)
