@@ -587,16 +587,14 @@ extern int iso_charset_table[2][2][128];
    MULTIBYTE_FORM_LENGTH.  */
 
 #define STRING_CHAR_AND_LENGTH(str, len, actual_len)	    	\
-  ((BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) == 1	    	\
-    || BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) > (len))	\
+  (BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) == 1		\
    ? (actual_len = 1), (unsigned char) *(str)		    	\
    : string_to_non_ascii_char (str, len, &actual_len, 0))
 
 /* This is like STRING_CHAR_AND_LENGTH but the third arg ACTUAL_LEN
    does not include garbage bytes following the multibyte character.  */
-#define STRING_CHAR_AND_CHAR_LENGTH(str, len, actual_len)	    	\
-  ((BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) == 1	    	\
-    || BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) > (len))	\
+#define STRING_CHAR_AND_CHAR_LENGTH(str, len, actual_len)    	\
+  (BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) == 1		\
    ? (actual_len = 1), (unsigned char) *(str)		    	\
    : string_to_non_ascii_char (str, len, &actual_len, 1))
 
