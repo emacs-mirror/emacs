@@ -1,3 +1,8 @@
+2004-02-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Vmouse_events): Rename from Vmenu_events.
+	(syms_of_keymap): Add mouse-[45], header-line, and mode-line to it.
+
 2004-02-04  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (Fset_char_table_range): Handle charsets ascii,
@@ -21,17 +26,16 @@
 	(x_check_property_data, x_fill_property_data)
 	(x_property_data_to_lisp, mouse_position_for_drop)
 	(Fx_get_atom_name, x_handle_dnd_message): New functions for DND support.
-	(Fx_send_client_event): Moved here from xfns.c.
+	(Fx_send_client_event): Move here from xfns.c.
 	(syms_of_xselect): Add Sx_get_atom_name and Sx_send_client_message.
 
-	* xfns.c (x-send-client-message): Moved to xselect.c
+	* xfns.c (x-send-client-message): Move to xselect.c
 	(Fx_change_window_property): Add optional arguments TYPE, FORMAT and
 	OUTER_P.
 	(Fx_window_property): Add optional arguments TYPE, SOURCE, DELETE_P,
 	VECTOR_RET_P.  Handle AnyPropertyType.  Call x_property_data_to_lisp
 	if vector_ret_p is true.
 	(syms_of_xfns): Sx_send_client_message moved to xselect.c.
-	
 
 2004-02-02  Eli Zaretskii  <eliz@elta.co.il>
 
@@ -78,10 +82,9 @@
 
 2004-01-27  Steven Tamm <steventamm@mac.com>
 
-	* macterm.c (make_mac_frame, make_mac_terminal_frame): Move
-	setting of scroll bars from make_mac_frame to
-	make_mac_terminal_frame to prevent clobbering of
-	scroll-bar-mode.
+	* macterm.c (make_mac_frame, make_mac_terminal_frame):
+	Move setting of scroll bars from make_mac_frame to
+	make_mac_terminal_frame to prevent clobbering of scroll-bar-mode.
 
 2004-01-26  Richard M. Stallman  <rms@gnu.org>
 
