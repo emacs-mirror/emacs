@@ -2030,49 +2030,24 @@ x_set_scroll_bar_default_width (f)
 
 /* Subroutines of creating a frame.  */
 
-static char *
-mac_get_rdb_resource (rdb, resource)
-     char *rdb;
-     char *resource;
-{
-  char *value = rdb;
-  int len = strlen (resource);
-
-  while (*value)
-    {
-      if ((strncmp (value, resource, len) == 0) && (value[len] == ':'))
-        return xstrdup (&value[len + 1]);
-
-      value = strchr (value, '\0') + 1;
-    }
-
-  return NULL;
-}
-
 /* Retrieve the string resource specified by NAME with CLASS from
-   database RDB. */
+   database RDB.
+
+   The return value points to the contents of a Lisp string.  So it
+   will not be valid after the next GC where string compaction will
+   occur.  */
 
 char *
 x_get_string_resource (rdb, name, class)
      XrmDatabase rdb;
      char *name, *class;
 {
-  if (rdb)
-    {
-      char *resource;
+  Lisp_Object value = xrm_get_resource (rdb, name, class);
 
-      if (resource = mac_get_rdb_resource (rdb, name))
-        return resource;
-      if (resource = mac_get_rdb_resource (rdb, class))
-        return resource;
-    }
-
-  /* MAC_TODO: implement resource strings.  (Maybe Property Lists?)  */
-#if 0
-  return mac_get_string_resource (name, class);
-#else
-  return (char *)0;
-#endif
+  if (STRINGP (value))
+    return SDATA (value);
+  else
+    return NULL;
 }
 
 /* Return the value of parameter PARAM.
