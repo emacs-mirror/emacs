@@ -1,5 +1,5 @@
 #! /usr/bin/perl
-# $Id: grep-changelog,v 1.3 2000/06/14 07:09:42 meyering Exp $
+# $Id: grep-changelog,v 1.4 2001/07/20 09:59:19 gerd Exp $
 
 # Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 #
@@ -89,6 +89,8 @@ if ($version) {
 sub header_match_p ($) {
     my $header = shift;
 
+    return 0 unless $header;
+
     # No match if AUTHOR-regexp specified and doesn't match.
     return 0 if $author && $header !~ /$author/;
 
@@ -116,6 +118,8 @@ sub header_match_p ($) {
 
 sub entry_match_p ($) {
     my $entry = shift;
+
+    return 0 unless $entry;
 
     if ($regexp) {
 	return 1 if ($entry =~ /$regexp/
