@@ -324,10 +324,13 @@ save_excursion_restore (info)
 
   tem1 = current_buffer->mark_active;
   current_buffer->mark_active = Fcdr (tem);
-  if (! NILP (current_buffer->mark_active))
-    call1 (Vrun_hooks, intern ("activate-mark-hook"));
-  else if (! NILP (tem1))
-    call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
+  if (!NILP (Vrun_hooks))
+    {
+      if (! NILP (current_buffer->mark_active))
+	call1 (Vrun_hooks, intern ("activate-mark-hook"));
+      else if (! NILP (tem1))
+	call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
+    }
   return Qnil;
 }
 
