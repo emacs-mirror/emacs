@@ -1,5 +1,13 @@
 2000-12-04  Kenichi Handa  <handa@etl.go.jp>
 
+	* xfaces.c (struct font_name): New member registry_priority.
+	(split_font_name): Initialize the above member to zero.
+	(concat_font_list): New function.
+	(font_list): Include fonts of all alternative registries.
+	(FONT_POINT_SIZE_QUANTUM): New macro.
+	(better_font_p): Ignore point size difference less than
+	FONT_POINT_SIZE_QUANTUM.  Use registry_prioprity as a last resort.
+
 	* xterm.c (x_produce_glyphs): If a font for a component of
 	a composition is not found, use 1 pixel dot ascent and 0 dot
 	descent value to avoid displaying terribly tall empty boxes.

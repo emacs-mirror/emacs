@@ -1,3 +1,11 @@
+2000-12-04  Kenichi Handa  <handa@etl.go.jp>
+
+	* faces.el (face-font-registry-alternatives): Add entries for CJK
+	fonts.  Doc-string adjusted for the actual usage of this data.
+
+	* international/fontset.el: Change the font registries for CJK
+	fonts in the default fontset.  Don't append '*' to registries.
+
 2000-12-03  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/easy-mmode.el (define-derived-mode) 
