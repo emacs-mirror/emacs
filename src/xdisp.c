@@ -1546,17 +1546,21 @@ redisplay_region (buf, start, end)
    Value is T, advanced past the copied data.  */
 
 GLYPH *
-copy_rope (t, s, from)
+copy_rope (t, s, from, face)
      register GLYPH *t; /* Copy to here. */
      register GLYPH *s; /* Starting point. */
-     Lisp_Object from;    /* Data to copy; known to be a vector.  */
+     Lisp_Object from;  /* Data to copy; known to be a vector.  */
+     int face;		/* Face to apply to glyphs which don't specify one. */
 {
   register int n = XVECTOR (from)->size;
   register Lisp_Object *f = XVECTOR (from)->contents;
 
   while (n--)
     {
-      if (t >= s) *t = *f;
+      if (t >= s) *t = MAKE_GLYPH (GLYPH_CHAR (*f),
+				   (GLYPH_FACE (*f)
+				    ? GLYPH_FACE (*f)
+				    : face));
       ++t;
       ++f;
     }
@@ -1567,18 +1571,22 @@ copy_rope (t, s, from)
    But don't alter words before S.  */
 
 GLYPH *
-copy_part_of_rope (t, s, from, len)
+copy_part_of_rope (t, s, from, len, face)
      register GLYPH *t; /* Copy to here. */
      register GLYPH *s; /* Starting point. */
-     Lisp_Object *from;    /* Data to copy; known to be a vector.  */
+     Lisp_Object *from;  /* Data to copy. */
      int len;
+     int face;		/* Face to apply to glyphs which don't specify one. */
 {
   int n = len;
   register Lisp_Object *f = from;
 
   while (n--)
     {
-      if (t >= s) *t = *f;
+      if (t >= s) *t = MAKE_GLYPH (GLYPH_CHAR (*f),
+				   (GLYPH_FACE (*f)
+				    ? GLYPH_FACE (*f)
+				    : face));
       ++t;
       ++f;
     }
@@ -1662,7 +1670,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
   int next_face_change;
 
   /* The face we're currently using.  */
-  int current_face;
+  int current_face = 0;
 
   XFASTINT (default_invis_vector[2]) = '.';
   default_invis_vector[0] = default_invis_vector[1] = default_invis_vector[2];
@@ -1687,6 +1695,13 @@ display_text_line (w, start, vpos, hpos, taboffset)
   startp = desired_glyphs->glyphs[vpos] + XFASTINT (w->left);
   endp = startp + width;
 
+  /* Arrange the overlays nicely for our purposes.  Usually, we call
+     display_text_line on only one line at a time, in which case this
+     can't really hurt too much, or we call it on lines which appear
+     one after another in the buffer, in which case all calls to
+     recenter_overlay_lists but the first will be pretty cheap.  */
+  recenter_overlay_lists (current_buffer, pos);
+
   /* Loop generating characters.
      Stop at end of buffer, before newline,
      if reach or pass continuation column,
@@ -1710,19 +1725,18 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      cursor_hpos = p1 - startp;
 	    }
 
-	  pause = end;
-
 #ifdef HAVE_X_WINDOWS
 	  /* Did we hit a face change?  Figure out what face we should
 	     use now.  We also hit this the first time through the
 	     loop, to see what face we should start with.  */
 	  if (pos == next_face_change)
-	    {
-	      current_face = compute_char_face (f, w, pos, &next_face_change);
-	      if (pos < next_face_change && next_face_change < pause)
-		pause = next_face_change;
-	    }
+	    current_face = compute_char_face (f, w, pos, &next_face_change);
 #endif
+
+	  pause = end;
+
+	  if (pos < next_face_change && next_face_change < pause)
+	    pause = next_face_change;
 
 	  /* Wouldn't you hate to read the next line to someone over
              the phone?  */
@@ -1738,7 +1752,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  && (dp == 0 || XTYPE (DISP_CHAR_VECTOR (dp, c)) != Lisp_Vector))
 	{
 	  if (p1 >= startp)
-	    *p1 = MAKE_GLYPH (c, 0);
+	    *p1 = MAKE_GLYPH (c, current_face);
 	  p1++;
 	}
       else if (c == '\n')
@@ -1759,7 +1773,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      if (p1 - startp > width)
 		p1 = endp;
 	      copy_part_of_rope (p1prev, p1prev, invis_vector_contents,
-				 (p1 - p1prev));
+				 (p1 - p1prev), current_face);
 	    }
 	  break;
 	}
@@ -1768,7 +1782,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  do
 	    {
 	      if (p1 >= startp && p1 < endp)
-		*p1 = SPACEGLYPH;
+		*p1 = MAKE_GLYPH (' ', current_face);
 	      p1++;
 	    }
 	  while ((p1 - startp + taboffset + hscroll - (hscroll > 0))
@@ -1785,23 +1799,23 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      if (p1 - startp > width)
 		p1 = endp;
 	      copy_part_of_rope (p1prev, p1prev, invis_vector_contents,
-				 (p1 - p1prev));
+				 (p1 - p1prev), current_face);
 	    }
 	  break;
 	}
       else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
 	{
-	  p1 = copy_rope (p1, startp, DISP_CHAR_VECTOR (dp, c));
+	  p1 = copy_rope (p1, startp, DISP_CHAR_VECTOR (dp, c), current_face);
 	}
       else if (c < 0200 && ctl_arrow)
 	{
 	  if (p1 >= startp)
 	    *p1 = MAKE_GLYPH ((dp && XTYPE (DISP_CTRL_GLYPH (dp)) == Lisp_Int
 			       ? XINT (DISP_CTRL_GLYPH (dp)) : '^'),
-			      0);
+			      current_face);
 	  p1++;
 	  if (p1 >= startp && p1 < endp)
-	    *p1 = MAKE_GLYPH (c ^ 0100, 0);
+	    *p1 = MAKE_GLYPH (c ^ 0100, current_face);
 	  p1++;
 	}
       else
@@ -1809,60 +1823,21 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  if (p1 >= startp)
 	    *p1 = MAKE_GLYPH ((dp && XTYPE (DISP_ESCAPE_GLYPH (dp)) == Lisp_Int
 			       ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
-			      0);
+			      current_face);
 	  p1++;
 	  if (p1 >= startp && p1 < endp)
-	    *p1 = MAKE_GLYPH ((c >> 6) + '0', 0);
+	    *p1 = MAKE_GLYPH ((c >> 6) + '0', current_face);
 	  p1++;
 	  if (p1 >= startp && p1 < endp)
-	    *p1 = MAKE_GLYPH ((7 & (c >> 3)) + '0', 0);
+	    *p1 = MAKE_GLYPH ((7 & (c >> 3)) + '0', current_face);
 	  p1++;
 	  if (p1 >= startp && p1 < endp)
-	    *p1 = MAKE_GLYPH ((7 & c) + '0', 0);
+	    *p1 = MAKE_GLYPH ((7 & c) + '0', current_face);
 	  p1++;
 	}
-
-#ifdef HAVE_X_WINDOWS
-      /* Now we've laid down some characters between p1prev and p1.
-	 Let's apply current_face to those who have a face of zero
-	 (the default), and apply Vglyph_table to the result.  */
-      if (current_face)
-	{
-	  GLYPH *gstart, *gp, *gend;
-
-	  gstart = (p1prev > startp) ? p1prev : startp;
-	  gend   = (p1     < endp)   ? p1     : endp;
-
-	  for (gp = gstart; gp < gend; gp++)
-	    *gp = MAKE_GLYPH (GLYPH_CHAR (*gp),
-			      (GLYPH_FACE (*gp) == 0
-			       ? current_face
-			       : compute_glyph_face (f, GLYPH_FACE (*gp))));
-	}
-#endif
 
       pos++;
     }
-
-#ifdef HAVE_X_WINDOWS
-  /* If we exited the above loop at end of line,
-     we may have laid down some characters between p1prev and p1.
-     If so, apply current_face to those who have a face of zero
-     (the default), and apply Vglyph_table to the result.  */
-  if (current_face)
-    {
-      GLYPH *gstart, *gp, *gend;
-
-      gstart = (p1prev > startp) ? p1prev : startp;
-      gend   = (p1     < endp)   ? p1     : endp;
-
-      for (gp = gstart; gp < gend; gp++)
-	*gp = MAKE_GLYPH (GLYPH_CHAR (*gp),
-			  (GLYPH_FACE (*gp) == 0
-			   ? current_face
-			   : compute_glyph_face (f, GLYPH_FACE (*gp))));
-    }
-#endif
 
   val.hpos = - XINT (w->hscroll);
   if (val.hpos)
@@ -2672,7 +2647,7 @@ display_string (w, vpos, string, hpos, truncate, mincol, maxcol)
 	  while ((p1 - start + hscroll - (hscroll > 0)) % tab_width);
 	}
       else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
-        p1 = copy_rope (p1, start, DISP_CHAR_VECTOR (dp, c));
+        p1 = copy_rope (p1, start, DISP_CHAR_VECTOR (dp, c), 0);
       else if (c < 0200 && ! NILP (buffer_defaults.ctl_arrow))
 	{
 	  if (p1 >= start)
