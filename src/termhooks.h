@@ -314,7 +314,11 @@ enum event_kind
      help string.  */
   HELP_EVENT,
 
-  TOOL_BAR_EVENT
+  TOOL_BAR_EVENT,
+
+  /* Queued from XTread_socket on FocusIn events.  Translated into
+     `switch-frame' events in kbd_buffer_get_event, if necessary.  */
+  FOCUS_IN_EVENT
 };
 
 /* If a struct input_event has a kind which is selection_request_event
