@@ -659,39 +659,45 @@ Returns nil if line starts inside a string, t if in a comment."
 		     (>= (car indent-stack) 0))
 		;; Line is on an existing nesting level.
 		;; Lines inside parens are handled specially.
-		(if (/= (char-after (car contain-stack)) ?\{)
-		    (setq this-indent (car indent-stack))
-		  ;; Line is at statement level.
-		  ;; Is it a new statement?  Is it an else?
-		  ;; Find last non-comment character before this line
-		  (save-excursion
-		    (setq at-else (looking-at "else\\W"))
-		    (setq at-brace (= (following-char) ?\{))
-		    (c++-backward-to-noncomment opoint)
-		    (if (not (memq (preceding-char) '(nil ?\, ?\; ?\} ?: ?\{)))
-			;; Preceding line did not end in comma or semi;
-			;; indent this line  c-continued-statement-offset
-			;; more than previous.
-			(progn
-			  (c-backward-to-start-of-continued-exp
-			   (car contain-stack))
-			  (setq this-indent
-				(+ c-continued-statement-offset
-				   (current-column)
-				   (if at-brace c-continued-brace-offset 0))))
-		      ;; Preceding line ended in comma or semi;
-		      ;; use the standard indent for this level.
-		      (if at-else
-			  (progn (c-backward-to-start-of-if opoint)
-				 (setq this-indent (current-indentation)))
-			(setq this-indent (car indent-stack))))))
+		nil
 	      ;; Just started a new nesting level.
 	      ;; Compute the standard indent for this level.
-	      (let ((val (calculate-c++-indent
-			  (if (car indent-stack)
-			      (- (car indent-stack))))))
-		(setcar indent-stack
-			(setq this-indent val))))
+	      (let (val)
+		(if (= (char-after (car contain-stack)) ?{)
+		    (save-excursion
+		      (goto-char (car contain-stack))
+		      (setq val (+ c-indent-level (current-column))))
+		  (setq val (calculate-c++-indent
+			     (if (car indent-stack)
+				 (- (car indent-stack))))))
+		(setcar indent-stack val)))
+	    ;; Adjust line indentation according to its predecessor.
+	    (if (/= (char-after (car contain-stack)) ?\{)
+		(setq this-indent (car indent-stack))
+	      ;; Line is at statement level.
+	      ;; Is it a new statement?  Is it an else?
+	      ;; Find last non-comment character before this line
+	      (save-excursion
+		(setq at-else (looking-at "else\\W"))
+		(setq at-brace (= (following-char) ?\{))
+		(c++-backward-to-noncomment opoint)
+		(if (not (memq (preceding-char) '(nil ?\, ?\; ?\} ?: ?\{)))
+		    ;; Preceding line did not end in comma or semi;
+		    ;; indent this line  c-continued-statement-offset
+		    ;; more than previous.
+		    (progn
+		      (c-backward-to-start-of-continued-exp
+		       (car contain-stack))
+		      (setq this-indent
+			    (+ c-continued-statement-offset
+			       (current-column)
+			       (if at-brace c-continued-brace-offset 0))))
+		  ;; Preceding line ended in comma or semi;
+		  ;; use the standard indent for this level.
+		  (if at-else
+		      (progn (c-backward-to-start-of-if opoint)
+			     (setq this-indent (current-indentation)))
+		    (setq this-indent (car indent-stack))))))
 	    ;; Adjust line indentation according to its contents
 	    (if (looking-at "\\(public\\|private\\|protected\\):")
 		(setq this-indent (- this-indent c-indent-level))
