@@ -1178,6 +1178,7 @@ names of tags files in the *Tags List* buffer.
 and preferred and locale coding systems systematically from the
 LC_ALL, LC_CTYPE, and LANG environment variables during startup.
 
++++
 ** New language environments `Polish', `Latin-8' and `Latin-9'.
 Latin-8 and Latin-9 correspond respectively to the ISO character sets
 8859-14 (Celtic) and 8859-15 (updated Latin-1, with the Euro sign).
