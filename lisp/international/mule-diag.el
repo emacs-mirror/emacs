@@ -971,62 +971,66 @@ but still contains full information about each coding system."
       (with-output-to-temp-buffer "*Help*"
 	(describe-font-internal font-info 'verbose)))))
 
-(defun print-fontset (fontset &optional print-fonts)
+(defun print-fontset-element (val)
+  ;; VAL has this format:
+  ;;  ((REQUESTED-FONT-NAME OPENED-FONT-NAME ...) ...)
+  ;; CHAR RANGE is already inserted.  Get character codes from
+  ;; the current line.
+  (beginning-of-line)
+  (let ((from (following-char))
+	(to (if (looking-at "[^.]*[.]* ")
+		(char-after (match-end 0)))))
+    (if (re-search-forward "[ \t]*$" nil t)
+	(delete-region (match-beginning 0) (match-end 0)))
+
+    ;; For non-ASCII characters, insert also CODE RANGE.
+    (if (or (>= from 128) (and to (>= to 128)))
+	(if to
+	    (insert (format " (#x%02X .. #x%02X)" from to))
+	  (insert (format " (#x%02X)" from))))
+
+    ;; Insert a requested font name.
+    (dolist (elt val)
+      (let ((requested (car elt)))
+	(if (stringp requested)
+	    (insert "\n    " requested)
+	  (let ((family (aref requested 0))
+		(registry (aref requested 5)))
+	    (if (not family)
+		(setq family "*-*")
+	      (or (string-match "-" family)
+		  (setq family (concat "*-" family))))
+	    (or (string-match "-" registry)
+		(= (aref registry (1- (length registry))) ?*)
+		(setq registry (concat registry "*")))
+	    (insert "\n    -" family
+		    ?- (or (aref requested 1) ?*) ; weight
+		    ?- (or (aref requested 2) ?*) ; slant
+		    "-*-" (or (aref requested 3) ?*) ; width
+		    "-*-" (or (aref requested 4) ?*) ; adstyle
+		    "-*-*-*-*-*-*-" registry))))
+
+      ;; Insert opened font names (if any).
+      (if (and (boundp 'print-opened) (symbol-value 'print-opened))
+	  (dolist (opened (cdr elt))
+	    (insert "\n\t[" opened "]"))))))
+
+(defun print-fontset (fontset &optional print-opened)
   "Print information about FONTSET.
-If optional arg PRINT-FONTS is non-nil, also print names of all opened
+If optional arg PRINT-OPENED is non-nil, also print names of all opened
 fonts for FONTSET.  This function actually inserts the information in
 the current buffer."
   (beginning-of-line)
   (insert "Fontset: " fontset "\n")
-  (insert "CHAR RANGE (CODE RANGE)\n")
-  (insert "-----------------------\n")
-  (insert "    FONT NAME (REQUESTED and [OPENED])\n")
-  (insert "    ----------------------------------")
-  (describe-vector
-   (fontset-info fontset)
-   #'(lambda (val)
-       ;; VAL has this format:
-       ;;  ((REQUESTED-FONT-NAME OPENED-FONT-NAME ...) ...)
-
-       ;; CHAR RANGE is already inserted.  Get character codes from
-       ;; the current line.
-       (beginning-of-line)
-       (let ((from (following-char))
-	     (to (if (looking-at "[^.]*[.]* ")
-		     (char-after (match-end 0)))))
-	 (if (re-search-forward "[ \t]*$" nil t)
-	     (delete-region (match-beginning 0) (match-end 0)))
-
-	 ;; For non-ASCII characters, insert also CODE RANGE.
-	 (if (>= from 128)
-	     (if to
-		 (insert (format "\t(#x%02X .. #x%02X)" from to))
-	       (insert (format "\t(#x%02X)" from))))
-
-	 ;; Insert a requested font name.
-	 (dolist (elt val)
-	   (let ((requested (car elt)))
-	     (if (stringp requested)
-		 (insert "\n    " requested)
-	       (let ((family (aref requested 0))
-		     (registry (aref requested 5)))
-		 (if (not family)
-		     (setq family "*-*")
-		   (or (string-match "-" family)
-		       (setq family (concat "*-" family))))
-		 (or (string-match "-" registry)
-		     (= (aref registry (1- (length registry))) ?*)
-		     (setq registry (concat registry "*")))
-		 (insert "\n    -" family
-			 ?- (or (aref requested 1) ?*) ; weight
-			 ?- (or (aref requested 2) ?*) ; slant
-			 "-*-" (or (aref requested 3) ?*) ; width
-			 "-*-" (or (aref requested 4) ?*) ; adstyle
-			 "-*-*-*-*-*-*-" registry))))
-
-	   ;; Insert opened font names (if any).
-	   (dolist (opened (cdr elt))
-	     (insert "\n\t[" opened "]")))))))
+  (insert (propertize "CHAR RANGE" 'face 'underline)
+	   " (" (propertize "CODE RANGE" 'face 'underline) ")\n")
+  (insert "    " (propertize "FONT NAME" 'face 'underline)
+	  " (" (propertize "REQUESTED" 'face 'underline)
+	  " and [" (propertize "OPENED" 'face 'underline) "])")
+  (let ((info (fontset-info fontset)))
+    (describe-vector info 'print-fontset-element)
+    (insert "\n  ---<fallback to the default fontset>---")
+    (describe-vector (char-table-extra-slot info 0) 'print-fontset-element)))
 
 ;;;###autoload
 (defun describe-fontset (fontset)
