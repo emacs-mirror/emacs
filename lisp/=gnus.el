@@ -158,6 +158,10 @@ used instead.")
   "*A directory name to save articles to (default to ~/News).
 Initialized from the SAVEDIR environment variable.")
 
+(defvar gnus-kill-files-directory (getenv "SAVEDIR")
+  "*A directory name to save kill files to (default to ~/News).
+Initialized from the SAVEDIR environment variable.")
+
 (defvar gnus-default-article-saver (function gnus-summary-save-in-rmail)
   "*A function to save articles in your favorite format.
 The function must be interactively callable (in other words, it must
@@ -809,9 +813,6 @@ the hash tables.")
 (autoload 'metamail-buffer "metamail"
 	  "Process current buffer through 'metamail'." t)
 
-(autoload 'timezone-make-sortable-date "timezone")
-(autoload 'timezone-parse-date "timezone")
-
 (autoload 'rmail-output "rmailout"
 	  "Append this message to Unix mail file named FILE-NAME." t)
 (autoload 'mail-position-on-field "sendmail")
@@ -1243,6 +1244,7 @@ Various hooks for customization:
   "Read network news.
 If optional argument CONFIRM is non-nil, ask NNTP server."
   (interactive "P")
+  (require 'timezone)
   (unwind-protect
       (progn
 	(switch-to-buffer (get-buffer-create gnus-group-buffer))
@@ -4994,17 +4996,17 @@ If NEWSGROUP is nil, return the global KILL file instead."
 	     (string-equal newsgroup ""))
 	 ;; The global KILL file is placed at top of the directory.
 	 (expand-file-name gnus-kill-file-name
-			   (or gnus-article-save-directory "~/News")))
+			   (or gnus-kill-files-directory "~/News")))
 	(gnus-use-long-file-name
 	 ;; Append ".KILL" to capitalized newsgroup name.
 	 (expand-file-name (concat (gnus-capitalize-newsgroup newsgroup)
 				   "." gnus-kill-file-name)
-			   (or gnus-article-save-directory "~/News")))
+			   (or gnus-kill-files-directory "~/News")))
 	(t
 	 ;; Place "KILL" under the hierarchical directory.
 	 (expand-file-name (concat (gnus-newsgroup-directory-form newsgroup)
 				   "/" gnus-kill-file-name)
-			   (or gnus-article-save-directory "~/News")))
+			   (or gnus-kill-files-directory "~/News")))
 	))
 
 (defun gnus-newsgroup-kill-file (newsgroup)
@@ -5014,16 +5016,16 @@ If NEWSGROUP is nil, return the global KILL file instead."
 	     (string-equal newsgroup ""))
 	 ;; The global KILL file is placed at top of the directory.
 	 (expand-file-name gnus-kill-file-name
-			   (or gnus-article-save-directory "~/News")))
+			   (or gnus-kill-files-directory "~/News")))
 	(gnus-use-long-file-name
 	 ;; Append ".KILL" to newsgroup name.
 	 (expand-file-name (concat newsgroup "." gnus-kill-file-name)
-			   (or gnus-article-save-directory "~/News")))
+			   (or gnus-kill-files-directory "~/News")))
 	(t
 	 ;; Place "KILL" under the hierarchical directory.
 	 (expand-file-name (concat (gnus-newsgroup-directory-form newsgroup)
 				   "/" gnus-kill-file-name)
-			   (or gnus-article-save-directory "~/News")))
+			   (or gnus-kill-files-directory "~/News")))
 	))
 
 ;; For subscribing new newsgroup
