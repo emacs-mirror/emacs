@@ -33,8 +33,8 @@
  "Devanagari" '((charset indian-is13194 mule-unicode-0100-24ff
                          indian-2-column indian-glyph ;; comment out later
                          )
-		(coding-system in-is13194)
-		(coding-priority in-is13194)
+		(coding-system in-is13194-devanagari)
+		(coding-priority in-is13194-devanagari)
 		(input-method . "dev-aiba")
 		(features devan-util)
 		(documentation . "\
