@@ -1,7 +1,7 @@
 /* impl.c.poolabs: ABSTRACT POOL CLASSES
  *
- * $HopeName: MMsrc!poolabs.c(trunk.3) $
- * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!poolabs.c(trunk.4) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
  *
@@ -24,17 +24,19 @@
  *    AbstractPoolClass     - implements init, finish, describe
  *     AbstractAllocFreePoolClass - implements alloc & free
  *     AbstractBufferPoolClass - implements the buffer protocol
- *      AbstractScanPoolClass - implements basic scanning
- *       AbstractCollectPoolClass - implements basic GC 
+ *      AbstractBufferedSegPoolClass - uses BufferedSeg buffer class 
+ *       AbstractScanPoolClass - implements basic scanning
+ *        AbstractCollectPoolClass - implements basic GC 
  */
 
 #include "mpm.h"
 
-SRCID(poolabs, "$HopeName: MMsrc!poolabs.c(trunk.3) $");
+SRCID(poolabs, "$HopeName: MMsrc!poolabs.c(trunk.4) $");
 
 typedef PoolClassStruct AbstractPoolClassStruct;
 typedef PoolClassStruct AbstractAllocFreePoolClassStruct;
 typedef PoolClassStruct AbstractBufferPoolClassStruct;
+typedef PoolClassStruct AbstractBufferedSegPoolClassStruct;
 typedef PoolClassStruct AbstractScanPoolClassStruct;
 typedef PoolClassStruct AbstractCollectPoolClassStruct;
 
@@ -80,6 +82,7 @@ void PoolClassMixInBuffer(PoolClass class)
   /* By default, buffered pools treat frame operations as NOOPs */
   class->framePush = PoolTrivFramePush; 
   class->framePop = PoolTrivFramePop;
+  class->bufferClass = EnsureBufferClass;
 }
 
 
@@ -173,6 +176,7 @@ DEFINE_CLASS(AbstractPoolClass, class)
   class->framePop = PoolNoFramePop;
   class->framePopPending = PoolNoFramePopPending;
   class->walk = PoolNoWalk;
+  class->bufferClass = PoolNoBufferClass;
   class->describe = PoolTrivDescribe;
   class->debugMixin = PoolNoDebugMixin;
   class->labelled = FALSE;
@@ -191,9 +195,15 @@ DEFINE_CLASS(AbstractBufferPoolClass, class)
   PoolClassMixInBuffer(class);
 }
 
-DEFINE_CLASS(AbstractScanPoolClass, class)
+DEFINE_CLASS(AbstractBufferedSegPoolClass, class)
 {
   INHERIT_CLASS(class, AbstractBufferPoolClass);
+  class->bufferClass = EnsureBufferedSegClass;
+}
+
+DEFINE_CLASS(AbstractScanPoolClass, class)
+{
+  INHERIT_CLASS(class, AbstractBufferedSegPoolClass);
   PoolClassMixInScan(class);
 }
 

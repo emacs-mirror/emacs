@@ -1,7 +1,7 @@
 /*  impl.c.than: ANSI THREADS MANAGER
  *
- *  $HopeName: MMsrc!than.c(trunk.18) $
- *  Copyright (C) 1995, 1997 Harlequin Group, all rights reserved
+ *  $HopeName: MMsrc!than.c(trunk.19) $
+ *  Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  *  This is a single-threaded implementation of the threads manager.
  *  Has stubs for thread suspension.
@@ -14,7 +14,7 @@
 
 #include "mpm.h"
 
-SRCID(than, "$HopeName: MMsrc!than.c(trunk.18) $");
+SRCID(than, "$HopeName: MMsrc!than.c(trunk.19) $");
 
 
 typedef struct ThreadStruct {   /* ANSI fake thread structure */
@@ -51,7 +51,8 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
 
   AVER(threadReturn != NULL);
 
-  res = ArenaAlloc(&p, arena, sizeof(ThreadStruct));
+  res = ControlAlloc(&p, arena, sizeof(ThreadStruct), 
+                     /* withReservoirPermit */ FALSE);
   if(res != ResOK) return res;
   thread = (Thread)p;
 
@@ -85,7 +86,7 @@ void ThreadDeregister(Thread thread, Arena arena)
 
   RingFinish(&thread->arenaRing);
 
-  ArenaFree(arena, thread, sizeof(ThreadStruct));
+  ControlFree(arena, thread, sizeof(ThreadStruct));
 }
 
 

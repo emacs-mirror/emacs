@@ -1,7 +1,7 @@
 /* impl.c.ref: REFERENCES
  *
- * $HopeName: MMsrc!ref.c(trunk.8) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved
+ * $HopeName: MMsrc!ref.c(trunk.9) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .def.ref: Ref is an alias for Addr which can be used to document
  * where references are being passed.
@@ -24,7 +24,7 @@
 
 #include "mpm.h"
 
-SRCID(ref, "$HopeName: MMsrc!ref.c(trunk.8) $");
+SRCID(ref, "$HopeName: MMsrc!ref.c(trunk.9) $");
 
 Bool RankCheck(Rank rank)
 {
@@ -42,43 +42,56 @@ Bool RankSetCheck(RankSet rankSet)
 }
 
 
-/* RefSetOfSeg -- calculate the reference set of segment addresses
+/* RefSetOfRange -- calculate the reference set of a range of addresses
  *
- * .rsos.def: The reference set of a segment is the union of the
+ * .rsor.def: The reference set of a segment is the union of the
  * set of potential references _to_ that segment, i.e. of all the
  * addresses the segment occupies.
  *
- * .rsos.zones: The base and limit zones of the segment
+ * .rsor.zones: The base and limit zones of the segment
  * are calculated.  The limit zone is one plus the zone of the last
  * address in the segment, not the zone of the limit address.
  *
- * .rsos.univ: If the segment is large enough to span all zones,
+ * .rsor.univ: If the segment is large enough to span all zones,
  * its reference set is universal.
  *
- * .rsos.swap: If the base zone is less than the limit zone,
+ * .rsor.swap: If the base zone is less than the limit zone,
  * then the reference set looks like 000111100, otherwise it looks like
  * 111000011.
  */
 
-RefSet RefSetOfSeg(Space space, Seg seg)
+RefSet RefSetOfRange(Arena arena, Addr base, Addr limit)
 {
-  Word base, limit;
+  Word zbase, zlimit;
 
-  AVERT(Space, space);
-  AVERT(Seg, seg);
+  AVERT(Arena, arena);
+  AVER(limit > base);
 
-  /* .rsos.zones */
-  base = (Word)SegBase(seg) >> space->zoneShift;
-  limit = (((Word)SegLimit(seg)-1) >> space->zoneShift) + 1;
+  /* .rsor.zones */
+  zbase = (Word)base >> arena->zoneShift;
+  zlimit = (((Word)limit-1) >> arena->zoneShift) + 1;
 
-  if(limit - base >= MPS_WORD_WIDTH)        /* .rsos.univ */
+  if(zlimit - zbase >= MPS_WORD_WIDTH)        /* .rsor.univ */
     return RefSetUNIV;
 
-  base  &= MPS_WORD_WIDTH - 1;
-  limit &= MPS_WORD_WIDTH - 1;
+  zbase  &= MPS_WORD_WIDTH - 1;
+  zlimit &= MPS_WORD_WIDTH - 1;
 
-  if(base < limit)                      /* .rsos.swap */
-    return ((RefSet)1<<limit) - ((RefSet)1<<base);
+  if(zbase < zlimit)                      /* .rsor.swap */
+    return ((RefSet)1<<zlimit) - ((RefSet)1<<zbase);
   else
-    return ~(((RefSet)1<<base) - ((RefSet)1<<limit));
+    return ~(((RefSet)1<<zbase) - ((RefSet)1<<zlimit));
+}
+
+
+/* RefSetOfSeg -- calculate the reference set of segment addresses
+ *
+ */
+
+RefSet RefSetOfSeg(Arena arena, Seg seg)
+{
+  /* arena is checked by RefSetOfRange */
+  AVERT(Seg, seg);
+
+  return RefSetOfRange(arena, SegBase(seg), SegLimit(seg));
 }

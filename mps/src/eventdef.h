@@ -1,7 +1,7 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.20) $
- * Copyright (C) 1997, 1998, 1999 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!eventdef.h(trunk.21) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .readership: MPS developers.
  * .source: design.mps.telemetry
@@ -136,3 +136,6 @@ RELATION(TraceStatCondemn                , 0x003E, TRUE, Trace, PWWWWDD)
 RELATION(TraceStatScan                   , 0x003F, TRUE, Trace, PWWWWWWWWWWWW)
 RELATION(TraceStatFix                    , 0x0040, TRUE, Trace, PWWWWWWWWW)
 RELATION(TraceStatReclaim                , 0x0041, TRUE, Trace, PWW)
+RELATION(ArenaAlloc                      , 0x0042, TRUE, Arena, PPAWP)
+RELATION(ArenaFree                       , 0x0043, TRUE, Arena, PAW)
+RELATION(ArenaAllocFail                  , 0x0044, TRUE, Arena, PWP)

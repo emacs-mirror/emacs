@@ -1,7 +1,7 @@
 /* impl.c.root: ROOT IMPLEMENTATION
  *
- * $HopeName: MMsrc!root.c(trunk.29) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!root.c(trunk.31) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .scope: This is the implementation of the root datatype.
  * .design: For design, see design.mps.root and 
@@ -10,7 +10,7 @@
 
 #include "mpm.h"
 
-SRCID(root, "$HopeName: MMsrc!root.c(trunk.29) $");
+SRCID(root, "$HopeName: MMsrc!root.c(trunk.31) $");
 
 
 /* RootVarCheck -- check a Root union discriminator
@@ -128,7 +128,8 @@ static Res rootCreate(Root *rootReturn, Arena arena,
   AVERT(Rank, rank);
   AVERT(RootVar, type);
 
-  res = ArenaAlloc(&p, arena, sizeof(RootStruct));
+  res = ControlAlloc(&p, arena, sizeof(RootStruct), 
+                     /* withReservoirPermit */ FALSE);
   if(res != ResOK)
     return res;
   root = (Root)p; /* Avoid pun */
@@ -330,7 +331,7 @@ void RootDestroy(Root root)
 
   root->sig = SigInvalid;
 
-  ArenaFree(arena, root, sizeof(RootStruct));
+  ControlFree(arena, root, sizeof(RootStruct));
 }
 
 Rank RootRank(Root root)

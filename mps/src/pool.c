@@ -1,7 +1,7 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.66) $
- * Copyright (C) 1997, 1999 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!pool.c(trunk.68) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
  *
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.66) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.68) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -212,9 +212,10 @@ Res PoolCreateV(Pool *poolReturn, Arena arena,
 
   /* .space.alloc: Allocate the pool instance structure with the size */
   /* requested  in the pool class.  See .space.free */
-  res = ArenaAlloc(&base, arena, class->size); 
+  res = ControlAlloc(&base, arena, class->size, 
+                     /* withReservoirPermit */ FALSE); 
   if(res != ResOK)
-    goto failArenaAlloc;
+    goto failControlAlloc;
 
   /* base is the address of the class-specific pool structure. */
   /* We calculate the address of the generic pool structure within the */
@@ -230,8 +231,8 @@ Res PoolCreateV(Pool *poolReturn, Arena arena,
   return ResOK;
 
 failPoolInit:
-  ArenaFree(arena, base, class->size);
-failArenaAlloc:
+  ControlFree(arena, base, class->size);
+failControlAlloc:
   return res;
 }
 
@@ -276,7 +277,16 @@ void PoolDestroy(Pool pool)
 
   /* .space.free: Free the pool instance structure.  See .space.alloc */
   base = AddrSub((Addr)pool, (Size)(class->offset));
-  ArenaFree(arena, base, (Size)(class->size));
+  ControlFree(arena, base, (Size)(class->size));
+}
+
+
+/* PoolDefaultBufferClass -- return the buffer class used by the pool */
+
+BufferClass PoolDefaultBufferClass(Pool pool)
+{
+  AVERT(Pool, pool);
+  return (*pool->class->bufferClass)();
 }
 
 
@@ -573,13 +583,13 @@ Bool PoolFormat(Format *formatReturn, Pool pool)
 
 Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr)
 {
-  Seg seg;
+  Tract tract;
 
   AVER(poolReturn != NULL);
   AVERT(Arena, arena);
 
-  if(SegOfAddr(&seg, arena, addr)) {
-    *poolReturn = SegPool(seg);
+  if(TractOfAddr(&tract, arena, addr)) {
+    *poolReturn = TractPool(tract);
     return TRUE;
   }
 
@@ -714,11 +724,10 @@ void PoolTrivBufferFinish(Pool pool, Buffer buffer)
   NOOP;
 }
 
-Res PoolNoBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
+Res PoolNoBufferFill(Addr *baseReturn, Addr *limitReturn,
                      Pool pool, Buffer buffer, Size size,
                      Bool withReservoirPermit)
 {
-  AVER(segReturn != NULL);
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Pool, pool);
@@ -729,16 +738,13 @@ Res PoolNoBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   return ResUNIMPL;
 }
 
-Res PoolTrivBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
+Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
                        Pool pool, Buffer buffer, Size size,
                        Bool withReservoirPermit)
 {
   Res res;
   Addr p;
-  Seg seg;
-  Bool b;
 
-  AVER(segReturn != NULL);
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Pool, pool);
@@ -749,30 +755,30 @@ Res PoolTrivBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   res = PoolAlloc(&p, pool, size, withReservoirPermit);
   if(res != ResOK) return res;
   
-  b = SegOfAddr(&seg, PoolArena(pool), p);
-  AVER(b);
-  
-  *segReturn = seg;
   *baseReturn = p;
   *limitReturn = AddrAdd(p, size);
   return ResOK;
 }
 
-void PoolNoBufferEmpty(Pool pool, Buffer buffer, Seg seg)
+void PoolNoBufferEmpty(Pool pool, Buffer buffer, 
+                       Addr init, Addr limit)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
-  AVER(SegCheck(seg));
+  AVER(init <= limit);
   NOTREACHED;
 }
 
-void PoolTrivBufferEmpty(Pool pool, Buffer buffer, Seg seg)
+void PoolTrivBufferEmpty(Pool pool, Buffer buffer, 
+                       Addr init, Addr limit)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
-  AVER(SegCheck(seg));
+  AVER(init <= limit);
+  if (limit > init)
+    PoolFree(pool, init, AddrOffset(init, limit));
 }
 
 Res PoolNoDescribe(Pool pool, mps_lib_FILE *stream)
@@ -1174,4 +1180,12 @@ void PoolNoWalk(Pool pool, Seg seg,
   UNUSED(s);
 
   NOTREACHED;
+}
+
+
+BufferClass PoolNoBufferClass(void)
+{
+  NOTREACHED;
+  return NULL;
+
 }

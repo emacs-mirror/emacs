@@ -1,7 +1,7 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.85) $
- * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!trace.c(trunk.86) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.trace.
  */
@@ -9,7 +9,7 @@
 #include "mpm.h"
 
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.85) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.86) $");
 
 
 /* Types
@@ -60,7 +60,7 @@ static void TraceMessageDelete(Message message)
   AVERT(TraceMessage, traceMessage);
 
   arena = MessageArena(message);
-  ArenaFree(arena, (void *)traceMessage, sizeof(TraceMessageStruct));
+  ControlFree(arena, (void *)traceMessage, sizeof(TraceMessageStruct));
 }
 
 static Size TraceMessageLiveSize(Message message) 
@@ -920,7 +920,8 @@ static void TracePostMessage(Trace trace)
   AVER(trace->state == TraceFINISHED);
 
   arena = trace->arena;
-  res = ArenaAlloc(&p, arena, sizeof(TraceMessageStruct));
+  res = ControlAlloc(&p, arena, sizeof(TraceMessageStruct), 
+                     /* withReservoirPermit */ FALSE);
   if(res == ResOK) {
     traceMessage = (TraceMessage)p;
     TraceMessageInit(arena, traceMessage);
@@ -1355,7 +1356,7 @@ Size TraceGreyEstimate(Arena arena, RefSet refSet)
 Res TraceFix(ScanState ss, Ref *refIO)
 {
   Ref ref;
-  Seg seg;
+  Tract tract;
   Pool pool;
 
   /* See design.mps.trace.fix.noaver */
@@ -1367,21 +1368,24 @@ Res TraceFix(ScanState ss, Ref *refIO)
   STATISTIC(++ss->fixRefCount);
   EVENT_PPAU(TraceFix, ss, refIO, ref, ss->rank);
 
-  /* SegOfAddr is inlined, see design.mps.trace.fix.segofaddr */
-  if(SEG_OF_ADDR(&seg, ss->arena, ref)) {
-    STATISTIC(++ss->segRefCount);
-    EVENT_P(TraceFixSeg, seg);
-    if(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY) {
-      Res res;
-
-      STATISTIC(++ss->whiteSegRefCount);
-      EVENT_0(TraceFixWhite);
-      pool = SegPool(seg);
-      /* Could move the rank switch here from the class-specific */
-      /* fix methods. */
-      res = PoolFix(pool, ss, seg, refIO);
-      if(res != ResOK)
-        return res;
+  /* TractOfAddr is inlined, see design.mps.trace.fix.tractofaddr */
+  if(TRACT_OF_ADDR(&tract, ss->arena, ref)) {
+    Seg seg;
+    if (TRACT_SEG(&seg, tract)) {
+      STATISTIC(++ss->segRefCount);
+      EVENT_P(TraceFixSeg, seg);
+      if(TraceSetInter(TractWhite(tract), ss->traces) != TraceSetEMPTY) {
+        Res res;
+        
+        STATISTIC(++ss->whiteSegRefCount);
+        EVENT_0(TraceFixWhite);
+        pool = TractPool(tract);
+        /* Could move the rank switch here from the class-specific */
+        /* fix methods. */
+        res = PoolFix(pool, ss, seg, refIO);
+        if(res != ResOK)
+          return res;
+      }
     }
   } else {
     /* See design.mps.trace.exact.legal */
@@ -1399,7 +1403,7 @@ Res TraceFix(ScanState ss, Ref *refIO)
 Res TraceFixEmergency(ScanState ss, Ref *refIO)
 {
   Ref ref;
-  Seg seg;
+  Tract tract;
   Pool pool;
 
   AVERT(ScanState, ss);
@@ -1410,15 +1414,18 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
   STATISTIC(++ss->fixRefCount);
   EVENT_PPAU(TraceFix, ss, refIO, ref, ss->rank);
 
-  /* SegOfAddr is inlined, see design.mps.trace.fix.segofaddr */
-  if(SEG_OF_ADDR(&seg, ss->arena, ref)) {
-    STATISTIC(++ss->segRefCount);
-    EVENT_P(TraceFixSeg, seg);
-    if(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY) {
-      STATISTIC(++ss->whiteSegRefCount);
-      EVENT_0(TraceFixWhite);
-      pool = SegPool(seg);
-      PoolFixEmergency(pool, ss, seg, refIO);
+  /* TractOfAddr is inlined, see design.mps.trace.fix.tractofaddr */
+  if(TRACT_OF_ADDR(&tract, ss->arena, ref)) {
+    Seg seg;
+    if (TRACT_SEG(&seg, tract)) {
+      STATISTIC(++ss->segRefCount);
+      EVENT_P(TraceFixSeg, seg);
+      if(TraceSetInter(TractWhite(tract), ss->traces) != TraceSetEMPTY) {
+        STATISTIC(++ss->whiteSegRefCount);
+        EVENT_0(TraceFixWhite);
+        pool = TractPool(tract);
+        PoolFixEmergency(pool, ss, seg, refIO);
+      }
     }
   } else {
     /* See design.mps.trace.exact.legal */

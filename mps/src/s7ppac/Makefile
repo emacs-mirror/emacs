@@ -1,8 +1,8 @@
 # impl.makefile.s7ppac: S7PPAC MPW MAKE FILE
 #
-# $HopeName: MMsrc!s7ppac:Makefile(trunk.19) $
+# $HopeName: MMsrc!s7ppac:Makefile(trunk.20) $
 #
-# Copyright (C) 1996, 1998, 1999 Harlequin Group plc.  All rights reserved.
+# Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
 #
 
 # .limit.epcore: This only knows about making the mmsw libraries for
@@ -122,6 +122,8 @@ mmsw_{Variety}.o  Ä  ¶
                 arenacl{OSffx} ¶
                 arenavmx{OSffx} ¶
                 arena{OSffx} ¶
+                walk{OSffx} ¶
+                reserv{OSffx} ¶
                 pool{OSffx} ¶
                 poolmfs{OSffx} ¶
                 poolmv{OSffx} ¶

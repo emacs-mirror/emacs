@@ -1,7 +1,7 @@
 /* impl.c.poolmrg: MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.33) $
- * Copyright (C) 1997 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!poolmrg.c(trunk.34) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
  *
@@ -24,7 +24,7 @@
  * .addr.void-star: Breaks design.mps.type.addr.use all over the place,
  * accessing the segments acquired from SegAlloc with C pointers.  It
  * would not be practical to use ArenaPeek/Poke everywhere.  Blocks
- * acquired from ArenaAlloc must be directly accessible from C, or else
+ * acquired from ControlAlloc must be directly accessible from C, or else
  * none of the pools would work.  Therefore, if we implement a variant
  * where Addr != void*, we just use the same magic for the control pool
  * and MRG pools, whatever that might be.
@@ -34,7 +34,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.33) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.34) $");
 
 
 /* Types */
@@ -352,7 +352,7 @@ static void MRGGroupDestroy(MRGGroup group, MRG mrg)
   group->sig = SigInvalid;
   SegFree(group->refPartSeg);
   SegFree(group->linkSeg);
-  ArenaFree(PoolArena(pool), (Addr)group, (Size)sizeof(MRGGroupStruct));
+  ControlFree(PoolArena(pool), (Addr)group, (Size)sizeof(MRGGroupStruct));
 }
 
 static Res MRGGroupCreate(MRGGroup *groupReturn, MRG mrg,
@@ -376,9 +376,10 @@ static Res MRGGroupCreate(MRGGroup *groupReturn, MRG mrg,
 
   pool = MRGPool(mrg);
   arena = PoolArena(pool);
-  res = ArenaAlloc(&p, arena, (Size)sizeof(MRGGroupStruct));
+  res = ControlAlloc(&p, arena, (Size)sizeof(MRGGroupStruct), 
+                     withReservoirPermit);
   if(res != ResOK)
-    goto failArenaAlloc;
+    goto failControlAlloc;
   group = p;
   res = SegAlloc(&refPartSeg, SegPrefDefault(), mrg->extendBy, pool,
                  withReservoirPermit);
@@ -419,8 +420,8 @@ static Res MRGGroupCreate(MRGGroup *groupReturn, MRG mrg,
 failLinkSegAlloc:
   SegFree(refPartSeg);
 failRefPartSegAlloc:
-  ArenaFree(arena, group, (Size)sizeof(MRGGroupStruct)); 
-failArenaAlloc:
+  ControlFree(arena, group, (Size)sizeof(MRGGroupStruct)); 
+failControlAlloc:
   return res;
 }
 
