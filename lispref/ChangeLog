@@ -1,3 +1,8 @@
+2003-10-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* windows.texi (Choosing Window): Fix typo.
+	* edebug.texi (Edebug Execution Modes): Fix typo.
+
 2003-10-13  Richard M. Stallman  <rms@gnu.org>
 
 	* windows.texi (Basic Windows): A window has fringe settings,
