@@ -1,5 +1,8 @@
 2001-10-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_after_update_window_line): Don't run the code
+	clearing in borders for rows whose visible height is 0.
+
 	* xdisp.c (clear_garbaged_frames): Redraw the frame only if its
 	resized_p flag is set.  If not set, use the much less flickering
 	method previously used.
