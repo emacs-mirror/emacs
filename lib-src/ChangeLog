@@ -1,3 +1,8 @@
+2001-01-15  Francesco Potorti`  <pot@pot.cnuce.cnr.it>
+
+	* etags.c (print_language_names): Print filenames in addition to
+	suffixes.
+
 2001-01-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* make-docfile.c (write_c_args): Print newlines as spaces.
@@ -559,15 +564,15 @@ line.  Change logs above this notice are those for the 21.x code line.
 2000-06-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 20.7 released.
-	
+
 2000-02-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 20.6 released.
-	
+
 1999-12-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 20.5 released.
-	
+
 1999-11-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (b2m): Add dependency on GETOPTDEPS.

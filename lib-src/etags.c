@@ -31,7 +31,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` (pot@gnu.org) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 13.47";
+char pot_etags_version[] = "@(#) pot revision number is 13.48";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -579,13 +579,16 @@ static void
 print_language_names ()
 {
   language *lang;
-  char **ext;
+  char **name, **ext;
 
   puts ("\nThese are the currently supported languages, along with the\n\
-default file name suffixes:");
+default file names and dot suffixes:");
   for (lang = lang_names; lang->name != NULL; lang++)
     {
-      printf ("\t%s\t", lang->name);
+      printf ("  %-*s", 10, lang->name);
+      if (lang->filenames != NULL)
+	for (name = lang->filenames; *name != NULL; name++)
+	  printf (" %s", *name);
       if (lang->suffixes != NULL)
 	for (ext = lang->suffixes; *ext != NULL; ext++)
 	  printf (" .%s", *ext);
