@@ -63,18 +63,15 @@ If `display-time-day-and-date' is non-nil, the current day and date
 are displayed as well.
 After each update, `display-time-hook' is run with `run-hooks'."
   (interactive)
-  (require 'timer)
-  (if (timerp display-time-timer)
-      (cancel-timer display-time-timer)
-    (setq display-time-timer (timer-create)))
   (setq display-time-string "")
   (or global-mode-string (setq global-mode-string '("")))
   (or (memq 'display-time-string global-mode-string)
       (setq global-mode-string
 	    (append global-mode-string '(display-time-string))))
-  (timer-set-time display-time-timer (current-time) display-time-interval)
-  (timer-set-function display-time-timer 'display-time-event-handler)
-  (timer-activate display-time-timer)
+  ;; Setup the time timer.
+  (and display-time-timer (cancel-timer display-time-timer))
+  (setq display-time-timer
+	(run-at-time nil display-time-interval 'display-time-event-handler))
   ;; When you get new mail, clear "Mail" from the mode line.
   (add-hook 'rmail-get-new-mail-hook 'display-time-event-handler))
 
