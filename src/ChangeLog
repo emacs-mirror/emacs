@@ -1,5 +1,8 @@
 2001-04-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* fns.c (Frequire): Doc fix.  Rename parameter FILE_NAME to
+	FILENAME to bring it in synch with the documentation.
+
 	* xfaces.c (realizing_basic_faces_p): Renamed from
 	realize_default_face_p.
 	(realize_basic_faces): Set/clear realizing_basic_faces_p.
