@@ -1,3 +1,55 @@
+2004-10-31  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el: Require button.
+	(bibtex-autokey-transcriptions): Translate TeX `\ ' to space.
+	(bibtex-reference-keys): Distinguish between header keys and
+	crossref keys.
+	(bibtex-beginning-of-field): New function.
+	(bibtex-url-map): Remove.
+	(bibtex-font-lock-keywords): Use bibtex-font-lock-crossref.
+	(bibtex-font-lock-url-regexp): Assume that field names begin at
+	the beginning of a line.
+	(bibtex-font-lock-url): Simplify.  Do not use bibtex-enclosing-field.
+	Remove field delimiters.  Use bibtex-beginning-of-field.
+	Bugfix, point can be inside a field with a url.
+	(bibtex-font-lock-crossref, bibtex-button-action, bibtex-button):
+	New functions.
+	(bibtex-mark-active, bibtex-run-with-idle-timer): Remove.
+	(bibtex-key-in-head): Simplify.
+	(bibtex-current-line): Use bolp.
+	(bibtex-parse-keys): Remove unused arg `add'.
+	Use bibtex-type-in-head and bibtex-key-in-head.
+	(bibtex-parse-entry, bibtex-autofill-entry):
+	Use bibtex-type-in-head and bibtex-key-in-head.
+	(bibtex-autokey-get-field): Do not alter case of replacement text.
+	(bibtex-autokey-get-names): Do all processing of name list.
+	(bibtex-autokey-get-year): New function.
+	(bibtex-autokey-get-title): Do all processing of title words.
+	(bibtex-generate-autokey): Simplify.
+	(bibtex-string-files-init): Use default-directory.
+	Allow for absolute file names in bibtex-string-files.
+	(bibtex-files, bibtex-file-path): New variables.
+	(bibtex-files-expand): New function.
+	(bibtex-find-entry-globally): New command.
+	(bibtex-summary-function): New variable.
+	(bibtex-summary): Default value of bibtex-summary-function.
+	(bibtex-find-crossref): New optional args pnt and split.
+	(bibtex-complete-key-cleanup): Call bibtex-summary-function.
+	(bibtex-copy-summary-as-kill): New command bound to C-cC-t.
+	(bibtex-validate): Fix docstring.  Check only abbreviated month fields.
+	Fix handling of required and alternative fields.
+	Identify duplicate keys even if bibtex-maintain-sorted-entries is nil.
+	Use cons and display-buffer.
+	(bibtex-validate-globally): New command.
+	(bibtex-clean-entry): Use bibtex-files-expand.  Do not call
+	bibtex-parse-keys and bibtex-parse-strings for updating
+	bibtex-reference-keys and bibtex-strings.
+	(bibtex-realign): Remove blank lines past the last entry.
+	(bibtex-reformat): Use bibtex-entry-format as default.
+	(bibtex-choose-completion-string): Remove.
+	(bibtex-complete): Do not use bibtex-choose-completion-string.
+	(bibtex-url): Simplify.
+
 2004-10-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-test-function, x-dnd-protocol-alist)
