@@ -1,3 +1,7 @@
+2004-08-20  Kenichi Handa  <handa@m17n.org>
+
+	* syntax.c (skip_chars): Fix for unibyte case.
+
 2004-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* syntax.c (char_quoted): Mixup byte/char pos.

@@ -10,6 +10,12 @@
 	(elp-results-jump-to-definition, elp-output-insert-symname): New Functions.
 	(elp-output-result): Use elp-output-insert-symname.
 
+2004-08-18  Kenichi Handa  <handa@m17n.org>
+
+	* language/cyrillic.el: Register koi8-r in
+	ctext-non-standard-encodings-alist.
+	("Cyrillic-KOI8"): Add ctext-non-standard-encoding.
+
 2004-08-17  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/copyright.el (copyright-update-year): Delete code
