@@ -1792,7 +1792,7 @@ skip_syntaxes (forwardp, string, lim)
 	      {
 		c = FETCH_BYTE (pos_byte);
 		MAKE_CHAR_MULTIBYTE (c);
-		if (fastmap[(int) SYNTAX (c)])
+		if (! fastmap[(int) SYNTAX (c)])
 		  break;
 		pos++, pos_byte++;
 		UPDATE_SYNTAX_TABLE_FORWARD (pos);
