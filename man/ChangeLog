@@ -11,8 +11,7 @@
 	mark-diary-entries-in-calendar, mark-holidays-in-calendar to main
 	Emacs Manual.
 	(Appt Customizing): Merge entire section into main Emacs Manual.
-	* calendar.texi: Update and reformat copyright.
-	(Holidays): Move view-calendar-holidays-initially,
+	* calendar.texi (Holidays): Move view-calendar-holidays-initially,
 	mark-holidays-in-calendar here from emacs-xtra.
 	(Displaying the Diary): Move view-diary-entries-initially,
 	mark-diary-entries-in-calendar here from emacs-xtra.
