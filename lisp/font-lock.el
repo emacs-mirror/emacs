@@ -237,7 +237,7 @@
 (defgroup jit-lock nil
   "Font Lock support mode to fontify just-in-time."
   :link '(custom-manual "(emacs)Support Modes")
-  :load 'dmnd-lock
+  :load 'jit-lock
   :group 'font-lock)
 
 ;; User variables.
