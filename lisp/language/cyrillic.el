@@ -31,35 +31,26 @@
 
 ;; Cyrillic (general)
 
-(define-prefix-command 'describe-cyrillic-environment-map)
-(define-key-after describe-language-environment-map [Cyrillic]
-  '("Cyrillic" . describe-cyrillic-environment-map)
-  t)
-
-(define-prefix-command 'setup-cyrillic-environment-map)
-(define-key-after setup-language-environment-map [Cyrillic]
-  '("Cyrillic" . setup-cyrillic-environment-map)
-  t)
-
 ;; ISO-8859-5 staff
 
 (make-coding-system
  'cyrillic-iso-8bit 2 ?5
  "ISO 2022 based 8-bit encoding for Cyrillic script (MIME:ISO-8859-5)"
- '((ascii t) (cyrillic-iso8859-5 t) nil nil
-   nil ascii-eol ascii-cntl nil nil nil nil)
- '(ascii cyrillic-iso8859-5))
+ '(ascii cyrillic-iso8859-5  nil nil
+   nil nil nil nil nil nil nil)
+ '((safe-charsets ascii cyrillic-iso8859-5)
+   (mime-charset . iso-8859-5)))
 
 (define-coding-system-alias 'iso-8859-5 'cyrillic-iso-8bit)
 
 (set-language-info-alist
- "Cyrillic-ISO" '((setup-function . (setup-cyrillic-iso-environment
-				     . setup-cyrillic-environment-map))
-		  (charset . (cyrillic-iso8859-5))
-		  (coding-system . (cyrillic-iso-8bit))
+ "Cyrillic-ISO" '((setup-function . setup-cyrillic-iso-environment)
+		  (charset cyrillic-iso8859-5)
+		  (coding-system cyrillic-iso-8bit)
+		  (coding-priority cyrillic-iso-8bit)
 		  (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
-		  (documentation . ("Support for Cyrillic ISO-8859-5."
-				    . describe-cyrillic-environment-map))))
+		  (documentation . "Support for Cyrillic ISO-8859-5."))
+ '("Cyrillic"))
 
 ;; KOI-8 staff
 
@@ -114,7 +105,8 @@
  ;; will have to forgive us.
  ?R "KOI8 8-bit encoding for Cyrillic (MIME: KOI8-R)"
  (cons ccl-decode-koi8 ccl-encode-koi8)
- '(ascii cyrillic-iso8859-5))
+ '((safe-charsets ascii cyrillic-iso8859-5)
+   (mime-charset . koi8-r)))
 
 (define-coding-system-alias 'koi8-r 'cyrillic-koi8)
 (define-coding-system-alias 'koi8 'cyrillic-koi8)
@@ -136,13 +128,13 @@
       (cons (cons "koi8" ccl-encode-koi8-font) font-ccl-encoder-alist))
 
 (set-language-info-alist
- "Cyrillic-KOI8" '((setup-function . (setup-cyrillic-koi8-environment
-				      . setup-cyrillic-environment-map))
-		   (charset . (cyrillic-iso8859-5))
-		   (coding-system . (cyrillic-koi8))
+ "Cyrillic-KOI8" '((setup-function . setup-cyrillic-koi8-environment)
+		   (charset cyrillic-iso8859-5)
+		   (coding-system cyrillic-koi8)
+		   (coding-priority cyrillic-koi8)
 		   (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
-		   (documentation . ("Support for Cyrillic KOI-8."
-				     . describe-cyrillic-environment-map))))
+		   (documentation . "Support for Cyrillic KOI-8."))
+ '("Cyrillic"))
 
 ;;; ALTERNATIVNYJ staff
 
@@ -193,7 +185,7 @@
  'cyrillic-alternativnyj 4 ?A
  "ALTERNATIVNYJ 8-bit encoding for Cyrillic"
  (cons ccl-decode-alternativnyj ccl-encode-alternativnyj)
- '(ascii cyrillic-iso8859-5))
+ '((safe-charsets ascii cyrillic-iso8859-5)))
 
 (define-coding-system-alias 'alternativnyj 'cyrillic-alternativnyj)
 
@@ -215,12 +207,12 @@
 	    font-ccl-encoder-alist))
 
 (set-language-info-alist
- "Cyrillic-ALT" '((setup-function . (setup-cyrillic-alternativnyj-environment
-				     . setup-cyrillic-environment-map))
-		  (charset . (cyrillic-iso8859-5))
-		  (coding-system . (cyrillic-alternativnyj))
+ "Cyrillic-ALT" '((setup-function . setup-cyrillic-alternativnyj-environment)
+		  (charset cyrillic-iso8859-5)
+		  (coding-system cyrillic-alternativnyj)
+		  (coding-priority cyrillic-alternativnyj)
 		  (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
-		  (documentation . ("Support for Cyrillic ALTERNATIVNYJ."
-				    . describe-cyrillic-environment-map))))
+		  (documentation . "Support for Cyrillic ALTERNATIVNYJ."))
+ '("Cyrillic"))
 
 ;;; cyrillic.el ends here
