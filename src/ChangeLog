@@ -1,5 +1,8 @@
 2001-05-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_draw_glyphs): Fix compuation of rightmost x for
+	full-width rows.
+
 	* xfaces.c (split_font_name): Make sure to leave the loop
 	with the right value of `i'.
 	

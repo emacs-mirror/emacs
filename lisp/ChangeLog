@@ -1,3 +1,8 @@
+2001-05-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* hexl.el (hexl-current-address): Print a message when called
+	interactively.
+
 2001-05-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* gud.el (gud-jdb-build-source-files-list): Fix paren typo.
