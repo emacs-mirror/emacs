@@ -31,9 +31,21 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "syssignal.h"
 
 #ifdef LISP_FLOAT_TYPE
+
 #ifdef STDC_HEADERS
 #include <stdlib.h>
 #endif
+
+/* Work around a problem that happens because math.h on hpux 7
+   defines two static variables--which, in Emacs, are not really static,
+   because `static' is defined as nothing.  The problem is that they are
+   here, in floatfns.c, and in lread.c.
+   These macros prevent the name conflict.  */
+#if defined (HPUX) && !defined (HPUX8)
+#define _MAXLDBL data_c_maxldbl
+#define _NMAXLDBL data_c_nmaxldbl
+#endif
+
 #include <math.h>
 #endif /* LISP_FLOAT_TYPE */
 
