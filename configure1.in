@@ -1329,6 +1329,7 @@ echo " - whether the GNU malloc routines are usable."
 tempcname="conftest.c"
 
 echo '
+#define THIS_IS_CONFIGURE
 #include "'${srcdir}'/src/'${opsysfile}'"
 #include "'${srcdir}'/src/'${machfile}'"
 #ifndef LIBS_MACHINE
