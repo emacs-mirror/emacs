@@ -131,8 +131,9 @@ If there is a highlighted region, the skeleton text is wrapped
 around the region text.
 
 A prefix argument ARG says to wrap the skeleton around the next ARG words.
+A prefix argument of -1 says to wrap around region, even if not highlighted.
 A prefix argument of zero says to wrap around zero words---that is, nothing.
-This is a way of overiding the use of a highlighted region.")
+This is a way of overriding the use of a highlighted region.")
        (interactive "*P\nP")
        (skeleton-proxy-new ',skeleton str arg))))
 
