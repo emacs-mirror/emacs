@@ -2386,6 +2386,9 @@ Optional fifth argument VISIT if t means\n\
   and mark buffer not modified.\n\
 If VISIT is neither t nor nil, it means do not print\n\
   the \"Wrote file\" message.\n\
+If VISIT is a string, it is a second file name;\n\
+  the output goes to FILENAME, but the buffer is marked as visiting VISIT.\n\
+  VISIT is also the file name to lock and unlock for clash detection.\n\
 Kludgy feature: if START is a string, then that string is written\n\
 to the file, instead of any buffer contents, and END is ignored.")
   (start, end, filename, append, visit)
@@ -2402,7 +2405,8 @@ to the file, instead of any buffer contents, and END is ignored.")
   unsigned char *fname = 0;	/* If non-0, original filename (must rename) */
 #endif /* VMS */
   Lisp_Object handler;
-  struct gcpro gcpro1, gcpro2;
+  Lisp_Object visit_file = XTYPE (visit) == Lisp_String ? visit : filename;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   /* Special kludge to simplify auto-saving */
   if (NILP (start))
@@ -2413,7 +2417,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   else if (XTYPE (start) != Lisp_String)
     validate_region (&start, &end);
 
-  GCPRO2 (start, filename);
+  GCPRO4 (start, filename, visit, visit_file);
   filename = Fexpand_file_name (filename, Qnil);
 
   /* If the file name has special constructs in it,
@@ -2436,12 +2440,12 @@ to the file, instead of any buffer contents, and END is ignored.")
       /* Do this before reporting IO error
 	 to avoid a "file has changed on disk" warning on
 	 next attempt to save.  */
-      if (EQ (visit, Qt))
+      if (EQ (visit, Qt) || XTYPE (visit) == Lisp_String)
 	{
 	  current_buffer->modtime = 0;
 	  current_buffer->save_modified = MODIFF;
 	  XFASTINT (current_buffer->save_length) = Z - BEG;
-	  current_buffer->filename = filename;
+	  current_buffer->filename = visit_file;
 	}
       UNGCPRO;
       return val;
@@ -2449,7 +2453,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 
 #ifdef CLASH_DETECTION
   if (!auto_saving)
-    lock_file (filename);
+    lock_file (visit_file);
 #endif /* CLASH_DETECTION */
 
   fn = XSTRING (filename)->data;
@@ -2513,7 +2517,7 @@ to the file, instead of any buffer contents, and END is ignored.")
     {
 #ifdef CLASH_DETECTION
       save_errno = errno;
-      if (!auto_saving) unlock_file (filename);
+      if (!auto_saving) unlock_file (visit_file);
       errno = save_errno;
 #endif /* CLASH_DETECTION */
       report_file_error ("Opening output file", Fcons (filename, Qnil));
@@ -2525,7 +2529,7 @@ to the file, instead of any buffer contents, and END is ignored.")
     if (lseek (desc, 0, 2) < 0)
       {
 #ifdef CLASH_DETECTION
-	if (!auto_saving) unlock_file (filename);
+	if (!auto_saving) unlock_file (visit_file);
 #endif /* CLASH_DETECTION */
 	report_file_error ("Lseek error", Fcons (filename, Qnil));
       }
@@ -2633,29 +2637,29 @@ to the file, instead of any buffer contents, and END is ignored.")
 
 #ifdef CLASH_DETECTION
   if (!auto_saving)
-    unlock_file (filename);
+    unlock_file (visit_file);
 #endif /* CLASH_DETECTION */
 
   /* Do this before reporting IO error
      to avoid a "file has changed on disk" warning on
      next attempt to save.  */
-  if (EQ (visit, Qt))
+  if (EQ (visit, Qt) || XTYPE (visit) == Lisp_String)
     current_buffer->modtime = st.st_mtime;
 
   if (failure)
     error ("IO error writing %s: %s", fn, err_str (save_errno));
 
-  if (EQ (visit, Qt))
+  if (EQ (visit, Qt) || XTYPE (visit) == Lisp_String)
     {
       current_buffer->save_modified = MODIFF;
       XFASTINT (current_buffer->save_length) = Z - BEG;
-      current_buffer->filename = filename;
+      current_buffer->filename = visit_file;
     }
   else if (!NILP (visit))
     return Qnil;
 
   if (!auto_saving)
-    message ("Wrote %s", fn);
+    message ("Wrote %s", XSTRING (visit_file)->data);
 
   return Qnil;
 }
