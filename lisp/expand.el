@@ -71,6 +71,7 @@
 ;;   Please send me a word to give me your feeling about this feature or
 ;; to explain me how you use it (your expansions table for example) using
 ;; the function expand-submit-report.
+;;; Code:
 
 ;;; Constants:
 
