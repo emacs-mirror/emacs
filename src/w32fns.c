@@ -3049,7 +3049,7 @@ validate_x_resource_name ()
 	     || (c >= 'A' && c <= 'Z')
 	     || (c >= '0' && c <= '9')
 	     || c == '-' || c == '_'))
-	SREF (new, i) = '_';
+	SSET (new, i, '_');
     }
 }
 
