@@ -691,8 +691,10 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 		   (setq run-mail-hook t)))
       (setq run-mail-hook t)
       (rmail-mode-2)
-      ;; Convert all or part to Babyl file if possible.
-;;;      (rmail-convert-file)
+      (goto-char (point-min))
+      ;; If file starts like a Babyl file, reject it.
+      (if (looking-at "BABYL OPTIONS:")
+	  (error "This is a BABYL file; use M-x unrmail to convert it")))
       (goto-char (point-max)))
     ;; As we have read a file by raw-text, the buffer is set to
     ;; unibyte.  We must make it multibyte if necessary.
@@ -734,73 +736,6 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 ; 			   this)
 ; 			 list))))
 ;     list))
-
-; I have checked that adding "-*- rmail -*-" to the BABYL OPTIONS line
-; will not cause emacs 18.55 problems.
-
-;; This calls rmail-decode-babyl-format if the file is already Babyl.
-
-;;; mbox: DEPECATED
-(defun rmail-convert-file ()
-  (let (convert)
-    (widen)
-    (goto-char (point-min))
-    ;; If file doesn't start like a Babyl file,
-    ;; convert it to one, by adding a header and converting each message.
-    (cond ((looking-at "BABYL OPTIONS:"))
-	  ((looking-at "Version: 5\n")
-	   ;; Losing babyl file made by old version of Rmail.
-	   ;; Just fix the babyl file header; don't make a new one,
-	   ;; so we don't lose the Labels: file attribute, etc.
-	   (let ((buffer-read-only nil))
-	     (insert "BABYL OPTIONS: -*- rmail -*-\n")))
-	  ((equal (point-min) (point-max))
-	   ;; Empty RMAIL file.  Just insert the header.
-	   (rmail-insert-rmail-file-header))
-	  (t
-	   ;; Non-empty file in non-RMAIL format.  Add header and convert.
-	   (setq convert t)
-	   (rmail-insert-rmail-file-header)))
-    ;; If file was not a Babyl file or if there are
-    ;; Unix format messages added at the end,
-    ;; convert file as necessary.
-    (if (or convert
-	    (save-excursion
-	      (goto-char (point-max))
-	      (search-backward "\n\^_")
-	      (forward-char 2)
-	      (looking-at "\n*From ")))
-	(let ((buffer-read-only nil))
-	  (message "Converting to Babyl format...")
-	  ;; If file needs conversion, convert it all,
-	  ;; except for the BABYL header.
-	  ;; (rmail-convert-to-babyl-format would delete the header.)
-	  (goto-char (point-min))
-	  (search-forward "\n\^_" nil t)
-	  (narrow-to-region (point) (point-max))
-	  (rmail-convert-to-babyl-format)
-	  (message "Converting to Babyl format...done"))
-      (if (and (not rmail-enable-mime)
-	       rmail-enable-multibyte)
-	  ;; We still have to decode BABYL part.
-	  (rmail-decode-babyl-format)))))
-
-;;;###deprecated
-(defun rmail-insert-rmail-file-header ()
-  (let ((buffer-read-only nil)
-	(header-line "X-BABYL: -*-rmail-*-"))
-    ;; Determine if the header has already been inserted.
-    (goto-char (point-min))
-    (if (not (looking-at "X-BABYL: "))
-	;; The header has not been inserted.  Insert -*-rmail-*- here
-	;; so that visiting the file normally recognizes it as an
-	;; Rmail file.
-	(insert (concat header-line "\nX-BABYL-Version: 6
-Version: 6
-Labels:
-Note:   This is the header of an rmail file.
-Note:   If you are seeing it in rmail,
-Note:    it means the file has no messages in it.")))))
 
 (defun rmail-initialize-messages ()
   "Initialize message state and process the messages in the buffer to
@@ -1096,7 +1031,6 @@ Instead, these commands are available:
 	       default-enable-multibyte-characters)
       (let ((rmail-enable-multibyte t))
 	(rmail-require-mime-maybe)
-	(rmail-convert-file)
 	(goto-char (point-max))
 	(set-buffer-multibyte t)))
     (rmail-set-message-counters)
@@ -1675,192 +1609,6 @@ It returns t if it got any new messages."
       (setq coding 'undecided))
   (decode-coding-region from to coding))
 
-;; the  rmail-break-forwarded-messages  feature is not implemented
-;;; NOT DONE  but not called any more
-(defun rmail-convert-to-babyl-format ()
-  (let ((count 0) start
-	(case-fold-search nil)
-	(invalid-input-resync
-	 (function (lambda ()
-		     (message "Invalid Babyl format in inbox!")
-		     (sit-for 3)
-		     ;; Try to get back in sync with a real message.
-		     (if (re-search-forward
-			  (concat rmail-mmdf-delim1 "\\|^From") nil t)
-			 (beginning-of-line)
-		       (goto-char (point-max)))))))
-    (goto-char (point-min))
-    (save-restriction
-      (while (not (eobp))
-	(setq start (point))
-	(cond ((looking-at "BABYL OPTIONS:");Babyl header
-	       (if (search-forward "\n\^_" nil t)
-		   ;; If we find the proper terminator, delete through there.
-		   (delete-region (point-min) (point))
-		 (funcall invalid-input-resync)
-		 (delete-region (point-min) (point))))
-	      ;; Babyl format message
-	      ((looking-at "\^L")
-	       (or (search-forward "\n\^_" nil t)
-		   (funcall invalid-input-resync))
-	       (setq count (1+ count))
-	       ;; Make sure there is no extra white space after the ^_
-	       ;; at the end of the message.
-	       ;; Narrowing will make sure that whatever follows the junk
-	       ;; will be treated properly.
-	       (delete-region (point)
-			      (save-excursion
-				(skip-chars-forward " \t\n")
-				(point)))
-	       (setq last-coding-system-used nil)
-	       (or rmail-enable-mime
-		   (not rmail-enable-multibyte)
-		   (decode-coding-region start (point)
-					 (or rmail-file-coding-system
-					     'undecided)))
-	       ;; Add an X-Coding-System: header if we don't have one.
-	       (save-excursion
-		 (goto-char start)
-		 (forward-line 1)
-		 (if (looking-at "0")
-		     (forward-line 1)
-		   (forward-line 2))
-		 (or (save-restriction
-		       (narrow-to-region (point) (point-max))
-		       (rfc822-goto-eoh)
-		       (goto-char (point-min))
-		       (re-search-forward "^X-Coding-System:" nil t))
-		     (insert "X-Coding-System: "
-			     (symbol-name last-coding-system-used)
-			     "\n")))
-	       (narrow-to-region (point) (point-max)))
-	      ;;*** MMDF format
-	      ((let ((case-fold-search t))
-		 (looking-at rmail-mmdf-delim1))
-	       (let ((case-fold-search t))
-		 (replace-match "\^L\n0, unseen,,\n*** EOOH ***\n")
-		 (re-search-forward rmail-mmdf-delim2 nil t)
-		 (replace-match "\^_"))
-	       (save-excursion
-		 (save-restriction
-		   (narrow-to-region start (1- (point)))
-		   (goto-char (point-min))
-		   (while (search-forward "\n\^_" nil t); single char "\^_"
-		     (replace-match "\n^_")))); 2 chars: "^" and "_"
-	       (setq last-coding-system-used nil)
-	       (or rmail-enable-mime
-		   (not rmail-enable-multibyte)
-		   (decode-coding-region start (point) 'undecided))
-	       (save-excursion
-		 (goto-char start)
-		 (forward-line 3)
-		 (insert "X-Coding-System: "
-			 (symbol-name last-coding-system-used)
-			 "\n"))
-	       (narrow-to-region (point) (point-max))
-	       (setq count (1+ count)))
-	      ;;*** Mail format
-	      ((looking-at "^From ")
-	       (insert "\^L\n0, unseen,,\n*** EOOH ***\n")
-	       (rmail-nuke-pinhead-header)
-	       ;; If this message has a Content-Length field,
-	       ;; skip to the end of the contents.
-	       (let* ((header-end (save-excursion
-				    (and (re-search-forward "\n\n" nil t)
-					 (1- (point)))))
-		      (case-fold-search t)
-		      (quoted-printable-header-field-end
-		       (save-excursion
-			 (re-search-forward
-			  "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
-			  header-end t)))
-		      (size
-		       ;; Get the numeric value from the Content-Length field.
-		       (save-excursion
-			 ;; Back up to end of prev line,
-			 ;; in case the Content-Length field comes first.
-			 (forward-char -1)
-			 (and (search-forward "\ncontent-length: "
-					      header-end t)
-			      (let ((beg (point))
-				    (eol (progn (end-of-line) (point))))
-				(string-to-int (buffer-substring beg eol)))))))
-		 (and size
-		      (if (and (natnump size)
-			       (<= (+ header-end size) (point-max))
-			       ;; Make sure this would put us at a position
-			       ;; that we could continue from.
-			       (save-excursion
-				 (goto-char (+ header-end size))
-				 (skip-chars-forward "\n")
-				 (or (eobp)
-				     (and (looking-at "BABYL OPTIONS:")
-					  (search-forward "\n\^_" nil t))
-				     (and (looking-at "\^L")
-					  (search-forward "\n\^_" nil t))
-				     (let ((case-fold-search t))
-				       (looking-at rmail-mmdf-delim1))
-				     (looking-at "From "))))
-			  (goto-char (+ header-end size))
-			(message "Ignoring invalid Content-Length field")
-			(sit-for 1 0 t)))
-		 (if (let ((case-fold-search nil))
-                       (re-search-forward
-                        (concat "^[\^_]?\\("
-                                rmail-unix-mail-delimiter
-                                "\\|"
-                                rmail-mmdf-delim1 "\\|"
-                                "^BABYL OPTIONS:\\|"
-                                "\^L\n[01],\\)") nil t))
-                     (goto-char (match-beginning 1))
-		   (goto-char (point-max)))
-		 (setq count (1+ count))
-		 (if quoted-printable-header-field-end
-		     (save-excursion
-		       (rmail-decode-quoted-printable header-end (point))
-		       ;; Change "quoted-printable" to "8bit",
-		       ;; to reflect the decoding we just did.
-		       (goto-char quoted-printable-header-field-end)
-		       (delete-region (point) (search-backward ":"))
-		       (insert ": 8bit"))))
-
-	       (save-excursion
-		 (save-restriction
-		   (narrow-to-region start (point))
-		   (goto-char (point-min))
-		   (while (search-forward "\n\^_" nil t); single char
-		     (replace-match "\n^_")))); 2 chars: "^" and "_"
-	       (insert ?\^_)
-	       (setq last-coding-system-used nil)
-	       (or rmail-enable-mime
-		   (not rmail-enable-multibyte)
-		   (let ((mime-charset
-			  (if (and rmail-decode-mime-charset
-				   (save-excursion
-				     (goto-char start)
-				     (search-forward "\n\n" nil t)
-				     (let ((case-fold-search t))
-				       (re-search-backward
-					rmail-mime-charset-pattern
-					start t))))
-			      (intern (downcase (match-string 1))))))
-		     (rmail-decode-region start (point) mime-charset)))
-	       (save-excursion
-		 (goto-char start)
-		 (forward-line 3)
-		 (insert "X-Coding-System: "
-			 (symbol-name last-coding-system-used)
-			 "\n"))
-	       (narrow-to-region (point) (point-max)))
-	      ;;
-	      ;; This kludge is because some versions of sendmail.el
-	      ;; insert an extra newline at the beginning that shouldn't
-	      ;; be there.  sendmail.el has been fixed, but old versions
-	      ;; may still be in use.  -- rms, 7 May 1993.
-	      ((eolp) (delete-char 1))
-	      (t (error "Cannot convert to babyl format")))))
-    count))
-
 (defun rmail-hex-char-to-integer (character)
   "Return CHARACTER's value interpreted as a hex digit."
   (if (and (>= character ?0) (<= character ?9))
@@ -2201,12 +1949,12 @@ change the invisible header text."
 			(rmail-desc-get-end rmail-current-message)))))
 
 (defun rmail-process-new-messages (&optional nomsg)
-  "Process the new messages in the buffer.  The buffer has been
-narrowed to expose only the new messages.  For each new message append
-an entry to the message vector and, if necessary, add a header that
-will capture the salient BABYL information.  Return the number of new
-messages.  If NOMSG is non-nil then do not show any progress
-messages."
+  "Process the new messages in the buffer.
+The buffer has been narrowed to expose only the new messages.
+For each new message append an entry to the message vector and,
+if necessary, add a header that will capture the salient BABYL
+information.  Return the number of new messages.  If NOMSG is
+non-nil then do not show any progress messages."
   (let ((inhibit-read-only t)
         (case-fold-search nil)
 	(new-message-counter 0)
@@ -2533,7 +2281,7 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
 	;; Deal with the message headers and URLs..
 	(rmail-header-hide-headers)
 	(rmail-highlight-headers)
-        (rmail-activate-urls)
+	(rmail-activate-urls)
 
 	;; ?
 	(if transient-mark-mode (deactivate-mark))
@@ -3162,6 +2910,8 @@ Normally include CC: to all other recipients of original message;
 prefix argument means ignore them.  While composing the reply,
 use \\[mail-yank-original] to yank the original message into it."
   (interactive "P")
+  (if (= rmail-total-messages 0)
+      (error "No messages in this file"))
   (save-excursion
     (save-restriction
       (let ((msgnum rmail-current-message)
@@ -3232,16 +2982,17 @@ use \\[mail-yank-original] to yank the original message into it."
                                           " " message-id))))))))
 
 (defun rmail-reply-callback (buffer attr state n)
-  "Mail reply callback function. Sets ATTR (a string) if STATE is
-  non-nil, otherwise clears it.  N is the message number.  BUFFER,
-  possibly narrowed, contains an mbox mail message."
+  "Mail reply callback function.
+Sets ATTR (a string) if STATE is
+non-nil, otherwise clears it.  N is the message number.
+BUFFER, possibly narrowed, contains an mbox mail message."
   (save-excursion
     (set-buffer buffer)
     (rmail-set-attribute attr state n)))
 
 (defun rmail-mark-message (msgnum-list attr-index)
-  "Set the attribute denoted by ATTRIBUTE-INDEX in the message denoted
-by the car of MSGNUM-LIST.  This is used in the send-actions for
+  "Set attribute ATTRIBUTE-INDEX in the message of the car of MSGNUM-LIST.
+This is used in the send-actions for
 message buffers.  MSGNUM-LIST is a list of the form (MSGNUM)."
   (save-excursion
     (let ((n (car msgnum-list)))
@@ -3250,8 +3001,7 @@ message buffers.  MSGNUM-LIST is a list of the form (MSGNUM)."
       (rmail-desc-set-attribute attr-index t n))))
 
 (defun rmail-narrow-to-message (n)
-  "Set the narrowing restriction in the current (rmail) buffer to
-  bracket message N."
+  "Narrow the current (rmail) buffer to bracket message N."
   (widen)
   (narrow-to-region (rmail-desc-get-start n) (rmail-desc-get-end n)))
 
@@ -3320,6 +3070,8 @@ message buffers.  MSGNUM-LIST is a list of the form (MSGNUM)."
 With prefix argument, \"resend\" the message instead of forwarding it;
 see the documentation of `rmail-resend'."
   (interactive "P")
+  (if (= rmail-total-messages 0)
+      (error "No messages in this file"))
   (if resend
       (call-interactively 'rmail-resend)
     (let ((forward-buffer rmail-buffer)
@@ -3382,6 +3134,8 @@ Optional COMMENT is a string to insert as a comment in the resent message.
 Optional ALIAS-FILE is alternate aliases file to be used by sendmail,
 typically for purposes of moderating a list."
   (interactive "sResend to: ")
+  (if (= rmail-total-messages 0)
+      (error "No messages in this file"))
   (require 'sendmail)
   (require 'mailalias)
   (unless (or (eq rmail-view-buffer (current-buffer))
@@ -3491,6 +3245,8 @@ delimits the returned original message.
 The variable `rmail-retry-ignored-headers' is a regular expression
 specifying headers which should not be copied into the new message."
   (interactive)
+  (if (= rmail-total-messages 0)
+      (error "No messages in this file"))
   (require 'mail-utils)
   (let ((rmail-this-buffer (current-buffer))
 	(msgnum rmail-current-message)
@@ -3878,6 +3634,8 @@ encoded string (and the same mask) will decode the string."
 (defun rmail-browse-body ()
   "Send the message body to a browser to be rendered."
   (interactive)
+  (if (= rmail-total-messages 0)
+      (error "No messages in this file"))
   (save-excursion
     (save-restriction
       (goto-char (point-min))
