@@ -20411,19 +20411,20 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
   int past_end = 0;
 
   first = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+  if (charpos < MATRIX_ROW_START_CHARPOS (first))
+    {
+      *x = first->x;
+      *y = first->y;
+      *hpos = 0;
+      *vpos = MATRIX_ROW_VPOS (first, w->current_matrix);
+      return 1;
+    }
+
   row = row_containing_pos (w, charpos, first, NULL, 0);
   if (row == NULL)
     {
-      if (charpos < MATRIX_ROW_START_CHARPOS (first))
-	{
-	  *x = *y = *hpos = *vpos = 0;
-	  return 1;
-	}
-      else
-	{
-	  row = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
-	  past_end = 1;
-	}
+      row = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
+      past_end = 1;
     }
 
   *x = row->x;
