@@ -1060,6 +1060,12 @@ with Custom.
 
 * Lisp Changes in Emacs 21.4
 
+** When using non-toolkit scroll bars with the default width,
+the scroll-bar-width frame parameter value is nil.
+
+** The new function copy-abbrev-table returns a new abbrev table that
+is a copy of a given abbrev table.
+
 +++
 ** The option --script FILE runs Emacs in batch mode and loads FILE.
 It is useful for writing Emacs Lisp shell script files, because they
@@ -1632,6 +1638,9 @@ or `bg:COLOR' has been removed.  Lisp programs should use the
 are used by define-derived-mode to make sure the mode hook for the
 parent mode is run at the end of the child mode.
 
+** define-derived-mode by default creates a new empty abbrev table.
+It does not copy abbrevs from the parent mode's abbrev table.
+
 +++
 ** `provide' and `featurep' now accept an optional second argument
 to test/provide subfeatures.  Also `provide' now checks `after-load-alist'
@@ -1650,8 +1659,6 @@ user UID doesn't fit in a Lisp integer.  Function `user-full-name'
 accepts a float as UID parameter.
 
 ** `define-key-after' now accepts keys longer than 1.
-
-** `define-derived-mode' now accepts nil as the parent.
 
 ** The local variable `no-byte-compile' in elisp files is now obeyed.
 

@@ -1,3 +1,22 @@
+2002-09-11  Richard M. Stallman  <rms@gnu.org>
+
+	* derived.el (define-derived-mode): When making new abbrev table,
+	don't try to copy the parent's abbrev table.
+
+	* ruler-mode.el (ruler-mode-left-scroll-bar-cols):
+	Always round scroll-bar-width parameter up.
+	If it is nil, use 14.
+
+	* abbrev.el (copy-abbrev-table): New function.
+
+2002-09-11  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Adjust ps-print-color-p, ps-default-fg and ps-default-bg
+	setting.
+	(ps-print-version): New version number (6.5.7).
+	(ps-mark-active-p): New fun.
+	(ps-print-preprint-region): Adjust code.
+
 2002-09-11  Dave Love  <fx@gnu.org>
 
 	* international/mule.el (non-standard-designations-alist) 

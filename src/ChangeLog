@@ -1,3 +1,21 @@
+2002-09-11  Richard M. Stallman  <rms@gnu.org>
+
+	* unexsol.c: Don't use report_file_error; do it by hand
+	using dlerror.
+
+	* process.c (wait_reading_process_input, both versions):
+	Before calling turn_on_atimers, call stop_polling.
+
+	* emacs.c (syms_of_emacs) <command-line-args>: Doc fix.
+
+	* xdisp.c (try_scrolling): If after make_cursor_line_fully_visible
+	we go to too_near_end, call clear_glyph_matrix.
+	(redisplay_window): After make_cursor_line_fully_visible,
+	call clear_glyph_matrix and bypass `goto done'.
+
+	* xfns.c (x_report_frame_params): If FRAME_SCROLL_BAR_PIXEL_WIDTH is 0
+	and we have non-toolkit scroll bars, return nil for scroll-bar-width.
+
 2002-09-10  Richard M. Stallman  <rms@gnu.org>
 
 	* fileio.c (Fdo_auto_save): Catch error making directory.
