@@ -379,6 +379,11 @@ fix_submap_inheritance (map, event, submap)
   else
     parent_entry = Qnil;
 
+  /* If MAP's parent has something other than a keymap,
+     our own submap shadows it completely, so use nil as SUBMAP's parent.  */
+  if (! (CONSP (parent_entry) && EQ (XCONS (parent_entry)->car, Qkeymap)))
+    parent_entry = Qnil;
+
   if (! EQ (parent_entry, submap))
     Fset_keymap_parent (submap, parent_entry);
 }
