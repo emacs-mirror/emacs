@@ -1118,9 +1118,26 @@ on the left of the dialog box and all following items on the right.
 
 #ifndef MSDOS
 
+/* Return non-zero if a dialog or popup menu is already popped up.  */
+
+int
+x_menu_in_use ()
+{
+  return ! NILP (menu_items_inuse);
+}
+
+/* Set menu_items_inuse so no other popup menu or dialog is created.  */
+
+void
+x_menu_set_in_use (in_use)
+     int in_use;
+{
+  menu_items_inuse = in_use ? Qt : Qnil;
+}
+
 /* Wait for an X event to arrive or for a timer to expire.  */
 
-static void
+void
 x_menu_wait_for_event (void *data)
 {
   extern EMACS_TIME timer_check P_ ((int));

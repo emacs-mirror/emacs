@@ -1,3 +1,15 @@
+2004-11-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (pop_down_file_dialog): Add BLOCK_INPUT.
+
+	* xfns.c (Fx_file_dialog): Call x_menu_in_use and x_menu_set_in_use.
+	Record unwind with clean_up_file_dialog.
+
+	* xterm.h: Declare x_menu_in_use, x_menu_set_in_use,
+	x_menu_wait_for_event.
+
+	* xmenu.c (x_menu_in_use, x_menu_set_in_use): New functions.
+
 2004-11-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_file_sel_ok, xg_file_sel_cancel)
