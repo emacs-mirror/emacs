@@ -706,38 +706,8 @@ void
 echo_prompt (str)
      Lisp_Object str;
 {
-  int nbytes = STRING_BYTES (XSTRING (str));
-  int multibyte_p = STRING_MULTIBYTE (str);
-
-  if (nbytes > ECHOBUFSIZE - 4)
-    {
-      if (multibyte_p)
-	{
-	  /* Have to find the last character that fit's into the 
-	     echo buffer.  */
-	  unsigned char *p = XSTRING (str)->data;
-	  unsigned char *pend = p + ECHOBUFSIZE - 4;
-	  int char_len;
-
-	  do
-	    {
-	      PARSE_MULTIBYTE_SEQ (p, pend - p, char_len);
-	      p += char_len;
-	    }
-	  while (p < pend);
-
-	  nbytes = p - XSTRING (str)->data - char_len;
-	}
-      else
-	nbytes = ECHOBUFSIZE - 4;
-    }
-
-  nbytes = copy_text (XSTRING (str)->data, current_kboard->echobuf, nbytes,
-		      STRING_MULTIBYTE (str), 1);
-  current_kboard->echoptr = current_kboard->echobuf + nbytes;
-  *current_kboard->echoptr = '\0';
-  current_kboard->echo_after_prompt = nbytes;
-
+  current_kboard->echo_string = str;
+  current_kboard->echo_after_prompt = XSTRING (str)->size;
   echo_now ();
 }
 
@@ -751,43 +721,64 @@ echo_char (c)
 {
   if (current_kboard->immediate_echo)
     {
-      char *ptr = current_kboard->echoptr;
-
-      if (ptr != current_kboard->echobuf)
-	*ptr++ = ' ';
+      int size = KEY_DESCRIPTION_SIZE + 100;
+      char *buffer = (char *) alloca (size);
+      char *ptr = buffer;
+      Lisp_Object echo_string;
 
       /* If someone has passed us a composite event, use its head symbol.  */
       c = EVENT_HEAD (c);
 
       if (INTEGERP (c))
 	{
-	  int ch = XINT (c);
-
-	  if (ptr - current_kboard->echobuf
-	      > ECHOBUFSIZE - KEY_DESCRIPTION_SIZE)
-	    return;
-
-	  ptr = push_key_description (ch, ptr, 1);
+	  ptr = push_key_description (XINT (c), ptr, 1);
 	}
       else if (SYMBOLP (c))
 	{
 	  struct Lisp_String *name = XSYMBOL (c)->name;
-	  if ((ptr - current_kboard->echobuf) + STRING_BYTES (name) + 4
-	      > ECHOBUFSIZE)
-	    return;
+	  
+	  if (size - (ptr - buffer) < STRING_BYTES (name))
+	    {
+	      int offset = ptr - buffer;
+	      size = max (2 * size, size + STRING_BYTES (name));
+	      buffer = (char *) alloca (size);
+	      ptr = buffer + offset;
+	    }
+
 	  ptr += copy_text (name->data, ptr, STRING_BYTES (name),
 			    name->size_byte >= 0, 1);
 	}
 
-      if (current_kboard->echoptr == current_kboard->echobuf
+      if ((NILP (current_kboard->echo_string)
+	   || XSTRING (current_kboard->echo_string)->size == 0)
 	  && help_char_p (c))
 	{
-	  strcpy (ptr, " (Type ? for further options)");
-	  ptr += strlen (ptr);
+	  const char *text = " (Type ? for further options)";
+	  int len = strlen (text);
+	  
+	  if (size - (ptr - buffer) < len)
+	    {
+	      int offset = ptr - buffer;
+	      size += len;
+	      buffer = (char *) alloca (size);
+	      ptr = buffer + offset;
+	    }
+
+	  bcopy (text, ptr, len);
+	  ptr += len;
 	}
 
-      *ptr = 0;
-      current_kboard->echoptr = ptr;
+      echo_string = current_kboard->echo_string;
+      
+      /* Replace a dash from echo_dash with a space.  */
+      if (STRINGP (echo_string)
+	  && (size = STRING_BYTES (XSTRING (echo_string)),
+	      (size > 0
+	       && XSTRING (echo_string)->data[size - 1] == '-')))
+	XSTRING (echo_string)->data[size - 1] = ' ';
+
+      current_kboard->echo_string
+	= concat2 (echo_string, make_string (buffer, ptr - buffer));
 
       echo_now ();
     }
@@ -799,22 +790,23 @@ echo_char (c)
 void
 echo_dash ()
 {
-  if (!current_kboard->immediate_echo
-      && current_kboard->echoptr == current_kboard->echobuf)
+  /* Do nothing if not echoing at all.  */
+  if (NILP (current_kboard->echo_string))
     return;
+
+  if (!current_kboard->immediate_echo
+      && XSTRING (current_kboard->echo_string)->size == 0)
+    return;
+      
   /* Do nothing if we just printed a prompt.  */
   if (current_kboard->echo_after_prompt
-      == current_kboard->echoptr - current_kboard->echobuf)
+      == XSTRING (current_kboard->echo_string)->size)
     return;
-  /* Do nothing if not echoing at all.  */
-  if (current_kboard->echoptr == 0)
-    return;
-
+      
   /* Put a dash at the end of the buffer temporarily,
      but make it go away when the next character is added.  */
-  current_kboard->echoptr[0] = '-';
-  current_kboard->echoptr[1] = 0;
-
+  current_kboard->echo_string = concat2 (current_kboard->echo_string,
+					 build_string ("-"));
   echo_now ();
 }
 
@@ -841,8 +833,9 @@ echo_now ()
     }
 
   echoing = 1;
-  message2_nolog (current_kboard->echobuf, strlen (current_kboard->echobuf),
-		  1);
+  message3_nolog (current_kboard->echo_string,
+		  STRING_BYTES (XSTRING (current_kboard->echo_string)),
+		  STRING_MULTIBYTE (current_kboard->echo_string));
   echoing = 0;
 
   /* Record in what buffer we echoed, and from which kboard.  */
@@ -859,8 +852,8 @@ void
 cancel_echoing ()
 {
   current_kboard->immediate_echo = 0;
-  current_kboard->echoptr = current_kboard->echobuf;
   current_kboard->echo_after_prompt = -1;
+  current_kboard->echo_string = Qnil;
   ok_to_echo_at_next_pause = NULL;
   echo_kboard = NULL;
   echo_message_buffer = Qnil;
@@ -871,7 +864,9 @@ cancel_echoing ()
 static int
 echo_length ()
 {
-  return current_kboard->echoptr - current_kboard->echobuf;
+  return (STRINGP (current_kboard->echo_string)
+	  ? XSTRING (current_kboard->echo_string)->size
+	  : 0);
 }
 
 /* Truncate the current echo message to its first LEN chars.
@@ -879,12 +874,14 @@ echo_length ()
    switches frames while entering a key sequence.  */
 
 static void
-echo_truncate (len)
-     int len;
+echo_truncate (nchars)
+     int nchars;
 {
-  current_kboard->echobuf[len] = '\0';
-  current_kboard->echoptr = current_kboard->echobuf + len;
-  truncate_echo_area (len);
+  if (STRINGP (current_kboard->echo_string))
+    current_kboard->echo_string
+      = Fsubstring (current_kboard->echo_string,
+		    make_number (0), make_number (nchars));
+  truncate_echo_area (nchars);
 }
 
 
@@ -10130,7 +10127,7 @@ init_kboard (kb)
   kb->kbd_queue = Qnil;
   kb->kbd_queue_has_data = 0;
   kb->immediate_echo = 0;
-  kb->echoptr = kb->echobuf;
+  kb->echo_string = Qnil;
   kb->echo_after_prompt = -1;
   kb->kbd_macro_buffer = 0;
   kb->kbd_macro_bufsize = 0;
