@@ -1156,8 +1156,8 @@ items of calendrical data into a time value.  For the meanings of the
 arguments, see the table above under @code{decode-time}.
 
 Year numbers less than 100 are not treated specially.  If you want them
-to stand for years above 1900, you must alter them yourself before you
-call @code{encode-time}.
+to stand for years above 1900, or years above 2000, you must alter them
+yourself before you call @code{encode-time}.
 
 The optional argument @var{zone} defaults to the current time zone and
 its daylight savings time rules.  If specified, it can be either a list

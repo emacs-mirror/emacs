@@ -315,7 +315,7 @@ as it comes in.  For details, see the description of
 @code{call-process}, above.  If @var{destination} is the integer 0,
 @code{call-process-region} discards the output and returns @code{nil}
 immediately, without waiting for the subprocess to finish (this only
-works if asynchronous subprocess are supported).
+works if asynchronous subprocesses are supported).
 
 The remaining arguments, @var{args}, are strings that specify command
 line arguments for the program.
