@@ -1,5 +1,5 @@
 /* Interface definitions for display code.
-   Copyright (C) 1985,93,94,97,98,99, 2000,01,02,03, 2004
+   Copyright (C) 1985,93,94,97,98,99, 2000,01,02,03, 2004, 2005
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -123,11 +123,12 @@ enum window_part
 
 #if GLYPH_DEBUG
 #define IF_DEBUG(X)	X
-#define xassert(X)	do {if (!(X)) abort ();} while (0)
 #else
 #define IF_DEBUG(X)	(void) 0
-#define xassert(X)	(void) 0
 #endif
+
+/* Maybe move this inside the above `#ifdef GLYPH_DEBUG' for release.  */
+#define xassert(X)	do {if (!(X)) abort ();} while (0)
 
 /* Macro for displaying traces of redisplay.  If Emacs was compiled
    with GLYPH_DEBUG != 0, the variable trace_redisplay_p can be set to

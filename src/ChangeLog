@@ -1,3 +1,7 @@
+2005-02-02  Miles Bader  <miles@gnu.org>
+
+	* dispextern.h (xassert): Enable unconditionally.
+
 2005-02-02  Kim F. Storm  <storm@cua.dk>
 
 	* undo.c (Fprimitive_undo): Fix dummy apply undo entry.
