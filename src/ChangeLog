@@ -1,3 +1,12 @@
+2003-04-08  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Finsert_file_contents): Doc fix.
+	(syms_of_fileio) <after-insert-file-functions>: Doc fix.
+
+2003-04-08  Ivan Zakharyaschev  <imz@altlinux.org>  (tiny change)
+	
+	* lread.c (openp): Get the Qfile_exists_p handler for STRING, not FN.
+
 2003-04-08  Steven Tamm  <steventamm@mac.com>
 	* mac.c (init_mac_osx_environment): Switch libexec and bin so
 	that self-contained application finds libexec files.
