@@ -927,6 +927,18 @@ recursive_edit_1 ()
     cancel_busy_cursor ();
 #endif
 
+  /* This function may have been called from a debugger called from
+     within redisplay, for instance by Edebugging a function called
+     from fontification-functions.  We want to allow redisplay in
+     the debugging session.
+
+     The recursive edit is left with a `(throw exit ...)'.  The `exit'
+     tag is not caught anywhere in redisplay, i.e. when we leave the
+     recursive edit, the original redisplay leading to the recursive
+     edit will be unwound.  The outcome should therefore be safe.  */
+  specbind (Qinhibit_redisplay, Qnil);
+  redisplaying_p = 0;
+
   val = command_loop ();
   if (EQ (val, Qt))
     Fsignal (Qquit, Qnil);
@@ -968,18 +980,6 @@ This function is called by the editor initialization to begin editing.")
 
   command_loop_level++;
   update_mode_lines = 1;
-
-  /* This function may have been called from a debugger called from
-     within redisplay, for instance by Edebugging a function called
-     from fontification-functions.  We want to allow redisplay in
-     the debugging session.
-
-     The recursive edit is left with a `(throw exit ...)'.  The `exit'
-     tag is not caught anywhere in redisplay, i.e. when we leave the
-     recursive edit, the original redisplay leading to the recursive
-     edit will be unwound.  The outcome should therefore be safe.  */
-  specbind (Qinhibit_redisplay, Qnil);
-  redisplaying_p = 0;
 
   record_unwind_protect (recursive_edit_unwind,
 			 (command_loop_level
