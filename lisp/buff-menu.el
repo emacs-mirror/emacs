@@ -346,7 +346,10 @@ You can mark buffers with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] comma
 	(goto-char (posn-point (event-end event)))
 	(setq buffer (Buffer-menu-buffer t))))
     (select-window (posn-window (event-end event)))
-    (switch-to-buffer buffer)))
+    (if (and (window-dedicated-p (selected-window))
+	     (eq (selected-window) (frame-root-window)))
+	(switch-to-buffer-other-frame buffer)
+      (switch-to-buffer buffer))))
 
 (defun Buffer-menu-this-window ()
   "Select this line's buffer in this window."
