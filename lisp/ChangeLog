@@ -1,5 +1,36 @@
 2004-11-19  Jay Belanger  <belanger@truman.edu>
 
+	* calc/calc-yank.el (calc-edit-disp-trail): New variable.
+	(calc-edit-finish, calc-finish-stack-edit): Replace variable
+	disp-trail by declared variable.
+
+	* calc/calc-sel.el (calc-edit-disp-trail): Declare it.
+	(calc-finish-selection-edit):  Replace variable disp-trail by
+	declared variable.
+
+	(calc-selection-cache-entry): Move declaration to earlier in
+	the file.
+
+	(calc-selection-cache-num, calc-selection-cache-comp)
+	(calc-selection-cache-offset, calc-selection-true-num)
+	(calc-final-point-line, calc-final-point-column)
+	(calc-original-buffer): Declare them.
+
+	(calc-fnp-op, calc-fnp-num): New variables.
+	(calc-find-nth-part, calc-find-nth-part-rec)
+	(calc-select-previous): Replace op and num by declared
+	variables.
+
+	(calc-rsf-old, calc-rsf-new): New variables.
+	(calc-replace-sub-formula, calc-replace-sub-formula-rec):
+	Replace variables old and new by declared variables.
+
+	(calc-sel-reselect): New variable.
+	(calc-auto-selection, calc-enter-selection, calc-edit-selection)
+	(calc-sel-evaluate, calc-sel-expand-formula, calc-sel-expand-formula)
+	(calc-sel-mult-both-sides, calc-sel-add-both-sides):  Replace variable
+	reselect with declared variable.
+
 	* calc/calc-rewr.el (math-regs, math-num-regs, math-prog-last)
 	(math-bound-vars, math-conds, math-copy-neg, math-rhs)
 	(math-pattern, math-remembering, math-aliased-vars, math-mt-many)
