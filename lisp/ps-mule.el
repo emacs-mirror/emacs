@@ -511,7 +511,10 @@ element of the list."
 
 (defsubst ps-mule-printable-p (charset)
   "Non-nil if characters in CHARSET is printable."
-  (ps-mule-get-font-spec charset 'normal))
+  ;; ASCII and Latin-1 are always printable.
+  (or (eq charset 'ascii)
+      (eq charset 'latin-iso8859-1)
+      (ps-mule-get-font-spec charset 'normal)))
 
 (defconst ps-mule-external-libraries
   '((builtin nil nil
