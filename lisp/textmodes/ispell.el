@@ -222,13 +222,6 @@
      (not (boundp 'epoch::version))
      (defalias 'ispell-check-version 'check-ispell-version))
 
-(if (fboundp 'mode-line-window-height-fudge)
-    (defalias 'ispell-mode-line-window-height-fudge
-      'mode-line-window-height-fudge)
-  (defun ispell-mode-line-window-height-fudge ()
-    "Return 1 if running on a `graphics capable' display, otherwise 0."
-    (if ispell-graphic-p 1 0)))
-
 ;;; **********************************************************************
 ;;; The following variables should be set according to personal preference
 ;;; and location of binaries:
@@ -1488,14 +1481,6 @@ If so, ask if it needs to be saved."
   (setq ispell-pdict-modified-p nil))
 
 
-(defun ispell-choices-win-default-height ()
-  "Return the default height of the `*Choices*' window for this display.
-This is the value of of the variable `ispell-choices-win-default-height',
-plus a possible fudge factor to work around problems with mode-lines that
-obscure the last buffer line on graphics capable displays."
-  (+ ispell-choices-win-default-height (ispell-mode-line-window-height-fudge)))
-
-
 (defun ispell-command-loop (miss guess word start end)
   "Display possible corrections from list MISS.
 GUESS lists possibly valid affix construction of WORD.
@@ -1511,11 +1496,11 @@ indicates whether the dictionary has been modified when option `a' or `i' is
 used.
 Global `ispell-quit' set to start location to continue spell session."
   (let ((count ?0)
-	(line (ispell-choices-win-default-height))
+	(line ispell-choices-win-default-height)
 	(max-lines (- (window-height) 4)) ; ensure 4 context lines.
 	(choices miss)
 	(window-min-height (min window-min-height
-				(ispell-choices-win-default-height)))
+				ispell-choices-win-default-height))
 	(command-characters '( ?  ?i ?a ?A ?r ?R ?? ?x ?X ?q ?l ?u ?m ))
 	(dedicated (window-dedicated-p (selected-window)))
 	(skipped 0)
@@ -1686,7 +1671,7 @@ Global `ispell-quit' set to start location to continue spell session."
 						      new-word)
 				    miss (lookup-words new-word)
 				    choices miss
-				    line (ispell-choices-win-default-height))
+				    line ispell-choices-win-default-height)
 			      (while (and choices ; adjust choices window.
 					  (< (if (> (+ 7 (current-column)
 						       (length (car choices))
@@ -1788,9 +1773,9 @@ Global `ispell-quit' set to start location to continue spell session."
 	    ;; without scrolling the spelled window when possible
 	    (let ((window-line (- line (window-height choices-window)))
 		  (visible (progn (vertical-motion -1) (point))))
-	      (if (< line (ispell-choices-win-default-height))
+	      (if (< line ispell-choices-win-default-height)
 		  (setq window-line (+ window-line
-				       (- (ispell-choices-win-default-height)
+				       (- ispell-choices-win-default-height
 					  line))))
 	      (move-to-window-line 0)
 	      (vertical-motion window-line)
@@ -1800,7 +1785,7 @@ Global `ispell-quit' set to start location to continue spell session."
 	      (select-window (previous-window)) ; *Choices* window
 	      (enlarge-window window-line)))
 	;; Overlay *Choices* window when it isn't showing
-	(ispell-overlay-window (max line (ispell-choices-win-default-height))))
+	(ispell-overlay-window (max line ispell-choices-win-default-height)))
       (switch-to-buffer ispell-choices-buffer)
       (goto-char (point-min)))))
 
@@ -1873,8 +1858,7 @@ SPC:   Accept word this time.
       (save-window-excursion
 	(if ispell-help-in-bufferp
 	    (progn
-	      (ispell-overlay-window
-	       (+ 4 (ispell-mode-line-window-height-fudge)))
+	      (ispell-overlay-window 4)
 	      (switch-to-buffer (get-buffer-create "*Ispell Help*"))
 	      (insert (concat help-1 "\n" help-2 "\n" help-3))
 	      (sit-for 5)
@@ -2064,7 +2048,7 @@ The variable `ispell-highlight-face' selects the face to use for highlighting."
 Ensure that the line above point is still visible but otherwise avoid
 scrolling the current window.  Leave the new window selected."
   (save-excursion
-    (let ((oldot (save-excursion (forward-line -1) (point)))
+    (let ((oldot (save-excursion (vertical-motion -1) (point)))
 	  (top (save-excursion (move-to-window-line height) (point))))
       ;; If line above old point (line starting at oldot) would be
       ;; hidden by new window, scroll it to just below new win
@@ -2077,6 +2061,22 @@ scrolling the current window.  Leave the new window selected."
 	    (split-window nil height)
 	    (modify-frame-parameters frame '((unsplittable . t))))
 	(split-window nil height))
+      (let ((deficit
+	      ;; Number of lines the window is still too short.  We
+	      ;; ensure that there are at least (1- HEIGHT) lines
+	      ;; visible in the window.
+	      (- height
+		 (cond ((fboundp 'window-text-height)
+			(1+ (window-text-height)))
+		       (ispell-graphic-p
+			(1- (window-height)))
+		       (t
+			(window-height))))))
+	(when (> deficit 0)
+	  (enlarge-window deficit)
+	  (goto-char top)
+	  (vertical-motion deficit)
+	  (setq top (min (point) oldot))))
       (set-window-start (next-window) top))))
 
 
