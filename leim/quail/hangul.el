@@ -29,7 +29,7 @@
 (defun quail-hangul-switch-to-symbol-ksc (&rest ignore)
   "Swith to `korean-symbol' package."
   (quail-delete-region)
-  (select-input-method "korean-symbol")
+  (activate-input-method "korean-symbol")
   (throw 'quail-tag nil))
 
 (quail-define-package
