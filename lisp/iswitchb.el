@@ -1088,7 +1088,6 @@ This is a hack for XEmacs, and should really be handled by `iswitchb-exhibit'."
 Copied from `icomplete-exhibit' with two changes:
 1. It prints a default buffer name when there is no text yet entered.
 2. It calls my completion routine rather than the standard completion."
-
   (if iswitchb-use-mycompletion
       (let ((contents (buffer-substring (minibuffer-prompt-end) (point-max)))
 	    (buffer-undo-list t))
@@ -1108,16 +1107,13 @@ Copied from `icomplete-exhibit' with two changes:
 	  (iswitchb-set-common-completion)
 
 	  ;; Insert the match-status information:
-	  (insert-string
-	   (iswitchb-completions 
-	    contents
-	    minibuffer-completion-table
-	    minibuffer-completion-predicate
-	    (not minibuffer-completion-confirm)))
-	  ))))
+	  (insert-string (iswitchb-completions 
+			  contents
+			  minibuffer-completion-table
+			  minibuffer-completion-predicate
+			  (not minibuffer-completion-confirm)))))))
 
-(defun iswitchb-completions
-  (name candidates predicate require-match)
+(defun iswitchb-completions (name candidates predicate require-match)
   "Return the string that is displayed after the user's text.
 Modified from `icomplete-completions'."
   
@@ -1249,17 +1245,15 @@ Copied from `icomplete-tidy'."
     (setq iswitchb-eoinput 1)))
 
 (defun iswitchb-entryfn-p ()
-  "Return non-nil if `this-command' shows we are using `iswitchb-buffer'."
-  (or (boundp 'iswitchb-prepost-hooks)
-      ;; I think the of this may be redundant, since the prepost hooks
-      ;; will always be set in the iswitchb defuns.
-      ;;(and (symbolp this-command)		; ignore lambda functions
-      ;;(memq this-command
-      ;;	 '(iswitchb-buffer
-      ;;	   iswitchb-buffer-other-frame
-      ;;       iswitchb-display-buffer
-      ;;       iswitchb-buffer-other-window))))
-  ))
+  "Return non-nil if we are using `iswitchb-buffer'."
+  ;; Testing if `iswitchb-prepost-hooks' is bound does not work when
+  ;; we're invoking a recursive mini-buffer from an Iswitchb buffer.
+  ;; In this case, `iswitchb-prepost-hooks' is bound in the second
+  ;; mini-buffer, although it's not an Iswitchb buffer.
+  (memq this-command
+	'(iswitchb-buffer iswitchb-buffer-other-frame
+			  iswitchb-display-buffer
+			  iswitchb-buffer-other-window)))
 
 (defun iswitchb-summaries-to-end ()
   "Move the summaries to the end of the list.
