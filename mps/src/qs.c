@@ -2,7 +2,7 @@
  *
  *                          QUICKSORT
  *
- *  $HopeName: MMsrc!qs.c(trunk.4) $
+ *  $HopeName: MMsrc!qs.c(trunk.5) $
  *
  *  Copyright (C) 1995,1996 Harlequin Group, all rights reserved
  *
@@ -409,7 +409,7 @@ go(void *p, size_t s)
 }
 
 int 
-main()
+main(void)
 {
   void *r;
   die(mps_space_create(&space), "SpaceCreate");
