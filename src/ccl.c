@@ -597,7 +597,7 @@ static tr_stack *mapping_stack_pointer;
 
 /* If this variable is non-zero, it indicates the stack_idx
    of immediately called by CCL_MapMultiple. */
-static int stack_idx_of_map_multiple = 0;
+static int stack_idx_of_map_multiple;
 
 #define PUSH_MAPPING_STACK(restlen, orig)		\
   do {							\
