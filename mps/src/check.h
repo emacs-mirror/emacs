@@ -1,6 +1,6 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
- * $HopeName: MMsrc!check.h(trunk.8) $
+ * $HopeName: MMsrc!check.h(trunk.9) $
  *
  * This header defines a family of AVER and NOTREACHED macros. The
  * macros should be used to instrument and annotate code with
@@ -38,17 +38,20 @@
 
 #elif defined(MPS_HOT_RED) 
 
-#define AVER(cond)                  ASSERT(cond)
-#define AVERT(type, val)            ASSERT(type ## Check(val))
+#define AVER(cond)                  ASSERT(cond, #cond)
+#define AVERT(type, val)            ASSERT(type ## Check(val), \
+        "TypeCheck " #type ": " #val)
 #define AVER_CRITICAL(cond)         NOCHECK(cond)
 #define AVERT_CRITICAL(type, val)   NOCHECK(type ## Check(val))
 
 #elif defined(MPS_COOL)
 
-#define AVER(cond)                  ASSERT(cond)
-#define AVERT(type, val)            ASSERT(type ## Check(val))
-#define AVER_CRITICAL(cond)         ASSERT(cond)
-#define AVERT_CRITICAL(type, val)   ASSERT(type ## Check(val))
+#define AVER(cond)                  ASSERT(cond, #cond)
+#define AVERT(type, val)            ASSERT(type ## Check(val), \
+        "TypeCheck " #type ": " #val)
+#define AVER_CRITICAL(cond)         ASSERT(cond, #cond)
+#define AVERT_CRITICAL(type, val)   ASSERT(type ## Check(val), \
+        "TypeCheck " #type ": " #val)
 
 #else
 
@@ -61,14 +64,20 @@ typedef void (*AssertHandler)(const char *cond, const char *id,
 extern AssertHandler AssertInstall(AssertHandler handler);
 extern AssertHandler AssertDefault(void);
 
-extern void AssertFail(const char *cond, const char *id,
-                       const char *file, unsigned line);
+extern void AssertFail1(const char *s);
 
-#define ASSERT(cond) \
+/* STR(x) expands into a string of the expansion of x. */
+/* Eg, if we have: */
+/* #define a b */
+/* STR(a) will expand into "b". */
+/* @@@@ really STR belongs in some generic support file. */
+#define STR_(x) #x
+#define STR(x) STR_(x)
+
+#define ASSERT(cond, condstring) \
   BEGIN \
     if(cond) NOOP; else \
-      AssertFail(#cond, FileSrcIdStruct.hopename, \
-                 FileSrcIdStruct.file, __LINE__); \
+      AssertFail1(condstring "\n" __FILE__ "\n" STR(__LINE__)); \
   END
 
 		 
@@ -80,16 +89,13 @@ extern void AssertFail(const char *cond, const char *id,
     
 #define NOTREACHED \
   BEGIN \
-    AssertFail("unreachable statement", \
-               FileSrcIdStruct.hopename, FileSrcIdStruct.file, \
-               __LINE__); \
+    AssertFail1("unreachable statement" "\n" __FILE__ "\n" STR(__LINE__)); \
   END
 
-#define CHECKC(cond) \
+#define CHECKC(cond, condstring) \
   BEGIN \
     if(cond) NOOP; else \
-      AssertFail(#cond, FileSrcIdStruct.hopename, \
-                 FileSrcIdStruct.file, __LINE__); \
+      AssertFail1(condstring "\n" __FILE__ "\n" STR(__LINE__)); \
   END
 
 
@@ -122,7 +128,8 @@ extern void AssertFail(const char *cond, const char *id,
 #elif defined(MPS_HOT_RED)
 
 /* CHECKS -- Check Signature */
-#define CHECKS(type, val)       CHECKC(CHECKT(type, val))
+#define CHECKS(type, val)       CHECKC(CHECKT(type, val), \
+	"SigCheck " #type ": " #val)
 
 #define CHECKL(cond)       NOCHECK(cond)
 #define CHECKD(type, val)  NOCHECK(CHECKT(type, val))
@@ -131,7 +138,8 @@ extern void AssertFail(const char *cond, const char *id,
 #elif defined(MPS_COOL)
 
 /* CHECKS -- Check Signature */
-#define CHECKS(type, val)       CHECKC(CHECKT(type, val))
+#define CHECKS(type, val)       CHECKC(CHECKT(type, val), \
+	"SigCheck " #type ": " #val)
 
 /* CHECKL -- Check Local Invariant */
 /* Could make this an expression using ?: */
@@ -143,7 +151,7 @@ extern void AssertFail(const char *cond, const char *id,
       break; \
     case CheckSHALLOW: \
     case CheckDEEP: \
-      CHECKC(cond); \
+      CHECKC(cond, #cond); \
       break; \
     default: \
       NOTREACHED; \
@@ -159,10 +167,12 @@ extern void AssertFail(const char *cond, const char *id,
       NOOP; \
       break; \
     case CheckSHALLOW: \
-      CHECKC(CHECKT(type, val)); \
+      CHECKC(CHECKT(type, val), \
+             "SigCheck " #type ": " #val); \
       break; \
     case CheckDEEP: \
-      CHECKC(type ## Check(val)); \
+      CHECKC(type ## Check(val), \
+             "TypeCheck " #type ": " #val); \
       break; \
     default: \
       NOTREACHED; \
@@ -179,7 +189,8 @@ extern void AssertFail(const char *cond, const char *id,
       break; \
     case CheckSHALLOW: \
     case CheckDEEP: \
-      CHECKC(CHECKT(type, val)); \
+      CHECKC(CHECKT(type, val), \
+             "SigCheck " #type ": " #val); \
       break; \
     default: \
       NOTREACHED; \
