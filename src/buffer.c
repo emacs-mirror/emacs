@@ -1551,7 +1551,7 @@ the current buffer's major mode.  */)
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
 
   Fset_buffer (buffer);
-  if (NILP (function) || EQ (function, Qfundamental_mode))
+  if (!(NILP (function) || EQ (function, Qfundamental_mode)))
     call0 (function);
   Frun_hooks (1, &Qset_buffer_major_mode_hook);
 
