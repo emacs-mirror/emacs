@@ -85,6 +85,7 @@
 With ARG, turn Hl-Line mode on if ARG is positive, off otherwise.
 Uses functions `hl-line-unhighlight' and `hl-line-highlight' on
 `pre-command-hook' and `post-command-hook'."
+  nil nil nil
   (if hl-line-mode
       (progn
 	(add-hook 'pre-command-hook #'hl-line-unhighlight)
