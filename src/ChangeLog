@@ -1,5 +1,16 @@
 2002-11-15  Jason Rumney  <jasonr@gnu.org>
 
+	* w32term.c (x_draw_image_foreground)
+	(w32_draw_image_foreground_1): Use standard copy and invert
+	operations to draw images.
+
+	* w32fns.c (x_create_x_image_and_pixmap): Fill in palette for
+	depth of 1.
+	(xbm_read_bitmap_data): Invert bits as xbm is read in.
+	(XPutPixel): Don't invert bits here.
+
+2002-11-15  Jason Rumney  <jasonr@gnu.org>
+
 	* w32term.c (x_draw_image_foreground, x_draw_image_glyph_string)
 	(w32_draw_image_foreground_1): Handle image masks.
 	(x_draw_image_glyph_string): Don't BitBlt transparently.
