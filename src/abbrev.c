@@ -321,7 +321,7 @@ Returns the abbrev symbol, if expansion took place.")
     {
       SET_PT (wordstart);
 
-      del_range_both (wordstart, wordend, wordstart_byte, wordend_byte, 1);
+      del_range_both (wordstart, wordstart_byte, wordend, wordend_byte, 1);
 
       insert_from_string (expansion, 0, 0, XSTRING (expansion)->size,
 			  XSTRING (expansion)->size_byte, 1);

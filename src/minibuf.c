@@ -1977,7 +1977,7 @@ temp_echo_area_glyphs (m)
   SET_PT_BOTH (opoint, opoint_byte);
   Vinhibit_quit = Qt;
   Fsit_for (make_number (2), Qnil, Qnil);
-  del_range_both (osize, ZV, osize_byte, ZV_BYTE, 1);
+  del_range_both (osize, osize_byte, ZV, ZV_BYTE, 1);
   SET_PT_BOTH (opoint, opoint_byte);
   if (!NILP (Vquit_flag))
     {
