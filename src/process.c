@@ -1245,12 +1245,13 @@ create_process (process, new_argv, current_dir)
 #endif /* USG */
 #endif /* not HAVE_SETSID */
 #ifdef NTTYDISC
-	{
-	  /* Use new line discipline.  */
-	  int ldisc = NTTYDISC;
-	  if (ioctl (xforkin, TIOCSETD, &ldisc) < 0)
-	    write (1, "create_process/TIOCSETD failed\n", 31);
-	}
+	if (pty_flag)
+	  {
+	    /* Use new line discipline.  */
+	    int ldisc = NTTYDISC;
+	    if (ioctl (xforkin, TIOCSETD, &ldisc) < 0)
+	      write (1, "create_process/TIOCSETD failed\n", 31);
+	  }
 #endif
 #ifdef TIOCNOTTY 
 	/* In 4.3BSD, the TIOCSPGRP bug has been fixed, and now you
