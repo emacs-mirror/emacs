@@ -2189,6 +2189,10 @@ If summary buffer is currently displayed, update current message there also."
 	    (save-restriction
 	      (if (prog1 (= (following-char) ?0)
 		    (forward-line 2)
+		    ;; If there's a Summary-line in the (otherwise empty)
+		    ;; header, we didn't yet get past the EOOH line.
+		    (if (looking-at "^\\*\\*\\* EOOH \\*\\*\\*\n")
+			(forward-line 1))
 		    (narrow-to-region (point) end))
 		  (rfc822-goto-eoh)
 		(search-forward "\n*** EOOH ***\n" end t))
