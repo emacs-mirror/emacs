@@ -31,7 +31,7 @@
 #define PTR_TO_OFFSET(d)						\
 	POS_AS_IN_BUFFER (MATCHING_IN_FIRST_STRING			\
 			  ? (d) - string1 : (d) - (string2 - size1))
-#define POS_AS_IN_BUFFER(p) ((p) + 1)
+#define POS_AS_IN_BUFFER(p) ((p) + (NILP (re_match_object) || BUFFERP (re_match_object)))
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -3742,8 +3742,8 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
 #ifdef emacs
   gl_state.object = re_match_object;
   {
-    int charpos
-      = SYNTAX_TABLE_BYTE_TO_CHAR (startpos > 0 ? startpos : startpos + 1);
+    int adjpos = NILP (re_match_object) || BUFFERP (re_match_object);
+    int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (startpos + adjpos);
 
     SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object, charpos, 1);
   }
@@ -4063,8 +4063,9 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
 
 #ifdef emacs
   int charpos;
+  int adjpos = NILP (re_match_object) || BUFFERP (re_match_object);
   gl_state.object = re_match_object;
-  charpos = SYNTAX_TABLE_BYTE_TO_CHAR (POS_AS_IN_BUFFER (pos));
+  charpos = SYNTAX_TABLE_BYTE_TO_CHAR (pos + adjpos);
   SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object, charpos, 1);
 #endif
 
@@ -5358,7 +5359,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
 	      GET_CHAR_AFTER_2 (c2, d, string1, end1, string2, end2);
 #ifdef emacs
-	      charpos = SYNTAX_TABLE_BYTE_TO_CHAR (pos1 ? pos1 : 1);
+	      charpos = SYNTAX_TABLE_BYTE_TO_CHAR (pos1);
 	      UPDATE_SYNTAX_TABLE (charpos);
 #endif
 	      s1 = SYNTAX (c1);
