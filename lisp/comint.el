@@ -556,6 +556,13 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 (defun comint-exec-1 (name buffer command switches)
   (let ((process-environment
 	 (nconc
+	  ;; If using termcap, we specify `emacs' as the terminal type
+	  ;; because that lets us specify a width.
+	  ;; If using terminfo, we specify `unknown' because that is
+	  ;; a defined terminal type.  `emacs' is not a defined terminal type
+	  ;; and there is no way for us to define it here.
+	  ;; Some programs that use terminfo get very confused
+	  ;; if TERM is not a valid terminal type.
 	  (if (and (boundp 'system-uses-terminfo) system-uses-terminfo)
 	      (list "EMACS=t" "TERM=unknown"
 		    (format "COLUMNS=%d" (frame-width)))
