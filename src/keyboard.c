@@ -2439,14 +2439,6 @@ kbd_buffer_get_event (KBOARD **kbp)
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
-      else if (event->kind == menu_bar_event)
-	{
-	  /* The event value is in the cdr of the frame_or_window slot.  */
-	  if (!CONSP (event->frame_or_window))
-	    abort ();
-	  obj = XCONS (event->frame_or_window)->cdr;
-	  kbd_fetch_ptr = event + 1;
-	}
       else if (event->kind == buffer_switch_event)
 	{
 	  /* The value doesn't matter here; only the type is tested.  */
@@ -2471,7 +2463,9 @@ kbd_buffer_get_event (KBOARD **kbp)
 	  Lisp_Object focus;
 
 	  frame = event->frame_or_window;
-	  if (WINDOWP (frame))
+	  if (CONSP (frame))
+	    frame = XCONS (frame)->car;
+	  else if (WINDOWP (frame))
 	    frame = WINDOW_FRAME (XWINDOW (frame));
 
 	  focus = FRAME_FOCUS_FRAME (XFRAME (frame));
@@ -3164,6 +3158,14 @@ make_lispy_event (event)
 	}
       }
 #endif /* HAVE_MOUSE */
+
+#ifdef USE_X_TOOLKIT
+    case menu_bar_event:
+      /* The event value is in the cdr of the frame_or_window slot.  */
+      if (!CONSP (event->frame_or_window))
+	abort ();
+      return XCONS (event->frame_or_window)->cdr;
+#endif
 
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
