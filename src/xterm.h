@@ -318,6 +318,7 @@ extern struct x_display_info *x_term_init ();
 
 extern Lisp_Object x_list_fonts ();
 extern struct font_info *x_get_font_info(), *x_load_font (), *x_query_font ();
+extern void x_find_ccl_program();
 
 /* Each X frame object points to its own struct x_output object
    in the output_data.x field.  The x_output structure contains
