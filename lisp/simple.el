@@ -2912,9 +2912,11 @@ SWITCH-FUNCTION, if non-nil, is a function to use to
 switch to and display the buffer used for mail composition.
 
 YANK-ACTION, if non-nil, is an action to perform, if and when necessary,
-to insert the text of the message being replied to.
-It has the form (FUNCTION . ARGS).  Performing the action is done
-by applying FUNCTION to ARGS.
+to insert the raw text of the message being replied to.
+It has the form (FUNCTION . ARGS).  The user agent will apply
+FUNCTION to ARGS, to insert the raw text of the original message.
+\(The user agent will also run `mail-citation-hook', *after* the
+original text has been inserted in this way.)
 
 SEND-ACTIONS is a list of actions to call when the message is sent.
 Each action has the form (FUNCTION . ARGS)."
