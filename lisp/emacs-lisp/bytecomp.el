@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.20 $")
+(defconst byte-compile-version "$Revision: 2.21 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -3339,6 +3339,7 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
 (make-obsolete 'buffer-flush-undo 'buffer-disable-undo)
 (make-obsolete 'baud-rate "use the baud-rate variable instead")
 (make-obsolete 'compiled-function-p 'byte-code-function-p)
+(make-obsolete 'define-function 'defalias)
 (make-obsolete-variable 'auto-fill-hook 'auto-fill-function)
 (make-obsolete-variable 'blink-paren-hook 'blink-paren-function)
 (make-obsolete-variable 'lisp-indent-hook 'lisp-indent-function)
