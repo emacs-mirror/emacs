@@ -1,3 +1,7 @@
+2002-07-30  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-regexp): Remove redundancy.
+
 2002-07-26  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/characters.el: Setup char-script-table.
@@ -139,7 +143,7 @@
 2002-06-15  Dave Love  <fx@gnu.org>
 
 	* language/cyrillic.el ("Belarusian"): Doc fix.
-	(Cp1125, koi8-t): Doc fix.
+	(cp1125, koi8-t): Doc fix.
 
 	* international/mule-cmds.el (find-multibyte-characters): Doc fix.
 	(find-multibyte-characters): Don't test for charset `unknown'.
@@ -381,8 +385,8 @@
 
 	* international/mule-diag.el (print-coding-system): Incomplete
 	updates.
-	(Describe-character-set): List more properties.
-	(Print-fontset): Fix case of vector font-spec.
+	(describe-character-set): List more properties.
+	(print-fontset): Fix case of vector font-spec.
 	(describe-current-coding-system): Fix iso-7, iso-7-else.
 
 	* international/mule-conf.el (ibm866): Fix alias.
@@ -430,7 +434,7 @@
 
 2002-05-22  Dave Love  <fx@gnu.org>
 
-	* international/mule-conf.el (code-pages): Provide for
+	* international/mule-conf.el (code-pages): Provide, for
 	compatibility.
 
 	* international/code-pages.el: Removed.
@@ -450,8 +454,8 @@
 
 2002-05-21  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-conf.el (vietnamese-viscii-lower,
-	vietnamese-viscii-upper): Supply them :code-offset, then unify by
+	* international/mule-conf.el (vietnamese-viscii-lower)
+	(vietnamese-viscii-upper): Supply them :code-offset, then unify by
 	mapping table.
 
 2002-05-20  Dave Love  <fx@gnu.org>
