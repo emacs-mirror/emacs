@@ -14104,7 +14104,7 @@ static int store_mode_line_string (string, lisp_string, copy_string, field_width
     }
   else 
     {
-      len = Flength (lisp_string);
+      len = XFASTINT (Flength (lisp_string));
       if (precision > 0 && len > precision)
 	{
 	  len = precision;
