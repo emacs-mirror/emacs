@@ -3047,7 +3047,9 @@ base64_encode_1 (from, to, length, line_break, multibyte)
       if (multibyte)
 	{
 	  c = STRING_CHAR_AND_LENGTH (from + i, length - i, bytes);
-	  if (c >= 256)
+	  if (CHAR_BYTE8_P (c))
+	    c = CHAR_TO_BYTE8 (c);
+	  else if (c >= 256)
 	    return -1;
 	  i += bytes;
 	}
@@ -3085,7 +3087,9 @@ base64_encode_1 (from, to, length, line_break, multibyte)
       if (multibyte)
 	{
 	  c = STRING_CHAR_AND_LENGTH (from + i, length - i, bytes);
-	  if (c >= 256)
+	  if (CHAR_BYTE8_P (c))
+	    c = CHAR_TO_BYTE8 (c);
+	  else if (c >= 256)
 	    return -1;
 	  i += bytes;
 	}
@@ -3107,7 +3111,9 @@ base64_encode_1 (from, to, length, line_break, multibyte)
       if (multibyte)
 	{
 	  c = STRING_CHAR_AND_LENGTH (from + i, length - i, bytes);
-	  if (c >= 256)
+	  if (CHAR_BYTE8_P (c))
+	    c = CHAR_TO_BYTE8 (c);
+	  else if (c >= 256)
 	    return -1;
 	  i += bytes;
 	}
