@@ -3457,7 +3457,7 @@ gen_help_event (bufp, size, help, frame, window, object, pos)
       bufp->arg = object;
       bufp->x = WINDOWP (window) ? window : frame;
       bufp->y = help;
-      bufp->code = make_number (pos);
+      bufp->code = pos;
       return 1;
     }
   return 0;
