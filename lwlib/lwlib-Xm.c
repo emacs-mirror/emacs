@@ -119,18 +119,6 @@ first_child (widget)
 }
 
 Boolean
-lw_motif_menu_related_event_p (event)
-     XEvent event;
-{
-  Widget widget = XtWindowToWidget (event.xkey.display,event.xkey.window);
-  WidgetClass class = XtClass (widget);
-  return 
-    class == xmMainWindowWidgetClass
-    || class == xmRowColumnWidgetClass
-    || class == xmMenuShellWidgetClass;
-}
-
-Boolean
 lw_motif_widget_p (widget)
      Widget widget;
 {
