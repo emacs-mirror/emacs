@@ -62,8 +62,9 @@ If `display-time-day-and-date' is non-nil, the current day and date
 are displayed as well.
 After each update, `display-time-hook' is run with `run-hooks'."
   (interactive)
-  (let ((live (and display-time-process
-		   (eq (process-status display-time-process) 'run))))
+  (let ((live (or (and (eq system-type 'ms-dos) dos-display-time)
+		  (and display-time-process
+		       (eq (process-status display-time-process) 'run)))))
     (if (not live)
 	(progn
 	  (if display-time-process
@@ -73,16 +74,22 @@ After each update, `display-time-hook' is run with `run-hooks'."
 	      (setq global-mode-string
 		    (append global-mode-string '(display-time-string))))
 	  (setq display-time-string "")
-	  ;; Using a pty is wasteful, and the separate session causes
-	  ;; annoyance sometimes (some systems kill idle sessions).
-	  (let ((process-connection-type nil))
-	    (setq display-time-process
-		  (start-process "display-time" nil
-				 (expand-file-name "wakeup" exec-directory)
-				 (int-to-string display-time-interval))))
-	  (process-kill-without-query display-time-process)
-	  (set-process-sentinel display-time-process 'display-time-sentinel)
-	  (set-process-filter display-time-process 'display-time-filter)))))
+	  (if (eq system-type 'ms-dos)
+	      (setq dos-display-time t)
+	    ;; Using a pty is wasteful, and the separate session causes
+	    ;; annoyance sometimes (some systems kill idle sessions).
+	    (progn
+	      (let ((process-connection-type nil))
+		(setq display-time-process
+		      (start-process "display-time" nil
+				     (expand-file-name
+				      "wakeup" exec-directory)
+				     (int-to-string display-time-interval))))
+	      (process-kill-without-query display-time-process)
+	      (set-process-sentinel display-time-process
+				    'display-time-sentinel)
+	      (set-process-filter   display-time-process
+				    'display-time-filter)))))))
 
 (defun display-time-sentinel (proc reason)
   (or (eq (process-status proc) 'run)
