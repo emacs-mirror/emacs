@@ -2665,7 +2665,7 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 ;;;-----------------------------------------------
 (def-completion-wrapper newline :separator)
 (def-completion-wrapper newline-and-indent :separator)
-(def-completion-wrapper comint-send-input :separator))
+(def-completion-wrapper comint-send-input :separator)
 (def-completion-wrapper exit-minibuffer :minibuffer-separator)
 (def-completion-wrapper eval-print-last-sexp :separator)
 (def-completion-wrapper eval-last-sexp :separator)
