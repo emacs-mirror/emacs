@@ -273,21 +273,29 @@ START and END."
   (let* ((coding coding-system-for-write)
 	 (coding-base
 	  (if (null coding) 'undecided (coding-system-base coding)))
-	 (eol-type (coding-system-eol-type coding-base)))
+	 (eol-type (coding-system-eol-type coding-base))
+	 (write-region-annotate-functions
+	  (cons
+	   (lambda (start end)
+	     ;; Make each print-out start on a new page, but don't waste
+	     ;; paper if there was a form-feed at the end of this file.
+	     (if (not (char-equal (char-after (1- end)) ?\C-l))
+		 `((,end . "\f"))))
+	   write-region-annotate-functions)))
     (or (eq coding-system-for-write 'no-conversion)
 	(setq coding-system-for-write
 	      (aref eol-type 1)))	; force conversion to DOS EOLs
-    (write-region start end
-		  (or (and (boundp 'dos-printer) dos-printer)
-		      printer-name)
-		  t 0)
-    ;; Make each print-out start on a new page, but don't waste
-    ;; paper if there was a form-feed at the end of this file.
-    (if (not (char-equal (char-after (1- end)) ?\C-l))
-	(write-region "\f" nil
-		      (or (and (boundp 'dos-printer) dos-printer)
-			  printer-name)
-		      t 0))))
+    (let ((printer (or (and (boundp 'dos-printer)
+			    (stringp (symbol-value 'dos-printer))
+			    (symbol-value 'dos-printer))
+		       printer-name))
+	  ;; It seems that we must be careful about the directory name
+	  ;; that gets added by write-region when using the standard
+	  ;; "PRN" or "LPTx" ports.  The call can fail if the directory
+	  ;; is on a network drive.
+	  (safe-dir (or (getenv "windir") (getenv "TMPDIR") "c:/")))
+      (write-region start end
+		    (expand-file-name printer safe-dir) t 0))))
 
 ;; Set this to nil if you have a port of the `lpr' program and
 ;; you want to use it for printing.  If the default setting is
