@@ -213,7 +213,7 @@ XDestroyImage (ximg)
 {
   UnlockPixels (GetGWorldPixMap (ximg));
 }
-#endif
+#endif /* MAC_OS */
 
 
 /* Functions to access the contents of a bitmap, given an id.  */
@@ -1596,6 +1596,11 @@ lookup_image (f, spec)
      Lisp_Object spec;
 {
   struct image_cache *c = FRAME_X_IMAGE_CACHE (f);
+#ifdef _MSC_VER
+  /* Work around a problem with MinGW builds of graphics libraries
+     not honoring calling conventions.  */
+  static
+#endif
   struct image *img;
   int i;
   unsigned hash;
@@ -4238,7 +4243,7 @@ xpm_load (f, img)
 }
 
 #endif /* MAC_OS */
- 
+
 
 
 /***********************************************************************
@@ -5688,6 +5693,12 @@ struct png_memory_storage
    PNG_PTR is a pointer to the PNG control structure.  Copy LENGTH
    bytes from the input to DATA.  */
 
+#ifdef _MSC_VER
+  /* Work around a problem with MinGW builds of graphics libraries
+     not honoring calling conventions.  */
+#pragma optimize("g", off)
+#endif
+
 static void
 png_read_from_memory (png_ptr, data, length)
      png_structp png_ptr;
@@ -5703,6 +5714,11 @@ png_read_from_memory (png_ptr, data, length)
   bcopy (tbr->bytes + tbr->index, data, length);
   tbr->index = tbr->index + length;
 }
+
+#ifdef _MSC_VER
+/* Restore normal optimization, as specified on the command line.  */
+#pragma optimize("", on)
+#endif
 
 /* Load PNG image IMG for use on frame F.  Value is non-zero if
    successful.  */
