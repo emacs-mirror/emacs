@@ -82,7 +82,9 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "intervals.h"
 #include "composite.h"
+#include "character.h"
 #include "coding.h"
+#include "ccl.h"
 
 /* Set of macros that handle mapping of Mac modifier keys to emacs.  */
 #define macCtrlKey     (NILP (Vmac_reverse_ctrl_meta) ? controlKey :	\
@@ -1527,7 +1529,8 @@ XTreset_terminal_modes ()
 /* Function prototypes of this page.  */
 
 static XCharStruct *x_per_char_metric P_ ((XFontStruct *, XChar2b *));
-static int mac_encode_char P_ ((int, XChar2b *, struct font_info *, int *));
+static int mac_encode_char P_ ((int, XChar2b *, struct font_info *, 
+				struct charset *, int *));
 
 
 /* Return a pointer to per-char metric information in FONT of a
@@ -1630,13 +1633,13 @@ mac_per_char_metric (font, char2b, font_type)
    the two-byte form of C.  Encoding is returned in *CHAR2B.  */
 
 static int
-mac_encode_char (c, char2b, font_info, two_byte_p)
+mac_encode_char (c, char2b, font_info, charset, two_byte_p)
      int c;
      XChar2b *char2b;
      struct font_info *font_info;
+     struct charset *charset;
      int *two_byte_p;
 {
-  int charset = CHAR_CHARSET (c);
   XFontStruct *font = font_info->font;
 
   /* FONT_INFO may define a scheme by which to encode byte1 and byte2.
@@ -1649,14 +1652,15 @@ mac_encode_char (c, char2b, font_info, two_byte_p)
 
       if (CHARSET_DIMENSION (charset) == 1)
 	{
-	  ccl->reg[0] = charset;
-	  ccl->reg[1] = char2b->byte2;
+	  ccl->reg[0] = CHARSET_ID (charset);
+	  ccl->reg[1] = XCHAR2B_BYTE2 (char2b);
+	  ccl->reg[2] = -1;
 	}
       else
 	{
-	  ccl->reg[0] = charset;
-	  ccl->reg[1] = char2b->byte1;
-	  ccl->reg[2] = char2b->byte2;
+	  ccl->reg[0] = CHARSET_ID (charset);
+	  ccl->reg[1] = XCHAR2B_BYTE1 (char2b);
+	  ccl->reg[2] = XCHAR2B_BYTE2 (char2b);
 	}
 
       ccl_driver (ccl, NULL, NULL, 0, 0, NULL);
@@ -1664,15 +1668,15 @@ mac_encode_char (c, char2b, font_info, two_byte_p)
       /* We assume that MSBs are appropriately set/reset by CCL
 	 program.  */
       if (font->max_byte1 == 0)	/* 1-byte font */
-	char2b->byte1 = 0, char2b->byte2 = ccl->reg[1];
+	STORE_XCHAR2B (char2b, 0, ccl->reg[1]);
       else
-	char2b->byte1 = ccl->reg[1], char2b->byte2 = ccl->reg[2];
+	STORE_XCHAR2B (char2b, ccl->reg[1], ccl->reg[2]);
     }
-  else if (font_info->encoding[charset])
+  else if (font_info->encoding_type)
     {
       /* Fixed encoding scheme.  See fontset.h for the meaning of the
 	 encoding numbers.  */
-      int enc = font_info->encoding[charset];
+      unsigned char enc = font_info->encoding_type;
 
       if ((enc == 1 || enc == 2)
 	  && CHARSET_DIMENSION (charset) == 2)
@@ -1681,6 +1685,7 @@ mac_encode_char (c, char2b, font_info, two_byte_p)
       if (enc == 1 || enc == 3)
 	char2b->byte2 |= 0x80;
 
+      /*
       if (enc == 4)
         {
           int sjis1, sjis2;
@@ -1689,6 +1694,7 @@ mac_encode_char (c, char2b, font_info, two_byte_p)
           char2b->byte1 = sjis1;
           char2b->byte2 = sjis2;
         }
+      */
     }
 
   if (two_byte_p)
@@ -4943,10 +4949,15 @@ x_new_font (f, fontname)
      register char *fontname;
 {
   struct font_info *fontp
-    = FS_LOAD_FONT (f, 0, fontname, -1);
+    = FS_LOAD_FONT (f, fontname);
 
   if (!fontp)
     return Qnil;
+
+  if (FRAME_FONT (f) == (XFontStruct *) (fontp->font))
+    /* This font is already set in frame F.  There's nothing more to
+       do.  */
+    return build_string (fontp->full_name);
 
   FRAME_FONT (f) = (XFontStruct *) (fontp->font);
   FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
@@ -4995,29 +5006,35 @@ x_new_font (f, fontname)
 Lisp_Object
 x_new_fontset (f, fontsetname)
      struct frame *f;
-     char *fontsetname;
+     Lisp_Object fontsetname;
 {
-  int fontset = fs_query_fontset (build_string (fontsetname), 0);
+  int fontset = fs_query_fontset (fontsetname, 0);
   Lisp_Object result;
 
-  if (fontset < 0)
-    return Qnil;
-
-  if (FRAME_FONTSET (f) == fontset)
+  if (fontset > 0 && FRAME_FONTSET(f) == fontset)
     /* This fontset is already set in frame F.  There's nothing more
        to do.  */
     return fontset_name (fontset);
+  else if (fontset == 0)
+    /* The default fontset can't be the default font.   */
+    return Qt;
 
-  result = x_new_font (f, (SDATA (fontset_ascii (fontset))));
+  if (fontset > 0)
+    result = x_new_font (f, (SDATA (fontset_ascii (fontset))));
+  else
+    result = x_new_font (f, SDATA (fontsetname));
 
   if (!STRINGP (result))
     /* Can't load ASCII font.  */
     return Qnil;
 
+  if (fontset < 0)
+    fontset = new_fontset_from_font_name (result);
+
   /* Since x_new_font doesn't update any fontset information, do it now.  */
   FRAME_FONTSET(f) = fontset;
 
-  return build_string (fontsetname);
+  return fontset_name (fontset);
 }
 
 
@@ -5856,16 +5873,20 @@ decode_mac_font_name (char *name, int size, short scriptcode)
       return;
     }
 
+  #if 0
+  /* MAC_TODO: Fix encoding system... */
   setup_coding_system (coding_system, &coding);
   coding.src_multibyte = 0;
   coding.dst_multibyte = 1;
   coding.mode |= CODING_MODE_LAST_BLOCK;
-  coding.composing = COMPOSITION_DISABLED;
-  buf = (char *) alloca (size);
+  coding.dst_bytes = MAX_MULTsize;
+  coding.destination = (char *) alloca (size);
+  coding_decode_c_string(&coding, name, strlen(name), qNil);
 
   decode_coding (&coding, name, buf, strlen (name), size - 1);
   bcopy (buf, name, coding.produced);
   name[coding.produced] = '\0';
+  #endif
 }
 
 
@@ -5957,6 +5978,8 @@ x_font_name_to_mac_font_name (char *xf, char *mf)
   else
     sprintf (mf, "%s-%s-%s", foundry, family, cs);
 
+#if 0
+  /* MAC_TODO: Fix coding system to use objects */
   if (!NILP (coding_system))
     {
       setup_coding_system (coding_system, &coding);
@@ -5966,6 +5989,7 @@ x_font_name_to_mac_font_name (char *xf, char *mf)
       encode_coding (&coding, family, mf, strlen (family), sizeof (Str32) - 1);
       mf[coding.produced] = '\0';
     }
+#endif
 }
 
 
@@ -6741,6 +6765,9 @@ x_load_font (f, fontname, size)
 	fontp->height = max_height;
     }
 
+#if 0 /* MAC_TODO: fill these out with more reasonably values */
+
+    /* MAC_TODO: The script encoding is irrelevant in unicode? */
     /* The slot `encoding' specifies how to map a character
        code-points (0x20..0x7F or 0x2020..0x7F7F) of each charset to
        the font code-points (0:0x20..0x7F, 1:0xA0..0xFF), or
@@ -6777,7 +6804,6 @@ x_load_font (f, fontname, size)
 	            : 1)));		/* 0xA0A0..0xFFFF */
       }
 
-#if 0 /* MAC_TODO: fill these out with more reasonably values */
     fontp->baseline_offset
       = (XGetFontProperty (font, dpyinfo->Xatom_MULE_BASELINE_OFFSET, &value)
 	 ? (long) value : 0);

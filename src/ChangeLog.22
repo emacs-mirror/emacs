@@ -1,3 +1,13 @@
+2004-08-03  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (mac_encode_char): Add charset argument and update
+	to use encoding_type	
+	(x_new_font,x_new_fontset): Merge in changes from xterm.c;
+	switch to pure fontset
+	(decode_mac_font_name): Temporarily remove decoding
+	(x_font_name_to_mac_font_name): Temporarily remove encoding
+	(x_load_font): Temporarily remove encoding
+
 2004-06-30  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (Fface_font): If frame is not on a window system,
