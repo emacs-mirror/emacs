@@ -1,3 +1,18 @@
+2003-02-21  Juanma Barranquero  <lektu@terra.es>
+
+	Port of patch for RC by Klaus Zeitler <kzeitler@lucent.com>.
+
+	* s/hpux10.h: Define POLL_INTERRUPTED_SYS_CALL, not
+	POLLING_PROBLEM_IN_SELECT.
+
+	* s/hpux11.h: Include hpux10-20.h instead of hpux10.h.
+	Delete #undef of POLLING_PROBLEM_IN_SELECT.
+
+	* s/hpux10-20.h: New file.
+
+	* process.c (wait_reading_process_input): Use
+	POLL_INTERRUPTED_SYS_CALL, not POLLING_PROBLEM_IN_SELECT.
+
 2003-02-20  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (check_fontset_name): If NAME is nil, return the
@@ -63,7 +78,7 @@
 	Never include "`" or "," (inside backquote) in a symbol.
 	Allow dotted-pair dot after a character constant.
 	Allow "`" and "," (inside backquote) after a character constant.
-	
+
 2003-02-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_expose_callback): New function.
@@ -182,7 +197,6 @@
 
 	* xmenu.c (menu_position_func): Adjust menu popup position so that
 	the menu is fully visible.
-	
 
 2003-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
