@@ -8,20 +8,29 @@
 @cindex multibyte characters
 @cindex encoding of characters
 
+@cindex Celtic
 @cindex Chinese
 @cindex Cyrillic
+@cindex Czech
 @cindex Devanagari
 @cindex Hindi
 @cindex Marathi
 @cindex Ethiopic
+@cindex German
 @cindex Greek
 @cindex Hebrew
 @cindex IPA
 @cindex Japanese
 @cindex Korean
 @cindex Lao
+@cindex Latin
+@cindex Polish
+@cindex Romanian
+@cindex Slovak
+@cindex Slovenian
 @cindex Thai
 @cindex Tibetan
+@cindex Turkish
 @cindex Vietnamese
   Emacs supports a wide variety of international character sets,
 including European variants of the Latin alphabet, as well as Chinese,
@@ -162,12 +171,14 @@ set-language-environment}.  It makes no difference which buffer is
 current when you use this command, because the effects apply globally to
 the Emacs session.  The supported language environments include:
 
+@cindex euro sign
 @quotation
 Chinese-BIG5, Chinese-CNS, Chinese-GB, Cyrillic-ALT, Cyrillic-ISO,
 Cyrillic-KOI8, Czech, Devanagari, English, Ethiopic, German, Greek,
-Hebrew, IPA, Japanese, Korean, Lao, Latin-1, Latin-2, Latin-3,
-Latin-4, Latin-5, Latin-8, Latin-9, Romanian, Slovak, Slovenian, Thai,
-Tibetan, Turkish, and Vietnamese.
+Hebrew, IPA, Japanese, Korean, Lao, Latin-1, Latin-2, Latin-3, Latin-4,
+Latin-5, Latin-8 (Celtic), Latin-9 (updated Latin-1, with the Euro
+sign), Polish, Romanian, Slovak, Slovenian, Thai, Tibetan, Turkish, and
+Vietnamese.
 @end quotation
 
 @findex set-locale-environment
