@@ -40,23 +40,26 @@ If file is being visited, the message is appended to the Emacs
 buffer visiting that file.
 A prefix argument N says to output N consecutive messages
 starting with the current one.  Deleted messages are skipped and don't count."
-  (interactive (list (read-file-name
-		      (concat "Output message to Rmail file: (default "
-			      (file-name-nondirectory rmail-last-rmail-file)
-			      ") ")
-		      (file-name-directory rmail-last-rmail-file)
-		      (let (answer tail)
-			(setq tail rmail-output-file-alist)
-			;; Suggest a file based on a pattern match.
-			(while (and tail (not answer))
-			  (save-excursion
-			    (goto-char (point-min))
-			    (if (re-search-forward (car (car tail)) nil t)
-				(setq answer (cdr (car tail))))
-			    (setq tail (cdr tail))))
-			;; If not suggestions, use same file as last time.
-			(or answer rmail-last-rmail-file)))
-		     (prefix-numeric-value current-prefix-arg)))
+  (interactive
+   (let ((default-file
+	   (let (answer tail)
+	     (setq tail rmail-output-file-alist)
+	     ;; Suggest a file based on a pattern match.
+	     (while (and tail (not answer))
+	       (save-excursion
+		 (goto-char (point-min))
+		 (if (re-search-forward (car (car tail)) nil t)
+		     (setq answer (cdr (car tail))))
+		 (setq tail (cdr tail))))
+	     ;; If not suggestions, use same file as last time.
+	     (or answer rmail-last-rmail-file))))
+     (list (read-file-name
+	    (concat "Output message to Rmail file: (default "
+		    (file-name-nondirectory default-file)
+		    ") ")
+	    (file-name-directory rmail-last-rmail-file)
+	    default-file)
+	   (prefix-numeric-value current-prefix-arg))))
   (or count (setq count 1))
   (setq file-name
 	(expand-file-name file-name
