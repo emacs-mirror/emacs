@@ -196,11 +196,12 @@ static Lisp_Object Vprocess_connection_type;
 #endif
 #endif /* SKTPAIR */
 
+/* These next two vars are non-static since sysdep.c uses them in the
+   emulation of `select'.  */
 /* Number of events of change of status of a process.  */
-static int process_tick;
-
+int process_tick;
 /* Number of events for which the user or sentinel has been notified.  */
-static int update_tick;
+int update_tick;
 
 #include "sysselect.h"
 
