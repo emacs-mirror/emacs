@@ -352,11 +352,14 @@ developers.
 * Known problems with the MS-Windows port of Emacs 21.2.
 
 Frames are not refreshed while the File or Font dialog or a pop-up menu
-is displayed. This also means help text for pop-up menu items is not
+is displayed. This also means help text for pop-up menus is not
 displayed at all.  This is because message handling under Windows is
 synchronous, so we cannot handle repaint (or any other) messages while
 waiting for a system function to return the result of the dialog or
 pop-up menu interaction.
+
+Windows 95 and Windows NT up to version 4.0 do not support help text
+for menus.  Help text is only available in later versions of Windows.
 
 There are problems with display if mouse-tracking is enabled and the
 mouse is moved off a frame, over another frame then back over the first

@@ -1,3 +1,10 @@
+2002-04-28  Jason Rumney  <jasonr@gnu.org>
+
+	* w32proc.c (syms_of_w32proc): Get true file attributes by default.
+
+	* w32.c (stat, fstat): Use file index information to generate
+	inodes for directories where available.
+
 2002-04-26  Andrew Choi  <akochoi@shaw.ca>
 
 	* Makefile.in (C_SWITCH_SYSTEM_TEMACS): Add.
