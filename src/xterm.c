@@ -178,6 +178,10 @@ static FONT_TYPE *icon_font_info;
 extern Lisp_Object Vcommand_line_args;
 char *hostname, *x_id_name;
 
+/* Initial values of argv and argc.  */
+extern char **initial_argv;
+extern int initial_argc;
+
 /* This is the X connection that we are using.  */
 
 Display *x_current_display;
@@ -3440,6 +3444,17 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		       a keyboard or mouse event arrives. */
 		    if (numchars > 0)
 		      {
+			/* This is just so we only give real data once
+			   for a single Emacs process.  */
+			if (event.xclient.window
+			    == FRAME_X_WINDOW (selected_frame))
+			  XSetCommand (x_current_display,
+				       event.xclient.window,
+				       initial_argv, initial_argc);
+			else
+			  XSetCommand (x_current_display,
+				       event.xclient.window,
+				       0, 0);
 		      }
 		  }
 		else if (event.xclient.data.l[0] == Xatom_wm_delete_window)
