@@ -54,7 +54,7 @@
 	Don't match parens around line numbers.
 
 	* progmodes/cperl-mode.el (cperl-indent-region)
-	(cperl-imenu--create-perl-index, cperl-xsub-scan): 
+	(cperl-imenu--create-perl-index, cperl-xsub-scan):
 	Don't print progress messages.
 
 	* progmodes/compile.el (compilation-mode-map):
@@ -88,9 +88,9 @@
 	(gdb-frames-mode-map, gdb-threads-mode-map)
 	(gdb-registers-mode-map, gdb-locals-mode-map)
 	(gdb-assembler-mode-map): Bind "q" to kill-this-buffer.
-	(dedicated-switch-to-buffer): Rename to gdb-set-window-buffer.
+	(gdb-set-window-buffer): Rename from dedicated-switch-to-buffer.
 
-	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
+	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>:
 	(dedicated-switch-to-buffer): Rework.
 	(gdb-var-evaluate-expression-handler, gdb-put-string):
 	Remove unused variable bindings.
@@ -227,7 +227,6 @@
 	* mail/emacsbug.el (report-emacs-bug): Catch error that x-server-vendor
 	and x-server-version may throw.
 
->>>>>>> 1.6662
 2004-11-23  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (substitute-key-definition-key): Optimize.
