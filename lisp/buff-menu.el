@@ -507,11 +507,12 @@ The R column contains a % for buffers that are read-only."
 	      ;; This way we avoid problems with unusual buffer names.
 	      (setq this-buffer-line-start
 		    (+ this-buffer-line-start Buffer-menu-buffer-column))
-	      (put-text-property this-buffer-line-start (point)
-				 'buffer-name name)
-	      (put-text-property this-buffer-line-start (point)
-				 'mouse-face 'highlight)
-	      (indent-to 17 2)
+	      (let ((name-end (point)))
+		(indent-to 17 2)
+		(put-text-property this-buffer-line-start name-end
+				   'buffer-name name)
+		(put-text-property this-buffer-line-start name-end
+				   'mouse-face 'highlight))
 	      (let (size
 		    mode
 		    (excess (- (current-column) 17)))
