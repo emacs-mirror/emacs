@@ -1,3 +1,13 @@
+2004-10-27  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (get_next_display_element): In mode lines,
+	treat newline and tab like other control characters.
+
+	* editfns.c (Fmessage): Doc fix.
+
+	* indent.c (vmotion): When moving up, check the newline before.
+	Make prevline an int, not a Lisp_Object.
+
 2004-10-27  Kim F. Storm  <storm@cua.dk>
 
 	* editfns.c (Fformat): Allocate discarded table with SAFE_ALLOCA.

@@ -1,3 +1,19 @@
+2004-10-27  Richard M. Stallman  <rms@gnu.org>
+
+	* eshell/em-unix.el (eshell-du-sum-directory): Don't use
+	directory-sep-char.
+
+2004-10-27  Richard M. Stallman  <rms@gnu.org>
+
+	* strokes.el (strokes-unload-hook): Fix previous change.
+
+	* type-break.el (type-break-run-at-time): Always use run-at-time;
+	forget the alternatives.
+	(type-break-cancel-function-timers): Always use cancel-function-timers;
+	forget the alternatives.
+
+	* pcomplete.el (pcomplete-entries): Don't use directory-sep-char.
+
 2004-10-27  Kenichi Handa  <handa@m17n.org>
 
 	* international/subst-jis.el: Use
