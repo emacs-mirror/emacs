@@ -242,6 +242,7 @@ message_dolog (m, len, nlflag)
 
       oldbuf = current_buffer;
       Fset_buffer (Fget_buffer_create (build_string ("*Messages*")));
+      current_buffer->undo_list = Qt;
       oldpoint = PT;
       oldbegv = BEGV;
       oldzv = ZV;
