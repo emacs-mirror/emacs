@@ -1,3 +1,44 @@
+2003-10-11  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_encode_char): New charset parameter.
+	font_info.encoding becomes encoding_type.
+	(x_get_font_repertory): New function. Warning: stub only!
+	(x_new_font): Return quickly if font already set.
+	(x_new_fontset): fontsetname parameter is Lisp_Object.
+	Use new fs_query_fontset. Try new_fontset_from_font_name. Use
+	fontset_name for return value.
+
+	* w32term.h: Declare x_get_font_repertory.
+
+	* w32select.c (Fw32_set_clipboard_data): Use string_x_string_p in
+	place of find_charset_in_text. Use encode_coding_object in place
+	of encode_coding.
+	(Fw32_get_clipboard_data): Use decode_coding_c_string in place of
+	decode_coding.
+
+	* w32fns.c (Fx_create_frame, x_create_tip_frame): Use new version
+	of x_new_fontset.
+	(w32_load_system_font): Initialize charset as unicode.
+	font_info.encoding becomes encoding_type.
+	(w32_to_x_font): Use decode_coding_c_string in place of
+	decode_coding.
+	(x_to_w32_font): Use encode_coding_object in place of
+	encode_coding.
+	(syms_of_w32fns): Set get_font_repertory_func.
+
+	* w32console.c: Include character.h. Use terminal_encode_buffer
+	from term.c.
+	(write_glyphs): Use new version of encode_terminal_code. Use
+	encode_coding_object in place of encode_coding.
+
+	* w32bdf.c (w32_load_bdf_font): Clear font_info before filling.
+	encoding becomes encoding_type.
+
+	* term.c (terminal_encode_buffer): Make externally visible.
+
+	* makefile.w32-in: Add character.h dependancies.
+	(character.o, chartab.o): New targets.
+
 2003-10-10  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents) [DOS_NT]: Use the macro
