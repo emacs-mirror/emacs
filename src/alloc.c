@@ -552,7 +552,7 @@ xrealloc (block, size)
 }
 
 
-/* Like free but block interrupt input..  */
+/* Like free but block interrupt input.  */
 
 void
 xfree (block)
@@ -738,7 +738,8 @@ lisp_align_malloc (nbytes, type)
 
   if (!free_ablock)
     {
-      int i, aligned;
+      int i;
+      EMACS_INT aligned; /* int gets warning casting to 64-bit pointer.  */
 
 #ifdef DOUG_LEA_MALLOC
       /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
