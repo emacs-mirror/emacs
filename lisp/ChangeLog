@@ -1,3 +1,11 @@
+2005-03-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gdb): (Re)-initialise gud-filter-pending-text.	
+	(gud-filter-pending-text): Move in front of gdb.
+	(gud-overlay-arrow-position): New variable.
+	(gud-sentinel, gud-display-line): Use it in place of
+	overlay-arrow-position.
+
 2005-03-29  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/fortran.el (fortran-if-indent): Doc fix.
