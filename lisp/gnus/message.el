@@ -1532,6 +1532,7 @@ no, only reply back to the author."
   :type 'regexp)
 
 (eval-and-compile
+  (autoload 'idna-to-ascii "idna")
   (autoload 'message-setup-toolbar "messagexmas")
   (autoload 'mh-new-draft-name "mh-comp")
   (autoload 'mh-send-letter "mh-comp")
@@ -4878,57 +4879,25 @@ subscribed address (and not the additional To and Cc header contents)."
 	      list
 	    msg-recipients))))))
 
-(defun message-idna-inside-rhs-p ()
-  "Return t iff point is inside a RHS (heuristically).
-Only works properly if header contains mailbox-list or address-list.
-I.e., calling it on a Subject: header is useless."
-  (save-restriction
-    (narrow-to-region (save-excursion (or (re-search-backward "^[^ \t]" nil t)
-					  (point-min)))
-		      (save-excursion (or (re-search-forward "^[^ \t]" nil t)
-					  (point-max))))
-    (if (re-search-backward "[\\\n\r\t ]"
-			    (save-excursion (search-backward "@" nil t)) t)
-	;; whitespace between @ and point
-	nil
-      (let ((dquote 1) (paren 1))
-	(while (save-excursion (re-search-backward "[^\\]\"" nil t dquote))
-	  (incf dquote))
-	(while (save-excursion (re-search-backward "[^\\]\(" nil t paren))
-	  (incf paren))
-	(and (= (% dquote 2) 1) (= (% paren 2) 1))))))
-
-(autoload 'idna-to-ascii "idna")
-
 (defun message-idna-to-ascii-rhs-1 (header)
   "Interactively potentially IDNA encode domain names in HEADER."
-  (let (rhs ace start startpos endpos ovl)
-    (goto-char (point-min))
-    (while (re-search-forward (concat "^" header) nil t)
-      (while (re-search-forward "@\\([^ \t\r\n>,]+\\)"
-				(or (save-excursion
-				      (re-search-forward "^[^ \t]" nil t))
-				    (point-max))
-				t)
-	(setq rhs (match-string-no-properties 1)
-	      startpos (match-beginning 1)
-	      endpos (match-end 1))
-	(when (save-match-data
-		(and (message-idna-inside-rhs-p)
-		     (setq ace (idna-to-ascii rhs))
-		     (not (string= rhs ace))
-		     (if (eq message-use-idna 'ask)
-			 (unwind-protect
-			     (progn
-			       (setq ovl (message-make-overlay startpos
-							       endpos))
-			       (message-overlay-put ovl 'face 'highlight)
-			       (y-or-n-p
-				(format "Replace with `%s'? " ace)))
-			   (message "")
-			   (message-delete-overlay ovl))
-		       message-use-idna)))
-	  (replace-match (concat "@" ace)))))))
+  (let ((field (message-fetch-field header))
+	rhs ace  address)
+    (when field
+      (dolist (address (mail-header-parse-addresses field))
+	(setq address (car address)
+	      rhs (downcase (or (cadr (split-string address "@")) ""))
+	      ace (downcase (idna-to-ascii rhs)))
+	(when (and (not (equal rhs ace))
+		   (or (not (eq message-use-idna 'ask))
+		       (y-or-n-p (format "Replace %s with %s? " rhs ace))))
+	  (goto-char (point-min))
+	  (while (re-search-forward (concat "^" header ":") nil t)
+	    (message-narrow-to-field)
+	    (while (search-forward (concat "@" rhs) nil t)
+	      (replace-match (concat "@" ace) t t))
+	    (goto-char (point-max))
+	    (widen)))))))
 
 (defun message-idna-to-ascii-rhs ()
   "Possibly IDNA encode non-ASCII domain names in From:, To: and Cc: headers.
