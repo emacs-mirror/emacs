@@ -1,3 +1,9 @@
+2004-09-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* facemenu.el (facemenu-active-faces): Change condition of inner
+	`while' loop to also check the first two elements of `face-atts'
+	and `mask-atts'.
+
 2004-09-04  John Paul Wallington  <jpw@gnu.org>
 
 	* thumbs.el (thumbs-view-image-mode-map): Fix command name typo.
