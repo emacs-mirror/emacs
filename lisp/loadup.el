@@ -87,6 +87,8 @@
 (garbage-collect)
 (load "language/korean")
 (garbage-collect)
+(load "language/lao")
+(garbage-collect)
 (load "language/thai")
 (garbage-collect)
 (load "language/vietnamese")
