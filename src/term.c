@@ -783,6 +783,7 @@ write_glyphs (string, len)
 	    }
 	}
     }
+  cmcheckmagic ();
 }
 
 /* If start is zero, insert blanks instead of a string at start */
@@ -841,8 +842,9 @@ insert_glyphs (start, len)
 		    termscript);
 	}
 
-	OUTPUT1_IF (TS_pad_inserted_char);
-      }
+      OUTPUT1_IF (TS_pad_inserted_char);
+    }
+  cmcheckmagic ();
 }
 
 delete_glyphs (n)
