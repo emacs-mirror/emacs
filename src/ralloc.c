@@ -1164,7 +1164,11 @@ r_alloc_check ()
     {
       assert (h->prev == ph);
       assert ((POINTER) ROUNDUP (h->end) == h->end);
+#if 0 /* ??? The code in ralloc.c does not really try to ensure
+	 the heap start has any sort of alignment.
+	 Perhaps it should.  */
       assert ((POINTER) MEM_ROUNDUP (h->start) == h->start);
+#endif
       assert ((POINTER) MEM_ROUNDUP (h->bloc_start) == h->bloc_start);
       assert (h->start <= h->bloc_start && h->bloc_start <= h->end);
 
