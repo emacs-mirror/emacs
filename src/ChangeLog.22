@@ -1,5 +1,9 @@
 2004-03-30  Kenichi Handa  <handa@m17n.org>
 
+	* coding.c (DECODE_DESIGNATION): Set chars_96 to -1 instead of
+	goto invalid_code.
+	(decode_coding_iso_2022): Fix handling of invalid designation.
+
 	* fileio.c (Finsert_file_contents): Be sure to call unbind_to
 	after calling code_conversion_save.
 
