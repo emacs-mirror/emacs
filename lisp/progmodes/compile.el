@@ -66,6 +66,38 @@ will be parsed and highlighted as soon as you try to move to them."
 		 (integer :tag "First N lines"))
   :group 'compilation)
 
+(defun grep-compute-defaults ()
+  (unless grep-command
+    (setq grep-command
+	  (if (equal (condition-case nil ; in case "grep" isn't in exec-path
+			 (call-process grep-program nil nil nil
+				       "-e" "foo" null-device)
+		       (error nil))
+		     1)
+	      (format "%s -n -e " grep-program)
+	    (format "%s -n " grep-program))))
+  (unless grep-find-use-xargs
+    (setq grep-find-use-xargs
+	  (if (and
+               (equal (call-process "find" nil nil nil
+                                    null-device "-print0")
+                      0)
+               (equal (call-process "xargs" nil nil nil
+                                    "-0" "-e" "echo")
+		     0))
+	      'gnu)))
+  (unless grep-find-command
+    (setq grep-find-command
+	  (cond ((eq grep-find-use-xargs 'gnu)
+		 (format "%s . -type f -print0 | xargs -0 -e %s"
+			 find-program grep-command))
+		(grep-find-use-xargs
+		 (format "%s . -type f -print | xargs %s"
+                         find-program grep-command))
+		(t (cons (format "%s . -type f -exec %s {} %s \\;"
+				 find-program grep-command null-device)
+			 (+ 22 (length grep-command))))))))
+
 (defcustom grep-command nil
   "The default grep command for \\[grep].
 The default value of this variable is set up by `grep-compute-defaults';
@@ -578,38 +610,6 @@ to a function that generates a unique name."
 		   (t
 		    (cons msg code)))
 	   (cons msg code)))))
-
-(defun grep-compute-defaults ()
-  (unless grep-command
-    (setq grep-command
-	  (if (equal (condition-case nil ; in case "grep" isn't in exec-path
-			 (call-process grep-program nil nil nil
-				       "-e" "foo" null-device)
-		       (error nil))
-		     1)
-	      (format "%s -n -e " grep-program)
-	    (format "%s -n " grep-program))))
-  (unless grep-find-use-xargs
-    (setq grep-find-use-xargs
-	  (if (and
-               (equal (call-process "find" nil nil nil
-                                    null-device "-print0")
-                      0)
-               (equal (call-process "xargs" nil nil nil
-                                    "-0" "-e" "echo")
-		     0))
-	      'gnu)))
-  (unless grep-find-command
-    (setq grep-find-command
-	  (cond ((eq grep-find-use-xargs 'gnu)
-		 (format "%s . -type f -print0 | xargs -0 -e %s"
-			 find-program grep-command))
-		(grep-find-use-xargs
-		 (format "%s . -type f -print | xargs %s"
-                         find-program grep-command))
-		(t (cons (format "%s . -type f -exec %s {} %s \\;"
-				 find-program grep-command null-device)
-			 (+ 22 (length grep-command))))))))
 
 ;;;###autoload
 (defun grep (command-args)
