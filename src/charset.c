@@ -60,6 +60,8 @@ int charset_latin_jisx0201;	/* JISX0201.Roman (Japanese Roman) */
 int charset_big5_1;		/* Big5 Level 1 (Chinese Traditional) */
 int charset_big5_2;		/* Big5 Level 2 (Chinese Traditional) */
 
+int min_composite_char;
+
 Lisp_Object Qcharset_table;
 
 /* A char-table containing information of each character set.  */
@@ -71,6 +73,10 @@ Lisp_Object Vcharset_symbol_table;
 
 /* A list of charset symbols ever defined.  */
 Lisp_Object Vcharset_list;
+
+/* Vector of unification table ever defined.
+   An ID of a unification table is an index of this vector.  */
+Lisp_Object Vcharacter_unification_table_vector;
 
 /* Tables used by macros BYTES_BY_CHAR_HEAD and WIDTH_BY_CHAR_HEAD.  */
 int bytes_by_char_head[256];
@@ -265,8 +271,6 @@ unify_char (table, c, charset, c1, c2)
   if (dimension != CHARSET_DIMENSION (charset))
     /* We can't make such a character because of dimension mismatch.  */
     return c;
-  if (!alt_c1) alt_c1 = c1;
-  if (!alt_c2) alt_c2 = c2;
   return MAKE_CHAR (alt_charset, c1, c2);
 }
 
@@ -444,7 +448,7 @@ get_new_private_charset_id (dimension, width)
       if (width == 1)
 	from = LEADING_CODE_EXT_21, to = LEADING_CODE_EXT_22;
       else
-	from = LEADING_CODE_EXT_22, to = LEADING_CODE_EXT_MAX - 1;
+	from = LEADING_CODE_EXT_22, to = LEADING_CODE_EXT_MAX + 1;
     }
 
   for (charset = from; charset < to; charset++)
@@ -1102,10 +1106,7 @@ DEFUN ("string", Fstring, Sstring, 1, MANY, 0,
       unsigned char *str;
 
       if (!INTEGERP (args[i]))
-	{
-	  free (buf);
-	  CHECK_NUMBER (args[i], 0);
-	}
+	CHECK_NUMBER (args[i], 0);
       c = XINT (args[i]);
       len = CHAR_STRING (c, p, str);
       if (p != str)
@@ -1668,6 +1669,12 @@ syms_of_charset ()
     "List of charsets ever defined.");
   Vcharset_list = Fcons (Qascii, Qnil);
 
+  DEFVAR_LISP ("character-unification-table-vector",
+	       &Vcharacter_unification_table_vector,
+    "Vector of cons cell of a symbol and unification table ever defined.\n\
+An ID of a unification table is an index of this vector.");
+  Vcharacter_unification_table_vector = Fmake_vector (make_number (16), Qnil);
+
   DEFVAR_INT ("leading-code-composition", &leading_code_composition,
     "Leading-code of composite characters.");
   leading_code_composition = LEADING_CODE_COMPOSITION;
@@ -1694,6 +1701,10 @@ This applies only when multibyte characters are enabled, and it serves\n\
 to convert a Latin-1 or similar 8-bit character code to the corresponding\n\
 Emacs character code.");
   nonascii_insert_offset = 0;
+
+  DEFVAR_INT ("min-composite-char", &min_composite_char,
+    "Minimum character code of a composite character.");
+  min_composite_char = MIN_CHAR_COMPOSITION;
 }
 
 #endif /* emacs */
