@@ -1,3 +1,13 @@
+2003-01-15  Deepak Goel  <deego@gnufans.org>
+
+	* calc/README: Add new maintainer. 
+
+	* calc/*: Ditto.
+
+	* calc/calc.el (calc-bug-address): Change address to
+	deego@gnufans.org
+
+
 2003-01-15  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (loaddefs.el): Invoke make to build stub file
