@@ -6054,9 +6054,23 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   else if (CONSP (prefixarg) && XINT (XCONS (prefixarg)->car) == 4)
     strcpy (buf, "C-u ");
   else if (CONSP (prefixarg) && INTEGERP (XCONS (prefixarg)->car))
-    sprintf (buf, "%d ", XINT (XCONS (prefixarg)->car));
+    {
+      if (sizeof (int) == sizeof (EMACS_INT))
+	sprintf (buf, "%d ", XINT (XCONS (prefixarg)->car));
+      else if (sizeof (long) == sizeof (EMACS_INT))
+	sprintf (buf, "%ld ", XINT (XCONS (prefixarg)->car));
+      else
+	abort ();
+    }
   else if (INTEGERP (prefixarg))
-    sprintf (buf, "%d ", XINT (prefixarg));
+    {
+      if (sizeof (int) == sizeof (EMACS_INT))
+	sprintf (buf, "%d ", XINT (prefixarg));
+      else if (sizeof (long) == sizeof (EMACS_INT))
+	sprintf (buf, "%ld ", XINT (prefixarg));
+      else
+	abort ();
+    }
 
   /* This isn't strictly correct if execute-extended-command
      is bound to anything else.  Perhaps it should use
