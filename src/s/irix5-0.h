@@ -109,8 +109,10 @@ char *_getpty();
 #endif
 #endif
 
-/* -g does not work on Irix, and since gcc warns if you use it,
-   turn off the warning.  */
+/* -g used not to work on Irix unless you used gas, and since gcc
+   warns if you use it, turn off the warning.  */
+/* -g does now work, at least on recent Irix 6 versions with gcc 2.95;
+    I'm not sure about Irix 5 -- fx  */
 #ifdef __GNUC__
 #define C_DEBUG_SWITCH
 #endif
