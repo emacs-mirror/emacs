@@ -684,21 +684,16 @@
 		    (eq (car-safe (nth 3 cmd)) 'calc-execute-kbd-macro)))
            (let* ((mac (elt (nth 1 (nth 3 cmd)) 1))
                   (str (edmacro-format-keys mac t))
-                  (macbeg)
                   (kys (nth 3 (nth 3 cmd))))
              (calc-edit-mode 
               (list 'calc-edit-macro-finish-edit cmdname kys)
-              t (format "Editing keyboard macro (%s, bound to %s).\n" 
-                        cmdname kys))
-             (goto-char (point-max))
-             (insert "Original keys: " (elt (nth 1 (nth 3 cmd)) 0)  "\n" )
-             (setq macbeg (point))
+              t (format (concat 
+                         "Editing keyboard macro (%s, bound to %s).\n" 
+                         "Original keys: %s \n")
+                        cmdname kys (elt (nth 1 (nth 3 cmd)) 0)))
              (insert str "\n")
              (calc-edit-format-macro-buffer)
-             (calc-show-edit-buffer)
-             (goto-char (point-min))
-             (search-forward "Original")
-             (forward-line 2)))
+             (calc-show-edit-buffer)))
 	  (t (let* ((func (calc-stack-command-p cmd))
 		    (defn (and func
 			       (symbolp func)
@@ -717,15 +712,13 @@
 		      (insert  (math-showing-full-precision
                                 (math-format-nice-expr defn (frame-width)))
                                "\n"))
-		     (calc-show-edit-buffer)
-                     (goto-char (point-min))
-                     (forward-line 3))
+		     (calc-show-edit-buffer))
 		 (error "That command's definition cannot be edited")))))))
 
 ;; Formatting the macro buffer
 
 (defun calc-edit-macro-repeats ()
-  (goto-char (point-min))
+  (goto-char calc-edit-top)
   (while
       (re-search-forward "^\\([0-9]+\\)\\*" nil t)
     (setq num (string-to-int (match-string 1)))
@@ -738,10 +731,10 @@
 
 (defun calc-edit-macro-adjust-buffer ()
   (calc-edit-macro-repeats)
-  (goto-char (point-min))
+  (goto-char calc-edit-top)
   (while (re-search-forward "^RET$" nil t)
     (delete-char 1))
-  (goto-char (point-min))
+  (goto-char calc-edit-top)
   (while (and (re-search-forward "^$" nil t)
               (not (= (point) (point-max))))
     (delete-char 1)))
@@ -869,11 +862,7 @@
 (defun calc-edit-format-macro-buffer ()
   "Rewrite the Calc macro editing buffer."
   (calc-edit-macro-adjust-buffer)
-  (goto-char (point-min))
-  (search-forward "Original keys:")
-  (forward-line 1)
-  (insert "\n")
-  (skip-chars-forward " \t\n")
+  (goto-char calc-edit-top)
   (let ((type (calc-edit-macro-command-type)))
     (while (not (string-equal type ""))
       (cond
@@ -913,27 +902,25 @@
         (calc-edit-macro-combine-var-name))
        (t (forward-line 1)))
       (setq type (calc-edit-macro-command-type))))
-  (goto-char (point-min)))
+  (goto-char calc-edit-top))
 
 ;; Finish editing the macro
 
 (defun calc-edit-macro-pre-finish-edit ()
-  (goto-char (point-min))
+  (goto-char calc-edit-top)
   (while (re-search-forward "\\(^\\| \\)RET\\($\\|\t\\| \\)" nil t)
     (search-backward "RET")
     (delete-char 3)
     (insert "<return>")))
 
+(defvar calc-edit-top)
 (defun calc-edit-macro-finish-edit (cmdname key)
   "Finish editing a Calc macro.
 Redefine the corresponding command."
   (interactive)
   (let ((cmd (intern cmdname)))
     (calc-edit-macro-pre-finish-edit)
-    (goto-char (point-max))
-    (re-search-backward "^Original keys:")
-    (forward-line 1)
-    (let* ((str (buffer-substring (point) (point-max)))
+    (let* ((str (buffer-substring calc-edit-top (point-max)))
            (mac (edmacro-parse-keys str t)))
       (if (= (length mac) 0)
           (fmakunbound cmd)
@@ -946,10 +933,8 @@ Redefine the corresponding command."
                           'arg key)))))))
 
 (defun calc-finish-formula-edit (func)
-  (goto-char (point-min))
-  (forward-line 3)
   (let ((buf (current-buffer))
-	(str (buffer-substring (point) (point-max)))
+	(str (buffer-substring calc-edit-top (point-max)))
 	(start (point))
 	(body (calc-valid-formula-func func)))
     (set-buffer calc-original-buffer)
