@@ -1756,7 +1756,7 @@ LEIM is a library of Emacs input method."
 	  ;; Insert entries for Quail.
 	  (while pkg-list
 	    (message "Checking %s ..." (car pkg-list))
-	    (setq pkg-buf (find-file-noselect (car pkg-list)))
+	    (setq pkg-buf (find-file-noselect (car pkg-list) t t))
 	    (save-excursion
 	      (set-buffer pkg-buf)
 	      (while (search-forward "(quail-define-package" nil t)
