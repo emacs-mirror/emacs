@@ -1,3 +1,7 @@
+2000-07-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* cc-mode.texi: Remove duplicate @direntry.
+
 2000-07-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* viper.texi, vip.texi, widget.texi, ada-mode.texi, sc.texi

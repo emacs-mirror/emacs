@@ -1,5 +1,7 @@
 2000-07-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (delete_all_subwindows): Reset Vwindow_list.
+
 	* xterm.c (x_append_glyph, x_append_composite_glyph)
 	(x_produce_image_glyph, x_append_stretch_glyph): Accomodate to
 	changes in struct glyph starting 1999-12-27.  Some bit-fields of
