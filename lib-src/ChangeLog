@@ -1,3 +1,8 @@
+2001-09-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* ebrowse.c (SEEK_END): #define if not defined by system headers.
+	Suggested by Dave Love <d.love@dl.ac.uk>.
+
 2001-08-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* makefile.nt (lisp): Synchronize with src/Makefile.in.
