@@ -4258,9 +4258,9 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
 		 that, we increase byte positions of position keepers
 		 whose char positions are GPT.  */
 	      int byte_increase;
-	      p1 = GPT_ADDR + 2, pmax = p0 + 1 + inserted_byte;
 	      Lisp_Object tail;
 
+	      p1 = GPT_ADDR + 2, pmax = p0 + 1 + inserted_byte;
 	      while (! CHAR_HEAD_P (*p1) && p1 < pmax) p1++;
 	      /* Now, codes from P0 to P1 constitute a single
                  multibyte character.  */
