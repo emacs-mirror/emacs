@@ -198,10 +198,13 @@ int ignore_warnings;
 Lisp_Object Qgc_cons_threshold, Qchar_table_extra_slots;
 
 static void mark_buffer (), mark_kboards ();
-static void clear_marks (), gc_sweep ();
+static void gc_sweep ();
 static void compact_strings ();
 static void mark_glyph_matrix P_ ((struct glyph_matrix *));
 static void mark_face_cache P_ ((struct face_cache *));
+#if 0
+static void clear_marks ();
+#endif
 
 #ifdef HAVE_WINDOW_SYSTEM
 static void mark_image P_ ((struct image *));
@@ -1750,7 +1753,6 @@ Garbage collection happens automatically if you cons more than\n\
   struct catchtag *catch;
   struct handler *handler;
   register struct backtrace *backlist;
-  register Lisp_Object tem;
   char stack_top_variable;
   register int i;
   int message_p;
@@ -3209,11 +3211,11 @@ compact_strings ()
      unlikely that that one will become empty, so why bother checking?  */
 
   from_sb = first_string_block;
-  while (to_sb = from_sb->next)
+  while ((to_sb = from_sb->next) != 0)
     {
       if (to_sb->pos == 0)
 	{
-	  if (from_sb->next = to_sb->next)
+	  if ((from_sb->next = to_sb->next) != 0)
 	    from_sb->next->prev = from_sb;
 	  lisp_free (to_sb);
 	  n_string_blocks--;
