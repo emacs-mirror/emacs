@@ -907,7 +907,7 @@ x_draw_fringe_bitmap (w, row, which, left_p)
 
   /* Clear left fringe if no bitmap to draw or if bitmap doesn't fill
      the fringe.  */
-  b1 = -1;
+  b1 = b2 = -1;
   if (left_p)
     {
       if (wd > FRAME_X_LEFT_FRINGE_WIDTH (f))
@@ -965,16 +965,17 @@ x_draw_fringe_bitmap (w, row, which, left_p)
 	XSetForeground (display, face->gc, face->foreground);
     }
 
-  if (which == NO_FRINGE_BITMAP)
-    return;
-
-  /* Draw the bitmap.  I believe these small pixmaps can be cached
-     by the server.  */
-  pixmap = XCreatePixmapFromBitmapData (display, window, bits, wd, h,
-					face->foreground,
-					face->background, depth);
-  XCopyArea (display, pixmap, window, gc, 0, 0, wd, h, x, y + dy);
-  XFreePixmap (display, pixmap);
+  if (which != NO_FRINGE_BITMAP)
+    {
+      /* Draw the bitmap.  I believe these small pixmaps can be cached
+	 by the server.  */
+      pixmap = XCreatePixmapFromBitmapData (display, window, bits, wd, h,
+					    face->foreground,
+					    face->background, depth);
+      XCopyArea (display, pixmap, window, gc, 0, 0, wd, h, x, y + dy);
+      XFreePixmap (display, pixmap);
+    }
+  
   XSetClipMask (display, gc, None);
 }
 
