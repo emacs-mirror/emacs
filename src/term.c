@@ -40,6 +40,11 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_TERMCAP_H
 #include <termcap.h>
+#else
+extern void tputs P_ ((const char *, int, int (*)(int)));
+extern int tgetent P_ ((char *, const char *));
+extern int tgetflag P_ ((char *id));
+extern int tgetnum P_ ((char *id));
 #endif
 
 #include "cm.h"
