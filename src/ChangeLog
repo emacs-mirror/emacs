@@ -1,3 +1,8 @@
+2001-02-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* w32term.c (w32_set_scroll_bar_thumb): Use `double' for `range'
+	to avoid overflow.
+
 2001-02-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.c (parse_str_to_multibyte): New function.

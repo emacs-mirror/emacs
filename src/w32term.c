@@ -7331,7 +7331,7 @@ w32_set_scroll_bar_thumb (bar, portion, position, whole)
      int portion, position, whole;
 {
   Window w = SCROLL_BAR_W32_WINDOW (bar);
-  int range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
+  double range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
   int sb_page, sb_pos;
   BOOL draggingp = !NILP (bar->dragging) ? TRUE : FALSE;
 
