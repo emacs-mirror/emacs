@@ -1321,7 +1321,7 @@ set_window_width (window, width, nodelete)
     }
 }
 
-static int window_select_count;
+int window_select_count;
 
 DEFUN ("set-window-buffer", Fset_window_buffer, Sset_window_buffer, 2, 2, 0,
   "Make WINDOW display BUFFER as its contents.\n\
@@ -2575,6 +2575,11 @@ init_window_once ()
   Fset_window_buffer (minibuf_window, get_minibuffer (0));
 
   selected_window = root_window;
+  /* Make sure this window seems more recently used than
+     a newly-created, never-selected window.  Increment
+     window_select_count so the first selection ever will get
+     something newer than this.  */
+  XFASTINT (XWINDOW (selected_window)->use_time) = ++window_select_count;
 #endif /* not MULTI_SCREEN */
 }
 

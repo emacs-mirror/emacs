@@ -142,10 +142,11 @@ synkey (frommap, fromchar, tomap, tochar)
 
 DEFUN ("keymapp", Fkeymapp, Skeymapp, 1, 1, 0,
   "Return t if ARG is a keymap.\n\
-A keymap is list (keymap . ALIST),  where alist elements look like
-(CHAR . DEFN) or (SYMBOL . DEFN), or a list (keymap VECTOR . ALIST)
-where VECTOR is a 128-element vector of bindings for ASCII characters,
-and ALIST is as above.")
+\n\
+A keymap is list (keymap . ALIST), a list (keymap VECTOR . ALIST),\n\
+or a symbol whose function definition is a keymap is itself a keymap.\n\
+ALIST elements look like (CHAR . DEFN) or (SYMBOL . DEFN);\n\
+VECTOR is a 128-element vector of bindings for ASCII characters.")
   (object)
      Lisp_Object object;
 {
@@ -335,7 +336,9 @@ DEFUN ("copy-keymap", Fcopy_keymap, Scopy_keymap, 1, 1, 0,
   "Return a copy of the keymap KEYMAP.\n\
 The copy starts out with the same definitions of KEYMAP,\n\
 but changing either the copy or KEYMAP does not affect the other.\n\
-Any key definitions that are subkeymaps are recursively copied.")
+Any key definitions that are subkeymaps are recursively copied.\n\
+However, a key definition which is a symbol whose definition is a keymap\n\
+is not copied.")
   (keymap)
      Lisp_Object keymap;
 {
@@ -357,9 +360,10 @@ Any key definitions that are subkeymaps are recursively copied.")
 	  table = Fcopy_sequence (table);
 
 	  for (i = 0; i < DENSE_TABLE_SIZE; i++)
-	    if (! NULL (Fkeymapp (XVECTOR (table)->contents[i])))
-	      XVECTOR (table)->contents[i]
-		= Fcopy_keymap (XVECTOR (table)->contents[i]);
+	    if (XTYPE (XVECTOR (copy)->contents[i]) != Lisp_Symbol)
+	      if (! NULL (Fkeymapp (XVECTOR (table)->contents[i])))
+		XVECTOR (table)->contents[i]
+		  = Fcopy_keymap (XVECTOR (table)->contents[i]);
 	  XCONS (tail)->car = table;
       
 	  tail = XCONS (tail)->cdr;
@@ -372,7 +376,9 @@ Any key definitions that are subkeymaps are recursively copied.")
       register Lisp_Object elt;
 
       elt = XCONS (tail)->car;
-      if (CONSP (elt) && ! NULL (Fkeymapp (XCONS (elt)->cdr)))
+      if (CONSP (elt)
+	  && XTYPE (XCONS (elt)->cdr) != Lisp_Symbol
+	  && ! NULL (Fkeymapp (XCONS (elt)->cdr)))
 	XCONS (elt)->cdr = Fcopy_keymap (XCONS (elt)->cdr);
 
       tail = XCONS (tail)->cdr;
@@ -667,8 +673,9 @@ KEY is a string representing a sequence of keystrokes.")
 DEFUN ("define-prefix-command", Fdefine_prefix_command, Sdefine_prefix_command, 1, 2, 0,
   "Define COMMAND as a prefix command.\n\
 A new sparse keymap is stored as COMMAND's function definition and its value.\n\
-If a second optional argument MAPVAR is given, the map is stored as its\n\
-value instead of as COMMAND's value; but COMMAND is still defined as a function.")
+If a second optional argument MAPVAR is given, the map is stored as\n\
+its value instead of as COMMAND's value; but COMMAND is still defined\n\
+as a function.")
   (name, mapvar)
      Lisp_Object name, mapvar;
 {
@@ -959,7 +966,7 @@ Control characters turn into C-whatever, etc.")
       return Fsymbol_name (key);
 
     case Lisp_Cons:		/* Mouse event */
-      key = XCONS (key)->cdr;
+      key = XCONS (key)->car;
       if (XTYPE (key) == Lisp_Symbol)
 	return Fsymbol_name (key);
       /* Mouse events should have an identifying symbol as their car;
