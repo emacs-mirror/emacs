@@ -491,7 +491,9 @@ static int readable_events ();
 static Lisp_Object read_char_x_menu_prompt ();
 static Lisp_Object read_char_minibuf_menu_prompt ();
 static Lisp_Object make_lispy_event ();
+#ifdef HAVE_MOUSE
 static Lisp_Object make_lispy_movement ();
+#endif
 static Lisp_Object modify_event_symbol ();
 static Lisp_Object make_lispy_switch_frame ();
 static int parse_solitary_modifier ();
@@ -2914,7 +2916,7 @@ make_lispy_event (event)
 				   / sizeof (lispy_function_keys[0])));
       break;
 
-#if defined (MULTI_FRAME) || defined (HAVE_MOUSE)
+#ifdef HAVE_MOUSE
       /* A mouse click.  Figure out where it is, decide whether it's
          a press, click or drag, and build the appropriate structure.  */
     case mouse_click:
@@ -3154,7 +3156,7 @@ make_lispy_event (event)
 				 Qnil));
 	}
       }
-#endif /* MULTI_FRAME or HAVE_MOUSE */
+#endif /* HAVE_MOUSE */
 
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
@@ -3162,7 +3164,7 @@ make_lispy_event (event)
     }
 }
 
-#if defined (MULTI_FRAME) || defined (HAVE_MOUSE)
+#ifdef HAVE_MOUSE
 
 static Lisp_Object
 make_lispy_movement (frame, bar_window, part, x, y, time)
@@ -3253,7 +3255,7 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
     }
 }
 
-#endif /* neither MULTI_FRAME nor HAVE_MOUSE */
+#endif /* HAVE_MOUSE */
 
 /* Construct a switch frame event.  */
 static Lisp_Object
