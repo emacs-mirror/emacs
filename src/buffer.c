@@ -1212,8 +1212,8 @@ a non-nil `permanent-local' property are not eliminated by this function.")
 	     it is currently set up for.  This is so that, if the
 	     local is marked permanent, and we make it local again below,
 	     we don't lose the value.  */
-	  XCONS (XCONS (tem)->car)->cdr =
-	    do_symval_forwarding (XCONS (XSYMBOL (sym)->value)->car);
+	  XCONS (XCONS (tem)->car)->cdr
+	    = do_symval_forwarding (XCONS (XSYMBOL (sym)->value)->car);
 	  /* Switch to the symbol's default-value alist entry.  */
 	  XCONS (tem)->car = tem;
 	  /* Mark it as current for the current buffer.  */
