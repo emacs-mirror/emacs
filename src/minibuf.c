@@ -369,6 +369,7 @@ The current buffer must be a minibuffer.  */)
 /* Get the text in the minibuffer before point.
    That is what completion commands operate on.  */
 
+Lisp_Object
 minibuffer_completion_contents ()
 {
   int prompt_end = XINT (Fminibuffer_prompt_end ());
