@@ -191,13 +191,14 @@
 
 ;; CHARSET-IDs 226..239 are not used.
 
+(define-charset 240  'indian-glyph
+  [2 96 1 0 ?4 0 "Indian glyph" "Indian glyph"
+     "Glyphs for Indian characters."])
+;; 240 used to be [2 94 1 0 ?6 0 "Indian 1-col" "Indian 1 Column"]
+
 ;; 2-byte 1-column charsets.  Valid range of CHARSET-ID is 240..244.
 
 ;; Actual Glyph for 1-column width.
-(define-charset 240 'indian-1-column
-  [2 94 1 0 ?6 0 "Indian 1-col" "Indian 1 Column"
-     "Indian charset for 2-column width glyphs"])
-
 (define-charset 241 'tibetan-1-column
   [2 94 1 0 ?8 0 "Tibetan 1-col" "Tibetan 1 column" "Tibetan 1 column glyph"])
 
@@ -244,6 +245,8 @@
 (define-charset 251 'indian-2-column
   [2 94 2 0 ?5 0 "Indian 2-col" "Indian 2 Column"
      "Indian charset for 2-column width glyphs"])
+  ;; old indian-1-column characters will be translated to indian-2-column.
+(declare-equiv-charset 2 94 ?6 'indian-2-column)
 
 ;; Tibetan script.
 (define-charset 252 'tibetan
