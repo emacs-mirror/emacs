@@ -1,3 +1,9 @@
+2002-03-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* vc.el (vc-branch-part): Add autoload cookie.  This function can
+	be called from vc-rcs-find-most-recent-rev when visiting a file
+	checked into RCS in a CVS sandbox.
+
 2002-03-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* language/czech.el ("Czech"): Fix the documentation.
