@@ -408,6 +408,9 @@ unreadchar (readcharfun, c)
 
 static Lisp_Object read0 (), read1 (), read_list (), read_vector ();
 static int read_multibyte ();
+static Lisp_Object substitute_object_recurse ();
+static void        substitute_object_in_subtree (), substitute_in_interval ();
+
 
 /* Get a character from the tty.  */
 
@@ -1806,8 +1809,23 @@ read1 (readcharfun, pch, first_in_list)
 	  /* #n=object returns object, but associates it with n for #n#.  */
 	  if (c == '=')
 	    {
+	      /* Make a placeholder for #n# to use temporarily */
+	      Lisp_Object placeholder;
+	      Lisp_Object cell;
+
+	      placeholder = Fcons(Qnil, Qnil);
+	      cell = Fcons (make_number (n), placeholder);
+	      read_objects = Fcons (cell, read_objects);
+
+	      /* Read the object itself. */
 	      tem = read0 (readcharfun);
-	      read_objects = Fcons (Fcons (make_number (n), tem), read_objects);
+
+	      /* Now put it everywhere the placeholder was... */
+	      substitute_object_in_subtree (tem, placeholder);
+
+	      /* ...and #n# will use the real value from now on.  */
+	      Fsetcdr (cell, tem);
+	      
 	      return tem;
 	    }
 	  /* #n# returns a previously read object.  */
@@ -2162,6 +2180,129 @@ read1 (readcharfun, pch, first_in_list)
       }
     }
 }
+
+
+/* List of nodes we've seen during substitute_object_in_subtree. */
+static Lisp_Object seen_list;
+
+static void
+substitute_object_in_subtree (object, placeholder)
+     Lisp_Object object;
+     Lisp_Object placeholder;
+{
+  Lisp_Object check_object;
+
+  /* We haven't seen any objects when we start. */
+  seen_list = Qnil;
+
+  /* Make all the substitutions. */
+  check_object
+    = substitute_object_recurse (object, placeholder, object);
+  
+  /* Clear seen_list because we're done with it. */
+  seen_list = Qnil;
+
+  /* The returned object here is expected to always eq the
+     original. */
+  if (!EQ (check_object, object))
+    error ("Unexpected mutation error in reader");
+}
+
+/*  Feval doesn't get called from here, so no gc protection is needed. */
+#define SUBSTITUTE(get_val, set_val)                 \
+{                                                    \
+  Lisp_Object old_value = get_val;                   \
+  Lisp_Object true_value                             \
+    = substitute_object_recurse (object, placeholder,\
+			       old_value);           \
+                                                     \
+  if (!EQ (old_value, true_value))                   \
+    {                                                \
+       set_val;                                      \
+    }                                                \
+}
+
+static Lisp_Object
+substitute_object_recurse (object, placeholder, subtree)
+     Lisp_Object object;
+     Lisp_Object placeholder;
+     Lisp_Object subtree;
+{
+  /* If we find the placeholder, return the target object. */
+  if (EQ (placeholder, subtree))
+    return object;
+
+  /* If we've been to this node before, don't explore it again. */
+  if (!EQ (Qnil, Fmemq (subtree, seen_list)))
+    return subtree;
+
+  /* If this node can be the entry point to a cycle, remember that
+     we've seen it.  It can only be such an entry point if it was made
+     by #n=, which means that we can find it as a value in
+     read_objects.  */
+  if (!EQ (Qnil, Frassq (subtree, read_objects)))
+    seen_list = Fcons (subtree, seen_list);
+      
+  /* Recurse according to subtree's type.
+     Every branch must return a Lisp_Object.  */
+  switch (XTYPE (subtree))
+    {
+    case Lisp_Vectorlike:
+      {
+	int i;
+	int length = Flength(subtree);
+	for (i = 0; i < length; i++)
+	  {
+	    Lisp_Object idx = make_number (i);
+	    SUBSTITUTE (Faref (subtree, idx),
+			Faset (subtree, idx, true_value)); 
+	  }
+	return subtree;
+      }
+
+    case Lisp_Cons:
+      {
+	SUBSTITUTE (Fcar_safe (subtree),
+		    Fsetcar (subtree, true_value)); 
+	SUBSTITUTE (Fcdr_safe (subtree),
+		    Fsetcdr (subtree, true_value)); 
+	return subtree;
+      }
+
+#ifdef USE_TEXT_PROPERTIES
+    case Lisp_String:
+      {
+	/* Check for text properties in each interval.
+	   substitute_in_interval contains part of the logic. */ 
+
+	INTERVAL    root_interval = XSTRING (subtree)->intervals;
+	Lisp_Object arg           = Fcons (object, placeholder);
+	   
+	traverse_intervals (root_interval, 1, 0,
+			    &substitute_in_interval, arg); 
+
+	return subtree;
+      }
+#endif /* defined USE_TEXT_PROPERTIES */
+
+      /* Other types don't recurse any further. */
+    default:
+      return subtree;
+    }
+}
+
+/*  Helper function for substitute_object_recurse.  */
+static void
+substitute_in_interval (interval, arg)
+     INTERVAL    interval;
+     Lisp_Object arg;
+{
+  Lisp_Object object      = Fcar (arg);
+  Lisp_Object placeholder = Fcdr (arg);
+
+  SUBSTITUTE(interval->plist, interval->plist = true_value);
+}
+
 
 #ifdef LISP_FLOAT_TYPE
 
@@ -3306,4 +3447,6 @@ You cannot count on them to still be there!");
 
   staticpro (&read_objects);
   read_objects = Qnil;
+  staticpro (&seen_list);
+  
 }
