@@ -300,6 +300,7 @@ This map is activated while translation region is active.")
     (define-key map "\C-a" 'quail-conversion-beginning-of-region)
     (define-key map "\C-e" 'quail-conversion-end-of-region)
     (define-key map "\C-d" 'quail-conversion-delete-char)
+    (define-key map "\C-k" 'quail-conversion-delete-tail)
     (define-key map "\C-h" 'quail-conversion-help)
     (define-key map "\177" 'quail-conversion-backward-delete-char)
     (define-key map [delete] 'quail-conversion-backward-delete-char)
@@ -855,9 +856,8 @@ The returned value is a Quail map specific to KEY."
 
 (defun quail-input-method (key)
   (if (or buffer-read-only
-	  (and (or overriding-terminal-local-map
-		   overriding-local-map)
-	       (>= key ?0) (<= key ?9)))
+	  overriding-terminal-local-map
+	  overriding-local-map)
       (list key)
     (quail-setup-overlays (quail-conversion-keymap))
     (let ((modified-p (buffer-modified-p)))
@@ -865,8 +865,17 @@ The returned value is a Quail map specific to KEY."
 	  (if (quail-conversion-keymap)
 	      (quail-start-conversion key)
 	    (quail-start-translation key))
+	(quail-delete-overlays)
+	(if (buffer-live-p quail-guidance-buf)
+	    (save-excursion
+	      (set-buffer quail-guidance-buf)
+	      (erase-buffer)))
 	(set-buffer-modified-p modified-p)
-	(quail-delete-overlays)))))
+	;; Run this hook only when the current input method doesn't require
+	;; conversion.  When conversion is required, the conversion function
+	;; should run this hook at a proper timing.
+	(unless (quail-conversion-keymap)
+	  (run-hooks 'input-method-after-insert-chunk-hook))))))
 
 (defun quail-overlay-region-events (overlay)
   (let ((start (overlay-start overlay))
@@ -894,16 +903,19 @@ The returned value is a Quail map specific to KEY."
 	(while quail-translating
 	  (let* ((echo-keystrokes 0)
 		 (keyseq (read-key-sequence nil))
-		 (cmd (lookup-key translation-keymap keyseq t)))
+		 (events (listify-key-sequence keyseq))
+		 (cmd (lookup-key translation-keymap keyseq)))
 	    (if (commandp cmd)
 		(progn
-		  (setq last-command-event (aref keyseq 0))
+		  (setq last-command-event (car (last events))
+			last-command this-command
+			this-command cmd)
 		  (condition-case err
 		      (call-interactively cmd)
 		    (quail-error (message "%s" (cdr err)) (beep))))
 	      ;; KEYSEQ is not defined in the translation keymap.
 	      ;; Let's return the event(s) to the caller.
-	      (setq generated-events (string-to-list keyseq)
+	      (setq generated-events events
 		    quail-translating nil))))
 	(setq generated-events
 	      (append (quail-overlay-region-events quail-overlay)
@@ -938,16 +950,19 @@ The returned value is a Quail map specific to KEY."
 		(quail-setup-overlays nil)))
 	  (let* ((echo-keystrokes 0)
 		 (keyseq (read-key-sequence nil))
-		 (cmd (lookup-key conversion-keymap keyseq t)))
+		 (events (listify-key-sequence keyseq))
+		 (cmd (lookup-key conversion-keymap keyseq)))
 	    (if (commandp cmd)
 		(progn
-		  (setq last-command-event (aref keyseq 0))
+		  (setq last-command-event (car (last events))
+			last-command this-command
+			this-command cmd)
 		  (condition-case err
 		      (call-interactively cmd)
 		    (quail-error (message "%s" (cdr err)) (beep))))
 	      ;; KEYSEQ is not defined in the conversion keymap.
 	      ;; Let's return the event(s) to the caller.
-	      (setq generated-events (string-to-list keyseq)
+	      (setq generated-events events
 		    quail-converting nil))))
 	(setq generated-events
 	      (append (quail-overlay-region-events quail-conv-overlay)
@@ -1265,17 +1280,29 @@ sequence counting from the head."
 
 (defun quail-conversion-beginning-of-region ()
   (interactive)
+  (setq quail-translating nil)
   (goto-char (overlay-start quail-conv-overlay)))
 
 (defun quail-conversion-end-of-region ()
   (interactive)
+  (setq quail-translating nil)
   (goto-char (overlay-end quail-conv-overlay)))
 
 (defun quail-conversion-delete-char ()
   (interactive)
+  (setq quail-translating nil)
   (if (>= (point) (overlay-end quail-conv-overlay))
       (quail-error "End of conversion region"))
   (delete-char 1)
+  (if (= (overlay-start quail-conv-overlay)
+	 (overlay-end quail-conv-overlay))
+      (setq quail-converting nil)))
+
+(defun quail-conversion-delete-tail ()
+  (interactive)
+  (if (>= (point) (overlay-end quail-conv-overlay))
+      (quail-error "End of conversion region"))
+  (delete-region (point) (overlay-end quail-conv-overlay))
   (if (= (overlay-start quail-conv-overlay)
 	 (overlay-end quail-conv-overlay))
       (setq quail-converting nil)))
@@ -1298,8 +1325,7 @@ Remaining args are for FUNC."
 (defun quail-no-conversion ()
   "Do no conversion of the current conversion region of Quail."
   (interactive)
-  (setq quail-converting nil)
-  (run-hooks 'input-method-after-insert-chunk-hook))
+  (setq quail-converting nil))
 
 ;; Guidance, Completion, and Help buffer handlers.
 
