@@ -427,14 +427,12 @@ with \"fontset\" in `<CHARSET_REGISTRY> field."
 ;; Return a list to be appended to `x-fixed-font-alist' when
 ;; `mouse-set-font' is called.
 (defun generate-fontset-menu ()
-  (let ((fontsets (fontset-list))
-	fontset-name
-	l)
-    (while fontsets
-      (setq fontset-name (car fontsets) fontsets (cdr fontsets))
-      (setq l (cons (list (fontset-plain-name fontset-name) fontset-name) l)))
+  (let (l)
+    (dolist (fontset (fontset-list))
+      (or (string-match "fontset-default$" fontset)
+	  (push (list (fontset-plain-name fontset) fontset) l)))
     (cons "Fontset"
-	  (sort l (function (lambda (x y) (string< (car x) (car y))))))))
+	  (sort l #'(lambda (x y) (string< (car x) (car y)))))))
 
 (defun fontset-plain-name (fontset)
   "Return a plain and descriptive name of FONTSET."
