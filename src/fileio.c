@@ -848,8 +848,8 @@ In addition, this function makes an attempt to choose a name\n\
 which has no existing file.  To make this work,\n\
 PREFIX should be an absolute file name.\n\
 \n\
-There is a race condition between calling `make-temp-name' and creating the
-file which opens all kinds of security holes.  For that reason, you should
+There is a race condition between calling `make-temp-name' and creating the\n\
+file which opens all kinds of security holes.  For that reason, you should\n\
 probably use `make-temp-file' instead.")
   (prefix)
      Lisp_Object prefix;
