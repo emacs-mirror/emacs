@@ -161,7 +161,7 @@ Wrapping around the alphabet implies successive repetitions of letters."
       (setq rc (concat rc chr))
       (setq rep (1- rep)))
     rc))
-  
+
 ;;; ENGLISH LOWER
 (defconst footnote-english-lower "abcdefghijklmnopqrstuvwxyz"
   "Lower case English alphabet.")
@@ -482,7 +482,7 @@ styles."
   (Footnote-goto-char-point-max)
   (if (re-search-backward (concat "^" footnote-section-tag-regexp) nil t)
       (save-restriction
-	(when footnote-narrow-to-footnotes-when-editing 
+	(when footnote-narrow-to-footnotes-when-editing
 	  (Footnote-narrow-to-footnotes))
 	(Footnote-goto-footnote (1- arg)) ; evil, FIXME (less evil now)
 	;; (message "Inserting footnote %d" arg)
@@ -554,9 +554,9 @@ Return nil if the cursor is not over a footnote."
 	  (unless rc
 	    (setq rc (car alist-ptr)))
 	  (save-excursion
-	    (message "Renumbering from %s to %s" 
+	    (message "Renumbering from %s to %s"
 		     (Footnote-index-to-string (car alist-ptr))
-		     (Footnote-index-to-string 
+		     (Footnote-index-to-string
 		      (1+ (car alist-ptr))))
 	    (Footnote-renumber (car alist-ptr)
 			       (1+ (car alist-ptr))

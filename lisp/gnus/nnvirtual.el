@@ -362,7 +362,7 @@ component group will show up when you enter the virtual group.")
       (gnus-request-post (gnus-find-method-for-group group)))))
 
 
-(deffoo nnvirtual-request-expire-articles (articles group 
+(deffoo nnvirtual-request-expire-articles (articles group
 						    &optional server force)
   (nnvirtual-possibly-change-server server)
   (setq nnvirtual-component-groups

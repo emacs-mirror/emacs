@@ -32,7 +32,7 @@
 ;;; Todo:
 
 ;; Should parse "#if" and "#elif" expressions and merge the faces
-;; somehow. 
+;; somehow.
 
 ;; Somehow it is sometimes possible to make changes near a read only
 ;; area which you can't undo.  Their are other strange effects in that
@@ -67,7 +67,7 @@
   :type 'face
   :group 'cpp)
 
-(defcustom cpp-face-type 'light 
+(defcustom cpp-face-type 'light
   "*Indicate what background face type you prefer.
 Can be either light or dark for color screens, mono for monochrome
 screens, and none if you don't use a window system and don't have
@@ -368,7 +368,7 @@ A prefix arg suppresses display of that buffer."
     (cond ((eq cpp-unknown-face 'invisible)
 	   (cpp-make-overlay-hidden overlay))
 	  ((eq cpp-unknown-face 'default))
-	  (t 
+	  (t
 	   (overlay-put overlay 'face cpp-unknown-face)))
     (if cpp-unknown-writable
 	()
@@ -461,7 +461,7 @@ A prefix arg suppresses display of that buffer."
 
 (defun cpp-edit-mode ()
   "Major mode for editing the criteria for highlighting cpp conditionals.
-Click on objects to change them.  
+Click on objects to change them.
 You can also use the keyboard accelerators indicated like this: [K]ey."
   (kill-all-local-variables)
   (buffer-disable-undo)
@@ -535,7 +535,7 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
 		 (eq write 'both))
 	    (setq cpp-edit-list (delq entry cpp-edit-list)
 		  entry nil))
-	
+
 	(if (> (length symbol) 39)
 	    (insert (substring symbol 0 39) ": ")
 	  (insert (format "%39s: " symbol)))
@@ -649,7 +649,7 @@ With optional argument ARG, make them writable iff ARG is positive."
   (interactive
    (let ((symbol (cpp-choose-symbol)))
      (list symbol
-	   (cpp-choose-face "False face" 
+	   (cpp-choose-face "False face"
 			    (nth 2 (assoc symbol cpp-edit-list))))))
   (setcar (nthcdr 2 (cpp-edit-list-entry-get-or-create symbol)) face)
   (cpp-edit-reset))

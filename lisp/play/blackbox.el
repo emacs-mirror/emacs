@@ -34,21 +34,21 @@
 ;; pass thru the box undisturbed, 2) it will hit a ball and be absorbed,
 ;; 3) it will be deflected and exit the box, or 4) be deflected immediately,
 ;; not even being allowed entry into the box.
-;; 
+;;
 ;; The strange part is the method of deflection.  It seems that rays will
 ;; not pass next to a ball, and change direction at right angles to avoid it.
-;; 
-;; 		             R   3   
-;; 		 1 - - - - - - - - 1 
-;; 		   - - - - - - - -   
-;; 		   - O - - - - - - 3 
-;; 		 2 - - - - O - O -   
-;; 		 4 - - - - - - - - 
-;; 		 5 - - - - - - - - 5 
-;; 		   - - - - - - - - R 
-;; 		 H - - - - - - - O   
-;; 		   2   H 4       H   
-;; 
+;;
+;; 		             R   3
+;; 		 1 - - - - - - - - 1
+;; 		   - - - - - - - -
+;; 		   - O - - - - - - 3
+;; 		 2 - - - - O - O -
+;; 		 4 - - - - - - - -
+;; 		 5 - - - - - - - - 5
+;; 		   - - - - - - - - R
+;; 		 H - - - - - - - O
+;; 		   2   H 4       H
+;;
 ;; Rays which enter and exit are numbered.  You can see that rays 1 & 5 pass
 ;; thru the box undisturbed. Ray 2 is deflected by the northwesternmost
 ;; ball.  Likewise rays 3 and 4. Rays which hit balls and are absorbed are
@@ -194,21 +194,21 @@ ray.
 Note carefully the relative positions of the ball and the ninety
 degree deflection it causes.
 
-    1                                            
-  - * - - - - - -         - - - - - - - -         - - - - - - - -       
-  - * - - - - - -         - - - - - - - -         - - - - - - - -       
-1 * * - - - - - -         - - - - - - - -         - O - - - - O -       
+    1
+  - * - - - - - -         - - - - - - - -         - - - - - - - -
+  - * - - - - - -         - - - - - - - -         - - - - - - - -
+1 * * - - - - - -         - - - - - - - -         - O - - - - O -
   - - O - - - - -         - - O - - - - -         - - * * * * - -
   - - - - - - - -         - - - * * * * * 2     3 * * * - - * - -
-  - - - - - - - -         - - - * - - - -         - - - O - * - -      
-  - - - - - - - -         - - - * - - - -         - - - - * * - -       
-  - - - - - - - -         - - - * - - - -         - - - - * - O -       
+  - - - - - - - -         - - - * - - - -         - - - O - * - -
+  - - - - - - - -         - - - * - - - -         - - - - * * - -
+  - - - - - - - -         - - - * - - - -         - - - - * - O -
                                 2                         3
 
 As mentioned above, a reflection occurs when a ray emerges from the same point
 it was sent in.  This can happen in several ways:
 
-                                                                           
+
   - - - - - - - -         - - - - - - - -          - - - - - - - -
   - - - - O - - -         - - O - O - - -          - - - - - - - -
 R * * * * - - - -         - - - * - - - -          O - - - - - - -
@@ -426,7 +426,7 @@ a reflection."
     (delete-char (length c))
     (insert c)
     (backward-char 1)))
-  
+
 (provide 'blackbox)
 
 ;;; blackbox.el ends here

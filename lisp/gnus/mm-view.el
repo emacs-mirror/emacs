@@ -228,8 +228,8 @@
       (setq handles gnus-article-mime-handles))
     (when handles
       (setq gnus-article-mime-handles
-	    (nconc gnus-article-mime-handles 
-		   (if (listp (car handles)) 
+	    (nconc gnus-article-mime-handles
+		   (if (listp (car handles))
 		       handles (list handles))))))
   (fundamental-mode)
   (goto-char (point-min)))
@@ -266,8 +266,8 @@
 	(insert "----------\n\n")
 	(when handles
 	  (setq gnus-article-mime-handles
-		(nconc gnus-article-mime-handles 
-		       (if (listp (car handles)) 
+		(nconc gnus-article-mime-handles
+		       (if (listp (car handles))
 			   handles (list handles)))))
 	(mm-handle-set-undisplayer
 	 handle

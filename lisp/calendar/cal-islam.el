@@ -209,7 +209,7 @@ not be marked in the calendar.  This function is provided for use with the
             (mark (regexp-quote diary-nonmarking-symbol)))
         (calendar-for-loop i from 1 to number do
            (let* ((d diary-date-forms)
-                  (idate (calendar-islamic-from-absolute 
+                  (idate (calendar-islamic-from-absolute
                           (calendar-absolute-from-gregorian gdate)))
                   (month (extract-calendar-month idate))
                   (day (extract-calendar-day idate))
@@ -450,7 +450,7 @@ Prefix arg will make the entry nonmarking."
     (make-diary-entry
      (concat
       islamic-diary-entry-symbol
-      (calendar-date-string 
+      (calendar-date-string
        (calendar-islamic-from-absolute
         (calendar-absolute-from-gregorian
          (calendar-cursor-to-date t)))
@@ -468,7 +468,7 @@ Prefix arg will make the entry nonmarking."
     (make-diary-entry
      (concat
       islamic-diary-entry-symbol
-      (calendar-date-string 
+      (calendar-date-string
        (calendar-islamic-from-absolute
         (calendar-absolute-from-gregorian
          (calendar-cursor-to-date t)))))
@@ -487,7 +487,7 @@ Prefix arg will make the entry nonmarking."
     (make-diary-entry
      (concat
       islamic-diary-entry-symbol
-      (calendar-date-string 
+      (calendar-date-string
        (calendar-islamic-from-absolute
         (calendar-absolute-from-gregorian
          (calendar-cursor-to-date t)))))

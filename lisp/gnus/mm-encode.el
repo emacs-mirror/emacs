@@ -1,4 +1,4 @@
-;;; mm-encode.el --- functions for encoding MIME things 
+;;; mm-encode.el --- functions for encoding MIME things
 ;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -144,7 +144,7 @@ The encoding used is returned."
       (while rules
 	(when (string-match (caar rules) type)
 	  (throw 'found
-		 (let ((encoding 
+		 (let ((encoding
 			(if (eq (cadr (car rules)) 'qp-or-base64)
 			    (mm-qp-or-base64)
 			  (cadr (car rules)))))

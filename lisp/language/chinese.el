@@ -64,7 +64,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Chinese GB2312 (simplified) 
+;;; Chinese GB2312 (simplified)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (make-coding-system

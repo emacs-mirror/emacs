@@ -88,7 +88,7 @@ redefine OBJECT if it is a symbol."
 	(setq macro t
 	      obj (cdr obj)))
     (if (and (listp obj) (eq (car obj) 'byte-code))
-	(setq obj (list 'lambda nil obj)))	
+	(setq obj (list 'lambda nil obj)))
     (if (and (listp obj) (not (eq (car obj) 'lambda)))
 	(error "not a function"))
     (if (consp obj)

@@ -1,7 +1,7 @@
 ;;; mh-alias.el --- MH-E mail alias completion and expansion
 ;;
 ;; Copyright (C) 1994, 1995, 1996, 1997, 2001, 2002 Free Software Foundation, Inc.
- 
+
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
@@ -93,7 +93,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-alias.el,v 1.25 2003/01/27 04:16:47 wohler Exp $
+;; $Id: mh-alias.el,v 1.2 2003/02/03 20:55:30 wohler Exp $
 
 ;;; Code:
 

@@ -94,8 +94,8 @@
 
 (defun gnus-mailing-list-help ()
   "Get help from mailing list server."
-  (interactive)  
-  (let ((list-help 
+  (interactive)
+  (let ((list-help
 	 (with-current-buffer gnus-original-article-buffer
 	   (gnus-fetch-field "list-help"))))
     (cond (list-help (gnus-mailing-list-message list-help))
@@ -104,7 +104,7 @@
 (defun gnus-mailing-list-subscribe ()
   "Subscribe"
   (interactive)
-  (let ((list-subscribe 
+  (let ((list-subscribe
 	 (with-current-buffer gnus-original-article-buffer
 	   (gnus-fetch-field "list-subscribe"))))
     (cond (list-subscribe (gnus-mailing-list-message list-subscribe))
@@ -113,7 +113,7 @@
 (defun gnus-mailing-list-unsubscribe ()
   "Unsubscribe"
   (interactive)
-  (let ((list-unsubscribe 
+  (let ((list-unsubscribe
 	 (with-current-buffer gnus-original-article-buffer
 	   (gnus-fetch-field "list-unsubscribe"))))
     (cond (list-unsubscribe (gnus-mailing-list-message list-unsubscribe))
@@ -122,7 +122,7 @@
 (defun gnus-mailing-list-post ()
   "Post message (really useful ?)"
   (interactive)
-  (let ((list-post 
+  (let ((list-post
 	 (with-current-buffer gnus-original-article-buffer
 	   (gnus-fetch-field "list-post"))))
     (cond (list-post (gnus-mailing-list-message list-post))
@@ -131,7 +131,7 @@
 (defun gnus-mailing-list-owner ()
   "Mail to the owner"
   (interactive)
-  (let ((list-owner 
+  (let ((list-owner
 	 (with-current-buffer gnus-original-article-buffer
 	   (gnus-fetch-field "list-owner"))))
     (cond (list-owner (gnus-mailing-list-message list-owner))
@@ -140,7 +140,7 @@
 (defun gnus-mailing-list-archive ()
   "Browse archive"
   (interactive)
-  (let ((list-archive 
+  (let ((list-archive
 	 (with-current-buffer gnus-original-article-buffer
 	   (gnus-fetch-field "list-archive"))))
     (cond (list-archive (gnus-mailing-list-message list-archive))
@@ -155,7 +155,7 @@
 	(subject "None")
 	(body "")
 	)
-    (cond 
+    (cond
      ((string-match "<mailto:\\([^>]*\\)>" address)
       (let ((args (match-string 1 address)))
 	(cond    				; with param
@@ -168,9 +168,9 @@
 		(setq body (match-string 1 param)))
 	    (if (string-match "to=\\([^&]*\\)" param)
 		(push (match-string 1 param) to))
-	    ))	 
+	    ))
 	 (t (setq mailto args)))))			; without param
-     
+
      ; other case <http://... to be done.
      (t nil))
     (gnus-setup-message 'message (message-mail mailto subject))

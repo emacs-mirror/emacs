@@ -265,7 +265,7 @@ positions (integers or markers) specifying the region."
 	(compose-string string idx (match-end 0))
 	(setq idx (match-end 0)))))
   string)
-      
+
 ;;;###autoload
 (defun thai-compose-buffer ()
   "Compose Thai characters in the current buffer."

@@ -253,8 +253,8 @@ the value of `fortune-file'.  This currently cannot handle directories."
 		     (concat fortune-strfile fortune-strfile-options
 			     " " fortune-file fortune-quiet-strfile-options))))))
 	(t (error "Can't compile fortune file %s" fortune-file)))))
-  
-	 
+
+
 ;;; **************
 ;;; Use fortune for signature
 ;;;###autoload

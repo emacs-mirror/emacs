@@ -264,7 +264,7 @@ It also restores point after the `read'."
   (save-excursion
     (setf (point) (point-min))
     (setq quickurl-urls (funcall quickurl-sort-function (read buffer)))))
-                       
+
 (defun quickurl-load-urls ()
   "Load the contents of `quickurl-url-file' into `quickurl-urls'."
   (when (file-exists-p quickurl-url-file)
@@ -280,7 +280,7 @@ It also restores point after the `read'."
       (pp quickurl-urls)
       (princ quickurl-postfix)
       (write-region (point-min) (point-max) quickurl-url-file nil 0))))
-  
+
 (defun quickurl-find-url (lookup)
   "Return URL associated with key LOOKUP.
 
@@ -327,7 +327,7 @@ buffer, this default action can be modifed via
   (let ((url (quickurl-find-url lookup)))
     (when url
       (quickurl-insert url))))
-   
+
 (defun quickurl-grab-url ()
   "Attempt to grab a word/url pair from point in the current buffer.
 
@@ -370,7 +370,7 @@ is decided."
                        (read-string "URL: "     (quickurl-url-url word-url))
                        (read-string "Comment: " (quickurl-url-comment word-url)))))
   (if (zerop (length word))
-      (error "You must specify a WORD for lookup")  
+      (error "You must specify a WORD for lookup")
     (quickurl-load-urls)
     (let* ((current-url (quickurl-find-url word))
            (add-it      (if current-url
@@ -546,7 +546,7 @@ TYPE dictates what will be inserted, options are:
 (quickurl-list-make-inserter with-lookup)
 (quickurl-list-make-inserter with-desc)
 (quickurl-list-make-inserter lookup)
-  
+
 (provide 'quickurl)
 
 ;;; quickurl.el ends here

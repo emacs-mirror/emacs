@@ -30,7 +30,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.173 2003/01/26 19:37:22 jchonig Exp $
+;; $Id: mh-comp.el,v 1.2 2003/02/03 20:55:30 wohler Exp $
 
 ;;; Code:
 
@@ -552,7 +552,7 @@ for the reply.  See also documentation for `\\[mh-send]' function."
                                 t)))
       (delete-other-windows)
       (save-buffer)
-      
+
       (let ((to (mh-get-header-field "To:"))
             (subject (mh-get-header-field "Subject:"))
             (cc (mh-get-header-field "Cc:")))
@@ -1151,7 +1151,7 @@ CONFIG is the window configuration to restore after sending the letter."
   (pop-to-buffer draft)
   (if mh-insert-mail-followup-to-flag (mh-insert-mail-followup-to))
   (mh-letter-mode)
-   
+
   ;; mh-identity support
   (if (and (boundp 'mh-identity-default)
            mh-identity-default)
@@ -1160,7 +1160,7 @@ CONFIG is the window configuration to restore after sending the letter."
              mh-identity-list)
     (mh-identity-make-menu)
     (easy-menu-add mh-identity-menu))
- 
+
   (setq mh-sent-from-folder sent-from-folder)
   (setq mh-sent-from-msg sent-from-msg)
   (setq mh-send-args send-args)
@@ -1389,7 +1389,7 @@ yanked message will be deleted."
     ;; Insert the string to filter
     (insert string)
     (goto-char (point-min))
-    
+
     ;; Remove the MIME buttons
     (let ((can-move-forward t)
           (in-button nil))
@@ -1486,7 +1486,7 @@ passing the prefix ARG if any."
                (looking-at "^.*\\(to\\|cc\\|from\\):")))
         (mh-alias-letter-expand-alias)
       (funcall mh-letter-complete-function arg))))
-      
+
 ;;; Build the letter-mode keymap:
 ;;; If this changes, modify mh-letter-mode-help-messages accordingly, above.
 (gnus-define-keys  mh-letter-mode-map

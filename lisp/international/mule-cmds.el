@@ -285,7 +285,7 @@ wrong, use this command again to toggle back to the right mode."
 
     (when (eq cmd 'universal-argument)
       (call-interactively cmd)
-      
+
       ;; Process keys bound in `universal-argument-map'.
       (while (progn
 	       (setq keyseq (read-key-sequence nil t)
@@ -302,7 +302,7 @@ wrong, use this command again to toggle back to the right mode."
       ;; set's the final `prefix-arg.
       (let ((current-prefix-arg prefix-arg))
 	(call-interactively cmd))
-	
+
       ;; Read the command to execute with the given prefix arg.
       (setq prefix prefix-arg
 	    keyseq (read-key-sequence nil t)
@@ -719,7 +719,7 @@ and TO is ignored."
 					       0 (length from) coding
 					       11 from))))
 			    unsafe))
-	    (setq unsafe 
+	    (setq unsafe
 		  (mapcar #'(lambda (coding)
 			      (cons coding
 				    (mapcar #'(lambda (pos)
@@ -788,7 +788,7 @@ e.g., for sending an email message.\n ")
 		  (mapc #'(lambda (x) (princ " ") (princ x)) rejected)
 		  (insert "\n"))
 		(when unsafe
-		  (insert (if rejected "And the others" 
+		  (insert (if rejected "And the others"
 			    "However, each of them")
 			  " encountered these problematic characters:\n")
 		  (mapc
@@ -853,7 +853,7 @@ on your risk of losing the problematic characters.\n")))
 	  ;; Read a coding system.
 	  (setq default-coding-system (or (car safe) (car codings)))
 	  (setq coding-system
-		(read-coding-system 
+		(read-coding-system
 		 (format "Select coding system (default %s): "
 			 default-coding-system)
 		 default-coding-system))
@@ -2162,7 +2162,7 @@ will be translated according to the table specified by
 See also `locale-charset-language-names', `locale-language-names',
 `locale-preferred-coding-systems' and `locale-coding-system'."
   (interactive "sSet environment for locale: ")
- 
+
   ;; Do this at runtime for the sake of binaries possibly transported
   ;; to a system without X.
   (setq locale-translation-file-name

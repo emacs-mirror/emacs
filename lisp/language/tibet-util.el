@@ -163,7 +163,7 @@ The returned string has no composition information."
     ;; If 'a follows a consonant, turn it into the subjoined form.
     ;; * Disabled by Tomabechi 2000/06/09 *
     ;; Because in Unicode, $(7"A(B may follow directly a consonant without
-    ;; any intervening vowel, as in 4$(7"90"914""0"""Q14"A0"A1!;(B=4$(7"90"91(B 4$(7""0""1(B 4$(7"A0"A1(B not 4$(7"90"91(B 4$(7""0""1(B $(7"Q(B 4$(7"A0"A1(B  
+    ;; any intervening vowel, as in 4$(7"90"914""0"""Q14"A0"A1!;(B=4$(7"90"91(B 4$(7""0""1(B 4$(7"A0"A1(B not 4$(7"90"91(B 4$(7""0""1(B $(7"Q(B 4$(7"A0"A1(B
     ;;(if (and (= char ?$(7"A(B)
     ;;	     (aref (char-category-set (car last)) ?0))
     ;;	(setq char ?$(7"R(B)) ;; modified for new font by Tomabechi 1999/12/10
@@ -370,7 +370,7 @@ See also docstring of the function tibetan-compose-region."
 
 ;;;
 ;;; Unicode-related definitions.
-;;; 
+;;;
 
 (defvar tibetan-canonicalize-for-unicode-alist
   '(("$(7"Q(B" . "")	;; remove vowel a

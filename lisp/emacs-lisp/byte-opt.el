@@ -31,7 +31,7 @@
 ;; You can, however, make a faster pig."
 ;;
 ;; Or, to put it another way, the emacs byte compiler is a VW Bug.  This code
-;; makes it be a VW Bug with fuel injection and a turbocharger...  You're 
+;; makes it be a VW Bug with fuel injection and a turbocharger...  You're
 ;; still not going to make it go faster than 70 mph, but it might be easier
 ;; to get it there.
 ;;
@@ -62,17 +62,17 @@
 ;; Simple defsubsts often produce forms like
 ;;    (let ((v1 (f1)) (v2 (f2)) ...)
 ;;       (FN v1 v2 ...))
-;; It would be nice if we could optimize this to 
+;; It would be nice if we could optimize this to
 ;;    (FN (f1) (f2) ...)
 ;; but we can't unless FN is dynamically-safe (it might be dynamically
 ;; referring to the bindings that the lambda arglist established.)
 ;; One of the uncountable lossages introduced by dynamic scope...
 ;;
-;; Maybe there should be a control-structure that says "turn on 
+;; Maybe there should be a control-structure that says "turn on
 ;; fast-and-loose type-assumptive optimizations here."  Then when
 ;; we see a form like (car foo) we can from then on assume that
 ;; the variable foo is of type cons, and optimize based on that.
-;; But, this won't win much because of (you guessed it) dynamic 
+;; But, this won't win much because of (you guessed it) dynamic
 ;; scope.  Anything down the stack could change the value.
 ;; (Another reason it doesn't work is that it is perfectly valid
 ;; to call car with a null argument.)  A better approach might
@@ -107,7 +107,7 @@
 ;;
 ;; However, if there was even a single let-binding around the COND,
 ;; it could not be byte-compiled, because there would be an "unbind"
-;; byte-op between the final "call" and "return."  Adding a 
+;; byte-op between the final "call" and "return."  Adding a
 ;; Bunbind_all byteop would fix this.
 ;;
 ;;   (defun foo (x y z) ... (foo a b c))
@@ -129,8 +129,8 @@
 ;;
 ;; Wouldn't it be nice if Emacs Lisp had lexical scope.
 ;;
-;; Idea: the form (lexical-scope) in a file means that the file may be 
-;; compiled lexically.  This proclamation is file-local.  Then, within 
+;; Idea: the form (lexical-scope) in a file means that the file may be
+;; compiled lexically.  This proclamation is file-local.  Then, within
 ;; that file, "let" would establish lexical bindings, and "let-dynamic"
 ;; would do things the old way.  (Or we could use CL "declare" forms.)
 ;; We'd have to notice defvars and defconsts, since those variables should
@@ -140,10 +140,10 @@
 ;; in the file being compiled (doing a boundp check isn't good enough.)
 ;; Fdefvar() would have to be modified to add something to the plist.
 ;;
-;; A major disadvantage of this scheme is that the interpreter and compiler 
-;; would have different semantics for files compiled with (dynamic-scope).  
+;; A major disadvantage of this scheme is that the interpreter and compiler
+;; would have different semantics for files compiled with (dynamic-scope).
 ;; Since this would be a file-local optimization, there would be no way to
-;; modify the interpreter to obey this (unless the loader was hacked 
+;; modify the interpreter to obey this (unless the loader was hacked
 ;; in some grody way, but that's a really bad idea.)
 
 ;; Other things to consider:
@@ -157,7 +157,7 @@
 ;;;;; error free also they may act as true-constants.
 
 ;;;(disassemble (lambda (x) (and (point) (foo))))
-;;;;; When 
+;;;;; When
 ;;;;;   - all but one arguments to a function are constant
 ;;;;;   - the non-constant argument is an if-expression (cond-expression?)
 ;;;;; then the outer function can be distributed.  If the guarding
@@ -285,7 +285,7 @@
 	    form))))))
 
 ;;; ((lambda ...) ...)
-;;; 
+;;;
 (defun byte-compile-unfold-lambda (form &optional name)
   (or name (setq name "anonymous lambda"))
   (let ((lambda (car form))
@@ -338,13 +338,13 @@
 		(byte-compile-warn
 		 "attempt to open-code `%s' with too many arguments" name))
 	    form)
-	
+
 	;; The following leads to infinite recursion when loading a
 	;; file containing `(defsubst f () (f))', and then trying to
 	;; byte-compile that file.
 	;(setq body (mapcar 'byte-optimize-form body)))
-	
-	(let ((newform 
+
+	(let ((newform
 	       (if bindings
 		   (cons 'let (cons (nreverse bindings) body))
 		 (cons 'progn body))))
@@ -427,21 +427,21 @@
 	     (cons (byte-optimize-form (nth 1 form) t)
 	       (cons (byte-optimize-form (nth 2 form) for-effect)
 		     (byte-optimize-body (cdr (cdr (cdr form))) t)))))
-	  
+
 	  ((memq fn '(save-excursion save-restriction save-current-buffer))
 	   ;; those subrs which have an implicit progn; it's not quite good
 	   ;; enough to treat these like normal function calls.
 	   ;; This can turn (save-excursion ...) into (save-excursion) which
 	   ;; will be optimized away in the lap-optimize pass.
 	   (cons fn (byte-optimize-body (cdr form) for-effect)))
-	  
+
 	  ((eq fn 'with-output-to-temp-buffer)
 	   ;; this is just like the above, except for the first argument.
 	   (cons fn
 	     (cons
 	      (byte-optimize-form (nth 1 form) nil)
 	      (byte-optimize-body (cdr (cdr form)) for-effect))))
-	  
+
 	  ((eq fn 'if)
 	   (when (< (length form) 3)
 	     (byte-compile-warn "too few arguments for `if'"))
@@ -450,7 +450,7 @@
 	       (cons
 		(byte-optimize-form (nth 2 form) for-effect)
 		(byte-optimize-body (nthcdr 3 form) for-effect)))))
-	  
+
 	  ((memq fn '(and or))  ; remember, and/or are control structures.
 	   ;; take forms off the back until we can't any more.
 	   ;; In the future it could conceivably be a problem that the
@@ -474,7 +474,7 @@
 	   (byte-compile-warn "misplaced interactive spec: `%s'"
 			      (prin1-to-string form))
 	   nil)
-	  
+
 	  ((memq fn '(defun defmacro function
 		      condition-case save-window-excursion))
 	   ;; These forms are compiled as constants or by breaking out
@@ -490,7 +490,7 @@
 	   (cons fn
 		 (cons (byte-optimize-form (nth 1 form) for-effect)
 		       (cdr (cdr form)))))
-	   
+
 	  ((eq fn 'catch)
 	   ;; the body of a catch is compiled (and thus optimized) as a
 	   ;; top-level form, so don't do it here.  The tag is never
@@ -523,7 +523,7 @@
 	        (not (eq form
 		         (setq form (compiler-macroexpand form)))))
 	   (byte-optimize-form form for-effect))
-	  
+
 	  ((not (symbolp fn))
 	   (byte-compile-warn "`%s' is a malformed function"
 			      (prin1-to-string fn))
@@ -552,7 +552,7 @@
 	   ;; appending a nil here might not be necessary, but it can't hurt.
 	   (byte-optimize-form
 	    (cons 'progn (append (cdr form) '(nil))) t))
-	  
+
 	  (t
 	   ;; Otherwise, no args can be considered to be for-effect,
 	   ;; even if the called function is for-effect, because we
@@ -622,7 +622,7 @@
 	 ((keywordp ,form))))
 
 ;; If the function is being called with constant numeric args,
-;; evaluate as much as possible at compile-time.  This optimizer 
+;; evaluate as much as possible at compile-time.  This optimizer
 ;; assumes that the function is associative, like + or *.
 (defun byte-optimize-associative-math (form)
   (let ((args nil)
@@ -816,7 +816,7 @@
 				(cons (/ (nth 1 form) last)
 				      (byte-compile-butlast (cdr (cdr form)))))
 		     last nil))))
-    (cond 
+    (cond
 ;;;	  ((null (cdr (cdr form)))
 ;;;	   (nth 1 form))
 	  ((eq (nth 1 form) 0)
@@ -912,7 +912,7 @@
 (put 'cdr-safe 'byte-optimizer 'byte-optimize-predicate)
 
 
-;; I'm not convinced that this is necessary.  Doesn't the optimizer loop 
+;; I'm not convinced that this is necessary.  Doesn't the optimizer loop
 ;; take care of this? - Jamie
 ;; I think this may some times be necessary to reduce ie (quote 5) to 5,
 ;; so arithmetic optimizers recognize the numeric constant.  - Hallvard
@@ -1169,7 +1169,7 @@
       nil
     form))
 
-;;; enumerating those functions which need not be called if the returned 
+;;; enumerating those functions which need not be called if the returned
 ;;; value is not used.  That is, something like
 ;;;    (progn (list (something-with-side-effects) (yow))
 ;;;           (foo))
@@ -1233,7 +1233,7 @@
 	 zerop))
       (side-effect-and-error-free-fns
        '(arrayp atom
-	 bobp bolp bool-vector-p 
+	 bobp bolp bool-vector-p
 	 buffer-end buffer-list buffer-size buffer-string bufferp
 	 car-safe case-table-p cdr-safe char-or-string-p commandp cons consp
 	 current-buffer current-global-map current-indentation
@@ -1440,7 +1440,7 @@
     byte-current-buffer byte-interactive-p))
 
 (defconst byte-compile-side-effect-free-ops
-  (nconc 
+  (nconc
    '(byte-varref byte-nth byte-memq byte-car byte-cdr byte-length byte-aref
      byte-symbol-value byte-get byte-concat2 byte-concat3 byte-sub1 byte-add1
      byte-eqlsign byte-gtr byte-lss byte-leq byte-geq byte-diff byte-negate
@@ -1472,7 +1472,7 @@
 ;;;	varbind pop-up-windows
 ;;;	not
 ;;;
-;;; we break the program, because it will appear that pop-up-windows and 
+;;; we break the program, because it will appear that pop-up-windows and
 ;;; old-pop-ups are not EQ when really they are.  So we have to know what
 ;;; the BOOL variables are, and not perform this optimization on them.
 
@@ -1619,7 +1619,7 @@
 	      ;; goto-X-if-non-nil goto-Y X:  -->  goto-Y-if-nil     X:
 	      ;;
 	      ;; it is wrong to do the same thing for the -else-pop variants.
-	      ;; 
+	      ;;
 	      ((and (or (eq 'byte-goto-if-nil (car lap0))
 			(eq 'byte-goto-if-not-nil (car lap0)))	; gotoX
 		    (eq 'byte-goto (car lap1))			; gotoY
@@ -1722,7 +1722,7 @@
 				   str (concat str " %s")
 				   i (1+ i))))
 		 (if opt-p
-		     (let ((tagstr 
+		     (let ((tagstr
 			    (if (eq 'TAG (car (car tmp)))
 				(format "%d:" (car (cdr (car tmp))))
 			      (or (car tmp) ""))))
@@ -1903,7 +1903,7 @@
 				     (byte-goto-if-not-nil-else-pop .
 				      byte-goto-if-nil-else-pop))))
 			newtag)
-		  
+
 		  (nth 1 newtag)
 		  )
 		 (setcdr tmp (cons (setcdr lap0 newtag) (cdr tmp)))

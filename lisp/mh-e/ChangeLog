@@ -37,7 +37,7 @@
 
 	* mh-loaddefs.el: Regenerated (lm-verify fixes).
 
-	* mh-index.el (mh-mairix-next-result): Checkdoc fixes.	
+	* mh-index.el (mh-mairix-next-result): Checkdoc fixes.
 
 	* mh-alias.el: lm-verify fix.
 
@@ -404,7 +404,7 @@
 	called on a folder holding index search results. Also the now
 	removed mh-folder-list-change-hook is called no more.
 
-	* mh-customize.el (mh-auto-folder-collect-flag) 
+	* mh-customize.el (mh-auto-folder-collect-flag)
 	(mh-folder-list-change-hook): Removed.
 
 	* mh-loaddefs.el: Regenerated.
@@ -485,7 +485,7 @@
 	that keeps track of the default searching function to be used.
 	(mh-pick-mode): Make mh-searching-function buffer local.
 	(mh-search-folder): Set mh-searching-function to use pick.
-	(mh-search-folder, mh-pick-menu, mh-pick-mode-help-messages) 
+	(mh-search-folder, mh-pick-menu, mh-pick-mode-help-messages)
 	(mh-pick-mode, mh-do-pick-search, mh-pick-do-search): Rename
 	mh-do-pick-search to mh-pick-do-search. But keep
 	mh-do-pick-search as a deprecated function.
@@ -511,7 +511,7 @@
 	* mh-e.el (mh-folder-from-address): New function that proposes the
 	name of a folder with an alias for the address in the current message.
 	(mh-prompt-for-refile-folder): Use it (closes SF #657096).
-	
+
 	* mh-customize.el (mh-default-folder-prefix): New variable used by
 	mh-folder-from-address.
 	(mh-invisible-header-fields): Edited docstring.
@@ -538,7 +538,7 @@
 
 	* mh-comp.el (mh-insert-x-mailer): Renamed mh-temp-info-buffer to
 	mh-info-buffer.
-	
+
 2003-01-09  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* mh-e.el (mh-folder-size): If the user doesn't have a
@@ -577,7 +577,7 @@
 	* mh-speed.el (mh-speed-folders, mh-speed-folders-cache)
 	(mh-speed-folders-actual): Moved to mh-utils.el as mh-sub-folders,
 	mh-sub-folders-cache and mh-sub-folders-actual respectively.
-	(mh-speed-invalidate-map, mh-speed-invalidate-map) 
+	(mh-speed-invalidate-map, mh-speed-invalidate-map)
 	(mh-speed-add-folder): Use the new names.
 
 	* mh-funcs.el (mh-kill-folder): Remove code that used to update
@@ -628,7 +628,7 @@
 	(mh-index-do-search): New interactive function that takes the
 	contents of the search buffer, generates an appropriate query and
 	produces the search results buffer by calling mh-index-search.
-	(mh-replace-string, mh-index-parse-search-regexp) 
+	(mh-replace-string, mh-index-parse-search-regexp)
 	(mh-index-add-implicit-ops, mh-index-evaluate): New functions
 	which parses the infix search expression that the user enters. A
 	parse tree from which queries for different search programs can
@@ -644,7 +644,7 @@
 	* Makefile (emacs-logs): New target for viewing CVS Emacs logs.
 	Useful to see if an Emacs developer has changed MH-E.
 
-	* MH-E-NEWS: Fixed case of MH-E in the "Changes" title.	
+	* MH-E-NEWS: Fixed case of MH-E in the "Changes" title.
 
 	* mh-utils.el (mh-temp-info-buffer): New variable to hold name of
 	buffer that contains version info.
@@ -687,7 +687,7 @@
 	(font-lock): The library is loaded to avoid compilation warning
 	in CVS Emacs.
 
-	* mh-speed.el (mh-speed-goto-folder, mh-speed-add-folder) 
+	* mh-speed.el (mh-speed-goto-folder, mh-speed-add-folder)
 	(mh-speed-extract-folder-name, mh-speed-invalidate-map): Use
 	mh-search-from-end instead of search.
 
@@ -755,8 +755,8 @@
 
 2002-12-24  Satyaki Das  <satyaki@theforce.stanford.edu>
 
-	* mh-customize.el (mh-clean-message-header-flag) 
-	(mh-visible-headers, mh-invisible-headers) 
+	* mh-customize.el (mh-clean-message-header-flag)
+	(mh-visible-headers, mh-invisible-headers)
 	(mh-invisible-header-fields-set): Reworded to satisfy checkdoc.
 
 	* mh-loaddefs.el: Regenerated.
@@ -764,8 +764,8 @@
 	* mh-e.el (mh-inc-folder, mh-visit-folder, mh-read-msg-range):
 	Handle nil value of mh-large-folder properly.
 
-	* mh-customize.el (mh-tool-bar-show-set, mh-tool-bar-letter-set) 
-	(mh-tool-bar-folder-set, mh-tool-bar-folder-buttons) 
+	* mh-customize.el (mh-tool-bar-show-set, mh-tool-bar-letter-set)
+	(mh-tool-bar-folder-set, mh-tool-bar-folder-buttons)
 	(mh-invisible-headers, mh-invisible-header-fields-set): Checkdoc
 	fixes.
 	(mh-large-folder): Updated to allow for infinity. If
@@ -888,7 +888,7 @@
 
 	* mh-index.el (mh-index-new-folder): Add new folder to
 	mh-folder-list to enable name completion.
-	(mh-glimpse-execute-search, mh-swish-execute-search) 
+	(mh-glimpse-execute-search, mh-swish-execute-search)
 	(mh-swish++-execute-search): Fix documentation.
 
 	* mh-seq.el (mh-thread-generate): Fixed a stupid bug where the wrong
@@ -896,7 +896,7 @@
 
 	* mh-index.el (mh-index-search): If optional prefix arg is given
 	then the search in the current index buffer is redone.
-	(mh-glimpse-execute-search, mh-swish-execute-search) 
+	(mh-glimpse-execute-search, mh-swish-execute-search)
 	(mh-namazu-execute-search): Documentation fixes.
 
 	* mh-e.el (mh-index-previous-search): New buffer local variable
@@ -909,7 +909,7 @@
 
 2002-12-19  Peter S Galbraith  <psg@debian.org>
 
-	* mh-alias.el (mh-alias-add-alias): Bug fix. 
+	* mh-alias.el (mh-alias-add-alias): Bug fix.
 
 2002-12-19  Peter S Galbraith  <psg@debian.org>
 
@@ -967,10 +967,10 @@
 	* mh-comp.el (mh-letter-tool-bar-map): Moved to mh-customize.el
 
 	* mh-e.el (mh-folder-tool-bar-map): Moved to mh-customize.el
-	
+
 	* mh-utils.el (mh-get-msg-num): autoloaded.
 	(mh-show-tool-bar-map): Moved to mh-customize.el
-	
+
 	* mh-customize.el (mh-tool-bar-item-*): 33 new defconsts for
 	tool-bar setup and customization.
 	(mh-tool-bar-folder-buttons-set): New function to setup the
@@ -1084,11 +1084,11 @@
 	(mh-show-mode-map): Key binding for "v".
 
 	* mh-speed.el: Fix credits.
-	(mh-index-folder-speedbar-buttons) 
-	(mh-index-show-speedbar-buttons) 
-	(mh-index-folder-speedbar-key-map) 
-	(mh-index-show-speedbar-key-map) 
-	(mh-index-folder-speedbar-menu-items) 
+	(mh-index-folder-speedbar-buttons)
+	(mh-index-show-speedbar-buttons)
+	(mh-index-folder-speedbar-key-map)
+	(mh-index-show-speedbar-key-map)
+	(mh-index-folder-speedbar-menu-items)
 	(mh-index-show-speedbar-menu-items): Removed since the modes
 	mh-index-folder-mode and mh-index-show-mode no longer exist.
 	(mh-speed-extract-folder-name): Remove the bits about
@@ -1208,7 +1208,7 @@
 	immediate ancestor or to root message of current thread depending
 	on optional argument.
 
-	* mh-utils.el (mh-show-thread-ancestor) 
+	* mh-utils.el (mh-show-thread-ancestor)
 	(mh-show-thread-next-sibling, mh-show-thread-previous-sibling):
 	Interactive functions callable from the show buffer.
 	(mh-show-thread-map): Bindings for Tu, Tp and Tn.
@@ -1342,7 +1342,7 @@
 	* mh-alias.el (mh-alias-filenames):
 	s/mh-mhparam-component/mh-profile-component/
 	(mh-profile-component): Move to mh-utils.el and make interactive.
-	(mh-read-address): Make it autoloaded.	
+	(mh-read-address): Make it autoloaded.
 
 	* mh-loaddefs.el: Regenerated.
 
@@ -1369,7 +1369,7 @@
 	(dist, install-emacs): Use MH-E-LOADDEFS.
 
 	* mh-comp.el (mh-customize): Moved to mh-customize.el.
-	
+
 	* mh-customize.el (mh-customize): Moved here from mh-comp. Makes
 	more sense, doesn't it?
 
@@ -1428,7 +1428,7 @@
 
 2002-12-03  Bill Wohler  <wohler@newt.com>
 
-	* Makefile (MH-E-SRC, emacs): 
+	* Makefile (MH-E-SRC, emacs):
 
 2002-12-03  Satyaki Das  <satyaki@theforce.stanford.edu>
 
@@ -1441,7 +1441,7 @@
 	* mh-make.el: New script that compiles MH-E.
 	(mh-loaddefs-beginning, mh-loaddefs-end): Don't save the autoloads
 	file in between. Only save at the end.
-	(mh-emacs-generate-autoloads, mh-xemacs-generate-autoloads) 
+	(mh-emacs-generate-autoloads, mh-xemacs-generate-autoloads)
 	(mh-generate-autoloads): Replace the separate functions in Emacs
 	and XEmacs with one that works in both variants. This simplifies
 	the script a lot.
@@ -1471,7 +1471,7 @@
 
 	* mh-e.el (mh-get-new-mail): Simplify no-new-mail test.
 	(mh-add-cur-notation): Remove unnecessary function.
-	
+
 2002-12-03  Peter S Galbraith  <psg@debian.org>
 
 	* mh-identity.el (mh-identity-make-menu): Check if
@@ -1497,7 +1497,7 @@
 	current message with the mh-note-cur character.
 	(mh-get-new-mail): Use mh-add-cur-notation to undo the work of
 	mh-remove-cur-notation if there was no new mail	(closes SF #647681).
-	
+
 	* mh-e.el (mh-set-cmd-note): Do not update the default mh-cmd-note
 	value (closes SF #643701).
 
@@ -1553,7 +1553,7 @@
 	* mh-funcs.el (mh-pack-folder, mh-sort-folder): Fix the functions
 	so that threading is preserved (needed for SF #646794).
 
-	* mh-identity.el (mh-identity-signature-start) 
+	* mh-identity.el (mh-identity-signature-start)
 	(mh-identity-signature-end): Checkdoc fixes.
 
 	* mh-e.el (mh-previous-unread-msg, mh-next-unread-msg): Checkdoc
@@ -1566,11 +1566,11 @@
 
 	* mh-e.el (mh-previous-unread-msg, mh-next-unread-msg): New
 	interactive functions that go to next and previous unread
-	messages (closes SF #630328). 
+	messages (closes SF #630328).
 	(mh-folder-mode-map): Add key bindings for M-n and M-p to
 	mh-folder-mode-map.
 
-	* mh-utils.el (mh-show-next-unread-msg) 
+	* mh-utils.el (mh-show-next-unread-msg)
 	(mh-show-previous-unread-msg): New interactive functions that go
 	to the next and previous unread messages respectively. These are
 	callable from the show buffer.
@@ -1581,7 +1581,7 @@
 
 	* mh-mime.el (mh-defun-compat): Make it indent like a defun.
 
-	* mh-index.el (mh-defun-index): Make it indent like a defun.	
+	* mh-index.el (mh-defun-index): Make it indent like a defun.
 
 	* mh-customize.el: New file (closes SF #643722).
 
@@ -1665,7 +1665,7 @@
 	mh-loaddefs.el (closes half of SF #643722)..
 
 	* mh-comp.el, mh-speed.el (mh-utils): Removed require. mh-utils is
-	provided via mh-e.el. 
+	provided via mh-e.el.
 	Removed MH-E autoloads. These are now provided by mh-loaddefs.el.
 	Added ;;;###mh-autoload tag to selected functions so that
 	autoloads for those functions can be automatically created in
@@ -1726,7 +1726,7 @@
 	completing-read-multiple to prompt for multiple entries.
 	(mh-alias-PC-complete-address): Deleted.
 	(mh-alias-learn-aliases): Use mh-exec-cmd-quiet instead of old kludge.
-	(mh-alias-letter-mode-expand-alias-hook): Simplify. 
+	(mh-alias-letter-mode-expand-alias-hook): Simplify.
 	(mh-alias-hostname): Deleted.
 	(mh-alias-substitute-aliases-flag): Change default to nil.
 	(mh-alias-display-blind-name-on-completion-flag) Change default to
@@ -1755,11 +1755,11 @@
 	mh-mime.el, mh-pick.el, mh-seq.el, mh-speed.el, mh-utils.el:
 	Ran indent-region, reformatted long lines, ran untabify.
 	(indent-tabs-mode): Set file local variable to nil.
-	
+
 2002-11-29  Bill Wohler  <wohler@newt.com>
 
 	* Released MH-E version 7.0.
-	
+
 	* mh-e.el (Version, mh-version): Updated for release 7.0.
 
 	* mh-comp.el (subseq, search): Require cl instead of autoloading
@@ -1784,7 +1784,7 @@
 2002-11-21  Bill Wohler  <wohler@newt.com>
 
 	* Released MH-E version 6.1.91.
-	
+
 	* mh-e.el (Version, mh-version): Updated for release 6.1.91.
 
 	* MH-E-NEWS: Inline HTML parts supported with Gnus 5.10, not 5.9.
@@ -1808,7 +1808,7 @@
 2002-11-15  Bill Wohler  <wohler@newt.com>
 
 	* Released MH-E version 6.1.90.
-	
+
 	* README (Compile): New section. Users must now compile MH-E due
 	to the vagaries of the various versions of gnus.
 
@@ -1870,7 +1870,7 @@
 	* mh-utils.el (mh-show-limit-map): Same.
 
 	* mh-seq.el (mh-delete-subject): Renamed from
-	mh-delete-subject-sequence. 
+	mh-delete-subject-sequence.
 	(mh-narrow-to-subject): Renamed from mh-narrow-to-subject-sequence.
 	(mh-next-unseen-subject-sequence): Removed. :-(
 	* mh-e.el: Use 'em
@@ -1890,7 +1890,7 @@
 2002-11-13  Peter S Galbraith  <psg@debian.org>
 
 	* mh-e.el (mh-folder-message-menu): Make key binding "o" appear in
-	menu for mh-refile-msg. 
+	menu for mh-refile-msg.
 
 2002-11-13  Satyaki Das  <satyaki@theforce.stanford.edu>
 
@@ -1947,21 +1947,21 @@
 	these variables since they were only used for glimpse and grep.
 	Now the functionality of all the indexing programs will be
 	uniform.
-	(mh-index-search, mh-index-insert-scan, mh-defun-index) 
+	(mh-index-search, mh-index-insert-scan, mh-defun-index)
 	(mh-index-show): Simplify functions since matches are no longer
 	shown.
 	(mh-index-parse-match): Remove function.
 
-	* mh-e.el (mh-scan-cmd-note-width, mh-scan-destination-width) 
-	(mh-scan-date-width, mh-scan-date-flag-width) 
+	* mh-e.el (mh-scan-cmd-note-width, mh-scan-destination-width)
+	(mh-scan-date-width, mh-scan-date-flag-width)
 	(mh-scan-from-mbox-width, mh-scan-from-mbox-sep-width): New
 	variables to keep track of the widths of the different fields in
 	the scan lines.
-	(mh-scan-field-from-start-offset, mh-scan-field-from-end-offset) 
+	(mh-scan-field-from-start-offset, mh-scan-field-from-end-offset)
 	(mh-scan-field-subject-start-offset): Offsets that are computed
 	from the scan line widths.
 
-	* mh-seq.el (mh-copy-seq-to-eob, mh-thread-inc) 
+	* mh-seq.el (mh-copy-seq-to-eob, mh-thread-inc)
 	(mh-thread-parse-scan-line): Use new variables that remember the
 	various offsets in place of integer constants.
 	(mh-thread-generate-scan-lines): Space shouldn't be added here!
@@ -2010,7 +2010,7 @@
 
 	* mh-index.el (mh-index-search): Made default prompt more
 	intuitive (I hope!).
-	
+
 2002-11-11  Peter S Galbraith  <psg@debian.org>
 
 	* mh-identity.el (mh-header-field-delete): Remove save-excursion.
@@ -2046,7 +2046,7 @@
 	mh-print-background.
 	* mh-funcs.el (mh-print-msg): Use it.
 	This addresses part of SF #627015.
-	
+
 	* mh-comp.el (mh-delete-yanked-msg-window-flag): Renamed from
 	mh-delete-yanked-msg-window.
 	(mh-yank-from-start-of-msg, mh-yank-cur-msg): Use it.
@@ -2076,9 +2076,9 @@
 
 	* mh-utils.el (mh-decode-mime-flag): Renamed from
 	mh-decode-mime.
-	* mh-utils.el (mh-show-mode, mh-show-xface) 
+	* mh-utils.el (mh-show-mode, mh-show-xface)
 	(mh-decode-quoted-printable, mh-display-msg, mh-display-msg): Use it.
-	* mh-mime.el (mh-graphical-smileys-flag) 
+	* mh-mime.el (mh-graphical-smileys-flag)
 	(mh-graphical-emphasis-flag): Ditto.
 	* mh-index.el (mh-index-search, mh-index-show): Ditto.
 	* mh-e.el (mh-header-display): Ditto.
@@ -2177,9 +2177,9 @@
 
 	* mh-utils.el (mh-tool-bar-search-command): New defcustom to set
 	what search function to use in tool-bar.
-	(mh-show-tool-bar-map): Use it. 
-	
-	* mh-e.el (mh-folder-tool-bar-map): Use it. 
+	(mh-show-tool-bar-map): Use it.
+
+	* mh-e.el (mh-folder-tool-bar-map): Use it.
 
 2002-11-05  Bill Wohler  <wohler@newt.com>
 
@@ -2340,7 +2340,7 @@
 
 	* mh-index.el (mh-index-show-hook): Moved defvar to defcustom.
 	(mh-index-show): Made verbiage about hook consistent throughout.
-	
+
 	* mh-mime.el (mh-edit-mhn-hook): Moved defvar to defcustom.
 	(mh-edit-mhn): Added missing documentation about hook.
 
@@ -2450,7 +2450,7 @@
 	(all): Use these targets instead of calling specific targets.
 	(.PHONY): Added emacs, xemacs, autoloads, custom-loads. Broke up
 	target and moved pieces into their own sections.
-	
+
 
 2002-10-30  Peter S Galbraith  <psg@debian.org>
 
@@ -2460,7 +2460,7 @@
 
 2002-10-29  Jeffrey C Honig  <jch@honig.net>
 
-	* mh-comp.el (mh-letter-insert-signature-hook) 
+	* mh-comp.el (mh-letter-insert-signature-hook)
 	(mh-insert-signature): Add a hook to be called before inserting
 	the signature.  Do not attempt to insert the signature if
 	mh-insert-signature-file-name is nil.
@@ -2486,11 +2486,11 @@
 
 2002-10-29  Peter S Galbraith  <psg@debian.org>
 
-	* mh-e.el (mh-folder-refiled-face, mh-folder-cur-msg-number-face) 
+	* mh-e.el (mh-folder-refiled-face, mh-folder-cur-msg-number-face)
 	(mh-folder-to-face, mh-folder-body-face): Define faces instead of
 	copying them from font-lock faces.  This mh-e will look the same
 	in XEmacs as it does in Emacs.
-	* mh-utils.el (mh-show-cc-face, mh-show-date-face) 
+	* mh-utils.el (mh-show-cc-face, mh-show-date-face)
 	(mh-show-header-face): Ditto.
 
 2002-10-29  Jeffrey C Honig  <jch@honig.net>
@@ -2532,7 +2532,7 @@
 
 	* mh-utils.el (mh-show-update-sequences): Added to
 	mh-defun-show-buffer builds; needed for menu.
-	(mh-show-sequence-menu, mh-show-message-menu) 
+	(mh-show-sequence-menu, mh-show-message-menu)
 	(mh-show-folder-menu): 3 new menus in mh-show-mode-map that mirror
 	the menus used in mh-folder-mode.
 	(mh-show-mode): easy-menu-add the 3 menus.
@@ -2619,7 +2619,7 @@
 
 	* mh-utils.el: Byte-compiler warning suppression.
 	(mh-gnus-article-highlight-citation): Rather than redefining
-	'gnus-cite-face-list', just re-order it. 
+	'gnus-cite-face-list', just re-order it.
 	(mh-show-mode): Force turning on font-lock in XEmacs.
 
 	* mh-seq.el: Byte-compiler warning suppression.
@@ -2629,7 +2629,7 @@
 	* mh-comp.el: Byte-compiler warning suppression.
 
 	* mh-xemacs-compat.el: Add defaliases for 'timerp' &
-	'cancel-timer' to the equivalent 'itimer' functions. 
+	'cancel-timer' to the equivalent 'itimer' functions.
 	(rfc822): Require it for 'rfc822-goto-eoh'.
 	Byte-compiler warning suppression.
 
@@ -2644,7 +2644,7 @@
 
 	* Makefile: Reorganize to allow for building also compiling for
 	XEmacs too. Sanitize so that it will work using least-common
-	denominator versions of 'make'. Tested using GNU make, Solaris make, 
+	denominator versions of 'make'. Tested using GNU make, Solaris make,
 	and Berkely make.
 	(all): Use recursive invokation based on the emacs or xemacs
 	executable passed on the 'make EMACS=xemacs' command line.
@@ -2654,7 +2654,7 @@
 	(clean): Ditto.
 	(autoloads): Ditto.
 	(custom-loads): Ditto.
-	
+
 2002-10-26  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* mh-e.el (mh-last-msg): Add call to mh-recenter.
@@ -2740,7 +2740,7 @@
 	* mh-utils.el (mh-show-maximum-size): New variable to control
 	the display of large messages.
 	(mh-display-msg): Use it (Closes SF #488696).
-	
+
 	* mh-seq.el (mh-toggle-threads): Checkdoc fix.
 
 	* mh-e.el (mh-reset-threads-and-narrowing): Checkdoc fix.
@@ -2752,12 +2752,12 @@
 	mh-reply-show-message-p. Update docstring.
 	(mh-reply): Use it.
 	This addresses part of SF #627015.
-	
+
 	* mh-e.el (mh-recenter-summary-flag): Renamed from
 	mh-recenter-summary-p. Update docstring.
 	(mh-set-scan-mode): Use it.
 	This addresses part of SF #627015.
-	
+
 2002-10-25  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* mh-e.el (mh-reset-threads-and-narrowing): New function which
@@ -2777,7 +2777,7 @@
 2002-10-24  Bill Wohler  <wohler@newt.com>
 
         * mh-e is completely checkdoc clean now.
-	
+
 	* mh-utils.el (mh-clean-message-header-flag): Renamed from
 	mh-clean-message-header.
 	(mh-bury-show-buffer-flag): Renamed from mh-bury-show-buffer.
@@ -2799,7 +2799,7 @@
 	(mh-clean-message-header-flag): Renamed from
 	mh-clean-message-header.
 	This addresses part of SF #627015.
-	
+
 	* mh-comp.el: checkdoc fixes.
 
 2002-10-24  Satyaki Das  <satyaki@theforce.stanford.edu>
@@ -2822,9 +2822,9 @@
 	(mh-narrow-to-seq, mh-widen): Remember the scan-line map when
 	narrowing and restore it when widening.
 
-	* mh-e.el (mh-folder-threaded-view-flag, mh-folder-folder-menu) 
-	(mh-regenerate-headers, mh-get-new-mail) 
-	(mh-make-folder-mode-line, mh-process-commands) 
+	* mh-e.el (mh-folder-threaded-view-flag, mh-folder-folder-menu)
+	(mh-regenerate-headers, mh-get-new-mail)
+	(mh-make-folder-mode-line, mh-process-commands)
 	(mh-delete-scan-msgs): Remove mh-folder-threaded-view-flag.
 	Instead (memq 'unthread mh-view-ops) is used to test if the folder
 	is threaded.
@@ -2852,7 +2852,7 @@
 	breakage from partial switch to mh-container-real-child-flag and
 	to dupl-flag.
 
-	* mh-comp.el (mh-yank-cur-msg): Bug fix: specify 
+	* mh-comp.el (mh-yank-cur-msg): Bug fix: specify
 	  (eq t mh-yank-from-start-of-msg) when that's what we want.
 
 2002-10-24  Mark D. Baushke  <mdb@gnu.org>
@@ -2913,7 +2913,7 @@
 	(mh-mml-secure-message-sign-pgpmime): Use
 	mh-gnus-pgp-support-flag.
 	This addresses part of SF #627015.
-	
+
 	* mh-utils.el (mh-page-to-next-msg-flag): Renamed from
 	mh-page-to-next-msg-p.
 	(mh-show-msg): Use mh-page-to-next-msg-flag.
@@ -2964,7 +2964,7 @@
 	* mh-comp.el (mh-yank-from-start-of-msg, mh-reply): Use -noformat
 	flag to reply when 'autosupercite or 'autoattrib are specified to
 	prevent duplicate cites of the body of a message.
-	
+
 2002-10-23  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* mh-utils.el (font-lock-default-fontify-region): Add autoload to
@@ -3003,7 +3003,7 @@
 
 2002-10-23  Mark D. Baushke  <mdb@gnu.org>
 
-	* MH-E-NEWS: 
+	* MH-E-NEWS:
 	s/mh-adaptive-cmd-note/mh-adaptive-cmd-note-flag/
 	s/mh-show-use-xface/mh-show-use-xface-flag/
 	s/mh-tool-bar-reply-3-buttons/mh-tool-bar-reply-3-buttons-flag/
@@ -3018,7 +3018,7 @@
 	mh-mml-compose-insert-p.
 	(mh-send-letter): Use mh-mml-compose-insert-flag.
 	This addresses part of SF #627015.
-	
+
 	* mh-e.el:
 	s/mh-folder-threaded-view-p/mh-folder-threaded-view-flag/
 	s/mh-adaptive-cmd-note/mh-adaptive-cmd-note-flag/
@@ -3033,12 +3033,12 @@
 	mh-make-folder-mode-line, mh-process-commands,
 	mh-delete-scan-msgs): Use mh-folder-threaded-view-flag.
 	This addresses part of SF #627015.
-	
+
 	* mh-index.el:
 	s/mh-adaptive-cmd-note/mh-adaptive-cmd-note-flag/
 	(mh-index-search): Use mh-adaptive-cmd-note-flag.
 	This addresses part of SF #627015.
-	
+
 	* mh-mime.el:
 	s/mh-mml-compose-insert-p/mh-mml-compose-insert-flag/
 	s/mh-xemacs-p/mh-xemacs-flag/
@@ -3048,13 +3048,13 @@
 	mh-mml-secure-message-encrypt-pgpmime): Use it.
 	(gnus-local-map-property): Use mh-xemacs-flag.
 	This addresses part of SF #627015.
-	
+
 	* mh-seq.el:
 	s/mh-folder-threaded-view-p/mh-folder-threaded-view-flag/
 	(mh-thread-generate, mh-thread-folder, mh-toggle-threads): Use
 	mh-folder-threaded-view-flag.
 	This addresses part of SF #627015.
-	
+
 	* mh-speed.el:
 	s/mh-speed-run-flists-p/mh-speed-run-flists-flag/
 	s/mh-speed-refresh-p/mh-speed-refresh-flag/
@@ -3064,7 +3064,7 @@
 	(mh-speed-update-current-folder, mh-speed-invalidate-map,
 	mh-speed-add-folder): Use it.
 	This addresses part of SF #627015.
-	
+
 	* mh-utils.el:
 	s/mh-xemacs-p/mh-xemacs-flag/
 	s/mh-tool-bar-reply-3-buttons/mh-tool-bar-reply-3-buttons-flag/
@@ -3080,7 +3080,7 @@
 	mh-xemacs-flag.
 	(mh-show-xface): Use mh-show-use-xface-flag.
 	This addresses part of SF #627015.
-	
+
 2002-10-23  Bill Wohler  <wohler@newt.com>
 
 	* Makefile (all): Rather than have to run "make clean all" all the
@@ -3253,8 +3253,8 @@
 
 2002-10-20  Satyaki Das  <satyaki@theforce.stanford.edu>
 
-	* mh-utils.el (mh-show-mode-map, mh-show-folder-map) 
-	(mh-show-sequence-map, mh-show-thread-map, mh-show-extract-map) 
+	* mh-utils.el (mh-show-mode-map, mh-show-folder-map)
+	(mh-show-sequence-map, mh-show-thread-map, mh-show-extract-map)
 	(mh-show-digest-map, mh-show-mime-map): Interactive functions
 	callable in show buffer are now prefixed with mh-show.
 
@@ -3287,7 +3287,7 @@
 2002-10-20  Peter S Galbraith  <psg@debian.org>
 
 	* mh-seq.el (mh-narrow-to-subject-sequence): Renamed from
-	mh-narrow-to-subject-thread. 
+	mh-narrow-to-subject-thread.
 	(mh-subject-to-sequence): Renamed from mh-subject-thread-to-sequence.
 	(mh-delete-subject-sequence): Renamed from mh-delete-subject-thread.
 	(mh-next-unseen-subject-sequence): Renamed from
@@ -3299,7 +3299,7 @@
 
 	* mh-utils.el: s/subject-thread/subject-sequence/
 	(mh-show-thread-map): Bind mh-widen to "w".
-	
+
 2002-10-20  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* mh-seq.el (mh-thread-folder): This function is no longer
@@ -3593,7 +3593,7 @@
 	cheat sheets in the minibuffer (closes SF #493740). It would be
 	nice to refactor these two into a single function if possible.
 
-	* mh-e.el (mh-folder-mode-map, mh-folder-map, mh-sequence-map) 
+	* mh-e.el (mh-folder-mode-map, mh-folder-map, mh-sequence-map)
 	(mh-thread-map, mh-extract-map): Added ? keybinding for `mh-help'
 	and `mh-prefix-help' (closes SF #493740).
 	(mh-help-messages): New variable to hold various help messages.
@@ -3699,7 +3699,7 @@
 	* Makefile (EMACS_OPTIONS): New macro for command-line compile
 	options.
 	(EMACS): Allow the user to specify which emacs command to use for
-	the compile. 
+	the compile.
 	(COMPILE_COMMAND): Combine the compile command with its options.
 	(.el.elc): Use the new $(COMPILE_COMMAND).
 
@@ -3732,7 +3732,7 @@
 
 2002-10-09  Peter S Galbraith  <psg@debian.org>
 
-	* mh-utils.el (mh-exchange-point-and-mark-preserving-active-mark): 
+	* mh-utils.el (mh-exchange-point-and-mark-preserving-active-mark):
 	Simplify code for all emacsen to avoid byte-compilation warnings.
 
 2002-10-09  Satyaki Das  <satyaki@theforce.stanford.edu>
@@ -3757,7 +3757,7 @@
 	line-beginning-position and line-end-position instead of
 	point-at-bol and point-at-eol XEmacs functions.
 	* mh-xemacs-compat.el: Added line-end-position and
-	line-beginning-position compatibility aliases. 
+	line-beginning-position compatibility aliases.
 
 2002-10-08  Mark D. Baushke  <mdb@gnu.org>
 
@@ -3771,7 +3771,7 @@
 	beginning of the `mh-scan-format-nmh' or `mh-scan-format-mh' format
 	strings. The `mh-update-scan-format' allows for using zero-filled
 	message numbers.
-	
+
 2002-10-08  Peter S Galbraith  <psg@debian.org>
 
 	* mh-e.el (mh-folder-folder-menu): Add entry for "Thread Folder".
@@ -3794,7 +3794,7 @@
 	defsubst using 'buffer-substring-no-properties' so we don't grab
 	any extents.
 	(rfc822-goto-eoh): Removed.  This exists in the XEmacs mail-lib
-	package. 
+	package.
 	(mail-header-end): Ditto.
 	(mail-mode-fill-paragraph): Ditto.
 
@@ -3831,7 +3831,7 @@
         (mh-folder-tool-bar-map): Use mh-tool-bar-reply-3-buttons to
 	decide how many buttons to use for replying.
 
-	* mh-mime.el (mh-file-mime-type-substitutions) 
+	* mh-mime.el (mh-file-mime-type-substitutions)
 	(mh-file-mime-type-substitute):  Fix typos and doc strings.
 
 2002-09-30  Peter S Galbraith  <psg@debian.org>
@@ -3981,7 +3981,7 @@
 	so X-Mailer header is more exact about what we are using.
 
 	* mh-mime.el (mh-mhn-compose-insertion, mh-mhn-compose-anon-ftp,
-	mh-mml-attach-file): 
+	mh-mml-attach-file):
 	"Jeffrey P. Morgenthaler" <jpmorgen@congee.gsfc.nasa.go> reported
 	that "require" in emacs 20.3 doesn't handle 3 arguments.  We
 	use "load" at the top of file elsewhere anyway to handle such a
@@ -4056,12 +4056,12 @@
 2002-07-15  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-utils.el (mm-decode): Use load for the Non-fatal depencency
-	on the mm-decode library. 
+	on the mm-decode library.
 	* mh-mime.el (mm-decode, mm-uu, mm-view): Use load for the
 	Non-fatal depencencies on the mm-decode, mm-uu and mm-view
 	libraries.
 
-2002-07-15  Satyaki Das <satyaki@theforce.stanford.edu>
+2002-07-15  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* mh-utils.el (mh-require, mh-autoload): Remove these macros.
 	(mh-decode-mime): Initialized to t iff the mm-decode library is
@@ -4157,7 +4157,7 @@
 	with mh-cmd-note via mh-set-cmd-note. The mh-scan-format function
 	is now where the updated mh-cmd-note value is put into the scan
 	format.
-	
+
 	* mh-e.el (mh-generate-new-cmd-note): Add documentation string.
 	(mh-scan-format): Use mh-update-scan-format to get updated copies
 	of mh-scan-format-nmh and mh-scan-format-mh to avoid format skew.
@@ -4208,7 +4208,7 @@
 	(mh-set-default-cmd-note): Replaced by mh-set-cmd-note.
 	(mh-set-cmd-note): New function to replace update mh-cmd-note
 	value.
-	
+
 	* mh-e.el (mh-regenerate-headers): If mh-adaptive-cmd-note is
 	non-nil, use mh-set-cmd-note on empty folder buffers.
 	(mh-make-folder): Ditto.
@@ -4391,7 +4391,7 @@
 	(mh-invisible-headers-show-xface): variable now defaults to value
 	of mh-show-use-xface.
 	(mh-show-mode): When mh-show-use-xface is t, invoke
-	external package x-face to display the x-face.	
+	external package x-face to display the x-face.
 
 2002-06-15  Satyaki Das  <satyaki@theforce.stanford.edu>
 
@@ -4674,7 +4674,7 @@
 	(mh-filter-out-non-text): New function to filter out attachments
 	from message being yanked.
 
-2002-05-20  Bill Wohler <Bill.Wohler@openwave.com>
+2002-05-20  Bill Wohler  <Bill.Wohler@openwave.com>
 
 	* mh-utils.el (mh-invisible-headers-show-xface): First sentence of
 	docstring was not entirely on first line so was truncated in
@@ -4730,7 +4730,7 @@
 	mh-e does its own X-Face decoding (or this variable will be replaced
 	by one telling mh-e to decode the X-Face).  We may not ship the
 	next release with this variable.
-	
+
 2002-05-07  Peter S Galbraith  <psg@debian.org>
 
 	* mh-comp.el (mh-x-face-file): New defcustom variable. File name
@@ -4761,7 +4761,7 @@
 2002-04-10  Peter S Galbraith  <psg@debian.org>
 
 	* mh-e.el (mh-delete-msg, mh-refile-msg, mh-undo): XEmacs fix; Add
-	check to see if mark-active is bound, because Mandrake Linux include 
+	check to see if mark-active is bound, because Mandrake Linux include
 	XEmacs initialization code that binds transient-mark-mode.  This
 	fix gets around a problem in Mandrake only.  It wasn't a problem
 	on XEmacs generally.  Fixes SF #541915.
@@ -4808,7 +4808,7 @@
 	(mh-folder-unseen-seq-name): Refactored to make default sequence
 	name more explicit and to handle undefined Unseen-Sequence MH
 	profile entry better.
-	
+
 2002-04-02  Peter S Galbraith  <psg@debian.org>
 
 	* mh-e.el: 'defvar mh-folder-unseen-seq-name' called a function to
@@ -4841,11 +4841,11 @@
 
 2002-01-15  Peter S Galbraith  <psg@debian.org>
 
-	* mh-comp.el (mh-insert-prefix-string): Wrap a 
+	* mh-comp.el (mh-insert-prefix-string): Wrap a
 	"(let ((zmacs-regions nil))" around (mark) so it works in XEmacs.
 	Bug reported and fix suggested by Will Partain <partain@dcs.gla.ac.uk>
 	Indeed, this is how it appears in XEmacs-21's mh-comp.el.
-	
+
 2001-12-16  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-comp.el (mh-forward): Move the assignment to `fwd-msg-file'
@@ -4855,7 +4855,7 @@
 
 	* mh-utils.el: Add defcustoms for `mh-temp-folders-buffer' and
 	`mh-temp-sequences-buffer'.
-	
+
 	* mh-e.el (mh-quit): If they exist, kill 'mh-temp-buffer,
 	'mh-temp-folders-buffer and 'mh-temp-sequences-buffer when
 	quitting.
@@ -4864,7 +4864,7 @@
 	(a defcustom initialized to "*Folders*") for folder listing.  Put
 	into view mode and set it up to kill the buffer when exiting view
 	mode.
-	
+
 	* mh-seq.el (mh-list-sequences): Use `mh-temp-sequences-buffer'
 	(a defcustom initialized to "*Sequences") for sequences listing.
 	Put into view mode and set it up to kill the buffer when exiting
@@ -4903,7 +4903,7 @@
 	(MH-E-IMG2): New variable to hold images in mail sub-directory.
 	(dist): Updated target to make mail sub-directory and copy
 	MH-E-IMG2 images there.
-	
+
 	* mh-xemacs-compat.el: Modified docs per GNU coding conventions.
 
 	* mh-e.el: Reorganized variables having to do with the scan line.
@@ -4945,8 +4945,8 @@
 	bound in XEmacs.
 
 	* mh-xemacs-compat.el: GNU Emacs Functions needed by XEmacs.
-	New file. 
-	* mh-e.el: (require 'mh-xemacs-compat) when running XEmacs. 
+	New file.
+	* mh-e.el: (require 'mh-xemacs-compat) when running XEmacs.
 
 2001-12-12  Peter S Galbraith  <psg@debian.org>
 
@@ -4960,10 +4960,10 @@
 	transient-mark-mode not bound in XEmacs.  The feature of
 	operations made on all messages in the selected range when
 	transient-mark-mode is on doesn't work in XEmacs.
-	
+
 	* mh-e.el, mh-utils: Conditionalize calls to
 	'add-to-list 'facemenu-unlisted-faces for XEmacs.
- 
+
 2001-12-11  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-e.el (mh-scan-format): Add `mh-scan-format-file' variable to
@@ -4980,14 +4980,14 @@
 	(mh-scan.font-lock-regexp): Adapted to new format.
 	(mh-folder-font-lock-keywords): Use new format.
 
-	* mh-e.el (page-down.xpm): Icon renamed from nextpage. 
+	* mh-e.el (page-down.xpm): Icon renamed from nextpage.
 
 	* mh-utils.el (mh-decode-quoted-printable): Bug fix.  Better check
 	on what actually is a quoted-printable attachment.
 
 2001-12-06  Eric Ding  <ericding@alum.mit.edu>
 
-	* mh-mime.el (mh-mhn-compose-insertion, mh-mhn-compose-anon-ftp): 
+	* mh-mime.el (mh-mhn-compose-insertion, mh-mhn-compose-anon-ftp):
 	require mailcap.el here rather than using autoload at top of
 	mh-mime.
 	(mh-file-mime-type): get rid of unused variables (why were they
@@ -5031,9 +5031,9 @@
 	* mh-e.el (mh-cur-scan-msg-regexp): Match 0 is the whole line.
 	(mh-folder-current-msg-face): New face with only a background
 	settings, used in font-lock for the current message.
-	(mh-folder-font-lock-keywords): Use mh-folder-current-msg-face for 
+	(mh-folder-font-lock-keywords): Use mh-folder-current-msg-face for
 	mh-cur-scan-msg-regexp.
-	
+
 	* mh-utils.el (mh-show-from-face): Use red3 instead of red for
 	light backgrounds.  It's not as bright on the eyes.
 	(mh-show-subject-face): copy from mh-folder-subject-face instead.
@@ -5081,7 +5081,7 @@
 2001-12-04  Bill Wohler  <wohler@newt.com>
 
 	* Released mh-e version 5.0.92.
-	
+
 	* mh-utils.el (gnus-cite-face-list)
 	(mh-gnus-article-highlight-citation): Don't autoload. Revert to
 	requiring in `mh-gnus-article-highlight-citation' as before. With
@@ -5091,7 +5091,7 @@
 2001-12-03  Bill Wohler  <wohler@newt.com>
 
 	* Released mh-e version 5.0.91.
-	
+
 	* MH-E-NEWS: Removed info about bumping up `max-specpdl-size' now
 	that workaround has been implemented.
 
@@ -5100,16 +5100,16 @@
 	(clean): New target that blows away MH-E-OBJ.
 	(dist): Added $(MH-E-OBJ) to tarball.
 
-	
+
 	Attempt to quiet compilation errors to a dull roar.
-	
+
 	* mh-e.el: Require easymenu, added autoload of info.
 	(mh-smail, mh-smail-other-window): Comment says these were needed
-	by Emacs 18. Out!	
+	by Emacs 18. Out!
 
 	* mh-utils.el: Don't require sendmail, but require mh-e.
 	Moved autoloads to top of file, and autoload gnus-cite and
-	sendmail too.	
+	sendmail too.
 
 	* mh-pick.el: Require easymenu. Remove cond on
 	`easy-menu-define'--it exists.
@@ -5119,7 +5119,7 @@
 	* mh-comp.el: Require mh-e and easymenu, moved autoloads to top of
 	file.
 
-	
+
 	* Makefile: (EMACS): New constant to hold emacs calling sequence.
 	(install): Renamed to install-emacs.
 	(compile): New target to compile all files.
@@ -5133,7 +5133,7 @@
 2001-12-03  Peter S Galbraith  <psg@debian.org>
 
 	* mh-e.el (mh-folder-tool-bar-map): Change tooltip for exec icon.
-	
+
 	* mh-e.el (mh-folder-subject-face): Change to IndianRed1.
 	(mh-folder-followup-face): Change to IndianRed.
 	(mh-folder-deleted-face): Use sedate face instead of bright one.
@@ -5190,14 +5190,14 @@
 
 	Keymap changes and rationale. The sub-keymaps allowed some
 	consistency (e.g., esp. with l(ist) and k(ill).
-	 
+
 	e		Deleted. Already have x. Now used by mh-edit-again.
 	a		Deleted. Already have r. Now used by mh-extract-rej..
 	j		Deleted. Already have g.
-	
+
 	M-a -> e	Better mnemonic. Matches rmail. Frees movement cmd.
 	M-e -> a	Try `a'gain!
-	
+
 	M-f -> Fv	Frees movement command
 	M-f -> Ff	Alias (keep?)
 	M-f -> Fo	Alias (keep?)
@@ -5207,7 +5207,7 @@
 	M-r -> Fr	Frees movement command
 	M-s -> Fs	No reason but to keep with folder commands
 	M-u -> Fu	No reason but to keep with folder commands
-	
+
 	M-% -> Sd	Better mnemonic
 	M-# -> Sk	Better mnemonic
 	M-q -> Sl	Better mnemonic
@@ -5232,7 +5232,7 @@
 	(mh-folder-mode-map): Defined by gnus-define-keys. Otherwise than
 	the new threading functions, no changes to the UI were made at
 	this point--saving that for the next check-in.
-	
+
 	* mh-pick.el (mh-pick-mode-map): Use gnus-define-keys. Now
 	requires gnus-util.
 
@@ -5311,7 +5311,7 @@
 	mh-delete-line.  Using invisible text property is nicer in some
 	ways, but winds up with somewhat mysterious behavior should user
 	kill/yank stuff from the header (i.e., text gets yanked invisibly
-	and won't be seen by user until file is reloaded).	
+	and won't be seen by user until file is reloaded).
 
 2001-11-29  Bill Wohler  <wohler@newt.com>
 
@@ -5331,11 +5331,11 @@
 	mh-scan-subject-regexp instead.
 	(mh-folder-font-lock-keywords): Use mh-folder-font-lock-subject
 	instead of obsolete mh-scan-followup-regexp variable.
-	(mh-folder-date-face, mh-folder-msg-number-face): 
-	(mh-folder-subject-face, mh-folder-followup-face): 
+	(mh-folder-date-face, mh-folder-msg-number-face):
+	(mh-folder-subject-face, mh-folder-followup-face):
 	Now defined as proper faces instead of copied from font-lock
 	faces.
-	
+
 	* mh-mime.el (mh-media-type-regexp): New variable. Regexp matching
 	valid media types used in MIME attachment compositions.
 	(mh-file-mime-type): Use mh-media-type-regexp instead of
@@ -5370,7 +5370,7 @@
 	second paren expression is the user match.
 	(mh-folder-font-lock-keywords): Change from 1st to 2nd parenthesized
 	expression to match user name, after Jeffrey's change to the regexps.
-	
+
 2001-11-29  Bill Wohler  <Bill.Wohler@openwave.com>
 
 	* mh-utils.el (mh-clean-message-header): Default is now t.
@@ -5447,13 +5447,13 @@
 	* mh-utils.el (mh-show-font-lock-keywords): and various
 	faces... scoped within eval-after-load "font-lock" to avoid
 	requiring font-lock to use its faces.
-	* mh-e.el (mh-folder-font-lock-keywords): Same. 
+	* mh-e.el (mh-folder-font-lock-keywords): Same.
 
 2001-11-27  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-mime.el (mh-file-mime-type): Use mh-temp-buffer instead of
 	" *mh-temp".
-	
+
 	* mh-comp.el (mh-insert-x-mailer): Kill mh-temp-buffer after use.
 
 2001-11-26  Eric Ding  <ericding@alum.mit.edu>
@@ -5514,7 +5514,7 @@
 	(mh-decode-quoted-printable-region): Move (require 'hexl) outside
 	while loop.
 	(mh-decode-quoted-printable): give user a choice between using
-	internal code or external program to decode quoted-printable 
+	internal code or external program to decode quoted-printable
 	content.  Resurrect code that calls external mimedecode program.
 
 2001-11-25  Peter S Galbraith  <psg@debian.org>
@@ -5577,7 +5577,7 @@
 	* mh-utils.el (mh-show-mouse): New function to click on a message
 	in folder-mode and show that message.
 	* mh-e.el (mh-folder-mode-map): Bind mh-show-mouse to mouse-2.
-	
+
 	* mh-e.el (mh-page-msg): Show buffer first if not displayed,
 	instead of simply complaining there's no other window.
 
@@ -5586,13 +5586,13 @@
 
 	* mh-mime.el (mh-have-file-command): try to non-fatally load
 	executable.el because emacs20 doesn't autoload it.
-	* mh-utils.el (load "executable" t t): Idem. 
+	* mh-utils.el (load "executable" t t): Idem.
 
 	* mh-utils.el (mh-clean-msg-header): Bug fix. locally bind
 	after-change-functions to nil, working around a strange font-lock
-	bug in emacs20 when (add-hook 'mh-show-mode-hook 'turn-on-font-lock) 
+	bug in emacs20 when (add-hook 'mh-show-mode-hook 'turn-on-font-lock)
 	was used.
-	
+
 	* mh-comp.el (require 'sendmail): Moved from mh-comp.el to
 	mh-utils.el because it is needed in reading mail too.
 	(mh-header-field-end, mh-in-header-p): Moved to mh-utils.el
@@ -5640,7 +5640,7 @@
 	to customizing mh-compose group.
 
 	* mh-utils.el (mh-show-mode): font-lock bug fix. Locally set
-	font-lock-support-mode to nil. 
+	font-lock-support-mode to nil.
 	(mh-letter-header-font-lock, mh-header-field-font-lock): font-lock
 	bug fix. Don't return match beyond font-lock search limit.
 
@@ -5650,7 +5650,7 @@
 2001-11-19  Peter S Galbraith  <psg@debian.org>
 
 	* mh-comp.el (mh-letter-tool-bar-map): tool-bar help button goes
-	to 'Draft Editing' info node. 
+	to 'Draft Editing' info node.
 
 	* mh-utils.el (mh-show-from-face, mh-show-to-face): New faces used
 	for font-lock.
@@ -5677,8 +5677,8 @@
 
 	* mh-comp.el (mh-letter-tool-bar-map): made both references to
 	mh-letter-tool-bar-map conditional on tool-bar-mode, instead of
-	just one. 
-	
+	just one.
+
 2001-11-19  Bill Wohler  <wohler@newt.com>
 
 	* mh-comp.el (mh-position-on-field): Move to the end of the header
@@ -5750,7 +5750,7 @@
 	version correctly. Cleaned up output and display mh-progs, etc.
 	(Closes SF #405620.)
 
-2001-11-15  Peter S Galbraith  <psg@debian.org>	
+2001-11-15  Peter S Galbraith  <psg@debian.org>
 
 	* mh-comp.el (mh-letter-tool-bar-map): New tool-bar support for
 	mh-letter-mode in emacs21.  Uses icons from gnus/message.el.
@@ -5764,7 +5764,7 @@
 	* mh-utils.el (mh-decode-quoted-printable-have-mimedecode): same
 	as above.
 	* mh-mime.el (mh-file-mime-type): Bug Fix.  Some versions of
-	'file' output a string like "file: Using regular magic file..." 
+	'file' output a string like "file: Using regular magic file..."
 	to stderr, so discard stderr when using call-process with 'file'.
 
 2001-11-14  Peter S Galbraith  <psg@debian.org>
@@ -5802,7 +5802,7 @@
 
 	* mh-utils.el (mh-find-progs): Bug fix.  Add "mh/etc" to the
 	subdirectories to search for "components".  On BSD/OS, nmh is in
-	"/usr/contrib/mh/*". 
+	"/usr/contrib/mh/*".
 
 2001-11-13  Peter S Galbraith  <psg@debian.org>
 
@@ -5847,19 +5847,19 @@
 
 2001-11-08  Peter S Galbraith  <psg@debian.org>
 
-	* mh-utils.el (mh-update-sequences-after-mh-show): 
+	* mh-utils.el (mh-update-sequences-after-mh-show):
 	New customizable variable telling whether to run
 	mh-update-sequences in mh-show-mode.  Default is t.
-	* mh-utils.el (mh-show-msg): Run mh-update-sequences when	
+	* mh-utils.el (mh-show-msg): Run mh-update-sequences when
 	mh-update-sequences-after-mh-show is set.
 
 2001-11-08  Peter S Galbraith  <psg@debian.org>
 
-	* mh-utils.el (mh-decode-quoted-printable-have-mimedecode): 
+	* mh-utils.el (mh-decode-quoted-printable-have-mimedecode):
 	New variable telling whether command 'mimedecode' is on system.
 	(http://www.freesoft.org/CIE/FAQ/mimedeco.c)
-	* mh-utils.el (mh-decode-quoted-printable): 
-	New customizable variable telling whether to run mimedecode on 
+	* mh-utils.el (mh-decode-quoted-printable):
+	New customizable variable telling whether to run mimedecode on
 	MIME message containing quoted-printable parts.  mimedecode will
 	only alter quoted-printable parts , leaving others intact, and the
 	resulting message is still fully MIME.
@@ -5869,7 +5869,7 @@
 	mh-decode-quoted-printable function if mh-decode-quoted-printable
 	variable is set, to view messages containing quoted-printable
 	characters into 8-bit.
-	
+
 2001-11-08  Peter S Galbraith  <psg@debian.org>
 
 	* mh-comp.el (mh-letter-mode): Set mh-mhn-compose-insert-p if
@@ -5919,7 +5919,7 @@
 	* mh-mime.el (mh-mhn-compose-insert-p): New buffer-local variable
 	to tell when a MIME insertion was done in a letter.
 	* mh-mime.el (mh-mhn-compose-type): Set mh-mhn-compose-insert-p.
-	* mh-mime.el (mh-mhn-compose-external-type): 
+	* mh-mime.el (mh-mhn-compose-external-type):
 	Set mh-mhn-compose-insert-p.
 	* mh-mime.el (mh-mhn-compose-forw): Set mh-mhn-compose-insert-p.
 	* mh-mime.el (mh-edit-mhn): Clear mh-mhn-compose-insert-p.
@@ -5944,8 +5944,8 @@
 
 2001-10-25  Peter S Galbraith  <psg@debian.org>
 
-	* mh-utils.el (mh-recenter): Clarify docs and change '(t) to 
-	(list 4) to match elisp doc on what C-u prefix argument actually is. 
+	* mh-utils.el (mh-recenter): Clarify docs and change '(t) to
+	(list 4) to match elisp doc on what C-u prefix argument actually is.
 
 2001-10-23  Peter S Galbraith  <psg@debian.org>
 
@@ -5991,7 +5991,7 @@
 	* mh-e.el: Change font-lock patterns for folders.
 	Fontify scan.font-lock patterns (which will be documented)
 	and fontify subject lines prefixed with "Re:" differently.
-	* mh-comp.el (mh-letter-mode): Add font-lock support as in 
+	* mh-comp.el (mh-letter-mode): Add font-lock support as in
 	mh-show-mode.
 
 2001-04-14  chad brown  <y@mit.edu>
@@ -6003,7 +6003,7 @@
 	* preliminary (somewhat boring) font-lock support for mh-e.  More
 	interesting font-lock support probably wants to have better
 	support for multiple format files
-	
+
 2001-02-24  chad brown  <y@mit.edu>
 
 	* add default nmh paths to mh-find-prog in mh-utils.el.

@@ -113,7 +113,7 @@ decimal key must be specified."
 		 (character :tag "Numeric Keypad with Decimal Key"
 			    :match (lambda (widget value) (integerp value))
 			    :value ?.)
-		 (const :tag "Numeric prefix arguments" prefix) 
+		 (const :tag "Numeric prefix arguments" prefix)
 		 (const :tag "Cursor keys" cursor)
 		 (const :tag "Shifted cursor keys" S-cursor)
 		 (const :tag "Unspecified/User-defined" none)
@@ -136,7 +136,7 @@ decimal key must be specified."
 		 (character :tag "Numeric Keypad with Decimal Key"
 			    :match (lambda (widget value) (integerp value))
 			    :value ?.)
-		 (const :tag "Numeric prefix arguments" prefix) 
+		 (const :tag "Numeric prefix arguments" prefix)
 		 (const :tag "Cursor keys" cursor)
 		 (const :tag "Shifted cursor keys" S-cursor)
 		 (const :tag "Unspecified/User-defined" none)
@@ -159,7 +159,7 @@ decimal key must be specified."
 		 (character :tag "Numeric Keypad with Decimal Key"
 			    :match (lambda (widget value) (integerp value))
 			    :value ?.)
-		 (const :tag "Numeric prefix arguments" prefix) 
+		 (const :tag "Numeric prefix arguments" prefix)
 		 (const :tag "Cursor keys" cursor)
 		 (const :tag "Shifted cursor keys" S-cursor)
 		 (const :tag "Unspecified/User-defined" none)
@@ -182,7 +182,7 @@ decimal key must be specified."
 		 (character :tag "Numeric Keypad with Decimal Key"
 			    :match (lambda (widget value) (integerp value))
 			    :value ?.)
-		 (const :tag "Numeric prefix arguments" prefix) 
+		 (const :tag "Numeric prefix arguments" prefix)
 		 (const :tag "Cursor keys" cursor)
 		 (const :tag "Shifted cursor keys" S-cursor)
 		 (const :tag "Unspecified/User-defined" none)
@@ -244,7 +244,7 @@ the decimal key on the keypad is mapped to DECIMAL instead of `.'"
 	    [delete insert end down next left
 		    space right home up prior])
 	   ((eq setup 'S-cursor)
-	    [S-delete S-insert S-end S-down S-next S-left 
+	    [S-delete S-insert S-end S-down S-next S-left
 		      S-space S-right S-home S-up S-prior])
 	   ((eq setup 'none)
 	    nil)
@@ -268,7 +268,7 @@ the decimal key on the keypad is mapped to DECIMAL instead of `.'"
 		((eq (aref kp i) 'S-kp-space)
 		 (define-key function-key-map [S-kp-begin]
 		   (if bind (vector (aref bind i)))))))
-		 
+
       (setq i (1+ i)))))
 
 ;;; keypad.el ends here

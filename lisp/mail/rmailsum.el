@@ -119,7 +119,7 @@ Emacs will list the header line in the RMAIL-summary."
 (defun rmail-summary-by-topic (subject &optional whole-message)
   "Display a summary of all messages with the given SUBJECT.
 Normally checks the Subject field of headers;
-but if WHOLE-MESSAGE is non-nil (prefix arg given), 
+but if WHOLE-MESSAGE is non-nil (prefix arg given),
  look in the whole message.
 SUBJECT is a string of regexps separated by commas."
   (interactive "sTopics to summarize by: \nP")
@@ -412,8 +412,8 @@ Setting this variable has an effect only before reading a mail."
 			       (skip-chars-backward " \t")
 			       (point)))))
                      len mch lo)
-		(if (string-match 
-		     (or rmail-user-mail-address-regexp 
+		(if (string-match
+		     (or rmail-user-mail-address-regexp
 			 (concat "^\\("
 				 (regexp-quote (user-login-name))
 				 "\\($\\|@\\)\\|"
@@ -1499,12 +1499,12 @@ starting with the current one.  Deleted messages are skipped and don't count."
 	  (list (rmail-output-read-rmail-file-name)
 		(prefix-numeric-value current-prefix-arg))))
   (let ((i 0) prev-msg)
-    (while 
+    (while
 	(and (< i n)
 	     (progn (rmail-summary-goto-msg)
 		    (not (eq prev-msg
 			     (setq prev-msg
-				   (with-current-buffer rmail-buffer 
+				   (with-current-buffer rmail-buffer
 				     rmail-current-message))))))
       (setq i (1+ i))
       (with-current-buffer rmail-buffer
@@ -1559,13 +1559,13 @@ The variables `rmail-secondary-file-directory' and
     (if files
 	(progn
 	  (define-key rmail-summary-mode-map [menu-bar classify input-menu]
-	    (cons "Input Rmail File" 
-		  (rmail-list-to-menu "Input Rmail File" 
+	    (cons "Input Rmail File"
+		  (rmail-list-to-menu "Input Rmail File"
 				      files
 				      'rmail-summary-input)))
 	  (define-key rmail-summary-mode-map [menu-bar classify output-menu]
-	    (cons "Output Rmail File" 
-		  (rmail-list-to-menu "Output Rmail File" 
+	    (cons "Output Rmail File"
+		  (rmail-list-to-menu "Output Rmail File"
 				      files
 				      'rmail-summary-output-to-rmail-file))))
       (define-key rmail-summary-mode-map [menu-bar classify input-menu]

@@ -44,7 +44,7 @@
   "Returns the regular expression of hashtable keys."
   (let ((max-specpdl-size 1000))
     (regexp-opt
-     (sort 
+     (sort
       (let (dummy)
 	(maphash (function (lambda (key val) (setq dummy (cons key dummy))))
 		 hashtbl)
@@ -59,15 +59,15 @@
      (?$,15Q(B ?$,16)(B) (?$,15R(B ?$,16*(B) (?$,15S(B ?$,16+(B) (?$,15T(B ?$,16,(B) (?$,16@(B ?$,16B(B) (?$,16A(B ?$,16C(B))
     (;; CONSONANTS (currently 42, including special cases)
      ?$,15U(B ?$,15V(B ?$,15W(B ?$,15X(B ?$,15Y(B                  ;; GUTTRULS
-     ?$,15Z(B ?$,15[(B ?$,15\(B ?$,15](B ?$,15^(B                  ;; PALATALS  
-     ?$,15_(B ?$,15`(B ?$,15a(B ?$,15b(B ?$,15c(B                  ;; CEREBRALS 
-     ?$,15d(B ?$,15e(B ?$,15f(B ?$,15g(B ?$,15h(B ?$,15i(B              ;; DENTALS   
-     ?$,15j(B ?$,15k(B ?$,15l(B ?$,15m(B ?$,15n(B                  ;; LABIALS   
+     ?$,15Z(B ?$,15[(B ?$,15\(B ?$,15](B ?$,15^(B                  ;; PALATALS
+     ?$,15_(B ?$,15`(B ?$,15a(B ?$,15b(B ?$,15c(B                  ;; CEREBRALS
+     ?$,15d(B ?$,15e(B ?$,15f(B ?$,15g(B ?$,15h(B ?$,15i(B              ;; DENTALS
+     ?$,15j(B ?$,15k(B ?$,15l(B ?$,15m(B ?$,15n(B                  ;; LABIALS
      ?$,15o(B ?$,15p(B ?$,15q(B ?$,15r(B ?$,15s(B ?$,15t(B ?$,15u(B          ;; SEMIVOWELS
-     ?$,15v(B ?$,15w(B ?$,15x(B ?$,15y(B                    ;; SIBILANTS 
-     ?$,168(B ?$,169(B ?$,16:(B ?$,16;(B ?$,16<(B ?$,16=(B ?$,16>(B ?$,16?(B      ;; NUKTAS    
+     ?$,15v(B ?$,15w(B ?$,15x(B ?$,15y(B                    ;; SIBILANTS
+     ?$,168(B ?$,169(B ?$,16:(B ?$,16;(B ?$,16<(B ?$,16=(B ?$,16>(B ?$,16?(B      ;; NUKTAS
      "$,15\6-5^(B" "$,15U6-5w(B")
-    (;; Misc Symbols (7)  
+    (;; Misc Symbols (7)
      ?$,15A(B ?$,15B(B ?$,15C(B ?$,15}(B ?$,16-(B ?$,160(B ?$,16D(B)
     (;; Digits (10)
      ?$,16F(B ?$,16G(B ?$,16H(B ?$,16I(B ?$,16J(B ?$,16K(B ?$,16L(B ?$,16M(B ?$,16N(B ?$,16O(B)
@@ -85,7 +85,7 @@
 
 (defvar indian-base-table-to-language-alist
   '((indian-dev-base-table . "Devanagari")
-    (indian-pnj-base-table . "Punjabi")    
+    (indian-pnj-base-table . "Punjabi")
     (indian-ori-base-table . "Oriya")
     (indian-bng-base-table . "Bengali")
     (indian-asm-base-table . "Assamese")
@@ -100,11 +100,11 @@
      "a" ("aa" "A") "i" ("ii" "I") "u" ("uu" "U")
      ("RRi" "R^i") ("LLi" "L^i") (".c" "e.c") nil "e" "ai"
      "o.c"  nil   "o"   "au"  ("RRI" "R^I") ("LLI" "L^I"))
-    (;; consonants -- 40 
+    (;; consonants -- 40
      "k"   "kh"  "g"   "gh"  ("~N" "N^")
      "ch" ("Ch" "chh") "j" "jh" ("~n" "JN")
      "T"   "Th"  "D"   "Dh"  "N"
-     "t"   "th"  "d"   "dh"  "n"   "nh" 
+     "t"   "th"  "d"   "dh"  "n"   "nh"
      "p"   "ph"  "b"   "bh"  "m"
      "y"   "r"   "rh"  "l"   ("L" "ld") nil  ("v" "w")
      "sh" ("Sh" "shh") "s" "h"
@@ -196,10 +196,10 @@ arguments, with all possible combinations of these multiple SEQUENCES.
 Thus, if SEQ1 contains 3 elements and SEQ2 contains 5 elements, then
 FUNCTION will be called 15 times."
   (if seqrest
-      (mapcar 
+      (mapcar
        (lambda (x)
-         (apply 
-          'mapthread 
+         (apply
+          'mapthread
           `(lambda (&rest y) (apply ',function x y))
           seqrest))
        seq1)
@@ -225,7 +225,7 @@ FUNCTION will be called 15 times."
     (funcall f (pop l1) (pop l2))))
 
 (defun indian--puthash-v (v trans-v hashtbls)
-  (indian--map 
+  (indian--map
    (lambda (v trans-v)
      (indian--puthash-char (car v) trans-v hashtbls))
    v trans-v))
@@ -253,7 +253,7 @@ FUNCTION will be called 15 times."
 	  (setq v (if (char-valid-p (cadr v)) (char-to-string (cadr v)) ""))
 	  (if (stringp trans-c) (setq trans-c (list trans-c)))
 	  (if (stringp trans-v) (setq trans-v (list trans-v)))
-	  (indian--puthash-char 
+	  (indian--puthash-char
 	   (concat c v)
 	   (apply 'append
 		  (mapthread 'concat trans-c trans-v))
@@ -277,7 +277,7 @@ FUNCTION will be called 15 times."
 	 (trans-digits  '("0" "1" "2" "3" "4" "5" "6" "7" "8" "9")))
     (indian--puthash-v vowels trans-vowels hashtbls)
     (indian--puthash-c consonants trans-consonants halant hashtbls)
-    (indian--puthash-cv consonants trans-consonants 
+    (indian--puthash-cv consonants trans-consonants
 			      vowels trans-vowels hashtbls)
     (indian--puthash-m misc trans-misc hashtbls)
     (indian--puthash-m digits trans-digits hashtbls)
@@ -298,13 +298,13 @@ FUNCTION will be called 15 times."
 (defmacro indian-translate-region (from to hashtable encode-p)
   `(save-excursion
      (save-restriction
-       (let ((regexp ,(indian-regexp-of-hashtbl-keys 
-		       (if encode-p (car (eval hashtable)) 
+       (let ((regexp ,(indian-regexp-of-hashtbl-keys
+		       (if encode-p (car (eval hashtable))
 			 (cdr (eval hashtable))))))
 	 (narrow-to-region from to)
 	 (goto-char (point-min))
 	 (while (re-search-forward regexp nil t)
-	   (let ((matchstr (gethash (match-string 0) 
+	   (let ((matchstr (gethash (match-string 0)
 				    (if ,encode-p
 					(car ,hashtable)
 				      (cdr ,hashtable)))))
@@ -314,7 +314,7 @@ FUNCTION will be called 15 times."
 
 (defun indian-dev-itrans-v5-encode-region (from to)
   (interactive "r")
-  (indian-translate-region 
+  (indian-translate-region
    from to indian-dev-itrans-v5-hash t))
 
 (defun indian-dev-itrans-v5-decode-region (from to)
@@ -324,7 +324,7 @@ FUNCTION will be called 15 times."
 
 (defun indian-dev-kyoto-harvard-encode-region (from to)
   (interactive "r")
-  (indian-translate-region 
+  (indian-translate-region
    from to indian-dev-kyoto-harvard-hash t))
 
 (defun indian-dev-kyoto-harvard-decode-region (from to)
@@ -334,7 +334,7 @@ FUNCTION will be called 15 times."
 
 (defun indian-dev-aiba-encode-region (from to)
   (interactive "r")
-  (indian-translate-region 
+  (indian-translate-region
    from to indian-dev-aiba-hash t))
 
 (defun indian-dev-aiba-decode-region (from to)
@@ -525,18 +525,18 @@ FUNCTION will be called 15 times."
 (defvar is13194-to-ucs-malayalam-hashtbl nil)
 (defvar is13194-to-ucs-malayalam-regexp nil)
 
-(mapc 
- (function (lambda (script) 
-   (let ((hashtable (intern (concat "is13194-to-ucs-" 
+(mapc
+ (function (lambda (script)
+   (let ((hashtable (intern (concat "is13194-to-ucs-"
                                     (symbol-name script) "-hashtbl" )))
          (regexp    (intern (concat "is13194-to-ucs-"
                                     (symbol-name script) "-regexp"))))
      (set hashtable (make-hash-table :test 'equal :size 128))
      (mapc
       (function (lambda (x)
-        (put-char-code-property (decode-char 'ucs (car x)) 
+        (put-char-code-property (decode-char 'ucs (car x))
                                 'script script)
-        (put-char-code-property (decode-char 'ucs (car x)) 
+        (put-char-code-property (decode-char 'ucs (car x))
                                 'iscii (cdr x))
         (puthash (cdr x) (char-to-string (decode-char 'ucs (car x)))
                  (eval hashtable))))
@@ -553,7 +553,7 @@ FUNCTION will be called 15 times."
   "Regexp that matches to conversion")
 
 (defun ucs-to-iscii-region (from to)
-  "Converts the indian UCS characters in the region to ISCII.  
+  "Converts the indian UCS characters in the region to ISCII.
 Returns new end position."
   (interactive "r")
   ;; only Devanagari is supported now.
@@ -563,13 +563,13 @@ Returns new end position."
       (goto-char (point-min))
       (let* ((current-repertory is13194-default-repartory))
         (while (re-search-forward ucs-to-is13194-regexp nil t)
-          (replace-match 
+          (replace-match
            (get-char-code-property (string-to-char (match-string 0))
                                    'iscii))))
       (point-max))))
 
 (defun iscii-to-ucs-region (from to)
-  "Converts the ISCII characters in the region to UCS.  
+  "Converts the ISCII characters in the region to UCS.
 Returns new end position."
   (interactive "r")
   ;; only Devanagari is supported now.
@@ -579,13 +579,13 @@ Returns new end position."
       (goto-char (point-min))
       (let* ((current-repertory is13194-default-repartory)
              (current-hashtable
-              (intern (concat "is13194-to-ucs-" 
+              (intern (concat "is13194-to-ucs-"
                               (symbol-name current-repertory) "-hashtbl")))
              (current-regexp
-              (intern (concat "is13194-to-ucs-" 
+              (intern (concat "is13194-to-ucs-"
                               (symbol-name current-repertory) "-regexp"))))
         (while (re-search-forward (eval current-regexp) nil t)
-          (replace-match 
+          (replace-match
            (gethash (match-string 0) (eval current-hashtable) ""))))
       (point-max))))
 
@@ -603,7 +603,7 @@ Returns new end position."
 
 ;;;###autoload
 (defun indian-compose-string (string)
-  (with-temp-buffer 
+  (with-temp-buffer
     (insert string)
     (indian-compose-region (point-min) (point-max))
     (buffer-string)))
@@ -1029,7 +1029,7 @@ See also the function `indian-glyph-char'."
 	(error "Invalid indian-glyph char: %d" char))
     (setq code (+ (* (- (nth 1 split) 32) 96) (nth 2 split) -32))
     (cons (% code 256) (aref indian-script-table (/ code 256)))))
-    
+
 (provide 'ind-util)
- 
+
 ;;; ind-util.el ends here

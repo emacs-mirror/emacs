@@ -50,7 +50,7 @@
 	  (input-method . "thai-kesmanee")
 	  (unibyte-display . thai-tis620)
 	  (features thai-util)
-	  (sample-text 
+	  (sample-text
 	   . (thai-compose-string
 	      (copy-sequence "Thai (,T@RIRd7B(B)		,TJ0GQ1J04U1$0CQ1:(B, ,TJ0GQ1J04U10$h1P(B")))
 	  (documentation . t)))

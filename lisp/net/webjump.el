@@ -1,5 +1,5 @@
 ;;; webjump.el --- programmable Web hotlist
-     
+
 ;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author:    Neil W. Van Dyke <nwv@acm.org>
@@ -109,7 +109,7 @@
               "ftp://ftp.luth.se/pub/unix/gnu"
               "ftp://ftp.sunet.se/pub/gnu"
               "ftp://archive.eu.net"
-              ;; SOUTH AMERICA: 
+              ;; SOUTH AMERICA:
               "ftp://ftp.inf.utfsm.cl/pub/gnu"
               "ftp://ftp.unicamp.br/pub/gnu"
               ;; WESTERN CANADA:
@@ -133,7 +133,7 @@
      "ftp://ftp.emacs.org/pub/")
 
     ;; Internet search engines.
-    ("AltaVista" . 
+    ("AltaVista" .
      [simple-query
       "www.altavista.digital.com"
       "www.altavista.digital.com/cgi-bin/query?pg=aq&what=web&fmt=.&q="
@@ -144,12 +144,12 @@
     ("Lycos" .
      [simple-query "www.lycos.com"
                    "www.lycos.com/cgi-bin/pursuit?cat=lycos&query=" ""])
-    ("Yahoo" . 
+    ("Yahoo" .
      [simple-query "www.yahoo.com" "search.yahoo.com/bin/search?p=" ""])
 
     ;; Misc. general interest.
     ("Interactive Weather Information Network" . webjump-to-iwin)
-    ("Usenet FAQs" . 
+    ("Usenet FAQs" .
      [simple-query "www.cis.ohio-state.edu/hypertext/faq/usenet/FAQ-List.html"
 		   "www.cis.ohio-state.edu/htbin/search-usenet-faqs/form?find="
 		   ""])
@@ -287,7 +287,7 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 		       ((symbolp expr)
 			(if (fboundp expr)
 			    (funcall expr name)
-			  (error "WebJump URL function \"%s\" undefined" 
+			  (error "WebJump URL function \"%s\" undefined"
 				 expr)))
 		       (t (error "WebJump URL expression for \"%s\" invalid"
 				 name)))))))
@@ -343,11 +343,11 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
   ;; Note: I should make this more robust someday.
   (let ((input (webjump-read-string prompt)))
     (if input (string-to-number input))))
-  
+
 (defun webjump-read-string (prompt)
   (let ((input (read-string (concat prompt ": "))))
     (if (webjump-null-or-blank-string-p input) nil input)))
-  
+
 (defun webjump-read-url-choice (what urls &optional default)
   ;; Note: Convert this to use `webjump-read-choice' someday.
   (let* ((completions (mapcar (function (lambda (n) (cons n n)))

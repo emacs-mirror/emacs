@@ -83,7 +83,7 @@
 (define-category ?| "While filling, we can break a line at this character.")
 
 ;; For indentation calculation.
-(define-category ? 
+(define-category ?
   "This character counts as a space for indentation purposes.")
 
 ;; Keep the following for `kinsoku' processing.  See comments in
@@ -557,7 +557,7 @@
     ;; ?K is double width, ?k isn't specified
     (modify-category-entry (decode-char 'ucs c) ?k)
     (modify-category-entry (decode-char 'ucs c) ?j)
-    (modify-category-entry (decode-char 'ucs c) ?\|) 
+    (modify-category-entry (decode-char 'ucs c) ?\|)
     (setq c (1+ c))))
 
 ;; Hiragana block
@@ -566,7 +566,7 @@
     ;; ?H is actually defined to be double width
     (modify-category-entry (decode-char 'ucs c) ?H)
     ;;(modify-category-entry (decode-char 'ucs c) ?j)
-    (modify-category-entry (decode-char 'ucs c) ?\|) 
+    (modify-category-entry (decode-char 'ucs c) ?\|)
     (setq c (1+ c))))
 
 ;; JISX0208
@@ -675,7 +675,7 @@
 		  ("(1PRS]`(B-(1d(B"	"w"	?1) ; vowel base
 		  ("(1QT(B-(1W[m(B"	"w"	?2) ; vowel upper
 		  ("(1XY(B"		"w"	?3) ; vowel lower
-		  ("(1h(B-(1l(B"	"w"	?4) ; tone mark 
+		  ("(1h(B-(1l(B"	"w"	?4) ; tone mark
 		  ("(1\(B"		"w"	?9) ; semivowel lower
 		  ("(1p(B-(1y(B"	"w"	?6) ; digit
 		  ("(1Of(B"		"_"	?5) ; symbol
@@ -684,7 +684,7 @@
 		  ("$,1DPDRDSD]D`(B-$,1Dd(B"	"w"	?1) ; vowel base
 		  ("$,1DQDT(B-$,1DWD[Dm(B"	"w"	?2) ; vowel upper
 		  ("$,1DXDY(B"	"w"	?3) ; vowel lower
-		  ("$,1Dh(B-$,1Dk(B"	"w"	?4) ; tone mark 
+		  ("$,1Dh(B-$,1Dk(B"	"w"	?4) ; tone mark
 		  ("$,1D\D](B"	"w"	?9) ; semivowel lower
 		  ("$,1Dp(B-$,1Dy(B"	"w"	?6) ; digit
 		  ("$,1DODf(B"	"_"	?5) ; symbol
@@ -722,7 +722,7 @@
 		  (",TDFPRS`(B-,Te(B"	"w"	?1) ; vowel base
 		  (",TQT(B-,TWgn(B"	"w"	?2) ; vowel upper
 		  (",TX(B-,TZ(B"	"w"	?3) ; vowel lower
-		  (",Th(B-,Tm(B"	"w"	?4) ; tone mark 
+		  (",Th(B-,Tm(B"	"w"	?4) ; tone mark
 		  (",Tp(B-,Ty(B"	"w"	?6) ; digit
 		  (",TOf_oz{(B"	"_"	?5) ; symbol
 		  ;; Unicode equivalents
@@ -730,7 +730,7 @@
 		  ("$,1C$C&C0C2C3C@(B-$,1CE(B"	"w"	?1) ; vowel base
 		  ("$,1C1C4(B-$,1C7CGCN(B"	"w"	?2) ; vowel upper
 		  ("$,1C8(B-$,1C:(B"	"w"	?3) ; vowel lower
-		  ("$,1CH(B-$,1CM(B"	"w"	?4) ; tone mark 
+		  ("$,1CH(B-$,1CM(B"	"w"	?4) ; tone mark
 		  ("$,1CP(B-$,1CY(B"	"w"	?6) ; digit
 		  ("$,1C/CFC?COCZC[(B"	"_"	?5) ; symbol
 		  ))
@@ -1054,7 +1054,7 @@
 	     (and (>= c #x048c) (<= c #x04be))
 	     (and (>= c #x04d0) (<= c #x04f4)))
 	 (set-case-syntax-pair
-	  (decode-char 'ucs c) (decode-char 'ucs (1+ c)) tbl))	 
+	  (decode-char 'ucs c) (decode-char 'ucs (1+ c)) tbl))
     (setq c (1+ c)))
   (set-case-syntax-pair ?$,1*!(B ?$,1*"(B tbl)
   (set-case-syntax-pair ?$,1*#(B ?$,1*$(B tbl)

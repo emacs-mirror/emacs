@@ -43,7 +43,7 @@
 ;; This used to blow away the file-name-handler-alist and reinstall
 ;; TRAMP into it. This was intended to let VC work remotely. It didn't,
 ;; at least not in my XEmacs 21.2 install.
-;; 
+;;
 ;; In any case, tramp-run-real-handler now deals correctly with disabling
 ;; the things that should be, making this a no-op.
 ;;
@@ -88,7 +88,7 @@ See `vc-do-command' for more information."
 	(set (make-local-variable 'vc-parent-buffer-name)
 	     (concat " from " (buffer-name camefrom)))
 	(setq default-directory olddir)
-    
+
 	(erase-buffer)
 
 	(mapcar
@@ -216,7 +216,7 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
         (if (or (and (stringp file)     (tramp-tramp-file-p file))
                 (and (buffer-file-name) (tramp-tramp-file-p (buffer-file-name))))
             (setq ad-return-value
-                  (apply 'tramp-vc-do-command-new buffer okstatus command 
+                  (apply 'tramp-vc-do-command-new buffer okstatus command
                          file ;(or file (buffer-file-name))
                          flags))
           ad-do-it)))
@@ -229,7 +229,7 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
       (if (or (and (stringp file)     (tramp-tramp-file-p file))
               (and (buffer-file-name) (tramp-tramp-file-p (buffer-file-name))))
           (setq ad-return-value
-                (apply 'tramp-vc-do-command buffer okstatus command 
+                (apply 'tramp-vc-do-command buffer okstatus command
                        (or file (buffer-file-name)) last flags))
         ad-do-it))))
 ;;-)
@@ -283,7 +283,7 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
 	    (tramp-wait-for-output)
 	    (setq exec-status (read (current-buffer)))
 	    (message "Command %s returned status %d." command exec-status)))
-      
+
 	;; Maybe okstatus can be `async' here.  But then, maybe the
 	;; async thing is new in Emacs 21, but this function is only
 	;; used in Emacs 20.
@@ -304,7 +304,7 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
     (if (or (and (stringp file)     (tramp-tramp-file-p file))
             (and (buffer-file-name) (tramp-tramp-file-p (buffer-file-name))))
         (setq ad-return-value
-              (apply 'tramp-vc-simple-command okstatus command 
+              (apply 'tramp-vc-simple-command okstatus command
                      (or file (buffer-file-name)) args))
       ad-do-it)))
 
@@ -362,17 +362,17 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
 
 
 ;; Do we need to advise the vc-user-login-name function anyway?
-;; This will return the correct login name for the owner of a 
+;; This will return the correct login name for the owner of a
 ;; file. It does not deal with the default remote user name...
 ;;
-;; That is, when vc calls (vc-user-login-name), we return the 
+;; That is, when vc calls (vc-user-login-name), we return the
 ;; local login name, something that may be different to the remote
-;; default. 
+;; default.
 ;;
 ;; The remote VC operations will occur as the user that we logged
 ;; in with however - not always the same as the local user.
 ;;
-;; In the end, I did advise the function. This is because, well, 
+;; In the end, I did advise the function. This is because, well,
 ;; the thing didn't work right otherwise ;)
 ;;
 ;; Daniel Pittman <daniel@danann.net>
@@ -417,11 +417,11 @@ filename we are thinking about..."
 		     (tramp-handle-vc-user-login-name uid)))) ; get the owner name
         ad-do-it)))                     ; else call the original
 
-  
+
 ;; Determine the name of the user owning a file.
 (defun tramp-file-owner (filename)
   "Return who owns FILE (user name, as a string)."
-  (let ((v (tramp-dissect-file-name 
+  (let ((v (tramp-dissect-file-name
 	    (tramp-handle-expand-file-name filename))))
     (if (not (tramp-handle-file-exists-p filename))
         nil                             ; file cannot be opened

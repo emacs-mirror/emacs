@@ -350,8 +350,8 @@ noticing asynchronous data.")
 	     (wait-for
 	      (nntp-wait-for process wait-for buffer decode))
 	     (t t)))
-	(error 
-	 (nnheader-report 'nntp "Couldn't open connection to %s: %s" 
+	(error
+	 (nnheader-report 'nntp "Couldn't open connection to %s: %s"
 			  address err))
 	(quit
 	 (message "Quit retrieving data from nntp")
@@ -1179,11 +1179,11 @@ password contained in '~/.nntp-authinfo'."
 	(setq in-process-buffer-p (stringp nntp-server-xover))
 	(nntp-send-xover-command first (car articles))
 	(setq articles (cdr articles))
-	
+
 	(when (and nntp-server-xover in-process-buffer-p)
 	  ;; Don't count tried request.
 	  (setq count (1+ count))
-	  
+
 	  ;; Every 400 requests we have to read the stream in
 	  ;; order to avoid deadlocks.
 	  (when (or (null articles)	;All requests have been sent.

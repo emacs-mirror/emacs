@@ -113,7 +113,7 @@ avoid a more expansive scan.
 Point is at POS when this function returns."
   ;; Default values.
   (unless pos (setq pos (point)))
-  ;; 
+  ;;
   (let ((old-ppss (cdr syntax-ppss-last))
 	(old-pos (car syntax-ppss-last))
 	(ppss nil)
@@ -129,7 +129,7 @@ Point is at POS when this function returns."
 	  (incf (car (aref syntax-ppss-stats 0)))
 	  (incf (cdr (aref syntax-ppss-stats 0)) (- pos old-pos))
 	  (parse-partial-sexp old-pos pos nil nil old-ppss))
-      
+
       (cond
        ;; Use OLD-PPSS if possible and close enough.
        ((and (not old-pos) old-ppss
@@ -253,7 +253,7 @@ Point is at POS when this function returns."
 			   syntax-ppss-max-span))
 		    (push pair syntax-ppss-cache)
 		  (setcar syntax-ppss-cache pair)))))))))
-      
+
       (setq syntax-ppss-last (cons pos ppss))
       ppss)))
 

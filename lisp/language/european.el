@@ -582,7 +582,7 @@ but it selects the Dutch tutorial and input method."))
   (setq translation-table
 	(make-translation-table-from-vector encoding-vector))
   (define-translation-table 'mac-roman-decoder translation-table)
-  (define-translation-table 'mac-roman-encoder 
+  (define-translation-table 'mac-roman-encoder
     (char-table-extra-slot translation-table 0)))
 
 (define-ccl-program decode-mac-roman
@@ -640,7 +640,7 @@ positions (integers or markers) specifying the region."
       (compose-string string idx (match-end 0))
       (setq idx (match-end 0))))
   string)
-      
+
 (defun diacritic-compose-buffer ()
   "Compose diacritic characters in the current buffer."
   (interactive)

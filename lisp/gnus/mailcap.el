@@ -306,7 +306,7 @@ If you are unsure what to do, please answer \"no\"."
   "Text of warning message displayed by `mailcap-maybe-eval'.
 Make sure that this text consists only of few text lines.  Otherwise,
 Gnus might fail to display all of it.")
-  
+
 (defun mailcap-maybe-eval ()
   "Maybe evaluate a buffer of Emacs Lisp code."
   (let ((lisp-buffer (current-buffer)))

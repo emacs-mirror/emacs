@@ -236,7 +236,7 @@ static unsigned char gamegrid_bits[] = {
 (defun gamegrid-colorize-glyph (color)
   (find-image `((:type xpm :data ,gamegrid-xpm
 		       :ascent center
-		       :color-symbols 
+		       :color-symbols
 		       (("col1" . ,(gamegrid-color color 0.6))
 			("col2" . ,(gamegrid-color color 0.8))
 			("col3" . ,(gamegrid-color color 1.0))))

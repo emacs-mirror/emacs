@@ -630,7 +630,7 @@ from the document.")
 	  (setq subject (concat " (" (match-string 1) ")"))
 	  (when (re-search-forward "^From: \\(.*\\)" nil t)
 	    (setq from (concat "<"
-			       (cadr (funcall gnus-extract-address-components 
+			       (cadr (funcall gnus-extract-address-components
 					      (match-string 1))) ">")))
 	  (if (re-search-forward "^Date: +\\([^(]*\\)" nil t)
 	      (setq date (match-string 1))

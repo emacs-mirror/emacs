@@ -160,7 +160,7 @@ the context of text formatting."
   (if enable-kinsoku
       (if (or (and
 	       ;; The character after point can't be placed at beginning
-	       ;; of line.  
+	       ;; of line.
 	       (aref (char-category-set (following-char)) ?>)
 	       ;; We at first try to dissolve this situation by making a
 	       ;; line longer.  If it fails, then try making a line

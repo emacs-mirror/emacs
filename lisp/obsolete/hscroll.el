@@ -28,9 +28,9 @@
 
 ;;; Code:
 
-;;; 
+;;;
 ;;; PUBLIC VARIABLES
-;;; 
+;;;
 
 (defvar hscroll-version "0.0")
 
@@ -48,7 +48,7 @@ to hscroll from your init file and code."
   :require 'hscroll
   :version "20.3")
 
-(defcustom hscroll-margin 5 
+(defcustom hscroll-margin 5
   "*Obsolete."
   :group 'hscroll
   :type 'integer)
@@ -68,9 +68,9 @@ to hscroll from your init file and code."
   :group 'hscroll
   :type 'string)
 
-;;; 
+;;;
 ;;; PUBLIC COMMANDS
-;;; 
+;;;
 
 ;;;###autoload
 (defun turn-on-hscroll ()

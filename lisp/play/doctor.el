@@ -168,7 +168,7 @@ reads the sentence before point, and prints the Doctor's answer."
   (setq drnk
 	'((do you drink a lot of (doc// found) \?)
 	  (do you get drunk often \?)
-	  ((doc$ describe) your drinking habits \.) )) 
+	  ((doc$ describe) your drinking habits \.) ))
   (make-local-variable 'drugs)
   (setq drugs '( (do you use (doc// found) often \?)((doc$ areyou)
 						 addicted to (doc// found) \?)(do you realize that drugs can
@@ -256,7 +256,7 @@ reads the sentence before point, and prints the Doctor's answer."
 	  (i understand \.)
 	  (oh \.) ))
   (make-local-variable 'please)
-  (setq please 
+  (setq please
 	'((please\,)
 	  (i would appreciate it if you would)
 	  (perhaps you could)
@@ -279,7 +279,7 @@ reads the sentence before point, and prints the Doctor's answer."
 	  (more)
 	  (how you feel)))
   (make-local-variable 'things)
-  (setq things 
+  (setq things
 	'(;(your interests in computers)   ;; let's make this less computer oriented
 	  ;(the machines you use)
 	  (your plans)
@@ -306,7 +306,7 @@ reads the sentence before point, and prints the Doctor's answer."
 	  (tell me more about)
 	  (elaborate on)))
   (make-local-variable 'ibelieve)
-  (setq ibelieve 
+  (setq ibelieve
 	'((i believe) (i think) (i have a feeling) (it seems to me that)
 	  (it looks like)))
   (make-local-variable 'problems)
@@ -324,7 +324,7 @@ reads the sentence before point, and prints the Doctor's answer."
 	  (are you sorry)
 	  (are you satisfied with the fact that)))
   (make-local-variable 'machlst)
-  (setq machlst 
+  (setq machlst
 	'((you have your mind on (doc// found) \, it seems \.)
 	  (you think too much about  (doc// found) \.)
 	  (you should try taking your mind off of (doc// found)\.)
@@ -351,7 +351,7 @@ reads the sentence before point, and prints the Doctor's answer."
 	  (did you watch a lot of crime and violence on television as a child \?))
 	)
   (make-local-variable 'sexlst)
-  (setq sexlst 
+  (setq sexlst
 	'(((doc$ areyou) (doc$ afraidof) sex \?)
 	  ((doc$ describe)(doc$ something) about your sexual history \.)
 	  ((doc$ please)(doc$ describe) your sex life \.\.\.)
@@ -406,7 +406,7 @@ reads the sentence before point, and prints the Doctor's answer."
 	  (how often (doc$ areyou)(doc// found) \?)
 	  (when were you last (doc// found) \?)))
   (make-local-variable 'replist)
-  (setq replist 
+  (setq replist
 	'((i . (you))
 	  (my . (your))
 	  (me . (you))
@@ -884,7 +884,7 @@ Otherwise call the Doctor to parse preceding sentence."
    ((or (member sent '((good bye) (see you later) (i quit) (so long)
 		       (go away) (get lost)))
 	(memq (car sent)
-	      '(bye halt break quit done exit goodbye 
+	      '(bye halt break quit done exit goodbye
 		    bye\, stop pause goodbye\, stop pause)))
     (doctor-type (doc$ bye)))
    ((and (eq (car sent) 'you)
@@ -990,7 +990,7 @@ Otherwise call the Doctor to parse preceding sentence."
 
 (defun doctor-def (x)
   (progn
-   (doctor-type (list 'the 'word x 'means (doctor-meaning x) 'to 'me)) 
+   (doctor-type (list 'the 'word x 'means (doctor-meaning x) 'to 'me))
    nil))
 
 (defun doctor-forget ()
@@ -1093,9 +1093,9 @@ the subject noun, and return the portion of the sentence following it."
 		luse lusing lust lusts
 		made make makes making may mean means meant might
 		move moved moves moving must
-		need needed needs 
+		need needed needs
 		order ordered orders ought
-		paid pay pays pick picked picking picks 
+		paid pay pays pick picked picking picks
 		placed placing prefer prefers put puts
 		ran rape raped rapes
 		read reading reads recall receive received receives
@@ -1200,7 +1200,7 @@ the subject noun, and return the portion of the sentence following it."
 		half quarter
 		first second third fourth fifth
 		sixth seventh eighth ninth tenth)))
-		 
+
 (defun doctor-colorp (x)
   (memq x '(beige black blue brown crimson
 		  gray grey green
@@ -1485,7 +1485,7 @@ Hack on previous word, setting global variable OWNER to correct result."
 	       ((equal sent (doctor-assm '(no)))
 		(doctor-type (doc$ neglst)))
 	       (t (doctor-type (doc$ shortlst)))))))
-	   
+
 (defun doctor-alcohol () (doctor-type (doc$ drnk)))
 
 (defun doctor-desire ()
@@ -1619,7 +1619,7 @@ Hack on previous word, setting global variable OWNER to correct result."
 	(t (setq eliza-flag t)
 	   (doctor-type '((doc// found) \? hah !
 			  (doc$ please) (doc$ continue) \.)))))
-	   
+
 (defun doctor-sports ()  (doctor-type (doc$ sportslst)))
 
 (defun doctor-math () (doctor-type (doc$ mathlst)))

@@ -302,7 +302,7 @@ By default, this is the file specified by `mail-personal-alias-file'."
 This means that sending a message to NAME will actually send to DEFINITION.
 
 Normally, the addresses in DEFINITION must be separated by commas.
-If FROM-MAILRC-FILE is non-nil, then addresses in DEFINITION 
+If FROM-MAILRC-FILE is non-nil, then addresses in DEFINITION
 can be separated by spaces; an address can contain spaces
 if it is quoted with double-quotes."
 
@@ -352,7 +352,7 @@ if it is quoted with double-quotes."
 	(if convert-backslash
 	    (while (string-match "[\\]" temp pos)
 	      (setq temp (replace-match "" t t temp))
-	      (if start 
+	      (if start
 		  (setq start (1- start)))
 	      (setq pos (match-end 0))))
 	(setq result (cons temp result))))

@@ -77,7 +77,7 @@ Gregorian date Sunday, December 31, 1 BC."
        (/ year 4)                ;; Leap days in prior years
        (* 30 (1- month))         ;; Days in prior months this year
        day)))                    ;; Days so far this month
-       
+
 
 (defun calendar-coptic-from-absolute (date)
   "Compute the Coptic equivalent for absolute date DATE.

@@ -57,7 +57,7 @@
 (defvar chinese-calendar-terrestrial-branch
   ["Zi" "Chou" "Yin" "Mao" "Chen" "Si" "Wu" "Wei" "Shen" "You" "Xu" "Hai"])
 
-(defcustom chinese-calendar-time-zone 
+(defcustom chinese-calendar-time-zone
   '(if (< year 1928)
        (+ 465 (/ 40.0 60.0))
      480)

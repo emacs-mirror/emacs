@@ -403,7 +403,7 @@ default.  Also, installing them may be rather slow."
 			(if (r2 < #xa0)
 			    (write-multibyte-character r5 r2)
 			  (write-multibyte-character r6 r2))))
-		 
+
 		   ;; mule-unicode-0100-24ff (>= 0800)
 		   ((if (r3 < #x2500)
 			((r0 = ,(charset-id 'mule-unicode-0100-24ff))
@@ -414,7 +414,7 @@ default.  Also, installing them may be rather slow."
 			 (translate-character
 			  utf-translation-table-for-decode r0 r1)
 			 (write-multibyte-character r0 r1))
-		    
+
 		      ;; mule-unicode-2500-33ff
 		      (if (r3 < #x3400)
 			  ((r4 = r3)	; don't zap r3
@@ -464,7 +464,7 @@ default.  Also, installing them may be rather slow."
 				   (r3 = r5)
 				 (r3 = r6))
 			       (write-multibyte-character r3 r2))
-			
+
 			    ;; mule-unicode-e000-ffff
 			    ;; Fixme: fffe and ffff are invalid.
 			    ((r0 = ,(charset-id 'mule-unicode-e000-ffff))

@@ -32,7 +32,7 @@
 ;; First, it knows about the header conventions for library packages.
 ;; One entry point supports generating synopses from a library directory.
 ;; Another can be used to check for missing headers in library files.
-;; 
+;;
 ;; Another entry point automatically addresses bug mail to a package's
 ;; maintainer or author.
 
@@ -40,11 +40,11 @@
 
 ;; This file is an example of the header conventions.  Note the following
 ;; features:
-;; 
+;;
 ;;    * Header line --- makes it possible to extract a one-line summary of
 ;; the package's uses automatically for use in library synopses, KWIC
 ;; indexes and the like.
-;; 
+;;
 ;;    Format is three semicolons, followed by the filename, followed by
 ;; three dashes, followed by the summary.  All fields space-separated.
 ;;
@@ -55,13 +55,13 @@
 ;;       ;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 ;;
 ;;    * A blank line
-;; 
+;;
 ;;    * Author line --- contains the name and net address of at least
 ;; the principal author.
-;; 
+;;
 ;;    If there are multiple authors, they should be listed on continuation
 ;; lines led by ;;<TAB>, like this:
-;; 
+;;
 ;; ;; Author: Ashwin Ram <Ram-Ashwin@cs.yale.edu>
 ;; ;;	Dave Sill <de5@ornl.gov>
 ;; ;;	David Lawrence <tale@pawl.rpi.edu>
@@ -69,10 +69,10 @@
 ;; ;;	Joe Wells <jbw@maverick.uswest.com>
 ;; ;;	Dave Brennan <brennan@hal.com>
 ;; ;;	Eric Raymond <esr@snark.thyrsus.com>
-;; 
+;;
 ;; This field may have some special values; notably "FSF", meaning
 ;; "Free Software Foundation".
-;; 
+;;
 ;;    * Maintainer line --- should be a single name/address as in the Author
 ;; line, or an address only, or the string "FSF".  If there is no maintainer
 ;; line, the person(s) in the Author field are presumed to be it.  The example
@@ -81,19 +81,19 @@
 ;; that does "send mail to the author" without having to mine the name out by
 ;; hand. Please be careful about surrounding the network address with <> if
 ;; there's also a name in the field.
-;; 
+;;
 ;;    * Created line --- optional, gives the original creation date of the
 ;; file.  For historical interest, basically.
-;; 
+;;
 ;;    * Version line --- intended to give the reader a clue if they're looking
 ;; at a different version of the file than the one they're accustomed to.  This
 ;; may be an RCS or SCCS header.
-;; 
+;;
 ;;    * Adapted-By line --- this is for FSF's internal use.  The person named
 ;; in this field was the one responsible for installing and adapting the
 ;; package for the distribution.  (This file doesn't have one because the
 ;; author *is* one of the maintainers.)
-;; 
+;;
 ;;    * Keywords line --- used by the finder code (now under construction)
 ;; for finding Emacs Lisp code related to a topic.
 ;;
@@ -104,13 +104,13 @@
 ;;
 ;;    * Commentary line --- enables Lisp code to find the developer's and
 ;; maintainers' explanations of the package internals.
-;; 
+;;
 ;;    * Change log line --- optional, exists to terminate the commentary
 ;; section and start a change-log part, if one exists.
-;; 
+;;
 ;;    * Code line --- exists so Lisp can know where commentary and/or
 ;; change-log sections end.
-;; 
+;;
 ;;    * Footer line --- marks end-of-file so it can be distinguished from
 ;; an expanded formfeed or the results of truncation.
 

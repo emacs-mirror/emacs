@@ -250,7 +250,7 @@ nil       -- do not cite the region at all
 	     the number of lines in the region is greater than this
 	     value, a warning message will be printed and the region
 	     will not be cited.  Lines in region are counted with
-	     `count-lines'. 
+	     `count-lines'.
 
 The gathering of attribution information is not affected by the value
 of this variable.  The number of lines in the region is calculated
@@ -595,7 +595,7 @@ If this is nil, Supercite keymap is not installed.")
   (define-key sc-mode-map "\C-b" 'sc-submit-bug-report)
   (define-key sc-mode-map "?"    'sc-describe)
   )
-  
+
 (defvar sc-electric-mode-map ()
   "Keymap for `sc-electric-mode' electric references mode.")
 (if sc-electric-mode-map
@@ -1152,7 +1152,7 @@ supplied, is used instead of the line point is on in the current buffer."
 This populates the `sc-attributions' with the list of possible attributions."
   (if (and (stringp from)
 	   (< 0 (length from)))
-      (let* ((sc-mumble "")	     
+      (let* ((sc-mumble "")
 	     (namestring (sc-attribs-extract-namestring from))
 	     (namelist   (sc-attribs-filter-namelist
 			  (sc-attribs-chop-namestring namestring)))
@@ -1164,7 +1164,7 @@ This populates the `sc-attributions' with the list of possible attributions."
 	     (emailname  (sc-attribs-emailname from))
 	     (n 1)
 	     author middlenames)
-    
+
 	;; put basic information
 	(setq
 	 ;; put middle names and build sc-author entry
@@ -1342,7 +1342,7 @@ to the auto-selected attribution string."
 	      (setq citation choice
 		    attribution (or (sc-guess-attribution citation)
 				    citation))
-	    
+
 	    (setq citation (sc-make-citation choice)
 		  attribution choice))
 	  ))
@@ -1543,7 +1543,7 @@ First runs `sc-pre-uncite-hook'."
 		   sc-default-uncite-frame)))
     (run-hooks 'sc-pre-uncite-hook)
     (regi-interpret frame start end)))
-      
+
 (defun sc-recite-region (start end)
   "Recite a region delineated by START and END.
 First runs `sc-pre-recite-hook'."
@@ -1702,7 +1702,7 @@ error occurs."
 	(progn
 	  (eval ref)
 	  (let ((lines (count-lines (point-min) (point-max))))
-	    (or nomsg (message "Ref header %d [%d line%s]: %s" 
+	    (or nomsg (message "Ref header %d [%d line%s]: %s"
 			       sc-eref-style lines
 			       (if (= lines 1) "" "s")
 			       ref))))
@@ -2020,7 +2020,7 @@ before, and `sc-post-hook' is run after the guts of this function."
 	 (mark-active t)		; for Emacs
 	 (point (point-marker))
 	 (mark  (copy-marker (mark-marker))))
-  
+
     ;; make sure point comes before mark, not all functions are
     ;; interactive "r"
     (if (< mark point)

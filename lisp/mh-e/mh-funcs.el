@@ -32,7 +32,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-funcs.el,v 1.43 2003/01/26 00:57:35 jchonig Exp $
+;; $Id: mh-funcs.el,v 1.2 2003/02/03 20:55:30 wohler Exp $
 
 ;;; Code:
 
@@ -427,7 +427,7 @@ Default directory is the last directory used, or initially the value of
   (mh-ephem-message
    (substitute-command-keys
     (mapconcat 'identity (cdr (assoc nil mh-help-messages)) ""))))
-        
+
 ;;;###mh-autoload
 (defun mh-prefix-help ()
   "Display cheat sheet for the commands of the current prefix in minibuffer."

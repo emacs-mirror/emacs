@@ -221,7 +221,7 @@ summary (abstract) of the message."
 	;; Avoid inserting a signature.
        	(mail-signature))
     (if (null to)
-	;; this hack is needed so that inews wont be confused by 
+	;; this hack is needed so that inews wont be confused by
 	;; the fcc: and bcc: fields
 	(let ((mail-self-blind nil)
 	      (mail-archive-file-name nil))
@@ -250,7 +250,7 @@ summary (abstract) of the message."
       (setq paragraph-separate
 	    (concat "^" actual-header-separator "$\\|" paragraph-separate)))
     (run-hooks 'news-setup-hook)))
-   
+
 (defun news-inews ()
   "Send a news message using inews."
   (interactive)
@@ -271,8 +271,8 @@ summary (abstract) of the message."
 	  (insert ?\n))
       (message "Posting to USENET...")
       (unwind-protect
-	  (if (not (eq 0 
-		       (call-process-region (point-min) (point-max) 
+	  (if (not (eq 0
+		       (call-process-region (point-min) (point-max)
 					    news-inews-program nil 0 nil
 					    "-h"))) ; take all header lines!
 					;@@ setting of subject and newsgroups still needed?

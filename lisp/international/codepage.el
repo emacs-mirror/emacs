@@ -37,7 +37,7 @@
 ;; terminal display and input methods.
 ;;
 ;; Thanks to Ken'ichi Handa <handa@etl.go.jp> for writing the CCL
-;; encoders/decoders, and for help in debugging this code. 
+;; encoders/decoders, and for help in debugging this code.
 
 ;;; Code:
 

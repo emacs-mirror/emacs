@@ -92,7 +92,7 @@ files.")
     ("Per Abrahamsen" "Per Abhiddenware")
     ("Peter S. Galbraith" "Peter S Galbraith")
     ("Richard M. Stallman" "Richard M. Stallman,,," "Richard Stallman"
-     "rms" "rms@gnu.org") 
+     "rms" "rms@gnu.org")
     ("Robert J. Chassell" "Bob Chassell")
     ("Roland B. Roberts" "Roland B Roberts" "Roland Roberts")
     ("Rui-Tao Dong" "Rui-Tao Dong ~{6-Hpln~}")
@@ -110,7 +110,7 @@ files.")
   "Alist of author aliases.
 
 Each entry is of the form (REALNAME REGEXP...).  If an author's name
-matches one of the REGEXPs, use REALNAME instead.  
+matches one of the REGEXPs, use REALNAME instead.
 If REALNAME is nil, ignore that author.")
 
 
@@ -321,7 +321,7 @@ the file name."
       (setq authors-checked-files-alist
 	    (cons (cons file valid) authors-checked-files-alist))
       (unless valid
-	(setq authors-invalid-file-names 
+	(setq authors-invalid-file-names
 	      (cons (format "%s:%d: unrecognized `%s' for %s"
 			    log-file
 			    (1+ (count-lines (point-min) pos))
@@ -510,7 +510,7 @@ TABLE is a hash table to add author information to."
 CHANGES is an alist of entries (FILE (ACTION . COUNT) ...), as produced by
 `authors-scan-change-log'.
 The element added to `authors-author-list' is (AUTHOR WROTE CHANGED), where
-WROTE and CHANGED are lists of the files written and changed by AUTHOR." 
+WROTE and CHANGED are lists of the files written and changed by AUTHOR."
   (when author
     (let ((nchanged 0)
 	  wrote-list
@@ -549,7 +549,7 @@ WROTE and CHANGED are lists of the files written and changed by AUTHOR."
 (defun authors (root)
   "Extract author information from change logs and Lisp source files.
 ROOT is the root directory under which to find the files.  If called
-interactively, ROOT is read from the minibuffer.  
+interactively, ROOT is read from the minibuffer.
 Result is a buffer *Authors* containing authorship information, and a
 buffer *Authors Errors* containing references to unknown files."
   (interactive "DEmacs source directory: ")
@@ -575,14 +575,14 @@ buffer *Authors Errors* containing references to unknown files."
     (set-buffer (get-buffer-create buffer-name))
     (erase-buffer)
     (set-buffer-file-coding-system authors-coding-system)
-    (insert 
+    (insert
 "Many people have contributed code included in the Free Software
 Foundation's distribution of GNU Emacs.  To show our appreciation for
 their public spirit, we list here in alphabetical order a condensed
 list of their contributions.\n")
     (let (authors-author-list a)
       (maphash #'authors-add-to-author-list table)
-      (setq authors-author-list 
+      (setq authors-author-list
 	    (sort authors-author-list
 		  (lambda (a b) (string-lessp (car a) (car b)))))
       (dolist (a authors-author-list)
@@ -607,7 +607,7 @@ list of their contributions.\n")
 		(insert "\n "))
 	    (insert " " file))
 	  (insert "\n")))))
-    (insert "\nLocal" " Variables:\ncoding: " 
+    (insert "\nLocal" " Variables:\ncoding: "
 	    (symbol-name authors-coding-system) "\nEnd:\n")
     (message "Generating buffer %s... done" buffer-name)
     (unless noninteractive

@@ -55,7 +55,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-customize.el,v 1.30 2003/02/02 17:28:50 wohler Exp $
+;; $Id: mh-customize.el,v 1.2 2003/02/03 20:55:30 wohler Exp $
 
 ;;; Code:
 (provide 'mh-customize)
@@ -504,7 +504,7 @@ See `mh-search-folder' and `mh-index-search' for details."
                               'mh-foldertoolbar-help
                               :help mh-tool-bar-item-help))
        tool-bar-map))
-    
+
     (setq mh-folder-seq-tool-bar-map
           (let ((tool-bar-map (copy-keymap mh-folder-tool-bar-map)))
             (if (member mh-tool-bar-item-widen mh-tool-bar-folder-buttons)
@@ -1589,7 +1589,7 @@ will be removed from the unseen sequence."
     (t (:italic t)))
   "Face for highlighting body text in MH-Folder buffers."
   :group 'mh-folder-faces)
-     
+
 (defvar mh-folder-cur-msg-face 'mh-folder-cur-msg-face
   "Face for the current message line in MH-Folder buffers.")
 (defface mh-folder-cur-msg-face

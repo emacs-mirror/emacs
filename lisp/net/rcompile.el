@@ -58,7 +58,7 @@
 ;;
 ;; Will allow anyone access to your account without a password. I suggest you
 ;; read the rhosts(5) manual page before you edit this file (if you are not
-;; familiar with it already) 
+;; familiar with it already)
 
 ;;; Code:
 

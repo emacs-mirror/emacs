@@ -1741,7 +1741,7 @@ CHANGE-WORD should be one of 'upcase-word, 'downcase-word, 'capitalize-word."
 	   (concat "\\("
 		   f90-keywords-re "\\|" f90-procedures-re "\\|"
 		   f90-hpf-keywords-re "\\|" f90-operators-re "\\)"))
-	  (ref-point (point-min)) 
+	  (ref-point (point-min))
 	  (modified (buffer-modified-p))
           state saveword back-point)
       (goto-char beg)

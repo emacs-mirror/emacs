@@ -189,7 +189,7 @@
 		       (car active) (cdr active) group)))))
 
 (defun nnmbox-save-buffer ()
-  (let ((coding-system-for-write 
+  (let ((coding-system-for-write
 	 (or nnmbox-file-coding-system-for-write
 	     nnmbox-file-coding-system)))
     (save-buffer)))
@@ -264,8 +264,8 @@
 	      (progn
 		(unless (eq nnmail-expiry-target 'delete)
 		  (with-temp-buffer
-		    (nnmbox-request-article (car articles) 
-					     newsgroup server 
+		    (nnmbox-request-article (car articles)
+					     newsgroup server
 					     (current-buffer))
 		    (let ((nnml-current-directory nil))
 		      (nnmail-expiry-target-group

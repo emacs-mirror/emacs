@@ -338,7 +338,7 @@ That buffer should be current already."
 	    ;; Make the unchanged part of the backtrace inaccessible
 	    ;; so it won't be scanned.
 	    (narrow-to-region (point-min) new-end)))
-	    
+
       ;; Scan the new part of the backtrace, inserting xrefs.
       (goto-char (point-min))
       (while (progn

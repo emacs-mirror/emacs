@@ -1811,7 +1811,7 @@ stops at them when going backward, but not when going forward."
   (interactive "p")
   (c-forward-conditional (- count) -1)
   (c-keep-region-active))
-  
+
 (defun c-up-conditional-with-else (count)
   "Move back to the containing preprocessor conditional, including `#else'.
 Just like `c-up-conditional', except it also stops at `#else'

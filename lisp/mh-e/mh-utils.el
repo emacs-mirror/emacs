@@ -30,7 +30,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-utils.el,v 1.214 2003/01/27 04:42:23 wohler Exp $
+;; $Id: mh-utils.el,v 1.2 2003/02/03 20:55:30 wohler Exp $
 
 ;;; Code:
 
@@ -518,7 +518,7 @@ message about the fontification operation."
 
 ;; Full path of directory for this folder.
 (defvar mh-folder-filename nil)
-  
+
 ;;Number of msgs in buffer.
 (defvar mh-msg-count nil)
 
@@ -658,7 +658,7 @@ Stronger than `save-excursion', weaker than `save-window-excursion'."
   (clear-visited-file-modtime)
   (unlock-buffer)
   (setq buffer-file-name nil))
-  
+
 ;;;###mh-autoload
 (defun mh-get-msg-num (error-if-no-message)
   "Return the message number of the displayed message.
@@ -1532,7 +1532,7 @@ The message number width portion of the format is discovered using
                  (format mh-scan-msg-format-string width)
                  (substring fmt end))))
       fmt))
-       
+
 (defun mh-message-number-width (folder)
   "Return the widest message number in this FOLDER."
   (or mh-progs (mh-find-path))

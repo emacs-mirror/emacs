@@ -96,7 +96,7 @@
 ;;     /{/; while (<${glob_me}>)
 ;; but a simpler solution is to add a space between the $ and the {:
 ;;     while (<$ {glob_me}>)
-;; 
+;;
 ;; Problem 7 is even worse, but this 'fix' does work :-(
 ;;     $DB'stop#'
 ;;         [$DB'line#'
@@ -337,7 +337,7 @@ The expansion is entirely correct because it uses the C preprocessor."
 		    (put-text-property
 		     (point) (progn (forward-comment (point-max)) (point))
 		     'font-lock-multiline t)
-		    ;; 
+		    ;;
 		    (unless
 			(save-excursion
 			  (let* ((char2 (char-after))
@@ -365,7 +365,7 @@ The expansion is entirely correct because it uses the C preprocessor."
 	    ;;    ;; FIXME: `end' is accessed via dyn-scoping.
 	    ;;    pos (min end (1- (point))) nil '(nil))
 	    ;;   nil)))))))
-	
+
 
 (defcustom perl-indent-level 4
   "*Indentation of Perl statements with respect to containing block."
@@ -435,7 +435,7 @@ Variables controlling indentation style:
     regardless of where in the line point is when the TAB command is used.
  `perl-tab-to-comment'
     Non-nil means that for lines which don't need indenting, TAB will
-    either delete an empty comment, indent an existing comment, move 
+    either delete an empty comment, indent an existing comment, move
     to end-of-line, or if at end-of-line already, create a new comment.
  `perl-nochange'
     Lines starting with this regular expression are not auto-indented.
@@ -535,7 +535,7 @@ If at end-of-line, and not in a comment or a quote, correct the's indentation."
 		(or (/= last-command-char ?:)
 		    ;; Colon is special only after a label ....
 		    (looking-at "\\s-*\\(\\w\\|\\s_\\)+$"))
-		(let ((pps (parse-partial-sexp 
+		(let ((pps (parse-partial-sexp
 			    (perl-beginning-of-function) insertpos)))
 		  (not (or (nth 3 pps) (nth 4 pps) (nth 5 pps))))))
 	 (progn				; must insert, indent, delete
@@ -622,7 +622,7 @@ possible action from the following list:
 
 (defun perl-indent-line (&optional nochange parse-start)
   "Indent current line as Perl code.
-Return the amount the indentation 
+Return the amount the indentation
 changed by, or (parse-state) if line starts in a quoted string."
   (let ((case-fold-search nil)
 	(pos (- (point-max) (point)))
@@ -850,7 +850,7 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
       (while (< (point) (marker-position last-mark))
 	(setq delta (perl-indent-line nil (marker-position bof-mark)))
 	(if (numberp delta)		; unquoted start-of-line?
-	    (progn 
+	    (progn
 	      (if (eolp)
 		  (delete-horizontal-space))
 	      (setq lsexp-mark (point-marker))))

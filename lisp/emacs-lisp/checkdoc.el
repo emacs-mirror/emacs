@@ -426,7 +426,7 @@ be re-created.")
   ;; end of a word in a conglomerate.
   (modify-syntax-entry ?- "w" checkdoc-syntax-table)
   )
-	
+
 
 ;;; Compatibility
 ;;
@@ -940,7 +940,7 @@ Optional argument TAKE-NOTES causes all errors to be logged."
 	(checkdoc-show-diagnostics)))
     (goto-char p))
   (if (interactive-p) (message "Checking interactive message text...done.")))
-    
+
 ;;;###autoload
 (defun checkdoc-eval-defun ()
   "Evaluate the current form with `eval-defun' and check its documentation.
@@ -2340,7 +2340,7 @@ The default boundary is the entire buffer."
     (while (setq type (checkdoc-message-text-next-string end))
       (setq e (checkdoc-message-text-engine type)))
     e))
-  
+
 (defun checkdoc-message-text-next-string (end)
   "Move cursor to the next checkable message string after point.
 Return the message classification.

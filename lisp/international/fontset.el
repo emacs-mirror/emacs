@@ -432,7 +432,7 @@ variable `x-font-name-charset-alist'), add that information to FONTLIST."
 		(or (assq charset fontlist)
 		    (setq fontlist
 			  (cons (cons charset ascii-font-spec) fontlist))))))))
-    
+
     fontlist))
 
 (defun fontset-name-p (fontset)
@@ -510,7 +510,7 @@ It returns a name of the created fontset."
 	(name (match-string 0 fontset-spec))
 	xlfd-fields charset fontlist ascii-font)
     (if (query-fontset name)
-	(or noerror 
+	(or noerror
 	    (error "Fontset \"%s\" already exists" name))
       (setq xlfd-fields (x-decompose-font-name name))
       (or xlfd-fields

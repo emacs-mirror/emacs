@@ -781,7 +781,7 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,Lx(B "j")))))
 
    (t (error "Unsupported character set: %S" set)))
-   
+
   (sit-for 0))
 
 ;;;###autoload

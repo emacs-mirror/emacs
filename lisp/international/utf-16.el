@@ -225,7 +225,7 @@ They correspond to these Emacs character sets:
 
 On decoding (e.g. reading a file), Unicode characters not in the above
 ranges are decoded as U+FFFD, effectively corrupting the data
-if they are re-encoded.  
+if they are re-encoded.
 
 On encoding (e.g. writing a file), Emacs characters not belonging to
 any of the character sets listed above are encoded into the byte

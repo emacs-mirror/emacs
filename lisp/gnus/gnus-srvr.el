@@ -138,7 +138,7 @@ The following specs are understood:
 
     "n" next-line
     "p" previous-line
-    
+
     "g" gnus-server-regenerate-server
 
     "\C-c\C-i" gnus-info-find-node
@@ -607,9 +607,9 @@ The following commands are available:
 	  (goto-char (point-min))
 	  (unless (string= gnus-ignored-newsgroups "")
 	    (delete-matching-lines gnus-ignored-newsgroups))
-	  (while (not (eobp)) 
+	  (while (not (eobp))
 	    (ignore-errors
-	      (push (cons 
+	      (push (cons
 		     (if (eq (char-after) ?\")
 			 (read cur)
 		       (let ((p (point)) (name ""))
@@ -758,7 +758,7 @@ buffer.
 		   nil nil (if (gnus-server-equal
 				gnus-browse-current-method "native")
 			       nil
-			     (gnus-method-simplify 
+			     (gnus-method-simplify
 			      gnus-browse-current-method)))
 	     gnus-level-default-subscribed gnus-level-killed
 	     (and (car (nth 1 gnus-newsrc-alist))

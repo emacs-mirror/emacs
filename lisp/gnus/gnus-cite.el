@@ -480,8 +480,8 @@ always hide."
 			  gnus-hidden-properties))
 	    (point (point-min))
 	    found beg end start)
-	(while (setq point 
-		     (text-property-any point (point-max) 
+	(while (setq point
+		     (text-property-any point (point-max)
 					'gnus-callback
 					'gnus-article-toggle-cited-text))
 	  (setq found t)
@@ -559,11 +559,11 @@ means show, nil means toggle."
 	      (and (< arg 0) hidden))
       (if hidden
 	  (gnus-remove-text-properties-when
-	   'article-type 'cite beg end 
+	   'article-type 'cite beg end
 	   (cons 'article-type (cons 'cite
 				     gnus-hidden-properties)))
 	(gnus-add-text-properties-when
-	 'article-type nil beg end 
+	 'article-type nil beg end
 	 (cons 'article-type (cons 'cite
 				   gnus-hidden-properties))))
       (save-excursion

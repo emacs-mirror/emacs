@@ -32,7 +32,7 @@
 ;;; We require lisp-mode to make sure that lisp-mode-syntax-table has
 ;;; been initialized.
 (require 'lisp-mode)
-		     
+
 ;;;###autoload
 (defcustom mail-use-rfc822 nil "\
 *If non-nil, use a full, hairy RFC822 parser on mail addresses.
@@ -166,7 +166,7 @@ Return a modified address list."
 	     (setq address (buffer-string))
 	     (erase-buffer))
 	 ;; Strip non-nested comments an easier way.
-	 (while (setq pos (string-match 
+	 (while (setq pos (string-match
 			    ;; This doesn't hack rfc822 nested comments
 			    ;;  `(xyzzy (foo) whinge)' properly.  Big deal.
 			    "[ \t]*(\\([^)\\]\\|\\\\.\\|\\\\\n\\)*)"
@@ -240,7 +240,7 @@ the comma-separated list.  The pruned list is returned."
 	       (naked-address (mail-strip-quoted-names address)))
 	  (if (string-match rmail-dont-reply-to-names naked-address)
 	      (setq destinations (concat (substring destinations 0 start-pos)
-				    (and cur-pos (substring destinations 
+				    (and cur-pos (substring destinations
 							    (1+ cur-pos))))
 		    cur-pos start-pos)
 	    (setq cur-pos (and cur-pos (1+ cur-pos))

@@ -88,7 +88,7 @@ ftp://ftp.math.psu.edu/pub/simpson/chinese/hzp/hzp.doc"
 					  rfc1843-hzp-word-regexp
 					rfc1843-word-regexp) (point-max) t)
 	      ;;; Text with extents may cause XEmacs crash
-	      (setq str (buffer-substring-no-properties 
+	      (setq str (buffer-substring-no-properties
 			 (match-beginning 1)
 			 (match-end 1)))
 	      (setq firstc (aref str 0))
@@ -145,7 +145,7 @@ ftp://ftp.math.psu.edu/pub/simpson/chinese/hzp/hzp.doc"
 		 (ct (message-fetch-field "Content-Type" t))
 		 (ctl (and ct (ignore-errors
 				(mail-header-parse-content-type ct)))))
-	    (if (and ctl (not (string-match "/" (car ctl)))) 
+	    (if (and ctl (not (string-match "/" (car ctl))))
 		(setq ctl nil))
 	    (goto-char (point-max))
 	    (widen)

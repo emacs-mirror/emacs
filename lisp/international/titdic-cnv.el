@@ -163,10 +163,10 @@ and radicals is as below:
 
  first radical:
  a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
- $APD(B $AZ"(B $AJ,(B $AX<(B $A;p(B $A?Z(B $A^P(B $Ac_(B $AZ%(B $A\3(B $AXi(B $AD>(B $Alj(B $Ab;(B $ATB(B $Afy(B $AJ/(B $AMu(B $A0K(B $AX/(B $AHU(B $AeA(B $Aak(B $AVq(B $AR;(B $AHK(B 
+ $APD(B $AZ"(B $AJ,(B $AX<(B $A;p(B $A?Z(B $A^P(B $Ac_(B $AZ%(B $A\3(B $AXi(B $AD>(B $Alj(B $Ab;(B $ATB(B $Afy(B $AJ/(B $AMu(B $A0K(B $AX/(B $AHU(B $AeA(B $Aak(B $AVq(B $AR;(B $AHK(B
  last radical:
  a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
- $ASV(B $AI=(B $AMA(B $A56(B $AZb(B $A?Z(B $ARB(B $Aqb(B $A4s(B $A6!(B $A[L(B $Ala(B $AJ.(B $A4u(B $AXg(B $ACE(B $A=q(B $AX-(B $AE.(B $ARR(B $A`m(B $AP!(B $A3'(B $A3f(B $A_.(B $A27(B 
+ $ASV(B $AI=(B $AMA(B $A56(B $AZb(B $A?Z(B $ARB(B $Aqb(B $A4s(B $A6!(B $A[L(B $Ala(B $AJ.(B $A4u(B $AXg(B $ACE(B $A=q(B $AX-(B $AE.(B $ARR(B $A`m(B $AP!(B $A3'(B $A3f(B $A_.(B $A27(B
 
 \\<quail-translation-docstring>")
 
@@ -331,7 +331,7 @@ SPC, 6, 3, 4, or 7 specifing a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy
 	(princ (buffer-substring pos (point)))
 	(princ "\n")
 	(forward-line 1)))
-  
+
     (princ "\n;;; End of the header of original TIT dictionary.\n\n")
     (princ ";;; Code:\n\n(require 'quail)\n\n")
 
@@ -473,7 +473,7 @@ the generated Quail package is saved."
 	  (set-buffer-multibyte nil)
 	  (let ((coding-system-for-read 'no-conversion))
 	    (insert-file-contents (expand-file-name filename)))
-	
+
 	  ;; Decode the buffer contents from the encoding specified by a
 	  ;; value of the key "ENCODE:".
 	  (if (not (search-forward "\nBEGIN" nil t))
@@ -563,7 +563,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; Alist of input method names and the corresponding information.
 ;; Each element has this form:
 ;;   (INPUT-METHOD-NAME		;; Name of the input method.
-;;    INPUT-METHOD-TITLE	;; Title string of the input method 
+;;    INPUT-METHOD-TITLE	;; Title string of the input method
 ;;    DICFILE			;; Name of the source dictionary file.
 ;;    CODING			;; Coding system of the dictionary file.
 ;;    QUAILFILE			;; Name of the Quail package file.
@@ -573,7 +573,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 
 (defvar quail-misc-package-ext-info
   '(("chinese-b5-tsangchi" "$(06A(BB"
-     "cangjie-table.b5" big5 "tsang-b5.el" 
+     "cangjie-table.b5" big5 "tsang-b5.el"
      tsang-b5-converter
      "\
 ;; # Copyright 2001 Christian Wittern <wittern@iis.sinica.edu.tw>
@@ -583,7 +583,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; # this notice is preserved.")
 
     ("chinese-b5-quick" "$(0X|(BB"
-     "cangjie-table.b5" big5 "quick-b5.el" 
+     "cangjie-table.b5" big5 "quick-b5.el"
      quick-b5-converter
      "\
 ;; # Copyright 2001 Christian Wittern <wittern@iis.sinica.edu.tw>
@@ -624,21 +624,21 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;;
 ;;
 ;;             Copyright (C) 1999, Rui He, herui@cs.duke.edu
-;;                           
-;; 
+;;
+;;
 ;;                  CCE(Console Chinese Environment) 0.32
-;;        
-;; CCE is free software; you can redistribute it and/or modify it under the 
-;; terms of the GNU General Public License as published by the Free Software 
-;; Foundation; either version 1, or (at your option) any later version.  
-;; 
-;; CCE is distributed in the hope that it will be useful, but WITHOUT ANY 
-;; WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-;; FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
-;; details.  
-;; 
+;;
+;; CCE is free software; you can redistribute it and/or modify it under the
+;; terms of the GNU General Public License as published by the Free Software
+;; Foundation; either version 1, or (at your option) any later version.
+;;
+;; CCE is distributed in the hope that it will be useful, but WITHOUT ANY
+;; WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+;; FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+;; details.
+;;
 ;; You should have received a copy of the GNU General Public License along with
-;; CCE; see the file COPYING.  If not, write to the Free Software Foundation, 
+;; CCE; see the file COPYING.  If not, write to the Free Software Foundation,
 ;; 675 Mass Ave, Cambridge, MA 02139, USA.")
 
     ("chinese-ziranma" "$AWTH;(B"
@@ -653,21 +653,21 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;;
 ;;
 ;;             Copyright (C) 1999, Rui He, herui@cs.duke.edu
-;;                           
-;; 
+;;
+;;
 ;;                  CCE(Console Chinese Environment) 0.32
-;;        
-;; CCE is free software; you can redistribute it and/or modify it under the 
-;; terms of the GNU General Public License as published by the Free Software 
-;; Foundation; either version 1, or (at your option) any later version.  
-;; 
-;; CCE is distributed in the hope that it will be useful, but WITHOUT ANY 
-;; WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-;; FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
-;; details.  
-;; 
+;;
+;; CCE is free software; you can redistribute it and/or modify it under the
+;; terms of the GNU General Public License as published by the Free Software
+;; Foundation; either version 1, or (at your option) any later version.
+;;
+;; CCE is distributed in the hope that it will be useful, but WITHOUT ANY
+;; WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+;; FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+;; details.
+;;
 ;; You should have received a copy of the GNU General Public License along with
-;; CCE; see the file COPYING.  If not, write to the Free Software Foundation, 
+;; CCE; see the file COPYING.  If not, write to the Free Software Foundation,
 ;; 675 Mass Ave, Cambridge, MA 02139, USA.")
 
     ("chinese-ctlau" "$AAuTA(B"
@@ -681,17 +681,17 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; It contains the following copyright notice:
 ;;
 ;; # Copyright (C) 1988-2001  Fung Fung Lee (lee@umunhum.stanford.edu)
-;; # 
+;; #
 ;; # This program is free software; you can redistribute it and/or
 ;; # modify it under the terms of the GNU General Public License
 ;; # as published by the Free Software Foundation; either version 2
 ;; # of the License, or any later version.
-;; # 
+;; #
 ;; # This program is distributed in the hope that it will be useful,
 ;; # but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; # GNU General Public License for more details.
-;; # 
+;; #
 ;; # You should have received a copy of the GNU General Public License
 ;; # along with this program; if not, write to the Free Software Foundation,
 ;; # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.")
@@ -707,17 +707,17 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; It contains the following copyright notice:
 ;;
 ;; # Copyright (C) 1988-2001  Fung Fung Lee (lee@umunhum.stanford.edu)
-;; # 
+;; #
 ;; # This program is free software; you can redistribute it and/or
 ;; # modify it under the terms of the GNU General Public License
 ;; # as published by the Free Software Foundation; either version 2
 ;; # of the License, or any later version.
-;; # 
+;; #
 ;; # This program is distributed in the hope that it will be useful,
 ;; # but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; # GNU General Public License for more details.
-;; # 
+;; #
 ;; # You should have received a copy of the GNU General Public License
 ;; # along with this program; if not, write to the Free Software Foundation,
 ;; # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.")
@@ -745,7 +745,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
    [Q $(0'D(B] [W $(0(q(B] [E $(0'V(B] [R $(0&H(B] [T $(0'>(B] [Y $(0&4(B] [U $(0&U(B] [I $(0'B(B] [O $(0&*(B] [P $(0'A(B]
 
     [A $(0'K(B] [S $(0&T(B] [D $(0'N(B] [F $(0'W(B] [G $(0&I(B] [H $(0*M(B] [J $(0&3(B] [L $(0&d(B]
-	
+
       [Z  ] [X $(0[E(B] [C $(01[(B] [V $(0&M(B] [B $(0'M(B] [N $(0&_(B] [M $(0&"(B]
 
 \\\\<quail-translation-docstring>\"\n"
@@ -757,8 +757,8 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
    [Q $(GEC(B] [W $(GFp(B] [E $(GEU(B] [R $(GDG(B] [T $(GE=(B] [Y $(GD3(B] [U $(GDT(B] [I $(GEA(B] [O $(GD)(B] [P $(GE@(B]
 
     [A $(GEJ(B] [S $(GDS(B] [D $(GEM(B] [F $(GEV(B] [G $(GDH(B] [H $(GHL(B] [J $(GD2(B] [L $(GDc(B]
-	
-      [Z  ] [X $(GyE(B] [C $(GOZ(B] [V $(GDL(B] [B $(GEL(B] [N $(GD^(B] [M $(GD!(B] 
+
+      [Z  ] [X $(GyE(B] [C $(GOZ(B] [V $(GDL(B] [B $(GEL(B] [N $(GD^(B] [M $(GD!(B]
 
 \\\\<quail-translation-docstring>\"\n"
 		      fulltitle fulltitle)))
@@ -1096,7 +1096,7 @@ To input symbols and punctuations, type `/' followed by one of `a' to
  the Cantonese romanization of the respective radical ($(0?f5}(B)."))
 
 (defun miscdic-convert (filename &optional dirname)
-  "Convert a dictionary file FILENAME into a Quail package. 
+  "Convert a dictionary file FILENAME into a Quail package.
 Optional argument DIRNAME if specified is the directory name under which
 the generated Quail package is saved."
   (interactive "FInput method dictionary file: ")

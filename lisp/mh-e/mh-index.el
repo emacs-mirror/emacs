@@ -32,7 +32,7 @@
 ;;;        namazu
 ;;;        glimpse
 ;;;        grep
-;;;      
+;;;
 ;;;  (2) To use this package, you first have to build an index. Please read
 ;;;      the documentation for `mh-index-search' to get started. That
 ;;;      documentation will direct you to the specific instructions for your
@@ -40,7 +40,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-index.el,v 1.83 2003/01/27 04:16:47 wohler Exp $
+;; $Id: mh-index.el,v 1.2 2003/02/03 20:55:30 wohler Exp $
 
 ;;; Code:
 
@@ -883,11 +883,11 @@ First create the directory /home/user/Mail/.mairix. Then create the file
 
    # This should contain the same thing as your `mh-user-path'
    base=/home/user/Mail
-   
+
    # List of folders that should be indexed. 3 dots at the end means there are
    # subfolders within the folder
    mh_folders=archive...:inbox:drafts:news:sent:trash
-   
+
    vfolder_format=raw
    database=/home/user/Mail/mairix/database
 

@@ -328,7 +328,7 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
      (cons x (file-attributes
 	(if full x (concat (file-name-as-directory directory) x)))))
    (directory-files directory full match nosort)))
- 
+
 (defun tramp-smb-handle-file-attributes (filename &optional nonnumeric)
   "Like `file-attributes' for tramp files.
 Optional argument NONNUMERIC means return user and group name
@@ -477,7 +477,7 @@ WILDCARD and FULL-DIRECTORY-P are not handled."
 	     (entries (tramp-smb-get-file-entries user host share file)))
 
 	;; Delete dummy "" entry, useless entries
-	(setq entries 
+	(setq entries
 	      (if (file-directory-p filename)
 		  (delq (assoc "" entries) entries)
 		;; We just need the only and only entry FILENAME.

@@ -42,7 +42,7 @@
   (setq wordstar-C-k-map (make-keymap))
   (setq wordstar-C-o-map (make-keymap))
   (setq wordstar-C-q-map (make-keymap))
-  
+
   (define-key wordstar-mode-map "\C-a" 'backward-word)
   (define-key wordstar-mode-map "\C-b" 'fill-paragraph)
   (define-key wordstar-mode-map "\C-c" 'scroll-up)
@@ -68,9 +68,9 @@
   (define-key wordstar-mode-map "\C-x" 'next-line)
   (define-key wordstar-mode-map "\C-y" 'kill-complete-line)
   (define-key wordstar-mode-map "\C-z" 'scroll-up-line)
-  
+
   ;; wordstar-C-k-map
-  
+
   (define-key wordstar-C-k-map " " ())
   (define-key wordstar-C-k-map "0" 'ws-set-marker-0)
   (define-key wordstar-C-k-map "1" 'ws-set-marker-1)
@@ -116,11 +116,11 @@
   (define-key wordstar-C-k-map "\C-x" 'save-buffers-kill-emacs)
   (define-key wordstar-C-k-map "y" 'ws-delete-block)
   (define-key wordstar-C-k-map "\C-y" 'ws-delete-block)
-  
+
   ;; wordstar-C-j-map not yet implemented
-  
+
   ;; wordstar-C-o-map
-  
+
   (define-key wordstar-C-o-map " " ())
   (define-key wordstar-C-o-map "c" 'wordstar-center-line)
   (define-key wordstar-C-o-map "\C-c" 'wordstar-center-line)
@@ -141,7 +141,7 @@
   (define-key wordstar-C-o-map "wh" 'split-window-horizontally)
   (define-key wordstar-C-o-map "wo" 'other-window)
   (define-key wordstar-C-o-map "wv" 'split-window-vertically)
-  
+
   ;; wordstar-C-q-map
   (define-key wordstar-C-q-map " " ())
   (define-key wordstar-C-q-map "0" 'ws-find-marker-0)
@@ -336,8 +336,8 @@ the distance between the end of the text and `fill-column'."
       (delete-horizontal-space)
       (setq line-length (current-column))
       (beginning-of-line)
-      (indent-to 
-       (+ left-margin 
+      (indent-to
+       (+ left-margin
 	  (/ (- fill-column left-margin line-length) 2))))))
 
 (defun scroll-down-line ()
@@ -368,13 +368,13 @@ the distance between the end of the text and `fill-column'."
 (defvar ws-block-end-marker nil "End of \"Block\" in WordStar mode.")
 
 (defvar ws-search-string nil "String of last search in WordStar mode.")
-(defvar ws-search-direction t 
+(defvar ws-search-direction t
   "Direction of last search in WordStar mode. t if forward, nil if backward.")
 
-(defvar ws-last-cursorposition nil 
+(defvar ws-last-cursorposition nil
   "Position before last search etc. in WordStar mode.")
 
-(defvar ws-last-errormessage nil 
+(defvar ws-last-errormessage nil
   "Last error message issued by a WordStar mode function.")
 
 ;;;;;;;;;;;
@@ -510,7 +510,7 @@ in ws-last-errormessage for recovery with C-q w."
   "In WordStar mode: Move block to current cursor position."
   (interactive)
   (if (and ws-block-begin-marker ws-block-end-marker)
-      (let () 
+      (let ()
 	(kill-region ws-block-begin-marker ws-block-end-marker)
 	(yank)
 	(save-excursion
@@ -702,7 +702,7 @@ This will only work for errors raised by WordStar mode functions."
     (kill-region p (point))))
 
 (defun ws-kill-bol ()
-  "In WordStar mode: Kill to beginning of line 
+  "In WordStar mode: Kill to beginning of line
 \(like WordStar, not like Emacs)."
   (interactive)
   (let ((p (point)))
@@ -730,7 +730,7 @@ This will only work for errors raised by WordStar mode functions."
 
 (defun ws-query-replace (from to)
   "In WordStar mode: Search string, remember string for repetition."
-  (interactive "sReplace: 
+  (interactive "sReplace:
 sWith: " )
   (setq ws-search-string from)
   (setq ws-search-direction t)

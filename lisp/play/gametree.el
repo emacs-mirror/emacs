@@ -67,7 +67,7 @@
 
 ;;  and the cursor is positioned on the new line just after the move
 ;;  number, so you can start typing the new analysis.  That's it,
-;;  quite simple.  
+;;  quite simple.
 
 ;;  As of version 1.1, a simple score reducer has been implemented.
 ;;  As you type in leaf variations, you can add a numerical score tag
@@ -199,19 +199,19 @@ should be no leading white space."
 (defun gametree-looking-at-ply ()
   "Read and return the number of the ply under point."
   (if (eobp) 0
-    (let ((boundary (concat "[ \t]*\\([1-9][0-9]*\\)\\(" 
+    (let ((boundary (concat "[ \t]*\\([1-9][0-9]*\\)\\("
                             gametree-full-ply-regexp "\\|"
                             gametree-half-ply-regexp "\\)"))
           (limit (save-excursion (beginning-of-line 1) (point))))
       (if (looking-at boundary)
           (+ (* 2 (string-to-int (match-string 1)))
              (if (string-match gametree-half-ply-regexp (match-string 2)) 1 0))
-        (save-excursion 
+        (save-excursion
           (re-search-backward boundary limit)
           (skip-chars-backward "0123456789")
           (1+ (* 2 (string-to-int
                     (buffer-substring (point) (match-end 1))))))))))
-    
+
 (defun gametree-current-branch-ply ()
   "Return the ply number of the first move of the current variation."
   (save-excursion
@@ -244,7 +244,7 @@ This value is simply the outline heading level of the current line."
     (save-excursion
       (beginning-of-line 1)
       (insert following-leaves))))
-        
+
 
 ;;;; Functions related to the task of saving and restoring current
 ;;;; outline layout
@@ -336,7 +336,7 @@ This value is simply the outline heading level of the current line."
           (goto-char (match-beginning 1))
           (delete-region (point) (match-end 1))
           (let ((standard-output (current-buffer)))
-            (princ gametree-local-layout))))))          
+            (princ gametree-local-layout))))))
 
 
 ;;;; Scoring functions
@@ -408,7 +408,7 @@ depth AT-DEPTH or smaller is found."
       (error
        (goto-char (point-max))
        (if (not (bolp)) (insert "\n"))))
-    (let ((starting-plys 
+    (let ((starting-plys
            (if (> (gametree-current-branch-depth) parent-depth)
                (gametree-current-branch-ply)
              (save-excursion (forward-line -1)
@@ -429,7 +429,7 @@ variation and the breaking point.
 
 With a numerical argument AT-MOVE, split the variation before
 White's AT-MOVEth move, or Black's if negative.  The last option will
-only work of Black's moves are explicitly numbered, for instance 
+only work of Black's moves are explicitly numbered, for instance
 `1. e4 1: e5'."
   (interactive "*P")
   (if at-move (progn
@@ -466,8 +466,8 @@ only work of Black's moves are explicitly numbered, for instance
             (funcall gametree-make-heading-function depth)
             (gametree-prettify-heading))))
     (save-excursion
-      (if (not (looking-at (concat "[ \t]*[1-9][0-9]*\\(" 
-                                   gametree-full-ply-regexp "\\|" 
+      (if (not (looking-at (concat "[ \t]*[1-9][0-9]*\\("
+                                   gametree-full-ply-regexp "\\|"
                                    gametree-half-ply-regexp "\\)")))
           (progn
             (insert (format (if (= 0 (mod (gametree-looking-at-ply) 2))
@@ -525,8 +525,8 @@ being entered automatically (and thus should lack the manual mark)."
     (save-excursion (insert gametree-score-closer)))
   (if (not (null score))
       (save-excursion
-        (insert (int-to-string (prefix-numeric-value score))))))    
-  
+        (insert (int-to-string (prefix-numeric-value score))))))
+
 (defun gametree-compute-and-insert-score ()
   "Compute current node score, maybe recursively from subnodes. Insert it.
 Subnodes which have been manually scored are honored."
@@ -568,7 +568,7 @@ buffer, it is replaced by the new value.  See the documentation for
   nil)
 
 (define-derived-mode gametree-mode outline-mode "GameTree"
-  "Major mode for managing game analysis trees.  
+  "Major mode for managing game analysis trees.
 Useful to postal and email chess (and, it is hoped, also checkers, go,
 shogi, etc.) players, it is a slightly modified version of Outline mode.
 

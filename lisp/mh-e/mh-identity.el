@@ -37,7 +37,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-identity.el,v 1.17 2002/12/03 15:54:27 psg Exp $
+;; $Id: mh-identity.el,v 1.2 2003/02/03 20:55:30 wohler Exp $
 
 ;;; Code:
 
@@ -79,7 +79,7 @@
           (customize-save-variable
            'mh-identity-default mh-identity-local) t]
          )))))
-  
+
 ;;;###mh-autoload
 (defun mh-identity-list-set (symbol value)
   "Update the `mh-identity-list' variable, and rebuild the menu.

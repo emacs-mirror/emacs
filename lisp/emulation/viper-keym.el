@@ -52,16 +52,16 @@
 
 (defvar viper-toggle-key "\C-z"
   "The key used to change states from emacs to Vi and back.
-In insert mode, this key also functions as Meta. 
+In insert mode, this key also functions as Meta.
 Must be set in .viper file or prior to loading Viper.
 This setting cannot be changed interactively.")
 
-(defvar viper-ESC-key "\e" 
-  "Key used to ESC. 
+(defvar viper-ESC-key "\e"
+  "Key used to ESC.
 Must be set in .viper file or prior to loading Viper.
 This setting cannot be changed interactively.")
-  
-;;; Emacs keys in other states.  
+
+;;; Emacs keys in other states.
 
 (defcustom viper-want-emacs-keys-in-insert t
   "*Set to nil if you want complete Vi compatibility in insert mode.
@@ -84,7 +84,7 @@ don't have a convenient Meta key.
 Setting viper-no-multiple-ESC to nil will allow as many multiple ESC,
 as is allowed by the major mode in effect."
   :type 'boolean
-  :group 'viper) 
+  :group 'viper)
 
 (defcustom viper-want-ctl-h-help nil
   "*If non-nil, C-h gets bound to help-command; otherwise, C-h gets the usual Vi bindings."
@@ -103,14 +103,14 @@ as is allowed by the major mode in effect."
 ;; keymap used to zap all keymaps other than function-key-map,
 ;; device-function-key-map, etc.
 (defvar viper-overriding-map (make-sparse-keymap))
-  
+
 (viper-deflocalvar viper-vi-local-user-map (make-sparse-keymap)
   "Keymap for user-defined local bindings.
 Useful for changing bindings such as ZZ in certain major modes.
 For instance, in letter-mode, one may want to bind ZZ to
 mh-send-letter.  In a newsreader such as gnus, tin, or rn, ZZ could be bound
 to save-buffers-kill-emacs then post article, etc.")
-(put 'viper-vi-local-user-map 'permanent-local t)	
+(put 'viper-vi-local-user-map 'permanent-local t)
 
 (defvar viper-vi-global-user-map (make-sparse-keymap)
   "Keymap for user-defined global bindings.
@@ -126,11 +126,11 @@ This map is global, shared by all buffers.")
 (defvar viper-vi-diehard-map (make-sparse-keymap)
   "This keymap is in use when the user asks Viper to simulate Vi very closely.
 This happens when viper-expert-level is 1 or 2.  See viper-set-expert-level.")
-  
+
 
 (viper-deflocalvar viper-insert-local-user-map (make-sparse-keymap)
   "Auxiliary map for per-buffer user-defined keybindings in Insert state.")
-(put 'viper-insert-local-user-map 'permanent-local t)	
+(put 'viper-insert-local-user-map 'permanent-local t)
 
 (defvar viper-insert-global-user-map (make-sparse-keymap)
   "Auxiliary map for global user-defined bindings in Insert state.")
@@ -148,16 +148,16 @@ viper-insert-basic-map.  Not recommended, except for novice users.")
 
 (defvar viper-replace-map (make-sparse-keymap)
   "Map used in Viper's replace state.")
-  
+
 (defvar viper-emacs-global-user-map (make-sparse-keymap)
   "Auxiliary map for global user-defined bindings in Emacs state.")
 
 (defvar  viper-emacs-kbd-map  (make-sparse-keymap)
   "This keymap keeps Vi-style kbd macros for emacs mode.")
-  
+
 (viper-deflocalvar viper-emacs-local-user-map  (make-sparse-keymap)
   "Auxiliary map for local user-defined bindings in Emacs state.")
-(put 'viper-emacs-local-user-map 'permanent-local t)  
+(put 'viper-emacs-local-user-map 'permanent-local t)
 
 ;; This keymap should stay empty
 (defvar viper-empty-keymap (make-sparse-keymap))
@@ -170,19 +170,19 @@ viper-insert-basic-map.  Not recommended, except for novice users.")
 
 ;;; Variables used by minor modes
 
-;; Association list of the form 
+;; Association list of the form
 ;; ((major-mode . keymap) (major-mode . keymap) ...)
 ;; Viper uses these keymaps to make user-requested adjustments
 ;; to its Vi state in various major modes.")
 (defvar viper-vi-state-modifier-alist nil)
 
-;; Association list of the form 
+;; Association list of the form
 ;; ((major-mode . keymap) (major-mode . keymap) ...)
 ;; Viper uses these keymaps to make user-requested adjustments
 ;; to its Insert state in various major modes.")
 (defvar viper-insert-state-modifier-alist nil)
 
-;; Association list of the form 
+;; Association list of the form
 ;; ((major-mode . keymap) (major-mode . keymap) ...)
 ;; Viper uses these keymaps to make user-requested adjustments
 ;; to its Emacs state in various major modes.
@@ -240,7 +240,7 @@ viper-insert-basic-map.  Not recommended, except for novice users.")
 (define-key viper-insert-basic-map "\C-d" 'viper-backward-indent)
 (define-key viper-insert-basic-map "\C-w" 'viper-delete-backward-word)
 (define-key viper-insert-basic-map "\C-t" 'viper-forward-indent)
-(define-key viper-insert-basic-map 
+(define-key viper-insert-basic-map
   (if viper-xemacs-p [(shift tab)] [S-tab]) 'viper-insert-tab)
 (define-key viper-insert-basic-map "\C-v" 'quoted-insert)
 (define-key viper-insert-basic-map "\C-?" 'viper-del-backward-char-in-insert)
@@ -420,11 +420,11 @@ viper-insert-basic-map.  Not recommended, except for novice users.")
 
 
 ;;; Minibuffer keymap
-  
+
 
 (defvar viper-minibuffer-map (make-sparse-keymap)
   "Keymap used to modify keys when Minibuffer is in Insert state.")
-  
+
 (define-key viper-minibuffer-map "\C-m" 'viper-exit-minibuffer)
 (define-key viper-minibuffer-map "\C-j" 'viper-exit-minibuffer)
 
@@ -469,7 +469,7 @@ Normally, this would be called from a hook to a major mode or
 on a per buffer basis.
 Usage:
       (viper-add-local-keys state '((key-str . func) (key-str . func)...))   "
-      
+
   (let (map)
     (cond ((eq state 'vi-state)
 	   (if viper-need-new-vi-local-map
@@ -486,7 +486,7 @@ Usage:
 	       (setq viper-emacs-local-user-map (make-sparse-keymap)))
 	   (setq viper-need-new-emacs-local-map nil
 		 map viper-emacs-local-user-map))
-	  (t 
+	  (t
 	   (error
 	    "Invalid state in viper-add-local-keys: %S.  Valid states: vi-state, insert-state or emacs-state" state)))
 
@@ -507,7 +507,7 @@ sanity."
 	viper-emacs-local-user-map (make-sparse-keymap)
 	viper-need-new-emacs-local-map nil)
   (viper-normalize-minor-mode-map-alist))
-    
+
 
 (defun viper-modify-major-mode (mode state keymap)
   "Modify key bindings in a major-mode in a Viper state using a keymap.
@@ -530,16 +530,16 @@ Arguments: (major-mode viper-state keymap)"
     (if (setq elt (assoc mode (eval alist)))
 	(set alist (delq elt (eval alist))))
     (set alist (cons (cons mode keymap) (eval alist)))
-    
+
     ;; Normalization usually doesn't help here, since one needs to
     ;; normalize in the actual buffer where changes to the keymap are
     ;; to take place.  However, it doesn't hurt, and it helps whenever this
     ;; function is actually called from within the affected buffer.
     (viper-normalize-minor-mode-map-alist)
-    
+
     (viper-set-mode-vars-for viper-current-state)))
 
-    
+
 ;; Displays variables that control Viper's keymaps
 (defun viper-debug-keymaps ()
   (interactive)
@@ -575,7 +575,7 @@ Arguments: (major-mode viper-state keymap)"
     (princ (format "viper-insert-global-user-minor-mode:  %S\n"
 		   viper-insert-global-user-minor-mode))
     (princ (format "viper-insert-kbd-minor-mode:  %S\n"
-		   viper-insert-kbd-minor-mode)) 
+		   viper-insert-kbd-minor-mode))
     (princ (format "viper-insert-state-modifier-minor-mode:  %S\n"
 		   viper-insert-state-modifier-minor-mode))
     (princ (format "viper-insert-diehard-minor-mode:  %S\n"
@@ -590,7 +590,7 @@ Arguments: (major-mode viper-state keymap)"
 		   viper-emacs-global-user-minor-mode))
     (princ (format "viper-emacs-state-modifier-minor-mode:  %S\n"
 		   viper-emacs-state-modifier-minor-mode))
-    
+
     (princ (format "\nviper-expert-level  %S\n" viper-expert-level))
     (princ (format "viper-no-multiple-ESC  %S\n" viper-no-multiple-ESC))
     (princ (format "viper-always  %S\n" viper-always))
@@ -599,22 +599,22 @@ Arguments: (major-mode viper-state keymap)"
     (princ (format "viper-ex-style-editing  %S\n"
 		   viper-ex-style-editing))
     (princ (format "viper-want-emacs-keys-in-vi  %S\n"
-		   viper-want-emacs-keys-in-vi)) 
+		   viper-want-emacs-keys-in-vi))
     (princ (format "viper-want-emacs-keys-in-insert  %S\n"
-		   viper-want-emacs-keys-in-insert)) 
+		   viper-want-emacs-keys-in-insert))
     (princ (format "viper-want-ctl-h-help  %S\n" viper-want-ctl-h-help))
-    
+
     (princ "\n\n\n")
     (princ (format "Default value for minor-mode-map-alist:  \n%S\n\n"
 		   (default-value 'minor-mode-map-alist)))
     (princ (format "Actual value for minor-mode-map-alist:  \n%S\n"
 		   minor-mode-map-alist))
     ))
-   
+
 
 ;;; Keymap utils
-	     
-(defun viper-add-keymap (mapsrc mapdst) 
+
+(defun viper-add-keymap (mapsrc mapdst)
   "Add contents of mapsrc to mapdst.  It is assumed that mapsrc is sparse."
   (viper-cond-compile-for-xemacs-or-emacs
    ;; xemacs
@@ -624,11 +624,11 @@ Arguments: (major-mode viper-state keymap)"
    (mapcar (lambda (p) (define-key mapdst (vector (car p)) (cdr p)))
 	   (cdr mapsrc))
    ))
-  
+
 (defun viper-modify-keymap (map alist)
    "Modifies MAP with bindings specified in the ALIST.  The alist has the
 form ((key . function) (key . function) ... )."
-   (mapcar (lambda (p) (define-key map (eval (car p)) (cdr p))) 
+   (mapcar (lambda (p) (define-key map (eval (car p)) (cdr p)))
 	   alist))
 
 

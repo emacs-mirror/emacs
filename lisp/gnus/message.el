@@ -3635,7 +3635,7 @@ than 988 characters long, and if they are not, trim them until they are."
 				 (cdr item)))
 			      headers)
 		      nil switch-function yank-action actions)))))
- 
+
 (eval-when-compile (defvar mc-modes-alist))
 (defun message-setup-1 (headers &optional replybuffer actions)
   (when (and (boundp 'mc-modes-alist)
@@ -4164,7 +4164,7 @@ The form is: [Source] Subject, where if the original message was mail,
 Source is the sender, and if the original message was news, Source is
 the list of newsgroups is was posted to."
   (concat "["
-	   (let ((prefix 
+	   (let ((prefix
 		  (or (message-fetch-field "newsgroups")
 		      (message-fetch-field "from")
 		      "(nowhere)")))
@@ -4305,7 +4305,7 @@ Optional DIGEST will use digest to forward."
   "Let RMAIL uses message to forward."
   (interactive)
   (setq rmail-enable-mime-composing t)
-  (setq rmail-insert-mime-forwarded-message-function 
+  (setq rmail-insert-mime-forwarded-message-function
 	'message-forward-rmail-make-body))
 
 ;;;###autoload
@@ -4498,7 +4498,7 @@ which specify the range to operate on."
 (eval-when-compile (defvar tool-bar-map))
 (if (featurep 'xemacs)
     (require 'messagexmas)
-  (when (and 
+  (when (and
 	 (condition-case nil (require 'tool-bar) (error nil))
 	 (fboundp 'tool-bar-add-item-from-menu)
 	 tool-bar-mode)
@@ -4508,7 +4508,7 @@ which specify the range to operate on."
  	(dolist (key '(print-buffer kill-buffer save-buffer write-file
  				    dired open-file))
  	  (define-key tool-bar-map (vector key) nil))
- 
+
  	(tool-bar-add-item-from-menu
  	 'message-send-and-exit "mail_send" message-mode-map)
  	(tool-bar-add-item-from-menu

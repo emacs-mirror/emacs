@@ -185,7 +185,7 @@ restored to their original values when `pc-selection-mode' is toggled off.")
 	   ([C-up]      . backward-paragraph-nomark) ; KPrevPara     cUp
 	   ([S-C-down]  . forward-paragraph-mark)
 	   ([S-C-up]    . backward-paragraph-mark))))
-    
+
     (setq pc-select-default-key-bindings lst)))
 
 (defvar pc-select-extra-key-bindings nil
@@ -219,7 +219,7 @@ restored to their original values when `pc-selection-mode' is toggled off.")
 	   ([C-M-delete]  . kill-sexp)
 	   ;; Next line proposed by Eli Barzilay
 	   ([C-escape]    . electric-buffer-list))))
-    
+
     (setq pc-select-extra-key-bindings lst)))
 
 (defvar pc-select-meta-moves-sexps-key-bindings
@@ -773,7 +773,7 @@ restore the previous value of that key binding from SAVED-MAP."
 (defmacro pc-select-add-to-alist (alist var val)
   "Ensure that ALIST contains the cons cell (VAR . VAL).
 If a cons cell whose car is VAR is already on the ALIST, update the
-cdr of that cell with VAL.  Otherwise, make a new cons cell 
+cdr of that cell with VAL.  Otherwise, make a new cons cell
 \(VAR . VAL), and prepend it onto ALIST."
   (let ((elt (make-symbol "elt")))
     `(let ((,elt (assq ',var ,alist)))
@@ -803,7 +803,7 @@ variable MODE-VAR (instead of the value of the variable MODE) on
      (,mode ,arg)))
 
 (defmacro pc-select-restore-var (var)
-  "Restore the previous value of the variable VAR. 
+  "Restore the previous value of the variable VAR.
 Look up VAR's previous value in `pc-select-saved-settings-alist', and,
 if the value is found, set VAR to that value."
   (let ((elt (make-symbol "elt")))
@@ -919,7 +919,7 @@ but before calling `pc-selection-mode'):
 	    ;; (setq-default normal-erase-is-backspace t)
 	    ;; However, the documentation for the variable says that
 	    ;; "setting it with setq has no effect", so I'm removing it.
-      
+
 	    (pc-select-save-and-set-var highlight-nonselected-windows nil)
 	    (pc-select-save-and-set-var transient-mark-mode t)
 	    (pc-select-save-and-set-var mark-even-if-inactive t)
@@ -966,7 +966,7 @@ but before calling `pc-selection-mode'):
 	     pc-select-old-M-delete-binding))
       (setq pc-select-key-bindings-alist nil
 	    pc-select-saved-settings-alist nil))))
-  
+
 
 ;;;###autoload
 (defcustom pc-selection-mode nil

@@ -523,7 +523,7 @@ for decoding and encoding files, process I/O, etc."
    coding-category-iso-8-else
    coding-category-emacs-mule
    coding-category-raw-text
-   coding-category-sjis 
+   coding-category-sjis
    coding-category-big5
    coding-category-ccl
    coding-category-binary

@@ -36,7 +36,7 @@
 ;; M-x hide-ifdefs  or C-c @ h
 ;;
 ;; Hide-ifdef suppresses the display of code that the preprocessor wouldn't
-;; pass through.  The support of constant expressions in #if lines is 
+;; pass through.  The support of constant expressions in #if lines is
 ;; limited to identifiers, parens, and the operators: &&, ||, !, and
 ;; "defined".  Please extend this.
 ;;
@@ -45,7 +45,7 @@
 ;; still in the buffer, and you can move the point into it and modify
 ;; text unawares.
 ;; You can make your buffer read-only while hide-ifdef-hiding by setting
-;; hide-ifdef-read-only to a non-nil value.  You can toggle this 
+;; hide-ifdef-read-only to a non-nil value.  You can toggle this
 ;; variable with hide-ifdef-toggle-read-only (C-c @ C-q).
 ;;
 ;; You can undo the effect of hide-ifdefs by typing
@@ -58,7 +58,7 @@
 ;; If you define or undefine a symbol while hide-ifdef-mode is in effect,
 ;; the display will be updated.  Only the define list for the current
 ;; buffer will be affected.  You can save changes to the local define
-;; list with hide-ifdef-set-define-alist.  This adds entries 
+;; list with hide-ifdef-set-define-alist.  This adds entries
 ;; to hide-ifdef-define-alist.
 ;;
 ;; If you have defined a hide-ifdef-mode-hook, you can set
@@ -179,7 +179,7 @@ how the hiding is done:
 	is used.
 
 `hide-ifdef-define-alist'
-	An association list of defined symbol lists.  
+	An association list of defined symbol lists.
         Use `hide-ifdef-set-define-alist' to save the current `hide-ifdef-env'
         and `hide-ifdef-use-define-alist' to set the current `hide-ifdef-env'
         from one of the lists in `hide-ifdef-define-alist'.
@@ -220,7 +220,7 @@ how the hiding is done:
     (remove-from-invisibility-spec '(hide-ifdef . t))
     (if hide-ifdef-hiding
 	(show-ifdefs))))
-  
+
 
 (defun hif-show-all ()
   "Show all of the text in the current buffer."
@@ -420,7 +420,7 @@ that form should be displayed.")
       (hif-nexttoken)
       (setq result (list math-op result (hif-factor))))
   result))
-  
+
 (defun hif-factor ()
   "Parse a factor: '!' factor | '(' expr ')' | 'defined(' id ')' | id."
   (cond
@@ -720,7 +720,7 @@ Point is left unchanged."
 	(setq end (point)))	       ; (save-excursion (end-of-line) (point))
       (hif-make-range start end else))))
 
-	  
+
 ;;; A bit slimy.
 
 (defun hif-hide-line (point)
@@ -730,13 +730,13 @@ Point is left unchanged."
 	(goto-char point)
 	(hide-ifdef-region-internal (line-beginning-position)
 				    (progn (hif-end-of-line) (point))))))
-		  
+
 
 ;;;  Hif-Possibly-Hide
 ;;;  There are four cases.  The #ifX expression is "taken" if it
 ;;;  the hide-ifdef-evaluator returns T.  Presumably, this means the code
 ;;;  inside the #ifdef would be included when the program was
-;;;  compiled.  
+;;;  compiled.
 ;;;
 ;;;  Case 1:  #ifX taken, and there's an #else.
 ;;;	The #else part must be hidden.  The #if (then) part must be
@@ -771,7 +771,7 @@ It uses the judgement of `hide-ifdef-evaluator'."
   (let ((test (hif-canonicalize))
 	(range (hif-find-range)))
     ;; (message "test = %s" test) (sit-for 1)
-      
+
     (hif-hide-line (hif-range-end range))
     (if (not (hif-not (funcall hide-ifdef-evaluator test)))
 	(cond ((hif-range-else range)	; case 1
@@ -851,7 +851,7 @@ It does not do the work that's pointless to redo on a recursive entry."
 	    hif-outside-read-only))
   (force-mode-line-update))
 
-      
+
 (defun hide-ifdef-define (var)
   "Define a VAR so that #ifdef VAR would be included."
   (interactive "SDefine what? ")
@@ -866,8 +866,8 @@ It does not do the work that's pointless to redo on a recursive entry."
 
 
 (defun hide-ifdefs (&optional nomsg)
-  "Hide the contents of some #ifdefs.  
-Assume that defined symbols have been added to `hide-ifdef-env'.  
+  "Hide the contents of some #ifdefs.
+Assume that defined symbols have been added to `hide-ifdef-env'.
 The text hidden is the text that would not be included by the C
 preprocessor if it were given the file with those symbols defined.
 

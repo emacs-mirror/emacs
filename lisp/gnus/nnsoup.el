@@ -257,7 +257,7 @@ backend for the messages.")
 		  (nth 1 (nnsoup-article-to-area
 			  article nnsoup-current-group))))))
       (cond ((= kind ?m) 'mail)
-	    ((= kind ?n) 'news) 
+	    ((= kind ?n) 'news)
 	    (t 'unknown)))))
 
 (deffoo nnsoup-close-group (group &optional server)

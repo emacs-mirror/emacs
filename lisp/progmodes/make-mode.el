@@ -210,7 +210,7 @@ to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \"it seems necessary\"."
 
 ;;
 ;; Special targets for DMake, Sun's make ...
-;; 
+;;
 (defcustom makefile-special-targets-list
   '(("DEFAULT")      ("DONE")        ("ERROR")        ("EXPORT")
     ("FAILED")       ("GROUPEPILOG") ("GROUPPROLOG")  ("IGNORE")

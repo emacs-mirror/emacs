@@ -403,16 +403,16 @@ which see."
 (defun last-sexp-setup-props (beg end value alt1 alt2)
   "Set up text properties for the output of `eval-last-sexp-1'.
 BEG and END are the start and end of the output in current-buffer.
-VALUE is the Lisp value printed, ALT1 and ALT2 are strings for the 
+VALUE is the Lisp value printed, ALT1 and ALT2 are strings for the
 alternative printed representations that can be displayed."
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-m" 'last-sexp-toggle-display)
     (define-key map [down-mouse-2] 'mouse-set-point)
     (define-key map [mouse-2] 'last-sexp-toggle-display)
     (add-text-properties
-     beg end 
+     beg end
      `(printed-value (,value ,alt1 ,alt2)
-		     mouse-face highlight 
+		     mouse-face highlight
 		     keymap ,map
 		     help-echo "RET, mouse-2: toggle abbreviated display"
 		     rear-nonsticky (mouse-face keymap help-echo
@@ -430,7 +430,7 @@ alternative printed representations that can be displayed."
 	    (point (point)))
 	(delete-region beg end)
 	(insert (nth 1 value))
-	(last-sexp-setup-props beg (point) 
+	(last-sexp-setup-props beg (point)
 			       (nth 0 value)
 			       (nth 2 value)
 			       (nth 1 value))
@@ -508,7 +508,7 @@ With argument, print output into current buffer."
 			 (not (null print-level)))
 		     (not (string= unabbreviated
 				   (buffer-substring-no-properties beg end))))
-	    (last-sexp-setup-props beg end value 
+	    (last-sexp-setup-props beg end value
 				   unabbreviated
 				   (buffer-substring-no-properties beg end))
 	    ))))))

@@ -1368,7 +1368,7 @@ lexical closures as in Common Lisp."
 			  (set (car cl-closure-vars) [bad-lexical-ref])
 			  (list (car x) (cadr x) (car cl-closure-vars))))
 		       bindings))
-	 (ebody 
+	 (ebody
 	  (cl-macroexpand-all
 	   (cons 'progn body)
 	   (nconc (mapcar (function (lambda (x)

@@ -80,7 +80,7 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
   :type 'hook
   :group 'gomoku)
 
-;;; 
+;;;
 ;;; CONSTANTS FOR BOARD
 ;;;
 
@@ -840,7 +840,7 @@ Use \\[describe-mode] for more info."
 		     gomoku-square-height)
 		  1)
 	     gomoku-board-height))))
-  
+
 (defun gomoku-mouse-play (click)
   "Play at the square where you click."
   (interactive "e")

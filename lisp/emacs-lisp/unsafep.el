@@ -212,7 +212,7 @@ of symbols with local bindings."
 (defun unsafep-function (fun)
   "Return nil if FUN is a safe function
 \(either a safe lambda or a symbol that names a safe function).  Otherwise
-result is a reason code." 
+result is a reason code."
   (cond
    ((eq (car-safe fun) 'lambda)
     (unsafep fun unsafep-vars))

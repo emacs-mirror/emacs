@@ -316,7 +316,7 @@ the following:
 GROUP: Mail will be stored in GROUP (a string).
 
 \(FIELD VALUE [- RESTRICT [- RESTRICT [...]]] SPLIT): If the message
-  field FIELD (a regexp) contains VALUE (a regexp), store the messages 
+  field FIELD (a regexp) contains VALUE (a regexp), store the messages
   as specified by SPLIT.  If RESTRICT (a regexp) matches some string
   after FIELD and before the end of the matched VALUE, return nil,
   otherwise process SPLIT.  Multiple RESTRICTs add up, further
@@ -364,12 +364,12 @@ Example:
 	     (any \"procmail@informatik\\\\.rwth-aachen\\\\.de\" \"procmail.list\")
 	     (any \"SmartList@informatik\\\\.rwth-aachen\\\\.de\" \"SmartList.list\")
              ;; Both lists below have the same suffix, so prevent
-             ;; cross-posting to mkpkg.list of messages posted only to 
+             ;; cross-posting to mkpkg.list of messages posted only to
              ;; the bugs- list, but allow cross-posting when the
              ;; message was really cross-posted.
              (any \"bugs-mypackage@somewhere\" \"mypkg.bugs\")
              (any \"mypackage@somewhere\" - \"bugs-mypackage\" \"mypkg.list\")
-             ;; 
+             ;;
 	     ;; People...
 	     (any \"larsi@ifi\\\\.uio\\\\.no\" \"people.Lars Magne Ingebrigtsen\"))
 	  ;; Unmatched mail goes to the catch all group.
@@ -1047,7 +1047,7 @@ Return the number of characters in the body."
   (let (lines chars)
     (save-excursion
       (goto-char (point-min))
-      (unless (search-forward "\n\n" nil t) 
+      (unless (search-forward "\n\n" nil t)
 	(goto-char (point-max))
 	(insert "\n"))
       (setq chars (- (point-max) (point)))

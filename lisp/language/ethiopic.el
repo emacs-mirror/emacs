@@ -59,7 +59,7 @@
 	      (input-method . "ethiopic")
 	      (features ethio-util)
 	      (sample-text . "$(3$Q#U!.(B")
-	      (documentation . 
+	      (documentation .
 "This language envrironment provides these function key bindings
     \(old bindings are shown in parentheses):
     [f3]   ethio-fidel-to-sera-buffer         (f5)

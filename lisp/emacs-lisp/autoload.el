@@ -318,7 +318,7 @@ are used."
 			    (setq autoload form))
 			  (let ((autoload-print-form-outbuf outbuf))
 			    (autoload-print-form autoload)))
-	 
+
 		      ;; Copy the rest of the line to the output.
 		      (princ (buffer-substring
 			      (progn

@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-(eval-when-compile 
+(eval-when-compile
   (require 'cl))
 
 (require 'gnus-sum)
@@ -40,13 +40,13 @@
     (while (setq header (pop headers))
       (unless (eq (aref header 0) art)
 	(mm-with-unibyte-buffer
-	  (gnus-request-article-this-buffer (aref header 0) 
+	  (gnus-request-article-this-buffer (aref header 0)
 					    gnus-newsgroup-name)
 	  (when (search-forward id nil t)
 	    (let ((nhandles (mm-dissect-buffer)) nid)
 	      (if (consp (car nhandles))
 		  (mm-destroy-parts nhandles)
-		(setq nid (cdr (assq 'id 
+		(setq nid (cdr (assq 'id
 				     (cdr (mm-handle-type nhandles)))))
 		(if (not (equal id nid))
 		    (mm-destroy-parts nhandles)
@@ -56,10 +56,10 @@
 ;;;###autoload
 (defun mm-inline-partial (handle &optional no-display)
   "Show the partial part of HANDLE.
-This function replaces the buffer of HANDLE with a buffer contains 
+This function replaces the buffer of HANDLE with a buffer contains
 the entire message.
 If NO-DISPLAY is nil, display it. Otherwise, do nothing after replacing."
-  (let ((id (cdr (assq 'id (cdr (mm-handle-type handle))))) 
+  (let ((id (cdr (assq 'id (cdr (mm-handle-type handle)))))
 	phandles
 	(b (point)) (n 1) total
 	phandle nn ntotal
@@ -68,18 +68,18 @@ If NO-DISPLAY is nil, display it. Otherwise, do nothing after replacing."
       (unless id
 	(error "Can not find message/partial id"))
       (setq phandles
-	    (sort (cons handle 
+	    (sort (cons handle
 			(mm-partial-find-parts
-			 id 
+			 id
 			 (save-excursion
 			   (set-buffer gnus-summary-buffer)
 			   (gnus-summary-article-number))))
 		  #'(lambda (a b)
-		      (let ((anumber (string-to-number 
-				      (cdr (assq 'number 
+		      (let ((anumber (string-to-number
+				      (cdr (assq 'number
 						 (cdr (mm-handle-type a))))))
-			    (bnumber (string-to-number 
-				      (cdr (assq 'number 
+			    (bnumber (string-to-number
+				      (cdr (assq 'number
 						 (cdr (mm-handle-type b)))))))
 			(< anumber bnumber)))))
       (setq gnus-article-mime-handles
@@ -90,15 +90,15 @@ If NO-DISPLAY is nil, display it. Otherwise, do nothing after replacing."
       (save-excursion
 	(set-buffer (generate-new-buffer " *mm*"))
 	(while (setq phandle (pop phandles))
-	  (setq nn (string-to-number 
-		    (cdr (assq 'number 
+	  (setq nn (string-to-number
+		    (cdr (assq 'number
 			       (cdr (mm-handle-type phandle))))))
-	  (setq ntotal (string-to-number 
-			(cdr (assq 'total 
+	  (setq ntotal (string-to-number
+			(cdr (assq 'total
 				   (cdr (mm-handle-type phandle))))))
 	  (if ntotal
 	      (if total
-		  (unless (eq total ntotal) 
+		  (unless (eq total ntotal)
 		  (error "The numbers of total are different"))
 		(setq total ntotal)))
 	  (unless (< nn n)
@@ -134,7 +134,7 @@ If NO-DISPLAY is nil, display it. Otherwise, do nothing after replacing."
 		  (nconc (if (listp (car gnus-article-mime-handles))
 			   gnus-article-mime-handles
 			   (list gnus-article-mime-handles))
-			 (if (listp (car handles)) 
+			 (if (listp (car handles))
 			     handles (list handles)))))
 	  (mm-handle-set-undisplayer
 	   handle

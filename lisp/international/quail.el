@@ -147,7 +147,7 @@ See the documentation of `quail-define-package' for the other elements.")
 	title
       (condition-case nil
 	  (mapconcat
-	   (lambda (x) 
+	   (lambda (x)
 	     (cond ((stringp x) x)
 		   ((and (listp x) (symbolp (car x)) (= (length x) 3))
 		    (if (symbol-value (car x))
@@ -2404,7 +2404,7 @@ should be made by `quail-build-decode-map' (which see)."
 
 (define-button-type 'quail-keyboard-layout-button
   :supertype 'help-xref
-  'help-function '(lambda (layout) 
+  'help-function '(lambda (layout)
 		    (help-setup-xref `(quail-keyboard-layout-button ,layout) nil)
 		    (quail-show-keyboard-layout layout))
   'help-echo (purecopy "mouse-2, RET: show keyboard layout"))

@@ -75,7 +75,7 @@
 				   prj)))
     (if (not (string= (file-name-extension filename t) ".adp"))
 	(error "File name extension for project files must be .adp"))
-    
+
     (ada-customize nil filename)))
 
 (defun ada-prj-edit ()
@@ -105,19 +105,19 @@ project file is found, returns the default values."
       ;; Else use the active one
       (set 'prj ada-prj-default-project-file))
 
-       
+
     (if (and prj
 	     (not (string= prj ""))
 	     (assoc prj ada-xref-project-files))
 	(set symbol (copy-sequence (cdr (assoc prj ada-xref-project-files))))
-      
+
       ;;  Set default values (except for the file name if this was given
       ;;  in the buffer
       (ada-xref-set-default-prj-values symbol ada-buffer)
       (if (and prj (not (string= prj "")))
 	  (set symbol (plist-put (eval symbol) 'filename prj)))
       )))
-    
+
 
 (defun ada-prj-save-specific-option (field)
   "Returns the string to print in the project file to save FIELD.
@@ -138,7 +138,7 @@ If the current value of FIELD is the default value, returns an empty string."
 
 	  ;;  Save the fields that do not depend on the current buffer
 	  ;;  only if they are different from the default value
-	  
+
 	  (ada-prj-save-specific-option 'comp_opt)
 	  (ada-prj-save-specific-option 'bind_opt)
 	  (ada-prj-save-specific-option 'link_opt)
@@ -173,7 +173,7 @@ If the current value of FIELD is the default value, returns an empty string."
 			    (plist-get ada-prj-current-values 'debug_post_cmd))
 	  "\n"
 	  ))
-    
+
     (find-file file-name)
     (erase-buffer)
     (insert output)
@@ -264,9 +264,9 @@ The current buffer must be the project editing buffer."
 	      widget-field-list nil)
 	(mapcar (lambda (x) (delete-overlay x)) (car (overlay-lists)))
 	(mapcar (lambda (x) (delete-overlay x)) (cdr (overlay-lists)))))
-  
+
   ;;  Display the tabs
-  
+
   (widget-insert "\n               Project and Editor configuration.\n
   ___________    ____________    ____________    ____________    ____________\n / ")
   (widget-create 'push-button :notify
@@ -286,9 +286,9 @@ The current buffer must be the project editing buffer."
   (widget-insert " \\\n")
 
   ;;  Display the currently selected page
-  
+
   (cond
-   
+
    ;;
    ;;  First page (General)
    ;;
@@ -335,7 +335,7 @@ vxworks, you would enter 'powerpc-wrs-vxworks-'.
 To use JGNAT, enter 'j'.")
     )
 
-   
+
    ;;
    ;;  Second page (Paths)
    ;;
@@ -347,7 +347,7 @@ To use JGNAT, enter 'j'.")
 		(plist-get ada-prj-current-values 'cross_prefix))
 	  (ada-initialize-runtime-library ada-old-cross-prefix)))
 
-    
+
     (widget-insert "/_____________\\/              \\/______________\\/______________\\/______________\\\n")
     (ada-prj-field 'src_dir  "Source directories"
 "Enter the list of directories where your Ada
@@ -363,7 +363,7 @@ and the standard runtime."
                  "\n")
       )
     (widget-insert "\n\n")
-    
+
     (ada-prj-field 'obj_dir  "Object directories"
 "Enter the list of directories where the GNAT
 library files (ALI files) can be found. These
@@ -397,7 +397,7 @@ command and are passed to the binder")
 command and are passed to the linker")
     (ada-prj-field 'gnatmake_opt "Switches for gnatmake"
 "These switches are used in the default gnatmake
-command.")		   
+command.")
     (ada-prj-field 'gnatfind_opt "Switches for gnatfind"
 "The command gnatfind is run every time the Ada/Goto/List_References menu.
 You should for instance add -a if you are working in an environment
@@ -455,7 +455,7 @@ command will be executed on the remote host." t)
 debugger"
 "The following commands are executed one after the other before starting
 the debugger. These can be used to set up your environment." t)
-    
+
     (ada-prj-field 'debug_cmd "Debugging the application"
 "Specifies how to debug the application, possibly
 remotely if remote_machine has been set. We
@@ -469,7 +469,7 @@ recommend the following debuggers:
 started. These can be used to initialize the debugger, for instance to
 connect to the target when working with cross-environments" t)
     )
-   
+
    )
 
 
@@ -505,7 +505,7 @@ If FILENAME is given, edit that file."
     ;;  We can only edit interactively the standard ada-mode project files. If
     ;;  the user is using other formats for the project file (through hooks in
     ;;  `ada-load-project-hook', we simply edit the file
-    
+
     (if (and (not new-file)
 	     (or ada-prj-default-project-file filename)
 	     (string= (file-name-extension
@@ -519,22 +519,22 @@ If FILENAME is given, edit that file."
       ;;  Else start the interactive editor
       (switch-to-buffer "*Customize Ada Mode*")
       (kill-all-local-variables)
-      
+
       (ada-xref-set-default-prj-values 'ada-prj-default-values ada-buffer)
       (ada-prj-initialize-values
        'ada-prj-current-values ada-buffer filename)
-      
+
       (set (make-local-variable 'ada-prj-ada-buffer) ada-buffer)
-      
+
       (use-local-map (copy-keymap custom-mode-map))
       (local-set-key "\C-x\C-s" 'ada-prj-save)
-      
+
       (make-local-variable 'widget-keymap)
       (define-key widget-keymap "\C-x\C-s" 'ada-prj-save)
-      
+
       (set (make-local-variable 'ada-old-cross-prefix)
 	   (ada-xref-get-project-field 'cross-prefix))
-      
+
       (ada-prj-display-page 1)
       )))
 

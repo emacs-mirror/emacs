@@ -47,7 +47,7 @@
 ;; These functions follow the sun-mouse-handler convention of being called
 ;; with three arguments: (window x-pos y-pos)
 ;; This makes it easy for a mouse executed command to know where the mouse is.
-;; Use the macro "eval-in-window" to execute a function 
+;; Use the macro "eval-in-window" to execute a function
 ;; in a temporarily selected window.
 ;;
 ;; If you have a function that must be called with other arguments
@@ -157,8 +157,8 @@ and put the region in the stuff buffer."
 (defun mouse-mark-thing (window x y)
   "Set point and mark to text object using syntax table.
 The resulting region is put in the sun-window stuff buffer.
-Left or right Paren syntax marks an s-expression.  
-Clicking at the end of a line marks the line including a trailing newline.  
+Left or right Paren syntax marks an s-expression.
+Clicking at the end of a line marks the line including a trailing newline.
 If it doesn't recognize one of these it marks the character at point."
   (mouse-move-point window x y)
   (if (eobp) (open-line 1))
@@ -197,7 +197,7 @@ If it doesn't recognize one of these it marks the character at point."
 (defun mouse-kill-thing-there (window x y)
   "Kill thing at mouse, leave point where it was.
 See mouse-mark-thing for a description of the objects recognized."
-  (eval-in-window window 
+  (eval-in-window window
     (save-excursion
       (mouse-mark-thing window x y)
       (kill-region (region-beginning) (region-end))))
@@ -319,7 +319,7 @@ this command is insensitive to mouse location."
 (defun mouse-scroll-proportional (window x y)
   "Scrolls the window proportionally corresponding to window
 relative X divided by window width."
-  (eval-in-window window 
+  (eval-in-window window
     (if (>= x (1- (window-width)))
 	;; When x is maximum (equal to or 1 less than window width),
 	;; goto end of buffer.  We check for this special case
@@ -382,7 +382,7 @@ relative X divided by window width."
   ("Minibuffer"
    mouse-help-region *menu-window* *menu-x* *menu-y* 'minibuffer)
   )
-  
+
 (defmenu emacs-quit-menu
   ("Suspend" suspend-emacstool)
   ("Quit" save-buffers-kill-emacs))
@@ -419,7 +419,7 @@ relative X divided by window width."
 ;;;
 ;;; minibuffer menu
 ;;;
-(defmenu minibuffer-menu 
+(defmenu minibuffer-menu
   ("Minibuffer" message "Just some miscellaneous minibuffer commands")
   ("Stuff" sun-yank-selection)
   ("Do-It" exit-minibuffer)
@@ -439,13 +439,13 @@ relative X divided by window width."
   (mouse-set-mark-and-stuff window (- x 6) 0))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Buffer-mode Mouse commands
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun Buffer-at-mouse (w x y)
   "Calls Buffer-menu-buffer from mouse click."
-  (save-window-excursion 
+  (save-window-excursion
     (mouse-move-point w x y)
     (beginning-of-line)
     (Buffer-menu-buffer t)))
@@ -474,7 +474,7 @@ relative X divided by window width."
     (mouse-move-point w x y)
     (Buffer-menu-execute)
     ))
-  
+
 (defun enable-mouse-in-buffer-list ()
   "Call this to enable mouse selections in *Buffer List*
     LEFT puts the indicated buffer in the selected window.
@@ -486,7 +486,7 @@ To unmark a buffer marked for deletion, select it with LEFT."
     (list-buffers)			; Initialize *Buffer List*
     (set-buffer "*Buffer List*")
     (local-set-mouse '(text middle) 'mouse-buffer-bury)
-    (local-set-mouse '(text left) 'mouse-buffer-select)	    
+    (local-set-mouse '(text left) 'mouse-buffer-select)
     (local-set-mouse '(text right) 'mouse-buffer-delete)
     (local-set-mouse '(text middle right) 'mouse-buffer-execute)
     )

@@ -142,7 +142,7 @@ Vectors work just like lists.  Nested backquotes are permitted."
       ;; Scan this list-level, setting LISTS to a list of forms,
       ;; each of which produces a list of elements
       ;; that should go in this level.
-      ;; The order of LISTS is backwards. 
+      ;; The order of LISTS is backwards.
       ;; If there are non-splicing elements (constant or variable)
       ;; at the beginning, put them in FIRSTLIST,
       ;; as a list of tagged values (TAG . FORM).
@@ -172,7 +172,7 @@ Vectors work just like lists.  Nested backquotes are permitted."
       (if (or rest list)
 	  (setq lists (cons (backquote-listify list (backquote-process rest))
 			    lists)))
-      ;; Turn LISTS into a form that produces the combined list. 
+      ;; Turn LISTS into a form that produces the combined list.
       (setq expression
 	    (if (or (cdr lists)
 		    (eq (car-safe (car lists)) backquote-splice-symbol))

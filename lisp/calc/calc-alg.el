@@ -1,9 +1,9 @@
-;;; calc-alg.el --- algebraic functions for Calc 
+;;; calc-alg.el --- algebraic functions for Calc
 
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org> 
+;; Maintainers: D. Goel <deego@gnufans.org>
 ;;              Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
@@ -70,7 +70,7 @@
    (calc-with-default-simplification
     (let ((math-simplify-only nil))
       (calc-modify-simplify-mode arg)
-      (calc-enter-result 1 "expf" 
+      (calc-enter-result 1 "expf"
 			 (if (> arg 0)
 			     (let ((math-expand-formulas t))
 			       (calc-top-n 1))
@@ -1257,7 +1257,7 @@
       (if (Math-objvecp expr)
 	  (and (eq always 1)
 	       (list expr 1))
-	(and always 
+	(and always
 	     (list 1 expr)))))
 
 (defun calcFunc-lin (expr &optional var)

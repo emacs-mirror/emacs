@@ -2362,7 +2362,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil
   nil
   nil
-  ?\ 
+  ?\
   ?\ก
   ?\ข
   ?\ฃ
@@ -2493,7 +2493,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ť
   ?\ž
   ?\ź
-  ?\ 
+  ?\
   ?\ˇ
   ?\˘
   ?\Ł
@@ -2625,7 +2625,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ќ
   ?\ћ
   ?\џ
-  ?\ 
+  ?\
   ?\Ў
   ?\ў
   ?\Ј
@@ -2757,7 +2757,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil
   nil
   ?\Ÿ
-  ?\ 
+  ?\
   ?\¡
   ?\¢
   ?\£
@@ -2888,7 +2888,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil
   nil
   nil
-  ?\ 
+  ?\
   ?\΅
   ?\Ά
   ?\£
@@ -3020,7 +3020,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil
   nil
   ?\Ÿ
-  ?\ 
+  ?\
   ?\¡
   ?\¢
   ?\£
@@ -3152,7 +3152,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil
   nil
   nil
-  ?\ 
+  ?\
   ?\¡
   ?\¢
   ?\£
@@ -3284,7 +3284,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\آ
   ?\أ
   ?\Ÿ
-  ?\ 
+  ?\
   ?\ؤ
   ?\إ
   ?\£
@@ -3416,7 +3416,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil
   nil
   nil
-  ?\ 
+  ?\
   nil
   ?\¢
   ?\£
@@ -3547,7 +3547,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil
   nil
   ?\Ÿ
-  ?\ 
+  ?\
   ?\¡
   ?\¢
   ?\£
@@ -3646,7 +3646,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 
 (cp-make-coding-system
  next
- [?\ 
+ [?\
   ?\À
   ?\Á
   ?\Â
@@ -3916,7 +3916,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 ;;   Equivalent National Standard:
 ;;     Romanian Standard SR 14111:1998, Romanian Standards Institution
 ;;     (ASRO).
- 
+
 ;; Intended usage:
 
 ;;  "This set of coded graphic characters is intended for use in data and
@@ -3928,9 +3928,9 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 ;;   Slovenian. This set of coded graphic characters may be regarded as a
 ;;   version of an 8-bit code according to ISO/IEC 2022 or ISO/IEC 4873 at
 ;;   level 1." [ISO 8859-16:2001(E), p. 1]
-  
+
 ;;   This charset is suitable for use in MIME text body parts.
-  
+
 ;;   ISO 8859-16 was primarily designed for single-byte encoding the Romanian
 ;;   language. The UTF-8 charset is the preferred and in today's MIME software
 ;;   more widely implemented encoding suitable for Romanian.
@@ -3938,7 +3938,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
  iso-latin-10				; consistent with, e.g. Latin-1
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
   nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
-  ?\ 
+  ?\
   ?\Ą
   ?\ą
   ?\Ł
@@ -4047,7 +4047,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
  iso-8859-6
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
   nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
-  ?\ 
+  ?\
   ?\¤
   ?\،
   ?\­
@@ -4109,7 +4109,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
  iso-latin-6
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
   nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
-  ?\ 
+  ?\
   ?\Ą
   ?\Ē
   ?\Ģ
@@ -4215,7 +4215,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
  iso-latin-7
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
   nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
-  ?\ 
+  ?\
   ?\¡
   ?\¢
   ?\£
@@ -4320,8 +4320,8 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 
 (cp-make-coding-system
  georgian-ps				; used by glibc for ka_GE
- [?\
-  ?\
+ [?\
+  ?\
   ?\‚
   ?\ƒ
   ?\„
@@ -4333,10 +4333,10 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\Š
   ?\‹
   ?\Œ
-  ?\
-  ?\
-  ?\
-  ?\
+  ?\
+  ?\
+  ?\
+  ?\
   ?\‘
   ?\’
   ?\“
@@ -4349,10 +4349,10 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\š
   ?\›
   ?\œ
-  ?\
-  ?\
+  ?\
+  ?\
   ?\Ÿ
-  ?\ 
+  ?\
   ?\¡
   ?\¢
   ?\£
@@ -4730,7 +4730,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?┼ ?╣ ?║ ?╚ ?╔ ?╩ ?╦ ?╠ ?═ ?╬ ?┐ ?░ ?▒ ?▓ ?│ ?┤ ?№ ?§ ?╗ ?╝ ?┘ ?┌ ?█
   ?▄ ?▌ ?▐ ?▀ ?α ?β ?Γ ?π ?Σ ?σ ?μ ?τ ?Φ ?Θ ?Ω ?δ ?∞ ?∅ ?∈ ?∩ ?≡ ?± ?≥
   ?≤ ?⌠ ?⌡ ?÷ ?≈ ?° ?∙ ?· ?√ ?ⁿ ?² ?■ ? ])
-  
+
 ;; Suggested by Anton Zinoviev <anton@lml.bas.bg>: similar to CP1251
 ;; and used for some non-Slavic Cyrillic languages.  Table found at
 ;; <URL:ftp://ftp.logic.ru/pub/logic/linux/cyr-asian/PT154>.  See also
@@ -4744,7 +4744,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?Е ?Ж ?З ?И ?Й ?К ?Л ?М ?Н ?О ?П ?Р ?С ?Т ?У ?Ф ?Х ?Ц ?Ч ?Ш ?Щ ?Ъ ?Ы
   ?Ь ?Э ?Ю ?Я ?а ?б ?в ?г ?д ?е ?ж ?з ?и ?й ?к ?л ?м ?н ?о ?п ?р ?с ?т
   ?у ?ф ?х ?ц ?ч ?ш ?щ ?ъ ?ы ?ь ?э ?ю ?я])
-  
+
 (cp-make-coding-system
  iso-8859-11
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil

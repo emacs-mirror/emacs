@@ -432,7 +432,7 @@
 
 
 (defun calc-alg-digit-entry ()
-  (calc-alg-entry 
+  (calc-alg-entry
    (cond ((eq last-command-char ?e)
 	  (if (> calc-number-radix 14) (format "%d.^" calc-number-radix) "1e"))
 	 ((eq last-command-char ?#) (format "%d#" calc-number-radix))

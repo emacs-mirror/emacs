@@ -149,7 +149,7 @@ Strings will be separated from each other by SPACE lines."
       (animate-string (car list-of-strings) vpos)
       (setq vpos (+ vpos space 1))
       (setq list-of-strings (cdr list-of-strings)))))
- 
+
 ;;;###autoload
 (defun animate-birthday-present ()
   "Display Sarah's birthday present in a new buffer."

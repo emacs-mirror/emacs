@@ -53,7 +53,7 @@
     "         @@      " "          @@     " "           @@    "
     "            @@   " "             @@  " "              @@ "
     "               @@")
-   ("@@@@@@@@@" "@   @   @" "@ @@@@@ @" "@ @   @ @" "@@@   @@@" 
+   ("@@@@@@@@@" "@   @   @" "@ @@@@@ @" "@ @   @ @" "@@@   @@@"
     "@ @   @ @" "@ @@@@@ @" "@   @   @" "@@@@@@@@@")]
   "Vector of rectangles containing some Life startup patterns.")
 
@@ -265,7 +265,7 @@ generations (this defaults to 1)."
 (defun life-display-generation (sleeptime)
   (goto-char life-window-start)
   (recenter 0)
-  
+
   ;; Redisplay; if the user has hit a key, exit the loop.
   (or (eq t (sit-for sleeptime))
       (throw 'life-exit nil)))

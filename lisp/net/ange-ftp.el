@@ -428,7 +428,7 @@
 ;; ange-ftp-bs2000-special-prefix because names starting with # or @
 ;; are reserved for temporary files.
 ;; This is especially important for auto-save files.
-;; Valid file generations are ending with ([+|-|*]0-9...) . 
+;; Valid file generations are ending with ([+|-|*]0-9...) .
 ;; File generations are not supported yet!
 ;; A filename must at least contain one character (A-Z) and cannot be longer
 ;; than 41 characters.

@@ -116,7 +116,7 @@ the regular expression `comint-prompt-regexp', a buffer local variable."
   "Non-nil means that `inferior-octave-complete' is impossible.")
 
 (defvar inferior-octave-dynamic-complete-functions
-  '(inferior-octave-complete comint-dynamic-complete-filename)  
+  '(inferior-octave-complete comint-dynamic-complete-filename)
   "List of functions called to perform completion for inferior Octave.
 This variable is used to initialize `comint-dynamic-complete-functions'
 in the Inferior Octave buffer.")
@@ -138,12 +138,12 @@ Entry to this mode successively runs the hooks `comint-mode-hook' and
   (use-local-map inferior-octave-mode-map)
   (set-syntax-table inferior-octave-mode-syntax-table)
 
-  (make-local-variable 'comment-start)  
+  (make-local-variable 'comment-start)
   (setq comment-start octave-comment-start)
   (make-local-variable 'comment-end)
   (setq comment-end "")
   (make-local-variable 'comment-column)
-  (setq comment-column 32)    
+  (setq comment-column 32)
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip octave-comment-start-skip)
 
@@ -227,7 +227,7 @@ startup file, `~/.emacs-octave'."
       (setq commands
 	    (list "page_screen_output = 0;\n"
 		  (if (not (string-equal
-			    inferior-octave-output-string ">> ")) 
+			    inferior-octave-output-string ">> "))
 		      "PS1=\"\\\\s> \";\n")
 		  (if (file-exists-p file)
 		      (format "source (\"%s\");\n" file))))

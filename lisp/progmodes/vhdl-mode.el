@@ -605,7 +605,7 @@ begin  -- process <label>
     <cursor>
   elsif <clock>'event and <clock> = '1' then  -- rising clock edge
     if <enable> = '1' then  -- synchronous load
-      
+
     end if;
   end if;
 end process <label>;"

@@ -77,7 +77,7 @@ If value is a list, each line in a multipleline continued statement
 will have the car of the list extra indentation with respect to
 the previous line of the statement.")
 
-(defcustom simula-continued-statement-offset 
+(defcustom simula-continued-statement-offset
   simula-continued-statement-offset-default
   "*Extra indentation for lines not starting a statement or substatement.
 If value is a list, each line in a multipleline continued statement
@@ -201,7 +201,7 @@ for SIMULA mode to function correctly."
 	    "spect\\)\\)\\|l\\([et]\\|abel\\)\\|n\\(ew?\\|ot\\)\\|"
 	    "o\\(r\\|therwise\\)\\|pr\\(ior\\|otected\\)\\|qua\\|"
 	    "reactivate\\|s\\(tep\\|witch\\)\\|t\\(h\\(en\\|is\\)\\|o\\)\\|"
-	    "until\\|virtual\\|wh\\(en\\|ile\\)"	    
+	    "until\\|virtual\\|wh\\(en\\|ile\\)"
 	    "\\)\\>")
     ;;
     ;; Types.
@@ -496,7 +496,7 @@ at all."
 		  (simula-indent-line))
 	      (forward-line 1)))
 	(and end (set-marker end nil))))))
-      
+
 
 (defun simula-indent-line ()
   "Indent this line as SIMULA code.
@@ -728,7 +728,7 @@ The relative indentation among the lines of the statement are preserved."
 	      (delete-horizontal-space)
 	      (indent-to amount)))
       (goto-char (- (point-max) origin)))))
-	
+
 
 (defun simula-backward-up-level (count)
   "Move backward up COUNT block levels.
@@ -797,7 +797,7 @@ If COUNT is negative, move backward down block level instead."
 	      (goto-char origin)
 	      (signal 'quit nil))))))
 
-     
+
 (defun simula-previous-statement (count)
   "Move backward COUNT statements.
 If COUNT is negative, move forward instead."
@@ -808,7 +808,7 @@ If COUNT is negative, move forward instead."
 	  (case-fold-search t)
 	  (origin (point)))
       (condition-case ()
-	  ;; 
+	  ;;
 	  (progn
 	    (simula-skip-comment-backward)
 	    (if (memq (preceding-char) '(?n ?N))
@@ -1104,7 +1104,7 @@ If COUNT is negative, move backward instead."
 	    ;; (at or before comment or label)
 	    ;; temp = t means finished
 	    (setq temp
-		  (and (not (simula-context))			
+		  (and (not (simula-context))
 		       (save-excursion
 			 (skip-chars-forward " \t\f")
 			 (or (looking-at "virtual")
@@ -1443,7 +1443,7 @@ If not nil and not t, move to limit of search and return nil."
 	  nil
 	(signal 'search-failed (list regexp))))))
 
-  
+
 (defun simula-install-standard-abbrevs ()
   "Define Simula keywords, procedures and classes in local abbrev table."
   ;; procedure and class names are as of the SIMULA 87 standard.

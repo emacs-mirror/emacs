@@ -28,7 +28,7 @@
 ;; To use this library load it using
 ;;                 M-x load-library [enter] ogonek
 ;;              Then, you may get a short info by calling one of
-;;                 M-x ogonek-jak        -- in Polish  
+;;                 M-x ogonek-jak        -- in Polish
 ;;                 M-x ogonek-how        -- in English  "
 
 ;;; Code:
@@ -39,29 +39,29 @@
   :group 'i18n)
 
 (defconst ogonek-name-encoding-alist
-  '(("ascii"      . (?A  ?C  ?E  ?L  ?N  ?O  ?S  ?Z  ?Z 
-                     ?a  ?c  ?e  ?l  ?n  ?o  ?s  ?z  ?z)) 
-    ("iso8859-2"  . (161 198 202 163 209 211 166 172 175 
-                     177 230 234 179 241 243 182 188 191))    
-    ("mazovia"    . (143 149 144 156 165 163 152 160 161 
+  '(("ascii"      . (?A  ?C  ?E  ?L  ?N  ?O  ?S  ?Z  ?Z
+                     ?a  ?c  ?e  ?l  ?n  ?o  ?s  ?z  ?z))
+    ("iso8859-2"  . (161 198 202 163 209 211 166 172 175
+                     177 230 234 179 241 243 182 188 191))
+    ("mazovia"    . (143 149 144 156 165 163 152 160 161
                      134 141 145 146 164 162 158 166 167))
-    ("windows-EE" . (165 198 202 163 209 211 140 143 175 
+    ("windows-EE" . (165 198 202 163 209 211 140 143 175
                      185 230 234 179 241 243 156 159 191))
-    ("windows-PL" . (165 198 202 163 209 211 140 143 175 
+    ("windows-PL" . (165 198 202 163 209 211 140 143 175
                      185 230 234 179 241 243 156 159 191))
-    ("latin-2"    . (164 143 168 157 227 224 151 141 189 
+    ("latin-2"    . (164 143 168 157 227 224 151 141 189
                      165 134 169 136 228 162 152 171 190))
-    ("CP852"      . (164 143 168 157 227 224 151 141 189 
+    ("CP852"      . (164 143 168 157 227 224 151 141 189
                      165 134 169 136 228 162 152 171 190))
-    ("MeX"        . (129 130 134 138 139 211 145 153 155 
+    ("MeX"        . (129 130 134 138 139 211 145 153 155
                      161 162 166 170 171 243 177 185 187))
-    ("CorelDraw"  . (197 242 201 163 209 211 255 225 237 
+    ("CorelDraw"  . (197 242 201 163 209 211 255 225 237
                      229 236 230 198 241 243 165 170 186))
-    ("Amiga"      . (194 202 203 206 207 211 212 218 219 
+    ("Amiga"      . (194 202 203 206 207 211 212 218 219
                      226 234 235 238 239 243 244 250 251))
-    ("Mac"        . (132 140 162 252 193 238 229 143 251 
+    ("Mac"        . (132 140 162 252 193 238 229 143 251
                      136 141 171 184 196 151 230 144 253))
- ) 
+ )
   "The constant `ogonek-name-encoding-alist' is a list of (NAME.LIST) pairs.
 Each LIST contains codes for 18 Polish diacritic characters. The codes
 are given in the following order:
@@ -74,49 +74,49 @@ are given in the following order:
   "   FUNKCJE INTERAKCYJNE UDOST/EPNIANE PRZEZ BIBLIOTEK/E `ogonek'.
 
 Je/sli czytasz ten tekst, to albo przegl/adasz plik /xr/od/lowy
-biblioteki `ogonek.el', albo wywo/la/le/s polecenie `ogonek-jak'. 
-W drugim przypadku mo/zesz usun/a/c tekst z ekranu, stosuj/ac 
+biblioteki `ogonek.el', albo wywo/la/le/s polecenie `ogonek-jak'.
+W drugim przypadku mo/zesz usun/a/c tekst z ekranu, stosuj/ac
 polecenie `M-x kill-buffer'.
 
 Niniejsza biblioteka dostarcza funkcji do zmiany kodowania polskich
 znak/ow diakrytycznych. Funkcje te mo/zna pogrupowa/c nast/epuj/aco.
 
- 1. `ogonek-recode-region' oraz `ogonek-recode-buffer' 
-    przekodowuj/a zaznaczony fragment wzgl/ednie ca/ly buffor.    
+ 1. `ogonek-recode-region' oraz `ogonek-recode-buffer'
+    przekodowuj/a zaznaczony fragment wzgl/ednie ca/ly buffor.
     Po wywo/laniu interakcyjnym funkcji zadawane s/a
     pytania o parametry przekodowania: nazw/e kodowania
-    w tek/scie /xr/od/lowym i nazw/e kodowania docelowego. 
-    Poni/zsze przyk/lady powinny wyja/sni/c, jakich parametr/ow 
+    w tek/scie /xr/od/lowym i nazw/e kodowania docelowego.
+    Poni/zsze przyk/lady powinny wyja/sni/c, jakich parametr/ow
     oczekuj/a wymienione funkcje:
 
       (ogonek-recode-region (poczatek-fragmentu) (koniec-fragmentu)
          nazwa-kodowania-w-tekscie-zrodlowym nazwa-kodowania-docelowa)
-      (ogonek-recode-buffer 
-         nazwa-kodowania-w-tekscie-zrodlowym nazwa-kodowania-docelowa)    
+      (ogonek-recode-buffer
+         nazwa-kodowania-w-tekscie-zrodlowym nazwa-kodowania-docelowa)
 
  2. `ogonek-prefixify-region' oraz `ogonek-prefixify-buffer'
     s/lu/z/a do wprowadzania notacji prefiksowej.
 
       (ogonek-prefixify-region (poczatek-fragmentu) (koniec-fragmentu)
          nazwa-kodowania-w-tekscie-zrodlowym znak-prefiksu)
-      (ogonek-prefixify-buffer 
-         nazwa-kodowania-w-tekscie-zrodlowym znak-prefiksu)     
+      (ogonek-prefixify-buffer
+         nazwa-kodowania-w-tekscie-zrodlowym znak-prefiksu)
 
- 3. `ogonek-deprefixify-region' oraz `ogonek-deprefixify-buffer' 
+ 3. `ogonek-deprefixify-region' oraz `ogonek-deprefixify-buffer'
     s/lu/z/a do usuwania notacji prefiksowej.
-     
+
       (ogonek-deprefixify-region (poczatek-fragmentu) (koniec-fragmentu)
          znak-prefiksu nazwa-kodowania-docelowa)
-      (ogonek-prefixify-buffer 
-         znak-prefiksu nazwa-kodowania-docelowa)         
+      (ogonek-prefixify-buffer
+         znak-prefiksu nazwa-kodowania-docelowa)
 
  U/zycie klawisza TAB w trybie interakcyjnym powoduje wy/swietlenie
  listy dopuszczalnych nazw kod/ow, pami/etanych w sta/lej
- `ogonek-name-encoding-alist'. 
+ `ogonek-name-encoding-alist'.
 
- Funkcje biblioteki odwo/luj/a si/e do pi/eciu zmiennych, kt/ore 
+ Funkcje biblioteki odwo/luj/a si/e do pi/eciu zmiennych, kt/ore
  przechowuj/a podpowiedzi do zadawanych pyta/n. Nazwy tych zmiennych
- oraz ich warto/sci domy/slne s/a nast/epuj/ace: 
+ oraz ich warto/sci domy/slne s/a nast/epuj/ace:
 
    ogonek-from-encoding           iso8859-2
    ogonek-to-encoding             ascii
@@ -131,7 +131,7 @@ znak/ow diakrytycznych. Funkcje te mo/zna pogrupowa/c nast/epuj/aco.
    (setq ogonek-prefix-to-encoding \"iso8859-2\")
 
  Zamiast wczytywania ca/lej biblioteki `ogonek.el' mo/zna w pliku
- `~/.emacs' za/z/ada/c wczytania wybranych funkcji, na dodatek dopiero 
+ `~/.emacs' za/z/ada/c wczytania wybranych funkcji, na dodatek dopiero
  w chwili ich rzeczywistego u/zycia:
 
    (autoload 'ogonek-jak \"ogonek\")
@@ -147,7 +147,7 @@ znak/ow diakrytycznych. Funkcje te mo/zna pogrupowa/c nast/epuj/aco.
      (ogonek-deprefixify-region start end ?/ \"iso8859-2\"))
    (global-set-key \"\\C-cd\" 'deprefixify-iso8859-2-region) ; ctrl-c d
 
-   (defun mazovia-to-iso8859-2 (start end) 
+   (defun mazovia-to-iso8859-2 (start end)
      (interactive \"*r\")
      (ogonek-recode-region start end \"mazovia\" \"iso8859-2\"))
    (global-set-key \"\\C-cr\" 'mazovia-to-iso8859-2) ; ctrl-c r
@@ -182,49 +182,49 @@ diacritic characters, the ones with an `ogonek' below or above them.
 The functions come in the following groups.
 
  1. `ogonek-recode-region' and `ogonek-recode-buffer' to change
-    between one-character encodings, such as `iso-8859-2', `mazovia', 
-    plain `ascii' or `TeX'. As the names suggest you may recode 
-    either the entire current buffer or just a marked region 
-    in it. You may use the functions interactively as commands. 
-    Once you call a command you will be asked about the code 
-    currently used in your text and the target encoding, the one 
-    you want to get. The following example shows a non-interactive 
-    use of the functions in a program. This also illustrates what 
+    between one-character encodings, such as `iso-8859-2', `mazovia',
+    plain `ascii' or `TeX'. As the names suggest you may recode
+    either the entire current buffer or just a marked region
+    in it. You may use the functions interactively as commands.
+    Once you call a command you will be asked about the code
+    currently used in your text and the target encoding, the one
+    you want to get. The following example shows a non-interactive
+    use of the functions in a program. This also illustrates what
     type of parameters the functions expect to be called with:
 
-      (ogonek-recode-region 
+      (ogonek-recode-region
         (region-beginning) (region-end) from-code-name to-code-name)
-      (ogonek-recode-buffer from-code-name to-code-name)         
+      (ogonek-recode-buffer from-code-name to-code-name)
 
- 2. `ogonek-prefixify-region' and `ogonek-prefixify-buffer' for 
+ 2. `ogonek-prefixify-region' and `ogonek-prefixify-buffer' for
     introducing prefix notation:
 
-      (ogonek-prefixify-region 
+      (ogonek-prefixify-region
         (region-beginning) (region-end) from-code-name prefix-char)
-      (ogonek-prefixify-buffer from-code-name prefix-char)         
-  
- 3. `ogonek-deprefixify-region' and `ogonek-deprefixify-buffer' for 
+      (ogonek-prefixify-buffer from-code-name prefix-char)
+
+ 3. `ogonek-deprefixify-region' and `ogonek-deprefixify-buffer' for
     removing prefix notation:
-     
-      (ogonek-deprefixify-region 
+
+      (ogonek-deprefixify-region
         (region-beginning) (region-end) prefix-char to-code-name)
-      (ogonek-prefixify-buffer prefix-char to-code-name)         
+      (ogonek-prefixify-buffer prefix-char to-code-name)
 
  The TAB character used in interactive mode makes `emacs'
- display the list of encodings recognized by the library. The list 
+ display the list of encodings recognized by the library. The list
  is stored in the constant `ogonek-name-encoding-alist'.
 
  The `ogonek' functions refer to five variables in which the suggested
- answers to dialogue questions are stored. The variables and their 
+ answers to dialogue questions are stored. The variables and their
  default values are:
- 
+
    ogonek-from-encoding           iso8859-2
    ogonek-to-encoding             ascii
    ogonek-prefix-char             /
    ogonek-prefix-from-encoding    iso8859-2
    ogonek-prefix-to-encoding      iso8859-2
 
- The above default values can be changed by placing appropriate settings 
+ The above default values can be changed by placing appropriate settings
  in the '~/.emacs' file:
 
    (setq ogonek-prefix-char ?/)
@@ -246,7 +246,7 @@ The functions come in the following groups.
      (ogonek-deprefixify-region start end ?/ \"iso8859-2\"))
    (global-set-key \"\\C-cd\" 'deprefixify-iso8859-2-region) ; ctrl-c d
 
-   (defun mazovia-to-iso8859-2 (start end) 
+   (defun mazovia-to-iso8859-2 (start end)
      (interactive \"*r\")
      (ogonek-recode-region start end \"mazovia\" \"iso8859-2\"))
    (global-set-key \"\\C-cr\" 'mazovia-to-iso8859-2) ; ctrl-c r
@@ -268,7 +268,7 @@ The functions come in the following groups.
 
 ;; ---- Variables keeping the suggested answers to dialogue questions -----
 (defvar ogonek-encoding-choices
-  (cons 'choice  
+  (cons 'choice
 	(mapcar (lambda (x) (list 'const (car x)))
 		ogonek-name-encoding-alist))
   "List of ogonek encodings.  Used only for customization.")
@@ -299,37 +299,37 @@ The functions come in the following groups.
   "Read encoding name with completion based on `ogonek-name-encoding-alist'.
 Store the name in the parameter-variable DEFAULT-NAME-VAR.
 PROMPT is a string to be shown when the user is asked for a name."
- (let ((encoding 
-        (completing-read 
+ (let ((encoding
+        (completing-read
          (format "%s (default %s): " prompt (eval default-name-var))
          ogonek-name-encoding-alist nil t)))
   ;; change the default name to the one just read
-  (set default-name-var 
-    (if (string= encoding "") (eval default-name-var) encoding))  
+  (set default-name-var
+    (if (string= encoding "") (eval default-name-var) encoding))
   ;; return the new default as the name you read
   (eval default-name-var)))
 
 (defun ogonek-read-prefix (prompt default-prefix-var)
   "Read a prefix character for prefix notation.
-The result is stored in the variable DEFAULT-PREFIX-VAR. 
+The result is stored in the variable DEFAULT-PREFIX-VAR.
 PROMPT is a string to be shown when the user is asked for a new prefix."
-  (let ((prefix-string 
-         (read-string 
-          (format "%s (default %s): " prompt 
+  (let ((prefix-string
+         (read-string
+          (format "%s (default %s): " prompt
                   (char-to-string (eval default-prefix-var))))))
     (if (> (length prefix-string) 1)
-        (error "! Only one character expected") 
+        (error "! Only one character expected")
       ;; set the default prefix character to the one just read
       (set default-prefix-var
-           (if (string= prefix-string "") 
-             (eval default-prefix-var) 
+           (if (string= prefix-string "")
+             (eval default-prefix-var)
            (string-to-char prefix-string)))
       ;; the new default prefix is the function's result:
       (eval default-prefix-var))))
 
 (defun ogonek-lookup-encoding (encoding)
   "Pick up an association for ENCODING in `ogonek-name-encoding-alist'.
-Before returning a result test whether the string ENCODING is in 
+Before returning a result test whether the string ENCODING is in
 the list `ogonek-name-encoding-alist'"
   (let ((code-list (assoc encoding ogonek-name-encoding-alist)))
     (if (null code-list)
@@ -340,8 +340,8 @@ the list `ogonek-name-encoding-alist'"
 ;; ----  An auxiliary function for zipping two lists of equal length ----
 
 (defun ogonek-zip-lists (xs ys)
-  "Build a list of pairs from lists XS and YS of the same length." 
-  (let ((pairs nil)) 
+  "Build a list of pairs from lists XS and YS of the same length."
+  (let ((pairs nil))
     (while xs
       (setq pairs (cons (cons (car xs) (car ys)) pairs))
       (setq xs (cdr xs))
@@ -351,17 +351,17 @@ the list `ogonek-name-encoding-alist'"
 
 ;; ---- An auxiliary function building a one-to-one recoding table -----
 
-(defun ogonek-build-table (recoding-pairs) 
+(defun ogonek-build-table (recoding-pairs)
   "Build a table required by Emacs's `translate-region' function.
 RECODING-PAIRS is a list of character pairs for which recoding
-is not an identity. 
+is not an identity.
 By using the built-in `translate-region' function
 we gain better performance compared to converting characters
 by a hand-written routine as it is done for prefix encodings."
   (let ((table (make-string 256 0))
         (i 0))
-    (while (< i 256) 
-      (aset table i i) 
+    (while (< i 256)
+      (aset table i i)
       (setq i (1+ i)))
     ;; make changes in `table' according to `recoding-pairs'
     (while recoding-pairs
@@ -372,57 +372,57 @@ by a hand-written routine as it is done for prefix encodings."
 
 ;; ---- Commands for one-to-one recoding -------------------------------
 
-(defun ogonek-recode-region (start end from-encoding to-encoding) 
+(defun ogonek-recode-region (start end from-encoding to-encoding)
   "Recode text in a marked region in one-to-one manner.
-When called interactively ask the user for the names of the FROM- 
-and TO- encodings."   
+When called interactively ask the user for the names of the FROM-
+and TO- encodings."
   (interactive (progn (barf-if-buffer-read-only)
-                (list 
-                (region-beginning) 
+                (list
+                (region-beginning)
                 (region-end)
                 (ogonek-read-encoding "From code" 'ogonek-from-encoding)
                 (ogonek-read-encoding "To code" 'ogonek-to-encoding))))
   (save-excursion
-    (translate-region 
+    (translate-region
      start end
-     (ogonek-build-table 
+     (ogonek-build-table
       (ogonek-zip-lists
        (ogonek-lookup-encoding from-encoding)
        (ogonek-lookup-encoding to-encoding))))))
 
 (defun ogonek-recode-buffer (from-encoding to-encoding)
   "Call `ogonek-recode-region' on the entire buffer.
-When called interactively ask the user for the names of the FROM- 
+When called interactively ask the user for the names of the FROM-
 and TO- encodings."
   (interactive (progn (barf-if-buffer-read-only)
-                (list 
+                (list
                 (ogonek-read-encoding "From code" 'ogonek-from-encoding)
                 (ogonek-read-encoding "To code" 'ogonek-to-encoding))))
-  (ogonek-recode-region 
+  (ogonek-recode-region
    (point-min) (point-max) from-encoding to-encoding))
 
 ;; ---- Recoding with prefix notation -------------------------------
 
-(defconst ogonek-prefix-code '(?A  ?C  ?E  ?L  ?N  ?O  ?S  ?X  ?Z 
-                               ?a  ?c  ?e  ?l  ?n  ?o  ?s  ?x  ?z)) 
-    
+(defconst ogonek-prefix-code '(?A  ?C  ?E  ?L  ?N  ?O  ?S  ?X  ?Z
+                               ?a  ?c  ?e  ?l  ?n  ?o  ?s  ?x  ?z))
+
 (defun ogonek-prefixify-region (start end from-encoding prefix-char)
   "In a region, replace FROM-encoded Polish characters with PREFIX pairs.
-A PREFIX pair generated consists of PREFIX-CHAR and the respective 
-character listed in the `ogonek-prefix-code' constant. 
+A PREFIX pair generated consists of PREFIX-CHAR and the respective
+character listed in the `ogonek-prefix-code' constant.
 PREFIX-CHAR itself gets doubled."
   (interactive (progn (barf-if-buffer-read-only)
-    (list 
-    (region-beginning) 
-    (region-end) 
+    (list
+    (region-beginning)
+    (region-end)
     (ogonek-read-encoding "From code" 'ogonek-prefix-from-encoding)
     (ogonek-read-prefix "Prefix character" 'ogonek-prefix-char))))
-  (let* 
+  (let*
       ((from-code (ogonek-lookup-encoding from-encoding))
        (to-code ogonek-prefix-code)
        (recoding-pairs  ; `ogonek-prefix-char' added for doubling
-        (ogonek-zip-lists 
-         (cons prefix-char from-code)  
+        (ogonek-zip-lists
+         (cons prefix-char from-code)
          (cons prefix-char to-code))))
     (save-excursion
       (goto-char start)
@@ -441,32 +441,32 @@ PREFIX-CHAR itself gets doubled."
 (defun ogonek-prefixify-buffer (from-encoding prefix-char)
   "Call `ogonek-prefixify-region' on the entire buffer."
   (interactive (progn (barf-if-buffer-read-only)
-    (list 
+    (list
      (ogonek-read-encoding "From code" 'ogonek-prefix-from-encoding)
      (ogonek-read-prefix "Prefix character" 'ogonek-prefix-char))))
-  (ogonek-prefixify-region 
+  (ogonek-prefixify-region
    (point-min) (point-max) from-encoding prefix-char))
 
 (defun ogonek-deprefixify-region (start end prefix-char to-encoding)
   "In a region, replace PREFIX pairs with their corresponding TO-encodings.
-PREFIX-CHAR followed by a Polish character from the `ogonek-prefix-code' 
+PREFIX-CHAR followed by a Polish character from the `ogonek-prefix-code'
 list is replaced with the corresponding TO-encoded character. A doubled
-PREFIX-CHAR gets replaced with a single one. A combination of PREFIX-CHAR 
-followed by a non-Polish character, that is one not listed in the 
+PREFIX-CHAR gets replaced with a single one. A combination of PREFIX-CHAR
+followed by a non-Polish character, that is one not listed in the
 `ogonek-prefix-code' constant, is left unchanged."
   (interactive (progn (barf-if-buffer-read-only)
-                (list (region-beginning) 
+                (list (region-beginning)
                       (region-end)
-                      (ogonek-read-prefix 
+                      (ogonek-read-prefix
                         "Prefix character" 'ogonek-prefix-char)
-                      (ogonek-read-encoding 
+                      (ogonek-read-encoding
                        "To code" 'ogonek-prefix-to-encoding))))
-  (let* 
+  (let*
       ((from-code ogonek-prefix-code)
        (to-code (ogonek-lookup-encoding to-encoding))
-       (recoding-pairs 
-        (ogonek-zip-lists 
-          (cons prefix-char from-code)  
+       (recoding-pairs
+        (ogonek-zip-lists
+          (cons prefix-char from-code)
           (cons prefix-char to-code))))
     (save-excursion
       (goto-char start)
@@ -477,10 +477,10 @@ followed by a non-Polish character, that is one not listed in the
            ()
          ;; now, we can check the next character
          (let ((pair (assoc (following-char) recoding-pairs)))
-           (if (null pair) 
+           (if (null pair)
                ;; `following-char' is not a Polish character nor it is
                ;;  `prefix-char' since the one is among `recoding-pairs'
-               (forward-char 1)     
+               (forward-char 1)
            ;; else prefix followed by a Polish character has been found
            ;; replace it by the corresponding Polish character
            (backward-char 1)
@@ -492,10 +492,10 @@ followed by a non-Polish character, that is one not listed in the
 (defun ogonek-deprefixify-buffer (prefix-char to-encoding)
   "Call `ogonek-deprefixify-region' on the entire buffer."
   (interactive (progn (barf-if-buffer-read-only)
-    (list 
+    (list
      (ogonek-read-prefix "Prefix character" 'ogonek-prefix-char)
      (ogonek-read-encoding "To code" 'ogonek-prefix-to-encoding))))
-  (ogonek-deprefixify-region 
+  (ogonek-deprefixify-region
    (point-min) (point-max) prefix-char to-encoding))
 
 (provide 'ogonek)

@@ -30,7 +30,7 @@
 ;                                    (vi-mode))))))
 ; 3) In your .emacs file you can define the command "vi-mode" to be "autoload"
 ;    or you can execute the "load" command to load "vi" directly.
-; 4) Read the comments for command "vi-mode" before you start using it.   
+; 4) Read the comments for command "vi-mode" before you start using it.
 ;
 ; COULD DO
 ; 1). A general 'define-operator' function to replace current hack
@@ -153,7 +153,7 @@ command extensions.")
   (define-key vi-com-map "\C-\\" 'vi-unimplemented)
   (define-key vi-com-map "\C-]" 'find-tag)
   (define-key vi-com-map "\C-^" 'vi-locate-def)  ; extension
-  (define-key vi-com-map "\C-_" 'vi-undefined) 
+  (define-key vi-com-map "\C-_" 'vi-undefined)
 
   (define-key vi-com-map " " 'forward-char)
   (define-key vi-com-map "!"  'vi-operator)
@@ -201,7 +201,7 @@ command extensions.")
   (define-key vi-com-map "H"  'vi-home-window-line)
   (define-key vi-com-map "I"  'vi-insert-before-first-nonwhite)
   (define-key vi-com-map "J"  'vi-join-lines)
-  (define-key vi-com-map "K"  'vi-undefined) 
+  (define-key vi-com-map "K"  'vi-undefined)
   (define-key vi-com-map "L"  'vi-last-window-line)
   (define-key vi-com-map "M"  'vi-middle-window-line)
   (define-key vi-com-map "N"  'vi-reverse-last-search)
@@ -212,7 +212,7 @@ command extensions.")
   (define-key vi-com-map "S"  'vi-substitute-lines)
   (define-key vi-com-map "T"  'vi-backward-upto-char)
   (define-key vi-com-map "U"  'vi-unimplemented)
-  (define-key vi-com-map "V"  'vi-undefined) 
+  (define-key vi-com-map "V"  'vi-undefined)
   (define-key vi-com-map "W"  'vi-forward-blank-delimited-word)
   (define-key vi-com-map "X"  'call-last-kbd-macro) ; modification/extension
   (define-key vi-com-map "Y"  'vi-yank-line)
@@ -247,7 +247,7 @@ command extensions.")
   (define-key vi-com-map "s"  'vi-substitute-chars)
   (define-key vi-com-map "t"  'vi-forward-upto-char)
   (define-key vi-com-map "u"  'undo)
-  (define-key vi-com-map "v"  'vi-verify-spelling) 
+  (define-key vi-com-map "v"  'vi-verify-spelling)
   (define-key vi-com-map "w"  'vi-forward-word)
   (define-key vi-com-map "x"  'vi-kill-char)
   (define-key vi-com-map "y"  'vi-operator)
@@ -355,7 +355,7 @@ form that is ready to be `apply'ed.")
   "Non-nil if it is in insert state.")
 
 ; in "loaddefs.el"
-;(defvar search-last-string "" 
+;(defvar search-last-string ""
 ;  "Last string search for by a search command.")
 
 (defvar vi-search-last-command nil	; (re-)search-forward(backward)
@@ -366,12 +366,12 @@ form that is ready to be `apply'ed.")
 
 (defvar vi-mode-old-mode-name nil
   "Save the mode-name before entering vi-mode.")
-  
+
 (defvar vi-mode-old-major-mode nil
   "Save the major-mode before entering vi-mode.")
 
 (defvar vi-mode-old-case-fold nil)
-  
+
 ;(defconst vi-add-to-mode-line-1
 ;  '(overwrite-mode nil " Insert"))
 
@@ -404,7 +404,7 @@ form that is ready to be `apply'ed.")
   (make-local-variable 'vi-mode-old-major-mode)
   (make-local-variable 'vi-mode-old-case-fold)
   (run-hooks 'vi-mode-hook))
-      
+
 ;;;###autoload
 (defun vi-mode ()
   "Major mode that acts like the `vi' editor.
@@ -448,7 +448,7 @@ Major differences between this mode and real vi :
     `vi-name-last-change-or-macro', `vi-verify-spelling', `vi-locate-def',
     `vi-mark-region', and 'vi-quote-words'.  Some of them are quite handy.
   - Use \\[vi-switch-mode] to switch among different modes quickly.
-  
+
 Syntax table and abbrevs while in vi mode remain as they were in Emacs."
    (interactive)
    (if (null vi-mode-old-major-mode)	; very first call for current buffer
@@ -539,7 +539,7 @@ This function expects 'overwrite-mode' being set properly beforehand."
 	  (<= vi-ins-repetition 0))
       (vi-goto-command-state t)
     (if (> vi-ins-repetition 1)
-	(progn 
+	(progn
 	  (let ((str (buffer-substring vi-ins-point (point))))
 	    (while (> vi-ins-repetition 1)
 	      (insert str)
@@ -585,7 +585,7 @@ insert state."
   (interactive "*r")
   (kill-region start end)
   (vi-set-last-change-command 'kill-region))
-  
+
 (defun vi-append-at-end-of-line (arg)
    "go to end of line and then go into vi insert state."
    (interactive "*p")
@@ -651,7 +651,7 @@ insert state."
 ;;;;;
 
 (defun vi-isearch-forward (arg)
-  "Incremental search forward.  Use regexp version if ARG is non-nil." 
+  "Incremental search forward.  Use regexp version if ARG is non-nil."
   (interactive "P")
   (let ((scmd (if arg 'isearch-forward-regexp 'isearch-forward))
 	(opoint (point)))
@@ -724,7 +724,7 @@ If the optional search args are given, use those instead of the ones saved."
 		   ((eq search-command 'search-forward) 'search-backward)
 		   ((eq search-command 'search-backward) 'search-forward))
 	     search-string nil nil arg)))
-       
+
 (defun vi-join-lines (arg)
    "join ARG lines from current line (default 2), cleaning up white space."
    (interactive "P")
@@ -842,7 +842,7 @@ Goto mark '@' means jump into and pop the top mark on the mark ring."
 	     (set-mark-command nil)
 	     (goto-char mark)
 	     (if line-flag (back-to-indentation)))))))
-		     
+
 (defun vi-goto-line-mark (char)
   "Go to the line (at first non-white) marked by next char."
   (interactive "c")
@@ -1062,7 +1062,7 @@ MOTION-COMMAND with ARG.
 	      ((eq moving-unit 'line)
 	       (goto-char begin) (beginning-of-line) (setq begin (point))
 	       (goto-char end) (next-line 1) (beginning-of-line) (setq end (point))))
-	(if (> end (point-max)) (setq end (point-max))) ; force in buffer region 
+	(if (> end (point-max)) (setq end (point-max))) ; force in buffer region
 	(cons begin end)))))
 
 (defun vi-delete-op (motion-command arg)
@@ -1106,7 +1106,7 @@ Used in checking whether the yanked text should be put back as lines or not."
   (= (aref string (1- (length string))) ?\n))
 
 (defun vi-put-before (arg &optional after-p)
-  "Put yanked (in vi sense) text back before/above cursor.  
+  "Put yanked (in vi sense) text back before/above cursor.
 If a numeric prefix value (currently it should be >1) is given, put back
 text as lines.  If the optional after-p is given, put after/below the cursor."
   (interactive "P")
@@ -1302,7 +1302,7 @@ For the use of the prefix-arg, refer to individual functions called."
   (interactive "*P")
   (let ((rcmd (if arg 'replace-regexp 'replace-string)))
     (call-interactively rcmd nil)))
-       
+
 (defun vi-adjust-window (arg position)
   "Move current line to the top/center/bottom of the window."
   (interactive "p\nc")
@@ -1329,7 +1329,7 @@ For the use of the prefix-arg, refer to individual functions called."
       (ding))))
 
 (defun vi-name-last-change-or-macro (arg char)
-  "Give name to the last change command or just defined kbd macro.  
+  "Give name to the last change command or just defined kbd macro.
 If prefix ARG is given, name last macro, otherwise name last change command.
 The following CHAR will be the name for the command or macro."
   (interactive "P\nc")
@@ -1343,7 +1343,7 @@ The following CHAR will be the name for the command or macro."
 	  (vi-set-last-change-command 'vi-more-redo-insertion str
 				   overwrite-p prefix-code)))
     (fset (intern (char-to-string char)) vi-last-change-command)))
-  
+
 (defun vi-call-named-change-or-macro (count char)
   "Execute COUNT times the keyboard macro definition named by the following CHAR."
   (interactive "p\nc")

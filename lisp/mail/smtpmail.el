@@ -696,7 +696,7 @@ This is relative to `smtpmail-queue-dir'.")
 						     envelope-from
 						     size-part
 						     body-part))
-	      
+
 	      (if (or (null (car (setq response-code (smtpmail-read-response process))))
 		      (not (integerp (car response-code)))
 		      (>= (car response-code) 400))

@@ -52,7 +52,7 @@
   "Textual token including full stop.")
 (defvar ietf-drums-qtext-token
   (concat ietf-drums-no-ws-ctl-token "\041\043-\133\135-\177")
-  "Non-white-space control characters, plus the rest of ASCII excluding 
+  "Non-white-space control characters, plus the rest of ASCII excluding
 backslash and doublequote.")
 (defvar ietf-drums-tspecials "][()<>@,;:\\\"/?="
   "Tspecials.")

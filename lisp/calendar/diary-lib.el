@@ -1721,7 +1721,7 @@ If optional NOABBREV is t, do not allow abbreviations in names."
         '("[0-9]?[0-9]\\(:?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)\\(-[0-9]?[0-9]\\(:?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)\\)?"
           . font-lock-function-name-face)))
       "Forms to highlight in diary-mode")
-  
+
 
 (provide 'diary-lib)
 

@@ -34,12 +34,12 @@
 
 ;;; Customization
 
-(defgroup pong nil 
+(defgroup pong nil
   "Emacs-Lisp implementation of the classical game pong."
   :tag "Pong"
   :group 'games)
 
-(defcustom pong-buffer-name "*Pong*" 
+(defcustom pong-buffer-name "*Pong*"
   "*Name of the buffer used to play."
   :group 'pong
   :type '(string))
@@ -313,12 +313,12 @@ implementations you move with left/right paddle."
 	(gamegrid-set-cell x (1- y) pong-blank))
     (if (< (+ y pong-bat-width) (1- pong-height))
 	(gamegrid-set-cell x (+ y pong-bat-width) pong-blank)))))
-  
+
 
 
 (defun pong-init ()
   "Initialize a game."
-  
+
   (define-key pong-mode-map pong-pause-key 'pong-pause)
 
   (add-hook 'kill-buffer-hook 'pong-quit nil t)
@@ -345,44 +345,44 @@ updates ball and bats positions.  It is responsible of collision
 detection and checks if a player scores."
   (if (not (eq (current-buffer) pong-buffer))
       (pong-pause)
-	
+
     (let ((old-x pong-x)
 	  (old-y pong-y))
-      
+
       (setq pong-x (+ pong-x pong-xx))
       (setq pong-y (+ pong-y pong-yy))
-      
+
       (if (and (> old-y 0)
 	       (< old-y (- pong-height 1)))
 	  (gamegrid-set-cell old-x old-y pong-blank))
-      
+
       (if (and (> pong-y 0)
 	       (< pong-y (- pong-height 1)))
 	  (gamegrid-set-cell pong-x pong-y pong-ball))
-      
+
       (cond
        ((or (= pong-x 3) (= pong-x 2))
-	(if (and (>= pong-y pong-bat-player1) 
+	(if (and (>= pong-y pong-bat-player1)
 		 (< pong-y (+ pong-bat-player1 pong-bat-width)))
-	    (and 
+	    (and
 	     (setq pong-yy (+ pong-yy
-			      (cond 
+			      (cond
 			       ((= pong-y pong-bat-player1) -1)
 			       ((= pong-y (1+ pong-bat-player1)) 0)
 			       (t 1))))
 	     (setq pong-xx (- pong-xx)))))
 
        ((or (= pong-x (- pong-width 4)) (= pong-x (- pong-width 3)))
-	(if (and (>= pong-y pong-bat-player2) 
+	(if (and (>= pong-y pong-bat-player2)
 		 (< pong-y (+ pong-bat-player2 pong-bat-width)))
-	    (and 
+	    (and
 	     (setq pong-yy (+ pong-yy
-			      (cond 
+			      (cond
 			       ((= pong-y pong-bat-player2) -1)
 			       ((= pong-y (1+ pong-bat-player2)) 0)
 			       (t 1))))
 	     (setq pong-xx (- pong-xx)))))
-   
+
        ((<= pong-y 1)
 	(setq pong-yy (- pong-yy)))
 

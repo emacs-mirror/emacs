@@ -72,7 +72,7 @@
 ;;; Code:
 
 (defconst *EDT-keys*
-  '(("KP0" . [kp-0]) ("KP1" . [kp-1]) ("KP2" . [kp-2]) ("KP3" . [kp-3]) 
+  '(("KP0" . [kp-0]) ("KP1" . [kp-1]) ("KP2" . [kp-2]) ("KP3" . [kp-3])
     ("KP4" . [kp-4]) ("KP5" . [kp-5]) ("KP6" . [kp-6]) ("KP7" . [kp-7])
     ("KP8" . [kp-8]) ("KP9" . [kp-9]) ("KP," . "" )
     ("KP-" . [kp-add]) ("KPP" . [kp-decimal]) ("KPE" . [kp-enter])

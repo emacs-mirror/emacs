@@ -80,7 +80,7 @@ If KEY is not a string, prompt for it with completion."
 The files specified by `octave-help-files' are searched."
   (if octave-help-lookup-alist
       ()
-    (message "Building help lookup alist...")    
+    (message "Building help lookup alist...")
     (let ((files octave-help-files) file key node)
       (save-window-excursion
 	(while files
@@ -127,7 +127,7 @@ The files specified by `octave-help-files' are searched."
 	(add-to-list 'octave-help-completion-alist
 		     (cons (car entry) (car entry)))
 	(setq alist (cdr alist))))
-    (message "Building help completion alist...done"))    
+    (message "Building help completion alist...done"))
   octave-help-completion-alist)
 
 ;;; provide ourself

@@ -338,7 +338,7 @@ consecutive use moves point to the end of the buffer."
   "Go back one buffer."
   (interactive)
   (switch-to-buffer (car (last (buffer-list)))))
- 
+
 (defun crisp-meta-x-wrapper ()
   "Wrapper function to conditionally override the normal M-x bindings.
 When `crisp-override-meta-x' is non-nil, M-x will exit Emacs (the

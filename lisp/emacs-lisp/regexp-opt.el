@@ -218,7 +218,7 @@ in REGEXP."
 			  (regexp-quote
 			   (concat (nreverse (string-to-list xiffus))))
 			  close-group))
-	      
+
 	      ;; Otherwise, divide the list into those that start with a
 	      ;; particular letter and those that do not, and recurse on them.
 	      (let* ((char (char-to-string (string-to-char (car strings))))

@@ -39,7 +39,7 @@
 (defvar mml-generate-multipart-alist nil
   "*Alist of multipart generation functions.
 Each entry has the form (NAME . FUNCTION), where
-NAME is a string containing the name of the part (without the 
+NAME is a string containing the name of the part (without the
 leading \"/multipart/\"),
 FUNCTION is a Lisp function which is called to generate the part.
 
@@ -75,7 +75,7 @@ one charsets.")
 
 (defvar mml-generate-mime-preprocess-function nil
   "A function called before generating a mime part.
-The function is called with one parameter, which is the part to be 
+The function is called with one parameter, which is the part to be
 generated.")
 
 (defvar mml-generate-mime-postprocess-function nil
@@ -86,7 +86,7 @@ The function is called with one parameter, which is the generated part.")
 
 (defvar mml-buffer-list nil)
 
-(defun mml-generate-new-buffer (name) 
+(defun mml-generate-new-buffer (name)
   (let ((buf (generate-new-buffer name)))
     (push buf mml-buffer-list)
     buf))
@@ -128,7 +128,7 @@ The function is called with one parameter, which is the generated part.")
 	(setq raw (cdr (assq 'raw tag))
 	      point (point)
 	      contents (mml-read-part (eq 'mml (car tag)))
-	      charsets (if raw nil 
+	      charsets (if raw nil
 			 (mm-find-mime-charset-region point (point))))
 	(when (and (not raw) (memq nil charsets))
 	  (if (or (memq 'unknown-encoding mml-confirmation-set)
@@ -137,7 +137,7 @@ The function is called with one parameter, which is the generated part.")
 Message contains characters with unknown encoding.  Really send?")
 		    (set (make-local-variable 'mml-confirmation-set)
 			 (push 'unknown-encoding mml-confirmation-set))))
-	      (if (setq use-ascii 
+	      (if (setq use-ascii
 			(or (memq 'use-ascii mml-confirmation-set)
 			    (y-or-n-p "Use ASCII as charset?")))
 		  (setq charsets (delq nil charsets))
@@ -169,7 +169,7 @@ A message part needs to be split into %d charset parts.  Really send? "
       (forward-line 1))
     (nreverse struct)))
 
-(defun mml-parse-singlepart-with-multiple-charsets 
+(defun mml-parse-singlepart-with-multiple-charsets
   (orig-tag beg end &optional use-ascii)
   (save-excursion
     (save-restriction
@@ -261,7 +261,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	    (if (re-search-forward "<#\\(/\\)?mml." nil t)
 		(setq count (+ count (if (match-beginning 1) -1 1)))
 	      (goto-char (point-max))))
-	  (buffer-substring-no-properties beg (if (> count 0) 
+	  (buffer-substring-no-properties beg (if (> count 0)
 						  (point)
 						(match-beginning 0))))
       (if (re-search-forward
@@ -325,7 +325,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 			    "<#!+/?\\(part\\|multipart\\|external\\|mml\\)" nil t)
 		      (delete-region (+ (match-beginning 0) 2)
 				     (+ (match-beginning 0) 3))))))
-		(cond 
+		(cond
 		 ((eq (car cont) 'mml)
 		  (let ((mml-boundary (funcall mml-boundary-function
 					       (incf mml-multipart-number)))
@@ -338,7 +338,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		  (let ((mm-7bit-chars (concat mm-7bit-chars "\x1b")))
 		    ;; ignore 0x1b, it is part of iso-2022-jp
 		    (setq encoding (mm-body-7-or-8))))
-		 (t 
+		 (t
 		  (setq charset (mm-encode-body))
 		  (setq encoding (mm-body-encoding
 				  charset (cdr (assq 'encoding cont))))))
@@ -579,7 +579,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	(save-excursion
 	  (set-buffer (setq buffer (mml-generate-new-buffer " *mml*")))
 	  (mm-insert-part handle)
-	  (if (setq mmlp (equal (mm-handle-media-type handle) 
+	  (if (setq mmlp (equal (mm-handle-media-type handle)
 				"message/rfc822"))
 	      (mime-to-mml)))))
     (if mmlp
@@ -588,7 +588,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		   (equal (mm-handle-media-type handle) "text/plain"))
 	(mml-insert-mml-markup handle buffer textp)))
     (cond
-     (mmlp 
+     (mmlp
       (insert-buffer buffer)
       (goto-char (point-max))
       (insert "<#/mml>\n"))
@@ -828,12 +828,12 @@ TYPE is the MIME type to use."
 If RAW, don't highlight the article."
   (interactive "P")
   (let ((buf (current-buffer))
-	(message-posting-charset (or (gnus-setup-posting-charset 
+	(message-posting-charset (or (gnus-setup-posting-charset
 				      (save-restriction
 					(message-narrow-to-headers-or-head)
 					(message-fetch-field "Newsgroups")))
 				     message-posting-charset)))
-    (switch-to-buffer (get-buffer-create 
+    (switch-to-buffer (get-buffer-create
 		       (concat (if raw "*Raw MIME preview of "
 				 "*MIME preview of ") (buffer-name))))
     (erase-buffer)

@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.69 $
+;; Version: $Revision: 1.70 $
 
 ;; This file is part of GNU Emacs.
 
@@ -318,7 +318,7 @@ have three inferior Lisps running:
 If you do a \\[tcl-eval-defun] command on some Lisp source code, what
 process do you send it to?
 
-- If you're in a process buffer (foo, bar, or *inferior-tcl*), 
+- If you're in a process buffer (foo, bar, or *inferior-tcl*),
   you send it to that process.
 - If you're in some other buffer (e.g., a source file), you
   send it to the process attached to buffer `inferior-tcl-buffer'.
@@ -494,7 +494,7 @@ Uses variables `tcl-proc-regexp' and `tcl-keyword-list'."
 	 ;; FIXME consider using "not word or symbol", not
 	 ;; "whitespace".
 	 (cons (concat "\\(\\s-\\|^\\)"
-		       ;; FIXME Use regexp-quote? 
+		       ;; FIXME Use regexp-quote?
 		       (regexp-opt tcl-keyword-list t)
 		       "\\(\\s-\\|$\\)")
 	       2))))
@@ -573,7 +573,7 @@ Commands:
 
   (set (make-local-variable 'imenu-generic-expression)
        'tcl-imenu-generic-expression)
-  
+
   ;; Settings for new dabbrev code.
   (set (make-local-variable 'dabbrev-case-fold-search) nil)
   (set (make-local-variable 'dabbrev-case-replace) nil)
@@ -789,7 +789,7 @@ Returns nil if line starts inside a string, t if in a comment."
     (beginning-of-line)
     (let* ((indent-point (point))
 	   (case-fold-search nil)
-	   (continued-line 
+	   (continued-line
 	    (save-excursion
 	      (if (bobp)
 		  nil
@@ -937,13 +937,13 @@ Returns nil if line starts inside a string, t if in a comment."
 		  contain-stack (cons nil contain-stack)
 		  last-depth (1+ last-depth)))
 	  (if (null (car contain-stack))
-	      (setcar contain-stack 
+	      (setcar contain-stack
 		      (or (car (cdr state))
 			  (save-excursion
 			    (forward-sexp -1)
 			    (point)))))
 	  (forward-line 1)
-	  (setq continued-line 
+	  (setq continued-line
 		(save-excursion
 		  (backward-char)
 		  (= (preceding-char) ?\\)))
@@ -969,14 +969,14 @@ Returns nil if line starts inside a string, t if in a comment."
 		   (setq this-indent (- this-indent 1))))
 	    ;; Put chosen indentation into effect.
 	    (or (null this-indent)
-		(= (current-column) 
-		   (if continued-line 
+		(= (current-column)
+		   (if continued-line
 		       (+ this-indent tcl-indent-level)
 		     this-indent))
 		(progn
 		  (delete-region (point) (progn (beginning-of-line) (point)))
-		  (indent-to 
-		   (if continued-line 
+		  (indent-to
+		   (if continued-line
 		       (+ this-indent tcl-indent-level)
 		     this-indent)))))))))
   )

@@ -125,7 +125,7 @@ calling this function."
 
 	  (setq prequery
 		(match-string rfc2368-mailto-prequery-index mailto-url))
-	  
+
 	  (setq query
 		(match-string rfc2368-mailto-query-index mailto-url))
 
@@ -154,9 +154,9 @@ calling this function."
 		      (setcdr our-cons-cell (concat our-cdr ", " prequery)))
 		  (setq headers-alist
 			(cons (cons "To" prequery) headers-alist)))))
-	  
+
 	  headers-alist)
-      
+
       (error "Failed to match a mailto: url"))
     ))
 

@@ -269,7 +269,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 (define-key reb-lisp-mode-map "\C-c"
   (lookup-key reb-mode-map "\C-c"))
 
-(defvar reb-subexp-mode-map 
+(defvar reb-subexp-mode-map
   (let ((m (make-keymap)))
     (suppress-keymap m)
     ;; Again share the "\C-c" keymap for the commands

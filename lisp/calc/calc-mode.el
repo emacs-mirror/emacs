@@ -3,7 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org> 
+;; Maintainers: D. Goel <deego@gnufans.org>
 ;;              Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
@@ -459,7 +459,7 @@
 (defun calc-symbolic-mode (n)
   (interactive "P")
   (calc-wrapper
-   
+
    (message (if (calc-change-mode 'calc-symbolic-mode n nil t)
 		"Inexact computations like sqrt(2) are deferred"
 	      "Numerical computations are always done immediately"))))

@@ -64,7 +64,7 @@
     (increment-calendar-month end-month end-year 3)
     (increment-calendar-month start-month start-year -1)
     (let* ((end-date (list (list end-month 1 end-year)))
-           (start-date (list (list start-month 
+           (start-date (list (list start-month
                                    (calendar-last-day-of-month
                                     start-month start-year)
                                    start-year)))
@@ -239,7 +239,7 @@ This function is suitable for execution in a .emacs file."
 (defun diary-phases-of-moon (&optional mark)
 "Moon phases diary entry.
 
-An optional parameter MARK specifies a face or single-character string to 
+An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
   (let* ((index (* 4
                    (truncate

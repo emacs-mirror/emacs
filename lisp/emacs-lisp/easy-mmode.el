@@ -228,7 +228,7 @@ With zero or negative ARG turn mode off.
 		       ,(if keymap keymap-sym
 			  `(if (boundp ',keymap-sym)
 			       (symbol-value ',keymap-sym))))
-       
+
        ;; If the mode is global, call the function according to the default.
        ,(if globalp
 	    `(if (and load-file-name (not (equal ,init-value ,mode)))

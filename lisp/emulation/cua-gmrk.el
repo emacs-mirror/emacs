@@ -33,7 +33,7 @@
   (require 'cua-rect)
   )
 
-;;; Global Marker 
+;;; Global Marker
 
 ;; Non-nil when global marker is active.
 (defvar cua--global-mark-active nil)
@@ -72,12 +72,12 @@
   (move-marker cua--global-mark-marker (point))
   (if (overlayp cua--global-mark-overlay)
       (move-overlay cua--global-mark-overlay (point) (1+ (point)))
-    (setq cua--global-mark-overlay 
+    (setq cua--global-mark-overlay
 	  (make-overlay (point) (1+ (point))))
     (overlay-put cua--global-mark-overlay 'face 'cua-global-mark-face))
   (if (and cua-global-mark-blink-cursor-interval
 	   (not cua--orig-blink-cursor-interval))
-      (setq cua--orig-blink-cursor-interval blink-cursor-interval 
+      (setq cua--orig-blink-cursor-interval blink-cursor-interval
 	    blink-cursor-interval cua-global-mark-blink-cursor-interval))
   (setq cua--global-mark-active t)
   (if msg
@@ -325,7 +325,7 @@ With prefix argument, don't jump to global mark when cancelling it."
 	      (move-to-column col)
 	      (move-marker cua--global-mark-marker (point))
 	      (move-overlay cua--global-mark-overlay (point) (1+ (point))))))))
-	    
+
 
 (defun cua-cancel-global-mark ()
   "Cancel the global mark."
@@ -346,7 +346,7 @@ With prefix argument, don't jump to global mark when cancelling it."
     (if (or (not (eq (current-buffer) (marker-buffer cua--global-mark-marker)))
 	    (not (pos-visible-in-window-p (marker-position cua--global-mark-marker))))
 	(let ((w (selected-window)) (p (point)) h)
-	  ;; The following code is an attempt to keep the global mark visible in 
+	  ;; The following code is an attempt to keep the global mark visible in
 	  ;; other window -- but it doesn't work.
 	  (switch-to-buffer-other-window (marker-buffer cua--global-mark-marker) t)
 	  (goto-char (marker-position cua--global-mark-marker))

@@ -149,7 +149,7 @@
 	     nnkiboze-remove-read-articles)
     (let ((coding-system-for-write nnkiboze-file-coding-system))
       (with-temp-file (nnkiboze-nov-file-name)
-	(let ((cur (current-buffer)) 
+	(let ((cur (current-buffer))
 	      (nnheader-file-coding-system nnkiboze-file-coding-system))
 	  (nnheader-insert-file-contents (nnkiboze-nov-file-name))
 	  (goto-char (point-min))

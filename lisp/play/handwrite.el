@@ -143,7 +143,7 @@ Variables: handwrite-linespace     (default 12)
       ((pmin)				; thanks, Havard
        (lastp)
        (cur-buf (current-buffer))
-       (tpoint (point))	
+       (tpoint (point))
        (ps-ypos 63)
        (lcount 0)
        (ipage 1)
@@ -175,7 +175,7 @@ Variables: handwrite-linespace     (default 12)
     (switch-to-buffer cur-buf)
     (goto-char (point-min))		;start at beginning
     (save-excursion
-      ;;as long as we see a newline the document is not ended.	
+      ;;as long as we see a newline the document is not ended.
       (while (re-search-forward "\n" nil t)
 	(previous-line 1)
 	(beginning-of-line)
@@ -1375,7 +1375,7 @@ end
 ;; Key bindings
 
 
-;;; I'd rather not fill up the menu bar menus with 
+;;; I'd rather not fill up the menu bar menus with
 ;;; lots of random miscellaneous features. -- rms.
 ;;;(define-key-after
 ;;;  (lookup-key global-map [menu-bar edit])

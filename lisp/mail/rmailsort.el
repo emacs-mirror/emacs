@@ -133,7 +133,7 @@ KEYWORDS is a comma-separated list of labels."
   (setq labels (concat (substring labels (match-beginning 0)) ","))
   (let (labelvec)
     (while (string-match "[ \t]*,[ \t]*" labels)
-      (setq labelvec (cons 
+      (setq labelvec (cons
 		      (concat ", ?\\("
 			      (substring labels 0 (match-beginning 0))
 			      "\\),")

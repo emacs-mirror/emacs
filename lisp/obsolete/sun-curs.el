@@ -39,7 +39,7 @@
   (defvar sc::cursors nil "List of known cursors"))
 
 (defmacro defcursor (name x y string)
-  (if (not (memq name sc::cursors)) 
+  (if (not (memq name sc::cursors))
       (setq sc::cursors (cons name sc::cursors)))
   (list 'defconst name (list 'vector x y string)))
 
@@ -108,20 +108,20 @@ Otherwise, ICON should be a vector or the name of a vector of [x y 32-chars]"
   (delete-char -1)
   (insert char)
   (sc::goto-hotspot))
-    
+
 (defun sc::menu-function (window x y)
   (sun-menu-evaluate window (1+ x) y sc::menu))
 
 (defmenu sc::menu
   ("Cursor Menu")
   ("Pack & Use" sc::pack-buffer-to-cursor)
-  ("Pack to Icon" sc::pack-buffer-to-icon 
+  ("Pack to Icon" sc::pack-buffer-to-icon
 		  (sc::menu-choose-cursor *menu-window* *menu-x* *menu-y*))
   ("New Icon" call-interactively 'sc::make-cursor)
-  ("Edit Icon" sc:edit-cursor 
+  ("Edit Icon" sc:edit-cursor
 	       (sc::menu-choose-cursor *menu-window* *menu-x* *menu-y*))
   ("Set Cursor" sc:set-cursor
-		(sc::menu-choose-cursor *menu-window* *menu-x* *menu-y*)) 
+		(sc::menu-choose-cursor *menu-window* *menu-x* *menu-y*))
   ("Reset Cursor" sc:set-cursor nil)
   ("Help" sc::edit-icon-help-menu)
   ("Quit" sc::quit-edit)
@@ -153,7 +153,7 @@ Otherwise, ICON should be a vector or the name of a vector of [x y 32-chars]"
 
 (defun sc::menu-choose-cursor (window x y)
   "Presents a menu of cursor names, and returns one or nil"
-  (let ((curs sc::cursors) 
+  (let ((curs sc::cursors)
 	(items))
     (while curs
       (push (sc::menu-item-for-cursor (car curs)) items)
@@ -200,7 +200,7 @@ Otherwise, ICON should be a vector or the name of a vector of [x y 32-chars]"
   (aset icon 2 (mapconcat 'sc::pack-one-line "1234567890123456" ""))
   (sc::goto-hotspot)
   )
-  
+
 (defun sc::pack-one-line (dummy)
   (let* (char chr1 chr2)
     (setq char 0 chr1 (mapconcat 'sc::pack-one-char "12345678" "") chr1 char)
@@ -212,7 +212,7 @@ Otherwise, ICON should be a vector or the name of a vector of [x y 32-chars]"
 (defun sc::pack-one-char (dummy)
   "pack following char into char, unless eolp"
   (if (or (eolp) (char-equal (following-char) 32))
-      (setq char (lsh char 1)) 
+      (setq char (lsh char 1))
     (setq char (1+ (lsh char 1))))
   (if (not (eolp))(forward-char)))
 

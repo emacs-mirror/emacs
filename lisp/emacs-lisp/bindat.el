@@ -33,22 +33,22 @@
 ;;  and encoding binary data formats like these is made simple using a
 ;;  structure specification which closely resembles the C style
 ;;  structure declarations.
-;;  
+;;
 ;;  Encoded (binary) data is stored in a unibyte string or vector,
-;;  while the decoded data is stored in an alist with (FIELD . VALUE) 
+;;  while the decoded data is stored in an alist with (FIELD . VALUE)
 ;;  pairs.
 
 ;; Example:
-  
+
 ;;  Consider the following C structures:
-;;  
+;;
 ;;  struct header {
 ;;	unsigned long	dest_ip;
 ;;	unsigned long	src_ip;
 ;;	unsigned short	dest_port;
 ;;	unsigned short	src_port;
 ;;  };
-;;  
+;;
 ;;  struct data {
 ;;	unsigned char	type;
 ;;	unsigned char	opcode;
@@ -56,22 +56,22 @@
 ;;	unsigned char	id[8];   /* nul-terminated string  */
 ;;	unsigned char	data[/* (length + 3) & ~3 */];
 ;;  };
-;;  
+;;
 ;;  struct packet {
 ;;	struct header	header;
 ;;	unsigned char	items;
 ;;	unsigned char   filler[3];
 ;;	struct data	item[/* items */];
 ;;  };
-;;  
+;;
 ;;  The corresponding Lisp bindat specification looks like this:
-;;  
+;;
 ;;  (setq header-spec
 ;;    '((dest-ip   ip)
 ;;	(src-ip    ip)
 ;;	(dest-port u16)
 ;;	(src-port  u16)))
-;;  
+;;
 ;;  (setq data-spec
 ;;    '((type      u8)
 ;;	(opcode	   u8)
@@ -79,20 +79,20 @@
 ;;	(id	   strz 8)
 ;;	(data	   vec (length))
 ;;	(align     4)))
-;;  
+;;
 ;;  (setq packet-spec
 ;;    '((header    struct header-spec)
 ;;	(items     u8)
 ;;	(fill      3)
 ;;	(item	   repeat (items)
 ;;		   ((struct data-spec)))))
-;;  
+;;
 ;;
 ;;  A binary data representation may look like
-;;   [ 192 168 1 100 192 168 1 101 01 28 21 32 2 0 0 0  
+;;   [ 192 168 1 100 192 168 1 101 01 28 21 32 2 0 0 0
 ;;     2 3 5 0 ?A ?B ?C ?D ?E ?F 0 0 1 2 3 4 5 0 0 0
 ;;     1 4 7 0 ?B ?C ?D ?E ?F ?G 0 0 6 7 8 9 10 11 12 0 ]
-;;  
+;;
 ;;  The corresponding decoded structure looks like
 ;;
 ;;      ((header
@@ -176,7 +176,7 @@
 
 ;; A `union' specification
 ;;    ([FIELD] union TAG_VAL (TAG SPEC) ... [(t SPEC)])
-;; is interpreted by evalling TAG_VAL and then comparing that to 
+;; is interpreted by evalling TAG_VAL and then comparing that to
 ;; each TAG using equal; if a match is found, the corresponding SPEC
 ;; is used.
 ;; If TAG is a form (eval EXPR), EXPR is evalled with `tag' bound to the
@@ -204,7 +204,7 @@
 	  (string-to-char (substring raw-data pos (1+ pos)))
 	(aref raw-data pos))
     (setq pos (1+ pos))))
-    
+
 (defun bindat--unpack-u16 ()
   (let* ((a (bindat--unpack-u8)) (b (bindat--unpack-u8)))
     (logior (lsh a 8) b)))
@@ -341,7 +341,7 @@
 		(setq struct (cons (cons field data) struct))
 	      (setq struct (append data struct))))))
     struct))
-  
+
 (defun bindat-unpack (spec raw-data &optional pos)
   "Return structured data according to SPEC for binary data in RAW-DATA.
 RAW-DATA is a string or vector.  Optional third arg POS specifies the
@@ -365,7 +365,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
   struct)
 
 
-;; Calculate raw-data length of structured data 
+;; Calculate raw-data length of structured data
 
 (defvar bindat--fixed-length-alist
   '((u8 . 1) (byte . 1)
@@ -398,7 +398,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	    (setq len (apply 'bindat-get-field struct len)))
 	(if (not len)
 	    (setq len 1))
-	(cond 
+	(cond
 	 ((eq type 'eval)
 	  (if field
 	      (setq struct (cons (cons field (eval len)) struct))
@@ -446,7 +446,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 (defun bindat--pack-u8 (v)
   (aset raw-data pos (logand v 255))
   (setq pos (1+ pos)))
-    
+
 (defun bindat--pack-u16 (v)
   (aset raw-data pos (logand (lsh v -8) 255))
   (aset raw-data (1+ pos) (logand v 255))
@@ -513,7 +513,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	(aset raw-data (+ pos i) (aref v i))
 	(setq i (1+ i)))
       (setq pos (+ pos len))))
-   (t 
+   (t
     (setq pos (+ pos len)))))
 
 (defun bindat--pack-group (struct spec)
@@ -540,7 +540,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	    (setq len (apply 'bindat-get-field struct len)))
 	(if (not len)
 	    (setq len 1))
-	(cond 
+	(cond
 	 ((eq type 'eval)
 	  (if field
 	      (setq struct (cons (cons field (eval len)) struct))
@@ -601,7 +601,7 @@ only that many elements from VECT."
       (setq i (1- i)
 	    s (cons (format (if (= i 0) fmt fmt2) (aref vect i)) s)))
     (apply 'concat s)))
-  
+
 (defun bindat-vector-to-dec (vect &optional sep)
   "Format vector VECT in decimal format separated by dots.
 If optional second arg SEP is a string, use that as separator."

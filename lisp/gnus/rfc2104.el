@@ -53,7 +53,7 @@
 ;;; 2000-05-12  added sha-1 example, added test case reference
 
 ;;; Code:
- 
+
 (eval-when-compile (require 'cl))
 
 ;; Magic character for inner HMAC round. 0x36 == 54 == '6'
@@ -66,7 +66,7 @@
 (defconst rfc2104-zero ?\x00)
 
 ;; Alist for converting hex to decimal.
-(defconst rfc2104-hex-alist 
+(defconst rfc2104-hex-alist
   '((?0 . 0)	      (?a . 10)	      (?A . 10)
     (?1 . 1)	      (?b . 11)	      (?B . 11)
     (?2 . 2)	      (?c . 12)	      (?C . 12)
@@ -95,7 +95,7 @@
 
 (defun rfc2104-hash (hash block-length hash-length key text)
   (let* (;; if key is longer than B, reset it to HASH(key)
-	 (key (if (> (length key) block-length) 
+	 (key (if (> (length key) block-length)
 		  (funcall hash key) key))
 	 (k_ipad (append key nil))
 	 (k_opad (append key nil)))

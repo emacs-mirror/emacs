@@ -3,7 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org> 
+;; Maintainers: D. Goel <deego@gnufans.org>
 ;;              Colin Walters <walters@debian.org>
 ;; Keywords: convenience, extensions
 ;; Version: 2.02g
@@ -146,57 +146,57 @@
 ;; Subject: Re: fix for `Cannot open load file: calc-alg-3'
 ;; To: walters@debian.org
 ;; Date: Sat, 24 Nov 2001 21:44:21 +0000 (UTC)
-;; 
+;;
 ;; Could you add logistic curve fitting to the current list?
-;; 
+;;
 ;; (I guess the key binding for a logistic curve would have to be `s'
 ;; since a logistic curve is an `s' curve; both `l' and `L' are already
 ;; taken for logarithms.)
-;; 
+;;
 ;; Here is the current list for curve fitting;
-;; 
+;;
 ;;     `1'
 ;;          Linear or multilinear.  a + b x + c y + d z.
-;; 
+;;
 ;;     `2-9'
 ;;          Polynomials.  a + b x + c x^2 + d x^3.
-;; 
+;;
 ;;     `e'
 ;;          Exponential.  a exp(b x) exp(c y).
-;; 
+;;
 ;;     `E'
 ;;          Base-10 exponential.  a 10^(b x) 10^(c y).
-;; 
+;;
 ;;     `x'
 ;;          Exponential (alternate notation).  exp(a + b x + c y).
-;; 
+;;
 ;;     `X'
 ;;          Base-10 exponential (alternate).  10^(a + b x + c y).
-;; 
+;;
 ;;     `l'
 ;;          Logarithmic.  a + b ln(x) + c ln(y).
-;; 
+;;
 ;;     `L'
 ;;          Base-10 logarithmic.  a + b log10(x) + c log10(y).
-;; 
+;;
 ;;     `^'
 ;;          General exponential.  a b^x c^y.
-;; 
+;;
 ;;     `p'
 ;;          Power law.  a x^b y^c.
-;; 
+;;
 ;;     `q'
 ;;          Quadratic.  a + b (x-c)^2 + d (x-e)^2.
-;; 
+;;
 ;;     `g'
 ;;          Gaussian.  (a / b sqrt(2 pi)) exp(-0.5*((x-c)/b)^2).
-;; 
-;; 
+;;
+;;
 ;; Logistic curves are used a great deal in ecology, and in predicting
 ;; human actions, such as use of different kinds of energy in a country
 ;; (wood, coal, oil, natural gas, etc.) or the number of scientific
 ;; papers a person publishes, or the number of movies made.
-;; 
+;;
 ;; (The less information on which to base the curve, the higher the error
 ;; rate.  Theodore Modis ran some Monte Carlo simulations and produced
 ;; what may be useful set of confidence levels for different amounts of
@@ -645,17 +645,17 @@ scientific notation in calc-mode.")
 ;; The following modes use specially-formatted data.
 (put 'calc-mode 'mode-class 'special)
 (put 'calc-trail-mode 'mode-class 'special)
-  
+
 ;; Define "inexact-result" as an e-lisp error symbol.
 (put 'inexact-result 'error-conditions '(error inexact-result calc-error))
 (put 'inexact-result 'error-message "Calc internal error (inexact-result)")
-  
+
 ;; Define "math-overflow" and "math-underflow" as e-lisp error symbols.
 (put 'math-overflow 'error-conditions '(error math-overflow calc-error))
 (put 'math-overflow 'error-message "Floating-point overflow occurred")
 (put 'math-underflow 'error-conditions '(error math-underflow calc-error))
 (put 'math-underflow 'error-message "Floating-point underflow occurred")
-  
+
 (defconst calc-version "2.02g")
 (defconst calc-version-date "Mon Nov 19 2001")
 (defvar calc-trail-pointer nil)		; "Current" entry in trail buffer.
@@ -848,7 +848,7 @@ scientific notation in calc-mode.")
     math-find-user-tokens math-read-expr-list math-read-exprs math-read-if
     math-read-token math-remove-dashes)
 
- ("calc-misc" calc-Need-calc-misc 
+ ("calc-misc" calc-Need-calc-misc
     calc-do-handle-whys calc-do-refresh calc-num-prefix-name
     calc-record-list calc-record-why calc-report-bug calc-roll-down-stack
     calc-roll-up-stack calc-temp-minibuffer-message calcFunc-floor
@@ -3364,7 +3364,7 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
     (push (or input last-command-event) unread-command-events)))
 
 (defun calc-clear-unread-commands ()
-  (if (featurep 'xemacs) 
+  (if (featurep 'xemacs)
 	(calc-emacs-type-lucid (setq unread-command-event nil))
     (setq unread-command-events nil)))
 

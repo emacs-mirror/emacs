@@ -575,7 +575,7 @@ If within the headers, this makes the new lines into continuation lines."
 (defun mail-mode-fill-paragraph (arg)
   ;; Do something special only if within the headers.
   (if (< (point) (mail-header-end))
-      (let (beg end fieldname) 
+      (let (beg end fieldname)
 	(when (prog1 (re-search-backward "^[-a-zA-Z]+:" nil 'yes)
 		(setq beg (point)))
 	(setq fieldname
@@ -944,7 +944,7 @@ external program defined by `sendmail-program'."
 			     ;; ... then undo escaping of matching parentheses,
 			     ;; including matching nested parentheses.
 			     (goto-char fullname-start)
-			     (while (re-search-forward 
+			     (while (re-search-forward
 				     "\\(\\=\\|[^\\]\\(\\\\\\\\\\)*\\)\\\\(\\(\\([^\\]\\|\\\\\\\\\\)*\\)\\\\)"
 				     fullname-end 1)
 			       (replace-match "\\1(\\3)" t)
@@ -992,7 +992,7 @@ external program defined by `sendmail-program'."
 				   delimline t))
 	      (let* ((default-directory "/")
 		     (coding-system-for-write selected-coding)
-		     (args 
+		     (args
 		      (append (list (point-min) (point-max)
 				    program
 				    nil errbuf nil "-oi")
@@ -1230,7 +1230,7 @@ external program defined by `sendmail-program'."
       (mail-position-on-field "to"))
   (insert "\nFCC: " folder))
 
-(defun mail-reply-to ()      
+(defun mail-reply-to ()
   "Move point to end of Reply-To-field.  Create a Reply-To field if none."
   (interactive)
   (expand-abbrev)

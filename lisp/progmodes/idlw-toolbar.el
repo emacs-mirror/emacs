@@ -4,7 +4,7 @@
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 4.15
-;; Date: $Date: 2002/06/14 19:06:16 $
+;; Date: $Date: 2002/09/12 16:56:54 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -399,7 +399,7 @@ static char * file[] = {
 \"                            \",
 \"                            \",
 \"                            \"};")
-  "The Cont icon.")	  
+  "The Cont icon.")
 
 (defvar idlwave-toolbar-to-here-icon
   (idlwave-toolbar-make-button

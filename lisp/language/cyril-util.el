@@ -113,7 +113,7 @@ If the argument is nil, we return the display table to its standard state."
     (aset standard-display-table ?,Lm(B  [?e?'])
     (aset standard-display-table ?,Ln(B  [?y?u])
     (aset standard-display-table ?,Lo(B  [?y?a])
-    
+
     (aset standard-display-table ?,L0(B  [?A])
     (aset standard-display-table ?,L1(B  [?B])
     (aset standard-display-table ?,L2(B  [?V])

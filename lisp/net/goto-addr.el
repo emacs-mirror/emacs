@@ -208,7 +208,7 @@ there, then load the URL at or before point."
   (interactive)
   (save-excursion
     (let ((address (save-excursion (goto-address-find-address-at-point))))
-      (if (and address 
+      (if (and address
 	       (save-excursion
 		 (goto-char (previous-single-char-property-change
 			     (point) 'goto-address nil

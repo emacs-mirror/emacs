@@ -88,7 +88,7 @@
 (eval-when-compile
   (require 'cl)
   (defmacro cond-emacs-xemacs (&rest args)
-    (cond-emacs-xemacs-macfn 
+    (cond-emacs-xemacs-macfn
      args "`cond-emacs-xemacs' must return exactly one element"))
   (defun cond-emacs-xemacs-macfn (args &optional msg)
     (if (atom args) args
@@ -1627,7 +1627,7 @@ Use prefix argument ARG to return \(LEVEL OPTION LOCATION)."
 		      :active active))
 	    (sort (mapcar 'car (elt antlr-options-alists (1- level)))
 		  'string-lessp))))
-    
+
 
 ;;;===========================================================================
 ;;;  Insert option: determine section-kind
@@ -1904,7 +1904,7 @@ For OLD, see `antlr-insert-option-do'."
     ;; stuff (no =, {, } or /) at point is not followed by ";"
     (insert ";")
     (backward-char)))
-	
+
 (defun antlr-insert-option-space (area old)
   "Find appropriate place to insert option, insert newlines/spaces.
 For AREA and OLD, see `antlr-insert-option-do'."
@@ -1924,7 +1924,7 @@ For AREA and OLD, see `antlr-insert-option-do'."
 		 (setq orig (point))
 	       (goto-char orig)))
 	(skip-chars-forward " \t")
-	
+
 	(if (looking-at "$\\|//")
 	    ;; just comment after point => skip (+ lines w/ same col comment)
 	    (let ((same (if (> (match-end 0) (match-beginning 0))

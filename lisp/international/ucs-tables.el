@@ -1239,7 +1239,7 @@ unification on input operations."
 			       (remq 'mule-utf-16-be
 				     (aref char-coding-system-table key)))))))
        ucs-mule-to-mule-unicode)
-    
+
       (if (not utf-fragment-on-decoding)
 	  (define-translation-table 'utf-translation-table-for-encode)
 	(define-translation-table 'utf-translation-table-for-encode
@@ -2411,7 +2411,7 @@ Interactively, prompts for a hex string giving the code."
 	 (?(1y(B . ?$,1Dy(B)
 	 (?(1|(B . ?$,1D|(B)
 	 (?(1}(B . ?$,1D}(B)))
-       
+
       (other
        '(
 	 ;; latin-jisx0201 is mostly decoded to ascii, with these
