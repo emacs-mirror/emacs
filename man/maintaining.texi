@@ -337,6 +337,11 @@ in the file.
 In Fortran code, functions, subroutines and block data are tags.
 
 @item
+In HTML input files, the tags are the @code{title} and the @code{h1},
+@code{h2}, @code{h3} headers.  Also, tags are @code{name=} in anchors
+and all occurrences of @code{id=}.
+
+@item
 In makefiles, targets are tags; additionally, variables are tags
 unless you specify @samp{--no-globals}.
 
