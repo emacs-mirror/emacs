@@ -3,7 +3,7 @@
 ;;
 ;; Author: Lars Lindberg <Lars.Lindberg@sypro.cap.se>
 ;; Created: 8 Oct 1993
-;; Lindberg's last update version: 3.27
+;; Lindberg's last update version: 3.28
 ;; Keywords: mouse buffer menu 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -851,6 +851,8 @@ variable `msb-menu-cond'."
      ((and (stringp (car choice))
 	   (null (cdr choice)))
       (car choice))
+     ((null choice)
+      choice)
      (t
       (error "Unknown form for buffer: %s" choice)))))
 		    
