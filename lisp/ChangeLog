@@ -1,3 +1,8 @@
+2004-04-08  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/diary-lib.el (diary-mode, fancy-diary-display-mode):
+	Derive from fundamental-mode rather than text-mode.
+
 2004-04-08  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-history): Doc fix.
