@@ -1842,7 +1842,7 @@ Emacs normally uses Fortran mode for files with extension @samp{.f},
   In addition to the normal commands for moving by and operating on
 ``defuns'' (Fortran subprograms---functions and subroutines, as well as
 modules for F90 mode), Fortran mode provides special commands to move by
-statements.
+statements and other program units.
 
 @table @kbd
 @kindex C-c C-n @r{(Fortran mode)}
@@ -1877,21 +1877,26 @@ Move point backward to the previous code block
 (@code{f90-previous-block}).  This is like @code{f90-next-block}, but
 moves backwards.
 
+@kindex C-M-n @r{(Fortran mode)}
 @kindex C-M-n @r{(F90 mode)}
+@findex fortran-end-of-block
 @findex f90-end-of-block
 @item C-M-n
-Move to the end of the current code block (@code{f90-end-of-block}).
-This is for F90 mode only.  With a numeric agument, move forward that
-number of blocks.  This command checks for consistency of block types
-and labels (if present), but it does not check the outermost block
-since that may be incomplete.  The mark is set before moving point.
+Move to the end of the current code block (@code{fortran-end-of-block},
+@code{f90-end-of-block}).  With a numeric agument, move forward that
+number of blocks.  The mark is set before moving point.  The F90 mode
+version of this command checks for consistency of block types and labels
+(if present), but it does not check the outermost block since that may
+be incomplete.
 
+@kindex C-M-p @r{(Fortran mode)}
 @kindex C-M-p @r{(F90 mode)}
+@findex fortran-beginning-of-block
 @findex f90-beginning-of-block
 @item C-M-p
 Move to the start of the current code block
-(@code{f90-beginning-of-block}). This is like @code{f90-end-of-block},
-but moves backwards.
+(@code{fortran-beginning-of-block}, @code{f90-beginning-of-block}). This
+is like @code{fortran-end-of-block}, but moves backwards.
 @end table
 
 @node Fortran Indent
