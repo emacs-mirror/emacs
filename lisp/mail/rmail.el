@@ -2621,11 +2621,16 @@ typically for purposes of moderating a list."
 	  "^|? *---+ +Message text follows: +---+ *|?$")
   "A regexp that matches the separator before the text of a failed message.")
 
+(defvar mail-mime-unsent-header "^Content-Type: message/rfc822 *$"
+ "A regexp that matches the header of a MIME body part with a failed message.")
+
 (defun rmail-retry-failure ()
   "Edit a mail message which is based on the contents of the current message.
 For a message rejected by the mail system, extract the interesting headers and
 the body of the original message.
-The variable `mail-unsent-separator' should match the string that
+If the failed message is a MIME multipart message, it is searched for a
+body part with a header which matches the variable `mail-mime-unsent-header'.
+Otherwise, the variable `mail-unsent-separator' should match the string that
 delimits the returned original message.
 The variable `rmail-retry-ignored-headers' is a regular expression
 specifying headers which should not be copied into the new message."
@@ -2637,23 +2642,34 @@ specifying headers which should not be copied into the new message."
     (save-excursion
       ;; Narrow down to just the quoted original message
       (rmail-beginning-of-message)
-      (let ((case-fold-search t))
-	(if (search-forward "This is a MIME-encapsulated message\n\n--" nil t)
+      (let* ((case-fold-search t)
+	     (top (point))
+	     (content-type
+	      (save-restriction
+		;; Fetch any content-type header in current message
+		(search-forward "\n\n") (narrow-to-region top (point))
+		(mail-fetch-field "Content-Type") )) )
+	;; Handle MIME multipart bounce messages
+	(if (and content-type 
+		 (string-match 
+		  ";[\n\t ]*boundary=\"?\\([-0-9a-z'()+_,./:=?]+\\)\"?" 
+		  content-type))
 	    (let ((codestring
-		   (buffer-substring (progn (beginning-of-line) (point))
-				     (progn (end-of-line) (point)))))
-	      (or (re-search-forward mail-unsent-separator nil t)
+		   (concat "\n--"
+			   (substring content-type (match-beginning 1) 
+				                   (match-end 1)))))
+	      (or (re-search-forward mail-mime-unsent-header nil t)
 		  (error "Cannot find beginning of header in failed message"))
-	      (or (and (search-forward codestring nil t)
-		       (search-forward "\n\n" nil t))
+	      (or (search-forward "\n\n" nil t)
 		  (error "Cannot find end of Mime data in failed message"))
 	      (setq bounce-start (point))
-	      (save-excursion
-		(goto-char (point-max))
-		(search-backward codestring)
-		(setq bounce-end (point)))
-	      (or (search-forward "\n\n" nil t)
-		  (error "Cannot find end of header in failed message")))
+	      (or (search-forward codestring nil t)
+		  (error "Cannot find end of Mime data in failed message"))
+	      (setq bounce-end (match-beginning 0))
+;	      (or (search-forward "\n\n" nil t)
+;		  (error "Cannot find end of header in failed message"))
+	      )
+	  ;; non-MIME bounce
 	  (or (re-search-forward mail-unsent-separator nil t)
 	      (error "Cannot parse this as a failure message"))
 	  (skip-chars-forward "\n")
