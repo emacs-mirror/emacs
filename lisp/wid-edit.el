@@ -801,18 +801,18 @@ Recommended as a parent keymap for modes using widgets.")
     (define-key map "\M-\t" 'widget-complete)
     (define-key map "\C-m" 'widget-field-activate)
     ;; Since the widget code uses a `field' property to identify fields,
-    ;; ordinary beginning-of-line/end-of-line do the right thing.
+    ;; ordinary beginning-of-line does the right thing.
     ;;  (define-key map "\C-a" 'widget-beginning-of-line)
-    ;;  (define-key map "\C-e" 'widget-end-of-line)
+    (define-key map "\C-e" 'widget-end-of-line)
     map)
   "Keymap used inside an editable field.")
 
 (defvar widget-text-keymap
   (let ((map (copy-keymap widget-keymap)))
     ;; Since the widget code uses a `field' property to identify fields,
-    ;; ordinary beginning-of-line/end-of-line do the right thing.
+    ;; ordinary beginning-of-line does the right thing.
     ;;  (define-key map "\C-a" 'widget-beginning-of-line)
-    ;;  (define-key map "\C-e" 'widget-end-of-line)
+    (define-key map "\C-e" 'widget-end-of-line)
     map)
   "Keymap used inside a text field.")
 
@@ -987,9 +987,22 @@ With optional ARG, move across that many fields."
   (widget-move (- arg)))
 
 ;; Since the widget code uses a `field' property to identify fields,
-;; ordinary beginning-of-line/end-of-line do the right thing.
+;; ordinary beginning-of-line does the right thing.
 (defalias 'widget-beginning-of-line 'beginning-of-line)
-(defalias 'widget-end-of-line 'end-of-line)
+
+(defun widget-end-of-line ()
+  "Go to end of field or end of line, whichever is first.
+Trailing spaces at the end of padded fields are not considered part of
+the field."
+  (interactive)
+  ;; Ordinary end-of-line does the right thing, because we're inside
+  ;; text with a `field' property.
+  (end-of-line)
+  (unless (eolp)
+    ;; ... except that we want to ignore trailing spaces in fields that
+    ;; aren't terminated by a newline, because they are used as padding,
+    ;; and ignored when extracting the entered value of the field.
+    (skip-chars-backward " " (field-beginning (1- (point))))))
 
 (defun widget-kill-line ()
   "Kill to end of field or end of line, whichever is first."
