@@ -167,3 +167,9 @@
    be seen again in a later read(2), without the CRs.  */
 
 #define BROKEN_PTY_READ_AFTER_EAGAIN 1
+
+/* Tell that garbage collector that setjmp is known to save all
+   registers relevant for conservative garbage collection in the
+   jmp_buf.  */
+
+#define GC_SETJMP_WORKS 1
