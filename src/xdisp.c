@@ -94,6 +94,8 @@ Lisp_Object Voverlay_arrow_string;
 /* Values of those variables at last redisplay.  */
 static Lisp_Object last_arrow_position, last_arrow_string;
 
+Lisp_Object Qmenu_bar_update_hook;
+
 /* Nonzero if overlay arrow has been displayed once in this window.  */
 static int overlay_arrow_seen;
 
@@ -927,12 +929,11 @@ update_menu_bar (f)
   if (update_mode_lines)
     w->update_mode_line = Qt;
 
-  /* When we reach a frame's selected window, redo the frame's menu bar.  */
-  if (!NILP (w->update_mode_line)
+  if (
 #ifdef USE_X_TOOLKIT
-      && FRAME_EXTERNAL_MENU_BAR (f) 
+      FRAME_EXTERNAL_MENU_BAR (f) 
 #else
-      && FRAME_MENU_BAR_LINES (f) > 0
+      FRAME_MENU_BAR_LINES (f) > 0
 #endif
       )
     {
@@ -944,12 +945,13 @@ update_menu_bar (f)
 	 the rest of the redisplay algorithm is about the same as
 	 windows_or_buffers_changed anyway.  */
       if (windows_or_buffers_changed
-	  || update_mode_lines
+	  || !NILP (w->update_mode_line)
 	  || (XFASTINT (w->last_modified) < MODIFF
 	      && (XFASTINT (w->last_modified)
 		  <= XBUFFER (w->buffer)->save_modified)))
 	{
 	  struct buffer *prev = current_buffer;
+	  call1 (Vrun_hooks, Qmenu_bar_update_hook);
 	  current_buffer = XBUFFER (w->buffer);
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 	  current_buffer = prev;
@@ -3271,6 +3273,9 @@ display_string (w, vpos, string, length, hpos, truncate,
 void
 syms_of_xdisp ()
 {
+  staticpro (&Qmenu_bar_update_hook);
+  Qmenu_bar_update_hook = intern ("menu-bar-update-hook");
+
   staticpro (&last_arrow_position);
   staticpro (&last_arrow_string);
   last_arrow_position = Qnil;
