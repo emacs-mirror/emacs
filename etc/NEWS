@@ -330,6 +330,12 @@ SQL buffer.
 * Lisp Changes in Emacs 21.3
 
 +++
+** New function window-body-height.
+
+This is like window-height but does not count the mode line
+or the header line.
+
++++
 ** The new frame parameter `tty-color-mode' specifies the mode to use
 for color support on character terminal frames.  Its value can be a
 number of colors to support, or a symbol.  See the Emacs Lisp
