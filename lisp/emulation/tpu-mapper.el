@@ -1,4 +1,4 @@
-;;; tpu-mapper.el  ---  Create a TPU-edt keymap file for x-windows emacs.
+;;; tpu-mapper.el --- Create a TPU-edt X-windows keymap file
 
 ;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
@@ -31,10 +31,10 @@
 
 ;;; Usage:
 
-;;  Simply load this file into the X-windows version of emacs (version 19)
-;;  using the following command.
+;;  Simply load this file into the X-windows version of emacs using the
+;;  following command.
 
-;;    emacs -q -l tpu-mapper.el
+;;    emacs -q -l tpu-mapper
 
 ;;  The "-q" option prevents loading of your .emacs file (commands therein
 ;;  might confuse this program).
@@ -49,11 +49,11 @@
 ;;  Finally, you will be prompted for the name of the file to store the key
 ;;  definitions.  If you chose the default, TPU-edt will find it and load it
 ;;  automatically.  If you specify a different file name, you will need to
-;;  set the variable "tpu-xkeys-file" before loading TPU-edt.  Here's how
+;;  set the variable "tpu-xkeys-file" before starting TPU-edt.  Here's how
 ;;  you might go about doing that in your .emacs file.
 
 ;;    (setq tpu-xkeys-file (expand-file-name "~/.my-emacs-x-keys"))
-;;    (load "tpu-edt")
+;;    (tpu-edt)
 
 ;;; Known Problems:
 
@@ -65,6 +65,7 @@
 ;;  your local X guru can try to figure out why the key is being ignored.
 
 ;;; Code:
+
 
 ;;;
 ;;;  Make sure we're running X-windows and Emacs version 19
@@ -170,7 +171,7 @@
  (t
   (message "Hit carriage-return <CR> to continue ")
   (setq tpu-return-seq (read-event))
-  (setq tpu-return (concat "[" (format "%s" tpu-return-seq) "]")))) 
+  (setq tpu-return (concat "[" (format "%s" tpu-return-seq) "]"))))
 
 
 ;;;
