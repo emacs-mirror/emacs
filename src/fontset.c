@@ -33,7 +33,7 @@ Lisp_Object Vglobal_fontset_alist;
 Lisp_Object Vfont_encoding_alist;
 Lisp_Object Vuse_default_ascent;
 Lisp_Object Vignore_relative_composition;
-Lisp_Object Valternative_fontname_alist;
+Lisp_Object Valternate_fontname_alist;
 Lisp_Object Vfontset_alias_alist;
 Lisp_Object Vhighlight_wrong_size_font;
 Lisp_Object Vclip_large_size_font;
@@ -849,11 +849,11 @@ the glyph of that character is put without considering\n\
 an ascent and descent value of a previous character.");
   Vuse_default_ascent = Qnil;
 
-  DEFVAR_LISP ("alternative-fontname-alist", &Valternative_fontname_alist,
-     "Alist of fontname vs list of the alternative fontnames.\n\
+  DEFVAR_LISP ("alternate-fontname-alist", &Valternate_fontname_alist,
+     "Alist of fontname vs list of the alternate fontnames.\n\
 When a specified font name is not found, the corresponding\n\
-alternative fontnames (if any) are tried instead.");
-  Valternative_fontname_alist = Qnil;
+alternate fontnames (if any) are tried instead.");
+  Valternate_fontname_alist = Qnil;
 
   DEFVAR_LISP ("fontset-alias-alist", &Vfontset_alias_alist,
      "Alist of fontset names vs the aliases.");
