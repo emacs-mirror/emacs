@@ -1,3 +1,11 @@
+2001-12-11  Dave Love  <fx@gnu.org>
+
+	* language/thai-util.el, language/thai.el: Add Unicode
+	equivalents.
+
+	* language/european.el: Remove autoload cookies.  Fix registration
+	of diacritic composition function.
+
 2001-12-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* calendar/todo-mode.el: Require time-stamp.
