@@ -1741,11 +1741,11 @@ directory tracking functions.")
   "Return the filename at point, or signal an error.
 Environment variables are substituted."
   (save-excursion
-    (if (re-search-backward "[^~/A-Za-z0-9_.$#,={}()-]" nil 'move)
+    (if (re-search-backward "[^~/A-Za-z0-9+@:_.$#,={}-]" nil 'move)
 	(forward-char 1))
     ;; Anchor the search forwards.
-    (if (not (looking-at "[~/A-Za-z0-9_.$#,={}()-]")) (error ""))
-    (re-search-forward "[~/A-Za-z0-9_.$#,={}()-]+")
+    (if (not (looking-at "[~/A-Za-z0-9+@:_.$#,={}-]")) (error ""))
+    (re-search-forward "[~/A-Za-z0-9+@:_.$#,={}-]+")
     (substitute-in-file-name
      (buffer-substring (match-beginning 0) (match-end 0)))))
 
