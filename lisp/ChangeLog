@@ -1,3 +1,8 @@
+2004-12-15  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/executable.el (executable-interpret): Eliminate
+	obsolete compile-internal, and switch to comint for interaction.
+
 2004-12-15  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* progmodes/idlwave.el (idlwave-skip-multi-commands): Don't match
