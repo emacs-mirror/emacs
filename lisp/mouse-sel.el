@@ -254,7 +254,7 @@ This should be bound to a down-mouse event."
 	  (goto-char (car object-bounds))
 	  (set-mark (cdr object-bounds)))
       (deactivate-mark)))
-  (mouse-extend))
+  (mouse-extend (if mouse-sel-selection-type EVENT)))
 
 (defun mouse-extend (&optional EVENT)
   "Extend region/selection using the mouse.
