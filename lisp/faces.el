@@ -816,42 +816,48 @@ selected frame."
     (let* ((visibility-spec (assq 'visibility parameters))
 	   (frame (x-create-frame (cons '(visibility . nil) parameters)))
 	   (faces (copy-alist global-face-data))
+	   success
 	   (rest faces))
-      (set-frame-face-alist frame faces)
+      (unwind-protect
+	  (progn
+	    (set-frame-face-alist frame faces)
 
-      (if (cdr (or (assq 'reverse parameters)
-		   (assq 'reverse default-frame-alist)
-		   (let ((resource (x-get-resource "reverseVideo"
-						   "ReverseVideo")))
-		     (if resource
-			 (cons nil (member (downcase resource)
-					   '("on" "true")))))))
-	  (let ((params (frame-parameters frame)))
-	    (modify-frame-parameters
-	     frame
-	     (list (cons 'foreground-color (cdr (assq 'background-color params)))
-		   (cons 'background-color (cdr (assq 'foreground-color params)))
-		   (cons 'mouse-color (cdr (assq 'background-color params)))
-		   (cons 'border-color (cdr (assq 'background-color params)))))
-	    (modify-frame-parameters
-	     frame
-	     (list (cons 'cursor-color (cdr (assq 'background-color params)))))))
+	    (if (cdr (or (assq 'reverse parameters)
+			 (assq 'reverse default-frame-alist)
+			 (let ((resource (x-get-resource "reverseVideo"
+							 "ReverseVideo")))
+			   (if resource
+			       (cons nil (member (downcase resource)
+						 '("on" "true")))))))
+		(let ((params (frame-parameters frame)))
+		  (modify-frame-parameters
+		   frame
+		   (list (cons 'foreground-color (cdr (assq 'background-color params)))
+			 (cons 'background-color (cdr (assq 'foreground-color params)))
+			 (cons 'mouse-color (cdr (assq 'background-color params)))
+			 (cons 'border-color (cdr (assq 'background-color params)))))
+		  (modify-frame-parameters
+		   frame
+		   (list (cons 'cursor-color (cdr (assq 'background-color params)))))))
 
-      ;; Copy the vectors that represent the faces.
-      ;; Also fill them in from X resources.
-      (while rest
-	(let ((global (cdr (car rest))))
-	  (setcdr (car rest) (vector 'face
-				     (face-name (cdr (car rest)))
-				     (face-id (cdr (car rest)))
-				     nil nil nil nil nil))
-	  (face-fill-in (car (car rest)) global frame))
-	(make-face-x-resource-internal (cdr (car rest)) frame t)
-	(setq rest (cdr rest)))
-      (if (null visibility-spec)
-	  (make-frame-visible frame)
-	(modify-frame-parameters frame (list visibility-spec)))
-      frame)))
+	    ;; Copy the vectors that represent the faces.
+	    ;; Also fill them in from X resources.
+	    (while rest
+	      (let ((global (cdr (car rest))))
+		(setcdr (car rest) (vector 'face
+					   (face-name (cdr (car rest)))
+					   (face-id (cdr (car rest)))
+					   nil nil nil nil nil))
+		(face-fill-in (car (car rest)) global frame))
+	      (make-face-x-resource-internal (cdr (car rest)) frame t)
+	      (setq rest (cdr rest)))
+	    (if (null visibility-spec)
+		(make-frame-visible frame)
+	      (modify-frame-parameters frame (list visibility-spec)))
+	    (setq success t)
+	    frame)
+	(or success
+	    (delete-frame frame))))))
 
 ;; Update a frame's faces when we change its default font.
 (defun frame-update-faces (frame)
