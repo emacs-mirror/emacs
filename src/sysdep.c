@@ -850,8 +850,22 @@ sys_subshell ()
 #endif
 
 #ifdef MSDOS    /* Demacs 1.1.2 91/10/20 Manabu Higashida */
-      st = system (sh);
-      chdir (oldwd);
+      {
+	char *old_pwd = getenv ("PWD");
+
+	/* If PWD is set, pass it with corrected value.  */
+	if (old_pwd)
+	  {
+	    old_pwd = xstrdup (old_pwd);
+	    if (str[len - 1] == '/')
+	      str[len - 1] = '\0';
+	    setenv ("PWD", str, 1);
+	  }
+	st = system (sh);
+	chdir (oldwd);
+	if (old_pwd)
+	  putenv (old_pwd);	/* restore previous value */
+      }
 #if 0	/* This is also reported if last command executed in subshell failed, KFS */
       if (st)
 	report_file_error ("Can't execute subshell", Fcons (build_string (sh), Qnil));
