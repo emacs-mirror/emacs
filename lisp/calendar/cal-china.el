@@ -1,4 +1,4 @@
-;;; cal-chinese.el --- calendar functions for the Chinese calendar.
+;;; cal-china.el --- calendar functions for the Chinese calendar.
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 
@@ -450,6 +450,6 @@ Echo Chinese date unless NOECHO is t."
   "Chinese calendar equivalent of date diary entry."
   (format "Chinese date: %s" (calendar-chinese-date-string date)))
 
-(provide 'cal-chinese)
+(provide 'cal-china)
 
-;;; cal-chinese ends here
+;;; cal-china.el ends here
