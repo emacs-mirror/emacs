@@ -1,3 +1,9 @@
+2000-05-22  Kenichi Handa  <handa@etl.go.jp>
+
+	* insdel.c (adjust_markers_for_replace): Fix previous change.
+	(adjust_after_replace): If PREV_TEXT is nil, call
+	adjust_markers_for_insert, not adjust_markers_for_replace.
+
 2000-05-20  NIIBE Yutaka  <gniibe@mri.co.jp>
 	
 	* s/gnu-linux.h (UNIX98_PTYS) [HAVE_GRANDPT]: Define.
