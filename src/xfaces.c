@@ -240,13 +240,14 @@ intern_face (f, face)
 
   mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
   if (face->stipple && face->stipple != FACE_DEFAULT)
-    xgcv.fill_style = FillStippled;
+    {
+      xgcv.fill_style = FillStippled;
+      xgcv.stipple = x_bitmap_pixmap (f, face->stipple);
+      mask |= GCFillStyle | GCStipple;
+    }
 
   gc = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		  mask, &xgcv);
-
-  if (face->stipple && face->stipple != FACE_DEFAULT)
-    XSetStipple (FRAME_X_DISPLAY (f), gc, x_bitmap_pixmap (f, face->stipple));
 
   face->gc = gc;
 
