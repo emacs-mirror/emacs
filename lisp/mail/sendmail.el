@@ -42,8 +42,9 @@ If `nil', they contain just the return address like:
 If `parens', they look like:
 	king@grassland.com (Elvis Parsley)
 If `angles', they look like:
-	Elvis Parsley <king@grassland.com>"
-  :type '(choice (const nil) (const parens) (const angles))
+	Elvis Parsley <king@grassland.com>
+If `default', Rmail allows the system to insert its default From field."
+  :type '(choice (const nil) (const parens) (const angles) (const default))
   :group 'sendmail)
 
 ;;;###autoload
