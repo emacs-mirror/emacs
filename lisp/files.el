@@ -113,13 +113,6 @@ under another name, you get the existing buffer instead of a new buffer.")
 The truename of a file is found by chasing all links
 both at the file level and at the levels of the containing directories.")
 
-(defvar buffer-file-truename nil
-  "The abbreviated truename of the file visited in the current buffer.
-That is, (abbreviate-file-name (file-truename buffer-file-name)).
-This variable is automatically local in all buffers, when non-nil.")
-(make-variable-buffer-local 'buffer-file-truename)
-(put 'buffer-file-truename 'permanent-local t)
-
 (defvar buffer-file-number nil
   "The device number and file number of the file visited in the current buffer.
 The value is a list of the form (FILENUM DEVNUM).
