@@ -268,17 +268,14 @@ nodes in the buffer before updating the menus."
       (if update-all-nodes-p
 	  (progn
 	    (message "Updating all nodes in %s ... " (buffer-name))
-	    (sleep-for 2)
 	    (texinfo-update-node (point-min) (point-max))))
 
       (message "Updating all menus in %s ... " (buffer-name))
-      (sleep-for 2)
       (texinfo-make-menu (point-max) (point-min))
 
       (if master-menu-p
 	  (progn
 	    (message "Updating the master menu in %s... " (buffer-name))
-	    (sleep-for 2)
 	    (texinfo-master-menu nil))))
 
     (message "Done...updated all the menus.  You may save the buffer.")))
@@ -819,15 +816,12 @@ title of the section containing the menu."
 	(progn
 	  (message "Making a master menu in %s ...first updating all nodes... "
 		   (buffer-name))
-	  (sleep-for 2)
 	  (texinfo-update-node (point-min) (point-max))
 
 	  (message "Updating all menus in %s ... " (buffer-name))
-	  (sleep-for 2)
 	  (texinfo-make-menu (point-min) (point-max))))
 
     (message "Now making the master menu in %s... " (buffer-name))
-    (sleep-for 2)
     (goto-char (point-min))
     (texinfo-insert-master-menu-list
      (texinfo-master-menu-list))
