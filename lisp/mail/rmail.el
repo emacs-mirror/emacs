@@ -1131,6 +1131,8 @@ It returns t if it got any new messages."
 		    (if (and (not file-name) (not success))
 			(let ((delfiles delete-files)
 			      (count 0))
+			  ;; Try to delete the garbage just inserted.
+			  (delete-region (point-min) (point-max))
 			  (while delfiles
 			    (while (file-exists-p (format "RMAILOSE.%d" count))
 			      (setq count (1+ count)))
