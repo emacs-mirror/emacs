@@ -40,8 +40,15 @@
 ;; Kingdon and uses GDB's annotation interface. You don't need to know about
 ;; annotations to use this mode as a debugger, but if you are interested
 ;; developing the mode itself, then see the Annotations section in the GDB
-;; info manual. Some GDB/MI commands are also used through th CLI command
-;; 'interpreter mi <mi-command>'.
+;; info manual. 
+;;
+;; GDB developers plan to make the annotation interface obsolete. A new
+;; interface called GDB/MI (machine interface) has been designed to replace
+;; it. Some GDB/MI commands are used in this file through the CLI command
+;; 'interpreter mi <mi-command>'. A file called gdb-mi.el is included in the
+;; GDB repository for future releases (6.2 onwards) that uses GDB/MI as the
+;; primary interface to GDB. It is still under development and is part of a
+;; process to migrate Emacs from annotations to GDB/MI.
 ;;
 ;; Known Bugs:
 ;;
@@ -53,7 +60,7 @@
 (defvar gdb-current-address "main" "Initialisation for Assembler buffer.")
 (defvar gdb-previous-address nil)
 (defvar gdb-previous-frame nil)
-(defvar gdb-current-frame "main")
+(defvar gdb-current-frame nil)
 (defvar gdb-current-language nil)
 (defvar gdb-view-source t "Non-nil means that source code can be viewed.")
 (defvar gdb-selected-view 'source "Code type that user wishes to view.")
@@ -175,7 +182,7 @@ detailed description of this mode.
   (setq gdb-current-address "main")
   (setq gdb-previous-address nil)
   (setq gdb-previous-frame nil)
-  (setq gdb-current-frame "main")
+  (setq gdb-current-frame nil)
   (setq gdb-view-source t)
   (setq gdb-selected-view 'source)
   (setq gdb-var-list nil)
@@ -214,7 +221,7 @@ speedbar."
   (require 'tooltip)
   (let ((expr (tooltip-identifier-from-point (point))))
     (if (and (string-equal gdb-current-language "c")
-	     gdb-use-colon-colon-notation)
+	     gdb-use-colon-colon-notation gdb-current-frame)
 	(setq expr (concat gdb-current-frame "::" expr)))
     (catch 'already-watched
       (dolist (var gdb-var-list)
@@ -1219,8 +1226,10 @@ static char *magick[] = {
   (interactive)
   (save-excursion
     (beginning-of-line 1)
-    (re-search-forward "in\\s-+\\S-+\\s-+at\\s-+" nil t)
-    (looking-at "\\(\\S-*\\):\\([0-9]+\\)"))
+    (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdbmi))
+	(looking-at "[0-9]*\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\\(\\S-*\\):\\([0-9]+\\)")
+      (re-search-forward "in\\s-+\\S-+\\s-+at\\s-+" nil t)
+      (looking-at "\\(\\S-*\\):\\([0-9]+\\)")))
   (if (match-string 2)
       (let ((line (match-string 2))
 	    (file (match-string 1)))
@@ -1311,7 +1320,7 @@ static char *magick[] = {
 
 (defun gdb-get-frame-number ()
   (save-excursion
-    (let* ((pos (re-search-backward "^#\\([0-9]*\\)" nil t))
+    (let* ((pos (re-search-backward "^#*\\([0-9]*\\)" nil t))
 	   (n (or (and pos (match-string-no-properties 1)) "0")))
       n)))
 
@@ -1502,7 +1511,7 @@ static char *magick[] = {
 
 \\{gdb-locals-mode-map}"
   (setq major-mode 'gdb-locals-mode)
-  (setq mode-name "Locals")
+  (setq mode-name (concat "Locals:" gdb-current-frame))
   (setq buffer-read-only t)
   (use-local-map gdb-locals-mode-map)
   (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
@@ -1999,6 +2008,9 @@ BUFFER nil or omitted means use the current buffer."
     (if (looking-at ".*=\\s-+0x\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*?\\);? ")
 	(progn
 	  (setq gdb-current-frame (match-string 2))
+	  (if (gdb-get-buffer 'gdb-locals-buffer)
+	      (with-current-buffer (gdb-get-buffer 'gdb-locals-buffer)
+		(setq mode-name (concat "Locals:" gdb-current-frame))))
 	  (let ((address (match-string 1)))
 	    ;; remove leading 0s from output of info frame command.
 	    (if (string-match "^0+\\(.*\\)" address)

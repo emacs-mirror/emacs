@@ -31,9 +31,13 @@
 ;; This overrides a trivial definition in files.el.
 (defun convert-standard-filename (filename)
   "Convert a standard file's name to something suitable for the current OS.
-This function's standard definition is trivial; it just returns the argument.
-However, on some systems, the function is redefined
-with a definition that really does change some file names."
+This means to guarantee valid names and perhaps to canonicalize
+certain patterns.
+
+On Windows and DOS, replace invalid characters.  On DOS, make
+sure to obey the 8.3 limitations.  On Windows, turn Cygwin names
+into native names, and also turn slashes into backslashes if the
+shell requires it (see `w32-shell-dos-semantics')."
   (if (or (not (stringp filename))
 	  ;; This catches the case where FILENAME is "x:" or "x:/" or
 	  ;; "/", thus preventing infinite recursion.

@@ -470,7 +470,10 @@ If CHAR is not a character, return nil."
 	  (cond
 	   ((memq c '(?\; ?\( ?\) ?\{ ?\} ?\[ ?\] ?\" ?\' ?\\)) (string ?\\ c))
 	   ((eq c 127) "\\C-?")
-	   (t (string c)))))))
+	   (t
+	    (condition-case nil
+		(string c)
+	      (error nil))))))))
 
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
@@ -538,9 +541,8 @@ With argument, print output into current buffer."
 	end)
     (prog1
 	(prin1 value)
-      (if (eq standard-output t)
-          (let ((str (eval-expression-print-format value)))
-            (if str (princ str))))
+      (let ((str (eval-expression-print-format value)))
+	(if str (princ str)))
       (setq end (point))
       (when (and (bufferp standard-output)
 		 (or (not (null print-length))

@@ -879,8 +879,9 @@ The command should accept one optional argument.  If the argument is
 off if it is on).  It should turn the mode on if the argument is a
 positive integer, the symbol @code{t}, or a list whose @sc{car} is one
 of those.  It should turn the mode off if the argument is a negative
-integer or zero, the symbol @code{-}, or a list whose @sc{car} is one
-of those.  The meaning of other arguments is not specified.
+integer or zero, the symbol @code{-}, or a list whose @sc{car} is a
+negative integer or zero.  The meaning of other arguments is not
+specified.
 
 Here is an example taken from the definition of @code{transient-mark-mode}.
 It shows the use of @code{transient-mark-mode} as a variable that enables or

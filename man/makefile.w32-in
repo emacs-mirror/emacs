@@ -1,6 +1,6 @@
 #### -*- Makefile -*- for the Emacs Manual and other documentation.
 
-# Copyright (C) 2003
+# Copyright (C) 2003, 2004
 #  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -45,13 +45,14 @@ INFO_TARGETS = $(infodir)/emacs $(infodir)/ccmode \
 		$(infodir)/pcl-cvs $(infodir)/woman \
 		$(infodir)/emacs-mime $(infodir)/eshell \
 		$(infodir)/speedbar $(infodir)/tramp \
-		$(infodir)/ses $(infodir)/smtpmail
+		$(infodir)/ses $(infodir)/smtpmail \
+		$(infodir)/flymake
 DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
 		 pcl-cvs.dvi woman.dvi emacs-mime.dvi eshell.dvi \
-		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi
+		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -177,6 +178,11 @@ $(infodir)/ediff: ediff.texi
 ediff.dvi: ediff.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/ediff.texi
 
+$(infodir)/flymake: flymake.texi
+	$(MAKEINFO) flymake.texi
+flymake.dvi: flymake.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/flymake.texi
+
 $(infodir)/forms: forms.texi
 	$(MAKEINFO) forms.texi
 forms.dvi: forms.texi
@@ -185,7 +191,7 @@ forms.dvi: forms.texi
 $(infodir)/gnus: gnus.texi
 	$(MAKEINFO) gnus.texi
 gnus.dvi: gnus.texi
-	sed -e '/@iflatex/,/@end iflatex/d' $(srcdir)/gnus.texi > gnustmp.texi 
+	sed -e '/@iflatex/,/@end iflatex/d' $(srcdir)/gnus.texi > gnustmp.texi
 	$(ENVADD) $(TEXI2DVI) gnustmp.texi
 	cp gnustmp.dvi $*.dvi
 	rm gnustmp.*

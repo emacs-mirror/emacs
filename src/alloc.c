@@ -155,6 +155,7 @@ int malloc_sbrk_unused;
 
 EMACS_INT undo_limit;
 EMACS_INT undo_strong_limit;
+EMACS_INT undo_outer_limit;
 
 /* Number of live and free conses etc.  */
 
@@ -755,17 +756,20 @@ lisp_align_malloc (nbytes, type)
 #ifdef HAVE_POSIX_MEMALIGN
       {
 	int err = posix_memalign (&base, BLOCK_ALIGN, ABLOCKS_BYTES);
-	abase = err ? (base = NULL) : base;
+	if (err)
+	  base = NULL;
+	abase = base;
       }
 #else
       base = malloc (ABLOCKS_BYTES);
       abase = ALIGN (base, BLOCK_ALIGN);
+#endif
+
       if (base == 0)
 	{
 	  UNBLOCK_INPUT;
 	  memory_full ();
 	}
-#endif
 
       aligned = (base == abase);
       if (!aligned)
@@ -4381,7 +4385,7 @@ returns nil, because real GC can't be done.  */)
 	if (! EQ (nextb->undo_list, Qt))
 	  nextb->undo_list
 	    = truncate_undo_list (nextb->undo_list, undo_limit,
-				  undo_strong_limit);
+				  undo_strong_limit, undo_outer_limit);
 
 	/* Shrink buffer gaps, but skip indirect and dead buffers.  */
 	if (nextb->base_buffer == 0 && !NILP (nextb->name))
@@ -5668,11 +5672,19 @@ which includes both saved text and other data.  */);
 
   DEFVAR_INT ("undo-strong-limit", &undo_strong_limit,
 	      doc: /* Don't keep more than this much size of undo information.
-A command which pushes past this size is itself forgotten.
-This limit is applied when garbage collection happens.
+A previous command which pushes the undo list past this size
+is entirely forgotten when GC happens.
 The size is counted as the number of bytes occupied,
 which includes both saved text and other data.  */);
   undo_strong_limit = 30000;
+
+  DEFVAR_INT ("undo-outer-limit", &undo_outer_limit,
+	      doc: /* Don't keep more than this much size of undo information.
+If the current command has produced more than this much undo information,
+GC discards it.  This is a last-ditch limit to prevent memory overflow.
+The size is counted as the number of bytes occupied,
+which includes both saved text and other data.  */);
+  undo_outer_limit = 300000;
 
   DEFVAR_BOOL ("garbage-collection-messages", &garbage_collection_messages,
 	       doc: /* Non-nil means display messages at start and end of garbage collection.  */);

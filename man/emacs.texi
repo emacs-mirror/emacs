@@ -541,7 +541,6 @@ C and Related Modes
 * Hungry Delete::       A more powerful DEL command.
 * Other C Commands::    Filling comments, viewing expansion of macros,
                           and other neat features.
-* Comments in C::       Options for customizing comment style.
 
 Fortran Mode
 

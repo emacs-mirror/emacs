@@ -1769,8 +1769,8 @@ nor any other file local variable.  It does not check whether a mode
 is specified in the local variables list at the end of the file.
 @end defun
 
-  If a file local variable list could specify a function that will
-be called later, or an expression that will be executed later, simply
+  If a file local variable list could specify a function that would
+be called later, or an expression that would be executed later, simply
 visiting a file could take over your Emacs.  To prevent this, Emacs
 takes care not to allow local variable lists to set such variables.
 

@@ -2042,6 +2042,10 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** If the buffer's undo list for the current command gets longer than
+undo-outer-limit, garbage collection empties it.  This is to prevent
+it from using up the available memory and choking Emacs.
+
 ** New function quail-find-key returns a list of keys to type in the
 current input method to input a character.
 

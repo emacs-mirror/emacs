@@ -42,7 +42,6 @@ Boston, MA 02111-1307, USA.  */
 #include "epaths.h"
 #include "termhooks.h"
 #include "coding.h"
-#include "ccl.h"
 #include "systime.h"
 
 /* #include "bitmaps/gray.xbm" */
@@ -59,17 +58,6 @@ static unsigned char gray_bits[] = {
 
 #include <stdlib.h>
 #include <string.h>
-#ifndef MAC_OSX
-#include <alloca.h>
-#endif
-
-#ifdef MAC_OSX
-#include <QuickTime/QuickTime.h>
-#else /* not MAC_OSX */
-#include <Windows.h>
-#include <Gestalt.h>
-#include <TextUtils.h>
-#endif /* not MAC_OSX */
 
 /*extern void free_frame_menubar ();
 extern double atof ();
@@ -2580,8 +2568,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.mac = (struct mac_output *) xmalloc (sizeof (struct mac_output));
   bzero (f->output_data.mac, sizeof (struct mac_output));
   FRAME_FONTSET (f) = -1;
-  f->output_data.mac->scroll_bar_foreground_pixel = -1;
-  f->output_data.mac->scroll_bar_background_pixel = -1;
   record_unwind_protect (unwind_create_frame, frame);
 
   f->icon_name
@@ -2717,25 +2703,32 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   f->output_data.mac->parent_desc = FRAME_MAC_DISPLAY_INFO (f)->root_window;
 
-  /* MAC_TODO: specify 1 below when toolbars are implemented.  */
-  window_prompting = x_figure_window_size (f, parms, 0);
+#if TARGET_API_MAC_CARBON
+  f->output_data.mac->text_cursor = kThemeIBeamCursor;
+  f->output_data.mac->nontext_cursor = kThemeArrowCursor;
+  f->output_data.mac->modeline_cursor = kThemeArrowCursor;
+  f->output_data.mac->hand_cursor = kThemePointingHandCursor;
+  f->output_data.mac->hourglass_cursor = kThemeWatchCursor;
+  f->output_data.mac->horizontal_drag_cursor = kThemeResizeLeftRightCursor;
+#else
+  f->output_data.mac->text_cursor = GetCursor (iBeamCursor);
+  f->output_data.mac->nontext_cursor = &arrow_cursor;
+  f->output_data.mac->modeline_cursor = &arrow_cursor;
+  f->output_data.mac->hand_cursor = &arrow_cursor;
+  f->output_data.mac->hourglass_cursor = GetCursor (watchCursor);
+  f->output_data.mac->horizontal_drag_cursor = &arrow_cursor;
+#endif
+
+  /* Compute the size of the window.  */
+  window_prompting = x_figure_window_size (f, parms, 1);
 
   tem = mac_get_arg (parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || EQ (tem, Qt);
-
-  /* Create the window. Add the tool-bar height to the initial frame
-     height so that the user gets a text display area of the size he
-     specified with -g or via the registry. Later changes of the
-     tool-bar height don't change the frame size. This is done so that
-     users can create tall Emacs frames without having to guess how
-     tall the tool-bar will get. */
-  FRAME_LINES (f) += FRAME_TOOL_BAR_LINES (f);
 
   /* mac_window (f, window_prompting, minibuffer_only); */
   make_mac_frame (f);
 
   x_icon (f, parms);
-
   x_make_gc (f);
 
   /* Now consider the frame official.  */
@@ -2754,7 +2747,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_parameter (f, parms, Qcursor_type, Qbox,
 		       "cursorType", "CursorType", RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qscroll_bar_width, Qnil,
-		       "scrollBarWidth", "ScrollBarWidth", RES_TYPE_NUMBER);
+		       "scrollBarWidth", "ScrollBarWidth",
+		       RES_TYPE_NUMBER);
 
   /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
      Change will not be effected unless different from the current
@@ -2762,12 +2756,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
   width = FRAME_COLS (f);
   height = FRAME_LINES (f);
 
-  FRAME_LINES (f) = 0;
   SET_FRAME_COLS (f, 0);
+  FRAME_LINES (f) = 0;
   change_frame_size (f, height, width, 1, 0, 0);
-
-  /* Set up faces after all frame parameters are known.  */
-  call1 (Qface_set_after_frame_default, frame);
 
 #if 0 /* MAC_TODO: when we have window manager hints */
   /* Tell the server what size and position, etc, we want, and how
@@ -3025,11 +3016,8 @@ If omitted or nil, that stands for the selected frame's display.  */)
   /* MAC_TODO: this is an approximation, and only of the main display */
 
   struct mac_display_info *dpyinfo = check_x_display_info (display);
-  short h, v;
 
-  ScreenRes (&h, &v);
-
-  return make_number ((int) (v / 72.0 * 25.4));
+  return make_number ((int) (dpyinfo->height * 25.4 / dpyinfo->resy));
 }
 
 DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
@@ -3043,11 +3031,8 @@ If omitted or nil, that stands for the selected frame's display.  */)
   /* MAC_TODO: this is an approximation, and only of the main display */
 
   struct mac_display_info *dpyinfo = check_x_display_info (display);
-  short h, v;
 
-  ScreenRes (&h, &v);
-
-  return make_number ((int) (h / 72.0 * 25.4));
+  return make_number ((int) (dpyinfo->width * 25.4 / dpyinfo->resx));
 }
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
@@ -3595,9 +3580,11 @@ hide_hourglass ()
  ***********************************************************************/
 
 static Lisp_Object x_create_tip_frame P_ ((struct mac_display_info *,
-					   Lisp_Object));
+					   Lisp_Object, Lisp_Object));
+static void compute_tip_xy P_ ((struct frame *, Lisp_Object, Lisp_Object,
+				Lisp_Object, int, int, int *, int *));
 
-/* The frame of a currently visible tooltip, or null.  */
+/* The frame of a currently visible tooltip.  */
 
 Lisp_Object tip_frame;
 
@@ -3612,15 +3599,42 @@ Window tip_window;
 
 Lisp_Object last_show_tip_args;
 
-/* Create a frame for a tooltip on the display described by DPYINFO.
-   PARMS is a list of frame parameters.  Value is the frame.  */
+/* Maximum size for tooltips; a cons (COLUMNS . ROWS).  */
+
+Lisp_Object Vx_max_tooltip_size;
+
 
 static Lisp_Object
-x_create_tip_frame (dpyinfo, parms)
-     struct mac_display_info *dpyinfo;
-     Lisp_Object parms;
+unwind_create_tip_frame (frame)
+     Lisp_Object frame;
 {
-#if 0 /* MAC_TODO : Mac version */
+  Lisp_Object deleted;
+
+  deleted = unwind_create_frame (frame);
+  if (EQ (deleted, Qt))
+    {
+      tip_window = NULL;
+      tip_frame = Qnil;
+    }
+
+  return deleted;
+}
+
+
+/* Create a frame for a tooltip on the display described by DPYINFO.
+   PARMS is a list of frame parameters.  TEXT is the string to
+   display in the tip frame.  Value is the frame.
+
+   Note that functions called here, esp. x_default_parameter can
+   signal errors, for instance when a specified color name is
+   undefined.  We have to make sure that we're in a consistent state
+   when this happens.  */
+
+static Lisp_Object
+x_create_tip_frame (dpyinfo, parms, text)
+     struct mac_display_info *dpyinfo;
+     Lisp_Object parms, text;
+{
   struct frame *f;
   Lisp_Object frame, tem;
   Lisp_Object name;
@@ -3629,8 +3643,11 @@ x_create_tip_frame (dpyinfo, parms)
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
   struct kboard *kb;
+  int face_change_count_before = face_change_count;
+  Lisp_Object buffer;
+  struct buffer *old_buffer;
 
-  check_x ();
+  check_mac ();
 
   /* Use this general default value to start with until we know if
      this frame has a specified name.  */
@@ -3643,7 +3660,7 @@ x_create_tip_frame (dpyinfo, parms)
 #endif
 
   /* Get the name of the frame to use for resource lookup.  */
-  name = w32_get_arg (parms, Qname, "name", "Name", RES_TYPE_STRING);
+  name = mac_get_arg (parms, Qname, "name", "Name", RES_TYPE_STRING);
   if (!STRINGP (name)
       && !EQ (name, Qunbound)
       && !NILP (name))
@@ -3652,31 +3669,50 @@ x_create_tip_frame (dpyinfo, parms)
 
   frame = Qnil;
   GCPRO3 (parms, name, frame);
-  tip_frame = f = make_frame (1);
+  f = make_frame (1);
   XSETFRAME (frame, f);
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
 
-  f->output_method = output_w32;
-  f->output_data.w32 =
-    (struct w32_output *) xmalloc (sizeof (struct w32_output));
-  bzero (f->output_data.w32, sizeof (struct w32_output));
-#if 0
-  f->output_data.w32->icon_bitmap = -1;
-#endif
-  FRAME_FONTSET (f) = -1;
+  buffer = Fget_buffer_create (build_string (" *tip*"));
+  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer, Qnil);
+  old_buffer = current_buffer;
+  set_buffer_internal_1 (XBUFFER (buffer));
+  current_buffer->truncate_lines = Qnil;
+  specbind (Qinhibit_read_only, Qt);
+  specbind (Qinhibit_modification_hooks, Qt);
+  Ferase_buffer ();
+  Finsert (1, &text);
+  set_buffer_internal_1 (old_buffer);
+
+  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
+  record_unwind_protect (unwind_create_tip_frame, frame);
+
+  /* By setting the output method, we're essentially saying that
+     the frame is live, as per FRAME_LIVE_P.  If we get a signal
+     from this point on, x_destroy_window might screw up reference
+     counts etc.  */
+  f->output_method = output_mac;
+  f->output_data.mac =
+    (struct mac_output *) xmalloc (sizeof (struct mac_output));
+  bzero (f->output_data.mac, sizeof (struct mac_output));
+
+  FRAME_FONTSET (f)  = -1;
   f->icon_name = Qnil;
 
+#if 0 /* GLYPH_DEBUG TODO: image support.  */
+  image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
 #ifdef MULTI_KBOARD
   FRAME_KBOARD (f) = kb;
 #endif
-  f->output_data.w32->parent_desc = FRAME_W32_DISPLAY_INFO (f)->root_window;
-  f->output_data.w32->explicit_parent = 0;
+  f->output_data.mac->parent_desc = FRAME_MAC_DISPLAY_INFO (f)->root_window;
+  f->output_data.mac->explicit_parent = 0;
 
   /* Set the name; the functions to which we pass f expect the name to
      be set.  */
   if (EQ (name, Qunbound) || NILP (name))
     {
-      f->name = build_string (dpyinfo->x_id_name);
+      f->name = build_string (dpyinfo->mac_id_name);
       f->explicit_name = 0;
     }
   else
@@ -3687,12 +3723,12 @@ x_create_tip_frame (dpyinfo, parms)
       specbind (Qx_resource_name, name);
     }
 
-  /* Extract the window parameters from the supplied values
-     that are needed to determine window geometry.  */
+  /* Extract the window parameters from the supplied values that are
+     needed to determine window geometry.  */
   {
     Lisp_Object font;
 
-    font = w32_get_arg (parms, Qfont, "font", "Font", RES_TYPE_STRING);
+    font = mac_get_arg (parms, Qfont, "font", "Font", RES_TYPE_STRING);
 
     BLOCK_INPUT;
     /* First, try whatever font the caller has specified.  */
@@ -3706,22 +3742,16 @@ x_create_tip_frame (dpyinfo, parms)
       }
 
     /* Try out a font which we hope has bold and italic variations.  */
-    if (!STRINGP (font))
-      font = x_new_font (f, "-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1");
-    if (!STRINGP (font))
-      font = x_new_font (f, "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
     if (! STRINGP (font))
-      font = x_new_font (f, "-*-*-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
-    if (! STRINGP (font))
-      /* This was formerly the first thing tried, but it finds too many fonts
-	 and takes too long.  */
-      font = x_new_font (f, "-*-*-medium-r-*-*-*-*-*-*-c-*-iso8859-1");
+      font = x_new_font (f, "-ETL-fixed-medium-r-*--*-160-*-*-*-*-iso8859-1");
     /* If those didn't work, look for something which will at least work.  */
     if (! STRINGP (font))
-      font = x_new_font (f, "-*-fixed-*-*-*-*-*-140-*-*-c-*-iso8859-1");
+      font = x_new_font (f, "-*-monaco-*-12-*-mac-roman");
+    if (! STRINGP (font))
+      font = x_new_font (f, "-*-courier-*-10-*-mac-roman");
     UNBLOCK_INPUT;
     if (! STRINGP (font))
-      font = build_string ("fixed");
+      error ("Cannot find any usable font");
 
     x_default_parameter (f, parms, Qfont, font,
 			 "font", "Font", RES_TYPE_STRING);
@@ -3737,7 +3767,7 @@ x_create_tip_frame (dpyinfo, parms)
     {
       Lisp_Object value;
 
-      value = w32_get_arg (parms, Qinternal_border_width,
+      value = mac_get_arg (parms, Qinternal_border_width,
 			 "internalBorder", "internalBorder", RES_TYPE_NUMBER);
       if (! EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qinternal_border_width, value),
@@ -3768,34 +3798,26 @@ x_create_tip_frame (dpyinfo, parms)
      happen.  */
   init_frame_faces (f);
 
-  f->output_data.w32->parent_desc = FRAME_W32_DISPLAY_INFO (f)->root_window;
+  f->output_data.mac->parent_desc = FRAME_MAC_DISPLAY_INFO (f)->root_window;
 
   window_prompting = x_figure_window_size (f, parms, 0);
 
   {
-    XSetWindowAttributes attrs;
-    unsigned long mask;
-
     BLOCK_INPUT;
-    mask = CWBackPixel | CWOverrideRedirect | CWSaveUnder | CWEventMask;
-    /* Window managers looks at the override-redirect flag to
-       determine whether or net to give windows a decoration (Xlib
-       3.2.8).  */
-    attrs.override_redirect = True;
-    attrs.save_under = True;
-    attrs.background_pixel = FRAME_BACKGROUND_PIXEL (f);
-    /* Arrange for getting MapNotify and UnmapNotify events.  */
-    attrs.event_mask = StructureNotifyMask;
-    tip_window
-      = FRAME_W32_WINDOW (f)
-      = XCreateWindow (FRAME_W32_DISPLAY (f),
-		       FRAME_W32_DISPLAY_INFO (f)->root_window,
-		       /* x, y, width, height */
-		       0, 0, 1, 1,
-		       /* Border.  */
-		       1,
-		       CopyFromParent, InputOutput, CopyFromParent,
-		       mask, &attrs);
+    Rect r;
+
+    SetRect (&r, 0, 0, 1, 1);
+    if (CreateNewWindow (kHelpWindowClass,
+			 kWindowNoActivatesAttribute
+			 | kWindowIgnoreClicksAttribute,
+			 &r, &tip_window) == noErr)
+      {
+	FRAME_MAC_WINDOW (f) = tip_window;
+	SetWRefCon (tip_window, (long) f->output_data.mac);
+	/* so that update events can find this mac_output struct */
+	f->output_data.mac->mFP = f;
+	ShowWindow (tip_window);
+      }
     UNBLOCK_INPUT;
   }
 
@@ -3813,14 +3835,34 @@ x_create_tip_frame (dpyinfo, parms)
      FRAME_LINES (f).  */
   width = FRAME_COLS (f);
   height = FRAME_LINES (f);
-  FRAME_LINES (f) = 0;
   SET_FRAME_COLS (f, 0);
+  FRAME_LINES (f) = 0;
   change_frame_size (f, height, width, 1, 0, 0);
 
   /* Add `tooltip' frame parameter's default value. */
   if (NILP (Fframe_parameter (frame, intern ("tooltip"))))
     Fmodify_frame_parameters (frame, Fcons (Fcons (intern ("tooltip"), Qt),
 					    Qnil));
+
+  /* Set up faces after all frame parameters are known.  This call
+     also merges in face attributes specified for new frames.
+
+     Frame parameters may be changed if .Xdefaults contains
+     specifications for the default font.  For example, if there is an
+     `Emacs.default.attributeBackground: pink', the `background-color'
+     attribute of the frame get's set, which let's the internal border
+     of the tooltip frame appear in pink.  Prevent this.  */
+  {
+    Lisp_Object bg = Fframe_parameter (frame, Qbackground_color);
+
+    /* Set tip_frame here, so that */
+    tip_frame = frame;
+    call1 (Qface_set_after_frame_default, frame);
+
+    if (!EQ (bg, Fframe_parameter (frame, Qbackground_color)))
+      Fmodify_frame_parameters (frame, Fcons (Fcons (Qbackground_color, bg),
+					      Qnil));
+  }
 
   f->no_split = 1;
 
@@ -3833,17 +3875,80 @@ x_create_tip_frame (dpyinfo, parms)
 
   /* Now that the frame is official, it counts as a reference to
      its display.  */
-  FRAME_W32_DISPLAY_INFO (f)->reference_count++;
+  FRAME_MAC_DISPLAY_INFO (f)->reference_count++;
 
+  /* Setting attributes of faces of the tooltip frame from resources
+     and similar will increment face_change_count, which leads to the
+     clearing of all current matrices.  Since this isn't necessary
+     here, avoid it by resetting face_change_count to the value it
+     had before we created the tip frame.  */
+  face_change_count = face_change_count_before;
+
+  /* Discard the unwind_protect.  */
   return unbind_to (count, frame);
-#endif /* MAC_TODO */
-  return Qnil;
+}
+
+
+/* Compute where to display tip frame F.  PARMS is the list of frame
+   parameters for F.  DX and DY are specified offsets from the current
+   location of the mouse.  WIDTH and HEIGHT are the width and height
+   of the tooltip.  Return coordinates relative to the root window of
+   the display in *ROOT_X, and *ROOT_Y.  */
+
+static void
+compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
+     struct frame *f;
+     Lisp_Object parms, dx, dy;
+     int width, height;
+     int *root_x, *root_y;
+{
+  Lisp_Object left, top;
+
+  /* User-specified position?  */
+  left = Fcdr (Fassq (Qleft, parms));
+  top  = Fcdr (Fassq (Qtop, parms));
+
+  /* Move the tooltip window where the mouse pointer is.  Resize and
+     show it.  */
+  if (!INTEGERP (left) || !INTEGERP (top))
+    {
+      Point mouse_pos;
+
+      BLOCK_INPUT;
+      GetMouse (&mouse_pos);
+      LocalToGlobal (&mouse_pos);
+      *root_x = mouse_pos.h;
+      *root_y = mouse_pos.v;
+      UNBLOCK_INPUT;
+    }
+
+  if (INTEGERP (top))
+    *root_y = XINT (top);
+  else if (*root_y + XINT (dy) - height < 0)
+    *root_y -= XINT (dy);
+  else
+    {
+      *root_y -= height;
+      *root_y += XINT (dy);
+    }
+
+  if (INTEGERP (left))
+    *root_x = XINT (left);
+  else if (*root_x + XINT (dx) + width <= FRAME_MAC_DISPLAY_INFO (f)->width)
+    /* It fits to the right of the pointer.  */
+    *root_x += XINT (dx);
+  else if (width + XINT (dx) <= *root_x)
+    /* It fits to the left of the pointer.  */
+    *root_x -= width + XINT (dx);
+  else
+    /* Put it left-justified on the screen -- it ought to fit that way.  */
+    *root_x = 0;
 }
 
 
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
-       doc : /* Show STRING in a "tooltip" window on frame FRAME.
-A tooltip window is a small window displaying a string.
+       doc: /* Show STRING in a "tooltip" window on frame FRAME.
+A tooltip window is a small X window displaying a string.
 
 FRAME nil or omitted means use the selected frame.
 
@@ -3859,19 +3964,19 @@ displayed at the mouse position, with offset DX added (default is 5 if
 DX isn't specified).  Likewise for the y-position; if a `top' frame
 parameter is specified, it determines the y-position of the tooltip
 window, otherwise it is displayed at the mouse position, with offset
-DY added (default is 10).  */)
-  (string, frame, parms, timeout, dx, dy)
+DY added (default is -10).
+
+A tooltip's maximum size is specified by `x-max-tooltip-size'.
+Text larger than the specified size is clipped.  */)
+     (string, frame, parms, timeout, dx, dy)
      Lisp_Object string, frame, parms, timeout, dx, dy;
 {
   struct frame *f;
   struct window *w;
-  Window root, child;
-  Lisp_Object buffer, top, left;
+  int root_x, root_y;
   struct buffer *old_buffer;
   struct text_pos pos;
   int i, width, height;
-  int root_x, root_y, win_x, win_y;
-  unsigned pmask;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
   int count = SPECPDL_INDEX ();
@@ -3920,13 +4025,11 @@ DY added (default is 10).  */)
 	      call1 (Qcancel_timer, timer);
 	    }
 
-#if 0 /* MAC_TODO : Mac specifics */
 	  BLOCK_INPUT;
-	  compute_tip_xy (f, parms, dx, dy, &root_x, &root_y);
-	  XMoveWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		       root_x, root_y - FRAME_PIXEL_HEIGHT (f));
+	  compute_tip_xy (f, parms, dx, dy, FRAME_PIXEL_WIDTH (f),
+			  FRAME_PIXEL_HEIGHT (f), &root_x, &root_y);
+	  MoveWindow (FRAME_MAC_WINDOW (f), root_x, root_y, false);
 	  UNBLOCK_INPUT;
-#endif /* MAC_TODO */
 	  goto start_timer;
 	}
     }
@@ -3953,26 +4056,36 @@ DY added (default is 10).  */)
 
   /* Create a frame for the tooltip, and record it in the global
      variable tip_frame.  */
-  frame = x_create_tip_frame (FRAME_MAC_DISPLAY_INFO (f), parms);
+  frame = x_create_tip_frame (FRAME_MAC_DISPLAY_INFO (f), parms, string);
   f = XFRAME (frame);
 
-  /* Set up the frame's root window.  Currently we use a size of 80
-     columns x 40 lines.  If someone wants to show a larger tip, he
-     will loose.  I don't think this is a realistic case.  */
+  /* Set up the frame's root window.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
   w->left_col = w->top_line = make_number (0);
-  w->total_cols = make_number (80);
-  w->total_lines = make_number (40);
+
+  if (CONSP (Vx_max_tooltip_size)
+      && INTEGERP (XCAR (Vx_max_tooltip_size))
+      && XINT (XCAR (Vx_max_tooltip_size)) > 0
+      && INTEGERP (XCDR (Vx_max_tooltip_size))
+      && XINT (XCDR (Vx_max_tooltip_size)) > 0)
+    {
+      w->total_cols = XCAR (Vx_max_tooltip_size);
+      w->total_lines = XCDR (Vx_max_tooltip_size);
+    }
+  else
+    {
+      w->total_cols = make_number (80);
+      w->total_lines = make_number (40);
+    }
+
+  FRAME_TOTAL_COLS (f) = XINT (w->total_cols);
   adjust_glyphs (f);
   w->pseudo_window_p = 1;
 
   /* Display the tooltip text in a temporary buffer.  */
-  buffer = Fget_buffer_create (build_string (" *tip*"));
-  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer, Qnil);
   old_buffer = current_buffer;
-  set_buffer_internal_1 (XBUFFER (buffer));
-  Ferase_buffer ();
-  Finsert (1, &string);
+  set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->buffer));
+  current_buffer->truncate_lines = Qnil;
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
   SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
@@ -3993,7 +4106,7 @@ DY added (default is 10).  */)
       /* Let the row go over the full width of the frame.  */
       row->full_width_p = 1;
 
-      /* There's a glyph at the end of rows that is use to place
+      /* There's a glyph at the end of rows that is used to place
 	 the cursor there.  Don't include the width of this glyph.  */
       if (row->used[TEXT_AREA])
 	{
@@ -4014,17 +4127,13 @@ DY added (default is 10).  */)
 
   /* Move the tooltip window where the mouse pointer is.  Resize and
      show it.  */
-#if 0 /* TODO : Mac specifics */
-  compute_tip_xy (f, parms, dx, dy, &root_x, &root_y);
+  compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
 
   BLOCK_INPUT;
-  XQueryPointer (FRAME_W32_DISPLAY (f), FRAME_W32_DISPLAY_INFO (f)->root_window,
-		 &root, &child, &root_x, &root_y, &win_x, &win_y, &pmask);
-  XMoveResizeWindow (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f),
-		     root_x + 5, root_y - height - 5, width, height);
-  XMapRaised (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f));
+  MoveWindow (FRAME_MAC_WINDOW (f), root_x, root_y, false);
+  SizeWindow (FRAME_MAC_WINDOW (f), width, height, true);
+  BringToFront (FRAME_MAC_WINDOW (f));
   UNBLOCK_INPUT;
-#endif /* MAC_TODO */
 
   /* Draw into the window.  */
   w->must_be_updated_p = 1;
@@ -4046,8 +4155,8 @@ DY added (default is 10).  */)
 
 DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
        doc: /* Hide the current tooltip window, if there is any.
-Value is t is tooltip was open, nil otherwise.  */)
-  ()
+Value is t if tooltip was open, nil otherwise.  */)
+     ()
 {
   int count;
   Lisp_Object deleted, frame, timer;
@@ -4249,7 +4358,8 @@ syms_of_macfns ()
   staticpro (&Qsuppress_icon);
   Qundefined_color = intern ("undefined-color");
   staticpro (&Qundefined_color);
-  /* This is the end of symbol initialization.  */
+  Qcancel_timer = intern ("cancel-timer");
+  staticpro (&Qcancel_timer);
 
   Qhyper = intern ("hyper");
   staticpro (&Qhyper);
@@ -4265,6 +4375,7 @@ syms_of_macfns ()
   staticpro (&Qcontrol);
   Qshift = intern ("shift");
   staticpro (&Qshift);
+  /* This is the end of symbol initialization.  */
 
   /* Text property `display' should be nonsticky by default.  */
   Vtext_property_default_nonsticky
@@ -4313,6 +4424,11 @@ or when you set the mouse color.  */);
   DEFVAR_LISP ("x-cursor-fore-pixel", &Vx_cursor_fore_pixel,
 	       doc: /* A string indicating the foreground color of the cursor box.  */);
   Vx_cursor_fore_pixel = Qnil;
+
+  DEFVAR_LISP ("x-max-tooltip-size", &Vx_max_tooltip_size,
+    doc: /* Maximum size for tooltips.  Value is a pair (COLUMNS . ROWS).
+Text larger than this is clipped.  */);
+  Vx_max_tooltip_size = Fcons (make_number (80), make_number (40));
 
   DEFVAR_LISP ("x-no-window-manager", &Vx_no_window_manager,
 	       doc: /* Non-nil if no window manager is in use.
@@ -4385,6 +4501,9 @@ Chinese, Japanese, and Korean.  */);
   staticpro (&tip_timer);
   tip_frame = Qnil;
   staticpro (&tip_frame);
+
+  last_show_tip_args = Qnil;
+  staticpro (&last_show_tip_args);
 
 #if 0 /* MAC_TODO */
   defsubr (&Sx_file_dialog);

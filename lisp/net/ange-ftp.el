@@ -4116,6 +4116,9 @@ directory, so that Emacs will know its current contents."
 				       (format "Getting %s" fn1))
 	  tmp1))))
 
+(defun ange-ftp-file-remote-p (file)
+  (when (ange-ftp-ftp-name file) t))
+
 (defun ange-ftp-load (file &optional noerror nomessage nosuffix)
   (if (ange-ftp-ftp-name file)
       (let ((tryfiles (if nosuffix
@@ -4257,9 +4260,6 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
   (let ((fn (get operation 'ange-ftp)))
     (if fn (save-match-data (apply fn args))
       (ange-ftp-run-real-handler operation args))))
-;;;###autoload
-;;; These file names are remote file names.
-(put 'ange-ftp-hook-function 'file-remote-p t)
 
 ;; The following code is commented out because Tramp now deals with
 ;; Ange-FTP filenames, too.
@@ -4327,6 +4327,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (put 'file-name-completion 'ange-ftp 'ange-ftp-file-name-completion)
 (put 'insert-directory 'ange-ftp 'ange-ftp-insert-directory)
 (put 'file-local-copy 'ange-ftp 'ange-ftp-file-local-copy)
+(put 'file-remote-p 'ange-ftp 'ange-ftp-file-remote-p)
 (put 'unhandled-file-name-directory 'ange-ftp
      'ange-ftp-unhandled-file-name-directory)
 (put 'file-name-sans-versions 'ange-ftp 'ange-ftp-file-name-sans-versions)

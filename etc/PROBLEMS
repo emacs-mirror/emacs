@@ -1,6 +1,18 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Environment Variables from dotfiles are ignored with Mac OS X (Carbon).
+
+When starting Emacs from the Dock or the Finder on Mac OS X, the
+environment variables that are set up in dotfiles, such as .cshrc or
+.profile, are ignored.  This is because the Finder and Dock are not
+started from a shell, but instead from the Window Manager itself.
+
+The workaround for this is to create a .MacOSX/environment.plist file to
+setup these environment variables.  These environment variables will
+apply to all processes regardless of where they are started.
+For me information, see http://developer.apple.com/qa/qa2001/qa1067.html.
+
 * Segfault on GNU/Linux using certain recent versions of the Linux kernel.
 
 With certain recent Linux kernels (like the one of Redhat Fedora Core
