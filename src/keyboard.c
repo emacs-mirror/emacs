@@ -1202,24 +1202,19 @@ cmd_error_internal (data, context)
   else
     {
       Fdiscard_input ();
+      message_log_maybe_newline ();
       bitch_at_user ();
       stream = Qt;
-
-      /* If we know from where the error was signaled, show it in
-	 *Messages*.  */
-      if (!NILP (Vsignaling_function) && SYMBOLP (Vsignaling_function))
-	{
-	  const char *name = SDATA (SYMBOL_NAME (Vsignaling_function));
-	  message_dolog (name, strlen (name), 0, 0);
-	  message_dolog (": ", 2, 0, 0);
-	  Vsignaling_function = Qnil;
-	}
     }
 
-  if (context != 0)
-    write_string_1 (context, -1, stream);
+  /* The immediate context is not interesting for Quits,
+     since they are asyncronous.  */
+  if (EQ (XCAR (data), Qquit))
+    Vsignaling_function = Qnil;
+  
+  print_error_message (data, stream, context, Vsignaling_function);
 
-  print_error_message (data, stream);
+  Vsignaling_function = Qnil;
 
   /* If the window system or terminal frame hasn't been initialized
      yet, or we're in -batch mode, this error should cause Emacs to exit.  */
