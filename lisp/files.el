@@ -115,6 +115,14 @@ under another name, you get the existing buffer instead of a new buffer.")
 The truename of a file is found by chasing all links
 both at the file level and at the levels of the containing directories.")
 
+(defconst find-file-revert-without-query
+  '("/out$" "/traces/.*\.log$")
+  "*Specify which files should be reverted without query.
+The value is a list of regular expressions.
+If the file name matches one of these regular expressions,
+then `find-file' reverts the file without querying
+if the file has changed on disk and you have not edited the buffer.")
+
 (defvar buffer-file-number nil
   "The device number and file number of the file visited in the current buffer.
 The value is a list of the form (FILENUM DEVNUM).
@@ -772,6 +780,20 @@ The buffer is not selected, just returned to the caller."
 	      (verify-visited-file-modtime buf)
 	      (cond ((not (file-exists-p filename))
 		     (error "File %s no longer exists!" filename))
+		    ;; Certain files should be reverted automatically
+		    ;; if they have changed on disk and not in the buffer.
+		    ((and (not (buffer-modified-p buf))
+			  (let ((tail find-file-revert-without-query)
+				(found nil))
+			    (while tail
+			      (if (string-match (car tail) filename)
+				  (setq found t))
+			      (setq tail (cdr tail)))
+			    found))
+		     (with-current-buffer buf
+		      (message "Reverting file %s..." filename)
+		      (revert-buffer t t)
+		      (message "Reverting file %s...done" filename)))
 		    ((yes-or-no-p
 		      (if (string= (file-name-nondirectory filename)
 				   (buffer-name buf))
@@ -786,8 +808,7 @@ The buffer is not selected, just returned to the caller."
       "File %s changed on disk.  Reread from disk into %s? ")
 			 (file-name-nondirectory filename)
 			 (buffer-name buf))))
-		     (save-excursion
-		       (set-buffer buf)
+		     (with-current-buffer buf
 		       (revert-buffer t t)))))
 	(save-excursion
 ;;; The truename stuff makes this obsolete.
