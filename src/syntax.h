@@ -195,10 +195,16 @@ extern unsigned char syntax_spec_code[0400];
 extern char syntax_code_spec[16];
 
 /* Convert the byte offset BYTEPOS into a character position,
-   for the object recorded in gl_state with SETUP_SYNTAX_TABLE_FOR_OBJECT.  */
+   for the object recorded in gl_state with SETUP_SYNTAX_TABLE_FOR_OBJECT.
+
+   The value is meant for use in the UPDATE_SYNTAX_TABLE... macros.
+   These macros do nothing when parse_sexp_lookup_properties is 0,
+   so we return 0 in that case, for speed.  */
 
 #define SYNTAX_TABLE_BYTE_TO_CHAR(bytepos)				\
-  (STRINGP (gl_state.object)						\
+  (! parse_sexp_lookup_properties					\
+   ? 0									\
+   : STRINGP (gl_state.object)						\
    ? string_byte_to_char (gl_state.object, (bytepos))			\
    : BUFFERP (gl_state.object)						\
    ? buf_bytepos_to_charpos (XBUFFER (gl_state.object), (bytepos))	\
@@ -210,7 +216,8 @@ extern char syntax_code_spec[16];
    currently good for a position before POS.  */
 
 #define UPDATE_SYNTAX_TABLE_FORWARD(pos)			\
-  ((pos) >= gl_state.e_property					\
+  (parse_sexp_lookup_properties					\
+   && (pos) >= gl_state.e_property				\
    ? (update_syntax_table ((pos) + gl_state.offset, 1, 0,	\
 			   gl_state.object),			\
       1)							\
@@ -220,7 +227,8 @@ extern char syntax_code_spec[16];
    currently good for a position after POS.  */
 
 #define UPDATE_SYNTAX_TABLE_BACKWARD(pos)			\
-  ((pos) <= gl_state.b_property					\
+  (parse_sexp_lookup_properties					\
+   && (pos) <= gl_state.b_property				\
    ? (update_syntax_table ((pos) + gl_state.offset, -1, 0,	\
 			   gl_state.object),			\
       1)							\
@@ -229,11 +237,13 @@ extern char syntax_code_spec[16];
 /* Make syntax table good for POS.  */
 
 #define UPDATE_SYNTAX_TABLE(pos)				\
-  ((pos) <= gl_state.b_property					\
+  (parse_sexp_lookup_properties					\
+   && (pos) <= gl_state.b_property				\
    ? (update_syntax_table ((pos) + gl_state.offset, -1, 0,	\
 			   gl_state.object),			\
       1)							\
-   : ((pos) >= gl_state.e_property				\
+   : (parse_sexp_lookup_properties				\
+      && (pos) >= gl_state.e_property				\
       ? (update_syntax_table ((pos) + gl_state.offset, 1, 0,	\
 			      gl_state.object),			\
 	 1)							\
@@ -248,15 +258,19 @@ extern char syntax_code_spec[16];
  */
 
 #define SETUP_SYNTAX_TABLE(FROM, COUNT)					\
-  gl_state.b_property = BEGV - 1;					\
-  gl_state.e_property = ZV + 1;						\
-  gl_state.object = Qnil;						\
-  gl_state.use_global = 0;						\
-  gl_state.offset = 0;							\
-  gl_state.current_syntax_table = current_buffer->syntax_table;		\
-  if (parse_sexp_lookup_properties) 					\
-    update_syntax_table ((COUNT) > 0 ? (FROM) : (FROM) - 1, (COUNT),	\
-			 1, Qnil);
+if (1)									\
+  {									\
+    gl_state.b_property = BEGV - 1;					\
+    gl_state.e_property = ZV + 1;					\
+    gl_state.object = Qnil;						\
+    gl_state.use_global = 0;						\
+    gl_state.offset = 0;						\
+    gl_state.current_syntax_table = current_buffer->syntax_table;	\
+    if (parse_sexp_lookup_properties)					\
+      update_syntax_table ((COUNT) > 0 ? (FROM) : (FROM) - 1, (COUNT),	\
+			   1, Qnil);					\
+  }									\
+else
 
 /* Same as above, but in OBJECT.  If OBJECT is nil, use current buffer.
    If it is t, ignore properties altogether.
