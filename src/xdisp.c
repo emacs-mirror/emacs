@@ -9083,13 +9083,14 @@ redisplay_window (window, just_this_one_p)
 	   && (tem = try_window_id (w)) != 0)
     {
 #if GLYPH_DEBUG
-      debug_method_add (w, "try_window_id");
+      debug_method_add (w, "try_window_id %d", tem);
 #endif
 
       if (fonts_changed_p)
 	goto restore_buffers;
       if (tem > 0)
 	goto done;
+
       /* Otherwise try_window_id has returned -1 which means that we
 	 don't want the alternative below this comment to execute.  */
     }
@@ -10230,7 +10231,11 @@ try_window_id (w)
 	= make_number (Z - MATRIX_ROW_END_CHARPOS (row));
       w->window_end_bytepos
 	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
-      return 1;
+
+      row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+      row = row_containing_pos (w, PT, row, NULL);
+      set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
+      return 2;
     }
 
   /* Check that window start agrees with the start of the first glyph
@@ -10661,7 +10666,7 @@ try_window_id (w)
   /* Record that display has not been completed.  */
   w->window_end_valid = Qnil;
   w->desired_matrix->no_scrolling_p = 1;
-  return 1;
+  return 3;
 }
 
 
