@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!ntalmv.nmk(MMdevel_drj_swint.2) $
+# $HopeName: MMsrc!ntalmv.nmk(trunk.1) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -12,8 +12,13 @@ MPM = <assert> <ring> <liban> <mpm> \
       <poolmv> <root> <format> <buffer> <locknt> \
       <ref> <trace> <protnt> <shield> \
       <than> <ssan> <mpsi> <mpsint> <ld>
+SW  = <assert> <ring> <liban> <mpm> \
+      <arenavm> <vmrm> <space> <pool> <poolmfs> \
+      <poolmv> <root> <format> <buffer> <locknt> \
+      <ref> <trace> <protnt> <shield> \
+      <than> <ssan> <mpsi> <mpsint> <ld>
 AMC = <amc>
-LO = <lo>
+LO  = <lo>
 DW  = <dw> <fmtdy>
 TESTLIB = <testlib>
 
@@ -21,7 +26,7 @@ TESTLIB = <testlib>
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc!ntalmv.nmk(MMdevel_drj_swint.2) $
+# $HopeName: MMsrc!ntalmv.nmk(trunk.1) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -29,9 +34,10 @@ TESTLIB = <testlib>
 #
 # This makefile fragment is conceptually included in more specific
 # makefiles for platforms which use the "mv" builder.  Alas
-# due to shortcomings in nmake and the fact that only ntalmv uses mv
-# at the moment it is physically part of mti3mv.nmk. [It is not possible
-# use a macro in a substituion, hence this file uses ntalmv instead of $(PFM)]
+# due to shortcomings in nmake at the moment it is physically
+# part of ntalmv.nmk. [It is not possible use a macro in a
+# substituion, hence this file uses ntalmv instead of $(PFM)]
+# @@ This needs examining again
 #
 # %%PART: Add a new parameter for the files included in the part
 # Parameters:
@@ -41,9 +47,10 @@ TESTLIB = <testlib>
 #   MPM      list of sources which make up the "mpm" part for this
 #            platform.  Each source is stripped of its .c extension
 #            and surrounded in angle brackets (<>)
+#   SW       as above for the "sw" part
 #   AMC      as above for the "amc" part
-#   LO      as above for the "lo" part
-#   DW      as above for the "amc" part
+#   LO       as above for the "lo" part
+#   DW       as above for the "amc" part
 #   TESTLIB  as above for the "testlib" part
 #   NOISY    if defined, causes command to be emitted
 #
@@ -82,6 +89,9 @@ TESTLIB = <testlib>
 !IFNDEF DW
 !ERROR mv.nmk: DW not defined
 !ENDIF
+!IFNDEF SW
+!ERROR mv.nmk: SW not defined
+!ENDIF
 !IFNDEF TESTLIB
 !ERROR mv.nmk: TESTLIB not defined
 !ENDIF
@@ -104,7 +114,18 @@ ECHO = echo
 # All compilations
 # [Sadly /W4 causes <windows.h> to emit thousands of warnings]
 # /MT means compile for multi-threaded environment.
-CFLAGSCOMMON = /nologo /W3 /WX $(PFMDEFS) /MT
+# /ML means compile for single-threaded environment.
+# some C flags depend on the target we are building.
+
+!ifdef TARGET
+!if "$(TARGET)" == "mmsw.lib"
+CFLAGSTARGET = /ML /DTARGET_VM_RM
+!else
+CFLAGSTARGET = /MT
+!endif
+!endif
+
+CFLAGSCOMMON = /nologo /W3 /WX $(PFMDEFS) $(CFLAGSTARGET)
 
 # "debug" variety flags
 # [Used to use /Zi instead of /Z7.  /Z7 generates debugging output in the
@@ -117,7 +138,7 @@ CFDP = /DTARGET_VAR_DP /Z7
 CFDS = /DTARGET_VAR_DS /Z7
 
 # "release" variety flags
-# Microsoft documentation is not very clear on the point of using bothing
+# Microsoft documentation is not very clear on the point of using both
 # optimzation and debug information
 CFRO = /DTARGET_VAR_RO /Z7 /O2
 
@@ -165,6 +186,8 @@ LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDF)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDF)
 MPMOBJ0 = $(MPM:<=ntalmv\df\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
+SWOBJ0 = $(SW:<=ntalmv\df\)
+SWOBJ = $(SWOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=ntalmv\df\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
 LOOBJ0 = $(LO:<=ntalmv\df\)
@@ -180,6 +203,8 @@ LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDP)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDP)
 MPMOBJ0 = $(MPM:<=ntalmv\dp\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
+SWOBJ0 = $(SW:<=ntalmv\dp\)
+SWOBJ = $(SWOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=ntalmv\dp\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
 LOOBJ0 = $(LO:<=ntalmv\dp\)
@@ -195,6 +220,8 @@ LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDS)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDS)
 MPMOBJ0 = $(MPM:<=ntalmv\ds\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
+SWOBJ0 = $(SW:<=ntalmv\ds\)
+SWOBJ = $(SWOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=ntalmv\ds\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
 LOOBJ0 = $(LO:<=ntalmv\ds\)
@@ -210,6 +237,8 @@ LINKFLAGS=$(LINKFLAGSCOMMON) $(LFRO)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSRO)
 MPMOBJ0 = $(MPM:<=ntalmv\ro\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
+SWOBJ0 = $(SW:<=ntalmv\ro\)
+SWOBJ = $(SWOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=ntalmv\ro\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
 LOOBJ0 = $(LO:<=ntalmv\ro\)
@@ -225,6 +254,8 @@ LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCV)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCV)
 MPMOBJ0 = $(MPM:<=ntalmv\cv\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
+SWOBJ0 = $(SW:<=ntalmv\cv\)
+SWOBJ = $(SWOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=ntalmv\cv\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
 LOOBJ0 = $(LO:<=ntalmv\cv\)
@@ -337,7 +368,7 @@ $(PFM)\$(VARIETY)\amc.lib: $(MPMOBJ) $(AMCOBJ)
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
-$(PFM)\$(VARIETY)\mmsw.lib: $(MPMOBJ) $(SWOBJ)
+$(PFM)\$(VARIETY)\mmsw.lib: $(SWOBJ)
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 

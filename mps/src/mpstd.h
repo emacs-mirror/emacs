@@ -1,12 +1,15 @@
 /* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
  *
- * $HopeName: MMsrc!mpstd.h(trunk.8) $
+ * $HopeName: MMsrc!mpstd.h(trunk.9) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
  * Detect the target platform using predefined preprocessor symbols
  * defined by the build environment.  The symbols are derived from the
  * documentation, or, in the case of GCC, from the compiler itself.
  * References to the documentation appear above each detection line.
+ *
+ * .hack.align:  All alignments have been hacked to be at least 8.
+ *   This is a short term fix to meet req.epcore.attr.align
  */
 
 #ifndef mpstd_h
@@ -22,7 +25,7 @@
 #define MPS_T_WORD	unsigned long
 #define MPS_WORD_WIDTH	32
 #define MPS_WORD_SHIFT	5
-#define MPS_PF_ALIGN	4
+#define MPS_PF_ALIGN	8 /* .hack.align */
 
 /* winnt.h (D:\packages\msvc20\include\winnt.h on aaron) */
 /* really ought to check this more thoroughly */
@@ -35,7 +38,7 @@
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
-#define MPS_PF_ALIGN    4
+#define MPS_PF_ALIGN    8 /* .hack.align */
 
 /* winnt.h (D:\packages\msvc20\include\winnt.h on aaron) */
 /* really ought to check this more thoroughly */
@@ -48,7 +51,7 @@
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
-#define MPS_PF_ALIGN    4
+#define MPS_PF_ALIGN    8 /* .hack.align */
 
 /* Visual C++ 2.0, Books Online, C/C++ Book, Preprocessor Reference, */
 /* Chapter 1: The Preprocessor, Macros, Predefined Macros. */
@@ -61,7 +64,7 @@
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
-#define MPS_PF_ALIGN    4
+#define MPS_PF_ALIGN    8 /* .hack.align */
 
 /* MW C/C++/ASM Lang Ref, pp175-176.  Metrowerks does not document */
 /* a way to determine the OS -- we assume MacOS 7.  */
@@ -74,7 +77,7 @@
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
-#define MPS_PF_ALIGN    1
+#define MPS_PF_ALIGN    8 /* .hack.align */
 
 /* 1. MPW 3.0 C Ref, p. 43.						*/
 /* 2. MPW SC/SCpp C/C++ Compiler for 68k Macintosh, p 3-60.		*/
@@ -89,7 +92,7 @@
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
-#define MPS_PF_ALIGN    1
+#define MPS_PF_ALIGN    8 /* .hack.align */
 
 /* 1. C++/C Compiler for Macintosh with PowerPC, p 3-36.		*/
 /* 2. MPW MrC/MrCpp C/C++ Compiler for Power Macintosh, p 3-57.		*/
@@ -104,7 +107,7 @@
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
-#define MPS_PF_ALIGN    4
+#define MPS_PF_ALIGN    8 /* .hack.align */
 
 /* GCC 2.5.8, gcc -E -dM, (__SVR4 indicates Solaris) */
 
@@ -155,7 +158,7 @@
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
-#define MPS_PF_ALIGN    4
+#define MPS_PF_ALIGN    8 /* .hack.align */
 
 #else
 #error "Unable to detect target platform"

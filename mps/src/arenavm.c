@@ -1,12 +1,12 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.3) $
+ * $HopeName: MMsrc!arenavm.c(trunk.4) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.3) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.4) $");
 
 #define SpaceArena(space)       (&(space)->arenaStruct)
 
@@ -80,7 +80,7 @@ static void BTSet(BT bt, BI i, Bool b)
  * arena part.
  */
 
-Res ArenaCreate(Space *spaceReturn, Size size)
+Res ArenaCreate(Space *spaceReturn, Size size, Addr base)
 {
   Res res;
   Space space;
@@ -93,12 +93,13 @@ Res ArenaCreate(Space *spaceReturn, Size size)
 
   /* Create the space structure, initialize the VM part, and */
   /* the current attribute structure. */
-  res = VMCreate(&space, size);
+  res = VMCreate(&space, size, base);
   if(res) return res;
 
   arena = SpaceArena(space);
   arena->base = VMBase(space);
   arena->limit = VMLimit(space);
+  size = AddrOffset(arena->base, arena->limit);
   arena->pageSize = VMAlign();
   arena->pageShift = SizeLog2(arena->pageSize);
   arena->pages = size >> arena->pageShift;
@@ -129,7 +130,9 @@ Res ArenaCreate(Space *spaceReturn, Size size)
   /* Set the zone shift to divide the arena into the same number of */
   /* zones as will fit into a reference set (the number of bits in */
   /* a word). */
-  space->zoneShift = SizeLog2(size >> WORD_SHIFT);
+/* space->zoneShift = SizeLog2(size >> WORD_SHIFT); */
+  space->zoneShift = 20; /* @@@@ */
+  
 
   /* Sign the arena. */
   arena->sig = ArenaSig;
