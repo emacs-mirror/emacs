@@ -381,6 +381,16 @@ int system_eol_type;
 
 #ifdef emacs
 
+/* Information about which coding system is safe for which chars.
+   The value has the form (GENERIC-LIST . NON-GENERIC-ALIST).
+
+   GENERIC-LIST is a list of generic coding systems which can encode
+   any characters.
+
+   NON-GENERIC-ALIST is an alist of non generic coding systems vs the
+   corresponding char table that contains safe chars.  */
+Lisp_Object Vcoding_system_safe_chars;
+
 Lisp_Object Vcoding_system_list, Vcoding_system_alist;
 
 Lisp_Object Qcoding_system_p, Qcoding_system_error;
@@ -500,16 +510,16 @@ static int inhibit_pre_post_conversion;
 Lisp_Object Vchar_coding_system_table;
 Lisp_Object Qchar_coding_system;
 
-/* Return `safe-chars' property of coding system CODING.  Don't check
-   validity of CODING.  */
+/* Return `safe-chars' property of CODING_SYSTEM (symbol).  Don't check
+   its validity.  */
 
 Lisp_Object
-coding_safe_chars (coding)
-     struct coding_system *coding;
+coding_safe_chars (coding_system)
+     Lisp_Object coding_system;
 {
   Lisp_Object coding_spec, plist, safe_chars;
 
-  coding_spec = Fget (coding->symbol, Qcoding_system);
+  coding_spec = Fget (coding_system, Qcoding_system);
   plist = XVECTOR (coding_spec)->contents[3];
   safe_chars = Fplist_get (XVECTOR (coding_spec)->contents[3], Qsafe_chars);
   return (CHAR_TABLE_P (safe_chars) ? safe_chars : Qt);
@@ -1310,7 +1320,7 @@ enum iso_code_class_type iso_code_class[256];
 #define CHARSET_OK(idx, charset, c)					\
   (coding_system_table[idx]						\
    && (charset == CHARSET_ASCII						\
-       || (safe_chars = coding_safe_chars (coding_system_table[idx]),	\
+       || (safe_chars = coding_safe_chars (coding_system_table[idx]->symbol), \
 	   CODING_SAFE_CHAR_P (safe_chars, c)))				\
    && (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding_system_table[idx],	\
 					      charset)			\
@@ -1739,7 +1749,7 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
   Lisp_Object translation_table;
   Lisp_Object safe_chars;
 
-  safe_chars = coding_safe_chars (coding);
+  safe_chars = coding_safe_chars (coding->symbol);
 
   if (NILP (Venable_character_translation))
     translation_table = Qnil;
@@ -2492,7 +2502,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
   Lisp_Object translation_table;
   Lisp_Object safe_chars;
 
-  safe_chars = coding_safe_chars (coding);
+  safe_chars = coding_safe_chars (coding->symbol);
 
   if (NILP (Venable_character_translation))
     translation_table = Qnil;
@@ -6495,6 +6505,146 @@ DEFUN ("find-coding-systems-region-internal",
 }
 
 
+static Lisp_Object
+find_safe_codings_2 (p, pend, safe_codings, work_table, single_byte_char_found)
+     unsigned char *p, *pend;
+     Lisp_Object safe_codings, work_table;
+     int *single_byte_char_found;
+{
+  int c, len, i;
+  Lisp_Object val, ch;
+  Lisp_Object prev, tail;
+  
+  while (p < pend)
+    {
+      c = STRING_CHAR_AND_LENGTH (p, pend - p, len);
+      p += len;
+      if (ASCII_BYTE_P (c))
+	/* We can ignore ASCII characters here.  */
+	continue;
+      if (SINGLE_BYTE_CHAR_P (c))
+	*single_byte_char_found = 1;
+      if (NILP (safe_codings))
+	/* Already all coding systems are excluded.  */
+	continue;
+      /* Check the safe coding systems for C.  */
+      ch = make_number (c);
+      val = Faref (work_table, ch);
+      if (EQ (val, Qt))
+	/* This element was already checked.  Ignore it.  */
+	continue;
+      /* Remember that we checked this element.  */
+      Faset (work_table, ch, Qt);
+
+      for (prev = tail = safe_codings; CONSP (tail); tail = XCDR (tail))
+	{
+	  val = XCAR (tail);
+	  if (NILP (Faref (XCDR (val), ch)))
+	    {
+	      /* Exclued this coding system from SAFE_CODINGS.  */
+	      if (EQ (tail, safe_codings))
+		safe_codings = XCDR (safe_codings);
+	      else
+		XSETCDR (prev, XCDR (tail));
+	    }
+	  else
+	    prev = tail;
+	}
+    }
+  return safe_codings;
+}
+
+DEFUN ("find-coding-systems-region-internal-2",
+       Ffind_coding_systems_region_internal_2,
+       Sfind_coding_systems_region_internal_2, 2, 2, 0,
+       doc: /* Internal use only.  */)
+     (start, end)
+     Lisp_Object start, end;
+{
+  Lisp_Object work_table, safe_codings;
+  int non_ascii_p = 0;
+  int single_byte_char_found = 0;
+  const unsigned char *p1, *p1end, *p2, *p2end, *p;
+
+  if (STRINGP (start))
+    {
+      if (!STRING_MULTIBYTE (start))
+	return Qt;
+      p1 = SDATA (start), p1end = p1 + SBYTES (start);
+      p2 = p2end = p1end;
+      if (SCHARS (start) != SBYTES (start))
+	non_ascii_p = 1;
+    }
+  else
+    {
+      int from, to, stop;
+
+      CHECK_NUMBER_COERCE_MARKER (start);
+      CHECK_NUMBER_COERCE_MARKER (end);
+      if (XINT (start) < BEG || XINT (end) > Z || XINT (start) > XINT (end))
+	args_out_of_range (start, end);
+      if (NILP (current_buffer->enable_multibyte_characters))
+	return Qt;
+      from = CHAR_TO_BYTE (XINT (start));
+      to = CHAR_TO_BYTE (XINT (end));
+      stop = from < GPT_BYTE && GPT_BYTE < to ? GPT_BYTE : to;
+      p1 = BYTE_POS_ADDR (from), p1end = p1 + (stop - from);
+      if (stop == to)
+	p2 = p2end = p1end;
+      else
+	p2 = BYTE_POS_ADDR (stop), p2end = p2 + (to - stop);
+      if (XINT (end) - XINT (start) != to - from)
+	non_ascii_p = 1;
+    }
+
+  if (!non_ascii_p)
+    {
+      /* We are sure that the text contains no multibyte character.
+	 Check if it contains eight-bit-graphic.  */
+      p = p1;
+      for (p = p1; p < p1end && ASCII_BYTE_P (*p); p++);
+      if (p == p1end)
+	{
+	  for (p = p2; p < p2end && ASCII_BYTE_P (*p); p++);
+	  if (p == p2end)
+	    return Qt;
+	}
+    }
+
+  /* The text contains non-ASCII characters.  */
+
+  work_table = Fmake_char_table (Qchar_coding_system, Qnil);
+  safe_codings = Fcopy_sequence (XCDR (Vcoding_system_safe_chars));
+
+  safe_codings = find_safe_codings_2 (p1, p1end, safe_codings, work_table,
+				      &single_byte_char_found);
+  if (p2 < p2end)
+    safe_codings = find_safe_codings_2 (p2, p2end, safe_codings, work_table,
+					&single_byte_char_found);
+  if (EQ (safe_codings, XCDR (Vcoding_system_safe_chars)))
+    safe_codings = Qt;
+  else
+    {
+      /* Turn safe_codings to a list of coding systems... */
+      Lisp_Object val;
+
+      if (single_byte_char_found)
+	/* ... and append these for eight-bit chars.  */
+	val = Fcons (Qraw_text,
+		     Fcons (Qemacs_mule, Fcons (Qno_conversion, Qnil)));
+      else
+	/* ... and append generic coding systems.  */
+	val = Fcopy_sequence (XCAR (Vcoding_system_safe_chars));
+      
+      for (; CONSP (safe_codings); safe_codings = XCDR (safe_codings))
+	val = Fcons (XCAR (XCAR (safe_codings)), val);
+      safe_codings = val;
+    }
+
+  return safe_codings;
+}
+
+
 /* Search from position POS for such characters that are unencodable
    accoding to SAFE_CHARS, and return a list of their positions.  P
    points where in the memory the character at POS exists.  Limit the
@@ -6609,7 +6759,7 @@ to the string.  */)
   if (coding.type == coding_type_undecided)
     safe_chars = Qnil;
   else
-    safe_chars = coding_safe_chars (&coding);
+    safe_chars = coding_safe_chars (coding_system);
 
   if (STRINGP (string)
       || from >= GPT || to <= GPT)
@@ -7127,6 +7277,40 @@ This function is internal use only.  */)
   return Qnil;
 }
 
+DEFUN ("define-coding-system-internal", Fdefine_coding_system_internal,
+       Sdefine_coding_system_internal, 1, 1, 0,
+       doc: /* Register CODING-SYSTEM as a base coding system.
+This function is internal use only.  */)
+     (coding_system)
+     Lisp_Object coding_system;
+{
+  Lisp_Object safe_chars, slot;
+
+  if (NILP (Fcheck_coding_system (coding_system)))
+    Fsignal (Qcoding_system_error, Fcons (coding_system, Qnil));
+  safe_chars = coding_safe_chars (coding_system);
+  if (! EQ (safe_chars, Qt) && ! CHAR_TABLE_P (safe_chars))
+    error ("No valid safe-chars property for %s",
+	   SDATA (SYMBOL_NAME (coding_system)));
+  if (EQ (safe_chars, Qt))
+    {
+      if (NILP (Fmemq (coding_system, XCAR (Vcoding_system_safe_chars))))
+	XSETCAR (Vcoding_system_safe_chars,
+		 Fcons (coding_system, XCAR (Vcoding_system_safe_chars)));
+    }
+  else
+    {
+      slot = Fassq (coding_system, XCDR (Vcoding_system_safe_chars));
+      if (NILP (slot))
+	XSETCDR (Vcoding_system_safe_chars,
+		 nconc2 (XCDR (Vcoding_system_safe_chars),
+			 Fcons (Fcons (coding_system, safe_chars), Qnil)));
+      else
+	XSETCDR (slot, safe_chars);
+    }
+  return Qnil;
+}
+
 #endif /* emacs */
 
 
@@ -7280,6 +7464,9 @@ syms_of_coding ()
       }
   }
 
+  Vcoding_system_safe_chars = Fcons (Qnil, Qnil);
+  staticpro (&Vcoding_system_safe_chars);
+
   Qtranslation_table = intern ("translation-table");
   staticpro (&Qtranslation_table);
   Fput (Qtranslation_table, Qchar_table_extra_slots, make_number (1));
@@ -7322,6 +7509,7 @@ syms_of_coding ()
   defsubr (&Sdetect_coding_region);
   defsubr (&Sdetect_coding_string);
   defsubr (&Sfind_coding_systems_region_internal);
+  defsubr (&Sfind_coding_systems_region_internal_2);
   defsubr (&Sunencodable_char_position);
   defsubr (&Sdecode_coding_region);
   defsubr (&Sencode_coding_region);
@@ -7339,6 +7527,7 @@ syms_of_coding ()
   defsubr (&Sfind_operation_coding_system);
   defsubr (&Supdate_coding_systems_internal);
   defsubr (&Sset_coding_priority_internal);
+  defsubr (&Sdefine_coding_system_internal);
 
   DEFVAR_LISP ("coding-system-list", &Vcoding_system_list,
 	       doc: /* List of coding systems.
@@ -7536,9 +7725,9 @@ The default value is `select-safe-coding-system' (which see).  */);
   DEFVAR_BOOL ("coding-system-require-warning",
 	       &coding_system_require_warning,
 	       doc: /* Internal use only.
-If non-nil, on writing a file, select-safe-coding-system-function is
-called even if coding-system-for-write is non-nil.  The command
-universal-coding-system-argument binds this variable to t temporarily.  */);
+If non-nil, on writing a file, `select-safe-coding-system-function' is
+called even if `coding-system-for-write' is non-nil.  The command
+`universal-coding-system-argument' binds this variable to t temporarily.  */);
   coding_system_require_warning = 0;
 
 
