@@ -703,7 +703,9 @@ to use."
   (interactive "e")
   (save-excursion
     (mouse-set-point event)
-    (browse-url-at-point browse-url-new-window-flag)))
+    ;; This handles browse-url-new-window-flag properly
+    ;; when it gets no arg.
+    (browse-url-at-point)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Browser-specific commands
