@@ -1,3 +1,10 @@
+1999-11-23  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Define mule funs without checking if mule package is
+	loaded.
+	(ps-print-version): New version number (5.0.1).
+	(ps-header-dirpart): Now uses abbreviate-file-name.
+
 1999-11-23  Dave Love  <fx@gnu.org>
 
 	* fortran.el (fortran-comment-line-start): Renamed from
