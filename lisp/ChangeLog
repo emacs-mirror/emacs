@@ -1,3 +1,8 @@
+2003-01-12  Andreas Schwab  <schwab@suse.de>
+
+	* buff-menu.el (Buffer-menu-select): Fix for effect of header
+	line.
+
 2003-01-11  Andreas Schwab  <schwab@suse.de>
 
 	* textmodes/sgml-mode.el (sgml-font-lock-keywords-2): Add flag to
