@@ -1,3 +1,8 @@
+2004-06-10  Miles Bader  <miles@gnu.ai.mit.edu>
+
+	* eshell/esh-module.el (eshell-load-defgroups): Bind
+	`vc-handled-backends' to nil when opening files.
+
 2004-06-11  Juanma Barranquero  <lektu@terra.es>
 
 	* files.el (parse-colon-path, cd): Doc fixes (refer to
