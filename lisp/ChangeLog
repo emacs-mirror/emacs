@@ -15,7 +15,7 @@
 2001-10-12  Miles Bader  <miles@gnu.org>
 
 	* help-mode.el (help-customize-face): New button-type.
-	
+
 	* faces.el (list-faces-display): Fix args to `help-xref-button'.
 	(describe-face): Fix args to `help-xref-button'.
 	Don't switch to help-buffer around call to `help-setup-xref'.
@@ -50,12 +50,12 @@
 	(describe-bindings): Call help-setup-xref earlier.
 	(describe-key): Call help-setup-xref.  Fix call to describe-function-1.
 	(describe-mode): Don't autoload.  Call help-setup-xref earlier.
-	
+
 2001-10-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* master.el (master-mode): Use define-minor-mode instead of
 	easy-mmode-define-minor-mode.  Add autload cookie.
-	(Coomentary): Remove the line showing how to autoload master-mode,
+	(Commentary): Remove the line showing how to autoload master-mode,
 	since it's always autoloaded.
 
 	* master.el: New file.
@@ -88,7 +88,7 @@
 
 	* diff.el (diff): Display default values in prompts as
 	`(default ...)', not `(...)'.
-	
+
 	* info.el (Info-follow-reference): Likewise.
 
 2001-10-10  Stefan Monnier  <monnier@cs.yale.edu>
