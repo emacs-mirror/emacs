@@ -1,5 +1,10 @@
 2001-08-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* play/animate.el (animate-string): Doc fix.  Use a buffer
+	name with stars in it.
+	(animate-sequence): New function.
+	From Richard Stallman <rms@gnu.org>.
+
 	* frame.el (select-frame-set-input-focus): New function
 	extracted from other-frame.
 	(other-frame): Use it.
