@@ -6211,7 +6211,8 @@ w32_find_ccl_program (fontp)
     }
   if (! NILP (list))
     {
-      struct ccl_program *ccl = xmalloc (sizeof (struct ccl_program));
+      struct ccl_program *ccl
+	= (struct ccl_program *) xmalloc (sizeof (struct ccl_program));
 
       if (setup_ccl_program (ccl, XCONS (elt)->cdr) < 0)
 	xfree (ccl);
