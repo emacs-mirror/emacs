@@ -1,3 +1,27 @@
+1999-09-17  Richard Stallman  <rms@gnu.org>
+
+	* lwlib-Xaw.c (wm_delete_window): Check all the shell's children,
+	not just the first, to find the dialog box.
+
+1999-09-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* lwlib.c (lw_separator_p): Check for new-style separators
+	differently.
+
+1999-09-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* lwlib.c (lw_separator_p): Add `--:space' with the same 
+	meaning as `--:noLine'.
+
+1999-09-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* lwlib.c (lw_separator_p): Add alternative separator type names.
+
+1999-09-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* xlwmenu.c (make_shadow_gcs): Call
+	x_alloc_nearest_color_for_widget.
+
 1999-07-12  Richard Stallman  <rms@gnu.org>
 
 	* Version 20.4 released.
