@@ -160,8 +160,8 @@ install: all
 clean mostlyclean:
 	$(FOREACH) $(TIT) $(FORDO) $(DEL) $(FORVAR)c $(ENDFOR)
 	$(FOREACH) $(TIT) $(FORDO) $(DEL) $(FORVAR) $(ENDFOR)
-	$(DEL) leim-list.el
+	- $(DEL) leim-list.el
 
 distclean maintainer-clean:
 	if exist stamp-subdir $(DELTREE) $(SUBDIRS)
-	$(DEL) stamp-subdir
+	- $(DEL) stamp-subdir
