@@ -1,3 +1,9 @@
+2005-04-06  JUAN-LEON Lahoz Garcia  <juanleon1@gmail.com>
+
+	* wdired.el (wdired-advise-functions, wdired-add-skip-in-replace)
+	(wdired-add-replace-advice): Remove.
+	(wdired-change-to-wdired-mode): Use query-replace-skip-read-only.
+
 2005-04-06  Kim F. Storm  <storm@cua.dk>
 
 	* startup.el (command-line): Add --bare-bones alias for -Q.
@@ -21,8 +27,8 @@
 	* generic.el (generic-mode-internal): Fix 2005-03-31 change.
 	(define-generic-mode): Ditto.  Fix debug declaration.
 
-	* generic-x.el (show-tabs-tab-face, show-tabs-space-face): Put
-	them in the generic-x group.
+	* generic-x.el (show-tabs-tab-face, show-tabs-space-face):
+	Put them in the generic-x group.
 
 	* calendar/timeclock.el (timeclock): Doc fix.
 
@@ -80,8 +86,8 @@
 
 2005-04-04  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-insert-mode-line-in-empty-file): Change
-	default value to nil.
+	* textmodes/org.el (org-insert-mode-line-in-empty-file):
+	Change default value to nil.
 
 2005-04-04  Lute Kamstra  <lute@gnu.org>
 
@@ -135,11 +141,11 @@
 
 2005-04-03  Marcelo Toledo  <marcelo@marcelotoledo.org>
 
-        * add-log.el (change-log-font-lock-keywords): The manual
-        describing a Change Log entry, says: (...) "Aside from these
-        header lines, every line in the change log starts with a space or
-        a tab.". The font-lock was not highlighting lines started with
-        spaces, added support for it.
+	* add-log.el (change-log-font-lock-keywords): The manual
+	describing a Change Log entry, says: (...) "Aside from these
+	header lines, every line in the change log starts with a space or
+	a tab.". The font-lock was not highlighting lines started with
+	spaces, added support for it.
 
 2005-04-03  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
