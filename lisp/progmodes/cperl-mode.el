@@ -595,7 +595,7 @@ want it to: put the following into your .emacs file:
 
   (defalias 'perl-mode 'cperl-mode)
 
-Get perl5-info from 
+Get perl5-info from
   $CPAN/doc/manual/info/perl-info.tar.gz
 older version was on
   http://www.metronet.com:70/9/perlinfo/perl5/manual/perl5-info.tar.gz
@@ -864,7 +864,7 @@ B) Speed of editing operations.
 				syntaxically to be not code
   `font-lock-constant-face'	HERE-doc delimiters, labels, delimiters of
 				2-arg operators s/y/tr/ or of RExen,
-  `font-lock-function-name-face' Special-cased m// and s//foo/, _ as 
+  `font-lock-function-name-face' Special-cased m// and s//foo/, _ as
 				a target of a file tests, file tests,
 				subroutine names at the moment of definition
 				(except those conflicting with Perl operators),
@@ -3195,22 +3195,22 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 		    (put-text-property (cperl-1- b) (point) 'syntax-type 'pod)
 		    (cperl-put-do-not-fontify b (point) t)
 		    ;; mark the non-literal parts as PODs
-		    (if cperl-pod-here-fontify 
+		    (if cperl-pod-here-fontify
 			(cperl-postpone-fontification b (point) 'face face t))
 		    (re-search-forward "\n\n[^ \t\f\n]" e 'toend)
 		    (beginning-of-line)
 		    (setq b (point)))
 		  (put-text-property (cperl-1- (point)) e 'syntax-type 'pod)
 		  (cperl-put-do-not-fontify (point) e t)
-		  (if cperl-pod-here-fontify 
-		      (progn 
+		  (if cperl-pod-here-fontify
+		      (progn
 			;; mark the non-literal parts as PODs
 			(cperl-postpone-fontification (point) e 'face face t)
 			(goto-char bb)
-			(if (looking-at 
+			(if (looking-at
 			     "=[a-zA-Z0-9_]+\\>[ \t]*\\(\\(\n?[^\n]\\)+\\)$")
 			    ;; mark the headers
-			    (cperl-postpone-fontification 
+			    (cperl-postpone-fontification
 			     (match-beginning 1) (match-end 1)
 				  'face head-face))
 			     (while (re-search-forward
@@ -6650,7 +6650,7 @@ We suppose that the regexp is scanned already."
       (set-marker e (1- (point)))
       (goto-char (1+ b))
       (while (re-search-forward "\\(\\\\\\\\\\)\\|(" e t)
-	(cond 
+	(cond
        ((match-beginning 1)		; Skip
 	nil)
        (t				; Group
@@ -6748,7 +6748,7 @@ We suppose that the regexp is scanned already."
 		    (goto-char pos1)
 		    (just-one-space)
 		    (cperl-indent-line))
-		(error "`%s' (EXPR) not with an {BLOCK}" s0)))
+		(error "`%s' (EXPR) not with a {BLOCK}" s0)))
 	  (error "`%s' not with an (EXPR)" s0)))
     (error "Not at `if', `unless', `while', or `unless'")))
 
