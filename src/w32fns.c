@@ -3046,24 +3046,31 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
     case WM_CHAR:
       wmsg.dwModifiers = construct_modifiers (wParam, lParam);
 
-      enter_crit ();
-      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
-
 #if 1
-      /* Detect quit_char and set quit-flag directly.  Note that we dow
-         this *after* posting the message to ensure the main thread will
-         be woken up if blocked in sys_select(). */
+      /* Detect quit_char and set quit-flag directly.  Note that we
+	 still need to post a message to ensure the main thread will be
+	 woken up if blocked in sys_select(), but we do NOT want to post
+	 the quit_char message itself (because it will usually be as if
+	 the user had typed quit_char twice).  Instead, we post a dummy
+	 message that has no particular effect. */
       {
 	int c = wParam;
 	if (isalpha (c) && (wmsg.dwModifiers == LEFT_CTRL_PRESSED 
 			    || wmsg.dwModifiers == RIGHT_CTRL_PRESSED))
 	  c = make_ctrl_char (c) & 0377;
 	if (c == quit_char)
-	  Vquit_flag = Qt;
+	  {
+	    Vquit_flag = Qt;
+
+	    /* The choice of message is somewhat arbitrary, as long as
+	       the main thread handler just ignores it. */
+	    msg = WM_QUIT;
+	  }
       }
 #endif
 
-      leave_crit ();
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+
       break;
 
       /* Simulate middle mouse button events when left and right buttons
