@@ -860,7 +860,7 @@ contents, and asks you to choose one of those coding systems.
   If you insert the unsuitable characters in a mail message, Emacs
 behaves a bit differently.  It additionally checks whether the
 most-preferred coding system is recommended for use in MIME messages;
-if it isn't, Emacs tells you that the most-preferred coding system is
+if not, Emacs tells you that the most-preferred coding system is
 not recommended and prompts you for another coding system.  This is so
 you won't inadvertently send a message encoded in a way that your
 recipient's mail software will have difficulty decoding.  (If you do
