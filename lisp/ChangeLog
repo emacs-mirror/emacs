@@ -1,3 +1,24 @@
+2002-03-17  Richard M. Stallman  <rms@gnu.org>
+
+	* emulation/pc-select.el (pc-selection-mode):
+	Alter the existing global map, don't replace it.
+
+	* files.el (list-directory): Set default-directory at the end.
+
+	* dabbrev.el (dabbrev--goto-start-of-abbrev): 
+	Put a limit on field-beginning search.
+
+2002-03-17  Simon Josefsson  <jas@extundo.com>
+
+	* net/browse-url.el (browse-url-mosaic-pidfile): New variable.
+	(browse-url-mosaic): Use it.
+
+	* net/browse-url.el (browse-url-filename-alist): Don't begin
+	docstring with *, you don't want to set this one with M-x
+	set-variable.
+
+	* net/browse-url.el: Put * in user option doc strings.
+
 2002-03-17  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* international/mule-diag.el (describe-char-after):
@@ -33,6 +54,17 @@
 	* shadowfile.el: Update copyright.
 	(shadow-save-buffers-kill-emacs): Also check for active server
 	processes.  Use process-query-on-exit-flag.
+
+2002-03-16  Simon Marshall  <simon.marshall@misys.com>
+
+	* imenu.el (imenu-menubar-modified-tick): Renamed from
+	imenu-update-menubar-modified-tick.
+	(imenu-update-menubar): Update imenu-menubar-modified-tick
+	whenever outer condition succeeds.
+
+	* lazy-lock.el (save-buffer-state):
+	Bind inhibit-modification-hooks and buffer-file-truename
+	instead of before-change-functions and after-change-functions.
 
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 

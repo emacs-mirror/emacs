@@ -33,6 +33,8 @@ Important features:
 
 * Make movemail work with IMAP.
 
+* Internationalize Emacs's messages.
+
 * Port Emacs to GTK+.  (Relevant work has been done already.)
 
 * Make the Lucid menu widget display multilingual text.
@@ -117,7 +119,7 @@ Other features we would like:
 
 * Investigate using the language environment (or locale?) to set up
   more things, such as the default Ispell dictionary, calendar
-  holidays...
+  holidays, quoting characters?,...
 
 * Improve the GC (generational, incremental).  (We may be able to use
   the Boehm collector.)

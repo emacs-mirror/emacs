@@ -1,3 +1,20 @@
+2002-03-17  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (cursor_type_changed): New variable.
+	(redisplay_internal): Redisplay all windows if cursor_type_changed.
+	Clear it when clearing windows_or_buffers_changed.
+	(try_cursor_movement, redisplay_window, try_window_id)
+	(try_window_reusing_current_matrix): Test cursor_type_changed
+	along with windows_or_buffers_changed.
+
+	* window.h (cursor_type_changed): Hew variable.
+
+	* xfns.c (x_set_cursor_type): Set cursor_type_changed,
+	not update_mode_lines, and always set it to 1.
+
+	* xdisp.c (clear_garbaged_frames): Don't set windows_or_buffers_changed
+	if no frames needed redrawing.
+
 2002-03-17  Kim F. Storm  <storm@cua.dk>
 
 	The following changes adds support for network server processes,
