@@ -82,7 +82,7 @@ charset.  If omitted, it is calculated from `:code-space'.  VALUE may
 be a cons (HIGH . LOW), where HIGH is the most significant 16 bits of
 the code point and LOW is the least significant 16 bits.
 
-`max-code'
+`:max-code'
 
 VALUE must be an integer specifying the maxinum code point of the
 charset.  If omitted, it is calculated from `:code-space'.  VALUE may
@@ -306,7 +306,7 @@ This is the last value stored with
   (plist-get (charset-plist charset) propname))
 
 (defun put-charset-property (charset propname value)
-  "Store CHARSETS's PROPNAME property with value VALUE.
+  "Set CHARSETS's PROPNAME property to value VALUE.
 It can be retrieved with `(get-charset-property CHARSET PROPNAME)'."
   (set-charset-plist charset
 		     (plist-put (charset-plist charset) propname value)))
@@ -1107,7 +1107,7 @@ text, and convert it in the temporary buffer.  Otherwise, convert in-place."
   ;; Must return nil, as build_annotations_2 expects that.
   nil)
 
-(make-obsolete 'set-coding-priority 'set-coding-system-priority "22.0")
+(make-obsolete 'set-coding-priority 'set-coding-system-priority "22.1")
 
 ;;; FILE I/O
 
