@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 19 March 1997
+@set lastupdate 24 April 1997
 @c %**end of header
 
 @setchapternewpage off
@@ -308,8 +308,8 @@ alternatives that will be patent-free in late 1997.  It cannot support
 IDEA, but can use triple-DES and some other alternatives.
 
 @item
-A program to convert compiled programs represented in OSF ANDF
-(``Architecture Neutral Distribution Format'') into ANSI C.
+Free software for doing secure commercial transactions on the web.
+This too needs public key encryption.
 
 @item
 An imitation of Page Maker or Ventura Publisher.
@@ -360,6 +360,10 @@ More scientific mathematical subroutines.
 Statistical tools.
 
 @item
+A scientific data collection and processing tool,
+perhaps something like Scientific Workbench and/or Khoros,
+
+@item
 Software to replace card catalogues in libraries.
 
 @item
@@ -371,6 +375,12 @@ statistics).
 
 @item
 A translator from Scheme to C.
+
+@item
+A fast emulator for the i386 which works by translating
+machine instructions into the machine language of the host machine.
+(Support for emulation of other machines would enhance the program
+but might make it much more difficult.)
 
 @item
 Optical character recognition programs; especially if suitable for
@@ -388,10 +398,6 @@ A pen based interface.
 
 @item
 CAD software, such as a vague imitation of Autocad.
-
-@item
-Software for comparing DNA sequences, and finding matches and
-alignments.
 @end itemize
 
 @node Compilers
