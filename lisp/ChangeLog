@@ -1,3 +1,7 @@
+2000-05-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* autoarg.el (autoarg-mode): Typo in the :set argument.
+
 2000-05-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* startup.el (command-line-1): Don't signal an error if the
