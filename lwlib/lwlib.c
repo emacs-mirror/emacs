@@ -67,6 +67,11 @@ ERROR! no more than one of USE_MOTIF and USE_OLIT may be defined.
 static widget_info*
 all_widget_info = NULL;
 
+#ifdef USE_MOTIF
+char *lwlib_toolkit_type = "motif";
+#else
+char *lwlib_toolkit_type = "lucid";
+#endif
 /* Forward declarations */
 static void
 instanciate_widget_instance (/* widget_instance* instance */);
