@@ -642,7 +642,7 @@ string with another.  When you type M-x, Emacs prompts you at the
 bottom of the screen with M-x and you should type the name of the
 command; in this case, "replace-string".  Just type "repl s<TAB>" and
 Emacs will complete the name.  (<TAB> is the Tab key, usually found
-above the lCapsLock or Shift key near the left edge of the keyboard.)
+above the CapsLock or Shift key near the left edge of the keyboard.)
 End the command name with <Return>.
 
 The replace-string command requires two arguments--the string to be
