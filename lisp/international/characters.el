@@ -450,6 +450,38 @@
 ;; Thus we have to check language-environment to handle casing
 ;; correctly.  Currently only I<->i is available.
 
+  ;; Latin-1
+
+  ;; Fixme: Some of the non-word syntaxes here perhaps should be
+  ;; reviewed.  (Note that the following all implicitly have word
+  ;; syntax: ¢£¤¥¨ª¯²³´¶¸¹º.)  There should be a well-defined way of
+  ;; relating Unicode categories to Emacs syntax codes.
+  (set-case-syntax ?  " " tbl)		; dubious
+  (set-case-syntax ?¡ "." tbl)
+  (set-case-syntax ?¦ "_" tbl)
+  (set-case-syntax ?§ "." tbl)
+  (set-case-syntax ?© "_" tbl)
+  (set-case-syntax-delims 171 187 tbl)	; « »
+  (set-case-syntax ?¬ "_" tbl)
+  (set-case-syntax ?­ "_" tbl)
+  (set-case-syntax ?® "_" tbl)
+  (set-case-syntax ?° "_" tbl)
+  (set-case-syntax ?± "_" tbl)
+  (set-case-syntax ?µ "_" tbl)
+  (set-case-syntax ?· "_" tbl)
+  (set-case-syntax ?¼ "_" tbl)
+  (set-case-syntax ?½ "_" tbl)
+  (set-case-syntax ?¾ "_" tbl)
+  (set-case-syntax ?¿ "." tbl)
+  (let ((c 192))
+    (while (<= c 222)
+      (set-case-syntax-pair c (+ c 32) tbl)
+      (setq c (1+ c))))
+  (set-case-syntax ?× "_" tbl)
+  (set-case-syntax ?ß "w" tbl)
+  (set-case-syntax ?÷ "_" tbl)
+  ;; See below for ÿ.
+
   ;; Latin Extended-A, Latin Extended-B
   (setq c #x0100)
   (while (<= c #x0233)
@@ -680,6 +712,8 @@
     (set-case-syntax-pair c (+ c #x10) tbl)
     (setq c (1+ c)))
 
+  ;; Fixme: The following blocks might be better as symbol rather than
+  ;; punctuation.
   ;; Arrows
   (setq c #x2190)
   (while (<= c #x21FF)
