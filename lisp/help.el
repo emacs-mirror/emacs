@@ -944,9 +944,9 @@ and the file name is displayed in the echo area."
 		     t))
   (let (result)
     (catch 'answer
-      (mapcar
+      (mapc
        (lambda (dir)
-	 (mapcar
+	 (mapc
 	  (lambda (suf)
 	    (let ((try (expand-file-name (concat library suf) dir)))
 	      (and (file-readable-p try)
@@ -1384,6 +1384,8 @@ out of view."
      (make-byte-code . "(make-byte-code &rest ELEMENTS)")
      (call-process
       . "(call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)")
+     (call-process-region
+      . "(call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &rest ARGS)")
      (string . "(string &rest CHARACTERS)")
      (+ . "(+ &rest NUMBERS-OR-MARKERS)")
      (- . "(- &optional NUMBER-OR-MARKER &rest MORE-NUMBERS-OR-MARKERS)")
