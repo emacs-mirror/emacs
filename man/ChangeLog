@@ -2,6 +2,8 @@
 
 	* calc.texi (Basic Tutorial, Programming Tutorial): Remove caveats
 	for Lucid Emacs.
+	(Programming Tutorial): Mention that the user needs to be in the
+	right mode to compute some functions.
 
 2005-01-04  Richard M. Stallman  <rms@gnu.org>
 
