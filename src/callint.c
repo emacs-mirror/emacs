@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985, 1986, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -229,7 +229,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
     }
   else if (COMPILEDP (fun))
     {
-      if (XVECTOR (fun)->size <= COMPILED_INTERACTIVE)
+      if (XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK <= COMPILED_INTERACTIVE)
 	goto lose;
       specs = XVECTOR (fun)->contents[COMPILED_INTERACTIVE];
     }
