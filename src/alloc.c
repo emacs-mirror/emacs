@@ -1496,7 +1496,7 @@ mark_object (objptr)
 	mark_object (&ptr->menu_bar_items);
       }
       break;
-#endif /* not MULTI_FRAME */
+#endif /* MULTI_FRAME */
 
     case Lisp_Symbol:
       {
