@@ -90,6 +90,17 @@ and this notice must be preserved on all copies.  */
    that & in the full name stands for the login id.  */
 #undef AMPERSAND_FULL_NAME
 
+/* Things set by --with options in the configure script.  */
+
+/* Define to support POP mail retrieval.  */
+#undef MAIL_USE_POP
+
+/* Define to support Kerberos-authenticated POP mail retrieval.  */
+#undef KERBEROS
+
+/* Define to support using a Hesiod database to find the POP server.  */
+#undef HESIOD
+
 /* Some things figured out by the configure script, grouped as they are in
    configure.in.  */
 #ifndef _ALL_SOURCE  /* suppress warning if this is pre-defined */
