@@ -210,21 +210,28 @@ string_char (p, advanced, len)
 /* Translate character C by translation table TABLE.  If C is
    negative, translate a character specified by CHARSET and CODE.  If
    no translation is found in TABLE, return the untranslated
-   character.  */
+   character.  If TABLE is a list, elements are char tables.  In this
+   case, translace C by all tables.  */
 
 int
 translate_char (table, c)
      Lisp_Object table;
      int c;
 {
-  Lisp_Object ch;
+  if (CHAR_TABLE_P (table))
+    {
+      Lisp_Object ch;
 
-  if (! CHAR_TABLE_P (table))
-    return c;
-  ch = CHAR_TABLE_REF (table, c);
-  if (! CHARACTERP (ch))
-    return c;
-  return XINT (ch);
+      ch = CHAR_TABLE_REF (table, c);
+      if (CHARACTERP (ch))
+	c = XINT (ch);
+    }
+  else
+    {
+      for (; CONSP (table); table = XCDR (table))
+	c = translate_char (XCAR (table), c);
+    }
+  return c;
 }
 
 /* Convert the multibyte character C to unibyte 8-bit character based
