@@ -2194,6 +2194,11 @@ display_menu_bar (w)
   /* Fill out the line with spaces.  */
   if (maxendcol > hpos)
     hpos = display_string (w, vpos, "", hpos, 0, maxendcol, -1);
+
+  /* Clear the rest of the lines allocated to the menu bar.  */
+  vpos++;
+  while (vpos < FRAME_MENU_BAR_LINES (f))
+    get_display_line (f, vpos++, 0);
 }
 
 /* Display the mode line for window w */
