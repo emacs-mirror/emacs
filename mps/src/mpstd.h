@@ -1,7 +1,7 @@
 /* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
  *
- * $HopeName: MMsrc!mpstd.h(trunk.23) $
- * Copyright (C) 1997 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!mpstd.h(trunk.24) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * Detect the target platform using predefined preprocessor symbols
  * defined by the build environment.  The symbols are derived from the
@@ -19,11 +19,11 @@
 #ifndef mpstd_h
 #define mpstd_h
 
-/* Irix 5/6 man cc and man abi. We can't check for _ABIO32 (see
- * os.i5), as we have to support Irix 5.2, which doesn't define it. We
+/* Irix 5/6 man cc and man abi.  We can't check for _ABIO32 (see
+ * os.i5), as we have to support Irix 5.2, which doesn't define it.  We
  * check the value of _MIPS_FPSET, as it is defined across all Irix 5
  * and 6 platforms, and on Irix 6 distinguishes O32 from the other two
- * ABIs. When we support the other ABIs, we need a new OS name for
+ * ABIs.  When we support the other ABIs, we need a new OS name for
  * them.  See analysis.irix-cpp. */
 
 #if defined(__sgi) && defined(__unix) && defined(__mips) && defined(_SYSTYPE_SVR4) && (_MIPS_FPSET == 16)
@@ -242,9 +242,9 @@
 
 #elif defined(__linux__) && defined(__i386__) && defined(__GNUC__)
 #define MPS_PF_LII3GC
-#define MPS_PF_STRING   "lii3gc"
+#define MPS_PF_STRING   "lii4gc"
 #define MPS_OS_LI
-#define MPS_ARCH_I3
+#define MPS_ARCH_I4
 #define MPS_BUILD_GC
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
