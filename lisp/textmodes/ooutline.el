@@ -379,7 +379,7 @@ while if FLAG is `\\^M' (control-M) the text is hidden."
 	;; Hide everything under that.
 	(outline-flag-region (point) end ?\^M)
 	;; Show the first LEVELS levels under that.
-	(if (> levels 1)
+	(if (> levels 0)
 	    (show-children levels))
 	;; Move to the next, since we already found it.
 	(goto-char end)))))
