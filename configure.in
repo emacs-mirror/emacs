@@ -1900,8 +1900,8 @@ sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
 `"
 changequote([, ])dnl
 
-echo creating src/paths.h
-make paths-force
+echo creating src/epaths.h
+make epaths-force
 
 echo creating lib-src/Makefile
 ( cd lib-src
