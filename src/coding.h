@@ -133,7 +133,7 @@ enum iso_code_class_type
    on output.  */
 #define CODING_FLAG_ISO_DESIGNATE_AT_BOL 0x0400
 
-/* If set, do not encode unsafe charactes on output.  */
+/* If set, do not encode unsafe characters on output.  */
 #define CODING_FLAG_ISO_SAFE		0x0800
 
 /* If set, extra latin codes (128..159) are accepted as a valid code
@@ -241,7 +241,7 @@ enum coding_type
     coding_type_ccl,		/* The coding system of which decoder
 				   and encoder are written in CCL.  */
     coding_type_raw_text	/* A coding system for a text
-				   containing ramdom 8-bit code which
+				   containing random 8-bit code which
 				   does not require code conversion
 				   except for end-of-line format. */
   };
@@ -274,11 +274,11 @@ enum coding_type
    The encoder stores the information in this structure when it meets
    ESC sequences for composition while encoding codes, then, after all
    text codes are encoded, puts `composition' properties on the text
-   by refering the structure.
+   by referring to the structure.
 
    The decoder at first stores the information of a text to be
    decoded, then, while decoding codes, generates ESC sequences for
-   composition at proper places by refering the structure.  */
+   composition at proper places by referring to the structure.  */
 
 struct composition_data
 {
@@ -296,7 +296,7 @@ struct composition_data
 	START and END are starting and ending character positions of
 	the composition relative to `char_offset'.
 
-	METHOD is one of `enum cmposing_status' specifying the way of
+	METHOD is one of `enum composing_status' specifying the way of
 	composition.
 
 	COMPONENT is a character or an encoded composition rule.  */
@@ -307,8 +307,8 @@ struct composition_data
 
   /* Pointers to the previous and next structures.  When `data' is
      filled up, another structure is allocated and linked in `next'.
-     The new struture has backward link to this struture in `prev'.
-     The number of chaind structures depends on how many compositions
+     The new structure has backward link to this structure in `prev'.
+     The number of chained structures depends on how many compositions
      the text being encoded or decoded contains.  */
   struct composition_data *prev, *next;
 };
@@ -330,7 +330,7 @@ struct composition_data
 
 /* If set, the decoding/encoding routines treat the current data as
    the last block of the whole text to be converted, and do
-   appropriate fisishing job.  */
+   appropriate finishing job.  */
 #define CODING_MODE_LAST_BLOCK			0x02
 
 /* If set, it means that the current source text is in a buffer which
@@ -690,7 +690,7 @@ extern struct coding_system default_buffer_file_coding;
 /* Default coding systems used for process I/O.  */
 extern Lisp_Object Vdefault_process_coding_system;
 
-/* Function to call to force a user to force select a propert coding
+/* Function to call to force a user to force select a proper coding
    system.  */
 extern Lisp_Object Vselect_safe_coding_system_function;
 
