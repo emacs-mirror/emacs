@@ -688,7 +688,8 @@ and initial semicolons."
 	(let ((paragraph-start (concat paragraph-start "\\|^[ \t;]*$"))
 	      (paragraph-separate (concat paragraph-start "\\|^[ \t;]*$"))
 	      (fill-prefix comment-fill-prefix))
-	  (fill-paragraph justify))))))
+	  (fill-paragraph justify))))
+    t))
 
 
 (defun indent-code-rigidly (start end arg &optional nochange-regexp)
