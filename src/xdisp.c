@@ -3371,8 +3371,9 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
          compute_motion may have moved us past the screen position we
          requested, if we hit a multi-column character, or the end of
          the line.  If so, back up.  */
-      if (left_edge->vpos > vpos
-          || left_edge->hpos > 0)
+      if ((left_edge->vpos > vpos
+	   || left_edge->hpos > 0)
+	  && left_edge->bufpos > pos)
         {
           pos = left_edge->bufpos;
 	  pos_byte = left_edge->bytepos;
