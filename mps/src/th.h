@@ -2,7 +2,7 @@
  *
  *                    THREAD MANAGER
  *
- *  $HopeName: MMsrc/!th.h(trunk.1)$
+ *  $HopeName: MMsrc!th.h(trunk.2) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -82,6 +82,10 @@ extern void ThreadDequeResume(Deque threadDeque);
  */
 
 extern Error ThreadDequeScan(void *p, int i, Trace trace);
+
+/*  == ThreadSpace == */
+
+extern Space ThreadSpace(Thread thread);
 
 
 #endif /* th_h */
