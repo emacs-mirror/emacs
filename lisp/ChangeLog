@@ -1,3 +1,7 @@
+2002-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* lazy-lock.el (lazy-lock-mode): Add a reference to jit-lock.
+
 2002-01-26  Evgeny Roubinchtein  <evgenyr@cs.washington.edu>
 
 	* pc-select.el (pc-selection-mode-hook)
