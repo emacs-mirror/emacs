@@ -1086,7 +1086,8 @@ redisplay_internal (preserve_echo_area)
 	 then we can't just move the cursor.  */
       else if (! (!NILP (Vtransient_mark_mode)
 		  && !NILP (current_buffer->mark_active))
-	       && w == XWINDOW (current_buffer->last_selected_window)
+	       && (w == XWINDOW (current_buffer->last_selected_window)
+		   || highlight_nonselected_windows)
 	       && NILP (w->region_showing)
 	       && !cursor_in_echo_area)
 	{
@@ -1274,7 +1275,8 @@ update:
 	  /* Record if we are showing a region, so can make sure to
 	     update it fully at next redisplay.  */
 	  w->region_showing = (!NILP (Vtransient_mark_mode)
-			       && w == XWINDOW (current_buffer->last_selected_window)
+			       && (w == XWINDOW (current_buffer->last_selected_window)
+				   || highlight_nonselected_windows)
 			       && !NILP (XBUFFER (w->buffer)->mark_active)
 			       ? Fmarker_position (XBUFFER (w->buffer)->mark)
 			       : Qnil);
@@ -1356,7 +1358,8 @@ mark_window_display_accurate (window, flag)
 	  /* Record if we are showing a region, so can make sure to
 	     update it fully at next redisplay.  */
 	  w->region_showing = (!NILP (Vtransient_mark_mode)
-			       && w == XWINDOW (current_buffer->last_selected_window)
+			       && (w == XWINDOW (current_buffer->last_selected_window)
+				   || highlight_nonselected_windows)
 			       && !NILP (XBUFFER (w->buffer)->mark_active)
 			       ? Fmarker_position (XBUFFER (w->buffer)->mark)
 			       : Qnil);
@@ -2782,7 +2785,8 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
   /* 1 if we should highlight the region.  */
   int highlight_region
     = (!NILP (Vtransient_mark_mode) && !NILP (current_buffer->mark_active)
-       && XWINDOW (current_buffer->last_selected_window) == w);
+       && (XWINDOW (current_buffer->last_selected_window) == w
+	   || highlight_nonselected_windows));
   int region_beg, region_end;
 
   int selective = (INTEGERP (current_buffer->selective_display)
@@ -4903,7 +4907,7 @@ of the top or bottom of the window.");
 
   DEFVAR_BOOL ("highlight-nonselected-windows", &highlight_nonselected_windows,
     "*Non-nil means highlight region even in nonselected windows.");
-  highlight_nonselected_windows = 1;
+  highlight_nonselected_windows = 0;
 
   DEFVAR_BOOL ("multiple-frames", &multiple_frames,
     "Non-nil if more than one frame is visible on this display.\n\
