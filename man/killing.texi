@@ -78,6 +78,10 @@ mode (@pxref{Transient Mark}).
 @findex delete-backward-char
 @findex delete-char
 
+  Deletion means erasing text and not saving it in the kill ring.  For
+the most part, the Emacs commands that delete text are those that
+erase just one character or only whitespace.
+
 @table @kbd
 @item C-d
 @itemx @key{Delete}
