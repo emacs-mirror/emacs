@@ -1,3 +1,8 @@
+2000-03-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* time.el (display-time-mail-file): Add `none' to the list of
+	choices.
+
 2000-03-01  Dave Love  <fx@gnu.org>
 
 	* help.el (help-xref-go-back): Don't try to set position.
