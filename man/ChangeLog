@@ -1,3 +1,17 @@
+2004-03-04  Richard M. Stallman  <rms@gnu.org>
+
+	* search.texi (Regexps): Explain that ^ and $ have their
+	special meanings only in certain contexts.
+
+	* programs.texi (Expressions): Doc C-M-SPC as alias for C-M-@.
+
+	* mule.texi (Specify Coding): Doc C-x RET F.
+
+	* buffers.texi (Misc Buffer): Explain use of M-x rename-uniquely
+	for multiple compile and grep buffers.
+	(Indirect Buffers): Don't recommand clone-indirect-buffer
+	for multiple compile and grep buffers.
+
 2004-02-29  Simon Josefsson  <jas@extundo.com>
 
 	* smtpmail.texi (Authentication): Changed the list of supported

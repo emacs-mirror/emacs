@@ -1,3 +1,37 @@
+2004-03-04  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-convert-to-babyl-format):
+	Specify t for UNIBYTE when calling mail-unquote-printable-region.
+
+	* mail/mail-utils.el (mail-unquote-printable-region):
+	New arg UNIBYTE.
+
+	* startup.el (command-switch-alist): Doc fix.
+
+	* simple.el (undo): Temporarily set this-command to `undo-start',
+	then set it to `undo' once undo-start returns without error.
+
+	* simple.el (minibuffer-history-sexp-flag): Doc fix.
+
+	* simple.el (kill-line): Don't disregard trailing whitespace
+	in eol condition, if show-trailing-whitespace is set.
+
+	* mouse-sel.el (mouse-sel-has-been-enabled): New var.
+	(mouse-sel-mode): When enabling, set mouse-sel-has-been-enabled.
+	When disabling, restore old values only if mouse-sel-has-been-enabled.
+
+	* isearch.el (isearch-*-char): New arg WANT-BACKSLASH.
+	(isearch-{-char): New function.
+	(isearch-mode-map): Bind { to isearch-{-char.
+
+	* font-lock.el (lisp-font-lock-keywords-2):
+	Turn off the CL with-... and do-... general patterns.
+	Instead, recognize several specific with... and do... constructs.
+	
+	* files.el (switch-to-buffer-other-window): Bind
+	same-window-buffer-names and same-window-regexps to nil.
+	(switch-to-buffer-other-frame): Likewise.
+	
 2004-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/fill.el (fill-comment-paragraph): Be more careful when
