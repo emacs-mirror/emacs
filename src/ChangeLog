@@ -1,3 +1,18 @@
+2001-01-25  Kenichi Handa  <handa@etl.go.jp>
+
+	* ccl.h (sturct ccl_program): New member suppress_error.
+
+	* ccl.c (ccl_driver): If ccl->suppress_error is nonzeor, don't
+	insert error message to the output.
+	(setup_ccl_program): Initialize ccl->suppress_error to 0.
+
+	* coding.h (struct coding_system): New member suppress_error.
+
+	* coding.c (ccl_coding_driver): Setup ccl->suppress_error.
+	(Fset_terminal_coding_system_internal): Set the member
+	suppress_error to 1.
+	(Fset_safe_terminal_coding_system_internal): Likewise.
+
 2001-01-24  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (mutually_exclusive_p): Don't blindly handle `charset_not'
