@@ -1366,6 +1366,7 @@ extern Lisp_Object Ffeaturep (), Frequire () , Fprovide ();
 extern Lisp_Object concat2 (), nconc2 ();
 extern Lisp_Object assq_no_quit ();
 extern Lisp_Object Fcopy_alist ();
+extern Lisp_Object Fplist_get ();
 
 /* Defined in insdel.c */
 extern void move_gap ();
@@ -1560,6 +1561,7 @@ extern void finalize_prefix_arg ();
 /* defined in casefiddle.c */
 
 extern Lisp_Object Fdowncase (), Fupcase (), Fcapitalize ();
+extern Lisp_Object Fupcase_initials (), Fupcase_initials_region ();
 
 /* defined in keyboard.c */
 
@@ -1607,6 +1609,7 @@ extern Lisp_Object Funfocus_frame ();
 extern Lisp_Object Fselected_frame ();
 extern Lisp_Object Fwindow_frame ();
 extern Lisp_Object Fframe_root_window ();
+extern Lisp_Object Fframe_first_window ();
 extern Lisp_Object Fframe_selected_window ();
 extern Lisp_Object Fframe_list ();
 extern Lisp_Object Fnext_frame ();
@@ -1648,6 +1651,7 @@ extern int running_asynch_code;
 extern Lisp_Object Fget_process (), Fget_buffer_process (), Fprocessp ();
 extern Lisp_Object Fprocess_status (), Fkill_process ();
 extern Lisp_Object Fprocess_send_eof ();
+extern Lisp_Object Fwaiting_for_user_input_p ();
 extern Lisp_Object Qprocessp;
 
 /* defined in callproc.c */
@@ -1680,6 +1684,12 @@ extern Lisp_Object Fnext_property_change ();
 extern Lisp_Object Fnext_single_property_change ();
 extern Lisp_Object Fprevious_single_property_change ();
 
+/* defined in intervals.c */
+extern Lisp_Object get_local_map ();
+
+/* defined in xmenu.c */
+extern Lisp_Object Fx_popup_menu (), Fx_popup_dialog ();
+
 /* Nonzero means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */
 extern int initialized;
