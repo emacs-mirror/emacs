@@ -488,6 +488,7 @@ FLAGS specifies more detailed information of the coding system as follows:
       If CHARSETn is t, Gn can be used but nothing designated initially.
       If CHARSETn is a list of character sets, those character sets are
         designated to Gn on output, but nothing designated to Gn initially.
+        But, character set `ascii' can be designated only to G0.
     SHORT-FORM non-nil means use short designation sequence on output.
     ASCII-EOL non-nil means designate ASCII to g0 at end of line on output.
     ASCII-CNTL non-nil means designate ASCII to g0 before control codes and
