@@ -1,3 +1,12 @@
+2004-04-11  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-arg-list): Function removed.
+	(vc-default-workfile-unchanged-p): Use condition-case to check for
+	backward compatibility.
+
+	* vc.el (vc-print-log): Use condition-case to check for backward
+	compatibility.
+
 2004-04-11  Juri Linkov  <juri@jurta.org>
 
 	* dired.el (dired-faces): New defgroup.
