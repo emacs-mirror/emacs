@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.77) $
+ * $HopeName: MMsrc!trace.c(trunk.78) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -9,7 +9,7 @@
 #include "mpm.h"
 
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.77) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.78) $");
 
 
 /* Types
@@ -487,7 +487,7 @@ static Res TraceScanRoot(TraceSet ts, Rank rank, Arena arena,
 
 /* TraceFlip -- blacken the mutator */
 
-void TraceFlip(Trace trace)
+static void TraceFlip(Trace trace)
 {
   Ring node, nextNode;
   Arena arena;
@@ -1281,7 +1281,7 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
 }
 
 
-Bool TraceScanSingleRefClosureCheck(TraceScanSingleRefClosure closure)
+static Bool TraceScanSingleRefClosureCheck(TraceScanSingleRefClosure closure)
 {
   CHECKS(TraceScanSingleRefClosure, closure);
   CHECKL(SegCheck(closure->seg));
