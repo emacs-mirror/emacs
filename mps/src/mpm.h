@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.58) $
+ * $HopeName: MMsrc!mpm.h(trunk.59) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -423,8 +423,12 @@ extern Size TraceGreyEstimate(Arena arena, RefSet refSet);
   END
 
 extern Res TraceScanArea(ScanState ss, Addr *base, Addr *limit);
-extern Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit);
-extern Res TraceScanAreaMasked(ScanState ss, Addr *base, Addr *limit, Word mask);
+extern Res TraceScanAreaTagged(ScanState ss,
+                               Addr *base, Addr *limit);
+extern Res TraceScanAreaMasked(ScanState ss,
+                               Addr *base, Addr *limit, Word mask);
+extern Res TraceScanSingleRef(TraceSet ts, Arena arena, 
+                              Seg seg, Rank rank, Ref *refIO);
 
 
 /* Action Interface -- see design.mps.action */
@@ -479,16 +483,31 @@ extern void ArenaFree(Arena arena, void *base, Size size);
  * occasional access to client data.
  * They perform the appropriate shield and summary manipulations
  * that are necessary.
+ *
+ * Note that Peek and Poke can be called with address that may or
+ * may not be in arena managed memory.
  */
 
-/* Peek reads a value from our managed heap */
+/* Peek reads a value */
 extern Word ArenaPeek(Arena arena, Addr addr);
-/* addr must be in seg */
+/* Same, but addr must be in seg */
 extern Word ArenaPeekSeg(Arena arena, Seg seg, Addr addr);
-/* Poke stores a value into our managed heap */
+/* Poke stores a value */
 extern void ArenaPoke(Arena arena, Addr addr, Word word);
-/* addr must be in seg */
+/* Same, but addr must be in seg */
 extern void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Word word);
+
+/* Read/Write
+ *
+ * These simulate mutator reads and writes to locations.
+ * They are effectively a software barrier, and maintain the tricolor
+ * invariant (hence performing any scanning or color manipulation
+ * necessary).
+ *
+ * Only Read provided right now.
+ */
+
+Word ArenaRead(Arena arena, Addr addr);
 
 #define ArenaPoolRing(arena)    (&(arena)->poolRing)
 #define ArenaRootRing(arena)    (&(arena)->rootRing)
@@ -516,12 +535,12 @@ extern void SegFree(Seg seg);
 extern Addr SegBase(Seg seg);
 extern Addr SegLimit(Seg seg);
 extern Size SegSize(Seg seg);
-extern Bool SegOfAddr(Seg *segReturn, Space space, Addr addr);
+extern Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr);
 /* SegOfAddr macro, see design.mps.trace.fix.segofaddr */
 #define SEG_OF_ADDR(segReturn, arena, addr) \
   ((*(arena)->class->segOfAddr)((segReturn), (arena), (addr)))
-extern Bool SegFirst(Seg *segReturn, Space space);
-extern Bool SegNext(Seg *segReturn, Space space, Addr addr);
+extern Bool SegFirst(Seg *segReturn, Arena arena);
+extern Bool SegNext(Seg *segReturn, Arena arena, Addr addr);
 
 extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
 extern Res ArenaNoRetract(Arena arena, Addr base, Size size);
