@@ -440,6 +440,11 @@ WIDGET is the widget to apply the filter entries of MENU on."
   :group 'custom-menu
   :type 'boolean)
 
+(defcustom custom-unlispify-remove-prefixes nil
+  "Non-nil means remove group prefixes from option names in buffer."
+  :group 'custom-menu
+  :type 'boolean)
+
 (defun custom-unlispify-menu-entry (symbol &optional no-suffix)
   "Convert symbol into a menu entry."
   (cond ((not custom-unlispify-menu-entries)
@@ -458,15 +463,16 @@ WIDGET is the widget to apply the filter entries of MENU on."
 		      (re-search-forward "-p\\'" nil t))
 	     (replace-match "" t t)
 	     (goto-char (point-min)))
-	   (let ((prefixes custom-prefix-list)
-		 prefix)
-	     (while prefixes
-	       (setq prefix (car prefixes))
-	       (if (search-forward prefix (+ (point) (length prefix)) t)
-		   (progn 
-		     (setq prefixes nil)
-		     (delete-region (point-min) (point)))
-		 (setq prefixes (cdr prefixes)))))
+	   (if custom-unlispify-remove-prefixes
+	       (let ((prefixes custom-prefix-list)
+		     prefix)
+		 (while prefixes
+		   (setq prefix (car prefixes))
+		   (if (search-forward prefix (+ (point) (length prefix)) t)
+		       (progn 
+			 (setq prefixes nil)
+			 (delete-region (point-min) (point)))
+		     (setq prefixes (cdr prefixes))))))
 	   (subst-char-in-region (point-min) (point-max) ?- ?\  t)
 	   (capitalize-region (point-min) (point-max))
 	   (unless no-suffix 
@@ -1113,52 +1119,45 @@ Reset all values in this buffer to their standard settings."
 ;;; The Tree Browser.
 
 ;;;###autoload
-(defun customize-browse (group)
+(defun customize-browse ()
   "Create a tree browser for the customize hierarchy."
-  (interactive (list (let ((completion-ignore-case t))
-		       (completing-read "Customize group: (default emacs) "
-					obarray 
-					(lambda (symbol)
-					  (get symbol 'custom-group))
-					t))))
-
-  (when (stringp group)
-    (if (string-equal "" group)
-	(setq group 'emacs)
-      (setq group (intern group))))
-  (let ((name "*Customize Browser*"))
-    (kill-buffer (get-buffer-create name))
-    (switch-to-buffer (get-buffer-create name)))
-  (custom-mode)
-  (widget-insert "\
+  (interactive)
+  (let ((group 'emacs))
+    (let ((name "*Customize Browser*"))
+      (kill-buffer (get-buffer-create name))
+      (switch-to-buffer (get-buffer-create name)))
+    (custom-mode)
+    (widget-insert "\
+Square brackets show active fields; type RET or click mouse-1
+on an active field to invoke its action.
 Invoke [+] or [?] below to expand items, and [-] to collapse items.\n")
-  (if custom-browse-only-groups
-      (widget-insert "\
+    (if custom-browse-only-groups
+	(widget-insert "\
 Invoke the [Group] button below to edit that item in another window.\n\n")
-    (widget-insert "Invoke the ") 
-    (widget-create 'item 
-		   :format "%t"
-		   :tag "[Group]"
-		   :tag-glyph "folder")
-    (widget-insert ", ")
-    (widget-create 'item 
-		   :format "%t"
-		   :tag "[Face]"
-		   :tag-glyph "face")
-    (widget-insert ", and ")
-    (widget-create 'item 
-		   :format "%t"
-		   :tag "[Option]"
-		   :tag-glyph "option")
-    (widget-insert " buttons below to edit that
+      (widget-insert "Invoke the ") 
+      (widget-create 'item 
+		     :format "%t"
+		     :tag "[Group]"
+		     :tag-glyph "folder")
+      (widget-insert ", ")
+      (widget-create 'item 
+		     :format "%t"
+		     :tag "[Face]"
+		     :tag-glyph "face")
+      (widget-insert ", and ")
+      (widget-create 'item 
+		     :format "%t"
+		     :tag "[Option]"
+		     :tag-glyph "option")
+      (widget-insert " buttons below to edit that
 item in another window.\n\n"))
-  (let ((custom-buffer-style 'tree))
-    (widget-create 'custom-group 
-		   :custom-last t
-		   :custom-state 'unknown
-		   :tag (custom-unlispify-tag-name group)
-		   :value group))
-  (goto-char (point-min)))
+    (let ((custom-buffer-style 'tree))
+      (widget-create 'custom-group 
+		     :custom-last t
+		     :custom-state 'unknown
+		     :tag (custom-unlispify-tag-name group)
+		     :value group))
+    (goto-char (point-min))))
 
 (define-widget 'custom-browse-visibility 'item
   "Control visibility of of items in the customize tree browser."
@@ -2995,44 +2994,6 @@ Leave point at the location of the call, or after the last expression."
 ;;; The Customize Menu.
 
 ;;; Menu support
-
-(unless (string-match "XEmacs" emacs-version)
-  (defconst custom-help-menu
-    '("Customize"
-      ["Update menu" Custom-menu-update t]
-      ["Browse" (customize-browse 'emacs) t]
-      ["Group..." customize-group t]
-      ["Option..." customize-option t]
-      ["Face..." customize-face t]
-      ["Saved..." customize-saved t]
-      ["Set..." customize-customized t]
-      "--"
-      ["Apropos..." customize-apropos t]
-      ["Group apropos..." customize-apropos-groups t]
-      ["Option apropos..." customize-apropos-options t]
-      ["Face apropos..." customize-apropos-faces t])
-    ;; This menu should be identical to the one defined in `menu-bar.el'. 
-    "Customize menu")
-
-  (defun custom-menu-reset ()
-    "Reset customize menu."
-    (remove-hook 'custom-define-hook 'custom-menu-reset)
-    (define-key global-map [menu-bar help-menu customize-menu]
-      (cons (car custom-help-menu)
-	    (easy-menu-create-keymaps (car custom-help-menu)
-				      (cdr custom-help-menu)))))
-
-  (defun Custom-menu-update (event)
-    "Update customize menu."
-    (interactive "e")
-    (add-hook 'custom-define-hook 'custom-menu-reset)
-    (let* ((emacs (widget-apply '(custom-group) :custom-menu 'emacs))
-	   (menu `(,(car custom-help-menu)
-		   ,emacs
-		   ,@(cdr (cdr custom-help-menu)))))
-      (let ((map (easy-menu-create-keymaps (car menu) (cdr menu))))
-	(define-key global-map [menu-bar help-menu customize-menu]
-	  (cons (car menu) map))))))
 
 (defcustom custom-menu-nesting 2
   "Maximum nesting in custom menus."
