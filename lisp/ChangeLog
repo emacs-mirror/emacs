@@ -1,3 +1,8 @@
+2004-11-22  Richard M. Stallman  <rms@gnu.org>
+
+	* dired.el (dired-recursive-copies): Moved from dired-aux.el.
+	* dired-aux.el (dired-recursive-copies): Moved to dired.el.
+
 2004-11-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-resync): New function.
@@ -129,6 +134,13 @@
 	of `defconst'.
 
 2004-11-20  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-mode-map): Don't bind SPC.
+	(isearch-whitespace-chars): Function deleted.
+	(isearch-search): Bind search-spaces-regexp.
+	(isearch-lazy-highlight-search): Likewise.
+	(search-whitespace-regexp): Doc fix.
+	(isearch-forward-regexp): Doc fix.
 
 	* emacs-lisp/bytecomp.el (byte-compile-form):
 	Move the calls to byte-compile-set-symbol-position,
