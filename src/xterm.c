@@ -6742,7 +6742,7 @@ show_mouse_face (dpyinfo, draw)
 	}
 
       if (end_hpos > start_hpos)
-	x_draw_glyphs (w, start_x, row, updated_area, 
+	x_draw_glyphs (w, start_x, row, TEXT_AREA, 
 		       start_hpos, end_hpos, draw, NULL, NULL, 0);
     }
 
