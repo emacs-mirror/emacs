@@ -1487,15 +1487,25 @@ start_display (it, w, pos)
 	 \003, or in the middle of an overlay string).  In this case
 	 move_it_to above will not have taken us to the start of
 	 the continuation line but to the end of the continued line.  */
-      if (!it->truncate_lines_p && it->current_x > 0)
+      if (!it->truncate_lines_p)
 	{
-	  if (it->current.dpvec_index >= 0
-	      || it->current.overlay_string_index >= 0)
+	  if (it->current_x > 0)
 	    {
-	      set_iterator_to_next (it);
-	      move_it_in_display_line_to (it, -1, -1, 0);
+	      if (it->current.dpvec_index >= 0
+		  || it->current.overlay_string_index >= 0)
+		{
+		  set_iterator_to_next (it);
+		  move_it_in_display_line_to (it, -1, -1, 0);
+		}
+	  
+	      it->continuation_lines_width += it->current_x;
 	    }
-	  it->continuation_lines_width += it->current_x;
+
+	  /* We're starting a new display line, not affected by the
+	     height of the continued line, so clear the appropriate
+	     fields in the iterator structure.  */
+	  it->max_ascent = it->max_descent = 0;
+	  it->max_phys_ascent = it->max_phys_descent = 0;
 	}
       
       it->current_y = first_y;
@@ -8338,6 +8348,7 @@ make_cursor_line_fully_visible (w)
 {
   struct glyph_matrix *matrix;
   struct glyph_row *row;
+  int window_height, header_line_height;
   
   /* It's not always possible to find the cursor, e.g, when a window
      is full of overlay strings.  Don't do anything in that case.  */
@@ -8347,31 +8358,32 @@ make_cursor_line_fully_visible (w)
   matrix = w->desired_matrix;
   row = MATRIX_ROW (matrix, w->cursor.vpos);
 
-  if (MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P (w, row)
-      /* The row may be partially visible at the top because we
-	 already have chosen a vscroll to align the bottom of the
-	 row with the bottom of the window.  This happens for rows
-	 taller than the window.  */
-      && row->y + row->height < window_box_height (w))
+  /* If the cursor row is not partially visible, there's nothing
+     to do.  */
+  if (!MATRIX_ROW_PARTIALLY_VISIBLE_P (row))
+    return;
+
+  /* If the row the cursor is in is taller than the window's height,
+     it's not clear what to do, so do nothing.  */
+  window_height = window_box_height (w);
+  if (row->height >= window_height)
+    return;
+
+  if (MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P (w, row))
     {
       int dy = row->height - row->visible_height;
       w->vscroll = 0;
       w->cursor.y += dy;
       shift_glyph_matrix (w, matrix, 0, matrix->nrows, dy);
     }
-  else if (MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P (w, row)
-	   /* The row may be partially visible at the bottom because
-	      we chose a vscroll to align the row's top with the
-	      window's top.  This happens for rows taller than the
-	      window.  */
-	   && row->y > WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w))
+  else /* MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P (w, row)) */
     {
       int dy = - (row->height - row->visible_height);
       w->vscroll = dy;
       w->cursor.y += dy;
       shift_glyph_matrix (w, matrix, 0, matrix->nrows, dy);
     }
-
+  
   /* When we change the cursor y-position of the selected window,
      change this_line_y as well so that the display optimization for
      the cursor line of the selected window in redisplay_internal uses
@@ -8902,13 +8914,15 @@ redisplay_window (window, just_this_one_p)
 
       if (w->cursor.vpos < 0 && !w->frozen_window_start_p)
 	{
-	  /* If point does not appear, or on a line that is not fully
-	     visible, move point so it does appear.  The desired
-	     matrix has been built above, so we can use it.  */
-	  int height = window_box_height (w) / 2;
-	  struct glyph_row *row = MATRIX_ROW (w->desired_matrix, 0);
-	  
-	  while (row->y < height)
+	  /* If point does not appear, try to move point so it does
+	     appear. The desired matrix has been built above, so we
+	     can use it here.  */
+	  int window_height;
+	  struct glyph_row *row;
+
+	  window_height = window_box_height (w) / 2;
+	  row = MATRIX_FIRST_TEXT_ROW (w->desired_matrix);
+	  while (MATRIX_ROW_BOTTOM_Y (row) < window_height)
 	    ++row;
 
 	  TEMP_SET_PT_BOTH (MATRIX_ROW_START_CHARPOS (row),
@@ -10780,10 +10794,11 @@ dump_glyph_row (matrix, vpos, with_glyphs_p)
 
   row = MATRIX_ROW (matrix, vpos);
   
-  fprintf (stderr, "Row Start   End Used oEI><O\\CTZFes    X   Y   W\n");
-  fprintf (stderr, "=============================================\n");
+  fprintf (stderr, "Row Start   End Used oEI><O\\CTZFes     X    Y    W    H    V    A    P\n");
+  fprintf (stderr, "=======================================================================\n");
   
-  fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d %4d %4d %4d\n",
+  fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1 \
+1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d %4d %4d %4d %4d %4d %4d %4d\n",
 	   row - matrix->rows,
 	   MATRIX_ROW_START_CHARPOS (row),
 	   MATRIX_ROW_END_CHARPOS (row),
@@ -10803,7 +10818,11 @@ dump_glyph_row (matrix, vpos, with_glyphs_p)
 	   row->starts_in_middle_of_char_p,
 	   row->x,
 	   row->y,
-	   row->pixel_width);
+	   row->pixel_width,
+	   row->height,
+	   row->visible_height,
+	   row->ascent,
+	   row->phys_ascent);
   fprintf (stderr, "%9d %5d\n", row->start.overlay_string_index,
 	   row->end.overlay_string_index);
   fprintf (stderr, "%9d %5d\n",
@@ -11131,7 +11150,7 @@ compute_line_metrics (it)
       /* If first line's physical ascent is larger than its logical
          ascent, use the physical ascent, and make the row taller.
          This makes accented characters fully visible.  */
-      if (row == it->w->desired_matrix->rows
+      if (row == MATRIX_FIRST_TEXT_ROW (it->w->desired_matrix)
 	  && row->phys_ascent > row->ascent)
 	{
 	  row->height += row->phys_ascent - row->ascent;
@@ -11445,7 +11464,7 @@ display_line (it)
       int n_glyphs_before, hpos_before, x_before;
       int x, i, nglyphs;
       int ascent, descent, phys_ascent, phys_descent;
-      
+
       /* Retrieve the next thing to display.  Value is zero if end of
 	 buffer reached.  */
       if (!get_next_display_element (it))
