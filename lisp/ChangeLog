@@ -1,5 +1,8 @@
 2002-01-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* net/ldap.el (ldap-ldapsearch-prog): Default to OpenLDAP version
+	2 ldapsearch.
+
 	* net/eudc.el: New maintainer.  Change author's address.
 	(eudc-pre-select-window-configuration, eudc-insertion-marker):
 	Variables removed.
