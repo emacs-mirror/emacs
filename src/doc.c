@@ -671,7 +671,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 
 	  /* Note the Fwhere_is_internal can GC, so we have to take
 	     relocation of string contents into account.  */
-	  tem = Fwhere_is_internal (tem, keymap, Qt, Qnil);
+	  tem = Fwhere_is_internal (tem, keymap, Qt, Qnil, Qnil);
 	  strp = XSTRING (string)->data + idx;
 	  start = XSTRING (string)->data + start_idx;
 
