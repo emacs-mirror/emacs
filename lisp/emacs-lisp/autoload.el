@@ -220,7 +220,10 @@ are used."
 			;; Read the next form and make an autoload.
 			(let* ((form (prog1 (read (current-buffer))
 				       (or (bolp) (forward-line 1))))
-			       (autoload (make-autoload form load-name))
+			       (autoload-1 (make-autoload form load-name))
+			       (autoload (if (eq (car autoload-1) 'progn)
+					     (cadr autoload-1)
+					   autoload-1))
 			       (doc-string-elt (get (car-safe form)
 						    'doc-string-elt)))
 			  (if autoload
@@ -267,7 +270,13 @@ are used."
 					   outbuf))
 				  (terpri outbuf)))
 			    (let ((print-escape-newlines t))
-			      (print autoload outbuf))))
+			      (print autoload outbuf)))
+			  (if (eq (car autoload-1) 'progn)
+			      ;; Print the rest of the form
+			      (let ((print-escape-newlines t))
+				(mapcar (function (lambda (elt)
+						    (print elt outbuf)))
+					(cddr autoload-1)))))
 			  ;; Copy the rest of the line to the output.
 		      (princ (buffer-substring
 			      (progn
