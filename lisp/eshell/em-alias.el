@@ -156,7 +156,7 @@ command, which will automatically write them to the file named by
   (add-to-list 'eshell-complex-commands 'eshell-command-aliased-p))
 
 (defun eshell-command-aliased-p (name)
-  (member name eshell-command-aliases-list))
+  (assoc name eshell-command-aliases-list))
 
 (defun eshell/alias (&optional alias &rest definition)
   "Define an ALIAS in the user's alias list using DEFINITION."
