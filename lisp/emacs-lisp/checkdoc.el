@@ -145,9 +145,9 @@ without asking, and complex changes are made by asking the user first.
 The value `never' is the same as nil, never ask or change anything."
   :group 'checkdoc
   :type '(choice (const automatic)
-		 (const semiautomatic)
 		 (const query)
-		 (const never)))
+		 (const never)
+		 (other :tag "semiautomatic" semiautomatic)))
 
 (defcustom checkdoc-bouncy-flag t
   "*Non-nil means to \"bounce\" to auto-fix locations.
