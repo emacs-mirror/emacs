@@ -1,6 +1,6 @@
 ;;; frame.el --- multi-frame management independent of window systems.
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -72,7 +72,7 @@ These supersede the values given in `default-frame-alist'.")
       (function (lambda ()
 		  (make-frame pop-up-frame-alist))))
 
-(defvar special-display-frame-alist
+(defcustom special-display-frame-alist
   '((height . 14) (width . 80) (unsplittable . t))
   "*Alist of frame parameters used when creating special frames.
 Special frames are used for buffers whose names are in
@@ -80,7 +80,11 @@ Special frames are used for buffers whose names are in
 one of the regular expressions in `special-display-regexps'.
 This variable can be set in your init file, like this:
   (setq special-display-frame-alist '((width . 80) (height . 20)))
-These supersede the values given in `default-frame-alist'.")
+These supersede the values given in `default-frame-alist'."
+  :type '(repeat (cons :format "%v"
+			 (symbol :tag "Parameter")
+			 (sexp :tag "Value")))
+  :group 'frames)
 
 ;; Display BUFFER in its own frame, reusing an existing window if any.
 ;; Return the window chosen.
@@ -675,8 +679,11 @@ that is beyond the control of Emacs and this command has no effect on it."
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'auto-lower (> arg 0)))))
 
-(defvar scroll-bar-side 'left
-  "*Specify which side scroll bars should be on.  Value is `left' or `right'.")
+(defcustom scroll-bar-side 'left
+  "*Specify which side scroll bars should be on.  Value is `left' or `right'."
+  :type '(choice (const left)
+		 (const right))
+  :group 'frames)
 
 (defun toggle-scroll-bar (arg)
   "Toggle whether or not the selected frame has vertical scroll bars.

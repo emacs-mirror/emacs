@@ -28,11 +28,14 @@
 
 ;;; User options:
 
-(defvar buffers-menu-max-size 10
+(defcustom buffers-menu-max-size 10
   "*Maximum number of entries which may appear on the Buffers menu.
 If this is 10, then only the ten most-recently-selected buffers are shown.
 If this is nil, then all buffers are shown.
-A large number or nil slows down menu responsiveness.")
+A large number or nil slows down menu responsiveness."
+  :type '(choice integer
+		 (const :tag "All" nil))
+  :group 'mouse)
 
 ;; Don't clobber an existing menu-bar keymap, to preserve any menu-bar key
 ;; definitions made in loaddefs.el.
@@ -422,8 +425,10 @@ Do the same for the keys of the same name."
 		    pending-undo-list)
 	     buffer-undo-list)))
 
-(defvar yank-menu-length 20
-  "*Maximum length to display in the yank-menu.")
+(defcustom yank-menu-length 20
+  "*Maximum length to display in the yank-menu."
+  :type 'integer
+  :group 'mouse)
 
 (defun menu-bar-update-yank-menu (string old)
   (let ((front (car (cdr yank-menu)))

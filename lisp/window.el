@@ -142,11 +142,13 @@ even if it is inactive."
 		  'nomini)))
 
 ;;; I think this should be the default; I think people will prefer it--rms.
-(defvar split-window-keep-point t
+(defcustom split-window-keep-point t
   "*If non-nil, split windows keeps the original point in both children.
 This is often more convenient for editing.
 If nil, adjust point in each of the two windows to minimize redisplay.
-This is convenient on slow terminals, but point can move strangely.")
+This is convenient on slow terminals, but point can move strangely."
+  :type 'boolean
+  :group 'windows)
 
 (defun split-window-vertically (&optional arg)
   "Split current window into two windows, one above the other.
