@@ -1,3 +1,8 @@
+2000-05-30  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (detect_coding_iso2022): Fix code for checking
+	CODING_CATEGORY_MASK_ISO_8_2.
+
 2000-05-29  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (PREFETCH_NOLIMIT): New function.
