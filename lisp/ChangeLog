@@ -1,3 +1,8 @@
+2000-07-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* eshell/esh-module.el (toplevel): Reference
+	byte-compile-current-file only if it is bound.
+
 2000-07-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* dired.el: Don't require `dired-aux'.

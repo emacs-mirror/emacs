@@ -1,3 +1,16 @@
+2000-07-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* keyboard.c (show_help_echo): Accept additional parameter
+	ok_to_overwrite_keystroke_echo.
+	(read_char): Call show_help_echo with a zero
+	ok_to_overwrite_keystroke_echo argument.
+	* keyboard.h (show_help_echo): Update prototype of
+	show_help_echo.
+	* xmenu.c (menu_help_callback): Call show_help_echo with non-zero
+	ok_to_overwrite_keystroke_echo argument.
+	* w32menu.c (w32_menu_display_help): Call show_help_echo with
+	non-zero ok_to_overwrite_keystroke_echo argument.
+
 2000-07-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (try_window_id): If changes are all below what is
