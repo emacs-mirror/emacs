@@ -1386,8 +1386,10 @@ This function could be on `comint-output-filter-functions' or bound to a key."
   (interactive)
   (let ((pmark (process-mark (get-buffer-process (current-buffer)))))
     (save-excursion
-      (goto-char
-       (if (interactive-p) comint-last-input-end comint-last-output-start))
+      (condition-case nil
+	  (goto-char
+	   (if (interactive-p) comint-last-input-end comint-last-output-start))
+	(error nil))
       (while (re-search-forward "\r+$" pmark t)
 	(replace-match "" t t)))))
 (defalias 'shell-strip-ctrl-m 'comint-strip-ctrl-m)
