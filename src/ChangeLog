@@ -1,5 +1,7 @@
 2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* buffer.c: Put doc strings in comments.
+
 	* sound.c: Include <sys/ioctl.h> also on systems without
         <soundcard.h>.
 
