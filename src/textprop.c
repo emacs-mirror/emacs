@@ -556,6 +556,9 @@ overlays are considered only if they are associated with OBJECT.")
       Lisp_Object *overlay_vec, tem;
       int next_overlay;
       int len;
+      struct buffer *obuf = current_buffer;
+
+      set_buffer_temp (XBUFFER (object));
 
       /* First try with room for 40 overlays.  */
       len = 40;
@@ -574,6 +577,8 @@ overlays are considered only if they are associated with OBJECT.")
 				   &next_overlay, NULL);
 	}
       noverlays = sort_overlays (overlay_vec, noverlays, w);
+
+      set_buffer_temp (obuf);
 
       /* Now check the overlays in order of decreasing priority.  */
       while (--noverlays >= 0)
