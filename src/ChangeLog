@@ -1,3 +1,8 @@
+2001-12-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* lisp.h (scmp): Remove prototype, since it's now a static
+	function private to dired.c.
+
 2001-12-18  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.c (scmp): Function moved from minibuf.c.
