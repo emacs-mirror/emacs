@@ -313,10 +313,15 @@ The value returned is the value of the last form in BODY."
   ;; We use this for compatibility with a future Emacs.
   (or (fboundp 'with-temp-message)
       (defmacro with-temp-message (message &rest body)
-	(` (let ((current-message (current-message)))
+	(` (let ((temp-message (, message)) current-message)
 	     (unwind-protect
-		 (progn (message (, message)) (,@ body))
-	       (message current-message))))))
+		 (progn
+		   (when temp-message
+		     (setq current-message (current-message))
+		     (message temp-message))
+		   (,@ body))
+	       (when temp-message
+		 (message current-message)))))))
   ;;
   ;; We use this for compatibility with a future Emacs.
   (or (fboundp 'defcustom)
@@ -680,9 +685,8 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 			 (> (buffer-size) font-lock-verbose)
 		       font-lock-verbose)))
 	(with-temp-message
-	    (if verbose
-		(format "Fontifying %s..." (buffer-name))
-	      (current-message))
+	    (when verbose
+	      (format "Fontifying %s..." (buffer-name)))
 	  ;; Make sure we fontify etc. in the whole buffer.
 	  (save-restriction
 	    (widen)
@@ -875,9 +879,8 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 	      (setq continue (not (input-pending-p)))
 	    ;; Fontify regions in this buffer while there is no input.
 	    (with-temp-message
-		(if lazy-lock-stealth-verbose
-		    "Fontifying stealthily..."
-		  (current-message))
+		(when lazy-lock-stealth-verbose
+		  "Fontifying stealthily...")
 	      (do-while (and (lazy-lock-unfontified-p) continue)
 		(if (and lazy-lock-stealth-load
 			 (> (car (load-average)) lazy-lock-stealth-load))
