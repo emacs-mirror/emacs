@@ -52,8 +52,7 @@ window.
 @code{t} in order to mark any dates with diary entries.  This takes
 effect whenever the calendar window contents are recomputed.  There are
 two ways of marking these dates: by changing the face (@pxref{Faces}),
-if the display supports that, or by placing a plus sign (@samp{+})
-beside the date otherwise.
+or by placing a plus sign (@samp{+}) beside the date.
 
 @vindex mark-holidays-in-calendar
   Similarly, setting the variable @code{mark-holidays-in-calendar} to
@@ -68,8 +67,7 @@ the date, or a face name to use for displaying the date.  Likewise, the
 variable @code{diary-entry-marker} specifies how to mark a date that has
 diary entries.  The calendar creates faces named @code{holiday-face} and
 @code{diary-face} for these purposes; those symbols are the default
-values of these variables, when Emacs supports multiple faces on your
-terminal.
+values of these variables.
 
 @vindex calendar-load-hook
   The variable @code{calendar-load-hook} is a normal hook run when the
@@ -109,8 +107,7 @@ The variable @code{calendar-today-marker} specifies how to mark today's
 date.  Its value should be a character to insert next to the date or a
 face name to use for displaying the date.  A face named
 @code{calendar-today-face} is provided for this purpose; that symbol is
-the default for this variable when Emacs supports multiple faces on your
-terminal.
+the default for this variable.
 
 @vindex today-invisible-calendar-hook
 @noindent
