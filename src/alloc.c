@@ -1269,6 +1269,10 @@ clear_marks ()
    lives in the last slot in the chain.  We recognize the end
    because it is < (unsigned) STRING_BLOCK_SIZE.  */
 
+#define LAST_MARKED_SIZE 500
+Lisp_Object *last_marked[LAST_MARKED_SIZE];
+int last_marked_index;
+
 static void
 mark_object (objptr)
      Lisp_Object *objptr;
@@ -1283,6 +1287,10 @@ mark_object (objptr)
   if ((PNTR_COMPARISON_TYPE) XPNTR (obj) < (PNTR_COMPARISON_TYPE) ((char *) pure + PURESIZE)
       && (PNTR_COMPARISON_TYPE) XPNTR (obj) >= (PNTR_COMPARISON_TYPE) pure)
     return;
+
+  last_marked[last_marked_index++] = objptr;
+  if (last_marked_index == LAST_MARKED_SIZE)
+    last_marked_index = 0;
 
 #ifdef SWITCH_ENUM_BUG
   switch ((int) XGCTYPE (obj))
@@ -1328,12 +1336,17 @@ mark_object (objptr)
       {
 	register struct Lisp_Vector *ptr = XVECTOR (obj);
 	register int size = ptr->size;
+	struct Lisp_Vector *volatile ptr1 = ptr;
 	register int i;
 
 	if (size & ARRAY_MARK_FLAG) break;   /* Already marked */
 	ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
 	for (i = 0; i < size; i++)     /* and then mark its elements */
-	  mark_object (&ptr->contents[i]);
+	  {
+	    if (ptr != ptr1)
+	      abort ();
+	    mark_object (&ptr->contents[i]);
+	  }
       }
       break;
 
