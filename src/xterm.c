@@ -391,8 +391,7 @@ XTupdate_end (f)
   do_line_dance ();
   x_display_cursor (f, 1, curs_x, curs_y);
 
-  if (f == FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame)
-    FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 0;
+  FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 0;
 #if 0
   /* This fails in the case of having updated only the echo area
      if we have switched buffers.  In that case, FRAME_CURRENT_GLYPHS
