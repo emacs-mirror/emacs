@@ -4647,6 +4647,7 @@ DEFUN ("get-buffer-process", Fget_buffer_process, Sget_buffer_process, 1, 1, 0,
    If `buffer' is nil, kill all processes.
    Since we have no subprocesses, this does nothing.  */
 
+void
 kill_buffer_processes (buffer)
      Lisp_Object buffer;
 {
