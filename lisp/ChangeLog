@@ -4,6 +4,7 @@
 	Use (featurep 'xemacs) instead of (eq ps-print-emacs-type 'xemacs).
 	Eliminate eval-and-compile usage.
 	(ps-insert-file): Use insert-file-contents instead of insert-file.
+	(ps-setup): Code fix.
 
 2004-11-21  Jay Belanger  <belanger@truman.edu>
 

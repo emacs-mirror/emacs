@@ -3592,6 +3592,7 @@ The table depends on the current ps-print setup."
      (list
       (concat "\n;;; ps-print version " ps-print-version "\n")
       ";; internal vars"
+      (ps-comment-string "emacs-version      " emacs-version)
       (ps-comment-string "ps-print-emacs-type" ps-print-emacs-type)
       (ps-comment-string "ps-windows-system  " ps-windows-system)
       (ps-comment-string "ps-lp-system       " ps-lp-system)
