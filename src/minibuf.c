@@ -26,6 +26,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "frame.h"
 #include "window.h"
 #include "syntax.h"
+#include "keyboard.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -1218,7 +1219,7 @@ scroll the window of possible completions.")
 
   /* If the previous command was not this, then mark the completion
      buffer obsolete.  */
-  if (! EQ (last_command, this_command))
+  if (! EQ (current_kboard->Vlast_command, this_command))
     Vminibuf_scroll_window = Qnil;
 
   window = Vminibuf_scroll_window;
