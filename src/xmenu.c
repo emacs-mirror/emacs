@@ -1120,8 +1120,12 @@ on the left of the dialog box and all following items on the right.
    popped down (deactivated).  This is used for x-popup-menu
    and x-popup-dialog; it is not used for the menu bar.
 
-   If DO_TIMERS is nonzero, run timers.
    If DOWN_ON_KEYPRESS is nonzero, pop down if a key is pressed.
+
+   This function used to have a DO_TIMERS argument which was
+   1 in the dialog case, and caused it to run Lisp-level timers.
+   That was unsafe so we removed it, but does anyone remember
+   why menus and dialogs were treated differently?
 
    NOTE: All calls to popup_get_selection should be protected
    with BLOCK_INPUT, UNBLOCK_INPUT wrappers.  */

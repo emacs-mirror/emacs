@@ -676,7 +676,7 @@ The truename of a file name is found by chasing symbolic links
 both at the level of the file and at the level of the directories
 containing it, until no links are left at any level.
 
-\(fn FILENAME)"
+\(fn FILENAME)"  ;; Don't document the optional arguments.
   ;; COUNTER and PREV-DIRS are only used in recursive calls.
   ;; COUNTER can be a cons cell whose car is the count of how many
   ;; more links to chase before getting an error.
