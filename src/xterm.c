@@ -10891,9 +10891,11 @@ x_initialize ()
   XSetIOErrorHandler (x_io_error_quitter);
 
   /* Disable Window Change signals;  they are handled by X events.  */
+#if 0              /* Don't.  We may want to open tty frames later. */
 #ifdef SIGWINCH
   signal (SIGWINCH, SIG_DFL);
 #endif /* SIGWINCH */
+#endif
 
   signal (SIGPIPE, x_connection_signal);
 }
