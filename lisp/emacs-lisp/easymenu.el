@@ -413,7 +413,11 @@ NAME can be either a string, or a symbol."
       (if (symbolp name) 
 	  (eq (car-safe item) name)
 	(if (stringp name)
-	    (member-ignore-case name item)))))
+	    ;; Match against the text that is displayed to the user.
+	    (or (member-ignore-case name item)
+		;; Also check the string version of the symbol name,
+		;; for backwards compatibility.
+		(eq (car-safe item) (intern name)))))))
 
 (defun easy-menu-always-true (x)
   "Return true if form X never evaluates to nil."
