@@ -1,5 +1,19 @@
 2003-01-24  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* info.el (Info-extract-menu-node-name): When looking for end of menu
+	item, don't stop at first ":"; instead, continue until trailing
+	context is either a space or newline.
+	(Info-complete-menu-item): Change var `pattern' to allow ":" in menu
+	item.
+	(Info-menu): Likewise, for regexp used in backwards search.
+	(Info-try-follow-nearest-node): Remove case added in previous edit.
+	Instead, change the regexp in the following case to allow ":" in menu
+	item.
+	(Info-fontify-node): Fix bug: Handle `next-property-change' returning
+	point-max as "hasn't already been done".
+
+2003-01-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* info.el (Info-try-follow-nearest-node): Add case: Handle menu item
 	terminated by ": " as an index entry.
 
