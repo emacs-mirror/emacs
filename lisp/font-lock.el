@@ -2182,9 +2182,9 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 	      '(quote bold-italic) 'keep)
 	;;
 	;; Old-style bf/em/it/sl.  Stop at `\\' and un-escaped `&', for tables.
-	(list (concat "\\\\\\(\\(bf\\)\\|em\\|it\\(em\\)?\\|sl\\)\\>"
+	(list (concat "\\\\\\(\\(bf\\)\\|em\\|it\\|sl\\)\\>"
 		      "\\(\\([^}&\\]\\|\\\\[^\\]\\)+\\)")
-	      4 '(if (match-beginning 2) 'bold 'italic) 'keep)
+	      3 '(if (match-beginning 2) 'bold 'italic) 'keep)
 	))))
    "Gaudy expressions to highlight in TeX modes.")
 
