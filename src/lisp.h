@@ -18,6 +18,13 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+/* Declare the prototype for a general external function.  */
+#if defined (__STDC__) || defined (WINDOWSNT)
+#define P_(proto) proto
+#else
+#define P_(proto) ()
+#endif
+
 
 /* These are default choices for the types to use.  */
 #ifndef EMACS_INT
@@ -236,6 +243,7 @@ enum pvec_type
   PVEC_CHAR_TABLE = 0x8000,
   PVEC_BOOL_VECTOR = 0x10000,
   PVEC_BUFFER = 0x20000,
+  PVEC_HASH_TABLE = 0x40000,
   PVEC_TYPE_MASK = 0x3fe00,
   PVEC_FLAG = PSEUDOVECTOR_FLAG
 };
@@ -728,6 +736,110 @@ struct Lisp_Subr
     char *prompt;
     char *doc;
   };
+
+
+/***********************************************************************
+			     Hash Tables
+ ***********************************************************************/
+
+/* The structure of a Lisp hash table.  */
+
+struct Lisp_Hash_Table
+{
+  /* Vector fields.  The hash table code doesn't refer to these.  */
+  EMACS_INT size;
+  struct Lisp_Vector *vec_next;
+  
+  /* Function used to compare keys.  */
+  Lisp_Object test;
+
+  /* Nil if table is non-weak.  Otherwise a symbol describing the
+     weakness of the table.  */
+  Lisp_Object weak;
+  
+  /* When the table is resized, and this is an integer, compute the
+     new size by adding this to the old size.  If a float, compute the
+     new size by multiplying the old size with this factor.  */
+  Lisp_Object rehash_size;
+
+  /* Resize hash table when number of entries/ table size is >= this
+     ratio, a float.  */
+  Lisp_Object rehash_threshold;
+
+  /* Number of key/value entries in the table.  */
+  Lisp_Object count;
+
+  /* Vector of keys and values.  The key of item I is found at index
+     2 * I, the value is found at index 2 * I + 1.  */
+  Lisp_Object key_and_value;
+
+  /* Vector of hash codes.. If hash[I] is nil, this means that that
+     entry I is unused.  */
+  Lisp_Object hash;
+
+  /* Vector used to chain entries.  If entry I is free, next[I] is the
+     entry number of the next free item.  If entry I is non-free,
+     next[I] is the index of the next entry in the collision chain.  */
+  Lisp_Object next;
+
+  /* Index of first free entry in free list.  */
+  Lisp_Object next_free;
+
+  /* Bucket vector.  A non-nil entry is the index of the first item in
+     a collision chain.  This vector's size can be larger than the
+     hash table size to reduce collisions.  */
+  Lisp_Object index;
+
+  /* Next weak hash table if this is a weak hash table.  The head
+     of the list is in Vweak_hash_tables.  */
+  Lisp_Object next_weak;
+
+  /* User-supplied hash function, or nil.  */
+  Lisp_Object user_hash_function;
+
+  /* User-supplied key comparison function, or nil.  */
+  Lisp_Object user_cmp_function;
+
+  /* C function to compare two keys.  */
+  int (* cmpfn) P_ ((struct Lisp_Hash_Table *, Lisp_Object,
+		     unsigned, Lisp_Object, unsigned));
+
+  /* C function to compute hash code.  */
+  unsigned (* hashfn) P_ ((struct Lisp_Hash_Table *, Lisp_Object));
+};
+
+
+#define XHASH_TABLE(OBJ) \
+     ((struct Lisp_Hash_Table *) XPNTR (OBJ))
+
+#define XSET_HASH_TABLE(VAR, PTR) \
+     (XSETPSEUDOVECTOR (VAR, PTR, PVEC_HASH_TABLE))
+
+#define HASH_TABLE_P(OBJ)  PSEUDOVECTORP (OBJ, PVEC_HASH_TABLE)
+#define GC_HASH_TABLE_P(x) GC_PSEUDOVECTORP (x, PVEC_HASH_TABLE)
+
+#define CHECK_HASH_TABLE(x, i)					\
+     do								\
+       {							\
+	 if (!HASH_TABLE_P ((x)))				\
+	   x = wrong_type_argument (Qhash_table_p, (x));	\
+       }							\
+     while (0)
+
+/* Default size for hash tables if not specified.  */
+
+#define DEFAULT_HASH_SIZE 65
+
+/* Default threshold specifying when to resize a hash table.  The
+   value gives the ratio of current entries in the hash table and the
+   size of the hash table.  */
+
+#define DEFAULT_REHASH_THRESHOLD 0.8
+
+/* Default factor by which to increase the size of a hash table.  */
+
+#define DEFAULT_REHASH_SIZE 1.5
+
 
 /* These structures are used for various misc types.  */
 
@@ -986,7 +1098,6 @@ typedef unsigned char UCHAR;
 /* Mask bits for character code.  */
 #define GLYPH_MASK_CHAR    0x0007FFFF /* The lowest 19 bits */
 
-#ifdef HAVE_FACES
 /* The FAST macros assume that we already know we're in an X window.  */
 
 /* Given a character code and a face ID, return the appropriate glyph.  */
@@ -999,18 +1110,9 @@ typedef unsigned char UCHAR;
 #define FAST_GLYPH_FACE(glyph) (((glyph) & GLYPH_MASK_FACE) >> CHARACTERBITS)
 
 /* Slower versions that test the frame type first.  */
-#define MAKE_GLYPH(f, char, face) (FRAME_TERMCAP_P (f) ? (char) \
-				   : FAST_MAKE_GLYPH (char, face))
-#define GLYPH_CHAR(f, g) (FRAME_TERMCAP_P (f) ? (g) : FAST_GLYPH_CHAR (g))
-#define GLYPH_FACE(f, g) (FRAME_TERMCAP_P (f) ? (0) : FAST_GLYPH_FACE (g))
-#else /* not HAVE_FACES */
-#define MAKE_GLYPH(f, char, face) (char)
-#define FAST_MAKE_GLYPH(char, face) (char)
-#define GLYPH_CHAR(f, g) ((g) & GLYPH_MASK_CHAR)
-#define FAST_GLYPH_CHAR(g) ((g) & GLYPH_MASK_CHAR)
-#define GLYPH_FACE(f, g) ((g) & GLYPH_MASK_FACE)
-#define FAST_GLYPH_FACE(g) ((g) & GLYPH_MASK_FACE)
-#endif /* not HAVE_FACES */
+#define MAKE_GLYPH(f, char, face) (FAST_MAKE_GLYPH (char, face))
+#define GLYPH_CHAR(f, g) (FAST_GLYPH_CHAR (g))
+#define GLYPH_FACE(f, g) (FAST_GLYPH_FACE (g))
 
 /* Return 1 iff GLYPH contains valid character code.  */
 #define GLYPH_CHAR_VALID_P(glyph) \
@@ -1266,13 +1368,6 @@ typedef unsigned char UCHAR;
 			 Lisp_Object, Lisp_Object, Lisp_Object)
 #define DEFUN_ARGS_8	(Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, \
 			 Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object)
-#endif
-
-/* Declare the prototype for a general external function.  */
-#if defined (__STDC__) || defined (WINDOWSNT)
-#define P_(proto) proto
-#else
-#define P_(proto) ()
 #endif
 
 /* defsubr (Sname);
@@ -1675,6 +1770,32 @@ extern void syms_of_syntax P_ ((void));
 /* Defined in fns.c */
 extern Lisp_Object Qstring_lessp;
 extern Lisp_Object Vfeatures;
+unsigned sxhash P_ ((Lisp_Object, int));
+Lisp_Object make_hash_table P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+				 Lisp_Object, Lisp_Object, Lisp_Object,
+				 Lisp_Object));
+int hash_lookup P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned *));
+void hash_put P_ ((struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
+		   unsigned));
+void hash_remove P_ ((struct Lisp_Hash_Table *, Lisp_Object));
+void hash_clear P_ ((struct Lisp_Hash_Table *));
+void remove_hash_entry P_ ((struct Lisp_Hash_Table *, int));
+EXFUN (Fsxhash, 1);
+EXFUN (Fmake_hash_table, MANY);
+EXFUN (Fhash_table_count, 1);
+EXFUN (Fhash_table_rehash_size, 1);
+EXFUN (Fhash_table_rehash_threshold, 1);
+EXFUN (Fhash_table_size, 1);
+EXFUN (Fhash_table_test, 1);
+EXFUN (Fhash_table_weak, 1);
+EXFUN (Fhash_table_p, 1);
+EXFUN (Fclrhash, 1);
+EXFUN (Fgethash, 3);
+EXFUN (Fputhash, 3);
+EXFUN (Fremhash, 2);
+EXFUN (Fmaphash, 2);
+EXFUN (Fdefine_hash_table_test, 3);
+
 EXFUN (Fidentity, 1);
 EXFUN (Frandom, 1);
 EXFUN (Flength, 1);
@@ -1724,6 +1845,7 @@ extern Lisp_Object string_make_multibyte P_ ((Lisp_Object));
 extern Lisp_Object string_make_unibyte P_ ((Lisp_Object));
 EXFUN (Fcopy_alist, 1);
 EXFUN (Fplist_get, 2);
+EXFUN (Fplist_put, 3);
 EXFUN (Fset_char_table_parent, 2);
 EXFUN (Fchar_table_extra_slot, 2);
 EXFUN (Fset_char_table_extra_slot, 3);
@@ -1785,7 +1907,6 @@ EXFUN (Fredraw_display, 0);
 EXFUN (Fsleep_for, 2);
 EXFUN (Fsit_for, 3);
 extern Lisp_Object sit_for P_ ((int, int, int, int, int));
-extern void quit_error_check P_ ((void));
 extern void init_display P_ ((void));
 extern void syms_of_display P_ ((void));
 
@@ -1799,6 +1920,8 @@ extern void message1 P_ ((char *));
 extern void message1_nolog P_ ((char *));
 extern void message2 P_ ((char *, int, int));
 extern void message2_nolog P_ ((char *, int, int));
+extern void message3 P_ ((Lisp_Object, int, int));
+extern void message3_nolog P_ ((Lisp_Object, int, int));
 extern void message_dolog P_ ((char *, int, int, int));
 extern void message_with_string P_ ((char *, Lisp_Object, int));
 extern void message_log_maybe_newline P_ ((void));
@@ -1816,6 +1939,8 @@ extern void init_xdisp P_ ((void));
 extern void malloc_warning P_ ((char *));
 extern void memory_full P_ ((void));
 extern void buffer_memory_full P_ ((void));
+extern int survives_gc_p P_ ((Lisp_Object));
+extern void mark_object P_ ((Lisp_Object *));
 extern Lisp_Object Vpurify_flag;
 EXFUN (Fcons, 2);
 EXFUN (list2, 2);
@@ -2011,6 +2136,7 @@ EXFUN (Feobp, 0);
 EXFUN (Fbolp, 0);
 EXFUN (Fbobp, 0);
 EXFUN (Fformat, MANY);
+EXFUN (Fmessage, MANY);
 extern Lisp_Object format1 P_ ((/* char *, ... */));
 extern Lisp_Object make_buffer_string P_ ((int, int, int));
 EXFUN (Fbuffer_substring, 2);
@@ -2189,6 +2315,7 @@ EXFUN (Frecursive_edit, 0);
 EXFUN (Fcommand_execute, 4);
 EXFUN (Finput_pending_p, 0);
 extern Lisp_Object menu_bar_items P_ ((Lisp_Object));
+extern Lisp_Object toolbar_items P_ ((Lisp_Object, int *));
 extern Lisp_Object Qvertical_scroll_bar;
 extern void discard_mouse_events ();
 EXFUN (Fevent_convert_list, 1);
@@ -2246,6 +2373,7 @@ extern void syms_of_indent P_ ((void));
 
 /* defined in window.c */
 extern Lisp_Object Qwindowp, Qwindow_live_p;
+EXFUN (Fwindow_end, 2);
 EXFUN (Fselected_window, 0);
 EXFUN (Fnext_window, 3);
 EXFUN (Fdelete_window, 1);
@@ -2458,6 +2586,7 @@ extern void syms_of_term P_ ((void));
 #ifdef HAVE_X_WINDOWS
 /* Defined in fontset.c */
 extern void syms_of_fontset P_ ((void));
+EXFUN (Fset_fontset_font, 4);
 #endif
 
 /* Defined in xfaces.c */
