@@ -1,5 +1,8 @@
 2004-12-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (update_frame_tool_bar): Make the value of
+	tool-bar-button-margin control margins of images in tool bar.
+
 	* alloc.c (check_depth): New variable.
 	(overrun_check_malloc, overrun_check_realloc): Only add
 	overhead and write check pattern if check_depth is 1 (to handle
