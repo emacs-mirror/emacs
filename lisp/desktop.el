@@ -35,10 +35,9 @@
 ;;		- buffer-read-only
 ;;		- some local variables
 
-;; To use this, first put these three lines in the bottom of your .emacs
+;; To use this, first put these two lines in the bottom of your .emacs
 ;; file (the later the better):
 ;;
-;;	(load "desktop")
 ;;	(desktop-load-default)
 ;;	(desktop-read)
 ;;
@@ -503,6 +502,7 @@ MODE is the major mode."
 	(if (file-exists-p filename)
 	    (delete-file filename)))))
 ;; ----------------------------------------------------------------------------
+;;;###autoload
 (defun desktop-read ()
   "Read the Desktop file and the files it specifies.
 This is a no-op when Emacs is running in batch mode."
@@ -525,6 +525,7 @@ This is a no-op when Emacs is running in batch mode."
 	    (message "Desktop loaded."))
 	(desktop-clear)))))
 ;; ----------------------------------------------------------------------------
+;;;###autoload
 (defun desktop-load-default ()
   "Load the `default' start-up library manually.
 Also inhibit further loading of it.  Call this from your `.emacs' file
