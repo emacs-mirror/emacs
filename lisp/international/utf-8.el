@@ -255,9 +255,8 @@
 		     ;; ff    0000 0000 1111 1111    1101 1111 1011 1111
 		     (write r1)
 
-		   ;; unsupported character.
-		   ;; output U+FFFD, which is `ef bf bd' in UTF-8
-		   ;; actually it never reach here
+		   ;; Unsupported character.
+		   ;; Output U+FFFD, which is `ef bf bd' in UTF-8.
 		   ((write #xef)
 		    (write #xbf)
 		    (write #xbd)))))))))
@@ -281,7 +280,7 @@ Unicode characters out of these ranges are decoded
 into eight-bit-control or eight-bit-graphic."
 
  '(ccl-decode-mule-utf-8 . ccl-encode-mule-utf-8)
- `((safe-charsets
+ '((safe-charsets
     ascii
     eight-bit-control
     eight-bit-graphic
@@ -300,6 +299,9 @@ into eight-bit-control or eight-bit-graphic."
     mule-unicode-e000-ffff)
    (mime-charset . utf-8)
    ;; Kluge to ensure the translation table is loaded.
-   (pre-write-conversion . ,(lambda (junk) (require 'ucs-tables)))))
+   (pre-write-conversion . internal-require-ucs-tables)))
+
+(defun internal-require-ucs-tables ()
+  (require 'ucs-tables))
 
 (define-coding-system-alias 'utf-8 'mule-utf-8)
