@@ -620,6 +620,22 @@ resize_event (WINDOW_BUFFER_SIZE_RECORD *event)
   SET_FRAME_GARBAGED (f);
 }
 
+static void
+maybe_generate_resize_event ()
+{
+  CONSOLE_SCREEN_BUFFER_INFO info;
+  FRAME_PTR f = get_frame ();
+
+  GetConsoleScreenBufferInfo (GetStdHandle (STD_OUTPUT_HANDLE), &info);
+
+  /* It is okay to call this unconditionally, since it will do nothing
+     if the size hasn't actually changed.  */
+  change_frame_size (f,
+		     1 + info.srWindow.Bottom - info.srWindow.Top,
+		     1 + info.srWindow.Right - info.srWindow.Left,
+		     0, 0);
+}
+
 int 
 w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
 			 int expected)
@@ -672,9 +688,11 @@ w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
 	      numchars -= add;
 	      break;
 
+#if 0
             case WINDOW_BUFFER_SIZE_EVENT:
 	      resize_event (&queue_ptr->Event.WindowBufferSizeEvent);
 	      break;
+#endif
             
             case MENU_EVENT:
             case FOCUS_EVENT:
@@ -689,7 +707,12 @@ w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
       if (ret > 0 || expected == 0)
 	break;
     }
-  
+
+  /* We don't get told about changes in the window size (only the buffer
+     size, which we no longer care about), so we have to check it
+     periodically.  */
+  maybe_generate_resize_event ();
+
   UNBLOCK_INPUT;
   return ret;
 }
