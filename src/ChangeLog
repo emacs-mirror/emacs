@@ -1,3 +1,28 @@
+2002-05-10  Yong Lu <lyongu@asia-infonet.com>
+
+	* charset.c (load_charset_map): Fix previous change.
+	(read_hex): Don't treat SPC as a comment starter.
+	(decode_char): If CODE_POINT_TO_INDEX retruns -1, always return
+	-1.
+	(Fdecode_char): Fix typo.
+
+2002-05-10  Kenichi Handa  <handa@etl.go.jp>
+
+	* charset.h (struct charset): New member `code_space_mask'.
+
+	* coding.c (coding_set_source): Delete the local variable
+	beg_byte.
+	(encode_coding_charset): Delete the local variable charset.
+	(Fdefine_coding_system_internal): Likewise.
+	(Fdefine_coding_system_internal): Setup
+	attrs[coding_attr_charset_valids] correctly.
+
+	* charset.c (CODE_POINT_TO_INDEX): Utilize `code_space_mask'
+	member to check if CODE is valid or not.
+	(Fdefine_charset_internal): Initialize `code_space_mask' member.
+	(encode_char): Before calling CODE_POINT_TO_INDEX, check if CODE
+	is within the range of charset->min_code and carset->max_code.
+
 2002-05-09  Dave Love  <fx@gnu.org>
 
 	* syntax.h (syntax_temp) [!__GNUC__]: Declare.
