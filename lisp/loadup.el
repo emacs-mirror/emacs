@@ -42,10 +42,11 @@
 
 (message "Using load-path %s" load-path)
 
-;;; We don't want to have any undo records in the dumped Emacs.
+;; We don't want to have any undo records in the dumped Emacs.
 (buffer-disable-undo "*scratch*")
 
 (load "byte-run")
+(load "emacs-lisp/backquote")
 (load "subr")
 
 ;; We specify .el in case someone compiled version.el by mistake.
@@ -53,7 +54,6 @@
 
 (load "widget")
 (load "custom")
-(load "emacs-lisp/backquote")
 (load "map-ynp")
 (load "env")
 (load "cus-start")
@@ -112,6 +112,10 @@
 (load "language/misc-lang")
 (load "language/utf-8-lang")
 (load "language/georgian")
+
+(load "international/ucs-tables")
+(unify-8859-on-encoding-mode 1)
+
 (update-coding-systems-internal)
 
 (load "indent")
@@ -205,11 +209,10 @@
 	   (versions (mapcar (function (lambda (name)
 					 (string-to-int (substring name (length base)))))
 			     files)))
-      (setq emacs-version (format "%s.%d"
-				  emacs-version
-				  (if versions
-				      (1+ (apply 'max versions))
-				    1)))))
+      ;; `emacs-version' is a constant, so we shouldn't change it with `setq'.
+      (defconst emacs-version
+	(format "%s.%d"
+		emacs-version (if versions (1+ (apply 'max versions)) 1)))))
 
 ;; Note: all compiled Lisp files loaded above this point
 ;; must be among the ones parsed by make-docfile
@@ -331,4 +334,9 @@
 
 (eval top-level)
 
+
+;;; Local Variables:
+;;; no-byte-compile: t
+;;; no-update-autoloads: t
+;;; End:
 ;;; loadup.el ends here
