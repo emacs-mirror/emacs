@@ -2159,9 +2159,11 @@ DEFUN ("overlay-get", Foverlay_get, Soverlay_get, 2, 2, 0,
   (overlay, prop)
      Lisp_Object overlay, prop;
 {
-  Lisp_Object plist;
+  Lisp_Object plist, fallback;
 
   CHECK_OVERLAY (overlay, 0);
+
+  fallback = Qnil;
 
   for (plist = Fcdr_safe (XCONS (overlay)->cdr);
        CONSP (plist) && CONSP (XCONS (plist)->cdr);
@@ -2169,9 +2171,16 @@ DEFUN ("overlay-get", Foverlay_get, Soverlay_get, 2, 2, 0,
     {
       if (EQ (XCONS (plist)->car, prop))
 	return XCONS (XCONS (plist)->cdr)->car;
+      else if (EQ (XCONS (plist)->car, Qcategory))
+	{
+	  Lisp_Object tem;
+	  tem = Fcar (Fcdr (plist));
+	  if (SYMBOLP (tem))
+	    fallback = Fget (tem, prop);
+	}
     }
 
-  return Qnil;
+  return fallback;
 }
 
 DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
