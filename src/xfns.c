@@ -550,6 +550,14 @@ x_bitmap_pixmap (f, id)
   return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].pixmap;
 }
 
+int
+x_bitmap_mask (f, id)
+     FRAME_PTR f;
+     int id;
+{
+  return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].mask;
+}
+
 
 /* Allocate a new bitmap record.  Returns index of new record.  */
 
@@ -693,6 +701,7 @@ x_destroy_bitmap (f, id)
 	{
 	  BLOCK_INPUT;
 	  XFreePixmap (FRAME_X_DISPLAY (f), dpyinfo->bitmaps[id - 1].pixmap);
+	  XFreePixmap (FRAME_X_DISPLAY (f), dpyinfo->bitmaps[id - 1].mask);
 	  if (dpyinfo->bitmaps[id - 1].file)
 	    {
 	      xfree (dpyinfo->bitmaps[id - 1].file);
@@ -714,12 +723,112 @@ x_destroy_all_bitmaps (dpyinfo)
     if (dpyinfo->bitmaps[i].refcount > 0)
       {
 	XFreePixmap (dpyinfo->display, dpyinfo->bitmaps[i].pixmap);
+	XFreePixmap (dpyinfo->display, dpyinfo->bitmaps[i].mask);
 	if (dpyinfo->bitmaps[i].file)
 	  xfree (dpyinfo->bitmaps[i].file);
       }
   dpyinfo->bitmaps_last = 0;
 }
 
+
+
+
+/* Useful functions defined in the section
+   `Image type independent image structures' below. */
+
+static unsigned long four_corners_best P_ ((XImage *ximg, unsigned long width,
+					    unsigned long height));
+
+static int x_create_x_image_and_pixmap P_ ((struct frame *f, int width, int height,
+					    int depth, XImage **ximg,
+					    Pixmap *pixmap));
+
+static void x_destroy_x_image P_ ((XImage *ximg));
+
+
+/* Create a mask of a bitmap. Note is this not a perfect mask.
+   It's nicer with some borders in this context */
+
+int
+x_create_bitmap_mask(f, id)
+     struct frame *f;
+     int id;
+{
+  Pixmap pixmap, mask;
+  XImage *ximg, *mask_img;
+  unsigned long width, height;
+  int result;
+  unsigned long bg;
+  unsigned long x, y, xp, xm, yp, ym;
+  GC gc;
+
+  int depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+
+  if (!(id > 0))
+    return -1;
+
+  pixmap = x_bitmap_pixmap(f, id);
+  width = x_bitmap_width(f, id);
+  height = x_bitmap_height(f, id);
+
+  BLOCK_INPUT;
+  ximg = XGetImage (FRAME_X_DISPLAY (f), pixmap, 0, 0, width, height,
+		    ~0, ZPixmap);
+
+  if (!ximg)
+    {
+      UNBLOCK_INPUT;
+      return -1;
+    }
+
+  result = x_create_x_image_and_pixmap (f, width, height, 1, &mask_img, &mask);
+
+  UNBLOCK_INPUT;
+  if (!result)
+    {
+      XDestroyImage(ximg);
+      return -1;
+    }
+
+  bg = four_corners_best (ximg, width, height);
+
+  for (y = 0; y < ximg->height; ++y)
+    {
+      for (x = 0; x < ximg->width; ++x)
+	{
+	  xp = x != ximg->width - 1 ? x + 1 : 0;
+	  xm = x != 0 ? x - 1 : ximg->width - 1;
+	  yp = y != ximg->height - 1 ? y + 1 : 0;
+	  ym = y != 0 ? y - 1 : ximg->height - 1;
+	  if (XGetPixel (ximg, x, y) == bg
+	      && XGetPixel (ximg, x, yp) == bg
+	      && XGetPixel (ximg, x, ym) == bg
+	      && XGetPixel (ximg, xp, y) == bg
+	      && XGetPixel (ximg, xp, yp) == bg
+	      && XGetPixel (ximg, xp, ym) == bg
+	      && XGetPixel (ximg, xm, y) == bg
+	      && XGetPixel (ximg, xm, yp) == bg
+	      && XGetPixel (ximg, xm, ym) == bg)
+	    XPutPixel (mask_img, x, y, 0);
+	  else
+	    XPutPixel (mask_img, x, y, 1);
+	}
+    }
+
+  xassert (interrupt_input_blocked);
+  gc = XCreateGC (FRAME_X_DISPLAY (f), mask, 0, NULL);
+  XPutImage (FRAME_X_DISPLAY (f), mask, gc, mask_img, 0, 0, 0, 0,
+	     width, height);
+  XFreeGC (FRAME_X_DISPLAY (f), gc);
+
+  dpyinfo->bitmaps[id - 1].mask = mask;
+
+  XDestroyImage (ximg);
+  x_destroy_x_image(mask_img);
+
+  return 0;
+}
 
 static Lisp_Object unwind_create_frame P_ ((Lisp_Object));
 static Lisp_Object unwind_create_tip_frame P_ ((Lisp_Object));
@@ -975,6 +1084,41 @@ x_set_wait_for_wm (f, new_value, old_value)
 {
   f->output_data.x->wait_for_wm = !NILP (new_value);
 }
+
+#ifdef USE_GTK
+
+/* Wrapper for gtk_window_icon_from_file() */
+
+int
+xg_set_icon(f, file)
+    struct frame *f;
+    Lisp_Object file;
+{
+    struct gcpro gcpro1, gcpro2, gcpro3;
+    int fd;
+    int result = 1;
+    Lisp_Object found, search_path;
+    char *filename;
+
+    search_path = Fcons (Vdata_directory, Vx_bitmap_file_path);
+
+    GCPRO3 (found, search_path, file);
+    fd = openp (search_path, file, Qnil, &found, Qnil);
+    if (fd > 0)
+      {
+	filename = (char *) SDATA (found);
+	BLOCK_INPUT;
+	result =
+	  gtk_window_set_icon_from_file (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+					 filename,
+					 NULL);
+	UNBLOCK_INPUT;
+      }
+    emacs_close (fd);
+    UNGCPRO;
+    return result;
+}
+#endif /* USE_GTK */
 
 
 /* Functions called only from `x_set_frame_param'
