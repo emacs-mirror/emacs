@@ -86,7 +86,7 @@
 ;static struct timeval TV1,TV2;
 ;static struct timezone *tzp = (struct timezone *) NULL; /* no need timezone */
 ;static int watch_not_started = 1 ; /* flag */
-;static char time_string[30]
+;static char time_string[30];
 ;
 ;int reset_watch()    /* this call resets the stopwatch to zero */
 ;{
