@@ -170,7 +170,6 @@ The QUALIFIER should be the same as QUALIFIER in
   :group 'ibuffer)
 
 (defcustom ibuffer-saved-filter-groups nil
-
   "An alist of filtering groups to switch between.
 
 This variable should look like ((\"STRING\" QUALIFIERS)
@@ -201,7 +200,7 @@ functions `ibuffer-switch-to-saved-filter-group',
 (defcustom ibuffer-save-with-custom t
   "If non-nil, then use Custom to save interactively changed variables.
 Currently, this only applies to `ibuffer-saved-filters' and
-`ibuffer-saved-filter-groups."
+`ibuffer-saved-filter-groups'."
   :type 'boolean
   :group 'ibuffer)
 
@@ -1150,7 +1149,7 @@ Ordering is lexicographic."
 (defun ibuffer-add-to-tmp-hide (regexp)
   "Add REGEXP to `ibuffer-tmp-hide-regexps'.
 This means that buffers whose name matches REGEXP will not be shown
-for this ibuffer session."
+for this Ibuffer session."
   (interactive
    (list
     (read-from-minibuffer "Never show buffers matching: "
@@ -1161,7 +1160,7 @@ for this ibuffer session."
 (defun ibuffer-add-to-tmp-show (regexp)
   "Add REGEXP to `ibuffer-tmp-show-regexps'.
 This means that buffers whose name matches REGEXP will always be shown
-for this ibuffer session."
+for this Ibuffer session."
   (interactive
    (list
     (read-from-minibuffer "Always show buffers matching: "
