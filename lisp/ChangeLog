@@ -1,3 +1,7 @@
+2003-01-23  Markus Rost  <rost@math.ohio-state.edu>
+
+	* descr-text.el (describe-text-mode-hook): Add a group.
+
 2003-01-23  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* term/mac-win.el (interprogram-paste-function): Handle empty
