@@ -2538,7 +2538,10 @@ init_from_display_pos (it, w, pos)
      after-string.  */
   init_iterator (it, w, charpos, bytepos, NULL, DEFAULT_FACE_ID);
 
-  for (i = 0; i < it->n_overlay_strings; ++i)
+  /* This only scans the current chunk -- it should scan all chunks.
+     However, OVERLAY_STRING_CHUNK_SIZE has been increased from 3 in 21.1
+     to 16 in 22.1 to make this a lesser problem.  */
+  for (i = 0; i < it->n_overlay_strings && i < OVERLAY_STRING_CHUNK_SIZE; ++i)
     {
       const char *s = SDATA (it->overlay_strings[i]);
       const char *e = s + SBYTES (it->overlay_strings[i]);
