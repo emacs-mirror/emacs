@@ -964,7 +964,7 @@ The seventh argument ACTIONS is a list of actions to take
 ;;;		   (file-exists-p buffer-auto-save-file-name))
 ;;;	      (message "Auto save file for draft message exists; consider M-x mail-recover"))
 ;;;          t))
-  (switch-to-buffer "*mail*")
+  (pop-to-buffer "*mail*")
   (if (file-exists-p (expand-file-name "~/"))
       (setq default-directory (expand-file-name "~/")))
   (auto-save-mode auto-save-default)
@@ -1003,7 +1003,11 @@ The seventh argument ACTIONS is a list of actions to take
 (defun mail-other-window (&optional noerase to subject in-reply-to cc replybuffer sendactions)
   "Like `mail' command, but display mail buffer in another window."
   (interactive "P")
-  (let ((pop-up-windows t))
+  (let ((pop-up-windows t)
+	(special-display-buffer-names nil)
+	(special-display-regexps nil)
+	(same-window-buffer-names nil)
+	(same-window-regexps nil))
     (pop-to-buffer "*mail*"))
   (mail noerase to subject in-reply-to cc replybuffer sendactions))
 
@@ -1011,7 +1015,11 @@ The seventh argument ACTIONS is a list of actions to take
 (defun mail-other-frame (&optional noerase to subject in-reply-to cc replybuffer sendactions)
   "Like `mail' command, but display mail buffer in another frame."
   (interactive "P")
-  (let ((pop-up-frames t))
+  (let ((pop-up-frames t)
+	(special-display-buffer-names nil)
+	(special-display-regexps nil)
+	(same-window-buffer-names nil)
+	(same-window-regexps nil))
     (pop-to-buffer "*mail*"))
   (mail noerase to subject in-reply-to cc replybuffer sendactions))
 
@@ -1020,6 +1028,8 @@ The seventh argument ACTIONS is a list of actions to take
 ;;;###autoload (define-key ctl-x-map "m" 'mail)
 ;;;###autoload (define-key ctl-x-4-map "m" 'mail-other-window)
 ;;;###autoload (define-key ctl-x-5-map "m" 'mail-other-frame)
+
+;;;###autoload (add-hook 'same-window-buffer-names "*mail*")
 
 ;;; Do not add anything but external entries on this page.
 
