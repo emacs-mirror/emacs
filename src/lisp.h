@@ -1,5 +1,5 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2000, 2001, 2002, 2003
+   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2000,01,02,03,2004
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -67,10 +67,6 @@ extern void die P_((const char *, const char *, int));
 			   ? (void) 0				\
 			   : die ((msg), __FILE__, __LINE__)),	\
 			  0)
-
-/* Let's get some compile-time checking too.  */
-#undef NO_UNION_TYPE
-
 #else
 
 /* Produce same side effects and result, but don't complain.  */
