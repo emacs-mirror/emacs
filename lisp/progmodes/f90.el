@@ -131,7 +131,6 @@
 ;; of this code is built.
 
 ;;; Code:
-(defconst f90-mode-version "version 1.03")
 (defconst bug-f90-mode "tfkte@fy.chalmers.se"
   "Address of mailing list for F90 mode bugs.")
 
@@ -693,7 +692,7 @@ with no args, if that value is non-nil."
   (setq font-lock-keywords-case-fold-search t)
   (run-hooks 'f90-mode-hook)
   (if f90-startup-message
-      (message "Emacs F90 mode %s. Bugs to %s" f90-mode-version bug-f90-mode))
+      (message "Emacs F90 mode; please report bugs to %s" bug-f90-mode))
   (setq f90-startup-message nil))
 
 ;; inline-functions
