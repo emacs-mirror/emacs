@@ -35,7 +35,7 @@
 
 ;;; Provide some binding for startup:
 ;;;###autoload (or key-translation-map (setq key-translation-map (make-sparse-keymap)))
-;;;###autoload (define-key key-translation-map "\C-x8" iso-transl-ctl-x-8-map)
+;;;###autoload (define-key key-translation-map "\C-x8" 'iso-transl-ctl-x-8-map)
 ;;;###autoload (autoload 'iso-transl-ctl-x-8-map "iso-transl" "Keymap for C-x 8 prefix." t 'keymap)
   
 (defvar iso-transl-dead-key-alist
@@ -213,7 +213,8 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
 (defvar iso-transl-ctl-x-8-map nil
   "Keymap for C-x 8 prefix.")
 (or iso-transl-ctl-x-8-map
-    (setq iso-transl-ctl-x-8-map (make-sparse-keymap)))
+    (fset 'iso-transl-ctl-x-8-map
+	  (setq iso-transl-ctl-x-8-map (make-sparse-keymap))))
 (or key-translation-map
     (setq key-translation-map (make-sparse-keymap)))
 (define-key key-translation-map "\C-x8" iso-transl-ctl-x-8-map)
