@@ -571,13 +571,13 @@ initialize_w32_display (void)
   char_attr = info.wAttributes & 0xFF;
   char_attr_normal = char_attr;
   char_attr_reverse = ((char_attr & 0xf) << 4) + ((char_attr & 0xf0) >> 4);
-  
-  FRAME_HEIGHT (selected_frame) = info.dwSize.Y;	/* lines per page */
-  SET_FRAME_WIDTH (selected_frame, info.dwSize.X); /* characters per line */
-  
-//  move_cursor (0, 0);
-  
-//  clear_frame ();
+
+  /* Lines per page.  Use buffer coords instead of buffer size.  */
+  FRAME_HEIGHT (selected_frame) = 1 + info.srWindow.Bottom - 
+    info.srWindow.Top; 
+  /* Characters per line.  Use buffer coords instead of buffer size.  */
+  SET_FRAME_WIDTH (selected_frame, 1 + info.srWindow.Right - 
+		   info.srWindow.Left);
 }
 
 DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
