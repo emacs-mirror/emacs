@@ -2580,7 +2580,7 @@ EXFUN (Fdefine_key, 3);
 EXFUN (Flookup_key, 3);
 EXFUN (Fkey_binding, 2);
 EXFUN (Fkey_description, 1);
-EXFUN (Fsingle_key_description, 1);
+EXFUN (Fsingle_key_description, 2);
 EXFUN (Fwhere_is_internal, 4);
 extern Lisp_Object access_keymap P_ ((Lisp_Object, Lisp_Object, int, int));
 extern Lisp_Object store_in_keymap P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
@@ -2889,8 +2889,8 @@ extern int initialized;
 
 extern int immediate_quit;	    /* Nonzero means ^G can quit instantly */
 
-extern POINTER_TYPE *xmalloc P_ ((int));
-extern POINTER_TYPE *xrealloc P_ ((POINTER_TYPE *, int));
+extern POINTER_TYPE *xmalloc P_ ((size_t));
+extern POINTER_TYPE *xrealloc P_ ((POINTER_TYPE *, size_t));
 extern void xfree P_ ((POINTER_TYPE *));
 
 extern char *xstrdup P_ ((char *));
