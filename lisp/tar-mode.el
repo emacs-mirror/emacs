@@ -739,7 +739,8 @@ appear on disk when you save the tar-file's buffer."
 		(insert-buffer-substring tar-buffer start end)
 		(goto-char 0)
 		(setq buffer-file-name
-		      (expand-file-name (concat tarname ":" name)))
+		      ;; `:' is not allowed on Windows
+		      (expand-file-name (concat tarname "!" name)))
 		(setq buffer-file-truename
 		      (abbreviate-file-name buffer-file-name))
 		;; Set the default-directory to the dir of the
