@@ -78,11 +78,17 @@ sigset_t sys_sigsetmask P_ ((sigset_t new_mask));
 #else /* ! defined (POSIX_SIGNALS) */
 #ifdef USG5_4
 
+extern SIGMASKTYPE sigprocmask_set;
+
 #ifndef sigblock
-#define sigblock(sig) (sigprocmask (SIG_BLOCK, SIGEMPTYMASK | sig, NULL))
+#define sigblock(sig)					\
+     (sigprocmask_set = SIGEMPTYMASK | (sig),		\
+      sigprocmask (SIG_BLOCK, &sigprocmask_set, NULL))
 #endif
 
-#define sigunblock(sig) (sigprocmask (SIG_SETMASK, SIGFULLMASK & ~(sig), NULL))
+#define sigunblock(sig)						\
+     (sigprocmask_set = SIGFULLMASK & ~(sig),			\
+      sigprocmask (SIG_SETMASK, &sigprocmask_set, NULL))
 
 #else
 #ifdef USG
