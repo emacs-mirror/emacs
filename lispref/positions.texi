@@ -594,7 +594,7 @@ regardless of what buffer is displayed in @var{window}.
 The return value is a list of five elements:
 
 @example
-(@var{pos} @var{vpos} @var{hpos} @var{prevhpos} @var{contin})
+(@var{pos} @var{hpos} @var{vpos} @var{prevhpos} @var{contin})
 @end example
 
 @noindent
