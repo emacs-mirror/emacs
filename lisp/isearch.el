@@ -1164,8 +1164,15 @@ and the meta character is unread so that it applies to editing the string."
 (defun isearch-quote-char ()
   "Quote special characters for incremental search."
   (interactive)
-  (isearch-process-search-char (+ (read-quoted-char (isearch-message t))
-				  nonascii-insert-offset)))
+  (let ((char (read-quoted-char (isearch-message t))))
+    ;; Assume character codes 0200 - 0377 stand for 
+    ;; European characters in Latin-1, and convert them
+    ;; to Emacs characters.
+    (and enable-multibyte-characters
+	 (>= char ?\200)
+	 (<= char ?\377)
+	 (setq char (+ char nonascii-insert-offset)))
+    (isearch-process-search-char char)))
 
 (defun isearch-return-char ()
   "Convert return into newline for incremental search.
