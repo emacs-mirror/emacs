@@ -5520,6 +5520,7 @@ setup_echo_area_for_printing (multibyte_p)
 	  Fraise_frame  (WINDOW_FRAME (XWINDOW (mini_window)));
 	}
 
+      message_log_maybe_newline ();
       message_buf_print = 1;
     }
   else
