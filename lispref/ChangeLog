@@ -1,3 +1,7 @@
+2004-07-16  Juanma Barranquero  <lektu@terra.es>
+
+	* display.texi (Images): Fix Texinfo usage.
+
 2004-07-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buffers.texi (Modification Time): `visited-file-modtime' now
