@@ -1277,6 +1277,8 @@ the same last-modified time that the old one has.  (This works on only
 some operating systems.)  If setting the time gets an error,
 @code{copy-file} signals a @code{file-date-error} error.
 
+This function copies the file modes, too.
+
 In an interactive call, this function prompts for @var{filename} and
 @var{newname} in the minibuffer; also, it requests confirmation if
 @var{newname} already exists.
