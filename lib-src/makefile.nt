@@ -24,7 +24,7 @@
 #
 !include ..\nt\makefile.def
 
-LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DSTDC_HEADERS=1 -DNO_LDAV=1 -DNO_ARCHIVES=1 -I..\src
+LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DSTDC_HEADERS=1 -DNO_LDAV=1 -DNO_ARCHIVES=1 -I..\nt\inc -I..\src
 OBJDIR	      	= obj
 BLD	      	= $(OBJDIR)\$(ARCH)
 
@@ -34,7 +34,9 @@ ALL	        = $(BLD)\make-docfile.exe \
 		$(BLD)\hexl.exe		\
 		$(BLD)\wakeup.exe	\
 		$(BLD)\ctags.exe	\
-		$(BLD)\etags.exe
+		$(BLD)\etags.exe	\
+		$(BLD)\movemail.exe	\
+		$(BLD)\fakemail.exe	\
 
 		
 # don't know what (if) to do with these yet...
@@ -43,9 +45,7 @@ ALL	        = $(BLD)\make-docfile.exe \
 #		$(BLD)\env.exe		\
 #		$(BLD)\server.exe	\
 #		$(BLD)\emacstool.exe	\
-#		$(BLD)\fakemail.exe	\
 #		$(BLD)\leditcfns.exe	\
-#		$(BLD)\movemail.exe	\
 #		$(BLD)\emacsclient.exe	\
 #		$(BLD)\cvtmail.exe	\
 #		$(BLD)\digest-doc.exe	\
@@ -54,16 +54,22 @@ ALL	        = $(BLD)\make-docfile.exe \
 
 LIBS	      = $(BASE_LIBS)
 
-$(BLD)\make-docfile.exe: 	$(BLD)\make-docfile.obj
+$(BLD)\make-docfile.exe: 	$(BLD)\make-docfile.obj $(BLD)\ntlib.obj
+		$(LINK) -out:$@ $(LINK_FLAGS) $(BLD)\make-docfile.obj $(BLD)\ntlib.obj $(LIBS)
 $(BLD)\hexl.exe:		$(BLD)\hexl.obj
 $(BLD)\wakeup.exe: 		$(BLD)\wakeup.obj $(BLD)\ntlib.obj
-		$(LINK) -out:$@ $(LINK_FLAGS) $(BLD)\wakeup.obj \
-		$(BLD)\ntlib.obj $(LIBS)
+		$(LINK) -out:$@ $(LINK_FLAGS) $(BLD)\wakeup.obj $(BLD)\ntlib.obj $(LIBS)
+$(BLD)\movemail.exe: 		$(BLD)\movemail.obj $(BLD)\pop.obj $(BLD)\ntlib.obj
+		$(LINK) -out:$@ $(LINK_FLAGS) -debug:FULL $(BLD)\movemail.obj $(BLD)\pop.obj $(BLD)\ntlib.obj $(LIBS) wsock32.lib
+$(BLD)\fakemail.exe: 		$(BLD)\fakemail.obj $(BLD)\ntlib.obj
+		$(LINK) -out:$@ $(LINK_FLAGS) -debug:full $(BLD)\fakemail.obj $(BLD)\ntlib.obj $(LIBS)
 
 make-docfile:	$(BLD) $(BLD)\make-docfile.exe
 wakeup:		$(BLD) $(BLD)\wakeup.exe
 etags:		$(BLD) $(BLD)\etags.exe
 hexl:		$(BLD) $(BLD)\hexl.exe
+movemail:	$(BLD) $(BLD)\movemail.exe
+fakemail:	$(BLD) $(BLD)\fakemail.exe
 
 ETAGSOBJ      = $(BLD)\etags.obj \
 		$(BLD)\getopt.obj \
@@ -106,20 +112,15 @@ $(BLD)\ctags.obj: ctags.c
 #
 # don't know what to do with these yet...
 #
-# $(BLD)\sorted-doc.exe: 		$(LIBS) $(BLD)\sorted-doc.obj
-# $(BLD)\yow.exe: 		$(LIBS) $(BLD)\yow.obj
-# $(BLD)\emacstool.exe: 	$(LIBS) $(BLD)\emacstool.obj
-# $(BLD)\env.exe: 		$(LIBS) $(BLD)\env.obj
-# $(BLD)\fakemail.exe: 		$(LIBS) $(BLD)\fakemail.obj
-# $(BLD)\leditcfns.exe: 	$(LIBS) $(BLD)\leditcfns.obj
-# $(BLD)\server.exe: 		$(LIBS) $(BLD)\server.obj
-# $(BLD)\wakeup.exe: 		$(LIBS) $(BLD)\wakeup.obj
-# $(BLD)\movemail.exe: 		$(LIBS) $(BLD)\movemail.obj
-# $(BLD)\cvtmail.exe: 		$(LIBS) $(BLD)\cvtmail.obj
-# $(BLD)\digest-doc.exe: 	$(LIBS) $(BLD)\digest-doc.obj
-# $(BLD)\emacsclient.exe: 	$(LIBS) $(BLD)\emacsclient.obj
-# $(BLD)\qsort.exe: 		$(LIBS) $(BLD)\qsort.obj
-# $(BLD)\test-distrib.exe: 	$(LIBS) $(BLD)\test-distrib.obj
+# $(BLD)\sorted-doc.exe: 	$(BLD)\sorted-doc.obj
+# $(BLD)\yow.exe: 		$(BLD)\yow.obj
+# $(BLD)\emacstool.exe: 	$(BLD)\emacstool.obj
+# $(BLD)\leditcfns.exe: 	$(BLD)\leditcfns.obj
+# $(BLD)\server.exe: 		$(BLD)\server.obj
+# $(BLD)\cvtmail.exe: 		$(BLD)\cvtmail.obj
+# $(BLD)\digest-doc.exe: 	$(BLD)\digest-doc.obj
+# $(BLD)\emacsclient.exe: 	$(BLD)\emacsclient.obj
+# $(BLD)\test-distrib.exe: 	$(BLD)\test-distrib.obj
 
 #
 # From ..\src\makefile.nt.
@@ -198,6 +199,8 @@ install:	$(INSTALL_FILES)
 		$(CP) $(BLD)\ctags.exe $(INSTALL_DIR)\bin
 		$(CP) $(BLD)\hexl.exe $(INSTALL_DIR)\bin
 		$(CP) $(BLD)\wakeup.exe $(INSTALL_DIR)\bin
+		$(CP) $(BLD)\movemail.exe $(INSTALL_DIR)\bin
+		$(CP) $(BLD)\fakemail.exe $(INSTALL_DIR)\bin
 		- mkdir $(INSTALL_DIR)\etc
 		$(CP) $(DOC) $(INSTALL_DIR)\etc
 
@@ -267,6 +270,7 @@ $(BLD)\etags.obj : \
 
 $(BLD)\fakemail.obj : \
 	$(SRC)\fakemail.c \
+	$(SRC)\ntlib.h \
 	$(EMACS_ROOT)\src\s\windowsnt.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\lib-src\..\src\config.h \
@@ -315,6 +319,17 @@ $(BLD)\movemail.obj : \
 	$(EMACS_ROOT)\src\vmsproc.h \
 	$(EMACS_ROOT)\lib-src\..\src\syswait.h \
 	$(EMACS_ROOT)\nt\inc\pwd.h
+		$(CC) $(CFLAGS) -DUSG -Fo$@ movemail.c
+
+$(BLD)\ntlib.obj : \
+	$(SRC)\ntlib.c \
+	$(SRC)\ntlib.h \
+	$(EMACS_ROOT)\nt\inc\pwd.h
+
+$(BLD)\pop.obj : \
+	$(SRC)\pop.c \
+	$(SRC)\pop.h \
+	$(SRC)\ntlib.h
 
 $(BLD)\profile.obj : \
 	$(SRC)\profile.c \
