@@ -1,16 +1,16 @@
 /* impl.c.mpsioan: HARLEQUIN MEMORY POOL SYSTEM I/O IMPLEMENTATION (ANSI)
  *
- * $HopeName: MMsrc!mpsioan.c(trunk.3) $
+ * $HopeName: MMsrc!mpsioan.c(trunk.4) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
- * .readership: For MPS client application developers, MPS developers.
+ * .readership: For MPS client application developers and MPS developers.
  * .sources: design.mps.io
  */
 
 #include "mpsio.h"
-#include <stdio.h>
 
-#include "mpstd.h"   /* .sunos.warn */
+#include "mpstd.h"
+
 #ifdef MPS_OS_SU
 
 extern int fclose (FILE *stream);
@@ -24,6 +24,13 @@ extern int _filbuf(FILE *stream);
 extern int _flsbuf(unsigned char c, FILE *stream);
 
 #endif
+
+#ifdef MPS_OS_XC
+#include "osxc.h"
+#endif
+
+#include <stdio.h>
+#include "config.h"  /* to get platform configurations */
 
 
 static FILE *ioFile = NULL;

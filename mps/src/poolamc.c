@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.52) $
+ * $HopeName: MMsrc!poolamc.c(trunk.53) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -10,7 +10,7 @@
 #include "chain.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.52) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.53) $");
 
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailBoard */
@@ -1832,11 +1832,11 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
   /* This switching needs to be more complex for multiple traces. */
   AVER_CRITICAL(TraceSetIsSingle(PoolArena(pool)->busyTraces));
   if (amc->rampMode == collectingRamp) {
-     if (amc->rampCount > 0)
-       /* Entered ramp mode before previous one was cleaned up */
-       amc->rampMode = beginRamp;
-     else
-       amc->rampMode = outsideRamp;
+    if (amc->rampCount > 0)
+      /* Entered ramp mode before previous one was cleaned up */
+      amc->rampMode = beginRamp;
+    else
+      amc->rampMode = outsideRamp;
   }
 
   if (SegNailed(seg) != TraceSetEMPTY) {
