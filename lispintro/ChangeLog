@@ -1,3 +1,8 @@
+2001-11-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emacs-lisp-intro.texi (Index): @ignore extraneous text.
+	Use @dircategory and @direntry to define the DIR entry.
+
 2001-11-25  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* emacs-lisp-intro.texi: Move @contents to the beginning of the
