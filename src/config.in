@@ -405,6 +405,9 @@ Boston, MA 02111-1307, USA.  */
 #define SIGTYPE RETSIGTYPE
 #endif
 
+/* Define this if you don't have struct exception in math.h.  */
+#undef NO_MATHERR
+
 #ifdef emacs /* Don't do this for lib-src.  */
 /* Tell regex.c to use a type compatible with Emacs.  */
 #define RE_TRANSLATE_TYPE Lisp_Object
