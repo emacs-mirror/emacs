@@ -733,7 +733,7 @@ Commands for sorting the summary:
   '("Continue" . rmail-summary-continue))
 
 (define-key rmail-summary-mode-map [menu-bar mail resend]
-  '("Re-send..." . rmail-resend))
+  '("Re-send..." . rmail-summary-resend))
 
 (define-key rmail-summary-mode-map [menu-bar mail forward]
   '("Forward" . rmail-summary-forward))
@@ -1120,6 +1120,13 @@ see the documentation of `rmail-resend'."
     (use-local-map (copy-keymap (current-local-map)))
     (define-key (current-local-map)
       "\C-c\C-c" 'rmail-summary-send-and-exit)))
+
+(defun rmail-summary-resend ()
+  "Resend current message using 'rmail-resend'."
+  (interactive)
+  (save-excursion
+    (set-buffer rmail-buffer)
+    (call-interactively 'rmail-resend)))
 
 ;; Summary output commands.
 
