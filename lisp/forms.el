@@ -282,10 +282,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.14 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.15 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.14 1995/04/25 17:44:28 rms Exp rms $")
+  $Id: forms.el,v 2.15 1995/05/02 01:37:11 rms Exp kwzh $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -1273,19 +1273,19 @@ Commands:                        Equivalent keys in read-only mode:
   (define-key map [menu-bar forms menu-forms-sep1]
     '("----"))
   (define-key map [menu-bar forms menu-forms-save]
-    '("Save data" . forms-save-buffer))
+    '("Save Data" . forms-save-buffer))
   (define-key map [menu-bar forms menu-forms-print]
-    '("Print data" . forms-print))
+    '("Print Data" . forms-print))
   (define-key map [menu-bar forms menu-forms-describe]
-    '("Describe mode" . describe-mode))
+    '("Describe Mode" . describe-mode))
   (define-key map [menu-bar forms menu-forms-toggle-ro]
     '("Toggle View/Edit" . forms-toggle-read-only))
   (define-key map [menu-bar forms menu-forms-jump-record]
     '("Jump" . forms-jump-record))
   (define-key map [menu-bar forms menu-forms-search-backward]
-    '("Search backward" . forms-search-backward))
+    '("Search Backward" . forms-search-backward))
   (define-key map [menu-bar forms menu-forms-search-forward]
-    '("Search forward" . forms-search-forward))
+    '("Search Forward" . forms-search-forward))
   (define-key map [menu-bar forms menu-forms-delete-record]
     '("Delete" . forms-delete-record))
   (define-key map [menu-bar forms menu-forms-insert-record]
@@ -1293,19 +1293,19 @@ Commands:                        Equivalent keys in read-only mode:
   (define-key map [menu-bar forms menu-forms-sep2]
     '("----"))
   (define-key map [menu-bar forms menu-forms-last-record]
-    '("Last record" . forms-last-record))
+    '("Last Record" . forms-last-record))
   (define-key map [menu-bar forms menu-forms-first-record]
-    '("First record" . forms-first-record))
+    '("First Record" . forms-first-record))
   (define-key map [menu-bar forms menu-forms-prev-record]
-    '("Previous record" . forms-prev-record))
+    '("Previous Record" . forms-prev-record))
   (define-key map [menu-bar forms menu-forms-next-record]
-    '("Next record" . forms-next-record))
+    '("Next Record" . forms-next-record))
   (define-key map [menu-bar forms menu-forms-sep3]
     '("----"))
   (define-key map [menu-bar forms menu-forms-prev-field]
-    '("Previous field" . forms-prev-field))
+    '("Previous Field" . forms-prev-field))
   (define-key map [menu-bar forms menu-forms-next-field]
-    '("Next field" . forms-next-field))
+    '("Next Field" . forms-next-field))
   (put 'forms-insert-record 'menu-enable '(not forms-read-only))
   (put 'forms-delete-record 'menu-enable '(not forms-read-only))
 )
@@ -1319,19 +1319,19 @@ Commands:                        Equivalent keys in read-only mode:
   (define-key map [menu-bar forms menu-forms-edit-sep1]
     '("----"))
   (define-key map [menu-bar forms menu-forms-edit-save]
-    '("Save data" . forms-save-buffer))
+    '("Save Data" . forms-save-buffer))
   (define-key map [menu-bar forms menu-forms-edit-print]
-    '("Print data" . forms-print))
+    '("Print Data" . forms-print))
   (define-key map [menu-bar forms menu-forms-edit-describe]
-    '("Describe mode" . describe-mode))
+    '("Describe Mode" . describe-mode))
   (define-key map [menu-bar forms menu-forms-edit-toggle-ro]
     '("Toggle View/Edit" . forms-toggle-read-only))
   (define-key map [menu-bar forms menu-forms-edit-jump-record]
     '("Jump" . forms-jump-record))
   (define-key map [menu-bar forms menu-forms-edit-search-backward]
-    '("Search backward" . forms-search-backward))
+    '("Search Backward" . forms-search-backward))
   (define-key map [menu-bar forms menu-forms-edit-search-forward]
-    '("Search forward" . forms-search-forward))
+    '("Search Forward" . forms-search-forward))
   (define-key map [menu-bar forms menu-forms-edit-delete-record]
     '("Delete" . forms-delete-record))
   (define-key map [menu-bar forms menu-forms-edit-insert-record]
@@ -1339,19 +1339,19 @@ Commands:                        Equivalent keys in read-only mode:
   (define-key map [menu-bar forms menu-forms-edit-sep2]
     '("----"))
   (define-key map [menu-bar forms menu-forms-edit-last-record]
-    '("Last record" . forms-last-record))
+    '("Last Record" . forms-last-record))
   (define-key map [menu-bar forms menu-forms-edit-first-record]
-    '("First record" . forms-first-record))
+    '("First Record" . forms-first-record))
   (define-key map [menu-bar forms menu-forms-edit-prev-record]
-    '("Previous record" . forms-prev-record))
+    '("Previous Record" . forms-prev-record))
   (define-key map [menu-bar forms menu-forms-edit-next-record]
-    '("Next record" . forms-next-record))
+    '("Next Record" . forms-next-record))
   (define-key map [menu-bar forms menu-forms-edit-sep3]
     '("----"))
   (define-key map [menu-bar forms menu-forms-edit-prev-field]
-    '("Previous field" . forms-prev-field))
+    '("Previous Field" . forms-prev-field))
   (define-key map [menu-bar forms menu-forms-edit-next-field]
-    '("Next field" . forms-next-field))
+    '("Next Field" . forms-next-field))
   (put 'forms-insert-record 'menu-enable '(not forms-read-only))
   (put 'forms-delete-record 'menu-enable '(not forms-read-only))
 )
