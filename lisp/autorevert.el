@@ -1,11 +1,11 @@
 ;;; autorevert --- revert buffers when files on disk change
 
-;; Copyright (C) 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999 Free Software Foundation, Inc.
 
-;; Author: Anders Lindgren <andersl@csd.uu.se>
+;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Keywords: convenience
-;; Created: 1 Jun 1997
-;; Date: 3 Jul 1997
+;; Created: 1997-06-01
+;; Date: 1999-11-30
 
 ;; This file is part of GNU Emacs.
 
@@ -350,7 +350,7 @@ the timer when no buffers need to be checked."
 				auto-revert-mode))))
 		(if auto-revert-verbose
 		    (message "Reverting buffer `%s'." buf))
-		(revert-buffer t t)))
+		(revert-buffer t t t)))
 	  ;; Remove dead buffer from `auto-revert-buffer-list'.
 	  (setq auto-revert-buffer-list
 		(delq buf auto-revert-buffer-list))))
