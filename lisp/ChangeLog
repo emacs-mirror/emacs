@@ -1,3 +1,17 @@
+2002-08-30  Juanma Barranquero  <lektu@terra.es>
+
+	* bs.el (bs-message-without-log): Fix typo.
+
+	* font-lock.el (font-lock-defaults, font-lock-add-keywords): Likewise.
+
+	* mouse-copy.el (mouse-copy-work-around-drag-bug): Likewise.
+
+	* textmodes/bibtex.el (bibtex-mode): Likewise.
+
+	* emulation/viper-ex.el (ex-compile-command): Likewise.
+
+	* progmodes/dcl-mode.el (dcl-calc-cont-indent-relative): Likewise.
+
 2002-08-29  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (ange-ftp-completion-hook-function): Add safe-magic prop.
@@ -57,7 +71,7 @@
 
 2002-07-29  Dave Love  <fx@gnu.org>
 
-	* international/mule-conf.el (non-standard-designations-alist) 
+	* international/mule-conf.el (non-standard-designations-alist)
 	(ctext-pre-write-conversion): Don't mung Latin-9 &c.
 
 2002-07-29  Glenn Morris  <gmorris@ast.cam.ac.uk>
@@ -95,16 +109,16 @@
 	* info-look.el: Support current auto{conf,make} manuals.
 
 2002-07-16  Dave Love  <fx@gnu.org>
-  
+
 	* international/utf-8.el (ccl-decode-mule-utf-8): Fix >= #xfe case.
-  
+
 2002-07-16  Juanma Barranquero  <lektu@terra.es>
 
 	* timer.el (timer-set-time, timer-set-time-with-usecs): Fix docstring.
 
 2002-07-12  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
-	* calendar/timeclock.el (timeclock-get-workday-function): 
+	* calendar/timeclock.el (timeclock-get-workday-function):
 	`timeclock-workday' is not a valid option, rather a possible
 	return value.
 
