@@ -116,6 +116,7 @@ SENDERS is a string of names separated by commas."
   (interactive "sSenders to summarize by: ")
   (rmail-new-summary
    (concat "senders " senders)
+   (list 'rmail-summary-by-senders senders)
    'rmail-message-senders-p
    (mail-comma-list-regexp senders)))
 
@@ -1038,14 +1039,20 @@ buffer visiting that file."
   (interactive)
   (save-excursion
     (set-buffer rmail-buffer)
-    (call-interactively 'rmail-output-to-rmail-file)))
+    (let ((rmail-delete-after-output nil))
+      (call-interactively 'rmail-output-to-rmail-file)))
+  (if rmail-delete-after-output
+      (rmail-summary-delete-message nil)))
 
 (defun rmail-summary-output ()
   "Append this message to Unix mail file named FILE-NAME."
   (interactive)
   (save-excursion
     (set-buffer rmail-buffer)
-    (call-interactively 'rmail-output)))
+    (let ((rmail-delete-after-output nil))
+      (call-interactively 'rmail-output)))
+  (if rmail-delete-after-output
+      (rmail-summary-delete-message nil)))
 
 ;; Sorting messages in Rmail Summary buffer.
 
