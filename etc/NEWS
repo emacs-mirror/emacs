@@ -8,55 +8,6 @@ For older news, see the file ONEWS.
 
 * Changes in Emacs 21.1
 
-* New packages
-
-** delim-col
-
-Helps to prettify columns in a text region or rectangle.
-
-Here is an example of columns:
-
-horse	apple	bus
-dog	pineapple	car	EXTRA
-porcupine	strawberry	airplane
-
-Doing the following settings:
-
-   (setq delimit-columns-str-before "[ ")
-   (setq delimit-columns-str-after " ]")
-   (setq delimit-columns-str-separator ", ")
-   (setq delimit-columns-separator "\t")
-
-
-Selecting the lines above and typing:
-
-   M-x delimit-columns-region
-
-It results:
-
-[ horse    , apple     , bus     ,       ]
-[ dog      , pineapple , car     , EXTRA ]
-[ porcupine, strawberry, airplane,       ]
-
-delim-col has the following options:
-
-   delimit-columns-str-before		Specify a string to be inserted
-					before all columns.
-
-   delimit-columns-str-separator	Specify a string to be inserted
-					between each column.
-
-   delimit-columns-str-after		Specify a string to be inserted
-					after all columns.
-
-   delimit-columns-separator		Specify a regexp which separates
-					each column.
-
-delim-col has the following commands:
-
-   delimit-columns-region	Prettify all columns in a text region.
-   delimit-columns-rectangle	Prettify all columns in a text rectangle.
-
 ** Faces and frame parameters.
 
 There are four new faces `scroll-bar', `border', `cursor' and `mouse'.
@@ -444,6 +395,59 @@ the text at point.
 *** fortune.el uses the fortune program to create mail/news signatures.
 
 *** whitespace.el ???
+
+*** PostScript mode (ps-mode) is a new major mode for editing PostScript
+files. It offers: interaction with a PostScript interpreter, including
+(very basic) error handling; fontification, easily customizable for
+interpreter messages; auto-indentation; insertion of EPSF templates and
+often used code snippets; viewing of BoundingBox; commenting out /
+uncommenting regions; conversion of 8bit characters to PostScript octal
+codes. All functionality is accessible through a menu.
+
+*** delim-col helps to prettify columns in a text region or rectangle.
+
+Here is an example of columns:
+
+horse	apple	bus
+dog	pineapple	car	EXTRA
+porcupine	strawberry	airplane
+
+Doing the following settings:
+
+   (setq delimit-columns-str-before "[ ")
+   (setq delimit-columns-str-after " ]")
+   (setq delimit-columns-str-separator ", ")
+   (setq delimit-columns-separator "\t")
+
+
+Selecting the lines above and typing:
+
+   M-x delimit-columns-region
+
+It results:
+
+[ horse    , apple     , bus     ,       ]
+[ dog      , pineapple , car     , EXTRA ]
+[ porcupine, strawberry, airplane,       ]
+
+delim-col has the following options:
+
+   delimit-columns-str-before		Specify a string to be inserted
+					before all columns.
+
+   delimit-columns-str-separator	Specify a string to be inserted
+					between each column.
+
+   delimit-columns-str-after		Specify a string to be inserted
+					after all columns.
+
+   delimit-columns-separator		Specify a regexp which separates
+					each column.
+
+delim-col has the following commands:
+
+   delimit-columns-region	Prettify all columns in a text region.
+   delimit-columns-rectangle	Prettify all columns in a text rectangle.
 
 ** Withdrawn packages
 
