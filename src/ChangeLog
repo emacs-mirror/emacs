@@ -1,3 +1,13 @@
+2004-02-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* atimer.c: Move include stdio.h to same place as in other files.
+
+	* region-cache.c: Ditto.
+
+	* sysdep.c: Ditto.
+
+	* xfaces.c: Ditto.
+
 2004-02-09  Sam Steingold  <sds@gnu.org>
 
 	* w32term.c (w32_draw_fringe_bitmap): Fixed a typo in the last patch.
