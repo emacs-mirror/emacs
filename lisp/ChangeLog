@@ -1,5 +1,11 @@
 2004-02-16  Dave Love  <fx@gnu.org>
 
+	* newcomment.el (comment-insert-comment-function) 
+	(comment-region-function, uncomment-region-function): New.
+	(comment-indent): Use comment-insert-comment-function.
+	(uncomment-region): Use uncomment-region-function.
+	(comment-region): Use comment-region-function.
+
 	* emacs-lisp/rx.el (rx-not): Bind case-fold-search to nil.
 
 2004-02-16  Richard Stallman  <rms@gnu.org>
