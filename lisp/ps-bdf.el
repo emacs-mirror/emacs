@@ -88,7 +88,7 @@ If BDFNAME doesn't exist, return nil."
 	     (insert-file-contents file-name)
 	     buf)))))
 
-(defvar bdf-cache-file "~/.bdfcache.el"
+(defvar bdf-cache-file (convert-standard-filename "~/.bdfcache.el")
   "Name of cache file which contains information of `BDF' font files.")
 
 (defvar bdf-cache nil
@@ -313,6 +313,23 @@ See the documentation of the function `bdf-read-font-info' for more detail."
 	  (bdf-set-cache font-info)))
     font-info))
 
+(defun bdf-find-font-info (bdfnames)
+  "Return information about `BDF' font file with alternative names BDFNAMES.
+
+If BDFNAMES is a list of file names, this function finds the first file
+in the list which exists and is readable, then calls `bdf-get-font-info'
+on that file name."
+  (let ((fnlist bdfnames)
+	(fname bdfnames))
+    (if (consp fnlist)
+	(while (and fnlist
+		    (progn
+		      (setq fname (car fnlist))
+		      (null (bdf-expand-file-name fname))))
+	  (setq fname nil
+		fnlist (cdr fnlist))))
+    (bdf-get-font-info (or fname (car bdfnames)))))
+
 (defun bdf-read-bitmap (bdfname offset maxlen)
   "Read `BDF' font file BDFNAME to get bitmap data at file poistion OFFSET.
 BDFNAME is an abosolute path name of the font file.
@@ -368,7 +385,7 @@ The value is a list of CODE, DWIDTH, BBX, and BITMAP-STRING.
 DWIDTH is a pixel width of a glyph.
 BBX is a bounding box of the glyph.
 BITMAP-STRING is a string representing bits by hexadecimal digits."
-  (let* ((font-info (bdf-get-font-info bdfname))
+  (let* ((font-info (bdf-find-font-info bdfname))
 	 (absolute-path (bdf-info-absolute-path font-info))
 	 (font-bounding-box (bdf-info-font-bounding-box font-info))
 	 (maxlen (bdf-info-maxlen font-info))
@@ -392,7 +409,8 @@ BITMAP-STRING is a string representing bits by hexadecimal digits."
 ;; Called from ps-mule-generate-font.
 (defun bdf-generate-font (charset font-spec)
   (let* ((font-name (ps-mule-font-spec-name font-spec))
-	 (font-info (bdf-get-font-info font-name)))
+	 (font-info (bdf-find-font-info font-name))
+	 (font-name (if (consp font-name) (car font-name) font-name)))
     (ps-mule-generate-bitmap-font font-name
 				  (ps-mule-font-spec-bytes font-spec)
 				  (charset-width charset)
@@ -405,7 +423,9 @@ BITMAP-STRING is a string representing bits by hexadecimal digits."
 (defun bdf-generate-glyphs (font-spec code-list bytes)
   (let ((font-name (ps-mule-font-spec-name font-spec)))
     (mapcar '(lambda (x)
-	       (apply 'ps-mule-generate-bitmap-glyph font-name x))
+	       (apply 'ps-mule-generate-bitmap-glyph
+		      (if (consp font-name) (car font-name) font-name)
+		      x))
 	    (bdf-get-bitmaps font-name code-list))))
 
 (provide 'ps-bdf)
