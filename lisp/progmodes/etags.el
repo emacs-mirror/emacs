@@ -1248,7 +1248,8 @@ Non-nil second argument NOVISIT means use a temporary buffer
 
 Value is nil if the file was already visited;
 if the file was newly read in, the value is the filename."
-  (interactive "P")
+  ;; Make the interactive arg t if there was any prefix arg.
+  (interactive (list (if current-prefix-arg t)))
   (cond ((not initialize)
 	 ;; Not the first run.
 	 )
