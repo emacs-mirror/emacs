@@ -346,6 +346,10 @@ main (argc, argv, envp)
       inherited_pgroup = EMACS_GETPGRP (0);
       setpgrp (0, getpid ());
     }
+#else
+#if defined (USG5) && defined (INTERRUPT_INPUT)
+  setpgrp ();
+#endif
 #endif
 
 
