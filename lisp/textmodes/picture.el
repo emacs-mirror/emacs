@@ -104,14 +104,15 @@ If scan reaches end of buffer, stop there without error."
   "Move cursor right, making whitespace if necessary.
 With argument, move that many columns."
   (interactive "p\nd")
-  (picture-update-desired-column interactive)
-  (setq picture-desired-column (max 0 (+ picture-desired-column arg)))
-  (let ((current-column (move-to-column picture-desired-column t)))
-    (if (and (> current-column picture-desired-column)
-	     (< arg 0))
-	;; It seems that we have just tried to move to the right
-	;; column of a multi-column character.
-	(forward-char -1))))
+  (let (deactivate-mark)
+    (picture-update-desired-column interactive)
+    (setq picture-desired-column (max 0 (+ picture-desired-column arg)))
+    (let ((current-column (move-to-column picture-desired-column t)))
+      (if (and (> current-column picture-desired-column)
+	       (< arg 0))
+	  ;; It seems that we have just tried to move to the right
+	  ;; column of a multi-column character.
+	  (forward-char -1)))))
 
 (defun picture-backward-column (arg &optional interactive)
   "Move cursor left, making whitespace if necessary.
@@ -124,11 +125,12 @@ With argument, move that many columns."
   "Move vertically down, making whitespace if necessary.
 With argument, move that many lines."
   (interactive "p")
-  (picture-update-desired-column nil)
-  (picture-newline arg)
-  (let ((current-column (move-to-column picture-desired-column t)))
-    (if (> current-column picture-desired-column)
-	(forward-char -1))))
+  (let (deactivate-mark)
+    (picture-update-desired-column nil)
+    (picture-newline arg)
+    (let ((current-column (move-to-column picture-desired-column t)))
+      (if (> current-column picture-desired-column)
+	  (forward-char -1)))))
 
 (defvar picture-vertical-step 0
   "Amount to move vertically after text character in Picture mode.")
