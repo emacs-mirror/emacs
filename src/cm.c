@@ -27,6 +27,10 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_TERMCAP_H
 #include <termcap.h>
+#else
+#ifdef HAVE_TERM_H
+#include <term.h>
+#endif
 #endif
 
 #define	BIG	9999		/* 9999 good on VAXen.  For 16 bit machines
