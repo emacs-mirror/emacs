@@ -755,7 +755,7 @@ x_handle_selection_request (event)
   }
 }
 
-/* Handle a SelectionClear event EVENT, which indicates that some other
+/* Handle a SelectionClear event EVENT, which indicates that some
    client cleared out our previously asserted selection.
    This is called from keyboard.c when such an event is found in the queue.  */
 
@@ -770,6 +770,26 @@ x_handle_selection_clear (event)
   Lisp_Object selection_symbol, local_selection_data;
   Time local_selection_time;
   struct x_display_info *dpyinfo = x_display_info_for_display (display);
+  struct x_display_info *t_dpyinfo;
+
+  /* If the new selection owner is also Emacs,
+     don't clear the new selection.  */
+  BLOCK_INPUT;
+  /* Check each display on the same terminal,
+     to see if this Emacs job now owns the selection
+     through that display.  */
+  for (t_dpyinfo = x_display_list; t_dpyinfo; t_dpyinfo = t_dpyinfo->next)
+    if (t_dpyinfo->kboard == dpyinfo->kboard)
+      {
+	Window owner_window
+	  = XGetSelectionOwner (t_dpyinfo->display, selection);
+	if (x_window_to_frame (t_dpyinfo, owner_window) != 0)
+	  {
+	    UNBLOCK_INPUT;
+	    return;
+	  }
+      }
+  UNBLOCK_INPUT;
 
   selection_symbol = x_atom_to_symbol (dpyinfo, display, selection);
 
