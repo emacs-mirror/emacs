@@ -912,7 +912,7 @@ Valid clauses are:
 		      (setq var (prog1 other (setq other var))))
 		  (setq loop-map-form
 			(list (if (memq word '(key-seq key-seqs))
-				  'cl-map-keymap-recursively 'cl-map-keymap)
+				  'cl-map-keymap-recursively 'map-keymap)
 			      (list 'function (list* 'lambda (list var other)
 						     '--cl-map)) map))))
 
@@ -2497,7 +2497,9 @@ surrounded by (block NAME ...).
     (list 'progn
 	  (if p nil   ; give up if defaults refer to earlier args
 	    (list 'define-compiler-macro name
-		  (list* '&whole 'cl-whole '&cl-quote args)
+		  (if (memq '&key args)
+		      (list* '&whole 'cl-whole '&cl-quote args)
+		    (cons '&cl-quote args))
 		  (list* 'cl-defsubst-expand (list 'quote argns)
 			 (list 'quote (list* 'block name body))
 			 (not (or unsafe (cl-expr-access-order pbody argns)))
