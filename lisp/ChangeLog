@@ -1,3 +1,7 @@
+2001-02-11  Kenichi Handa  <handa@etl.go.jp>
+
+	* faces.el (mode-line): Set :line-width property to -1.
+
 2001-02-10  Richard M. Stallman  <rms@gnu.org>
 
 	* complete.el (partial-completion-mode): Doc fix.
