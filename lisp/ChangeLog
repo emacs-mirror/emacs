@@ -1,3 +1,9 @@
+2004-08-14  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>  (tiny change)
+
+	* battery.el (battery-linux-proc-acpi): Look into battery
+	directories matching the literal string "CMB", too (required for
+	Linux kernel version 2.6.7).
+
 2004-08-14  John Paul Wallington  <jpw@gnu.org>
 
 	* emacs-lisp/bytecomp.el (forward-word): Allow 0 args.
