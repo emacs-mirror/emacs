@@ -1,7 +1,22 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.24) $
- * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
+ * $HopeName: MMsrc!config.h(trunk.25) $
+ * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
+ *
+ * PURPOSE
+ *
+ * This module translates from high-level symbols defined by the
+ * external build system (gnumake, nmake, etc) into specific sets
+ * of features used by MPS modules.  For example, the build system
+ * will defined one of the CONFIG_VAR_* symbols to indicate which
+ * variety it is building, this file translates that into a certain
+ * level of checking, and a certain level of telemetry.
+ *
+ * DESIGN
+ *
+ * .design: See design.mps.config.
+ *
+ * READERSHIP
  *
  * .readership: MPS developers.
  */
@@ -42,7 +57,7 @@
 /* uninitialized local variables, if you take their address. */
 #ifdef MPS_ARCH_PP
 #pragma warning(disable: 4701)
-#endif
+#endif /* MPS_ARCH_PP */
 
 /* In white-hot versions, absolutely no checking is done.  This leads to
  * many spurious warnings because parameters are suddenly unused, etc.
@@ -57,7 +72,7 @@
 /* "unreferenced local function has been removed" */
 #pragma warning(disable: 4505)
 
-#endif
+#endif /* CONFIG_VAR_WI */
 
 #endif /* MPS_BUILD_MV */
 
@@ -177,6 +192,8 @@
 
 /* Stack configuration */
 
+/* Currently StackProbe has a useful implementation only on
+ * Intel platforms */
 #ifdef MPS_ARCH_I3
 #define STACK_PROBE_DEPTH       ((Word)500)
 #else
