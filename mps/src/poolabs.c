@@ -1,6 +1,6 @@
 /* impl.c.poolabs: ABSTRACT POOL CLASSES
  *
- * $HopeName: MMsrc!poolabs.c(trunk.7) $
+ * $HopeName: MMsrc!poolabs.c(trunk.8) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
@@ -15,8 +15,7 @@
  * 
  * HIERARCHY
  *
- * .hierarchy: define the following hierarchy of abstract pool classes:-
- *
+ * .hierarchy: define the following hierarchy of abstract pool classes:
  *    AbstractPoolClass     - implements init, finish, describe
  *     AbstractAllocFreePoolClass - implements alloc & free
  *     AbstractBufferPoolClass - implements the buffer protocol
@@ -27,7 +26,7 @@
 
 #include "mpm.h"
 
-SRCID(poolabs, "$HopeName: MMsrc!poolabs.c(trunk.7) $");
+SRCID(poolabs, "$HopeName: MMsrc!poolabs.c(trunk.8) $");
 
 
 typedef PoolClassStruct AbstractPoolClassStruct;
@@ -49,10 +48,7 @@ typedef PoolClassStruct AbstractCollectPoolClassStruct;
  */
 
 
-/* PoolClassMixInAllocFree
- *
- * Mix in the protocol for Alloc / Free
- */
+/* PoolClassMixInAllocFree -- mix in the protocol for Alloc / Free */
 
 void PoolClassMixInAllocFree(PoolClass class)
 {
@@ -63,10 +59,7 @@ void PoolClassMixInAllocFree(PoolClass class)
 }
 
 
-/* PoolClassMixInBuffer
- *
- * Mix in the protocol for buffer reserve / commit
- */
+/* PoolClassMixInBuffer -- mix in the protocol for buffer reserve / commit */
 
 void PoolClassMixInBuffer(PoolClass class)
 {
@@ -77,14 +70,11 @@ void PoolClassMixInBuffer(PoolClass class)
   /* By default, buffered pools treat frame operations as NOOPs */
   class->framePush = PoolTrivFramePush; 
   class->framePop = PoolTrivFramePop;
-  class->bufferClass = EnsureBufferClass;
+  class->bufferClass = BufferClassGet;
 }
 
 
-/* PoolClassMixInScan
- *
- * Mix in the protocol for scanning
- */
+/* PoolClassMixInScan -- mix in the protocol for scanning */
 
 void PoolClassMixInScan(PoolClass class)
 {
@@ -93,18 +83,12 @@ void PoolClassMixInScan(PoolClass class)
   class->access = PoolSegAccess;
   class->blacken = PoolTrivBlacken;
   class->grey = PoolTrivGrey;
-  /* Scan is part of the scanning  protocol - but there is */
+  /* Scan is part of the scanning protocol - but there is */
   /* no useful default method */
-  /*
-  class->scan = PoolTrivScan;
-  */
 }
 
 
-/* PoolClassMixInFormat
- *
- * Mix in the protocol for formatted pools
- */
+/* PoolClassMixInFormat -- mix in the protocol for formatted pools */
 
 void PoolClassMixInFormat(PoolClass class)
 {
@@ -113,10 +97,7 @@ void PoolClassMixInFormat(PoolClass class)
 }
 
 
-/* PoolClassMixInCollect
- *
- * Mix in the protocol for GC
- */
+/* PoolClassMixInCollect -- mix in the protocol for GC */
 
 void PoolClassMixInCollect(PoolClass class)
 {
@@ -182,7 +163,7 @@ DEFINE_CLASS(AbstractBufferPoolClass, class)
 DEFINE_CLASS(AbstractSegBufPoolClass, class)
 {
   INHERIT_CLASS(class, AbstractBufferPoolClass);
-  class->bufferClass = EnsureSegBufClass;
+  class->bufferClass = SegBufClassGet;
 }
 
 DEFINE_CLASS(AbstractScanPoolClass, class)
@@ -361,6 +342,7 @@ Res PoolNoAccess(Pool pool, Seg seg, Addr addr,
   return ResUNIMPL;
 }
 
+
 /* SegAccess
  *
  * Should be used (for the access method) by Pool Classes which intend
@@ -383,6 +365,7 @@ Res PoolSegAccess(Pool pool, Seg seg, Addr addr,
   TraceSegAccess(PoolArena(pool), seg, mode);
   return ResOK;
 }
+
 
 /* SingleAccess
  *
@@ -624,8 +607,7 @@ Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame)
 
 
 void PoolNoWalk(Pool pool, Seg seg,
-                FormattedObjectsStepMethod f,
-                void *p, Size s)
+                FormattedObjectsStepMethod f, void *p, Size s)
 {
   AVERT(Pool, pool);
   AVERT(Seg, seg);
