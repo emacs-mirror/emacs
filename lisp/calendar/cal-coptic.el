@@ -151,15 +151,14 @@ Echo Coptic date unless NOECHO is t."
                   (calendar-coptic-from-absolute
                    (calendar-absolute-from-gregorian today))))))
          (completion-ignore-case t)
-         (month (cdr (assoc
-                      (capitalize
-                       (completing-read
-                        (format "%s calendar month name: " coptic-name)
-                        (mapcar 'list
-                                (append coptic-calendar-month-name-array nil))
-                        nil t))
+         (month (cdr (assoc-ignore-case
+                      (completing-read
+                       (format "%s calendar month name: " coptic-name)
+                       (mapcar 'list
+                               (append coptic-calendar-month-name-array nil))
+                       nil t)
                       (calendar-make-alist coptic-calendar-month-name-array
-                                           1 'capitalize))))
+                                           1))))
          (last (coptic-calendar-last-day-of-month month year))
          (day (calendar-read
                (format "%s calendar day (1-%d): " coptic-name last)
