@@ -872,5 +872,6 @@ extern void init_window P_ ((void));
 extern void syms_of_window P_ ((void));
 extern void keys_of_window P_ ((void));
 
+extern int window_box_text_cols P_ ((struct window *w));
 
 #endif /* not WINDOW_H_INCLUDED */
