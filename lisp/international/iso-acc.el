@@ -240,6 +240,8 @@ Special combinations: ~c gives a c with cedilla,
 /a gives a with ring.
 /e gives an a-e ligature.
 ~< and ~> give guillemets.
+~! gives an inverted exclamation mark.
+~? gives an inverted question mark.
 
 With an argument, a positive argument enables ISO Accents mode, 
 and a negative argument disables it."
