@@ -1,3 +1,7 @@
+2003-03-24  Andreas Schwab  <schwab@suse.de>
+
+	* HELLO: Remove extra TAB in Greek entries.
+
 2003-03-03  Chao-Hong Liu  <chliu@gnu.org>
 
 	* TUTORIAL.cn, TUTORIAL.zh: New files.
