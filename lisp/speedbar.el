@@ -3,9 +3,9 @@
 ;;; Copyright (C) 1996, 97, 98 Free Software Foundation
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 0.7.2
+;; Version: 0.7.2a
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.7 1998/08/08 21:20:51 zappo Exp zappo $
+;; X-RCS: $Id: speedbar.el,v 1.8 1998/08/14 01:15:33 zappo Exp zappo $
 
 ;; This file is part of GNU Emacs.
 
@@ -634,7 +634,8 @@ useful, such as version control."
       (setq nstr (concat nstr (regexp-quote (car noext)) "\\'"
 			 (if (cdr noext) "\\|" ""))
 	    noext (cdr noext)))
-    (concat nstr "\\|#[^#]+#$\\|\\.\\.?\\'"))
+    ;;               backup      refdir      lockfile
+    (concat nstr "\\|#[^#]+#$\\|\\.\\.?\\'\\|\\.#"))
   "*Regexp matching files we don't want displayed in a speedbar buffer.
 It is generated from the variable `completion-ignored-extensions'")
 
@@ -749,6 +750,7 @@ to toggle this value.")
   (define-key speedbar-key-map "g" 'speedbar-refresh)
   (define-key speedbar-key-map "t" 'speedbar-toggle-updates)
   (define-key speedbar-key-map "q" 'speedbar-close-frame)
+  (define-key speedbar-key-map "Q" 'delete c-frame)
 
   ;; navigation
   (define-key speedbar-key-map "n" 'speedbar-next)
@@ -891,7 +893,8 @@ This basically creates a sparse keymap, and makes it's parent be
   (list
    (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
        ["Customize..." speedbar-customize t])
-   ["Close" speedbar-close-frame t])
+   ["Close" speedbar-close-frame t]
+   ["Quit" delete-frame t] )
   "Menu items appearing at the end of the speedbar menu.")
 
 (defvar speedbar-desired-buffer nil
@@ -986,19 +989,33 @@ supported at a time.
 		  (make-frame (nconc (list 'height
 					   (speedbar-needed-height))
 				     speedbar-frame-plist))
-		(let* ((mh (cdr (assoc 'menu-bar-lines (frame-parameters))))
-		       (params (append speedbar-frame-parameters
-				       (list (cons
-					      'height
-					      (if speedbar-xemacsp
-						  (speedbar-needed-height)
-						(+ mh (frame-height))))))))
-		  (if (or (< emacs-major-version 20);;a bug is fixed in v20
-			  (not (eq window-system 'x)))
-		      (make-frame params)
-		    (let ((x-pointer-shape x-pointer-top-left-arrow)
-			  (x-sensitive-text-pointer-shape x-pointer-hand2))
-		      (make-frame params))))))
+		(let* ((mh (frame-parameter nil 'menu-bar-lines))
+		       (cfx (frame-parameter nil 'left))
+		       (cfy (frame-parameter nil 'top))
+		       (cfw (frame-pixel-width))
+		       (params
+			(append
+			 speedbar-frame-parameters
+			 (list (cons 'height (+ mh (frame-height))))))
+		       (frame
+			(if (or (< emacs-major-version 20)
+				(not (eq window-system 'x)))
+			    (make-frame params)
+			  (let ((x-pointer-shape x-pointer-top-left-arrow)
+				(x-sensitive-text-pointer-shape
+				 x-pointer-hand2))
+			    (make-frame params)))))
+		  (set-frame-position frame
+				      ;; Decide which side to put it
+				      ;; on.  200 is just a buffer
+				      ;; for the left edge of the
+				      ;; screen.  The extra 10 is just
+				      ;; dressings for window decorations.
+				      (if (< cfx 200)
+					  (+ cfx cfw 10)
+					(- cfx (frame-pixel-width frame) 10))
+				      cfy)
+		  frame)))
 	;; reset the selection variable
 	(setq speedbar-last-selected-file nil)
 	;; Put the buffer into the frame
@@ -2468,7 +2485,7 @@ name will have the function FIND-FUN and not token."
 	    ;; default the shown directories to this list...
 	    (setq speedbar-shown-directories (list cbd)))
 	  ))
-      (setq speedbar-last-selected-file nil)
+      (if (not expand-local) (setq speedbar-last-selected-file nil))
       (speedbar-with-writable
 	(if (and expand-local
 		 ;; Find this directory as a speedbar node.
@@ -2523,55 +2540,59 @@ This should only be used by modes classified as special."
       (speedbar-set-timer nil)
     ;; Save all the match data so that we don't mess up executing fns
     (save-match-data
-      (if (and (frame-visible-p speedbar-frame) speedbar-update-flag)
+      ;; Only do stuff if the frame is visible, not an icon, and if
+      ;; it is currently flagged to do something.
+      (if (and speedbar-update-flag
+	       (frame-visible-p speedbar-frame)
+	       (not (eq (frame-visible-p speedbar-frame) 'icon)))
 	  (let ((af (selected-frame)))
 	    (save-window-excursion
 	      (select-frame speedbar-attached-frame)
 	      ;; make sure we at least choose a window to
 	      ;; get a good directory from
-	      (if (string-match "\\*Minibuf-[0-9]+\\*" (buffer-name))
-		  (other-window 1))
-	      ;; Check for special modes
-	      (speedbar-maybe-add-localized-support (current-buffer))
-	      ;; Update for special mode all the time!
-	      (if (and speedbar-mode-specific-contents-flag
-		       (listp speedbar-special-mode-expansion-list)
-		       speedbar-special-mode-expansion-list
-		       (local-variable-p
-			'speedbar-special-mode-expansion-list
-			(current-buffer)))
-		  ;;(eq (get major-mode 'mode-class 'special)))
-		  (progn
-		    (if (<= 2 speedbar-verbosity-level)
-			(message "Updating speedbar to special mode: %s..."
-				 major-mode))
-		    (speedbar-update-special-contents)
-		    (if (<= 2 speedbar-verbosity-level)
+	      (if (window-minibuffer-p (selected-window))
+		  nil
+		;; Check for special modes
+		(speedbar-maybe-add-localized-support (current-buffer))
+		;; Update for special mode all the time!
+		(if (and speedbar-mode-specific-contents-flag
+			 (listp speedbar-special-mode-expansion-list)
+			 speedbar-special-mode-expansion-list
+			 (local-variable-p
+			  'speedbar-special-mode-expansion-list
+			  (current-buffer)))
+		    ;;(eq (get major-mode 'mode-class 'special)))
+		    (progn
+		      (if (<= 2 speedbar-verbosity-level)
+			  (message "Updating speedbar to special mode: %s..."
+				   major-mode))
+		      (speedbar-update-special-contents)
+		      (if (<= 2 speedbar-verbosity-level)
+			  (progn
+			    (message "Updating speedbar to special mode: %s...done"
+				     major-mode)
+			    (message nil))))
+		  ;; Update all the contents if directories change!
+		  (if (or (member (expand-file-name default-directory)
+				  speedbar-shown-directories)
+			  (and speedbar-ignored-path-regexp
+			       (string-match
+				speedbar-ignored-path-regexp
+				(expand-file-name default-directory)))
+			  (member major-mode speedbar-ignored-modes)
+			  (eq af speedbar-frame)
+			  (not (buffer-file-name)))
+		      nil
+		    (if (<= 1 speedbar-verbosity-level)
+			(message "Updating speedbar to: %s..."
+				 default-directory))
+		    (speedbar-update-directory-contents)
+		    (if (<= 1 speedbar-verbosity-level)
 			(progn
-			  (message "Updating speedbar to special mode: %s...done"
-				   major-mode)
-			  (message nil))))
-		;; Update all the contents if directories change!
-		(if (or (member (expand-file-name default-directory)
-				speedbar-shown-directories)
-			(and speedbar-ignored-path-regexp
-			     (string-match
-			      speedbar-ignored-path-regexp
-			      (expand-file-name default-directory)))
-			(member major-mode speedbar-ignored-modes)
-			(eq af speedbar-frame)
-			(not (buffer-file-name)))
-		    nil
-		  (if (<= 1 speedbar-verbosity-level)
-		      (message "Updating speedbar to: %s..."
-			       default-directory))
-		  (speedbar-update-directory-contents)
-		  (if (<= 1 speedbar-verbosity-level)
-		      (progn
-			(message "Updating speedbar to: %s...done"
-				 default-directory)
-			(message nil)))))
-	      (select-frame af))
+			  (message "Updating speedbar to: %s...done"
+				   default-directory)
+			  (message nil)))))
+		(select-frame af)))
 	    ;; Now run stealthy updates of time-consuming items
 	    (speedbar-stealthy-updates)))
       ;; Now run the mouse tracking system
