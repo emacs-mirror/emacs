@@ -1,13 +1,13 @@
 ;;; eldoc.el --- show function arglist or variable docstring in echo area
 
-;; Copyright (C) 1996, 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 97, 98, 99, 2000 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Maintainer: friedman@splode.com
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.15 1998/09/19 02:15:26 friedman Exp $
+;; $Id: eldoc.el,v 1.20 2000/06/03 19:50:18 friedman Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -48,14 +48,16 @@
 ;;; Code:
 
 ;; Use idle timers if available in the version of emacs running.
-;; Please don't change this to use `require'; this package works as-is in
-;; XEmacs (which doesn't have timer.el as of 19.14), and I would like to
-;; maintain compatibility with that since I must use it sometimes.  --Noah
+;; Please don't change this to use `require'; this package works
+;; as-is in XEmacs 19.14 and later and I am striving to maintain
+;; compatibility between emacs variants.
 (or (featurep 'timer)
     (load "timer" t))
 
 (defgroup eldoc nil
   "Show function arglist or variable docstring in echo area."
+  :group 'eldoc
+  :group 'lisp
   :group 'extensions)
 
 ;;;###autoload
@@ -85,28 +87,52 @@ If this variable is set to 0, no idle time is required."
   :type 'number
   :group 'eldoc)
 
+;;;###autoload
 (defcustom eldoc-minor-mode-string " ElDoc"
   "*String to display in mode line when Eldoc Mode is enabled."
   :type 'string
   :group 'eldoc)
-
-;; Put this minor mode on the global minor-mode-alist.
-(or (assq 'eldoc-mode (default-value 'minor-mode-alist))
-    (setq-default minor-mode-alist
-                  (append (default-value 'minor-mode-alist)
-                          '((eldoc-mode eldoc-minor-mode-string)))))
 
 (defcustom eldoc-argument-case 'upcase
   "Case to display argument names of functions, as a symbol.
 This has two preferred values: `upcase' or `downcase'.
 Actually, any name of a function which takes a string as an argument and
 returns another string is acceptable."
-  :type '(radio function
-		(function-item upcase)
-		(function-item downcase))
+  :type '(radio (function-item upcase)
+		(function-item downcase)
+                function)
   :group 'eldoc)
 
-;; No user options below here.
+(defcustom eldoc-echo-area-use-multiline-p 'truncate-sym-name-if-fit
+  "*Allow long eldoc messages to resize echo area display.
+If value is `t', never attempt to truncate messages; complete symbol name
+and function arglist or 1-line variable documentation will be displayed
+even if echo area must be resized to fit.
+
+If value is any non-nil value other than `t', symbol name may be truncated
+if it will enable the function arglist or documentation string to fit on a
+single line without resizing window.  Otherwise, behavior is just like
+former case.
+
+If value is nil, messages are always truncated to fit in a single line of
+display in the echo area.  Function or variable symbol name may be
+truncated to make more of the arglist or documentation string visible.
+
+Non-nil values for this variable have no effect unless
+`eldoc-echo-area-multiline-supported-p' is non-nil."
+  :type '(radio (const :tag "Always" t)
+                (const :tag "Never" nil)
+                (const :tag "Yes, but truncate symbol names if it will\
+ enable argument list to fit on one line" truncate-sym-name-if-fit))
+  :group 'eldoc)
+
+;;; No user options below here.
+
+;; Non-nil if this version of emacs supports dynamically resizable echo areas.
+(defvar eldoc-echo-area-multiline-supported-p
+  (and (string-lessp "21" emacs-version)
+       (save-match-data
+         (numberp (string-match "^GNU Emacs" (emacs-version))))))
 
 ;; Commands after which it is appropriate to print in the echo area.
 ;; Eldoc does not try to print function arglists, etc. after just any command,
@@ -143,6 +169,16 @@ returns another string is acceptable."
 ;; This is used to determine if eldoc-idle-delay is changed by the user.
 (defvar eldoc-current-idle-delay eldoc-idle-delay)
 
+;; Put minor mode string on the global minor-mode-alist.
+;;;###autoload
+(cond ((fboundp 'add-minor-mode)
+       (add-minor-mode 'eldoc-mode 'eldoc-minor-mode-string))
+      ((assq 'eldoc-mode (default-value 'minor-mode-alist)))
+      (t
+       (setq-default minor-mode-alist
+                     (append (default-value 'minor-mode-alist)
+                             '((eldoc-mode eldoc-minor-mode-string))))))
+
 
 ;;;###autoload
 (defun eldoc-mode (&optional prefix)
@@ -164,13 +200,13 @@ the mode, respectively."
          ;; 19.30; that is the first version in which it appeared, but it
          ;; was obsolesced by idle timers in Emacs 19.31.
          (add-hook (if (boundp 'post-command-idle-hook)
-                  'post-command-idle-hook
-                'post-command-hook)
-              'eldoc-print-current-symbol-info)
+                       'post-command-idle-hook
+                     'post-command-hook)
+                   'eldoc-print-current-symbol-info t t)
          ;; quick and dirty hack for seeing if this is XEmacs
          (and (fboundp 'display-message)
               (add-hook 'pre-command-hook
-                        'eldoc-pre-command-refresh-echo-area))))
+                        'eldoc-pre-command-refresh-echo-area t t))))
   (setq eldoc-mode (if prefix
                        (>= (prefix-numeric-value prefix) 0)
                      (not eldoc-mode)))
@@ -265,9 +301,12 @@ the mode, respectively."
                                 eldoc-message-commands)
                    (sit-for eldoc-idle-delay))))))
 
+;; Check various conditions about the current environment that might make
+;; it undesirable to print eldoc messages right this instant.
 (defun eldoc-display-message-no-interference-p ()
   (and eldoc-mode
        (not executing-kbd-macro)
+       (not (and (boundp 'edebug-active) edebug-active))
        ;; Having this mode operate in an active minibuffer/echo area causes
        ;; interference with what's going on there.
        (not cursor-in-echo-area)
@@ -345,24 +384,27 @@ the mode, respectively."
 (defun eldoc-docstring-format-sym-doc (sym doc)
   (save-match-data
     (let* ((name (symbol-name sym))
-           (doclen (+ (length name) (length ": ") (length doc)))
-           ;; Subtract 1 from window width since emacs seems not to write
-           ;; any chars to the last column, at least for some terminal types.
-           (strip (- doclen (1- (window-width (minibuffer-window))))))
-      (cond ((> strip 0)
-             (let* ((len (length name)))
-               (cond ((>= strip len)
-                      (format "%s" doc))
-                     (t
-                      ;;(setq name (substring name 0 (- len strip)))
-                      ;;
-                      ;; Show the end of the partial symbol name, rather
-                      ;; than the beginning, since the former is more likely
-                      ;; to be unique given package namespace conventions.
-                      (setq name (substring name strip))
-                      (format "%s: %s" name doc)))))
+           (ea-multi (and eldoc-echo-area-multiline-supported-p
+                          eldoc-echo-area-use-multiline-p))
+           ;; Subtract 1 from window width since emacs will not write
+           ;; any chars to the last column, or in later versions, will
+           ;; cause a wraparound and resize of the echo area.
+           (ea-width (1- (window-width (minibuffer-window))))
+           (strip (- (+ (length name) (length ": ") (length doc)) ea-width)))
+      (cond ((or (<= strip 0)
+                 (eq ea-multi t)
+                 (and ea-multi (> (length doc) ea-width)))
+             (format "%s: %s" sym doc))
+            ((> (length doc) ea-width)
+             (substring (format "%s" doc) 0 ea-width))
+            ((>= strip (length name))
+             (format "%s" doc))
             (t
-             (format "%s: %s" sym doc))))))
+             ;; Show the end of the partial symbol name, rather
+             ;; than the beginning, since the former is more likely
+             ;; to be unique given package namespace conventions.
+             (setq name (substring name strip))
+             (format "%s: %s" name doc))))))
 
 
 (defun eldoc-fnsym-in-current-sexp ()
@@ -401,20 +443,24 @@ the mode, respectively."
            (error (setq defn nil))))
     defn))
 
-(defun eldoc-function-argstring (fn)
+(defun eldoc-function-arglist (fn)
   (let* ((prelim-def (eldoc-symbol-function fn))
          (def (if (eq (car-safe prelim-def) 'macro)
                   (cdr prelim-def)
                 prelim-def))
          (arglist (cond ((null def) nil)
                         ((byte-code-function-p def)
-                         (if (fboundp 'compiled-function-arglist)
-                             (funcall 'compiled-function-arglist def)
-                           (aref def 0)))
+                         (cond ((fboundp 'compiled-function-arglist)
+                                (funcall 'compiled-function-arglist def))
+                               (t
+                                (aref def 0))))
                         ((eq (car-safe def) 'lambda)
                          (nth 1 def))
                         (t t))))
-    (eldoc-function-argstring-format arglist)))
+    arglist))
+
+(defun eldoc-function-argstring (fn)
+  (eldoc-function-argstring-format (eldoc-function-arglist fn)))
 
 (defun eldoc-function-argstring-format (arglist)
   (cond ((not (listp arglist))
