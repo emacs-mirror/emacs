@@ -170,6 +170,9 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
     (make-local-variable 'write-contents-hooks)
     (add-hook 'write-contents-hooks 'hexl-save-buffer)
 
+    (make-local-hook 'after-revert-hook)
+    (add-hook 'after-revert-hook 'hexl-after-revert-hook nil t)
+
     (make-local-variable 'hexl-max-address)
 
     (make-local-variable 'change-major-mode-hook)
@@ -185,6 +188,10 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
         (hexlify-buffer)
         (set-buffer-modified-p modified)
         (hexl-goto-address original-point)))))
+
+(defun hexl-after-revert-hook ()
+  (hexlify-buffer)
+  (set-buffer-modified-p nil))
 
 (defvar hexl-in-save-buffer nil)
 
