@@ -635,7 +635,8 @@ Do the same for the keys of the same name."
   (menu-bar-make-toggle toggle-highlight-paren-mode show-paren-mode
 			"Highlight Matching Parentheses"
 			"Show Paren mode %s"
-			"Highlight matching and mismatched parentheses"))
+			"Highlight matching and mismatched parentheses"
+			(show-paren-mode)))
 (define-key menu-bar-options-menu [transient-mark-mode]
   (menu-bar-make-toggle toggle-transient-mark-mode transient-mark-mode
 			"Transient Mark Mode (highlights region)"
