@@ -27,7 +27,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "frame.h"
 
 #include "dispextern.h"
-
+#include "blockinput.h"
 
 #include <X11/StringDefs.h>
 #include <X11/IntrinsicP.h>
@@ -744,10 +744,12 @@ EmacsFrameDestroy (widget)
      been freed. */
   free_frame_faces (s);
 
+  BLOCK_INPUT;
   /* need to be careful that the face-freeing code doesn't free these too */
   XFreeGC (XtDisplay (widget), s->display.x->normal_gc);
   XFreeGC (XtDisplay (widget), s->display.x->reverse_gc);
   XFreeGC (XtDisplay (widget), s->display.x->cursor_gc);
+  UNBLOCK_INPUT;
 }
 
 void
