@@ -923,3 +923,72 @@ Allowed only if variable `Info-enable-edit' is non-nil."
   (and (marker-position Info-tag-table-marker)
        (buffer-modified-p)
        (message "Tags may have changed.  Use Info-tagify if necessary")))
+
+(defun Info-find-emacs-command-nodes (command)
+  "Return a list of locations documenting COMMAND in the Emacs Info manual.
+The locations are of the format used in Info-history, i.e.
+\(FILENAME NODENAME BUFFERPOS\)."
+  (require 'info)
+  (let ((where '())
+	(cmd-desc (concat "^\\* " (regexp-quote (symbol-name command))
+			  ":\\s *\\(.*\\)\\.$")))
+    (save-excursion
+      (Info-find-node "emacs" "Command Index")
+      ;; Take the index node off the Info history.
+      (setq Info-history (cdr Info-history))
+      (goto-char (point-max))
+      (while (re-search-backward cmd-desc nil t)
+	  (setq where (cons (list Info-current-file
+				  (buffer-substring
+				   (match-beginning 1)
+				   (match-end 1))
+				  0)
+			    where)))
+      where)))
+
+;;;###autoload
+(defun Info-goto-emacs-command-node (command)
+  "Go to the Info node in the Emacs manual for command COMMAND."
+  (interactive "CFind documentation for command: ")
+  (or (commandp command)
+      (signal 'wrong-type-argument (list 'commandp command)))
+  (let ((where (Info-find-emacs-command-nodes command)))
+    (if where
+	(let ((num-matches (length where)))
+	  ;; Get Info running, and pop to it in another window.
+	  (save-window-excursion
+	    (info))
+	  (pop-to-buffer "*info*")
+	  (Info-find-node (car (car where))
+			  (car (cdr (car where))))
+	  (if (> num-matches 1)
+	      (progn
+		;; Info-find-node already pushed (car where) onto
+		;; Info-history.  Put the other nodes that were found on
+		;; the history.
+		(setq Info-history (nconc (cdr where) Info-history))
+		(message (substitute-command-keys
+			  "Found %d other entr%.  Use \\[Info-last] to see %s."
+			(1- num-matches)
+			(if (> num-matches 2) "ies" "y")
+			(if (> num-matches 2) "them" "it"))))))
+      (error "Couldn't find documentation for %s." command))))
+;;;###autoload
+(define-key help-map "\C-f" 'Info-goto-emacs-command-node)
+
+;;;###autoload
+(defun Info-goto-emacs-key-command-node (key)
+  "Go to the Info node in the Emacs manual the command bound to KEY, a string.
+Interactively, if the binding is execute-extended-command, a command is read."
+  (interactive "kFind documentation for key:")
+  (let ((command (key-binding key)))
+    (cond ((null command)
+	   (message "%s is undefined" (key-description keys)))
+	  ((and (interactive-p)
+		(eq command 'execute-extended-command))
+	   (Info-goto-emacs-command-node
+	    (read-command "Find documentation for command: ")))
+	  (t
+	   (Info-goto-emacs-command-node command)))))
+;;;###autoload
+(define-key help-map "\C-k" 'Info-goto-emacs-key-command-node)
