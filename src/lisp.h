@@ -146,6 +146,7 @@ enum Lisp_Misc_Type
     Lisp_Misc_Some_Buffer_Local_Value,
     Lisp_Misc_Overlay,
     Lisp_Misc_Kboard_Objfwd,
+    Lisp_Misc_Save_Value,
     /* Currently floats are not a misc type,
        but let's define this in case we want to change that.  */
     Lisp_Misc_Float,
@@ -494,6 +495,7 @@ extern size_t pure_size;
 #define XBUFFER_LOCAL_VALUE(a) (&(XMISC(a)->u_buffer_local_value))
 #define XOVERLAY(a) (&(XMISC(a)->u_overlay))
 #define XKBOARD_OBJFWD(a) (&(XMISC(a)->u_kboard_objfwd))
+#define XSAVE_VALUE(a) (&(XMISC(a)->u_save_value))
 
 /* Pseudovector types.  */
 
@@ -1232,6 +1234,16 @@ struct Lisp_Kboard_Objfwd
     int offset;
   };
 
+/* Hold a C pointer for later use.
+   This type of object is used in the arg to record_unwind_protect.  */
+struct Lisp_Save_Value
+  {
+    int type : 16;	/* = Lisp_Misc_Save_Value */
+    int spacer : 16;
+    void *pointer;
+    int integer;
+  };
+
 
 /* To get the type field of a union Lisp_Misc, use XMISCTYPE.
    It uses one of these struct subtypes to get the type field.  */
@@ -1247,6 +1259,7 @@ union Lisp_Misc
     struct Lisp_Buffer_Local_Value u_buffer_local_value;
     struct Lisp_Overlay u_overlay;
     struct Lisp_Kboard_Objfwd u_kboard_objfwd;
+    struct Lisp_Save_Value u_save_value;
   };
 
 /* Lisp floating point type */
@@ -2459,6 +2472,7 @@ extern int gc_in_progress;
 extern Lisp_Object make_float P_ ((double));
 extern void display_malloc_warning P_ ((void));
 extern int inhibit_garbage_collection P_ ((void));
+extern Lisp_Object make_save_value P_ ((void *, int));
 extern void free_marker P_ ((Lisp_Object));
 extern void free_cons P_ ((struct Lisp_Cons *));
 extern void init_alloc_once P_ ((void));
