@@ -808,7 +808,7 @@ copy_text_and_data (new, a_out)
 	    {
 	      n = size > sizeof (page) ? sizeof (page) : size;
 	      if (read (a_out, page, n) != n || write (new, page, n) != n)
-		PERROR ("xemacs");
+		PERROR ("emacs");
 	    }
 	  lseek (a_out, old_a_out_ptr, 0);
 	}
