@@ -1,3 +1,8 @@
+2003-04-18  Miles Bader  <miles@gnu.org>
+
+	* data.c (Faset): Calculate nbytes earlier, to satisfy the now
+	pickier PARSE_MULTIBYTE_SEQ.
+
 2003-04-17  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* eval.c (For, Fand, Fprogn, un_autoload, do_autoload):
