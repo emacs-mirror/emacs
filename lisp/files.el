@@ -450,26 +450,86 @@ run `normal-mode' explicitly."
     (error (message "File mode specification error: %s"
 		    (prin1-to-string err))))
   (condition-case err
-      (hack-local-variables (not find-file))
+      (let ((enable-local-variables (or (not find-file)
+					enable-local-variables)))
+	(hack-local-variables))
     (error (message "File local-variables error: %s"
 		    (prin1-to-string err)))))
 
-;(defvar auto-mode-alist ...) now in loaddefs.el
+(defvar auto-mode-alist (mapcar 'purecopy
+				'(("\\.text\\'" . text-mode)
+				  ("\\.c\\'" . c-mode)
+				  ("\\.h\\'" . c-mode)
+				  ("\\.tex\\'" . TeX-mode)
+				  ("\\.ltx\\'" . LaTeX-mode)
+				  ("\\.el\\'" . emacs-lisp-mode)
+				  ("\\.mm\\'" . nroff-mode)
+				  ("\\.me\\'" . nroff-mode)
+				  ("\\.[12345678]\\'" . nroff-mode)
+				  ("\\.scm\\'" . scheme-mode)
+				  ("\\.l\\'" . lisp-mode)
+				  ("\\.lisp\\'" . lisp-mode)
+				  ("\\.f\\'" . fortran-mode)
+				  ("\\.for\\'" . fortran-mode)
+				  ("\\.mss\\'" . scribe-mode)
+				  ("\\.pl\\'" . prolog-mode)
+				  ("\\.cc\\'" . c++-mode)
+				  ("\\.C\\'" . c++-mode)
+;;; Less common extensions come here
+;;; so more common ones above are found faster.
+				  ("\\.s\\'" . asm-mode)
+				  ("ChangeLog\\'" . change-log-mode)
+				  ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
+				  ("\\.TeX\\'" . TeX-mode)
+				  ("\\.sty\\'" . LaTeX-mode)
+				  ("\\.bbl\\'" . LaTeX-mode)
+				  ("\\.bib\\'" . bibtex-mode)
+				  ("\\.article\\'" . text-mode)
+				  ("\\.letter\\'" . text-mode)
+				  ("\\.texinfo\\'" . texinfo-mode)
+				  ("\\.lsp\\'" . lisp-mode)
+				  ("\\.awk\\'" . awk-mode)
+				  ("\\.prolog\\'" . prolog-mode)
+				  ;; Mailer puts message to be edited in
+				  ;; /tmp/Re.... or Message
+				  ("^/tmp/Re" . text-mode)
+				  ("/Message[0-9]*\\'" . text-mode)
+				  ;; some news reader is reported to use this
+				  ("^/tmp/fol/" . text-mode)
+				  ("\\.y\\'" . c-mode)
+				  ("\\.oak\\'" . scheme-mode)
+				  ("\\.scm.[0-9]*\\'" . scheme-mode)
+				  ;; .emacs following a directory delimiter
+				  ;; in either Unix or VMS syntax.
+				  ("[]>:/]\\..*emacs\\'" . emacs-lisp-mode)
+				  ("\\.ml\\'" . lisp-mode)))
+  "\
+Alist of filename patterns vs corresponding major mode functions.
+Each element looks like (REGEXP . FUNCTION).
+Visiting a file whose name matches REGEXP causes FUNCTION to be called.")
+
 (defun set-auto-mode ()
   "Select major mode appropriate for current buffer.
-May base decision on visited file name (see variable `auto-mode-alist')
-or on buffer contents (-*- line or local variables spec), but does not look
-for the \"mode:\" local variable.  For that, use `hack-local-variables'."
+This checks for a -*- mode tag in the buffer's text, or
+compares the filename against the entries in auto-mode-alist.  It does
+not check for the \"mode:\" local variable in the Local Variables
+section of the file; for that, use `hack-local-variables'.
+
+If enable-local-variables is nil, this function will not check for a
+-*- mode tag."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
   (let (beg end mode)
     (save-excursion
       (goto-char (point-min))
       (skip-chars-forward " \t\n")
-      (if (and (search-forward "-*-" (save-excursion (end-of-line) (point)) t)
+      (if (and enable-local-variables
+	       (search-forward "-*-" (save-excursion (end-of-line) (point)) t)
 	       (progn
 		 (skip-chars-forward " \t")
 		 (setq beg (point))
-		 (search-forward "-*-" (save-excursion (end-of-line) (point)) t))
+		 (search-forward "-*-"
+				 (save-excursion (end-of-line) (point))
+				 t))
 	       (progn
 		 (forward-char -3)
 		 (skip-chars-backward " \t")
@@ -502,7 +562,7 @@ for the \"mode:\" local variable.  For that, use `hack-local-variables'."
 	      (setq alist (cdr alist)))))))
     (if mode (funcall mode))))
 
-(defun hack-local-variables (&optional force)
+(defun hack-local-variables ()
   "Parse (and bind or evaluate as appropriate) any local variables
 for current buffer."
   ;; Look for "Local variables:" line in last page.
@@ -511,7 +571,7 @@ for current buffer."
     (search-backward "\n\^L" (max (- (point-max) 3000) (point-min)) 'move)
     (if (let ((case-fold-search t))
 	  (and (search-forward "Local Variables:" nil t)
-	       (or force (eq enable-local-variables t)
+	       (or (eq enable-local-variables t)
 		   (and enable-local-variables
 			(save-window-excursion
 			  (switch-to-buffer (current-buffer))
@@ -533,6 +593,7 @@ for current buffer."
 	      (setq prefix
 		    (buffer-substring (point)
 				      (progn (beginning-of-line) (point)))))
+
 	  (if prefix (setq prefixlen (length prefix)
 			   prefix (regexp-quote prefix)))
 	  (if suffix (setq suffix (concat (regexp-quote suffix) "$")))
@@ -570,7 +631,7 @@ for current buffer."
 		       (funcall (intern (concat (downcase (symbol-name val))
 						"-mode"))))
 		      ((eq var 'eval)
-		       (if (or (and ignore-local-eval (not force))
+		       (if (or ignore-local-eval
 			       (string= (user-login-name) "root"))
 			   (message "Ignoring `eval:' in file's local variables")
 			 (save-excursion (eval val))))
