@@ -1,3 +1,7 @@
+2000-11-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* bs.el: Update from author.
+
 2000-11-28  Colin Walters  <walters@cis.ohio-state.edu>
 
 	* chistory.el (Command-history-setup): Remove extraneous `keymap'
