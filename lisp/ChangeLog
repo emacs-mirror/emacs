@@ -1,6 +1,6 @@
 2000-10-09  Thien-Thi Nguyen  <ttn@gnu.org>
 
-	* zone.el (zone-timer, zone-wc-tbl): Rework
+	* play/zone.el (zone-timer, zone-wc-tbl): Rework
 	these vars as symbol properties.
 	(zone, zone-when-idle, zone-leave-me-alone,
 	zone-pgm-whack-chars): Use new symbol properties.
