@@ -6,7 +6,7 @@
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.14 2000/05/23 20:06:10 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.15 2000/05/25 19:05:46 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -414,9 +414,7 @@ If CONTINUE is non-nil, use the `comment-continuation' markers if any."
 	    (goto-char begpos))
           ;; Compute desired indent.
           (if (= (current-column)
-                 (setq indent (funcall (or (and (boundp 'comment-indent-hook)
-						comment-indent-hook)
-					   comment-indent-function))))
+                 (setq indent (funcall comment-indent-function)))
               (goto-char begpos)
             ;; If that's different from current, change it.
             (skip-chars-backward " \t")
@@ -963,6 +961,13 @@ unless optional argument SOFT is non-nil."
 
 ;;; Change Log:
 ;; $Log: newcomment.el,v $
+;; Revision 1.15  2000/05/25 19:05:46  monnier
+;; Add abundant autoload cookies.
+;; (comment-style): Be careful not to depend on runtime data at compile-time.
+;; (comment-indent-hook): Remove.
+;; (comment-indent): Check if comment-indent-hook is bound.
+;; (comment-region): Docstring fix.
+;;
 ;; Revision 1.14  2000/05/23 20:06:10  monnier
 ;; (comment-make-extra-lines): Don't use `assert'.
 ;;
