@@ -1,5 +1,8 @@
 2001-08-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (resize_echo_area_exactly): Don't resize the mini-window
+	exactly when a mini-buffer is active.
+
 	* keyboard.c (make_lispy_event): Interpret double_click_fuzz
 	in units of 1/8 character on non window-system frames.
 	(syms_of_keyboard) <double-click-fuzz>: Doc fix.
