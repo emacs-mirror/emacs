@@ -1,3 +1,8 @@
+2003-07-23  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* emacs-lisp/derived.el (define-derived-mode): Mention hook in doc
+	string.  Defvar the derived hook.
+
 2003-07-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/fill.el (fill-comment-paragraph): Construct a regexp
