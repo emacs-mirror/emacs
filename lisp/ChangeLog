@@ -1,3 +1,11 @@
+2000-10-02  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* diff-mode.el (diff-goto-source): Emit a status message.
+	(diff-test-hunk, diff-apply-hunk): Remove unneeded `let'.
+	(diff-test-hunk): Make the return value agree with the doc string.
+	(diff-apply-hunk): Only advance if `diff-advance-after-apply-hunk'.
+	(diff-advance-after-apply-hunk): New variable.
+
 2000-10-01  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* vc.el (vc-editable-p): Minor optimization.
