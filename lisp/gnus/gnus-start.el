@@ -2438,8 +2438,14 @@ If FORCE is non-nil, the .newsrc file is read."
 	    (skip-chars-forward " \t")
 	    ;; ...  which leads to this line being effectively ignored.
 	    (when (symbolp group)
-	      (set group (buffer-substring
-			  (point) (progn (end-of-line) (point)))))
+	      (let ((str (buffer-substring
+			  (point) (progn (end-of-line) (point))))
+		    (coding
+		     (and enable-multibyte-characters
+			  (gnus-mule-get-coding-system (symbol-name group)))))
+		(if coding
+		    (setq str (decode-coding-string str (car coding))))
+		(set group str)))
 	    (forward-line 1))))
       (gnus-message 5 "Reading descriptions file...done")
       t))))
