@@ -1265,9 +1265,8 @@ load_face_colors (f, face, attrs)
       face->stipple = load_pixmap (f, Vface_default_stipple,
 				   &face->pixmap_w, &face->pixmap_h);
     }
-  else
-    face->background = load_color (f, face, bg, LFACE_BACKGROUND_INDEX);
 
+  face->background = load_color (f, face, bg, LFACE_BACKGROUND_INDEX);
   face->foreground = load_color (f, face, fg, LFACE_FOREGROUND_INDEX);
 }
 
@@ -3928,7 +3927,7 @@ prepare_face_for_display (f, face)
       BLOCK_INPUT;
       if (face->stipple)
 	{
-	  xgcv.fill_style = FillStippled;
+	  xgcv.fill_style = FillOpaqueStippled;
 	  xgcv.stipple = x_bitmap_pixmap (f, face->stipple);
 	  mask |= GCFillStyle | GCStipple;
 	}
