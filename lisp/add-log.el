@@ -1,4 +1,4 @@
-;;; add-log.el --- change log maintenance commands for Emacs
+;; add-log.el --- change log maintenance commands for Emacs
 
 ;; Copyright (C) 1985, 86, 88, 93, 94, 97, 1998 Free Software Foundation, Inc.
 
@@ -150,6 +150,8 @@ this variable."
   "Time zone used for calculating change log time stamps.
 It takes the same format as the TZ argument of `set-time-zone-rule'.
 If nil, use local time.")
+
+(defvar add-log-debugging)
 
 (defun add-log-iso8601-time-zone (time)
   (let* ((utc-offset (or (car (current-time-zone time)) 0))
@@ -305,6 +307,8 @@ non-nil, otherwise in local time."
 			 (substring buffer-file-name (match-end 0))
 		       (file-name-nondirectory buffer-file-name))))
 
+    (let ((buffer (find-buffer-visiting file-name)))
+      (setq add-log-debugging (list (gap-position) (gap-size))))
     (if (and other-window (not (equal file-name buffer-file-name)))
 	(find-file-other-window file-name)
       (find-file file-name))
