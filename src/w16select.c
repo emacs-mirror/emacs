@@ -70,7 +70,7 @@ Lisp_Object QCLIPBOARD, QPRIMARY;
 
 /* Coding system for communicating with other Windows programs via the
    clipboard.  */
-static Lisp_Object Vclipboard_coding_system;
+static Lisp_Object Vselection_coding_system;
 
 /* The segment address and the size of the buffer in low
    memory used to move data between us and WinOldAp module.  */
@@ -436,14 +436,14 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
   
   BLOCK_INPUT;
 
-  nbytes = STRING_BYTES (XSTRING (string)) + 1;
+  nbytes = STRING_BYTES (XSTRING (string));
   src = XSTRING (string)->data;
 
   /* Since we are now handling multilingual text, we must consider
      encoding text for the clipboard.  */
 
   bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
-  num = ((nbytes <= 2	/* Check the possibility of short cut.  */
+  num = ((nbytes <= 1	/* Check the possibility of short cut.  */
 	  || NILP (buffer_defaults.enable_multibyte_characters))
 	 ? 0
 	 : find_charset_in_str (src, nbytes, charsets, Qnil, 1));
@@ -463,7 +463,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
       unsigned char *htext2;
 
       setup_coding_system
-	(Fcheck_coding_system (Vclipboard_coding_system), &coding);
+	(Fcheck_coding_system (Vselection_coding_system), &coding);
       coding.mode |= CODING_MODE_LAST_BLOCK;
       Vlast_coding_system_used = coding.symbol;
       bufsize = encoding_buffer_size (&coding, nbytes);
@@ -565,7 +565,7 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
       struct coding_system coding;
 
       setup_coding_system
-	(Fcheck_coding_system (Vclipboard_coding_system), &coding);
+	(Fcheck_coding_system (Vselection_coding_system), &coding);
       coding.mode |= CODING_MODE_LAST_BLOCK;
       truelen = get_clipboard_data (CF_OEMTEXT, htext, data_size, 1);
       bufsize = decoding_buffer_size (&coding, truelen);
@@ -649,13 +649,13 @@ syms_of_win16select ()
   defsubr (&Sw16_get_clipboard_data);
   defsubr (&Sx_selection_exists_p);
 
-  DEFVAR_LISP ("clipboard-coding-system", &Vclipboard_coding_system,
+  DEFVAR_LISP ("selection-coding-system", &Vselection_coding_system,
     "Coding system for communicating with other X clients.\n\
 When sending or receiving text via cut_buffer, selection, and clipboard,\n\
 the text is encoded or decoded by this coding system.\n\
 A default value is `iso-latin-1-dos'");
-  Vclipboard_coding_system=intern ("iso-latin-1-dos");
-  staticpro(&Vclipboard_coding_system);
+  Vselection_coding_system=intern ("iso-latin-1-dos");
+  staticpro(&Vselection_coding_system);
 
   QPRIMARY   = intern ("PRIMARY");	staticpro (&QPRIMARY);
   QCLIPBOARD = intern ("CLIPBOARD");	staticpro (&QCLIPBOARD);
