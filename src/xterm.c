@@ -285,6 +285,10 @@ static int mouse_face_beg, mouse_face_end;
 static Lisp_Object mouse_face_window;
 static int mouse_face_face_id;
 
+/* 1 if a mouse motion event came and we didn't handle it right away because
+   gc was in progress.  */
+static int mouse_face_deferred_gc;
+
 /* FRAME and X, Y position of mouse when last checked for highlighting.  */
 static FRAME_PTR mouse_face_mouse_frame;
 static int mouse_face_mouse_x, mouse_face_mouse_y;
@@ -393,9 +397,34 @@ XTupdate_begin (f)
 
   if (f == mouse_face_mouse_frame)
     {
+      /* Don't do highlighting for mouse motion during the update.  */
       mouse_face_defer = 1;
       if (!NILP (mouse_face_window))
-	clear_mouse_face ();
+	{
+	  int firstline, lastline, i;
+	  struct window *w = XWINDOW (mouse_face_window);
+
+	  /* Find the first, and the last+1, lines affected by redisplay.  */
+	  for (firstline = 0; firstline < f->height; firstline++)
+	    if (FRAME_DESIRED_GLYPHS (f)->enable[firstline])
+	      break;
+
+	  lastline = f->height;
+	  for (i = f->height - 1; i >= 0; i--)
+	    {
+	      if (FRAME_DESIRED_GLYPHS (f)->enable[i])
+		break;
+	      else
+		lastline = i;
+	    }
+
+	  /* Can we tell that this update does not affect the window
+	     where the mouse highlight is?  If so, no need to turn off.  */
+	  if (! (firstline > (XFASTINT (w->top) + window_internal_height (w))
+		 || lastline < XFASTINT (w->top)))
+	    /* Otherwise turn off the mouse highlight now.  */
+	    clear_mouse_face ();
+	}
     }
 #ifndef HAVE_X11
   dumpqueue ();
@@ -438,14 +467,18 @@ XTupdate_end (f)
   UNBLOCK_INPUT;
 }
 
-/* This is called when all windows on frame F are now up to date.  */
+/* This is called after a redisplay on frame F.  */
 
 static
 XTframe_up_to_date (f)
      FRAME_PTR f;
 {
-  if (f == mouse_face_mouse_frame)
-    note_mouse_highlight (f, mouse_face_mouse_x, mouse_face_mouse_y);
+  if (mouse_face_deferred_gc || f == mouse_face_mouse_frame)
+    {
+      note_mouse_highlight (mouse_face_mouse_frame,
+			    mouse_face_mouse_x, mouse_face_mouse_y);
+      mouse_face_deferred_gc = 0;
+    }
 }
 
 /* External interface to control of standout mode.
@@ -1938,6 +1971,12 @@ note_mouse_highlight (f, x, y)
   if (mouse_face_defer)
     return;
 
+  if (gc_in_progress)
+    {
+      mouse_face_deferred_gc = 1;
+      return;
+    }
+
   /* Find out which glyph the mouse is on.  */
   pixel_to_glyph_coords (f, x, y, &column, &row,
 			 &new_glyph, x_mouse_grabbed);
@@ -2135,19 +2174,29 @@ show_mouse_face (hl)
   int width = window_internal_width (w);
   FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
   int i;
+  int curs_x = f->phys_cursor_x;
+  int curs_y = f->phys_cursor_y;
+  int cursor_off = 0;
 
   fast_find_position (mouse_face_window, mouse_face_beg,
 		      &begcol, &begrow);
   fast_find_position (mouse_face_window, mouse_face_end,
 		      &endcol, &endrow);
 
-  x_display_cursor (f, 0);
-
   for (i = begrow; i <= endrow; i++)
     {
       int column = (i == begrow ? begcol : w->left);
       int endcolumn = (i == endrow ? endcol : w->left + width);
-      endcolumn = min (endcolumn, FRAME_CURRENT_GLYPHS (f)->used[i] - w->left),
+      endcolumn = min (endcolumn, FRAME_CURRENT_GLYPHS (f)->used[i] - w->left);
+
+      /* If the cursor's in the text we are about to rewrite,
+	 turn the cursor off.  */
+      if (i == curs_y
+	  && (curs_x >= begrow - 1 || curs_x <= endrow))
+	{
+	  x_display_cursor (f, 0);
+	  cursor_off = 1;
+	}
 
       dumpglyphs (f,
 		  CHAR_TO_PIXEL_COL (f, column),
@@ -2158,7 +2207,9 @@ show_mouse_face (hl)
 		  hl > 0 ? 3 : 0);
     }
 
-  x_display_cursor (f, 1);
+  /* If we turned the cursor off, turn it back on.  */
+  if (cursor_off)
+    x_display_cursor (f, 1);
 }
 
 /* Clear out the mouse-highlighted active region.
