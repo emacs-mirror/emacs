@@ -710,7 +710,64 @@ FLAGS specifies more detailed information of the coding system as follows:
     decoding and encoding.  CCL programs should be specified by their
     symbols.
 
-PROPERTIES is an alist of properties vs the corresponding values.
+PROPERTIES is an alist of properties vs the corresponding values.  The
+following properties are recognized:
+
+  o post-read-conversion
+ 
+  The value is a function to call after some text is inserted and
+  decoded by the coding system itself and before any functions in
+  `after-insert-functions' are called.  The arguments to this
+  function is the same as those of a function in
+  `after-insert-functions', i.e. LENGTH of a text while putting point
+  at the head of the text to be decoded
+ 
+  o pre-write-conversion
+ 
+  The value is a function to call after all functions in
+  `write-region-annotate-functions' and `buffer-file-format' are
+  called, and before the text is encoded by the coding system itself.
+  The arguments to this function is the same as those of a function
+  in `write-region-annotate-functions', i.e. FROM and TO specifying
+  region of a text.
+ 
+  o translation-table-for-decode
+ 
+  The value is a translation table to be applied on decoding.  See
+  the function `make-translation-table' for the format of translation
+  table.
+ 
+  o translation-table-for-encode
+ 
+  The value is a translation table to be applied on encoding.
+ 
+  o safe-chars
+ 
+  The value is a char table.  If a character has non-nil value in it,
+  the character is safely supported by the coding system.  This
+  overrides the specification of safe-charsets.
+
+  o safe-charsets
+ 
+  The value is a list of charsets safely supported by the coding
+  system.  The value t means that all charsets Emacs handles are
+  supported.  Even if some charset is not in this list, it doesn't
+  mean that the charset can't be encoded in the coding system,
+  instead, it just means that some other receiver of a text encoded
+  in the coding system won't be able to handle that charset.
+ 
+  o mime-charset
+ 
+  The value is a symbol of which name is `MIME-charset' parameter of
+  the coding system.
+ 
+  o valid-codes (meaningful only for a coding system based on CCL)
+ 
+  The value is a list to indicate valid byte ranges of the encoded
+  file.  Each element of the list is an integer or a cons of integer.
+  In the former case, the integer value is a valid byte code.  In the
+  latter case, the integers specifies the range of valid byte codes.
+
 These properties are set in PLIST, a property list.  This function
 also sets properties `coding-category' and `alias-coding-systems'
 automatically.
