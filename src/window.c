@@ -2404,7 +2404,7 @@ size_window (window, size, width_p, nodelete_p)
       min_size = window_min_height;
     }
   
-  if (old_size < window_min_width)
+  if (old_size < min_size)
     w->too_small_ok = Qt;
 
   /* Maybe delete WINDOW if it's too small.  */
