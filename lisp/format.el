@@ -502,6 +502,10 @@ ORDER.  Unmatched items will go last."
 					; See format-deannotate-region and
 					; format-annotate-region.
 
+;; This text property has list values, but they are treated atomically.
+
+(put 'display 'format-list-atomic-p t)
+
 ;;;
 ;;; Decoding
 ;;;
@@ -921,7 +925,8 @@ Annotations to open and to close are returned as a dotted pair."
     (if (not prop-alist)
 	nil
       ;; If either old or new is a list, have to treat both that way.
-      (if (or (consp old) (consp new))
+      (if (and (or (consp old) (consp new))
+	       (not (get prop 'format-list-atomic-p)))
 	  (let* ((old (if (listp old) old (list old)))
 		 (new (if (listp new) new (list new)))
 		 (tail (format-common-tail old new))
