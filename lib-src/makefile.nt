@@ -95,7 +95,7 @@ $(BLD)\etags.exe: 		$(ETAGSOBJ)
 #
 # From ..\src\makefile.nt.
 #
-obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefiddle.c cm.c cmds.c data.c dired.c dispnew.c doc.c  doprnt.c editfns.c eval.c fileio.c filelock.c filemode.c fns.c  indent.c insdel.c keyboard.c keymap.c lastfile.c lread.c macros.c marker.c minibuf.c xfaces.c mocklisp.c nt.c ntheap.c ntinevt.c ntproc.c ntterm.c print.c process.c regex.c scroll.c search.c syntax.c sysdep.c term.c termcap.c tparam.c undo.c unexnt.c window.c xdisp.c casetab.c floatfns.c frame.c gmalloc.c intervals.c ralloc.c textprop.c vm-limit.c region-cache.c strftime.c
+obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefiddle.c cm.c cmds.c data.c dired.c dispnew.c doc.c  doprnt.c editfns.c eval.c fileio.c filelock.c filemode.c fns.c  indent.c insdel.c keyboard.c keymap.c lastfile.c lread.c macros.c marker.c minibuf.c xfaces.c mocklisp.c nt.c ntheap.c ntinevt.c ntproc.c ntterm.c print.c process.c regex.c scroll.c search.c syntax.c sysdep.c term.c termcap.c tparam.c undo.c unexnt.c window.c xdisp.c casetab.c floatfns.c frame.c gmalloc.c intervals.c ralloc.c textprop.c vm-limit.c region-cache.c strftime.c w32term.c w32xfns.c w32fns.c w32faces.c w32select.c w32menu.c w32reg.c
 
 lispdir = ..\lisp
 
@@ -143,11 +143,7 @@ $(DOC):		$(BLD)\make-docfile.exe
 		- del /q $(DOC)
 		$(BLD)\make-docfile -d ..\src $(obj) > $(DOC)
 		$(BLD)\make-docfile -d ..\src $(lisp) >> $(DOC)
-!if "$(OS_TYPE)" == "win95"
-		$(CP) $(DOC) ..\etc\DOC
-!else
 		$(CP) $(DOC) ..\etc\DOC-X
-!endif
 		- mkdir ..\src\$(OBJDIR)
 		- mkdir ..\src\$(OBJDIR)\etc
 		$(CP) $(DOC) ..\src\$(OBJDIR)\etc\DOC-X
