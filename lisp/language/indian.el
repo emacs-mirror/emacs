@@ -79,14 +79,14 @@ is used."
     (#x0000 . cdac:dv-ttsurekh)		; hindi, etc
     (#x0100 . cdac:sd-ttsurekh)		; sanskrit
     (#x0200 . cdac:bn-ttdurga)		; bengali
-    (#x0300 . cdac:as-ttdurga)		; assamese
-    (#x0400 . cdac:pn-ttamar)		; punjabi
-    (#x0500 . cdac:gj-ttavantika)	; gujarati
+    (#x0300 . cdac:tm-ttvalluvar)	; tamil
+    (#x0400 . cdac:tl-tthemalatha)	; telugu
+    (#x0500 . cdac:as-ttdurga)		; assamese
     (#x0600 . cdac:or-ttsarala)		; oriya
-    (#x0700 . cdac:tm-ttvalluvar)	; tamil
-    (#x0800 . cdac:tl-tthemalatha)	; telugu
-    (#x0900 . cdac:kn-ttuma)		; kannada
-    (#x0A00 . cdac:ml-ttkarthika)	; malayalam
+    (#x0700 . cdac:kn-ttuma)		; kannada
+    (#x0800 . cdac:ml-ttkarthika)	; malayalam
+    (#x0900 . cdac:gj-ttavantika)	; gujarati
+    (#x0A00 . cdac:pn-ttamar)		; punjabi
 
     ;; AKRUTI fonts
     (#x0B00 . akruti:dev)		; hindi, etc
