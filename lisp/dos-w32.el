@@ -1,4 +1,4 @@
-;;; dos-nt.el --- Functions shared among MS-DOS and Win32 (NT/95) platforms
+;;; dos-nt.el --- Functions shared among MS-DOS and W32 (NT/95) platforms
 
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 
