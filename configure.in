@@ -1005,7 +1005,7 @@ dnl checks for Unix variants
 AC_AIX
 
 dnl checks for header files
-AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h linux/version.h)
+AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h linux/version.h sys/systeminfo.h)
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_DECL_SYS_SIGLIST
@@ -1438,7 +1438,8 @@ AC_FUNC_ALLOCA
 # On HPUX 9.01, -lm does not contain logb, so check for sqrt.
 AC_CHECK_LIB(m, sqrt)
 
-AC_CHECK_FUNCS(gettimeofday gethostname dup2 rename closedir mkdir rmdir \
+AC_CHECK_FUNCS(gettimeofday gethostname getdomainname dup2 \
+rename closedir mkdir rmdir sysinfo \
 random lrand48 bcopy bcmp logb frexp fmod ftime res_init setsid \
 strerror fpathconf select mktime euidaccess getpagesize tzset setlocale utimes)
 
