@@ -597,7 +597,6 @@ See also the function `substitute-in-file-name'.")
   int tlen;
   unsigned char *target;
   struct passwd *pw;
-  int lose;
 #ifdef VMS
   unsigned char * colon = 0;
   unsigned char * close = 0;
@@ -616,6 +615,23 @@ See also the function `substitute-in-file-name'.")
   if (!NILP (handler))
     return call3 (handler, Qexpand_file_name, name, defalt);
 
+  /* Make sure DEFALT is properly expanded.
+     It would be better to do this down below where we actually use
+     defalt.  Unfortunately, calling Fexpand_file_name recursively
+     could invoke GC, and the strings might be relocated.  This would
+     be annoying because we have pointers into strings lying around
+     that would need adjusting, and people would add new pointers to
+     the code and forget to adjust them, resulting in intermittent bugs.
+     Putting this call here avoids all that crud.  */
+  if (! NILP (defalt)) 
+    {
+      struct gcpro gcpro1;
+
+      GCPRO1 (name);
+      defalt = Fexpand_file_name (defalt, Qnil);
+      UNGCPRO;
+    }
+
 #ifdef VMS
   /* Filenames on VMS are always upper case.  */
   name = Fupcase (name);
@@ -632,8 +648,15 @@ See also the function `substitute-in-file-name'.")
 #endif /* VMS */
       )
     {
+      /* If it turns out that the filename we want to return is just a
+	 suffix of FILENAME, we don't need to go through and edit
+	 things; we just need to construct a new string using data
+	 starting at the middle of FILENAME.  If we set lose to a
+	 non-zero value, that means we've discovered that we can't do
+	 that cool trick.  */
+      int lose = 0;
+
       p = nm;
-      lose = 0;
       while (*p)
 	{
 	  /* Since we know the path is absolute, we can assume that each
@@ -2874,7 +2897,8 @@ Non-nil second argument means save only current buffer.")
   Lisp_Object tail, buf;
   int auto_saved = 0;
   char *omessage = echo_area_glyphs;
-  extern minibuf_level;
+  extern int minibuf_level;
+  int do_handled_files;
 
   /* No GCPRO needed, because (when it matters) all Lisp_Object variables
      point to non-strings reached from Vbuffer_alist.  */
@@ -2888,51 +2912,60 @@ Non-nil second argument means save only current buffer.")
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, intern ("auto-save-hook"));
 
-  for (tail = Vbuffer_alist; XGCTYPE (tail) == Lisp_Cons;
-       tail = XCONS (tail)->cdr)
-    {
-      buf = XCONS (XCONS (tail)->car)->cdr;
-      b = XBUFFER (buf);
+  /* First, save all files which don't have handlers.  If Emacs is
+     crashing, the handlers may tweak what is causing Emacs to crash
+     in the first place, and it would be a shame if Emacs failed to
+     autosave perfectly ordinary files because it couldn't handle some
+     ange-ftp'd file.  */
+  for (do_handled_files = 0; do_handled_files < 2; do_handled_files++)
+    for (tail = Vbuffer_alist; XGCTYPE (tail) == Lisp_Cons;
+	 tail = XCONS (tail)->cdr)
+      {
+	buf = XCONS (XCONS (tail)->car)->cdr;
+	b = XBUFFER (buf);
 
-      if (!NILP (current_only)
-	  && b != current_buffer)
-	continue;
+	if (!NILP (current_only)
+	    && b != current_buffer)
+	  continue;
       
-      /* Check for auto save enabled
-	 and file changed since last auto save
-	 and file changed since last real save.  */
-      if (XTYPE (b->auto_save_file_name) == Lisp_String
-	  && b->save_modified < BUF_MODIFF (b)
-	  && b->auto_save_modified < BUF_MODIFF (b))
-	{
-	  if ((XFASTINT (b->save_length) * 10
-	       > (BUF_Z (b) - BUF_BEG (b)) * 13)
-	      /* A short file is likely to change a large fraction;
-		 spare the user annoying messages.  */
-	      && XFASTINT (b->save_length) > 5000
-	      /* These messages are frequent and annoying for `*mail*'.  */
-	      && !EQ (b->filename, Qnil))
-	    {
-	      /* It has shrunk too much; turn off auto-saving here.  */
-	      message ("Buffer %s has shrunk a lot; auto save turned off there",
-		       XSTRING (b->name)->data);
-	      /* User can reenable saving with M-x auto-save.  */
-	      b->auto_save_file_name = Qnil;
-	      /* Prevent warning from repeating if user does so.  */
-	      XFASTINT (b->save_length) = 0;
-	      Fsleep_for (make_number (1), Qnil);
-	      continue;
-	    }
-	  set_buffer_internal (b);
-	  if (!auto_saved && NILP (no_message))
-	    message1 ("Auto-saving...");
-	  internal_condition_case (auto_save_1, Qt, auto_save_error);
-	  auto_saved++;
-	  b->auto_save_modified = BUF_MODIFF (b);
-	  XFASTINT (current_buffer->save_length) = Z - BEG;
-	  set_buffer_internal (old);
-	}
-    }
+	/* Check for auto save enabled
+	   and file changed since last auto save
+	   and file changed since last real save.  */
+	if (XTYPE (b->auto_save_file_name) == Lisp_String
+	    && b->save_modified < BUF_MODIFF (b)
+	    && b->auto_save_modified < BUF_MODIFF (b)
+	    && (do_handled_files
+		|| NILP (Ffind_file_name_handler (b->auto_save_file_name))))
+	  {
+	    if ((XFASTINT (b->save_length) * 10
+		 > (BUF_Z (b) - BUF_BEG (b)) * 13)
+		/* A short file is likely to change a large fraction;
+		   spare the user annoying messages.  */
+		&& XFASTINT (b->save_length) > 5000
+		/* These messages are frequent and annoying for `*mail*'.  */
+		&& !EQ (b->filename, Qnil)
+		&& NILP (no_message))
+	      {
+		/* It has shrunk too much; turn off auto-saving here.  */
+		message ("Buffer %s has shrunk a lot; auto save turned off there",
+			 XSTRING (b->name)->data);
+		/* User can reenable saving with M-x auto-save.  */
+		b->auto_save_file_name = Qnil;
+		/* Prevent warning from repeating if user does so.  */
+		XFASTINT (b->save_length) = 0;
+		Fsleep_for (make_number (1), Qnil);
+		continue;
+	      }
+	    set_buffer_internal (b);
+	    if (!auto_saved && NILP (no_message))
+	      message1 ("Auto-saving...");
+	    internal_condition_case (auto_save_1, Qt, auto_save_error);
+	    auto_saved++;
+	    b->auto_save_modified = BUF_MODIFF (b);
+	    XFASTINT (current_buffer->save_length) = Z - BEG;
+	    set_buffer_internal (old);
+	  }
+      }
 
   /* Prevent another auto save till enough input events come in.  */
   record_auto_save ();
