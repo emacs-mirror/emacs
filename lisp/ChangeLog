@@ -1,3 +1,26 @@
+2004-12-16  Juri Linkov  <juri@jurta.org>
+
+	* help.el (function-called-at-point):
+	* help-fns.el (variable-at-point): As a last resort try striping
+	non-word prefixes and suffixes.
+
+	* descr-text.el (describe-property-list): Don't treat syntax-table
+	specially.  Use describe-text-sexp which inserts [show] button
+	for large objects and handles printing errors.  Sort properties
+	by names in alphabetical order instead of by value sizes.
+	Add `mouse-face' to list of properties for `describe-face' widget.
+	(describe-char): Mask out face-id from 19 bits of character.
+	Print face-id separately.
+
+	* replace.el (occur-accumulate-lines, occur-engine):
+	Fontify unfontified matching lines in the source buffer
+	before copying them.
+	(occur-engine): Don't put mouse-face on context lines.
+	(occur-next-error): Set point to line beginning/end
+	before searching for prev/next property to skip multiple
+	matches on a line (not supported by occur engine).
+	Remove redundant prefix-numeric-value.
+
 2004-12-15  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (match): New face.
