@@ -163,7 +163,7 @@ case "${canonical}" in
   *-*-netbsd* )
     opsys=netbsd
     case "${canonical}" in
-      alpha-*-netbsd*)	machine=alpha ;;
+      alpha*-*-netbsd*)	machine=alpha ;;
       i[3456]86-*-netbsd*) machine=intel386 ;;
       m68k-*-netbsd*)
 			# This is somewhat bogus.
@@ -179,7 +179,7 @@ case "${canonical}" in
   *-*-openbsd* )
     opsys=openbsd
     case "${canonical}" in
-      alpha-*-openbsd*)	machine=alpha ;;
+      alpha*-*-openbsd*)	machine=alpha ;;
       i386-*-openbsd*)	machine=intel386 ;;
       m68k-*-openbsd*)  machine=hp9000s300 ;;
       mipsel-*-openbsd*) machine=pmax ;;
@@ -229,14 +229,14 @@ case "${canonical}" in
   ;;
 
   ## Alpha (DEC) machines.
-  alpha-dec-osf* )
+  alpha*-dec-osf* )
     machine=alpha opsys=osf1
     # This is needed to find X11R6.1 libraries for certain tests.
     NON_GCC_LINK_TEST_OPTIONS=-Wl,-rpath,/usr/X11R6/lib
     GCC_LINK_TEST_OPTIONS=-Wl,-rpath,/usr/X11R6/lib
   ;;
 
-  alpha-*-linux-gnu* )
+  alpha*-*-linux-gnu* )
     machine=alpha opsys=gnu-linux
   ;;
 
