@@ -1,3 +1,10 @@
+2002-09-25  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-diag.el (list-character-sets): Use the buffer
+	name "*Character Set List*", not "*Help*".
+	(list-charset-chars): Use the buffer name "*Character List*", not
+	"*Help*".  Display the current charset name in the modeline.
+
 2002-09-24  Markus Rost  <rost@math.ohio-state.edu>
 
 	* simple.el (edit-and-eval-command):  Protect command-history.
