@@ -1,3 +1,7 @@
+2001-10-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* alloc-colors.c: New file.
+
 2001-10-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* make-emacs: Add --boot switch for bootstrapping.  Logs to
