@@ -6546,7 +6546,8 @@ quit_throw_to_read_char ()
 #ifdef MULTI_FRAME
   if (FRAMEP (internal_last_event_frame)
       && XFRAME (internal_last_event_frame) != selected_frame)
-    Fhandle_switch_frame (make_lispy_switch_frame (internal_last_event_frame));
+    do_switch_frame (make_lispy_switch_frame (internal_last_event_frame),
+		     Qnil, 0);
 #endif
 
   _longjmp (getcjmp, 1);
