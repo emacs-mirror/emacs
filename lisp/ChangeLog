@@ -1,3 +1,11 @@
+2000-09-18  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* info.el (Info-title-3-face, Info-title-2-face) 
+	(Info-title-1-face): Use face inheritance and relative sizes
+	instead of hard-wiring things.
+
+	* faces.el (secondary-selection): Make dark-background variant sane.
+
 2000-09-16  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.nt (compile-files): No need to make .elc files
