@@ -431,7 +431,7 @@ With prefix argument, delete and move backward."
       (rmail-summary-mark-deleted del-msg)
       (while (and (not (if backward (bobp) (eobp)))
 		  (save-excursion (beginning-of-line)
-				  (looking-at " +[0-9]+D")))
+				  (looking-at " *[0-9]+D")))
 	(forward-line (if backward -1 1))))))
 
 (defun rmail-summary-delete-backward ()
