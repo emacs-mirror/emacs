@@ -64,7 +64,7 @@ elisp.dvi: $(srcs) index.texi
 	if [ a${permuted_index} != a ]; \
 	then \
 	  ./permute-index; \
-	  mv permuted.fns elisp.fns;
+	  mv permuted.fns elisp.fns; \
 	  texindex elisp.tp; \
 	else \
 	  texindex elisp.??; \
