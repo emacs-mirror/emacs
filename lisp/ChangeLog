@@ -1,5 +1,15 @@
 2004-05-22  Richard M. Stallman  <rms@gnu.org>
 
+	* textmodes/paragraphs.el (sentence-end): Match unicode curly quotes
+	as a close quote.
+
+	* textmodes/bibtex.el: Use assoc-string, not assoc-ignore-case.
+
+	* progmodes/idlw-shell.el (idlwave-shell-get-object-class): 
+	Use assoc-string, not assoc-ignore-case.
+	
+	* progmodes/ada-mode.el: Use assoc-string, not assoc-ignore-case.
+
 	* emacs-lisp/lisp.el (mark-defun, narrow-to-defun):
 	If moving back then fwd gets a defun that ends before point,
 	try again moving fwd then back.
