@@ -1,4 +1,17 @@
-2003-02-24  Ramakrishnan M  <rkrishnan@alpha.m17n.org>  (tiny change)
+2003-02-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Fix syntaxes of gb2312 and big5.
+
+	* language/japan-util.el (sentence-end-save): Variable deleted.
+	(setup-japanese-environment-internal): Don't setup sentence-end.
+	(exit-japanese-environment): Function deleted.
+
+	* language/japanese.el ("Japanese"): Delete `exit-function'.
+
+	* textmodes/paragraphs.el (sentence-end): Add Chinese and Japanese
+	characters.
+
+2003-02-24  Ramakrishnan M  <rama@gnu.org>  (tiny change)
 
 	* language/mlm-util.el (mlm-char-glyph): Add entries for "halant +
 	rakar + halant" and "halant + rrakar + halant".
