@@ -1,3 +1,8 @@
+1999-12-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (show_mouse_face): Don't use updated_area, use
+	TEXT_AREA.
+
 1999-12-12  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* minibuf.c (Fall_completions): Doc fix.

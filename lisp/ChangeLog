@@ -1,3 +1,7 @@
+1999-12-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* battery.el (battery): Doc fix.
+
 1999-12-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/cc-make.el: Removed.
