@@ -1,3 +1,9 @@
+2000-05-16  Dave Love  <fx@gnu.org>
+
+	* cus-edit.el: Don't require cl or easymenu.
+	(custom-variable-prompt): Test standard-value property, not
+	user-variable-p.
+
 2000-05-16  Sam Steingold  <sds@gnu.org>
 
 	* subr.el (add-hook): `setq' hook-value, not `set'.
