@@ -1,3 +1,23 @@
+2000-10-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-before-save, vc-default-make-version-backups, 
+	vc-version-backup-file-name): New functions.
+
+	* files.el (basic-save-buffer): Call vc-before-save before saving.
+	
+	* vc-cvs.el (vc-cvs-make-version-backups): Return t if 
+	vc-cvs-stay-local-p.
+
+	* vc.el (vc-revert-buffer): Handle empty diff properly.
+	(vc-version-backup-file): New function.
+	(vc-checkout): Create a version backup if necessary.
+	(vc-checkin): If a version backup file exists, delete it.
+	(vc-version-diff): Diff locally using version backups, if available.
+	(vc-revert-file): If there's a version backup, revert locally.
+	(vc-transfer-file): Use version backup for base version, if
+	available.  If not, ask for confirmation whether to get it from the
+	server.  Update mode line before check-in.
+
 2000-10-04  Dave Love  <fx@gnu.org>
 
 	* toolbar/tool-bar.el (tool-bar-setup): New function.
