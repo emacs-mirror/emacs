@@ -288,13 +288,15 @@ See `run-hooks'."
      ;;
      ;; Declarations.  Hannes Haug <hannes.haug@student.uni-tuebingen.de> says
      ;; this works for SOS, STklos, SCOOPS, Meroon and Tiny CLOS.
-     (list (concat "(\\(define\\("
+     (list (concat "(\\(define\\*?\\("
 		   ;; Function names.
-		   "\\(\\|-method\\|-generic\\(-procedure\\)?\\)\\|"
+		   "\\(\\|-public\\|-method\\|-generic\\(-procedure\\)?\\)\\|"
 		   ;; Macro names, as variable names.  A bit dubious, this.
 		   "\\(-syntax\\)\\|"
 		   ;; Class names.
 		   "-class"
+                   ;; Guile modules.
+                   "\\|-module"
 		   "\\)\\)\\>"
 		   ;; Any whitespace and declared object.
 		   "[ \t]*(?"
