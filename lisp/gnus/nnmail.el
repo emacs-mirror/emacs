@@ -470,6 +470,10 @@ parameter.  It should return nil, `warn' or `delete'."
 (defun nnmail-request-post (&optional server)
   (mail-send-and-exit nil))
 
+;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
+(defvar nnmail-file-coding-system nil
+  "Coding system used in nnmail.")
+
 (defun nnmail-find-file (file)
   "Insert FILE in server buffer safely."
   (set-buffer nntp-server-buffer)
@@ -477,8 +481,19 @@ parameter.  It should return nil, `warn' or `delete'."
   (let ((format-alist nil)
         (after-insert-file-functions nil))
     (condition-case ()
-	(progn (insert-file-contents file) t)
+	;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
+	(let ((coding-system-for-read nnmail-file-coding-system)
+	      ;; 1997/8/12 by MORIOKA Tomohiko
+	      ;;	for XEmacs/mule.
+	      (pathname-coding-system 'binary))
+	  (insert-file-contents file)
+	  t)
       (file-error nil))))
+
+;; 1997/8/10 by MORIOKA Tomohiko
+(defvar nnmail-pathname-coding-system
+  'iso-8859-1
+  "*Coding system for pathname.")
 
 (defun nnmail-group-pathname (group dir &optional file)
   "Make pathname for GROUP."
@@ -489,7 +504,13 @@ parameter.  It should return nil, `warn' or `delete'."
 	     (file-directory-p (concat dir group)))
 	 (concat dir group "/")
        ;; If not, we translate dots into slashes.
-       (concat dir (nnheader-replace-chars-in-string group ?. ?/) "/")))
+       (concat dir
+	       ;; 1997/8/10 by MORIOKA Tomohiko
+	       ;;	encode file name for Emacs 20.
+	       (encode-coding-string
+		(nnheader-replace-chars-in-string group ?. ?/)
+		nnmail-pathname-coding-system)
+	       "/")))
    (or file "")))
 
 (defun nnmail-date-to-time (date)
@@ -668,11 +689,17 @@ nn*-request-list should have been called before calling this function."
 	      group-assoc)))
     group-assoc))
 
+;; 1997/8/12 by MORIOKA Tomohiko
+(defvar nnmail-active-file-coding-system
+  'iso-8859-1
+  "*Coding system for active file.")
+
 (defun nnmail-save-active (group-assoc file-name)
   "Save GROUP-ASSOC in ACTIVE-FILE."
-  (when file-name
-    (nnheader-temp-write file-name
-      (nnmail-generate-active group-assoc))))
+  (let ((coding-system-for-write nnmail-active-file-coding-system))
+    (when file-name
+      (nnheader-temp-write file-name
+	(nnmail-generate-active group-assoc)))))
 
 (defun nnmail-generate-active (alist)
   "Generate an active file from group-alist ALIST."
@@ -1112,7 +1139,12 @@ Return the number of characters in the body."
 		       (progn (forward-line 1) (point))))
       (insert (format "Xref: %s" (system-name)))
       (while group-alist
-	(insert (format " %s:%d" (caar group-alist) (cdar group-alist)))
+	;; 1997/8/10 by MORIOKA Tomohiko
+	;;	encode file name for Emacs 20.
+	(insert (format " %s:%d"
+			(encode-coding-string (caar group-alist)
+					      nnmail-pathname-coding-system)
+			(cdar group-alist)))
 	(setq group-alist (cdr group-alist)))
       (insert "\n"))))
 
@@ -1603,8 +1635,13 @@ If ARGS, PROMPT is used as an argument to `format'."
 
 (defun nnmail-write-region (start end filename &optional append visit lockname)
   "Do a `write-region', and then set the file modes."
-  (write-region start end filename append visit lockname)
-  (set-file-modes filename nnmail-default-file-modes))
+  ;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
+  (let ((coding-system-for-write nnmail-file-coding-system)
+	;; 1997/8/12 by MORIOKA Tomohiko
+	;;	for XEmacs/mule.
+	(pathname-coding-system 'binary))
+    (write-region start end filename append visit lockname)
+    (set-file-modes filename nnmail-default-file-modes)))
 
 ;;;
 ;;; Status functions
