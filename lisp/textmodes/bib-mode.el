@@ -163,7 +163,7 @@ the car of an entry is followed by one beginning with the cdr.
       (if (and (not empty) bib-auto-capitalize
 	    (looking-at bib-capitalized-fields))
 	(save-excursion
-	  (capitalize-title-region (+ (point) 3) end-current)))
+	  (bib-capitalize-title-region (+ (point) 3) end-current)))
       (goto-char beg-current)
       (if empty
 	(kill-line nil)
@@ -195,17 +195,16 @@ named by variable `unread-bib-file'."
       (append-to-file (mark) (point) unread-bib-file)))
 
 
-(defvar capitalize-title-stop-words
+(defvar bib-capitalize-title-stop-words
    (concat
       "the\\|and\\|of\\|is\\|a\\|an\\|of\\|for\\|in\\|to\\|in\\|on\\|at\\|"
       "by\\|with\\|that\\|its")
-   "Words not to be capitalized in a title (unless they're the first word
-in the title).")
+   "Words not to be capitalized in a title (unless the first word).")
 
-(defvar capitalize-title-stop-regexp
-   (concat "\\(" capitalize-title-stop-words "\\)\\(\\b\\|'\\)"))
+(defvar bib-capitalize-title-stop-regexp
+   (concat "\\(" bib-capitalize-title-stop-words "\\)\\(\\b\\|'\\)"))
 
-(defun capitalize-title-region (begin end)
+(defun bib-capitalize-title-region (begin end)
    "Like `capitalize-region', but don't capitalize stop words, except the first."
    (interactive "r")
    (let ((case-fold-search nil) (orig-syntax-table (syntax-table)))
@@ -221,20 +220,20 @@ in the title).")
 	       (if (looking-at "[A-Z][a-z]*[A-Z]")
 		  (forward-word 1)
 		  (if (let ((case-fold-search t))
-			 (looking-at capitalize-title-stop-regexp))
+			 (looking-at bib-capitalize-title-stop-regexp))
 		     (downcase-word 1)
 		     (capitalize-word 1)))
 	       ))
 	 (set-syntax-table orig-syntax-table))))
 
 
-(defun capitalize-title (s)
+(defun bib-capitalize-title (s)
    "Like `capitalize', but don't capitalize stop words, except the first."
    (save-excursion
       (set-buffer (get-buffer-create "$$$Scratch$$$"))
       (erase-buffer)
       (insert s)
-      (capitalize-title-region (point-min) (point-max))
+      (bib-capitalize-title-region (point-min) (point-max))
       (buffer-string)))
 
 (provide 'bib-mode)
