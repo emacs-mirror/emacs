@@ -1315,12 +1315,17 @@ or a character code.")
     return Faref (char_table, range);
   else if (VECTORP (range))
     {
-      int size = XVECTOR (range)->size;
-      Lisp_Object *val = XVECTOR (range)->contents;
-      Lisp_Object ch = Fmake_char_internal (size <= 0 ? Qnil : val[0],
-					    size <= 1 ? Qnil : val[1],
-					    size <= 2 ? Qnil : val[2]);
-      return Faref (char_table, ch);
+      if (XVECTOR (range)->size == 1)
+	return Faref (char_table, XVECTOR (range)->contents[0]);
+      else
+	{
+	  int size = XVECTOR (range)->size;
+	  Lisp_Object *val = XVECTOR (range)->contents;
+	  Lisp_Object ch = Fmake_char_internal (size <= 0 ? Qnil : val[0],
+						size <= 1 ? Qnil : val[1],
+						size <= 2 ? Qnil : val[2]);
+	  return Faref (char_table, ch);
+	}
     }
   else
     error ("Invalid RANGE argument to `char-table-range'");
@@ -1348,12 +1353,17 @@ or a character code.")
     Faset (char_table, range, value);
   else if (VECTORP (range))
     {
-      int size = XVECTOR (range)->size;
-      Lisp_Object *val = XVECTOR (range)->contents;
-      Lisp_Object ch = Fmake_char_internal (size <= 0 ? Qnil : val[0],
-					    size <= 1 ? Qnil : val[1],
-					    size <= 2 ? Qnil : val[2]);
-      return Faset (char_table, ch, value);
+      if (XVECTOR (range)->size == 1)
+	return Faset (char_table, XVECTOR (range)->contents[0], value);
+      else
+	{
+	  int size = XVECTOR (range)->size;
+	  Lisp_Object *val = XVECTOR (range)->contents;
+	  Lisp_Object ch = Fmake_char_internal (size <= 0 ? Qnil : val[0],
+						size <= 1 ? Qnil : val[1],
+						size <= 2 ? Qnil : val[2]);
+	  return Faset (char_table, ch, value);
+	}
     }
   else
     error ("Invalid RANGE argument to `set-char-table-range'");
