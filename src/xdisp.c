@@ -7563,7 +7563,6 @@ build_desired_tool_bar_string (f)
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
       int hmargin, vmargin, relief, idx, end;
       extern Lisp_Object QCrelief, QCmargin, QCconversion, Qimage;
-      extern Lisp_Object Qlaplace;
 
       /* If image is a vector, choose the image according to the
 	 button state.  */
