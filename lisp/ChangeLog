@@ -1,3 +1,13 @@
+2004-10-05  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-done): Set mark after running hook.
+	Suggested by Drew Adams <drew.adams@oracle.com>.
+
+	* info.el (Info-history, Info-toc): Fix Info headers.
+	(Info-toc): Narrow buffer before Info-fontify-node.
+	(Info-build-toc): Don't check for special Info file names.
+	Set main-file to nil if Info-find-file returns a symbol.
+
 2004-10-05  Emilio C. Lopes  <eclig@gmx.net>:
 
 	* calendar/calendar.el (calendar-goto-iso-week): Add autoload.
