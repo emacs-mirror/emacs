@@ -239,7 +239,7 @@ If WINDOW is nil or omitted, it defaults to the currently selected window."
 					  (setq done nil))))))
 			'nomini))))))
 
-;;; I think this should be the default; I think people will prefer it--rms.
+;; I think this should be the default; I think people will prefer it--rms.
 (defcustom split-window-keep-point t
   "*If non-nil, split windows keeps the original point in both children.
 This is often more convenient for editing.
@@ -300,13 +300,11 @@ new mode line."
 (defvar view-return-to-alist)
 
 (defun split-window-save-restore-data (new-w old-w)
-  (save-excursion
-    (set-buffer (window-buffer))
+  (with-current-buffer (window-buffer)
     (if view-mode
 	(let ((old-info (assq old-w view-return-to-alist)))
-	  (setq view-return-to-alist
-		(cons (cons new-w (cons (and old-info (car (cdr old-info))) t))
-		      view-return-to-alist))))
+	  (push (cons new-w (cons (and old-info (car (cdr old-info))) t))
+		view-return-to-alist)))
     new-w))
 
 (defun split-window-horizontally (&optional arg)
@@ -582,8 +580,9 @@ and the buffer that is killed or buried is the one in that window."
   "Handle select-window events."
   (interactive "e")
   (let ((window (posn-window (event-start event))))
-    (if (or (not (window-minibuffer-p window))
-	    (minibuffer-window-active-p window))
+    (if (and (window-live-p window)
+	     (or (not (window-minibuffer-p window))
+		 (minibuffer-window-active-p window)))
 	(select-window window))))
 
 (define-key ctl-x-map "2" 'split-window-vertically)
