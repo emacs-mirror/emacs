@@ -439,20 +439,22 @@ This function ensures that lines following the change will be refontified
 in case the syntax of those lines has changed.  Refontification
 will take place when text is fontified stealthily."
   (when jit-lock-mode
-    ;; It's important that the `fontified' property be set from the
-    ;; beginning of the line, else font-lock will properly change the
-    ;; text's face, but the display will have been done already and will
-    ;; be inconsistent with the buffer's content.
-    (setq start (line-beginning-position))
-    ;; Make sure we change at least one char (in case of deletions).
-    (setq end (min (max end (1+ start)) (point-max)))
-    ;; Request refontification.
-    (with-buffer-prepared-for-jit-lock
-     (put-text-property start end 'fontified nil))
-    ;; Mark the change for deferred contextual refontification.
-    (when jit-lock-first-unfontify-pos
-      (setq jit-lock-first-unfontify-pos
-	    (min jit-lock-first-unfontify-pos start)))))
+    (save-excursion
+      (with-buffer-prepared-for-jit-lock
+       ;; It's important that the `fontified' property be set from the
+       ;; beginning of the line, else font-lock will properly change the
+       ;; text's face, but the display will have been done already and will
+       ;; be inconsistent with the buffer's content.
+       (goto-char start)
+       (setq start (line-beginning-position))
+       ;; Make sure we change at least one char (in case of deletions).
+       (setq end (min (max end (1+ start)) (point-max)))
+       ;; Request refontification.
+       (put-text-property start end 'fontified nil))
+      ;; Mark the change for deferred contextual refontification.
+      (when jit-lock-first-unfontify-pos
+	(setq jit-lock-first-unfontify-pos
+	      (min jit-lock-first-unfontify-pos start))))))
   
 (provide 'jit-lock)
 
