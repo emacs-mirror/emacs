@@ -1404,6 +1404,7 @@ single_submenu (item_key, item_name, maps)
   wv->value = 0;
   wv->enabled = 1;
   wv->button_type = BUTTON_TYPE_NONE;
+  wv->help = Qnil;
   first_wv = wv;
   save_wv = 0;
   prev_wv = 0;
@@ -1476,6 +1477,7 @@ single_submenu (item_key, item_name, maps)
 	      wv->value = 0;
 	      wv->enabled = 1;
 	      wv->button_type = BUTTON_TYPE_NONE;
+	      wv->help = Qnil;
 	    }
 	  save_wv = wv;
 	  prev_wv = 0;
