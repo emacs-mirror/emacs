@@ -2,7 +2,7 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.14) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.15) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -26,7 +26,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.14) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.15) $");
 
 
 /* Types */
@@ -401,10 +401,6 @@ static Res MRGGroupCreate(MRGGroup *groupReturn, MRG mrg)
 
   /* design.mps.seg.field.rankset.start, .improve.rank */
   SegSetRankSet(refPartSeg, RankSetSingle(RankFINAL)); 
-
-  /* Required to keep the barrier consistent */
-  SegSetSummary(refPartSeg, RefSetUNIV);
-  SegSetSummary(refPartSeg, RefSetEMPTY);
 
   for(i = 0; i < nGuardians; ++i) 
     MRGGuardianInit(mrg, linkBase + i, refPartBase + i);
