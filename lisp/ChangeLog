@@ -1,3 +1,8 @@
+2000-09-19  Dave Love  <fx@gnu.org>
+
+	* map-ynp.el (map-y-or-n-p): Check use-dialog-box.  Don't lose
+	with null `help'.  Use modern backquote syntax.
+
 2000-09-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* font-lock.el (font-lock-mode): Change message telling the user
