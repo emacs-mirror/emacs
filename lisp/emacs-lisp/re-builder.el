@@ -494,7 +494,7 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
 
 (defun reb-auto-update (beg end lenold &optional force)
   "Called from `after-update-functions' to update the display.
-BEG END and LENOLD are passed in from the hook.
+BEG, END and LENOLD are passed in from the hook.
 An actual update is only done if the regexp has changed or if the
 optional fourth argument FORCE is non-nil."
   (let ((prev-valid reb-valid-string)
