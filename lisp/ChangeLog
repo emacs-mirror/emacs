@@ -1,3 +1,39 @@
+2003-05-27  David Ponce  <david@dponce.com>
+
+	* ruler-mode.el
+
+	Version 1.6
+
+	Take into account changes made to the display margins, fringes and
+	scroll-bar handling.
+
+	(ruler-mode-margins-char): Removed.  Not used anymore.
+	(ruler-mode-pad-face, ruler-mode-fringes-face): New faces.
+	(ruler-mode-margins-face): New definition.  Moved.
+	(ruler-mode-left-fringe-cols)
+	(ruler-mode-right-fringe-cols)
+	(ruler-mode-left-scroll-bar-cols)
+	(ruler-mode-right-scroll-bar-cols): Reimplemented.  Moved.
+	(ruler-mode-full-window-width)
+	(ruler-mode-window-col): New functions.
+	(ruler-mode-mouse-set-left-margin)
+	(ruler-mode-mouse-set-right-margin)
+	(ruler-mode-mouse-add-tab-stop)
+	(ruler-mode-mouse-del-tab-stop): Reimplemented.
+	(ruler-mode-mouse-current-grab-object): Renamed to...
+	(ruler-mode-dragged-symbol): New.
+	(ruler-mode-mouse-grab-any-column): Use it.  Cleaned up.
+	(ruler-mode-mouse-drag-any-column): Likewise.
+	(ruler-mode-mouse-drag-any-column-iteration): Simplified.
+	(ruler-mode): Restore previous `header-line-format' if
+	`ruler-mode-header-line-format-old' has a local binding in current
+	buffer.
+	(ruler-mode-left-margin-help-echo)
+	(ruler-mode-right-margin-help-echo): Removed.
+	(ruler-mode-margin-help-echo)
+	(ruler-mode-fringe-help-echo): New constants.
+	(ruler-mode-ruler): Use them.  Reimplemented.
+
 2003-06-01  Jason Rumney  <jasonr@gnu.org>
 
 	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event):
@@ -6,11 +42,11 @@
 	* term/w32-win.el: No need to bind wheel events specially.
 
 2003-06-01  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* desktop.el (desktop-create-buffer): Added (desktop-first-buffer) to
 	the let-statement to avoid the startup error that desktop-first-buffer
 	is undefined.
-	
+
 2003-06-01  Andreas Schwab  <schwab@suse.de>
 
 	* man.el (Man-name-regexp): Also match Latin-1 soft hyphen.
