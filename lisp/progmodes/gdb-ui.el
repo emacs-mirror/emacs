@@ -1902,7 +1902,7 @@ BUFFER nil or omitted means use the current buffer."
 
 (defun gdb-assembler-custom ()
   (let ((buffer (gdb-get-buffer 'gdb-assembler-buffer))
-	(pos 1) (address) (flag))
+	(pos 1) (address) (flag) (bptno))
     (with-current-buffer buffer
       (if (not (equal gdb-current-address "main"))
 	  (progn
@@ -1924,16 +1924,17 @@ BUFFER nil or omitted means use the current buffer."
 	(if (looking-at "[^\t].*breakpoint")
 	    (progn
 	      (looking-at
-	       "[0-9]*\\s-*\\S-*\\s-*\\S-*\\s-*\\(.\\)\\s-*0x\\(\\S-*\\)")
-	      (setq flag (char-after (match-beginning 1)))
-	      (setq address (match-string 2))
+	       "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\(.\\)\\s-+0x\\(\\S-+\\)")
+	      (setq bptno (match-string 1))
+	      (setq flag (char-after (match-beginning 2)))
+	      (setq address (match-string 3))
 	      ;; remove leading 0s from output of info break.
 	      (if (string-match "^0+\\(.*\\)" address)
 		  (setq address (match-string 1 address)))
 	      (with-current-buffer buffer
 		  (goto-char (point-min))
 		  (if (re-search-forward address nil t)
-		      (gdb-put-breakpoint-icon (eq flag ?y))))))))
+		      (gdb-put-breakpoint-icon (eq flag ?y) bptno)))))))
     (if (not (equal gdb-current-address "main"))
 	(set-window-point (get-buffer-window buffer 0) pos))))
 
