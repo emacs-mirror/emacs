@@ -1,5 +1,24 @@
 2000-10-04  Peter Breton  <pbreton@ne.mediaone.net>
 
+	* generic.el: 
+	Incorporates extensive cleanup and docfixes by 
+	Stefan Monnier (monnier+gnu/emacs@flint.cs.yale.edu).
+	Uses cl compile-time macros.
+	(generic-mode-name, generic-comment-list,
+	generic-keywords-list, generic-font-lock-expressions,
+	generic-mode-function-list, generic-mode-syntax-table):
+	Removed variables.
+	(generic-mode-alist): Renamed to generic-mode-list.
+	(generic-find-file-regexp): Default changed to "^#".
+	(generic-read-type): Uses completing read on generic-mode-list.
+	(generic-mode-sanity-check): removed this function.
+	(generic-add-to-auto-mode): Removed this function
+	(generic-mode-internal): Binds mode-specific definitions
+	into function instead of putting them in alist.
+	(generic-mode-set-comments): Reworked extensively.
+	(generic-mode-find-file-hook): Simplified regexp searching
+	(generic-make-keywords-list):  Omit extra pair of parens	
+
 	* find-lisp.el (find-lisp-find-files-internal): 
 	Make sure directory name ends with "/".
 
