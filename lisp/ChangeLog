@@ -1,3 +1,18 @@
+2000-11-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/fill.el (fill-indent-according-to-mode): New var.
+	(fill-region-as-paragraph): Use it.
+
+	* textmodes/tex-mode.el (standard-latex-block-names): Add "math".
+	(latex-mode): Tweak tex-*-(head|trail)er regexps.
+	Tweak paragraph regexps to allow a leading [ \t]*.
+	(tex-latex-block): Insert a newline if necessary.
+	(latex-insert-item): Only insert a newline if necessary.
+	(tex-guess-main-file): New function.
+	(tex-main-file): Use it.  Add arg `realfile'.  Trim `.tex'.
+	Set tex-main-file if TeX-master is provided.
+	(tex-latex-indent-syntax-table): Map ( and ) to punctuation.
+
 2000-11-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (command-line): Set the default tooltip-mode
