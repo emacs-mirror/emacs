@@ -5,6 +5,9 @@
 
 2003-11-22  Kenichi Handa  <handa@m17n.org>
 
+	* international/mule-conf.el (ctext-no-compositions): Remove
+	garbage arguments.
+
 	* international/mule.el (make-coding-system): Fix generation of
 	properties.
 

@@ -1,5 +1,8 @@
 2003-11-24  Kenichi Handa  <handa@m17n.org>
 
+	* keymap.c (store_in_keymap): Pay attention to the case that idx
+	is a cons specifying a character range.
+
 	* coding.c (Fdefine_coding_system_internal): Fix previous change.
 
 2003-11-23  Kenichi Handa  <handa@m17n.org>
