@@ -5401,7 +5401,7 @@ DIR defaults to current buffer's directory default.")
   (prompt, dir, default_filename, mustmatch, initial)
      Lisp_Object prompt, dir, default_filename, mustmatch, initial;
 {
-  Lisp_Object val, insdef, insdef1, tem;
+  Lisp_Object val, insdef, tem;
   struct gcpro gcpro1, gcpro2;
   register char *homedir;
   int replace_in_history = 0;
@@ -5433,6 +5433,19 @@ DIR defaults to current buffer's directory default.")
 			 STRING_BYTES (XSTRING (dir)) - strlen (homedir) + 1);
       XSTRING (dir)->data[0] = '~';
     }
+  /* Likewise for default_filename.  */
+  if (homedir != 0
+      && STRINGP (default_filename)
+      && !strncmp (homedir, XSTRING (default_filename)->data, strlen (homedir))
+      && IS_DIRECTORY_SEP (XSTRING (default_filename)->data[strlen (homedir)]))
+    {
+      default_filename
+	= make_string (XSTRING (default_filename)->data + strlen (homedir) - 1,
+		       STRING_BYTES (XSTRING (default_filename)) - strlen (homedir) + 1);
+      XSTRING (default_filename)->data[0] = '~';
+    }
+  if (!NILP (default_filename))
+    default_filename = double_dollars (default_filename);
 
   if (insert_default_directory && STRINGP (dir))
     {
@@ -5445,18 +5458,15 @@ DIR defaults to current buffer's directory default.")
 	  args[1] = initial;
 	  insdef = Fconcat (2, args);
 	  pos = make_number (XSTRING (double_dollars (dir))->size);
-	  insdef1 = Fcons (double_dollars (insdef), pos);
+	  insdef = Fcons (double_dollars (insdef), pos);
 	}
       else
-	insdef1 = double_dollars (insdef);
+	insdef = double_dollars (insdef);
     }
   else if (STRINGP (initial))
-    {
-      insdef = initial;
-      insdef1 = Fcons (double_dollars (insdef), make_number (0));
-    }
+    insdef = Fcons (double_dollars (initial), make_number (0));
   else
-    insdef = Qnil, insdef1 = Qnil;
+    insdef = Qnil;
 
   count = specpdl_ptr - specpdl;
 #ifdef VMS
@@ -5467,7 +5477,7 @@ DIR defaults to current buffer's directory default.")
 
   GCPRO2 (insdef, default_filename);
   val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
-			  dir, mustmatch, insdef1,
+			  dir, mustmatch, insdef,
 			  Qfile_name_history, default_filename, Qnil);
 
   tem = Fsymbol_value (Qfile_name_history);
@@ -5494,7 +5504,7 @@ DIR defaults to current buffer's directory default.")
   if (NILP (val))
     error ("No file name specified");
 
-  tem = Fstring_equal (val, insdef);
+  tem = Fstring_equal (val, CONSP (insdef) ? XCAR (insdef) : insdef);
 
   if (!NILP (tem) && !NILP (default_filename))
     val = default_filename;
@@ -5510,15 +5520,16 @@ DIR defaults to current buffer's directory default.")
   if (replace_in_history)
     /* Replace what Fcompleting_read added to the history
        with what we will actually return.  */
-    XCONS (Fsymbol_value (Qfile_name_history))->car = val;
+    XCONS (Fsymbol_value (Qfile_name_history))->car = double_dollars (val);
   else if (add_to_history)
     {
       /* Add the value to the history--but not if it matches
 	 the last value already there.  */
+      Lisp_Object val1 = double_dollars (val);
       tem = Fsymbol_value (Qfile_name_history);
-      if (! CONSP (tem) || NILP (Fequal (XCONS (tem)->car, val)))
+      if (! CONSP (tem) || NILP (Fequal (XCONS (tem)->car, val1)))
 	Fset (Qfile_name_history,
-	      Fcons (val, tem));
+	      Fcons (val1, tem));
     }
   return val;
 }
