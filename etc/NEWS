@@ -1827,6 +1827,10 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** New macro with-local-quit temporarily sets inhibit-quit to nil for use
+around potentially blocking or long-running code in timers
+and post-command-hooks.
+
 +++
 ** New face attribute `min-colors' can be used to tailor the face color
 to the number of colors supported by a display, and define the
