@@ -42,7 +42,7 @@ Boston, MA 02111-1307, USA.  */
 extern char **environ;
 extern Lisp_Object make_time ();
 extern void insert_from_buffer ();
-static long difftm ();
+static int tm_diff ();
 static void update_buffer_properties ();
 void set_time_zone_rule ();
 
@@ -703,7 +703,7 @@ ZONE is an integer indicating the number of seconds east of Greenwich.\n\
   if (decoded_time == 0)
     list_args[8] = Qnil;
   else
-    XSETINT (list_args[8], difftm (&save_tm, decoded_time));
+    XSETINT (list_args[8], tm_diff (&save_tm, decoded_time));
   return Flist (9, list_args);
 }
 
@@ -821,31 +821,29 @@ and from `file-attributes'.")
   return build_string (buf);
 }
 
-#define TM_YEAR_ORIGIN 1900
+#define TM_YEAR_BASE 1900
 
-/* Yield A - B, measured in seconds.  */
-static long
-difftm (a, b)
+/* Yield A - B, measured in seconds.
+   This function is copied from the GNU C Library.  */
+static int
+tm_diff (a, b)
      struct tm *a, *b;
 {
-  int ay = a->tm_year + (TM_YEAR_ORIGIN - 1);
-  int by = b->tm_year + (TM_YEAR_ORIGIN - 1);
-  /* Divide years by 100, rounding towards minus infinity.  */
-  int ac = ay / 100 - (ay % 100 < 0);
-  int bc = by / 100 - (by % 100 < 0);
-  /* Some compilers can't handle this as a single return statement.  */
-  long days = (
-	      /* difference in day of year */
-	      a->tm_yday - b->tm_yday
-	      /* + intervening leap days */
-	      +  ((ay >> 2) - (by >> 2))
-	      -  (ac - bc)
-	      +  ((ac >> 2) - (bc >> 2))
-	      /* + difference in years * 365 */
-	      +  (long)(ay-by) * 365
-	      );
-  return (60*(60*(24*days + (a->tm_hour - b->tm_hour))
-	      + (a->tm_min - b->tm_min))
+  /* Compute intervening leap days correctly even if year is negative.
+     Take care to avoid int overflow in leap day calculations,
+     but it's OK to assume that A and B are close to each other.  */
+  int a4 = (a->tm_year >> 2) + (TM_YEAR_BASE >> 2) - ! (a->tm_year & 3);
+  int b4 = (b->tm_year >> 2) + (TM_YEAR_BASE >> 2) - ! (b->tm_year & 3);
+  int a100 = a4 / 25 - (a4 % 25 < 0);
+  int b100 = b4 / 25 - (b4 % 25 < 0);
+  int a400 = a100 >> 2;
+  int b400 = b100 >> 2;
+  int intervening_leap_days = (a4 - b4) - (a100 - b100) + (a400 - b400);
+  int years = a->tm_year - b->tm_year;
+  int days = (365 * years + intervening_leap_days
+	      + (a->tm_yday - b->tm_yday));
+  return (60 * (60 * (24 * days + (a->tm_hour - b->tm_hour))
+		+ (a->tm_min - b->tm_min))
 	  + (a->tm_sec - b->tm_sec));
 }
 
@@ -876,12 +874,12 @@ the data it can't find.")
       && (t = gmtime (&value)) != 0)
     {
       struct tm gmt;
-      long offset;
+      int offset;
       char *s, buf[6];
 
       gmt = *t;		/* Make a copy, in case localtime modifies *t.  */
       t = localtime (&value);
-      offset = difftm (t, &gmt);
+      offset = tm_diff (t, &gmt);
       s = 0;
 #ifdef HAVE_TM_ZONE
       if (t->tm_zone)
