@@ -1,3 +1,13 @@
+2001-05-24  Andrew Choi  <akochoi@i-cable.com>
+
+	* CXTERM-DIC/CTLau.tit, CXTERM-DIC/CTLauB.tit: Delete files.
+
+	* MISC-DIC/CTLau.html, MISC-DIC/CTLau-b5.html: Add files.
+
+	* Makefile.in (TIT-GB): Remove CTLau.elc from it.
+	(TIT-BIG5): Remove CTLauB.elc from it.
+	(MISC-DIC): Add CTLau.elc and CTLauB.elc to it.
+
 2001-05-17  Dave Love  <fx@gnu.org>
 
 	* quail/latin-ltx.el ("TeX"): Renamed from "latin-latex2e".

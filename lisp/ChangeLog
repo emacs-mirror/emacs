@@ -1,3 +1,13 @@
+2001-05-24  Andrew Choi  <akochoi@i-cable.com>
+
+	* international/titdic-cnv.el (quail-cxterm-package-ext-info):
+	delete entries for chinese-ctlau and chinese-ctlaub.
+	(quail-misc-package-ext-info): add entries for chinese-ctlau and
+	chinese-ctlaub.
+	(ctlau-converter): New function.
+	(ctlau-gb-converter): New function.
+	(ctlau-b5-converter): New function.
+
 2001-05-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* cus-edit.el (custom-comment-show): Remove debug code.
