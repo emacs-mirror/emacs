@@ -766,23 +766,28 @@ Returns nil if line starts inside a string, t if in a comment."
 	       (beginning-of-line)
 	       (c-backward-to-noncomment containing-sexp))
 	     ;; Check for a preprocessor statement or its continuation lines.
-	     ;; Move back to end of previous non-preprocessor line.
+	     ;; Move back to end of previous non-preprocessor line,
+	     ;; or possibly beginning of buffer.
 	     (let ((found (point)) stop)
 	       (while (not stop)
-		 (cond ((save-excursion (end-of-line 0)
+		 (beginning-of-line)
+		 (cond ((bobp)
+			(setq found (point)
+			      stop t))
+		       ((save-excursion (forward-char -1)
 					(= (preceding-char) ?\\))
-			(end-of-line 0))
+			(forward-char -1))
 		       ;; This line is not preceded by a backslash.
 		       ;; So either it starts a preprocessor command
 		       ;; or any following continuation lines
 		       ;; should not be skipped.
-		       ((progn (beginning-of-line) (= (following-char) ?#))
-			(end-of-line 0)
+		       ((= (following-char) ?#)
+			(forward-char -1)
 			(setq found (point)))
 		       (t (setq stop t))))
 	       (goto-char found))
 	     ;; Now we get the answer.
-	     (if (and (not (memq (preceding-char) '(nil ?\, ?\; ?\} ?\{)))
+	     (if (and (not (memq (preceding-char) '(0 ?\, ?\; ?\} ?\{)))
 		      ;; But don't treat a line with a close-brace
 		      ;; as a continuation.  It is probably the
 		      ;; end of an enum type declaration.
@@ -1177,7 +1182,7 @@ If within a string or comment, move by sentences instead of statements."
 		    (if (= (following-char) ?})
 			(setq this-indent (car indent-stack))
 		      (c-backward-to-noncomment opoint)
-		      (if (not (memq (preceding-char) '(nil ?\, ?\; ?} ?: ?{)))
+		      (if (not (memq (preceding-char) '(0 ?\, ?\; ?} ?: ?{)))
 			  ;; Preceding line did not end in comma or semi;
 			  ;; indent this line  c-continued-statement-offset
 			  ;; more than previous.
