@@ -119,6 +119,9 @@ sigset_t sys_sigsetmask (/*sigset_t new_mask*/);
 #ifndef BSD4_1
 #define sigfree() sigsetmask (SIGEMPTYMASK)
 #define sigholdx(sig) sigsetmask (sigmask (sig))
+#ifdef __DJGPP__
+#define sigblock(sig) 0
+#endif
 #define sigblockx(sig) sigblock (sigmask (sig))
 #define sigunblockx(sig) sigblock (SIGEMPTYMASK)
 #define sigpausex(sig) sigpause (0)
