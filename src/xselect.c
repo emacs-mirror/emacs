@@ -27,12 +27,16 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"	/* frame.h seems to want this */
 #include "frame.h"	/* Need this to get the X window of selected_frame */
 #include "blockinput.h"
+#include "charset.h"
+#include "coding.h"
 
 #define CUT_BUFFER_SUPPORT
 
 Lisp_Object QPRIMARY, QSECONDARY, QSTRING, QINTEGER, QCLIPBOARD, QTIMESTAMP,
   QTEXT, QDELETE, QMULTIPLE, QINCR, QEMACS_TMP, QTARGETS, QATOM, QNULL,
   QATOM_PAIR;
+
+Lisp_Object QCOMPOUND_TEXT;	/* This is a type of selection.  */
 
 #ifdef CUT_BUFFER_SUPPORT
 Lisp_Object QCUT_BUFFER0, QCUT_BUFFER1, QCUT_BUFFER2, QCUT_BUFFER3,
@@ -110,6 +114,7 @@ symbol_to_x_atom (dpyinfo, display, sym)
   if (EQ (sym, QCLIPBOARD)) return dpyinfo->Xatom_CLIPBOARD;
   if (EQ (sym, QTIMESTAMP)) return dpyinfo->Xatom_TIMESTAMP;
   if (EQ (sym, QTEXT))	    return dpyinfo->Xatom_TEXT;
+  if (EQ (sym, QCOMPOUND_TEXT)) return dpyinfo->Xatom_COMPOUND_TEXT;
   if (EQ (sym, QDELETE))    return dpyinfo->Xatom_DELETE;
   if (EQ (sym, QMULTIPLE))  return dpyinfo->Xatom_MULTIPLE;
   if (EQ (sym, QINCR))	    return dpyinfo->Xatom_INCR;
@@ -188,6 +193,8 @@ x_atom_to_symbol (dpyinfo, display, atom)
     return QTIMESTAMP;
   if (atom == dpyinfo->Xatom_TEXT)
     return QTEXT;
+  if (atom == dpyinfo->Xatom_COMPOUND_TEXT)
+    return QCOMPOUND_TEXT;
   if (atom == dpyinfo->Xatom_DELETE)
     return QDELETE;
   if (atom == dpyinfo->Xatom_MULTIPLE)
@@ -1457,8 +1464,31 @@ selection_data_to_lisp_data (display, data, size, type, format)
 
   /* Convert any 8-bit data to a string, for compactness.  */
   else if (format == 8)
-    return make_string ((char *) data, size);
+    {
+      Lisp_Object str;
 
+      if (type != dpyinfo->Xatom_TEXT && type != dpyinfo->Xatom_COMPOUND_TEXT)
+	str = make_string ((char *) data, size);
+      else
+	{
+	  /* If TYPE is `TEXT' or `COMPOUND_TEXT', we should decode
+	     DATA to Emacs internal format because DATA may be
+	     encoded in compound text format.  */
+	  int bufsize, dummy;
+	  unsigned char *buf;
+	  struct coding_system coding;
+	  Lisp_Object sym = intern ("coding-system-ctext");
+
+	  setup_coding_system (Fcheck_coding_system (sym), &coding);
+	  coding.last_block = 1;
+	  bufsize = decoding_buffer_size (&coding, size);
+	  buf = (unsigned char *) xmalloc (bufsize);
+	  size = decode_coding (&coding, data, buf, size, bufsize, &dummy);
+	  str = make_string ((char *) buf, size);
+	  xfree (buf);
+	}
+      return str;
+    }
   /* Convert a single atom to a Lisp_Symbol.  Convert a set of atoms to
      a vector of symbols.
    */
@@ -1550,11 +1580,55 @@ lisp_data_to_selection_data (display, obj,
     }
   else if (STRINGP (obj))
     {
+      /* Since we are now handling multilingual text, we must consider
+	 sending back compound text.  */
+      char charsets[MAX_CHARSET];
+      int num;
+
       *format_ret = 8;
       *size_ret = XSTRING (obj)->size;
       *data_ret = XSTRING (obj)->data;
-      *nofree_ret = 1;
-      if (NILP (type)) type = QSTRING;
+      bzero (charsets, MAX_CHARSET);
+      num = ((*size_ret <= 1)	/* Check the possibility of short cut.  */
+	     ? 0
+	     : find_charset_in_str (*data_ret, *size_ret, charsets));
+
+      if (!num || (num == 1 && charsets[CHARSET_ASCII]))
+	{
+	  /* No multibyte character in OBJ.  We need not encode it.  */
+	  *nofree_ret = 1;
+	  if (NILP (type)) type = QSTRING;
+	}
+      else
+	{
+	  /* We must encode contents of OBJ to compound text format.
+             The format is compatible with what the target `STRING'
+             expects if OBJ contains only ASCII and Latin-1
+             characters.  */
+	  int bufsize, dummy;
+	  unsigned char *buf;
+	  struct coding_system coding;
+	  Lisp_Object sym = intern ("coding-system-ctext");
+
+	  setup_coding_system (Fcheck_coding_system (sym), &coding);
+	  coding.last_block = 1;
+	  bufsize = encoding_buffer_size (&coding, *size_ret);
+	  buf = (unsigned char *) xmalloc (bufsize);
+	  *size_ret = encode_coding (&coding, *data_ret, buf,
+				     *size_ret, bufsize, &dummy);
+	  *data_ret = buf;
+	  if (charsets[charset_latin_iso8859_1]
+	      && (num == 1 || (num == 2 && charsets[CHARSET_ASCII])))
+	    {
+	      /* Ok, we can return it as `STRING'.  */
+	      if (NILP (type)) type = QSTRING;
+	    }
+	  else
+	    {
+	      /* We must return it as `COMPOUND_TEXT'.  */
+	      if (NILP (type)) type = QCOMPOUND_TEXT;
+	    }
+	}
     }
   else if (SYMBOLP (obj))
     {
@@ -2185,6 +2259,7 @@ A value of 0 means wait as long as necessary.  This is initialized from the\n\
   QCLIPBOARD = intern ("CLIPBOARD");	staticpro (&QCLIPBOARD);
   QTIMESTAMP = intern ("TIMESTAMP");	staticpro (&QTIMESTAMP);
   QTEXT      = intern ("TEXT"); 	staticpro (&QTEXT);
+  QCOMPOUND_TEXT = intern ("COMPOUND_TEXT"); staticpro (&QCOMPOUND_TEXT);
   QTIMESTAMP = intern ("TIMESTAMP");	staticpro (&QTIMESTAMP);
   QDELETE    = intern ("DELETE");	staticpro (&QDELETE);
   QMULTIPLE  = intern ("MULTIPLE");	staticpro (&QMULTIPLE);
