@@ -807,14 +807,25 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
      descriptors zero, one, or two; this could happen if Emacs is
      started with its standard in, out, or error closed, as might
      happen under X.  */
-  in = relocate_fd (in, 3);
-  if (out == err)
-    err = out = relocate_fd (out, 3);
-  else
-    {
+  {
+    int oin = in, oout = out;
+
+    /* We have to avoid relocating the same descriptor twice!  */
+
+    in = relocate_fd (in, 3);
+
+    if (out == oin)
+      out = in;
+    else
       out = relocate_fd (out, 3);
+
+    if (err == oin)
+      err = in;
+    else if (err == oout)
+      err = out;
+    else
       err = relocate_fd (err, 3);
-    }
+  }
 
   close (0);
   close (1);
