@@ -1,3 +1,8 @@
+2001-05-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* keyboard.c (delete_kboard): Handle the case that selected_frame
+	has been deleted in the course of x_connection_closed.
+
 2001-05-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xterm.c (XTread_socket) <Expose> [!USE_TOOLKIT_SCROLL_BARS]: Fix

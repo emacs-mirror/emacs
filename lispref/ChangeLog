@@ -1,3 +1,8 @@
+2001-05-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (install): Use install-info command line options
+	like in Emacs' Makefile.in.
+
 2000-12-09  Miles Bader  <miles@gnu.org>
 
 	* windows.texi (Window Start): Update documentation for
@@ -24,12 +29,12 @@
 
 2000-10-18  Kai Grossjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
-	* hooks.texi (Standard Hooks): replace obsolete
+	* hooks.texi (Standard Hooks): Replace obsolete
 	`after-make-frame-hook' with `after-make-frame-functions'.
 
-	* frames.texi (Creating Frames): dito.
+	* frames.texi (Creating Frames): Ditto.
 
-	* variables.texi (Future Local Variables): dito.
+	* variables.texi (Future Local Variables): Ditto.
 
 2000-10-16  Gerd Moellmann  <gerd@gnu.org>
 

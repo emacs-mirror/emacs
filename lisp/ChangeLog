@@ -1,5 +1,8 @@
 2001-05-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* cus-edit.el (custom-file): Signal an error if user-init-file is
+	nil (running -q).
+
 	* mail/rmailedit.el (rmail-edit-mode-hook): Add :version.
 
 	* mail/smtpmail.el (smtpmail-warn-about-unknown-extensions): Add
