@@ -1,3 +1,8 @@
+2002-03-02  Jan D.  <jhd@gaffa.gaia.swipnet.se>
+
+	* PROBLEMS: Added information on how to set options in CDE so
+	dialogs are not covered by the parent frame.
+
 2002-02-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus.xpm: Remove garbages.
