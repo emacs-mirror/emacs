@@ -1,6 +1,17 @@
+2003-11-14  Kenichi Handa  <handa@m17n.org>
+
+	* xfaces.c (set_lface_from_font_name): Fix for the case that
+	FONTNAME is not fontset name.
+
 2003-11-13  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (base64_encode_1): Fix previous change.
+
+2003-11-08  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (set_fontset_font): New function.
+	(Fset_fontset_font): If a font is specified for a charset, use
+	map_charset_chars to store the font spec in a fontset.
 
 2003-10-29  Kenichi Handa  <handa@m17n.org>
 
