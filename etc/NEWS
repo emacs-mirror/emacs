@@ -12,9 +12,11 @@ For older news, see the file ONEWS
 When this option is enabled, M-x add-change-log-entry will always
 start a new record regardless of when the last record is.
 
-** New user option `html-xhtml'.
-When this option is enabled, HTML tags are inserted in XHTML style,
+** New user option `sgml-xml'.
+When this option is enabled, SGML tags are inserted in XML style,
 i.e., there is always a closing tag.
+When not customized, it becomes buffer-local when it can be inferred
+from the file name or buffer contents.
 
 ** When the *scratch* buffer is recreated, its mode is set from
 initial-major-mode, which normally is lisp-interaction-mode,
