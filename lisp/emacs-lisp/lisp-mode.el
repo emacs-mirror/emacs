@@ -419,24 +419,29 @@ alternative printed representations that can be displayed."
 						printed-value)))))
 
 
-(defun last-sexp-toggle-display ()
+(defun last-sexp-toggle-display (&optional arg)
   "Toggle between abbreviated and unabbreviated printed representations."
-  (interactive)
-  (let ((value (get-text-property (point) 'printed-value)))
-    (when value
-      (let ((beg (or (previous-single-property-change (min (point-max) (1+ (point)))
-						      'printed-value)
-		     (point)))
-	    (end (or (next-single-char-property-change (point) 'printed-value) (point)))
-	    (standard-output (current-buffer))
-	    (point (point)))
-	(delete-region beg end)
-	(insert (nth 1 value))
-	(last-sexp-setup-props beg (point)
-			       (nth 0 value)
-			       (nth 2 value)
-			       (nth 1 value))
-	(goto-char (min (point-max) point))))))
+  (interactive "P")
+  ;; Normally this command won't be called at end of line.
+  ;; But when the end of the line is also the end of the buffer,
+  ;; it does get called.  For consistency, pretend it was not called.
+  (if (eobp)
+      (newline arg)
+    (let ((value (get-text-property (point) 'printed-value)))
+      (when value
+	(let ((beg (or (previous-single-property-change (min (point-max) (1+ (point)))
+							'printed-value)
+		       (point)))
+	      (end (or (next-single-char-property-change (point) 'printed-value) (point)))
+	      (standard-output (current-buffer))
+	      (point (point)))
+	  (delete-region beg end)
+	  (insert (nth 1 value))
+	  (last-sexp-setup-props beg (point)
+				 (nth 0 value)
+				 (nth 2 value)
+				 (nth 1 value))
+	  (goto-char (min (point-max) point)))))))
 
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
@@ -626,7 +631,7 @@ which see."
 	     (unless (eq old-value new-value)
 	       (setq debug-on-error new-value))
 	     value)))))
-
+
 
 (defun lisp-comment-indent ()
   (if (looking-at "\\s<\\s<\\s<")
