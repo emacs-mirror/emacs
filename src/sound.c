@@ -360,6 +360,8 @@ sound_cleanup (arg)
       if (current_sound->fd > 0)
 	emacs_close (current_sound->fd);
     }
+
+  return Qnil;
 }
 
 
@@ -787,9 +789,13 @@ vox_configure (sd)
       && ioctl (sd->fd, SNDCTL_DSP_STEREO, &sd->channels) < 0)
     sound_perror ("Setting channels");
 
-  if (sd->volume > 0
-      && ioctl (sd->fd, SOUND_MIXER_WRITE_PCM, &sd->volume) < 0)
-    sound_perror ("Setting volume");
+  if (sd->volume > 0)
+    {
+      int volume = sd->volume & 0xff;
+      volume |= volume << 8;
+      if (ioctl (sd->fd, SOUND_MIXER_WRITE_PCM, &volume) < 0)
+	sound_perror ("Setting volume");
+    }
 }
 
 
