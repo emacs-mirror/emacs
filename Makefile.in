@@ -82,12 +82,12 @@ datadir=@datadir@
 # runs.	 These files are all architecture-independent. Right now, the
 # only such data is the locking directory; ${lockdir} is a
 # subdirectory of this.
-statedir=@statedir@
+sharedstatedir=@statedir@
 
 # Where to install and expect executable files to be run by Emacs
 # rather than directly by users, and other architecture-dependent
 # data.	 ${archlibdir} is a subdirectory of this.
-libdir=@libdir@
+libexecdir=@libexecdir@
 
 # Where to install Emacs's man pages, and what extension they should have.
 mandir=@mandir@
@@ -294,8 +294,8 @@ install: ${SUBDIR} install-arch-dep install-arch-indep blessmail;
 install-arch-dep: mkdir
 	(cd lib-src; \
 	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
-	    exec_prefix=${exec_prefix} bindir=${bindir} libdir=${libdir} \
-	    archlibdir=${archlibdir})
+	    exec_prefix=${exec_prefix} bindir=${bindir} \
+	    libexecdir=${libexecdir} archlibdir=${archlibdir})
 	${INSTALL_PROGRAM} src/emacs ${bindir}/emacs-${version}
 	-chmod 1755  ${bindir}/emacs-${version}
 	rm -f ${bindir}/$(EMACS)
@@ -355,7 +355,7 @@ install-arch-indep: mkdir
 ### instead of mkdir.  Not all systems' mkdirs have the `-p' flag.
 mkdir: FRC
 	./lib-src/make-path ${COPYDESTS} ${lockdir} ${infodir} ${mandir} \
-	  ${bindir} ${datadir} ${docdir} ${libdir} \
+	  ${bindir} ${datadir} ${docdir} ${libexecdir} \
 	  `echo ${locallisppath} | sed 's/:/ /g'`
 	-chmod 777 ${lockdir}
 
@@ -368,7 +368,7 @@ uninstall:
 	(cd lib-src; 					\
 	 $(MAKE) $(MFLAGS) uninstall			\
 	    prefix=${prefix} exec_prefix=${exec_prefix}	\
-	    bindir=${bindir} libdir=${libdir} archlibdir=${archlibdir})
+	    bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir})
 	for dir in ${lispdir} ${etcdir} ; do 		\
 	  if [ -d $${dir} ]; then			\
 	    case `(cd $${dir} ; /bin/pwd)` in		\
