@@ -3022,9 +3022,10 @@ This works by two steps:
             (progn
               (re-search-backward "--" nil 1)
               (goto-char (match-beginning 0)))
-          (progn
-            (forward-line 1)
-            (beginning-of-line))))
+	  (forward-line 1)
+	  ;; Used to have (beginning-of-line) here,
+	  ;; but that caused trouble at end of buffer with no newline.
+	  ))
        ;;
        ;; found in string => skip it
        ;;
