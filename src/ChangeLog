@@ -1,3 +1,13 @@
+2002-11-22  Dave Love  <fx@gnu.org>
+
+	* sysdep.c (stuff_char) [PROTOTYPES]: Provide ISO C arglist.
+
+	* keyboard.c (interrupt_signal): Provide forward declaration.
+	(kbd_buffer_store_event): Don't declare interrupt_signal.
+
+	* xdisp.c (store_frame_title_char) [PROTOTYPES]:  Provide ISO C
+	arglist.
+
 2002-11-21  Richard M. Stallman  <rms@gnu.org>
 
 	* eval.c (interactive_p): Skip any number of bytecode
