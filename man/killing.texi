@@ -320,6 +320,15 @@ mark after it.  This happens only if the argument is specified with just
 a @kbd{C-u}, precisely.  Any other sort of argument, including @kbd{C-u}
 and digits, specifies an earlier kill to yank (@pxref{Earlier Kills}).
 
+@cindex yanking and text properties
+@vindex yank-excluded-properties
+  The yank commands discard certain text properties from the text that
+is thanked, those that might lead to annoying results.  For instance,
+they discard text properties that respond to the mouse or specify key
+bindings.  The variable @code{yank-excluded-properties} specifies the
+properties to discard.  Yanking of register contents and rectangles
+also discard these properties.
+
 @kindex M-w
 @findex kill-ring-save
   To copy a block of text, you can use @kbd{M-w}
