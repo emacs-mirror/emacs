@@ -1,6 +1,6 @@
 ;;; timeclock.el --- mode for keeping track of how much you work
 
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
@@ -170,10 +170,10 @@ take effect."
 			     timeclock-update-timer)))
 	       (setq currently-displaying nil))
 	   (and currently-displaying
-		(set-variable timeclock-modeline-display nil))
+		(set-variable 'timeclock-modeline-display nil))
 	   (setq timeclock-use-display-time value)
 	   (and currently-displaying
-		(set-variable timeclock-modeline-display t))
+		(set-variable 'timeclock-modeline-display t))
 	   timeclock-use-display-time))
   :type 'boolean
   :group 'timeclock
@@ -275,7 +275,8 @@ positive.  Returns the new status of timeclock modeline display
     (if on-p
 	(let ((list-entry (memq 'global-mode-string
 				mode-line-format)))
-	  (unless (memq 'timeclock-mode-string mode-line-format)
+	  (unless (or (null list-entry)
+		      (memq 'timeclock-mode-string mode-line-format))
 	    (setcdr list-entry
 		    (cons 'timeclock-mode-string
 			  (cdr list-entry))))
@@ -712,7 +713,7 @@ This is only provided for coherency when used by
 
 
 (defsubst timeclock-day-required (day)
-  (car day))
+  (or (car day) timeclock-workday))
 
 (defsubst timeclock-day-length (day)
   (timeclock-entry-list-length (cdr day)))
@@ -998,13 +999,23 @@ identical to what would be return if `timeclock-relative' were nil."
   ;; This is not implemented in terms of the functions above, because
   ;; it's a bit wasteful to read all of that data in, just to throw
   ;; away more than 90% of the information afterwards.
-  (when (file-readable-p timeclock-file)
-    (let* ((now (current-time))
-	   (todays-date (timeclock-time-to-date now))
-	   (first t) (accum 0)
-	   event beg last-date avg
-	   last-date-limited last-date-seconds)
-      (unless timeclock-discrepancy
+  ;;
+  ;; If it were implemented using those functions, it would look
+  ;; something like this:
+  ;;  (let ((days (timeclock-day-alist (timeclock-log-data)))
+  ;;        (total 0.0))
+  ;;    (while days
+  ;;      (setq total (+ total (- (timeclock-day-length (cdar days))
+  ;;                              (timeclock-day-required (cdar days))))
+  ;;            days (cdr days)))
+  ;;    total)
+  (let* ((now (current-time))
+	 (todays-date (timeclock-time-to-date now))
+	 (first t) (accum 0)
+	 event beg last-date avg
+	 last-date-limited last-date-seconds)
+    (unless timeclock-discrepancy
+      (when (file-readable-p timeclock-file)
 	(setq timeclock-project-list nil
 	      timeclock-last-project nil
 	      timeclock-reason-list nil
@@ -1028,10 +1039,11 @@ identical to what would be return if `timeclock-relative' were nil."
 		     (add-to-list 'timeclock-project-list (nth 2 event))
 		     (setq timeclock-last-project (nth 2 event)))
 		   (let ((date (timeclock-time-to-date (cadr event))))
-		     (if (and timeclock-relative
-			      (if last-date
-				  (not (equal date last-date))
-				first))
+		     (if (if timeclock-relative
+			     (if last-date
+				 (not (equal date last-date))
+			       first)
+			   (equal date todays-date))
 			 (setq first nil
 			       accum (- accum
 					(if last-date-limited
@@ -1051,39 +1063,31 @@ identical to what would be return if `timeclock-relative' were nil."
 		       (if (not beg)
 			   (error "Error in format of timelog file!")
 			 (setq timeclock-last-period
-			       (- (timeclock-time-to-seconds (cadr event))
-				  beg)
+			       (- (timeclock-time-to-seconds (cadr event)) beg)
 			       accum (+ timeclock-last-period accum)
-			       beg nil)))
+			       beg nil))
+		     (setq beg nil))
 		   (if (equal last-date todays-date)
 		       (setq timeclock-elapsed
 			     (+ timeclock-last-period timeclock-elapsed)))))
 	    (setq timeclock-last-event event
 		  timeclock-last-event-workday
-		  (if (equal (timeclock-time-to-date now)
-			     last-date-limited)
+		  (if (equal (timeclock-time-to-date now) last-date-limited)
 		      last-date-seconds
 		    timeclock-workday))
 	    (forward-line))
-	  (setq timeclock-discrepancy accum)))
-      (setq accum (if today-only
-		      timeclock-elapsed
-		    timeclock-discrepancy))
-      (if timeclock-last-event
-	  (if (equal (car timeclock-last-event) "i")
-	      (setq accum (+ accum (timeclock-last-period now)))
-	    (if (not (equal (timeclock-time-to-date
-			     (cadr timeclock-last-event))
-			    (timeclock-time-to-date now)))
-		(setq accum (- accum timeclock-last-event-workday)))))
-      (setq accum
-	    (- accum
-	       (if (and timeclock-last-event
-			(equal (timeclock-time-to-date
-				(cadr timeclock-last-event))
-			       (timeclock-time-to-date now)))
-		   timeclock-last-event-workday
-		 timeclock-workday))))))
+	  (setq timeclock-discrepancy accum))))
+    (setq accum (if today-only
+		    timeclock-elapsed
+		  timeclock-discrepancy))
+    (if timeclock-last-event
+	(if (equal (car timeclock-last-event) "i")
+	    (setq accum (+ accum (timeclock-last-period now)))
+	  (if (not (equal (timeclock-time-to-date
+			   (cadr timeclock-last-event))
+			  (timeclock-time-to-date now)))
+	      (setq accum (- accum timeclock-last-event-workday)))))
+    accum))
 
 ;;; A reporting function that uses timeclock-log-data
 
@@ -1158,10 +1162,14 @@ identical to what would be return if `timeclock-relative' were nil."
 	  (if (null two-week-len)
 	      (setq two-week-len today-len))
 	  (if html-p (insert "<p>"))
-	  (insert "\nTime spent on this task today: "
-		  (timeclock-seconds-to-string today-len)
-		  ".  In the last two weeks: "
-		  (timeclock-seconds-to-string two-week-len))
+	  (if today-len
+	      (insert "\nTime spent on this task today: "
+		      (timeclock-seconds-to-string today-len)
+		      ".  In the last two weeks: "
+		      (timeclock-seconds-to-string two-week-len))
+	    (if two-week-len
+		(insert "\nTime spent on this task in the last two weeks: "
+			(timeclock-seconds-to-string two-week-len))))
 	  (if html-p (insert "<br>"))
 	  (insert "\n"
 		  (timeclock-seconds-to-string (timeclock-workday-elapsed))
@@ -1262,7 +1270,7 @@ identical to what would be return if `timeclock-relative' were nil."
 		      "</td>\n")
 	      (setq i (1+ i))))
 	  (insert "</tr>\n")
-	  
+
 	  (insert "<tr>\n")
 	  (insert "<td align=\"center\">Time out</td>\n")
 	  (let ((i 0) (l 5))
@@ -1272,7 +1280,7 @@ identical to what would be return if `timeclock-relative' were nil."
 		      "</td>\n")
 	      (setq i (1+ i))))
 	  (insert "</tr>\n")
-	  
+
 	  (insert "<tr>\n")
 	  (insert "<td align=\"center\">Break</td>\n")
 	  (let ((i 0) (l 5))
@@ -1282,7 +1290,7 @@ identical to what would be return if `timeclock-relative' were nil."
 		      "</td>\n")
 	      (setq i (1+ i))))
 	  (insert "</tr>\n")
-	  
+
 	  (insert "<tr>\n")
 	  (insert "<td align=\"center\">Workday</td>\n")
 	  (let ((i 0) (l 5))
