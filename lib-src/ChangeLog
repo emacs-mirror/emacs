@@ -1,3 +1,8 @@
+2000-02-10  Dave Love  <fx@gnu.org>
+
+	* etags.c (pfnote, new_pfnote, C_entries, prolog_pred)
+	(erlang_func): Add `static' to definitions to keep pcc happy.
+
 2000-01-31  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
 
 	* etags.c [MSDOS]: Set MSDOS to 1 if #defined, 0 otherwise.

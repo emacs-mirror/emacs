@@ -1,3 +1,8 @@
+2000-02-10  Dave Love  <fx@gnu.org>
+
+	* xfns.c (create_frame_xic): Fix initialization of automatic
+	aggregates for pcc.
+
 2000-02-09  Kenichi Handa  <handa@etl.go.jp>
 
 	* ccl.c (CCL_MAKE_CHAR): New macro.
