@@ -1251,7 +1251,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
 
   if (PT != GPT)
     move_gap_both (PT, PT_BYTE);
-  if (GAP_SIZE < nbytes)
+  if (GAP_SIZE < outgoing_nbytes)
     make_gap (outgoing_nbytes - GAP_SIZE);
   UNGCPRO;
 
