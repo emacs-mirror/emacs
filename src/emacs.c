@@ -762,10 +762,16 @@ bug_reporting_address ()
 
 /* ARGSUSED */
 int
-main (argc, argv, envp)
+main (argc, argv
+#ifdef VMS
+, envp
+#endif
+)
      int argc;
      char **argv;
+#ifdef VMS
      char **envp;
+#endif
 {
 #if GC_MARK_STACK
   Lisp_Object dummy;
