@@ -665,11 +665,11 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 		if (face == FRAME_DEFAULT_FACE (f))
 		  xgcv.foreground = f->display.x->cursor_foreground_pixel;
 		else
-		  xgcv.foreground = face->foreground;
+		  xgcv.foreground = face->background;
 		/* If the glyph would be invisible,
 		   try a different foreground.  */
 		if (xgcv.foreground == xgcv.background)
-		  xgcv.foreground = face->background;
+		  xgcv.foreground = face->foreground;
 		if (xgcv.foreground == xgcv.background)
 		  xgcv.foreground = f->display.x->cursor_foreground_pixel;
 		if (xgcv.foreground == xgcv.background)
@@ -3903,6 +3903,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    }
 	  else if (f == x_focus_frame)
 	    x_new_focus_frame (0);
+	  /* EnterNotify counts as mouse movement,
+	     so update things that depend on mouse position.  */
+	  if (f)
+	    note_mouse_movement (f, &event.xmotion);
 #ifdef USE_X_TOOLKIT
 	  goto OTHER;
 #endif /* USE_X_TOOLKIT */
