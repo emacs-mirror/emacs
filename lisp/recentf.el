@@ -321,10 +321,23 @@ menu-elements (no sub-menu)."
     l))
 
 (defvar recentf-menu-items-for-commands
-  (list ["Cleanup list" recentf-cleanup t]
-        ["Edit list..." recentf-edit-list t]
-        ["Save list now" recentf-save-list t]
-        (vector "Recentf Options..." '(customize-group "recentf") t))
+  (list ["Cleanup list"
+         recentf-cleanup
+         :help "Remove all non-readable and excluded files from the recent list"
+         :active t]
+        ["Edit list..."
+         recentf-edit-list
+         :help "Edit the files that are kept in the recent list"
+         :active t]
+        ["Save list now"
+         recentf-save-list
+         :help "Save the list of recently opened files now"
+         :active t]
+        ["Options..."
+         (customize-group "recentf")
+         :help "Customize recently opened files menu and options"
+         :active t]
+        )
   "List of menu items for recentf commands.")
 
 (defvar recentf-menu-filter-commands nil
@@ -342,9 +355,13 @@ filter function this variable is reset to nil.")
                  (recentf-apply-menu-filter
                   recentf-menu-filter
                   (recentf-menu-elements recentf-max-menu-items)))))
-    (append (or file-items (list ["No files" t nil]))
+    (append (or file-items (list ["No files" t
+                                  :help "No recent file to open"
+                                  :active nil]))
             (and (< recentf-max-menu-items (length recentf-list))
-                 (list ["More..." recentf-open-more-files t]))
+                 (list ["More..." recentf-open-more-files
+                        :help "Open files that are not in the menu"
+                        :active t]))
             (and recentf-menu-filter-commands
                  (cons "---"
                        recentf-menu-filter-commands))
@@ -360,7 +377,8 @@ filter function this variable is reset to nil.")
         (cons menu-item (mapcar 'recentf-make-menu-item menu-value))
       (vector menu-item
               (list recentf-menu-action menu-value)
-              t))))
+              :help (concat "Open " menu-value)
+              :active t))))
 
 ;;;;
 ;;;; Predefined menu filter functions
@@ -653,13 +671,13 @@ Arrange them in sub-menus following rules in `recentf-arrange-rules'."
 (defun recentf-build-dir-rules (l)
   "Convert directories in menu-elements L to rules in `recentf-arrange-rules' format."
   (let (dirs)
-    (mapcar (function
-             (lambda (e)
-               (let ((dir (file-name-directory
-                           (recentf-menu-element-value e))))
-                 (or (member dir dirs)
-                     (setq dirs (cons dir dirs))))))
-            l)
+    (mapc (function
+           (lambda (e)
+             (let ((dir (file-name-directory
+                         (recentf-menu-element-value e))))
+               (or (member dir dirs)
+                   (setq dirs (cons dir dirs))))))
+          l)
     (mapcar (function
              (lambda (d)
                (cons (concat d " (%d)")
@@ -748,7 +766,7 @@ unchanged."
           (setq recentf-menu-filter-commands
                 (list (vector (cdr next-filter-item)
                               '(recentf-filter-changer-goto-next)
-                              t)))))
+                              :active t)))))
     l))
 
 ;;;;
@@ -817,10 +835,10 @@ is a list (default to the full list)."
     (cond ((consp value)
            (if (and (integerp limit) (> limit 0))
                (setq value (recentf-trunc-list value limit)))
-           (mapcar (function
-                    (lambda (e)
-                      (insert (format "        %S\n" e))))
-                   value))
+           (mapc (function
+                  (lambda (e)
+                    (insert (format "        %S\n" e))))
+                 value))
           (t
            (insert (format "        %S\n" value))))
     (insert "        ))\n")
@@ -871,33 +889,33 @@ Holds list of files to be deleted from `recentf-list'.")
       (erase-buffer))
     (let ((all (overlay-lists)))
       ;; Delete all the overlays.
-      (mapcar 'delete-overlay (car all))
-      (mapcar 'delete-overlay (cdr all)))
+      (mapc 'delete-overlay (car all))
+      (mapc 'delete-overlay (cdr all)))
     (setq recentf-edit-selected-items nil)
     ;; Insert the dialog header
     (widget-insert "Select the files to be deleted from the 'recentf-list'.\n\n")
     (widget-insert "Click on Ok to update the list. ")
     (widget-insert "Click on Cancel or type \"q\" to quit.\n")
     ;; Insert the list of files as checkboxes
-    (mapcar (function
-             (lambda (item)
-               (widget-create 'checkbox
-                              :value nil ; unselected checkbox
-                              :format "\n %[%v%]  %t"
-                              :tag item
-                              :notify 'recentf-edit-list-action)))
-            recentf-list)
+    (mapc (function
+           (lambda (item)
+             (widget-create 'checkbox
+                            :value nil  ; unselected checkbox
+                            :format "\n %[%v%]  %t"
+                            :tag item
+                            :notify 'recentf-edit-list-action)))
+          recentf-list)
     (widget-insert "\n\n")
     ;; Insert the Ok button
     (widget-create 'push-button
                    :notify (lambda (&rest ignore)
                              (if recentf-edit-selected-items
                                  (progn (kill-buffer (current-buffer))
-                                        (mapcar (function
-                                                 (lambda (item)
-                                                   (setq recentf-list
-                                                         (delq item recentf-list))))
-                                                recentf-edit-selected-items)
+                                        (mapc (function
+                                               (lambda (item)
+                                                 (setq recentf-list
+                                                       (delq item recentf-list))))
+                                              recentf-edit-selected-items)
                                         (message "%S file(s) removed from the list"
                                                  (length recentf-edit-selected-items))
                                         (setq recentf-update-menu-p t))
@@ -951,8 +969,8 @@ Holds list of files to be deleted from `recentf-list'.")
                          :tag menu-item
                          :sample-face 'bold
                          :format (concat shift "%{%t%}:\n"))
-          (mapcar 'recentf-open-files-item
-                  file-path)
+          (mapc 'recentf-open-files-item
+                file-path)
           (widget-insert "\n"))
       (widget-create 'push-button
                      :button-face 'default
@@ -981,17 +999,17 @@ which buffer to use for the interaction."
       (erase-buffer))
     (let ((all (overlay-lists)))
       ;; Delete all the overlays.
-      (mapcar 'delete-overlay (car all))
-      (mapcar 'delete-overlay (cdr all)))
+      (mapc 'delete-overlay (car all))
+      (mapc 'delete-overlay (cdr all)))
     ;; Insert the dialog header
     (widget-insert "Click on a file to open it. ")
     (widget-insert "Click on Cancel or type \"q\" to quit.\n\n" )
     ;; Insert the list of files as buttons
     (let ((recentf-open-files-item-shift ""))
-      (mapcar 'recentf-open-files-item
-              (recentf-apply-menu-filter
-               recentf-menu-filter
-               (mapcar 'recentf-make-default-menu-element files))))
+      (mapc 'recentf-open-files-item
+            (recentf-apply-menu-filter
+             recentf-menu-filter
+             (mapcar 'recentf-make-default-menu-element files))))
     (widget-insert "\n")
     ;; Insert the Cancel button
     (widget-create 'push-button
