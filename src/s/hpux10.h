@@ -13,6 +13,10 @@
 #define HPUX10
 #define FORCE_ALLOCA_H
 
+/* AlainF 20-Jul-1996 says this is right.  */
+#undef KERNEL_FILE
+#define KERNEL_FILE "/stand/vmunix"
+
 #ifdef LIBS_SYSTEM
 #undef LIBS_SYSTEM
 #endif
