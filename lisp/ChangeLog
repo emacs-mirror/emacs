@@ -1,3 +1,8 @@
+2000-08-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/mule-cmds.el (select-safe-coding-system): Make
+	the message text about selecting a safe coding system more clear.
+
 2000-08-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* hi-lock.el: New file.
