@@ -1,3 +1,20 @@
+2001-09-24  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ebnf2ps.el: Eliminate make-local-hook calls.  Doc fix.
+	(ebnf-version): New version (3.6.1).
+
+	* ebnf-bnf.el: Fix character range regexp.  Doc fix.
+	(ebnf-bnf-non-terminal-chars): New internal const.
+	(ebnf-bnf-lex): Fix code.
+
+	* ebnf-iso.el: Fix character range regexp.  Doc fix.
+	(ebnf-iso-non-terminal-chars): New internal const.
+	(ebnf-iso-lex): Fix code.
+
+	* ebnf-yac.el: Fix character range regexp.  Doc fix.
+	(ebnf-yac-skip-chars): New internal const.
+	(ebnf-yac-skip-code): Fix code.
+
 2001-09-24  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* pcvs-parse.el (cvs-parse-commit): Expand the file name before
