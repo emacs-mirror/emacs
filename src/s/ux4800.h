@@ -9,7 +9,6 @@
 #endif
 #define XOS_NEEDS_TIME_H
 #define HAVE_CLOCK
-#define GETTIMEOFDAY_ONE_ARGUMENT
 #ifdef __STDC__
 #define MKDIR_PROTOTYPE int mkdir(char *dpath, mode_t dmode)
 #endif
