@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.17 2001/02/01 15:11:05 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.18 2001/02/01 17:42:03 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -509,7 +509,7 @@ Needs RCS 5.6.2 or later for -M."
 
 (defun vc-rcs-print-log (file)
   "Get change log associated with FILE."
-  (vc-do-command t 0 "rlog" (vc-name file)))
+  (vc-do-command nil 0 "rlog" (vc-name file)))
 
 (defun vc-rcs-show-log-entry (version)
   (when (re-search-forward
@@ -545,7 +545,7 @@ Needs RCS 5.6.2 or later for -M."
 (defun vc-rcs-diff (file &optional oldvers newvers)
   "Get a difference report using RCS between two versions of FILE."
   (if (not oldvers) (setq oldvers (vc-workfile-version file)))
-  (apply 'vc-do-command t 1 "rcsdiff" file
+  (apply 'vc-do-command "*vc-diff*" 1 "rcsdiff" file
          (append (list "-q"
                        (concat "-r" oldvers)
                        (and newvers (concat "-r" newvers)))
