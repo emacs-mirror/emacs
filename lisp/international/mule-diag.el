@@ -1106,7 +1106,8 @@ The list is null if CHAR isn't found in `unicodedata-file'."
     (unless (file-exists-p unicodedata-file)
       (error "`unicodedata-file' %s not found" unicodedata-file))
     (save-excursion
-      (set-buffer (find-file-noselect unicodedata-file nil t))
+      (set-buffer (find-file-noselect unicodedata-file t t))
+      (toggle-read-only 1)
       (goto-char (point-min))
       (let ((hex (format "%04X" char))
 	    found first last)
