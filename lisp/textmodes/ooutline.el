@@ -206,8 +206,8 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate (concat paragraph-separate "\\|^\\("
 				   outline-regexp "\\)"))
-  (make-local-variable 'font-lock-keywords)
-  (setq font-lock-keywords outline-font-lock-keywords)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(outline-font-lock-keywords t))
   (make-local-variable 'change-major-mode-hook)
   (add-hook 'change-major-mode-hook 'show-all)
   (run-hooks 'text-mode-hook 'outline-mode-hook))
