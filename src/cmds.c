@@ -493,7 +493,6 @@ internal_self_insert (c, noautofill)
 	hairy = 2;
     }
 
-#ifdef HAVE_FACES
   /* If previous command specified a face to use, use it.  */
   if (!NILP (Vself_insert_face)
       && EQ (current_kboard->Vlast_command, Vself_insert_face_command))
@@ -502,7 +501,6 @@ internal_self_insert (c, noautofill)
 			  Qface, Vself_insert_face, Qnil);
       Vself_insert_face = Qnil;
     }
-#endif
 
   synt = SYNTAX (c);
   if ((synt == Sclose || synt == Smath)
