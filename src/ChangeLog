@@ -1,3 +1,10 @@
+2004-02-21  Juri Linkov  <juri@jurta.org>
+
+	* emacs.c (USAGE1): Add --no-desktop.  Move --display from USAGE2.
+	Fix --multibyte.  Move --help, --version to USAGE2.  Add alias
+	--file.  Fix -f, -l.  Sort options.  Untabify.
+	(USAGE2): Add -hb.  Fix --name, --title.  Sort options.  Untabify.
+
 2004-02-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* category.c (Fdefine_category, Fcategory_docstring)

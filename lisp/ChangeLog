@@ -1,4 +1,11 @@
-2004-02-21  Stephen Compall  <s11@member.fsf.org>  (tiny change)
+2004-02-21  Stephen Compall  <s11@member.fsf.org>
+
+	* saveplace.el (save-place-forget-unreadable-files)
+	(save-place-save-skipped, save-place-skip-check-regexp): New
+	defcustoms.
+	(save-place-forget-unreadable-files): New function.
+	(save-place-alist-to-file): Use it to filter out files that are
+	no longer readable.
 
 	* textmodes/texinfo.el (texinfo-insert-@item): Look for the
 	current Texinfo environment, using the same method as in
