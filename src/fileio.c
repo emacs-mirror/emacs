@@ -299,6 +299,7 @@ Lisp_Object Qunhandled_file_name_directory;
 Lisp_Object Qfile_name_as_directory;
 Lisp_Object Qcopy_file;
 Lisp_Object Qmake_directory_internal;
+Lisp_Object Qmake_directory;
 Lisp_Object Qdelete_directory;
 Lisp_Object Qdelete_file;
 Lisp_Object Qrename_file;
@@ -5225,8 +5226,14 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
 
   if (STRINGP (Vauto_save_list_file_name))
     {
-      Lisp_Object listfile;
+      Lisp_Object listfile, dir;
+      
       listfile = Fexpand_file_name (Vauto_save_list_file_name, Qnil);
+      
+      dir = Ffile_name_directory (listfile);
+      if (NILP (Ffile_directory_p (dir)))
+	call2 (Qmake_directory, dir, Qt);
+      
       stream = fopen (XSTRING (listfile)->data, "w");
       if (stream != NULL)
 	{
@@ -5700,6 +5707,7 @@ syms_of_fileio ()
   Qfile_name_as_directory = intern ("file-name-as-directory");
   Qcopy_file = intern ("copy-file");
   Qmake_directory_internal = intern ("make-directory-internal");
+  Qmake_directory = intern ("make-directory");
   Qdelete_directory = intern ("delete-directory");
   Qdelete_file = intern ("delete-file");
   Qrename_file = intern ("rename-file");
@@ -5731,6 +5739,7 @@ syms_of_fileio ()
   staticpro (&Qfile_name_as_directory);
   staticpro (&Qcopy_file);
   staticpro (&Qmake_directory_internal);
+  staticpro (&Qmake_directory);
   staticpro (&Qdelete_directory);
   staticpro (&Qdelete_file);
   staticpro (&Qrename_file);
