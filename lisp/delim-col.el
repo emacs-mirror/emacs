@@ -4,8 +4,8 @@
 
 ;; Author:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Time-stamp:	<2000/10/23 10:51:25 vinicius>
-;; Version:	2.0
+;; Time-stamp:	<2000/10/24 10:35:58 vinicius>
+;; Version:	2.1
 ;; Keywords:	internal
 ;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
 
@@ -293,7 +293,7 @@ START and END delimits the text region."
 	(goto-char start)
 	(beginning-of-line)
 	;; get maximum length for each column
-	(and delimit-columns-align-columns
+	(and delimit-columns-format
 	     (save-excursion
 	       (while (< (point) the-end)
 		 (delimit-columns-rectangle-max
@@ -356,7 +356,7 @@ START and END delimits the corners of text rectangle."
 	delimit-columns-max)
     (when (<= delimit-columns-start delimit-columns-end)
       ;; get maximum length for each column
-      (and delimit-columns-align-columns
+      (and delimit-columns-format
 	   (save-excursion
 	     (operate-on-rectangle 'delimit-columns-rectangle-max
 				   start the-end nil)))
