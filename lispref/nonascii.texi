@@ -95,9 +95,10 @@ default value to @code{nil} early in startup.
 
 @defun position-bytes position
 @tindex position-bytes
-Return the byte-position corresponding to buffer position @var{position}
-in the current buffer.  If @var{position} is out of range, the value
-is @code{nil}.
+Return the byte-position corresponding to buffer position
+@var{position} in the current buffer.  This is 1 at the start of the
+buffer, and counts upward in bytes.  If @var{position} is out of
+range, the value is @code{nil}.
 @end defun
 
 @defun byte-to-position byte-position
@@ -359,6 +360,11 @@ as the property list of that symbol.  Charset properties are used for
 special purposes within Emacs.
 @end defun
 
+@deffn Command list-charset-chars charset
+This command displays a list of characters in the character set
+@var{charset}.
+@end deffn
+
 @node Chars and Bytes
 @section Characters and Bytes
 @cindex bytes and characters
@@ -473,6 +479,13 @@ smallest code in @var{charset}.
 part of a buffer or a string.  One use for this is in determining which
 coding systems (@pxref{Coding Systems}) are capable of representing all
 of the text in question.
+
+@defun charset-after &optional pos
+This function return the charset of a character in the current buffer
+at position @var{pos}.  If @var{pos} is omitted or @code{nil}, it
+defauls to the current value of point.  If @var{pos} is out of range,
+the value is @code{nil}.
+@end defun
 
 @defun find-charset-region beg end &optional translation
 This function returns a list of the character sets that appear in the
@@ -673,7 +686,7 @@ a coding system for decoding the file data, and @code{write-region}
 uses one to encode the buffer contents.
 
   You can specify the coding system to use either explicitly
-(@pxref{Specifying Coding Systems}), or implicitly using the defaulting
+(@pxref{Specifying Coding Systems}), or implicitly using a default
 mechanism (@pxref{Default Coding Systems}).  But these methods may not
 completely specify what to do.  For example, they may choose a coding
 system such as @code{undefined} which leaves the character code
