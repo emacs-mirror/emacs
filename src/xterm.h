@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 1994, 1998, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -120,8 +120,12 @@ extern struct frame *x_top_window_to_frame ();
 
 extern Visual *select_visual ();
 
-enum text_cursor_kinds {
-  filled_box_cursor, hollow_box_cursor, bar_cursor
+enum text_cursor_kinds
+{
+  NO_CURSOR = -1,
+  FILLED_BOX_CURSOR,
+  HOLLOW_BOX_CURSOR,
+  BAR_CURSOR
 };
 
 /* Structure recording X pixmap and reference count.
@@ -143,32 +147,48 @@ struct x_display_info
 {
   /* Chain of all x_display_info structures.  */
   struct x_display_info *next;
+  
   /* Connection number (normally a file descriptor number).  */
   int connection;
+  
   /* This says how to access this display in Xlib.  */
   Display *display;
+  
   /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).
      The same cons cell also appears in x_display_name_list.  */
   Lisp_Object name_list_element;
+  
   /* Number of frames that are on this display.  */
   int reference_count;
+  
   /* The Screen this connection is connected to.  */
   Screen *screen;
+
+  /* Dots per inch of the screen.  */
+  double resx, resy;
+  
   /* The Visual being used for this display.  */
   Visual *visual;
+  
   /* Number of panes on this screen.  */
   int n_planes;
+  
   /* Dimensions of this screen.  */
   int height, width;
+  
   /* Mask of things that cause the mouse to be grabbed.  */
   int grabbed;
+  
   /* Emacs bitmap-id of the default icon bitmap for this frame.
      Or -1 if none has been allocated yet.  */
   int icon_bitmap_id;
+  
   /* The root window of this screen.  */
   Window root_window;
+  
   /* The cursor to use for vertical scroll bars.  */
   Cursor vertical_scroll_bar_cursor;
+  
   /* X Resource data base */
   XrmDatabase xrdb;
 
@@ -178,15 +198,24 @@ struct x_display_info
   /* The current capacity of x_font_table.  */
   int font_table_size;
 
+  /* Minimum width over all characters in all fonts in font_table.  */
+  int smallest_char_width;
+
+  /* Minimum font height over all fonts in font_table.  */
+  int smallest_font_height;
+
   /* Reusable Graphics Context for drawing a cursor in a non-default face. */
   GC scratch_cursor_gc;
 
-  /* These variables describe the range of text currently shown
-     in its mouse-face, together with the window they apply to.
-     As long as the mouse stays within this range, we need not
-     redraw anything on its account.  */
+  /* These variables describe the range of text currently shown in its
+     mouse-face, together with the window they apply to.  As long as
+     the mouse stays within this range, we need not redraw anything on
+     its account.  Rows and columns are glyph matrix positions in
+     MOUSE_FACE_WINDOW.  */
   int mouse_face_beg_row, mouse_face_beg_col;
+  int mouse_face_beg_x, mouse_face_beg_y;
   int mouse_face_end_row, mouse_face_end_col;
+  int mouse_face_end_x, mouse_face_end_y;
   int mouse_face_past_end;
   Lisp_Object mouse_face_window;
   int mouse_face_face_id;
@@ -203,11 +232,13 @@ struct x_display_info
   /* Nonzero means defer mouse-motion highlighting.  */
   int mouse_face_defer;
 
+  int mouse_face_image_state;
+
   char *x_id_name;
 
   /* The number of fonts actually stored in x_font_table.
-     font_table[n] is used and valid iff 0 <= n < n_fonts.
-     0 <= n_fonts <= font_table_size.  */
+     font_table[n] is used and valid iff 0 <= n < n_fonts.  0 <=
+     n_fonts <= font_table_size and font_table[i].name != 0.  */
   int n_fonts;
 
   /* Pointer to bitmap records.  */
@@ -245,15 +276,19 @@ struct x_display_info
 
   /* Communication with window managers.  */
   Atom Xatom_wm_protocols;
+  
   /* Kinds of protocol things we may receive.  */
   Atom Xatom_wm_take_focus;
   Atom Xatom_wm_save_yourself;
   Atom Xatom_wm_delete_window;
+  
   /* Atom for indicating window state to the window manager.  */
   Atom Xatom_wm_change_state;
+  
   /* Other WM communication */
   Atom Xatom_wm_configure_denied; /* When our config request is denied */
   Atom Xatom_wm_window_moved;     /* When the WM moves us.  */
+  
   /* EditRes protocol */
   Atom Xatom_editres;
 
@@ -268,6 +303,12 @@ struct x_display_info
   Atom Xatom_PIXEL_SIZE,
   Xatom_MULE_BASELINE_OFFSET, Xatom_MULE_RELATIVE_COMPOSE,
   Xatom_MULE_DEFAULT_ASCENT;
+
+  /* More atoms for Ghostscript support.  */
+  Atom Xatom_DONE, Xatom_PAGE;
+
+  /* Atom used in toolkit scroll bar client messages.  */
+  Atom Xatom_Scrollbar;
 
 #ifdef MULTI_KBOARD
   struct kboard *kboard;
@@ -297,6 +338,12 @@ struct x_display_info
   /* The null pixel used for filling a character background with
      background color of a gc.  */
   Pixmap null_pixel;
+
+  /* The gray pixmap.  */
+  Pixmap gray;
+
+  /* Cache of images.  */
+  struct image_cache *image_cache;
 };
 
 /* This is a chain of structures for all the X displays currently in use.  */
@@ -314,12 +361,13 @@ extern Lisp_Object Vx_pixel_size_width_font_regexp;
 /* A flag to control how to display unibyte 8-bit character.  */
 extern int unibyte_display_via_language_environment;
 
-extern struct x_display_info *x_display_info_for_display ();
-extern struct x_display_info *x_display_info_for_name ();
+struct x_display_info *x_display_info_for_display P_ ((Display *));
+struct x_display_info *x_display_info_for_name ();
 
 extern struct x_display_info *x_term_init ();
 
-extern Lisp_Object x_list_fonts ();
+extern Lisp_Object x_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
+
 extern struct font_info *x_get_font_info(), *x_load_font (), *x_query_font ();
 extern void x_find_ccl_program();
 
@@ -411,11 +459,28 @@ struct x_output
   unsigned long mouse_pixel;
   unsigned long cursor_foreground_pixel;
 
+  /* Foreground color for scroll bars.  A value of -1 means use the
+     default (black for non-toolkit scroll bars).  */
+  unsigned long scroll_bar_foreground_pixel;
+  
+  /* Background color for scroll bars.  A value of -1 means use the
+     default (background color of the frame for non-toolkit scroll
+     bars).  */
+  unsigned long scroll_bar_background_pixel;
+
   /* Descriptor for the cursor in use for this window.  */
   Cursor text_cursor;
   Cursor nontext_cursor;
   Cursor modeline_cursor;
   Cursor cross_cursor;
+  Cursor busy_cursor;
+
+  /* Window whose cursor is busy_cursor.  This window is temporarily
+     mapped to display a busy-cursor.  */
+  Window busy_window;
+  
+  /* Non-zero means busy cursor is currently displayed.  */
+  unsigned busy_p : 1;
 
   /* Flag to set when the X window needs to be completely repainted.  */
   int needs_exposure;
@@ -448,20 +513,10 @@ struct x_output
      scroll bars, in pixels.  */
   int vertical_scroll_bar_extra;
 
-  /* Table of parameter faces for this frame.  Any X resources (pixel
-     values, fonts) referred to here have been allocated explicitly
-     for this face, and should be freed if we change the face.  */
-  struct face **param_faces;
-  int n_param_faces;
-
-  /* Table of computed faces for this frame.  These are the faces
-     whose indexes go into the upper bits of a glyph, computed by
-     combining the parameter faces specified by overlays, text
-     properties, and what have you.  The X resources mentioned here
-     are all shared with parameter faces.  */
-  struct face **computed_faces;
-  int n_computed_faces;		/* How many are valid */
-  int size_computed_faces;	/* How many are allocated */
+  /* The extra width currently allotted for the areas in which
+     truncation marks, continuation marks, and overlay arrows are
+     displayed.  */
+  int flags_areas_extra;
 
   /* This is the gravity value for the specified window position.  */
   int win_gravity;
@@ -497,19 +552,20 @@ struct x_output
   /* Input context (currently, this means Compose key handler setup).  */
   XIC xic;
 #endif
+
+  /* Relief GCs, colors etc.  */
+  struct relief
+  {
+    GC gc;
+    unsigned long pixel;
+    int allocated_p;
+  }
+  black_relief, white_relief;
+
+  /* The background for which the above relief GCs were set up.
+     They are changed only when a different background is involved.  */
+  unsigned long relief_background;
 };
-
-/* Get at the computed faces of an X window frame.  */
-#define FRAME_PARAM_FACES(f) ((f)->output_data.x->param_faces)
-#define FRAME_N_PARAM_FACES(f) ((f)->output_data.x->n_param_faces)
-#define FRAME_DEFAULT_PARAM_FACE(f) (FRAME_PARAM_FACES (f)[0])
-#define FRAME_MODE_LINE_PARAM_FACE(f) (FRAME_PARAM_FACES (f)[1])
-
-#define FRAME_COMPUTED_FACES(f) ((f)->output_data.x->computed_faces)
-#define FRAME_N_COMPUTED_FACES(f) ((f)->output_data.x->n_computed_faces)
-#define FRAME_SIZE_COMPUTED_FACES(f) ((f)->output_data.x->size_computed_faces)
-#define FRAME_DEFAULT_FACE(f) ((f)->output_data.x->computed_faces[0])
-#define FRAME_MODE_LINE_FACE(f) ((f)->output_data.x->computed_faces[1])
 
 /* Return the X window used for displaying data in frame F.  */
 #define FRAME_X_WINDOW(f) ((f)->output_data.x->window_desc)
@@ -527,6 +583,10 @@ struct x_output
 #define FRAME_FONTSET(f) ((f)->output_data.x->fontset)
 #define FRAME_INTERNAL_BORDER_WIDTH(f) ((f)->output_data.x->internal_border_width)
 #define FRAME_LINE_HEIGHT(f) ((f)->output_data.x->line_height)
+
+/* Width of the default font of frame F.  Must be defined by each
+   terminal specific header.  */
+#define FRAME_DEFAULT_FONT_WIDTH(F) 	FONT_WIDTH (FRAME_FONT (F))
 
 /* This gives the x_display_info structure for the display F is on.  */
 #define FRAME_X_DISPLAY_INFO(f) ((f)->output_data.x->display_info)
@@ -548,6 +608,41 @@ struct x_output
 
 #define FRAME_XIM(f) ((f)->output_data.x->xim)
 #define FRAME_XIC(f) ((f)->output_data.x->xic)
+
+/* Value is the smallest width of any character in any font on frame F.  */
+
+#define FRAME_SMALLEST_CHAR_WIDTH(F) \
+     FRAME_X_DISPLAY_INFO(F)->smallest_char_width
+
+/* Value is the smallest height of any font on frame F.  */
+
+#define FRAME_SMALLEST_FONT_HEIGHT(F) \
+     FRAME_X_DISPLAY_INFO(F)->smallest_font_height
+
+/* Return a pointer to the image cache of frame F.  */
+
+#define FRAME_X_IMAGE_CACHE(F) FRAME_X_DISPLAY_INFO ((F))->image_cache
+
+
+/* Pixel width of the bitmaps drawn to indicate truncation,
+   continuation etc.  */
+
+#define FRAME_FLAGS_BITMAP_WIDTH(f)	8
+#define FRAME_FLAGS_BITMAP_HEIGHT(f)	8
+
+/* Width of a single area reserved for drawing truncation bitmaps,
+   continuation bitmaps and alike.  The width is in canonical char
+   units of the frame.  This must currently be the case because window
+   sizes aren't pixel values.  If it weren't the case, we wouldn't be
+   able to split windows horizontally nicely.  */
+
+#define FRAME_X_FLAGS_AREA_COLS(F)				\
+     ((FRAME_FLAGS_BITMAP_WIDTH ((F)) + CANON_X_UNIT ((F)) - 1)	\
+      / CANON_X_UNIT ((F)))
+
+#define FRAME_X_FLAGS_AREA_WIDTH(F) \
+     (FRAME_X_FLAGS_AREA_COLS ((F)) * CANON_X_UNIT ((F)))
+
 
 /* X-specific scroll bar stuff.  */
 
@@ -574,6 +669,9 @@ struct scroll_bar {
   /* The X window representing this scroll bar.  Since this is a full
      32-bit quantity, we store it split into two 32-bit values.  */
   Lisp_Object x_window_low, x_window_high;
+
+  /* Same as above for the widget.  */
+  Lisp_Object x_widget_low, x_widget_high;
 
   /* The position and size of the scroll bar in pixels, relative to the
      frame.  */
@@ -626,11 +724,14 @@ struct scroll_bar {
 #define SET_SCROLL_BAR_X_WINDOW(ptr, id) \
   (SCROLL_BAR_UNPACK ((ptr)->x_window_low, (ptr)->x_window_high, (int) id))
 
+/* Extract the X widget of the scroll bar from a struct scroll_bar.  */
+#define SCROLL_BAR_X_WIDGET(ptr) \
+  ((Widget) SCROLL_BAR_PACK ((ptr)->x_widget_low, (ptr)->x_widget_high))
 
-/* Return the outside pixel height for a vertical scroll bar HEIGHT
-   rows high on frame F.  */
-#define VERTICAL_SCROLL_BAR_PIXEL_HEIGHT(f, height) \
-  ((height) * (f)->output_data.x->line_height)
+/* Store a widget id in a struct scroll_bar.  */
+#define SET_SCROLL_BAR_X_WIDGET(ptr, w) \
+  (SCROLL_BAR_UNPACK ((ptr)->x_widget_low, (ptr)->x_widget_high, (int) w))
+
 
 /* Return the inside width of a vertical scroll bar, given the outside
    width.  */
@@ -698,6 +799,7 @@ struct scroll_bar {
 #define CHAR_TO_PIXEL_WIDTH(f, width) \
   (CHAR_TO_PIXEL_COL (f, width) \
    + (f)->output_data.x->vertical_scroll_bar_extra \
+   + (f)->output_data.x->flags_areas_extra \
    + (f)->output_data.x->internal_border_width)
 #define CHAR_TO_PIXEL_HEIGHT(f, height) \
   (CHAR_TO_PIXEL_ROW (f, height) \
@@ -718,10 +820,12 @@ struct scroll_bar {
 #define PIXEL_TO_CHAR_WIDTH(f, width) \
   (PIXEL_TO_CHAR_COL (f, ((width) \
 			  - (f)->output_data.x->internal_border_width \
+			  - (f)->output_data.x->flags_areas_extra \
 			  - (f)->output_data.x->vertical_scroll_bar_extra)))
 #define PIXEL_TO_CHAR_HEIGHT(f, height) \
   (PIXEL_TO_CHAR_ROW (f, ((height) \
 			  - (f)->output_data.x->internal_border_width)))
+
 
 /* If a struct input_event has a kind which is selection_request_event
    or selection_clear_event, then its contents are really described
@@ -757,74 +861,70 @@ struct selection_input_event
   (((struct selection_input_event *) (eventp))->time)
 
 
-/* Interface to the face code functions.  */
-
-/* Forward declarations for prototypes.  */
-struct frame;
 struct window;
+struct glyph_matrix;
+struct frame;
 struct input_event;
 
-/* Create the first two computed faces for a frame -- the ones that
-   have GC's.  */
-extern void init_frame_faces P_ ((struct frame *));
+/* From xselect.c.  */
 
-/* Free the resources for the faces associated with a frame.  */
-extern void free_frame_faces P_ ((struct frame *));
+void x_handle_selection_notify P_ ((XSelectionEvent *));
+void x_handle_property_notify P_ ((XPropertyEvent *));
 
-/* Given a computed face, find or make an equivalent display face
-   in face_vector, and return a pointer to it.  */
-extern struct face *intern_face P_ ((struct frame *, struct face *));
+/* From xfns.c.  */
 
-/* Given a frame and a face name, return the face's ID number, or
-   zero if it isn't a recognized face name.  */
-extern int face_name_id_number P_ ((struct frame *, Lisp_Object));
+void x_real_positions P_ ((struct frame *, int *, int *));
+void x_destroy_bitmap P_ ((struct frame *, int));
+int x_create_bitmap_from_file P_ ((struct frame *, Lisp_Object));
+int x_create_bitmap_from_data P_ ((struct frame *, char *, unsigned,
+				   unsigned));
+void x_reference_bitmap P_ ((struct frame *, int));
+void x_sync P_ ((struct frame *));
+int x_bitmap_pixmap P_ ((struct frame *, int));
+void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
+int x_bitmap_height P_ ((struct frame *, int));
+int x_bitmap_width P_ ((struct frame *, int));
+int defined_color P_ ((struct frame *, char *, XColor *, int));
+Lisp_Object display_x_get_resource P_ ((struct x_display_info *,
+					Lisp_Object, Lisp_Object,
+					Lisp_Object, Lisp_Object));
+struct frame *check_x_frame P_ ((Lisp_Object));
+EXFUN (Fx_display_color_p, 1);
+EXFUN (Fx_display_grayscale_p, 1);
 
-/* Return non-zero if FONT1 and FONT2 have the same size bounding box.
-   We assume that they're both character-cell fonts.  */
-extern int same_size_fonts P_ ((XFontStruct *, XFontStruct *));
+/* From xrdb.c.  */
 
-/* Recompute the GC's for the default and modeline faces.
-   We call this after changing frame parameters on which those GC's
-   depend.  */
-extern void recompute_basic_faces P_ ((struct frame *));
+char *x_get_string_resource P_ ((XrmDatabase, char *, char *));
+char *x_get_customization_string P_ ((XrmDatabase, char *, char *));
+XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
+int x_get_resource P_ ((XrmDatabase, char *, char *,
+			XrmRepresentation, XrmValue *));
+void x_delete_display P_ ((struct x_display_info *));
+void x_make_frame_visible P_ ((struct frame *));
+void x_iconify_frame P_ ((struct frame *));
+void x_wm_set_size_hint P_ ((struct frame *, long, int));
+void x_set_offset P_ ((struct frame *, int, int, int));
+void x_wm_set_icon_position P_ ((struct frame *, int, int));
+int x_catch_errors P_ ((Display *));
+int x_had_errors_p P_ ((Display *));
+void x_uncatch_errors P_ ((Display *, int));
+void x_check_errors P_ ((Display *, char *));
+int x_text_icon P_ ((struct frame *, char *));
+int x_bitmap_icon P_ ((struct frame *, Lisp_Object));
+void x_set_window_size P_ ((struct frame *, int, int, int));
+void x_wm_set_window_state P_ ((struct frame *, int));
+int x_alloc_nearest_color P_ ((Display *, Screen *, Colormap, XColor *));
 
-/* Return the face ID associated with a buffer position POS.  Store
-   into *ENDPTR the next position at which a different face is
-   needed.  This does not take account of glyphs that specify their
-   own face codes.  F is the frame in use for display, and W is a
-   window displaying the current buffer.
-
-   REGION_BEG, REGION_END delimit the region, so it can be highlighted.  */
-extern int compute_char_face P_ ((struct frame *frame,
-				  struct window *w,
-				  int pos,
-				  int region_beg, int region_end,
-				  int *endptr,
-				  int limit, int mouse));
-/* Return the face ID to use to display a special glyph which selects
-   FACE_CODE as the face ID, assuming that ordinarily the face would
-   be BASIC_FACE.  F is the frame.  */
-extern int compute_glyph_face P_ ((struct frame *, int, int));
-
-/* Given a pixel position (PIX_X, PIX_Y) on the frame F, return
-   glyph co-ordinates in (*X, *Y).  Set *BOUNDS to the rectangle
-   that the glyph at X, Y occupies, if BOUNDS != 0.
-   If NOCLIP is nonzero, do not force the value into range.  */
-
-extern void pixel_to_glyph_coords P_ ((struct frame *f, int pix_x, int pix_y,
-				       int *x, int *y, XRectangle *bounds,
-				       int noclip));
-
-extern void glyph_to_pixel_coords P_ ((struct frame *f, int x, int y,
-				       int *pix_x, int *pix_y));
+extern void pixel_to_glyph_coords P_ ((struct frame *, int, int,
+				       int *, int *, XRectangle *, int));
 
 /* Defined in xterm.c */
 
+extern void clear_mouse_face P_ ((struct x_display_info *));
 extern void cancel_mouse_face P_ ((struct frame *));
 extern void x_scroll_bar_clear P_ ((struct frame *));
 extern void x_start_queuing_selection_requests P_ ((Display *));
 extern void x_stop_queuing_selection_requests P_ ((Display *));
-extern void x_display_cursor P_ ((struct frame *, int, int, int));
 extern void x_update_cursor P_ ((struct frame *, int));
 extern int x_text_icon P_ ((struct frame *, char *));
 extern int x_bitmap_icon P_ ((struct frame *, Lisp_Object));
@@ -850,6 +950,8 @@ extern void x_wm_set_icon_pixmap P_ ((struct frame *, int));
 extern void x_wm_set_icon_position P_ ((struct frame *, int, int));
 extern void x_delete_display P_ ((struct x_display_info *));
 extern void x_initialize P_ ((void));
+void x_display_cursor P_ ((struct window *, int, int, int, int, int));
+void x_update_cursor P_ ((struct frame *, int));
 
 /* Defined in xselect.c */
 
@@ -885,17 +987,19 @@ extern int x_screen_planes P_ ((struct frame *));
 extern void x_sync P_ ((struct frame *));
 
 /* Defined in xfaces.c */
+
 extern int frame_update_line_height P_ ((struct frame *));
-extern void clear_face_cache P_ ((void));
 extern int compute_glyph_face P_ ((struct frame *, int, int));
 extern int compute_glyph_face_1 P_ ((struct frame *, Lisp_Object, int));
 
 /* Defined in xmenu.c */
+
 extern void x_activate_menubar P_ ((struct frame *));
 extern int popup_activated P_ ((void));
 extern void initialize_frame_menubar P_ ((struct frame *));
 
 /* Defined in widget.c */
+
 #ifdef USE_X_TOOLKIT
 extern void widget_store_internal_border P_ ((Widget));
 #endif
