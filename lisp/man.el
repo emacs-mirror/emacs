@@ -199,7 +199,7 @@ the manpage buffer.")
 (defvar Man-section-regexp "[0-9][a-zA-Z+]*\\|[LNln]"
   "*Regular expression describing a manpage section within parentheses.")
 
-(defvar Man-heading-regexp "^[ \t]*[A-Z]"
+(defvar Man-heading-regexp "^[ \t]*[A-Z][A-Z \t]+$"
   "*Regular expression describing a manpage heading entry.")
 
 (defvar Man-see-also-regexp "SEE ALSO"
