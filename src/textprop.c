@@ -883,7 +883,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
 
-  if (! NILP (limit) && ! EQ (limit, Qt))
+  if (!NILP (limit) && !EQ (limit, Qt))
     CHECK_NUMBER_COERCE_MARKER (limit);
 
   i = validate_interval_range (object, &position, &position, soft);
@@ -911,13 +911,17 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 
   next = next_interval (i);
 
-  while (! NULL_INTERVAL_P (next) && intervals_equal (i, next)
+  while (!NULL_INTERVAL_P (next) && intervals_equal (i, next)
 	 && (NILP (limit) || next->position < XFASTINT (limit)))
     next = next_interval (next);
 
   if (NULL_INTERVAL_P (next))
     return limit;
-  if (! NILP (limit) && !(next->position < XFASTINT (limit)))
+  if (NILP (limit))
+    XSETFASTINT (limit, (STRINGP (object)
+			 ? XSTRING (object)->size
+			 : BUF_ZV (XBUFFER (object))));
+  if (!(next->position < XFASTINT (limit)))
     return limit;
 
   XSETFASTINT (position, next->position);
@@ -993,7 +997,11 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 
   if (NULL_INTERVAL_P (next))
     return limit;
-  if (! NILP (limit) && !(next->position < XFASTINT (limit)))
+  if (NILP (limit))
+    XSETFASTINT (limit, (STRINGP (object)
+			 ? XSTRING (object)->size
+			 : BUF_ZV (XBUFFER (object))));
+  if (!(next->position < XFASTINT (limit)))
     return limit;
 
   return make_number (next->position);
@@ -1030,14 +1038,15 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
     i = previous_interval (i);
 
   previous = previous_interval (i);
-  while (! NULL_INTERVAL_P (previous) && intervals_equal (previous, i)
+  while (!NULL_INTERVAL_P (previous) && intervals_equal (previous, i)
 	 && (NILP (limit)
 	     || (previous->position + LENGTH (previous) > XFASTINT (limit))))
     previous = previous_interval (previous);
   if (NULL_INTERVAL_P (previous))
     return limit;
-  if (!NILP (limit)
-      && !(previous->position + LENGTH (previous) > XFASTINT (limit)))
+  if (NILP (limit))
+    XSETFASTINT (limit, (STRINGP (object) ? 0 : BUF_BEGV (XBUFFER (object))));
+  if (!(previous->position + LENGTH (previous) > XFASTINT (limit)))
     return limit;
 
   return make_number (previous->position + LENGTH (previous));
@@ -1070,7 +1079,7 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
   i = validate_interval_range (object, &position, &position, soft);
 
   /* Start with the interval containing the char before point.  */
-  if (! NULL_INTERVAL_P (i) && i->position == XFASTINT (position))
+  if (!NULL_INTERVAL_P (i) && i->position == XFASTINT (position))
     i = previous_interval (i);
 
   if (NULL_INTERVAL_P (i))
@@ -1078,15 +1087,16 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
 
   here_val = textget (i->plist, prop);
   previous = previous_interval (i);
-  while (! NULL_INTERVAL_P (previous)
+  while (!NULL_INTERVAL_P (previous)
 	 && EQ (here_val, textget (previous->plist, prop))
 	 && (NILP (limit)
 	     || (previous->position + LENGTH (previous) > XFASTINT (limit))))
     previous = previous_interval (previous);
   if (NULL_INTERVAL_P (previous))
     return limit;
-  if (!NILP (limit)
-      && !(previous->position + LENGTH (previous) > XFASTINT (limit)))
+  if (NILP (limit))
+    XSETFASTINT (limit, (STRINGP (object) ? 0 : BUF_BEGV (XBUFFER (object))));
+  if (!(previous->position + LENGTH (previous) > XFASTINT (limit)))
     return limit;
 
   return make_number (previous->position + LENGTH (previous));
