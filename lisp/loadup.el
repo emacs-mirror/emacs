@@ -71,6 +71,13 @@
 (garbage-collect)
 (load "characters")
 (garbage-collect)
+(load "case-table")
+(let ((set-case-syntax-set-multibyte t))
+  (load "latin-1")
+  (load "latin-2")
+  (load "latin-3")
+  (load "latin-4"))
+(garbage-collect)
 ;; Load langauge specific files.
 (load "language/chinese")
 (garbage-collect)
