@@ -374,7 +374,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 			(if (not (eq (current-buffer) (get-buffer "*info*")))
 			    (setq guesspos
 				  (Info-read-subfile guesspos))))
-		    (error "No such node: \"%s\"" nodename))))
+		    (error "No such node: `%s'" nodename))))
 	    (goto-char (max (point-min) (- guesspos 1000)))
 	    ;; Now search from our advised position (or from beg of buffer)
 	    ;; to find the actual node.
@@ -1328,7 +1328,7 @@ Give a blank topic name to go to the Index node itself."
 	  (or matches
 	      (progn
 		(Info-last)
-		(error "No \"%s\" in index" topic)))
+		(error "No `%s' in index" topic)))
 	  ;; Here it is a feature that assoc is case-sensitive.
 	  (while (setq found (assoc topic matches))
 	    (setq exact (cons found exact)
@@ -1353,23 +1353,27 @@ Give a blank topic name to go to the Index node itself."
       (forward-line (nth 3 (car Info-index-alternatives)))
     (forward-line 3)  ; don't search in headers
     (let ((name (car (car Info-index-alternatives))))
-      (if (or (re-search-forward (format
-				  "\\(Function\\|Command\\): %s\\( \\|$\\)"
-				  (regexp-quote name)) nil t)
-	      (search-forward (format "`%s'" name) nil t)
-	      (and (string-match "\\`.*\\( (.*)\\)\\'" name)
-		   (search-forward
-		    (format "`%s'" (substring name 0 (match-beginning 1)))
-		    nil t))
-	      (search-forward name nil t))
-	  (beginning-of-line)
-	(goto-char (point-min)))))
-  (message "Found \"%s\" in %s.  %s"
+      (Info-find-index-name name)))
+  (message "Found `%s' in %s.  %s"
 	   (car (car Info-index-alternatives))
 	   (nth 2 (car Info-index-alternatives))
 	   (if (cdr Info-index-alternatives)
 	       "(Press `,' for more)"
 	     "(Only match)")))
+
+(defun Info-find-index-name (name)
+  "Move point to the place within the current node where NAME is defined."
+  (if (or (re-search-forward (format
+			      "[a-zA-Z]+: %s\\( \\|$\\)"
+			      (regexp-quote name)) nil t)
+	  (search-forward (format "`%s'" name) nil t)
+	  (and (string-match "\\`.*\\( (.*)\\)\\'" name)
+	       (search-forward
+		(format "`%s'" (substring name 0 (match-beginning 1)))
+		nil t))
+	  (search-forward name nil t))
+      (beginning-of-line)
+    (goto-char (point-min))))
 
 (defun Info-undefined ()
   "Make command be undefined in Info."
