@@ -3812,7 +3812,7 @@ update_window (w, force_p)
       while (row < end && !row->enabled_p)
 	++row;
       
-      /* Try reusing part of the display by inserting/deleting lines.  */
+      /* Try reusing part of the display by copying.  */
       if (row < end && !desired_matrix->no_scrolling_p)
 	{
 	  int rc = scrolling_window (w, header_line_row != NULL);
@@ -4423,20 +4423,23 @@ scrolling_window (w, header_line_p)
   struct row_entry *entry;
 
   /* Skip over rows equal at the start.  */
-  i = header_line_p ? 1 : 0;
-  while (i < current_matrix->nrows - 1
-         && MATRIX_ROW_ENABLED_P (current_matrix, i)
-	 && MATRIX_ROW_ENABLED_P (desired_matrix, i)
-	 && MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (desired_matrix, i)) <= yb
-	 && MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (current_matrix, i)) <= yb
-         && row_equal_p (w,
-			 MATRIX_ROW (desired_matrix, i),
-                         MATRIX_ROW (current_matrix, i), 1))
+  for (i = header_line_p ? 1 : 0; i < current_matrix->nrows - 1; ++i)
     {
-      assign_row (MATRIX_ROW (current_matrix, i),
-		  MATRIX_ROW (desired_matrix, i));
-      MATRIX_ROW (desired_matrix, i)->enabled_p = 0;
-      ++i;
+      struct glyph_row *d = MATRIX_ROW (desired_matrix, i);
+      struct glyph_row *c = MATRIX_ROW (current_matrix, i);
+
+      if (c->enabled_p
+	  && d->enabled_p
+	  && c->y == d->y
+	  && MATRIX_ROW_BOTTOM_Y (c) <= yb
+	  && MATRIX_ROW_BOTTOM_Y (d) <= yb
+	  && row_equal_p (w, c, d, 1))
+	{
+	  assign_row (c, d);
+	  d->enabled_p = 0;
+	}
+      else
+	break;
     }
 
   /* Give up if some rows in the desired matrix are not enabled.  */
