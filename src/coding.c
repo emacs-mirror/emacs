@@ -1610,32 +1610,52 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
       dst = encode_invocation_designation (charset, coding, dst);	\
   } while (1)
 
-#define ENCODE_ISO_CHARACTER(charset, c1, c2)			\
-  do {								\
-    int c_alt, charset_alt;					\
-    if (!NILP (translation_table)				\
-	&& ((c_alt = translate_char (translation_table, -1,	\
-				     charset, c1, c2))		\
-	    >= 0))						\
-      SPLIT_CHAR (c_alt, charset_alt, c1, c2);			\
-    else							\
-      charset_alt = charset;					\
-    if (CHARSET_DIMENSION (charset_alt) == 1)			\
-      {								\
-	if (charset == CHARSET_ASCII				\
-	    && coding->flags & CODING_FLAG_ISO_USE_ROMAN)	\
-	  charset_alt = charset_latin_jisx0201;			\
-	ENCODE_ISO_CHARACTER_DIMENSION1 (charset_alt, c1);	\
-      }								\
-    else							\
-      {								\
-	if (charset == charset_jisx0208				\
-	    && coding->flags & CODING_FLAG_ISO_USE_OLDJIS)	\
-	  charset_alt = charset_jisx0208_1978;			\
-	ENCODE_ISO_CHARACTER_DIMENSION2 (charset_alt, c1, c2);	\
-      }								\
-    if (! COMPOSING_P (coding->composing))			\
-      coding->consumed_char++;					\
+#define ENCODE_ISO_CHARACTER(charset, c1, c2)				\
+  do {									\
+    int c_alt, charset_alt;						\
+    if (!NILP (translation_table)					\
+	&& ((c_alt = translate_char (translation_table, -1,		\
+				     charset, c1, c2))			\
+	    >= 0))							\
+      SPLIT_CHAR (c_alt, charset_alt, c1, c2);				\
+    else								\
+      charset_alt = charset;						\
+    if (CHARSET_DEFINED_P (charset_alt))				\
+      {									\
+	if (CHARSET_DIMENSION (charset_alt) == 1)			\
+	  {								\
+	    if (charset == CHARSET_ASCII				\
+		&& coding->flags & CODING_FLAG_ISO_USE_ROMAN)		\
+	      charset_alt = charset_latin_jisx0201;			\
+	    ENCODE_ISO_CHARACTER_DIMENSION1 (charset_alt, c1);		\
+	  }								\
+	else								\
+	  {								\
+	    if (charset == charset_jisx0208				\
+		&& coding->flags & CODING_FLAG_ISO_USE_OLDJIS)		\
+	      charset_alt = charset_jisx0208_1978;			\
+	    ENCODE_ISO_CHARACTER_DIMENSION2 (charset_alt, c1, c2);	\
+	  }								\
+      }									\
+    else								\
+      {									\
+	if (coding->flags & CODING_FLAG_ISO_SEVEN_BITS)			\
+	  {								\
+	    *dst++ = charset & 0x7f;					\
+	    *dst++ = c1 & 0x7f;						\
+	    if (c2)							\
+	      *dst++ = c2 & 0x7f;					\
+	  }								\
+	else								\
+	  {								\
+	    *dst++ = charset;						\
+	    *dst++ = c1;						\
+	    if (c2)							\
+	      *dst++ = c2;						\
+	  }								\
+      }									\
+    if (! COMPOSING_P (coding->composing))				\
+      coding->consumed_char++;						\
   } while (0)
 
 /* Produce designation and invocation codes at a place pointed by DST
