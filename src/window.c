@@ -1,6 +1,6 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
-   Copyright (C) 1985, 86, 87, 93, 94, 95 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 96 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -98,7 +98,7 @@ Lisp_Object Vsame_window_regexps;
 /* Hook run at end of temp_output_buffer_show.  */
 Lisp_Object Qtemp_buffer_show_hook;
 
-/* Fdisplay_buffer always splits the largest window 
+/* Fdisplay_buffer always splits the largest window
    if that window is more than this high.  */
 int split_height_threshold;
 
@@ -393,7 +393,7 @@ coordinates_in_window (w, x, y)
   if (*y == top + window_height - 1
       && ! MINI_WINDOW_P (w))
     return 2;
-  
+
   /* Is the character in the right border?  */
   if (*x == left + width - 1
       && left + width != FRAME_WIDTH (XFRAME (w->frame)))
@@ -436,7 +436,7 @@ If they are on the border between WINDOW and its right sibling,\n\
 
     case 2:			/* In mode line of window. */
       return Qmode_line;
-      
+
     case 3:			/* On right border of window.  */
       return Qvertical_line;
 
@@ -473,7 +473,7 @@ window_from_coordinates (frame, x, y, part)
       tem = Fnext_window (tem, Qt, Qlambda);
     }
   while (! EQ (tem, first));
-  
+
   return Qnil;
 }
 
@@ -1474,7 +1474,7 @@ window_loop (type, obj, mini, frames)
     }
 
   return best_window;
-}     
+}
 
 DEFUN ("get-lru-window", Fget_lru_window, Sget_lru_window, 0, 1, 0,
   "Return the window least recently selected or used for display.\n\
@@ -1679,7 +1679,7 @@ check_frame_size (frame, rows, cols)
      int *rows, *cols;
 {
   /* For height, we have to see:
-     whether the frame has a minibuffer, 
+     whether the frame has a minibuffer,
      whether it wants a mode line, and
      whether it has a menu bar.  */
   int min_height =
@@ -1984,7 +1984,7 @@ display_buffer_1 (window)
     {
       if (FRAME_ICONIFIED_P (f))
 	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
-      else (FRAME_VISIBLE_P (f))
+      else if (FRAME_VISIBLE_P (f))
 	Fraise_frame (WINDOW_FRAME (XWINDOW (window)));
     }
 #endif
@@ -2079,7 +2079,7 @@ Returns the window displaying BUFFER.")
       tem = Fassoc (XBUFFER (buffer)->name, Vspecial_display_buffer_names);
       if (!NILP (tem))
 	return call2 (Vspecial_display_function, buffer, XCONS (tem)->cdr);
-      
+
       for (tem = Vspecial_display_regexps; CONSP (tem); tem = XCONS (tem)->cdr)
 	{
 	  Lisp_Object car = XCONS (tem)->car;
@@ -2118,7 +2118,7 @@ Returns the window displaying BUFFER.")
     {
       Lisp_Object frames;
 
-      frames = Qnil;      
+      frames = Qnil;
 #ifdef MULTI_FRAME
       if (FRAME_MINIBUF_ONLY_P (selected_frame))
 	XSETFRAME (frames, last_nonminibuf_frame);
@@ -2250,7 +2250,7 @@ temp_output_buffer_show (buf)
       set_marker_restricted (w->start, make_number (1), buf);
       set_marker_restricted (w->pointm, make_number (1), buf);
 
-      /* Run temp-buffer-show-hook, with the chosen window selected.  */ 
+      /* Run temp-buffer-show-hook, with the chosen window selected.  */
       if (!NILP (Vrun_hooks))
 	{
 	  Lisp_Object tem;
@@ -2361,7 +2361,7 @@ and put SIZE columns in the first of the pair.")
       if (size_int < window_min_height)
 	error ("Window height %d too small (after splitting)", size_int);
       if (size_int + window_min_height > XFASTINT (o->height))
-	error ("Window height %d too small (after splitting)", 
+	error ("Window height %d too small (after splitting)",
 	       XFASTINT (o->height) - size_int);
       if (NILP (o->parent)
 	  || NILP (XWINDOW (o->parent)->vchild))
@@ -2376,7 +2376,7 @@ and put SIZE columns in the first of the pair.")
       if (size_int < window_min_width)
 	error ("Window width %d too small (after splitting)", size_int);
       if (internal_width - size_int - separator_width < window_min_width)
-	error ("Window width %d too small (after splitting)", 
+	error ("Window width %d too small (after splitting)",
 	       internal_width - size_int - separator_width);
       if (NILP (o->parent)
 	  || NILP (XWINDOW (o->parent)->hchild))
@@ -3099,7 +3099,7 @@ by `current-window-configuration' (which see).")
       /* Kludge Alert!
 	 Mark all windows now on frame as "deleted".
 	 Restoring the new configuration "undeletes" any that are in it.
-	 
+
 	 Save their current buffers in their height fields, since we may
 	 need it later, if a buffer saved in the configuration is now
 	 dead.  */
