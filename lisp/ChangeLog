@@ -1,3 +1,8 @@
+2004-06-06  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-argument-name): Inherit from italic face only
+	if the frame supports it.
+
 2004-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* toolbar/alias.pbm toolbar/close.pbm toolbar/copy.pbm toolbar/cut.pbm
