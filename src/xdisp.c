@@ -1579,7 +1579,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 
   hpos += XFASTINT (w->left);
   get_display_line (f, vpos, XFASTINT (w->left));
-  if (tab_width <= 0 || tab_width > 20) tab_width = 8;
+  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
   if (MINI_WINDOW_P (w) && start == 1
       && vpos == XFASTINT (w->top))
@@ -2476,7 +2476,7 @@ display_string (w, vpos, string, hpos, truncate, mincol, maxcol)
       && XVECTOR (Vstandard_display_table)->size == DISP_TABLE_SIZE)
     dp = XVECTOR (Vstandard_display_table);
 
-  if (tab_width <= 0 || tab_width > 20) tab_width = 8;
+  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
   p1 = p1start;
   start = desired_glyphs->glyphs[vpos] + XFASTINT (w->left);
