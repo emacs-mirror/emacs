@@ -2074,7 +2074,7 @@ Do not display messages if SILENT is non-nil."
 	  (nreverse result)
 	result))))
 
-(defun ibuffer-insert-filter-group (name display-name format bmarklist)
+(defun ibuffer-insert-filter-group (name display-name filter-string format bmarklist)
   (add-text-properties
    (point)
    (progn
@@ -2082,7 +2082,7 @@ Do not display messages if SILENT is non-nil."
      (point))
    `(ibuffer-filter-group-name ,name keymap ,ibuffer-mode-filter-group-map
 			       mouse-face highlight
-			       help-echo "mouse-1: toggle marks in this group\nmouse-2: hide/show this filtering group "))
+			       help-echo ,(concat filter-string "mouse-1: toggle marks in this group\nmouse-2: hide/show this filtering group ")))
   (insert "\n")
   (when bmarklist
     (put-text-property
@@ -2125,6 +2125,9 @@ Do not display messages if SILENT is non-nil."
 		(ibuffer-insert-filter-group
 		 name
 		 (if disabled (concat name " ...") name)
+		 (if ext-loaded
+		     (ibuffer-format-filter-group-data name)
+		   "")
 		 --ibuffer-insert-buffers-and-marks-format
 		 (if disabled
 		     nil
