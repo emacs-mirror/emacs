@@ -57,11 +57,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define PTY_TTY_NAME_SPRINTF \
   sprintf (pty_name, "/dev/ttyp%d", i);
 
-/* SCO perhaps has bcopy, et. al.  */
-#ifdef HAVE_BCOPY
-#define BSTRING
-#endif
-
 /* Sockets are an option on SCO.  If you have X, you have them.
    They also exist if you have TCP, but we don't know how to test
    for that.  */
