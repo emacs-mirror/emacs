@@ -52,7 +52,8 @@
     (define-key newmap (vector (car event))
       (nconc (make-sparse-keymap "Menu")
 	     (mouse-major-mode-menu-1
-	      (lookup-key (current-local-map) [menu-bar]))))
+	      (and (current-local-map)
+		   (lookup-key (current-local-map) [menu-bar])))))
     (mouse-major-mode-menu-compute-equiv-keys newmap)
     (command-execute
      ;; Make NEWMAP override the usual definition
