@@ -195,7 +195,7 @@ PATTERN.  If no full XLFD name is gotten, return nil."
 		    (setq i (1+ i)))
 		(if (< (car (aref xlfd-fields i)) (car (cdr l)))
 		    (progn
-		      (aset xlfd-fields i nil)
+		      (aset xlfd-fields i "*")
 		      (setq i (1+ i)))
 		  (setq l (cdr (cdr l))))))
 	    xlfd-fields)))))
@@ -272,63 +272,95 @@ automatically."
 	l)
     (while fontsets
       (setq fontset-name (car (car fontsets)) fontsets (cdr fontsets))
-      (if (string-match "fontset-\\([^-]+\\)" fontset-name)
-	  ;; This fontset has a nickname.  Just show it.
-	  (let ((nickname (match-string 1 fontset-name)))
-	    (setq l (cons (list (concat ".." nickname) fontset-name) l)))
-	(setq l (cons (list fontset-name fontset-name) l))))
+      (setq l (cons (list (fontset-plain-name fontset-name) fontset-name) l)))
     (cons "Fontset" l)))
 
 (defun fontset-plain-name (fontset)
   "Return a plain and descriptive name of FONTSET."
+  (if (not (setq fontset (query-fontset fontset)))
+      (error "Invalid fontset: %s" fontset))
   (let ((xlfd-fields (x-decompose-font-name fontset)))
     (if xlfd-fields
 	(let ((weight (aref xlfd-fields xlfd-regexp-weight-subnum))
 	      (slant  (aref xlfd-fields xlfd-regexp-slant-subnum))
 	      (swidth (aref xlfd-fields xlfd-regexp-swidth-subnum))
 	      (size   (aref xlfd-fields xlfd-regexp-pixelsize-subnum))
+	      (charset (aref xlfd-fields xlfd-regexp-registry-subnum))
+	      (nickname (aref xlfd-fields xlfd-regexp-encoding-subnum))
 	      name)
-	  (if (> (string-to-int size) 0)
-	      (setq name (format "%s " size))
-	    (setq name ""))
-	  (if (string-match "bold\\|demibold" weight)
-	      (setq name (concat name weight " ")))
-	  (cond ((string= slant "i")
-		 (setq name (concat name "italic ")))
-		((string= slant "o")
-		 (setq name (concat name "slant ")))
-		((string= slant "ri")
-		 (setq name (concat name "reverse italic ")))
-		((string= slant "ro")
-		 (setq name (concat name "reverse slant "))))
-	  (if (= (length name) 0)
-	      ;; No descriptive fields found.
+	  (if (not (string= "fontset" charset))
 	      fontset
+	    (if (> (string-to-int size) 0)
+		(setq name (format "%s: %s-dot" nickname size))
+	      (setq name nickname))
+	    (cond ((string-match "^medium$" weight)
+		   (setq name (concat name " " "medium")))
+		  ((string-match "^bold$\\|^demibold$" weight)
+		   (setq name (concat name " " weight))))
+	    (cond ((string-match "^i$" slant)
+		   (setq name (concat name " " "italic")))
+		  ((string-match "^o$" slant)
+		   (setq name (concat name " " "slant")))
+		  ((string-match "^ri$" slant)
+		   (setq name (concat name " " "reverse italic")))
+		  ((string-match "^ro$" slant)
+		   (setq name (concat name " " "reverse slant"))))
 	    name))
       fontset)))
 
-(defun create-fontset-from-fontset-spec (fontset-spec)
+(defun create-fontset-from-fontset-spec (fontset-spec &optional style)
   "Create a fontset from fontset specification string FONTSET-SPEC.
 FONTSET-SPEC is a string of the format:
 	FONTSET-NAME,CHARSET-NAME0:FONT-NAME0,CHARSET-NAME1:FONT-NAME1, ...
-Any number of SPACE, TAB, and NEWLINE can be put before and after commas."
-  (if (string-match "[^,]+" fontset-spec)
-      (let* ((idx2 (match-end 0))
-	     (name (match-string 0 fontset-spec))
-	     fontlist charset xlfd-fields)
-	(while (string-match "[, \t\n]*\\([^:]+\\):\\([^,]+\\)"
-			     fontset-spec idx2)
-	  (setq idx2 (match-end 0))
-	  (setq charset	(intern (match-string 1 fontset-spec)))
-	  (if (charsetp charset)
-	      (setq fontlist (cons (cons charset (match-string 2 fontset-spec))
-				   fontlist))))
-	(if (setq xlfd-fields (x-decompose-font-name name))
-	    ;; If NAME conforms to XLFD, complement FONTLIST for
-	    ;; charsets not specified in FONTSET-SPEC.
-	    (setq fontlist
-		  (x-complement-fontset-spec xlfd-fields fontlist)))
-	(new-fontset name fontlist))))
+Any number of SPACE, TAB, and NEWLINE can be put before and after commas.
+If optional argument STYLE is specified, create a fontset of STYLE
+by modifying FONTSET-SPEC appropriately.  STYLE can be one of `bold',
+`italic', and `bold-italic'."
+  (if (not (string-match "^[^,]+" fontset-spec))
+      (error "Invalid fontset spec: %s" fontset-spec))
+  (let ((idx (match-end 0))
+	(name (match-string 0 fontset-spec))
+	fontlist charset)
+    ;; At first, extract pairs of charset and fontname from FONTSET-SPEC.
+    (while (string-match "[, \t\n]*\\([^:]+\\):\\([^,]+\\)" fontset-spec idx)
+      (setq idx (match-end 0))
+      (setq charset (intern (match-string 1 fontset-spec)))
+      (if (charsetp charset)
+	  (setq fontlist (cons (cons charset (match-string 2 fontset-spec))
+			       fontlist))))
+
+    ;; If STYLE is specified, modify fontset name (NAME) and FONTLIST.
+    (let ((func (cdr (assq style '((bold . x-make-font-bold)
+				   (italic . x-make-font-italic)
+				   (bold-italic . x-make-font-bold-italic)))))
+	  (l fontlist)
+	  new-name)
+      (if (and func
+	       (setq new-name (funcall func name)))
+	  (progn
+	    (setq name new-name)
+	    (while l
+	      (if (setq new-name (funcall func (cdr (car l))))
+		  (setcdr (car l) new-name))
+	      (setq l (cdr l))))))
+
+    ;; If NAME conforms to XLFD, complement FONTLIST for charsets not
+    ;; specified in FONTSET-SPEC.
+    (let ((xlfd-fields (x-decompose-font-name name)))
+      (if xlfd-fields
+	  (setq fontlist
+		(x-complement-fontset-spec xlfd-fields fontlist))))
+
+    ;; Create the fontset, and define the alias if appropriate.
+    (new-fontset name fontlist)
+    (if (and (not style)
+	     (not (assoc name fontset-alias-alist))
+	     (string-match "fontset-.*$" name))
+	(let ((alias (match-string 0 name)))
+	  (or (rassoc alias fontset-alias-alist)
+	      (setq fontset-alias-alist
+		    (cons (cons name alias) fontset-alias-alist)))))
+    ))
 
 
 ;; Create default fontset from 16 dots fonts which are the most widely
