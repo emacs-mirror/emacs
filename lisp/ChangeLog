@@ -1,3 +1,8 @@
+2002-04-06  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	New alternatives for FILE:LINE.COL and for ranges of columns and lines.
+
 2002-04-06  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* progmodes/cc-vars.el (c-block-comment-prefix): Specify :value
@@ -13,6 +18,11 @@
 	* simple.el (play-sound): New function (uses play-sound-internal).
 
 2002-04-04  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (mode-line-format, mode-line-modified) 
+	(mode-line-mule-info, mode-line-buffer-identification) 
+	(mode-line-modes, mode-line-position): Explicitly mark as risky.
+	(hack-one-local-variable): Don't recognize "mode-line-..." as risky.
 
 	* calendar/solar.el (solar-northern-spring-or-summer-season): Doc fix.
 
