@@ -420,21 +420,38 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
      (list (if (equal val "")
 	       fn (intern val))
 	   current-prefix-arg)))
-  (let* ((remapped (remap-command definition))
-	 (keys (where-is-internal definition overriding-local-map nil nil remapped))
-	 (keys1 (mapconcat 'key-description keys ", "))
-	 (standard-output (if insert (current-buffer) t)))
-    (if insert
-	(if (> (length keys1) 0)
-	    (if remapped
-		(princ (format "%s (%s) (remapped from %s)" keys1 remapped definition))
-	      (princ (format "%s (%s)" keys1 definition)))
-	  (princ (format "M-x %s RET" definition)))
-      (if (> (length keys1) 0)
-	  (if remapped
-	      (princ (format "%s is remapped to %s which is on %s" definition remapped keys1))
-	    (princ (format "%s is on %s" definition keys1)))
-	(princ (format "%s is not on any key" definition)))))
+  (let ((func (indirect-function definition))
+        (map nil)
+        (standard-output (if insert (current-buffer) t)))
+    (mapatoms #'(lambda (symbol)
+                  (when (and (not (eq symbol definition))
+                             (fboundp symbol)
+                             (eq func (indirect-function symbol)))
+                    (setq map (cons symbol map)))))
+    (princ (mapconcat
+            #'(lambda (symbol)
+                (let* ((remapped (remap-command symbol))
+                       (keys (mapconcat 'key-description
+                                        (where-is-internal symbol
+                                                           overriding-local-map
+                                                           nil nil
+                                                           remapped)
+                                        ", ")))
+                  (if insert
+                      (if (> (length keys) 0)
+                          (if remapped
+                              (format "%s (%s) (remapped from %s)"
+                                      keys remapped symbol)
+                            (format "%s (%s)" keys symbol))
+                        (format "M-x %s RET" symbol))
+                    (if (> (length keys) 0)
+                        (if remapped
+                            (format "%s is remapped to %s which is on %s"
+                                    definition symbol keys)
+                          (format "%s is on %s" symbol keys))
+                      (format "%s is not on any key" symbol)))))
+            (cons definition map)
+            ";\nand ")))
   nil)
 
 (defun string-key-binding (key)
