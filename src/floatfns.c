@@ -859,7 +859,13 @@ With optional DIVISOR, return the largest integer no greater than ARG/DIVISOR.  
 
 DEFUN ("round", Fround, Sround, 1, 2, 0,
        doc: /* Return the nearest integer to ARG.
-With optional DIVISOR, return the nearest integer to ARG/DIVISOR.  */)
+With optional DIVISOR, return the nearest integer to ARG/DIVISOR.
+
+If ARG is equally close to both the nearest integer smaller than ARG
+and to the nearest integer larger than ARG, the result can be either
+of these two integers, depending on the underlying implementation of
+the system library.  For example, \(round 2.5\) can return 3 on some
+systems, but 3 on others.  */)
      (arg, divisor)
      Lisp_Object arg, divisor;
 {
