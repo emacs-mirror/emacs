@@ -1012,7 +1012,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	(set-language-environment current-language-environment)))
     
     ;; Do this here in case the init file sets mail-host-address.
-    (or (equal user-mail-address "")
+    (if (equal user-mail-address "")
 	(setq user-mail-address (concat (user-login-name) "@"
 					(or mail-host-address
 					    (system-name)))))

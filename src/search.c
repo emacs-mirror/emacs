@@ -2569,14 +2569,15 @@ since only regular expressions have distinguished subexpressions.  */)
 
   /* Adjust search data for this change.  */
   {
+    int oldend = search_regs.end[sub];
     int change = newpoint - search_regs.end[sub];
     int i;
 
     for (i = 0; i < search_regs.num_regs; i++)
       {
-	if (search_regs.start[i] > newpoint)
+	if (search_regs.start[i] > oldend)
 	  search_regs.start[i] += change;
-	if (search_regs.end[i] > newpoint)
+	if (search_regs.end[i] > oldend)
 	  search_regs.end[i] += change;
       }
   }
