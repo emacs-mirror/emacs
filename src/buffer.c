@@ -1402,6 +1402,8 @@ init_buffer ()
 /* initialize the buffer routines */
 syms_of_buffer ()
 {
+  extern Lisp_Object Qdisabled;
+
   staticpro (&Vbuffer_defaults);
   staticpro (&Vbuffer_local_symbols);
   staticpro (&Qfundamental_mode);
@@ -1416,6 +1418,8 @@ syms_of_buffer ()
 	Fcons (Qprotected_field, Fcons (Qerror, Qnil)));
   Fput (Qprotected_field, Qerror_message,
 	build_string ("Attempt to modify a protected field"));
+
+  Fput (intern ("erase-buffer"), Qdisabled, Qt);
 
   /* All these use DEFVAR_LISP_NOPRO because the slots in
      buffer_defaults will all be marked via Vbuffer_defaults.  */
