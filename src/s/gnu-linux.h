@@ -250,3 +250,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_XRMSETDATABASE
 #endif
 #endif /* 0 */
+
+/* The regex.o routines are a part of the GNU C-library used with Linux.  */
+#define REGEXP_IN_LIBC
