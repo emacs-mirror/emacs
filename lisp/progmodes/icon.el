@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 
-;; Author: Chris Smith <convex!csmith>
+;; Author: Chris Smith <csmith@convex.com>
 ;; Created: 15 Feb 89
 ;; Keywords: languages
 
@@ -68,23 +68,23 @@
   (modify-syntax-entry ?| "." icon-mode-syntax-table)
   (modify-syntax-entry ?\' "\"" icon-mode-syntax-table))
 
-(defconst icon-indent-level 4
+(defvar icon-indent-level 4
   "*Indentation of Icon statements with respect to containing block.")
-(defconst icon-brace-imaginary-offset 0
+(defvar icon-brace-imaginary-offset 0
   "*Imagined indentation of a Icon open brace that actually follows a statement.")
-(defconst icon-brace-offset 0
+(defvar icon-brace-offset 0
   "*Extra indentation for braces, compared with other text in same context.")
-(defconst icon-continued-statement-offset 4
+(defvar icon-continued-statement-offset 4
   "*Extra indent for lines not starting new statements.")
-(defconst icon-continued-brace-offset 0
+(defvar icon-continued-brace-offset 0
   "*Extra indent for substatements that start with open-braces.
 This is in addition to icon-continued-statement-offset.")
 
-(defconst icon-auto-newline nil
+(defvar icon-auto-newline nil
   "*Non-nil means automatically newline before and after braces
 inserted in Icon code.")
 
-(defconst icon-tab-always-indent t
+(defvar icon-tab-always-indent t
   "*Non-nil means TAB in Icon mode should always reindent the current line,
 regardless of where in the line point is when the TAB command is used.")
 
