@@ -449,8 +449,6 @@ the car and cdr are the same symbol.")
     (define-key map [remap delete-backward-char]
       'backward-delete-char-untabify)
     (define-key map "\C-c:" 'sh-set-shell)
-    (define-key map [remap beginning-of-defun]
-      'sh-beginning-of-compound-command)
     (define-key map [remap backward-sentence] 'sh-beginning-of-command)
     (define-key map [remap forward-sentence] 'sh-end-of-command)
     (define-key map [menu-bar insert] (cons "Insert" menu-map))
