@@ -27,11 +27,15 @@
 #undef	_GNU_SOURCE
 #define _GNU_SOURCE
 
+#ifdef emacs
 /* Converts the pointer to the char to BEG-based offset from the start.	 */
 #define PTR_TO_OFFSET(d)						\
 	POS_AS_IN_BUFFER (MATCHING_IN_FIRST_STRING			\
 			  ? (d) - string1 : (d) - (string2 - size1))
 #define POS_AS_IN_BUFFER(p) ((p) + (NILP (re_match_object) || BUFFERP (re_match_object)))
+#else
+#define PTR_TO_OFFSET(d) 0
+#endif
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
