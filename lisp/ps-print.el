@@ -1,6 +1,6 @@
 ;;; ps-print.el --- Print text from the buffer as PostScript
 
-;; Copyright (C) 1993, 94, 95, 96, 97, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 94, 95, 96, 97, 98, 1999 Free Software Foundation, Inc.
 
 ;; Author:	Jim Thompson (was <thompson@wg2.waii.com>)
 ;; Author:	Jacques Duthen (was <duthen@cegelec-red.fr>)
@@ -9,11 +9,11 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	print, PostScript
-;; Time-stamp:	<98/11/23 15:02:20 vinicius>
-;; Version:	4.1.3
+;; Time-stamp:	<99/02/19 11:47:32 vinicius>
+;; Version:	4.1.4
 
-(defconst ps-print-version "4.1.3"
-  "ps-print.el, v 4.1.3 <98/11/23 vinicius>
+(defconst ps-print-version "4.1.4"
+  "ps-print.el, v 4.1.4 <99/02/19 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -501,30 +501,32 @@ Please send all bug fixes and enhancements to
 ;; Font Managing
 ;; -------------
 ;;
-;; ps-print now knows rather precisely some fonts:
-;; the variable `ps-font-info-database' contains information
-;; for a list of font families (currently mainly `Courier' `Helvetica'
-;; `Times' `Palatino' `Helvetica-Narrow' `NewCenturySchlbk').
-;; Each font family contains the font names for standard, bold, italic
-;; and bold-italic characters, a reference size (usually 10) and the
-;; corresponding line height, width of a space and average character width.
+;; ps-print now knows rather precisely some fonts: the variable
+;; `ps-font-info-database' contains information for a list of font families
+;; (currently mainly `Courier' `Helvetica' `Times' `Palatino' `Helvetica-Narrow'
+;; `NewCenturySchlbk').  Each font family contains the font names for standard,
+;; bold, italic and bold-italic characters, a reference size (usually 10) and
+;; the corresponding line height, width of a space and average character width.
 ;;
-;; The variable `ps-font-family' determines which font family
-;; is to be used for ordinary text.
-;; If its value does not correspond to a known font family,
-;; an error message is printed into the `*Messages*' buffer,
-;; which lists the currently available font families.
+;; The variable `ps-font-family' determines which font family is to be used for
+;; ordinary text.  If its value does not correspond to a known font family, an
+;; error message is printed into the `*Messages*' buffer, which lists the
+;; currently available font families.
 ;;
-;; The variable `ps-font-size' determines the size (in points)
-;; of the font for ordinary text, when generating PostScript.
-;; Its value is a float.
+;; The variable `ps-font-size' determines the size (in points) of the font for
+;; ordinary text, when generating PostScript.  Its value is a float or a cons of
+;; floats which has the following form:
 ;;
-;; Similarly, the variable `ps-header-font-family' determines
-;; which font family is to be used for text in the header.
-;; The variable `ps-header-font-size' determines the font size,
-;; in points, for text in the header.
-;; The variable `ps-header-title-font-size' determines the font size,
-;; in points, for the top line of text in the header.
+;;    (LANDSCAPE-SIZE . PORTRAIT-SIZE)
+;;
+;; Similarly, the variable `ps-header-font-family' determines which font family
+;; is to be used for text in the header.
+;;
+;; The variable `ps-header-font-size' determines the font size, in points, for
+;; text in the header (similar to `ps-font-size').
+;;
+;; The variable `ps-header-title-font-size' determines the font size, in points,
+;; for the top line of text in the header (similar to `ps-font-size').
 ;;
 ;;
 ;; Adding a New Font Family
@@ -1525,9 +1527,12 @@ You can get all the fonts of YOUR printer using `ReportAllFontInfo'."
   :type 'symbol
   :group 'ps-print-font)
 
-(defcustom ps-font-size   (if ps-landscape-mode 7 8.5)
+(defcustom ps-font-size   '(7 . 8.5)
   "*Font size, in points, for ordinary text, when generating PostScript."
-  :type 'number
+  :type '(choice (number :tag "Text Size")
+		 (cons :tag "Landscape/Portrait"
+		       (number :tag "Landscape Text Size")
+		       (number :tag "Portrait Text Size")))
   :group 'ps-print-font)
 
 (defcustom ps-header-font-family      'Helvetica
@@ -1535,14 +1540,20 @@ You can get all the fonts of YOUR printer using `ReportAllFontInfo'."
   :type 'symbol
   :group 'ps-print-font)
 
-(defcustom ps-header-font-size       (if ps-landscape-mode 10 12)
+(defcustom ps-header-font-size       '(10 . 12)
   "*Font size, in points, for text in the header, when generating PostScript."
-  :type 'number
+  :type '(choice (number :tag "Header Size")
+		 (cons :tag "Landscape/Portrait"
+		       (number :tag "Landscape Header Size")
+		       (number :tag "Portrait Header Size")))
   :group 'ps-print-font)
 
-(defcustom ps-header-title-font-size (if ps-landscape-mode 12 14)
+(defcustom ps-header-title-font-size '(12 . 14)
   "*Font size, in points, for the top line of text in header, in PostScript."
-  :type 'number
+  :type '(choice (number :tag "Header Title Size")
+		 (cons :tag "Landscape/Portrait"
+		       (number :tag "Landscape Header Title Size")
+		       (number :tag "Portrait Header Title Size")))
   :group 'ps-print-font)
 
 ;;; Colors
@@ -1807,10 +1818,10 @@ The table depends on the current ps-print setup."
    "
 \(setq ps-print-color-p  %s
       ps-lpr-command    %S
-      ps-lpr-switches   %S
+      ps-lpr-switches   %s
       ps-printer-name   %S
 
-      ps-paper-type          %S
+      ps-paper-type          %s
       ps-landscape-mode      %s
       ps-number-of-columns   %s
 
@@ -1818,13 +1829,13 @@ The table depends on the current ps-print setup."
       ps-zebra-stripe-height %s
       ps-line-number         %s
 
-      ps-print-control-characters %S
+      ps-print-control-characters %s
 
-      ps-print-background-image %S
+      ps-print-background-image %s
 
-      ps-print-background-text %S
+      ps-print-background-text %s
 
-      ps-print-prologue-header %S
+      ps-print-prologue-header %s
 
       ps-left-margin           %s
       ps-right-margin          %s
@@ -1840,10 +1851,10 @@ The table depends on the current ps-print setup."
       ps-show-n-of-n           %s
       ps-spool-duplex          %s
 
-      ps-multibyte-buffer       %S
-      ps-font-family            %S
+      ps-multibyte-buffer       %s
+      ps-font-family            %s
       ps-font-size              %s
-      ps-header-font-family     %S
+      ps-header-font-family     %s
       ps-header-font-size       %s
       ps-header-title-font-size %s)
 "
@@ -1876,18 +1887,22 @@ The table depends on the current ps-print setup."
    ps-spool-duplex
    (ps-print-quote ps-multibyte-buffer)	; see `ps-mule.el'
    (ps-print-quote ps-font-family)
-   ps-font-size
+   (ps-print-quote ps-font-size)
    (ps-print-quote ps-header-font-family)
-   ps-header-font-size
-   ps-header-title-font-size))
+   (ps-print-quote ps-header-font-size)
+   (ps-print-quote ps-header-title-font-size)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions and variables:
 
 (defun ps-print-quote (sym)
-  (and sym
-       (if (or (symbolp sym) (listp sym))
-	   (format "'%S" sym)
+  (cond ((null sym)
+	 nil)
+	((or (symbolp sym) (listp sym))
+	 (format "'%S" sym))
+	((stringp sym)
+	 (format "%S" sym))
+	(t
 	 sym)))
 
 (defvar ps-print-emacs-type
@@ -2314,19 +2329,19 @@ StandardEncoding 46 82 getinterval aload pop
   % ---- [jack] Kludge: my ghostscript window is 21x27.7 instead of 21x29.7
   /JackGhostscript where {pop 1 27.7 29.7 div scale}if
   % ---- [andrewi] set PageSize based on chosen dimensions
-  /setpagedevice where {
-    pop
-    1 dict dup
-    /PageSize [ PrintPageWidth LeftMargin add RightMargin add
-                LandscapePageHeight ] put
-    setpagedevice
-  }{
+%  /setpagedevice where {
+%    pop
+%    1 dict dup
+%    /PageSize [ PrintPageWidth LeftMargin add RightMargin add
+%		 LandscapePageHeight ] put
+%    setpagedevice
+%  }{
     LandscapeMode {
       % ---- translate to bottom-right corner of Portrait page
       LandscapePageHeight 0 translate
       90 rotate
     }if
-  }ifelse
+%  }ifelse
   /ColumnWidth PrintWidth InterColumn add def
   % ---- translate to lower left corner of TEXT
   LeftMargin BottomMargin translate
@@ -2620,6 +2635,10 @@ This is in units of points (1/72 inch).")
 
 (defvar ps-print-color-scale nil)
 
+(defvar ps-font-size-internal nil)
+(defvar ps-header-font-size-internal nil)
+(defvar ps-header-title-font-size-internal nil)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Internal Variables
@@ -2892,7 +2911,7 @@ which long lines wrap around."
 using the current ps-print setup.
 Try: pr -t file | awk '{printf \"%3d %s\n\", length($0), $0}' | sort -r | head"
   (let ((buf (get-buffer-create "*Line-lengths*"))
-	(ifs ps-font-size)		; initial font size
+	(ifs ps-font-size-internal)	; initial font size
 	(icw (ps-avg-char-width 'ps-font-for-text)) ; initial character width
 	(print-width (progn (ps-get-page-dimensions)
 			    ps-print-width))
@@ -2930,7 +2949,7 @@ Try: pr -t file | awk '{printf \"%3d %s\n\", length($0), $0}' | sort -r | head"
 The correspondence is based on having NB-LINES lines of text,
 and on the current ps-print setup."
   (let ((buf (get-buffer-create "*Nb-Pages*"))
-	(ifs ps-font-size)		; initial font size
+	(ifs ps-font-size-internal)	; initial font size
 	(ilh (ps-line-height 'ps-font-for-text)) ; initial line height
 	(page-height (progn (ps-get-page-dimensions)
 			    ps-print-height))
@@ -3000,9 +3019,10 @@ and on the current ps-print setup."
 	     ps-number-of-columns)))
 
     (ps-select-font ps-font-family 'ps-font-for-text
-		    ps-font-size ps-font-size)
+		    ps-font-size-internal ps-font-size-internal)
     (ps-select-font ps-header-font-family 'ps-font-for-header
-		    ps-header-font-size ps-header-title-font-size)
+		    ps-header-font-size-internal
+		    ps-header-title-font-size-internal)
 
     (setq page-width  (ps-page-dimensions-get-width  page-dimensions)
 	  page-height (ps-page-dimensions-get-height page-dimensions))
@@ -3481,11 +3501,11 @@ page-height == bm + print-height + tm - ho - hh
 
   ;; Header fonts
   (ps-output (format "/h0 %s (%s) cvn DefFont\n" ; /h0 14 /Helvetica-Bold DefFont
-		     ps-header-title-font-size (ps-font 'ps-font-for-header
-							'bold))
+		     ps-header-title-font-size-internal
+		     (ps-font 'ps-font-for-header 'bold))
 	     (format "/h1 %s (%s) cvn DefFont\n" ; /h1 12 /Helvetica DefFont
-		     ps-header-font-size (ps-font 'ps-font-for-header
-						  'normal)))
+		     ps-header-font-size-internal
+		     (ps-font 'ps-font-for-header 'normal)))
 
   (ps-output ps-print-prologue-2)
 
@@ -3495,7 +3515,7 @@ page-height == bm + print-height + tm - ho - hh
     (while font
       (ps-output (format "/f%d %s (%s) cvn DefFont\n"
 			 i
-			 ps-font-size
+			 ps-font-size-internal
 			 (ps-font 'ps-font-for-text (car (car font)))))
       (setq font (cdr font)
 	    i (1+ i))))
@@ -3527,6 +3547,21 @@ page-height == bm + print-height + tm - ho - hh
        (buffer-name)
        (and (buffer-modified-p) " (unsaved)")))))
 
+
+(defun ps-get-font-size (font-sym)
+  (let ((font-size (symbol-value font-sym)))
+    (cond ((numberp font-size)
+	   font-size)
+	  ((and (consp font-size)
+		(numberp (car font-size))
+		(numberp (cdr font-size)))
+	   (if ps-landscape-mode
+	       (car font-size)
+	     (cdr font-size)))
+	  (t
+	   (error "Invalid font size `%S' for `%S'" font-size font-sym)))))
+
+
 (defun ps-begin-job ()
   (save-excursion
     (set-buffer ps-spool-buffer)
@@ -3535,6 +3570,10 @@ page-height == bm + print-height + tm - ho - hh
 	 (delete-region (match-beginning 0) (point-max))))
   (setq ps-showline-count (if ps-printing-region (car ps-printing-region) 1)
 	ps-page-count 0
+	ps-font-size-internal        (ps-get-font-size 'ps-font-size)
+	ps-header-font-size-internal (ps-get-font-size 'ps-header-font-size)
+	ps-header-title-font-size-internal
+	(ps-get-font-size 'ps-header-title-font-size)
 	ps-control-or-escape-regexp
 	(cond ((eq ps-print-control-characters '8-bit)
 	       (string-as-unibyte "[\000-\037\177-\377]"))
@@ -4169,10 +4208,10 @@ If FACE is not a valid face name, it is used default face."
 		    (setq needs-begin-file t))
 		(save-excursion
 		  (set-buffer ps-source-buffer)
+		  (ps-begin-job)
 		  (when needs-begin-file
 		    (ps-begin-file)
 		    (ps-mule-initialize))
-		  (ps-begin-job)
 		  (ps-mule-begin-job from to)
 		  (ps-begin-page))
 		(set-buffer ps-source-buffer)
@@ -4212,6 +4251,10 @@ If FACE is not a valid face name, it is used default face."
 		   (delete-region (marker-position safe-marker) (point-max))))))
 
 	(and ps-razzle-dazzle (message "Formatting...done"))))))
+
+
+;; to avoid compilation gripes.
+(defvar dos-ps-printer nil)
 
 
 ;; Permit dynamic evaluation at print time of `ps-lpr-switches'.
