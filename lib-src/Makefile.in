@@ -121,7 +121,7 @@ ${archlibdir}: all
 	    chmod 755 ${archlibdir}/$$file ; \
 	  done ; \
 	  for file in ${SCRIPTS}; do \
-	    $(INSTALL_PROGRAM) $$file ${archlibdir}/$$file ; \
+	    $(INSTALL_PROGRAM) ${srcdir}/$$file ${archlibdir}/$$file ; \
 	    chmod 755 ${archlibdir}/$$file ; \
 	  done ; \
 	fi
