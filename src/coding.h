@@ -648,6 +648,7 @@ extern Lisp_Object eol_mnemonic_undecided;
 extern Lisp_Object Qfile_coding_system;
 extern Lisp_Object Qcall_process, Qcall_process_region, Qprocess_argument;
 extern Lisp_Object Qstart_process, Qopen_network_stream;
+extern Lisp_Object Qwrite_region;
 
 extern char *emacs_strerror P_ ((int));
 
@@ -700,5 +701,8 @@ extern Lisp_Object Vdefault_file_name_coding_system;
 extern Lisp_Object Vw32_system_coding_system;
 #endif
 #endif
+
+/* Error signaled when there's a problem with detecting coding system */
+extern Lisp_Object Qcoding_system_error;
 
 #endif /* EMACS_CODING_H */
