@@ -612,7 +612,8 @@ area.  See also `pascal-comment-area'."
 (defun pascal-end-of-statement ()
   "Move forward to end of current statement."
   (interactive)
-  (let ((nest 0) pos
+  (let ((parse-sexp-ignore-comments t)
+	(nest 0) pos
 	(regexp (concat "\\(" pascal-beg-block-re "\\)\\|\\("
 			pascal-end-block-re "\\)")))
     (if (not (looking-at "[ \t\n]")) (forward-sexp -1))
@@ -784,7 +785,8 @@ on the line which ends a function or procedure named NAME."
   "Calculate the indent of the current Pascal line.
 Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
   (save-excursion
-    (let* ((oldpos (point))
+    (let* ((parse-sexp-ignore-comments t)
+	   (oldpos (point))
 	   (state (save-excursion (parse-partial-sexp (point-min) (point))))
 	   (nest 0) (par 0) (complete (looking-at "[ \t]*end\\>"))
 	   (elsed (looking-at "[ \t]*else\\>"))
@@ -895,8 +897,8 @@ column number the line should be indented to."
 
 (defun pascal-indent-case ()
   "Indent within case statements."
-  (skip-chars-forward ": \t")
-  (let ((end (prog2
+  (let ((savepos (point-marker))
+	(end (prog2
 		 (end-of-line)
 		 (point-marker)
 	       (re-search-backward "\\<case\\>" nil t)))
@@ -930,7 +932,7 @@ column number the line should be indented to."
 	(insert " "))
       (setq oldpos (point))
       (pascal-end-of-statement))
-    (goto-char oldpos)))
+    (goto-char savepos)))
 
 (defun pascal-indent-paramlist (&optional arg)
   "Indent current line in parameterlist.
