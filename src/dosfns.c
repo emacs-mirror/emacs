@@ -297,14 +297,18 @@ init_dosfns ()
 
 #if __DJGPP__ >= 2
 
-  /* Without this, we never see hidden files.  */
-  __opendir_flags |= __OPENDIR_FIND_HIDDEN;
+  /* Without this, we never see hidden files.
+     Don't OR it with the previous value, so the value recorded at dump
+     time, possibly with `preserve-case' flags set, won't get through.  */
+  __opendir_flags = __OPENDIR_FIND_HIDDEN;
 
-  /* Under LFN, preserve the case of files as recorded in the directory.  */
+#if __DJGPP_MINOR__ == 0
+  /* Under LFN, preserve the case of files as recorded in the directory
+     (in DJGPP 2.01 and later this is automagically done by the library).  */
   if (!NILP (Fmsdos_long_file_names ()))
     __opendir_flags |= __OPENDIR_PRESERVE_CASE;
-
-#endif
+#endif /* __DJGPP_MINOR__ == 0 */
+#endif /* __DJGPP__ >= 2 */
 }
 
 /*
