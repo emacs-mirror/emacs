@@ -164,7 +164,7 @@ Driven by the variable `calendar-date-display-form'."
 
 (defun diary-islamic-date ()
   "Islamic calendar equivalent of date diary entry."
-  (let ((i (calendar-islamic-date-string (calendar-cursor-to-date t))))
+  (let ((i (calendar-islamic-date-string date)))
     (if (string-equal i "")
         "Date is pre-Islamic"
       (format "Islamic date (until sunset): %s" i))))
