@@ -836,9 +836,8 @@ signal_before_change (start, end)
    POS is the address of the start of the changed text.
    LENDEL is the number of characters of the text before the change.
    (Not the whole buffer; just the part that was changed.)
-   LENINS is the number of characters in the changed text.
-
-   (Hence POS + LENINS - LENDEL is the position after the changed text.)  */
+   LENINS is the number of characters in that part of the text
+   after the change.  */
 
 void
 signal_after_change (pos, lendel, lenins)
@@ -885,7 +884,7 @@ signal_after_change (pos, lendel, lenins)
   if (!NILP (current_buffer->overlays_before)
       || !NILP (current_buffer->overlays_after))
     report_overlay_modification (make_number (pos),
-				 make_number (pos + lenins - lendel),
+				 make_number (pos + lenins),
 				 1,
 				 make_number (pos), make_number (pos + lenins),
 				 make_number (lendel));
