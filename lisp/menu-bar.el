@@ -67,7 +67,7 @@ A large number or nil slows down menu responsiveness.")
 (define-key menu-bar-tools-menu [separator-vc]
   '("--"))
 
-(define-key menu-bar-tools-menu [vc-menu]
+(define-key menu-bar-tools-menu [vc]
   (cons "Version Control" vc-menu-map))
 
 (define-key menu-bar-tools-menu [separator-compare]
@@ -198,25 +198,25 @@ A large number or nil slows down menu responsiveness.")
 (define-key menu-bar-search-menu [separator-search]
   '("--"))
 
-(define-key menu-bar-search-menu [nonincremental-repeat-re-search-back]
+(define-key menu-bar-search-menu [repeat-regexp-back]
   '("Repeat Regexp Backwards" . nonincremental-repeat-re-search-backward))
-(define-key menu-bar-search-menu [nonincremental-repeat-search-back]
+(define-key menu-bar-search-menu [repeat-search-back]
   '("Repeat Backwards" . nonincremental-repeat-search-backward))
-(define-key menu-bar-search-menu [nonincremental-repeat-re-search-fwd]
+(define-key menu-bar-search-menu [repeat-regexp-fwd]
   '("Repeat Regexp" . nonincremental-repeat-re-search-forward))
-(define-key menu-bar-search-menu [nonincremental-repeat-search-fwd]
+(define-key menu-bar-search-menu [repeat-search-fwd]
   '("Repeat Search" . nonincremental-repeat-search-forward))
 
 (define-key menu-bar-search-menu [separator-repeat]
   '("--"))
 
-(define-key menu-bar-search-menu [re-search-back]
+(define-key menu-bar-search-menu [re-search-backward]
   '("Regexp Search Backwards..." . nonincremental-re-search-backward))
-(define-key menu-bar-search-menu [search-back]
+(define-key menu-bar-search-menu [search-backward]
   '("Search Backwards..." . nonincremental-search-backward))
-(define-key menu-bar-search-menu [re-search-fwd]
+(define-key menu-bar-search-menu [re-search-forward]
   '("Regexp Search..." . nonincremental-re-search-forward))
-(define-key menu-bar-search-menu [search-fwd]
+(define-key menu-bar-search-menu [search-forward]
   '("Search..." . nonincremental-search-forward))
 
 (if (fboundp 'start-process)
