@@ -1093,12 +1093,14 @@ Also accepts Space to mean yes, or Delete to mean no.")
   (prompt)
      Lisp_Object prompt;
 {
-  register Lisp_Object obj; 
-  register int ans;
+  register Lisp_Object obj, key, def, answer_string, map;
+  register int answer;
   Lisp_Object xprompt;
   Lisp_Object args[2];
   int ocech = cursor_in_echo_area;
   struct gcpro gcpro1, gcpro2;
+
+  map = Fsymbol_value (intern ("query-replace-map"));
 
   CHECK_STRING (prompt, 0);
   xprompt = prompt;
@@ -1110,28 +1112,33 @@ Also accepts Space to mean yes, or Delete to mean no.")
       cursor_in_echo_area = 1;
 
       obj = read_char (0, 0, 0, Qnil, 0);
-      if (XTYPE (obj) == Lisp_Int)
-	ans = XINT (obj);
-      else
-	continue;
+      key = Fmake_vector (make_number (1), obj);
+      def = Flookup_key (map, key);
+      answer_string = Fsingle_key_description (obj);
 
       cursor_in_echo_area = -1;
-      message ("%s(y or n) %c", XSTRING (xprompt)->data, ans);
+      message ("%s(y or n) %s", XSTRING (xprompt)->data,
+	       XSTRING (answer_string)->data);
       cursor_in_echo_area = ocech;
-      /* Accept a C-g or C-] (abort-recursive-edit) as quit requests.  */
-      if (ans == 7 || ans == '\035')
+
+      if (EQ (def, intern ("skip")))
+	{
+	  answer = 0;
+	  break;
+	}
+      else if (EQ (def, intern ("act")))
+	{
+	  answer = 1;
+	  break;
+	}
+      else if (EQ (def, intern ("quit")))
 	Vquit_flag = Qt;
+
       QUIT;
 
       /* If we don't clear this, then the next call to read_char will
 	 return quit_char again, and we'll enter an infinite loop.  */
       Vquit_flag = Qnil;
-      if (ans >= 0)
-	ans = DOWNCASE (ans);
-      if (ans == 'y' || ans == ' ')
-	{ ans = 'y'; break; }
-      if (ans == 'n' || ans == 127)
-	break;
 
       Fding (Qnil);
       Fdiscard_input ();
@@ -1143,7 +1150,7 @@ Also accepts Space to mean yes, or Delete to mean no.")
 	}
     }
   UNGCPRO;
-  return (ans == 'y' ? Qt : Qnil);
+  return answer ? Qt : Qnil;
 }
 
 /* This is how C code calls `yes-or-no-p' and allows the user
