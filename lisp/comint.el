@@ -2703,7 +2703,8 @@ from input that has not yet been sent."
   (let ((proc (or (get-buffer-process (current-buffer))
 		  (error "Current buffer has no process"))))
     (goto-char (process-mark proc))
-    (message "Point is now at the process mark")))
+    (when (interactive-p)
+      (message "Point is now at the process mark"))))
 
 (defun comint-bol-or-process-mark ()
   "Move point to beginning of line (after prompt) or to the process mark.
