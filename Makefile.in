@@ -210,7 +210,7 @@ removenullpaths=sed -e 's/^://' -e 's/:$$//' -e 's/::/:/'
 # something notable, so the only unnecessary work we do is in building
 # src/paths.h.tmp, which isn't much.
 # Note that sed is not in /bin on 386bsd.
-src/paths.h: Makefile ${srcdir}/src/paths.h.in FRC
+src/paths.h: Makefile ${srcdir}/src/paths.h.in FRC.src.paths.h
 	@echo "Producing \`src/paths.h' from \`src/paths.h.in'."
 	@(lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
@@ -223,7 +223,8 @@ src/paths.h: Makefile ${srcdir}/src/paths.h.in FRC
 	  -e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";')
 	@${srcdir}/move-if-change src/paths.h.tmp src/paths.h
 
-src:	lib-src
+src:	lib-src FRC.src
+lib-src: FRC.lib-src
 
 .RECURSIVE: ${SUBDIR}
 
@@ -364,13 +365,15 @@ do-install: mkdir
 ### we may be creating several layers of directories (for example,
 ### /usr/local/lib/emacs/19.0/mips-dec-ultrix4.2), we use make-path
 ### instead of mkdir.  Not all systems' mkdirs have the `-p' flag.
-mkdir: FRC
+mkdir: FRC.mkdir
 	./lib-src/make-path ${COPYDESTS} ${lockdir} ${infodir} ${mandir} \
 	  ${bindir} ${datadir} ${libdir} \
 	  `echo ${locallisppath} | sed 's/:/ /'`
 	chmod 777 ${COPYDESTS} ${lockdir}
 
-FRC:
+/* Some makes seem to remember that they've built something called FRC,
+   so you can only use a given FRC once per makefile.  */
+FRC FRC.src.paths.h FRC.src FRC.lib-src FRC.mkdir:
 
 
 # ==================== Cleaning up and miscellanea ====================
