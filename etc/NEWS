@@ -1116,6 +1116,31 @@ with Custom.
 
 * Lisp Changes in Emacs 21.4
 
+** Byte compiler changes:
+
+*** `(featurep 'xemacs)' is treated by the compiler as nil.  This
+helps to avoid noisy compiler warnings in code meant to run under both
+Emacs and XEmacs and may sometimes make the result significantly more
+efficient.  Since byte code from recent versions of XEmacs won't
+generally run in Emacs and vice versa, this optimization doesn't lose
+you anything.
+
+*** You can avoid warnings for possibly-undefined symbols with a
+simple convention that the compiler understands.  (This is mostly
+useful in code meant to be portable to different Emacs versions.)
+Write forms like the following, or code that macroexpands into such
+forms:
+
+  (if (fboundp 'foo) <then> <else>)
+  (if (boundp 'foo) <then> <else)
+
+In the first case, using `foo' as a function inside the <then> form
+won't produce a warning if it's not defined as a function, and in the
+second case, using `foo' as a variable won't produce a warning if it's
+unbound.  The test must be in exactly one of the above forms (after
+macro expansion), but such tests may be nested.  Note that `when' and
+`unless' expand to `if', but `cond' doesn't.
+  
 ** New translation table `translation-table-for-input'.
 
 +++
