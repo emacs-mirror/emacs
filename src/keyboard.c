@@ -247,14 +247,9 @@ static int auto_save_interval;
 
 int last_auto_save;
 
-/* Last command executed by the editor command loop, not counting
-   commands that set the prefix argument.  */
-
-Lisp_Object last_command;
-
 /* The command being executed by the command loop.
-   Commands may set this, and the value set will be copied into last_command
-   instead of the actual command.  */
+   Commands may set this, and the value set will be copied into
+   current_kboard->Vlast_command instead of the actual command.  */
 Lisp_Object this_command;
 
 /* The value of point when the last command was executed.  */
@@ -1075,7 +1070,7 @@ command_loop_1 ()
     call0 (Vdeferred_action_function);
 
   /* Do this after running Vpost_command_hook, for consistency.  */
-  last_command = this_command;
+  current_kboard->Vlast_command = this_command;
 
   while (1)
     {
@@ -1349,8 +1344,8 @@ command_loop_1 ()
 	safe_run_hooks (Qdeferred_action_function);
 
       /* If there is a prefix argument,
-	 1) We don't want last_command to be ``universal-argument''
-	 (that would be dumb), so don't set last_command,
+	 1) We don't want Vlast_command to be ``universal-argument''
+	 (that would be dumb), so don't set Vlast_command,
 	 2) we want to leave echoing on so that the prefix will be
 	 echoed as part of this key sequence, so don't call
 	 cancel_echoing, and
@@ -1359,7 +1354,7 @@ command_loop_1 ()
 	 not echo it a second time.  */
       if (NILP (current_kboard->Vprefix_arg))
 	{
-	  last_command = this_command;
+	  current_kboard->Vlast_command = this_command;
 	  cancel_echoing ();
 	  this_command_key_count = 0;
 	}
@@ -6604,6 +6599,7 @@ void
 init_kboard (kb)
      KBOARD *kb;
 {
+  kb->Vlast_command = Qnil;
   kb->Vprefix_arg = Qnil;
   kb->kbd_queue = Qnil;
   kb->kbd_queue_has_data = 0;
@@ -6922,7 +6918,7 @@ so that you can determine whether the command was run by mouse or not.");
 turns into this character followed by foo.");
   XSETINT (meta_prefix_char, 033);
 
-  DEFVAR_LISP ("last-command", &last_command,
+  DEFVAR_KBOARD ("last-command", Vlast_command,
     "The last command executed.  Normally a symbol with a function definition,\n\
 but can be whatever was found in the keymap, or whatever the variable\n\
 `this-command' was set to by that command.\n\
@@ -6934,7 +6930,6 @@ command exit.\n\
 \n\
 The value `kill-region' is special; it means that the previous command\n\
 was a kill command.");
-  last_command = Qnil;
 
   DEFVAR_LISP ("this-command", &this_command,
     "The command now being executed.\n\
