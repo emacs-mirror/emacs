@@ -18,6 +18,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; We don't want to have any undo records in the dumped Emacs.
+(buffer-disable-undo "*scratch*")
 
 (load "subr")
 (load "map-ynp")
@@ -106,6 +108,9 @@
 ;See also "site-load" above.
 (load "site-init" t)
 (garbage-collect)
+
+;;; At this point, we're ready to resume undo recording for scratch.
+(buffer-enable-undo "*scratch*")
 
 (if (or (equal (nth 3 command-line-args) "dump")
 	(equal (nth 4 command-line-args) "dump"))

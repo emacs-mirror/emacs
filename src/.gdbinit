@@ -91,6 +91,7 @@ end
 define xcons
 print (struct Lisp_Cons *) ($ & 0x00ffffff)
 print *$
+print $$
 end
 document xcons
 Print the contents of $, assuming it is an Elisp cons.

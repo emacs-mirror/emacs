@@ -465,12 +465,7 @@ and input is currently coming from the keyboard (not in keyboard macro).")
      that DOES eval its args.
      If it is a built-in function (such as load or eval-region)
      return nil.  */
-  fun = *btp->function;
-  while (XTYPE (fun) == Lisp_Symbol)
-    {
-      QUIT;
-      fun = Fsymbol_function (fun);
-    }
+  fun = Findirect_function (*btp->function);
   if (XTYPE (fun) == Lisp_Subr)
     return Qnil;
   /* btp points to the frame of a Lisp function that called interactive-p.
@@ -1206,14 +1201,9 @@ Also, a symbol satisfies `commandp' if its function definition does so.")
 
   fun = function;
 
-  /* Dereference symbols, but avoid infinte loops.  Eech.  */
-  while (XTYPE (fun) == Lisp_Symbol)
-    {
-      if (++i > 10) return Qnil;
-      tem = Ffboundp (fun);
-      if (NILP (tem)) return Qnil;
-      fun = Fsymbol_function (fun);
-    }
+  fun = indirect_function (fun);
+  if (EQ (fun, Qunbound))
+    return Qnil;
 
   /* Emacs primitives are interactive if their DEFUN specifies an
      interactive spec.  */
@@ -1333,14 +1323,8 @@ do_autoload (fundef, funname)
   Vautoload_queue = Qt;
   unbind_to (count, Qnil);
 
-  while (XTYPE (fun) == Lisp_Symbol)
-    {
-      QUIT;
-      val = XSYMBOL (fun)->function;
-      if (EQ (val, Qunbound))
-	Fsymbol_function (fun);	/* Get the right kind of error! */
-      fun = val;
-    }
+  fun = Findirect_function (fun);
+
   if (XTYPE (fun) == Lisp_Cons
       && EQ (XCONS (fun)->car, Qautoload))
     error ("Autoloading failed to define function %s",
@@ -1404,15 +1388,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
   /* At this point, only original_fun and original_args
      have values that will be used below */
  retry:
-  fun = original_fun;
-  while (XTYPE (fun) == Lisp_Symbol)
-    {
-      QUIT;
-      val = XSYMBOL (fun)->function;
-      if (EQ (val, Qunbound))
-	Fsymbol_function (fun);	/* Get the right kind of error! */
-      fun = val;
-    }
+  fun = Findirect_function (original_fun);
 
   if (XTYPE (fun) == Lisp_Subr)
     {
@@ -1582,16 +1558,12 @@ Thus, (apply '+ 1 2 '(3 4)) returns 10.")
 
   numargs += nargs - 2;
 
-  while (XTYPE (fun) == Lisp_Symbol)
+  fun = indirect_function (fun);
+  if (EQ (fun, Qunbound))
     {
-      QUIT;
-      fun = XSYMBOL (fun)->function;
-      if (EQ (fun, Qunbound))
-	{
-	  /* Let funcall get the error */
-	  fun = args[0];
-	  goto funcall;
-	}
+      /* Let funcall get the error */
+      fun = args[0];
+      goto funcall;
     }
 
   if (XTYPE (fun) == Lisp_Subr)
@@ -1779,14 +1751,8 @@ Thus, (funcall 'cons 'x 'y) returns (x . y).")
  retry:
 
   fun = args[0];
-  while (XTYPE (fun) == Lisp_Symbol)
-    {
-      QUIT;
-      val = XSYMBOL (fun)->function;
-      if (EQ (val, Qunbound))
-	Fsymbol_function (fun);	/* Get the right kind of error! */
-      fun = val;
-    }
+
+  fun = Findirect_function (fun);
 
   if (XTYPE (fun) == Lisp_Subr)
     {

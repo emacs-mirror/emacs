@@ -1,11 +1,11 @@
 /* X Selection processing for emacs
-   Copyright (C) 1990 Free Software Foundation.
+   Copyright (C) 1990, 1992 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -31,6 +31,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* The last 23 bits of the timestamp of the last mouse button event. */
 extern Time mouse_timestamp;
+
+/* An expedient hack!  Fix this!  */
+#define last_event_timestamp CurrentTime
 
 /* t if a mouse button is depressed. */
 extern Lisp_Object Vmouse_grabbed;
@@ -130,7 +133,7 @@ own_selection (selection_type, time)
 		      selecting_window, time);
   owner_window = XGetSelectionOwner (x_current_display, selection_type);
 
-  if (owner_window != selecting_window)
+      if (owner_window != selecting_window)
     return 0;
 
   return 1;
@@ -160,7 +163,7 @@ but optional second argument TYPE may specify secondary or clipboard.")
 	  x_begin_selection_own = event_time;
 	  val = Vx_selection_value = string;
 	}
-      UNBLOCK_INPUT;
+	  UNBLOCK_INPUT;
     }
   else if (EQ (type, Qsecondary))
     {
@@ -177,10 +180,10 @@ but optional second argument TYPE may specify secondary or clipboard.")
       BLOCK_INPUT;
       if (own_selection (Xatom_clipboard, event_time))
 	{
-	  x_begin_clipboard_own = event_time;
+  x_begin_clipboard_own = event_time;
 	  val = Vx_clipboard_value = string;
 	}
-      UNBLOCK_INPUT;
+  UNBLOCK_INPUT;
     }
   else
     error ("Invalid X selection type");
@@ -545,7 +548,7 @@ selection, but optional argument TYPE may specify secondary or clipboard.")
   if (NILP (type) || EQ (type, Qprimary))
     {
       if (!NILP (Vx_selection_value))
-	return Vx_selection_value;
+    return Vx_selection_value;
 
       return get_selection_value (XA_PRIMARY);
     }

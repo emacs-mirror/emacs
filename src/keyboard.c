@@ -43,6 +43,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "syssignal.h"
 #include "systerm.h"
+#include "systime.h"
 
 extern int errno;
 
@@ -311,8 +312,9 @@ Lisp_Object Qmode_line;
 Lisp_Object Qvertical_split;
 
 
-/* Address (if not 0) of word to zero out if a SIGIO interrupt happens.  */
-long *input_available_clear_word;
+/* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
+   happens.  */
+EMACS_TIME *input_available_clear_time;
 
 /* Nonzero means use SIGIO interrupts; zero means use CBREAK mode.
    Default is 1 if INTERRUPT_INPUT is defined.  */
@@ -1160,8 +1162,7 @@ read_char (commandflag)
       XSET (Vlast_event_screen, Lisp_Screen, selected_screen);
 #endif
 
-      waiting_for_input = 0;
-      input_available_clear_word = 0;
+      clear_waiting_for_input ();
 
       goto non_reread;
     }
@@ -1491,7 +1492,7 @@ kbd_buffer_store_event (event)
 	     will set Vlast_event_screen again, so this is safe to do.  */
 	  extern SIGTYPE interrupt_signal ();
 	  XSET (Vlast_event_screen, Lisp_Screen, event->screen);
-	  last_event_timestamp = XINT (event->timestamp);
+	  last_event_timestamp = event->timestamp;
 	  interrupt_signal ();
 	  return;
 	}
@@ -2237,8 +2238,8 @@ input_available_signal (signo)
   sigisheld (SIGIO);
 #endif
 
-  if (input_available_clear_word)
-    *input_available_clear_word = 0;
+  if (input_available_clear_time)
+    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
 
   while (1)
     {
@@ -2793,13 +2794,7 @@ Otherwise, that is done only if an arg is read using the minibuffer.")
 
   while (1)
     {
-      final = cmd;
-      while (XTYPE (final) == Lisp_Symbol)
-	{
-	  if (EQ (Qunbound, XSYMBOL (final)->function))
-	    Fsymbol_function (final);    /* Get an error! */
-	  final = XSYMBOL (final)->function;
-	}
+      final = Findirect_function (cmd);
 
       if (CONSP (final) && (tem = Fcar (final), EQ (tem, Qautoload)))
 	do_autoload (final, cmd);
@@ -3012,6 +3007,14 @@ detect_input_pending ()
   return input_pending;
 }
 
+/* This is called in some cases before a possible quit.
+   It cases the next call to detect_input_pending to recompute input_pending.
+   So calling this function unnecessarily can't do any harm.  */
+clear_input_pending ()
+{
+  input_pending = 0;
+}
+
 DEFUN ("input-pending-p", Finput_pending_p, Sinput_pending_p, 0, 0, 0,
   "T if command input is currently available with no waiting.\n\
 Actually, the value is nil only if we can be sure that no input is available.")
@@ -3194,10 +3197,10 @@ stuff_buffered_input (stuffstring)
 #endif /* BSD and not BSD4_1 */
 }
 
-set_waiting_for_input (word_to_clear)
-     long *word_to_clear;
+set_waiting_for_input (time_to_clear)
+     EMACS_TIME *time_to_clear;
 {
-  input_available_clear_word = word_to_clear;
+  input_available_clear_time = time_to_clear;
 
   /* Tell interrupt_signal to throw back to read_char,  */
   waiting_for_input = 1;
@@ -3219,7 +3222,7 @@ clear_waiting_for_input ()
 {
   /* Tell interrupt_signal not to throw back to read_char,  */
   waiting_for_input = 0;
-  input_available_clear_word = 0;
+  input_available_clear_time = 0;
 }
 
 /* This routine is called at interrupt level in response to C-G.

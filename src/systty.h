@@ -61,6 +61,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef SYSV_PTYS
 #include <sys/tty.h>
+#ifdef titan
+#include <sys/ttyhw.h>
+#include <sys/stream.h>
+#endif
 #include <sys/pty.h>
 #endif
 
@@ -76,6 +80,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef APOLLO
 #undef TIOCSTART
+#endif
+
+#ifdef XENIX
+#undef TIOCGETC  /* Avoid confusing some conditionals that test this.  */
 #endif
 
 #ifdef BROKEN_TIOCGETC
@@ -128,11 +136,16 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    EMACS_SET_TTY_PGRP(int FD, int *PGID) sets the terminal FD's
    current process group to *PGID.  Return -1 if there is an error.  */
 
+#ifdef HPUX
+/* HPUX tty process group stuff doesn't work, says the anonymous voice
+   from the past.  */
+#else
 #ifdef TIOCGPGRP
 #define EMACS_HAVE_TTY_PGRP
 #else
 #ifdef HAVE_TERMIOS
 #define EMACS_HAVE_TTY_PGRP
+#endif
 #endif
 #endif
 

@@ -1077,15 +1077,21 @@ Garbage collection happens automatically if you cons more than\n\
   tem = Fnthcdr (make_number (30), Vcommand_history);
   if (CONSP (tem))
     XCONS (tem)->cdr = Qnil;
+
   /* Likewise for undo information.  */
   {
     register struct buffer *nextb = all_buffers;
 
     while (nextb)
       {
-	nextb->undo_list 
-	  = truncate_undo_list (nextb->undo_list, undo_threshold,
-				undo_high_threshold);
+	/* If a buffer's undo list is Qt, that means that undo is
+	   turned off in that buffer.  Calling truncate_undo_list on
+	   Qt tends to return NULL, which effectively turns undo back on.
+	   So don't call truncate_undo_list if undo_list is Qt.  */
+	if (! EQ (nextb->undo_list, Qt))
+	  nextb->undo_list 
+	    = truncate_undo_list (nextb->undo_list, undo_threshold,
+				  undo_high_threshold);
 	nextb = nextb->next;
       }
   }

@@ -558,11 +558,22 @@ If BUFFER is omitted or nil, some interesting buffer is returned.")
 DEFUN ("buffer-disable-undo", Fbuffer_disable_undo, Sbuffer_disable_undo, 1,1,
 0,
   "Make BUFFER stop keeping undo information.")
-  (buf)
-     register Lisp_Object buf;
+  (buffer)
+     register Lisp_Object buffer;
 {
-  CHECK_BUFFER (buf, 0);
-  XBUFFER (buf)->undo_list = Qt;
+  Lisp_Object real_buffer;
+
+  if (NILP (buffer))
+    XSET (real_buffer, Lisp_Buffer, current_buffer);
+  else
+    {
+      real_buffer = Fget_buffer (buffer);
+      if (NILP (real_buffer))
+	nsberror (buffer);
+    }
+
+  XBUFFER (real_buffer)->undo_list = Qt;
+
   return Qnil;
 }
 
@@ -570,23 +581,22 @@ DEFUN ("buffer-enable-undo", Fbuffer_enable_undo, Sbuffer_enable_undo,
        0, 1, "",
   "Start keeping undo information for buffer BUFFER.\n\
 No argument or nil as argument means do this for the current buffer.")
-  (buf)
-     register Lisp_Object buf;
+  (buffer)
+     register Lisp_Object buffer;
 {
-  register struct buffer *b;
-  register Lisp_Object buf1;
+  Lisp_Object real_buffer;
 
-  if (NILP (buf))
-    b = current_buffer;
+  if (NILP (buffer))
+    XSET (real_buffer, Lisp_Buffer, current_buffer);
   else
     {
-      buf1 = Fget_buffer (buf);
-      if (NILP (buf1)) nsberror (buf);
-      b = XBUFFER (buf1);
+      real_buffer = Fget_buffer (buffer);
+      if (NILP (real_buffer))
+	nsberror (buffer);
     }
 
-  if (EQ (b->undo_list, Qt))
-    b->undo_list = Qnil;
+  if (EQ (XBUFFER (real_buffer)->undo_list, Qt))
+    XBUFFER (real_buffer)->undo_list = Qnil;
 
   return Qnil;
 }
@@ -1285,10 +1295,7 @@ init_buffer_once ()
   /* super-magic invisible buffer */
   Vbuffer_alist = Qnil;
 
-  tem = Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));
-  /* Want no undo records for *scratch*
-     until after Emacs is dumped */
-  Fbuffer_disable_undo (tem);
+  Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));
 }
 
 init_buffer ()

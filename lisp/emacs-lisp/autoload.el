@@ -1,5 +1,5 @@
 ;;; Maintain autoloads in loaddefs.el.
-;;; Copyright (C) 1991 Free Software Foundation, Inc.
+;;; Copyright (C) 1991, 1992 Free Software Foundation, Inc.
 ;;; Written by Roland McGrath.
 ;;;
 ;;; This program is free software; you can redistribute it and/or modify
@@ -267,7 +267,7 @@ file \"%s\") doesn't exist.  Remove its autoload section? "
 Runs \\[update-file-autoloads] on files and \\[update-directory-autoloads]
 on directories.  Must be used only with -batch, and kills Emacs on completion.
 Each file will be processed even if an error occurred previously.
-For example, invoke \"emacs -batch -f batch-byte-compile *.el\""
+For example, invoke \"emacs -batch -f batch-update-autoloads *.el\""
   (if (not noninteractive)
       (error "batch-update-file-autoloads is to be used only with -batch"))
   (let ((lost nil)
@@ -288,3 +288,4 @@ For example, invoke \"emacs -batch -f batch-byte-compile *.el\""
     (kill-emacs (if lost 1 0))))
 
 (provide 'autoload)
+

@@ -115,11 +115,17 @@ directory name of the directory where the `.emacs' file was looked for.")
       (message "Back to top level.")
     (setq command-line-processed t)
     ;; In presence of symlinks, switch to cleaner form of default directory.
-    (if (and (not (eq system-type 'vax-vms))
-	     (getenv "PWD")
-	     (equal (nthcdr 10 (file-attributes default-directory))
-		    (nthcdr 10 (file-attributes (getenv "PWD")))))
-	(setq default-directory (file-name-as-directory (getenv "PWD"))))
+    (if (not (eq system-type 'vax-vms))
+	(mapcar (function
+		 (lambda (var)
+		   (let ((value (getev var)))
+		     (if (and value
+			      (< (length value) (length default-directory))
+			      (equal (file-attributes default-directory)
+				     (file-attributes value)))
+			 (setq default-directory
+			       (file-name-as-directory value))))))
+		'("PWD" "HOME")))
     (let ((tail directory-abbrev-alist))
       (while tail
 	(if (string-match (car (car tail)) default-directory)

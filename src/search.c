@@ -210,80 +210,94 @@ matched by parenthesis constructs in the pattern.")
   return make_number (val);
 }
 
-scan_buffer (target, pos, cnt, shortage)
-     int *shortage, pos;
-     register int cnt, target;
+/* Search for COUNT instances of the character TARGET, starting at START.
+   If COUNT is negative, search backwards.
+
+   If we find COUNT instances, set *SHORTAGE to zero, and return the
+   position of the COUNTth character.
+
+   If we don't find COUNT instances before reaching the end of the
+   buffer (or the beginning, if scanning backwards), set *SHORTAGE to
+   the number of TARGETs left unfound, and return the end of the
+   buffer we bumped up against.  */
+
+scan_buffer (target, start, count, shortage)
+     int *shortage, start;
+     register int count, target;
 {
-  int lim = ((cnt > 0) ? ZV - 1 : BEGV);
-  int direction = ((cnt > 0) ? 1 : -1);
-  register int lim0;
+  int limit = ((count > 0) ? ZV - 1 : BEGV);
+  int direction = ((count > 0) ? 1 : -1);
+
+  register unsigned char *cursor;
   unsigned char *base;
-  register unsigned char *cursor, *limit;
+
+  register int ceiling;
+  register unsigned char *ceiling_addr;
 
   if (shortage != 0)
     *shortage = 0;
 
   immediate_quit = 1;
 
-  if (cnt > 0)
-    while (pos != lim + 1)
+  if (count > 0)
+    while (start != limit + 1)
       {
-	lim0 =  BUFFER_CEILING_OF (pos);
-	lim0 = min (lim, lim0);
-	limit = &FETCH_CHAR (lim0) + 1;
-	base = (cursor = &FETCH_CHAR (pos));
+	ceiling =  BUFFER_CEILING_OF (start);
+	ceiling = min (limit, ceiling);
+	ceiling_addr = &FETCH_CHAR (ceiling) + 1;
+	base = (cursor = &FETCH_CHAR (start));
 	while (1)
 	  {
-	    while (*cursor != target && ++cursor != limit)
+	    while (*cursor != target && ++cursor != ceiling_addr)
 	      ;
-	    if (cursor != limit)
+	    if (cursor != ceiling_addr)
 	      {
-		if (--cnt == 0)
+		if (--count == 0)
 		  {
 		    immediate_quit = 0;
-		    return (pos + cursor - base + 1);
+		    return (start + cursor - base + 1);
 		  }
 		else
-		  if (++cursor == limit)
+		  if (++cursor == ceiling_addr)
 		    break;
 	      }
 	    else
 	      break;
 	  }
-	pos += cursor - base;
+	start += cursor - base;
       }
   else
     {
-      pos--;			/* first character we scan */
-      while (pos > lim - 1)
-	{			/* we WILL scan under pos */
-	  lim0 =  BUFFER_FLOOR_OF (pos);
-	  lim0 = max (lim, lim0);
-	  limit = &FETCH_CHAR (lim0) - 1;
-	  base = (cursor = &FETCH_CHAR (pos));
+      start--;			/* first character we scan */
+      while (start > limit - 1)
+	{			/* we WILL scan under start */
+	  ceiling =  BUFFER_FLOOR_OF (start);
+	  ceiling = max (limit, ceiling);
+	  ceiling_addr = &FETCH_CHAR (ceiling) - 1;
+	  base = (cursor = &FETCH_CHAR (start));
 	  cursor++;
 	  while (1)
 	    {
-	      while (--cursor != limit && *cursor != target)
+	      while (--cursor != ceiling_addr && *cursor != target)
 		;
-	      if (cursor != limit)
+	      if (cursor != ceiling_addr)
 		{
-		  if (++cnt == 0)
+		  if (++count == 0)
 		    {
 		      immediate_quit = 0;
-		      return (pos + cursor - base + 1);
+		      return (start + cursor - base + 1);
 		    }
 		}
 	      else
 		break;
 	    }
-	  pos += cursor - base;
+	  start += cursor - base;
 	}
     }
   immediate_quit = 0;
   if (shortage != 0)
-    *shortage = cnt * direction;
-  return (pos + ((direction == 1 ? 0 : 1)));
+    *shortage = count * direction;
+  return (start + ((direction == 1 ? 0 : 1)));
 }
 
 int

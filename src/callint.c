@@ -179,12 +179,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
  retry:
 
-  for (fun = function;
-       XTYPE (fun) == Lisp_Symbol && !EQ (fun, Qunbound);
-       fun = XSYMBOL (fun)->function)
-    {
-      QUIT;
-    }
+  fun = indirect_function (function);
 
   specs = Qnil;
   string = 0;

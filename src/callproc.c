@@ -125,25 +125,29 @@ If you quit, the process is killed with SIGKILL.")
       CHECK_STRING (infile, 1);
     }
   else
+#ifdef VMS
+    infile = build_string ("NLA0:");
+#else
     infile = build_string ("/dev/null");
+#endif /* not VMS */
 
-  {
-    register Lisp_Object tem;
-    if (nargs < 3)
-      buffer = Qnil;
-    else 
-      {
-	buffer = tem = args[2];
-	if (!(EQ (tem, Qnil) || EQ (tem, Qt)
-	      || XFASTINT (tem) == 0))
-	  {
-	    buffer = Fget_buffer (tem);
-	    CHECK_BUFFER (buffer, 2);
-	  }
-      }
-  }
+  if (nargs >= 3)
+    {
+      register Lisp_Object tem;
 
-  display = nargs >= 3 ? args[3] : Qnil;
+      buffer = tem = args[2];
+      if (!(EQ (tem, Qnil)
+	    || EQ (tem, Qt)
+	    || XFASTINT (tem) == 0))
+	{
+	  buffer = Fget_buffer (tem);
+	  CHECK_BUFFER (buffer, 2);
+	}
+    }
+  else 
+    buffer = Qnil;
+
+  display = nargs >= 4 ? args[3] : Qnil;
 
   {
     register int i;

@@ -340,3 +340,7 @@ and then modifies one entry in it."
 	  (setq i (1+ i)))
 	(setq keyboard-translate-table table)))
   (aset keyboard-translate-table from to))
+
+
+(defmacro lambda (&rest cdr)
+  (` (function (lambda (,@ cdr)))))

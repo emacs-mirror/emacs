@@ -37,7 +37,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 Lisp_Object Qnil, Qt, Qquote, Qlambda, Qsubr, Qunbound;
 Lisp_Object Qerror_conditions, Qerror_message, Qtop_level;
 Lisp_Object Qerror, Qquit, Qwrong_type_argument, Qargs_out_of_range;
-Lisp_Object Qvoid_variable, Qvoid_function;
+Lisp_Object Qvoid_variable, Qvoid_function, Qcyclic_function_indirection;
 Lisp_Object Qsetting_constant, Qinvalid_read_syntax;
 Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
 Lisp_Object Qend_of_file, Qarith_error;
@@ -480,13 +480,13 @@ DEFUN ("fmakunbound", Ffmakunbound, Sfmakunbound, 1, 1, 0, "Make SYMBOL's functi
 
 DEFUN ("symbol-function", Fsymbol_function, Ssymbol_function, 1, 1, 0,
   "Return SYMBOL's function definition.  Error if that is void.")
-  (sym)
-     register Lisp_Object sym;
+  (symbol)
+     register Lisp_Object symbol;
 {
-  CHECK_SYMBOL (sym, 0);
-  if (EQ (XSYMBOL (sym)->function, Qunbound))
-    return Fsignal (Qvoid_function, Fcons (sym, Qnil));
-  return XSYMBOL (sym)->function;
+  CHECK_SYMBOL (symbol, 0);
+  if (EQ (XSYMBOL (symbol)->function, Qunbound))
+    return Fsignal (Qvoid_function, Fcons (symbol, Qnil));
+  return XSYMBOL (symbol)->function;
 }
 
 DEFUN ("symbol-plist", Fsymbol_plist, Ssymbol_plist, 1, 1, 0, "Return SYMBOL's property list.")
@@ -530,6 +530,7 @@ DEFUN ("setplist", Fsetplist, Ssetplist, 2, 2, 0,
   XSYMBOL (sym)->plist = newplist;
   return newplist;
 }
+
 
 /* Getting and setting values of symbols */
 
@@ -1092,6 +1093,61 @@ From now on the default value will apply in this buffer.")
   }
 
   return sym;
+}
+
+/* Find the function at the end of a chain of symbol function indirections.  */
+
+/* If OBJECT is a symbol, find the end of its function chain and
+   return the value found there.  If OBJECT is not a symbol, just
+   return it.  If there is a cycle in the function chain, signal a
+   cyclic-function-indirection error.
+
+   This is like Findirect_function, except that it doesn't signal an
+   error if the chain ends up unbound.  */
+Lisp_Object
+indirect_function (object, error)
+  register Lisp_Object object;
+{
+  Lisp_Object tortise, hare;
+
+  hare = tortise = object;
+
+  for (;;)
+    {
+      if (XTYPE (hare) != Lisp_Symbol || EQ (hare, Qunbound))
+	break;
+      hare = XSYMBOL (hare)->function;
+      if (XTYPE (hare) != Lisp_Symbol || EQ (hare, Qunbound))
+	break;
+      hare = XSYMBOL (hare)->function;
+
+      tortise = XSYMBOL (tortise)->function;
+
+      if (EQ (hare, tortise))
+	Fsignal (Qcyclic_function_indirection, Fcons (object, Qnil));
+    }
+
+  return hare;
+}
+
+DEFUN ("indirect-function", Findirect_function, Sindirect_function, 1, 1, 0,
+  "Return the function at the end of OBJECT's function chain.\n\
+If OBJECT is a symbol, follow all function indirections and return the final\n\
+function binding.\n\
+If OBJECT is not a symbol, just return it.\n\
+Signal a void-function error if the final symbol is unbound.\n\
+Signal a cyclic-function-indirection error if there is a loop in the\n\
+function chain of symbols.")
+  (object)
+    register Lisp_Object object;
+{
+  Lisp_Object result;
+
+  result = indirect_function (object);
+
+  if (EQ (result, Qunbound))
+    return Fsignal (Qvoid_function, Fcons (object, Qnil));
+  return result;
 }
 
 /* Extract and set vector and string elements */
@@ -1698,6 +1754,7 @@ syms_of_data ()
   Qwrong_type_argument = intern ("wrong-type-argument");
   Qargs_out_of_range = intern ("args-out-of-range");
   Qvoid_function = intern ("void-function");
+  Qcyclic_function_indirection = intern ("cyclic-function-indirection");
   Qvoid_variable = intern ("void-variable");
   Qsetting_constant = intern ("setting-constant");
   Qinvalid_read_syntax = intern ("invalid-read-syntax");
@@ -1761,6 +1818,11 @@ syms_of_data ()
 	Fcons (Qvoid_function, Fcons (Qerror, Qnil)));
   Fput (Qvoid_function, Qerror_message,
 	build_string ("Symbol's function definition is void"));
+
+  Fput (Qcyclic_function_indirection, Qerror_conditions,
+	Fcons (Qcyclic_function_indirection, Fcons (Qerror, Qnil)));
+  Fput (Qcyclic_function_indirection, Qerror_message,
+	build_string ("Symbol's chain of function indirections contains a loop"));
 
   Fput (Qvoid_variable, Qerror_conditions,
 	Fcons (Qvoid_variable, Fcons (Qerror, Qnil)));
@@ -1832,6 +1894,7 @@ syms_of_data ()
   staticpro (&Qwrong_type_argument);
   staticpro (&Qargs_out_of_range);
   staticpro (&Qvoid_function);
+  staticpro (&Qcyclic_function_indirection);
   staticpro (&Qvoid_variable);
   staticpro (&Qsetting_constant);
   staticpro (&Qinvalid_read_syntax);
@@ -1898,6 +1961,7 @@ syms_of_data ()
   defsubr (&Ssetcar);
   defsubr (&Ssetcdr);
   defsubr (&Ssymbol_function);
+  defsubr (&Sindirect_function);
   defsubr (&Ssymbol_plist);
   defsubr (&Ssymbol_name);
   defsubr (&Smakunbound);

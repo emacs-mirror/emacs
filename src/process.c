@@ -65,41 +65,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <bsdtty.h>
 #endif
 
-#ifdef HPUX
-#undef TIOCGPGRP
-#endif
-
 #ifdef IRIS
 #include <sys/sysmacros.h>	/* for "minor" */
 #endif /* not IRIS */
 
 #include "systime.h"
-
-#if defined (HPUX) && defined (HAVE_PTYS)
-#include <sys/ptyio.h>
-#endif
-
-#ifdef AIX
-#include <sys/pty.h>
-#include <unistd.h>
-#endif
-
-#ifdef SYSV_PTYS
-#include <sys/tty.h>
-#ifdef titan
-#include <sys/ttyhw.h>
-#include <sys/stream.h>
-#endif
-#include <sys/pty.h>
-#endif
-
-#ifdef XENIX
-#undef TIOCGETC  /* Avoid confusing some conditionals that test this.  */
-#endif
-
-#ifdef BROKEN_TIOCGETC
-#undef TIOCGETC
-#endif
+#include "systerm.h"
 
 #include "lisp.h"
 #include "window.h"
@@ -1690,10 +1661,6 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       EMACS_ADD_TIME (end_time, end_time, timeout);
     }
 
-  /* Turn off periodic alarms (in case they are in use)
-     because the select emulator uses alarms.  */
-  stop_polling ();
-
   while (1)
     {
       /* If calling from keyboard input, do not quit
@@ -1752,6 +1719,13 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (!read_kbd)
 	FD_CLR (0, &Available);
 
+      /* If screen size has changed or the window is newly mapped,
+	 redisplay now, before we start to wait.  There is a race
+	 condition here; if a SIGIO arrives between now and the select
+	 and indicates that a screen is trashed, we lose.  */
+      if (screen_garbaged)
+	redisplay_preserve_echo_area ();
+
       if (read_kbd && detect_input_pending ())
 	nfds = 0;
       else
@@ -1765,7 +1739,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /*  If we woke up due to SIGWINCH, actually change size now.  */
       do_pending_window_change ();
 
-      if (time_limit && nfds == 0)	/* timeout elapsed */
+      if (time_limit && nfds == 0) /* timeout elapsed */
 	break;
       if (nfds < 0)
 	{
@@ -1787,7 +1761,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		 So, SIGHUP is ignored (see def of PTY_TTY_NAME_SPRINTF
 		 in m-ibmrt-aix.h), and here we just ignore the select error.
 		 Cleanup occurs c/o status_notify after SIGCLD. */
-	      FD_ZERO (&Available);          /* Cannot depend on values returned */
+	      FD_ZERO (&Available); /* Cannot depend on values returned */
 #else
 	      abort ();
 #endif
@@ -1815,8 +1789,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 but select says there is input.  */
 
       /*
-      if (read_kbd && interrupt_input && (Available & fileno (stdin)))
-      */
+	if (read_kbd && interrupt_input && (Available & fileno (stdin)))
+	*/
       if (read_kbd && interrupt_input && (FD_ISSET (fileno (stdin), &Available)))
 	kill (0, SIGIO);
 #endif
@@ -1838,11 +1812,6 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 obey it now if we should.  */
       if (read_kbd)
 	do_pending_window_change ();
-
-      /* If screen size has changed, redisplay now
-	 for either sit-for or keyboard input.  */
-      if (read_kbd && screen_garbaged)
-	redisplay_preserve_echo_area ();
 
       /* Check for data from a process or a command channel */
       for (channel = FIRST_PROC_DESC; channel < MAXDESC; channel++)
@@ -1880,7 +1849,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		    }
 		  continue;
 		}
-#endif /* vipc */
+#endif				/* vipc */
 
 	      /* Read data from the process, starting with our
 		 buffered-ahead character if we have one.  */
@@ -1914,9 +1883,9 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		 subprocess termination and SIGCHLD.  */
 	      else if (nread == 0 && !NETCONN_P (proc))
 		;
-#endif /* O_NDELAY */
-#endif /* O_NONBLOCK */
-#endif /* EWOULDBLOCK */
+#endif				/* O_NDELAY */
+#endif				/* O_NONBLOCK */
+#endif				/* EWOULDBLOCK */
 #ifdef HAVE_PTYS
 	      /* On some OSs with ptys, when the process on one end of
 		 a pty exits, the other end gets an error reading with
@@ -1927,9 +1896,9 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		 get a SIGCHLD). */
 	      else if (nread == -1 && errno == EIO)
 		;
-#endif /* HAVE_PTYS */
-/* If we can detect process termination, don't consider the process
-   gone just because its pipe is closed.  */
+#endif				/* HAVE_PTYS */
+	      /* If we can detect process termination, don't consider the process
+		 gone just because its pipe is closed.  */
 #ifdef SIGCHLD
 	      else if (nread == 0 && !NETCONN_P (proc))
 		;
@@ -1946,11 +1915,18 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		      = Fcons (Qexit, Fcons (make_number (256), Qnil));
 		}
 	    }
-	} /* end for each file descriptor */
-    } /* end while exit conditions not met */
+	}			/* end for each file descriptor */
+    }				/* end while exit conditions not met */
 
-  /* Resume periodic signals to poll for input, if necessary.  */
-  start_polling ();
+  /* If calling from keyboard input, do not quit
+     since we want to return C-g as an input character.
+     Otherwise, do pending quit if requested.  */
+  if (read_kbd >= 0)
+    {
+      /* Prevent input_pending from remaining set if we quit.  */
+      clear_input_pending ();
+      QUIT;
+    }
 
   return got_some_input;
 }

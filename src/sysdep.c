@@ -479,7 +479,7 @@ child_setup_tty (out)
 setpgrp_of_tty (pid)
      int pid;
 {
-  EMACS_SET_TTY_PGRP (input_fd, pid);
+  EMACS_SET_TTY_PGRP (input_fd, &pid);
 }
 
 /* Record a signal code and the handler for it.  */
@@ -1199,7 +1199,7 @@ kbd_input_ast ()
 {
   register int c = -1;
   int old_errno = errno;
-  extern int *input_available_clear_word;
+  extern EMACS_TIME *input_available_clear_time;
 
   if (waiting_for_ast)
     SYS$SETEF (input_ef);
@@ -1236,8 +1236,8 @@ kbd_input_ast ()
       kbd_buffer_store_event (&e);
     }
 
-  if (input_available_clear_word)
-    *input_available_clear_word = 0;
+  if (input_available_clear_time)
+    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
   errno = old_errno;
 }
 

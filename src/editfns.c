@@ -680,7 +680,32 @@ Both arguments are required.")
 }
 
 
-/* Return a string with the contents of the current region */
+/* Making strings from buffer contents.  */
+
+/* Return a Lisp_String containing the text of the current buffer from
+   START to END.
+
+   We don't want to use plain old make_string here, because it calls
+   make_uninit_string, which can cause the buffer arena to be
+   compacted.  make_string has no way of knowing that the data has
+   been moved, and thus copies the wrong data into the string.  This
+   doesn't effect most of the other users of make_string, so it should
+   be left as is.  But we should use this function when conjuring
+   buffer substrings.  */
+Lisp_Object
+make_buffer_string (start, end)
+     int start, end;
+{
+  Lisp_Object result;
+
+  if (start < GPT && GPT < end)
+    move_gap (start);
+
+  result = make_uninit_string (end - start);
+  bcopy (&FETCH_CHAR (start), XSTRING (result)->data, end - start);
+
+  return result;
+}
 
 DEFUN ("buffer-substring", Fbuffer_substring, Sbuffer_substring, 2, 2, 0,
   "Return the contents of part of the current buffer as a string.\n\
@@ -690,33 +715,19 @@ they can be in either order.")
      Lisp_Object b, e;
 {
   register int beg, end;
-  Lisp_Object result;
 
   validate_region (&b, &e);
   beg = XINT (b);
   end = XINT (e);
 
-  if (beg < GPT && end > GPT)
-    move_gap (beg);
-
-  /* Plain old make_string calls make_uninit_string, which can cause
-     the buffer arena to be compacted.  make_string has no way of
-     knowing that the data has been moved, and thus copies the wrong
-     data into the string.  This doesn't effect most of the other
-     users of make_string, so it should be left as is.  */
-  result = make_uninit_string (end - beg);
-  bcopy (&FETCH_CHAR (beg), XSTRING (result)->data, end - beg);
-
-  return result;
+  return make_buffer_string (beg, end);
 }
 
 DEFUN ("buffer-string", Fbuffer_string, Sbuffer_string, 0, 0, 0,
   "Return the contents of the current buffer as a string.")
   ()
 {
-  if (BEGV < GPT && ZV > GPT)
-    move_gap (BEGV);
-  return make_string (BEGV_ADDR, ZV - BEGV);
+  return make_buffer_string (BEGV, ZV);
 }
 
 DEFUN ("insert-buffer-substring", Finsert_buffer_substring, Sinsert_buffer_substring,
