@@ -1621,7 +1621,6 @@ MINIBUF neither nil nor t means never include the minibuffer window.")
   (frame, minibuf, window)
      Lisp_Object frame, minibuf, window;
 {
-  Lisp_Object list;
 
   if (NILP (window))
     window = selected_window;
@@ -2860,7 +2859,7 @@ If FRAME is nil, search only the selected frame\n\
  which means search visible and iconified frames.\n\
 \n\
 If `even-window-heights' is non-nil, window heights will be evened out\n\
-if displaying the buffer causes two vertically\ adjacent windows to be\n\
+if displaying the buffer causes two vertically adjacent windows to be\n\
 displayed.")
   (buffer, not_this_window, frame)
      register Lisp_Object buffer, not_this_window, frame;
