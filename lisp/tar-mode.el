@@ -3,6 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
+;; Maintainer: FSF
 ;; Created: 04 Apr 1990
 ;; Keywords: unix
 

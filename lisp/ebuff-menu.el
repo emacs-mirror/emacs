@@ -3,6 +3,7 @@
 ;; Copyright (C) 1985, 1986, 1994 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@ai.mit.edu>
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; filecache.el --- Find files using a pre-loaded cache
 ;;
-;; Author:  Peter Breton
+;; Author:  Peter Breton <pbreton@i-kinetics.com>
 ;; Created: Sun Nov 10 1996
 ;; Keywords: 
 ;; Time-stamp: <97/02/07 17:26:54 peter>

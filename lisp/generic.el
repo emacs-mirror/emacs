@@ -2,7 +2,7 @@
 ;;
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 ;;
-;; Author:  Peter Breton
+;; Author:  Peter Breton <pbreton@i-kinetics.com>
 ;; Created: Fri Sep 27 1996
 ;; Keywords: generic, comment, font-lock
 

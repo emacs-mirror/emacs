@@ -4,6 +4,7 @@
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
+;; Maintainer: FSF
 ;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
