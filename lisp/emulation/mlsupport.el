@@ -139,7 +139,7 @@
   (if (/= (aref pattern 0) ?*)
       (error "Only patterns starting with * supported in auto-execute"))
   (setq auto-mode-alist (cons (cons (concat "\\." (substring pattern 1)
-					    "$")
+					    "\\'")
 				    function)
 			      auto-mode-alist)))
 
