@@ -103,7 +103,7 @@ SOURCES = COPYING ChangeLog Makefile.in README aixcc.lex emacs.csh \
 ### Some other files - those shared with other GNU utilities - need
 ### HAVE_CONFIG_H #defined before they know they can take advantage of
 ### the information in ../src/config.h.
-ALL_CFLAGS = ${C_SWITCH_SYSTEM} -Demacs -DHAVE_CONFIG_H -I${srcdir}/../src ${CFLAGS}
+ALL_CFLAGS = ${C_SWITCH_SYSTEM} -Demacs -DHAVE_CONFIG_H -I${srcdir} -I${srcdir}/../src ${CFLAGS}
 .c.o:
 	${CC} -c ${CPPFLAGS} ${ALL_CFLAGS} $<
 
@@ -187,8 +187,8 @@ test-distrib: ${srcdir}/test-distrib.c
 
 GETOPTOBJS = getopt.o getopt1.o $(ALLOCA)
 GETOPTDEPS = $(GETOPTOBJS) ${srcdir}/getopt.h
-getopt.o: getopt.c getopt.h
-getopt1.o: getopt1.c getopt.h
+getopt.o: ${srcdir}/getopt.c ${srcdir}/getopt.h
+getopt1.o: ${srcdir}/getopt1.c ${srcdir}/getopt.h
 
 etags: ${srcdir}/etags.c $(GETOPTDEPS)
 	$(CC) ${ALL_CFLAGS} -DETAGS ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o etags
