@@ -160,6 +160,23 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
   (! NULL_INTERVAL_P (i) && ! NILP (textget ((i)->plist, Qrear_nonsticky)))
 
 
+/* If PROP is the `invisible' property of a character,
+   this is 1 if the character should be treated as invisible.  */
+
+#define TEXT_PROP_MEANS_INVISIBLE(prop)				\
+  (EQ (current_buffer->invisibility_spec, Qt)			\
+   ? ! NILP (prop)						\
+   : invisible_p (prop, current_buffer->invisibility_spec))
+
+/* If PROP is the `invisible' property of a character,
+   this is 1 if the character should be treated as invisible
+   and should have an ellipsis.  */
+
+#define TEXT_PROP_MEANS_INVISIBLE_WITH_ELLIPSIS(prop)		\
+  (EQ (current_buffer->invisibility_spec, Qt)			\
+   ? 0								\
+   : invisible_ellipsis_p (prop, current_buffer->invisibility_spec))
+
 /* Declared in alloc.c */
 
 extern INTERVAL make_interval ();
