@@ -5,7 +5,7 @@
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;         Lars Lindberg <lli@sypro.cap.se>
 ;; Created: 8 Feb 1994
-;; Version: 1.4
+;; Version: 1.6
 ;; Keywords: tools
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -49,12 +49,18 @@
 ;;   (autoload 'goto-index-pos "imenu" "Goto buffer index position." t)
 ;;   (define-key global-map "\C-cj" 'goto-index-pos) ;; Or some other key
 ;;   (cond (window-system 
-;;          (define-key global-map [S-down-mouse-3] 'goto-index-pos))
+;;          (define-key global-map [S-down-mouse-3] 'goto-index-pos)))
+;;   Also run the 'add-hook' examples at the bottom of imenu.el.
 
 ;;; Change Log:
-;;    v1.4 Feb 18 1994ine-key global-map [S-down-mouse-3] 'goto-index-pos))
-
-;;; Change Log:
+;;    v1.6 Feb 28 1994 Ake Stenhoff
+;;      Added alist as an optional argument to 
+;;     'imenu-choose-buffer-index'.
+;;      Thanks [dean].
+;;    v1.5 Feb 25 1994 Ake Stenhoff
+;;      Added code to parse DEFSTRUCT, DEFCLASS, DEFTYPE,
+;;      DEFINE-CONDITION in the lisp example function.
+;;      Thanks [simon].
 ;;    v1.4 Feb 18 1994 Ake Stenhoff
 ;;	Added 'imenu-create-submenu-name' for creating a submenu name.
 ;;	This is for getting a general look of submenu names.
@@ -73,6 +79,11 @@
 ;;       Better comments (?).
 ;;    v1.0 Feb 8 1994 Ake Stenhoff & Lars Lindberg
 ;;       Based on func-menu.el 3.5.
+
+;;; Thanks goes to
+;;  [simon] - Simon Leinen simon@lia.di.epfl.ch
+;;  [dean] - Dean Andrews ada@unison.com
+;;  
 
 ;;; Code
 (require 'cl)
@@ -157,9 +168,6 @@ index and it should return nil when it doesn't find another index. ")
 
 (defvar extract-index-name-function nil
   "Function for extracting the index name.
-
-This function is called after the function pointed out by
-'prev-index-position-functioname.
 
 This function is called after the function pointed out by
 'prev-index-position-function'.")
@@ -287,7 +295,6 @@ This function is called after the function pointed out by
 
 Moves point to end of buffer and then repeatedly calls
 'prev-index-position-function' and 'extract-index-name-function'.
-Their results are gathered into an index aliition-function' and 'extract-index-name-function'.
 Their results are gathered into an index alist."
 
   (or (and (fboundp prev-index-position-function)
@@ -398,7 +405,7 @@ Returns t for rescan and otherwise a position number."
     (cond
      ((eq position nil)
       position)
-     ((not (numberp position))
+     ((listp position)
       (imenu--mouse-menu position event
 			 (if title
 			     (concat title imenu-level-separator
@@ -409,13 +416,18 @@ Returns t for rescan and otherwise a position number."
      (t
       (rassq position index-alist)))))
 
-(defun imenu-choose-buffer-index (&optional prompt)
+(defun imenu-choose-buffer-index (&optional prompt alist)
   "Let the user select from a buffer index and return the chosen index.
 
 If the user originally activated this function with the mouse, a mouse
-menu is used.  Otherwise f the user originally activated this function with the mouse, a mouse
 menu is used.  Otherwise a completion buffer is used and the user is
 prompted with PROMPT.
+
+If you call this function with index alist ALIST, then it lets the user
+select from ALIST.
+
+With no index alist ALIST, it calls 'imenu--make-index-alist' to
+create the index alist.
 
 If 'imenu-always-use-completion-buffer-p' is non-nil, then the
 completion buffer is always used, no matter if the mouse was used or
@@ -432,7 +444,7 @@ The returned value is on the form (INDEX-NAME . INDEX-POSITION)."
 	   (or (framep window) (select-window window))))
     ;; Create a list for this buffer only when needed.
     (while (eq result t)
-      (setq index-alist (imenu--make-index-alist))
+      (setq index-alist (if alist alist (imenu--make-index-alist)))
       (setq result
 	    (if (and mouse-triggered
 		     (not imenu-always-use-completion-buffer-p))
@@ -493,6 +505,7 @@ See 'imenu-choose-buffer-index' for more information."
   ;; It will generate a nested index of definitions.
   (let ((index-alist '())
 	(index-var-alist '())
+	(index-type-alist '())
 	(index-unknown-alist '()))
     (goto-char (point-max))
     (imenu-progress-message 0)
@@ -512,6 +525,15 @@ See 'imenu-choose-buffer-index' for more information."
 		 (forward-sexp 2)
 		 (push (imenu-example--name-and-position)
 		       index-alist))
+		((looking-at "def\\(type\\|struct\\|class\\|ine-condition\\)")
+ 		 (forward-sexp 2)
+ 		 (if (= (char-after (1- (point))) ?\))
+ 		     (progn
+ 		       (forward-sexp -1)
+ 		       (down-list 1)
+ 		       (forward-sexp 1)))
+ 		 (push (imenu-example--name-and-position)
+ 		       index-type-alist))
 		(t
 		 (forward-sexp 2)
 		 (push (imenu-example--name-and-position)
@@ -520,6 +542,9 @@ See 'imenu-choose-buffer-index' for more information."
     (and index-var-alist
 	 (push (cons (imenu-create-submenu-name "Variables") index-var-alist)
 	       index-alist))
+    (and index-type-alist
+ 	 (push (cons (imenu-create-submenu-name "Types") index-type-alist)
+  	       index-alist))
     (and index-unknown-alist
 	 (push (cons (imenu-create-submenu-name "Syntax-unknown") index-unknown-alist)
 	       index-alist))
@@ -536,10 +561,6 @@ See 'imenu-choose-buffer-index' for more information."
    "\\([a-zA-Z0-9_*]+[ \t]+\\)?"	; more than 3 tokens, right?
    "\\([a-zA-Z0-9_*]+[ \t]+\\)?"
    "\\([*&]+[ \t]*\\)?"			; pointer
-   "\\([a-zA-Z0-9_*]+\\)[ \t]*("	; name
-   ))
-
-(defun imenu-example--create-c-index (&opter
    "\\([a-zA-Z0-9_*]+\\)[ \t]*("	; name
    ))
 
