@@ -1,3 +1,7 @@
+/* This file permits building Emacs with a shared libc on Sunos 4.
+   To make this work, you must completely replace your C shared library
+   using one of the SunOS 4.1.x jumbo replacement patches from Sun.  */
+
 #include "sunos4-1.h"
 
 /* Say that the text segment of a.out includes the header;
@@ -24,8 +28,12 @@
 #undef LD_SWITCH_SYSTEM
 
 #undef	SYSTEM_MALLOC
+#ifndef GNU_MALLOC
 #define	GNU_MALLOC
+#endif
+#ifndef REL_ALLOC
 #define	REL_ALLOC
+#endif
 
 /* khera@cs.duke.edu says this is needed.  */
 #define memmove(to, from, size) bcopy (from, to, size)
