@@ -346,26 +346,26 @@ Do the same for the keys of the same name."
       (or (string-match "^ " (buffer-name (car buffers)))
 	  (setq count (1+ count)))
       (setq buffers (cdr buffers)))
-    (and (not (window-minibuffer-p (selected-window)))
+    (and (not (window-minibuffer-p (frame-selected-window menu-updating-frame)))
 	 (> count 1))))
 
 (put 'kill-this-buffer 'menu-enable '(kill-this-buffer-enabled-p))
 
 (put 'save-buffer 'menu-enable
      '(and (buffer-modified-p)
-	   (not (window-minibuffer-p (selected-window)))))
+	   (not (window-minibuffer-p (frame-selected-window menu-updating-frame)))))
 
 (put 'write-file 'menu-enable
-     '(not (window-minibuffer-p (selected-window))))
+     '(not (window-minibuffer-p (frame-selected-window menu-updating-frame))))
 
 (put 'find-file 'menu-enable
-     '(not (window-minibuffer-p (selected-window))))
+     '(not (window-minibuffer-p (frame-selected-window menu-updating-frame))))
 
 (put 'dired 'menu-enable
-     '(not (window-minibuffer-p (selected-window))))
+     '(not (window-minibuffer-p (frame-selected-window menu-updating-frame))))
 
 (put 'insert-file 'menu-enable
-     '(not (window-minibuffer-p (selected-window))))
+     '(not (window-minibuffer-p (frame-selected-window menu-updating-frame))))
 
 (put 'revert-buffer 'menu-enable
      '(or revert-buffer-function revert-buffer-insert-file-contents-function
