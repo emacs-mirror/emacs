@@ -1,6 +1,6 @@
 ;;; cl-indent.el --- enhanced lisp-indent mode
 
-;; Copyright (C) 1987, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Created: July 1987
@@ -78,12 +78,71 @@ by `lisp-body-indent'."
   :type 'integer
   :group 'lisp-indent)
 
+(defcustom lisp-backquote-indentation t
+  "*Whether or not to indent backquoted lists as code.
+If nil, indent backquoted lists as data, i.e., like quoted lists."
+  :type 'boolean
+  :group 'lisp-indent)
+
+
+(defcustom lisp-loop-keyword-indentation 3
+  "*Indentation of loop keywords in extended loop forms."
+  :type 'integer
+  :group 'lisp-indent)
+
+
+(defcustom lisp-loop-forms-indentation 5
+  "*Indentation of forms in extended loop forms."
+  :type 'integer
+  :group 'lisp-indent)
+
+
+(defcustom lisp-simple-loop-indentation 3
+  "*Indentation of forms in simple loop forms."
+  :type 'integer
+  :group 'lisp-indent)
+
 
 (defvar lisp-indent-error-function)
 (defvar lisp-indent-defun-method '(4 &lambda &body))
 
+
+(defun extended-loop-p (loop-start)
+  "True if an extended loop form starta at LOOP-START."
+  (condition-case ()
+      (save-excursion
+	(goto-char loop-start)
+	(forward-char 1)
+	(forward-sexp 2)
+	(backward-sexp 1)
+	(looking-at "\\sw"))
+    (error t)))
+
+
+(defun common-lisp-loop-part-indentation (indent-point state)
+  "Compute the indentation of loop form constituents."
+  (let* ((loop-indentation (save-excursion
+			     (goto-char (elt state 1))
+			     (current-column))))
+    (goto-char indent-point)
+    (beginning-of-line)
+    (cond ((not (extended-loop-p (elt state 1)))
+	   lisp-simple-loop-indentation)
+	  ((looking-at "^\\s-*\\(:?\\sw+\\|;\\)")
+	   (+ loop-indentation lisp-loop-keyword-indentation))
+	  (t
+	   (+ loop-indentation lisp-loop-forms-indentation)))))
+  
+
 ;;;###autoload
 (defun common-lisp-indent-function (indent-point state)
+  (if (save-excursion (goto-char (elt state 1))
+		      (looking-at "([Ll][Oo][Oo][Pp]"))
+      (common-lisp-loop-part-indentation indent-point state)
+    (common-lisp-indent-function-1 indent-point state)))
+      
+  
+(defun common-lisp-indent-function-1 (indent-point state)
   (let ((normal-indent (current-column)))
     ;; Walk up list levels until we see something
     ;;  which does special things with subforms.
@@ -102,6 +161,7 @@ by `lisp-body-indent'."
       ;; Move to start of innermost containing list
       (goto-char containing-form-start)
       (setq sexp-column (current-column))
+
       ;; Look over successively less-deep containing forms
       (while (and (not calculated)
                   (< depth lisp-indent-maximum-backtracking))
@@ -160,7 +220,9 @@ by `lisp-body-indent'."
                   ((eq method 'defun)
                    (setq method lisp-indent-defun-method)))
 
-            (cond ((and (memq (char-after (1- containing-sexp)) '(?\' ?\`))
+            (cond ((and (or (eq (char-after (1- containing-sexp)) ?\')
+			    (and (not lisp-backquote-indentation)
+				 (eq (char-after (1- containing-sexp)) ?\`)))
                         (not (eq (char-after (- containing-sexp 2)) ?\#)))
                    ;; No indentation for "'(...)" elements
                    (setq calculated (1+ sexp-column)))
@@ -355,11 +417,12 @@ by `lisp-body-indent'."
                (&whole nil &rest 1))
              path state indent-point sexp-column normal-indent)))
 
+
 (defun lisp-indent-defmethod (path state indent-point sexp-column
 				   normal-indent)
   "Indentation function defmethod."
-  (lisp-indent-259 (if (and (>= (first path) 3)
-                            (null (rest path))
+  (lisp-indent-259 (if (and (>= (car path) 3)
+                            (null (cdr path))
 			    (save-excursion (goto-char (elt state 1))
 					    (forward-char 1)
                                             (forward-sexp 3)
@@ -387,6 +450,7 @@ by `lisp-body-indent'."
               (+ lisp-body-indent -1 (current-column))
               (+ sexp-column lisp-body-indent)))
        (error (+ sexp-column lisp-body-indent)))))
+
 
 
 (let ((l '((block 1)
@@ -435,7 +499,7 @@ by `lisp-body-indent'."
            (compiler-let . let) ;barf
            (handler-bind . let) (restart-bind . let)
            (locally 1)
-           ;(loop ...)
+           ;(loop         lisp-indent-loop)
            (:method (&lambda &body)) ; in `defgeneric'
            (multiple-value-bind ((&whole 6 &rest 1) 4 &body))
            (multiple-value-call (4 &body))
