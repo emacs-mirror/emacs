@@ -46,6 +46,7 @@
 ;; - C-x v l
 ;; - C-x v i
 ;; - C-x v g
+;; - M-x vc-rename-file RET
 
 ;;; Bugs:
 
@@ -224,7 +225,9 @@ of a repository; then VC only stays local for hosts that match it."
 
 (defalias 'vc-mcvs-checkout-model 'vc-cvs-checkout-model)
 
-(defun vc-mcvs-mode-line-string (file) (vc-mcvs-cvs mode-line-string file))
+(defun vc-mcvs-mode-line-string (file)
+  (let ((s (vc-mcvs-cvs mode-line-string file)))
+    (if s (concat "M" s))))
 
 ;;;
 ;;; State-changing functions
@@ -386,6 +389,9 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
 	       "-A"
 	     (concat "-r" rev))
 	   switches)))
+
+(defun vc-mcvs-rename-file (old new)
+  (vc-mcvs-command nil 0 new "move" (file-relative-name old)))
 
 (defun vc-mcvs-revert (file &optional contents-done)
   "Revert FILE to the version it was based on."
