@@ -33,7 +33,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 15.16";
+char pot_etags_version[] = "@(#) pot revision number is $Revision: 15.18 $";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -441,7 +441,7 @@ static bool constantypedefs;	/* -d: create tags for C #define, enum */
 static bool globals;		/* create tags for global variables */
 static bool declarations;	/* --declarations: tag them and extern in C&Co*/
 static bool members;		/* create tags for C member variables */
-static bool no_line_directive;	/* ignore #line directives */
+static bool no_line_directive;	/* ignore #line directives (undocumented) */
 static bool update;		/* -u: update tags */
 static bool vgrind_style;	/* -v: create vgrind style index output */
 static bool no_warnings;	/* -w: suppress warnings */
@@ -1254,8 +1254,8 @@ main (argc, argv)
 
   if (update)
     {
-      char cmd[BUFSIZ];
-      sprintf (cmd, "sort -o %s %s", tagfile, tagfile);
+      char cmd[2*BUFSIZ+10];
+      sprintf (cmd, "sort -o %.*s %.*s", BUFSIZ, tagfile, BUFSIZ, tagfile);
       exit (system (cmd));
     }
   return GOOD;
