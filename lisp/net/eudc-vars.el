@@ -29,8 +29,10 @@
 
 ;;{{{      EUDC Main Custom Group
 
-(defgroup eudc nil 
+(defgroup eudc nil
   "Emacs Unified Directory Client."
+  :version "21.1"
+  :link '(info-link "(eudc)")
   :group 'mail
   :group 'comm)
 
@@ -55,7 +57,7 @@ are loaded, *do not change manually*.")
   "*The directory protocol to use to query the server.
 Supported protocols are specified by `eudc-supported-protocols'."
   :type  `(choice :menu-tag "Protocol"
-		  ,@(mapcar (lambda (s) 
+		  ,@(mapcar (lambda (s)
 			      (list 'const ':tag (symbol-name s) s))
 			    eudc-known-protocols))
   :group 'eudc)
@@ -75,7 +77,7 @@ server."
   :type  '(choice :menu-tag "Return Attributes"
 		  (const :menu-tag "Server defaults (nil)" nil)
 		  (const :menu-tag "All" all)
-		  (repeat :menu-tag "Attribute list" 
+		  (repeat :menu-tag "Attribute list"
 			  :tag "Attribute name"
 			  :value (nil)
 			  (symbol :tag "Attribute name")))
@@ -83,21 +85,21 @@ server."
 
 (defcustom eudc-multiple-match-handling-method 'select
   "*What to do when multiple entries match an inline expansion query.
-Possible values are: 
+Possible values are:
 `first' (equivalent to nil) which means keep the first match only,
 `select' pop-up a selection buffer,
 `all' expand to all matches,
 `abort' the operation is aborted, an error is signaled."
   :type  '(choice :menu-tag "Method"
-		  (const :menu-tag "Use First" 
+		  (const :menu-tag "Use First"
 			 :tag "Use First"  first)
-		  (const :menu-tag "Select Interactively" 
+		  (const :menu-tag "Select Interactively"
 			 :tag "Select Interactively" select)
-		  (const :menu-tag "Use All" 
+		  (const :menu-tag "Use All"
 			 :tag "Use All"    all)
-		  (const :menu-tag "Abort Operation" 
+		  (const :menu-tag "Abort Operation"
 			 :tag "Abort Operation"  abort)
-		  (const :menu-tag "Default (Use First)" 
+		  (const :menu-tag "Default (Use First)"
 			 :tag "Default (Use First)" nil))
   :group 'eudc)
 
@@ -110,7 +112,7 @@ Available methods are:
 `list' or nil lets the value of the attribute be a list of values,
 `first' keeps the first value and discards the others,
 `concat' concatenates the values into a single multiline string,
-`duplicate' duplicates the entire entry into as many instances as 
+`duplicate' duplicates the entire entry into as many instances as
 different values."
   :type '(choice (const :menu-tag "List" list)
 		 (const :menu-tag "First" first)
@@ -129,15 +131,15 @@ different values."
 				       (const :menu-tag "Duplicate" duplicate)))))
   :group 'eudc)
 
-(defcustom eudc-inline-query-format '((name) 
+(defcustom eudc-inline-query-format '((name)
 				      (firstname name))
   "*Format of an inline expansion query.
-This is a list of FORMATs.  A FORMAT is itself a list of one or more 
+This is a list of FORMATs.  A FORMAT is itself a list of one or more
 EUDC attribute names.  A FORMAT applies if it contains as many attributes as
 there are individual words in the inline query string.
-If several FORMATs apply then they are tried in order until a match 
-is found.  
-If nil, all the words are mapped onto the default server or protocol 
+If several FORMATs apply then they are tried in order until a match
+is found.
+If nil, all the words are mapped onto the default server or protocol
 attribute name.
 
 The attribute names in FORMATs are not restricted to EUDC attribute names
@@ -169,11 +171,11 @@ This variable controls what `eudc-expand-inline' actually inserts in
 the buffer.  First element is a string passed to `format'.  Remaining
 elements are symbols indicating attribute names; the corresponding values
 are passed as additional arguments to `format'."
-  :type  '(list 
+  :type  '(list
 	   (string :tag "Format String")
 	   (repeat :inline t
 		   :tag "Attributes"
-		   (choice 
+		   (choice
 		    :tag "Attribute"
 		    (const :menu-tag "First Name" :tag "First Name" firstname)
 		    (const :menu-tag "Surname" :tag "Surname" name)
@@ -188,7 +190,7 @@ are passed as additional arguments to `format'."
 Possible values are:
   `current-server': the EUDC current server.
   `hotlist': the servers of the hotlist in the order they appear,
-  `server-then-hotlist': the current server and then the servers of 
+  `server-then-hotlist': the current server and then the servers of
   the hotlist."
   :type '(choice :tag "Servers"
 		 :menu-tag "Servers"
@@ -215,7 +217,7 @@ If nil, query all servers available from `eudc-inline-expansion-servers'."
 (defcustom eudc-query-form-attributes '(name firstname email phone)
   "*A list of attributes presented in the query form."
   :tag   "Attributes in Query Forms"
-  :type  '(repeat 	   
+  :type  '(repeat
 	   (choice
 	    :tag "Attribute"
 	    (const :menu-tag "First Name" :tag "First Name" firstname)
@@ -245,7 +247,7 @@ If nil, query all servers available from `eudc-inline-expansion-servers'."
 					     (uniqueidentifier . "ID")
 					     (objectclass . "Object Class"))
   "*Alist of user-defined names for directory attributes.
-These names are used as prompt strings in query/response forms 
+These names are used as prompt strings in query/response forms
 instead of the raw directory attribute names.
 Prompt strings for attributes that are not listed here
 are derived by splitting the attribute name
@@ -266,9 +268,9 @@ names defined in `eudc-user-attribute-names-alist'."
 (defcustom eudc-attribute-display-method-alist nil
   "*An alist specifying methods to display attribute values.
 Each member of the list is of the form (NAME . FUNC) where NAME is a lowercased
-string naming a directory attribute (translated according to 
-`eudc-user-attribute-names-alist' if `eudc-use-raw-directory-names' is 
-non-nil) and FUNC a function that will be passed the corresponding 
+string naming a directory attribute (translated according to
+`eudc-user-attribute-names-alist' if `eudc-use-raw-directory-names' is
+non-nil) and FUNC a function that will be passed the corresponding
 attribute values for display."
   :tag "Attribute Decoding Functions"
   :type '(repeat (cons :tag "Attribute"
@@ -276,13 +278,13 @@ attribute values for display."
 		       (symbol :tag "Display Function")))
   :group 'eudc)
 
-(defcustom eudc-external-viewers '(("XV" "xv" "-") 
+(defcustom eudc-external-viewers '(("XV" "xv" "-")
 				   ("ImageMagick" "display" "-")
 				   ("ShowAudio" "showaudio"))
   "*A list of viewer program specifications.
 Viewers are programs which can be piped a directory attribute value for
-display or arbitrary processing.  Each specification is a list whose 
-first element is a string naming the viewer.  The second element is the 
+display or arbitrary processing.  Each specification is a list whose
+first element is a string naming the viewer.  The second element is the
 executable program which should be invoked, and following elements are
 arguments that should be passed to the program."
   :tag "External Viewer Programs"
@@ -309,7 +311,7 @@ arguments that should be passed to the program."
 
 ;;{{{ PH Custom Group
 
-(defgroup eudc-ph nil 
+(defgroup eudc-ph nil
   "Emacs Unified Directory Client - CCSO PH/QI Backend."
   :group 'eudc)
 
@@ -329,7 +331,7 @@ BBDB fields.  SPECs are sexps which are evaluated:
   a string evaluates to itself,
   a symbol evaluates to the symbol value.  Symbols naming PH/QI fields
     present in the record evaluate to the value of the field in the record,
-  a form is evaluated as a function.  The argument list may contain PH/QI 
+  a form is evaluated as a function.  The argument list may contain PH/QI
     field names which eval to the corresponding values in the
     record.  The form evaluation should return something appropriate for
     the particular BBDB-FIELD (see `bbdb-create-internal').
@@ -345,7 +347,7 @@ BBDB fields.  SPECs are sexps which are evaluated:
 
 ;;{{{ LDAP Custom Group
 
-(defgroup eudc-ldap nil 
+(defgroup eudc-ldap nil
   "Emacs Unified Directory Client - LDAP Backend."
   :group 'eudc)
 
@@ -364,7 +366,7 @@ BBDB fields.  SPECs are sexps which are evaluated:
   a string evaluates to itself,
   a symbol evaluates to the symbol value.  Symbols naming LDAP attributes
     present in the record evaluate to the value of the field in the record,
-  a form is evaluated as a function.  The argument list may contain LDAP 
+  a form is evaluated as a function.  The argument list may contain LDAP
     field names which eval to the corresponding values in the
     record.  The form evaluation should return something appropriate for
     the particular BBDB-FIELD (see `bbdb-create-internal').
@@ -380,7 +382,7 @@ BBDB fields.  SPECs are sexps which are evaluated:
 
 ;;{{{ BBDB Custom Group
 
-(defgroup eudc-bbdb nil 
+(defgroup eudc-bbdb nil
   "Emacs Unified Directory Client - BBDB Backend."
   :group 'eudc)
 
