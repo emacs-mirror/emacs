@@ -29,6 +29,16 @@
 
 ;;; Code:
 
+(defmacro save-selected-window (&rest body)
+  "Execute BODY, then select the window that was selected before BODY.
+However, if that window has become dead, don't get an error,
+just refrain from switching to it."
+  `(let ((save-selected-window-window (selected-window)))
+     (unwind-protect
+	 (progn ,@body)
+       (if (window-live-p save-selected-window-window)
+	   (select-window save-selected-window-window)))))
+
 (defun window-body-height (&optional window)
   "Return number of lines in window WINDOW for actual buffer text.
 This does not include the mode line (if any) or the header line (if any)."
@@ -136,16 +146,6 @@ Anything else means restrict to the selected frame."
 (defun minibuffer-window-active-p (window)
   "Return t if WINDOW (a minibuffer window) is now active."
   (eq window (active-minibuffer-window)))
-
-(defmacro save-selected-window (&rest body)
-  "Execute BODY, then select the window that was selected before BODY.
-However, if that window has become dead, don't get an error,
-just refrain from switching to it."
-  `(let ((save-selected-window-window (selected-window)))
-     (unwind-protect
-	 (progn ,@body)
-       (if (window-live-p save-selected-window-window)
-	   (select-window save-selected-window-window)))))
 
 (defun count-windows (&optional minibuf)
    "Return the number of visible windows.
