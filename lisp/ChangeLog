@@ -1,3 +1,12 @@
+2004-06-26  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* net/ange-ftp.el (ange-ftp-file-remote-p): New return value,
+	according to new documentation of `file-remote-p'.
+
+	* files.el (file-remote-p): Fix doc to say that return value is
+	identification of remote system, if not nil.
+	(file-relative-name): Use new return value of `file-remote-p'.
+
 2004-06-26  Nick Roberts  <nickrob@gnu.org>
 
 	* progmodes/gdb-ui.el (gdb-toggle-breakpoint) 
