@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.11) $
+# $HopeName: MMsrc!comm.gmk(trunk.12) $
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -137,7 +137,7 @@ CFDP = -DCONFIG_VAR_DP $(CFLAGSDEBUG)
 CFDS = -DCONFIG_VAR_DS $(CFLAGSDEBUG)
 
 # These flags are added to compilations for the "ro" variety.
-CFRO = -DCONFIG_VAR_RO $(CFLAGSOPTIMIZE)
+CFRO = -DCONFIG_VAR_RO -DNDEBUG $(CFLAGSOPTIMIZE)
 
 # These flags are added to compilations for the "dl" variety.
 CFDL = -DCONFIG_VAR_DL $(CFLAGSDEBUG)
