@@ -370,7 +370,7 @@ the user from the mailer."
       (call-process "date" nil t nil)
       (goto-char (point-min))
       (re-search-forward 
-        "[0-9] \\([A-Za-z][A-Za-z ]*[A-Za-z]\\)[0-9 ]*$")
+        "[0-9] \\([A-Za-z][-A-Za-z ]*[A-Za-z]\\)[0-9 ]*$")
       (setq timezone (buffer-substring (match-beginning 1) (match-end 1)))
       (erase-buffer)
       (insert "\nFrom " (user-login-name) " "
