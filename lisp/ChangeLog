@@ -1,3 +1,9 @@
+2002-05-14  Francesco Potorti`  <pot@gnu.org>
+
+	* shell.el (shell-mode): Make second part of initialisation
+	depend on whether comint-input-ring is empty, rather than depend
+	on it being nil.
+
 2002-05-14  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (make-auto-save-file-name):
@@ -33,14 +39,14 @@
 
 2002-05-12  Colin Walters  <walters@debian.org>
 
-	* replace.el (occur-1): New optional argument `buf-name'. 
+	* replace.el (occur-1): New optional argument `buf-name'.
 	(occur-revert-function): Use it.
 
 	(occur-1): Handle plurals.
-	
+
 	(occur-engine): If there are no more matches, then finish
 	searching the current buffer.
-	
+
 2002-05-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* net/ange-ftp.el (ange-ftp-try-passive-mode)
@@ -58,13 +64,13 @@
 2002-05-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* w32-vars.el (w32)
-	* vc-cvs.el (vc-cvs-global-switches) 
+	* vc-cvs.el (vc-cvs-global-switches)
 	(vc-cvs-sticky-date-format-string, vc-cvs-sticky-tag-display)
 	* textmodes/sgml-mode.el (sgml-xml-mode)
 	* ruler-mode.el (ruler-mode)
 	* replace.el (query-replace-skip-read-only)
 	* progmodes/fortran.el (fortran-preprocessor-re)
-	* net/ange-ftp.el (ange-ftp-passive-host-alist) 
+	* net/ange-ftp.el (ange-ftp-passive-host-alist)
 	* mail/sendmail.el (mail-use-dsn)
 	* faces.el (mode-line-inactive, minibuffer-prompt)
 	* add-log.el (add-log-always-start-new-record): Change all
@@ -102,12 +108,12 @@
 
 2002-05-10  Kim F. Storm  <storm@cua.dk>
 
-	* emulation/cua-base.el (cua-enable-cua-keys) 
+	* emulation/cua-base.el (cua-enable-cua-keys)
 	(cua-enable-register-prefix): Added value for `other' choice.
 
 2002-05-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* menu-bar.el (menu-bar-showhide-scroll-bar-menu) 
+	* menu-bar.el (menu-bar-showhide-scroll-bar-menu)
 	(menu-bar-showhide-menu): Use display-graphic-p, not
 	widnow-system.
 	(menu-bar-showhide-menu) <showhide-menu-bar, showhide-tool-bar>:
@@ -126,12 +132,12 @@
 	* mail/rmail.el (rmail-show-message):
 	Catch error in check-coding-system.
 
-	* progmodes/compile.el (compilation-error-regexp-alist): 
+	* progmodes/compile.el (compilation-error-regexp-alist):
 	New element to recognize Python error messages.
-	
-	* shell.el (shell-replace-by-expanded-directory): 
+
+	* shell.el (shell-replace-by-expanded-directory):
 	If there's already a / at the end, don't add one.
-	
+
 2002-05-09  Colin Walters  <walters@verbum.org>
 
 	* ibuffer.el (ibuffer-mode-map): Add :enable guards for
@@ -142,11 +148,11 @@
 	`ibuffer-save-filter-groups',
 	`ibuffer-switch-to-saved-filter-groups',
 	`ibuffer-delete-saved-filter-groups'.
-	
+
 	* ibuf-ext.el (ibuffer-do-occur): Default to 0 context lines.
-	
+
 2002-05-09  Markus Rost  <rost@math.ohio-state.edu>
-	
+
 	* woman.el (woman-menu):  Move symbol before the comment so that
 	find-function-search-for-symbol finds it.
 
@@ -220,7 +226,7 @@
 
 2002-05-08  Toru Tomabechi  <Toru.Tomabechi@orient.unil.ch>
 
-	* language/tibet-util.el (tibetan-canonicalize-for-unicode-alist) 
+	* language/tibet-util.el (tibetan-canonicalize-for-unicode-alist)
 	(tibetan-canonicalize-for-unicode-regexp): New variables.
 	(tibetan-canonicalize-for-unicode-region): New function.
 	(tibetan-strict-unicode): New variable.
@@ -243,7 +249,7 @@
 
 2002-05-07 Thomas Link <t.link@gmx.at>
 
-	* filesets.el: 
+	* filesets.el:
 	(filesets-external-viewers): Fix customization problem.
 	(filesets-some): Replaces cl's `some'.  Calls changed.
 	(filesets-member): Replaces cl's `member*'.  Calls changed.
@@ -1901,16 +1907,16 @@
 	* scroll-all.el (minor-mode-alist): Fix usage of `scroll-all-mode'.
 	(scroll-all-page-down-all, scroll-all-page-up-all) Remove `fkey-'
 	prefix from scroll commands.  Ignore end-of-buffer errors from
-	other windows. 
+	other windows.
 	(scroll-all-check-to-scroll): Remove `fkey-' prefix from scroll
-	commands. 
+	commands.
 	(scroll-all-beginning-of-buffer-all, scroll-all-end-of-buffer-all): New
 	functions.
 
 	* files.el: (auto-mode-alist): .f95 files in f90-mode.
 
 	* progmodes/fortran.el: (fortran-beginning-do): Make regexp match
-	a DO statement irrespective of numeric label. 
+	a DO statement irrespective of numeric label.
 
 2002-04-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
@@ -5852,7 +5858,7 @@
 	(antlr-language-for-option): Deletia.
 	(antlr-language-option): New function, defined instead.
 	(antlr-mode): Use it.
-	
+
 2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* jka-compr.el (jka-compr-partial-uncompress): Use null-device
@@ -5868,7 +5874,7 @@
 	coding-system-for-read to no-conversion when reading the queued
 	messages.  (Simon's code modified slightly by Eli Zaretskii.)
 
-2001-12-20  Werner Lemberg  <wl@gnu.org>	
+2001-12-20  Werner Lemberg  <wl@gnu.org>
 
 	* international/mule-diag.el (describe-coding-system,
 	print-coding-system-briefly): Make printed output have a similar
