@@ -277,7 +277,7 @@ FILE should be in a form suitable for passing to `locate-library'."
 				 (error "Can't find library %s" file)))))
     (if (null str)
 	(error "Can't find any Commentary section"))
-    (pop-to-buffer "*Finder*")
+    (pop-to-buffer "*Finder-package*")
     (setq buffer-read-only nil)
     (erase-buffer)
     (insert str)
