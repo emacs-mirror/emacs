@@ -5427,7 +5427,7 @@ detect_coding (coding)
 	}
       coding->head_ascii = src - (coding->source + coding->consumed);
 
-      if (coding->head_ascii == coding->src_bytes
+      if (coding->head_ascii < coding->src_bytes
 	  || detect_info.found)
 	{
 	  enum coding_category category;
