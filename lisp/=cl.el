@@ -1417,7 +1417,7 @@ returned."
 ;;;; Both list and sequence functions are considered here together.  This
 ;;;; doesn't fit any more with the original split of functions in files.
 
-(defun member (item list &rest kargs)
+(defun cl-member (item list &rest kargs)
   "Look for ITEM in LIST; return first tail of LIST the car of whose first
 cons cell tests the same as ITEM.  Admits arguments :key, :test, and
 :test-not."
