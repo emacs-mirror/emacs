@@ -5,7 +5,6 @@
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 17 1996
 ;; Keywords: processes
-;; Time-stamp: <2003-01-31 16:15:05 jbarranquero>
 
 ;; This file is part of GNU Emacs.
 
@@ -211,6 +210,12 @@ and ends with a forward slash."
     (if (not (char-equal ?/ (string-to-char (substring directory -1))))
 	(concat directory "/")
       directory)))
+
+(defun dirtrack-cygwin-directory-function (dir)
+  "Return a canonical directory taken from a Cygwin path for comparison purposes."
+  (if (string-match "/cygdrive/\\([A-Z]\\)\\(.*\\)" dir)
+      (concat (match-string 1 dir) ":" (match-string 2 dir))
+    dir))
 
 (defconst dirtrack-forward-slash  (regexp-quote "/"))
 (defconst dirtrack-backward-slash (regexp-quote "\\"))
