@@ -1798,9 +1798,9 @@ Or, for optional MON, YR."
     (calendar-cursor-to-visible-date
      (if today-visible today (list displayed-month 1 displayed-year)))
     (set-buffer-modified-p nil)
-    (or (one-window-p t)
-        (/= (frame-width) (window-width))
-        (shrink-window (- (window-height) 9)))
+    (unless (or (one-window-p t)
+		(/= (frame-width) (window-width)))
+      (fit-window-to-buffer))
     (sit-for 0)
     (and mark-holidays-in-calendar
          (mark-calendar-holidays)
