@@ -42,8 +42,8 @@ extern char **environ;
 extern Lisp_Object make_time ();
 extern void insert_from_buffer ();
 static long difftm ();
-static void set_time_zone_rule ();
 static void update_buffer_properties ();
+void set_time_zone_rule ();
 
 Lisp_Object Vbuffer_access_fontify_functions;
 Lisp_Object Qbuffer_access_fontify_functions;
@@ -916,7 +916,7 @@ If TZ is nil, use implementation-defined default time zone information.")
 /* Set the local time zone rule to TZSTRING.
    This allocates memory into `environ', which it is the caller's
    responsibility to free.  */
-static void
+void
 set_time_zone_rule (tzstring)
      char *tzstring;
 {
