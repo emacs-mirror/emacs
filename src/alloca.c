@@ -33,6 +33,7 @@
 #endif
 
 #ifdef emacs
+#include "lisp.h"
 #include "blockinput.h"
 #endif
 
