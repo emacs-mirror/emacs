@@ -422,7 +422,7 @@ do_switch_frame (frame, no_enter, track)
      (select-window (frame-root-window (new-frame))) doesn't end up
      with your typing being interpreted in the new frame instead of
      the one you're actually typing in.  */
-  internal_last_event_frame = Qnil;
+  get_perdisplay (selected_frame)->internal_last_event_frame = Qnil;
 
   return frame;
 }
