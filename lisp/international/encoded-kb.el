@@ -90,6 +90,10 @@
       (define-key map (char-to-string i) 'encoded-kbd-self-insert-iso2022-7bit)
       (setq i (1+ i)))
     (define-key map "\e" 'encoded-kbd-iso2022-esc-prefix)
+    (setq i 160)
+    (while (< i 256)
+      (define-key map (vector i) 'encoded-kbd-handle-8bit)
+      (setq i (1+ i)))
     map)
   "Keymap for handling non-ASCII character set in Encoded-kbd mode.")
 
@@ -118,6 +122,8 @@
 The following key sequence may cause multilingual text insertion."
   (interactive)
   (let ((key-seq (this-command-keys))
+	(prev-g0-charset (aref encoded-kbd-iso2022-designations
+			       (aref encoded-kbd-iso2022-invocations 0)))
 	intermediate-char final-char
 	reg dimension chars charset)
     (if (= (length key-seq) 4)
@@ -145,14 +151,18 @@ The following key sequence may cause multilingual text insertion."
 	     dimension chars final-char))
 
     (if (memq (aref encoded-kbd-iso2022-designations
-		 (aref encoded-kbd-iso2022-invocations 0))
+		    (aref encoded-kbd-iso2022-invocations 0))
 	      '(ascii latin-jisx0201))
 	;; Graphic plane 0 (0x20..0x7f) is for ASCII.  We don't have
 	;; to handle characters in this range specially.
-	(throw 'exit nil)
+	(if (not (memq prev-g0-charset '(ascii latin-jisx0201)))
+	    ;; We must exit recusive edit now.
+	    (throw 'exit nil))
       ;; Graphic plane 0 is for non-ASCII.
-      (let ((overriding-local-map encoded-kbd-iso2022-non-ascii-map))
-	(recursive-edit)))))
+      (if (memq prev-g0-charset '(ascii latin-jisx0201))
+	  ;; We must handle kyes specially.
+	  (let ((overriding-local-map encoded-kbd-iso2022-non-ascii-map))
+	    (recursive-edit))))))
 
 (defun encoded-kbd-handle-8bit ()
   "Handle an 8-bit character enterned in Encoded-kbd mode."
@@ -230,10 +240,13 @@ The following key sequence may cause multilingual text insertion."
   "Toggle Encoded-kbd minor mode.
 With arg, turn Encoded-kbd mode on if and only if arg is positive.
 
-When in Encoded-kbd mode, a text sent from keyboard
-is accepted as a multilingual text encoded in a coding system
-set by the command `set-keyboard-coding-system'."
-  (interactive "P")
+You should not turn this mode on manually, instead use the command
+`set-keyboard-coding-system' which turns on or off this mode
+automatically.
+
+In Encoded-kbd mode, a text sent from keyboard is accepted
+as a multilingual text encoded in a coding system set by
+`set-keyboard-coding-system'."
   (if encoded-kbd-mode
       ;; We must at first reset input-mode to the original.
       (apply 'set-input-mode saved-input-mode))
