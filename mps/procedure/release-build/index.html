@@ -71,8 +71,9 @@ and the correct release name. </p> </li>
 before you continue.</strong> </p></li>
 
 <li><p> Determine the changelevel at which you're going to make the
-release.  This should be the current changelevel; use <code>p4 counter
-change</code> to get it. </p></li>
+release.  This will usually be the latest submitted changelevel on the
+version branch; to get it use </p> <blockquote> <code>p4 changes -m 1
+version/VERSION/...</code> </blockquote> </li>
 
 </ol>
 
@@ -214,6 +215,16 @@ href="mailto:mps-staff@ravenbrook.com">mps-staff@ravenbrook.com</a>. </p></li>
   <td><a href="mailto:nb@ravenbrook.com">NB</a></td>
 
   <td>Fixed up based on experience of release 1.100.0.</td>
+
+</tr>
+
+<tr valign="top">
+
+  <td>2004-03-03</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Fixed the way we determine the release changelevel to avoid possible pending changelists.</td>
 
 </tr>
 
