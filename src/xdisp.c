@@ -18152,6 +18152,7 @@ x_produce_glyphs (it)
       struct font_info *font_info;
       int boff;			/* baseline offset */
       struct composition *cmp = composition_table[it->cmp_id];
+      int pos;
 
       /* Maybe translate single-byte characters to multibyte.  */
       it->char_to_display = it->c;
@@ -18162,7 +18163,9 @@ x_produce_glyphs (it)
 	}
 
       /* Get face and font to use.  Encode IT->char_to_display.  */
-      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display, -1, Qnil);
+      pos = STRINGP (it->string) ? IT_STRING_CHARPOS (*it) : IT_CHARPOS (*it);
+      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display,
+				   pos, it->string);
       face = FACE_FROM_ID (it->f, it->face_id);
       get_char_face_and_encoding (it->f, it->char_to_display, it->face_id,
 				  &char2b, it->multibyte_p, 0);
@@ -18250,7 +18253,7 @@ x_produce_glyphs (it)
 	    {
 	      int left, right, btm, top;
 	      int ch = COMPOSITION_GLYPH (cmp, i);
-	      int face_id = FACE_FOR_CHAR (it->f, face, ch, -1, Qnil);
+	      int face_id = FACE_FOR_CHAR (it->f, face, ch, pos, it->string);
 
 	      face = FACE_FROM_ID (it->f, face_id);
 	      get_char_face_and_encoding (it->f, ch, face->id,
