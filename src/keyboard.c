@@ -1335,7 +1335,7 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
 static int read_key_sequence P_ ((Lisp_Object *, int, Lisp_Object,
 				  int, int, int));
 void safe_run_hooks P_ ((Lisp_Object));
-static void adjust_point_for_property P_ ((int));
+static void adjust_point_for_property P_ ((int, int));
 
 Lisp_Object
 command_loop_1 ()
@@ -1587,7 +1587,7 @@ command_loop_1 ()
 		    /* Put this before calling adjust_point_for_property
 		       so it will only get called once in any case.  */
 		    goto directly_done;
-		  adjust_point_for_property (last_point_position);
+		  adjust_point_for_property (last_point_position, 0);
 		  already_adjusted = 1;
 		  if (PT == last_point_position + 1
 		      && (dp
@@ -1621,7 +1621,7 @@ command_loop_1 ()
 		  lose = FETCH_CHAR (PT_BYTE);
 		  if (! NILP (Vpost_command_hook))
 		    goto directly_done;
-		  adjust_point_for_property (last_point_position);
+		  adjust_point_for_property (last_point_position, 0);
 		  already_adjusted = 1;
 		  if (PT == last_point_position - 1
 		      && (dp
@@ -1791,7 +1791,7 @@ command_loop_1 ()
 	  && NILP (Vdisable_point_adjustment)
 	  && NILP (Vglobal_disable_point_adjustment)
 	  && !already_adjusted)
-	adjust_point_for_property (last_point_position);
+	adjust_point_for_property (last_point_position, MODIFF != prev_modiff);
 
       /* Install chars successfully executed in kbd macro.  */
 
@@ -1817,8 +1817,9 @@ extern Lisp_Object Qafter_string, Qbefore_string;
 extern Lisp_Object get_pos_property P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 
 static void
-adjust_point_for_property (last_pt)
+adjust_point_for_property (last_pt, modified)
      int last_pt;
+     int modified;
 {
   int beg, end;
   Lisp_Object val, overlay, tmp;
@@ -1894,8 +1895,9 @@ adjust_point_for_property (last_pt)
 	      check_composition = check_display = 1;
 	    }
 	  xassert (PT == beg || PT == end);
-	  /* Pretend the area doesn't exist.  */
-	  if (!ellipsis && beg < end)
+	  /* Pretend the area doesn't exist if the buffer is not
+	     modified.  */
+	  if (!modified && !ellipsis && beg < end)
 	    {
 	      if (last_pt == beg && PT == end && end < ZV)
 		(check_composition = check_display = 1, SET_PT (end + 1));
