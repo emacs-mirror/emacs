@@ -27,7 +27,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef signal
 
 
-#if !defined(HAVE_SOCKETS) && !defined(HAVE_SYSVIPC)
+#if !defined (HAVE_SOCKETS) && !defined (HAVE_SYSVIPC)
 #include <stdio.h>
 
 main (argc, argv)
@@ -103,9 +103,9 @@ main (argc, argv)
 	  perror ("stat");
 	exit (1);
       }
-    if (statbfr.st_uid != geteuid())
+    if (statbfr.st_uid != geteuid ())
       {
-	fprintf (stderr, "Illegal socket owner\n");
+	fprintf (stderr, "Invalid socket owner\n");
 	exit (1);
       }
   }
@@ -116,7 +116,9 @@ main (argc, argv)
       exit (1);
     }
   strcpy (server.sun_path, homedir);
-  strcat (server.sun_path, "/.emacs_server");
+  strcat (server.sun_path, "/.emacs-server-");
+  gethostname (system_name, sizeof (system_name));
+  strcat (server.sun_path, system_name);
 #endif
 
   if (connect (s, (struct sockaddr *) &server, strlen (server.sun_path) + 2)
@@ -176,9 +178,11 @@ main (argc, argv)
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <sys/utsname.h>
 #include <stdio.h>
 
 char *getwd (), *getcwd (), *getenv ();
+struct utsname system_name;
 
 main (argc, argv)
      int argc;
@@ -206,7 +210,7 @@ main (argc, argv)
     }
 
   /*
-   * Create a message queue using ~/.emacs_server as the path for ftok
+   * Create a message queue using ~/.emacs-server as the path for ftok
    */
   if ((homedir = getenv ("HOME")) == NULL)
     {
@@ -214,7 +218,14 @@ main (argc, argv)
       exit (1);
     }
   strcpy (buf, homedir);
-  strcat (buf, "/.emacs_server");
+#ifndef HAVE_LONG_FILE_NAMES
+  /* If file names are short, we can't fit the host name.  */
+  strcat (buf, "/.emacs-server");
+#else
+  strcat (buf, "/.emacs-server-");
+  uname (&system_name);
+  strcat (buf, system_name.nodename);
+#endif
   creat (buf, 0600);
   key = ftok (buf, 1);	/* unlikely to be anyone else using it */
   s = msgget (key, 0600 | IPC_CREAT);
