@@ -696,6 +696,14 @@ merge in the changes into your working copy."
 	     (vc-mode-line buffer-file-name))
 	 (kill-buffer (current-buffer)))))
 
+(defun vc-resynch-buffer (file &optional keep noquery)
+  ;; if FILE is currently visited, resynch it's buffer
+  (let ((buffer (get-file-buffer file)))
+    (if buffer
+	(save-excursion
+	  (set-buffer buffer)
+	  (vc-resynch-window file keep noquery)))))
+
 (defun vc-start-entry (file rev comment msg action &optional after-hook)
   ;; Accept a comment for an operation on FILE revision REV.  If COMMENT
   ;; is nil, pop up a VC-log buffer, emit MSG, and set the
@@ -1268,15 +1276,20 @@ in all these directories.  With a prefix argument, it lists all files."
 
 ;; Named-configuration entry points
 
-(defun vc-locked-example ()
-  ;; Return an example of why the current directory is not ready to be snapshot
-  ;; or nil if no such example exists.
-  (catch 'vc-locked-example
-    (vc-file-tree-walk
-     (function (lambda (f)
-		 (if (and (vc-registered f) (vc-locking-user f))
-		     (throw 'vc-locked-example f)))))
-    nil))
+(defun vc-snapshot-precondition ()
+  ;; Scan the tree below the current directory.
+  ;; If any files are locked, return the name of the first such file.
+  ;; (This means, neither snapshot creation nor retrieval is allowed.)
+  ;; If one or more of the files are currently visited, return `visited'.
+  ;; Otherwise, return nil.
+  (let ((status nil))
+    (catch 'vc-locked-example
+      (vc-file-tree-walk
+       (function (lambda (f)
+		   (and (vc-registered f)
+			(if (vc-locking-user f) (throw 'vc-locked-example f)
+			  (if (get-file-buffer f) (setq status 'visited)))))))
+      status)))
 
 ;;;###autoload
 (defun vc-create-snapshot (name)
@@ -1285,9 +1298,9 @@ The snapshot is made from all registered files at or below the current
 directory.  For each file, the version level of its latest
 version becomes part of the named configuration."
   (interactive "sNew snapshot name: ")
-  (let ((locked (vc-locked-example)))
-    (if locked
-	(error "File %s is locked" locked)
+  (let ((result (vc-snapshot-precondition)))
+    (if (stringp result)
+	(error "File %s is locked" result)
       (vc-file-tree-walk
        (function (lambda (f) (and
 			      (vc-name f)
@@ -1301,14 +1314,18 @@ This function fails if any files are locked at or below the current directory
 Otherwise, all registered files are checked out (unlocked) at their version
 levels in the snapshot."
   (interactive "sSnapshot name to retrieve: ")
-  (let ((locked (vc-locked-example)))
-    (if locked
-	(error "File %s is locked" locked)
+  (let ((result (vc-snapshot-precondition))
+	(update nil))
+    (if (stringp result)
+	(error "File %s is locked" result)
+      (if (eq result 'visited)
+	  (setq update (yes-or-no-p "Update the affected buffers? ")))
       (vc-file-tree-walk
        (function (lambda (f) (and
 			      (vc-name f)
 			      (vc-error-occurred
-			       (vc-checkout f nil name))))))
+			       (vc-backend-checkout f nil name)
+			       (if update (vc-resynch-buffer f t t)))))))
       )))
 
 ;; Miscellaneous other entry points
@@ -1556,11 +1573,16 @@ From a program, any arguments are passed to the `rcs2log' script."
 
 (defun vc-backend-checkout (file &optional writable rev workfile)
   ;; Retrieve a copy of a saved version into a workfile
-  (let ((filename (or workfile file)))
+  (let ((filename (or workfile file))
+	(file-buffer (get-file-buffer file))
+	(old-default-dir default-directory))
     (message "Checking out %s..." filename)
     (save-excursion
       ;; Change buffers to get local value of vc-checkin-switches.
-      (set-buffer (or (get-file-buffer file) (current-buffer)))
+      (if file-buffer (set-buffer file-buffer))
+      ;; Adjust the default-directory so that the check-out creates 
+      ;; the file in the right place. The old value is restored below.
+      (setq default-directory (file-name-directory filename))
       (vc-backend-dispatch file
 	(if workfile;; SCCS
 	    ;; Some SCCS implementations allow checking out directly to a
@@ -1660,6 +1682,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 		 vc-checkout-switches)
 	  (vc-file-setprop file 'vc-workfile-version nil))
 	))
+    (setq default-directory old-default-dir)
     (cond 
      ((not workfile)
       (vc-file-clear-masterprops file)
