@@ -1247,101 +1247,6 @@ HAVE_MENUS=no
 case ${HAVE_X11} in
   yes ) HAVE_MENUS=yes ;;
 esac
-
-### Is -lXaw3d available?
-HAVE_XAW3D=no
-if test "${HAVE_X11}" = "yes"; then
-  if test "${USE_X_TOOLKIT}" != "none"; then
-    old_c_flags="${CFLAGS}"
-    CFLAGS="${LD_SWITCH_X_SITE}"
-    AC_CHECK_HEADER(X11/Xaw3d/Scrollbar.h,
-	AC_CHECK_LIB(Xaw3d, XawScrollbarSetThumb, HAVE_XAW3D=yes, , -lX11))
-    CFLAGS="${old_c_flags}"
-
-    if test "${HAVE_XAW3D}" = "yes"; then
-	AC_DEFINE(HAVE_XAW3D)
-    fi
-  fi
-fi
-  
-### Use -lXpm if available, unless `--with-xpm=no'.
-HAVE_XPM=no
-if test "${HAVE_X11}" = "yes"; then
-  if test "${with_xpm}" != "no"; then
-    old_c_flags="${CFLAGS}"
-    CFLAGS="${LD_SWITCH_X_SITE}"
-    AC_CHECK_HEADER(X11/xpm.h,
-      AC_CHECK_LIB(Xpm, XpmReadFileToPixmap, HAVE_XPM=yes, , -lX11))
-    CFLAGS="${old_c_flags}"
-  fi
-
-  if test "${HAVE_XPM}" = "yes"; then
-    AC_DEFINE(HAVE_XPM)
-  fi
-fi
-  
-### Use -ljpeg if available, unless `--with-jpeg=no'.
-HAVE_JPEG=no
-if test "${HAVE_X11}" = "yes"; then
-  if test "${with_jpeg}" != "no"; then
-    old_c_flags="${CFLAGS}"
-    CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
-    AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes, , -lX11)
-    CFLAGS="${old_c_flags}"
-  fi
-
-  if test "${HAVE_JPEG}" = "yes"; then
-    AC_DEFINE(HAVE_JPEG)
-  fi
-fi
-  
-### Use -lpng if available, unless `--with-png=no'.
-HAVE_PNG=no
-if test "${HAVE_X11}" = "yes"; then
-  if test "${with_png}" != "no"; then
-    old_c_flags="${CFLAGS}"
-    CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
-    AC_CHECK_HEADER(png.h,
-      AC_CHECK_LIB(png, png_set_expand, HAVE_PNG=yes, , -lX11 -lz -lm))
-    CFLAGS="${old_c_flags}"
-  fi
-
-  if test "${HAVE_PNG}" = "yes"; then
-    AC_DEFINE(HAVE_PNG)
-  fi
-fi
-  
-### Use -ltiff if available, unless `--with-tiff=no'.
-HAVE_TIFF=no
-if test "${HAVE_X11}" = "yes"; then
-  if test "${with_tiff}" != "no"; then
-    old_c_flags="${CFLAGS}"
-    CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
-    AC_CHECK_HEADER(tiffio.h,
-      AC_CHECK_LIB(tiff, TIFFGetVersion, HAVE_TIFF=yes, , -lX11))
-    CFLAGS="${old_c_flags}"
-  fi
-
-  if test "${HAVE_TIFF}" = "yes"; then
-    AC_DEFINE(HAVE_TIFF)
-  fi
-fi
-  
-### Use -lgif if available, unless `--with-gif=no'.
-HAVE_GIF=no
-if test "${HAVE_X11}" = "yes"; then
-  if test "${with_gif}" != "no"; then
-    old_c_flags="${CFLAGS}"
-    CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
-    AC_CHECK_HEADER(gif_lib.h,
-      AC_CHECK_LIB(ungif, DGifOpenFileName, HAVE_GIF=yes, , -lX11))
-    CFLAGS="${old_c_flags}"
-  fi
-
-  if test "${HAVE_GIF}" = "yes"; then
-    AC_DEFINE(HAVE_GIF)
-  fi
-fi
   
 if test "${opsys}" = "hpux9"; then
   case "${x_libraries}" in
@@ -1729,6 +1634,101 @@ Motif version prior to 2.1.
   if test $emacs_cv_motif_version_2_1 = yes; then
     AC_DEFINE(HAVE_MOTIF_2_1)
     AC_CHECK_LIB(Xp, XpCreateContext)
+  fi
+fi
+
+### Is -lXaw3d available?
+HAVE_XAW3D=no
+if test "${HAVE_X11}" = "yes"; then
+  if test "${USE_X_TOOLKIT}" != "none"; then
+    old_c_flags="${CFLAGS}"
+    CFLAGS="${LD_SWITCH_X_SITE}"
+    AC_CHECK_HEADER(X11/Xaw3d/Scrollbar.h,
+	AC_CHECK_LIB(Xaw3d, XawScrollbarSetThumb, HAVE_XAW3D=yes, , -lX11))
+    CFLAGS="${old_c_flags}"
+
+    if test "${HAVE_XAW3D}" = "yes"; then
+	AC_DEFINE(HAVE_XAW3D)
+    fi
+  fi
+fi
+  
+### Use -lXpm if available, unless `--with-xpm=no'.
+HAVE_XPM=no
+if test "${HAVE_X11}" = "yes"; then
+  if test "${with_xpm}" != "no"; then
+    old_c_flags="${CFLAGS}"
+    CFLAGS="${LD_SWITCH_X_SITE}"
+    AC_CHECK_HEADER(X11/xpm.h,
+      AC_CHECK_LIB(Xpm, XpmReadFileToPixmap, HAVE_XPM=yes, , -lX11))
+    CFLAGS="${old_c_flags}"
+  fi
+
+  if test "${HAVE_XPM}" = "yes"; then
+    AC_DEFINE(HAVE_XPM)
+  fi
+fi
+  
+### Use -ljpeg if available, unless `--with-jpeg=no'.
+HAVE_JPEG=no
+if test "${HAVE_X11}" = "yes"; then
+  if test "${with_jpeg}" != "no"; then
+    old_c_flags="${CFLAGS}"
+    CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
+    AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes, , -lX11)
+    CFLAGS="${old_c_flags}"
+  fi
+
+  if test "${HAVE_JPEG}" = "yes"; then
+    AC_DEFINE(HAVE_JPEG)
+  fi
+fi
+  
+### Use -lpng if available, unless `--with-png=no'.
+HAVE_PNG=no
+if test "${HAVE_X11}" = "yes"; then
+  if test "${with_png}" != "no"; then
+    old_c_flags="${CFLAGS}"
+    CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
+    AC_CHECK_HEADER(png.h,
+      AC_CHECK_LIB(png, png_set_expand, HAVE_PNG=yes, , -lX11 -lz -lm))
+    CFLAGS="${old_c_flags}"
+  fi
+
+  if test "${HAVE_PNG}" = "yes"; then
+    AC_DEFINE(HAVE_PNG)
+  fi
+fi
+  
+### Use -ltiff if available, unless `--with-tiff=no'.
+HAVE_TIFF=no
+if test "${HAVE_X11}" = "yes"; then
+  if test "${with_tiff}" != "no"; then
+    old_c_flags="${CFLAGS}"
+    CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
+    AC_CHECK_HEADER(tiffio.h,
+      AC_CHECK_LIB(tiff, TIFFGetVersion, HAVE_TIFF=yes, , -lX11))
+    CFLAGS="${old_c_flags}"
+  fi
+
+  if test "${HAVE_TIFF}" = "yes"; then
+    AC_DEFINE(HAVE_TIFF)
+  fi
+fi
+  
+### Use -lgif if available, unless `--with-gif=no'.
+HAVE_GIF=no
+if test "${HAVE_X11}" = "yes"; then
+  if test "${with_gif}" != "no"; then
+    old_c_flags="${CFLAGS}"
+    CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
+    AC_CHECK_HEADER(gif_lib.h,
+      AC_CHECK_LIB(ungif, DGifOpenFileName, HAVE_GIF=yes, , -lX11))
+    CFLAGS="${old_c_flags}"
+  fi
+
+  if test "${HAVE_GIF}" = "yes"; then
+    AC_DEFINE(HAVE_GIF)
   fi
 fi
 
