@@ -10279,7 +10279,7 @@ value.")
 			       &actual_type, &actual_format, 
 			       &actual_size, &bytes_remaining, 
 			       (unsigned char **) &tmp_data);
-      if (rc == Success)
+      if (rc == Success && tmp_data)
 	prop_value = make_string (tmp_data, size);
 
       XFree (tmp_data);
