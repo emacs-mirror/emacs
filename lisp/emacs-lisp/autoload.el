@@ -86,6 +86,7 @@ or macro definition or a defcustom)."
 
      ;; For special function-like operators, use the `autoload' function.
      ((memq car '(defun define-skeleton defmacro define-derived-mode
+                   define-compilation-mode
 		   define-generic-mode easy-mmode-define-minor-mode
 		   easy-mmode-define-global-mode
 		   define-minor-mode defun* defmacro*))
@@ -94,7 +95,8 @@ or macro definition or a defcustom)."
 	     (args (case car
 		    ((defun defmacro defun* defmacro*) (nth 2 form))
 		    ((define-skeleton) '(&optional str arg))
-		    ((define-generic-mode define-derived-mode) nil)
+		    ((define-generic-mode define-derived-mode
+                       define-compilation-mode) nil)
 		    (t)))
 	     (body (nthcdr (get car 'doc-string-elt) form))
 	     (doc (if (stringp (car body)) (pop body))))
