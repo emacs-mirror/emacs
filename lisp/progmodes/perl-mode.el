@@ -271,6 +271,7 @@ create a new comment."
   :type 'regexp
   :group 'perl)
 
+;;;###autoload
 (defun perl-mode ()
   "Major mode for editing Perl code.
 Expression and list commands understand all Perl brackets.
