@@ -336,7 +336,7 @@ at the place of `..':
 	(while l
 	  (setq coding (symbol-value (car l)))
 	  ;; Do not list up the same coding system twice.
-	  (when (not (memq coding coding-list))
+	  (when (and coding (not (memq coding coding-list)))
 	    (setq coding-list (cons coding coding-list))
 	    (princ (format "  %d. %s " i coding))
 	    (setq aliases (coding-system-get coding 'alias-coding-systems))
