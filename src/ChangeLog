@@ -102,7 +102,7 @@
 
 2000-11-07  Dave Love  <fx@gnu.org>
 
-	* config.in (HAVE_MKDIR): Add.
+	* config.in (HAVE_MKSTEMP): Add.
 
 	* callproc.c (Fcall_process_region) [HAVE_MKSTEMP]: Use it.
 
