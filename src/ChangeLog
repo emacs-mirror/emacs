@@ -4,6 +4,26 @@
 
 	* w16select.c: Likewise.
 
+2002-06-24  Kenichi Handa  <handa@etl.go.jp>
+
+	* callproc.c (Fcall_process): If code detection is necessary,
+	call detect_coding directly here.
+
+	* coding.c (detect_eol): Preserve coding->cmp_data.
+
+	* w16select.c (Fw16_get_clipboard_data): Disable composition
+	handling.
+
+	* w32fns.c (w32_to_x_font): Disable composition handling.
+
+	* w32select.c (Fw32_get_clipboard_data): Disable composition
+	handling.
+
+	* xselect.c (selection_data_to_lisp_data): Disable composition
+	handling.
+
+	* xterm.c (XTread_socket): Disable composition handling.
+
 2002-06-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* lread.c (Fread): Remove redundant and imprecise declaration.
