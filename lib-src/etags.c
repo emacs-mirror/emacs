@@ -25,7 +25,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Gnu Emacs TAGS format and modifications by RMS?
  *	Sam Kendall added C++.
  *
- *	Francesco Potorti` is the current maintainer.	7.5
+ *	Francesco Potorti` is the current maintainer.	8.3
  */
 
 #ifdef HAVE_CONFIG_H
@@ -138,7 +138,7 @@ struct nd_st
   char *name;			/* function or type name	*/
   char *file;			/* file name			*/
   logical is_func;		/* use pattern or line no	*/
-  logical rewritten;		/* list name separately		*/
+  logical named;		/* list name separately		*/
   logical been_warned;		/* set if noticed dup		*/
   int lno;			/* line number tag is on	*/
   long cno;			/* character number line starts on */
@@ -326,7 +326,7 @@ typedef struct
   char *p;
   int len;
   LINENO lineno;
-  logical rewritten;
+  logical named;
 } TOKEN;
 
 /* C extensions.
@@ -993,10 +993,10 @@ string_numeric_p (str)
 /* Record a tag. */
 /* Should take a TOKEN* instead!! */
 void
-pfnote (name, is_func, rewritten, linestart, linelen, lno, cno)
+pfnote (name, is_func, named, linestart, linelen, lno, cno)
      char *name;		/* tag name */
      logical is_func;		/* function or type name? */
-     logical rewritten;		/* tag different from text of definition? */
+     logical named;		/* tag different from text of definition? */
      char *linestart;
      int linelen;
      int lno;
@@ -1031,12 +1031,12 @@ pfnote (name, is_func, rewritten, linestart, linelen, lno, cno)
       fp = etags_rindex (name, '.');
       if (fp && fp[1] != '\0' && fp[2] == '\0')
 	*fp = 0;
-      rewritten = TRUE;
+      named = TRUE;
     }
   np->name = savestr (name);
   np->file = curfile;
   np->is_func = is_func;
-  np->rewritten = rewritten;
+  np->named = named;
   np->lno = lno;
   /* UNCOMMENT THE +1 HERE: */
   np->cno = cno /* + 1 */ ;	/* our char numbers are 0-base; emacs's are 1-base */
@@ -1174,7 +1174,7 @@ put_entries (node)
 
   if (emacs_tags_format)
     {
-      if (node->rewritten)
+      if (node->named)
 	{
 	  fprintf (outf, "%s\177%s\001%d,%d\n",
 		   node->pat, node->name,
@@ -1259,7 +1259,7 @@ total_size_of_entries (node)
       /* Count this entry */
       total += strlen (node->pat) + 1;
       total += number_len ((long) node->lno) + 1 + number_len (node->cno) + 1;
-      if (node->rewritten)
+      if (node->named)
 	total += 1 + strlen (node->name);	/* \001name */
     }
 
@@ -1436,9 +1436,9 @@ do {									\
   definedef = dnone;							\
 } while (FALSE)
 
-#define MAKE_TAG_FROM_NEW_LB(isfun)  pfnote (tokb, isfun, tok.rewritten, \
+#define MAKE_TAG_FROM_NEW_LB(isfun)  pfnote (nameb, isfun, tok.named,	\
   newlb.buffer, tokoff + toklen + 1, tok.lineno, GET_CHARNO (newlinepos))
-#define MAKE_TAG_FROM_OTH_LB(isfun)  pfnote (tokb, isfun, tok.rewritten, \
+#define MAKE_TAG_FROM_OTH_LB(isfun)  pfnote (nameb, isfun, tok.named,	\
   othlb.buffer, tokoff + toklen + 1, tok.lineno, GET_CHARNO (othlinepos))
 
 void
@@ -1449,7 +1449,7 @@ C_entries (c_ext)
   register char *lp;		/* pointer one beyond the character `c' */
   int curndx, newndx;		/* indices for current and new lb */
   TOKEN tok;			/* latest token read for funcdef & structdef */
-  char tokb[BUFSIZ];		/* latest token name for funcdef & structdef */
+  char nameb[BUFSIZ];		/* latest token name for funcdef & structdef */
   register int tokoff;		/* offset in line of start of latest token */
   register int toklen;		/* length of latest token */
   int cblev;			/* current curly brace level */
@@ -1590,29 +1590,35 @@ C_entries (c_ext)
 		    }
 		  else
 		    {
-		      logical is_func;
+		      logical is_func = FALSE;
 
 		      tok.lineno = lineno;
 		      tok.p = newlb.buffer + tokoff;
 		      tok.len = toklen;
-		      tok.rewritten = FALSE;
+		      tok.named = FALSE;
 		      if (yacc_rules
 			  || consider_token (c, lp, &tok,
 					     c_ext, cblev, &is_func))
 			{
 			  if (structdef == sinbody
-			      && definedef == dnone && is_func)
-			    {	/* function defined in C++ class body */
-			      sprintf (tokb, "%s::%.*s",
+			      && definedef == dnone
+			      && is_func)
+			    /* function defined in C++ class body */
+			    {
+			      tok.named = TRUE;
+			      sprintf (nameb, "%s::%.*s",
 				       ((structtag[0] == '\0')
 					? "_anonymous_" : structtag),
 				       tok.len, tok.p);
-			      tok.rewritten = TRUE;
 			    }
 			  else
 			    {
-			      sprintf (tokb, "%.*s", tok.len, tok.p);
+			      sprintf (nameb, "%.*s", tok.len, tok.p);
 			    }
+
+			  if (structdef == stagseen
+			      || typdef == tend)
+			    tok.named = TRUE;
 
 			  if (funcdef == ftagseen
 			      || structdef == stagseen
@@ -1795,8 +1801,6 @@ consider_token (c, lp, tokp, c_ext, cblev, is_func)
   logical firsttok;		/* TRUE if have seen first token in ()'s */
   Stab_entry *tokse = stab_find (get_C_stab (c_ext), tokp->p, tokp->len);
   enum sym_type toktype = stab_type (tokse);
-
-  *is_func = FALSE;		/* not a function */
 
   /*
    * Advance the definedef state machine.
