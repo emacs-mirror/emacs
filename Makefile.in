@@ -228,8 +228,8 @@ mkdir: FRC
 	   case "$${dir}" in \
 	     ${emacsdir}/* ) \
 	       if [ ! -d ${emacsdir} ]; then \
-		 -mkdir ${emacsdir} ; \
-		 -chmod 777 ${emacsdir} ; \
+		 mkdir ${emacsdir} ; \
+		 chmod 777 ${emacsdir} ; \
 	       fi ; \
 	       break\
 	     ;; \
@@ -243,8 +243,8 @@ lockdir:
 	-case "${lockdir}" in \
 	   ${statedir}/* ) \
 	     if [ ! -d ${emacsdir} ]; then \
-	       -mkdir ${emacsdir} ; \
-	       -chmod 777 ${emacsdir} ; \
+	       mkdir ${emacsdir} ; \
+	       chmod 777 ${emacsdir} ; \
 	     fi \
 	   ;; \
 	 esac
