@@ -1,6 +1,6 @@
 /* impl.c.testlib: TEST LIBRARY
  *
- * $HopeName: MMsrc!testlib.c(trunk.20) $
+ * $HopeName: MMsrc!testlib.c(trunk.21) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -59,7 +59,7 @@ void randomize(int argc, char **argv)
 
 /* verror -- die with message */
 
-void verror(const char *str, const char *format, va_list args)
+void verror(const char *format, va_list args)
 {
   fflush(stdout); /* synchronize */
   vfprintf(stderr, format, args);
@@ -70,12 +70,12 @@ void verror(const char *str, const char *format, va_list args)
 
 /* error -- die with message */
 
-void error(const char *str, const char *format, ...)
+void error(const char *format, ...)
 {
  va_list args;
 
  va_start(args, format);
- verror(str, format, args);
+ verror(format, args);
  va_end(args);
 }
 
