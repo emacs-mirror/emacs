@@ -219,7 +219,8 @@ detailed description of this mode.
       (if file
 	(progn
 	  (gdb-enqueue-input
-	   (list (concat "list " (file-name-nondirectory file) ":1\n")
+	   (list (concat gdb-server-prefix "list "
+			 (file-name-nondirectory file) ":1\n")
 		 `(lambda () (gdb-set-gud-minor-mode ,buffer)))))))))
 
 (defun gdb-ann3 ()
@@ -2125,7 +2126,8 @@ Add directory to search path for source files using the GDB command, dir."))
 	     (eq gud-minor-mode 'gdba)))
       (condition-case nil
 	(gdb-enqueue-input
-	 (list (concat "list " (file-name-nondirectory buffer-file-name)
+	 (list (concat gdb-server-prefix "list "
+		       (file-name-nondirectory buffer-file-name)
 		       ":1\n")
 	       `(lambda () (gdb-set-gud-minor-mode ,(current-buffer)))))
 	(error (setq gdb-find-file-unhook t)))))
