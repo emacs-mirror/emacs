@@ -8,6 +8,10 @@
 
 	* indent.c (current_column_1): Remove unused variable `prev_col'.
 
+	* coding.c (encode_coding): Use precomputed value of `src'.
+	(encode_coding): Remove unused variable `src_end'.
+	(code_convert_region): Remove unused variables `count'.
+
 2001-11-07  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (x_display_and_set_cursor): Do not move system caret
