@@ -85,7 +85,7 @@ This is useful for enabling human-readable format (-h), for example."
 
 (defcustom eshell-ls-exclude-regexp nil
   "*Unless -a is specified, files matching this regexp will not be shown."
-  :type 'regexp
+  :type '(choice regexp (const nil))
   :group 'eshell-ls)
 
 (defcustom eshell-ls-exclude-hidden t
