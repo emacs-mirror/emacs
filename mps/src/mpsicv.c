@@ -1,6 +1,6 @@
 /* impl.c.mpsicv: MPSI COVERAGE TEST
  *
- * $HopeName: MMsrc!mpsicv.c(trunk.17) $
+ * $HopeName: MMsrc!mpsicv.c(trunk.18) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
@@ -20,20 +20,77 @@
 #include <string.h>
 
 
-#define exactRootsCOUNT  50
-#define ambigRootsCOUNT  50
+#define exactRootsCOUNT  49
+#define ambigRootsCOUNT  49
 #define OBJECTS          4000
 #define patternFREQ      100
 
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
 #define objNULL         ((mps_addr_t)0xDECEA5ED)
-#define FILLER_OBJECT_SIZE 1024
+#define FILLER_OBJECT_SIZE 1023
 
 
 static mps_pool_t amcpool;
 static mps_ap_t ap;
 static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
+
+
+/* Types for alignment tests */
+
+#define hasLONG_LONG 1
+
+#ifdef _MSC_VER
+#define long_long_t __int64
+#else
+#define long_long_t long long
+#endif
+
+struct tdouble {
+  double d;
+};
+
+struct tlong {
+  long d;
+};
+
+#ifdef HAS_LONG_LONG
+struct tlonglong {
+  long_long_t d;
+};
+#endif
+
+
+/* alignmentTest -- test default alignment is acceptable */
+
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+
+static void alignmentTest(mps_arena_t arena)
+{
+  mps_pool_t pool;
+  void *p;
+  int dummy = 0;
+  size_t j, size;
+
+  die(mps_pool_create(&pool, arena, mps_class_mv(), 0x1000, 1024, 16384),
+      "alignment pool create");
+  size = max(sizeof(double), sizeof(long));
+#ifdef HAS_LONG_LONG
+  size = max(size, sizeof(long_long_t));
+#endif
+  for(j = 0; j <= size + (size_t)1; ++j) {
+    die(mps_alloc(&p, pool, size + 1), "alignment alloc");
+
+#define access(type, p) *(type*)(p) = (type)dummy; dummy += (int)*(type*)(p);
+
+    access(double, p);
+    access(long, p);
+#ifdef HAS_LONG_LONG
+    access(long_long_t, p);
+#endif
+  }
+  mps_pool_destroy(pool);
+}
 
 
 /* make -- allocate an object */
@@ -92,6 +149,8 @@ static mps_addr_t make_no_inline(void)
   return p;
 }
 
+
+/* alloc_v_test -- test mps_alloc_v */
 
 static void alloc_v_test(mps_pool_t pool, ...)
 {
@@ -309,6 +368,7 @@ static void *test(void *arg, size_t s)
 
   arena_commit_test(arena);
   reservoir_test(arena);
+  alignmentTest(arena);
 
   mps_arena_collect(arena);
 
