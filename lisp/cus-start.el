@@ -57,7 +57,7 @@
 					(integer :tag "space"
 						 :format "%v"
 						 1)
-					(const :tag "on" t)))
+					(other :tag "on" t)))
 	     (selective-display-ellipses display boolean)
 	     (transient-mark-mode editing-basics boolean)
 	     ;; callint.c
@@ -123,8 +123,7 @@
 	     (menu-prompting menu boolean)
 	     (suggest-key-bindings keyboard (choice (const :tag "off" nil)
 						    (integer :tag "time" 2)
-						    (sexp :tag "on"
-							  :format "%t")))
+						    (other :tag "on")))
 	     ;; lread.c
 	     (load-path environment 
 			(repeat (choice :tag "[Current dir?]"
@@ -188,7 +187,7 @@
 	     (message-log-max debug (choice (const :tag "Disable" nil)
 					    (integer :menu-tag "lines"
 						     :format "%v")
-					    (const :tag "Unlimited" t)))
+					    (other :tag "Unlimited" t)))
 	     ;; xfns.c
 	     (x-bitmap-file-path installation
 				 (repeat (directory :format "%v")))))
