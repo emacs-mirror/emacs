@@ -355,6 +355,19 @@ to a function that generates a unique name."
 ;; The system null device. (Should reference NULL_DEVICE from C.)
 (defvar grep-null-device "/dev/null" "The system null device.")
 
+(defun grep-process-setup ()
+  "Set up `compilation-exit-message-function' for `grep'."
+  (set (make-local-variable 'compilation-exit-message-function)
+       (lambda (status code msg)
+	 (if (eq status 'exit)
+	     (cond ((zerop code)
+		    '("finished (matches found)\n" . "matched"))
+		   ((= code 1)
+		    '("finished with no matches found\n" . "no match"))
+		   (t
+		    (cons msg code)))
+	   (cons msg code)))))
+
 ;;;###autoload
 (defun grep (command-args)
   "Run grep, with user-specified args, and collect output in a buffer.
@@ -366,22 +379,13 @@ easily repeat a grep command."
   (interactive
    (list (read-from-minibuffer "Run grep (like this): "
 			       grep-command nil nil 'grep-history)))
-  (let ((buf (compile-internal (concat command-args " " grep-null-device)
-			       "No more grep hits" "grep"
-			       ;; Give it a simpler regexp to match.
-			       nil grep-regexp-alist)))
-    (save-excursion
-      (set-buffer buf)
-      (set (make-local-variable 'compilation-exit-message-function)
-	   (lambda (status code msg)
-	     (if (eq status 'exit)
-		 (cond ((zerop code)
-			'("finished (matches found)\n" . "matched"))
-		       ((= code 1)
-			'("finished with no matches found\n" . "no match"))
-		       (t
-			(cons msg code)))
-	       (cons msg code)))))))
+  ;; Setting process-setup-function makes exit-message-function work
+  ;; even when async processes aren't supported.
+  (let* ((compilation-process-setup-function 'grep-process-setup)
+	 (buf (compile-internal (concat command-args " " grep-null-device)
+				"No more grep hits" "grep"
+				;; Give it a simpler regexp to match.
+				nil grep-regexp-alist)))))
 
 (defun compile-internal (command error-message
 				 &optional name-of-mode parser regexp-alist
