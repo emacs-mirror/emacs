@@ -206,7 +206,7 @@ term, and the rest of the words are alternative terms.")
   'apropos-label "Group"
   'help-echo "mouse-2, RET: Display more help on this group"
   'action (lambda (button)
-	    (customize-variable-other-window
+	    (customize-group-other-window
 	     (button-get button 'apropos-symbol))))
 
 (define-button-type 'apropos-widget
