@@ -1,5 +1,8 @@
 2001-07-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (Fx_file_dialog): Block/unblock input while processing
+	events so that we get a chance of processing expose events.
+
 	* xdisp.c (resize_mini_window): Don't resize while redisplaying.
 
 2001-07-24  Gerd Moellmann  <gerd@gnu.org>
