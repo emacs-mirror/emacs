@@ -1,3 +1,9 @@
+2003-05-06  Kenichi Handa  <handa@etlken2>
+
+	* arc-mode.el (archive-set-buffer-as-visiting-file): Use
+	after-insert-file-set-coding, not
+	after-insert-file-set-buffer-file-coding-system.
+
 2003-05-05  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* uniquify.el (uniquify-buffer-name-style)
