@@ -2279,7 +2279,7 @@
 			     (math-add (math-floor (nth 3 a)) -1)
 			   (math-floor (nth 3 a)))))
 	((Math-vectorp a)
-	 (math-map-vec (function (lambda (x) (math-floor x prec))) a))
+	 (math-map-vec (function (lambda (x) (math-floor x math-floor-prec))) a))
 	((math-infinitep a)
 	 (if (or (math-posp a) (math-negp a))
 	     a
