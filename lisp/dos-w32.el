@@ -102,27 +102,28 @@ upon the filename, the contents of 'untranslated-filesystem-list' and
     If the match is nil (for text):			'emacs-mule-dos'
   Otherwise:
     If the file exists:					'undecided'
-    If the file does not exist:				'emacs-mule-dos'
+    If the file does not exist:				'undecided-dos'
 
 If COMMAND is 'write-region', the coding system is chosen based
 upon the value of 'buffer-file-type': If t, the coding system is
 'no-conversion', otherwise it is 'emacs-mule-dos'."
   (let ((op (nth 0 command))
 	(target)
-	(binary)
+	(binary nil) (text nil)
 	(undecided nil))
     (cond ((eq op 'insert-file-contents) 
 	   (setq target (nth 1 command))
 	   (setq binary (find-buffer-file-type target))
-	   (if (not binary)
-	       (setq undecided 
-		     (and (file-exists-p target)
-			  (not (find-buffer-file-type-match target))))))
+	   (unless binary
+	     (if (find-buffer-file-type-match target)
+		 (setq text t)
+	       (setq undecided (file-exists-p target)))))
 	  ((eq op 'write-region) 
 	   (setq binary buffer-file-type)))
     (cond (binary '(no-conversion . no-conversion))
+	  (text '(emacs-mule-dos . emacs-mule-dos))
 	  (undecided '(undecided . undecided))
-	  (t '(emacs-mule-dos . emacs-mule-dos)))))
+	  (t '(undecided-dos . undecided-dos)))))
 
 (modify-coding-system-alist 'file "" 'find-buffer-file-type-coding-system)
 
