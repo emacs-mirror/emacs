@@ -1,3 +1,8 @@
+2004-12-05  Sam Steingold  <sds@gnu.org>
+
+	* net/tramp.el (tramp-handle-file-accessible-directory-p): Fixed
+	`tramp-time-diff' comparison logic
+
 2004-12-05  Paul Pogonyshev  <pogonyshev@gmx.net>
 
 	* progmodes/which-func.el (which-function): Use
