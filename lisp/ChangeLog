@@ -1,3 +1,8 @@
+2004-06-09  Rajesh Vaidheeswarran  <rv@gnu.org>
+
+	* ffap.el (ffap-string-at-point-mode-alist): Fix the url mode to
+	include forms like &<str>; as valid url patterns.
+
 2004-06-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* dired.el (dired-diff, dired-backup-diff)
