@@ -3322,10 +3322,9 @@ read_avail_input (expected)
 	     Fix it for 19.23.  */
 	  /* Retry the read if it is interrupted.  */
 	  if (nread >= 0
-#ifdef EFAULT
-	      || ! (errno == EAGAIN || errno == EFAULT
-#else
 	      || ! (errno == EAGAIN 
+#ifdef EFAULT
+		    || errno == EFAULT
 #endif
 #ifdef EBADSLT
 		    || errno == EBADSLT
