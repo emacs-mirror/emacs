@@ -1824,6 +1824,9 @@ void arenaForgetProtection(Globals globals)
   Arena arena;
 
   arena = GlobalsArena(globals);
+  /* Setting this early means that we preserve the invariant
+     <code/global.c#remembered.summary> */
+  globals->rememberedSummaryIndex = 0;
   RING_FOR(node, GlobalsRememberedSummaryRing(globals), next) {
     RememberedSummaryBlock block =
       RING_ELT(RememberedSummaryBlock, globalRing, node);
@@ -1831,7 +1834,6 @@ void arenaForgetProtection(Globals globals)
     RingRemove(node);
     ControlFree(arena, block, sizeof *block);
   }
-  globals->rememberedSummaryIndex = 0;
   return;
 }
 
