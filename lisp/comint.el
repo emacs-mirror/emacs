@@ -2903,7 +2903,7 @@ the process mark is at the beginning of the accumulated input."
     (message "Process mark set")))
 
 
-;; Author:  Peter Breton <pbreton@ne.mediaone.net>
+;; Author:  Peter Breton <pbreton@cs.umb.edu>
 
 ;; This little add-on for comint is intended to make it easy to get
 ;; output from currently active comint buffers into another buffer,
