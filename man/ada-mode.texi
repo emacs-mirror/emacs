@@ -176,12 +176,21 @@ files into  the Emacs  library directories. Every  time you open  a file
 with  a  file  extension  of  @file{.ads}  or  @file{.adb},  Emacs  will
 automatically load and activate Ada mode.
 
-@xref{Using non-standard  file names}, if your  files do
+@xref{Using non-standard file names}, if your files do
 not use these extensions and if you want Emacs to automatically start the
 Ada mode every time you edit an Ada file.
 
-See also the Emacs Manual (@pxref{(Top,,,emacs, The Emacs Manual)}),
-for general usage variables that you might want to set.
+Also, for general usage variables that you might want to set,
+see 
+@iftex
+@cite{The GNU Emacs Manual}.
+@end iftex
+@ifhtml
+@cite{The GNU Emacs Manual}.
+@end ifhtml
+@ifinfo
+@ref{Top, , The GNU Emacs Manual, emacs, The GNU Emacs Manual}.
+@end ifinfo
 
 @c ---------------------------------------------------------------------
 @section Required files
