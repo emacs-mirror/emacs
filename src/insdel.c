@@ -33,7 +33,7 @@ Boston, MA 02111-1307, USA.  */
 
 #define min(x, y) ((x) < (y) ? (x) : (y))
 
-static void insert_from_string_1 P_ ((Lisp_Object, int, int, int, int, int));
+static void insert_from_string_1 P_ ((Lisp_Object, int, int, int, int, int, int));
 static void insert_from_buffer_1 ();
 static void gap_left P_ ((int, int, int));
 static void gap_right P_ ((int, int));
@@ -63,6 +63,8 @@ Lisp_Object combine_after_change_list;
 /* Buffer which combine_after_change_list is about.  */
 Lisp_Object combine_after_change_buffer;
 
+#define DEFAULT_NONASCII_INSERT_OFFSET 0x800
+
 /* Move gap to position CHARPOS.
    Note that this can quit!  */
 
@@ -262,7 +264,7 @@ gap_right (charpos, bytepos)
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
   QUIT;
 }
-
+
 /* Add AMOUNT to the byte position of every marker in the current buffer
    whose current byte position is between FROM (exclusive) and TO (inclusive).
 
@@ -324,7 +326,7 @@ adjust_markers_gap_motion (from, to, amount)
     }
 #endif
 }
-
+
 /* Adjust all markers for a deletion
    whose range in bytes is FROM_BYTE to TO_BYTE.
    The range in charpos is FROM to TO.
@@ -389,7 +391,7 @@ adjust_markers_for_delete (from, from_byte, to, to_byte)
       marker = m->chain;
     }
 }
-
+
 /* Adjust markers for an insertion at CHARPOS / BYTEPOS
    consisting of NCHARS chars, which are NBYTES bytes.
 
@@ -542,7 +544,107 @@ make_gap (nbytes_added)
   Vinhibit_quit = tem;
 }
 
+/* Copy NBYTES bytes of text from FROM_ADDR to TO_ADDR.
+   FROM_MULTIBYTE says whether the incoming text is multibyte.
+   TO_MULTIBYTE says whether to store the text as multibyte.
+   If FROM_MULTIBYTE != TO_MULTIBYTE, we convert.
+
+   Return the number of bytes stored at TO_ADDR.  */
+
+int
+copy_text (from_addr, to_addr, nbytes,
+	   from_multibyte, to_multibyte)
+     unsigned char *from_addr;
+     unsigned char *to_addr;
+     int nbytes;
+     int from_multibyte, to_multibyte;
+{
+  if (from_multibyte == to_multibyte)
+    {
+      bcopy (from_addr, to_addr, nbytes);
+      return nbytes;
+    }
+  else if (from_multibyte)
+    {
+      int nchars = 0;
+      int bytes_left = nbytes;
+
+      /* Convert multibyte to single byte.  */
+      while (bytes_left > 0)
+	{
+	  int thislen, c;
+	  c = STRING_CHAR_AND_LENGTH (from_addr, bytes_left, thislen);
+	  *to_addr++ = (c & 0177) + 0200;
+	  from_addr += thislen;
+	  bytes_left--;
+	  nchars++;
+	}
+      return nchars;
+    }
+  else
+    {
+      unsigned char *initial_to_addr = to_addr;
+
+      /* Convert single-byte to multibyte.  */
+      while (nbytes > 0)
+	{
+	  int c = *from_addr++;
+	  unsigned char workbuf[4], *str;
+	  int len;
+
+	  if (c >= 0200 && c < 0400)
+	    {
+	      if (nonascii_insert_offset > 0)
+		c += nonascii_insert_offset;
+	      else
+		c += DEFAULT_NONASCII_INSERT_OFFSET;
+
+	      len = CHAR_STRING (c, workbuf, str);
+	      bcopy (str, to_addr, len);
+	      to_addr += len;
+	      nbytes--;
+	    }
+	  else
+	    /* Special case for speed.  */
+	    *to_addr++ = c, nbytes--;
+	}
+      return to_addr - initial_to_addr;
+    }
+}
+
+/* Return the number of bytes it would take
+   to convert some single-byte text to multibyte.
+   The single-byte text consists of NBYTES bytes at PTR.  */
+
+int
+count_size_as_multibyte (ptr, nbytes)
+     unsigned char *ptr;
+     int nbytes;
+{
+  int i;
+  int outgoing_nbytes = 0;
+
+  for (i = 0; i < nbytes; i++)
+    {
+      unsigned int c = *ptr++;
+      if (c >= 0200 && c < 0400)
+	{
+	  if (nonascii_insert_offset > 0)
+	    c += nonascii_insert_offset;
+	  else
+	    c += DEFAULT_NONASCII_INSERT_OFFSET;
+	}
+      outgoing_nbytes += XINT (Fchar_bytes (make_number (c)));
+    }
+
+  return outgoing_nbytes;
+}
+
 /* Insert a string of specified length before point.
+   This function judges multibyteness based on
+   enable_multibyte_characters in the current buffer;
+   it never converts between single-byte and multibyte.
+
    DO NOT use this for the contents of a Lisp string or a Lisp buffer!
    prepare_to_modify_buffer could relocate the text.  */
 
@@ -559,6 +661,8 @@ insert (string, nbytes)
     }
 }
 
+/* Likewise, but inherit text properties from neighboring characters.  */
+
 void
 insert_and_inherit (string, nbytes)
      register unsigned char *string;
@@ -572,19 +676,28 @@ insert_and_inherit (string, nbytes)
     }
 }
 
-/* Insert the character C before point */
+/* Insert the character C before point.  Do not inherit text properties.  */
 
 void
 insert_char (c)
      int c;
 {
   unsigned char workbuf[4], *str;
-  int len = CHAR_STRING (c, workbuf, str);
+  int len;
+
+  if (! NILP (current_buffer->enable_multibyte_characters))
+    len = CHAR_STRING (c, workbuf, str);
+  else
+    {
+      len = 1;
+      workbuf[0] = c;
+      str = workbuf;
+    }
 
   insert (str, len);
 }
 
-/* Insert the null-terminated string S before point */
+/* Insert the null-terminated string S before point.  */
 
 void
 insert_string (s)
@@ -612,6 +725,8 @@ insert_before_markers (string, nbytes)
     }
 }
 
+/* Likewise, but inherit text properties from neighboring characters.  */
+
 void
 insert_before_markers_and_inherit (string, nbytes)
      unsigned char *string;
@@ -625,7 +740,7 @@ insert_before_markers_and_inherit (string, nbytes)
       signal_after_change (opoint, 0, PT - opoint);
     }
 }
-
+
 /* Subroutine used by the insert functions above.  */
 
 void
@@ -678,71 +793,21 @@ insert_1 (string, nbytes, inherit, prepare, before_markers)
 			  Qnil, Qnil);
 #endif
 }
-
-/* Insert the part of the text of STRING, a Lisp object assumed to be
-   of type string, consisting of the LENGTH characters starting at
-   position POS.  If the text of STRING has properties, they are absorbed
-   into the buffer.
 
-   It does not work to use `insert' for this, because a GC could happen
-   before we bcopy the stuff into the buffer, and relocate the string
-   without insert noticing.  */
+/* Insert a sequence of NCHARS chars which occupy NBYTES bytes
+   starting at STRING.  INHERIT, PREPARE and BEFORE_MARKERS
+   are the same as in insert_1.  */
 
 void
-insert_from_string (string, pos, length, inherit)
-     Lisp_Object string;
-     register int pos, length;
-     int inherit;
-{
-  if (length > 0)
-    {
-      int opoint = PT;
-      int nchars = chars_in_text (XSTRING (string)->data + pos, length);
-      insert_from_string_1 (string, pos, length, nchars, inherit, 0);
-      signal_after_change (opoint, 0, PT - opoint);
-    }
-}
-
-/* Like `insert' except that all markers pointing at the place where
-   the insertion happens are adjusted to point after it.
-   Don't use this function to insert part of a Lisp string,
-   since gc could happen and relocate it.  */
-
-/* Insert part of a Lisp string, relocating markers after.  */
-
-void
-insert_from_string_before_markers (string, pos, length, inherit)
-     Lisp_Object string;
-     register int pos, length;
-     int inherit;
-{
-  if (length > 0)
-    {
-      int opoint = PT;
-      int nchars = chars_in_text (XSTRING (string)->data + pos, length);
-      insert_from_string_1 (string, pos, length, nchars, inherit, 1);
-      signal_after_change (opoint, 0, PT - opoint);
-    }
-}
-
-/* Subroutine of the insertion functions above.  */
-
-static void
-insert_from_string_1 (string, pos, nbytes, nchars, inherit, before_markers)
-     Lisp_Object string;
-     register int pos, nbytes, nchars;
-     int inherit, before_markers;
+insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
+     register unsigned char *string;
+     register int nchars, nbytes;
+     int inherit, prepare, before_markers;
 {
   register Lisp_Object temp;
-  struct gcpro gcpro1;
 
-  /* Make sure point-max won't overflow after this insertion.  */
-  XSETINT (temp, nbytes + Z_BYTE);
-  if (nbytes + Z_BYTE != XINT (temp))
-    error ("Maximum buffer size exceeded");
-
-  GCPRO1 (string);
-  prepare_to_modify_buffer (PT, PT, NULL);
+  if (prepare)
+    prepare_to_modify_buffer (PT, PT, NULL);
 
   if (PT != GPT)
     move_gap_both (PT, PT_BYTE);
@@ -751,12 +816,14 @@ insert_from_string_1 (string, pos, nbytes, nchars, inherit, before_markers)
 
   record_insert (PT, nchars);
   MODIFF++;
-  UNGCPRO;
 
-  bcopy (XSTRING (string)->data, GPT_ADDR, nbytes);
+  bcopy (string, GPT_ADDR, nbytes);
 
-  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  offset_intervals (current_buffer, PT, nchars);
+#ifdef USE_TEXT_PROPERTIES
+  if (BUF_INTERVALS (current_buffer) != 0)
+    /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES.  */
+    offset_intervals (current_buffer, PT, nchars);
+#endif
 
   GAP_SIZE -= nbytes;
   GPT += nchars;
@@ -769,15 +836,134 @@ insert_from_string_1 (string, pos, nbytes, nchars, inherit, before_markers)
   adjust_overlays_for_insert (PT, nchars);
   adjust_markers_for_insert (PT, PT_BYTE, PT + nchars, PT_BYTE + nbytes,
 			     before_markers);
+  adjust_point (nchars, nbytes);
 
   if (GPT_BYTE < GPT)
     abort ();
 
+#ifdef USE_TEXT_PROPERTIES
+  if (!inherit && BUF_INTERVALS (current_buffer) != 0)
+    Fset_text_properties (make_number (PT - nchars), make_number (PT),
+			  Qnil, Qnil);
+#endif
+}
+
+/* Insert the part of the text of STRING, a Lisp object assumed to be
+   of type string, consisting of the LENGTH characters (LENGTH_BYTE bytes)
+   starting at position POS / POS_BYTE.  If the text of STRING has properties,
+   copy them into the buffer.
+
+   It does not work to use `insert' for this, because a GC could happen
+   before we bcopy the stuff into the buffer, and relocate the string
+   without insert noticing.  */
+
+void
+insert_from_string (string, pos, pos_byte, length, length_byte, inherit)
+     Lisp_Object string;
+     register int pos, pos_byte, length, length_byte;
+     int inherit;
+{
+  if (length > 0)
+    {
+      int opoint = PT;
+      insert_from_string_1 (string, pos, pos_byte, length, length_byte,
+			    inherit, 0);
+      signal_after_change (opoint, 0, PT - opoint);
+    }
+}
+
+/* Like `insert_from_string' except that all markers pointing
+   at the place where the insertion happens are adjusted to point after it.  */
+
+void
+insert_from_string_before_markers (string, pos, pos_byte,
+				   length, length_byte, inherit)
+     Lisp_Object string;
+     register int pos, pos_byte, length, length_byte;
+     int inherit;
+{
+  if (length > 0)
+    {
+      int opoint = PT;
+      insert_from_string_1 (string, pos, pos_byte, length, length_byte,
+			    inherit, 1);
+      signal_after_change (opoint, 0, PT - opoint);
+    }
+}
+
+/* Subroutine of the insertion functions above.  */
+
+static void
+insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
+		      inherit, before_markers)
+     Lisp_Object string;
+     register int pos, pos_byte, nchars, nbytes;
+     int inherit, before_markers;
+{
+  register Lisp_Object temp;
+  struct gcpro gcpro1;
+  int outgoing_nbytes = nbytes;
+
+  /* Make OUTGOING_NBYTES describe the text
+     as it will be inserted in this buffer.  */
+
+  if (NILP (current_buffer->enable_multibyte_characters))
+    outgoing_nbytes = nchars;
+  else if (nchars == nbytes)
+    outgoing_nbytes
+      = count_size_as_multibyte (&XSTRING (string)->data[pos_byte],
+				 nbytes);
+
+  /* Make sure point-max won't overflow after this insertion.  */
+  XSETINT (temp, outgoing_nbytes + Z);
+  if (outgoing_nbytes + Z != XINT (temp))
+    error ("Maximum buffer size exceeded");
+
+  GCPRO1 (string);
+  prepare_to_modify_buffer (PT, PT, NULL);
+
+  if (PT != GPT)
+    move_gap_both (PT, PT_BYTE);
+  if (GAP_SIZE < nbytes)
+    make_gap (outgoing_nbytes - GAP_SIZE);
+
+  record_insert (PT, nchars);
+  MODIFF++;
+  UNGCPRO;
+
+  /* Copy the string text into the buffer, perhaps converting
+     between single-byte and multibyte.  */
+  copy_text (XSTRING (string)->data + pos_byte, GPT_ADDR, nbytes,
+	     /* If these are equal, it is a single-byte string.
+		Its chars are either ASCII, in which case copy_text
+		won't change it, or single-byte non-ASCII chars,
+		that need to be changed.  */
+	     nchars != nbytes,
+	     ! NILP (current_buffer->enable_multibyte_characters));
+
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+  offset_intervals (current_buffer, PT, nchars);
+
+  GAP_SIZE -= nbytes;
+  GPT += nchars;
+  ZV += nchars;
+  Z += nchars;
+  GPT_BYTE += outgoing_nbytes;
+  ZV_BYTE += outgoing_nbytes;
+  Z_BYTE += outgoing_nbytes;
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
+  adjust_overlays_for_insert (PT, nchars);
+  adjust_markers_for_insert (PT, PT_BYTE, PT + nchars,
+			     PT_BYTE + outgoing_nbytes,
+			     before_markers);
+
+  if (GPT_BYTE < GPT)
+    abort ();
+
   graft_intervals_into_buffer (XSTRING (string)->intervals, PT, nchars,
 			       current_buffer, inherit);
 
-  adjust_point (nchars, nbytes);
+  adjust_point (nchars, outgoing_nbytes);
 }
 
 /* Insert text from BUF, NCHARS characters starting at CHARPOS, into the
@@ -812,19 +998,30 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
   int chunk;
   int from_byte = buf_charpos_to_bytepos (buf, from);
   int to_byte = buf_charpos_to_bytepos (buf, from + nchars);
-  int nbytes = to_byte - from_byte;
+  int incoming_nbytes = to_byte - from_byte;
+  int outgoing_nbytes = incoming_nbytes;
+
+  /* Make OUTGOING_NBYTES describe the text
+     as it will be inserted in this buffer.  */
+
+  if (NILP (current_buffer->enable_multibyte_characters))
+    outgoing_nbytes = nchars;
+  else if (NILP (buf->enable_multibyte_characters))
+    outgoing_nbytes
+      = count_size_as_multibyte (BUF_BYTE_ADDRESS (buf, from_byte),
+				 incoming_nbytes);
 
   /* Make sure point-max won't overflow after this insertion.  */
-  XSETINT (temp, nbytes + Z);
-  if (nbytes + Z != XINT (temp))
+  XSETINT (temp, outgoing_nbytes + Z);
+  if (outgoing_nbytes + Z != XINT (temp))
     error ("Maximum buffer size exceeded");
 
   prepare_to_modify_buffer (PT, PT, NULL);
 
   if (PT != GPT)
     move_gap_both (PT, PT_BYTE);
-  if (GAP_SIZE < nbytes)
-    make_gap (nbytes - GAP_SIZE);
+  if (GAP_SIZE < outgoing_nbytes)
+    make_gap (outgoing_nbytes - GAP_SIZE);
 
   record_insert (PT, nchars);
   MODIFF++;
@@ -832,32 +1029,38 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
   if (from < BUF_GPT (buf))
     {
       chunk = BUF_GPT_BYTE (buf) - from_byte;
-      if (chunk > nbytes)
-	chunk = nbytes;
-      bcopy (BUF_BYTE_ADDRESS (buf, from_byte), GPT_ADDR, chunk);
+      if (chunk > incoming_nbytes)
+	chunk = incoming_nbytes;
+      copy_text (BUF_BYTE_ADDRESS (buf, from_byte),
+		 GPT_ADDR, chunk,
+		 ! NILP (buf->enable_multibyte_characters),
+		 ! NILP (current_buffer->enable_multibyte_characters));
     }
   else
     chunk = 0;
-  if (chunk < nbytes)
-    bcopy (BUF_BYTE_ADDRESS (buf, from_byte + chunk),
-	   GPT_ADDR + chunk, nbytes - chunk);
+  if (chunk < incoming_nbytes)
+    copy_text (BUF_BYTE_ADDRESS (buf, from_byte + chunk),
+	       GPT_ADDR + chunk, incoming_nbytes - chunk,
+	       ! NILP (buf->enable_multibyte_characters),
+	       ! NILP (current_buffer->enable_multibyte_characters));
 
 #ifdef USE_TEXT_PROPERTIES
   if (BUF_INTERVALS (current_buffer) != 0)
     offset_intervals (current_buffer, PT, nchars);
 #endif
 
-  GAP_SIZE -= nbytes;
+  GAP_SIZE -= outgoing_nbytes;
   GPT += nchars;
   ZV += nchars;
   Z += nchars;
-  GPT_BYTE += nbytes;
-  ZV_BYTE += nbytes;
-  Z_BYTE += nbytes;
+  GPT_BYTE += outgoing_nbytes;
+  ZV_BYTE += outgoing_nbytes;
+  Z_BYTE += outgoing_nbytes;
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
   adjust_overlays_for_insert (PT, nchars);
-  adjust_markers_for_insert (PT, PT_BYTE, PT + nchars, PT_BYTE + nbytes, 0);
-  adjust_point (nchars, nbytes);
+  adjust_markers_for_insert (PT, PT_BYTE, PT + nchars,
+			     PT_BYTE + outgoing_nbytes, 0);
+  adjust_point (nchars, outgoing_nbytes);
 
   if (GPT_BYTE < GPT)
     abort ();
@@ -884,8 +1087,8 @@ replace_range (from, to, new, prepare, inherit)
      Lisp_Object new;
      int from, to, prepare, inherit;
 {
-  int insbytes = XSTRING (new)->size;
-  int inschars;
+  int inschars = XSTRING (new)->size;
+  int insbytes = XSTRING (new)->size_byte;
   int from_byte, to_byte;
   int nbytes_del, nchars_del;
   register Lisp_Object temp;
@@ -921,8 +1124,6 @@ replace_range (from, to, new, prepare, inherit)
   XSETINT (temp, Z_BYTE - nbytes_del + insbytes);
   if (Z_BYTE - nbytes_del + insbytes != XINT (temp))
     error ("Maximum buffer size exceeded");
-
-  inschars = XINT (Fchars_in_string (new));
 
   GCPRO1 (new);
 
