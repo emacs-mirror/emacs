@@ -28,9 +28,10 @@ Options:
 
 Report bugs to <bug-gnu-emacs@gnu.org>.'
 
-Id='$Id: rcs2log,v 1.46 2001/01/02 18:50:14 eggert Exp $'
+Id='$Id: rcs2log,v 1.46 2001/01/03 12:04:06 gerd Exp $'
 
-# Copyright 1992, 93, 94, 95, 96, 97, 1998 Free Software Foundation, Inc.
+# Copyright 1992, 93, 94, 95, 96, 97, 1998, 2001
+#  Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
