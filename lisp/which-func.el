@@ -113,6 +113,17 @@ use either \\[customize] or the function `which-func-mode'."
   :group   'which-func
   :require 'which-func)
 
+(defvar which-func-cleanup-function nil
+  "Function to transform a string before displaying it in the mode line.
+The function is called with one argument, the string to display.
+Its return value is displayed in the modeline.
+If nil, no function is called.  The default value is nil.
+
+This feature can be useful if Imenu is set up to make more
+detailed entries (e.g., containing the argument list of a function),
+and you want to simplify them for the mode line
+\(e.g., removing the parameter list to just have the function name.)")
+
 ;;; Code, nothing to customize below here
 ;;; -------------------------------------
 ;;;
@@ -211,7 +222,10 @@ is located before first function, returns nil."
        (setq name (car pair))
        (setq pair (car-safe rest))
        (setq rest (cdr-safe rest)))
-     name)))
+     (and name
+          (if which-func-cleanup-function
+              (funcall which-func-cleanup-function name)
+            name)))))
 
 (provide 'which-func)
 
