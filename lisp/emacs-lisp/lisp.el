@@ -209,6 +209,15 @@ The defun marked is the one that contains point or follows point."
   (beginning-of-defun)
   (re-search-backward "^\n" (- (point) 1) t))
 
+(defun narrow-to-defun (&optional arg)
+  "Make text outside current defun invisible.
+The defun visible is the one that contains point or follows point."
+  (interactive)
+  (save-excursion
+    (widen)
+    (beginning-of-defun)
+    (narrow-to-region (point) (progn (end-of-defun) (point)))))
+
 (defun insert-parentheses (arg)
   "Put parentheses around next ARG sexps.  Leave point after open-paren.
 No argument is equivalent to zero: just insert `()' and leave point between.
