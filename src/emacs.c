@@ -1387,7 +1387,8 @@ syms_of_emacs ()
     "Hook to be run whenever kill-emacs is called.\n\
 Since kill-emacs may be invoked when the terminal is disconnected (or\n\
 in other similar situations), functions placed on this hook should not\n\
-expect to be able to interact with the user.");
+expect to be able to interact with the user.  To ask for confirmation,\n\
+see `kill-emacs-query-functions' instead.");
   Vkill_emacs_hook = Qnil;
 
   DEFVAR_INT ("emacs-priority", &emacs_priority,
