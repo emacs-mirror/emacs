@@ -47,7 +47,7 @@
 ;; and the partial completer will use the Meta versions of the keys.
 
 
-;; Usage:  M-x PC-mode.  Now, during completable minibuffer entry,
+;; Usage:  M-x partial-completion-mode.  During completable minibuffer entry,
 ;;
 ;;     TAB    means to do a partial completion;
 ;;     SPC    means to do a partial complete-word;
@@ -62,7 +62,7 @@
 ;;
 ;; in your .emacs file.  To load partial completion automatically, put
 ;;
-;;       (PC-mode t)
+;;       (partial-completion-mode t)
 ;;
 ;; in your .emacs file, too.  Things will be faster if you byte-compile
 ;; this file when you install it.
