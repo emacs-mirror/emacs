@@ -1,7 +1,7 @@
 /* impl.c.mpsicv: MPSI COVERAGE TEST
  *
- * $HopeName: MMsrc!mpsicv.c(trunk.15) $
- * Copyright (C) 1996, 1997, 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!mpsicv.c(trunk.16) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 
 #include "testlib.h"
@@ -14,15 +14,11 @@
 #include "mpsw3.h"
 #endif
 #include "mps.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <math.h>
 #include <string.h>
-#include <assert.h>
+
 
 #define exactRootsCOUNT  50
 #define ambigRootsCOUNT  50
@@ -250,7 +246,8 @@ static void *test(void *arg, size_t s)
       collections = c;
       printf("\nCollection %u, %lu objects.\n", c, i);
       for(r = 0; r < exactRootsCOUNT; ++r)
-        assert(exactRoots[r] == objNULL || dylan_check(exactRoots[r]));
+        cdie(exactRoots[r] == objNULL || dylan_check(exactRoots[r]),
+             "all roots check");
     }
 
     if(rnd() % patternFREQ == 0)
@@ -267,7 +264,7 @@ static void *test(void *arg, size_t s)
 
     r = rnd() % exactRootsCOUNT;
     if(exactRoots[r] != objNULL)
-      assert(dylan_check(exactRoots[r]));
+      cdie(dylan_check(exactRoots[r]), "random root check");
   }
 
   arena_commit_test(arena);
@@ -292,13 +289,15 @@ static void *test(void *arg, size_t s)
 #define TEST_ARENA_SIZE              ((size_t)16<<20)
 
 
-int main(void)
+int main(int argc, char **argv)
 {
   mps_arena_t arena;
   mps_thr_t thread;
   mps_root_t reg_root;
   void *r;
   void *marker = &marker;
+
+  randomize(argc, argv);
 
   (void)mps_assert_install(mps_assert_default());
   die(mps_arena_create(&arena, mps_arena_class_vm(), TEST_ARENA_SIZE),
@@ -317,6 +316,7 @@ int main(void)
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 
+  fflush(stdout); /* synchronize */
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
   return 0;
 }
