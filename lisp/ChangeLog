@@ -1,3 +1,21 @@
+2005-03-18  handa  <handa@m17n.org>
+
+	* language/thai-util.el: Fix categorization of Thai characters in
+	thai-category-table.
+	(thai-composition-pattern): Adjust it for the above change.
+	(thai-self-insert-command, thai-compose-syllable): New functions.
+	(thai-compose-region): Use thai-compose-syllable.
+	(thai-compose-string): Likewise.
+	(thai-composition-function): Likewise.
+	(thai-auto-composition): New function.
+	(thai-auto-composition-mode): New minor mode.
+
+	* language/thai.el: Fix patterns to be registered in
+	composition-function-table.
+
+	* international/quail.el (quail-input-method): Locally bind
+	inhibit-modification-hooks to t.
+
 2005-03-17  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/perl-mode.el (perl-mode-hook): Defvar it.
