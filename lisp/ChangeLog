@@ -1,4 +1,9 @@
-2004-10-09  Masatake YAMATO  <jet@gyve.org>
+2004-10-08  Alan Mackenzie  <acm@muc.de>
+
+	* isearch.el (isearch-yank-line): C-y yanks to next EOL, not end
+	of current line.
+
+2004-10-08  Masatake YAMATO  <jet@gyve.org>
 
 	* server.el (server-process-filter): Wrap `process-send-region' 
 	by `condition-case' to guard the case when the pipe to PROC is 
