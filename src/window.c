@@ -1624,6 +1624,36 @@ DEFUN ("replace-buffer-in-windows", Freplace_buffer_in_windows,
     }
   return Qnil;
 }
+
+/* Replace BUFFER with some other buffer in all windows
+   of all frames, even those on other keyboards.  */
+
+void
+replace_buffer_in_all_windows (buffer)
+     Lisp_Object buffer;
+{
+  Lisp_Object tail, frame;
+
+#ifdef MULTI_FRAME
+  Lisp_Object old_selected;
+
+  old_selected = selected_window;
+
+  /* A single call to window_loop won't do the job
+     because it only considers frames on the current keyboard.
+     So loop manually over frames, and handle each one.  */
+  FOR_EACH_FRAME (tail, frame)
+    {
+      Fselect_window (FRAME_SELECTED_WINDOW (XFRAME (frame)));
+
+      window_loop (UNSHOW_BUFFER, buffer, 0, frame);
+    }
+
+  Fselect_window (old_selected);
+#else
+  window_loop (UNSHOW_BUFFER, buffer, 0, Qt);
+#endif
+}
 
 /* Set the height of WINDOW and all its inferiors.  */
 
