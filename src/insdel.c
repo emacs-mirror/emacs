@@ -95,7 +95,7 @@ check_markers ()
       if (multibyte && ! CHAR_HEAD_P (FETCH_BYTE (XMARKER (tail)->bytepos)))
 	abort ();
 
-      tail = XMARKER (tail)->chain;
+      tail = MARKER_CHAIN (XMARKER (tail));
     }
 }
 
@@ -395,7 +395,7 @@ adjust_markers_for_delete (from, from_byte, to, to_byte)
 	  record_marker_adjustment (marker, to - from);
 	}
 
-      marker = m->chain;
+      marker = MARKER_CHAIN (m);
     }
 }
 
@@ -448,7 +448,7 @@ adjust_markers_for_insert (from, from_byte, to, to_byte, before_markers)
 	  m->charpos += nchars;
 	}
 
-      marker = m->chain;
+      marker = MARKER_CHAIN (m);
     }
 
   /* Adjusting only markers whose insertion-type is t may result in
@@ -510,7 +510,7 @@ adjust_markers_for_replace (from, from_byte, old_chars, old_bytes,
 	  m->bytepos = from_byte;
 	}
 
-      marker = m->chain;
+      marker = MARKER_CHAIN (m);
     }
 
   CHECK_MARKERS ();
