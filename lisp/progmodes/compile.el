@@ -436,10 +436,34 @@ Returns the compilation buffer created."
 		    (cons proc compilation-in-progress)))
 	  ;; No asynchronous processes available
 	  (message (format "Executing `%s'..." command))
+	  ;; Fake modeline display as if `start-process' were run.
+	  (setq mode-line-process ":run")
 	  (sit-for 0) ;; Force redisplay
 	  (let ((status (call-process shell-file-name nil outbuf nil "-c"
-				      command))))
-	  (message (format "Executing `%s'...done" command)))))
+				      command))
+		finish-msg)
+	    ;; Fake modeline after exit.
+	    (setq mode-line-process
+		  (cond ((numberp status) (format ":exit[%d]" status))
+			((stringp status) (format ":exit[-1: %s]" status))
+			(t ":exit[???]")))
+	    ;; Call `compilation-finish-function' as `compilation-sentinel'
+	    ;; would, and finish up the compilation buffer with the same
+	    ;; message we would get from `start-process'.
+	    (setq finish-msg
+		  (if (numberp status)
+		      (if (zerop status)
+			  "finished\n"
+			(format "exited abnormally with code %d\n" status))
+		    "exited abnormally with code -1\n"))
+	    (goto-char (point-max))
+	    (insert "\nCompilation " finish-msg)
+	    (forward-char -1)
+	    (insert " at " (substring (current-time-string) 0 19)) ; no year
+	    (forward-char 1)
+	    (if compilation-finish-function
+		(funcall compilation-finish-function outbuf finish-msg)))
+	(message (format "Executing `%s'...done" command)))))
     ;; Make it so the next C-x ` will use this buffer.
     (setq compilation-last-buffer outbuf)))
 
