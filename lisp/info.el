@@ -549,28 +549,34 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
   (setq default-directory Info-dir-contents-directory))
 
 (defun Info-read-subfile (nodepos)
-  (set-buffer (marker-buffer Info-tag-table-marker))
-  (goto-char (point-min))
-  (search-forward "\n\^_")
+  ;; NODEPOS is either a position (in the Info file as a whole,
+  ;; not relative to a subfile) or the name of a subfile.
   (let (lastfilepos
 	lastfilename)
-    (forward-line 2)
-    (catch 'foo
-      (while (not (looking-at "\^_"))
-	(if (not (eolp))
-	    (let ((beg (point))
-		  thisfilepos thisfilename)
-	      (search-forward ": ")
-	      (setq thisfilename  (buffer-substring beg (- (point) 2)))
-	      (setq thisfilepos (read (current-buffer)))
-	      ;; read in version 19 stops at the end of number.
-	      ;; Advance to the next line.
-	      (forward-line 1)
-	      (if (> thisfilepos nodepos)
-		  (throw 'foo t))
-	      (setq lastfilename thisfilename)
-	      (setq lastfilepos thisfilepos))
-	  (forward-line 1))))
+    (if (numberp nodepos)
+	(save-excursion
+	  (set-buffer (marker-buffer Info-tag-table-marker))
+	  (goto-char (point-min))
+	  (search-forward "\n\^_")
+	  (forward-line 2)
+	  (catch 'foo
+	    (while (not (looking-at "\^_"))
+	      (if (not (eolp))
+		  (let ((beg (point))
+			thisfilepos thisfilename)
+		    (search-forward ": ")
+		    (setq thisfilename  (buffer-substring beg (- (point) 2)))
+		    (setq thisfilepos (read (current-buffer)))
+		    ;; read in version 19 stops at the end of number.
+		    ;; Advance to the next line.
+		    (forward-line 1)
+		    (if (> thisfilepos nodepos)
+			(throw 'foo t))
+		    (setq lastfilename thisfilename)
+		    (setq lastfilepos thisfilepos))
+		(forward-line 1)))))
+      (setq lastfilename nodepos)
+      (setq lastfilepos 0))
     (set-buffer (get-buffer "*info*"))
     (or (equal Info-current-subfile lastfilename)
 	(let ((buffer-read-only nil))
@@ -582,7 +588,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	  (setq Info-current-subfile lastfilename)))
     (goto-char (point-min))
     (search-forward "\n\^_")
-    (+ (- nodepos lastfilepos) (point))))
+    (if (numberp nodepos)
+	(+ (- nodepos lastfilepos) (point)))))
 
 ;; Select the info node that point is in.
 (defun Info-select-node ()
@@ -727,6 +734,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	(onode Info-current-node)
 	(ofile Info-current-file)
 	(opoint (point))
+	(ostart (window-start))
 	(osubfile Info-current-subfile))
     (save-excursion
       (save-restriction
@@ -771,9 +779,10 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 		  (message "")
 		(signal 'search-failed (list regexp))))
 	  (if (not found)
-	      (progn (Info-read-subfile opoint)
+	      (progn (Info-read-subfile osubfile)
 		     (goto-char opoint)
-		     (Info-select-node)))))
+		     (Info-select-node)
+		     (set-window-start (selected-window) ostart)))))
     (widen)
     (goto-char found)
     (Info-select-node)
