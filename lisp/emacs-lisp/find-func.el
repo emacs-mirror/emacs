@@ -57,9 +57,9 @@
 (defcustom find-function-regexp
   ;; Match things like (defun foo ...), (defmacro foo ...),
   ;; (define-skeleton foo ...), (define-generic-mode 'foo ...),
-  ;;  (define-derived-mode foo ...), (easy-mmode-define-minor-mode foo)
+  ;;  (define-derived-mode foo ...), (define-minor-mode foo)
   "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
-\[^cgv\W]\\w+\\*?\\)\\|easy-mmode-define-minor-mode\\)\\s-+'?\
+\[^cgv\W]\\w+\\*?\\)\\|define-minor-mode)\\s-+'?\
 %s\\(\\s-\\|$\\|\(\\|\)\\)"
   "The regexp used by `find-function' to search for a function definition.
 Note it must contain a `%s' at the place where `format'
@@ -69,7 +69,7 @@ should insert the function name.  The default value avoids `defconst',
 Please send improvements and fixes to the maintainer."
   :type 'regexp
   :group 'find-function
-  :version "20.3")
+  :version "21.1")
 
 (defcustom find-variable-regexp
   "^\\s-*(def[^uma\W]\\w+\\*?\\s-+%s\\(\\s-\\|$\\)"
