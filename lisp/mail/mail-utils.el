@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; Utility functions for maol and netnews handling.  These handle fine
+;; Utility functions for mail and netnews handling.  These handle fine
 ;; points of header parsing.
 
 ;;; Code:
