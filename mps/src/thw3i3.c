@@ -2,7 +2,7 @@
  * 
  *                  WIN32 THREAD MANAGER
  *
- *  $HopeName: MMsrc!thnti3.c(trunk.9) $
+ *  $HopeName: MMsrc!thnti3.c(trunk.10) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -73,7 +73,7 @@
 
 #include <windows.h>
 
-SRCID("$HopeName: MMsrc!thnti3.c(trunk.9) $");
+SRCID("$HopeName: MMsrc!thnti3.c(trunk.10) $");
 
 #define ThreadSig	((Sig)0x51924EAD)
 
@@ -238,7 +238,7 @@ Error ThreadScan(ScanState ss, Thread thread, void *stackBot)
     /* scan stack inclusive of current sp and exclusive of
      * stackBot (.stack.full-descend)
      */
-    e = TraceScanArea(ss, ((Addr *)context.Esp), /* .i3.sp */
+    e = TraceScanAreaTagged(ss, ((Addr *)context.Esp), /* .i3.sp */
 			stackBot);
     if(e != ErrSUCCESS)
       return e;
@@ -248,7 +248,7 @@ Error ThreadScan(ScanState ss, Thread thread, void *stackBot)
      * unecessarily scans the rest of the context.  The optimisation
      * to scan only relevent parts would be machine dependent.
      */
-    e = TraceScanArea(ss, (Addr *)&context,
+    e = TraceScanAreaTagged(ss, (Addr *)&context,
 	   (Addr *)((char *)&context + sizeof(CONTEXT)));
     if(e != ErrSUCCESS)
       return e;

@@ -2,7 +2,7 @@
 !
 !                      STACK SCANNING
 !
-!  $HopeName: MMsrc!sssusp.s(trunk.1) $
+!  $HopeName: MMsrc!sssusp.s(trunk.2) $
 !
 !  Copyright (C) 1996 Harlequin Group, all rights reserved
 !
@@ -32,7 +32,7 @@ _StackScan:               !(ss, stackBot)
 
   mov %i0,%o0             !ss
   sub %fp,24,%o1          !stackTop (base)
-  call _TraceScanArea     !(ss,stackTop,stackBot) returns e
+  call _TraceScanAreaTagged     !(ss,stackTop,stackBot) returns e
   mov %i1,%o2          !ds!stackBot (limit)
 
   ret
