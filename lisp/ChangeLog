@@ -1,3 +1,11 @@
+2002-05-09  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist): 
+	New element to recognize Python error messages.
+	
+	* shell.el (shell-replace-by-expanded-directory): 
+	If there's already a / at the end, don't add one.
+	
 2002-05-09  Colin Walters  <walters@verbum.org>
 
 	* ibuffer.el (ibuffer-mode-map): Add :enable guards for
@@ -22,7 +30,7 @@
 	`display-color-cells' unless the display class is one for which
 	that info is relevant.
 
-2002-05-07  Simon Josefsson  <jas@extundo.com>
+2002-05-09  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-send-it): Use user-mail-address from
 	calling buffer.
@@ -61,6 +69,8 @@
 	* info.el (Info-mode-map): Bind `c' to Info-copy-current-node-name.
 
 2002-05-08  Richard M. Stallman  <rms@gnu.org>
+
+	* diff.el (diff-regexp-alist): Doc fix.
 
 	* mail/smtpmail.el (netrc-machine, netrc-get): Add autoloads.
 
