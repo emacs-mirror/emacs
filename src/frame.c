@@ -75,8 +75,6 @@ Lisp_Object Qinhibit_default_face_x_resources;
 Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
 Lisp_Object Vmouse_position_function;
-
-}
 
 static void
 set_menu_bar_lines_1 (window, n)
