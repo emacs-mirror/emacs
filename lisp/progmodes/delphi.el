@@ -65,11 +65,15 @@
 (provide 'delphi)
 
 (defconst delphi-version
-  (let ((revision "$Revision: 3.5 $"))
+  (let ((revision "$Revision: 3.6 $"))
     (string-match ": \\([^ ]+\\)" revision)
     (match-string 1 revision))
   "Version of this delphi mode.")
 ;;; $Log: delphi.el,v $
+;;; Revision 3.6  2001/07/16 12:22:59  pj
+;;;
+;;; Some fixes to follow coding conventions.
+;;;
 ;;; Revision 3.5  2001/01/26 20:54:03  fx
 ;;; (delphi-comment-face, delphi-string-face)
 ;;; (delphi-keyword-face, delphi-other-face): Fix :type.
@@ -2021,7 +2025,6 @@ no args, if that value is non-nil."
 
   ;; We need to keep track of changes to the buffer to determine if we need
   ;; to retokenize changed text.
-  (make-local-hook 'after-change-functions)
   (add-hook 'after-change-functions 'delphi-after-change nil t)
 
   (widen)
