@@ -1,6 +1,6 @@
 ;;; dos-fns.el --- MS-Dos specific functions.
 
-;; Copyright (C) 1991, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1993, 1995 Free Software Foundation, Inc.
 
 ;; Maintainer: Morten Welinder (terra@diku.dk)
 ;; Keywords: internal
@@ -71,7 +71,7 @@ with a definition that really does change some file names."
 	      (concat (substring string 0 8)
 		      "."
 		      (substring string 8))))
-    (setq firstdot (string-match "\\." string))
+    (setq firstdot (or (string-match "\\." string) (1- (length string))))
     ;; Truncate to 3 chars after the first period.
     (if (> (length string) (+ firstdot 4))
 	(setq string (substring string 0 (+ firstdot 4))))
