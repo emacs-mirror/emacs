@@ -1,3 +1,8 @@
+2001-11-20  Stefan Monnier  <monnier@rum.cs.yale.edu>
+
+	* emacs-lisp/lisp-mode.el (lisp-fill-paragraph): Don't move back
+	to a line without a comment.
+
 2001-11-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dired.el (dired-listing-switches): Mention in the doc string
