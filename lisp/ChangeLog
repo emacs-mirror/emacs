@@ -1,5 +1,8 @@
 2001-05-20  Richard M. Stallman  <rms@gnu.org>
 
+	* info.el (Info-read-subfile): Widen before finding the
+	desired node in the subfile.
+
 	* startup.el (command-line-1): When >2 files visited,
 	leave the last one visible, and make that the selected window.
 
