@@ -108,6 +108,7 @@ static struct sensemode {
 #endif /* AIX */
 
 #ifdef SYSV_PTYS
+#include <sys/types.h>
 #include <sys/tty.h>
 #ifdef titan
 #include <sys/ttyhw.h>
