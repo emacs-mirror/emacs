@@ -1,3 +1,12 @@
+2004-08-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffers.texi (Buffers): Maximum buffer size is now 256M on
+	32-bit machines.
+	(Several Buffers): Clarify which buffer is selected if `2' is
+	pressed in the Buffer Menu.
+	(Several Buffers): Auto Revert mode can be used to update the
+	Buffer Menu automatically.
+
 2004-08-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* help.texi (Misc Help): Add an index entry for finding an Info
