@@ -1,11 +1,15 @@
+2001-06-28  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* info.el (Info-clone-buffer-hook): Unconditionally copy marker.
+
 2001-06-28  Karl Fogel  <kfogel@red-bean.com>
 
 	* saveplace.el: Update maintainer email address.
 
 2001-06-27  Francesco Potorti`  <pot@gnu.org>
 
-	* uniquify.el: (uniquify-rationalize-file-buffer-names): Undo
-	previous change.
+	* uniquify.el: (uniquify-rationalize-file-buffer-names):
+	  Undo previous change.
 
 2001-06-27  Francesco Potorti`  <pot@gnu.org>
 
@@ -27,8 +31,7 @@
 
 2001-06-26  MORIOKA Tomohiko  <tomo@kanji.zinbun.kyoto-u.ac.jp>
 
-	* mail/rmail.el (rmail-msg-restore-non-pruned-header): New
-	function.
+	* mail/rmail.el (rmail-msg-restore-non-pruned-header): New function.
 	(rmail-msg-prune-header): Likewise.
 	(rmail-toggle-header): Use `rmail-msg-restore-non-pruned-header'
 	and `rmail-msg-prune-header'.
