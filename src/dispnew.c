@@ -3162,7 +3162,7 @@ direct_output_for_insert (g)
      position.  */
   clear_glyph_row (&scratch_glyph_row);
   SET_TEXT_POS (pos, PT, PT_BYTE);
-  DEC_TEXT_POS (pos);
+  DEC_TEXT_POS (pos, !NILP (current_buffer->enable_multibyte_characters));
   init_iterator (&it, w, CHARPOS (pos), BYTEPOS (pos), &scratch_glyph_row,
 		 DEFAULT_FACE_ID);
 
