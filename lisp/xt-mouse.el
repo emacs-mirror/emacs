@@ -1,6 +1,6 @@
 ;;; xt-mouse.el --- Support the mouse when emacs run in an xterm.
 
-;; Copyright (C) 1994 Free Software Foundation
+;; Copyright (C) 1994, 2000 Free Software Foundation
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: mouse, terminals
@@ -22,7 +22,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Comments:
+;;; Commentary:
 
 ;; Enable mouse support when running inside an xterm or Linux console.
 
@@ -45,14 +45,14 @@
 
 ;; Clicking on the mode-line does not work, although it should.
 
-;;; Code: 
+;;; Code:
 
 (define-key function-key-map "\e[M" 'xterm-mouse-translate)
 
 (defvar xterm-mouse-last)
 
 (defun xterm-mouse-translate (event)
-  ;; Read a click and release event from XTerm.
+  "Read a click and release event from XTerm."
   (save-excursion
     (save-window-excursion
       (deactivate-mark)
@@ -86,7 +86,8 @@
 		     ;; Generate a drag event.
 		     (if (symbolp down-where)
 			 0
-		       (list (intern (format "drag-mouse-%d" (+ 1 xterm-mouse-last)))
+		       (list (intern (format "drag-mouse-%d"
+					     (+ 1 xterm-mouse-last)))
 			     down-data click-data))
 		     )))
 	    (if (and (symbolp down-where)
@@ -103,22 +104,19 @@
 ;; Indicator for the xterm-mouse mode.
 (defvar xterm-mouse-mode nil)
 
-(defadvice mouse-position (around xterm-mouse activate)
-  "Use last key from xterm-mouse-mode if available."
-  (let ((answer ad-do-it))
-    (setq ad-return-value
-	  (if xterm-mouse-mode
-	      (cons (car answer) (cons xterm-mouse-x xterm-mouse-y))
-	    answer))))
+(defun xterm-mouse-position-function (pos)
+  "Bound to `mouse-position-function' in XTerm mouse mode."
+  (setcdr pos (cons xterm-mouse-x xterm-mouse-y))
+  pos)
 
 (defun xterm-mouse-event ()
-  ;; Convert XTerm mouse event to Emacs mouse event.
+  "Convert XTerm mouse event to Emacs mouse event."
   (let* ((type (- (read-char) ? ))
 	 (x (- (read-char) ?  1))
 	 (y (- (read-char) ?  1))
 	 (point (cons x y))
 	 (window (window-at x y))
-	 (where (if window 
+	 (where (if window
 		    (coordinates-in-window-p point window)
 		  'menu-bar))
 	 (pos (if (consp where)
@@ -161,22 +159,23 @@ Turn it on to use emacs mouse commands, and off to use xterm mouse commands."
       (if xterm-mouse-mode
 	  (progn
 	    (turn-off-xterm-mouse-tracking)
-	    (setq xterm-mouse-mode nil)
+	    (setq xterm-mouse-mode nil
+		  mouse-position-function nil)
 	    (set-buffer-modified-p (buffer-modified-p))))
     ;;Turn it on
-    (if xterm-mouse-mode
-	()
-      (setq xterm-mouse-mode t)
+    (unless (or window-systemxterm-mouse-mode)
+      (setq xterm-mouse-mode t
+	    mouse-position-function #'xterm-mouse-position-function)
       (turn-on-xterm-mouse-tracking)
       (set-buffer-modified-p (buffer-modified-p)))))
 
 (defun turn-on-xterm-mouse-tracking ()
-  ;; Enable emacs mouse tracking in xterm.
+  "Enable Emacs mouse tracking in xterm."
   (if xterm-mouse-mode
       (send-string-to-terminal "\e[?1000h")))
 
 (defun turn-off-xterm-mouse-tracking ()
-  ;; Disable disable emacs mouse tracking in xterm.
+  "Disable disable Emacs mouse tracking in xterm."
   (if xterm-mouse-mode
       (send-string-to-terminal "\e[?1000l")))
 
