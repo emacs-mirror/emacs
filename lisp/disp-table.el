@@ -157,11 +157,10 @@ X frame."
 ;;;###autoload
 (defun standard-display-underline (c uc)
   "Display character C as character UC plus underlining."
-  (if window-system (require 'faces))
   (aset standard-display-table c
 	(vector 
 	 (if window-system
-	     (logior uc (lsh (face-id (internal-find-face 'underline)) 19))
+	     (logior uc (lsh (face-id 'underline) 19))
 	   (create-glyph (concat "\e[4m" (char-to-string uc) "\e[m"))))))
 
 ;; Allocate a glyph code to display by sending STRING to the terminal.
