@@ -437,6 +437,29 @@ extern void fatal (char *, ...);
 /* Get the address of a particular section or program header entry,
  * accounting for the size of the entries.
  */
+/* 
+   On PPC Reference Platform running Solaris 2.5.1
+   the plt section is also of type NOBI like the bss section.
+   (not really stored) and therefore sections after the bss
+   section start at the plt offset. The plt section is always
+   the one just before the bss section.
+   Thus, we modify the test from
+      if (NEW_SECTION_H (nn).sh_offset >= new_data2_offset)
+   to
+      if (NEW_SECTION_H (nn).sh_offset >= 
+               OLD_SECTION_H (old_bss_index-1).sh_offset)
+   This is just a hack. We should put the new data section
+   before the .plt section.
+   And we should not have this routine at all but use
+   the libelf library to read the old file and create the new
+   file.
+   The changed code is minimal and depends on prep set in m/prep.h
+   Erik Deumens
+   Quantum Theory Project
+   University of Florida
+   deumens@qtp.ufl.edu
+   Apr 23, 1996
+   */
 
 #define OLD_SECTION_H(n) \
      (*(Elf32_Shdr *) ((byte *) old_section_h + old_file_h->e_shentsize * (n)))
@@ -731,8 +754,22 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	{
 	  /* Any section that was original placed AFTER the bss
 	     section should now be off by NEW_DATA2_SIZE. */
+#ifdef SOLARIS_POWERPC
+	  /* On PPC Reference Platform running Solaris 2.5.1
+	     the plt section is also of type NOBI like the bss section.
+	     (not really stored) and therefore sections after the bss
+	     section start at the plt offset. The plt section is always
+	     the one just before the bss section.
+	     It would be better to put the new data section before
+	     the .plt section, or use libelf instead.
+	     Erik Deumens, deumens@qtp.ufl.edu.  */
+	  if (NEW_SECTION_H (nn).sh_offset
+	      >= OLD_SECTION_H (old_bss_index-1).sh_offset)
+	    NEW_SECTION_H (nn).sh_offset += new_data2_size;
+#else
 	  if (NEW_SECTION_H (nn).sh_offset >= new_data2_offset)
 	    NEW_SECTION_H (nn).sh_offset += new_data2_size;
+#endif
 	  /* Any section that was originally placed after the section
 	     header table should now be off by the size of one section
 	     header table entry.  */
