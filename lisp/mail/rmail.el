@@ -1676,7 +1676,7 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
 ;;;; *** Rmail Mailing Commands ***
 
 (defun rmail-start-mail (&rest args)
-  (if rmail-mail-new-frame
+  (if (and window-system rmail-mail-new-frame)
       (prog1
 	(apply 'mail-other-frame args)
 	(modify-frame-parameters (selected-frame)
