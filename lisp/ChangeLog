@@ -1,3 +1,8 @@
+2001-01-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* international/mule-cmds.el (universal-coding-system-argument): 
+	Handle commands with prefix args.
+
 2001-01-24  Edward M. Reingold  <reingold@emr.cs.uiuc.edu>
 
 	* calendar/diary-lib.el (diary-float): Fix case of MONTH
