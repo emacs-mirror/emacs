@@ -1,6 +1,6 @@
 ;;; battery.el --- display battery status information.
 
-;; Copyright (C) 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2000 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;; Keywords: hardware
@@ -108,9 +108,7 @@ seconds."
   (interactive)
   (setq battery-mode-line-string "")
   (or global-mode-string (setq global-mode-string '("")))
-  (or (memq 'battery-mode-line-string global-mode-string)
-      (setq global-mode-string (append global-mode-string
-				       '(battery-mode-line-string))))
+  (add-to-list 'global-mode-string 'battery-mode-line-string t)
   (and battery-update-timer (cancel-timer battery-update-timer))
   (setq battery-update-timer (run-at-time nil battery-update-interval
 					  'battery-update-handler))
