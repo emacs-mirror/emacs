@@ -1,3 +1,10 @@
+2002-03-30  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (window_scroll_pixel_based): Exit the move_it_by_lines
+	loop whenever it stops making progress.
+
+	* widget.c (set_frame_size): Don't call change_frame_size.
+
 2002-03-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (direct_output_for_insert): Call
