@@ -885,8 +885,6 @@ init_environment (argc, argv, skip_args)
       setenv ("TZ", "EET-02", 0);
       break;
     }
-  tzset ();
-  init_gettimeofday ();
 }
 
 /* Flash the screen as a substitute for BEEPs.  */
@@ -1417,10 +1415,7 @@ internal_terminal_init ()
 
 /* When time zones are set from Ms-Dos too may C-libraries are playing
    tricks with time values.  We solve this by defining our own version
-   of `gettimeofday' bypassing GO32.  Our version needs to be initialized
-   once and after each call to `tzset' with TZ changed.  */
-
-static int daylight, gmtoffset;
+   of `gettimeofday' bypassing GO32.  */
 
 int
 gettimeofday (struct timeval *tp, struct timezone *tzp)
@@ -1428,43 +1423,15 @@ gettimeofday (struct timeval *tp, struct timezone *tzp)
   if (tp)
     {
       struct time t;
-      struct date d;
-      struct tm tmrec;
 
       gettime (&t);
-      getdate (&d);
-      tmrec.tm_year = d.da_year - 1900;
-      tmrec.tm_mon = d.da_mon - 1;
-      tmrec.tm_mday = d.da_day;
-      tmrec.tm_hour = t.ti_hour;
-      tmrec.tm_min = t.ti_min;
-      tmrec.tm_sec = t.ti_sec;
-      tmrec.tm_gmtoff = gmtoffset;
-      tmrec.tm_isdst = daylight;
-      tp->tv_sec = mktime (&tmrec);
-      tp->tv_usec = t.ti_hund * (1000000 / 100);
+      tp->tv_sec = time (NULL);
+      /* If tp->tv_sec%60 != t.ti_sec, the seconds counter turned over
+	 between the call to `gettime' and the call to `time'.  */
+      tp->tv_usec = tp->tv_sec%60 != t.ti_sec ? 0 : t.ti_hund * (1000000/100);
     }
-  if (tzp)
-    {
-      tzp->tz_minuteswest = gmtoffset;
-      tzp->tz_dsttime = daylight;
-    }
+  /* Ignore tzp; it's obsolescent.  */
   return 0;
-}
-
-void
-init_gettimeofday ()
-{
-  time_t ltm, gtm;
-  struct tm *lstm;
-
-  daylight = 0;
-  gmtoffset = 0;
-  ltm = gtm = time (NULL);
-  ltm = mktime (lstm = localtime (&ltm));
-  gtm = mktime (gmtime (&gtm));
-  daylight = lstm->tm_isdst;
-  gmtoffset = (int)(gtm - ltm) / 60;
 }
 
 /* These must be global.  */
