@@ -1,5 +1,19 @@
 2001-03-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (note_mouse_highlight): Handle mouse-face and 
+	help-echo in strings.
+	(x_y_to_hpos_vpos): Add parameter BUFFER_ONLY_P.
+	(fast_find_string_pos): New function.
+
+	* xdisp.c (handle_face_prop, face_before_or_after_it_pos) 
+	(display_string): Call face_at_string_position with new 
+	parameter.
+
+	* xfaces.c (face_at_string_position): Add parameter MOUSE_P.
+	Handle `mouse-face'.
+
+	* dispextern.h (face_at_string_position): Change prototype.
+
 	* dired.c (directory_files_internal): Handle EAGAIN more
 	efficiently.
 
