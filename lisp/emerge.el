@@ -2215,6 +2215,7 @@ ancestor version does not share.)"
 If there is no containing difference and the prefix argument is positive,
 it finds the nearest following difference.  A negative prefix argument finds
 the nearest previous difference."
+  (interactive "P")
   (cond ((eq (current-buffer) emerge-A-buffer)
 	 (emerge-find-difference-A arg))
 	((eq (current-buffer) emerge-B-buffer)
