@@ -1,8 +1,8 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(MMdevel_lib.2) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.26) $
 #
-# Copyright (C) 1995 Harlequin Group, all rights reserved
+# Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
 PFM = nti3mv
 PFMDEFS = /DWIN32 /D_WINDOWS
@@ -26,7 +26,7 @@ TESTLIB = <testlib>
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(MMdevel_lib.2) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.26) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -271,14 +271,15 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 # %%TARGET: Add the target  to the all dependencies
 
 all: mpmss.exe amcss.exe dwstress.exe lockutnt.exe lockcov.exe \
-     mpsicv.exe poolncv.exe locv.exe qs.exe mpm.lib weakcv.exe
+     mpsicv.exe poolncv.exe locv.exe qs.exe mpm.lib weakcv.exe \
+     mpmconft.exe
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
 
 dwstress.exe amcss.exe lockutnt.exe lockcov.exe \
      mpmss.exe protcv.exe mpsicv.exe poolncv.exe locv.exe qs.exe \
-     mpm.lib mmdw.lib mmsw.lib weakcv.exe:
+     mpm.lib mmdw.lib mmsw.lib weakcv.exe mpmconft.exe:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
 
 mpsicv.cov:
@@ -326,6 +327,9 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 
 $(PFM)\$(VARIETY)\weakcv.exe: $(PFM)\$(VARIETY)\weakcv.obj \
 	$(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\mpmconft.exe: $(PFM)\$(VARIETY)\mpmconft.obj \
+	$(MPMOBJ)
 
 $(PFM)\$(VARIETY)\mpmss.exe: $(PFM)\$(VARIETY)\mpmss.obj \
 	$(MPMOBJ)
