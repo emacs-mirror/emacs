@@ -353,7 +353,7 @@ case "${srcdir}" in
   . )
     ## We may be able to use the $PWD environment variable to make this
     ## absolute.  But sometimes PWD is inaccurate.
-    if [ "${PWD}" != "" ] && [ "`(cd ${PWD} ; pwd)`" = "`pwd`" ] ; then
+    if [ "${PWD}" != "" ] && [ "`(cd ${PWD} ; sh -c pwd)`" = "`pwd`" ] ; then
       srcdir="$PWD"
     else
       srcdir="`(cd ${srcdir}; pwd)`"
