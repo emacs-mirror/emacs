@@ -2249,12 +2249,13 @@ Control characters in STRING will have terminal-dependent effects.")
   (string)
      Lisp_Object string;
 {
+  /* ??? Perhaps we should do something special for multibyte strings here.  */
   CHECK_STRING (string, 0);
-  fwrite (XSTRING (string)->data, 1, XSTRING (string)->size, stdout);
+  fwrite (XSTRING (string)->data, 1, XSTRING (string)->size_byte, stdout);
   fflush (stdout);
   if (termscript)
     {
-      fwrite (XSTRING (string)->data, 1, XSTRING (string)->size, termscript);
+      fwrite (XSTRING (string)->data, 1, XSTRING (string)->size_byte, termscript);
       fflush (termscript);
     }
   return Qnil;
