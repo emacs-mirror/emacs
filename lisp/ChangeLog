@@ -1,3 +1,10 @@
+2004-05-15  Alex Ott  <ott@jet.msk.su>
+
+	* textmodes/ispell.el (ispell-local-dictionary-alist): Add
+	windows-1252 to the choice of coding systems.
+	(ispell-dictionary-alist-6): Add support for "russianw.aff",
+	encoded in cp1251.
+
 2004-05-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/compile.el (compilation-warning-face)

@@ -1,3 +1,9 @@
+2004-05-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.h (DECL_ALIGN) [MSDOS]: Don't define DECL_ALIGN to use
+	__attribute__((__aligned__)), so that USE_LSB_TAG would not become
+	defined for the MS-DOS build.
+
 2004-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* w32fns.c (Fw32_define_rgb_color): Avoid XSET.
@@ -8291,7 +8297,7 @@
 
 	* msdos.c (croak): Add `void' to definition.
 
-	* sysdep.c [MSDOS] (request_sigio, unrequest_sigio):
+	* sysdep.c (request_sigio, unrequest_sigio) [MSDOS]:
 	Don't define them, they are defined in msdos.c.
 
 	* mem-limits.h [MSDOS]: Declare etext.
