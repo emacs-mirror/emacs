@@ -357,7 +357,7 @@
 ;;
 
 (quail-define-package
- "cyrillic-beylorussian" "Cyrillic" ",L6(BB" nil
+ "cyrillic-beylorussian" "Belarussian" ",L6(BB" nil
  ",L)*5@B7(B-,L&.(B BEYLORUSSIAN (ISO 8859-5 encoding)"
  nil t t t t nil nil nil nil nil t)
 
@@ -466,7 +466,7 @@
 ;;
 
 (quail-define-package 
- "cyrillic-ukrainian" "Cyrillic" ",L6(BU" nil
+ "cyrillic-ukrainian" "Ukrainian" ",L6(BU" nil
  ",L$'5@B7(B-,L&.(B UKRAINIAN (ISO 8859-5 encoding)
 
 Sorry, but 'ghe with upturn' is not included in ISO 8859-5"
@@ -793,7 +793,7 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
 )
 
 (quail-define-package
- "cyrillic-translit-bulgarian" "Cyrillic" ",L6(Btb" nil
+ "cyrillic-translit-bulgarian" "Bulgarian" ",L6(Btb" nil
  "Intuitively transliterated keyboard layout optimized for Bulgarian.
 The only difference with cyrillic-translit is that \"sht\" translates as
 ,Li(B (SHCHA = Bulgarian SHT) insteat of ,Lhb(B (SH+T)."
@@ -844,7 +844,7 @@ The only difference with cyrillic-translit is that \"sht\" translates as
 ;; From Yudit's `Belarusian input table according to STB955-94
 ;; belarusian standard'.  Alexander Mikhailian <mikhailian@altern.org>
 (quail-define-package
- "belarusian" "Cyrillic" "$,1(v(B" ; fixme
+ "belarusian" "Belarusian" "$,1(v(B" ; fixme
  nil
  "Belarusian STB955-94 input, producing Unicode"
  nil t t t t nil nil nil nil nil t)
@@ -994,12 +994,24 @@ The only difference with cyrillic-translit is that \"sht\" translates as
  ("Y`" ?$,1)4(B)
  ("y`" ?$,1)5(B))
 
-;; From `Bulgarian-PHO.kmap for Yudit', Alexander Shopov <al_shopov@web.bg>
+;; From `Bulgarian-PHO.kmap for Yudit', Alexander Shopov
+;; <al_shopov@web.bg>.
+
+;; Extra commentary and the indicator from an independent
+;; (cyrillic-iso8859-5) implementation by Ognyan Kulev
+;; <ogi@fmi.uni-sofia.bg>.
 (quail-define-package
- "bulgarian-pho" "Cyrillic" "$,1(1(B" ; fixme
+ "bulgarian-pho" "Bulgarian" "$,1(6(1(D(B"
  nil
- "Bulragian PHO keyboard layout, producing Unicode"
+ "Bulragian Phonetic keyboard layout, producing Unicode
+
+The layout is similar to `cyrillic-translit', but all Bulgarian
+characters are typed with a single key."
  nil t t t t nil nil nil nil nil t)
+
+;;   $,1(O(B  $,1(2(B  $,1(5(B  $,1(@(B  $,1(B(B  $,1(J(B  $,1(C(B  $,1(8(B  $,1(>(B  $,1(?(B  $,1(H(B  $,1(I(B
+;;    $,1(0(B  $,1(A(B  $,1(4(B  $,1(D(B  $,1(3(B  $,1(E(B  $,1(9(B  $,1(:(B  $,1(;(B        $,1(G(B
+;;  $,1(N(B  $,1(7(B  $,1(L(B  $,1(F(B  $,1(6(B  $,1(1(B  $,1(=(B  $,1(<(B
 
 (quail-define-rules
  ("A" ?$,1(0(B)
