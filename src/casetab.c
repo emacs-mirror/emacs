@@ -170,6 +170,15 @@ set_case_table (table, standard)
   return table;
 }
 
+/* Using the scratch array at BYTES of which the first DEPTH elements
+   are already set, and using the multi-byte structure inherited from
+   TRT, make INVERSE be an identity mapping.  That is, for each slot
+   that's indexed by a single byte, store that byte in INVERSE.
+   Where TRT has a subtable, make a corresponding subtable in INVERSE
+   and recursively initialize that subtable so that its elements are
+   the multi-byte characters that correspond to the index bytes.
+   This is the first step in generating an inverse mapping.  */
+
 static void
 compute_trt_identity (bytes, depth, trt, inverse)
      unsigned char *bytes;
@@ -200,6 +209,12 @@ compute_trt_identity (bytes, depth, trt, inverse)
 	inverse->contents[i] = trt->contents[i];
     }
 }
+
+/* Using the scratch array at BYTES of which the first DEPTH elements
+   are already set, permute the elements of INVERSE (which is initially
+   an identity mapping) so that it has one cycle for each equivalence
+   class induced by the translation table TRT.  IBASE is the lispy
+   version of the outermost (depth 0) instance of INVERSE.  */
 
 static void
 compute_trt_shuffle (bytes, depth, ibase, trt, inverse)
