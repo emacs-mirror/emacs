@@ -247,14 +247,8 @@ make_window ()
 {
   Lisp_Object val;
   register struct window *p;
-  register struct Lisp_Vector *vec;
-  int i;
 
-  vec = allocate_vectorlike ((EMACS_INT) VECSIZE (struct window));
-  for (i = 0; i < VECSIZE (struct window); i++)
-    vec->contents[i] = Qnil;
-  vec->size = VECSIZE (struct window);
-  p = (struct window *) vec;
+  p = allocate_window ();
   XSETFASTINT (p->sequence_number, ++sequence_number);
   XSETFASTINT (p->left, 0);
   XSETFASTINT (p->top, 0);
@@ -3155,15 +3149,13 @@ make_dummy_parent (window)
 {
   Lisp_Object new;
   register struct window *o, *p;
-  register struct Lisp_Vector *vec;
   int i;
 
   o = XWINDOW (window);
-  vec = allocate_vectorlike ((EMACS_INT)VECSIZE (struct window));
+  p = allocate_window ();
   for (i = 0; i < VECSIZE (struct window); ++i)
-    vec->contents[i] = ((struct Lisp_Vector *)o)->contents[i];
-  vec->size = VECSIZE (struct window);
-  p = (struct window *)vec;
+    ((struct Lisp_Vector *) p)->contents[i]
+      = ((struct Lisp_Vector *)o)->contents[i];
   XSETWINDOW (new, p);
 
   XSETFASTINT (p->sequence_number, ++sequence_number);
@@ -5247,10 +5239,7 @@ redirection (see `redirect-frame-focus').")
   f = XFRAME (frame);
 
   n_windows = count_windows (XWINDOW (FRAME_ROOT_WINDOW (f)));
-  vec = allocate_vectorlike (VECSIZE (struct save_window_data));
-  for (i = 0; i < VECSIZE (struct save_window_data); i++)
-    vec->contents[i] = Qnil;
-  vec->size = VECSIZE (struct save_window_data);
+  vec = allocate_other_vector (VECSIZE (struct save_window_data));
   data = (struct save_window_data *)vec;
 
   XSETFASTINT (data->frame_width, FRAME_WIDTH (f));
