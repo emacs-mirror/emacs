@@ -2,7 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1999 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
-@node Antinews, Index, Standard Hooks, Top
+@node Antinews, Tips, Calendar, Top
 @appendix Emacs 20 Antinews
 
 For those users who live backwards in time, here is information about
@@ -14,11 +14,6 @@ the following section, we carry this information back to Emacs
 @section Old Lisp Features in Emacs 20
 
 @itemize @bullet
-@item
-The function @code{bitmap-spec-p} has been renamed to
-@code{pixmap-spec-p} to encourage users to practice Emacs' help system
-while trying to find it.
-
 @item
 The @code{push} and @code{pop} macros are not defined.
 
@@ -32,13 +27,17 @@ freely in Lisp programs, with no effects except what you implement for
 yourself.  With no images, who needs the @code{display} text property?
 
 @item
+The @code{field} text property has no special meaning.
+
+@item
 Faces have fewer attributes.  The attributes @code{:family},
 @code{:height}, @code{:width}, @code{:weight}, and @code{:slant},
 have been replaced with a font name, a ``bold'' flag, and an
 ``italic'' flag.
 
-The attributes @code{:overline}, @code{:strike-through}
-and @code{:box} have been eliminated too.
+The attributes @code{:overline}, @code{:strike-through} and @code{:box}
+have been eliminated too.  Underlining now always has the same color as
+the text---using any other color would be bad taste.
 
 With fewer font attributes, there are no functions
 @code{set-face-attribute} and @code{face-attribute}.  Instead, you
@@ -47,8 +46,17 @@ set them with functions such as @code{set-face-font}.  (These functions
 were available in Emacs 21, but are not as useful there.)
 
 @item
-There are no facilities for playing sound.  This means Emacs will
-respect your peace and quiet, aside from occasional beeps.
+The standard faces @code{scroll-bar}, @code{menu}, @code{border},
+@code{cursor}, and @code{mouse} have been eliminated.  They are rather
+strange, as faces, and therefore shouldn't really exist.  You can use
+@code{set-border-color}, @code{set-cursor-color} and
+@code{set-mouse-color} to specify the colors for the frame border, the
+text cursor, and the mouse cursor.  To specify menu colors, use X
+resources.
+
+@item
+Emacs will respect your peace and quiet, aside from occasional beeps,
+because there are no facilities for playing sounds.
 
 @item
 Regular expressions do not support the POSIX character classes
@@ -75,6 +83,11 @@ For simplicity, all ASCII characters now have the same height and width.
 the standard width.)  All characters are created equal.
 
 @item
+The function @code{bitmap-spec-p} has been renamed to
+@code{pixmap-spec-p} to encourage users to practice Emacs' help system
+while trying to find it.
+
+@item
 Tooltips operate using ordinary Emacs frames.
 
 @item
@@ -98,7 +111,7 @@ properties.
 @item
 Colors are supported only on window systems, not on text-only terminals.
 So the support functions for colors on text-only terminals are
-not needed.
+not needed, and have been eliminated.
 
 @item
 The functions @code{color-values}, @code{color-defined-p} and
