@@ -197,6 +197,7 @@ It is the standard syntax table used in Fundamental mode, but with the
 syntax of `*' changed to be a word constituent.")
 
 (modify-syntax-entry ?* "w" diary-syntax-table)
+(modify-syntax-entry ?: "w" diary-syntax-table)
 
 (defun list-diary-entries (date number)
   "Create and display a buffer containing the relevant lines in diary-file.
