@@ -2899,7 +2899,7 @@ Default is to leave paragraph indentation as is."
                        1))
                (symbol-value indexvar)))))
 
-(defconst texinfo-indexvar-alist
+(defvar texinfo-indexvar-alist
   '(("cp" . texinfo-cindex)
     ("fn" . texinfo-findex)
     ("vr" . texinfo-vindex)
