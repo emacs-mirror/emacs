@@ -12385,7 +12385,8 @@ decode_mode_spec (w, c, field_width, precision)
 	  while (pad-- > 0)
 	    *p++ = ' ';
 	  *p++ = '?';
-	  *p = '?';
+	  *p++ = '?';
+	  *p = '\0';
 	  return decode_mode_spec_buf;
 	}
       }
