@@ -275,19 +275,19 @@ this prefix to create a unique file name.")
 			   (delete (concat "PWD=" pwd)
 				   process-environment)))))))
     (setq default-directory (abbreviate-file-name default-directory))
-    ;; Specify the file for recording all the auto save files of this session.
-    ;; This is used by recover-session.
-    (setq auto-save-list-file-name
-	  (expand-file-name
-	   (format "%s%d-%s"
-		   auto-save-list-file-prefix
-		   (emacs-pid)
-		   (system-name))))
     (let ((menubar-bindings-done nil))
       (unwind-protect
 	  (command-line)
 	;; Do this again, in case .emacs defined more abbreviations.
 	(setq default-directory (abbreviate-file-name default-directory))
+	;; Specify the file for recording all the auto save files of this session.
+	;; This is used by recover-session.
+	(setq auto-save-list-file-name
+	      (expand-file-name
+	       (format "%s%d-%s"
+		       auto-save-list-file-prefix
+		       (emacs-pid)
+		       (system-name))))
 	(run-hooks 'emacs-startup-hook)
 	(and term-setup-hook
 	     (run-hooks 'term-setup-hook))
