@@ -598,7 +598,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	  (if (getenv "EMACS") nil (list "EMACS=t"))
 	  process-environment))
 	(default-directory
-	  (if (file-directory-p default-directory)
+	  (if (file-accessible-directory-p default-directory)
 	      default-directory
 	    "/")))
     (apply 'start-process name buffer command switches)))
