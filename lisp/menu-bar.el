@@ -28,87 +28,181 @@
 (or (lookup-key global-map [menu-bar])
     (define-key global-map [menu-bar] (make-sparse-keymap "menu-bar")))
 (defvar menu-bar-help-menu (make-sparse-keymap "Help"))
-;; Put Help item last.
+
+;; Force Help item to come last, after the major mode's own items.
 (setq menu-bar-final-items '(help))
+
 (define-key global-map [menu-bar help] (cons "Help" menu-bar-help-menu))
+(defvar menu-bar-search-menu (make-sparse-keymap "Search"))
+(define-key global-map [menu-bar search] (cons "Search" menu-bar-search-menu))
 (defvar menu-bar-edit-menu (make-sparse-keymap "Edit"))
 (define-key global-map [menu-bar edit] (cons "Edit" menu-bar-edit-menu))
-(defvar menu-bar-file-menu (make-sparse-keymap "File"))
-(define-key global-map [menu-bar file] (cons "File" menu-bar-file-menu))
+(defvar menu-bar-tools-menu (make-sparse-keymap "Tools"))
+(define-key global-map [menu-bar tools] (cons "Tools" menu-bar-tools-menu))
+(defvar menu-bar-files-menu (make-sparse-keymap "Files"))
+(define-key global-map [menu-bar files] (cons "Files" menu-bar-files-menu))
 
 (defvar vc-menu-map (make-sparse-keymap "Version Control"))
 
-(define-key menu-bar-file-menu [exit-emacs]
-  '("Exit Emacs" . save-buffers-kill-emacs))
+(define-key menu-bar-tools-menu [calendar] '("Calendar" . calendar))
+(define-key menu-bar-tools-menu [rmail] '("Read Mail" . rmail))
+(define-key menu-bar-tools-menu [gnus] '("Read Net News" . gnus))
 
-(define-key menu-bar-file-menu [separator-compare]
+(define-key menu-bar-tools-menu [separator-vc]
   '("--"))
 
-(define-key menu-bar-file-menu [epatch]
+(define-key menu-bar-tools-menu [vc-menu]
+  (cons "Version Control" vc-menu-map))
+
+(define-key menu-bar-tools-menu [separator-compare]
+  '("--"))
+
+(define-key menu-bar-tools-menu [epatch]
   '("Apply Patch" . menu-bar-epatch-menu))
-(define-key menu-bar-file-menu [ediff-merge]
+(define-key menu-bar-tools-menu [ediff-merge]
   '("Merge" . menu-bar-ediff-merge-menu))
-(define-key menu-bar-file-menu [ediff]
+(define-key menu-bar-tools-menu [ediff]
   '("Compare" . menu-bar-ediff-menu))
 
-(define-key menu-bar-file-menu [separator-misc]
+(define-key menu-bar-tools-menu [separator-print]
   '("--"))
 
-(define-key menu-bar-file-menu [calendar] '("Calendar" . calendar))
-(define-key menu-bar-file-menu [rmail] '("Read Mail" . rmail))
-(define-key menu-bar-file-menu [gnus] '("Read Net News" . gnus))
+(put 'print-region 'menu-enable 'mark-active)
+(put 'ps-print-region-with-faces 'menu-enable 'mark-active)
+
+(define-key menu-bar-tools-menu [ps-print-region]
+  '("Postscript Print Region" . ps-print-region-with-faces))
+(define-key menu-bar-tools-menu [ps-print-buffer]
+  '("Postscript Print Buffer" . ps-print-buffer-with-faces))
+(define-key menu-bar-tools-menu [print-region]
+  '("Print Region" . print-region))
+(define-key menu-bar-tools-menu [print-buffer]
+  '("Print Buffer" . print-buffer))
+
+(define-key menu-bar-files-menu [exit-emacs]
+  '("Exit Emacs" . save-buffers-kill-emacs))
+
+(define-key menu-bar-files-menu [separator-exit]
+  '("--"))
+
+(define-key menu-bar-files-menu [one-window]
+  '("One Window" . delete-other-windows))
+
+(define-key menu-bar-files-menu [split-window]
+  '("Split Window" . split-window-vertically))
 
 (if (fboundp 'delete-frame)
     (progn
-      (define-key menu-bar-file-menu [separator-frames]
-	'("--"))
-
-      (define-key menu-bar-file-menu [delete-frame]
+      (define-key menu-bar-files-menu [delete-frame]
 	'("Delete Frame" . delete-frame))
-      (define-key menu-bar-file-menu [make-frame-on-display]
-	'("Make Frame on Display" . make-frame-on-display))
-      (define-key menu-bar-file-menu [make-frame]
+      (define-key menu-bar-files-menu [make-frame-on-display]
+	'("Open New Display..." . make-frame-on-display))
+      (define-key menu-bar-files-menu [make-frame]
 	'("Make New Frame" . make-frame))))
 
-(define-key menu-bar-file-menu [separator-buffers]
+(define-key menu-bar-files-menu [separator-buffers]
   '("--"))
 
-(define-key menu-bar-file-menu [bookmark]
-  '("Bookmarks" . menu-bar-bookmark-map))
-(define-key menu-bar-file-menu [print-buffer]
-  '("Print Buffer" . print-buffer))
-(define-key menu-bar-file-menu [kill-buffer]
-  '("Kill (Current) Buffer" . kill-this-buffer))
-(define-key menu-bar-file-menu [insert-file]
+(define-key menu-bar-files-menu [kill-buffer]
+  '("Kill Current Buffer" . kill-this-buffer))
+(define-key menu-bar-files-menu [insert-file]
   '("Insert File" . insert-file))
-(define-key menu-bar-file-menu [vc-menu]
-  (cons "Version Control" vc-menu-map))
-(define-key menu-bar-file-menu [revert-buffer]
+(define-key menu-bar-files-menu [revert-buffer]
   '("Revert Buffer" . revert-buffer))
-(define-key menu-bar-file-menu [write-file]
+(define-key menu-bar-files-menu [write-file]
   '("Save Buffer As..." . write-file))
-(define-key menu-bar-file-menu [save-buffer] '("Save Buffer" . save-buffer))
-(define-key menu-bar-file-menu [dired] '("Open Directory..." . dired))
-(define-key menu-bar-file-menu [open-file] '("Open File..." . find-file))
+(define-key menu-bar-files-menu [save-buffer] '("Save Buffer" . save-buffer))
+(define-key menu-bar-files-menu [dired] '("Open Directory..." . dired))
+(define-key menu-bar-files-menu [open-file] '("Open File..." . find-file))
 
 ;; This is just one element of the ediff menu--the first.
 (define-key menu-bar-ediff-menu [window]
   '("This Window And Next Window" . compare-windows))
 
-(define-key menu-bar-edit-menu [query-replace]
-  '("Query Replace" . query-replace))
-(define-key menu-bar-edit-menu [re-search-back]
-  '("Regexp Search Backwards" . re-search-backward))
-(define-key menu-bar-edit-menu [search-back]
-  '("Search Backwards" . search-backward))
-(define-key menu-bar-edit-menu [re-search-fwd]
-  '("Regexp Search" . re-search-forward))
-(define-key menu-bar-edit-menu [search-fwd]
-  '("Search" . search-forward))
+(defun nonincremental-search-forward (string)
+  "Read a string and search for it nonincrementally."
+  (interactive "sSearch for string: ")
+  (if (equal string "")
+      (search-forward (car search-ring))
+    (isearch-update-ring string nil)
+    (search-forward string)))
 
-(define-key menu-bar-edit-menu [separator-misc]
+(defun nonincremental-search-backward (string)
+  "Read a string and search backward for it nonincrementally."
+  (interactive "sSearch for string: ")
+  (if (equal string "")
+      (search-backward (car search-ring))
+    (isearch-update-ring string nil)
+    (search-backward string)))
+
+(defun nonincremental-re-search-forward (string)
+  "Read a regular expression and search for it nonincrementally."
+  (interactive "sSearch for regexp: ")
+  (if (equal string "")
+      (re-search-forward (car regexp-search-ring))
+    (isearch-update-ring string t)
+    (re-search-forward string)))
+
+(defun nonincremental-re-search-backward (string)
+  "Read a regular expression and search backward for it nonincrementally."
+  (interactive "sSearch for regexp: ")
+  (if (equal string "")
+      (re-search-backward (car regexp-search-ring))
+    (isearch-update-ring string t)
+    (re-search-backward string)))
+
+(defun noninteractive-repeat-search-forward ()
+  "Search forward for the previous search string."
+  (interactive)
+  (search-forward (car search-ring)))
+
+(defun noninteractive-repeat-search-backward ()
+  "Search backward for the previous search string."
+  (interactive)
+  (search-backward (car search-ring)))
+
+(defun noninteractive-repeat-re-search-forward ()
+  "Search forward for the previous regular expression."
+  (interactive)
+  (re-search-forward (car regexp-search-ring)))
+
+(defun noninteractive-repeat-re-search-backward ()
+  "Search backward for the previous regular expression."
+  (interactive)
+  (re-search-backward (car regexp-search-ring)))
+
+(define-key menu-bar-search-menu [query-replace]
+  '("Query Replace" . query-replace))
+(define-key menu-bar-search-menu [find-tag]
+  '("Find Tag" . find-tag))
+(put 'find-tag 'menu-enable 'tags-table-list)
+(define-key menu-bar-search-menu [bookmark]
+  '("Bookmarks" . menu-bar-bookmark-map))
+
+(define-key menu-bar-search-menu [separator-search]
   '("--"))
 
+(define-key menu-bar-search-menu [nonincremental-repeat-re-search-back]
+  '("Repeat Regexp Backwards" . nonincremental-repeat-re-search-backward))
+(define-key menu-bar-search-menu [nonincremental-repeat-search-back]
+  '("Repeat Backwards" . nonincremental-repeat-search-backward))
+(define-key menu-bar-search-menu [nonincremental-repeat-re-search-fwd]
+  '("Repeat Regexp" . nonincremental-repeat-re-search-forward))
+(define-key menu-bar-search-menu [nonincremental-repeat-search-fwd]
+  '("Repeat Search" . nonincremental-repeat-search-forward))
+
+(define-key menu-bar-search-menu [separator-repeat]
+  '("--"))
+
+(define-key menu-bar-search-menu [re-search-back]
+  '("Regexp Search Backwards" . nonincremental-re-search-backward))
+(define-key menu-bar-search-menu [search-back]
+  '("Search Backwards" . nonincremental-search-backward))
+(define-key menu-bar-search-menu [re-search-fwd]
+  '("Regexp Search" . nonincremental-re-search-forward))
+(define-key menu-bar-search-menu [search-fwd]
+  '("Search" . nonincremental-search-forward))
+
 (define-key menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map))
 (define-key menu-bar-edit-menu [fill] '("Fill" . fill-region))
 
