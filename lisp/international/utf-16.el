@@ -68,8 +68,9 @@
 ;; Needed in macro expansion, so can't be let-bound.  Zapped after use.
 (eval-and-compile
 (defconst utf-16-decode-ucs
-  ;; We have the unicode in r1.  Output is charset ID in r0, code point
-  ;; in r1.
+  ;; We have the unicode in r1.  Output is charset ID in r0, code
+  ;; point in r1.  As r6 keeps endian information, the value should
+  ;; not be changed.
   `((lookup-integer utf-subst-table-for-decode r1 r3)
     (if r7				; got a translation
 	((r0 = r1) (r1 = r3))
@@ -114,15 +115,14 @@
 
 (define-ccl-program ccl-decode-mule-utf-16-le
   `(2					; 2 bytes -> 1 to 4 bytes
-    ((read r0 r1)			; signature
-     (loop
+    ((loop
       (read r3 r4)
       (r1 = (r4 <8 r3))
       ,utf-16-decode-ucs
       (translate-character utf-translation-table-for-decode r0 r1)
       (write-multibyte-character r0 r1)
       (repeat))))
-  "Decode little endian UTF-16 (ignoring signature bytes).
+  "Decode UTF-16LE (little endian without signature bytes).
 Basic decoding is done into the charsets ascii, latin-iso8859-1 and
 mule-unicode-*.  Un-representable Unicode characters are decoded as
 U+fffd.  The result is run through the translation-table named
@@ -130,15 +130,14 @@ U+fffd.  The result is run through the translation-table named
 
 (define-ccl-program ccl-decode-mule-utf-16-be
   `(2					; 2 bytes -> 1 to 4 bytes
-    ((read r0 r1)			; signature
-     (loop
+    ((loop
       (read r3 r4)
       (r1 = (r3 <8 r4))
       ,utf-16-decode-ucs
       (translate-character utf-translation-table-for-decode r0 r1)
       (write-multibyte-character r0 r1)
       (repeat))))
-  "Decode big endian UTF-16 (ignoring signature bytes).
+  "Decode UTF-16BE (big endian without signature bytes).
 Basic decoding is done into the charsets ascii, latin-iso8859-1 and
 mule-unicode-*.  Un-representable Unicode characters are
 decoded as U+fffd.  The result is run through the translation-table of
@@ -173,9 +172,7 @@ name `utf-translation-table-for-decode'.")
 
 (define-ccl-program ccl-encode-mule-utf-16-le
   `(1
-    ((write #xff)
-     (write #xfe)
-     (loop
+    ((loop
       (read-multibyte-character r0 r1)
       (lookup-character utf-subst-table-for-encode r0 r1)
       (if (r7 == 0)
@@ -184,7 +181,7 @@ name `utf-translation-table-for-decode'.")
       (write (r0 & 255))
       (write (r0 >> 8))
       (repeat))))
-  "Encode to little endian UTF-16 with signature.
+  "Encode to UTF-16LE (little endian without signature).
 Characters from the charsets ascii, eight-bit-control,
 eight-bit-graphic, latin-iso8859-1 and mule-unicode-* are encoded
 after translation through the translation-table of name
@@ -193,9 +190,7 @@ Others are encoded as U+FFFD.")
 
 (define-ccl-program ccl-encode-mule-utf-16-be
   `(1
-    ((write #xfe)
-     (write #xff)
-     (loop
+    ((loop
       (read-multibyte-character r0 r1)
       (lookup-character utf-subst-table-for-encode r0 r1)
       (if (r7 == 0)
@@ -204,7 +199,7 @@ Others are encoded as U+FFFD.")
       (write (r0 >> 8))
       (write (r0 & 255))
       (repeat))))
-  "Encode to big endian UTF-16 with signature.
+  "Encode to UTF-16BE (big endian without signature).
 Characters from the charsets ascii, eight-bit-control,
 eight-bit-graphic, latin-iso8859-1 and mule-unicode-* are encoded
 after translation through the translation-table named
@@ -214,8 +209,6 @@ Others are encoded as U+FFFD.")
 (makunbound 'utf-16-decode-to-ucs)
 
 (let ((doc "
-
-Assumes and ignores the leading two-byte signature.
 
 It supports Unicode characters of these ranges:
     U+0000..U+33FF, U+E000..U+FFFF.
