@@ -671,7 +671,7 @@ void ArenaPoll(Arena arena)
 
   arena->insidePoll = TRUE;
 
-  ArenaStep(arena);
+  ArenaStep(arena, 0.0);
 
   arena->insidePoll = FALSE;
 }
@@ -713,17 +713,20 @@ void ArenaPark(Arena arena)
 }
 
 
-/* Take a single step of any active trace. */
+/* Take some time to perform actions (e.g. start traces, step active
+ * traces). */
 
-void ArenaStep(Arena arena)
+Bool ArenaStep(Arena arena, double interval)
 {
     TraceId ti;
+    Bool done;
     double size;
 
     AVERT(Arena, arena);
+    UNUSED(interval);
 
     /* Poll actions to see if any new action is to be taken. */
-    ActionPoll(arena);
+    done = ActionPoll(arena);
 
     if (arena->busyTraces != TraceSetEMPTY) {
         /* Find an active trace to poll. */
@@ -731,6 +734,7 @@ void ArenaStep(Arena arena)
             if(TraceSetIsMember(arena->busyTraces, ti)) {
                 Trace trace = ArenaTrace(arena, ti);
                 TracePoll(trace);
+                done = TRUE;
                 if(trace->state == TraceFINISHED)
                     TraceDestroy(trace);
             }
@@ -741,6 +745,7 @@ void ArenaStep(Arena arena)
     size = arena->fillMutatorSize;
     arena->pollThreshold = size + ARENA_POLL_MAX;
     AVER(arena->pollThreshold > size); /* enough precision? */
+    return done;
 }
 
 
