@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.41) $
+ * $HopeName: MMsrc!buffer.c(trunk.42) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -25,11 +25,13 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.41) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.42) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
-
+/* .check.use-trapped: This checking function uses BufferIsTrapped, */
+/* So BufferIsTrapped can't do checking as that would cause an */
+/* inifinite loop. */
 Bool BufferCheck(Buffer buffer)
 {
   CHECKS(Buffer, buffer);
@@ -37,7 +39,7 @@ Bool BufferCheck(Buffer buffer)
   CHECKU(Arena, buffer->arena);
   CHECKU(Pool, buffer->pool);
   CHECKL(buffer->arena == buffer->pool->arena);
-  CHECKL(RingCheck(&buffer->poolRing));	/* design.mps.check.type.no-sig */
+  CHECKL(RingCheck(&buffer->poolRing)); /* design.mps.check.type.no-sig */
   CHECKL(BoolCheck(buffer->isMutator));
   CHECKL(buffer->fillSize >= 0.0);
   CHECKL(buffer->emptySize >= 0.0);
@@ -94,27 +96,30 @@ Bool BufferCheck(Buffer buffer)
     /* between the base and current init.  Otherwise, initAtFlip */
     /* is kept at zero to avoid misuse (see */
     /* request.dylan.170429.sol.zero). */
-    if((buffer->mode & BufferModeTRAPPED) == 0) {
+    if(!BufferIsTrapped(buffer)) { /* .check.use-trapped */
       CHECKL(buffer->apStruct.limit == buffer->poolLimit);
       CHECKL(buffer->initAtFlip == (Addr)0);
     } else {
       CHECKL(buffer->apStruct.limit == (Addr)0);
       if(buffer->mode & BufferModeFLIPPED) {
-	CHECKL(buffer->apStruct.init == buffer->initAtFlip ||
-	       buffer->apStruct.init == buffer->apStruct.alloc);
-	CHECKL(buffer->base <= buffer->initAtFlip);
-	CHECKL(buffer->initAtFlip <= buffer->apStruct.init);
-	/* Only buffers which allocate pointers get flipped. */
-	CHECKL(buffer->rankSet != RankSetEMPTY);
+        CHECKL(buffer->apStruct.init == buffer->initAtFlip ||
+               buffer->apStruct.init == buffer->apStruct.alloc);
+        CHECKL(buffer->base <= buffer->initAtFlip);
+        CHECKL(buffer->initAtFlip <= buffer->apStruct.init);
+        /* Only buffers that allocate pointers get flipped. */
+        CHECKL(buffer->rankSet != RankSetEMPTY);
       }
       if(buffer->mode & BufferModeLOGGED) {
-	/* Nothing special to check in the logged mode */
+        /* Nothing special to check in the logged mode */
+	NOOP;
       }
     }
   }
 
   /* buffer->p, and buffer->i are arbitrary values determined by the */
   /* owning pool and cannot be checked */
+  /* .improve.check.class: Add a Pool Class methd so that the pool */
+  /* class can check these fields in the buffer. */
 
   return TRUE;
 }
@@ -137,11 +142,11 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
                (WriteFP)buffer, (WriteFU)buffer->serial,
                "  Arena $P\n",       (WriteFP)buffer->arena,
                "  Pool $P\n",        (WriteFP)buffer->pool,
-	       buffer->isMutator ?
-	         "  Mutator Buffer\n" : "  Internal Buffer\n",
-	       "  Mode $B\n",        (WriteFB)(buffer->mode),
-	       "  fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
-	       "  emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
+               buffer->isMutator ?
+                 "  Mutator Buffer\n" : "  Internal Buffer\n",
+               "  Mode $B\n",        (WriteFB)(buffer->mode),
+               "  fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
+               "  emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
                "  Seg $P\n",         (WriteFP)buffer->seg,
                "  rankSet $U\n",     (WriteFU)buffer->rankSet,
                "  alignment $W\n",   (WriteFW)buffer->alignment,
@@ -291,7 +296,7 @@ void BufferDetach(Buffer buffer, Pool pool)
     (*pool->class->bufferEmpty)(pool, buffer);
 
     spare = AddrOffset(buffer->apStruct.alloc, 
-		       buffer->poolLimit);
+                       buffer->poolLimit);
     buffer->emptySize += spare;
     if(buffer->isMutator) {
       buffer->pool->emptyMutatorSize += spare;
@@ -476,8 +481,8 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
     if(buffer->mode & BufferModeFLIPPED) {
       buffer->mode &= ~BufferModeFLIPPED;
       /* restore apStruct.limit if appropriate */
-      if((buffer->mode & BufferModeTRAPPED) == 0) {
-	buffer->apStruct.limit = buffer->poolLimit;
+      if(!BufferIsTrapped(buffer)) {
+        buffer->apStruct.limit = buffer->poolLimit;
       }
       buffer->initAtFlip = (Addr)0;
     }
@@ -488,7 +493,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
        next <= buffer->poolLimit) {
       buffer->apStruct.alloc = next;
       if(buffer->mode & BufferModeLOGGED) {
-	EVENT_PAW(BufferReserve, buffer, buffer->apStruct.init, size);
+        EVENT_PAW(BufferReserve, buffer, buffer->apStruct.init, size);
       }
       *pReturn = buffer->apStruct.init;
       return ResOK;
@@ -607,7 +612,7 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
   /* called.  See .commit.trip. */
   AVER(buffer->apStruct.limit == 0);
   /* Of course we should be trapped. */
-  AVER(buffer->mode & BufferModeTRAPPED);
+  AVER(BufferIsTrapped(buffer));
 
   /* The init and alloc fields should be equal at this point, because */
   /* the step .commit.update has happened. */
@@ -771,6 +776,12 @@ Addr (BufferLimit)(Buffer buffer)
 {
   AVERT(Buffer, buffer);
   return BufferLimit(buffer);
+}
+
+Bool BufferIsTrapped(Buffer buffer)
+{
+  /* Can't check buffer, see .check.use-trapped */
+  return (buffer->mode & (BufferModeFLIPPED|BufferModeLOGGED)) != 0;
 }
 
 

@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.94) $
+ * $HopeName: MMsrc!mpm.h(trunk.95) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -720,6 +720,7 @@ extern Addr (BufferAlloc)(Buffer buffer);
 #define BufferAlloc(buffer)     (BufferAP(buffer)->alloc)
 extern Addr (BufferLimit)(Buffer buffer);
 #define BufferLimit(buffer)     ((buffer)->poolLimit)
+extern Bool BufferIsTrapped(Buffer buffer);
 extern void BufferRampBegin(Buffer buffer);
 extern Res BufferRampEnd(Buffer buffer);
 extern void BufferRampReset(Buffer buffer);
