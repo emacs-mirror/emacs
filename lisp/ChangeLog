@@ -8,7 +8,7 @@
 
 	* calendar/calendar.el (nongregorian-diary-listing-hook): Added
 	:options to cover the possible values.
-	(nongregorian-diary-marking-hook): ditto
+	(nongregorian-diary-marking-hook): Ditto
 
 	* cal-bahai.el, cal-menu.el, calendar.el, diary-lib.el,
 	* holidays.el: Added support for the Baha'i calendar system.
