@@ -386,7 +386,7 @@ The output is in landscape format, one month to a page."
               (format "Astronomical (Julian) day number (at noon UTC): %s.0"
                            (calendar-astro-date-string date)))
              (list
-              (format "Fixed date: %s"
+              (format "Fixed (RD) date: %s"
                       (calendar-absolute-from-gregorian date)))
              (list (format "Hebrew date (before sunset): %s"
                            (calendar-hebrew-date-string date)))
