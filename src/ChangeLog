@@ -1,5 +1,8 @@
 2001-09-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* fileio.c (Ffile_symlink_p): If readlink returns ERANGE, take
+	that to mean that the buffer is too small.
+
 	* xdisp.c (reseat_1): Set IT's multibyte_p flag according to the
 	current buffer's multibyteness when discarding the iterator's
 	stack.
