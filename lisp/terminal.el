@@ -202,7 +202,7 @@ Other chars following \"%s\" are interpreted as follows:\n"
 	 (princ (substitute-command-keys "\\{terminal-escape-map}\n"))
 	 (princ (format "\nSubcommands of \"%s\" (%s)\n"
 			(where-is-internal 'te-escape-extended-command
-					   terminal-escape-map nil t)
+					   terminal-escape-map t)
 			'te-escape-extended-command))
 	 (let ((l (if (fboundp 'sortcar)
 		      (sortcar (copy-sequence te-escape-command-alist)
@@ -377,7 +377,7 @@ allowing the next page of output to appear"
       (princ "Terminal-emulator more break.\n\n")
       (princ (format "Type \"%s\" (te-more-break-resume)\n%s\n"
 		     (where-is-internal 'te-more-break-resume
-					terminal-more-break-map nil t)
+					terminal-more-break-map t)
 		     (documentation 'te-more-break-resume)))
       (princ (substitute-command-keys "\\{terminal-more-break-map}\n"))
       (princ "Any other key is passed through to the program
@@ -1140,9 +1140,7 @@ work with `terminfo' we will try to use it."
   (message "Entering emacs terminal-emulator...  Type %s %s for help"
 	   (single-key-description terminal-escape-char)
 	   (mapconcat 'single-key-description
-		      (where-is-internal 'te-escape-help
-					 terminal-escape-map
-					 nil t)
+		      (where-is-internal 'te-escape-help terminal-escape-map t)
 		      " ")))
 
 
