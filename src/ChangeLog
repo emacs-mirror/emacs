@@ -1,3 +1,8 @@
+2002-04-22  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (make_window): Initialize height_fixed_p,
+	last_cursor_off_p, and p->cursor_off_p slots.
+
 2002-04-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* fns.c (use-dialog-box): Doc fix.
