@@ -1218,11 +1218,14 @@ print (obj, printcharfun, escapeflag)
 		  /* If we just had a hex escape, and this character
 		     could be taken as part of it,
 		     output `\ ' to prevent that.  */
-		  if (need_nonhex
-		      && ((c >= 'a' && c <= 'f')
+		  if (need_nonhex)
+		    {
+		      need_nonhex = 0;
+		      if ((c >= 'a' && c <= 'f')
 			  || (c >= 'A' && c <= 'F')
-			  || (c >= '0' && c <= '9')))
-		    strout ("\\ ", -1, -1, printcharfun, 0);
+			  || (c >= '0' && c <= '9'))
+			strout ("\\ ", -1, -1, printcharfun, 0);
+		    }
 
 		  if (c == '\"' || c == '\\')
 		    PRINTCHAR ('\\');
