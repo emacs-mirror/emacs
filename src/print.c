@@ -610,8 +610,8 @@ float_to_string (buf, data)
      unsigned char *buf;
      double data;
 {
-  register unsigned char *cp, c;
-  register int width;
+  unsigned char *cp;
+  int width = -1;
       
   if (NILP (Vfloat_output_format)
       || XTYPE (Vfloat_output_format) != Lisp_String)
@@ -630,18 +630,20 @@ float_to_string (buf, data)
 	goto lose;
 
       cp += 2;
-      for (width = 0;
-	   ((c = *cp) >= '0' && c <= '9');
-	   cp++)
-	{
-	  width *= 10;
-	  width += c - '0';
-	}
+
+      /* Check the width specification.  */
+      if ('0' <= *cp && *cp <= '9')
+	for (width = 0; (*cp >= '0' && *cp <= '9'); cp++)
+	  width = (width * 10) + (*cp - '0');
 
       if (*cp != 'e' && *cp != 'f' && *cp != 'g')
 	goto lose;
 
-      if (width < (*cp != 'e') || width > DBL_DIG)
+      /* A precision of zero is valid for %f; everything else requires
+	 at least one.  Width may be omitted anywhere.  */
+      if (width != -1
+	  && (width < (*cp != 'f')
+	      || width > DBL_DIG))
 	goto lose;
 
       if (cp[1] != 0)
@@ -650,23 +652,28 @@ float_to_string (buf, data)
       sprintf (buf, XSTRING (Vfloat_output_format)->data, data);
     }
 
-  /* Make sure there is a decimal point with digit after, or an exponent,
-     so that the value is readable as a float.  */
-  for (cp = buf; *cp; cp++)
-    if ((*cp < '0' || *cp > '9') && *cp != '-')
-      break;
-
-  if (*cp == '.' && cp[1] == 0)
+  /* Make sure there is a decimal point with digit after, or an
+     exponent, so that the value is readable as a float.  But don't do
+     this with "%.0f"; it's legal for that not to produce a decimal
+     point.  */
+  if (*cp != 'f' || width != 0)
     {
-      cp[1] = '0';
-      cp[2] = 0;
-    }
+      for (cp = buf; *cp; cp++)
+	if ((*cp < '0' || *cp > '9') && *cp != '-')
+	  break;
 
-  if (*cp == 0)
-    {
-      *cp++ = '.';
-      *cp++ = '0';
-      *cp++ = 0;
+      if (*cp == '.' && cp[1] == 0)
+	{
+	  cp[1] = '0';
+	  cp[2] = 0;
+	}
+
+      if (*cp == 0)
+	{
+	  *cp++ = '.';
+	  *cp++ = '0';
+	  *cp++ = 0;
+	}
     }
 }
 #endif /* LISP_FLOAT_TYPE */
@@ -1030,7 +1037,7 @@ Use `f' for decimal point notation \"DIGITS.DIGITS\".\n\
 Use `g' to choose the shorter of those two formats for the number at hand.\n\
 The precision in any of these cases is the number of digits following\n\
 the decimal point.  With `f', a precision of 0 means to omit the\n\
-decimal point.  0 is not allowed with `f' or `g'.\n\n\
+decimal point.  0 is not allowed with `e' or `g'.\n\n\
 A value of nil means to use `%.20g'.");
   Vfloat_output_format = Qnil;
   Qfloat_output_format = intern ("float-output-format");
