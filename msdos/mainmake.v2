@@ -93,7 +93,7 @@ src: FRC
 
 man lispref lispintro:	FRC
 	cd $@
-	$(MAKE) top_srcdir=${top_srcdir}
+	$(MAKE) top_srcdir=${top_srcdir} info
 	cd ..
 
 install: all
