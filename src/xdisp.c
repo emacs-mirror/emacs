@@ -2947,10 +2947,7 @@ decode_mode_spec (w, c, maxwidth)
 
     case 't':			/* indicate TEXT or BINARY */
 #ifdef MSDOS
-      decode_mode_spec_buf[0]
-	= NILP (current_buffer->buffer_file_type) ? "T" : "B";
-      decode_mode_spec_buf[1] = 0;
-      return decode_mode_spec_buf;
+      return NILP (current_buffer->buffer_file_type) ? "T" : "B";
 #else /* not MSDOS */
       return "T";
 #endif /* not MSDOS */
