@@ -1,7 +1,9 @@
 ;;; ftp.el --- file input and output over Internet using FTP
 
+;; Author: Richard Mlynarik <mly@prep.ai.mit.edu>
+;; Last-Modified: 05 May 1992
+
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
-;; Author mly@prep.ai.mit.edu.
 
 ;; This file is part of GNU Emacs.
 

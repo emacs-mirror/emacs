@@ -40,10 +40,10 @@
 ;; lot during debugging.
 ;;      
 ;; I will gladly take all criticisms and complaints to heart, and will fix what
-;; bugs I can find.  As this is my first elisp hack, you may have to root out a
-;; few nasties hidden in the code.  Please let me know if you find any (sorry,
-;; no rewards :-).  I would also be interested if there are better, cleaner,
-;; faster ways of doing some of the things that I have done.
+;; bugs I can find.  As this is my first Emacs Lisp hack, you may have to root
+;; out a few nasties hidden in the code.  Please let me know if you find any
+;; (sorry, no rewards :-).  I would also be interested if there are better,
+;; cleaner, faster ways of doing some of the things that I have done.
 ;;      
 ;; You must understand some design considerations that I had in mind.
 ;; The intention was not really to "emulate" EDT, but rather to take advantage

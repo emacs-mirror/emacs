@@ -1,8 +1,12 @@
-;;; flow-ctrl.el --- help for lusers on cu(1) or terminals with wired-in ^S/^Q flow control
+;;; flow-ctrl.el --- help for lusers on cu(1) or ttys with wired-in ^S/^Q flow control
+
+;; Author Kevin Gallagher
+;; Maintainer: FSF
+;; Last-Modified: 03 Jun 1992
+;; Adapted-By: ESR
 
 ;;; Copyright (C) 1990 Free Software Foundation, Inc.
 ;;; Copyright (C) 1991 Kevin Gallagher
-;;; Adapted for Emacs 19 by Eric S. Raymond <eric@snark.thyrsus.com>
 ;;;
 ;;; GNU Emacs is distributed in the hope that it will be useful, but
 ;;; WITHOUT ANY WARRANTY.  No author or distributor accepts
@@ -18,7 +22,8 @@
 ;;; your rights and responsibilities.  It should be in a file named
 ;;; COPYING.  Among other things, the Copyright notice and this notice
 ;;; must be preserved on all copies.
-;;;
+
+;;; Commentary:
 
 ;;;; Terminals that use XON/XOFF flow control can cause problems with
 ;;;; GNU Emacs users.  This file contains Emacs Lisp code that makes it
@@ -35,6 +40,8 @@
 
 ;;; Portability note: This uses (getenv "TERM"), and therefore probably
 ;;; won't work outside of UNIX-like environments.
+
+;;; Code:
 
 (defun evade-flow-control ()
   "Enable use of flow control; let user type C-s as C-\ and C-q as C-^."

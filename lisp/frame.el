@@ -1,5 +1,8 @@
 ;;; frame.el --- multi-frame management independent of window systems.
 
+;; Maintainer: FSF
+;; Last-Modified: 09 Jul 92
+
 ;;;; Copyright (C) 1990, 1992 Free Software Foundation, Inc.
 
 ;;; This file is part of GNU Emacs.
@@ -17,6 +20,8 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Code:
 
 (defvar frame-creation-function nil
   "Window-system dependent function to call to create a new frame.

@@ -1,6 +1,14 @@
-;;; hide-ifdef-mode.el --- ides selected code within ifdef.
+;;; hide-ifdef-mode.el --- hides selected code within ifdef.
+
+;;; Author: Dan LaLiberte <liberte@a.cs.uiuc.edu>
+;;; Last-Modified: 06 Mar 1991
+
+;;; $Header: hide-ifdef-mode.el,v 1.7 88/02/16 03:12:58 liberte Exp $
 
 ;;; Copyright (C) 1988 Brian Marick and Daniel LaLiberte
+
+;;; Commentary:
+
 ;;; Written by Brian Marick, at Gould, Computer Systems Division, Urbana IL.
 ;;; Extensively modified by Daniel LaLiberte (while at Gould).
 ;;;
@@ -8,41 +16,8 @@
 ;;; of modifications and send comments to:
 ;;; 	 liberte@a.cs.uiuc.edu  or  ihnp4!uiucdcs!liberte
 ;;; I will continue to upgrade hide-ifdef-mode
-;;; with your contributions and will eventually offer it to FSF.
-;;;
-;;; $Header: hide-ifdef-mode.el,v 1.7 88/02/16 03:12:58 liberte Exp $
-;;;
-;;; $Log:	hide-ifdef-mode.el,v $
-;;; Revision 1.7  88/02/16  03:12:58  liberte
-;;; Fixed comments and doc strings.
-;;; Added optional prefix arg for ifdef motion commands.
-;;; 
-;;; Revision 1.6  88/02/05  00:36:18  liberte
-;;; Bug fixes.
-;;; 1. A multi-line comment that starts on an #ifdef line
-;;;    now ends on that line.
-;;; 2. Fix bad function name: hide-hif-ifdef-toggle-read-only
-;;; 3. Make ifdef-block hiding work outside of ifdefs.
-;;; 
-;;; Revision 1.5  88/01/31  23:19:31  liberte
-;;; Major clean up.
-;;;   Prefix internal names with "hif-".
-;;; 
-;;; Revision 1.4  88/01/30  14:09:38  liberte
-;;; Add hide-ifdef-hiding and hide-ifdef-mode to minor-mode-alist.
-;;; 
-;;; Revision 1.3  88/01/29  00:38:19  liberte
-;;; Fix three bugs.
-;;; 1. Function "defined" is just like lookup.
-;;; 2. Skip to newline or cr in case text is hidden.
-;;; 3. Use car of token list if just one symbol.
-;;;
-;;; Revision 1.2  88/01/28  23:32:46  liberte
-;;; Use hide-ifdef-mode-prefix-key.
-;;; Copy current-local-map so other buffers do not get
-;;; hide-ifdef-mode bindings.
-;;;
-;;;--------------------------------------------------------------
+;;; with your contributions.
+
 ;;; To initialize, toggle the hide-ifdef minor mode with
 ;;;
 ;;; M-x hide-ifdef-mode
@@ -117,7 +92,40 @@
 ;;; may appear.  "Ifdef" will appear when hide-ifdef-mode is active.  "Hiding"
 ;;; will appear when text may be hidden ("hide-ifdef-hiding" is non-nil).
 
+;;; Change Log:
+;;;
+;;; $Log:	hide-ifdef-mode.el,v $
+;;; Revision 1.7  88/02/16  03:12:58  liberte
+;;; Fixed comments and doc strings.
+;;; Added optional prefix arg for ifdef motion commands.
+;;; 
+;;; Revision 1.6  88/02/05  00:36:18  liberte
+;;; Bug fixes.
+;;; 1. A multi-line comment that starts on an #ifdef line
+;;;    now ends on that line.
+;;; 2. Fix bad function name: hide-hif-ifdef-toggle-read-only
+;;; 3. Make ifdef-block hiding work outside of ifdefs.
+;;; 
+;;; Revision 1.5  88/01/31  23:19:31  liberte
+;;; Major clean up.
+;;;   Prefix internal names with "hif-".
+;;; 
+;;; Revision 1.4  88/01/30  14:09:38  liberte
+;;; Add hide-ifdef-hiding and hide-ifdef-mode to minor-mode-alist.
+;;; 
+;;; Revision 1.3  88/01/29  00:38:19  liberte
+;;; Fix three bugs.
+;;; 1. Function "defined" is just like lookup.
+;;; 2. Skip to newline or cr in case text is hidden.
+;;; 3. Use car of token list if just one symbol.
+;;;
+;;; Revision 1.2  88/01/28  23:32:46  liberte
+;;; Use hide-ifdef-mode-prefix-key.
+;;; Copy current-local-map so other buffers do not get
+;;; hide-ifdef-mode bindings.
+;;;
 
+;;; Code:
 
 (defvar hide-ifdef-mode-map nil
   "Keymap used with Hide-Ifdef mode")

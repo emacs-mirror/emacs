@@ -25,7 +25,7 @@
 ; size limit variable.  Bugs fixed from the Twenex version are flagged by
 ; comments starting with ;;; .
 ; 
-; converted to elisp by Spencer Thomas.
+; converted to Emacs Lisp by Spencer Thomas.
 ; Thoroughly cleaned up by Richard Stallman.
 ;  
 ; If anyone feels like hacking at it, Bob Keller (Keller@Utah-20) first

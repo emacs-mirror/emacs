@@ -1,4 +1,8 @@
 ;;; holidays.el --- holiday functions for the calendar package
+
+;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Last-Modified: 14 Jul 1992
+
 ;;; Copyright (C) 1989, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,6 +22,8 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
+
 ;; This collection of functions implements the holiday features as described
 ;; in calendar.el.
 
@@ -31,6 +37,8 @@
 ;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
 ;; Software--Practice and Experience, Volume 20, Number 9 (September, 1990),
 ;; pages 899-928.
+
+;;; Code:
 
 (require 'calendar)
 

@@ -1,8 +1,15 @@
 ;;; hanoi.el --- towers of hanoi in GNUmacs
 
+;; Author: Damon Anton Permezel
+;; Maintainer: FSF
+;; Last-Modified: 09 May 1991
+;; Keywords: games
+
 ; Author (a) 1985, Damon Anton Permezel
 ; This is in the public domain
 ; since he distributed it without copyright notice in 1985.
+
+;;; Code:
 
 ;;;
 ;;; hanoi-topos - direct cursor addressing
@@ -191,3 +198,4 @@
 	    (backward-char (/ (+ len 1) 2))
 	    (delete-char 1) (insert ?\|))))))
 
+;;; hanoi.el

@@ -351,7 +351,7 @@ buffer. The hook comint-exec-hook is run after each exec."
 
 
 ;; This is just (append new old-env) that compresses out shadowed entries.
-;; It's also pretty ugly, mostly due to elisp's horrible iteration structures.
+;; It's also pretty ugly, mostly due to lisp's horrible iteration structures.
 (defun comint-update-env (old-env new)
   (let ((ans (reverse new))
 	(vars (mapcar (function (lambda (vv)
