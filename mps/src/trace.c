@@ -1,14 +1,14 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.88) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!trace.c(trunk.89) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.trace.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.88) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.89) $");
 
 
 /* Types
@@ -351,24 +351,21 @@ static void TraceSetSignalEmergency(TraceSet ts, Arena arena)
 
 /* Collection control parameters */
 
-/* Defined here, because they are used by more than one module (pool). */
-/* They have the wrong name because they originally came from AMC, and */
-/* binary compatibility was required for ASG. @@@@ */
-
-unsigned long AMCGen0Frequency = 4000uL;
-unsigned long AMCGen1Frequency = 32000uL;
-unsigned long AMCGen2Frequency = 200000uL;
-unsigned long AMCGen2plusFrequencyMultiplier = 1000uL;
-unsigned long AMCGen0RampmodeFrequency = 4000uL;
-unsigned long AMCGen1RampmodeFrequency = 20000uL;
-unsigned long AMCRampGenFrequency = 300000uL;
-unsigned long AMCGen2RampmodeFrequency = 1000000uL;
-unsigned long AMCGen2plusRampmodeFrequencyMultiplier = 1000000uL;
-Serial AMCRampGenFollows = 1;
-Serial AMCGenFinal = 0; /* default: no final generation */
+unsigned long TraceGen0Size = 4000uL;
+unsigned long TraceGen1Size = 3000uL;
+unsigned long TraceGen2Size = 3000uL;
+unsigned long TraceGen2plusSizeMultiplier = 1uL;
+unsigned long TraceGen0RampmodeSize = 4000uL;
+unsigned long TraceGen1RampmodeSize = 2000uL;
+unsigned long TraceRampGenSize = 6000uL;
+unsigned long TraceGen2RampmodeSize = 1000000uL;
+unsigned long TraceGen2plusRampmodeSizeMultiplier = 1uL;
+Serial TraceRampGenFollows = 1;
+Serial TraceFinalGen = 0; /* default: no final generation */
+Serial TraceTopGen = 2;
 
 double TraceGen0IncrementalityMultiple = 0.5;
-double TraceMortalityEstimate = 0.5;
+double TraceMortalityEstimate = 0.8;
 
 
 /* TraceSetWhiteUnion
