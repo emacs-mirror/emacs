@@ -218,10 +218,6 @@ This also sets the following coding systems to CODING-SYSTEM:
 
 ;;; Language support staffs.
 
-(defvar primary-language "English"
-  "Name of a user's primary language.
-Emacs provide various language supports based on this variable.")
-
 (defvar language-info-alist nil
   "Alist of language names vs the corresponding information of various kind.
 Each element looks like:
