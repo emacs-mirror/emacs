@@ -358,7 +358,9 @@ Has a preference of looking backwards."
 			 ;; or the DEFUN macro used by the C library.
 			 (if (condition-case nil
 				 (and (save-excursion
-					(forward-line 1)
+					(end-of-line)
+					(while (= (preceding-char) ?\\)
+					  (end-of-line 2))
 					(backward-sexp 1)
 					(beginning-of-line)
 					(setq tem (point))
