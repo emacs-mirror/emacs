@@ -1,3 +1,8 @@
+2003-10-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Fcoding_system_p): Return t for auto-loading coding
+	system.
+
 2003-10-07  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Qcoding_system_define_form): New variable.
