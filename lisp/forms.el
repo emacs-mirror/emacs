@@ -282,10 +282,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.16 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.17 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.16 1995/05/30 22:54:53 kwzh Exp rms $")
+  $Id: forms.el,v 2.17 1995/06/17 13:00:22 rms Exp jvromans $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -1308,7 +1308,6 @@ Commands:                        Equivalent keys in read-only mode:
     '("Next Field" . forms-next-field))
   (put 'forms-insert-record 'menu-enable '(not forms-read-only))
   (put 'forms-delete-record 'menu-enable '(not forms-read-only))
-  (setq mouse-major-mode-menu map)
 )
 (defun forms--mode-menu-edit (map)
 ;;; Menu initialisation
@@ -1355,7 +1354,6 @@ Commands:                        Equivalent keys in read-only mode:
     '("Next Field" . forms-next-field))
   (put 'forms-insert-record 'menu-enable '(not forms-read-only))
   (put 'forms-delete-record 'menu-enable '(not forms-read-only))
-  (setq mouse-major-mode-menu map)
 )
 
 (defun forms--mode-commands1 (map) 
