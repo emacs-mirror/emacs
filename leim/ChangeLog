@@ -1,3 +1,8 @@
+2003-02-05  David Kastrup  <dak@gnu.org>
+
+	* quail/greek.el: fix iota accent typos in greek-babel
+	encoding.
+
 2003-01-05  Dave Love  <fx@gnu.org>
 
 	* makefile.w32-in (SLAVIC): Add croatian.elc.
